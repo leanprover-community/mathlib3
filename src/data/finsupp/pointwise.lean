@@ -15,7 +15,6 @@ and `monoid_algebra`.
 -/
 
 noncomputable theory
-open_locale classical
 
 open finset
 
@@ -36,7 +35,7 @@ instance : has_mul (α →₀ β) := ⟨zip_with (*) (mul_zero 0)⟩
 @[simp] lemma mul_apply {g₁ g₂ : α →₀ β} {a : α} : (g₁ * g₂) a = g₁ a * g₂ a :=
 rfl
 
-lemma support_mul {g₁ g₂ : α →₀ β} : (g₁ * g₂).support ⊆ g₁.support ∩ g₂.support :=
+lemma support_mul [decidable_eq α] {g₁ g₂ : α →₀ β} : (g₁ * g₂).support ⊆ g₁.support ∩ g₂.support :=
 begin
   intros a h,
   simp only [mul_apply, mem_support_iff] at h,
@@ -70,5 +69,37 @@ instance [non_unital_non_assoc_semiring β] : non_unital_non_assoc_semiring (α 
 instance [non_unital_semiring β] : non_unital_semiring (α →₀ β) :=
 { ..(infer_instance : semigroup (α →₀ β)),
   ..(infer_instance : non_unital_non_assoc_semiring (α →₀ β)) }
+
+instance [non_unital_non_assoc_ring β] : non_unital_non_assoc_ring (α →₀ β) :=
+{ left_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, left_distrib] {proj := ff} },
+  right_distrib := λ f g h,
+    by { ext, simp only [mul_apply, add_apply, right_distrib] {proj := ff} },
+  ..(infer_instance : mul_zero_class (α →₀ β)),
+  ..(infer_instance : add_comm_group (α →₀ β)) }
+
+-- TODO can this be generalized in the direction of `pi.has_scalar'`
+-- (i.e. dependent functions and finsupps)
+-- TODO in theory this could be generalised, we only really need `smul_zero` for the definition
+/-- The pointwise multiplicative action of functions on finitely supported functions -/
+instance pointwise_module [semiring β] : module (α → β) (α →₀ β) :=
+{ smul := λ f g, finsupp.of_support_finite (λ a, f a • g a) begin
+    apply set.finite.subset g.finite_support,
+    simp only [function.support_subset_iff, finsupp.mem_support_iff, ne.def,
+      finsupp.fun_support_eq, finset.mem_coe],
+    intros x hx h,
+    apply hx,
+    rw [h, smul_zero],
+  end,
+  one_smul := λ b,
+    by { ext a, simp only [one_smul, pi.one_apply, finsupp.of_support_finite_coe], },
+  mul_smul := λ x y b, by simp [finsupp.of_support_finite_coe, mul_smul],
+  smul_add := λ r x y, finsupp.ext (λ a, by simpa only [smul_add, pi.add_apply, coe_add]),
+  smul_zero := λ b, finsupp.ext (by simp [finsupp.of_support_finite_coe, smul_zero]),
+  zero_smul := λ a, finsupp.ext (λ b, by simp [finsupp.of_support_finite_coe]),
+  add_smul := λ r s x, finsupp.ext (λ b, by simp [finsupp.of_support_finite_coe, add_smul]) }
+
+@[simp]
+lemma coe_pointwise_module [semiring β] (f : α → β) (g : α →₀ β) :
+  ⇑(f • g) = f • g := rfl
 
 end finsupp

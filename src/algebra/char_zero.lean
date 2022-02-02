@@ -65,6 +65,10 @@ variables {R : Type*} [add_monoid R] [has_one R] [char_zero R]
 theorem cast_injective : function.injective (coe : ℕ → R) :=
 char_zero.cast_injective
 
+/-- `nat.cast` as an embedding into monoids of characteristic `0`. -/
+@[simps]
+def cast_embedding : ℕ ↪ R := ⟨coe, cast_injective⟩
+
 @[simp, norm_cast] theorem cast_inj {m n : ℕ} : (m : R) = n ↔ m = n :=
 cast_injective.eq_iff
 
@@ -121,6 +125,12 @@ end
 
 section
 variables {R : Type*} [ring R] [no_zero_divisors R] [char_zero R]
+
+lemma neg_eq_self_iff {a : R} : -a = a ↔ a = 0 :=
+neg_eq_iff_add_eq_zero.trans add_self_eq_zero
+
+lemma eq_neg_self_iff {a : R} : a = -a ↔ a = 0 :=
+eq_neg_iff_add_eq_zero.trans add_self_eq_zero
 
 lemma nat_mul_inj {n : ℕ} {a b : R} (h : (n : R) * a = (n : R) * b) : n = 0 ∨ a = b :=
 begin
@@ -190,11 +200,11 @@ section ring_hom
 variables {R S : Type*} [semiring R] [semiring S]
 
 lemma ring_hom.char_zero (ϕ : R →+* S) [hS : char_zero S] : char_zero R :=
-⟨λ a b h, char_zero.cast_injective (by rw [←ϕ.map_nat_cast, ←ϕ.map_nat_cast, h])⟩
+⟨λ a b h, char_zero.cast_injective (by rw [←map_nat_cast ϕ, ←map_nat_cast ϕ, h])⟩
 
 lemma ring_hom.char_zero_iff {ϕ : R →+* S} (hϕ : function.injective ϕ) :
   char_zero R ↔ char_zero S :=
-⟨λ hR, ⟨λ a b h, by rwa [←@nat.cast_inj R _ _ hR, ←hϕ.eq_iff, ϕ.map_nat_cast, ϕ.map_nat_cast]⟩,
+⟨λ hR, ⟨λ a b h, by rwa [←@nat.cast_inj R _ _ hR, ←hϕ.eq_iff, map_nat_cast ϕ, map_nat_cast ϕ]⟩,
   λ hS, by exactI ϕ.char_zero⟩
 
 end ring_hom

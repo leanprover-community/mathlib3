@@ -3,11 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import tactic.ring_exp
-import tactic.chain
-import algebra.monoid_algebra
-import data.finset.sort
-import tactic.ring
+import algebra.monoid_algebra.basic
 
 /-!
 # Theory of univariate polynomials
@@ -35,9 +31,11 @@ the polynomials. For instance,
 
 Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a commutative semiring, but
 through a structure to make them irreducible from the point of view of the kernel. Most operations
-are irreducible since Lean can not compute anyway with `add_monoid_algebra`. An exception is the
-zero polynomial, that we make semireducible so that its coefficients are definitionally
-equal to `0`.
+are irreducible since Lean can not compute anyway with `add_monoid_algebra`. There are two
+exceptions that we make semireducible:
+* The zero polynomial, so that its coefficients are definitionally equal to `0`.
+* The scalar action, to permit typeclass search to unfold it to resolve potential instance
+  diamonds.
 
 The raw implementation of the equivalence between `polynomial R` and `add_monoid_algebra R ℕ` is
 done through `of_finsupp` and `to_finsupp` (or, equivalently, `rcases p` when `p` is a polynomial
@@ -81,16 +79,14 @@ lemma exists_iff_exists_finsupp (P : polynomial R → Prop) :
 | ⟨a⟩ := ⟨-a⟩
 @[irreducible] private def mul : polynomial R → polynomial R → polynomial R
 | ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
-@[irreducible] private def smul {S : Type*} [semiring S] [module S R] :
-  S → polynomial R → polynomial R
-| a ⟨b⟩ := ⟨a • b⟩
 
 instance : has_zero (polynomial R) := ⟨⟨0⟩⟩
 instance : has_one (polynomial R) := ⟨monomial_fun 0 (1 : R)⟩
 instance : has_add (polynomial R) := ⟨add⟩
 instance {R : Type u} [ring R] : has_neg (polynomial R) := ⟨neg⟩
 instance : has_mul (polynomial R) := ⟨mul⟩
-instance {S : Type*} [semiring S] [module S R] : has_scalar S (polynomial R) := ⟨smul⟩
+instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_scalar S (polynomial R) :=
+⟨λ r p, ⟨r • p.to_finsupp⟩⟩
 
 lemma zero_to_finsupp : (⟨0⟩ : polynomial R) = 0 :=
 rfl
@@ -106,8 +102,12 @@ lemma add_to_finsupp {a b} : (⟨a⟩ + ⟨b⟩ : polynomial R) = ⟨a + b⟩ :=
 lemma neg_to_finsupp {R : Type u} [ring R] {a} : (-⟨a⟩ : polynomial R) = ⟨-a⟩ :=
 show neg _ = _, by rw neg
 lemma mul_to_finsupp {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
-lemma smul_to_finsupp {S : Type*} [semiring S] [module S R] {a : S} {b} :
-  (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := show smul _ _ = _, by rw smul
+lemma smul_to_finsupp {S : Type*} [monoid S] [distrib_mul_action S R] {a : S} {b} :
+  (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := rfl
+
+lemma _root_.is_smul_regular.polynomial {S : Type*} [monoid S] [distrib_mul_action S R] {a : S}
+  (ha : is_smul_regular R a) : is_smul_regular (polynomial R) a
+| ⟨x⟩ ⟨y⟩ h := congr_arg _ $ ha.finsupp (polynomial.of_finsupp.inj h)
 
 instance : inhabited (polynomial R) := ⟨0⟩
 
@@ -125,22 +125,34 @@ by refine_struct
   simp [← zero_to_finsupp, ← one_to_finsupp, add_to_finsupp, mul_to_finsupp, mul_assoc, mul_add,
     add_mul, smul_to_finsupp, nat.succ_eq_one_add]; abel }
 
-instance {S} [semiring S] [module S R] : module S (polynomial R) :=
+instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S (polynomial R) :=
 { smul := (•),
   one_smul := by { rintros ⟨⟩, simp [smul_to_finsupp] },
   mul_smul := by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, mul_smul], },
   smul_add := by { rintros _ ⟨⟩ ⟨⟩, simp [smul_to_finsupp, add_to_finsupp] },
-  smul_zero := by { rintros _, simp [← zero_to_finsupp, smul_to_finsupp] },
-  add_smul := by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul] },
-  zero_smul := by { rintros ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] } }
+  smul_zero := by { rintros _, simp [← zero_to_finsupp, smul_to_finsupp] } }
 
-instance {S₁ S₂} [semiring S₁] [semiring S₂] [module S₁ R] [module S₂ R]
+instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_scalar S R] :
+  has_faithful_scalar S (polynomial R) :=
+{ eq_of_smul_eq_smul := λ s₁ s₂ h, eq_of_smul_eq_smul $ λ a : ℕ →₀ R, congr_arg to_finsupp (h ⟨a⟩) }
+
+instance {S} [semiring S] [module S R] : module S (polynomial R) :=
+{ smul := (•),
+  add_smul := by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul] },
+  zero_smul := by { rintros ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] },
+  ..polynomial.distrib_mul_action }
+
+instance {S₁ S₂} [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R] [distrib_mul_action S₂ R]
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ (polynomial R) :=
 ⟨by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, smul_comm] }⟩
 
-instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [module S₁ R] [module S₂ R]
-  [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
+instance {S₁ S₂} [has_scalar S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
+  [distrib_mul_action S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
 ⟨by { rintros _ _ ⟨⟩, simp [smul_to_finsupp] }⟩
+
+instance {S} [monoid S] [distrib_mul_action S R] [distrib_mul_action Sᵐᵒᵖ R]
+  [is_central_scalar S R] : is_central_scalar S (polynomial R) :=
+⟨by { rintros _ ⟨⟩, simp [smul_to_finsupp, op_smul_eq_smul] }⟩
 
 instance [subsingleton R] : unique (polynomial R) :=
 { uniq := by { rintros ⟨x⟩, change (⟨x⟩ : polynomial R) = 0, rw [← zero_to_finsupp], simp },
@@ -158,6 +170,11 @@ def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
   right_inv := λ p, rfl,
   map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp] },
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp] } }
+
+/-- Ring isomorphism between `(polynomial R)ᵐᵒᵖ` and `polynomial Rᵐᵒᵖ`. -/
+@[simps]
+def op_ring_equiv : (polynomial R)ᵐᵒᵖ ≃+* polynomial Rᵐᵒᵖ :=
+((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
 variable {R}
 
@@ -189,14 +206,15 @@ def monomial (n : ℕ) : R →ₗ[R] polynomial R :=
 @[simp]
 lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
-by simp [monomial, monomial_fun]
+(monomial n).map_zero
 
 -- This is not a `simp` lemma as `monomial_zero_left` is more general.
 lemma monomial_zero_one : monomial 0 (1 : R) = 1 := rfl
 
+-- TODO: can't we just delete this one?
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
-by simp [monomial, monomial_fun]
+(monomial n).map_add _ _
 
 lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=
@@ -212,7 +230,7 @@ begin
   { simp [pow_succ, ih, monomial_mul_monomial, nat.succ_eq_add_one, mul_add, add_comm] },
 end
 
-lemma smul_monomial {S} [semiring S] [module S R] (a : S) (n : ℕ) (b : R) :
+lemma smul_monomial {S} [monoid S] [distrib_mul_action S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=
 by simp [monomial, monomial_fun, smul_to_finsupp]
 
@@ -221,6 +239,18 @@ by simp [to_finsupp_iso, monomial, monomial_fun]
 
 @[simp] lemma to_finsupp_iso_symm_single : (to_finsupp_iso R).symm (single n a) = monomial n a :=
 by simp [to_finsupp_iso, monomial, monomial_fun]
+
+lemma monomial_injective (n : ℕ) :
+  function.injective (monomial n : R → polynomial R) :=
+begin
+  convert (to_finsupp_iso R).symm.injective.comp (single_injective n),
+  ext,
+  simp
+end
+
+@[simp] lemma monomial_eq_zero_iff (t : R) (n : ℕ) :
+  monomial n t = 0 ↔ t = 0 :=
+linear_map.map_eq_zero_iff _ (polynomial.monomial_injective n)
 
 lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
 begin
@@ -249,6 +279,10 @@ lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 
 lemma C_add : C (a + b) = C a + C b := C.map_add a b
 
+@[simp] lemma smul_C {S} [monoid S] [distrib_mul_action S R] (s : S) (r : R) :
+  s • C r = C (s • r) :=
+smul_monomial _ _ r
+
 @[simp] lemma C_bit0 : C (bit0 a) = bit0 (C a) := C_add
 
 @[simp] lemma C_bit1 : C (bit1 a) = bit1 (C a) := by simp [bit1, C_bit0]
@@ -257,7 +291,7 @@ lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
 
 @[simp]
 lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
-C.map_nat_cast n
+map_nat_cast C n
 
 @[simp] lemma C_mul_monomial : C a * monomial n b = monomial n (a * b) :=
 by simp only [←monomial_zero_left, monomial_mul_monomial, zero_add]
@@ -284,6 +318,7 @@ begin
   simp only [X, monomial, monomial_fun, mul_to_finsupp, linear_map.coe_mk],
   ext,
   simp [add_monoid_algebra.mul_apply, sum_single_index, add_comm],
+  congr; ext; congr,
 end
 
 lemma X_pow_mul {n : ℕ} : X^n * p = p * X^n :=
@@ -298,6 +333,8 @@ lemma X_pow_mul_assoc {n : ℕ} : (p * X^n) * q = (p * q) * X^n :=
 by rw [mul_assoc, X_pow_mul, ←mul_assoc]
 
 lemma commute_X (p : polynomial R) : commute X p := X_mul
+
+lemma commute_X_pow (p : polynomial R) (n : ℕ) : commute (X ^ n) p := X_pow_mul
 
 @[simp]
 lemma monomial_mul_X (n : ℕ) (r : R) : monomial n r * X = monomial (n+1) r :=
@@ -381,22 +418,23 @@ by { rcases p, rcases q, simp [coeff, finsupp.ext_iff] }
 @[ext] lemma ext {p q : polynomial R} : (∀ n, coeff p n = coeff q n) → p = q :=
 ext_iff.2
 
+/-- Monomials generate the additive monoid of polynomials. -/
+lemma add_submonoid_closure_set_of_eq_monomial :
+  add_submonoid.closure {p : polynomial R | ∃ n a, p = monomial n a} = ⊤ :=
+begin
+  apply top_unique,
+  rw [← add_submonoid.map_equiv_top (to_finsupp_iso R).symm.to_add_equiv,
+    ← finsupp.add_closure_set_of_eq_single, add_monoid_hom.map_mclosure],
+  refine add_submonoid.closure_mono (set.image_subset_iff.2 _),
+  rintro _ ⟨n, a, rfl⟩,
+  exact ⟨n, a, polynomial.to_finsupp_iso_symm_single⟩,
+end
+
 lemma add_hom_ext {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
   (h : ∀ n a, f (monomial n a) = g (monomial n a)) :
   f = g :=
-begin
-  set f' : add_monoid_algebra R ℕ →+ M := f.comp (to_finsupp_iso R).symm with hf',
-  set g' : add_monoid_algebra R ℕ →+ M := g.comp (to_finsupp_iso R).symm with hg',
-  have : ∀ n a, f' (single n a) = g' (single n a) := λ n, by simp [hf', hg', h n],
-  have A : f' = g' := finsupp.add_hom_ext this,
-  have B : f = f'.comp (to_finsupp_iso R), by { rw [hf', add_monoid_hom.comp_assoc], ext x,
-  simp only [ring_equiv.symm_apply_apply, add_monoid_hom.coe_comp, function.comp_app,
-    ring_hom.coe_add_monoid_hom, ring_equiv.coe_to_ring_hom, coe_coe]},
-  have C : g = g'.comp (to_finsupp_iso R), by { rw [hg', add_monoid_hom.comp_assoc], ext x,
-  simp only [ring_equiv.symm_apply_apply, add_monoid_hom.coe_comp, function.comp_app,
-    ring_hom.coe_add_monoid_hom, ring_equiv.coe_to_ring_hom, coe_coe]},
-  rw [B, C, A],
-end
+add_monoid_hom.eq_of_eq_on_mdense add_submonoid_closure_set_of_eq_monomial $
+  by { rintro p ⟨n, a, rfl⟩, exact h n a }
 
 @[ext] lemma add_hom_ext' {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
   (h : ∀ n, f.comp (monomial n).to_add_monoid_hom = g.comp (monomial n).to_add_monoid_hom) :
@@ -532,7 +570,7 @@ end
 
 @[simp] lemma support_erase (p : polynomial R) (n : ℕ) :
   support (p.erase n) = (support p).erase n :=
-by { rcases p, simp only [support, erase, support_erase], congr }
+by { rcases p, simp only [support, erase, support_erase] }
 
 lemma monomial_add_erase (p : polynomial R) (n : ℕ) : monomial n (coeff p n) + p.erase n = p :=
 begin
@@ -562,6 +600,53 @@ by simp [coeff_erase]
   coeff (p.erase n) i = coeff p i :=
 by simp [coeff_erase, h]
 
+section update
+
+/-- Replace the coefficient of a `p : polynomial p` at a given degree `n : ℕ`
+by a given value `a : R`. If `a = 0`, this is equal to `p.erase n`
+If `p.nat_degree < n` and `a ≠ 0`, this increases the degree to `n`.  -/
+def update (p : polynomial R) (n : ℕ) (a : R) :
+  polynomial R :=
+polynomial.of_finsupp (p.to_finsupp.update n a)
+
+lemma coeff_update (p : polynomial R) (n : ℕ) (a : R) :
+  (p.update n a).coeff = function.update p.coeff n a :=
+begin
+  ext,
+  cases p,
+  simp only [coeff, update, function.update_apply, coe_update],
+end
+
+lemma coeff_update_apply (p : polynomial R) (n : ℕ) (a : R) (i : ℕ) :
+  (p.update n a).coeff i = if (i = n) then a else p.coeff i :=
+by rw [coeff_update, function.update_apply]
+
+@[simp] lemma coeff_update_same (p : polynomial R) (n : ℕ) (a : R) :
+  (p.update n a).coeff n = a :=
+by rw [p.coeff_update_apply, if_pos rfl]
+
+lemma coeff_update_ne (p : polynomial R) {n : ℕ} (a : R) {i : ℕ} (h : i ≠ n) :
+  (p.update n a).coeff i = p.coeff i :=
+by rw [p.coeff_update_apply, if_neg h]
+
+@[simp] lemma update_zero_eq_erase (p : polynomial R) (n : ℕ) :
+  p.update n 0 = p.erase n :=
+by { ext, rw [coeff_update_apply, coeff_erase] }
+
+lemma support_update (p : polynomial R) (n : ℕ) (a : R) [decidable (a = 0)] :
+  support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
+by { cases p, simp only [support, update, support_update], congr }
+
+lemma support_update_zero (p : polynomial R) (n : ℕ) :
+  support (p.update n 0) = p.support.erase n :=
+by rw [update_zero_eq_erase, support_erase]
+
+lemma support_update_ne_zero (p : polynomial R) (n : ℕ) {a : R} (ha : a ≠ 0) :
+  support (p.update n a) = insert n p.support :=
+by classical; rw [support_update, if_neg ha]
+
+end update
+
 end semiring
 
 section comm_semiring
@@ -578,10 +663,10 @@ variables [ring R]
 instance : ring (polynomial R) :=
 { neg := has_neg.neg,
   add_left_neg := by { rintros ⟨⟩, simp [neg_to_finsupp, add_to_finsupp, ← zero_to_finsupp] },
-  gsmul := (•),
-  gsmul_zero' := by { rintro ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] },
-  gsmul_succ' := by { rintros n ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul, add_comm] },
-  gsmul_neg' := by { rintros n ⟨⟩,
+  zsmul := (•),
+  zsmul_zero' := by { rintro ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] },
+  zsmul_succ' := by { rintros n ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul, add_comm] },
+  zsmul_neg' := by { rintros n ⟨⟩,
     simp only [smul_to_finsupp, neg_to_finsupp], simp [add_smul, add_mul] },
   .. polynomial.semiring }
 

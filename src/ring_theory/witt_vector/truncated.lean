@@ -5,7 +5,6 @@ Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import ring_theory.witt_vector.init_tail
-import tactic.equiv_rw
 
 /-!
 
@@ -60,7 +59,7 @@ equal as types but will have different ring operations.)
 def truncated_witt_vector (p : ℕ) (n : ℕ) (R : Type*) := fin n → R
 
 instance (p n : ℕ) (R : Type*) [inhabited R] : inhabited (truncated_witt_vector p n R) :=
-⟨λ _, default R⟩
+⟨λ _, default⟩
 
 variables {n R}
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
-import category_theory.limits.cofinal
+import category_theory.limits.final
 import topology.sheaves.sheaf_condition.pairwise_intersections
 
 /-!
@@ -50,7 +50,7 @@ The category of open sets contained in some element of the cover.
 def opens_le_cover : Type v := { V : opens X // ∃ i, V ≤ U i }
 
 instance [inhabited ι] : inhabited (opens_le_cover U) :=
-⟨⟨⊥, default ι, bot_le⟩⟩
+⟨⟨⊥, default, bot_le⟩⟩
 
 instance : category (opens_le_cover U) := category_theory.full_subcategory _
 
@@ -87,15 +87,14 @@ open sheaf_condition
 /--
 An equivalent formulation of the sheaf condition
 (which we prove equivalent to the usual one below as
-`sheaf_condition_equiv_sheaf_condition_opens_le_cover`).
+`is_sheaf_iff_is_sheaf_opens_le_cover`).
 
 A presheaf is a sheaf if `F` sends the cone `(opens_le_cover_cocone U).op` to a limit cone.
 (Recall `opens_le_cover_cocone U`, has cone point `supr U`,
 mapping down to any `V` which is contained in some `U i`.)
 -/
-@[derive subsingleton, nolint has_inhabited_instance]
-def sheaf_condition_opens_le_cover : Type (max u (v+1)) :=
-Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (F.map_cone (opens_le_cover_cocone U).op)
+def is_sheaf_opens_le_cover : Prop :=
+∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (F.map_cone (opens_le_cover_cocone U).op))
 
 namespace sheaf_condition
 
@@ -143,7 +142,7 @@ of all opens contained in some `U i`.
 -/
 -- This is a case bash: for each pair of types of objects in `pairwise ι`,
 -- we have to explicitly construct a zigzag.
-instance : cofinal (pairwise_to_opens_le_cover U) :=
+instance : functor.final (pairwise_to_opens_le_cover U) :=
 ⟨λ V, is_connected_of_zigzag $ λ A B, begin
   rcases A with ⟨⟨⟩, ⟨i⟩|⟨i,j⟩, a⟩;
   rcases B with ⟨⟨⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
@@ -217,12 +216,12 @@ in terms of a limit diagram over all `{ V : opens X // ∃ i, V ≤ U i }`
 is equivalent to the reformulation
 in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
-def sheaf_condition_opens_le_cover_equiv_sheaf_condition_pairwise_intersections (F : presheaf C X) :
-  F.sheaf_condition_opens_le_cover ≃ F.sheaf_condition_pairwise_intersections :=
-equiv.Pi_congr_right $ λ ι, equiv.Pi_congr_right $ λ U,
-calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
+lemma is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
+  F.is_sheaf_opens_le_cover ↔ F.is_sheaf_pairwise_intersections :=
+forall₂_congr $ λ ι U, equiv.nonempty_congr $
+  calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
     ≃ is_limit ((F.map_cone (opens_le_cover_cocone U).op).whisker (pairwise_to_opens_le_cover U).op)
-        : (cofinal.is_limit_whisker_equiv (pairwise_to_opens_le_cover U) _).symm
+        : (functor.initial.is_limit_whisker_equiv (pairwise_to_opens_le_cover U).op _).symm
 ... ≃ is_limit (F.map_cone ((opens_le_cover_cocone U).op.whisker (pairwise_to_opens_le_cover U).op))
         : is_limit.equiv_iso_limit F.map_cone_whisker.symm
 ... ≃ is_limit ((cones.postcompose_equivalence _).functor.obj
@@ -241,11 +240,11 @@ variables [has_products C]
 The sheaf condition in terms of an equalizer diagram is equivalent
 to the reformulation in terms of a limit diagram over all `{ V : opens X // ∃ i, V ≤ U i }`.
 -/
-def sheaf_condition_equiv_sheaf_condition_opens_le_cover (F : presheaf C X) :
-  F.sheaf_condition ≃ F.sheaf_condition_opens_le_cover :=
-equiv.trans
-  (sheaf_condition_equiv_sheaf_condition_pairwise_intersections F)
-  (sheaf_condition_opens_le_cover_equiv_sheaf_condition_pairwise_intersections F).symm
+lemma is_sheaf_iff_is_sheaf_opens_le_cover (F : presheaf C X) :
+  F.is_sheaf ↔ F.is_sheaf_opens_le_cover :=
+iff.trans
+  (is_sheaf_iff_is_sheaf_pairwise_intersections F)
+  (is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections F).symm
 
 end presheaf
 

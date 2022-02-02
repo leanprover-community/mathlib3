@@ -29,7 +29,7 @@ def encode_list : list α → ℕ
 /-- Explicit decoding function for `list α` -/
 def decode_list : ℕ → option (list α)
 | 0        := some []
-| (succ v) := match unpair v, unpair_le_right v with
+| (succ v) := match unpair v, unpair_right_le v with
   | (v₁, v₂), h :=
     have v₂ < succ v, from lt_succ_of_le h,
     (::) <$> decode α v₁ <*> decode_list v₂
@@ -58,7 +58,7 @@ end
 
 theorem length_le_encode : ∀ (l : list α), length l ≤ encode l
 | [] := _root_.zero_le _
-| (a :: l) := succ_le_succ $ (length_le_encode l).trans (le_mkpair_right _ _)
+| (a :: l) := succ_le_succ $ (length_le_encode l).trans (right_le_mkpair _ _)
 
 end list
 
@@ -104,7 +104,7 @@ def trunc_encodable_of_fintype (α : Type*) [decidable_eq α] [fintype α] : tru
 /-- A noncomputable way to arbitrarily choose an ordering on a finite type.
   It is not made into a global instance, since it involves an arbitrary choice.
   This can be locally made into an instance with `local attribute [instance] fintype.encodable`. -/
-noncomputable def fintype.encodable (α : Type*) [fintype α] : encodable α :=
+noncomputable def _root_.fintype.encodable (α : Type*) [fintype α] : encodable α :=
 by { classical, exact (encodable.trunc_encodable_of_fintype α).out }
 
 /-- If `α` is encodable, then so is `vector α n`. -/
@@ -144,15 +144,19 @@ def fintype_pi (α : Type*) (π : α → Type*) [decidable_eq α] [fintype α] [
 def sorted_univ (α) [fintype α] [encodable α] : list α :=
 finset.univ.sort (encodable.encode' α ⁻¹'o (≤))
 
-theorem mem_sorted_univ {α} [fintype α] [encodable α] (x : α) : x ∈ sorted_univ α :=
+@[simp] theorem mem_sorted_univ {α} [fintype α] [encodable α] (x : α) : x ∈ sorted_univ α :=
 (finset.mem_sort _).2 (finset.mem_univ _)
 
-theorem length_sorted_univ {α} [fintype α] [encodable α] :
+@[simp] theorem length_sorted_univ (α) [fintype α] [encodable α] :
   (sorted_univ α).length = fintype.card α :=
 finset.length_sort _
 
-theorem sorted_univ_nodup {α} [fintype α] [encodable α] : (sorted_univ α).nodup :=
+@[simp] theorem sorted_univ_nodup (α) [fintype α] [encodable α] : (sorted_univ α).nodup :=
 finset.sort_nodup _ _
+
+@[simp] theorem sorted_univ_to_finset (α) [fintype α] [encodable α] [decidable_eq α] :
+  (sorted_univ α).to_finset = finset.univ :=
+finset.sort_to_finset _ _
 
 /-- An encodable `fintype` is equivalent to the same size `fin`. -/
 def fintype_equiv_fin {α} [fintype α] [encodable α] :
@@ -160,8 +164,8 @@ def fintype_equiv_fin {α} [fintype α] [encodable α] :
 begin
   haveI : decidable_eq α := encodable.decidable_eq_of_encodable _,
   transitivity,
-  { exact fintype.equiv_fin_of_forall_mem_list mem_sorted_univ (@sorted_univ_nodup α _ _) },
-  exact equiv.cast (congr_arg _ (@length_sorted_univ α _ _))
+  { exact ((sorted_univ_nodup α).nth_le_equiv_of_forall_mem_list _ mem_sorted_univ).symm },
+  exact equiv.cast (congr_arg _ (length_sorted_univ α))
 end
 
 /-- If `α` and `β` are encodable and `α` is a fintype, then `α → β` is encodable as well. -/
@@ -182,7 +186,7 @@ theorem denumerable_list_aux : ∀ n : ℕ,
 | 0        := by rw decode_list; exact ⟨_, rfl, rfl⟩
 | (succ v) := begin
   cases e : unpair v with v₁ v₂,
-  have h := unpair_le_right v,
+  have h := unpair_right_le v,
   rw e at h,
   rcases have v₂ < succ v, from lt_succ_of_le h,
     denumerable_list_aux v₂ with ⟨a, h₁, h₂⟩,
@@ -226,13 +230,13 @@ def raise : list ℕ → ℕ → list ℕ
 
 lemma lower_raise : ∀ l n, lower (raise l n) n = l
 | []       n := rfl
-| (m :: l) n := by rw [raise, lower, nat.add_sub_cancel, lower_raise]
+| (m :: l) n := by rw [raise, lower, add_tsub_cancel_right, lower_raise]
 
 lemma raise_lower : ∀ {l n}, list.sorted (≤) (n :: l) → raise (lower l n) n = l
 | []       n h := rfl
 | (m :: l) n h :=
   have n ≤ m, from list.rel_of_sorted_cons h _ (l.mem_cons_self _),
-  by simp [raise, lower, nat.sub_add_cancel this,
+  by simp [raise, lower, tsub_add_cancel_of_le this,
            raise_lower (list.sorted_of_sorted_cons h)]
 
 lemma raise_chain : ∀ l n, list.chain (≤) n (raise l n)
@@ -273,13 +277,13 @@ def raise' : list ℕ → ℕ → list ℕ
 
 lemma lower_raise' : ∀ l n, lower' (raise' l n) n = l
 | []       n := rfl
-| (m :: l) n := by simp [raise', lower', nat.add_sub_cancel, lower_raise']
+| (m :: l) n := by simp [raise', lower', add_tsub_cancel_right, lower_raise']
 
 lemma raise_lower' : ∀ {l n}, (∀ m ∈ l, n ≤ m) → list.sorted (<) l → raise' (lower' l n) n = l
 | []       n h₁ h₂ := rfl
 | (m :: l) n h₁ h₂ :=
   have n ≤ m, from h₁ _ (l.mem_cons_self _),
-  by simp [raise', lower', nat.sub_add_cancel this, raise_lower'
+  by simp [raise', lower', tsub_add_cancel_of_le this, raise_lower'
     (list.rel_of_sorted_cons h₂ : ∀ a ∈ l, m < a) (list.sorted_of_sorted_cons h₂)]
 
 lemma raise'_chain : ∀ l {m n}, m < n → list.chain (<) m (raise' l n)

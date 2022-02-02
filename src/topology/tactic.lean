@@ -21,8 +21,7 @@ Currently we have one domain-specific tactic for topology: `continuity`.
 Automatically solve goals of the form `continuous f`.
 
 Mark lemmas with `@[continuity]` to add them to the set of lemmas
-used by `continuity`. Note: `to_additive` doesn't know yet how to
-copy the attribute to the additive version.
+used by `continuity`.
 -/
 
 /-- User attribute used to mark tactics used by `continuity`. -/
@@ -114,8 +113,7 @@ add_tactic_doc
 { name := "continuity / continuity'",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.continuity, `tactic.interactive.continuity'],
-  tags := ["lemma application"]
-}
+  tags := ["lemma application"] }
 
 end interactive
 

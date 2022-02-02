@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.equiv.basic
+import data.set.function
 
 /-!
 # Local equivalences
@@ -81,7 +82,7 @@ enough.
 attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of_eq set.image_eq_empty
 set.univ_inter set.preimage_univ set.prod_mk_mem_set_prod_eq and_true set.mem_univ
 set.mem_image_of_mem true_and set.mem_inter_eq set.mem_preimage function.comp_app
-set.inter_subset_left set.mem_prod set.range_id and_self set.mem_range_self
+set.inter_subset_left set.mem_prod set.range_id set.range_prod_map and_self set.mem_range_self
 eq_self_iff_true forall_const forall_true_iff set.inter_univ set.preimage_id function.comp.right_id
 not_false_iff and_imp set.prod_inter_prod set.univ_prod_univ true_or or_true prod.map_mk
 set.preimage_inter heq_iff_eq equiv.sigma_equiv_prod_apply equiv.sigma_equiv_prod_symm_apply
@@ -157,7 +158,7 @@ protected def symm : local_equiv β α :=
   left_inv'   := e.right_inv',
   right_inv'  := e.left_inv' }
 
-instance : has_coe_to_fun (local_equiv α β) := ⟨_, local_equiv.to_fun⟩
+instance : has_coe_to_fun (local_equiv α β) (λ _, α → β) := ⟨local_equiv.to_fun⟩
 
 /-- See Note [custom simps projection] -/
 def simps.symm_apply (e : local_equiv α β) : β → α := e.symm
@@ -367,6 +368,10 @@ e.symm.image_source_inter_eq' _
 lemma source_inter_preimage_inv_preimage (s : set α) :
   e.source ∩ e ⁻¹' (e.symm ⁻¹' s) = e.source ∩ s :=
 set.ext $ λ x, and.congr_right_iff.2 $ λ hx, by simp only [mem_preimage, e.left_inv hx]
+
+lemma source_inter_preimage_target_inter (s : set β) :
+  e.source ∩ (e ⁻¹' (e.target ∩ s)) = e.source ∩ (e ⁻¹' s) :=
+ext $ λ x, ⟨λ hx, ⟨hx.1, hx.2.2⟩, λ hx, ⟨hx.1, e.map_source hx.1, hx.2⟩⟩
 
 lemma target_inter_inv_preimage_preimage (s : set β) :
   e.target ∩ e.symm ⁻¹' (e ⁻¹' s) = e.target ∩ s :=
@@ -615,8 +620,8 @@ section prod
 
 /-- The product of two local equivs, as a local equiv on the product. -/
 def prod (e : local_equiv α β) (e' : local_equiv γ δ) : local_equiv (α × γ) (β × δ) :=
-{ source := set.prod e.source e'.source,
-  target := set.prod e.target e'.target,
+{ source := e.source ×ˢ e'.source,
+  target := e.target ×ˢ e'.target,
   to_fun := λp, (e p.1, e' p.2),
   inv_fun := λp, (e.symm p.1, e'.symm p.2),
   map_source' := λp hp, by { simp at hp, simp [hp] },
@@ -625,10 +630,10 @@ def prod (e : local_equiv α β) (e' : local_equiv γ δ) : local_equiv (α × �
   right_inv'  := λp hp, by { simp at hp, simp [hp] } }
 
 @[simp, mfld_simps] lemma prod_source (e : local_equiv α β) (e' : local_equiv γ δ) :
-  (e.prod e').source = set.prod e.source e'.source := rfl
+  (e.prod e').source = e.source ×ˢ e'.source := rfl
 
 @[simp, mfld_simps] lemma prod_target (e : local_equiv α β) (e' : local_equiv γ δ) :
-  (e.prod e').target = set.prod e.target e'.target := rfl
+  (e.prod e').target = e.target ×ˢ e'.target := rfl
 
 @[simp, mfld_simps] lemma prod_coe (e : local_equiv α β) (e' : local_equiv γ δ) :
   ((e.prod e') : α × γ → β × δ) = (λp, (e p.1, e' p.2)) := rfl

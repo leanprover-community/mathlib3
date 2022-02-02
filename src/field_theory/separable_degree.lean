@@ -3,10 +3,9 @@ Copyright (c) 2021 Jakob Scholbach. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob Scholbach
 -/
-import field_theory.separable
 import algebra.algebra.basic
-import data.polynomial.degree
 import algebra.char_p.exp_char
+import field_theory.separable
 
 /-!
 
@@ -20,7 +19,7 @@ This file contains basics about the separable degree of a polynomial.
 - `has_separable_contraction`: the condition of having a separable contraction
 - `has_separable_contraction.degree`: the separable degree, defined as the degree of some
   separable contraction
-- `irreducible_has_separable_contraction`: any nonzero irreducible polynomial can be contracted
+- `irreducible_has_separable_contraction`: any irreducible polynomial can be contracted
   to a separable polynomial
 - `has_separable_contraction.dvd_degree'`: the degree of a separable contraction divides the degree,
   in function of the exponential characteristic of the field
@@ -92,13 +91,11 @@ variables (q : ℕ) {f : polynomial F} (hf : has_separable_contraction q f)
 /-- Every irreducible polynomial can be contracted to a separable polynomial.
 https://stacks.math.columbia.edu/tag/09H0 -/
 lemma irreducible_has_separable_contraction (q : ℕ) [hF : exp_char F q]
-  (f : polynomial F) [irred : irreducible f] (fn : f ≠ 0) : has_separable_contraction q f :=
+  (f : polynomial F) [irred : irreducible f] : has_separable_contraction q f :=
 begin
   casesI hF,
-  { use f,
-    exact ⟨irreducible.separable irred, ⟨0, by rw [pow_zero, expand_one]⟩⟩ },
-  { haveI qp : fact (nat.prime q) := ⟨hF_hprime⟩,
-    rcases exists_separable_of_irreducible q irred fn with ⟨n, g, hgs, hge⟩,
+  { exact ⟨f, irred.separable, ⟨0, by rw [pow_zero, expand_one]⟩⟩ },
+  { rcases exists_separable_of_irreducible q irred ‹q.prime›.ne_zero with ⟨n, g, hgs, hge⟩,
     exact ⟨g, hgs, n, hge⟩, }
 end
 
@@ -114,7 +111,7 @@ begin
   rw [add_assoc, pow_add, expand_mul] at h_expand,
   let aux := expand_injective (pow_pos hq.1.pos m) h_expand,
   rw aux at hg,
-  have := (is_unit_or_eq_zero_of_separable_expand q (s + 1) hg).resolve_right
+  have := (is_unit_or_eq_zero_of_separable_expand q (s + 1) hq.out.pos hg).resolve_right
     s.succ_ne_zero,
   rw [aux, nat_degree_expand,
     nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit this),

@@ -137,7 +137,7 @@ calc ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥
 ... = ∥F.eval z∥ / ∥F.derivative.eval a∥ : by simp [hz.1]
 ... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ :
   (div_le_div_right deriv_norm_pos).2 hz.2
-... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel (ne_of_gt deriv_norm_pos) _
+... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel _ _
 ... ≤ 1 : mul_le_one (padic_int.norm_le_one _) (T_pow_nonneg _) (le_of_lt (T_pow' _))
 
 private lemma calc_deriv_dist {z z' z1 : ℤ_[p]} (hz' : z' = z - z1)
@@ -150,7 +150,7 @@ calc
 ... = ∥F.eval z∥ / ∥F.derivative.eval a∥ : hz1
 ... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ :
   (div_le_div_right deriv_norm_pos).2 hz.2
-... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel deriv_norm_ne_zero _
+... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel _ _
 ... < ∥F.derivative.eval a∥ :
   (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow (pow_pos (by norm_num) _))
 
@@ -187,7 +187,7 @@ calc ∥F.eval z'∥
 ... ≤ (∥F.derivative.eval a∥^2 * T^(2^n))^2 / ∥F.derivative.eval a∥^2 :
   (div_le_div_right deriv_sq_norm_pos).2 (pow_le_pow_of_le_left (norm_nonneg _) hz.2 _)
 ... = (∥F.derivative.eval a∥^2)^2 * (T^(2^n))^2 / ∥F.derivative.eval a∥^2 : by simp only [mul_pow]
-... = ∥F.derivative.eval a∥^2 * (T^(2^n))^2 : div_sq_cancel deriv_sq_norm_ne_zero _
+... = ∥F.derivative.eval a∥^2 * (T^(2^n))^2 : div_sq_cancel _ _
 ... = ∥F.derivative.eval a∥^2 * T^(2^(n + 1)) : by rw [←pow_mul, pow_succ' 2]
 
 set_option eqn_compiler.zeta true
@@ -241,7 +241,7 @@ calc ∥newton_seq (n+1) - newton_seq n∥
 ... = ∥F.eval (newton_seq n)∥ / ∥F.derivative.eval a∥ : by rw newton_seq_deriv_norm
 ... ≤ ∥F.derivative.eval a∥^2 * T ^ (2^n) / ∥F.derivative.eval a∥ :
   (div_le_div_right deriv_norm_pos).2 (newton_seq_norm_le _)
-... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel (ne_of_gt deriv_norm_pos) _
+... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel _ _
 
 include hnsol
 private lemma T_pos : T > 0 :=

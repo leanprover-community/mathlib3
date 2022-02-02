@@ -74,7 +74,7 @@ variables {s : finset α} {t : finset β} {f : α → β} {w : α → M} {b : M}
 
 In this section we prove the following version of the pigeonhole principle: if the total weight of a
 finite set of pigeons is greater than `n • b`, and they are sorted into `n` pigeonholes, then for
-some pigeonhole, the total weight of the pigeons in this pigeonhole is greateer than `b`, and a few
+some pigeonhole, the total weight of the pigeons in this pigeonhole is greater than `b`, and a few
 variations of this theorem.
 
 The principle is formalized in the following way, see

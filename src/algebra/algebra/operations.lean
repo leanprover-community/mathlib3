@@ -3,7 +3,8 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.basic
+import algebra.algebra.bilinear
+import algebra.module.submodule_pointwise
 
 /-!
 # Multiplication and division of submodules of an algebra.
@@ -27,12 +28,15 @@ It is proved that `submodule R A` is a semiring, and also an algebra over `set A
 multiplication of submodules, division of subodules, submodule semiring
 -/
 
-universes u v
+universes uι u v
 
 open algebra set
+open_locale big_operators
+open_locale pointwise
 
 namespace submodule
 
+variables {ι : Sort uι}
 variables {R : Type u} [comm_semiring R]
 
 section ring
@@ -42,19 +46,22 @@ variables (S T : set A) {M N P Q : submodule R A} {m n : A}
 
 /-- `1 : submodule R A` is the submodule R of A. -/
 instance : has_one (submodule R A) :=
-⟨submodule.map (of_id R A).to_linear_map (⊤ : submodule R R)⟩
+⟨(algebra.linear_map R A).range⟩
 
-theorem one_eq_map_top :
-  (1 : submodule R A) = submodule.map (of_id R A).to_linear_map (⊤ : submodule R R) := rfl
+theorem one_eq_range :
+  (1 : submodule R A) = (algebra.linear_map R A).range := rfl
+
+lemma algebra_map_mem (r : R) : algebra_map R A r ∈ (1 : submodule R A) :=
+linear_map.mem_range_self _ _
+
+@[simp] lemma mem_one {x : A} : x ∈ (1 : submodule R A) ↔ ∃ y, algebra_map R A y = x :=
+by simp only [one_eq_range, linear_map.mem_range, algebra.linear_map_apply]
 
 theorem one_eq_span : (1 : submodule R A) = R ∙ 1 :=
 begin
   apply submodule.ext,
   intro a,
-  erw [mem_map, mem_span_singleton],
-  apply exists_congr,
-  intro r,
-  simpa [smul_def],
+  simp only [mem_one, mem_span_singleton, algebra.smul_def, mul_one]
 end
 
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
@@ -72,12 +79,33 @@ theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P :=
 ⟨λ H m hm n hn, H $ mul_mem_mul hm hn,
 λ H, supr_le $ λ ⟨m, hm⟩, map_le_iff_le_comap.2 $ λ n hn, H m hm n hn⟩
 
+lemma mul_to_add_submonoid : (M * N).to_add_submonoid = M.to_add_submonoid * N.to_add_submonoid :=
+begin
+  dsimp [has_mul.mul],
+  simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid],
+  rw supr_to_add_submonoid,
+  refl,
+end
+
 @[elab_as_eliminator] protected theorem mul_induction_on
   {C : A → Prop} {r : A} (hr : r ∈ M * N)
-  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
-  (h0 : C 0) (ha : ∀ x y, C x → C y → C (x + y))
-  (hs : ∀ (r : R) x, C x → C (r • x)) : C r :=
-(@mul_le _ _ _ _ _ _ _ ⟨C, h0, ha, hs⟩).2 hm hr
+  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n)) (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
+begin
+  rw [←mem_to_add_submonoid, mul_to_add_submonoid] at hr,
+  exact add_submonoid.mul_induction_on hr hm ha,
+end
+
+/-- A dependent version of `mul_induction_on`. -/
+@[elab_as_eliminator] protected theorem mul_induction_on'
+  {C : Π r, r ∈ M * N → Prop}
+  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n) (mul_mem_mul ‹_› ‹_›))
+  (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  {r : A} (hr : r ∈ M * N) : C r hr :=
+begin
+  refine exists.elim _ (λ (hr : r ∈ M * N) (hc : C r hr), hc),
+  exact submodule.mul_induction_on hr
+    (λ x hx y hy, ⟨_, hm _ hx _ hy⟩) (λ x y ⟨_, hx⟩ ⟨_, hy⟩, ⟨_, ha _ _ _ _ hx hy⟩),
+end
 
 variables R
 theorem span_mul_span : span R S * span R T = span R (S * T) :=
@@ -94,6 +122,7 @@ begin
     exact mul_mem_mul (subset_span ha) (subset_span hb) }
 end
 variables {R}
+
 
 variables (M N P Q)
 protected theorem mul_assoc : (M * N) * P = M * (N * P) :=
@@ -182,6 +211,23 @@ end
 
 end decidable_eq
 
+lemma mul_eq_span_mul_set (s t : submodule R A) : s * t = span R ((s : set A) * (t : set A)) :=
+by rw [← span_mul_span, span_eq, span_eq]
+
+lemma supr_mul (s : ι → submodule R A) (t : submodule R A) : (⨆ i, s i) * t = ⨆ i, s i * t :=
+begin
+  suffices : (⨆ i, span R (s i : set A)) * span R t = (⨆ i, span R (s i) * span R t),
+  { simpa only [span_eq] using this },
+  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul],
+end
+
+lemma mul_supr (t : submodule R A) (s : ι → submodule R A) : t * (⨆ i, s i) = ⨆ i, t * s i :=
+begin
+  suffices : span R (t : set A) * (⨆ i, span R (s i)) = (⨆ i, span R t * span R (s i)),
+  { simpa only [span_eq] using this },
+  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.mul_Union],
+end
+
 lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :
   ∃ (T T' : finset A), (T : set A) ⊆ P ∧ (T' : set A) ⊆ Q ∧ x ∈ span R (T * T' : set A) :=
 submodule.mem_span_mul_finite_of_mem_span_mul
@@ -198,7 +244,7 @@ instance : semiring (submodule R A) :=
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
-  ..submodule.add_comm_monoid_submodule,
+  ..submodule.pointwise_add_comm_monoid,
   ..submodule.has_one,
   ..submodule.has_mul }
 
@@ -215,13 +261,40 @@ begin
     apply mul_subset_mul }
 end
 
+/-- Dependent version of `submodule.pow_induction_on`. -/
+protected theorem pow_induction_on'
+  {C : Π (n : ℕ) x, x ∈ M ^ n → Prop}
+  (hr : ∀ r : R, C 0 (algebra_map _ _ r) (algebra_map_mem r))
+  (hadd : ∀ x y i hx hy, C i x hx → C i y hy → C i (x + y) (add_mem _ ‹_› ‹_›))
+  (hmul : ∀ (m ∈ M) i x hx, C i x hx → C (i.succ) (m * x) (mul_mem_mul H hx))
+  {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C n x hx :=
+begin
+  induction n with n n_ih generalizing x,
+  { rw pow_zero at hx,
+    obtain ⟨r, rfl⟩ := hx,
+    exact hr r, },
+  exact submodule.mul_induction_on'
+    (λ m hm x ih, hmul _ hm _ _ _ (n_ih ih))
+    (λ x hx y hy Cx Cy, hadd _ _ _ _ _ Cx Cy) hx,
+end
+
+/-- To show a property on elements of `M ^ n` holds, it suffices to show that it holds for scalars,
+is closed under addition, and holds for `m * x` where `m ∈ M` and it holds for `x` -/
+protected theorem pow_induction_on
+  {C : A → Prop}
+  (hr : ∀ r : R, C (algebra_map _ _ r))
+  (hadd : ∀ x y, C x → C y → C (x + y))
+  (hmul : ∀ (m ∈ M) x, C x → C (m * x))
+  {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C x :=
+submodule.pow_induction_on' M
+  (by exact hr) (λ x y i hx hy, hadd x y) (λ m hm i x hx, hmul _ hm _) hx
+
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
 on either side). -/
 def span.ring_hom : set_semiring A →+* submodule R A :=
 { to_fun := submodule.span R,
   map_zero' := span_empty,
-  map_one' := le_antisymm (span_le.2 $ singleton_subset_iff.2 ⟨1, ⟨⟩, (algebra_map R A).map_one⟩)
-    (map_le_iff_le_comap.2 $ λ r _, mem_span_singleton.2 ⟨r, (algebra_map_eq_smul_one r).symm⟩),
+  map_one' := one_eq_span.symm,
   map_add' := span_union,
   map_mul' := λ s t, by erw [span_mul_span, ← image_mul_prod] }
 
@@ -244,6 +317,20 @@ le_antisymm (mul_le.2 $ λ r hrm s hsn, mul_mem_mul_rev hsn hrm)
 instance : comm_semiring (submodule R A) :=
 { mul_comm := submodule.mul_comm,
   .. submodule.semiring }
+
+lemma prod_span {ι : Type*} (s : finset ι) (M : ι → set A) :
+  (∏ i in s, submodule.span R (M i)) = submodule.span R (∏ i in s, M i) :=
+begin
+  letI := classical.dec_eq ι,
+  refine finset.induction_on s _ _,
+  { simp [one_eq_span, set.singleton_one] },
+  { intros _ _ H ih,
+    rw [finset.prod_insert H, finset.prod_insert H, ih, span_mul_span] }
+end
+
+lemma prod_span_singleton {ι : Type*} (s : finset ι) (x : ι → A) :
+  (∏ i in s, span R ({x i} : set A)) = span R {∏ i in s, x i} :=
+by rw [prod_span, set.finset_prod_singleton]
 
 variables (R A)
 
@@ -292,8 +379,8 @@ which is equivalent to `x • J ⊆ I` (see `mem_div_iff_smul_subset`), but nice
 This is the general form of the ideal quotient, traditionally written $I : J$.
 -/
 instance : has_div (submodule R A) :=
-⟨ λ I J, {
-  carrier   := { x | ∀ y ∈ J, x * y ∈ I },
+⟨ λ I J,
+{ carrier   := { x | ∀ y ∈ J, x * y ∈ I },
   zero_mem' := λ y hy, by { rw zero_mul, apply submodule.zero_mem },
   add_mem'  := λ a b ha hb y hy, by { rw add_mul, exact submodule.add_mem _ (ha _ hy) (hb _ hy) },
   smul_mem' := λ r x hx y hy, by { rw algebra.smul_mul_assoc,

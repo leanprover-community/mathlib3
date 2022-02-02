@@ -4,12 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.equiv_rw
-import control.equiv_functor.instances -- these make equiv_rw more powerful!
 
 -- Uncomment this line to observe the steps of constructing appropriate equivalences.
 -- set_option trace.equiv_rw_type true
-
-import tactic.equiv_rw
 
 -- This fails if we use `occurs` rather than `kdepends_on` in `equiv_rw_type`.
 instance : equiv_functor set :=
@@ -120,8 +117,7 @@ begin
   have : (α → α) ≃ _, {
     apply equiv.arrow_congr,
     apply e,
-    apply e,
-  },
+    apply e, },
   equiv_rw e,
   exact (@id β),
 end
@@ -238,8 +234,7 @@ begin
     -- intro h,
     -- clear_dependent mul,
     -- rename mul' mul,
-    exact mul,
-  },
+    exact mul, },
   -- transport axioms by simplifying, and applying the original axiom
   { intros, dsimp, simp, apply S.mul_assoc, }
 end
@@ -255,8 +250,6 @@ begin
   exact x * y = e (e.symm x * e.symm y)
 end :=
 rfl
-
-attribute [ext] semigroup
 
 lemma semigroup.id_map (α : Type) : semigroup.map (equiv.refl α) = id :=
 by { ext, refl, }
@@ -363,5 +356,39 @@ example
   β → β → β :=
 begin
   equiv_rw e at m,
+  exact m,
+end
+
+-- Rewriting multiple equivalences on target
+example
+  {α β χ δ : Type}
+  (m : β → β → δ → δ)
+  (e₁ : α ≃ β)
+  (e₂ : χ ≃ δ) :
+  α → α → χ → χ :=
+begin
+  equiv_rw [e₁, e₂],
+  exact m,
+end
+
+-- Rewriting multiple equivalences on a hypothesis
+example
+  {α β χ δ : Type}
+  (m : α → α → χ → χ)
+  (e₁ : α ≃ β)
+  (e₂ : χ ≃ δ) :
+  β → β → δ → δ :=
+begin
+  equiv_rw [e₁, e₂] at m,
+  exact m,
+end
+
+example
+  {α β χ δ : Type}
+  (m : β → β → β)
+  (e : α ≃ β) :
+  α → α → α :=
+begin
+  equiv_rw e at *,
   exact m,
 end

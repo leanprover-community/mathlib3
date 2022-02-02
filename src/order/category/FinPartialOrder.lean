@@ -55,7 +55,7 @@ instance has_forget_to_Fintype : has_forget₂ FinPartialOrder Fintype :=
 
 /-- Constructs an equivalence between finite partial orders from an order isomorphism between them.
 -/
-@[simps] def iso_of_order_iso {α β : FinPartialOrder} (e : α ≃o β) : α ≅ β :=
+@[simps] def iso.mk {α β : FinPartialOrder} (e : α ≃o β) : α ≅ β :=
 { hom := e,
   inv := e.symm,
   hom_inv_id' := by { ext, exact e.symm_apply_apply x },
@@ -64,8 +64,8 @@ instance has_forget_to_Fintype : has_forget₂ FinPartialOrder Fintype :=
 /-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
 @[simps] def dual_equiv : FinPartialOrder ≌ FinPartialOrder :=
 equivalence.mk to_dual to_dual
-  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
-  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
+  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
+  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
 end FinPartialOrder
 

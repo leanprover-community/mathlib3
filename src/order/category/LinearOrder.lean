@@ -56,6 +56,6 @@ equivalence.mk to_dual to_dual
 
 end LinearOrder
 
-lemma LinearOrder_dual_equiv_comp_forget_to_PartialOrder :
-  LinearOrder.dual_equiv.functor ⋙ forget₂ LinearOrder PartialOrder
-  = forget₂ LinearOrder PartialOrder ⋙ PartialOrder.dual_equiv.functor := rfl
+lemma LinearOrder_to_dual_comp_forget_to_PartialOrder :
+  LinearOrder.to_dual ⋙ forget₂ LinearOrder PartialOrder =
+    forget₂ LinearOrder PartialOrder ⋙ PartialOrder.to_dual := rfl

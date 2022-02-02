@@ -94,6 +94,6 @@ equivalence.mk to_dual to_dual
 
 end NonemptyFinLinOrd
 
-lemma NonemptyFinLinOrd_dual_equiv_comp_forget_to_LinearOrder :
-  NonemptyFinLinOrd.dual_equiv.functor ⋙ forget₂ NonemptyFinLinOrd LinearOrder
-  = forget₂ NonemptyFinLinOrd LinearOrder ⋙ LinearOrder.dual_equiv.functor := rfl
+lemma NonemptyFinLinOrd_to_dual_comp_forget_to_LinearOrder :
+  NonemptyFinLinOrd.to_dual ⋙ forget₂ NonemptyFinLinOrd LinearOrder =
+    forget₂ NonemptyFinLinOrd LinearOrder ⋙ LinearOrder.to_dual := rfl

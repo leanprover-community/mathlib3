@@ -55,6 +55,6 @@ equivalence.mk to_dual to_dual
 
 end PartialOrder
 
-lemma PartialOrder_dual_equiv_comp_forget_to_Preorder :
-  PartialOrder.dual_equiv.functor ⋙ forget₂ PartialOrder Preorder
-  = forget₂ PartialOrder Preorder ⋙ Preorder.dual_equiv.functor := rfl
+lemma PartialOrder_to_dual_comp_forget_to_Preorder :
+  PartialOrder.to_dual ⋙ forget₂ PartialOrder Preorder =
+    forget₂ PartialOrder Preorder ⋙ Preorder.to_dual := rfl

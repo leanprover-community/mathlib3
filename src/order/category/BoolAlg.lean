@@ -12,6 +12,17 @@ import order.category.BoundedDistribLattice
 This defines `BoolAlg`, the category of boolean algebras.
 -/
 
+namespace order_iso
+variables {α β : Type*}
+
+instance sup_hom_class [semilattice_sup α] [semilattice_sup β] : sup_hom_class (α ≃o β) α β :=
+{ coe := _,
+  coe_injective' := _,
+  map_sup := _,
+  ..order_iso.order_iso_class }
+
+end order_iso
+
 universes u v
 
 open category_theory
@@ -51,4 +62,26 @@ instance has_forget_to_BoundedDistribLattice : has_forget₂ BoolAlg BoundedDist
 { forget₂ := { obj := λ X, BoundedDistribLattice.of X, map := λ X Y f, f },
   forget_comp := rfl }
 
+/-- Constructs an equivalence between boolean algebras from an order isomorphism
+between them. -/
+@[simps] def iso.mk {α β : BoolAlg.{u}} (e : α ≃o β) : α ≅ β :=
+{ hom := e,
+  inv := e.symm,
+  hom_inv_id' := by { ext, exact e.symm_apply_apply x },
+  inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
+
+/-- `order_dual` as a functor. -/
+@[simps] def to_dual : BoolAlg ⥤ BoolAlg :=
+{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+
+/-- The equivalence between `NonemptyFinLinOrd` and itself induced by `order_dual` both ways. -/
+@[simps functor inverse] def dual_equiv : BoolAlg ≌ BoolAlg :=
+equivalence.mk to_dual to_dual
+  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
+  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
+
 end BoolAlg
+
+lemma BoolAlg_to_dual_comp_forget_to_BoundedDistribLattice :
+  BoolAlg.to_dual ⋙ forget₂ BoolAlg BoundedDistribLattice =
+    forget₂ BoolAlg BoundedDistribLattice ⋙ BoundedDistribLattice.to_dual := rfl

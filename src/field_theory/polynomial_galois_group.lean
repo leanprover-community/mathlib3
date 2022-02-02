@@ -335,8 +335,7 @@ begin
     λ h, nat.prime.ne_zero p_deg (nat_degree_eq_zero_iff_degree_le_zero.mpr (le_of_eq h)),
   let α : p.splitting_field := root_of_splits (algebra_map F p.splitting_field)
     (splitting_field.splits p) hp,
-  have hα : is_integral F α :=
-    (is_algebraic_iff_is_integral F).mp (algebra.is_algebraic_of_finite α),
+  have hα : is_integral F α := algebra.is_integral_of_finite _ _ α,
   use finite_dimensional.finrank F⟮α⟯ p.splitting_field,
   suffices : (minpoly F α).nat_degree = p.nat_degree,
   { rw [←finite_dimensional.finrank_mul_finrank F F⟮α⟯ p.splitting_field,

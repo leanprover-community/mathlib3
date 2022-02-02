@@ -40,7 +40,7 @@ def principal (op : ordinal → ordinal → ordinal) (o : ordinal) : Prop :=
 theorem principal_zero {op : ordinal → ordinal → ordinal} : principal op 0 :=
 λ a _ h, (ordinal.not_lt_zero a h).elim
 
-theorem principal_one_iff {op : ordinal → ordinal → ordinal} :
+@[simp] theorem principal_one_iff {op : ordinal → ordinal → ordinal} :
   principal op 1 ↔ op 0 0 = 0 :=
 begin
   refine ⟨λ h, _, λ h a b ha hb, _⟩,

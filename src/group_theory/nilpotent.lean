@@ -743,39 +743,28 @@ lemma normalizer_condition_of_is_nilpotent [h : is_nilpotent G] : normalizer_con
 begin
   -- roughly based on https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
   rw normalizer_condition_iff_only_full_group_self_normalizing,
-  unfreezingI { induction h using nilpotent_center_quotient_ind }; clear _inst_1 G,
-  { rintros H -,
-    apply subsingleton.elim, },
-  { unfreezingI { rename [ h_G → G , h_ih → ih ] },
-    intros H hH,
-
+  unfreezingI
+  { induction h using nilpotent_center_quotient_ind with G' _ _ G' _ _ ih;
+    clear _inst_1 G; rename  G' → G, },
+  { rintros H -, apply subsingleton.elim, },
+  { intros H hH,
     by_cases hch : center G ≤ H,
     { let H' := H.map (mk' (center G)),
 
-      have hH' : H'.normalizer = H' :=
-      begin
-        apply (@comap_injective G _ _ _ (mk' (center G)) (surjective_quot_mk _)),
+      have hH' : H'.normalizer = H',
+      { apply (@comap_injective G _ _ _ (mk' (center G)) (surjective_quot_mk _)),
         rw comap_normalizer_eq_of_surjective,
-        show function.surjective _, exact (surjective_quot_mk _),
-        rw comap_map_eq_self,
-        show (_ ≤ H), simp, exact hch,
-        exact hH,
-      end,
+        show function.surjective _, by exact (surjective_quot_mk _),
+        { rw comap_map_eq_self,
+          show (_ ≤ H), by { simpa using hch },
+          exact hH, }, },
 
       specialize ih (H.map (mk' (center G))) hH',
 
       show H = ⊤,
-      begin -- this needs to be prettier…
-        rw eq_top_iff' at *,
-        intro x,
-        specialize ih (mk' (center G) x),
-        simp at *,
-        rcases ih with ⟨x', hx, heq⟩,
-        rw [eq_iff_div_mem at heq, div_mem_comm_iff at heq],
-        have := mul_mem H (hch heq) hx,
-        simp at this,
-        assumption,
-      end },
+      apply map_injective_of_ker_le (mk' (center G)) (by simpa using hch) le_top,
+      rw [ih, subgroup.map_top_of_surjective],
+      exact quotient.surjective_quotient_mk', },
     { exfalso, apply hch,
       calc center G ≤ H.normalizer : subgroup.center_le_normalizer
                 ... = H : hH, } },

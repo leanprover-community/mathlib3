@@ -444,7 +444,7 @@ begin
   have hBU : (⋃ n, F ∩ B n) = F, by rw [← inter_Union, Union_compact_covering, set.inter_univ],
   have : μ F = ⨆ n, μ (F ∩ B n),
   { rw [← measure_Union_eq_supr, hBU],
-    exact  monotone.directed_le
+    exact monotone.directed_le
       (λ m n h, inter_subset_inter_right _ (compact_covering_subset _ h)) },
   rw this at hr, rcases lt_supr_iff.1 hr with ⟨n, hn⟩,
   exact ⟨_, inter_subset_left _ _, hBc n, hn⟩

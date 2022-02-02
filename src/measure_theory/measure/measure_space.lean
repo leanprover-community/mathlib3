@@ -243,7 +243,7 @@ lemma measure_Union_congr_of_subset [encodable β] {s : β → set α} {t : β �
   μ (⋃ b, s b) = μ (⋃ b, t b) :=
 begin
   rcases em (∃ b, μ (t b) = ∞) with ⟨b, hb⟩|htop,
-  { calc μ (⋃ b, s b) = ⊤ : top_unique (hb ▸ (h_le b).trans $ measure_mono $ subset_Union _ _)
+  { calc μ (⋃ b, s b) = ∞ : top_unique (hb ▸ (h_le b).trans $ measure_mono $ subset_Union _ _)
     ... = μ (⋃ b, t b) : eq.symm $ top_unique $ hb ▸ measure_mono $ subset_Union _ _ },
   push_neg at htop,
   refine le_antisymm (measure_mono (Union_mono hsub)) _,

@@ -2174,11 +2174,3 @@ begin
 end
 
 end ordinal
-
-/-! ### Properties of `omega` -/
-
-namespace ordinal
-
-theorem two_lt_omega : 2 < omega := by simpa only [nat.cast_two] using nat_lt_omega 2
-
-end ordinal

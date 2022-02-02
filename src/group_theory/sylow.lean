@@ -473,15 +473,14 @@ end
 lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
   card P = p ^ nat.factorization (card G) p :=
 begin
+  have hn : card G ≠ 0 := fintype.card_ne_zero,
+  haveI : nonempty G := nonempty.intro 1, -- TODO: Why is there no instance for that?
   obtain ⟨n, heq⟩ := is_p_group.iff_card.mp (P.is_p_group'),
   apply nat.dvd_antisymm,
   { suffices : p ^ n ∣ p ^ nat.factorization (card G) p, by simpa [← heq] using this,
-    suffices : p ^ n ∣ card G,
-    by exact (nat.pow_dvd_pow_iff_le_right (nat.prime.one_lt hp.elim)).mpr
-      ((nat.prime_pow_dvd_iff_le_factorization _ _ _ (hp.elim) fintype.card_ne_zero).mp this),
+    rw ← nat.prime_pow_dvd_multiplicity_iff _ _ _ hp.elim hn,
     rw ← heq,
-    apply subgroup.card_subgroup_dvd_card,
-  },
+    apply subgroup.card_subgroup_dvd_card, },
   { apply pow_dvd_card_of_pow_dvd_card, apply nat.pow_factorization_dvd, }
 end
 

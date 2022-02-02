@@ -8,6 +8,7 @@ import analysis.complex.basic
 import analysis.normed_space.finite_dimension
 import measure_theory.group.arithmetic
 import measure_theory.lattice
+import measure_theory.measure.open_pos
 import topology.algebra.ordered.liminf_limsup
 import topology.continuous_function.basic
 import topology.instances.ereal
@@ -358,16 +359,6 @@ instance at_bot_is_measurably_generated : (filter.at_bot : filter α).is_measura
 @filter.infi_is_measurably_generated _ _ _ _ $
   λ a, (measurable_set_Iic : measurable_set (Iic a)).principal_is_measurably_generated
 
-lemma bsupr_measure_Iic {μ : measure α} {s : set α} (hsc : countable s)
-  (hst : ∀ x : α, ∃ y ∈ s, x ≤ y) (hdir : directed_on (≤) s) :
-  (⨆ x ∈ s, μ (Iic x)) = μ univ :=
-begin
-  rw ← measure_bUnion_eq_supr hsc,
-  { congr, exact bUnion_eq_univ_iff.2 hst },
-  { exact λ _ _, measurable_set_Iic },
-  { exact directed_on_iff_directed.2 (hdir.directed_coe.mono_comp _ $ λ x y, Iic_subset_Iic.2) }
-end
-
 end preorder
 
 section partial_order
@@ -431,10 +422,10 @@ begin
   { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
     by_contra h,
     push_neg at h,
-    exact hy.2 (mem_bUnion_iff.mpr ⟨x, hx.1,
-      mem_bUnion_iff.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
+    exact hy.2 (mem_Union₂.mpr ⟨x, hx.1,
+      mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
   have : u ⊆ s :=
-    bUnion_subset (λ x hx, bUnion_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
+    Union₂_subset (λ x hx, Union₂_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
   rw ← union_diff_cancel this,
   exact humeas.union hfinite.measurable_set
 end
@@ -623,8 +614,8 @@ begin
   { rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, -, hst⟩,
     have : directed_on (≤) s, from directed_on_iff_directed.2 (directed_of_sup $ λ _ _, id),
     simp only [← bsupr_measure_Iic hsc (hsd.exists_ge' hst) this, h] },
-  rw [← Iic_diff_Iic, measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic,
-      measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic measurable_set_Iic, h a, h b],
+  rw [← Iic_diff_Iic, measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic,
+      measure_diff (Iic_subset_Iic.2 hlt.le) measurable_set_Iic, h a, h b],
   { rw ← h a, exact (measure_lt_top μ _).ne },
   { exact (measure_lt_top μ _).ne }
 end
@@ -693,6 +684,15 @@ h.measurable.ae_measurable
 lemma closed_embedding.measurable {f : α → γ} (hf : closed_embedding f) :
   measurable f :=
 hf.continuous.measurable
+
+lemma continuous.is_open_pos_measure_map {f : β → γ} (hf : continuous f)
+  (hf_surj : function.surjective f) {μ : measure β} [μ.is_open_pos_measure] :
+  (measure.map f μ).is_open_pos_measure :=
+begin
+  refine ⟨λ U hUo hUne, _⟩,
+  rw [measure.map_apply hf.measurable hUo.measurable_set],
+  exact (hUo.preimage hf).measure_ne_zero μ (hf_surj.nonempty_preimage.mpr hUne)
+end
 
 @[priority 100, to_additive]
 instance has_continuous_mul.has_measurable_mul [has_mul γ] [has_continuous_mul γ] :
@@ -1239,7 +1239,6 @@ begin
     { apply disjoint_left.2 (λ x hx h'x, _),
       have : 0 < f x := h'x.2,
       exact lt_irrefl 0 (this.trans_le hx.2.le) },
-    { exact hs.inter (hf (measurable_set_singleton _)) },
     { exact hs.inter (hf measurable_set_Ioi) } },
   have B : μ (s ∩ f⁻¹' (Ioi 0)) = μ (s ∩ f⁻¹' {∞}) + μ (s ∩ f⁻¹' (Ioo 0 ∞)),
   { rw ← measure_union,
@@ -1254,7 +1253,6 @@ begin
     { apply disjoint_left.2 (λ x hx h'x, _),
       have : f x < ∞ := h'x.2.2,
       exact lt_irrefl _ (this.trans_le (le_of_eq hx.2.symm)) },
-    { exact hs.inter (hf (measurable_set_singleton _)) },
     { exact hs.inter (hf measurable_set_Ioo) } },
   have C : μ (s ∩ f⁻¹' (Ioo 0 ∞)) = ∑' (n : ℤ), μ (s ∩ f⁻¹' (Ico (t^n) (t^(n+1)))),
   { rw [← measure_Union, ennreal.Ioo_zero_top_eq_Union_Ico_zpow (ennreal.one_lt_coe_iff.2 ht)
@@ -1344,9 +1342,8 @@ begin
       (λ i j ipos ij, cthickening_mono ij _) hs },
   have B : tendsto (λ r, μ (cthickening r s)) (𝓝[Iic 0] 0) (𝓝 (μ (closure s))),
   { apply tendsto.congr' _ tendsto_const_nhds,
-    filter_upwards [self_mem_nhds_within],
-    assume r hr,
-    rw cthickening_of_nonpos hr },
+    filter_upwards [self_mem_nhds_within] with _ hr,
+    rw cthickening_of_nonpos hr, },
   convert B.sup A,
   exact (nhds_left_sup_nhds_right' 0).symm,
 end
@@ -1811,6 +1808,23 @@ begin
   { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
     exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hf x hx, },
   { exact tendsto_const_nhds, },
+end
+
+lemma ae_measurable_of_unif_approx {μ : measure α} {g : α → β}
+  (hf : ∀ ε > (0 : ℝ), ∃ (f : α → β), ae_measurable f μ ∧ ∀ᵐ x ∂μ, dist (f x) (g x) ≤ ε) :
+  ae_measurable g μ :=
+begin
+  obtain ⟨u, u_anti, u_pos, u_lim⟩ :
+    ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=
+      exists_seq_strict_anti_tendsto (0 : ℝ),
+  choose f Hf using λ (n : ℕ), hf (u n) (u_pos n),
+  have : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)),
+  { have : ∀ᵐ x ∂ μ, ∀ n, dist (f n x) (g x) ≤ u n := ae_all_iff.2 (λ n, (Hf n).2),
+    filter_upwards [this],
+    assume x hx,
+    rw tendsto_iff_dist_tendsto_zero,
+    exact squeeze_zero (λ n, dist_nonneg) hx u_lim },
+  exact ae_measurable_of_tendsto_metric_ae (λ n, (Hf n).1) this,
 end
 
 lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β} {g : α → β}

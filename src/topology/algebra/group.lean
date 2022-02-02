@@ -130,7 +130,7 @@ section pointwise
 variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
 
 @[to_additive]
-lemma is_open.mul_left (ht : is_open t) :  is_open (s * t) :=
+lemma is_open.mul_left (ht : is_open t) : is_open (s * t) :=
 begin
   rw ←Union_mul_left_image,
   exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_mul_left a t ht),
@@ -685,7 +685,7 @@ begin
     refine λ g hg, mem_Union.2 ⟨g₀ * g⁻¹, _⟩,
     refine preimage_interior_subset_interior_preimage (continuous_const.mul continuous_id) _,
     rwa [mem_preimage, inv_mul_cancel_right] },
-  exact ⟨t, subset.trans ht $ bUnion_mono $ λ g hg, interior_subset⟩
+  exact ⟨t, subset.trans ht $ Union₂_mono $ λ g hg, interior_subset⟩
 end
 
 /-- Every locally compact separable topological group is σ-compact.

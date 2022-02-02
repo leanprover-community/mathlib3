@@ -273,8 +273,8 @@ instance decidable_eq_monoid_hom_fintype [decidable_eq β] [fintype α]
 λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff monoid_hom.coe_inj)
 
 instance decidable_eq_monoid_with_zero_hom_fintype [decidable_eq β] [fintype α]
-  [mul_zero_one_class α] [mul_zero_one_class β]:
-  decidable_eq (monoid_with_zero_hom α β) :=
+  [mul_zero_one_class α] [mul_zero_one_class β] :
+  decidable_eq (α →*₀ β) :=
 λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff monoid_with_zero_hom.coe_inj)
 
 instance decidable_eq_ring_hom_fintype [decidable_eq β] [fintype α]
@@ -1022,6 +1022,12 @@ fintype.card_eq_one_iff.2 ⟨i,h⟩
 
 lemma one_lt_card [h : nontrivial α] : 1 < fintype.card α :=
 fintype.one_lt_card_iff_nontrivial.mpr h
+
+lemma one_lt_card_iff : 1 < card α ↔ ∃ a b : α, a ≠ b :=
+one_lt_card_iff_nontrivial.trans nontrivial_iff
+
+lemma two_lt_card_iff : 2 < card α ↔ ∃ a b c : α, a ≠ b ∧ a ≠ c ∧ b ≠ c :=
+by simp_rw [←finset.card_univ, two_lt_card_iff, mem_univ, true_and]
 
 lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact

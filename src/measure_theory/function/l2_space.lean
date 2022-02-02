@@ -196,8 +196,6 @@ variables (μ : measure α) [is_finite_measure μ]
 
 open_locale bounded_continuous_function complex_conjugate
 
-local attribute [instance] fact_one_le_two_ennreal
-
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 (α →₂[μ] 𝕜) _ x y
 
 /-- For bounded continuous functions `f`, `g` on a finite-measure topological space `α`, the L^2
@@ -209,8 +207,7 @@ begin
   apply integral_congr_ae,
   have hf_ae := f.coe_fn_to_Lp μ,
   have hg_ae := g.coe_fn_to_Lp μ,
-  filter_upwards [hf_ae, hg_ae],
-  intros x hf hg,
+  filter_upwards [hf_ae, hg_ae] with _ hf hg,
   rw [hf, hg],
   simp
 end
@@ -226,8 +223,7 @@ begin
   apply integral_congr_ae,
   have hf_ae := f.coe_fn_to_Lp μ,
   have hg_ae := g.coe_fn_to_Lp μ,
-  filter_upwards [hf_ae, hg_ae],
-  intros x hf hg,
+  filter_upwards [hf_ae, hg_ae] with _ hf hg,
   rw [hf, hg],
   simp
 end

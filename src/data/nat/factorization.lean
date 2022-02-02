@@ -199,13 +199,13 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
-lemma prime_pow_dvd_iff_le_factorization (p k n : ℕ) (pp : prime p) (hn : n ≠ 0) :
+lemma prime_pow_dvd_iff_le_factorization {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :
   p ^ k ∣ n ↔ k ≤ n.factorization p :=
 by rw [←factorization_le_iff_dvd (pow_pos pp.pos k).ne' hn, pp.factorization_pow, single_le_iff]
 
-lemma prime_pow_dvd_multiplicity_iff (p k n : ℕ) (hp : nat.prime p) (hpos : n ≠ 0) :
+lemma prime_pow_dvd_multiplicity_iff {p k n : ℕ} (hp : nat.prime p) (hpos : n ≠ 0) :
   p ^ k ∣ n ↔ p ^ k ∣ p ^ (n.factorization p) :=
-by rw [pow_dvd_pow_iff_le_right hp.one_lt, prime_pow_dvd_iff_le_factorization _ _ _ hp hpos]
+by rw [pow_dvd_pow_iff_le_right hp.one_lt, prime_pow_dvd_iff_le_factorization hp hpos]
 
 lemma exists_factorization_lt_of_lt {a b : ℕ} (ha : a ≠ 0) (hab : a < b) :
   ∃ p : ℕ, a.factorization p < b.factorization p :=
@@ -245,7 +245,7 @@ lemma pow_factorization_dvd (p d : ℕ) : p ^ d.factorization p ∣ d :=
 begin
   rcases eq_or_ne d 0 with rfl | hd, { simp },
   by_cases pp : prime p,
-  { rw prime_pow_dvd_iff_le_factorization p _ d pp hd },
+  { rw prime_pow_dvd_iff_le_factorization pp hd },
   { rw factorization_eq_zero_of_non_prime d p pp, simp },
 end
 
@@ -259,7 +259,7 @@ begin
     intros p,
     by_cases pp : prime p, swap,
     { rw factorization_eq_zero_of_non_prime d p pp, exact zero_le' },
-    rw ←prime_pow_dvd_iff_le_factorization p _ n pp hn,
+    rw ←prime_pow_dvd_iff_le_factorization pp hn,
     exact h p _ pp (pow_factorization_dvd p _) },
 end
 

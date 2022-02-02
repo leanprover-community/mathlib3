@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import topology.continuous_function.bounded
 import topology.uniform_space.compact_separated
-import tactic.equiv_rw
 
 /-!
 # Continuous functions on a compact space

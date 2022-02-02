@@ -15,24 +15,6 @@ This defines `Preorder`, the category of preorders with monotone maps.
 
 universe u
 
-namespace order_iso
-open order_dual
-
-/-- The order isomorphism between a type and its double dual. -/
-def dual_dual (α : Type*) [preorder α] : α ≃o order_dual (order_dual α) := refl α
-
-@[simp] lemma coe_dual_dual (α : Type*) [preorder α] : ⇑(dual_dual α) = to_dual ∘ to_dual := rfl
-@[simp] lemma coe_dual_dual_symm (α : Type*) [preorder α] :
-  ⇑(dual_dual α).symm = of_dual ∘ of_dual := rfl
-
-@[simp] lemma dual_dual_apply {α : Type*} [preorder α] (a : α) :
-  dual_dual α a = to_dual (to_dual a) := rfl
-
-@[simp] lemma dual_dual_symm_apply {α : Type*} [preorder α] (a : order_dual (order_dual α)) :
-  (dual_dual α).symm a = of_dual (of_dual a) := rfl
-
-end order_iso
-
 open category_theory
 
 /-- The category of preorders. -/

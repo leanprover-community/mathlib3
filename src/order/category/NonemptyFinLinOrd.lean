@@ -73,6 +73,7 @@ bundled_hom.forget₂ _ _
 instance has_forget_to_FinPartialOrder : has_forget₂ NonemptyFinLinOrd FinPartialOrder :=
 { forget₂ := { obj := λ X, FinPartialOrder.of X, map := λ X Y, id },
   forget_comp := rfl }
+
 /-- Constructs an equivalence between nonempty finite linear orders from an order isomorphism
 between them. -/
 @[simps] def iso.mk {α β : NonemptyFinLinOrd.{u}} (e : α ≃o β) : α ≅ β :=
@@ -85,7 +86,7 @@ between them. -/
 @[simps] def to_dual : NonemptyFinLinOrd ⥤ NonemptyFinLinOrd :=
 { obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
 
-/-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
+/-- The equivalence between `NonemptyFinLinOrd` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : NonemptyFinLinOrd ≌ NonemptyFinLinOrd :=
 equivalence.mk to_dual to_dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)

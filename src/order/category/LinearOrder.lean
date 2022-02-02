@@ -46,6 +46,13 @@ bundled_hom.forget₂ _ _
 
 /-- `order_dual` as a functor. -/
 @[simps] def to_dual : LinearOrder ⥤ LinearOrder :=
+{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+
+/-- The equivalence between `LinearOrder` and itself induced by `order_dual` both ways. -/
+@[simps functor inverse] def dual_equiv : LinearOrder ≌ LinearOrder :=
+equivalence.mk to_dual to_dual
+  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
+  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
 end LinearOrder
 

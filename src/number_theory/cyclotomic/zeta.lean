@@ -137,8 +137,6 @@ def zeta.embeddings_equiv_primitive_roots [is_domain C] (hirr : irreducible (cyc
   left_inv  := λ x, subtype.ext rfl,
   right_inv := λ x, subtype.ext rfl }
 
-variables (K) (n)
-
 /-- If `K` is linearly ordered (in particular for `K = ℚ`), the norm of `zeta n K L` is `1`
 if `n` is odd. -/
 lemma norm_zeta_eq_one (K : Type u) [linear_ordered_field K] (L : Type v) [field L] [algebra K L]

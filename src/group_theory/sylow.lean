@@ -468,8 +468,8 @@ begin
   rwa [h, card_bot] at key,
 end
 
-/-- The cardinality of a Sylow group is p ^ n where n is the multiplicity of p in the group order.
- -/
+/-- The cardinality of a Sylow group is `p ^ n`
+ where `n` is the multiplicity of `p` in the group order. -/
 lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
   card P = p ^ nat.factorization (card G) p :=
 begin

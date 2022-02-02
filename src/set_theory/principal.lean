@@ -164,16 +164,6 @@ end
 theorem add_absorp {a b c : ordinal} (h₁ : a < omega ^ b) (h₂ : omega ^ b ≤ c) : a + c = c :=
 by rw [← ordinal.add_sub_cancel_of_le h₂, ← add_assoc, add_omega_opow h₁]
 
-theorem opow_principal_add_is_principal_add {a} (ha : principal (+) a) (b : ordinal) :
-  principal (+) (a ^ b) :=
-begin
-  rcases principal_add_iff_zero_or_omega_power.1 ha with rfl | ⟨c, rfl⟩,
-  { rcases eq_or_ne b 0 with rfl | hb,
-    { rw opow_zero, exact principal_add_one },
-    { rw zero_opow hb, exact ha } },
-  { rw ←opow_mul, exact principal_add_omega_opow _ }
-end
-
 theorem mul_principal_add_is_principal_add (a : ordinal.{u}) {b : ordinal.{u}} (hb₁ : b ≠ 1)
   (hb : principal (+) b) : principal (+) (a * b) :=
 begin
@@ -192,6 +182,16 @@ begin
         rw mul_add,
         exact add_lt_add hx' hy' },
       assumption' } }
+end
+
+theorem opow_principal_add_is_principal_add {a} (ha : principal (+) a) (b : ordinal) :
+  principal (+) (a ^ b) :=
+begin
+  rcases principal_add_iff_zero_or_omega_power.1 ha with rfl | ⟨c, rfl⟩,
+  { rcases eq_or_ne b 0 with rfl | hb,
+    { rw opow_zero, exact principal_add_one },
+    { rwa zero_opow hb } },
+  { rw ←opow_mul, exact principal_add_omega_opow _ }
 end
 
 end ordinal

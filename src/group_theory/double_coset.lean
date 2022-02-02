@@ -6,6 +6,7 @@ Authors: Chris Birkbeck
 import data.setoid.basic
 import group_theory.subgroup.basic
 import group_theory.coset
+import group_theory.subgroup.pointwise
 import data.set.basic
 import tactic.group
 
@@ -64,30 +65,14 @@ quotient (setoid H K)
 lemma doset_subgroups_mem_self (H K : subgroup G) (a : G) : a ∈ (doset a H K) :=
 doset_mem.mpr ⟨1, H.one_mem, 1, K.one_mem, (one_mul a).symm.trans (mul_one (1 * a)).symm⟩
 
-lemma _root_.subgroup_mul_singleton {H : subgroup G} {h : G} (hh : h ∈ H) :
-  (H : set G) * {h} = H :=
-begin
-  refine le_antisymm _ (λ h' hh',
-    ⟨h' * h⁻¹, h, H.mul_mem hh' (H.inv_mem hh), rfl, inv_mul_cancel_right h' h⟩),
-  rintros _ ⟨h', h, hh', rfl : _ = _, rfl⟩,
-  exact H.mul_mem hh' hh,
-end
-
-lemma _root_.singleton_mul_subgroup {H : subgroup G} {h : G} (hh : h ∈ H) :
-  {h} * (H : set G) = H :=
-begin
-  refine le_antisymm _ (λ h' hh', ⟨h, h⁻¹ * h', rfl, H.mul_mem (H.inv_mem hh) hh',
-    mul_inv_cancel_left h h'⟩),
-  rintros _ ⟨h, h', rfl : _ = _, hh', rfl⟩,
-  exact H.mul_mem hh hh',
-end
 
 lemma sub_doset {H K : subgroup G} {a b : G} (hb : b ∈ doset a H K) :
   doset b H K = doset a H K :=
 begin
   obtain ⟨_, k, ⟨h, a, hh, (rfl : _ = _), rfl⟩, hk, rfl⟩ := hb,
   rw [doset, doset, ←set.singleton_mul_singleton, ←set.singleton_mul_singleton, mul_assoc,
-      mul_assoc, singleton_mul_subgroup hk, ←mul_assoc, ←mul_assoc, subgroup_mul_singleton hh],
+  mul_assoc, subgroup.singleton_mul_subgroup hk, ←mul_assoc, ←mul_assoc,
+  subgroup.subgroup_mul_singleton hh],
 end
 
 lemma rel_iff {H K : subgroup G} {x y : G} :

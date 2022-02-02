@@ -63,7 +63,11 @@ instance : can_lift ℂ ℝ :=
   coe := coe,
   prf := λ z hz, ⟨z.re, ext rfl hz.symm⟩ }
 
-notation s ` ×ℂ `:72 t := re ⁻¹' s ∩ im ⁻¹' t
+/-- The product of a set on the real axis and a set on the imaginary axis of the complex plane,
+denoted by `s ×ℂ t`. -/
+def _root_.set.re_prod_im (s t : set ℝ) : set ℂ := re ⁻¹' s ∩ im ⁻¹' t
+
+infix ` ×ℂ `:72 := set.re_prod_im
 
 instance : has_zero ℂ := ⟨(0 : ℝ)⟩
 instance : inhabited ℂ := ⟨0⟩

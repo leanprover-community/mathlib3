@@ -128,7 +128,7 @@ by simpa only [← preimage_eq_preimage equiv_real_prodₗ.symm.to_homeomorph.su
   using @closure_prod_eq _ _ _ _ s t
 
 lemma interior_re_prod_im (s t : set ℝ) : interior (s ×ℂ t) = interior s ×ℂ interior t :=
-by rw [interior_inter, interior_preimage_re, interior_preimage_im]
+by rw [re_prod_im, re_prod_im, interior_inter, interior_preimage_re, interior_preimage_im]
 
 lemma frontier_re_prod_im (s t : set ℝ) :
   frontier (s ×ℂ t) = (closure s ×ℂ frontier t) ∪ (frontier s ×ℂ closure t) :=

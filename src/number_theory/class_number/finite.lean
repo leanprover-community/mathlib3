@@ -58,7 +58,7 @@ lemma norm_bound_pos : 0 < norm_bound abv bS :=
 begin
   obtain ⟨i, j, k, hijk⟩ : ∃ i j k,
     algebra.left_mul_matrix bS (bS i) j k ≠ 0,
-  { by_contra',
+  { by_contra' h,
     obtain ⟨i⟩ := bS.index_nonempty,
     apply bS.ne_zero i,
     apply (algebra.left_mul_matrix bS).injective_iff.mp (algebra.left_mul_matrix_injective bS),

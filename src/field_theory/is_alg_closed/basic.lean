@@ -153,7 +153,7 @@ lemma algebra_map_surjective_of_is_integral'
 lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_algebraic k K) :
   function.surjective (algebra_map k K) :=
-algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)
+algebra_map_surjective_of_is_integral (algebra.is_algebraic_iff_is_integral.mp hf)
 
 end is_alg_closed
 

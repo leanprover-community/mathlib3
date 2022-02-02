@@ -248,7 +248,7 @@ end
 variables {N : Type*} [cancel_comm_monoid_with_zero N] [unique_factorization_monoid N]
 
 lemma image_prime_pow_dvd_of_monotone {m p : associates M} {n : associates N}
-  (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
   (d : {l : associates M // l ≤ m} ≃ {l : associates N // l ≤ n}) (hd : monotone d)
   (hd' : monotone d.symm) {s : ℕ} (hs : s ≠ 0) (hs' : p^s ≤ m) :
   (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s ≤ n :=
@@ -291,7 +291,7 @@ begin
   have temp : ↑((multiplicity p m).get H_finite) ≤
     (multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n),
   { rw ← multiplicity.pow_dvd_iff_le_multiplicity,
-    refine image_prime_pow_dvd_of_monotone hm hn hp d hd hd' _
+    refine image_prime_pow_dvd_of_monotone hn hp d hd hd' _
       (multiplicity.pow_multiplicity_dvd _),
     intro H,
     apply (multiplicity.dvd_iff_multiplicity_pos.2 (dvd_of_mem_normalized_factors hp)).ne',

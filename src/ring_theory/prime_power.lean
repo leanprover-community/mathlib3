@@ -291,7 +291,7 @@ begin
   have temp : ↑((multiplicity p m).get H_finite) ≤
     (multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n),
   { rw ← multiplicity.pow_dvd_iff_le_multiplicity,
-    refine image_prime_pow_dvd_of_monotone hm hn hp d hd hd' _ _
+    refine image_prime_pow_dvd_of_monotone hm hn hp d hd hd' _
       (multiplicity.pow_multiplicity_dvd _),
     intro H,
     apply (multiplicity.dvd_iff_multiplicity_pos.2 (dvd_of_mem_normalized_factors hp)).ne',

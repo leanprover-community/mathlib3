@@ -5,7 +5,7 @@ Authors: Bolton Bailey
 -/
 
 import data.vector.basic
-import computability.partrec_code
+import computability.tm_to_partrec
 import data.nat.log
 
 
@@ -25,17 +25,21 @@ inductive μ_recursive : ℕ -> Type
 | μ {k : ℕ} (f : μ_recursive (k + 1)) : μ_recursive k
 
 
-open nat.partrec.code
+-- Note that we use the code type defined in turing.to_partrec, since this is over lists.
+-- A type of codes that works over naturals will not let us compute without exponential slowdowns.
+open turing.to_partrec
 
-def time : nat.partrec.code → ℕ →. ℕ
-| zero         := pure 0
-| succ         := nat.log 2
-| left         := nat.log 2
-| right        := nat.log 2
-| (pair cf cg) := λ n, ((nat.log 2) <$> (eval cf n)) + ((nat.log 2) <$> (eval cg n)) + time cf n + time cg n
-| (comp cf cg) := λ n, time cg n + ((eval cg n) >>= time cf)
-| (prec cf cg) := λ n, sorry -- todo, when depaired to 0 is time of f, otherwise recurse
-| (rfind' cf)  := λ n, sorry
-
-
-end nat.partrec
+def time : turing.to_partrec.code → list ℕ →. ℕ
+| code.zero'       := pure 1
+| code.succ        := pure 1
+| code.tail        := pure 1
+| (code.cons f fs) := λ l, time f l + time fs l + pure 1
+| (code.comp f g)  := λ l, time g l + ((code.eval g l) >>= time f) + pure 1
+| (code.case f g)  := λ l, l.head.elim (time f l.tail) (λ y _, time g (y :: l.tail)) + pure 1
+| (code.fix f)     := λ l, ((@pfun.fix ((list ℕ) × ℕ) (ℕ) $
+  λ ⟨v, n⟩,
+  if v.head = 0
+    then ((time f v.tail).map sum.inl)
+    else part.map sum.inr ((λ l r, ⟨l, r⟩) <$> (f.eval v.tail) <*> ((time f v.tail) + pure n))
+) ⟨l, 0⟩)
+-- TODO, surely (λ l r, ⟨l, r⟩) is supposed to be something else

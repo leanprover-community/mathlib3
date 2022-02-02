@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import algebra.order.field
-import category_theory.concrete_category.bundled
-import category_theory.functor
-import category_theory.limits.shapes.terminal
 import data.fintype.basic
 import data.real.basic
 import data.sum.basic
+import data.two_pointing
+import data.twop.Bipointed
 import order.bounded_order
 
 /-!
@@ -17,40 +16,13 @@ import order.bounded_order
 
 ## TODO
 
-`card (two_pointed α) = card α * (card α - 1)`
+`card (two_pointing α) = card α * (card α - 1)`
 -/
 
 open function set sum
 
+universes u
 variables {α β : Type*}
-
-/-- Type-valued `nontrivial`. -/
-class two_pointed (α : Type*) :=
-(fst snd : α)
-(fst_ne_snd : fst ≠ snd)
-
-section two_pointed
-variables (α) [two_pointed α] [two_pointed β]
-
-/-- The first pointed element of a pointed type. -/
-def pointed_fst : α := two_pointed.fst
-
-/-- The second pointed element of a pointed type. -/
-def pointed_snd : α := two_pointed.snd
-
-lemma pointed_fst_ne_snd : pointed_fst α ≠ pointed_snd α := two_pointed.fst_ne_snd
-lemma pointed_snd_ne_fst : pointed_snd α ≠ pointed_fst α := (pointed_fst_ne_snd _).symm
-
-@[priority 100] -- See note [lower instance priority]
-instance two_pointed.to_nontrivial : nontrivial α :=
-⟨⟨pointed_fst α, pointed_snd α, pointed_fst_ne_snd α⟩⟩
-
-/-- Swaps the two pointed elements. -/
-def two_pointed_swap : two_pointed α := ⟨pointed_snd α, pointed_fst α, pointed_snd_ne_fst α⟩
-
-instance : two_pointed bool := ⟨ff, tt, bool.ff_ne_tt⟩
-
-end two_pointed
 
 /-! ### Pointed sum -/
 
@@ -147,35 +119,16 @@ protected lemma ind {f : 𝒶 ⊕ₚ 𝒷 → Prop} (h𝒶 : ∀ a, f (inl 𝒶 
   ∀ i, f i :=
 @quotient.ind _ (rel.setoid 𝒶 𝒷) _ $ by { refine sum.rec _ _, exacts [h𝒶, h𝒷] }
 
-notation α ` ⊕ₚₚ `:30 β:29 := pointed_snd α ⊕ₚ pointed_fst β
-
-section two_pointed
-variables (α 𝒷) [two_pointed α] [two_pointed β]
-
-instance two_pointed_left : two_pointed (pointed_snd α ⊕ₚ 𝒷) :=
-{ fst := inl _ _ (pointed_fst α),
-  snd := inr _ _ (pointed_snd β),
-  fst_ne_snd := inl_ne_inr_left $ pointed_fst_ne_snd _ }
-
-variables {α} (β 𝒶)
-
-instance two_pointed_right : two_pointed (𝒶 ⊕ₚ pointed_fst β) :=
-{ fst := inl _ _ (pointed_fst α),
-  snd := inr _ _ (pointed_snd β),
-  fst_ne_snd := inl_ne_inr_right $ pointed_snd_ne_fst _ }
-
-end two_pointed
-
 section fintype
 variables (α 𝒷) [decidable_eq α] [decidable_eq β] [fintype α] [fintype β]
 
 instance : fintype (𝒶 ⊕ₚ 𝒷) := @quotient.fintype _ _ (rel.setoid 𝒶 𝒷) $ rel.decidable_rel 𝒶 𝒷
 
-lemma _root_.fintype.card_pointed_sum :
-  fintype.card (𝒶 ⊕ₚ 𝒷) = fintype.card α + fintype.card β - 1 :=
-begin
-  sorry
-end
+-- lemma _root_.fintype.card_pointed_sum :
+--   fintype.card (𝒶 ⊕ₚ 𝒷) = fintype.card α + fintype.card β - 1 :=
+-- begin
+--   sorry
+-- end
 
 end fintype
 
@@ -206,11 +159,11 @@ instance [is_refl α r] [is_refl β s] : is_refl (𝒶 ⊕ₚ 𝒷) (lift_trans_
   sorry
 end⟩
 
-instance [is_irrefl α r] [is_irrefl β s] : is_irrefl (𝒶 ⊕ₚ 𝒷) (lift_trans_rel 𝒶 𝒷 r s) :=
-⟨λ a h, match a, h with
-  | _, lift_trans_rel.inl h := sorry
-  | _, lift_trans_rel.inr h := sorry
-end⟩
+-- instance [is_irrefl α r] [is_irrefl β s] : is_irrefl (𝒶 ⊕ₚ 𝒷) (lift_trans_rel 𝒶 𝒷 r s) :=
+-- ⟨λ a h, match a, h with
+--   | _, lift_trans_rel.inl h := sorry
+--   | _, lift_trans_rel.inr h := sorry
+-- end⟩
 
 @[trans] lemma lift_trans_rel.trans [is_trans α r] [is_trans β s] :
   ∀ {a b c}, lift_trans_rel 𝒶 𝒷 r s a b → lift_trans_rel 𝒶 𝒷 r s b c → lift_trans_rel 𝒶 𝒷 r s a c
@@ -229,10 +182,33 @@ end pointed_sum
 
 open pointed_sum
 
+namespace prod
+variables (p : α × α) (q : β × β)
+
+/-- The pointed sum of two two-pointings is the pointed sum in the second point of the left and first point of the right two-pointed at the first point from the left and the second point from the
+right. -/
+@[simps] protected def pointed_sum : (p.snd ⊕ₚ q.fst) × (p.snd ⊕ₚ q.fst) :=
+⟨inl _ _ p.fst, inr _ _ q.snd⟩
+
+end prod
+
+namespace two_pointing
+variables (p : two_pointing α) (q : two_pointing β)
+
+/-- The pointed sum of two two-pointings is the pointed sum in the second point of the left and first point of the right two-pointed at the first point from the left and the second point from the
+right. -/
+@[simps] protected def pointed_sum : two_pointing (p.snd ⊕ₚ q.fst) :=
+⟨p.to_prod.pointed_sum q.to_prod, inl_ne_inr_left p.fst_ne_snd⟩
+
+@[simp] lemma pointed_sum_fst : (p.pointed_sum q).fst = inl _ _ p.fst := rfl
+@[simp] lemma pointed_sum_snd : (p.pointed_sum q).snd = inr _ _ q.snd := rfl
+
+end two_pointing
+
 /-- Two-points a bounded order at its bottom and top elements. -/
 @[reducible] -- See note [reducible non instances]
-def bounded_order.to_two_pointed [partial_order α] [bounded_order α] [nontrivial α] :
-  two_pointed α :=
+def bounded_order.to_two_pointing [partial_order α] [bounded_order α] [nontrivial α] :
+  two_pointing α :=
 { fst := ⊥,
   snd := ⊤,
   fst_ne_snd := bot_ne_top }
@@ -260,13 +236,12 @@ instance [partial_order α] [partial_order β] : partial_order (𝒶 ⊕ₚ 𝒷
 
 end order
 
+
+
 /-! ### Twop -/
 
-namespace category_theory
-open limits
-
 /-- The category of two-pointed types. -/
-def Twop : Type* := bundled two_pointed
+def Twop : Type* := bundled two_pointing
 
 instance : inhabited Twop := ⟨bundled.of bool⟩
 
@@ -279,16 +254,16 @@ def Twop.wedge : Twop × Twop ⥤ Twop := sorry
 
 /-- A square coalgebra on a two-pointed type `α` is a map `α → α ⊕ₚₚ α`. -/
 structure sq_coalgebra (α : Type*) :=
-(two_pointed : two_pointed α)
+(to_Twop : two_pointing α)
 (double_map : α → α ⊕ₚₚ α)
 
 /-- `pointed_sum.inl` as a square coalgebra. -/
-def sq_coalgebra.inl (α : Type*) [two_pointed α] : sq_coalgebra α := ⟨pointed_sum.inl _ _⟩
+def sq_coalgebra.inl (α : Type*) [two_pointing α] : sq_coalgebra α := ⟨pointed_sum.inl _ _⟩
 
 /-- `pointed_sum.inr` as a square coalgebra. -/
-def sq_coalgebra.inr (α : Type*) [two_pointed α] : sq_coalgebra α := ⟨pointed_sum.inl _ _⟩
+def sq_coalgebra.inr (α : Type*) [two_pointing α] : sq_coalgebra α := ⟨pointed_sum.inl _ _⟩
 
-instance [two_pointed α] : inhabited (sq_coalgebra α) := ⟨sq_coalgebra.inl α⟩
+instance [two_pointing α] : inhabited (sq_coalgebra α) := ⟨sq_coalgebra.inl α⟩
 
 /-- The category of square coalgebras. -/
 def SqCoalgebra : Type* := bundled sq_coalgebra

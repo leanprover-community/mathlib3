@@ -8,6 +8,7 @@ import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
 import group_theory.pi_hom
+import data.nat.factorization
 
 /-!
 # Sylow theorems
@@ -468,6 +469,23 @@ begin
   rwa [h, card_bot] at key,
 end
 
+/-- The cardinality of a Sylow group is p ^ n where n is the multiplicity of p in the group order.
+ -/
+lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
+  card P = p ^ nat.factorization (card G) p :=
+begin
+  obtain ⟨n, heq⟩ := is_p_group.iff_card.mp (P.is_p_group'),
+  apply nat.dvd_antisymm,
+  { suffices : p ^ n ∣ p ^ nat.factorization (card G) p, by simpa [← heq] using this,
+    suffices : p ^ n ∣ card G,
+    by exact (nat.pow_dvd_pow_iff_le_right (nat.prime.one_lt hp.elim)).mpr
+      ((nat.prime_pow_dvd_iff_le_factorization _ _ _ (hp.elim) fintype.card_ne_zero).mp this),
+    rw ← heq,
+    apply subgroup.card_subgroup_dvd_card,
+  },
+  { apply pow_dvd_card_of_pow_dvd_card, apply nat.pow_factorization_dvd, }
+end
+
 lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
   (h : (P : subgroup G).normal) : subsingleton (sylow p G) :=
 begin
@@ -556,30 +574,66 @@ normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing
 section classical
 open_locale classical
 
+/-- If all its sylow groups are normal, then a finite group is isomorphic to the direct product
+of these sylow groups.
+
+This uses `(Σ (p : (fintype.card G).factors.to_finset), sylow p G)` as the type of all
+(non-trivial) sylow groups.
+-/
 lemma direct_product_of_normal [fintype G]
   (hn : ∀ {p : ℕ} [fact p.prime] (P : sylow p G), (↑P : subgroup G).normal) :
   (Π P : (Σ (p : (fintype.card G).factors.to_finset), sylow p G), (↑(P.2) : subgroup G)) ≃* G :=
 begin
   set sylows := Σ (p : (fintype.card G).factors.to_finset), sylow p G,
-  apply mul_equiv.of_bijective,
-  show _ →* G, {
-    apply subgroup_pi_hom.hom,
+
+  have sigma_helper :
+    ∀ (P : Π {p₁ p₂ : ℕ}, sylow p₁ G → sylow p₂ G → Prop),
+    (∀ (p₁ p₂ : ℕ) [fact p₁.prime] [fact p₂.prime] (hne : p₁ ≠ p₂)
+       (P₁ : sylow p₁ G) (P₂ : sylow p₂ G), P P₁ P₂) →
+    (∀ (P₁ P₂ : sylows), P₁ ≠ P₂ → P (P₁.snd) (P₂.snd)),
+  {
+    intros P h,
     rintros ⟨⟨p₁, hp₁⟩, P₁⟩ ⟨⟨p₂, hp₂⟩, P₂⟩ hne,
+    change sylow p₁ G at P₁,
+    change sylow p₂ G at P₂,
     rw mem_to_finset at hp₁ hp₂,
-    apply subgroup.commute_of_normal_of_disjoint,
-    { exact @hn _ (fact.mk (nat.prime_of_mem_factors hp₁)) _, },
-    { exact @hn _ (fact.mk (nat.prime_of_mem_factors hp₂)) _, },
-    {
-
-    }
-
+    haveI hp₁' := fact.mk (nat.prime_of_mem_factors hp₁),
+    haveI hp₂' := fact.mk (nat.prime_of_mem_factors hp₂),
+    have hne' : p₁ ≠ p₂, unfreezingI {
+      rintros rfl, apply hne,
+      haveI := subsingleton_of_normal _ (hn P₁),
+      rw subsingleton.elim P₁ P₂,
+    },
+    exact h p₁ p₂ hne' P₁ P₂,
   },
 
+  let commuting_elements := λ (p₁ p₂ : ℕ) (P₁ : sylow p₁ G) (P₂ : sylow p₂ G),
+    ∀ (x y : G), x ∈ (↑P₁ : subgroup G) → y ∈ (↑P₂ : subgroup G) → commute x y,
+  let coprime := λ (p₁ p₂ : ℕ) (P₁ : sylow p₁ G) (P₂ : sylow p₂ G),
+    nat.coprime (fintype.card (↑P₁ : subgroup G)) (fintype.card (↑P₂ : subgroup G)),
 
+  have hcomm : ∀ (P₁ P₂ : sylows), P₁ ≠ P₂ → commuting_elements _ _ (P₁.snd) (P₂.snd),
+  {
+    apply sigma_helper commuting_elements,
+    rintros p₁ p₂ _ _ hne P₁ P₂, resetI,
+    apply subgroup.commute_of_normal_of_disjoint _ _ (hn P₁) (hn P₂),
+    apply is_p_group.disjoint_of_ne p₁ p₂ hne _ _ P₁.is_p_group' P₂.is_p_group',
+  },
 
+  apply mul_equiv.of_bijective (subgroup_pi_hom.hom hcomm),
+  apply (bijective_iff_injective_and_card _).mpr,
+  split,
+  show injective _, {
+    apply subgroup_pi_hom.injective_of_independent,
+    apply independent_of_coprime_order hcomm,
+    apply sigma_helper coprime,
+    rintros p₁ p₂ _ _ hne P₁ P₂, resetI,
+    apply is_p_group.coprime_card_of_ne p₁ p₂ hne _ _ P₁.is_p_group' P₂.is_p_group',
+  },
+  show card (Π (P : sylows), P.2) = card G, {
+    rw fintype.card_pi,
 
-
-
+  }
 end
 
 end classical

@@ -258,10 +258,7 @@ end
 omit hp
 -- An example on how to determine the order of an element of a finite group.
 example : order_of (-1 : ℤˣ) = 2 :=
-begin
-  haveI := fact_prime_two,
-  exact order_of_eq_prime (int.units_sq _) dec_trivial,
-end
+order_of_eq_prime (int.units_sq _) dec_trivial
 
 end p_prime
 

@@ -151,7 +151,7 @@ lemma algebra_map_surjective_of_is_integral'
 lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_algebraic k K) :
   function.surjective (algebra_map k K) :=
-algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)
+algebra_map_surjective_of_is_integral (algebra.is_algebraic_iff_is_integral.mp hf)
 
 end is_alg_closed
 
@@ -265,7 +265,7 @@ begin
   letI : algebra N M := (maximal_subfield_with_hom M hL).emb.to_ring_hom.to_algebra,
   cases is_alg_closed.exists_aeval_eq_zero M (minpoly N x)
     (ne_of_gt (minpoly.degree_pos
-      ((is_algebraic_iff_is_integral _).1
+      (is_algebraic_iff_is_integral.1
         (algebra.is_algebraic_of_larger_base _ _ hL x)))) with y hy,
   let O : subalgebra N L := algebra.adjoin N {(x : L)},
   let larger_emb := ((adjoin_root.lift_hom (minpoly N x) y hy).comp
@@ -313,7 +313,8 @@ variables {M}
 
 include hS
 
-/-- A (random) hom from an algebraic extension of R into an algebraically closed extension of R. -/
+/-- A (random) homomorphism from an algebraic extension of R into an algebraically
+  closed extension of R. -/
 
 @[irreducible] noncomputable def lift : S →ₐ[R] M :=
 begin
@@ -364,8 +365,8 @@ variables [algebra K J] [algebra J L] [is_alg_closure J L] [algebra K L]
   [is_scalar_tower K J L]
 
 
-/-- An equiv between an algebraic closure of `R` and an algebraic closure of an algebraic
-  extension of `R` -/
+/-- A (random) isomorphism between an algebraic closure of `R` and an algebraic closure of
+  an algebraic extension of `R` -/
 noncomputable def equiv_of_algebraic' [nontrivial S] [no_zero_smul_divisors R S]
   (hRL : algebra.is_algebraic R L) : L ≃ₐ[R] M :=
 begin
@@ -382,8 +383,8 @@ begin
   exact is_alg_closure.equiv _ _ _
 end
 
-/-- An equiv between an algebraic closure of `K` and an algebraic closure of an algebraic
-  extension of `K` -/
+/-- A (random) isomorphism between an algebraic closure of `K` and an algebraic closure
+  of an algebraic extension of `K` -/
 noncomputable def equiv_of_algebraic (hKJ : algebra.is_algebraic K J) : L ≃ₐ[K] M :=
 equiv_of_algebraic' K J _ _ (algebra.is_algebraic_trans hKJ is_alg_closure.algebraic)
 

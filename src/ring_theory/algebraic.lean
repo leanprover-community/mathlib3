@@ -98,7 +98,7 @@ end
 end zero_ne_one
 
 section field
-variables (K : Type u) {A : Type v} [field K] [ring A] [algebra K A]
+variables {K : Type u} {A : Type v} [field K] [ring A] [algebra K A]
 
 /-- An element of an algebra over a field is algebraic if and only if it is integral.-/
 lemma is_algebraic_iff_is_integral {x : A} :
@@ -110,10 +110,10 @@ begin
   rw [← aeval_def, alg_hom.map_mul, hpx, zero_mul],
 end
 
-lemma is_algebraic_iff_is_integral' :
+protected lemma algebra.is_algebraic_iff_is_integral :
   algebra.is_algebraic K A ↔ algebra.is_integral K A :=
-⟨λ h x, (is_algebraic_iff_is_integral K).mp (h x),
-  λ h x, (is_algebraic_iff_is_integral K).mpr (h x)⟩
+⟨λ h x, is_algebraic_iff_is_integral.mp (h x),
+  λ h x, is_algebraic_iff_is_integral.mpr (h x)⟩
 
 end field
 
@@ -158,12 +158,16 @@ _root_.is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_al
 lemma is_algebraic_of_larger_base (A_alg : is_algebraic K A) : is_algebraic L A :=
 is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_alg
 
-variables {R S K L}
+variables {R S} (K L)
+
+/-- A field extension is integral if it is finite. -/
+lemma is_integral_of_finite [finite_dimensional K L] : algebra.is_integral K L :=
+λ x, is_integral_of_submodule_noetherian ⊤
+  (is_noetherian.iff_fg.2 infer_instance) x algebra.mem_top
 
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
-λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_submodule_noetherian ⊤
-  (is_noetherian.iff_fg.2 infer_instance) x algebra.mem_top)
+algebra.is_algebraic_iff_is_integral.mpr (is_integral_of_finite K L)
 
 end algebra
 

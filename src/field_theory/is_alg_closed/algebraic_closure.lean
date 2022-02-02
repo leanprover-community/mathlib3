@@ -256,7 +256,7 @@ def of_step_hom (n) : step k n →ₐ[k] algebraic_closure k :=
   .. of_step k n }
 
 theorem is_algebraic : algebra.is_algebraic k (algebraic_closure k) :=
-λ z, (is_algebraic_iff_is_integral _).2 $ let ⟨n, x, hx⟩ := exists_of_step k z in
+λ z, is_algebraic_iff_is_integral.2 $ let ⟨n, x, hx⟩ := exists_of_step k z in
 hx ▸ is_integral_alg_hom (of_step_hom k n) (step.is_integral k n x)
 
 instance : is_alg_closure k (algebraic_closure k) :=

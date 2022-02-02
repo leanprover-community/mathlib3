@@ -171,7 +171,7 @@ begin
     by simp only [μ.add_haar_ball_of_pos _ ρpos],
   have J : (s.card : ℝ≥0∞) * ennreal.of_real (δ ^ (finrank ℝ E))
     ≤ ennreal.of_real (ρ ^ (finrank ℝ E)) :=
-      (ennreal.mul_le_mul_right (μ.add_haar_ball_pos _ zero_lt_one).ne'
+      (ennreal.mul_le_mul_right (measure_ball_pos _ _ zero_lt_one).ne'
         measure_ball_lt_top.ne).1 I,
   have K : (s.card : ℝ) ≤ (5 : ℝ) ^ finrank ℝ E,
     by simpa [ennreal.to_real_mul, div_eq_mul_inv] using

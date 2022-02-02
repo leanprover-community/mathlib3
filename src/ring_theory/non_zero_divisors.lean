@@ -33,7 +33,7 @@ def non_zero_divisors (R : Type*) [monoid_with_zero R] : submonoid R :=
 localized "notation R`⁰`:9000 := non_zero_divisors R" in non_zero_divisors
 
 variables {M M' M₁ R R' F : Type*} [monoid_with_zero M] [monoid_with_zero M']
-  [comm_monoid_with_zero M₁] [ring R] [comm_ring R'] [monoid_with_zero_hom_class F M M']
+  [comm_monoid_with_zero M₁] [ring R] [comm_ring R']
 
 lemma mem_non_zero_divisors_iff {r : M} : r ∈ M⁰ ↔ ∀ x, x * r = 0 → x = 0 := iff.rfl
 
@@ -112,11 +112,11 @@ lemma mem_non_zero_divisors_iff_ne_zero [no_zero_divisors M] [nontrivial M] {x :
   x ∈ M⁰ ↔ x ≠ 0 :=
 ⟨non_zero_divisors.ne_zero, mem_non_zero_divisors_of_ne_zero⟩
 
-lemma map_ne_zero_of_mem_non_zero_divisors [nontrivial M]
+lemma map_ne_zero_of_mem_non_zero_divisors [nontrivial M] [zero_hom_class F M M']
   (g : F) (hg : function.injective (g : M → M')) {x : M} (h : x ∈ M⁰) : g x ≠ 0 :=
 λ h0, one_ne_zero (h 1 ((one_mul x).symm ▸ (hg (trans h0 (map_zero g).symm))))
 
-lemma map_mem_non_zero_divisors [nontrivial M] [no_zero_divisors M']
+lemma map_mem_non_zero_divisors [nontrivial M] [no_zero_divisors M'] [zero_hom_class F M M']
   (g : F) (hg : function.injective g) {x : M} (h : x ∈ M⁰) : g x ∈ M'⁰ :=
 λ z hz, eq_zero_of_ne_zero_of_mul_right_eq_zero
   (map_ne_zero_of_mem_non_zero_divisors g hg h) hz
@@ -131,8 +131,8 @@ lemma powers_le_non_zero_divisors_of_no_zero_divisors [no_zero_divisors M]
 le_non_zero_divisors_of_no_zero_divisors (λ h, absurd (h.rec_on (λ _ hn, pow_eq_zero hn)) ha)
 
 lemma map_le_non_zero_divisors_of_injective [no_zero_divisors M']
-  (f : F) (hf : function.injective f) {S : submonoid M} (hS : S ≤ M⁰) :
-  S.map ↑f ≤ M'⁰ :=
+  [monoid_with_zero_hom_class F M M'] (f : F) (hf : function.injective f) {S : submonoid M}
+  (hS : S ≤ M⁰) : S.map ↑f ≤ M'⁰ :=
 begin
   casesI subsingleton_or_nontrivial M,
   { simp [subsingleton.elim S ⊥] },
@@ -141,7 +141,7 @@ begin
 end
 
 lemma non_zero_divisors_le_comap_non_zero_divisors_of_injective [no_zero_divisors M']
-  (f : F) (hf : function.injective f) : M⁰ ≤ M'⁰.comap f :=
+  [monoid_with_zero_hom_class F M M'] (f : F) (hf : function.injective f) : M⁰ ≤ M'⁰.comap f :=
 submonoid.le_comap_of_map_le _ (map_le_non_zero_divisors_of_injective _ hf le_rfl)
 
 lemma prod_zero_iff_exists_zero [no_zero_divisors M₁] [nontrivial M₁]

@@ -77,8 +77,6 @@ noncomputable theory
 open topological_space measure_theory filter
 open_locale nnreal ennreal big_operators topological_space measure_theory
 
-local attribute [instance] fact_one_le_one_ennreal fact_one_le_two_ennreal fact_one_le_top_ennreal
-
 variables {α E F G : Type*} {m m0 : measurable_space α} {p : ℝ≥0∞} {q : ℝ} {μ ν : measure α}
   [measurable_space E] [normed_group E]
   [normed_group F] [normed_group G]

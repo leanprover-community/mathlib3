@@ -41,8 +41,9 @@ ERR_RNT = 5 # reserved notation
 ERR_OPT = 6 # set_option
 ERR_AUT = 7 # malformed authors list
 ERR_TAC = 9 # imported tactic{,.omega,.observe}
-WRN_IND = 10 # indentation
-WRN_BRC = 11 # curly braces
+ERR_UNF = 10 # unfreeze_local_instances
+WRN_IND = 11 # indentation
+WRN_BRC = 12 # curly braces
 
 exceptions = []
 
@@ -73,6 +74,8 @@ with SCRIPTS_DIR.joinpath("style-exceptions.txt").open(encoding="utf-8") as f:
             exceptions += [(ERR_AUT, path)]
         if errno == "ERR_TAC":
             exceptions += [(ERR_TAC, path)]
+        if errno == "ERR_UNF":
+            exceptions += [(ERR_UNF, path)]
         if errno == "WRN_IND":
             exceptions += [(WRN_IND, path)]
         if errno == "WRN_BRC":
@@ -155,7 +158,7 @@ def long_lines_check(lines, path):
 
 def indent_check(lines, path):
     """Check that tactic blocks are indented correctly.
-    
+
     This linter warns whenever a `{` symbol starting a subproof appears wrongly indented in a tactic block.
     It does not do much parsing, so to avoid false positives it skips some blocks with complicated syntax
     like nested `begin`/`end` or containing the keywords `calc` or `match`.
@@ -303,6 +306,13 @@ def import_omega_check(lines, path):
             errors += [(ERR_TAC, line_nr, path)]
     return errors
 
+def unfreeze_local_instances_check(lines, path):
+    errors = []
+    for line_nr, line in skip_comments(enumerate(lines, 1)):
+        if "unfreeze_local_instances" in line:
+            errors += [(ERR_UNF, line_nr, path)]
+    return errors
+
 def output_message(path, line_nr, code, msg):
     if len(exceptions) == 0:
         # we are generating a new exceptions file
@@ -340,6 +350,8 @@ def format_errors(errors):
             output_message(path, line_nr, "ERR_AUT", "Authors line should look like: 'Authors: Jean Dupont, Иван Иванович Иванов'")
         if errno == ERR_TAC:
             output_message(path, line_nr, "ERR_TAC", "Files in mathlib cannot import the whole tactic folder, nor tactic.omega or tactic.observe")
+        if errno == ERR_UNF:
+            output_message(path, line_nr, "ERR_UNF", "Use of unfreeze_local_instances is discouraged and leads to performance problems, use unfreezingI instead")
         if errno == WRN_IND:
             output_message(path, line_nr, "WRN_IND", "Probable indentation mistake in proof")
         if errno == WRN_BRC:
@@ -367,6 +379,8 @@ def lint(path):
         errs = indent_check(lines, path)
         format_errors(errs)
         errs = braces_check(lines, path)
+        format_errors(errs)
+        errs = unfreeze_local_instances_check(lines, path)
         format_errors(errs)
 
 for filename in sys.argv[1:]:

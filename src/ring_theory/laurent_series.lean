@@ -149,7 +149,7 @@ rfl
 instance {K : Type u} [field K] : is_fraction_ring (power_series K) (laurent_series K) :=
 is_localization.of_le (submonoid.powers (power_series.X : power_series K)) _
   (powers_le_non_zero_divisors_of_no_zero_divisors power_series.X_ne_zero)
-  (λ f hf, is_unit_of_mem_non_zero_divisors $ ring_hom.map_mem_non_zero_divisors _
+  (λ f hf, is_unit_of_mem_non_zero_divisors $ map_mem_non_zero_divisors _
     hahn_series.of_power_series_injective hf)
 
 end laurent_series

@@ -319,7 +319,7 @@ structure subspace (η α ι : Type*) :=
 
 namespace subspace
 
-/-- The combinatorial subspace corresponding to the indentity embedding `(ι → α) → (ι → α)`. -/
+/-- The combinatorial subspace corresponding to the identity embedding `(ι → α) → (ι → α)`. -/
 instance {α ι} : inhabited (subspace ι α ι) := ⟨⟨sum.inr, λ i, ⟨i, rfl⟩⟩⟩
 
 instance (η α ι) : has_coe_to_fun (subspace η α ι) (λ _, (η → α) → ι → α) :=
@@ -367,12 +367,11 @@ end
 /-- A variant of the extended Hales-Jewett theorem `exists_mono_in_high_dimension` where the
 returned type is some `fin n` instead of a general fintype. -/
 theorem exists_mono_in_high_dimension_fin (α κ η) [fintype α] [fintype κ] [fintype η] :
-  ∃ n : ℕ, ∀ C : (fin n → α) → κ, ∃ l : subspace η α (fin n), l.is_mono C :=
+  ∃ n, ∀ C : (fin n → α) → κ, ∃ l : subspace η α (fin n), l.is_mono C :=
 begin
   obtain ⟨ι, ιfin, hι⟩ := exists_mono_in_high_dimension α κ η,
   resetI,
-  use fintype.card ι,
-  intro C,
+  refine ⟨fintype.card ι, λ C, _⟩,
   specialize hι (λ v, C (v ∘ (fintype.equiv_fin _).symm)),
   obtain ⟨l, c, cl⟩ := hι,
   refine ⟨⟨l.idx_fun ∘ (fintype.equiv_fin _).symm, _⟩, c, cl⟩,

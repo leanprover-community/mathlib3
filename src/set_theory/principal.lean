@@ -71,7 +71,8 @@ nfp_le.2 $ λ n, le_of_lt (ho.iterate_lt hao n)
 
 /-! ### Principal ordinals are unbounded -/
 
-/-- The least strict upper bound of `op` applied to all pairs of ordinals less than `o`. -/
+/-- The least strict upper bound of `op` applied to all pairs of ordinals less than `o`. This is
+essentially a two-argument version of `blsub`. -/
 def blsub₂ (op : ordinal → ordinal → ordinal) (o : ordinal) : ordinal :=
 lsub (λ x : o.out.α × o.out.α, op (typein o.out.r x.1) (typein o.out.r x.2))
 
@@ -98,7 +99,7 @@ begin
     exact lt_blsub₂ op hm (hn.trans_le h) },
 end
 
-theorem unbounded_principal (op : ordinal.{u} → ordinal.{u} → ordinal.{u}) :
+theorem unbounded_principal (op : ordinal → ordinal → ordinal) :
   set.unbounded (<) {o | principal op o} :=
 λ o, ⟨_, principal_nfp_blsub₂ op o, (le_nfp_self _ o).not_lt⟩
 

@@ -201,7 +201,7 @@ begin
     { obtain ⟨a, has⟩ : ∃ a, a ∈ s, from hs_nonempty,
       exact ⟨a, by simpa [has] using h.symm⟩, },
     { obtain ⟨a, has⟩ : ∃ a, a ∉ s,
-      { by_contra',
+      { by_contra' h,
         refine hs_ne_univ _,
         ext1 a,
         simp [h a], },

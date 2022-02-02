@@ -71,7 +71,7 @@ lemma le_of_all_pow_lt_succ' {x y : ℝ} (hx : 1 < x) (hy : 0 < y)
   x ≤ y :=
 begin
   refine le_of_all_pow_lt_succ hx _ h,
-  by_contra' hy'', -- hy'' : y ≤ 1.
+  by_contra' hy'' : y ≤ 1.
 
   -- Then there exists y' such that 0 < y ≤ 1 < y' < x.
   let y' := (x + 1) / 2,

@@ -2,8 +2,6 @@ import field_theory.galois
 import topology.algebra.filter_basis
 import algebra.algebra.subalgebra
 
-open_locale classical
-
 /-!
 # Krull topology
 
@@ -40,6 +38,7 @@ all intermediate fields `E` with `E/K` finite dimensional.
 - `krull_topology K L` is defined as an instance for type class inference.
 -/
 
+open_locale classical
 
 /-- Mapping intermediate fields along algebra equivalences preserves the partial order -/
 lemma intermediate_field.map_mono {K L M : Type*} [field K] [field L] [field M]

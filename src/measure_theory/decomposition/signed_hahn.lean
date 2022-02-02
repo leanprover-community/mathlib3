@@ -358,7 +358,7 @@ lemma bdd_below_measure_of_negatives :
   bdd_below s.measure_of_negatives :=
 begin
   simp_rw [bdd_below, set.nonempty, mem_lower_bounds],
-  by_contra',
+  by_contra' h,
   have h' : ∀ n : ℕ, ∃ y : ℝ, y ∈ s.measure_of_negatives ∧ y < -n := λ n, h (-n),
   choose f hf using h',
   have hf' : ∀ n : ℕ, ∃ B, measurable_set B ∧ s ≤[B] 0 ∧ s B < -n,

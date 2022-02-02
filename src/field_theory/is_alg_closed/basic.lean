@@ -313,7 +313,7 @@ variables {M}
 
 include hS
 
-/-- A (random) hom from an algebraic extension of R into an algebraically closed extension of R. -/
+/-- A (random) homomorphism from an algebraic extension of R into an algebraically closed extension of R. -/
 
 @[irreducible] noncomputable def lift : S →ₐ[R] M :=
 begin

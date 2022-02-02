@@ -136,7 +136,7 @@ quot.ind (λ a₁, quot.ind (λ a₂, quot.ind (λ a₃, h a₁ a₂ a₃) q₃)
 end quot
 
 namespace quotient
-variables {sa : setoid α} [sb : setoid β]
+variables [sa : setoid α] [sb : setoid β]
 variables {φ : quotient sa → quotient sb → Sort*}
 
 instance (s : setoid α) [inhabited α] : inhabited (quotient s) := ⟨⟦default⟧⟩

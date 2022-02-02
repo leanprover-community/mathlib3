@@ -59,8 +59,7 @@ lemma PartialOrder_dual_equiv_comp_forget_to_Preorder :
   PartialOrder.dual_equiv.functor ⋙ forget₂ PartialOrder Preorder
   = forget₂ PartialOrder Preorder ⋙ Preorder.dual_equiv.functor := rfl
 
---TODO@Yaël: I'm pretty sure this is the free functor. Prove the adjunction.
-/-- `antisymmetrization` as a functor. -/
+/-- `antisymmetrization` as a functor. It is the free functor. -/
 def Preorder_to_PartialOrder : Preorder.{u} ⥤ PartialOrder :=
 { obj := λ X, PartialOrder.of (antisymmetrization X),
   map := λ X Y f, f.antisymmetrization,
@@ -68,3 +67,25 @@ def Preorder_to_PartialOrder : Preorder.{u} ⥤ PartialOrder :=
     by { ext, exact quotient.induction_on' x (λ x, quotient.map'_mk' _ (λ a b, id) _) },
   map_comp' := λ X Y Z f g,
     by { ext, exact quotient.induction_on' x (λ x, order_hom.antisymmetrization_apply_mk _ _) } }
+
+/-- `Preorder_to_PartialOrder` is left adjoint to the forgetful functor, meaning it is the free
+functor from `Preorder` to `PartialOrder`. -/
+def Preorder_to_PartialOrder_forget_adjunction :
+  Preorder_to_PartialOrder.{u} ⊣ forget₂ PartialOrder Preorder :=
+adjunction.mk_of_hom_equiv
+  { hom_equiv := λ X Y, { to_fun := λ f,
+      ⟨f ∘ to_antisymmetrization, f.mono.comp to_antisymmetrization_mono⟩,
+    inv_fun := λ f, ⟨λ a, quotient.lift_on' a f $ λ a b h, (le_equiv.image f.mono h).eq, λ a b,
+      quotient.induction_on₂' a b $ λ a b h, f.mono h⟩,
+    left_inv := λ f, order_hom.ext _ _ $ funext $ λ x, quotient.induction_on' x $ λ x, rfl,
+    right_inv := λ f, order_hom.ext _ _ $ funext $ λ x, rfl },
+  hom_equiv_naturality_left_symm' := λ X Y Z f g,
+    order_hom.ext _ _ $ funext $ λ x, quotient.induction_on' x $ λ x, rfl,
+  hom_equiv_naturality_right' := λ X Y Z f g, order_hom.ext _ _ $ funext $ λ x, rfl }
+
+/-- `Preorder_to_PartialOrder` and `order_dual` commute. -/
+@[simps] def Preorder_to_PartialOrder_comp_to_dual_iso_to_dual_comp_Preorder_to_PartialOrder :
+ (Preorder_to_PartialOrder.{u} ⋙ PartialOrder.to_dual) ≅
+    (Preorder.to_dual ⋙ Preorder_to_PartialOrder) :=
+nat_iso.of_components (λ X, PartialOrder.iso.mk $ order_iso.dual_antisymmetrization _) $
+  λ X Y f, order_hom.ext _ _ $ funext $ λ x, quotient.induction_on' x $ λ x, rfl

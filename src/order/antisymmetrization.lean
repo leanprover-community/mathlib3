@@ -119,6 +119,8 @@ by convert to_antisymmetrization_le_to_antisymmetrization_iff.symm;
 by convert to_antisymmetrization_lt_to_antisymmetrization_iff.symm;
   exact (to_antisymmetrization_of_antisymmetrization _).symm
 
+lemma to_antisymmetrization_mono : monotone (@to_antisymmetrization α _) := λ a b, id
+
 /-- `to_antisymmetrization` as an order homomorphism. -/
 @[simps] def order_hom.to_antisymmetrization : α →o antisymmetrization α :=
 ⟨to_antisymmetrization, λ a b, id⟩
@@ -162,3 +164,12 @@ def order_iso.dual_antisymmetrization :
   map_rel_iff' := λ a b, quotient.induction_on₂' a b $ λ a b, iff.rfl }
 
 end preorder
+
+section partial_order
+variables [partial_order α] {a b : α}
+
+@[simp] lemma le_equiv_iff_eq : le_equiv a b ↔ a = b := le_antisymm_iff.symm
+
+alias le_equiv_iff_eq ↔ le_equiv.eq _
+
+end partial_order

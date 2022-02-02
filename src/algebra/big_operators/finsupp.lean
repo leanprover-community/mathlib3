@@ -54,7 +54,7 @@ end
 
 namespace nat
 
-lemma prod_pow_pos_of_ne_zero {f : ℕ →₀ ℕ} (hf : 0 ∉ f.support) : 0 < f.prod pow :=
+lemma prod_pow_pos_of_zero_not_mem_support {f : ℕ →₀ ℕ} (hf : 0 ∉ f.support) : 0 < f.prod pow :=
 finset.prod_pos (λ a ha, pos_iff_ne_zero.mpr (pow_ne_zero _ (λ H, by {subst H, exact hf ha})))
 
 end nat

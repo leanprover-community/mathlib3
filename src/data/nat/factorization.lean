@@ -142,7 +142,8 @@ lemma eq_factorization_iff {n : ℕ} {f : ℕ →₀ ℕ} (hn : n ≠ 0) (hf : �
 noncomputable
 def factorization_equiv : ℕ+ ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
 { to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ _, prime_of_mem_factorization⟩,
-  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow, prod_pow_pos_of_ne_zero (λ H, not_prime_zero (hf 0 H))⟩,
+  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow,
+    prod_pow_pos_of_zero_not_mem_support (λ H, not_prime_zero (hf 0 H))⟩,
   left_inv  := λ ⟨x, hx⟩, subtype.ext $ factorization_prod_pow_eq_self hx.ne.symm,
   right_inv := λ ⟨f, hf⟩, subtype.ext $ factorization_prod_pow_inv hf }
 

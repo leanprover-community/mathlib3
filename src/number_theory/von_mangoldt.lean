@@ -99,13 +99,13 @@ end
 @[simp] lemma von_mangoldt_mul_zeta : Λ * ζ = log :=
 by { ext n, rw [coe_mul_zeta_apply, von_mangoldt_sum], refl }
 
-@[simp] lemma zeta_mul_von_mangoldt : ζ * Λ = log :=
+@[simp] lemma zeta_mul_von_mangoldt : (ζ : arithmetic_function ℝ) * Λ = log :=
 by { rw [mul_comm], simp }
 
 @[simp] lemma log_mul_moebius_eq_von_mangoldt : log * μ = Λ :=
 by rw [←von_mangoldt_mul_zeta, mul_assoc, coe_zeta_mul_coe_moebius, mul_one]
 
-@[simp] lemma moebius_mul_log_eq_von_mangoldt : μ * log = Λ :=
+@[simp] lemma moebius_mul_log_eq_von_mangoldt : (μ : arithmetic_function ℝ) * log = Λ :=
 by { rw [mul_comm], simp }
 
 lemma sum_moebius_mul_log_eq {n : ℕ} :

@@ -572,15 +572,6 @@ normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing
 
 open_locale big_operators
 
-def mul_equiv.Pi_singleton
-  {η : Type*} (M : η → Type*) [Π (j : η), mul_one_class (M j)] [unique η] :
-  (Π (j : η), M j) ≃* M default :=
-{ to_fun := λ f, f default,
-  inv_fun := λ x, λ j, begin rw unique.eq_default j, exact x end,
-  left_inv := λ f, begin ext j, rw unique.eq_default j, reflexivity, end,
-  right_inv := λ x, rfl,
-  map_mul' := λ f1 f2, pi.mul_apply _ _ _, }
-
 /-- If all its sylow groups are normal, then a finite group is isomorphic to the direct product
 of these sylow groups.
 -/
@@ -595,6 +586,7 @@ begin
 
   have : (Π p : ps, Π P : sylow p G, (↑P : subgroup G)) ≃* (Π p : ps, (↑(P p) : subgroup G)),
   begin
+    -- this part is hairy and needs lots of explicit instantiations
     apply @mul_equiv.Pi_congr_right ps
       (λ p, (Π P : sylow p G, (↑P : subgroup G))) (λ p, ((↑(P p) : subgroup G) : Type u)) _ _ ,
     rintro ⟨p, hp⟩,

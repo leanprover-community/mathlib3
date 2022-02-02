@@ -68,4 +68,14 @@ instance concrete_category : concrete_category Bipointed :=
 { forget := { obj := Bipointed.X, map := @Bipointed.hom.to_fun },
   forget_faithful := ⟨@hom.ext⟩ }
 
+/-- Swaps the pointed elements of a bipointed type. `prod.swap` as a functor. -/
+@[simps] def swap : Bipointed ⥤ Bipointed :=
+{ obj := λ X, ⟨X, X.to_prod.swap⟩, map := λ X Y f, ⟨f.to_fun, f.map_snd, f.map_fst⟩ }
+
+/-- The equivalence between `Bipointed` and itself induced by `prod.swap` both ways. -/
+def swap_equiv : Bipointed ≌ Bipointed :=
+equivalence.mk swap swap
+  (nat_iso.of_components (λ X, { hom := ⟨id, rfl, rfl⟩, inv := ⟨id, rfl, rfl⟩ }) $ λ X Y f, rfl)
+  (nat_iso.of_components (λ X, { hom := ⟨id, rfl, rfl⟩, inv := ⟨id, rfl, rfl⟩ }) $ λ X Y f, rfl)
+
 end Bipointed

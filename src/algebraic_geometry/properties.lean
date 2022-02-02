@@ -279,8 +279,7 @@ begin
   split,
   { intros a b e,
     simp_rw [← basic_open_eq_bot_iff, ← opens.not_nonempty_iff_eq_bot],
-    by_contra h,
-    push_neg at h,
+    by_contra' h,
     exfalso,
     obtain ⟨_, ⟨x, hx₁, rfl⟩, ⟨x, hx₂, e'⟩⟩ := @@nonempty_preirreducible_inter _ H.1
       (X.basic_open a).2 (X.basic_open b).2

@@ -52,8 +52,7 @@ lemma log_eq_zero_iff {b n : ℕ} : log b n = 0 ↔ n < b ∨ b ≤ 1 :=
 begin
   split,
   { intro h_log,
-    by_contra h,
-    push_neg at h,
+    by_contra' h,
     have := log_of_one_lt_of_le h.2 h.1,
     rw h_log at this,
     exact succ_ne_zero _ this.symm, },

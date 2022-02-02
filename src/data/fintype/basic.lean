@@ -1872,7 +1872,7 @@ See also: `fintype.exists_ne_map_eq_of_card_lt`, `fintype.exists_infinite_fiber`
 lemma fintype.exists_ne_map_eq_of_infinite [infinite α] [fintype β] (f : α → β) :
   ∃ x y : α, x ≠ y ∧ f x = f y :=
 begin
-  classical, by_contra hf, push_neg at hf,
+  classical, by_contra' hf,
   apply not_injective_infinite_fintype f,
   intros x y, contrapose, apply hf,
 end
@@ -1906,8 +1906,7 @@ lemma fintype.exists_infinite_fiber [infinite α] [fintype β] (f : α → β) :
   ∃ y : β, infinite (f ⁻¹' {y}) :=
 begin
   classical,
-  by_contra hf,
-  push_neg at hf,
+  by_contra' hf,
 
   haveI := λ y, fintype_of_not_infinite $ hf y,
   let key : fintype α :=

@@ -430,8 +430,7 @@ begin
   have humeas : measurable_set u := huopen.measurable_set,
   have hfinite : (s \ u).finite,
   { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
-    by_contra h,
-    push_neg at h,
+    by_contra' h,
     exact hy.2 (mem_Union₂.mpr ⟨x, hx.1,
       mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
   have : u ⊆ s :=

@@ -31,7 +31,8 @@ section algebraic_closure
 
 namespace is_alg_closure
 
-variables (R L : Type u) [comm_ring R] [field L] [algebra R L] [is_alg_closure R L]
+variables (R L : Type u) [comm_ring R] [field L] [algebra R L]
+variables [no_zero_smul_divisors R L] [is_alg_closure R L]
 
 /--The cardinality of an algebraic closure is at most the maximum of the cardinality
 of the base ring or `ω` -/
@@ -39,7 +40,7 @@ lemma cardinal_mk_le_max : #L ≤ max (#R) ω :=
 calc #L ≤ #(Σ p : polynomial R, { x : L // x ∈ (p.map (algebra_map R L)).roots }) :
   @mk_le_of_injective L (Σ p : polynomial R, { x : L | x ∈ (p.map (algebra_map R L)).roots })
     (λ x : L, let p := classical.indefinite_description _
-        (@is_alg_closure.algebraic R _ _ _ _ _ x) in
+        (@is_alg_closure.algebraic R _ _ _ _ _ _ x) in
       ⟨p.1, x,
        begin
         letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R L).is_domain _,
@@ -93,8 +94,7 @@ lemma is_alg_closure_of_transcendence_basis [is_alg_closed K] (hv : is_transcend
   is_alg_closure (algebra.adjoin R (set.range v)) K :=
 by letI := ring_hom.domain_nontrivial (algebra_map R K); exact
 { alg_closed := by apply_instance,
-  algebraic := hv.is_algebraic,
-  injective := subtype.val_injective }
+  algebraic := hv.is_algebraic }
 
 variables (hw : algebraic_independent R w)
 

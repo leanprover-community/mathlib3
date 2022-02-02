@@ -7,6 +7,7 @@ Authors: Chris Hughes, Thomas Browning
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
+import data.nat.factorization
 
 /-!
 # Sylow theorems
@@ -465,6 +466,23 @@ begin
   refine λ h, hp.out.not_dvd_one _,
   have key : p ∣ card (P : subgroup G) := P.dvd_card_of_dvd_card hdvd,
   rwa [h, card_bot] at key,
+end
+
+/-- The cardinality of a Sylow group is p ^ n where n is the multiplicity of p in the group order.
+ -/
+lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
+  card P = p ^ nat.factorization (card G) p :=
+begin
+  obtain ⟨n, heq⟩ := is_p_group.iff_card.mp (P.is_p_group'),
+  apply nat.dvd_antisymm,
+  { suffices : p ^ n ∣ p ^ nat.factorization (card G) p, by simpa [← heq] using this,
+    suffices : p ^ n ∣ card G,
+    by exact (nat.pow_dvd_pow_iff_le_right (nat.prime.one_lt hp.elim)).mpr
+      ((nat.prime_pow_dvd_iff_le_factorization _ _ _ (hp.elim) fintype.card_ne_zero).mp this),
+    rw ← heq,
+    apply subgroup.card_subgroup_dvd_card,
+  },
+  { apply pow_dvd_card_of_pow_dvd_card, apply nat.pow_factorization_dvd, }
 end
 
 lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)

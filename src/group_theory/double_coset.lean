@@ -98,38 +98,27 @@ iff.trans ⟨λ hxy, (congr_arg _ hxy).mpr (doset_subgroups_mem_self H K y),
 lemma left_bot_eq_left_group_rel (H : subgroup G) :
   (double_coset_rel ↑(⊥ : subgroup G) ↑H) = (quotient_group.left_rel H).rel :=
 begin
-  show (double_coset_rel ↑(⊥ : subgroup G) ↑H) = (quotient_group.left_rel H).r,
-  ext,
+ ext a b,
   rw rel_iff,
-  simp only [exists_prop, one_mul, subgroup.mem_bot, exists_eq_left, exists_prop, one_mul,
-  subgroup.mem_bot, exists_eq_left],
   split,
-  rintro ⟨a, ha⟩,
-  rw [quotient_group.left_rel, ha.2],
-  simp only [ha.left, inv_mul_cancel_left],
-  rw quotient_group.left_rel,
-  dsimp only,
-  intro h,
-  use (⟨x⁻¹ * x_1, h⟩ : H),
-  simp only [h, mul_inv_cancel_left, eq_self_iff_true, and_self, subgroup.coe_mk],
+  { rintros ⟨a, (rfl : a = 1), b, hb, rfl⟩,
+    change a⁻¹ * (1 * a * b) ∈ H,
+    rwa [one_mul, inv_mul_cancel_left] },
+  { rintro (h : a⁻¹ * b ∈ H),
+    exact ⟨1, rfl, a⁻¹ * b, h, by rw [one_mul, mul_inv_cancel_left]⟩ },
 end
 
 lemma right_bot_eq_right_group_rel (H : subgroup G) :
   (double_coset_rel ↑H ↑(⊥ : subgroup G)) = (quotient_group.right_rel H).rel :=
 begin
-  show (double_coset_rel ↑H ↑(⊥ : subgroup G)) = (quotient_group.right_rel H).r,
-  ext,
+  ext a b,
   rw rel_iff,
-  simp only [exists_prop, mul_one, subgroup.mem_bot, exists_eq_left, subgroup.coe_bot] at *,
   split,
-  rintro ⟨a, ha⟩,
-  rw [quotient_group.right_rel, ha.2],
-  simp only [ha.left, mul_one, mul_inv_cancel_right],
-  rw quotient_group.right_rel,
-  dsimp only,
-  intro h,
-  use (⟨x_1 * x⁻¹, h⟩ : H),
-  simp only [h, mul_one, eq_self_iff_true, and_self, subgroup.coe_mk, inv_mul_cancel_right],
+  { rintros ⟨b, hb, a, (rfl : a = 1), rfl⟩,
+    change b * a * 1 * a⁻¹ ∈ H,
+    rwa [mul_one, mul_inv_cancel_right] },
+  { rintro (h : b * a⁻¹ ∈ H),
+    exact ⟨b * a⁻¹, h, 1, rfl, by rw [mul_one, inv_mul_cancel_right]⟩ },
 end
 
 lemma disjoint_sub (H K : subgroup G) (a b : G) (h : ¬ disjoint (doset a H K ) (doset b H K )) :
@@ -137,8 +126,8 @@ lemma disjoint_sub (H K : subgroup G) (a b : G) (h : ¬ disjoint (doset a H K ) 
 begin
   rw set.not_disjoint_iff at h,
   simp only [exists_prop, set_coe.exists, doset_mem, subgroup.mem_carrier, set_like.mem_coe,
-    subgroup.coe_mk] at *,
-   obtain  ⟨x, ⟨l, hl, r, hr, hrx⟩, y, hy, ⟨r', hr', rfl⟩⟩ := h,
+  subgroup.coe_mk] at *,
+  obtain  ⟨x, ⟨l, hl, r, hr, hrx⟩, y, hy, ⟨r', hr', rfl⟩⟩ := h,
   refine ⟨y⁻¹ * l, H.mul_mem (H.inv_mem hy) (hl), r * r'⁻¹, K.mul_mem hr (K.inv_mem hr'), _⟩,
   rwa [mul_assoc, mul_assoc, eq_inv_mul_iff_mul_eq, ←mul_assoc, ←mul_assoc, eq_mul_inv_iff_mul_eq],
 end

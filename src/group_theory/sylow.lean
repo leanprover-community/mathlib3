@@ -572,37 +572,39 @@ normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing
 
 open_locale big_operators
 
+def mul_equiv.Pi_singleton
+  {η : Type*} (M : η → Type*) [Π (j : η), mul_one_class (M j)] [unique η] :
+  (Π (j : η), M j) ≃* M default :=
+{ to_fun := λ f, f default,
+  inv_fun := λ x, λ j, begin rw unique.eq_default j, exact x end,
+  left_inv := λ f, begin ext j, rw unique.eq_default j, reflexivity, end,
+  right_inv := λ x, rfl,
+  map_mul' := λ f1 f2, pi.mul_apply _ _ _, }
+
 /-- If all its sylow groups are normal, then a finite group is isomorphic to the direct product
 of these sylow groups.
-
-This uses `(Σ (p : (card G).factorization.support), sylow p G)` as the type of all
-(non-trivial) sylow groups.
 -/
 noncomputable
 def direct_product_of_normal [fintype G]
   (hn : ∀ {p : ℕ} [fact p.prime] (P : sylow p G), (↑P : subgroup G).normal) :
-  (Π P : (Σ (p : (card G).factorization.support), sylow p G), (↑(P.2) : subgroup G)) ≃* G :=
+  (Π p : (card G).factorization.support, Π P : sylow p G, (↑P : subgroup G)) ≃* G :=
 begin
   set ps := (fintype.card G).factorization.support,
-  set sylows := Σ (p : ps), sylow p G,
 
-  -- Dealing with the sigma values is annoying, so we have this helper
-  have sigma_helper :
-    ∀ (P : Π {p₁ p₂ : ℕ}, sylow p₁ G → sylow p₂ G → Prop),
-    (∀ (p₁ p₂ : ℕ) [fact p₁.prime] [fact p₂.prime] (hne : p₁ ≠ p₂)
-       (P₁ : sylow p₁ G) (P₂ : sylow p₂ G), P P₁ P₂) →
-    (∀ (P₁ P₂ : sylows), P₁ ≠ P₂ → P (P₁.snd) (P₂.snd)),
-  { intros P h,
-    rintros ⟨⟨p₁, hp₁⟩, P₁⟩ ⟨⟨p₂, hp₂⟩, P₂⟩ hne,
-    change sylow p₁ G at P₁,
-    change sylow p₂ G at P₂,
-    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
-    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
-    have hne' : p₁ ≠ p₂, unfreezingI
-    { rintros rfl, apply hne,
-      haveI := subsingleton_of_normal _ (hn P₁),
-      rw subsingleton.elim P₁ P₂, },
-    exact h p₁ p₂ hne' P₁ P₂, },
+  let P := λ (p : ℕ), (default : sylow p G),
+
+  have : (Π p : ps, Π P : sylow p G, (↑P : subgroup G)) ≃* (Π p : ps, (↑(P p) : subgroup G)),
+  begin
+    apply @mul_equiv.Pi_congr_right ps
+      (λ p, (Π P : sylow p G, (↑P : subgroup G))) (λ p, ((↑(P p) : subgroup G) : Type u)) _ _ ,
+    rintro ⟨p, hp⟩,
+    haveI hp' := fact.mk (nat.prime_of_mem_factorization hp),
+    haveI := subsingleton_of_normal _ (hn (P p)),
+    haveI : unique (sylow p G) := unique_of_subsingleton (P p),
+    change (Π (P : sylow p G), ↥P) ≃* (↑(P p) : subgroup G),
+    -- oddly exact doesn’t work here, but convert does
+    convert (mul_equiv.Pi_singleton (λ (P : sylow p G), ((↑P : subgroup G) : Type u))),
+  end,
 
   -- Names for the propositions we instantiate the helper with
   let commuting_elements := λ (p₁ p₂ : ℕ) (P₁ : sylow p₁ G) (P₂ : sylow p₂ G),
@@ -610,12 +612,16 @@ begin
   let coprime := λ (p₁ p₂ : ℕ) (P₁ : sylow p₁ G) (P₂ : sylow p₂ G),
     nat.coprime (fintype.card (↑P₁ : subgroup G)) (fintype.card (↑P₂ : subgroup G)),
 
-  have hcomm : ∀ (P₁ P₂ : sylows), P₁ ≠ P₂ → commuting_elements _ _ (P₁.snd) (P₂.snd),
-  { apply sigma_helper commuting_elements,
-    rintros p₁ p₂ _ _ hne P₁ P₂, resetI,
-    apply subgroup.commute_of_normal_of_disjoint _ _ (hn P₁) (hn P₂),
-    apply is_p_group.disjoint_of_ne p₁ p₂ hne _ _ P₁.is_p_group' P₂.is_p_group', },
+  have hcomm : ∀ (p₁ p₂ : ps), p₁ ≠ p₂ → commuting_elements _ _ (P p₁) (P p₂),
+  { rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
+    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
+    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
+    have hne' : p₁ ≠ p₂, by simpa using hne,
+    apply subgroup.commute_of_normal_of_disjoint _ _ (hn (P p₁)) (hn (P p₂)),
+    apply is_p_group.disjoint_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
 
+
+  apply mul_equiv.trans this,
   apply mul_equiv.of_bijective (subgroup_pi_hom.hom hcomm),
   apply (bijective_iff_injective_and_card _).mpr,
   split,
@@ -623,30 +629,20 @@ begin
   show injective _,
   { apply subgroup_pi_hom.injective_of_independent,
     apply independent_of_coprime_order hcomm,
-    apply sigma_helper coprime,
-    rintros p₁ p₂ _ _ hne P₁ P₂, resetI,
-    apply is_p_group.coprime_card_of_ne p₁ p₂ hne _ _ P₁.is_p_group' P₂.is_p_group', },
+    rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
+    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
+    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
+    have hne' : p₁ ≠ p₂, by simpa using hne,
+    apply is_p_group.coprime_card_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
 
-  show card (Π (P : sylows), P.2) = card G,
-  { calc card (Π (P : sylows), P.2)
-        = ∏ (P : sylows), card ↥(P.snd) : fintype.card_pi
-    ... = ∏ (P : sylows), P.1 ^ (card G).factorization P.1 :
+  show card (Π (p : ps), P p) = card G,
+  { calc card (Π (p : ps), P p)
+        = ∏ (p : ps), card ↥(P p) : fintype.card_pi
+    ... = ∏ (p : ps), p.1 ^ (card G).factorization p.1 :
     begin
-      congr' 1, ext P, rcases P with ⟨⟨p,hp⟩, P⟩,
+      congr' 1, ext p, rcases p with ⟨p,hp⟩,
       let hp' := fact.mk (nat.prime_of_mem_factorization hp),
-      exact (@card_eq_multiplicity _ _ _ p  hp' P)
-    end
-    ... = ∏ (p : ps), ∏ (P : sylow p G), p ^ (card G).factorization p : finset.prod_sigma _ _ _
-    ... = ∏ (p : ps), ((p ^ (card G).factorization p) ^ card (sylow p G)) :
-      by {congr', ext, exact finset.prod_const _}
-    ... = ∏ (p : ps), p ^ (card G).factorization p :
-    begin
-      congr' 1, ext p, rcases p with ⟨p, hp⟩,
-      haveI : fact (nat.prime p) := fact.mk (nat.prime_of_mem_factorization hp),
-      let P : sylow p G := arbitrary _,
-      haveI := subsingleton_of_normal _ (hn P),
-      haveI : unique (sylow p G) := unique_of_subsingleton P,
-      simp,
+      exact (@card_eq_multiplicity _ _ _ p  hp' (P p))
     end
     ... = ∏ p in ps, p ^ (card G).factorization p :
       finset.prod_finset_coe (λ p, p ^ (card G).factorization p) _

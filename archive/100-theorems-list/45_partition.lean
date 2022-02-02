@@ -509,26 +509,41 @@ begin
   rw [partial_odd_gf, partial_distinct_gf],
   induction n with n ih,
   { simp },
-  set Z : power_series α := ∏ (x : ℕ) in range n, (1 - X^(2*x+1))⁻¹ with hZ,
-  rw [prod_range_succ _ n, prod_range_succ _ n, prod_range_succ _ n, ← ih],
-  clear ih,
-  erw ← two_mul (n+1),
-  have : 1 - (X : power_series α) ^ (2 * (n+1)) = (1 + X^(n+1)) * (1 - X^(n+1)),
-    rw [← sq_sub_sq, one_pow, ← pow_mul, mul_comm],
-  rw this, clear this,
-  rw ←hZ,
-  rw [mul_assoc, mul_assoc],
-  congr' 1,
-  have := prod_range_succ' (λ x, 1 - (X : power_series α)^(n.succ + x)) n,
-  dsimp at this,
-  simp_rw [← add_assoc, add_zero, mul_comm _ (1 - X ^ n.succ)] at this,
-  rw [mul_comm _ (1 - X ^ (n + 1)), ←mul_assoc _  (1 - X ^ (n + 1)), mul_comm _ (1 - X ^ (n + 1))],
-  erw [← this],
-  rw [prod_range_succ],
-  simp_rw [nat.succ_eq_add_one, add_right_comm _ 1, ← two_mul, ← mul_assoc],
-  rw [mul_comm _ (1 - X ^ (2 * n + 1)), ←mul_assoc],
-  rw [power_series.mul_inv, one_mul],
-  simp [zero_pow],
+
+  rw nat.succ_eq_add_one,
+
+  set π₀ : power_series α := ∏ i in range n, (1 - X ^ (n + 1 + i + 1)) with hπ₀,
+  set π₁ : power_series α := ∏ i in range n, (1 - X ^ (2 * i + 1))⁻¹ with hπ₁,
+  set π₂ : power_series α := ∏ i in range n, (1 - X ^ (n + i + 1)) with hπ₂,
+  set π₃ : power_series α := ∏ i in range n, (1 + X ^ (i + 1)) with hπ₃,
+  rw ←hπ₃ at ih,
+
+  have h : constant_coeff α (1 - X ^ (2 * n + 1)) ≠ 0,
+  { rw [ring_hom.map_sub, ring_hom.map_pow, constant_coeff_one, constant_coeff_X,
+      zero_pow (2 * n).succ_pos, sub_zero],
+    exact one_ne_zero },
+
+  calc (∏ i in range (n + 1), (1 - X ^ (2 * i + 1))⁻¹) *
+          ∏ i in range (n + 1), (1 - X ^ (n + 1 + i + 1))
+      = π₁ * (1 - X ^ (2 * n + 1))⁻¹ * (π₀ * (1 - X ^ (n + 1 + n + 1))) :
+          by rw [prod_range_succ _ n, ←hπ₁, prod_range_succ _ n, ←hπ₀]
+  ... = π₁ * (1 - X ^ (2 * n + 1))⁻¹ * (π₀ * ((1 + X ^ (n + 1)) * (1 - X ^ (n + 1)))) :
+          by rw [←sq_sub_sq, one_pow, add_assoc _ n 1, ←two_mul (n + 1), pow_mul']
+  ... = π₀ * (1 - X ^ (n + 1)) * (1 - X ^ (2 * n + 1))⁻¹ * (π₁ * (1 + X ^ (n + 1))) :
+          by ring
+  ... = (∏ i in range (n + 1), (1 - X ^ (n + 1 + i))) * (1 - X ^ (2 * n + 1))⁻¹ *
+          (π₁ * (1 + X ^ (n + 1))) :
+          by { rw [prod_range_succ', add_zero, hπ₀], simp_rw ←add_assoc }
+  ... = π₂ * (1 - X ^ (n + 1 + n)) * (1 - X ^ (2 * n + 1))⁻¹ * (π₁ * (1 + X ^ (n + 1))) :
+          by { rw [add_right_comm, hπ₂, ←prod_range_succ], simp_rw [add_right_comm] }
+  ... = π₂ * (1 - X ^ (2 * n + 1)) * (1 - X ^ (2 * n + 1))⁻¹ * (π₁ * (1 + X ^ (n + 1))) :
+          by rw [two_mul, add_right_comm _ n 1]
+  ... = (1 - X ^ (2 * n + 1)) * (1 - X ^ (2 * n + 1))⁻¹ * π₂ * (π₁ * (1 + X ^ (n + 1))) :
+          by ring
+  ... = π₂ * (π₁ * (1 + X ^ (n + 1))) : by rw [power_series.mul_inv _ h, one_mul]
+  ... = π₁ * π₂ * (1 + X ^ (n + 1)) : by ring
+  ... = π₃ * (1 + X ^ (n + 1)) : by rw ih
+  ... = _ : by rw prod_range_succ,
 end
 
 lemma same_coeffs [field α] (n m : ℕ) (h : m ≤ n) :

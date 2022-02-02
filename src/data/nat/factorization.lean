@@ -138,7 +138,7 @@ lemma eq_factorization_iff {n : ℕ} {f : ℕ →₀ ℕ} (hn : n ≠ 0) (hf : �
 ⟨λ h, by rw [h, factorization_prod_pow_eq_self hn],
  λ h, by rw [←h, factorization_prod_pow_inv hf]⟩
 
-/-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
+/-- The equiv between `ℕ+` and `ℕ →₀ ℕ` with support in the primes. -/
 noncomputable
 def factorization_equiv : ℕ+ ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
 { to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ _, prime_of_mem_factorization⟩,

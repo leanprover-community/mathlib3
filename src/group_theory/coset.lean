@@ -479,15 +479,6 @@ have h : ∀ {x : α ⧸ s} {a : α}, x ∈ t → a ∈ s →
   left_inv := λ ⟨a, ha⟩, subtype.eq $ show _ * _ = a, by simp,
   right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, show (_, _) = _, by simp [h hx ha] }
 
-/-- If `K ≤ L`, then there is an embedding `K/(H ⊓ K) ↪ L/(H ⊓ L)` -/
-def le_quot_map (H : subgroup α) {K L : subgroup α} (h : K ≤ L) :
- K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L) :=
-{ to_fun := quotient.map' (set.inclusion h) (λ a b, id),
-  inj' := by
-  { refine quotient.ind₂' (λ a b, _),
-    simp only [quotient.map'_mk', quotient.eq'],
-    exact id } }
-
 end quotient_group
 
 /--

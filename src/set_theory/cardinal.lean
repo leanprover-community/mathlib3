@@ -1044,35 +1044,6 @@ begin
     exact not_lt.mp (mt (mul_lt_omega_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hx2 h.1)) },
 end
 
-lemma nonempty_to_nat_eq_zero_infinite {α : Type u} [nonempty α] :  (#α).to_nat = 0 → ω ≤ (#α) :=
-begin
-  intro h0,
-  rw to_nat at h0,
-  simp only [zero_hom.coe_mk] at *,
-  by_contradiction h3,
-  simp only [not_le] at h3,
-  rw dif_pos at h0,
-  have h4:= lt_omega.1 h3,
-  have h5:=classical.some_spec h4,
-  have h6: classical.some h4 = 0, by {simp only [h0],},
-  rw h6 at h5,
-  simp only [nat.cast_zero] at h5,
-  rw mk_eq_zero_iff at h5,
-  simp only [not_is_empty_of_nonempty] at *,
-  apply h5,
-  apply h3,
-end
-
-theorem to_nat_zero_of_injective' {α β : Type u} {f : α → β} [nonempty α] (hf : injective f) :
-  (#α).to_nat = 0 →  (#β).to_nat=0 :=
-begin
-  intro h,
-  apply to_nat_apply_of_omega_le,
-  have ha : ω ≤ #α , by {apply nonempty_to_nat_eq_zero_infinite h,},
-  have hab:=mk_le_of_injective hf,
-  apply le_trans ha hab,
-end
-
 @[simp] lemma to_nat_add_of_lt_omega {a : cardinal.{u}} {b : cardinal.{v}}
   (ha : a < ω) (hb : b < ω) : ((lift.{v u} a) + (lift.{u v} b)).to_nat = a.to_nat + b.to_nat :=
 begin

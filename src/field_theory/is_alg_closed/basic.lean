@@ -151,7 +151,7 @@ lemma algebra_map_surjective_of_is_integral'
 lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_algebraic k K) :
   function.surjective (algebra_map k K) :=
-algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)
+algebra_map_surjective_of_is_integral (algebra.is_algebraic_iff_is_integral.mp hf)
 
 end is_alg_closed
 
@@ -265,7 +265,7 @@ begin
   letI : algebra N M := (maximal_subfield_with_hom M hL).emb.to_ring_hom.to_algebra,
   cases is_alg_closed.exists_aeval_eq_zero M (minpoly N x)
     (ne_of_gt (minpoly.degree_pos
-      ((is_algebraic_iff_is_integral _).1
+      (is_algebraic_iff_is_integral.1
         (algebra.is_algebraic_of_larger_base _ _ hL x)))) with y hy,
   let O : subalgebra N L := algebra.adjoin N {(x : L)},
   let larger_emb := ((adjoin_root.lift_hom (minpoly N x) y hy).comp

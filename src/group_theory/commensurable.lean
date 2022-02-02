@@ -17,7 +17,7 @@ of `G`.
 ## Main definitions
 
 * `commensurable`: defines commensurability for two subgroups `H`, `K` of  `G`
-* `commensurator`: defines the commensurator of a a subgroup `H` of `G`.
+* `commensurator`: defines the commensurator of a subgroup `H` of `G`.
 -/
 
 variables {G : Type*} [group G]
@@ -62,7 +62,7 @@ lemma commensurable_inv (H : subgroup G) (g : conj_act G) :
   commensurable (g • H) H ↔ commensurable H (g⁻¹ • H) :=
  by rw [commensurable_conj, inv_smul_smul]
 
-/--For `H` a subgroup of `G`, this is the subgroup of all elements `g : conj_aut G`
+/-- For `H` a subgroup of `G`, this is the subgroup of all elements `g : conj_aut G`
 such that `commensurable ( g • H) H`   -/
 
 def commensurator' (H : subgroup G) : subgroup (conj_act G) :=
@@ -73,7 +73,7 @@ def commensurator' (H : subgroup G) : subgroup (conj_act G) :=
     exact trans ((commensurable_conj a).mp hb) ha },
   inv_mem' := λ a ha, by rwa [set.mem_set_of_eq, comm, ←commensurable_inv] }
 
-/--For `H` a subgroup of `G`, this is the subgroup of all elements `g : G`
+/-- For `H` a subgroup of `G`, this is the subgroup of all elements `g : G`
 such that `commensurable ( g H g⁻¹) H`   -/
 
 def commensurator (H : subgroup G) : subgroup G :=
@@ -85,7 +85,7 @@ def commensurator (H : subgroup G) : subgroup G :=
 @[simp] lemma commensurator_mem_iff (H : subgroup G) (g : G) :
   g ∈ (commensurator H) ↔ commensurable (conj_act.to_conj_act g • H) H := iff.rfl
 
-lemma commensurator_eq {H K : subgroup G} (hk : commensurable H K) :
+lemma commensurator.eq {H K : subgroup G} (hk : commensurable H K) :
   commensurator H = commensurator K :=
 subgroup.ext (λ x, let hx := (commensurable_conj x).1 hk in
   ⟨λ h, hx.symm.trans (h.trans hk), λ h, hx.trans (h.trans hk.symm)⟩)

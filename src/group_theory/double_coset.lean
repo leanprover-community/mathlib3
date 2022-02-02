@@ -65,7 +65,6 @@ quotient (setoid H K)
 lemma doset_subgroups_mem_self (H K : subgroup G) (a : G) : a ∈ (doset a H K) :=
 doset_mem.mpr ⟨1, H.one_mem, 1, K.one_mem, (one_mul a).symm.trans (mul_one (1 * a)).symm⟩
 
-
 lemma sub_doset {H K : subgroup G} {a b : G} (hb : b ∈ doset a H K) :
   doset b H K = doset a H K :=
 begin

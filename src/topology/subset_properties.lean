@@ -1119,6 +1119,7 @@ end
 monotone_accumulate h
 
 /-- A `σ`-compact topological space is a Lindelöf space. -/
+@[priority 100] -- see Note [lower instance priority]
 instance sigma_compact_space.lindelof_space [sigma_compact_space α] : lindelof_space α :=
 ⟨Union_compact_covering α ▸ is_lindelof_Union $ λ k, (is_compact_compact_covering α k).is_lindelof⟩
 

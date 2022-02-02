@@ -8,6 +8,25 @@ import order.filter.countable_Inter
 import tactic.tfae
 
 /-!
+# Lindelöf sets and spaces
+
+In this file we define Lindelöf sets, Lindelöf spaces, and strongly (hereditarily) Lindelöf
+spaces. We also prove that a topological space with second countable topology is a strongly Lindelöf
+space.
+
+## Main definitions
+
+* We say that a set `s` in a topological space is a *Lindelöf set* if any open cover of `s` admits a
+  countable subcover.
+
+* A topological space `X` is said to be *Lindelöf* if the whole space is a Lindelöf set.
+
+* A topological space `X` is said to be *strongly (hereditarily) Lindelöf* if any set in `X` is a
+  Lindelöf set.
+
+## Tags
+
+Lindelöf space, open cover
 -/
 
 open filter set topological_space
@@ -15,6 +34,8 @@ open_locale filter topological_space
 
 variables {ι X Y : Type*} [topological_space X] [topological_space Y] {s t : set X}
 
+/-- A set `s` in a topological space is called a *Lindelöf set* if any open cover of `s` admits a
+countable subcover. -/
 def is_lindelof (s : set X) : Prop :=
 ∀ ⦃U : set (set X)⦄, (∀ u ∈ U, is_open u) → (s ⊆ ⋃₀ U) → ∃ V ⊆ U, countable V ∧ s ⊆ ⋃₀ V
 
@@ -219,6 +240,8 @@ inter_comm t s ▸ ht.inter_closed hs
 lemma is_lindelof.subset (hs : is_lindelof s) (hts : t ⊆ s) (ht : is_closed t) : is_lindelof t :=
 by simpa only [inter_eq_self_of_subset_right hts] using hs.inter_closed ht
 
+/-- The image of a Lindelöf set under a function continuous on this set is a Lindelöf set. See also
+`is_lindelof.image`. -/
 lemma is_lindelof.image_of_continuous_on (hs : is_lindelof s) {f : X → Y} (hf : continuous_on f s) :
   is_lindelof (f '' s) :=
 begin
@@ -230,6 +253,8 @@ begin
   simpa
 end
 
+/-- The image of a Lindelöf set under a continuous map is a Lindelöf set. See also
+`is_lindelof.image_of_continuous_on`. -/
 lemma is_lindelof.image (hs : is_lindelof s) {f : X → Y} (hf : continuous f) :
   is_lindelof (f '' s) :=
 hs.image_of_continuous_on hf.continuous_on
@@ -262,6 +287,8 @@ begin
   exact mem_Union₂.2 ⟨y, hyI, ⟨x, hi, hxy⟩⟩
 end
 
+/-- A topological space `X` is said to be a *Lindelöf space* if any open cover of `X` admits a
+countable subcover. -/
 class lindelof_space (X : Type*) [topological_space X] : Prop :=
 (is_lindelof_univ [] : is_lindelof (univ : set X))
 
@@ -269,6 +296,7 @@ export lindelof_space (is_lindelof_univ)
 
 lemma is_lindelof_univ_iff : is_lindelof (univ : set X) ↔ lindelof_space X := ⟨λ h, ⟨h⟩, λ h, h.1⟩
 
+/-- A closed set in a Lindelöf space is a Lindelöf set. -/
 protected lemma is_closed.is_lindelof [lindelof_space X] {s : set X} (hs : is_closed s) :
   is_lindelof s :=
 (is_lindelof_univ X).subset (subset_univ s) hs
@@ -281,6 +309,7 @@ lemma embedding.lindelof_space_iff {e : X → Y} (he : embedding e) :
   lindelof_space X ↔ is_lindelof (range e) :=
 he.to_inducing.lindelof_space_iff
 
+/-- A set is a Lindelöf set if and only if it is a Lindelöf space in the induced topology. -/
 lemma is_lindelof_iff_lindelof_space : is_lindelof s ↔ lindelof_space s :=
 by erw [embedding_subtype_coe.lindelof_space_iff, subtype.range_coe]
 
@@ -318,6 +347,9 @@ Lindelöf set. Any topological space with second countable topology is a strongl
 converse is not true.
 -/
 
+/-- A topological space is called *strongly (hereditarily) Lindelöf* if any set in this space is a
+Lindelöf set. We only require that open sets are Lindelöf in the definition, then deduce that any
+set in a strongly Lindelöf space is Lindelöf in `set.is_lindelof`. -/
 class strongly_lindelof_space (X : Type*) [topological_space X] : Prop :=
 (is_lindelof_open : ∀ {s : set X}, is_open s → is_lindelof s)
 
@@ -336,6 +368,7 @@ begin
   exact ⟨u b, mem_image_of_mem _ ⟨hb, v, hvU, hbv⟩, hbu _ ⟨hb, v, hvU, hbv⟩ hxb⟩
 end
 
+/-- Any set in a strongly Lindelöf space is a Lindelöf set. -/
 protected lemma set.is_lindelof [strongly_lindelof_space X] (s : set X) : is_lindelof s :=
 begin
   intros U hU hsU,
@@ -347,16 +380,15 @@ end
 
 /-- In a strongly Lindelöf space (e.g., in a space with second countable topology), an open set,
 given as a union of open sets, is equal to the union of countably many of those sets. -/
-lemma is_open_Union_countable [strongly_lindelof_space X]
-  (s : ι → set X) (H : ∀ i, is_open (s i)) :
+lemma is_open_Union_countable [strongly_lindelof_space X] (s : ι → set X) (H : ∀ i, is_open (s i)) :
   ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
 let ⟨T, hTc, hT⟩ := (⋃ i, s i).is_lindelof.countable_open_subcover H subset.rfl
 in ⟨T, hTc, (Union₂_subset_Union _ _).antisymm hT⟩
 
 /-- In a strongly Lindelöf space (e.g., in a space with second countable topology), an open set,
 given as a union of open sets, is equal to the union of countably many of those sets. -/
-lemma is_open_sUnion_countable [strongly_lindelof_space X]
-  (S : set (set X)) (H : ∀ s ∈ S, is_open s) :
+lemma is_open_sUnion_countable [strongly_lindelof_space X] (S : set (set X))
+  (H : ∀ s ∈ S, is_open s) :
   ∃ T : set (set X), countable T ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
 let ⟨T, hTS, hTc, hST⟩ := (⋃₀ S).is_lindelof.countable_open_subcover₂ H sUnion_eq_bUnion.subset
 in ⟨T, hTc, hTS, (sUnion_mono hTS).antisymm (hST.trans sUnion_eq_bUnion.symm.subset)⟩
@@ -364,6 +396,11 @@ in ⟨T, hTc, hTS, (sUnion_mono hTS).antisymm (hST.trans sUnion_eq_bUnion.symm.s
 lemma countable_cover_nhds_within [strongly_lindelof_space X] {f : X → set X} {s : set X}
   (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ (⋃ x ∈ t, f x) :=
 s.is_lindelof.countable_cover_nhds_within hf
+
+/-- A countable topological space is a Lindelöf space. -/
+@[priority 100]
+instance encodable.strongly_lindelof_space [encodable X] : strongly_lindelof_space X :=
+⟨λ s hs, (countable_encodable s).is_lindelof⟩
 
 @[priority 100]
 instance strongly_lindelof_space.lindelof_space [strongly_lindelof_space X] : lindelof_space X :=

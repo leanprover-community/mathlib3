@@ -221,24 +221,41 @@ instance finset_coe.can_lift (s : finset α) : can_lift α s :=
 @[simp, norm_cast] lemma coe_sort_coe (s : finset α) :
   ((s : set α) : Sort*) = s := rfl
 
-/-! ### subset -/
+/-! ### Subset and strict subset relations -/
 
-instance : has_subset (finset α) := ⟨λ s₁ s₂, ∀ ⦃a⦄, a ∈ s₁ → a ∈ s₂⟩
+section subset
+variables {s t : finset α}
 
-theorem subset_def {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ s₁.1 ⊆ s₂.1 := iff.rfl
+instance : has_subset (finset α) := ⟨λ s t, ∀ ⦃a⦄, a ∈ s → a ∈ t⟩
+instance : has_ssubset (finset α) := ⟨λ s t, s ⊆ t ∧ ¬ t ⊆ s⟩
+
+instance : partial_order (finset α) :=
+{ le := (⊆),
+  lt := (⊂),
+  le_refl := λ s a, id,
+  le_trans := λ s t u hst htu a ha, htu $ hst ha,
+  le_antisymm := λ s t hst hts, ext $ λ a, ⟨@hst _, @hts _⟩ }
+
+instance : is_refl (finset α) (⊆) := has_le.le.is_refl
+instance : is_trans (finset α) (⊆) := has_le.le.is_trans
+instance : is_antisymm (finset α) (⊆) := has_le.le.is_antisymm
+instance : is_irrefl (finset α) (⊂) := has_lt.lt.is_irrefl
+instance : is_trans (finset α) (⊂) := has_lt.lt.is_trans
+instance : is_asymm (finset α) (⊂) := has_lt.lt.is_asymm
+instance : is_nonstrict_strict_order (finset α) (⊆) (⊂) := ⟨λ _ _, iff.rfl⟩
+
+lemma subset_def : s ⊆ t ↔ s.1 ⊆ t.1 := iff.rfl
+lemma ssubset_def : s ⊂ t ↔ s ⊆ t ∧ ¬ t ⊆ s := iff.rfl
 
 @[simp] theorem subset.refl (s : finset α) : s ⊆ s := subset.refl _
 protected lemma subset.rfl {s :finset α} : s ⊆ s := subset.refl _
 
-theorem subset_of_eq {s t : finset α} (h : s = t) : s ⊆ t := h ▸ subset.refl _
+protected theorem subset_of_eq {s t : finset α} (h : s = t) : s ⊆ t := h ▸ subset.refl _
 
 theorem subset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₂ ⊆ s₃ → s₁ ⊆ s₃ := subset.trans
 
 theorem superset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊇ s₂ → s₂ ⊇ s₃ → s₁ ⊇ s₃ :=
 λ h' h, subset.trans h h'
-
--- TODO: these should be global attributes, but this will require fixing other files
-local attribute [trans] subset.trans superset.trans
 
 theorem mem_of_subset {s₁ s₂ : finset α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ := mem_of_subset
 
@@ -253,21 +270,6 @@ theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ ∀ ⦃x⦄, x �
   (s₁ : set α) ⊆ s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 
 @[simp] theorem val_le_iff {s₁ s₂ : finset α} : s₁.1 ≤ s₂.1 ↔ s₁ ⊆ s₂ := le_iff_subset s₁.2
-
-instance : has_ssubset (finset α) := ⟨λa b, a ⊆ b ∧ ¬ b ⊆ a⟩
-
-instance : partial_order (finset α) :=
-{ le := (⊆),
-  lt := (⊂),
-  le_refl := subset.refl,
-  le_trans := @subset.trans _,
-  le_antisymm := @subset.antisymm _ }
-
-
-/-- Coercion to `set α` as an `order_embedding`. -/
-def coe_emb : finset α ↪o set α := ⟨⟨coe, coe_injective⟩, λ s t, coe_subset⟩
-
-@[simp] lemma coe_coe_emb : ⇑(coe_emb : finset α ↪o set α) = coe := rfl
 
 theorem subset.antisymm_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ s₁ ⊆ s₂ ∧ s₂ ⊆ s₁ :=
 le_antisymm_iff
@@ -305,6 +307,18 @@ set.ssubset_of_subset_of_ssubset hs₁s₂ hs₂s₃
 lemma exists_of_ssubset {s₁ s₂ : finset α} (h : s₁ ⊂ s₂) :
   ∃ x ∈ s₂, x ∉ s₁ :=
 set.exists_of_ssubset h
+
+end subset
+
+-- TODO: these should be global attributes, but this will require fixing other files
+local attribute [trans] subset.trans superset.trans
+
+/-! ### Order embedding from `finset α` to `set α` -/
+
+/-- Coercion to `set α` as an `order_embedding`. -/
+def coe_emb : finset α ↪o set α := ⟨⟨coe, coe_injective⟩, λ s t, coe_subset⟩
+
+@[simp] lemma coe_coe_emb : ⇑(coe_emb : finset α ↪o set α) = coe := rfl
 
 /-! ### Nonempty -/
 
@@ -1823,6 +1837,12 @@ theorem to_finset_surjective : surjective (to_finset : list α → finset α) :=
 lemma to_finset_eq_iff_perm_erase_dup {l l' : list α} :
   l.to_finset = l'.to_finset ↔ l.erase_dup ~ l'.erase_dup :=
 by simp [finset.ext_iff, perm_ext (nodup_erase_dup _) (nodup_erase_dup _)]
+
+lemma to_finset.ext_iff {a b : list α} : a.to_finset = b.to_finset ↔ ∀ x, x ∈ a ↔ x ∈ b :=
+by simp only [finset.ext_iff, mem_to_finset]
+
+lemma to_finset.ext {a b : list α} : (∀ x, x ∈ a ↔ x ∈ b) → a.to_finset = b.to_finset :=
+to_finset.ext_iff.mpr
 
 lemma to_finset_eq_of_perm (l l' : list α) (h : l ~ l') :
   l.to_finset = l'.to_finset :=

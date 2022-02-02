@@ -72,22 +72,33 @@ by simp only [is_algebraic, alg_hom.injective_iff, not_forall, and.comm, exists_
 end
 
 section zero_ne_one
-variables (R : Type u) {A : Type v} [comm_ring R] [nontrivial R] [ring A] [algebra R A]
+variables (R : Type u) {S : Type*} {A : Type v} [comm_ring R]
+variables [comm_ring S] [ring A] [algebra R A] [algebra R S] [algebra S A]
+variables [is_scalar_tower R S A]
 
 /-- An integral element of an algebra is algebraic.-/
-lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=
+lemma is_integral.is_algebraic [nontrivial R] {x : A} (h : is_integral R x) :
+  is_algebraic R x :=
 by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 
 variables {R}
 
 /-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
-lemma is_algebraic_algebra_map (a : R) : is_algebraic R (algebra_map R A a) :=
+lemma is_algebraic_algebra_map [nontrivial R] (a : R) : is_algebraic R (algebra_map R A a) :=
 ⟨X - C a, X_sub_C_ne_zero a, by simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self]⟩
+
+lemma is_algebraic_algebra_map_of_is_algebraic {a : S} (h : is_algebraic R a) :
+  is_algebraic R (algebra_map S A a) :=
+begin
+  obtain ⟨f, hf₁, hf₂⟩ := h,
+  use [f, hf₁],
+  rw [← is_scalar_tower.algebra_map_aeval R S A, hf₂, ring_hom.map_zero]
+end
 
 end zero_ne_one
 
 section field
-variables (K : Type u) {A : Type v} [field K] [ring A] [algebra K A]
+variables {K : Type u} {A : Type v} [field K] [ring A] [algebra K A]
 
 /-- An element of an algebra over a field is algebraic if and only if it is integral.-/
 lemma is_algebraic_iff_is_integral {x : A} :
@@ -99,10 +110,10 @@ begin
   rw [← aeval_def, alg_hom.map_mul, hpx, zero_mul],
 end
 
-lemma is_algebraic_iff_is_integral' :
+protected lemma algebra.is_algebraic_iff_is_integral :
   algebra.is_algebraic K A ↔ algebra.is_integral K A :=
-⟨λ h x, (is_algebraic_iff_is_integral K).mp (h x),
-  λ h x, (is_algebraic_iff_is_integral K).mpr (h x)⟩
+⟨λ h x, is_algebraic_iff_is_integral.mp (h x),
+  λ h x, is_algebraic_iff_is_integral.mpr (h x)⟩
 
 end field
 
@@ -123,25 +134,40 @@ end
 
 variables (K L)
 
-/-- If A is an algebraic algebra over R, then A is algebraic over A when S is an extension of R,
+/-- If x is algebraic over R, then x is algebraic over S when S is an extension of R,
   and the map from `R` to `S` is injective. -/
-lemma is_algebraic_of_larger_base_of_injective (hinj : function.injective (algebra_map R S))
-  (A_alg : is_algebraic R A) : is_algebraic S A :=
-λ x, let ⟨p, hp₁, hp₂⟩ := A_alg x in
+lemma _root_.is_algebraic_of_larger_base_of_injective (hinj : function.injective (algebra_map R S))
+  {x : A} (A_alg : _root_.is_algebraic R x) : _root_.is_algebraic S x :=
+let ⟨p, hp₁, hp₂⟩ := A_alg in
 ⟨p.map (algebra_map _ _),
   by rwa [ne.def, ← degree_eq_bot, degree_map' hinj, degree_eq_bot],
   by simpa⟩
+
+/-- If A is an algebraic algebra over R, then A is algebraic over S when S is an extension of R,
+  and the map from `R` to `S` is injective. -/
+lemma is_algebraic_of_larger_base_of_injective (hinj : function.injective (algebra_map R S))
+  (A_alg : is_algebraic R A) : is_algebraic S A :=
+λ x, is_algebraic_of_larger_base_of_injective hinj (A_alg x)
+
+/-- If x is a algebraic over K, then x is algebraic over L when L is an extension of K -/
+lemma _root_.is_algebraic_of_larger_base {x : A} (A_alg : _root_.is_algebraic K x) :
+  _root_.is_algebraic L x :=
+_root_.is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_alg
 
 /-- If A is an algebraic algebra over K, then A is algebraic over L when L is an extension of K -/
 lemma is_algebraic_of_larger_base (A_alg : is_algebraic K A) : is_algebraic L A :=
 is_algebraic_of_larger_base_of_injective (algebra_map K L).injective A_alg
 
-variables {R S K L}
+variables {R S} (K L)
+
+/-- A field extension is integral if it is finite. -/
+lemma is_integral_of_finite [finite_dimensional K L] : algebra.is_integral K L :=
+λ x, is_integral_of_submodule_noetherian ⊤
+  (is_noetherian.iff_fg.2 infer_instance) x algebra.mem_top
 
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
-λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_submodule_noetherian ⊤
-  (is_noetherian.iff_fg.2 infer_instance) x algebra.mem_top)
+algebra.is_algebraic_iff_is_integral.mpr (is_integral_of_finite K L)
 
 end algebra
 

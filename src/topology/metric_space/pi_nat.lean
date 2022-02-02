@@ -12,42 +12,7 @@ import topology.metric_space.hausdorff_distance
 
 noncomputable theory
 open_locale classical topological_space filter
-open topological_space set metric filter
-
-/-- A Polish space is a topological space with second countable topology, that can be endowed
-with a metric for which it is complete.
-We register an instance from complete second countable metric space to polish space, and not the
-other way around as this is the most common use case.
-
-To endow a Polish space with a complete metric space structure, use
-```
-letI : metric_space α := polish_space_metric α,
-haveI : complete_space α := complete_polish_space_metric α,
-haveI : second_countable_topology α := polish_space.second_countable α,
-```
--/
-class polish_space (α : Type*) [h : topological_space α] : Prop :=
-(second_countable [] : second_countable_topology α)
-(complete : ∃ m : metric_space α, m.to_uniform_space.to_topological_space = h ∧
-  @complete_space α m.to_uniform_space)
-
-instance polish_space_of_complete_second_countable
-  {α : Type*} [m : metric_space α] [h : second_countable_topology α] [h' : complete_space α] :
-  polish_space α :=
-{ second_countable := h,
-  complete := ⟨m, rfl, h'⟩ }
-
-/-- Construct on a Polish space a metric (compatible with the topology) which is complete. -/
-def polish_space_metric (α : Type*) [ht : topological_space α] [h : polish_space α] :
-  metric_space α :=
-h.complete.some.replace_topology h.complete.some_spec.1.symm
-
-lemma complete_polish_space_metric (α : Type*) [ht : topological_space α] [h : polish_space α] :
-  @complete_space α (polish_space_metric α).to_uniform_space :=
-begin
-  convert h.complete.some_spec.2,
-  exact metric_space.replace_topology_eq _ _
-end
+open topological_space set metric filter function
 
 local attribute [simp] pow_le_pow_iff one_lt_two inv_le_inv
 
@@ -265,6 +230,27 @@ begin
   exact apply_eq_of_lt_first_diff (hi.trans_lt this),
 end
 
+/-- A function to a pseudo-metric-space is `1`-Lipschitz if and only if points in the same cylinder
+of length `n` are sent to points within distance `(1/2)^n`.
+Not expressed using `lipschitz_with` as we don't have a metric space structure -/
+lemma lipschitz_with_one_iff_forall_dist_image_le_of_mem_cylinder
+  {α : Type*} [pseudo_metric_space α] {f : (Π n, E n) → α} :
+  (∀ (x y : Π n, E n), dist (f x) (f y) ≤ dist x y) ↔
+    (∀ x y n, y ∈ cylinder x n → dist (f x) (f y) ≤ (1/2)^n) :=
+begin
+  split,
+  { assume H x y n hxy,
+    apply (H x y).trans,
+    rw pi_nat.dist_comm,
+    exact mem_cylinder_iff_dist_le.1 hxy },
+  { assume H x y,
+    rcases eq_or_ne x y with rfl|hne, { simp [pi_nat.dist_nonneg] },
+    rw dist_eq_of_ne hne,
+    apply H x y (first_diff x y),
+    rw first_diff_comm,
+    exact mem_cylinder_first_diff _ _ }
+end
+
 variables (E) [∀ n, topological_space (E n)] [∀ n, discrete_topology (E n)]
 
 lemma is_topological_basis_cylinders  :
@@ -365,15 +351,11 @@ begin
     end }
 end
 
-end pi_nat
-
+/-- Metric space structure on `ℕ → ℕ` where the distance is given by `dist x y = (1/2)^n`,
+where `n` is the smallest index where `x` and `y` differ.
+Not registered as a global instance by default. -/
 def metric_space_nat_nat : metric_space (ℕ → ℕ) :=
 pi_nat.metric_space_of_discrete_uniformity (λ n, rfl)
-
-
-#exit
-
-#print glouk
 
 local attribute [instance] pi_nat.metric_space
 
@@ -389,6 +371,12 @@ end
 
 /-!
 ### Retractions inside product spaces
+
+We show that, in a space `Π (n : ℕ), E n` where each `E n` is discrete, there is a retraction on
+any closed nonempty subset `s`, i.e., a continuous map `f` from the whole space to `s` restricting
+to the identity on `s`. The map `f` is defined as follows. For `x ∈ s`, let `f x = x`. Otherwise,
+consider the longest prefix `w` that `x` shares with an element of `s`, and let `f x = z_w`
+where `z_w` is an element of `s` starting with `w`.
 -/
 
 lemma exists_disjoint_cylinder {s : set (Π n, E n)} (hs : is_closed s) {x : Π n, E n} (hx : x ∉ s) :
@@ -482,7 +470,7 @@ begin
 end
 
 /-- If two points `x, y` coincide up to length `n`, and the longest common prefix of `x` with `s`
-is strictly shorter, then the longest common prefix of `y` with `s` is the same, and both
+is strictly shorter than `n`, then the longest common prefix of `y` with `s` is the same, and both
 cylinders of this length based at `x` and `y` coincide. -/
 lemma cylinder_longest_prefix_eq_of_longest_prefix_lt_first_diff
   {x y : Π n, E n} {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty)
@@ -509,8 +497,8 @@ begin
   exact cylinder_anti y H.le (mem_cylinder_first_diff x y)
 end
 
-/-- Given a closed nonempty subset `s` of `Π n, E n`, there exists a Lipschitz retraction onto this
-set, i.e., a Lipschitz map with range equal to `s`, equal to the identity on `s`. -/
+/-- Given a closed nonempty subset `s` of `Π (n : ℕ), E n`, there exists a Lipschitz retraction
+onto this set, i.e., a Lipschitz map with range equal to `s`, equal to the identity on `s`. -/
 theorem exists_lipschitz_retraction_of_is_closed
   {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty) :
   ∃ f : (Π n, E n) → (Π n, E n), (∀ x ∈ s, f x = x) ∧ (range f = s) ∧ lipschitz_with 1 f :=
@@ -610,7 +598,7 @@ begin
           exact this } } } }
 end
 
-/-- Given a closed nonempty subset `s` of `Π n, E n`, there exists a retraction onto this
+/-- Given a closed nonempty subset `s` of `Π (n : ℕ), E n`, there exists a retraction onto this
 set, i.e., a continuous map with range equal to `s`, equal to the identity on `s`. -/
 theorem exists_retraction_of_is_closed
   {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty) :
@@ -620,6 +608,20 @@ begin
   exact ⟨f, fs, frange, hf.continuous⟩
 end
 
+theorem exists_retraction_subtype_of_is_closed
+  {s : set (Π n, E n)} (hs : is_closed s) (hne : s.nonempty) :
+  ∃ f : (Π n, E n) → s, (∀ x : s, f x = x) ∧ surjective f ∧ continuous f :=
+begin
+  obtain ⟨f, fs, f_range, f_cont⟩ : ∃ f : (Π n, E n) → (Π n, E n),
+    (∀ x ∈ s, f x = x) ∧ (range f = s) ∧ continuous f :=
+      exists_retraction_of_is_closed hs hne,
+  have A : ∀ x, f x ∈ s, by simp [← f_range],
+  have B : ∀ (x : s), cod_restrict f s A x = x,
+  { assume x,
+    apply subtype.coe_injective.eq_iff.1,
+    simpa only using fs x.val x.property },
+  exact ⟨cod_restrict f s A, B, λ x, ⟨x, B x⟩, continuous_subtype_mk _ f_cont⟩,
+end
 
 end pi_nat
 
@@ -664,7 +666,8 @@ variable (E)
 protected def metric_space : metric_space (Π n, E n) :=
 { dist_self := λ x, by simp [dist_eq_tsum],
   dist_comm := λ x y, by simp [dist_eq_tsum, dist_comm],
-  dist_triangle := λ x y z, begin
+  dist_triangle := λ x y z,
+  begin
     have I : ∀ n, min ((1/2)^n) (dist (x n) (z n)) ≤
       min ((1/2)^n) (dist (x n) (y n)) + min ((1/2)^n) (dist (y n) (z n)) := λ n, calc
         min ((1/2)^n) (dist (x n) (z n))
@@ -751,17 +754,102 @@ protected def metric_space : metric_space (Π n, E n) :=
 
 end pi_nat_nondiscrete
 
-instance polish_space.pi [∀ n, topological_space (E n)] [∀ n, polish_space (E n)] :
-  polish_space (Π n, E n) :=
+
+open pi_nat
+
+lemma function.surjective.nonempty
+  {α β : Type*} [nonempty β] {f : α → β} (hf : surjective f) : nonempty α :=
 begin
-  letI : ∀ n, metric_space (E n) := λ n, polish_space_metric (E n),
-  haveI : ∀ n, complete_space (E n) := λ n, complete_polish_space_metric (E n),
-  haveI : ∀ n, second_countable_topology (E n) := λ n, polish_space.second_countable (E n),
-  letI m : metric_space (Π n, E n) := pi_nat_nondiscrete.metric_space E,
-  apply_instance,
+  inhabit β,
+  obtain ⟨x, hx⟩ : ∃ x, f x = default := hf _,
+  exact ⟨x⟩
 end
 
-/-- Without this instance, `polish_space (ℕ → ℕ)` is not found by typeclass inference. -/
-instance polish_space.fun {F : Type*} [topological_space F] [polish_space F] :
-  polish_space (ℕ → F) :=
-by apply_instance
+/-- Any nonempty complete second countable metric space is the continuous image of the
+fundamental space `ℕ → ℕ`. For a version of this theorem in the context of Polish spaces, see
+`exists_nat_nat_continuous_surjective_of_polish_space`. -/
+lemma exists_nat_nat_continuous_surjective_of_complete_space
+  (α : Type*) [metric_space α] [complete_space α] [second_countable_topology α] [nonempty α] :
+  ∃ (f : (ℕ → ℕ) → α), continuous f ∧ surjective f :=
+begin
+  /- First, we define a surjective map from a closed subset `s` of `ℕ → ℕ`. Then, we compose
+  this map with a retraction of `ℕ → ℕ` onto `s` to obtain the desired map.
+  Let us consider a dense sequence `u` in `α`. Then `s` is the set of sequences `xₙ` such that the
+  balls `closed_ball (u xₙ) (1/2^n)` have a nonempty intersection. This set is closed, and we define
+  `f x` there to be the unique point in the intersection. This function is continuous and surjective
+  by design. -/
+  letI : metric_space (ℕ → ℕ) := pi_nat.metric_space_nat_nat,
+  have I0 : (0 : ℝ) < 1/2, by norm_num,
+  have I1 : (1/2 : ℝ) < 1, by norm_num,
+  rcases exists_dense_seq α with ⟨u, hu⟩,
+  let s : set (ℕ → ℕ) := {x | (⋂ (n : ℕ), closed_ball (u (x n)) ((1/2)^n)).nonempty},
+  let g : s → α := λ x, x.2.some,
+  have A : ∀ (x : s) (n : ℕ), dist (g x) (u ((x : ℕ → ℕ) n)) ≤ (1/2)^n :=
+    λ x n, (mem_Inter.1 x.2.some_mem n : _),
+  have g_cont : continuous g,
+  { apply continuous_iff_continuous_at.2 (λ y, _),
+    apply continuous_at_of_locally_lipschitz zero_lt_one 4 (λ x hxy, _),
+    rcases eq_or_ne x y with rfl|hne, { simp },
+    have hne' : x.1 ≠ y.1 := subtype.coe_injective.ne hne,
+    have dist' : dist x y = dist x.1 y.1 := rfl,
+    let n := first_diff x.1 y.1 - 1,
+    have diff_pos : 0 < first_diff x.1 y.1,
+    { by_contra' h,
+      apply apply_first_diff_ne hne',
+      rw [le_zero_iff.1 h],
+      apply apply_eq_of_dist_lt _ le_rfl,
+      exact hxy },
+    have hn : first_diff x.1 y.1 = n + 1 := (nat.succ_pred_eq_of_pos diff_pos).symm,
+    rw [dist', dist_eq_of_ne hne', hn],
+    have B : x.1 n = y.1 n := mem_cylinder_first_diff x.1 y.1 n (nat.pred_lt diff_pos.ne'),
+    calc dist (g x) (g y) ≤ dist (g x) (u (x.1 n)) + dist (g y) (u (x.1 n)) :
+      dist_triangle_right _ _ _
+    ... = dist (g x) (u (x.1 n)) + dist (g y) (u (y.1 n)) : by rw ← B
+    ... ≤ (1/2)^n + (1/2)^n : add_le_add (A x n) (A y n)
+    ... = 4 * (1 / 2) ^ (n + 1) : by ring_exp },
+  have g_surj : surjective g,
+  { assume y,
+    have : ∀ (n : ℕ), ∃ j, y ∈ closed_ball (u j) ((1/2)^n),
+    { assume n,
+      rcases hu.exists_dist_lt y (by simp : (0 : ℝ) < (1/2)^n) with ⟨j, hj⟩,
+      exact ⟨j, hj.le⟩ },
+    choose x hx using this,
+    have I : (⋂ (n : ℕ), closed_ball (u (x n)) ((1 / 2) ^ n)).nonempty := ⟨y, mem_Inter.2 hx⟩,
+    refine ⟨⟨x, I⟩, _⟩,
+    refine dist_le_zero.1 _,
+    have J : ∀ (n : ℕ), dist (g ⟨x, I⟩) y ≤ (1/2)^n + (1/2)^n := λ n, calc
+      dist (g ⟨x, I⟩) y ≤ dist (g ⟨x, I⟩) (u (x n)) + dist y (u (x n)) : dist_triangle_right _ _ _
+      ... ≤ (1/2)^n + (1/2)^n : add_le_add (A ⟨x, I⟩ n) (hx n),
+    have L : tendsto (λ (n : ℕ), (1/2 : ℝ)^n + (1/2)^n) at_top (𝓝 (0 + 0)) :=
+      (tendsto_pow_at_top_nhds_0_of_lt_1 I0.le I1).add (tendsto_pow_at_top_nhds_0_of_lt_1 I0.le I1),
+    rw add_zero at L,
+    exact ge_of_tendsto' L J },
+  have s_closed : is_closed s,
+  { refine is_closed_iff_cluster_pt.mpr _,
+    assume x hx,
+    have L : tendsto (λ (n : ℕ), diam (closed_ball (u (x n)) ((1 / 2) ^ n))) at_top (𝓝 0),
+    { have : tendsto (λ (n : ℕ), (2 : ℝ) * (1/2)^n) at_top (𝓝 (2 * 0)) :=
+        (tendsto_pow_at_top_nhds_0_of_lt_1 I0.le I1).const_mul _,
+      rw mul_zero at this,
+      exact squeeze_zero (λ n, diam_nonneg) (λ n, diam_closed_ball (pow_nonneg I0.le _)) this },
+    refine nonempty_Inter_of_nonempty_bInter (λ n, is_closed_ball) (λ n, bounded_closed_ball) _ L,
+    assume N,
+    obtain ⟨y, hxy, ys⟩ : ∃ y, y ∈ ball x ((1 / 2) ^ N) ∩ s :=
+      cluster_pt_principal_iff.1 hx _ (ball_mem_nhds x (pow_pos I0 N)),
+    have E : (⋂ (n : ℕ) (H : n ≤ N), closed_ball (u (x n)) ((1 / 2) ^ n))
+            = ⋂ (n : ℕ) (H : n ≤ N), closed_ball (u (y n)) ((1 / 2) ^ n),
+    { congr,
+      ext1 n,
+      congr,
+      ext1 hn,
+      have : x n = y n := apply_eq_of_dist_lt (mem_ball'.1 hxy) hn,
+      rw this },
+    rw E,
+    apply nonempty.mono _ ys,
+    apply Inter_subset_Inter₂ },
+  obtain ⟨f, -, f_surj, f_cont⟩ :
+    ∃ f : (ℕ → ℕ) → s, (∀ x : s, f x = x) ∧ surjective f ∧ continuous f,
+  { apply exists_retraction_subtype_of_is_closed s_closed,
+    simpa only [nonempty_coe_sort] using g_surj.nonempty },
+  exact ⟨g ∘ f, g_cont.comp f_cont, g_surj.comp f_surj⟩,
+end

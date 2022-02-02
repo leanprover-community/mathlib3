@@ -7,6 +7,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 import data.int.interval
 import topology.algebra.ordered.compact
 import topology.metric_space.emetric_space
+import topology.uniform_space.complete_separated
 
 /-!
 # Metric spaces
@@ -894,6 +895,24 @@ of positive radius centered at `x` and intersecting `s` only at `x`. -/
 lemma exists_closed_ball_inter_eq_singleton_of_discrete [discrete_topology s] {x : α} (hx : x ∈ s) :
   ∃ ε > 0, metric.closed_ball x ε ∩ s = {x} :=
 nhds_basis_closed_ball.exists_inter_eq_singleton_of_mem_discrete hx
+
+lemma _root_.dense.exists_dist_lt {s : set α} (hs : dense s) (x : α) {ε : ℝ} (hε : 0 < ε) :
+  ∃ y ∈ s, dist x y < ε :=
+begin
+  have : (ball x ε).nonempty, by simp [hε],
+  rcases hs.exists_mem_open is_open_ball this with ⟨y, ys, hy⟩,
+  refine ⟨y, ys, _⟩,
+  rw dist_comm,
+  exact hy,
+end
+
+lemma _root_.dense_range.exists_dist_lt {β : Type*} {f : β → α} (hf : dense_range f)
+  (x : α) {ε : ℝ} (hε : 0 < ε) :
+  ∃ y, dist x (f y) < ε :=
+begin
+  rcases dense.exists_dist_lt hf x hε with ⟨y, ⟨z, rfl⟩, h⟩,
+  exact ⟨z, h⟩
+end
 
 end metric
 
@@ -2108,6 +2127,41 @@ diam_le_of_subset_closed_ball h subset.rfl
 lemma diam_ball {r : ℝ} (h : 0 ≤ r) : diam (ball x r) ≤ 2 * r :=
 diam_le_of_subset_closed_ball h ball_subset_closed_ball
 
+/-- If a family of complete sets with diameter tending to `0` is such that each finite intersection
+is nonempty, then the total intersection is also nonempty. -/
+lemma _root_.is_complete.nonempty_Inter_of_nonempty_bInter {s : ℕ → set α} (h0 : is_complete (s 0))
+  (hs : ∀ n, is_closed (s n)) (h's : ∀ n, bounded (s n)) (h : ∀ N, (⋂ n ≤ N, s n).nonempty)
+  (h' : tendsto (λ n, diam (s n)) at_top (𝓝 0)) :
+  (⋂ n, s n).nonempty :=
+begin
+  let u := λ N, (h N).some,
+  have I : ∀ n N, n ≤ N → u N ∈ s n,
+  { assume n N hn,
+    apply mem_of_subset_of_mem _ ((h N).some_spec),
+    assume x hx,
+    simp only [mem_Inter] at hx,
+    exact hx n hn },
+  have : ∀ n, u n ∈ s 0 := λ n, I 0 n (zero_le _),
+  have : cauchy_seq u,
+  { apply cauchy_seq_of_le_tendsto_0 _ _ h',
+    assume m n N hm hn,
+    exact dist_le_diam_of_mem (h's N) (I _ _ hm) (I _ _ hn) },
+  obtain ⟨x, hx, xlim⟩ : ∃ (x : α) (H : x ∈ s 0), tendsto (λ (n : ℕ), u n) at_top (𝓝 x) :=
+    cauchy_seq_tendsto_of_is_complete h0 (λ n, I 0 n (zero_le _)) this,
+  refine ⟨x, mem_Inter.2 (λ n, _)⟩,
+  apply (hs n).mem_of_tendsto xlim,
+  filter_upwards [Ici_mem_at_top n] with p hp,
+  exact I n p hp,
+end
+
+/-- In a complete space, if a family of closed sets with diameter tending to `0` is such that each
+finite intersection is nonempty, then the total intersection is also nonempty. -/
+lemma nonempty_Inter_of_nonempty_bInter [complete_space α] {s : ℕ → set α}
+  (hs : ∀ n, is_closed (s n)) (h's : ∀ n, bounded (s n)) (h : ∀ N, (⋂ n ≤ N, s n).nonempty)
+  (h' : tendsto (λ n, diam (s n)) at_top (𝓝 0)) :
+  (⋂ n, s n).nonempty :=
+(hs 0).is_complete.nonempty_Inter_of_nonempty_bInter hs h's h h'
+
 end diam
 
 end metric
@@ -2245,7 +2299,7 @@ instance metric_space.to_separated : separated_space γ :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
 
-/-- If a  `pseudo_metric_space` is separated, then it is a `metric_space`. -/
+/-- If a `pseudo_metric_space` is separated, then it is a `metric_space`. -/
 def of_t2_pseudo_metric_space {α : Type*} [pseudo_metric_space α]
   (h : separated_space α) : metric_space α :=
 { eq_of_dist_eq_zero := λ x y hdist,

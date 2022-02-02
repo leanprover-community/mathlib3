@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
+import logic.small
 import set_theory.ordinal
 import tactic.by_contra
 
@@ -1112,6 +1113,9 @@ begin
   exact this.false
 end
 
+theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
+λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
+
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
@@ -1202,13 +1206,38 @@ begin
   exact (lt_blsub.{u u} (λ x _, x) _ h).false
 end
 
+end ordinal
+
+/-! ### Results about injectivity and surjectivity -/
+
+lemma not_surjective_of_ordinal {α : Type u} (f : α → ordinal.{u}) : ¬ function.surjective f :=
+λ h, ordinal.lsub_nmem_range.{u u} f (h _)
+
+lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) : ¬ function.injective f :=
+λ h, not_surjective_of_ordinal _ (inv_fun_surjective h)
+
+lemma not_surjective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : α → ordinal.{u}) :
+  ¬ function.surjective f :=
+λ h, not_surjective_of_ordinal _ (h.comp (equiv_shrink _).symm.surjective)
+
+lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
+  ¬ function.injective f :=
+λ h, not_injective_of_ordinal _ ((equiv_shrink _).injective.comp h)
+
+/-- The type of ordinals in universe `u` is not `small.{u}`. This is the type-theoretic analog of
+the Burali-Forti paradox. -/
+theorem not_small_ordinal : ¬ small.{u} ordinal.{max u v} :=
+λ h, @not_injective_of_ordinal_of_small _ h _ (λ a b, ordinal.lift_inj.1)
+
 /-! ### Enumerating unbounded sets of ordinals with ordinals -/
+
+namespace ordinal
 
 section
 variables {S : set ordinal.{u}} (hS : unbounded (<) S)
 
 -- A characterization of unboundedness that's more convenient to our purposes.
-private lemma unbounded_aux (hS : unbounded (<) S) (a) : ∃ b, b ∈ S ∧ a ≤ b :=
+private lemma unbounded_aux (a) : ∃ b, b ∈ S ∧ a ≤ b :=
 let ⟨b, hb, hb'⟩ := hS a in ⟨b, hb, le_of_not_gt hb'⟩
 
 /-- Enumerator function for an unbounded set of ordinals. -/
@@ -1834,6 +1863,10 @@ end cardinal
 
 namespace ordinal
 
+theorem lt_add_of_limit {a b c : ordinal.{u}}
+  (h : is_limit c) : a < b + c ↔ ∃ c' < c, a < b + c' :=
+by rw [←is_normal.bsup_eq.{u u} (add_is_normal b) h, lt_bsup]
+
 theorem lt_omega {o : ordinal.{u}} : o < omega ↔ ∃ n : ℕ, o = n :=
 by rw [← cardinal.ord_omega, cardinal.lt_ord, lt_omega]; simp only [card_eq_nat]
 
@@ -1856,6 +1889,9 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
  λ H, le_of_forall_lt $ λ a h,
    let ⟨n, e⟩ := lt_omega.1 h in
    by rw [e, ← succ_le]; exact H (n+1)⟩
+
+theorem sup_nat_cast : sup nat.cast = omega :=
+(sup_le.2 $ λ n, (nat_lt_omega n).le).antisymm $ omega_le.2 $ le_sup _
 
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 | 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm
@@ -2023,12 +2059,39 @@ le_antisymm
     (λ b hb, le_of_lt (opow_lt_omega h hb)))
   (le_opow_self _ a1)
 
+theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
+  sup.{0 u} (f ∘ nat.cast) = f omega :=
+by rw [←sup_nat_cast, is_normal.sup.{0 u u} hf ⟨0⟩]
+
+theorem sup_add_nat (o : ordinal.{u}) : sup (λ n : ℕ, o + n) = o + omega :=
+(add_is_normal o).apply_omega
+
+theorem sup_mul_nat (o : ordinal) : sup (λ n : ℕ, o * n) = o * omega :=
+begin
+  rcases eq_zero_or_pos o with rfl | ho,
+  { rw zero_mul, exact sup_eq_zero_iff.2 (λ n, zero_mul n) },
+  { exact (mul_is_normal ho).apply_omega }
+end
+
+theorem sup_opow_nat {o : ordinal.{u}} (ho : 0 < o) :
+  sup (λ n : ℕ, o ^ n) = o ^ omega :=
+begin
+  rcases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ | rfl,
+  { exact (opow_is_normal ho₁).apply_omega },
+  { rw one_opow,
+    refine le_antisymm (sup_le.2 (λ n, by rw one_opow)) _,
+    convert le_sup _ 0,
+    rw [nat.cast_zero, opow_zero] }
+end
+
 /-! ### Fixed points of normal functions -/
 
-/-- The next fixed point function, the least fixed point of the
-  normal function `f` above `a`. -/
+/-- The next fixed point function, the least fixed point of the normal function `f` above `a`. -/
 def nfp (f : ordinal → ordinal) (a : ordinal) :=
 sup (λ n : ℕ, f^[n] a)
+
+theorem nfp_le {f a b} : nfp f a ≤ b ↔ ∀ n, f^[n] a ≤ b :=
+sup_le
 
 theorem iterate_le_nfp (f a n) : f^[n] a ≤ nfp f a :=
 le_sup _ n
@@ -2036,8 +2099,7 @@ le_sup _ n
 theorem le_nfp_self (f a) : a ≤ nfp f a :=
 iterate_le_nfp f a 0
 
-theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} :
-  f b < nfp f a ↔ b < nfp f a :=
+theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} : f b < nfp f a ↔ b < nfp f a :=
 lt_sup.trans $ iff.trans
   (by exact
    ⟨λ ⟨n, h⟩, ⟨n, lt_of_le_of_lt (H.le_self _) h⟩,
@@ -2048,6 +2110,7 @@ theorem is_normal.nfp_le {f} (H : is_normal f) {a b} :
   nfp f a ≤ f b ↔ nfp f a ≤ b :=
 le_iff_le_iff_lt_iff_lt.2 H.lt_nfp
 
+/-- `nfp f a` is the next fixed point after `a`. -/
 theorem is_normal.nfp_le_fp {f} (H : is_normal f) {a b}
   (ab : a ≤ b) (h : f b ≤ b) : nfp f a ≤ b :=
 sup_le.2 $ λ i, begin
@@ -2074,16 +2137,18 @@ begin
   { exact (H.2 _ l _).2 (λ b h, le_of_lt (H.lt_nfp.2 h)) }
 end
 
-theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
-  f b ≤ nfp f a ↔ b ≤ nfp f a :=
+theorem is_normal.le_nfp {f} (H : is_normal f) {a b} : f b ≤ nfp f a ↔ b ≤ nfp f a :=
 ⟨le_trans (H.le_self _), λ h,
   by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
 
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
-/-- The derivative of a normal function `f` is
-  the sequence of fixed points of `f`. -/
+/-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
+theorem is_normal.nfp_unbounded {f} (H : is_normal f) : unbounded (<) (fixed_points f) :=
+λ a, ⟨_, H.nfp_fp a, not_lt_of_ge (le_nfp_self f a)⟩
+
+/-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/
 def deriv (f : ordinal → ordinal) (o : ordinal) : ordinal :=
 limit_rec_on o (nfp f 0)
   (λ a IH, nfp f (succ IH))
@@ -2094,8 +2159,7 @@ limit_rec_on o (nfp f 0)
 @[simp] theorem deriv_succ (f o) : deriv f (succ o) = nfp f (succ (deriv f o)) :=
 limit_rec_on_succ _ _ _ _
 
-theorem deriv_limit (f) {o} : is_limit o →
-  deriv f o = bsup.{u u} o (λ a _, deriv f a) :=
+theorem deriv_limit (f) {o} : is_limit o → deriv f o = bsup.{u u} o (λ a _, deriv f a) :=
 limit_rec_on_limit _ _ _ _
 
 theorem deriv_is_normal (f) : is_normal (deriv f) :=
@@ -2113,25 +2177,36 @@ begin
   simp only [bsup_le, IH] {contextual:=tt}
 end
 
-theorem is_normal.fp_iff_deriv {f} (H : is_normal f)
-  {a} : f a ≤ a ↔ ∃ o, a = deriv f o :=
+theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
 ⟨λ ha, begin
-  suffices : ∀ o (_:a ≤ deriv f o), ∃ o, a = deriv f o,
+  suffices : ∀ o (_:a ≤ deriv f o), ∃ o, deriv f o = a,
   from this a ((deriv_is_normal _).le_self _),
   intro o, apply limit_rec_on o,
   { intros h₁,
-    refine ⟨0, le_antisymm h₁ _⟩,
+    refine ⟨0, le_antisymm _ h₁⟩,
     rw deriv_zero,
     exact H.nfp_le_fp (ordinal.zero_le _) ha },
   { intros o IH h₁,
     cases le_or_lt a (deriv f o), {exact IH h},
-    refine ⟨succ o, le_antisymm h₁ _⟩,
+    refine ⟨succ o, le_antisymm _ h₁⟩,
     rw deriv_succ,
     exact H.nfp_le_fp (succ_le.2 h) ha },
   { intros o l IH h₁,
-    cases eq_or_lt_of_le h₁, {exact ⟨_, h⟩},
+    cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
     rw [deriv_limit _ l, ← not_le, bsup_le, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
-end, λ ⟨o, e⟩, e.symm ▸ le_of_eq (H.deriv_fp _)⟩
+end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
+
+theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
+by { rw ←H.fp_iff_deriv', exact ⟨λ h, le_of_eq h, λ h, le_antisymm h (H.le_self _)⟩ }
+
+/-- `deriv f` is the fixed point enumerator of `f`. -/
+theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord _ H.nfp_unbounded :=
+begin
+  rw [←eq_enum_ord, range_eq_iff],
+  use (deriv_is_normal f).strict_mono,
+  refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
+  rwa ←H.fp_iff_deriv
+end
 
 end ordinal

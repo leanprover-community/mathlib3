@@ -8,6 +8,7 @@ import analysis.complex.basic
 import analysis.normed_space.finite_dimension
 import measure_theory.group.arithmetic
 import measure_theory.lattice
+import measure_theory.measure.open_pos
 import topology.algebra.ordered.liminf_limsup
 import topology.continuous_function.basic
 import topology.instances.ereal
@@ -358,16 +359,6 @@ instance at_bot_is_measurably_generated : (filter.at_bot : filter α).is_measura
 @filter.infi_is_measurably_generated _ _ _ _ $
   λ a, (measurable_set_Iic : measurable_set (Iic a)).principal_is_measurably_generated
 
-lemma bsupr_measure_Iic {μ : measure α} {s : set α} (hsc : countable s)
-  (hst : ∀ x : α, ∃ y ∈ s, x ≤ y) (hdir : directed_on (≤) s) :
-  (⨆ x ∈ s, μ (Iic x)) = μ univ :=
-begin
-  rw ← measure_bUnion_eq_supr hsc,
-  { congr, exact Union₂_eq_univ_iff.2 hst },
-  { exact λ _ _, measurable_set_Iic },
-  { exact directed_on_iff_directed.2 (hdir.directed_coe.mono_comp _ $ λ x y, Iic_subset_Iic.2) }
-end
-
 end preorder
 
 section partial_order
@@ -693,6 +684,15 @@ h.measurable.ae_measurable
 lemma closed_embedding.measurable {f : α → γ} (hf : closed_embedding f) :
   measurable f :=
 hf.continuous.measurable
+
+lemma continuous.is_open_pos_measure_map {f : β → γ} (hf : continuous f)
+  (hf_surj : function.surjective f) {μ : measure β} [μ.is_open_pos_measure] :
+  (measure.map f μ).is_open_pos_measure :=
+begin
+  refine ⟨λ U hUo hUne, _⟩,
+  rw [measure.map_apply hf.measurable hUo.measurable_set],
+  exact (hUo.preimage hf).measure_ne_zero μ (hf_surj.nonempty_preimage.mpr hUne)
+end
 
 @[priority 100, to_additive]
 instance has_continuous_mul.has_measurable_mul [has_mul γ] [has_continuous_mul γ] :

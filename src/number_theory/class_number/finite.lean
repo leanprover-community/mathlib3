@@ -391,7 +391,7 @@ begin
     (is_integral_closure.range_le_span_dual_basis S b hb_int),
   let bS := b.map ((linear_map.quot_ker_equiv_range _).symm ≪≫ₗ _),
   refine fintype_of_admissible_of_algebraic L bS adm
-    (λ x, (is_fraction_ring.is_algebraic_iff R K L).mpr (algebra.is_algebraic_of_finite x)),
+    (λ x, (is_fraction_ring.is_algebraic_iff R K L).mpr (algebra.is_algebraic_of_finite _ _ x)),
   { rw linear_map.ker_eq_bot.mpr,
     { exact submodule.quot_equiv_of_eq_bot _ rfl },
     { exact is_integral_closure.algebra_map_injective _ R _ } },

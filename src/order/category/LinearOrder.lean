@@ -6,11 +6,17 @@ Authors: Johan Commelin
 
 import order.category.PartialOrder
 
-/-! # Category of linearly ordered types -/
+/-!
+# Category of linear orders
+
+This defines `LinearOrder`, the category of linear orders with monotone maps.
+-/
 
 open category_theory
 
-/-- The category of linearly ordered types. -/
+universe u
+
+/-- The category of linear orders. -/
 def LinearOrder := bundled linear_order
 
 namespace LinearOrder
@@ -31,22 +37,15 @@ instance (α : LinearOrder) : linear_order α := α.str
 instance has_forget_to_PartialOrder : has_forget₂ LinearOrder PartialOrder :=
 bundled_hom.forget₂ _ _
 
-/-- `order_dual` as a functor. -/
-@[simps] def to_dual : LinearOrder ⥤ LinearOrder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
-
 /-- Constructs an equivalence between linear orders from an order isomorphism between them. -/
-@[simps] def iso_of_order_iso {α β : LinearOrder} (e : α ≃o β) : α ≅ β :=
+@[simps] def iso.mk {α β : LinearOrder.{u}} (e : α ≃o β) : α ≅ β :=
 { hom := e,
   inv := e.symm,
   hom_inv_id' := by { ext, exact e.symm_apply_apply x },
   inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
 
-/-- The equivalence between `PartialOrder` and itself induced by `order_dual` both ways. -/
-@[simps] def dual_equiv : LinearOrder ≌ LinearOrder :=
-equivalence.mk to_dual to_dual
-  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
-  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
+/-- `order_dual` as a functor. -/
+@[simps] def to_dual : LinearOrder ⥤ LinearOrder :=
 
 end LinearOrder
 

@@ -277,6 +277,7 @@ begin
     (λ m hm x ih, hmul _ hm _ _ _ (n_ih ih))
     (λ x hx y hy Cx Cy, hadd _ _ _ _ _ Cx Cy) hx,
 end
+
 /-- To show a property on elements of `M ^ n` holds, it suffices to show that it holds for scalars,
 is closed under addition, and holds for `m * x` where `m ∈ M` and it holds for `x` -/
 protected theorem pow_induction_on

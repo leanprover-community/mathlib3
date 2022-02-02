@@ -6,9 +6,15 @@ Authors: Johan Commelin
 
 import order.category.Preorder
 
-/-! # Category of partially ordered types -/
+/-!
+# Category of partial orders
+
+This defines `PartialOrder`, the category of partial orders with monotone maps.
+-/
 
 open category_theory
+
+universe u
 
 /-- The category of partially ordered types. -/
 def PartialOrder := bundled partial_order
@@ -30,22 +36,15 @@ instance (α : PartialOrder) : partial_order α := α.str
 
 instance has_forget_to_Preorder : has_forget₂ PartialOrder Preorder := bundled_hom.forget₂ _ _
 
-/-- `order_dual` as a functor. -/
-@[simps] def to_dual : PartialOrder ⥤ PartialOrder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
-
 /-- Constructs an equivalence between partial orders from an order isomorphism between them. -/
-@[simps] def iso_of_order_iso {α β : PartialOrder} (e : α ≃o β) : α ≅ β :=
+@[simps] def iso.mk {α β : PartialOrder.{u}} (e : α ≃o β) : α ≅ β :=
 { hom := e,
   inv := e.symm,
   hom_inv_id' := by { ext, exact e.symm_apply_apply x },
   inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
 
-/-- The equivalence between `PartialOrder` and itself induced by `order_dual` both ways. -/
-@[simps] def dual_equiv : PartialOrder ≌ PartialOrder :=
-equivalence.mk to_dual to_dual
-  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
-  (nat_iso.of_components (λ X, iso_of_order_iso $ order_iso.dual_dual X) $ λ X Y f, rfl)
+/-- `order_dual` as a functor. -/
+@[simps] def to_dual : PartialOrder ⥤ PartialOrder :=
 
 end PartialOrder
 

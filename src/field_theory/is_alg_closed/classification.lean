@@ -160,7 +160,7 @@ variables {K L : Type} [field K] [field L] [is_alg_closed K] [is_alg_closed L]
 
 /-- Two uncountable algebraically closed fields of characteristic zero are isomorphic
 if they have the same cardinality. -/
-@[nolint def_lemma] lemma ring_equiv_of_cardinal_eq_char_zero [char_zero K] [char_zero L]
+@[nolint def_lemma] lemma ring_equiv_of_cardinal_eq_of_char_zero [char_zero K] [char_zero L]
   (hK : ω < #K) (hKL : #K = #L) : K ≃+* L :=
 begin
   apply classical.choice,
@@ -178,7 +178,7 @@ begin
   exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩
 end
 
-private lemma ring_equiv_of_cardinal_eq_char_p (p : ℕ) [fact p.prime]
+private lemma ring_equiv_of_cardinal_eq_of_char_p (p : ℕ) [fact p.prime]
   [char_p K p] [char_p L p] (hK : ω < #K) (hKL : #K = #L) : K ≃+* L :=
 begin
   apply classical.choice,
@@ -206,12 +206,12 @@ begin
   apply classical.choice,
   rcases char_p.char_is_prime_or_zero K p with hp | hp,
   { haveI : fact p.prime := ⟨hp⟩,
-    exact ⟨ring_equiv_of_cardinal_eq_char_p p hK hKL⟩ },
+    exact ⟨ring_equiv_of_cardinal_eq_of_char_p p hK hKL⟩ },
   { rw [hp] at *,
     resetI,
     letI : char_zero K := char_p.char_p_to_char_zero K,
     letI : char_zero L := char_p.char_p_to_char_zero L,
-    exact ⟨ring_equiv_of_cardinal_eq_char_zero hK hKL⟩ }
+    exact ⟨ring_equiv_of_cardinal_eq_of_char_zero hK hKL⟩ }
 end
 
 end is_alg_closed

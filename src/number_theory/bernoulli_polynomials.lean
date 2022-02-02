@@ -26,14 +26,14 @@ Bernoulli polynomials are defined using `bernoulli`, the Bernoulli numbers.
 
 ## Main theorems
 
-- `sum_bernoulli_poly`: The sum of the $k^\mathrm{th}$ Bernoulli polynomial with binomial
+- `sum_bernoulli_poly`: the sum of the $k^\mathrm{th}$ Bernoulli polynomial with binomial
   coefficients up to n is `(n + 1) * X^n`.
-- `exp_bernoulli_poly`: The Bernoulli polynomials act as generating functions for the exponential.
+- `exp_bernoulli_poly`: the Bernoulli polynomials act as generating functions for the exponential.
 
 ## TODO
 
 - `bernoulli_poly_eval_one_neg` : $$ B_n(1 - x) = (-1)^n*B_n(x) $$
-- `bernoulli_poly_eval_one` : Follows as a consequence of `bernoulli_poly_eval_one_neg`.
+- `bernoulli_poly_eval_one` : follows as a consequence of `bernoulli_poly_eval_one_neg`.
 
 -/
 

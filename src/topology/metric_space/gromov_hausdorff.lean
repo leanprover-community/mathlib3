@@ -43,7 +43,6 @@ noncomputable theory
 open_locale classical topological_space ennreal
 
 local notation `ℓ_infty_ℝ`:= lp (λ n : ℕ, ℝ) ∞
-local attribute [instance] fact_one_le_top_ennreal
 
 universes u v w
 
@@ -93,29 +92,22 @@ lemma eq_to_GH_space_iff {X : Type u} [metric_space X] [compact_space X] [nonemp
   ⟦p⟧ = to_GH_space X ↔ ∃ Ψ : X → ℓ_infty_ℝ, isometry Ψ ∧ range Ψ = p.val :=
 begin
   simp only [to_GH_space, quotient.eq],
-  split,
-  { assume h,
-    rcases setoid.symm h with ⟨e⟩,
+  refine ⟨λ h, _, _⟩,
+  { rcases setoid.symm h with ⟨e⟩,
     have f := (Kuratowski_embedding.isometry X).isometric_on_range.trans e,
-    use λ x, f x,
-    split,
-    { apply isometry_subtype_coe.comp f.isometry },
-    { rw [range_comp, f.range_eq_univ, set.image_univ, subtype.range_coe] } },
+    use [λ x, f x, isometry_subtype_coe.comp f.isometry],
+    rw [range_comp, f.range_eq_univ, set.image_univ, subtype.range_coe] },
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
     have f := ((Kuratowski_embedding.isometry X).isometric_on_range.symm.trans
                isomΨ.isometric_on_range).symm,
     have E : (range Ψ ≃ᵢ (nonempty_compacts.Kuratowski_embedding X).val) =
         (p.val ≃ᵢ range (Kuratowski_embedding X)),
       by { dunfold nonempty_compacts.Kuratowski_embedding, rw [rangeΨ]; refl },
-    have g := cast E f,
-    exact ⟨g⟩ }
+    exact ⟨cast E f⟩ }
 end
 
 lemma eq_to_GH_space {p : nonempty_compacts ℓ_infty_ℝ} : ⟦p⟧ = to_GH_space p.val :=
-begin
- refine eq_to_GH_space_iff.2 ⟨((λ x, x) : p.val → ℓ_infty_ℝ), _, subtype.range_coe⟩,
- apply isometry_subtype_coe
-end
+eq_to_GH_space_iff.2 ⟨λ x, x, isometry_subtype_coe, subtype.range_coe⟩
 
 section
 local attribute [reducible] GH_space.rep
@@ -144,30 +136,25 @@ lemma to_GH_space_eq_to_GH_space_iff_isometric {X : Type u} [metric_space X] [co
   to_GH_space X = to_GH_space Y ↔ nonempty (X ≃ᵢ Y) :=
 ⟨begin
   simp only [to_GH_space, quotient.eq],
-  assume h,
-  rcases h with ⟨e⟩,
+  rintro ⟨e⟩,
   have I : ((nonempty_compacts.Kuratowski_embedding X).val ≃ᵢ
              (nonempty_compacts.Kuratowski_embedding Y).val)
           = ((range (Kuratowski_embedding X)) ≃ᵢ (range (Kuratowski_embedding Y))),
     by { dunfold nonempty_compacts.Kuratowski_embedding, refl },
-  have e' := cast I e,
   have f := (Kuratowski_embedding.isometry X).isometric_on_range,
   have g := (Kuratowski_embedding.isometry Y).isometric_on_range.symm,
-  have h := (f.trans e').trans g,
-  exact ⟨h⟩
+  exact ⟨f.trans $ (cast I e).trans g⟩
 end,
 begin
-  rintros ⟨e⟩,
+  rintro ⟨e⟩,
   simp only [to_GH_space, quotient.eq],
   have f := (Kuratowski_embedding.isometry X).isometric_on_range.symm,
   have g := (Kuratowski_embedding.isometry Y).isometric_on_range,
-  have h := (f.trans e).trans g,
   have I : ((range (Kuratowski_embedding X)) ≃ᵢ (range (Kuratowski_embedding Y))) =
     ((nonempty_compacts.Kuratowski_embedding X).val ≃ᵢ
       (nonempty_compacts.Kuratowski_embedding Y).val),
     by { dunfold nonempty_compacts.Kuratowski_embedding, refl },
-  have h' := cast I h,
-  exact ⟨h'⟩
+  exact ⟨cast I ((f.trans e).trans g)⟩
 end⟩
 
 /-- Distance on `GH_space`: the distance between two nonempty compact spaces is the infimum

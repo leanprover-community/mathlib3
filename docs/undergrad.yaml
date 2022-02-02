@@ -435,11 +435,9 @@ Topology:
     inner product space $L^2$: 'measure_theory.L2.inner_product_space'
     its completeness: 'measure_theory.Lp.complete_space'
     Hilbert bases: 'hilbert_basis' # the document specifies "in the separable case" but we don't require this
-    example, the Hilbert basis of trigonometric polynomials: 'fourier_Lp'
-    its orthonormality: 'orthonormal_fourier'
-    its completeness: 'span_fourier_Lp_closure_eq_top'
+    example, the Hilbert basis of trigonometric polynomials: 'fourier_series'
     example, classical Hilbert bases of orthogonal polynomials: ''
-    Lax-Milgram theorem: ''
+    Lax-Milgram theorem: 'is_coercive.continuous_linear_equiv_of_bilin'
     $H^1_0([0,1])$ and its application to the one-dimensional Dirichlet problem: ''
 
 # 9.
@@ -490,7 +488,7 @@ Multivariable calculus:
     Lagrange multipliers: ''
 
 # 10.
-Measures and integral Calculus:
+Measures and integral calculus:
   Measure theory:
     measurable spaces: 'measurable_space'
     sigma-algebras: 'measurable_space'
@@ -520,13 +518,13 @@ Measures and integral Calculus:
     change of variables to spherical co-ordinates: ''
     convolution: ''
     regularization and approximation by convolution: ''
-  Fourier Analysis:
+  Fourier analysis:
     Fourier series of locally integrable periodic real-valued functions: ''
     Riemann-Lebesgue lemma: ''
     convolution product of periodic functions: ''
     Dirichlet theorem: ''
     Fejer theorem: ''
-    Parseval theorem: ''
+    Parseval theorem: 'tsum_sq_fourier_series_repr'
     Fourier transforms on $\mathrm{L}^1(\R^d)$ and $\mathrm{L}^2(\R^d)$: ''
     Plancherel’s theorem: ''
 

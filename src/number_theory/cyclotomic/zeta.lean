@@ -5,6 +5,7 @@ Authors: Alex Best, Riccardo Brasca, Eric Rodriguez
 -/
 
 import number_theory.cyclotomic.basic
+import ring_theory.polynomial.cyclotomic.eval
 import ring_theory.adjoin.power_basis
 import ring_theory.norm
 
@@ -172,6 +173,64 @@ begin
   rw [this, cyclotomic', ← cyclotomic_eq_prod_X_sub_primitive_roots (is_root_cyclotomic_iff.1 hz),
       ← map_cyclotomic_int, (algebra_map K E).map_int_cast, ←int.cast_one, eval_int_cast_map,
       ring_hom.eq_int_cast, int.cast_id]
+end
+
+omit n
+
+/-- If `irreducible (cyclotomic (p ^ k) K)` (in particular for `K = ℚ`) and `p` is an odd prime,
+then the norm of `zeta (p  ^ k) K L - 1` is `p`. -/
+lemma prime_ne_two_pow.norm_zeta_sub_one {p : ℕ+} {K : Type u} (L : Type v) [field K] [field L]
+  [ne_zero ((p : ℕ) : K)] (k : ℕ) [hpri : fact (p : ℕ).prime] [algebra K L]
+  [is_cyclotomic_extension {p ^ (k + 1)} K L]
+  (hirr : irreducible (cyclotomic ((↑(p ^ (k + 1)) : ℕ)) K)) (h : p ≠ 2) :
+  norm K ((zeta (p ^ (k + 1)) K L) - 1) = p :=
+begin
+  haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
+  { refine ⟨λ hzero, _⟩,
+    rw [pnat.pow_coe] at hzero,
+    simpa [ne_zero.ne ((p : ℕ) : K)] using hzero },
+  have : 2 < p ^ (k + 1),
+  { rw [← pnat.coe_lt_coe, pnat.pow_coe, pnat.coe_bit0, pnat.one_coe],
+    have := lt_of_le_of_ne hpri.1.two_le (by contrapose! h; exact pnat.coe_injective h.symm),
+    refine lt_of_lt_of_le this _,
+    nth_rewrite 0 [← pow_one ↑p],
+    refine pow_le_pow (nat.one_le_of_lt this) le_add_self },
+  simp [norm_zeta_sub_one_eq_eval_cyclotomic L hirr this]
+end
+
+/-- If `irreducible (cyclotomic p K)` (in particular for `K = ℚ`) and `p` is an odd prime,
+then the norm of `zeta p K L - 1` is `p`. -/
+lemma prime_ne_two.norm_zeta_sub_one {p : ℕ+} {K : Type u} (L : Type v) [field K] [field L]
+  [ne_zero ((p : ℕ) : K)] [hpri : fact (p : ℕ).prime] [algebra K L]
+  [hcyc : is_cyclotomic_extension {p} K L] (hirr : irreducible (cyclotomic p K)) (h : p ≠ 2) :
+  norm K ((zeta p K L) - 1) = p :=
+begin
+  replace hirr : irreducible (cyclotomic ((↑(p ^ (0 + 1)) : ℕ)) K) := by simp [hirr],
+  haveI : ne_zero ((↑(p ^ (0 + 1)) : ℕ) : K) := ⟨by simp [ne_zero.ne ((p : ℕ) : K)]⟩,
+  haveI : is_cyclotomic_extension {p ^ (0 + 1)} K L := by simp [hcyc],
+  simpa using prime_ne_two_pow.norm_zeta_sub_one L 0 hirr h
+end
+
+/-- If `irreducible (cyclotomic (2 ^ k) K)` (in particular for `K = ℚ`) and `k` is at least `2`,
+then the norm of `zeta (2  ^ k) K L - 1` is `2`. -/
+lemma two_pow.norm_zeta_sub_one {K : Type u} (L : Type v) [field K] [field L]
+  [ne_zero (2 : K)] {k : ℕ} (hk : 2 ≤ k) [algebra K L] [is_cyclotomic_extension {2 ^ k} K L]
+  (hirr : irreducible (cyclotomic (2 ^ k) K)) :
+  norm K ((zeta (2 ^ k) K L) - 1) = 2 :=
+begin
+  haveI : ne_zero (((2 ^ k : ℕ+) : ℕ) : K),
+  { refine ⟨λ hzero, _⟩,
+    rw [pnat.pow_coe, pnat.coe_bit0, pnat.one_coe, nat.cast_pow, nat.cast_bit0, nat.cast_one,
+      pow_eq_zero_iff (lt_of_lt_of_le zero_lt_two hk)] at hzero,
+    exact (ne_zero.ne (2 : K)) hzero,
+    apply_instance },
+  have : 2 < (2 ^ k : ℕ+),
+  { simp only [← pnat.coe_lt_coe, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe],
+    nth_rewrite 0 [← pow_one 2],
+    refine pow_lt_pow one_lt_two (lt_of_lt_of_le one_lt_two hk) },
+  replace hirr : irreducible (cyclotomic ((2 ^ k : ℕ+)) K) := by simp [hirr],
+  obtain ⟨k₁, hk₁⟩ := nat.exists_eq_succ_of_ne_zero ((lt_of_lt_of_le zero_lt_two hk).ne.symm),
+  simpa [hk₁] using norm_zeta_sub_one_eq_eval_cyclotomic L hirr this,
 end
 
 end field

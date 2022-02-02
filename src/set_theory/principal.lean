@@ -141,7 +141,7 @@ principal_add_iff_add_left_eq_self.2 (λ a, add_omega_opow)
 
 /-- The main characterization theorem for additive principal ordinals. -/
 theorem principal_add_iff_zero_or_omega_power {o : ordinal} :
-  principal (+) o ↔ o = 0 ∨ ∃ a : ordinal, o = omega ^ a :=
+  principal (+) o ↔ o = 0 ∨ ∃ a, o = omega ^ a :=
 begin
   rcases eq_or_ne o 0 with rfl | ho,
   { simp only [principal_zero, or.inl] },

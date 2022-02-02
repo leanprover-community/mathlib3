@@ -699,13 +699,13 @@ begin
     induction hf using fintype.induction_subsingleton_or_nontrivial with G hG hS G hG hN ih },
   { apply_instance, },
   { introI _, intro h,
-    have hc: center G > ⊥ := gt_iff_lt.mp h.bot_lt_center,
-    have hcq: fintype.card (G ⧸ center G) < fintype.card G,
+    have hc : center G > ⊥ := gt_iff_lt.mp h.bot_lt_center,
+    have hcq : fintype.card (G ⧸ center G) < fintype.card G,
     { rw card_eq_card_quotient_mul_card_subgroup (center G),
       apply lt_mul_of_one_lt_right,
       exact (fintype.card_pos_iff.mpr has_one.nonempty),
       exact ((subgroup.one_lt_card_iff_ne_bot _).mpr (ne_of_gt hc)), },
-    have hnq: is_nilpotent (G ⧸ center G) := ih _ hcq (h.to_quotient (center G)),
+    have hnq : is_nilpotent (G ⧸ center G) := ih _ hcq (h.to_quotient (center G)),
     exact (of_quotient_center_nilpotent hnq), }
 end
 

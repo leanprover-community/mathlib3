@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import algebra.order.field
+import category_theory.concrete_category.bundled
+import category_theory.monoidal.category
 import data.fintype.basic
 import data.real.basic
 import data.sum.basic
@@ -19,10 +21,10 @@ import order.bounded_order
 `card (two_pointing α) = card α * (card α - 1)`
 -/
 
-open function set sum
+open category_theory function set sum
 
 universes u
-variables {α β : Type*}
+variables {α β γ δ ε F : Type*}
 
 /-! ### Pointed sum -/
 
@@ -36,6 +38,8 @@ inductive rel (𝒶 : α) (𝒷 : β) : α ⊕ β → α ⊕ β → Prop
 | inr_inl : rel (inr 𝒷) (inl 𝒶)
 
 attribute [refl] rel.refl
+
+lemma rel.rfl : rel 𝒶 𝒷 x x := rel.refl _
 
 @[symm] lemma rel.symm : rel 𝒶 𝒷 x y → rel 𝒶 𝒷 y x := by rintro (_ | _ | _); constructor
 
@@ -154,10 +158,10 @@ inductive lift_trans_rel : 𝒶 ⊕ₚ 𝒷 → 𝒶 ⊕ₚ 𝒷 → Prop
 
 variables {𝒶 𝒷 r s}
 
-instance [is_refl α r] [is_refl β s] : is_refl (𝒶 ⊕ₚ 𝒷) (lift_trans_rel 𝒶 𝒷 r s) :=
-⟨λ x, begin
-  sorry
-end⟩
+-- instance [is_refl α r] [is_refl β s] : is_refl (𝒶 ⊕ₚ 𝒷) (lift_trans_rel 𝒶 𝒷 r s) :=
+-- ⟨λ x, begin
+--   sorry
+-- end⟩
 
 -- instance [is_irrefl α r] [is_irrefl β s] : is_irrefl (𝒶 ⊕ₚ 𝒷) (lift_trans_rel 𝒶 𝒷 r s) :=
 -- ⟨λ a h, match a, h with
@@ -165,19 +169,53 @@ end⟩
 --   | _, lift_trans_rel.inr h := sorry
 -- end⟩
 
-@[trans] lemma lift_trans_rel.trans [is_trans α r] [is_trans β s] :
-  ∀ {a b c}, lift_trans_rel 𝒶 𝒷 r s a b → lift_trans_rel 𝒶 𝒷 r s b c → lift_trans_rel 𝒶 𝒷 r s a c
--- | _ _ _ (lift_trans_rel.inl hab) (lift_trans_rel.inl hbc) := lift_trans_rel.inl $ trans hab hbc
--- | _ _ _ (lift_trans_rel.inr hab) (lift_trans_rel.inr hbc) := lift_trans_rel.inr $ trans hab hbc
-:= sorry
+-- @[trans] lemma lift_trans_rel.trans [is_trans α r] [is_trans β s] :
+--   ∀ {a b c}, lift_trans_rel 𝒶 𝒷 r s a b → lift_trans_rel 𝒶 𝒷 r s b c → lift_trans_rel 𝒶 𝒷 r s a c
+-- -- | _ _ _ (lift_trans_rel.inl hab) (lift_trans_rel.inl hbc) := lift_trans_rel.inl $ trans hab hbc
+-- -- | _ _ _ (lift_trans_rel.inr hab) (lift_trans_rel.inr hbc) := lift_trans_rel.inr $ trans hab hbc
+-- := sorry
 
-instance [is_trans α r] [is_trans β s] : is_trans (𝒶 ⊕ₚ 𝒷) (lift_trans_rel 𝒶 𝒷 r s) :=
-⟨λ _ _ _, lift_trans_rel.trans _ _⟩
+-- instance [is_trans α r] [is_trans β s] : is_trans (𝒶 ⊕ₚ 𝒷) (lift_trans_rel 𝒶 𝒷 r s) :=
+-- ⟨λ _ _ _, lift_trans_rel.trans _ _⟩
 
-instance [is_antisymm α r] [is_antisymm β s] : is_antisymm (𝒶 ⊕ₚ 𝒷) (lift_trans_rel 𝒶 𝒷 r s) :=
-⟨sorry⟩
+-- instance [is_antisymm α r] [is_antisymm β s] : is_antisymm (𝒶 ⊕ₚ 𝒷) (lift_trans_rel 𝒶 𝒷 r s) :=
+-- ⟨sorry⟩
 
 end lift_trans_rel
+
+variables {𝒸 : γ} {𝒹 : δ}
+
+/-- Maps a pointed sum summand-wise. -/
+def map (f : α → γ) (g : β → δ) (hf : f 𝒶 = 𝒸) (hg : g 𝒷 = 𝒹) : 𝒶 ⊕ₚ 𝒷 → 𝒸 ⊕ₚ 𝒹 :=
+quot.map (sum.map f g) $ begin
+  rintro x y (h | h | h),
+  { exact pointed_sum.rel.rfl },
+  { rw [map_inl, map_inr, hf, hg],
+    exact pointed_sum.rel.inl_inr },
+  { rw [map_inl, map_inr, hf, hg],
+    exact pointed_sum.rel.inr_inl }
+end
+
+variables (f : α → γ) (g : β → δ) {hf : f 𝒶 = 𝒸} {hg : g 𝒷 = 𝒹}
+
+@[simp] lemma map_inl (a : α) : map f g hf hg (inl _ _ a) = inl _ _ (f a) := rfl
+@[simp] lemma map_inr (b : β) : map f g hf hg (inr _ _ b) = inr _ _ (g b) := rfl
+
+@[simp] lemma map_id_id (𝒶 𝒷) : map (@id α) (@id β) (eq.refl 𝒶) (eq.refl 𝒷) = id :=
+funext $ λ x, quotient.induction_on' x $ λ x, sum.rec_on x (λ _, rfl) (λ _, rfl)
+
+@[simp] lemma map_map {ℯ : ε} {𝒻 : F} (f₁ : γ → ε) (g₁ : δ → F) (f₂ : α → γ) (g₂ : β → δ)
+  {hf₁ : f₁ 𝒸 = ℯ} {hg₁ : g₁ 𝒹 = 𝒻} {hf₂ : f₂ 𝒶 = 𝒸} {hg₂ : g₂ 𝒷 = 𝒹} (x : 𝒶 ⊕ₚ 𝒷) :
+  (x.map f₂ g₂ hf₂ hg₂).map f₁ g₁ hf₁ hg₁ =
+    x.map (f₁ ∘ f₂) (g₁ ∘ g₂) ((congr_arg _ hf₂).trans hf₁) ((congr_arg _ hg₂).trans hg₁) :=
+quotient.induction_on' x $ λ x, sum.rec_on x (λ a, rfl) (λ b, rfl)
+
+@[simp] lemma map_comp_map {ℯ : ε} {𝒻 : F} (f₁ : γ → ε) (g₁ : δ → F) (f₂ : α → γ) (g₂ : β → δ)
+  {hf₁ : f₁ 𝒸 = ℯ} {hg₁ : g₁ 𝒹 = 𝒻} {hf₂ : f₂ 𝒶 = 𝒸} {hg₂ : g₂ 𝒷 = 𝒹} :
+  (map f₁ g₁ hf₁ hg₁) ∘ (map f₂ g₂ hf₂ hg₂) =
+    map (f₁ ∘ f₂) (g₁ ∘ g₂) ((congr_arg _ hf₂).trans hf₁) ((congr_arg _ hg₂).trans hg₁) :=
+funext $ map_map _ _ _ _
+
 end pointed_sum
 
 open pointed_sum
@@ -219,24 +257,53 @@ variables (𝒶 : α) (𝒷 : β)
 instance [has_le α] [has_le β] : has_le (𝒶 ⊕ₚ 𝒷) := ⟨lift_trans_rel _ _ (≤) (≤)⟩
 instance [has_lt α] [has_lt β] : has_lt (𝒶 ⊕ₚ 𝒷) := ⟨lift_trans_rel _ _ (<) (<)⟩
 
-instance [preorder α] [preorder β] : preorder (𝒶 ⊕ₚ 𝒷) :=
-{ le := (≤),
-  lt := (<),
-  le_refl := refl_of (lift_trans_rel _ _ (≤) (≤)),
-  le_trans := λ _ _ _, trans_of (lift_trans_rel _ _ (≤) (≤)),
-  lt_iff_le_not_le := λ a b, begin
-    sorry
-  end }
+-- instance [preorder α] [preorder β] : preorder (𝒶 ⊕ₚ 𝒷) :=
+-- { le := (≤),
+--   lt := (<),
+--   le_refl := refl_of (lift_trans_rel _ _ (≤) (≤)),
+--   le_trans := λ _ _ _, trans_of (lift_trans_rel _ _ (≤) (≤)),
+--   lt_iff_le_not_le := λ a b, begin
+--     sorry
+--   end }
 
-instance [partial_order α] [partial_order β] : partial_order (𝒶 ⊕ₚ 𝒷) :=
-{ le := (≤),
-  lt := (<),
-  le_antisymm := λ _ _, antisymm_of (lift_trans_rel _ _ (≤) (≤)),
-  .. pointed_sum.preorder 𝒶 𝒷 }
+-- instance [partial_order α] [partial_order β] : partial_order (𝒶 ⊕ₚ 𝒷) :=
+-- { le := (≤),
+--   lt := (<),
+--   le_antisymm := λ _ _, antisymm_of (lift_trans_rel _ _ (≤) (≤)),
+--   .. pointed_sum.preorder 𝒶 𝒷 }
 
 end order
 
+/-! ### Bipointed -/
 
+namespace Bipointed
+
+instance : monoidal_category Bipointed :=
+{ tensor_obj := λ X Y, ⟨_, X.to_prod.pointed_sum Y.to_prod⟩,
+  tensor_hom := λ X₁ Y₁ X₂ Y₂ f g,
+    ⟨pointed_sum.map _ _ f.map_snd g.map_fst,
+      by simp_rw [prod.pointed_sum_fst, pointed_sum.map_inl, f.map_fst],
+      by simp_rw [prod.pointed_sum_snd, pointed_sum.map_inr, g.map_snd]⟩,
+  tensor_id' := λ X Y, hom.ext _ _ $ pointed_sum.map_id_id _ _,
+  tensor_comp' := λ X₁ Y₁ Z₁ X₂ Y₂ Z₂ f₁ f₂ g₁ g₂,
+    hom.ext _ _ (pointed_sum.map_comp_map _ _ _ _).symm,
+  tensor_unit := ⟨_, ((), ())⟩,
+  associator := λ X Y Z, begin
+    dsimp,
+  end,
+  associator_naturality' := _,
+  left_unitor := λ X, begin
+    dsimp,
+  end,
+  left_unitor_naturality' := _,
+  right_unitor := _,
+  right_unitor_naturality' := _,
+  pentagon' := _,
+  triangle' := _ }
+
+end Bipointed
+
+#exit
 
 /-! ### Twop -/
 
@@ -253,9 +320,8 @@ instance : category Twop :=
 def Twop.wedge : Twop × Twop ⥤ Twop := sorry
 
 /-- A square coalgebra on a two-pointed type `α` is a map `α → α ⊕ₚₚ α`. -/
-structure sq_coalgebra (α : Type*) :=
-(to_Twop : two_pointing α)
-(double_map : α → α ⊕ₚₚ α)
+structure sq_coalgebra (α : Type*) extends two_pointing α :=
+(double_map : α → snd ⊕ₚ fst)
 
 /-- `pointed_sum.inl` as a square coalgebra. -/
 def sq_coalgebra.inl (α : Type*) [two_pointing α] : sq_coalgebra α := ⟨pointed_sum.inl _ _⟩
@@ -291,4 +357,3 @@ lemma is_initial_unit_interval_ℚ : is_initial (unit_interval ℚ) := sorry
 lemma is_terminal_unit_interval_ℝ : is_terminal (unit_interval ℝ) := sorry
 
 end SqCoalgebra
-end category_theory

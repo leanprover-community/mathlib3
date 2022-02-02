@@ -8,15 +8,8 @@ import measure_theory.function.convergence_in_measure
 /-!
 # Uniform integrability
 
-This file will be used in the future to define uniform integrability. Uniform integrability
-is an important notion in both measure theory as well as probability theory. So far this file
-only contains the Egorov theorem which will be used to prove the Vitali convergence theorem
-which is one of the main results about uniform integrability.
 
 ## Main results
-
-* `measure_theory.egorov`: Egorov's theorem which shows that a sequence of almost everywhere
-  convergent functions converges uniformly except on an arbitrarily small set.
 
 -/
 
@@ -38,14 +31,65 @@ snorm (s.indicator (f i)) p μ < ennreal.of_real ε
 section unif_integrable
 
 variables [borel_space β] [second_countable_topology β] [is_finite_measure μ] {p : ℝ≥0∞}
--- useful lemmas:
--- #check snorm_ess_sup_lt_top_of_ae_bound
--- #check snorm_le_of_ae_bound
 
-lemma mem_ℒp.snorm_lt_measure {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
+lemma tendsto_indicator_ge_zero (f : α → β) (x : α):
+  tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ∥f x∥₊}.indicator f x) at_top (𝓝 0) :=
+begin
+  refine @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ (nat.ceil (∥f x∥₊ : ℝ) + 1) (λ n hn, _),
+  rw indicator_of_not_mem,
+  simp only [not_le, mem_set_of_eq],
+  refine lt_of_le_of_lt (nat.le_ceil _) _,
+  refine lt_of_lt_of_le (lt_add_one _) _,
+  norm_cast,
+  rwa [ge_iff_le, coe_nnnorm] at hn,
+end
+
+lemma mem_ℒp.integral_indicator_ge_le {f : α → β} (hf : mem_ℒp f 1 μ) (hmeas : measurable f)
+  {ε : ℝ} (hε : 0 < ε) :
+  ∃ M : ℝ, ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
+begin
+  have htendsto : ∀ᵐ x ∂μ, tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ∥f x∥₊}.indicator f x) at_top (𝓝 0) :=
+    univ_mem' (id $ λ x, tendsto_indicator_ge_zero f x),
+  have hmeas : ∀ M : ℕ, ae_measurable ({x | (M : ℝ) ≤ ∥f x∥₊}.indicator f) μ,
+  { cases hf,
+    measurability },
+  have hbound : has_finite_integral (λ x, ∥f x∥) μ,
+  { rw mem_ℒp_one_iff_integrable at hf,
+    exact hf.norm.2 },
+  have := tendsto_lintegral_norm_of_dominated_convergence hmeas hbound _ htendsto,
+  { rw ennreal.tendsto_at_top ennreal.zero_ne_top at this,
+    { obtain ⟨M, hM⟩ := this (ennreal.of_real ε) (ennreal.of_real_pos.2 hε),
+      simp only [true_and, ge_iff_le, zero_tsub, zero_le,
+                sub_zero, zero_add, coe_nnnorm, mem_Icc] at hM,
+      refine ⟨M, _⟩,
+      convert hM M le_rfl,
+      ext1 x,
+      simp only [coe_nnnorm, ennreal.of_real_eq_coe_nnreal (norm_nonneg _)],
+      refl },
+    { apply_instance } },
+  { refine λ n, univ_mem' (id $ λ x, _),
+    by_cases hx : (n : ℝ) ≤ ∥f x∥,
+    { dsimp,
+      rwa indicator_of_mem },
+    { dsimp,
+      rw [indicator_of_not_mem, norm_zero],
+      { exact norm_nonneg _ },
+      { assumption } } }
+end
+
+lemma mem_ℒp.snorm_indicator_ge_lt' {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
+  ∃ M : ℝ, snorm ({x | M ≤ ∥f x∥₊}.indicator f) p μ < ennreal.of_real ε :=
+begin
+  sorry
+end
+
+lemma mem_ℒp.snorm_indicator_ge_lt {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ < ennreal.of_real ε :=
 begin
+  by_cases hp_ne_zero : p = 0,
+  { refine ⟨1, zero_lt_one, λ s hs hμs, hp_ne_zero.symm ▸ _⟩,
+    simp only [snorm_exponent_zero, ennreal.of_real_pos, hε] },
   sorry
 end
 
@@ -97,6 +141,7 @@ end
 
 -- To generalize the below to convergence in measure we need that convergence in measure implies
 -- existence of convergent a.e. subsequence
+-- We have this now: `tendsto_in_measure.exists_seq_tendsto_ae`
 
 /-- A sequence of uniformly integrable functions which converges μ-a.e. converges in Lp. -/
 lemma tendsto_Lp_of_unif_integrable (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
@@ -120,7 +165,7 @@ begin
     have hpow : 0 < (measure_univ_nnreal μ) ^ (1 / p.to_real) :=
       real.rpow_pos_of_pos (measure_univ_nnreal_pos hμ) _,
     obtain ⟨δ₁, hδ₁, hsnorm₁⟩ := hui hε',
-    obtain ⟨δ₂, hδ₂, hsnorm₂⟩ := hg'.snorm_lt_measure hε',
+    obtain ⟨δ₂, hδ₂, hsnorm₂⟩ := hg'.snorm_indicator_ge_lt hε',
     obtain ⟨t, htm, ht₁, ht₂⟩ := tendsto_uniformly_on_of_ae_tendsto' hf hg hfg (lt_min hδ₁ hδ₂),
     rw metric.tendsto_uniformly_on_iff at ht₂,
     specialize ht₂ (ε.to_real / (3 * measure_univ_nnreal μ ^ (1 / p.to_real)))

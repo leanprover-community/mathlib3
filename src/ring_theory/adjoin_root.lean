@@ -297,7 +297,7 @@ where `g` is a monic polynomial of degree `d`. -/
 variables [field K] {f : polynomial K}
 
 lemma is_integral_root (hf : f ≠ 0) : is_integral K (root f) :=
-(is_algebraic_iff_is_integral _).mp (is_algebraic_root hf)
+is_algebraic_iff_is_integral.mp (is_algebraic_root hf)
 
 lemma minpoly_root (hf : f ≠ 0) : minpoly K (root f) = f * C (f.leading_coeff⁻¹) :=
 begin

@@ -77,17 +77,14 @@ begin
   intros a b hab,
   by_contra' h,
   obtain ⟨ha : a ∈ maximal_ideal R, hb : b ∈ maximal_ideal R⟩ := h,
-  rw h at ha hb,
-  rw mem_span_singleton' at ha hb,
+  rw [h, mem_span_singleton'] at ha hb,
   rcases ha with ⟨a, rfl⟩,
   rcases hb with ⟨b, rfl⟩,
   rw (show a * ϖ * (b * ϖ) = ϖ * (ϖ * (a * b)), by ring) at hab,
   have h3 := eq_zero_of_mul_eq_self_right _ hab.symm,
   { apply not_a_field R,
     simp [h, h3] },
-  { intro hh, apply h2,
-    refine is_unit_of_dvd_one ϖ _,
-    use a * b, exact hh.symm }
+  { exact λ hh, h2 (is_unit_of_dvd_one ϖ ⟨_, hh.symm⟩) }
 end⟩
 
 lemma _root_.irreducible.maximal_ideal_eq {ϖ : R} (h : irreducible ϖ) :

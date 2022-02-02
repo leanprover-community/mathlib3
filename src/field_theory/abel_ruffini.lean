@@ -285,10 +285,10 @@ begin
   { exact λ _ _, is_integral_mul },
   { exact λ α hα, subalgebra.inv_mem_of_algebraic (integral_closure F (solvable_by_rad F E))
       (show is_algebraic F ↑(⟨α, hα⟩ : integral_closure F (solvable_by_rad F E)),
-        by exact (is_algebraic_iff_is_integral F).mpr hα) },
+        by exact is_algebraic_iff_is_integral.mpr hα) },
   { intros α n hn hα,
-    obtain ⟨p, h1, h2⟩ := (is_algebraic_iff_is_integral F).mpr hα,
-    refine (is_algebraic_iff_is_integral F).mp ⟨p.comp (X ^ n),
+    obtain ⟨p, h1, h2⟩ := is_algebraic_iff_is_integral.mpr hα,
+    refine is_algebraic_iff_is_integral.mp ⟨p.comp (X ^ n),
       ⟨λ h, h1 (leading_coeff_eq_zero.mp _), by rw [aeval_comp, aeval_X_pow, h2]⟩⟩,
     rwa [←leading_coeff_eq_zero, leading_coeff_comp, leading_coeff_X_pow, one_pow, mul_one] at h,
     rwa nat_degree_X_pow }

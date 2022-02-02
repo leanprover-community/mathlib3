@@ -426,26 +426,19 @@ lemma exists_subset_nhd_of_compact' {ι : Type*} [nonempty ι] {V : ι → set �
   (hV_cpct : ∀ i, is_compact (V i)) (hV_closed : ∀ i, is_closed (V i))
   {U : set α} (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
 begin
-  set Y := ⋂ i, V i,
-  obtain ⟨W, hsubW, W_op, hWU⟩ : ∃ W, Y ⊆ W ∧ is_open W ∧ W ⊆ U,
-    from exists_open_set_nhds hU,
+  obtain ⟨W, hsubW, W_op, hWU⟩ := exists_open_set_nhds hU,
   suffices : ∃ i, V i ⊆ W,
   { rcases this with ⟨i, hi⟩,
     refine ⟨i, set.subset.trans hi hWU⟩ },
   by_contra' H,
   replace H : ∀ i, (V i ∩ Wᶜ).nonempty := λ i, set.inter_compl_nonempty_iff.mpr (H i),
   have : (⋂ i, V i ∩ Wᶜ).nonempty,
-  { apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ _ H,
-    { intro i,
-      exact (hV_cpct i).inter_right W_op.is_closed_compl },
-    { intro i,
-      apply (hV_closed i).inter W_op.is_closed_compl },
-    { intros i j,
-      rcases hV i j with ⟨k, hki, hkj⟩,
-      use k,
-      split ; intro x ; simp only [and_imp, mem_inter_eq, mem_compl_eq] ; tauto } },
-  have : ¬ (⋂ (i : ι), V i) ⊆ W,
-    by simpa [← Inter_inter, inter_compl_nonempty_iff],
+  { refine is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ (λ i j, _) H
+      (λ i, (hV_cpct i).inter_right W_op.is_closed_compl)
+      (λ i, (hV_closed i).inter W_op.is_closed_compl),
+    rcases hV i j with ⟨k, hki, hkj⟩,
+    refine ⟨k, ⟨λ x, _, λ x, _⟩⟩ ; simp only [and_imp, mem_inter_eq, mem_compl_eq] ; tauto },
+  have : ¬ (⋂ (i : ι), V i) ⊆ W, by simpa [← Inter_inter, inter_compl_nonempty_iff],
   contradiction
 end
 

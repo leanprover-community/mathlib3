@@ -359,16 +359,6 @@ instance at_bot_is_measurably_generated : (filter.at_bot : filter α).is_measura
 @filter.infi_is_measurably_generated _ _ _ _ $
   λ a, (measurable_set_Iic : measurable_set (Iic a)).principal_is_measurably_generated
 
-lemma bsupr_measure_Iic {μ : measure α} {s : set α} (hsc : countable s)
-  (hst : ∀ x : α, ∃ y ∈ s, x ≤ y) (hdir : directed_on (≤) s) :
-  (⨆ x ∈ s, μ (Iic x)) = μ univ :=
-begin
-  rw ← measure_bUnion_eq_supr hsc,
-  { congr, exact Union₂_eq_univ_iff.2 hst },
-  { exact λ _ _, measurable_set_Iic },
-  { exact directed_on_iff_directed.2 (hdir.directed_coe.mono_comp _ $ λ x y, Iic_subset_Iic.2) }
-end
-
 end preorder
 
 section partial_order

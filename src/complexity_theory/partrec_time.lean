@@ -7,7 +7,7 @@ Authors: Bolton Bailey
 import data.vector.basic
 import computability.tm_to_partrec
 import data.nat.log
-
+import data.polynomial.basic
 
 /-!
 # TODO
@@ -34,3 +34,20 @@ def time : turing.to_partrec.code → list ℕ →. ℕ
     then ((time f v.tail).map sum.inl)
     else (prod.mk <$> f.eval v.tail <*> (time f v.tail) + pure n).map sum.inr
 ) ⟨l, 0⟩)
+
+/--
+Holds for codes representing total functions, where `bound` is a function upper bounding the
+runtime of the code over all input lists of length `l`.
+-/
+def time_bound (c : turing.to_partrec.code) (bound : ℕ → ℕ) : Prop :=
+∀ (l : list ℕ), ∃ t ∈ time c l, t ≤ bound (l.length)
+
+-- TODO time_bound lemmas for all the constructors (except maybe fix)
+
+/--
+The code `c` always terminates in polynomial time.
+-/
+def poly_time (c : turing.to_partrec.code) : Prop :=
+∃ (p : polynomial ℕ), time_bound c (p.eval)
+
+-- TODO poly_time lemmas for all the constructors (except maybe fix)

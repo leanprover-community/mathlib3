@@ -7,7 +7,7 @@ Authors: Bolton Bailey
 import data.vector.basic
 import computability.tm_to_partrec
 import data.nat.log
-import data.polynomial.basic
+import data.polynomial.eval
 
 /-!
 # TODO

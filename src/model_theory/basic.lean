@@ -1263,6 +1263,14 @@ begin
   rw [quotient.fin_choice_eq, quotient.map_mk],
 end
 
+lemma rel_map_quotient_mk {n : ℕ} (r : L.relations n) (x : fin n → M') :
+  rel_map r (λ i, ⟦x i⟧) = @rel_map _ _ ps.to_structure _ r x :=
+begin
+  change quotient.lift (@rel_map L M' ps.to_structure n r) prestructure.rel_equiv
+    (quotient.fin_choice _) = _,
+  rw [quotient.fin_choice_eq, quotient.lift_mk],
+end
+
 lemma realize_term_quotient_mk {β : Type*} (x : β → M') (t : L.term β) :
   realize_term (λ i, ⟦x i⟧) t = ⟦@realize_term _ _ ps.to_structure _ x t⟧ :=
 begin

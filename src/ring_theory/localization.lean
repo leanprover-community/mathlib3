@@ -2681,6 +2681,15 @@ noncomputable def alg_equiv (K : Type*) [field K] [algebra A K] [is_fraction_rin
   fraction_ring A ≃ₐ[A] K :=
 localization.alg_equiv (non_zero_divisors A) K
 
+instance [algebra R A] [no_zero_smul_divisors R A] : no_zero_smul_divisors R (fraction_ring A) :=
+no_zero_smul_divisors.of_algebra_map_injective
+  begin
+    rw [is_scalar_tower.algebra_map_eq R A],
+    exact function.injective.comp
+      (no_zero_smul_divisors.algebra_map_injective _ _)
+      (no_zero_smul_divisors.algebra_map_injective _ _)
+  end
+
 end fraction_ring
 
 namespace is_fraction_ring

@@ -44,8 +44,8 @@ begin
   rwa [ge_iff_le, coe_nnnorm] at hn,
 end
 
-lemma mem_ℒp.integral_indicator_ge_le {f : α → β} (hf : mem_ℒp f 1 μ) (hmeas : measurable f)
-  {ε : ℝ} (hε : 0 < ε) :
+lemma mem_ℒp.integral_indicator_ge_le
+  {f : α → β} (hf : mem_ℒp f 1 μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
 begin
   have htendsto : ∀ᵐ x ∂μ, tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ∥f x∥₊}.indicator f x) at_top (𝓝 0) :=
@@ -77,9 +77,52 @@ begin
       { assumption } } }
 end
 
-lemma mem_ℒp.snorm_indicator_ge_lt' {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
+--move
+lemma ennreal.lt_add_one {a : ℝ≥0∞} (ha : a ≠ ∞) : a < a + 1 :=
+ennreal.lt_add_right ha one_ne_zero
+
+lemma mem_ℒp.snorm_ess_sup_indicator_ge_eq_zero
+  {f : α → β} (hf : mem_ℒp f ∞ μ) (hmeas : measurable f) :
+  ∃ M : ℝ, snorm_ess_sup ({x | M ≤ ∥f x∥₊}.indicator f) μ = 0 :=
+begin
+  have hbdd : snorm_ess_sup f μ < ∞ := hf.snorm_lt_top,
+  refine ⟨(snorm f ∞ μ + 1).to_real, _⟩,
+  rw snorm_ess_sup_indicator_eq_snorm_ess_sup_restrict,
+  have : μ.restrict {x : α | (snorm f ⊤ μ + 1).to_real ≤ ∥f x∥₊} = 0,
+  { simp only [coe_nnnorm, snorm_exponent_top, measure.restrict_eq_zero],
+    have : {x : α | (snorm_ess_sup f μ + 1).to_real ≤ ∥f x∥} ⊆
+      {x : α | snorm_ess_sup f μ < ∥f x∥₊},
+    { intros x hx,
+      rw [mem_set_of_eq, ← ennreal.to_real_lt_to_real hbdd.ne ennreal.coe_lt_top.ne,
+          ennreal.coe_to_real, coe_nnnorm],
+      refine lt_of_lt_of_le _ hx,
+      rw ennreal.to_real_lt_to_real hbdd.ne,
+      { exact ennreal.lt_add_one hbdd.ne },
+      { exact (ennreal.add_lt_top.2 ⟨hbdd, ennreal.one_lt_top⟩).ne } },
+    rw ← nonpos_iff_eq_zero,
+    refine (measure_mono this).trans _,
+    have hle := coe_nnnorm_ae_le_snorm_ess_sup f μ,
+    simp_rw [ae_iff, not_le] at hle,
+    exact nonpos_iff_eq_zero.2 hle },
+  rw [this, snorm_ess_sup_measure_zero],
+  measurability,
+end
+
+-- example {f : α → β} (hf : mem_ℒp f p μ) : integrable (λ x, ∥f x∥₊ ^ p.to_real) μ :=
+
+/-- This lemma implies that a single function is uniformly integrable (in the probability sense). -/
+lemma mem_ℒp.snorm_indicator_ge_lt'
+  {f : α → β} (hf : mem_ℒp f p μ)  (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, snorm ({x | M ≤ ∥f x∥₊}.indicator f) p μ < ennreal.of_real ε :=
 begin
+  by_cases hp_ne_zero : p = 0,
+  { refine ⟨1, hp_ne_zero.symm ▸ _⟩,
+    simp only [snorm_exponent_zero, ennreal.of_real_pos, hε] },
+  by_cases hp_ne_top : p = ∞,
+  { subst hp_ne_top,
+    obtain ⟨M, hM⟩ := hf.snorm_ess_sup_indicator_ge_eq_zero hmeas,
+    refine ⟨M, _⟩,
+    rwa [snorm_exponent_top, hM, ennreal.of_real_pos] },
   sorry
 end
 

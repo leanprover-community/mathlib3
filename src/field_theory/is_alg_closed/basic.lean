@@ -364,8 +364,8 @@ variables [algebra K J] [algebra J L] [is_alg_closure J L] [algebra K L]
   [is_scalar_tower K J L]
 
 
-/-- A (random) isomorphism between an algebraic closure of `R` and an algebraic closure of an algebraic
-  extension of `R` -/
+/-- A (random) isomorphism between an algebraic closure of `R` and an algebraic closure of
+  an algebraic extension of `R` -/
 noncomputable def equiv_of_algebraic' [nontrivial S] [no_zero_smul_divisors R S]
   (hRL : algebra.is_algebraic R L) : L ≃ₐ[R] M :=
 begin
@@ -382,8 +382,8 @@ begin
   exact is_alg_closure.equiv _ _ _
 end
 
-/-- A (random) isomorphism between an algebraic closure of `K` and an algebraic closure of an algebraic
-  extension of `K` -/
+/-- A (random) isomorphism between an algebraic closure of `K` and an algebraic closure
+  of an algebraic extension of `K` -/
 noncomputable def equiv_of_algebraic (hKJ : algebra.is_algebraic K J) : L ≃ₐ[K] M :=
 equiv_of_algebraic' K J _ _ (algebra.is_algebraic_trans hKJ is_alg_closure.algebraic)
 

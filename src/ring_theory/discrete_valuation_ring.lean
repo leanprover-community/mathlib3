@@ -75,7 +75,7 @@ begin
     from h.symm ▸ submodule.mem_span_singleton_self ϖ,
   refine ⟨h2, _⟩,
   intros a b hab,
-  by_contra',
+  by_contra' h,
   obtain ⟨ha : a ∈ maximal_ideal R, hb : b ∈ maximal_ideal R⟩ := h,
   rw h at ha hb,
   rw mem_span_singleton' at ha hb,

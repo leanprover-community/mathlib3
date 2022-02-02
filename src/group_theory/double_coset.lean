@@ -39,6 +39,7 @@ lemma doset_mem {s t : set α} {a b : α} : b ∈ doset a s t ↔ ∃ (x ∈ s) 
 ⟨λ ⟨_, y, ⟨x, _, hx, rfl, rfl⟩, hy, h⟩, ⟨x, hx, y, hy, h.symm⟩,
   λ ⟨x, hx, y, hy, h⟩, ⟨x * a, y, ⟨x, a, hx, rfl, rfl⟩, hy, h.symm⟩⟩
 
+/--The relation given by saying two elements are related if their double cosets are equal -/
 def double_coset_rel (H K : set G) : G → G → Prop :=
 λ x y, doset x H K = doset y H K
 

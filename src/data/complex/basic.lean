@@ -63,6 +63,8 @@ instance : can_lift ℂ ℝ :=
   coe := coe,
   prf := λ z hz, ⟨z.re, ext rfl hz.symm⟩ }
 
+notation s ` ×ℂ `:72 t := re ⁻¹' s ∩ im ⁻¹' t
+
 instance : has_zero ℂ := ⟨(0 : ℝ)⟩
 instance : inhabited ℂ := ⟨0⟩
 

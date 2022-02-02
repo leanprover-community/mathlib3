@@ -564,7 +564,14 @@ begin
   apply mul_equiv.of_bijective,
   show _ →* G, {
     apply subgroup_pi_hom.hom,
+    rintros ⟨⟨p₁, hp₁⟩, P₁⟩ ⟨⟨p₂, hp₂⟩, P₂⟩ hne,
+    rw mem_to_finset at hp₁ hp₂,
+    apply subgroup.commute_of_normal_of_disjoint,
+    { exact @hn _ (fact.mk (nat.prime_of_mem_factors hp₁)) _, },
+    { exact @hn _ (fact.mk (nat.prime_of_mem_factors hp₂)) _, },
+    {
 
+    }
 
   },
 

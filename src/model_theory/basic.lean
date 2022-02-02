@@ -6,6 +6,8 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 import data.nat.basic
 import data.set_like.basic
 import data.set.lattice
+import data.fin.tuple.basic
+import data.fintype.basic
 import order.closure
 
 /-!
@@ -25,9 +27,19 @@ This file defines first-order languages and structures in the style of the
 * A `first_order.language.embedding`, denoted `M ↪[L] N`, is an embedding from the `L`-structure `M`
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.
+* A `first_order.language.elementary_embedding`, denoted `M ↪ₑ[L] N`, is an embedding from the
+  `L`-structure `M` to the `L`-structure `N` that commutes with the realizations of all formulas.
 * A `first_order.language.equiv`, denoted `M ≃[L] N`, is an equivalence from the `L`-structure `M`
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.
+* A `first_order.language.term` is defined so that `L.term α` is the type of `L`-terms with free
+  variables indexed by `α`.
+* A `first_order.language.formula` is defined so that `L.formula α` is the type of `L`-formulas with
+  free variables indexed by `α`.
+* A `first_order.language.sentence` is a formula with no free variables.
+* A `first_order.language.theory` is a set of sentences.
+* A `first_order.language.definable_set` is defined so that `L.definable_set M α` is the boolean
+  algebra of subsets of `α → M` defined by formulas.
 
 ## References
 For the Flypitch project:
@@ -57,7 +69,7 @@ instance : inhabited language := ⟨empty⟩
 /-- The type of constants in a given language. -/
 @[nolint has_inhabited_instance] def const (L : language) := L.functions 0
 
-variable (L : language)
+variable (L : language.{u v})
 
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
@@ -95,7 +107,7 @@ open first_order.language.Structure
 /-- A homomorphism between first-order structures is a function that commutes with the
   interpretations of functions and maps tuples in one structure where a given relation is true to
   tuples in the second structure where that relation is still true. -/
-protected structure hom :=
+structure hom :=
 (to_fun : M → N)
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r x → rel_map r (to_fun ∘ x) . obviously)
@@ -104,7 +116,7 @@ localized "notation A ` →[`:25 L `] ` B := L.hom A B" in first_order
 
 /-- An embedding of first-order structures is an embedding that commutes with the
   interpretations of functions and relations. -/
-protected structure embedding extends M ↪ N :=
+structure embedding extends M ↪ N :=
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
@@ -112,7 +124,7 @@ localized "notation A ` ↪[`:25 L `] ` B := L.embedding A B" in first_order
 
 /-- An equivalence of first-order structures is an equivalence that commutes with the
   interpretations of functions and relations. -/
-protected structure equiv extends M ≃ N :=
+structure equiv extends M ≃ N :=
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
@@ -128,7 +140,7 @@ lemma fun_map_eq_coe_const {c : L.const} {x : fin 0 → M} :
 
 namespace hom
 
-@[simps] instance has_coe_to_fun : has_coe_to_fun (M →[L] N) (λ _, M → N) := ⟨to_fun⟩
+instance has_coe_to_fun : has_coe_to_fun (M →[L] N) (λ _, M → N) := ⟨to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : M →[L] N} : f.to_fun = (f : M → N) := rfl
 
@@ -179,7 +191,7 @@ end hom
 
 namespace embedding
 
-@[simps] instance has_coe_to_fun : has_coe_to_fun (M ↪[L] N) (λ _, M → N) := ⟨λ f, f.to_fun⟩
+instance has_coe_to_fun : has_coe_to_fun (M ↪[L] N) (λ _, M → N) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma map_fun (φ : M ↪[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
@@ -272,7 +284,13 @@ namespace equiv
   end,
   .. f.to_equiv.symm }
 
-@[simps] instance has_coe_to_fun : has_coe_to_fun (M ≃[L] N) (λ _, M → N) := ⟨λ f, f.to_fun⟩
+instance has_coe_to_fun : has_coe_to_fun (M ≃[L] N) (λ _, M → N) := ⟨λ f, f.to_fun⟩
+
+@[simp]
+lemma apply_symm_apply (f : M ≃[L] N) (a : N) : f (f.symm a) = a := f.to_equiv.apply_symm_apply a
+
+@[simp]
+lemma symm_apply_apply (f : M ≃[L] N) (a : M) : f.symm (f a) = a := f.to_equiv.symm_apply_apply a
 
 @[simp] lemma map_fun (φ : M ≃[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
@@ -288,7 +306,7 @@ def to_embedding (f : M ≃[L] N) : M ↪[L] N :=
 { to_fun := f,
   inj' := f.to_equiv.injective }
 
-/-- A first-order equivalence is also a first-order embedding. -/
+/-- A first-order equivalence is also a first-order homomorphism. -/
 def to_hom (f : M ≃[L] N) : M →[L] N :=
 { to_fun := f }
 
@@ -764,21 +782,24 @@ def subtype (S : L.substructure M) : S ↪[L] M :=
 
 @[simp] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
-/-- An induction principle on elements of the type `substructure.closure L s`.
-If `p` holds for `1` and all elements of `s`, and is preserved under multiplication, then `p`
-holds for all elements of the closure of `s`.
-The difference with `substructure.closure_induction` is that this acts on the subtype.
--/
-@[elab_as_eliminator] lemma closure_induction' (s : set M) {p : closure L s → Prop}
-  (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_closure h⟩)
-  (Hfun : ∀ {n : ℕ} (f : L.functions n), closed_under f (set_of p))
-  (x : closure L s) :
-  p x :=
-subtype.rec_on x $ λ x hx, begin
-  refine exists.elim _ (λ (hx : x ∈ closure L s) (hc : p ⟨x, hx⟩), hc),
-  exact closure_induction hx (λ x hx, ⟨subset_closure hx, Hs x hx⟩) (λ n f x hx,
-    ⟨(closure L s).fun_mem f _ (λ i, classical.some (hx i)),
-    Hfun f (λ i, ⟨x i, classical.some (hx i)⟩) (λ i, classical.some_spec (hx i))⟩),
+/-- The equivalence between the maximal substructure of a structure and the structure itself. -/
+def top_equiv : (⊤ : L.substructure M) ≃[L] M  :=
+{ to_fun := subtype ⊤,
+  inv_fun := λ m, ⟨m, mem_top m⟩,
+  left_inv := λ m, by simp,
+  right_inv := λ m, rfl }
+
+@[simp] lemma coe_top_equiv : ⇑(top_equiv : (⊤ : L.substructure M) ≃[L] M) = coe := rfl
+
+/-- A dependent version of `substructure.closure_induction`. -/
+@[elab_as_eliminator] lemma closure_induction' (s : set M) {p : Π x, x ∈ closure L s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p x (subset_closure h))
+  (Hfun : ∀ {n : ℕ} (f : L.functions n), closed_under f {x | ∃ hx, p x hx})
+  {x} (hx : x ∈ closure L s) :
+  p x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ closure L s) (hc : p x hx), hc),
+  exact closure_induction hx (λ x hx, ⟨subset_closure hx, Hs x hx⟩) @Hfun
 end
 
 end substructure
@@ -810,6 +831,447 @@ lemma eq_of_eq_on_dense (hs : closure L s = ⊤) {f g : M →[L] N} (h : s.eq_on
 eq_of_eq_on_top $ hs ▸ eq_on_closure h
 
 end hom
+
+variable (L)
+/-- A term on `α` is either a variable indexed by an element of `α`
+  or a function symbol applied to simpler terms. -/
+inductive term (α : Type) : Type u
+| var {} : ∀ (a : α), term
+| func {} : ∀ {l : ℕ} (f : L.functions l) (ts : fin l → term), term
+export term
+
+variable {L}
+
+/-- Relabels a term's variables along a particular function. -/
+@[simp] def term.relabel {α β : Type} (g : α → β) : L.term α → L.term β
+| (var i) := var (g i)
+| (func f ts) := func f (λ i, (ts i).relabel)
+
+instance {α : Type} [inhabited α] : inhabited (L.term α) :=
+⟨var default⟩
+
+instance {α} : has_coe L.const (L.term α) :=
+⟨λ c, func c fin_zero_elim⟩
+
+/-- A term `t` with variables indexed by `α` can be evaluated by giving a value to each variable. -/
+@[simp] def realize_term {α : Type} (v : α → M) :
+  ∀ (t : L.term α), M
+| (var k)         := v k
+| (func f ts)     := fun_map f (λ i, realize_term (ts i))
+
+@[simp] lemma realize_term_relabel {α β : Type} (g : α → β) (v : β → M) (t : L.term α) :
+  realize_term v (t.relabel g) = realize_term (v ∘ g) t :=
+begin
+  induction t with _ n f ts ih,
+  { refl, },
+  { simp [ih] }
+end
+
+@[simp] lemma hom.realize_term {α : Type} (v : α → M)
+  (t : L.term α) (g : M →[L] N) :
+  realize_term (g ∘ v) t = g (realize_term v t) :=
+begin
+  induction t,
+  { refl },
+  { rw [realize_term, realize_term, g.map_fun],
+    refine congr rfl _,
+    ext x,
+    simp [t_ih x], },
+end
+
+@[simp] lemma embedding.realize_term {α : Type}  (v : α → M)
+  (t : L.term α) (g : M ↪[L] N) :
+  realize_term (g ∘ v) t = g (realize_term v t) :=
+g.to_hom.realize_term v t
+
+@[simp] lemma equiv.realize_term {α : Type}  (v : α → M)
+  (t : L.term α) (g : M ≃[L] N) :
+  realize_term (g ∘ v) t = g (realize_term v t) :=
+g.to_hom.realize_term v t
+
+@[simp] lemma realize_term_substructure {α : Type} {S : L.substructure M} (v : α → S)
+  (t : L.term α) :
+  realize_term (coe ∘ v) t = (↑(realize_term v t) : M) :=
+S.subtype.realize_term v t
+
+variable (L)
+/-- `bounded_formula α n` is the type of formulas with free variables indexed by `α` and up to `n`
+  additional free variables. -/
+inductive bounded_formula (α : Type) : ℕ → Type (max u v)
+| bd_falsum {} {n} : bounded_formula n
+| bd_equal {n} (t₁ t₂ : L.term (α ⊕ fin n)) : bounded_formula n
+| bd_rel {n l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)) : bounded_formula n
+| bd_imp {n} (f₁ f₂ : bounded_formula n) : bounded_formula n
+| bd_all {n} (f : bounded_formula (n+1)) : bounded_formula n
+
+export bounded_formula
+
+instance {α : Type} {n : ℕ} : inhabited (L.bounded_formula α n) :=
+⟨bd_falsum⟩
+
+/-- `formula α` is the type of formulas with all free variables indexed by `α`. -/
+@[reducible] def formula (α : Type) := L.bounded_formula α 0
+
+/-- A sentence is a formula with no free variables. -/
+@[reducible] def sentence           := L.formula pempty
+
+/-- A theory is a set of sentences. -/
+@[reducible] def theory := set L.sentence
+
+variables {L} {α : Type}
+
+section formula
+variable {n : ℕ}
+
+@[simps] instance : has_bot (L.bounded_formula α n) := ⟨bd_falsum⟩
+
+/-- The negation of a bounded formula is also a bounded formula. -/
+@[reducible] def bd_not (φ : L.bounded_formula α n) : L.bounded_formula α n :=
+  bd_imp φ ⊥
+
+@[simps] instance : has_top (L.bounded_formula α n) := ⟨bd_not bd_falsum⟩
+
+@[simps] instance : has_inf (L.bounded_formula α n) := ⟨λ f g, bd_not (bd_imp f (bd_not g))⟩
+
+@[simps] instance : has_sup (L.bounded_formula α n) := ⟨λ f g, bd_imp (bd_not f) g⟩
+
+/-- Relabels a bounded formula's variables along a particular function. -/
+@[simp] def bounded_formula.relabel {α β : Type} (g : α → β) :
+  ∀ {n : ℕ}, L.bounded_formula α n → L.bounded_formula β n
+| n bd_falsum := bd_falsum
+| n (bd_equal t₁ t₂) := bd_equal (t₁.relabel (sum.elim (sum.inl ∘ g) sum.inr))
+    (t₂.relabel (sum.elim (sum.inl ∘ g) sum.inr))
+| n (bd_rel R ts) := bd_rel R ((term.relabel (sum.elim (sum.inl ∘ g) sum.inr)) ∘ ts)
+| n (bd_imp f₁ f₂) := bd_imp f₁.relabel f₂.relabel
+| n (bd_all f) := bd_all f.relabel
+
+namespace formula
+
+/-- The equality of two terms as a first-order formula. -/
+def equal (t₁ t₂ : L.term α) : (L.formula α) :=
+bd_equal (t₁.relabel sum.inl) (t₂.relabel sum.inl)
+
+/-- The graph of a function as a first-order formula. -/
+def graph (f : L.functions n) : L.formula (fin (n + 1)) :=
+equal (func f (λ i, var i)) (var n)
+
+end formula
+end formula
+
+variable {L}
+
+instance nonempty_bounded_formula {α : Type} (n : ℕ) : nonempty $ L.bounded_formula α n :=
+  nonempty.intro (by constructor)
+
+variables (M)
+
+/-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
+@[simp] def realize_bounded_formula :
+  ∀ {l} (f : L.bounded_formula α l) (v : α → M) (xs : fin l → M), Prop
+| _ bd_falsum  v     xs := false
+| _ (bd_equal t₁ t₂) v xs := realize_term (sum.elim v xs) t₁ = realize_term (sum.elim v xs) t₂
+| _ (bd_rel R ts)   v   xs := rel_map R (λ i, realize_term (sum.elim v xs) (ts i))
+| _ (bd_imp f₁ f₂)  v xs := realize_bounded_formula f₁ v xs → realize_bounded_formula f₂ v xs
+| _ (bd_all f)     v   xs := ∀(x : M), realize_bounded_formula f v (fin.cons x xs)
+
+@[simp] lemma realize_not {l} (f : L.bounded_formula α l) (v : α → M) (xs : fin l → M) :
+  realize_bounded_formula M (bd_not f) v xs = ¬ realize_bounded_formula M f v xs :=
+rfl
+
+/-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
+@[reducible] def realize_formula (f : L.formula α) (v : α → M) : Prop :=
+realize_bounded_formula M f v fin_zero_elim
+
+/-- A sentence can be evaluated as true or false in a structure. -/
+@[reducible] def realize_sentence (φ : L.sentence) : Prop :=
+realize_formula M φ pempty.elim
+
+variable {M}
+
+@[simp] lemma realize_bounded_formula_relabel {α β : Type} {n : ℕ}
+  (g : α → β) (v : β → M) (xs : fin n → M) (φ : L.bounded_formula α n) :
+  realize_bounded_formula M (φ.relabel g) v xs ↔ realize_bounded_formula M φ (v ∘ g) xs :=
+begin
+  have h : ∀ (m : ℕ) (xs' : fin m → M), sum.elim v xs' ∘
+    sum.elim (sum.inl ∘ g) sum.inr = sum.elim (v ∘ g) xs',
+  { intros m xs',
+    ext x,
+    cases x;
+    simp, },
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [h _ xs] },
+  { simp [h _ xs] },
+  { simp [ih1, ih2] },
+  { simp [ih3] }
+end
+
+@[simp] lemma equiv.realize_bounded_formula {α : Type} {n : ℕ}  (v : α → M)
+  (xs : fin n → M) (φ : L.bounded_formula α n) (g : M ≃[L] N) :
+  realize_bounded_formula N φ (g ∘ v) (g ∘ xs) ↔ realize_bounded_formula M φ v xs :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp only [realize_bounded_formula, ← sum.comp_elim, equiv.realize_term, g.injective.eq_iff] },
+  { simp only [realize_bounded_formula, ← sum.comp_elim, equiv.realize_term, g.map_rel], },
+  { rw [realize_bounded_formula, ih1, ih2, realize_bounded_formula] },
+  { rw [realize_bounded_formula, realize_bounded_formula],
+    split,
+    { intros h a,
+      have h' := h (g a),
+      rw [← fin.comp_cons, ih3] at h',
+      exact h' },
+    { intros h a,
+      have h' := h (g.symm a),
+      rw [← ih3, fin.comp_cons, g.apply_symm_apply] at h',
+      exact h' }}
+end
+
+@[simp] lemma realize_bounded_formula_top {α : Type} {n : ℕ} (v : α → (⊤ : L.substructure M))
+  (xs : fin n → (⊤ : L.substructure M)) (φ : L.bounded_formula α n) :
+  realize_bounded_formula (⊤ : L.substructure M) φ v xs ↔
+  realize_bounded_formula M φ (coe ∘ v) (coe ∘ xs) :=
+begin
+  rw ← substructure.top_equiv.realize_bounded_formula v xs φ,
+  simp,
+end
+
+@[simp] lemma realize_formula_relabel {α β : Type}
+  (g : α → β) (v : β → M) (φ : L.formula α) :
+  realize_formula M (φ.relabel g) v ↔ realize_formula M φ (v ∘ g) :=
+by rw [realize_formula, realize_formula, realize_bounded_formula_relabel]
+
+@[simp] lemma realize_formula_equiv {α : Type}  (v : α → M) (φ : L.formula α)
+  (g : M ≃[L] N) :
+  realize_formula N φ (g ∘ v) ↔ realize_formula M φ v :=
+begin
+  rw [realize_formula, realize_formula, ← equiv.realize_bounded_formula v fin_zero_elim φ g,
+    iff_eq_eq],
+  exact congr rfl (funext fin_zero_elim),
+end
+
+@[simp]
+lemma realize_equal {α : Type*} (t₁ t₂ : L.term α) (x : α → M) :
+  realize_formula M (formula.equal t₁ t₂) x ↔ realize_term x t₁ = realize_term x t₂ :=
+by simp [formula.equal, realize_formula]
+
+@[simp]
+lemma realize_graph {l : ℕ} (f : L.functions l) (x : fin l → M) (y : M) :
+  realize_formula M (formula.graph f) (fin.snoc x y) ↔ fun_map f x = y :=
+begin
+  simp only [formula.graph, realize_term, fin.coe_eq_cast_succ, realize_equal, fin.snoc_cast_succ],
+  rw [fin.coe_nat_eq_last, fin.snoc_last],
+end
+
+section definability
+
+variables (L) [fintype α]
+
+/-- A subset of a finite Cartesian product of a structure is definable when membership in
+  the set is given by a first-order formula. -/
+structure is_definable (s : set (α → M)) : Prop :=
+(exists_formula : ∃ (φ : L.formula α), s = set_of (realize_formula M φ))
+
+variables {L}
+
+@[simp]
+lemma is_definable_empty : L.is_definable (∅ : set (α → M)) :=
+⟨⟨⊥, by {ext, simp} ⟩⟩
+
+@[simp]
+lemma is_definable_univ : L.is_definable (set.univ : set (α → M)) :=
+⟨⟨⊤, by {ext, simp} ⟩⟩
+
+@[simp]
+lemma is_definable.inter {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
+  L.is_definable (f ∩ g) :=
+⟨begin
+  rcases hf.exists_formula with ⟨φ, hφ⟩,
+  rcases hg.exists_formula with ⟨θ, hθ⟩,
+  refine ⟨φ ⊓ θ, _⟩,
+  ext,
+  simp [hφ, hθ],
+end⟩
+
+@[simp]
+lemma is_definable.union {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
+  L.is_definable (f ∪ g) :=
+⟨begin
+  rcases hf.exists_formula with ⟨φ, hφ⟩,
+  rcases hg.exists_formula with ⟨θ, hθ⟩,
+  refine ⟨φ ⊔ θ, _⟩,
+  ext,
+  simp only [hφ, hθ, set.sup_eq_union, realize_not, realize_bounded_formula,
+    bounded_formula.has_sup_sup, set.mem_union_eq, set.mem_set_of_eq],
+  tauto,
+end⟩
+
+@[simp]
+lemma is_definable.compl {s : set (α → M)} (hf : L.is_definable s) :
+  L.is_definable sᶜ :=
+⟨begin
+  rcases hf.exists_formula with ⟨φ, hφ⟩,
+  refine ⟨bd_not φ, _⟩,
+  rw hφ,
+  refl,
+end⟩
+
+@[simp]
+lemma is_definable.sdiff {s t : set (α → M)} (hs : L.is_definable s)
+  (ht : L.is_definable t) :
+  L.is_definable (s \ t) :=
+hs.inter ht.compl
+
+variables (L) (M) (α)
+
+/-- Definable sets are subsets of finite Cartesian products of a structure such that membership is
+  given by a first-order formula. -/
+def definable_set := subtype (λ s : set (α → M), is_definable L s)
+
+namespace definable_set
+variables {M} {α}
+
+instance : has_top (L.definable_set M α) := ⟨⟨⊤, is_definable_univ⟩⟩
+
+instance : has_bot (L.definable_set M α) := ⟨⟨⊥, is_definable_empty⟩⟩
+
+instance : inhabited (L.definable_set M α) := ⟨⊥⟩
+
+instance : set_like (L.definable_set M α) (α → M) :=
+{ coe := subtype.val,
+  coe_injective' := subtype.val_injective }
+
+@[simp]
+lemma mem_top {x : α → M} : x ∈ (⊤ : L.definable_set M α) := set.mem_univ x
+
+@[simp]
+lemma coe_top : ((⊤ : L.definable_set M α) : set (α → M)) = ⊤ := rfl
+
+@[simp]
+lemma not_mem_bot {x : α → M} : ¬ x ∈ (⊥ : L.definable_set M α) := set.not_mem_empty x
+
+@[simp]
+lemma coe_bot : ((⊥ : L.definable_set M α) : set (α → M)) = ⊥ := rfl
+
+instance : lattice (L.definable_set M α) :=
+subtype.lattice (λ _ _, is_definable.union) (λ _ _, is_definable.inter)
+
+lemma le_iff {s t : L.definable_set M α} : s ≤ t ↔ (s : set (α → M)) ≤ (t : set (α → M)) := iff.rfl
+
+@[simp]
+lemma coe_sup {s t : L.definable_set M α} : ((s ⊔ t : L.definable_set M α) : set (α → M)) = s ∪ t :=
+rfl
+
+@[simp]
+lemma mem_sup {s t : L.definable_set M α} {x : α → M} : x ∈ s ⊔ t ↔ x ∈ s ∨ x ∈ t := iff.rfl
+
+@[simp]
+lemma coe_inf {s t : L.definable_set M α} : ((s ⊓ t : L.definable_set M α) : set (α → M)) = s ∩ t :=
+rfl
+
+@[simp]
+lemma mem_inf {s t : L.definable_set M α} {x : α → M} : x ∈ s ⊓ t ↔ x ∈ s ∧ x ∈ t := iff.rfl
+
+instance : bounded_order (L.definable_set M α) :=
+{ bot_le := λ s x hx, false.elim hx,
+  le_top := λ s x hx, set.mem_univ x,
+  .. definable_set.has_top L,
+  .. definable_set.has_bot L }
+
+instance : distrib_lattice (L.definable_set M α) :=
+{ le_sup_inf := begin
+    intros s t u x,
+    simp only [and_imp, set.mem_inter_eq, set_like.mem_coe, coe_sup, coe_inf, set.mem_union_eq,
+      subtype.val_eq_coe],
+    tauto,
+  end,
+  .. definable_set.lattice L }
+
+/-- The complement of a definable set is also definable. -/
+@[reducible] instance : has_compl (L.definable_set M α) :=
+⟨λ ⟨s, hs⟩, ⟨sᶜ, hs.compl⟩⟩
+
+@[simp]
+lemma mem_compl {s : L.definable_set M α} {x : α → M} : x ∈ sᶜ ↔ ¬ x ∈ s :=
+begin
+  cases s with s hs,
+  refl,
+end
+
+@[simp]
+lemma coe_compl {s : L.definable_set M α} : ((sᶜ : L.definable_set M α) : set (α → M)) = sᶜ :=
+begin
+  ext,
+  simp,
+end
+
+instance : boolean_algebra (L.definable_set M α) :=
+{ sdiff := λ s t, s ⊓ tᶜ,
+  sdiff_eq := λ s t, rfl,
+  sup_inf_sdiff := λ ⟨s, hs⟩ ⟨t, ht⟩,
+  begin
+    apply le_antisymm;
+    simp [le_iff],
+  end,
+  inf_inf_sdiff := λ ⟨s, hs⟩ ⟨t, ht⟩, begin
+    rw eq_bot_iff,
+    simp only [coe_compl, le_iff, coe_bot, coe_inf, subtype.coe_mk,
+      set.le_eq_subset],
+    intros x hx,
+    simp only [set.mem_inter_eq, set.mem_compl_eq] at hx,
+    tauto,
+  end,
+  inf_compl_le_bot := λ ⟨s, hs⟩, by simp [le_iff],
+  top_le_sup_compl := λ ⟨s, hs⟩, by simp [le_iff],
+  .. definable_set.has_compl L,
+  .. definable_set.bounded_order L,
+  .. definable_set.distrib_lattice L }
+
+end definable_set
+end definability
+
+section quotients
+
+variables (L) {M' : Type*}
+
+/-- A prestructure is a first-order structure with a `setoid` equivalence relation on it,
+  such that quotienting by that equivalence relation is still a structure. -/
+class prestructure (s : setoid M') :=
+(to_structure : L.Structure M')
+(fun_equiv : ∀{n} {f : L.functions n} (x y : fin n → M'),
+  x ≈ y → fun_map f x ≈ fun_map f y)
+(rel_equiv : ∀{n} {r : L.relations n} (x y : fin n → M') (h : x ≈ y),
+  (rel_map r x = rel_map r y))
+
+variables {L} {M'} {s : setoid M'} [ps : L.prestructure s]
+
+instance quotient_structure :
+  L.Structure (quotient s) :=
+{ fun_map := λ n f x, quotient.map (@fun_map L M' ps.to_structure n f) prestructure.fun_equiv
+    (quotient.fin_choice x),
+  rel_map := λ n r x, quotient.lift (@rel_map L M' ps.to_structure n r) prestructure.rel_equiv
+    (quotient.fin_choice x) }
+
+variables [s]
+include s
+
+lemma fun_map_quotient_mk {n : ℕ} (f : L.functions n) (x : fin n → M') :
+  fun_map f (λ i, ⟦x i⟧) = ⟦@fun_map _ _ ps.to_structure _ f x⟧ :=
+begin
+  change quotient.map (@fun_map L M' ps.to_structure n f) prestructure.fun_equiv
+    (quotient.fin_choice _) = _,
+  rw [quotient.fin_choice_eq, quotient.map_mk],
+end
+
+lemma realize_term_quotient_mk {β : Type*} (x : β → M') (t : L.term β) :
+  realize_term (λ i, ⟦x i⟧) t = ⟦@realize_term _ _ ps.to_structure _ x t⟧ :=
+begin
+  induction t with a1 a2 a3 a4 ih a6 a7 a8 a9 a0,
+  { refl },
+  simp only [ih, fun_map_quotient_mk, realize_term],
+end
+
+end quotients
 
 end language
 end first_order

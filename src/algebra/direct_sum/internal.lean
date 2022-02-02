@@ -5,6 +5,7 @@ Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 -/
 
 import algebra.algebra.operations
+import algebra.algebra.subalgebra
 import algebra.direct_sum.algebra
 
 /-!
@@ -188,6 +189,13 @@ def direct_sum.submodule_coe_alg_hom [add_monoid ι]
   [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] : (⨁ i, A i) →ₐ[S] R :=
 direct_sum.to_algebra S _ (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl) (λ _, rfl)
+
+/-- The supremum of submodules that form a graded monoid is a subalgebra, and equal to the range of
+`direct_sum.submodule_coe_alg_hom`. -/
+lemma submodule.supr_eq_to_submodule_range [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R] (A : ι → submodule S R) [set_like.graded_monoid A] :
+  (⨆ i, A i) = (direct_sum.submodule_coe_alg_hom A).range.to_submodule :=
+(submodule.supr_eq_range_dfinsupp_lsum A).trans $ set_like.coe_injective rfl
 
 @[simp] lemma direct_sum.submodule_coe_alg_hom_of [add_monoid ι]
   [comm_semiring S] [semiring R] [algebra S R]

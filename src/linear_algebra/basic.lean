@@ -556,6 +556,10 @@ def map (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) : submodule R₂ M�
 @[simp] lemma map_coe (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) :
   (map f p : set M₂) = f '' p := rfl
 
+lemma map_to_add_submonoid (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R M) :
+  (p.map f).to_add_submonoid = p.to_add_submonoid.map f :=
+set_like.coe_injective rfl
+
 @[simp] lemma mem_map {f : M →ₛₗ[σ₁₂] M₂} {p : submodule R M} {x : M₂} :
   x ∈ map f p ↔ ∃ y, y ∈ p ∧ f y = x := iff.rfl
 
@@ -697,7 +701,7 @@ lemma map_sup_comap_of_surjective (p q : submodule R₂ M₂) :
   (p.comap f ⊔ q.comap f).map f = p ⊔ q :=
 (gi_map_comap hf).l_sup_u _ _
 
-lemma map_supr_comap_of_sujective (S : ι → submodule R₂ M₂) :
+lemma map_supr_comap_of_sujective {ι : Sort*} (S : ι → submodule R₂ M₂) :
   (⨆ i, (S i).comap f).map f = supr S :=
 (gi_map_comap hf).l_supr_u _
 
@@ -705,7 +709,7 @@ lemma map_inf_comap_of_surjective (p q : submodule R₂ M₂) :
   (p.comap f ⊓ q.comap f).map f = p ⊓ q :=
 (gi_map_comap hf).l_inf_u _ _
 
-lemma map_infi_comap_of_surjective (S : ι → submodule R₂ M₂) :
+lemma map_infi_comap_of_surjective {ι : Sort*} (S : ι → submodule R₂ M₂) :
   (⨅ i, (S i).comap f).map f = infi S :=
 (gi_map_comap hf).l_infi_u _
 
@@ -739,13 +743,15 @@ lemma map_injective_of_injective : function.injective (map f) :=
 lemma comap_inf_map_of_injective (p q : submodule R M) : (p.map f ⊓ q.map f).comap f = p ⊓ q :=
 (gci_map_comap hf).u_inf_l _ _
 
-lemma comap_infi_map_of_injective (S : ι → submodule R M) : (⨅ i, (S i).map f).comap f = infi S :=
+lemma comap_infi_map_of_injective {ι : Sort*} (S : ι → submodule R M) :
+  (⨅ i, (S i).map f).comap f = infi S :=
 (gci_map_comap hf).u_infi_l _
 
 lemma comap_sup_map_of_injective (p q : submodule R M) : (p.map f ⊔ q.map f).comap f = p ⊔ q :=
 (gci_map_comap hf).u_sup_l _ _
 
-lemma comap_supr_map_of_injective (S : ι → submodule R M) : (⨆ i, (S i).map f).comap f = supr S :=
+lemma comap_supr_map_of_injective {ι : Sort*} (S : ι → submodule R M) :
+  (⨆ i, (S i).map f).comap f = supr S :=
 (gci_map_comap hf).u_supr_l _
 
 lemma map_le_map_iff_of_injective (p q : submodule R M) : p.map f ≤ q.map f ↔ p ≤ q :=
@@ -772,7 +778,7 @@ lemma eq_zero_of_bot_submodule : ∀(b : (⊥ : submodule R M)), b = 0
 
 /-- The infimum of a family of invariant submodule of an endomorphism is also an invariant
 submodule. -/
-lemma _root_.linear_map.infi_invariant {σ : R →+* R} [ring_hom_surjective σ] {ι : Type*}
+lemma _root_.linear_map.infi_invariant {σ : R →+* R} [ring_hom_surjective σ] {ι : Sort*}
   (f : M →ₛₗ[σ] M) {p : ι → submodule R M} (hf : ∀ i, ∀ v ∈ (p i), f v ∈ p i) :
   ∀ v ∈ infi p, f v ∈ infi p :=
 begin
@@ -854,25 +860,28 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
 (@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
 
-/-- The difference with `submodule.span_induction` is that this acts on the subtype. -/
-lemma span_induction' {p : span R s → Prop} (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_span h⟩) (H0 : p 0)
-  (H1 : ∀ x y, p x → p y → p (x + y)) (H2 : ∀ (a : R) x, p x → p (a • x)) (x : span R s) : p x :=
-subtype.rec_on x $ λ x hx, begin
-  refine exists.elim _ (λ (hx : x ∈ span R s) (hc : p ⟨x, hx⟩), hc),
+/-- A dependent version of `submodule.span_induction`. -/
+lemma span_induction' {p : Π x, x ∈ span R s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p x (subset_span h))
+  (H0 : p 0 (submodule.zero_mem _))
+  (H1 : ∀ x hx y hy, p x hx → p y hy → p (x + y) (submodule.add_mem _ ‹_› ‹_›))
+  (H2 : ∀ (a : R) x hx, p x hx → p (a • x) (submodule.smul_mem _ _ ‹_›)) {x} (hx : x ∈ span R s) :
+  p x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ span R s) (hc : p x hx), hc),
   refine span_induction hx (λ m hm, ⟨subset_span hm, Hs m hm⟩) ⟨zero_mem _, H0⟩
     (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
-    ⟨add_mem _ hx' hy', H1 _ _ hx hy⟩) (λ r x hx, exists.elim hx $ λ hx' hx,
-    ⟨smul_mem _ _ hx', H2 r _ hx⟩)
+    ⟨add_mem _ hx' hy', H1 _ _ _ _ hx hy⟩) (λ r x hx, exists.elim hx $ λ hx' hx,
+    ⟨smul_mem _ _ hx', H2 r _ _ hx⟩)
 end
 
 @[simp] lemma span_span_coe_preimage : span R ((coe : span R s → M) ⁻¹' s) = ⊤ :=
-begin
-  refine eq_top_iff.2 (λ x hx, span_induction' (λ x hx, _) _ _ (λ r x hx, _) x),
+eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
+  refine span_induction' (λ x hx, _) _ (λ x y _ _, _) (λ r x _, _) hx,
   { exact subset_span hx },
-  { exact submodule.zero_mem _ },
-  { intros x y hx hy,
-    exact submodule.add_mem _ hx hy },
-  { exact submodule.smul_mem _ _ hx }
+  { exact zero_mem _ },
+  { exact add_mem _ },
+  { exact smul_mem _ _ }
 end
 
 lemma span_nat_eq_add_submonoid_closure (s : set M) :
@@ -1021,8 +1030,27 @@ by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem _
 lemma mem_sup' : x ∈ p ⊔ p' ↔ ∃ (y : p) (z : p'), (y:M) + z = x :=
 mem_sup.trans $ by simp only [set_like.exists, coe_mk]
 
+variables (p p')
+
 lemma coe_sup : ↑(p ⊔ p') = (p + p' : set M) :=
 by { ext, rw [set_like.mem_coe, mem_sup, set.mem_add], simp, }
+
+lemma sup_to_add_submonoid :
+  (p ⊔ p').to_add_submonoid = p.to_add_submonoid ⊔ p'.to_add_submonoid :=
+begin
+  ext x,
+  rw [mem_to_add_submonoid, mem_sup, add_submonoid.mem_sup],
+  refl,
+end
+
+lemma sup_to_add_subgroup {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  (p p' : submodule R M) :
+  (p ⊔ p').to_add_subgroup = p.to_add_subgroup ⊔ p'.to_add_subgroup :=
+begin
+  ext x,
+  rw [mem_to_add_subgroup, mem_sup, add_subgroup.mem_sup],
+  refl,
+end
 
 end
 
@@ -1175,6 +1203,56 @@ lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) :
 le_antisymm
   (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
   (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
+
+lemma supr_to_add_submonoid {ι : Sort*} (p : ι → submodule R M) :
+  (⨆ i, p i).to_add_submonoid = ⨆ i, (p i).to_add_submonoid :=
+begin
+  refine le_antisymm (λ x, _) (supr_le $ λ i, to_add_submonoid_mono $ le_supr _ i),
+  simp_rw [supr_eq_span, add_submonoid.supr_eq_closure, mem_to_add_submonoid, coe_to_add_submonoid],
+  intros hx,
+  refine submodule.span_induction hx (λ x hx, _) _ (λ x y hx hy, _) (λ r x hx, _),
+  { exact add_submonoid.subset_closure hx },
+  { exact add_submonoid.zero_mem _ },
+  { exact add_submonoid.add_mem _ hx hy },
+  { apply add_submonoid.closure_induction hx,
+    { rintros x ⟨_, ⟨i, rfl⟩, hix : x ∈ p i⟩,
+      apply add_submonoid.subset_closure (set.mem_Union.mpr ⟨i, _⟩),
+      exact smul_mem _ r hix },
+    { rw smul_zero,
+      exact add_submonoid.zero_mem _ },
+    { intros x y hx hy,
+      rw smul_add,
+      exact add_submonoid.add_mem _ hx hy, } }
+end
+
+/-- An induction principle for elements of `⨆ i, p i`.
+If `C` holds for `0` and all elements of `p i` for all `i`, and is preserved under addition,
+then it holds for all elements of the supremum of `p`. -/
+@[elab_as_eliminator]
+lemma supr_induction {ι : Sort*} (p : ι → submodule R M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, p i)
+  (hp : ∀ i (x ∈ p i), C x)
+  (h0 : C 0)
+  (hadd : ∀ x y, C x → C y → C (x + y)) : C x :=
+begin
+  rw [←mem_to_add_submonoid, supr_to_add_submonoid] at hx,
+  exact add_submonoid.supr_induction _ hx hp h0 hadd,
+end
+
+/-- A dependent version of `submodule.supr_induction`. -/
+@[elab_as_eliminator]
+lemma supr_induction' {ι : Sort*} (p : ι → submodule R M) {C : Π x, (x ∈ ⨆ i, p i) → Prop}
+  (hp : ∀ i (x ∈ p i), C x (mem_supr_of_mem i ‹_›))
+  (h0 : C 0 (zero_mem _))
+  (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  {x : M} (hx : x ∈ ⨆ i, p i) : C x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ ⨆ i, p i) (hc : C x hx), hc),
+  refine supr_induction p hx (λ i x hx, _) _ (λ x y, _),
+  { exact ⟨_, hp _ _ hx⟩ },
+  { exact ⟨_, h0⟩ },
+  { rintro ⟨_, Cx⟩ ⟨_, Cy⟩,
+    refine ⟨_, hadd _ _ _ _ Cx Cy⟩ },
+end
 
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) : (R ∙ m) ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, set_like.mem_coe]
@@ -2533,22 +2611,6 @@ def to_linear_equiv (e : M ≃ M₂) (h : is_linear_map R (e : M → M₂)) : M 
 
 end equiv
 
-namespace add_equiv
-variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid M₂] [module R M₂]
-
-/-- An additive equivalence whose underlying function preserves `smul` is a linear equivalence. -/
-def to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) : M ≃ₗ[R] M₂ :=
-{ map_smul' := h, .. e, }
-
-@[simp] lemma coe_to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
-  ⇑(e.to_linear_equiv h) = e :=
-rfl
-
-@[simp] lemma coe_to_linear_equiv_symm (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
-  ⇑(e.to_linear_equiv h).symm = e.symm :=
-rfl
-
-end add_equiv
 
 section fun_left
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]

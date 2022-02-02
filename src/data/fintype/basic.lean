@@ -273,8 +273,8 @@ instance decidable_eq_monoid_hom_fintype [decidable_eq β] [fintype α]
 λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff monoid_hom.coe_inj)
 
 instance decidable_eq_monoid_with_zero_hom_fintype [decidable_eq β] [fintype α]
-  [mul_zero_one_class α] [mul_zero_one_class β]:
-  decidable_eq (monoid_with_zero_hom α β) :=
+  [mul_zero_one_class α] [mul_zero_one_class β] :
+  decidable_eq (α →*₀ β) :=
 λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff monoid_with_zero_hom.coe_inj)
 
 instance decidable_eq_ring_hom_fintype [decidable_eq β] [fintype α]
@@ -871,6 +871,16 @@ fintype.of_equiv _ equiv.plift.symm
   fintype.card (plift α) = fintype.card α :=
 fintype.of_equiv_card _
 
+instance (α : Type*) [fintype α] : fintype (order_dual α) := ‹fintype α›
+
+@[simp] lemma fintype.card_order_dual (α : Type*) [fintype α] :
+  fintype.card (order_dual α) = fintype.card α := rfl
+
+instance (α : Type*) [fintype α] : fintype (lex α) := ‹fintype α›
+
+@[simp] lemma fintype.card_lex (α : Type*) [fintype α] :
+  fintype.card (lex α) = fintype.card α := rfl
+
 lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] [fintype (α ⊕ β)] [decidable_eq (α ⊕ β)] :
   (univ : finset (α ⊕ β)) = map function.embedding.inl univ ∪ map function.embedding.inr univ :=
 begin
@@ -1022,6 +1032,12 @@ fintype.card_eq_one_iff.2 ⟨i,h⟩
 
 lemma one_lt_card [h : nontrivial α] : 1 < fintype.card α :=
 fintype.one_lt_card_iff_nontrivial.mpr h
+
+lemma one_lt_card_iff : 1 < card α ↔ ∃ a b : α, a ≠ b :=
+one_lt_card_iff_nontrivial.trans nontrivial_iff
+
+lemma two_lt_card_iff : 2 < card α ↔ ∃ a b c : α, a ≠ b ∧ a ≠ c ∧ b ≠ c :=
+by simp_rw [←finset.card_univ, two_lt_card_iff, mem_univ, true_and]
 
 lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
@@ -2083,4 +2099,30 @@ begin
   { exact (hmn rfl).elim },
   { apply symm,
     exact hf' n m h }
+end
+
+/-- A custom induction principle for fintypes. The base case is a subsingleton type,
+and the induction step is for non-trivial types, and one can assume the hypothesis for
+smaller types (via `fintype.card`).
+
+The major premise is `fintype α`, so to use this with the `induction` tactic you have to give a name
+to that instance and use that name.
+-/
+@[elab_as_eliminator]
+lemma fintype.induction_subsingleton_or_nontrivial
+  {P : Π α [fintype α], Prop} (α : Type*) [fintype α]
+  (hbase : ∀ α [fintype α] [subsingleton α], by exactI P α)
+  (hstep : ∀ α [fintype α] [nontrivial α],
+    by exactI ∀ (ih : ∀ β [fintype β], by exactI ∀ (h : fintype.card β < fintype.card α), P β),
+    P α) :
+  P α :=
+begin
+  obtain ⟨ n, hn ⟩ : ∃ n, fintype.card α = n := ⟨fintype.card α, rfl⟩,
+  unfreezingI { induction n using nat.strong_induction_on with n ih generalizing α },
+  casesI (subsingleton_or_nontrivial α) with hsing hnontriv,
+  { apply hbase, },
+  { apply hstep,
+    introsI β _ hlt,
+    rw hn at hlt,
+    exact (ih (fintype.card β) hlt _ rfl), }
 end

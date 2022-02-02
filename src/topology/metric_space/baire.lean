@@ -34,7 +34,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 section Baire_theorem
 open emetric ennreal
-variables [emetric_space α] [complete_space α]
+variables [pseudo_emetric_space α] [complete_space α]
 
 /-- Baire theorem: a countable intersection of dense open sets is dense. Formulated here when
 the source space is ℕ (and subsumed below by `dense_Inter_of_open` working with any
@@ -86,7 +86,7 @@ begin
     induction n with n hn,
     exact lt_min εpos (Bpos 0),
     exact Hpos n (c n) (r n) hn.ne' },
-  have r0 : ∀ n, r n ≠ 0 := λ n, (rpos n).ne', 
+  have r0 : ∀ n, r n ≠ 0 := λ n, (rpos n).ne',
   have rB : ∀n, r n ≤ B n,
   { assume n,
     induction n with n hn,
@@ -171,17 +171,17 @@ theorem dense_sInter_of_Gδ {S : set (set α)} (ho : ∀s∈S, is_Gδ s) (hS : c
 begin
   -- the result follows from the result for a countable intersection of dense open sets,
   -- by rewriting each set as a countable intersection of open sets, which are of course dense.
-  choose T hT using ho,
-  have : ⋂₀ S = ⋂₀ (⋃s∈S, T s ‹_›) := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
+  choose T hTo hTc hsT using ho,
+  have : ⋂₀ S = ⋂₀ (⋃ s ∈ S, T s ‹_›), -- := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
+    by simp only [sInter_Union, (hsT _ _).symm, ← sInter_eq_bInter],
   rw this,
-  refine dense_sInter_of_open _ (hS.bUnion (λs hs, (hT s hs).2.1)) _;
-    simp only [set.mem_Union, exists_prop]; rintro t ⟨s, hs, tTs⟩,
-  show is_open t,
-  { exact (hT s hs).1 t tTs },
+  refine dense_sInter_of_open _ (hS.bUnion hTc) _;
+    simp only [mem_Union]; rintro t ⟨s, hs, tTs⟩,
+  show is_open t, from hTo s hs t tTs,
   show dense t,
   { intro x,
     have := hd s hs x,
-    rw (hT s hs).2.2 at this,
+    rw hsT s hs at this,
     exact closure_mono (sInter_subset_of_mem tTs) this }
 end
 
@@ -239,7 +239,7 @@ instance : countable_Inter_filter (residual α) :=
   choose T hTs hT using hS,
   refine ⟨⋂ s ∈ S, T s ‹_›, _, _, _⟩,
   { rw [sInter_eq_bInter],
-    exact Inter_subset_Inter (λ s, Inter_subset_Inter $ hTs s) },
+    exact Inter₂_mono hTs },
   { exact is_Gδ_bInter hSc (λ s hs, (hT s hs).1) },
   { exact dense_bInter_of_Gδ (λ s hs, (hT s hs).1) hSc (λ s hs, (hT s hs).2) }
 end⟩
@@ -260,12 +260,12 @@ begin
   show (⋂s∈S, g s) ⊆ (⋃s∈S, interior (f s)),
   assume x hx,
   have : x ∈ ⋃s∈S, f s, { have := mem_univ x, rwa ← hU at this },
-  rcases mem_bUnion_iff.1 this with ⟨s, hs, xs⟩,
-  have : x ∈ g s := mem_bInter_iff.1 hx s hs,
+  rcases mem_Union₂.1 this with ⟨s, hs, xs⟩,
+  have : x ∈ g s := mem_Inter₂.1 hx s hs,
   have : x ∈ interior (f s),
   { have : x ∈ f s \ (frontier (f s)) := mem_inter xs this,
     simpa [frontier, xs, (hc s hs).closure_eq] using this },
-  exact mem_bUnion_iff.2 ⟨s, ⟨hs, this⟩⟩
+  exact mem_Union₂.2 ⟨s, ⟨hs, this⟩⟩
 end
 
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors

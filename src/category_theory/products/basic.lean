@@ -159,6 +159,11 @@ namespace functor
 /- Because of limitations in Lean 3's handling of notations, we do not setup a notation `F × G`.
    You can use `F.prod G` as a "poor man's infix", or just write `functor.prod F G`. -/
 
+/-- Similar to `prod`, but both functors start from the same category `A` -/
+@[simps] def prod' (F : A ⥤ B) (G : A ⥤ C) : A ⥤ (B × C) :=
+{ obj := λ a, (F.obj a, G.obj a),
+  map := λ x y f, (F.map f, G.map f), }
+
 end functor
 
 namespace nat_trans
@@ -178,5 +183,11 @@ namespace nat_trans
    use instead `α.prod β` or `nat_trans.prod α β`. -/
 
 end nat_trans
+
+/-- `F.flip` composed with evaluation is the same as evaluating `F`. -/
+@[simps]
+def flip_comp_evaluation (F : A ⥤ B ⥤ C) (a) :
+  F.flip ⋙ (evaluation _ _).obj a ≅ F.obj a :=
+nat_iso.of_components (λ b, eq_to_iso rfl) $ by tidy
 
 end category_theory

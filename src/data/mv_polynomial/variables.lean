@@ -224,6 +224,15 @@ lemma degrees_map_of_injective [comm_semiring S] (p : mv_polynomial σ R)
   {f : R →+* S} (hf : injective f) : (map f p).degrees = p.degrees :=
 by simp only [degrees, mv_polynomial.support_map_of_injective _ hf]
 
+lemma degrees_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f) :
+  degrees (rename f p) = (degrees p).map f :=
+begin
+  simp only [degrees, multiset.map_finset_sup p.support finsupp.to_multiset f h,
+             support_rename_of_injective h, finset.sup_image],
+  refine finset.sup_congr rfl (λ x hx, _),
+  exact (finsupp.to_multiset_map _ _).symm,
+end
+
 end degrees
 
 section vars
@@ -492,6 +501,11 @@ begin
   rw multiset.count_singleton_self,
 end
 
+lemma degree_of_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f)
+  (i : σ) : degree_of (f i) (rename f p) = degree_of i p :=
+by simp only [degree_of, degrees_rename_of_injective h,
+              multiset.count_map_eq_count' f (p.degrees) h]
+
 end degree_of
 
 section total_degree
@@ -600,6 +614,14 @@ begin
     ... = (n+1) * a.total_degree : by rw [add_mul, one_mul, add_comm]
 end
 
+@[simp] lemma total_degree_monomial (s : σ →₀ ℕ) {c : R} (hc : c ≠ 0) :
+  (monomial s c : mv_polynomial σ R).total_degree = s.sum (λ _ e, e) :=
+by simp [total_degree, support_monomial, if_neg hc]
+
+@[simp] lemma total_degree_X_pow [nontrivial R] (s : σ) (n : ℕ) :
+  (X s ^ n : mv_polynomial σ R).total_degree = n :=
+by simp [X_pow_eq_monomial, one_ne_zero]
+
 lemma total_degree_list_prod :
   ∀(s : list (mv_polynomial σ R)), s.prod.total_degree ≤ (s.map mv_polynomial.total_degree).sum
 | []        := by rw [@list.prod_nil (mv_polynomial σ R) _, total_degree_one]; refl
@@ -624,6 +646,15 @@ begin
   refine le_trans (total_degree_multiset_prod _) _,
   rw [multiset.map_map],
   refl
+end
+
+lemma total_degree_finset_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) :
+  (s.sum f).total_degree ≤ finset.sup s (λ i, (f i).total_degree) :=
+begin
+  induction s using finset.cons_induction with a s has hind,
+  { exact zero_le _ },
+  { rw [finset.sum_cons, finset.sup_cons, sup_eq_max],
+    exact (mv_polynomial.total_degree_add _ _).trans (max_le_max le_rfl hind), }
 end
 
 lemma exists_degree_lt [fintype σ] (f : mv_polynomial σ R) (n : ℕ)

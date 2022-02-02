@@ -101,7 +101,7 @@ theorem is_preconnected_of_forall_pair {s : set α}
   is_preconnected s :=
 begin
   rcases eq_empty_or_nonempty s with (rfl|⟨x, hx⟩),
-  exacts [is_preconnected_empty, is_preconnected_of_forall x (λ y, H x y hx)],
+  exacts [is_preconnected_empty, is_preconnected_of_forall x $ λ y, H x hx y],
 end
 
 /-- A union of a family of preconnected sets with a common point is preconnected as well. -/
@@ -215,6 +215,19 @@ begin
   contradiction
 end⟩
 
+lemma inducing.is_preconnected_image [topological_space β] {s : set α} {f : α → β}
+  (hf : inducing f) : is_preconnected (f '' s) ↔ is_preconnected s :=
+begin
+  refine ⟨λ h, _, λ h, h.image _ hf.continuous.continuous_on⟩,
+  rintro u v hu' hv' huv ⟨x, hxs, hxu⟩ ⟨y, hys, hyv⟩,
+  rcases hf.is_open_iff.1 hu' with ⟨u, hu, rfl⟩,
+  rcases hf.is_open_iff.1 hv' with ⟨v, hv, rfl⟩,
+  replace huv : f '' s ⊆ u ∪ v, by rwa image_subset_iff,
+  rcases h u v hu hv huv ⟨f x, mem_image_of_mem _ hxs, hxu⟩ ⟨f y, mem_image_of_mem _ hys, hyv⟩
+    with ⟨_, ⟨z, hzs, rfl⟩, hzuv⟩,
+  exact ⟨z, hzs, hzuv⟩
+end
+
 /- TODO: The following lemmas about connection of preimages hold more generally for strict maps
 (the quotient and subspace topologies of the image agree) whose fibers are preconnected. -/
 
@@ -292,20 +305,14 @@ end
 lemma is_preconnected.subset_right_of_subset_union (hu : is_open u) (hv : is_open v)
   (huv : disjoint u v) (hsuv : s ⊆ u ∪ v) (hsv : (s ∩ v).nonempty) (hs : is_preconnected s) :
   s ⊆ v :=
-disjoint.subset_right_of_subset_union hsuv
-begin
-  by_contra hsu,
-  rw set.not_disjoint_iff_nonempty_inter at hsu,
-  obtain ⟨x, _, hx⟩ := hs u v hu hv hsuv hsu hsv,
-  exact set.disjoint_iff.1 huv hx,
-end
+hs.subset_left_of_subset_union hv hu huv.symm (union_comm u v ▸ hsuv) hsv
 
 theorem is_preconnected.prod [topological_space β] {s : set α} {t : set β}
   (hs : is_preconnected s) (ht : is_preconnected t) :
-  is_preconnected (s.prod t) :=
+  is_preconnected (s ×ˢ t) :=
 begin
   apply is_preconnected_of_forall_pair,
-  rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ ⟨ha₁, hb₁⟩ ⟨ha₂, hb₂⟩,
+  rintro ⟨a₁, b₁⟩ ⟨ha₁, hb₁⟩ ⟨a₂, b₂⟩ ⟨ha₂, hb₂⟩,
   refine ⟨prod.mk a₁ '' t ∪ flip prod.mk b₂ '' s, _,
     or.inl ⟨b₁, hb₁, rfl⟩, or.inr ⟨a₂, ha₂, rfl⟩, _⟩,
   { rintro _ (⟨y, hy, rfl⟩|⟨x, hx, rfl⟩),
@@ -315,7 +322,7 @@ begin
 end
 
 theorem is_connected.prod [topological_space β] {s : set α} {t : set β}
-  (hs : is_connected s) (ht : is_connected t) : is_connected (s.prod t) :=
+  (hs : is_connected s) (ht : is_connected t) : is_connected (s ×ˢ t) :=
 ⟨hs.1.prod ht.1, hs.2.prod ht.2⟩
 
 theorem is_preconnected_univ_pi [Π i, topological_space (π i)] {s : Π i, set (π i)}
@@ -471,10 +478,14 @@ closure_eq_iff_is_closed.1 $ subset.antisymm
     (subset_closure mem_connected_component))
   subset_closure
 
-lemma continuous.image_connected_component_subset {β : Type*} [topological_space β] {f : α → β}
+lemma continuous.image_connected_component_subset [topological_space β] {f : α → β}
   (h : continuous f) (a : α) : f '' connected_component a ⊆ connected_component (f a) :=
 (is_connected_connected_component.image f h.continuous_on).subset_connected_component
   ((mem_image f (connected_component a) (f a)).2 ⟨a, mem_connected_component, rfl⟩)
+
+lemma continuous.maps_to_connected_component [topological_space β] {f : α → β}
+  (h : continuous f) (a : α) : maps_to f (connected_component a) (connected_component (f a)) :=
+maps_to'.2 $ h.image_connected_component_subset a
 
 theorem irreducible_component_subset_connected_component {x : α} :
   irreducible_component x ⊆ connected_component x :=
@@ -576,30 +587,16 @@ by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 
 lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
   (h : s.nonempty) (h' : is_clopen s) : s = univ :=
-by { rw is_clopen_iff at h', finish [h.ne_empty] }
+by { rw is_clopen_iff at h', exact h'.resolve_left h.ne_empty }
 
 lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
   preconnected_space s :=
-{ is_preconnected_univ :=
-  begin
-    intros u v hu hv hs hsu hsv,
-    rw is_open_induced_iff at hu hv,
-    rcases hu with ⟨u, hu, rfl⟩,
-    rcases hv with ⟨v, hv, rfl⟩,
-    rcases hsu with ⟨⟨x, hxs⟩, hxs', hxu⟩,
-    rcases hsv with ⟨⟨y, hys⟩, hys', hyv⟩,
-    rcases h u v hu hv _ ⟨x, hxs, hxu⟩ ⟨y, hys, hyv⟩ with ⟨z, hzs, ⟨hzu, hzv⟩⟩,
-    exact ⟨⟨z, hzs⟩, ⟨set.mem_univ _, ⟨hzu, hzv⟩⟩⟩,
-    intros z hz,
-    rcases hs (mem_univ ⟨z, hz⟩) with hzu|hzv,
-    { left, assumption },
-    { right, assumption }
-  end }
+{ is_preconnected_univ := by rwa [← embedding_subtype_coe.to_inducing.is_preconnected_image,
+    image_univ, subtype.range_coe] }
 
 lemma subtype.connected_space {s : set α} (h : is_connected s) :
   connected_space s :=
-{ is_preconnected_univ :=
-  (subtype.preconnected_space h.is_preconnected).is_preconnected_univ,
+{ to_preconnected_space := subtype.preconnected_space h.is_preconnected,
   to_nonempty := h.nonempty.to_subtype }
 
 lemma is_preconnected_iff_preconnected_space {s : set α} :
@@ -697,27 +694,25 @@ begin
 end
 
 /-- Preconnected sets are either contained in or disjoint to any given clopen set. -/
-theorem subset_or_disjoint_of_clopen {α : Type*} [topological_space α] {s t : set α}
-  (h : is_preconnected t) (h1 : is_clopen s) : s ∩ t = ∅ ∨ t ⊆ s :=
+theorem is_preconnected.subset_clopen {s t : set α} (hs : is_preconnected s) (ht : is_clopen t)
+  (hne : (s ∩ t).nonempty) : s ⊆ t :=
 begin
-  by_contradiction h2,
-  have h3 : (s ∩ t).nonempty := ne_empty_iff_nonempty.mp (mt or.inl h2),
-  have h4 : (t ∩ sᶜ).nonempty,
-  { apply inter_compl_nonempty_iff.2,
-    push_neg at h2,
-    exact h2.2 },
-  rw [inter_comm] at h3,
-  apply ne_empty_iff_nonempty.2 (h s sᶜ h1.1 (is_open_compl_iff.2 h1.2) _ h3 h4),
-  { rw [inter_compl_self, inter_empty] },
-  { rw [union_compl_self],
-    exact subset_univ t },
+  by_contra h,
+  have : (s ∩ tᶜ).nonempty := inter_compl_nonempty_iff.2 h,
+  obtain ⟨x, -, hx, hx'⟩ : (s ∩ (t ∩ tᶜ)).nonempty,
+    from hs t tᶜ ht.is_open ht.compl.is_open (λ x hx, em _) hne this,
+  exact hx' hx
 end
+
+/-- Preconnected sets are either contained in or disjoint to any given clopen set. -/
+theorem disjoint_or_subset_of_clopen {s t : set α} (hs : is_preconnected s) (ht : is_clopen t) :
+  disjoint s t ∨ s ⊆ t :=
+(disjoint_or_nonempty_inter s t).imp_right $ hs.subset_clopen ht
 
 /-- A set `s` is preconnected if and only if
 for every cover by two closed sets that are disjoint on `s`,
 it is contained in one of the two covering sets. -/
-theorem is_preconnected_iff_subset_of_disjoint_closed {α : Type*} {s : set α}
-  [topological_space α] :
+theorem is_preconnected_iff_subset_of_disjoint_closed :
   is_preconnected s ↔
     ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
       s ⊆ u ∨ s ⊆ v :=
@@ -772,32 +767,25 @@ begin
         inter_comm, inter_assoc, inter_comm v u, huv] }
 end
 
+lemma is_clopen.connected_component_subset {x} (hs : is_clopen s) (hx : x ∈ s) :
+  connected_component x ⊆ s :=
+is_preconnected_connected_component.subset_clopen hs ⟨x, mem_connected_component, hx⟩
+
 /-- The connected component of a point is always a subset of the intersection of all its clopen
 neighbourhoods. -/
 lemma connected_component_subset_Inter_clopen {x : α} :
   connected_component x ⊆ ⋂ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z :=
-begin
-  apply subset_Inter (λ Z, _),
-  cases (subset_or_disjoint_of_clopen (@is_connected_connected_component _ _ x).2 Z.2.1),
-  { exfalso,
-    apply nonempty.ne_empty
-      (nonempty_of_mem (mem_inter (@mem_connected_component _ _ x) Z.2.2)),
-    rw inter_comm,
-    exact h },
-  exact h,
-end
+subset_Inter $ λ Z, Z.2.1.connected_component_subset Z.2.2
 
 /-- A clopen set is the union of its connected components. -/
-lemma is_clopen.eq_union_connected_components {Z : set α} (h : is_clopen Z) :
-  Z = (⋃ (x : α) (H : x ∈ Z), connected_component x) :=
-eq_of_subset_of_subset (λ x xZ, mem_Union.2 ⟨x, mem_Union.2 ⟨xZ, mem_connected_component⟩⟩)
-  (Union_subset $ λ x, Union_subset $ λ xZ,
-    (by { apply subset.trans connected_component_subset_Inter_clopen
-      (Inter_subset _ ⟨Z, ⟨h, xZ⟩⟩) }))
+lemma is_clopen.bUnion_connected_component_eq {Z : set α} (h : is_clopen Z) :
+  (⋃ x ∈ Z, connected_component x) = Z :=
+subset.antisymm (Union₂_subset $ λ x, h.connected_component_subset) $
+  λ x hx, mem_Union₂_of_mem hx mem_connected_component
 
 /-- The preimage of a connected component is preconnected if the function has connected fibers
 and a subset is closed iff the preimage is. -/
-lemma preimage_connected_component_connected {β : Type*} [topological_space β] {f : α → β}
+lemma preimage_connected_component_connected [topological_space β] {f : α → β}
   (connected_fibers : ∀ t : β, is_connected (f ⁻¹' {t}))
   (hcl : ∀ (T : set β), is_closed T ↔ is_closed (f ⁻¹' T)) (t : β) :
   is_connected (f ⁻¹' connected_component t) :=
@@ -836,7 +824,7 @@ begin
   have T₁_u : f ⁻¹' T₁ = (f ⁻¹' connected_component t) ∩ u,
   { apply eq_of_subset_of_subset,
     { rw ←bUnion_preimage_singleton,
-      refine bUnion_subset (λ t' ht', subset_inter _ ht'.2),
+      refine Union₂_subset (λ t' ht', subset_inter _ ht'.2),
       rw [hf.preimage_subset_preimage_iff, singleton_subset_iff],
       exact ht'.1 },
     rintros a ⟨hat, hau⟩,
@@ -852,7 +840,7 @@ begin
   have T₂_v : f ⁻¹' T₂ = (f ⁻¹' connected_component t) ∩ v,
   { apply eq_of_subset_of_subset,
     { rw ←bUnion_preimage_singleton,
-      refine bUnion_subset (λ t' ht', subset_inter _ ht'.2),
+      refine Union₂_subset (λ t' ht', subset_inter _ ht'.2),
       rw [hf.preimage_subset_preimage_iff, singleton_subset_iff],
       exact ht'.1 },
     rintros a ⟨hat, hav⟩,
@@ -904,6 +892,18 @@ begin
   { exact subset.trans (subset.trans this T₂_v.1) (inter_subset_right _ _) },
   exact preimage_mono h,
 end
+
+lemma quotient_map.preimage_connected_component [topological_space β] {f : α → β}
+  (hf : quotient_map f) (h_fibers : ∀ y : β, is_connected (f ⁻¹' {y})) (a : α) :
+  f ⁻¹' connected_component (f a) = connected_component a :=
+((preimage_connected_component_connected h_fibers
+  (λ _, hf.is_closed_preimage.symm) _).subset_connected_component mem_connected_component).antisymm
+  (hf.continuous.maps_to_connected_component a)
+
+lemma quotient_map.image_connected_component [topological_space β] {f : α → β}
+  (hf : quotient_map f) (h_fibers : ∀ y : β, is_connected (f ⁻¹' {y})) (a : α) :
+  f '' connected_component a = connected_component (f a) :=
+by rw [← hf.preimage_connected_component h_fibers, image_preimage_eq _ hf.surjective]
 
 end preconnected
 
@@ -1084,27 +1084,47 @@ section connected_component_setoid
 def connected_component_setoid (α : Type*) [topological_space α] : setoid α :=
 ⟨λ x y, connected_component x = connected_component y,
   ⟨λ x, by trivial, λ x y h1, h1.symm, λ x y z h1 h2, h1.trans h2⟩⟩
--- see Note [lower instance priority]
-local attribute [instance, priority 100] connected_component_setoid
-
-lemma connected_component_rel_iff {x y : α} : ⟦x⟧ = ⟦y⟧ ↔
-  connected_component x = connected_component y :=
-⟨λ h, quotient.exact h, λ h, quotient.sound h⟩
-
-lemma connected_component_nrel_iff {x y : α} : ⟦x⟧ ≠ ⟦y⟧ ↔
-  connected_component x ≠ connected_component y :=
-by { rw not_iff_not, exact connected_component_rel_iff }
 
 /-- The quotient of a space by its connected components -/
 def connected_components (α : Type u) [topological_space α] :=
-  quotient (connected_component_setoid α)
+quotient (connected_component_setoid α)
 
-instance [inhabited α] : inhabited (connected_components α) := ⟨quotient.mk (default _)⟩
-instance connected_components.topological_space : topological_space (connected_components α) :=
-  quotient.topological_space
+instance : has_coe_t α (connected_components α) := ⟨quotient.mk'⟩
 
-lemma continuous.image_eq_of_equiv {β : Type*} [topological_space β] [totally_disconnected_space β]
-  {f : α → β} (h : continuous f) (a b : α) (hab : a ≈ b) : f a = f b :=
+namespace connected_components
+
+@[simp] lemma coe_eq_coe {x y : α} :
+  (x : connected_components α) = y ↔ connected_component x = connected_component y :=
+quotient.eq'
+
+lemma coe_ne_coe {x y : α} :
+  (x : connected_components α) ≠ y ↔ connected_component x ≠ connected_component y :=
+not_congr coe_eq_coe
+
+lemma coe_eq_coe' {x y : α} :
+  (x : connected_components α) = y ↔ x ∈ connected_component y :=
+coe_eq_coe.trans ⟨λ h, h ▸ mem_connected_component, λ h, (connected_component_eq h).symm⟩
+
+instance [inhabited α] : inhabited (connected_components α) := ⟨↑(default : α)⟩
+
+instance : topological_space (connected_components α) :=
+quotient.topological_space
+
+lemma surjective_coe : surjective (coe : α → connected_components α) := surjective_quot_mk _
+lemma quotient_map_coe : quotient_map (coe : α → connected_components α) := quotient_map_quot_mk
+
+@[continuity]
+lemma continuous_coe : continuous (coe : α → connected_components α) := quotient_map_coe.continuous
+
+@[simp] lemma range_coe : range (coe : α → connected_components α)= univ :=
+surjective_coe.range_eq
+
+end connected_components
+
+variables [topological_space β] [totally_disconnected_space β] {f : α → β}
+
+lemma continuous.image_eq_of_connected_component_eq (h : continuous f) (a b : α)
+  (hab : connected_component a = connected_component b) : f a = f b :=
 singleton_eq_singleton_iff.1 $
   h.image_connected_component_eq_singleton a ▸
   h.image_connected_component_eq_singleton b ▸ hab ▸ rfl
@@ -1112,83 +1132,52 @@ singleton_eq_singleton_iff.1 $
 /--
 The lift to `connected_components α` of a continuous map from `α` to a totally disconnected space
 -/
-def continuous.connected_components_lift {β : Type*} [topological_space β]
-  [totally_disconnected_space β] {f : α → β} (h : continuous f) : connected_components α → β :=
-quotient.lift f h.image_eq_of_equiv
+def continuous.connected_components_lift (h : continuous f) :
+  connected_components α → β :=
+λ x, quotient.lift_on' x f h.image_eq_of_connected_component_eq
 
-@[continuity] lemma continuous.connected_components_lift_continuous {β : Type*}
-  [topological_space β] [totally_disconnected_space β] {f : α → β} (h : continuous f) :
+@[continuity] lemma continuous.connected_components_lift_continuous (h : continuous f) :
   continuous h.connected_components_lift :=
-continuous_quotient_lift h.image_eq_of_equiv h
+continuous_quotient_lift_on' h.image_eq_of_connected_component_eq h
 
-@[simp] lemma continuous.connected_components_lift_factors {β : Type*} [topological_space β]
-  [totally_disconnected_space β] {f : α → β} (h : continuous f) :
-  h.connected_components_lift ∘ quotient.mk = f := rfl
+@[simp] lemma continuous.connected_components_lift_apply_coe (h : continuous f) (x : α) :
+  h.connected_components_lift x = f x := rfl
 
-lemma continuous.connected_components_lift_unique {β : Type*} [topological_space β]
-  [totally_disconnected_space β] {f : α → β} (h : continuous f) (g : connected_components α → β)
-  (hg : g ∘ quotient.mk = f) : g = h.connected_components_lift :=
-by { subst hg, ext1 x, exact quotient.induction_on x (λ a, refl _) }
+@[simp] lemma continuous.connected_components_lift_comp_coe (h : continuous f) :
+  h.connected_components_lift ∘ coe = f := rfl
 
-lemma connected_components_lift_unique' {β : Type*} (g₁ : connected_components α → β)
-  (g₂ : connected_components α → β) (hg : g₁ ∘ quotient.mk = g₂ ∘ quotient.mk ) : g₁ = g₂ :=
-begin
-  ext1 x,
-  refine quotient.induction_on x (λ a, _),
-  change (g₁ ∘ quotient.mk) a = (g₂ ∘ quotient.mk) a,
-  rw hg,
-end
+lemma connected_components_lift_unique' {β : Sort*} {g₁ g₂ : connected_components α → β}
+  (hg : g₁ ∘ (coe : α → connected_components α) = g₂ ∘ coe) :
+  g₁ = g₂ :=
+connected_components.surjective_coe.injective_comp_right hg
+
+lemma continuous.connected_components_lift_unique (h : continuous f)
+  (g : connected_components α → β) (hg : g ∘ coe = f) : g = h.connected_components_lift :=
+connected_components_lift_unique' $ hg.trans h.connected_components_lift_comp_coe.symm
 
 /-- The preimage of a singleton in `connected_components` is the connected component
 of an element in the equivalence class. -/
-lemma connected_components_preimage_singleton {t : α} :
-  connected_component t = quotient.mk ⁻¹' {⟦t⟧} :=
-begin
-  apply set.eq_of_subset_of_subset; intros a ha,
-  { have H : ⟦a⟧ = ⟦t⟧ := quotient.sound (connected_component_eq ha).symm,
-    rw [mem_preimage, H],
-    exact mem_singleton ⟦t⟧ },
-  rw [mem_preimage, mem_singleton_iff] at ha,
-  have ha' : connected_component a = connected_component t := quotient.exact ha,
-  rw ←ha',
-  exact mem_connected_component,
-end
+lemma connected_components_preimage_singleton {x : α} :
+  coe ⁻¹' ({x} : set (connected_components α)) = connected_component x :=
+by { ext y, simp [connected_components.coe_eq_coe'] }
 
 /-- The preimage of the image of a set under the quotient map to `connected_components α`
 is the union of the connected components of the elements in it. -/
 lemma connected_components_preimage_image (U : set α) :
-  quotient.mk ⁻¹' (quotient.mk '' U) = ⋃ (x : α) (h : x ∈ U), connected_component x :=
-begin
-  apply set.eq_of_subset_of_subset,
-  { rintros a ⟨b, hb, hab⟩,
-    refine mem_Union.2 ⟨b, mem_Union.2 ⟨hb, _⟩⟩,
-    rw connected_component_rel_iff.1 hab,
-    exact mem_connected_component },
-  refine Union_subset (λ a, Union_subset (λ ha, _)),
-  rw [connected_components_preimage_singleton,
-    (surjective_quotient_mk _).preimage_subset_preimage_iff, singleton_subset_iff],
-  exact ⟨a, ha, refl _⟩,
-end
+  coe ⁻¹' (coe '' U : set (connected_components α)) = ⋃ x ∈ U, connected_component x :=
+by simp only [connected_components_preimage_singleton, preimage_Union₂, image_eq_Union]
 
 instance connected_components.totally_disconnected_space :
   totally_disconnected_space (connected_components α) :=
 begin
   rw totally_disconnected_space_iff_connected_component_singleton,
-  refine λ x, quotient.induction_on x (λ a, _),
-  apply eq_of_subset_of_subset _ (singleton_subset_iff.2 mem_connected_component),
-  rw subset_singleton_iff,
-  refine λ x, quotient.induction_on x (λ b hb, _),
-  rw [connected_component_rel_iff, connected_component_eq],
-  suffices : is_preconnected (quotient.mk ⁻¹' connected_component ⟦a⟧),
-  { apply mem_of_subset_of_mem (this.subset_connected_component hb),
-    exact mem_preimage.2 mem_connected_component },
-  apply (@preimage_connected_component_connected _ _ _ _ _ _ _ _).2,
-  { refine λ t, quotient.induction_on t (λ s, _),
-    rw ←connected_components_preimage_singleton,
-    exact is_connected_connected_component },
-  refine λ T, ⟨λ hT, hT.preimage continuous_quotient_mk, λ hT, _⟩,
-  rwa [← is_open_compl_iff, ← preimage_compl, quotient_map_quotient_mk.is_open_preimage,
-    is_open_compl_iff] at hT,
+  refine connected_components.surjective_coe.forall.2 (λ x, _),
+  rw [← connected_components.quotient_map_coe.image_connected_component,
+    ← connected_components_preimage_singleton,
+    image_preimage_eq _ connected_components.surjective_coe],
+  refine connected_components.surjective_coe.forall.2 (λ y, _),
+  rw connected_components_preimage_singleton,
+  exact is_connected_connected_component
 end
 
 /-- Functoriality of `connected_components` -/

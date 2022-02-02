@@ -348,15 +348,16 @@ begin
   set b := basis.extend this with b_eq,
   letI : fintype (this.extend _) :=
     (finite_of_linear_independent (by simpa using b.linear_independent)).fintype,
-  letI : fintype (subtype.val '' basis.of_vector_space_index K S) :=
+  letI : fintype (coe '' basis.of_vector_space_index K S) :=
     (finite_of_linear_independent this).fintype,
   letI : fintype (basis.of_vector_space_index K S) :=
     (finite_of_linear_independent (by simpa using bS.linear_independent)).fintype,
-  have : subtype.val '' (basis.of_vector_space_index K S) = this.extend (set.subset_univ _),
+  have : coe '' (basis.of_vector_space_index K S) = this.extend (set.subset_univ _),
   from set.eq_of_subset_of_card_le (this.subset_extend _)
-    (by rw [set.card_image_of_injective _ subtype.val_injective, ← finrank_eq_card_basis bS,
+    (by rw [set.card_image_of_injective _ subtype.coe_injective, ← finrank_eq_card_basis bS,
          ← finrank_eq_card_basis b, h]; apply_instance),
-  rw [← b.span_eq, b_eq, basis.coe_extend, subtype.range_coe, ← this, ← subtype_eq_val, span_image],
+  rw [← b.span_eq, b_eq, basis.coe_extend, subtype.range_coe, ← this, ← submodule.coe_subtype,
+    span_image],
   have := bS.span_eq,
   rw [bS_eq, basis.coe_of_vector_space, subtype.range_coe] at this,
   rw [this, map_top (submodule.subtype S), range_subtype],
@@ -587,15 +588,15 @@ noncomputable def basis_singleton (ι : Type*) [unique ι]
   basis ι K V :=
 let b := basis_unique ι h in
 b.map (linear_equiv.smul_of_unit (units.mk0
-  (b.repr v (default ι))
+  (b.repr v default)
   (mt basis_unique.repr_eq_zero_iff.mp hv)))
 
 @[simp] lemma basis_singleton_apply (ι : Type*) [unique ι]
   (h : finrank K V = 1) (v : V) (hv : v ≠ 0) (i : ι) :
   basis_singleton ι h v hv i = v :=
 calc basis_singleton ι h v hv i
-    = (((basis_unique ι h).repr) v) (default ι) • (basis_unique ι h) (default ι) :
-      by simp [subsingleton.elim i (default ι), basis_singleton, linear_equiv.smul_of_unit]
+    = (((basis_unique ι h).repr) v) default • (basis_unique ι h) default :
+      by simp [subsingleton.elim i default, basis_singleton, linear_equiv.smul_of_unit]
 ... = v : by rw [← finsupp.total_unique K (basis.repr _ v), basis.total_repr]
 
 @[simp] lemma range_basis_singleton (ι : Type*) [unique ι]
@@ -802,7 +803,7 @@ end
 /-- Pushforwards of finite-dimensional submodules along a `linear_equiv` have the same finrank. -/
 lemma finrank_map_eq (f : V ≃ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
   finrank K (p.map (f : V →ₗ[K] V₂)) = finrank K p :=
-(f.of_submodule p).finrank_eq.symm
+(f.submodule_map p).finrank_eq.symm
 
 end linear_equiv
 
@@ -1140,18 +1141,29 @@ section span
 
 open submodule
 
+variable (K)
+
+
+/-- The rank of a set of vectors as a natural number. -/
+protected noncomputable def set.finrank (s : set V) : ℕ := finrank K (span K s)
+
+variable {K}
+
+lemma set.finrank_mono [finite_dimensional K V] {s t : set V} (h : s ⊆ t) :
+  s.finrank K ≤ t.finrank K := finrank_mono (span_mono h)
+
 lemma finrank_span_le_card (s : set V) [fin : fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) ≤ #s := dim_span_le s,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
-  exact_mod_cast this
+  exact_mod_cast this,
 end
 
 lemma finrank_span_finset_le_card (s : finset V)  :
-  finrank K (span K (s : set V)) ≤ s.card :=
-calc finrank K (span K (s : set V)) ≤ (s : set V).to_finset.card : finrank_span_le_card s
+  (s : set V).finrank K ≤ s.card :=
+calc (s : set V).finrank K ≤ (s : set V).to_finset.card : finrank_span_le_card s
                                 ... = s.card : by simp
 
 lemma finrank_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
@@ -1171,7 +1183,7 @@ begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) = #s := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
-  exact_mod_cast this
+  exact_mod_cast this,
 end
 
 lemma finrank_span_finset_eq_card (s : finset V)
@@ -1180,7 +1192,7 @@ lemma finrank_span_finset_eq_card (s : finset V)
 begin
   convert finrank_span_set_eq_card ↑s hs,
   ext,
-  simp
+  simp,
 end
 
 lemma span_lt_of_subset_of_card_lt_finrank {s : set V} [fintype s] {t : submodule K V}
@@ -1256,7 +1268,7 @@ end
 /-- A finite family of vectors is linearly independent if and only if
 its cardinality equals the dimension of its span. -/
 lemma linear_independent_iff_card_eq_finrank_span {ι : Type*} [fintype ι] {b : ι → V} :
-  linear_independent K b ↔ fintype.card ι = finrank K (span K (set.range b)) :=
+  linear_independent K b ↔ fintype.card ι = (set.range b).finrank K :=
 begin
   split,
   { intro h,

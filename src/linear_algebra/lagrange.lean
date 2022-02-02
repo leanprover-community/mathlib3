@@ -38,9 +38,7 @@ def basis (x : F) : polynomial F :=
 rfl
 
 @[simp] theorem basis_singleton_self (x : F) : basis {x} x = 1 :=
-begin
-  rw [basis, finset.erase_singleton, finset.prod_empty]
-end
+by rw [basis, finset.erase_singleton, finset.prod_empty]
 
 @[simp] theorem eval_basis_self (x : F) : (basis s x).eval x = 1 :=
 begin
@@ -93,9 +91,7 @@ def interpolate : polynomial F :=
 rfl
 
 @[simp] theorem interpolate_singleton (f) (x : F) : interpolate {x} f = C (f x) :=
-begin
-  rw [interpolate, finset.sum_singleton, basis_singleton_self, mul_one],
-end
+by rw [interpolate, finset.sum_singleton, basis_singleton_self, mul_one]
 
 @[simp] theorem eval_interpolate (x) (H : x ∈ s) : eval x (interpolate s f) = f x :=
 begin
@@ -116,12 +112,18 @@ calc  (C (f b) * basis s b).degree
 ... = (s.card - 1 : ℕ) : by { rwa nat_degree_basis }
 ... < s.card : with_bot.coe_lt_coe.2 (nat.pred_lt $ mt finset.card_eq_zero.1 H)
 
+theorem degree_interpolate_erase {x} (hx : x ∈ s) :
+  (interpolate (s.erase x) f).degree < (s.card - 1 : ℕ) :=
+begin
+  convert degree_interpolate_lt (s.erase x) f,
+  rw [finset.card_erase_of_mem hx, nat.pred_eq_sub_one]
+end
+
 theorem interpolate_eq_of_eval_eq (f g : F → F) {s : finset F} (hs : ∀ x ∈ s, f x = g x) :
   interpolate s f = interpolate s g :=
 begin
   rw [interpolate, interpolate],
-  apply finset.sum_congr rfl,
-  intros x hx,
+  refine finset.sum_congr rfl (λ x hx, _),
   rw hs x hx,
 end
 
@@ -164,8 +166,7 @@ eq_of_sub_eq_zero $ eq_zero_of_eval_eq_zero s'
 
 theorem eq_interpolate_of_eval_eq {g : polynomial F} (hg : g.degree < s.card)
   (hgf : ∀ x ∈ s, g.eval x = f x) : interpolate s f = g :=
-eq_of_eval_eq s (degree_interpolate_lt _ _) hg begin
-  intros x hx,
+eq_of_eval_eq s (degree_interpolate_lt _ _) hg $ λ x hx, begin
   rw hgf x hx,
   exact eval_interpolate _ _ _ hx,
 end
@@ -196,27 +197,18 @@ theorem interpolate_eq_interpolate_erase_add {x y : F} (hx : x ∈ s) (hy : y �
   interpolate s f =
   C (y - x)⁻¹ * ((X - C x) * interpolate (s.erase x) f + (C y - X) * interpolate (s.erase y) f) :=
 begin
-  apply eq_interpolate_of_eval_eq,
+  refine eq_interpolate_of_eval_eq _ _ _ (λ z hz, _),
   { rw [degree_mul, degree_C (inv_ne_zero (sub_ne_zero.2 hxy.symm)), zero_add],
     refine lt_of_le_of_lt (degree_add_le _ _) (max_lt _ _),
-    { have : (interpolate (s.erase x) f).degree < (s.card - 1 : ℕ),
-      { convert degree_interpolate_lt (s.erase x) f,
-        rw [finset.card_erase_of_mem hx, nat.pred_eq_sub_one] },
-      rw [degree_mul, degree_X_sub_C],
-      have : 1 + (interpolate (s.erase x) f).degree < 1 + (s.card - 1 : ℕ) :=
-        (with_bot.add_lt_add_iff_left (with_bot.coe_ne_bot _)).2 this,
-      convert this,
+    { rw [degree_mul, degree_X_sub_C],
+      convert (with_bot.add_lt_add_iff_left (with_bot.coe_ne_bot _)).2
+        (degree_interpolate_erase s f hx),
       simp [nat.one_add, nat.sub_one, nat.succ_pred_eq_of_pos (finset.card_pos.2 ⟨x, hx⟩)] },
-    { have : (interpolate (s.erase y) f).degree < (s.card - 1 : ℕ),
-      { convert degree_interpolate_lt (s.erase y) f,
-        rw [finset.card_erase_of_mem hy, nat.pred_eq_sub_one] },
-      rw [degree_mul, ←neg_sub, degree_neg, degree_X_sub_C],
-      have : 1 + (interpolate (s.erase y) f).degree < 1 + (s.card - 1 : ℕ) :=
-        (with_bot.add_lt_add_iff_left (with_bot.coe_ne_bot _)).2 this,
-      convert this,
+    { rw [degree_mul, ←neg_sub, degree_neg, degree_X_sub_C],
+      convert (with_bot.add_lt_add_iff_left (with_bot.coe_ne_bot _)).2
+        (degree_interpolate_erase s f hy),
       simp [nat.one_add, nat.sub_one, nat.succ_pred_eq_of_pos (finset.card_pos.2 ⟨y, hy⟩)] } },
-  { intros z hz,
-    by_cases hzx : z = x,
+  { by_cases hzx : z = x,
     { simp [hzx, eval_interpolate (s.erase y) f x (finset.mem_erase_of_ne_of_mem hxy hx),
             inv_mul_eq_iff_eq_mul₀ (sub_ne_zero_of_ne hxy.symm)] },
     { by_cases hzy : z = y,

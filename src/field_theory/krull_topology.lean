@@ -138,8 +138,8 @@ lemma mem_gal_basis_iff (K L : Type*) [field K] [field L] [algebra K L]
 (U : set (L ≃ₐ[K] L)) : U ∈ gal_basis K L ↔ U ∈ subgroup.carrier '' (fixed_by_finite K L) :=
 iff.rfl
 
-/-- For a field extension `L/K`, `gal_group_basis K L` is the group filter basis on `L ≃ₐ[K] L` whose
-sets are `Gal(L/E)` for finite subextensions `E/K` -/
+/-- For a field extension `L/K`, `gal_group_basis K L` is the group filter basis on `L ≃ₐ[K] L`
+whose sets are `Gal(L/E)` for finite subextensions `E/K` -/
 def gal_group_basis (K L : Type*) [field K] [field L] [algebra K L] :
 group_filter_basis (L ≃ₐ[K] L) :=
 { to_filter_basis := gal_basis K L,

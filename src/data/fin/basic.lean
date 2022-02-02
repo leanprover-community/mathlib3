@@ -196,6 +196,8 @@ instance {n : ℕ} : linear_order (fin n) :=
   decidable_eq := fin.decidable_eq _,
  ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
 
+instance {n : ℕ}  : partial_order (fin n) := linear_order.to_partial_order (fin n)
+
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
 def coe_embedding (n) : (fin n) ↪o ℕ :=
 ⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
@@ -252,13 +254,17 @@ instance : bounded_order (fin (n + 1)) :=
   bot := 0,
   bot_le := zero_le }
 
-instance : lattice (fin (n + 1)) := lattice_of_linear_order
+instance : lattice (fin (n + 1)) := linear_order.to_lattice
 
 lemma last_pos : (0 : fin (n + 2)) < last (n + 1) :=
 by simp [lt_iff_coe_lt_coe]
 
 lemma eq_last_of_not_lt {i : fin (n+1)} (h : ¬ (i : ℕ) < n) : i = last n :=
 le_antisymm (le_last i) (not_lt.1 h)
+
+lemma top_eq_last (n : ℕ) : ⊤ = fin.last n := rfl
+
+lemma bot_eq_zero (n : ℕ) : ⊥ = (0 : fin (n + 1)) := rfl
 
 section
 
@@ -576,7 +582,7 @@ set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl
   ((equiv.of_injective _ (cast_le h).injective).symm ⟨i, hi⟩ : ℕ) = i :=
 begin
   rw ← coe_cast_le,
-  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _)
 end
 
 @[simp] lemma cast_le_succ {m n : ℕ} (h : (m + 1) ≤ (n + 1)) (i : fin m) :
@@ -733,7 +739,7 @@ range_cast_le _
   ((equiv.of_injective cast_succ (cast_succ_injective _)).symm ⟨i, hi⟩ : ℕ) = i :=
 begin
   rw ← coe_cast_succ,
-  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _)
 end
 
 lemma succ_cast_succ {n : ℕ} (i : fin n) :
@@ -1009,6 +1015,9 @@ forall_fin_succ.trans $ and_congr_right $ λ _, forall_fin_one
 
 lemma exists_fin_two {p : fin 2 → Prop} : (∃ i, p i) ↔ p 0 ∨ p 1 :=
 exists_fin_succ.trans $ or_congr_right exists_fin_one
+
+lemma fin_two_eq_of_eq_zero_iff {a b : fin 2} (h : a = 0 ↔ b = 0) : a = b :=
+by { revert a b, simp [forall_fin_two] }
 
 /--
 Define `C i` by reverse induction on `i : fin (n + 1)` via induction on the underlying `nat` value.

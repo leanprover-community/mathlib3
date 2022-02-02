@@ -60,6 +60,12 @@ by simpa only [countp_eq_length_filter] using length_le_of_sublist (s.filter p)
   countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
 by simp only [countp_eq_length_filter, filter_filter]
 
+@[simp] lemma countp_true : l.countp (λ _, true) = l.length :=
+by simp [countp_eq_length_filter]
+
+@[simp] lemma countp_false : l.countp (λ _, false) = 0 :=
+by simp [countp_eq_length_filter]
+
 end countp
 
 /-! ### count -/
@@ -103,8 +109,11 @@ countp_append _
 lemma count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
 by simp [-add_comm]
 
-lemma count_pos {a : α} {l : list α} : 0 < count a l ↔ a ∈ l :=
+@[simp] lemma count_pos {a : α} {l : list α} : 0 < count a l ↔ a ∈ l :=
 by simp only [count, countp_pos, exists_prop, exists_eq_right']
+
+@[simp] lemma one_le_count_iff_mem {a : α} {l : list α} : 1 ≤ count a l ↔ a ∈ l :=
+count_pos
 
 @[simp, priority 980]
 lemma count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
@@ -132,8 +141,7 @@ eq_of_sublist_of_length_eq (le_count_iff_repeat_sublist.mp (le_refl (count a l))
 
 @[simp] lemma count_filter {p} [decidable_pred p]
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=
-by simp only [count, countp_filter]; congr; exact
-set.ext (λ b, and_iff_left_of_imp (λ e, e ▸ h))
+by simp only [count, countp_filter, show (λ b, a = b ∧ p b) = eq a, by { ext b, constructor; cc }]
 
 lemma count_bind {α β} [decidable_eq β] (l : list α) (f : α → list β) (x : β)  :
   count x (l.bind f) = sum (map (count x ∘ f) l) :=
@@ -143,8 +151,8 @@ begin
   { simpa }
 end
 
-@[simp] lemma count_map_map {α β} [decidable_eq α] [decidable_eq β] (l : list α) (f : α → β)
-  (hf : function.injective f) (x : α) :
+@[simp] lemma count_map_of_injective {α β} [decidable_eq α] [decidable_eq β]
+  (l : list α) (f : α → β) (hf : function.injective f) (x : α) :
   count (f x) (map f l) = count x l :=
 begin
   induction l with y l IH generalizing x,
@@ -153,6 +161,15 @@ begin
     by_cases h : x = y,
     { simpa [h] using IH _ },
     { simpa [h, hf.ne h] using IH _ } }
+end
+
+lemma count_le_count_map [decidable_eq β] (l : list α) (f : α → β) (x : α) :
+  count x l ≤ count (f x) (map f l) :=
+begin
+  induction l with a as IH, { simp },
+  rcases eq_or_ne x a with rfl | hxa,
+  { simp [succ_le_succ IH] },
+  { simp [hxa, le_add_right IH, count_cons'] }
 end
 
 @[simp] lemma count_erase_self (a : α) :

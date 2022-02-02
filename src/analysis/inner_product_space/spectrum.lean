@@ -29,6 +29,7 @@ Letting `T` be a self-adjoint operator on a finite-dimensional inner product spa
   gives the associated linear isometry equivalence from `E` to Euclidean space, and the theorem
   `is_self_adjoint.diagonalization_basis_apply_self_apply` states that, when `T` is transferred via
   this equivalence to an operator on Euclidean space, it acts diagonally.
+
 These are forms of the *diagonalization theorem* for self-adjoint operators on finite-dimensional
 inner product spaces.
 
@@ -47,11 +48,10 @@ variables {E : Type*} [inner_product_space 𝕜 E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 
-local attribute [instance] fact_one_le_two_real
-
 open_locale big_operators complex_conjugate
 open module.End
 
+namespace inner_product_space
 namespace is_self_adjoint
 
 variables {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
@@ -75,9 +75,10 @@ begin
 end
 
 /-- The eigenspaces of a self-adjoint operator are mutually orthogonal. -/
-lemma orthogonal_family_eigenspaces : orthogonal_family 𝕜 (eigenspace T) :=
+lemma orthogonal_family_eigenspaces :
+  @orthogonal_family 𝕜 _ _ _ _ (λ μ, eigenspace T μ) _ (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 begin
-  intros μ ν hμν v hv w hw,
+  rintros μ ν hμν ⟨v, hv⟩ ⟨w, hw⟩,
   by_cases hv' : v = 0,
   { simp [hv'] },
   have H := hT.conj_eigenvalue_eq_self (has_eigenvalue_of_has_eigenvector ⟨hv, hv'⟩),
@@ -86,7 +87,9 @@ begin
   simpa [inner_smul_left, inner_smul_right, hv, hw, H] using (hT v w).symm
 end
 
-lemma orthogonal_family_eigenspaces' : orthogonal_family 𝕜 (λ μ : eigenvalues T, eigenspace T μ) :=
+lemma orthogonal_family_eigenspaces' :
+  @orthogonal_family 𝕜 _ _ _ _ (λ μ : eigenvalues T, eigenspace T μ) _
+    (λ μ, (eigenspace T μ).subtypeₗᵢ) :=
 hT.orthogonal_family_eigenspaces.comp subtype.coe_injective
 
 /-- The mutual orthogonal complement of the eigenspaces of a self-adjoint operator on an inner
@@ -240,3 +243,4 @@ end
 end version2
 
 end is_self_adjoint
+end inner_product_space

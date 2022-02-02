@@ -35,6 +35,9 @@ theorem is_none_iff_eq_none {o : option α} : o.is_none = tt ↔ o = none :=
 
 theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
 
+lemma mem_some_iff {α : Type*} {a b : α} : a ∈ some b ↔ b = a :=
+by simp
+
 /--
 `o = none` is decidable even if the wrapped type does not have decidable equality.
 
@@ -62,7 +65,7 @@ instance decidable_exists_mem {p : α → Prop} [decidable_pred p] :
 /-- Inhabited `get` function. Returns `a` if the input is `some a`, otherwise returns `default`. -/
 @[reducible] def iget [inhabited α] : option α → α
 | (some x) := x
-| none     := default α
+| none     := default
 
 @[simp] theorem iget_some [inhabited α] {a : α} : (some a).iget = a := rfl
 

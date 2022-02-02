@@ -86,7 +86,7 @@ all be relaxed independently; for instance, this allows us to:
 * Replace `semiring A` with `non_unital_non_assoc_semiring A` in order to describe non-unital and/or
   non-associative algebras.
 * Replace `comm_semiring R` and `module R A` with `comm_group R'` and `distrib_mul_action R' A`,
-  which when `R' = units R` lets us talk about the "algebra-like" action of `units R` on an
+  which when `R' = Rˣ` lets us talk about the "algebra-like" action of `Rˣ` on an
   `R`-algebra `A`.
 
 While `alg_hom R A B` cannot be used in the second approach, `non_unital_alg_hom R A B` still can.
@@ -582,9 +582,6 @@ lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α)
   φ (f.sum g) = f.sum (λ i a, φ (g i a)) :=
 φ.map_sum _ _
 
-@[simp] lemma map_nat_cast (n : ℕ) : φ n = n :=
-φ.to_ring_hom.map_nat_cast n
-
 lemma map_bit0 (x) : φ (bit0 x) = bit0 (φ x) := map_bit0 _ _
 lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) := map_bit1 _ _
 
@@ -872,13 +869,10 @@ lemma surjective : function.surjective e := e.to_equiv.surjective
 
 lemma bijective : function.bijective e := e.to_equiv.bijective
 
-instance : has_one (A₁ ≃ₐ[R] A₁) := ⟨{commutes' := λ r, rfl, ..(1 : A₁ ≃+* A₁)}⟩
-
-instance : inhabited (A₁ ≃ₐ[R] A₁) := ⟨1⟩
-
 /-- Algebra equivalences are reflexive. -/
-@[refl]
-def refl : A₁ ≃ₐ[R] A₁ := 1
+@[refl] def refl : A₁ ≃ₐ[R] A₁ := {commutes' := λ r, rfl, ..(1 : A₁ ≃+* A₁)}
+
+instance : inhabited (A₁ ≃ₐ[R] A₁) := ⟨refl⟩
 
 @[simp] lemma refl_to_alg_hom : ↑(refl : A₁ ≃ₐ[R] A₁) = alg_hom.id R A₁ := rfl
 
@@ -1002,6 +996,12 @@ lemma of_alg_hom_symm (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ 
 noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijective f) : A₁ ≃ₐ[R] A₂ :=
 { .. ring_equiv.of_bijective (f : A₁ →+* A₂) hf, .. f }
 
+@[simp] lemma coe_of_bijective {f : A₁ →ₐ[R] A₂} {hf : function.bijective f} :
+  (alg_equiv.of_bijective f hf : A₁ → A₂) = f := rfl
+
+lemma of_bijective_apply {f : A₁ →ₐ[R] A₂} {hf : function.bijective f} (a : A₁) :
+  (alg_equiv.of_bijective f hf) a = f a := rfl
+
 /-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/
 @[simps apply] def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
 { to_fun    := e,
@@ -1074,14 +1074,16 @@ by { ext, refl }
 
 end of_linear_equiv
 
-instance aut : group (A₁ ≃ₐ[R] A₁) :=
+@[simps mul one {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
 { mul := λ ϕ ψ, ψ.trans ϕ,
   mul_assoc := λ ϕ ψ χ, rfl,
-  one := 1,
-  one_mul := λ ϕ, by { ext, refl },
-  mul_one := λ ϕ, by { ext, refl },
+  one := refl,
+  one_mul := λ ϕ, ext $ λ x, rfl,
+  mul_one := λ ϕ, ext $ λ x, rfl,
   inv := symm,
-  mul_left_inv := λ ϕ, by { ext, exact symm_apply_apply ϕ a } }
+  mul_left_inv := λ ϕ, ext $ symm_apply_apply ϕ }
+
+@[simp] lemma one_apply (x : A₁) : (1 : A₁ ≃ₐ[R] A₁) x = x := rfl
 
 @[simp] lemma mul_apply (e₁ e₂ : A₁ ≃ₐ[R] A₁) (x : A₁) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
 
@@ -1303,6 +1305,9 @@ variables (R : Type*) [ring R]
 { commutes' := int.cast_commute,
   smul_def' := λ _ _, zsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }
+
+/-- A special case of `ring_hom.eq_int_cast'` that happens to be true definitionally -/
+@[simp] lemma algebra_map_int_eq : algebra_map ℤ R = int.cast_ring_hom R := rfl
 
 variables {R}
 

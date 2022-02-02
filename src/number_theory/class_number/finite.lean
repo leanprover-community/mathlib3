@@ -65,7 +65,7 @@ begin
     apply (algebra.left_mul_matrix bS).injective_iff.mp (algebra.left_mul_matrix_injective bS),
     ext j k,
     simp [h, dmatrix.zero_apply] },
-  simp only [norm_bound, algebra.smul_def, ring_hom.eq_nat_cast, int.nat_cast_eq_coe_nat],
+  simp only [norm_bound, algebra.smul_def, eq_nat_cast, int.nat_cast_eq_coe_nat],
   refine mul_pos (int.coe_nat_pos.mpr (nat.factorial_pos _)) _,
   refine pow_pos (mul_pos (int.coe_nat_pos.mpr (fintype.card_pos_iff.mpr ⟨i⟩)) _) _,
   refine lt_of_lt_of_le (abv.pos hijk) (finset.le_max' _ _ _),
@@ -391,7 +391,7 @@ begin
     (is_integral_closure.range_le_span_dual_basis S b hb_int),
   let bS := b.map ((linear_map.quot_ker_equiv_range _).symm ≪≫ₗ _),
   refine fintype_of_admissible_of_algebraic L bS adm
-    (λ x, (is_fraction_ring.is_algebraic_iff R K).mpr (algebra.is_algebraic_of_finite x)),
+    (λ x, (is_fraction_ring.is_algebraic_iff R K L).mpr (algebra.is_algebraic_of_finite x)),
   { rw linear_map.ker_eq_bot.mpr,
     { exact submodule.quot_equiv_of_eq_bot _ rfl },
     { exact is_integral_closure.algebra_map_injective _ R _ } },

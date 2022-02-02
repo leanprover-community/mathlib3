@@ -473,14 +473,10 @@ end
 lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
   card P = p ^ nat.factorization (card G) p :=
 begin
-  have hn : card G ≠ 0 := fintype.card_ne_zero,
-  obtain ⟨n, heq⟩ := is_p_group.iff_card.mp (P.is_p_group'),
-  apply nat.dvd_antisymm,
-  { suffices : p ^ n ∣ p ^ nat.factorization (card G) p, by simpa [← heq] using this,
-    rw ← nat.prime_pow_dvd_multiplicity_iff _ _ _ hp.elim hn,
-    rw ← heq,
-    apply subgroup.card_subgroup_dvd_card, },
-  { apply pow_dvd_card_of_pow_dvd_card, apply nat.pow_factorization_dvd, }
+  obtain ⟨n, heq : card P = _⟩ := is_p_group.iff_card.mp (P.is_p_group'),
+  refine nat.dvd_antisymm _ (P.pow_dvd_card_of_pow_dvd_card (nat.pow_factorization_dvd p _)),
+  rw [heq, ←nat.prime_pow_dvd_multiplicity_iff p n (card G) hp.out fintype.card_ne_zero, ←heq],
+  exact P.1.card_subgroup_dvd_card,
 end
 
 lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)

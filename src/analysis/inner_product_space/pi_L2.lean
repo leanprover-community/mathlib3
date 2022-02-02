@@ -34,10 +34,6 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 open real set filter is_R_or_C
 open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
 
-local attribute [instance] fact_one_le_two_real
-
-local attribute [instance] fact_one_le_two_real
-
 noncomputable theory
 
 variables {ι : Type*}

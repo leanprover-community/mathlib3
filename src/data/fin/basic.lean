@@ -196,6 +196,8 @@ instance {n : ℕ} : linear_order (fin n) :=
   decidable_eq := fin.decidable_eq _,
  ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
 
+instance {n : ℕ}  : partial_order (fin n) := linear_order.to_partial_order (fin n)
+
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
 def coe_embedding (n) : (fin n) ↪o ℕ :=
 ⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩

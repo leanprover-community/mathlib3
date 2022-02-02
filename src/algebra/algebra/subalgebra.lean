@@ -515,6 +515,13 @@ noncomputable def of_injective_field {E F : Type*} [division_ring E] [semiring F
   [nontrivial F] [algebra R E] [algebra R F] (f : E →ₐ[R] F) : E ≃ₐ[R] f.range :=
 of_injective f f.to_ring_hom.injective
 
+/-- Given an equivalence `e : A ≃ₐ[R] B` of `R`-algebras and a subalgebra `S` of `A`,
+`subalgebra_map` is the induced equivalence between `S` and `S.map e` -/
+@[simps] def subalgebra_map (e : A ≃ₐ[R] B) (S : subalgebra R A) :
+  S ≃ₐ[R] (S.map e.to_alg_hom) :=
+{ commutes' := λ r, by { ext, simp },
+  ..e.to_ring_equiv.subsemiring_map S.to_subsemiring }
+
 end alg_equiv
 
 namespace algebra

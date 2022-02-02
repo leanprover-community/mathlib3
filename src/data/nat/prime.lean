@@ -1091,11 +1091,9 @@ namespace nat
 
 theorem prime_three : prime 3 := by norm_num
 
-/-- See note [fact non-instances].-/
-lemma fact_prime_two : fact (prime 2) := ⟨prime_two⟩
+instance fact_prime_two : fact (prime 2) := ⟨prime_two⟩
 
-/-- See note [fact non-instances].-/
-lemma fact_prime_three : fact (prime 3) := ⟨prime_three⟩
+instance fact_prime_three : fact (prime 3) := ⟨prime_three⟩
 
 end nat
 

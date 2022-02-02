@@ -471,7 +471,7 @@ instance is_cyclotomic_extension [ne_zero (n : A)] :
 instance [ne_zero (n : A)] : is_fraction_ring (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 { map_units := λ ⟨x, hx⟩, begin
     rw is_unit_iff_ne_zero,
-    apply ring_hom.map_ne_zero_of_mem_non_zero_divisors,
+    apply map_ne_zero_of_mem_non_zero_divisors,
     apply adjoin_algebra_injective,
     exact hx
   end,
@@ -484,7 +484,7 @@ instance [ne_zero (n : A)] : is_fraction_ring (cyclotomic_ring n A K) (cyclotomi
     { have : is_localization (non_zero_divisors A) K := infer_instance,
       replace := this.surj,
       obtain ⟨⟨z, w⟩, hw⟩ := this k,
-      refine ⟨⟨algebra_map A _ z, algebra_map A _ w, ring_hom.map_mem_non_zero_divisors _
+      refine ⟨⟨algebra_map A _ z, algebra_map A _ w, map_mem_non_zero_divisors _
         (algebra_base_injective n A K) w.2⟩, _⟩,
       letI : is_scalar_tower A K (cyclotomic_field n K) :=
         is_scalar_tower.of_algebra_map_eq (congr_fun rfl),

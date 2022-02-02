@@ -288,7 +288,7 @@ variable (I : ideal A)
 /--For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
 `I` spanned by all homogeneous components of elements in `I`. -/
 def ideal.homogeneous_hull : ideal A :=
-  ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}
+ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}
 
 lemma ideal.is_homogeneous.homogeneous_hull : (I.homogeneous_hull 𝒜).is_homogeneous 𝒜 :=
 begin
@@ -363,8 +363,8 @@ lemma ideal.homgeneous_hull.gc :
   galois_connection
     (λ I, ⟨ideal.homogeneous_hull 𝒜 I, ideal.is_homogeneous.homogeneous_hull 𝒜 I⟩ :
       ideal A → homogeneous_ideal 𝒜)
-    (λ I, I.1 : homogeneous_ideal 𝒜 → ideal A)
-   := λ I J,
+    (λ I, I.1 : homogeneous_ideal 𝒜 → ideal A) :=
+λ I J,
 ⟨ λ H, begin
     refine le_trans _ H,
     apply ideal.ideal_le_homogeneous_hull,

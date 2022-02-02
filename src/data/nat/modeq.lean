@@ -439,20 +439,6 @@ begin
     (dvd_gcd ((Apostol_5_5'' h h2).mpr (gcd_dvd_left b m)) h2),
 end
 
-
-lemma Apostol_5_7_aux {m x : ℤ} (h1 : m ∣ x) (h2 : | x | < m) : x = 0 :=
-begin
-  rcases em (m = 0) with rfl | hm,
-  { exact zero_dvd_iff.mp h1 },
-  cases h1 with d hd,
-  subst hd,
-  simp only [mul_eq_zero], right,
-  rw ←int.eq_zero_iff_abs_lt_one,
-  rw ←mul_lt_iff_lt_one_right (abs_pos.mpr hm),
-  rw ←abs_mul,
-  exact lt_of_lt_of_le h2 (le_abs_self m),
-end
-
 -- Apostol, Theorem 5.7
 lemma Apostol_5_7 (h : a ≡ b [MOD m]) (h2 : | (b:ℤ) - a | < m) : a = b :=
 begin
@@ -460,7 +446,7 @@ begin
   rw modeq_iff_dvd at h,
   rw eq_comm,
   rw ←sub_eq_zero,
-  exact Apostol_5_7_aux h h2,
+  exact eq_zero_of_abs_lt_dvd h h2,
 end
 
 

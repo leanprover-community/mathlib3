@@ -364,7 +364,7 @@ variables [algebra K J] [algebra J L] [is_alg_closure J L] [algebra K L]
   [is_scalar_tower K J L]
 
 
-/-- An equiv between an algebraic closure of `R` and an algebraic closure of an algebraic
+/-- A (random) isomorphism between an algebraic closure of `R` and an algebraic closure of an algebraic
   extension of `R` -/
 noncomputable def equiv_of_algebraic' [nontrivial S] [no_zero_smul_divisors R S]
   (hRL : algebra.is_algebraic R L) : L ≃ₐ[R] M :=

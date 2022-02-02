@@ -48,6 +48,6 @@ def time_bound (c : turing.to_partrec.code) (bound : ℕ → ℕ) : Prop :=
 The code `c` always terminates in polynomial time.
 -/
 def poly_time (c : turing.to_partrec.code) : Prop :=
-∃ (p : polynomial ℕ), time_bound c (p.eval)
+∃ (p : polynomial ℕ), time_bound c (λ x, p.eval x) -- Why does this work but (p.eval) doesn't?
 
 -- TODO poly_time lemmas for all the constructors (except maybe fix)

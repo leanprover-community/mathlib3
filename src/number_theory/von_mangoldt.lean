@@ -46,7 +46,14 @@ noncomputable def log : arithmetic_function ℝ :=
 
 @[simp] lemma log_apply {n : ℕ} : log n = real.log n := rfl
 
-/-- In the case when `n` is a prime power, `min_fac` will give the appropriate prime. -/
+/--
+The `von_mangoldt` function is the function on natural numbers that returns `log p` if the input can
+be expressed as `p^k` for a prime `p`.
+In the case when `n` is a prime power, `min_fac` will give the appropriate prime, as it is the
+smallest prime factor.
+
+In the `arithmetic_function` locale, we have the notation `Λ` for this function.
+-/
 noncomputable def von_mangoldt : arithmetic_function ℝ :=
 ⟨λ n, if is_prime_pow n then real.log (min_fac n) else 0, if_neg not_is_prime_pow_zero⟩
 
@@ -89,11 +96,17 @@ begin
     real.log_mul (nat.cast_ne_zero.2 ha'.ne') (nat.cast_ne_zero.2 hb'.ne')],
 end
 
-lemma von_mangoldt_mul_zeta : Λ * ζ = log :=
+@[simp] lemma von_mangoldt_mul_zeta : Λ * ζ = log :=
 by { ext n, rw [coe_mul_zeta_apply, von_mangoldt_sum], refl }
 
-lemma log_mul_moebius_eq_von_mangoldt : log * μ = Λ :=
+@[simp] lemma zeta_mul_von_mangoldt : ζ * Λ = log :=
+by { rw [mul_comm], simp }
+
+@[simp] lemma log_mul_moebius_eq_von_mangoldt : log * μ = Λ :=
 by rw [←von_mangoldt_mul_zeta, mul_assoc, coe_zeta_mul_coe_moebius, mul_one]
+
+@[simp] lemma moebius_mul_log_eq_von_mangoldt : μ * log = Λ :=
+by { rw [mul_comm], simp }
 
 lemma sum_moebius_mul_log_eq {n : ℕ} :
   ∑ d in n.divisors, (μ d : ℝ) * log d = - Λ n :=

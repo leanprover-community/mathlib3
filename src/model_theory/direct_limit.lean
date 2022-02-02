@@ -1,6 +1,21 @@
+/-
+Copyright (c) 2022 Aaron Anderson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
+-/
 import data.fintype.order
 import algebra.direct_limit
 import model_theory.basic
+
+/-!
+# Direct Limits of First-Order Structures
+This file constructs the direct limit of a directed system of first-order embeddings.
+
+## Main Definitions
+* `first_order.language.direct_limit G f`  is the direct limit of the directed system `f` of
+  first-order embeddings between the structures indexed by `G`.
+-/
+
 
 universes v w u₁ u₂
 

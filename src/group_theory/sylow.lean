@@ -570,31 +570,29 @@ lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
 normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing.mp hnc _ $
   normalizer_normalizer _
 
-section classical
-open_locale classical
 open_locale big_operators
 
 /-- If all its sylow groups are normal, then a finite group is isomorphic to the direct product
 of these sylow groups.
 
-This uses `(Σ (p : (fintype.card G).factors.to_finset), sylow p G)` as the type of all
+This uses `(Σ (p : (card G).factorization.support), sylow p G)` as the type of all
 (non-trivial) sylow groups.
 -/
 noncomputable
-lemma direct_product_of_normal [fintype G]
+def direct_product_of_normal [fintype G]
   (hn : ∀ {p : ℕ} [fact p.prime] (P : sylow p G), (↑P : subgroup G).normal) :
   (Π P : (Σ (p : (card G).factorization.support), sylow p G), (↑(P.2) : subgroup G)) ≃* G :=
 begin
   set ps := (fintype.card G).factorization.support,
   set sylows := Σ (p : ps), sylow p G,
 
+  -- Dealing with the sigma values is annoying, so we hae this helper
   have sigma_helper :
     ∀ (P : Π {p₁ p₂ : ℕ}, sylow p₁ G → sylow p₂ G → Prop),
     (∀ (p₁ p₂ : ℕ) [fact p₁.prime] [fact p₂.prime] (hne : p₁ ≠ p₂)
        (P₁ : sylow p₁ G) (P₂ : sylow p₂ G), P P₁ P₂) →
     (∀ (P₁ P₂ : sylows), P₁ ≠ P₂ → P (P₁.snd) (P₂.snd)),
-  {
-    intros P h,
+  { intros P h,
     rintros ⟨⟨p₁, hp₁⟩, P₁⟩ ⟨⟨p₂, hp₂⟩, P₂⟩ hne,
     change sylow p₁ G at P₁,
     change sylow p₂ G at P₂,
@@ -603,34 +601,32 @@ begin
     have hne' : p₁ ≠ p₂, unfreezingI {
       rintros rfl, apply hne,
       haveI := subsingleton_of_normal _ (hn P₁),
-      rw subsingleton.elim P₁ P₂,
-    },
-    exact h p₁ p₂ hne' P₁ P₂,
-  },
+      rw subsingleton.elim P₁ P₂, },
+    exact h p₁ p₂ hne' P₁ P₂, },
 
+  -- Names for the propositions we instantiate the helper with
   let commuting_elements := λ (p₁ p₂ : ℕ) (P₁ : sylow p₁ G) (P₂ : sylow p₂ G),
     ∀ (x y : G), x ∈ (↑P₁ : subgroup G) → y ∈ (↑P₂ : subgroup G) → commute x y,
   let coprime := λ (p₁ p₂ : ℕ) (P₁ : sylow p₁ G) (P₂ : sylow p₂ G),
     nat.coprime (fintype.card (↑P₁ : subgroup G)) (fintype.card (↑P₂ : subgroup G)),
 
   have hcomm : ∀ (P₁ P₂ : sylows), P₁ ≠ P₂ → commuting_elements _ _ (P₁.snd) (P₂.snd),
-  {
-    apply sigma_helper commuting_elements,
+  { apply sigma_helper commuting_elements,
     rintros p₁ p₂ _ _ hne P₁ P₂, resetI,
     apply subgroup.commute_of_normal_of_disjoint _ _ (hn P₁) (hn P₂),
-    apply is_p_group.disjoint_of_ne p₁ p₂ hne _ _ P₁.is_p_group' P₂.is_p_group',
-  },
+    apply is_p_group.disjoint_of_ne p₁ p₂ hne _ _ P₁.is_p_group' P₂.is_p_group', },
 
   apply mul_equiv.of_bijective (subgroup_pi_hom.hom hcomm),
   apply (bijective_iff_injective_and_card _).mpr,
   split,
+
   show injective _, {
     apply subgroup_pi_hom.injective_of_independent,
     apply independent_of_coprime_order hcomm,
     apply sigma_helper coprime,
     rintros p₁ p₂ _ _ hne P₁ P₂, resetI,
-    apply is_p_group.coprime_card_of_ne p₁ p₂ hne _ _ P₁.is_p_group' P₂.is_p_group',
-  },
+    apply is_p_group.coprime_card_of_ne p₁ p₂ hne _ _ P₁.is_p_group' P₂.is_p_group', },
+
   show card (Π (P : sylows), P.2) = card G, {
     calc card (Π (P : sylows), P.2)
         = ∏ (P : sylows), card ↥(P.snd) : fintype.card_pi
@@ -640,8 +636,6 @@ begin
       let hp' := fact.mk (nat.prime_of_mem_factorization hp),
       exact (@card_eq_multiplicity _ _ _ p  hp' P)
     end
-    ... = ∏ (P : sylows) in finset.univ, P.1 ^ (card G).factorization P.1 : rfl
-    ... = ∏ (P : sylows) in (finset.univ.sigma (λ p, finset.univ)), P.1 ^ (card G).factorization P.1 : rfl
     ... = ∏ (p : ps), ∏ (P : sylow p G), p ^ (card G).factorization p : finset.prod_sigma _ _ _
     ... = ∏ (p : ps), ((p ^ (card G).factorization p) ^ card (sylow p G)) :
       by {congr', ext, exact finset.prod_const _}
@@ -654,20 +648,10 @@ begin
       haveI : unique (sylow p G) := unique_of_subsingleton P,
       simp,
     end
-    ... = ∏ (p : ℕ) in (card G).factorization.support, p ^ (card G).factorization p :
-    begin
-      apply finset.prod_bij' (λ (p : ps) _ , (p : ℕ)) _ _ (λ p hp, ⟨p, hp⟩),
-      { rintros ⟨p, hp⟩ _, simp only [subtype.coe_mk]},
-      { intros p hp, reflexivity, },
-      { intros i hp, simp, },
-      { rintros ⟨p, hp⟩ _, apply hp, },
-      { intros _ _, reflexivity }
-    end
+    ... = ∏ p in ps, p ^ (card G).factorization p :
+      finset.prod_finset_coe (λ p, p ^ (card G).factorization p) _
     ... = (card G).factorization.prod pow : rfl
-    ... = card G : nat.factorization_prod_pow_eq_self fintype.card_ne_zero
-  },
+    ... = card G : nat.factorization_prod_pow_eq_self fintype.card_ne_zero }
 end
-
-end classical
 
 end sylow

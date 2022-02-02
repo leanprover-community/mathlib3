@@ -985,8 +985,6 @@ end
 
 section integrable
 
-local attribute [instance] fact_one_le_one_ennreal
-
 notation α ` →₁ₛ[`:25 μ `] ` E := @measure_theory.Lp.simple_func α E _ _ _ _ _ 1 μ
 
 lemma L1.simple_func.to_Lp_one_eq_to_L1 (f : α →ₛ E) (hf : integrable f μ) :

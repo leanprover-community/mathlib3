@@ -12,13 +12,14 @@ import set_theory.ordinal_arithmetic
 We define principal or indecomposable ordinals, and we prove the standard properties about them.
 
 ### Todo
-* Prove the characterization of additive indecomposable ordinals.
-* Prove the characterization of multiplicative indecomposable ordinals.
+* Prove the characterization of additive principal ordinals.
+* Prove the characterization of multiplicative principal ordinals.
 * Refactor any related theorems from `ordinal_arithmetic` into this file.
 -/
 
 universe u
 
+local infixr ^ := @pow ordinal ordinal ordinal.has_pow
 namespace ordinal
 
 /-! ### Principal ordinals -/
@@ -31,25 +32,28 @@ For simplicity, we break usual convention and regard 0 as principal. -/
 def principal (op : ordinal → ordinal → ordinal) (o : ordinal) : Prop :=
 ∀ ⦃a b⦄, a < o → b < o → op a b < o
 
+theorem principal_iff_principal_swap {op : ordinal → ordinal → ordinal} {o : ordinal} :
+  principal op o ↔ principal (function.swap op) o :=
+by split; exact λ h a b ha hb, h hb ha
+
 theorem principal_zero {op : ordinal → ordinal → ordinal} : principal op 0 :=
 λ a _ h, (ordinal.not_lt_zero a h).elim
 
-theorem principal_one_iff {op : ordinal → ordinal → ordinal} :
+@[simp] theorem principal_one_iff {op : ordinal → ordinal → ordinal} :
   principal op 1 ↔ op 0 0 = 0 :=
 begin
   refine ⟨λ h, _, λ h a b ha hb, _⟩,
   { rwa ←lt_one_iff_zero,
-    exact h 0 0 zero_lt_one zero_lt_one },
+    exact h zero_lt_one zero_lt_one },
   { rwa [lt_one_iff_zero, ha, hb] at * }
 end
 
-theorem iterate_lt_of_principal {op : ordinal → ordinal → ordinal}
-  {a o : ordinal} (hao : a < o) (ho : principal op o) (n : ℕ) : (op a)^[n] a < o :=
+theorem principal.iterate_lt {op : ordinal → ordinal → ordinal} {a o : ordinal} (hao : a < o)
+  (ho : principal op o) (n : ℕ) : (op a)^[n] a < o :=
 begin
   induction n with n hn,
   { rwa function.iterate_zero },
-  { have := ho a _ hao hn,
-    rwa function.iterate_succ' }
+  { rw function.iterate_succ', exact ho hao hn }
 end
 
 theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : ordinal.{u}}
@@ -57,12 +61,12 @@ theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : or
 begin
   refine le_antisymm _ (H.le_self _),
   rw [←is_normal.bsup_eq.{u u} H ho', bsup_le],
-  exact λ b hbo, le_of_lt (ho a b hao hbo)
+  exact λ b hbo, (ho hao hbo).le
 end
 
 theorem nfp_le_of_principal {op : ordinal → ordinal → ordinal}
   {a o : ordinal} (hao : a < o) (ho : principal op o) : nfp (op a) a ≤ o :=
-nfp_le.2 $ λ n, le_of_lt (iterate_lt_of_principal hao ho n)
+nfp_le.2 $ λ n, (ho.iterate_lt hao n).le
 
 /-! #### Additive principal ordinals -/
 

@@ -135,8 +135,8 @@ end
 
 lemma eq_factorization_iff {n : ℕ} {f : ℕ →₀ ℕ} (hn : n ≠ 0) (hf : ∀ p ∈ f.support, prime p) :
   f.prod pow = n ↔ f = n.factorization :=
-⟨λ h, by {rw [←h, factorization_prod_pow_inv hf]},
- λ h, by {rw [h, factorization_prod_pow_eq_self hn]}⟩
+⟨λ h, by rw [←h, factorization_prod_pow_inv hf],
+ λ h, by rw [h, factorization_prod_pow_eq_self hn]⟩
 
 /-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
 noncomputable

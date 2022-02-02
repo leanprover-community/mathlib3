@@ -7,6 +7,7 @@ Authors: Chris Hughes, Thomas Browning
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
+import group_theory.pi_hom
 
 /-!
 # Sylow theorems
@@ -551,5 +552,32 @@ lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
  (↑P : subgroup G).normal :=
 normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing.mp hnc _ $
   normalizer_normalizer _
+
+section classical
+open_locale classical
+
+lemma direct_product_of_normal [fintype G]
+  (hn : ∀ {p : ℕ} [fact p.prime] (P : sylow p G), (↑P : subgroup G).normal) :
+  (Π P : (Σ (p : (fintype.card G).factors.to_finset), sylow p G), (↑(P.2) : subgroup G)) ≃* G :=
+begin
+  set sylows := Σ (p : (fintype.card G).factors.to_finset), sylow p G,
+  apply mul_equiv.of_bijective,
+  show _ →* G, {
+    apply subgroup_pi_hom.hom,
+
+
+  },
+
+
+
+
+
+
+end
+
+end classical
+
+
+
 
 end sylow

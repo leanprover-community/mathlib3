@@ -55,7 +55,7 @@ but the author cannot think of instances of `foldable` that are not also
 
 universes u v
 
-open ulift category_theory opposite
+open ulift category_theory mul_opposite
 
 namespace monoid
 variables {m : Type u → Type u} [monad m]
@@ -101,7 +101,7 @@ calc   const.run (traverse (λ y, const.mk' (flip f y)) [y₀,y₁]) x
 And this is how `const` turns a monoid into an applicative functor and
 how the monoid of endofunctions define `foldl`.
 -/
-@[reducible] def foldl (α : Type u) : Type u := (End α)ᵒᵖ
+@[reducible] def foldl (α : Type u) : Type u := (End α)ᵐᵒᵖ
 def foldl.mk (f : α → α) : foldl α := op f
 def foldl.get (x : foldl α) : α → α := unop x
 def foldl.of_free_monoid (f : β → α → β) (xs : free_monoid α) : monoid.foldl β :=
@@ -114,7 +114,7 @@ def foldr.of_free_monoid (f : α → β → β) (xs : free_monoid α) : monoid.f
 flip (list.foldr f) xs
 
 @[reducible] def mfoldl (m : Type u → Type u) [monad m] (α : Type u) : Type u :=
-opposite $ End $ Kleisli.mk m α
+mul_opposite $ End $ Kleisli.mk m α
 def mfoldl.mk (f : α → m α) : mfoldl m α := op f
 def mfoldl.get (x : mfoldl m α) : α → m α := unop x
 def mfoldl.of_free_monoid (f : β → α → m β) (xs : free_monoid α) : monoid.mfoldl m β :=
@@ -185,8 +185,8 @@ open function (hiding const) is_monoid_hom
 def map_fold [monoid α] [monoid β] {f : α → β} (hf : is_monoid_hom f) :
   applicative_transformation (const α) (const β) :=
 { app := λ x, f,
-  preserves_seq'  := by { intros, simp only [map_mul hf, (<*>)], },
-  preserves_pure' := by { intros, simp only [map_one hf, pure] } }
+  preserves_seq'  := by { intros, simp only [hf.map_mul, (<*>)], },
+  preserves_pure' := by { intros, simp only [hf.map_one, pure] } }
 
 def free.mk : α → free_monoid α := list.ret
 
@@ -204,7 +204,7 @@ lemma fold_foldl (f : β → α → β) :
   is_monoid_hom (foldl.of_free_monoid f) :=
 { map_one := rfl,
   map_mul := by intros; simp only [free_monoid.mul_def, foldl.of_free_monoid, flip, unop_op,
-    list.foldl_append, op_inj_iff]; refl }
+    list.foldl_append, op_inj]; refl }
 
 lemma foldl.unop_of_free_monoid  (f : β → α → β) (xs : free_monoid α) (a : β) :
   unop (foldl.of_free_monoid f xs) a = list.foldl f a xs := rfl
@@ -367,16 +367,12 @@ end
 
 variables {m : Type u → Type u} [monad m] [is_lawful_monad m]
 
-section
-local attribute [semireducible] opposite
 lemma mfoldl_to_list {f : α → β → m α} {x : α} {xs : t β} :
   mfoldl f x xs = list.mfoldl f x (to_list xs) :=
-begin
-  change _ = unop (mfoldl.of_free_monoid f (to_list xs)) x,
-  simp only [mfoldl, to_list_spec, fold_map_hom_free (fold_mfoldl (λ (β : Type u), m β) f),
+calc mfoldl f x xs = unop (mfoldl.of_free_monoid f (to_list xs)) x :
+  by simp only [mfoldl, to_list_spec, fold_map_hom_free (fold_mfoldl (λ (β : Type u), m β) f),
     mfoldl.of_free_monoid_comp_free_mk, mfoldl.get]
-end
-end
+... = list.mfoldl f x (to_list xs) : by simp only [mfoldl.of_free_monoid, unop_op, flip]
 
 lemma mfoldr_to_list (f : α → β → m β) (x : β) (xs : t α) :
   mfoldr f x xs = list.mfoldr f x (to_list xs) :=

@@ -42,11 +42,11 @@ lemma enumerate_eq_none : ∀ {s n₁ n₂}, enumerate s n₁ = none → n₁ �
     cases hs : sel s,
     { exact enumerate_eq_none_of_sel sel hs },
     { cases m,
-      case nat.zero {
-        have : n + 1 = 0, from nat.eq_zero_of_le_zero hm,
+      case nat.zero
+      { have : n + 1 = 0, from nat.eq_zero_of_le_zero hm,
         contradiction },
-      case nat.succ : m' {
-        simp [hs, enumerate] at h ⊢,
+      case nat.succ : m'
+      { simp [hs, enumerate] at h ⊢,
         have hm : n ≤ m', from nat.le_of_succ_le_succ hm,
         exact enumerate_eq_none h hm } }
   end
@@ -58,8 +58,8 @@ lemma enumerate_mem (h_sel : ∀ s a, sel s = some a → a ∈ s) :
   begin
     cases h : sel s,
     case none { simp [enumerate_eq_none_of_sel, h] },
-    case some : a' {
-      simp [enumerate, h],
+    case some : a'
+    { simp [enumerate, h],
       exact λ h' : enumerate _ (s \ {a'}) n = some a,
         have a ∈ s \ {a'}, from enumerate_mem h',
         this.left }
@@ -71,11 +71,11 @@ begin
   wlog hn : n₁ ≤ n₂,
   { rcases nat.le.dest hn with ⟨m, rfl⟩, clear hn,
     induction n₁ generalizing s,
-    case nat.zero {
-      cases m,
+    case nat.zero
+    { cases m,
       case nat.zero { refl },
-      case nat.succ : m {
-        have : enumerate sel (s \ {a}) m = some a, { simp [enumerate, *] at * },
+      case nat.succ : m
+      { have : enumerate sel (s \ {a}) m = some a, { simp [enumerate, *] at * },
         have : a ∈ s \ {a}, from enumerate_mem _ h_sel this,
         by simpa } },
     case nat.succ { cases h : sel s; simp [enumerate, nat.add_succ, add_comm, *] at *; tauto } }

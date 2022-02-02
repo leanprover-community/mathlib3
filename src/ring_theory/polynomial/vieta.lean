@@ -3,6 +3,7 @@ Copyright (c) 2020 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hanting Zhang
 -/
+import ring_theory.polynomial.basic
 import ring_theory.polynomial.symmetric
 
 /-!
@@ -61,10 +62,10 @@ begin
   apply_fun (polynomial.map (eval r)) at h,
   rw [map_prod, map_sum] at h,
   convert h,
-  simp only [eval_X, map_add, polynomial.map_C, polynomial.map_X, eq_self_iff_true],
+  simp only [eval_X, polynomial.map_add, polynomial.map_C, polynomial.map_X, eq_self_iff_true],
   funext,
   simp only [function.funext_iff, esymm, polynomial.map_C, map_sum, polynomial.C.map_sum,
-    polynomial.map_C, map_pow, polynomial.map_X, map_mul],
+    polynomial.map_C, polynomial.map_pow, polynomial.map_X, polynomial.map_mul],
   congr,
   funext,
   simp only [eval_prod, eval_X, (polynomial.C : R →+* polynomial R).map_prod],

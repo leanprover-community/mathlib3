@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.partition.subbox_induction
-import analysis.box_integral.partition.additive
+import analysis.box_integral.partition.split
 
 /-!
 # Filters used in box-based integrals
@@ -23,7 +23,7 @@ assumptions.
 Finally, for each set of parameters `l : box_integral.integration_params` and a rectangular box
 `I : box_integral.box ι`, we define several `filter`s that will be used either in the definition of
 the corresponding integral, or in the proofs of its properties. We equip
-`box_integral.integration_params` with a `bounded_lattice` structure such that larger
+`box_integral.integration_params` with a `bounded_order` structure such that larger
 `integration_params` produce larger filters.
 
 ## Main definitions
@@ -202,12 +202,12 @@ def equiv_prod : integration_params ≃ bool × order_dual bool × order_dual bo
 instance : partial_order integration_params :=
 partial_order.lift equiv_prod equiv_prod.injective
 
-/-- Auxiliary `order_iso` with a product type used to lift a `bounded_lattice` structure. -/
+/-- Auxiliary `order_iso` with a product type used to lift a `bounded_order` structure. -/
 def iso_prod : integration_params ≃o bool × order_dual bool × order_dual bool :=
 ⟨equiv_prod, λ ⟨x, y, z⟩, iff.rfl⟩
 
-instance : bounded_lattice integration_params :=
-iso_prod.symm.to_galois_insertion.lift_bounded_lattice
+instance : bounded_order integration_params :=
+iso_prod.symm.to_galois_insertion.lift_bounded_order
 
 /-- The value `⊥` (`bRiemann = ff`, `bHenstock = tt`, `bDistortion = tt`) corresponds to a
 generalization of the Henstock integral such that the Divergence theorem holds true without

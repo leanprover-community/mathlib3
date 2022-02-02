@@ -9,7 +9,7 @@ import category_theory.subobject.well_powered
 /-!
 # The lattice of subobjects
 
-We provide the `semilattice_inf_top (subobject X)` instance when `[has_pullback C]`,
+We provide the `semilattice_inf` with `order_top (subobject X)` instance when `[has_pullback C]`,
 and the `semilattice_sup (subobject X)` instance when `[has_images C] [has_binary_coproducts C]`.
 -/
 
@@ -335,13 +335,12 @@ begin
   exact ⟨mono_over.le_inf _ _ _ k l⟩,
 end
 
-instance {B : C} : semilattice_inf_top (subobject B) :=
+instance {B : C} : semilattice_inf (subobject B) :=
 { inf := λ m n, (inf.obj m).obj n,
   inf_le_left := inf_le_left,
   inf_le_right := inf_le_right,
   le_inf := le_inf,
-  ..subobject.order_top,
-  ..subobject.partial_order B }
+  ..subobject.partial_order _ }
 
 lemma factors_left_of_inf_factors {A B : C} {X Y : subobject B} {f : A ⟶ B}
   (h : (X ⊓ Y).factors f) : X.factors f :=
@@ -471,10 +470,6 @@ factors_of_le f le_sup_right P
 
 variables [has_initial C] [initial_mono_class C]
 
-instance {B : C} : semilattice_sup_bot (subobject B) :=
-{ ..subobject.order_bot,
-  ..subobject.semilattice_sup }
-
 lemma finset_sup_factors {I : Type*} {A B : C} {s : finset I} {P : I → subobject B}
   {f : A ⟶ B} (h : ∃ i ∈ s, (P i).factors f) :
   (s.sup P).factors f :=
@@ -493,17 +488,16 @@ end
 end semilattice_sup
 
 section lattice
+
+instance [has_initial C] [initial_mono_class C] {B : C} : bounded_order (subobject B) :=
+{ ..subobject.order_top,
+  ..subobject.order_bot }
+
 variables [has_pullbacks C] [has_images C] [has_binary_coproducts C]
 
 instance {B : C} : lattice (subobject B) :=
-{ ..subobject.semilattice_inf_top,
+{ ..subobject.semilattice_inf,
   ..subobject.semilattice_sup }
-
-variables [has_initial C] [initial_mono_class C]
-
-instance {B : C} : bounded_lattice (subobject B) :=
-{ ..subobject.semilattice_inf_top,
-  ..subobject.semilattice_sup_bot }
 
 end lattice
 
@@ -667,8 +661,9 @@ variables [well_powered C] [has_wide_pullbacks C] [has_images C] [has_coproducts
   [initial_mono_class C]
 
 instance {B : C} : complete_lattice (subobject B) :=
-{ ..subobject.semilattice_inf_top,
-  ..subobject.semilattice_sup_bot,
+{ ..subobject.semilattice_inf,
+  ..subobject.semilattice_sup,
+  ..subobject.bounded_order,
   ..subobject.complete_semilattice_Inf,
   ..subobject.complete_semilattice_Sup, }
 

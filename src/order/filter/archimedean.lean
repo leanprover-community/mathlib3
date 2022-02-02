@@ -19,6 +19,10 @@ variables {α R : Type*}
 
 open filter set
 
+@[simp] lemma nat.comap_coe_at_top [ordered_semiring R] [nontrivial R] [archimedean R] :
+  comap (coe : ℕ → R) at_top = at_top :=
+comap_embedding_at_top (λ _ _, nat.cast_le) exists_nat_ge
+
 lemma tendsto_coe_nat_at_top_iff [ordered_semiring R] [nontrivial R] [archimedean R]
   {f : α → ℕ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
@@ -28,22 +32,48 @@ lemma tendsto_coe_nat_at_top_at_top [ordered_semiring R] [archimedean R] :
   tendsto (coe : ℕ → R) at_top at_top :=
 nat.mono_cast.tendsto_at_top_at_top exists_nat_ge
 
+@[simp] lemma int.comap_coe_at_top [ordered_ring R] [nontrivial R] [archimedean R] :
+  comap (coe : ℤ → R) at_top = at_top :=
+comap_embedding_at_top (λ _ _, int.cast_le) $ λ r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨n, hn⟩
+
+@[simp] lemma int.comap_coe_at_bot [ordered_ring R] [nontrivial R] [archimedean R] :
+  comap (coe : ℤ → R) at_bot = at_bot :=
+comap_embedding_at_bot (λ _ _, int.cast_le) $ λ r,
+  let ⟨n, hn⟩ := exists_nat_ge (-r) in ⟨-n, by simpa [neg_le] using hn⟩
+
 lemma tendsto_coe_int_at_top_iff [ordered_ring R] [nontrivial R] [archimedean R]
   {f : α → ℤ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
-tendsto_at_top_embedding (assume a₁ a₂, int.cast_le) $
-  assume r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨(n:ℤ), hn⟩
+by rw [← tendsto_comap_iff, int.comap_coe_at_top]
+
+lemma tendsto_coe_int_at_bot_iff [ordered_ring R] [nontrivial R] [archimedean R]
+  {f : α → ℤ} {l : filter α} :
+  tendsto (λ n, (f n : R)) l at_bot ↔ tendsto f l at_bot :=
+by rw [← tendsto_comap_iff, int.comap_coe_at_bot]
 
 lemma tendsto_coe_int_at_top_at_top [ordered_ring R] [archimedean R] :
   tendsto (coe : ℤ → R) at_top at_top :=
 int.cast_mono.tendsto_at_top_at_top $ λ b,
   let ⟨n, hn⟩ := exists_nat_ge b in ⟨n, hn⟩
 
+@[simp] lemma rat.comap_coe_at_top [linear_ordered_field R] [archimedean R] :
+  comap (coe : ℚ → R) at_top = at_top :=
+comap_embedding_at_top (λ _ _, rat.cast_le) $ λ r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨n, by simpa⟩
+
+@[simp] lemma rat.comap_coe_at_bot [linear_ordered_field R] [archimedean R] :
+  comap (coe : ℚ → R) at_bot = at_bot :=
+comap_embedding_at_bot (λ _ _, rat.cast_le) $ λ r, let ⟨n, hn⟩ := exists_nat_ge (-r)
+  in ⟨-n, by simpa [neg_le]⟩
+
 lemma tendsto_coe_rat_at_top_iff [linear_ordered_field R] [archimedean R]
   {f : α → ℚ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
-tendsto_at_top_embedding (assume a₁ a₂, rat.cast_le) $
-  assume r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨(n:ℚ), by assumption_mod_cast⟩
+by rw [← tendsto_comap_iff, rat.comap_coe_at_top]
+
+lemma tendsto_coe_rat_at_bot_iff [linear_ordered_field R] [archimedean R]
+  {f : α → ℚ} {l : filter α} :
+  tendsto (λ n, (f n : R)) l at_bot ↔ tendsto f l at_bot :=
+by rw [← tendsto_comap_iff, rat.comap_coe_at_bot]
 
 lemma at_top_countable_basis_of_archimedean [linear_ordered_semiring R] [archimedean R] :
   (at_top : filter R).has_countable_basis (λ n : ℕ, true) (λ n, Ici n) :=
@@ -82,8 +112,7 @@ begin
   apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n • r⟩ := archimedean.arch 1 hr,
   rw nsmul_eq_mul' at hn,
-  filter_upwards [tendsto_at_top.1 hf (n * max b 0)],
-  assume x hx,
+  filter_upwards [tendsto_at_top.1 hf (n * max b 0)] with x hx,
   calc b ≤ 1 * max b 0 : by { rw [one_mul], exact le_max_left _ _ }
   ... ≤ (r * n) * max b 0 : mul_le_mul_of_nonneg_right hn (le_max_right _ _)
   ... = r * (n * max b 0) : by rw [mul_assoc]
@@ -100,8 +129,7 @@ begin
   apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n • r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ (n : R) * r, by rwa nsmul_eq_mul at hn,
-  filter_upwards [tendsto_at_top.1 hf (max b 0 * n)],
-  assume x hx,
+  filter_upwards [tendsto_at_top.1 hf (max b 0 * n)] with x hx,
   calc b ≤ max b 0 * 1 : by { rw [mul_one], exact le_max_left _ _ }
   ... ≤ max b 0 * (n * r) : mul_le_mul_of_nonneg_left hn' (le_max_right _ _)
   ... = (max b 0 * n) * r : by rw [mul_assoc]

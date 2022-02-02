@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.polynomial.derivative
-import data.polynomial.algebra_map
-import data.mv_polynomial.pderiv
 import data.nat.choose.sum
-import linear_algebra.basis
 import ring_theory.polynomial.pochhammer
+import data.polynomial.algebra_map
+import linear_algebra.linear_independent
+import data.mv_polynomial.pderiv
 
 /-!
 # Bernstein polynomials
@@ -36,6 +36,7 @@ noncomputable theory
 
 open nat (choose)
 open polynomial (X)
+open_locale big_operators
 
 variables (R : Type*) [comm_ring R]
 
@@ -291,20 +292,16 @@ lemma linear_independent (n : ℕ) :
   linear_independent ℚ (λ ν : fin (n+1), bernstein_polynomial ℚ n ν) :=
 linear_independent_aux n (n+1) (le_refl _)
 
-lemma sum (n : ℕ) : (finset.range (n + 1)).sum (λ ν, bernstein_polynomial R n ν) = 1 :=
-begin
-  -- We calculate `(x + (1-x))^n` in two different ways.
-  conv { congr, congr, skip, funext, dsimp [bernstein_polynomial], rw [mul_assoc, mul_comm], },
-  rw ←add_pow,
-  simp,
-end
-
+lemma sum (n : ℕ) : ∑ ν in finset.range (n + 1), bernstein_polynomial R n ν = 1 :=
+calc ∑ ν in finset.range (n + 1), bernstein_polynomial R n ν = (X + (1 - X)) ^ n :
+  by { rw add_pow, simp only [bernstein_polynomial, mul_comm, mul_assoc, mul_left_comm] }
+... = 1 : by simp
 
 open polynomial
 open mv_polynomial
 
 lemma sum_smul (n : ℕ) :
-  (finset.range (n + 1)).sum (λ ν, ν • bernstein_polynomial R n ν) = n • X :=
+  ∑ ν in finset.range (n + 1), ν • bernstein_polynomial R n ν = n • X :=
 begin
   -- We calculate the `x`-derivative of `(x+y)^n`, evaluated at `y=(1-x)`,
   -- either directly or by using the binomial theorem.
@@ -338,23 +335,22 @@ begin
       push_cast,
       ring, }, },
 
-  conv at h {
-    to_lhs,
+  conv at h
+  { to_lhs,
     rw [add_pow, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum, finset.sum_mul],
     -- Step inside the sum:
     apply_congr, skip,
     simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w], },
   -- On the right hand side, we'll just simplify.
-  conv at h {
-    to_rhs,
-    rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
+  conv at h
+  { to_rhs,
+    rw [(pderiv tt).leibniz_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
     simp [e] },
   simpa using h,
 end
 
 lemma sum_mul_smul (n : ℕ) :
-  (finset.range (n + 1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial R n ν) =
-    (n * (n-1)) • X^2 :=
+  ∑ ν in finset.range (n + 1), (ν * (ν-1)) • bernstein_polynomial R n ν = (n * (n-1)) • X^2 :=
 begin
   -- We calculate the second `x`-derivative of `(x+y)^n`, evaluated at `y=(1-x)`,
   -- either directly or by using the binomial theorem.
@@ -392,18 +388,18 @@ begin
         push_cast,
         ring, }, }, },
 
-  conv at h {
-    to_lhs,
+  conv at h
+  { to_lhs,
     rw [add_pow, (pderiv tt).map_sum, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum,
       finset.sum_mul],
     -- Step inside the sum:
     apply_congr, skip,
     simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w] },
   -- On the right hand side, we'll just simplify.
-  conv at h {
-    to_rhs,
-    simp only [pderiv_one, pderiv_mul, pderiv_pow, pderiv_nat_cast, (pderiv tt).map_add,
-      pderiv_tt_x, pderiv_tt_y],
+  conv at h
+  { to_rhs,
+    simp only [pderiv_one, pderiv_mul, (pderiv _).leibniz_pow, (pderiv _).map_coe_nat,
+      (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
     simp [e, smul_smul] },
   simpa using h,
 end
@@ -413,7 +409,7 @@ A certain linear combination of the previous three identities,
 which we'll want later.
 -/
 lemma variance (n : ℕ) :
-  (finset.range (n+1)).sum (λ ν, (n • polynomial.X - ν)^2 * bernstein_polynomial R n ν) =
+  ∑ ν in finset.range (n+1), (n • polynomial.X - ν)^2 * bernstein_polynomial R n ν =
     n • polynomial.X * (1 - polynomial.X) :=
 begin
   have p :

@@ -69,18 +69,18 @@ tsub_add_cancel_of_le (le_of_lt h) ▸
   tendsto_add_one_pow_at_top_at_top_of_pos (tsub_pos_of_lt h)
 
 lemma tendsto_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
-  tendsto (norm : 𝕜 → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
+  tendsto (norm : 𝕜 → ℝ) (𝓝[≠] 0) (𝓝[>] 0) :=
 tendsto_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
 
 namespace normed_field
 
 lemma tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
-  tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{0}ᶜ] 0) at_top :=
+  tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[≠] 0) at_top :=
 (tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
 lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
   (hm : m < 0) :
-  tendsto (λ x : 𝕜, ∥x ^ m∥) (𝓝[{0}ᶜ] 0) at_top :=
+  tendsto (λ x : 𝕜, ∥x ^ m∥) (𝓝[≠] 0) at_top :=
 begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
@@ -117,7 +117,7 @@ h₁.eq_or_lt.elim
 
 lemma tendsto_pow_at_top_nhds_within_0_of_lt_1 {𝕜 : Type*} [linear_ordered_field 𝕜] [archimedean 𝕜]
   [topological_space 𝕜] [order_topology 𝕜] {r : 𝕜} (h₁ : 0 < r) (h₂ : r < 1) :
-  tendsto (λn:ℕ, r^n) at_top (𝓝[Ioi 0] 0) :=
+  tendsto (λn:ℕ, r^n) at_top (𝓝[>] 0) :=
 tendsto_inf.2 ⟨tendsto_pow_at_top_nhds_0_of_lt_1 h₁.le h₂,
   tendsto_principal.2 $ eventually_of_forall $ λ n, pow_pos h₁ _⟩
 
@@ -242,7 +242,7 @@ by refine (monotone_mul_left_of_nonneg hc).seq_le_seq n _ h _; simp [pow_succ, m
 lemma is_o_pow_const_const_pow_of_one_lt {R : Type*} [normed_ring R] (k : ℕ) {r : ℝ} (hr : 1 < r) :
   is_o (λ n, n ^ k : ℕ → R) (λ n, r ^ n) at_top :=
 begin
-  have : tendsto (λ x : ℝ, x ^ k) (𝓝[Ioi 1] 1) (𝓝 1),
+  have : tendsto (λ x : ℝ, x ^ k) (𝓝[>] 1) (𝓝 1),
     from ((continuous_id.pow k).tendsto' (1 : ℝ) 1 (one_pow _)).mono_left inf_le_left,
   obtain ⟨r' : ℝ, hr' : r' ^ k < r, h1 : 1 < r'⟩ :=
     ((this.eventually (gt_mem_nhds hr)).and self_mem_nhds_within).exists,
@@ -280,7 +280,7 @@ end
 
 lemma tendsto_pow_const_div_const_pow_of_one_lt (k : ℕ) {r : ℝ} (hr : 1 < r) :
   tendsto (λ n, n ^ k / r ^ n : ℕ → ℝ) at_top (𝓝 0) :=
-(is_o_pow_const_const_pow_of_one_lt k hr).tendsto_0
+(is_o_pow_const_const_pow_of_one_lt k hr).tendsto_div_nhds_zero
 
 /-- If `|r| < 1`, then `n ^ k r ^ n` tends to zero for any natural `k`. -/
 lemma tendsto_pow_const_mul_const_pow_of_abs_lt_one (k : ℕ) {r : ℝ} (hr : |r| < 1) :
@@ -814,11 +814,10 @@ begin
   { push_neg at hr₀,
     refine summable_of_norm_bounded_eventually 0 summable_zero _,
     rw nat.cofinite_eq_at_top,
-    filter_upwards [h],
-    intros n hn,
+    filter_upwards [h] with _ hn,
     by_contra h,
     push_neg at h,
-    exact not_lt.mpr (norm_nonneg _) (lt_of_le_of_lt hn $ mul_neg_of_neg_of_pos hr₀ h) }
+    exact not_lt.mpr (norm_nonneg _) (lt_of_le_of_lt hn $ mul_neg_of_neg_of_pos hr₀ h), },
 end
 
 lemma summable_of_ratio_test_tendsto_lt_one {α : Type*} [normed_group α] [complete_space α]
@@ -827,9 +826,8 @@ lemma summable_of_ratio_test_tendsto_lt_one {α : Type*} [normed_group α] [comp
 begin
   rcases exists_between hl₁ with ⟨r, hr₀, hr₁⟩,
   refine summable_of_ratio_norm_eventually_le hr₁ _,
-  filter_upwards [eventually_le_of_tendsto_lt hr₀ h, hf],
-  intros n h₀ h₁,
-  rwa ← div_le_iff (norm_pos_iff.mpr h₁)
+  filter_upwards [eventually_le_of_tendsto_lt hr₀ h, hf] with _ _ h₁,
+  rwa ← div_le_iff (norm_pos_iff.mpr h₁),
 end
 
 lemma not_summable_of_ratio_norm_eventually_ge {α : Type*} [semi_normed_group α]
@@ -860,14 +858,12 @@ lemma not_summable_of_ratio_test_tendsto_gt_one {α : Type*} [semi_normed_group 
   (h : tendsto (λ n, ∥f (n+1)∥/∥f n∥) at_top (𝓝 l)) : ¬ summable f :=
 begin
   have key : ∀ᶠ n in at_top, ∥f n∥ ≠ 0,
-  { filter_upwards [eventually_ge_of_tendsto_gt hl h],
-    intros n hn hc,
+  { filter_upwards [eventually_ge_of_tendsto_gt hl h] with _ hn hc,
     rw [hc, div_zero] at hn,
     linarith },
   rcases exists_between hl with ⟨r, hr₀, hr₁⟩,
   refine not_summable_of_ratio_norm_eventually_ge hr₀ key.frequently _,
-  filter_upwards [eventually_ge_of_tendsto_gt hr₁ h, key],
-  intros n h₀ h₁,
+  filter_upwards [eventually_ge_of_tendsto_gt hr₁ h, key] with _ _ h₁,
   rwa ← le_div_iff (lt_of_le_of_ne (norm_nonneg _) h₁.symm)
 end
 

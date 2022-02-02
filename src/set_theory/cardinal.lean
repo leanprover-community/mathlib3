@@ -3,10 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
+import data.nat.enat
 import data.set.countable
 import set_theory.schroeder_bernstein
-import data.fintype.card
-import data.nat.enat
 
 /-!
 # Cardinal Numbers
@@ -20,7 +19,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
   `cardinal`.
 * There is an instance that `cardinal` forms a `canonically_ordered_comm_semiring`.
 * Addition `c₁ + c₂` is defined by `cardinal.add_def α β : #α + #β = #(α ⊕ β)`.
-* Multiplication `c₁ * c₂` is defined by `cardinal.mul_def : #α * #β = #(α * β)`.
+* Multiplication `c₁ * c₂` is defined by `cardinal.mul_def : #α * #β = #(α × β)`.
 * The order `c₁ ≤ c₂` is defined by `cardinal.le_def α β : #α ≤ #β ↔ nonempty (α ↪ β)`.
 * Exponentiation `c₁ ^ c₂` is defined by `cardinal.power_def α β : #α ^ #β = #(β → α)`.
 * `cardinal.omega` or `ω` the cardinality of `ℕ`. This definition is universe polymorphic:
@@ -473,8 +472,8 @@ begin
   exact cantor_injective f hf
 end
 
-instance : no_top_order cardinal.{u} :=
-{ no_top := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
+instance : no_max_order cardinal.{u} :=
+{ exists_gt := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
 
 noncomputable instance : linear_order cardinal.{u} :=
 { le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total,

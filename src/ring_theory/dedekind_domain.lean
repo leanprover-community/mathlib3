@@ -133,6 +133,8 @@ structure is_dedekind_domain_dvr : Prop :=
 
 section inverse
 
+namespace fractional_ideal
+
 variables {R₁ : Type*} [comm_ring R₁] [is_domain R₁] [algebra R₁ K] [is_fraction_ring R₁ K]
 variables {I J : fractional_ideal R₁⁰ K}
 
@@ -262,8 +264,10 @@ begin
     ((generator (I : submodule R₁ K))⁻¹)) hI).symm
 end
 
-@[simp] lemma fractional_ideal.one_inv : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
+@[simp] lemma one_inv : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
 fractional_ideal.div_one
+
+end fractional_ideal
 
 /--
 A Dedekind domain is an integral domain such that every fractional ideal has an inverse.
@@ -271,7 +275,7 @@ A Dedekind domain is an integral domain such that every fractional ideal has an 
 This is equivalent to `is_dedekind_domain`.
 In particular we provide a `fractional_ideal.comm_group_with_zero` instance,
 assuming `is_dedekind_domain A`, which implies `is_dedekind_domain_inv`. For **integral** ideals,
-`is_dedekind_domain`(`_inv`) implies only `ideal.comm_cancel_monoid_with_zero`.
+`is_dedekind_domain`(`_inv`) implies only `ideal.cancel_comm_monoid_with_zero`.
 -/
 def is_dedekind_domain_inv : Prop :=
 ∀ I ≠ (⊥ : fractional_ideal A⁰ (fraction_ring A)), I * I⁻¹ = 1
@@ -423,8 +427,7 @@ begin
          not_or_distrib, ← this] at hprodZ },
   -- By maximality of `P` and `M`, we have that `P ≤ M` implies `P = M`.
   have hPM' := (is_dedekind_domain.dimension_le_one _ hP0 P.is_prime).eq_of_le hM.ne_top hPM,
-  tactic.unfreeze_local_instances,
-  subst hPM',
+  substI hPM',
 
   -- By minimality of `Z`, erasing `P` from `Z` is exactly what we need.
   refine ⟨Z.erase P, _, _⟩,
@@ -662,9 +665,9 @@ noncomputable instance fractional_ideal.comm_group_with_zero :
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
   .. fractional_ideal.comm_semiring }
 
-noncomputable instance ideal.comm_cancel_monoid_with_zero :
-  comm_cancel_monoid_with_zero (ideal A) :=
-function.injective.comm_cancel_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
+noncomputable instance ideal.cancel_comm_monoid_with_zero :
+  cancel_comm_monoid_with_zero (ideal A) :=
+function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
   coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
 
 /-- For ideals in a Dedekind domain, to divide is to contain. -/
@@ -823,7 +826,7 @@ begin
     rintros x ⟨⟩ },
   { rintros x s hx ⟨y, hy, hs⟩,
     obtain ⟨x', y', hy', hx'⟩ := exists_integral_multiple
-      ((is_fraction_ring.is_algebraic_iff A K).mpr (algebra.is_algebraic_of_finite x))
+      ((is_fraction_ring.is_algebraic_iff A K L).mpr (algebra.is_algebraic_of_finite x))
       ((algebra_map A L).injective_iff.mp _),
     refine ⟨y * y', mul_ne_zero hy hy', λ x'' hx'', _⟩,
     rcases finset.mem_insert.mp hx'' with (rfl | hx''),

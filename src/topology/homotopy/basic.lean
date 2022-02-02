@@ -6,41 +6,47 @@ Authors: Shing Tak Lam
 
 import topology.unit_interval
 import topology.algebra.ordered.proj_Icc
-import topology.continuous_function.basic
+import topology.continuous_function.ordered
 import topology.compact_open
 
 /-!
 # Homotopy between functions
 
-In this file, we define a homotopy between two functions `f₀` and `f₁`. First we define `homotopy`
-between the two functions, with no restrictions on the intermediate maps. Then, as in the
-formalisation in HOL-Analysis, we define `homotopy_with f₀ f₁ P`, for homotopies between `f₀` and
-`f₁`, where the intermediate maps satisfy the predicate `P`. Finally, we define
-`homotopy_rel f₀ f₁ S`, for homotopies between `f₀` and `f₁` which are fixed on `S`.
+In this file, we define a homotopy between two functions `f₀` and `f₁`. First we define
+`continuous_map.homotopy` between the two functions, with no restrictions on the intermediate
+maps. Then, as in the formalisation in HOL-Analysis, we define
+`continuous_map.homotopy_with f₀ f₁ P`, for homotopies between `f₀` and `f₁`, where the
+intermediate maps satisfy the predicate `P`. Finally, we define
+`continuous_map.homotopy_rel f₀ f₁ S`, for homotopies between `f₀` and `f₁` which are fixed
+on `S`.
 
 ## Definitions
 
-* `homotopy f₀ f₁` is the type of homotopies between `f₀` and `f₁`.
-* `homotopy_with f₀ f₁ P` is the type of homotopies between `f₀` and `f₁`, where the intermediate
-  maps satisfy the predicate `P`.
-* `homotopy_rel f₀ f₁ S` is the type of homotopies between `f₀` and `f₁` which are fixed on `S`.
+* `continuous_map.homotopy f₀ f₁` is the type of homotopies between `f₀` and `f₁`.
+* `continuous_map.homotopy_with f₀ f₁ P` is the type of homotopies between `f₀` and `f₁`, where
+  the intermediate maps satisfy the predicate `P`.
+* `continuous_map.homotopy_rel f₀ f₁ S` is the type of homotopies between `f₀` and `f₁` which
+  are fixed on `S`.
 
 For each of the above, we have
 
 * `refl f`, which is the constant homotopy from `f` to `f`.
-* `symm F`, which reverses the homotopy `F`. For example, if `F : homotopy f₀ f₁`, then
-  `F.symm : homotopy f₁ f₀`.
-* `trans F G`, which concatenates the homotopies `F` and `G`. For example, if `F : homotopy f₀ f₁`
-  and `G : homotopy f₁ f₂`, then `F.trans G : homotopy f₀ f₂`.
+* `symm F`, which reverses the homotopy `F`. For example, if `F : continuous_map.homotopy f₀ f₁`,
+  then `F.symm : continuous_map.homotopy f₁ f₀`.
+* `trans F G`, which concatenates the homotopies `F` and `G`. For example, if
+  `F : continuous_map.homotopy f₀ f₁` and `G : continuous_map.homotopy f₁ f₂`, then
+  `F.trans G : continuous_map.homotopy f₀ f₂`.
 
 We also define the relations
 
-* `homotopic f₀ f₁` is defined to be `nonempty (homotopy f₀ f₁)`
-* `homotopic_with f₀ f₁ P` is defined to be `nonempty (homotopy_with f₀ f₁ P)`
-* `homotopic_rel f₀ f₁ P` is defined to be `nonempty (homotopy_rel f₀ f₁ P)`
+* `continuous_map.homotopic f₀ f₁` is defined to be `nonempty (continuous_map.homotopy f₀ f₁)`
+* `continuous_map.homotopic_with f₀ f₁ P` is defined to be
+  `nonempty (continuous_map.homotopy_with f₀ f₁ P)`
+* `continuous_map.homotopic_rel f₀ f₁ P` is defined to be
+  `nonempty (continuous_map.homotopy_rel f₀ f₁ P)`
 
-and for `homotopic` and `homotopic_rel`, we also define the `setoid` and `quotient` in `C(X, Y)` by
-these relations.
+and for `continuous_map.homotopic` and `continuous_map.homotopic_rel`, we also define the
+`setoid` and `quotient` in `C(X, Y)` by these relations.
 
 ## References
 
@@ -256,15 +262,15 @@ namespace homotopic
 lemma refl (f : C(X, Y)) : homotopic f f := ⟨homotopy.refl f⟩
 
 @[symm]
-lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic f g) : homotopic g f := ⟨h.some.symm⟩
+lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic f g) : homotopic g f := h.map homotopy.symm
 
 @[trans]
 lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic f g) (h₁ : homotopic g h) : homotopic f h :=
-⟨h₀.some.trans h₁.some⟩
+h₀.map2 homotopy.trans h₁
 
 lemma hcomp {f₀ f₁ : C(X, Y)} {g₀ g₁ : C(Y, Z)} (h₀ : homotopic f₀ f₁) (h₁ : homotopic g₀ g₁) :
   homotopic (g₀.comp f₀) (g₁.comp f₁) :=
-⟨h₀.some.hcomp h₁.some⟩
+h₀.map2 homotopy.hcomp h₁
 
 lemma equivalence : equivalence (@homotopic X Y _ _) := ⟨refl, symm, trans⟩
 
@@ -527,12 +533,13 @@ variable {S : set X}
 lemma refl (f : C(X, Y)) : homotopic_rel f f S := ⟨homotopy_rel.refl f S⟩
 
 @[symm]
-lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic_rel f g S) : homotopic_rel g f S := ⟨h.some.symm⟩
+lemma symm ⦃f g : C(X, Y)⦄ (h : homotopic_rel f g S) : homotopic_rel g f S :=
+  h.map homotopy_rel.symm
 
 @[trans]
 lemma trans ⦃f g h : C(X, Y)⦄ (h₀ : homotopic_rel f g S) (h₁ : homotopic_rel g h S) :
   homotopic_rel f h S :=
-⟨h₀.some.trans h₁.some⟩
+h₀.map2 homotopy_rel.trans h₁
 
 lemma equivalence : equivalence (λ f g : C(X, Y), homotopic_rel f g S) :=
 ⟨refl, symm, trans⟩

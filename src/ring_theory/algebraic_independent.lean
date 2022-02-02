@@ -305,7 +305,7 @@ begin
   refine algebraic_independent_of_finite (⋃ i, s i) (λ t ht ft, _),
   rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
   rcases hs.finset_le fi.to_finset with ⟨i, hi⟩,
-  exact (h i).mono (subset.trans hI $ bUnion_subset $
+  exact (h i).mono (subset.trans hI $ Union₂_subset $
     λ j hj, hi j (fi.mem_to_finset.2 hj))
 end
 

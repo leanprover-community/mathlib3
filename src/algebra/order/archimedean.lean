@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.field_power
-import data.rat
 import data.int.least_greatest
+import data.rat.floor
 
 /-!
 # Archimedean groups and fields.
@@ -28,7 +28,7 @@ number `n` such that `x ≤ n • y`.
 * `ℕ`, `ℤ`, and `ℚ` are archimedean.
 -/
 
-open int
+open int set
 
 variables {α : Type*}
 
@@ -47,8 +47,8 @@ variables [linear_ordered_add_comm_group α] [archimedean α]
 
 /-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for
 `a > 0`, any `g` in the group lies between some two consecutive multiples of `a`. -/
-lemma exists_int_smul_near_of_pos {a : α} (ha : 0 < a) (g : α) :
-  ∃ (k : ℤ), k • a ≤ g ∧ g < (k + 1) • a :=
+lemma exists_unique_zsmul_near_of_pos {a : α} (ha : 0 < a) (g : α) :
+  ∃! k : ℤ, k • a ≤ g ∧ g < (k + 1) • a :=
 begin
   let s : set ℤ := {n : ℤ | n • a ≤ g},
   obtain ⟨k, hk : -g ≤ k • a⟩ := archimedean.arch (-g) ha,
@@ -60,35 +60,30 @@ begin
     rw ← coe_nat_zsmul at hk,
     exact le_trans hn hk },
   obtain ⟨m, hm, hm'⟩ := int.exists_greatest_of_bdd ⟨k, h_bdd⟩ h_ne,
-  refine ⟨m, hm, _⟩,
-  by_contra H,
-  linarith [hm' _ $ not_lt.mp H]
+  have hm'' : g < (m + 1) • a,
+  { contrapose! hm', exact ⟨m + 1, hm', lt_add_one _⟩, },
+  refine ⟨m, ⟨hm, hm''⟩, λ n hn, (hm' n hn.1).antisymm $ int.le_of_lt_add_one _⟩,
+  rw ← zsmul_lt_zsmul_iff ha,
+  exact lt_of_le_of_lt hm hn.2
 end
 
-lemma exists_int_smul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
-  ∃ (k : ℤ), 0 ≤ g - k • a ∧ g - k • a < a :=
-begin
-  obtain ⟨k, h1, h2⟩ := exists_int_smul_near_of_pos ha g,
-  refine ⟨k, sub_nonneg.mpr h1, _⟩,
-  simpa only [sub_lt_iff_lt_add', add_zsmul, one_zsmul] using h2
-end
+lemma exists_unique_zsmul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
+  ∃! k : ℤ, 0 ≤ g - k • a ∧ g - k • a < a :=
+by simpa only [sub_nonneg, add_zsmul, one_zsmul, sub_lt_iff_lt_add']
+  using exists_unique_zsmul_near_of_pos ha g
 
-lemma exists_add_int_smul_mem_Ico {a : α} (ha : 0 < a) (b c : α) :
-  ∃ m : ℤ, b + m • a ∈ set.Ico c (c + a) :=
-begin
-  rcases exists_int_smul_near_of_pos' ha (b - c) with ⟨m, hle, hlt⟩,
-  refine ⟨-m, _, _⟩,
-  { rwa [neg_zsmul, ← sub_eq_add_neg, le_sub, ← sub_nonneg] },
-  { rwa [sub_right_comm, sub_lt_iff_lt_add', sub_eq_add_neg, ← neg_zsmul] at hlt }
-end
+lemma exists_unique_add_zsmul_mem_Ico {a : α} (ha : 0 < a) (b c : α) :
+  ∃! m : ℤ, b + m • a ∈ set.Ico c (c + a) :=
+(equiv.neg ℤ).bijective.exists_unique_iff.2 $
+  by simpa only [equiv.neg_apply, mem_Ico, neg_zsmul, ← sub_eq_add_neg, le_sub_iff_add_le, zero_add,
+    add_comm c, sub_lt_iff_lt_add', add_assoc] using exists_unique_zsmul_near_of_pos' ha (b - c)
 
-lemma exists_add_int_smul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
-  ∃ m : ℤ, b + m • a ∈ set.Ioc c (c + a) :=
-begin
-  rcases exists_int_smul_near_of_pos ha (c - b) with ⟨m, hle, hlt⟩,
-  refine ⟨m + 1, sub_lt_iff_lt_add'.1 hlt, _⟩,
-  rwa [add_zsmul, one_zsmul, ← add_assoc, add_le_add_iff_right, ← le_sub_iff_add_le']
-end
+lemma exists_unique_add_zsmul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
+  ∃! m : ℤ, b + m • a ∈ set.Ioc c (c + a) :=
+(equiv.add_right (1 : ℤ)).bijective.exists_unique_iff.2 $
+  by simpa only [add_zsmul, sub_lt_iff_lt_add', le_sub_iff_add_le', ← add_assoc, and.comm, mem_Ioc,
+    equiv.coe_add_right, one_zsmul, add_le_add_iff_right]
+    using exists_unique_zsmul_near_of_pos ha (c - b)
 
 end linear_ordered_add_comm_group
 

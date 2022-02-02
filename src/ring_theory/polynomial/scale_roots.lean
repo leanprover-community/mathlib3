@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Devon Tuma
 -/
 
-import ring_theory.polynomial.basic
 import ring_theory.non_zero_divisors
+import data.polynomial.algebra_map
 
 /-!
 # Scaling the roots of a polynomial
@@ -117,7 +117,7 @@ lemma scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero
 begin
   convert scale_roots_eval₂_eq_zero f hr,
   rw [←mul_div_assoc, mul_comm, mul_div_cancel],
-  exact f.map_ne_zero_of_mem_non_zero_divisors hf hs
+  exact map_ne_zero_of_mem_non_zero_divisors _ hf hs
 end
 
 lemma scale_roots_aeval_eq_zero_of_aeval_div_eq_zero [algebra A K]

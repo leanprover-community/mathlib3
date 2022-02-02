@@ -50,6 +50,19 @@ non-dependent version and `prod_equiv_pi_fin_two` for a version with inputs `α 
   left_inv := λ f, funext $ fin.forall_fin_two.2 ⟨rfl, rfl⟩,
   right_inv := λ ⟨x, y⟩, rfl }
 
+lemma fin.preimage_apply_01_prod {α : fin 2 → Type u} (s : set (α 0)) (t : set (α 1)) :
+  (λ f : Π i, α i, (f 0, f 1)) ⁻¹' (s ×ˢ t) =
+    set.pi set.univ (fin.cons s $ fin.cons t fin.elim0) :=
+begin
+  ext f,
+  have : (fin.cons s (fin.cons t fin.elim0) : Π i, set (α i)) 1 = t := rfl,
+  simp [fin.forall_fin_two, this]
+end
+
+lemma fin.preimage_apply_01_prod' {α : Type u} (s t : set α) :
+  (λ f : fin 2 → α, (f 0, f 1)) ⁻¹' (s ×ˢ t) = set.pi set.univ ![s, t] :=
+fin.preimage_apply_01_prod s t
+
 /-- A product space `α × β` is equivalent to the space `Π i : fin 2, γ i`, where
 `γ = fin.cons α (fin.cons β fin_zero_elim)`. See also `pi_fin_two_equiv` and
 `fin_two_arrow_equiv`. -/
@@ -312,17 +325,15 @@ lemma coe_fin_rotate {n : ℕ} (i : fin n.succ) :
 by rw [fin_rotate_succ_apply, fin.coe_add_one i]
 
 /-- Equivalence between `fin m × fin n` and `fin (m * n)` -/
+@[simps]
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
-{ to_fun := λ x, ⟨x.2.1 + n * x.1.1,
+{ to_fun := λ x, ⟨x.2 + n * x.1,
     calc x.2.1 + n * x.1.1 + 1
         = x.1.1 * n + x.2.1 + 1 : by ac_refl
     ... ≤ x.1.1 * n + n : nat.add_le_add_left x.2.2 _
     ... = (x.1.1 + 1) * n : eq.symm $ nat.succ_mul _ _
     ... ≤ m * n : nat.mul_le_mul_right _ x.1.2⟩,
-  inv_fun := λ x,
-    have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero x.1 $ by subst H; from x.2,
-    (⟨x.1 / n, (nat.div_lt_iff_lt_mul _ _ H).2 x.2⟩,
-     ⟨x.1 % n, nat.mod_lt _ H⟩),
+  inv_fun := λ x, (x.div_nat, x.mod_nat),
   left_inv := λ ⟨x, y⟩,
     have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero y.1 $ H ▸ y.2,
     prod.ext

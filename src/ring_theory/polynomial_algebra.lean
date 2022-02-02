@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import ring_theory.matrix_algebra
 import data.polynomial.algebra_map
 import data.matrix.basis
+import data.matrix.dmatrix
 
 /-!
 # Algebra isomorphism between matrices of polynomials and polynomials of matrices
@@ -94,6 +95,7 @@ lemma to_fun_linear_mul_tmul_mul (a₁ a₂ : A) (p₁ p₂ : polynomial R) :
   (to_fun_linear R A) ((a₁ * a₂) ⊗ₜ[R] (p₁ * p₂)) =
     (to_fun_linear R A) (a₁ ⊗ₜ[R] p₁) * (to_fun_linear R A) (a₂ ⊗ₜ[R] p₂) :=
 begin
+  classical,
   simp only [to_fun_linear_tmul_apply, to_fun_bilinear_apply_eq_sum],
   ext k,
   simp_rw [coeff_sum, coeff_monomial, sum_def, finset.sum_ite_eq', mem_support_iff, ne.def],

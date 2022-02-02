@@ -182,7 +182,7 @@ begin
   { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
                             (mem_of_mem_nhds V₁_in : b ∈ V₁) V' V'_in },
   suffices : ∀ x ∈ V₁ ∩ V₂, φ x ∈ V',
-  { filter_upwards [inter_mem V₁_in V₂_in], exact this },
+  { filter_upwards [inter_mem V₁_in V₂_in] using this, },
   rintros x ⟨x_in₁, x_in₂⟩,
   have hV₂x : V₂ ∈ 𝓝 x := is_open.mem_nhds V₂_op x_in₂,
   apply V'_closed.mem_of_tendsto x_in₁,
@@ -202,7 +202,7 @@ lemma mk'
     ∃t ∈ 𝓝 (i a), ∀ b, i b ∈ t → b ∈ s) :
   dense_inducing i :=
 { induced := (induced_iff_nhds_eq i).2 $
-    λ a, le_antisymm (tendsto_iff_comap.1 $ c.tendsto _) (by simpa [le_def] using H a),
+    λ a, le_antisymm (tendsto_iff_comap.1 $ c.tendsto _) (by simpa [filter.le_def] using H a),
   dense := dense }
 end dense_inducing
 

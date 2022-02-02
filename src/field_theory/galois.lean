@@ -42,7 +42,8 @@ section
 
 variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 
-/-- A field extension E/F is galois if it is both separable and normal -/
+/-- A field extension E/F is galois if it is both separable and normal. Note that in mathlib
+a separable extension of fields is by definition algebraic. -/
 class is_galois : Prop :=
 [to_is_separable : is_separable F E]
 [to_normal : normal F E]
@@ -92,8 +93,8 @@ lemma card_aut_eq_finrank [finite_dimensional F E] [is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = finrank F E :=
 begin
   cases field.exists_primitive_element F E with α hα,
-  let iso : F⟮α⟯ ≃ₐ[F] E := {
-    to_fun := λ e, e.val,
+  let iso : F⟮α⟯ ≃ₐ[F] E :=
+  { to_fun := λ e, e.val,
     inv_fun := λ e, ⟨e, by { rw hα, exact intermediate_field.mem_top }⟩,
     left_inv := λ _, by { ext, refl },
     right_inv := λ _, rfl,

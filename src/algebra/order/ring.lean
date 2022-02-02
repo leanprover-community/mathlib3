@@ -3,7 +3,6 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
-import algebra.invertible
 import algebra.order.group
 import algebra.order.sub
 import data.set.intervals.basic
@@ -559,33 +558,23 @@ lemma pos_of_mul_pos_left (h : 0 < a * b) (ha : 0 ≤ a) : 0 < b :=
 lemma pos_of_mul_pos_right (h : 0 < a * b) (hb : 0 ≤ b) : 0 < a :=
 ((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_right $ λ h, h.2.not_le hb).1
 
-@[simp] lemma inv_of_pos [invertible a] : 0 < ⅟a ↔ 0 < a :=
-begin
-  have : 0 < a * ⅟a, by simp only [mul_inv_of_self, zero_lt_one],
-  exact ⟨λ h, pos_of_mul_pos_right this h.le, λ h, pos_of_mul_pos_left this h.le⟩
-end
+lemma pos_iff_pos_of_mul_pos (hab : 0 < a * b) : 0 < a ↔ 0 < b :=
+⟨pos_of_mul_pos_left hab ∘ le_of_lt, pos_of_mul_pos_right hab ∘ le_of_lt⟩
 
-@[simp] lemma inv_of_nonpos [invertible a] : ⅟a ≤ 0 ↔ a ≤ 0 :=
-by simp only [← not_lt, inv_of_pos]
+lemma neg_of_mul_pos_left (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
+((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_left $ λ h, h.1.not_le ha).2
+
+lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : b ≤ 0) : a < 0 :=
+((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_left $ λ h, h.2.not_le ha).1
+
+lemma neg_iff_neg_of_mul_pos (hab : 0 < a * b) : a < 0 ↔ b < 0 :=
+⟨neg_of_mul_pos_left hab ∘ le_of_lt, neg_of_mul_pos_right hab ∘ le_of_lt⟩
 
 lemma nonneg_of_mul_nonneg_left (h : 0 ≤ a * b) (h1 : 0 < a) : 0 ≤ b :=
 le_of_not_gt (assume h2 : b < 0, (mul_neg_of_pos_of_neg h1 h2).not_le h)
 
 lemma nonneg_of_mul_nonneg_right (h : 0 ≤ a * b) (h1 : 0 < b) : 0 ≤ a :=
 le_of_not_gt (assume h2 : a < 0, (mul_neg_of_neg_of_pos h2 h1).not_le h)
-
-@[simp] lemma inv_of_nonneg [invertible a] : 0 ≤ ⅟a ↔ 0 ≤ a :=
-begin
-  have : 0 < a * ⅟a, by simp only [mul_inv_of_self, zero_lt_one],
-  exact ⟨λ h, (pos_of_mul_pos_right this h).le, λ h, (pos_of_mul_pos_left this h).le⟩
-end
-
-@[simp] lemma inv_of_lt_zero [invertible a] : ⅟a < 0 ↔ a < 0 :=
-by simp only [← not_le, inv_of_nonneg]
-
-@[simp] lemma inv_of_le_one [invertible a] (h : 1 ≤ a) : ⅟a ≤ 1 :=
-by haveI := @linear_order.decidable_le α _; exact
-mul_inv_of_self a ▸ decidable.le_mul_of_one_le_left (inv_of_nonneg.2 $ zero_le_one.trans h) h
 
 lemma neg_of_mul_neg_left (h : a * b < 0) (h1 : 0 ≤ a) : b < 0 :=
 by haveI := @linear_order.decidable_le α _; exact
@@ -701,56 +690,62 @@ lemma lt_mul_iff_one_lt_right (hb : 0 < b) : b < b * a ↔ 1 < a :=
 suffices b * 1 < b * a ↔ 1 < a, by rwa mul_one at this,
 mul_lt_mul_left hb
 
-theorem mul_nonneg_iff_right_nonneg_of_pos (ha : 0 < a) : 0 ≤ b * a ↔ 0 ≤ b :=
+theorem mul_nonneg_iff_right_nonneg_of_pos (ha : 0 < a) : 0 ≤ a * b ↔ 0 ≤ b :=
 by haveI := @linear_order.decidable_le α _; exact
-⟨λ h, nonneg_of_mul_nonneg_right h ha, λ h, decidable.mul_nonneg h ha.le⟩
+⟨λ h, nonneg_of_mul_nonneg_left h ha, λ h, decidable.mul_nonneg ha.le h⟩
+
+theorem mul_nonneg_iff_left_nonneg_of_pos (hb : 0 < b) : 0 ≤ a * b ↔ 0 ≤ a :=
+by haveI := @linear_order.decidable_le α _; exact
+⟨λ h, nonneg_of_mul_nonneg_right h hb, λ h, decidable.mul_nonneg h hb.le⟩
 
 lemma mul_le_iff_le_one_left (hb : 0 < b) : a * b ≤ b ↔ a ≤ 1 :=
 ⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).2 h.not_lt),
   λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).1 h.not_lt) ⟩
 
 lemma mul_lt_iff_lt_one_left (hb : 0 < b) : a * b < b ↔ a < 1 :=
-⟨ λ h, lt_of_not_ge (mt (le_mul_iff_one_le_left hb).2 h.not_le),
-  λ h, lt_of_not_ge (mt (le_mul_iff_one_le_left hb).1 h.not_le) ⟩
+lt_iff_lt_of_le_iff_le $ le_mul_iff_one_le_left hb
 
 lemma mul_le_iff_le_one_right (hb : 0 < b) : b * a ≤ b ↔ a ≤ 1 :=
 ⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_right hb).2 h.not_lt),
   λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_right hb).1 h.not_lt) ⟩
 
 lemma mul_lt_iff_lt_one_right (hb : 0 < b) : b * a < b ↔ a < 1 :=
-⟨ λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).2 h.not_le),
-  λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).1 h.not_le) ⟩
+lt_iff_lt_of_le_iff_le $ le_mul_iff_one_le_right hb
 
+-- TODO: `left` and `right` for these two lemmas are backwards compared to `neg_of_mul_pos`
+-- lemmas.
 lemma nonpos_of_mul_nonneg_left (h : 0 ≤ a * b) (hb : b < 0) : a ≤ 0 :=
 le_of_not_gt (λ ha, absurd h (mul_neg_of_pos_of_neg ha hb).not_le)
 
 lemma nonpos_of_mul_nonneg_right (h : 0 ≤ a * b) (ha : a < 0) : b ≤ 0 :=
 le_of_not_gt (λ hb, absurd h (mul_neg_of_neg_of_pos ha hb).not_le)
 
-lemma neg_of_mul_pos_left (h : 0 < a * b) (hb : b ≤ 0) : a < 0 :=
-by haveI := @linear_order.decidable_le α _; exact
-lt_of_not_ge (λ ha, absurd h (decidable.mul_nonpos_of_nonneg_of_nonpos ha hb).not_lt)
-
-lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
-by haveI := @linear_order.decidable_le α _; exact
-lt_of_not_ge (λ hb, absurd h (decidable.mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
-
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
-  no_top_order α :=
+instance linear_ordered_semiring.to_no_max_order {α : Type*} [linear_ordered_semiring α] :
+  no_max_order α :=
 ⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
 
 /-- Pullback a `linear_ordered_semiring` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_semiring {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [nontrivial β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   linear_ordered_semiring β :=
-{ ..linear_order.lift f hf,
-  ..‹nontrivial β›,
-  ..hf.ordered_semiring f zero one add mul }
+{ .. linear_order.lift f hf,
+  .. pullback_nonzero f zero one,
+  .. hf.ordered_semiring f zero one add mul }
+
+@[simp] lemma units.inv_pos {u : αˣ} : (0 : α) < ↑u⁻¹ ↔ (0 : α) < u :=
+have ∀ {u : αˣ}, (0 : α) < u → (0 : α) < ↑u⁻¹ := λ u h,
+  (zero_lt_mul_left h).mp $ u.mul_inv.symm ▸ zero_lt_one,
+⟨this, this⟩
+
+@[simp] lemma units.inv_neg {u : αˣ} : ↑u⁻¹ < (0 : α) ↔ ↑u < (0 : α) :=
+have ∀ {u : αˣ}, ↑u < (0 : α) → ↑u⁻¹ < (0 : α) := λ u h,
+  neg_of_mul_pos_left (by exact (u.mul_inv.symm ▸ zero_lt_one)) h.le,
+⟨this, this⟩
 
 end linear_ordered_semiring
 
@@ -1037,7 +1032,7 @@ begin
 end
 
 /-- `abs` as a `monoid_with_zero_hom`. -/
-def abs_hom : monoid_with_zero_hom α α := ⟨abs, abs_zero, abs_one, abs_mul⟩
+def abs_hom : α →*₀ α := ⟨abs, abs_zero, abs_one, abs_mul⟩
 
 @[simp] lemma abs_mul_abs_self (a : α) : |a| * |a| = a * a :=
 abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
@@ -1156,9 +1151,14 @@ lt_iff_lt_of_le_iff_le (mul_le_mul_right_of_neg h)
 lemma sub_one_lt (a : α) : a - 1 < a :=
 sub_lt_iff_lt_add.2 (lt_add_one a)
 
-lemma mul_self_pos {a : α} (ha : a ≠ 0) : 0 < a * a :=
-by rcases lt_trichotomy a 0 with h|h|h;
-   [exact mul_pos_of_neg_of_neg h h, exact (ha h).elim, exact mul_pos h h]
+@[simp] lemma mul_self_pos {a : α} : 0 < a * a ↔ a ≠ 0 :=
+begin
+  split,
+  { rintro h rfl, rw mul_zero at h, exact h.false },
+  { intro h,
+    cases h.lt_or_lt with h h,
+    exacts [mul_pos_of_neg_of_neg h h, mul_pos h h] }
+end
 
 lemma mul_self_le_mul_self_of_le_of_neg_le {x y : α} (h₁ : x ≤ y) (h₂ : -x ≤ y) : x * x ≤ y * y :=
 begin
@@ -1180,6 +1180,12 @@ lt_of_not_ge (λ ha, absurd h (decidable.mul_nonneg_of_nonpos_of_nonpos ha hb).n
 lemma pos_of_mul_neg_right {a b : α} (h : a * b < 0) (ha : a ≤ 0) : 0 < b :=
 by haveI := @linear_order.decidable_le α _; exact
 lt_of_not_ge (λ hb, absurd h (decidable.mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
+
+lemma neg_iff_pos_of_mul_neg (hab : a * b < 0) : a < 0 ↔ 0 < b :=
+⟨pos_of_mul_neg_right hab ∘ le_of_lt, neg_of_mul_neg_right hab ∘ le_of_lt⟩
+
+lemma pos_iff_neg_of_mul_neg (hab : a * b < 0) : 0 < a ↔ b < 0 :=
+⟨neg_of_mul_neg_left hab ∘ le_of_lt, pos_of_mul_neg_left hab ∘ le_of_lt⟩
 
 /-- The sum of two squares is zero iff both elements are zero. -/
 lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
@@ -1213,14 +1219,14 @@ by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_ring {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   linear_ordered_ring β :=
-{ ..linear_order.lift f hf,
-  ..‹nontrivial β›,
-  ..hf.ordered_ring f zero one add mul neg sub }
+{ .. linear_order.lift f hf,
+  .. pullback_nonzero f zero one,
+  .. hf.ordered_ring f zero one add mul neg sub }
 
 end linear_ordered_ring
 
@@ -1296,14 +1302,14 @@ variables [linear_ordered_comm_ring α]
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_comm_ring {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   linear_ordered_comm_ring β :=
-{ ..linear_order.lift f hf,
-  ..‹nontrivial β›,
-  ..hf.ordered_comm_ring f zero one add mul neg sub }
+{ .. linear_order.lift f hf,
+  .. pullback_nonzero f zero one,
+  .. hf.ordered_comm_ring f zero one add mul neg sub }
 
 end linear_ordered_comm_ring
 

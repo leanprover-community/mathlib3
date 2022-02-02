@@ -3,7 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
-import algebra.group_power.basic
+import data.nat.basic
 
 /-!
 # The positive natural numbers
@@ -22,6 +22,15 @@ instance : has_repr ℕ+ := ⟨λ n, repr n.1⟩
 
 /-- Predecessor of a `ℕ+`, as a `ℕ`. -/
 def pnat.nat_pred (i : ℕ+) : ℕ := i - 1
+
+@[simp] lemma pnat.one_add_nat_pred (n : ℕ+) : 1 + n.nat_pred = n :=
+by rw [pnat.nat_pred, add_tsub_cancel_iff_le.mpr $ show 1 ≤ (n : ℕ), from n.2]
+
+@[simp] lemma pnat.nat_pred_add_one (n : ℕ+) : n.nat_pred + 1 = n :=
+(add_comm _ _).trans n.one_add_nat_pred
+
+@[simp] lemma pnat.nat_pred_eq_pred {n : ℕ} (h : 0 < n) :
+pnat.nat_pred (⟨n, h⟩ : ℕ+) = n.pred := rfl
 
 namespace nat
 
@@ -74,6 +83,9 @@ subtype.linear_order _
 @[simp, norm_cast] lemma coe_lt_coe (n k : ℕ+) : (n : ℕ) < k ↔ n < k := iff.rfl
 
 @[simp] theorem pos (n : ℕ+) : 0 < (n : ℕ) := n.2
+
+-- see note [fact non_instances]
+lemma fact_pos (n : ℕ+) : fact (0 < ↑n) := ⟨n.pos⟩
 
 theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 
@@ -174,8 +186,8 @@ by induction n with n ih;
 instance : ordered_cancel_comm_monoid ℕ+ :=
 { mul_le_mul_left := by { intros, apply nat.mul_le_mul_left, assumption },
   le_of_mul_le_mul_left := by { intros a b c h, apply nat.le_of_mul_le_mul_left h a.property, },
-  mul_left_cancel := λ a b c h, by {
-   replace h := congr_arg (coe : ℕ+ → ℕ) h,
+  mul_left_cancel := λ a b c h, by
+ { replace h := congr_arg (coe : ℕ+ → ℕ) h,
    exact eq ((nat.mul_right_inj a.pos).mp h)},
   .. pnat.comm_monoid,
   .. pnat.linear_order }
@@ -258,8 +270,8 @@ def mod_div_aux : ℕ+ → ℕ → ℕ → ℕ+ × ℕ
 lemma mod_div_aux_spec : ∀ (k : ℕ+) (r q : ℕ) (h : ¬ (r = 0 ∧ q = 0)),
  (((mod_div_aux k r q).1 : ℕ) + k * (mod_div_aux k r q).2 = (r + k * q))
 | k 0 0 h := (h ⟨rfl, rfl⟩).elim
-| k 0 (q + 1) h := by {
-  change (k : ℕ) + (k : ℕ) * (q + 1).pred = 0 + (k : ℕ) * (q + 1),
+| k 0 (q + 1) h := by
+{ change (k : ℕ) + (k : ℕ) * (q + 1).pred = 0 + (k : ℕ) * (q + 1),
   rw [nat.pred_succ, nat.mul_succ, zero_add, add_comm]}
 | k (r + 1) q h := rfl
 

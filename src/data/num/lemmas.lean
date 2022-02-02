@@ -297,8 +297,8 @@ example (n : num) (m : num) : n ≤ n + m := by num.transfer
 meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
 
 instance : comm_semiring num :=
-by refine_struct {
-  add      := (+),
+by refine_struct
+{ add      := (+),
   zero     := 0,
   zero_add := zero_add,
   add_zero := add_zero,
@@ -660,9 +660,9 @@ begin
     any_goals { change pos_num.bit0 with pos_num.bit ff },
     any_goals { change pos_num.bit1 with pos_num.bit tt },
     any_goals { change ((1:num):ℕ) with nat.bit tt 0 },
-    all_goals {
-      repeat {
-        rw show ∀ b n, (pos (pos_num.bit b n) : ℕ) = nat.bit b ↑n,
+    all_goals
+    { repeat
+      { rw show ∀ b n, (pos (pos_num.bit b n) : ℕ) = nat.bit b ↑n,
            by intros; cases b; refl },
       rw nat.bitwise_bit },
     any_goals { assumption },

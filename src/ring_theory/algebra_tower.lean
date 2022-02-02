@@ -3,12 +3,11 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.algebra.restrict_scalars
-import algebra.algebra.tower
 import algebra.invertible
-import linear_algebra.basis
 import ring_theory.adjoin.fg
-import ring_theory.polynomial.tower
+import linear_algebra.basis
+import algebra.algebra.tower
+import algebra.algebra.restrict_scalars
 
 /-!
 # Towers of algebras
@@ -162,7 +161,7 @@ begin
   { have h1 : ∑ i in (s.image prod.fst).product (s.image prod.snd), g i • b i.1 • c i.2 = 0,
     { rw ← hsg, exact (finset.sum_subset finset.subset_product $ λ p _ hp,
         show g p • b p.1 • c p.2 = 0, by rw [hg p hp, zero_smul]).symm },
-    rw [finset.sum_product, finset.sum_comm] at h1,
+    rw finset.sum_product_right at h1,
     simp_rw [← smul_assoc, ← finset.sum_smul] at h1,
     exact hb _ _ (hc _ _ h1 k (finset.mem_image_of_mem _ hik)) i (finset.mem_image_of_mem _ hik) },
   exact hg _ hik
@@ -239,7 +238,7 @@ begin
   have hsx : ∀ (xi ∈ x) (yj ∈ y), f xi yj ∈ s := λ xi hxi yj hyj,
     show function.uncurry f (xi, yj) ∈ s,
     from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_left _ hxi, hyj⟩,
-  have hsy : ∀ (yi yj yk ∈ y), f (yi * yj) yk ∈ s := λ yi yj yk hyi hyj hyk,
+  have hsy : ∀ (yi yj yk ∈ y), f (yi * yj) yk ∈ s := λ yi hyi yj hyj yk hyk,
     show function.uncurry f (yi * yj, yk) ∈ s,
     from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_right _ $ finset.mul_mem_mul hyi hyj, hyk⟩,
   have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B))
@@ -257,7 +256,7 @@ begin
     { rw mul_one, exact subset_span (set.mem_insert_of_mem _ hyi) },
     { rw ← hf (yi * yj), exact set_like.mem_coe.2 (sum_mem _ $ λ yk hyk, smul_mem
         (span (algebra.adjoin A (↑s : set B)) (insert 1 ↑y : set C))
-        ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi yj yk hyi hyj hyk⟩
+        ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi hyi yj hyj yk hyk⟩
         (subset_span $ set.mem_insert_of_mem _ hyk : yk ∈ _)) } },
   refine ⟨algebra.adjoin A (↑s : set B), subalgebra.fg_adjoin_finset _, insert 1 y, _⟩,
   refine restrict_scalars_injective A _ _ _,

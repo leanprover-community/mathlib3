@@ -32,9 +32,7 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 -/
 
 open real set filter is_R_or_C
-open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate
-
-local attribute [instance] fact_one_le_two_real
+open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
 
 noncomputable theory
 
@@ -69,7 +67,7 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   begin
     intros x y,
     unfold inner,
-    rw ring_equiv.map_sum,
+    rw ring_hom.map_sum,
     apply finset.sum_congr rfl,
     rintros z -,
     apply inner_conj_sym,
@@ -120,7 +118,7 @@ lemma finrank_euclidean_space_fin {n : ℕ} :
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/
 def direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family
   [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
-  (hV' : orthogonal_family 𝕜 V) :
+  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
   E ≃ₗᵢ[𝕜] pi_Lp 2 (λ i, V i) :=
 begin
   let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
@@ -131,9 +129,24 @@ begin
     convert this (e₁ (e₂.symm v₀)) (e₁ (e₂.symm w₀));
     simp only [linear_equiv.symm_apply_apply, linear_equiv.apply_symm_apply] },
   intros v w,
-  transitivity ⟪(∑ i, (v i : E)), ∑ i, (w i : E)⟫,
-  { simp [sum_inner, hV'.inner_right_fintype] },
+  transitivity ⟪(∑ i, (V i).subtypeₗᵢ (v i)), ∑ i, (V i).subtypeₗᵢ (w i)⟫,
+  { simp only [sum_inner, hV'.inner_right_fintype, pi_Lp.inner_apply] },
   { congr; simp }
+end
+
+@[simp] lemma direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
+  [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
+  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
+  (w : pi_Lp 2 (λ i, V i)) :
+  (hV.isometry_L2_of_orthogonal_family hV').symm w = ∑ i, (w i : E) :=
+begin
+  classical,
+  let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
+  let e₂ := linear_equiv.of_bijective _ hV.injective hV.surjective,
+  suffices : ∀ v : ⨁ i, V i, e₂ v = ∑ i, e₁ v i,
+  { exact this (e₁.symm w) },
+  intros v,
+  simp [e₂, direct_sum.submodule_coe, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
 end
 
 /-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with
@@ -152,6 +165,16 @@ begin
   { rw [← v.equiv_fun.symm_apply_apply x, v.equiv_fun_symm_apply] },
   { rw [← v.equiv_fun.symm_apply_apply y, v.equiv_fun_symm_apply] }
 end
+
+@[simp] lemma basis.coe_isometry_euclidean_of_orthonormal
+  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+  (v.isometry_euclidean_of_orthonormal hv : E → euclidean_space 𝕜 ι) = v.equiv_fun :=
+rfl
+
+@[simp] lemma basis.coe_isometry_euclidean_of_orthonormal_symm
+  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+  ((v.isometry_euclidean_of_orthonormal hv).symm : euclidean_space 𝕜 ι → E) = v.equiv_fun.symm :=
+rfl
 
 end
 

@@ -3,9 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.equiv.encodable.basic
-import data.sigma
 import data.fintype.basic
+import data.equiv.encodable.basic
 import data.list.min_max
 
 /-!
@@ -228,6 +227,11 @@ using_well_founded {dec_tac := `[tauto]}
 
 lemma of_nat_surjective : surjective (of_nat s) :=
 λ ⟨x, hx⟩, of_nat_surjective_aux hx
+
+@[simp] lemma of_nat_range : set.range (of_nat s) = set.univ := of_nat_surjective.range_eq
+
+@[simp] lemma coe_comp_of_nat_range : set.range (coe ∘ of_nat s : ℕ → ℕ) = s :=
+by rw [set.range_comp coe, of_nat_range, set.image_univ, subtype.range_coe]
 
 private def to_fun_aux (x : s) : ℕ :=
 (list.range x).countp (∈ s)

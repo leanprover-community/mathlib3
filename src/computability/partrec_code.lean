@@ -529,17 +529,17 @@ theorem exists_code {f : ℕ →. ℕ} : nat.partrec f ↔ ∃ c : code, eval c 
   case nat.partrec.succ { exact ⟨succ, rfl⟩ },
   case nat.partrec.left { exact ⟨left, rfl⟩ },
   case nat.partrec.right { exact ⟨right, rfl⟩ },
-  case nat.partrec.pair : f g pf pg hf hg {
-    rcases hf with ⟨cf, rfl⟩, rcases hg with ⟨cg, rfl⟩,
+  case nat.partrec.pair : f g pf pg hf hg
+  { rcases hf with ⟨cf, rfl⟩, rcases hg with ⟨cg, rfl⟩,
     exact ⟨pair cf cg, rfl⟩ },
-  case nat.partrec.comp : f g pf pg hf hg {
-    rcases hf with ⟨cf, rfl⟩, rcases hg with ⟨cg, rfl⟩,
+  case nat.partrec.comp : f g pf pg hf hg
+  { rcases hf with ⟨cf, rfl⟩, rcases hg with ⟨cg, rfl⟩,
     exact ⟨comp cf cg, rfl⟩ },
-  case nat.partrec.prec : f g pf pg hf hg {
-    rcases hf with ⟨cf, rfl⟩, rcases hg with ⟨cg, rfl⟩,
+  case nat.partrec.prec : f g pf pg hf hg
+  { rcases hf with ⟨cf, rfl⟩, rcases hg with ⟨cg, rfl⟩,
     exact ⟨prec cf cg, rfl⟩ },
-  case nat.partrec.rfind : f pf hf {
-    rcases hf with ⟨cf, rfl⟩,
+  case nat.partrec.rfind : f pf hf
+  { rcases hf with ⟨cf, rfl⟩,
     refine ⟨comp (rfind' cf) (pair code.id zero), _⟩,
     simp [eval, (<*>), pure, pfun.pure, part.map_id'] },
 end, λ h, begin
@@ -657,22 +657,22 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
   induction c generalizing n x;
     simp [eval, evaln, pure, pfun.pure, (<*>), (>>)] at h ⊢,
   iterate 4 { exact ⟨⟨_, le_refl _⟩, h.symm⟩ },
-  case nat.partrec.code.pair : cf cg hf hg {
-    rcases h with ⟨x, hx, y, hy, rfl⟩,
+  case nat.partrec.code.pair : cf cg hf hg
+  { rcases h with ⟨x, hx, y, hy, rfl⟩,
     rcases hf hx with ⟨k₁, hk₁⟩, rcases hg hy with ⟨k₂, hk₂⟩,
     refine ⟨max k₁ k₂, _⟩,
     refine ⟨le_max_of_le_left $ nat.le_of_lt_succ $ evaln_bound hk₁,
       _, evaln_mono (nat.succ_le_succ $ le_max_left _ _) hk₁,
       _, evaln_mono (nat.succ_le_succ $ le_max_right _ _) hk₂, rfl⟩ },
-  case nat.partrec.code.comp : cf cg hf hg {
-    rcases h with ⟨y, hy, hx⟩,
+  case nat.partrec.code.comp : cf cg hf hg
+  { rcases h with ⟨y, hy, hx⟩,
     rcases hg hy with ⟨k₁, hk₁⟩, rcases hf hx with ⟨k₂, hk₂⟩,
     refine ⟨max k₁ k₂, _⟩,
     exact ⟨le_max_of_le_left $ nat.le_of_lt_succ $ evaln_bound hk₁, _,
       evaln_mono (nat.succ_le_succ $ le_max_left _ _) hk₁,
       evaln_mono (nat.succ_le_succ $ le_max_right _ _) hk₂⟩ },
-  case nat.partrec.code.prec : cf cg hf hg {
-    revert h,
+  case nat.partrec.code.prec : cf cg hf hg
+  { revert h,
     generalize : n.unpair.1 = n₁, generalize : n.unpair.2 = n₂,
     induction n₂ with m IH generalizing x n; simp,
     { intro, rcases hf h with ⟨k, hk⟩,
@@ -686,8 +686,8 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
         evaln_mono (nat.succ_le_succ $ nat.le_succ_of_le $ le_max_right _ _) hk₂⟩,
       simp [evaln, (>>)],
       exact ⟨le_trans (le_max_right _ _) nk₁, hk₁⟩ } },
-  case nat.partrec.code.rfind' : cf hf {
-    rcases h with ⟨y, ⟨hy₁, hy₂⟩, rfl⟩,
+  case nat.partrec.code.rfind' : cf hf
+  { rcases h with ⟨y, ⟨hy₁, hy₂⟩, rfl⟩,
     suffices : ∃ k, y + n.unpair.2 ∈ evaln (k+1) (rfind' cf)
       (mkpair n.unpair.1 n.unpair.2), {simpa [evaln, (>>)]},
     revert hy₁ hy₂, generalize : n.unpair.2 = m, intros,

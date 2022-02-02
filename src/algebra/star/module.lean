@@ -16,19 +16,20 @@ It is defined on a star algebra `A` over the base ring `R`.
 
 - Define `star_linear_equiv` for noncommutative `R`. We only the commutative case for now since,
   in the noncommutative case, the ring hom needs to reverse the order of multiplication. This
-  requires a ring hom of type `R →+* Rᵒᵖ`, which is very undesirable in the commutative case.
+  requires a ring hom of type `R →+* Rᵐᵒᵖ`, which is very undesirable in the commutative case.
   One way out would be to define a new typeclass `is_op R S` and have an instance `is_op R R`
   for commutative `R`.
-- Also note that such a definition involving `Rᵒᵖ` or `is_op R S` would require adding
+- Also note that such a definition involving `Rᵐᵒᵖ` or `is_op R S` would require adding
   the appropriate `ring_hom_inv_pair` instances to be able to define the semilinear
   equivalence.
 -/
 
 /-- If `A` is a module over a commutative `R` with compatible actions,
 then `star` is a semilinear equivalence. -/
-def star_linear_equiv {R : Type*} {A : Type*}
+@[simps]
+def star_linear_equiv (R : Type*) {A : Type*}
   [comm_ring R] [star_ring R] [semiring A] [star_ring A] [module R A] [star_module R A]  :
-    A ≃ₛₗ[((star_ring_aut : ring_aut R) : R →+* R)] A :=
+    A ≃ₗ⋆[R] A :=
 { to_fun := star,
   map_smul' := star_smul,
   .. star_add_equiv }

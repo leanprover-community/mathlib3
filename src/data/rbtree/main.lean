@@ -53,8 +53,8 @@ lemma mem_of_mem_of_eqv [is_strict_weak_order α lt] {t : rbtree α lt} {a b : �
 begin
   cases t with n p; simp [has_mem.mem, rbtree.mem]; clear p; induction n;
     simp only [rbnode.mem, strict_weak_order.equiv, false_implies_iff]; intros h₁ h₂; blast_disjs,
-  iterate 2 {
-    { have : rbnode.mem lt b n_lchild := n_ih_lchild h₁ h₂, simp [this] },
+  iterate 2
+  { { have : rbnode.mem lt b n_lchild := n_ih_lchild h₁ h₂, simp [this] },
     { simp [incomp_trans_of lt h₂.swap h₁] },
     { have : rbnode.mem lt b n_rchild := n_ih_rchild h₁ h₂, simp [this] } }
 end

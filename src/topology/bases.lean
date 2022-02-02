@@ -3,9 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-
-import topology.continuous_on
 import topology.constructions
+import topology.continuous_on
 
 /-!
 # Bases of topologies. Countability axioms.
@@ -73,7 +72,7 @@ begin
     have : ⋂₀ (t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂ := sInter_union t₁ t₂,
     exact ⟨_, ⟨t₁ ∪ t₂, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b, this.symm ▸ ⟨x, h⟩⟩, this⟩, h,
       subset.rfl⟩ },
-  { rw [sUnion_image, bUnion_eq_univ_iff],
+  { rw [sUnion_image, Union₂_eq_univ_iff],
     intro x, have : x ∈ ⋂₀ ∅, { rw sInter_empty, exact mem_univ x },
     exact ⟨∅, ⟨finite_empty, empty_subset _, x, this⟩, this⟩ },
   { rw hs,
@@ -112,7 +111,7 @@ lemma is_topological_basis.mem_nhds_iff {a : α} {s : set α} {b : set (set α)}
 begin
   change s ∈ (𝓝 a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s,
   rw [hb.eq_generate_from, nhds_generate_from, binfi_sets_eq],
-  { simp only [mem_bUnion_iff, exists_prop, mem_set_of_eq, and_assoc, and.left_comm], refl },
+  { simp [and_assoc, and.left_comm] },
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
       have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,
       let ⟨u, hu₁, hu₂, hu₃⟩ := hb.1 _ hs₂ _ ht₂ _ this in
@@ -129,6 +128,10 @@ lemma is_topological_basis.nhds_has_basis {b : set (set α)} (hb : is_topologica
 protected lemma is_topological_basis.is_open {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) (hs : s ∈ b) : is_open s :=
 by { rw hb.eq_generate_from, exact generate_open.basic s hs }
+
+protected lemma is_topological_basis.mem_nhds {a : α} {s : set α} {b : set (set α)}
+  (hb : is_topological_basis b) (hs : s ∈ b) (ha : a ∈ s) : s ∈ 𝓝 a :=
+(hb.is_open hs).mem_nhds ha
 
 lemma is_topological_basis.exists_subset_of_mem_open {b : set (set α)}
   (hb : is_topological_basis b) {a:α} {u : set α} (au : a ∈ u)
@@ -191,7 +194,7 @@ is_topological_basis_of_open_of_nhds (by tauto) (by tauto)
 
 protected lemma is_topological_basis.prod {β} [topological_space β] {B₁ : set (set α)}
   {B₂ : set (set β)} (h₁ : is_topological_basis B₁) (h₂ : is_topological_basis B₂) :
-  is_topological_basis (image2 set.prod B₁ B₂) :=
+  is_topological_basis (image2 (×ˢ) B₁ B₂) :=
 begin
   refine is_topological_basis_of_open_of_nhds _ _,
   { rintro _ ⟨u₁, u₂, hu₁, hu₂, rfl⟩,
@@ -199,7 +202,7 @@ begin
   { rintro ⟨a, b⟩ u hu uo,
     rcases (h₁.nhds_has_basis.prod_nhds h₂.nhds_has_basis).mem_iff.1 (is_open.mem_nhds uo hu)
       with ⟨⟨s, t⟩, ⟨⟨hs, ha⟩, ht, hb⟩, hu⟩,
-    exact ⟨s.prod t, mem_image2_of_mem hs ht, ⟨ha, hb⟩, hu⟩ }
+    exact ⟨s ×ˢ t, mem_image2_of_mem hs ht, ⟨ha, hb⟩, hu⟩ }
 end
 
 protected lemma is_topological_basis.inducing {β} [topological_space β]
@@ -305,7 +308,7 @@ begin
       rw hij,
       exact (hf j hj).1 },
     contrapose! this,
-    exact h i hi j hj this },
+    exact h hi hj this },
   apply countable_of_injective_of_countable_image f_inj,
   apply u_count.mono _,
   exact image_subset_iff.2 (λ i hi, (hf i hi).2)
@@ -328,42 +331,18 @@ lemma is_topological_basis_pi {ι : Type*} {X : ι → Type*}
   is_topological_basis {S : set (Π i, X i) | ∃ (U : Π i, set (X i)) (F : finset ι),
     (∀ i, i ∈ F → (U i) ∈ T i) ∧ S = (F : set ι).pi U } :=
 begin
-  classical,
   refine is_topological_basis_of_open_of_nhds _ _,
   { rintro _ ⟨U, F, h1, rfl⟩,
     apply is_open_set_pi F.finite_to_set,
     intros i hi,
-    exact is_topological_basis.is_open (cond i) (h1 i hi) },
+    exact (cond i).is_open (h1 i hi) },
   { intros a U ha hU,
-    have : U ∈ nhds a := is_open.mem_nhds hU ha,
-    rw [nhds_pi, filter.mem_infi] at this,
-    obtain ⟨F, hF, V, hV1, rfl⟩ := this,
-    choose U' hU' using hV1,
-    obtain ⟨hU1, hU2⟩ := ⟨λ i, (hU' i).1, λ i, (hU' i).2⟩,
-    have : ∀ j : F, ∃ (T' : set (X j)) (hT : T' ∈ T j), a j ∈ T' ∧ T' ⊆ U' j,
-    { intros i,
-      specialize hU1 i,
-      rwa (cond i).mem_nhds_iff at hU1 },
-    choose U'' hU'' using this,
-    let U : Π (i : ι), set (X i) := λ i,
-      if hi : i ∈ F then U'' ⟨i, hi⟩ else set.univ,
-    refine ⟨F.pi U, ⟨U, hF.to_finset, λ i hi, _, by simp⟩, _, _⟩,
-    { dsimp only [U],
-      rw [dif_pos],
-      swap, { simpa using hi },
-      exact (hU'' _).1 },
-    { rw set.mem_pi,
-      intros i hi,
-      dsimp only [U],
-      rw dif_pos hi,
-      exact (hU'' _).2.1 },
-    { intros x hx,
-      rintros - ⟨i, rfl⟩,
-      refine hU2 i ((hU'' i).2.2 _),
-      convert hx i i.2,
-      rcases i with ⟨i, p⟩,
-      dsimp [U],
-      rw dif_pos p, } },
+    obtain ⟨I, t, hta, htU⟩ :
+      ∃ (I : finset ι) (t : Π (i : ι), set (X i)), (∀ i, t i ∈ 𝓝 (a i)) ∧ set.pi ↑I t ⊆ U,
+    { rw [← filter.mem_pi', ← nhds_pi], exact hU.mem_nhds ha },
+    have : ∀ i, ∃ V ∈ T i, a i ∈ V ∧ V ⊆ t i := λ i, (cond i).mem_nhds_iff.1 (hta i),
+    choose V hVT haV hVt,
+    exact ⟨_, ⟨V, I, λ i hi, hVT i, rfl⟩, λ i hi, haV i, (pi_mono $ λ i hi, hVt i).trans htU⟩ },
 end
 
 lemma is_topological_basis_infi {β : Type*} {ι : Type*} {X : ι → Type*}
@@ -414,7 +393,8 @@ in ⟨coe '' t, image_subset_iff.2 $ λ x _, mem_preimage.2 $ subtype.coe_prop _
 /-- Let `s` be a dense set in a topological space `α` with partial order structure. If `s` is a
 separable space (e.g., if `α` has a second countable topology), then there exists a countable
 dense subset `t ⊆ s` such that `t` contains bottom/top element of `α` when they exist and belong
-to `s`. -/
+to `s`. For a dense subset containing neither bot nor top elements, see
+`dense.exists_countable_dense_subset_no_bot_top`. -/
 lemma dense.exists_countable_dense_subset_bot_top {α : Type*} [topological_space α]
   [partial_order α] {s : set α} [separable_space s] (hs : dense s) :
   ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∈ s → x ∈ t) ∧
@@ -435,7 +415,8 @@ instance separable_space_univ {α : Type*} [topological_space α] [separable_spa
 
 /-- If `α` is a separable topological space with a partial order, then there exists a countable
 dense set `s : set α` that contains those of both bottom and top elements of `α` that actually
-exist. -/
+exist. For a dense set containing neither bot nor top elements, see
+`exists_countable_dense_no_bot_top`. -/
 lemma exists_countable_dense_bot_top (α : Type*) [topological_space α] [separable_space α]
   [partial_order α] :
   ∃ s : set α, countable s ∧ dense s ∧ (∀ x, is_bot x → x ∈ s) ∧ (∀ x, is_top x → x ∈ s) :=
@@ -620,8 +601,7 @@ begin
   let B := {b ∈ countable_basis α | ∃ i, b ⊆ s i},
   choose f hf using λ b : B, b.2.2,
   haveI : encodable B := ((countable_countable_basis α).mono (sep_subset _ _)).to_encodable,
-  refine ⟨_, countable_range f,
-    subset.antisymm (bUnion_subset_Union _ _) (sUnion_subset _)⟩,
+  refine ⟨_, countable_range f, (Union₂_subset_Union _ _).antisymm (sUnion_subset _)⟩,
   rintro _ ⟨i, rfl⟩ x xs,
   rcases (is_basis_countable_basis α).exists_subset_of_mem_open xs (H _) with ⟨b, hb, xb, bs⟩,
   exact ⟨_, ⟨_, rfl⟩, _, ⟨⟨⟨_, hb, _, bs⟩, rfl⟩, rfl⟩, hf _ (by exact xb)⟩
@@ -643,7 +623,7 @@ lemma countable_cover_nhds [second_countable_topology α] {f : α → set α}
 begin
   rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open_interior) with ⟨s, hsc, hsU⟩,
   suffices : (⋃ x ∈ s, interior (f x)) = univ,
-    from ⟨s, hsc, flip eq_univ_of_subset this (bUnion_mono $ λ _ _, interior_subset)⟩,
+    from ⟨s, hsc, flip eq_univ_of_subset this $ Union₂_mono $ λ _ _, interior_subset⟩,
   simp only [hsU, eq_univ_iff_forall, mem_Union],
   exact λ x, ⟨x, mem_interior_iff_mem_nhds.2 (hf x)⟩
 end

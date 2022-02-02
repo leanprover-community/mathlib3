@@ -329,8 +329,8 @@ begin
   { apply this },
   intro p, induction p with p ih,
   case nat.zero { apply r.sound, rw [(frobenius _ _).iterate_map_one, pow_zero] },
-  case nat.succ {
-    rw [pow_succ, ih],
+  case nat.succ
+  { rw [pow_succ, ih],
     symmetry,
     apply r.sound,
     simp only [pow_succ, (frobenius _ _).iterate_map_mul] }

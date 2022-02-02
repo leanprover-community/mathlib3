@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.special_functions.integrals
+import topology.metric_space.contracting
 
 /-!
 # Picard-Lindelöf (Cauchy-Lipschitz) Theorem
@@ -68,8 +69,8 @@ protected lemma lipschitz_on_with {t} (ht : t ∈ Icc v.t_min v.t_max) :
 v.lipschitz' t ht
 
 protected lemma continuous_on :
-  continuous_on (uncurry v) ((Icc v.t_min v.t_max).prod (closed_ball v.x₀ v.R)) :=
-have continuous_on (uncurry (flip v)) ((closed_ball v.x₀ v.R).prod (Icc v.t_min v.t_max)),
+  continuous_on (uncurry v) (Icc v.t_min v.t_max ×ˢ closed_ball v.x₀ v.R) :=
+have continuous_on (uncurry (flip v)) (closed_ball v.x₀ v.R ×ˢ Icc v.t_min v.t_max),
   from continuous_on_prod_of_continuous_on_lipschitz_on _ v.L v.cont v.lipschitz',
 this.comp continuous_swap.continuous_on preimage_swap_prod.symm.subset
 
@@ -226,8 +227,7 @@ begin
       (f.continuous_v_comp.measurable_at_filter _ _) f.continuous_v_comp.continuous_within_at,
   rw v_comp_apply_coe at this,
   refine this.congr_of_eventually_eq_of_mem _ t.coe_prop,
-  filter_upwards [self_mem_nhds_within],
-  intros t' ht',
+  filter_upwards [self_mem_nhds_within] with _ ht',
   rw v.proj_of_mem ht'
 end
 

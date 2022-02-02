@@ -449,5 +449,15 @@ normalized_gcd_monoid_of_exists_lcm $ λ p q, begin
   tauto,
 end
 
+lemma degree_gcd_le_left {p : polynomial R} (hp : p ≠ 0) (q) : (gcd p q).degree ≤ p.degree :=
+begin
+  have := nat_degree_le_iff_degree_le.mp
+    (nat_degree_le_of_dvd (gcd_dvd_left p q) hp),
+  rwa degree_eq_nat_degree hp
+end
+
+lemma degree_gcd_le_right (p) {q : polynomial R} (hq : q ≠ 0) : (gcd p q).degree ≤ q.degree :=
+by { rw [gcd_comm], exact degree_gcd_le_left hq p }
+
 end normalized_gcd_monoid
 end polynomial

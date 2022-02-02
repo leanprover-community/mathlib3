@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
+import data.zmod.basic
 import group_theory.index
 import group_theory.group_action.conj_act
 import group_theory.perm.cycle_type
@@ -51,7 +52,7 @@ begin
   { use (card G).factors.length,
     rw [←list.prod_repeat, ←list.eq_repeat_of_mem this, nat.prod_factors hG] },
   intros q hq,
-  obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
+  obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG.ne').mp hq,
   haveI : fact q.prime := ⟨hq1⟩,
   obtain ⟨g, hg⟩ := equiv.perm.exists_prime_order_of_dvd_card q hq2,
   obtain ⟨k, hk⟩ := (iff_order_of.mp h) g,
@@ -82,7 +83,7 @@ begin
 end
 
 lemma to_quotient (H : subgroup G) [H.normal] :
-  is_p_group p (quotient_group.quotient H) :=
+  is_p_group p (G ⧸ H) :=
 hG.of_surjective (quotient_group.mk' H) quotient.surjective_quotient_mk'
 
 lemma of_equiv {H : Type*} [group H] (ϕ : G ≃* H) : is_p_group p H :=
@@ -92,7 +93,7 @@ variables [hp : fact p.prime]
 
 include hp
 
-lemma index (H : subgroup G) [fintype (quotient_group.quotient H)] :
+lemma index (H : subgroup G) [fintype (G ⧸ H)] :
   ∃ n : ℕ, H.index = p ^ n :=
 begin
   obtain ⟨n, hn⟩ := iff_card.mp (hG.to_quotient H.normal_core),
@@ -211,13 +212,17 @@ begin
   exact ⟨j + k, by rwa [subtype.ext_iff, (H.comap ϕ).coe_pow]⟩,
 end
 
+lemma ker_is_p_group_of_injective {K : Type*} [group K] {ϕ : K →* G} (hϕ : function.injective ϕ) :
+  is_p_group p ϕ.ker :=
+(congr_arg (λ Q : subgroup K, is_p_group p Q) (ϕ.ker_eq_bot_iff.mpr hϕ)).mpr is_p_group.of_bot
+
 lemma comap_of_injective {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
   (ϕ : K →* G) (hϕ : function.injective ϕ) : is_p_group p (H.comap ϕ) :=
-begin
-  apply hH.comap_of_ker_is_p_group ϕ,
-  rw ϕ.ker_eq_bot_iff.mpr hϕ,
-  exact is_p_group.of_bot,
-end
+hH.comap_of_ker_is_p_group ϕ (ker_is_p_group_of_injective hϕ)
+
+lemma comap_subtype {H : subgroup G} (hH : is_p_group p H) {K : subgroup G} :
+  is_p_group p (H.comap K.subtype) :=
+hH.comap_of_injective K.subtype subtype.coe_injective
 
 lemma to_sup_of_normal_right {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   [K.normal] : is_p_group p (H ⊔ K : subgroup G) :=
@@ -242,5 +247,24 @@ let hHK' := to_sup_of_normal_right (hH.of_equiv (subgroup.comap_subtype_equiv_of
 lemma to_sup_of_normal_left' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   (hHK : K ≤ H.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
 (congr_arg (λ H : subgroup G, is_p_group p H) sup_comm).mp (to_sup_of_normal_right' hK hH hHK)
+
+/-- p-groups with different p are disjoint -/
+lemma disjoint_of_ne (p₁ p₂ : ℕ) [hp₁ : fact p₁.prime] [hp₂ : fact p₂.prime] (hne : p₁ ≠ p₂)
+  (H₁ H₂ : subgroup G) (hH₁ : is_p_group p₁ H₁) (hH₂ : is_p_group p₂ H₂) :
+  disjoint H₁ H₂ :=
+begin
+  rintro x ⟨hx₁, hx₂⟩,
+  rw subgroup.mem_bot,
+  obtain ⟨n₁, hn₁⟩ := iff_order_of.mp hH₁ ⟨x, hx₁⟩,
+  obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
+  rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,
+  have : p₁ ^ n₁ = p₂ ^ n₂, by rw [← hn₁, ← hn₂],
+  have : n₁ = 0,
+  { contrapose! hne with h,
+    rw ← associated_iff_eq at this ⊢,
+    exact associated.of_pow_associated_of_prime
+      (nat.prime_iff.mp hp₁.elim) (nat.prime_iff.mp hp₂.elim) (ne.bot_lt h) this },
+  simpa [this] using hn₁,
+end
 
 end is_p_group

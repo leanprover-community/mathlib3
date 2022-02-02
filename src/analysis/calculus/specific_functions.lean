@@ -100,8 +100,7 @@ lemma f_aux_deriv_pos (n : ℕ) (x : ℝ) (hx : 0 < x) :
   has_deriv_at (f_aux n) ((P_aux (n+1)).eval x * exp (-x⁻¹) / x^(2 * (n + 1))) x :=
 begin
   apply (f_aux_deriv n x (ne_of_gt hx)).congr_of_eventually_eq,
-  filter_upwards [lt_mem_nhds hx],
-  assume y hy,
+  filter_upwards [lt_mem_nhds hx] with _ hy,
   simp [f_aux, hy.not_le]
 end
 
@@ -109,11 +108,11 @@ end
 is `0`, to be able to apply general differentiability extension theorems. This limit is checked in
 this lemma. -/
 lemma f_aux_limit (n : ℕ) :
-  tendsto (λx, (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n)) (𝓝[Ioi 0] 0) (𝓝 0) :=
+  tendsto (λx, (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n)) (𝓝[>] 0) (𝓝 0) :=
 begin
-  have A : tendsto (λx, (P_aux n).eval x) (𝓝[Ioi 0] 0) (𝓝 ((P_aux n).eval 0)) :=
+  have A : tendsto (λx, (P_aux n).eval x) (𝓝[>] 0) (𝓝 ((P_aux n).eval 0)) :=
   (P_aux n).continuous_within_at,
-  have B : tendsto (λx, exp (-x⁻¹) / x^(2 * n)) (𝓝[Ioi 0] 0) (𝓝 0),
+  have B : tendsto (λx, exp (-x⁻¹) / x^(2 * n)) (𝓝[>] 0) (𝓝 0),
   { convert (tendsto_pow_mul_exp_neg_at_top_nhds_0 (2 * n)).comp tendsto_inv_zero_at_top,
     ext x,
     field_simp },
@@ -162,8 +161,7 @@ begin
   { have : f_aux (n+1) x = 0, by simp [f_aux, le_of_lt hx],
     rw this,
     apply (has_deriv_at_const x (0 : ℝ)).congr_of_eventually_eq,
-    filter_upwards [gt_mem_nhds hx],
-    assume y hy,
+    filter_upwards [gt_mem_nhds hx] with _ hy,
     simp [f_aux, hy.le] },
   { have : f_aux (n + 1) 0 = 0, by simp [f_aux, le_refl],
     rw [hx, this],
@@ -374,7 +372,7 @@ def to_fun (f : times_cont_diff_bump c) : E → ℝ := f.to_times_cont_diff_bump
 
 instance : has_coe_to_fun (times_cont_diff_bump c) (λ _, E → ℝ) := ⟨to_fun⟩
 
-instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default _⟩⟩
+instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default⟩⟩
 
 lemma R_pos : 0 < f.R := f.to_times_cont_diff_bump_of_inner.R_pos
 

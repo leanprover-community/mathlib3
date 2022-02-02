@@ -163,9 +163,9 @@ h.to_equiv.symm_apply_apply x
 
 @[simp] lemma symm_refl : (diffeomorph.refl I M n).symm = diffeomorph.refl I M n :=
 ext $ λ _, rfl
-@[simp] lemma trans_symm (h : M ≃ₘ^n⟮I, J⟯ N) : h.trans h.symm = diffeomorph.refl I M n :=
+@[simp] lemma self_trans_symm (h : M ≃ₘ^n⟮I, J⟯ N) : h.trans h.symm = diffeomorph.refl I M n :=
 ext h.symm_apply_apply
-@[simp] lemma symm_trans (h : M ≃ₘ^n⟮I, J⟯ N) : h.symm.trans h = diffeomorph.refl J N n :=
+@[simp] lemma symm_trans_self (h : M ≃ₘ^n⟮I, J⟯ N) : h.symm.trans h = diffeomorph.refl J N n :=
 ext h.apply_symm_apply
 @[simp] lemma symm_trans' (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : M' ≃ₘ^n⟮I', J⟯ N) :
   (h₁.trans h₂).symm = h₂.symm.trans h₁.symm := rfl
@@ -246,7 +246,7 @@ h.times_cont_mdiff_within_at_diffeomorph_comp_iff hm
 @[simp] lemma times_cont_mdiff_on_diffeomorph_comp_iff {m} (h : M ≃ₘ^n⟮I, J⟯ N) {f : M' → M}
   (hm : m ≤ n) {s} :
   times_cont_mdiff_on I' J m (h ∘ f) s ↔ times_cont_mdiff_on I' I m f s :=
-forall_congr $ λ x, forall_congr $ λ hx, h.times_cont_mdiff_within_at_diffeomorph_comp_iff hm
+forall₂_congr $ λ x hx, h.times_cont_mdiff_within_at_diffeomorph_comp_iff hm
 
 @[simp] lemma times_cont_mdiff_diffeomorph_comp_iff {m} (h : M ≃ₘ^n⟮I, J⟯ N) {f : M' → M}
   (hm : m ≤ n) :

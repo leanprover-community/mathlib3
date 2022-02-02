@@ -38,6 +38,8 @@ instance {S : Type*} [semiring S] [Π i, module S (M i)] [Π i, smul_comm_class 
 instance {S : Type*} [semiring S] [has_scalar R S] [Π i, module S (M i)]
   [Π i, is_scalar_tower R S (M i)] :
   is_scalar_tower R S (⨁ i, M i) := dfinsupp.is_scalar_tower
+instance [Π i, module Rᵐᵒᵖ (M i)] [Π i, is_central_scalar R (M i)] :
+  is_central_scalar R (⨁ i, M i) := dfinsupp.is_central_scalar
 
 lemma smul_apply (b : R) (v : ⨁ i, M i) (i : ι) :
   (b • v) i = b • (v i) := dfinsupp.smul_apply _ _ _
@@ -210,6 +212,13 @@ def submodule_coe : (⨁ i, A i) →ₗ[R] M := to_module R ι M (λ i, (A i).su
 @[simp] lemma submodule_coe_of (i : ι) (x : A i) : submodule_coe A (of (λ i, A i) i x) = x :=
 to_add_monoid_of _ _ _
 
+lemma coe_of_submodule_apply (i j : ι) (x : A i) :
+  (direct_sum.of _ i x j : M) = if i = j then x else 0 :=
+begin
+  obtain rfl | h := decidable.eq_or_ne i j,
+  { rw [direct_sum.of_eq_same, if_pos rfl], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, submodule.coe_zero], },
+end
 
 /-- The `direct_sum` formed by a collection of `submodule`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →ₗ[R] M` is bijective.
@@ -235,6 +244,35 @@ end
 lemma submodule_is_internal.independent (h : submodule_is_internal A) :
   complete_lattice.independent A :=
 complete_lattice.independent_of_dfinsupp_lsum_injective _ h.injective
+
+/-- Given an internal direct sum decomposition of a module `M`, and a basis for each of the
+components of the direct sum, the disjoint union of these bases is a basis for `M`. -/
+noncomputable def submodule_is_internal.collected_basis
+  (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
+  basis (Σ i, α i) R M :=
+{ repr := (linear_equiv.of_bijective _ h.injective h.surjective).symm ≪≫ₗ
+      (dfinsupp.map_range.linear_equiv (λ i, (v i).repr)) ≪≫ₗ
+      (sigma_finsupp_lequiv_dfinsupp R).symm }
+
+@[simp] lemma submodule_is_internal.collected_basis_coe
+  (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
+  ⇑(h.collected_basis v) = λ a : Σ i, (α i), ↑(v a.1 a.2) :=
+begin
+  funext a,
+  simp only [submodule_is_internal.collected_basis, to_module, submodule_coe,
+    add_equiv.to_fun_eq_coe, basis.coe_of_repr, basis.repr_symm_apply, dfinsupp.lsum_apply_apply,
+    dfinsupp.map_range.linear_equiv_apply, dfinsupp.map_range.linear_equiv_symm,
+    dfinsupp.map_range_single, finsupp.total_single, linear_equiv.of_bijective_apply,
+    linear_equiv.symm_symm, linear_equiv.symm_trans_apply, one_smul,
+    sigma_finsupp_add_equiv_dfinsupp_apply, sigma_finsupp_equiv_dfinsupp_single,
+    sigma_finsupp_lequiv_dfinsupp_apply],
+  convert dfinsupp.sum_add_hom_single (λ i, (A i).subtype.to_add_monoid_hom) a.1 (v a.1 a.2),
+end
+
+lemma submodule_is_internal.collected_basis_mem
+  (h : submodule_is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) (a : Σ i, α i) :
+  h.collected_basis v a ∈ A a.1 :=
+by simp
 
 end semiring
 

@@ -6,7 +6,8 @@ Authors: Scott Morrison, Adam Topaz
 import category_theory.limits.preserves.basic
 import category_theory.limits.types
 import category_theory.limits.shapes.wide_pullbacks
-import tactic.elementwise
+import category_theory.limits.shapes.multiequalizer
+import category_theory.concrete_category.elementwise
 
 /-!
 # Facts about (co)limits of functors into concrete categories
@@ -17,8 +18,6 @@ universes w v u
 open category_theory
 
 namespace category_theory.limits
-
-attribute [elementwise] cone.w limit.lift_π limit.w cocone.w colimit.ι_desc colimit.w
 
 local attribute [instance] concrete_category.has_coe_to_fun concrete_category.has_coe_to_sort
 
@@ -80,6 +79,69 @@ begin
 end
 
 end wide_pullback
+
+section multiequalizer
+
+lemma concrete.multiequalizer_ext {I : multicospan_index C} [has_multiequalizer I]
+  [preserves_limit I.multicospan (forget C)] (x y : multiequalizer I)
+  (h : ∀ (t : I.L), multiequalizer.ι I t x = multiequalizer.ι I t y) : x = y :=
+begin
+  apply concrete.limit_ext,
+  rintros (a|b),
+  { apply h },
+  { rw [← limit.w I.multicospan (walking_multicospan.hom.fst b),
+      comp_apply, comp_apply, h] }
+end
+
+/-- An auxiliary equivalence to be used in `multiequalizer_equiv` below.-/
+def concrete.multiequalizer_equiv_aux (I : multicospan_index C) :
+  (I.multicospan ⋙ (forget C)).sections ≃
+  { x : Π (i : I.L), I.left i // ∀ (i : I.R), I.fst i (x _) = I.snd i (x _) } :=
+{ to_fun := λ x, ⟨λ i, x.1 (walking_multicospan.left _), λ i, begin
+    have a := x.2 (walking_multicospan.hom.fst i),
+    have b := x.2 (walking_multicospan.hom.snd i),
+    rw ← b at a,
+    exact a,
+  end⟩,
+  inv_fun := λ x,
+  { val := λ j,
+    match j with
+    | walking_multicospan.left a := x.1 _
+    | walking_multicospan.right b := I.fst b (x.1 _)
+    end,
+    property := begin
+      rintros (a|b) (a'|b') (f|f|f),
+      { change (I.multicospan.map (𝟙 _)) _ = _, simp },
+      { refl },
+      { dsimp, erw ← x.2 b', refl },
+      { change (I.multicospan.map (𝟙 _)) _ = _, simp },
+    end },
+  left_inv := begin
+    intros x, ext (a|b),
+    { refl },
+    { change _ = x.val _,
+      rw ← x.2 (walking_multicospan.hom.fst b),
+      refl }
+  end,
+  right_inv := by { intros x, ext i, refl } }
+
+/-- The equivalence between the noncomputable multiequalizer and
+and the concrete multiequalizer. -/
+noncomputable
+def concrete.multiequalizer_equiv (I : multicospan_index C) [has_multiequalizer I]
+  [preserves_limit I.multicospan (forget C)] : (multiequalizer I : C) ≃
+    { x : Π (i : I.L), I.left i // ∀ (i : I.R), I.fst i (x _) = I.snd i (x _) } :=
+let h1 := (limit.is_limit I.multicospan),
+    h2 := (is_limit_of_preserves (forget C) h1),
+    E := h2.cone_point_unique_up_to_iso (types.limit_cone_is_limit _) in
+equiv.trans E.to_equiv (concrete.multiequalizer_equiv_aux I)
+
+@[simp]
+lemma concrete.multiequalizer_equiv_apply (I : multicospan_index C) [has_multiequalizer I]
+  [preserves_limit I.multicospan (forget C)] (x : multiequalizer I) (i : I.L) :
+  ((concrete.multiequalizer_equiv I) x : Π (i : I.L), I.left i) i = multiequalizer.ι I i x := rfl
+
+end multiequalizer
 
 -- TODO: Add analogous lemmas about products and equalizers.
 
@@ -178,16 +240,16 @@ begin
   { exact this ⟨i,x⟩ ⟨j,y⟩ h },
   intros a b h,
   induction h,
-  case eqv_gen.rel : x y hh {
-    obtain ⟨e,he⟩ := hh,
+  case eqv_gen.rel : x y hh
+  { obtain ⟨e,he⟩ := hh,
     use [y.1, e, 𝟙 _],
     simpa using he.symm },
   case eqv_gen.refl : x { use [x.1, 𝟙 _, 𝟙 _, rfl] },
-  case eqv_gen.symm : x y _ hh {
-    obtain ⟨k, f, g, hh⟩ := hh,
+  case eqv_gen.symm : x y _ hh
+  { obtain ⟨k, f, g, hh⟩ := hh,
     use [k, g, f, hh.symm] },
-  case eqv_gen.trans : x y z _ _ hh1 hh2 {
-    obtain ⟨k1, f1, g1, h1⟩ := hh1,
+  case eqv_gen.trans : x y z _ _ hh1 hh2
+  { obtain ⟨k1, f1, g1, h1⟩ := hh1,
     obtain ⟨k2, f2, g2, h2⟩ := hh2,
     let k0 : J := is_filtered.max k1 k2,
     let e1 : k1 ⟶ k0 := is_filtered.left_to_max _ _,

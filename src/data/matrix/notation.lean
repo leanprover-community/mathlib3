@@ -71,6 +71,10 @@ by simp [dot_product, fin.sum_univ_succ, vec_head, vec_tail]
   dot_product v (vec_cons x w) = vec_head v * x + dot_product (vec_tail v) w :=
 by simp [dot_product, fin.sum_univ_succ, vec_head, vec_tail]
 
+@[simp] lemma cons_dot_product_cons (x : α) (v : fin n → α) (y : α) (w : fin n → α) :
+  dot_product (vec_cons x v) (vec_cons y w) = x * y + dot_product v w :=
+by simp
+
 end dot_product
 
 section col_row
@@ -226,5 +230,52 @@ empty_eq _
 by { ext i j, refine fin.cases _ _ i; simp [minor] }
 
 end minor
+
+section vec2_and_vec3
+
+lemma vec2_eq {a₀ a₁ b₀ b₁ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) :
+  ![a₀, a₁] = ![b₀, b₁] :=
+by subst_vars
+
+lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
+  ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
+by subst_vars
+
+lemma vec2_add [has_add α] (a₀ a₁ b₀ b₁ : α) :
+  ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=
+by rw [cons_add_cons, cons_add_cons, empty_add_empty]
+
+lemma vec3_add [has_add α] (a₀ a₁ a₂ b₀ b₁ b₂ : α) :
+  ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
+by rw [cons_add_cons, cons_add_cons, cons_add_cons, empty_add_empty]
+
+lemma smul_vec2 {R : Type*} [has_scalar R α] (x : R) (a₀ a₁ : α) :
+  x • ![a₀, a₁] = ![x • a₀, x • a₁] :=
+by rw [smul_cons, smul_cons, smul_empty]
+
+lemma smul_vec3 {R : Type*} [has_scalar R α] (x : R) (a₀ a₁ a₂ : α) :
+  x • ![a₀, a₁, a₂] = ![x • a₀, x • a₁, x • a₂] :=
+by rw [smul_cons, smul_cons, smul_cons, smul_empty]
+
+variables [add_comm_monoid α] [has_mul α]
+
+lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : α} :
+  ![a₀, a₁] ⬝ᵥ ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
+by rw [cons_dot_product_cons, cons_dot_product_cons, dot_product_empty, add_zero]
+
+@[simp] lemma vec2_dot_product (v w : fin 2 → α) :
+  v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 :=
+vec2_dot_product'
+
+lemma vec3_dot_product' {a₀ a₁ a₂ b₀ b₁ b₂ : α} :
+  ![a₀, a₁, a₂] ⬝ᵥ ![b₀, b₁, b₂] = a₀ * b₀ + a₁ * b₁ + a₂ * b₂ :=
+by rw [cons_dot_product_cons, cons_dot_product_cons, cons_dot_product_cons,
+       dot_product_empty, add_zero, add_assoc]
+
+@[simp] lemma vec3_dot_product (v w : fin 3 → α) :
+  v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
+vec3_dot_product'
+
+end vec2_and_vec3
 
 end matrix

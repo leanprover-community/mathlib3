@@ -92,10 +92,10 @@ private lemma max_var_bound : dist x y ≤ max_var X Y := calc
     dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _)
   ... = diam (inl '' (univ : set X) ∪ inr '' (univ : set Y)) :
     by apply congr_arg; ext x y z; cases x; simp [mem_univ, mem_range_self]
-  ... ≤ diam (inl '' (univ : set X)) + dist (inl (default X)) (inr (default Y)) +
+  ... ≤ diam (inl '' (univ : set X)) + dist (inl default) (inr default) +
           diam (inr '' (univ : set Y)) :
     diam_union (mem_image_of_mem _ (mem_univ _)) (mem_image_of_mem _ (mem_univ _))
-  ... = diam (univ : set X) + (dist (default X) (default X) + 1 + dist (default Y) (default Y)) +
+  ... = diam (univ : set X) + (dist default default + 1 + dist default default) +
           diam (univ : set Y) :
     by { rw [isometry_on_inl.diam_image, isometry_on_inr.diam_image], refl }
   ... = 1 * diam (univ : set X) + 1 + 1 * diam (univ : set Y) : by simp
@@ -286,31 +286,31 @@ technical lemmas -/
 
 lemma HD_below_aux1 {f : Cb X Y} (C : ℝ) {x : X} :
   bdd_below (range (λ (y : Y), f (inl x, inr y) + C)) :=
-let ⟨cf, hcf⟩ := (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 in
+let ⟨cf, hcf⟩ := (real.bounded_iff_bdd_below_bdd_above.1 f.bounded_range).1 in
 ⟨cf + C, forall_range_iff.2 (λi, add_le_add_right ((λx, hcf (mem_range_self x)) _) _)⟩
 
 private lemma HD_bound_aux1 (f : Cb X Y) (C : ℝ) :
   bdd_above (range (λ (x : X), ⨅ y, f (inl x, inr y) + C)) :=
 begin
-  rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).2 with ⟨Cf, hCf⟩,
+  rcases (real.bounded_iff_bdd_below_bdd_above.1 f.bounded_range).2 with ⟨Cf, hCf⟩,
   refine ⟨Cf + C, forall_range_iff.2 (λx, _)⟩,
-  calc (⨅ y, f (inl x, inr y) + C) ≤ f (inl x, inr (default Y)) + C :
-    cinfi_le (HD_below_aux1 C) (default Y)
+  calc (⨅ y, f (inl x, inr y) + C) ≤ f (inl x, inr default) + C :
+    cinfi_le (HD_below_aux1 C) default
     ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
 end
 
 lemma HD_below_aux2 {f : Cb X Y} (C : ℝ) {y : Y} :
   bdd_below (range (λ (x : X), f (inl x, inr y) + C)) :=
-let ⟨cf, hcf⟩ := (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 in
+let ⟨cf, hcf⟩ := (real.bounded_iff_bdd_below_bdd_above.1 f.bounded_range).1 in
 ⟨cf + C, forall_range_iff.2 (λi, add_le_add_right ((λx, hcf (mem_range_self x)) _) _)⟩
 
 private lemma HD_bound_aux2 (f : Cb X Y) (C : ℝ) :
   bdd_above (range (λ (y : Y), ⨅ x, f (inl x, inr y) + C)) :=
 begin
-  rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).2 with ⟨Cf, hCf⟩,
+  rcases (real.bounded_iff_bdd_below_bdd_above.1 f.bounded_range).2 with ⟨Cf, hCf⟩,
   refine ⟨Cf + C, forall_range_iff.2 (λy, _)⟩,
-  calc (⨅ x, f (inl x, inr y) + C) ≤ f (inl (default X), inr y) + C :
-    cinfi_le (HD_below_aux2 C) (default X)
+  calc (⨅ x, f (inl x, inr y) + C) ≤ f (inl default, inr y) + C :
+    cinfi_le (HD_below_aux2 C) default
   ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
 end
 
@@ -321,10 +321,10 @@ lemma HD_candidates_b_dist_le :
 begin
   refine max_le (csupr_le (λx, _)) (csupr_le (λy, _)),
   { have A : (⨅ y, candidates_b_dist X Y (inl x, inr y)) ≤
-      candidates_b_dist X Y (inl x, inr (default Y)) :=
-      cinfi_le (by simpa using HD_below_aux1 0) (default Y),
-    have B : dist (inl x) (inr (default Y)) ≤ diam (univ : set X) + 1 + diam (univ : set Y) := calc
-      dist (inl x) (inr (default Y)) = dist x (default X) + 1 + dist (default Y) (default Y) : rfl
+      candidates_b_dist X Y (inl x, inr default) :=
+      cinfi_le (by simpa using HD_below_aux1 0) default,
+    have B : dist (inl x) (inr default) ≤ diam (univ : set X) + 1 + diam (univ : set Y) := calc
+      dist (inl x) (inr (default : Y)) = dist x (default : X) + 1 + dist default default : rfl
       ... ≤ diam (univ : set X) + 1 + diam (univ : set Y) :
       begin
         apply add_le_add (add_le_add _ (le_refl _)),
@@ -335,10 +335,10 @@ begin
       end,
     exact le_trans A B },
   { have A : (⨅ x, candidates_b_dist X Y (inl x, inr y)) ≤
-      candidates_b_dist X Y (inl (default X), inr y) :=
-      cinfi_le (by simpa using HD_below_aux2 0) (default X),
-    have B : dist (inl (default X)) (inr y) ≤ diam (univ : set X) + 1 + diam (univ : set Y) := calc
-      dist (inl (default X)) (inr y) = dist (default X) (default X) + 1 + dist (default Y) y : rfl
+      candidates_b_dist X Y (inl default, inr y) :=
+      cinfi_le (by simpa using HD_below_aux2 0) default,
+    have B : dist (inl default) (inr y) ≤ diam (univ : set X) + 1 + diam (univ : set Y) := calc
+      dist (inl (default : X)) (inr y) = dist default default + 1 + dist default y : rfl
       ... ≤ diam (univ : set X) + 1 + diam (univ : set Y) :
       begin
         apply add_le_add (add_le_add _ (le_refl _)),
@@ -355,9 +355,9 @@ prove separately inequalities controlling the two terms (relying too heavily on 
 private lemma HD_lipschitz_aux1 (f g : Cb X Y) :
   (⨆ x, ⨅ y, f (inl x, inr y)) ≤ (⨆ x, ⨅ y, g (inl x, inr y)) + dist f g :=
 begin
-  rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cg, hcg⟩,
+  rcases (real.bounded_iff_bdd_below_bdd_above.1 g.bounded_range).1 with ⟨cg, hcg⟩,
   have Hcg : ∀ x, cg ≤ g x := λx, hcg (mem_range_self x),
-  rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cf, hcf⟩,
+  rcases (real.bounded_iff_bdd_below_bdd_above.1 f.bounded_range).1 with ⟨cf, hcf⟩,
   have Hcf : ∀ x, cf ≤ f x := λx, hcf (mem_range_self x),
 
   -- prove the inequality but with `dist f g` inside, by using inequalities comparing
@@ -384,9 +384,9 @@ end
 private lemma HD_lipschitz_aux2 (f g : Cb X Y) :
   (⨆ y, ⨅ x, f (inl x, inr y)) ≤ (⨆ y, ⨅ x, g (inl x, inr y)) + dist f g :=
 begin
-  rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cg, hcg⟩,
+  rcases (real.bounded_iff_bdd_below_bdd_above.1 g.bounded_range).1 with ⟨cg, hcg⟩,
   have Hcg : ∀ x, cg ≤ g x := λx, hcg (mem_range_self x),
-  rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cf, hcf⟩,
+  rcases (real.bounded_iff_bdd_below_bdd_above.1 f.bounded_range).1 with ⟨cf, hcf⟩,
   have Hcf : ∀ x, cf ≤ f x := λx, hcf (mem_range_self x),
 
   -- prove the inequality but with `dist f g` inside, by using inequalities comparing

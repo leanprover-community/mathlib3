@@ -3,9 +3,9 @@ Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
-import category_theory.concrete_category.bundled_hom
-import category_theory.concrete_category.reflects_isomorphisms
 import algebra.pempty_instances
+import category_theory.concrete_category.bundled_hom
+import category_theory.reflects_isomorphisms
 
 /-!
 # Category instances for has_mul, has_add, semigroup and add_semigroup

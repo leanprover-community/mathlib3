@@ -27,8 +27,8 @@ assumptions) a primitive `n`-root of unity in `B` and we study its properties.
   `zeta n A B` is a primitive `n`-th root of unity.
 * `is_cyclotomic_extension.finrank` : if `irreducible (cyclotomic n K)` (in particular for
   `K = ℚ`), then the `finrank` of a cyclotomic extension is `n.totient`.
-* `is_cyclotomic_extension.norm_zeta_sub_one` : if `irreducible (cyclotomic n K)` (in particular for
-  `K = ℚ`), then the norm of `zeta n K L - 1` is `eval 1 (cyclotomic n ℤ)`.
+* `is_cyclotomic_extension.norm_zeta_sub_one_eq_eval_cyclotomic` : if `irreducible (cyclotomic n K)`
+  (in particular for `K = ℚ`), then the norm of `zeta n K L - 1` is `eval 1 (cyclotomic n ℤ)`.
 
 ## Implementation details
 `zeta n A B` is defined as any root of `cyclotomic n A` in `B`, that exists because of

@@ -382,7 +382,7 @@ begin
   exact is_alg_closure.equiv _ _ _
 end
 
-/-- An equiv between an algebraic closure of `K` and an algebraic closure of an algebraic
+/-- A (random) isomorphism between an algebraic closure of `K` and an algebraic closure of an algebraic
   extension of `K` -/
 noncomputable def equiv_of_algebraic (hKJ : algebra.is_algebraic K J) : L ≃ₐ[K] M :=
 equiv_of_algebraic' K J _ _ (algebra.is_algebraic_trans hKJ is_alg_closure.algebraic)

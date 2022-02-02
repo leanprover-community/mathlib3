@@ -572,6 +572,7 @@ normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing
 
 section classical
 open_locale classical
+open_locale big_operators
 
 /-- If all its sylow groups are normal, then a finite group is isomorphic to the direct product
 of these sylow groups.
@@ -579,11 +580,13 @@ of these sylow groups.
 This uses `(Σ (p : (fintype.card G).factors.to_finset), sylow p G)` as the type of all
 (non-trivial) sylow groups.
 -/
+noncomputable
 lemma direct_product_of_normal [fintype G]
   (hn : ∀ {p : ℕ} [fact p.prime] (P : sylow p G), (↑P : subgroup G).normal) :
-  (Π P : (Σ (p : (fintype.card G).factors.to_finset), sylow p G), (↑(P.2) : subgroup G)) ≃* G :=
+  (Π P : (Σ (p : (card G).factorization.support), sylow p G), (↑(P.2) : subgroup G)) ≃* G :=
 begin
-  set sylows := Σ (p : (fintype.card G).factors.to_finset), sylow p G,
+  set ps := (fintype.card G).factorization.support,
+  set sylows := Σ (p : ps), sylow p G,
 
   have sigma_helper :
     ∀ (P : Π {p₁ p₂ : ℕ}, sylow p₁ G → sylow p₂ G → Prop),
@@ -595,9 +598,8 @@ begin
     rintros ⟨⟨p₁, hp₁⟩, P₁⟩ ⟨⟨p₂, hp₂⟩, P₂⟩ hne,
     change sylow p₁ G at P₁,
     change sylow p₂ G at P₂,
-    rw mem_to_finset at hp₁ hp₂,
-    haveI hp₁' := fact.mk (nat.prime_of_mem_factors hp₁),
-    haveI hp₂' := fact.mk (nat.prime_of_mem_factors hp₂),
+    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
+    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
     have hne' : p₁ ≠ p₂, unfreezingI {
       rintros rfl, apply hne,
       haveI := subsingleton_of_normal _ (hn P₁),
@@ -630,14 +632,42 @@ begin
     apply is_p_group.coprime_card_of_ne p₁ p₂ hne _ _ P₁.is_p_group' P₂.is_p_group',
   },
   show card (Π (P : sylows), P.2) = card G, {
-    rw fintype.card_pi,
-
-  }
+    calc card (Π (P : sylows), P.2)
+        = ∏ (P : sylows), card ↥(P.snd) : fintype.card_pi
+    ... = ∏ (P : sylows), P.1 ^ (card G).factorization P.1 :
+    begin
+      congr' 1, ext P, rcases P with ⟨⟨p,hp⟩, P⟩,
+      let hp' := fact.mk (nat.prime_of_mem_factorization hp),
+      exact (@card_eq_multiplicity _ _ _ p  hp' P)
+    end
+    ... = ∏ (P : sylows) in finset.univ, P.1 ^ (card G).factorization P.1 : rfl
+    ... = ∏ (P : sylows) in (finset.univ.sigma (λ p, finset.univ)), P.1 ^ (card G).factorization P.1 : rfl
+    ... = ∏ (p : ps), ∏ (P : sylow p G), p ^ (card G).factorization p : finset.prod_sigma _ _ _
+    ... = ∏ (p : ps), ((p ^ (card G).factorization p) ^ card (sylow p G)) :
+      by {congr', ext, exact finset.prod_const _}
+    ... = ∏ (p : ps), p ^ (card G).factorization p :
+    begin
+      congr' 1, ext p, rcases p with ⟨p, hp⟩,
+      haveI : fact (nat.prime p) := fact.mk (nat.prime_of_mem_factorization hp),
+      let P : sylow p G := arbitrary _,
+      haveI := subsingleton_of_normal _ (hn P),
+      haveI : unique (sylow p G) := unique_of_subsingleton P,
+      simp,
+    end
+    ... = ∏ (p : ℕ) in (card G).factorization.support, p ^ (card G).factorization p :
+    begin
+      apply finset.prod_bij' (λ (p : ps) _ , (p : ℕ)) _ _ (λ p hp, ⟨p, hp⟩),
+      { rintros ⟨p, hp⟩ _, simp only [subtype.coe_mk]},
+      { intros p hp, reflexivity, },
+      { intros i hp, simp, },
+      { rintros ⟨p, hp⟩ _, apply hp, },
+      { intros _ _, reflexivity }
+    end
+    ... = (card G).factorization.prod pow : rfl
+    ... = card G : nat.factorization_prod_pow_eq_self fintype.card_ne_zero
+  },
 end
 
 end classical
-
-
-
 
 end sylow

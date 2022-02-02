@@ -40,6 +40,5 @@ def time : turing.to_partrec.code → list ℕ →. ℕ
   λ ⟨v, n⟩,
   if v.head = 0
     then ((time f v.tail).map sum.inl)
-    else part.map sum.inr ((λ l r, ⟨l, r⟩) <$> (f.eval v.tail) <*> ((time f v.tail) + pure n))
+    else (prod.mk <$> f.eval v.tail <*> (time f v.tail) + pure n).map sum.inr
 ) ⟨l, 0⟩)
--- TODO, surely (λ l r, ⟨l, r⟩) is supposed to be something else

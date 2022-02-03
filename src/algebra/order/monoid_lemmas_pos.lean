@@ -8,10 +8,10 @@ import algebra.order.ring
 /-!
 # Multiplication by ·positive· elements is monotonic
 
-Let `α` be a type with `<` and `0`.  We introduce notation for the subtype of positive element of
+Let `α` be a type with `<` and `0`.  We introduce notation for the subtype of positive elements of
 `α`:
 
-*  the notation `α⊹` to stands for `{x : α // 0 < x}`.
+*  the notation `α⊹` stands for `{x : α // 0 < x}`.
 
 If the type `α` also has a multiplication, then we also define the multiplications on the left and
 on the right of an element of `α⊹` and an element of `α`:
@@ -40,9 +40,10 @@ More specifically, we use extensively the following typeclasses:
     left is reverse monotone;
 * * `contravariant_class α⊹ α sx (<)`, expressing that multiplication by positive elements on the
     left is strictly reverse monotone;
-* reverse reverse monotone right
+* reverse monotone right
 * * `contravariant_class α⊹ α dx (≤)`, expressing that multiplication by positive elements on the
     right is reverse monotone;
+*  reverse strict monotone right
 * * `contravariant_class α⊹ α dx (<)`, expressing that multiplication by positive elements on the
     right is strictly reverse monotone.
 

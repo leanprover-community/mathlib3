@@ -767,7 +767,8 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
   le_inf := begin
     intros a b c hab hac, intro,
     apply le_cinfi, intro,
-    have s : i = x + (i - x), abel, nth_rewrite 0 s,
+    have s : i = x + (i - x), abel,
+    conv_lhs { rw s },
     apply le_trans,
     exact a.triangle x (i-x),
     exact add_le_add (hab x) (hac (i-x)),

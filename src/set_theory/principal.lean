@@ -62,12 +62,12 @@ theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : or
 begin
   refine le_antisymm _ (H.le_self _),
   rw [←is_normal.bsup_eq.{u u} H ho', bsup_le],
-  exact λ b hbo, le_of_lt (ho hao hbo)
+  exact λ b hbo, (ho hao hbo).le
 end
 
 theorem nfp_le_of_principal {op : ordinal → ordinal → ordinal}
   {a o : ordinal} (hao : a < o) (ho : principal op o) : nfp (op a) a ≤ o :=
-nfp_le.2 $ λ n, le_of_lt (ho.iterate_lt hao n)
+nfp_le.2 $ λ n, (ho.iterate_lt hao n).le
 
 /-! #### Additive principal ordinals -/
 

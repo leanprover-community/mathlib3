@@ -41,7 +41,7 @@ structure bot_hom (α β : Type*) [has_bot α] [has_bot β] :=
 (to_fun   : α → β)
 (map_bot' : to_fun ⊥ = ⊥)
 
-/-- The type of bounded preorder homomorphisms from `α` to `β`. -/
+/-- The type of bounded order homomorphisms from `α` to `β`. -/
 structure bounded_order_hom (α β : Type*) [preorder α] [preorder β] [bounded_order α]
   [bounded_order β]
   extends order_hom α β :=
@@ -62,7 +62,7 @@ class bot_hom_class (F : Type*) (α β : out_param $ Type*) [has_bot α] [has_bo
   extends fun_like F α (λ _, β) :=
 (map_bot (f : F) : f ⊥ = ⊥)
 
-/-- `bounded_order_hom_class F α β` states that `F` is a type of bounded preorder morphisms.
+/-- `bounded_order_hom_class F α β` states that `F` is a type of bounded order morphisms.
 
 You should extend this class when you extend `bounded_order_hom`. -/
 class bounded_order_hom_class (F : Type*) (α β : out_param $ Type*) [preorder α] [preorder β]
@@ -325,7 +325,7 @@ fun_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
 
 end bot_hom
 
-/-! ### Bounded preorder homomorphisms -/
+/-! ### Bounded order homomorphisms -/
 
 namespace bounded_order_hom
 variables [preorder α] [preorder β] [preorder γ] [preorder δ] [bounded_order α] [bounded_order β]
@@ -376,8 +376,7 @@ def comp (f : bounded_order_hom β γ) (g : bounded_order_hom α β) : bounded_o
   ..f.to_top_hom.comp g.to_top_hom, ..f.to_bot_hom.comp g.to_bot_hom }
 
 @[simp] lemma coe_comp (f : bounded_order_hom β γ) (g : bounded_order_hom α β) :
-  (f.comp g : α → γ) = f ∘ g :=
-rfl
+  (f.comp g : α → γ) = f ∘ g := rfl
 @[simp] lemma comp_apply (f : bounded_order_hom β γ) (g : bounded_order_hom α β) (a : α) :
   (f.comp g) a = f (g a) := rfl
 @[simp] lemma coe_comp_order_hom (f : bounded_order_hom β γ) (g : bounded_order_hom α β) :

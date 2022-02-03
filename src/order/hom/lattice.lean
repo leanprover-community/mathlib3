@@ -19,7 +19,6 @@ be satisfied by itself and all stricter types.
 * `inf_hom`: Maps which preserve `⊓`.
 * `lattice_hom`: Lattice homomorphisms. Maps which preserve `⊔` and `⊓`.
 * `bounded_lattice_hom`: Bounded lattice homomorphisms. Maps which preserve `⊤`, `⊥`, `⊔` and `⊓`.
-* `bounded_lattice_hom_class`
 
 ## Typeclasses
 
@@ -445,8 +444,7 @@ def comp (f : bounded_lattice_hom β γ) (g : bounded_lattice_hom α β) : bound
 { ..f.to_lattice_hom.comp g.to_lattice_hom, ..f.to_bounded_order_hom.comp g.to_bounded_order_hom }
 
 @[simp] lemma coe_comp (f : bounded_lattice_hom β γ) (g : bounded_lattice_hom α β) :
-  (f.comp g : α → γ) = f ∘ g :=
-rfl
+  (f.comp g : α → γ) = f ∘ g := rfl
 @[simp] lemma comp_apply (f : bounded_lattice_hom β γ) (g : bounded_lattice_hom α β) (a : α) :
   (f.comp g) a = f (g a) := rfl
 @[simp] lemma coe_comp_lattice_hom (f : bounded_lattice_hom β γ) (g : bounded_lattice_hom α β) :

@@ -6,6 +6,7 @@ Authors: Kevin Buzzard, Scott Morrison, Jakob von Raumer
 import category_theory.monoidal.braided
 import algebra.category.Module.basic
 import linear_algebra.tensor_product
+import ring_theory.mv_polynomial.basic
 
 /-!
 # The symmetric monoidal category structure on R-modules
@@ -18,7 +19,7 @@ If you're happy using the bundled `Module R`, it may be possible to mostly
 use this as an interface and not need to interact much with the implementation details.
 -/
 
-universes u
+universes v u
 
 open category_theory
 
@@ -35,22 +36,25 @@ open_locale tensor_product
 local attribute [ext] tensor_product.ext
 
 /-- (implementation) tensor product of R-modules -/
-def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
+def tensor_obj (M N : Module.{max v u} R) : Module.{max v u} R := Module.of R (M ⊗[R] N)
+
 /-- (implementation) tensor product of morphisms R-modules -/
-def tensor_hom {M N M' N' : Module R} (f : M ⟶ N) (g : M' ⟶ N') :
+def tensor_hom {M N M' N' : Module.{max v u} R} (f : M ⟶ N) (g : M' ⟶ N') :
   tensor_obj M M' ⟶ tensor_obj N N' :=
 tensor_product.map f g
 
-lemma tensor_id (M N : Module R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (↥M ⊗ ↥N)) :=
+lemma tensor_id (M N : Module.{max v u} R) : tensor_hom (𝟙 M) (𝟙 N) =
+  𝟙 (Module.of.{max v u} R ((M : Type (max v u)) ⊗ (N : Type (max v u)))) :=
 by tidy
 
-lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Module R}
+lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Module.{max v u} R}
   (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) :
     tensor_hom (f₁ ≫ g₁) (f₂ ≫ g₂) = tensor_hom f₁ f₂ ≫ tensor_hom g₁ g₂ :=
 by tidy
 
 /-- (implementation) the associator for R-modules -/
-def associator (M N K : Module R) : tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
+def associator (M N K : Module.{max v u} R) :
+  tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
 linear_equiv.to_Module_iso (tensor_product.assoc R M N K)
 
 section
@@ -100,59 +104,71 @@ lemma associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : Module R}
     (associator X₁ X₂ X₃).hom ≫ tensor_hom f₁ (tensor_hom f₂ f₃) :=
 by convert associator_naturality_aux f₁ f₂ f₃ using 1
 
-lemma pentagon (W X Y Z : Module R) :
+lemma pentagon (W X Y Z : Module.{max v u} R) :
   tensor_hom (associator W X Y).hom (𝟙 Z) ≫ (associator W (tensor_obj X Y) Z).hom
   ≫ tensor_hom (𝟙 W) (associator X Y Z).hom =
     (associator (tensor_obj W X) Y Z).hom ≫ (associator W X (tensor_obj Y Z)).hom :=
 by convert pentagon_aux R W X Y Z using 1
 
-/-- (implementation) the left unitor for R-modules -/
-def left_unitor (M : Module.{u} R) : Module.of R (R ⊗[R] M) ≅ M :=
-(linear_equiv.to_Module_iso (tensor_product.lid R M) : of R (R ⊗ M) ≅ of R M).trans (of_self_iso M)
+variable (R)
+noncomputable def tensor_unit : Module.{max v u} R := Module.of R (mv_polynomial punit R)
+variable {R}
 
-lemma left_unitor_naturality {M N : Module R} (f : M ⟶ N) :
-  tensor_hom (𝟙 (Module.of R R)) f ≫ (left_unitor N).hom = (left_unitor M).hom ≫ f :=
+/-- (implementation) the left unitor for R-modules -/
+def left_unitor (M : Module.{max v u} R) : tensor_obj (tensor_unit R) M ≅ M := sorry
+--(linear_equiv.to_Module_iso (tensor_product.lid R M) : of R (R ⊗ M) ≅ of R M).trans (of_self_iso M)
+
+lemma left_unitor_naturality {M N : Module.{max v u} R} (f : M ⟶ N) :
+  tensor_hom (𝟙 (tensor_unit R)) f ≫ (left_unitor N).hom = (left_unitor M).hom ≫ f :=
 begin
+  sorry
+  /-
   ext x y, simp,
   erw [tensor_product.lid_tmul, tensor_product.lid_tmul],
   rw linear_map.map_smul,
   refl,
+  -/
 end
 
 /-- (implementation) the right unitor for R-modules -/
-def right_unitor (M : Module.{u} R) : Module.of R (M ⊗[R] R) ≅ M :=
-(linear_equiv.to_Module_iso (tensor_product.rid R M) : of R (M ⊗ R) ≅ of R M).trans (of_self_iso M)
+def right_unitor (M : Module.{max v u} R) : tensor_obj M (tensor_unit R) ≅ M := sorry
+--(linear_equiv.to_Module_iso (tensor_product.rid R M) : of R (M ⊗ R) ≅ of R M).trans (of_self_iso M)
 
-lemma right_unitor_naturality {M N : Module R} (f : M ⟶ N) :
-  tensor_hom f (𝟙 (Module.of R R)) ≫ (right_unitor N).hom = (right_unitor M).hom ≫ f :=
+lemma right_unitor_naturality {M N : Module.{max v u} R} (f : M ⟶ N) :
+  tensor_hom f (𝟙 (tensor_unit R)) ≫ (right_unitor N).hom = (right_unitor M).hom ≫ f :=
 begin
-  ext x y, simp,
-  erw [tensor_product.rid_tmul, tensor_product.rid_tmul],
-  rw linear_map.map_smul,
-  refl,
+  sorry
+--  ext x y, simp,
+--  erw [tensor_product.rid_tmul, tensor_product.rid_tmul],
+--  rw linear_map.map_smul,
+--  refl,
 end
 
-lemma triangle (M N : Module.{u} R) :
-  (associator M (Module.of R R) N).hom ≫ tensor_hom (𝟙 M) (left_unitor N).hom =
+lemma triangle (M N : Module.{max v u} R) :
+  (associator M (tensor_unit R) N).hom ≫ tensor_hom (𝟙 M) (left_unitor N).hom =
     tensor_hom (right_unitor M).hom (𝟙 N) :=
 begin
+  sorry
+  /-
   apply tensor_product.ext_threefold,
   intros x y z,
   change R at y,
   dsimp [tensor_hom, associator],
   erw [tensor_product.lid_tmul, tensor_product.rid_tmul],
   exact (tensor_product.smul_tmul _ _ _).symm
+  -/
 end
 
 end monoidal_category
 
 open monoidal_category
 
-instance monoidal_category : monoidal_category (Module.{u} R) :=
+noncomputable
+instance monoidal_category : monoidal_category (Module.{max v u} R) :=
 { -- data
   tensor_obj   := tensor_obj,
   tensor_hom   := @tensor_hom _ _,
-  tensor_unit  := Module.of R R,
+  tensor_unit  := tensor_unit _,
   associator   := associator,
   left_unitor  := left_unitor,
   right_unitor := right_unitor,
@@ -166,50 +182,55 @@ instance monoidal_category : monoidal_category (Module.{u} R) :=
   triangle'                := λ M N, triangle M N, }
 
 /-- Remind ourselves that the monoidal unit, being just `R`, is still a commutative ring. -/
-instance : comm_ring ((𝟙_ (Module.{u} R) : Module.{u} R) : Type u) :=
-(by apply_instance : comm_ring R)
+noncomputable
+instance : comm_ring ((𝟙_ (Module.{max v u} R) : Module.{max v u} R) : Type (max v u)) :=
+show comm_ring (mv_polynomial _ _), by apply_instance
 
 namespace monoidal_category
 
 @[simp]
-lemma hom_apply {K L M N : Module.{u} R} (f : K ⟶ L) (g : M ⟶ N) (k : K) (m : M) :
+lemma hom_apply {K L M N : Module.{max v u} R} (f : K ⟶ L) (g : M ⟶ N) (k : K) (m : M) :
   (f ⊗ g) (k ⊗ₜ m) = f k ⊗ₜ g m := rfl
 
 @[simp]
-lemma left_unitor_hom_apply {M : Module.{u} R} (r : R) (m : M) :
-  ((λ_ M).hom : 𝟙_ (Module R) ⊗ M ⟶ M) (r ⊗ₜ[R] m) = r • m :=
-tensor_product.lid_tmul m r
+lemma left_unitor_hom_apply {M : Module.{max v u} R} (r : R) (m : M) :
+  ((λ_ M).hom : 𝟙_ (Module R) ⊗ M ⟶ M) ((mv_polynomial.C r) ⊗ₜ[R] m) = r • m :=
+sorry
+--tensor_product.lid_tmul m r
 
 @[simp]
-lemma left_unitor_inv_apply {M : Module.{u} R} (m : M) :
-  ((λ_ M).inv : M ⟶ 𝟙_ (Module.{u} R) ⊗ M) m = 1 ⊗ₜ[R] m :=
-tensor_product.lid_symm_apply m
+lemma left_unitor_inv_apply {M : Module.{max v u} R} (m : M) :
+  ((λ_ M).inv : M ⟶ 𝟙_ (Module.{max v u} R) ⊗ M) m = 1 ⊗ₜ[R] m :=
+sorry
+--tensor_product.lid_symm_apply m
 
 @[simp]
-lemma right_unitor_hom_apply {M : Module.{u} R} (m : M) (r : R) :
-  ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ r) = r • m :=
-tensor_product.rid_tmul m r
+lemma right_unitor_hom_apply {M : Module.{max v u} R} (m : M) (r : R) :
+  ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ (mv_polynomial.C r)) = r • m :=
+sorry
+--tensor_product.rid_tmul m r
 
 @[simp]
-lemma right_unitor_inv_apply {M : Module.{u} R} (m : M) :
-  ((ρ_ M).inv : M ⟶ M ⊗ 𝟙_ (Module.{u} R)) m = m ⊗ₜ[R] 1 :=
-tensor_product.rid_symm_apply m
+lemma right_unitor_inv_apply {M : Module.{max v u} R} (m : M) :
+  ((ρ_ M).inv : M ⟶ M ⊗ 𝟙_ (Module.{max v u} R)) m = m ⊗ₜ[R] 1 :=
+sorry
+--tensor_product.rid_symm_apply m
 
 @[simp]
-lemma associator_hom_apply {M N K : Module.{u} R} (m : M) (n : N) (k : K) :
+lemma associator_hom_apply {M N K : Module.{max v u} R} (m : M) (n : N) (k : K) :
   ((α_ M N K).hom : (M ⊗ N) ⊗ K ⟶ M ⊗ (N ⊗ K)) ((m ⊗ₜ n) ⊗ₜ k) = (m ⊗ₜ (n ⊗ₜ k)) := rfl
 
 @[simp]
-lemma associator_inv_apply {M N K : Module.{u} R} (m : M) (n : N) (k : K) :
+lemma associator_inv_apply {M N K : Module.{max v u} R} (m : M) (n : N) (k : K) :
   ((α_ M N K).inv : M ⊗ (N ⊗ K) ⟶ (M ⊗ N) ⊗ K) (m ⊗ₜ (n ⊗ₜ k)) = ((m ⊗ₜ n) ⊗ₜ k) := rfl
 
 end monoidal_category
 
 /-- (implementation) the braiding for R-modules -/
-def braiding (M N : Module R) : tensor_obj M N ≅ tensor_obj N M :=
+def braiding (M N : Module.{max v u} R) : tensor_obj M N ≅ tensor_obj N M :=
 linear_equiv.to_Module_iso (tensor_product.comm R M N)
 
-@[simp] lemma braiding_naturality {X₁ X₂ Y₁ Y₂ : Module.{u} R} (f : X₁ ⟶ Y₁) (g : X₂ ⟶ Y₂) :
+@[simp] lemma braiding_naturality {X₁ X₂ Y₁ Y₂ : Module.{max v u} R} (f : X₁ ⟶ Y₁) (g : X₂ ⟶ Y₂) :
   (f ⊗ g) ≫ (Y₁.braiding Y₂).hom =
     (X₁.braiding X₂).hom ≫ (g ⊗ f) :=
 begin
@@ -218,7 +239,7 @@ begin
   refl
 end
 
-@[simp] lemma hexagon_forward (X Y Z : Module.{u} R) :
+@[simp] lemma hexagon_forward (X Y Z : Module.{max v u} R) :
   (α_ X Y Z).hom ≫ (braiding X _).hom ≫ (α_ Y Z X).hom =
   ((braiding X Y).hom ⊗ 𝟙 Z) ≫ (α_ Y X Z).hom ≫ (𝟙 Y ⊗ (braiding X Z).hom) :=
 begin
@@ -227,7 +248,7 @@ begin
   refl,
 end
 
-@[simp] lemma hexagon_reverse (X Y Z : Module.{u} R) :
+@[simp] lemma hexagon_reverse (X Y Z : Module.{max v u} R) :
   (α_ X Y Z).inv ≫ (braiding _ Z).hom ≫ (α_ Z X Y).inv =
   (𝟙 X ⊗ (Y.braiding Z).hom) ≫ (α_ X Z Y).inv ≫ ((X.braiding Z).hom ⊗ 𝟙 Y) :=
 begin
@@ -240,7 +261,8 @@ end
 local attribute [ext] tensor_product.ext
 
 /-- The symmetric monoidal structure on `Module R`. -/
-instance symmetric_category : symmetric_category (Module.{u} R) :=
+noncomputable
+instance symmetric_category : symmetric_category (Module.{max v u} R) :=
 { braiding := braiding,
   braiding_naturality' := λ X₁ X₂ Y₁ Y₂ f g, braiding_naturality f g,
   hexagon_forward' := hexagon_forward,
@@ -248,10 +270,10 @@ instance symmetric_category : symmetric_category (Module.{u} R) :=
 
 namespace monoidal_category
 
-@[simp] lemma braiding_hom_apply {M N : Module.{u} R} (m : M) (n : N) :
+@[simp] lemma braiding_hom_apply {M N : Module.{max v u} R} (m : M) (n : N) :
   ((β_ M N).hom : M ⊗ N ⟶ N ⊗ M) (m ⊗ₜ n) = n ⊗ₜ m := rfl
 
-@[simp] lemma braiding_inv_apply {M N : Module.{u} R} (m : M) (n : N) :
+@[simp] lemma braiding_inv_apply {M N : Module.{max v u} R} (m : M) (n : N) :
   ((β_ M N).inv : N ⊗ M ⟶ M ⊗ N) (n ⊗ₜ m) = m ⊗ₜ n := rfl
 
 end monoidal_category

@@ -111,7 +111,7 @@ lemma pentagon (W X Y Z : Module.{max v u} R) :
 by convert pentagon_aux R W X Y Z using 1
 
 variable (R)
-noncomputable def tensor_unit : Module.{max v u} R := Module.of R (mv_polynomial punit R)
+noncomputable def tensor_unit : Module.{max v u} R := Module.of R (mv_polynomial pempty R)
 variable {R}
 
 /-- (implementation) the left unitor for R-modules -/

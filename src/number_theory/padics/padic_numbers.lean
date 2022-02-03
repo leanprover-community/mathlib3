@@ -162,7 +162,7 @@ lemma lift_index_left_left {f : padic_seq p} (hf : ¬ f ≈ 0) (v2 v3 : ℕ) :
 begin
   apply stationary_point_spec hf,
   { apply le_max_left },
-  { apply le_refl }
+  { exact le_rfl }
 end
 
 /-- An auxiliary lemma for manipulating sequence indices. -/
@@ -174,7 +174,7 @@ begin
   { apply le_trans,
     { apply le_max_left _ v3 },
     { apply le_max_right } },
-  { apply le_refl }
+  { exact le_rfl }
 end
 
 /-- An auxiliary lemma for manipulating sequence indices. -/
@@ -186,7 +186,7 @@ begin
   { apply le_trans,
     { apply le_max_right v2 },
     { apply le_max_right } },
-  { apply le_refl }
+  { exact le_rfl }
 end
 
 end embedding
@@ -388,9 +388,9 @@ else
     simp only [hg, hf, norm, dif_neg, not_false_iff],
     let i := max (stationary_point hf) (stationary_point hg),
     have hpf : padic_norm p (f (stationary_point hf)) = padic_norm p (f i),
-    { apply stationary_point_spec, apply le_max_left, apply le_refl },
+    { apply stationary_point_spec, apply le_max_left, exact le_rfl },
     have hpg : padic_norm p (g (stationary_point hg)) = padic_norm p (g i),
-    { apply stationary_point_spec, apply le_max_right, apply le_refl },
+    { apply stationary_point_spec, apply le_max_right, exact le_rfl },
     rw [hpf, hpg, h]
   end
 
@@ -556,7 +556,7 @@ begin
   { have := stationary_point_spec hne le_rfl (le_of_not_le hngen),
     rw ←this,
     apply hN,
-    apply le_refl, assumption }
+    exact le_rfl, assumption }
 end
 
 protected lemma nonneg (q : ℚ_[p]) : 0 ≤ padic_norm_e q :=
@@ -651,7 +651,7 @@ quotient.induction_on q $ λ q',
           simp only [const_apply, sub_apply, padic_norm.zero, sub_self] at this,
           simpa only [this] },
         { apply hN,
-          apply le_of_lt, apply lt_of_not_ge, apply hle, apply le_refl }}
+          apply le_of_lt, apply lt_of_not_ge, apply hle, exact le_rfl }}
     end⟩
 
 variables {p : ℕ} [fact p.prime] (f : cau_seq _ (@padic_norm_e p _))

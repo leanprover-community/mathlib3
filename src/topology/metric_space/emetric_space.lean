@@ -131,7 +131,7 @@ begin
   revert n,
   refine nat.le_induction _ _,
   { simp only [finset.sum_empty, finset.Ico_self, edist_self],
-    -- TODO: Why doesn't Lean close this goal automatically? `apply le_refl` fails too.
+    -- TODO: Why doesn't Lean close this goal automatically? `exact le_rfl` fails too.
     exact le_refl (0:ℝ≥0∞) },
   { assume n hn hrec,
     calc edist (f m) (f (n+1)) ≤ edist (f m) (f n) + edist (f n) (f (n+1)) : edist_triangle _ _ _

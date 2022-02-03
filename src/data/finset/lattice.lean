@@ -487,7 +487,7 @@ by { rw [←with_bot.coe_le_coe, coe_sup'], exact le_sup h, }
 @[simp] lemma sup'_const (a : α) : s.sup' H (λ b, a) = a :=
 begin
   apply le_antisymm,
-  { apply sup'_le, intros, apply le_refl, },
+  { apply sup'_le, intros, exact le_rfl, },
   { apply le_sup' (λ b, a) H.some_spec, }
 end
 

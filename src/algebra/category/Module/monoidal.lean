@@ -111,6 +111,9 @@ lemma pentagon (W X Y Z : Module.{max v u} R) :
 by convert pentagon_aux R W X Y Z using 1
 
 variable (R)
+/-- The tensor unit for `Module R`. To avoid restricting our universe parameters,
+we use `mv_polynomial pempty R` as a model for a universe polymorphic version of
+the `R`-module `R`. -/
 noncomputable def tensor_unit : Module.{max v u} R := Module.of R (mv_polynomial pempty R)
 variable {R}
 

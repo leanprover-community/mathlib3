@@ -11,7 +11,7 @@ import ring_theory.norm
 import algebra.is_prime_pow
 
 /-!
-# `ζ` elements in cyclotmic fields
+# `ζ` elements in cyclotomic fields
 If `is_cyclotomic_extension {n} A B`, we define an element `zeta n A B : B` that is (under certain
 assumptions) a primitive `n`-root of unity in `B` and we study its properties.
 

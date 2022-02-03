@@ -777,10 +777,10 @@ end
 
 lemma _root_.is_primitive_root.minpoly_eq_cyclotomic_of_irreducible {K : Type*} [field K]
   {R : Type*} [comm_ring R] [is_domain R] {μ : R} {n : ℕ} [algebra K R] (hμ : is_primitive_root μ n)
-  (h : irreducible $ cyclotomic n K) [ne_zero (n : K)] : minpoly K μ = cyclotomic n K :=
+  (h : irreducible $ cyclotomic n K) [ne_zero (n : K)] : cyclotomic n K = minpoly K μ :=
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K R n,
-  refine (minpoly.eq_of_irreducible_of_monic h _ $ cyclotomic.monic _ _).symm,
+  refine minpoly.eq_of_irreducible_of_monic h _ (cyclotomic.monic n K),
   rwa [aeval_def, eval₂_eq_eval_map, map_cyclotomic, ←is_root.def, is_root_cyclotomic_iff]
 end
 

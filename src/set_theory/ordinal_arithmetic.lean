@@ -454,12 +454,6 @@ theorem add_is_normal (a : ordinal) : is_normal ((+) a) :=
 theorem add_is_limit (a) {b} : is_limit b → is_limit (a + b) :=
 (add_is_normal a).is_limit
 
-theorem is_normal_iff_strict_mono_limit (f : ordinal → ordinal) :
-  (strict_mono f ∧ ∀ o, is_limit o → ∀ a, (∀ b < o, f b ≤ a) → f o ≤ a) ↔ is_normal f :=
-⟨λ ⟨hs, hl⟩, ⟨λ a, hs (ordinal.lt_succ_self a),
-  λ a ha c, ⟨λ hac b hba, ((hs hba).trans_le hac).le, hl a ha c⟩⟩,
-  λ hf, ⟨hf.strict_mono, λ a ha c, (hf.2 a ha c).2⟩⟩
-
 /-! ### Subtraction on ordinals-/
 
 /-- `a - b` is the unique ordinal satisfying

@@ -1,12 +1,12 @@
 /-
-Copyright (c) 2021 Violeta Hernández Palacios. All rights reserved.
+Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Violeta Hernández Palacios
 -/
-import set_theory.ordinal_arithmetic
+import set_theory.fixed_points
 
 /-!
-# Veblen's lemma
+# Veblen's function
 
 In this file, we build Veblen's two argument function.
 
@@ -30,66 +30,6 @@ variable {ι : Type u}
 
 namespace ordinal
 
-/-- Applies the functions specified by the indices of the list, in order, to a specified value. -/
-def nfp_family_iterate (f : ι → ordinal.{max u v} → ordinal.{max u v})
-(a : ordinal.{max u v}) : list ι → ordinal.{max u v}
-| []       := a
-| (i :: l) := f i (nfp_family_iterate l)
-
-theorem nfp_family_iterate_empty [hι : is_empty ι] (f : ι → ordinal.{max u v} → ordinal.{max u v})
-(a : ordinal.{max u v}) (l : list ι) :
-  nfp_family_iterate f a l = a :=
-by { induction l with i l hl, refl, exact hι.elim i }
-
-/-- The next common fixed point above `a` for a family of normal functions. -/
--- Todo: prove it's actually the next
-def nfp_family (f : ι → ordinal → ordinal) (a) : ordinal := sup (nfp_family_iterate f a)
-
-theorem iterate_le_nfp_family (f : ι → ordinal → ordinal) (a l) :
-  nfp_family_iterate f a l ≤ nfp_family f a :=
-le_sup _ _
-
-theorem le_nfp_family_self (f : ι → ordinal → ordinal) (a) : a ≤ nfp_family f a :=
-le_sup _ []
-
-theorem lt_nfp_family [hι : nonempty ι] {f : ι → ordinal → ordinal}
-(Hf : ∀ i, is_normal (f i)) {a b} :
-  (∀ i, f i b < nfp_family f a) ↔ b < nfp_family f a :=
-begin
-  unfold nfp_family,
-  rw lt_sup,
-  refine ⟨λ h, _, λ ⟨l, hl⟩ i, lt_sup.2 ⟨i :: l, (Hf i).strict_mono hl⟩⟩,
-  unfreezingI { cases hι with i },
-  have hi := h i,
-  rw lt_sup at hi,
-  cases hi with l hl,
-  exact ⟨l, lt_of_le_of_lt ((Hf i).le_self b) hl⟩
-end
-
-theorem nfp_family_le [nonempty ι] {f : ι → ordinal → ordinal} (Hf : ∀ i, is_normal (f i)) {a b} :
-  (∃ i, nfp_family f a ≤ f i b) ↔ nfp_family f a ≤ b :=
-by { rw ←not_iff_not, push_neg, exact lt_nfp_family Hf }
-
-theorem nfp_family_le_fp {f : ι → ordinal → ordinal} (Hf : ∀ i, is_normal (f i)) {a b}
-  (ab : a ≤ b) (h : ∀ i, f i b ≤ b) : nfp_family f a ≤ b :=
-sup_le.2 $ λ i, begin
-  by_cases hι : is_empty ι,
-  { rwa @nfp_family_iterate_empty ι hι },
-  haveI := not_is_empty_iff.1 hι,
-  induction i with i l IH generalizing a, {exact ab},
-  exact ((Hf i).strict_mono.monotone (IH ab)).trans (h i)
-end
-
-theorem nfp_family_fp {f : ι → ordinal → ordinal} (Hf : ∀ i, is_normal (f i)) (i a) :
-  f i (nfp_family f a) = (nfp_family f a) :=
-begin
-  unfold nfp_family,
-  rw (Hf i).sup ⟨[]⟩,
-  apply le_antisymm;
-  rw ordinal.sup_le,
-  { exact λ l, le_sup _ (i :: l) },
-  { exact λ l, ((Hf i).le_self _).trans (le_sup _ _) }
-end
 
 theorem le_nfp_family [hι : nonempty ι] {f : ι → ordinal → ordinal} (Hf : ∀ i, is_normal (f i))
 {a b} : (∀ i, f i b ≤ nfp_family f a) ↔ b ≤ nfp_family f a :=

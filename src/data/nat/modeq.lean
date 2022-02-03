@@ -399,15 +399,15 @@ end list
 namespace nat
 
 -- Apostol, Theorem 5.3
-lemma mul_left_iff {a b c m : ℕ} (hc : 0 < c) : a ≡ b [MOD m] ↔ c * a ≡ c * b [MOD c * m] :=
+lemma mul_left_iff {a b c m : ℕ} (hc : c ≠ 0) : a ≡ b [MOD m] ↔ c * a ≡ c * b [MOD c * m] :=
 begin
-  have hc' : (c:ℤ) ≠ 0 := by simp [hc.ne.symm],
+  have hc' : (c:ℤ) ≠ 0 := by simp [hc],
   simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub, mul_dvd_mul_iff_left hc'],
 end
 
-lemma mul_right_iff {a b c m : ℕ} (hc : 0 < c) : a ≡ b [MOD m] ↔ a * c ≡ b * c [MOD m * c] :=
+lemma mul_right_iff {a b c m : ℕ} (hc : c ≠ 0) : a ≡ b [MOD m] ↔ a * c ≡ b * c [MOD m * c] :=
 begin
-  have hc' : (c:ℤ) ≠ 0 := by simp [hc.ne.symm],
+  have hc' : (c:ℤ) ≠ 0 := by simp [hc],
   simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub_right_distrib, mul_dvd_mul_iff_right hc'],
 end
 

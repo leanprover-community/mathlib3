@@ -438,13 +438,11 @@ begin
 end
 
 -- Apostol, Theorem 5.7
-lemma Apostol_5_7 {a b m : ℕ} (h : a ≡ b [MOD m]) (h2 : | (b:ℤ) - a | < m) : a = b :=
+lemma eq_of_modeq_of_abs_lt {a b m : ℕ} (h : a ≡ b [MOD m]) (h2 : | (b:ℤ) - a | < m) : a = b :=
 begin
-  refine int.coe_nat_inj _,
-  rw modeq_iff_dvd at h,
-  rw eq_comm,
-  rw ←sub_eq_zero,
-  exact int.eq_zero_of_abs_lt_dvd h h2,
+  apply int.coe_nat_inj,
+  rw [eq_comm, ←sub_eq_zero],
+  exact int.eq_zero_of_abs_lt_dvd (modeq_iff_dvd.mp h) h2,
 end
 
 

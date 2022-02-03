@@ -398,16 +398,14 @@ end list
 
 namespace nat
 
-variables {a b c d m n : ℕ}
-
 -- Apostol, Theorem 5.3
-lemma mul_left_iff (c : ℕ) (hc : 0 < c) : a ≡ b [MOD m] ↔ c * a ≡ c * b [MOD c * m] :=
+lemma mul_left_iff {a b c m : ℕ} (hc : 0 < c) : a ≡ b [MOD m] ↔ c * a ≡ c * b [MOD c * m] :=
 begin
   have hc' : (c:ℤ) ≠ 0 := by simp [hc.ne.symm],
   simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub, mul_dvd_mul_iff_left hc'],
 end
 
-lemma mul_right_iff (hc : 0 < c) : a ≡ b [MOD m] ↔ a * c ≡ b * c [MOD m * c] :=
+lemma mul_right_iff {a b c m : ℕ} (hc : 0 < c) : a ≡ b [MOD m] ↔ a * c ≡ b * c [MOD m * c] :=
 begin
   have hc' : (c:ℤ) ≠ 0 := by simp [hc.ne.symm],
   simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub_right_distrib, mul_dvd_mul_iff_right hc'],
@@ -417,20 +415,20 @@ end
 
 -- Apostol, Theorem 5.5
 
-lemma Apostol_5_5' (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
+lemma Apostol_5_5' {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
   ∀ c : ℕ, a ≡ c [MOD d] ↔ b ≡ c [MOD d] :=
 begin
   have habd := modeq.modeq_of_dvd hdm h,
   exact λ c, ⟨λ h, (modeq.symm habd).trans h, λ h, modeq.trans habd h⟩,
 end
 
-lemma Apostol_5_5'' (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
+lemma Apostol_5_5'' {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
   d ∣ a ↔ d ∣ b :=
 by simpa only [←modeq_zero_iff_dvd] using Apostol_5_5' h hdm 0
 
 
 -- Apostol, Theorem 5.6
-lemma gcd_eq_of_modeq (h : a ≡ b [MOD m]) : gcd a m = gcd b m :=
+lemma gcd_eq_of_modeq {a b m : ℕ} (h : a ≡ b [MOD m]) : gcd a m = gcd b m :=
 begin
   have h1 := gcd_dvd_right a m,
   have h2 := gcd_dvd_right b m,
@@ -440,7 +438,7 @@ begin
 end
 
 -- Apostol, Theorem 5.7
-lemma Apostol_5_7 (h : a ≡ b [MOD m]) (h2 : | (b:ℤ) - a | < m) : a = b :=
+lemma Apostol_5_7 {a b m : ℕ} (h : a ≡ b [MOD m]) (h2 : | (b:ℤ) - a | < m) : a = b :=
 begin
   refine int.coe_nat_inj _,
   rw modeq_iff_dvd at h,
@@ -452,7 +450,7 @@ end
 
 -- Apostol, Theorem 5.4
 /-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c` -/
-lemma Apostol_5_4 (hm : 0 < m) (h : c * a ≡ c * b [MOD m]) :
+lemma Apostol_5_4 {a b c m : ℕ} (hm : 0 < m) (h : c * a ≡ c * b [MOD m]) :
   a ≡ b [MOD m / gcd m c] :=
 begin
   set d := (gcd m c),
@@ -471,7 +469,7 @@ begin
 end
 
 /-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
-lemma Apostol_5_4_corr (hmc : gcd m c = 1) (h : c * a ≡ c * b [MOD m]) :
+lemma Apostol_5_4_corr {a b c m : ℕ} (hmc : gcd m c = 1) (h : c * a ≡ c * b [MOD m]) :
   a ≡ b [MOD m] :=
 begin
   rcases m.eq_zero_or_pos with rfl | hm,

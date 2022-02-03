@@ -2767,7 +2767,7 @@ begin
     apply exists.intro (t.restrict s), split,
     { rw [set.mem_set_of_eq, ← restrict_add],
       apply restrict_mono (set.subset.refl _) h_t_in },
-    { apply le_rfl } },
+    { exact le_rfl } },
 end
 
 lemma sub_apply_eq_zero_of_restrict_le_restrict

@@ -1079,6 +1079,13 @@ lemma top_prod_top : (⊤ : subgroup G).prod (⊤ : subgroup N) = ⊤ :=
 @[to_additive] lemma bot_prod_bot : (⊥ : subgroup G).prod (⊥ : subgroup N) = ⊥ :=
 set_like.coe_injective $ by simp [coe_prod, prod.one_eq_mk]
 
+@[to_additive prod_le_iff]
+lemma prod_le_iff  {H : subgroup G} {K : subgroup N} {J : subgroup (G × N)} :
+  H.prod K ≤ J ↔ (H ≤ map (monoid_hom.fst G N) J ∧ K ≤ map (monoid_hom.snd G N) J) :=
+sorry
+--ext $ λ x, by simp [mem_prod, monoid_hom.coe_fst]
+
+
 /-- Product of subgroups is isomorphic to their product as groups. -/
 @[to_additive prod_equiv "Product of additive subgroups is isomorphic to their product
 as additive groups"]

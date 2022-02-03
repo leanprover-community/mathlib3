@@ -108,3 +108,19 @@ by { rw eq_bot_iff, exact general_commutator_le_left ⊥ H }
 lemma general_commutator_le_inf (H₁ H₂ : subgroup G) [normal H₁] [normal H₂] :
   ⁅H₁, H₂⁆ ≤ H₁ ⊓ H₂ :=
 by simp only [general_commutator_le_left, general_commutator_le_right, le_inf_iff, and_self]
+
+lemma general_commutator_prod_prod {G₂ : Type*} [group G₂]
+  (H₁ K₁ : subgroup G) (H₂ K₂ : subgroup G₂) :
+  ⁅H₁.prod H₂, K₁.prod K₂⁆ = (⁅H₁, K₁⁆).prod ⁅H₂, K₂⁆ :=
+begin
+  apply le_antisymm,
+  { rw general_commutator_le,
+    rintros ⟨p₁, p₂⟩ ⟨hp₁, hp₂⟩ ⟨q₁, q₂⟩ ⟨hq₁, hq₂⟩,
+    exact ⟨general_commutator_containment _ _ hp₁ hq₁, general_commutator_containment _ _ hp₂ hq₂ ⟩ },
+  { simp only [ prod_le_iff, general_commutator_le ],
+    refine ⟨(λ p hp q hq, ⟨ ⟨p,1⟩ * ⟨q,1⟩ * ⟨p,1⟩⁻¹ * ⟨q,1⟩⁻¹,
+      general_commutator_containment _ _ ⟨hp, one_mem _⟩ ⟨hq, one_mem _⟩, rfl⟩),
+      (λ p hp q hq, ⟨ ⟨1,p⟩ * ⟨1,q⟩ * ⟨1,p⟩⁻¹ * ⟨1,q⟩⁻¹,
+      general_commutator_containment _ _ ⟨one_mem _, hp⟩ ⟨one_mem _, hq⟩, rfl⟩), ⟩, }
+
+end

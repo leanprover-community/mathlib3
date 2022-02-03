@@ -81,7 +81,7 @@ class is_jordan_tp (A : Type*) [add_comm_monoid A] [has_sub A] extends has_trili
 We say that a pair of operators $(T,T^′)$ are Leibniz if they satisfy a law reminiscent of
 differentiation.
 -/
-def leibniz {A : Type*} [add_comm_monoid A] [has_trilinear_tp A] (T : A → A) (T'  : A → A) :=
+def leibniz {A : Type*} [add_comm_monoid A] [has_trilinear_tp A] (T : A → A) (T'  : A → A) : Prop :=
   ∀ (a b c : A),  T ⦃ a, b, c ⦄  = ⦃ T a, b, c⦄ + ⦃a, T' b, c⦄ + ⦃a, b, T c⦄
 
 namespace is_jordan_tp

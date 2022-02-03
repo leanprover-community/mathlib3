@@ -58,8 +58,7 @@ lemma norm_bound_pos : 0 < norm_bound abv bS :=
 begin
   obtain ⟨i, j, k, hijk⟩ : ∃ i j k,
     algebra.left_mul_matrix bS (bS i) j k ≠ 0,
-  { by_contra h,
-    push_neg at h,
+  { by_contra' h,
     obtain ⟨i⟩ := bS.index_nonempty,
     apply bS.ne_zero i,
     apply (algebra.left_mul_matrix bS).injective_iff.mp (algebra.left_mul_matrix_injective bS),
@@ -391,7 +390,7 @@ begin
     (is_integral_closure.range_le_span_dual_basis S b hb_int),
   let bS := b.map ((linear_map.quot_ker_equiv_range _).symm ≪≫ₗ _),
   refine fintype_of_admissible_of_algebraic L bS adm
-    (λ x, (is_fraction_ring.is_algebraic_iff R K L).mpr (algebra.is_algebraic_of_finite x)),
+    (λ x, (is_fraction_ring.is_algebraic_iff R K L).mpr (algebra.is_algebraic_of_finite _ _ x)),
   { rw linear_map.ker_eq_bot.mpr,
     { exact submodule.quot_equiv_of_eq_bot _ rfl },
     { exact is_integral_closure.algebra_map_injective _ R _ } },

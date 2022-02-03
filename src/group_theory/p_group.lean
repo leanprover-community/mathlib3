@@ -248,4 +248,35 @@ lemma to_sup_of_normal_left' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p
   (hHK : K ≤ H.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
 (congr_arg (λ H : subgroup G, is_p_group p H) sup_comm).mp (to_sup_of_normal_right' hK hH hHK)
 
+/-- finite p-groups with different p have coprime orders -/
+lemma coprime_card_of_ne {G₂ : Type*} [group G₂]
+  (p₁ p₂ : ℕ) [hp₁ : fact p₁.prime] [hp₂ : fact p₂.prime] (hne : p₁ ≠ p₂)
+  (H₁ : subgroup G) (H₂ : subgroup G₂) [fintype H₁] [fintype H₂]
+  (hH₁ : is_p_group p₁ H₁) (hH₂ : is_p_group p₂ H₂) :
+  nat.coprime (fintype.card H₁) (fintype.card H₂) :=
+begin
+  obtain ⟨n₁, heq₁⟩ := iff_card.mp hH₁, rw heq₁, clear heq₁,
+  obtain ⟨n₂, heq₂⟩ := iff_card.mp hH₂, rw heq₂, clear heq₂,
+  exact nat.coprime_pow_primes _ _ (hp₁.elim) (hp₂.elim) hne,
+end
+
+/-- p-groups with different p are disjoint -/
+lemma disjoint_of_ne (p₁ p₂ : ℕ) [hp₁ : fact p₁.prime] [hp₂ : fact p₂.prime] (hne : p₁ ≠ p₂)
+  (H₁ H₂ : subgroup G) (hH₁ : is_p_group p₁ H₁) (hH₂ : is_p_group p₂ H₂) :
+  disjoint H₁ H₂ :=
+begin
+  rintro x ⟨hx₁, hx₂⟩,
+  rw subgroup.mem_bot,
+  obtain ⟨n₁, hn₁⟩ := iff_order_of.mp hH₁ ⟨x, hx₁⟩,
+  obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
+  rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,
+  have : p₁ ^ n₁ = p₂ ^ n₂, by rw [← hn₁, ← hn₂],
+  have : n₁ = 0,
+  { contrapose! hne with h,
+    rw ← associated_iff_eq at this ⊢,
+    exact associated.of_pow_associated_of_prime
+      (nat.prime_iff.mp hp₁.elim) (nat.prime_iff.mp hp₂.elim) (ne.bot_lt h) this },
+  simpa [this] using hn₁,
+end
+
 end is_p_group

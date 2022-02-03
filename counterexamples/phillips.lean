@@ -224,8 +224,7 @@ begin
   We argue from the start by contradiction, as this means that our inductive construction will
   never be stuck, so we won't have to consider this case separately.
   -/
-  by_contra h,
-  push_neg at h,
+  by_contra' h,
   -- We will formulate things in terms of the type of countable subsets of `α`, as this is more
   -- convenient to formalize the inductive construction.
   let A : set (set α) := {t | countable t},

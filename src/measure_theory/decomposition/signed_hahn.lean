@@ -358,7 +358,7 @@ lemma bdd_below_measure_of_negatives :
   bdd_below s.measure_of_negatives :=
 begin
   simp_rw [bdd_below, set.nonempty, mem_lower_bounds],
-  by_contra, push_neg at h,
+  by_contra' h,
   have h' : ∀ n : ℕ, ∃ y : ℝ, y ∈ s.measure_of_negatives ∧ y < -n := λ n, h (-n),
   choose f hf using h',
   have hf' : ∀ n : ℕ, ∃ B, measurable_set B ∧ s ≤[B] 0 ∧ s B < -n,
@@ -412,7 +412,7 @@ begin
   refine ⟨Aᶜ, hA₁.compl, _, (compl_compl A).symm ▸ hA₂⟩,
   rw restrict_le_restrict_iff _ _ hA₁.compl,
   intros C hC hC₁,
-  by_contra hC₂, push_neg at hC₂,
+  by_contra' hC₂, 
   rcases exists_subset_restrict_nonpos hC₂ with ⟨D, hD₁, hD, hD₂, hD₃⟩,
   have : s (A ∪ D) < Inf s.measure_of_negatives,
   { rw [← hA₃, of_union (set.disjoint_of_subset_right (set.subset.trans hD hC₁)

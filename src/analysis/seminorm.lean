@@ -534,8 +534,8 @@ nonneg_of_mul_nonneg_left h zero_lt_two
 lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
 lemma le_insert : p y ≤ p x + p (x - y) :=
-calc p y = p (x - (x - y)) : by abel
-... ≤ p x + p (x - y) : by exact p.sub_le _ _
+calc p y = p (x - (x - y)) : by rw sub_sub_cancel
+... ≤ p x + p (x - y) : p.sub_le _ _
 
 lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert p y x }
 
@@ -728,7 +728,7 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
       rw sub_le,
       apply le_cinfi, intro v,
       rw sub_le_iff_le_add,
-      apply cinfi_le_of_le (bdd_below_range_add (x+y) p q) (v+u), dsimp only,
+      apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v+u), dsimp only,
       convert add_le_add (p.triangle v u) (q.triangle (y-v) (x-u)) using 1,
       { have h : x + y - (v + u) = y - v + (x - u), { abel }, { rw h } },
       { abel },
@@ -736,14 +736,14 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
     smul' := λ a x, begin
       obtain ha | ha := (norm_nonneg a).eq_or_lt,
       { rw ← ha, ring_nf, apply le_antisymm,
-        { apply cinfi_le_of_le (bdd_below_range_add (a • x) p q) (0:E),
+        { apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
           simp only [seminorm.zero, sub_zero, zero_add], rw q.smul, rw ← ha, simp only [zero_mul]},
         { apply le_cinfi, intro, exact add_nonneg (p.nonneg _) (q.nonneg _) } },
       { apply le_antisymm,
         { rw ← div_le_iff' ha,
           apply le_cinfi, intro u,
           rw div_le_iff' ha,
-          apply cinfi_le_of_le (bdd_below_range_add (a • x) p q) (a • u),
+          apply cinfi_le_of_le (bdd_below_range_add _ _ _) (a • u),
           dsimp, rw ← smul_sub, rw p.smul, rw q.smul, rw mul_add },
         { apply le_cinfi, intro u,
           have h1 : u = a • a⁻¹ • u,
@@ -757,14 +757,14 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
 noncomputable instance : lattice (seminorm 𝕜 E) :=
 { inf := (⊓),
   inf_le_left := λ p q x, begin
-    apply cinfi_le_of_le (bdd_below_range_add x p q) x,
+    apply cinfi_le_of_le (bdd_below_range_add _ _ _) x,
     simp only [sub_self, seminorm.zero, add_zero], end,
   inf_le_right := λ p q x, begin
-    apply cinfi_le_of_le (bdd_below_range_add x p q) 0,
+    apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
     simp only [sub_self, seminorm.zero, zero_add, sub_zero], end,
   le_inf := λ a b c hab hac x, begin
     apply le_cinfi, intro u,
-    exact le_trans (a.le_insert' x u) (add_le_add (hab u) (hac (x-u))),
+    exact le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
    end,
   ..seminorm.semilattice_sup }
 

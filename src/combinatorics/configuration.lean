@@ -6,6 +6,8 @@ Authors: Thomas Browning
 import algebra.big_operators.order
 import combinatorics.hall.basic
 import data.fintype.card
+import group_theory.group_action.basic
+import linear_algebra.orientation
 import set_theory.fincard
 
 /-!
@@ -33,6 +35,71 @@ Together, these four statements say that any two of the following properties imp
 -/
 
 open_locale big_operators
+
+section projective
+
+namespace vector
+
+variables {α β : Type*}
+
+lemma ext_iff {n : ℕ} {v w : vector α n} : v = w ↔ ∀ m : fin n, v.nth m = w.nth m :=
+⟨λ h m, congr_arg _ h, ext⟩
+
+instance [has_zero α] {n : ℕ} : has_zero (vector α n) :=
+⟨vector.repeat 0 n⟩
+
+lemma zero_nth [has_zero α] {n : ℕ} (m : fin n) : (0 : vector α n).nth m = 0 :=
+nth_repeat 0 m
+
+instance [has_one α] {n : ℕ} : has_one (vector α n) :=
+⟨vector.repeat 1 n⟩
+
+lemma one_nth [has_one α] {n : ℕ} (m : fin n) : (1 : vector α n).nth m = 1 :=
+nth_repeat 1 m
+
+instance [has_scalar α β] {n : ℕ} : has_scalar α (vector β n) :=
+⟨λ a, vector.map (λ b, a • b)⟩
+
+@[simp] lemma smul_nth [has_scalar α β] {n : ℕ} (v : vector β n) (a : α) (m : fin n) :
+  (a • v).nth m = a • (v.nth m) := v.nth_map _ m
+
+instance [monoid α] [mul_action α β] {n : ℕ} : mul_action α (vector β n) :=
+{ one_smul := λ v, vector.ext (λ m, by rw [smul_nth, one_smul]),
+  mul_smul := λ a₁ a₂ v, vector.ext (λ m, by rw [smul_nth, smul_nth, smul_nth, mul_smul]) }
+
+end vector
+
+def punctured_space (α : Type*) [has_zero α] (n : ℕ) := {p : vector α n // p ≠ 0}
+
+instance punctured_space.mul_action
+  (α : Type*) [nontrivial α] [monoid_with_zero α] [no_zero_divisors α] (n : ℕ) :
+  mul_action αˣ (punctured_space α n) :=
+{ smul := λ a v, ⟨a • v.1, by
+  { refine λ h, v.2 (vector.ext (λ m, _)),
+    replace h := vector.ext_iff.mp h m,
+    rw [vector.smul_nth, vector.zero_nth] at h,
+    rw [(eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left a.ne_zero, vector.zero_nth] }⟩,
+  one_smul := λ v, subtype.ext (one_smul αˣ v.1),
+  mul_smul := λ a b p, subtype.ext (mul_smul a b p.1) }
+
+lemma punctured_space.val_smul
+  {α : Type*} [nontrivial α] [monoid_with_zero α] [no_zero_divisors α] {n : ℕ}
+  (a : αˣ) (v : punctured_space α n) : (a • v).1 = a • v.1 :=
+rfl
+
+variables (F : Type*) [field F] (n : ℕ)
+
+def projective_space
+  (α : Type*) [nontrivial α] [monoid_with_zero α] [no_zero_divisors α] (n : ℕ) :=
+quotient (mul_action.orbit_rel αˣ (punctured_space α (n + 1)))
+
+instance (F : Type*) [field F] (n : ℕ) : has_mem (projective_space F n) (projective_space F n) :=
+⟨λ p l, quotient.lift_on₂' p l (λ p q, ∑ (m : fin n), p.1.nth m * q.1.nth m = 0) (by
+{ rintros _ p _ q ⟨c, rfl⟩ ⟨d, rfl⟩,
+  simp_rw [punctured_space.val_smul, vector.smul_nth, units.smul_def, smul_eq_mul,
+    mul_mul_mul_comm, ←finset.mul_sum, mul_eq_zero, units.ne_zero, false_or] })⟩
+
+end projective
 
 namespace configuration
 
@@ -447,6 +514,20 @@ end
 
 lemma card_lines [projective_plane P L] : fintype.card L = order P L ^ 2 + order P L + 1 :=
 (card_points (dual L) (dual P)).trans (congr_arg (λ n, n ^ 2 + n + 1) (dual.order P L))
+
+variables (F : Type*) [field F]
+
+instance : nondegenerate (projective_space F 2) (projective_space F 2) :=
+{ exists_point := sorry,
+  exists_line := sorry,
+  eq_or_eq := sorry }
+
+def of_field : projective_plane (projective_space F 2) (projective_space F 2) :=
+{ mk_point := sorry,
+  mk_point_ax := sorry,
+  mk_line := sorry,
+  mk_line_ax := sorry,
+  exists_config := sorry }
 
 end projective_plane
 

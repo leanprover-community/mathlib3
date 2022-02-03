@@ -8,6 +8,7 @@ import number_theory.cyclotomic.basic
 import ring_theory.polynomial.cyclotomic.eval
 import ring_theory.adjoin.power_basis
 import ring_theory.norm
+import algebra.is_prime_pow
 
 /-!
 # `ζ` elements in cyclotmic fields
@@ -43,7 +44,7 @@ unity, but this holds if `is_domain B` and `ne_zero (↑n : B)`.
 
 noncomputable theory
 
-open polynomial algebra finset finite_dimensional
+open polynomial algebra finset finite_dimensional nat pnat
 
 universes u v w z
 
@@ -63,7 +64,7 @@ lemma zeta_spec' : is_root (cyclotomic n B) (zeta n A B) :=
 by { convert zeta_spec n A B, rw [is_root.def, aeval_def, eval₂_eq_eval_map, map_cyclotomic] }
 
 lemma zeta_pow : (zeta n A B) ^ (n : ℕ) = 1 :=
-is_root_of_unity_of_root_cyclotomic (nat.mem_divisors_self _ n.pos.ne') (zeta_spec' _ _ _)
+is_root_of_unity_of_root_cyclotomic (mem_divisors_self _ n.pos.ne') (zeta_spec' _ _ _)
 
 /-- If `is_domain B` and `ne_zero (↑n : B)` then `zeta n A B` is a primitive `n`-th root of
 unity. -/
@@ -167,7 +168,7 @@ begin
   conv_lhs { congr, skip, funext,
     rw [← neg_sub, alg_hom.map_neg, alg_hom.map_sub, alg_hom.map_one, neg_eq_neg_one_mul] },
   rw [prod_mul_distrib, prod_const, card_univ, alg_hom.card, finrank L hirr,
-    nat.neg_one_pow_of_even (nat.totient_even h), one_mul],
+    neg_one_pow_of_even (totient_even h), one_mul],
   have : univ.prod (λ (σ : L →ₐ[K] E), 1 - σ (zeta n K L)) = eval 1 (cyclotomic' n E),
   { rw [cyclotomic', eval_prod, ← @finset.prod_attach E E, ← univ_eq_attach],
     refine fintype.prod_equiv (zeta.embeddings_equiv_primitive_roots L E hirr) _ _ (λ σ, _),
@@ -180,6 +181,26 @@ end
 
 omit n
 
+/-- If `is_prime_pow (n : ℕ)`, `n ≠ 2` and `irreducible (cyclotomic n K)` (in particular for
+`K = ℚ`), then the norm of `zeta n K L - 1` is `(n : ℕ).min_fac`. -/
+lemma prime_pow_ne_two.norm_zeta_sub_one {n : ℕ+} {K : Type u} (L : Type v) [field K] [field L]
+  [ne_zero ((n : ℕ) : K)] (hn : is_prime_pow (n : ℕ)) [algebra K L]
+  [is_cyclotomic_extension {n} K L]
+  (hirr : irreducible (cyclotomic ((n : ℕ)) K)) (h : n ≠ 2) :
+  norm K ((zeta n K L) - 1) = (n : ℕ).min_fac :=
+begin
+  have := (coe_lt_coe 2 _).1 (lt_of_le_of_ne (succ_le_of_lt (is_prime_pow.one_lt hn))
+    (function.injective.ne pnat.coe_injective h).symm),
+  letI hprime : fact ((n : ℕ).min_fac.prime) := ⟨min_fac_prime (is_prime_pow.ne_one hn)⟩,
+  rw [norm_zeta_sub_one_eq_eval_cyclotomic L hirr this],
+  nth_rewrite 0 [← is_prime_pow.min_fac_pow_factorization_eq hn],
+  obtain ⟨k, hk⟩ : ∃ k, ((n : ℕ).factorization) (n : ℕ).min_fac = k + 1 := exists_eq_succ_of_ne_zero
+      (((n : ℕ).factorization.mem_support_to_fun (n : ℕ).min_fac).1
+      $ factor_iff_mem_factorization.2 $ (mem_factors (is_prime_pow.ne_zero hn)).2 ⟨hprime.out,
+      min_fac_dvd _⟩),
+  simp [hk, norm_zeta_sub_one_eq_eval_cyclotomic L hirr this],
+end
+
 /-- If `irreducible (cyclotomic (p ^ k) K)` (in particular for `K = ℚ`) and `p` is an odd prime,
 then the norm of `zeta (p  ^ k) K L - 1` is `p`. -/
 lemma prime_ne_two_pow.norm_zeta_sub_one {p : ℕ+} {K : Type u} (L : Type v) [field K] [field L]
@@ -190,14 +211,14 @@ lemma prime_ne_two_pow.norm_zeta_sub_one {p : ℕ+} {K : Type u} (L : Type v) [f
 begin
   haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
   { refine ⟨λ hzero, _⟩,
-    rw [pnat.pow_coe] at hzero,
+    rw [pow_coe] at hzero,
     simpa [ne_zero.ne ((p : ℕ) : K)] using hzero },
   have : 2 < p ^ (k + 1),
-  { rw [← pnat.coe_lt_coe, pnat.pow_coe, pnat.coe_bit0, pnat.one_coe],
-    have := lt_of_le_of_ne hpri.1.two_le (by contrapose! h; exact pnat.coe_injective h.symm),
+  { rw [← coe_lt_coe, pow_coe, pnat.coe_bit0, one_coe],
+    have := lt_of_le_of_ne hpri.1.two_le (by contrapose! h; exact coe_injective h.symm),
     refine lt_of_lt_of_le this _,
     nth_rewrite 0 [← pow_one ↑p],
-    refine pow_le_pow (nat.one_le_of_lt this) le_add_self },
+    refine pow_le_pow (one_le_of_lt this) le_add_self },
   simp [norm_zeta_sub_one_eq_eval_cyclotomic L hirr this]
 end
 
@@ -223,16 +244,16 @@ lemma two_pow.norm_zeta_sub_one {K : Type u} (L : Type v) [field K] [field L]
 begin
   haveI : ne_zero (((2 ^ k : ℕ+) : ℕ) : K),
   { refine ⟨λ hzero, _⟩,
-    rw [pnat.pow_coe, pnat.coe_bit0, pnat.one_coe, nat.cast_pow, nat.cast_bit0, nat.cast_one,
+    rw [pow_coe, pnat.coe_bit0, one_coe, cast_pow, cast_bit0, cast_one,
       pow_eq_zero_iff (lt_of_lt_of_le zero_lt_two hk)] at hzero,
     exact (ne_zero.ne (2 : K)) hzero,
     apply_instance },
   have : 2 < (2 ^ k : ℕ+),
-  { simp only [← pnat.coe_lt_coe, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe],
+  { simp only [← coe_lt_coe, pnat.coe_bit0, one_coe, pow_coe],
     nth_rewrite 0 [← pow_one 2],
     refine pow_lt_pow one_lt_two (lt_of_lt_of_le one_lt_two hk) },
   replace hirr : irreducible (cyclotomic ((2 ^ k : ℕ+)) K) := by simp [hirr],
-  obtain ⟨k₁, hk₁⟩ := nat.exists_eq_succ_of_ne_zero ((lt_of_lt_of_le zero_lt_two hk).ne.symm),
+  obtain ⟨k₁, hk₁⟩ := exists_eq_succ_of_ne_zero ((lt_of_lt_of_le zero_lt_two hk).ne.symm),
   simpa [hk₁] using norm_zeta_sub_one_eq_eval_cyclotomic L hirr this,
 end
 

@@ -1079,12 +1079,54 @@ lemma top_prod_top : (⊤ : subgroup G).prod (⊤ : subgroup N) = ⊤ :=
 @[to_additive] lemma bot_prod_bot : (⊥ : subgroup G).prod (⊥ : subgroup N) = ⊥ :=
 set_like.coe_injective $ by simp [coe_prod, prod.one_eq_mk]
 
-@[to_additive prod_le_iff]
-lemma prod_le_iff  {H : subgroup G} {K : subgroup N} {J : subgroup (G × N)} :
-  H.prod K ≤ J ↔ (H ≤ map (monoid_hom.fst G N) J ∧ K ≤ map (monoid_hom.snd G N) J) :=
-sorry
---ext $ λ x, by simp [mem_prod, monoid_hom.coe_fst]
+@[to_additive le_prod_iff]
+lemma le_prod_iff {H : subgroup G} {K : subgroup N} {J : subgroup (G × N)} :
+  J ≤ H.prod K ↔ (map (monoid_hom.fst G N) J ≤ H ∧ map (monoid_hom.snd G N) J ≤ K) :=
+begin
+  split,
+  { intros h,
+    split,
+    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).1 },
+    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).2 }, },
+  { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ h, exact ⟨hH ⟨_ , h, rfl⟩, hK ⟨ _, h, rfl⟩⟩, }
+end
 
+/-
+lemma prod_closure_closure (S1 : set G) (S2 : set N):
+  (closure S1).prod (closure S2) = closure (S1 ×ˢ S2) :=
+begin
+  symmetry,
+  apply closure_eq_of_le,
+  { rintros ⟨x, y⟩ ⟨hx, hy⟩,
+    exact ⟨subset_closure hx, subset_closure hy⟩, },
+  { rintros ⟨x, y⟩ ⟨hx, hy⟩,
+    simp only [coe_to_submonoid, set_like.mem_coe] at hx hy,
+    refine closure_induction hx _ _ _ _; clear hx,
+    {
+      intros x hx,
+      refine closure_induction hy _ _ _ _; clear hy,
+      { exact λ y hy, subset_closure (set.mem_prod.mpr ⟨hx, hy⟩), },
+      {
+
+      }
+
+
+    },
+
+
+
+
+    rintros ⟨x, y⟩ ⟨hx, hy⟩,
+    apply subset_closure,
+    exact ⟨hx, hy⟩,
+    rw mem_prod,
+    split,
+    rw mem_closure,
+
+  }
+
+end
+-/
 
 /-- Product of subgroups is isomorphic to their product as groups. -/
 @[to_additive prod_equiv "Product of additive subgroups is isomorphic to their product

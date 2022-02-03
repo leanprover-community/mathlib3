@@ -147,6 +147,9 @@ def factorization_equiv : ℕ+ ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, pr
   left_inv  := λ ⟨x, hx⟩, subtype.ext $ factorization_prod_pow_eq_self hx.ne.symm,
   right_inv := λ ⟨f, hf⟩, subtype.ext $ prod_pow_factorization_eq_self hf }
 
+lemma factorization_equiv_apply (n : ℕ+) : (factorization_equiv n).1 = n.1.factorization :=
+by { cases n, refl }
+
 lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
   (factorization_equiv.symm ⟨f, hf⟩).1 = f.prod pow := rfl
 

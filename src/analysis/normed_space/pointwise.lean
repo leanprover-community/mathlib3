@@ -112,13 +112,16 @@ by rw [vadd_ball, vadd_eq_add, add_zero]
 lemma closed_ball_isometry (x : E) (r : ℝ) : closed_ball x r = x +ᵥ closed_ball 0 r :=
 by rw [vadd_closed_ball, vadd_eq_add, add_zero]
 
+variables [normed_space ℝ E]
+
+/-- Any ball centered at the origin is the scalar multiplication of the unit ball. -/
+lemma ball_zero_eq_smul_unit_ball {r : ℝ} (hr : 0 < r) : ball (0 : E) r = r • ball 0 1 :=
+by rw [smul_unit_ball hr.ne', real.norm_of_nonneg hr.le]
+
 end semi_normed_group
 
 section normed_group
-variables [normed_group E]
-
-section normed_field
-variables [normed_space 𝕜 E]
+variables [normed_group E] [normed_space 𝕜 E]
 
 theorem smul_closed_ball (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
   c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
@@ -131,10 +134,12 @@ end
 lemma smul_closed_unit_ball (c : 𝕜) : c • closed_ball (0 : E) (1 : ℝ) = closed_ball (0 : E) (∥c∥) :=
 by rw [smul_closed_ball _ _ zero_le_one, smul_zero, mul_one]
 
-end normed_field
-
-section real
 variables [normed_space ℝ E]
+
+/-- Any closed ball is the isometric image of a closed ball centered at the origin. -/
+lemma closed_ball_zero_eq_smul_closed_unit_ball {r : ℝ} (hr : 0 ≤ r) :
+  closed_ball (0 : E) r = r • closed_ball 0 1 :=
+by rw [smul_closed_unit_ball, real.norm_of_nonneg hr]
 
 /-- In a nontrivial real normed space, a sphere is nonempty if and only if its radius is
 nonnegative. -/
@@ -148,7 +153,7 @@ begin
   simp [norm_smul, this, real.norm_of_nonneg hr],
 end
 
-lemma smul_sphere [normed_space 𝕜 E] [nontrivial E] (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
+lemma smul_sphere [nontrivial E] (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
   c • sphere x r = sphere (c • x) (∥c∥ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,
@@ -165,5 +170,4 @@ lemma closed_ball_affinity {r : ℝ} (hr : 0 ≤ r) (x : E) :
   closed_ball x r = x +ᵥ r • closed_ball 0 1 :=
 by rw [smul_closed_unit_ball, real.norm_of_nonneg hr, closed_ball_isometry]
 
-end real
 end normed_group

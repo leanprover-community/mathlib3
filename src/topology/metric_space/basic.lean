@@ -2402,25 +2402,69 @@ def uniform_embedding.comap_metric_space {α β} [uniform_space α] [metric_spac
   (h : uniform_embedding f) : metric_space α :=
 (metric_space.induced f h.inj ‹_›).replace_uniformity h.comap_uniformity.symm
 
+/-- Pull back a metric space structure by a uniform embedding. This is a version of
+`metric_space.induced` useful in case if the domain already has a `uniform_space` structure. -/
+def embedding.comap_metric_space {α β} [topological_space α] [metric_space β] (f : α → β)
+  (h : embedding f) : metric_space α :=
+(metric_space.induced f h.inj ‹_›).replace_topology begin end
+
+
 instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
   metric_space (subtype p) :=
 metric_space.induced coe (λ x y, subtype.ext) t
 
 theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
 
+local attribute [instance] unique_empty
+
 instance : metric_space empty :=
 { dist := λ _ _, 0,
   dist_self := λ _, rfl,
   dist_comm := λ _ _, rfl,
   eq_of_dist_eq_zero := λ _ _ _, subsingleton.elim _ _,
-  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero, }
+  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero,
+  to_uniform_space := empty.uniform_space,
+  uniformity_dist :=
+  begin
+    apply le_antisymm,
+    { simp only [gt_iff_lt, le_infi_iff, le_principal_iff],
+      assume i hi,
+      simp [hi] },
+    { refine infi_le_of_le 1 _,
+      refine infi_le_of_le zero_lt_one _,
+      simp only [zero_lt_one, set_of_true, principal_univ, top_le_iff],
+      ext x,
+      simp only [uniformity, uniform_space.to_core, mem_principal, id_rel_subset, mem_top,
+        eq_iff_true_of_subsingleton, iff_true],
+      assume a,
+      exact empty.elim a }
+  end }
 
 instance : metric_space punit :=
 { dist := λ _ _, 0,
   dist_self := λ _, rfl,
   dist_comm := λ _ _, rfl,
   eq_of_dist_eq_zero := λ _ _ _, subsingleton.elim _ _,
-  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero, }
+  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero,
+  to_uniform_space := punit.uniform_space,
+  uniformity_dist :=
+  begin
+    apply le_antisymm,
+    { simp only [gt_iff_lt, le_infi_iff, le_principal_iff],
+      assume i hi,
+      simp [hi] },
+    { refine infi_le_of_le 1 (infi_le_of_le zero_lt_one _),
+      simp only [zero_lt_one, set_of_true, principal_univ, top_le_iff],
+      ext x,
+      simp only [uniformity, uniform_space.to_core, mem_principal, id_rel_subset, mem_top],
+      split,
+      { assume H,
+        ext y,
+        rcases y with ⟨u, v⟩,
+        rw subsingleton.elim u v,
+        simp [H] },
+      { simp {contextual := tt} } }
+  end }
 
 section real
 

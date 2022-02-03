@@ -708,6 +708,72 @@ section normed_field
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
   {a : 𝕜} {r : ℝ} {x : E}
 
+lemma l (x : E) (p q : seminorm 𝕜 E) : bdd_below (range (λ (u : E), p u + q (x - u))) :=
+begin
+  use 0, intro, intro h, cases h, rw ← h_h,
+  dsimp, apply add_nonneg, apply nonneg, apply nonneg
+end
+
+/- can't put it with `has_sup` because it requires much stronger properties on 𝕜, E. -/
+noncomputable instance : has_inf (seminorm 𝕜 E) :=
+{ inf := λ p q,
+  { to_fun := λ x, ⨅ u : E, p u + q (x-u),
+    triangle' := begin
+      intros,
+      rw ← sub_le_iff_le_add,
+      apply le_cinfi, intro u,
+      rw sub_le,
+      apply le_cinfi, intro v,
+      rw sub_le_iff_le_add,
+      apply cinfi_le_of_le (l (x+y) p q) (v+u), dsimp,
+      convert add_le_add (p.triangle v u) (q.triangle (y-v) (x-u)) using 1,
+      have h : x + y - (v + u) = y - v + (x - u), abel,
+      rw h, abel,
+     end,
+    smul' := begin
+      intros,
+      have l' : ∀ u : E, 0 ≤ p u + q (a • x - u),
+        intro, apply add_nonneg, apply nonneg, apply nonneg,
+      cases (em (∥a∥ = 0)),
+      rw h, ring_nf, apply le_antisymm,
+      apply cinfi_le_of_le (l (a • x) p q) (0:E),
+      simp, rw q.smul, rw h, simp,
+      apply le_cinfi, exact l',
+      have h' : 0 < ∥a∥, apply lt_of_le_of_ne, exact norm_nonneg a, rw ne_comm, exact h,
+      apply le_antisymm,
+      rw ← div_le_iff' h',
+      apply le_cinfi, intro u,
+      rw div_le_iff' h',
+      apply cinfi_le_of_le (l (a • x) p q) (a • u),
+      dsimp, rw ← smul_sub, rw p.smul, rw q.smul, rw mul_add,
+      apply le_cinfi, intro u,
+      have h1 : u = a • a⁻¹ • u,
+        rw smul_smul, rw mul_inv_cancel, rw one_smul, intro f, apply h, rw f, exact norm_zero,
+      rw h1, rw ← smul_sub, rw p.smul, rw q.smul, rw ← mul_add,
+      rw mul_le_mul_left h',
+      apply cinfi_le, apply l,
+     end } }
+
+noncomputable instance : lattice (seminorm 𝕜 E) :=
+{ inf := has_inf.inf,
+  inf_le_left := begin
+    intros, intro,
+    apply cinfi_le_of_le (l i a b) i,
+    dsimp, simp, end,
+  inf_le_right := begin
+    intros, intro,
+    apply cinfi_le_of_le (l i a b) 0,
+    dsimp, simp, end,
+  le_inf := begin
+    intros a b c hab hac, intro,
+    apply le_cinfi, intro,
+    have s : i = x + (i - x), abel, nth_rewrite 0 s,
+    apply le_trans,
+    exact a.triangle x (i-x),
+    exact add_le_add (hab x) (hac (i-x)),
+   end,
+  ..seminorm.semilattice_sup }
+
 /-- Seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
 begin

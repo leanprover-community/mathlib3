@@ -415,16 +415,16 @@ end
 
 -- Apostol, Theorem 5.5
 
-lemma Apostol_5_5' {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
+lemma modeq_iff_of_modeq_of_dvd {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
   ∀ c : ℕ, a ≡ c [MOD d] ↔ b ≡ c [MOD d] :=
 begin
   have habd := modeq.modeq_of_dvd hdm h,
   exact λ c, ⟨λ h, (modeq.symm habd).trans h, λ h, modeq.trans habd h⟩,
 end
 
-lemma Apostol_5_5'' {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
+lemma dvd_iff_of_modeq_of_dvd {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
   d ∣ a ↔ d ∣ b :=
-by simpa only [←modeq_zero_iff_dvd] using Apostol_5_5' h hdm 0
+by simpa only [←modeq_zero_iff_dvd] using modeq_iff_of_modeq_of_dvd h hdm 0
 
 
 -- Apostol, Theorem 5.6
@@ -433,8 +433,8 @@ begin
   have h1 := gcd_dvd_right a m,
   have h2 := gcd_dvd_right b m,
   exact dvd_antisymm
-    (dvd_gcd ((Apostol_5_5'' h h1).mp (gcd_dvd_left a m)) h1)
-    (dvd_gcd ((Apostol_5_5'' h h2).mpr (gcd_dvd_left b m)) h2),
+    (dvd_gcd ((dvd_iff_of_modeq_of_dvd h h1).mp (gcd_dvd_left a m)) h1)
+    (dvd_gcd ((dvd_iff_of_modeq_of_dvd h h2).mpr (gcd_dvd_left b m)) h2),
 end
 
 -- Apostol, Theorem 5.7

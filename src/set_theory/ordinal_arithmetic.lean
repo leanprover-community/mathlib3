@@ -415,6 +415,15 @@ theorem is_normal.is_limit {f} (H : is_normal f) {o} (l : is_limit o) :
 λ a h, let ⟨b, h₁, h₂⟩ := (H.limit_lt l).1 h in
   lt_of_le_of_lt (succ_le.2 h₂) (H.lt_iff.2 h₁)⟩
 
+theorem is_normal.le_iff_eq {f} (H : is_normal f) {a} : f a ≤ a ↔ f a = a :=
+⟨λ h, le_antisymm h (H.le_self a), le_of_eq⟩
+
+theorem is_normal_iff_strict_mono_limit (f : ordinal → ordinal) :
+  (strict_mono f ∧ ∀ o, is_limit o → ∀ a, (∀ b < o, f b ≤ a) → f o ≤ a) ↔ is_normal f :=
+⟨λ ⟨hs, hl⟩, ⟨λ a, hs (ordinal.lt_succ_self a),
+  λ a ha c, ⟨λ hac b hba, ((hs hba).trans_le hac).le, hl a ha c⟩⟩,
+  λ hf, ⟨hf.strict_mono, λ a ha c, (hf.2 a ha c).2⟩⟩
+
 theorem add_le_of_limit {a b c : ordinal.{u}}
   (h : is_limit b) : a + b ≤ c ↔ ∀ b' < b, a + b' ≤ c :=
 ⟨λ h b' l, le_trans (add_le_add_left (le_of_lt l) _) h,
@@ -2096,134 +2105,6 @@ begin
     refine le_antisymm (sup_le.2 (λ n, by rw one_opow)) _,
     convert le_sup _ 0,
     rw [nat.cast_zero, opow_zero] }
-end
-
-/-! ### Fixed points of normal functions -/
-
-/-- The next fixed point function, the least fixed point of the normal function `f` above `a`. -/
-def nfp (f : ordinal → ordinal) (a : ordinal) :=
-sup (λ n : ℕ, f^[n] a)
-
-theorem nfp_le {f a b} : nfp f a ≤ b ↔ ∀ n, f^[n] a ≤ b :=
-sup_le
-
-theorem iterate_le_nfp (f a n) : f^[n] a ≤ nfp f a :=
-le_sup _ n
-
-theorem le_nfp_self (f a) : a ≤ nfp f a :=
-iterate_le_nfp f a 0
-
-theorem lt_nfp {f : ordinal → ordinal} {a b} : a < nfp f b ↔ ∃ n, a < (f^[n]) b :=
-lt_sup
-
-protected theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} : f b < nfp f a ↔ b < nfp f a :=
-lt_sup.trans $ iff.trans
-  (by exact
-   ⟨λ ⟨n, h⟩, ⟨n, lt_of_le_of_lt (H.le_self _) h⟩,
-    λ ⟨n, h⟩, ⟨n+1, by rw iterate_succ'; exact H.lt_iff.2 h⟩⟩)
-  lt_sup.symm
-
-theorem is_normal.nfp_le {f} (H : is_normal f) {a b} :
-  nfp f a ≤ f b ↔ nfp f a ≤ b :=
-le_iff_le_iff_lt_iff_lt.2 H.lt_nfp
-
-/-- `nfp f a` is the next fixed point after `a`. -/
-theorem is_normal.nfp_le_fp {f} (H : is_normal f) {a b}
-  (ab : a ≤ b) (h : f b ≤ b) : nfp f a ≤ b :=
-sup_le.2 $ λ i, begin
-  induction i with i IH generalizing a, {exact ab},
-  exact IH (le_trans (H.le_iff.2 ab) h),
-end
-
-theorem is_normal.nfp_fp {f} (H : is_normal f) (a) : f (nfp f a) = nfp f a :=
-begin
-  refine le_antisymm _ (H.le_self _),
-  cases le_or_lt (f a) a with aa aa,
-  { rwa le_antisymm (H.nfp_le_fp (le_refl _) aa) (le_nfp_self _ _) },
-  rcases zero_or_succ_or_limit (nfp f a) with e|⟨b, e⟩|l,
-  { refine @le_trans _ _ _ (f a) _ (H.le_iff.2 _) (iterate_le_nfp f a 1),
-    simp only [e, ordinal.zero_le] },
-  { have : f b < nfp f a := H.lt_nfp.2 (by simp only [e, lt_succ_self]),
-    rw [e, lt_succ] at this,
-    have ab : a ≤ b,
-    { rw [← lt_succ, ← e],
-      exact lt_of_lt_of_le aa (iterate_le_nfp f a 1) },
-    refine le_trans (H.le_iff.2 (H.nfp_le_fp ab this))
-      (le_trans this (le_of_lt _)),
-    simp only [e, lt_succ_self] },
-  { exact (H.2 _ l _).2 (λ b h, le_of_lt (H.lt_nfp.2 h)) }
-end
-
-theorem is_normal.le_nfp {f} (H : is_normal f) {a b} : f b ≤ nfp f a ↔ b ≤ nfp f a :=
-⟨le_trans (H.le_self _), λ h,
-  by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
-
-theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
-le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
-
-/-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
-theorem is_normal.nfp_unbounded {f} (H : is_normal f) : unbounded (<) (fixed_points f) :=
-λ a, ⟨_, H.nfp_fp a, not_lt_of_ge (le_nfp_self f a)⟩
-
-/-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/
-def deriv (f : ordinal → ordinal) (o : ordinal) : ordinal :=
-limit_rec_on o (nfp f 0)
-  (λ a IH, nfp f (succ IH))
-  (λ a l, bsup.{u u} a)
-
-@[simp] theorem deriv_zero (f) : deriv f 0 = nfp f 0 := limit_rec_on_zero _ _ _
-
-@[simp] theorem deriv_succ (f o) : deriv f (succ o) = nfp f (succ (deriv f o)) :=
-limit_rec_on_succ _ _ _ _
-
-theorem deriv_limit (f) {o} : is_limit o → deriv f o = bsup.{u u} o (λ a _, deriv f a) :=
-limit_rec_on_limit _ _ _ _
-
-theorem deriv_is_normal (f) : is_normal (deriv f) :=
-⟨λ o, by rw [deriv_succ, ← succ_le]; apply le_nfp_self,
- λ o l a, by rw [deriv_limit _ l, bsup_le]⟩
-
-theorem is_normal.deriv_fp {f} (H : is_normal f) (o) : f (deriv.{u} f o) = deriv f o :=
-begin
-  apply limit_rec_on o,
-  { rw [deriv_zero, H.nfp_fp] },
-  { intros o ih, rw [deriv_succ, H.nfp_fp] },
-  intros o l IH,
-  rw [deriv_limit _ l, is_normal.bsup.{u u u} H _ l.1],
-  refine eq_of_forall_ge_iff (λ c, _),
-  simp only [bsup_le, IH] {contextual:=tt}
-end
-
-theorem is_normal.fp_iff_deriv' {f} (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
-⟨λ ha, begin
-  suffices : ∀ o (_:a ≤ deriv f o), ∃ o, deriv f o = a,
-  from this a ((deriv_is_normal _).le_self _),
-  intro o, apply limit_rec_on o,
-  { intros h₁,
-    refine ⟨0, le_antisymm _ h₁⟩,
-    rw deriv_zero,
-    exact H.nfp_le_fp (ordinal.zero_le _) ha },
-  { intros o IH h₁,
-    cases le_or_lt a (deriv f o), {exact IH h},
-    refine ⟨succ o, le_antisymm _ h₁⟩,
-    rw deriv_succ,
-    exact H.nfp_le_fp (succ_le.2 h) ha },
-  { intros o l IH h₁,
-    cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
-    rw [deriv_limit _ l, ← not_le, bsup_le, not_ball] at h,
-    exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
-end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
-
-theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
-by { rw ←H.fp_iff_deriv', exact ⟨λ h, le_of_eq h, λ h, le_antisymm h (H.le_self _)⟩ }
-
-/-- `deriv f` is the fixed point enumerator of `f`. -/
-theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord _ H.nfp_unbounded :=
-begin
-  rw [←eq_enum_ord, range_eq_iff],
-  use (deriv_is_normal f).strict_mono,
-  refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
-  rwa ←H.fp_iff_deriv
 end
 
 end ordinal

@@ -776,6 +776,9 @@ begin
   exact not_lt_of_le (ordinal.zero_le _) this
 end
 
+@[simp] theorem out_nonempty_iff_ne_zero {o : ordinal} : nonempty o.out.α ↔ o ≠ 0 :=
+by { rw [←not_iff_not, ←not_is_empty_iff, not_not, not_not], exact out_empty_iff_eq_zero }
+
 instance : has_one ordinal :=
 ⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
 

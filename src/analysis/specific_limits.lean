@@ -815,8 +815,7 @@ begin
     refine summable_of_norm_bounded_eventually 0 summable_zero _,
     rw nat.cofinite_eq_at_top,
     filter_upwards [h] with _ hn,
-    by_contra h,
-    push_neg at h,
+    by_contra' h,
     exact not_lt.mpr (norm_nonneg _) (lt_of_le_of_lt hn $ mul_neg_of_neg_of_pos hr₀ h), },
 end
 

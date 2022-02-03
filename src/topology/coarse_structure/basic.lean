@@ -7,6 +7,8 @@ import order.filter.lift
 import topology.subset_properties
 import topology.uniform_space.basic
 import data.real.nnreal
+import data.set.prod
+
 /-!
 # Coarse spaces
 
@@ -19,7 +21,8 @@ In order to take advantage of filters,
 we define a coarse space in terms of its *cocontrolled sets*,
 which are the complements of the controlled sets.
 
-
+The intuition one should keep in mind is the special case of metric spaces:
+a set in a metric space is controlled iff it has bounded diameter.
 # Notations
 
 Localized to `coarse_space`, we define `□` for `cocomp`
@@ -39,8 +42,10 @@ open set filter
 open_locale uniformity topological_space filter
 
 universe u
-variables {α : Type*} {a b : α} {s t : set (α × α)} {β : Type*}
+variables {α β γ: Type*} {a b : α} {s t : set (α × α)}
 
+
+/-! ### Relations -/
 /- The complement of the identity relation on a set -/
 def coid_rel : set (α×α) := {p : α × α | p.1 ≠ p.2}
 
@@ -193,6 +198,7 @@ lemma subset_cocomp_self {s : set (α × α)} (h : s ⊆ coid_rel) : s □ s ⊆
 }
 
 
+/-! ### Coarse spaces -/
 variables (α)
 class coarse_space :=
 (cocontrolled   : filter (α × α))
@@ -221,7 +227,7 @@ lemma coarse_space.eq :
 | ⟨u₁, _, _, _⟩  ⟨u₂, _, _, _⟩ h := by { congr, exact h }
 
 
-section coarse_space
+namespace coarse_space
 variables [coarse_space α]
 
 def cocontrolled (α : Type u) [s : coarse_space α] : filter (α × α) :=
@@ -277,5 +283,43 @@ begin
   {intros x h, assumption,},
   {refine cocomp_rel.monotone _ _, tidy,}
 end
+
+/-! ### Close and coarse maps -/
+
+def bounded (b : set α) : Prop := (b ×ˢ b : set (α×α)) ∈ 𝓒 α
+def proper [coarse_space β] (f : α → β) : Prop := ∀ (b : set β), bounded b → bounded (f ⁻¹' b)
+def bornologous [coarse_space β] (f : α → β) : Prop := ∀ s ∈ 𝓒' α, prod.map f f '' s ∈ 𝓒' β
+structure coarse_map (α β : Type*) [coarse_space α] [coarse_space β] :=
+  (to_fun : α → β)
+  (proper : proper to_fun)
+  (bornologous : bornologous to_fun)
+
+/-
+Two maps between coarse spaces are close iff the image of the codiagonal is cocontrolled-/
+def close_maps [coarse_space β] (f g : α → β) : Prop := prod.map f g '' coid_rel ∈ 𝓒' β
+
+namespace close_maps
+variables [coarse_space β] {f g h : α → β}
+/-
+Two maps between coarse spaces are close iff the image of the diagonal is controlled-/
+def iff_controlled : close_maps f g ↔ prod.map f g '' id_rel ∈ 𝓒 β :=
+sorry
+
+def refl (f : α → β) : close_maps f f := sorry
+def symm (close : close_maps f g) : close_maps g f := sorry
+def trans (close_fg : close_maps f g) (close_gh : close_maps g h) : close_maps f h := sorry
+
+def comp_left [coarse_space β] {f g : α → β} (close : close_maps f g) [coarse_space γ] (h : β → γ)
+  : close_maps (h ∘ f) (h ∘ g) := sorry
+def comp_right [coarse_space β] {f g : α → β} (close : close_maps f g) [coarse_space γ] (h : γ → α)
+  : close_maps (f ∘ h) (g ∘ h) := sorry
+
+end close_maps
+
+structure coarse_equivalence (α β : Type*) [coarse_space α] [coarse_space β] :=
+  (map : coarse_map α β)
+  (inv_map : coarse_map β α)
+  (close_section : close_maps (map ∘ inv_map) id)
+  (close_retraction : close_maps (inv_map ∘ map) id)
 
 end coarse_space

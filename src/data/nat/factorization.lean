@@ -139,7 +139,6 @@ lemma eq_factorization_iff {n : ℕ} {f : ℕ →₀ ℕ} (hn : n ≠ 0) (hf : �
  λ h, by rw [←h, prod_pow_factorization_eq_self hf]⟩
 
 /-- The equiv between `ℕ+` and `ℕ →₀ ℕ` with support in the primes. -/
-@[simps]
 noncomputable
 def factorization_equiv : ℕ+ ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
 { to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ _, prime_of_mem_factorization⟩,
@@ -147,6 +146,9 @@ def factorization_equiv : ℕ+ ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, pr
     prod_pow_pos_of_zero_not_mem_support (λ H, not_prime_zero (hf 0 H))⟩,
   left_inv  := λ ⟨x, hx⟩, subtype.ext $ factorization_prod_pow_eq_self hx.ne.symm,
   right_inv := λ ⟨f, hf⟩, subtype.ext $ prod_pow_factorization_eq_self hf }
+
+lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
+  (factorization_equiv.symm ⟨f, hf⟩).1 = f.prod pow := rfl
 
 /-! ### Factorizations of pairs of coprime numbers -/
 

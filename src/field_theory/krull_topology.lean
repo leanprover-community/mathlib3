@@ -115,7 +115,7 @@ lemma mem_fixing_subgroup_iff {K L : Type*} [field K] [field L] [algebra K L]
 
 /-- The map `E ↦ Gal(L/E)` is inclusion-reversing -/
 lemma intermediate_field.fixing_subgroup.antimono {K L : Type*} [field K] [field L] [algebra K L]
-{E1 E2 : intermediate_field K L} (h12 : E1 ≤ E2) : E2.fixing_subgroup ≤ E1.fixing_subgroup :=
+  {E1 E2 : intermediate_field K L} (h12 : E1 ≤ E2) : E2.fixing_subgroup ≤ E1.fixing_subgroup :=
 begin
   rintro σ hσ ⟨x, hx⟩,
   exact hσ ⟨x, h12 hx⟩,

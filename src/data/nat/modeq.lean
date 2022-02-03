@@ -466,6 +466,14 @@ begin
   exact int.dvd_of_dvd_mul_right_of_gcd_one h1 h2,
 end
 
+-- example {a b c d m : ℕ} (hm : 0 < m) (hcd : c ≡ d [MOD m]) (h : c * a ≡ d * b [MOD m]) :
+--   a ≡ b [MOD m / gcd m c] :=
+-- begin
+--   refine modeq_cancel_left_div_gcd hm _,
+--   sorry,
+-- end
+
+
 /-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
 lemma modeq_cancel_left_of_coprime {a b c m : ℕ} (hmc : gcd m c = 1) (h : c * a ≡ c * b [MOD m]) :
   a ≡ b [MOD m] :=

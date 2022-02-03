@@ -33,6 +33,17 @@ lemma locally_convex_space.convex_basis_zero [locally_convex_space 𝕂 E] :
   (𝓝 0 : filter E).has_basis (λ s, s ∈ (𝓝 0 : filter E) ∧ convex 𝕂 s) id :=
 locally_convex_space.convex_basis 0
 
+lemma locally_convex_iff_exists_convex_subset :
+  locally_convex_space 𝕂 E ↔ ∀ x : E, ∀ U ∈ 𝓝 x, ∃ S ∈ 𝓝 x, convex 𝕂 S ∧ S ⊆ U :=
+begin
+  split,
+  { intros h x U hU,
+    convert (has_basis_iff.mp (@locally_convex_space.convex_basis 𝕂 E _ _ _ _ h x) U).mp hU,
+    ext S,
+    tauto },
+
+end
+
 end semimodule
 
 section module
@@ -98,12 +109,13 @@ variables {ι 𝕂 E : Type*} [ordered_semiring 𝕂] [add_comm_monoid E] [modul
 
 include h₁ h₂ h₃
 
-#check has_continuous_add_Inf
+#check filter.has_basis_supr
 
-instance locally_convex_infi : @locally_convex_space 𝕂 E _ _ _ (Inf ts) :=
+instance locally_convex_Inf : @locally_convex_space 𝕂 E _ _ _ (Inf ts) :=
 begin
   letI : topological_space E := Inf ts,
-  letI : has_continuous_add E := infer_instance,
+  letI : has_continuous_add E := has_continuous_add_Inf h₂,
+  letI : has_continuous_smul 𝕂 E := has_continuous_smul_Inf h₃,
   refine locally_convex_of_bases 𝕂 E _ _ _ _,
 end
 --@locally_convex_space_of_convex_nhds_basis 𝕂  E _ _ _ _ (⨅ i, ts i) _ _ _ (set E)

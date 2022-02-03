@@ -64,6 +64,15 @@ by cases f; cases g; cases h; refl
 @[simp] lemma coe_mk (f : α → β) (h : continuous f) :
   ⇑(⟨f, h⟩ : continuous_map α β) = f := rfl
 
+/-- Typeclass for continuous maps -/
+class _root_.continuous_map_class (F : Type*) (α β : out_param $ Type*)
+  [topological_space α] [topological_space β] extends fun_like F α (λ _, β) :=
+(continuous_to_fun  : ∀ f : F, continuous f . tactic.interactive.continuity')
+
+instance continuous_map.continuous_map_class : continuous_map_class (continuous_map α β) α β :=
+{ coe := continuous_map.to_fun,
+  coe_injective' := coe_inj }
+
 section
 variables (α β)
 

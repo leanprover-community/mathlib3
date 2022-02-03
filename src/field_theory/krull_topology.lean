@@ -178,8 +178,7 @@ def gal_group_basis (K L : Type*) [field K] [field L] [algebra K L] :
 
 /-- For a field extension `L/K`, `krull_topology K L` is the topological space structure on
 `L ≃ₐ[K] L` induced by the group filter basis `gal_group_basis K L` -/
-@[instance]
-def krull_topology (K L : Type*) [field K] [field L] [algebra K L] :
+instance krull_topology (K L : Type*) [field K] [field L] [algebra K L] :
   topological_space (L ≃ₐ[K] L) :=
 group_filter_basis.topology (gal_group_basis K L)
 

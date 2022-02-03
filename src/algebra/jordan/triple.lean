@@ -63,7 +63,7 @@ def D : A →+ A →+ add_monoid.End A := has_trilinear_tp.tp
 def homotope : A →+ A →+ add_monoid.End A := (D : A →+ A →+ add_monoid.End A).flip_hom
 
 
-lemma homotope_def (a b c : A) : homotope b a c = ⦃a, b, c⦄ :=
+lemma homotope_def (a b c : A) : homotope b a c = ⦃a, b, c⦄ := rfl
 begin
   unfold homotope,
   unfold D,

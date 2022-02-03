@@ -69,7 +69,7 @@ linear_equiv.finite_dimensional (intermediate_field.intermediate_field_map σ E)
 /-- Given a field extension `L/K`, `finite_exts K L` is the set of
 intermediate field extensions `L/E/K` such that `E/K` is finite -/
 def finite_exts (K : Type*) [field K] (L : Type*) [field L] [algebra K L] :
-set (intermediate_field K L) :=
+  set (intermediate_field K L) :=
 {E | finite_dimensional K E}
 
 /-- Given a field extension `L/K`, `fixed_by_finite K L` is the set of

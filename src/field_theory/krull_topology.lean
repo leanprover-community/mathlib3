@@ -61,9 +61,9 @@ set_like.coe_injective $ set.image_id _
 
 /-- Mapping a finite dimensional intermediate field along an algebra equivalence gives
 a finite-dimensional intermediate field. -/
-lemma im_finite_dimensional {K L : Type*} [field K] [field L] [algebra K L]
-{E : intermediate_field K L} (σ : L ≃ₐ[K] L) (h_findim : finite_dimensional K E):
-finite_dimensional K (E.map σ.to_alg_hom) :=
+instance im_finite_dimensional {K L : Type*} [field K] [field L] [algebra K L]
+  {E : intermediate_field K L} (σ : L ≃ₐ[K] L) [finite_dimensional K E]:
+  finite_dimensional K (E.map σ.to_alg_hom) :=
 linear_equiv.finite_dimensional (intermediate_field.intermediate_field_map σ E).to_linear_equiv
 
 /-- Given a field extension `L/K`, `finite_exts K L` is the set of

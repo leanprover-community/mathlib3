@@ -448,7 +448,7 @@ end
 
 -- Apostol, Theorem 5.4
 /-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c` -/
-lemma Apostol_5_4 {a b c m : ℕ} (hm : 0 < m) (h : c * a ≡ c * b [MOD m]) :
+lemma modeq_cancel_left_div_gcd {a b c m : ℕ} (hm : 0 < m) (h : c * a ≡ c * b [MOD m]) :
   a ≡ b [MOD m / gcd m c] :=
 begin
   set d := (gcd m c),
@@ -467,14 +467,14 @@ begin
 end
 
 /-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
-lemma Apostol_5_4_corr {a b c m : ℕ} (hmc : gcd m c = 1) (h : c * a ≡ c * b [MOD m]) :
+lemma modeq_cancel_left_of_coprime {a b c m : ℕ} (hmc : gcd m c = 1) (h : c * a ≡ c * b [MOD m]) :
   a ≡ b [MOD m] :=
 begin
   rcases m.eq_zero_or_pos with rfl | hm,
   { simp only [gcd_zero_left] at hmc,
     simp only [gcd_zero_left, hmc, one_mul, modeq_zero_iff] at h,
     subst h },
-  simpa [hmc] using Apostol_5_4 hm h
+  simpa [hmc] using modeq_cancel_left_div_gcd hm h
 end
 
 end nat

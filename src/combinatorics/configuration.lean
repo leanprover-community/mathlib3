@@ -7,7 +7,6 @@ import algebra.big_operators.order
 import combinatorics.hall.basic
 import data.fintype.card
 import group_theory.group_action.basic
-import linear_algebra.orientation
 import set_theory.fincard
 
 /-!
@@ -36,13 +35,21 @@ Together, these four statements say that any two of the following properties imp
 
 open_locale big_operators
 
-section projective
+section
 
-def punctured_space (α : Type*) [has_zero α] (n : ℕ) := {p : fin n → α // p ≠ 0}
+variables (α : Type*) [has_zero α] (n : ℕ)
 
-instance punctured_space.mul_action
-  (α : Type*) [nontrivial α] [monoid_with_zero α] [no_zero_divisors α] (n : ℕ) :
-  mul_action αˣ (punctured_space α n) :=
+def punctured_space := {p : fin n → α // p ≠ 0}
+
+instance : has_coe_to_fun (punctured_space α n) (λ _, fin n → α) := ⟨subtype.val⟩
+
+end
+
+namespace punctured_space
+
+variables (α : Type*) [nontrivial α] [monoid_with_zero α] [no_zero_divisors α] (n : ℕ)
+
+instance mul_action : mul_action αˣ (punctured_space α n) :=
 { smul := λ a v, ⟨a • v.1, by
   { refine λ h, v.2 (funext (λ m, _)),
     replace h := function.funext_iff.mp h m,
@@ -51,24 +58,54 @@ instance punctured_space.mul_action
   one_smul := λ v, subtype.ext (one_smul αˣ v.1),
   mul_smul := λ a b p, subtype.ext (mul_smul a b p.1) }
 
-lemma punctured_space.val_smul
-  {α : Type*} [nontrivial α] [monoid_with_zero α] [no_zero_divisors α] {n : ℕ}
-  (a : αˣ) (v : punctured_space α n) : (a • v).1 = a • v.1 :=
-rfl
+variables {α n} (a : αˣ) (v : punctured_space α n)
 
-variables (F : Type*) [field F] (n : ℕ)
+lemma coe_smul : (⇑(a • v) : fin n → α) = a • (⇑v : fin n → α) := rfl
 
-def projective_space
-  (α : Type*) [nontrivial α] [monoid_with_zero α] [no_zero_divisors α] (n : ℕ) :=
+end punctured_space
+
+section
+
+variables (α : Type*) [nontrivial α] [monoid_with_zero α] [no_zero_divisors α] (n : ℕ)
+
+def projective_space :=
 quotient (mul_action.orbit_rel αˣ (punctured_space α (n + 1)))
 
-instance (F : Type*) [field F] (n : ℕ) : has_mem (projective_space F n) (projective_space F n) :=
-⟨λ p l, quotient.lift_on₂' p l (λ p q, ∑ (m : fin n), p.1 m * q.1 m = 0) (by
+instance : has_coe (punctured_space α (n + 1)) (projective_space α n) :=
+⟨quotient.mk'⟩
+
+end
+
+namespace projective_space
+
+variables {α : Type*} [nontrivial α] [comm_semiring α] [no_zero_divisors α] {n : ℕ}
+
+instance : has_mem (projective_space α n) (projective_space α n) :=
+⟨λ p q, quotient.lift_on₂' p q (λ p q, ∑ (m : fin n), p m * q m = 0) (by
 { rintros _ p _ q ⟨c, rfl⟩ ⟨d, rfl⟩,
-  simp_rw [punctured_space.val_smul, pi.smul_apply, units.smul_def, smul_eq_mul,
+  simp_rw [punctured_space.coe_smul, pi.smul_apply, units.smul_def, smul_eq_mul,
     mul_mul_mul_comm, ←finset.mul_sum, mul_eq_zero, units.ne_zero, false_or] })⟩
 
-end projective
+lemma mem_def {p q : punctured_space α (n + 1)} :
+  (p : projective_space α n) ∈ (q : projective_space α n) ↔ ∑ (m : fin n), p m * q m = 0 :=
+iff.rfl
+
+lemma mem.symm {p q : projective_space α n} (h : p ∈ q) : q ∈ p :=
+begin
+  revert h,
+  refine p.induction_on' (λ p, _),
+  refine q.induction_on' (λ q, _),
+  change ↑p ∈ ↑q → (q : projective_space α n) ∈ (p : projective_space α n),
+  rw [mem_def, mem_def],
+  simp_rw [mul_comm],
+  exact id,
+end
+
+lemma mem_comm {p q : projective_space α n} :
+  p ∈ q ↔ q ∈ p :=
+⟨mem.symm, mem.symm⟩
+
+end projective_space
 
 namespace configuration
 
@@ -484,18 +521,34 @@ end
 lemma card_lines [projective_plane P L] : fintype.card L = order P L ^ 2 + order P L + 1 :=
 (card_points (dual L) (dual P)).trans (congr_arg (λ n, n ^ 2 + n + 1) (dual.order P L))
 
-variables (F : Type*) [field F]
+variables {F : Type*} [field F]
+
+lemma key0 {n : ℕ} (p : projective_space F n) : ∃ q : projective_space F n, p ∉ q :=
+begin
+  sorry
+end
+
+lemma key1 {n : ℕ} (p q r s : projective_space F n) (hpr : p ∈ r) (hqr : q ∈ r) (hps : p ∈ s)
+  (hqs : q ∈ s) : p = q ∨ r = s := sorry
+
+def key2 {n : ℕ} (p q : projective_space F n) (h : p ≠ q) : projective_space F n :=
+sorry
+
+def key3 {n : ℕ} (p q : projective_space F n) (h : p ≠ q) : p ∈ (key2 p q h) ∧ q ∈ (key2 p q h) :=
+sorry
+
+variables (F)
 
 instance : nondegenerate (projective_space F 2) (projective_space F 2) :=
-{ exists_point := sorry,
-  exists_line := sorry,
-  eq_or_eq := sorry }
+{ exists_point := by { simp_rw projective_space.mem_comm, exact key0 },
+  exists_line := key0,
+  eq_or_eq := key1 }
 
 def of_field : projective_plane (projective_space F 2) (projective_space F 2) :=
-{ mk_point := sorry,
-  mk_point_ax := sorry,
-  mk_line := sorry,
-  mk_line_ax := sorry,
+{ mk_point := key2,
+  mk_point_ax := by { simp_rw projective_space.mem_comm, exact key3 },
+  mk_line := key2,
+  mk_line_ax := key3,
   exists_config := sorry }
 
 end projective_plane

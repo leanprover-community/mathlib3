@@ -38,7 +38,7 @@ chicken mcnugget, frobenius coin, chinese remainder theorem, submonoid.closure
 open nat
 
 /-- Auxiliary lemma for upper bound. -/
-lemma chicken_mcnugget_upper_bound_aux (a b m n : ℕ) (ha : a ≠ 0) (hb : b ≠ 0)
+lemma upper_bound_not_in_clos_nat_pair_aux (a b m n : ℕ) (ha : a ≠ 0) (hb : b ≠ 0)
   (cop : coprime m n) : a * m + b * n ≠ m * n :=
 begin
   intro h,
@@ -52,18 +52,18 @@ begin
 end
 
 /-- No solution for the maximal value over the natural numbers. -/
-lemma chicken_mcnugget_upper_bound {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n)
+lemma upper_bound_not_in_clos_nat_pair {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n)
   (a b : ℕ) :
   a * m + b * n ≠ m * n - m - n :=
 begin
   intro h,
-  apply chicken_mcnugget_upper_bound_aux _ _ m n (add_one_ne_zero a) (add_one_ne_zero b) cop,
+  apply upper_bound_not_in_clos_nat_pair_aux _ _ m n (add_one_ne_zero a) (add_one_ne_zero b) cop,
   rw [add_mul, add_mul, one_mul, one_mul, add_assoc, ←add_assoc m, add_comm m, add_assoc,
       ←add_assoc, h, nat.sub_sub, nat.sub_add_cancel (add_le_mul hm hn)],
 end
 
 /-- Providing construction. -/
-lemma chicken_mcnugget_construction (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
+lemma not_in_clos_nat_pair (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   ∀ k, m * n - m - n < k → ∃ (a b : ℕ), a * m + b * n = k :=
 begin
   intros k hk,
@@ -79,29 +79,29 @@ begin
 end
 
 /-- Combines both sublemmas in a single claim. -/
-theorem chicken_mcnugget_split (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
+theorem max_not_sum_mult_split (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   (¬ ∃ a b, a * m + b * n = m * n - m - n) ∧ ∀ k, m * n - m - n < k → ∃ a b, a * m + b * n = k :=
 begin
   push_neg,
-  exact ⟨chicken_mcnugget_upper_bound cop hm hn, chicken_mcnugget_construction m n cop hm hn⟩,
+  exact ⟨upper_bound_not_in_clos_nat_pair cop hm hn, not_in_clos_nat_pair m n cop hm hn⟩,
 end
 
 /-- Rewrites the above with `is_greatest`. -/
-theorem chicken_mcnugget (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn : 1 < n) :
+theorem max_not_sum_mult (m n : ℕ) (cop: coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | ∀ a b, a * m + b * n ≠ k} (m * n - m - n) :=
-let h := chicken_mcnugget_split m n cop hm hn in
+let h := max_not_sum_mult_split m n cop hm hn in
   ⟨λ a b H, h.1 ⟨a, b, H⟩, λ k hk, not_lt.mp (mt (h.2 k) (λ ⟨a, b, H⟩, hk a b H))⟩
 
 /-- Restates the original theorem with `add_submonoid.closure`. -/
-lemma chicken_mcnugget_add_submonoid_aux (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
+lemma max_not_in_clos_nat_pair_aux (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
   ∀ k, m * n - m - n < k → k ∈ add_submonoid.closure ({m, n} : set ℕ) :=
 begin
   simp_rw add_submonoid.mem_closure_pair,
-  exact chicken_mcnugget_split m n cop hm hn,
+  exact max_not_sum_mult_split m n cop hm hn,
 end
 
 /-- Rewrites the above with `is_greatest`. -/
-theorem chicken_mcnugget_add_submonoid (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
+theorem max_not_in_clos_nat_pair_eq (m n : ℕ) (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | k ∉ add_submonoid.closure ({m, n} : set ℕ)} (m * n - m - n) :=
-let h := chicken_mcnugget_add_submonoid_aux m n cop hm hn in ⟨h.1, λ k, not_lt.mp ∘ mt (h.2 k)⟩
+let h := max_not_in_clos_nat_pair_aux m n cop hm hn in ⟨h.1, λ k, not_lt.mp ∘ mt (h.2 k)⟩

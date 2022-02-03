@@ -20,6 +20,11 @@ Besides the definition, we show that
 * if `f ≫ g` is a strong epimorphism, then so is `g`,
 * if `f` is both a strong epimorphism and a monomorphism, then it is an isomorphism
 
+
+## TODO
+
+Show that the dual of a strong epimorphism is a strong monomorphism, and vice versa.
+
 ## References
 
 * [F. Borceux, *Handbook of Categorical Algebra 1*][borceux-vol1]

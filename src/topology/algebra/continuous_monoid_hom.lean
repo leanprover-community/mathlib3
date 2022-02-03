@@ -70,6 +70,10 @@ f.to_monoid_hom.map_one
   f (a * b) = f a * f b :=
 f.to_monoid_hom.map_mul a b
 
+@[to_additive] lemma map_inv {A B : Type*} [group A] [group B] [topological_space A]
+  [topological_space B] (f : continuous_monoid_hom A B) (a b : A) : f a⁻¹ = (f a)⁻¹ :=
+f.to_monoid_hom.map_inv a
+
 /-- Composition of two continuous homomorphisms. -/
 @[to_additive "Composition of two continuous homomorphisms.", simps]
 def comp (g : continuous_monoid_hom B C) (f : continuous_monoid_hom A B) :

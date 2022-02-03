@@ -270,9 +270,6 @@ alias star_ring_end_self_apply ← is_R_or_C.conj_conj
 op_injective $
   ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
 
-@[simp] lemma conj_inv [field R] [star_ring R] (x : R) :
-  star_ring_end R (x⁻¹) = (star_ring_end R x)⁻¹ := star_inv' _
-
 @[simp] lemma star_zpow₀ [division_ring R] [star_ring R] (x : R) (z : ℤ) :
   star (x ^ z) = star x ^ z :=
 op_injective $

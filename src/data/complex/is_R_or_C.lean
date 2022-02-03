@@ -235,6 +235,8 @@ begin
   { rintros ⟨r, rfl⟩, apply conj_of_real }
 end
 
+@[simp] lemma star_def : (has_star.star : K → K) = conj := rfl
+
 variables (K)
 /-- Conjugation as a ring equivalence. This is used to convert the inner product into a
 sesquilinear product. -/
@@ -369,7 +371,8 @@ lemma div_im (z w : K) : im (z / w) = im z * re w / norm_sq w - re z * im w / no
 by simp only [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm, neg_mul_eq_neg_mul_symm,
               mul_neg_eq_neg_mul_symm, map_neg] with is_R_or_C_simps
 
-attribute [is_R_or_C_simps] conj_inv
+@[simp, is_R_or_C_simps]
+lemma conj_inv (x : K) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 
 @[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_div (r s : ℝ) :
   ((r / s : ℝ) : K) = r / s :=

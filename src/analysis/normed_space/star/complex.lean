@@ -13,13 +13,19 @@ import analysis.complex.basic
 
 Facts about star modules and star algebras over the complex numbers.
 
+## Main definitions
+
+* `star_ring.re`: the real part of an element of a star ring, defined as `2⁻¹ • (x + star x)`
+* `star_ring.im`: the imaginary part of an element of a star ring, defined as
+  `(-I * 2⁻¹) • (x - star x)`.
+
 -/
 
-variables {𝕜 : Type*} {E : Type*} {F : Type*} [is_R_or_C 𝕜]
+variables {E : Type*}
 
 namespace star_ring
 open_locale complex_conjugate
-open complex
+open is_R_or_C
 
 variables [semi_normed_ring E] [star_add_monoid E] [module ℂ E] [star_module ℂ E]
 
@@ -35,8 +41,8 @@ variables [semi_normed_ring E] [star_add_monoid E] [module ℂ E] [star_module �
   begin
     have : x - star x = -(star x - x) := by simp,
     simp only [self_adjoint.mem_iff, neg_mul_eq_neg_mul_symm, neg_smul, star_neg, star_smul,
-              map_mul, map_one, star_sub, star_star, neg_neg, complex.star_def, conj_I,
-              complex.conj_inv, map_bit0],
+              map_mul, map_one, star_sub, star_star, neg_neg, is_R_or_C.star_def, conj_I,
+              map_bit0] with is_R_or_C_simps,
     rw [←neg_smul, this, neg_smul_neg],
   end⟩
 
@@ -44,8 +50,9 @@ variables [semi_normed_ring E] [star_add_monoid E] [module ℂ E] [star_module �
 parts -/
 lemma eq_re_add_im (x : E) : x = re x + (I : ℂ) • im x :=
 begin
-  simp only [smul_smul, ←mul_assoc, re_coe, smul_add, im_coe, neg_mul_eq_neg_mul_symm,
-            neg_smul, smul_neg, I_mul_I, one_mul, neg_neg, smul_sub, ←add_smul, add_add_sub_cancel],
+  simp only [smul_smul, ←mul_assoc, neg_smul, smul_neg, I_mul_I, one_mul, neg_neg, smul_sub,
+            ←add_smul, add_add_sub_cancel, re_coe, smul_add, I_to_complex, im_coe,
+            neg_mul_eq_neg_mul_symm, complex.I_mul_I],
   field_simp
 end
 

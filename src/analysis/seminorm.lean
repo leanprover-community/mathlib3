@@ -533,6 +533,12 @@ nonneg_of_mul_nonneg_left h zero_lt_two
 
 lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
+lemma le_insert : p y ≤ p x + p (x - y) :=
+calc p y = p (x - (x - y)) : by abel
+... ≤ p x + p (x - y) : by exact p.sub_le _ _
+
+lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert p y x }
+
 instance : order_bot (seminorm 𝕜 E) := ⟨0, nonneg⟩
 
 @[simp] lemma coe_bot : ⇑(⊥ : seminorm 𝕜 E) = 0 := rfl
@@ -708,10 +714,6 @@ section normed_field
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
   {a : 𝕜} {r : ℝ} {x : E}
 
-/-instance : has_norm E := {norm := p}
-instance : semi_normed_group E :=
-  semi_normed_group.of_core E [p.has_norm] ⟨p.zero, p.triangle, p.neg⟩-/
-
 lemma bdd_below_range_add (x : E) (p q : seminorm 𝕜 E) :
   bdd_below (range (λ (u : E), p u + q (x - u))) :=
 by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
@@ -753,7 +755,7 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
     end } }
 
 noncomputable instance : lattice (seminorm 𝕜 E) :=
-{ inf := has_inf.inf,
+{ inf := (⊓),
   inf_le_left := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add x p q) x,
     simp only [sub_self, seminorm.zero, add_zero], end,
@@ -762,9 +764,7 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
     simp only [sub_self, seminorm.zero, zero_add, sub_zero], end,
   le_inf := λ a b c hab hac x, begin
     apply le_cinfi, intro u,
-    have s : x = u + (x - u), { abel },
-    { conv_lhs { rw s },
-      apply le_trans (a.triangle u (x-u)) (add_le_add (hab u) (hac (x-u))) },
+    exact le_trans (a.le_insert' x u) (add_le_add (hab u) (hac (x-u))),
    end,
   ..seminorm.semilattice_sup }
 

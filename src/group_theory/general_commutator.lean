@@ -122,5 +122,4 @@ begin
       general_commutator_containment _ _ ⟨hp, one_mem _⟩ ⟨hq, one_mem _⟩, rfl⟩),
       (λ p hp q hq, ⟨ ⟨1,p⟩ * ⟨1,q⟩ * ⟨1,p⟩⁻¹ * ⟨1,q⟩⁻¹,
       general_commutator_containment _ _ ⟨one_mem _, hp⟩ ⟨one_mem _, hq⟩, rfl⟩), ⟩, }
-
 end

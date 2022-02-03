@@ -1098,40 +1098,50 @@ variables {η : Type*} {f : η → Type*}
 
 -- defined here and not in group_theory.submonoid.operations to have access to algebra.group.pi
 
-/-- Given `submonoid`s `s i` of monoids `f i`,  `Π i, s i` is a submonoid of `Π i, f i`. -/
-@[to_additive prod "Given `add_submonoid`s `s i` of `add_monoid`s `f i`,  `Π i, s i` is a
-`add_submonoid` of `Π i, f i`"]
-def _root_.submonoid.pi [∀ i, mul_one_class (f i)] (s : Π i, submonoid (f i)) :
+/-- A version of `set.pi` for submonoids. Given an index set `I` and a family of submodules
+`s : Π i, submonoid f i`, `pi I s` is the submonoid of dependent functions `f : Π i, f i` such that
+`f i` belongs to `pi I s` whenever `i ∈ I`. -/
+@[to_additive prod " A version of `set.pi` for `add_submonoid`s. Given an index set `I` and a family
+of submodules `s : Π i, add_submonoid f i`, `pi I s` is the `add_submonoid` of dependent functions
+`f : Π i, f i` such that `f i` belongs to `pi I s` whenever `i ∈ I`. -/ "]
+def _root_.submonoid.pi [∀ i, mul_one_class (f i)] (I : set η) (s : Π i, submonoid (f i)) :
   submonoid (Π i, f i) :=
-{ carrier := set.pi set.univ (λ i, (s i).carrier),
-  one_mem' := λ i _, (s i).one_mem,
-  mul_mem' := λ p q hp hq i _, (s i).mul_mem (hp i trivial) (hq i trivial) }
+{ carrier := I.pi (λ i, (s i).carrier),
+  one_mem' := λ i _ , (s i).one_mem,
+  mul_mem' := λ p q hp hq i hI, (s i).mul_mem (hp i hI) (hq i hI) }
 
 variables [∀ i, group (f i)]
 
-/-- Given `subgroups`s `s i` of groups `f i`,  `Π i, s i` is a subgroup of `Π i, f i`. -/
-@[to_additive prod "Given `add_submonoid`s `s i` of `add_monoid`s `f i`,  `Π i, s i` is a
-`add_submonoid` of `Π i, f i`"]
-def pi (H : Π i, subgroup (f i)) : subgroup (Π i, f i) :=
-{ submonoid.pi (λ i, (H i).to_submonoid) with
-  inv_mem' := λ p hp i _, (H i).inv_mem (hp i trivial) }
+/-- A version of `set.pi` for subgroups. Given an index set `I` and a family of submodules
+`s : Π i, subgroup f i`, `pi I s` is the subgroup of dependent functions `f : Π i, f i` such that
+`f i` belongs to `pi I s` whenever `i ∈ I`. -/
+@[to_additive prod " A version of `set.pi` for `add_subgroup`s. Given an index set `I` and a family
+of submodules `s : Π i, add_subgroup f i`, `pi I s` is the `add_subgroup` of dependent functions
+`f : Π i, f i` such that `f i` belongs to `pi I s` whenever `i ∈ I`. -/ "]
+def pi (I : set η) (H : Π i, subgroup (f i)) : subgroup (Π i, f i) :=
+{ submonoid.pi I (λ i, (H i).to_submonoid) with
+  inv_mem' := λ p hp i hI, (H i).inv_mem (hp i hI) }
 
 -- doesn't work: @[to_additive coe_pi]
-lemma coe_pi (H : Π i, subgroup (f i)) :
-  (pi H : set (Π i, f i)) = set.pi set.univ (λ i, (H i : set (f i))) := rfl
+lemma coe_pi (I : set η) (H : Π i, subgroup (f i)) :
+  (pi I H : set (Π i, f i)) = set.pi I (λ i, (H i : set (f i))) := rfl
 
 @[to_additive mem_prod]
-lemma mem_pi {H : Π i, subgroup (f i)} {p : Π i, f i} :
-  p ∈ pi H ↔ (∀ i, p i ∈ H i) := ⟨λ hp i, hp i trivial, λ hp i _, hp i⟩
+lemma mem_pi (I : set η) {H : Π i, subgroup (f i)} {p : Π i, f i} :
+  p ∈ pi I H ↔ (∀ i : η, i ∈ I → p i ∈ H i) := iff.rfl
 
 -- @[to_additive pi_top]
-lemma pi_top : pi (λ i, (⊤ : subgroup (f i))) = ⊤ :=
-ext $ λ x, by {simp [mem_pi], }
+lemma pi_top (I : set η) : pi I (λ i, (⊤ : subgroup (f i))) = ⊤ :=
+ext $ λ x, by simp [mem_pi]
+
+-- @[to_additive pi_empty]
+lemma pi_empty (H : Π i, subgroup (f i)): pi ∅ H = ⊤ :=
+ext $ λ x, by simp [mem_pi]
 
 -- @[to_additive pi_bot]
-lemma pi_bot : pi (λ i, (⊥ : subgroup (f i))) = ⊥ :=
+lemma pi_bot : pi set.univ (λ i, (⊥ : subgroup (f i))) = ⊥ :=
 (eq_bot_iff_forall _).mpr $ λ p hp,
-by { simp only [mem_pi, mem_bot] at *, ext j, exact hp j, }
+by { simp only [mem_pi, mem_bot] at *, ext j, exact hp j trivial, }
 
 end pi
 

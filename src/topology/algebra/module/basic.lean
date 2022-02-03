@@ -127,6 +127,24 @@ end
 
 end
 
+section lattice_ops
+
+variables {ι R M₁ M₂ : Type*} [semiring R] [add_comm_monoid M₁] [add_comm_monoid M₂]
+  [module R M₁] [module R M₂] [u : topological_space R] {t : topological_space M₂}
+  [has_continuous_smul R M₂] (f : M₁ →ₗ[R] M₂)
+
+lemma has_continuous_smul_induced :
+  @has_continuous_smul R M₁ _ u (t.induced f) :=
+{ continuous_smul :=
+    begin
+      letI : topological_space M₁ := t.induced f,
+      refine continuous_induced_rng _,
+      simp_rw [function.comp, f.map_smul],
+      refine continuous_fst.smul (continuous_induced_dom.comp continuous_snd)
+    end }
+
+end lattice_ops
+
 namespace submodule
 
 variables {α β : Type*} [topological_space β]

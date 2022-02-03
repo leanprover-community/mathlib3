@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2022 Eric Rodriguez. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Eric Rodriguez
+-/
 import number_theory.cyclotomic.zeta
 import ring_theory.polynomial.cyclotomic.eval
 import field_theory.polynomial_galois_group

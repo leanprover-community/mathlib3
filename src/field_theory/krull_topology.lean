@@ -186,5 +186,5 @@ group_filter_basis.topology (gal_group_basis K L)
 /-- For a field extension `L/K`, `krull_topological_group K L` is the topological group consisting
 of `L ≃ₐ[K] L`, together with the Krull topology `krull_topology K L` -/
 lemma krull_topological_group (K L : Type*) [field K] [field L] [algebra K L] :
-topological_group (L ≃ₐ[K] L) :=
+  topological_group (L ≃ₐ[K] L) :=
 group_filter_basis.is_topological_group (gal_group_basis K L)

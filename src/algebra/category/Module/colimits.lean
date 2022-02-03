@@ -365,7 +365,7 @@ def colimit_cocone_is_colimit : is_colimit (colimit_cocone F) :=
     refl
   end }.
 
-instance has_colimits_Module : has_colimits (Module R) :=
+instance has_colimits_Module : has_colimits (Module.{max v u} R) :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F,

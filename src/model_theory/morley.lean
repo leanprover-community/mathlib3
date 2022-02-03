@@ -5,6 +5,7 @@ Authors: Aris Papadopoulos, Ramon Fernández Mir
 -/
 import model_theory.basic
 import data.set.finite
+import data.
 
 /-!
 # Morley's Theorem
@@ -69,6 +70,11 @@ end pregeometry
 
 section strongly_minimal
 
-def strongly_minimal : Prop := sorry
+open first_order
+
+class minimal {α : Type u} {L : language} {M : set α} (S : L.Structure M) :=
+  (infinite : M.infinite)
+  (definable_sets : ∀ {β} [fintype β] (φ : L.definable_set M β),
+    set.finite φ.1 ∨ set.finite φ.1ᶜ)
 
 end strongly_minimal

@@ -33,23 +33,19 @@ interested reader is referred to [alfsenshultz2003], [chu2012], [friedmanscarr20
 * [Chu, Jordan Structures in Geometry and Analysis][chu2012]
 -/
 
-lemma biadd_expand {A : Type*} [add_comm_monoid A] (B: A →+ A →+ A) (a₁ a₂ b₁ b₂ : A) :
-  B (a₁ + a₂) (b₁+b₂) = B a₁ b₁ + B a₂ b₁ + B a₁ b₂ + B a₂ b₂ :=
-  by rw [map_add, map_add, add_monoid_hom.add_apply, add_monoid_hom.add_apply, ← add_assoc]
-
 /-- An additive commutative monoid with a trilinear triple product -/
 class has_trilinear_tp (A : Type*) [add_comm_monoid A] := (tp : A →+ A →+ A →+ A )
 
 notation ⦃a, b, c⦄ := has_trilinear_tp.tp a b c
 
-lemma add_left (A : Type*) [add_comm_monoid A] [has_trilinear_tp A] (a₁ a₂ b c : A) :
+lemma add_left {A : Type*} [add_comm_monoid A] [has_trilinear_tp A] (a₁ a₂ b c : A) :
   ⦃a₁ + a₂, b, c⦄ = ⦃a₁, b, c⦄ + ⦃a₂, b, c⦄ :=
 by rw [map_add, add_monoid_hom.add_apply, add_monoid_hom.add_apply]
 
-lemma add_middle (A : Type*) [add_comm_monoid A] [has_trilinear_tp A] (a b₁ b₂ c : A) :
+lemma add_middle {A : Type*} [add_comm_monoid A] [has_trilinear_tp A] (a b₁ b₂ c : A) :
   ⦃a, b₁ + b₂, c⦄ = ⦃a, b₁, c⦄ + ⦃a, b₂, c⦄ := by rw [map_add, add_monoid_hom.add_apply]
 
-lemma add_right (A : Type*) [add_comm_monoid A] [has_trilinear_tp A] (a b c₁ c₂ : A) :
+lemma add_right {A : Type*} [add_comm_monoid A] [has_trilinear_tp A] (a b c₁ c₂ : A) :
   ⦃a, b, c₁ + c₂⦄ = ⦃a, b, c₁⦄ + ⦃a, b, c₂⦄ := by rw map_add
 
 section trilinear_product
@@ -62,12 +58,7 @@ def D : A →+ A →+ add_monoid.End A := has_trilinear_tp.tp
 /-- homotope a is the a-homotope -/
 def homotope : A →+ A →+ add_monoid.End A := (D : A →+ A →+ add_monoid.End A).flip_hom
 
-
 lemma homotope_def (a b c : A) : homotope b a c = ⦃a, b, c⦄ := rfl
-
-lemma lr_bilinear (a₁ a₂ b c₁ c₂ : A) : ⦃a₁ + a₂, b, c₁ + c₂⦄ =
-  ⦃a₁, b, c₁⦄ + ⦃a₂, b, c₁⦄ + ⦃a₁, b, c₂⦄ + ⦃a₂, b, c₂⦄ := by rw [← homotope_def,
-  biadd_expand (homotope b), homotope_def, homotope_def, homotope_def, homotope_def]
 
 end trilinear_product
 
@@ -89,10 +80,10 @@ namespace is_jordan_tp
 variables {A : Type*} [add_comm_group A] [is_jordan_tp A]
 
 lemma polar (a b c : A) : ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + 2•⦃a, b, c⦄ + ⦃c, b, c⦄ :=
-calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃c, b, a⦄ + ⦃a, b, c⦄ + ⦃c, b, c⦄ :
-  by rw lr_bilinear a c b a c
-... = ⦃a, b, a⦄ + ⦃a, b, c⦄ + ⦃a, b, c⦄ + ⦃c, b, c⦄ : by rw comm c b a
-... = ⦃a, b, a⦄ + (⦃a, b, c⦄ + ⦃a, b, c⦄)  + ⦃c, b, c⦄ : by rw ← add_assoc
+calc ⦃a + c, b, a + c⦄ = ⦃a, b, a + c⦄ + ⦃c, b, a + c⦄ : by rw add_left
+... = ⦃a, b, a⦄ + ⦃a, b, c⦄ + (⦃c, b, a⦄  + ⦃c, b, c⦄) : by rw [add_right, add_right]
+... = ⦃a, b, a⦄ + ⦃a, b, c⦄ + (⦃a, b, c⦄ + ⦃c, b, c⦄) : by rw comm c b a
+... = ⦃a, b, a⦄ + (⦃a, b, c⦄ + ⦃a, b, c⦄)  + ⦃c, b, c⦄ : by abel
 ... = ⦃a, b, a⦄ + 2•⦃a, b, c⦄ + ⦃c, b, c⦄ : by rw two_nsmul
 
 /-- Define the quadratic operator `Q` -/

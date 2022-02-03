@@ -3,8 +3,6 @@ Copyright (c) 2022 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-
---import algebra.ternary
 import algebra.lie.of_associative
 
 /-!
@@ -39,6 +37,7 @@ lemma biadd_expand {A : Type*} [add_comm_monoid A] (B: A →+ A →+ A) (a₁ a�
   B (a₁ + a₂) (b₁+b₂) = B a₁ b₁ + B a₂ b₁ + B a₁ b₂ + B a₂ b₂ :=
   by rw [map_add, map_add, add_monoid_hom.add_apply, add_monoid_hom.add_apply, ← add_assoc]
 
+/-- An additive commutative monoid with a trilinear triple product -/
 class has_trilinear_tp (A : Type*) [add_comm_monoid A] := (tp : A →+ A →+ A →+ A )
 
 notation ⦃a, b, c⦄ := has_trilinear_tp.tp a b c
@@ -47,10 +46,10 @@ lemma add_left (A : Type*) [add_comm_monoid A] [has_trilinear_tp A] (a₁ a₂ b
   ⦃a₁ + a₂, b, c⦄ = ⦃a₁, b, c⦄ + ⦃a₂, b, c⦄ :=
 by rw [map_add, add_monoid_hom.add_apply, add_monoid_hom.add_apply]
 
-lemma add_middle (A : Type*) [add_comm_monoid A] [has_trilinear_tp A] (a a b₁ b₂ c : A) :
+lemma add_middle (A : Type*) [add_comm_monoid A] [has_trilinear_tp A] (a b₁ b₂ c : A) :
   ⦃a, b₁ + b₂, c⦄ = ⦃a, b₁, c⦄ + ⦃a, b₂, c⦄ := by rw [map_add, add_monoid_hom.add_apply]
 
-lemma add_right (A : Type*) [add_comm_monoid A] [has_trilinear_tp A] (a a b c₁ c₂ : A) :
+lemma add_right (A : Type*) [add_comm_monoid A] [has_trilinear_tp A] (a b c₁ c₂ : A) :
   ⦃a, b, c₁ + c₂⦄ = ⦃a, b, c₁⦄ + ⦃a, b, c₂⦄ := by rw map_add
 
 section trilinear_product
@@ -118,7 +117,7 @@ end is_jordan_tp
 variables {A : Type*} [add_comm_group A] [is_jordan_tp A]
 
 
-lemma lie_D_D [is_jordan_tp A] (a b c d: A) : ⁅D a b, D c d⁆ = D ⦃a, b, c⦄ d - D c ⦃b, a, d⦄ :=
+lemma lie_D_D (a b c d: A) : ⁅D a b, D c d⁆ = D ⦃a, b, c⦄ d - D c ⦃b, a, d⦄ :=
 begin
   ext e,
   rw ring.lie_def,
@@ -130,7 +129,7 @@ end
 /--
 For a and b in A, the pair D(a,b) and -D(b,a) are Leibniz
 -/
-lemma D_D_leibniz [is_jordan_tp A] (a b : A) : leibniz (D a b) (-D b a) := begin
+lemma D_D_leibniz (a b : A) : leibniz (D a b) (-D b a) := begin
   unfold leibniz,
   intros c d e,
   unfold D,

@@ -36,7 +36,9 @@ interested reader is referred to [alfsenshultz2003], [chu2012], [friedmanscarr20
 /-- An additive commutative monoid with a trilinear triple product -/
 class has_trilinear_tp (A : Type*) [add_comm_monoid A] := (tp : A →+ A →+ A →+ A )
 
-notation ⦃a, b, c⦄ := has_trilinear_tp.tp a b c
+localized "notation ⦃a, b, c⦄ := has_trilinear_tp.tp a b c" in triple
+
+namespace has_trilinear_tp
 
 lemma add_left {A : Type*} [add_comm_monoid A] [has_trilinear_tp A] (a₁ a₂ b c : A) :
   ⦃a₁ + a₂, b, c⦄ = ⦃a₁, b, c⦄ + ⦃a₂, b, c⦄ :=
@@ -48,25 +50,17 @@ lemma add_middle {A : Type*} [add_comm_monoid A] [has_trilinear_tp A] (a b₁ b�
 lemma add_right {A : Type*} [add_comm_monoid A] [has_trilinear_tp A] (a b c₁ c₂ : A) :
   ⦃a, b, c₁ + c₂⦄ = ⦃a, b, c₁⦄ + ⦃a, b, c₂⦄ := by rw map_add
 
-section trilinear_product
-
-variables {A : Type*} [add_comm_monoid A] [has_trilinear_tp A]
-
-/-- Define the multiplication operator `D` -/
-def D : A →+ A →+ add_monoid.End A := has_trilinear_tp.tp
-
-/-- homotope a is the a-homotope -/
-def homotope : A →+ A →+ add_monoid.End A := (D : A →+ A →+ add_monoid.End A).flip_hom
-
-lemma homotope_def (a b c : A) : homotope b a c = ⦃a, b, c⦄ := rfl
-
-end trilinear_product
+end has_trilinear_tp
 
 /-- A Jordan triple product satisfies a Leibniz law -/
 class is_jordan_tp (A : Type*) [add_comm_monoid A] [has_sub A] extends has_trilinear_tp A:=
 (comm : ∀ (a b c : A), ⦃a, b, c⦄ = ⦃c, b, a⦄)
-(leibniz : ∀ (a b c d e: A), ⦃a, b, ⦃c, d, e⦄⦄  =
+(jordan : ∀ (a b c d e: A), ⦃a, b, ⦃c, d, e⦄⦄  =
   ⦃⦃a, b, c⦄, d, e⦄ - ⦃c, ⦃b, a, d⦄, e⦄ + ⦃c, d, ⦃a, b, e⦄⦄)
+
+namespace is_jordan_tp
+
+open has_trilinear_tp
 
 /--
 We say that a pair of operators $(T,T^′)$ are Leibniz if they satisfy a law reminiscent of
@@ -74,8 +68,6 @@ differentiation.
 -/
 def leibniz {A : Type*} [add_comm_monoid A] [has_trilinear_tp A] (T : A → A) (T'  : A → A) : Prop :=
   ∀ (a b c : A),  T ⦃ a, b, c ⦄  = ⦃ T a, b, c⦄ + ⦃a, T' b, c⦄ + ⦃a, b, T c⦄
-
-namespace is_jordan_tp
 
 variables {A : Type*} [add_comm_group A] [is_jordan_tp A]
 
@@ -86,6 +78,14 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a + c⦄ + ⦃c, b, a + c⦄ : by rw add_l
 ... = ⦃a, b, a⦄ + (⦃a, b, c⦄ + ⦃a, b, c⦄)  + ⦃c, b, c⦄ : by abel
 ... = ⦃a, b, a⦄ + 2•⦃a, b, c⦄ + ⦃c, b, c⦄ : by rw two_nsmul
 
+/-- Define the multiplication operator `D` -/
+def D : A →+ A →+ add_monoid.End A := has_trilinear_tp.tp
+
+/-- homotope a is the a-homotope -/
+def homotope : A →+ A →+ add_monoid.End A := (D : A →+ A →+ add_monoid.End A).flip_hom
+
+lemma homotope_def (a b c : A) : homotope b a c = ⦃a, b, c⦄ := rfl
+
 /-- Define the quadratic operator `Q` -/
 @[simps] def Q : A →+ A →+  add_monoid.End A :=
 { to_fun := λ a, (D a : A →+  add_monoid.End A).flip,
@@ -94,18 +94,13 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a + c⦄ + ⦃c, b, a + c⦄ : by rw add_l
 
 lemma Q_def (a b c : A) : Q a c b = ⦃a, b, c⦄ := rfl
 
-end is_jordan_tp
-
-variables {A : Type*} [add_comm_group A] [is_jordan_tp A]
-
-
 lemma lie_D_D (a b c d: A) : ⁅D a b, D c d⁆ = D ⦃a, b, c⦄ d - D c ⦃b, a, d⦄ :=
 begin
   ext e,
   rw ring.lie_def,
   unfold D,
   simp,
-  rw [sub_eq_iff_eq_add, is_jordan_tp.leibniz],
+  rw [sub_eq_iff_eq_add, jordan],
 end
 
 /--
@@ -116,6 +111,8 @@ lemma D_D_leibniz (a b : A) : leibniz (D a b) (-D b a) := begin
   intros c d e,
   unfold D,
   simp,
-  rw is_jordan_tp.leibniz,
+  rw jordan,
   ring_nf,
 end
+
+end is_jordan_tp

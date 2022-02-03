@@ -78,7 +78,7 @@ infixr ` →o `:25 := order_hom
 
 /-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
 abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [preorder α] [preorder β] :=
-rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop).
+rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop)
 
 /-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`.
 This definition is an abbreviation of `rel_embedding (≤) (≤)`. -/

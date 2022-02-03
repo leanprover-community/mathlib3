@@ -49,8 +49,7 @@ open_locale classical
 /-- Mapping intermediate fields along algebra equivalences preserves the partial order -/
 lemma intermediate_field.map_mono {K L M : Type*} [field K] [field L] [field M]
   [algebra K L] [algebra K M] {E1 E2 : intermediate_field K L}
-  (e : L ≃ₐ[K] M) (h12 : E1 ≤ E2) :
-E1.map e.to_alg_hom ≤ E2.map e.to_alg_hom :=
+  (e : L ≃ₐ[K] M) (h12 : E1 ≤ E2) : E1.map e.to_alg_hom ≤ E2.map e.to_alg_hom :=
 set.image_subset e h12
 
 /-- Mapping intermediate fields along the identity does not change them -/

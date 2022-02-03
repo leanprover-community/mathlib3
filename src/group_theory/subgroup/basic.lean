@@ -1098,16 +1098,15 @@ variables {η : Type*} {f : η → Type*}
 def _root_.submonoid.pi [∀ i, mul_one_class (f i)] (s : Π i, submonoid (f i)) :
   submonoid (Π i, f i) :=
 { carrier := set.pi set.univ (λ i, (s i).carrier),
-  one_mem' := set.mem_univ_pi.mpr $ λ i, (s i).one_mem,
-  mul_mem' := λ p q hp hq, set.mem_univ_pi.mpr $ λ i,
-    (s i).mul_mem (set.mem_univ_pi.mp hp i) (set.mem_univ_pi.mp hq i) }
+  one_mem' := λ i _, (s i).one_mem,
+  mul_mem' := λ p q hp hq i _, (s i).mul_mem (hp i trivial) (hq i trivial) }
 
 /-- Given `subgroups`s `s i` of groups `f i`,  `Π i, s i` is a subgroup of `Π i, f i`. -/
 @[to_additive prod "Given `add_submonoid`s `s i` of `add_monoid`s `f i`,  `Π i, s i` is a
 `add_submonoid` of `Π i, f i`"]
 def _root_.subgroup.pi [∀ i, group (f i)] (s : Π i, subgroup (f i)) : subgroup (Π i, f i) :=
 { submonoid.pi (λ i, (s i).to_submonoid) with
-  inv_mem' := λ p hp, set.mem_univ_pi.mpr $ λ i, (s i).inv_mem (set.mem_univ_pi.mp hp i) }
+  inv_mem' := λ p hp i _, (s i).inv_mem (hp i trivial) }
 
 end pi
 

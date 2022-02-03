@@ -585,7 +585,8 @@ lift_on_of_fraction_ring_mk _ _ _ _
 
 lemma lift_monoid_with_zero_hom_injective [nontrivial R] (φ : polynomial R →*₀ G₀)
   (hφ : function.injective φ)
-  (hφ' : (polynomial R)⁰ ≤ G₀⁰.comap φ := λ _ hx, φ.map_mem_non_zero_divisors hφ hx) :
+  (hφ' : (polynomial R)⁰ ≤ G₀⁰.comap φ :=
+    non_zero_divisors_le_comap_non_zero_divisors_of_injective _ hφ) :
   function.injective (lift_monoid_with_zero_hom φ hφ') :=
 begin
   rintro ⟨x⟩ ⟨y⟩, induction x, induction y,
@@ -593,7 +594,7 @@ begin
     intro h,
     refine localization.r_of_eq _,
     simpa only [←hφ.eq_iff, map_mul] using mul_eq_mul_of_div_eq_div _ _ _ _ h.symm;
-    exact (φ.map_ne_zero_of_mem_non_zero_divisors hφ (set_like.coe_mem _)) },
+    exact (map_ne_zero_of_mem_non_zero_divisors _ hφ (set_like.coe_mem _)) },
   { exact λ _, rfl },
   { exact λ _, rfl }
 end
@@ -624,7 +625,8 @@ lemma lift_ring_hom_apply_of_fraction_ring_mk (φ : polynomial R →+* L)
 lift_monoid_with_zero_hom_apply_of_fraction_ring_mk _ _ _ _
 
 lemma lift_ring_hom_injective [nontrivial R] (φ : polynomial R →+* L) (hφ : function.injective φ)
-  (hφ' : (polynomial R)⁰ ≤ L⁰.comap φ := λ _ hx, φ.map_mem_non_zero_divisors hφ hx) :
+  (hφ' : (polynomial R)⁰ ≤ L⁰.comap φ :=
+    non_zero_divisors_le_comap_non_zero_divisors_of_injective _ hφ) :
   function.injective (lift_ring_hom φ hφ') :=
 lift_monoid_with_zero_hom_injective _ hφ
 
@@ -784,8 +786,8 @@ lemma lift_alg_hom_apply_of_fraction_ring_mk (n : polynomial K) (d : (polynomial
 lift_monoid_with_zero_hom_apply_of_fraction_ring_mk _ _ _ _
 
 lemma lift_alg_hom_injective (φ : polynomial K →ₐ[S] L) (hφ : function.injective φ)
-  (hφ' : (polynomial K)⁰ ≤ L⁰.comap φ := λ _ hx,
-    ring_hom.map_mem_non_zero_divisors φ.to_ring_hom hφ hx) :
+  (hφ' : (polynomial K)⁰ ≤ L⁰.comap φ :=
+    non_zero_divisors_le_comap_non_zero_divisors_of_injective _ hφ) :
   function.injective (lift_alg_hom φ hφ') :=
 lift_monoid_with_zero_hom_injective _ hφ
 
@@ -1249,8 +1251,8 @@ variables {F : Type u} [field F] (p q : polynomial F) (f g : ratfunc F)
 
 /-- The coercion `ratfunc F → laurent_series F` as bundled alg hom. -/
 def coe_alg_hom (F : Type u) [field F] : ratfunc F →ₐ[polynomial F] laurent_series F :=
-lift_alg_hom (algebra.of_id _ _) (λ _ hx,
-  ring_hom.map_mem_non_zero_divisors _ (polynomial.algebra_map_hahn_series_injective _) hx)
+lift_alg_hom (algebra.of_id _ _) $ non_zero_divisors_le_comap_non_zero_divisors_of_injective _ $
+  polynomial.algebra_map_hahn_series_injective _
 
 instance coe_to_laurent_series : has_coe (ratfunc F) (laurent_series F) :=
 ⟨coe_alg_hom F⟩

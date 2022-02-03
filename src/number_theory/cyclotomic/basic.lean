@@ -7,6 +7,7 @@ Authors: Riccardo Brasca
 import ring_theory.polynomial.cyclotomic.basic
 import number_theory.number_field
 import algebra.char_p.algebra
+import field_theory.galois
 
 /-!
 # Cyclotomic extensions
@@ -52,8 +53,8 @@ for integral domains).
 All results are in the `is_cyclotomic_extension` namespace.
 Note that some results, for example `is_cyclotomic_extension.trans`,
 `is_cyclotomic_extension.finite`, `is_cyclotomic_extension.number_field`,
-`is_cyclotomic_extension.finite_dimensional` and `cyclotomic_field.algebra_base` are lemmas,
-but they can be made local instances.
+`is_cyclotomic_extension.finite_dimensional`, `is_cyclotomic_extension.is_galois` and
+`cyclotomic_field.algebra_base` are lemmas, but they can be made local instances.
 
 -/
 
@@ -222,9 +223,9 @@ lemma integral [is_domain B] [is_noetherian_ring A] [fintype S] [is_cyclotomic_e
 is_integral_of_noetherian $ is_noetherian_of_fg_of_noetherian' $ (finite S A B).out
 
 /-- If `S` is finite and `is_cyclotomic_extension S K A`, then `finite_dimensional K A`. -/
-lemma finite_dimensional [fintype S] [algebra K A] [is_domain A] [is_cyclotomic_extension S K A] :
-  finite_dimensional K A :=
-finite S K A
+lemma finite_dimensional (C : Type z) [fintype S] [comm_ring C] [algebra K C] [is_domain C]
+  [is_cyclotomic_extension S K C] : finite_dimensional K C :=
+finite S K C
 
 end fintype
 
@@ -281,7 +282,7 @@ end
 
 section field
 
-variable [ne_zero (n : K)]
+variable [ne_zero ((n : ℕ) : K)]
 
 /-- A cyclotomic extension splits `X ^ n - 1` if `n ∈ S` and `ne_zero (n : K)`.-/
 lemma splits_X_pow_sub_one [H : is_cyclotomic_extension S K L] (hS : n ∈ S) :
@@ -291,7 +292,7 @@ begin
       polynomial.map_pow, polynomial.map_X],
   obtain ⟨z, hz⟩ := ((is_cyclotomic_extension_iff _ _ _).1 H).1 hS,
   rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic] at hz,
-  haveI : ne_zero ((n : ℕ) : L) := ne_zero.of_no_zero_smul_divisors K L,
+  haveI := ne_zero.of_no_zero_smul_divisors K L n,
   exact X_pow_sub_one_splits (is_root_cyclotomic_iff.1 hz),
 end
 
@@ -323,6 +324,15 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
     rwa [← ring_hom.map_one C, mem_roots (@X_pow_sub_C_ne_zero _ (field.to_nontrivial L) _ _
       n.pos _), is_root.def, eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
   end }
+
+include n
+
+lemma is_galois : is_galois K L :=
+begin
+  letI := splitting_field_X_pow_sub_one n K L,
+  exact is_galois.of_separable_splitting_field (X_pow_sub_one_separable_iff.2
+    (ne_zero.ne _ : ((n : ℕ) : K) ≠ 0)),
+end
 
 /-- If `is_cyclotomic_extension {n} K L` and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting
 field of `cyclotomic n K`. -/
@@ -434,9 +444,9 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
   begin
     rw mem_singleton_iff at han,
     subst a,
-    haveI : ne_zero ((n : ℕ) : K) := ne_zero.of_no_zero_smul_divisors A K,
-    haveI : ne_zero ((n : ℕ) : cyclotomic_ring n A K) := ne_zero.of_no_zero_smul_divisors A _,
-    haveI : ne_zero ((n : ℕ) : cyclotomic_field n K) := ne_zero.of_no_zero_smul_divisors A _,
+    haveI := ne_zero.of_no_zero_smul_divisors A K n,
+    haveI := ne_zero.of_no_zero_smul_divisors A (cyclotomic_ring n A K) n,
+    haveI := ne_zero.of_no_zero_smul_divisors A (cyclotomic_field n K) n,
     obtain ⟨μ, hμ⟩ := let h := (cyclotomic_field.is_cyclotomic_extension n K).exists_root
                       in h $ mem_singleton n,
     refine ⟨⟨μ, subset_adjoin _⟩, _⟩,
@@ -462,7 +472,7 @@ instance [ne_zero ((n : ℕ) : A)] :
   is_fraction_ring (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 { map_units := λ ⟨x, hx⟩, begin
     rw is_unit_iff_ne_zero,
-    apply ring_hom.map_ne_zero_of_mem_non_zero_divisors,
+    apply map_ne_zero_of_mem_non_zero_divisors,
     apply adjoin_algebra_injective,
     exact hx
   end,
@@ -475,7 +485,7 @@ instance [ne_zero ((n : ℕ) : A)] :
     { have : is_localization (non_zero_divisors A) K := infer_instance,
       replace := this.surj,
       obtain ⟨⟨z, w⟩, hw⟩ := this k,
-      refine ⟨⟨algebra_map A _ z, algebra_map A _ w, ring_hom.map_mem_non_zero_divisors _
+      refine ⟨⟨algebra_map A _ z, algebra_map A _ w, map_mem_non_zero_divisors _
         (algebra_base_injective n A K) w.2⟩, _⟩,
       letI : is_scalar_tower A K (cyclotomic_field n K) :=
         is_scalar_tower.of_algebra_map_eq (congr_fun rfl),

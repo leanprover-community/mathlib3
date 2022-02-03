@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
+Authors: Aaron Anderson
 -/
 import data.fintype.order
 import algebra.direct_limit

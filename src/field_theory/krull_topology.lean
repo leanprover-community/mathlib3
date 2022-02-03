@@ -55,8 +55,8 @@ set.image_subset e h12
 
 /-- Mapping intermediate fields along the identity does not change them -/
 lemma intermediate_field.map_id {K L : Type*} [field K] [field L] [algebra K L]
-{E : intermediate_field K L} :
-E.map (alg_hom.id K L) = E :=
+  (E : intermediate_field K L) :
+  E.map (alg_hom.id K L) = E :=
 set_like.coe_injective $ set.image_id _
 
 /-- Mapping a finite dimensional intermediate field along an algebra equivalence gives

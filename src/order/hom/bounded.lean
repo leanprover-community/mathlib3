@@ -31,12 +31,6 @@ open function
 
 variables {F α β γ δ : Type*}
 
-/-- Copy of an `order_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
-equalities. -/
-protected def order_hom.copy [preorder α] [preorder β] (f : α →o β) (f' : α → β) (h : f' = f) :
-  α →o β :=
-⟨f', h.symm.subst f.monotone'⟩
-
 /-- The type of `⊤`-preserving functions from `α` to `β`. -/
 structure top_hom (α β : Type*) [has_top α] [has_top β] :=
 (to_fun   : α → β)
@@ -361,10 +355,7 @@ instance : has_coe_to_fun (bounded_order_hom α β) (λ _, α → β) := ⟨λ f
 /-- Copy of a `bounded_order_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
 protected def copy (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) : bounded_order_hom α β :=
-{ to_fun := f',
-  .. f.to_order_hom.copy f' $ by { ext, exact congr_fun h _ },
-  .. f.to_top_hom.copy f' $ by { ext, exact congr_fun h _ },
-  .. f.to_bot_hom.copy f' $ by { ext, exact congr_fun h _ } }
+{ .. f.to_order_hom.copy f' h, .. f.to_top_hom.copy f' h, .. f.to_bot_hom.copy f' h }
 
 variables (α)
 

@@ -135,6 +135,10 @@ instance : can_lift (α → β) (α →o β) :=
   cond := monotone,
   prf := λ f h, ⟨⟨f, h⟩, rfl⟩ }
 
+/-- Copy of an `order_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (f : α →o β) (f' : α → β) (h : f' = f) : α →o β := ⟨f', h.symm.subst f.monotone'⟩
+
 /-- The identity function as bundled monotone function. -/
 @[simps {fully_applied := ff}]
 def id : α →o α := ⟨id, monotone_id⟩

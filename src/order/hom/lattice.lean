@@ -321,9 +321,7 @@ instance : has_coe_to_fun (lattice_hom α β) (λ _, α → β) := ⟨λ f, f.to
 /-- Copy of a `lattice_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (f : lattice_hom α β) (f' : α → β) (h : f' = f) : lattice_hom α β :=
-{ to_fun := f',
-  .. f.to_sup_hom.copy f' $ by { ext, exact congr_fun h _ },
-  .. f.to_inf_hom.copy f' $ by { ext, exact congr_fun h _ } }
+{ .. f.to_sup_hom.copy f' h, .. f.to_inf_hom.copy f' h }
 
 variables (α)
 

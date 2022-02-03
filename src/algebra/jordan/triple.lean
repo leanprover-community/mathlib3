@@ -64,11 +64,6 @@ def homotope : A →+ A →+ add_monoid.End A := (D : A →+ A →+ add_monoid.E
 
 
 lemma homotope_def (a b c : A) : homotope b a c = ⦃a, b, c⦄ := rfl
-begin
-  unfold homotope,
-  unfold D,
-  rw [add_monoid_hom.flip_hom_apply, add_monoid_hom.flip_apply],
-end
 
 lemma lr_bilinear (a₁ a₂ b c₁ c₂ : A) : ⦃a₁ + a₂, b, c₁ + c₂⦄ =
   ⦃a₁, b, c₁⦄ + ⦃a₂, b, c₁⦄ + ⦃a₁, b, c₂⦄ + ⦃a₂, b, c₂⦄ := by rw [← homotope_def,

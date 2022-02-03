@@ -759,11 +759,11 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
   inf_le_left := begin
     intros, intro,
     apply cinfi_le_of_le (l i a b) i,
-    dsimp, simp, end,
+    simp, end,
   inf_le_right := begin
     intros, intro,
     apply cinfi_le_of_le (l i a b) 0,
-    dsimp, simp, end,
+    simp, end,
   le_inf := begin
     intros a b c hab hac, intro,
     apply le_cinfi, intro,

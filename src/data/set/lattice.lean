@@ -67,7 +67,7 @@ instance : has_Sup (set α) := ⟨sUnion⟩
 /-- Intersection of a set of sets. -/
 def sInter (S : set (set α)) : set α := Inf S
 
-prefix `⋂₀`:110 := sInter
+prefix `⋂₀ `:110 := sInter
 
 @[simp] theorem mem_sInter {x : α} {S : set (set α)} : x ∈ ⋂₀ S ↔ ∀ t ∈ S, x ∈ t := iff.rfl
 
@@ -494,6 +494,10 @@ variables {s : ι → set α}
 @[simp] lemma nonempty_Union : (⋃ i, s i).nonempty ↔ ∃ i, (s i).nonempty :=
 by simp [← ne_empty_iff_nonempty]
 
+@[simp] lemma nonempty_bUnion {t : set α} {s : α → set β} :
+  (⋃ i ∈ t, s i).nonempty ↔ ∃ i ∈ t, (s i).nonempty :=
+by simp [← ne_empty_iff_nonempty]
+
 lemma Union_nonempty_index (s : set α) (t : s.nonempty → set β) :
   (⋃ h, t h) = ⋃ x ∈ s, t ⟨x, ‹_›⟩ :=
 supr_exists
@@ -701,12 +705,12 @@ theorem bUnion_union (s t : set α) (u : α → set β) :
   (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
 supr_union
 
-@[simp] lemma Union_coe_set {α β : Type*} (s : set α) (f : α → set β) :
-  (⋃ (i : s), f i) = ⋃ (i ∈ s), f i :=
+@[simp] lemma Union_coe_set {α β : Type*} (s : set α) (f : s → set β) :
+  (⋃ i, f i) = ⋃ i ∈ s, f ⟨i, ‹i ∈ s›⟩ :=
 Union_subtype _ _
 
-@[simp] lemma Inter_coe_set {α β : Type*} (s : set α) (f : α → set β) :
-  (⋂ (i : s), f i) = ⋂ (i ∈ s), f i :=
+@[simp] lemma Inter_coe_set {α β : Type*} (s : set α) (f : s → set β) :
+  (⋂ i, f i) = ⋂ i ∈ s, f ⟨i, ‹i ∈ s›⟩ :=
 Inter_subtype _ _
 
 theorem bUnion_insert (a : α) (s : set α) (t : α → set β) :
@@ -784,13 +788,6 @@ nonempty.of_sUnion $ h.symm ▸ univ_nonempty
 theorem sUnion_union (S T : set (set α)) : ⋃₀ (S ∪ T) = ⋃₀ S ∪ ⋃₀ T := Sup_union
 
 theorem sInter_union (S T : set (set α)) : ⋂₀ (S ∪ T) = ⋂₀ S ∩ ⋂₀ T := Inf_union
-
-theorem sInter_Union (s : ι → set (set α)) : ⋂₀ (⋃ i, s i) = ⋂ i, ⋂₀ s i :=
-begin
-  ext x,
-  simp only [mem_Union, mem_Inter, mem_sInter, exists_imp_distrib],
-  split; tauto
-end
 
 @[simp] theorem sUnion_insert (s : set α) (T : set (set α)) : ⋃₀ (insert s T) = s ∪ ⋃₀ T :=
 Sup_insert
@@ -942,41 +939,15 @@ lemma bUnion_Union (s : ι → set α) (t : α → set β) :
   (⋃ x ∈ ⋃ i, s i, t x) = ⋃ i (x ∈ s i), t x :=
 by simp [@Union_comm _ ι]
 
-/-- If `S` is a set of sets, and each `s ∈ S` can be represented as an intersection
-of sets `T s hs`, then `⋂₀ S` is the intersection of the union of all `T s hs`. -/
-lemma sInter_bUnion {S : set (set α)} {T : Π s ∈ S, set (set α)}
-  (hT : ∀ s ∈ S, s = ⋂₀ T s ‹s ∈ S›) :
-  ⋂₀ (⋃ s ∈ S, T s ‹_›) = ⋂₀ S :=
-begin
-  ext,
-  simp only [and_imp, exists_prop, set.mem_sInter, set.mem_Union, exists_imp_distrib],
-  split,
-  { rintro H s sS,
-    rw [hT s sS, mem_sInter],
-    exact λ t, H t s sS },
-  { rintro H t s sS tTs,
-    suffices : s ⊆ t, exact this (H s sS),
-    rw [hT s sS, sInter_eq_bInter],
-    exact bInter_subset_of_mem tTs }
-end
+lemma bInter_Union (s : ι → set α) (t : α → set β) :
+  (⋂ x ∈ ⋃ i, s i, t x) = ⋂ i (x ∈ s i), t x :=
+by simp [@Inter_comm _ ι]
 
-/-- If `S` is a set of sets, and each `s ∈ S` can be represented as an union
-of sets `T s hs`, then `⋃₀ S` is the union of the union of all `T s hs`. -/
-lemma sUnion_bUnion {S : set (set α)} {T : Π s ∈ S, set (set α)} (hT : ∀ s ∈ S, s = ⋃₀ T s ‹_›) :
-  ⋃₀ (⋃ s ∈ S, T s ‹_›) = ⋃₀ S :=
-begin
-  ext,
-  simp only [exists_prop, set.mem_Union, set.mem_set_of_eq],
-  split,
-  { rintro ⟨t, ⟨s, sS, tTs⟩, xt⟩,
-    refine ⟨s, sS, _⟩,
-    rw hT s sS,
-    exact subset_sUnion_of_mem tTs xt },
-  { rintro ⟨s, sS, xs⟩,
-    rw hT s sS at xs,
-    rcases mem_sUnion.1 xs with ⟨t, tTs, xt⟩,
-    exact ⟨t, ⟨s, sS, tTs⟩, xt⟩ }
-end
+lemma sUnion_Union (s : ι → set (set α)) : ⋃₀ (⋃ i, s i) = ⋃ i, ⋃₀ (s i) :=
+by simp only [sUnion_eq_bUnion, bUnion_Union]
+
+theorem sInter_Union (s : ι → set (set α)) : ⋂₀ (⋃ i, s i) = ⋂ i, ⋂₀ s i :=
+by simp only [sInter_eq_bInter, bInter_Union]
 
 lemma Union_range_eq_sUnion {α β : Type*} (C : set (set α))
   {f : ∀ (s : C), β → s} (hf : ∀ (s : C), surjective (f s)) :

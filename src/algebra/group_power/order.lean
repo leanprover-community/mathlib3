@@ -312,6 +312,17 @@ pow_bit0_pos h 1
 
 alias sq_pos_of_ne_zero ← pow_two_pos_of_ne_zero
 
+theorem pow_bit0_pos_iff (a : R) {n : ℕ} (hn : n ≠ 0) : 0 < a ^ bit0 n ↔ a ≠ 0 :=
+begin
+  refine ⟨λ h, _, λ h, pow_bit0_pos h n⟩,
+  rintro rfl,
+  rw zero_pow (nat.zero_lt_bit0 hn) at h,
+  exact lt_irrefl _ h,
+end
+
+theorem sq_pos_iff (a : R) : 0 < a ^ 2 ↔ a ≠ 0 :=
+pow_bit0_pos_iff a one_ne_zero
+
 variables {x y : R}
 
 theorem sq_abs (x : R) : |x| ^ 2 = x ^ 2 :=
@@ -320,11 +331,11 @@ by simpa only [sq] using abs_mul_abs_self x
 theorem abs_sq (x : R) : |x ^ 2| = x ^ 2 :=
 by simpa only [sq] using abs_mul_self x
 
-theorem sq_lt_sq (h : |x| < y) : x ^ 2 < y ^ 2 :=
+theorem sq_lt_sq (h : |x| < |y|) : x ^ 2 < y ^ 2 :=
 by simpa only [sq_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).succ_pos
 
 theorem sq_lt_sq' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
-sq_lt_sq (abs_lt.mpr ⟨h1, h2⟩)
+sq_lt_sq (lt_of_lt_of_le (abs_lt.2 ⟨h1, h2⟩) (le_abs_self _))
 
 theorem sq_le_sq (h : |x| ≤ |y|) : x ^ 2 ≤ y ^ 2 :=
 by simpa only [sq_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
@@ -355,6 +366,28 @@ end
 
 theorem abs_le_of_sq_le_sq' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x ≤ y :=
 abs_le.mp $ abs_le_of_sq_le_sq h hy
+
+lemma sq_eq_sq_iff_abs_eq_abs (x y : R) : x^2 = y^2 ↔ |x| = |y| :=
+⟨λ h, (abs_le_abs_of_sq_le_sq h.le).antisymm (abs_le_abs_of_sq_le_sq h.ge),
+ λ h, by rw [←sq_abs, h, sq_abs]⟩
+
+@[simp] lemma sq_eq_one_iff (x : R) : x^2 = 1 ↔ x = 1 ∨ x = -1 :=
+by rw [←abs_eq_abs, ←sq_eq_sq_iff_abs_eq_abs, one_pow]
+
+lemma sq_ne_one_iff (x : R) : x^2 ≠ 1 ↔ x ≠ 1 ∧ x ≠ -1 :=
+(not_iff_not.2 (sq_eq_one_iff _)).trans not_or_distrib
+
+@[simp] lemma sq_le_one_iff_abs_le_one (x : R) : x^2 ≤ 1 ↔ |x| ≤ 1 :=
+have t : x^2 ≤ 1^2 ↔ |x| ≤ |1| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, by simpa using t
+
+@[simp] lemma sq_lt_one_iff_abs_lt_one (x : R) : x^2 < 1 ↔ |x| < 1 :=
+have t : x^2 < 1^2 ↔ |x| < |1| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
+
+@[simp] lemma one_le_sq_iff_one_le_abs (x : R) : 1 ≤ x^2 ↔ 1 ≤ |x| :=
+have t : 1^2 ≤ x^2 ↔ |1| ≤ |x| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, by simpa using t
+
+@[simp] lemma one_lt_sq_iff_one_lt_abs (x : R) : 1 < x^2 ↔ 1 < |x| :=
+have t : 1^2 < x^2 ↔ |1| < |x| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
 
 end linear_ordered_ring
 

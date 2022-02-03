@@ -5,6 +5,7 @@ Authors: Kalle Kytölä
 -/
 import data.complex.is_R_or_C
 import analysis.normed_space.operator_norm
+import analysis.normed_space.pointwise
 
 /-!
 # Normed spaces over R or C
@@ -89,4 +90,13 @@ begin
           (h 0 (by simp only [norm_zero, mem_closed_ball, dist_zero_left, r_pos.le])), },
   apply linear_map.bound_of_ball_bound' r_pos,
   exact λ z hz, h z hz,
+end
+
+variables (𝕜)
+include 𝕜
+lemma normed_space.sphere_nonempty_is_R_or_C [nontrivial E] {r : ℝ} (hr : 0 ≤ r) :
+  nonempty (sphere (0:E) r) :=
+begin
+  letI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
+  exact (sphere (0:E) r).nonempty_coe_sort.mpr (normed_space.sphere_nonempty.mpr hr),
 end

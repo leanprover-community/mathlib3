@@ -141,8 +141,18 @@ lemma single_eq_zero : (single a (0 : R)) = 0 := (single a).map_zero
 lemma single_injective (a : Γ) : function.injective (single a : R → hahn_series Γ R) :=
 λ r s rs, by rw [← single_coeff_same a r, ← single_coeff_same a s, rs]
 
+
 lemma single_ne_zero (h : r ≠ 0) : single a r ≠ 0 :=
 λ con, h (single_injective a (con.trans single_eq_zero.symm))
+
+@[simp] lemma single_eq_zero_iff {a : Γ} {r : R} :
+  single a r = 0 ↔ r = 0 :=
+begin
+  split,
+  { contrapose!,
+    exact single_ne_zero },
+  { simp {contextual := tt} }
+end
 
 instance [nonempty Γ] [nontrivial R] : nontrivial (hahn_series Γ R) :=
 ⟨begin
@@ -1089,6 +1099,22 @@ variables (Γ) (R) [ordered_semiring Γ] [nontrivial Γ]
 (hahn_series.emb_domain_alg_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
   (λ _ _, nat.cast_le)).comp
   (alg_equiv.to_alg_hom (to_power_series_alg R).symm)
+
+instance power_series_algebra {S : Type*} [comm_semiring S] [algebra S (power_series R)] :
+  algebra S (hahn_series Γ R) :=
+ring_hom.to_algebra $ (of_power_series Γ R).comp (algebra_map S (power_series R))
+
+variables {R} {S : Type*} [comm_semiring S] [algebra S (power_series R)]
+
+lemma algebra_map_apply' (x : S) :
+  algebra_map S (hahn_series Γ R) x = of_power_series Γ R (algebra_map S (power_series R) x) := rfl
+
+@[simp] lemma _root_.polynomial.algebra_map_hahn_series_apply (f : polynomial R) :
+  algebra_map (polynomial R) (hahn_series Γ R) f = of_power_series Γ R f := rfl
+
+lemma _root_.polynomial.algebra_map_hahn_series_injective :
+  function.injective (algebra_map (polynomial R) (hahn_series Γ R)) :=
+of_power_series_injective.comp (polynomial.coe_injective R)
 
 end algebra
 

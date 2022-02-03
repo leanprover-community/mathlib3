@@ -55,8 +55,6 @@ noncomputable theory
 open_locale ennreal complex_conjugate classical
 open topological_space continuous_map measure_theory measure_theory.measure algebra submodule set
 
-local attribute [instance] fact_one_le_two_ennreal
-
 /-! ### Choice of measure on the circle -/
 
 section haar_circle
@@ -67,6 +65,7 @@ instance : measurable_space circle := borel circle
 instance : borel_space circle := ⟨rfl⟩
 
 /-- Haar measure on the circle, normalized to have total measure 1. -/
+@[derive is_haar_measure]
 def haar_circle : measure circle := haar_measure positive_compacts_univ
 
 instance : is_probability_measure haar_circle := ⟨haar_measure_self⟩
@@ -205,8 +204,7 @@ begin
   have hij : -i + j ≠ 0,
   { rw add_comm,
     exact sub_ne_zero.mpr (ne.symm h) },
-  exact integral_zero_of_mul_left_eq_neg (is_mul_left_invariant_haar_measure _)
-    (fourier_add_half_inv_index hij)
+  exact integral_zero_of_mul_left_eq_neg (fourier_add_half_inv_index hij)
 end
 
 end monomials

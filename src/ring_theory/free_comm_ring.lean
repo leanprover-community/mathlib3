@@ -307,7 +307,7 @@ def subsingleton_equiv_free_comm_ring [subsingleton α] :
   begin
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,
-    work_on_goal 2 { symmetry, exact coe_eq α },
+    work_on_goal 3 { symmetry, exact coe_eq α },
     exact (coe_ring_hom _).to_is_ring_hom,
   end
 

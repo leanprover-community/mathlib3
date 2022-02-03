@@ -18,6 +18,8 @@ def pnat := {n : ℕ // 0 < n}
 notation `ℕ+` := pnat
 
 instance coe_pnat_nat : has_coe ℕ+ ℕ := ⟨subtype.val⟩
+localized "prefix `⥉`:max := (coe : ℕ+ → ℕ)" in pnat
+
 instance : has_repr ℕ+ := ⟨λ n, repr n.1⟩
 
 /-- Predecessor of a `ℕ+`, as a `ℕ`. -/

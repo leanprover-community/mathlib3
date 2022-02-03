@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2021 Leo Okawa Ericson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Leo Okawa Ericson
+-/
 import algebra
 import data.real.basic
 import data.vector
@@ -26,6 +31,7 @@ correct for all terminating programs.
 -/
 /- # LoVe Library
  Copied from https://github.com/blanchette/logical_verification_2020/
+ Copyright belongs to the authors of that book.
  -/
 namespace LoVe
 namespace rtc
@@ -170,7 +176,10 @@ end
 end list
 
 section sem
-
+/-
+This big-step semantics is copied from The Hitchhiker's Guide.
+Copyright belongs to the original authors.
+-/
 inductive aexp : Type
 | N    : int → aexp
 | V    : string → aexp

@@ -115,48 +115,51 @@ noncomputable def tensor_unit : Module.{max v u} R := Module.of R (mv_polynomial
 variable {R}
 
 /-- (implementation) the left unitor for R-modules -/
-def left_unitor (M : Module.{max v u} R) : tensor_obj (tensor_unit R) M ≅ M := sorry
---(linear_equiv.to_Module_iso (tensor_product.lid R M) : of R (R ⊗ M) ≅ of R M).trans (of_self_iso M)
+noncomputable
+def left_unitor (M : Module.{max v u} R) : tensor_obj (tensor_unit R) M ≅ M :=
+let e₁ : mv_polynomial pempty R ≃ₐ[R] R :=
+      mv_polynomial.is_empty_alg_equiv R pempty,
+    e₂ : tensor_obj (tensor_unit R) M ≃ₗ[R] R ⊗[R] M :=
+      tensor_product.congr e₁.to_linear_equiv (linear_equiv.refl R _) in
+linear_equiv.to_Module_iso (e₂.trans (tensor_product.lid R M)) ≪≫ of_self_iso _
 
 lemma left_unitor_naturality {M N : Module.{max v u} R} (f : M ⟶ N) :
   tensor_hom (𝟙 (tensor_unit R)) f ≫ (left_unitor N).hom = (left_unitor M).hom ≫ f :=
 begin
-  sorry
-  /-
   ext x y, simp,
   erw [tensor_product.lid_tmul, tensor_product.lid_tmul],
   rw linear_map.map_smul,
   refl,
-  -/
 end
 
 /-- (implementation) the right unitor for R-modules -/
-def right_unitor (M : Module.{max v u} R) : tensor_obj M (tensor_unit R) ≅ M := sorry
---(linear_equiv.to_Module_iso (tensor_product.rid R M) : of R (M ⊗ R) ≅ of R M).trans (of_self_iso M)
+noncomputable
+def right_unitor (M : Module.{max v u} R) : tensor_obj M (tensor_unit R) ≅ M :=
+let e₁ : mv_polynomial pempty R ≃ₐ[R] R :=
+      mv_polynomial.is_empty_alg_equiv R pempty,
+    e₂ : tensor_obj M (tensor_unit R) ≃ₗ[R] M ⊗[R] R :=
+      tensor_product.congr (linear_equiv.refl R _) e₁.to_linear_equiv in
+linear_equiv.to_Module_iso (e₂.trans (tensor_product.rid R M)) ≪≫ of_self_iso _
 
 lemma right_unitor_naturality {M N : Module.{max v u} R} (f : M ⟶ N) :
   tensor_hom f (𝟙 (tensor_unit R)) ≫ (right_unitor N).hom = (right_unitor M).hom ≫ f :=
 begin
-  sorry
---  ext x y, simp,
---  erw [tensor_product.rid_tmul, tensor_product.rid_tmul],
---  rw linear_map.map_smul,
---  refl,
+  ext x y, simp,
+  erw [tensor_product.rid_tmul, tensor_product.rid_tmul],
+  rw linear_map.map_smul,
+  refl,
 end
 
 lemma triangle (M N : Module.{max v u} R) :
   (associator M (tensor_unit R) N).hom ≫ tensor_hom (𝟙 M) (left_unitor N).hom =
     tensor_hom (right_unitor M).hom (𝟙 N) :=
 begin
-  sorry
-  /-
   apply tensor_product.ext_threefold,
   intros x y z,
-  change R at y,
+  change (mv_polynomial pempty R) at y,
   dsimp [tensor_hom, associator],
   erw [tensor_product.lid_tmul, tensor_product.rid_tmul],
   exact (tensor_product.smul_tmul _ _ _).symm
-  -/
 end
 
 end monoidal_category

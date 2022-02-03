@@ -101,11 +101,7 @@ calc ⦃a + c, b, a + c⦄ = ⦃a, b, a⦄ + ⦃c, b, a⦄ + ⦃a, b, c⦄ + ⦃
   map_zero' := by { ext, simp, },
   map_add' := λ _ _, by { ext, simp, }, }
 
-lemma Q_def (a b c : A) : Q a c b = ⦃a, b, c⦄ :=
-begin
-  rw [Q_apply, add_monoid_hom.flip_apply],
-  unfold D,
-end
+lemma Q_def (a b c : A) : Q a c b = ⦃a, b, c⦄ := rfl
 
 end is_jordan_tp
 

@@ -716,7 +716,7 @@ begin
   { exact λ i j hij, bInter_mono (Iic_subset_Iic.2 hij) (λ n hn, subset.refl _) },
   apply le_antisymm; rw le_infi_iff; intro i,
   { rw le_principal_iff, refine (bInter_mem (finite_le_nat _)).2 (λ j hji, _),
-    rw ← le_principal_iff, apply infi_le_of_le j _, apply le_rfl },
+    rw ← le_principal_iff, apply infi_le_of_le j _, exact le_rfl },
   { apply infi_le_of_le i _, rw principal_mono, intro a, simp, intro h, apply h, refl },
 end
 

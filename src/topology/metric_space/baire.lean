@@ -34,7 +34,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 section Baire_theorem
 open emetric ennreal
-variables [emetric_space α] [complete_space α]
+variables [pseudo_emetric_space α] [complete_space α]
 
 /-- Baire theorem: a countable intersection of dense open sets is dense. Formulated here when
 the source space is ℕ (and subsumed below by `dense_Inter_of_open` working with any

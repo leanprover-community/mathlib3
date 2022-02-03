@@ -208,8 +208,7 @@ begin
   apply induction_on' φ,
   { intros u r,
     rw [rename_monomial, coeff_monomial, coeff_monomial],
-    simp only [(finsupp.map_domain_injective hf).eq_iff],
-    split_ifs; refl, },
+    simp only [(finsupp.map_domain_injective hf).eq_iff] },
   { intros, simp only [*, alg_hom.map_add, coeff_add], }
 end
 
@@ -242,5 +241,16 @@ begin
 end
 
 end coeff
+
+section support
+
+lemma support_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f) :
+  (rename f p).support = finset.image (map_domain f) p.support :=
+begin
+  rw rename_eq,
+  exact finsupp.map_domain_support_of_injective (map_domain_injective h) _,
+end
+
+end support
 
 end mv_polynomial

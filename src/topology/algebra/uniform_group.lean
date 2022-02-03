@@ -147,37 +147,35 @@ uniform_continuous_add.comp_cauchy_seq (hu.prod hv)
 
 end uniform_add_group
 
-section topological_add_comm_group
-universes u v w x
+section topological_comm_group
 open filter
+variables (G : Type*) [comm_group G] [topological_space G] [topological_group G]
 
-variables {G : Type u} [add_comm_group G] [topological_space G] [topological_add_group G]
-
-variable (G)
 /-- The right uniformity on a topological group. -/
-def topological_add_group.to_uniform_space : uniform_space G :=
-{ uniformity          := comap (λp:G×G, p.2 - p.1) (𝓝 0),
+@[to_additive "The right uniformity on a topological group"]
+def topological_group.to_uniform_space : uniform_space G :=
+{ uniformity          := comap (λp:G×G, p.2 / p.1) (𝓝 1),
   refl                :=
-    by refine map_le_iff_le_comap.1 (le_trans _ (pure_le_nhds 0));
+    by refine map_le_iff_le_comap.1 (le_trans _ (pure_le_nhds 1));
       simp [set.subset_def] {contextual := tt},
   symm                :=
   begin
-    suffices : tendsto ((λp, -p) ∘ (λp:G×G, p.2 - p.1)) (comap (λp:G×G, p.2 - p.1) (𝓝 0)) (𝓝 (-0)),
-    { simpa [(∘), tendsto_comap_iff] },
-    exact tendsto.comp (tendsto.neg tendsto_id) tendsto_comap
+    suffices : tendsto (λp:G×G, (p.2 / p.1)⁻¹) (comap (λp:G×G, p.2 / p.1) (𝓝 1)) (𝓝 1⁻¹),
+    { simpa [tendsto_comap_iff], },
+    exact tendsto.comp (tendsto.inv tendsto_id) tendsto_comap
   end,
   comp                :=
   begin
     intros D H,
     rw mem_lift'_sets,
     { rcases H with ⟨U, U_nhds, U_sub⟩,
-      rcases exists_nhds_zero_half U_nhds with ⟨V, ⟨V_nhds, V_sum⟩⟩,
-      existsi ((λp:G×G, p.2 - p.1) ⁻¹' V),
-      have H : (λp:G×G, p.2 - p.1) ⁻¹' V ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
+      rcases exists_nhds_one_split U_nhds with ⟨V, ⟨V_nhds, V_sum⟩⟩,
+      existsi ((λp:G×G, p.2 / p.1) ⁻¹' V),
+      have H : (λp:G×G, p.2 / p.1) ⁻¹' V ∈ comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)),
         by existsi [V, V_nhds] ; refl,
       existsi H,
       have comp_rel_sub :
-        comp_rel ((λp:G×G, p.2 - p.1) ⁻¹' V) ((λp, p.2 - p.1) ⁻¹' V) ⊆ (λp:G×G, p.2 - p.1) ⁻¹' U,
+        comp_rel ((λp:G×G, p.2 / p.1) ⁻¹' V) ((λp, p.2 / p.1) ⁻¹' V) ⊆ (λp:G×G, p.2 / p.1) ⁻¹' U,
       begin
         intros p p_comp_rel,
         rcases p_comp_rel with ⟨z, ⟨Hz1, Hz2⟩⟩,
@@ -190,16 +188,24 @@ def topological_add_group.to_uniform_space : uniform_space G :=
   begin
     intro S,
     let S' := λ x, {p : G × G | p.1 = x → p.2 ∈ S},
-    show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
+    show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 / p.1) (𝓝 (1 : G)),
     rw [is_open_iff_mem_nhds],
     refine forall_congr (assume a, forall_congr (assume ha, _)),
-    rw [← nhds_translation_sub, mem_comap, mem_comap],
+    rw [← nhds_translation_div, mem_comap, mem_comap],
     refine exists_congr (assume t, exists_congr (assume ht, _)),
-    show (λ (y : G), y - a) ⁻¹' t ⊆ S ↔ (λ (p : G × G), p.snd - p.fst) ⁻¹' t ⊆ S' a,
+    show (λ (y : G), y / a) ⁻¹' t ⊆ S ↔ (λ (p : G × G), p.snd / p.fst) ⁻¹' t ⊆ S' a,
     split,
     { rintros h ⟨x, y⟩ hx rfl, exact h hx },
     { rintros h x hx, exact @h (a, x) hx rfl }
   end }
+
+end topological_comm_group
+
+section topological_add_comm_group
+universes u v w x
+open filter
+
+variables (G : Type*) [add_comm_group G] [topological_space G] [topological_add_group G]
 
 section
 local attribute [instance] topological_add_group.to_uniform_space
@@ -335,6 +341,7 @@ begin
   have lim2 : tendsto Φ (𝓝 (0, y₁)) (𝓝 0), by simpa using hφ.tendsto (0, y₁),
   have lim := lim2.comp lim1,
   rw tendsto_prod_self_iff at lim,
+  simp_rw ball_mem_comm,
   exact lim W' W'_nhd
 end
 
@@ -371,7 +378,7 @@ begin
     rcases U_in with ⟨U₁, U₁_in, HU₁⟩,
     rcases V_in with ⟨V₁, V₁_in, HV₁⟩,
     existsi [U₁, U₁_in, V₁, V₁_in],
-    intros x x' x_in x'_in y y' y_in y'_in,
+    intros x x_in x' x'_in y y_in y' y'_in,
     exact H _ _ (HU₁ (mk_mem_prod x_in x'_in)) (HV₁ (mk_mem_prod y_in y'_in)) },
   rcases this with ⟨U₁, U₁_nhd, V₁, V₁_nhd, H⟩,
 
@@ -388,15 +395,15 @@ begin
   existsi [U₁ ∩ U₂, inter_mem U₁_nhd U₂_nhd,
             V₁ ∩ V₂, inter_mem V₁_nhd V₂_nhd],
 
-  rintros x x' ⟨xU₁, xU₂⟩ ⟨x'U₁, x'U₂⟩ y y' ⟨yV₁, yV₂⟩ ⟨y'V₁, y'V₂⟩,
+  rintros x ⟨xU₁, xU₂⟩ x' ⟨x'U₁, x'U₂⟩ y ⟨yV₁, yV₂⟩ y' ⟨y'V₁, y'V₂⟩,
   have key_formula : φ x' y' - φ x y =
     φ(x' - x) y₁ + φ (x' - x) (y' - y₁) + φ x₁ (y' - y) + φ (x - x₁) (y' - y),
   { simp, abel },
   rw key_formula,
-  have h₁ := HU x x' xU₂ x'U₂,
-  have h₂ := H x x' xU₁ x'U₁ y₁ y' y₁_in y'V₁,
-  have h₃ := HV y y' yV₂ y'V₂,
-  have h₄ := H x₁ x x₁_in xU₁ y y' yV₁ y'V₁,
+  have h₁ := HU x xU₂ x' x'U₂,
+  have h₂ := H x xU₁ x' x'U₁ y₁ y₁_in y' y'V₁,
+  have h₃ := HV y yV₂ y' y'V₂,
+  have h₄ := H x₁ x₁_in x xU₁ y yV₁ y' y'V₁,
   exact W4 h₁ h₂ h₃ h₄
 end
 
@@ -435,7 +442,7 @@ begin
     rcases V_nhd with ⟨V', V'_nhd, V'_sub⟩,
 
     rw [mem_map, mem_comap, nhds_prod_eq],
-    existsi set.prod (set.prod U' V') (set.prod U' V'),
+    existsi (U' ×ˢ V') ×ˢ (U' ×ˢ V'),
     rw mem_prod_same_iff,
 
     simp only [exists_prop],

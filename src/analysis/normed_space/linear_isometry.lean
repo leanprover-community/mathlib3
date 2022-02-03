@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.normed.group.basic
-import topology.algebra.module
+import topology.algebra.module.basic
+import linear_algebra.basis
 
 /-!
 # (Semi-)linear isometries
@@ -66,6 +67,11 @@ linear_map.coe_injective.comp to_linear_map_injective
 
 @[ext] lemma ext {f g : E →ₛₗᵢ[σ₁₂] E₂} (h : ∀ x, f x = g x) : f = g :=
 coe_fn_injective $ funext h
+
+protected lemma congr_arg {f : E →ₛₗᵢ[σ₁₂] E₂} : Π {x x' : E}, x = x' → f x = f x'
+| _ _ rfl := rfl
+
+protected lemma congr_fun {f g : E →ₛₗᵢ[σ₁₂] E₂} (h : f = g) (x : E) : f x = g x := h ▸ rfl
 
 @[simp] lemma map_zero : f 0 = 0 := f.to_linear_map.map_zero
 
@@ -457,3 +463,17 @@ rfl
 rfl
 
 end linear_isometry_equiv
+
+/-- Two linear isometries are equal if they are equal on basis vectors. -/
+lemma basis.ext_linear_isometry {ι : Type*} (b : basis ι R E) {f₁ f₂ : E →ₛₗᵢ[σ₁₂] E₂}
+  (h : ∀ i, f₁ (b i) = f₂ (b i)) : f₁ = f₂ :=
+linear_isometry.to_linear_map_injective $ b.ext h
+
+include σ₂₁
+
+/-- Two linear isometric equivalences are equal if they are equal on basis vectors. -/
+lemma basis.ext_linear_isometry_equiv {ι : Type*} (b : basis ι R E) {f₁ f₂ : E ≃ₛₗᵢ[σ₁₂] E₂}
+  (h : ∀ i, f₁ (b i) = f₂ (b i)) : f₁ = f₂ :=
+linear_isometry_equiv.to_linear_equiv_injective $ b.ext' h
+
+omit σ₂₁

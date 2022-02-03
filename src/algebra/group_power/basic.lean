@@ -17,6 +17,8 @@ which in turn depends on other parts of algebra.
 This module contains lemmas about `a ^ n` and `n • a`, where `n : ℕ` or `n : ℤ`.
 Further lemmas can be found in `algebra.group_power.lemmas`.
 
+The analogous results for groups with zero can be found in `algebra.group_with_zero.power`.
+
 ## Notation
 
 - `a ^ n` is used as notation for `has_pow.pow a n`; in this file `n : ℕ` or `n : ℤ`.
@@ -187,6 +189,10 @@ by { convert pow_two a using 1, exact zpow_coe_nat a 2 }
 @[to_additive neg_one_zsmul]
 theorem zpow_neg_one (x : G) : x ^ (-1:ℤ) = x⁻¹ :=
 (zpow_neg_succ_of_nat x 0).trans $ congr_arg has_inv.inv (pow_one x)
+
+@[to_additive]
+theorem zpow_neg_coe_of_pos (a : G) : ∀ {n : ℕ}, 0 < n → a ^ -(n:ℤ) = (a ^ n)⁻¹
+| (n+1) _ := zpow_neg_succ_of_nat _ _
 
 end div_inv_monoid
 

@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Nicolò Cavalleri
 -/
-import topology.algebra.module
+import topology.algebra.module.basic
 import topology.continuous_function.basic
 import algebra.algebra.subalgebra
 import tactic.field_simp

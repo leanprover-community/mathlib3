@@ -377,6 +377,13 @@ h.has_fderiv_within_at.has_deriv_within_at
 lemma differentiable_at.has_deriv_at (h : differentiable_at 𝕜 f x) : has_deriv_at f (deriv f x) x :=
 h.has_fderiv_at.has_deriv_at
 
+@[simp] lemma has_deriv_at_deriv_iff : has_deriv_at f (deriv f x) x ↔ differentiable_at 𝕜 f x :=
+⟨λ h, h.differentiable_at, λ h, h.has_deriv_at⟩
+
+@[simp] lemma has_deriv_within_at_deriv_within_iff :
+  has_deriv_within_at f (deriv_within f s x) s x ↔ differentiable_within_at 𝕜 f s x :=
+⟨λ h, h.differentiable_within_at, λ h, h.has_deriv_within_at⟩
+
 lemma differentiable_on.has_deriv_at (h : differentiable_on 𝕜 f s) (hs : s ∈ 𝓝 x) :
   has_deriv_at f (deriv f x) x :=
 (h.has_fderiv_at hs).has_deriv_at
@@ -1059,6 +1066,12 @@ theorem has_deriv_at_filter.scomp
   (hh : has_deriv_at_filter h h' x L) (hL : tendsto h L L'):
   has_deriv_at_filter (g₁ ∘ h) (h' • g₁') x L :=
 by simpa using ((hg.restrict_scalars 𝕜).comp x hh hL).has_deriv_at_filter
+
+theorem has_deriv_within_at.scomp_has_deriv_at
+  (hg : has_deriv_within_at g₁ g₁' s' (h x))
+  (hh : has_deriv_at h h' x) (hs : ∀ x, h x ∈ s') :
+  has_deriv_at (g₁ ∘ h) (h' • g₁') x :=
+hg.scomp x hh $ tendsto_inf.2 ⟨hh.continuous_at, tendsto_principal.2 $ eventually_of_forall hs⟩
 
 theorem has_deriv_within_at.scomp
   (hg : has_deriv_within_at g₁ g₁' t' (h x))

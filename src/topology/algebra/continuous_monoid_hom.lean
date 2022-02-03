@@ -63,6 +63,13 @@ by cases f; cases g; congr; exact funext h
   simps]
 def mk' (f : A →* B) (hf : continuous f) : continuous_monoid_hom A B := { .. f }
 
+@[simp, to_additive] lemma map_one (f : continuous_monoid_hom A B) : f 1 = 1 :=
+f.to_monoid_hom.map_one
+
+@[simp, to_additive] lemma map_mul (f : continuous_monoid_hom A B) (a b : A) :
+  f (a * b) = f a * f b :=
+f.to_monoid_hom.map_mul a b
+
 /-- Composition of two continuous homomorphisms. -/
 @[to_additive "Composition of two continuous homomorphisms.", simps]
 def comp (g : continuous_monoid_hom B C) (f : continuous_monoid_hom A B) :

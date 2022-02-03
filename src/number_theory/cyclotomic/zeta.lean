@@ -183,7 +183,7 @@ omit n
 
 /-- If `is_prime_pow (n : ℕ)`, `n ≠ 2` and `irreducible (cyclotomic n K)` (in particular for
 `K = ℚ`), then the norm of `zeta n K L - 1` is `(n : ℕ).min_fac`. -/
-lemma prime_pow_ne_two.norm_zeta_sub_one {n : ℕ+} {K : Type u} (L : Type v) [field K] [field L]
+lemma is_prime_pow.norm_zeta_sub_one {n : ℕ+} {K : Type u} (L : Type v) [field K] [field L]
   [ne_zero ((n : ℕ) : K)] (hn : is_prime_pow (n : ℕ)) [algebra K L]
   [is_cyclotomic_extension {n} K L]
   (hirr : irreducible (cyclotomic ((n : ℕ)) K)) (h : n ≠ 2) :

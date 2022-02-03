@@ -184,7 +184,7 @@ instance krull_topology (K L : Type*) [field K] [field L] [algebra K L] :
   topological_space (L ≃ₐ[K] L) :=
 group_filter_basis.topology (gal_group_basis K L)
 
-/-- For a field extension `L/K`,  the Krull topology on `L ≃ₐ[K] L`, makes it a topological group. -/
+/-- For a field extension `L/K`, the Krull topology on `L ≃ₐ[K] L` makes it a topological group. -/
 instance (K L : Type*) [field K] [field L] [algebra K L] :
   topological_group (L ≃ₐ[K] L) :=
 group_filter_basis.is_topological_group (gal_group_basis K L)

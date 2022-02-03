@@ -30,7 +30,7 @@ namespace ordinal
 /-! ### Fixed points of type-indexed families of ordinals -/
 
 section
-variable {ι : Type u}
+variables {ι : Type u} {f : ι → ordinal.{max u v} → ordinal.{max u v}}
 
 /-- Applies the functions specified by the indices of a list, in order, to a specified value. -/
 def nfp_family_iterate (f : ι → ordinal → ordinal) (a : ordinal) : list ι → ordinal
@@ -49,12 +49,12 @@ theorem nfp_family_iterate_empty [is_empty ι] (f : ι → ordinal → ordinal) 
 | []       := rfl
 | (i :: l) := is_empty_elim i
 
-theorem nfp_family_iterate_fixed {f : ι → ordinal → ordinal} {a} (ha : ∀ i, f i a = a) :
+theorem nfp_family_iterate_fixed {a} (ha : ∀ i, f i a = a) :
   Π l : list ι, nfp_family_iterate f a l = a
 | []       := rfl
 | (i :: l) := by { convert ha i, exact congr_arg (f i) (nfp_family_iterate_fixed l) }
 
-theorem nfp_family_iterate_eq_iterate {ι : Type u} (f : ordinal → ordinal) (a) :
+theorem nfp_family_iterate_eq_iterate (f : ordinal → ordinal) (a) :
   Π l, nfp_family_iterate (λ _ : ι, f) a l = (f^[l.length]) a
 | []       := rfl
 | (i :: l) := begin
@@ -62,7 +62,9 @@ theorem nfp_family_iterate_eq_iterate {ι : Type u} (f : ordinal → ordinal) (a
   exact function.iterate_succ_apply' f _ a
 end
 
-variable {f : ι → ordinal.{max u v} → ordinal.{max u v}}
+theorem nfp_family_iterate_monotone {f : ι → ordinal → ordinal}
+  (H : ∀ i, monotone (f i)) (l : list ι) : monotone (λ a, nfp_family_iterate f a l) :=
+λ a b h, list.rec_on l h (λ i l hl, H i hl)
 
 /-- The next common fixed point, at least `a`, for a family of normal functions. -/
 def nfp_family (f : ι → ordinal → ordinal) (a) : ordinal :=
@@ -78,24 +80,24 @@ le_sup _ []
 theorem lt_nfp_family {a b} : a < nfp_family f b ↔ ∃ l, a < nfp_family_iterate f b l :=
 lt_sup
 
-theorem nfp_family_le {f : ι → ordinal → ordinal} {a b} :
-  nfp_family f a ≤ b ↔ ∀ l, nfp_family_iterate f a l ≤ b :=
+theorem nfp_family_le {a b} : nfp_family f a ≤ b ↔ ∀ l, nfp_family_iterate f a l ≤ b :=
 sup_le
 
 theorem nfp_family_empty [is_empty ι] (f : ι → ordinal → ordinal) (a) : nfp_family f a = a :=
 le_antisymm begin
   rw nfp_family_le,
-  intro l,
-  induction l with i,
+  rintro (_ | i),
   { rw nfp_family_iterate_nil },
   { exact is_empty_elim i }
 end (self_le_nfp_family f a)
 
+theorem nfp_family_monotone (hf : ∀ i, monotone (f i)) : monotone (nfp_family f) :=
+λ a b h, sup_le.2 $ λ l, (nfp_family_iterate_monotone hf l h).trans (le_sup _ l)
+
 theorem apply_lt_nfp_family [hι : nonempty ι] (H : ∀ i, is_normal (f i)) {a b} :
   (∀ i, f i b < nfp_family f a) ↔ b < nfp_family f a :=
 begin
-  unfold nfp_family,
-  rw lt_sup,
+  rw lt_nfp_family,
   refine ⟨λ h, _, λ ⟨l, hl⟩ i, lt_sup.2 ⟨i :: l, (H i).strict_mono hl⟩⟩,
   unfreezingI { cases hι with i },
   cases lt_sup.1 (h i) with l hl,
@@ -111,9 +113,9 @@ theorem nfp_family_le_fp (H : ∀ i, is_normal (f i)) {a b} (ab : a ≤ b) (h : 
 sup_le.2 $ λ i, begin
   by_cases hι : is_empty ι,
   { rwa @nfp_family_iterate_empty ι hι },
-  haveI := not_is_empty_iff.1 hι,
-  induction i with i l IH generalizing a, {exact ab},
-  exact ((H i).strict_mono.monotone (IH ab)).trans (h i)
+  { haveI := not_is_empty_iff.1 hι,
+    induction i with i l IH generalizing a, {exact ab},
+    exact ((H i).strict_mono.monotone (IH ab)).trans (h i) }
 end
 
 theorem nfp_family_fp (H : ∀ i, is_normal (f i)) (i a) : f i (nfp_family f a) = nfp_family f a :=

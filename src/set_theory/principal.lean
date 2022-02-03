@@ -37,6 +37,10 @@ For simplicity, we break usual convention and regard 0 as principal. -/
 def principal (op : ordinal → ordinal → ordinal) (o : ordinal) : Prop :=
 ∀ ⦃a b⦄, a < o → b < o → op a b < o
 
+theorem principal_iff_principal_swap {op : ordinal → ordinal → ordinal} {o : ordinal} :
+  principal op o ↔ principal (function.swap op) o :=
+by split; exact λ h a b ha hb, h hb ha
+
 theorem principal_zero {op : ordinal → ordinal → ordinal} : principal op 0 :=
 λ a _ h, (ordinal.not_lt_zero a h).elim
 

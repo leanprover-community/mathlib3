@@ -543,7 +543,7 @@ def of_fn_aux {n} (f : fin n → α) : ∀ m, m ≤ n → list α → list α
 /-- `of_fn f` with `f : fin n → α` returns the list whose ith element is `f i`
   `of_fun f = [f 0, f 1, ... , f(n - 1)]` -/
 def of_fn {n} (f : fin n → α) : list α :=
-of_fn_aux f n le_rfl []
+of_fn_aux f n (le_refl _) []
 
 /-- `of_fn_nth_val f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def of_fn_nth_val {n} (f : fin n → α) (i : ℕ) : option α :=

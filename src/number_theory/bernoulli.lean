@@ -241,8 +241,8 @@ begin
   cases n, { simp },
   simp only [bernoulli_power_series, coeff_mul, coeff_X, sum_antidiagonal_succ', one_div, coeff_mk,
     coeff_one, coeff_exp, linear_map.map_sub, factorial, if_pos, cast_succ, cast_one, cast_mul,
-    sub_zero, ring_hom.map_one, add_eq_zero_iff, if_false, inv_one, zero_add, one_ne_zero, mul_zero,
-    and_false, sub_self, ← ring_hom.map_mul, ← ring_hom.map_sum],
+    sub_zero, ring_hom.map_one, add_eq_zero_iff, if_false, _root_.inv_one, zero_add, one_ne_zero,
+    mul_zero, and_false, sub_self, ← ring_hom.map_mul, ← ring_hom.map_sum],
   suffices : ∑ x in antidiagonal n, bernoulli x.1 / x.1! * ((x.2 + 1) * x.2!)⁻¹
            = if n.succ = 1 then 1 else 0, { split_ifs; simp [h, this] },
   cases n, { simp },

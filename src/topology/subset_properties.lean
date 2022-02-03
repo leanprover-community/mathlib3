@@ -176,7 +176,7 @@ lemma is_compact.elim_nhds_subcover' (hs : is_compact s) (U : Π x ∈ s, set α
   ∃ t : finset s, s ⊆ ⋃ x ∈ t, U (x : s) x.2 :=
 (hs.elim_finite_subcover (λ x : s, interior (U x x.2)) (λ x, is_open_interior)
   (λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_interior_iff_mem_nhds.2 $ hU _ _⟩)).imp $ λ t ht,
-subset.trans ht $ bUnion_mono $ λ _ _, interior_subset
+subset.trans ht $ Union₂_mono $ λ _ _, interior_subset
 
 lemma is_compact.elim_nhds_subcover (hs : is_compact s) (U : α → set α) (hU : ∀ x ∈ s, U x ∈ 𝓝 x) :
   ∃ t : finset α, (∀ x ∈ t, x ∈ s) ∧ s ⊆ ⋃ x ∈ t, U x :=
@@ -206,7 +206,7 @@ begin
   rcases hs.elim_nhds_subcover U (λ x _, hxU x) with ⟨t, -, hsU⟩,
   refine (t.finite_to_set.bUnion (λ x _, hUf x)).subset _,
   rintro i ⟨x, hx⟩,
-  rcases mem_bUnion_iff.1 (hsU hx.2) with ⟨c, hct, hcx⟩,
+  rcases mem_Union₂.1 (hsU hx.2) with ⟨c, hct, hcx⟩,
   exact mem_bUnion hct ⟨x, hx.1, hcx⟩
 end
 
@@ -231,7 +231,7 @@ begin
   intro i₀,
   let Z' := λ i, Z i ∩ Z i₀,
   suffices : (⋂ i, Z' i).nonempty,
-  { exact nonempty.mono (Inter_subset_Inter $ assume i, inter_subset_left (Z i) (Z i₀)) this },
+  { exact this.mono (Inter_mono $ λ i, inter_subset_left (Z i) (Z i₀)) },
   rw ← ne_empty_iff_nonempty,
   intro H,
   obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((Z i₀) ∩ ⋂ (i ∈ t), Z' i) = ∅,
@@ -245,8 +245,7 @@ begin
     exact subset_inter (subset.trans hi₁ (hi j hj)) hi₁₀ },
   suffices : ((Z i₀) ∩ ⋂ (i ∈ t), Z' i).nonempty,
   { rw ← ne_empty_iff_nonempty at this, contradiction },
-  refine nonempty.mono _ (hZn i₁),
-  exact subset_inter hi₁.left (subset_bInter hi₁.right)
+  exact (hZn i₁).mono (subset_inter hi₁.left $ subset_Inter₂ hi₁.right),
 end
 
 /-- Cantor's intersection theorem for sequences indexed by `ℕ`:
@@ -301,7 +300,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃ x ∈ s, cluster
     from mem_of_superset this $ assume x ⟨hxs, hx⟩,
     let ⟨i, hit, hxi⟩ := (show ∃ i ∈ t, x ∉ closure (subtype.val i),
       by { rw [eq_empty_iff_forall_not_mem] at ht, simpa [hxs, not_forall] using ht x }) in
-    have x ∈ closure i.val, from subset_closure (mem_bInter_iff.mp hx i hit),
+    have x ∈ closure i.val, from subset_closure (by { rw mem_Inter₂ at hx, exact hx i hit }),
     show false, from hxi this,
   hfn.ne $ by rwa [empty_mem_iff_bot] at this
 
@@ -379,7 +378,7 @@ is_compact_of_finite_subcover $ assume ι U hUo hsU,
   let ⟨finite_subcovers, h⟩ := axiom_of_choice this in
   by haveI : fintype (subtype s) := hs.fintype; exact
   let t := finset.bUnion finset.univ finite_subcovers in
-  have (⋃ i ∈ s, f i) ⊆ (⋃ i ∈ t, U i), from bUnion_subset $
+  have (⋃ i ∈ s, f i) ⊆ (⋃ i ∈ t, U i), from Union₂_subset $
     assume i hi, calc
     f i ⊆ (⋃ j ∈ finite_subcovers ⟨i, hi⟩, U j) : (h ⟨i, hi⟩)
     ... ⊆ (⋃ j ∈ t, U j) : bUnion_subset_bUnion_left $
@@ -427,27 +426,19 @@ lemma exists_subset_nhd_of_compact' {ι : Type*} [nonempty ι] {V : ι → set �
   (hV_cpct : ∀ i, is_compact (V i)) (hV_closed : ∀ i, is_closed (V i))
   {U : set α} (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
 begin
-  set Y := ⋂ i, V i,
-  obtain ⟨W, hsubW, W_op, hWU⟩ : ∃ W, Y ⊆ W ∧ is_open W ∧ W ⊆ U,
-    from exists_open_set_nhds hU,
+  obtain ⟨W, hsubW, W_op, hWU⟩ := exists_open_set_nhds hU,
   suffices : ∃ i, V i ⊆ W,
   { rcases this with ⟨i, hi⟩,
     refine ⟨i, set.subset.trans hi hWU⟩ },
-  by_contradiction H,
-  push_neg at H,
+  by_contra' H,
   replace H : ∀ i, (V i ∩ Wᶜ).nonempty := λ i, set.inter_compl_nonempty_iff.mpr (H i),
   have : (⋂ i, V i ∩ Wᶜ).nonempty,
-  { apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ _ H,
-    { intro i,
-      exact (hV_cpct i).inter_right W_op.is_closed_compl },
-    { intro i,
-      apply (hV_closed i).inter W_op.is_closed_compl },
-    { intros i j,
-      rcases hV i j with ⟨k, hki, hkj⟩,
-      use k,
-      split ; intro x ; simp only [and_imp, mem_inter_eq, mem_compl_eq] ; tauto } },
-  have : ¬ (⋂ (i : ι), V i) ⊆ W,
-    by simpa [← Inter_inter, inter_compl_nonempty_iff],
+  { refine is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ (λ i j, _) H
+      (λ i, (hV_cpct i).inter_right W_op.is_closed_compl)
+      (λ i, (hV_closed i).inter W_op.is_closed_compl),
+    rcases hV i j with ⟨k, hki, hkj⟩,
+    refine ⟨k, ⟨λ x, _, λ x, _⟩⟩ ; simp only [and_imp, mem_inter_eq, mem_compl_eq] ; tauto },
+  have : ¬ (⋂ (i : ι), V i) ⊆ W, by simpa [← Inter_inter, inter_compl_nonempty_iff],
   contradiction
 end
 
@@ -545,7 +536,7 @@ let u := ⋃(i ∈ s0), (uvs i).1 in
 let v := ⋂(i ∈ s0), (uvs i).2 in
 have is_open u, from is_open_bUnion (λi _, (h i).1),
 have is_open v, from is_open_bInter s0.finite_to_set (λi _, (h i).2.1),
-have t ⊆ v, from subset_bInter (λi _, (h i).2.2.2.1),
+have t ⊆ v, from subset_Inter₂ (λi _, (h i).2.2.2.1),
 have u ×ˢ v ⊆ n, from assume ⟨x',y'⟩ ⟨hx',hy'⟩,
   have ∃ i ∈ s0, x' ∈ (uvs i).1, by simpa using hx',
   let ⟨i,is0,hi⟩ := this in
@@ -646,8 +637,8 @@ in ⟨t, univ_subset_iff.1 ht⟩
 
 lemma finite_cover_nhds [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
   ∃ t : finset α, (⋃ x ∈ t, U x) = univ :=
-let ⟨t, ht⟩ := finite_cover_nhds_interior hU in ⟨t, univ_subset_iff.1 $
-  ht ▸ bUnion_mono (λ x hx, interior_subset)⟩
+let ⟨t, ht⟩ := finite_cover_nhds_interior hU in ⟨t, univ_subset_iff.1 $ ht.symm.subset.trans $
+  Union₂_mono $ λ x hx, interior_subset⟩
 
 /-- If `α` is a compact space, then a locally finite family of sets of `α` can have only finitely
 many nonempty elements. -/
@@ -937,6 +928,10 @@ lemma compact_basis_nhds [locally_compact_space α] (x : α) :
   (𝓝 x).has_basis (λ s, s ∈ 𝓝 x ∧ is_compact s) (λ s, s) :=
 has_basis_self.2 $ by simpa only [and_comm] using locally_compact_space.local_compact_nhds x
 
+lemma local_compact_nhds [locally_compact_space α] {x : α} {n : set α} (h : n ∈ 𝓝 x) :
+  ∃ s ∈ 𝓝 x, s ⊆ n ∧ is_compact s :=
+locally_compact_space.local_compact_nhds _ _ h
+
 lemma locally_compact_space_of_has_basis {ι : α → Type*} {p : Π x, ι x → Prop}
   {s : Π x, ι x → set α} (h : ∀ x, (𝓝 x).has_basis (p x) (s x))
   (hc : ∀ x i, p x i → is_compact (s x i)) :
@@ -973,7 +968,7 @@ begin
     from λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_interior_iff_mem_nhds.2 (hxU _)⟩,
   rcases hK.elim_finite_subcover _ _ this with ⟨t, ht⟩,
   { refine ⟨_, t.compact_bUnion (λ x _, hUc x), λ x hx, _⟩,
-    rcases mem_bUnion_iff.1 (ht hx) with ⟨y, hyt, hy⟩,
+    rcases mem_Union₂.1 (ht hx) with ⟨y, hyt, hy⟩,
     exact interior_mono (subset_bUnion_of_mem hyt) hy },
   { exact λ _, is_open_interior }
 end
@@ -1136,9 +1131,9 @@ begin
   choose t ht hsub using λ n, ((is_compact_compact_covering α n).inter_right hs).elim_nhds_subcover
     _ (λ x hx, hf x hx.right),
   refine ⟨⋃ n, (t n : set α), Union_subset $ λ n x hx, (ht n x hx).2,
-    countable_Union $ λ n, (t n).countable_to_set, λ x hx, mem_bUnion_iff.2 _⟩,
+    countable_Union $ λ n, (t n).countable_to_set, λ x hx, mem_Union₂.2 _⟩,
   rcases exists_mem_compact_covering x with ⟨n, hn⟩,
-  rcases mem_bUnion_iff.1 (hsub n ⟨hn, hx⟩) with ⟨y, hyt : y ∈ t n, hyf : x ∈ s → x ∈ f y⟩,
+  rcases mem_Union₂.1 (hsub n ⟨hn, hx⟩) with ⟨y, hyt : y ∈ t n, hyf : x ∈ s → x ∈ f y⟩,
   exact ⟨y, mem_Union.2 ⟨n, hyt⟩, hyf hx⟩
 end
 
@@ -1230,7 +1225,7 @@ begin
   { exact subset.trans (exists_compact_superset (K n).2).some_spec.2
       (interior_mono $ subset_union_left _ _) },
   { refine univ_subset_iff.1 (Union_compact_covering X ▸ _),
-    exact Union_subset_Union2 (λ n, ⟨n + 1, subset_union_right _ _⟩) }
+    exact Union_mono' (λ n, ⟨n + 1, subset_union_right _ _⟩) }
 end
 
 noncomputable instance [locally_compact_space α] [sigma_compact_space α] :

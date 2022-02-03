@@ -61,6 +61,31 @@ def forget_to_LocallyRingedSpace : Scheme ⥤ LocallyRingedSpace :=
 def forget_to_Top : Scheme ⥤ Top :=
   Scheme.forget_to_LocallyRingedSpace ⋙ LocallyRingedSpace.forget_to_Top
 
+instance {X Y : Scheme} : has_lift_t (X ⟶ Y)
+  (X.to_SheafedSpace ⟶ Y.to_SheafedSpace) := (@@coe_to_lift $ @@coe_base coe_subtype)
+
+lemma id_val_base (X : Scheme) : (subtype.val (𝟙 X)).base = 𝟙 _ := rfl
+
+@[simp] lemma id_coe_base (X : Scheme) :
+  (↑(𝟙 X) : X.to_SheafedSpace ⟶ X.to_SheafedSpace).base = 𝟙 _ := rfl
+
+@[simp] lemma id_app {X : Scheme} (U : (opens X.carrier)ᵒᵖ) :
+  (subtype.val (𝟙 X)).c.app U = X.presheaf.map
+    (eq_to_hom (by { induction U using opposite.rec, cases U, refl })) :=
+PresheafedSpace.id_c_app X.to_PresheafedSpace U
+
+@[reassoc]
+lemma comp_val {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val = f.val ≫ g.val := rfl
+
+@[reassoc, simp]
+lemma comp_coe_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (↑(f ≫ g) : X.to_SheafedSpace ⟶ Z.to_SheafedSpace).base = f.val.base ≫ g.val.base := rfl
+
+@[reassoc, elementwise]
+lemma comp_val_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val.base = f.val.base ≫ g.val.base := rfl
+
 @[reassoc, simp]
 lemma comp_val_c_app {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
   (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app _ := rfl
@@ -69,9 +94,29 @@ lemma congr_app {X Y : Scheme} {f g : X ⟶ Y} (e : f = g) (U) :
   f.val.c.app U = g.val.c.app U ≫ X.presheaf.map (eq_to_hom (by subst e)) :=
 by { subst e, dsimp, simp }
 
+lemma app_eq {X Y : Scheme} (f : X ⟶ Y) {U V : opens Y.carrier} (e : U = V) :
+  f.val.c.app (op U) = Y.presheaf.map (eq_to_hom e.symm).op ≫
+    f.val.c.app (op V) ≫ X.presheaf.map (eq_to_hom (congr_arg (opens.map f.val.base).obj e)).op :=
+begin
+  rw [← is_iso.inv_comp_eq, ← functor.map_inv, f.val.c.naturality, presheaf.pushforward_obj_map],
+  congr
+end
 instance is_LocallyRingedSpace_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] :
   @is_iso LocallyRingedSpace _ _ _ f :=
 forget_to_LocallyRingedSpace.map_is_iso f
+
+@[simp]
+lemma inv_val_c_app {X Y : Scheme} (f : X ⟶ Y) [is_iso f] (U : opens X.carrier) :
+  (inv f).val.c.app (op U) = X.presheaf.map (eq_to_hom $ by { rw is_iso.hom_inv_id, ext1, refl } :
+    (opens.map (f ≫ inv f).1.base).obj U ⟶ U).op ≫
+      inv (f.val.c.app (op $ (opens.map _).obj U)) :=
+begin
+  rw [is_iso.eq_comp_inv],
+  erw ← Scheme.comp_val_c_app,
+  rw [Scheme.congr_app (is_iso.hom_inv_id f),
+    Scheme.id_app, ← functor.map_comp, eq_to_hom_trans, eq_to_hom_op],
+  refl
+end
 
 /--
 The spectrum of a commutative ring, as a scheme.
@@ -153,15 +198,18 @@ lemma mem_basic_open_top (f : X.presheaf.obj (op ⊤)) (x : X.carrier) :
 RingedSpace.mem_basic_open _ f ⟨x, trivial⟩
 
 @[simp]
-lemma basic_open_res (i : V ⟶ U) :
-  X.basic_open (X.presheaf.map i.op f) = V ∩ X.basic_open f :=
-RingedSpace.basic_open_res _ i.op f
+lemma basic_open_res (i : op U ⟶ op V) :
+  X.basic_open (X.presheaf.map i f) = V ∩ X.basic_open f :=
+RingedSpace.basic_open_res _ i f
 
 -- This should fire before `basic_open_res`.
 @[simp, priority 1100]
-lemma basic_open_res_eq (i : V ⟶ U) [is_iso i] :
-  X.basic_open (X.presheaf.map i.op f) = X.basic_open f :=
-RingedSpace.basic_open_res_eq _ i.op f
+lemma basic_open_res_eq (i : op U ⟶ op V) [is_iso i] :
+  X.basic_open (X.presheaf.map i f) = X.basic_open f :=
+RingedSpace.basic_open_res_eq _ i f
+
+lemma basic_open_subset : X.basic_open f ⊆ U :=
+RingedSpace.basic_open_subset _ _
 
 lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
   (r : Y.presheaf.obj $ op U) :
@@ -172,8 +220,7 @@ LocallyRingedSpace.preimage_basic_open f r
 @[simp]
 lemma preimage_basic_open' {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
   (r : Y.presheaf.obj $ op U) :
-  (opens.map (PresheafedSpace.hom.base $ @coe _ _ (@@coe_to_lift $ @@coe_base coe_subtype) f)).obj
-    (Y.basic_open r) =
+  (opens.map (↑f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace).base).obj (Y.basic_open r) =
     @Scheme.basic_open X ((opens.map f.1.base).obj U) (f.1.c.app _ r) :=
 LocallyRingedSpace.preimage_basic_open f r
 

@@ -8,6 +8,8 @@ import order.filter.pointwise
 import topology.algebra.monoid
 import topology.homeomorph
 import topology.compacts
+import topology.algebra.mul_action
+import topology.compact_open
 
 /-!
 # Theory of topological groups
@@ -130,7 +132,7 @@ section pointwise
 variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
 
 @[to_additive]
-lemma is_open.mul_left (ht : is_open t) :  is_open (s * t) :=
+lemma is_open.mul_left (ht : is_open t) : is_open (s * t) :=
 begin
   rw ←Union_mul_left_image,
   exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_mul_left a t ht),
@@ -685,7 +687,7 @@ begin
     refine λ g hg, mem_Union.2 ⟨g₀ * g⁻¹, _⟩,
     refine preimage_interior_subset_interior_preimage (continuous_const.mul continuous_id) _,
     rwa [mem_preimage, inv_mul_cancel_right] },
-  exact ⟨t, subset.trans ht $ bUnion_mono $ λ g hg, interior_subset⟩
+  exact ⟨t, subset.trans ht $ Union₂_mono $ λ g hg, interior_subset⟩
 end
 
 /-- Every locally compact separable topological group is σ-compact.
@@ -768,6 +770,40 @@ instance additive.topological_add_group {G} [h : topological_space G]
 instance multiplicative.topological_group {G} [h : topological_space G]
   [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
 { continuous_inv := @continuous_neg G _ _ _ }
+
+section quotient
+variables [group G] [topological_space G] [topological_group G] {Γ : subgroup G}
+
+@[to_additive]
+instance quotient_group.has_continuous_smul₂ : has_continuous_smul₂ G (G ⧸ Γ) :=
+{ continuous_smul₂ := λ g₀, begin
+    apply continuous_coinduced_dom,
+    change continuous (λ g : G, quotient_group.mk (g₀ * g)),
+    exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
+  end }
+
+@[to_additive]
+lemma quotient_group.continuous_smul₁ (x : G ⧸ Γ) : continuous (λ g : G, g • x) :=
+begin
+  obtain ⟨g₀, rfl⟩ : ∃ g₀, quotient_group.mk g₀ = x,
+  { exact @quotient.exists_rep _ (quotient_group.left_rel Γ) x },
+  change continuous (λ g, quotient_group.mk (g * g₀)),
+  exact continuous_coinduced_rng.comp (continuous_mul_right g₀)
+end
+
+@[to_additive]
+instance quotient_group.has_continuous_smul [locally_compact_space G] :
+  has_continuous_smul G (G ⧸ Γ) :=
+{ continuous_smul := begin
+    let F : G × G ⧸ Γ → G ⧸ Γ := λ p, p.1 • p.2,
+    change continuous F,
+    have H : continuous (F ∘ (λ p : G × G, (p.1, quotient_group.mk p.2))),
+    { change continuous (λ p : G × G, quotient_group.mk (p.1 * p.2)),
+      refine continuous_coinduced_rng.comp continuous_mul },
+    exact quotient_map.continuous_lift_prod_right quotient_map_quotient_mk H,
+  end }
+
+end quotient
 
 namespace units
 

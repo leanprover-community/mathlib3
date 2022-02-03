@@ -54,16 +54,20 @@ because the more bundled version usually does not work with dot notation.
   `order_dual α →o order_dual β`;
 * `order_hom.dual_iso`: order isomorphism between `α →o β` and
   `order_dual (order_dual α →o order_dual β)`;
+* `order_iso.compl`: order isomorphism `α ≃o order_dual α` given by taking complements in a
+  boolean algebra;
 
 We also define two functions to convert other bundled maps to `α →o β`:
 
 * `order_embedding.to_order_hom`: convert `α ↪o β` to `α →o β`;
-* `rel_hom.to_order_hom`: conver a `rel_hom` between strict orders to a `order_hom`.
+* `rel_hom.to_order_hom`: convert a `rel_hom` between strict orders to a `order_hom`.
 
 ## Tags
 
 monotone map, bundled morphism
 -/
+
+open order_dual
 
 /-- Bundled monotone (aka, increasing) function -/
 structure order_hom (α β : Type*) [preorder α] [preorder β] :=
@@ -98,11 +102,15 @@ variables {F : Type*} [preorder α] [preorder β] [order_hom_class F α β]
 protected lemma monotone (f : F) : monotone (f : α → β) := λ _ _, map_rel f
 protected lemma mono (f : F) : monotone (f : α → β) := λ _ _, map_rel f
 
+instance : has_coe_t F (α →o β) := ⟨λ f, { to_fun := f, monotone' := order_hom_class.mono _ }⟩
+
 end order_hom_class
 
 namespace order_hom
 variables [preorder α] [preorder β] [preorder γ] [preorder δ]
 
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (α →o β) (λ _, α → β) := ⟨order_hom.to_fun⟩
 
 initialize_simps_projections order_hom (to_fun → coe)
@@ -490,6 +498,21 @@ lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e
 
 @[simp] lemma trans_refl (e : α ≃o β) : e.trans (refl β) = e := by { ext x, refl }
 
+variables (α)
+
+/-- The order isomorphism between a type and its double dual. -/
+def dual_dual : α ≃o order_dual (order_dual α) := refl α
+
+@[simp] lemma coe_dual_dual : ⇑(dual_dual α) = to_dual ∘ to_dual := rfl
+@[simp] lemma coe_dual_dual_symm : ⇑(dual_dual α).symm = of_dual ∘ of_dual := rfl
+
+variables {α}
+
+@[simp] lemma dual_dual_apply (a : α) : dual_dual α a = to_dual (to_dual a) := rfl
+
+@[simp] lemma dual_dual_symm_apply (a : order_dual (order_dual α)) :
+  (dual_dual α).symm a = of_dual (of_dual a) := rfl
+
 end has_le
 
 open set
@@ -683,3 +706,23 @@ theorem order_iso.is_complemented_iff :
 
 end bounded_order
 end lattice_isos
+
+section boolean_algebra
+variables (α) [boolean_algebra α]
+
+/-- Taking complements as an order isomorphism to the order dual. -/
+@[simps]
+def order_iso.compl : α ≃o order_dual α :=
+{ to_fun := order_dual.to_dual ∘ compl,
+  inv_fun := compl ∘ order_dual.of_dual,
+  left_inv := compl_compl,
+  right_inv := compl_compl,
+  map_rel_iff' := λ x y, compl_le_compl_iff_le }
+
+theorem compl_strict_anti : strict_anti (compl : α → α) :=
+(order_iso.compl α).strict_mono
+
+theorem compl_antitone : antitone (compl : α → α) :=
+(order_iso.compl α).monotone
+
+end boolean_algebra

@@ -587,7 +587,7 @@ mk_metric_le_liminf_sum s r hr t ht hst _
 lemma hausdorff_measure_zero_or_top {d₁ d₂ : ℝ} (h : d₁ < d₂) (s : set X) :
   μH[d₂] s = 0 ∨ μH[d₁] s = ∞ :=
 begin
-  by_contra H, push_neg at H,
+  by_contra' H, 
   suffices : ∀ (c : ℝ≥0), c ≠ 0 → μH[d₂] s ≤ c * μH[d₁] s,
   { rcases ennreal.exists_nnreal_pos_mul_lt H.2 H.1 with ⟨c, hc0, hc⟩,
     exact hc.not_le (this c (pos_iff_ne_zero.1 hc0)) },
@@ -759,8 +759,7 @@ begin
   ... ≤ liminf at_top (λ (n : ℕ), ∑ (i : γ n), (1/n) ^ (fintype.card ι)) :
     begin
       refine liminf_le_liminf _ (by is_bounded_default),
-      filter_upwards [B],
-      assume n hn,
+      filter_upwards [B] with _ hn,
       apply finset.sum_le_sum (λ i _, _),
       rw ennreal.rpow_nat_cast,
       exact pow_le_pow_of_le_left' (hn i) _,

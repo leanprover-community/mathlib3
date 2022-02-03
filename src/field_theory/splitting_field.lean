@@ -395,7 +395,7 @@ begin
     simp only [nat_degree_mul (ne_zero_of_monic hprodmonic) qzero] },
   have degq : q.nat_degree = 0,
   { rw hdegree at degp,
-    exact (add_right_inj p.nat_degree).mp (tactic.ring_exp.add_pf_sum_z degp rfl).symm },
+    rw [← add_right_inj p.nat_degree, ← degp, add_zero], },
   obtain ⟨u, hu⟩ := is_unit_iff_degree_eq_zero.2 ((degree_eq_iff_nat_degree_eq qzero).2 degq),
   have hassoc : associated (multiset.map (λ (a : K), X - C a) p.roots).prod p,
   { rw associated, use u, rw [hu, ← hq] },
@@ -419,7 +419,7 @@ begin
     congr' 1,
     rw ← this,
     simp, },
-  { rw [nat_degree_map' (is_fraction_ring.injective K (fraction_ring K)), ← this],
+  { rw [nat_degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)), ← this],
     simp only [←hroots, multiset.card_map], },
 end
 
@@ -466,7 +466,7 @@ begin
       (is_fraction_ring.injective K (fraction_ring K)) hroots,
   have : multiset.card (map (algebra_map K (fraction_ring K)) p).roots =
     (map (algebra_map K (fraction_ring K)) p).nat_degree,
-  { rw [nat_degree_map' (is_fraction_ring.injective K (fraction_ring K)), ← h],
+  { rw [nat_degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)), ← h],
     simp only [←hroots, multiset.card_map], },
   rw [← C_leading_coeff_mul_prod_multiset_X_sub_C_of_field this],
   simp only [map_C, function.comp_app, map_X, map_sub],
@@ -909,7 +909,7 @@ if hf0 : f = 0 then (algebra.of_id K F).comp $
 alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_splits _ $ λ y hy,
     have aeval y f = 0, from (eval₂_eq_eval_map _).trans $
       (mem_roots $ by exact map_ne_zero hf0).1 (multiset.mem_to_finset.mp hy),
-    ⟨(is_algebraic_iff_is_integral _).1 ⟨f, hf0, this⟩,
+    ⟨is_algebraic_iff_is_integral.1 ⟨f, hf0, this⟩,
       splits_of_splits_of_dvd _ hf0 hf $ minpoly.dvd _ _ this⟩) })
   algebra.to_top
 
@@ -918,7 +918,7 @@ theorem finite_dimensional (f : polynomial K) [is_splitting_field K L f] : finit
   fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, map_zero, roots_zero] at hy, cases hy }
-  else (is_algebraic_iff_is_integral _).1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
+  else is_algebraic_iff_is_integral.1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
     (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)⟩
 
 instance (f : polynomial K) : _root_.finite_dimensional K f.splitting_field :=

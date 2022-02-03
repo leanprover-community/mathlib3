@@ -5,7 +5,7 @@ Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
 import analysis.normed_space.dual
 import data.set.intervals.disjoint
-import measure_theory.measure.lebesgue
+import measure_theory.measure.haar_lebesgue
 import analysis.calculus.extend_deriv
 import measure_theory.integral.set_integral
 import measure_theory.integral.vitali_caratheodory
@@ -853,9 +853,9 @@ lemma integral_Iic_sub_Iic (ha : integrable_on f (Iic a) μ) (hb : integrable_on
   ∫ x in Iic b, f x ∂μ - ∫ x in Iic a, f x ∂μ = ∫ x in a..b, f x ∂μ :=
 begin
   wlog hab : a ≤ b using [a b] tactic.skip,
-  { rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc (le_refl _)),
+  { rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc le_rfl),
       Iic_union_Ioc_eq_Iic hab],
-    exacts [measurable_set_Iic, measurable_set_Ioc, ha, hb.mono_set (λ _, and.right)] },
+    exacts [measurable_set_Ioc, ha, hb.mono_set (λ _, and.right)] },
   { intros ha hb,
     rw [integral_symm, ← this hb ha, neg_sub] }
 end
@@ -1191,26 +1191,19 @@ end
 `f c < g c` at some point `c ∈ [a, b]`, then `∫ x in a..b, f x < ∫ x in a..b, g x`. -/
 lemma integral_lt_integral_of_continuous_on_of_le_of_exists_lt {f g : ℝ → ℝ} {a b : ℝ}
   (hab : a < b) (hfc : continuous_on f (Icc a b)) (hgc : continuous_on g (Icc a b))
-  (hle : ∀ x ∈ Icc a b, f x ≤ g x) (hlt : ∃ c ∈ Icc a b, f c < g c) :
+  (hle : ∀ x ∈ Ioc a b, f x ≤ g x) (hlt : ∃ c ∈ Icc a b, f c < g c) :
   ∫ x in a..b, f x < ∫ x in a..b, g x :=
 begin
   refine integral_lt_integral_of_ae_le_of_measure_set_of_lt_ne_zero hab.le
     (hfc.interval_integrable_of_Icc hab.le) (hgc.interval_integrable_of_Icc hab.le)
-    ((ae_restrict_mem measurable_set_Ioc).mono $ λ x hx, hle x (Ioc_subset_Icc_self hx)) _,
-  simp only [measure.restrict_apply' measurable_set_Ioc],
-  rcases hlt with ⟨c, ⟨hac, hcb⟩, hlt⟩,
-  have : ∀ᶠ x in 𝓝[Icc a b] c, f x < g x,
-    from ((hfc c ⟨hac, hcb⟩).prod (hgc c ⟨hac, hcb⟩)).eventually (is_open_lt_prod.mem_nhds hlt),
-  rcases (eventually_nhds_within_iff.1 this).exists_Ioo_subset with ⟨l, u, ⟨hlc, hcu⟩, hsub⟩,
-  have A : Ioo (max a l) (min b u) ⊆ Ioc a b,
-    from Ioo_subset_Ioc_self.trans (Ioc_subset_Ioc (le_max_left _ _) (min_le_left _ _)),
-  have B : Ioo (max a l) (min b u) ⊆ Ioo l u,
-    from Ioo_subset_Ioo (le_max_right _ _) (min_le_right _ _),
-  refine ne_of_gt _,
-  calc (0 : ℝ≥0∞) < volume (Ioo (max a l) (min b u)) :
-    by simp [hab, hlc.trans_le hcb, hac.trans_lt hcu, hlc.trans hcu]
-  ... ≤ volume ({x | f x < g x} ∩ Ioc a b) :
-    measure_mono (λ x hx, ⟨hsub (B hx) (Ioc_subset_Icc_self $ A hx), A hx⟩)
+    ((ae_restrict_mem measurable_set_Ioc).mono hle) _,
+  contrapose! hlt,
+  have h_eq : f =ᵐ[volume.restrict (Ioc a b)] g,
+  { simp only [← not_le, ← ae_iff] at hlt,
+    exact eventually_le.antisymm ((ae_restrict_iff' measurable_set_Ioc).2 $
+      eventually_of_forall hle) hlt },
+  simp only [measure.restrict_congr_set Ioc_ae_eq_Icc] at h_eq,
+  exact λ c hc, (measure.eq_on_Icc_of_ae_eq volume hab.ne h_eq hfc hgc hc).ge
 end
 
 lemma integral_nonneg_of_ae_restrict (hab : a ≤ b) (hf : 0 ≤ᵐ[μ.restrict (Icc a b)] f) :
@@ -1552,10 +1545,9 @@ begin
   have B' : ∀ᶠ t in lt, interval_integrable f μ b (ub t) :=
     hb_lim.eventually_interval_integrable_ae hmeas_b (FTC_filter.finite_at_inner lb)
       (tendsto_const_pure.mono_right FTC_filter.pure_le) hub,
-  filter_upwards [A, A', B, B'],
-  intros t ua_va a_ua ub_vb b_ub,
+  filter_upwards [A, A', B, B'] with _ ua_va a_ua ub_vb b_ub,
   rw [← integral_interval_sub_interval_comm'],
-  { dsimp only [], abel },
+  { dsimp only [], abel, },
   exacts [ub_vb, ua_va, b_ub.symm.trans $ hab.symm.trans a_ua]
 end
 
@@ -2108,8 +2100,7 @@ begin
       rcases mem_nhds_iff_exists_Ioo_subset.1 B with ⟨m, M, ⟨hm, hM⟩, H⟩,
       have : Ioo t (min M b) ∈ 𝓝[>] t := mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
         ⟨min M b, by simp only [hM, ht.right.right, lt_min_iff, mem_Ioi, and_self], subset.refl _⟩,
-      filter_upwards [this],
-      assume u hu,
+      filter_upwards [this] with u hu,
       have I : Icc t u ⊆ Icc a b := Icc_subset_Icc ht.2.1 (hu.2.le.trans (min_le_right _ _)),
       calc (u - t) * y = ∫ v in Icc t u, y :
         by simp only [hu.left.le, measure_theory.integral_const, algebra.id.smul_eq_mul, sub_nonneg,
@@ -2125,8 +2116,7 @@ begin
             ae_mono (measure.restrict_mono I (le_refl _)) G'lt_top,
           have C2 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), x ∈ Icc t u :=
             ae_restrict_mem measurable_set_Icc,
-          filter_upwards [C1, C2],
-          assume x G'x hx,
+          filter_upwards [C1, C2] with x G'x hx,
           apply ereal.coe_le_coe_iff.1,
           have : x ∈ Ioo m M, by simp only [hm.trans_le hx.left,
             (hx.right.trans_lt hu.right).trans_le (min_le_left M b), mem_Ioo, and_self],
@@ -2137,17 +2127,13 @@ begin
     have I2 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ (u - t) * y,
     { have g'_lt_y : g' t < y := ereal.coe_lt_coe_iff.1 g'_lt_y',
       filter_upwards [(hderiv t ⟨ht.2.1, ht.2.2⟩).limsup_slope_le'
-        (not_mem_Ioi.2 le_rfl) g'_lt_y, self_mem_nhds_within],
-      assume u hu t_lt_u,
-      have := hu.le,
-      rwa [← div_eq_inv_mul, div_le_iff'] at this,
-      exact sub_pos.2 t_lt_u },
+        (not_mem_Ioi.2 le_rfl) g'_lt_y, self_mem_nhds_within] with u hu t_lt_u,
+      have := mul_le_mul_of_nonneg_left hu.le (sub_pos.2 t_lt_u).le,
+      rwa [← smul_eq_mul, sub_smul_slope] at this },
     -- combine the previous two bounds to show that `g u - g a` increases less quickly than
     -- `∫ x in a..u, G' x`.
     have I3 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ ∫ w in t..u, (G' w).to_real,
-    { filter_upwards [I1, I2],
-      assume u hu1 hu2,
-      exact hu2.trans hu1 },
+    { filter_upwards [I1, I2] with u hu1 hu2 using hu2.trans hu1, },
     have I4 : ∀ᶠ u in 𝓝[>] t, u ∈ Ioc t (min v b),
     { refine mem_nhds_within_Ioi_iff_exists_Ioc_subset.2 ⟨min v b, _, subset.refl _⟩,
       simp only [lt_min_iff, mem_Ioi],
@@ -2227,7 +2213,7 @@ begin
       (hcont.mono (Icc_subset_Icc ht.1.le (le_refl _)))
       (λ x hx, hderiv x ⟨ht.1.trans_le hx.1, hx.2⟩)
       (g'int.mono_set (Icc_subset_Icc ht.1.le (le_refl _))) },
-  rw closure_Ioc a_lt_b at A,
+  rw closure_Ioc a_lt_b.ne at A,
   exact (A (left_mem_Icc.2 hab)).1,
 end
 
@@ -2290,17 +2276,16 @@ begin
   set F : ℝ → E := update (update f a fa) b fb,
   have Fderiv : ∀ x ∈ Ioo a b, has_deriv_at F (f' x) x,
   { refine λ x hx, (hderiv x hx).congr_of_eventually_eq _,
-    filter_upwards [Ioo_mem_nhds hx.1 hx.2],
-    intros y hy, simp only [F],
-    rw [update_noteq hy.2.ne, update_noteq hy.1.ne'] },
+    filter_upwards [Ioo_mem_nhds hx.1 hx.2] with _ hy, simp only [F],
+    rw [update_noteq hy.2.ne, update_noteq hy.1.ne'], },
   have hcont : continuous_on F (Icc a b),
   { rw [continuous_on_update_iff, continuous_on_update_iff, Icc_diff_right, Ico_diff_left],
     refine ⟨⟨λ z hz, (hderiv z hz).continuous_at.continuous_within_at, _⟩, _⟩,
     { exact λ _, ha.mono_left (nhds_within_mono _ Ioo_subset_Ioi_self) },
     { rintro -,
       refine (hb.congr' _).mono_left (nhds_within_mono _ Ico_subset_Iio_self),
-      filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 hab)],
-      exact λ z hz, (update_noteq hz.1.ne' _ _).symm } },
+      filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 hab)]
+        with _ hz using (update_noteq hz.1.ne' _ _).symm } },
   simpa [F, hab.ne, hab.ne'] using integral_eq_sub_of_has_deriv_at_of_le hab.le hcont Fderiv hint
 end
 

@@ -85,7 +85,7 @@ begin
   { assume k,
     rw tsub_eq_iff_eq_add_of_le,
     { ring },
-    { simpa [mul_add] using add_le_add (zero_le (2 * k)) one_le_two } },
+    { simp [mul_add] } },
   convert (((P_aux n).has_deriv_at x).mul
                (((has_deriv_at_exp _).comp x (has_deriv_at_inv hx).neg))).div
             (has_deriv_at_pow (2 * n) x) (pow_ne_zero _ hx) using 1,

@@ -201,8 +201,7 @@ begin
     { obtain ⟨a, has⟩ : ∃ a, a ∈ s, from hs_nonempty,
       exact ⟨a, by simpa [has] using h.symm⟩, },
     { obtain ⟨a, has⟩ : ∃ a, a ∉ s,
-      { by_contra,
-        push_neg at h,
+      { by_contra' h,
         refine hs_ne_univ _,
         ext1 a,
         simp [h a], },
@@ -1192,19 +1191,15 @@ begin
     assume n, measurable_set_le (simple_func.measurable _) (hf n),
   calc (r:ℝ≥0∞) * (s.map c).lintegral μ = ∑ r in (rs.map c).range, r * μ ((rs.map c) ⁻¹' {r}) :
       by rw [← const_mul_lintegral, eq_rs, simple_func.lintegral]
-    ... ≤ ∑ r in (rs.map c).range, r * μ (⋃n, (rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a}) :
-      le_of_eq (finset.sum_congr rfl $ assume x hx, by rw ← eq)
-    ... ≤ ∑ r in (rs.map c).range, (⨆n, r * μ ((rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a})) :
-      le_of_eq (finset.sum_congr rfl $ assume x hx,
+    ... = ∑ r in (rs.map c).range, r * μ (⋃n, (rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a}) :
+      by simp only [(eq _).symm]
+    ... = ∑ r in (rs.map c).range, (⨆n, r * μ ((rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a})) :
+      finset.sum_congr rfl $ assume x hx,
         begin
-          rw [measure_Union_eq_supr _ (directed_of_sup $ mono x), ennreal.mul_supr],
-          { assume i,
-            refine ((rs.map c).measurable_set_preimage _).inter _,
-            exact hf i measurable_set_Ici }
-        end)
-    ... ≤ ⨆n, ∑ r in (rs.map c).range, r * μ ((rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a}) :
+          rw [measure_Union_eq_supr (directed_of_sup $ mono x), ennreal.mul_supr],
+        end
+    ... = ⨆n, ∑ r in (rs.map c).range, r * μ ((rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a}) :
       begin
-        refine le_of_eq _,
         rw [ennreal.finset_sum_supr_nat],
         assume p i j h,
         exact mul_le_mul_left' (measure_mono $ mono p h) _

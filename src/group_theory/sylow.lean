@@ -473,6 +473,7 @@ end
 lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
   card P = p ^ nat.factorization (card G) p :=
 begin
+  haveI : nonempty G := nonempty.intro 1,
   obtain ⟨n, heq : card P = _⟩ := is_p_group.iff_card.mp (P.is_p_group'),
   refine nat.dvd_antisymm _ (P.pow_dvd_card_of_pow_dvd_card (nat.pow_factorization_dvd p _)),
   rw [heq, ←nat.prime_pow_dvd_multiplicity_iff hp.out fintype.card_ne_zero, ←heq],

@@ -198,26 +198,38 @@ lemma hom_apply {K L M N : Module.{max v u} R} (f : K ⟶ L) (g : M ⟶ N) (k : 
 @[simp]
 lemma left_unitor_hom_apply {M : Module.{max v u} R} (r : R) (m : M) :
   ((λ_ M).hom : 𝟙_ (Module R) ⊗ M ⟶ M) ((mv_polynomial.C r) ⊗ₜ[R] m) = r • m :=
-sorry
---tensor_product.lid_tmul m r
+begin
+  change (monoidal_category.left_unitor _).hom _ = _,
+  dsimp [monoidal_category.left_unitor],
+  simp,
+end
 
 @[simp]
 lemma left_unitor_inv_apply {M : Module.{max v u} R} (m : M) :
   ((λ_ M).inv : M ⟶ 𝟙_ (Module.{max v u} R) ⊗ M) m = 1 ⊗ₜ[R] m :=
-sorry
---tensor_product.lid_symm_apply m
+begin
+  change (monoidal_category.left_unitor _).inv _ = _,
+  dsimp [monoidal_category.left_unitor],
+  simp,
+end
 
 @[simp]
 lemma right_unitor_hom_apply {M : Module.{max v u} R} (m : M) (r : R) :
   ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ (mv_polynomial.C r)) = r • m :=
-sorry
---tensor_product.rid_tmul m r
+begin
+  change (monoidal_category.right_unitor _).hom _ = _,
+  dsimp [monoidal_category.right_unitor],
+  simp,
+end
 
 @[simp]
 lemma right_unitor_inv_apply {M : Module.{max v u} R} (m : M) :
   ((ρ_ M).inv : M ⟶ M ⊗ 𝟙_ (Module.{max v u} R)) m = m ⊗ₜ[R] 1 :=
-sorry
---tensor_product.rid_symm_apply m
+begin
+  change (monoidal_category.right_unitor _).inv _ = _,
+  dsimp [monoidal_category.right_unitor],
+  simp,
+end
 
 @[simp]
 lemma associator_hom_apply {M N K : Module.{max v u} R} (m : M) (n : N) (k : K) :

@@ -446,7 +446,7 @@ begin
   rw modeq_iff_dvd at h,
   rw eq_comm,
   rw ←sub_eq_zero,
-  exact eq_zero_of_abs_lt_dvd h h2,
+  exact int.eq_zero_of_abs_lt_dvd h h2,
 end
 
 

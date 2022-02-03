@@ -109,8 +109,8 @@ by exactI intermediate_field.finite_dimensional_sup E1 E2
 
 /-- An element of `L ≃ₐ[K] L` is in `Gal(L/E)` if and only if it fixes every element of `E`-/
 lemma mem_fixing_subgroup_iff {K L : Type*} [field K] [field L] [algebra K L]
-(E : intermediate_field K L) (σ : (L ≃ₐ[K] L)): σ ∈ E.fixing_subgroup ↔
-∀ (x : L), x ∈ E → σ x = x :=
+  (E : intermediate_field K L) (σ : (L ≃ₐ[K] L)) :
+  σ ∈ E.fixing_subgroup ↔∀ (x : L), x ∈ E → σ x = x :=
 ⟨λ hσ x hx, hσ ⟨x, hx⟩, λ h ⟨x, hx⟩, h x hx⟩
 
 /-- The map `E ↦ Gal(L/E)` is inclusion-reversing -/

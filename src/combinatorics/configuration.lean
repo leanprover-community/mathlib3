@@ -38,47 +38,16 @@ open_locale big_operators
 
 section projective
 
-namespace vector
-
-variables {α β : Type*}
-
-lemma ext_iff {n : ℕ} {v w : vector α n} : v = w ↔ ∀ m : fin n, v.nth m = w.nth m :=
-⟨λ h m, congr_arg _ h, ext⟩
-
-instance [has_zero α] {n : ℕ} : has_zero (vector α n) :=
-⟨vector.repeat 0 n⟩
-
-lemma zero_nth [has_zero α] {n : ℕ} (m : fin n) : (0 : vector α n).nth m = 0 :=
-nth_repeat 0 m
-
-instance [has_one α] {n : ℕ} : has_one (vector α n) :=
-⟨vector.repeat 1 n⟩
-
-lemma one_nth [has_one α] {n : ℕ} (m : fin n) : (1 : vector α n).nth m = 1 :=
-nth_repeat 1 m
-
-instance [has_scalar α β] {n : ℕ} : has_scalar α (vector β n) :=
-⟨λ a, vector.map (λ b, a • b)⟩
-
-@[simp] lemma smul_nth [has_scalar α β] {n : ℕ} (v : vector β n) (a : α) (m : fin n) :
-  (a • v).nth m = a • (v.nth m) := v.nth_map _ m
-
-instance [monoid α] [mul_action α β] {n : ℕ} : mul_action α (vector β n) :=
-{ one_smul := λ v, vector.ext (λ m, by rw [smul_nth, one_smul]),
-  mul_smul := λ a₁ a₂ v, vector.ext (λ m, by rw [smul_nth, smul_nth, smul_nth, mul_smul]) }
-
-end vector
-
-def punctured_space (α : Type*) [has_zero α] (n : ℕ) := {p : vector α n // p ≠ 0}
+def punctured_space (α : Type*) [has_zero α] (n : ℕ) := {p : fin n → α // p ≠ 0}
 
 instance punctured_space.mul_action
   (α : Type*) [nontrivial α] [monoid_with_zero α] [no_zero_divisors α] (n : ℕ) :
   mul_action αˣ (punctured_space α n) :=
 { smul := λ a v, ⟨a • v.1, by
-  { refine λ h, v.2 (vector.ext (λ m, _)),
-    replace h := vector.ext_iff.mp h m,
-    rw [vector.smul_nth, vector.zero_nth] at h,
-    rw [(eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left a.ne_zero, vector.zero_nth] }⟩,
+  { refine λ h, v.2 (funext (λ m, _)),
+    replace h := function.funext_iff.mp h m,
+    rw [pi.smul_apply, pi.zero_apply] at h,
+    rw [(eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left a.ne_zero, pi.zero_apply] }⟩,
   one_smul := λ v, subtype.ext (one_smul αˣ v.1),
   mul_smul := λ a b p, subtype.ext (mul_smul a b p.1) }
 
@@ -94,9 +63,9 @@ def projective_space
 quotient (mul_action.orbit_rel αˣ (punctured_space α (n + 1)))
 
 instance (F : Type*) [field F] (n : ℕ) : has_mem (projective_space F n) (projective_space F n) :=
-⟨λ p l, quotient.lift_on₂' p l (λ p q, ∑ (m : fin n), p.1.nth m * q.1.nth m = 0) (by
+⟨λ p l, quotient.lift_on₂' p l (λ p q, ∑ (m : fin n), p.1 m * q.1 m = 0) (by
 { rintros _ p _ q ⟨c, rfl⟩ ⟨d, rfl⟩,
-  simp_rw [punctured_space.val_smul, vector.smul_nth, units.smul_def, smul_eq_mul,
+  simp_rw [punctured_space.val_smul, pi.smul_apply, units.smul_def, smul_eq_mul,
     mul_mul_mul_comm, ←finset.mul_sum, mul_eq_zero, units.ne_zero, false_or] })⟩
 
 end projective

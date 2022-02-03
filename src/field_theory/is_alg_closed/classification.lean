@@ -29,19 +29,17 @@ open cardinal
 
 section algebraic_closure
 
-namespace is_alg_closure
+namespace algebra.is_algebraic
 
-variables (R L : Type u) [comm_ring R] [field L] [algebra R L]
-variables [no_zero_smul_divisors R L] [is_alg_closure R L]
+variables (R L : Type u) [comm_ring R] [comm_ring L] [is_domain L] [algebra R L]
+variables [no_zero_smul_divisors R L] (halg : algebra.is_algebraic R L)
 
 lemma cardinal_mk_le_sigma_polynomial :
   #L ≤ #(Σ p : polynomial R, { x : L // x ∈ (p.map (algebra_map R L)).roots }) :=
 @mk_le_of_injective L (Σ p : polynomial R, { x : L | x ∈ (p.map (algebra_map R L)).roots })
-  (λ x : L, let p := classical.indefinite_description _
-      (@is_alg_closure.algebraic R _ _ _ _ _ _ x) in
+  (λ x : L, let p := classical.indefinite_description _ (halg x) in
     ⟨p.1, x,
       begin
-      letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R L).is_domain _,
       dsimp,
       have h : p.1.map (algebra_map R L) ≠ 0,
       { rw [ne.def, ← polynomial.degree_eq_bot, polynomial.degree_map_eq_of_injective
@@ -56,11 +54,11 @@ lemma cardinal_mk_le_sigma_polynomial :
     simp only [h.1, iff_self, forall_true_iff]
   end)
 
-/--The cardinality of an algebraic closure is at most the maximum of the cardinality
+/--The cardinality of an algebraic extension is at most the maximum of the cardinality
 of the base ring or `ω` -/
 lemma cardinal_mk_le_max : #L ≤ max (#R) ω :=
 calc #L ≤ #(Σ p : polynomial R, { x : L // x ∈ (p.map (algebra_map R L)).roots }) :
-  cardinal_mk_le_sigma_polynomial R L
+  cardinal_mk_le_sigma_polynomial R L halg
 ... = cardinal.sum (λ p : polynomial R, #{ x : L | x ∈ (p.map (algebra_map R L)).roots }) :
   by rw ← mk_sigma; refl
 ... ≤ cardinal.sum.{u u} (λ p : polynomial R, ω) : sum_le_sum _ _
@@ -76,7 +74,7 @@ calc #L ≤ #(Σ p : polynomial R, { x : L // x ∈ (p.map (algebra_map R L)).ro
   max_le_max (max_le_max polynomial.cardinal_mk_le_max le_rfl) le_rfl
 ... = max (#R) ω : by simp only [max_assoc, max_comm omega.{u}, max_left_comm omega.{u}, max_self]
 
-end is_alg_closure
+end algebra.is_algebraic
 
 end algebraic_closure
 
@@ -135,7 +133,7 @@ lemma cardinal_le_max_transcendence_basis (hv : is_transcendence_basis R v) :
   #K ≤ max (max (#R) (#ι)) ω :=
 calc #K ≤ max (#(algebra.adjoin R (set.range v))) ω :
   by letI := is_alg_closure_of_transcendence_basis v hv;
-   exact is_alg_closure.cardinal_mk_le_max _ _
+   exact algebra.is_algebraic.cardinal_mk_le_max _ _ is_alg_closure.algebraic
 ... = max (#(mv_polynomial ι R)) ω : by rw [cardinal.eq.2 ⟨(hv.1.aeval_equiv).to_equiv⟩]
 ... ≤ max (max (max (#R) (#ι)) ω) ω : max_le_max mv_polynomial.cardinal_mk_le_max le_rfl
 ... = _ : by simp [max_assoc]

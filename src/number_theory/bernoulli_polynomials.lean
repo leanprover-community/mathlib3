@@ -42,11 +42,13 @@ open_locale nat
 
 open nat finset
 
+namespace polynomial
+
 /-- The Bernoulli polynomials are defined in terms of the negative Bernoulli numbers. -/
 def bernoulli_poly (n : ℕ) : polynomial ℚ :=
   ∑ i in range (n + 1), polynomial.monomial (n - i) ((bernoulli i) * (choose n i))
 
-lemma bernoulli_poly_def (n : ℕ) : bernoulli_poly n =
+lemma bernoulli_def (n : ℕ) : bernoulli_poly n =
   ∑ i in range (n + 1), polynomial.monomial i ((bernoulli (n - i)) * (choose n i)) :=
 begin
   rw [←sum_range_reflect, add_succ_sub_one, add_zero, bernoulli_poly],
@@ -54,8 +56,6 @@ begin
   rintros x hx,
   rw mem_range_succ_iff at hx, rw [choose_symm hx, tsub_tsub_cancel_of_le hx],
 end
-
-namespace bernoulli_poly
 
 /-
 ### examples
@@ -94,7 +94,7 @@ end examples
   ∑ k in range (n + 1), ((n + 1).choose k : ℚ) • bernoulli_poly k =
     polynomial.monomial n (n + 1 : ℚ) :=
 begin
- simp_rw [bernoulli_poly_def, finset.smul_sum, finset.range_eq_Ico, ←finset.sum_Ico_Ico_comm,
+ simp_rw [bernoulli_def, finset.smul_sum, finset.range_eq_Ico, ←finset.sum_Ico_Ico_comm,
     finset.sum_Ico_eq_sum_range],
   simp only [cast_succ, add_tsub_cancel_left, tsub_zero, zero_add, linear_map.map_add],
   simp_rw [polynomial.smul_monomial, mul_comm (bernoulli _) _, smul_eq_mul, ←mul_assoc],
@@ -174,4 +174,4 @@ begin
   rw [mul_assoc, div_eq_mul_inv, ← mul_inv₀],
 end
 
-end bernoulli_poly
+end polynomial

@@ -237,8 +237,8 @@ begin
     ... ≈ 0 + half : (zero_add_equiv half).symm
     ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
   { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); left,
-    { exact ⟨sum.inr punit.star, le_of_le_of_equiv (pgame.le_refl _) (add_zero_equiv _).symm⟩ },
-    { exact ⟨sum.inl punit.star, le_of_le_of_equiv (pgame.le_refl _) (zero_add_equiv _).symm⟩ } }
+    { exact ⟨sum.inr punit.star, le_of_le_of_equiv (pgame.le_rfl) (add_zero_equiv _).symm⟩ },
+    { exact ⟨sum.inl punit.star, le_of_le_of_equiv (pgame.le_rfl) (zero_add_equiv _).symm⟩ } }
 end
 
 end pgame

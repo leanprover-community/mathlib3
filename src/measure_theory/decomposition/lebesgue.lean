@@ -141,7 +141,7 @@ begin
   by_cases hl : have_lebesgue_decomposition μ ν,
   { casesI (have_lebesgue_decomposition_spec μ ν).2 with _ h,
     conv_rhs { rw h },
-    exact measure.le_add_right (le_refl _) },
+    exact measure.le_add_right le_rfl },
   { rw [singular_part, dif_neg hl],
     exact measure.zero_le μ }
 end
@@ -152,7 +152,7 @@ begin
   by_cases hl : have_lebesgue_decomposition μ ν,
   { casesI (have_lebesgue_decomposition_spec μ ν).2 with _ h,
     conv_rhs { rw h },
-    exact measure.le_add_left (le_refl _) },
+    exact measure.le_add_left le_rfl },
   { rw [rn_deriv, dif_neg hl, with_density_zero],
     exact measure.zero_le μ }
 end
@@ -188,7 +188,7 @@ begin
       from lt_of_le_of_lt (lintegral_mono_set (subset_to_measurable _ _)) this,
     rw [← with_density_apply _ (measurable_set_to_measurable _ _)],
     refine lt_of_le_of_lt
-      (le_add_left (le_refl _) : _ ≤ μ.singular_part ν (to_measurable μ s) +
+      (le_add_left le_rfl : _ ≤ μ.singular_part ν (to_measurable μ s) +
         ν.with_density (μ.rn_deriv ν) (to_measurable μ s)) _,
     rw [← measure.add_apply, ← hadd, measure_to_measurable],
     exact hs.lt_top },
@@ -236,7 +236,7 @@ begin
   { rw compl_inter,
     refine nonpos_iff_eq_zero.1 (le_trans (measure_union_le _ _) _),
     rw [hT₃, hS₃, add_zero],
-    exact le_refl _ },
+    exact le_rfl },
   have heq : s.restrict (S ∩ T)ᶜ = (μ.singular_part ν).restrict (S ∩ T)ᶜ,
   { ext1 A hA,
     have hf : ν.with_density f (A ∩ (S ∩ T)ᶜ) = 0,
@@ -326,7 +326,7 @@ begin
   { rw compl_inter,
     refine nonpos_iff_eq_zero.1 (le_trans (measure_union_le _ _) _),
     rw [hT₃, hS₃, add_zero],
-    exact le_refl _ },
+    exact le_rfl },
   have heq : (ν.with_density f).restrict (S ∩ T) =
               (ν.with_density (μ.rn_deriv ν)).restrict (S ∩ T),
   { ext1 A hA,
@@ -533,7 +533,7 @@ begin
       { exact le_sup_of_le_right (le_bsupr n h) },
       { exact h ▸ le_sup_left } },
     { refine sup_le _ _,
-      { convert @le_bsupr _ _ _ (λ i, i ≤ m + 1) _ m.succ (le_refl _), refl },
+      { convert @le_bsupr _ _ _ (λ i, i ≤ m + 1) _ m.succ le_rfl, refl },
       { refine bsupr_le (λ n hn, _),
         have := (le_trans hn (nat.le_succ m)), -- replacing `this` below with the proof breaks
         exact (le_bsupr n this) } } },
@@ -615,7 +615,7 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
       refine tendsto_of_tendsto_of_tendsto_of_le_of_le hg₂ tendsto_const_nhds _ _,
       { intro n, rw ← hf₂ n,
         apply lintegral_mono,
-        simp only [supr_apply, supr_le_le f n n (le_refl _)] },
+        simp only [supr_apply, supr_le_le f n n le_rfl] },
       { intro n,
         exact le_Sup ⟨⨆ (k : ℕ) (hk : k ≤ n), f k, supr_mem_measurable_le' _ hf₁ _, rfl⟩ } },
     { intro n,

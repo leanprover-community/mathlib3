@@ -838,7 +838,7 @@ begin
   have hq0_lt : 0 < q, from lt_of_lt_of_le hp0_lt hpq,
   by_cases hpq_eq : p = q,
   { rw [hpq_eq, sub_self, ennreal.rpow_zero, mul_one],
-    exact le_refl _, },
+    exact le_rfl, },
   have hpq : p < q, from lt_of_le_of_ne hpq hpq_eq,
   let g := λ a : α, (1 : ℝ≥0∞),
   have h_rw : ∫⁻ a, ↑∥f a∥₊^p ∂ μ = ∫⁻ a, (∥f a∥₊ * (g a))^p ∂ μ,
@@ -1984,7 +1984,7 @@ lipschitz_with.of_dist_le_mul $ λ x y, by simp [dist, abs_max_sub_max_le_abs]
 
 /-- Positive part of a function in `L^p`. -/
 def pos_part (f : Lp ℝ p μ) : Lp ℝ p μ :=
-lipschitz_with_pos_part.comp_Lp (max_eq_right (le_refl _)) f
+lipschitz_with_pos_part.comp_Lp (max_eq_right le_rfl) f
 
 /-- Negative part of a function in `L^p`. -/
 def neg_part (f : Lp ℝ p μ) : Lp ℝ p μ := pos_part (-f)
@@ -2365,7 +2365,7 @@ begin
   intros ε hε,
   have h_B : ∃ (N : ℕ), B N ≤ ε,
   { suffices h_tendsto_zero : ∃ (N : ℕ), ∀ n : ℕ, N ≤ n → B n ≤ ε,
-      from ⟨h_tendsto_zero.some, h_tendsto_zero.some_spec _ (le_refl _)⟩,
+      from ⟨h_tendsto_zero.some, h_tendsto_zero.some_spec _ le_rfl⟩,
     exact (ennreal.tendsto_at_top_zero.mp (ennreal.tendsto_at_top_zero_of_tsum_ne_top hB))
       ε hε, },
   cases h_B with N h_B,

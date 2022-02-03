@@ -118,7 +118,7 @@ begin
     intros ε hε,
     existsi stationary_point hf,
     intros j hj,
-    have heq := stationary_point_spec hf (le_refl _) hj,
+    have heq := stationary_point_spec hf le_rfl hj,
     simpa [h, heq] },
   { intro h,
     simp [norm, h] }
@@ -213,7 +213,7 @@ begin
   intros ε hε,
   use (stationary_point hf),
   intros n hn,
-  rw stationary_point_spec hf (le_refl _) hn,
+  rw stationary_point_spec hf le_rfl hn,
   simpa [H] using hε,
 end
 
@@ -553,7 +553,7 @@ begin
   apply not_le_of_gt _ hge,
   cases decidable.em (N ≤ stationary_point hne) with hgen hngen,
   { apply hN; assumption },
-  { have := stationary_point_spec hne (le_refl _) (le_of_not_le hngen),
+  { have := stationary_point_spec hne le_rfl (le_of_not_le hngen),
     rw ←this,
     apply hN,
     apply le_refl, assumption }
@@ -647,7 +647,7 @@ quotient.induction_on q $ λ q',
         change padic_norm p (q' _ - q' _) < ε,
         have := stationary_point_spec hne',
         cases decidable.em (stationary_point hne' ≤ N) with hle hle,
-        { have := eq.symm (this (le_refl _) hle),
+        { have := eq.symm (this le_rfl hle),
           simp only [const_apply, sub_apply, padic_norm.zero, sub_self] at this,
           simpa only [this] },
         { apply hN,
@@ -904,7 +904,7 @@ begin
   { rintro ⟨x, rfl⟩,
     push_cast,
     rw padic_norm_e.mul,
-    calc _ ≤ ∥(p : ℚ_[p])∥ * 1 : mul_le_mul (le_refl _) (by simpa using norm_int_le_one _)
+    calc _ ≤ ∥(p : ℚ_[p])∥ * 1 : mul_le_mul le_rfl (by simpa using norm_int_le_one _)
                                             (norm_nonneg _) (norm_nonneg _)
     ... < 1 : _,
     { rw [mul_one, padic_norm_e.norm_p],
@@ -964,7 +964,7 @@ lemma padic_norm_e_lim_le {f : cau_seq ℚ_[p] norm} {a : ℝ} (ha : 0 < a)
 let ⟨N, hN⟩ := setoid.symm (cau_seq.equiv_lim f) _ ha in
 calc ∥f.lim∥ = ∥f.lim - f N + f N∥ : by simp
                 ... ≤ max (∥f.lim - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
-                ... ≤ a : max_le (le_of_lt (hN _ (le_refl _))) (hf _)
+                ... ≤ a : max_le (le_of_lt (hN _ le_rfl)) (hf _)
 
 /-!
 ### Valuation on `ℚ_[p]`

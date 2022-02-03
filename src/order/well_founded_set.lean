@@ -619,7 +619,7 @@ begin
   { dsimp,
     rw [← subtype.val_eq_coe, h m n (le_of_lt mn)],
     convert (fs n).2.1.2 m n mn },
-  { convert (fs n).2.2 g (λ m mn, eq.trans _ (hg1 m mn)) (lt_of_lt_of_le hg2 (le_refl _)),
+  { convert (fs n).2.2 g (λ m mn, eq.trans _ (hg1 m mn)) (lt_of_lt_of_le hg2 le_rfl),
     rw ← h m n (le_of_lt mn) },
 end
 

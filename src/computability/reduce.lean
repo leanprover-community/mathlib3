@@ -134,7 +134,7 @@ def one_one_equiv {α β} [primcodable α] [primcodable β]
 
 @[refl]
 theorem many_one_equiv_refl {α} [primcodable α] (p : α → Prop) : many_one_equiv p p :=
-⟨many_one_reducible_refl _, many_one_reducible_refl _⟩
+⟨many_one_reducible_rfl, many_one_reducible_rfl⟩
 
 @[symm]
 theorem many_one_equiv.symm {α β} [primcodable α] [primcodable β]
@@ -152,7 +152,7 @@ theorem equivalence_of_many_one_equiv {α} [primcodable α] :
 
 @[refl]
 theorem one_one_equiv_refl {α} [primcodable α] (p : α → Prop) : one_one_equiv p p :=
-⟨one_one_reducible_refl _, one_one_reducible_refl _⟩
+⟨one_one_reducible_rfl, one_one_reducible_rfl⟩
 
 @[symm]
 theorem one_one_equiv.symm {α β} [primcodable α] [primcodable β]

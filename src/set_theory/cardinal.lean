@@ -431,7 +431,7 @@ protected theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → 
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
 
 protected theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
-cardinal.add_le_add (le_refl _)
+cardinal.add_le_add le_rfl
 
 protected theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
 ⟨induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,

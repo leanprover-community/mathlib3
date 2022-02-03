@@ -708,7 +708,7 @@ this way since, to prove `μ ≤ ν`, we may simply `intros s hs` instead of rew
 by `intros s hs`. -/
 instance [measurable_space α] : partial_order (measure α) :=
 { le          := λ m₁ m₂, ∀ s, measurable_set s → m₁ s ≤ m₂ s,
-  le_refl     := assume m s hs, le_refl _,
+  le_refl     := assume m s hs, le_rfl,
   le_trans    := assume m₁ m₂ m₃ h₁ h₂ s hs, le_trans (h₁ s hs) (h₂ s hs),
   le_antisymm := assume m₁ m₂ h₁ h₂, ext $
     assume s hs, le_antisymm (h₁ s hs) (h₂ s hs) }
@@ -2715,7 +2715,7 @@ begin
 end
 
 lemma sub_le : μ - ν ≤ μ :=
-Inf_le (measure.le_add_right (le_refl _))
+Inf_le (measure.le_add_right le_rfl)
 
 end measure_sub
 
@@ -2767,7 +2767,7 @@ begin
     apply exists.intro (t.restrict s), split,
     { rw [set.mem_set_of_eq, ← restrict_add],
       apply restrict_mono (set.subset.refl _) h_t_in },
-    { apply le_refl _ } },
+    { apply le_rfl } },
 end
 
 lemma sub_apply_eq_zero_of_restrict_le_restrict

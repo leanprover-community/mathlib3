@@ -76,7 +76,7 @@ section normalization_monoid
 
 instance : normalization_monoid ℤ :=
 { norm_unit      := λa:ℤ, if 0 ≤ a then 1 else -1,
-  norm_unit_zero := if_pos (le_refl _),
+  norm_unit_zero := if_pos le_rfl,
   norm_unit_mul  := assume a b hna hnb,
   begin
     cases hna.lt_or_lt with ha ha; cases hnb.lt_or_lt with hb hb;

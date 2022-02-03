@@ -114,11 +114,11 @@ begin
   intros l k,
   induction k with k ih generalizing l;
   intros h,
-  { exact (le_zero_iff.mp h).symm ▸ le_refl _, },
+  { exact (le_zero_iff.mp h).symm ▸ le_rfl, },
   { rcases nat.of_le_succ h with hk | hk,
     { rw lower_central_series_succ,
       exact (lie_submodule.mono_lie_right _ _ ⊤ (ih hk)).trans (lie_submodule.lie_le_right _ _), },
-    { exact hk.symm ▸ le_refl _, }, },
+    { exact hk.symm ▸ le_rfl, }, },
 end
 
 lemma trivial_iff_lower_central_eq_bot : is_trivial L M ↔ lower_central_series R L M 1 = ⊥ :=
@@ -160,7 +160,7 @@ lemma derived_series_le_lower_central_series (k : ℕ) :
 begin
   induction k with k h,
   { rw [derived_series_def, derived_series_of_ideal_zero, lower_central_series_zero],
-    exact le_refl _, },
+    exact le_rfl, },
   { have h' : derived_series R L k ≤ ⊤, { by simp only [le_top], },
     rw [derived_series_def, derived_series_of_ideal_succ, lower_central_series_succ],
     exact lie_submodule.mono_lie _ _ _ _ h' h, },

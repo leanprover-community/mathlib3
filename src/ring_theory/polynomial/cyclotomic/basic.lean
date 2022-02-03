@@ -766,13 +766,24 @@ section minpoly
 
 open is_primitive_root complex
 
+.
+
 /-- The minimal polynomial of a primitive `n`-th root of unity `μ` divides `cyclotomic n ℤ`. -/
-lemma _root_.minpoly_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
+lemma _root_.is_primitive_root.minpoly_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ : K}
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
   minpoly ℤ μ ∣ cyclotomic n ℤ :=
 begin
   apply minpoly.gcd_domain_dvd ℚ (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
   simpa [aeval_def, eval₂_eq_eval_map, is_root.def] using is_root_cyclotomic hpos h
+end
+
+lemma _root_.is_primitive_root.minpoly_eq_cyclotomic_of_irreducible {K : Type*} [field K]
+  {R : Type*} [comm_ring R] [is_domain R] {μ : R} {n : ℕ} [algebra K R] (hμ : is_primitive_root μ n)
+  (h : irreducible $ cyclotomic n K) [ne_zero (n : K)] : minpoly K μ = cyclotomic n K :=
+begin
+  haveI := ne_zero.of_no_zero_smul_divisors K R n,
+  refine (minpoly.eq_of_irreducible_of_monic h _ $ cyclotomic.monic _ _).symm,
+  rwa [aeval_def, eval₂_eq_eval_map, map_cyclotomic, ←is_root.def, is_root_cyclotomic_iff]
 end
 
 /-- `cyclotomic n ℤ` is the minimal polynomial of a primitive `n`-th root of unity `μ`. -/
@@ -781,7 +792,7 @@ lemma cyclotomic_eq_minpoly {n : ℕ} {K : Type*} [field K] {μ : K}
   cyclotomic n ℤ = minpoly ℤ μ :=
 begin
   refine eq_of_monic_of_dvd_of_nat_degree_le (minpoly.monic (is_integral h hpos))
-    (cyclotomic.monic n ℤ) (minpoly_dvd_cyclotomic h hpos) _,
+    (cyclotomic.monic n ℤ) (h.minpoly_dvd_cyclotomic hpos) _,
   simpa [nat_degree_cyclotomic n ℤ] using totient_le_degree_minpoly h
 end
 

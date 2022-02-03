@@ -333,7 +333,7 @@ variables {ι : Type*} [has_scalar M β]
 
 include h
 
-@[to_additive, priority 100] lemma has_continuous_smul_Inf :
+@[to_additive] lemma has_continuous_smul_Inf :
   @has_continuous_smul M β _ _ (Inf ts) :=
 { continuous_smul :=
   begin
@@ -346,7 +346,7 @@ omit h
 
 include h'
 
-@[to_additive, priority 100] lemma has_continuous_smul_infi :
+@[to_additive] lemma has_continuous_smul_infi :
   @has_continuous_smul M β _ _ (⨅ i, ts' i) :=
 by {rw ← Inf_range, exact has_continuous_smul_Inf (set.forall_range_iff.mpr h')}
 
@@ -354,7 +354,7 @@ omit h'
 
 include h₁ h₂
 
-@[to_additive, priority 100] lemma has_continuous_smul_inf :
+@[to_additive] lemma has_continuous_smul_inf :
   @has_continuous_smul M β _ _ (t₁ ⊓ t₂) :=
 by {rw inf_eq_infi, refine has_continuous_smul_infi (λ b, _), cases b; assumption}
 

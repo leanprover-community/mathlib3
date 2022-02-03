@@ -703,7 +703,6 @@ This is not an instance because it would cause a search for `finite_dimensional 
 lemma proper_is_R_or_C [finite_dimensional K E] : proper_space E :=
 begin
   letI : normed_space ℝ E := restrict_scalars.normed_space ℝ K E,
-  letI : is_scalar_tower ℝ K E := restrict_scalars.is_scalar_tower ℝ K E,
   letI : finite_dimensional ℝ E := finite_dimensional.trans ℝ K E,
   apply_instance
 end

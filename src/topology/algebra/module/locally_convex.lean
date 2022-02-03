@@ -62,62 +62,14 @@ begin
   exact hbasis.map _
 end
 
---⟨λ s hs, let ⟨i, h_pi, h_sub⟩ := hbasis.mem_iff.mp hs in
---  ⟨b i, hbasis.mem_of_mem h_pi, h_sub, hconvex i (h_pi)⟩⟩
-
---lemma locally_convex_space.exists_convex_nhds_zero [locally_convex_space 𝕂 E] {s : set E}
---  (hs : s ∈ (𝓝 0 : filter E)) : ∃ c ∈ (𝓝 0 : filter E), c ⊆ s ∧ convex 𝕂 c :=
---@locally_convex_space.exists_convex_nhds_zero' 𝕂 E ‹_› ‹_› ‹_› ‹_› ‹_› ‹_› ‹_› ‹_› ‹_› s hs
-
---def locally_convex_space.nhds_zero_basis_convex [h : locally_convex_space 𝕂 E] :
---  (𝓝 0 : filter E).has_basis (λ c : set E, c ∈ (𝓝 0 : filter E) ∧ convex 𝕂 c) id :=
---⟨ λ t,
---  ⟨ λ ht,
---    let ⟨c, c_mem_nhds, c_sub_t, c_convex⟩ := locally_convex_space.exists_convex_nhds_zero 𝕂 E
---ht in
---    ⟨c, ⟨c_mem_nhds, c_convex⟩, c_sub_t⟩,
---    λ ⟨c, ⟨c_mem_nhds, _⟩, c_sub_t⟩, filter.mem_of_superset c_mem_nhds c_sub_t ⟩ ⟩
-
---def locally_convex_space.nhds_basis_convex [h : locally_convex_space 𝕂 E] (x : E) :
---  (𝓝 x).has_basis (λ c : set E, c ∈ (𝓝 x) ∧ convex 𝕂 c) id :=
---sorry
-
---lemma locally_convex_space_of_convex_nhds_basis {ι : Type*} {b : ι → set E} {p : ι → Prop}
---  (hbasis : (𝓝 0 : filter E).has_basis p b) (hconvex : ∀ i, p i → convex 𝕂 (b i)) :
---  locally_convex_space 𝕂 E :=
---⟨λ s hs, let ⟨i, h_pi, h_sub⟩ := hbasis.mem_iff.mp hs in
---  ⟨b i, hbasis.mem_of_mem h_pi, h_sub, hconvex i (h_pi)⟩⟩
-
 end module
 
 namespace normed_space
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
-noncomputable instance : locally_convex_space ℝ E :=
+instance : locally_convex_space ℝ E :=
 locally_convex_of_basis_zero ℝ E (metric.ball 0) (λ (ε : ℝ), 0 < ε) metric.nhds_basis_ball
   (λ ε hε, convex_ball (0 : E) ε)
 
 end normed_space
-
-section lattice_ops
-
-variables {ι 𝕂 E : Type*} [ordered_semiring 𝕂] [add_comm_monoid E] [module 𝕂 E]
-  [topological_space 𝕂] [h₁ : topological_ring 𝕂]
-  [ts : set (topological_space E)] [h₂ : ∀ t ∈ ts, @has_continuous_add E t _]
-  [h₃ : ∀ t ∈ ts, @has_continuous_smul 𝕂 E _ _ t]
-
-include h₁ h₂ h₃
-
-#check filter.has_basis_supr
-
-instance locally_convex_Inf : @locally_convex_space 𝕂 E _ _ _ (Inf ts) :=
-begin
-  letI : topological_space E := Inf ts,
-  letI : has_continuous_add E := has_continuous_add_Inf h₂,
-  letI : has_continuous_smul 𝕂 E := has_continuous_smul_Inf h₃,
-  refine locally_convex_of_bases 𝕂 E _ _ _ _,
-end
---@locally_convex_space_of_convex_nhds_basis 𝕂  E _ _ _ _ (⨅ i, ts i) _ _ _ (set E)
-
-end lattice_ops

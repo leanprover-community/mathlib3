@@ -252,4 +252,8 @@ lemma tendsto_comp_exp_at_bot {α : Type*} {l : filter α} {f : ℝ → α} :
   tendsto (λ x, f (exp x)) at_bot l ↔ tendsto f (𝓝[>] 0) l :=
 by rw [← map_exp_at_bot, tendsto_map'_iff]
 
+lemma is_o_pow_exp_at_top {n : ℕ} (hn : 1 ≤ n) : is_o (λ x, x^n) real.exp at_top :=
+by simpa [is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim)]
+  using tendsto_div_pow_mul_exp_add_at_top 1 0 n zero_ne_one hn
+
 end real

@@ -259,6 +259,18 @@ begin
   simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
 end
 
+lemma tendsto_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) (hn : 1 ≤ n) :
+  tendsto (λ x, (log x) ^ n / (a * x + b)) at_top (𝓝 0) :=
+((tendsto_div_pow_mul_exp_add_at_top a b n ha.symm hn).comp tendsto_log_at_top).congr'
+  (by filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using by simp [exp_log hx])
+
+lemma is_o_log_id_at_top {n : ℕ} (hn : 1 ≤ n) :
+  asymptotics.is_o (λ x, log x ^ n) (λ x, x) at_top :=
+begin
+  rw asymptotics.is_o_iff_tendsto (λ x (hx : x = 0), (show log x ^ n = 0, by simpa [hx])),
+  simpa using tendsto_log_div_mul_add_at_top 1 0 n one_ne_zero hn
+end
+
 end real
 
 section continuity

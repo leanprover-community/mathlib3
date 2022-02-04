@@ -132,7 +132,7 @@ protected def id : C(α, α) := ⟨id⟩
 
 variables {α}
 
-@[simp] lemma id_apply (a : α) : id a = a := rfl
+@[simp] lemma id_apply (a : α) : continuous_map.id α a = a := rfl
 @[simp] lemma const_apply (b : β) (a : α) : const α b a = b := rfl
 
 /-- The composition of continuous maps, as a continuous map. -/

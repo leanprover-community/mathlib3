@@ -143,7 +143,8 @@ lemma grade_ne_iff_ne : grade a ≠ grade b ↔ a ≠ b := grade_injective.ne_if
 
 /-- `grade` as an order embedding into `ℕ` for a linear order `α`. -/
 protected def order_embedding.grade : α ↪o ℕ :=
-{ inj' := grade_injective,
+{ to_fun := _,
+  inj' := grade_injective,
   map_rel_iff' := λ _ _, grade_le_iff_le }
 
 lemma covers_iff_grade : a ⋖ b ↔ grade a + 1 = grade b :=
@@ -251,7 +252,7 @@ instance (n : ℕ) : grade_order (fin n) :=
     { exact congr_arg _ ha.eq_bot }
   end,
   grade_strict_mono := strict_mono_id,
-  grade_of_covers := λ _ _ h, nat.covers_iff_succ_eq.1 $ (fin.val_covers_iff _ _).2 h }
+  grade_of_covers := λ _ _ h, nat.covers_iff_succ_eq.1 $ (fin.coe_covers_iff _ _).2 h }
 
 instance (n : ℕ) : grade_max_order (fin (n + 1)) := grade_order.to_grade_max_order
 
@@ -331,4 +332,3 @@ def grade_order.lift (hmin : ∀ a, is_min a → is_min (f a)) (hf : (set.range 
   grade_of_covers := λ a b hab, (hf.image_covers_image_iff.2 hab).grade }
 
 end lift
-#lint

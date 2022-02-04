@@ -90,17 +90,6 @@ lemma idempotence_of_id_sub_idempotent [preadditive C]
   (𝟙 _ - p) ≫ (𝟙 _ - p) = (𝟙 _ - p) :=
 by simp only [comp_sub, sub_comp, id_comp, comp_id, hp, sub_self, sub_zero]
 
-/-- for preadditive/default.lean -/
-lemma has_kernel_of_has_equalizer [preadditive C] {X Y : C} (f g : X ⟶ Y)
-  [has_equalizer f g] : has_kernel (f - g) :=
-has_limit.mk
-  { cone := fork.of_ι (equalizer.ι f g)
-      (by erw [comp_zero, comp_sub, equalizer.condition f g, sub_self]),
-  is_limit := fork.is_limit.mk _
-    (λ s, equalizer.lift s.ι (by simpa only [comp_sub, comp_zero, sub_eq_zero] using s.condition))
-    (λ s, by simp only [fork.ι_eq_app_zero, fork.of_ι_π_app, equalizer.lift_ι])
-    (λ s m h, by { ext, simpa only [equalizer.lift_ι] using h walking_parallel_pair.zero, }), }
-
 variables (C)
 
 /-- A preadditive category is pseudoabelian iff all idempotent endomorphisms have a kernel. -/

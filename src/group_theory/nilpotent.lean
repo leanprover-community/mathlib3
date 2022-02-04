@@ -766,6 +766,37 @@ begin
   exact derived_le_lower_central n,
 end
 
+lemma normalizer_condition_of_is_nilpotent [h : is_nilpotent G] : normalizer_condition G :=
+begin
+  -- roughly based on https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
+  rw normalizer_condition_iff_only_full_group_self_normalizing,
+  unfreezingI
+  { induction h using nilpotent_center_quotient_ind with G' _ _ G' _ _ ih;
+    clear _inst_1 G; rename  G' → G, },
+  { rintros H -, apply subsingleton.elim, },
+  { intros H hH,
+    by_cases hch : center G ≤ H,
+    { let H' := H.map (mk' (center G)),
+
+      have hH' : H'.normalizer = H',
+      { apply (@comap_injective G _ _ _ (mk' (center G)) (surjective_quot_mk _)),
+        rw comap_normalizer_eq_of_surjective,
+        show function.surjective _, by exact (surjective_quot_mk _),
+        { rw comap_map_eq_self,
+          show (_ ≤ H), by { simpa using hch },
+          exact hH, }, },
+
+      specialize ih (H.map (mk' (center G))) hH',
+
+      show H = ⊤,
+      apply map_injective_of_ker_le (mk' (center G)) (by simpa using hch) le_top,
+      rw [ih, subgroup.map_top_of_surjective],
+      exact quotient.surjective_quotient_mk', },
+    { exfalso, apply hch,
+      calc center G ≤ H.normalizer : subgroup.center_le_normalizer
+                ... = H : hH, } },
+end
+
 end with_group
 
 section with_finite_group

@@ -104,6 +104,7 @@ def Bipointed_to_Pointed_snd : Bipointed ⥤ Pointed :=
 @[simp] lemma swap_comp_Bipointed_to_Pointed_snd :
   Bipointed.swap ⋙ Bipointed_to_Pointed_snd = Bipointed_to_Pointed_fst := rfl
 
+--TODO: This is actually an equivalence
 /-- The functor from `Pointed` to `Bipointed` which adds a second point. -/
 def Pointed_to_Bipointed_fst : Pointed.{u} ⥤ Bipointed :=
 { obj := λ X, ⟨option X, X.point, none⟩,
@@ -111,6 +112,7 @@ def Pointed_to_Bipointed_fst : Pointed.{u} ⥤ Bipointed :=
   map_id' := λ X, Bipointed.hom.ext _ _ option.map_id,
   map_comp' := λ X Y Z f g, Bipointed.hom.ext _ _ (option.map_comp_map  _ _).symm }
 
+--TODO: This is actually an equivalence
 /-- The functor from `Pointed` to `Bipointed` which adds a first point. -/
 def Pointed_to_Bipointed_snd : Pointed.{u} ⥤ Bipointed :=
 { obj := λ X, ⟨option X, none, X.point⟩,
@@ -128,26 +130,22 @@ def Pointed_to_Bipointed_snd : Pointed.{u} ⥤ Bipointed :=
 -/
 def Pointed_to_Bipointed_fst_Bipointed_to_Pointed_fst_adjunction :
   Pointed_to_Bipointed_fst ⊣ Bipointed_to_Pointed_fst :=
+adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y, { to_fun := λ f, ⟨f.to_fun ∘ option.some, f.map_fst⟩,
                         inv_fun := λ f, ⟨λ o, o.elim Y.to_prod.2 f.to_fun, f.map_point, rfl⟩,
                         left_inv := λ f, by { ext, cases x, exact f.map_snd.symm, refl },
                         right_inv := λ f, Pointed.hom.ext _ _ rfl },
-  unit := { app := λ X, ⟨option.some, rfl⟩, naturality' := λ X Y f, rfl },
-  counit := { app := λ X, ⟨λ o, o.elim X.to_prod.2 id, rfl, rfl⟩,
-              naturality' := λ X Y f, by { ext, cases x, exact f.map_snd.symm, refl } },
-  hom_equiv_unit' := λ X Y f, rfl,
-  hom_equiv_counit' := λ X Y f, by { ext, cases x; refl } }
+  hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext, cases x; refl },
+  hom_equiv_naturality_right' := λ X' X Y f g, Pointed.hom.ext _ _ rfl }
 
 /-- The free/forgetful adjunction between `Pointed_to_Bipointed_snd` and `Bipointed_to_Pointed_snd`.
 -/
 def Pointed_to_Bipointed_snd_Bipointed_to_Pointed_snd_adjunction :
   Pointed_to_Bipointed_snd ⊣ Bipointed_to_Pointed_snd :=
+adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y, { to_fun := λ f, ⟨f.to_fun ∘ option.some, f.map_snd⟩,
                         inv_fun := λ f, ⟨λ o, o.elim Y.to_prod.1 f.to_fun, rfl, f.map_point⟩,
                         left_inv := λ f, by { ext, cases x, exact f.map_fst.symm, refl },
                         right_inv := λ f, Pointed.hom.ext _ _ rfl },
-  unit := { app := λ X, ⟨option.some, rfl⟩, naturality' := λ X Y f, rfl },
-  counit := { app := λ X, ⟨λ o, o.elim X.to_prod.1 id, rfl, rfl⟩,
-              naturality' := λ X Y f, by { ext, cases x, exact f.map_fst.symm, refl } },
-  hom_equiv_unit' := λ X Y f, rfl,
-  hom_equiv_counit' := λ X Y f, by { ext, cases x; refl } }
+  hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext, cases x; refl },
+  hom_equiv_naturality_right' := λ X' X Y f g, Pointed.hom.ext _ _ rfl }

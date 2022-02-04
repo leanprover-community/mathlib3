@@ -72,9 +72,19 @@ instance concrete_category : concrete_category Pointed :=
 end Pointed
 
 --TODO: This is actually an equivalence
-/-- `option` as a functor from types to pointed types. -/
+/-- `option` as a functor from types to pointed types. This is the free functor. -/
 @[simps] def Type_to_Pointed : Type.{u} ⥤ Pointed.{u} :=
 { obj := λ X, ⟨option X, none⟩,
   map := λ X Y f, ⟨option.map f, rfl⟩,
   map_id' := λ X, Pointed.hom.ext _ _ option.map_id,
   map_comp' := λ X Y Z f g, Pointed.hom.ext _ _ (option.map_comp_map _ _).symm }
+
+/-- `Type_to_Pointed` is the free functor. -/
+def Type_to_Pointed_forget_adjunction : Type_to_Pointed ⊣ forget Pointed :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X Y, { to_fun := λ f, f.to_fun ∘ option.some,
+                        inv_fun := λ f, ⟨λ o, o.elim Y.point f, rfl⟩,
+                        left_inv := λ f, by { ext, cases x, exact f.map_point.symm, refl },
+                        right_inv := λ f, funext $ λ _, rfl },
+  hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext, cases x; refl },
+  hom_equiv_naturality_right' := λ X' X Y f g, funext $ λ _, rfl }

@@ -89,8 +89,7 @@ instance : order_ring_hom_class (α →+*o β) α β :=
 directly. -/
 instance : has_coe_to_fun (α →+*o β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
 
-@[simp] lemma to_fun_eq_coe (f : α →+*o β) : f.to_fun = ⇑f := rfl
-
+lemma to_fun_eq_coe (f : α →+*o β) : f.to_fun = ⇑f := rfl
 @[ext] lemma ext {f g : α →+*o β} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
 @[simp] lemma to_ring_hom_eq_coe (f : α →+*o β) : f.to_ring_hom = f := ring_hom.ext $ λ _, rfl
@@ -143,13 +142,13 @@ lemma comp_assoc (f : γ →+*o δ) (g : β →+*o γ) (h : α →+*o β) :
 @[simp] lemma comp_id (f : α →+*o β) : f.comp (order_ring_hom.id α) = f := ext $ λ x, rfl
 @[simp] lemma id_comp (f : α →+*o β) : (order_ring_hom.id β).comp f = f := ext $ λ x, rfl
 
-lemma cancel_right {g₁ g₂ : β →+*o γ} {f : α →+*o β} (hf : surjective f) :
-  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
+lemma cancel_right {f₁ f₂ : β →+*o γ} {g : α →+*o β} (hg : surjective g) :
+  f₁.comp g = f₂.comp g ↔ f₁ = f₂ :=
+⟨λ h, ext $ hg.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
 
-lemma cancel_left {g : β →+*o γ} {f₁ f₂ : α →+*o β} (hg : injective g) :
-  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
+lemma cancel_left {f : β →+*o γ} {g₁ g₂ : α →+*o β} (hf : injective f) :
+  f.comp g₁ = f.comp g₂ ↔ g₁ = g₂ :=
+⟨λ h, ext $ λ a, hf $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 
 instance : partial_order (order_ring_hom α β) := partial_order.lift _ fun_like.coe_injective
 

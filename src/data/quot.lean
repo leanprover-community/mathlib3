@@ -31,7 +31,7 @@ namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a
 
-instance (r : α → α → Prop) [inhabited α] : inhabited (quot r) := ⟨⟦default⟧⟩
+instance [inhabited α] : inhabited (quot ra) := ⟨⟦default⟧⟩
 
 instance [subsingleton α] : subsingleton (quot ra) :=
 ⟨λ x, quot.induction_on x (λ y, quot.ind (λ b, congr_arg _ (subsingleton.elim _ _)))⟩

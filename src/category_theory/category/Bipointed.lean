@@ -75,7 +75,7 @@ instance concrete_category : concrete_category Bipointed :=
 { obj := λ X, ⟨X, X.to_prod.swap⟩, map := λ X Y f, ⟨f.to_fun, f.map_snd, f.map_fst⟩ }
 
 /-- The equivalence between `Bipointed` and itself induced by `prod.swap` both ways. -/
-def swap_equiv : Bipointed ≌ Bipointed :=
+@[simps] def swap_equiv : Bipointed ≌ Bipointed :=
 equivalence.mk swap swap
   (nat_iso.of_components (λ X, { hom := ⟨id, rfl, rfl⟩, inv := ⟨id, rfl, rfl⟩ }) $ λ X Y f, rfl)
   (nat_iso.of_components (λ X, { hom := ⟨id, rfl, rfl⟩, inv := ⟨id, rfl, rfl⟩ }) $ λ X Y f, rfl)
@@ -123,3 +123,31 @@ def Pointed_to_Bipointed_snd : Pointed.{u} ⥤ Bipointed :=
 
 @[simp] lemma Pointed_to_Bipointed_snd_comp :
   Pointed_to_Bipointed_snd ⋙ Bipointed.swap = Pointed_to_Bipointed_fst := rfl
+
+/-- The free/forgetful adjunction between `Pointed_to_Bipointed_fst` and `Bipointed_to_Pointed_fst`.
+-/
+def Pointed_to_Bipointed_fst_Bipointed_to_Pointed_fst_adjunction :
+  Pointed_to_Bipointed_fst ⊣ Bipointed_to_Pointed_fst :=
+{ hom_equiv := λ X Y, { to_fun := λ f, ⟨f.to_fun ∘ option.some, f.map_fst⟩,
+                        inv_fun := λ f, ⟨λ o, o.elim Y.to_prod.2 f.to_fun, f.map_point, rfl⟩,
+                        left_inv := λ f, by { ext, cases x, exact f.map_snd.symm, refl },
+                        right_inv := λ f, Pointed.hom.ext _ _ rfl },
+  unit := { app := λ X, ⟨option.some, rfl⟩, naturality' := λ X Y f, rfl },
+  counit := { app := λ X, ⟨λ o, o.elim X.to_prod.2 id, rfl, rfl⟩,
+              naturality' := λ X Y f, by { ext, cases x, exact f.map_snd.symm, refl } },
+  hom_equiv_unit' := λ X Y f, rfl,
+  hom_equiv_counit' := λ X Y f, by { ext, cases x; refl } }
+
+/-- The free/forgetful adjunction between `Pointed_to_Bipointed_snd` and `Bipointed_to_Pointed_snd`.
+-/
+def Pointed_to_Bipointed_snd_Bipointed_to_Pointed_snd_adjunction :
+  Pointed_to_Bipointed_snd ⊣ Bipointed_to_Pointed_snd :=
+{ hom_equiv := λ X Y, { to_fun := λ f, ⟨f.to_fun ∘ option.some, f.map_snd⟩,
+                        inv_fun := λ f, ⟨λ o, o.elim Y.to_prod.1 f.to_fun, rfl, f.map_point⟩,
+                        left_inv := λ f, by { ext, cases x, exact f.map_fst.symm, refl },
+                        right_inv := λ f, Pointed.hom.ext _ _ rfl },
+  unit := { app := λ X, ⟨option.some, rfl⟩, naturality' := λ X Y f, rfl },
+  counit := { app := λ X, ⟨λ o, o.elim X.to_prod.1 id, rfl, rfl⟩,
+              naturality' := λ X Y f, by { ext, cases x, exact f.map_fst.symm, refl } },
+  hom_equiv_unit' := λ X Y f, rfl,
+  hom_equiv_counit' := λ X Y f, by { ext, cases x; refl } }

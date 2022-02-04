@@ -28,7 +28,8 @@ Bernoulli polynomials are defined using `bernoulli`, the Bernoulli numbers.
 
 - `sum_bernoulli`: The sum of the $k^\mathrm{th}$ Bernoulli polynomial with binomial
   coefficients up to n is `(n + 1) * X^n`.
-- `exp_bernoulli`: The Bernoulli polynomials act as generating functions for the exponential.
+- `bernoulli_generating_function`: The Bernoulli polynomials act as generating functions
+  for the exponential.
 
 ## TODO
 

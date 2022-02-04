@@ -917,11 +917,6 @@ by simp only [← interior_set_of_eq, is_open_interior]
 lemma subset_interior_iff_nhds {s V : set α} : s ⊆ interior V ↔ ∀ x ∈ s, V ∈ 𝓝 x :=
 show (∀ x, x ∈ s →  x ∈ _) ↔ _, by simp_rw mem_interior_iff_mem_nhds
 
-lemma dense.inter_nhds_nonempty {s t : set α} (hs : dense s) {a : α} (ht : t ∈ 𝓝 a) :
-  (s ∩ t).nonempty :=
-(hs.inter_open_nonempty (interior t) is_open_interior ⟨a, mem_interior_iff_mem_nhds.2 ht⟩).mono $
-  λ x hx, ⟨hx.2, interior_subset hx.1⟩
-
 lemma is_open_iff_nhds {s : set α} : is_open s ↔ ∀a∈s, 𝓝 a ≤ 𝓟 s :=
 calc is_open s ↔ s ⊆ interior s : subset_interior_iff_open.symm
   ... ↔ (∀a∈s, 𝓝 a ≤ 𝓟 s) : by rw [interior_eq_nhds]; refl

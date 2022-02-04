@@ -815,8 +815,7 @@ begin
     refine summable_of_norm_bounded_eventually 0 summable_zero _,
     rw nat.cofinite_eq_at_top,
     filter_upwards [h] with _ hn,
-    by_contra h,
-    push_neg at h,
+    by_contra' h,
     exact not_lt.mpr (norm_nonneg _) (lt_of_le_of_lt hn $ mul_neg_of_neg_of_pos hr₀ h), },
 end
 
@@ -893,7 +892,7 @@ begin
   rcases hf.summable.comp_injective (@encodable.encode_injective ι _) with ⟨c, hg⟩,
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
   { assume i _, exact le_of_lt (f0 _) },
-  { assume n, exact le_refl _ }
+  { assume n, exact le_rfl }
 end
 
 lemma set.countable.exists_pos_has_sum_le {ι : Type*} {s : set ι} (hs : s.countable)

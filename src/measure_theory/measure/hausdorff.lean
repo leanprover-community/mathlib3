@@ -587,7 +587,7 @@ mk_metric_le_liminf_sum s r hr t ht hst _
 lemma hausdorff_measure_zero_or_top {d₁ d₂ : ℝ} (h : d₁ < d₂) (s : set X) :
   μH[d₂] s = 0 ∨ μH[d₁] s = ∞ :=
 begin
-  by_contra H, push_neg at H,
+  by_contra' H, 
   suffices : ∀ (c : ℝ≥0), c ≠ 0 → μH[d₂] s ≤ c * μH[d₁] s,
   { rcases ennreal.exists_nnreal_pos_mul_lt H.2 H.1 with ⟨c, hc0, hc⟩,
     exact hc.not_le (this c (pos_iff_ne_zero.1 hc0)) },

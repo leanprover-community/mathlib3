@@ -303,7 +303,7 @@ begin
                                   : (div_le_div_right npos).mpr
                                     begin
                                       apply mul_nonneg_le_one_le w₂,
-                                      apply mul_nonneg_le_one_le w₂ (le_refl _),
+                                      apply mul_nonneg_le_one_le w₂ le_rfl,
                                       all_goals { unit_interval, },
                                     end
         ... < ε/2 : nh, }

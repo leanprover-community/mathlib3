@@ -628,7 +628,7 @@ begin
     coeff_zero_eq_constant_coeff_apply, h, coeff_inv_of_unit, if_neg H,
     neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, units.mul_inv_cancel_left,
     ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
-    finset.insert_erase this, if_neg (not_lt_of_ge $ le_refl _), zero_add, add_comm,
+    finset.insert_erase this, if_neg (not_lt_of_ge $ le_rfl), zero_add, add_comm,
     ← sub_eq_add_neg, sub_eq_zero, finset.sum_congr rfl],
   rintros ⟨i,j⟩ hij, rw [finset.mem_erase, finsupp.mem_antidiagonal] at hij,
   cases hij with h₁ h₂,
@@ -1733,7 +1733,7 @@ private lemma order_add_of_order_eq.aux (φ ψ : power_series R)
   order (φ + ψ) ≤ order φ ⊓ order ψ :=
 begin
   suffices : order (φ + ψ) = order φ,
-  { rw [le_inf_iff, this], exact ⟨le_refl _, le_of_lt H⟩ },
+  { rw [le_inf_iff, this], exact ⟨le_rfl, le_of_lt H⟩ },
   { rw order_eq, split,
     { intros i hi, rw ←hi at H, rw [(coeff _ _).map_add, coeff_of_lt_order i H, add_zero],
       exact (order_eq_nat.1 hi.symm).1 },

@@ -87,7 +87,7 @@ begin
   cases h : degree f with n,
   { rw [degree_eq_bot.1 h]; exact splits_zero i },
   { cases n with n,
-    { rw [eq_C_of_degree_le_zero (trans_rel_right (≤) h (le_refl _))];
+    { rw [eq_C_of_degree_le_zero (trans_rel_right (≤) h le_rfl)];
       exact splits_C _ _ },
     { have hn : n = 0,
       { rw h at hf,
@@ -419,7 +419,7 @@ begin
     congr' 1,
     rw ← this,
     simp, },
-  { rw [nat_degree_map' (is_fraction_ring.injective K (fraction_ring K)), ← this],
+  { rw [nat_degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)), ← this],
     simp only [←hroots, multiset.card_map], },
 end
 
@@ -466,7 +466,7 @@ begin
       (is_fraction_ring.injective K (fraction_ring K)) hroots,
   have : multiset.card (map (algebra_map K (fraction_ring K)) p).roots =
     (map (algebra_map K (fraction_ring K)) p).nat_degree,
-  { rw [nat_degree_map' (is_fraction_ring.injective K (fraction_ring K)), ← h],
+  { rw [nat_degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)), ← h],
     simp only [←hroots, multiset.card_map], },
   rw [← C_leading_coeff_mul_prod_multiset_X_sub_C_of_field this],
   simp only [map_C, function.comp_app, map_X, map_sub],

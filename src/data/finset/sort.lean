@@ -183,6 +183,16 @@ begin
   exact (s.order_emb_of_fin rfl).eq_iff_eq.trans (fin.ext_iff _ _)
 end
 
+/-- Given a finset `s` of size at least `k` in a linear order `α`, the map `order_emb_of_card_le`
+is an order embedding from `fin k` to `α` whose image is contained in `s`. Specifically, it maps
+`fin k` to an initial segment of `s`. -/
+def order_emb_of_card_le (s : finset α) {k : ℕ} (h : k ≤ s.card) : fin k ↪o α :=
+(fin.cast_le h).trans (s.order_emb_of_fin rfl)
+
+lemma order_emb_of_card_le_mem (s : finset α) {k : ℕ} (h : k ≤ s.card) (a) :
+  order_emb_of_card_le s h a ∈ s :=
+by simp only [order_emb_of_card_le, rel_embedding.coe_trans, finset.order_emb_of_fin_mem]
+
 lemma card_le_of_interleaved {s t : finset α} (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) :
   s.card ≤ t.card + 1 :=
 begin

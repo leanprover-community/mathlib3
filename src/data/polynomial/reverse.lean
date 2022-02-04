@@ -310,11 +310,11 @@ variables {S : Type*} [comm_semiring S]
 
 lemma eval₂_reverse_mul_pow (i : R →+* S) (x : S) [invertible x] (f : polynomial R) :
   eval₂ i (⅟x) (reverse f) * x ^ f.nat_degree = eval₂ i x f :=
-eval₂_reflect_mul_pow i _ _ f (le_refl _)
+eval₂_reflect_mul_pow i _ _ f le_rfl
 
 @[simp] lemma eval₂_reverse_eq_zero_iff (i : R →+* S) (x : S) [invertible x] (f : polynomial R) :
   eval₂ i (⅟x) (reverse f) = 0 ↔ eval₂ i x f = 0 :=
-eval₂_reflect_eq_zero_iff i x _ _ (le_refl _)
+eval₂_reflect_eq_zero_iff i x _ _ le_rfl
 
 end eval₂
 

@@ -307,6 +307,28 @@ have (-q).coeff (-q).nat_degree = 1 :=
 by rw [nat_degree_neg, coeff_neg, show q.coeff q.nat_degree = -1, from hq, neg_neg],
 by { rw sub_eq_add_neg, apply monic_add_of_right this, rwa degree_neg }
 
+@[simp]
+lemma nat_degree_map_of_monic [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic)
+  (f : R →+* S) : (P.map f).nat_degree = P.nat_degree :=
+begin
+  refine le_antisymm (nat_degree_map_le _ _) (le_nat_degree_of_ne_zero _),
+  rw [coeff_map, monic.coeff_nat_degree hmo, ring_hom.map_one],
+  exact one_ne_zero
+end
+
+@[simp]
+lemma degree_map_of_monic [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic) (f : R →+* S) :
+  (P.map f).degree = P.degree :=
+begin
+  by_cases hP : P = 0,
+  { simp [hP] },
+  { refine le_antisymm (degree_map_le _ _) _,
+    rw [degree_eq_nat_degree hP],
+    refine le_degree_of_ne_zero _,
+    rw [coeff_map, monic.coeff_nat_degree hmo, ring_hom.map_one],
+    exact one_ne_zero }
+end
+
 section injective
 open function
 variables [semiring S] {f : R →+* S} (hf : injective f)
@@ -321,28 +343,6 @@ else degree_map_eq_of_leading_coeff_ne_zero _
 lemma nat_degree_map_eq_of_injective (p : polynomial R) :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map_eq_of_injective hf p)
-
-@[simp]
-lemma nat_degree_map_of_monic [nontrivial S] {P : polynomial R} (hmo : P.monic) (g : R →+* S) :
-  (P.map g).nat_degree = P.nat_degree :=
-begin
-  refine le_antisymm (nat_degree_map_le _ _) (le_nat_degree_of_ne_zero _),
-  rw [coeff_map, monic.coeff_nat_degree hmo, ring_hom.map_one],
-  exact one_ne_zero
-end
-
-@[simp]
-lemma degree_map_of_monic [nontrivial S] {P : polynomial R} (hmo : P.monic) (g : R →+* S) :
-  (P.map g).degree = P.degree :=
-begin
-  by_cases hP : P = 0,
-  { simp [hP] },
-  { refine le_antisymm (degree_map_le _ _) _,
-    rw [degree_eq_nat_degree hP],
-    refine le_degree_of_ne_zero _,
-    rw [coeff_map, monic.coeff_nat_degree hmo, ring_hom.map_one],
-    exact one_ne_zero }
-end
 
 lemma leading_coeff_map' (p : polynomial R) :
   leading_coeff (p.map f) = f (leading_coeff p) :=

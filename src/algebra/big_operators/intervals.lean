@@ -20,6 +20,8 @@ open_locale big_operators nat
 
 namespace finset
 
+section generic
+
 variables {α : Type u} {β : Type v} {γ : Type w} {s₂ s₁ s : finset α} {a : α}
   {g f : α → β}
 
@@ -163,5 +165,120 @@ lemma sum_range_id (n : ℕ) : (∑ i in range n, i) = (n * (n - 1)) / 2 :=
 by rw [← sum_range_id_mul_two n, nat.mul_div_cancel]; exact dec_trivial
 
 end gauss_sum
+
+end generic
+
+section nat
+
+variable {β : Type*}
+variables (f g : ℕ → β) {m n : ℕ}
+
+-- The partial sums (starting from `0`) of `f` and `g` respectively.
+local notation `F` n:80 := ∑ i in range n, f i
+local notation `G` n:80 := ∑ i in range n, g i
+
+section monoid
+variable [add_comm_monoid β]
+
+lemma sum_Ico_empty : (∑ i in Ico n n, f i) = 0 :=
+begin
+  convert sum_empty,
+  exact Ico_self n,
+end
+
+lemma sum_Ico_single : (∑ i in Ico n (n+1), f i) = f n :=
+by rw [sum_eq_sum_Ico_succ_bot (lt_add_one n), sum_Ico_empty, add_zero]
+
+lemma sum_Ico_sub {c: ℕ} (hm : c ≤ m) (hmn : m ≤ n) :
+  ∑ (i : ℕ) in Ico (m-c) (n-c), f (i+c) = ∑ (i : ℕ) in Ico m n, f i :=
+begin
+  have hn : c ≤ n := le_trans hm hmn,
+  conv in (f (_+c)) { rw add_comm },
+  rw [sum_Ico_add f (m-c) (n-c), nat.sub_add_cancel hm, nat.sub_add_cancel hn],
+end
+
+end monoid
+
+section group
+variable [add_comm_group β]
+
+lemma sum_Ico_succ_sub_sum_eq_top : F (n+1) - F n = f n :=
+sub_eq_iff_eq_add'.mpr $ sum_range_succ f n
+
+lemma sum_Ico_succ_sub_top_eq_sum : F (n+1) - f n = F n :=
+by rw [sub_eq_iff_eq_add, ← sub_eq_iff_eq_add', sum_Ico_succ_sub_sum_eq_top]
+
+lemma sum_Ico_succ_bot' (hmn : m < n) :
+  ∑ i in Ico m n, f i - f m = ∑ i in Ico (m + 1) n, f i :=
+begin
+  have hmn1 : (m+1) ≤ n := nat.succ_le_iff.mpr hmn,
+  rw [sub_eq_iff_eq_add', ← sum_Ico_single f, sum_Ico_consecutive _ m.le_succ hmn1],
+end
+
+lemma sum_Ico_succ_top' (hmn : m ≤ n) :
+  ∑ i in Ico m (n+1), f i - f n = ∑ i in Ico m n, f i :=
+by rw [sub_eq_iff_eq_add', add_comm (f n), ← sum_Ico_succ_top hmn]
+
+end group
+
+variable [comm_ring β]
+
+/-- **Summation by parts**, also known as **Abel's lemma** or an **Abel transformation** -/
+theorem sum_by_parts (hmn : m < n) :
+  ∑ i in Ico m n, (f i * g i) =
+    f (n-1) * G n - f m * G m - ∑ i in Ico m (n-1), G (i+1) * (f (i+1) - f i) :=
+begin
+  have hn   : 0 < n     := pos_of_gt hmn,
+  have hmn1 : m ≤ n - 1 := nat.le_pred_of_lt hmn,
+  have hm1  : 0 < m + 1 := m.succ_pos,
+  have hm1n : m + 1 ≤ n := nat.succ_le_iff.mpr hmn,
+
+  have h₁ : ∑ i in Ico (m+1) n, (f i * G i) = ∑ i in Ico m (n-1), (f (i+1) * G (i+1)) :=
+    (sum_Ico_sub _ hm1 hm1n).symm,
+
+  have h₂ := calc
+        ∑ i in Ico (m+1) n, (f i * G (i+1))
+      = ∑ i in Ico m n, (f i * G (i+1)) - f m * G(m+1) : by rw ← sum_Ico_succ_bot' _ hmn
+  ... = ∑ i in Ico m (n-1), (f i * G (i+1)) + f (n-1) * G n - f m * G (m+1) :
+          by rw [← sum_Ico_succ_top' _ hmn1, nat.sub_add_cancel hn, sub_add_cancel],
+
+  have h₃ := calc
+        ∑ i in Ico (m+1) n, (f i * g i)
+      = ∑ i in Ico (m+1) n, (f i * G (i+1) - f i * G i) :
+        by conv in (_ * _) { rw [← sum_Ico_succ_sub_sum_eq_top g, mul_sub_left_distrib] }
+  ... = ∑ i in Ico (m+1) n, (f i * G (i+1)) - ∑ i in Ico (m+1) n, (f i * G i) :
+        by rw sum_sub_distrib
+  ... = ∑ i in Ico (m+1) n, (f i * G (i+1)) - ∑ i in Ico m (n-1), (f (i+1) * G (i+1)) : by rw h₁
+  ... = ∑ i in Ico m (n-1), (f i * G (i+1)) + f (n-1) * G n - f m * G (m+1)
+      - ∑ i in Ico m (n-1), (f (i+1) * G (i+1)) : by rw h₂
+  ... = f (n-1) * G n - f m * G (m+1)
+      + (∑ i in Ico m (n-1), (f i * G (i+1)) - ∑ i in Ico m (n-1), (f (i+1) * G (i+1))) : by ring
+  ... = f (n-1) * G n - f m * G (m+1) + ∑ i in Ico m (n-1), (f i * G (i+1) - f (i+1) * G (i+1)) :
+        by rw ← sum_sub_distrib
+  ... = f (n-1) * G n - f m * G (m+1) + ∑ i in Ico m (n-1), -(G (i+1) * (f (i+1) - f i)) :
+        begin congr' 2, funext, ring end
+  ... = f (n-1) * G n - f m * G (m+1) - ∑ i in Ico m (n-1), G (i+1) * (f (i+1) - f i) :
+        by rw [sum_neg_distrib, ← sub_eq_add_neg],
+
+  exact calc
+        ∑ i in Ico m n, (f i * g i)
+      = f m * g m + ∑ i in Ico (m+1) n, (f i * g i)    : sum_eq_sum_Ico_succ_bot hmn _
+  ... = f m * g m + (f (n-1) * G n - f m * G (m+1)
+      - ∑ i in Ico m (n-1), G (i+1) * (f (i+1) - f i)) : by rw h₃
+  ... = f (n-1) * G n - f m * (G (m+1) - g m)
+      - ∑ i in Ico m (n-1), G (i+1) * (f (i+1) - f i)  : by ring
+  ... = f (n-1) * G n - f m * G m
+      - ∑ i in Ico m (n-1), G (i+1) * (f (i+1) - f i)  : by rw sum_Ico_succ_sub_top_eq_sum,
+end
+
+/-- **Summation by parts** for ranges -/
+lemma sum_by_parts_range (hn : 0 < n) :
+  ∑ i in range n, (f i * g i) =
+    f (n-1) * G n - ∑ i in range (n-1), G (i+1) * (f (i+1) - f i) :=
+begin
+  rw [range_eq_Ico, sum_by_parts f g hn, sum_range_zero, mul_zero, sub_zero, range_eq_Ico],
+end
+
+end nat
 
 end finset

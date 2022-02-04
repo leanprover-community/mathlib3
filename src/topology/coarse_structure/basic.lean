@@ -42,7 +42,7 @@ open set filter
 open_locale uniformity topological_space filter
 
 universe u
-variables {α β γ: Type*} {a b : α} {s t : set (α × α)}
+variables {α β γ : Type*} {a b : α} {s t : set (α × α)}
 
 
 /-! ### Relations -/
@@ -227,8 +227,6 @@ lemma coarse_space.eq :
 | ⟨u₁, _, _, _⟩  ⟨u₂, _, _, _⟩ h := by { congr, exact h }
 
 
-namespace coarse_space
-variables [coarse_space α]
 
 def cocontrolled (α : Type u) [s : coarse_space α] : filter (α × α) :=
   @coarse_space.cocontrolled α s
@@ -240,6 +238,8 @@ def controlled (α : Type u) [s : coarse_space α] : set (set (α×α)) :=
 
 localized "notation `𝓒` := controlled" in coarse_space
 
+namespace coarse_space
+variables [coarse_space α]
 lemma mem_coarse {s : set (α×α)} : s ∈ 𝓒 α ↔ sᶜ ∈ 𝓒' α :=
 begin
   split,
@@ -294,6 +294,35 @@ structure coarse_map (α β : Type*) [coarse_space α] [coarse_space β] :=
   (proper : proper to_fun)
   (bornologous : bornologous to_fun)
 
+infixr ` →c `:25 := coarse_map
+
+instance coarse_map.to_fun_like [coarse_space β] : fun_like (α →c β) α (λ _, β) :=
+  { coe := coarse_map.to_fun,
+  coe_injective' := λ f g h, sorry}
+
+
+namespace coarse_map
+variables [coarse_space β]
+
+def comp [coarse_space γ] (f : α →c β) (g : γ →c α) : γ →c β :=
+  { to_fun := (f ∘ g : γ → β),
+  proper := sorry,
+  bornologous := sorry}
+
+def id : α →c α :=
+ { to_fun := id,
+  proper := _,
+  bornologous := _ }
+
+def const [coarse_space β] (x : β) : α →c β :=
+ { to_fun := (λ _, x),
+  proper := _,
+  bornologous := _}
+
+end coarse_map
+
+infixr ` ∘c `:25 := coarse_map.comp
+
 /-
 Two maps between coarse spaces are close iff the image of the codiagonal is cocontrolled-/
 def close_maps [coarse_space β] (f g : α → β) : Prop := prod.map f g '' coid_rel ∈ 𝓒' β
@@ -308,7 +337,6 @@ sorry
 def refl (f : α → β) : close_maps f f := sorry
 def symm (close : close_maps f g) : close_maps g f := sorry
 def trans (close_fg : close_maps f g) (close_gh : close_maps g h) : close_maps f h := sorry
-
 def comp_left [coarse_space β] {f g : α → β} (close : close_maps f g) [coarse_space γ] (h : β → γ)
   : close_maps (h ∘ f) (h ∘ g) := sorry
 def comp_right [coarse_space β] {f g : α → β} (close : close_maps f g) [coarse_space γ] (h : γ → α)
@@ -316,10 +344,28 @@ def comp_right [coarse_space β] {f g : α → β} (close : close_maps f g) [coa
 
 end close_maps
 
-structure coarse_equivalence (α β : Type*) [coarse_space α] [coarse_space β] :=
-  (map : coarse_map α β)
-  (inv_map : coarse_map β α)
+structure coarse_equiv (α β : Type*) [coarse_space α] [coarse_space β] :=
+  (map : α →c β)
+  (inv_map : β →c α)
   (close_section : close_maps (map ∘ inv_map) id)
   (close_retraction : close_maps (inv_map ∘ map) id)
+
+infixr ` ≃c `:25 := coarse_equiv
+
+@[protected, instance]
+def coarse_equiv.to_coarse_map {α β : Type*} [coarse_space α] [coarse_space β] :
+  has_coe (α ≃c β) (α →c β ) :=
+  { coe := λ e, e.map }
+
+
+namespace coarse_equiv
+variables [coarse_space β] (f : α ≃c β)
+
+def comp [coarse_space γ] (f : α ≃c β) (g : γ ≃c α) : γ ≃c β := {!!}
+def id : α ≃c α := {!!}
+def symm (f : α ≃c β) : (β ≃c α) := sorry
+def const [coarse_space β] (x : β) : α →c β := {!!}
+
+end coarse_equiv
 
 end coarse_space

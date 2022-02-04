@@ -131,7 +131,7 @@ open add_monoid.End (L R)
 section lie
 variables [non_unital_non_assoc_ring A] [is_jordan A]
 
-@[simp] lemma lie_L_R (a : A) : ⁅L a, R a⁆ = 0 :=
+@[simp] lemma lie_lmul_rmul (a : A) : ⁅L a, R a⁆ = 0 :=
 add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.lmul_comm_rmul _ _).symm
 
 @[simp] lemma lie_L_L_sq (a : A) : ⁅L a, L (a * a)⁆ = 0 :=

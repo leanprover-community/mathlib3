@@ -86,7 +86,7 @@ class is_comm_jordan (A : Type*) [has_mul A]:=
 instance is_comm_jordan.to_is_jordan (A : Type*) [has_mul A] [is_comm_jordan A] : is_jordan A :=
 { lmul_comm_rmul := λ a b, by rw [is_comm_jordan.mul_comm, is_comm_jordan.mul_comm a b],
   lmul_lmul_comm_lmul := λ a b, by rw [is_comm_jordan.mul_comm (a * a) (a * b),
-  is_comm_jordan.jordan, is_comm_jordan.mul_comm b (a * a)],
+    is_comm_jordan.jordan, is_comm_jordan.mul_comm b (a * a)],
   lmul_comm_rmul_rmul := λ a b, by rw [is_comm_jordan.mul_comm, ←is_comm_jordan.jordan,
     is_comm_jordan.mul_comm],
   lmul_lmul_comm_rmul :=  λ a b, by rw [is_comm_jordan.mul_comm (a * a) (b * a),

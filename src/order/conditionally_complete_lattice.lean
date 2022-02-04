@@ -724,7 +724,7 @@ begin
   { show ite _ _ _ ∈ _,
     split_ifs,
     { rintro (⟨⟩|a) ha,
-      { exact _root_.le_refl _ },
+      { exact _root_.le_rfl },
       { exact false.elim (not_top_le_coe a (ha h)) } },
     { rintro (⟨⟩|b) hb,
       { exact le_top },
@@ -734,7 +734,7 @@ begin
         { exact ⟨b, hb⟩ } },
       { intros a ha, exact some_le_some.1 (hb ha) } },
     { rintro (⟨⟩|b) hb,
-      { exact _root_.le_refl _ },
+      { exact _root_.le_rfl },
       { exfalso, apply h_1, use b, intros a ha, exact some_le_some.1 (hb ha) } } }
 end
 
@@ -804,20 +804,20 @@ begin
   { rw [hs, cSup_empty], simp only [set.mem_empty_eq, supr_bot, supr_false], refl },
   apply le_antisymm,
   { refine (coe_le_iff.2 $ assume b hb, cSup_le hs $ assume a has, coe_le_coe.1 $ hb ▸ _),
-    exact (le_supr_of_le a $ le_supr_of_le has $ _root_.le_refl _) },
+    exact (le_supr_of_le a $ le_supr_of_le has $ _root_.le_rfl) },
   { exact (supr_le $ assume a, supr_le $ assume ha, coe_le_coe.2 $ le_cSup hb ha) }
 end
 
 lemma coe_Inf {s : set α} (hs : s.nonempty) : (↑(Inf s) : with_top α) = (⨅a∈s, ↑a) :=
 let ⟨x, hx⟩ := hs in
-have (⨅a∈s, ↑a : with_top α) ≤ x, from infi_le_of_le x $ infi_le_of_le hx $ _root_.le_refl _,
+have (⨅a∈s, ↑a : with_top α) ≤ x, from infi_le_of_le x $ infi_le_of_le hx $ _root_.le_rfl,
 let ⟨r, r_eq, hr⟩ := le_coe_iff.1 this in
 le_antisymm
   (le_infi $ assume a, le_infi $ assume ha, coe_le_coe.2 $ cInf_le (order_bot.bdd_below s) ha)
   begin
     refine (r_eq.symm ▸ coe_le_coe.2 $ le_cInf hs $ assume a has, coe_le_coe.1 $ _),
     refine (r_eq ▸ infi_le_of_le a _),
-    exact (infi_le_of_le has $ _root_.le_refl _),
+    exact (infi_le_of_le has $ _root_.le_rfl),
   end
 
 end with_top
@@ -1029,7 +1029,7 @@ noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
     show ite _ _ _ ≤ a,
     begin
       split_ifs,
-      { cases a with a, exact _root_.le_refl _,
+      { cases a with a, exact _root_.le_rfl,
         cases (h haS); tauto },
       { cases a,
         { exact le_top },

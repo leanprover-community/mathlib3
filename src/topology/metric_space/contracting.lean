@@ -59,7 +59,7 @@ suffices edist x y ≤ edist x (f x) + edist y (f y) + K * edist x y,
     mul_comm, ennreal.sub_mul (λ _ _, h), one_mul, tsub_le_iff_right],
 calc edist x y ≤ edist x (f x) + edist (f x) (f y) + edist (f y) y : edist_triangle4 _ _ _ _
   ... = edist x (f x) + edist y (f y) + edist (f x) (f y) : by rw [edist_comm y, add_right_comm]
-  ... ≤ edist x (f x) + edist y (f y) + K * edist x y : add_le_add (le_refl _) (hf.2 _ _)
+  ... ≤ edist x (f x) + edist y (f y) + K * edist x y : add_le_add le_rfl (hf.2 _ _)
 
 lemma edist_le_of_fixed_point (hf : contracting_with K f) {x y}
   (h : edist x y ≠ ∞) (hy : is_fixed_pt f y) :

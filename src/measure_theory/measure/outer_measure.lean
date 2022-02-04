@@ -257,7 +257,7 @@ instance : has_bot (outer_measure α) := ⟨0⟩
 
 instance outer_measure.partial_order : partial_order (outer_measure α) :=
 { le          := λm₁ m₂, ∀s, m₁ s ≤ m₂ s,
-  le_refl     := assume a s, le_refl _,
+  le_refl     := assume a s, le_rfl,
   le_trans    := assume a b c hab hbc s, le_trans (hab s) (hbc s),
   le_antisymm := assume a b hab hba, ext $ assume s, le_antisymm (hab s) (hba s) }
 
@@ -482,7 +482,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
     (infi_le_of_le (λ_, ∅) $ infi_le_of_le (empty_subset _) $ by simp [m_empty])
     (zero_le _),
   mono       := assume s₁ s₂ hs, infi_le_infi $ assume f,
-    infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_refl _⟩,
+    infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_rfl⟩,
   Union_nat := assume s, ennreal.le_of_forall_pos_le_add $ begin
     assume ε hε (hb : ∑'i, μ (s i) < ∞),
     rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_pos.2 hε).ne' ℕ with ⟨ε', hε', hl⟩,
@@ -1246,7 +1246,7 @@ def trim : outer_measure α :=
 induced_outer_measure (λ s _, m s) measurable_set.empty m.empty
 
 theorem le_trim : m ≤ m.trim :=
-le_of_function.mpr $ λ s, le_infi $ λ _, le_refl _
+le_of_function.mpr $ λ s, le_infi $ λ _, le_rfl
 
 theorem trim_eq {s : set α} (hs : measurable_set s) : m.trim s = m s :=
 induced_outer_measure_eq' measurable_set.Union (λ f hf, m.Union_nat f) (λ _ _ _ _ h, m.mono h) hs

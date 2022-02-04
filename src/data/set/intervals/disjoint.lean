@@ -28,10 +28,10 @@ variables [preorder α] {a b c : α}
 λ x ⟨ha, hb⟩, not_le_of_lt (h.trans_lt hb) ha
 
 @[simp] lemma Iic_disjoint_Ioc (h : a ≤ b) : disjoint (Iic a) (Ioc b c) :=
-(Iic_disjoint_Ioi h).mono (le_refl _) (λ _, and.left)
+(Iic_disjoint_Ioi h).mono le_rfl (λ _, and.left)
 
 @[simp] lemma Ioc_disjoint_Ioc_same {a b c : α} : disjoint (Ioc a b) (Ioc b c) :=
-(Iic_disjoint_Ioc (le_refl b)).mono (λ _, and.right) (le_refl _)
+(Iic_disjoint_Ioc (le_refl b)).mono (λ _, and.right) le_rfl
 
 @[simp] lemma Ico_disjoint_Ico_same {a b c : α} : disjoint (Ico a b) (Ico b c) :=
 λ x hx, not_le_of_lt hx.1.2 hx.2.1

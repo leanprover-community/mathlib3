@@ -428,7 +428,7 @@ have nonneg ⟨int.sub_nat_nat x z, int.sub_nat_nat w y⟩, from int.sub_nat_nat
   (λj k, int.sub_nat_nat_elim w y
     (λm n i, sq_le n d k 1 → sq_le (k + j + 1) 1 m d → nonneg ⟨-[1+ j], i⟩)
     (λm n xy zw, sq_le_cancel xy zw)
-    (λm n xy zw, let t := nat.le_trans zw (sq_le_of_le (nat.le_add_right n (m+1)) (le_refl _) xy) in
+    (λm n xy zw, let t := nat.le_trans zw (sq_le_of_le (nat.le_add_right n (m+1)) le_rfl xy) in
       have k + j + 1 ≤ k, from nat.mul_self_le_mul_self_iff.2 (by repeat{rw one_mul at t}; exact t),
       absurd this (not_le_of_gt $ nat.succ_le_succ $ nat.le_add_right _ _))) (nonnegg_pos_neg.1 xy)
         (nonnegg_neg_pos.1 zw),

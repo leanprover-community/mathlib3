@@ -200,7 +200,7 @@ lemma ultrafilter_extend_eq_iff {f : α → γ} {b : ultrafilter α} {c : γ} :
    refine le_trans _ (le_trans (map_mono t) this),
    change _ ≤ map (ultrafilter.extend f ∘ pure) ↑b,
    rw ultrafilter_extend_extends,
-   exact le_refl _
+   exact le_rfl
  end,
  assume h, by letI : topological_space α := ⊥; exact
    dense_inducing_pure.extend_eq_of_tendsto (le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h)⟩

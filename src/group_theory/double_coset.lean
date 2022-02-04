@@ -83,7 +83,7 @@ iff.trans ⟨λ hxy, (congr_arg _ hxy).mpr (doset_subgroups_mem_self H K y),
 lemma left_bot_eq_left_group_rel (H : subgroup G) :
   (double_coset_rel ↑(⊥ : subgroup G) ↑H) = (quotient_group.left_rel H).rel :=
 begin
- ext a b,
+  ext a b,
   rw rel_iff,
   split,
   { rintros ⟨a, (rfl : a = 1), b, hb, rfl⟩,

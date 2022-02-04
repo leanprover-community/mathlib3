@@ -519,10 +519,6 @@ begin
   exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
 end
 
-section classical
-
-open_locale classical
-
 lemma nilpotency_class_le_of_ker_le_center {H : Type*} [group H] (f : G →* H)
   (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) :
   @group.nilpotency_class G _ (is_nilpotent_of_ker_le_center f hf1 hH) ≤
@@ -535,8 +531,6 @@ begin
   apply (le_trans (lower_central_series.map f _)),
   simp only [lower_central_series_nilpotency_class, le_bot_iff],
 end
-
-end classical
 
 /-- The range of a surejctive homomorphism from a nilpotent group is nilpotent -/
 lemma nilpotent_of_surjective {G' : Type*} [group G'] [h : is_nilpotent G]
@@ -603,10 +597,6 @@ lemma nilpotency_class_zero_iff_subsingleton [is_nilpotent G] :
   group.nilpotency_class G = 0 ↔ subsingleton G :=
 by simp [group.nilpotency_class, nat.find_eq_zero, subsingleton_iff_bot_eq_top]
 
-section classical
-
-open_locale classical
-
 /-- Quotienting the `center G` reduces the nilpotency class by 1 -/
 lemma nilpotency_class_quotient_center [hH : is_nilpotent G] :
   group.nilpotency_class (G ⧸ center G) = group.nilpotency_class G - 1 :=
@@ -648,8 +638,6 @@ begin
   use n.succ,
   simp [← comap_upper_central_series_quotient_center, hn],
 end
-
-end classical
 
 /-- A custom induction principle for nilpotent groups. The base case is a trivial group
 (`subsingleton G`), and in the induction step, one can assume the hypothesis for

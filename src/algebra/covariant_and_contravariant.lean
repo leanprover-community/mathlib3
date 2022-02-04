@@ -204,7 +204,7 @@ variable {f : N → α}
 
 /-- The partial application of a constant to a covariant operator is monotone. -/
 lemma covariant.monotone_of_const [covariant_class M N μ (≤)] (m : M) : monotone (μ m) :=
-  λ a b ha, covariant_class.elim m ha
+λ a b ha, covariant_class.elim m ha
 
 /-- A monotone function remains monotone when composed with the partial application
 of a covariant operator. E.g., `∀ (m : ℕ), monotone f → monotone (λ n, f (m + n))`. -/

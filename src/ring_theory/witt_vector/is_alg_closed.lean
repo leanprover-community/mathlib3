@@ -3,13 +3,13 @@ Copyright (c) 2022 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Heather Macbeth
 -/
+
 import field_theory.is_alg_closed.basic
 import field_theory.perfect_closure
 import ring_theory.witt_vector.domain
 import ring_theory.witt_vector.truncated
 import data.mv_polynomial.supported
 
-.
 
 /-!
 # "Eigenvectors" of the Frobenius map

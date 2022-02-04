@@ -40,11 +40,11 @@ local attribute [instance] pnat.fact_pos
 variables {L : Type*} [field L] {μ : L} (n : ℕ+) (hμ : is_primitive_root μ n)
           (K : Type*) [field K] [algebra K L] [is_cyclotomic_extension {n} K L]
 
+local notation `ζ` := is_cyclotomic_extension.zeta n K L
+
 open polynomial ne_zero
 
 namespace is_cyclotomic_extension
-
-local notation `ζ` := zeta n K L
 
 lemma aut_to_pow_injective [ne_zero ((n : ℕ) : K)] : function.injective $
     (@zeta_primitive_root n K L _ _ _ _ _ $ of_no_zero_smul_divisors K L n).aut_to_pow K :=
@@ -84,17 +84,21 @@ variables (L)
 @[simps] noncomputable def zeta_pow_power_basis [ne_zero ((n : ℕ) : K)] (t : (zmod n)ˣ) :
   power_basis K L :=
 begin
-  haveI := ne_zero.of_no_zero_smul_divisors K L n,
+  haveI := of_no_zero_smul_divisors K L n,
   refine power_basis.map (algebra.adjoin.power_basis $ integral {n} K L $ ζ ^ (t : zmod n).val) _,
   refine (subalgebra.equiv_of_eq _ _ (adjoin_primitive_root_eq_top n _ _)).trans algebra.top_equiv,
   exact (zeta_primitive_root n K L).pow_of_coprime _ (zmod.val_coe_unit_coprime t),
 end
 
+variables (h : irreducible (cyclotomic n K))
+
+include h
+
 /-- The `mul_equiv` that takes an automorphism to the power of μ that μ gets mapped to under it.
     A stronger version of `is_primitive_root.aut_to_pow`. -/
-@[simps {attrs := []}] noncomputable def aut_equiv_pow
-  [ne_zero ((n : ℕ) : K)] (h : irreducible (cyclotomic n K)) : (L ≃ₐ[K] L) ≃* (zmod n)ˣ :=
-let hn := ne_zero.of_no_zero_smul_divisors K L n in by exactI
+@[simps {attrs := []}] noncomputable def aut_equiv_pow [ne_zero ((n : ℕ) : K)] :
+  (L ≃ₐ[K] L) ≃* (zmod n)ˣ :=
+let hn := of_no_zero_smul_divisors K L n in by exactI
 { inv_fun := λ x, (zeta.power_basis n K L).equiv_of_minpoly (zeta_pow_power_basis L n K x)
   begin
     simp only [zeta.power_basis_gen, zeta_pow_power_basis_gen],
@@ -130,13 +134,35 @@ let hn := ne_zero.of_no_zero_smul_divisors K L n in by exactI
 
 end is_cyclotomic_extension
 
+open is_cyclotomic_extension
+.
+namespace is_primitive_root
+
+include hμ
+
+/-- Takes a primitive root `μ` to the aut that sends `is_cyclotomic_extension.zeta` to `μ`. -/
+noncomputable def from_zeta_aut (h : irreducible (cyclotomic n K)) [ne_zero ((n : ℕ) : K)] :
+  L ≃ₐ[K] L :=
+have _ := of_no_zero_smul_divisors K L n, by exactI
+let hζ := (zeta_primitive_root n K L).eq_pow_of_pow_eq_one hμ.pow_eq_one n.pos in
+(aut_equiv_pow L n K h).symm $ zmod.unit_of_coprime hζ.some $
+((zeta_primitive_root n K L).pow_iff_coprime n.pos hζ.some).mp $ hζ.some_spec.some_spec.symm ▸ hμ
+
+lemma from_zeta_aut_spec (h : irreducible (cyclotomic n K)) [ne_zero ((n : ℕ) : K)] :
+  ((from_zeta_aut n hμ K h) ζ) = μ :=
+begin
+  simp only [from_zeta_aut, exists_prop, aut_equiv_pow_symm_apply, ←zeta.power_basis_gen,
+             power_basis.equiv_of_minpoly_gen, zeta_pow_power_basis_gen, zmod.coe_unit_of_coprime],
+  generalize_proofs hζ,
+  convert hζ.some_spec.2,
+  exact zmod.val_cast_of_lt hζ.some_spec.1
+end
+
+end is_primitive_root
+
 section gal
 
-open is_cyclotomic_extension
-
 local attribute [instance] splitting_field_X_pow_sub_one splitting_field_cyclotomic
-
-include L
 
 /-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
 Galois group of `cyclotomic n K` is equivalent to `(zmod n)ˣ` if `n` does not divide the

@@ -1492,14 +1492,10 @@ congr_arg coe (nat.one_shiftl _)
 
 lemma eq_zero_of_abs_lt_dvd {m x : ℤ} (h1 : m ∣ x) (h2 : | x | < m) : x = 0 :=
 begin
-  rcases em (m = 0) with rfl | hm,
-  { exact zero_dvd_iff.mp h1 },
-  cases h1 with d hd,
-  subst hd,
-  simp only [mul_eq_zero], right,
-  rw ←int.eq_zero_iff_abs_lt_one,
-  rw ←mul_lt_iff_lt_one_right (abs_pos.mpr hm),
-  rw ←abs_mul,
+  rcases em (m = 0) with rfl | hm, { exact zero_dvd_iff.mp h1 },
+  rcases h1 with ⟨d, rfl⟩,
+  apply mul_eq_zero_of_right m,
+  rw [←eq_zero_iff_abs_lt_one, ←mul_lt_iff_lt_one_right (abs_pos.mpr hm), ←abs_mul],
   exact lt_of_lt_of_le h2 (le_abs_self m),
 end
 

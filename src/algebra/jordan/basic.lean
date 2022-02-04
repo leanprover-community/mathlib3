@@ -117,11 +117,11 @@ variables {A}
 namespace add_monoid.End
 variables [non_unital_non_assoc_semiring A]
 
-/-- Left multiplication operator. This is a variant of `add_monoid_hom.mul_left`. -/
-@[simps] def L : A →+ add_monoid.End A := add_monoid_hom.mul
+/-- The left multiplicaiton map: `(a, b) ↦ a * b`. See also `add_monoid_hom.mul_left`. -/
+@[simps] def mul_left : A →+ add_monoid.End A := add_monoid_hom.mul
 
-/-- Right multiplication operator. This is a variant of `add_monoid_hom.mul_right`. -/
-@[simps] def R : A →+ add_monoid.End A := (L : A →+ add_monoid.End A).flip
+/-- The right multiplicaiton map: `(a, b) ↦ b * a`. See also `add_monoid_hom.mul_right`. -/
+@[simps] def mul_right : A →+ add_monoid.End A := (add_monoid_hom.mul : A →+ add_monoid.End A).flip
 
 end add_monoid.End
 

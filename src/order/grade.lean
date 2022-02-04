@@ -133,10 +133,7 @@ end order_top
 end partial_order
 
 section linear_order
-variables [linear_order α]
-
-section order_bot
-variables [order_bot α] [grade_order α] {a b : α}
+variables [linear_order α] [grade_order α] {a b : α}
 
 lemma grade_injective : function.injective (grade : α → ℕ) := grade_strict_mono.injective
 lemma grade_le_iff_le : grade a ≤ grade b ↔ a ≤ b := grade_strict_mono.le_iff_le
@@ -146,8 +143,7 @@ lemma grade_ne_iff_ne : grade a ≠ grade b ↔ a ≠ b := grade_injective.ne_if
 
 /-- `grade` as an order embedding into `ℕ` for a linear order `α`. -/
 protected def order_embedding.grade : α ↪o ℕ :=
-{ to_fun := _,
-  inj' := grade_injective,
+{ inj' := grade_injective,
   map_rel_iff' := λ _ _, grade_le_iff_le }
 
 lemma covers_iff_grade : a ⋖ b ↔ grade a + 1 = grade b :=
@@ -172,7 +168,6 @@ noncomputable def grade_order.to_locally_finite_order : locally_finite_order α 
   finset_mem_Ioo := λ a b x,
     by rw [mem_preimage, mem_Ioo, grade_strict_mono.lt_iff_lt, grade_strict_mono.lt_iff_lt] }
 
-end order_bot
 end linear_order
 end grade_order
 
@@ -318,7 +313,7 @@ by { rw [←bot_covers_top.grade, grade_bot], apply_instance }
 
 instance : grade_order bool := is_simple_order.to_grade_order _
 
-@[simp] protected lemma bool.grade_top : grade (⊤ : bool) = 1 := is_simple_order.grade_top
+@[simp] protected lemma bool.grade_tt : grade tt = 1 := is_simple_order.grade_top
 
 end is_simple_order
 
@@ -336,3 +331,4 @@ def grade_order.lift (hmin : ∀ a, is_min a → is_min (f a)) (hf : (set.range 
   grade_of_covers := λ a b hab, (hf.image_covers_image_iff.2 hab).grade }
 
 end lift
+#lint

@@ -616,6 +616,19 @@ instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
     simp [norm_const_smul hp.ne']
   end }
 
+/-- Projection from `lp E p` onto a single factor `E i`, as a continuous linear map. -/
+@[simps] protected def proj [_i : fact (1 ≤ p)] (i : α) : lp E p →L[𝕜] E i :=
+@linear_map.mk_continuous _ _ (lp E p) (E i) _ _ _ _ _ _ (ring_hom.id 𝕜)
+{ to_fun := λ f, f i,
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl }
+1
+begin
+  have hp : p ≠ 0 := (ennreal.zero_lt_one.trans_le _i.elim).ne',
+  intros f,
+  simpa using norm_apply_le_norm hp f i
+end
+
 variables {𝕜' : Type*} [normed_field 𝕜']
 
 instance [Π i, normed_space 𝕜' (E i)] [has_scalar 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
@@ -656,6 +669,25 @@ by rw [lp.single_apply, dif_pos rfl]
 protected lemma single_apply_ne (p) (i : α) (a : E i) {j : α} (hij : j ≠ i) :
   lp.single p i a j = 0 :=
 by rw [lp.single_apply, dif_neg hij]
+
+@[simp] protected lemma single_zero (p) (i : α) : lp.single p i (0 : E i) = (0 : lp E p) :=
+begin
+  ext j,
+  by_cases hi : j = i,
+  { subst hi,
+    simp [lp.single_apply_self] },
+  { simp [lp.single_apply_ne p i _ hi] }
+end
+
+@[simp] protected lemma single_add (p) (i : α) (a₁ a₂ : E i) :
+  lp.single p i (a₁ + a₂) = lp.single p i a₁ + lp.single p i a₂ :=
+begin
+  ext j,
+  by_cases hi : j = i,
+  { subst hi,
+    simp [lp.single_apply_self] },
+  { simp [lp.single_apply_ne p i _ hi] }
+end
 
 @[simp] protected lemma single_neg (p) (i : α) (a : E i) :
   lp.single p i (- a) = - lp.single p i a :=

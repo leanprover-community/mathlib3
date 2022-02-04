@@ -100,3 +100,4 @@ begin
   letI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
   exact (sphere (0:E) r).nonempty_coe_sort.mpr (normed_space.sphere_nonempty.mpr hr),
 end
+omit 𝕜

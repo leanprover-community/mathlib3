@@ -208,16 +208,15 @@ open karoubi
 variables (C)
 
 theorem karoubi_is_pseudoabelian : is_pseudoabelian (karoubi C) :=
-{ idempotents_have_kernels := λ P, begin
-    have h := P.idempotence,
+{ has_kernel_of_idem := λ X p h, begin
     simp only [hom_ext, comp] at h,
-    let Q : karoubi C := ⟨P.X.X, P.X.p - P.p.1,
-      by { simp only [comp_sub, sub_comp, P.X.idempotence, p_comp, comp_p],
-      simp only [comp_sub, sub_comp, P.X.idempotence,
+    let Q : karoubi C := ⟨X.X, X.p - p.f,
+      by { simp only [comp_sub, sub_comp, h, p_comp, comp_p],
+      simp only [comp_sub, sub_comp, X.idempotence,
         p_comp, comp_p, sub_zero, sub_self, h], }⟩,
-    let ι : Q ⟶ P.X := ⟨P.X.p - P.p.1,
+    let ι : Q ⟶ X := ⟨X.p - p.f,
       by simp only [sub_comp, comp_sub, id_comp, p_comp, comp_p,
-        P.X.idempotence, h, sub_zero, sub_self],⟩,
+        X.idempotence, h, sub_zero, sub_self],⟩,
     exact { exists_limit :=
       ⟨{ cone := limits.kernel_fork.of_ι ι _, is_limit := _ }⟩ },
     { simp only [hom_eq_zero_iff, comp, sub_comp, p_comp, h, sub_self], },
@@ -237,8 +236,8 @@ theorem karoubi_is_pseudoabelian : is_pseudoabelian (karoubi C) :=
 instance [is_pseudoabelian C] : ess_surj (to_karoubi C) := ⟨λ P,
 begin
   let Q := idempotent_of_id_sub_idempotent P,
-  let kernels := (show is_pseudoabelian C, by apply_instance).idempotents_have_kernels,
-  haveI : has_kernel Q.p := kernels Q,
+  let kernels := (show is_pseudoabelian C, by apply_instance).has_kernel_of_idem,
+  haveI : has_kernel Q.p := kernels Q.X Q.p Q.idempotence,
   have h := kernel.condition Q.p,
   simp only [idempotent_of_id_sub_idempotent_p, comp_sub, sub_eq_zero] at h,
   erw comp_id at h,

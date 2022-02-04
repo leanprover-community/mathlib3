@@ -6,11 +6,11 @@ Authors: Yaël Dillies
 import algebra.order.field
 import category_theory.concrete_category.bundled
 import category_theory.monoidal.category
-import category_theory.category.Bipointed
 import data.fintype.basic
 import data.real.basic
 import data.sum.basic
 import data.two_pointing
+import data.twop.Twop
 import order.bounded_order
 
 /-!
@@ -306,16 +306,6 @@ end Bipointed
 #exit
 
 /-! ### Twop -/
-
-/-- The category of two-pointed types. -/
-def Twop : Type* := bundled two_pointing
-
-instance : inhabited Twop := ⟨bundled.of bool⟩
-
-instance : category Twop :=
-{ hom := λ α β, α.1 → β.1,
-  id := λ α, id,
-  comp := λ α β γ f g, g ∘ f }
 
 def Twop.wedge : Twop × Twop ⥤ Twop := sorry
 

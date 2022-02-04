@@ -32,8 +32,6 @@ open_locale big_operators
 
 namespace category_theory
 
-namespace pseudoabelian
-
 variables (C : Type*) [category C]
 
 /-- When an object `X` decomposes as `X ≅ P ⨿ Q`, one may consider `P` as a direct factor of `X`
@@ -59,14 +57,6 @@ begin
   simpa only [true_and, eq_self_iff_true, id_comp, eq_to_hom_refl,
     heq_iff_eq, comp_id] using h_p,
 end
-
-/-- When `p : X ⟶ X` is idempotent, then `𝟙 X - p` is also idempotent. -/
-@[simps]
-def idempotent_of_id_sub_idempotent [preadditive C] (P : karoubi C) : karoubi C :=
-{ X := P.X,
-  p := 𝟙 _ - P.p,
-  idempotence := by simp only [comp_sub, sub_comp, id_comp, comp_id, P.idempotence,
-    sub_self, sub_zero], }
 
 /-- A morphism `P ⟶ Q` in the category `karoubi C` is a morphism in the underlying category
 `C` which satisfies a relation expressing that it induces a map between the corresponding
@@ -197,32 +187,25 @@ open karoubi
 
 variables (C)
 
-theorem karoubi_is_pseudoabelian [preadditive C] : is_pseudoabelian (karoubi C) :=
-{ has_kernel_of_idem := λ X p h, begin
-    simp only [hom_ext, comp] at h,
-    let Q : karoubi C := ⟨X.X, X.p - p.f,
-      by { simp only [comp_sub, sub_comp, h, p_comp, comp_p],
-      simp only [comp_sub, sub_comp, X.idempotence,
-        p_comp, comp_p, sub_zero, sub_self, h], }⟩,
-    let ι : Q ⟶ X := ⟨X.p - p.f,
-      by simp only [sub_comp, comp_sub, id_comp, p_comp, comp_p,
-        X.idempotence, h, sub_zero, sub_self],⟩,
-    exact { exists_limit :=
-      ⟨{ cone := limits.kernel_fork.of_ι ι _, is_limit := _ }⟩ },
-    { simp only [hom_eq_zero_iff, comp, sub_comp, p_comp, h, sub_self], },
-    { refine is_limit.of_ι _ _ _ _ _,
-      { intros W g hg,
-        refine ⟨g.1, _⟩,
-        simp only [hom_eq_zero_iff, comp] at hg,
-        simp only [Q, comp_sub, comp, hg, comp_zero, sub_zero],
-        exact g.comm, },
-      { intros W g hg,
-        simp only [hom_eq_zero_iff, comp] at hg,
-        simp only [comp, comp_sub, hom_ext, hg, sub_zero, comp_p], },
-      { intros W g hg g' hg',
-        simpa only [hom_eq_zero_iff, hom_ext, comp, comp_sub, comp_p] using hg', }, }
-  end }
+theorem karoubi_is_idempotent_complete : is_idempotent_complete (karoubi C) :=
+begin
+  refine ⟨_⟩,
+  intros P p hp,
+  have hp' := hom_ext.mp hp,
+  have hp₂ := (p_comp p),
+  simp only [comp] at hp',
+  let Y : karoubi C := ⟨P.X, p.f, hp'⟩,
+  let i : Y ⟶ P := ⟨p.f, by rw [comp_p p, hp']⟩,
+  let e : P ⟶ Y := ⟨p.f, by rw [hp', p_comp p]⟩,
+  use Y,
+  use i,
+  use e,
+  split,
+  { simpa only [hom_ext] using hp', },
+  { simpa only [hom_ext] using hp'.symm, },
+end
 
+/-
 instance [preadditive C] [is_pseudoabelian C] : ess_surj (to_karoubi C) := ⟨λ P,
 begin
   let Q := idempotent_of_id_sub_idempotent P,
@@ -259,7 +242,7 @@ end⟩
 def to_karoubi_is_equivalence [preadditive C] [is_pseudoabelian C] :
   is_equivalence (to_karoubi C) :=
 equivalence.of_fully_faithfully_ess_surj (to_karoubi C)
-
+-/
 namespace karoubi
 
 variables {C}
@@ -298,7 +281,5 @@ lemma decomp_id_p_naturality {P Q : karoubi C} (f : P ⟶ Q) : decomp_id_p P ≫
 by { ext, simp only [comp, decomp_id_p_f, karoubi.comp_p, karoubi.p_comp], }
 
 end karoubi
-
-end pseudoabelian
 
 end category_theory

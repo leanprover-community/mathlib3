@@ -73,8 +73,8 @@ begin
   rw [order_of_units, order_of_subgroup]
 end
 
--- As a corollary, cyclotomic extensions are abelian extensions!
-noncomputable instance [ne_zero ((n : ℕ) : K)] : comm_group (L ≃ₐ[K] L) :=
+-- As a corollary, cyclotomic extensions are abelian extensions! (Note this cannot be an instance)
+noncomputable example [ne_zero ((n : ℕ) : K)] : comm_group (L ≃ₐ[K] L) :=
 function.injective.comm_group _ (aut_to_pow_injective n K) (map_one _)
   (map_mul _) (map_inv _) (map_div _)
 

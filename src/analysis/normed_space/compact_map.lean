@@ -1,6 +1,20 @@
+/-
+Copyright (c) 2022 Robert Y. Lewis. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Robert Y. Lewis, Frédéric Dupuis, Heather Macbeth
+-/
+
 import analysis.normed_space.basic
 import analysis.normed_space.bounded_linear_maps
 
+/-!
+
+# Compact maps
+
+This file develops the theoryof compact maps between normed spaces.
+A map is *compact* if the image of a bounded set is relatively compact, i.e. its closure is compact.
+
+-/
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] -- needed in factor
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]

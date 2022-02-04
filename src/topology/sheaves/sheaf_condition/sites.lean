@@ -258,9 +258,9 @@ presieve_of_covering_aux U (supr U)
     `covering_of_presieve` (which may not cover `Y` if `R` is not covering), and take
     the presieve on `Y` associated to the family of opens via `presieve_of_covering_aux`,
     then we get back the original presieve `R`. -/
-lemma self_eq_covering_presieve {Y : opens X} (R : presieve Y) :
-  R = presieve_of_covering_aux (covering_of_presieve Y R) Y :=
-by { ext Z f, exact ⟨λ h, ⟨⟨Z,f,h⟩,rfl⟩, λ ⟨⟨_,_,h⟩,rfl⟩, by convert h⟩ }
+@[simp] lemma covering_presieve_eq_self {Y : opens X} (R : presieve Y) :
+  presieve_of_covering_aux (covering_of_presieve Y R) Y = R :=
+by { ext Z f, exact ⟨λ ⟨⟨_,_,h⟩,rfl⟩, by convert h, λ h, ⟨⟨Z,f,h⟩,rfl⟩⟩ }
 
 namespace presieve_of_covering
 

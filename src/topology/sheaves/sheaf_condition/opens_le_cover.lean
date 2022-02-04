@@ -298,7 +298,7 @@ def is_limit_opens_le_equiv_generate₂ (R : presieve Y)
 begin
   convert is_limit_opens_le_equiv_generate₁ F (covering_of_presieve Y R)
     (covering_of_presieve.supr_eq_of_mem_grothendieck Y R hR).symm using 2;
-  rw ← self_eq_covering_presieve R,
+  rw covering_presieve_eq_self R,
 end
 
 /-- A presheaf `(opens X)ᵒᵖ ⥤ C` on a topological space `X` is a sheaf on the site `opens X` iff

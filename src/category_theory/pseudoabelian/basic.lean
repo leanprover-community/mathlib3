@@ -5,18 +5,19 @@ Authors: Joël Riou
 -/
 
 import category_theory.abelian.basic
-import category_theory.epi_mono
 
 /-!
-# Pseudoabelian categories
+# Idempotent complete categories
 
-In this file, we define the notion of pseudoabelian category (also known as Karoubian categories).
+In this file, we define the notion of idempotent complete categories
+(also known as Karoubian categories).
 
 ## Main constructions and definitions
 
-- `is_pseudoabelian C` expresses that `C` is pseudoabelian, i.e. all idempotents endomorphisms
-in `C` have a kernel.
-- `is_pseudoabelian_of_abelian` expresses that abelian categories are pseudoabelian.
+- `is_idempotent_complete C` expresses that `C` is idempotent complete, i.e.
+all idempotents in `C` split.
+- `is_idempotent_complete_of_abelian` expresses that abelian categories are
+idempotent complete.
 
 ## References
 * [Stacks: Karoubian categories] https://stacks.math.columbia.edu/tag/09SF
@@ -36,8 +37,8 @@ class is_idempotent_complete : Prop :=
 (idempotents_split : ∀ (X : C) (p : X ⟶ X), p ≫ p = p →
   ∃ (Y : C) (i : Y ⟶ X) (e : X ⟶ Y), i ≫ e = 𝟙 Y ∧ p = e ≫ i)
 
-/-- A category is idempotent complete iff for all idempotents endomorphisms, the equalizer of
-the identity and this idempotent exists. -/
+/-- A category is idempotent complete iff for all idempotents endomorphisms,
+the equalizer of the identity and this idempotent exists. -/
 lemma is_idempotent_complete_iff_has_equalizer_of_id_and_idempotent :
   is_idempotent_complete C ↔ ∀ (X : C) (p : X ⟶ X), p ≫ p = p → has_equalizer (𝟙 X) p :=
 begin
@@ -85,6 +86,17 @@ lemma idempotence_of_id_sub_idempotent [preadditive C]
   (𝟙 _ - p) ≫ (𝟙 _ - p) = (𝟙 _ - p) :=
 by simp only [comp_sub, sub_comp, id_comp, comp_id, hp, sub_self, sub_zero]
 
+/-- for preadditive/default.lean -/
+lemma has_kernel_of_has_equalizer [preadditive C] {X Y : C} (f g : X ⟶ Y)
+  [has_equalizer f g] : has_kernel (f - g) :=
+has_limit.mk
+  { cone := fork.of_ι (equalizer.ι f g)
+      (by erw [comp_zero, comp_sub, equalizer.condition f g, sub_self]),
+  is_limit := fork.is_limit.mk _
+    (λ s, equalizer.lift s.ι (by simpa only [comp_sub, comp_zero, sub_eq_zero] using s.condition))
+    (λ s, by simp only [fork.ι_eq_app_zero, fork.of_ι_π_app, equalizer.lift_ι])
+    (λ s m h, by { ext, simpa only [equalizer.lift_ι] using h walking_parallel_pair.zero, }), }
+
 variables (C)
 
 /-- A preadditive category is pseudoabelian iff all idempotent endomorphisms have a kernel. -/
@@ -94,14 +106,15 @@ begin
   rw is_idempotent_complete_iff_has_equalizer_of_id_and_idempotent,
   split,
   { intros h X p hp,
-    have foo := h X (𝟙 _ - p) (idempotence_of_id_sub_idempotent p hp),
-    sorry, },
+    haveI := h X (𝟙 _ - p) (idempotence_of_id_sub_idempotent p hp),
+    convert has_kernel_of_has_equalizer (𝟙 X) (𝟙 X - p),
+    rw [sub_sub_cancel], },
   { intros h X p hp,
     haveI : has_kernel (𝟙 _ - p) := h X (𝟙 _ - p) (idempotence_of_id_sub_idempotent p hp),
     apply preadditive.has_limit_parallel_pair, },
 end
 
-/-- An abelian category is pseudoabelian. -/
+/-- An abelian category is idempotent complete. -/
 @[priority 100]
 instance is_idempotent_complete_of_abelian (D : Type*) [category D] [abelian D] :
   is_idempotent_complete D :=

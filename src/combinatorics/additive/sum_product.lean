@@ -1,10 +1,11 @@
 /-
-Copyright (c) 2021 Bhavik Mehta. All rights reserved.
+Copyright (c) 2022 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta, Yaël Dillies
+Authors: Bhavik Mehta
 -/
 import analysis.special_functions.pow
 import tactic.by_contra
+import combinatorics.double_counting
 
 /-!
 # The sum-product problem
@@ -24,8 +25,7 @@ begin
 end
 
 @[to_additive] lemma finset.left_le_card_mul [decidable_eq α] [right_cancel_semigroup α]
-  {A B : finset α} (hB : B.nonempty) :
-  A.card ≤ (A * B).card :=
+  {A B : finset α} (hB : B.nonempty) : A.card ≤ (A * B).card :=
 let ⟨x, xB⟩ := hB
   in finset.card_le_card_of_inj_on (λ a, a * x) (λ a ha, finset.mul_mem_mul ha xB) (by simp)
 
@@ -49,25 +49,11 @@ let ⟨x, xB, xn⟩ := hB
 in finset.card_le_card_of_inj_on (λ a, a * x) (λ a ha, finset.mul_mem_mul ha xB)
     (λ _ _ _ _, (mul_left_inj' xn).1)
 
-lemma finset.card_mul_le [decidable_eq α] [mul_zero_class α] {A B : finset α}
-  (hB : ∀ x ∈ B, x = (0:α)) :
-  (A * B).card ≤ 1 :=
-begin
-  have : A * B ⊆ {0} :=
-    (finset.mul_subset_mul (finset.subset.refl _) (by simpa [finset.subset_iff])).trans A.mul_zero_subset,
-  simpa using finset.card_le_of_subset this,
-end
-
 lemma sum_card_inter_le {α β : Type*} {s : finset α} {B : finset β}
   (g : β → α → Prop) [∀ b a, decidable (g b a)]
   {n : ℕ} (h : ∀ a ∈ s, (B.filter (λ b, g b a)).card ≤ n) :
   ∑ b in B, (s.filter (g b)).card ≤ s.card * n :=
-begin
-  simp_rw [finset.card_eq_sum_ones (finset.filter _ _), finset.sum_filter],
-  rw [finset.sum_comm],
-  apply finset.sum_le_of_forall_le,
-  simpa,
-end
+(finset.sum_card_bipartite_above_eq_sum_card_bipartite_below _).le.trans (finset.sum_le_of_forall_le _ _ _ h)
 
 end
 
@@ -89,7 +75,7 @@ begin
   rw abs_of_pos hi₃ at hi₂,
   rw abs_of_pos hj₃ at hj₂,
   by_contra,
-  have := disj j hj₁ i hi₁ (ne.symm h),
+  have := disj hj₁ hi₁ (ne.symm h),
   rw abs_of_nonneg (sub_nonneg_of_le case) at this,
   apply not_le_of_lt hi₃ ((le_sub_self_iff _).1 (hj₂.trans this)),
 end
@@ -113,7 +99,7 @@ begin
   intros i hi₁ hi₂ hi₃ j hj₁ hj₂ hj₃,
   by_contra,
   apply not_le_of_lt (hr i hi₁),
-  simpa [hi₃, hj₃] using disj i hi₁ j hj₁ h,
+  simpa [hi₃, hj₃] using disj hi₁ hj₁ h,
 end
 
 lemma real_covering₀ {ι : Type*} (s : finset ι) (x r : ι → ℝ) (hr : ∀ i ∈ s, 0 < r i)
@@ -125,8 +111,7 @@ begin
   refine le_trans _ (add_le_add_right (card_union_le _ _) _),
   refine (card_le_of_subset _).trans (card_union_le _ _),
   intros i hi,
-  rw [←filter_filter, ←filter_filter, ←filter_filter,
-    filter_union_right, filter_union_right],
+  rw [←filter_filter, ←filter_filter, ←filter_filter, filter_union_right, filter_union_right],
   rw mem_filter,
   refine ⟨hi, _⟩,
   simp only [lt_or_lt_iff_ne, em'],
@@ -304,7 +289,7 @@ begin
       apply hx₁.2 } },
   have : U₁ ⊆ U₂,
   { suffices : ¬ U₂ ⊂ U₁,
-    { rw ssubset_iff_subset_ne at this,
+    { rw finset.ssubset_iff_subset_ne at this,
       simp only [not_and_distrib, not_not] at this,
       cases this,
       { apply U₁₂.resolve_right this },
@@ -340,7 +325,7 @@ begin
       apply hx₁.2 } },
   have : U₁ ⊆ U₂,
   { suffices : ¬ U₂ ⊂ U₁,
-    { rw ssubset_iff_subset_ne at this,
+    { rw finset.ssubset_iff_subset_ne at this,
       simp only [not_and_distrib, not_not] at this,
       cases this,
       { apply U₁₂.resolve_right this },
@@ -396,7 +381,7 @@ begin
       simp only [and_imp, mem_filter],
       rintro a - rfl b - rfl,
       refl } },
-  rw mul_comm,
+  rw mul_comm 3,
   apply sum_card_inter_le _ (λ u hu, _),
   apply real_covering,
   { intros i hi,
@@ -764,8 +749,8 @@ begin
 end
 
 variables (A)
-lemma real_specific_bound :
-  A.card^5 ≤ 576 * (A + A).card^2 * (A * A).card^2 :=
+
+lemma real_specific_bound : A.card ^ 5 ≤ 576 * (A + A).card ^ 2 * (A * A).card ^ 2 :=
 begin
   rcases eq_or_ne A {0} with rfl | hA,
   { simp },
@@ -795,9 +780,9 @@ end
 -- We cannot have both A + A and A * A linear in A. Note that it is possible for either of them
 -- linear, by taking an arithmetic or geometric progression respectively, but not simultaneously
 lemma max_bound :
-  1/5 * (A.card : ℝ)^(5/4 : ℝ) ≤ max (A + A).card (A * A).card :=
+  1 / 5 * (A.card : ℝ)^(5 / 4 : ℝ) ≤ max (A + A).card (A * A).card :=
 begin
-  rw [←not_lt, mul_comm, mul_one_div, lt_div_iff'],
+  rw [←not_lt, mul_comm (1 / 5 : ℝ), mul_one_div, lt_div_iff'],
   intro h,
   have : (5 * max (A + A).card (A * A).card)^4 < (A.card)^5,
   { suffices : (5 * max (A + A).card (A * A).card : ℝ)^4 < (A.card)^5,

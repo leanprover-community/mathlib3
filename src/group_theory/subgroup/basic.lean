@@ -1789,6 +1789,17 @@ lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N
   (prod_map f g).ker = f.ker.prod g.ker :=
 by rw [←comap_bot, ←comap_bot, ←comap_bot, ←prod_map_comap_prod, bot_prod_bot]
 
+@[simp, to_additive prod_eq_bot_iff]
+lemma _root_.subgroup.prod_eq_bot_iff {H : subgroup G} {K : subgroup N} :
+  H.prod K = ⊥ ↔ H = ⊥ ∧ K = ⊥ :=
+begin
+  simp only [eq_bot_iff],
+  rw prod_le_iff,
+  repeat { rw [gc_map_comap, comap_bot, (ker_eq_bot_iff _).mpr ] },
+  exact prod.mk.inj_left 1,
+  exact prod.mk.inj_right 1,
+end
+
 end ker
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/

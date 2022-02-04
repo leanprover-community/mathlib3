@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2022 Robert Y. Lewis. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Robert Y. Lewis, Heather Macbeth
+-/
 import field_theory.is_alg_closed.basic
 import field_theory.perfect_closure
 import ring_theory.witt_vector.domain
@@ -221,7 +226,8 @@ begin
 
   -- the rest is equal with proper unfolding and `ring`
   simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, pow_one, rename_X, mvpz],
-  simp only [int.cast_coe_nat, map_pow, ring_hom.eq_int_cast, rename_X, pow_one, tsub_self, pow_zero],
+  simp only [int.cast_coe_nat, map_pow, ring_hom.eq_int_cast, rename_X, pow_one, tsub_self,
+    pow_zero],
   ring,
 end
 
@@ -281,10 +287,11 @@ begin
 end
 
 lemma poly_of_interest_vars_eq (n : ℕ) :
-  ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * (witt_mul p (n + 1) + p^(n+1) * X (0, n+1) * X (1, n+1) -
+  (poly_of_interest p n).vars =
+    ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * (witt_mul p (n + 1) +
+    p^(n+1) * X (0, n+1) * X (1, n+1) -
     (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) -
-    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1)))).vars =
-  (poly_of_interest p n).vars :=
+    (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1)))).vars :=
 begin
   have : (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) = C (p ^ (n + 1) : ℤ),
   { simp only [int.cast_coe_nat, ring_hom.eq_int_cast, C_pow, eq_self_iff_true] },
@@ -294,7 +301,7 @@ begin
 end
 
 lemma poly_of_interest_vars (n : ℕ) : (poly_of_interest p n).vars ⊆ univ.product (range (n+1)) :=
-by rw ← poly_of_interest_vars_eq; apply prod_vars_subset
+by rw poly_of_interest_vars_eq; apply prod_vars_subset
 
 lemma peval_poly_of_interest (n : ℕ) (x y : 𝕎 k) :
   peval (poly_of_interest p n) ![λ i, x.coeff i, λ i, y.coeff i] =
@@ -302,17 +309,20 @@ lemma peval_poly_of_interest (n : ℕ) (x y : 𝕎 k) :
     - y.coeff (n+1) * ∑ i in range (n+1+1), p^i * x.coeff i ^ (p^(n+1-i))
     - x.coeff (n+1) * ∑ i in range (n+1+1), p^i * y.coeff i ^ (p^(n+1-i)) :=
 begin
-  simp only [poly_of_interest, peval, map_nat_cast, matrix.head_cons, map_pow, function.uncurry_apply_pair, aeval_X,
+  simp only [poly_of_interest, peval, map_nat_cast, matrix.head_cons, map_pow,
+    function.uncurry_apply_pair, aeval_X,
   matrix.cons_val_one, map_mul, matrix.cons_val_zero, map_sub],
   rw [sub_sub, add_comm (_ * _), ← sub_sub],
-  have mvpz : (p : mv_polynomial ℕ ℤ) = mv_polynomial.C ↑p := by rw [ring_hom.eq_int_cast, int.cast_coe_nat ],
+  have mvpz : (p : mv_polynomial ℕ ℤ) = mv_polynomial.C ↑p,
+  { rw [ring_hom.eq_int_cast, int.cast_coe_nat] },
   congr' 3,
   { simp only [mul_coeff, peval, map_nat_cast, map_add, matrix.head_cons, map_pow,
-      function.uncurry_apply_pair, aeval_X, matrix.cons_val_one, map_mul, matrix.cons_val_zero],  },
+      function.uncurry_apply_pair, aeval_X, matrix.cons_val_one, map_mul, matrix.cons_val_zero], },
   all_goals
-  { simp only [witt_polynomial_eq_sum_C_mul_X_pow, aeval, eval₂_rename, int.cast_coe_nat, ring_hom.eq_int_cast, eval₂_mul,
-  function.uncurry_apply_pair, function.comp_app, eval₂_sum, eval₂_X, matrix.cons_val_zero, eval₂_pow,
-  int.cast_pow, ring_hom.to_fun_eq_coe, coe_eval₂_hom, int.nat_cast_eq_coe_nat, alg_hom.coe_mk],
+  { simp only [witt_polynomial_eq_sum_C_mul_X_pow, aeval, eval₂_rename, int.cast_coe_nat,
+      ring_hom.eq_int_cast, eval₂_mul, function.uncurry_apply_pair, function.comp_app, eval₂_sum,
+      eval₂_X, matrix.cons_val_zero, eval₂_pow, int.cast_pow, ring_hom.to_fun_eq_coe, coe_eval₂_hom,
+      int.nat_cast_eq_coe_nat, alg_hom.coe_mk],
   congr' 1 with z,
   rw [mvpz, mv_polynomial.eval₂_C],
   refl }
@@ -391,9 +401,11 @@ end
 
 variable [char_p k p]
 
-lemma nth_mul_coeff (n : ℕ) : ∃ f : (truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k), ∀ (x y : 𝕎 k),
-  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
-    + f (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
+lemma nth_mul_coeff (n : ℕ) :
+  ∃ f : (truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k), ∀ (x y : 𝕎 k),
+    (x * y).coeff (n+1) =
+      x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1)) +
+      f (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
 begin
   obtain ⟨f, hf⟩ := nth_mul_coeff' p n,
   { use f,
@@ -407,8 +419,9 @@ def nth_remainder (n : ℕ) : (fin (n+1) → k) → (fin (n+1) → k) → k :=
 classical.some (nth_mul_coeff p n)
 
 lemma nth_remainder_spec (n : ℕ) (x y : 𝕎 k) :
-  (x * y).coeff (n+1) = x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
-    + nth_remainder p n (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
+  (x * y).coeff (n+1) =
+    x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1)) +
+    nth_remainder p n (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
 classical.some_spec (nth_mul_coeff p n) _ _
 
 
@@ -416,8 +429,9 @@ open polynomial
 
 def succ_nth_defining_poly (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k) : polynomial k :=
 X^p * C (a₁.coeff 0 ^ (p^(n+1))) - X * C (a₂.coeff 0 ^ (p^(n+1)))
-  + C (a₁.coeff (n+1) * ((bs 0)^p)^(p^(n+1)) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
-       - a₂.coeff (n+1) * (bs 0)^p^(n+1) - nth_remainder p n bs (truncate_fun (n+1) a₂))
+  + C (a₁.coeff (n+1) * ((bs 0)^p)^(p^(n+1)) +
+      nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁) -
+      a₂.coeff (n+1) * (bs 0)^p^(n+1) - nth_remainder p n bs (truncate_fun (n+1) a₂))
 
 lemma succ_nth_defining_poly_degree (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
@@ -457,10 +471,11 @@ classical.some_spec (root_exists p n a₁ a₂ bs ha₁ ha₂)
 
 lemma succ_nth_val_spec' (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  (succ_nth_val p n a₁ a₂ bs ha₁ ha₂)^p * a₁.coeff 0 ^ (p^(n+1))
-  + a₁.coeff (n+1) * ((bs 0)^p)^(p^(n+1)) + nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
-   = (succ_nth_val p n a₁ a₂ bs ha₁ ha₂) * a₂.coeff 0 ^ (p^(n+1))
-     + a₂.coeff (n+1) * (bs 0)^(p^(n+1)) + nth_remainder p n bs (truncate_fun (n+1) a₂) :=
+  (succ_nth_val p n a₁ a₂ bs ha₁ ha₂)^p * a₁.coeff 0 ^ (p^(n+1)) +
+    a₁.coeff (n+1) * ((bs 0)^p)^(p^(n+1)) +
+    nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁)
+   = (succ_nth_val p n a₁ a₂ bs ha₁ ha₂) * a₂.coeff 0 ^ (p^(n+1)) +
+     a₂.coeff (n+1) * (bs 0)^(p^(n+1)) + nth_remainder p n bs (truncate_fun (n+1) a₂) :=
 begin
   rw ← sub_eq_zero,
   have := succ_nth_val_spec p n a₁ a₂ bs ha₁ ha₂,

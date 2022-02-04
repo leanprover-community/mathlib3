@@ -84,7 +84,7 @@ def commensurator (H : subgroup G) : subgroup G :=
 
 lemma commensurator.eq {H K : subgroup G} (hk : commensurable H K) :
   commensurator H = commensurator K :=
-subgroup.ext (λ x, let hx := (commensurable_conj x).1 hk in
+  subgroup.ext (λ x, let hx := (commensurable_conj x).1 hk in
   ⟨λ h, hx.symm.trans (h.trans hk), λ h, hx.trans (h.trans hk.symm)⟩)
 
 end commensurable

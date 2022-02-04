@@ -51,7 +51,7 @@ end pseudoabelian
 
 /-- A preadditive category is pseudoabelian iff all idempotent endomorphisms have a kernel. -/
 class is_pseudoabelian : Prop :=
-(idempotents_have_kernels : Π (P : pseudoabelian.karoubi C), has_kernel P.p)
+(has_kernel_of_idem : ∀ (X : C) (p : X ⟶ X), p ≫ p = p → has_kernel p)
 
 namespace pseudoabelian
 

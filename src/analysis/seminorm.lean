@@ -537,7 +537,7 @@ lemma le_insert : p y ≤ p x + p (x - y) :=
 calc p y = p (x - (x - y)) : by rw sub_sub_cancel
 ... ≤ p x + p (x - y) : p.sub_le _ _
 
-lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert p y x }
+lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
 
 instance : order_bot (seminorm 𝕜 E) := ⟨0, nonneg⟩
 
@@ -589,6 +589,61 @@ lemma comp_smul_apply (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : 𝕜) (x
   p.comp (c • f) x = ∥c∥ * p (f x) := p.smul _ _
 
 end semi_normed_comm_ring
+
+section normed_field
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+
+private lemma bdd_below_range_add (x : E) (p q : seminorm 𝕜 E) :
+  bdd_below (range (λ (u : E), p u + q (x - u))) :=
+by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
+
+noncomputable instance : has_inf (seminorm 𝕜 E) :=
+{ inf := λ p q,
+  { to_fun := λ x, ⨅ u : E, p u + q (x-u),
+    triangle' := λ x y, begin
+      rw ← sub_le_iff_le_add,
+      refine le_cinfi (λ u, _),
+      rw sub_le,
+      refine le_cinfi (λ v, _),
+      rw sub_le_iff_le_add,
+      apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v+u), dsimp only,
+      convert add_le_add (p.triangle v u) (q.triangle (y-v) (x-u)) using 1,
+      { have h : x + y - (v + u) = y - v + (x - u), { abel }, { rw h } },
+      { exact add_add_add_comm _ _ _ _ },
+    end,
+    smul' := λ a x, begin
+      obtain ha | ha := (norm_nonneg a).eq_or_lt,
+      { rw ← ha, ring_nf, apply le_antisymm,
+        { apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
+          simp only [seminorm.zero, sub_zero, zero_add], rw q.smul, rw ← ha, simp only [zero_mul]},
+        { exact le_cinfi (λ u, add_nonneg (p.nonneg _) (q.nonneg _)) } },
+      { apply le_antisymm,
+        { rw ← div_le_iff' ha,
+          refine le_cinfi (λ u, _),
+          rw div_le_iff' ha,
+          apply cinfi_le_of_le (bdd_below_range_add _ _ _) (a • u),
+          dsimp, rw [← smul_sub, p.smul, q.smul, mul_add] },
+        { apply le_cinfi, intro u,
+          have h1 : u = a • a⁻¹ • u,
+          { rw [smul_smul, mul_inv_cancel], { rw one_smul },
+            { intro f, apply (ne_of_lt ha), rw [f, norm_zero] } },
+          { rw [h1, ← smul_sub, p.smul, q.smul, ← mul_add, mul_le_mul_left ha],
+            apply cinfi_le, apply bdd_below_range_add } } },
+    end } }
+
+noncomputable instance : lattice (seminorm 𝕜 E) :=
+{ inf := (⊓),
+  inf_le_left := λ p q x, begin
+    apply cinfi_le_of_le (bdd_below_range_add _ _ _) x,
+    simp only [sub_self, seminorm.zero, add_zero], end,
+  inf_le_right := λ p q x, begin
+    apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
+    simp only [sub_self, seminorm.zero, zero_add, sub_zero], end,
+  le_inf := λ a b c hab hac x,
+    le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
+  ..seminorm.semilattice_sup }
+
+end normed_field
 
 /-! ### Seminorm ball -/
 
@@ -713,60 +768,6 @@ end semi_normed_ring
 section normed_field
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
   {a : 𝕜} {r : ℝ} {x : E}
-
-lemma bdd_below_range_add (x : E) (p q : seminorm 𝕜 E) :
-  bdd_below (range (λ (u : E), p u + q (x - u))) :=
-by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
-
-/- can't put it with `has_sup` because it requires much stronger properties on 𝕜, E. -/
-noncomputable instance : has_inf (seminorm 𝕜 E) :=
-{ inf := λ p q,
-  { to_fun := λ x, ⨅ u : E, p u + q (x-u),
-    triangle' := λ x y, begin
-      rw ← sub_le_iff_le_add,
-      apply le_cinfi, intro u,
-      rw sub_le,
-      apply le_cinfi, intro v,
-      rw sub_le_iff_le_add,
-      apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v+u), dsimp only,
-      convert add_le_add (p.triangle v u) (q.triangle (y-v) (x-u)) using 1,
-      { have h : x + y - (v + u) = y - v + (x - u), { abel }, { rw h } },
-      { abel },
-    end,
-    smul' := λ a x, begin
-      obtain ha | ha := (norm_nonneg a).eq_or_lt,
-      { rw ← ha, ring_nf, apply le_antisymm,
-        { apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
-          simp only [seminorm.zero, sub_zero, zero_add], rw q.smul, rw ← ha, simp only [zero_mul]},
-        { apply le_cinfi, intro, exact add_nonneg (p.nonneg _) (q.nonneg _) } },
-      { apply le_antisymm,
-        { rw ← div_le_iff' ha,
-          apply le_cinfi, intro u,
-          rw div_le_iff' ha,
-          apply cinfi_le_of_le (bdd_below_range_add _ _ _) (a • u),
-          dsimp, rw ← smul_sub, rw p.smul, rw q.smul, rw mul_add },
-        { apply le_cinfi, intro u,
-          have h1 : u = a • a⁻¹ • u,
-          { rw smul_smul, rw mul_inv_cancel, { rw one_smul },
-            { intro f, apply (ne_of_lt ha), rw f, rw norm_zero } },
-          { rw h1, rw ← smul_sub, rw p.smul, rw q.smul, rw ← mul_add,
-            rw mul_le_mul_left ha,
-            apply cinfi_le, apply bdd_below_range_add } } },
-    end } }
-
-noncomputable instance : lattice (seminorm 𝕜 E) :=
-{ inf := (⊓),
-  inf_le_left := λ p q x, begin
-    apply cinfi_le_of_le (bdd_below_range_add _ _ _) x,
-    simp only [sub_self, seminorm.zero, add_zero], end,
-  inf_le_right := λ p q x, begin
-    apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
-    simp only [sub_self, seminorm.zero, zero_add, sub_zero], end,
-  le_inf := λ a b c hab hac x, begin
-    apply le_cinfi, intro u,
-    exact le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
-   end,
-  ..seminorm.semilattice_sup }
 
 /-- Seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=

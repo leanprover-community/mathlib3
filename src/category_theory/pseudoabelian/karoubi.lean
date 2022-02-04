@@ -256,8 +256,9 @@ begin
 end⟩
 
 /-- If `C` is pseudoabelian, the functor `to_karoubi : C ⥤ karoubi C` is an equivalence. -/
-def to_karoubi_is_equivalence [preadditive C] [is_pseudoabelian C] : is_equivalence (to_karoubi C) :=
-  equivalence.of_fully_faithfully_ess_surj (to_karoubi C)
+def to_karoubi_is_equivalence [preadditive C] [is_pseudoabelian C] :
+  is_equivalence (to_karoubi C) :=
+equivalence.of_fully_faithfully_ess_surj (to_karoubi C)
 
 namespace karoubi
 

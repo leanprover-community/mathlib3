@@ -656,8 +656,20 @@ semi_normed_group.induced s.subtype
 
 /-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `s` is equal to
 its norm in `E`. -/
-@[simp] lemma coe_norm_subgroup {E : Type*} [semi_normed_group E] {s : add_subgroup E} (x : s) :
-  ∥x∥ = ∥(x:E)∥ :=
+@[simp] lemma add_subgroup.coe_norm {E : Type*} [semi_normed_group E]
+  {s : add_subgroup E} (x : s) :
+  ∥(x : s)∥ = ∥(x:E)∥ :=
+rfl
+
+/-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `s` is equal to
+its norm in `E`.
+
+This is a reversed version of the `simp` lemma `add_subgroup.coe_norm` for use by `norm_cast`.
+-/
+
+@[norm_cast] lemma add_subgroup.norm_coe {E : Type*} [semi_normed_group E] {s : add_subgroup E}
+  (x : s) :
+  ∥(x : E)∥ = ∥(x : s)∥ :=
 rfl
 
 /-- A submodule of a seminormed group is also a seminormed group, with the restriction of the norm.
@@ -668,18 +680,24 @@ instance submodule.semi_normed_group {𝕜 : Type*} {_ : ring 𝕜}
 { norm := λx, norm (x : E),
   dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
 
+/-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `s` is equal to its
+norm in `E`.
+
+See note [implicit instance arguments]. -/
+@[simp] lemma submodule.coe_norm {𝕜 : Type*} {_ : ring 𝕜}
+  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
+  ∥(x : s)∥ = ∥(x : E)∥ :=
+rfl
+
 /-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `E` is equal to its
 norm in `s`.
 
-See note [implicit instance arguments]. -/
-@[simp, norm_cast] lemma submodule.norm_coe {𝕜 : Type*} {_ : ring 𝕜}
-  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
-  ∥(x : E)∥ = ∥x∥ :=
-rfl
+This is a reversed version of the `simp` lemma `submodule.coe_norm` for use by `norm_cast`.
 
-@[simp] lemma submodule.norm_mk {𝕜 : Type*} {_ : ring 𝕜}
-  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : E) (hx : x ∈ s) :
-  ∥(⟨x, hx⟩ : s)∥ = ∥x∥ :=
+See note [implicit instance arguments]. -/
+@[norm_cast] lemma submodule.norm_coe {𝕜 : Type*} {_ : ring 𝕜}
+  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
+  ∥(x : E)∥ = ∥(x : s)∥ :=
 rfl
 
 /-- seminormed group instance on the product of two seminormed groups, using the sup norm. -/

@@ -97,7 +97,6 @@ instance is_comm_jordan.to_is_jordan (A : Type*) [has_mul A] [is_comm_jordan A] 
   rmul_comm_rmul_rmul := λ a b, by rw [is_comm_jordan.mul_comm b a, is_comm_jordan.jordan,
     is_comm_jordan.mul_comm], }
 
-universe u
 
 /-- Semigroup multiplication satisfies the (non-commutative) Jordan axioms-/
 @[priority 100] -- see Note [lower instance priority]

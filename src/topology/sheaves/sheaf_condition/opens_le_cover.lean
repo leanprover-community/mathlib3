@@ -106,7 +106,7 @@ the object level of `pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover
 -/
 @[simp]
 def pairwise_to_opens_le_cover_obj : pairwise ι → opens_le_cover U
-| (single i) := ⟨U i, ⟨i, le_refl _⟩⟩
+| (single i) := ⟨U i, ⟨i, le_rfl⟩⟩
 | (pair i j) := ⟨U i ⊓ U j, ⟨i, inf_le_left⟩⟩
 
 open category_theory.pairwise.hom

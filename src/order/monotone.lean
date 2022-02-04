@@ -493,7 +493,7 @@ lt_of_not_ge $ λ h', h.not_le $ hf ha hb h'
 lemma strict_mono_on.le_iff_le (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a ≤ f b ↔ a ≤ b :=
 ⟨λ h, le_of_not_gt $ λ h', (hf hb ha h').not_le h,
- λ h, h.lt_or_eq_dec.elim (λ h', (hf ha hb h').le) (λ h', h' ▸ le_refl _)⟩
+ λ h, h.lt_or_eq_dec.elim (λ h', (hf ha hb h').le) (λ h', h' ▸ le_rfl)⟩
 
 lemma strict_anti_on.le_iff_le (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a ≤ f b ↔ b ≤ a :=

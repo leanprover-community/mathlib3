@@ -544,7 +544,7 @@ protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe
 protected def gi : galois_insertion (adjoin R : set A → subalgebra R A) coe :=
 { choice := λ s hs, (adjoin R s).copy s $ le_antisymm (algebra.gc.le_u_l s) hs,
   gc := algebra.gc,
-  le_l_u := λ S, (algebra.gc (S : set A) (adjoin R S)).1 $ le_refl _,
+  le_l_u := λ S, (algebra.gc (S : set A) (adjoin R S)).1 $ le_rfl,
   choice_eq := λ _ _, subalgebra.copy_eq _ _ _ }
 
 instance : complete_lattice (subalgebra R A) :=

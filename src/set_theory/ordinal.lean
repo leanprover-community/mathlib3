@@ -1138,7 +1138,7 @@ theorem le_omin {S H a} : a ≤ omin S H ↔ ∀ i ∈ S, a ≤ i :=
 le_min.trans set_coe.forall
 
 theorem omin_le {S H i} (h : i ∈ S) : omin S H ≤ i :=
-le_omin.1 (le_refl _) _ h
+le_omin.1 le_rfl _ h
 
 theorem not_lt_omin {S H i} (h : i ∈ S) : ¬ i < omin S H :=
 not_lt_of_le (omin_le h)
@@ -1237,7 +1237,7 @@ quotient.induction_on c $ λ α,
 let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
 
 theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
-ord_le.2 (le_refl _)
+ord_le.2 le_rfl
 
 lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.ord :=
 by { rw [lt_ord], apply cardinal.lt_succ_self }

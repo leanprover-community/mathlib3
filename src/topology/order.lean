@@ -173,7 +173,7 @@ def gi_generate_from (α : Type*) :
 { gc        := assume g t, generate_from_le_iff_subset_is_open,
   le_l_u    := assume ts s hs, topological_space.generate_open.basic s hs,
   choice    := λg hg, mk_of_closure g
-    (subset.antisymm hg $ generate_from_le_iff_subset_is_open.1 $ le_refl _),
+    (subset.antisymm hg $ generate_from_le_iff_subset_is_open.1 $ le_rfl),
   choice_eq := assume s hs, mk_of_closure_sets }
 
 lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :

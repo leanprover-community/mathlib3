@@ -494,7 +494,7 @@ instance str {s : string} : (str s).mono :=
 mono.decorate_error
 
 instance remaining : remaining.mono :=
-⟨λ _ _, le_refl _⟩
+⟨λ _ _, le_rfl⟩
 
 instance eof : eof.mono :=
 mono.decorate_error
@@ -2569,7 +2569,7 @@ begin
     have hdigit : digit cb n = done (n + 1) (hd.to_nat - '0'.to_nat),
     { -- By our necessary condition, we know that `n` is in bounds, and that the `n`th character
       -- has the necessary "numeric" properties.
-      specialize ho n hn (le_refl _),
+      specialize ho n hn le_rfl,
       -- We prove an additional result that the conversion of `hd : char` to a `ℕ` would give a
       -- value `x ≤ 9`, since that is part of the iff statement in the `digit_eq_done` lemma.
       have : (buffer.read cb ⟨n, hn.trans_le hn'⟩).to_nat - '0'.to_nat ≤ 9,

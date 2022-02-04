@@ -714,11 +714,11 @@ begin
   induction n with n ih,
   { simp [pi_top] },
   { calc lower_central_series (Π i, Gs i) n.succ
-        = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆  : rfl
-    ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆ : by rw ih
+        = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆                  : rfl
+    ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆           : by rw ih
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simp [pi, pi_top]
-    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆) : general_commutator_pi_pi _ _
-    ... = pi (λ i, lower_central_series (Gs i) n.succ) : rfl }
+    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)           : general_commutator_pi_pi _ _
+    ... = pi (λ i, lower_central_series (Gs i) n.succ)             : rfl }
 end
 
 /-- n-ary Products of nilpotent groups are nilpotent -/

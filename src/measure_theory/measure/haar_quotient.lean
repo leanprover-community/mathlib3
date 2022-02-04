@@ -153,8 +153,10 @@ def measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.nor
     obtain ⟨x₁, _⟩ := @quotient.exists_rep _ (quotient_group.left_rel Γ) x,
     haveI := h𝓕.smul_invariant_measure_map,
     convert measure_preimage_smul x₁ ((measure.map quotient_group.mk) (μ.restrict 𝓕)) A using 1,
-    rw ← h,
-    refl,
+    rw [← h, measure.map_apply],
+    { refl, },
+    { exact measurable_const_mul _, },
+    { exact hA, },
   end }
 
 variables [t2_space (G ⧸ Γ)] [topological_space.second_countable_topology (G ⧸ Γ)]

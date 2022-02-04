@@ -81,7 +81,7 @@ class is_comm_jordan (A : Type*) [has_mul A]:=
 (mul_comm : ∀ a b : A, a * b = b * a)
 (jordan : ∀ a b : A, (a * b) * (a * a) = a * (b * (a *a)))
 
--- A (commutative) Jordan multiplication is also a Jordan multipication
+/-- A (commutative) Jordan multiplication is also a Jordan multipication -/
 @[priority 100] -- see Note [lower instance priority]
 instance is_comm_jordan.to_is_jordan (A : Type*) [has_mul A] [is_comm_jordan A] : is_jordan A :=
 { lmul_comm_rmul := λ a b, by rw [is_comm_jordan.mul_comm, is_comm_jordan.mul_comm a b],

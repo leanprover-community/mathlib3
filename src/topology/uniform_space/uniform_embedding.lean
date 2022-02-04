@@ -362,6 +362,18 @@ lemma uniform_embedding_comap {α : Type*} {β : Type*} {f : α → β} [u : uni
 @uniform_embedding.mk _ _ (uniform_space.comap f u) _ _
   (@uniform_inducing.mk _ _ (uniform_space.comap f u) _ _ rfl) hf
 
+/-- Pull back a uniform space structure by an embedding, adjusting the new uniform structure to
+make sure that its topology is defeq to the original one. -/
+def embedding.comap_uniform_space {α β} [topological_space α] [u : uniform_space β] (f : α → β)
+  (h : embedding f) : uniform_space α :=
+(u.comap f).replace_topology h.induced
+
+lemma embedding.to_uniform_embedding {α β} [topological_space α] [u : uniform_space β] (f : α → β)
+  (h : embedding f) :
+  @uniform_embedding α β (h.comap_uniform_space f) u f :=
+{ comap_uniformity := rfl,
+  inj := h.inj }
+
 section uniform_extension
 
 variables {α : Type*} {β : Type*} {γ : Type*}

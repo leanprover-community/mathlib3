@@ -416,15 +416,15 @@ end
 -- Apostol, Theorem 5.5
 
 lemma modeq_iff_of_modeq_of_dvd {a b c d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
-  a ≡ c [MOD d] ↔ b ≡ c [MOD d] :=
+  b ≡ c [MOD d] ↔ a ≡ c [MOD d] :=
 begin
   have habd := modeq.modeq_of_dvd hdm h,
-  exact ⟨λ h, (modeq.symm habd).trans h, λ h, modeq.trans habd h⟩,
+  exact ⟨λ h, modeq.trans habd h, λ h, (modeq.symm habd).trans h⟩,
 end
 
 lemma dvd_iff_of_modeq_of_dvd {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
   d ∣ a ↔ d ∣ b :=
-by simpa only [←modeq_zero_iff_dvd] using modeq_iff_of_modeq_of_dvd h hdm
+by simpa only [←modeq_zero_iff_dvd] using (modeq_iff_of_modeq_of_dvd h hdm).symm
 
 
 -- Apostol, Theorem 5.6

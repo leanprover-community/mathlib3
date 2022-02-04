@@ -202,9 +202,9 @@ instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_diviso
 protected def subtype : p →ₗ[R] M :=
 by refine {to_fun := coe, ..}; simp [coe_smul]
 
-@[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
+theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
-lemma coe_subtype : ((submodule.subtype p) : p → M) = coe := rfl
+@[simp] lemma coe_subtype : ((submodule.subtype p) : p → M) = coe := rfl
 
 /-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=

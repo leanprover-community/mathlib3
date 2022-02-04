@@ -7,6 +7,8 @@ Authors: Chris Hughes, Thomas Browning
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
+import group_theory.pi_hom
+import data.nat.factorization
 
 /-!
 # Sylow theorems
@@ -467,6 +469,22 @@ begin
   rwa [h, card_bot] at key,
 end
 
+/-- The cardinality of a Sylow group is p ^ n where n is the multiplicity of p in the group order.
+ -/
+lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
+  card P = p ^ nat.factorization (card G) p :=
+begin
+  have hn : card G ≠ 0 := fintype.card_ne_zero,
+  haveI : nonempty G := nonempty.intro 1, -- TODO: Why is there no instance for that?
+  obtain ⟨n, heq⟩ := is_p_group.iff_card.mp (P.is_p_group'),
+  apply nat.dvd_antisymm,
+  { suffices : p ^ n ∣ p ^ nat.factorization (card G) p, by simpa [← heq] using this,
+    rw ← nat.prime_pow_dvd_multiplicity_iff _ _ _ hp.elim hn,
+    rw ← heq,
+    apply subgroup.card_subgroup_dvd_card, },
+  { apply pow_dvd_card_of_pow_dvd_card, apply nat.pow_factorization_dvd, }
+end
+
 lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
   (h : (P : subgroup G).normal) : subsingleton (sylow p G) :=
 begin
@@ -551,5 +569,72 @@ lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
  (↑P : subgroup G).normal :=
 normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing.mp hnc _ $
   normalizer_normalizer _
+
+open_locale big_operators
+
+/-- If all its sylow groups are normal, then a finite group is isomorphic to the direct product
+of these sylow groups.
+-/
+noncomputable
+def direct_product_of_normal [fintype G]
+  (hn : ∀ {p : ℕ} [fact p.prime] (P : sylow p G), (↑P : subgroup G).normal) :
+  (Π p : (card G).factorization.support, Π P : sylow p G, (↑P : subgroup G)) ≃* G :=
+begin
+  set ps := (fintype.card G).factorization.support,
+
+  let P := λ (p : ℕ), (default : sylow p G),
+
+  have : (Π p : ps, Π P : sylow p G, (↑P : subgroup G)) ≃* (Π p : ps, (↑(P p) : subgroup G)),
+  begin
+    -- this part is hairy and needs lots of explicit instantiations
+    apply @mul_equiv.Pi_congr_right ps
+      (λ p, (Π P : sylow p G, (↑P : subgroup G))) (λ p, ((↑(P p) : subgroup G) : Type u)) _ _ ,
+    rintro ⟨p, hp⟩,
+    haveI hp' := fact.mk (nat.prime_of_mem_factorization hp),
+    haveI := subsingleton_of_normal _ (hn (P p)),
+    haveI : unique (sylow p G) := unique_of_subsingleton (P p),
+    change (Π (P : sylow p G), ↥P) ≃* (↑(P p) : subgroup G),
+    -- oddly exact doesn’t work here, but convert does
+    convert (mul_equiv.Pi_singleton (λ (P : sylow p G), ((↑P : subgroup G) : Type u))),
+  end,
+
+  have hcomm : ∀ (p₁ p₂ : ps), p₁ ≠ p₂ →
+    ∀ (x y : G), x ∈ (↑(P p₁) : subgroup G) → y ∈ (↑(P p₂) : subgroup G) → commute x y,
+  { rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
+    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
+    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
+    have hne' : p₁ ≠ p₂, by simpa using hne,
+    apply subgroup.commute_of_normal_of_disjoint _ _ (hn (P p₁)) (hn (P p₂)),
+    apply is_p_group.disjoint_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
+
+
+  apply mul_equiv.trans this,
+  apply mul_equiv.of_bijective (subgroup_pi_hom.hom hcomm),
+  apply (bijective_iff_injective_and_card _).mpr,
+  split,
+
+  show injective _,
+  { apply subgroup_pi_hom.injective_of_independent,
+    apply independent_of_coprime_order hcomm,
+    rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
+    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
+    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
+    have hne' : p₁ ≠ p₂, by simpa using hne,
+    apply is_p_group.coprime_card_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
+
+  show card (Π (p : ps), P p) = card G,
+  { calc card (Π (p : ps), P p)
+        = ∏ (p : ps), card ↥(P p) : fintype.card_pi
+    ... = ∏ (p : ps), p.1 ^ (card G).factorization p.1 :
+    begin
+      congr' 1, ext p, rcases p with ⟨p,hp⟩,
+      let hp' := fact.mk (nat.prime_of_mem_factorization hp),
+      exact (@card_eq_multiplicity _ _ _ p  hp' (P p))
+    end
+    ... = ∏ p in ps, p ^ (card G).factorization p :
+      finset.prod_finset_coe (λ p, p ^ (card G).factorization p) _
+    ... = (card G).factorization.prod pow : rfl
+    ... = card G : nat.factorization_prod_pow_eq_self fintype.card_ne_zero }
+end
 
 end sylow

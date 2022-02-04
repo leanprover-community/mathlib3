@@ -125,7 +125,8 @@ variables [non_unital_non_assoc_semiring A]
 
 end add_monoid.End
 
-open add_monoid.End (L R)
+local notation `L` := add_monoid.End.mul_left
+local notation `R` := add_monoid.End.mul_right
 
 /-! The Jordan axioms can be expressed in terms of commuting multiplication operators -/
 section lie

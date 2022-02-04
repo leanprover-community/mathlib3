@@ -3,6 +3,7 @@ Copyright (c) 2022 Joël Riou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joël Riou
 -/
+import category_theory.abelian.basic
 import category_theory.preadditive.additive_functor
 import category_theory.equivalence
 
@@ -12,10 +13,11 @@ import category_theory.equivalence
 In this file, we define the Karoubi envelope `karoubi C` of a preadditive
 category `C` and the notion of pseudoabelian category (also known as Karoubian categories).
 
-## Main constructions
+## Main constructions and definitions
 
 - `is_pseudoabelian C` expresses that `C` is pseudoabelian, i.e. all idempotents endomorphisms
 in `C` have a kernel.
+- `is_pseudoabelian_of_abelian` expresses that abelian categories are pseudoabelian.
 - `karoubi C` is the pseudoabelian or Karoubi envelope of a preadditive category `C`.
 - `karoubi_is_pseudoabelian C` says that `karoubi C` is pseudoabelian.
 - `to_karoubi C : C ⥤ karoubi C` is a fully faithful functor, which is an equivalence
@@ -37,6 +39,16 @@ namespace category_theory
 
 variables (C : Type*) [category C] [preadditive C]
 
+/-- A preadditive category is pseudoabelian iff all idempotent endomorphisms have a kernel. -/
+class is_pseudoabelian : Prop :=
+(has_kernel_of_idem : ∀ (X : C) (p : X ⟶ X), p ≫ p = p → has_kernel p)
+
+/-- An abelian category is pseudoabelian. -/
+@[priority 100]
+instance is_pseudoabelian_of_abelian (D : Type*) [category D] [abelian D] :
+  is_pseudoabelian D :=
+{ has_kernel_of_idem := λ X p hp, infer_instance }
+
 namespace pseudoabelian
 
 /-- When an object `X` decomposes as `X ≅ P ⨿ Q`, one may consider `P` as a direct factor of `X`
@@ -46,14 +58,6 @@ projector on `P` with kernel `Q`. More generally, one may define a formal direct
 The type `karoubi C` shall be the objects of the karoubi enveloppe of `C`. -/
 @[nolint has_inhabited_instance]
 structure karoubi := (X : C) (p : X ⟶ X) (idempotence : p ≫ p = p)
-
-end pseudoabelian
-
-/-- A preadditive category is pseudoabelian iff all idempotent endomorphisms have a kernel. -/
-class is_pseudoabelian : Prop :=
-(has_kernel_of_idem : ∀ (X : C) (p : X ⟶ X), p ≫ p = p → has_kernel p)
-
-namespace pseudoabelian
 
 namespace karoubi
 

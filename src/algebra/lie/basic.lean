@@ -306,6 +306,40 @@ def inverse (f : L₁ →ₗ⁅R⁆ L₂) (g : L₂ → L₁)
 
 end lie_hom
 
+section module_pull_back
+
+variables {R : Type u} {L₁ : Type v} {L₂ : Type w} (M : Type w₁)
+variables [comm_ring R]  [lie_ring L₁] [lie_algebra R L₁] [lie_ring L₂] [lie_algebra R L₂]
+variables [add_comm_group M] [lie_ring_module L₂ M]
+variables (f : L₁ →ₗ⁅R⁆ L₂)
+include f
+
+/-- A Lie ring module may be pulled back along a morphism of Lie algebras.
+
+See note [reducible non-instances]. -/
+@[reducible]
+def lie_ring_module.comp_lie_hom : lie_ring_module L₁ M :=
+{ bracket     := λ x m, ⁅f x, m⁆,
+  lie_add     := λ x, lie_add (f x),
+  add_lie     := λ x y m, by simp only [lie_hom.map_add, add_lie],
+  leibniz_lie := λ x y m, by simp only [lie_lie, sub_add_cancel, lie_hom.map_lie], }
+
+lemma lie_ring_module.comp_lie_hom_apply (x : L₁) (m : M) :
+  by haveI := lie_ring_module.comp_lie_hom M f; exact
+  ⁅x, m⁆ = ⁅f x, m⁆ :=
+rfl
+
+/-- A Lie module may be pulled back along a morphism of Lie algebras.
+
+See note [reducible non-instances]. -/
+@[reducible]
+def lie_module.comp_lie_hom [module R M] [lie_module R L₂ M] :
+  @lie_module R L₁ M _ _ _ _ _ (lie_ring_module.comp_lie_hom M f) :=
+{ smul_lie := λ t x m, by simp only [smul_lie, lie_hom.map_smul],
+  lie_smul := λ t x m, by simp only [lie_smul], }
+
+end module_pull_back
+
 /-- An equivalence of Lie algebras is a morphism which is also a linear equivalence. We could
 instead define an equivalence to be a morphism which is also a (plain) equivalence. However it is
 more convenient to define via linear equivalence to get `.to_linear_equiv` for free. -/

@@ -6,11 +6,11 @@ Authors: Yaël Dillies
 import algebra.order.field
 import category_theory.concrete_category.bundled
 import category_theory.monoidal.category
+import category_theory.category.Bipointed
 import data.fintype.basic
 import data.real.basic
 import data.sum.basic
 import data.two_pointing
-import data.twop.Bipointed
 import order.bounded_order
 
 /-!

@@ -607,6 +607,14 @@ theorem mul_self_inj {n m : ℕ} : n * n = m * m ↔ n = m :=
 le_antisymm_iff.trans (le_antisymm_iff.trans
   (and_congr mul_self_le_mul_self_iff mul_self_le_mul_self_iff)).symm
 
+lemma le_of_pos_add_prec (n : ℕ) {i : ℕ} (hi : i ≠ 0) : n ≤ i + (n - 1) :=
+begin
+  cases n,
+  { simp },
+  { rw [succ_sub_one, succ_eq_add_one, add_comm, add_le_add_iff_right],
+    exact nat.one_le_iff_ne_zero.2 hi }
+end
+
 /-!
 ### Recursion and induction principles
 

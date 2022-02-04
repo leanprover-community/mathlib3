@@ -131,7 +131,7 @@ begin
   apply le_antisymm,
   { rw general_commutator_le,
     rintros ⟨p₁, p₂⟩ ⟨hp₁, hp₂⟩ ⟨q₁, q₂⟩ ⟨hq₁, hq₂⟩,
-    exact ⟨general_commutator_containment _ _ hp₁ hq₁, general_commutator_containment _ _ hp₂ hq₂ ⟩ },
+    exact ⟨general_commutator_containment _ _ hp₁ hq₁, general_commutator_containment _ _ hp₂ hq₂⟩},
   { rw prod_le_iff, split;
     { rw map_general_commutator,
       apply general_commutator_mono;

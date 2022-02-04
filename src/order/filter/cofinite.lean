@@ -104,7 +104,7 @@ lemma filter.eventually_cofinite_ne (x : α) : ∀ᶠ a in cofinite, a ≠ x :=
 (set.finite_singleton x).eventually_cofinite_nmem
 
 /-- For natural numbers the filters `cofinite` and `at_top` coincide. -/
-lemma nat.cofinite_eq_at_top : @cofinite ℕ = at_top :=
+@[simp] lemma nat.cofinite_eq_at_top : @cofinite ℕ = at_top :=
 begin
   ext s,
   simp only [mem_cofinite, mem_at_top_sets],

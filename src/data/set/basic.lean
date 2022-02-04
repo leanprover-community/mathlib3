@@ -1970,6 +1970,10 @@ lemma is_compl_range_some_none (α : Type*) :
 @[simp] lemma range_some_union_none (α : Type*) : range (some : α → option α) ∪ {none} = univ :=
 (is_compl_range_some_none α).sup_eq_top
 
+@[simp] lemma insert_none_range_some (α : Type*) :
+  insert none (range (some : α → option α)) = univ :=
+(is_compl_range_some_none α).symm.sup_eq_top
+
 end range
 end set
 

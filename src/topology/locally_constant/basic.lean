@@ -151,7 +151,7 @@ begin
   letI : topological_space Y := ⊥,
   haveI : discrete_topology Y := ⟨rfl⟩,
   rw @iff_continuous X Y ‹_› ‹_› at hf,
-  exact finite_of_is_compact_of_discrete _ (is_compact_range hf)
+  exact (is_compact_range hf).finite_of_discrete
 end
 
 @[to_additive] lemma one [has_one Y] : is_locally_constant (1 : X → Y) := const 1

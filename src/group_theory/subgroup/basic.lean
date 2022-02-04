@@ -1184,17 +1184,6 @@ begin
     { simp [heq, one_mem], }, }
 end
 
-lemma single1_eval_commute [decidable_eq η] (x : Π i, f i) (i j : η) :
-  commute (pi.single1 i (x i)) (pi.single1 j (x j)) :=
-begin
-  ext k,
-  by_cases h1 : k = j; by_cases h2 : k = i,
-  { subst h1, subst h2, },
-  { subst h1, simp [h2], },
-  { subst h2, simp [h1], },
-  { simp [h1,h2], },
-end
-
 lemma pi_mem_of_single_mem_aux [decidable_eq η] (I : finset η) {H : subgroup (Π i, f i) }
   (x : Π i, f i) (h1 : ∀ i, i ∉ I → x i = 1) (h2 : ∀ i, i ∈ I → pi.single1 i (x i) ∈ H ) :
   x ∈ H :=

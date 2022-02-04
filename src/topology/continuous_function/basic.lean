@@ -8,7 +8,7 @@ import data.set.Union_lift
 import topology.homeomorph
 
 /-!
-# Continuous bundled map
+# Continuous bundled maps
 
 In this file we define the type `continuous_map` of continuous bundled maps.
 
@@ -51,6 +51,8 @@ lemma map_continuous_at (f : F) (a : α) : continuous_at f a := (map_continuous 
 
 lemma map_continuous_within_at (f : F) (s : set α) (a : α) : continuous_within_at f s a :=
 (map_continuous f).continuous_within_at
+
+instance : has_coe_t F C(α, β) := ⟨λ f, { to_fun := f, continuous_to_fun := map_continuous f }⟩
 
 end continuous_map_class
 

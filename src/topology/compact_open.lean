@@ -277,7 +277,7 @@ lemma curry_apply (f : C(α × β, γ)) (a : α) (b : β) : f.curry a b = f (a, 
 lemma continuous_uncurry_of_continuous [locally_compact_space β] (f : C(α, C(β, γ))) :
   continuous (function.uncurry (λ x y, f x y)) :=
 have hf : function.uncurry (λ x y, f x y) = ev β γ ∘ prod.map f id, by { ext, refl },
-hf ▸ continuous.comp continuous_ev $ continuous.prod_map f.2 id.2
+hf ▸ continuous.comp continuous_ev $ continuous.prod_map f.2 continuous_id
 
 /-- The uncurried form of a continuous map `α → C(β, γ)` as a continuous map `α × β → γ` (if `β` is
     locally compact). If `α` is also locally compact, then this is a homeomorphism between the two
@@ -291,16 +291,16 @@ lemma continuous_uncurry [locally_compact_space α] [locally_compact_space β] :
 begin
   apply continuous_of_continuous_uncurry,
   rw ←homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _),
-  apply continuous.comp continuous_ev (continuous.prod_map continuous_ev id.2);
+  apply continuous.comp continuous_ev (continuous.prod_map continuous_ev continuous_id);
   apply_instance
 end
 
 /-- The family of constant maps: `β → C(α, β)` as a continuous map. -/
 def const' : C(β, C(α, β)) := curry ⟨prod.fst, continuous_fst⟩
 
-@[simp] lemma coe_const' : (const' : β → C(α, β)) = const := rfl
+@[simp] lemma coe_const' : (const' : β → C(α, β)) = const α := rfl
 
-lemma continuous_const' : continuous (const : β → C(α, β)) := const'.continuous
+lemma continuous_const' : continuous (const α : β → C(α, β)) := const'.continuous
 
 end curry
 
@@ -323,7 +323,7 @@ def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
 { to_fun := continuous_map.comp ⟨_, continuous_fst⟩ ∘ coev α β,
   inv_fun := ev α β ∘ (λ f, (f, default)),
   left_inv := λ a, rfl,
-  right_inv := λ f, by { ext, rw unique.eq_default x, refl },
+  right_inv := λ f, by { ext, rw unique.eq_default a, refl },
   continuous_to_fun := continuous.comp (continuous_comp _) continuous_coev,
   continuous_inv_fun :=
     continuous.comp continuous_ev (continuous.prod_mk continuous_id continuous_const) }

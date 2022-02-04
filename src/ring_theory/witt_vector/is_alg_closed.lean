@@ -147,8 +147,7 @@ begin
     have hsupp : (finsupp.single i (p ^ (n - i))).support = {i},
     { rw finsupp.support_eq_singleton,
       simp only [and_true, finsupp.single_eq_same, eq_self_iff_true, ne.def],
-      exact pow_ne_zero _ hp.out.ne_zero,
-       },
+      exact pow_ne_zero _ hp.out.ne_zero, },
     simp only [bind₁_monomial, hsupp, int.cast_coe_nat, prod_singleton, ring_hom.eq_int_cast,
       finsupp.single_eq_same, C_pow, mul_eq_mul_left_iff, true_or, eq_self_iff_true], },
   { simp only [map_mul, bind₁_X_right] }

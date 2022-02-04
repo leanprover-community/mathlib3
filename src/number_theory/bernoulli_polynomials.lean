@@ -26,13 +26,13 @@ Bernoulli polynomials are defined using `bernoulli`, the Bernoulli numbers.
 
 ## Main theorems
 
-- `sum_bernoulli_poly`: The sum of the $k^\mathrm{th}$ Bernoulli polynomial with binomial
+- `sum_bernoulli`: The sum of the $k^\mathrm{th}$ Bernoulli polynomial with binomial
   coefficients up to n is `(n + 1) * X^n`.
-- `exp_bernoulli_poly`: The Bernoulli polynomials act as generating functions for the exponential.
+- `exp_bernoulli`: The Bernoulli polynomials act as generating functions for the exponential.
 
 ## TODO
 
-- `bernoulli_poly_eval_one_neg` : $$ B_n(1 - x) = (-1)^n*B_n(x) $$
+- `bernoulli_eval_one_neg` : $$ B_n(1 - x) = (-1)^n*B_n(x) $$
 
 -/
 
@@ -63,10 +63,10 @@ end
 
 section examples
 
-@[simp] lemma bernoulli_poly_zero : bernoulli 0 = 1 :=
+@[simp] lemma bernoulli_zero : bernoulli 0 = 1 :=
 by simp [bernoulli]
 
-@[simp] lemma bernoulli_poly_eval_zero (n : ℕ) : (bernoulli n).eval 0 = _root_.bernoulli n :=
+@[simp] lemma bernoulli_eval_zero (n : ℕ) : (bernoulli n).eval 0 = _root_.bernoulli n :=
 begin
  rw [bernoulli, polynomial.eval_finset_sum, sum_range_succ],
   have : ∑ (x : ℕ) in range n, _root_.bernoulli x * (n.choose x) * 0 ^ (n - x) = 0,
@@ -76,7 +76,7 @@ begin
   simp [this],
 end
 
-@[simp] lemma bernoulli_poly_eval_one (n : ℕ) : (bernoulli n).eval 1 = _root_.bernoulli' n :=
+@[simp] lemma bernoulli_eval_one (n : ℕ) : (bernoulli n).eval 1 = _root_.bernoulli' n :=
 begin
   simp only [bernoulli, polynomial.eval_finset_sum],
   simp only [←succ_eq_add_one, sum_range_succ, mul_one, cast_one, choose_self,
@@ -90,7 +90,7 @@ end
 
 end examples
 
-@[simp] theorem sum_bernoulli_poly (n : ℕ) :
+@[simp] theorem sum_bernoulli (n : ℕ) :
   ∑ k in range (n + 1), ((n + 1).choose k : ℚ) • bernoulli k =
     polynomial.monomial n (n + 1 : ℚ) :=
 begin
@@ -106,7 +106,7 @@ begin
     rw [←sum_smul], },
   rw [sum_range_succ_comm],
   simp only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, add_tsub_cancel_left,
-    choose_succ_self_right, one_smul, bernoulli_zero, sum_singleton, zero_add,
+    choose_succ_self_right, one_smul, _root_.bernoulli_zero, sum_singleton, zero_add,
     linear_map.map_add, range_one],
   apply sum_eq_zero (λ x hx, _),
   have f : ∀ x ∈ range n, ¬ n + 1 - x = 1,
@@ -128,7 +128,7 @@ variables {A : Type*} [comm_ring A] [algebra ℚ A]
 -- This name should probably be updated afterwards
 
 /-- The theorem that `∑ Bₙ(t)X^n/n!)(e^X-1)=Xe^{tX}`  -/
-theorem exp_bernoulli_poly' (t : A) :
+theorem exp_bernoulli' (t : A) :
   mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli n)) * (exp A - 1) = power_series.X * rescale t (exp A) :=
 begin
   -- check equality of power series by checking coefficients of X^n
@@ -156,7 +156,7 @@ begin
     (show (n! : ℚ) ≠ 0, from cast_ne_zero.2 (factorial_ne_zero n)), mul_one, mul_comm (t^n),
     ← polynomial.aeval_monomial, cast_add, cast_one],
   -- But this is the RHS of `sum_bernoulli_poly`
-  rw [← sum_bernoulli_poly, finset.mul_sum, alg_hom.map_sum],
+  rw [← sum_bernoulli, finset.mul_sum, alg_hom.map_sum],
   -- and now we have to prove a sum is a sum, but all the terms are equal.
   apply finset.sum_congr rfl,
   -- The rest is just trivialities, hampered by the fact that we're coercing

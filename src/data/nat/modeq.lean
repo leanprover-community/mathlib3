@@ -86,6 +86,21 @@ by rw [mul_comm a, mul_comm b]; exact h.mul_left c
 protected theorem mul (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a * c ≡ b * d [MOD n] :=
 (h₂.mul_left _ ).trans (h₁.mul_right _)
 
+-- Apostol, Theorem 5.3
+protected theorem mul_left_iff {a b c m : ℕ} (hc : c ≠ 0) :
+  a ≡ b [MOD m] ↔ c * a ≡ c * b [MOD c * m] :=
+begin
+  have hc' : (c:ℤ) ≠ 0 := by simp [hc],
+  simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub, mul_dvd_mul_iff_left hc'],
+end
+
+protected theorem mul_right_iff {a b c m : ℕ} (hc : c ≠ 0) :
+  a ≡ b [MOD m] ↔ a * c ≡ b * c [MOD m * c] :=
+begin
+  have hc' : (c:ℤ) ≠ 0 := by simp [hc],
+  simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub_right_distrib, mul_dvd_mul_iff_right hc'],
+end
+
 protected theorem pow (m : ℕ) (h : a ≡ b [MOD n]) : a ^ m ≡ b ^ m [MOD n] :=
 begin
   induction m with d hd, {refl},
@@ -153,6 +168,83 @@ lemma le_of_lt_add (h1 : a ≡ b [MOD m]) (h2 : a < b + m) : a ≤ b :=
 
 lemma add_le_of_lt (h1 : a ≡ b [MOD m]) (h2 : a < b) : a + m ≤ b :=
 le_of_lt_add (add_modeq_right.trans h1) (add_lt_add_right h2 m)
+
+-- Apostol, Theorem 5.5
+lemma dvd_iff_of_modeq_of_dvd {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
+  d ∣ a ↔ d ∣ b :=
+begin
+  simp only [←modeq_zero_iff_dvd],
+  have habd := modeq.modeq_of_dvd hdm h,
+  exact ⟨(modeq.symm habd).trans, modeq.trans habd⟩,
+end
+
+-- Apostol, Theorem 5.6
+lemma gcd_eq_of_modeq {a b m : ℕ} (h : a ≡ b [MOD m]) : gcd a m = gcd b m :=
+begin
+  have h1 := gcd_dvd_right a m,
+  have h2 := gcd_dvd_right b m,
+  exact dvd_antisymm
+    (dvd_gcd ((dvd_iff_of_modeq_of_dvd h h1).mp (gcd_dvd_left a m)) h1)
+    (dvd_gcd ((dvd_iff_of_modeq_of_dvd h h2).mpr (gcd_dvd_left b m)) h2),
+end
+
+-- Apostol, Theorem 5.7
+lemma eq_of_modeq_of_abs_lt {a b m : ℕ} (h : a ≡ b [MOD m]) (h2 : | (b:ℤ) - a | < m) : a = b :=
+begin
+  apply int.coe_nat_inj,
+  rw [eq_comm, ←sub_eq_zero],
+  exact int.eq_zero_of_abs_lt_dvd (modeq_iff_dvd.mp h) h2,
+end
+
+-- Apostol, Theorem 5.4
+/-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c` -/
+lemma modeq_cancel_left_div_gcd {a b c m : ℕ} (hm : 0 < m) (h : c * a ≡ c * b [MOD m]) :
+  a ≡ b [MOD m / gcd m c] :=
+begin
+  set d := (gcd m c),
+  have hmd := gcd_dvd_left m c,
+  have hcd := gcd_dvd_right m c,
+  rw modeq_iff_dvd,
+  have h1 : ((m:ℤ)/↑d) ∣ (↑c/↑d) * (↑b - ↑a),
+  { rw [mul_comm, ←int.mul_div_assoc (↑b - ↑a) (int.coe_nat_dvd.mpr hcd), mul_comm],
+    refine int.div_dvd_div (int.coe_nat_dvd.mpr hmd) _,
+    rw mul_sub,
+    exact modeq_iff_dvd.mp h },
+  have h2 : int.gcd ((m/d):ℤ) (c/d) = 1 :=
+    by simp only [←int.coe_nat_div, int.coe_nat_gcd (m / d) (c / d), gcd_div hmd hcd,
+        nat.div_self (gcd_pos_of_pos_left c hm)],
+  exact int.dvd_of_dvd_mul_right_of_gcd_one h1 h2,
+end
+
+lemma modeq_cancel_right_div_gcd {a b c m : ℕ} (hm : 0 < m) (h : a * c ≡ b * c [MOD m]) :
+  a ≡ b [MOD m / gcd m c] :=
+by { apply modeq_cancel_left_div_gcd hm, simpa [mul_comm] using h }
+
+lemma modeq_cancel_left_div_gcd' {a b c d m : ℕ} (hm : 0 < m) (hcd : c ≡ d [MOD m])
+  (h : c * a ≡ d * b [MOD m]) :
+  a ≡ b [MOD m / gcd m c] :=
+modeq_cancel_left_div_gcd hm (modeq.trans h (modeq.symm (modeq.mul_right b hcd)))
+
+lemma modeq_cancel_right_div_gcd' {a b c d m : ℕ} (hm : 0 < m) (hcd : c ≡ d [MOD m])
+  (h : a * c ≡ b * d [MOD m]) :
+  a ≡ b [MOD m / gcd m c] :=
+by { apply modeq_cancel_left_div_gcd' hm hcd, simpa [mul_comm] using h }
+
+/-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
+lemma modeq_cancel_left_of_coprime {a b c m : ℕ} (hmc : gcd m c = 1) (h : c * a ≡ c * b [MOD m]) :
+  a ≡ b [MOD m] :=
+begin
+  rcases m.eq_zero_or_pos with rfl | hm,
+  { simp only [gcd_zero_left] at hmc,
+    simp only [gcd_zero_left, hmc, one_mul, modeq_zero_iff] at h,
+    subst h },
+  simpa [hmc] using modeq_cancel_left_div_gcd hm h
+end
+
+/-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
+lemma modeq_cancel_right_of_coprime {a b c m : ℕ} (hmc : gcd m c = 1) (h : a * c ≡ b * c [MOD m]) :
+  a ≡ b [MOD m] :=
+by { apply modeq_cancel_left_of_coprime hmc, simpa [mul_comm] using h }
 
 end modeq
 
@@ -389,106 +481,3 @@ lemma rotate_one_eq_self_iff_eq_repeat [nonempty α] {l : list α} :
     λ h, rotate_eq_self_iff_eq_repeat.mpr h 1⟩
 
 end list
-
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
---  PR THIS vvvv  --------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
-
-namespace nat
-
--- Apostol, Theorem 5.3
-lemma mul_left_iff {a b c m : ℕ} (hc : c ≠ 0) : a ≡ b [MOD m] ↔ c * a ≡ c * b [MOD c * m] :=
-begin
-  have hc' : (c:ℤ) ≠ 0 := by simp [hc],
-  simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub, mul_dvd_mul_iff_left hc'],
-end
-
-lemma mul_right_iff {a b c m : ℕ} (hc : c ≠ 0) : a ≡ b [MOD m] ↔ a * c ≡ b * c [MOD m * c] :=
-begin
-  have hc' : (c:ℤ) ≠ 0 := by simp [hc],
-  simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub_right_distrib, mul_dvd_mul_iff_right hc'],
-end
-
-
-
--- Apostol, Theorem 5.5
-lemma dvd_iff_of_modeq_of_dvd {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
-  d ∣ a ↔ d ∣ b :=
-begin
-  simp only [←modeq_zero_iff_dvd],
-  have habd := modeq.modeq_of_dvd hdm h,
-  exact ⟨(modeq.symm habd).trans, modeq.trans habd⟩,
-end
-
--- Apostol, Theorem 5.6
-lemma gcd_eq_of_modeq {a b m : ℕ} (h : a ≡ b [MOD m]) : gcd a m = gcd b m :=
-begin
-  have h1 := gcd_dvd_right a m,
-  have h2 := gcd_dvd_right b m,
-  exact dvd_antisymm
-    (dvd_gcd ((dvd_iff_of_modeq_of_dvd h h1).mp (gcd_dvd_left a m)) h1)
-    (dvd_gcd ((dvd_iff_of_modeq_of_dvd h h2).mpr (gcd_dvd_left b m)) h2),
-end
-
--- Apostol, Theorem 5.7
-lemma eq_of_modeq_of_abs_lt {a b m : ℕ} (h : a ≡ b [MOD m]) (h2 : | (b:ℤ) - a | < m) : a = b :=
-begin
-  apply int.coe_nat_inj,
-  rw [eq_comm, ←sub_eq_zero],
-  exact int.eq_zero_of_abs_lt_dvd (modeq_iff_dvd.mp h) h2,
-end
-
-
--- Apostol, Theorem 5.4
-/-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c` -/
-lemma modeq_cancel_left_div_gcd {a b c m : ℕ} (hm : 0 < m) (h : c * a ≡ c * b [MOD m]) :
-  a ≡ b [MOD m / gcd m c] :=
-begin
-  set d := (gcd m c),
-  have hmd := gcd_dvd_left m c,
-  have hcd := gcd_dvd_right m c,
-  rw modeq_iff_dvd,
-  have h1 : ((m:ℤ)/↑d) ∣ (↑c/↑d) * (↑b - ↑a),
-  { rw [mul_comm, ←int.mul_div_assoc (↑b - ↑a) (int.coe_nat_dvd.mpr hcd), mul_comm],
-    refine int.div_dvd_div (int.coe_nat_dvd.mpr hmd) _,
-    rw mul_sub,
-    exact modeq_iff_dvd.mp h },
-  have h2 : int.gcd ((m/d):ℤ) (c/d) = 1 :=
-    by simp only [←int.coe_nat_div, int.coe_nat_gcd (m / d) (c / d), gcd_div hmd hcd,
-        nat.div_self (gcd_pos_of_pos_left c hm)],
-  exact int.dvd_of_dvd_mul_right_of_gcd_one h1 h2,
-end
-
-lemma modeq_cancel_right_div_gcd {a b c m : ℕ} (hm : 0 < m) (h : a * c ≡ b * c [MOD m]) :
-  a ≡ b [MOD m / gcd m c] :=
-by { apply modeq_cancel_left_div_gcd hm, simpa [mul_comm] using h }
-
-lemma modeq_cancel_left_div_gcd' {a b c d m : ℕ} (hm : 0 < m) (hcd : c ≡ d [MOD m])
-  (h : c * a ≡ d * b [MOD m]) :
-  a ≡ b [MOD m / gcd m c] :=
-modeq_cancel_left_div_gcd hm (modeq.trans h (modeq.symm (modeq.mul_right b hcd)))
-
-lemma modeq_cancel_right_div_gcd' {a b c d m : ℕ} (hm : 0 < m) (hcd : c ≡ d [MOD m])
-  (h : a * c ≡ b * d [MOD m]) :
-  a ≡ b [MOD m / gcd m c] :=
-by { apply modeq_cancel_left_div_gcd' hm hcd, simpa [mul_comm] using h }
-
-/-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
-lemma modeq_cancel_left_of_coprime {a b c m : ℕ} (hmc : gcd m c = 1) (h : c * a ≡ c * b [MOD m]) :
-  a ≡ b [MOD m] :=
-begin
-  rcases m.eq_zero_or_pos with rfl | hm,
-  { simp only [gcd_zero_left] at hmc,
-    simp only [gcd_zero_left, hmc, one_mul, modeq_zero_iff] at h,
-    subst h },
-  simpa [hmc] using modeq_cancel_left_div_gcd hm h
-end
-
-/-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
-lemma modeq_cancel_right_of_coprime {a b c m : ℕ} (hmc : gcd m c = 1) (h : a * c ≡ b * c [MOD m]) :
-  a ≡ b [MOD m] :=
-by { apply modeq_cancel_left_of_coprime hmc, simpa [mul_comm] using h }
-
-end nat

@@ -9,15 +9,15 @@ import category_theory.preadditive.additive_functor
 import category_theory.equivalence
 
 /-!
-# The Karoubi envelope of a preadditive category
+# The Karoubi envelope of a category
 
-In this file, we define the Karoubi envelope `karoubi C` of a preadditive
-category `C`.
+In this file, we define the Karoubi envelope `karoubi C` of a category `C`.
 
 ## Main constructions and definitions
 
-- `karoubi C` is the pseudoabelian or Karoubi envelope of a preadditive category `C`.
-- `karoubi_is_pseudoabelian C` says that `karoubi C` is pseudoabelian.
+- `karoubi C` is the Karoubi envelope of a category `C`.
+It is preadditive when `C` is preadditive.
+- `karoubi_is_pseudoabelian C` says that `karoubi C` is pseudoabelian (when `C` is preadditive).
 - `to_karoubi C : C ⥤ karoubi C` is a fully faithful functor, which is an equivalence
 (`to_karoubi_is_equivalence`) when `C` is pseudoabelian.
 
@@ -34,7 +34,7 @@ namespace category_theory
 
 namespace pseudoabelian
 
-variables (C : Type*) [category C] [preadditive C]
+variables (C : Type*) [category C]
 
 /-- When an object `X` decomposes as `X ≅ P ⨿ Q`, one may consider `P` as a direct factor of `X`
 and up to unique isomorphism, it is determined by the obvious idempotent `X ⟶ P ⟶ X` which is the
@@ -62,7 +62,7 @@ end
 
 /-- When `p : X ⟶ X` is idempotent, then `𝟙 X - p` is also idempotent. -/
 @[simps]
-def idempotent_of_id_sub_idempotent (P : karoubi C) : karoubi C :=
+def idempotent_of_id_sub_idempotent [preadditive C] (P : karoubi C) : karoubi C :=
 { X := P.X,
   p := 𝟙 _ - P.p,
   idempotence := by simp only [comp_sub, sub_comp, id_comp, comp_id, P.idempotence,
@@ -74,7 +74,7 @@ def idempotent_of_id_sub_idempotent (P : karoubi C) : karoubi C :=
 @[ext]
 structure hom (P Q : karoubi C) := (f : P.X ⟶ Q.X) (comm : f = P.p ≫ f ≫ Q.p)
 
-instance (P Q : karoubi C) : inhabited (hom P Q) := ⟨⟨0, by rw [zero_comp, comp_zero]⟩⟩
+instance [preadditive C] (P Q : karoubi C) : inhabited (hom P Q) := ⟨⟨0, by rw [zero_comp, comp_zero]⟩⟩
 
 @[simp]
 lemma hom_ext {P Q : karoubi C} {f g : hom P Q} : f = g ↔ f.f = g.f :=
@@ -150,7 +150,7 @@ instance : faithful (to_karoubi C) := { }
 variables {C}
 
 @[simps]
-instance {P Q : karoubi C} : add_comm_group (P ⟶ Q) :=
+instance [preadditive C] {P Q : karoubi C} : add_comm_group (P ⟶ Q) :=
 { add := λ f g, ⟨f.f+g.f, begin
     rw [add_comp, comp_add],
     congr',
@@ -167,36 +167,36 @@ instance {P Q : karoubi C} : add_comm_group (P ⟶ Q) :=
 
 namespace karoubi
 
-lemma hom_eq_zero_iff {P Q : karoubi C} {f : hom P Q} : f = 0 ↔ f.f = 0 := hom_ext
+lemma hom_eq_zero_iff [preadditive C] {P Q : karoubi C} {f : hom P Q} : f = 0 ↔ f.f = 0 := hom_ext
 
 /-- The map sending `f : P ⟶ Q` to `f.f : P.X ⟶ Q.X` is additive. -/
 @[simps]
-def inclusion_hom (P Q : karoubi C) : add_monoid_hom (P ⟶ Q) (P.X ⟶ Q.X) :=
+def inclusion_hom [preadditive C] (P Q : karoubi C) : add_monoid_hom (P ⟶ Q) (P.X ⟶ Q.X) :=
 { to_fun   := λ f, f.f,
   map_zero' := rfl,
   map_add'  := λ f g, rfl }
 
 @[simp]
-lemma sum_hom {P Q : karoubi C} {α : Type*} (s : finset α) (f : α → (P ⟶ Q)) :
+lemma sum_hom [preadditive C] {P Q : karoubi C} {α : Type*} (s : finset α) (f : α → (P ⟶ Q)) :
   (∑ x in s, f x).f = ∑ x in s, (f x).f  :=
 add_monoid_hom.map_sum (inclusion_hom P Q) f s
 
 end karoubi
 
-instance : preadditive (karoubi C) :=
+instance [preadditive C] : preadditive (karoubi C) :=
 { hom_group := λ P Q, by apply_instance,
   add_comp' := λ P Q R f g h,
     by { ext, simp only [add_comp, quiver.hom.add_comm_group_add_f, karoubi.comp], },
   comp_add' := λ P Q R f g h,
     by { ext, simp only [comp_add, quiver.hom.add_comm_group_add_f, karoubi.comp], }, }
 
-instance : functor.additive (to_karoubi C) := { }
+instance [preadditive C] : functor.additive (to_karoubi C) := { }
 
 open karoubi
 
 variables (C)
 
-theorem karoubi_is_pseudoabelian : is_pseudoabelian (karoubi C) :=
+theorem karoubi_is_pseudoabelian [preadditive C] : is_pseudoabelian (karoubi C) :=
 { has_kernel_of_idem := λ X p h, begin
     simp only [hom_ext, comp] at h,
     let Q : karoubi C := ⟨X.X, X.p - p.f,
@@ -222,7 +222,7 @@ theorem karoubi_is_pseudoabelian : is_pseudoabelian (karoubi C) :=
         simpa only [hom_eq_zero_iff, hom_ext, comp, comp_sub, comp_p] using hg', }, }
   end }
 
-instance [is_pseudoabelian C] : ess_surj (to_karoubi C) := ⟨λ P,
+instance [preadditive C] [is_pseudoabelian C] : ess_surj (to_karoubi C) := ⟨λ P,
 begin
   let Q := idempotent_of_id_sub_idempotent P,
   let kernels := (show is_pseudoabelian C, by apply_instance).has_kernel_of_idem,
@@ -255,7 +255,7 @@ begin
 end⟩
 
 /-- If `C` is pseudoabelian, the functor `to_karoubi : C ⥤ karoubi C` is an equivalence. -/
-def to_karoubi_is_equivalence [is_pseudoabelian C] : is_equivalence (to_karoubi C) :=
+def to_karoubi_is_equivalence [preadditive C] [is_pseudoabelian C] : is_equivalence (to_karoubi C) :=
   equivalence.of_fully_faithfully_ess_surj (to_karoubi C)
 
 namespace karoubi

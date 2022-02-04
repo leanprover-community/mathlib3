@@ -9,8 +9,7 @@ import category_theory.abelian.basic
 /-!
 # Pseudoabelian categories
 
-In this file, we define the Karoubi envelope `karoubi C` of a preadditive
-category `C` and the notion of pseudoabelian category (also known as Karoubian categories).
+In this file, we define the notion of pseudoabelian category (also known as Karoubian categories).
 
 ## Main constructions and definitions
 

@@ -317,8 +317,8 @@ begin
 end
 
 @[simp]
-lemma degree_map_of_monic [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic) (f : R →+* S) :
-  (P.map f).degree = P.degree :=
+lemma degree_map_of_monic [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic)
+  (f : R →+* S) : (P.map f).degree = P.degree :=
 begin
   by_cases hP : P = 0,
   { simp [hP] },

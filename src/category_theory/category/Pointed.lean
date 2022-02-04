@@ -86,5 +86,4 @@ adjunction.mk_of_hom_equiv
                         inv_fun := λ f, ⟨λ o, o.elim Y.point f, rfl⟩,
                         left_inv := λ f, by { ext, cases x, exact f.map_point.symm, refl },
                         right_inv := λ f, funext $ λ _, rfl },
-  hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext, cases x; refl },
-  hom_equiv_naturality_right' := λ X' X Y f g, funext $ λ _, rfl }
+  hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext, cases x; refl }, }

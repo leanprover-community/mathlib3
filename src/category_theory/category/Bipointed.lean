@@ -135,8 +135,7 @@ adjunction.mk_of_hom_equiv
                         inv_fun := λ f, ⟨λ o, o.elim Y.to_prod.2 f.to_fun, f.map_point, rfl⟩,
                         left_inv := λ f, by { ext, cases x, exact f.map_snd.symm, refl },
                         right_inv := λ f, Pointed.hom.ext _ _ rfl },
-  hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext, cases x; refl },
-  hom_equiv_naturality_right' := λ X' X Y f g, Pointed.hom.ext _ _ rfl }
+  hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext, cases x; refl } }
 
 /-- The free/forgetful adjunction between `Pointed_to_Bipointed_snd` and `Bipointed_to_Pointed_snd`.
 -/
@@ -147,5 +146,4 @@ adjunction.mk_of_hom_equiv
                         inv_fun := λ f, ⟨λ o, o.elim Y.to_prod.1 f.to_fun, rfl, f.map_point⟩,
                         left_inv := λ f, by { ext, cases x, exact f.map_fst.symm, refl },
                         right_inv := λ f, Pointed.hom.ext _ _ rfl },
-  hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext, cases x; refl },
-  hom_equiv_naturality_right' := λ X' X Y f g, Pointed.hom.ext _ _ rfl }
+  hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext, cases x; refl } }

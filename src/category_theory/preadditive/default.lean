@@ -230,10 +230,11 @@ lemma has_kernel_of_has_equalizer
 has_limit.mk
   { cone := fork.of_ι (equalizer.ι f g)
       (by erw [comp_zero, comp_sub, equalizer.condition f g, sub_self]),
-  is_limit := fork.is_limit.mk _
-    (λ s, equalizer.lift s.ι (by simpa only [comp_sub, comp_zero, sub_eq_zero] using s.condition))
-    (λ s, by simp only [fork.ι_eq_app_zero, fork.of_ι_π_app, equalizer.lift_ι])
-    (λ s m h, by { ext, simpa only [equalizer.lift_ι] using h walking_parallel_pair.zero, }), }
+    is_limit := fork.is_limit.mk _
+      (λ s, equalizer.lift s.ι (by simpa only [comp_sub, comp_zero, sub_eq_zero]
+        using s.condition))
+      (λ s, by simp only [fork.ι_eq_app_zero, fork.of_ι_π_app, equalizer.lift_ι])
+      (λ s m h, by { ext, simpa only [equalizer.lift_ι] using h walking_parallel_pair.zero, }), }
 
 end
 

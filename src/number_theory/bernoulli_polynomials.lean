@@ -130,7 +130,7 @@ variables {A : Type*} [comm_ring A] [algebra ℚ A]
 
 /-- The theorem that `∑ Bₙ(t)X^n/n!)(e^X-1)=Xe^{tX}`  -/
 theorem exp_bernoulli_poly' (t : A) :
-  mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli_poly n)) * (exp A - 1) = X * rescale t (exp A) :=
+  mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli_poly n)) * (exp A - 1) = power_series.X * rescale t (exp A) :=
 begin
   -- check equality of power series by checking coefficients of X^n
   ext n,
@@ -138,7 +138,7 @@ begin
   cases n, { simp },
   -- n ≥ 1, the coefficients is a sum to n+2, so use `sum_range_succ` to write as
   -- last term plus sum to n+1
-  rw [coeff_succ_X_mul, coeff_rescale, coeff_exp, coeff_mul,
+  rw [coeff_succ_X_mul, coeff_rescale, coeff_exp, power_series.coeff_mul,
     nat.sum_antidiagonal_eq_sum_range_succ_mk, sum_range_succ],
   -- last term is zero so kill with `add_zero`
   simp only [ring_hom.map_sub, tsub_self, constant_coeff_one, constant_coeff_exp,
@@ -165,8 +165,8 @@ begin
   intros i hi,
   -- deal with coefficients of e^X-1
   simp only [nat.cast_choose ℚ (mem_range_le hi), coeff_mk,
-    if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, coeff_one, units.coe_mk,
-    coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
+    if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, power_series.coeff_one,
+    units.coe_mk, coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
     mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one],
   -- finally cancel the Bernoulli polynomial and the algebra_map
   congr',

@@ -113,7 +113,7 @@ instance comm_semigroup.is_comm_jordan (B : Type u) [comm_semigroup B] : is_comm
 { mul_comm := mul_comm,
   jordan := λ a b, mul_assoc _ _ _, }
 
-variables {A : Type*}
+variables {A}
 
 namespace add_monoid.End
 variables [non_unital_non_assoc_semiring A]

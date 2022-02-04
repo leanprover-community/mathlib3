@@ -68,6 +68,8 @@ and substitution instead.
 
 -/
 
+variables (A : Type*)
+
 /-- A (non-commutative) Jordan multiplication. -/
 class is_jordan (A : Type*) [has_mul A] :=
 (lmul_comm_rmul : ∀ a b : A, (a * b) * a = a * (b * a))

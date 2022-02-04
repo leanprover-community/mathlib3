@@ -96,7 +96,7 @@ include h
 
 /-- The `mul_equiv` that takes an automorphism to the power of μ that μ gets mapped to under it.
     A stronger version of `is_primitive_root.aut_to_pow`. -/
-@[simps {attrs := []}] noncomputable def aut_equiv_pow [ne_zero ((n : ℕ) : K)] :
+@[simps] noncomputable def aut_equiv_pow [ne_zero ((n : ℕ) : K)] :
   (L ≃ₐ[K] L) ≃* (zmod n)ˣ :=
 let hn := of_no_zero_smul_divisors K L n in by exactI
 { inv_fun := λ x, (zeta.power_basis n K L).equiv_of_minpoly (zeta_pow_power_basis L n K x)

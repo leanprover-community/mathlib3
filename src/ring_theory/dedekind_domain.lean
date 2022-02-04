@@ -427,8 +427,7 @@ begin
          not_or_distrib, ← this] at hprodZ },
   -- By maximality of `P` and `M`, we have that `P ≤ M` implies `P = M`.
   have hPM' := (is_dedekind_domain.dimension_le_one _ hP0 P.is_prime).eq_of_le hM.ne_top hPM,
-  tactic.unfreeze_local_instances,
-  subst hPM',
+  substI hPM',
 
   -- By minimality of `Z`, erasing `P` from `Z` is exactly what we need.
   refine ⟨Z.erase P, _, _⟩,
@@ -476,7 +475,7 @@ begin
       (λ h, hbJ $ h.symm ▸ J.zero_mem),
   -- Then `b a⁻¹ : K` is in `M⁻¹` but not in `1`.
   refine ⟨algebra_map A K b * (algebra_map A K a)⁻¹, (mem_inv_iff _).mpr _, _⟩,
-  { exact (fractional_ideal.coe_to_fractional_ideal_ne_zero (le_refl _)).mpr hM0.ne' },
+  { exact (fractional_ideal.coe_to_fractional_ideal_ne_zero le_rfl).mpr hM0.ne' },
   { rintro y₀ hy₀,
     obtain ⟨y, h_Iy, rfl⟩ := (fractional_ideal.mem_coe_ideal _).mp hy₀,
     rw [mul_comm, ← mul_assoc, ← ring_hom.map_mul],
@@ -661,7 +660,7 @@ noncomputable instance fractional_ideal.comm_group_with_zero :
   inv_zero := inv_zero' _,
   div := (/),
   div_eq_mul_inv := fractional_ideal.div_eq_mul_inv,
-  exists_pair_ne := ⟨0, 1, (coe_to_fractional_ideal_injective (le_refl _)).ne
+  exists_pair_ne := ⟨0, 1, (coe_to_fractional_ideal_injective le_rfl).ne
     (by simpa using @zero_ne_one (ideal A) _ _)⟩,
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
   .. fractional_ideal.comm_semiring }
@@ -827,7 +826,7 @@ begin
     rintros x ⟨⟩ },
   { rintros x s hx ⟨y, hy, hs⟩,
     obtain ⟨x', y', hy', hx'⟩ := exists_integral_multiple
-      ((is_fraction_ring.is_algebraic_iff A K).mpr (algebra.is_algebraic_of_finite x))
+      ((is_fraction_ring.is_algebraic_iff A K L).mpr (is_algebraic_of_finite _ _ x))
       ((algebra_map A L).injective_iff.mp _),
     refine ⟨y * y', mul_ne_zero hy hy', λ x'' hx'', _⟩,
     rcases finset.mem_insert.mp hx'' with (rfl | hx''),

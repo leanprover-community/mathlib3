@@ -50,6 +50,98 @@ instance [linear_ordered_add_comm_group_with_top α] :
   ..multiplicative.linear_ordered_comm_monoid_with_zero,
   ..multiplicative.nontrivial }
 
+section monoid
+variable [monoid α]
+
+section preorder
+variable [preorder α]
+
+section left
+variable [covariant_class α α (*) (≤)]
+
+lemma left.one_le_pow_of_le : ∀ {n : ℕ} {x : α}, 1 ≤ x → 1 ≤ x^n
+| 0       x _ := (pow_zero x).symm.le
+| (n + 1) x H := calc 1 ≤ x          : H
+                    ... = x * 1      : (mul_one x).symm
+                    ... ≤ x * x ^ n  : mul_le_mul_left' (left.one_le_pow_of_le H) x
+                    ... = x ^ n.succ : (pow_succ x n).symm
+
+end left
+
+section right
+variable [covariant_class α α (function.swap (*)) (≤)]
+
+lemma right.one_le_pow_of_le {x : α} (H : 1 ≤ x) :
+  ∀ {n : ℕ}, 1 ≤ x^n
+| 0       := (pow_zero _).symm.le
+| (n + 1) := calc 1 ≤ x          : H
+                ... = 1 * x      : (one_mul x).symm
+                ... ≤ x ^ n * x  : mul_le_mul_right' right.one_le_pow_of_le x
+                ... = x ^ n.succ : (pow_succ' x n).symm
+
+lemma right.pow_le_one_of_le {x : α} (H : x ≤ 1) :
+  ∀ {n : ℕ}, x^n ≤ 1
+| 0       := (pow_zero _).le
+| (n + 1) := calc x ^ n.succ = x ^ n * x : pow_succ' x n
+                         ... ≤ 1 * x     : mul_le_mul_right' right.pow_le_one_of_le x
+                         ... = x         : one_mul x
+                         ... ≤ 1         : H
+
+end right
+
+lemma pow_le_pow_of_le [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
+  {x y : α} (H : x ≤ y) :
+  ∀ {n : ℕ} , x^n ≤ y^n
+| 0       := (pow_zero _).le.trans (pow_zero _).symm.le
+| (n + 1) := calc  x ^ n.succ = x * x ^ n  : pow_succ x n
+                          ... ≤ y * x ^ n  : mul_le_mul_right' H (x ^ n)
+                          ... ≤ y * y ^ n  : mul_le_mul_left' pow_le_pow_of_le y
+                          ... = y ^ n.succ : (pow_succ y n).symm
+
+lemma left.pow_lt_one_of_lt [covariant_class α α (*) (<)] {n : ℕ} {x : α} (n0 : 0 < n) (H : x < 1) :
+  x^n < 1 :=
+begin
+  refine nat.le_induction ((pow_one _).le.trans_lt H) (λ n n1 hn, _) _ (nat.succ_le_iff.mpr n0),
+  calc x ^ (n + 1) = x * x ^ n : pow_succ x n
+               ... < x * 1     : mul_lt_mul_left' hn x
+               ... = x         : mul_one x
+               ... < 1         : H
+end
+
+lemma left.pow_lt_one_iff {α: Type*} [monoid α] [linear_order α]
+  [covariant_class α α (*) (<)] {n : ℕ} {x : α} (n0 : 0 < n) :
+  x^n < 1 ↔ x < 1 :=
+⟨λ H, not_le.mp (λ k, not_le.mpr H (by
+  { haveI := has_mul.to_covariant_class_left α,
+    exact left.one_le_pow_of_le k})), left.pow_lt_one_of_lt n0⟩
+
+lemma right.pow_lt_one_of_lt [covariant_class α α (function.swap (*)) (<)] {n : ℕ} {x : α}
+  (n0 : 0 < n) (H : x < 1) :
+  x^n < 1 :=
+begin
+  refine nat.le_induction ((pow_one _).le.trans_lt H) (λ n n1 hn, _) _ (nat.succ_le_iff.mpr n0),
+  calc x ^ (n + 1) = x ^ n * x : pow_succ' x n
+               ... < 1 * x     : mul_lt_mul_right' hn x
+               ... = x         : one_mul x
+               ... < 1         : H
+end
+
+lemma right.pow_lt_one_iff {α: Type*} [monoid α] [linear_order α]
+  [covariant_class α α (function.swap (*)) (<)] {n : ℕ} {x : α} (n0 : 0 < n) :
+  x^n < 1 ↔ x < 1 :=
+⟨λ H, not_le.mp (λ k, not_le.mpr H (by
+  { haveI := has_mul.to_covariant_class_right α,
+    exact right.one_le_pow_of_le k})), right.pow_lt_one_of_lt n0⟩
+
+end preorder
+
+section left_right
+variables [linear_order α]
+  [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
+
+end left_right
+
+end monoid
 instance [linear_ordered_comm_monoid α] :
   linear_ordered_comm_monoid_with_zero (with_zero α) :=
 { mul_le_mul_left := λ x y, mul_le_mul_left',
@@ -93,7 +185,7 @@ by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _) a
 not_lt_of_le zero_le'
 
 @[simp] lemma le_zero_iff : a ≤ 0 ↔ a = 0 :=
-⟨λ h, le_antisymm h zero_le', λ h, h ▸ le_refl _⟩
+⟨λ h, le_antisymm h zero_le', λ h, h ▸ le_rfl⟩
 
 lemma zero_lt_iff : 0 < a ↔ a ≠ 0 :=
 ⟨ne_of_gt, λ h, lt_of_le_of_ne zero_le' h.symm⟩

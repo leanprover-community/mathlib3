@@ -290,7 +290,7 @@ annihilates `bernstein_polynomial n ν` for `ν < k`, but has a nonzero value at
 
 lemma linear_independent (n : ℕ) :
   linear_independent ℚ (λ ν : fin (n+1), bernstein_polynomial ℚ n ν) :=
-linear_independent_aux n (n+1) (le_refl _)
+linear_independent_aux n (n+1) le_rfl
 
 lemma sum (n : ℕ) : ∑ ν in finset.range (n + 1), bernstein_polynomial R n ν = 1 :=
 calc ∑ ν in finset.range (n + 1), bernstein_polynomial R n ν = (X + (1 - X)) ^ n :
@@ -344,7 +344,7 @@ begin
   -- On the right hand side, we'll just simplify.
   conv at h
   { to_rhs,
-    rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
+    rw [(pderiv tt).leibniz_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
     simp [e] },
   simpa using h,
 end
@@ -398,8 +398,8 @@ begin
   -- On the right hand side, we'll just simplify.
   conv at h
   { to_rhs,
-    simp only [pderiv_one, pderiv_mul, pderiv_pow, pderiv_nat_cast, (pderiv tt).map_add,
-      pderiv_tt_x, pderiv_tt_y],
+    simp only [pderiv_one, pderiv_mul, (pderiv _).leibniz_pow, (pderiv _).map_coe_nat,
+      (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
     simp [e, smul_smul] },
   simpa using h,
 end

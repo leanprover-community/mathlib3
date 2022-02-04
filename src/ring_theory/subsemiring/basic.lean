@@ -359,7 +359,7 @@ instance : has_Inf (subsemiring R) :=
 @[simp, norm_cast] lemma coe_Inf (S : set (subsemiring R)) :
   ((Inf S : subsemiring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
-lemma mem_Inf {S : set (subsemiring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (subsemiring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 @[simp] lemma Inf_to_submonoid (s : set (subsemiring R)) :
   (Inf s).to_submonoid = ⨅ t ∈ s, subsemiring.to_submonoid t :=
@@ -591,12 +591,12 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subsemiring S) :
 /-- Given `subsemiring`s `s`, `t` of semirings `R`, `S` respectively, `s.prod t` is `s × t`
 as a subsemiring of `R × S`. -/
 def prod (s : subsemiring R) (t : subsemiring S) : subsemiring (R × S) :=
-{ carrier := (s : set R).prod t,
+{ carrier := (s : set R) ×ˢ (t : set S),
   .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_submonoid.prod t.to_add_submonoid}
 
 @[norm_cast]
 lemma coe_prod (s : subsemiring R) (t : subsemiring S) :
-  (s.prod t : set (R × S)) = (s : set R).prod (t : set S) :=
+  (s.prod t : set (R × S)) = (s : set R) ×ˢ (t : set S) :=
 rfl
 
 lemma mem_prod {s : subsemiring R} {t : subsemiring S} {p : R × S} :
@@ -786,6 +786,13 @@ def sof_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g 
 @[simp] lemma sof_left_inverse_symm_apply
   {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.srange) :
   (sof_left_inverse h).symm x = g x := rfl
+
+/-- Given an equivalence `e : R ≃+* S` of semirings and a subsemiring `s` of `R`,
+`subsemiring_map e s` is the induced equivalence between `s` and `s.map e` -/
+@[simps] def subsemiring_map (e : R ≃+* S) (s : subsemiring R) :
+  s ≃+* s.map e.to_ring_hom :=
+{ ..e.to_add_equiv.add_submonoid_map s.to_add_submonoid,
+  ..e.to_mul_equiv.submonoid_map s.to_submonoid }
 
 end ring_equiv
 

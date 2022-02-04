@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Floris van Doorn
 -/
 import data.sum.order
 import order.conditionally_complete_lattice
-import order.succ_pred
+import order.succ_pred.basic
 import set_theory.cardinal
 
 /-!
@@ -759,6 +759,23 @@ by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
 protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
 by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
 
+lemma eq_zero_of_out_empty (o : ordinal) [h : is_empty o.out.α] : o = 0 :=
+begin
+  by_contra ho,
+  replace ho := ordinal.pos_iff_ne_zero.2 ho,
+  rw ←type_out o at ho,
+  have α := enum o.out.r 0 ho,
+  exact h.elim α
+end
+
+@[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
+begin
+  refine ⟨@eq_zero_of_out_empty o, λ h, ⟨λ i, _⟩⟩,
+  have := typein_lt_self i,
+  subst h,
+  exact not_lt_of_le (ordinal.zero_le _) this
+end
+
 instance : has_one ordinal :=
 ⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
 
@@ -949,36 +966,43 @@ instance : add_monoid ordinal.{u} :=
       simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
         sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
 
-theorem add_le_add_left {a b : ordinal} : a ≤ b → ∀ c, c + a ≤ c + b :=
-induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
-induction_on c $ λ β s _,
-⟨⟨⟨(embedding.refl _).sum_map f,
-  λ a b, match a, b with
-    | sum.inl a, sum.inl b := sum.lex_inl_inl.trans sum.lex_inl_inl.symm
-    | sum.inl a, sum.inr b := by apply iff_of_true; apply sum.lex.sep
-    | sum.inr a, sum.inl b := by apply iff_of_false; exact sum.lex_inr_inl
-    | sum.inr a, sum.inr b := sum.lex_inr_inr.trans $ fo.trans sum.lex_inr_inr.symm
-    end⟩,
-  λ a b H, match a, b, H with
-    | _,         sum.inl b, _ := ⟨sum.inl b, rfl⟩
-    | sum.inl a, sum.inr b, H := (sum.lex_inr_inl H).elim
-    | sum.inr a, sum.inr b, H := let ⟨w, h⟩ := fi _ _ (sum.lex_inr_inr.1 H) in
-        ⟨sum.inr w, congr_arg sum.inr h⟩
-  end⟩⟩
+instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
+⟨λ c a b h, begin
+  revert h c, exact (
+  induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
+  induction_on c $ λ β s _,
+  ⟨⟨⟨(embedding.refl _).sum_map f,
+    λ a b, match a, b with
+      | sum.inl a, sum.inl b := sum.lex_inl_inl.trans sum.lex_inl_inl.symm
+      | sum.inl a, sum.inr b := by apply iff_of_true; apply sum.lex.sep
+      | sum.inr a, sum.inl b := by apply iff_of_false; exact sum.lex_inr_inl
+      | sum.inr a, sum.inr b := sum.lex_inr_inr.trans $ fo.trans sum.lex_inr_inr.symm
+      end⟩,
+    λ a b H, match a, b, H with
+      | _,         sum.inl b, _ := ⟨sum.inl b, rfl⟩
+      | sum.inl a, sum.inr b, H := (sum.lex_inr_inl H).elim
+      | sum.inr a, sum.inr b, H := let ⟨w, h⟩ := fi _ _ (sum.lex_inr_inr.1 H) in
+          ⟨sum.inr w, congr_arg sum.inr h⟩
+    end⟩⟩)
+end⟩
+
+instance has_le.le.add_swap_covariant_class :
+  covariant_class ordinal.{u} ordinal.{u} (function.swap (+)) (≤) :=
+⟨λ c a b h, begin
+  revert h c, exact (
+  induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
+  induction_on c $ λ β s hs, (@type_le' _ _ _ _
+    (@sum.lex.is_well_order _ _ _ _ hr₁ hs)
+    (@sum.lex.is_well_order _ _ _ _ hr₂ hs)).2
+  ⟨⟨f.sum_map (embedding.refl _), λ a b, begin
+    split; intro H,
+    { cases a with a a; cases b with b b; cases H; constructor; [rwa ← fo, assumption] },
+    { cases H; constructor; [rwa fo, assumption] }
+  end⟩⟩)
+end⟩
 
 theorem le_add_right (a b : ordinal) : a ≤ a + b :=
 by simpa only [add_zero] using add_le_add_left (ordinal.zero_le b) a
-
-theorem add_le_add_right {a b : ordinal} : a ≤ b → ∀ c, a + c ≤ b + c :=
-induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
-induction_on c $ λ β s hs, (@type_le' _ _ _ _
-  (@sum.lex.is_well_order _ _ _ _ hr₁ hs)
-  (@sum.lex.is_well_order _ _ _ _ hr₂ hs)).2
-⟨⟨f.sum_map (embedding.refl _), λ a b, begin
-  split; intro H,
-  { cases a with a a; cases b with b b; cases H; constructor; [rwa ← fo, assumption] },
-  { cases H; constructor; [rwa fo, assumption] }
-end⟩⟩
 
 theorem le_add_left (a b : ordinal) : a ≤ b + a :=
 by simpa only [zero_add] using add_le_add_right (ordinal.zero_le b) a
@@ -1114,7 +1138,10 @@ theorem le_omin {S H a} : a ≤ omin S H ↔ ∀ i ∈ S, a ≤ i :=
 le_min.trans set_coe.forall
 
 theorem omin_le {S H i} (h : i ∈ S) : omin S H ≤ i :=
-le_omin.1 (le_refl _) _ h
+le_omin.1 le_rfl _ h
+
+theorem not_lt_omin {S H i} (h : i ∈ S) : ¬ i < omin S H :=
+not_lt_of_le (omin_le h)
 
 @[simp] theorem lift_min {ι} (I) (f : ι → ordinal) : lift (min I f) = min I (lift ∘ f) :=
 le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
@@ -1127,6 +1154,12 @@ wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le
   not_lt.1 (wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
+
+protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
+not_lt_bot
+
+theorem eq_zero_or_pos : ∀ a : ordinal, a = 0 ∨ 0 < a :=
+eq_bot_or_bot_lt
 
 lemma Inf_eq_omin {s : set ordinal} (hs : s.nonempty) :
   Inf s = omin s hs :=
@@ -1141,7 +1174,7 @@ lemma Inf_mem {s : set ordinal} (hs : s.nonempty) :
   Inf s ∈ s :=
 by { rw Inf_eq_omin hs, exact omin_mem _ hs }
 
-instance : no_top_order ordinal :=
+instance : no_max_order ordinal :=
 ⟨λ a, ⟨a.succ, lt_succ_self a⟩⟩
 
 end ordinal
@@ -1204,7 +1237,7 @@ quotient.induction_on c $ λ α,
 let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
 
 theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
-ord_le.2 (le_refl _)
+ord_le.2 le_rfl
 
 lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.ord :=
 by { rw [lt_ord], apply cardinal.lt_succ_self }

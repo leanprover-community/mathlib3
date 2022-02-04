@@ -90,6 +90,27 @@ begin
   rwa [mem_antidiagonal, eq_comm, add_comm] at hlk
 end
 
+lemma filter_fst_eq_antidiagonal (n m : ℕ) :
+  filter (λ x : ℕ × ℕ, x.fst = m) (antidiagonal n) = if m ≤ n then {(m, n - m)} else ∅ :=
+begin
+  ext ⟨x, y⟩,
+  simp only [mem_filter, nat.mem_antidiagonal],
+  split_ifs with h h,
+  { simp [and_comm, eq_tsub_iff_add_eq_of_le h, add_comm] {contextual := tt} },
+  { rw not_le at h,
+    simp only [not_mem_empty, iff_false, not_and],
+    exact λ hn, ne_of_lt (lt_of_le_of_lt (le_self_add.trans hn.le) h) }
+end
+
+lemma filter_snd_eq_antidiagonal (n m : ℕ) :
+  filter (λ x : ℕ × ℕ, x.snd = m) (antidiagonal n) = if m ≤ n then {(n - m, m)} else ∅ :=
+begin
+  have : (λ (x : ℕ × ℕ), x.snd = m) ∘ prod.swap = (λ (x : ℕ × ℕ), x.fst = m),
+  { ext, simp },
+  rw ←map_swap_antidiagonal,
+  simp [map_filter, this, filter_fst_eq_antidiagonal, apply_ite (finset.map _)]
+end
+
 section equiv_prod
 
 /-- The disjoint union of antidiagonals `Σ (n : ℕ), antidiagonal n` is equivalent to the product

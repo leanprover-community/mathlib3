@@ -293,8 +293,7 @@ begin
   { cases i,
     { rw if_neg (nat.succ_ne_zero _).symm,
       simp only [list_blank.nth_zero, list_blank.head_cons, list_blank.modify_nth] },
-    { simp only [IH, list_blank.modify_nth, list_blank.nth_succ, list_blank.tail_cons],
-      congr } }
+    { simp only [IH, list_blank.modify_nth, list_blank.nth_succ, list_blank.tail_cons] } }
 end
 
 /-- A pointed map of `inhabited` types is a map that sends one default value to the other. -/
@@ -2316,7 +2315,7 @@ theorem tr_respects_aux {q v T k} {S : Π k, list (Γ k)}
       v (tape.mk' ∅ (add_bottom T))) b :=
 begin
   simp only [tr_normal_run, step_run],
-  have hgo := tr_respects_aux₁ M o q v (hT k) _ (le_refl _),
+  have hgo := tr_respects_aux₁ M o q v (hT k) _ le_rfl,
   obtain ⟨T', hT', hrun⟩ := tr_respects_aux₂ hT o,
   have hret := tr_respects_aux₃ M _,
   have := hgo.tail' rfl,

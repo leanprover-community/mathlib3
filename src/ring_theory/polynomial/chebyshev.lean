@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Julian Kuelshammer, Heather Macbeth
 -/
 import data.polynomial.derivative
-import tactic.ring
+import tactic.linear_combination
 
 /-!
 # Chebyshev polynomials
@@ -251,16 +251,7 @@ lemma mul_T :
   have h₂ := T_add_two R (2 * m + k + 2),
   have h₃ := T_add_two R k,
   -- the desired identity is an appropriate linear combination of H₁, H₂, h₁, h₂, h₃
-  -- it would be really nice here to have a linear algebra tactic!!
-  apply_fun (λ p, 2 * X * p) at H₁,
-  apply_fun (λ p, 2 * T R (m + k + 2) * p) at h₁,
-  have e₁ := congr (congr_arg has_add.add H₁) h₁,
-  have e₂ := congr (congr_arg has_sub.sub e₁) H₂,
-  have e₃ := congr (congr_arg has_sub.sub e₂) h₂,
-  have e₄ := congr (congr_arg has_sub.sub e₃) h₃,
-  rw ← sub_eq_zero at e₄ ⊢,
-  rw ← e₄,
-  ring,
+  linear_combination (h₁, 2 * T R (m + k + 2)) (H₁, 2 * X) (H₂, -1) (h₂, -1) (h₃, -1),
 end
 
 /-- The `(m * n)`-th Chebyshev polynomial is the composition of the `m`-th and `n`-th -/

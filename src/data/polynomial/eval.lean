@@ -494,8 +494,13 @@ by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 @[simp] lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
 by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 
-/-- `polynomial.map` as a `ring_hom` -/
--- TODO: can't we make this the main definition of `polynomial.map`?
+/-- `polynomial.map` as a `ring_hom`. -/
+-- `map` is a ring-hom unconditionally, and theoretically the definition could be replaced,
+-- but this turns out not to be easy because `p.map f` does not resolve to `polynomial.map`
+-- if `map` is a `ring_hom` instead of a plain function; the elaborator does not try to coerce
+-- to a function before trying field (dot) notation (this may be technically infeasible);
+-- the relevant code is (both lines): https://github.com/leanprover-community/
+-- lean/blob/487ac5d7e9b34800502e1ddf3c7c806c01cf9d51/src/frontends/lean/elaborator.cpp#L1876-L1913
 def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
 { to_fun := polynomial.map f,
   map_add' := λ _ _, map_add f,
@@ -505,7 +510,7 @@ def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
 
 @[simp] lemma coe_map_ring_hom (f : R →+* S) : ⇑(map_ring_hom f) = map f := rfl
 
--- todo: this will be removed in #11161, so `protecting` is a reasonable temporary strat
+-- This is protected to not clash with the global `map_nat_cast`.
 @[simp] protected theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
 map_nat_cast (map_ring_hom f) n
 
@@ -552,7 +557,7 @@ lemma degree_map_le (p : polynomial R) : degree (p.map f) ≤ degree p :=
 begin
   apply (degree_le_iff_coeff_zero _ _).2 (λ m hm, _),
   rw degree_lt_iff_coeff_zero at hm,
-  simp [hm m (le_refl _)],
+  simp [hm m le_rfl],
 end
 
 lemma nat_degree_map_le (p : polynomial R) : nat_degree (p.map f) ≤ nat_degree p :=

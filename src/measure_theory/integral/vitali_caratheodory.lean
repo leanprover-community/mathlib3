@@ -125,7 +125,7 @@ begin
           lintegral_const, ennreal.coe_indicator, set.univ_inter, measurable_set.univ,
           simple_func.const_zero, lintegral_indicator, simple_func.coe_zero,
           set.piecewise_eq_indicator, simple_func.coe_piecewise, restrict_apply],
-      calc (c : ℝ≥0∞) * μ u ≤ c * (μ s + ε / c) : ennreal.mul_le_mul (le_refl _) μu.le
+      calc (c : ℝ≥0∞) * μ u ≤ c * (μ s + ε / c) : ennreal.mul_le_mul le_rfl μu.le
       ... = c * μ s + ε :
         begin
           simp_rw [mul_add],
@@ -268,9 +268,8 @@ begin
   have g_lt_top : ∀ᵐ (x : α) ∂μ, g x < ∞ := ae_lt_top gcont.measurable gint_ne,
   have Ig : ∫⁻ (a : α), ennreal.of_real (g a).to_real ∂μ = ∫⁻ (a : α), g a ∂μ,
   { apply lintegral_congr_ae,
-    filter_upwards [g_lt_top],
-    assume x hx,
-    simp only [hx.ne, ennreal.of_real_to_real, ne.def, not_false_iff] },
+    filter_upwards [g_lt_top] with _ hx,
+    simp only [hx.ne, ennreal.of_real_to_real, ne.def, not_false_iff], },
   refine ⟨g, f_lt_g, gcont, g_lt_top, _, _⟩,
   { refine ⟨gcont.measurable.ennreal_to_real.ae_measurable, _⟩,
     simp only [has_finite_integral_iff_norm, real.norm_eq_abs,
@@ -337,7 +336,7 @@ begin
           lintegral_const, ennreal.coe_indicator, set.univ_inter, measurable_set.univ,
           simple_func.const_zero, lintegral_indicator, simple_func.coe_zero,
           set.piecewise_eq_indicator, simple_func.coe_piecewise, restrict_apply],
-      calc (c : ℝ≥0∞) * μ s ≤ c * (μ F + ε / c) : ennreal.mul_le_mul (le_refl _) μF.le
+      calc (c : ℝ≥0∞) * μ s ≤ c * (μ F + ε / c) : ennreal.mul_le_mul le_rfl μF.le
       ... = c * μ F + ε :
         begin
           simp_rw [mul_add],
@@ -388,7 +387,7 @@ begin
   fs.exists_upper_semicontinuous_le_lintegral_le int_fs_lt_top (ennreal.half_pos ε0).ne',
   refine ⟨g, λ x, (g_le_fs x).trans (fs_le_f x), gcont, _⟩,
   calc ∫⁻ x, f x ∂μ ≤ ∫⁻ x, fs x ∂μ + ε / 2 : int_fs
-  ... ≤ (∫⁻ x, g x ∂μ + ε / 2) + ε / 2 : add_le_add gint (le_refl _)
+  ... ≤ (∫⁻ x, g x ∂μ + ε / 2) + ε / 2 : add_le_add gint le_rfl
   ... = ∫⁻ x, g x ∂μ + ε : by rw [add_assoc, ennreal.add_halves]
 end
 
@@ -446,10 +445,9 @@ begin
     with ⟨gm, gm_le_fm, gmcont, gm_integrable, gmint⟩,
   let g : α → ereal := λ x, (gp x : ereal) - (gm x),
   have ae_g : ∀ᵐ x ∂ μ, (g x).to_real = (gp x : ereal).to_real - (gm x : ereal).to_real,
-  { filter_upwards [gp_lt_top],
-    assume x hx,
+  { filter_upwards [gp_lt_top] with _ hx,
     rw ereal.to_real_sub;
-    simp [hx.ne] },
+    simp [hx.ne], },
   refine ⟨g, _, _, _, _, _⟩,
   show integrable (λ x, ereal.to_real (g x)) μ,
   { rw integrable_congr ae_g,
@@ -477,9 +475,8 @@ begin
     ... = ∫ (x : α), f x ∂μ + ε :
       by { congr' 1, field_simp [δ, mul_comm] },
   show ∀ᵐ (x : α) ∂μ, g x < ⊤,
-  { filter_upwards [gp_lt_top],
-    assume x hx,
-    simp [g, ereal.sub_eq_add_neg, lt_top_iff_ne_top, lt_top_iff_ne_top.1 hx] },
+  { filter_upwards [gp_lt_top] with _ hx,
+    simp [g, ereal.sub_eq_add_neg, lt_top_iff_ne_top, lt_top_iff_ne_top.1 hx], },
   show ∀ x, (f x : ereal) < g x,
   { assume x,
     rw ereal.coe_real_ereal_eq_coe_to_nnreal_sub_coe_to_nnreal (f x),

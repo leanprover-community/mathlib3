@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import category_theory.single_obj
+import category_theory.limits.shapes.products
+import category_theory.pi.basic
+import category_theory.limits.is_limit
 
 /-!
 # Category of groupoids
@@ -62,6 +65,51 @@ instance forget_to_Cat_full : full forget_to_Cat :=
 { preimage := λ C D, id }
 
 instance forget_to_Cat_faithful : faithful forget_to_Cat := { }
+
+/-- Convert arrows in the category of groupoids to functors,
+which sometimes helps in applying simp lemmas -/
+lemma hom_to_functor {C D E : Groupoid.{v u}} (f : C ⟶ D) (g : D ⟶ E) : f ≫ g = f ⋙ g := rfl
+
+section products
+
+/-- The cone for the product of a family of groupoids indexed by J is a limit cone -/
+@[simps]
+def pi_limit_cone {J : Type u} (F : discrete J ⥤ Groupoid.{u u}) :
+  limits.limit_cone F :=
+{ cone :=
+    { X := @of (Π j : J, (F.obj j).α) _,
+      π := { app := λ j : J, category_theory.pi.eval _ j, } },
+  is_limit :=
+  { lift := λ s, functor.pi' s.π.app,
+    fac' := by { intros, simp [hom_to_functor], },
+    uniq' :=
+    begin
+      intros s m w,
+      apply functor.pi_ext,
+      intro j, specialize w j,
+      simpa,
+    end } }
+
+/-- `pi_limit_cone` reinterpreted as a fan -/
+abbreviation pi_limit_fan {J : Type u} (F : J → Groupoid.{u u}) : limits.fan F :=
+(pi_limit_cone (discrete.functor F)).cone
+
+instance has_pi : limits.has_products Groupoid.{u u} :=
+λ J, { has_limit := λ F, { exists_limit := nonempty.intro (pi_limit_cone F) } }
+
+/-- The product of a family of groupoids is isomorphic
+to the product object in the category of Groupoids -/
+noncomputable def pi_iso_pi (J : Type u) (f : J → Groupoid.{u u}) : @of (Π j, (f j).α) _ ≅ ∏ f :=
+limits.is_limit.cone_point_unique_up_to_iso
+  (pi_limit_cone (discrete.functor f)).is_limit
+  (limits.limit.is_limit (discrete.functor f))
+
+@[simp]
+lemma pi_iso_pi_hom_π (J : Type u) (f : J → Groupoid.{u u}) (j : J) :
+  (pi_iso_pi J f).hom ≫ (limits.pi.π f j) = category_theory.pi.eval _ j :=
+by { simp [pi_iso_pi], refl, }
+
+end products
 
 end Groupoid
 

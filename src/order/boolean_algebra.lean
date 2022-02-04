@@ -808,3 +808,18 @@ instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_a
   .. pi.has_compl,
   .. pi.bounded_order,
   .. pi.distrib_lattice }
+
+instance : boolean_algebra bool := boolean_algebra.of_core
+{ sup := bor,
+  le_sup_left := bool.left_le_bor,
+  le_sup_right := bool.right_le_bor,
+  sup_le := λ _ _ _, bool.bor_le,
+  inf := band,
+  inf_le_left := bool.band_le_left,
+  inf_le_right := bool.band_le_right,
+  le_inf := λ _ _ _, bool.le_band,
+  le_sup_inf := dec_trivial,
+  compl := bnot,
+  inf_compl_le_bot := λ a, a.band_bnot_self.le,
+  top_le_sup_compl := λ a, a.bor_bnot_self.ge,
+  ..bool.linear_order, ..bool.bounded_order }

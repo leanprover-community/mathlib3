@@ -102,7 +102,7 @@ option.some_inj.1 $ show (nat_trailing_degree p : with_top ℕ) = n,
 begin
   by_cases hp : p = 0, { rw [hp, trailing_degree_zero], exact le_top },
   rw [trailing_degree_eq_nat_trailing_degree hp],
-  exact le_refl _
+  exact le_rfl
 end
 
 lemma nat_trailing_degree_eq_of_trailing_degree_eq [semiring S] {q : polynomial S}

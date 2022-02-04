@@ -50,7 +50,7 @@ The category of open sets contained in some element of the cover.
 def opens_le_cover : Type v := { V : opens X // ∃ i, V ≤ U i }
 
 instance [inhabited ι] : inhabited (opens_le_cover U) :=
-⟨⟨⊥, default ι, bot_le⟩⟩
+⟨⟨⊥, default, bot_le⟩⟩
 
 instance : category (opens_le_cover U) := category_theory.full_subcategory _
 
@@ -106,7 +106,7 @@ the object level of `pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover
 -/
 @[simp]
 def pairwise_to_opens_le_cover_obj : pairwise ι → opens_le_cover U
-| (single i) := ⟨U i, ⟨i, le_refl _⟩⟩
+| (single i) := ⟨U i, ⟨i, le_rfl⟩⟩
 | (pair i j) := ⟨U i ⊓ U j, ⟨i, inf_le_left⟩⟩
 
 open category_theory.pairwise.hom
@@ -218,7 +218,7 @@ in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
 lemma is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
   F.is_sheaf_opens_le_cover ↔ F.is_sheaf_pairwise_intersections :=
-forall_congr (λ ι, forall_congr (λ U, equiv.nonempty_congr $
+forall₂_congr $ λ ι U, equiv.nonempty_congr $
   calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
     ≃ is_limit ((F.map_cone (opens_le_cover_cocone U).op).whisker (pairwise_to_opens_le_cover U).op)
         : (functor.initial.is_limit_whisker_equiv (pairwise_to_opens_le_cover U).op _).symm
@@ -232,7 +232,7 @@ forall_congr (λ ι, forall_congr (λ U, equiv.nonempty_congr $
         : is_limit.equiv_iso_limit (functor.map_cone_postcompose_equivalence_functor _).symm
 ... ≃ is_limit (F.map_cone (pairwise.cocone U).op)
         : is_limit.equiv_iso_limit
-            ((cones.functoriality _ _).map_iso (pairwise_cocone_iso U : _).symm)))
+            ((cones.functoriality _ _).map_iso (pairwise_cocone_iso U : _).symm)
 
 variables [has_products C]
 

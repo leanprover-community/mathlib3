@@ -42,7 +42,7 @@ begin
   refine ⟨(map_ring_hom φ).is_unit_map, λ h, _⟩,
   rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
   have hdeg := degree_C u.ne_zero,
-  rw [hu, degree_map' hinj] at hdeg,
+  rw [hu, degree_map_eq_of_injective hinj] at hdeg,
   rw [eq_C_of_degree_eq_zero hdeg, is_primitive_iff_content_eq_one,
       content_C, normalize_eq_one] at hf,
   rwa [eq_C_of_degree_eq_zero hdeg, is_unit_C],

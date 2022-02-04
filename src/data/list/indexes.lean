@@ -5,7 +5,7 @@ Authors: Jannis Limperg
 -/
 import data.list.range
 
-/-! 
+/-!
 # Lemmas about list.*_with_index functions.
 
 Some specification lemmas for `list.map_with_index`, `list.mmap_with_index`, `list.foldl_with_index`
@@ -22,11 +22,14 @@ variables {α : Type u} {β : Type v}
 
 section map_with_index
 
+@[simp] lemma map_with_index_nil {α β} (f : ℕ → α → β) :
+  map_with_index f [] = [] := rfl
+
 lemma map_with_index_core_eq (l : list α) (f : ℕ → α → β) (n : ℕ) :
   l.map_with_index_core f n = l.map_with_index (λ i a, f (i + n) a) :=
 begin
   induction l with hd tl hl generalizing f n,
-  { simp [map_with_index, map_with_index_core] },
+  { simpa },
   { rw [map_with_index],
     simp [map_with_index_core, hl, add_left_comm, add_assoc, add_comm] }
 end
@@ -35,10 +38,36 @@ lemma map_with_index_eq_enum_map (l : list α) (f : ℕ → α → β) :
   l.map_with_index f = l.enum.map (function.uncurry f) :=
 begin
   induction l with hd tl hl generalizing f,
-  { simp [map_with_index, map_with_index_core, list.enum_eq_zip_range] },
+  { simp [list.enum_eq_zip_range] },
   { rw [map_with_index, map_with_index_core, map_with_index_core_eq, hl],
     simp [enum_eq_zip_range, range_succ_eq_map, zip_with_map_left,
     map_uncurry_zip_eq_zip_with] }
+end
+
+@[simp] lemma map_with_index_cons {α β} (l : list α) (f : ℕ → α → β) (a : α) :
+  map_with_index f (a :: l) = f 0 a :: map_with_index (λ i, f (i + 1)) l :=
+by simp [map_with_index_eq_enum_map, enum_eq_zip_range, map_uncurry_zip_eq_zip_with,
+         range_succ_eq_map, zip_with_map_left]
+
+@[simp] lemma length_map_with_index {α β} (l : list α) (f : ℕ → α → β) :
+  (l.map_with_index f).length = l.length :=
+begin
+  induction l with hd tl IH generalizing f,
+  { simp },
+  { simp [IH] }
+end
+
+@[simp] lemma nth_le_map_with_index {α β} (l : list α) (f : ℕ → α → β) (i : ℕ) (h : i < l.length)
+  (h' : i < (l.map_with_index f).length := h.trans_le (l.length_map_with_index f).ge):
+  (l.map_with_index f).nth_le i h' = f i (l.nth_le i h) :=
+by simp [map_with_index_eq_enum_map, enum_eq_zip_range]
+
+lemma map_with_index_eq_of_fn {α β} (l : list α) (f : ℕ → α → β) :
+  l.map_with_index f = of_fn (λ (i : fin l.length), f (i : ℕ) (l.nth_le i i.is_lt)) :=
+begin
+  induction l with hd tl IH generalizing f,
+  { simp },
+  { simpa [IH] }
 end
 
 end map_with_index

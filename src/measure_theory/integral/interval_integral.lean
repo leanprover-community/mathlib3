@@ -5,7 +5,7 @@ Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
 import analysis.normed_space.dual
 import data.set.intervals.disjoint
-import measure_theory.measure.lebesgue
+import measure_theory.measure.haar_lebesgue
 import analysis.calculus.extend_deriv
 import measure_theory.integral.set_integral
 import measure_theory.integral.vitali_caratheodory
@@ -789,23 +789,6 @@ lemma interval_integrable_iff_integrable_Icc_of_le
   interval_integrable f μ a b ↔ integrable_on f (Icc a b) μ :=
 by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_integrable_on_Ioc]
 
-lemma integral_Icc_eq_integral_Ioc' {f : α → E} {a b : α} (ha : μ {a} = 0) :
-  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
-begin
-  cases le_or_lt a b with hab hab,
-  { have : μ.restrict (Icc a b) = μ.restrict (Ioc a b),
-    { rw [← Ioc_union_left hab,
-          measure_theory.measure.restrict_union _ measurable_set_Ioc (measurable_set_singleton a)],
-      { simp [measure_theory.measure.restrict_zero_set ha] },
-      { simp } },
-    rw this },
-  { simp [hab, hab.le] }
-end
-
-lemma integral_Icc_eq_integral_Ioc {f : α → E} {a b : α} [has_no_atoms μ] :
-  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
-integral_Icc_eq_integral_Ioc' $ measure_singleton a
-
 /-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
 lemma integral_congr {a b : α} (h : eq_on f g (interval a b)) :
   ∫ x in a..b, f x ∂μ = ∫ x in a..b, g x ∂μ :=
@@ -870,9 +853,9 @@ lemma integral_Iic_sub_Iic (ha : integrable_on f (Iic a) μ) (hb : integrable_on
   ∫ x in Iic b, f x ∂μ - ∫ x in Iic a, f x ∂μ = ∫ x in a..b, f x ∂μ :=
 begin
   wlog hab : a ≤ b using [a b] tactic.skip,
-  { rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc (le_refl _)),
+  { rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc le_rfl),
       Iic_union_Ioc_eq_Iic hab],
-    exacts [measurable_set_Iic, measurable_set_Ioc, ha, hb.mono_set (λ _, and.right)] },
+    exacts [measurable_set_Ioc, ha, hb.mono_set (λ _, and.right)] },
   { intros ha hb,
     rw [integral_symm, ← this hb ha, neg_sub] }
 end
@@ -1127,15 +1110,15 @@ begin
   exact (continuous_on_primitive_interval h_int).neg,
 end
 
-variables [no_bot_order α] [no_top_order α] [has_no_atoms μ]
+variables [no_min_order α] [no_max_order α] [has_no_atoms μ]
 
 lemma continuous_primitive {f : α → E} (h_int : ∀ a b : α, interval_integrable f μ a b) (a : α) :
   continuous (λ b, ∫ x in a..b, f x ∂ μ) :=
 begin
   rw continuous_iff_continuous_at,
   intro b₀,
-  cases no_bot b₀ with b₁ hb₁,
-  cases no_top b₀ with b₂ hb₂,
+  cases exists_lt b₀ with b₁ hb₁,
+  cases exists_gt b₀ with b₂ hb₂,
   apply continuous_within_at.continuous_at _ (Icc_mem_nhds hb₁ hb₂),
   exact continuous_within_at_primitive (measure_singleton b₀) (h_int _ _)
 end
@@ -1165,58 +1148,91 @@ begin
   { rw [integral_symm, neg_eq_zero, integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi.symm] }
 end
 
+/-- If `f` is nonnegative and integrable on the unordered interval `set.interval_oc a b`, then its
+integral over `a..b` is positive if and only if `a < b` and the measure of
+`function.support f ∩ set.Ioc a b` is positive. -/
 lemma integral_pos_iff_support_of_nonneg_ae'
-  (hf : 0 ≤ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f μ a b) :
+  (hf : 0 ≤ᵐ[μ.restrict (Ι a b)] f) (hfi : interval_integrable f μ a b) :
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 begin
-  obtain hab | hab := le_total b a;
-    simp only [Ioc_eq_empty hab.not_lt, empty_union, union_empty] at hf ⊢,
-  { rw [←not_iff_not, not_and_distrib, not_lt, not_lt, integral_of_ge hab, neg_nonpos],
-    exact iff_of_true (integral_nonneg_of_ae hf) (or.intro_left _ hab) },
-  rw [integral_of_le hab, set_integral_pos_iff_support_of_nonneg_ae hf hfi.1, iff.comm,
-    and_iff_right_iff_imp],
-  contrapose!,
-  intro h,
-  rw [Ioc_eq_empty h.not_lt, inter_empty, measure_empty],
-  exact le_refl 0,
+  cases lt_or_le a b with hab hba,
+  { rw interval_oc_of_le hab.le at hf,
+    simp only [hab, true_and, integral_of_le hab.le,
+      set_integral_pos_iff_support_of_nonneg_ae hf hfi.1] },
+  { suffices : ∫ x in a..b, f x ∂μ ≤ 0, by simp only [this.not_lt, hba.not_lt, false_and],
+    rw [integral_of_ge hba, neg_nonpos],
+    rw [interval_oc_swap, interval_oc_of_le hba] at hf,
+    exact integral_nonneg_of_ae hf }
 end
 
-lemma integral_pos_iff_support_of_nonneg_ae
-  (hf : 0 ≤ᵐ[μ] f) (hfi : interval_integrable f μ a b) :
+/-- If `f` is nonnegative a.e.-everywhere and it is integrable on the unordered interval
+`set.interval_oc a b`, then its integral over `a..b` is positive if and only if `a < b` and the
+measure of `function.support f ∩ set.Ioc a b` is positive. -/
+lemma integral_pos_iff_support_of_nonneg_ae (hf : 0 ≤ᵐ[μ] f) (hfi : interval_integrable f μ a b) :
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
-variable (hab : a ≤ b)
+/-- If `f` and `g` are two functions that are interval integrable on `a..b`, `a ≤ b`,
+`f x ≤ g x` for a.e. `x ∈ set.Ioc a b`, and `f x < g x` on a subset of `set.Ioc a b`
+of nonzero measure, then `∫ x in a..b, f x ∂μ < ∫ x in a..b, g x ∂μ`. -/
+lemma integral_lt_integral_of_ae_le_of_measure_set_of_lt_ne_zero (hab : a ≤ b)
+  (hfi : interval_integrable f μ a b) (hgi : interval_integrable g μ a b)
+  (hle : f ≤ᵐ[μ.restrict (Ioc a b)] g) (hlt : μ.restrict (Ioc a b) {x | f x < g x} ≠ 0) :
+  ∫ x in a..b, f x ∂μ < ∫ x in a..b, g x ∂μ :=
+begin
+  rw [← sub_pos, ← integral_sub hgi hfi, integral_of_le hab,
+    measure_theory.integral_pos_iff_support_of_nonneg_ae],
+  { refine pos_iff_ne_zero.2 (mt (measure_mono_null _) hlt),
+    exact λ x hx, (sub_pos.2 hx).ne' },
+  exacts [hle.mono (λ x, sub_nonneg.2), hgi.1.sub hfi.1]
+end
 
-include hab
+/-- If `f` and `g` are continuous on `[a, b]`, `a < b`, `f x ≤ g x` on this interval, and
+`f c < g c` at some point `c ∈ [a, b]`, then `∫ x in a..b, f x < ∫ x in a..b, g x`. -/
+lemma integral_lt_integral_of_continuous_on_of_le_of_exists_lt {f g : ℝ → ℝ} {a b : ℝ}
+  (hab : a < b) (hfc : continuous_on f (Icc a b)) (hgc : continuous_on g (Icc a b))
+  (hle : ∀ x ∈ Ioc a b, f x ≤ g x) (hlt : ∃ c ∈ Icc a b, f c < g c) :
+  ∫ x in a..b, f x < ∫ x in a..b, g x :=
+begin
+  refine integral_lt_integral_of_ae_le_of_measure_set_of_lt_ne_zero hab.le
+    (hfc.interval_integrable_of_Icc hab.le) (hgc.interval_integrable_of_Icc hab.le)
+    ((ae_restrict_mem measurable_set_Ioc).mono hle) _,
+  contrapose! hlt,
+  have h_eq : f =ᵐ[volume.restrict (Ioc a b)] g,
+  { simp only [← not_le, ← ae_iff] at hlt,
+    exact eventually_le.antisymm ((ae_restrict_iff' measurable_set_Ioc).2 $
+      eventually_of_forall hle) hlt },
+  simp only [measure.restrict_congr_set Ioc_ae_eq_Icc] at h_eq,
+  exact λ c hc, (measure.eq_on_Icc_of_ae_eq volume hab.ne h_eq hfc hgc hc).ge
+end
 
-lemma integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict (Icc a b)] f) :
+lemma integral_nonneg_of_ae_restrict (hab : a ≤ b) (hf : 0 ≤ᵐ[μ.restrict (Icc a b)] f) :
   0 ≤ (∫ u in a..b, f u ∂μ) :=
 let H := ae_restrict_of_ae_restrict_of_subset Ioc_subset_Icc_self hf in
 by simpa only [integral_of_le hab] using set_integral_nonneg_of_ae_restrict H
 
-lemma integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) :
+lemma integral_nonneg_of_ae (hab : a ≤ b) (hf : 0 ≤ᵐ[μ] f) :
   0 ≤ (∫ u in a..b, f u ∂μ) :=
 integral_nonneg_of_ae_restrict hab $ ae_restrict_of_ae hf
 
-lemma integral_nonneg_of_forall (hf : ∀ u, 0 ≤ f u) :
+lemma integral_nonneg_of_forall (hab : a ≤ b) (hf : ∀ u, 0 ≤ f u) :
   0 ≤ (∫ u in a..b, f u ∂μ) :=
 integral_nonneg_of_ae hab $ eventually_of_forall hf
 
 lemma integral_nonneg [topological_space α] [opens_measurable_space α] [order_closed_topology α]
-  (hf : ∀ u, u ∈ Icc a b → 0 ≤ f u) :
+  (hab : a ≤ b) (hf : ∀ u, u ∈ Icc a b → 0 ≤ f u) :
   0 ≤ (∫ u in a..b, f u ∂μ) :=
 integral_nonneg_of_ae_restrict hab $ (ae_restrict_iff' measurable_set_Icc).mpr $ ae_of_all μ hf
 
-lemma abs_integral_le_integral_abs :
+lemma abs_integral_le_integral_abs (hab : a ≤ b) :
   |∫ x in a..b, f x ∂μ| ≤ ∫ x in a..b, |f x| ∂μ :=
 by simpa only [← real.norm_eq_abs] using norm_integral_le_integral_norm hab
 
 section mono
 
-variables (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
+variables (hab : a ≤ b) (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
 
-include hf hg
+include hab hf hg
 
 lemma integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict (Icc a b)] g) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
@@ -1314,7 +1330,7 @@ namespace FTC_filter
 variables [linear_order β] [measurable_space β] [topological_space β]
 
 instance pure (a : β) : FTC_filter a (pure a) ⊥ :=
-{ pure_le := le_refl _,
+{ pure_le := le_rfl,
   le_nhds := bot_le }
 
 instance nhds_within_singleton (a : β) : FTC_filter a (𝓝[{a}] a) ⊥ :=
@@ -1329,7 +1345,7 @@ variables [opens_measurable_space β] [order_topology β]
 
 instance nhds (a : β) : FTC_filter a (𝓝 a) (𝓝 a) :=
 { pure_le := pure_le_nhds a,
-  le_nhds := le_refl _ }
+  le_nhds := le_rfl }
 
 instance nhds_univ (a : β) : FTC_filter a (𝓝[univ] a) (𝓝 a) :=
 by { rw nhds_within_univ, apply_instance }
@@ -1529,10 +1545,9 @@ begin
   have B' : ∀ᶠ t in lt, interval_integrable f μ b (ub t) :=
     hb_lim.eventually_interval_integrable_ae hmeas_b (FTC_filter.finite_at_inner lb)
       (tendsto_const_pure.mono_right FTC_filter.pure_le) hub,
-  filter_upwards [A, A', B, B'],
-  intros t ua_va a_ua ub_vb b_ub,
+  filter_upwards [A, A', B, B'] with _ ua_va a_ua ub_vb b_ub,
   rw [← integral_interval_sub_interval_comm'],
-  { dsimp only [], abel },
+  { dsimp only [], abel, },
   exacts [ub_vb, ua_va, b_ub.symm.trans $ hab.symm.trans a_ua]
 end
 
@@ -1875,7 +1890,7 @@ lemma integral_has_fderiv_within_at_of_tendsto_ae
   (hmeas_a : measurable_at_filter f la) (hmeas_b : measurable_at_filter f lb)
   (ha : tendsto f (la ⊓ volume.ae) (𝓝 ca)) (hb : tendsto f (lb ⊓ volume.ae) (𝓝 cb)) :
   has_fderiv_within_at (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x)
-    ((snd ℝ ℝ ℝ).smul_right cb - (fst ℝ ℝ ℝ).smul_right ca) (s.prod t) (a, b) :=
+    ((snd ℝ ℝ ℝ).smul_right cb - (fst ℝ ℝ ℝ).smul_right ca) (s ×ˢ t) (a, b) :=
 begin
   rw [has_fderiv_within_at, nhds_within_prod_eq],
   have := integral_sub_integral_sub_linear_is_o_of_tendsto_ae hf hmeas_a hmeas_b ha hb
@@ -1905,7 +1920,7 @@ lemma integral_has_fderiv_within_at
   {s t : set ℝ} [FTC_filter a (𝓝[s] a) la] [FTC_filter b (𝓝[t] b) lb]
   (ha : tendsto f la (𝓝 $ f a)) (hb : tendsto f lb (𝓝 $ f b)) :
   has_fderiv_within_at (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x)
-    ((snd ℝ ℝ ℝ).smul_right (f b) - (fst ℝ ℝ ℝ).smul_right (f a)) (s.prod t) (a, b) :=
+    ((snd ℝ ℝ ℝ).smul_right (f b) - (fst ℝ ℝ ℝ).smul_right (f a)) (s ×ˢ t) (a, b) :=
 integral_has_fderiv_within_at_of_tendsto_ae hf hmeas_a hmeas_b (ha.mono_left inf_le_left)
   (hb.mono_left inf_le_left)
 
@@ -1917,7 +1932,7 @@ meta def unique_diff_within_at_Ici_Iic_univ : tactic unit :=
 
 /-- Let `f` be a measurable function integrable on `a..b`. Choose `s ∈ {Iic a, Ici a, univ}`
 and `t ∈ {Iic b, Ici b, univ}`. Suppose that `f` tends to `ca` and `cb` almost surely at the filters
-`la` and `lb` from the table below. Then `fderiv_within ℝ (λ p, ∫ x in p.1..p.2, f x) (s.prod t)`
+`la` and `lb` from the table below. Then `fderiv_within ℝ (λ p, ∫ x in p.1..p.2, f x) (s ×ˢ t)`
 is equal to `(u, v) ↦ u • cb - v • ca`.
 
 | `s`     | `la`     | `t`     | `lb`     |
@@ -1934,7 +1949,7 @@ lemma fderiv_within_integral_of_tendsto_ae
   (ha : tendsto f (la ⊓ volume.ae) (𝓝 ca)) (hb : tendsto f (lb ⊓ volume.ae) (𝓝 cb))
   (hs : unique_diff_within_at ℝ s a . unique_diff_within_at_Ici_Iic_univ)
   (ht : unique_diff_within_at ℝ t b . unique_diff_within_at_Ici_Iic_univ) :
-  fderiv_within ℝ (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x) (s.prod t) (a, b) =
+  fderiv_within ℝ (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x) (s ×ˢ t) (a, b) =
     ((snd ℝ ℝ ℝ).smul_right cb - (fst ℝ ℝ ℝ).smul_right ca) :=
 (integral_has_fderiv_within_at_of_tendsto_ae hf hmeas_a hmeas_b ha hb).fderiv_within $ hs.prod ht
 
@@ -2085,8 +2100,7 @@ begin
       rcases mem_nhds_iff_exists_Ioo_subset.1 B with ⟨m, M, ⟨hm, hM⟩, H⟩,
       have : Ioo t (min M b) ∈ 𝓝[>] t := mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
         ⟨min M b, by simp only [hM, ht.right.right, lt_min_iff, mem_Ioi, and_self], subset.refl _⟩,
-      filter_upwards [this],
-      assume u hu,
+      filter_upwards [this] with u hu,
       have I : Icc t u ⊆ Icc a b := Icc_subset_Icc ht.2.1 (hu.2.le.trans (min_le_right _ _)),
       calc (u - t) * y = ∫ v in Icc t u, y :
         by simp only [hu.left.le, measure_theory.integral_const, algebra.id.smul_eq_mul, sub_nonneg,
@@ -2099,11 +2113,10 @@ begin
         { simp only [integrable_on_const, real.volume_Icc, ennreal.of_real_lt_top, or_true] },
         { exact integrable_on.mono_set G'int I },
         { have C1 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), G' x < ⊤ :=
-            ae_mono (measure.restrict_mono I (le_refl _)) G'lt_top,
+            ae_mono (measure.restrict_mono I le_rfl) G'lt_top,
           have C2 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), x ∈ Icc t u :=
             ae_restrict_mem measurable_set_Icc,
-          filter_upwards [C1, C2],
-          assume x G'x hx,
+          filter_upwards [C1, C2] with x G'x hx,
           apply ereal.coe_le_coe_iff.1,
           have : x ∈ Ioo m M, by simp only [hm.trans_le hx.left,
             (hx.right.trans_lt hu.right).trans_le (min_le_left M b), mem_Ioo, and_self],
@@ -2114,17 +2127,13 @@ begin
     have I2 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ (u - t) * y,
     { have g'_lt_y : g' t < y := ereal.coe_lt_coe_iff.1 g'_lt_y',
       filter_upwards [(hderiv t ⟨ht.2.1, ht.2.2⟩).limsup_slope_le'
-        (not_mem_Ioi.2 le_rfl) g'_lt_y, self_mem_nhds_within],
-      assume u hu t_lt_u,
-      have := hu.le,
-      rwa [← div_eq_inv_mul, div_le_iff'] at this,
-      exact sub_pos.2 t_lt_u },
+        (not_mem_Ioi.2 le_rfl) g'_lt_y, self_mem_nhds_within] with u hu t_lt_u,
+      have := mul_le_mul_of_nonneg_left hu.le (sub_pos.2 t_lt_u).le,
+      rwa [← smul_eq_mul, sub_smul_slope] at this },
     -- combine the previous two bounds to show that `g u - g a` increases less quickly than
     -- `∫ x in a..u, G' x`.
     have I3 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ ∫ w in t..u, (G' w).to_real,
-    { filter_upwards [I1, I2],
-      assume u hu1 hu2,
-      exact hu2.trans hu1 },
+    { filter_upwards [I1, I2] with u hu1 hu2 using hu2.trans hu1, },
     have I4 : ∀ᶠ u in 𝓝[>] t, u ∈ Ioc t (min v b),
     { refine mem_nhds_within_Ioi_iff_exists_Ioc_subset.2 ⟨min v b, _, subset.refl _⟩,
       simp only [lt_min_iff, mem_Ioi],
@@ -2132,7 +2141,7 @@ begin
     -- choose a point `x` slightly to the right of `t` which satisfies the above bound
     rcases (I3.and I4).exists with ⟨x, hx, h'x⟩,
     -- we check that it belongs to `s`, essentially by construction
-    refine ⟨x, _, Ioc_subset_Ioc (le_refl _) (min_le_left _ _) h'x⟩,
+    refine ⟨x, _, Ioc_subset_Ioc le_rfl (min_le_left _ _) h'x⟩,
     calc g x - g a = (g t - g a) + (g x - g t) : by abel
     ... ≤ (∫ w in a..t, (G' w).to_real) + ∫ w in t..x, (G' w).to_real : add_le_add ht.1 hx
     ... = ∫ w in a..x, (G' w).to_real :
@@ -2201,10 +2210,10 @@ begin
     assume t ht,
     refine ⟨_, ⟨ht.1.le, ht.2⟩⟩,
     exact integral_eq_sub_of_has_deriv_right_of_le_real ht.2
-      (hcont.mono (Icc_subset_Icc ht.1.le (le_refl _)))
+      (hcont.mono (Icc_subset_Icc ht.1.le le_rfl))
       (λ x hx, hderiv x ⟨ht.1.trans_le hx.1, hx.2⟩)
-      (g'int.mono_set (Icc_subset_Icc ht.1.le (le_refl _))) },
-  rw closure_Ioc a_lt_b at A,
+      (g'int.mono_set (Icc_subset_Icc ht.1.le le_rfl)) },
+  rw closure_Ioc a_lt_b.ne at A,
   exact (A (left_mem_Icc.2 hab)).1,
 end
 
@@ -2267,17 +2276,16 @@ begin
   set F : ℝ → E := update (update f a fa) b fb,
   have Fderiv : ∀ x ∈ Ioo a b, has_deriv_at F (f' x) x,
   { refine λ x hx, (hderiv x hx).congr_of_eventually_eq _,
-    filter_upwards [Ioo_mem_nhds hx.1 hx.2],
-    intros y hy, simp only [F],
-    rw [update_noteq hy.2.ne, update_noteq hy.1.ne'] },
+    filter_upwards [Ioo_mem_nhds hx.1 hx.2] with _ hy, simp only [F],
+    rw [update_noteq hy.2.ne, update_noteq hy.1.ne'], },
   have hcont : continuous_on F (Icc a b),
   { rw [continuous_on_update_iff, continuous_on_update_iff, Icc_diff_right, Ico_diff_left],
     refine ⟨⟨λ z hz, (hderiv z hz).continuous_at.continuous_within_at, _⟩, _⟩,
     { exact λ _, ha.mono_left (nhds_within_mono _ Ioo_subset_Ioi_self) },
     { rintro -,
       refine (hb.congr' _).mono_left (nhds_within_mono _ Ico_subset_Iio_self),
-      filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 hab)],
-      exact λ z hz, (update_noteq hz.1.ne' _ _).symm } },
+      filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.2 hab)]
+        with _ hz using (update_noteq hz.1.ne' _ _).symm } },
   simpa [F, hab.ne, hab.ne'] using integral_eq_sub_of_has_deriv_at_of_le hab.le hcont Fderiv hint
 end
 

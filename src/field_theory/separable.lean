@@ -396,7 +396,7 @@ begin
 end
 
 /--If `is_unit n` in a `comm_ring R`, then `X ^ n - u` is separable for any unit `u`. -/
-lemma separable_X_pow_sub_C_unit {n : ℕ} (u : units R) (hn : is_unit (n : R)) :
+lemma separable_X_pow_sub_C_unit {n : ℕ} (u : Rˣ) (hn : is_unit (n : R)) :
   separable (X ^ n - C (u : R)) :=
 begin
   nontriviality R,
@@ -699,7 +699,7 @@ instance is_separable_self (F : Type*) [field F] : is_separable F F :=
 instance is_separable.of_finite (F K : Type*) [field F] [field K] [algebra F K]
   [finite_dimensional F K] [char_zero F] : is_separable F K :=
 have ∀ (x : K), is_integral F x,
-from λ x, (is_algebraic_iff_is_integral _).mp (algebra.is_algebraic_of_finite _),
+from λ x, algebra.is_integral_of_finite _ _ _,
 ⟨this, λ x, (minpoly.irreducible (this x)).separable⟩
 
 section is_separable_tower

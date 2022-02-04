@@ -3,11 +3,8 @@ Copyright (c) 2021 Vladimir Goryachev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Vladimir Goryachev, Kyle Miller, Scott Morrison, Eric Rodriguez
 -/
-import data.list.basic
-import data.nat.prime
 import data.nat.count
 import order.order_iso_nat
-import set_theory.fincard
 
 /-!
 # The `n`th Number Satisfying a Predicate
@@ -164,8 +161,7 @@ lemma le_nth_of_lt_nth_succ_finite {k a : ℕ} (hp : (set_of p).finite)
   (hlt : k.succ < hp.to_finset.card) (h : a < nth p k.succ) (ha : p a) :
   a ≤ nth p k :=
 begin
-  by_contra hak,
-  push_neg at hak,
+  by_contra' hak,
   refine h.not_le _,
   rw nth,
   apply nat.Inf_le,
@@ -177,8 +173,7 @@ lemma le_nth_of_lt_nth_succ_infinite {k a : ℕ} (hp : (set_of p).infinite)
   (h : a < nth p k.succ) (ha : p a) :
   a ≤ nth p k :=
 begin
-  by_contra hak,
-  push_neg at hak,
+  by_contra' hak,
   refine h.not_le _,
   rw nth,
   apply nat.Inf_le,
@@ -382,8 +377,7 @@ begin
       exact (nth_monotone p hi hr).trans (by simp) },
     simp only [exists_prop, not_and, not_lt, set.mem_set_of_eq, not_forall],
     refine λ hpn, ⟨k, lt_add_one k, _⟩,
-    by_contra hlt,
-    push_neg at hlt,
+    by_contra' hlt,
     replace hn : n - nth p k - 1 < t,
     { rw tsub_lt_iff_left,
       { rw tsub_lt_iff_left hlt.le,

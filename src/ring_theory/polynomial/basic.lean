@@ -32,7 +32,7 @@ universes u v w
 namespace polynomial
 
 instance {R : Type u} [semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
-let ⟨h⟩ := h in ⟨λ n, by rw [← C.map_nat_cast, ← C_0, C_inj, h]⟩
+let ⟨h⟩ := h in ⟨λ n, by rw [← map_nat_cast C, ← C_0, C_inj, h]⟩
 
 variables (R : Type u) [comm_ring R]
 
@@ -552,7 +552,7 @@ begin
     { apply le_trans (degree_mul_le _ _) _,
       apply le_trans (add_le_add (degree_le_nat_degree) (degree_X_pow_le _)) _,
       rw [← with_bot.coe_add, this],
-      exact le_refl _ },
+      exact le_rfl },
     { rw [leading_coeff, ← coeff_mul_X_pow p (n - nat_degree p), this] } }
 end
 
@@ -574,7 +574,7 @@ begin
   refine le_trans (degree_mul_le _ _) _,
   refine le_trans (add_le_add hpdeg (degree_X_pow_le _)) _,
   rw [← with_bot.coe_add, add_tsub_cancel_of_le H],
-  exact le_refl _
+  exact le_rfl
 end
 
 /-- Given an ideal `I` in `R[X]`, make the ideal in `R` of the

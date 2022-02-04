@@ -87,7 +87,7 @@ begin
   cases h : degree f with n,
   { rw [degree_eq_bot.1 h]; exact splits_zero i },
   { cases n with n,
-    { rw [eq_C_of_degree_le_zero (trans_rel_right (≤) h (le_refl _))];
+    { rw [eq_C_of_degree_le_zero (trans_rel_right (≤) h le_rfl)];
       exact splits_C _ _ },
     { have hn : n = 0,
       { rw h at hf,
@@ -336,7 +336,7 @@ else
           exact irreducible_of_degree_eq_one (degree_X_sub_C _),
         end)
       (associated.symm $ calc _ ~ᵤ f.map i :
-        ⟨(units.map C.to_monoid_hom : units L →* units (polynomial L))
+        ⟨(units.map C.to_monoid_hom : Lˣ →* (polynomial L)ˣ)
           (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
           by conv_rhs { rw [hs, ← leading_coeff_map i, mul_comm] }; refl⟩
@@ -395,7 +395,7 @@ begin
     simp only [nat_degree_mul (ne_zero_of_monic hprodmonic) qzero] },
   have degq : q.nat_degree = 0,
   { rw hdegree at degp,
-    exact (add_right_inj p.nat_degree).mp (tactic.ring_exp.add_pf_sum_z degp rfl).symm },
+    rw [← add_right_inj p.nat_degree, ← degp, add_zero], },
   obtain ⟨u, hu⟩ := is_unit_iff_degree_eq_zero.2 ((degree_eq_iff_nat_degree_eq qzero).2 degq),
   have hassoc : associated (multiset.map (λ (a : K), X - C a) p.roots).prod p,
   { rw associated, use u, rw [hu, ← hq] },
@@ -419,7 +419,7 @@ begin
     congr' 1,
     rw ← this,
     simp, },
-  { rw [nat_degree_map' (is_fraction_ring.injective K (fraction_ring K)), ← this],
+  { rw [nat_degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)), ← this],
     simp only [←hroots, multiset.card_map], },
 end
 
@@ -466,7 +466,7 @@ begin
       (is_fraction_ring.injective K (fraction_ring K)) hroots,
   have : multiset.card (map (algebra_map K (fraction_ring K)) p).roots =
     (map (algebra_map K (fraction_ring K)) p).nat_degree,
-  { rw [nat_degree_map' (is_fraction_ring.injective K (fraction_ring K)), ← h],
+  { rw [nat_degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)), ← h],
     simp only [←hroots, multiset.card_map], },
   rw [← C_leading_coeff_mul_prod_multiset_X_sub_C_of_field this],
   simp only [map_C, function.comp_app, map_X, map_sub],
@@ -503,6 +503,29 @@ begin
   rw [aeval_def, ← eval_map, ← derivative_map],
   nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
   rw [eval_multiset_prod_X_sub_C_derivative hr]
+end
+
+/-- If `P` is a monic polynomial that splits, then `coeff P 0` equals the product of the roots. -/
+lemma prod_roots_eq_coeff_zero_of_monic_of_split {P : polynomial K} (hmo : P.monic)
+  (hP : P.splits (ring_hom.id K)) : coeff P 0 = (-1) ^ P.nat_degree * P.roots.prod :=
+begin
+  nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
+  rw [coeff_zero_eq_eval_zero, eval_multiset_prod, multiset.map_map],
+  simp_rw [function.comp_app, eval_sub, eval_X, zero_sub, eval_C],
+  conv_lhs { congr, congr, funext,
+    rw [neg_eq_neg_one_mul] },
+  rw [multiset.prod_map_mul, multiset.map_const, multiset.prod_repeat, multiset.map_id',
+    splits_iff_card_roots.1 hP]
+end
+
+/-- If `P` is a monic polynomial that splits, then `P.next_coeff` equals the sum of the roots. -/
+lemma sum_roots_eq_next_coeff_of_monic_of_split {P : polynomial K} (hmo : P.monic)
+  (hP : P.splits (ring_hom.id K)) : P.next_coeff = - P.roots.sum :=
+begin
+  nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
+  rw [monic.next_coeff_multiset_prod _ _ (λ a ha, _)],
+  { simp_rw [next_coeff_X_sub_C, multiset.sum_map_neg] },
+  { exact monic_X_sub_C a }
 end
 
 end splits
@@ -886,7 +909,7 @@ if hf0 : f = 0 then (algebra.of_id K F).comp $
 alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_splits _ $ λ y hy,
     have aeval y f = 0, from (eval₂_eq_eval_map _).trans $
       (mem_roots $ by exact map_ne_zero hf0).1 (multiset.mem_to_finset.mp hy),
-    ⟨(is_algebraic_iff_is_integral _).1 ⟨f, hf0, this⟩,
+    ⟨is_algebraic_iff_is_integral.1 ⟨f, hf0, this⟩,
       splits_of_splits_of_dvd _ hf0 hf $ minpoly.dvd _ _ this⟩) })
   algebra.to_top
 
@@ -895,7 +918,7 @@ theorem finite_dimensional (f : polynomial K) [is_splitting_field K L f] : finit
   fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, map_zero, roots_zero] at hy, cases hy }
-  else (is_algebraic_iff_is_integral _).1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
+  else is_algebraic_iff_is_integral.1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
     (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)⟩
 
 instance (f : polynomial K) : _root_.finite_dimensional K f.splitting_field :=

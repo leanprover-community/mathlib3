@@ -170,7 +170,7 @@ begin
   induction n with n ih,
   { simp },
   rw [pow_succ', mul_assoc (l^n) l m],
-  exact le_trans (le_mul_congr (le_refl _) h) ih,
+  exact le_trans (le_mul_congr le_rfl h) ih,
 end
 
 lemma star_mul_le_left_of_mul_le_left (l m : language α) : m * l ≤ m → m * l.star ≤ m :=
@@ -182,7 +182,7 @@ begin
   induction n with n ih,
   { simp },
   rw [pow_succ, ←mul_assoc m l (l^n)],
-  exact le_trans (le_mul_congr h (le_refl _)) ih
+  exact le_trans (le_mul_congr h le_rfl) ih
 end
 
 end language

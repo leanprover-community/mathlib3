@@ -113,13 +113,17 @@ quotient.has_scalar' P
 
 @[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : M ⧸ p) = r • mk x := rfl
 
-instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M]
+instance smul_comm_class (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M]
   [smul_comm_class S T M] : smul_comm_class S T (M ⧸ P) :=
 { smul_comm := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_comm _ _ _) }
 
-instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M] [has_scalar S T]
-  [is_scalar_tower S T M] : is_scalar_tower S T (M ⧸ P) :=
+instance is_scalar_tower (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M]
+  [has_scalar S T] [is_scalar_tower S T M] : is_scalar_tower S T (M ⧸ P) :=
 { smul_assoc := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_assoc _ _ _) }
+
+instance is_central_scalar [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [is_central_scalar S M] : is_central_scalar S (M ⧸ P) :=
+{ op_smul_eq_smul := λ x, quotient.ind' $ by exact λ z, congr_arg mk $ op_smul_eq_smul _ _ }
 
 end has_scalar
 
@@ -238,7 +242,7 @@ lemma le_comap_mkq (p' : submodule R (M ⧸ p)) : p ≤ comap p.mkq p' :=
 by simpa using (comap_mono bot_le : p.mkq.ker ≤ comap p.mkq p')
 
 @[simp] theorem mkq_map_self : map p.mkq p = ⊥ :=
-by rw [eq_bot_iff, map_le_iff_le_comap, comap_bot, ker_mkq]; exact le_refl _
+by rw [eq_bot_iff, map_le_iff_le_comap, comap_bot, ker_mkq]; exact le_rfl
 
 @[simp] theorem comap_map_mkq : comap p.mkq (map p.mkq p') = p ⊔ p' :=
 by simp [comap_map_eq, sup_comm]
@@ -264,7 +268,7 @@ theorem comap_liftq (f : M →ₛₗ[τ₁₂] M₂) (h) :
   q.comap (p.liftq f h) = (q.comap f).map (mkq p) :=
 le_antisymm
   (by rintro ⟨x⟩ hx; exact ⟨_, hx, rfl⟩)
-  (by rw [map_le_iff_le_comap, ← comap_comp, liftq_mkq]; exact le_refl _)
+  (by rw [map_le_iff_le_comap, ← comap_comp, liftq_mkq]; exact le_rfl)
 
 theorem map_liftq [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) (h) (q : submodule R (M ⧸ p)) :
   q.map (p.liftq f h) = (q.comap p.mkq).map f :=

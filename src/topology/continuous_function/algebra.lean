@@ -45,15 +45,13 @@ instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 ⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous : _)⟩⟩
 
 @[simp, norm_cast, to_additive]
-lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) :
-  ((f * g : C(α, β)) : α → β) = (f : α → β) * (g : α → β) := rfl
+lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) : ⇑(f * g) = f * g := rfl
 
 @[to_additive]
-instance [has_one β] : has_one C(α, β) := ⟨const (1 : β)⟩
+instance [has_one β] : has_one C(α, β) := ⟨const α 1⟩
 
 @[simp, norm_cast, to_additive]
-lemma coe_one [has_one β]  :
-  ((1 : C(α, β)) : α → β) = (1 : α → β) := rfl
+lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
 
 @[simp, to_additive] lemma mul_comp {α : Type*} {β : Type*} {γ : Type*}
   [topological_space α] [topological_space β] [topological_space γ]
@@ -64,7 +62,7 @@ by { ext, simp, }
 @[simp, to_additive] lemma one_comp {α : Type*} {β : Type*} {γ : Type*}
   [topological_space α] [topological_space β] [topological_space γ] [has_one γ] (g : C(α, β)) :
   (1 : C(β, γ)).comp g = 1 :=
-by { ext, simp, }
+const_comp _ _
 
 end continuous_map
 
@@ -361,10 +359,10 @@ variables [has_continuous_add M₂] [module R M₂] [has_continuous_smul R M₂]
 
 instance module : module R C(α, M) :=
 { smul     := (•),
-  smul_add := λ c f g, by { ext, exact smul_add c (f x) (g x) },
-  add_smul := λ c₁ c₂ f, by { ext, exact add_smul c₁ c₂ (f x) },
-  mul_smul := λ c₁ c₂ f, by { ext, exact mul_smul c₁ c₂ (f x) },
-  one_smul := λ f, by { ext, exact one_smul R (f x) },
+  smul_add := λ c f g, by { ext, exact smul_add c _ _ },
+  add_smul := λ c₁ c₂ f, by { ext, exact add_smul c₁ c₂ _ },
+  mul_smul := λ c₁ c₂ f, by { ext, exact mul_smul c₁ c₂ _ },
+  one_smul := λ f, by { ext, exact one_smul R _ },
   zero_smul := λ f, by { ext, exact zero_smul _ _ },
   smul_zero := λ r, by { ext, exact smul_zero _ } }
 

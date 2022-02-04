@@ -8,7 +8,7 @@ import data.nat.basic
 /-!
 # Multiplication by ·positive· elements is monotonic
 
-Let `α` be a type with `<` and `0`.  We introduce notation for the subtype of positive element of
+Let `α` be a type with `<` and `0`.  We introduce notation for the subtype of positive elements of
 `α`:
 
 *  the notation `α>0` to stands for `{x : α // 0 < x}`.

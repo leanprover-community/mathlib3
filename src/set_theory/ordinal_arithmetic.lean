@@ -372,29 +372,22 @@ by simp only [le_antisymm_iff, H.le_iff]
 theorem is_normal.le_self {f} (H : is_normal f) (a) : a ≤ f a :=
 well_founded.self_le_of_strict_mono wf H.strict_mono a
 
-theorem is_normal.le_set {f} (H : is_normal f) (p : ordinal → Prop)
-  (p0 : ∃ x, p x) (S)
-  (H₂ : ∀ o, S ≤ o ↔ ∀ a, p a → a ≤ o) {o} :
-  f S ≤ o ↔ ∀ a, p a → f a ≤ o :=
-⟨λ h a pa, le_trans (H.le_iff.2 ((H₂ _).1 (le_refl _) _ pa)) h,
+theorem is_normal.le_set {f} (H : is_normal f) (p : set ordinal) (p0 : p.nonempty) (b)
+  (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, a ≤ o) {o} : f b ≤ o ↔ ∀ a ∈ p, f a ≤ o :=
+⟨λ h a pa, (H.le_iff.2 ((H₂ _).1 (le_refl _) _ pa)).trans h,
 λ h, begin
-  revert H₂, apply limit_rec_on S,
-  { intro H₂,
-     cases p0 with x px,
-     have := ordinal.le_zero.1 ((H₂ _).1 (ordinal.zero_le _) _ px),
-     rw this at px, exact h _ px },
-  { intros S _ H₂,
-    rcases not_ball.1 (mt (H₂ S).2 $ not_le_of_lt $ lt_succ_self _) with ⟨a, h₁, h₂⟩,
-    exact le_trans (H.le_iff.2 $ succ_le.2 $ not_le.1 h₂) (h _ h₁) },
-  { intros S L _ H₂, apply (H.2 _ L _).2, intros a h',
-    rcases not_ball.1 (mt (H₂ a).2 (not_le.2 h')) with ⟨b, h₁, h₂⟩,
-    exact le_trans (H.le_iff.2 $ le_of_lt $ not_le.1 h₂) (h _ h₁) }
+  revert H₂, refine limit_rec_on b (λ H₂, _) (λ S _ H₂, _) (λ S L _ H₂, (H.2 _ L _).2 (λ a h', _)),
+  { cases p0 with x px,
+    have := ordinal.le_zero.1 ((H₂ _).1 (ordinal.zero_le _) _ px),
+    rw this at px, exact h _ px },
+  { rcases not_ball.1 (mt (H₂ S).2 $ not_le_of_lt $ lt_succ_self _) with ⟨a, h₁, h₂⟩,
+    exact (H.le_iff.2 $ succ_le.2 $ not_le.1 h₂).trans (h _ h₁) },
+  { rcases not_ball.1 (mt (H₂ a).2 (not_le.2 h')) with ⟨b, h₁, h₂⟩,
+    exact (H.le_iff.2 $ le_of_lt $ not_le.1 h₂).trans (h _ h₁) }
 end⟩
 
-theorem is_normal.le_set' {f} (H : is_normal f) (p : α → Prop) (g : α → ordinal)
-  (p0 : ∃ x, p x) (S)
-  (H₂ : ∀ o, S ≤ o ↔ ∀ a, p a → g a ≤ o) {o} :
-  f S ≤ o ↔ ∀ a, p a → f (g a) ≤ o :=
+theorem is_normal.le_set' {f} (H : is_normal f) (p : set α) (g : α → ordinal) (p0 : p.nonempty) (b)
+  (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, g a ≤ o) {o} : f b ≤ o ↔ ∀ a ∈ p, f (g a) ≤ o :=
 (H.le_set (λ x, ∃ y, p y ∧ x = g y)
   (let ⟨x, px⟩ := p0 in ⟨_, _, px, rfl⟩) _
   (λ o, (H₂ o).trans ⟨λ H a ⟨y, h1, h2⟩, h2.symm ▸ H y h1,
@@ -967,11 +960,11 @@ begin
   exact le_sup f i
 end
 
-theorem is_normal.sup {f} (H : is_normal f)
-  {ι} {g : ι → ordinal} (h : nonempty ι) : f (sup g) = sup (f ∘ g) :=
+theorem is_normal.sup {f} (H : is_normal f) {ι} {g : ι → ordinal} (h : nonempty ι) :
+  f (sup g) = sup (f ∘ g) :=
 eq_of_forall_ge_iff $ λ a,
 by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
-  intros; simp only [sup_le, true_implies_iff]
+  intros; simp only [sup_le, true_implies_iff]; tauto
 
 theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=
 eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_le]

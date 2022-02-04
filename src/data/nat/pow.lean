@@ -307,7 +307,7 @@ by have := @size_pos n; simp [pos_iff_ne_zero] at this;
 theorem size_pow {n : ℕ} : size (2^n) = n+1 :=
 le_antisymm
   (size_le.2 $ pow_lt_pow_of_lt_right dec_trivial (lt_succ_self _))
-  (lt_size.2 $ le_refl _)
+  (lt_size.2 $ le_rfl)
 
 theorem size_le_size {m n : ℕ} (h : m ≤ n) : size m ≤ size n :=
 size_le.2 $ lt_of_le_of_lt h (lt_size_self _)

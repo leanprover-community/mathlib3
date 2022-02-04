@@ -242,7 +242,7 @@ lemma le_comap_mkq (p' : submodule R (M ⧸ p)) : p ≤ comap p.mkq p' :=
 by simpa using (comap_mono bot_le : p.mkq.ker ≤ comap p.mkq p')
 
 @[simp] theorem mkq_map_self : map p.mkq p = ⊥ :=
-by rw [eq_bot_iff, map_le_iff_le_comap, comap_bot, ker_mkq]; exact le_refl _
+by rw [eq_bot_iff, map_le_iff_le_comap, comap_bot, ker_mkq]; exact le_rfl
 
 @[simp] theorem comap_map_mkq : comap p.mkq (map p.mkq p') = p ⊔ p' :=
 by simp [comap_map_eq, sup_comm]
@@ -268,7 +268,7 @@ theorem comap_liftq (f : M →ₛₗ[τ₁₂] M₂) (h) :
   q.comap (p.liftq f h) = (q.comap f).map (mkq p) :=
 le_antisymm
   (by rintro ⟨x⟩ hx; exact ⟨_, hx, rfl⟩)
-  (by rw [map_le_iff_le_comap, ← comap_comp, liftq_mkq]; exact le_refl _)
+  (by rw [map_le_iff_le_comap, ← comap_comp, liftq_mkq]; exact le_rfl)
 
 theorem map_liftq [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) (h) (q : submodule R (M ⧸ p)) :
   q.map (p.liftq f h) = (q.comap p.mkq).map f :=

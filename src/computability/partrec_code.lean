@@ -162,7 +162,7 @@ begin
   refine lt_of_le_of_lt (le_trans this _)
     (lt_add_of_pos_right _ (dec_trivial:0<4)),
   exact le_of_lt (nat.bit0_lt_bit1 $ le_of_lt $
-    nat.bit0_lt_bit1 $ le_refl _),
+    nat.bit0_lt_bit1 $ le_rfl),
 end
 
 section
@@ -656,7 +656,7 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
   { exact let ⟨k, h⟩ := this in ⟨k+1, h⟩ },
   induction c generalizing n x;
     simp [eval, evaln, pure, pfun.pure, (<*>), (>>)] at h ⊢,
-  iterate 4 { exact ⟨⟨_, le_refl _⟩, h.symm⟩ },
+  iterate 4 { exact ⟨⟨_, le_rfl⟩, h.symm⟩ },
   case nat.partrec.code.pair : cf cg hf hg
   { rcases h with ⟨x, hx, y, hy, rfl⟩,
     rcases hf hx with ⟨k₁, hk₁⟩, rcases hg hy with ⟨k₂, hk₂⟩,

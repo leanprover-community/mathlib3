@@ -726,7 +726,7 @@ by simp only [← dist_zero_right, dist_pi_lt_iff hr, pi.zero_apply]
 
 lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] (x : Πi, π i)
   (i : ι) : ∥x i∥ ≤ ∥x∥ :=
-(pi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
+(pi_norm_le_iff (norm_nonneg x)).1 le_rfl i
 
 @[simp] lemma pi_norm_const [nonempty ι] [fintype ι] (a : E) : ∥(λ i : ι, a)∥ = ∥a∥ :=
 by simpa only [← dist_zero_right] using dist_pi_const a 0

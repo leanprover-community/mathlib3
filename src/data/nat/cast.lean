@@ -164,7 +164,7 @@ section
 variables [ordered_semiring α]
 
 @[simp] theorem cast_nonneg : ∀ n : ℕ, 0 ≤ (n : α)
-| 0     := le_refl _
+| 0     := le_rfl
 | (n+1) := add_nonneg (cast_nonneg n) zero_le_one
 
 @[mono] theorem mono_cast : monotone (coe : ℕ → α) :=

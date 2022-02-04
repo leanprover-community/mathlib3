@@ -161,7 +161,7 @@ with_bot.gi_get_or_else_bot.gc.monotone_l hpq
 by { rw [degree, ← monomial_zero_left, support_monomial 0 _ ha, sup_singleton], refl }
 
 lemma degree_C_le : degree (C a) ≤ 0 :=
-by by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]]; [exact bot_le, exact le_refl _]
+by by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]]; [exact bot_le, exact le_rfl]
 
 lemma degree_C_lt (a : R) : degree (C a) < 1 :=
 nat.with_bot.lt_one_iff_le_zero.mpr degree_C_le
@@ -291,7 +291,7 @@ ext (λ n, nat.cases_on n (by simp)
 
 lemma eq_X_add_C_of_degree_eq_one (h : degree p = 1) :
   p = C (p.leading_coeff) * X + C (p.coeff 0) :=
-(eq_X_add_C_of_degree_le_one (show degree p ≤ 1, from h ▸ le_refl _)).trans
+(eq_X_add_C_of_degree_le_one (show degree p ≤ 1, from h ▸ le_rfl)).trans
   (by simp [leading_coeff, nat_degree_eq_of_degree_eq_some h])
 
 lemma eq_X_add_C_of_nat_degree_le_one (h : nat_degree p ≤ 1) :
@@ -442,7 +442,7 @@ begin
 end
 
 lemma eq_C_of_degree_eq_zero (h : degree p = 0) : p = C (coeff p 0) :=
-eq_C_of_degree_le_zero (h ▸ le_refl _)
+eq_C_of_degree_le_zero (h ▸ le_rfl)
 
 lemma degree_le_zero_iff : degree p ≤ 0 ↔ p = C (coeff p 0) :=
 ⟨eq_C_of_degree_le_zero, λ h, h.symm ▸ degree_C_le⟩
@@ -509,7 +509,7 @@ lemma degree_add_eq_of_leading_coeff_add_ne_zero (h : leading_coeff p + leading_
 le_antisymm (degree_add_le _ _) $
   match lt_trichotomy (degree p) (degree q) with
   | or.inl hlt :=
-    by rw [degree_add_eq_right_of_degree_lt hlt, max_eq_right_of_lt hlt]; exact le_refl _
+    by rw [degree_add_eq_right_of_degree_lt hlt, max_eq_right_of_lt hlt]; exact le_rfl
   | or.inr (or.inl heq) :=
     le_of_not_gt $
       assume hlt : max (degree p) (degree q) > degree (p + q),
@@ -520,7 +520,7 @@ le_antisymm (degree_add_le _ _) $
         exact coeff_nat_degree_eq_zero_of_degree_lt hlt
       end
   | or.inr (or.inr hlt) :=
-    by rw [degree_add_eq_left_of_degree_lt hlt, max_eq_left_of_lt hlt]; exact le_refl _
+    by rw [degree_add_eq_left_of_degree_lt hlt, max_eq_left_of_lt hlt]; exact le_rfl
   end
 
 lemma degree_erase_le (p : polynomial R) (n : ℕ) : degree (p.erase n) ≤ degree p :=
@@ -573,7 +573,7 @@ lemma degree_pow_le (p : polynomial R) : ∀ (n : ℕ), degree (p ^ n) ≤ n •
 | 0     := by rw [pow_zero, zero_nsmul]; exact degree_one_le
 | (n+1) := calc degree (p ^ (n + 1)) ≤ degree p + degree (p ^ n) :
     by rw pow_succ; exact degree_mul_le _ _
-  ... ≤ _ : by rw succ_nsmul; exact add_le_add (le_refl _) (degree_pow_le _)
+  ... ≤ _ : by rw succ_nsmul; exact add_le_add le_rfl (degree_pow_le _)
 
 @[simp] lemma leading_coeff_monomial (a : R) (n : ℕ) : leading_coeff (monomial n a) = a :=
 begin
@@ -829,7 +829,7 @@ lemma degree_smul_le (a : R) (p : polynomial R) : degree (a • p) ≤ degree p 
 begin
   apply (degree_le_iff_coeff_zero _ _).2 (λ m hm, _),
   rw degree_lt_iff_coeff_zero at hm,
-  simp [hm m (le_refl _)],
+  simp [hm m le_rfl],
 end
 
 lemma nat_degree_smul_le (a : R) (p : polynomial R) : nat_degree (a • p) ≤ nat_degree p :=

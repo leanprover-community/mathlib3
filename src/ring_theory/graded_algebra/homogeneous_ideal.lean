@@ -313,18 +313,25 @@ end
 
 lemma ideal.homogeneous_hull_is_mono : monotone (ideal.homogeneous_hull 𝒜) := λ I J I_le_J,
 begin
-  apply ideal.span_mono, rintros r ⟨hr1, ⟨x, hx⟩, rfl⟩,
+  apply ideal.span_mono,
+  rintros r ⟨hr1, ⟨x, hx⟩, rfl⟩,
   refine ⟨hr1, ⟨⟨x, I_le_J hx⟩, rfl⟩⟩,
 end
 
 lemma ideal.homogeneous_hull.eq_Inf :
   ideal.homogeneous_hull 𝒜 I = Inf { J : ideal A | J.is_homogeneous 𝒜 ∧ I ≤ J } :=
 begin
-  ext, split; intros hx,
-  { rw ideal.mem_Inf, rintros K ⟨HK1, HK2⟩,
+  ext,
+  split;
+  intros hx,
+  { rw ideal.mem_Inf,
+    rintros K ⟨HK1, HK2⟩,
     rw [ideal.homogeneous_hull, ideal.mem_span] at hx,
-    apply hx K, rintros r ⟨i, ⟨⟨y, hy⟩, rfl⟩⟩,
-    apply HK1, apply HK2, exact hy, },
+    apply hx K,
+    rintros r ⟨i, ⟨⟨y, hy⟩, rfl⟩⟩,
+    apply HK1,
+    apply HK2,
+    exact hy, },
   { rw ideal.mem_Inf at hx,
     refine @hx (ideal.homogeneous_hull 𝒜 I) _,
     exact ⟨ideal.is_homogeneous.homogeneous_hull _ _, ideal.ideal_le_homogeneous_hull _ _⟩, }
@@ -335,7 +342,8 @@ lemma homogeneous_hull_eq_supr :
 begin
   rw ←ideal.span_Union,
   apply congr_arg ideal.span _,
-  ext1, simp only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_algebra.proj_apply,
+  ext1,
+  simp only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_algebra.proj_apply,
     set_like.exists, exists_prop, subtype.coe_mk, set_like.mem_coe],
 end
 
@@ -344,9 +352,17 @@ variables {𝒜 I}
 lemma ideal.is_homogeneous.homogeneous_hull_eq_self (h : I.is_homogeneous 𝒜) :
   ideal.homogeneous_hull 𝒜 I = I :=
 begin
-  rw ideal.homogeneous_hull.eq_Inf, ext x, split; intros hx,
-  rw ideal.mem_Inf at hx, apply hx, refine ⟨h, le_refl I⟩,
-  rw ideal.mem_Inf, rintros J ⟨HJ1, HJ2⟩, apply HJ2, exact hx,
+  rw ideal.homogeneous_hull.eq_Inf,
+  ext x,
+  split;
+  intros hx,
+  { rw ideal.mem_Inf at hx,
+    apply hx,
+    refine ⟨h, le_refl I⟩ },
+  { rw ideal.mem_Inf,
+    rintros J ⟨HJ1, HJ2⟩,
+    apply HJ2,
+    exact hx, }
 end
 
 variables (𝒜 I)
@@ -387,7 +403,8 @@ def ideal.homogeneous_hull.gi :
     have eq : I = ideal.homogeneous_hull 𝒜 I,
     have ineq1 : I ≤ ideal.homogeneous_hull 𝒜 I := ideal.ideal_le_homogeneous_hull 𝒜 I,
     exact le_antisymm ineq1 H,
-    rw eq, apply ideal.is_homogeneous.homogeneous_hull,
+    rw eq,
+    apply ideal.is_homogeneous.homogeneous_hull,
   end⟩,
   gc := ideal.homgeneous_hull.gc 𝒜,
   le_l_u := λ ⟨I, HI⟩, by { apply ideal.ideal_le_homogeneous_hull },

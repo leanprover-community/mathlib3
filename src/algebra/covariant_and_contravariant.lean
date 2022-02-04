@@ -209,25 +209,25 @@ lemma covariant.monotone_of_const [covariant_class M N μ (≤)] (m : M) : monot
 /-- A monotone function remains monotone when composed with the partial application
 of a covariant operator. E.g., `∀ (m : ℕ), monotone f → monotone (λ n, f (m + n))`. -/
 lemma monotone.covariant_of_const [covariant_class M N μ (≤)] (hf : monotone f) (m : M) :
-  monotone (f ∘ μ m) :=
+  monotone (λ n, f (μ m n)) :=
 hf.comp $ covariant.monotone_of_const m
 
 /-- Same as `monotone.covariant_of_const`, but with the constant on the other side of
 the operator.  E.g., `∀ (m : ℕ), monotone f → monotone (λ n, f (n + m))`. -/
 lemma monotone.covariant_of_const' {μ : N → N → N} [covariant_class N N (swap μ) (≤)]
   (hf : monotone f) (m : N) :
-  monotone (f ∘ (swap μ) m) :=
+  monotone (λ n, f (μ n m)) :=
 hf.comp $ covariant.monotone_of_const m
 
 /-- Dual of `monotone.covariant_of_const` -/
 lemma antitone.covariant_of_const [covariant_class M N μ (≤)] (hf : antitone f) (m : M) :
-  antitone (f ∘ μ m) :=
+  antitone (λ n, f (μ m n)) :=
 hf.comp_monotone $ covariant.monotone_of_const m
 
 /-- Dual of `monotone.covariant_of_const'` -/
 lemma antitone.covariant_of_const' {μ : N → N → N} [covariant_class N N (swap μ) (≤)]
   (hf : antitone f) (m : N) :
-  antitone (f ∘ (swap μ) m) :=
+  antitone (λ n, f (μ n m)) :=
 hf.comp_monotone $ covariant.monotone_of_const m
 
 end monotone

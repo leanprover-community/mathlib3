@@ -32,7 +32,7 @@ universes u v w
 namespace polynomial
 
 instance {R : Type u} [semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
-let ⟨h⟩ := h in ⟨λ n, by rw [← C.map_nat_cast, ← C_0, C_inj, h]⟩
+let ⟨h⟩ := h in ⟨λ n, by rw [← map_nat_cast C, ← C_0, C_inj, h]⟩
 
 variables (R : Type u) [comm_ring R]
 
@@ -552,7 +552,7 @@ begin
     { apply le_trans (degree_mul_le _ _) _,
       apply le_trans (add_le_add (degree_le_nat_degree) (degree_X_pow_le _)) _,
       rw [← with_bot.coe_add, this],
-      exact le_refl _ },
+      exact le_rfl },
     { rw [leading_coeff, ← coeff_mul_X_pow p (n - nat_degree p), this] } }
 end
 
@@ -574,7 +574,7 @@ begin
   refine le_trans (degree_mul_le _ _) _,
   refine le_trans (add_le_add hpdeg (degree_X_pow_le _)) _,
   rw [← with_bot.coe_add, add_tsub_cancel_of_le H],
-  exact le_refl _
+  exact le_rfl
 end
 
 /-- Given an ideal `I` in `R[X]`, make the ideal in `R` of the
@@ -606,8 +606,9 @@ instance {R : Type*} [comm_ring R] [is_domain R] [wf_dvd_monoid R] :
   wf_dvd_monoid (polynomial R) :=
 { well_founded_dvd_not_unit := begin
     classical,
-    refine rel_hom.well_founded
-      ⟨λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff), _⟩
+    refine rel_hom_class.well_founded (⟨λ (p : polynomial R),
+        ((if p = 0 then ⊤ else ↑p.degree : with_top (with_bot ℕ)), p.leading_coeff), _⟩ :
+        dvd_not_unit →r prod.lex (<) dvd_not_unit)
       (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
         ‹wf_dvd_monoid R›.well_founded_dvd_not_unit),
     rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,

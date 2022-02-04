@@ -79,6 +79,9 @@ lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | (n + 1) (k + 1) hk := by rw choose_succ_succ;
     exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (nat.zero_le _)
 
+lemma choose_eq_zero_iff {n k : ℕ} : n.choose k = 0 ↔ n < k :=
+⟨λ h, lt_of_not_ge (mt nat.choose_pos h.symm.not_lt), nat.choose_eq_zero_of_lt⟩
+
 lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ k) * succ k
 | 0             0 := dec_trivial
 | 0       (k + 1) := by simp [choose]
@@ -247,7 +250,7 @@ private lemma choose_le_middle_of_le_half_left {n r : ℕ} (hr : r ≤ n/2) :
 decreasing_induction
   (λ _ k a,
       (eq_or_lt_of_le a).elim
-        (λ t, t.symm ▸ le_refl _)
+        (λ t, t.symm ▸ le_rfl)
         (λ h, (choose_le_succ_of_lt_half_left h).trans (k h)))
   hr (λ _, le_rfl) hr
 

@@ -45,18 +45,12 @@ variables {𝕜 s} {x y : E}
 
 lemma strict_convex_iff_open_segment_subset :
   strict_convex 𝕜 s ↔ s.pairwise (λ x y, open_segment 𝕜 x y ⊆ interior s) :=
-begin
-  split,
-  { rintro h x hx y hy hxy z ⟨a, b, ha, hb, hab, rfl⟩,
-    exact h x hx y hy hxy ha hb hab },
-  { rintro h x hx y hy hxy a b ha hb hab,
-    exact h x hx y hy hxy ⟨a, b, ha, hb, hab, rfl⟩ }
-end
+forall₅_congr $ λ x hx y hy hxy, (open_segment_subset_iff 𝕜).symm
 
 lemma strict_convex.open_segment_subset (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s)
   (h : x ≠ y) :
   open_segment 𝕜 x y ⊆ interior s :=
-strict_convex_iff_open_segment_subset.1 hs _ hx _ hy h
+strict_convex_iff_open_segment_subset.1 hs hx hy h
 
 lemma strict_convex_empty : strict_convex 𝕜 (∅ : set E) := pairwise_empty _
 
@@ -72,7 +66,7 @@ protected lemma strict_convex.inter {t : set E} (hs : strict_convex 𝕜 s) (ht 
 begin
   intros x hx y hy hxy a b ha hb hab,
   rw interior_inter,
-  exact ⟨hs x hx.1 y hy.1 hxy ha hb hab, ht x hx.2 y hy.2 hxy ha hb hab⟩,
+  exact ⟨hs hx.1 hy.1 hxy ha hb hab, ht hx.2 hy.2 hxy ha hb hab⟩,
 end
 
 lemma directed.strict_convex_Union {ι : Sort*} {s : ι → set E} (hdir : directed (⊆) s)
@@ -84,7 +78,7 @@ begin
   obtain ⟨i, hx⟩ := hx,
   obtain ⟨j, hy⟩ := hy,
   obtain ⟨k, hik, hjk⟩ := hdir i j,
-  exact interior_mono (subset_Union s k) (hs _ (hik hx) _ (hjk hy) hxy ha hb hab),
+  exact interior_mono (subset_Union s k) (hs (hik hx) (hjk hy) hxy ha hb hab),
 end
 
 lemma directed_on.strict_convex_sUnion {S : set (set E)} (hdir : directed_on (⊆) S)
@@ -101,9 +95,9 @@ section module
 variables [module 𝕜 E] [module 𝕜 F] {s : set E}
 
 protected lemma strict_convex.convex (hs : strict_convex 𝕜 s) : convex 𝕜 s :=
-convex_iff_pairwise_pos.2 $ λ x hx y hy hxy a b ha hb hab,
-  interior_subset $ hs x hx y hy hxy ha hb hab
+convex_iff_pairwise_pos.2 $ λ x hx y hy hxy a b ha hb hab, interior_subset $ hs hx hy hxy ha hb hab
 
+/-- An open convex set is strictly convex. -/
 protected lemma convex.strict_convex (h : is_open s) (hs : convex 𝕜 s) : strict_convex 𝕜 s :=
 λ x hx y hy _ a b ha hb hab, h.interior_eq.symm ▸ hs hx hy ha.le hb.le hab
 
@@ -119,7 +113,7 @@ lemma strict_convex.linear_image (hs : strict_convex 𝕜 s) (f : E →ₗ[𝕜]
 begin
   rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
   exact hf.image_interior_subset _
-    ⟨a • x + b • y, hs _ hx _ hy (ne_of_apply_ne _ hxy) ha hb hab,
+    ⟨a • x + b • y, hs hx hy (ne_of_apply_ne _ hxy) ha hb hab,
     by rw [f.map_add, f.map_smul, f.map_smul]⟩,
 end
 
@@ -135,7 +129,7 @@ begin
   intros x hx y hy hxy a b ha hb hab,
   refine preimage_interior_subset_interior_preimage hf _,
   rw [mem_preimage, f.map_add, f.map_smul, f.map_smul],
-  exact hs _ hx _ hy (hfinj.ne hxy) ha hb hab,
+  exact hs hx hy (hfinj.ne hxy) ha hb hab,
 end
 
 lemma strict_convex.is_linear_preimage {s : set F} (hs : strict_convex 𝕜 s) {f : E → F}
@@ -196,7 +190,7 @@ lemma strict_convex.preimage_add_right (hs : strict_convex 𝕜 s) (z : E) :
 begin
   intros x hx y hy hxy a b ha hb hab,
   refine preimage_interior_subset_interior_preimage (continuous_add_left _) _,
-  have h := hs _ hx _ hy ((add_right_injective _).ne hxy) ha hb hab,
+  have h := hs hx hy ((add_right_injective _).ne hxy) ha hb hab,
   rwa [smul_add, smul_add, add_add_add_comm, ←add_smul, hab, one_smul] at h,
 end
 
@@ -215,7 +209,7 @@ lemma strict_convex.add_left [has_continuous_add E] (hs : strict_convex 𝕜 s) 
 begin
   rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
   refine (is_open_map_add_left _).image_interior_subset _ _,
-  refine ⟨a • x + b • y, hs _ hx _ hy (ne_of_apply_ne _ hxy) ha hb hab, _⟩,
+  refine ⟨a • x + b • y, hs hx hy (ne_of_apply_ne _ hxy) ha hb hab, _⟩,
   rw [smul_add, smul_add, add_add_add_comm, ←add_smul, hab, one_smul],
 end
 
@@ -235,16 +229,15 @@ begin
     { exact interior_mono (add_subset_add (singleton_subset_iff.2 hv) (subset.refl _)) this },
     rw singleton_add,
     exact (is_open_map_add_left _).image_interior_subset _
-      (mem_image_of_mem _ $ ht _ hw _ hy (ne_of_apply_ne _ h) ha hb hab) },
+      (mem_image_of_mem _ $ ht hw hy (ne_of_apply_ne _ h) ha hb hab) },
   obtain rfl | hwy := eq_or_ne w y,
   { rw convex.combo_self hab,
     suffices : a • v + b • x + w ∈ interior (s + {w}),
     { exact interior_mono (add_subset_add (subset.refl _) (singleton_subset_iff.2 hw)) this },
     rw add_singleton,
     exact (is_open_map_add_right _).image_interior_subset _
-      (mem_image_of_mem _ $ hs _ hv _ hx hvx ha hb hab) },
-  exact subset_interior_add (add_mem_add (hs _ hv _ hx hvx ha hb hab) $
-    ht _ hw _ hy hwy ha hb hab),
+      (mem_image_of_mem _ $ hs hv hx hvx ha hb hab) },
+  exact subset_interior_add (add_mem_add (hs hv hx hvx ha hb hab) $ ht hw hy hwy ha hb hab),
 end
 
 end add_comm_group
@@ -288,7 +281,7 @@ begin
   classical,
   by_contra hxy,
   exact (h ⟨a, 1 - a, ha₀, sub_pos_of_lt ha₁, add_sub_cancel'_right _ _, rfl⟩).2
-    (hs _ hx _ hy hxy ha₀ (sub_pos_of_lt ha₁) $ add_sub_cancel'_right _ _),
+    (hs hx hy hxy ha₀ (sub_pos_of_lt ha₁) $ add_sub_cancel'_right _ _),
 end
 
 lemma strict_convex.add_smul_mem (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hxy : x + y ∈ s)
@@ -298,7 +291,7 @@ begin
   have h : x + t • y = (1 - t) • x + t • (x + y),
   { rw [smul_add, ←add_assoc, ←add_smul, sub_add_cancel, one_smul] },
   rw h,
-  refine hs _ hx _ hxy (λ h, hy $ add_left_cancel _) (sub_pos_of_lt ht₁) ht₀ (sub_add_cancel _ _),
+  refine hs hx hxy (λ h, hy $ add_left_cancel _) (sub_pos_of_lt ht₁) ht₀ (sub_add_cancel _ _),
   exact x,
   rw [←h, add_zero],
 end
@@ -324,7 +317,7 @@ begin
   intros x hx y hy hxy a b ha hb hab,
   refine preimage_interior_subset_interior_preimage hf _,
   rw [mem_preimage, convex.combo_affine_apply hab],
-  exact hs _ hx _ hy (hfinj.ne hxy) ha hb hab,
+  exact hs hx hy (hfinj.ne hxy) ha hb hab,
 end
 
 /-- The image of a strict_convex set under an affine map is strict_convex. -/
@@ -332,7 +325,7 @@ lemma strict_convex.affine_image (hs : strict_convex 𝕜 s) {f : E →ᵃ[𝕜]
   strict_convex 𝕜 (f '' s) :=
 begin
   rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
-  exact hf.image_interior_subset _ ⟨a • x + b • y, ⟨hs _ hx _ hy (ne_of_apply_ne _ hxy) ha hb hab,
+  exact hf.image_interior_subset _ ⟨a • x + b • y, ⟨hs hx hy (ne_of_apply_ne _ hxy) ha hb hab,
     convex.combo_affine_apply hab⟩⟩,
 end
 
@@ -375,10 +368,10 @@ lemma strict_convex_iff_div :
   strict_convex 𝕜 s ↔ s.pairwise
     (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → (a / (a + b)) • x + (b / (a + b)) • y ∈ interior s) :=
 ⟨λ h x hx y hy hxy a b ha hb, begin
-  apply h _ hx _ hy hxy (div_pos ha $ add_pos ha hb) (div_pos hb $ add_pos ha hb),
+  apply h hx hy hxy (div_pos ha $ add_pos ha hb) (div_pos hb $ add_pos ha hb),
   rw ←add_div,
   exact div_self (add_pos ha hb).ne',
-end, λ h x hx y hy hxy a b ha hb hab, by convert h _ hx _ hy hxy ha hb; rw [hab, div_one] ⟩
+end, λ h x hx y hy hxy a b ha hb hab, by convert h hx hy hxy ha hb; rw [hab, div_one] ⟩
 
 lemma strict_convex.mem_smul_of_zero_mem (hs : strict_convex 𝕜 s) (zero_mem : (0 : E) ∈ s)
   (hx : x ∈ s) (hx₀ : x ≠ 0) {t : 𝕜} (ht : 1 < t) :
@@ -400,6 +393,7 @@ Relates `convex` and `set.ord_connected`.
 section
 variables [topological_space E]
 
+/-- A set in a linear ordered field is strictly convex if and only if it is convex. -/
 @[simp] lemma strict_convex_iff_convex [linear_ordered_field 𝕜] [topological_space 𝕜]
   [order_topology 𝕜] {s : set 𝕜} :
   strict_convex 𝕜 s ↔ convex 𝕜 s :=

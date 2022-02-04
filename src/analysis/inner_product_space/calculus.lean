@@ -181,7 +181,7 @@ times_cont_diff_iff_times_cont_diff_at.2 $
 
 omit 𝕜
 lemma has_strict_fderiv_at_norm_sq (x : F) :
-  has_strict_fderiv_at (λ x, ∥x∥ ^ 2) (bit0 (inner_right x)) x :=
+  has_strict_fderiv_at (λ x, ∥x∥ ^ 2) (bit0 (innerSL x)) x :=
 begin
   simp only [sq, ← inner_self_eq_norm_mul_norm],
   convert (has_strict_fderiv_at_id x).inner (has_strict_fderiv_at_id x),

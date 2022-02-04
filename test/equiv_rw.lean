@@ -358,3 +358,37 @@ begin
   equiv_rw e at m,
   exact m,
 end
+
+-- Rewriting multiple equivalences on target
+example
+  {α β χ δ : Type}
+  (m : β → β → δ → δ)
+  (e₁ : α ≃ β)
+  (e₂ : χ ≃ δ) :
+  α → α → χ → χ :=
+begin
+  equiv_rw [e₁, e₂],
+  exact m,
+end
+
+-- Rewriting multiple equivalences on a hypothesis
+example
+  {α β χ δ : Type}
+  (m : α → α → χ → χ)
+  (e₁ : α ≃ β)
+  (e₂ : χ ≃ δ) :
+  β → β → δ → δ :=
+begin
+  equiv_rw [e₁, e₂] at m,
+  exact m,
+end
+
+example
+  {α β χ δ : Type}
+  (m : β → β → β)
+  (e : α ≃ β) :
+  α → α → α :=
+begin
+  equiv_rw e at *,
+  exact m,
+end

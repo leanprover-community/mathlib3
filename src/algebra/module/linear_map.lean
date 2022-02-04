@@ -94,7 +94,7 @@ add_decl_doc linear_map.to_add_hom
 
 notation M ` →ₛₗ[`:25 σ:25 `] `:0 M₂:0 := linear_map σ M M₂
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map (ring_hom.id R) M M₂
-notation M ` →ₗ⋆[`:25 R:25 `] `:0 M₂:0 := linear_map (@star_ring_aut R _ _ : R →+* R) M M₂
+notation M ` →ₗ⋆[`:25 R:25 `] `:0 M₂:0 := linear_map (star_ring_end R) M M₂
 
 namespace linear_map
 
@@ -194,6 +194,42 @@ protected lemma map_zero : f 0 = 0 := map_zero f
 -- TODO: generalize to `zero_hom_class`
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
 ⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
+
+section pointwise
+open_locale pointwise
+
+@[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
+  f '' (c • s) = (σ c) • f '' s :=
+begin
+  apply set.subset.antisymm,
+  { rintros x ⟨y, ⟨z, zs, rfl⟩, rfl⟩,
+    exact ⟨f z, set.mem_image_of_mem _ zs, (f.map_smulₛₗ _ _).symm ⟩ },
+  { rintros x ⟨y, ⟨z, hz, rfl⟩, rfl⟩,
+    exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, f.map_smulₛₗ _ _⟩ }
+end
+
+lemma image_smul_set (c : R) (s : set M) :
+  fₗ '' (c • s) = c • fₗ '' s :=
+by simp
+
+lemma preimage_smul_setₛₗ {c : R} (hc : is_unit c) (s : set M₃) :
+  f ⁻¹' (σ c • s) = c • f ⁻¹' s :=
+begin
+  apply set.subset.antisymm,
+  { rintros x ⟨y, ys, hy⟩,
+    refine ⟨(hc.unit.inv : R) • x, _, _⟩,
+    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ, ← σ.map_mul,
+        is_unit.coe_inv_mul, one_smul, ring_hom.map_one, ys] },
+    { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
+  { rintros x ⟨y, hy, rfl⟩,
+    refine ⟨f y, hy, by simp only [ring_hom.id_apply, linear_map.map_smulₛₗ]⟩ }
+end
+
+lemma preimage_smul_set {c : R} (hc : is_unit c) (s : set M₂) :
+  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
+fₗ.preimage_smul_setₛₗ hc s
+
+end pointwise
 
 variables (M M₂)
 /--
@@ -352,7 +388,7 @@ end⟩
 instance compatible_smul.units {R S : Type*}
   [monoid R] [mul_action R M] [mul_action R M₂] [semiring S] [module S M] [module S M₂]
   [compatible_smul M M₂ R S] :
-  compatible_smul M M₂ (units R) S :=
+  compatible_smul M M₂ Rˣ S :=
 ⟨λ fₗ c x, (compatible_smul.map_smul fₗ (c : R) x : _)⟩
 
 end add_comm_group
@@ -518,7 +554,7 @@ rfl
 
 instance : inhabited (M →ₛₗ[σ₁₂] M₂) := ⟨0⟩
 
-@[simp] lemma default_def : default (M →ₛₗ[σ₁₂] M₂) = 0 := rfl
+@[simp] lemma default_def : (default : (M →ₛₗ[σ₁₂] M₂)) = 0 := rfl
 
 /-- The sum of two linear maps is linear. -/
 instance : has_add (M →ₛₗ[σ₁₂] M₂) :=
@@ -757,6 +793,10 @@ instance apply_smul_comm_class : smul_comm_class R (module.End R M) M :=
 
 instance apply_smul_comm_class' : smul_comm_class (module.End R M) R M :=
 { smul_comm := linear_map.map_smul }
+
+instance apply_is_scalar_tower {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
+  is_scalar_tower R (module.End R M) M :=
+⟨λ t f m, rfl⟩
 
 end endomorphisms
 

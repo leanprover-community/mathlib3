@@ -7,9 +7,10 @@ import algebra.group.inj_surj
 import data.list.big_operators
 import data.list.prod_monoid
 import data.list.range
+import group_theory.group_action.defs
+import group_theory.submonoid.basic
 import data.set_like.basic
 import data.sigma.basic
-import group_theory.group_action.defs
 
 /-!
 # Additively-graded multiplicative structures
@@ -64,12 +65,16 @@ provides the `Prop` typeclasses:
 * `set_like.has_graded_mul A` (which provides the obvious `graded_monoid.ghas_mul A` instance)
 * `set_like.graded_monoid A` (which provides the obvious `graded_monoid.gmonoid A` and
   `graded_monoid.gcomm_monoid A` instances)
+* `set_like.is_homogeneous A` (which says that `a` is homogeneous iff `a ∈ A i` for some `i : ι`)
 
 Strictly this last class is unecessary as it has no fields not present in its parents, but it is
 included for convenience. Note that there is no need for `graded_ring` or similar, as all the
 information it would contain is already supplied by `graded_monoid` when `A` is a collection
 of additively-closed set_like objects such as `submodules`. These constructions are explored in
 `algebra.direct_sum.internal`.
+
+This file also contains the definition of `set_like.homogeneous_submonoid A`, which is, as the name
+suggests, the submonoid consisting of all the homogeneous elements.
 
 ## tags
 
@@ -85,7 +90,7 @@ def graded_monoid (A : ι → Type*) := sigma A
 
 namespace graded_monoid
 
-instance {A : ι → Type*} [inhabited ι] [inhabited (A (default ι))]: inhabited (graded_monoid A) :=
+instance {A : ι → Type*} [inhabited ι] [inhabited (A default)]: inhabited (graded_monoid A) :=
 sigma.inhabited
 
 /-- Construct an element of a graded monoid. -/
@@ -505,3 +510,28 @@ subtype.ext $ set_like.coe_list_dprod _ _ _ _
 end dprod
 
 end subobjects
+
+section homogeneous_elements
+
+variables {R S : Type*} [set_like S R]
+
+/-- An element `a : R` is said to be homogeneous if there is some `i : ι` such that `a ∈ A i`. -/
+def set_like.is_homogeneous (A : ι → S) (a : R) : Prop := ∃ i, a ∈ A i
+
+lemma set_like.is_homogeneous_one [has_zero ι] [has_one R]
+  (A : ι → S) [set_like.has_graded_one A] : set_like.is_homogeneous A (1 : R) :=
+⟨0, set_like.has_graded_one.one_mem⟩
+
+lemma set_like.is_homogeneous.mul [has_add ι] [has_mul R] {A : ι → S}
+  [set_like.has_graded_mul A] {a b : R} :
+  set_like.is_homogeneous A a → set_like.is_homogeneous A b → set_like.is_homogeneous A (a * b)
+| ⟨i, hi⟩ ⟨j, hj⟩ := ⟨i + j, set_like.has_graded_mul.mul_mem hi hj⟩
+
+/-- When `A` is a `set_like.graded_monoid A`, then the homogeneous elements forms a submonoid. -/
+def set_like.homogeneous_submonoid [add_monoid ι] [monoid R]
+  (A : ι → S) [set_like.graded_monoid A] : submonoid R :=
+{ carrier := { a | set_like.is_homogeneous A a },
+  one_mem' := set_like.is_homogeneous_one A,
+  mul_mem' := λ a b, set_like.is_homogeneous.mul }
+
+end homogeneous_elements

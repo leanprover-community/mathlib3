@@ -1542,7 +1542,7 @@ begin
     rintro ⟨n, hn⟩,
     rw [restrict_apply, submodule.coe_mk, submodule.coe_mk, b₁],
     exact hx₂ n hn },
-  refine ⟨this ▸ le_refl _, _⟩,
+  refine ⟨this ▸ le_rfl, _⟩,
   { rw top_le_iff,
     refine eq_top_of_finrank_eq _,
     refine le_antisymm (submodule.finrank_le _) _,

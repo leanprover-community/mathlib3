@@ -83,7 +83,7 @@ calc #(mv_polynomial_fun σ R) = #R + #σ + #(ulift bool) :
   by dsimp [mv_polynomial_fun]; simp only [← add_def, add_assoc, cardinal.mk_ulift]
 ... ≤ max (max (#R + #σ) (#(ulift bool))) ω : add_le_max _ _
 ... ≤ max (max (max (max (#R) (#σ)) ω) (#(ulift bool))) ω :
-  max_le_max (max_le_max (add_le_max _ _) (le_refl _)) (le_refl _)
+  max_le_max (max_le_max (add_le_max _ _) le_rfl) le_rfl
 ... ≤ _ : begin
   have : #(ulift.{u} bool) ≤ ω,
     from le_of_lt (lt_omega_iff_fintype.2 ⟨infer_instance⟩),
@@ -99,7 +99,7 @@ lemma cardinal_mk_le_max {σ R : Type u} [comm_semiring R] :
 calc #(mv_polynomial σ R) ≤ #(W_type (arity σ R)) :
   cardinal.mk_le_of_surjective to_mv_polynomial_surjective
 ... ≤ max (#(mv_polynomial_fun σ R)) ω : W_type.cardinal_mk_le_max_omega_of_fintype
-... ≤ _ : max_le_max cardinal_mv_polynomial_fun_le (le_refl _)
+... ≤ _ : max_le_max cardinal_mv_polynomial_fun_le le_rfl
 ... ≤ _ : by simp only [max_assoc, max_self]
 
 end mv_polynomial

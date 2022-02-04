@@ -7,7 +7,7 @@ import category_theory.limits.preserves.basic
 import category_theory.limits.types
 import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.multiequalizer
-import tactic.elementwise
+import category_theory.concrete_category.elementwise
 
 /-!
 # Facts about (co)limits of functors into concrete categories
@@ -18,8 +18,6 @@ universes w v u
 open category_theory
 
 namespace category_theory.limits
-
-attribute [elementwise] cone.w limit.lift_π limit.w cocone.w colimit.ι_desc colimit.w
 
 local attribute [instance] concrete_category.has_coe_to_fun concrete_category.has_coe_to_sort
 

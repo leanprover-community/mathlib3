@@ -6,7 +6,7 @@ Authors: Bhavik Mehta, Yaël Dillies
 import data.set.lattice
 import data.set_like.basic
 import order.galois_connection
-import order.preorder_hom
+import order.hom.basic
 import tactic.monotonicity
 
 /-!
@@ -54,7 +54,7 @@ variable (α : Type*)
 
 /-- A closure operator on the preorder `α` is a monotone function which is extensive (every `x`
 is less than its closure) and idempotent. -/
-structure closure_operator [preorder α] extends α →ₘ α :=
+structure closure_operator [preorder α] extends α →o α :=
 (le_closure' : ∀ x, x ≤ to_fun x)
 (idempotent' : ∀ x, to_fun (to_fun x) = to_fun x)
 
@@ -65,7 +65,7 @@ instance [preorder α] : has_coe_to_fun (closure_operator α) (λ _, α → α) 
 /-- See Note [custom simps projection] -/
 def simps.apply [preorder α] (f : closure_operator α) : α → α := f
 
-initialize_simps_projections closure_operator (to_preorder_hom_to_fun → apply, -to_preorder_hom)
+initialize_simps_projections closure_operator (to_order_hom_to_fun → apply, -to_order_hom)
 
 section partial_order
 variable [partial_order α]
@@ -73,7 +73,7 @@ variable [partial_order α]
 /-- The identity function as a closure operator. -/
 @[simps]
 def id : closure_operator α :=
-{ to_preorder_hom := preorder_hom.id,
+{ to_order_hom := order_hom.id,
   le_closure' := λ _, le_rfl,
   idempotent' := λ _, rfl }
 
@@ -171,7 +171,7 @@ by { ext, refl }
 lemma mem_mk₃_closed {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
   {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} {x : α} (hx : p x) :
   x ∈ (mk₃ f p hf hfp hmin).closed :=
-(hmin (le_refl _) hx).antisymm (hf _)
+(hmin le_rfl hx).antisymm (hf _)
 
 end partial_order
 

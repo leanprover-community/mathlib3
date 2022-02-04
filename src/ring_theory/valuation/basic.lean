@@ -62,7 +62,7 @@ variables (R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ring
 
 /-- The type of `Γ₀`-valued valuations on `R`. -/
 @[nolint has_inhabited_instance]
-structure valuation extends monoid_with_zero_hom R Γ₀ :=
+structure valuation extends R →*₀ Γ₀ :=
 (map_add' : ∀ x y, to_fun (x + y) ≤ max (to_fun x) (to_fun y))
 
 /-- The `monoid_with_zero_hom` underlying a valuation. -/
@@ -88,12 +88,12 @@ instance : has_coe_to_fun (valuation R Γ₀) (λ _, R → Γ₀) :=
 { coe := λ v, v.to_monoid_with_zero_hom.to_fun }
 
 /-- A valuation is coerced to a monoid morphism R → Γ₀. -/
-instance : has_coe (valuation R Γ₀) (monoid_with_zero_hom R Γ₀) :=
+instance : has_coe (valuation R Γ₀) (R →*₀ Γ₀) :=
 ⟨valuation.to_monoid_with_zero_hom⟩
 
 variables {R} {Γ₀} (v : valuation R Γ₀) {x y z : R}
 
-@[simp, norm_cast] lemma coe_coe : ((v : monoid_with_zero_hom R Γ₀) : R → Γ₀) = v := rfl
+@[simp, norm_cast] lemma coe_coe : ((v : R →*₀ Γ₀) : R → Γ₀) = v := rfl
 
 @[simp] lemma map_zero : v 0 = 0 := v.map_zero'
 @[simp] lemma map_one  : v 1 = 1 := v.map_one'
@@ -152,7 +152,7 @@ lemma ne_zero_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
   (v : valuation K Γ₀) {x : K} : v x ≠ 0 ↔ x ≠ 0 :=
 v.to_monoid_with_zero_hom.map_ne_zero
 
-theorem unit_map_eq (u : units R) :
+theorem unit_map_eq (u : Rˣ) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
 
 /-- A ring homomorphism `S → R` induces a map `valuation R Γ₀ → valuation S Γ₀`. -/
@@ -170,7 +170,7 @@ ext $ λ r, rfl
 
 /-- A `≤`-preserving group homomorphism `Γ₀ → Γ'₀` induces a map `valuation R Γ₀ → valuation R Γ'₀`.
 -/
-def map (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f) (v : valuation R Γ₀) :
+def map (f : Γ₀ →*₀ Γ'₀) (hf : monotone f) (v : valuation R Γ₀) :
   valuation R Γ'₀ :=
 { to_fun := f ∘ v,
   map_add' := λ r s,
@@ -195,7 +195,7 @@ v.to_monoid_with_zero_hom.map_inv x
   v (x^n) = (v x)^n :=
 v.to_monoid_with_zero_hom.map_zpow x n
 
-lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
+lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = (v x)⁻¹ :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
@@ -239,7 +239,7 @@ begin
 end
 
 /-- The subgroup of elements whose valuation is less than a certain unit.-/
-def lt_add_subgroup (v : valuation R Γ₀) (γ : units Γ₀) : add_subgroup R :=
+def lt_add_subgroup (v : valuation R Γ₀) (γ : Γ₀ˣ) : add_subgroup R :=
 { carrier   := {x | v x < γ},
   zero_mem' := by { have h := units.ne_zero γ, contrapose! h, simpa using h },
   add_mem'  := λ x y x_in y_in, lt_of_le_of_lt (v.map_add x y) (max_lt x_in y_in),
@@ -266,7 +266,7 @@ variables {v₁ : valuation R Γ₀} {v₂ : valuation R Γ'₀} {v₃ : valuati
 lemma of_eq {v' : valuation R Γ₀} (h : v = v') : v.is_equiv v' :=
 by { subst h }
 
-lemma map {v' : valuation R Γ₀} (f : monoid_with_zero_hom Γ₀ Γ'₀) (hf : monotone f)
+lemma map {v' : valuation R Γ₀} (f : Γ₀ →*₀ Γ'₀) (hf : monotone f)
   (inf : injective f) (h : v.is_equiv v') :
   (v.map f hf).is_equiv (v'.map f hf) :=
 let H : strict_mono f := hf.strict_mono_of_injective inf in
@@ -296,9 +296,8 @@ end is_equiv -- end of namespace
 section
 
 lemma is_equiv_of_map_strict_mono [linear_ordered_comm_monoid_with_zero Γ₀]
-  [linear_ordered_comm_monoid_with_zero Γ'₀]
-  [ring R] {v : valuation R Γ₀}
-  (f : monoid_with_zero_hom Γ₀ Γ'₀) (H : strict_mono f) :
+  [linear_ordered_comm_monoid_with_zero Γ'₀] [ring R] {v : valuation R Γ₀} (f : Γ₀ →*₀ Γ'₀)
+  (H : strict_mono f) :
   is_equiv (v.map f (H.monotone)) v :=
 λ x y, ⟨H.le_iff_le.mp, λ h, H.monotone h⟩
 
@@ -362,7 +361,7 @@ from calc 1 = v 1 : v.map_one.symm
 lemma map_add_supp (a : R) {s : R} (h : s ∈ supp v) : v (a + s) = v a :=
 begin
   have aux : ∀ a s, v s = 0 → v (a + s) ≤ v a,
-  { intros a' s' h', refine le_trans (v.map_add a' s') (max_le (le_refl _) _), simp [h'], },
+  { intros a' s' h', refine le_trans (v.map_add a' s') (max_le le_rfl _), simp [h'], },
   apply le_antisymm (aux a s h),
   calc v a = v (a + s + -s) : by simp
        ... ≤ v (a + s)      : aux (a + s) (-s) (by rwa ←ideal.neg_mem_iff at h)
@@ -422,7 +421,7 @@ begin
     intros x hx, exact hx }
 end
 
-lemma supp_quot_supp : supp (v.on_quot (le_refl _)) = 0 :=
+lemma supp_quot_supp : supp (v.on_quot le_rfl) = 0 :=
 by { rw supp_quot, exact ideal.map_quotient_self _ }
 
 end supp -- end of section
@@ -552,7 +551,7 @@ variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valua
   (v : add_valuation K Γ₀) {x : K} : v x⁻¹ = - (v x) :=
 v.map_inv
 
-lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = - (v x) :=
+lemma map_units_inv (x : Rˣ) : v (x⁻¹ : Rˣ) = - (v x) :=
 v.map_units_inv x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
@@ -660,7 +659,7 @@ lemma supp_quot {J : ideal R} (hJ : J ≤ supp v) :
   supp (v.on_quot hJ) = (supp v).map (ideal.quotient.mk J) :=
 v.supp_quot hJ
 
-lemma supp_quot_supp : supp (v.on_quot (le_refl _)) = 0 :=
+lemma supp_quot_supp : supp (v.on_quot le_rfl) = 0 :=
 v.supp_quot_supp
 
 end supp -- end of section

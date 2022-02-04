@@ -181,14 +181,12 @@ namespace real
 lemma tendsto_mul_log_one_plus_div_at_top (t : ℝ) :
   tendsto (λ x, x * log (1 + t / x)) at_top (𝓝 t) :=
 begin
-  have h₁ : tendsto (λ h, h⁻¹ * log (1 + t * h)) (𝓝[{0}ᶜ] 0) (𝓝 t),
-  { simpa [has_deriv_at_iff_tendsto_slope] using
-      ((has_deriv_at_const _ 1).add ((has_deriv_at_id (0 : ℝ)).const_mul t)).log (by simp) },
-  have h₂ : tendsto (λ x : ℝ, x⁻¹) at_top (𝓝[{0}ᶜ] 0) :=
+  have h₁ : tendsto (λ h, h⁻¹ * log (1 + t * h)) (𝓝[≠] 0) (𝓝 t),
+  { simpa [has_deriv_at_iff_tendsto_slope, slope_fun_def] using
+      (((has_deriv_at_id (0 : ℝ)).const_mul t).const_add 1).log (by simp) },
+  have h₂ : tendsto (λ x : ℝ, x⁻¹) at_top (𝓝[≠] 0) :=
     tendsto_inv_at_top_zero'.mono_right (nhds_within_mono _ (λ x hx, (set.mem_Ioi.mp hx).ne')),
-  convert h₁.comp h₂,
-  ext,
-  field_simp [mul_comm],
+  simpa only [(∘), inv_inv₀] using h₁.comp h₂
 end
 
 open_locale big_operators
@@ -208,8 +206,7 @@ begin
   { assume y hy,
     have : (∑ i in range n, (↑i + 1) * y ^ i / (↑i + 1)) = (∑ i in range n, y ^ i),
     { congr' with i,
-      have : (i : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos i),
-      field_simp [this, mul_comm] },
+      exact mul_div_cancel_left _ (nat.cast_add_one_pos i).ne' },
     field_simp [F, this, ← geom_sum_def, geom_sum_eq (ne_of_lt hy.2),
                 sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
     ring },

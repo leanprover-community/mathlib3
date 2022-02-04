@@ -15,17 +15,15 @@ and prove some of their properties.
 - `is_alg_closed k` is the typeclass saying `k` is an algebraically closed field, i.e. every
 polynomial in `k` splits.
 
-- `is_alg_closure k K` is the typeclass saying `K` is an algebraic closure of `k`.
+- `is_alg_closure R K` is the typeclass saying `K` is an algebraic closure of `R`, where `R` is a
+  commutative ring. This means that the map from `R` to `K` is injective, and `K` is
+  algebraically closed and algebraic over `R`
 
-- `is_alg_closed.lift` is a map from an algebraic extension `L` of `K`, into any algebraically
-  closed extension of `K`.
+- `is_alg_closed.lift` is a map from an algebraic extension `L` of `R`, into any algebraically
+  closed extension of `R`.
 
 - `is_alg_closure.equiv` is a proof that any two algebraic closures of the
   same field are isomorphic.
-
-## TODO
-
-Show that any two algebraic closures are isomorphic
 
 ## Tags
 
@@ -86,6 +84,17 @@ begin
   exact ⟨z, sq z⟩
 end
 
+lemma roots_eq_zero_iff [is_alg_closed k] {p : polynomial k} :
+  p.roots = 0 ↔ p = polynomial.C (p.coeff 0) :=
+begin
+  refine ⟨λ h, _, λ hp, by rw [hp, roots_C]⟩,
+  cases (le_or_lt (degree p) 0) with hd hd,
+  { exact eq_C_of_degree_le_zero hd },
+  { obtain ⟨z, hz⟩ := is_alg_closed.exists_root p hd.ne',
+    rw [←mem_roots (ne_zero_of_degree_gt hd), h] at hz,
+    simpa using hz }
+end
+
 theorem exists_eval₂_eq_zero_of_injective {R : Type*} [ring R] [is_alg_closed k] (f : R →+* k)
   (hf : function.injective f) (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
 let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map_eq_of_injective hf]) in
@@ -115,10 +124,10 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
-lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0)
+lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k}
   (hp : irreducible p) :
   p.degree = 1 :=
-degree_eq_one_of_irreducible_of_splits h_nz hp (is_alg_closed.splits_codomain _)
+degree_eq_one_of_irreducible_of_splits hp (is_alg_closed.splits_codomain _)
 
 lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_integral k K) :
@@ -127,7 +136,7 @@ begin
   refine λ x, ⟨-((minpoly k x).coeff 0), _⟩,
   have hq : (minpoly k x).leading_coeff = 1 := minpoly.monic (hf x),
   have h : (minpoly k x).degree = 1 := degree_eq_one_of_irreducible k
-    (minpoly.ne_zero (hf x)) (minpoly.irreducible (hf x)),
+    (minpoly.irreducible (hf x)),
   have : (aeval x (minpoly k x)) = 0 := minpoly.aeval k x,
   rw [eq_X_add_C_of_degree_eq_one h, hq, C_1, one_mul,
     aeval_add, aeval_X, aeval_C, add_eq_zero_iff_eq_neg] at this,
@@ -142,41 +151,22 @@ lemma algebra_map_surjective_of_is_integral'
 lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [ring K] [is_domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_algebraic k K) :
   function.surjective (algebra_map k K) :=
-algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)
+algebra_map_surjective_of_is_integral (algebra.is_algebraic_iff_is_integral.mp hf)
 
 end is_alg_closed
 
 /-- Typeclass for an extension being an algebraic closure. -/
-class is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
+class is_alg_closure (R : Type u) (K : Type v) [comm_ring R]
+  [field K] [algebra R K] [no_zero_smul_divisors R K] : Prop :=
 (alg_closed : is_alg_closed K)
-(algebraic : algebra.is_algebraic k K)
+(algebraic : algebra.is_algebraic R K)
 
 theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
   is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
 ⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
-/--
-Every element `f` in a nontrivial finite-dimensional algebra `A`
-over an algebraically closed field `K`
-has non-empty spectrum:
-that is, there is some `c : K` so `f - c • 1` is not invertible.
--/
--- We will use this both to show eigenvalues exist, and to prove Schur's lemma.
-lemma exists_spectrum_of_is_alg_closed_of_finite_dimensional (𝕜 : Type*) [field 𝕜] [is_alg_closed 𝕜]
-  {A : Type*} [nontrivial A] [ring A] [algebra 𝕜 A] [I : finite_dimensional 𝕜 A] (f : A) :
-  ∃ c : 𝕜, ¬ is_unit (f - algebra_map 𝕜 A c) :=
-begin
-  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian (is_noetherian.iff_fg.2 I) f,
-  have nu : ¬ is_unit (aeval f p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simp, },
-  rw [eq_prod_roots_of_monic_of_splits_id h_mon (is_alg_closed.splits p),
-    ←multiset.prod_to_list, alg_hom.map_list_prod] at nu,
-  replace nu := mt list.prod_is_unit nu,
-  simp only [not_forall, exists_prop, aeval_C, multiset.mem_to_list,
-    list.mem_map, aeval_X, exists_exists_and_eq_and, multiset.mem_map, alg_hom.map_sub] at nu,
-  exact ⟨nu.some, nu.some_spec.2⟩,
-end
-
 namespace lift
+
 /- In this section, the homomorphism from any algebraic extension into an algebraically
   closed extension is proven to exist. The assumption that M is algebraically closed could probably
   easily be switched to an assumption that M contains all the roots of polynomials in K -/
@@ -213,7 +203,7 @@ by { rw le_def at h, cases h, assumption }
 
 instance : preorder (subfield_with_hom K L M hL) :=
 { le := (≤),
-  le_refl := λ E, ⟨le_refl _, by simp⟩,
+  le_refl := λ E, ⟨le_rfl, by simp⟩,
   le_trans := λ E₁ E₂ E₃ h₁₂ h₂₃,
     ⟨le_trans h₁₂.fst h₂₃.fst,
     λ _, by erw [← inclusion_inclusion h₁₂.fst h₂₃.fst, compat, compat]⟩ }
@@ -221,8 +211,9 @@ instance : preorder (subfield_with_hom K L M hL) :=
 open lattice
 
 lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M hL))
-  (hc : chain (≤) c) (hcn  : c.nonempty) :
+  (hc : chain (≤) c) :
   ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
+if hcn : c.nonempty then
 let ub : subfield_with_hom K L M hL :=
 by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
 { carrier := ⨆ i : c, (i : subfield_with_hom K L M hL).carrier,
@@ -245,12 +236,13 @@ by haveI : nonempty c := set.nonempty.to_subtype hcn; exact
     simp [ub],
     refl
   end⟩⟩
+else by { rw [set.not_nonempty_iff_eq_empty] at hcn, simp [hcn], }
 
 variables (hL M)
 
 lemma exists_maximal_subfield_with_hom : ∃ E : subfield_with_hom K L M hL,
   ∀ N, E ≤ N → N ≤ E :=
-zorn.exists_maximal_of_nonempty_chains_bounded
+zorn.exists_maximal_of_chains_bounded
   maximal_subfield_with_hom_chain_bounded (λ _ _ _, le_trans)
 
 /-- The maximal `subfield_with_hom`. We later prove that this is equal to `⊤`. -/
@@ -273,7 +265,7 @@ begin
   letI : algebra N M := (maximal_subfield_with_hom M hL).emb.to_ring_hom.to_algebra,
   cases is_alg_closed.exists_aeval_eq_zero M (minpoly N x)
     (ne_of_gt (minpoly.degree_pos
-      ((is_algebraic_iff_is_integral _).1
+      (is_algebraic_iff_is_integral.1
         (algebra.is_algebraic_of_larger_base _ _ hL x)))) with y hy,
   let O : subalgebra N L := algebra.adjoin N {(x : L)},
   let larger_emb := ((adjoin_root.lift_hom (minpoly N x) y hy).comp
@@ -305,107 +297,157 @@ variables {K : Type u} [field K] {L : Type v} {M : Type w} [field L] [algebra K 
 variables (K L M)
 include hL
 
-/-- A (random) hom from an algebraic extension of K into an algebraically closed extension of K -/
-@[irreducible] noncomputable def lift : L →ₐ[K] M :=
+/-- Less general version of `lift`. -/
+@[irreducible] private noncomputable def lift_aux : L →ₐ[K] M :=
 (lift.subfield_with_hom.maximal_subfield_with_hom M hL).emb.comp $
   eq.rec_on (lift.subfield_with_hom.maximal_subfield_with_hom_eq_top M hL).symm algebra.to_top
+
+omit hL
+
+variables {R : Type u} [comm_ring R]
+variables {S : Type v} [comm_ring S] [is_domain S] [algebra R S]
+  [algebra R M] [no_zero_smul_divisors R S]
+  [no_zero_smul_divisors R M]
+  (hS : algebra.is_algebraic R S)
+variables {M}
+
+include hS
+
+/-- A (random) homomorphism from an algebraic extension of R into an algebraically
+  closed extension of R. -/
+
+@[irreducible] noncomputable def lift : S →ₐ[R] M :=
+begin
+  letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R S).is_domain _,
+  have hfRfS : algebra.is_algebraic (fraction_ring R) (fraction_ring S),
+    from λ x, (is_fraction_ring.is_algebraic_iff R (fraction_ring R) (fraction_ring S)).1
+      ((is_fraction_ring.is_algebraic_iff' R S (fraction_ring S)).1 hS x),
+  let f : fraction_ring S →ₐ[fraction_ring R] M :=
+    lift_aux (fraction_ring R) (fraction_ring S) M hfRfS,
+  exact (f.restrict_scalars R).comp ((algebra.of_id S (fraction_ring S)).restrict_scalars R),
+end
 
 end is_alg_closed
 
 namespace is_alg_closure
 
-variables (J : Type*) (K : Type u) [field J] [field K] (L : Type v) (M : Type w) [field L]
-  [field M] [algebra K M] [is_alg_closure K M]
+variables (K : Type*) (J : Type*) (R : Type u) (S : Type*) [field K] [field J] [comm_ring R]
+  (L : Type v) (M : Type w) [field L] [field M] [algebra R M] [no_zero_smul_divisors R M]
+  [is_alg_closure R M] [algebra K M] [is_alg_closure K M]
+  [comm_ring S] [algebra S L] [no_zero_smul_divisors S L] [is_alg_closure S L]
 
 local attribute [instance] is_alg_closure.alg_closed
 
 section
-variables [algebra K L] [is_alg_closure K L]
+variables [algebra R L] [no_zero_smul_divisors R L] [is_alg_closure R L]
 
-/-- A (random) isomorphism between two algebraic closures of `K`. -/
-noncomputable def equiv : L ≃ₐ[K] M :=
-let f : L →ₐ[K] M := is_alg_closed.lift K L M is_alg_closure.algebraic in
+/-- A (random) isomorphism between two algebraic closures of `R`. -/
+noncomputable def equiv : L ≃ₐ[R] M :=
+let f : L →ₐ[R] M := is_alg_closed.lift is_alg_closure.algebraic in
 alg_equiv.of_bijective f
   ⟨ring_hom.injective f.to_ring_hom,
     begin
       letI : algebra L M := ring_hom.to_algebra f,
-      letI : is_scalar_tower K L M :=
+      letI : is_scalar_tower R L M :=
         is_scalar_tower.of_algebra_map_eq (by simp [ring_hom.algebra_map_to_algebra]),
       show function.surjective (algebra_map L M),
       exact is_alg_closed.algebra_map_surjective_of_is_algebraic
-        (algebra.is_algebraic_of_larger_base K L is_alg_closure.algebraic),
+        (algebra.is_algebraic_of_larger_base_of_injective
+          (no_zero_smul_divisors.algebra_map_injective R _) is_alg_closure.algebraic),
     end⟩
 
 end
 
 section equiv_of_algebraic
 
+variables [algebra R S] [algebra R L] [is_scalar_tower R S L]
 variables [algebra K J] [algebra J L] [is_alg_closure J L] [algebra K L]
   [is_scalar_tower K J L]
 
-/-- An equiv between an algebraic closure of `K` and an algebraic closure of an algebraic
-  extension of `K` -/
-noncomputable def equiv_of_algebraic (hKJ : algebra.is_algebraic K J) : L ≃ₐ[K] M :=
+
+/-- A (random) isomorphism between an algebraic closure of `R` and an algebraic closure of
+  an algebraic extension of `R` -/
+noncomputable def equiv_of_algebraic' [nontrivial S] [no_zero_smul_divisors R S]
+  (hRL : algebra.is_algebraic R L) : L ≃ₐ[R] M :=
 begin
-  letI : is_alg_closure K L :=
+  letI : no_zero_smul_divisors R L :=
+    no_zero_smul_divisors.of_algebra_map_injective begin
+      rw [is_scalar_tower.algebra_map_eq R S L],
+      exact function.injective.comp
+        (no_zero_smul_divisors.algebra_map_injective _ _)
+        (no_zero_smul_divisors.algebra_map_injective _ _)
+    end,
+  letI : is_alg_closure R L :=
   { alg_closed := by apply_instance,
-    algebraic := algebra.is_algebraic_trans hKJ is_alg_closure.algebraic  },
+    algebraic := hRL },
   exact is_alg_closure.equiv _ _ _
 end
+
+/-- A (random) isomorphism between an algebraic closure of `K` and an algebraic closure
+  of an algebraic extension of `K` -/
+noncomputable def equiv_of_algebraic (hKJ : algebra.is_algebraic K J) : L ≃ₐ[K] M :=
+equiv_of_algebraic' K J _ _ (algebra.is_algebraic_trans hKJ is_alg_closure.algebraic)
 
 end equiv_of_algebraic
 
 section equiv_of_equiv
 
-variables [algebra J L] [is_alg_closure J L]
-
-variables {J K}
+variables {R S}
 
 /-- Used in the definition of `equiv_of_equiv` -/
-noncomputable def equiv_of_equiv_aux (hJK : J ≃+* K) :
-  { e : L ≃+* M // e.to_ring_hom.comp (algebra_map J L) =
-    (algebra_map K M).comp hJK.to_ring_hom }:=
+noncomputable def equiv_of_equiv_aux (hSR : S ≃+* R) :
+  { e : L ≃+* M // e.to_ring_hom.comp (algebra_map S L) =
+    (algebra_map R M).comp hSR.to_ring_hom }:=
 begin
-  letI : algebra K J := ring_hom.to_algebra hJK.symm.to_ring_hom,
-  have : algebra.is_algebraic K J,
+  letI : algebra R S := ring_hom.to_algebra hSR.symm.to_ring_hom,
+  letI : algebra S R := ring_hom.to_algebra hSR.to_ring_hom,
+  letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R M).is_domain _,
+  letI : is_domain S := (no_zero_smul_divisors.algebra_map_injective S L).is_domain _,
+  have : algebra.is_algebraic R S,
     from λ x, begin
-      rw [← ring_equiv.symm_apply_apply hJK x],
+      rw [← ring_equiv.symm_apply_apply hSR x],
       exact is_algebraic_algebra_map _
     end,
-  letI : algebra K L := ring_hom.to_algebra ((algebra_map J L).comp (algebra_map K J)),
-  letI : is_scalar_tower K J L := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
-  refine ⟨equiv_of_algebraic J K L M this, _⟩,
+  letI : algebra R L := ring_hom.to_algebra ((algebra_map S L).comp (algebra_map R S)),
+  haveI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
+  haveI : is_scalar_tower S R L := is_scalar_tower.of_algebra_map_eq
+    (by simp [ring_hom.algebra_map_to_algebra]),
+  haveI : no_zero_smul_divisors R S :=
+    no_zero_smul_divisors.of_algebra_map_injective hSR.symm.injective,
+  refine ⟨equiv_of_algebraic' R S L M (algebra.is_algebraic_of_larger_base_of_injective
+      (show function.injective (algebra_map S R), from hSR.injective)
+      is_alg_closure.algebraic) , _⟩,
   ext,
   simp only [ring_equiv.to_ring_hom_eq_coe, function.comp_app, ring_hom.coe_comp,
     alg_equiv.coe_ring_equiv, ring_equiv.coe_to_ring_hom],
-  conv_lhs { rw [← hJK.symm_apply_apply x] },
-  show equiv_of_algebraic J K L M this (algebra_map K L (hJK x)) = _,
+  conv_lhs { rw [← hSR.symm_apply_apply x] },
+  show equiv_of_algebraic' R S L M _ (algebra_map R L (hSR x)) = _,
   rw [alg_equiv.commutes]
 end
 
 /-- Algebraic closure of isomorphic fields are isomorphic -/
-noncomputable def equiv_of_equiv (hJK : J ≃+* K) : L ≃+* M :=
-equiv_of_equiv_aux L M hJK
+noncomputable def equiv_of_equiv (hSR : S ≃+* R) : L ≃+* M :=
+equiv_of_equiv_aux L M hSR
 
-@[simp] lemma equiv_of_equiv_comp_algebra_map (hJK : J ≃+* K) :
-  (↑(equiv_of_equiv L M hJK) : L →+* M).comp (algebra_map J L) =
-  (algebra_map K M).comp hJK :=
-(equiv_of_equiv_aux L M hJK).2
+@[simp] lemma equiv_of_equiv_comp_algebra_map (hSR : S ≃+* R) :
+  (↑(equiv_of_equiv L M hSR) : L →+* M).comp (algebra_map S L) =
+  (algebra_map R M).comp hSR :=
+(equiv_of_equiv_aux L M hSR).2
 
-@[simp] lemma equiv_of_equiv_algebra_map (hJK : J ≃+* K) (j : J):
-  equiv_of_equiv L M hJK (algebra_map J L j) =
-  algebra_map K M (hJK j) :=
-ring_hom.ext_iff.1 (equiv_of_equiv_comp_algebra_map L M hJK) j
+@[simp] lemma equiv_of_equiv_algebra_map (hSR : S ≃+* R) (s : S):
+  equiv_of_equiv L M hSR (algebra_map S L s) =
+  algebra_map R M (hSR s) :=
+ring_hom.ext_iff.1 (equiv_of_equiv_comp_algebra_map L M hSR) s
 
-@[simp] lemma equiv_of_equiv_symm_algebra_map (hJK : J ≃+* K) (k : K):
-  (equiv_of_equiv L M hJK).symm (algebra_map K M k) =
-  algebra_map J L (hJK.symm k) :=
-(equiv_of_equiv L M hJK).injective (by simp)
+@[simp] lemma equiv_of_equiv_symm_algebra_map (hSR : S ≃+* R) (r : R):
+  (equiv_of_equiv L M hSR).symm (algebra_map R M r) =
+  algebra_map S L (hSR.symm r) :=
+(equiv_of_equiv L M hSR).injective (by simp)
 
-@[simp] lemma equiv_of_equiv_symm_comp_algebra_map (hJK : J ≃+* K) :
-  ((equiv_of_equiv L M hJK).symm : M →+* L).comp (algebra_map K M) =
-  (algebra_map J L).comp hJK.symm :=
-ring_hom.ext_iff.2 (equiv_of_equiv_symm_algebra_map L M hJK)
+@[simp] lemma equiv_of_equiv_symm_comp_algebra_map (hSR : S ≃+* R) :
+  ((equiv_of_equiv L M hSR).symm : M →+* L).comp (algebra_map R M) =
+  (algebra_map S L).comp hSR.symm :=
+ring_hom.ext_iff.2 (equiv_of_equiv_symm_algebra_map L M hSR)
 
 end equiv_of_equiv
 

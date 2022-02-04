@@ -467,6 +467,13 @@ begin
   exact multiplicity.dvd_iff_multiplicity_pos
 end
 
+@[simp] lemma root_multiplicity_C (r a : R) : root_multiplicity a (C r) = 0 :=
+begin
+  rcases eq_or_ne r 0 with rfl|hr,
+  { simp },
+  { exact root_multiplicity_eq_zero (not_is_root_C _ _ hr) }
+end
+
 lemma pow_root_multiplicity_dvd (p : polynomial R) (a : R) :
   (X - C a) ^ root_multiplicity a p ∣ p :=
 if h : p = 0 then by simp [h]

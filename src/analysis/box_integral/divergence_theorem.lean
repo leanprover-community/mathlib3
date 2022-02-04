@@ -170,15 +170,14 @@ begin
     `volume J ≤ (2 * δ) ^ (n + 1)` is small, and the difference of the integrals is small
     because each of the integrals is close to `volume (J.face i) • f x`.
     TODO: there should be a shorter and more readable way to formalize this simple proof. -/
-    have : ∀ᶠ δ in 𝓝[Ioi 0] (0 : ℝ), δ ∈ Ioc (0 : ℝ) (1 / 2) ∧
+    have : ∀ᶠ δ in 𝓝[>] (0 : ℝ), δ ∈ Ioc (0 : ℝ) (1 / 2) ∧
       (∀ y₁ y₂ ∈ closed_ball x δ ∩ I.Icc, ∥f y₁ - f y₂∥ ≤ ε / 2) ∧
       ((2 * δ) ^ (n + 1) * ∥f' x (pi.single i 1)∥ ≤ ε / 2),
     { refine eventually.and _ (eventually.and _ _),
       { exact Ioc_mem_nhds_within_Ioi ⟨le_rfl, one_half_pos⟩ },
       { rcases ((nhds_within_has_basis nhds_basis_closed_ball _).tendsto_iff
           nhds_basis_closed_ball).1 (Hs x hx.2) _ (half_pos $ half_pos ε0) with ⟨δ₁, δ₁0, hδ₁⟩,
-        filter_upwards [Ioc_mem_nhds_within_Ioi ⟨le_rfl, δ₁0⟩],
-        rintro δ hδ y₁ y₂ hy₁ hy₂,
+        filter_upwards [Ioc_mem_nhds_within_Ioi ⟨le_rfl, δ₁0⟩] with δ hδ y₁ hy₁ y₂ hy₂,
         have : closed_ball x δ ∩ I.Icc ⊆ closed_ball x δ₁ ∩ I.Icc,
           from inter_subset_inter_left _ (closed_ball_subset_closed_ball hδ.2),
         rw ← dist_eq_norm,
@@ -217,7 +216,7 @@ begin
         prod_le_prod (λ _ _ , abs_nonneg _) (λ j hj, this j)
       ... = (2 * δ) ^ (n + 1) : by simp },
     { refine (norm_integral_le_of_le_const (λ y hy,
-        hdfδ _ _ (Hmaps _ Hu hy) (Hmaps _ Hl hy)) _).trans _,
+        hdfδ _ (Hmaps _ Hu hy) _ (Hmaps _ Hl hy)) _).trans _,
       refine (mul_le_mul_of_nonneg_right _ (half_pos ε0).le).trans_eq (one_mul _),
       rw [box.coe_eq_pi, real.volume_pi_Ioc_to_real (box.lower_le_upper _)],
       refine prod_le_one (λ _ _, sub_nonneg.2 $ box.lower_le_upper _ _) (λ j hj, _),

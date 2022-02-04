@@ -38,7 +38,7 @@ if it is the smallest field extension of `K` such that `f` splits.
   `L`, then `algebra.adjoin F S` embeds into `L`.
 * `polynomial.is_splitting_field.lift`: An embedding of a splitting field of the polynomial `f` into
   another field such that `f` splits.
-* `polynomial.is_splitting_field.alg_equiv`: Every splitting field of a polynomial `f` is isomorpic
+* `polynomial.is_splitting_field.alg_equiv`: Every splitting field of a polynomial `f` is isomorphic
   to `splitting_field f` and thus, being a splitting field is unique up to isomorphism.
 
 -/
@@ -87,7 +87,7 @@ begin
   cases h : degree f with n,
   { rw [degree_eq_bot.1 h]; exact splits_zero i },
   { cases n with n,
-    { rw [eq_C_of_degree_le_zero (trans_rel_right (≤) h (le_refl _))];
+    { rw [eq_C_of_degree_le_zero (trans_rel_right (≤) h le_rfl)];
       exact splits_C _ _ },
     { have hn : n = 0,
       { rw h at hf,
@@ -176,9 +176,11 @@ begin
 end
 
 lemma degree_eq_one_of_irreducible_of_splits {p : polynomial L}
-  (h_nz : p ≠ 0) (hp : irreducible p) (hp_splits : splits (ring_hom.id L) p) :
+  (hp : irreducible p) (hp_splits : splits (ring_hom.id L) p) :
   p.degree = 1 :=
 begin
+  by_cases h_nz : p = 0,
+  { exfalso, simp [*] at *, },
   rcases hp_splits,
   { contradiction },
   { apply hp_splits hp, simp }
@@ -334,7 +336,7 @@ else
           exact irreducible_of_degree_eq_one (degree_X_sub_C _),
         end)
       (associated.symm $ calc _ ~ᵤ f.map i :
-        ⟨(units.map C.to_monoid_hom : units L →* units (polynomial L))
+        ⟨(units.map C.to_monoid_hom : Lˣ →* (polynomial L)ˣ)
           (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
           by conv_rhs { rw [hs, ← leading_coeff_map i, mul_comm] }; refl⟩
@@ -373,12 +375,12 @@ end
 
 /-- A monic polynomial `p` that has as many roots as its degree
 can be written `p = ∏(X - a)`, for `a` in `p.roots`. -/
-lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {p : polynomial K}
+private lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field {p : polynomial K}
   (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
   (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
 begin
   have hprodmonic : (multiset.map (λ (a : K), X - C a) p.roots).prod.monic,
-  { simp only [prod_multiset_root_eq_finset_root (ne_zero_of_monic hmonic),
+  { simp only [prod_multiset_root_eq_finset_root,
       monic_prod_of_monic, monic_X_sub_C, monic_pow, forall_true_iff] },
   have hdegree : (multiset.map (λ (a : K), X - C a) p.roots).prod.nat_degree = p.nat_degree,
   { rw [← hroots, nat_degree_multiset_prod _ (zero_nmem_multiset_map_X_sub_C _ (λ a : K, a))],
@@ -393,18 +395,40 @@ begin
     simp only [nat_degree_mul (ne_zero_of_monic hprodmonic) qzero] },
   have degq : q.nat_degree = 0,
   { rw hdegree at degp,
-    exact (add_right_inj p.nat_degree).mp (tactic.ring_exp.add_pf_sum_z degp rfl).symm },
+    rw [← add_right_inj p.nat_degree, ← degp, add_zero], },
   obtain ⟨u, hu⟩ := is_unit_iff_degree_eq_zero.2 ((degree_eq_iff_nat_degree_eq qzero).2 degq),
   have hassoc : associated (multiset.map (λ (a : K), X - C a) p.roots).prod p,
   { rw associated, use u, rw [hu, ← hq] },
   exact eq_of_monic_of_associated hprodmonic hmonic hassoc
 end
 
+lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {K : Type*} [comm_ring K] [is_domain K]
+  {p : polynomial K} (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
+  (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
+begin
+  apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
+  rw map_multiset_prod,
+  simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
+  have : p.roots.map (algebra_map K (fraction_ring K)) =
+    (map (algebra_map K (fraction_ring K)) p).roots :=
+    roots_map_of_injective_card_eq_total_degree
+      (is_fraction_ring.injective K (fraction_ring K)) hroots,
+  rw ← prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field
+    (monic_map (algebra_map K (fraction_ring K)) hmonic),
+  { simp only [map_C, function.comp_app, map_X, map_sub],
+    congr' 1,
+    rw ← this,
+    simp, },
+  { rw [nat_degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)), ← this],
+    simp only [←hroots, multiset.card_map], },
+end
+
 /-- A polynomial `p` that has as many roots as its degree
-can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
-lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial K}
+can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`.
+Used to prove the more general `C_leading_coeff_mul_prod_multiset_X_sub_C` below. -/
+private lemma C_leading_coeff_mul_prod_multiset_X_sub_C_of_field {p : polynomial K}
   (hroots : p.roots.card = p.nat_degree) :
-  (C p.leading_coeff) * (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
+  C p.leading_coeff * (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
 begin
   by_cases hzero : p = 0,
   { rw [hzero, leading_coeff_zero, ring_hom.map_zero, zero_mul], },
@@ -421,6 +445,39 @@ begin
         by rw [hprod, mul_comm, mul_assoc, ← C_mul]
     ... = p * C 1 : by field_simp
     ... = p : by simp only [mul_one, ring_hom.map_one], },
+end
+
+/-- A polynomial `p` that has as many roots as its degree
+can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
+lemma C_leading_coeff_mul_prod_multiset_X_sub_C {K : Type*} [comm_ring K] [is_domain K]
+  {p : polynomial K} (hroots : p.roots.card = p.nat_degree) :
+  C p.leading_coeff * (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
+begin
+  by_cases hzero : p = 0,
+  { rw [hzero, leading_coeff_zero, ring_hom.map_zero, zero_mul], },
+  have hcoeff : p.leading_coeff ≠ 0,
+  { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
+  apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
+  rw [map_mul, map_multiset_prod],
+  simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
+  have h : p.roots.map (algebra_map K (fraction_ring K)) =
+    (map (algebra_map K (fraction_ring K)) p).roots :=
+    roots_map_of_injective_card_eq_total_degree
+      (is_fraction_ring.injective K (fraction_ring K)) hroots,
+  have : multiset.card (map (algebra_map K (fraction_ring K)) p).roots =
+    (map (algebra_map K (fraction_ring K)) p).nat_degree,
+  { rw [nat_degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)), ← h],
+    simp only [←hroots, multiset.card_map], },
+  rw [← C_leading_coeff_mul_prod_multiset_X_sub_C_of_field this],
+  simp only [map_C, function.comp_app, map_X, map_sub],
+  congr' 2,
+  { rw leading_coeff_map_of_leading_coeff_ne_zero,
+    intro hn,
+    apply hcoeff,
+    apply is_fraction_ring.injective K (fraction_ring K),
+    simp [hn], },
+  rw ← h,
+  simp,
 end
 
 /-- A polynomial splits if and only if it has as many roots as its degree. -/
@@ -446,6 +503,29 @@ begin
   rw [aeval_def, ← eval_map, ← derivative_map],
   nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
   rw [eval_multiset_prod_X_sub_C_derivative hr]
+end
+
+/-- If `P` is a monic polynomial that splits, then `coeff P 0` equals the product of the roots. -/
+lemma prod_roots_eq_coeff_zero_of_monic_of_split {P : polynomial K} (hmo : P.monic)
+  (hP : P.splits (ring_hom.id K)) : coeff P 0 = (-1) ^ P.nat_degree * P.roots.prod :=
+begin
+  nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
+  rw [coeff_zero_eq_eval_zero, eval_multiset_prod, multiset.map_map],
+  simp_rw [function.comp_app, eval_sub, eval_X, zero_sub, eval_C],
+  conv_lhs { congr, congr, funext,
+    rw [neg_eq_neg_one_mul] },
+  rw [multiset.prod_map_mul, multiset.map_const, multiset.prod_repeat, multiset.map_id',
+    splits_iff_card_roots.1 hP]
+end
+
+/-- If `P` is a monic polynomial that splits, then `P.next_coeff` equals the sum of the roots. -/
+lemma sum_roots_eq_next_coeff_of_monic_of_split {P : polynomial K} (hmo : P.monic)
+  (hP : P.splits (ring_hom.id K)) : P.next_coeff = - P.roots.sum :=
+begin
+  nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],
+  rw [monic.next_coeff_multiset_prod _ _ (λ a ha, _)],
+  { simp_rw [next_coeff_X_sub_C, multiset.sum_map_neg] },
+  { exact monic_X_sub_C a }
 end
 
 end splits
@@ -829,7 +909,7 @@ if hf0 : f = 0 then (algebra.of_id K F).comp $
 alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_splits _ $ λ y hy,
     have aeval y f = 0, from (eval₂_eq_eval_map _).trans $
       (mem_roots $ by exact map_ne_zero hf0).1 (multiset.mem_to_finset.mp hy),
-    ⟨(is_algebraic_iff_is_integral _).1 ⟨f, hf0, this⟩,
+    ⟨is_algebraic_iff_is_integral.1 ⟨f, hf0, this⟩,
       splits_of_splits_of_dvd _ hf0 hf $ minpoly.dvd _ _ this⟩) })
   algebra.to_top
 
@@ -838,7 +918,7 @@ theorem finite_dimensional (f : polynomial K) [is_splitting_field K L f] : finit
   fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, map_zero, roots_zero] at hy, cases hy }
-  else (is_algebraic_iff_is_integral _).1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
+  else is_algebraic_iff_is_integral.1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
     (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)⟩
 
 instance (f : polynomial K) : _root_.finite_dimensional K f.splitting_field :=

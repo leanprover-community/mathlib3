@@ -86,7 +86,7 @@ parameters {r}
 lemma chain.total_of_refl [is_refl α r]
   {c} (H : chain c) {x y} (hx : x ∈ c) (hy : y ∈ c) :
   x ≺ y ∨ y ≺ x :=
-if e : x = y then or.inl (e ▸ refl _) else H _ hx _ hy e
+if e : x = y then or.inl (e ▸ refl _) else H hx hy e
 
 lemma chain.mono {c c'} :
   c' ⊆ c → chain c → chain c' :=
@@ -107,7 +107,7 @@ lemma chain_univ_iff :
 begin
   refine ⟨λ h, ⟨λ a b , _⟩, λ h, @chain_of_trichotomous _ _ h univ⟩,
   rw [or.left_comm, or_iff_not_imp_left],
-  exact h a trivial b trivial,
+  exact h trivial trivial,
 end
 
 lemma chain.directed_on [is_refl α r] {c} (H : chain c) :
@@ -121,7 +121,7 @@ end
 lemma chain_insert {c : set α} {a : α} (hc : chain c) (ha : ∀ b ∈ c, b ≠ a → a ≺ b ∨ b ≺ a) :
   chain (insert a c) :=
 forall_insert_of_forall
-  (λ x hx, forall_insert_of_forall (hc x hx) (λ hneq, (ha x hx hneq).symm))
+  (λ x hx, forall_insert_of_forall (hc hx) (λ hneq, (ha x hx hneq).symm))
   (forall_insert_of_forall
     (λ x hx hneq, ha x hx $ λ h', hneq h'.symm) (λ h, (h rfl).rec _))
 
@@ -268,9 +268,15 @@ begin
     exact λ c₁ ⟨t₁, ht₁, (hc₁ : c₁ ∈ t₁)⟩ c₂ ⟨t₂, ht₂, (hc₂ : c₂ ∈ t₂)⟩ hneq,
       have t₁ ⊆ t₂ ∨ t₂ ⊆ t₁, from chain_closure_total (hs _ ht₁) (hs _ ht₂),
       or.elim this
-        (λ ht, h t₂ ht₂ c₁ (ht hc₁) c₂ hc₂ hneq)
-        (λ ht, h t₁ ht₁ c₁ hc₁ c₂ (ht hc₂) hneq) }
+        (λ ht, h t₂ ht₂ (ht hc₁) hc₂ hneq)
+        (λ ht, h t₁ ht₁ hc₁ (ht hc₂) hneq) }
 end
+
+lemma chain_empty : chain ∅ :=
+chain_chain_closure chain_closure_empty
+
+lemma _root_.set.subsingleton.chain (hc : set.subsingleton c) : chain c :=
+λ _ hx _ hy hne, (hne (hc hx hy)).elim
 
 /-- An explicit maximal chain. `max_chain` is taken to be the union of all sets in `chain_closure`.
 -/
@@ -347,7 +353,7 @@ let ⟨⟨m, hms⟩, h⟩ := @zorn_partial_order {m // m ∈ s} _
   (λ c hc,
     let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (λ _ ⟨⟨x, hx⟩, _, h⟩, h ▸ hx)
       (by { rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;
-        refine hc _ hpc _ hqc (λ t, hpq (subtype.ext_iff.1 t)) })
+        refine hc hpc hqc (λ t, hpq (subtype.ext_iff.1 t)) })
     in ⟨⟨ub, hubs⟩, λ ⟨y, hy⟩ hc, hub _ ⟨_, hc, rfl⟩⟩)
 in ⟨m, hms, λ z hzs hmz, congr_arg subtype.val (h ⟨z, hzs⟩ hmz)⟩
 
@@ -356,11 +362,11 @@ theorem zorn_nonempty_partial_order₀ {α : Type u} [partial_order α] (s : set
   ∃ m ∈ s, x ≤ m ∧ ∀ z ∈ s, m ≤ z → z = m :=
 let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m} _
   (λ c hc, c.eq_empty_or_nonempty.elim
-    (λ hce, hce.symm ▸ ⟨⟨x, hxs, le_refl _⟩, λ _, false.elim⟩)
+    (λ hce, hce.symm ▸ ⟨⟨x, hxs, le_rfl⟩, λ _, false.elim⟩)
     (λ ⟨m, hmc⟩,
       let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (image_subset_iff.2 $ λ z hzc, z.2.1)
         (by rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;
-          exact hc p hpc q hqc (mt (by rintro rfl; refl) hpq)) m.1 (mem_image_of_mem _ hmc) in
+          exact hc hpc hqc (mt (by rintro rfl; refl) hpq)) m.1 (mem_image_of_mem _ hmc) in
     ⟨⟨ub, hubs, le_trans m.2.2 $ hub m.1 $ mem_image_of_mem _ hmc⟩,
       λ a hac, hub a.1 ⟨a, hac, rfl⟩⟩)) in
 ⟨m, hms, hxm, λ z hzs hmz, congr_arg subtype.val $ h ⟨z, hzs, le_trans hxm hmz⟩ hmz⟩
@@ -386,6 +392,27 @@ theorem zorn_superset_nonempty {α : Type u} (S : set (set α))
 @zorn_nonempty_partial_order₀ (order_dual (set α)) _ S (λ c cS hc y yc, H _ cS
   hc.symm ⟨y, yc⟩) _ hx
 
+/-- Every chain is contained in a maximal chain. This generalizes Hausdorff's maximality principle.
+-/
+theorem chain.max_chain_of_chain {α r} {c : set α} (hc : zorn.chain r c) :
+  ∃ M, @zorn.is_max_chain _ r M ∧ c ⊆ M :=
+begin
+  obtain ⟨M, ⟨_, hM₀⟩, hM₁, hM₂⟩ :=
+    zorn.zorn_subset_nonempty {s | c ⊆ s ∧ zorn.chain r s} _ c ⟨subset.rfl, hc⟩,
+  { refine ⟨M, ⟨hM₀, _⟩, hM₁⟩,
+    rintro ⟨d, hd, hMd, hdM⟩,
+    exact hdM (hM₂ _ ⟨hM₁.trans hMd, hd⟩ hMd).le },
+  rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
+  refine ⟨⋃₀ cs, ⟨λ _ ha, set.mem_sUnion_of_mem ((hcs₀ hs).left ha) hs, _⟩,
+    λ _, set.subset_sUnion_of_mem⟩,
+  rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
+  obtain rfl | hsseq := eq_or_ne sy sz,
+  { exact (hcs₀ hsy).right hysy hzsz hyz },
+  cases hcs₁ hsy hsz hsseq with h h,
+  { exact (hcs₀ hsz).right (h hysy) hzsz hyz },
+  { exact (hcs₀ hsy).right hysy (h hzsz) hyz }
+end
+
 lemma chain.total {α : Type u} [preorder α] {c : set α} (H : chain (≤) c) :
   ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=
 λ x y, H.total_of_refl
@@ -394,7 +421,7 @@ lemma chain.image {α β : Type*} (r : α → α → Prop) (s : β → β → Pr
   (h : ∀ x y, r x y → s (f x) (f y)) {c : set α} (hrc : chain r c) :
   chain s (f '' c) :=
 λ x ⟨a, ha₁, ha₂⟩ y ⟨b, hb₁, hb₂⟩, ha₂ ▸ hb₂ ▸ λ hxy,
-  (hrc a ha₁ b hb₁ (mt (congr_arg f) $ hxy)).elim
+  (hrc ha₁ hb₁ $ ne_of_apply_ne f hxy).elim
     (or.inl ∘ h _ _) (or.inr ∘ h _ _)
 
 end zorn
@@ -405,6 +432,6 @@ lemma directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
 λ ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
   (λ hab : a = b, by simp only [hab, exists_prop, and_self, subtype.exists];
     exact ⟨b, hb, refl _⟩)
-  (λ hab, (h a ha b hb hab).elim
+  (λ hab, (h ha hb hab).elim
     (λ h : r (f a) (f b), ⟨⟨b, hb⟩, h, refl _⟩)
     (λ h : r (f b) (f a), ⟨⟨a, ha⟩, refl _, h⟩))

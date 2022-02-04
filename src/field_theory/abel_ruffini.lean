@@ -106,12 +106,11 @@ begin
   rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
   have key : ∀ σ : (X ^ n - 1 : polynomial F).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
-    obtain ⟨m, hm⟩ := σ.to_alg_hom.to_ring_hom.map_root_of_unity_eq_pow_self
+    obtain ⟨m, hm⟩ := map_root_of_unity_eq_pow_self σ.to_alg_hom
       ⟨is_unit.unit (is_unit_of_pow_eq_one a n ha hn'),
       by { ext, rwa [units.coe_pow, is_unit.unit_spec, subtype.coe_mk n hn'] }⟩,
     use m,
-    convert hm,
-    all_goals { exact (is_unit.unit_spec _).symm } },
+    convert hm },
   obtain ⟨c, hc⟩ := key σ,
   obtain ⟨d, hd⟩ := key τ,
   rw [σ.mul_apply, τ.mul_apply, hc, τ.map_pow, hd, σ.map_pow, hc, ←pow_mul, pow_mul'],
@@ -182,8 +181,9 @@ begin
   have C_mul_C : (C (i a⁻¹)) * (C (i a)) = 1,
   { rw [←C_mul, ←i.map_mul, inv_mul_cancel ha, i.map_one, C_1] },
   have key1 : (X ^ n - 1).map i = C (i a⁻¹) * ((X ^ n - C a).map i).comp (C b * X),
-  { rw [polynomial.map_sub, polynomial.map_sub, map_pow, map_X, map_C, polynomial.map_one, sub_comp,
-        pow_comp, X_comp, C_comp, mul_pow, ←C_pow, hb, mul_sub, ←mul_assoc, C_mul_C, one_mul] },
+  { rw [polynomial.map_sub, polynomial.map_sub, polynomial.map_pow, map_X, map_C,
+        polynomial.map_one, sub_comp, pow_comp, X_comp, C_comp, mul_pow, ←C_pow, hb, mul_sub,
+        ←mul_assoc, C_mul_C, one_mul] },
   have key2 : (λ q : polynomial E, q.comp (C b * X)) ∘ (λ c : E, X - C c) =
     (λ c : E, C b * (X - C (c / b))),
   { ext1 c,
@@ -202,10 +202,11 @@ begin
   apply gal_is_solvable_tower (X ^ n - 1) (X ^ n - C x),
   { exact splits_X_pow_sub_one_of_X_pow_sub_C _ n hx (splitting_field.splits _) },
   { exact gal_X_pow_sub_one_is_solvable n },
-  { rw [polynomial.map_sub, map_pow, map_X, map_C],
+  { rw [polynomial.map_sub, polynomial.map_pow, map_X, map_C],
     apply gal_X_pow_sub_C_is_solvable_aux,
     have key := splitting_field.splits (X ^ n - 1 : polynomial F),
-    rwa [←splits_id_iff_splits, polynomial.map_sub, map_pow, map_X, polynomial.map_one] at key }
+    rwa [←splits_id_iff_splits, polynomial.map_sub, polynomial.map_pow, map_X, polynomial.map_one]
+      at key }
 end
 
 end gal_X_pow_sub_C
@@ -284,10 +285,10 @@ begin
   { exact λ _ _, is_integral_mul },
   { exact λ α hα, subalgebra.inv_mem_of_algebraic (integral_closure F (solvable_by_rad F E))
       (show is_algebraic F ↑(⟨α, hα⟩ : integral_closure F (solvable_by_rad F E)),
-        by exact (is_algebraic_iff_is_integral F).mpr hα) },
+        by exact is_algebraic_iff_is_integral.mpr hα) },
   { intros α n hn hα,
-    obtain ⟨p, h1, h2⟩ := (is_algebraic_iff_is_integral F).mpr hα,
-    refine (is_algebraic_iff_is_integral F).mp ⟨p.comp (X ^ n),
+    obtain ⟨p, h1, h2⟩ := is_algebraic_iff_is_integral.mpr hα,
+    refine is_algebraic_iff_is_integral.mp ⟨p.comp (X ^ n),
       ⟨λ h, h1 (leading_coeff_eq_zero.mp _), by rw [aeval_comp, aeval_X_pow, h2]⟩⟩,
     rwa [←leading_coeff_eq_zero, leading_coeff_comp, leading_coeff_X_pow, one_pow, mul_one] at h,
     rwa nat_degree_X_pow }
@@ -311,7 +312,7 @@ begin
   { refine gal_is_solvable_tower p (p.comp (X ^ n)) _ hα _,
     { exact gal.splits_in_splitting_field_of_comp _ _ (by rwa [nat_degree_X_pow]) },
     { obtain ⟨s, hs⟩ := exists_multiset_of_splits _ (splitting_field.splits p),
-      rw [map_comp, map_pow, map_X, hs, mul_comp, C_comp],
+      rw [map_comp, polynomial.map_pow, map_X, hs, mul_comp, C_comp],
       apply gal_mul_is_solvable (gal_C_is_solvable _),
       rw prod_comp,
       apply gal_prod_is_solvable,

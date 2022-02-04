@@ -225,7 +225,7 @@ has_limit.mk { cone := fork.of_ι (kernel.ι (f - g)) (sub_eq_zero.1 $
     (λ s m h, by { ext, simpa using h walking_parallel_pair.zero }) }
 
 /-- Conversely, an equalizer of `f` and `g` is a kernel of `f - g`. -/
-lemma has_kernel_of_has_equalizer [preadditive C]
+lemma has_kernel_of_has_equalizer
   [has_equalizer f g] : has_kernel (f - g) :=
 has_limit.mk
   { cone := fork.of_ι (equalizer.ι f g)

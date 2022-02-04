@@ -122,7 +122,6 @@ begin
 end
 
 open power_series
-open polynomial (aeval)
 variables {A : Type*} [comm_ring A] [algebra ℚ A]
 
 -- TODO: define exponential generating functions, and use them here

@@ -466,10 +466,19 @@ begin
   exact int.dvd_of_dvd_mul_right_of_gcd_one h1 h2,
 end
 
+lemma modeq_cancel_right_div_gcd {a b c m : ℕ} (hm : 0 < m) (h : a * c ≡ b * c [MOD m]) :
+  a ≡ b [MOD m / gcd m c] :=
+by { apply modeq_cancel_left_div_gcd hm, simpa [mul_comm] using h }
+
 lemma modeq_cancel_left_div_gcd' {a b c d m : ℕ} (hm : 0 < m) (hcd : c ≡ d [MOD m])
   (h : c * a ≡ d * b [MOD m]) :
   a ≡ b [MOD m / gcd m c] :=
 modeq_cancel_left_div_gcd hm (modeq.trans h (modeq.symm (modeq.mul_right b hcd)))
+
+lemma modeq_cancel_right_div_gcd' {a b c d m : ℕ} (hm : 0 < m) (hcd : c ≡ d [MOD m])
+  (h : a * c ≡ b * d [MOD m]) :
+  a ≡ b [MOD m / gcd m c] :=
+by { apply modeq_cancel_left_div_gcd' hm hcd, simpa [mul_comm] using h }
 
 /-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
 lemma modeq_cancel_left_of_coprime {a b c m : ℕ} (hmc : gcd m c = 1) (h : c * a ≡ c * b [MOD m]) :
@@ -481,5 +490,10 @@ begin
     subst h },
   simpa [hmc] using modeq_cancel_left_div_gcd hm h
 end
+
+/-- A common factor that's coprime with the modulus can be cancelled from a `modeq` -/
+lemma modeq_cancel_right_of_coprime {a b c m : ℕ} (hmc : gcd m c = 1) (h : a * c ≡ b * c [MOD m]) :
+  a ≡ b [MOD m] :=
+by { apply modeq_cancel_left_of_coprime hmc, simpa [mul_comm] using h }
 
 end nat

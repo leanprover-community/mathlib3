@@ -65,6 +65,7 @@ variable {α : Type u}
 section pos_notation
 variables (α) [has_zero α] [has_lt α]
 
+/--  The type of positive elements in a type that has a `0` and a `<`. -/
 @[reducible]
 def pos := {x : α // 0 < x}
 

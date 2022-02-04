@@ -8,6 +8,8 @@ import group_theory.general_commutator
 import group_theory.quotient_group
 import group_theory.solvable
 import group_theory.p_group
+import group_theory.sylow
+import data.nat.factorization
 
 /-!
 
@@ -74,6 +76,8 @@ are not central series if `G` is not nilpotent is a standard abuse of notation.
 -/
 
 open subgroup
+
+section with_group
 
 variables {G : Type*} [group G] (H : subgroup G) [normal H]
 
@@ -538,7 +542,7 @@ end
 
 end classical
 
-/-- The range of a surejctive homomorphism from a nilpotent group is nilpotent -/
+/-- The range of a surjective homomorphism from a nilpotent group is nilpotent -/
 lemma nilpotent_of_surjective {G' : Type*} [group G'] [h : is_nilpotent G]
   (f : G →* G') (hf : function.surjective f) :
   is_nilpotent G' :=
@@ -567,6 +571,11 @@ begin
     ... = subgroup.map f (upper_central_series G n) : by rw hn
     ... ≤ upper_central_series G' n : upper_central_series.map hf n,
 end
+
+/-- Nilpotency respects homomorphisms -/
+lemma nilpotent_of_mul_equiv {G' : Type*} [group G'] [h : is_nilpotent G] (f : G ≃* G') :
+  is_nilpotent G' :=
+nilpotent_of_surjective f.to_monoid_hom (mul_equiv.surjective f)
 
 /-- A quotient of a nilpotent group is nilpotent -/
 instance nilpotent_quotient_of_nilpotent (H : subgroup G) [H.normal] [h : is_nilpotent G] :
@@ -757,15 +766,20 @@ begin
   exact derived_le_lower_central n,
 end
 
-section classical
+end with_group
 
-open_locale classical -- to get the fintype instance for quotient groups
+section with_finite_group
+
+open group
+
+variables {G : Type*} [hG : group G] [hf : fintype G]
+include hG hf
 
 /-- A p-group is nilpotent -/
-lemma is_p_group.is_nilpotent {G : Type*} [hG : group G] [hf : fintype G]
-  {p : ℕ} (hp : fact (nat.prime p)) (h : is_p_group p G) :
+lemma is_p_group.is_nilpotent {p : ℕ} [hp : fact (nat.prime p)] (h : is_p_group p G) :
   is_nilpotent G :=
 begin
+  classical,
   unfreezingI
   { revert hG,
     induction hf using fintype.induction_subsingleton_or_nontrivial with G hG hS G hG hN ih },
@@ -781,4 +795,18 @@ begin
     exact (of_quotient_center_nilpotent hnq), }
 end
 
-end classical
+/-- If a finite group is the direct product of its Sylow groups, it is nilpotent -/
+theorem is_nilpotent_of_product_of_sylow_group
+  (e : (Π p : (fintype.card G).factorization.support, Π P : sylow p G, (↑P : subgroup G)) ≃* G) :
+  is_nilpotent G :=
+begin
+  classical,
+  let ps := (fintype.card G).factorization.support,
+  haveI : ∀ (p : ps) (P : sylow p G), is_nilpotent (↑P : subgroup G),
+  { intros p P,
+    haveI : fact (nat.prime ↑p) := fact.mk (nat.prime_of_mem_factorization (finset.coe_mem p)),
+    exact P.is_p_group'.is_nilpotent, },
+  exact nilpotent_of_mul_equiv e,
+end
+
+end with_finite_group

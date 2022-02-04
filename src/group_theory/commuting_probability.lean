@@ -3,9 +3,9 @@ Copyright (c) 2022 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
-import group_theory.abelianization
 import group_theory.group_action.conj_act
 import group_theory.index
+import group_theory.solvable
 
 /-!
 # Commuting Probability
@@ -17,6 +17,65 @@ This file introduces the commuting probability of finite groups.
 ## Todo
 * Neumann's theorem.
 -/
+
+section for_mathlib
+
+/-- The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`. -/
+@[to_additive "The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`."]
+def subgroup.centralizer {G : Type*} [group G] (H : subgroup G) : subgroup G :=
+{ carrier := {g : G | ∀ h ∈ H, g * h * g⁻¹ * h⁻¹ = 1},
+  one_mem' := sorry,
+  mul_mem' := sorry,
+  inv_mem' := sorry }
+
+@[to_additive] instance subgroup.centralizer.characteristic
+  {G : Type*} [group G] (H : subgroup G) [H.characteristic] :
+  H.centralizer.characteristic := sorry
+
+instance subgroup.commutator.characteristic (G : Type*) [group G] :
+  (commutator G).characteristic := sorry
+
+lemma general_commutator_eq_bot_iff_le_centralizer {G : Type*} [group G] {H K : subgroup G} :
+  ⁅H, K⁆ = ⊥ ↔ H ≤ K.centralizer :=
+sorry
+
+lemma general_commutator_le_commutator {G : Type*} [group G] (H K : subgroup G) :
+  ⁅H, K⁆ ≤ commutator G := sorry
+
+lemma centralizer_top_eq_center (G : Type*) [group G] :
+  (⊤ : subgroup G).centralizer = subgroup.center G :=
+begin
+  sorry
+end
+
+lemma centralizer_mono {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
+  K.centralizer ≤ H.centralizer := sorry
+
+lemma three_subgroups_lemma {G : Type*} [group G] {X Y Z : subgroup G}
+  (h1 : ⁅⁅X, Y⁆, Z⁆ = ⊥) (h2 : ⁅⁅Y, Z⁆, X⁆ = ⊥) : ⁅⁅Z, X⁆, Y⁆ = ⊥ :=
+begin
+  rw [general_commutator_eq_bot_iff_le_centralizer, general_commutator_le] at h1 h2 ⊢,
+  intros z hz x hx y hy,
+  have key : z * x * z⁻¹ * x⁻¹ * y * (z * x * z⁻¹ * x⁻¹)⁻¹ * y⁻¹ =
+    z * x * (x⁻¹ * y * x⁻¹⁻¹ * y⁻¹ * z⁻¹ * (x⁻¹ * y * x⁻¹⁻¹ * y⁻¹)⁻¹ * z⁻¹⁻¹)⁻¹ * x⁻¹
+    * y * (y⁻¹ * z⁻¹ * y⁻¹⁻¹ * z⁻¹⁻¹ * x * (y⁻¹ * z⁻¹ * y⁻¹⁻¹ * z⁻¹⁻¹)⁻¹ * x⁻¹)⁻¹ * y⁻¹ * z⁻¹ :=
+  by group,
+  rw [key, h1 _ (X.inv_mem hx) y hy _ (Z.inv_mem hz), h2 _ (Y.inv_mem hy) _ (Z.inv_mem hz) x hx,
+    one_inv, mul_one, mul_one, mul_inv_cancel_right, mul_inv_cancel_right, mul_inv_self],
+end
+
+lemma commutator_centralizer_commutator_le_center (G : Type*) [group G] :
+  ⁅(commutator G).centralizer, (commutator G).centralizer⁆ ≤ subgroup.center G :=
+begin
+  rw [←centralizer_top_eq_center, ←general_commutator_eq_bot_iff_le_centralizer],
+  suffices : ⁅⁅⊤, (commutator G).centralizer⁆, (commutator G).centralizer⁆ = ⊥,
+  { exact three_subgroups_lemma (by rwa general_commutator_comm (commutator G).centralizer) this },
+  rw [general_commutator_comm, general_commutator_eq_bot_iff_le_centralizer],
+  apply centralizer_mono,
+  apply general_commutator_le_commutator,
+end
+
+end for_mathlib
 
 noncomputable theory
 open_locale classical
@@ -109,3 +168,43 @@ lemma inv_card_commutator_le_comm_prob : (↑(card (commutator G)))⁻¹ ≤ com
 (inv_pos_le_iff_one_le_mul (by exact nat.cast_pos.mpr card_pos)).mpr
   (le_trans (ge_of_eq (comm_prob_eq_one_iff.mpr (abelianization.comm_group G).mul_comm))
     (commutator G).comm_prob_quotient_le)
+
+section neumann
+
+def weak_neumann_commutator_bound : ℚ → ℕ := sorry
+
+def weak_neumann_commutator_index_bound : ℚ → ℕ := sorry
+
+lemma weak_neumann :
+  ∃ K : subgroup G, K.normal ∧
+  card (commutator K) ≤ weak_neumann_commutator_bound (comm_prob G)
+  ∧ K.index ≤ weak_neumann_commutator_index_bound (comm_prob G) :=
+begin
+  sorry
+end
+
+def strong_neumann_commutator_bound : ℚ → ℕ := weak_neumann_commutator_bound
+
+def strong_neumann_commutator_index_bound : ℚ → ℕ :=
+λ q, weak_neumann_commutator_index_bound q * (weak_neumann_commutator_bound q).factorial
+
+lemma strong_neumann :
+  ∃ K : subgroup G, K.normal ∧ commutator K ≤ K.center ∧
+  card (commutator K) ≤ strong_neumann_commutator_bound (comm_prob G)
+  ∧ K.index ≤ strong_neumann_commutator_index_bound (comm_prob G) :=
+begin
+  obtain ⟨K, hK1, hK2, hK3⟩ := weak_neumann G,
+  refine ⟨(commutator K).centralizer.map K.subtype, _, _, _, _⟩,
+  { haveI : (commutator K).characteristic := by apply_instance,
+    -- why doesn't apply_instance work directly?
+    apply_instance },
+  { have key := commutator_centralizer_commutator_le_center K,
+    -- three subgroups lemma
+    sorry },
+  { refine le_trans _ hK2,
+    refine nat.le_of_dvd card_pos _,
+    sorry },
+  { sorry },
+end
+
+end neumann

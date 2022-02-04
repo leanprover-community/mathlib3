@@ -268,7 +268,7 @@ not_iff_not.1 $ by simp only [← lt_top_iff_ne_top, ← ne.def, not_or_distrib,
 lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
   (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
 begin
-  by_contra, push_neg at h,
+  by_contra' h,
   simp_rw nonpos_iff_eq_zero at h,
   exact hs (measure_Union_null h),
 end

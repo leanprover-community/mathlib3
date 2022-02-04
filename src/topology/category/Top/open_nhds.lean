@@ -41,7 +41,7 @@ namespace open_nhds
 
 instance (x : X) : partial_order (open_nhds x) :=
 { le := λ U V, U.1 ≤ V.1,
-  le_refl := λ _, le_refl _,
+  le_refl := λ _, le_rfl,
   le_trans := λ _ _ _, le_trans,
   le_antisymm := λ _ _ i j, subtype.eq $ le_antisymm i j }
 

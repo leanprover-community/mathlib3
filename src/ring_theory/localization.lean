@@ -1280,7 +1280,7 @@ end
 
 theorem map_comap (J : ideal S) :
   ideal.map (algebra_map R S) (ideal.comap (algebra_map R S) J) = J :=
-le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x hJ,
+le_antisymm (ideal.map_le_iff_le_comap.2 le_rfl) $ λ x hJ,
 begin
   obtain ⟨r, s, hx⟩ := mk'_surjective M x,
   rw ←hx at ⊢ hJ,
@@ -2131,7 +2131,7 @@ variables {R K}
 @[simp, mono]
 lemma coe_submodule_le_coe_submodule
   {I J : ideal R} : coe_submodule K I ≤ coe_submodule K J ↔ I ≤ J :=
-is_localization.coe_submodule_le_coe_submodule (le_refl _)
+is_localization.coe_submodule_le_coe_submodule le_rfl
 
 @[mono]
 lemma coe_submodule_strict_mono :
@@ -2150,13 +2150,13 @@ injective_of_le_imp_le _ (λ _ _, (coe_submodule_le_coe_submodule).mp)
 @[simp]
 lemma coe_submodule_is_principal {I : ideal R} :
   (coe_submodule K I).is_principal ↔ I.is_principal :=
-is_localization.coe_submodule_is_principal _ (le_refl _)
+is_localization.coe_submodule_is_principal _ le_rfl
 
 variables {R K}
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
   {x : R} (hx : x ∈ non_zero_divisors R) : algebra_map R K x ≠ 0 :=
-is_localization.to_map_ne_zero_of_mem_non_zero_divisors _ (le_refl _) hx
+is_localization.to_map_ne_zero_of_mem_non_zero_divisors _ le_rfl hx
 
 variables (A)
 
@@ -2595,7 +2595,7 @@ the integral closure `C` of `A` in `L` has fraction field `L`. -/
 lemma is_fraction_ring_of_finite_extension [algebra K L] [is_scalar_tower A K L]
   [finite_dimensional K L] : is_fraction_ring C L :=
 is_fraction_ring_of_algebraic A C
-  (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite : is_algebraic K L))
+  (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite K L))
   (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((algebra_map K L).map_eq_zero.mp $
     (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
 
@@ -2680,6 +2680,15 @@ type and `K`. -/
 noncomputable def alg_equiv (K : Type*) [field K] [algebra A K] [is_fraction_ring A K] :
   fraction_ring A ≃ₐ[A] K :=
 localization.alg_equiv (non_zero_divisors A) K
+
+instance [algebra R A] [no_zero_smul_divisors R A] : no_zero_smul_divisors R (fraction_ring A) :=
+no_zero_smul_divisors.of_algebra_map_injective
+  begin
+    rw [is_scalar_tower.algebra_map_eq R A],
+    exact function.injective.comp
+      (no_zero_smul_divisors.algebra_map_injective _ _)
+      (no_zero_smul_divisors.algebra_map_injective _ _)
+  end
 
 end fraction_ring
 

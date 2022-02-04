@@ -204,7 +204,7 @@ def fixing_subgroup_equiv : fixing_subgroup K ≃* (E ≃ₐ[K] E) :=
 theorem fixing_subgroup_fixed_field [finite_dimensional F E] :
   fixing_subgroup (fixed_field H) = H :=
 begin
-  have H_le : H ≤ (fixing_subgroup (fixed_field H)) := (le_iff_le _ _).mp (le_refl _),
+  have H_le : H ≤ (fixing_subgroup (fixed_field H)) := (le_iff_le _ _).mp le_rfl,
   suffices : fintype.card H = fintype.card (fixing_subgroup (fixed_field H)),
   { exact set_like.coe_injective
       (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
@@ -236,7 +236,7 @@ theorem fixed_field_fixing_subgroup [finite_dimensional F E] [h : is_galois F E]
   intermediate_field.fixed_field (intermediate_field.fixing_subgroup K) = K :=
 begin
   have K_le : K ≤ intermediate_field.fixed_field (intermediate_field.fixing_subgroup K) :=
-    (intermediate_field.le_iff_le _ _).mpr (le_refl _),
+    (intermediate_field.le_iff_le _ _).mpr le_rfl,
   suffices : finrank K E =
     finrank (intermediate_field.fixed_field (intermediate_field.fixing_subgroup K)) E,
   { exact (intermediate_field.eq_of_le_of_finrank_eq' K_le this).symm },

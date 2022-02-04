@@ -136,7 +136,7 @@ begin
         by simp only [norm_smul, real.norm_eq_abs, hpos.le, abs_of_nonneg, abs_mul, ht.left,
                       mul_assoc]
       ... ≤ h * ∥v∥ + 1 * (h * ∥w∥) :
-        add_le_add (le_refl _) (mul_le_mul_of_nonneg_right ht.2.le
+        add_le_add le_rfl (mul_le_mul_of_nonneg_right ht.2.le
           (mul_nonneg hpos.le (norm_nonneg _)))
       ... = h * (∥v∥ + ∥w∥) : by ring,
     calc ∥g' t∥ = ∥(f' (x + h • v + (t * h) • w) - f' x - f'' (h • v + (t * h) • w)) (h • w)∥ :
@@ -163,7 +163,7 @@ begin
       apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
       apply mul_le_mul_of_nonneg_left _ (εpos.le),
       apply (norm_add_le _ _).trans,
-      refine add_le_add (le_refl _) _,
+      refine add_le_add le_rfl _,
       simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, ht.1, hpos.le, mul_assoc],
       exact mul_le_of_le_one_left (mul_nonneg hpos.le (norm_nonneg _)) ht.2.le,
     end

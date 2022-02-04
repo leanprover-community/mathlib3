@@ -255,7 +255,7 @@ begin
   induction n with n ih,
   { erw [pow_zero, pow_zero, set.singleton_subset_iff],
     rw [set_like.mem_coe, ← one_le],
-    exact le_refl _ },
+    exact le_rfl },
   { rw [pow_succ, pow_succ],
     refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
     apply mul_subset_mul }

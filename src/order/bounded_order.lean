@@ -168,8 +168,8 @@ variables [partial_order α] [order_bot α] {a b : α}
 @[simp] lemma is_bot_iff_eq_bot : is_bot a ↔ a = ⊥ :=
 ⟨λ h, h.is_min.eq_of_ge bot_le, λ h b, h.symm ▸ bot_le⟩
 
-alias is_min_iff_eq_bot ↔ _ is_min.eq_bot
-alias is_bot_iff_eq_bot ↔ _ is_bot.eq_bot
+alias is_min_iff_eq_bot ↔ is_min.eq_bot _
+alias is_bot_iff_eq_bot ↔ is_bot.eq_bot _
 
 @[simp] lemma le_bot_iff : a ≤ ⊥ ↔ a = ⊥ := bot_le.le_iff_eq
 lemma bot_unique (h : a ≤ ⊥) : a = ⊥ := h.antisymm bot_le

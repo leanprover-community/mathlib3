@@ -135,7 +135,7 @@ let hn := of_no_zero_smul_divisors K L n in by exactI
 end is_cyclotomic_extension
 
 open is_cyclotomic_extension
-.
+
 namespace is_primitive_root
 
 include hμ

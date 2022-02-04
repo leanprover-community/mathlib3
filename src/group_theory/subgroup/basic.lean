@@ -1233,9 +1233,7 @@ begin
   { intros h i x hx,
     have : monoid.single f i x = 1 := h (monoid.single f i x) ((single_mem_pi i x).mpr (λ _, hx)),
     simpa using congr_fun this i, },
-  { intros h x hx,
-    ext i,
-    exact h _ _ (hx i trivial), },
+  { exact λ h x hx, funext (λ i, h _ _ (hx i trivial)), },
 end
 
 end pi

@@ -103,3 +103,23 @@ def Bipointed_to_Pointed_snd : Bipointed ⥤ Pointed :=
 
 @[simp] lemma swap_comp_Bipointed_to_Pointed_snd :
   Bipointed.swap ⋙ Bipointed_to_Pointed_snd = Bipointed_to_Pointed_fst := rfl
+
+/-- The functor from `Pointed` to `Bipointed` which adds a second point. -/
+def Pointed_to_Bipointed_fst : Pointed.{u} ⥤ Bipointed :=
+{ obj := λ X, ⟨option X, X.point, none⟩,
+  map := λ X Y f, ⟨option.map f.to_fun, congr_arg _ f.map_point, rfl⟩,
+  map_id' := λ X, Bipointed.hom.ext _ _ option.map_id,
+  map_comp' := λ X Y Z f g, Bipointed.hom.ext _ _ (option.map_comp_map  _ _).symm }
+
+/-- The functor from `Pointed` to `Bipointed` which adds a first point. -/
+def Pointed_to_Bipointed_snd : Pointed.{u} ⥤ Bipointed :=
+{ obj := λ X, ⟨option X, none, X.point⟩,
+  map := λ X Y f, ⟨option.map f.to_fun, rfl, congr_arg _ f.map_point⟩,
+  map_id' := λ X, Bipointed.hom.ext _ _ option.map_id,
+  map_comp' := λ X Y Z f g, Bipointed.hom.ext _ _ (option.map_comp_map  _ _).symm }
+
+@[simp] lemma Pointed_to_Bipointed_fst_comp :
+  Pointed_to_Bipointed_fst ⋙ Bipointed.swap = Pointed_to_Bipointed_snd := rfl
+
+@[simp] lemma Pointed_to_Bipointed_snd_comp :
+  Pointed_to_Bipointed_snd ⋙ Bipointed.swap = Pointed_to_Bipointed_fst := rfl

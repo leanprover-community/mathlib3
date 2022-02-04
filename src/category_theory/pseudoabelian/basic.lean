@@ -5,6 +5,7 @@ Authors: Joël Riou
 -/
 
 import category_theory.abelian.basic
+import category_theory.epi_mono
 
 /-!
 # Pseudoabelian categories
@@ -22,16 +23,25 @@ in `C` have a kernel.
 
 -/
 
+open category_theory
 open category_theory.category
 open category_theory.limits
 
 namespace category_theory
 
-variables (C : Type*) [category C] [preadditive C]
+variables (C : Type*) [category C]
+
+class is_idempotent_complete : Prop :=
+(idempotents_split : ∀ (X : C) (p : X ⟶ X), p ≫ p = p →
+  ∃ (i : X ⟶ X), ∃ (si : split_mono i), p = si.retraction ≫ i)
 
 /-- A preadditive category is pseudoabelian iff all idempotent endomorphisms have a kernel. -/
-class is_pseudoabelian : Prop :=
+class is_pseudoabelian [has_zero_morphisms C] : Prop :=
 (has_kernel_of_idem : ∀ (X : C) (p : X ⟶ X), p ≫ p = p → has_kernel p)
+
+lemma is_idempotent_complete_iff_is_pseudoabelian [has_zero_morphisms C] :
+  is_idempotent_complete C ↔ is_pseudoabelian C :=
+sorry
 
 /-- An abelian category is pseudoabelian. -/
 @[priority 100]

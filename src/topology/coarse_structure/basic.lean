@@ -6,7 +6,6 @@ Authors: Daniel Roca González
 import order.filter.lift
 import topology.subset_properties
 import topology.uniform_space.basic
-import data.real.nnreal
 import data.set.prod
 
 /-!
@@ -41,7 +40,6 @@ Roe geometry
 open set filter
 open_locale uniformity topological_space filter
 
-universe u
 variables {α β γ : Type*} {a b : α} {s t : set (α × α)}
 
 
@@ -228,18 +226,19 @@ lemma coarse_space.eq :
 
 
 
-def cocontrolled (α : Type u) [s : coarse_space α] : filter (α × α) :=
+def cocontrolled (α : Type*) [s : coarse_space α] : filter (α × α) :=
   @coarse_space.cocontrolled α s
 
 localized "notation `𝓒'` := cocontrolled" in coarse_space
 
-def controlled (α : Type u) [s : coarse_space α] : set (set (α×α)) :=
+def controlled (α : Type*) [s : coarse_space α] : set (set (α×α)) :=
   compl '' (𝓒' α).sets
 
 localized "notation `𝓒` := controlled" in coarse_space
 
 namespace coarse_space
 variables [coarse_space α]
+@[simp]
 lemma mem_coarse {s : set (α×α)} : s ∈ 𝓒 α ↔ sᶜ ∈ 𝓒' α :=
 begin
   split,
@@ -247,37 +246,37 @@ begin
   {rintro h, use sᶜ, simpa,}
 end
 
-lemma cocoarse_le_corefl : 𝓒' α ≤ 𝓟 coid_rel :=
+lemma cocontrolled_le_corefl : 𝓒' α ≤ 𝓟 coid_rel :=
 @coarse_space.corefl α _
 
-lemma corefl_mem_cocoarse :
+lemma corefl_mem_cocontrolled :
   coid_rel ∈ 𝓒' α :=
 begin
   have := @coarse_space.corefl α _,
   simpa,
 end
 
-lemma mem_cocoarse_of_eq {x y : α} {s : set (α × α)} (hx : x ≠ y) :
+lemma mem_cocontrolled_of_eq {x y : α} {s : set (α × α)} (hx : x ≠ y) :
   ∃ s ∈ 𝓒' α, (x, y) ∈ s :=
 begin
   use coid_rel,
-  split, by {exact corefl_mem_cocoarse},
+  split, by {exact corefl_mem_cocontrolled},
   simpa,
 end
 
-lemma symm_le_cocoarse : map (@prod.swap α α) (𝓒' _) ≤ (𝓒' _) :=
+lemma symm_le_cocontrolled : map (@prod.swap α α) (𝓒' _) ≤ (𝓒' _) :=
 (@coarse_space.symm α _)
 
-lemma cocoarse_le_cocomp : 𝓒' α ≤ (𝓒' α).lift' (λs:set (α×α), s □ s) :=
+lemma cocontrolled_le_cocomp : 𝓒' α ≤ (𝓒' α).lift' (λs:set (α×α), s □ s) :=
 (@coarse_space.cocomp α _)
 
-lemma tendsto_swap_cocoarse : tendsto (@prod.swap α α) (𝓒' α) (𝓒' α) :=
-symm_le_cocoarse
+lemma tendsto_swap_cocontrolled : tendsto (@prod.swap α α) (𝓒' α) (𝓒' α) :=
+symm_le_cocontrolled
 
-lemma cocomp_mem_cocoarse_sets {s : set (α × α)} (hs : s ∈ 𝓒' α) :
+lemma cocomp_mem_cocontrolled_sets {s : set (α × α)} (hs : s ∈ 𝓒' α) :
   s □ s ∈ 𝓒' α :=
 begin
-  apply cocoarse_le_cocomp,
+  apply cocontrolled_le_cocomp,
   rw mem_lift'_sets, use s, split,
   {assumption},
   {intros x h, assumption,},

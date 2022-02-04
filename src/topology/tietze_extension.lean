@@ -151,7 +151,7 @@ topological space, then it can be extended to a bounded continuous function of t
 on the whole space. -/
 lemma exists_norm_eq_restrict_eq_of_closed {s : set Y} (f : s →ᵇ ℝ) (hs : is_closed s) :
   ∃ g : Y →ᵇ ℝ, ∥g∥ = ∥f∥ ∧ g.restrict s = f :=
-exists_extension_norm_eq_of_closed_embedding' f (continuous_map.id.restrict s)
+exists_extension_norm_eq_of_closed_embedding' f ((continuous_map.id _).restrict s)
   (closed_embedding_subtype_coe hs)
 
 /-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed

@@ -160,8 +160,7 @@ def refl (f : C(X, Y)) : homotopy f f :=
   to_fun_zero := λ _, rfl,
   to_fun_one := λ _, rfl }
 
-instance : inhabited (homotopy (continuous_map.id : C(X, X)) continuous_map.id) :=
-⟨homotopy.refl continuous_map.id⟩
+instance : inhabited (homotopy (continuous_map.id X) (continuous_map.id X)) := ⟨homotopy.refl _⟩
 
 /--
 Given a `homotopy f₀ f₁`, we can define a `homotopy f₁ f₀` by reversing the homotopy.
@@ -356,7 +355,7 @@ def refl (f : C(X, Y)) (hf : P f) : homotopy_with f f P :=
 { prop' := λ t, by { convert hf, cases f, refl },
   ..homotopy.refl f }
 
-instance : inhabited (homotopy_with (continuous_map.id : C(X, X)) continuous_map.id (λ f, true)) :=
+instance : inhabited (homotopy_with (continuous_map.id X) (continuous_map.id X) (λ f, true)) :=
 ⟨homotopy_with.refl _ trivial⟩
 
 /--

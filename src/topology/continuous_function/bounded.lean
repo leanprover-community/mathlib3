@@ -254,7 +254,8 @@ lemma continuous_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, 
 
 /-- Restrict a bounded continuous function to a set. -/
 @[simps apply { fully_applied := ff }]
-def restrict (f : α →ᵇ β) (s : set α) : s →ᵇ β := f.comp_continuous (continuous_map.id.restrict s)
+def restrict (f : α →ᵇ β) (s : set α) : s →ᵇ β :=
+f.comp_continuous $ (continuous_map.id _).restrict s
 
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
 gives a bounded continuous function -/

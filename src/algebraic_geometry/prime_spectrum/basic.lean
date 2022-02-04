@@ -502,7 +502,7 @@ variables (f : R →+* S)
   (comap f y).as_ideal = ideal.comap f y.as_ideal :=
 rfl
 
-@[simp] lemma comap_id : comap (ring_hom.id R) = continuous_map.id := by { ext, refl }
+@[simp] lemma comap_id : comap (ring_hom.id R) = continuous_map.id _ := by { ext, refl }
 
 @[simp] lemma comap_comp (f : R →+* S) (g : S →+* S') :
   comap (g.comp f) = (comap f).comp (comap g) :=

@@ -154,15 +154,8 @@ lemma quasi_compact_affine_property_is_local :
   affine_target_morphism_property.is_local quasi_compact.affine_property :=
 begin
   split,
-  { split,
-    all_goals
-    { rintros X Y Z _ _ H,
-      rw quasi_compact_affine_property_to_property at H ⊢,
-      cases H with h₁ h₂,
-      resetI,
-      split },
-    exacts [h₁, @@homeomorph.compact_space _ _ h₂ (Top.homeo_of_iso (as_iso e.inv.1.base)),
-      is_affine_of_iso e.inv, h₂] },
+  { split; intros X Y Z _ _ _ H,
+    exacts [@@homeomorph.compact_space _ _ H (Top.homeo_of_iso (as_iso e.inv.1.base)), H] },
   { introv H,
     delta quasi_compact.affine_property at H ⊢,
     change compact_space ((opens.map f.val.base).obj (Y.basic_open r)),

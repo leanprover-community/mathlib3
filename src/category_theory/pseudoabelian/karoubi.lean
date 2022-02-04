@@ -17,9 +17,9 @@ In this file, we define the Karoubi envelope `karoubi C` of a category `C`.
 
 - `karoubi C` is the Karoubi envelope of a category `C`.
 It is preadditive when `C` is preadditive.
-- `karoubi_is_pseudoabelian C` says that `karoubi C` is pseudoabelian (when `C` is preadditive).
+- `karoubi_is_idempotent_complete C` says that `karoubi C` is idempotent complete.
 - `to_karoubi C : C ⥤ karoubi C` is a fully faithful functor, which is an equivalence
-(`to_karoubi_is_equivalence`) when `C` is pseudoabelian.
+(`to_karoubi_is_equivalence`) when `C` is idempotent complete.
 
 -/
 
@@ -90,7 +90,7 @@ by rw [assoc, comp_p, ← assoc, p_comp]
 
 end karoubi
 
-/-- The category structure on the karoubi envelope of a preadditive category. -/
+/-- The category structure on the karoubi envelope of a category. -/
 instance : category (karoubi C) :=
 { hom      := karoubi.hom,
   id       := λ P, ⟨P.p, by { repeat { rw P.idempotence, }, }⟩,
@@ -145,8 +145,7 @@ instance [preadditive C] {P Q : karoubi C} : add_comm_group (P ⟶ Q) :=
 { add := λ f g, ⟨f.f+g.f, begin
     rw [add_comp, comp_add],
     congr',
-    exact f.comm,
-    exact g.comm,
+    exacts [f.comm, g.comm],
   end⟩,
   zero := ⟨0, by simp only [comp_zero, zero_comp]⟩,
   zero_add := λ f, by { ext, simp only [zero_add], },
@@ -174,6 +173,7 @@ add_monoid_hom.map_sum (inclusion_hom P Q) f s
 
 end karoubi
 
+/-- The category `karoubi C` is preadditive if `C` is. -/
 instance [preadditive C] : preadditive (karoubi C) :=
 { hom_group := λ P Q, by apply_instance,
   add_comp' := λ P Q R f g h,
@@ -192,57 +192,32 @@ begin
   refine ⟨_⟩,
   intros P p hp,
   have hp' := hom_ext.mp hp,
-  have hp₂ := (p_comp p),
   simp only [comp] at hp',
-  let Y : karoubi C := ⟨P.X, p.f, hp'⟩,
-  let i : Y ⟶ P := ⟨p.f, by rw [comp_p p, hp']⟩,
-  let e : P ⟶ Y := ⟨p.f, by rw [hp', p_comp p]⟩,
-  use Y,
-  use i,
-  use e,
+  use ⟨P.X, p.f, hp'⟩,
+  use ⟨p.f, by rw [comp_p p, hp']⟩,
+  use ⟨p.f, by rw [hp', p_comp p]⟩,
   split,
   { simpa only [hom_ext] using hp', },
   { simpa only [hom_ext] using hp'.symm, },
 end
 
-/-
-instance [preadditive C] [is_pseudoabelian C] : ess_surj (to_karoubi C) := ⟨λ P,
-begin
-  let Q := idempotent_of_id_sub_idempotent P,
-  let kernels := (show is_pseudoabelian C, by apply_instance).has_kernel_of_idem,
-  haveI : has_kernel Q.p := kernels Q.X Q.p Q.idempotence,
-  have h := kernel.condition Q.p,
-  simp only [idempotent_of_id_sub_idempotent_p, comp_sub, sub_eq_zero] at h,
-  erw comp_id at h,
-  use kernel Q.p,
+instance [is_idempotent_complete C] : ess_surj (to_karoubi C) := ⟨λ P, begin
+  have h : is_idempotent_complete C := infer_instance,
+  rcases is_idempotent_complete.idempotents_split P.X P.p P.idempotence
+    with ⟨Y,i,e,⟨h₁,h₂⟩⟩,
+  use Y,
   exact nonempty.intro
-    { hom :=
-      { f := kernel.ι Q.p,
-        comm := by erw [← h, to_karoubi_obj_p, id_comp] },
-      inv :=
-      { f := kernel.lift Q.p P.p begin
-          simp only [comp_sub, idempotent_of_id_sub_idempotent_p, sub_eq_zero,
-          P.idempotence], erw comp_id,
-        end,
-        comm := begin
-          slice_rhs 2 3 { erw [comp_id], },
-          ext,
-          simp only [assoc, kernel.lift_ι, P.idempotence],
-        end },
-      inv_hom_id' := by simp only [comp, id_eq, kernel.lift_ι],
-      hom_inv_id' := begin
-        ext,
-        simp only [equalizer_as_kernel, assoc, kernel.lift_ι,
-          to_karoubi_obj_p, comp, assoc, id_eq],
-        erw [← h, id_comp],
-      end },
+    { hom := ⟨i, by erw [id_comp, h₂, ← assoc, h₁, id_comp]⟩,
+      inv := ⟨e, by erw [comp_id, h₂, assoc, h₁, comp_id]⟩,
+      hom_inv_id' := by { ext, simpa only [comp, h₁], },
+      inv_hom_id' := by { ext, simp only [comp, h₂, id_eq], }, },
 end⟩
 
-/-- If `C` is pseudoabelian, the functor `to_karoubi : C ⥤ karoubi C` is an equivalence. -/
-def to_karoubi_is_equivalence [preadditive C] [is_pseudoabelian C] :
+/-- If `C` is idempotent complete, the functor `to_karoubi : C ⥤ karoubi C` is an equivalence. -/
+def to_karoubi_is_equivalence [is_idempotent_complete C] :
   is_equivalence (to_karoubi C) :=
 equivalence.of_fully_faithfully_ess_surj (to_karoubi C)
--/
+
 namespace karoubi
 
 variables {C}

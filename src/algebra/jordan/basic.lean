@@ -108,7 +108,7 @@ instance semigroup.is_jordan (B : Type u) [semigroup B] : is_jordan B :=
   rmul_comm_rmul_rmul := λ a b, by rw [← mul_assoc, ← mul_assoc], }
 
 @[priority 100] -- see Note [lower instance priority]
-instance comm_semigroup.is_comm_jordan (B : Type u) [comm_semigroup B] : is_comm_jordan B :=
+instance comm_semigroup.is_comm_jordan [comm_semigroup A] : is_comm_jordan A :=
 { mul_comm := mul_comm,
   jordan := λ a b, mul_assoc _ _ _, }
 

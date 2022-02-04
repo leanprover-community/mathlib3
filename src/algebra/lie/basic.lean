@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import tactic.noncomm_ring
 import data.equiv.module
 import data.bracket
+import linear_algebra.basic
 
 /-!
 # Lie algebras
@@ -409,6 +410,13 @@ e.to_linear_equiv.injective
 
 protected lemma surjective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.surjective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
 e.to_linear_equiv.surjective
+
+/-- A bijective morphism of Lie algebras yields an equivalence of Lie algebras. -/
+@[simps] noncomputable def of_bijective (f : L₁ →ₗ⁅R⁆ L₂)
+  (h₁ : function.injective f) (h₂ : function.surjective f) : L₁ ≃ₗ⁅R⁆ L₂ :=
+{ to_fun   := f,
+  map_lie' := f.map_lie,
+  .. (linear_equiv.of_bijective (f : L₁ →ₗ[R] L₂) h₁ h₂), }
 
 end lie_equiv
 

@@ -135,6 +135,12 @@ def pi.eval_monoid_hom (i : I) : (Π i, f i) →* f i :=
   map_one' := pi.one_apply i,
   map_mul' := λ x y, pi.mul_apply _ _ i, }
 
+/-- The embedding of a monoid into an indexed collectoin of monoids -/
+@[simps] def monoid.single [decidable_eq I] (i : I) : f i →* (Π i, f i) :=
+{ to_fun := pi.single1 i,
+  map_one' := pi.single1_one i ,
+  map_mul' := pi.single1_op₂ (λ _, (*)) (λ _, one_mul _) _, }
+
 /-- `function.const` as a `monoid_hom`. -/
 @[to_additive "`function.const` as an `add_monoid_hom`.", simps]
 def pi.const_monoid_hom (α β : Type*) [mul_one_class β] : β →* (α → β) :=

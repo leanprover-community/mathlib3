@@ -138,3 +138,23 @@ begin
       simp [le_prod_iff, map_map, monoid_hom.fst_comp_inl, monoid_hom.snd_comp_inl,
         monoid_hom.fst_comp_inr, monoid_hom.snd_comp_inr ], }, }
 end
+
+lemma general_commutator_pi_pi {η : Type*} [fintype η] [decidable_eq η] {Gs : η → Type*}
+  [∀ i, group (Gs i)] (H K : Π i, subgroup (Gs i)) :
+  ⁅subgroup.pi set.univ H, subgroup.pi set.univ K⁆ = subgroup.pi set.univ (λ i, ⁅H i, K i⁆) :=
+begin
+  apply le_antisymm,
+  { rw general_commutator_le,
+    rintros p hp q hq,
+    intros i hi,
+    exact general_commutator_containment _ _ (hp i hi) (hq i hi), },
+  { rw pi_le_iff, intros i hi,
+    rw map_general_commutator,
+    apply general_commutator_mono;
+    { rw le_pi_iff,
+      intros j hj,
+      rintros _ ⟨_, ⟨x, hx, rfl⟩, rfl⟩,
+      by_cases h : j = i,
+      { subst h, simpa using hx, },
+      { simp [h, one_mem] }, }, },
+end

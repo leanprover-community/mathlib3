@@ -81,7 +81,7 @@ instance has_mul [∀ i, has_mul $ f i] :
 @[simp, to_additive] lemma const_div [has_div β] (a b : β) :
   const α a / const α b = const α (a / b) := rfl
 
-section
+section single
 
 variables [decidable_eq I]
 variables [Π i, has_zero (f i)] [Π i, has_zero (g i)] [Π i, has_zero (h i)]
@@ -144,7 +144,73 @@ function.update_injective _ i
 @[simp] lemma single_inj (i : I) {x y : f i} : pi.single i x = pi.single i y ↔ x = y :=
 (pi.single_injective _ _).eq_iff
 
+end single
+
+section single1 -- A copy of the pi.single API for `has_one`
+
+variables [decidable_eq I]
+variables [Π i, has_one (f i)] [Π i, has_one (g i)] [Π i, has_one (h i)]
+
+/-- The function supported at `i`, with value `x` there, and 1 elsewhere. -/
+def single1 (i : I) (x : f i) : Π i, f i :=
+function.update 1 i x
+
+@[simp] lemma single1_eq_same (i : I) (x : f i) : single1 i x i = x :=
+function.update_same i x _
+
+@[simp] lemma single1_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single1 i x i' = 1 :=
+function.update_noteq h x _
+
+/-- Abbreviation for `single1_eq_of_ne h.symm`, for ease of use by `simp`. -/
+@[simp] lemma single1_eq_of_ne' {i i' : I} (h : i ≠ i') (x : f i) : single1 i x i' = 1 :=
+single1_eq_of_ne h.symm x
+
+@[simp] lemma single1_one (i : I) : single1 i (1 : f i) = 1 :=
+function.update_eq_self _ _
+
+/-- On non-dependent functions, `pi.single1` can be expressed as an `ite` -/
+lemma single1_apply {β : Sort*} [has_one β] (i : I) (x : β) (i' : I) :
+  single1 i x i' = if i' = i then x else 1 :=
+function.update_apply 1 i x i'
+
+/-- On non-dependent functions, `pi.single1` is symmetric in the two indices. -/
+lemma single1_comm {β : Sort*} [has_one β] (i : I) (x : β) (i' : I) :
+  single1 i x i' = single1 i' x i :=
+by simp [single1_apply, eq_comm]
+
+lemma apply_single1 (f' : Π i, f i → g i) (hf' : ∀ i, f' i 1 = 1) (i : I) (x : f i) (j : I):
+  f' j (single1 i x j) = single1 i (f' i x) j :=
+by simpa only [pi.one_apply, hf', single1] using function.apply_update f' 1 i x j
+
+lemma apply_single1₂ (f' : Π i, f i → g i → h i) (hf' : ∀ i, f' i 1 1 = 1)
+  (i : I) (x : f i) (y : g i) (j : I):
+  f' j (single1 i x j) (single1 i y j) = single1 i (f' i x y) j :=
+begin
+  by_cases h : j = i,
+  { subst h, simp only [single1_eq_same] },
+  { simp only [single1_eq_of_ne h, hf'] },
 end
+
+lemma single1_op {g : I → Type*} [Π i, has_one (g i)] (op : Π i, f i → g i) (h : ∀ i, op i 1 = 1)
+  (i : I) (x : f i) :
+  single1 i (op i x) = λ j, op j (single1 i x j) :=
+eq.symm $ funext $ apply_single1 op h i x
+
+lemma single1_op₂ {g₁ g₂ : I → Type*} [Π i, has_one (g₁ i)] [Π i, has_one (g₂ i)]
+  (op : Π i, g₁ i → g₂ i → f i) (h : ∀ i, op i 1 1 = 1) (i : I) (x₁ : g₁ i) (x₂ : g₂ i) :
+  single1 i (op i x₁ x₂) = λ j, op j (single1 i x₁ j) (single1 i x₂ j) :=
+eq.symm $ funext $ apply_single1₂ op h i x₁ x₂
+
+variables (f)
+
+lemma single1_injective (i : I) : function.injective (single1 i : f i → Π i, f i) :=
+function.update_injective _ i
+
+@[simp] lemma single1_inj (i : I) {x y : f i} : pi.single1 i x = pi.single1 i y ↔ x = y :=
+(pi.single1_injective _ _).eq_iff
+
+end single1
+
 end pi
 
 namespace function

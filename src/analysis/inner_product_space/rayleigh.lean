@@ -48,7 +48,8 @@ open module.End metric
 namespace continuous_linear_map
 variables (T : E →L[𝕜] E)
 local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
-local notation `rayleigh_quotient_sphere` := λ x : sphere (0:E) 1, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
+local notation `rayleigh_quotient_sphere` :=
+λ x : sphere (0:E) 1, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
 
 lemma rayleigh_smul (x : E) {c : 𝕜} (hc : c ≠ 0) :
   rayleigh_quotient (c • x) = rayleigh_quotient x :=
@@ -344,9 +345,8 @@ by rw [←is_R_or_C.of_real_inv, is_R_or_C.of_real_mul_re]
 
 lemma _root_.is_R_or_C.of_real_mul_conj_re (r : ℝ) (z : 𝕜) :
   is_R_or_C.re ((conj (r : 𝕜)) * z) = r * is_R_or_C.re z :=
-begin
-  simp only [is_R_or_C.conj_of_real, is_R_or_C.mul_re, zero_mul, is_R_or_C.of_real_re, sub_zero, is_R_or_C.of_real_im],
-end
+by simp only [is_R_or_C.conj_of_real, is_R_or_C.mul_re, zero_mul, is_R_or_C.of_real_re, sub_zero,
+  is_R_or_C.of_real_im]
 
 lemma _root_.is_R_or_C.of_real_mul_conj_inv_re (r : ℝ) (z : 𝕜) :
   is_R_or_C.re ((conj (r⁻¹ : 𝕜)) * z) = r⁻¹ * is_R_or_C.re z :=
@@ -406,11 +406,12 @@ begin
     have hL_mul₂ : L⁻¹ * L = 1 := (mul_comm L L⁻¹) ▸ hL_mul₁,
     have gizmo : ⟪T (T x), x⟫ = ⟪T x, T x⟫ := hT _ _,
     have h₁ : T.re_apply_inner_self x₁ - T.re_apply_inner_self x₂ = 4 * ∥T x∥ ^ 2,
-    { simp only [hx₁, hx₂, re_apply_inner_self_apply, inner_add_left, inner_add_right, inner_smul_left,
-            inner_smul_right, ←inner_self_eq_norm_sq, inner_sub_left, inner_sub_right,
-            hL_mul₁, hL_mul₂, is_R_or_C.of_real_mul_re, is_R_or_C.re.map_add, is_R_or_C.re.map_sub,
-            is_R_or_C.of_real_mul_inv_re, continuous_linear_map.map_add, continuous_linear_map.map_sub,
-            continuous_linear_map.map_smul, is_R_or_C.of_real_mul_conj_re, is_R_or_C.of_real_mul_conj_inv_re, gizmo],
+    { simp only [hx₁, hx₂, re_apply_inner_self_apply, inner_add_left, inner_add_right,
+        inner_smul_left, inner_smul_right, ←inner_self_eq_norm_sq, inner_sub_left, inner_sub_right,
+        hL_mul₁, hL_mul₂, is_R_or_C.of_real_mul_re, is_R_or_C.re.map_add, is_R_or_C.re.map_sub,
+        is_R_or_C.of_real_mul_inv_re, continuous_linear_map.map_add, continuous_linear_map.map_sub,
+        continuous_linear_map.map_smul, is_R_or_C.of_real_mul_conj_re,
+        is_R_or_C.of_real_mul_conj_inv_re, gizmo],
       ring_nf,
       field_simp },
     have h₄ : T.re_apply_inner_self x₁ ≤ rT * ∥x₁∥^2 :=
@@ -418,7 +419,8 @@ begin
     have h₅ : -T.re_apply_inner_self x₂ ≤ rT * ∥x₂∥^2 :=
       neg_re_apply_inner_self_le_supr_abs_rayleigh_mul_norm_sq _ _,
     have h₆ := calc
-      4 * ∥T x∥^2 ≤ rT * ∥x₁∥^2 + rT * ∥x₂∥^2          : by { rw [←h₁, sub_eq_add_neg], exact add_le_add h₄ h₅ }
+      4 * ∥T x∥^2 ≤ rT * ∥x₁∥^2 + rT * ∥x₂∥^2          :
+        by { rw [←h₁, sub_eq_add_neg], exact add_le_add h₄ h₅ }
              ...  = rT * (∥x₁∥ * ∥x₁∥) + rT * (∥x₂∥ * ∥x₂∥)      : by simp only [pow_two]
              ...  = rT * (∥x₁∥ * ∥x₁∥ + ∥x₂∥ * ∥x₂∥)     : by ring
              ...  = rT * (2 * (L^2 * ∥x∥ * ∥x∥ + (L⁻¹)^2 * ∥T x∥ * ∥T x∥)) :
@@ -586,7 +588,8 @@ section compact
 variables [complete_space E] {T : E →L[𝕜] E}
 
 local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
-local notation `rayleigh_quotient_sphere` := λ x : sphere (0:E) 1, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
+local notation `rayleigh_quotient_sphere` :=
+λ x : sphere (0:E) 1, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
 local notation `u_sph` := sphere (0:E) 1
 lemma exists_eigenvalue_of_compact_aux [nontrivial E] (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
   (hT_cpct : compact_map T) (h_pos_case : ∥T∥ = (⨆ x : sphere (0:E) 1, rayleigh_quotient x)) :
@@ -596,15 +599,16 @@ begin
   by_cases h_triv : T = 0,
   { rcases exists_ne (0 : E) with ⟨w, hw⟩,
     refine ⟨0, has_eigenvalue_of_has_eigenvector ⟨_, hw⟩⟩,
-    simp only [mem_eigenspace_iff, h_triv, zero_smul, continuous_linear_map.to_linear_map_eq_coe, continuous_linear_map.coe_zero,
-              linear_map.zero_apply] },
+    simp only [mem_eigenspace_iff, h_triv, zero_smul, continuous_linear_map.to_linear_map_eq_coe,
+      continuous_linear_map.coe_zero, linear_map.zero_apply] },
   { change T ≠ 0 at h_triv,
     have nT_ne_zero : ∥T∥ ≠ 0 := norm_ne_zero_iff.mpr h_triv,
     refine ⟨∥T∥, _⟩,
     set l₁ : filter u_sph :=
       filter.comap rayleigh_quotient_sphere (𝓝[set.range rayleigh_quotient_sphere] ∥T∥),
     set l₂ : filter E := l₁.map (λ x : u_sph, T x),
-    have h_bdd_range : bdd_above (set.range rayleigh_quotient_sphere) := T.rayleigh_bdd_above_sphere,
+    have h_bdd_range : bdd_above (set.range rayleigh_quotient_sphere) :=
+      T.rayleigh_bdd_above_sphere,
     have h_range_nonempty : (set.range rayleigh_quotient_sphere).nonempty,
     { exact set.range_nonempty _ },
     have h_ne_bot : (𝓝[set.range rayleigh_quotient_sphere] ∥T∥).ne_bot,
@@ -631,27 +635,30 @@ begin
     have h_premain₂ : l₁sub.tendsto (λ y, is_R_or_C.re (⟪T y, y⟫)) (𝓝 ∥T∥),
     { simp_rw [←T.rayleigh_sphere_eq],
       calc l₁sub.map rayleigh_quotient_sphere
-              ≤ l₁.map rayleigh_quotient_sphere
-              : filter.map_mono inf_le_left
-          ... = (𝓝[set.range rayleigh_quotient_sphere] (∥T∥)) ⊓ 𝓟 (set.range rayleigh_quotient_sphere)
-              : filter.map_comap _ _
-          ... ≤ (𝓝[set.range rayleigh_quotient_sphere] (∥T∥))
-              : inf_le_left
-          ... ≤ 𝓝 (∥T∥)   : nhds_within_le_nhds },
+            ≤ l₁.map rayleigh_quotient_sphere
+            : filter.map_mono inf_le_left
+        ... = (𝓝[set.range rayleigh_quotient_sphere] (∥T∥)) ⊓ 𝓟 (set.range rayleigh_quotient_sphere)
+            : filter.map_comap _ _
+        ... ≤ (𝓝[set.range rayleigh_quotient_sphere] (∥T∥))
+            : inf_le_left
+        ... ≤ 𝓝 (∥T∥)   : nhds_within_le_nhds },
     have h_premain : l₁sub.tendsto (λ y, T y) (𝓝 z),
     { refine filter.tendsto.mono_left _ inf_le_right,
       simp only [filter.tendsto, filter.map_comap, inf_assoc, inf_le_left] },
     have h_main : l₁sub.tendsto (λ y : u_sph, (∥T∥ : 𝕜) • (y : E)) (𝓝 z),
     { refine tendsto_of_tendsto_of_dist h_premain _,
       simp only [dist_eq_norm],
-      have h₁₂ : (λ x : u_sph, ∥T x - (∥T∥ : 𝕜) • x∥) = (λ x : u_sph, real.sqrt (∥T x - (∥T∥ : 𝕜) • x∥ ^ 2)),
+      have h₁₂ : (λ x : u_sph, ∥T x - (∥T∥ : 𝕜) • x∥) =
+        (λ x : u_sph, real.sqrt (∥T x - (∥T∥ : 𝕜) • x∥ ^ 2)),
       { simp_rw [real.sqrt_sq (norm_nonneg _)] },
       rw [h₁₂, ←real.sqrt_zero],
       refine filter.tendsto.sqrt _,
       -- Main calculation from Einsiedler-Ward
-      have h_squeeze : ∀ y : u_sph, ∥T y - (∥T∥ : 𝕜) • y∥ ^ 2 ≤ 2 * ∥T∥^2 - 2 * ∥T∥ * is_R_or_C.re (⟪T y, y⟫),
+      have h_squeeze : ∀ y : u_sph,
+        ∥T y - (∥T∥ : 𝕜) • y∥ ^ 2 ≤ 2 * ∥T∥^2 - 2 * ∥T∥ * is_R_or_C.re (⟪T y, y⟫),
       { intros y,
-        calc ∥T y - (∥T∥ : 𝕜) • y∥ ^ 2 = ∥T y∥^2 - 2 * ∥T∥ * is_R_or_C.re (⟪T y, y⟫) + ∥(∥T∥ : 𝕜) • (y : E)∥^2
+        calc ∥T y - (∥T∥ : 𝕜) • y∥ ^ 2 =
+               ∥T y∥^2 - 2 * ∥T∥ * is_R_or_C.re (⟪T y, y⟫) + ∥(∥T∥ : 𝕜) • (y : E)∥^2
                   : by { simp_rw [norm_sub_sq, norm_smul, inner_smul_right,
                                   is_R_or_C.of_real_mul_re], ring }
            ... ≤ ∥T y∥^2 - 2 * ∥T∥ * is_R_or_C.re (⟪T y, y⟫) + ∥T∥ ^ 2
@@ -694,7 +701,8 @@ begin
     have h₄ : l₁sub ≤ 𝓝 zs,
     { have h_main' := filter.tendsto.const_smul h_main (∥T∥⁻¹ : 𝕜),
       have a_ne_zero' : (∥T∥ : 𝕜) ≠ 0 := by simp [nT_ne_zero],
-      simp only [smul_smul, inv_mul_cancel a_ne_zero', filter.tendsto_iff_comap, hzs, one_smul] at h_main',
+      simp only [smul_smul, inv_mul_cancel a_ne_zero', filter.tendsto_iff_comap, hzs, one_smul]
+        at h_main',
       convert h_main',
       exact nhds_subtype_eq_comap },
     refine has_eigenvalue_of_has_eigenvector ⟨_, h₃⟩,

@@ -65,8 +65,7 @@ begin
             simp only [← hm, assoc, fork.ι_eq_app_zero,
               fork.of_ι_π_app, h₁],
             erw comp_id m, }
-        end
-      }⟩, },
+        end }⟩, },
   { intro h,
     refine ⟨_⟩,
     intros X p hp,

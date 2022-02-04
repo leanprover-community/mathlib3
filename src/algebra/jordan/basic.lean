@@ -116,25 +116,12 @@ instance comm_semigroup.is_comm_jordan [comm_semigroup A] : is_comm_jordan A :=
 { mul_comm := mul_comm,
   jordan := λ a b, mul_assoc _ _ _, }
 
-variables {A}
-
-namespace add_monoid.End
-variables [non_unital_non_assoc_semiring A]
-
-/-- The left multiplicaiton map: `(a, b) ↦ a * b`. See also `add_monoid_hom.mul_left`. -/
-@[simps] def mul_left : A →+ add_monoid.End A := add_monoid_hom.mul
-
-/-- The right multiplicaiton map: `(a, b) ↦ b * a`. See also `add_monoid_hom.mul_right`. -/
-@[simps] def mul_right : A →+ add_monoid.End A := (add_monoid_hom.mul : A →+ add_monoid.End A).flip
-
-end add_monoid.End
-
 local notation `L` := add_monoid.End.mul_left
 local notation `R` := add_monoid.End.mul_right
 
 /-! The Jordan axioms can be expressed in terms of commuting multiplication operators -/
 section lie
-variables [non_unital_non_assoc_ring A] [is_jordan A]
+variables {A} [non_unital_non_assoc_ring A] [is_jordan A]
 
 @[simp] lemma lie_lmul_rmul (a : A) : ⁅L a, R a⁆ = 0 :=
 add_monoid_hom.ext $ λ b, sub_eq_zero_of_eq (is_jordan.lmul_comm_rmul _ _).symm

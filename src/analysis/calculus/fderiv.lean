@@ -625,7 +625,7 @@ has_fderiv_at_filter.tendsto_nhds inf_le_left h
 
 theorem has_fderiv_at.continuous_at (h : has_fderiv_at f f' x) :
   continuous_at f x :=
-has_fderiv_at_filter.tendsto_nhds (le_refl _) h
+has_fderiv_at_filter.tendsto_nhds le_rfl h
 
 lemma differentiable_within_at.continuous_within_at (h : differentiable_within_at 𝕜 f s x) :
   continuous_within_at f s x :=
@@ -1023,7 +1023,7 @@ example {g : F → G} {g' : F →L[𝕜] G}
 begin
   unfold has_fderiv_at_filter at hg,
   have : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', f x' - f x) L,
-    from hg.comp_tendsto (le_refl _),
+    from hg.comp_tendsto le_rfl,
   have eq₁ : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', x' - x) L,
     from this.trans_is_O hf.is_O_sub,
   have eq₂ : is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L,

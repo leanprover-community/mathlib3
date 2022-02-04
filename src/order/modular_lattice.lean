@@ -68,11 +68,11 @@ le_antisymm hxy $
   have h : y ≤ x ⊔ z,
     from calc y ≤ y ⊔ z : le_sup_left
       ... ≤ x ⊔ z : hsup,
-  calc y ≤ (x ⊔ z) ⊓ y : le_inf h (le_refl _)
+  calc y ≤ (x ⊔ z) ⊓ y : le_inf h le_rfl
     ... = x ⊔ (z ⊓ y) : sup_inf_assoc_of_le _ hxy
     ... ≤ x ⊔ (z ⊓ x) : sup_le_sup_left
       (by rw [inf_comm, @inf_comm _ _ z]; exact hinf) _
-    ... ≤ x : sup_le (le_refl _) inf_le_right
+    ... ≤ x : sup_le le_rfl inf_le_right
 
 theorem sup_lt_sup_of_lt_of_inf_le_inf (hxy : x < y) (hinf : y ⊓ z ≤ x ⊓ z) : x ⊔ z < y ⊔ z :=
 lt_of_le_of_ne

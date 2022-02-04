@@ -250,7 +250,7 @@ private lemma choose_le_middle_of_le_half_left {n r : ℕ} (hr : r ≤ n/2) :
 decreasing_induction
   (λ _ k a,
       (eq_or_lt_of_le a).elim
-        (λ t, t.symm ▸ le_refl _)
+        (λ t, t.symm ▸ le_rfl)
         (λ h, (choose_le_succ_of_lt_half_left h).trans (k h)))
   hr (λ _, le_rfl) hr
 

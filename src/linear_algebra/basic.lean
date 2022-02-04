@@ -1407,8 +1407,8 @@ by ext b; simp only [submodule.mem_comap, p.smul_mem_iff h, linear_map.smul_appl
 lemma map_smul (f : V →ₗ[K] V₂) (p : submodule K V) (a : K) (h : a ≠ 0) :
   p.map (a • f) = p.map f :=
 le_antisymm
-  begin rw [map_le_iff_le_comap, comap_smul f _ a h, ← map_le_iff_le_comap], exact le_refl _ end
-  begin rw [map_le_iff_le_comap, ← comap_smul f _ a h, ← map_le_iff_le_comap], exact le_refl _ end
+  begin rw [map_le_iff_le_comap, comap_smul f _ a h, ← map_le_iff_le_comap], exact le_rfl end
+  begin rw [map_le_iff_le_comap, ← comap_smul f _ a h, ← map_le_iff_le_comap], exact le_rfl end
 
 lemma comap_smul' (f : V →ₗ[K] V₂) (p : submodule K V₂) (a : K) :
   p.comap (a • f) = (⨅ h : a ≠ 0, p.comap f) :=
@@ -1891,7 +1891,7 @@ by simp
 eq_top_iff.trans $ map_le_iff_le_comap.symm.trans $ by rw [map_subtype_top]
 
 @[simp] lemma comap_subtype_self : comap p.subtype p = ⊤ :=
-comap_subtype_eq_top.2 (le_refl _)
+comap_subtype_eq_top.2 le_rfl
 
 @[simp] theorem ker_of_le (p p' : submodule R M) (h : p ≤ p') : (of_le h).ker = ⊥ :=
 by rw [of_le, ker_cod_restrict, ker_subtype]

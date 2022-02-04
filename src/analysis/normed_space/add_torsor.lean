@@ -20,44 +20,23 @@ noncomputable theory
 open_locale nnreal topological_space
 open filter
 
-/-- A `semi_normed_add_torsor V P` is a torsor of an additive seminormed group
+/-- A `normed_add_torsor V P` is a torsor of an additive seminormed group
 action by a `semi_normed_group V` on points `P`. We bundle the pseudometric space
 structure and require the distance to be the same as results from the
 norm (which in fact implies the distance yields a pseudometric space, but
 bundling just the distance and using an instance for the pseudometric space
 results in type class problems). -/
-class semi_normed_add_torsor (V : out_param $ Type*) (P : Type*)
+class normed_add_torsor (V : out_param $ Type*) (P : Type*)
   [out_param $ semi_normed_group V] [pseudo_metric_space P]
   extends add_torsor V P :=
 (dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
 
-/-- A `normed_add_torsor V P` is a torsor of an additive normed group
-action by a `normed_group V` on points `P`. We bundle the metric space
-structure and require the distance to be the same as results from the
-norm (which in fact implies the distance yields a metric space, but
-bundling just the distance and using an instance for the metric space
-results in type class problems). -/
-class normed_add_torsor (V : out_param $ Type*) (P : Type*)
-  [out_param $ normed_group V] [metric_space P]
-  extends add_torsor V P :=
-(dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
-
-/-- A `normed_add_torsor` is a `semi_normed_add_torsor`. -/
-@[priority 100]
-instance normed_add_torsor.to_semi_normed_add_torsor {V P : Type*} [normed_group V] [metric_space P]
-  [β : normed_add_torsor V P] : semi_normed_add_torsor V P := { ..β }
-
-variables {α V P : Type*} [semi_normed_group V] [pseudo_metric_space P] [semi_normed_add_torsor V P]
+variables {α V P : Type*} [semi_normed_group V] [pseudo_metric_space P] [normed_add_torsor V P]
 variables {W Q : Type*} [normed_group W] [metric_space Q] [normed_add_torsor W Q]
 
-/-- A `semi_normed_group` is a `semi_normed_add_torsor` over itself. -/
+/-- A `semi_normed_group` is a `normed_add_torsor` over itself. -/
 @[priority 100]
-instance semi_normed_group.normed_add_torsor : semi_normed_add_torsor V V :=
-{ dist_eq_norm' := dist_eq_norm }
-
-/-- A `normed_group` is a `normed_add_torsor` over itself. -/
-@[priority 100]
-instance normed_group.normed_add_torsor : normed_add_torsor W W :=
+instance semi_normed_group.to_normed_add_torsor : normed_add_torsor V V :=
 { dist_eq_norm' := dist_eq_norm }
 
 include V
@@ -69,9 +48,7 @@ variables (V W)
 /-- The distance equals the norm of subtracting two points. In this
 lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub` sometimes doesn't work. -/
-lemma dist_eq_norm_vsub (x y : P) :
-  dist x y = ∥(x -ᵥ y)∥ :=
-semi_normed_add_torsor.dist_eq_norm' x y
+lemma dist_eq_norm_vsub (x y : P) : dist x y = ∥x -ᵥ y∥ := normed_add_torsor.dist_eq_norm' x y
 
 end
 
@@ -224,8 +201,7 @@ lemma uniform_continuous_vadd : uniform_continuous (λ x : V × P, x.1 +ᵥ x.2)
 lemma uniform_continuous_vsub : uniform_continuous (λ x : P × P, x.1 -ᵥ x.2) :=
 (lipschitz_with.prod_fst.vsub lipschitz_with.prod_snd).uniform_continuous
 
-@[priority 100] instance semi_normed_add_torsor.has_continuous_vadd :
-  has_continuous_vadd V P :=
+@[priority 100] instance normed_add_torsor.to_has_continuous_vadd : has_continuous_vadd V P :=
 { continuous_vadd := uniform_continuous_vadd.continuous }
 
 lemma continuous_vsub : continuous (λ x : P × P, x.1 -ᵥ x.2) :=

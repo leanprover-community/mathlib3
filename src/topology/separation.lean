@@ -848,7 +848,7 @@ lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f
 (h.tendsto a).lim_eq
 
 @[simp] lemma Lim_nhds (a : α) : @Lim _ _ ⟨a⟩ (𝓝 a) = a :=
-Lim_eq (le_refl _)
+Lim_eq le_rfl
 
 @[simp] lemma lim_nhds_id (a : α) : @lim _ _ _ ⟨a⟩ (𝓝 a) id = a :=
 Lim_nhds a

@@ -87,7 +87,7 @@ begin
 end
 
 lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
-| 0 := le_refl _
+| 0 := le_rfl
 | 1 := le_of_inf_eq rfl
 | (n + 2) :=
   match nat.mod_two_eq_zero_or_one (n + 1) with

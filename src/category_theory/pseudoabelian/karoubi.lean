@@ -196,9 +196,7 @@ begin
   use ⟨P.X, p.f, hp'⟩,
   use ⟨p.f, by rw [comp_p p, hp']⟩,
   use ⟨p.f, by rw [hp', p_comp p]⟩,
-  split,
-  { simpa only [hom_ext] using hp', },
-  { simpa only [hom_ext] using hp'.symm, },
+  split; simpa only [hom_ext] using hp',
 end
 
 instance [is_idempotent_complete C] : ess_surj (to_karoubi C) := ⟨λ P, begin
@@ -207,10 +205,10 @@ instance [is_idempotent_complete C] : ess_surj (to_karoubi C) := ⟨λ P, begin
     with ⟨Y,i,e,⟨h₁,h₂⟩⟩,
   use Y,
   exact nonempty.intro
-    { hom := ⟨i, by erw [id_comp, h₂, ← assoc, h₁, id_comp]⟩,
-      inv := ⟨e, by erw [comp_id, h₂, assoc, h₁, comp_id]⟩,
+    { hom := ⟨i, by erw [id_comp, ← h₂, ← assoc, h₁, id_comp]⟩,
+      inv := ⟨e, by erw [comp_id, ← h₂, assoc, h₁, comp_id]⟩,
       hom_inv_id' := by { ext, simpa only [comp, h₁], },
-      inv_hom_id' := by { ext, simp only [comp, h₂, id_eq], }, },
+      inv_hom_id' := by { ext, simp only [comp, ← h₂, id_eq], }, },
 end⟩
 
 /-- If `C` is idempotent complete, the functor `to_karoubi : C ⥤ karoubi C` is an equivalence. -/

@@ -28,14 +28,19 @@ open category_theory
 open category_theory.category
 open category_theory.limits
 open category_theory.preadditive
+open opposite
 
 namespace category_theory
 
 variables (C : Type*) [category C]
 
+/-- A category is idempotent complete iff all idempotents endomorphisms `p`
+split as a composition `p = e ≫ i` with `i ≫ e = 𝟙 _` -/
 class is_idempotent_complete : Prop :=
 (idempotents_split : ∀ (X : C) (p : X ⟶ X), p ≫ p = p →
-  ∃ (Y : C) (i : Y ⟶ X) (e : X ⟶ Y), i ≫ e = 𝟙 Y ∧ p = e ≫ i)
+  ∃ (Y : C) (i : Y ⟶ X) (e : X ⟶ Y), i ≫ e = 𝟙 Y ∧ e ≫ i = p)
+
+namespace idempotents
 
 /-- A category is idempotent complete iff for all idempotents endomorphisms,
 the equalizer of the identity and this idempotent exists. -/
@@ -48,13 +53,13 @@ begin
     rcases is_idempotent_complete.idempotents_split X p hp with ⟨Y, i, e, ⟨h₁, h₂⟩⟩,
     exact ⟨nonempty.intro
       { cone := fork.of_ι i
-          (show i ≫ 𝟙 X = i ≫ p, by rw [comp_id, h₂, ← assoc, h₁, id_comp]),
+          (show i ≫ 𝟙 X = i ≫ p, by rw [comp_id, ← h₂, ← assoc, h₁, id_comp]),
         is_limit := begin
           apply fork.is_limit.mk',
           intro s,
           refine ⟨s.ι ≫ e, _⟩,
           split,
-          { erw [assoc, ← h₂, ← limits.fork.condition s, comp_id], },
+          { erw [assoc, h₂, ← limits.fork.condition s, comp_id], },
           { intros m hm,
             erw [← hm],
             simp only [← hm, assoc, fork.ι_eq_app_zero,
@@ -123,5 +128,92 @@ begin
   intros X p hp,
   apply_instance,
 end
+
+variables {C}
+
+lemma split_imp_of_iso {X X' : C} (φ : X ≅ X') (p : X ⟶ X) (p' : X' ⟶ X')
+  (hpp' : p ≫ φ.hom = φ.hom ≫ p')
+  (h : ∃ (Y : C) (i : Y ⟶ X) (e : X ⟶ Y), i ≫ e = 𝟙 Y ∧ e ≫ i = p) :
+  (∃ (Y' : C) (i' : Y' ⟶ X') (e' : X' ⟶ Y'), i' ≫ e' = 𝟙 Y' ∧ e' ≫ i' = p') :=
+begin
+  rcases h with ⟨Y, i, e, ⟨h₁, h₂⟩⟩,
+  use Y,
+  use i ≫ φ.hom,
+  use φ.inv ≫ e,
+  split,
+  { slice_lhs 2 3 { rw φ.hom_inv_id, },
+    rw [id_comp, h₁], },
+  { slice_lhs 2 3 { rw h₂, },
+    rw [hpp', ← assoc, φ.inv_hom_id, id_comp], }
+end
+
+lemma split_iff_of_iso {X X' : C} (φ : X ≅ X') (p : X ⟶ X) (p' : X' ⟶ X')
+  (hpp' : p ≫ φ.hom = φ.hom ≫ p') :
+  (∃ (Y : C) (i : Y ⟶ X) (e : X ⟶ Y), i ≫ e = 𝟙 Y ∧ e ≫ i = p) ↔
+  (∃ (Y' : C) (i' : Y' ⟶ X') (e' : X' ⟶ Y'), i' ≫ e' = 𝟙 Y' ∧ e' ≫ i' = p') :=
+begin
+  split,
+  { exact split_imp_of_iso φ p p' hpp', },
+  { apply split_imp_of_iso φ.symm p' p,
+    rw [← comp_id p, ← φ.hom_inv_id],
+    slice_rhs 2 3 { rw hpp', },
+    slice_rhs 1 2 { erw φ.inv_hom_id, },
+    simpa only [id_comp], },
+end
+
+lemma is_idempotent_complete_imp_of_equivalence {D : Type*} [category D] (ε : C ≌ D)
+  (h : is_idempotent_complete C) : is_idempotent_complete D :=
+begin
+  refine ⟨_⟩,
+  intros X' p hp,
+  let φ := ε.counit_iso.symm.app X',
+  erw split_iff_of_iso φ p (φ.inv ≫ p ≫ φ.hom)
+    (by { slice_rhs 1 2 { rw φ.hom_inv_id, }, rw id_comp,}),
+  rcases is_idempotent_complete.idempotents_split (ε.inverse.obj X') (ε.inverse.map p)
+    (by rw [← ε.inverse.map_comp, hp]) with ⟨Y, i, e, ⟨h₁,h₂⟩⟩,
+  use ε.functor.obj Y,
+  use ε.functor.map i,
+  use ε.functor.map e,
+  split,
+  { rw [← ε.functor.map_comp, h₁, ε.functor.map_id], },
+  { simpa only [← ε.functor.map_comp, h₂, equivalence.fun_inv_map], },
+end
+
+/-- If `C` and `D` are equivalent categories, that `C` is idempotent complete iff `D` is. -/
+lemma is_idempotent_complete_iff_of_equivalence {D : Type*} [category D] (ε : C ≌ D) :
+  is_idempotent_complete C ↔ is_idempotent_complete D :=
+begin
+  split,
+  { exact is_idempotent_complete_imp_of_equivalence ε, },
+  { exact is_idempotent_complete_imp_of_equivalence ε.symm, },
+end
+
+lemma is_idempotent_complete_of_is_idempotent_complete_opposite
+  (h : is_idempotent_complete Cᵒᵖ) : is_idempotent_complete C :=
+begin
+  refine ⟨_⟩,
+  intros X p hp,
+  rcases is_idempotent_complete.idempotents_split (op X) p.op
+    (by rw [← op_comp, hp]) with ⟨Y, i, e, ⟨h₁, h₂⟩⟩,
+  use Y.unop,
+  use e.unop,
+  use i.unop,
+  split,
+  { simpa only [← unop_comp, h₁], },
+  { simpa only [← unop_comp, h₂], },
+end
+
+lemma is_idempotent_complete_iff_opposite :
+  is_idempotent_complete Cᵒᵖ ↔ is_idempotent_complete C :=
+begin
+  split,
+  { exact is_idempotent_complete_of_is_idempotent_complete_opposite, },
+  { intro h,
+    apply is_idempotent_complete_of_is_idempotent_complete_opposite,
+    rw is_idempotent_complete_iff_of_equivalence (op_op_equivalence C),
+    exact h, },
+end
+
+end idempotents
 
 end category_theory

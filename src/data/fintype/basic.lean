@@ -1004,7 +1004,7 @@ match n, hn with
 | 0     := λ ha, ⟨λ h, λ a, (card_eq_zero_iff.1 ha.symm).elim a, λ _, ha ▸ nat.le_succ _⟩
 | 1     := λ ha, ⟨λ h, λ a b, let ⟨x, hx⟩ := card_eq_one_iff.1 ha.symm in
   by rw [hx a, hx b],
-    λ _, ha ▸ le_refl _⟩
+    λ _, ha ▸ le_rfl⟩
 | (n+2) := λ ha, ⟨λ h, by rw ← ha at h; exact absurd h dec_trivial,
   (λ h, card_unit ▸ card_le_of_injective (λ _, ())
     (λ _ _ _, h _ _))⟩
@@ -1044,7 +1044,7 @@ by haveI := classical.prop_decidable; exact
 have ∀ {f : α → α}, injective f → surjective f,
 from λ f hinj x,
   have h₁ : image f univ = univ := eq_of_subset_of_card_le (subset_univ _)
-    ((card_image_of_injective univ hinj).symm ▸ le_refl _),
+    ((card_image_of_injective univ hinj).symm ▸ le_rfl),
   have h₂ : x ∈ image f univ := h₁.symm ▸ mem_univ _,
   exists_of_bex (mem_image.1 h₂),
 ⟨this,
@@ -1882,7 +1882,7 @@ See also: `fintype.exists_ne_map_eq_of_card_lt`, `fintype.exists_infinite_fiber`
 lemma fintype.exists_ne_map_eq_of_infinite [infinite α] [fintype β] (f : α → β) :
   ∃ x y : α, x ≠ y ∧ f x = f y :=
 begin
-  classical, by_contra hf, push_neg at hf,
+  classical, by_contra' hf,
   apply not_injective_infinite_fintype f,
   intros x y, contrapose, apply hf,
 end
@@ -1916,8 +1916,7 @@ lemma fintype.exists_infinite_fiber [infinite α] [fintype β] (f : α → β) :
   ∃ y : β, infinite (f ⁻¹' {y}) :=
 begin
   classical,
-  by_contra hf,
-  push_neg at hf,
+  by_contra' hf,
 
   haveI := λ y, fintype_of_not_infinite $ hf y,
   let key : fintype α :=
@@ -2099,4 +2098,30 @@ begin
   { exact (hmn rfl).elim },
   { apply symm,
     exact hf' n m h }
+end
+
+/-- A custom induction principle for fintypes. The base case is a subsingleton type,
+and the induction step is for non-trivial types, and one can assume the hypothesis for
+smaller types (via `fintype.card`).
+
+The major premise is `fintype α`, so to use this with the `induction` tactic you have to give a name
+to that instance and use that name.
+-/
+@[elab_as_eliminator]
+lemma fintype.induction_subsingleton_or_nontrivial
+  {P : Π α [fintype α], Prop} (α : Type*) [fintype α]
+  (hbase : ∀ α [fintype α] [subsingleton α], by exactI P α)
+  (hstep : ∀ α [fintype α] [nontrivial α],
+    by exactI ∀ (ih : ∀ β [fintype β], by exactI ∀ (h : fintype.card β < fintype.card α), P β),
+    P α) :
+  P α :=
+begin
+  obtain ⟨ n, hn ⟩ : ∃ n, fintype.card α = n := ⟨fintype.card α, rfl⟩,
+  unfreezingI { induction n using nat.strong_induction_on with n ih generalizing α },
+  casesI (subsingleton_or_nontrivial α) with hsing hnontriv,
+  { apply hbase, },
+  { apply hstep,
+    introsI β _ hlt,
+    rw hn at hlt,
+    exact (ih (fintype.card β) hlt _ rfl), }
 end

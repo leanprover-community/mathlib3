@@ -290,7 +290,7 @@ annihilates `bernstein_polynomial n ν` for `ν < k`, but has a nonzero value at
 
 lemma linear_independent (n : ℕ) :
   linear_independent ℚ (λ ν : fin (n+1), bernstein_polynomial ℚ n ν) :=
-linear_independent_aux n (n+1) (le_refl _)
+linear_independent_aux n (n+1) le_rfl
 
 lemma sum (n : ℕ) : ∑ ν in finset.range (n + 1), bernstein_polynomial R n ν = 1 :=
 calc ∑ ν in finset.range (n + 1), bernstein_polynomial R n ν = (X + (1 - X)) ^ n :

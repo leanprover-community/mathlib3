@@ -211,8 +211,7 @@ begin
   `N = multiplicity E + 1`. To formalize this, we work with functions `fin N → E`.
    -/
   classical,
-  by_contradiction h,
-  push_neg at h,
+  by_contra' h,
   set N := multiplicity E + 1 with hN,
   have : ∀ (δ : ℝ), 0 < δ → ∃ f : fin N → E, (∀ (i : fin N), ∥f i∥ ≤ 2)
     ∧ (∀ i j, i ≠ j → 1 - δ ≤ ∥f i - f j∥),

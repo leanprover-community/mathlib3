@@ -370,7 +370,7 @@ bot_unique $ Sup_le $
 lemma limsup_const_bot {f : filter β} : limsup f (λ x : β, (⊥ : α)) = (⊥ : α) :=
 begin
   rw [limsup_eq, eq_bot_iff],
-  exact Inf_le (eventually_of_forall (λ x, le_refl _)),
+  exact Inf_le (eventually_of_forall (λ x, le_rfl)),
 end
 
 /-- Same as limsup_const applied to `⊤` but without the `ne_bot f` assumption -/

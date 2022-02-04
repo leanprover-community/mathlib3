@@ -86,7 +86,6 @@ by rw [mul_comm a, mul_comm b]; exact h.mul_left c
 protected theorem mul (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a * c ≡ b * d [MOD n] :=
 (h₂.mul_left _ ).trans (h₁.mul_right _)
 
--- Apostol, Theorem 5.3
 protected theorem mul_left_iff {a b c m : ℕ} (hc : c ≠ 0) :
   a ≡ b [MOD m] ↔ c * a ≡ c * b [MOD c * m] :=
 begin
@@ -169,7 +168,6 @@ lemma le_of_lt_add (h1 : a ≡ b [MOD m]) (h2 : a < b + m) : a ≤ b :=
 lemma add_le_of_lt (h1 : a ≡ b [MOD m]) (h2 : a < b) : a + m ≤ b :=
 le_of_lt_add (add_modeq_right.trans h1) (add_lt_add_right h2 m)
 
--- Apostol, Theorem 5.5
 lemma dvd_iff_of_modeq_of_dvd {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣ m) :
   d ∣ a ↔ d ∣ b :=
 begin
@@ -178,7 +176,6 @@ begin
   exact ⟨(modeq.symm habd).trans, modeq.trans habd⟩,
 end
 
--- Apostol, Theorem 5.6
 lemma gcd_eq_of_modeq {a b m : ℕ} (h : a ≡ b [MOD m]) : gcd a m = gcd b m :=
 begin
   have h1 := gcd_dvd_right a m,
@@ -188,7 +185,6 @@ begin
     (dvd_gcd ((dvd_iff_of_modeq_of_dvd h h2).mpr (gcd_dvd_left b m)) h2),
 end
 
--- Apostol, Theorem 5.7
 lemma eq_of_modeq_of_abs_lt {a b m : ℕ} (h : a ≡ b [MOD m]) (h2 : | (b:ℤ) - a | < m) : a = b :=
 begin
   apply int.coe_nat_inj,
@@ -196,7 +192,6 @@ begin
   exact int.eq_zero_of_abs_lt_dvd (modeq_iff_dvd.mp h) h2,
 end
 
--- Apostol, Theorem 5.4
 /-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c` -/
 lemma modeq_cancel_left_div_gcd {a b c m : ℕ} (hm : 0 < m) (h : c * a ≡ c * b [MOD m]) :
   a ≡ b [MOD m / gcd m c] :=

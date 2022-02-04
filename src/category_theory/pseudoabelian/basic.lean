@@ -148,12 +148,12 @@ end karoubi
 /-- The obvious fully faithful functor `to_karoubi` sends an object `X : C` to the obvious
 formal direct factor of `X` given by `𝟙 X`. -/
 @[simps]
-def to_karoubi : C ⥤ karoubi C := {
-  obj := λ X, ⟨X, 𝟙 X, by rw comp_id⟩,
+def to_karoubi : C ⥤ karoubi C :=
+{ obj := λ X, ⟨X, 𝟙 X, by rw comp_id⟩,
   map := λ X Y f, ⟨f, by simp only [comp_id, id_comp]⟩ }
 
-instance : full (to_karoubi C) := {
-  preimage := λ X Y f, f.f,
+instance : full (to_karoubi C) :=
+{ preimage := λ X Y f, f.f,
   witness' := λ X Y f, by { ext, simp only [to_karoubi_map_f], }, }
 
 instance : faithful (to_karoubi C) := { }

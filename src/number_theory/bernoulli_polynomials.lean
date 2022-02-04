@@ -129,7 +129,8 @@ variables {A : Type*} [comm_ring A] [algebra ℚ A]
 
 /-- The theorem that `∑ Bₙ(t)X^n/n!)(e^X-1)=Xe^{tX}`  -/
 theorem exp_bernoulli' (t : A) :
-  mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli n)) * (exp A - 1) = power_series.X * rescale t (exp A) :=
+  mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli n)) * (exp A - 1) =
+    power_series.X * rescale t (exp A) :=
 begin
   -- check equality of power series by checking coefficients of X^n
   ext n,

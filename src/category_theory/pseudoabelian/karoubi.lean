@@ -74,7 +74,8 @@ def idempotent_of_id_sub_idempotent [preadditive C] (P : karoubi C) : karoubi C 
 @[ext]
 structure hom (P Q : karoubi C) := (f : P.X ⟶ Q.X) (comm : f = P.p ≫ f ≫ Q.p)
 
-instance [preadditive C] (P Q : karoubi C) : inhabited (hom P Q) := ⟨⟨0, by rw [zero_comp, comp_zero]⟩⟩
+instance [preadditive C] (P Q : karoubi C) : inhabited (hom P Q) :=
+⟨⟨0, by rw [zero_comp, comp_zero]⟩⟩
 
 @[simp]
 lemma hom_ext {P Q : karoubi C} {f g : hom P Q} : f = g ↔ f.f = g.f :=

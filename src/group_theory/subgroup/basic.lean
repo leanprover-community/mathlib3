@@ -1224,6 +1224,19 @@ begin
   { exact λ h x hx, pi_mem_of_single_mem  x (λ i, h i (mem_map_of_mem _ (hx i trivial))), }
 end
 
+lemma pi_eq_bot_iff [decidable_eq η] (H : Π i, subgroup (f i)) :
+  pi set.univ H = ⊥ ↔ ∀ i, H i = ⊥ :=
+begin
+  simp only [ eq_bot_iff_forall ],
+  split,
+  { intros h i x hx,
+    have : monoid.single f i x = 1 := h (monoid.single f i x) ((single_mem_pi i x).mpr (λ _, hx)),
+    simpa using congr_fun this i, },
+  { intros h x hx,
+    ext i,
+    exact h _ _ (hx i trivial), },
+end
+
 end pi
 
 /-- A subgroup is normal if whenever `n ∈ H`, then `g * n * g⁻¹ ∈ H` for every `g : G` -/

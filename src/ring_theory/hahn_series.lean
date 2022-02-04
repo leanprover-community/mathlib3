@@ -1084,7 +1084,7 @@ After importing `algebra.order.pi` the ring `hahn_series (σ → ℕ) R` could b
 @[simps] def to_mv_power_series {σ : Type*} [fintype σ] :
   hahn_series (σ →₀ ℕ) R ≃+* mv_power_series σ R :=
 { to_fun := λ f, f.coeff,
-  inv_fun := λ f, ⟨(f : (σ →₀ ℕ) → R), dickson _⟩,
+  inv_fun := λ f, ⟨(f : (σ →₀ ℕ) → R), finsupp.is_pwo _⟩,
   left_inv := λ f, by { ext, simp },
   right_inv := λ f, by { ext, simp },
   map_add' := λ f g, by { ext, simp },

@@ -359,6 +359,19 @@ begin
       exact ⟨⟨y, submodule.mem_top⟩, ⟨z, hz⟩, rfl⟩, }, },
 end
 
+/-- Note that the below inequality can be strict. For example the ideal of strictly-upper-triangular
+2x2 matrices inside the Lie algebra of upper-triangular 2x2 matrices with `k = 1`. -/
+lemma lie_module.coe_lower_central_series_ideal_le {I : lie_ideal R L} (k : ℕ) :
+  (lower_central_series R I I k : submodule R I) ≤ lower_central_series R L I k :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp only [lie_module.lower_central_series_succ, lie_submodule.lie_ideal_oper_eq_linear_span],
+    apply submodule.span_mono,
+    rintros x ⟨⟨y, -⟩, ⟨z, hz⟩, rfl : ⁅y, z⁆ = x⟩,
+    exact ⟨⟨y.val, submodule.mem_top⟩, ⟨z, ih hz⟩, rfl⟩, },
+end
+
 /-- A central extension of nilpotent Lie algebras is nilpotent. -/
 lemma lie_algebra.nilpotent_of_nilpotent_quotient {I : lie_ideal R L}
   (h₁ : I ≤ center R L) (h₂ : is_nilpotent R (L ⧸ I)) : is_nilpotent R L :=

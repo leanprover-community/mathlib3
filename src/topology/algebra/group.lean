@@ -467,7 +467,7 @@ lemma topological_group.of_nhds_one {G : Type u} [group G] [topological_space G]
     ... = map ((λ x, x₀*y₀*x) ∘ (uncurry (*))) ((map  (λ x, y₀⁻¹*x*y₀) $ 𝓝 1) ×ᶠ (𝓝 1))
             : by rw [← filter.map_map, ← prod_map_map_eq', map_id]
     ... ≤ map ((λ x, x₀*y₀*x) ∘ (uncurry (*))) ((𝓝 1) ×ᶠ (𝓝 1))
-            : map_mono (filter.prod_mono hconj $ le_refl _)
+            : map_mono (filter.prod_mono hconj $ le_rfl)
     ... = map (λ x, x₀*y₀*x) (map (uncurry (*)) ((𝓝 1) ×ᶠ (𝓝 1)))   : by rw filter.map_map
     ... ≤ map (λ x, x₀*y₀*x) (𝓝 1)   : map_mono hmul
     ... = 𝓝 (x₀*y₀)   : (hleft _).symm

@@ -1617,7 +1617,7 @@ lemma ker_pow_constant {f : End K V} {k : ℕ} (h : (f ^ k).ker = (f ^ k.succ).k
     { rw [ker_pow_constant m, add_comm m 1, ←add_assoc, pow_add, pow_add f k m],
       change linear_map.ker ((f ^ (k + 1)).comp (f ^ m)) ≤ linear_map.ker ((f ^ k).comp (f ^ m)),
       rw [linear_map.ker_comp, linear_map.ker_comp, h, nat.add_one],
-      exact le_refl _, }
+      exact le_rfl, }
   end
 
 lemma ker_pow_eq_ker_pow_finrank_of_le [finite_dimensional K V]
@@ -1641,7 +1641,7 @@ begin
   { rw [←add_tsub_cancel_of_le (nat.le_of_lt h_cases), add_comm, pow_add],
     apply linear_map.ker_le_ker_comp },
   { rw [ker_pow_eq_ker_pow_finrank_of_le (le_of_not_lt h_cases)],
-    exact le_refl _ }
+    exact le_rfl }
 end
 
 end End

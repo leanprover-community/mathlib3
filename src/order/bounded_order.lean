@@ -459,7 +459,7 @@ instance [preorder α] : preorder (with_bot α) :=
   lt_iff_le_not_le := by intros; cases a; cases b;
                          simp [lt_iff_le_not_le]; simp [(≤), (<)];
                          split; refl,
-  le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
+  le_refl     := λ o a ha, ⟨a, ha, le_rfl⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
     let ⟨b, hb, ab⟩ := h₁ a ha, ⟨c, hc, bc⟩ := h₂ b hb in
     ⟨c, hc, le_trans ab bc⟩ }
@@ -713,7 +713,7 @@ instance [preorder α] : preorder (with_top α) :=
   lt          := (<),
   lt_iff_le_not_le := by { intros; cases a; cases b;
                            simp [lt_iff_le_not_le]; simp [(<),(≤)] },
-  le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
+  le_refl     := λ o a ha, ⟨a, ha, le_rfl⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ c hc,
     let ⟨b, hb, bc⟩ := h₂ c hc, ⟨a, ha, ab⟩ := h₁ b hb in
     ⟨a, ha, le_trans ab bc⟩, }
@@ -976,10 +976,10 @@ theorem disjoint.mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
   disjoint b d → disjoint a c := le_trans (inf_le_inf h₁ h₂)
 
 theorem disjoint.mono_left {a b c : α} (h : a ≤ b) : disjoint b c → disjoint a c :=
-disjoint.mono h (le_refl _)
+disjoint.mono h le_rfl
 
 theorem disjoint.mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
-disjoint.mono (le_refl _) h
+disjoint.mono le_rfl h
 
 @[simp] lemma disjoint_self {a : α} : disjoint a a ↔ a = ⊥ :=
 by simp [disjoint]

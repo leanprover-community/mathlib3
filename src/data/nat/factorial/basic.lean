@@ -256,7 +256,7 @@ lemma asc_factorial_lt_pow_add (n : ℕ) : ∀ {k : ℕ}, 2 ≤ k → n.asc_fact
 | 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
 | (k + 2) := λ _, begin
   rw [asc_factorial_succ, pow_succ],
-  refine nat.mul_lt_mul' (le_refl _) ((asc_factorial_le_pow_add n _).trans_lt
+  refine nat.mul_lt_mul' le_rfl ((asc_factorial_le_pow_add n _).trans_lt
     (pow_lt_pow_of_lt_left (lt_add_one _) (succ_pos _))) (succ_pos _),
 end
 

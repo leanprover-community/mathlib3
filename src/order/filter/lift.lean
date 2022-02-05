@@ -124,7 +124,7 @@ le_antisymm
   (infi_le_infi2 $ assume s, ⟨image m s,
     infi_le_infi2 $ assume hs, ⟨
       f.sets_of_superset hs $ assume a h, mem_image_of_mem _ h,
-      le_refl _⟩⟩)
+      le_rfl⟩⟩)
   (infi_le_infi2 $ assume t, ⟨preimage m t,
     infi_le_infi2 $ assume ht, ⟨ht,
       hg $ assume x, assume h : x ∈ m '' preimage m t,
@@ -196,7 +196,7 @@ le_antisymm
 lemma lift_infi {f : ι → filter α} {g : set α → filter β}
   [hι : nonempty ι] (hg : ∀{s t}, g s ⊓ g t = g (s ∩ t)) : (infi f).lift g = (⨅i, (f i).lift g) :=
 le_antisymm
-  (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
+  (le_infi $ assume i, lift_mono (infi_le _ _) le_rfl)
   (assume s,
     have g_mono : monotone g,
       from assume s t h, le_of_inf_eq $ eq.trans hg $ congr_arg g $ inter_eq_self_of_subset_left h,
@@ -225,7 +225,7 @@ lift_top _
 
 lemma mem_lift' {t : set α} (ht : t ∈ f) : h t ∈ (f.lift' h) :=
 le_principal_iff.mp $ show f.lift' h ≤ 𝓟 (h t),
-  from infi_le_of_le t $ infi_le_of_le ht $ le_refl _
+  from infi_le_of_le t $ infi_le_of_le ht $ le_rfl
 
 lemma tendsto_lift' {m : γ → β} {l : filter γ} :
   tendsto m l (f.lift' h) ↔ ∀ s ∈ f, ∀ᶠ a in l, m a ∈ h s :=
@@ -347,7 +347,7 @@ le_infi $ assume s, le_infi $ assume hs,
 lemma lift_infi' {f : ι → filter α} {g : set α → filter β}
   [nonempty ι] (hf : directed (≥) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=
 le_antisymm
-  (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
+  (le_infi $ assume i, lift_mono (infi_le _ _) le_rfl)
   (assume s,
   begin
     rw mem_lift_sets hg,

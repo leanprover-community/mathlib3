@@ -87,7 +87,7 @@ begin
   cases h : degree f with n,
   { rw [degree_eq_bot.1 h]; exact splits_zero i },
   { cases n with n,
-    { rw [eq_C_of_degree_le_zero (trans_rel_right (≤) h (le_refl _))];
+    { rw [eq_C_of_degree_le_zero (trans_rel_right (≤) h le_rfl)];
       exact splits_C _ _ },
     { have hn : n = 0,
       { rw h at hf,

@@ -203,7 +203,7 @@ by { rw le_def at h, cases h, assumption }
 
 instance : preorder (subfield_with_hom K L M hL) :=
 { le := (≤),
-  le_refl := λ E, ⟨le_refl _, by simp⟩,
+  le_refl := λ E, ⟨le_rfl, by simp⟩,
   le_trans := λ E₁ E₂ E₃ h₁₂ h₂₃,
     ⟨le_trans h₁₂.fst h₂₃.fst,
     λ _, by erw [← inclusion_inclusion h₁₂.fst h₂₃.fst, compat, compat]⟩ }

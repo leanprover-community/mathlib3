@@ -141,10 +141,10 @@ lemma is_max_on.is_extr (h : is_max_on f s a) : is_extr_on f s a := h.is_extr
 /-! ### Constant function -/
 
 lemma is_min_filter_const {b : β} : is_min_filter (λ _, b) l a :=
-univ_mem' $ λ _, le_refl _
+univ_mem' $ λ _, le_rfl
 
 lemma is_max_filter_const {b : β} : is_max_filter (λ _, b) l a :=
-univ_mem' $ λ _, le_refl _
+univ_mem' $ λ _, le_rfl
 
 lemma is_extr_filter_const {b : β} : is_extr_filter (λ _, b) l a := is_min_filter_const.is_extr
 

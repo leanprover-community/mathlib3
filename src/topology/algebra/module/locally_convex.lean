@@ -103,9 +103,12 @@ end
 
 end module
 
+-- TODO : generalize the following section to normed and ordered rings/fields, once we have the
+-- corresponding typeclasses
+
 namespace seminorm
 
-variables {ι E : Type*} [add_comm_group E] [module ℝ E] [nonempty ι] [topological_space E]
+variables {ι 𝕂 E : Type*} [add_comm_group E] [module ℝ E] [nonempty ι] [topological_space E]
   [topological_add_group E]
 
 lemma locally_convex_space (p : ι → seminorm ℝ E) [with_seminorms p] :

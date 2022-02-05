@@ -293,6 +293,34 @@ set.nontrivial_mono
   (lower_central_series_last_le_max_triv R L M)
   (nontrivial_lower_central_series_last R L M)
 
+@[simp] lemma coe_lcs_range_to_endomorphism_eq (k : ℕ) :
+  (lower_central_series R (to_endomorphism R L M).range M k : submodule R M) =
+  lower_central_series R L M k :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp only [lower_central_series_succ, lie_submodule.lie_ideal_oper_eq_linear_span',
+      ← (lower_central_series R (to_endomorphism R L M).range M k).mem_coe_submodule, ih],
+    congr,
+    ext m,
+    split,
+    { rintros ⟨⟨-, ⟨y, rfl⟩⟩, -, n, hn, rfl⟩,
+      exact ⟨y, lie_submodule.mem_top _, n, hn, rfl⟩, },
+    { rintros ⟨x, hx, n, hn, rfl⟩,
+      exact ⟨⟨to_endomorphism R L M x, lie_hom.mem_range_self _ x⟩, lie_submodule.mem_top _,
+        n, hn, rfl⟩, }, },
+end
+
+@[simp] lemma is_nilpotent_range_to_endomorphism_iff :
+  is_nilpotent R (to_endomorphism R L M).range M ↔ is_nilpotent R L M :=
+begin
+  split;
+  rintros ⟨k, hk⟩;
+  use k;
+  rw ← lie_submodule.coe_to_submodule_eq_iff at ⊢ hk;
+  simpa using hk,
+end
+
 end lie_module
 
 section morphisms
@@ -494,6 +522,25 @@ begin
   split; introsI h,
   { exact e.symm.injective.lie_algebra_is_nilpotent, },
   { exact e.injective.lie_algebra_is_nilpotent, },
+end
+
+lemma lie_hom.is_nilpotent_range [is_nilpotent R L] (f : L →ₗ⁅R⁆ L') :
+  is_nilpotent R f.range :=
+f.surjective_range_restrict.lie_algebra_is_nilpotent
+
+/-- Note that this result is not quite a special case of
+`lie_module.is_nilpotent_range_to_endomorphism_iff` which concerns nilpotency of the
+`(ad R L).range`-module `L`, whereas this result concerns nilpotency of the `(ad R L).range`-module
+`(ad R L).range`. -/
+@[simp] lemma lie_algebra.is_nilpotent_range_ad_iff :
+  is_nilpotent R (ad R L).range ↔ is_nilpotent R L :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have : (ad R L).ker = center R L, { by simp, },
+    exact lie_algebra.nilpotent_of_nilpotent_quotient (le_of_eq this)
+      ((ad R L).quot_ker_equiv_range.nilpotent_iff_equiv_nilpotent.mpr h), },
+  { introsI h,
+    exact (ad R L).is_nilpotent_range, },
 end
 
 instance [h : lie_algebra.is_nilpotent R L] : lie_algebra.is_nilpotent R (⊤ : lie_subalgebra R L) :=

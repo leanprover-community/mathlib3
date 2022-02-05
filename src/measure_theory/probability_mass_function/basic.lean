@@ -67,36 +67,65 @@ open measure_theory measure_theory.outer_measure
 def to_outer_measure (p : pmf α) : outer_measure α :=
 outer_measure.sum (λ (x : α), p x • dirac x)
 
-lemma to_outer_measure_apply (p : pmf α) (s : set α) :
-  p.to_outer_measure s = ∑' x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
+variables (p : pmf α) (s t : set α)
+
+lemma to_outer_measure_apply : p.to_outer_measure s = ∑' x, s.indicator (coe ∘ p) x :=
 tsum_congr (λ x, smul_dirac_apply (p x) x s)
 
-lemma to_outer_measure_apply' (p : pmf α) (s : set α) :
-  p.to_outer_measure s = ↑(∑' (x : α), s.indicator p x) :=
+lemma to_outer_measure_apply' : p.to_outer_measure s = ↑(∑' (x : α), s.indicator p x) :=
 by simp only [ennreal.coe_tsum (nnreal.indicator_summable (summable_coe p) s),
   ennreal.coe_indicator, to_outer_measure_apply]
 
 @[simp]
-lemma to_outer_measure_apply_finset (p : pmf α) (s : finset α) :
-  p.to_outer_measure s = ∑ x in s, (p x : ℝ≥0∞) :=
+lemma to_outer_measure_apply_finset (s : finset α) : p.to_outer_measure s = ∑ x in s, ↑(p x) :=
 begin
   refine (to_outer_measure_apply p s).trans ((@tsum_eq_sum _ _ _ _ _ _ s _).trans _),
   { exact λ x hx, set.indicator_of_not_mem hx _ },
   { exact finset.sum_congr rfl (λ x hx, set.indicator_of_mem hx _) }
 end
 
-@[simp]
-lemma to_outer_measure_apply_fintype [fintype α] (p : pmf α) (s : set α) :
-  p.to_outer_measure s = ∑ x, (s.indicator (λ x, (p x : ℝ≥0∞)) x) :=
-(p.to_outer_measure_apply s).trans (tsum_eq_sum (λ x h, absurd (finset.mem_univ x) h))
-
-lemma to_outer_measure_apply_eq_zero_iff (p : pmf α) (s : set α) :
-  p.to_outer_measure s = 0 ↔ disjoint p.support s :=
+lemma to_outer_measure_apply_eq_zero_iff : p.to_outer_measure s = 0 ↔ disjoint p.support s :=
 begin
   rw [to_outer_measure_apply', ennreal.coe_eq_zero,
     tsum_eq_zero_iff (nnreal.indicator_summable (summable_coe p) s)],
   exact function.funext_iff.symm.trans set.indicator_eq_zero',
 end
+
+lemma to_outer_measure_apply_eq_one_iff : p.to_outer_measure s = 1 ↔ p.support ⊆ s :=
+begin
+  rw [to_outer_measure_apply', ennreal.coe_eq_one],
+  refine ⟨λ h a ha, _, λ h, _⟩,
+  { have hsp : ∀ x, s.indicator p x ≤ p x := λ _, set.indicator_apply_le (λ _, le_rfl),
+    have := λ hpa, ne_of_lt (nnreal.tsum_lt_tsum hsp hpa p.summable_coe) (h.trans p.tsum_coe.symm),
+    exact not_not.1 (λ has, ha $ set.indicator_apply_eq_self.1 (le_antisymm
+      (set.indicator_apply_le $ λ _, le_rfl) $ le_of_not_lt $ this) has) },
+  { suffices : ∀ x, x ∉ s → p x = 0,
+    from trans (tsum_congr $ λ a, (set.indicator_apply s p a).trans
+      (ite_eq_left_iff.2 $ symm ∘ (this a))) p.tsum_coe,
+    exact λ a ha, (p.apply_eq_zero_iff a).2 $ set.not_mem_subset h ha }
+end
+
+@[simp]
+lemma to_outer_measure_apply_inter_support :
+  p.to_outer_measure (s ∩ p.support) = p.to_outer_measure s :=
+by simp only [to_outer_measure_apply', ennreal.coe_eq_coe,
+  pmf.support, set.indicator_inter_support]
+
+/-- Slightly stronger than `outer_measure.mono` having an intersection with `p.support` -/
+lemma to_outer_measure_mono {s t : set α} (h : s ∩ p.support ⊆ t) :
+  p.to_outer_measure s ≤ p.to_outer_measure t :=
+le_trans (le_of_eq (to_outer_measure_apply_inter_support p s).symm) (p.to_outer_measure.mono h)
+
+lemma to_outer_measure_apply_eq_of_inter_support_eq {s t : set α}
+  (h : s ∩ p.support = t ∩ p.support) : p.to_outer_measure s = p.to_outer_measure t :=
+le_antisymm (p.to_outer_measure_mono (h.symm ▸ (set.inter_subset_left t p.support)))
+  (p.to_outer_measure_mono (h ▸ (set.inter_subset_left s p.support)))
+
+@[simp]
+lemma to_outer_measure_apply_fintype [fintype α] :
+  p.to_outer_measure s = ↑(∑ x, (s.indicator p x)) :=
+(p.to_outer_measure_apply' s).trans
+  (ennreal.coe_eq_coe.2 $ tsum_eq_sum (λ x h, absurd (finset.mem_univ x) h))
 
 @[simp]
 lemma to_outer_measure_caratheodory (p : pmf α) :
@@ -119,40 +148,62 @@ open measure_theory
 def to_measure [measurable_space α] (p : pmf α) : measure α :=
 p.to_outer_measure.to_measure ((to_outer_measure_caratheodory p).symm ▸ le_top)
 
-variables [measurable_space α]
+variables [measurable_space α] (p : pmf α) (s t : set α)
 
-lemma to_measure_apply_eq_to_outer_measure_apply (p : pmf α) (s : set α) (hs : measurable_set s) :
+lemma to_outer_measure_apply_le_to_measure_apply : p.to_outer_measure s ≤ p.to_measure s :=
+le_to_measure_apply p.to_outer_measure _ s
+
+lemma to_measure_apply_eq_to_outer_measure_apply (hs : measurable_set s) :
   p.to_measure s = p.to_outer_measure s :=
 to_measure_apply p.to_outer_measure _ hs
 
-lemma to_outer_measure_apply_le_to_measure_apply (p : pmf α) (s : set α) :
-  p.to_outer_measure s ≤ p.to_measure s :=
-le_to_measure_apply p.to_outer_measure _ s
-
-lemma to_measure_apply (p : pmf α) (s : set α) (hs : measurable_set s) :
-  p.to_measure s = ∑' x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
+lemma to_measure_apply (hs : measurable_set s) : p.to_measure s = ∑' x, s.indicator (coe ∘ p) x :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply s)
 
-lemma to_measure_apply' (p : pmf α) (s : set α) (hs : measurable_set s) :
-  p.to_measure s = ↑(∑' x, s.indicator p x) :=
+lemma to_measure_apply' (hs : measurable_set s) : p.to_measure s = ↑(∑' x, s.indicator p x) :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply' s)
 
+lemma to_measure_apply_eq_one_iff (hs : measurable_set s) : p.to_measure s = 1 ↔ p.support ⊆ s :=
+(p.to_measure_apply_eq_to_outer_measure_apply s hs : p.to_measure s = p.to_outer_measure s).symm
+  ▸ (p.to_outer_measure_apply_eq_one_iff s)
+
 @[simp]
-lemma to_measure_apply_finset [measurable_singleton_class α] (p : pmf α) (s : finset α) :
-  p.to_measure s = ∑ x in s, (p x : ℝ≥0∞) :=
+lemma to_measure_apply_inter_support (hs : measurable_set s) (hp : measurable_set p.support) :
+  p.to_measure (s ∩ p.support) = p.to_measure s :=
+by simp [p.to_measure_apply_eq_to_outer_measure_apply s hs,
+  p.to_measure_apply_eq_to_outer_measure_apply _ (hs.inter hp)]
+
+lemma to_measure_mono {s t : set α} (hs : measurable_set s) (ht : measurable_set t)
+  (h : s ∩ p.support ⊆ t) : p.to_measure s ≤ p.to_measure t :=
+by simpa only [p.to_measure_apply_eq_to_outer_measure_apply, hs, ht]
+  using to_outer_measure_mono p h
+
+lemma to_measure_apply_eq_of_inter_support_eq {s t : set α} (hs : measurable_set s)
+  (ht : measurable_set t) (h : s ∩ p.support = t ∩ p.support) : p.to_measure s = p.to_measure t :=
+by simpa only [p.to_measure_apply_eq_to_outer_measure_apply, hs, ht]
+  using to_outer_measure_apply_eq_of_inter_support_eq p h
+
+section measurable_singleton_class
+
+variables [measurable_singleton_class α]
+
+@[simp]
+lemma to_measure_apply_finset (s : finset α) : p.to_measure s = ∑ x in s, (p x : ℝ≥0∞) :=
 (p.to_measure_apply_eq_to_outer_measure_apply s s.measurable_set).trans
   (p.to_outer_measure_apply_finset s)
 
-lemma to_measure_apply_of_finite [measurable_singleton_class α] (p : pmf α) (s : set α)
-  (hs : s.finite) : p.to_measure s = ∑' x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
+lemma to_measure_apply_of_finite (hs : s.finite) :
+  p.to_measure s = ↑(∑' x, s.indicator p x) :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs.measurable_set).trans
-  (p.to_outer_measure_apply s)
+  (p.to_outer_measure_apply' s)
 
 @[simp]
-lemma to_measure_apply_fintype [measurable_singleton_class α] [fintype α] (p : pmf α) (s : set α) :
-  p.to_measure s = ∑ x, s.indicator (λ x, (p x : ℝ≥0∞)) x :=
+lemma to_measure_apply_fintype [fintype α] :
+  p.to_measure s = ↑(∑ x, s.indicator p x) :=
 (p.to_measure_apply_eq_to_outer_measure_apply s (set.finite.of_fintype s).measurable_set).trans
   (p.to_outer_measure_apply_fintype s)
+
+end measurable_singleton_class
 
 /-- The measure associated to a `pmf` by `to_measure` is a probability measure -/
 instance to_measure.is_probability_measure (p : pmf α) : is_probability_measure (p.to_measure) :=

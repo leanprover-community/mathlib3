@@ -86,8 +86,8 @@ section
 variables [decidable_eq I]
 variables [Π i, has_one (f i)] [Π i, has_one (g i)] [Π i, has_one (h i)]
 
-/-- The function supported at `i`, with value `x` there. -/
-@[to_additive single]
+/-- The function supported at `i`, with value `x` there, and `1` elsewhere. -/
+@[to_additive single "The function supported at `i`, with value `x` there, and `0` elsewhere." ]
 def mul_single (i : I) (x : f i) : Π i, f i :=
 function.update 1 i x
 

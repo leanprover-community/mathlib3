@@ -585,7 +585,7 @@ end
 end complete_space
 
 section compact
-variables [complete_space E] {T : E →L[𝕜] E}
+variables {T : E →L[𝕜] E}
 
 local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
 local notation `rayleigh_quotient_sphere` :=
@@ -820,3 +820,4 @@ end finite_dimensional
 
 end is_self_adjoint
 end inner_product_space
+#lint

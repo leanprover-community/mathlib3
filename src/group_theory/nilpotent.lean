@@ -711,32 +711,72 @@ begin
   exact upper_central_series_eq_top_iff_nilpotency_class_le.mpr h,
 end
 
-section pi
+section bounded_pi
+
+-- First the case of infinite products with bounded nilpotency class
+
+variables {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
+
+@[simp]
+lemma lower_central_series_pi_le (n : ℕ):
+  lower_central_series (Π i, Gs i) n ≤ subgroup.pi set.univ (λ i, lower_central_series (Gs i) n) :=
+begin
+  let pi := λ (f : Π i, subgroup (Gs i)), subgroup.pi set.univ f,
+  induction n with n ih,
+  { simp [pi_top] },
+  { calc lower_central_series (Π i, Gs i) n.succ
+        = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆           : rfl
+    ... ≤ ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆    : general_commutator_mono ih (le_refl _)
+    ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simp [pi, pi_top]
+    ... ≤ pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)    : general_commutator_pi_pi_le _ _
+    ... = pi (λ i, lower_central_series (Gs i) n.succ)      : rfl }
+end
+
+/-- products of nilpotent groups are nilpotent if their nipotency class is bounded -/
+instance is_nilpotent_pi_of_bounded_class [∀ i, is_nilpotent (Gs i)]
+  (n : ℕ) (h : ∀ i, group.nilpotency_class (Gs i) ≤ n) :
+  is_nilpotent (Π i, Gs i) :=
+begin
+  rw nilpotent_iff_lower_central_series,
+  refine ⟨n, _⟩,
+  rw eq_bot_iff,
+  apply le_trans (lower_central_series_pi_le _),
+  rw ← eq_bot_iff,
+  rw pi_eq_bot_iff,
+  intros i,
+  apply lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (h i),
+end
+
+end bounded_pi
+
+section finite_pi
+
+-- Now for finite products
 
 variables {η : Type*} [fintype η] [decidable_eq η] {Gs : η → Type*} [∀ i, group (Gs i)]
 
 @[simp]
-lemma lower_central_series_pi (n : ℕ):
+lemma lower_central_series_pi_of_fintype (n : ℕ):
   lower_central_series (Π i, Gs i) n = subgroup.pi set.univ (λ i, lower_central_series (Gs i) n) :=
 begin
   let pi := λ (f : Π i, subgroup (Gs i)), subgroup.pi set.univ f,
   induction n with n ih,
   { simp [pi_top] },
   { calc lower_central_series (Π i, Gs i) n.succ
-        = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆                  : rfl
-    ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆           : by rw ih
+        = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆          : rfl
+    ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆   : by rw ih
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simp [pi, pi_top]
-    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)           : general_commutator_pi_pi _ _
-    ... = pi (λ i, lower_central_series (Gs i) n.succ)             : rfl }
+    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)   : general_commutator_pi_pi_of_fintype _ _
+    ... = pi (λ i, lower_central_series (Gs i) n.succ)     : rfl }
 end
 
-/-- n-ary Products of nilpotent groups are nilpotent -/
+/-- n-ary products of nilpotent groups are nilpotent -/
 instance is_nilpotent_pi [∀ i, is_nilpotent (Gs i)] :
   is_nilpotent (Π i, Gs i) :=
 begin
   rw nilpotent_iff_lower_central_series,
   refine ⟨finset.univ.sup (λ i, group.nilpotency_class (Gs i)), _⟩,
-  rw lower_central_series_pi,
+  rw lower_central_series_pi_of_fintype,
   rw pi_eq_bot_iff,
   intros i,
   apply lower_central_series_eq_bot_iff_nilpotency_class_le.mpr,
@@ -751,10 +791,10 @@ begin
   apply eq_of_forall_ge_iff,
   intros k,
   simp only [finset.sup_le_iff, ← lower_central_series_eq_bot_iff_nilpotency_class_le,
-    lower_central_series_pi, pi_eq_bot_iff, finset.mem_univ, true_implies_iff ],
+    lower_central_series_pi_of_fintype, pi_eq_bot_iff, finset.mem_univ, true_implies_iff ],
 end
 
-end pi
+end finite_pi
 
 /-- A nilpotent subgroup is solvable -/
 @[priority 100]

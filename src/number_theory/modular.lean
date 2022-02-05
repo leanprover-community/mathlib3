@@ -144,7 +144,7 @@ begin
       rw [f_def, add_im, of_real_mul_im, of_real_im, add_zero, mul_left_comm,
         inv_mul_cancel hz, mul_one], },
     { show ((z : ℂ).im)⁻¹ * ((z : ℂ) * conj (f c)).im = c 1,
-      rw [f_def, ring_equiv.map_add, ring_equiv.map_mul, mul_add, mul_left_comm, mul_conj,
+      rw [f_def, ring_hom.map_add, ring_hom.map_mul, mul_add, mul_left_comm, mul_conj,
         conj_of_real, conj_of_real, ← of_real_mul, add_im, of_real_im, zero_add,
         inv_mul_eq_iff_eq_mul₀ hz],
       simp only [of_real_im, of_real_re, mul_im, zero_add, mul_zero] } },
@@ -179,11 +179,12 @@ some fixed `(c₀, d₀)`. -/
 linear_equiv.Pi_congr_right
 ![begin
     refine linear_map.general_linear_group.general_linear_equiv ℝ (fin 2 → ℝ)
-      (general_linear_group.to_linear (plane_conformal_matrix (cd 0 : ℝ) (cd 1 : ℝ) _)),
+      (general_linear_group.to_linear (plane_conformal_matrix (cd 0 : ℝ) (-(cd 1 : ℝ)) _)),
     norm_cast,
+    rw neg_sq,
     exact hcd.sq_add_sq_ne_zero
   end,
-  (linear_equiv.refl _ _)]
+  linear_equiv.refl ℝ (fin 2 → ℝ)]
 
 /-- The map `lc_row0` is proper, that is, preimages of cocompact sets are finite in
 `[[* , *], [c, d]]`.-/
@@ -418,14 +419,10 @@ end
 /-- Knowing that `3/4<4/(3c^4)` from `ineq_1`, and `c≠0`, we conclude that `c=1` or `c=-1`. -/
 lemma ineq_2 (c : ℤ) (hc₁ : (3 : ℝ)/4 < 4/ (3* c^4)) (hc₂ : c ≠ 0) : c = 1 ∨ c = -1 :=
 begin
-  rcases (le_or_gt (|c|) 1) with h | (h : 2 ≤ |c|),
+  rcases le_or_gt (|c|) 1 with h | (h : 2 ≤ |c|),
   { -- case |c| ≤ 1
-     cases int.is_zero_or_pm_one_of_le_one h with h₁ h₁, -- either c = 1 or c = 0 or c = -1
-    { right, assumption, },
-    { cases h₁,
-      { exfalso,
-        exact hc₂ h₁, },
-      left, assumption, }, },
+    obtain ⟨h1c, hc1⟩ : -1 ≤ c ∧ c ≤ 1 := abs_le.mp h,
+    interval_cases c; tauto },
   { -- case 2 ≤ |c|
     exfalso,
     have : 2^4 ≤ c^4,

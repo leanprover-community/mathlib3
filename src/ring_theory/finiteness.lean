@@ -660,7 +660,7 @@ begin
   have hincl : of' R M '' f.support ⊆
     ⋃ (g : add_monoid_algebra R M) (H : g ∈ S), of' R M '' g.support,
   { intros s hs,
-    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+    exact set.mem_Union₂.2 ⟨f, ⟨hf, hs⟩⟩ },
   exact adjoin_mono hincl (mem_adjoin_support f)
 end
 
@@ -816,7 +816,7 @@ begin
   have hincl : (of R M) '' f.support ⊆
     ⋃ (g : monoid_algebra R M) (H : g ∈ S), of R M '' g.support,
   { intros s hs,
-    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+    exact set.mem_Union₂.2 ⟨f, ⟨hf, hs⟩⟩ },
   exact adjoin_mono hincl (mem_adjoint_support f)
 end
 

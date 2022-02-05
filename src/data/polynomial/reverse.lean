@@ -75,6 +75,9 @@ begin
   repeat {rw add_tsub_cancel_left},
 end
 
+@[simp] lemma rev_at_zero (N : ℕ) : rev_at N 0 = N :=
+by simp [rev_at]
+
 /-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
 In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ..., 0]`.
 
@@ -130,6 +133,9 @@ begin
     rw [← (mem_support_C_mul_X_pow a), rev_at_invol], },
 end
 
+@[simp] lemma reflect_C (r : R) (N : ℕ) : reflect N (C r) = C r * X ^ N :=
+by conv_lhs { rw [← mul_one (C r), ← pow_zero X, reflect_C_mul_X_pow, rev_at_zero] }
+
 @[simp] lemma reflect_monomial (N n : ℕ) : reflect N ((X : polynomial R) ^ n) = X ^ (rev_at N n) :=
 by rw [← one_mul (X ^ n), ← one_mul (X ^ (rev_at N n)), ← C_1, reflect_C_mul_X_pow]
 
@@ -174,6 +180,36 @@ end
   (f g : polynomial R) {F G : ℕ} (Ff : f.nat_degree ≤ F) (Gg : g.nat_degree ≤ G) :
   reflect (F + G) (f * g) = reflect F f * reflect G g :=
 reflect_mul_induction _ _ F G f g f.support.card.le_succ g.support.card.le_succ Ff Gg
+
+section eval₂
+
+variables {S : Type*} [comm_semiring S]
+
+lemma eval₂_reflect_mul_pow (i : R →+* S) (x : S) [invertible x] (N : ℕ) (f : polynomial R)
+  (hf : f.nat_degree ≤ N) : eval₂ i (⅟x) (reflect N f) * x ^ N = eval₂ i x f :=
+begin
+  refine induction_with_nat_degree_le (λ f, eval₂ i (⅟x) (reflect N f) * x ^ N = eval₂ i x f)
+    _ _ _ _ f hf,
+  { simp },
+  { intros n r hr0 hnN,
+    simp only [rev_at_le hnN, reflect_C_mul_X_pow, eval₂_X_pow, eval₂_C, eval₂_mul],
+    conv in (x ^ N) { rw [← nat.sub_add_cancel hnN] },
+    rw [pow_add, ← mul_assoc, mul_assoc (i r), ← mul_pow, inv_of_mul_self, one_pow, mul_one] },
+  { intros,
+    simp [*, add_mul] }
+end
+
+lemma eval₂_reflect_eq_zero_iff (i : R →+* S) (x : S) [invertible x] (N : ℕ) (f : polynomial R)
+  (hf : f.nat_degree ≤ N) : eval₂ i (⅟x) (reflect N f) = 0 ↔ eval₂ i x f = 0 :=
+begin
+  conv_rhs { rw [← eval₂_reflect_mul_pow i x N f hf] },
+  split,
+  { intro h, rw [h, zero_mul] },
+  { intro h, rw [← mul_one (eval₂ i (⅟x) _), ← one_pow N, ← mul_inv_of_self x,
+      mul_pow, ← mul_assoc, h, zero_mul] }
+end
+
+end eval₂
 
 /-- The reverse of a polynomial f is the polynomial obtained by "reading f backwards".
 Even though this is not the actual definition, reverse f = f (1/X) * X ^ f.nat_degree. -/
@@ -268,6 +304,19 @@ begin
   { rw rev_at_le,
     exact nat.succ_le_iff.2 (pos_iff_ne_zero.2 hf) }
 end
+
+section eval₂
+variables {S : Type*} [comm_semiring S]
+
+lemma eval₂_reverse_mul_pow (i : R →+* S) (x : S) [invertible x] (f : polynomial R) :
+  eval₂ i (⅟x) (reverse f) * x ^ f.nat_degree = eval₂ i x f :=
+eval₂_reflect_mul_pow i _ _ f le_rfl
+
+@[simp] lemma eval₂_reverse_eq_zero_iff (i : R →+* S) (x : S) [invertible x] (f : polynomial R) :
+  eval₂ i (⅟x) (reverse f) = 0 ↔ eval₂ i x f = 0 :=
+eval₂_reflect_eq_zero_iff i x _ _ le_rfl
+
+end eval₂
 
 end semiring
 

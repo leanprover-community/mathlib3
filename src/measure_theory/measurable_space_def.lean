@@ -155,7 +155,7 @@ end fintype
 lemma measurable_set.bInter {f : β → set α} {s : set β} (hs : countable s)
   (h : ∀ b ∈ s, measurable_set (f b)) : measurable_set (⋂ b ∈ s, f b) :=
 measurable_set.compl_iff.1 $
-by { rw compl_bInter, exact measurable_set.bUnion hs (λ b hb, (h b hb).compl) }
+by { rw compl_Inter₂, exact measurable_set.bUnion hs (λ b hb, (h b hb).compl) }
 
 lemma set.finite.measurable_set_bInter {f : β → set α} {s : set β} (hs : finite s)
   (h : ∀ b ∈ s, measurable_set (f b)) : measurable_set (⋂ b ∈ s, f b) :=
@@ -282,7 +282,7 @@ lemma le_def {α} {a b : measurable_space α} :
   a ≤ b ↔ a.measurable_set' ≤ b.measurable_set' := iff.rfl
 
 instance : partial_order (measurable_space α) :=
-{ le_refl     := assume a b, le_refl _,
+{ le_refl     := assume a b, le_rfl,
   le_trans    := assume a b c hab hbc, le_def.mpr (le_trans hab hbc),
   le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩,
   ..measurable_space.has_le }

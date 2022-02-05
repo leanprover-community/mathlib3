@@ -327,12 +327,12 @@ end add_monoid_hom
 This extends from both `monoid_hom` and `monoid_with_zero_hom` in order to put the fields in a
 sensible order, even though `monoid_with_zero_hom` already extends `monoid_hom`. -/
 structure ring_hom (α : Type*) (β : Type*) [non_assoc_semiring α] [non_assoc_semiring β]
-  extends monoid_hom α β, add_monoid_hom α β, monoid_with_zero_hom α β
+  extends α →* β, α →+ β, α →*₀ β
 
 infixr ` →+* `:25 := ring_hom
 
-/-- Reinterpret a ring homomorphism `f : R →+* S` as a `monoid_with_zero_hom R S`.
-The `simp`-normal form is `(f : monoid_with_zero_hom R S)`. -/
+/-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid with zero homomorphism `R →*₀ S`.
+The `simp`-normal form is `(f : R →*₀ S)`. -/
 add_decl_doc ring_hom.to_monoid_with_zero_hom
 
 /-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid homomorphism `R →* S`.
@@ -1031,6 +1031,18 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
  is_right_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
 
+/-- A ring with no zero divisors is a cancel_monoid_with_zero.
+
+Note this is not an instance as it forms a typeclass loop. -/
+@[reducible]
+def no_zero_divisors.to_cancel_monoid_with_zero [ring α] [no_zero_divisors α] :
+  cancel_monoid_with_zero α :=
+{ mul_left_cancel_of_ne_zero := λ a b c ha,
+    @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
+  mul_right_cancel_of_ne_zero := λ a b c hb,
+    @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
+  .. (infer_instance : semiring α) }
+
 /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
 
@@ -1046,11 +1058,7 @@ variables [ring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
-{ mul_left_cancel_of_ne_zero := λ a b c ha,
-    @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
-  mul_right_cancel_of_ne_zero := λ a b c hb,
-    @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
-  .. (infer_instance : semiring α) }
+no_zero_divisors.to_cancel_monoid_with_zero
 
 /-- Pullback an `is_domain` instance along an injective function. -/
 protected theorem function.injective.is_domain [ring β] (f : β →+* α) (hf : injective f) :

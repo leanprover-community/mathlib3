@@ -149,7 +149,7 @@ begin
   simp only [has_fderiv_at, has_fderiv_at_filter, is_o_iff] at this,
   rcases eventually_nhds_iff_ball.1 (this (half_pos hε)) with ⟨R, R_pos, hR⟩,
   refine ⟨R, R_pos, λ r hr, _⟩,
-  have : r ∈ Ioc (r/2) r := ⟨half_lt_self hr.1, le_refl _⟩,
+  have : r ∈ Ioc (r/2) r := ⟨half_lt_self hr.1, le_rfl⟩,
   refine ⟨r, this, λ y hy z hz, _⟩,
   calc  ∥f z - f y - (fderiv 𝕜 f x) (z - y)∥
       = ∥(f z - f x - (fderiv 𝕜 f x) (z - x)) - (f y - f x - (fderiv 𝕜 f x) (y - x))∥ :
@@ -278,18 +278,18 @@ begin
     refine ⟨e, λ e' he', _⟩,
     rw [dist_comm, dist_eq_norm],
     calc ∥L0 e - L0 e'∥
-          ≤ 12 * ∥c∥ * (1/2)^e : M _ _ _ _ _ _ (le_refl _) (le_refl _) (le_refl _) (le_refl _) he'
+          ≤ 12 * ∥c∥ * (1/2)^e : M _ _ _ _ _ _ le_rfl le_rfl le_rfl le_rfl he'
       ... < 12 * ∥c∥ * (ε / (12 * ∥c∥)) :
-        mul_lt_mul' (le_refl _) he (le_of_lt P) (mul_pos (by norm_num) cpos)
+        mul_lt_mul' le_rfl he (le_of_lt P) (mul_pos (by norm_num) cpos)
       ... = ε : by { field_simp [(by norm_num : (12 : ℝ) ≠ 0), ne_of_gt cpos], ring } },
   /- As it is Cauchy, the sequence `L0` converges, to a limit `f'` in `K`.-/
   obtain ⟨f', f'K, hf'⟩ : ∃ f' ∈ K, tendsto L0 at_top (𝓝 f') :=
-    cauchy_seq_tendsto_of_is_complete hK (λ e, (hn e (n e) (n e) (le_refl _) (le_refl _)).1) this,
+    cauchy_seq_tendsto_of_is_complete hK (λ e, (hn e (n e) (n e) le_rfl le_rfl).1) this,
   have Lf' : ∀ e p, n e ≤ p → ∥L e (n e) p - f'∥ ≤ 12 * ∥c∥ * (1/2)^e,
   { assume e p hp,
     apply le_of_tendsto (tendsto_const_nhds.sub hf').norm,
     rw eventually_at_top,
-    exact ⟨e, λ e' he', M _ _ _ _ _ _ (le_refl _) hp (le_refl _) (le_refl _) he'⟩ },
+    exact ⟨e, λ e' he', M _ _ _ _ _ _ le_rfl hp le_rfl le_rfl he'⟩ },
   /- Let us show that `f` has derivative `f'` at `x`. -/
   have : has_fderiv_at f f' x,
   { simp only [has_fderiv_at_iff_is_o_nhds_zero, is_o_iff],
@@ -327,7 +327,7 @@ begin
     -- `f` is well approximated by `L e (n e) k` at the relevant scale
     -- (in fact, we use `m = k - 1` instead of `k` because of the precise definition of `A`).
     have J1 : ∥f (x + y) - f x - L e (n e) m ((x + y) - x)∥ ≤ (1/2) ^ e * (1/2) ^ m,
-    { apply le_of_mem_A (hn e (n e) m (le_refl _) m_ge).2.2,
+    { apply le_of_mem_A (hn e (n e) m le_rfl m_ge).2.2,
       { simp only [mem_closed_ball, dist_self],
         exact div_nonneg (le_of_lt P) (zero_le_two) },
       { simpa only [dist_eq_norm, add_sub_cancel', mem_closed_ball, pow_succ', mul_one_div]

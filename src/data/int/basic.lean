@@ -218,7 +218,7 @@ le_sub_iff_add_le
 ⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (le_of_lt_add_one (by exact hp)).antisymm hn,
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
-lemma ne_zero_ge_one {z : ℤ} (h₀: ¬ z = 0) : 1 ≤ |z| :=
+lemma one_le_abs {z : ℤ} (h₀: ¬ z = 0) : 1 ≤ |z| :=
 begin
   by_contra h,
   push_neg at h,
@@ -273,9 +273,9 @@ begin
     exact Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih },
   { induction n with n ih,
     { rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub],
-      exact Hp _ (le_refl _) H0 },
+      exact Hp _ le_rfl H0 },
     { rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub],
-      exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) (le_refl _))) ih } }
+      exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) le_rfl)) ih } }
 end
 
 /-! ### nat abs -/

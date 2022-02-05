@@ -196,6 +196,8 @@ instance {n : ℕ} : linear_order (fin n) :=
   decidable_eq := fin.decidable_eq _,
  ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
 
+instance {n : ℕ}  : partial_order (fin n) := linear_order.to_partial_order (fin n)
+
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
 def coe_embedding (n) : (fin n) ↪o ℕ :=
 ⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
@@ -580,7 +582,7 @@ set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl
   ((equiv.of_injective _ (cast_le h).injective).symm ⟨i, hi⟩ : ℕ) = i :=
 begin
   rw ← coe_cast_le,
-  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _)
 end
 
 @[simp] lemma cast_le_succ {m n : ℕ} (h : (m + 1) ≤ (n + 1)) (i : fin m) :
@@ -737,7 +739,7 @@ range_cast_le _
   ((equiv.of_injective cast_succ (cast_succ_injective _)).symm ⟨i, hi⟩ : ℕ) = i :=
 begin
   rw ← coe_cast_succ,
-  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _)
 end
 
 lemma succ_cast_succ {n : ℕ} (i : fin n) :

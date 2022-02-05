@@ -216,6 +216,10 @@ funext $ λa, mul_indicator_union_of_not_mem_inter (λ ha, h ha) _
   mul_indicator s (λa, f a * g a) = λa, mul_indicator s f a * mul_indicator s g a :=
 by { funext, simp only [mul_indicator], split_ifs, { refl }, rw mul_one }
 
+@[to_additive] lemma mul_indicator_mul' (s : set α) (f g : α → M) :
+  mul_indicator s (f * g) = mul_indicator s f * mul_indicator s g :=
+mul_indicator_mul s f g
+
 @[simp, to_additive] lemma mul_indicator_compl_mul_self_apply (s : set α) (f : α → M) (a : α) :
   mul_indicator sᶜ f a * mul_indicator s f a = f a :=
 classical.by_cases (λ ha : a ∈ s, by simp [ha]) (λ ha, by simp [ha])
@@ -284,9 +288,14 @@ variables {G : Type*} [group G] {s t : set α} {f g : α → G} {a : α}
   mul_indicator s (λa, (f a)⁻¹) = λa, (mul_indicator s f a)⁻¹ :=
 mul_indicator_inv' s f
 
-lemma indicator_sub {G} [add_group G] (s : set α) (f g : α → G) :
-  indicator s (λa, f a - g a) = λa, indicator s f a - indicator s g a :=
-(indicator_hom G s).map_sub f g
+@[to_additive] lemma mul_indicator_div (s : set α) (f g : α → G) :
+  mul_indicator s (λ a, f a / g a) =
+  λ a, mul_indicator s f a / mul_indicator s g a :=
+(mul_indicator_hom G s).map_div f g
+
+@[to_additive] lemma mul_indicator_div' (s : set α) (f g : α → G) :
+  mul_indicator s (f / g) = mul_indicator s f / mul_indicator s g :=
+mul_indicator_div s f g
 
 @[to_additive indicator_compl'] lemma mul_indicator_compl (s : set α) (f : α → G) :
   mul_indicator sᶜ f = f * (mul_indicator s f)⁻¹ :=
@@ -410,7 +419,7 @@ section monoid_with_zero
 variables [monoid_with_zero M]
 
 lemma indicator_prod_one {s : set α} {t : set β} {x : α} {y : β} :
-  (s.prod t).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
+  (s ×ˢ t : set _).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
 by simp [indicator, ← ite_and]
 
 end monoid_with_zero
@@ -451,7 +460,7 @@ mul_indicator_apply_le_one (h a)
 
 @[to_additive] lemma mul_indicator_le_mul_indicator (h : f a ≤ g a) :
   mul_indicator s f a ≤ mul_indicator s g a :=
-mul_indicator_rel_mul_indicator (le_refl _) (λ _, h)
+mul_indicator_rel_mul_indicator le_rfl (λ _, h)
 
 attribute [mono] mul_indicator_le_mul_indicator indicator_le_indicator
 
@@ -462,7 +471,7 @@ mul_indicator_apply_le' (λ ha, le_mul_indicator_apply (λ _, le_rfl) (λ hat, (
   (λ ha, one_le_mul_indicator_apply (λ _, hf _))
 
 @[to_additive] lemma mul_indicator_le_self' (hf : ∀ x ∉ s, 1 ≤ f x) : mul_indicator s f ≤ f :=
-mul_indicator_le' (λ _ _, le_refl _) hf
+mul_indicator_le' (λ _ _, le_rfl) hf
 
 @[to_additive] lemma mul_indicator_Union_apply {ι M} [complete_lattice M] [has_one M]
   (h1 : (⊥:M) = 1) (s : ι → set α) (f : α → M) (x : α) :

@@ -253,7 +253,6 @@ begin
   replace hQ := is_fraction_ring.injective R K hQ,
 
   refine prime.dvd_of_pow_dvd_pow_mul_pow_of_square_not_dvd B.dim_pos hp _ hndiv,
-  obtain ⟨x, hx⟩ := mem_span_singleton.1 (hei.mem (minpoly.nat_degree_pos hBint)),
   have hppdiv : p ^ B.dim ∣ p ^ B.dim * r := dvd_mul_of_dvd_left dvd_rfl _,
   rw [← hQ, mul_comm, mul_assoc, ← units.coe_neg_one, ← units.coe_pow,
     is_unit.dvd_mul_left _ _ _ ⟨_, rfl⟩, mul_comm] at hppdiv,

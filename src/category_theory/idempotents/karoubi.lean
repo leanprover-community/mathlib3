@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joël Riou
 -/
 
-import category_theory.pseudoabelian.basic
+import category_theory.idempotents.basic
 import category_theory.preadditive.additive_functor
 import category_theory.equivalence
 

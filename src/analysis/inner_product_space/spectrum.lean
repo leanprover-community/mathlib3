@@ -8,6 +8,7 @@ import analysis.inner_product_space.pi_L2
 import algebra.star.self_adjoint
 import analysis.inner_product_space.adjoint
 import analysis.complex.polynomial
+import analysis.inner_product_space.l2_space
 
 /-! # Spectral theory of self-adjoint operators
 
@@ -58,7 +59,6 @@ local attribute [instance] fact_one_le_two_real fact_one_le_two_ennreal
 open_locale big_operators complex_conjugate
 open module.End
 
--- move this to general normed space theory?
 instance [complete_space E] {T : E →L[𝕜] E} (μ : 𝕜) :
   complete_space (eigenspace (T : E →ₗ[𝕜] E) μ) :=
 (T - μ • continuous_linear_map.id 𝕜 E).is_closed_ker.complete_space_coe
@@ -476,10 +476,12 @@ end inner_product_space
 namespace inner_product_space
 namespace is_self_adjoint
 
+
 -- note: A compact operator is automatically continuous, i.e. of the form `E →L[𝕜] E`.  In this
 -- section we use some facts about continuous linear operators, so we represent `T` as `E →L[𝕜] E`.
 -- Is it better to do it this way or to keep `T` of the type `E →ₗ[𝕜] E` and re-prove those facts?
-variables {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (hT_cpct : compact_map T)
+variables [cplt : complete_space E] {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
+  (hT_cpct : compact_map T)
 
 -- move this
 def _root_.continuous_linear_map.restrict {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M]
@@ -493,9 +495,7 @@ def _root_.continuous_linear_map.restrict {R : Type*} {M : Type*} [semiring R] [
   .. linear_map.restrict (f : M →ₗ[R] M) hf }
 
 
-include hT hT_cpct
-
-#check compact_map.restrict_invariant'
+include hT hT_cpct cplt
 
 /-- The mutual orthogonal complement of the eigenspaces of a compact self-adjoint operator on an
 inner product space is trivial. -/

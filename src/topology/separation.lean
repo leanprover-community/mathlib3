@@ -343,6 +343,9 @@ lemma t1_space_iff_continuous_cofinite_of {α : Type*} [topological_space α] :
   t1_space α ↔ continuous (@cofinite_topology.of α) :=
 (t1_space_tfae α).out 0 3
 
+lemma cofinite_topology.continuous_of [t1_space α] : continuous (@cofinite_topology.of α) :=
+t1_space_iff_continuous_cofinite_of.mp ‹_›
+
 lemma t1_space_iff_exists_open : t1_space α ↔
   ∀ (x y), x ≠ y → (∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U) :=
 (t1_space_tfae α).out 0 6

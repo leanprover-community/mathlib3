@@ -23,9 +23,11 @@ open finite_dimensional
 rfl
 
 variables (p : ℕ) [fact p.prime]
-variables (k : Type*) [comm_ring k] [is_domain k] [char_p k p] [perfect_ring k p]
-
+variables (k : Type*) [comm_ring k]
 notation `K(` p`,` k`)` := fraction_ring (witt_vector p k)
+
+section perfect_ring
+variables [is_domain k] [char_p k p] [perfect_ring k p]
 
 /-! ### Frobenius-linear maps -/
 
@@ -62,24 +64,35 @@ variables (V)
 
 notation `Φ(` p`,` k`)` := isocrystal_frob' p k
 
+@[nolint has_inhabited_instance]
 structure isocrystal_hom extends V →ₗ[K(p, k)] V₂ :=
 ( frob_equivariant : ∀ x : V, Φ(p, k) (to_linear_map x) = to_linear_map (Φ(p, k) x) )
 
+@[nolint has_inhabited_instance]
 structure isocrystal_equiv extends V ≃ₗ[K(p, k)] V₂ :=
 ( frob_equivariant : ∀ x : V, Φ(p, k) (to_linear_equiv x) = to_linear_equiv (Φ(p, k) x) )
 
 notation M ` →ᶠⁱ[`:50 p `,` k `] ` M₂ := isocrystal_hom p k M M₂
 notation M ` ≃ᶠⁱ[`:50 p `,` k `] ` M₂ := isocrystal_equiv p k M M₂
 
+
+end perfect_ring
+
 /-! ### Classification of isocrystals in dimension 1 -/
 
 -- this is too complicated for typeclass search to find unassisted
-instance : module K(p, k) K(p, k) := semiring.to_module
+local attribute [instance]
+def foo₀_module : module K(p, k) K(p, k) := semiring.to_module
 
 /-- Type synonym for `K(p, k)` to carry the standard `m`-indexed 1-dimensional isocrystal structure.
 -/
-@[derive [add_comm_group, module K(p, k)]] def standard_one_dim_isocrystal (m : ℤ) : Type* :=
+@[nolint unused_arguments has_inhabited_instance, derive [add_comm_group, module K(p, k)]]
+def standard_one_dim_isocrystal (m : ℤ) : Type* :=
 K(p, k)
+
+section perfect_ring
+variables [is_domain k] [char_p k p] [perfect_ring k p]
+
 
 instance (m : ℤ) : isocrystal p k (standard_one_dim_isocrystal p k m) :=
 { frob := (foo₀ p k).to_semilinear_equiv.trans
@@ -122,10 +135,15 @@ begin
       rw linear_map.span_singleton_eq_range } },
   refine ⟨⟨(linear_equiv.smul_of_ne_zero K(p, k) _ _ hb).trans F, _⟩⟩,
   intros c,
-  simp [F, F₀, foo, hax, ← mul_smul],
+  simp only [foo, hax, ←mul_smul, linear_equiv.trans_apply, linear_equiv.smul_of_ne_zero_apply,
+    algebra.id.smul_eq_mul, linear_equiv.of_bijective_apply, linear_map.to_span_singleton_apply,
+    linear_equiv.map_smulₛₗ, ring_equiv.coe_to_ring_hom, ring_equiv.map_mul,
+    frobenius_standard_one_dim_isocrystal_apply],
   congr' 1,
   transitivity (φ(p,k) b * a) * φ(p,k) c,
   { ring },
   { rw hmb,
     ring },
 end
+
+end perfect_ring

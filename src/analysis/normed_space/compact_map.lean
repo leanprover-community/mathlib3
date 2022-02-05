@@ -18,7 +18,7 @@ A map is *compact* if the image of a bounded set is relatively compact, i.e. its
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] -- needed in factor
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {F : Type*} [normed_group F]
 
 
 section
@@ -79,6 +79,8 @@ lemma image_rel_compact_of_rel_compact {f : E → F}  {s : set E} (hc : continuo
   (hs : is_compact (closure s)) : is_compact (closure (f '' s)) :=
 by simpa only [← image_closure_of_compact hs hc] using is_compact.image_of_continuous_on hs hc
 
+variable [normed_space 𝕜 F]
+
 lemma metric.bounded_image (f : E →L[𝕜] F) {s : set E} (hs : metric.bounded s) :
   metric.bounded (f '' s) :=
 begin
@@ -95,7 +97,7 @@ begin
 end
 
 lemma compact_map_continuous_comp_compact {E' F' : Type*} [normed_group E'] [normed_space 𝕜 E']
-  [normed_group F'] [normed_space 𝕜 F'] (f : E' →L[𝕜] E) (g : F → F') (u : E →ₗ[𝕜] F)
+  [normed_group F'] (f : E' →L[𝕜] E) (g : F → F') (u : E →ₗ[𝕜] F)
   (hu : compact_map u) (hg :  continuous_on g (closure (u ∘ₗ f.to_linear_map).range)) :
   compact_map (λ x, g ((u ∘ₗ f.to_linear_map) x)) :=
 begin

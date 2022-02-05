@@ -82,7 +82,7 @@ calc map prod.swap ((𝓤 α).lift' gen) =
       begin
         have h := λ(p:Cauchy α×Cauchy α), @filter.prod_comm _ _ (p.2.val) (p.1.val),
         simp [function.comp, h, -subtype.val_eq_coe, mem_map'],
-        exact le_refl _,
+        exact le_rfl,
       end
 
 private lemma comp_rel_gen_gen_subset_gen_comp_rel {s t : set (α×α)} : comp_rel (gen s) (gen t) ⊆
@@ -120,7 +120,7 @@ calc ((𝓤 α).lift' gen).lift' (λs, comp_rel s s) =
     exact (monotone_comp_rel monotone_id monotone_id),
     exact monotone_gen
   end
-  ... ≤ (𝓤 α).lift' gen : lift'_mono comp_le_uniformity (le_refl _)
+  ... ≤ (𝓤 α).lift' gen : lift'_mono comp_le_uniformity le_rfl
 
 instance : uniform_space (Cauchy α) :=
 uniform_space.of_core

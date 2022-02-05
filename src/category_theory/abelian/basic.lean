@@ -139,10 +139,13 @@ def non_preadditive_abelian : non_preadditive_abelian C := { ..‹abelian C› }
 end to_non_preadditive_abelian
 
 section strong
-local attribute [instance] abelian.normal_epi
+local attribute [instance] abelian.normal_epi abelian.normal_mono
 
 /-- In an abelian category, every epimorphism is strong. -/
 lemma strong_epi_of_epi {P Q : C} (f : P ⟶ Q) [epi f] : strong_epi f := by apply_instance
+
+/-- In an abelian category, every monomorphism is strong. -/
+lemma strong_mono_of_mono {P Q : C} (f : P ⟶ Q) [mono f] : strong_mono f := by apply_instance
 
 end strong
 

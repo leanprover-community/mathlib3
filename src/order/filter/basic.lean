@@ -538,7 +538,8 @@ begin
   refine ⟨I, If, λ i, if hi : i ∈ I then V ⟨i, hi⟩ else univ, λ i, _, λ i hi, _, _⟩,
   { split_ifs, exacts [hV _, univ_mem] },
   { exact dif_neg hi },
-  { simp [Inter_dite, bInter_eq_Inter] }
+  { simp only [Inter_dite, bInter_eq_Inter, dif_pos (subtype.coe_prop _), subtype.coe_eta,
+      Inter_univ, inter_univ, eq_self_iff_true, true_and] }
 end
 
 lemma exists_Inter_of_mem_infi {ι : Type*} {α : Type*} {f : ι → filter α} {s}

@@ -171,7 +171,7 @@ begin
           int.nat_abs_of_nat] } } },
   exact multiset.map_eq_map_of_bij_of_nodup _ _ (finset.nodup _) (finset.nodup _)
     (λ x _, (a * x : zmod p).val_min_abs.nat_abs) hmem (λ _ _, rfl)
-    (inj_on_of_surj_on_of_card_le _ hmem hsurj (le_refl _)) hsurj
+    (inj_on_of_surj_on_of_card_le _ hmem hsurj le_rfl) hsurj
 end
 
 private lemma gauss_lemma_aux₁ (p : ℕ) [fact p.prime] [fact (p % 2 = 1)]
@@ -433,8 +433,6 @@ have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,
 have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
 by rw [eisenstein_lemma q hp1.1 hpq0, eisenstein_lemma p hq1.1 hqp0,
   ← pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
-
-local attribute [instance] nat.fact_prime_two
 
 lemma legendre_sym_two [hp1 : fact (p % 2 = 1)] : legendre_sym 2 p = (-1) ^ (p / 4 + p / 2) :=
 have hp2 : p ≠ 2, from mt (congr_arg (% 2)) (by simpa using hp1.1),

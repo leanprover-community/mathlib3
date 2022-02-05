@@ -35,7 +35,17 @@ abbreviation is_terminal (X : C) := is_limit (as_empty_cone.{v₁} X)
 /-- `X` is initial if the cocone it induces on the empty diagram is colimiting. -/
 abbreviation is_initial (X : C) := is_colimit (as_empty_cocone.{v₁} X)
 
-/-- An object `Y` is terminal if for every `X` there is a unique morphism `X ⟶ Y`. -/
+/-- An object `Y` is terminal iff for every `X` there is a unique morphism `X ⟶ Y`. -/
+def is_terminal_equiv_unique (F : discrete.{v₁} pempty ⥤ C) (Y : C) :
+  is_limit (⟨Y, by tidy⟩ : cone F) ≃ ∀ X : C, unique (X ⟶ Y) :=
+{ to_fun := λ t X, { default := t.lift ⟨X, by tidy⟩,
+    uniq := λ f, t.uniq ⟨X, by tidy⟩ f (by tidy) },
+  inv_fun := λ u, { lift := λ s, (u s.X).default, uniq' := λ s _ _, (u s.X).2 _ },
+  left_inv := by tidy,
+  right_inv := by tidy }
+
+/-- An object `Y` is terminal if for every `X` there is a unique morphism `X ⟶ Y`
+    (as an instance). -/
 def is_terminal.of_unique (Y : C) [h : Π X : C, unique (X ⟶ Y)] : is_terminal Y :=
 { lift := λ s, (h s.X).default }
 
@@ -47,9 +57,19 @@ is_terminal.of_unique _
 def is_terminal.of_iso {Y Z : C} (hY : is_terminal Y) (i : Y ≅ Z) : is_terminal Z :=
 is_limit.of_iso_limit hY
 { hom := { hom := i.hom },
-  inv := { hom := i.symm.hom } }
+  inv := { hom := i.inv } }
 
-/-- An object `X` is initial if for every `Y` there is a unique morphism `X ⟶ Y`. -/
+/-- An object `X` is initial iff for every `Y` there is a unique morphism `X ⟶ Y`. -/
+def is_initial_equiv_unique (F : discrete.{v₁} pempty ⥤ C) (X : C) :
+  is_colimit (⟨X, by tidy⟩ : cocone F) ≃ ∀ Y : C, unique (X ⟶ Y) :=
+{ to_fun := λ t X, { default := t.desc ⟨X, by tidy⟩,
+    uniq := λ f, t.uniq ⟨X, by tidy⟩ f (by tidy) },
+  inv_fun := λ u, { desc := λ s, (u s.X).default, uniq' := λ s _ _, (u s.X).2 _ },
+  left_inv := by tidy,
+  right_inv := by tidy }
+
+/-- An object `X` is initial if for every `Y` there is a unique morphism `X ⟶ Y`
+    (as an instance). -/
 def is_initial.of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : is_initial X :=
 { desc := λ s, (h s.X).default }
 
@@ -61,7 +81,7 @@ is_initial.of_unique _
 def is_initial.of_iso {X Y : C} (hX : is_initial X) (i : X ≅ Y) : is_initial Y :=
 is_colimit.of_iso_colimit hX
 { hom := { hom := i.hom },
-  inv := { hom := i.symm.hom } }
+  inv := { hom := i.inv } }
 
 /-- Give the morphism to a terminal object from any other. -/
 def is_terminal.from {X : C} (t : is_terminal X) (Y : C) : Y ⟶ X :=
@@ -211,16 +231,12 @@ variables {C}
 /-- We can more explicitly show that a category has a terminal object by specifying the object,
 and showing there is a unique morphism to it from any other object. -/
 lemma has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_terminal C :=
-{ has_limit := λ F, has_limit.mk
-  { cone     := { X := X, π := { app := pempty.rec _ } },
-    is_limit := { lift := λ s, (h s.X).default } } }
+{ has_limit := λ F, has_limit.mk ⟨_, (is_terminal_equiv_unique F X).inv_fun h⟩ }
 
 /-- We can more explicitly show that a category has an initial object by specifying the object,
 and showing there is a unique morphism from it to any other object. -/
 lemma has_initial_of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : has_initial C :=
-{ has_colimit := λ F, has_colimit.mk
-  { cocone     := { X := X, ι := { app := pempty.rec _ } },
-    is_colimit := { desc := λ s, (h s.X).default } } }
+{ has_colimit := λ F, has_colimit.mk ⟨_, (is_initial_equiv_unique F X).inv_fun h⟩ }
 
 /-- The map from an object to the terminal object. -/
 abbreviation terminal.from [has_terminal C] (P : C) : P ⟶ ⊤_ C :=
@@ -229,21 +245,6 @@ limit.lift (functor.empty C) (as_empty_cone P)
 abbreviation initial.to [has_initial C] (P : C) : ⊥_ C ⟶ P :=
 colimit.desc (functor.empty C) (as_empty_cocone P)
 
-instance unique_to_terminal [has_terminal C] (P : C) : unique (P ⟶ ⊤_ C) :=
-{ default := terminal.from P,
-  uniq := λ m, by { apply limit.hom_ext, rintro ⟨⟩ } }
-
-instance unique_from_initial [has_initial C] (P : C) : unique (⊥_ C ⟶ P) :=
-{ default := initial.to P,
-  uniq := λ m, by { apply colimit.hom_ext, rintro ⟨⟩ } }
-
-@[simp] lemma terminal.comp_from [has_terminal C] {P Q : C} (f : P ⟶ Q) :
-  f ≫ terminal.from Q = terminal.from P :=
-by tidy
-@[simp] lemma initial.to_comp [has_initial C] {P Q : C} (f : P ⟶ Q) :
-  initial.to P ≫ f = initial.to Q :=
-by tidy
-
 /-- A terminal object is terminal. -/
 def terminal_is_terminal [has_terminal C] : is_terminal (⊤_ C) :=
 { lift := λ s, terminal.from _ }
@@ -251,6 +252,19 @@ def terminal_is_terminal [has_terminal C] : is_terminal (⊤_ C) :=
 /-- An initial object is initial. -/
 def initial_is_initial [has_initial C] : is_initial (⊥_ C) :=
 { desc := λ s, initial.to _ }
+
+instance unique_to_terminal [has_terminal C] (P : C) : unique (P ⟶ ⊤_ C) :=
+is_terminal_equiv_unique _ (⊤_ C) terminal_is_terminal P
+
+instance unique_from_initial [has_initial C] (P : C) : unique (⊥_ C ⟶ P) :=
+is_initial_equiv_unique _ (⊥_ C) initial_is_initial P
+
+@[simp] lemma terminal.comp_from [has_terminal C] {P Q : C} (f : P ⟶ Q) :
+  f ≫ terminal.from Q = terminal.from P :=
+by tidy
+@[simp] lemma initial.to_comp [has_initial C] {P Q : C} (f : P ⟶ Q) :
+  initial.to P ≫ f = initial.to Q :=
+by tidy
 
 /-- Any morphism from a terminal object is split mono. -/
 instance terminal.split_mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : split_mono f :=

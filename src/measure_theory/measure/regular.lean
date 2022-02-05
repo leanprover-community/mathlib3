@@ -422,20 +422,20 @@ end
 
 /-- In a metric space (or even a pseudo emetric space), an open set can be approximated from inside
 by closed sets. -/
-lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X] [measurable_space X]
-  [opens_measurable_space X] (μ : measure X) :
+lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X]
+  [measurable_space X] (μ : measure X) :
   inner_regular μ is_closed is_open :=
 begin
   intros U hU r hr,
   rcases hU.exists_Union_is_closed with ⟨F, F_closed, -, rfl, F_mono⟩,
-  rw measure_Union_eq_supr (λ n, (F_closed n).measurable_set) F_mono.directed_le at hr,
+  rw measure_Union_eq_supr F_mono.directed_le at hr,
   rcases lt_supr_iff.1 hr with ⟨n, hn⟩,
   exact ⟨F n, subset_Union _ _, F_closed n, hn⟩
 end
 
 /-- In a `σ`-compact space, any closed set can be approximated by a compact subset. -/
-lemma is_compact_is_closed {X : Type*} [topological_space X] [t2_space X]
-  [sigma_compact_space X] [measurable_space X] [opens_measurable_space X] (μ : measure X) :
+lemma is_compact_is_closed {X : Type*} [topological_space X]
+  [sigma_compact_space X] [measurable_space X] (μ : measure X) :
   inner_regular μ is_compact is_closed :=
 begin
   intros F hF r hr,
@@ -444,8 +444,8 @@ begin
   have hBU : (⋃ n, F ∩ B n) = F, by rw [← inter_Union, Union_compact_covering, set.inter_univ],
   have : μ F = ⨆ n, μ (F ∩ B n),
   { rw [← measure_Union_eq_supr, hBU],
-    exacts [λ n, (hBc n).measurable_set, monotone.directed_le $
-      λ m n h, inter_subset_inter_right _ (compact_covering_subset _ h)] },
+    exact monotone.directed_le
+      (λ m n h, inter_subset_inter_right _ (compact_covering_subset _ h)) },
   rw this at hr, rcases lt_supr_iff.1 hr with ⟨n, hn⟩,
   exact ⟨_, inter_subset_left _ _, hBc n, hn⟩
 end

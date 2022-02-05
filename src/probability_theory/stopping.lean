@@ -117,7 +117,7 @@ def natural (u : ι → α → β) (hum : ∀ i, measurable (u i)) : filtration 
 
 lemma adapted_natural {u : ι → α → β} (hum : ∀ i, measurable[m] (u i)) :
   adapted (natural u hum) u :=
-λ i, measurable.le (le_bsupr_of_le i (le_refl i) (le_refl _)) (λ s hs, ⟨s, hs, rfl⟩)
+λ i, measurable.le (le_bsupr_of_le i (le_refl i) le_rfl) (λ s hs, ⟨s, hs, rfl⟩)
 
 end filtration
 
@@ -286,7 +286,7 @@ begin
   rw (_ : s = ⋃ i, s ∩ {x | τ x ≤ i}),
   { exact measurable_set.Union (λ i, f.le i _ (hs i)) },
   { ext x, split; rw set.mem_Union,
-    { exact λ hx, ⟨τ x, hx, le_refl _⟩ },
+    { exact λ hx, ⟨τ x, hx, le_rfl⟩ },
     { rintro ⟨_, hx, _⟩,
       exact hx } }
 end

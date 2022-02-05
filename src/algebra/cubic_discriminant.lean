@@ -58,17 +58,26 @@ def to_poly (P : cubic R) : polynomial R := C P.a * X ^ 3 + C P.b * X ^ 2 + C P.
 section coeff
 
 private lemma coeffs :
-  P.to_poly.coeff 3 = P.a ∧ P.to_poly.coeff 2 = P.b ∧ P.to_poly.coeff 1 = P.c
-    ∧ P.to_poly.coeff 0 = P.d :=
-by simp [to_poly, coeff_add, coeff_C, coeff_C_mul_X, coeff_C_mul_X_pow]
+  (∀ n > 3, P.to_poly.coeff n = 0) ∧ P.to_poly.coeff 3 = P.a ∧ P.to_poly.coeff 2 = P.b
+    ∧ P.to_poly.coeff 1 = P.c ∧ P.to_poly.coeff 0 = P.d :=
+begin
+  simp only [to_poly, coeff_add, coeff_C, coeff_C_mul_X, coeff_C_mul_X_pow],
+  norm_num,
+  intros n hn,
+  repeat { rw [if_neg] },
+  any_goals { linarith only [hn] },
+  repeat { rw [zero_add] }
+end
 
-@[simp] lemma coeff_three : P.to_poly.coeff 3 = P.a := coeffs.1
+@[simp] lemma coeff_gt_three (n : ℕ) (hn : 3 < n) : P.to_poly.coeff n = 0 := coeffs.1 n hn
 
-@[simp] lemma coeff_two : P.to_poly.coeff 2 = P.b := coeffs.2.1
+@[simp] lemma coeff_three : P.to_poly.coeff 3 = P.a := coeffs.2.1
 
-@[simp] lemma coeff_one : P.to_poly.coeff 1 = P.c := coeffs.2.2.1
+@[simp] lemma coeff_two : P.to_poly.coeff 2 = P.b := coeffs.2.2.1
 
-@[simp] lemma coeff_zero : P.to_poly.coeff 0 = P.d := coeffs.2.2.2
+@[simp] lemma coeff_one : P.to_poly.coeff 1 = P.c := coeffs.2.2.2.1
+
+@[simp] lemma coeff_zero : P.to_poly.coeff 0 = P.d := coeffs.2.2.2.2
 
 lemma a_of_eq {Q : cubic R} (h : P.to_poly = Q.to_poly) : P.a = Q.a :=
 by rw [← coeff_three, h, coeff_three]
@@ -120,6 +129,19 @@ end coeff
 /-! ### Degrees -/
 
 section degree
+
+/-- The equivalence between cubic polynomials and polynomials of degree at most three. -/
+@[simps] def equiv : cubic R ≃ {p : polynomial R // p.degree ≤ 3} :=
+{ to_fun    := λ P, ⟨P.to_poly, degree_cubic_le⟩,
+  inv_fun   := λ f, ⟨coeff f 3, coeff f 2, coeff f 1, coeff f 0⟩,
+  left_inv  := λ P, by ext; simp only [subtype.coe_mk, coeffs],
+  right_inv := λ f,
+  begin
+    ext (_ | _ | _ | _ | n); simp only [subtype.coe_mk, coeffs],
+    have h3 : 3 < n + 4 := by linarith only,
+    rw [coeff_gt_three _ h3,
+        (degree_le_iff_coeff_zero (f : polynomial R) 3).mp f.2 _ $ with_bot.coe_lt_coe.mpr h3]
+  end }
 
 lemma degree (ha : P.a ≠ 0) : P.to_poly.degree = 3 := degree_cubic ha
 

@@ -100,7 +100,7 @@ lemma mul_single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : mul_single i x i
 function.update_noteq h x _
 
 /-- Abbreviation for `mul_single_eq_of_ne h.symm`, for ease of use by `simp`. -/
-@[simp, to_additive "Abbreviation for `single_eq_of_ne h.symm`, for ease of
+@[simp, to_additive single_eq_of_ne' "Abbreviation for `single_eq_of_ne h.symm`, for ease of
 use by `simp`."]
 lemma mul_single_eq_of_ne' {i i' : I} (h : i ≠ i') (x : f i) : mul_single i x i' = 1 :=
 mul_single_eq_of_ne h.symm x

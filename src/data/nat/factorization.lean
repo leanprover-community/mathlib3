@@ -203,9 +203,9 @@ lemma prime.pow_dvd_iff_le_factorization {p k n : ℕ} (pp : prime p) (hn : n �
   p ^ k ∣ n ↔ k ≤ n.factorization p :=
 by rw [←factorization_le_iff_dvd (pow_pos pp.pos k).ne' hn, pp.factorization_pow, single_le_iff]
 
-lemma prime.pow_dvd_iff_le_factorization {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :
+lemma prime.pow_dvd_multiplicity_iff {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :
   p ^ k ∣ n ↔ p ^ k ∣ p ^ n.factorization p :=
-by rw [pow_dvd_pow_iff_le_right hp.one_lt, prime_pow_dvd_iff_le_factorization hp hpos]
+by rw [pow_dvd_pow_iff_le_right pp.one_lt, pp.pow_dvd_iff_le_factorization hn]
 
 lemma exists_factorization_lt_of_lt {a b : ℕ} (ha : a ≠ 0) (hab : a < b) :
   ∃ p : ℕ, a.factorization p < b.factorization p :=

@@ -191,7 +191,7 @@ end polynomial
 
 section is_integral
 
-variables {S : Type w} (K : Type v) (L : Type z) {p : R}
+variables {S : Type w} {K : Type v} {L : Type z} {p : R}
 variables [comm_ring R] [comm_ring S] [algebra R S] [field K] [field L]
 variables [algebra K L] [algebra R L] [algebra R K] [is_scalar_tower R K L] [is_separable K L]
 variables [is_domain R] [normalized_gcd_monoid R] [is_fraction_ring R K] [is_integrally_closed R]

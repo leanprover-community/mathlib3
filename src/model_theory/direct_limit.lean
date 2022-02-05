@@ -5,7 +5,7 @@ Authors: Aaron Anderson
 -/
 import data.fintype.order
 import algebra.direct_limit
-import model_theory.basic
+import model_theory.quotients
 
 /-!
 # Direct Limits of First-Order Structures

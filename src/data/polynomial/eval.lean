@@ -557,7 +557,7 @@ lemma degree_map_le (p : polynomial R) : degree (p.map f) ≤ degree p :=
 begin
   apply (degree_le_iff_coeff_zero _ _).2 (λ m hm, _),
   rw degree_lt_iff_coeff_zero at hm,
-  simp [hm m (le_refl _)],
+  simp [hm m le_rfl],
 end
 
 lemma nat_degree_map_le (p : polynomial R) : nat_degree (p.map f) ≤ nat_degree p :=

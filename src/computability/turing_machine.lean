@@ -2315,7 +2315,7 @@ theorem tr_respects_aux {q v T k} {S : Π k, list (Γ k)}
       v (tape.mk' ∅ (add_bottom T))) b :=
 begin
   simp only [tr_normal_run, step_run],
-  have hgo := tr_respects_aux₁ M o q v (hT k) _ (le_refl _),
+  have hgo := tr_respects_aux₁ M o q v (hT k) _ le_rfl,
   obtain ⟨T', hT', hrun⟩ := tr_respects_aux₂ hT o,
   have hret := tr_respects_aux₃ M _,
   have := hgo.tail' rfl,

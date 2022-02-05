@@ -141,8 +141,18 @@ lemma single_eq_zero : (single a (0 : R)) = 0 := (single a).map_zero
 lemma single_injective (a : Γ) : function.injective (single a : R → hahn_series Γ R) :=
 λ r s rs, by rw [← single_coeff_same a r, ← single_coeff_same a s, rs]
 
+
 lemma single_ne_zero (h : r ≠ 0) : single a r ≠ 0 :=
 λ con, h (single_injective a (con.trans single_eq_zero.symm))
+
+@[simp] lemma single_eq_zero_iff {a : Γ} {r : R} :
+  single a r = 0 ↔ r = 0 :=
+begin
+  split,
+  { contrapose!,
+    exact single_ne_zero },
+  { simp {contextual := tt} }
+end
 
 instance [nonempty Γ] [nontrivial R] : nontrivial (hahn_series Γ R) :=
 ⟨begin

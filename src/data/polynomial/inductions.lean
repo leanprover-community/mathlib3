@@ -73,7 +73,7 @@ calc (div_X p).degree < (div_X p * X + C (p.coeff 0)).degree :
             exact add_le_add
               (by rw [zero_le_degree_iff, ne.def, div_X_eq_zero_iff];
                 exact λ h0, h (h0.symm ▸ degree_C_le))
-              (le_refl _),
+              le_rfl,
     by rw [degree_add_eq_left_of_degree_lt this];
       exact degree_lt_degree_mul_X hXp0
 ... = p.degree : congr_arg _ (div_X_mul_X_add _)

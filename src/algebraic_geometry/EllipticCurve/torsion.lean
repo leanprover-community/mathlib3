@@ -15,11 +15,13 @@ import algebraic_geometry.EllipticCurve.point
 noncomputable theory
 open_locale classical
 
+universe u
+
 variables (n : ℕ)
-variables {F : Type*} [field F]
+variables {F : Type u} [field F]
 variables {E : EllipticCurve F}
-variables {K : Type*} [field K] [algebra F K]
-variables {L : Type*} [field L] [algebra F L] [algebra K L] [is_scalar_tower F K L]
+variables {K : Type u} [field K] [algebra F K]
+variables {L : Type u} [field L] [algebra F L] [algebra K L] [is_scalar_tower F K L]
 
 ----------------------------------------------------------------------------------------------------
 
@@ -32,29 +34,29 @@ open point
 
 section multiplication
 
-variables (σ : L ≃ₐ[K] L)
-
-/-- Multiplication by `n` is Galois-equivariant. -/
-lemma mul_by.map_smul (P : E⟮L⟯) : n • σ • P = σ • n • P :=
-begin
-  induction n with n h,
-  { refl },
-  { rw [nat.succ_eq_add_one],
-    simp only [add_smul, smul_add, one_smul, h] }
-end
-
-/-- Multiplication by `n` respects zero. -/
-lemma mul_by.map_zero : n • (0 : E⟮L⟯) = 0 := smul_zero n
-
-/-- Multiplication by `n` respects addition. -/
-lemma mul_by.map_add (P Q : E⟮L⟯) : n • (P + Q) = n • P + n • Q := smul_add n P Q
-
 /-- The Galois-equivariant multiplication by `n` isogeny. -/
 def mul_by' : E⟮L⟯ →+[L ≃ₐ[K] L] E⟮L⟯ :=
-⟨(•) n, mul_by.map_smul n, mul_by.map_zero n, mul_by.map_add n⟩
+{ to_fun    := (•) n,
+  map_smul' := λ _ _,
+  begin
+    induction n with n h,
+    { refl },
+    { simp only [nat.succ_eq_add_one, add_smul, smul_add, one_smul, h] }
+  end,
+  map_zero' := smul_zero n,
+  map_add'  := smul_add n }
 
 /-- The multiplication by `n` isogeny. -/
 def mul_by : E⟮K⟯ →+ E⟮K⟯ := (mul_by' n : E⟮K⟯ →+[K ≃ₐ[K] K] E⟮K⟯)
+
+lemma mul_by.map_smul (σ : L ≃ₐ[K] L) (P : E⟮L⟯) : n • σ • P = σ • n • P :=
+(mul_by' n).map_smul' σ P
+
+lemma mul_by.map_zero : n • 0 = (0 : E⟮L⟯) :=
+(mul_by' n : E⟮L⟯ →+[L ≃ₐ[K] L] E⟮L⟯).map_zero'
+
+lemma mul_by.map_add (P Q : E⟮L⟯) : n • (P + Q) = n • P + n • Q :=
+(mul_by' n : E⟮L⟯ →+[L ≃ₐ[K] L] E⟮L⟯).map_add' P Q
 
 notation E⟮K⟯[n] := (mul_by n : E⟮K⟯ →+ E⟮K⟯).ker
 notation E⟮K⟯`⬝`n := (mul_by n : E⟮K⟯ →+ E⟮K⟯).range
@@ -69,36 +71,26 @@ section functoriality
 
 variables (φ : K →ₐ[F] L)
 
-/-- Set function `E(K)[n] → E(L)[n]`. -/
-def ker_hom.to_fun : E⟮K⟯[n] → E⟮L⟯[n] := λ ⟨P, hP⟩, ⟨point_hom φ P,
-by { change n • P = 0 at hP, change n • _ = (0 : E⟮L⟯), rw [← map_nsmul, hP], refl }⟩
-
-/-- `E(K)[n] → E(L)[n]` respects zero. -/
-lemma ker_hom.map_zero : ker_hom.to_fun n φ 0 = (0 : E⟮L⟯[n]) := rfl
-
-/-- `E(K)[n] → E(L)[n]` respects addition. -/
-lemma ker_hom.map_add (P Q : E⟮K⟯[n]) :
-  ker_hom.to_fun n φ (P + Q) = ker_hom.to_fun n φ P + ker_hom.to_fun n φ Q :=
-begin
-  rcases ⟨P, Q⟩ with ⟨⟨P, _⟩, ⟨Q, _⟩⟩,
-  change (⟨_, _⟩ : E⟮L⟯[n]) = ⟨_ + _, _⟩,
-  simp only,
-  apply point_hom.map_add
-end
-
 /-- Group homomorphism `E(K)[n] → E(L)[n]`. -/
-def ker_hom : E⟮K⟯[n] →+ E⟮L⟯[n] := ⟨ker_hom.to_fun n φ, ker_hom.map_zero n φ, ker_hom.map_add n φ⟩
+def ker_hom : E⟮K⟯[n] →+ E⟮L⟯[n] :=
+{ to_fun    := λ ⟨P, hP⟩, ⟨point_hom φ P,
+  by { change n • P = 0 at hP, change n • _ = (0 : E⟮L⟯), rw [← map_nsmul, hP], refl }⟩,
+  map_zero' := rfl,
+  map_add'  := λ ⟨_, _⟩ ⟨_, _⟩, by { change (⟨_, _⟩ : E⟮L⟯[n]) = ⟨_, _⟩, simp only, apply map_add } }
 
-/-- `K ↦ E(K)[n]` respects identity. -/
-lemma ker_hom.id (P : E⟮K⟯[n]) : ker_hom n (K⟶[F]K) P = P := by rcases P with ⟨_ | _⟩; refl
+@[simp] lemma ker_hom.map_zero : ker_hom n φ 0 = (0 : E⟮L⟯[n]) := (ker_hom n φ).map_zero'
 
-/-- `K ↦ E(K)[n]` respects composition. -/
-lemma ker_hom.comp {M : Type*} [field M] [algebra F M] [algebra K M] [algebra L M]
+@[simp] lemma ker_hom.map_add (P Q : E⟮K⟯[n]) :
+  ker_hom n φ (P + Q) = ker_hom n φ P + ker_hom n φ Q :=
+(ker_hom n φ).map_add P Q
+
+@[simp] lemma ker_hom.id (P : E⟮K⟯[n]) : ker_hom n (K⟶[F]K) P = P := by rcases P with _ | _; refl
+
+@[simp] lemma ker_hom.comp {M : Type u} [field M] [algebra F M] [algebra K M] [algebra L M]
   [is_scalar_tower F L M] [is_scalar_tower F K M] (P : E⟮K⟯[n]) :
   ker_hom n (L⟶[F]M) (ker_hom n (K⟶[F]L) P) = ker_hom n ((L⟶[F]M).comp (K⟶[F]L)) P :=
-by rcases P with ⟨_ | _⟩; refl
+by rcases P with _ | _; refl
 
-/-- `E(K)[n] → E(L)[n]` is injective. -/
 lemma ker_hom.injective : function.injective $ @ker_hom n _ _ E _ _ _ _ _ _ _ _ φ :=
 begin
   intros P Q hPQ,
@@ -127,69 +119,54 @@ by { change n • P = 0 at hP, change n • σ • P = 0, rw [mul_by.map_smul, h
 /-- `Gal(L/K) ↷ E(L)[n]` is a scalar action. -/
 instance : has_scalar (L ≃ₐ[K] L) E⟮L⟯[n] := ⟨ker_gal n⟩
 
-/-- `Gal(L/K) ↷ E(L)[n]` respects scalar one. -/
-lemma ker_gal.one_smul (P : E⟮L⟯[n]) : (1 : L ≃ₐ[K] L) • P = P :=
-begin
-  cases P with P hP,
-  change (⟨(1 : L ≃ₐ[K] L) • P, _⟩ : E⟮L⟯[n]) = ⟨P, hP⟩,
-  simp only [point_gal.one_smul]
-end
-
-/-- `Gal(L/K) ↷ E(L)[n]` respects scalar multiplication. -/
-lemma ker_gal.mul_smul (P : E⟮L⟯[n]) : (σ * τ) • P = σ • τ • P :=
-begin
-  cases P with P,
-  change (⟨(σ * τ) • P, _⟩ : E⟮L⟯[n]) = ⟨σ • τ • P, _⟩,
-  simp only [point_gal.mul_smul]
-end
-
 /-- `Gal(L/K) ↷ E(L)[n]` is a multiplicative action. -/
-instance : mul_action (L ≃ₐ[K] L) E⟮L⟯[n] := ⟨ker_gal.one_smul n, ker_gal.mul_smul n⟩
-
-local notation E⟮L⟯[n]^K := mul_action.fixed_points (L ≃ₐ[K] L) E⟮L⟯[n]
-
-/-- Zero is in `E(L)[n]ᴷ`. -/
-lemma ker_gal.fixed.zero_mem : (0 : E⟮L⟯[n]) ∈ E⟮L⟯[n]^K := by { intro, refl }
-
-/-- Addition is closed in `E(L)[n]ᴷ`. -/
-lemma ker_gal.fixed.add_mem (P Q : E⟮L⟯[n]) :
-  P ∈ (E⟮L⟯[n]^K) → Q ∈ (E⟮L⟯[n]^K) → P + Q ∈ E⟮L⟯[n]^K :=
-begin
-  intros hP hQ σ,
-  rcases ⟨P, Q⟩ with ⟨⟨P, _⟩, ⟨Q, _⟩⟩,
-  change ∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, _⟩ at hP,
-  change ∀ σ : L ≃ₐ[K] L, (⟨σ • Q, _⟩ : E⟮L⟯[n]) = ⟨Q, _⟩ at hQ,
-  simp only at hP hQ,
-  change (⟨σ • (P + Q), _⟩ : E⟮L⟯[n]) = ⟨P + Q, _⟩,
-  simp only,
-  rw [point_gal.fixed.add_mem P Q hP hQ]
-end
-
-/-- Negation is closed in `E(L)[n]ᴷ`. -/
-lemma ker_gal.fixed.neg_mem (P : E⟮L⟯[n]) : P ∈ (E⟮L⟯[n]^K) → -P ∈ E⟮L⟯[n]^K :=
-begin
-  intros hP σ,
-  cases P with P,
-  change ∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, _⟩ at hP,
-  simp only at hP,
-  change (⟨σ • -P, _⟩ : E⟮L⟯[n]) = ⟨-P, _⟩,
-  simp only,
-  rw [point_gal.fixed.neg_mem P hP]
-end
+instance : mul_action (L ≃ₐ[K] L) E⟮L⟯[n] :=
+{ smul     := ker_gal n,
+  one_smul := λ ⟨_, _⟩,
+  by { simp only [ker_gal, subtype.mk_eq_mk], apply point.distrib_mul_action.one_smul },
+  mul_smul := λ σ τ ⟨_, _⟩,
+  by { simp only [ker_gal, subtype.mk_eq_mk], apply point.distrib_mul_action.mul_smul } }
 
 /-- The Galois invariant subgroup `E(L)[n]ᴷ` of `E(L)[n]` fixed by `Gal(L/K)`. -/
 def ker_gal.fixed : add_subgroup E⟮L⟯[n] :=
-⟨E⟮L⟯[n]^K, ker_gal.fixed.zero_mem n, ker_gal.fixed.add_mem n, ker_gal.fixed.neg_mem n⟩
+{ carrier   := mul_action.fixed_points (L ≃ₐ[K] L) E⟮L⟯[n],
+  zero_mem' := λ _, rfl,
+  add_mem'  :=
+  begin
+    rintro ⟨P, _⟩ ⟨Q, _⟩ hP hQ,
+    change ∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, _⟩ at hP,
+    change ∀ σ : L ≃ₐ[K] L, (⟨σ • Q, _⟩ : E⟮L⟯[n]) = ⟨Q, _⟩ at hQ,
+    simp only at hP hQ,
+    change ∀ σ : L ≃ₐ[K] L, (⟨σ • (P + Q), _⟩ : E⟮L⟯[n]) = ⟨P + Q, _⟩,
+    simp only,
+    exact point_gal.fixed.add_mem P Q hP hQ
+  end,
+  neg_mem'  :=
+  begin
+    rintro ⟨P, _⟩ hP,
+    change ∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, _⟩ at hP,
+    simp only at hP,
+    change ∀ σ : L ≃ₐ[K] L, (⟨σ • -P, _⟩ : E⟮L⟯[n]) = ⟨-P, _⟩,
+    simp only,
+    exact point_gal.fixed.neg_mem P hP
+  end }
 
 notation E⟮L⟯[n`]^`K := @ker_gal.fixed n _ _ E K _ _ L _ _ _ _
 
+lemma ker_gal.fixed.zero_mem : (0 : E⟮L⟯[n]) ∈ E⟮L⟯[n]^K := (ker_gal.fixed n).zero_mem'
+
+lemma ker_gal.fixed.add_mem (P Q : E⟮L⟯[n]) (hP : P ∈ E⟮L⟯[n]^K) (hQ : Q ∈ E⟮L⟯[n]^K) :
+  P + Q ∈ E⟮L⟯[n]^K :=
+(ker_gal.fixed n).add_mem' hP hQ
+
+lemma ker_gal.fixed.neg_mem (P : E⟮L⟯[n]) (hP : P ∈ E⟮L⟯[n]^K) : -P ∈ E⟮L⟯[n]^K :=
+(ker_gal.fixed n).neg_mem' hP
+
 variables [finite_dimensional K L] [is_galois K L]
 
-/-- `E(L)[n]ᴷ = ιₚ(E(K)[n])`. -/
 lemma ker_gal.fixed.eq : (E⟮L⟯[n]^K) = (ιₙ n : E⟮K⟯[n] →+ E⟮L⟯[n]).range :=
 begin
-  ext P,
-  cases P with P hP,
+  ext ⟨P, hP⟩,
   change n • P = 0 at hP,
   change (∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, hP⟩) ↔ _,
   simp only,
@@ -209,10 +186,6 @@ begin
     exact ⟨Q, by injection hQ⟩ }
 end
 
-/-- `Gal(L/K)` fixes `ιₚ(E(K)[n])`. -/
-lemma ker_gal.fixed.smul (P : E⟮K⟯[n]) : σ • ιₙ n P = (ιₙ n P : E⟮L⟯[n]) :=
-by { revert σ, change ιₙ n P ∈ E⟮L⟯[n]^K, rw [ker_gal.fixed.eq], exact ⟨P, rfl⟩ }
-
 end galois
 
 ----------------------------------------------------------------------------------------------------
@@ -221,7 +194,7 @@ end galois
 section ψ₂_x
 
 /-- The cubic polynomial `ψ₂(x)` of the `x`-coordinate in `E(K)[2]`. -/
-def ψ₂_x (E : EllipticCurve F) (K : Type*) [field K] [algebra F K] : cubic K :=
+def ψ₂_x (E : EllipticCurve F) (K : Type u) [field K] [algebra F K] : cubic K :=
 ⟨4, (F↑K)E.a₁ ^ 2 + 4 * (F↑K)E.a₂, 4 * (F↑K)E.a₄ + 2 * (F↑K)E.a₁ * (F↑K)E.a₃,
   (F↑K)E.a₃ ^ 2 + 4 * (F↑K)E.a₆⟩
 
@@ -255,7 +228,7 @@ begin
 end
 
 /-- If `F(E[2]) ⊆ K`, then `ψ₂(x)` splits over `K`. -/
-lemma ψ₂_x.splits (K : Type*) [field K] [algebra F K] [algebra F⟮E[2]⟯ K]
+lemma ψ₂_x.splits (K : Type u) [field K] [algebra F K] [algebra F⟮E[2]⟯ K]
   [is_scalar_tower F F⟮E[2]⟯ K] : polynomial.splits (F↑K) (ψ₂_x E F).to_poly :=
 begin
   convert polynomial.splits_comp_of_splits (F↑F⟮E[2]⟯) (F⟮E[2]⟯↑K)
@@ -267,7 +240,7 @@ end
 variables [invertible (2 : F)]
 
 /-- `2` is invertible in `K`. -/
-private def invertible_two (K : Type*) [field K] [algebra F K] (h2 : invertible (2 : F)) :
+private def invertible_two (K : Type u) [field K] [algebra F K] (h2 : invertible (2 : F)) :
   invertible (2 : K) :=
 begin
   rw [← algebra.id.map_eq_self (2 : F)] at h2,
@@ -277,12 +250,12 @@ begin
 end
 
 /-- `2 ≠ 0` in `K`. -/
-private lemma two_ne_zero (K : Type*) [field K] [algebra F K] (h2 : invertible (2 : F)) :
+private lemma two_ne_zero (K : Type u) [field K] [algebra F K] (h2 : invertible (2 : F)) :
   2 ≠ (0 : K) :=
 @nonzero_of_invertible _ _ (2 : K) _ $ invertible_two K h2
 
 /-- `4 ≠ 0` in `K`. -/
-private lemma four_ne_zero (K : Type*) [field K] [algebra F K] (h2 : invertible (2 : F)) :
+private lemma four_ne_zero (K : Type u) [field K] [algebra F K] (h2 : invertible (2 : F)) :
   4 ≠ (0 : K) :=
 begin
   convert_to 2 * 2 ≠ (0 : K),
@@ -291,7 +264,8 @@ begin
 end
 
 /-- The leading coefficient of `ψ₂(x)` is not zero. -/
-lemma ψ₂_x.a_ne_zero (E : EllipticCurve F) (K : Type*) [field K] [algebra F K] : (ψ₂_x E K).a ≠ 0 :=
+lemma ψ₂_x.a_ne_zero (E : EllipticCurve F) (K : Type u) [field K] [algebra F K] :
+  (ψ₂_x E K).a ≠ 0 :=
 four_ne_zero K _inst_8
 
 /-- `ψ₂(x)` is invariant under completing a square. -/
@@ -362,7 +336,7 @@ def E₂_to_ψ₂ : E⟮K⟯[2] → option ({x // x ∈ (ψ₂_x E K).roots})
 /-- `E₂_to_ψ₂` is injective. -/
 lemma E₂_to_ψ₂.injective : function.injective $ @E₂_to_ψ₂ _ _ E K _ _ _ :=
 begin
-  rintro ⟨⟨_ | _⟩, hP⟩ ⟨⟨_ | _⟩, hQ⟩ hPQ,
+  rintro ⟨_ | _, hP⟩ ⟨_ | _, hQ⟩ hPQ,
   any_goals { contradiction },
   { refl },
   { simp only [E₂_to_ψ₂] at hPQ,
@@ -379,7 +353,7 @@ begin
   change fintype.card E⟮K⟯[2] ≤ 3 + 1,
   apply le_trans (fintype.card_le_of_injective E₂_to_ψ₂ E₂_to_ψ₂.injective),
   rw [fintype.card_option, add_le_add_iff_right,
-      fintype.card_of_subtype (ψ₂_x E K).roots.to_finset (λ x, multiset.mem_to_finset)],
+      fintype.card_of_subtype (ψ₂_x E K).roots.to_finset (λ _, multiset.mem_to_finset)],
   { exact cubic.card_roots_le },
   { exact _inst_8 }
 end
@@ -424,7 +398,7 @@ begin
     .some_spec.some_spec.some_spec,
   change fintype.card E⟮K⟯[2] = 3 + 1,
   rw [fintype.card_congr E₂_to_ψ₂.equiv, fintype.card_option, add_left_inj,
-      fintype.card_of_subtype (ψ₂_x E K).roots.to_finset $ λ x, multiset.mem_to_finset, ψ₂_x.eq_map,
+      fintype.card_of_subtype (ψ₂_x E K).roots.to_finset $ λ _, multiset.mem_to_finset, ψ₂_x.eq_map,
       cubic.card_roots_of_disc_ne_zero (ψ₂_x.a_ne_zero E F) h3 ψ₂_x.disc_ne_zero],
   exact _inst_8
 end

@@ -10,6 +10,9 @@ import number_theory.number_field
 
 import algebraic_geometry.EllipticCurve.torsion
 
+-- Note: temporary
+import algebraic_geometry.EllipticCurve.valuation
+
 /-!
 # The Mordell-Weil theorem for an elliptic curve over a number field
 -/
@@ -17,16 +20,18 @@ import algebraic_geometry.EllipticCurve.torsion
 noncomputable theory
 open_locale classical
 
-variables {F : Type*} [field F]
+universe u
+
+variables {F : Type u} [field F]
 variables {E : EllipticCurve F}
-variables {K : Type*} [field K] [algebra F K]
+variables {K : Type u} [field K] [algebra F K]
 
 ----------------------------------------------------------------------------------------------------
 /-! ## Group theory -/
 
 section group_theory
 
-variables {G H : Type*} [add_comm_group G] [add_comm_group H]
+variables {G H : Type u} [add_comm_group G] [add_comm_group H]
 
 /-- For an exact sequence `0 → K → G → H`, if `K` and `H` are finite, then `G` is finite. -/
 def fintype.of_fintype_ker_codom {f : G →+ H} : fintype f.ker → fintype H → fintype G :=
@@ -78,7 +83,7 @@ lemma range_le_comap_range : (E⟮F⟯⬝n) ≤ add_subgroup.comap ιₚ E⟮K�
 by { rintro P ⟨Q, hQ⟩, rw [← hQ], exact ⟨ιₚ Q, (map_nsmul ιₚ Q n).symm⟩ }
 
 /-- The kernel `Φ` of the cokernel map `E(F)/nE(F) → E(K)/nE(K)` induced by `ιₚ : E(F) ↪ E(K)`. -/
-def Φ (E : EllipticCurve F) (K : Type*) [field K] [algebra F K] : add_subgroup E⟮F⟯/n :=
+def Φ (E : EllipticCurve F) (K : Type u) [field K] [algebra F K] : add_subgroup E⟮F⟯/n :=
 (quotient_add_group.map _ _ _ $ @range_le_comap_range _ _ _ K _ _ n).ker
 
 /-- If `[P] ∈ Φ`, then `ιₚ(P) ∈ nE(K)`. -/
@@ -101,7 +106,10 @@ begin
   rw [smul_sub, mul_by.map_smul],
   change σ • mul_by n _ - mul_by n _ = 0,
   rw [(Φ_mem_range n P).some_spec, sub_eq_zero],
-  apply point_gal.fixed.smul
+  revert σ,
+  change ιₚ (quot.out P.val) ∈ E⟮K⟯^F,
+  rw [point_gal.fixed.eq],
+  exact ⟨quot.out P.val, rfl⟩
 end⟩
 
 /-- `κ` is injective. -/
@@ -142,26 +150,48 @@ end reduction
 
 section K_S_n
 
--- Note: redundant once completions are completed
+private def with_zero_units {α : Type u} [group α] : (with_zero α)ˣ ≃* α :=
+{ to_fun    := λ x, (with_zero.ne_zero_iff_exists.mp x.ne_zero).some,
+  inv_fun   := λ x,
+  ⟨_, _, mul_inv_cancel $ @with_zero.coe_ne_zero _ x, inv_mul_cancel $ @with_zero.coe_ne_zero _ x⟩,
+  left_inv  := λ x,
+  by simp only [(with_zero.ne_zero_iff_exists.mp x.ne_zero).some_spec, units.mk_coe],
+  right_inv := λ x,
+  by { rw [← with_zero.coe_inj,
+           (with_zero.ne_zero_iff_exists.mp (_ : (with_zero α)ˣ).ne_zero).some_spec],
+       refl },
+  map_mul'  := λ x y,
+  by { rw [← with_zero.coe_inj, with_zero.coe_mul,
+           (with_zero.ne_zero_iff_exists.mp (x * y).ne_zero).some_spec,
+           (with_zero.ne_zero_iff_exists.mp x.ne_zero).some_spec,
+           (with_zero.ne_zero_iff_exists.mp y.ne_zero).some_spec],
+       refl } }
+
 /-- The primes of a number field. -/
 @[nolint has_inhabited_instance]
-def primes : Type* := {v : prime_spectrum $ number_field.ring_of_integers K // v.val ≠ 0}
+def primes (K : Type u) [field K] [number_field K] : Type u :=
+maximal_spectrum $ number_field.ring_of_integers K
 
-variables {S : finset $ @primes K _} {n : ℕ}
+variables [number_field K] {S : finset $ primes K} {n : ℕ}
+
+private def valuation_of_unit (p : primes K) : Kˣ →* multiplicative ℤ :=
+with_zero_units.to_monoid_hom.comp $ units.map $ @maximal_spectrum.valuation _ _ _ _ K _ _ _ p
 
 local notation n`⬝`K := (zpow_group_hom n : Kˣ →* Kˣ).range
 
--- Input: order of vanishing at a prime
-/-- The subgroup `K(S, n) = {b(Kˣ)ⁿ ∈ Kˣ/(Kˣ)ⁿ | ∀ v ∉ S, ord_v(b) ≡ 0 mod n}`. -/
+private def coker_valuation_of_unit (p : primes K) :
+  Kˣ ⧸ (n⬝K) →* ℤ ⧸ (zpow_group_hom n : multiplicative ℤ →* multiplicative ℤ).range :=
+@quotient_group.map _ _ _ _ _ _ _ _ _ $
+  by { rintro x ⟨y, hy⟩, rw [← hy], exact ⟨valuation_of_unit p y, (map_zpow _ y n).symm⟩ }
+
+/-- The subgroup `K(S, n) = {b(Kˣ)ⁿ ∈ Kˣ/(Kˣ)ⁿ | ∀ p ∉ S, ord_p(b) ≡ 0 mod n}`. -/
 def K_S_n : subgroup (Kˣ ⧸ (n⬝K)) :=
-{ carrier  := {b : Kˣ ⧸ (n⬝K) | ∀ v : @primes K _, v ∉ S → v = sorry},
-  one_mem' := sorry,
-  mul_mem' := sorry,
-  inv_mem' := sorry }
+{ carrier  := {b : Kˣ ⧸ (n⬝K) | ∀ p ∉ S, coker_valuation_of_unit p b = 1},
+  one_mem' := λ p _, by rw [map_one],
+  mul_mem' := λ _ _ hx hy p hp, by rw [map_mul, hx p hp, hy p hp, one_mul],
+  inv_mem' := λ _ hx p hp, by rw [map_inv, hx p hp, one_inv] }
 
-notation K⟮S, n⟯ := @K_S_n K _ S n
-
-variables [number_field K]
+notation K⟮S, n⟯ := @K_S_n K _ _ S n
 
 -- Input: finiteness of ideal class group and finite generation of `S`-unit group
 /-- `K(S, n)` is finite. -/
@@ -186,12 +216,12 @@ section complete_2_descent
 
 -- Input: reduction at a prime
 /-- The primes of a number field dividing `n` or at which `E` has bad reduction. -/
-def bad_primes (n : ℕ) : finset $ @primes K _ :=
-@set.to_finset _ {v : @primes K _ | E = sorry} sorry
+def bad_primes [number_field K] (n : ℕ) : finset $ primes K :=
+@set.to_finset _ {p : primes K | E = sorry} sorry
 
-notation K⟮E; n⟯² := K⟮@bad_primes _ _ E _ _ _ n, n⟯²
+variables [number_field F] [number_field K] [algebra F⟮E[2]⟯ K] [is_scalar_tower F F⟮E[2]⟯ K]
 
-variables [number_field F] [algebra F⟮E[2]⟯ K] [is_scalar_tower F F⟮E[2]⟯ K]
+notation K⟮E; n⟯² := K⟮@bad_primes _ _ E _ _ _ infer_instance n, n⟯²
 
 /-- `2` is invertible in a number field. -/
 instance number_field.invertible_two : invertible (2 : F) := invertible_of_nonzero two_ne_zero'
@@ -220,20 +250,17 @@ else
 
 omit ha₁ ha₃ h3
 
-/-- `δ` respects zero. -/
-lemma δ.map_zero : δ.to_fun ha₁ ha₃ h3 (0 : E⟮K⟯) = 1 := rfl
-
 -- Input: explicit computation
-/-- `δ` respects addition. -/
-lemma δ.map_add (P Q : E⟮K⟯) :
-  δ.to_fun ha₁ ha₃ h3 (P + Q) = δ.to_fun ha₁ ha₃ h3 P * δ.to_fun ha₁ ha₃ h3 Q :=
-begin
-  sorry
-end
-
 /-- The complete 2-descent homomorphism `δ : E(K) → Kˣ/(Kˣ)² × Kˣ/(Kˣ)²`. -/
 def δ : E⟮K⟯ →+ additive ((Kˣ ⧸ (2⬝K)) × (Kˣ ⧸ (2⬝K))) :=
-⟨δ.to_fun ha₁ ha₃ h3, δ.map_zero ha₁ ha₃ h3, δ.map_add ha₁ ha₃ h3⟩
+{ to_fun    := δ.to_fun ha₁ ha₃ h3,
+  map_zero' := rfl,
+  map_add'  := sorry }
+
+@[simp] lemma δ.map_zero : δ ha₁ ha₃ h3 (0 : E⟮K⟯) = 0 := (δ ha₁ ha₃ h3).map_zero'
+
+@[simp] lemma δ.map_add (P Q : E⟮K⟯) : δ ha₁ ha₃ h3 (P + Q) = δ ha₁ ha₃ h3 P + δ ha₁ ha₃ h3 Q :=
+(δ ha₁ ha₃ h3).map_add' P Q
 
 -- Input: constructive proof
 /-- `ker δ = 2E(K)`. -/
@@ -258,8 +285,7 @@ begin
     apply prod.ext,
     all_goals { rw [← quotient_group.out_eq' (δ ha₁ ha₃ h3 Q).1,
                     ← quotient_group.out_eq' (δ ha₁ ha₃ h3 Q).2],
-                exact (quotient_group.eq_one_iff _).mpr ⟨quot.out _, rfl⟩ }
-  }
+                exact (quotient_group.eq_one_iff _).mpr ⟨quot.out _, rfl⟩ } }
 end
 
 -- Input: local analysis
@@ -276,7 +302,7 @@ def δ.lift : (E⟮K⟯/2) →+ K⟮E; 2⟯² :=
   (quotient_add_group.equiv_quotient_of_eq $ δ.ker ha₁ ha₃ h3).symm.to_add_monoid_hom
 
 /-- `δ'` is injective. -/
-lemma δ.lift.injective : function.injective $ @δ.lift _ _ _ K _ _ _ _ _ ha₁ ha₃ _ _ _ h3 :=
+lemma δ.lift.injective : function.injective $ @δ.lift _ _ _ K _ _ _ _ _ _ ha₁ ha₃ _ _ _ h3 :=
 begin
   apply function.injective.comp,
   { intros x y hxy,
@@ -318,8 +344,9 @@ instance : is_galois F F⟮E[2]⟯ := ⟨⟩
 
 /-- The weak Mordell-Weil theorem for `n = 2` assuming `E[2] ⊂ E(F)`: `E(F)/2E(F)` is finite. -/
 def coker_2_of_rat_E₂.fintype (ha₁ : E.a₁ = 0) (ha₃ : E.a₃ = 0) : fintype E⟮F⟮E[2]⟯⟯/2 :=
-@fintype.of_injective _ _ (@K_S_n.fintype' F⟮E[2]⟯ _ (@bad_primes _ _ E F⟮E[2]⟯ _ _ 2) 2 _) _ $
-  @δ.lift.injective _ _ E F⟮E[2]⟯ _ _ _ _ _ ha₁ ha₃ _ _ _ $
+@fintype.of_injective _ _
+  (@K_S_n.fintype' F⟮E[2]⟯ _ _ (@bad_primes _ _ E F⟮E[2]⟯ _ _ infer_instance 2) 2) _ $
+  @δ.lift.injective _ _ E F⟮E[2]⟯ _ _ _ _ _ _ ha₁ ha₃ _ _ _ $
   ((cubic.splits_iff_roots_eq_three $ ψ₂_x.a_ne_zero E F).mp $ ψ₂_x.splits F⟮E[2]⟯)
     .some_spec.some_spec.some_spec
 

@@ -175,58 +175,57 @@ variables (f)
 /-- The one-preserving homomorphism including a single value
 into a dependent family of values, as functions supported at a point.
 
-This is the `one_hom` version of `pi.single`. -/
+This is the `one_hom` version of `pi.mul_single`. -/
 @[to_additive zero_hom.single "The zero-preserving homomorphism including a single value
 into a dependent family of values, as functions supported at a point.
 
-This is the `zerohom` version of `pi.add_single`.", simps]
+This is the `zerohom` version of `pi._single`.", simps]
 def one_hom.single [Π i, has_one $ f i] (i : I) : one_hom (f i) (Π i, f i) :=
-{ to_fun := single i,
-  map_one' := single_one i }
+{ to_fun := mul_single i,
+  map_one' := mul_single_one i }
 
 /-- The monoid homomorphism including a single monoid into a dependent family of additive monoids,
 as functions supported at a point.
 
-This is the `monoid_hom` version of `pi.single`. -/
+This is the `monoid_hom` version of `pi.mul_single`. -/
 @[to_additive add_monoid_hom.single "The additive monoid homomorphism including a single additive
 monoid into a dependent family of additive monoids, as functions supported at a point.
 
-This is the `add_monoid_hom` version of `pi.add_single`.", simps]
+This is the `add_monoid_hom` version of `pi.single`.", simps]
 def monoid_hom.single [Π i, mul_one_class $ f i] (i : I) : f i →* Π i, f i :=
-{ to_fun := single i,
-  map_mul' := single_op₂ (λ _, (*)) (λ _, one_mul _) _,
+{ map_mul' := mul_single_op₂ (λ _, (*)) (λ _, one_mul _) _,
   .. (one_hom.single f i) }
 
 /-- The multiplicative homomorphism including a single `mul_zero_class`
 into a dependent family of `mul_zero_class`es, as functions supported at a point.
 
-This is the `mul_hom` version of `pi.add_single`. -/
+This is the `mul_hom` version of `pi.single`. -/
 @[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
-{ to_fun := add_single i,
-  map_mul' := add_single_op₂ (λ _, (*)) (λ _, zero_mul _) _, }
+{ to_fun := single i,
+  map_mul' := single_op₂ (λ _, (*)) (λ _, zero_mul _) _, }
 
 variables {f}
 
-@[to_additive pi.add_single_add]
-lemma pi.single_mul [Π i, mul_one_class $ f i] (i : I) (x y : f i) :
-  single i (x * y) = single i x * single i y :=
+@[to_additive pi.single_add]
+lemma pi.mul_single_mul [Π i, mul_one_class $ f i] (i : I) (x y : f i) :
+  mul_single i (x * y) = mul_single i x * mul_single i y :=
 (monoid_hom.single f i).map_mul x y
 
-@[to_additive pi.add_single_neg]
-lemma pi.single_inv [Π i, group $ f i] (i : I) (x : f i) :
-  single i (x⁻¹) = (single i x)⁻¹ :=
+@[to_additive pi.single_neg]
+lemma pi.mul_single_inv [Π i, group $ f i] (i : I) (x : f i) :
+  mul_single i (x⁻¹) = (mul_single i x)⁻¹ :=
 (monoid_hom.single f i).map_inv x
 
-@[to_additive pi.add_single_sub]
+@[to_additive pi.single_sub]
 lemma pi.single_div [Π i, group $ f i] (i : I) (x y : f i) :
-  single i (x / y) = single i x / single i y :=
+  mul_single i (x / y) = mul_single i x / mul_single i y :=
 (monoid_hom.single f i).map_div x y
 
-lemma pi.add_single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
-  add_single i (x * y) = add_single i x * add_single i y :=
+lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
+  single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
 
-@[to_additive pi.update_eq_sub_add_add_single]
+@[to_additive pi.update_eq_sub_add_single]
 lemma pi.update_eq_div_mul_single [Π i, group $ f i] (g : Π (i : I), f i) (x : f i) :
   function.update g i x = g / single i (g i) * single i x :=
 begin

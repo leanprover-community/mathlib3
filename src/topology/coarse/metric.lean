@@ -1,10 +1,10 @@
-import topology.coarse_structure.basic
+import topology.coarse.basic
 import topology.metric_space.basic
 import topology.uniform_space.basic
 import data.real.nnreal
 
-open set filter coarse_space
-open_locale uniformity filter nnreal coarse_space
+open set filter coarse
+open_locale uniformity filter nnreal coarse
 
 variables {α β γ : Type*} {a b : α} {s t : set (α × α)}
 variables [metric_space α] [metric_space β]
@@ -26,7 +26,7 @@ begin
   split, repeat {intro, contrapose, simp, assumption,},
 end
 
-instance coarse_of_bounded_space : coarse_space α :=
+instance metric.to_coarse_space : coarse_space α :=
 { cocontrolled := (⨅ r:ℝ≥0, 𝓟 ({p:α×α | dist p.1 p.2 ≤ r}ᶜ)),
   corefl := by {
     have lm : 𝓟 ({p : α × α | dist p.fst p.snd ≤ 1}ᶜ) ≤ 𝓟 coid_rel,
@@ -110,13 +110,13 @@ begin
   }
 end
 
-lemma metric.coarse_bounded_iff (b : set α) : coarse_space.bounded b ↔ emetric.diam b ≠ ⊤ :=
+lemma metric.coarse_bounded_iff (b : set α) : coarse.bounded b ↔ emetric.diam b ≠ ⊤ :=
 sorry
 
 lemma metric.coarse_proper_iff (f : α → β) :
-  coarse_space.proper f ↔ (∀ b : set β, emetric.diam b ≠ ⊤ → emetric.diam (f ⁻¹' b) ≠ ⊤) :=
+  coarse.proper f ↔ (∀ b : set β, emetric.diam b ≠ ⊤ → emetric.diam (f ⁻¹' b) ≠ ⊤) :=
 sorry
 
-lemma metric.bornologous_iff (f : α → β) : coarse_space.bornologous f
+lemma metric.bornologous_iff (f : α → β) : coarse.bornologous f
   ↔ (∀ (R : ℝ≥0), ∃ (S : ℝ≥0), ∀ x y, dist x y < R → dist (f x) (f y) < S) :=
 sorry

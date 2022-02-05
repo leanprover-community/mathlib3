@@ -79,7 +79,7 @@ end
 it is the complement of the composition of the complements of relations.  -/
 def cocomp_rel (r₁ r₂ : set (α×α)) := {p : α × α | ∀z:α, (p.1, z) ∈ r₁ ∨ (z, p.2) ∈ r₂}
 
-localized "infix ` □ `:55 := cocomp_rel" in coarse_space
+localized "infix ` □ `:55 := cocomp_rel" in coarse
 
 variables {r₁ r₂ : set (α×α)} {x y : α}
 
@@ -229,14 +229,14 @@ lemma coarse_space.eq :
 def cocontrolled (α : Type*) [s : coarse_space α] : filter (α × α) :=
   @coarse_space.cocontrolled α s
 
-localized "notation `𝓒'` := cocontrolled" in coarse_space
+localized "notation `𝓒'` := cocontrolled" in coarse
 
 def controlled (α : Type*) [s : coarse_space α] : set (set (α×α)) :=
   compl '' (𝓒' α).sets
 
-localized "notation `𝓒` := controlled" in coarse_space
+localized "notation `𝓒` := controlled" in coarse
 
-namespace coarse_space
+namespace coarse
 variables [coarse_space α]
 @[simp]
 lemma mem_coarse {s : set (α×α)} : s ∈ 𝓒 α ↔ sᶜ ∈ 𝓒' α :=
@@ -287,7 +287,7 @@ end
 
 @[protected]
 def bounded (b : set α) : Prop := (b ×ˢ b : set (α×α)) ∈ 𝓒 α
-def proper [coarse_space β] (f : α → β) : Prop := ∀ (b : set β), coarse_bounded b → coarse_bounded (f ⁻¹' b)
+def proper [coarse_space β] (f : α → β) : Prop := ∀ (b : set β), coarse.bounded b → coarse.bounded (f ⁻¹' b)
 def bornologous [coarse_space β] (f : α → β) : Prop := ∀ s ∈ 𝓒' α, prod.map f f '' s ∈ 𝓒' β
 lemma bornologous.controlled [coarse_space β] (f : α → β) :
   bornologous f ↔ ∀ s ∈ 𝓒 α, prod.map f f '' s ∈ 𝓒 β := sorry
@@ -323,7 +323,7 @@ def const [coarse_space β] (x : β) : α →c β :=
 
 end coarse_map
 
-infixr ` ∘c `:25 := coarse_map.comp
+localized "infixr ` ∘c `:25 := coarse_map.comp" in coarse
 
 /-
 Two maps between coarse spaces are close iff the image of the codiagonal is cocontrolled-/
@@ -352,7 +352,7 @@ structure coarse_equiv (α β : Type*) [coarse_space α] [coarse_space β] :=
   (close_section : close_maps (map ∘ inv_map) id)
   (close_retraction : close_maps (inv_map ∘ map) id)
 
-infixr ` ≃c `:25 := coarse_equiv
+localized "infixr ` ≃c `:25 := coarse_equiv" in coarse
 
 @[protected, instance]
 def coarse_equiv.to_coarse_map {α β : Type*} [coarse_space α] [coarse_space β] :
@@ -363,11 +363,11 @@ def coarse_equiv.to_coarse_map {α β : Type*} [coarse_space α] [coarse_space �
 namespace coarse_equiv
 variables [coarse_space β] (f : α ≃c β)
 
-def comp [coarse_space γ] (f : α ≃c β) (g : γ ≃c α) : γ ≃c β := {!!}
-def id : α ≃c α := {!!}
+def comp [coarse_space γ] (f : α ≃c β) (g : γ ≃c α) : γ ≃c β := sorry
+def id : α ≃c α := sorry
 def symm (f : α ≃c β) : (β ≃c α) := sorry
-def const [coarse_space β] (x : β) : α →c β := {!!}
+def const [coarse_space β] (x : β) : α →c β := sorry
 
 end coarse_equiv
 
-end coarse_space
+end coarse

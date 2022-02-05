@@ -27,7 +27,36 @@ namespace star_ring
 open_locale complex_conjugate
 open complex
 
-variables [semi_normed_ring E] [star_add_monoid E] [module ℂ E] [star_module ℂ E]
+variables [semi_normed_ring E] [star_add_monoid E]
+
+section is_R_or_C
+variables {𝕜 : Type*} [is_R_or_C 𝕜] [module ℝ E] [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
+  [star_module 𝕜 E]
+
+include 𝕜
+instance star_module.is_R_or_C_to_real : star_module ℝ E :=
+⟨λ r a, by { have h₁ : r • a = (r : 𝕜) • a := sorry,
+             have h₂ : (star r : 𝕜) • star a = star r • star a := sorry,
+             simp only [h₁, star_smul, star_def, conj_of_real, h₂] }⟩
+omit 𝕜
+
+--instance star_module.scalar_tower {S : Type*} {R : Type*} {A : Type*} [comm_semiring S] [semiring R] [has_star S] [star_monoid R] [has_star A]
+--  [algebra S R] [mul_action R A] [has_scalar S A] [is_scalar_tower S R A] [star_module S R]
+--  [star_module R A] : star_module S A :=
+--⟨λ s a, by { nth_rewrite_lhs 0 [show a = (1 : R) • a, from (one_smul _ _).symm],
+--             rw [←smul_assoc, star_smul, star_smul, star_one, smul_assoc, one_smul] }⟩
+
+--instance : module ℝ (self_adjoint E) :=
+
+end is_R_or_C
+
+section complex
+variables [module ℂ E] [star_module ℂ E]
+
+set_option trace.class_instances true
+noncomputable example : module ℝ (self_adjoint E) := self_adjoint.module
+set_option trace.class_instances false
+
 
 /-- The real part of an element of star algebra. -/
 @[simps] noncomputable def re (x : E) : self_adjoint E :=
@@ -55,5 +84,7 @@ begin
             complex.I_mul_I],
   field_simp
 end
+
+end complex
 
 end star_ring

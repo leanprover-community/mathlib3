@@ -84,6 +84,9 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
+instance : star_module ℝ ℂ :=
+⟨λ r x, by simp only [star_def, star_trivial, real_smul, map_mul, conj_of_real]⟩
+
 @[simp] lemma coe_algebra_map : (algebra_map ℝ ℂ : ℝ → ℂ) = coe := rfl
 
 section

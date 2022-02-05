@@ -84,40 +84,50 @@ instance has_mul [∀ i, has_mul $ f i] :
 section
 
 variables [decidable_eq I]
-variables [Π i, has_zero (f i)] [Π i, has_zero (g i)] [Π i, has_zero (h i)]
+variables [Π i, has_one (f i)] [Π i, has_one (g i)] [Π i, has_one (h i)]
 
 /-- The function supported at `i`, with value `x` there. -/
+@[to_additive add_single]
 def single (i : I) (x : f i) : Π i, f i :=
-function.update 0 i x
+function.update 1 i x
 
-@[simp] lemma single_eq_same (i : I) (x : f i) : single i x i = x :=
+@[simp, to_additive add_single_eq_same]
+lemma single_eq_same (i : I) (x : f i) : single i x i = x :=
 function.update_same i x _
 
-@[simp] lemma single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single i x i' = 0 :=
+@[simp, to_additive add_single_eq_of_ne]
+lemma single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single i x i' = 1 :=
 function.update_noteq h x _
 
 /-- Abbreviation for `single_eq_of_ne h.symm`, for ease of use by `simp`. -/
-@[simp] lemma single_eq_of_ne' {i i' : I} (h : i ≠ i') (x : f i) : single i x i' = 0 :=
+@[simp, to_additive add_single_eq_of_ne' "Abbreviation for `add_single_eq_of_ne h.symm`, for ease of
+use by `simp`."] lemma single_eq_of_ne' {i i' : I} (h : i ≠ i') (x : f i) : single i x i' = 1 :=
 single_eq_of_ne h.symm x
 
-@[simp] lemma single_zero (i : I) : single i (0 : f i) = 0 :=
+@[simp, to_additive add_single_zero] lemma single_one (i : I) : single i (1 : f i) = 1 :=
 function.update_eq_self _ _
 
 /-- On non-dependent functions, `pi.single` can be expressed as an `ite` -/
-lemma single_apply {β : Sort*} [has_zero β] (i : I) (x : β) (i' : I) :
-  single i x i' = if i' = i then x else 0 :=
-function.update_apply 0 i x i'
+@[to_additive add_single_apply "On non-dependent functions, `pi.add_single` can be expressed as an
+`ite`"]
+lemma single_apply {β : Sort*} [has_one β] (i : I) (x : β) (i' : I) :
+  single i x i' = if i' = i then x else 1 :=
+function.update_apply 1 i x i'
 
 /-- On non-dependent functions, `pi.single` is symmetric in the two indices. -/
-lemma single_comm {β : Sort*} [has_zero β] (i : I) (x : β) (i' : I) :
+@[to_additive  add_single_comm "On non-dependent functions, `pi.add_single` is symmetric in the two
+indices."]
+lemma single_comm {β : Sort*} [has_one β] (i : I) (x : β) (i' : I) :
   single i x i' = single i' x i :=
 by simp [single_apply, eq_comm]
 
-lemma apply_single (f' : Π i, f i → g i) (hf' : ∀ i, f' i 0 = 0) (i : I) (x : f i) (j : I):
+@[to_additive apply_add_single]
+lemma apply_single (f' : Π i, f i → g i) (hf' : ∀ i, f' i 1 = 1) (i : I) (x : f i) (j : I):
   f' j (single i x j) = single i (f' i x) j :=
-by simpa only [pi.zero_apply, hf', single] using function.apply_update f' 0 i x j
+by simpa only [pi.one_apply, hf', single] using function.apply_update f' 1 i x j
 
-lemma apply_single₂ (f' : Π i, f i → g i → h i) (hf' : ∀ i, f' i 0 0 = 0)
+@[to_additive apply_add_single₂]
+lemma apply_single₂ (f' : Π i, f i → g i → h i) (hf' : ∀ i, f' i 1 1 = 1)
   (i : I) (x : f i) (y : g i) (j : I):
   f' j (single i x j) (single i y j) = single i (f' i x y) j :=
 begin
@@ -126,22 +136,26 @@ begin
   { simp only [single_eq_of_ne h, hf'] },
 end
 
-lemma single_op {g : I → Type*} [Π i, has_zero (g i)] (op : Π i, f i → g i) (h : ∀ i, op i 0 = 0)
+@[to_additive add_single_op]
+lemma single_op {g : I → Type*} [Π i, has_one (g i)] (op : Π i, f i → g i) (h : ∀ i, op i 1 = 1)
   (i : I) (x : f i) :
   single i (op i x) = λ j, op j (single i x j) :=
 eq.symm $ funext $ apply_single op h i x
 
-lemma single_op₂ {g₁ g₂ : I → Type*} [Π i, has_zero (g₁ i)] [Π i, has_zero (g₂ i)]
-  (op : Π i, g₁ i → g₂ i → f i) (h : ∀ i, op i 0 0 = 0) (i : I) (x₁ : g₁ i) (x₂ : g₂ i) :
+@[to_additive add_single_op₂]
+lemma single_op₂ {g₁ g₂ : I → Type*} [Π i, has_one (g₁ i)] [Π i, has_one (g₂ i)]
+  (op : Π i, g₁ i → g₂ i → f i) (h : ∀ i, op i 1 1 = 1) (i : I) (x₁ : g₁ i) (x₂ : g₂ i) :
   single i (op i x₁ x₂) = λ j, op j (single i x₁ j) (single i x₂ j) :=
 eq.symm $ funext $ apply_single₂ op h i x₁ x₂
 
 variables (f)
 
+@[to_additive add_single_injective]
 lemma single_injective (i : I) : function.injective (single i : f i → Π i, f i) :=
 function.update_injective _ i
 
-@[simp] lemma single_inj (i : I) {x y : f i} : pi.single i x = pi.single i y ↔ x = y :=
+@[simp, to_additive add_single_inj]
+lemma single_inj (i : I) {x y : f i} : pi.single i x = pi.single i y ↔ x = y :=
 (pi.single_injective _ _).eq_iff
 
 end
@@ -186,7 +200,8 @@ lemma bijective_pi_map {F : Π i, f i → g i} (hF : ∀ i, bijective (F i)) :
 
 end function
 
-lemma subsingleton.pi_single_eq {α : Type*} [decidable_eq I] [subsingleton I] [has_zero α]
+@[to_additive subsingleton.pi_add_single_on]
+lemma subsingleton.pi_single_eq {α : Type*} [decidable_eq I] [subsingleton I] [has_one α]
   (i : I) (x : α) :
   pi.single i x = λ _, x :=
 funext $ λ j, by rw [subsingleton.elim j i, pi.single_eq_same]

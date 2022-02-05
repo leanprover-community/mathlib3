@@ -227,7 +227,7 @@ lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
 
 @[to_additive pi.update_eq_sub_add_single]
 lemma pi.update_eq_div_mul_single [Π i, group $ f i] (g : Π (i : I), f i) (x : f i) :
-  function.update g i x = g / single i (g i) * single i x :=
+  function.update g i x = g / mul_single i (g i) * mul_single i x :=
 begin
   ext j,
   rcases eq_or_ne i j with rfl|h,

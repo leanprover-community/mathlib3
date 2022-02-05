@@ -96,6 +96,7 @@ by refl
 @[simp,norm_cast] lemma coe_inf {U V : opens α} :
   ((U ⊓ V : opens α) : set α) = (U : set α) ⊓ (V : set α) := rfl
 @[simp] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
+@[simp] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
 
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
@@ -134,6 +135,12 @@ lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
     rw set.range_inclusion i,
     exact U.property.preimage continuous_subtype_val
   end, }
+
+lemma not_nonempty_iff_eq_bot (U : opens α) : ¬ set.nonempty (U : set α) ↔ U = ⊥ :=
+by rw [← subtype.coe_injective.eq_iff, opens.coe_bot, ← set.not_nonempty_iff_eq_empty]
+
+lemma ne_bot_iff_nonempty (U : opens α) : U ≠ ⊥ ↔ set.nonempty (U : set α) :=
+by rw [ne.def, ← opens.not_nonempty_iff_eq_bot, not_not]
 
 /-- A set of `opens α` is a basis if the set of corresponding sets is a topological basis. -/
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)

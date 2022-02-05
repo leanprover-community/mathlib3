@@ -113,9 +113,23 @@ def regular_of_is_pullback_fst_of_regular {P Q R S : C} {f : P ⟶ Q} {g : P ⟶
 regular_mono f :=
 regular_of_is_pullback_snd_of_regular comm.symm (pullback_cone.flip_is_limit t)
 
+@[priority 100]
+instance strong_mono_of_regular_mono (f : X ⟶ Y) [regular_mono f] : strong_mono f :=
+{ mono := by apply_instance,
+  has_lift :=
+  begin
+    introsI,
+    have : v ≫ (regular_mono.left : Y ⟶ regular_mono.Z f) = v ≫ regular_mono.right,
+    { apply (cancel_epi z).1,
+      simp only [regular_mono.w, ← reassoc_of h] },
+    obtain ⟨t, ht⟩ := regular_mono.lift' _ _ this,
+    refine arrow.has_lift.mk ⟨t, (cancel_mono f).1 _, ht⟩,
+    simp only [arrow.mk_hom, arrow.hom_mk'_left, category.assoc, ht, h]
+  end }
+
 /-- A regular monomorphism is an isomorphism if it is an epimorphism. -/
 lemma is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : is_iso f :=
-@is_iso_limit_cone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_mono.is_limit e
+is_iso_of_epi_of_strong_mono _
 
 /-- A regular epimorphism is a morphism which is the coequalizer of some parallel pair. -/
 class regular_epi (f : X ⟶ Y) :=
@@ -199,10 +213,6 @@ def regular_of_is_pushout_fst_of_regular
 regular_epi k :=
 regular_of_is_pushout_snd_of_regular comm.symm (pushout_cocone.flip_is_colimit t)
 
-/-- A regular epimorphism is an isomorphism if it is a monomorphism. -/
-lemma is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
-@is_iso_limit_cocone_parallel_pair_of_epi _ _ _ _ _ _ _ regular_epi.is_colimit m
-
 @[priority 100]
 instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f :=
 { epi := by apply_instance,
@@ -216,5 +226,9 @@ instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f 
     exact arrow.has_lift.mk ⟨t, ht, (cancel_epi f).1
       (by simp only [←category.assoc, ht, ←h, arrow.mk_hom, arrow.hom_mk'_right])⟩,
   end }
+
+/-- A regular epimorphism is an isomorphism if it is a monomorphism. -/
+lemma is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
+is_iso_of_mono_of_strong_epi _
 
 end category_theory

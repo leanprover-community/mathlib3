@@ -430,7 +430,8 @@ variable {α : Type*}
 def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
 {p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1)}
 
-lemma region_between_subset (f g : α → ℝ) (s : set α) : region_between f g s ⊆ s.prod univ :=
+lemma region_between_subset (f g : α → ℝ) (s : set α) :
+  region_between f g s ⊆ s ×ˢ (univ : set ℝ) :=
 by simpa only [prod_univ, region_between, set.preimage, set_of_subset_set_of] using λ a, and.left
 
 variables [measurable_space α] {μ : measure α} {f g : α → ℝ} {s : set α}
@@ -443,8 +444,7 @@ begin
   dsimp only [region_between, Ioo, mem_set_of_eq, set_of_and],
   refine measurable_set.inter _ ((measurable_set_lt (hf.comp measurable_fst) measurable_snd).inter
     (measurable_set_lt measurable_snd (hg.comp measurable_fst))),
-  convert hs.prod measurable_set.univ,
-  simp only [and_true, mem_univ],
+  exact measurable_fst hs
 end
 
 theorem volume_region_between_eq_lintegral'
@@ -491,10 +491,9 @@ begin
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,
   { rw measure.restrict_prod_eq_prod_univ,
-    exact (measure.restrict_eq_self' (hs.prod measurable_set.univ)
-      (region_between_subset f g s)).symm, },
+    exact (measure.restrict_eq_self _ (region_between_subset f g s)).symm, },
   { rw measure.restrict_prod_eq_prod_univ,
-    exact (measure.restrict_eq_self' (hs.prod measurable_set.univ)
+    exact (measure.restrict_eq_self _
       (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm },
 end
 

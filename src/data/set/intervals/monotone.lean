@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import data.set.intervals.basic
+import data.set.intervals.disjoint
 import tactic.field_simp
 
 /-!
@@ -51,6 +51,8 @@ protected lemma antitone_on.Iic_union_Ici (h₁ : antitone_on f (Iic a))
 
 end
 
+section ordered_group
+
 variables {G H : Type*} [linear_ordered_add_comm_group G] [ordered_add_comm_group H]
 
 lemma strict_mono_of_odd_strict_mono_on_nonneg {f : G → H} (h₁ : ∀ x, f (-x) = -f x)
@@ -70,11 +72,13 @@ begin
   exact h₂ (neg_nonneg.2 hy) (neg_nonneg.2 hx) (neg_le_neg hxy)
 end
 
-variables (k : Type*) [linear_ordered_field k]
+end ordered_group
 
 /-- In a linear ordered field, the whole field is order isomorphic to the open interval `(-1, 1)`.
+We consider the actual implementation to be a "black box", so it is irreducible.
 -/
-@[irreducible] def order_iso_Ioo_neg_one_one : k ≃o Ioo (-1 : k) 1 :=
+@[irreducible] def order_iso_Ioo_neg_one_one (k : Type*) [linear_ordered_field k] :
+  k ≃o Ioo (-1 : k) 1 :=
 begin
   refine strict_mono.order_iso_of_right_inverse _ _ (λ x, x / (1 - |x|)) _,
   { refine cod_restrict (λ x, x / (1 + |x|)) _ (λ x, abs_lt.1 _),
@@ -90,3 +94,86 @@ begin
     have : 0 < 1 - |(x : k)|, from sub_pos.2 (abs_lt.2 x.2),
     field_simp [abs_div, this.ne', abs_of_pos this] }
 end
+
+section Ixx
+
+variables {α β : Type*} [preorder α] [preorder β] {f g : α → β}
+
+lemma antitone_Ici : antitone (Ici : α → set α) := λ _ _, Ici_subset_Ici.2
+
+lemma monotone_Iic : monotone (Iic : α → set α) := λ _ _, Iic_subset_Iic.2
+
+lemma antitone_Ioi : antitone (Ioi : α → set α) := λ _ _, Ioi_subset_Ioi
+
+lemma monotone_Iio : monotone (Iio : α → set α) := λ _ _, Iio_subset_Iio
+
+protected lemma monotone.Ici (hf : monotone f) : antitone (λ x, Ici (f x)) :=
+antitone_Ici.comp_monotone hf
+
+protected lemma antitone.Ici (hf : antitone f) : monotone (λ x, Ici (f x)) :=
+antitone_Ici.comp hf
+
+protected lemma monotone.Iic (hf : monotone f) : monotone (λ x, Iic (f x)) :=
+monotone_Iic.comp hf
+
+protected lemma antitone.Iic (hf : antitone f) : antitone (λ x, Iic (f x)) :=
+monotone_Iic.comp_antitone hf
+
+protected lemma monotone.Ioi (hf : monotone f) : antitone (λ x, Ioi (f x)) :=
+antitone_Ioi.comp_monotone hf
+
+protected lemma antitone.Ioi (hf : antitone f) : monotone (λ x, Ioi (f x)) :=
+antitone_Ioi.comp hf
+
+protected lemma monotone.Iio (hf : monotone f) : monotone (λ x, Iio (f x)) :=
+monotone_Iio.comp hf
+
+protected lemma antitone.Iio (hf : antitone f) : antitone (λ x, Iio (f x)) :=
+monotone_Iio.comp_antitone hf
+
+protected lemma monotone.Icc (hf : monotone f) (hg : antitone g) :
+  antitone (λ x, Icc (f x) (g x)) :=
+hf.Ici.inter hg.Iic
+
+protected lemma antitone.Icc (hf : antitone f) (hg : monotone g) :
+  monotone (λ x, Icc (f x) (g x)) :=
+hf.Ici.inter hg.Iic
+
+protected lemma monotone.Ico (hf : monotone f) (hg : antitone g) :
+  antitone (λ x, Ico (f x) (g x)) :=
+hf.Ici.inter hg.Iio
+
+protected lemma antitone.Ico (hf : antitone f) (hg : monotone g) :
+  monotone (λ x, Ico (f x) (g x)) :=
+hf.Ici.inter hg.Iio
+
+protected lemma monotone.Ioc (hf : monotone f) (hg : antitone g) :
+  antitone (λ x, Ioc (f x) (g x)) :=
+hf.Ioi.inter hg.Iic
+
+protected lemma antitone.Ioc (hf : antitone f) (hg : monotone g) :
+  monotone (λ x, Ioc (f x) (g x)) :=
+hf.Ioi.inter hg.Iic
+
+protected lemma monotone.Ioo (hf : monotone f) (hg : antitone g) :
+  antitone (λ x, Ioo (f x) (g x)) :=
+hf.Ioi.inter hg.Iio
+
+protected lemma antitone.Ioo (hf : antitone f) (hg : monotone g) :
+  monotone (λ x, Ioo (f x) (g x)) :=
+hf.Ioi.inter hg.Iio
+
+end Ixx
+
+section Union
+
+variables {α β : Type*} [semilattice_sup α] [linear_order β] {f g : α → β} {a b : β}
+
+lemma Union_Ioo_of_mono_of_is_glb_of_is_lub (hf : antitone f) (hg : monotone g)
+  (ha : is_glb (range f) a) (hb : is_lub (range g) b) :
+  (⋃ x, Ioo (f x) (g x)) = Ioo a b :=
+calc (⋃ x, Ioo (f x) (g x)) = (⋃ x, Ioi (f x)) ∩ ⋃ x, Iio (g x) :
+  Union_inter_of_monotone hf.Ioi hg.Iio
+... = Ioi a ∩ Iio b : congr_arg2 (∩) ha.Union_Ioi_eq hb.Union_Iio_eq
+
+end Union

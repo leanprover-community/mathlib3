@@ -85,7 +85,7 @@ begin
   { assume k,
     rw tsub_eq_iff_eq_add_of_le,
     { ring },
-    { simpa [mul_add] using add_le_add (zero_le (2 * k)) one_le_two } },
+    { simp [mul_add] } },
   convert (((P_aux n).has_deriv_at x).mul
                (((has_deriv_at_exp _).comp x (has_deriv_at_inv hx).neg))).div
             (has_deriv_at_pow (2 * n) x) (pow_ne_zero _ hx) using 1,
@@ -100,8 +100,7 @@ lemma f_aux_deriv_pos (n : ℕ) (x : ℝ) (hx : 0 < x) :
   has_deriv_at (f_aux n) ((P_aux (n+1)).eval x * exp (-x⁻¹) / x^(2 * (n + 1))) x :=
 begin
   apply (f_aux_deriv n x (ne_of_gt hx)).congr_of_eventually_eq,
-  filter_upwards [lt_mem_nhds hx],
-  assume y hy,
+  filter_upwards [lt_mem_nhds hx] with _ hy,
   simp [f_aux, hy.not_le]
 end
 
@@ -162,8 +161,7 @@ begin
   { have : f_aux (n+1) x = 0, by simp [f_aux, le_of_lt hx],
     rw this,
     apply (has_deriv_at_const x (0 : ℝ)).congr_of_eventually_eq,
-    filter_upwards [gt_mem_nhds hx],
-    assume y hy,
+    filter_upwards [gt_mem_nhds hx] with _ hy,
     simp [f_aux, hy.le] },
   { have : f_aux (n + 1) 0 = 0, by simp [f_aux, le_refl],
     rw [hx, this],
@@ -374,7 +372,7 @@ def to_fun (f : times_cont_diff_bump c) : E → ℝ := f.to_times_cont_diff_bump
 
 instance : has_coe_to_fun (times_cont_diff_bump c) (λ _, E → ℝ) := ⟨to_fun⟩
 
-instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default _⟩⟩
+instance (c : E) : inhabited (times_cont_diff_bump c) := ⟨⟨default⟩⟩
 
 lemma R_pos : 0 < f.R := f.to_times_cont_diff_bump_of_inner.R_pos
 

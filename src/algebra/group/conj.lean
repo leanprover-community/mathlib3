@@ -23,7 +23,7 @@ section monoid
 variables [monoid α] [monoid β]
 
 /-- We say that `a` is conjugate to `b` if for some unit `c` we have `c * a * c⁻¹ = b`. -/
-def is_conj (a b : α) := ∃ c : units α, semiconj_by ↑c a b
+def is_conj (a b : α) := ∃ c : αˣ, semiconj_by ↑c a b
 
 @[refl] lemma is_conj.refl (a : α) : is_conj a a :=
 ⟨1, semiconj_by.one_left a⟩
@@ -151,6 +151,15 @@ quot.exists_rep a
 /-- A `monoid_hom` maps conjugacy classes of one group to conjugacy classes of another. -/
 def map (f : α →* β) : conj_classes α → conj_classes β :=
 quotient.lift (conj_classes.mk ∘ f) (λ a b ab, mk_eq_mk_iff_is_conj.2 (f.map_is_conj ab))
+
+lemma map_surjective {f : α →* β} (hf : function.surjective f) :
+  function.surjective (conj_classes.map f) :=
+begin
+  intros b,
+  obtain ⟨b, rfl⟩ := conj_classes.mk_surjective b,
+  obtain ⟨a, rfl⟩ := hf b,
+  exact ⟨conj_classes.mk a, rfl⟩,
+end
 
 instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] :
   fintype (conj_classes α) :=

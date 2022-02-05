@@ -119,7 +119,7 @@ lemma local_of_nonunits_ideal [comm_ring R] (hnze : (0:R) ≠ 1)
   is_local := λ x, or_iff_not_imp_left.mpr $ λ hx,
   begin
     by_contra H,
-    apply h _ _ hx H,
+    apply h _ hx _ H,
     simp [-sub_eq_add_neg, add_sub_cancel'_right]
   end }
 
@@ -127,7 +127,7 @@ lemma local_of_unique_max_ideal [comm_ring R] (h : ∃! I : ideal R, I.is_maxima
   local_ring R :=
 local_of_nonunits_ideal
 (let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem))
-$ λ x y hx hy H,
+$ λ x hx y hy H,
 let ⟨I, Imax, Iuniq⟩ := h in
 let ⟨Ix, Ixmax, Hx⟩ := exists_max_ideal_of_mem_nonunits hx in
 let ⟨Iy, Iymax, Hy⟩ := exists_max_ideal_of_mem_nonunits hy in

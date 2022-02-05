@@ -176,6 +176,21 @@ instance : has_mem α (sym2 α) := ⟨mem⟩
 lemma mem_mk_left (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
 lemma mem_mk_right (x y : α) : y ∈ ⟦(x, y)⟧ := eq_swap.subst $ mem_mk_left y x
 
+@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
+{ mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
+  mpr := by { rintro ⟨_⟩; subst a, { apply mem_mk_left }, apply mem_mk_right } }
+
+lemma out_fst_mem (e : sym2 α) : e.out.1 ∈ e := ⟨e.out.2, by rw [prod.mk.eta, e.out_eq]⟩
+lemma out_snd_mem (e : sym2 α) : e.out.2 ∈ e := ⟨e.out.1, by rw [eq_swap, prod.mk.eta, e.out_eq]⟩
+
+lemma ball {p : α → Prop} {a b : α} : (∀ c ∈ ⟦(a, b)⟧, p c) ↔ p a ∧ p b :=
+begin
+  refine ⟨λ h, ⟨h _ $ mem_mk_left _ _, h _ $ mem_mk_right _ _⟩, λ h c hc, _⟩,
+  obtain rfl | rfl := sym2.mem_iff.1 hc,
+  { exact h.1 },
+  { exact h.2 }
+end
+
 /--
 Given an element of the unordered pair, give the other element using `classical.some`.
 See also `mem.other'` for the computable version.
@@ -186,10 +201,6 @@ classical.some h
 @[simp]
 lemma other_spec {a : α} {z : sym2 α} (h : a ∈ z) : ⟦(a, h.other)⟧ = z :=
 by erw ← classical.some_spec h
-
-@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
-{ mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
-  mpr := by { rintro ⟨_⟩; subst a, { apply mem_mk_left }, apply mem_mk_right } }
 
 lemma other_mem {a : α} {z : sym2 α} (h : a ∈ z) : h.other ∈ z :=
 by { convert mem_mk_right a h.other, rw other_spec h }
@@ -204,6 +215,10 @@ begin
     simp only [true_or, eq_self_iff_true, and_self, or_true] },
   { rintro rfl, simp },
 end
+
+lemma eq_of_ne_mem {x y : α} {z z' : sym2 α} (h : x ≠ y)
+  (h1 : x ∈ z) (h2 : y ∈ z) (h3 : x ∈ z') (h4 : y ∈ z') : z = z' :=
+((mem_and_mem_iff h).mp ⟨h1, h2⟩).trans ((mem_and_mem_iff h).mp ⟨h3, h4⟩).symm
 
 @[ext]
 protected lemma ext (z z' : sym2 α) (h : ∀ x, x ∈ z ↔ x ∈ z') : z = z' :=

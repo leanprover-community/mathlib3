@@ -51,10 +51,10 @@ instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] :
 instance : decidable_eq empty := λa, a.elim
 
 instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
-instance sort.inhabited' : inhabited (default (Sort*)) := ⟨punit.star⟩
+instance sort.inhabited' : inhabited (default) := ⟨punit.star⟩
 
-instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl (default _)⟩
-instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr (default _)⟩
+instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl default⟩
+instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr default⟩
 
 @[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
@@ -210,7 +210,7 @@ theorem false_ne_true : false ≠ true
 | h := h.symm ▸ trivial
 
 section propositional
-variables {a b c d : Prop}
+variables {a b c d e f : Prop}
 
 /-! ### Declarations about `implies` -/
 
@@ -224,6 +224,11 @@ theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 @[simp] lemma eq_iff_iff {p q : Prop} : (p = q) ↔ (p ↔ q) := iff_iff_eq.symm
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
+
+lemma iff.imp (h₁ : a ↔ b) (h₂ : c ↔ d) : (a → c) ↔ (b → d) := imp_congr h₁ h₂
+
+@[simp] lemma eq_true_eq_id : eq true = id :=
+by { funext, simp only [true_iff, id.def, iff_self, eq_iff_iff], }
 
 theorem imp_intro {α β : Prop} (h : α) : β → α := λ _, h
 
@@ -271,6 +276,8 @@ the arguments flipped, but it is in the `not` namespace so that projection notat
 def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
+
+lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
@@ -389,12 +396,14 @@ instance : is_commutative Prop xor := ⟨xor_comm⟩
 
 /-! ### Declarations about `and` -/
 
+lemma iff.and (h₁ : a ↔ b) (h₂ : c ↔ d) : a ∧ c ↔ b ∧ d := and_congr h₁ h₂
+
 theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=
 and.comm.trans $ (and_congr_right h).trans and.comm
 
-theorem and_congr_left' (h : a ↔ b) : a ∧ c ↔ b ∧ c := and_congr h iff.rfl
+theorem and_congr_left' (h : a ↔ b) : a ∧ c ↔ b ∧ c := h.and iff.rfl
 
-theorem and_congr_right' (h : b ↔ c) : a ∧ b ↔ a ∧ c := and_congr iff.rfl h
+theorem and_congr_right' (h : b ↔ c) : a ∧ b ↔ a ∧ c := iff.rfl.and h
 
 theorem not_and_of_not_left (b : Prop) : ¬a → ¬(a ∧ b) :=
 mt and.left
@@ -455,9 +464,11 @@ by simp only [and.comm, ← and.congr_right_iff]
 
 /-! ### Declarations about `or` -/
 
-theorem or_congr_left (h : a ↔ b) : a ∨ c ↔ b ∨ c := or_congr h iff.rfl
+lemma iff.or (h₁ : a ↔ b) (h₂ : c ↔ d) : a ∨ c ↔ b ∨ d := or_congr h₁ h₂
 
-theorem or_congr_right (h : b ↔ c) : a ∨ b ↔ a ∨ c := or_congr iff.rfl h
+theorem or_congr_left (h : a ↔ b) : a ∨ c ↔ b ∨ c := h.or iff.rfl
+
+theorem or_congr_right (h : b ↔ c) : a ∨ b ↔ a ∨ c := iff.rfl.or h
 
 theorem or.right_comm : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b := by rw [or_assoc, or_assoc, or_comm b]
 
@@ -472,6 +483,9 @@ or.imp_right h h₁
 
 theorem or.elim3 (h : a ∨ b ∨ c) (ha : a → d) (hb : b → d) (hc : c → d) : d :=
 or.elim h ha (assume h₂, or.elim h₂ hb hc)
+
+lemma or.imp3 (had : a → d) (hbe : b → e) (hcf : c → f) : a ∨ b ∨ c → d ∨ e ∨ f :=
+or.imp had $ or.imp hbe hcf
 
 theorem or_imp_distrib : (a ∨ b → c) ↔ (a → c) ∧ (b → c) :=
 ⟨assume h, ⟨assume ha, h (or.inl ha), assume hb, h (or.inr hb)⟩,
@@ -501,6 +515,9 @@ theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
 @[simp] theorem or_iff_right_iff_imp : (a ∨ b ↔ b) ↔ (a → b) :=
 by rw [or_comm, or_iff_left_iff_imp]
 
+lemma or_iff_left (hb : ¬ b) : a ∨ b ↔ a := ⟨λ h, h.resolve_right hb, or.inl⟩
+lemma or_iff_right (ha : ¬ a) : a ∨ b ↔ b := ⟨λ h, h.resolve_left ha, or.inr⟩
+
 /-! ### Declarations about distributivity -/
 
 /-- `∧` distributes over `∨` (on the left). -/
@@ -510,7 +527,7 @@ theorem and_or_distrib_left : a ∧ (b ∨ c) ↔ (a ∧ b) ∨ (a ∧ c) :=
 
 /-- `∧` distributes over `∨` (on the right). -/
 theorem or_and_distrib_right : (a ∨ b) ∧ c ↔ (a ∧ c) ∨ (b ∧ c) :=
-(and.comm.trans and_or_distrib_left).trans (or_congr and.comm and.comm)
+(and.comm.trans and_or_distrib_left).trans (and.comm.or and.comm)
 
 /-- `∨` distributes over `∧` (on the left). -/
 theorem or_and_distrib_left : a ∨ (b ∧ c) ↔ (a ∨ b) ∧ (a ∨ c) :=
@@ -519,7 +536,7 @@ theorem or_and_distrib_left : a ∨ (b ∧ c) ↔ (a ∨ b) ∧ (a ∨ c) :=
 
 /-- `∨` distributes over `∧` (on the right). -/
 theorem and_or_distrib_right : (a ∧ b) ∨ c ↔ (a ∨ c) ∧ (b ∨ c) :=
-(or.comm.trans or_and_distrib_left).trans (and_congr or.comm or.comm)
+(or.comm.trans or_and_distrib_left).trans (or.comm.and or.comm)
 
 @[simp] lemma or_self_left : a ∨ a ∨ b ↔ a ∨ b :=
 ⟨λ h, h.elim or.inl id, λ h, h.elim or.inl (or.inr ∘ or.inr)⟩
@@ -528,6 +545,8 @@ theorem and_or_distrib_right : (a ∧ b) ∨ c ↔ (a ∨ c) ∧ (b ∨ c) :=
 ⟨λ h, h.elim id or.inr, λ h, h.elim (or.inl ∘ or.inl) or.inr⟩
 
 /-! Declarations about `iff` -/
+
+lemma iff.iff (h₁ : a ↔ b) (h₂ : c ↔ d) : (a ↔ c) ↔ (b ↔ d) := iff_congr h₁ h₂
 
 theorem iff_of_true (ha : a) (hb : b) : a ↔ b :=
 ⟨λ_, hb, λ _, ha⟩
@@ -597,13 +616,13 @@ theorem peirce' {a : Prop} (H : ∀ b : Prop, (a → b) → a) : a := H _ id
 
 -- See Note [decidable namespace]
 protected theorem decidable.not_iff_not [decidable a] [decidable b] : (¬ a ↔ ¬ b) ↔ (a ↔ b) :=
-by rw [@iff_def (¬ a), @iff_def' a]; exact and_congr decidable.not_imp_not decidable.not_imp_not
+by rw [@iff_def (¬ a), @iff_def' a]; exact decidable.not_imp_not.and decidable.not_imp_not
 
 theorem not_iff_not : (¬ a ↔ ¬ b) ↔ (a ↔ b) := decidable.not_iff_not
 
 -- See Note [decidable namespace]
 protected theorem decidable.not_iff_comm [decidable a] [decidable b] : (¬ a ↔ b) ↔ (¬ b ↔ a) :=
-by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr decidable.not_imp_comm imp_not_comm
+by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact decidable.not_imp_comm.and imp_not_comm
 
 theorem not_iff_comm : (¬ a ↔ b) ↔ (¬ b ↔ a) := decidable.not_iff_comm
 
@@ -615,7 +634,7 @@ theorem not_iff : ¬ (a ↔ b) ↔ (¬ a ↔ b) := decidable.not_iff
 
 -- See Note [decidable namespace]
 protected theorem decidable.iff_not_comm [decidable a] [decidable b] : (a ↔ ¬ b) ↔ (b ↔ ¬ a) :=
-by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm decidable.not_imp_comm
+by rw [@iff_def a, @iff_def b]; exact imp_not_comm.and decidable.not_imp_comm
 
 theorem iff_not_comm : (a ↔ ¬ b) ↔ (b ↔ ¬ a) := decidable.iff_not_comm
 
@@ -729,6 +748,15 @@ theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
   (h : a ∈ s) : b ∉ s → a ≠ b :=
 mt $ λ e, e ▸ h
 
+-- todo: change name
+lemma ball_cond_comm {α} {s : α → Prop} {p : α → α → Prop} :
+  (∀ a, s a → ∀ b, s b → p a b) ↔ (∀ a b, s a → s b → p a b) :=
+⟨λ h a b ha hb, h a ha b hb, λ h a ha b hb, h a b ha hb⟩
+
+lemma ball_mem_comm {α β} [has_mem α β] {s : β} {p : α → α → Prop} :
+  (∀ a b ∈ s, p a b) ↔ (∀ a b, a ∈ s → b ∈ s → p a b) :=
+ball_cond_comm
+
 lemma ne_of_apply_ne {α β : Sort*} (f : α → β) {x y : α} (h : f x ≠ f y) : x ≠ y :=
 λ (w : x = y), h (congr_arg f w)
 
@@ -799,44 +827,58 @@ end equality
 /-! ### Declarations about quantifiers -/
 
 section quantifiers
-variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
+variables {α : Sort*}
+
+section congr
+variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
+  {ε : Π a b c, δ a b c → Sort*}
+
+lemma forall₂_congr {p q : Π a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
+  (∀ a b, p a b) ↔ ∀ a b, q a b :=
+forall_congr $ λ a, forall_congr $ h a
+
+lemma forall₃_congr {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c ↔ q a b c) :
+  (∀ a b c, p a b c) ↔ ∀ a b c, q a b c :=
+forall_congr $ λ a, forall₂_congr $ h a
+
+lemma forall₄_congr {p q : Π a b c, δ a b c → Prop} (h : ∀ a b c d, p a b c d ↔ q a b c d) :
+  (∀ a b c d, p a b c d) ↔ ∀ a b c d, q a b c d :=
+forall_congr $ λ a, forall₃_congr $ h a
+
+lemma forall₅_congr {p q : Π a b c d, ε a b c d → Prop}
+  (h : ∀ a b c d e, p a b c d e ↔ q a b c d e) :
+  (∀ a b c d e, p a b c d e) ↔ ∀ a b c d e, q a b c d e :=
+forall_congr $ λ a, forall₄_congr $ h a
+
+lemma exists₂_congr {p q : Π a, β a → Prop}  (h : ∀ a b, p a b ↔ q a b) :
+  (∃ a b, p a b) ↔ ∃ a b, q a b :=
+exists_congr $ λ a, exists_congr $ h a
+
+lemma exists₃_congr {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c ↔ q a b c) :
+  (∃ a b c, p a b c) ↔ ∃ a b c, q a b c :=
+exists_congr $ λ a, exists₂_congr $ h a
+
+lemma exists₄_congr {p q : Π a b c, δ a b c → Prop} (h : ∀ a b c d, p a b c d ↔ q a b c d) :
+  (∃ a b c d, p a b c d) ↔ ∃ a b c d, q a b c d :=
+exists_congr $ λ a, exists₃_congr $ h a
+
+lemma exists₅_congr {p q : Π a b c d, ε a b c d → Prop}
+  (h : ∀ a b c d e, p a b c d e ↔ q a b c d e) :
+  (∃ a b c d e, p a b c d e) ↔ ∃ a b c d e, q a b c d e :=
+exists_congr $ λ a, exists₄_congr $ h a
+
+end congr
+
+variables {β : Sort*} {p q : α → Prop} {b : Prop}
 
 lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
 λ h' a, h a (h' a)
-
-lemma forall₂_congr {p q : α → β → Prop} (h : ∀ a b, p a b ↔ q a b) :
-  (∀ a b, p a b) ↔ (∀ a b, q a b) :=
-forall_congr (λ a, forall_congr (h a))
-
-lemma forall₃_congr {γ : Sort*} {p q : α → β → γ → Prop}
-  (h : ∀ a b c, p a b c ↔ q a b c) :
-  (∀ a b c, p a b c) ↔ (∀ a b c, q a b c) :=
-forall_congr (λ a, forall₂_congr (h a))
-
-lemma forall₄_congr {γ δ : Sort*} {p q : α → β → γ → δ → Prop}
-  (h : ∀ a b c d, p a b c d ↔ q a b c d) :
-  (∀ a b c d, p a b c d) ↔ (∀ a b c d, q a b c d) :=
-forall_congr (λ a, forall₃_congr (h a))
 
 lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 
 lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
   (hp : ∃ a, p a) : ∃ b, q b :=
 exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
-
-lemma exists₂_congr {p q : α → β → Prop} (h : ∀ a b, p a b ↔ q a b) :
-  (∃ a b, p a b) ↔ (∃ a b, q a b) :=
-exists_congr (λ a, exists_congr (h a))
-
-lemma exists₃_congr {γ : Sort*} {p q : α → β → γ → Prop}
-  (h : ∀ a b c, p a b c ↔ q a b c) :
-  (∃ a b c, p a b c) ↔ (∃ a b c, q a b c) :=
-exists_congr (λ a, exists₂_congr (h a))
-
-lemma exists₄_congr {γ δ : Sort*} {p q : α → β → γ → δ → Prop}
-  (h : ∀ a b c d, p a b c d ↔ q a b c d) :
-  (∃ a b c d, p a b c d) ↔ (∃ a b c d, q a b c d) :=
-exists_congr (λ a, exists₃_congr (h a))
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨swap, swap⟩

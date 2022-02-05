@@ -395,12 +395,18 @@ lemma div_lt_div' (hac : a ≤ c) (hbd : d < b) (c0 : 0 < c) (d0 : 0 < d) :
   a / b < c / d :=
 (div_lt_div_iff (d0.trans hbd) d0).2 (mul_lt_mul' hac hbd d0.le c0)
 
-lemma div_lt_div_of_lt_left (hb : 0 < b) (h : b < a) (hc : 0 < c) : c / a < c / b :=
+lemma div_lt_div_of_lt_left (hc : 0 < c) (hb : 0 < b) (h : b < a) : c / a < c / b :=
 (div_lt_div_left hc (hb.trans h) hb).mpr h
 
 /-!
 ### Relating one division and involving `1`
 -/
+
+lemma div_le_self (ha : 0 ≤ a) (hb : 1 ≤ b) : a / b ≤ a :=
+by simpa only [div_one] using div_le_div_of_le_left ha zero_lt_one hb
+
+lemma div_lt_self (ha : 0 < a) (hb : 1 < b) : a / b < a :=
+by simpa only [div_one] using div_lt_div_of_lt_left ha zero_lt_one hb
 
 lemma one_le_div (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
 by rw [le_div_iff hb, one_mul]
@@ -700,14 +706,12 @@ lemma max_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
   max (a / c) (b / c) = (min a b) / c :=
 eq.symm $ @monotone.map_min α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
 
-lemma abs_div (a b : α) : |a / b| = |a| / |b| :=
-(abs_hom : monoid_with_zero_hom α α).map_div a b
+lemma abs_div (a b : α) : |a / b| = |a| / |b| := (abs_hom : α →*₀ α).map_div a b
 
 lemma abs_one_div (a : α) : |1 / a| = 1 / |a| :=
 by rw [abs_div, abs_one]
 
-lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ :=
-(abs_hom : monoid_with_zero_hom α α).map_inv a
+lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := (abs_hom : α →*₀ α).map_inv a
 
 -- TODO: add lemmas with `a⁻¹`.
 lemma one_div_strict_anti_on : strict_anti_on (λ x : α, 1 / x) (set.Ioi 0) :=

@@ -179,7 +179,20 @@ begin
   rw [← hndeg, ← polynomial.leading_coeff, hp.leading_coeff, C.map_one]
 end
 
+lemma nat_degree_pow (hp : p.monic) (n : ℕ) :
+  (p ^ n).nat_degree = n * p.nat_degree :=
+begin
+  induction n with n hn,
+  { simp },
+  { rw [pow_succ, hp.nat_degree_mul (monic_pow hp n), hn],
+    ring }
+end
+
 end monic
+
+@[simp] lemma nat_degree_pow_X_add_C [nontrivial R] (n : ℕ) (r : R) :
+  ((X + C r) ^ n).nat_degree = n :=
+by rw [(monic_X_add_C r).nat_degree_pow, nat_degree_X_add_C, mul_one]
 
 end semiring
 
@@ -305,26 +318,22 @@ else degree_map_eq_of_leading_coeff_ne_zero _
   (by rw [← f.map_zero]; exact mt hf.eq_iff.1
     (mt leading_coeff_eq_zero.1 h))
 
-lemma degree_map' (p : polynomial R) :
-  degree (p.map f) = degree p :=
-p.degree_map_eq_of_injective hf
-
-lemma nat_degree_map' (p : polynomial R) :
+lemma nat_degree_map_eq_of_injective (p : polynomial R) :
   nat_degree (p.map f) = nat_degree p :=
-nat_degree_eq_of_degree_eq (degree_map' hf p)
+nat_degree_eq_of_degree_eq (degree_map_eq_of_injective hf p)
 
 lemma leading_coeff_map' (p : polynomial R) :
   leading_coeff (p.map f) = f (leading_coeff p) :=
 begin
   unfold leading_coeff,
-  rw [coeff_map, nat_degree_map' hf p],
+  rw [coeff_map, nat_degree_map_eq_of_injective hf p],
 end
 
 lemma next_coeff_map (p : polynomial R) :
   (p.map f).next_coeff = f p.next_coeff :=
 begin
   unfold next_coeff,
-  rw nat_degree_map' hf,
+  rw nat_degree_map_eq_of_injective hf,
   split_ifs; simp
 end
 
@@ -332,7 +341,7 @@ lemma leading_coeff_of_injective (p : polynomial R) :
   leading_coeff (p.map f) = f (leading_coeff p) :=
 begin
   delta leading_coeff,
-  rw [coeff_map f, nat_degree_map' hf p]
+  rw [coeff_map f, nat_degree_map_eq_of_injective hf p]
 end
 
 lemma monic_of_injective {p : polynomial R} (hp : (p.map f).monic) : p.monic :=

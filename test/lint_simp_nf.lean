@@ -1,8 +1,8 @@
 import tactic.lint
 
-def f : ℕ → ℕ := default _
-def c : ℕ := default _
-def d : ℕ := default _
+def f : ℕ → ℕ := default
+def c : ℕ := default
+def d : ℕ := default
 
 @[simp] lemma c_eq_d : c = d := rfl
 
@@ -32,7 +32,7 @@ structure morphism :=
 instance : has_coe_to_fun morphism (λ _, ℕ → ℕ):=
 ⟨morphism.f⟩
 
-def h : morphism := ⟨default _⟩
+def h : morphism := ⟨default⟩
 
 -- Also never applies
 @[simp] lemma h_c : h c = 0 := rfl

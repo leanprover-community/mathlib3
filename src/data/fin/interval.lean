@@ -14,6 +14,8 @@ intervals as finsets and fintypes.
 
 open finset fin
 
+open_locale big_operators
+
 variables (n : ℕ)
 
 instance : locally_finite_order (fin n) := subtype.locally_finite_order _
@@ -221,6 +223,23 @@ begin
   cases n,
   { exact fin.elim0 a },
   { rw [filter_le_le_eq_Icc, card_Icc] }
+end
+
+lemma prod_filter_lt_mul_neg_eq_prod_off_diag {R : Type*} [comm_monoid R] {n : ℕ}
+  {f : fin n → fin n → R} :
+  ∏ i, (∏ j in univ.filter (λ j, i < j), (f j i) * (f i j)) =
+  ∏ i, (∏ j in univ.filter (λ j, i ≠ j), (f j i)) :=
+begin
+  simp_rw [ne_iff_lt_or_gt, or.comm, filter_or, prod_mul_distrib],
+  have : ∀ i : fin n, disjoint (filter (gt i) univ) (filter (has_lt.lt i) univ),
+  { simp_rw disjoint_filter,
+    intros i x y,
+    apply lt_asymm },
+  simp only [prod_union, this, prod_mul_distrib],
+  rw mul_comm,
+  congr' 1,
+  rw [prod_sigma', prod_sigma'],
+  refine prod_bij' (λ i hi, ⟨i.2, i.1⟩) _ _ (λ i hi, ⟨i.2, i.1⟩) _ _ _; simp
 end
 
 end filter

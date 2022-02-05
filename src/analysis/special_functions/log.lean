@@ -92,7 +92,7 @@ begin
   rw [← exp_eq_exp, exp_log_eq_abs (inv_ne_zero hx), exp_neg, exp_log_eq_abs hx, abs_inv]
 end
 
-lemma log_le_log (h : 0 < x) (h₁ : 0 < y) : real.log x ≤ real.log y ↔ x ≤ y :=
+lemma log_le_log (h : 0 < x) (h₁ : 0 < y) : log x ≤ log y ↔ x ≤ y :=
 by rw [← exp_le_exp, exp_log h, exp_log h₁]
 
 lemma log_lt_log (hx : 0 < x) : x < y → log x < log y :=
@@ -170,6 +170,46 @@ begin
     { exact or.inl rfl },
     { exact or.inr (or.inl (eq_one_of_pos_of_log_eq_zero x_gt_zero h)), }, },
   { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }
+end
+
+@[simp] lemma log_pow (x : ℝ) (n : ℕ) : log (x ^ n) = n * log x :=
+begin
+  induction n with n ih,
+  { simp },
+  rcases eq_or_ne x 0 with rfl | hx,
+  { simp },
+  rw [pow_succ', log_mul (pow_ne_zero _ hx) hx, ih, nat.cast_succ, add_mul, one_mul],
+end
+
+@[simp] lemma log_zpow (x : ℝ) (n : ℤ) : log (x ^ n) = n * log x :=
+begin
+  induction n,
+  { rw [int.of_nat_eq_coe, zpow_coe_nat, log_pow, int.cast_coe_nat] },
+  rw [zpow_neg_succ_of_nat, log_inv, log_pow, int.cast_neg_succ_of_nat, nat.cast_add_one,
+    neg_mul_eq_neg_mul],
+end
+
+lemma log_le_sub_one_of_pos {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
+begin
+  rw le_sub_iff_add_le,
+  convert add_one_le_exp (log x),
+  rw exp_log hx,
+end
+
+lemma log_div_self_antitone_on : antitone_on (λ x : ℝ, log x / x) {x | exp 1 ≤ x} :=
+begin
+  simp only [antitone_on, mem_set_of_eq],
+  intros x hex y hey hxy,
+  have x_pos : 0 < x := (exp_pos 1).trans_le hex,
+  have y_pos : 0 < y := (exp_pos 1).trans_le hey,
+  have hlogx : 1 ≤ log x := by rwa le_log_iff_exp_le x_pos,
+  have hyx : 0 ≤ y / x - 1 := by rwa [le_sub_iff_add_le, le_div_iff x_pos, zero_add, one_mul],
+  rw [div_le_iff y_pos, ←sub_le_sub_iff_right (log x)],
+  calc
+    log y - log x = log (y / x)           : by rw [log_div (y_pos.ne') (x_pos.ne')]
+    ...           ≤ (y / x) - 1           : log_le_sub_one_of_pos (div_pos y_pos x_pos)
+    ...           ≤ log x * (y / x - 1)   : le_mul_of_one_le_left hyx hlogx
+    ...           = log x / x * y - log x : by ring,
 end
 
 /-- The real logarithm function tends to `+∞` at `+∞`. -/

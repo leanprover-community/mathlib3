@@ -62,8 +62,7 @@ lemma omega_limit_def : ω f ϕ s = ⋂ u ∈ f, closure (image2 ϕ u s) := rfl
 lemma omega_limit_subset_of_tendsto {m : τ → τ} {f₁ f₂ : filter τ} (hf : tendsto m f₁ f₂) :
   ω f₁ (λ t x, ϕ (m t) x) s ⊆ ω f₂ ϕ s :=
 begin
-  apply Inter_subset_Inter2, intro u,  use m ⁻¹' u,
-  apply Inter_subset_Inter2, intro hu, use tendsto_def.mp hf _ hu,
+  refine Inter₂_mono' (λ u hu, ⟨m ⁻¹' u, tendsto_def.mp hf _ hu, _⟩),
   rw ←image2_image_left,
   exact closure_mono (image2_subset (image_preimage_subset _ _) subset.rfl),
 end
@@ -72,7 +71,7 @@ lemma omega_limit_mono_left {f₁ f₂ : filter τ} (hf : f₁ ≤ f₂) : ω f�
 omega_limit_subset_of_tendsto ϕ s (tendsto_id' hf)
 
 lemma omega_limit_mono_right {s₁ s₂ : set α} (hs : s₁ ⊆ s₂) : ω f ϕ s₁ ⊆ ω f ϕ s₂ :=
-bInter_mono $ λ u hu, closure_mono (image2_subset subset.rfl hs)
+Inter₂_mono $ λ u hu, closure_mono (image2_subset subset.rfl hs)
 
 lemma is_closed_omega_limit : is_closed (ω f ϕ s) :=
 is_closed_Inter $ λ u, is_closed_Inter $ λ hu, is_closed_closure
@@ -187,11 +186,8 @@ bInter_eq_Inter _ _
 lemma omega_limit_eq_bInter_inter {v : set τ} (hv : v ∈ f) :
   ω f ϕ s = ⋂ u ∈ f, closure (image2 ϕ (u ∩ v) s) :=
 subset.antisymm
-  (Inter_subset_Inter2 (λ u, ⟨u ∩ v,
-   Inter_subset_Inter2 (λ hu, ⟨inter_mem hu hv, subset.rfl⟩)⟩))
-  (Inter_subset_Inter (λ u,
-   Inter_subset_Inter (λ hu, closure_mono
-     (image2_subset (inter_subset_left _ _) subset.rfl))))
+  (Inter₂_mono' $ λ u hu, ⟨u ∩ v, inter_mem hu hv, subset.rfl⟩)
+  (Inter₂_mono $ λ u hu, closure_mono $ image2_subset (inter_subset_left _ _) subset.rfl)
 
 lemma omega_limit_eq_Inter_inter {v : set τ} (hv : v ∈ f) :
   ω f ϕ s = ⋂ (u : ↥f.sets), closure (image2 ϕ (u ∩ v) s) :=

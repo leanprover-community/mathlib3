@@ -289,8 +289,25 @@ The quotient on `path x₀ x₁` by the equivalence relation `path.homotopic`.
 -/
 protected def quotient (x₀ x₁ : X) := quotient (homotopic.setoid x₀ x₁)
 
-instance : inhabited (homotopic.quotient () ()) :=
-⟨@quotient.mk _ (homotopic.setoid _ _) $ path.refl ()⟩
+local attribute [instance] homotopic.setoid
+
+instance : inhabited (homotopic.quotient () ()) := ⟨quotient.mk $ path.refl ()⟩
+
+/-- The composition of path homotopy classes. This is `path.trans` descended to the quotient. -/
+def quotient.comp (P₀ : path.homotopic.quotient x₀ x₁) (P₁ : path.homotopic.quotient x₁ x₂) :
+  path.homotopic.quotient x₀ x₂ :=
+quotient.map₂ path.trans (λ (p₀ : path x₀ x₁) p₁ hp (q₀ : path x₁ x₂) q₁ hq, (hcomp hp hq)) P₀ P₁
+
+lemma comp_lift (P₀ : path x₀ x₁) (P₁ : path x₁ x₂) : ⟦P₀.trans P₁⟧ = quotient.comp ⟦P₀⟧ ⟦P₁⟧ := rfl
+
+/-- The image of a path homotopy class `P₀` under a map `f`.
+    This is `path.map` descended to the quotient -/
+def quotient.map_fn (P₀ : path.homotopic.quotient x₀ x₁) (f : C(X, Y)) :
+  path.homotopic.quotient (f x₀) (f x₁) :=
+quotient.map (λ (q : path x₀ x₁), q.map f.continuous) (λ p₀ p₁ h, path.homotopic.map h f) P₀
+
+lemma map_lift (P₀ : path x₀ x₁) (f : C(X, Y)) :
+  ⟦P₀.map f.continuous⟧ = quotient.map_fn ⟦P₀⟧ f := rfl
 
 end homotopic
 

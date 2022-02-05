@@ -84,7 +84,7 @@ begin
     (tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
       (tendsto_nhds_within_of_tendsto_nhds tendsto_id) _ _) _,
   all_goals
-  { apply eventually_nhds_with_of_forall,
+  { apply eventually_nhds_within_of_forall,
     intros x hx,
     have := cmp x hx,
     try {simp},

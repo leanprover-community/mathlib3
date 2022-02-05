@@ -195,7 +195,7 @@ structure locally_constant (X Y : Type*) [topological_space X] :=
 namespace locally_constant
 
 instance [inhabited Y] : inhabited (locally_constant X Y) :=
-⟨⟨_, is_locally_constant.const (default Y)⟩⟩
+⟨⟨_, is_locally_constant.const default⟩⟩
 
 instance : has_coe_to_fun (locally_constant X Y) (λ _, X → Y) := ⟨locally_constant.to_fun⟩
 

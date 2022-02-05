@@ -291,7 +291,7 @@ lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
 
 @[simp]
 lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
-C.map_nat_cast n
+map_nat_cast C n
 
 @[simp] lemma C_mul_monomial : C a * monomial n b = monomial n (a * b) :=
 by simp only [←monomial_zero_left, monomial_mul_monomial, zero_add]
@@ -318,6 +318,7 @@ begin
   simp only [X, monomial, monomial_fun, mul_to_finsupp, linear_map.coe_mk],
   ext,
   simp [add_monoid_algebra.mul_apply, sum_single_index, add_comm],
+  congr; ext; congr,
 end
 
 lemma X_pow_mul {n : ℕ} : X^n * p = p * X^n :=

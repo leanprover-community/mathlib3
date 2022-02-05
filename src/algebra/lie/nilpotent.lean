@@ -428,6 +428,47 @@ lie_subalgebra.top_equiv_self.nilpotent_iff_equiv_nilpotent.mpr h
 
 end nilpotent_algebras
 
+namespace lie_ideal
+
+open lie_module
+
+variables {R L : Type*} [comm_ring R] [lie_ring L] [lie_algebra R L] (I : lie_ideal R L)
+variables (M : Type*) [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables (k : ℕ)
+
+/-- Given a Lie module `M` over a Lie algebra `L` together with an ideal `I` of `L`, this is the
+lower central series of `M` as an `I`-module. The advantage of using this definition instead of
+`lie_module.lower_central_series R I M` is that its terms are Lie submodules of `M` as an
+`L`-module, rather than just as an `I`-module.
+
+See also `lie_ideal.coe_lcs_eq`. -/
+def lcs : lie_submodule R L M := (λ N, ⁅I, N⁆)^[k] ⊤
+
+@[simp] lemma lcs_zero : I.lcs M 0 = ⊤ := rfl
+
+@[simp] lemma lcs_succ : I.lcs M (k + 1) = ⁅I, I.lcs M k⁆ :=
+function.iterate_succ_apply' (λ N, ⁅I, N⁆) k ⊤
+
+lemma lcs_top : (⊤ : lie_ideal R L).lcs M k = lower_central_series R L M k := rfl
+
+lemma coe_lcs_eq : (I.lcs M k : submodule R M) = lower_central_series R I M k :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp_rw [lower_central_series_succ, lcs_succ, lie_submodule.lie_ideal_oper_eq_linear_span',
+      ← (I.lcs M k).mem_coe_submodule, ih, lie_submodule.mem_coe_submodule,
+      lie_submodule.mem_top, exists_true_left, lie_subalgebra.coe_bracket_of_module],
+    congr,
+    ext m,
+    split,
+    { rintros ⟨x, hx, m, hm, rfl⟩,
+      exact ⟨⟨x, hx⟩, m, hm, rfl⟩, },
+    { rintros ⟨⟨x, hx⟩, m, hm, rfl⟩,
+      exact ⟨x, hx, m, hm, rfl⟩, }, },
+end
+
+end lie_ideal
+
 section of_associative
 
 variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]

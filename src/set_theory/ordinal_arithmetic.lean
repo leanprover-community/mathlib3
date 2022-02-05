@@ -938,6 +938,7 @@ rfl
 def sup {ι : Type u} (f : ι → ordinal.{max u v}) : ordinal.{max u v} :=
 Inf {c | ∀ i, f i ≤ c}
 
+/-- The set in the definition of the supremum is nonempty. -/
 theorem sup_nonempty {ι : Type u} {f : ι → ordinal.{max u v}} : {c | ∀ i, f i ≤ c}.nonempty :=
 ⟨(cardinal.sup.{u v} (cardinal.succ ∘ card ∘ f)).ord, λ i, le_of_lt $
   cardinal.lt_ord.2 (lt_of_lt_of_le (cardinal.lt_succ_self _) (le_sup _ _))⟩
@@ -1250,15 +1251,15 @@ variables {S : set ordinal.{u}} (hS : unbounded (<) S)
 def enum_ord (S : set ordinal.{u}) (hS : unbounded (<) S) : ordinal → ordinal :=
 wf.fix (λ o f, Inf {b : ordinal | b ∈ S ∧ (blsub.{u u} o f) ≤ b})
 
-/-- The set in `enum_ord_def'` is nonempty. -/
-theorem enum_ord_def'_nonempty (a) : {b | b ∈ S ∧ a ≤ b}.nonempty :=
-let ⟨b, hb, hb'⟩ := hS a in ⟨b, hb, le_of_not_gt hb'⟩
-
 /-- The equation that characterizes `enum_ord` definitionally. This isn't the nicest expression to
     work with, so consider using `enum_ord_def` instead. -/
 theorem enum_ord_def' (o) :
   enum_ord S hS o = Inf (S ∩ {b | blsub.{u u} o (λ c _, enum_ord S hS c) ≤ b}) :=
 wf.fix_eq _ _
+
+/-- The set in `enum_ord_def'` is nonempty. -/
+theorem enum_ord_def'_nonempty (a) : {b | b ∈ S ∧ a ≤ b}.nonempty :=
+let ⟨b, hb, hb'⟩ := hS a in ⟨b, hb, le_of_not_gt hb'⟩
 
 private theorem enum_ord_mem_aux (o) :
   S (enum_ord S hS o) ∧ blsub.{u u} o (λ c _, enum_ord S hS c) ≤ (enum_ord S hS o) :=
@@ -1273,11 +1274,6 @@ theorem blsub_le_enum_ord (o) : blsub.{u u} o (λ c _, enum_ord S hS c) ≤ enum
 theorem enum_ord.strict_mono : strict_mono (enum_ord S hS) :=
 λ _ _ h, (lt_blsub.{u u} _ _ h).trans_le (blsub_le_enum_ord hS _)
 
-/-- The set in `enum_ord_def` is nonempty. -/
-lemma enum_ord_def_nonempty {hS : unbounded (<) S} {o} :
-  {x | x ∈ S ∧ ∀ c, c < o → enum_ord S hS c < x}.nonempty :=
-(⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
-
 /-- A more workable definition for `enum_ord`. -/
 theorem enum_ord_def (o) :
   enum_ord S hS o = Inf (S ∩ {b | ∀ c, c < o → enum_ord S hS c < b}) :=
@@ -1287,6 +1283,11 @@ begin
   ext,
   exact ⟨λ h a hao, (lt_blsub.{u u} _ _ hao).trans_le h, λ h, blsub_le.2 h⟩
 end
+
+/-- The set in `enum_ord_def` is nonempty. -/
+lemma enum_ord_def_nonempty {hS : unbounded (<) S} {o} :
+  {x | x ∈ S ∧ ∀ c, c < o → enum_ord S hS c < x}.nonempty :=
+(⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
 
 theorem enum_ord.surjective : ∀ s ∈ S, ∃ a, enum_ord S hS a = s :=
 begin
@@ -1300,9 +1301,15 @@ begin
   refine le_antisymm (ordinal.Inf_le ⟨hal, λ b hb, _⟩) _,
   { by_contra' h,
     exact not_lt_of_le (@ordinal.Inf_le _ b h) hb },
-  rw le_cInf_iff hU,
+  rw le_cInf_iff'',
   rintros b ⟨hb, hbr⟩,
   by_contra' hba,
+  apply hba.not_le,
+  apply cInf_le',
+  use hb,
+  intro d,
+  apply ne_of_lt,
+  apply hbr,
   refine @not_lt_Inf _ H _ ⟨hb, (λ d hdb, ne_of_lt (hbr d _) hdb)⟩ hba,
   by_contra' hcd,
   apply not_le_of_lt hba,

@@ -104,24 +104,24 @@ begin
 end
 
 /-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-lemma count_factors_mul_of_coprime {p a b : ℕ} (hab : coprime a b)  :
+lemma factorization_mul_apply_of_coprime {p a b : ℕ} (hab : coprime a b)  :
   (a * b).factorization p = a.factorization p + b.factorization p :=
 by simp only [←factors_count_eq, perm_iff_count.mp (perm_factors_mul_of_coprime hab), count_append]
 
 /-- If `p` is a prime factor of `a` then the power of `p` in `a` is the same that in `a * b`,
 for any `b` coprime to `a`. -/
-lemma factors_count_eq_of_coprime_left {p a b : ℕ} (hab : coprime a b) (hpa : p ∈ a.factors) :
+lemma factorization_eq_of_coprime_left {p a b : ℕ} (hab : coprime a b) (hpa : p ∈ a.factors) :
   (a * b).factorization p = a.factorization p :=
 begin
-  rw [count_factors_mul_of_coprime hab, ←factors_count_eq, ←factors_count_eq],
+  rw [factorization_mul_apply_of_coprime hab, ←factors_count_eq, ←factors_count_eq],
   simpa only [count_eq_zero_of_not_mem (coprime_factors_disjoint hab hpa)],
 end
 
 /-- If `p` is a prime factor of `b` then the power of `p` in `b` is the same that in `a * b`,
 for any `a` coprime to `b`. -/
-lemma factors_count_eq_of_coprime_right {p a b : ℕ} (hab : coprime a b) (hpb : p ∈ b.factors) :
+lemma factorization_eq_of_coprime_right {p a b : ℕ} (hab : coprime a b) (hpb : p ∈ b.factors) :
   (a * b).factorization p = b.factorization p :=
-by { rw mul_comm, exact factors_count_eq_of_coprime_left (coprime_comm.mp hab) hpb }
+by { rw mul_comm, exact factorization_eq_of_coprime_left (coprime_comm.mp hab) hpb }
 
 lemma pow_factorization_dvd (n p : ℕ) : p ^ n.factorization p ∣ n :=
 begin
@@ -189,7 +189,7 @@ lemma factorization_mul_of_coprime {a b : ℕ} (hab : coprime a b) :
   (a * b).factorization = a.factorization + b.factorization :=
 begin
   ext q,
-  simp only [finsupp.coe_add, add_apply, ←factors_count_eq, count_factors_mul_of_coprime hab],
+  simp only [finsupp.coe_add, add_apply, ←factors_count_eq, factorization_mul_apply_of_coprime hab],
 end
 
 /-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/

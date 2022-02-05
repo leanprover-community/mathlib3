@@ -6,6 +6,12 @@ Authors: Violeta Hernández Palacios
 import set_theory.ordinal_arithmetic
 import topology.algebra.ordered.basic
 
+/-!
+### Topology of ordinals
+
+We prove some miscellaneous results involving the order topology of ordinals.
+-/
+
 noncomputable theory
 
 universes u v
@@ -127,10 +133,9 @@ begin
       convert hf i,
       exact (sup_eq_zero_iff.1 ha₀ i).symm },
     rcases (mem_nhds_iff_exists_Ioo_subset' ⟨0, ha₀⟩ ⟨_, lt_succ_self _⟩).1 (ht.mem_nhds hat) with
-      ⟨b, c, habc, hbct⟩,
-    have := habc.1,
-    cases lt_sup.1 this with i hi,
-    exact ⟨_, hbct ⟨hi, (le_sup.{u u} f i).trans_lt habc.2⟩, hf i⟩ }
+      ⟨b, c, ⟨hab, hac⟩, hbct⟩,
+    cases lt_sup.1 hab with i hi,
+    exact ⟨_, hbct ⟨hi, (le_sup.{u u} f i).trans_lt hac⟩, hf i⟩ }
 end
 
 theorem mem_closed_iff_sup {s : set ordinal.{u}} {a : ordinal.{u}} (hs : is_closed s) :

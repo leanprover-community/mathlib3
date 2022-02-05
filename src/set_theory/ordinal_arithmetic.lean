@@ -183,6 +183,23 @@ instance : nontrivial ordinal.{u} :=
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
+theorem le_zero_iff {a : ordinal} : a ≤ 0 ↔ a = 0 :=
+le_bot_iff
+
+theorem lt_one_iff {a : ordinal} : a < 1 ↔ a = 0 :=
+by rw [←succ_zero, lt_succ, le_zero_iff]
+
+theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
+begin
+  refine ⟨λ ha, _, _⟩,
+  { rcases eq_or_lt_of_le ha with rfl | ha,
+    { exact or.inr rfl },
+    { exact or.inl (lt_one_iff_zero.1 ha) } },
+  { rintro (rfl | rfl),
+    { exact le_of_lt zero_lt_one },
+    { refl } }
+end
+
 /-! ### The predecessor of an ordinal -/
 
 /-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,
@@ -976,6 +993,9 @@ by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨�
 theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=
 eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_le]
 
+theorem sup_const {ι} [hι : nonempty ι] (o : ordinal) : sup (λ _ : ι, o) = o :=
+le_antisymm (sup_le.2 (λ _, le_rfl)) (le_sup (λ _ : ι, o) hι.some)
+
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
   (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
 (not_bounded_iff _).1 $ λ ⟨x, hx⟩, not_lt_of_le h $ lt_of_le_of_lt
@@ -1080,6 +1100,14 @@ sup_le.2 $ λ i, le_of_lt (lt_lsub f i)
 theorem lsub_le_sup_succ {ι} (f : ι → ordinal) : lsub f ≤ succ (sup f) :=
 lsub_le.2 $ λ i, lt_succ.2 (le_sup f i)
 
+theorem sup_eq_lsub_or_succ_sup_eq_lsub {ι} (f : ι → ordinal) :
+  sup f = lsub f ∨ succ (sup f) = lsub f :=
+begin
+  cases eq_or_lt_of_le (sup_le_lsub f),
+  { exact or.inl h },
+  { exact or.inr ((succ_le.2 h).antisymm (lsub_le_sup_succ f)) }
+end
+
 theorem sup_succ_le_lsub {ι} (f : ι → ordinal) : (sup f).succ ≤ lsub f ↔ ∃ i, f i = sup f :=
 begin
   refine ⟨λ h, _, _⟩,
@@ -1126,6 +1154,30 @@ end
 
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
+
+theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
+begin
+  apply le_antisymm (lsub_le.{u u}.2 typein_lt_self),
+  by_contra' h,
+  nth_rewrite 0 ←type_out o at h,
+  have := lt_lsub.{u u} (typein o.out.r) (enum o.out.r _ h),
+  rw typein_enum at this,
+  exact this.false
+end
+
+theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
+  sup.{u u} (typein o.out.r) = o :=
+by rw (sup_eq_lsub_iff_succ.{u u} (typein o.out.r)).2; rwa lsub_typein o
+
+theorem sup_typein_succ {o : ordinal} : sup.{u u} (typein o.succ.out.r) = o :=
+begin
+  cases sup_eq_lsub_or_succ_sup_eq_lsub.{u u} (typein o.succ.out.r) with h h,
+  { rw sup_eq_lsub_iff_succ at h,
+    simp only [lsub_typein] at h,
+    exact (h o (lt_succ_self o)).false.elim },
+  rw [←succ_inj, h],
+  exact lsub_typein _
+end
 
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=

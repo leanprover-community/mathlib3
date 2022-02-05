@@ -591,7 +591,7 @@ local notation `rayleigh_quotient` := λ x : E, T.re_apply_inner_self x / ∥(x:
 local notation `rayleigh_quotient_sphere` :=
 λ x : sphere (0:E) 1, T.re_apply_inner_self x / ∥(x:E)∥ ^ 2
 local notation `u_sph` := sphere (0:E) 1
-lemma exists_eigenvalue_of_compact_aux [nontrivial E] (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
+lemma exists_eigenvalue_of_compact_aux [nontrivial E]
   (hT_cpct : compact_map T) (h_pos_case : ∥T∥ = (⨆ x : sphere (0:E) 1, rayleigh_quotient x)) :
   ∃ c, has_eigenvalue (T : E →ₗ[𝕜] E) c :=
 begin
@@ -732,10 +732,10 @@ begin
                     (⨆ (x : ↥(sphere (0:E) 1)), -(λ (x : E), T.re_apply_inner_self x / ∥x∥ ^ 2) x)
                     with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩,
   { rw h₁ at H₁,
-    exact hT.exists_eigenvalue_of_compact_aux hT_cpct H₁ },
+    exact exists_eigenvalue_of_compact_aux hT_cpct H₁ },
   { rw h₁ at H₁,
     have : is_self_adjoint (↑(-T) : E →ₗ[𝕜] E) := hT.neg,
-    obtain ⟨c, hc⟩ := this.exists_eigenvalue_of_compact_aux hT_cpct.neg _,
+    obtain ⟨c, hc⟩ := @exists_eigenvalue_of_compact_aux _ _ _ _ (-T) _ hT_cpct.neg _,
     { use -c,
       rw has_eigenvalue at hc ⊢,
       convert hc using 1,
@@ -820,4 +820,3 @@ end finite_dimensional
 
 end is_self_adjoint
 end inner_product_space
-#lint

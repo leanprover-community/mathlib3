@@ -31,11 +31,11 @@ variables [is_domain k] [char_p k p] [perfect_ring k p]
 
 /-! ### Frobenius-linear maps -/
 
-/- The Frobenius automorphism of `k` induces an automorphism of `K`. -/
+/-- The Frobenius automorphism of `k` induces an automorphism of `K`. -/
 def foo₀ : K(p, k) ≃+* K(p, k) := is_fraction_ring.field_equiv_of_ring_equiv
   (ring_equiv.of_bijective _ (witt_vector.frobenius_bijective p k))
 
--- for notational purposes
+/-- The Frobenius automorphism of `k` induces an endomorphism of `K`. For notation purposes. -/
 def foo : K(p, k) →+* K(p, k) := foo₀ p k
 
 notation `φ(` p`,` k`)` := foo₀ p k
@@ -51,6 +51,10 @@ notation M ` ≃ᶠˡ[`:50 p `,` k `] ` M₂ := linear_equiv (foo p k) M M₂
 
 /-! ### Isocrystals -/
 
+/--
+An isocrystal is a vector space over the field `K(p, k)` additionally equipped with a
+Frobenius-linear automorphism.
+-/
 class isocrystal (V : Type*) [add_comm_group V] extends module K(p, k) V :=
 ( frob : V ≃ᶠˡ[p, k] V )
 
@@ -58,16 +62,21 @@ variables (V : Type*) [add_comm_group V] [isocrystal p k V]
 variables (V₂ : Type*) [add_comm_group V₂] [isocrystal p k V₂]
 
 variables {V}
--- for notational purposes
+
+/--
+Project the Frobenius automorphism from an isocrystal. Denoted by `Φ(p, k)` when V can be inferred.
+-/
 def isocrystal_frob' : V ≃ᶠˡ[p, k] V := @isocrystal.frob p _ k _ _ _ _ _ _ _
 variables (V)
 
 notation `Φ(` p`,` k`)` := isocrystal_frob' p k
 
+/-- A homomorphism between isocrystals respects the Frobenius map. -/
 @[nolint has_inhabited_instance]
 structure isocrystal_hom extends V →ₗ[K(p, k)] V₂ :=
 ( frob_equivariant : ∀ x : V, Φ(p, k) (to_linear_map x) = to_linear_map (Φ(p, k) x) )
 
+/-- An isomorphism between isocrystals respects the Frobenius map. -/
 @[nolint has_inhabited_instance]
 structure isocrystal_equiv extends V ≃ₗ[K(p, k)] V₂ :=
 ( frob_equivariant : ∀ x : V, Φ(p, k) (to_linear_equiv x) = to_linear_equiv (Φ(p, k) x) )
@@ -80,11 +89,12 @@ end perfect_ring
 
 /-! ### Classification of isocrystals in dimension 1 -/
 
--- this is too complicated for typeclass search to find unassisted
+/-- A helper instance for type class inference. -/
 local attribute [instance]
 def foo₀_module : module K(p, k) K(p, k) := semiring.to_module
 
-/-- Type synonym for `K(p, k)` to carry the standard `m`-indexed 1-dimensional isocrystal structure.
+/--
+Type synonym for `K(p, k)` to carry the standard `m`-indexed 1-dimensional isocrystal structure.
 -/
 @[nolint unused_arguments has_inhabited_instance, derive [add_comm_group, module K(p, k)]]
 def standard_one_dim_isocrystal (m : ℤ) : Type* :=
@@ -93,7 +103,7 @@ K(p, k)
 section perfect_ring
 variables [is_domain k] [char_p k p] [perfect_ring k p]
 
-
+/-- The standard one-dimensional isocrystal is an isocrystal. -/
 instance (m : ℤ) : isocrystal p k (standard_one_dim_isocrystal p k m) :=
 { frob := (foo₀ p k).to_semilinear_equiv.trans
             (linear_equiv.smul_of_ne_zero _ _ _ (zpow_ne_zero m (witt_vector.p_nonzero' p k))) }

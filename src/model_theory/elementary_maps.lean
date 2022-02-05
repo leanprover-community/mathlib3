@@ -1,17 +1,21 @@
 /-
 Copyright (c) 2022 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
+Authors: Aaron Anderson
 -/
-import model_theory.basic
+import data.fintype.basic
+import model_theory.substructures
+import model_theory.terms_and_formulas
 
 /-!
-#Elementary Maps Between First-Order Structures
+# Elementary Maps Between First-Order Structures
 
 ## Main Definitions
 * A `first_order.language.elementary_embedding` is an embedding that commutes with the
   realizations of formulas.
-*
+* A `first_order.language.elementary_substructure` is a substructure where the realization of each
+  formula agrees with the realization in the larger model.
+
   -/
 
 open_locale first_order
@@ -153,6 +157,20 @@ def to_elementary_embedding (f : M ≃[L] N) : M ↪ₑ[L] N :=
   (f.to_elementary_embedding : M → N) = (f : M → N) := rfl
 
 end equiv
+
+@[simp] lemma realize_term_substructure {α : Type} {S : L.substructure M} (v : α → S)
+  (t : L.term α) :
+  realize_term (coe ∘ v) t = (↑(realize_term v t) : M) :=
+S.subtype.realize_term v t
+
+@[simp] lemma realize_bounded_formula_top {α : Type} {n : ℕ} (v : α → (⊤ : L.substructure M))
+  (xs : fin n → (⊤ : L.substructure M)) (φ : L.bounded_formula α n) :
+  realize_bounded_formula (⊤ : L.substructure M) φ v xs ↔
+  realize_bounded_formula M φ (coe ∘ v) (coe ∘ xs) :=
+begin
+  rw ← substructure.top_equiv.realize_bounded_formula v xs φ,
+  simp,
+end
 
 namespace substructure
 

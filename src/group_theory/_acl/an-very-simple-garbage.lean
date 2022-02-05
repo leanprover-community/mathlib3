@@ -625,7 +625,6 @@ begin
         exact h12 }
 end
 
-
 lemma case_cycle5' (g : perm α) (a : α) (hg' : (g.cycle_of a).support.card ≥ 5) :
   ∃ (h : perm α), (is_three_cycle h) ∧
     (g * h * g⁻¹ * h⁻¹) ≠ 1 ∧ (g * h * g⁻¹ * h⁻¹).support.card < g.support.card :=

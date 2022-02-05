@@ -84,8 +84,7 @@ lemma verschiebung_nonzero {x : 𝕎 R} (hx : x ≠ 0) :
   ∃ n : ℕ, ∃ x' : 𝕎 R, x'.coeff 0 ≠ 0 ∧ x = (verschiebung^[n] x') :=
 begin
   have hex : ∃ k : ℕ, x.coeff k ≠ 0,
-  { by_contradiction hall,
-    push_neg at hall,
+  { by_contra' hall,
     apply hx,
     ext i,
     simp only [hall, zero_coeff] },

@@ -475,11 +475,11 @@ protected noncomputable def complete_lattice : complete_lattice α :=
 /-- A simple `bounded_order` is also a `complete_boolean_algebra`. -/
 protected noncomputable def complete_boolean_algebra : complete_boolean_algebra α :=
 { infi_sup_le_sup_Inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
-    { simp only [bot_sup_eq, ← Inf_eq_infi], apply le_refl },
+    { simp only [bot_sup_eq, ← Inf_eq_infi], exact le_rfl },
     { simp only [top_sup_eq, le_top] }, },
   inf_Sup_le_supr_inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { simp only [bot_inf_eq, bot_le] },
-    { simp only [top_inf_eq, ← Sup_eq_supr], apply le_refl } },
+    { simp only [top_inf_eq, ← Sup_eq_supr], exact le_rfl } },
   .. is_simple_order.complete_lattice,
   .. is_simple_order.boolean_algebra }
 

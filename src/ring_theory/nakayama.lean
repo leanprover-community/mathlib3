@@ -82,7 +82,7 @@ begin
     simpa [comap_map_eq, sup_comm, eq_comm] using hNN' },
   have := @submodule.eq_smul_of_le_smul_of_le_jacobson _ _ _ _ _ I J
     (N'.map N.mkq) (hN'.map _)
-    (by rw [← map_smul'', this]; exact le_refl _)
+    (by rw [← map_smul'', this]; exact le_rfl)
     hIJ,
   rw [← map_smul'', ←h_comap.eq_iff, comap_map_eq, comap_map_eq, submodule.ker_mkq, sup_comm,
         hNN'] at this,

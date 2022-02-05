@@ -546,7 +546,7 @@ theorem mul_self_lt_mul_self_iff {n m : ℕ} : n < m ↔ n * n < m * m :=
 le_iff_le_iff_lt_iff_lt.1 mul_self_le_mul_self_iff
 
 theorem le_mul_self : Π (n : ℕ), n ≤ n * n
-| 0     := le_refl _
+| 0     := le_rfl
 | (n+1) := let t := nat.mul_le_mul_left (n+1) (succ_pos n) in by simp at t; exact t
 
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
@@ -843,7 +843,7 @@ else calc a / c * b / a ≤ b * a / c / a :
       nat.mul_div_mul _ _ (nat.pos_of_ne_zero ha0)]
 
 lemma eq_zero_of_le_half {a : ℕ} (h : a ≤ a / 2) : a = 0 :=
-eq_zero_of_le_div (le_refl _) h
+eq_zero_of_le_div le_rfl h
 
 protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) :
   a = b * c :=
@@ -1432,7 +1432,7 @@ theorem bit_lt_bit0 : ∀ (b) {n m : ℕ}, n < m → bit b n < bit0 m
 | ff n m h := nat.bit0_lt h
 
 theorem bit_lt_bit (a b) {n m : ℕ} (h : n < m) : bit a n < bit b m :=
-lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ (le_refl _))
+lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ le_rfl)
 
 @[simp] lemma bit0_le_bit1_iff : bit0 k ≤ bit1 n ↔ k ≤ n :=
 ⟨λ h, by rwa [← nat.lt_succ_iff, n.bit1_eq_succ_bit0, ← n.bit0_succ_eq,

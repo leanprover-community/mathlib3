@@ -19,7 +19,10 @@ We define principal or indecomposable ordinals, and we prove the standard proper
 
 universe u
 
+noncomputable theory
+
 local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+
 namespace ordinal
 
 /-! ### Principal ordinals -/
@@ -253,11 +256,14 @@ begin
     { rw one_opow,
       exact principal_mul_one } },
   { intros a b hao hbo,
-    cases lt_opow_omega hao with m hm,
-    cases lt_opow_omega hbo with n hn,
-    apply lt_of_le_of_lt (mul_le_mul' (le_of_lt hm) (le_of_lt hn)),
-    rw [←opow_add, opow_lt_opow_iff_right ho, lt_omega],
-    exact ⟨_, (nat.cast_add m n).symm⟩ }
+    have ho₀ : o ≠ 0 := λ h, by { subst h, exact zero_lt_one.not_lt ho },
+    rw lt_opow_of_limit ho₀ omega_is_limit at hao,
+    rw lt_opow_of_limit ho₀ omega_is_limit at hbo,
+    rcases hao with ⟨m, hm, hm'⟩,
+    rcases hbo with ⟨n, hn, hn'⟩,
+    apply (mul_le_mul' (le_of_lt hm') (le_of_lt hn')).trans_lt,
+    rw [←opow_add, opow_lt_opow_iff_right ho],
+    exact principal_add_omega hm hn }
 end
 
 theorem mul_lt_omega_opow {a b c : ordinal}
@@ -353,5 +359,39 @@ le_antisymm
   ((opow_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
     (λ b hb, le_of_lt (opow_lt_omega h hb)))
   (le_opow_self _ a1)
+
+/-! ### Principal ordinals are unbounded -/
+
+/-- The least strict upper bound of `op` applied to all pairs of ordinals less than `o`. This is
+essentially a two-argument version of `ordinal.blsub`. -/
+def blsub₂ (op : ordinal → ordinal → ordinal) (o : ordinal) : ordinal :=
+lsub (λ x : o.out.α × o.out.α, op (typein o.out.r x.1) (typein o.out.r x.2))
+
+theorem lt_blsub₂ (op : ordinal → ordinal → ordinal) {o : ordinal} {a b : ordinal} (ha : a < o)
+  (hb : b < o) : op a b < blsub₂ op o :=
+begin
+  convert lt_lsub _ (prod.mk (enum o.out.r a (by rwa type_out)) (enum o.out.r b (by rwa type_out))),
+  simp only [typein_enum]
+end
+
+theorem principal_nfp_blsub₂ (op : ordinal → ordinal → ordinal) (o : ordinal) :
+  principal op (nfp (blsub₂.{u u} op) o) :=
+begin
+  intros a b ha hb,
+  rw lt_nfp at *,
+  cases ha with m hm,
+  cases hb with n hn,
+  cases le_total ((blsub₂.{u u} op)^[m] o) ((blsub₂.{u u} op)^[n] o) with h h,
+  { use n + 1,
+    rw function.iterate_succ',
+    exact lt_blsub₂ op (hm.trans_le h) hn },
+  { use m + 1,
+    rw function.iterate_succ',
+    exact lt_blsub₂ op hm (hn.trans_le h) },
+end
+
+theorem unbounded_principal (op : ordinal → ordinal → ordinal) :
+  set.unbounded (<) {o | principal op o} :=
+λ o, ⟨_, principal_nfp_blsub₂ op o, (le_nfp_self _ o).not_lt⟩
 
 end ordinal

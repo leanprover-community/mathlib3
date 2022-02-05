@@ -8,6 +8,7 @@ import algebra.big_operators.finprod
 import ring_theory.valuation.basic
 import algebra.module.pi
 import ring_theory.power_series.basic
+import data.finsupp.pwo
 
 /-!
 # Hahn Series
@@ -141,8 +142,18 @@ lemma single_eq_zero : (single a (0 : R)) = 0 := (single a).map_zero
 lemma single_injective (a : Γ) : function.injective (single a : R → hahn_series Γ R) :=
 λ r s rs, by rw [← single_coeff_same a r, ← single_coeff_same a s, rs]
 
+
 lemma single_ne_zero (h : r ≠ 0) : single a r ≠ 0 :=
 λ con, h (single_injective a (con.trans single_eq_zero.symm))
+
+@[simp] lemma single_eq_zero_iff {a : Γ} {r : R} :
+  single a r = 0 ↔ r = 0 :=
+begin
+  split,
+  { contrapose!,
+    exact single_ne_zero },
+  { simp {contextual := tt} }
+end
 
 instance [nonempty Γ] [nontrivial R] : nontrivial (hahn_series Γ R) :=
 ⟨begin
@@ -1062,6 +1073,44 @@ begin
   { refl },
   rw [pow_succ, ih, of_power_series_X, mul_comm, single_mul_single, one_mul, nat.cast_succ]
 end
+
+-- Lemmas about converting hahn_series over fintype to and from mv_power_series
+
+/-- The ring `hahn_series (σ →₀ ℕ) R` is isomorphic to `mv_power_series σ R` for a `fintype` `σ`.
+We take the index set of the hahn series to be `finsupp` rather than `pi`,
+even though we assume `fintype σ` as this is more natural for alignment with `mv_power_series`.
+After importing `algebra.order.pi` the ring `hahn_series (σ → ℕ) R` could be constructed instead.
+ -/
+@[simps] def to_mv_power_series {σ : Type*} [fintype σ] :
+  hahn_series (σ →₀ ℕ) R ≃+* mv_power_series σ R :=
+{ to_fun := λ f, f.coeff,
+  inv_fun := λ f, ⟨(f : (σ →₀ ℕ) → R), finsupp.is_pwo _⟩,
+  left_inv := λ f, by { ext, simp },
+  right_inv := λ f, by { ext, simp },
+  map_add' := λ f g, by { ext, simp },
+  map_mul' := λ f g, begin
+    ext n,
+    simp only [mv_power_series.coeff_mul],
+    classical,
+    change (f * g).coeff n = _,
+    simp_rw [mul_coeff],
+    refine sum_filter_ne_zero.symm.trans ((sum_congr _ (λ _ _, rfl)).trans sum_filter_ne_zero),
+    ext m,
+    simp only [and.congr_left_iff, mem_add_antidiagonal, ne.def, and_iff_left_iff_imp, mem_filter,
+      mem_support, finsupp.mem_antidiagonal],
+    intros h1 h2,
+    contrapose h1,
+    rw ← decidable.or_iff_not_and_not at h1,
+    cases h1; simp [h1],
+  end }
+
+variables {σ : Type*} [fintype σ]
+lemma coeff_to_mv_power_series {f : hahn_series (σ →₀ ℕ) R} {n : σ →₀ ℕ} :
+  mv_power_series.coeff R n f.to_mv_power_series = f.coeff n :=
+rfl
+
+lemma coeff_to_mv_power_series_symm {f : mv_power_series σ R} {n : σ →₀ ℕ} :
+  (hahn_series.to_mv_power_series.symm f).coeff n = mv_power_series.coeff R n f := rfl
 
 end semiring
 

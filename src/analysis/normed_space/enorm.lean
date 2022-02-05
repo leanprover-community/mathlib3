@@ -68,7 +68,7 @@ begin
   calc (nnnorm c : ℝ≥0∞) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul₀ hc]
   ... ≤ nnnorm c * (nnnorm (c⁻¹) * e (c • x)) : _
   ... = e (c • x) : _,
-  { exact ennreal.mul_le_mul (le_refl _) (e.map_smul_le' _ _) },
+  { exact ennreal.mul_le_mul le_rfl (e.map_smul_le' _ _) },
   { rw [← mul_assoc, normed_field.nnnorm_inv, ennreal.coe_inv,
      ennreal.mul_inv_cancel _ ennreal.coe_ne_top, one_mul]; simp [hc] }
 end
@@ -95,7 +95,7 @@ calc e (x - y) = e (x + -y)   : by rw sub_eq_add_neg
 
 instance : partial_order (enorm 𝕜 V) :=
 { le := λ e₁ e₂, ∀ x, e₁ x ≤ e₂ x,
-  le_refl := λ e x, le_refl _,
+  le_refl := λ e x, le_rfl,
   le_trans := λ e₁ e₂ e₃ h₁₂ h₂₃ x, le_trans (h₁₂ x) (h₂₃ x),
   le_antisymm := λ e₁ e₂ h₁₂ h₂₁, ext $ λ x, le_antisymm (h₁₂ x) (h₂₁ x) }
 

@@ -171,7 +171,7 @@ by { ext, refl }
 lemma mem_mk₃_closed {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
   {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} {x : α} (hx : p x) :
   x ∈ (mk₃ f p hf hfp hmin).closed :=
-(hmin (le_refl _) hx).antisymm (hf _)
+(hmin le_rfl hx).antisymm (hf _)
 
 end partial_order
 

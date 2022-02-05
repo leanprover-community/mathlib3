@@ -180,3 +180,17 @@ begin
 end
 
 end algebra
+
+namespace module.End
+
+variables {M : Type v} [ring R] [add_comm_group M] [module R M]
+variables {f : module.End R M} {p : submodule R M} (hp : p ≤ p.comap f)
+
+lemma is_nilpotent.mapq (hnp : is_nilpotent f) : is_nilpotent (p.mapq p f hp) :=
+begin
+  obtain ⟨k, hk⟩ := hnp,
+  use k,
+  simp [← p.mapq_pow, hk],
+end
+
+end module.End

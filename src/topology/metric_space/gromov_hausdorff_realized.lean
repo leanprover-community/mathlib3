@@ -296,7 +296,7 @@ begin
   refine ⟨Cf + C, forall_range_iff.2 (λx, _)⟩,
   calc (⨅ y, f (inl x, inr y) + C) ≤ f (inl x, inr default) + C :
     cinfi_le (HD_below_aux1 C) default
-    ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
+    ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) le_rfl
 end
 
 lemma HD_below_aux2 {f : Cb X Y} (C : ℝ) {y : Y} :
@@ -311,7 +311,7 @@ begin
   refine ⟨Cf + C, forall_range_iff.2 (λy, _)⟩,
   calc (⨅ x, f (inl x, inr y) + C) ≤ f (inl default, inr y) + C :
     cinfi_le (HD_below_aux2 C) default
-  ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
+  ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) le_rfl
 end
 
 /-- Explicit bound on `HD (dist)`. This means that when looking for minimizers it will
@@ -327,7 +327,7 @@ begin
       dist (inl x) (inr (default : Y)) = dist x (default : X) + 1 + dist default default : rfl
       ... ≤ diam (univ : set X) + 1 + diam (univ : set Y) :
       begin
-        apply add_le_add (add_le_add _ (le_refl _)),
+        apply add_le_add (add_le_add _ le_rfl),
         exact dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _),
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },
@@ -341,7 +341,7 @@ begin
       dist (inl (default : X)) (inr y) = dist default default + 1 + dist default y : rfl
       ... ≤ diam (univ : set X) + 1 + diam (univ : set Y) :
       begin
-        apply add_le_add (add_le_add _ (le_refl _)),
+        apply add_le_add (add_le_add _ le_rfl),
         exact dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _),
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },

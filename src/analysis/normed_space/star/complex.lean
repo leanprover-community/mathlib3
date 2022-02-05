@@ -15,21 +15,21 @@ Facts about star modules and star algebras over the complex numbers.
 
 ## Main definitions
 
-* `star_ring.re`: the real part of an element of a star ring, defined as `2⁻¹ • (x + star x)`
-* `star_ring.im`: the imaginary part of an element of a star ring, defined as
+* `star_ring.re`: the real part of an element of a star module, defined as `2⁻¹ • (x + star x)`
+* `star_ring.im`: the imaginary part of an element of a star module, defined as
   `(-I * 2⁻¹) • (x - star x)`.
 
 -/
 
 variables {E : Type*}
 
-namespace star_ring
+namespace star_module
 open_locale complex_conjugate
 open complex
 
-variables [semi_normed_ring E] [star_add_monoid E] [module ℂ E] [star_module ℂ E]
+variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ E]
 
-/-- The real part of an element of star algebra, as a real-linear map. -/
+/-- The real part of an element of a star module, as a real-linear map. -/
 @[simps] noncomputable def re : E →ₗ[ℝ] self_adjoint E :=
 { to_fun := λ x, ⟨(2⁻¹ : ℂ) • (x + star x), by simp only [self_adjoint.mem_iff, star_smul, add_comm,
                                         star_add_monoid.star_add, star_inv', star_bit0,
@@ -45,7 +45,7 @@ variables [semi_normed_ring E] [star_add_monoid E] [module ℂ E] [star_module �
       rw [smul_comm]
     end }
 
-/-- The imaginary part of an element of star algebra, as a real-linear map. -/
+/-- The imaginary part of an element of a star module, as a real-linear map. -/
 @[simps] noncomputable def im : E →ₗ[ℝ] self_adjoint E :=
 { to_fun := λ x, ⟨(-I * 2⁻¹) • (x - star x),
     begin
@@ -84,4 +84,4 @@ begin
   field_simp
 end
 
-end star_ring
+end star_module

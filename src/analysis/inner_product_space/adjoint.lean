@@ -6,6 +6,7 @@ Authors: Frédéric Dupuis, Heather Macbeth
 
 import analysis.inner_product_space.dual
 import analysis.inner_product_space.pi_L2
+import algebra.star.self_adjoint
 
 /-!
 # Adjoint of operators on Hilbert spaces
@@ -154,6 +155,9 @@ instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smu
 
 lemma star_eq_adjoint (A : E →L[𝕜] E) : star A = A† := rfl
 
+lemma mem_self_adjoint_iff (A : E →L[𝕜] E) : A ∈ self_adjoint (E →L[𝕜] E) ↔ A.adjoint = A :=
+by simp only [←star_eq_adjoint, self_adjoint.mem_iff]
+
 instance : cstar_ring (E →L[𝕜] E) :=
 ⟨begin
   intros A,
@@ -281,6 +285,31 @@ instance : star_ring (E →ₗ[𝕜] E) := ⟨linear_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →ₗ[𝕜] E) := ⟨linear_equiv.map_smulₛₗ adjoint⟩
 
 lemma star_eq_adjoint (A : E →ₗ[𝕜] E) : star A = A.adjoint := rfl
+
+lemma mem_self_adjoint_iff (A : E →ₗ[𝕜] E) : A ∈ self_adjoint (E →ₗ[𝕜] E) ↔ A.adjoint = A :=
+by simp only [←star_eq_adjoint, self_adjoint.mem_iff]
+
+lemma mem_self_adjoint_iff_is_self_adjoint (A : E →ₗ[𝕜] E) :
+  A ∈ self_adjoint (E →ₗ[𝕜] E) ↔ is_self_adjoint A :=
+begin
+  refine ⟨λ h x y, _,
+          λ h, (mem_self_adjoint_iff A).mpr (eq.symm ((eq_adjoint_iff _ _).mpr (λ _ _, h _ _)))⟩,
+  { rw [mem_self_adjoint_iff] at h,
+    nth_rewrite_lhs 0 [←h],
+    exact adjoint_inner_left _ _ _ }
+end
+
+lemma is_star_normal_iff_is_normal (A : E →ₗ[𝕜] E) : is_star_normal A ↔ is_normal A :=
+begin
+  refine ⟨λ h, ⟨A.adjoint, ⟨h, λ x y, adjoint_inner_left _ _ _⟩⟩, λ h, _⟩,
+  rcases h with ⟨B, ⟨h₁, h₂⟩⟩,
+  rwa [(eq_adjoint_iff B A).mpr h₂] at h₁,
+end
+
+lemma is_normal.adjoint_eq_adjoint {A : E →ₗ[𝕜] E} (hA : is_normal A) :
+  hA.adjoint = A.adjoint :=
+linear_map.ext $
+  λ x, ext_inner_left 𝕜 (λ y, by rw [is_normal.adjoint_inner_right, adjoint_inner_right])
 
 section real
 

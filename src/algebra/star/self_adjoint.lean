@@ -8,11 +8,14 @@ import algebra.star.basic
 import group_theory.subgroup.basic
 
 /-!
-# Self-adjoint elements of a star additive group
+# Self-adjoint and normal elements of a star additive group
 
 This file defines `self_adjoint R`, where `R` is a star additive monoid, as the additive subgroup
 containing the elements that satisfy `star x = x`. This includes, for instance, Hermitian
 operators on Hilbert spaces.
+
+We also define `star_normal R` as the set of normal elements, i.e. those that satisfy
+`star x * x = x * star x`.
 
 ## Implementation notes
 
@@ -43,7 +46,12 @@ def self_adjoint [add_group R] [star_add_monoid R] : add_subgroup R :=
   add_mem' := λ x y (hx : star x = x) (hy : star y = y),
                 show star (x + y) = x + y, by simp only [star_add x y, hx, hy],
   neg_mem' := λ x (hx : star x = x), show star (-x) = -x, by simp only [hx, star_neg] }
+
 variables {R}
+
+/-- An element of a star monoid is normal if it commutes with its adjoint. -/
+def is_star_normal [monoid R] [has_star R] (x : R) := star x * x = x * star x
+
 
 namespace self_adjoint
 
@@ -85,6 +93,12 @@ by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
 
 lemma conjugate' {x : R} (hx : x ∈ self_adjoint R) (z : R) : star z * x * z ∈ self_adjoint R :=
 by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
+
+lemma mem_star_normal_of_mem {x : R} (hx : x ∈ self_adjoint R) : is_star_normal x :=
+show star x * x = x * star x, by { simp only [mem_iff] at hx, simp only [hx] }
+
+lemma mem_star_normal (x : self_adjoint R) : is_star_normal (x : R) :=
+mem_star_normal_of_mem (set_like.coe_mem _)
 
 end ring
 
@@ -152,3 +166,17 @@ instance : module R (self_adjoint A) :=
 end module
 
 end self_adjoint
+
+lemma is_star_normal_iff [monoid R] [star_monoid R] {x : R} :
+  is_star_normal x ↔ star x * x = x * star x :=
+iff.rfl
+
+lemma is_star_normal_zero [semiring R] [star_ring R] : is_star_normal (0 : R) :=
+by simp only [is_star_normal_iff, star_zero]
+
+lemma is_star_normal_one [monoid R] [star_monoid R] : is_star_normal (1 : R) :=
+by simp only [is_star_normal_iff, star_one]
+
+lemma is_star_normal_star_self [monoid R] [star_monoid R] {x : R} (hx : is_star_normal x) :
+  is_star_normal (star x) :=
+by simp only [is_star_normal_iff, star_star, hx.symm]

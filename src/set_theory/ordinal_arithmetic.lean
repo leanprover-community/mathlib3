@@ -440,19 +440,22 @@ theorem add_is_limit (a) {b} : is_limit b → is_limit (a + b) :=
 
 /-! ### Subtraction on ordinals-/
 
-/-- `a - b` is the unique ordinal satisfying
-  `b + (a - b) = a` when `b ≤ a`. -/
+/-- `a - b` is the unique ordinal satisfying `b + (a - b) = a` when `b ≤ a`. -/
 def sub (a b : ordinal.{u}) : ordinal.{u} :=
-omin {o | a ≤ b+o} ⟨a, le_add_left _ _⟩
+Inf {o | a ≤ b + o}
+
+/-- The set in the definition of subtraction is nonempty. -/
+theorem sub_nonempty {a b : ordinal.{u}} : {o | a ≤ b + o}.nonempty :=
+⟨a, le_add_left _ _⟩
 
 instance : has_sub ordinal := ⟨sub⟩
 
 theorem le_add_sub (a b : ordinal) : a ≤ b + (a - b) :=
-omin_mem {o | a ≤ b+o} _
+Inf_mem sub_nonempty
 
 theorem sub_le {a b c : ordinal} : a - b ≤ c ↔ a ≤ b + c :=
 ⟨λ h, le_trans (le_add_sub a b) (add_le_add_left h _),
- λ h, omin_le h⟩
+ λ h, ordinal.Inf_le h⟩
 
 theorem lt_sub {a b c : ordinal} : a < b - c ↔ c + a < b :=
 lt_iff_lt_of_le_iff_le sub_le
@@ -700,24 +703,28 @@ protected lemma div_aux (a b : ordinal.{u}) (h : b ≠ 0) : set.nonempty {o | a 
 /-- `a / b` is the unique ordinal `o` satisfying
   `a = b * o + o'` with `o' < b`. -/
 protected def div (a b : ordinal.{u}) : ordinal.{u} :=
-if h : b = 0 then 0 else omin {o | a < b * succ o} (ordinal.div_aux a b h)
+if h : b = 0 then 0 else Inf {o | a < b * succ o} --(ordinal.div_aux a b h)
+
+/-- The set in the definition of division is nonempty. -/
+theorem div_nonempty {a b : ordinal.{u}} (h : b ≠ 0) : {o | a < b * succ o}.nonempty :=
+ordinal.div_aux a b h
 
 instance : has_div ordinal := ⟨ordinal.div⟩
 
 @[simp] theorem div_zero (a : ordinal) : a / 0 = 0 := dif_pos rfl
 
 lemma div_def (a) {b : ordinal} (h : b ≠ 0) :
-  a / b = omin {o | a < b * succ o} (ordinal.div_aux a b h) := dif_neg h
+  a / b = Inf {o | a < b * succ o} := dif_neg h
 
 theorem lt_mul_succ_div (a) {b : ordinal} (h : b ≠ 0) : a < b * succ (a / b) :=
-by rw div_def a h; exact omin_mem {o | a < b * succ o} _
+by rw div_def a h; exact Inf_mem (div_nonempty h)
 
 theorem lt_mul_div_add (a) {b : ordinal} (h : b ≠ 0) : a < b * (a / b) + b :=
 by simpa only [mul_succ] using lt_mul_succ_div a h
 
 theorem div_le {a b c : ordinal} (b0 : b ≠ 0) : a / b ≤ c ↔ a < b * succ c :=
 ⟨λ h, (lt_mul_succ_div a b0).trans_le (mul_le_mul_left' (succ_le_succ.2 h) _),
- λ h, by rw div_def a b0; exact omin_le h⟩
+ λ h, by rw div_def a b0; exact ordinal.Inf_le h⟩
 
 theorem lt_div {a b c : ordinal} (c0 : c ≠ 0) : a < b / c ↔ c * succ a ≤ b :=
 by rw [← not_le, div_le c0, not_lt]
@@ -928,16 +935,18 @@ rfl
 /-! ### Supremum of a family of ordinals -/
 
 /-- The supremum of a family of ordinals -/
-def sup {ι} (f : ι → ordinal) : ordinal :=
-omin {c | ∀ i, f i ≤ c}
-  ⟨(sup (cardinal.succ ∘ card ∘ f)).ord, λ i, le_of_lt $
-    cardinal.lt_ord.2 (lt_of_lt_of_le (cardinal.lt_succ_self _) (le_sup _ _))⟩
+def sup {ι : Type u} (f : ι → ordinal.{max u v}) : ordinal.{max u v} :=
+Inf {c | ∀ i, f i ≤ c}
+
+theorem sup_nonempty {ι : Type u} {f : ι → ordinal.{max u v}} : {c | ∀ i, f i ≤ c}.nonempty :=
+⟨(cardinal.sup.{u v} (cardinal.succ ∘ card ∘ f)).ord, λ i, le_of_lt $
+  cardinal.lt_ord.2 (lt_of_lt_of_le (cardinal.lt_succ_self _) (le_sup _ _))⟩
 
 theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
-omin_mem {c | ∀ i, f i ≤ c} _
+Inf_mem sup_nonempty
 
 theorem sup_le {ι} {f : ι → ordinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
-⟨λ h i, le_trans (le_sup _ _) h, λ h, omin_le h⟩
+⟨λ h i, le_trans (le_sup _ _) h, λ h, ordinal.Inf_le h⟩
 
 theorem lt_sup {ι} {f : ι → ordinal} {a} : a < sup f ↔ ∃ i, a < f i :=
 by simpa only [not_forall, not_le] using not_congr (@sup_le _ f a)
@@ -1237,28 +1246,23 @@ namespace ordinal
 section
 variables {S : set ordinal.{u}} (hS : unbounded (<) S)
 
--- A characterization of unboundedness that's more convenient to our purposes.
-private lemma unbounded_aux (a) : ∃ b, b ∈ S ∧ a ≤ b :=
+/-- Enumerator function for an unbounded set of ordinals. -/
+def enum_ord (S : set ordinal.{u}) (hS : unbounded (<) S) : ordinal → ordinal :=
+wf.fix (λ o f, Inf {b : ordinal | b ∈ S ∧ (blsub.{u u} o f) ≤ b})
+
+/-- The set in `enum_ord_def'` is nonempty. -/
+theorem enum_ord_def'_nonempty (a) : {b | b ∈ S ∧ a ≤ b}.nonempty :=
 let ⟨b, hb, hb'⟩ := hS a in ⟨b, hb, le_of_not_gt hb'⟩
 
-/-- Enumerator function for an unbounded set of ordinals. -/
-def enum_ord (S : set ordinal) (hS : unbounded (<) S) : ordinal → ordinal :=
-wf.fix (λ o f, omin _ (unbounded_aux hS (blsub.{u u} o f)))
-
-/-- The hypothesis that asserts that the `omin` from `enum_ord_def'` exists. -/
-lemma enum_ord_def'_H {hS : unbounded (<) S} {o} :
-  ∃ x, x ∈ S ∧ blsub.{u u} o (λ c _, enum_ord S hS c) ≤ x :=
-unbounded_aux hS _
-
 /-- The equation that characterizes `enum_ord` definitionally. This isn't the nicest expression to
-work with, so consider using `enum_ord_def` instead. -/
+    work with, so consider using `enum_ord_def` instead. -/
 theorem enum_ord_def' (o) :
-  enum_ord S hS o = omin (S ∩ {b | blsub.{u u} o (λ c _, enum_ord S hS c) ≤ b}) enum_ord_def'_H :=
+  enum_ord S hS o = Inf (S ∩ {b | blsub.{u u} o (λ c _, enum_ord S hS c) ≤ b}) :=
 wf.fix_eq _ _
 
 private theorem enum_ord_mem_aux (o) :
   S (enum_ord S hS o) ∧ blsub.{u u} o (λ c _, enum_ord S hS c) ≤ (enum_ord S hS o) :=
-by { rw enum_ord_def', exact omin_mem (λ _, _ ∧ _) _ }
+by { rw enum_ord_def', exact Inf_mem (enum_ord_def'_nonempty hS _) }
 
 theorem enum_ord_mem (o) : enum_ord S hS o ∈ S :=
 (enum_ord_mem_aux hS o).left
@@ -1269,14 +1273,14 @@ theorem blsub_le_enum_ord (o) : blsub.{u u} o (λ c _, enum_ord S hS c) ≤ enum
 theorem enum_ord.strict_mono : strict_mono (enum_ord S hS) :=
 λ _ _ h, (lt_blsub.{u u} _ _ h).trans_le (blsub_le_enum_ord hS _)
 
-/-- The hypothesis that asserts that the `omin` from `enum_ord_def` exists. -/
-lemma enum_ord_def_H {hS : unbounded (<) S} {o} :
-  ∃ x, x ∈ S ∧ ∀ c, c < o → enum_ord S hS c < x :=
+/-- The set in `enum_ord_def` is nonempty. -/
+lemma enum_ord_def_nonempty {hS : unbounded (<) S} {o} :
+  {x | x ∈ S ∧ ∀ c, c < o → enum_ord S hS c < x}.nonempty :=
 (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
 
 /-- A more workable definition for `enum_ord`. -/
 theorem enum_ord_def (o) :
-  enum_ord S hS o = omin (S ∩ {b | ∀ c, c < o → enum_ord S hS c < b}) enum_ord_def_H :=
+  enum_ord S hS o = Inf (S ∩ {b | ∀ c, c < o → enum_ord S hS c < b}) :=
 begin
   rw enum_ord_def',
   congr,
@@ -1286,23 +1290,25 @@ end
 
 theorem enum_ord.surjective : ∀ s ∈ S, ∃ a, enum_ord S hS a = s :=
 begin
-  by_contra' H,
-  cases omin_mem _ H with hal har,
-  apply har (omin (λ b, omin _ H ≤ enum_ord S hS b)
-    ⟨_, well_founded.self_le_of_strict_mono wf (enum_ord.strict_mono hS) _⟩),
+  let T : set ordinal := { s | s ∈ S ∧ ∀ (a : ordinal), ¬enum_ord S hS a = s},
+  by_contra' H : T.nonempty,
+  let U : set ordinal := (λ b, Inf T ≤ enum_ord S hS b),
+  have hU : U.nonempty := ⟨_, well_founded.self_le_of_strict_mono wf (enum_ord.strict_mono hS) _⟩,
+  cases Inf_mem H with hal har,
+  apply har (Inf U),
   rw enum_ord_def,
-  refine le_antisymm (omin_le ⟨hal, λ b hb, _⟩) _,
+  refine le_antisymm (ordinal.Inf_le ⟨hal, λ b hb, _⟩) _,
   { by_contra' h,
-    exact not_lt_of_le (@omin_le _ _ b h) hb },
-  rw le_omin,
+    exact not_lt_of_le (@ordinal.Inf_le _ b h) hb },
+  rw le_cInf_iff hU,
   rintros b ⟨hb, hbr⟩,
   by_contra' hba,
-  refine @not_lt_omin _ H _ ⟨hb, (λ d hdb, ne_of_lt (hbr d _) hdb)⟩ hba,
+  refine @not_lt_Inf _ H _ ⟨hb, (λ d hdb, ne_of_lt (hbr d _) hdb)⟩ hba,
   by_contra' hcd,
   apply not_le_of_lt hba,
   rw ←hdb,
   refine le_trans _ ((enum_ord.strict_mono hS).monotone hcd),
-  exact omin_mem (λ _, omin _ H ≤ _) _
+  exact Inf_mem (λ _, Inf _ H ≤ _) _
 end
 
 /-- An order isomorphism between an unbounded set of ordinals and the ordinals. -/
@@ -1333,7 +1339,7 @@ begin
     rw ←(H d hbd) at this,
     exact ne_of_lt this hd },
   rw enum_ord_def,
-  refine omin_le ⟨hl b, λ c hc, _⟩,
+  refine Inf_le ⟨hl b, λ c hc, _⟩,
   rw ←(H c hc),
   exact h hc
 end
@@ -1529,43 +1535,43 @@ end
   `x = b ^ u * v + w` where `v < b` and `w < b ^ u`. -/
 def log (b : ordinal) (x : ordinal) : ordinal :=
 if h : 1 < b then pred $
-  omin {o | x < b^o} ⟨succ x, succ_le.1 (le_opow_self _ h)⟩
+  Inf {o | x < b^o} ⟨succ x, succ_le.1 (le_opow_self _ h)⟩
 else 0
 
 @[simp] theorem log_not_one_lt {b : ordinal} (b1 : ¬ 1 < b) (x : ordinal) : log b x = 0 :=
 by simp only [log, dif_neg b1]
 
 theorem log_def {b : ordinal} (b1 : 1 < b) (x : ordinal) : log b x =
-  pred (omin {o | x < b^o} (log._proof_1 b x b1)) :=
+  pred (Inf {o | x < b^o} (log._proof_1 b x b1)) :=
 by simp only [log, dif_pos b1]
 
 @[simp] theorem log_zero (b : ordinal) : log b 0 = 0 :=
 if b1 : 1 < b then
   by rw [log_def b1, ← ordinal.le_zero, pred_le];
-     apply omin_le; change 0<b^succ 0;
+     apply Inf_le; change 0<b^succ 0;
      rw [succ_zero, opow_one];
      exact lt_trans zero_lt_one b1
 else by simp only [log_not_one_lt b1]
 
 theorem succ_log_def {b x : ordinal} (b1 : 1 < b) (x0 : 0 < x) : succ (log b x) =
-  omin {o | x < b^o} (log._proof_1 b x b1) :=
+  Inf {o | x < b^o} (log._proof_1 b x b1) :=
 begin
-  let t := omin {o | x < b^o} (log._proof_1 b x b1),
-  have : x < b ^ t := omin_mem {o | x < b^o} _,
+  let t := Inf {o | x < b^o} (log._proof_1 b x b1),
+  have : x < b ^ t := Inf_mem {o | x < b^o} _,
   rcases zero_or_succ_or_limit t with h|h|h,
   { refine (not_lt_of_le (one_le_iff_pos.2 x0) _).elim,
     simpa only [h, opow_zero] },
   { rw [show log b x = pred t, from log_def b1 x,
         succ_pred_iff_is_succ.2 h] },
   { rcases (lt_opow_of_limit (ne_of_gt $ lt_trans zero_lt_one b1) h).1 this with ⟨a, h₁, h₂⟩,
-    exact (not_le_of_lt h₁).elim (le_omin.1 (le_refl t) a h₂) }
+    exact (not_le_of_lt h₁).elim (le_Inf.1 (le_refl t) a h₂) }
 end
 
 theorem lt_opow_succ_log {b : ordinal} (b1 : 1 < b) (x : ordinal) :
   x < b ^ succ (log b x) :=
 begin
   cases lt_or_eq_of_le (ordinal.zero_le x) with x0 x0,
-  { rw [succ_log_def b1 x0], exact omin_mem {o | x < b^o} _ },
+  { rw [succ_log_def b1 x0], exact Inf_mem {o | x < b^o} _ },
   { subst x, apply opow_pos _ (lt_trans zero_lt_one b1) }
 end
 
@@ -1577,7 +1583,7 @@ begin
     refine le_trans (sub_le_self _ _) (one_le_iff_pos.2 x0) },
   cases lt_or_eq_of_le (one_le_iff_ne_zero.2 b0) with b1 b1,
   { refine le_of_not_lt (λ h, not_le_of_lt (lt_succ_self (log b x)) _),
-    have := @omin_le {o | x < b^o} _ _ h,
+    have := @Inf_le {o | x < b^o} _ _ h,
     rwa ← succ_log_def b1 x0 at this },
   { rw [← b1, one_opow], exact one_le_iff_pos.2 x0 }
 end

@@ -14,6 +14,10 @@ Balanced categories arise frequently. For example, categories in which every mon
 (or epimorphism) is strong are balanced. Examples of this are abelian categories and toposes, such
 as the category of types.
 
+## TODO
+
+The opposite of a balanced category is again balanced.
+
 -/
 
 universes v u

@@ -281,12 +281,7 @@ iff.intro
 noncomputable instance : split_epi_category (Type u) :=
 { split_epi_of_epi := λ X Y f hf,
   { section_ := function.surj_inv $ (epi_iff_surjective f).1 hf,
-    id' :=
-    begin
-      ext,
-      dsimp only [types_comp_apply, types_id_apply],
-      exact function.right_inverse_surj_inv _ _
-    end } }
+    id' := funext $ function.right_inverse_surj_inv $ (epi_iff_surjective f).1 hf } }
 
 end category_theory
 

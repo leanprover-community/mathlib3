@@ -143,7 +143,7 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
 @[to_additive "Assuming `Γ` is a normal subgroup of an additive topological group `G`, the
   pushforward to the quotient group `G ⧸ Γ` of the restriction of a both left- and right-invariant
   measure on `G` to a fundamental domain `𝓕` is a left-invariant measure on `G ⧸ Γ`."]
-def measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.normal Γ]
+lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.normal Γ]
   [μ.is_mul_left_invariant] [μ.is_mul_right_invariant] :
   (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)).is_mul_left_invariant :=
 { map_mul_left_eq_self := begin

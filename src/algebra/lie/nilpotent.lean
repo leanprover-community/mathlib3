@@ -295,6 +295,66 @@ set.nontrivial_mono
 
 end lie_module
 
+section morphisms
+
+open lie_module function
+
+variables {L₂ M₂ : Type*} [lie_ring L₂] [lie_algebra R L₂]
+variables [add_comm_group M₂] [module R M₂] [lie_ring_module L₂ M₂] [lie_module R L₂ M₂]
+variables {f : L →ₗ⁅R⁆ L₂} {g : M →ₗ[R] M₂}
+variables (hf : surjective f) (hg : surjective g) (hfg : ∀ x m, ⁅f x, g m⁆ = g ⁅x, m⁆)
+
+include hf hg hfg
+
+lemma function.surjective.lie_module_lcs_map_eq (k : ℕ) :
+  (lower_central_series R L M k : submodule R M).map g = lower_central_series R L₂ M₂ k :=
+begin
+  induction k with k ih,
+  { simp [linear_map.range_eq_top, hg], },
+  { suffices : g '' {m | ∃ (x : L) n, n ∈ lower_central_series R L M k ∧ ⁅x, n⁆ = m} =
+               {m | ∃ (x : L₂) n, n ∈ lower_central_series R L M k ∧ ⁅x, g n⁆ = m},
+    { simp only [← lie_submodule.mem_coe_submodule] at this,
+      simp [← lie_submodule.mem_coe_submodule, ← ih, lie_submodule.lie_ideal_oper_eq_linear_span',
+        submodule.map_span, -submodule.span_image, this], },
+    ext m₂,
+    split,
+    { rintros ⟨m, ⟨x, n, hn, rfl⟩, rfl⟩,
+      exact ⟨f x, n, hn, hfg x n⟩, },
+    { rintros ⟨x, n, hn, rfl⟩,
+      obtain ⟨y, rfl⟩ := hf x,
+      exact ⟨⁅y, n⁆, ⟨y, n, hn, rfl⟩, (hfg y n).symm⟩, }, },
+end
+
+lemma function.surjective.lie_module_is_nilpotent [is_nilpotent R L M] : is_nilpotent R L₂ M₂ :=
+begin
+  obtain ⟨k, hk⟩ := id (by apply_instance : is_nilpotent R L M),
+  use k,
+  rw ← lie_submodule.coe_to_submodule_eq_iff at ⊢ hk,
+  simp [← hf.lie_module_lcs_map_eq hg hfg k, hk],
+end
+
+omit hf hg hfg
+
+lemma equiv.lie_module_is_nilpotent_iff (f : L ≃ₗ⁅R⁆ L₂) (g : M ≃ₗ[R] M₂)
+  (hfg : ∀ x m, ⁅f x, g m⁆ = g ⁅x, m⁆) :
+  is_nilpotent R L M ↔ is_nilpotent R L₂ M₂ :=
+begin
+  split;
+  introsI h,
+  { have hg : surjective (g : M →ₗ[R] M₂) := g.surjective,
+    exact f.surjective.lie_module_is_nilpotent hg hfg, },
+  { have hg : surjective (g.symm : M₂ →ₗ[R] M) := g.symm.surjective,
+    refine f.symm.surjective.lie_module_is_nilpotent hg (λ x m, _),
+    rw [linear_equiv.coe_coe, lie_equiv.coe_to_lie_hom, ← g.symm_apply_apply ⁅f.symm x, g.symm m⁆,
+      ← hfg, f.apply_symm_apply, g.apply_symm_apply], },
+end
+
+@[simp] lemma lie_module.is_nilpotent_of_top_iff :
+  is_nilpotent R (⊤ : lie_subalgebra R L) M ↔ is_nilpotent R L M :=
+equiv.lie_module_is_nilpotent_iff lie_subalgebra.top_equiv_self (1 : M ≃ₗ[R] M) (λ x m, rfl)
+
+end morphisms
+
 end nilpotent_modules
 
 @[priority 100]

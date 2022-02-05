@@ -29,13 +29,18 @@ This could be implemented without submodule.indicator_endo easily.
 -/
 
 open_locale classical
+
+/-- `V.indicator f x` returns `f x` if `x ∈ V` and `0` otherwise. -/
 noncomputable def submodule.indicator (V : submodule 𝕜 E) (f : E → F) : E → F :=
 λ e, if h : e ∈ V then f e else 0
 
+
+/-- `V.indicator_endo hf x` returns `f x : V` if `x ∈ V` and `0` otherwise. -/
 noncomputable def submodule.indicator_endo (V : submodule 𝕜 E) {f : E → E}
   (hf : ∀ x ∈ V, f x ∈ V) : E → V :=
 λ e, if h : e ∈ V then ⟨f e, hf _ h⟩ else 0
 
+/-- `V.indicator_id x` returns `x : V` if `x ∈ V` and `0` otherwise. -/
 noncomputable def submodule.indicator_id (V : submodule 𝕜 E) : E → V :=
 submodule.indicator_endo V $ λ x (hx : x ∈ V), show id x ∈ V, from hx
 
@@ -63,6 +68,10 @@ by simpa only [continuous_on_iff_continuous_restrict, set.restrict, set.indicato
 
 end
 
+/--
+A map `T : E → F` is compact if it maps bounded sets to relatively compact sets, i.e. sets with
+compact closure.
+-/
 def compact_map (T : E → F) : Prop :=
 ∀ s : set E, metric.bounded s → is_compact (closure (T '' s))
 

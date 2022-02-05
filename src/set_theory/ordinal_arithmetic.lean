@@ -183,7 +183,7 @@ instance : nontrivial ordinal.{u} :=
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
-@[simp] theorem le_zero_iff {a : ordinal} : a ≤ 0 ↔ a = 0 :=
+theorem le_zero_iff {a : ordinal} : a ≤ 0 ↔ a = 0 :=
 le_bot_iff
 
 @[simp] theorem lt_one_iff {a : ordinal} : a < 1 ↔ a = 0 :=

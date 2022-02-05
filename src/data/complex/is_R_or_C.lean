@@ -773,7 +773,7 @@ by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 end cleanup_lemmas
 
 section star
-variables {E : Type*} [add_comm_monoid E] [star_add_monoid E] [module ℝ E] [module K E]
+variables {E : Type*} [add_comm_monoid E] [has_star E] [has_scalar ℝ E] [module K E]
   [is_scalar_tower ℝ K E] [star_module K E]
 
 include K

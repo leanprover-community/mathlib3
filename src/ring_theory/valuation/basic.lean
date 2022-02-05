@@ -361,7 +361,7 @@ from calc 1 = v 1 : v.map_one.symm
 lemma map_add_supp (a : R) {s : R} (h : s ∈ supp v) : v (a + s) = v a :=
 begin
   have aux : ∀ a s, v s = 0 → v (a + s) ≤ v a,
-  { intros a' s' h', refine le_trans (v.map_add a' s') (max_le (le_refl _) _), simp [h'], },
+  { intros a' s' h', refine le_trans (v.map_add a' s') (max_le le_rfl _), simp [h'], },
   apply le_antisymm (aux a s h),
   calc v a = v (a + s + -s) : by simp
        ... ≤ v (a + s)      : aux (a + s) (-s) (by rwa ←ideal.neg_mem_iff at h)
@@ -421,7 +421,7 @@ begin
     intros x hx, exact hx }
 end
 
-lemma supp_quot_supp : supp (v.on_quot (le_refl _)) = 0 :=
+lemma supp_quot_supp : supp (v.on_quot le_rfl) = 0 :=
 by { rw supp_quot, exact ideal.map_quotient_self _ }
 
 end supp -- end of section
@@ -659,7 +659,7 @@ lemma supp_quot {J : ideal R} (hJ : J ≤ supp v) :
   supp (v.on_quot hJ) = (supp v).map (ideal.quotient.mk J) :=
 v.supp_quot hJ
 
-lemma supp_quot_supp : supp (v.on_quot (le_refl _)) = 0 :=
+lemma supp_quot_supp : supp (v.on_quot le_rfl) = 0 :=
 v.supp_quot_supp
 
 end supp -- end of section

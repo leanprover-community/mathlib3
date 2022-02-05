@@ -282,7 +282,7 @@ lemma le_def {α} {a b : measurable_space α} :
   a ≤ b ↔ a.measurable_set' ≤ b.measurable_set' := iff.rfl
 
 instance : partial_order (measurable_space α) :=
-{ le_refl     := assume a b, le_refl _,
+{ le_refl     := assume a b, le_rfl,
   le_trans    := assume a b c hab hbc, le_def.mpr (le_trans hab hbc),
   le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩,
   ..measurable_space.has_le }

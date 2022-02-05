@@ -220,7 +220,7 @@ open succ_order
 
 variables [linear_order β] [succ_order β] [is_succ_archimedean β]
 
-/-- The Union of connected sets indexed by a type with an archimedian successor (like `ℕ` or `ℤ`)
+/-- The Union of connected sets indexed by a type with an archimedean successor (like `ℕ` or `ℤ`)
   such that any two neighboring sets meet is preconnected. -/
 theorem is_preconnected.Union_of_chain {s : β → set α}
   (H : ∀ n, is_preconnected (s n))
@@ -229,7 +229,7 @@ theorem is_preconnected.Union_of_chain {s : β → set α}
 is_preconnected.Union_of_refl_trans_gen H $
   λ i j, refl_trans_gen_of_succ _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
 
-/-- The Union of connected sets indexed by a type with an archimedian successor (like `ℕ` or `ℤ`)
+/-- The Union of connected sets indexed by a type with an archimedean successor (like `ℕ` or `ℤ`)
   such that any two neighboring sets meet is connected. -/
 theorem is_connected.Union_of_chain [nonempty β] {s : β → set α}
   (H : ∀ n, is_connected (s n))
@@ -238,7 +238,7 @@ theorem is_connected.Union_of_chain [nonempty β] {s : β → set α}
 is_connected.Union_of_refl_trans_gen H $
   λ i j, refl_trans_gen_of_succ _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
 
-/-- The Union of preconnected sets indexed by a subset of a type with an archimedian successor
+/-- The Union of preconnected sets indexed by a subset of a type with an archimedean successor
   (like `ℕ` or `ℤ`) such that any two neighboring sets meet is preconnected. -/
 theorem is_preconnected.bUnion_of_chain
   {s : β → set α} {t : set β} (ht : ord_connected t)
@@ -257,7 +257,7 @@ begin
     (λ k hk, ⟨by { rw [inter_comm], exact h3 hj hi hk }, h2 hj hi hk⟩),
 end
 
-/-- The Union of connected sets indexed by a subset of a type with an archimedian successor
+/-- The Union of connected sets indexed by a subset of a type with an archimedean successor
   (like `ℕ` or `ℤ`) such that any two neighboring sets meet is preconnected. -/
 theorem is_connected.bUnion_of_chain
   {s : β → set α} {t : set β} (hnt : t.nonempty) (ht : ord_connected t)

@@ -170,7 +170,7 @@ instance : encodable (W_type β) :=
 begin
   haveI h' : Π n, encodable (W_type' β n) :=
     λ n, nat.rec_on n encodable_zero encodable_succ,
-  let f    : W_type β → Σ n, W_type' β n   := λ t, ⟨t.depth, ⟨t, le_refl _⟩⟩,
+  let f    : W_type β → Σ n, W_type' β n   := λ t, ⟨t.depth, ⟨t, le_rfl⟩⟩,
   let finv : (Σ n, W_type' β n) → W_type β := λ p, p.2.1,
   have : ∀ t, finv (f t) = t, from λ t, rfl,
   exact encodable.of_left_inverse f finv this

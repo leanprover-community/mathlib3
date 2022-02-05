@@ -467,7 +467,7 @@ lemma topological_group.of_nhds_one {G : Type u} [group G] [topological_space G]
     ... = map ((λ x, x₀*y₀*x) ∘ (uncurry (*))) ((map  (λ x, y₀⁻¹*x*y₀) $ 𝓝 1) ×ᶠ (𝓝 1))
             : by rw [← filter.map_map, ← prod_map_map_eq', map_id]
     ... ≤ map ((λ x, x₀*y₀*x) ∘ (uncurry (*))) ((𝓝 1) ×ᶠ (𝓝 1))
-            : map_mono (filter.prod_mono hconj $ le_refl _)
+            : map_mono (filter.prod_mono hconj $ le_rfl)
     ... = map (λ x, x₀*y₀*x) (map (uncurry (*)) ((𝓝 1) ×ᶠ (𝓝 1)))   : by rw filter.map_map
     ... ≤ map (λ x, x₀*y₀*x) (𝓝 1)   : map_mono hmul
     ... = 𝓝 (x₀*y₀)   : (hleft _).symm
@@ -843,6 +843,53 @@ def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
   ..mul_equiv.prod_units }
 
 end units
+
+section lattice_ops
+
+variables {ι : Type*} [group G] [group H] {ts : set (topological_space G)}
+  (h : ∀ t ∈ ts, @topological_group G t _) {ts' : ι → topological_space G}
+  (h' : ∀ i, @topological_group G (ts' i) _) {t₁ t₂ : topological_space G}
+  (h₁ : @topological_group G t₁ _) (h₂ : @topological_group G t₂ _)
+  {t : topological_space H} [topological_group H] {F : Type*}
+  [monoid_hom_class F G H] (f : F)
+
+@[to_additive] lemma topological_group_Inf :
+  @topological_group G (Inf ts) _ :=
+{ continuous_inv := continuous_Inf_rng (λ t ht, continuous_Inf_dom ht
+    (@topological_group.continuous_inv G t _ (h t ht))),
+  continuous_mul := @has_continuous_mul.continuous_mul G (Inf ts) _
+    (@has_continuous_mul_Inf _ _ _
+      (λ t ht, @topological_group.to_has_continuous_mul G t _ (h t ht))) }
+
+include h'
+
+@[to_additive] lemma topological_group_infi :
+  @topological_group G (⨅ i, ts' i) _ :=
+by {rw ← Inf_range, exact topological_group_Inf (set.forall_range_iff.mpr h')}
+
+omit h'
+
+include h₁ h₂
+
+@[to_additive] lemma topological_group_inf :
+  @topological_group G (t₁ ⊓ t₂) _ :=
+by {rw inf_eq_infi, refine topological_group_infi (λ b, _), cases b; assumption}
+
+omit h₁ h₂
+
+@[to_additive] lemma topological_group_induced :
+  @topological_group G (t.induced f) _ :=
+{ continuous_inv :=
+    begin
+      letI : topological_space G := t.induced f,
+      refine continuous_induced_rng _,
+      simp_rw [function.comp, map_inv],
+      exact continuous_inv.comp (continuous_induced_dom : continuous f)
+    end,
+  continuous_mul := @has_continuous_mul.continuous_mul G (t.induced f) _
+    (@has_continuous_mul_induced G H _ _ t _ _ _ f) }
+
+end lattice_ops
 
 /-!
 ### Lattice of group topologies

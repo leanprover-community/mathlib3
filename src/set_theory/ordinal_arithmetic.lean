@@ -369,7 +369,7 @@ theorem is_normal.strict_mono {f} (H : is_normal f) : strict_mono f :=
     (λ h, lt_trans (IH h) (H.1 _))
     (λ e, e ▸ H.1 _))
   (λ b l IH h, lt_of_lt_of_le (H.1 a)
-    ((H.2 _ l _).1 (le_refl _) _ (l.2 _ h)))
+    ((H.2 _ l _).1 le_rfl _ (l.2 _ h)))
 
 theorem is_normal.lt_iff {f} (H : is_normal f) {a b} : f a < f b ↔ a < b :=
 strict_mono.lt_iff_lt $ H.strict_mono
@@ -383,29 +383,22 @@ by simp only [le_antisymm_iff, H.le_iff]
 theorem is_normal.le_self {f} (H : is_normal f) (a) : a ≤ f a :=
 well_founded.self_le_of_strict_mono wf H.strict_mono a
 
-theorem is_normal.le_set {f} (H : is_normal f) (p : ordinal → Prop)
-  (p0 : ∃ x, p x) (S)
-  (H₂ : ∀ o, S ≤ o ↔ ∀ a, p a → a ≤ o) {o} :
-  f S ≤ o ↔ ∀ a, p a → f a ≤ o :=
-⟨λ h a pa, le_trans (H.le_iff.2 ((H₂ _).1 (le_refl _) _ pa)) h,
+theorem is_normal.le_set {f} (H : is_normal f) (p : set ordinal) (p0 : p.nonempty) (b)
+  (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, a ≤ o) {o} : f b ≤ o ↔ ∀ a ∈ p, f a ≤ o :=
+⟨λ h a pa, (H.le_iff.2 ((H₂ _).1 (le_refl _) _ pa)).trans h,
 λ h, begin
-  revert H₂, apply limit_rec_on S,
-  { intro H₂,
-     cases p0 with x px,
-     have := ordinal.le_zero.1 ((H₂ _).1 (ordinal.zero_le _) _ px),
-     rw this at px, exact h _ px },
-  { intros S _ H₂,
-    rcases not_ball.1 (mt (H₂ S).2 $ not_le_of_lt $ lt_succ_self _) with ⟨a, h₁, h₂⟩,
-    exact le_trans (H.le_iff.2 $ succ_le.2 $ not_le.1 h₂) (h _ h₁) },
-  { intros S L _ H₂, apply (H.2 _ L _).2, intros a h',
-    rcases not_ball.1 (mt (H₂ a).2 (not_le.2 h')) with ⟨b, h₁, h₂⟩,
-    exact le_trans (H.le_iff.2 $ le_of_lt $ not_le.1 h₂) (h _ h₁) }
+  revert H₂, refine limit_rec_on b (λ H₂, _) (λ S _ H₂, _) (λ S L _ H₂, (H.2 _ L _).2 (λ a h', _)),
+  { cases p0 with x px,
+    have := ordinal.le_zero.1 ((H₂ _).1 (ordinal.zero_le _) _ px),
+    rw this at px, exact h _ px },
+  { rcases not_ball.1 (mt (H₂ S).2 $ not_le_of_lt $ lt_succ_self _) with ⟨a, h₁, h₂⟩,
+    exact (H.le_iff.2 $ succ_le.2 $ not_le.1 h₂).trans (h _ h₁) },
+  { rcases not_ball.1 (mt (H₂ a).2 (not_le.2 h')) with ⟨b, h₁, h₂⟩,
+    exact (H.le_iff.2 $ le_of_lt $ not_le.1 h₂).trans (h _ h₁) }
 end⟩
 
-theorem is_normal.le_set' {f} (H : is_normal f) (p : α → Prop) (g : α → ordinal)
-  (p0 : ∃ x, p x) (S)
-  (H₂ : ∀ o, S ≤ o ↔ ∀ a, p a → g a ≤ o) {o} :
-  f S ≤ o ↔ ∀ a, p a → f (g a) ≤ o :=
+theorem is_normal.le_set' {f} (H : is_normal f) (p : set α) (g : α → ordinal) (p0 : p.nonempty) (b)
+  (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, g a ≤ o) {o} : f b ≤ o ↔ ∀ a ∈ p, f (g a) ≤ o :=
 (H.le_set (λ x, ∃ y, p y ∧ x = g y)
   (let ⟨x, px⟩ := p0 in ⟨_, _, px, rfl⟩) _
   (λ o, (H₂ o).trans ⟨λ H a ⟨y, h1, h2⟩, h2.symm ▸ H y h1,
@@ -476,7 +469,7 @@ theorem lt_sub {a b c : ordinal} : a < b - c ↔ c + a < b :=
 lt_iff_lt_of_le_iff_le sub_le
 
 theorem add_sub_cancel (a b : ordinal) : a + b - a = b :=
-le_antisymm (sub_le.2 $ le_refl _)
+le_antisymm (sub_le.2 $ le_rfl)
   ((add_le_add_iff_left a).1 $ le_add_sub _ _)
 
 theorem sub_eq_of_add_eq {a b c : ordinal} (h : a + b = c) : c - a = b :=
@@ -765,7 +758,7 @@ lt_imp_lt_of_le_imp_le div_le_of_le_mul
 ordinal.le_zero.1 $ div_le_of_le_mul $ ordinal.zero_le _
 
 theorem mul_div_le (a b : ordinal) : b * (a / b) ≤ a :=
-if b0 : b = 0 then by simp only [b0, zero_mul, ordinal.zero_le] else (le_div b0).1 (le_refl _)
+if b0 : b = 0 then by simp only [b0, zero_mul, ordinal.zero_le] else (le_div b0).1 le_rfl
 
 theorem mul_add_div (a) {b : ordinal} (b0 : b ≠ 0) (c) : (b * a + c) / b = a + c / b :=
 begin
@@ -978,11 +971,11 @@ begin
   exact le_sup f i
 end
 
-theorem is_normal.sup {f} (H : is_normal f)
-  {ι} {g : ι → ordinal} (h : nonempty ι) : f (sup g) = sup (f ∘ g) :=
+theorem is_normal.sup {f} (H : is_normal f) {ι} {g : ι → ordinal} (h : nonempty ι) :
+  f (sup g) = sup (f ∘ g) :=
 eq_of_forall_ge_iff $ λ a,
 by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
-  intros; simp only [sup_le, true_implies_iff]
+  intros; simp only [sup_le, true_implies_iff]; tauto
 
 theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=
 eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_le]
@@ -1169,7 +1162,7 @@ theorem blsub_le {o f a} : blsub o f ≤ a ↔ ∀ i h, f i h < a :=
 by { convert bsup_le, apply propext, simp [succ_le] }
 
 theorem lt_blsub {o} (f : Π a < o, ordinal) (i h) : f i h < blsub o f :=
-blsub_le.1 (le_refl _) _ _
+blsub_le.1 le_rfl _ _
 
 theorem bsup_le_blsub {o} (f : Π a < o, ordinal) : bsup o f ≤ blsub o f :=
 bsup_le.2 (λ i h, le_of_lt (lt_blsub f i h))
@@ -1739,7 +1732,7 @@ begin
     { simp only [CNF_zero, list.pairwise.nil, and_true], exact λ _, false.elim },
     intros o o0 H IH, cases IH with IH₁ IH₂,
     simp only [CNF_ne_zero b0 o0, list.forall_mem_cons, list.pairwise_cons, IH₂, and_true],
-    refine ⟨⟨le_refl _, λ p m, _⟩, λ p m, _⟩,
+    refine ⟨⟨le_rfl, λ p m, _⟩, λ p m, _⟩,
     { exact le_trans (IH₁ p m) (log_le_log _ $ le_of_lt H) },
     { refine lt_of_le_of_lt (IH₁ p m) ((log_lt b1 _).2 _),
       { rw ordinal.pos_iff_ne_zero, intro e,
@@ -1864,7 +1857,7 @@ namespace cardinal
 open ordinal
 
 @[simp] theorem ord_omega : ord.{u} omega = ordinal.omega :=
-le_antisymm (ord_le.2 $ le_refl _) $
+le_antisymm (ord_le.2 $ le_rfl) $
 le_of_forall_lt $ λ o h, begin
   rcases ordinal.lt_lift_iff.1 h with ⟨o, rfl, h'⟩,
   rw [lt_ord, ← lift_card, ← lift_omega.{0 u},
@@ -2090,7 +2083,7 @@ theorem is_normal.nfp_fp {f} (H : is_normal f) (a) : f (nfp f a) = nfp f a :=
 begin
   refine le_antisymm _ (H.le_self _),
   cases le_or_lt (f a) a with aa aa,
-  { rwa le_antisymm (H.nfp_le_fp (le_refl _) aa) (le_nfp_self _ _) },
+  { rwa le_antisymm (H.nfp_le_fp le_rfl aa) (le_nfp_self _ _) },
   rcases zero_or_succ_or_limit (nfp f a) with e|⟨b, e⟩|l,
   { refine @le_trans _ _ _ (f a) _ (H.le_iff.2 _) (iterate_le_nfp f a 1),
     simp only [e, ordinal.zero_le] },

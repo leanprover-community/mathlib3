@@ -263,7 +263,7 @@ begin
           diam_union (mem_range_self _) (mem_range_self _)
         ... ≤ diam (univ : set X) + (diam (univ : set X) + 1 + diam (univ : set Y)) +
               diam (univ : set Y) :
-          by { rw [DΦ, DΨ], apply add_le_add (add_le_add (le_refl _) (le_of_lt dy)) (le_refl _) }
+          by { rw [DΦ, DΨ], apply add_le_add (add_le_add le_rfl (le_of_lt dy)) le_rfl }
         ... = 2 * diam (univ : set X) + 1 + 2 * diam (univ : set Y) : by ring },
 
     let f : X ⊕ Y → ℓ_infty_ℝ := λ x, match x with | inl y := Φ y | inr z := Ψ z end,
@@ -734,7 +734,7 @@ begin
   -- choose `n` for which `u n < ε`
   rcases metric.tendsto_at_top.1 ulim ε εpos with ⟨n, hn⟩,
   have u_le_ε : u n ≤ ε,
-  { have := hn n (le_refl _),
+  { have := hn n le_rfl,
     simp only [real.dist_eq, add_zero, sub_eq_add_neg, neg_zero] at this,
     exact le_of_lt (lt_of_le_of_lt (le_abs_self _) this) },
   -- construct a finite subset `s p` of `p` which is `ε`-dense and has cardinal `≤ K n`

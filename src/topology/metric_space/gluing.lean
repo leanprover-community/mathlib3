@@ -112,7 +112,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc
         dist z (Φ p) + dist x (Ψ p) ≤ (dist y z + dist y (Φ p)) + dist x (Ψ p) :
-          add_le_add (dist_triangle_left _ _ _) (le_refl _)
+          add_le_add (dist_triangle_left _ _ _) le_rfl
         ... = dist y (Φ p) + dist x (Ψ p) + dist y z : by ring },
     linarith
   end
@@ -130,7 +130,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc
         dist z (Φ p) + dist x (Ψ p) ≤ dist z (Φ p) + (dist x y + dist y (Ψ p)) :
-          add_le_add (le_refl _) (dist_triangle _ _ _)
+          add_le_add le_rfl (dist_triangle _ _ _)
         ... = dist x y + (dist z (Φ p) + dist y (Ψ p)) : by ring },
     linarith
   end
@@ -148,7 +148,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc
         dist x (Φ p) + dist z (Ψ p) ≤ (dist x y + dist y (Φ p)) + dist z (Ψ p) :
-          add_le_add (dist_triangle _ _ _) (le_refl _)
+          add_le_add (dist_triangle _ _ _) le_rfl
         ... = dist x y + (dist y (Φ p) + dist z (Ψ p)) : by ring },
     linarith
   end
@@ -166,7 +166,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc
         dist x (Φ p) + dist z (Ψ p) ≤ dist x (Φ p) + (dist y z + dist y (Ψ p)) :
-          add_le_add (le_refl _) (dist_triangle_left _ _ _)
+          add_le_add le_rfl (dist_triangle_left _ _ _)
         ... = dist x (Φ p) + dist y (Ψ p) + dist y z : by ring },
     linarith
   end
@@ -180,7 +180,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
     calc dist x z ≤ dist x (Φ p) + dist (Φ p) (Φ q) + dist (Φ q) z : dist_triangle4 _ _ _ _
       ... ≤ dist x (Φ p) + dist (Ψ p) (Ψ q) + dist z (Φ q) + 2 * ε : by rw [dist_comm z]; linarith
       ... ≤ dist x (Φ p) + (dist y (Ψ p) + dist y (Ψ q)) + dist z (Φ q) + 2 * ε :
-        add_le_add (add_le_add (add_le_add (le_refl _) (dist_triangle_left _ _ _)) le_rfl) le_rfl
+        add_le_add (add_le_add (add_le_add le_rfl (dist_triangle_left _ _ _)) le_rfl) le_rfl
       ... ≤ ((⨅ p, dist x (Φ p) + dist y (Ψ p)) + ε) +
             ((⨅ p, dist z (Φ p) + dist y (Ψ p)) + ε) + δ : by linarith
   end
@@ -484,8 +484,8 @@ begin
   show inductive_limit_dist f ⟨n.succ, f n x⟩ ⟨n, x⟩ = 0,
   { rw [inductive_limit_dist_eq_dist I ⟨n.succ, f n x⟩ ⟨n, x⟩ n.succ,
         le_rec_on_self, le_rec_on_succ, le_rec_on_self, dist_self],
-    exact le_refl _,
-    exact le_refl _,
+    exact le_rfl,
+    exact le_rfl,
     exact le_succ _ }
 end
 

@@ -190,6 +190,11 @@ theorem partially_well_ordered_on.mono {s t : set α} {r : α → α → Prop}
   s.partially_well_ordered_on r :=
 λ f hf, ht f (set.subset.trans hf hsub)
 
+theorem is_pwo.mono [preorder α] {s t : set α}
+  (ht : t.is_pwo) (hsub : s ⊆ t) :
+  s.is_pwo :=
+partially_well_ordered_on.mono ht hsub
+
 theorem partially_well_ordered_on.image_of_monotone_on {s : set α}
   {r : α → α → Prop} {β : Type*} {r' : β → β → Prop}
   (hs : s.partially_well_ordered_on r) {f : α → β}
@@ -894,3 +899,31 @@ end finset
 lemma well_founded.is_wf [has_lt α] (h : well_founded ((<) : α → α → Prop)) (s : set α) :
   s.is_wf :=
 (set.is_wf_univ_iff.2 h).mono (set.subset_univ s)
+
+/-- A version of **Dickson's lemma** any subset of functions `Π s : σ, α s` is partially well
+ordered, when `σ` is a `fintype` and each `α s` is a linear well order.
+This includes the classical case of Dickson's lemma that `ℕ ^ n` is a well partial order.
+Some generalizations would be possible based on this proof, to include cases where the target
+is partially well ordered, and also to consider the case of `partially_well_ordered_on` instead of
+`is_pwo`. -/
+lemma pi.is_pwo {σ : Type*} {α : σ → Type*} [∀ s, linear_order (α s)] [∀ s, is_well_order (α s) (<)]
+  [fintype σ] (S : set (Π s : σ, α s)) : S.is_pwo :=
+begin
+  classical,
+  refine set.is_pwo.mono _ (set.subset_univ _),
+  rw set.is_pwo_iff_exists_monotone_subseq,
+  simp_rw [monotone, pi.le_def],
+  suffices : ∀ s : finset σ, ∀ (f : ℕ → (Π s, α s)), set.range f ⊆ set.univ → ∃ (g : ℕ ↪o ℕ),
+    ∀ ⦃a b : ℕ⦄, a ≤ b → ∀ (x : σ) (hs : x ∈ s), (f ∘ g) a x ≤ (f ∘ g) b x,
+  { simpa only [forall_true_left, finset.mem_univ] using this finset.univ, },
+  apply' finset.induction,
+  { intros f hf, existsi rel_embedding.refl (≤),
+    simp only [forall_false_left, implies_true_iff, forall_const, finset.not_mem_empty], },
+  { intros x s hx ih f hf,
+    obtain ⟨g, hg⟩ := (is_well_order.wf.is_wf (set.univ : set _)).is_pwo.exists_monotone_subseq
+      ((λ mo : Π s : σ, α s, mo x) ∘ f) (set.subset_univ _),
+    obtain ⟨g', hg'⟩ := ih (f ∘ g) (set.subset_univ _),
+    refine ⟨g'.trans g, λ a b hab, _⟩,
+    simp only [finset.mem_insert, rel_embedding.coe_trans, function.comp_app, forall_eq_or_imp],
+    exact ⟨hg (order_hom_class.mono g' hab), hg' hab⟩, },
+end

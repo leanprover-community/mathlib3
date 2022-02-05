@@ -168,13 +168,13 @@ lemma diagonalization_apply_self_apply (v : E) (μ : eigenvalues T) :
 begin
   suffices : ∀ w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ),
     (T (hT.diagonalization.symm w)) = hT.diagonalization.symm (λ μ, (μ : 𝕜) • w μ),
-  { simpa [linear_isometry_equiv.symm_apply_apply, -is_self_adjoint.diagonalization_symm_apply]
+  { simpa only [linear_isometry_equiv.symm_apply_apply, linear_isometry_equiv.apply_symm_apply]
       using congr_arg (λ w, hT.diagonalization w μ) (this (hT.diagonalization v)) },
   intros w,
   have hwT : ∀ μ : eigenvalues T, T (w μ) = (μ : 𝕜) • w μ,
   { intros μ,
-    simpa [mem_eigenspace_iff] using (w μ).prop },
-  simp [hwT],
+    simpa only [mem_eigenspace_iff] using subtype.prop (w μ) },
+  simp only [hwT, diagonalization_symm_apply, linear_map.map_sum, submodule.coe_smul_of_tower],
 end
 
 end version1
@@ -242,10 +242,11 @@ begin
   suffices : ∀ w : euclidean_space 𝕜 (fin n),
     T ((hT.diagonalization_basis hn).symm w)
     = (hT.diagonalization_basis hn).symm (λ i, hT.eigenvalues hn i * w i),
-  { simpa [-diagonalization_basis_symm_apply] using
-      congr_arg (λ v, hT.diagonalization_basis hn v i) (this (hT.diagonalization_basis hn v)) },
+  { simpa only [linear_isometry_equiv.symm_apply_apply, linear_isometry_equiv.apply_symm_apply]
+    using congr_arg (λ v, hT.diagonalization_basis hn v i) (this (hT.diagonalization_basis hn v)) },
   intros w,
-  simp [mul_comm, mul_smul],
+  simp only [mul_comm, mul_smul, diagonalization_basis_symm_apply, linear_map.map_sum,
+    linear_map.map_smulₛₗ, ring_hom.id_apply, apply_eigenvector_basis],
 end
 
 end version2
@@ -354,8 +355,8 @@ begin
   set F := (hT.diagonalization' hT_cpct).to_linear_isometry.to_linear_map,
   show F (T v) μ = μ • F v μ,
   have : dense_range (coe : supr (eigenspace (T : E →ₗ[𝕜] E)) → E),
-  { simpa [dense_range_iff_closure_range] using
-      congr_arg (coe : submodule 𝕜 E → set E) (supr_eigenspaces_dense hT hT_cpct) },
+  { simpa only [dense_range_iff_closure_range, subtype.range_coe_subtype]
+    using congr_arg coe (hT.supr_eigenspaces_dense hT_cpct) },
   refine this.induction_on v _ _,
   { -- The set of vectors `v : E` at which the desired property holds is a closed subset of `E`
     let φ : E →L[𝕜] lp (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) 2 :=
@@ -396,7 +397,7 @@ begin
     { congr' 2,
       dsimp [eig_coe],
       rw dfinsupp.sum_map_range_index,
-      simp }
+      simp only [submodule.coe_zero, forall_const] }
     ... = (dfinsupp.map_range.linear_map f W) μ : H _
     ... = μ • W μ : by simp
     ... = μ • F (W.sum eig_coe) μ : by rw H, }
@@ -404,3 +405,4 @@ end
 
 end is_self_adjoint
 end inner_product_space
+#lint

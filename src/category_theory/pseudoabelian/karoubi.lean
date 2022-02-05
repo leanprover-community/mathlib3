@@ -34,11 +34,14 @@ namespace category_theory
 
 variables (C : Type*) [category C]
 
-/-- When an object `X` decomposes as `X ≅ P ⨿ Q`, one may consider `P` as a direct factor of `X`
-and up to unique isomorphism, it is determined by the obvious idempotent `X ⟶ P ⟶ X` which is the
-projector on `P` with kernel `Q`. More generally, one may define a formal director of an object
-`X : C` : it consists of an idempotent `p : X ⟶ X` which is thought as the "formal image" of `p`.
-The type `karoubi C` shall be the objects of the karoubi enveloppe of `C`. -/
+namespace idempotents
+
+/-- In a preadditive category `C`, when an object `X` decomposes as `X ≅ P ⨿ Q`, one may
+consider `P` as a direct factor of `X` and up to unique isomorphism, it is determined by the
+obvious idempotent `X ⟶ P ⟶ X` which is the projector on `P` with kernel `Q`. More generally,
+one may define a formal direct factor of an object `X : C` : it consists of an idempotent
+`p : X ⟶ X` which is thought as the "formal image" of `p`. The type `karoubi C` shall be the
+type of the objects of the karoubi enveloppe of `C`. It makes sense for any category `C`. -/
 @[nolint has_inhabited_instance]
 structure karoubi := (X : C) (p : X ⟶ X) (idempotence : p ≫ p = p)
 
@@ -59,8 +62,9 @@ begin
 end
 
 /-- A morphism `P ⟶ Q` in the category `karoubi C` is a morphism in the underlying category
-`C` which satisfies a relation expressing that it induces a map between the corresponding
-"formal direct factors" and that it vanishes on the complement formal direct factor. -/
+`C` which satisfies a relation, which in the preadditive case, expresses that it induces a
+map between the corresponding "formal direct factors" and that it vanishes on the complement
+formal direct factor. -/
 @[ext]
 structure hom (P Q : karoubi C) := (f : P.X ⟶ Q.X) (comm : f = P.p ≫ f ≫ Q.p)
 
@@ -88,8 +92,6 @@ lemma comp_proof {P Q R : karoubi C} (g : hom Q R) (f : hom P Q) :
   f.f ≫ g.f = P.p ≫ (f.f ≫ g.f) ≫ R.p :=
 by rw [assoc, comp_p, ← assoc, p_comp]
 
-end karoubi
-
 /-- The category structure on the karoubi envelope of a category. -/
 instance : category (karoubi C) :=
 { hom      := karoubi.hom,
@@ -99,8 +101,6 @@ instance : category (karoubi C) :=
   comp_id' := λ P Q f, by { ext, simp only [karoubi.comp_p], },
   assoc'   := λ P Q R S f g h, by { ext, simp only [category.assoc], }, }
 
-namespace karoubi
-
 @[simp]
 lemma comp {P Q R : karoubi C} (f : P ⟶ Q) (g : Q ⟶ R) :
   f ≫ g = ⟨f.f ≫ g.f, comp_proof g f⟩ := by refl
@@ -108,8 +108,8 @@ lemma comp {P Q R : karoubi C} (f : P ⟶ Q) (g : Q ⟶ R) :
 @[simp]
 lemma id_eq {P : karoubi C} : 𝟙 P = ⟨P.p, by repeat { rw P.idempotence, }⟩ := by refl
 
-/-- It is possible to coerce an object of `C` into an object of `karoubi C`. See also the functor
-`to_karoubi`. -/
+/-- It is possible to coerce an object of `C` into an object of `karoubi C`.
+See also the functor `to_karoubi`. -/
 instance coe : has_coe_t C (karoubi C) := ⟨λ X, ⟨X, 𝟙 X, by rw comp_id⟩⟩
 
 @[simp]
@@ -162,7 +162,7 @@ lemma hom_eq_zero_iff [preadditive C] {P Q : karoubi C} {f : hom P Q} : f = 0 �
 /-- The map sending `f : P ⟶ Q` to `f.f : P.X ⟶ Q.X` is additive. -/
 @[simps]
 def inclusion_hom [preadditive C] (P Q : karoubi C) : add_monoid_hom (P ⟶ Q) (P.X ⟶ Q.X) :=
-{ to_fun   := λ f, f.f,
+{ to_fun    := λ f, f.f,
   map_zero' := rfl,
   map_add'  := λ f g, rfl }
 
@@ -254,5 +254,7 @@ lemma decomp_id_p_naturality {P Q : karoubi C} (f : P ⟶ Q) : decomp_id_p P ≫
 by { ext, simp only [comp, decomp_id_p_f, karoubi.comp_p, karoubi.p_comp], }
 
 end karoubi
+
+end idempotents
 
 end category_theory

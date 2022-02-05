@@ -10,14 +10,21 @@ import category_theory.abelian.basic
 # Idempotent complete categories
 
 In this file, we define the notion of idempotent complete categories
-(also known as Karoubian categories).
+(also known as Karoubian categories, or pseudoabelian in the case of
+preadditive categories).
 
-## Main constructions and definitions
+## Main definitions
 
 - `is_idempotent_complete C` expresses that `C` is idempotent complete, i.e.
-all idempotents in `C` split.
+all idempotents in `C` split. Other caracterisations of idempotent completeness are given
+by `is_idempotent_complete_iff_has_equalizer_of_id_and_idempotent` and
+`is_idempotent_complete_iff_idempotents_have_kernels`.
 - `is_idempotent_complete_of_abelian` expresses that abelian categories are
 idempotent complete.
+- `is_idempotent_complete_iff_of_equivalence` expresses that if two categories `C` and `D`
+are equivalent, then `C` is idempotent complete iff `D` is.
+- `is_idempotent_complete_iff_opposite` expresses that `Cᵒᵖ` is idempotent complete
+iff `C` is.
 
 ## References
 * [Stacks: Karoubian categories] https://stacks.math.columbia.edu/tag/09SF
@@ -111,11 +118,7 @@ end
 @[priority 100]
 instance is_idempotent_complete_of_abelian (D : Type*) [category D] [abelian D] :
   is_idempotent_complete D :=
-begin
-  rw is_idempotent_complete_iff_idempotents_have_kernels,
-  intros X p hp,
-  apply_instance,
-end
+by { rw is_idempotent_complete_iff_idempotents_have_kernels, intros, apply_instance, }
 
 variables {C}
 
@@ -125,9 +128,7 @@ lemma split_imp_of_iso {X X' : C} (φ : X ≅ X') (p : X ⟶ X) (p' : X' ⟶ X')
   (∃ (Y' : C) (i' : Y' ⟶ X') (e' : X' ⟶ Y'), i' ≫ e' = 𝟙 Y' ∧ e' ≫ i' = p') :=
 begin
   rcases h with ⟨Y, i, e, ⟨h₁, h₂⟩⟩,
-  use Y,
-  use i ≫ φ.hom,
-  use φ.inv ≫ e,
+  use [Y, i ≫ φ.hom, φ.inv ≫ e],
   split,
   { slice_lhs 2 3 { rw φ.hom_inv_id, },
     rw [id_comp, h₁], },
@@ -159,9 +160,7 @@ begin
     (by { slice_rhs 1 2 { rw φ.hom_inv_id, }, rw id_comp,}),
   rcases is_idempotent_complete.idempotents_split (ε.inverse.obj X') (ε.inverse.map p)
     (by rw [← ε.inverse.map_comp, hp]) with ⟨Y, i, e, ⟨h₁,h₂⟩⟩,
-  use ε.functor.obj Y,
-  use ε.functor.map i,
-  use ε.functor.map e,
+  use [ε.functor.obj Y, ε.functor.map i, ε.functor.map e],
   split,
   { rw [← ε.functor.map_comp, h₁, ε.functor.map_id], },
   { simpa only [← ε.functor.map_comp, h₂, equivalence.fun_inv_map], },
@@ -183,9 +182,7 @@ begin
   intros X p hp,
   rcases is_idempotent_complete.idempotents_split (op X) p.op
     (by rw [← op_comp, hp]) with ⟨Y, i, e, ⟨h₁, h₂⟩⟩,
-  use Y.unop,
-  use e.unop,
-  use i.unop,
+  use [Y.unop, e.unop, i.unop],
   split,
   { simpa only [← unop_comp, h₁], },
   { simpa only [← unop_comp, h₂], },

@@ -21,7 +21,7 @@ data for a first-order structure on `M` that will still be a structure when modd
 namespace first_order
 namespace language
 
-variables (L : language) {M : Type*} [L.Structure M]
+variables (L : language) {M : Type*}
 open_locale first_order
 open Structure
 

@@ -623,7 +623,7 @@ def comap (f : M →ₛₗ[σ₁₂] M₂) (p : submodule R₂ M₂) : submodule
 @[simp] lemma mem_comap {f : M →ₛₗ[σ₁₂] M₂} {p : submodule R₂ M₂} :
   x ∈ comap f p ↔ f x ∈ p := iff.rfl
 
-lemma comap_id : comap linear_map.id p = p :=
+@[simp] lemma comap_id : comap linear_map.id p = p :=
 set_like.coe_injective rfl
 
 lemma comap_comp (f : M →ₛₗ[σ₁₂] M₂) (g : M₂ →ₛₗ[σ₂₃] M₃)
@@ -632,6 +632,14 @@ rfl
 
 lemma comap_mono {f : M →ₛₗ[σ₁₂] M₂} {q q' : submodule R₂ M₂} :
   q ≤ q' → comap f q ≤ comap f q' := preimage_mono
+
+lemma le_comap_pow_of_le_comap (p : submodule R M) {f : M →ₗ[R] M} (h : p ≤ p.comap f) (k : ℕ) :
+  p ≤ p.comap (f^k) :=
+begin
+  induction k with k ih,
+  { simp [linear_map.one_eq_id], },
+  { simp [linear_map.iterate_succ, comap_comp, h.trans (comap_mono ih)], },
+end
 
 section
 variables [ring_hom_surjective σ₁₂]
@@ -1191,6 +1199,10 @@ begin
   exact submodule.mem_map_of_mem h
 end
 
+@[simp] lemma map_subtype_span_singleton {p : submodule R M} (x : p) :
+  map p.subtype (R ∙ x) = R ∙ (x : M) :=
+by simp [← span_image]
+
 /-- `f` is an explicit argument so we can `apply` this theorem and obtain `h` as a new goal. -/
 lemma not_mem_span_of_apply_not_mem_span_image
    [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) {x : M} {s : set M}
@@ -1254,7 +1266,7 @@ begin
     refine ⟨_, hadd _ _ _ _ Cx Cy⟩ },
 end
 
-lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) : (R ∙ m) ≤ p ↔ m ∈ p :=
+@[simp] lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) : (R ∙ m) ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, set_like.mem_coe]
 
 lemma singleton_span_is_compact_element (x : M) :
@@ -1898,6 +1910,10 @@ by rw [of_le, ker_cod_restrict, ker_subtype]
 
 lemma range_of_le (p q : submodule R M) (h : p ≤ q) : (of_le h).range = comap q.subtype p :=
 by rw [← map_top, of_le, linear_map.map_cod_restrict, map_top, range_subtype]
+
+@[simp] lemma map_subtype_range_of_le {p p' : submodule R M} (h : p ≤ p') :
+  map p'.subtype (of_le h).range = p :=
+by simp [range_of_le, map_comap_eq, h]
 
 lemma disjoint_iff_comap_eq_bot {p q : submodule R M} :
   disjoint p q ↔ comap p.subtype q = ⊥ :=

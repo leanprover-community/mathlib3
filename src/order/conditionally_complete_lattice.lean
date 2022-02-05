@@ -707,6 +707,9 @@ open_locale classical
 
 variables [conditionally_complete_linear_order_bot α]
 
+theorem cInf_le' {s : set α} {a : α} (h : a ∈ s) : Inf s ≤ a :=
+cInf_le ⟨⊥, λ a _, bot_le⟩ h
+
 /-- The Sup of a non-empty set is its least upper bound for a conditionally
 complete lattice with a top. -/
 lemma is_lub_Sup' {β : Type*} [conditionally_complete_lattice β]

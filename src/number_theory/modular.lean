@@ -600,7 +600,7 @@ begin
           apply congr_arg complex.re,
           exact_mod_cast (gzIs gg h₀ h₁ h₂).symm, },
         refine move_by_large reZ reZpN _,
-        exact_mod_cast  int.ne_zero_ge_one hhh, },
+        exact_mod_cast  int.one_le_abs hhh, },
       simp only [h₀, nat.one_ne_zero, coe_one, fin.one_eq_zero_iff, ne.def, not_false_iff,
         one_apply_ne],
       simp only [h₂, coe_one, one_apply_eq], },

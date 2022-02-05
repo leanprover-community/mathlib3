@@ -292,8 +292,6 @@ begin
   exact submodule.eq_bot_of_subsingleton _,
 end
 
-include dec_𝕜
-
 lemma supr_eigenspaces_dense : (supr (eigenspace (T : E →ₗ[𝕜] E))).topological_closure = ⊤ :=
 begin
   rw ← submodule.orthogonal_orthogonal_eq_closure,
@@ -301,7 +299,7 @@ begin
   exact hT.orthogonal_supr_eigenspaces_eq_bot_of_compact hT_cpct
 end
 
-omit cplt hT hT_cpct dec_𝕜
+omit cplt hT hT_cpct
 variables (T)
 
 -- hack to help typeclass inference
@@ -311,7 +309,7 @@ noncomputable instance _root_.foo₃ : module 𝕜 (lp (λ μ, eigenspace (T : E
   (@lp.inner_product_space 𝕜 𝕜 _ (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) _))
 
 variables {T}
-include cplt hT_cpct dec_𝕜
+include cplt hT_cpct
 
 /-- Isometry from a Hilbert space `E` to the Hilbert sum of the eigenspaces of some compact
 self-adjoint operator `T` on `E`. -/
@@ -333,6 +331,8 @@ lemma has_sum_diagonalization_symm (w : lp (λ μ, eigenspace (T : E →ₗ[𝕜
   has_sum (λ μ, (w μ : E)) ((hT.diagonalization' hT_cpct).symm w) :=
 orthogonal_family.has_sum_linear_isometry_equiv_symm  _ _ _
 
+include dec_𝕜
+
 @[simp] lemma diagonalization_apply_dfinsupp_sum_single [decidable_eq E]
   (w : Π₀ μ, eigenspace (T : E →ₗ[𝕜] E) μ) :
   (hT.diagonalization' hT_cpct (w.sum (λ i v, (v : E))) : Π μ, eigenspace (T : E →ₗ[𝕜] E) μ) = w :=
@@ -346,6 +346,8 @@ begin
   convert hT.orthogonal_family_eigenspaces.linear_isometry_equiv_apply_dfinsupp_sum_single this w
 end
 
+omit dec_𝕜
+
 /-- **Spectral theorem**; version 1: A compact self-adjoint operator `T` on a Hilbert space `E`
 acts diagonally on the decomposition of `E` into the direct sum of the eigenspaces of `T`. -/
 lemma diagonalization_apply_self_apply' (v : E) (μ : 𝕜) :
@@ -356,7 +358,7 @@ begin
   show F (T v) μ = μ • F v μ,
   have : dense_range (coe : supr (eigenspace (T : E →ₗ[𝕜] E)) → E),
   { simpa only [dense_range_iff_closure_range, subtype.range_coe_subtype]
-    using congr_arg coe (hT.supr_eigenspaces_dense hT_cpct) },
+    using congr_arg coe (hT.supr_eigenspaces_dense hT_cpct)   },
   refine this.induction_on v _ _,
   { -- The set of vectors `v : E` at which the desired property holds is a closed subset of `E`
     let φ : E →L[𝕜] lp (λ μ, eigenspace (T : E →ₗ[𝕜] E) μ) 2 :=
@@ -405,4 +407,3 @@ end
 
 end is_self_adjoint
 end inner_product_space
-#lint

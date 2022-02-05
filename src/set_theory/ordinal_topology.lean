@@ -10,6 +10,14 @@ import topology.algebra.ordered.basic
 ### Topology of ordinals
 
 We prove some miscellaneous results involving the order topology of ordinals.
+
+### Main results
+
+* `is_closed_iff_sup` / `is_closed_iff_bsup`: A set of ordinals is closed iff it's closed under
+  suprema.
+* `is_normal_iff_strict_mono_and_continuous`: A characterization of normal ordinal functions.
+* `enum_ord_is_normal_iff_is_closed`: The function enumerating the ordinals of a set is normal iff
+  the set is closed.
 -/
 
 noncomputable theory
@@ -217,7 +225,7 @@ begin
       λ i, h _ (typein_lt_self i), sup_typein_limit ho.2⟩ }
 end
 
-theorem enum_ord_normal_iff_closed {S : set ordinal.{u}} (hS : S.unbounded (<)) :
+theorem enum_ord_is_normal_iff_is_closed {S : set ordinal.{u}} (hS : S.unbounded (<)) :
   is_normal (enum_ord S hS) ↔ is_closed S :=
 begin
   refine ⟨λ h, is_closed_iff_sup.2 (λ ι hι f hf, _),

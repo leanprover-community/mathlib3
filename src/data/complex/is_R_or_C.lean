@@ -772,25 +772,6 @@ by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 
 end cleanup_lemmas
 
-section star
-variables {E : Type*} [add_comm_monoid E] [has_star E] [has_scalar ℝ E] [module K E]
-  [is_scalar_tower ℝ K E] [star_module K E]
-
-include K
-@[priority 900]
-instance star_module.is_R_or_C_to_real : star_module ℝ E :=
-⟨λ r a,
-begin
-  have h : (r : K) = algebra_map ℝ K r := rfl,
-  have h₁ : ∀ x : E, r • x = (r : K) • x := λ x, by rw [h, algebra.algebra_map_eq_smul_one,
-                                                        smul_assoc, one_smul],
-  rw [star_trivial r, h₁ a, star_smul, star_def, conj_of_real, ←h₁ (star a)],
-end⟩
-omit K
-
-end star
-
-
 section linear_maps
 
 /-- The real part in a `is_R_or_C` field, as a linear map. -/

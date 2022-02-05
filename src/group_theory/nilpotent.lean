@@ -846,13 +846,15 @@ normal and iff its the direct product of its sylow groups.  -/
 theorem is_nilpotent_of_finite_tfae : tfae
   [ is_nilpotent G,
     normalizer_condition G,
+    ∀ (H : subgroup G), is_coatom H → H.normal,
     ∀ (p : ℕ) (hp : fact p.prime) (P : sylow p G), (↑P : subgroup G).normal,
     nonempty ((Π p : (card G).factorization.support, Π P : sylow p G, (↑P : subgroup G)) ≃* G) ] :=
 begin
   tfae_have : 1 → 2, { exact @normalizer_condition_of_is_nilpotent _ _ },
-  tfae_have : 2 → 3, { introsI h p _ P, exact sylow.normal_of_normalizer_condition h _ },
-  tfae_have : 3 → 4, { exact λ h, nonempty.intro (sylow.direct_product_of_normal h) },
-  tfae_have : 4 → 1, { rintros ⟨e⟩, exact is_nilpotent_of_product_of_sylow_group e },
+  tfae_have : 2 → 3, { exact λ h H, normalizer_condition.normal_of_coatom H h },
+  tfae_have : 3 → 4, { introsI h p _ P, exact sylow.normal_of_all_max_groups_normal h _ },
+  tfae_have : 4 → 5, { exact λ h, nonempty.intro (sylow.direct_product_of_normal h) },
+  tfae_have : 5 → 1, { rintros ⟨e⟩, exact is_nilpotent_of_product_of_sylow_group e },
   tfae_finish,
 end
 

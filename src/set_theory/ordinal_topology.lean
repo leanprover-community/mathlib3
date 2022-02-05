@@ -16,6 +16,8 @@ noncomputable theory
 
 universes u v
 
+open cardinal
+
 namespace ordinal
 
 instance : topological_space ordinal.{u} :=
@@ -139,7 +141,7 @@ begin
 end
 
 theorem mem_closed_iff_sup {s : set ordinal.{u}} {a : ordinal.{u}} (hs : is_closed s) :
-  a ∈ s ↔ ∃ {ι : Type u} [nonempty ι] (f : ι → ordinal.{u}),
+  a ∈ s ↔ ∃ {ι : Type u} (hι : nonempty ι) (f : ι → ordinal.{u}),
   (∀ i, f i ∈ s) ∧ sup.{u u} f = a :=
 by rw [←mem_closure_iff_sup, hs.closure_eq]
 
@@ -156,6 +158,29 @@ theorem mem_closed_iff_bsup {s : set ordinal.{u}} {a : ordinal.{u}} (hs : is_clo
   a ∈ s ↔ ∃ {o : ordinal} (ho : o ≠ 0) (f : Π a < o, ordinal.{u}),
   (∀ i hi, f i hi ∈ s) ∧ bsup.{u u} o f = a :=
 by rw [←mem_closure_iff_bsup, hs.closure_eq]
+
+theorem is_closed_iff_sup {s : set ordinal.{u}} :
+  is_closed s ↔ ∀ {ι : Type u} (hι : nonempty ι) (f : ι → ordinal.{u}),
+  (∀ i, f i ∈ s) → sup.{u u} f ∈ s :=
+begin
+  use λ hs ι hι f hf, (mem_closed_iff_sup hs).2 ⟨ι, hι, f, hf, rfl⟩,
+  rw ←closure_subset_iff_is_closed,
+  intros h x hx,
+  rcases mem_closure_iff_sup.1 hx with ⟨ι, hι, f, hf, rfl⟩,
+  exact h hι f hf
+end
+
+theorem is_closed_iff_bsup {s : set ordinal.{u}} :
+  is_closed s ↔ ∀ {o : ordinal.{u}} (ho : o ≠ 0) (f : Π a < o, ordinal.{u}),
+  (∀ i hi, f i hi ∈ s) → bsup.{u u} o f ∈ s :=
+begin
+  rw is_closed_iff_sup,
+  refine ⟨λ H o ho f hf, H (out_nonempty_iff_ne_zero.2 ho) _ _, λ  H ι hι f hf, _⟩,
+  { exact λ i, hf _ _ },
+  { rw sup_eq_bsup,
+    apply H (type_ne_zero_iff_nonempty.2 hι),
+    exact λ i hi, hf _ }
+end
 
 theorem is_limit_of_mem_frontier {s : set ordinal} {o : ordinal} (ho : o ∈ frontier s) :
   is_limit o :=
@@ -183,12 +208,38 @@ begin
     rcases ha with ⟨b, hb, hab⟩,
     exact ⟨b, hb, λ c hc,
       set.mem_preimage.2 (has ⟨hab.trans (h.strict_mono hc.1), h.strict_mono hc.2⟩)⟩ },
-  { rintro ⟨h, h'⟩,
-    refine ⟨λ o, h (lt_succ_self o), λ o ho a, ⟨λ ha b hb, (h hb).le.trans ha, λ h, _⟩⟩,
+  { rw is_normal_iff_strict_mono_and_limit_le,
+    rintro ⟨h, h'⟩,
+    refine ⟨h, λ o ho a h, _⟩,
     suffices : o ∈ (f ⁻¹' set.Iic a), from set.mem_preimage.1 this,
     rw mem_closed_iff_sup (is_closed.preimage h' (@is_closed_Iic _ _ _ _  a)),
     exact ⟨_, out_nonempty_iff_ne_zero.2 ho.1, typein o.out.r,
       λ i, h _ (typein_lt_self i), sup_typein_limit ho.2⟩ }
+end
+
+theorem enum_ord_normal_iff_closed {S : set ordinal.{u}} (hS : S.unbounded (<)) :
+  is_normal (enum_ord S hS) ↔ is_closed S :=
+begin
+  refine ⟨λ h, is_closed_iff_sup.2 (λ ι hι f hf, _),
+    λ h, is_normal_iff_strict_mono_and_limit_le.2 ⟨enum_ord.strict_mono hS, λ a ha o H, _⟩⟩,
+  { let g : ι → ordinal.{u} := λ i, (enum_ord.order_iso hS).symm ⟨_, hf i⟩,
+    suffices : enum_ord S hS (sup.{u u} g) = sup.{u u} f,
+    { rw ←this, exact enum_ord_mem hS _ },
+    rw is_normal.sup.{u u u} h g hι,
+    congr, ext,
+    change ((enum_ord.order_iso hS) _).val = f x,
+    rw order_iso.apply_symm_apply },
+  { rw is_closed_iff_bsup at h,
+    suffices : enum_ord.{u} S hS a ≤ bsup.{u u} a (λ b < a, enum_ord.{u} S hS b),
+      from this.trans (bsup_le.2 H),
+    cases enum_ord.surjective hS _ (h ha.1 (λ b hb, enum_ord S hS b) (λ b hb, enum_ord_mem hS b))
+      with b hb,
+    rw ←hb,
+    apply (enum_ord.strict_mono hS).monotone,
+    by_contra' hba,
+    apply ((enum_ord.strict_mono hS) (lt_succ_self b)).not_le,
+    rw hb,
+    exact le_bsup.{u u} _ _ (ha.2 _ hba) }
 end
 
 end ordinal

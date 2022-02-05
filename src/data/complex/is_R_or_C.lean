@@ -777,6 +777,7 @@ variables {E : Type*} [add_comm_monoid E] [has_star E] [has_scalar ℝ E] [modul
   [is_scalar_tower ℝ K E] [star_module K E]
 
 include K
+@[priority 900]
 instance star_module.is_R_or_C_to_real : star_module ℝ E :=
 ⟨λ r a,
 begin

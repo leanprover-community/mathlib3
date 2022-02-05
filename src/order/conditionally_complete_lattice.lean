@@ -687,6 +687,9 @@ is_lub_le_iff (is_lub_cSup' hs)
 lemma cSup_le' {s : set α} {a : α} (h : a ∈ upper_bounds s) : Sup s ≤ a :=
 (cSup_le_iff' ⟨a, h⟩).2 h
 
+theorem cInf_le' {s : set α} {a : α} (h : a ∈ s) : Inf s ≤ a :=
+cInf_le ⟨⊥, λ a _, bot_le⟩ h
+
 lemma exists_lt_of_lt_cSup' {s : set α} {a : α} (h : a < Sup s) : ∃ b ∈ s, a < b :=
 by { contrapose! h, exact cSup_le' h }
 
@@ -706,9 +709,6 @@ namespace with_top
 open_locale classical
 
 variables [conditionally_complete_linear_order_bot α]
-
-theorem cInf_le' {s : set α} {a : α} (h : a ∈ s) : Inf s ≤ a :=
-cInf_le ⟨⊥, λ a _, bot_le⟩ h
 
 /-- The Sup of a non-empty set is its least upper bound for a conditionally
 complete lattice with a top. -/

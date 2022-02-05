@@ -306,11 +306,11 @@ end
 protected lemma finset.is_closed [t1_space α] (s : finset α) : is_closed (s : set α) :=
 s.finite_to_set.is_closed
 
-lemma t1_space_tfae (α : Type u) [t : topological_space α] :
+lemma t1_space_tfae (α : Type u) [topological_space α] :
   tfae [t1_space α,
     ∀ x, is_closed ({x} : set α),
     ∀ x, is_open ({x}ᶜ : set α),
-    t ≤ cofinite_topology α,
+    continuous (@cofinite_topology.of α),
     ∀ ⦃x y : α⦄, x ≠ y → {y}ᶜ ∈ 𝓝 x,
     ∀ ⦃x y : α⦄, x ≠ y → ∃ s ∈ 𝓝 x, y ∉ s,
     ∀ ⦃x y : α⦄, x ≠ y → ∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U,
@@ -331,17 +331,16 @@ begin
     by simp only [← principal_singleton, disjoint_principal_right],
   tfae_have : 8 ↔ 9, from forall_swap.trans (by simp only [disjoint.comm, ne_comm]),
   tfae_have : 1 → 4,
-  { introsI H s hs,
-    simp only [cofinite_topology, ← ne_empty_iff_nonempty, ne.def, ← or_iff_not_imp_left] at hs,
-    rcases hs with rfl | hs,
-    exacts [is_open_empty, compl_compl s ▸ hs.is_closed.is_open_compl] },
-  tfae_have : 4 → 3,
-  { refine λ h x, h _ (λ _, _), simp },
+  { simp only [continuous_def, cofinite_topology.is_open_iff'],
+    rintro H s (rfl|hs),
+    exacts [is_open_empty, compl_compl s ▸ (@set.finite.is_closed _ _ H _ hs).is_open_compl] },
+  tfae_have : 4 → 2,
+    from λ h x, (cofinite_topology.is_closed_iff.2 $ or.inr (finite_singleton _)).preimage h,
   tfae_finish
 end
 
-lemma t1_space_iff_le_cofinite {α : Type*} [t : topological_space α] :
-  t1_space α ↔ t ≤ cofinite_topology α :=
+lemma t1_space_iff_continuous_cofinite_of {α : Type*} [topological_space α] :
+  t1_space α ↔ continuous (@cofinite_topology.of α) :=
 (t1_space_tfae α).out 0 3
 
 lemma t1_space_iff_exists_open : t1_space α ↔
@@ -360,13 +359,12 @@ t1_space_iff_disjoint_pure_nhds.mp ‹_› h
 lemma disjoint_nhds_pure [t1_space α] {x y : α} (h : x ≠ y) : disjoint (𝓝 x) (pure y) :=
 t1_space_iff_disjoint_nhds_pure.mp ‹_› h
 
-@[priority 100] -- see Note [lower instance priority]
-instance t1_space_cofinite {α : Type*} : @t1_space α (cofinite_topology α) :=
-(@t1_space_iff_le_cofinite α (cofinite_topology α)).mpr le_rfl
+instance {α : Type*} : t1_space (cofinite_topology α) :=
+t1_space_iff_continuous_cofinite_of.mpr continuous_id
 
 lemma t1_space_antitone {α : Type*} : antitone (@t1_space α) :=
 begin
-  simp only [antitone, t1_space_iff_le_cofinite],
+  simp only [antitone, t1_space_iff_continuous_cofinite_of, continuous_iff_le_induced],
   exact λ t₁ t₂ h, h.trans
 end
 

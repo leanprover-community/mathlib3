@@ -72,8 +72,7 @@ variables [semi_normed_ring E] [star_add_monoid E] [module ℂ E] [star_module �
                  is_R_or_C.conj_to_real, ring_hom.id_apply, subtype.val_eq_coe,
                  self_adjoint.coe_smul, add_subgroup.coe_mk, smul_neg, neg_inj, ←smul_sub],
       rw [smul_comm],
-    end
-}
+    end }
 
 /-- An element of a complex star module can be decomposed into self-adjoint "real" and "imaginary"
 parts -/

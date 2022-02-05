@@ -55,8 +55,8 @@ theorem is_open_iff (s : set ordinal) :
   is_open s ↔ (∀ o ∈ s, is_limit o → ∃ a < o, set.Ioo a o ⊆ s) :=
 begin
   classical,
-  refine ⟨_, λ h, _⟩, {
-    rw is_open_iff_generate_intervals,
+  refine ⟨_, λ h, _⟩,
+  { rw is_open_iff_generate_intervals,
     intros h o hos ho,
     have ho₀ := ordinal.pos_iff_ne_zero.2 ho.1,
     induction h with t ht t u ht hu ht' hu' t ht H,

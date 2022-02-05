@@ -153,6 +153,7 @@ begin
   { simp only [map_mul, bind₁_X_right] }
 end
 
+/-- The "remainder term" of `witt_poly_prod`. See `sum_ident_2`. -/
 def extra_poly (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 ∑ i in range n, p^i * (witt_mul p i)^(p^(n-i))
 
@@ -258,7 +259,7 @@ begin
   exact sum_ident_3 _ _
 end
 
-/-- this is the guy from above -/
+/-- This is the polynomial whose dimension we want to get a handle on. Appears in `sum_ident_4`. -/
 def poly_of_interest (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 witt_mul p (n + 1) + p^(n+1) * X (0, n+1) * X (1, n+1) -
   (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) -
@@ -414,6 +415,9 @@ begin
   all_goals { apply_instance },
 end
 
+/--
+Produces the "remainder function" of the `n+1`st coefficient, which does not depend on the `n+1`st
+coefficients of the inputs. -/
 def nth_remainder (n : ℕ) : (fin (n+1) → k) → (fin (n+1) → k) → k :=
 classical.some (nth_mul_coeff p n)
 
@@ -426,6 +430,7 @@ classical.some_spec (nth_mul_coeff p n) _ _
 
 open polynomial
 
+/-- The root of this polynomial determines the `n+1`st coefficient of our solution. -/
 def succ_nth_defining_poly (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k) : polynomial k :=
 X^p * C (a₁.coeff 0 ^ (p^(n+1))) - X * C (a₂.coeff 0 ^ (p^(n+1)))
   + C (a₁.coeff (n+1) * ((bs 0)^p)^(p^(n+1)) +
@@ -459,6 +464,7 @@ lemma root_exists (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
 is_alg_closed.exists_root _ $
   by simp [(succ_nth_defining_poly_degree p n a₁ a₂ bs ha₁ ha₂), hp.out.ne_zero]
 
+/-- This is the `n+1`st coefficient of our solution, projected from `root_exists`. -/
 def succ_nth_val (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : k :=
 classical.some (root_exists p n a₁ a₂ bs ha₁ ha₂)
@@ -495,7 +501,8 @@ lemma solution_pow (a₁ a₂ : 𝕎 k) :
   ∃ x : k, x^(p-1) = a₂.coeff 0 / a₁.coeff 0 :=
 is_alg_closed.exists_pow_nat_eq _ $ by linarith [hp.out.one_lt, le_of_lt hp.out.one_lt]
 
-def solution (a₁ a₂ : 𝕎 k)  : k :=
+/-- The base case (0th coefficient) of our solution vector. -/
+def solution (a₁ a₂ : 𝕎 k) : k :=
 classical.some $ solution_pow p a₁ a₂
 
 lemma solution_spec (a₁ a₂ : 𝕎 k) :
@@ -531,7 +538,7 @@ section frobenius_eigenvector
 variables [is_alg_closed k] [char_p k p]
 
 /--
-recursively defines the sequence of coefficients for `witt_vector.frobenius_eigenvector`.
+Recursively defines the sequence of coefficients for `witt_vector.frobenius_eigenvector`.
 -/
 noncomputable def frobenius_eigenvector_coeff {a₁ a₂ : 𝕎 k}
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : ℕ → k
@@ -655,3 +662,4 @@ end
 end frobenius_eigenvector
 
 end witt_vector
+#lint

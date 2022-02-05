@@ -183,11 +183,13 @@ class split_epi_category :=
 
 end
 
-/-- In a category in which every monomorphism is split, every monomorphism splits. -/
+/-- In a category in which every monomorphism is split, every monomorphism splits. This is not an
+    instance because it would create an instance loop. -/
 def split_mono_of_mono [split_mono_category C] {X Y : C} (f : X ⟶ Y) [mono f] : split_mono f :=
 split_mono_category.split_mono_of_mono _
 
-/-- In a category in which every epimorphism is split, every epimorphism splits. -/
+/-- In a category in which every epimorphism is split, every epimorphism splits. This is not an
+    instance because it would create an instance loop. -/
 def split_epi_of_epi [split_epi_category C] {X Y : C} (f : X ⟶ Y) [epi f] : split_epi f :=
 split_epi_category.split_epi_of_epi _
 

@@ -11,8 +11,8 @@ import category_theory.isomorphism
 A category is called balanced if any morphism that is both monic and epic is an isomorphism.
 
 Balanced categories arise frequently. For example, categories in which every monomorphism
-(or epimorphism) is strong are balanced. Examples of this are abelian categories and the category
-of types.
+(or epimorphism) is strong are balanced. Examples of this are abelian categories and toposes, such
+as the category of types.
 
 -/
 

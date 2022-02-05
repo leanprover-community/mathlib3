@@ -18,8 +18,8 @@ We give the constructions
 as well as the dual constructions for regular epimorphisms. Additionally, we give the construction
 * `regular_epi ⟶ strong_epi`.
 
-We also define classes `regular_mono_category` and `regular_epi_category` for classes in which
-every monomorphism or epimorphism is strong, and deduce that these categories are
+We also define classes `regular_mono_category` and `regular_epi_category` for categories in which
+every monomorphism or epimorphism is regular, and deduce that these categories are
 `strong_mono_category`s resp. `strong_epi_category`s.
 
 -/
@@ -144,7 +144,7 @@ class regular_mono_category :=
 end
 
 /-- In a category in which every monomorphism is regular, we can express every monomorphism as
-    an equalizer. -/
+    an equalizer. This is not an instance because it would create an instance loop. -/
 def regular_mono_of_mono [regular_mono_category C] (f : X ⟶ Y) [mono f] : regular_mono f :=
 regular_mono_category.regular_mono_of_mono _
 
@@ -270,7 +270,7 @@ class regular_epi_category :=
 end
 
 /-- In a category in which every epimorphism is regular, we can express every epimorphism as
-    a coequalizer. -/
+    a coequalizer. This is not an instance because it would create an instance loop. -/
 def regular_epi_of_epi [regular_epi_category C] (f : X ⟶ Y) [epi f] : regular_epi f :=
 regular_epi_category.regular_epi_of_epi _
 

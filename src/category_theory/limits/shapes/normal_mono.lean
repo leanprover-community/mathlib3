@@ -18,7 +18,7 @@ monomorphisms (`category_theory.equivalence_reflects_normal_mono`), and that the
 normal monomorphism is normal (`category_theory.normal_of_is_pullback_snd_of_normal`).
 
 We also define classes `normal_mono_category` and `normal_epi_category` for classes in which
-every monomorphism or epimorphism is strong, and deduce that these categories are
+every monomorphism or epimorphism is normal, and deduce that these categories are
 `regular_mono_category`s resp. `regular_epi_category`s.
 
 -/
@@ -121,7 +121,7 @@ class normal_mono_category :=
 end
 
 /-- In a category in which every monomorphism is normal, we can express every monomorphism as
-    a kernel. -/
+    a kernel. This is not an instance because it would create an instance loop. -/
 def normal_mono_of_mono [normal_mono_category C] (f : X ⟶ Y) [mono f] : normal_mono f :=
 normal_mono_category.normal_mono_of_mono _
 
@@ -262,7 +262,7 @@ class normal_epi_category :=
 end
 
 /-- In a category in which every epimorphism is normal, we can express every epimorphism as
-    a kernel. -/
+    a kernel. This is not an instance because it would create an instance loop. -/
 def normal_epi_of_epi [normal_epi_category C] (f : X ⟶ Y) [epi f] : normal_epi f :=
 normal_epi_category.normal_epi_of_epi _
 

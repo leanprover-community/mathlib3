@@ -21,7 +21,7 @@ we define a coarse space in terms of its *cocontrolled sets*,
 which are the complements of the controlled sets.
 
 The intuition one should keep in mind is the special case of metric spaces:
-a set in a metric space is controlled iff it has bounded diameter.
+a set in a metric space is controlled iff it has coarse_bounded diameter.
 # Notations
 
 Localized to `coarse_space`, we define `□` for `cocomp`
@@ -285,9 +285,12 @@ end
 
 /-! ### Close and coarse maps -/
 
+@[protected]
 def bounded (b : set α) : Prop := (b ×ˢ b : set (α×α)) ∈ 𝓒 α
-def proper [coarse_space β] (f : α → β) : Prop := ∀ (b : set β), bounded b → bounded (f ⁻¹' b)
+def proper [coarse_space β] (f : α → β) : Prop := ∀ (b : set β), coarse_bounded b → coarse_bounded (f ⁻¹' b)
 def bornologous [coarse_space β] (f : α → β) : Prop := ∀ s ∈ 𝓒' α, prod.map f f '' s ∈ 𝓒' β
+lemma bornologous.controlled [coarse_space β] (f : α → β) :
+  bornologous f ↔ ∀ s ∈ 𝓒 α, prod.map f f '' s ∈ 𝓒 β := sorry
 structure coarse_map (α β : Type*) [coarse_space α] [coarse_space β] :=
   (to_fun : α → β)
   (proper : proper to_fun)

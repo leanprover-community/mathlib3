@@ -3,10 +3,11 @@ import topology.metric_space.basic
 import topology.uniform_space.basic
 import data.real.nnreal
 
-open set filter
+open set filter coarse_space
 open_locale uniformity filter nnreal coarse_space
 
-variables {α β γ : Type*} {a b : α} {s t : set (α × α)} [metric_space α]
+variables {α β γ : Type*} {a b : α} {s t : set (α × α)}
+variables [metric_space α] [metric_space β]
 
 
 lemma metric.directed_of_cocontrolled :
@@ -91,7 +92,7 @@ lemma metric.mem_controlled_dist :
   s ∈ 𝓒 α ↔ (∃ (r : ℝ≥0) , ∀ {a b : α}, (a, b) ∈ s → dist a b ≤ r) :=
 by simp
 
-theorem mem.cocontrolled_basis_dist [metric_space α] :
+theorem mem.cocontrolled_basis_dist :
   (𝓒' α).has_basis (λ r : ℝ≥0, true) (λ r, {p:α×α | dist p.1 p.2 > r}) :=
 begin
   rw filter.has_basis_iff, intro t,
@@ -108,3 +109,14 @@ begin
     tauto,
   }
 end
+
+lemma metric.coarse_bounded_iff (b : set α) : coarse_space.bounded b ↔ emetric.diam b ≠ ⊤ :=
+sorry
+
+lemma metric.coarse_proper_iff (f : α → β) :
+  coarse_space.proper f ↔ (∀ b : set β, emetric.diam b ≠ ⊤ → emetric.diam (f ⁻¹' b) ≠ ⊤) :=
+sorry
+
+lemma metric.bornologous_iff (f : α → β) : coarse_space.bornologous f
+  ↔ (∀ (R : ℝ≥0), ∃ (S : ℝ≥0), ∀ x y, dist x y < R → dist (f x) (f y) < S) :=
+sorry

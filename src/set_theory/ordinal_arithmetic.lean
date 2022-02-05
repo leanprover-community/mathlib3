@@ -1914,16 +1914,6 @@ theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 theorem omega_le_of_is_limit {o} (h : is_limit o) : omega ≤ o :=
 omega_le.2 $ λ n, le_of_lt $ nat_lt_limit h n
 
-theorem add_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a + b < omega :=
-match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat.cast_add]; apply nat_lt_omega
-end
-
-theorem mul_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
-match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_mul]; apply nat_lt_omega
-end
-
 theorem is_limit_iff_omega_dvd {a : ordinal} : is_limit a ↔ a ≠ 0 ∧ omega ∣ a :=
 begin
   refine ⟨λ l, ⟨l.1, ⟨a / omega, le_antisymm _ (mul_div_le _ _)⟩⟩, λ h, _⟩,
@@ -1938,13 +1928,6 @@ begin
     refine mul_is_limit_left omega_is_limit
       (ordinal.pos_iff_ne_zero.2 $ mt _ a0),
     intro e, simp only [e, mul_zero] }
-end
-
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
-
-theorem opow_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a ^ b < omega :=
-match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_opow]; apply nat_lt_omega
 end
 
 theorem add_mul_limit_aux {a b c : ordinal} (ba : b + a = a)
@@ -1978,26 +1961,6 @@ theorem add_mul_limit {a b c : ordinal} (ba : b + a = a)
   (l : is_limit c) : (a + b) * c = a * c :=
 add_mul_limit_aux ba l (λ c' _, add_mul_succ c' ba)
 
-/- This will be a theorem on a future PR on multiplicative principals.
-theorem mul_omega_opow_opow {a b : ordinal} (a0 : 0 < a) (h : a < omega ^ omega ^ b) :
-  a * omega ^ omega ^ b = omega ^ omega ^ b :=
-begin
-  by_cases b0 : b = 0, {rw [b0, opow_zero, opow_one] at h ⊢, exact mul_omega a0 h},
-  refine le_antisymm _
-    (by simpa only [one_mul] using mul_le_mul_right' (one_le_iff_pos.2 a0) (omega^omega^b)),
-  rcases (lt_opow_of_limit omega_ne_zero (opow_is_limit_left omega_is_limit b0)).1 h
-    with ⟨x, xb, ax⟩,
-  apply (mul_le_mul_right' ax.le _).trans,
-  rw [← opow_add, add_omega_opow xb]
-end
--/
-
-theorem opow_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omega :=
-le_antisymm
-  ((opow_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
-    (λ b hb, le_of_lt (opow_lt_omega h hb)))
-  (le_opow_self _ a1)
-
 theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   sup.{0 u} (f ∘ nat.cast) = f omega :=
 by rw [←sup_nat_cast, is_normal.sup.{0 u u} hf ⟨0⟩]
@@ -2012,6 +1975,7 @@ begin
   { exact (mul_is_normal ho).apply_omega }
 end
 
+local infixr ^ := @pow ordinal ordinal ordinal.has_pow
 theorem sup_opow_nat {o : ordinal.{u}} (ho : 0 < o) :
   sup (λ n : ℕ, o ^ n) = o ^ omega :=
 begin

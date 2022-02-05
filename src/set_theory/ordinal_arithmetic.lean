@@ -1052,8 +1052,8 @@ theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (ho : o.is_limit) (i h) : f i h < bsup o f :=
 lt_of_lt_of_le (hf _ _ $ lt_succ_self i) (le_bsup f i.succ $ ho.2 _ h)
 
-theorem bsup_const {o : ordinal} (ho : 0 < o) (a : ordinal) : bsup o (λ _ _, a) = a :=
-le_antisymm (bsup_le.2 (λ _ _, le_rfl)) (le_bsup _ 0 ho)
+theorem bsup_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : bsup o (λ _ _, a) = a :=
+le_antisymm (bsup_le.2 (λ _ _, le_rfl)) (le_bsup _ 0 (ordinal.pos_iff_ne_zero.2 ho))
 
 theorem bsup_id {o} (ho : is_limit o) : bsup.{u u} o (λ x _, x) = o :=
 le_antisymm (bsup_le.2 (λ i hi, hi.le))

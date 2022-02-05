@@ -15,9 +15,12 @@ A regular monomorphism is a morphism that is the equalizer of some parallel pair
 We give the constructions
 * `split_mono → regular_mono` and
 * `regular_mono → mono`
-as well as the dual constructions for regular epimorphisms. Additionally, we give the
-construction
+as well as the dual constructions for regular epimorphisms. Additionally, we give the construction
 * `regular_epi ⟶ strong_epi`.
+
+We also define classes `regular_mono_category` and `regular_epi_category` for categories in which
+every monomorphism or epimorphism is regular, and deduce that these categories are
+`strong_mono_category`s resp. `strong_epi_category`s.
 
 -/
 
@@ -131,6 +134,32 @@ instance strong_mono_of_regular_mono (f : X ⟶ Y) [regular_mono f] : strong_mon
 lemma is_iso_of_regular_mono_of_epi (f : X ⟶ Y) [regular_mono f] [e : epi f] : is_iso f :=
 is_iso_of_epi_of_strong_mono _
 
+section
+variables (C)
+
+/-- A regular mono category is a category in which every monomorphism is regular. -/
+class regular_mono_category :=
+(regular_mono_of_mono : ∀ {X Y : C} (f : X ⟶ Y) [mono f], regular_mono f)
+
+end
+
+/-- In a category in which every monomorphism is regular, we can express every monomorphism as
+    an equalizer. This is not an instance because it would create an instance loop. -/
+def regular_mono_of_mono [regular_mono_category C] (f : X ⟶ Y) [mono f] : regular_mono f :=
+regular_mono_category.regular_mono_of_mono _
+
+@[priority 100]
+instance regular_mono_category_of_split_mono_category [split_mono_category C] :
+  regular_mono_category C :=
+{ regular_mono_of_mono := λ _ _ f _,
+  by { haveI := by exactI split_mono_of_mono f, apply_instance } }
+
+@[priority 100]
+instance strong_mono_category_of_regular_mono_category [regular_mono_category C] :
+  strong_mono_category C :=
+{ strong_mono_of_mono := λ _ _ f _,
+    by { haveI := by exactI regular_mono_of_mono f, apply_instance } }
+
 /-- A regular epimorphism is a morphism which is the coequalizer of some parallel pair. -/
 class regular_epi (f : X ⟶ Y) :=
 (W : C)
@@ -230,5 +259,29 @@ instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f 
 /-- A regular epimorphism is an isomorphism if it is a monomorphism. -/
 lemma is_iso_of_regular_epi_of_mono (f : X ⟶ Y) [regular_epi f] [m : mono f] : is_iso f :=
 is_iso_of_mono_of_strong_epi _
+
+section
+variables (C)
+
+/-- A regular epi category is a category in which every epimorphism is regular. -/
+class regular_epi_category :=
+(regular_epi_of_epi : ∀ {X Y : C} (f : X ⟶ Y) [epi f], regular_epi f)
+
+end
+
+/-- In a category in which every epimorphism is regular, we can express every epimorphism as
+    a coequalizer. This is not an instance because it would create an instance loop. -/
+def regular_epi_of_epi [regular_epi_category C] (f : X ⟶ Y) [epi f] : regular_epi f :=
+regular_epi_category.regular_epi_of_epi _
+
+@[priority 100]
+instance regular_epi_category_of_split_epi_category [split_epi_category C] :
+  regular_epi_category C :=
+{ regular_epi_of_epi := λ _ _ f _, by { haveI := by exactI split_epi_of_epi f, apply_instance } }
+
+@[priority 100]
+instance strong_epi_category_of_regular_epi_category [regular_epi_category C] :
+  strong_epi_category C :=
+{ strong_epi_of_epi := λ _ _ f _, by { haveI := by exactI regular_epi_of_epi f, apply_instance } }
 
 end category_theory

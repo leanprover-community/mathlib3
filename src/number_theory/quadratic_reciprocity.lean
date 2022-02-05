@@ -171,7 +171,7 @@ begin
           int.nat_abs_of_nat] } } },
   exact multiset.map_eq_map_of_bij_of_nodup _ _ (finset.nodup _) (finset.nodup _)
     (λ x _, (a * x : zmod p).val_min_abs.nat_abs) hmem (λ _ _, rfl)
-    (inj_on_of_surj_on_of_card_le _ hmem hsurj (le_refl _)) hsurj
+    (inj_on_of_surj_on_of_card_le _ hmem hsurj le_rfl) hsurj
 end
 
 private lemma gauss_lemma_aux₁ (p : ℕ) [fact p.prime] [fact (p % 2 = 1)]

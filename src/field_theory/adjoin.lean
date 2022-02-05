@@ -55,7 +55,7 @@ lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe :
 def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=
 { choice := λ s hs, (adjoin F s).copy s $ le_antisymm (gc.le_u_l s) hs,
   gc := intermediate_field.gc,
-  le_l_u := λ S, (intermediate_field.gc (S : set E) (adjoin F S)).1 $ le_refl _,
+  le_l_u := λ S, (intermediate_field.gc (S : set E) (adjoin F S)).1 $ le_rfl,
   choice_eq := λ _ _, copy_eq _ _ _ }
 
 instance : complete_lattice (intermediate_field F E) :=
@@ -824,11 +824,9 @@ begin
       exact (S1 ⊔ S2).zero_mem },
     { obtain ⟨y, h⟩ := this.mul_inv_cancel hx',
       exact (congr_arg (∈ S1 ⊔ S2) (eq_inv_of_mul_right_eq_one (subtype.ext_iff.mp h))).mp y.2 } },
-  refine is_field_of_is_integral_of_is_field' _ (field.to_is_field K),
-  have h1 : algebra.is_algebraic K E1 := algebra.is_algebraic_of_finite,
-  have h2 : algebra.is_algebraic K E2 := algebra.is_algebraic_of_finite,
-  rw is_algebraic_iff_is_integral' at h1 h2,
-  exact is_integral_sup.mpr ⟨h1, h2⟩,
+  exact is_field_of_is_integral_of_is_field'
+    (is_integral_sup.mpr ⟨algebra.is_integral_of_finite K E1, algebra.is_integral_of_finite K E2⟩)
+    (field.to_is_field K),
 end
 
 lemma finite_dimensional_sup {K L : Type*} [field K] [field L] [algebra K L]

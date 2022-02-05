@@ -17,13 +17,13 @@ assumptions) a primitive `n`-root of unity in `B` and we study its properties.
 * `is_cyclotomic_extension.zeta n A B` : if `is_cyclotomic_extension {n} A B`, than `zeta n A B`
   is an element of `B` that plays the role of a primitive `n`-th root of unity.
 * `is_cyclotomic_extension.zeta.power_basis` : if `K` and `L` are fields such that
-  `is_cyclotomic_extension {n} K L` and `ne_zero (n : K)`, then `zeta.power_basis` is the
+  `is_cyclotomic_extension {n} K L` and `ne_zero (↑n : K)`, then `zeta.power_basis` is the
   power basis given by `zeta n K L`.
 * `is_cyclotomic_extension.zeta.embeddings_equiv_primitive_roots` : the equiv between `L →ₐ[K] A`
   and `primitive_roots n A` given by the choice of `zeta`.
 
 ## Main results
-* `is_cyclotomic_extension.zeta_primitive_root` : if `is_domain B` and `ne_zero (n : B)` then
+* `is_cyclotomic_extension.zeta_primitive_root` : if `is_domain B` and `ne_zero (↑n : B)` then
   `zeta n A B` is a primitive `n`-th root of unity.
 * `is_cyclotomic_extension.finrank` : if `irreducible (cyclotomic n K)` (in particular for
   `K = ℚ`), then the `finrank` of a cyclotomic extension is `n.totient`.
@@ -33,7 +33,7 @@ assumptions) a primitive `n`-root of unity in `B` and we study its properties.
 ## Implementation details
 `zeta n A B` is defined as any root of `cyclotomic n A` in `B`, that exists because of
 `is_cyclotomic_extension {n} A B`. It is not true in general that it is a primitive `n`-th root of
-unity, but this holds if `is_domain B` and `ne_zero (n : B)`.
+unity, but this holds if `is_domain B` and `ne_zero (↑n : B)`.
 
 -/
 
@@ -61,9 +61,9 @@ by { convert zeta_spec n A B, rw [is_root.def, aeval_def, eval₂_eq_eval_map, m
 lemma zeta_pow : (zeta n A B) ^ (n : ℕ) = 1 :=
 is_root_of_unity_of_root_cyclotomic (nat.mem_divisors_self _ n.pos.ne') (zeta_spec' _ _ _)
 
-/-- If `is_domain B` and `ne_zero (n : B)` then `zeta n A B` is a primitive `n`-th root of
+/-- If `is_domain B` and `ne_zero (↑n : B)` then `zeta n A B` is a primitive `n`-th root of
 unity. -/
-lemma zeta_primitive_root [is_domain B] [ne_zero (n : B)] :
+lemma zeta_primitive_root [is_domain B] [ne_zero ((n : ℕ) : B)] :
   is_primitive_root (zeta n A B) n :=
 by { rw ←is_root_cyclotomic_iff, exact zeta_spec' n A B }
 
@@ -71,7 +71,7 @@ section field
 
 variables {K : Type u} (L : Type v) (C : Type w)
 variables [field K] [field L] [comm_ring C] [algebra K L] [algebra K C]
-variables [is_cyclotomic_extension {n} K L] [ne_zero (n : K)]
+variables [is_cyclotomic_extension {n} K L] [ne_zero ((n : ℕ) : K)]
 
 /-- If `irreducible (cyclotomic n K)`, then the minimal polynomial of `zeta n K A` is
 `cyclotomic n K`. -/
@@ -86,8 +86,9 @@ variable (K)
 /-- The `power_basis` given by `zeta n K L`. -/
 @[simps] def zeta.power_basis : power_basis K L :=
 begin
-  haveI := (ne_zero.of_no_zero_smul_divisors K L n).trans,
-  refine power_basis.map (adjoin.power_basis $ integral {n} K L $ zeta n K L) _,
+  haveI := ne_zero.of_no_zero_smul_divisors K L n,
+  refine power_basis.map
+    (algebra.adjoin.power_basis $ integral {n} K L $ zeta n K L) _,
   exact (subalgebra.equiv_of_eq _ _
       (is_cyclotomic_extension.adjoin_primitive_root_eq_top n _ $ zeta_primitive_root n K L)).trans
       top_equiv
@@ -118,7 +119,7 @@ def zeta.embeddings_equiv_primitive_roots [is_domain C] (hirr : irreducible (cyc
 ((zeta.power_basis n K L).lift_equiv).trans
 { to_fun    := λ x,
   begin
-    haveI hn := (ne_zero.of_no_zero_smul_divisors K C n).trans,
+    haveI hn := ne_zero.of_no_zero_smul_divisors K C n,
     refine ⟨x.1, _⟩,
     cases x,
     rwa [mem_primitive_roots n.pos, ←is_root_cyclotomic_iff, is_root.def,
@@ -127,7 +128,7 @@ def zeta.embeddings_equiv_primitive_roots [is_domain C] (hirr : irreducible (cyc
   end,
   inv_fun   := λ x,
   begin
-    haveI hn := (ne_zero.of_no_zero_smul_divisors K C n).trans,
+    haveI hn := ne_zero.of_no_zero_smul_divisors K C n,
     refine ⟨x.1, _⟩,
     cases x,
     rwa [aeval_def, eval₂_eq_eval_map, zeta.power_basis_gen_minpoly L hirr, map_cyclotomic,
@@ -143,7 +144,7 @@ if `n` is odd. -/
 lemma norm_zeta_eq_one (K : Type u) [linear_ordered_field K] (L : Type v) [field L] [algebra K L]
   [is_cyclotomic_extension {n} K L] (hodd : odd (n : ℕ)) : norm K (zeta n K L) = 1 :=
 begin
-  haveI := (ne_zero.of_no_zero_smul_divisors K L n).trans,
+  haveI := ne_zero.of_no_zero_smul_divisors K L n,
   have hz := congr_arg (norm K) ((is_primitive_root.iff_def _ n).1 (zeta_primitive_root n K L)).1,
   rw [← ring_hom.map_one (algebra_map K L), norm_algebra_map, one_pow, monoid_hom.map_pow,
     ← one_pow ↑n] at hz,

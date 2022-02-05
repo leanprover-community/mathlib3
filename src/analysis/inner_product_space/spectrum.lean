@@ -191,7 +191,7 @@ end is_self_adjoint
 namespace is_normal
 
 /-! ### Finite-dimensional theory for normal operators -/
-#where
+
 variables [finite_dimensional 𝕜 E] [is_alg_closed 𝕜]
 
 lemma subsingleton_of_no_eigenvalue_finite_dimensional (T : E →ₗ[𝕜] E)
@@ -484,6 +484,7 @@ variables [cplt : complete_space E] {T : E →L[𝕜] E} (hT : is_self_adjoint (
   (hT_cpct : compact_map T)
 
 -- move this
+/-- Restrict domain and codomain of a continuous endomorphism. -/
 def _root_.continuous_linear_map.restrict {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M]
   [topological_space M]
   [module R M] (f : M →L[R] M) {p : submodule R M} (hf : ∀ (x : M), x ∈ p → f x ∈ p) :

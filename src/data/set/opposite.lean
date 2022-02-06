@@ -22,20 +22,20 @@ namespace set
 protected def op (s : set α) : set αᵒᵖ :=
 op '' s
 
-@[simp] lemma mem_op (s : set α) (a : αᵒᵖ) : a ∈ s.op ↔ unop a ∈ s :=
-by tidy
-
-@[simp] lemma op_mem_op (s : set α) (a : α) : op a ∈ s.op ↔ a ∈ s :=
-by rw [mem_op, unop_op]
-
 /-- The unop of a set `s` is the set obtained by taking the unop of each member of `s`. -/
 protected def unop (s : set αᵒᵖ) : set α :=
 unop '' s
 
-@[simp] lemma mem_unop (s : set αᵒᵖ) (a : α) : a ∈ s.unop ↔ op a ∈ s :=
+@[simp] lemma mem_op {s : set α} {a : αᵒᵖ} : a ∈ s.op ↔ unop a ∈ s :=
 by tidy
 
-@[simp] lemma unop_mem_unop (s : set αᵒᵖ) (a : αᵒᵖ) : unop a ∈ s.unop ↔ a ∈ s :=
+@[simp] lemma op_mem_op {s : set α} {a : α} : op a ∈ s.op ↔ a ∈ s :=
+by rw [mem_op, unop_op]
+
+@[simp] lemma mem_unop {s : set αᵒᵖ} {a : α} : a ∈ s.unop ↔ op a ∈ s :=
+by tidy
+
+@[simp] lemma unop_mem_unop {s : set αᵒᵖ} {a : αᵒᵖ} : unop a ∈ s.unop ↔ a ∈ s :=
 by rw [mem_unop, op_unop]
 
 @[simp] lemma op_unop (s : set α) : s.op.unop = s :=

@@ -1245,38 +1245,39 @@ theorem not_small_ordinal : ¬ small.{u} ordinal.{max u v} :=
 namespace ordinal
 
 section
-variables {S : set ordinal.{u}} (hS : unbounded (<) S)
+variables {S : set ordinal.{u}}
 
 /-- Enumerator function for an unbounded set of ordinals. -/
-def enum_ord (S : set ordinal.{u}) (hS : unbounded (<) S) : ordinal → ordinal :=
+def enum_ord (S : set ordinal.{u}) : ordinal → ordinal :=
 wf.fix (λ o f, Inf (S ∩ set.Ici (blsub.{u u} o f)))
 
 /-- The equation that characterizes `enum_ord` definitionally. This isn't the nicest expression to
     work with, so consider using `enum_ord_def` instead. -/
 theorem enum_ord_def' (o) :
-  enum_ord S hS o = Inf (S ∩ set.Ici (blsub.{u u} o (λ a _, enum_ord S hS a))) :=
+  enum_ord S o = Inf (S ∩ set.Ici (blsub.{u u} o (λ a _, enum_ord S a))) :=
 wf.fix_eq _ _
 
 /-- The set in `enum_ord_def'` is nonempty. -/
 theorem enum_ord_def'_nonempty (hS : unbounded (<) S) (a) : (S ∩ set.Ici a).nonempty :=
 let ⟨b, hb, hb'⟩ := hS a in ⟨b, hb, le_of_not_gt hb'⟩
 
-private theorem enum_ord_mem_aux (o) :
-  (enum_ord S hS o) ∈ S ∩ set.Ici (blsub.{u u} o (λ c _, enum_ord S hS c)) :=
+private theorem enum_ord_mem_aux (hS : unbounded (<) S) (o) :
+  (enum_ord S o) ∈ S ∩ set.Ici (blsub.{u u} o (λ c _, enum_ord S c)) :=
 by { rw enum_ord_def', exact Inf_mem (enum_ord_def'_nonempty hS _) }
 
-theorem enum_ord_mem (o) : enum_ord S hS o ∈ S :=
+theorem enum_ord_mem (hS : unbounded (<) S) (o) : enum_ord S o ∈ S :=
 (enum_ord_mem_aux hS o).left
 
-theorem blsub_le_enum_ord (o) : blsub.{u u} o (λ c _, enum_ord S hS c) ≤ enum_ord S hS o :=
+theorem blsub_le_enum_ord (hS : unbounded (<) S) (o) :
+  blsub.{u u} o (λ c _, enum_ord S c) ≤ enum_ord S o :=
 (enum_ord_mem_aux hS o).right
 
-theorem enum_ord.strict_mono : strict_mono (enum_ord S hS) :=
+theorem enum_ord.strict_mono (hS : unbounded (<) S) : strict_mono (enum_ord S) :=
 λ _ _ h, (lt_blsub.{u u} _ _ h).trans_le (blsub_le_enum_ord hS _)
 
 /-- A more workable definition for `enum_ord`. -/
 theorem enum_ord_def (o) :
-  enum_ord S hS o = Inf (S ∩ {b | ∀ c, c < o → enum_ord S hS c < b}) :=
+  enum_ord S o = Inf (S ∩ {b | ∀ c, c < o → enum_ord S c < b}) :=
 begin
   rw enum_ord_def',
   congr, ext,
@@ -1284,26 +1285,26 @@ begin
 end
 
 /-- The set in `enum_ord_def` is nonempty. -/
-lemma enum_ord_def_nonempty {hS : unbounded (<) S} {o} :
-  {x | x ∈ S ∧ ∀ c, c < o → enum_ord S hS c < x}.nonempty :=
+lemma enum_ord_def_nonempty (hS : unbounded (<) S) {o} :
+  {x | x ∈ S ∧ ∀ c, c < o → enum_ord S c < x}.nonempty :=
 (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
 
-theorem enum_ord_zero {a} {hS : unbounded (<) S} (ha : a ∈ S) : enum_ord S hS 0 ≤ a :=
+theorem enum_ord_zero {a} (ha : a ∈ S) : enum_ord S 0 ≤ a :=
 begin
   rw enum_ord_def,
   simp [ordinal.not_lt_zero],
   exact cInf_le' ha
 end
 
-theorem enum_ord_succ {a b} {hS : unbounded (<) S} (ha : a ∈ S) (hb : enum_ord S hS b < a) :
-  enum_ord S hS b.succ ≤ a :=
+theorem enum_ord_succ {a b} (hS : unbounded (<) S) (ha : a ∈ S) (hb : enum_ord S b < a) :
+  enum_ord S b.succ ≤ a :=
 begin
   rw enum_ord_def,
   exact cInf_le' ⟨ha, λ c hc, ((enum_ord.strict_mono hS).monotone (lt_succ.1 hc)).trans_lt hb⟩
 end
 
-theorem enum_ord.surjective : ∀ s ∈ S, ∃ a, enum_ord S hS a = s :=
-λ s hs, ⟨Sup {a | enum_ord S hS a ≤ s}, begin
+theorem enum_ord.surjective (hS : unbounded (<) S) : ∀ s ∈ S, ∃ a, enum_ord S a = s :=
+λ s hs, ⟨Sup {a | enum_ord S a ≤ s}, begin
   apply le_antisymm,
   { rw enum_ord_def,
     apply cInf_le',
@@ -1313,20 +1314,20 @@ theorem enum_ord.surjective : ∀ s ∈ S, ∃ a, enum_ord S hS a = s :=
   { by_contra' h,
     exact (le_cSup ⟨s, λ a,
       (well_founded.self_le_of_strict_mono wf (enum_ord.strict_mono hS) a).trans⟩
-      (enum_ord_succ hs h)).not_lt (lt_succ_self _) }
+      (enum_ord_succ hS hs h)).not_lt (lt_succ_self _) }
 end⟩
 
 /-- An order isomorphism between an unbounded set of ordinals and the ordinals. -/
-def enum_ord.order_iso : ordinal ≃o S :=
+def enum_ord.order_iso (hS : unbounded (<) S) : ordinal ≃o S :=
 strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) (enum_ord.strict_mono hS)
   (λ s, let ⟨a, ha⟩ := enum_ord.surjective hS s s.prop in ⟨a, subtype.eq ha⟩)
 
-theorem enum_ord_range : range (enum_ord S hS) = S :=
+theorem enum_ord_range (hS : unbounded (<) S) : range (enum_ord S) = S :=
 by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord.surjective hS⟩ }
 
 /-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
-theorem eq_enum_ord (f : ordinal → ordinal) :
-  strict_mono f ∧ range f = S ↔ f = enum_ord S hS :=
+theorem eq_enum_ord (f : ordinal → ordinal) (hS : unbounded (<) S) :
+  strict_mono f ∧ range f = S ↔ f = enum_ord S :=
 begin
   split, swap,
   { rintro rfl,
@@ -2219,9 +2220,9 @@ theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, de
 by { rw ←H.fp_iff_deriv', exact ⟨λ h, le_of_eq h, λ h, le_antisymm h (H.le_self _)⟩ }
 
 /-- `deriv f` is the fixed point enumerator of `f`. -/
-theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord _ H.nfp_unbounded :=
+theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord (fixed_points f) :=
 begin
-  rw [←eq_enum_ord, range_eq_iff],
+  rw [←eq_enum_ord _ H.nfp_unbounded, range_eq_iff],
   use (deriv_is_normal f).strict_mono,
   refine ⟨λ a, H.deriv_fp a, λ _ _, _⟩,
   rwa ←H.fp_iff_deriv

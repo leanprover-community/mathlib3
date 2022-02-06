@@ -166,7 +166,9 @@ begin
   exact h.not_lt_min _ h' (@hφ _ (h.min _ h') (h.min_mem _ h')) (h.min_mem _ h')
 end
 
-private theorem eq_strict_mono_iff_eq_range_aux {f g : β → β} (hf : strict_mono f)
+variables {γ : Type*} [partial_order γ]
+
+private theorem eq_strict_mono_iff_eq_range_aux {f g : β → γ} (hf : strict_mono f)
   (hg : strict_mono g) (hfg : set.range f = set.range g) {b : β} (H : ∀ a < b, f a = g a) :
   f b ≤ g b :=
 begin
@@ -179,7 +181,7 @@ begin
     exact hf.monotone hbc }
 end
 
-theorem _root_.eq_strict_mono_iff_eq_range {f g : β → β} (hf : strict_mono f)
+theorem _root_.eq_strict_mono_iff_eq_range {f g : β → γ} (hf : strict_mono f)
   (hg : strict_mono g) : set.range f = set.range g ↔ f = g :=
 ⟨λ hfg, begin
   funext a,

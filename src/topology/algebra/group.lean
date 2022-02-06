@@ -67,9 +67,23 @@ by { ext, refl }
 lemma is_open_map_mul_left (a : G) : is_open_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_open_map
 
+lemma left_coset_open {U : set G} (x : G) (h : is_open U) :
+is_open (left_coset x U) :=
+begin
+  apply is_open_map_mul_left,
+  exact h,
+end
+
 @[to_additive]
 lemma is_closed_map_mul_left (a : G) : is_closed_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_closed_map
+
+lemma left_coset_closed {U : set G} (x : G) (h : is_closed U) :
+is_closed (left_coset x U) :=
+begin
+  apply is_closed_map_mul_left,
+  exact h,
+end
 
 /-- Multiplication from the right in a topological group as a homeomorphism. -/
 @[to_additive "Addition from the right in a topological additive group as a homeomorphism."]
@@ -91,9 +105,23 @@ by { ext, refl }
 lemma is_open_map_mul_right (a : G) : is_open_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_open_map
 
+lemma right_coset_open {U : set G} (x : G) (h : is_open U) :
+is_open (right_coset U x) :=
+begin
+  apply is_open_map_mul_right,
+  exact h,
+end
+
 @[to_additive]
 lemma is_closed_map_mul_right (a : G) : is_closed_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_closed_map
+
+lemma right_coset_closed {U : set G} (x : G) (h : is_closed U) :
+is_closed (right_coset U x) :=
+begin
+  apply is_closed_map_mul_right,
+  exact h,
+end
 
 @[to_additive]
 lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=

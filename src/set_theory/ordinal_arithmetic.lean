@@ -1561,7 +1561,8 @@ if b1 : 1 < b then begin
 end
 else by simp only [log_not_one_lt b1]
 
-theorem succ_log_def {b x : ordinal} (b1 : 1 < b) (x0 : 0 < x) : succ (log b x) = Inf {o | x < b^o} :=
+theorem succ_log_def {b x : ordinal} (b1 : 1 < b) (x0 : 0 < x) :
+  succ (log b x) = Inf {o | x < b^o} :=
 begin
   let t := Inf {o | x < b^o},
   have : x < b ^ t := Inf_mem (log_nonempty b1),

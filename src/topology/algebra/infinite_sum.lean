@@ -1295,7 +1295,7 @@ end
 
 lemma cauchy_seq_of_summable_dist [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) : cauchy_seq f :=
-cauchy_seq_of_dist_le_of_summable _ (λ _, le_refl _) h
+cauchy_seq_of_dist_le_of_summable _ (λ _, le_rfl) h
 
 lemma dist_le_tsum_of_dist_le_of_tendsto [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a))
@@ -1319,7 +1319,7 @@ lemma dist_le_tsum_dist_of_tendsto [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) (n) :
   dist (f n) a ≤ ∑' m, dist (f (n+m)) (f (n+m).succ) :=
 show dist (f n) a ≤ ∑' m, (λx, dist (f x) (f x.succ)) (n + m), from
-dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_refl _) h ha n
+dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_rfl) h ha n
 
 lemma dist_le_tsum_dist_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) :

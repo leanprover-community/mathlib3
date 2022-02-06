@@ -245,9 +245,9 @@ begin
     exact Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih },
   { induction n with n ih,
     { rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub],
-      exact Hp _ (le_refl _) H0 },
+      exact Hp _ le_rfl H0 },
     { rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub],
-      exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) (le_refl _))) ih } }
+      exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) le_rfl)) ih } }
 end
 
 /-! ### nat abs -/

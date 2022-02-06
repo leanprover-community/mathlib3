@@ -161,6 +161,61 @@ begin
   simp,
 end
 
+lemma is_prime_pow_pow_iff {n k : ℕ} (hk : k ≠ 0) :
+  is_prime_pow (n ^ k) ↔ is_prime_pow n :=
+begin
+  simp only [is_prime_pow_iff_unique_prime_dvd],
+  apply exists_unique_congr,
+  simp only [and.congr_right_iff],
+  intros p hp,
+  exact ⟨hp.dvd_of_dvd_pow, λ t, t.trans (dvd_pow_self _ hk)⟩,
+end
+
+lemma nat.coprime.is_prime_pow_dvd_mul {n a b : ℕ} (hab : nat.coprime a b) (hn : is_prime_pow n) :
+  n ∣ a * b ↔ n ∣ a ∨ n ∣ b :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha,
+  { simp only [nat.coprime_zero_left] at hab,
+    simp [hab, finset.filter_singleton, not_is_prime_pow_one] },
+  rcases eq_or_ne b 0 with rfl | hb,
+  { simp only [nat.coprime_zero_right] at hab,
+    simp [hab, finset.filter_singleton, not_is_prime_pow_one] },
+  refine ⟨_, λ h, or.elim h (λ i, i.trans (dvd_mul_right _ _)) (λ i, i.trans (dvd_mul_left _ _))⟩,
+  obtain ⟨p, k, hp, hk, rfl⟩ := (is_prime_pow_nat_iff _).1 hn,
+  simp only [nat.prime_pow_dvd_iff_le_factorization _ _ _ hp (mul_ne_zero ha hb),
+    nat.factorization_mul ha hb, nat.prime_pow_dvd_iff_le_factorization _ _ _ hp ha,
+    nat.prime_pow_dvd_iff_le_factorization _ _ _ hp hb, pi.add_apply, finsupp.coe_add],
+  have : a.factorization p = 0 ∨ b.factorization p = 0,
+  { rw [←finsupp.not_mem_support_iff, ←finsupp.not_mem_support_iff, ←not_and_distrib,
+      ←finset.mem_inter],
+    exact λ t, nat.factorization_disjoint_of_coprime hab t },
+  cases this;
+  simp [this, imp_or_distrib],
+end
+
+lemma nat.disjoint_divisors_filter_prime_pow {a b : ℕ} (hab : a.coprime b) :
+  disjoint (a.divisors.filter is_prime_pow) (b.divisors.filter is_prime_pow) :=
+begin
+  simp only [finset.disjoint_left, finset.mem_filter, and_imp, nat.mem_divisors, not_and],
+  rintro n han ha hn hbn hb -,
+  exact hn.ne_one (nat.eq_one_of_dvd_coprimes hab han hbn),
+end
+
+lemma nat.mul_divisors_filter_prime_pow {a b : ℕ} (hab : a.coprime b) :
+  (a * b).divisors.filter is_prime_pow = (a.divisors ∪ b.divisors).filter is_prime_pow :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha,
+  { simp only [nat.coprime_zero_left] at hab,
+    simp [hab, finset.filter_singleton, not_is_prime_pow_one] },
+  rcases eq_or_ne b 0 with rfl | hb,
+  { simp only [nat.coprime_zero_right] at hab,
+    simp [hab, finset.filter_singleton, not_is_prime_pow_one] },
+  ext n,
+  simp only [ha, hb, finset.mem_union, finset.mem_filter, nat.mul_eq_zero, and_true, ne.def,
+    and.congr_left_iff, not_false_iff, nat.mem_divisors, or_self],
+  apply hab.is_prime_pow_dvd_mul,
+end
+
 lemma is_prime_pow.two_le : ∀ {n : ℕ}, is_prime_pow n → 2 ≤ n
 | 0 h := (not_is_prime_pow_zero h).elim
 | 1 h := (not_is_prime_pow_one h).elim

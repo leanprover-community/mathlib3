@@ -322,3 +322,42 @@ instance {ι : Type*} {γ : ι → Type*}
 ⟨continuous_pi $ λ i,
   (continuous_fst.smul continuous_snd).comp $
     continuous_fst.prod_mk ((continuous_apply i).comp continuous_snd)⟩
+
+section lattice_ops
+
+variables {ι : Type*} [has_scalar M β]
+  {ts : set (topological_space β)} (h : Π t ∈ ts, @has_continuous_smul M β _ _ t)
+  {ts' : ι → topological_space β} (h' : Π i, @has_continuous_smul M β _ _ (ts' i))
+  {t₁ t₂ : topological_space β} [h₁ : @has_continuous_smul M β _ _ t₁]
+  [h₂ : @has_continuous_smul M β _ _ t₂]
+
+include h
+
+@[to_additive] lemma has_continuous_smul_Inf :
+  @has_continuous_smul M β _ _ (Inf ts) :=
+{ continuous_smul :=
+  begin
+    rw ← @Inf_singleton _ _ ‹topological_space M›,
+    exact continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ (eq.refl _) ht
+      (@has_continuous_smul.continuous_smul _ _ _ _ t (h t ht)))
+  end }
+
+omit h
+
+include h'
+
+@[to_additive] lemma has_continuous_smul_infi :
+  @has_continuous_smul M β _ _ (⨅ i, ts' i) :=
+by {rw ← Inf_range, exact has_continuous_smul_Inf (set.forall_range_iff.mpr h')}
+
+omit h'
+
+include h₁ h₂
+
+@[to_additive] lemma has_continuous_smul_inf :
+  @has_continuous_smul M β _ _ (t₁ ⊓ t₂) :=
+by {rw inf_eq_infi, refine has_continuous_smul_infi (λ b, _), cases b; assumption}
+
+omit h₁ h₂
+
+end lattice_ops

@@ -50,6 +50,8 @@ For `a : α`, `o : part α`, `a ∈ o` means that `o` is defined and equal to `a
 `o.dom` and `o.get _ = a`.
 -/
 
+open function
+
 /-- `part α` is the type of "partial values" of type `α`. It
   is similar to `option α` except the domain condition can be an
   arbitrary proposition, not necessarily decidable. -/
@@ -87,6 +89,8 @@ theorem dom_iff_mem : ∀ {o : part α}, o.dom ↔ ∃ y, y ∈ o
 | ⟨p, f⟩ := ⟨λh, ⟨f h, h, rfl⟩, λ⟨_, h, rfl⟩, h⟩
 
 theorem get_mem {o : part α} (h) : get o h ∈ o := ⟨_, rfl⟩
+
+@[simp] lemma mem_mk_iff {p : Prop} {o : p → α} {a : α} : a ∈ part.mk p o ↔ ∃ h, o h = a := iff.rfl
 
 /-- `part` extensionality -/
 @[ext]
@@ -151,8 +155,10 @@ end
 lemma eq_none_or_eq_some (o : part α) : o = none ∨ ∃ x, o = some x :=
 or_iff_not_imp_left.2 ne_none_iff.1
 
-@[simp] lemma some_inj {a b : α} : part.some a = some b ↔ a = b :=
-function.injective.eq_iff (λ a b h, congr_fun (eq_of_heq (part.mk.inj h).2) trivial)
+lemma some_injective : injective (@part.some α) :=
+λ a b h, congr_fun (eq_of_heq (part.mk.inj h).2) trivial
+
+@[simp] lemma some_inj {a b : α} : part.some a = some b ↔ a = b := some_injective.eq_iff
 
 @[simp] lemma some_get {a : part α} (ha : a.dom) :
   part.some (part.get a ha) = a :=
@@ -201,6 +207,22 @@ begin
   by_cases h : o.dom; simp [h],
   { exact ⟨λ h, ⟨_, h⟩, λ ⟨_, h⟩, h⟩ },
   { exact mt Exists.fst h }
+end
+
+protected lemma dom.to_option {o : part α} [decidable o.dom] (h : o.dom) : o.to_option = o.get h :=
+dif_pos h
+
+lemma to_option_eq_none_iff {a : part α} [decidable a.dom] : a.to_option = option.none ↔ ¬ a.dom :=
+ne.dite_eq_right_iff $ λ h, option.some_ne_none _
+
+@[simp] lemma elim_to_option {α β : Type*} (a : part α) [decidable a.dom] (b : β) (f : α → β) :
+  a.to_option.elim b f = if h : a.dom then f (a.get h) else b :=
+begin
+  split_ifs,
+  { rw h.to_option,
+    refl },
+  { rw part.to_option_eq_none_iff.2 h,
+    refl }
 end
 
 /-- Converts an `option α` into a `part α`. -/
@@ -341,6 +363,17 @@ theorem mem_bind {f : part α} {g : α → part β} :
 ⟨match b with _, ⟨⟨h₁, h₂⟩, rfl⟩ := ⟨_, ⟨_, rfl⟩, ⟨_, rfl⟩⟩ end,
  λ ⟨a, h₁, h₂⟩, mem_bind h₁ h₂⟩
 
+protected lemma dom.bind {o : part α} (h : o.dom) (f : α → part β) : o.bind f = f (o.get h) :=
+begin
+  ext b,
+  simp only [part.mem_bind_iff, exists_prop],
+  refine ⟨_, λ hb, ⟨o.get h, part.get_mem _, hb⟩⟩,
+  rintro ⟨a, ha, hb⟩,
+  rwa part.get_eq_of_mem ha,
+end
+
+lemma dom.of_bind {f : α → part β} {a : part α} (h : (a.bind f).dom) : a.dom := h.some
+
 @[simp] theorem bind_none (f : α → part β) :
   none.bind f = none := eq_none_iff.2 $ λ a, by simp
 
@@ -354,6 +387,17 @@ by rw [eq_some_iff.2 h, bind_some]
 theorem bind_some_eq_map (f : α → β) (x : part α) :
   x.bind (some ∘ f) = map f x :=
 ext $ by simp [eq_comm]
+
+lemma bind_to_option (f : α → part β) (o : part α) [decidable o.dom] [Π a, decidable (f a).dom]
+  [decidable (o.bind f).dom] :
+  (o.bind f).to_option = o.to_option.elim option.none (λ a, (f a).to_option) :=
+begin
+  by_cases o.dom,
+  { simp_rw [h.to_option, h.bind],
+    refl },
+  { rw part.to_option_eq_none_iff.2 h,
+    exact part.to_option_eq_none_iff.2 (λ ho, h ho.of_bind) }
+end
 
 theorem bind_assoc {γ} (f : part α) (g : α → part β) (k : β → part γ) :
   (f.bind g).bind k = f.bind (λ x, (g x).bind k) :=

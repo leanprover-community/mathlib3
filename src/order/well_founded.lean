@@ -113,6 +113,16 @@ begin
   rintro (hy | rfl), exact trans hy (wo.wf.lt_succ h), exact wo.wf.lt_succ h
 end
 
+section linear_order
+
+variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → Prop))
+
+include h
+theorem self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
+by { by_contra' h₁, exact let h₂ := h.min_mem _ h₁ in h.not_lt_min _ h₁ (hφ h₂) h₂ }
+
+end linear_order
+
 end well_founded
 
 namespace function
@@ -158,14 +168,6 @@ not_lt.mp $ not_lt_argmin f h a
 @[simp] lemma argmin_on_le (s : set α) {a : α} (ha : a ∈ s)
   (hs : s.nonempty := set.nonempty_of_mem ha) : f (argmin_on f h s hs) ≤ f a :=
 not_lt.mp $ not_lt_argmin_on f h s ha hs
-
-include h
-theorem _root_.well_founded.self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) :
-  ∀ n, n ≤ φ n :=
-begin
-  by_contra' h',
-  exact h.not_lt_min _ h' (@hφ _ (h.min _ h') (h.min_mem _ h')) (h.min_mem _ h')
-end
 
 end linear_order
 

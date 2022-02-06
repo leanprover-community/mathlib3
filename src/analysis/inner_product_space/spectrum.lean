@@ -268,10 +268,7 @@ section version2
 variables {n : ℕ} (hn : finite_dimensional.finrank 𝕜 E = n) [decidable_eq (eigenvalues T)]
 
 /-- A choice of orthonormal basis of eigenvectors for normal operator `T` on a
-finite-dimensional inner product space `E`.
-
-TODO Postcompose with a permutation so that these eigenvectors are listed in increasing order of
-eigenvalue. -/
+finite-dimensional inner product space `E`. -/
 noncomputable def eigenvector_basis : basis (fin n) 𝕜 E :=
 hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis hn
 
@@ -280,9 +277,7 @@ hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_orthonormal hn
   hT.is_normal.orthogonal_family_eigenspaces'
 
 /-- The sequence of eigenvalues associated to the standard orthonormal basis of eigenvectors
-for a normal operator `T` on `E`.
-
-TODO Postcompose with a permutation so that these eigenvalues are listed in increasing order. -/
+for a normal operator `T` on `E`. -/
 noncomputable def eigenvalues (i : fin n) : 𝕜 :=
 hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_index hn i
 

@@ -43,6 +43,10 @@ def time_bound (c : turing.to_partrec.code) (bound : ℕ → ℕ) : Prop :=
 ∀ (l : list ℕ), ∃ t ∈ time c l, t ≤ bound (l.length)
 
 -- TODO time_bound lemmas for all the constructors (except maybe fix)
+lemma time_bound_zero' : time_bound code.zero (λ _, 1) :=
+begin
+  sorry
+end
 
 /--
 The code `c` always terminates in polynomial time.

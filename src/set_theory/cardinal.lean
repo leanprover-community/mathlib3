@@ -541,23 +541,6 @@ cardinal.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardin
 
 instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 
-/-- The minimal element of a nonempty set of cardinals -/
-def omin (S : set cardinal.{u}) (H : S.nonempty) : cardinal.{u} :=
-@min.{(u+1) u} S (let ⟨x, px⟩ := H in ⟨⟨x, px⟩⟩) subtype.val
-
-theorem omin_mem (S H) : omin S H ∈ S :=
-let ⟨⟨i, h⟩, e⟩ := @min_eq S _ _ in
-(show omin S H = i, from e).symm ▸ h
-
-theorem le_omin {S H a} : a ≤ omin S H ↔ ∀ i ∈ S, a ≤ i :=
-le_min.trans set_coe.forall
-
-theorem omin_le {S H i} (h : i ∈ S) : omin S H ≤ i :=
-le_omin.1 le_rfl _ h
-
-theorem not_lt_omin {S H i} (h : i ∈ S) : ¬ i < omin S H :=
-(omin_le h).not_lt
-
 /-- The successor cardinal - the smallest cardinal greater than
   `c`. This is not the same as `c + 1` except in the case of finite `c`. -/
 def succ (c : cardinal) : cardinal :=

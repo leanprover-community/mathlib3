@@ -158,6 +158,20 @@ lemma star_eq_adjoint (A : E →L[𝕜] E) : star A = A† := rfl
 lemma mem_self_adjoint_iff (A : E →L[𝕜] E) : A ∈ self_adjoint (E →L[𝕜] E) ↔ A.adjoint = A :=
 by simp only [←star_eq_adjoint, self_adjoint.mem_iff]
 
+lemma mem_self_adjoint_iff_is_self_adjoint (A : E →L[𝕜] E) :
+  A ∈ self_adjoint (E →L[𝕜] E) ↔ is_self_adjoint (A : E →ₗ[𝕜] E) :=
+begin
+  refine ⟨λ h x y, _,
+          λ h, (mem_self_adjoint_iff A).mpr (eq.symm ((eq_adjoint_iff _ _).mpr (λ _ _, h _ _)))⟩,
+  { rw [mem_self_adjoint_iff] at h,
+    nth_rewrite_lhs 0 [←h],
+    exact adjoint_inner_left _ _ _ }
+end
+
+lemma is_normal_of_mem_self_adjoint {A : E →L[𝕜] E} (hA : A ∈ self_adjoint (E →L[𝕜] E)) :
+  is_normal (A : E →ₗ[𝕜] E) :=
+(A.mem_self_adjoint_iff_is_self_adjoint.mp hA).is_normal
+
 instance : cstar_ring (E →L[𝕜] E) :=
 ⟨begin
   intros A,
@@ -298,6 +312,10 @@ begin
     nth_rewrite_lhs 0 [←h],
     exact adjoint_inner_left _ _ _ }
 end
+
+lemma is_normal_of_mem_self_adjoint {A : E →ₗ[𝕜] E} (hA : A ∈ self_adjoint (E →ₗ[𝕜] E)) :
+  is_normal A :=
+(A.mem_self_adjoint_iff_is_self_adjoint.mp hA).is_normal
 
 lemma is_star_normal_iff_is_normal (A : E →ₗ[𝕜] E) : is_star_normal A ↔ is_normal A :=
 begin

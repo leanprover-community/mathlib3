@@ -106,13 +106,11 @@ by rw [← coseparating_op_iff_separating, set.unop_op]
 lemma detecting_op_iff_codetecting {𝒢 : set C} : detecting 𝒢.op ↔ codetecting 𝒢 :=
 begin
   refine ⟨λ h𝒢 X Y f hf, _, λ h𝒢 X Y f hf, _⟩,
-  { suffices : is_iso f.op, { exactI is_iso_of_op _ },
-    refine h𝒢 _ (λ G hG h, _),
+  { refine (is_iso_op_iff _).1 (h𝒢 _ (λ G hG h, _)),
     obtain ⟨t, ht, ht'⟩ := hf (unop G) (set.mem_op.1 hG) h.unop,
     exact ⟨t.op, quiver.hom.unop_inj ht, λ y hy,
       quiver.hom.unop_inj (ht' _ (quiver.hom.op_inj hy))⟩ },
-  { suffices : is_iso f.unop, { rw ← quiver.hom.op_unop f, exactI is_iso_of_op _ },
-    refine h𝒢 _ (λ G hG h, _),
+  { refine (is_iso_unop_iff _).1 (h𝒢 _ (λ G hG h, _)),
     obtain ⟨t, ht, ht'⟩ := hf (op G) (set.op_mem_op.2 hG) h.op,
     refine ⟨t.unop, quiver.hom.op_inj ht, λ y hy, quiver.hom.op_inj (ht' _ _)⟩,
     exact quiver.hom.unop_inj (by simpa only using hy) }
@@ -121,13 +119,11 @@ end
 lemma codetecting_op_iff_detecting {𝒢 : set C} : codetecting 𝒢.op ↔ detecting 𝒢 :=
 begin
   refine ⟨λ h𝒢 X Y f hf, _, λ h𝒢 X Y f hf, _⟩,
-  { suffices : is_iso f.op, { exactI is_iso_of_op _ },
-    refine h𝒢 _ (λ G hG h, _),
+  { refine (is_iso_op_iff _).1 (h𝒢 _ (λ G hG h, _)),
     obtain ⟨t, ht, ht'⟩ := hf (unop G) (set.mem_op.1 hG) h.unop,
     exact ⟨t.op, quiver.hom.unop_inj ht, λ y hy,
       quiver.hom.unop_inj (ht' _ (quiver.hom.op_inj hy))⟩ },
-  { suffices : is_iso f.unop, { rw ← quiver.hom.op_unop f, exactI is_iso_of_op _ },
-    refine h𝒢 _ (λ G hG h, _),
+  { refine (is_iso_unop_iff _).1 (h𝒢 _ (λ G hG h, _)),
     obtain ⟨t, ht, ht'⟩ := hf (op G) (set.op_mem_op.2 hG) h.op,
     refine ⟨t.unop, quiver.hom.op_inj ht, λ y hy, quiver.hom.op_inj (ht' _ _)⟩,
     exact quiver.hom.unop_inj (by simpa only using hy) }
@@ -348,10 +344,9 @@ lemma codetector_iff_reflects_isomorphisms_yoneda_obj {G : C} :
   codetector G ↔ reflects_isomorphisms (yoneda.obj G) :=
 begin
   refine ⟨λ hG, ⟨λ X Y f hf, _ ⟩, λ h, codetector_def.2 (λ X Y f hf, _)⟩,
-  { suffices : is_iso f.unop, { rw ← quiver.hom.op_unop f, exactI is_iso_of_op _ },
-    refine hG.def _ _,
+  { refine (is_iso_unop_iff _).1 (hG.def _ _),
     rwa [is_iso_iff_bijective, function.bijective_iff_exists_unique] at hf },
-  { suffices : is_iso f.op, { exactI is_iso_of_op _ },
+  { rw ← is_iso_op_iff,
     suffices : is_iso ((yoneda.obj G).map f.op),
     { exactI @is_iso_of_reflects_iso _ _ _ _ _ _ _ (yoneda.obj G) _ h },
     rwa [is_iso_iff_bijective, function.bijective_iff_exists_unique] }

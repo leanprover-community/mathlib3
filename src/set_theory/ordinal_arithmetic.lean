@@ -978,6 +978,20 @@ lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_we
   (sup_le.2 $ λ y, le_of_lt $ (typein_lt_typein r).2 $ hx _ $ mem_range_self y)
   (typein_lt_type r x)
 
+theorem bdd_above_iff_small {s : set ordinal.{u}} : bdd_above s ↔ small.{u} s :=
+begin
+  refine ⟨_, λ h, ⟨sup.{u u} (λ x, ((@equiv_shrink s h).symm x).val), λ a ha, _⟩⟩,
+  { rintro ⟨a, h⟩,
+    suffices : small ↥(Iio a.succ),
+      from @small_subset _ _ _ (by exact λ b hb, lt_succ.2 (h hb)) this,
+    let f : a.succ.out.α → (set.Iio a.succ) := λ x, ⟨typein a.succ.out.r x, typein_lt_self x⟩,
+    have hf : surjective f := λ b, ⟨enum a.succ.out.r b.val (by { rw type_out, exact b.prop }),
+       subtype.ext (typein_enum _ _)⟩,
+    exact small_of_surjective hf },
+  { convert le_sup.{u u} _ ((@equiv_shrink s h) ⟨a, ha⟩),
+    rw symm_apply_apply }
+end
+
 private theorem sup_le_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
   [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
   (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) ≤ sup (family_of_bfamily' r' ho' f) :=

@@ -14,6 +14,11 @@ This defines `PartialFun`, the category of types equipped with partial functions
 This category is classically equivalent to the category of pointed types. The reason it doesn't hold
 classically stems from the difference between `part` and `option`. Both can model partial functions,
 but the latter forces a decidable domain.
+
+## References
+
+* [nLab, *The category of sets and partial functions]
+[http://nlab-pages.s3.us-east-2.amazonaws.com/nlab/show/partial+function]
 -/
 
 open category_theory option

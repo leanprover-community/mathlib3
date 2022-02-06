@@ -1207,7 +1207,7 @@ eq_of_forall_ge_iff $ λ o,
 by rw [blsub_le, lsub_le]; exact
   ⟨λ H b, H _ _, λ H i h, by simpa only [typein_enum] using H (enum r i h)⟩
 
-theorem blsub_const {o : ordinal} (ho : 0 < o) (a : ordinal) : blsub.{u v} o (λ _ _, a) = a + 1 :=
+theorem blsub_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : blsub.{u v} o (λ _ _, a) = a + 1 :=
 bsup_const.{u v} ho a.succ
 
 theorem blsub_id {o} : blsub.{u u} o (λ x _, x) = o :=

@@ -237,7 +237,7 @@ by rw [← succ_omega, lt_succ, mk_set_le_omega]
 
 /-- Ordinals that are cardinals are unbounded. -/
 theorem ord_card_unbounded : ¬ bdd_above {b : ordinal | b.card.ord = b} :=
-unbounded_lt_iff.2 $ λ a, ⟨_, ⟨(by { dsimp, rw card_ord }), (lt_ord_succ_card a).le⟩⟩
+not_bdd_above_iff_le.2 $ λ a, ⟨_, ⟨(by { dsimp, rw card_ord }), (lt_ord_succ_card a).le⟩⟩
 
 theorem eq_aleph'_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) : ∃ a, (aleph' a).ord = o :=
 ⟨cardinal.aleph_idx.rel_iso o.card, by simpa using ho⟩
@@ -252,7 +252,11 @@ end
 
 /-- Infinite ordinals that are cardinals are unbounded. -/
 theorem ord_card_unbounded' : ¬ bdd_above {b : ordinal | b.card.ord = b ∧ ordinal.omega ≤ b} :=
-(unbounded_lt_inter_le ordinal.omega).2 ord_card_unbounded
+λ ⟨a, ha⟩, begin
+  rcases (not_bdd_above_iff.1 ord_card_unbounded) (max ordinal.omega a) with ⟨b, hb, hb'⟩,
+  simp [upper_bounds] at ha,
+  exact (ha hb ((le_max_left _ _).trans hb'.le)).not_lt ((le_max_right _ _).trans_lt hb')
+end
 
 theorem eq_aleph_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) (ho' : ordinal.omega ≤ o) :
   ∃ a, (aleph a).ord = o :=

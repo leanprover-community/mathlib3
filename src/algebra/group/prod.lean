@@ -227,6 +227,9 @@ protected def prod (f : M →* N) (g : M →* P) : M →* N × P :=
   map_one' := prod.ext f.map_one g.map_one,
   map_mul' := λ x y, prod.ext (f.map_mul x y) (g.map_mul x y) }
 
+@[to_additive coe_prod]
+lemma coe_prod (f : M →* N) (g : M →* P) : ⇑(f.prod g) = pi.prod f g := rfl
+
 @[simp, to_additive prod_apply]
 lemma prod_apply (f : M →* N) (g : M →* P) (x) : f.prod g x = (f x, g x) := rfl
 

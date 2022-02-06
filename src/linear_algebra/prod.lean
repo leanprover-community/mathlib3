@@ -66,6 +66,8 @@ theorem snd_surjective : function.surjective (snd R M M₂) := λ x, ⟨(0, x), 
   map_add'  := λ x y, by simp only [pi.prod, prod.mk_add_mk, map_add],
   map_smul' := λ c x, by simp only [pi.prod, prod.smul_mk, map_smul, ring_hom.id_apply] }
 
+lemma coe_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : ⇑(f.prod g) = pi.prod f g := rfl
+
 @[simp] theorem fst_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
   (fst R M₂ M₃).comp (prod f g) = f := by ext; refl
 

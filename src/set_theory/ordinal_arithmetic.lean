@@ -1539,7 +1539,7 @@ end
 /-- The ordinal logarithm is the solution `u` to the equation `x = b ^ u * v + w` where `v < b` and
     `w < b ^ u`. -/
 def log (b : ordinal) (x : ordinal) : ordinal :=
-if h : 1 < b then pred $ Inf {o | x < b ^ o} else 0
+if h : 1 < b then pred (Inf {o | x < b ^ o}) else 0
 
 /-- The set in the definition of `log` is nonempty. -/
 theorem log_nonempty {b x : ordinal} (h : 1 < b) : {o | x < b ^ o}.nonempty :=
@@ -1548,7 +1548,7 @@ theorem log_nonempty {b x : ordinal} (h : 1 < b) : {o | x < b ^ o}.nonempty :=
 @[simp] theorem log_not_one_lt {b : ordinal} (b1 : ¬ 1 < b) (x : ordinal) : log b x = 0 :=
 by simp only [log, dif_neg b1]
 
-theorem log_def {b : ordinal} (b1 : 1 < b) (x : ordinal) : log b x = pred (Inf {o | x < b^o}) :=
+theorem log_def {b : ordinal} (b1 : 1 < b) (x : ordinal) : log b x = pred (Inf {o | x < b ^ o}) :=
 by simp only [log, dif_pos b1]
 
 @[simp] theorem log_zero (b : ordinal) : log b 0 = 0 :=
@@ -1562,7 +1562,7 @@ end
 else by simp only [log_not_one_lt b1]
 
 theorem succ_log_def {b x : ordinal} (b1 : 1 < b) (x0 : 0 < x) :
-  succ (log b x) = Inf {o | x < b^o} :=
+  succ (log b x) = Inf {o | x < b ^ o} :=
 begin
   let t := Inf {o | x < b ^ o},
   have : x < b ^ t := Inf_mem (log_nonempty b1),

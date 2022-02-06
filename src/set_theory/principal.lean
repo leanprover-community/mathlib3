@@ -100,6 +100,6 @@ begin
 end
 
 theorem unbounded_principal (op : ordinal → ordinal → ordinal) : ¬ bdd_above {o | principal op o} :=
-λ o, ⟨_, principal_nfp_blsub₂ op o, (le_nfp_self _ o).not_lt⟩
+not_bdd_above_iff.2 $ λ o, ⟨_, principal_nfp_blsub₂ op o, (le_nfp_self _ o)⟩
 
 end ordinal

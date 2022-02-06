@@ -91,6 +91,26 @@ lemma not_bdd_below_iff {α : Type*} [linear_order α] {s : set α} :
   ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, y < x :=
 @not_bdd_above_iff (order_dual α) _ _
 
+/-- A set `s` is not bounded above if and only if for each `x` there exists `y ∈ s` that is greater
+or equal to `x`. -/
+lemma not_bdd_above_iff_le {α : Type*} [linear_order α] [no_max_order α] {s : set α} :
+  ¬bdd_above s ↔ ∀ x, ∃ y ∈ s, x ≤ y :=
+begin
+  rw not_bdd_above_iff,
+  refine ⟨λ h a, _, λ h a, _⟩,
+  { rcases h a with ⟨b, hb, hb'⟩,
+    exact ⟨b, hb, hb'.le⟩ },
+  { cases exists_gt a with b hb,
+    rcases h b with ⟨c, hc, hc'⟩,
+    exact ⟨c, hc, hb.trans_le hc'⟩ }
+end
+
+/-- A set `s` is not bounded below if and only if for each `x` there exists `y ∈ s` that is less
+or equal to `x`. -/
+lemma not_bdd_below_iff_le {α : Type*} [linear_order α] [no_min_order α] {s : set α} :
+  ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, y ≤ x :=
+@not_bdd_above_iff_le (order_dual α) _ _ _
+
 lemma bdd_above.dual (h : bdd_above s) : bdd_below (of_dual ⁻¹' s) := h
 
 lemma bdd_below.dual (h : bdd_below s) : bdd_above (of_dual ⁻¹' s) := h

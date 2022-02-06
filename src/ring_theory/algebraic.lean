@@ -140,7 +140,7 @@ lemma _root_.is_algebraic_of_larger_base_of_injective (hinj : function.injective
   {x : A} (A_alg : _root_.is_algebraic R x) : _root_.is_algebraic S x :=
 let ⟨p, hp₁, hp₂⟩ := A_alg in
 ⟨p.map (algebra_map _ _),
-  by rwa [ne.def, ← degree_eq_bot, degree_map' hinj, degree_eq_bot],
+  by rwa [ne.def, ← degree_eq_bot, degree_map_eq_of_injective hinj, degree_eq_bot],
   by simpa⟩
 
 /-- If A is an algebraic algebra over R, then A is algebraic over S when S is an extension of R,

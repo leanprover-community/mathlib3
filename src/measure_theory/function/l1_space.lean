@@ -160,7 +160,7 @@ lemma has_finite_integral_of_bounded [is_finite_measure μ] {f : α → β} {C :
 
 lemma has_finite_integral.mono_measure {f : α → β} (h : has_finite_integral f ν) (hμ : μ ≤ ν) :
   has_finite_integral f μ :=
-lt_of_le_of_lt (lintegral_mono' hμ (le_refl _)) h
+lt_of_le_of_lt (lintegral_mono' hμ le_rfl) h
 
 lemma has_finite_integral.add_measure {f : α → β} (hμ : has_finite_integral f μ)
   (hν : has_finite_integral f ν) : has_finite_integral f (μ + ν) :=
@@ -171,11 +171,11 @@ end
 
 lemma has_finite_integral.left_of_add_measure {f : α → β} (h : has_finite_integral f (μ + ν)) :
   has_finite_integral f μ :=
-h.mono_measure $ measure.le_add_right $ le_refl _
+h.mono_measure $ measure.le_add_right $ le_rfl
 
 lemma has_finite_integral.right_of_add_measure {f : α → β} (h : has_finite_integral f (μ + ν)) :
   has_finite_integral f ν :=
-h.mono_measure $ measure.le_add_left $ le_refl _
+h.mono_measure $ measure.le_add_left $ le_rfl
 
 @[simp] lemma has_finite_integral_add_measure {f : α → β} :
   has_finite_integral f (μ + ν) ↔ has_finite_integral f μ ∧ has_finite_integral f ν :=
@@ -447,10 +447,10 @@ lemma integrable.add_measure {f : α → β} (hμ : integrable f μ) (hν : inte
   hμ.has_finite_integral.add_measure hν.has_finite_integral⟩
 
 lemma integrable.left_of_add_measure {f : α → β} (h : integrable f (μ + ν)) : integrable f μ :=
-h.mono_measure $ measure.le_add_right $ le_refl _
+h.mono_measure $ measure.le_add_right $ le_rfl
 
 lemma integrable.right_of_add_measure {f : α → β} (h : integrable f (μ + ν)) : integrable f ν :=
-h.mono_measure $ measure.le_add_left $ le_refl _
+h.mono_measure $ measure.le_add_left $ le_rfl
 
 @[simp] lemma integrable_add_measure {f : α → β} :
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=

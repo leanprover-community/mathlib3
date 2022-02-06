@@ -618,7 +618,7 @@ begin
     have A : ∀ᶠ m in at_top, ∥(f n - f m) v∥ ≤ b n * ∏ i, ∥v i∥,
     { refine eventually_at_top.2 ⟨n, λ m hm, _⟩,
       apply le_trans ((f n - f m).le_op_norm _) _,
-      exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (nonneg v) },
+      exact mul_le_mul_of_nonneg_right (b_bound n m n le_rfl hm) (nonneg v) },
     have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Fcont) v∥)) :=
       tendsto.norm (tendsto_const_nhds.sub (hF v)),
     exact le_of_tendsto B A },

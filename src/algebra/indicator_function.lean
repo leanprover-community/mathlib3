@@ -460,7 +460,7 @@ mul_indicator_apply_le_one (h a)
 
 @[to_additive] lemma mul_indicator_le_mul_indicator (h : f a ≤ g a) :
   mul_indicator s f a ≤ mul_indicator s g a :=
-mul_indicator_rel_mul_indicator (le_refl _) (λ _, h)
+mul_indicator_rel_mul_indicator le_rfl (λ _, h)
 
 attribute [mono] mul_indicator_le_mul_indicator indicator_le_indicator
 
@@ -471,7 +471,7 @@ mul_indicator_apply_le' (λ ha, le_mul_indicator_apply (λ _, le_rfl) (λ hat, (
   (λ ha, one_le_mul_indicator_apply (λ _, hf _))
 
 @[to_additive] lemma mul_indicator_le_self' (hf : ∀ x ∉ s, 1 ≤ f x) : mul_indicator s f ≤ f :=
-mul_indicator_le' (λ _ _, le_refl _) hf
+mul_indicator_le' (λ _ _, le_rfl) hf
 
 @[to_additive] lemma mul_indicator_Union_apply {ι M} [complete_lattice M] [has_one M]
   (h1 : (⊥:M) = 1) (s : ι → set α) (f : α → M) (x : α) :

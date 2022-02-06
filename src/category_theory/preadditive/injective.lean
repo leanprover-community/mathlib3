@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2022 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import algebra.homology.exact
 import category_theory.types
 import category_theory.preadditive.projective
@@ -156,6 +162,10 @@ end }
 section enough_injectives
 variable [enough_injectives C]
 
+/--
+`injective.under X` provides an arbitrarily chosen injective object equipped with
+an monomorphism `projective.ι : X ⟶ injective.under X`.
+-/
 def under (X : C) : C :=
 (enough_injectives.presentation X).some.J
 
@@ -202,6 +212,11 @@ section
 variables [has_zero_morphisms C] [has_coequalizers C] [has_equalizers C]
   [has_images C] [has_images Cᵒᵖ]
 
+/--
+Given a projective object `P` mapping via `h` into
+the middle object `R` of a pair of exact morphisms `f : Q ⟶ R` and `g : R ⟶ S`,
+such that `h ≫ g = 0`, there is a lift of `h` to `Q`.
+-/
 def exact.desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S) [exact f g]
   (w : f ≫ h = 0)  : S ⟶ J :=
 (@exact.lift Cᵒᵖ _ _ _ _ (opposite.op J) (opposite.op S) (opposite.op R) (opposite.op Q) _ h.op

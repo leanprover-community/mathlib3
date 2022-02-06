@@ -154,7 +154,7 @@ end
 funext $ λ _, prod.mk.eta
 
 @[simp] lemma prod_snd_fst : pi.prod (prod.snd : α × β → β) (prod.fst : α × β → α) = prod.swap :=
-funext $ λ _, prod.swap_prod_mk
+rfl
 
 end pi
 

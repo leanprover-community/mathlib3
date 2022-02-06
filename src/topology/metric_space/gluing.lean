@@ -239,16 +239,16 @@ glues only along the basepoints, putting them at distance 1. We give a direct de
 the distance, without infi, as it is easier to use in applications, and show that it is equal to
 the gluing distance defined above to take advantage of the lemmas we have already proved. -/
 
-
 variables {X : Type u} {Y : Type v} {Z : Type w}
-variables [metric_space X] [metric_space Y] [inhabited X] [inhabited Y]
+variables [metric_space X] [metric_space Y]
 open sum (inl inr)
 
 /-- Distance on a disjoint union. There are many (noncanonical) ways to put a distance compatible
 with each factor.
 If the two spaces are bounded, one can say for instance that each point in the first is at distance
 `diam X + diam Y + 1` of each point in the second.
-Instead, we choose a construction that works for unbounded spaces, but requires basepoints.
+Instead, we choose a construction that works for unbounded spaces, but requires basepoints,
+chosen arbitrarily.
 We embed isometrically each factor, set the basepoints at distance 1,
 arbitrarily, and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
 their respective basepoints, plus the distance 1 between the basepoints.
@@ -256,11 +256,11 @@ Since there is an arbitrary choice in this construction, it is not an instance b
 def sum.dist : X ⊕ Y → X ⊕ Y → ℝ
 | (inl a) (inl a') := dist a a'
 | (inr b) (inr b') := dist b b'
-| (inl a) (inr b)  := dist a default + 1 + dist default b
-| (inr b) (inl a)  := dist b default + 1 + dist default a
+| (inl a) (inr b)  := dist a (nonempty.some ⟨a⟩) + 1 + dist (nonempty.some ⟨b⟩) b
+| (inr b) (inl a)  := dist b (nonempty.some ⟨b⟩) + 1 + dist (nonempty.some ⟨a⟩) a
 
-lemma sum.dist_eq_glue_dist {p q : X ⊕ Y} :
-  sum.dist p q = glue_dist (λ_ : unit, default) (λ_ : unit, default) 1 p q :=
+lemma sum.dist_eq_glue_dist {p q : X ⊕ Y} (x : X) (y : Y) :
+  sum.dist p q = glue_dist (λ _ : unit, nonempty.some ⟨x⟩) (λ _ : unit, nonempty.some ⟨y⟩) 1 p q :=
 by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm, add_comm, add_left_comm]
 
 private lemma sum.dist_comm (x y : X ⊕ Y) : sum.dist x y = sum.dist y x :=
@@ -298,10 +298,148 @@ def metric_space_sum : metric_space (X ⊕ Y) :=
 { dist               := sum.dist,
   dist_self          := λx, by cases x; simp only [sum.dist, dist_self],
   dist_comm          := sum.dist_comm,
-  dist_triangle      := λp q r,
-    by simp only [dist, sum.dist_eq_glue_dist]; exact glue_dist_triangle _ _ _ (by norm_num) _ _ _,
-  eq_of_dist_eq_zero := λp q,
-    by simp only [dist, sum.dist_eq_glue_dist]; exact glue_eq_of_dist_eq_zero _ _ _ zero_lt_one _ _,
+  dist_triangle      := λ p q r,
+  begin
+    cases p; cases q; cases r,
+    { exact dist_triangle _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist p r],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist p q],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist p q],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist q p],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist q p],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist r p],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { exact dist_triangle _ _ _ },
+  end,
+  eq_of_dist_eq_zero := λ p q,
+  begin
+    cases p; cases q,
+    { simp only [sum.dist, dist_eq_zero, imp_self] },
+    { assume h,
+      simp only [dist, sum.dist_eq_glue_dist p q] at h,
+      exact glue_eq_of_dist_eq_zero _ _ _ zero_lt_one _ _ h },
+    { assume h,
+      simp only [dist, sum.dist_eq_glue_dist q p] at h,
+      exact glue_eq_of_dist_eq_zero _ _ _ zero_lt_one _ _ h },
+    { simp only [sum.dist, dist_eq_zero, imp_self] },
+  end,
+  to_uniform_space   := sum.uniform_space,
+  uniformity_dist    := uniformity_dist_of_mem_uniformity _ _ sum.mem_uniformity }
+
+local attribute [instance] metric_space_sum
+
+lemma sum.dist_eq {x y : X ⊕ Y} : dist x y = sum.dist x y := rfl
+
+/-- The left injection of a space in a disjoint union in an isometry -/
+lemma isometry_on_inl : isometry (sum.inl : X → (X ⊕ Y)) :=
+isometry_emetric_iff_metric.2 $ λx y, rfl
+
+/-- The right injection of a space in a disjoint union in an isometry -/
+lemma isometry_on_inr : isometry (sum.inr : Y → (X ⊕ Y)) :=
+isometry_emetric_iff_metric.2 $ λx y, rfl
+
+end sum
+
+section sigma
+/- A particular case of the previous construction is when one uses basepoints in `X` and `Y` and one
+glues only along the basepoints, putting them at distance 1. We give a direct definition of
+the distance, without infi, as it is easier to use in applications, and show that it is equal to
+the gluing distance defined above to take advantage of the lemmas we have already proved. -/
+
+variables {ι : Type*} {E : ι → Type*} [∀ i, metric_space (E i)]
+variables [metric_space X] [metric_space Y]
+open sum (inl inr)
+
+/-- Distance on a disjoint union. There are many (noncanonical) ways to put a distance compatible
+with each factor.
+If the two spaces are bounded, one can say for instance that each point in the first is at distance
+`diam X + diam Y + 1` of each point in the second.
+Instead, we choose a construction that works for unbounded spaces, but requires basepoints,
+chosen arbitrarily.
+We embed isometrically each factor, set the basepoints at distance 1,
+arbitrarily, and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
+their respective basepoints, plus the distance 1 between the basepoints.
+Since there is an arbitrary choice in this construction, it is not an instance by default. -/
+def sum.dist : X ⊕ Y → X ⊕ Y → ℝ
+| (inl a) (inl a') := dist a a'
+| (inr b) (inr b') := dist b b'
+| (inl a) (inr b)  := dist a (nonempty.some ⟨a⟩) + 1 + dist (nonempty.some ⟨b⟩) b
+| (inr b) (inl a)  := dist b (nonempty.some ⟨b⟩) + 1 + dist (nonempty.some ⟨a⟩) a
+
+lemma sum.dist_eq_glue_dist {p q : X ⊕ Y} (x : X) (y : Y) :
+  sum.dist p q = glue_dist (λ _ : unit, nonempty.some ⟨x⟩) (λ _ : unit, nonempty.some ⟨y⟩) 1 p q :=
+by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm, add_comm, add_left_comm]
+
+private lemma sum.dist_comm (x y : X ⊕ Y) : sum.dist x y = sum.dist y x :=
+by cases x; cases y; simp only [sum.dist, dist_comm, add_comm, add_left_comm]
+
+lemma sum.one_dist_le {x : X} {y : Y} : 1 ≤ sum.dist (inl x) (inr y) :=
+le_trans (le_add_of_nonneg_right dist_nonneg) $
+add_le_add_right (le_add_of_nonneg_left dist_nonneg) _
+
+lemma sum.one_dist_le' {x : X} {y : Y} : 1 ≤ sum.dist (inr y) (inl x) :=
+by rw sum.dist_comm; exact sum.one_dist_le
+
+private lemma sum.mem_uniformity (s : set ((X ⊕ Y) × (X ⊕ Y))) :
+  s ∈ 𝓤 (X ⊕ Y) ↔ ∃ ε > 0, ∀ a b, sum.dist a b < ε → (a, b) ∈ s :=
+begin
+  split,
+  { rintro ⟨hsX, hsY⟩,
+    rcases mem_uniformity_dist.1 hsX with ⟨εX, εX0, hX⟩,
+    rcases mem_uniformity_dist.1 hsY with ⟨εY, εY0, hY⟩,
+    refine ⟨min (min εX εY) 1, lt_min (lt_min εX0 εY0) zero_lt_one, _⟩,
+    rintro (a|a) (b|b) h,
+    { exact hX (lt_of_lt_of_le h (le_trans (min_le_left _ _) (min_le_left _ _))) },
+    { cases not_le_of_lt (lt_of_lt_of_le h (min_le_right _ _)) sum.one_dist_le },
+    { cases not_le_of_lt (lt_of_lt_of_le h (min_le_right _ _)) sum.one_dist_le' },
+    { exact hY (lt_of_lt_of_le h (le_trans (min_le_left _ _) (min_le_right _ _))) } },
+  { rintro ⟨ε, ε0, H⟩,
+    split; rw [filter.mem_sets, filter.mem_map, mem_uniformity_dist];
+      exact ⟨ε, ε0, λ x y h, H _ _ (by exact h)⟩ }
+end
+
+/-- The distance on the disjoint union indeed defines a metric space. All the distance properties
+follow from our choice of the distance. The harder work is to show that the uniform structure
+defined by the distance coincides with the disjoint union uniform structure. -/
+def metric_space_sum : metric_space (X ⊕ Y) :=
+{ dist               := sum.dist,
+  dist_self          := λx, by cases x; simp only [sum.dist, dist_self],
+  dist_comm          := sum.dist_comm,
+  dist_triangle      := λ p q r,
+  begin
+    cases p; cases q; cases r,
+    { exact dist_triangle _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist p r],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist p q],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist p q],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist q p],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist q p],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { simp only [dist, sum.dist_eq_glue_dist r p],
+      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
+    { exact dist_triangle _ _ _ },
+  end,
+  eq_of_dist_eq_zero := λ p q,
+  begin
+    cases p; cases q,
+    { simp only [sum.dist, dist_eq_zero, imp_self] },
+    { assume h,
+      simp only [dist, sum.dist_eq_glue_dist p q] at h,
+      exact glue_eq_of_dist_eq_zero _ _ _ zero_lt_one _ _ h },
+    { assume h,
+      simp only [dist, sum.dist_eq_glue_dist q p] at h,
+      exact glue_eq_of_dist_eq_zero _ _ _ zero_lt_one _ _ h },
+    { simp only [sum.dist, dist_eq_zero, imp_self] },
+  end,
   to_uniform_space   := sum.uniform_space,
   uniformity_dist    := uniformity_dist_of_mem_uniformity _ _ sum.mem_uniformity }
 

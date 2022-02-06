@@ -647,6 +647,42 @@ begin
   exact htU ⟨x, hx⟩
 end
 
+section sigma
+
+variables {ι : Type*} {E : ι → Type*} [∀ i, topological_space (E i)]
+omit t
+
+/-- In a disjoint union space `Σ i, E i`, one can form a topological basis by taking the union of
+topological bases on each of the parts of the space. -/
+lemma is_topological_basis.sigma
+  {s : Π (i : ι), set (set (E i))} (hs : ∀ i, is_topological_basis (s i)) :
+  is_topological_basis (⋃ (i : ι), (λ u, ((sigma.mk i) '' u : set (Σ i, E i))) '' (s i)) :=
+begin
+  apply is_topological_basis_of_open_of_nhds,
+  { assume u hu,
+    obtain ⟨i, t, ts, rfl⟩ : ∃ (i : ι) (t : set (E i)), t ∈ s i ∧ sigma.mk i '' t = u,
+      by simpa only [mem_Union, mem_image] using hu,
+    exact is_open_map_sigma_mk _ ((hs i).is_open ts) },
+  { rintros ⟨i, x⟩ u hxu u_open,
+    have hx : x ∈ sigma.mk i ⁻¹' u := hxu,
+    obtain ⟨v, vs, xv, hv⟩ : ∃ (v : set (E i)) (H : v ∈ s i), x ∈ v ∧ v ⊆ sigma.mk i ⁻¹' u :=
+      (hs i).exists_subset_of_mem_open hx (is_open_sigma_iff.1 u_open i),
+    exact ⟨(sigma.mk i) '' v, mem_Union.2 ⟨i, mem_image_of_mem _ vs⟩, mem_image_of_mem _ xv,
+      image_subset_iff.2 hv⟩ }
+end
+
+/-- A countable disjoint union of second countable spaces is second countable. -/
+instance [encodable ι] [∀ i, second_countable_topology (E i)] :
+  second_countable_topology (Σ i, E i) :=
+begin
+  let b := (⋃ (i : ι), (λ u, ((sigma.mk i) '' u : set (Σ i, E i))) '' (countable_basis (E i))),
+  have A : is_topological_basis b := is_topological_basis.sigma (λ i, is_basis_countable_basis  _),
+  have B : countable b := countable_Union (λ i, countable.image (countable_countable_basis _) _),
+  exact A.second_countable_topology B,
+end
+
+end sigma
+
 end topological_space
 
 open topological_space

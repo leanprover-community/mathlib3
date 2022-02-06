@@ -5,6 +5,8 @@ Authors: Sébastien Gouëzel
 -/
 
 import topology.metric_space.pi_nat
+import topology.metric_space.isometry
+import topology.metric_space.gluing
 
 /-!
 # Polish spaces
@@ -63,6 +65,31 @@ begin
   apply_instance,
 end
 
+lemma zoug {E : ℕ → Type*} [∀ n, topological_space (E n)] [∀ n, second_countable_topology (E n)] :
+  topological_space (Σ n, E n) := sigma.topological_space
+
+
+#print zoug
+
+lemma polish_space.sum {α β : Type*} [topological_space α] [polish_space α]
+  [topological_space β] [polish_space β] : polish_space (α ⊕ β) :=
+begin
+  letI : metric_space α := polish_space_metric α,
+  haveI : complete_space α := complete_polish_space_metric α,
+  haveI : second_countable_topology α := polish_space.second_countable α,
+  letI : metric_space β := polish_space_metric β,
+  haveI : complete_space β := complete_polish_space_metric β,
+  haveI : second_countable_topology β := polish_space.second_countable β,
+  letI : metric_space (α ⊕ β) := metric_space_sum,
+  haveI : second_countable_topology (α ⊕ β) := sorry,
+  haveI : complete_space (α ⊕ β) := sorry,
+  apply_instance,
+end
+
+
+
+
+#exit
 /-- A countable union of Polish spaces is Polish-/
 instance polish_space.sigma
   {E : ℕ → Type*} [∀ n, topological_space (E n)] [∀ n, polish_space (E n)] :
@@ -93,28 +120,29 @@ begin
   exact exists_nat_nat_continuous_surjective_of_complete_space α
 end
 
-lemma homeomorph.polish_space {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [polish_space α] (f : α ≃ₜ β) : polish_space β :=
+/-- Given a closed embedding into a Polish space, the source space is also Polish. -/
+lemma closed_embedding.polish_space {α : Type*} {β : Type*}
+  [topological_space α] [topological_space β]
+  [polish_space β] {f : α → β} (hf : closed_embedding f) :
+  polish_space α :=
 begin
-  letI : metric_space α := polish_space_metric α,
-  haveI : complete_space α := complete_polish_space_metric α,
-  haveI : second_countable_topology α := polish_space.second_countable α,
-  refine ⟨f.symm.embedding.second_countable_topology, _⟩,
+  letI : metric_space β := polish_space_metric β,
+  haveI : complete_space β := complete_polish_space_metric β,
+  haveI : second_countable_topology β := polish_space.second_countable β,
+  letI : metric_space α := hf.to_embedding.comap_metric_space f,
+  haveI : second_countable_topology α := hf.to_embedding.second_countable_topology,
+  haveI : complete_space α,
+  { rw complete_space_iff_is_complete_range hf.to_embedding.to_isometry.uniform_inducing,
+    apply is_closed.is_complete,
+    exact hf.closed_range },
+  apply_instance
 end
 
 /-- A closed subset of a Polish space is also Polish. -/
 lemma is_closed.polish_space {α : Type*} [topological_space α] [polish_space α] {s : set α}
   (hs : is_closed s) :
   polish_space s :=
-begin
-  letI : metric_space α := polish_space_metric α,
-  haveI : complete_space α := complete_polish_space_metric α,
-  haveI : second_countable_topology α := polish_space.second_countable α,
-  haveI : complete_space s,
-  { rw complete_space_coe_iff_is_complete,
-    exact hs.is_complete },
-  apply_instance,
-end
+(is_closed.closed_embedding_subtype_coe hs).polish_space
 
 section complete_copy
 
@@ -253,12 +281,10 @@ begin
     haveI : complete_space (complete_copy s) := complete_space_complete_copy hs h's,
     haveI : second_countable_topology (complete_copy s) :=
       (complete_copy_id_homeo hs h's).embedding.second_countable_topology,
-    exact (complete_copy_id_homeo hs h's).polish_space }
+    exact (complete_copy_id_homeo hs h's).symm.closed_embedding.polish_space }
 end
 
 end complete_copy
-
-
 
 /-- Given a closed set `s` in a Polish space, one can construct a new topology with the same Borel
 sets for which `s` is both open and closed. -/

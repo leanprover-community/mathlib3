@@ -119,7 +119,7 @@ variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → 
 
 include h
 theorem self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
-by { by_contra' h₁, exact let h₂ := h.min_mem _ h₁ in h.not_lt_min _ h₁ (hφ h₂) h₂ }
+by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hφ h₂) h₂ }
 
 end linear_order
 

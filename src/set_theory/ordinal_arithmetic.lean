@@ -1326,8 +1326,7 @@ theorem enum_ord_range : range (enum_ord S hS) = S :=
 by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord.surjective hS⟩ }
 
 /-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
-theorem eq_enum_ord (f : ordinal → ordinal) :
-  strict_mono f ∧ range f = S ↔ f = enum_ord S hS :=
+theorem eq_enum_ord (f : ordinal → ordinal) : strict_mono f ∧ range f = S ↔ f = enum_ord S hS :=
 begin
   split, swap,
   { rintro rfl,

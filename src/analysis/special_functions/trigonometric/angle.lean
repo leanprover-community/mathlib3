@@ -36,6 +36,12 @@ def coe_hom : ℝ →+ angle := quotient_add_group.mk' _
 
 @[simp] lemma coe_coe_hom : (coe_hom : ℝ → angle) = coe := rfl
 
+/-- An induction principle to deduce results for `angle` from those for `ℝ`, used with
+`induction θ using real.angle.induction_on`. -/
+@[elab_as_eliminator]
+protected lemma induction_on {p : angle → Prop} (θ : angle) (h : ∀ x : ℝ, p x) : p θ :=
+quotient.induction_on' θ h
+
 @[simp] lemma coe_zero : ↑(0 : ℝ) = (0 : angle) := rfl
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl

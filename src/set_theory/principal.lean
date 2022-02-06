@@ -99,8 +99,7 @@ begin
     exact lt_blsub₂ op hm (hn.trans_le h) },
 end
 
-theorem unbounded_principal (op : ordinal → ordinal → ordinal) :
-  set.unbounded (<) {o | principal op o} :=
+theorem unbounded_principal (op : ordinal → ordinal → ordinal) : ¬ bdd_above {o | principal op o} :=
 λ o, ⟨_, principal_nfp_blsub₂ op o, (le_nfp_self _ o).not_lt⟩
 
 end ordinal

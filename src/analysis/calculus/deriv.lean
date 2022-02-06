@@ -1006,7 +1006,7 @@ theorem has_deriv_within_at.continuous_within_at
 has_deriv_at_filter.tendsto_nhds inf_le_left h
 
 theorem has_deriv_at.continuous_at (h : has_deriv_at f f' x) : continuous_at f x :=
-has_deriv_at_filter.tendsto_nhds (le_refl _) h
+has_deriv_at_filter.tendsto_nhds le_rfl h
 
 protected theorem has_deriv_at.continuous_on {f f' : 𝕜 → F}
   (hderiv : ∀ x ∈ s, has_deriv_at f (f' x) x) : continuous_on f s :=

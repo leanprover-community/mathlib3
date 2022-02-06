@@ -52,7 +52,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 
 noncomputable theory
 
-open set finset function filter encodable
+open set finset function filter encodable topological_space (second_countable_topology)
 open_locale classical big_operators nnreal topological_space ennreal
 
 namespace measure_theory
@@ -110,6 +110,29 @@ rel_supr_sum m m.empty (≤) m.Union_nat s t
 protected lemma union (m : outer_measure α) (s₁ s₂ : set α) :
   m (s₁ ∪ s₂) ≤ m s₁ + m s₂ :=
 rel_sup_add m m.empty (≤) m.Union_nat s₁ s₂
+
+/-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
+in a second-countable space. -/
+lemma null_of_locally_null [topological_space α] [second_countable_topology α] (m : outer_measure α)
+  (s : set α) (hs : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, m u = 0) :
+  m s = 0 :=
+begin
+  choose! u hxu hu₀ using hs,
+  obtain ⟨t, ts, t_count, ht⟩ : ∃ t ⊆ s, t.countable ∧ s ⊆ ⋃ x ∈ t, u x :=
+    topological_space.countable_cover_nhds_within hxu,
+  apply m.mono_null ht,
+  exact (m.bUnion_null_iff t_count).2 (λ x hx, hu₀ x (ts hx))
+end
+
+/-- If `m s ≠ 0`, then for some point `x ∈ s` and any `t ∈ 𝓝[s] x` we have `0 < m t`. -/
+lemma exists_mem_forall_mem_nhds_within_pos [topological_space α] [second_countable_topology α]
+  (m : outer_measure α) {s : set α} (hs : m s ≠ 0) :
+  ∃ x ∈ s, ∀ t ∈ 𝓝[s] x, 0 < m t :=
+begin
+  contrapose! hs,
+  simp only [nonpos_iff_eq_zero, ← exists_prop] at hs,
+  exact m.null_of_locally_null s hs
+end
 
 /-- If `s : ι → set α` is a sequence of sets, `S = ⋃ n, s n`, and `m (S \ s n)` tends to zero along
 some nontrivial filter (usually `at_top` on `ι = ℕ`), then `m S = ⨆ n, m (s n)`. -/
@@ -234,7 +257,7 @@ instance : has_bot (outer_measure α) := ⟨0⟩
 
 instance outer_measure.partial_order : partial_order (outer_measure α) :=
 { le          := λm₁ m₂, ∀s, m₁ s ≤ m₂ s,
-  le_refl     := assume a s, le_refl _,
+  le_refl     := assume a s, le_rfl,
   le_trans    := assume a b c hab hbc s, le_trans (hab s) (hbc s),
   le_antisymm := assume a b hab hba, ext $ assume s, le_antisymm (hab s) (hba s) }
 
@@ -459,7 +482,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
     (infi_le_of_le (λ_, ∅) $ infi_le_of_le (empty_subset _) $ by simp [m_empty])
     (zero_le _),
   mono       := assume s₁ s₂ hs, infi_le_infi $ assume f,
-    infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_refl _⟩,
+    infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_rfl⟩,
   Union_nat := assume s, ennreal.le_of_forall_pos_le_add $ begin
     assume ε hε (hb : ∑'i, μ (s i) < ∞),
     rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_pos.2 hε).ne' ℕ with ⟨ε', hε', hl⟩,
@@ -746,7 +769,7 @@ is_caratheodory_iff_le'.2 $ λ t, begin
   refine supr_le (λ n, le_trans (add_le_add_left _ _)
     (ge_of_eq (is_caratheodory_Union_lt m (λ i _, h i) _))),
   refine m.mono (diff_subset_diff_right _),
-  exact bUnion_subset (λ i _, subset_Union _ i),
+  exact Union₂_subset (λ i _, subset_Union _ i),
 end
 
 lemma f_Union {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
@@ -757,7 +780,7 @@ begin
   refine supr_le (λ n, _),
   have := @is_caratheodory_sum _ m _ h hd univ n,
   simp at this, simp [this],
-  exact m.mono (bUnion_subset (λ i _, subset_Union _ i)),
+  exact m.mono (Union₂_subset (λ i _, subset_Union _ i)),
 end
 
 /-- The Carathéodory-measurable sets for an outer measure `m` form a Dynkin system.  -/
@@ -1223,7 +1246,7 @@ def trim : outer_measure α :=
 induced_outer_measure (λ s _, m s) measurable_set.empty m.empty
 
 theorem le_trim : m ≤ m.trim :=
-le_of_function.mpr $ λ s, le_infi $ λ _, le_refl _
+le_of_function.mpr $ λ s, le_infi $ λ _, le_rfl
 
 theorem trim_eq {s : set α} (hs : measurable_set s) : m.trim s = m s :=
 induced_outer_measure_eq' measurable_set.Union (λ f hf, m.Union_nat f) (λ _ _ _ _ h, m.mono h) hs
@@ -1242,7 +1265,7 @@ le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
 theorem trim_le_trim_iff {m₁ m₂ : outer_measure α} :
   m₁.trim ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
-le_trim_iff.trans $ forall_congr $ λ s, forall_congr $ λ hs, by rw [trim_eq _ hs]
+le_trim_iff.trans $ forall₂_congr $ λ s hs, by rw [trim_eq _ hs]
 
 theorem trim_eq_trim_iff {m₁ m₂ : outer_measure α} :
   m₁.trim = m₂.trim ↔ ∀ s, measurable_set s → m₁ s = m₂ s :=

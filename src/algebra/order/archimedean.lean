@@ -300,7 +300,7 @@ begin
   refine ⟨(lt_div_iff n0').2 $
     (lt_iff_lt_of_le_iff_le (zh _)).1 (lt_add_one _), _⟩,
   rw [int.cast_add, int.cast_one],
-  refine lt_of_le_of_lt (add_le_add_right ((zh _).1 (le_refl _)) _) _,
+  refine lt_of_le_of_lt (add_le_add_right ((zh _).1 le_rfl) _) _,
   rwa [← lt_sub_iff_add_lt', ← sub_mul,
        ← div_lt_iff' (sub_pos.2 h), one_div],
   { rw [rat.coe_int_denom, nat.cast_one], exact one_ne_zero },

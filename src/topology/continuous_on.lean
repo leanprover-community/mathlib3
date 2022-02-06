@@ -848,7 +848,7 @@ begin
       by rw [preimage_inter, inter_assoc, inter_left_comm _ s, ← inter_assoc s s, inter_self],
     rw this,
     exact hu.inter hv },
-  { rw [preimage_sUnion, inter_bUnion],
+  { rw [preimage_sUnion, inter_Union₂],
     exact is_open_bUnion hU' },
   { exact hs }
 end

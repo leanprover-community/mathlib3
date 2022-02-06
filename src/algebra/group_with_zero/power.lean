@@ -274,7 +274,7 @@ end
 /-- If a monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,
 `n : ℤ`, to `(f x)^n`. -/
 lemma monoid_with_zero_hom.map_zpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
-  (f : monoid_with_zero_hom G₀ G₀') (x : G₀) :
+  (f : G₀ →*₀ G₀') (x : G₀) :
   ∀ n : ℤ, f (x ^ n) = f x ^ n
 | (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact f.to_monoid_hom.map_pow x n }
 | -[1+n] := begin

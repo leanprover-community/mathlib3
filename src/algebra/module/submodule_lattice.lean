@@ -133,7 +133,7 @@ private lemma Inf_le' {S : set (submodule R M)} {p} : p ∈ S → Inf S ≤ p :=
 set.bInter_subset_of_mem
 
 private lemma le_Inf' {S : set (submodule R M)} {p} : (∀q ∈ S, p ≤ q) → p ≤ Inf S :=
-set.subset_bInter
+set.subset_Inter₂
 
 instance : has_inf (submodule R M) :=
 ⟨λ p q,

@@ -1262,7 +1262,7 @@ theorem enum_ord_def'_nonempty (hS : unbounded (<) S) (a) : (S ∩ set.Ici a).no
 let ⟨b, hb, hb'⟩ := hS a in ⟨b, hb, le_of_not_gt hb'⟩
 
 private theorem enum_ord_mem_aux (o) :
-  S (enum_ord S hS o) ∧ blsub.{u u} o (λ c _, enum_ord S hS c) ≤ (enum_ord S hS o) :=
+  (enum_ord S hS o) ∈ S ∩ set.Ici (blsub.{u u} o (λ c _, enum_ord S hS c)) :=
 by { rw enum_ord_def', exact Inf_mem (enum_ord_def'_nonempty hS _) }
 
 theorem enum_ord_mem (o) : enum_ord S hS o ∈ S :=
@@ -1279,8 +1279,7 @@ theorem enum_ord_def (o) :
   enum_ord S hS o = Inf (S ∩ {b | ∀ c, c < o → enum_ord S hS c < b}) :=
 begin
   rw enum_ord_def',
-  congr,
-  ext,
+  congr, ext,
   exact ⟨λ h a hao, (lt_blsub.{u u} _ _ hao).trans_le h, λ h, blsub_le.2 h⟩
 end
 

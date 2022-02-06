@@ -100,9 +100,12 @@ by simp
 lemma coeff_X_mul_zero (p : polynomial R) : coeff (X * p) 0 = 0 :=
 by simp
 
-lemma coeff_C_mul_X (x : R) (k n : ℕ) :
+lemma coeff_C_mul_X_pow (x : R) (k n : ℕ) :
   coeff (C x * X^k : polynomial R) n = if n = k then x else 0 :=
 by { rw [← monomial_eq_C_mul_X, coeff_monomial], congr' 1, simp [eq_comm] }
+
+lemma coeff_C_mul_X (x : R) (n : ℕ) : coeff (C x * X : polynomial R) n = if n = 1 then x else 0 :=
+by rw [← pow_one X, coeff_C_mul_X_pow]
 
 @[simp] lemma coeff_C_mul (p : polynomial R) : coeff (C a * p) n = a * coeff p n :=
 by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.coe_mk,
@@ -118,7 +121,7 @@ by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.co
 
 lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : polynomial R) n = if n = k then 1 else 0 :=
-by simp only [one_mul, ring_hom.map_one, ← coeff_C_mul_X]
+by simp only [one_mul, ring_hom.map_one, ← coeff_C_mul_X_pow]
 
 @[simp]
 lemma coeff_X_pow_self (n : ℕ) :
@@ -228,7 +231,7 @@ lemma update_eq_add_sub_coeff {R : Type*} [ring R] (p : polynomial R) (n : ℕ) 
   p.update n a = p + (polynomial.C (a - p.coeff n) * polynomial.X ^ n) :=
 begin
   ext,
-  rw [coeff_update_apply, coeff_add, coeff_C_mul_X],
+  rw [coeff_update_apply, coeff_add, coeff_C_mul_X_pow],
   split_ifs with h;
   simp [h]
 end

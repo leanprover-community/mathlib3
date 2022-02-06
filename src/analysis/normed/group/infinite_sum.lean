@@ -68,7 +68,7 @@ cauchy_seq_finset_of_norm_bounded_eventually hg $ eventually_of_forall h
 
 lemma cauchy_seq_finset_of_summable_norm {f : ι → E} (hf : summable (λa, ∥f a∥)) :
   cauchy_seq (λ s : finset ι, ∑ a in s, f a) :=
-cauchy_seq_finset_of_norm_bounded _ hf (assume i, le_refl _)
+cauchy_seq_finset_of_norm_bounded _ hf (assume i, le_rfl)
 
 /-- If a function `f` is summable in norm, and along some sequence of finsets exhausting the space
 its sum is converging to a limit `a`, then this holds along all finsets, i.e., `f` is summable
@@ -147,7 +147,7 @@ lemma summable_of_nnnorm_bounded {f : ι → E} (g : ι → ℝ≥0) (hg : summa
 summable_of_norm_bounded (λ i, (g i : ℝ)) (nnreal.summable_coe.2 hg) (λ i, by exact_mod_cast h i)
 
 lemma summable_of_summable_norm {f : ι → E} (hf : summable (λa, ∥f a∥)) : summable f :=
-summable_of_norm_bounded _ hf (assume i, le_refl _)
+summable_of_norm_bounded _ hf (assume i, le_rfl)
 
 lemma summable_of_summable_nnnorm {f : ι → E} (hf : summable (λ a, ∥f a∥₊)) : summable f :=
-summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
+summable_of_nnnorm_bounded _ hf (assume i, le_rfl)

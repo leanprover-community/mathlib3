@@ -381,6 +381,39 @@ lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ
   ∏ x in (p ^ k).divisors, f x = ∏ x in range (k + 1), f (p ^ x) :=
 by simp [h, divisors_prime_pow]
 
+@[to_additive]
+lemma prod_divisors_antidiagonal {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) {n : ℕ} :
+  ∏ i in n.divisors_antidiagonal, f i.1 i.2 = ∏ i in n.divisors, f i (n / i) :=
+begin
+  refine prod_bij (λ i _, i.1) _ _ _ _,
+  { intro i,
+    apply fst_mem_divisors_of_mem_antidiagonal },
+  { rintro ⟨i, j⟩ hij,
+    simp only [mem_divisors_antidiagonal, ne.def] at hij,
+    rw [←hij.1, nat.mul_div_cancel_left],
+    apply nat.pos_of_ne_zero,
+    rintro rfl,
+    simp only [zero_mul] at hij,
+    apply hij.2 hij.1.symm },
+  { simp only [and_imp, prod.forall, mem_divisors_antidiagonal, ne.def],
+    rintro i₁ j₁ ⟨i₂, j₂⟩ h - (rfl : i₂ * j₂ = _) h₁ (rfl : _ = i₂),
+    simp only [nat.mul_eq_zero, not_or_distrib, ←ne.def] at h₁,
+    rw mul_right_inj' h₁.1 at h,
+    simp [h] },
+  simp only [and_imp, exists_prop, mem_divisors_antidiagonal, exists_and_distrib_right, ne.def,
+    exists_eq_right', mem_divisors, prod.exists],
+  rintro _ ⟨k, rfl⟩ hn,
+  exact ⟨⟨k, rfl⟩, hn⟩,
+end
+
+@[to_additive]
+lemma prod_divisors_antidiagonal' {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) {n : ℕ} :
+  ∏ i in n.divisors_antidiagonal, f i.1 i.2 = ∏ i in n.divisors, f (n / i) i :=
+begin
+  rw [←map_swap_divisors_antidiagonal, finset.prod_map],
+  exact prod_divisors_antidiagonal (λ i j, f j i),
+end
+
 @[simp]
 lemma filter_dvd_eq_divisors {n : ℕ} (h : n ≠ 0) :
   finset.filter (λ (x : ℕ), x ∣ n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=

@@ -150,4 +150,11 @@ begin
   exact []
 end
 
+-- Tests for #3428
+constants (x y w z : ℕ)
+axiom not_axiom : ¬ x = y
+axiom ne_axiom : w ≠ z
+example : x ≠ y := by library_search
+example : ¬ w = z := by library_search
+
 end test.library_search

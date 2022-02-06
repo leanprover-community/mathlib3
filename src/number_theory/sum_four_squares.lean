@@ -60,7 +60,7 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
           (add_le_add
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _)
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
-          (le_refl _)
+          le_rfl
       ... < (p / 2) ^ 2 + (p / 2)^ 2 + (p % 2)^2 + ((2 * (p / 2)^2 + (4 * (p / 2) * (p % 2)))) :
         by rw [hp1, one_pow, mul_one];
           exact (lt_add_iff_pos_right _).2

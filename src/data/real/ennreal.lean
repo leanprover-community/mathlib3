@@ -132,7 +132,7 @@ by simp [ennreal.to_real, ennreal.of_real, real.coe_to_nnreal _ h]
 lemma to_real_of_real' {r : ℝ} : ennreal.to_real (ennreal.of_real r) = max r 0 := rfl
 
 lemma coe_to_nnreal_le_self : ∀{a:ℝ≥0∞}, ↑(a.to_nnreal) ≤ a
-| (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_refl _
+| (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_rfl
 | none     := le_top
 
 lemma coe_nnreal_eq (r : ℝ≥0) : (r : ℝ≥0∞) = ennreal.of_real r :=
@@ -228,18 +228,15 @@ coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
 lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 
-/-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
--/
-lemma _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_refl _⟩
+/-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces. -/
+instance _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩
 
-/-- `(1 : ℝ≥0∞) ≤ 2`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
--/
-lemma _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
+/-- `(1 : ℝ≥0∞) ≤ 2`, recorded as a `fact` for use with `Lp` spaces. -/
+instance _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
 ⟨ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)⟩
 
-/-- `(1 : ℝ≥0∞) ≤ ∞`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
--/
-lemma _root_.fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩
+/-- `(1 : ℝ≥0∞) ≤ ∞`, recorded as a `fact` for use with `Lp` spaces. -/
+instance _root_.fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩
 
 /-- The set of numbers in `ℝ≥0∞` that are not equal to `∞` is equivalent to `ℝ≥0`. -/
 def ne_top_equiv_nnreal : {a | a ≠ ∞} ≃ ℝ≥0 :=
@@ -460,7 +457,7 @@ begin
   cases a,
   { cases m,
     { rw eq_bot_iff.mpr h,
-      exact le_refl _ },
+      exact le_rfl },
     { rw [none_eq_top, top_pow (nat.succ_pos m)],
       exact le_top } },
   { rw [some_eq_coe, ← coe_pow, ← coe_pow, coe_le_coe],
@@ -1766,7 +1763,7 @@ variables {ι : Sort*} {f g : ι → ℝ≥0∞}
 
 lemma infi_add : infi f + a = ⨅i, f i + a :=
 le_antisymm
-  (le_infi $ assume i, add_le_add (infi_le _ _) $ le_refl _)
+  (le_infi $ assume i, add_le_add (infi_le _ _) $ le_rfl)
   (tsub_le_iff_right.1 $ le_infi $ assume i, tsub_le_iff_right.2 $ infi_le _ _)
 
 lemma supr_sub : (⨆i, f i) - a = (⨆i, f i - a) :=

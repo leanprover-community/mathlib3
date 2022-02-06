@@ -252,7 +252,7 @@ theorem le_sqrt_of_sq_le (h : x^2 ≤ y) : x ≤ sqrt y :=
 by simp [le_antisymm_iff, hx, hy]
 
 @[simp] theorem sqrt_eq_zero (h : 0 ≤ x) : sqrt x = 0 ↔ x = 0 :=
-by simpa using sqrt_inj h (le_refl _)
+by simpa using sqrt_inj h le_rfl
 
 theorem sqrt_eq_zero' : sqrt x = 0 ↔ x ≤ 0 :=
 by rw [sqrt, nnreal.coe_eq_zero, nnreal.sqrt_eq_zero, real.to_nnreal_eq_zero]

@@ -16,7 +16,7 @@ of ring homs.
 
 universe u
 
-open category_theory opposite topological_space
+open category_theory opposite topological_space category_theory.limits
 
 namespace algebraic_geometry
 
@@ -130,6 +130,67 @@ lemma is_localization_away_of_is_iso_is_unit {R S : CommRing} [algebra R S] (r :
     { rintro ⟨⟨_, n, rfl⟩, e⟩, exact (hr.pow _).mul_left_inj.mp e }
   end }
 
+instance Γ_restrict_algebra (X : Scheme.{u}) {U : Top.{u}} {f : U ⟶ X.carrier}
+  (hf : open_embedding f) :
+  algebra ( X.presheaf.obj (op ⊤)) (Scheme.Γ.obj (op $ X.restrict hf)) :=
+(Scheme.Γ.map (X.of_restrict hf).op).to_algebra
+
+instance Γ_restrict_is_localization (X : Scheme.{u}) [is_affine X] (r : X.presheaf.obj (op ⊤)) :
+  is_localization.away r (Scheme.Γ.obj (op $ X.restrict (X.basic_open r).open_embedding)) :=
+begin
+  convert (is_localization.is_localization_iff_of_ring_equiv (submonoid.powers r) _).mp
+    (is_localization_basic_open (top_is_affine_open X : _) r) using 1,
+  swap,
+  { refine (X.presheaf.map_iso (eq_to_iso _)).CommRing_iso_to_ring_equiv,
+    { dsimp only [functor.op, unop_op],
+    congr' 1,
+    ext1,
+    exact (subtype.coe_image_univ _).symm } },
+  { apply algebra.algebra_ext,
+    intro _, congr' 1,
+    refine (ring_hom.algebra_map_to_algebra _).trans
+      (eq.trans _ (ring_hom.algebra_map_to_algebra _).symm),
+    rw [ring_hom.algebra_map_to_algebra, iso.CommRing_iso_to_ring_equiv_to_ring_hom,
+      functor.map_iso_hom, Scheme.Γ_map_op],
+    change X.presheaf.map _ = _ ≫ _,
+    rw ← X.presheaf.map_comp,
+    congr }
+end
+
+lemma is_open_immersion.is_affine_open_iff {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
+  (U : opens X.carrier) :
+  is_affine_open U ↔ is_affine_open (H.open_functor.obj U) :=
+begin
+  refine ⟨λ hU, hU.image_is_open_immersion f, λ hU, @@is_affine_of_iso _ _ hU⟩,
+  refine (is_open_immersion.iso_of_range_eq (X.of_restrict _ ≫ f) (Y.of_restrict _) _).hom,
+  { rw [Scheme.comp_val_base, coe_comp, set.range_comp],
+    dsimp [opens.inclusion],
+    rw [subtype.range_coe, subtype.range_coe],
+    refl },
+  { apply_instance }
+end
+
+instance {X : Scheme} (r : X.presheaf.obj (op ⊤)) :
+  affine (X.of_restrict (X.basic_open r).open_embedding) :=
+begin
+  constructor,
+  intros U hU,
+  fapply (is_open_immersion.is_affine_open_iff (X.of_restrict _) _).mpr,
+  swap,
+  { apply_instance },
+  convert hU.basic_open_is_affine (X.presheaf.map (hom_of_le le_top).op r),
+  ext1,
+  rw X.basic_open_res,
+  dsimp [opens.map, opens.inclusion],
+  rw [set.image_preimage_eq_inter_range, subtype.range_coe],
+  refl
+end
+
+@[simps]
+def affine_preimage {X Y : Scheme} (f : X ⟶ Y) [affine f] (U : Y.affine_opens) :
+  X.affine_opens :=
+⟨(opens.map f.1.base).obj (U : opens Y.carrier), affine.is_affine_preimage _ U.prop⟩
+
 include P
 
 def affine_and : affine_target_morphism_property :=
@@ -177,32 +238,34 @@ begin
   congr,
 end
 
+lemma _root_.ring_hom.respects_iso.is_localization_away_iff (hP : ring_hom.respects_iso @P) {R S : Type*}
+  (R' S' : Type*)[comm_ring R] [comm_ring S] [comm_ring R'] [comm_ring S'] [algebra R R']
+  [algebra S S'] (f : R →+* S) (r : R) [is_localization.away r R'] [is_localization.away (f r) S'] :
+  P (localization.away_map f r) ↔ P (is_localization.away.map R' S' f r) :=
+begin
+  let e₁ : R' ≃+* localization.away r :=
+    (is_localization.alg_equiv (submonoid.powers r) _ _).to_ring_equiv,
+  let e₂ : localization.away (f r) ≃+* S' :=
+    (is_localization.alg_equiv (submonoid.powers (f r)) _ _).to_ring_equiv,
+  refine (hP.cancel_left_is_iso e₁.to_CommRing_iso.hom (CommRing.of_hom _)).symm.trans _,
+  refine (hP.cancel_right_is_iso (CommRing.of_hom _) e₂.to_CommRing_iso.hom).symm.trans _,
+  rw ← eq_iff_iff,
+  congr' 1,
+  dsimp [CommRing.of_hom, CommRing.of, bundled.of],
+  refine is_localization.ring_hom_ext (submonoid.powers r) _,
+  ext1,
+  revert e₁ e₂,
+  dsimp [ring_equiv.to_ring_hom, is_localization.away.map],
+  simp only [comp_apply, ring_equiv.refl_apply, is_localization.alg_equiv_apply,
+    is_localization.ring_equiv_of_ring_equiv_apply, ring_hom.coe_mk, ring_equiv.to_fun_eq_coe,
+    is_localization.ring_equiv_of_ring_equiv_eq, is_localization.map_eq],
+end
+
 lemma _root_.ring_hom.respects_iso.basic_open_iff_localization (hP : ring_hom.respects_iso @P)
   {X Y : Scheme} [is_affine X] [is_affine Y] (f : X ⟶ Y) (r : Y.presheaf.obj (op ⊤)) :
   P (Scheme.Γ.map (f ∣_ Y.basic_open r).op) ↔
   P (localization.away_map (Scheme.Γ.map f.op) r) :=
-begin
-  refine (hP.basic_open_iff _ _).trans _,
-  let e₁ : localization.away r ≃+* Y.presheaf.obj (op (Y.basic_open r)) :=
-    (is_localization.alg_equiv (submonoid.powers r) _ _).to_ring_equiv,
-  let e₂ : X.presheaf.obj (op (X.basic_open $ Scheme.Γ.map f.op r)) ≃+*
-    localization.away (show X.presheaf.obj (op ⊤), from Scheme.Γ.map f.op r) :=
-    (is_localization.alg_equiv (submonoid.powers
-      (show X.presheaf.obj (op ⊤), from Scheme.Γ.map f.op r)) _ _).to_ring_equiv,
-  rw [← hP.cancel_left_is_iso e₁.to_CommRing_iso.hom,
-    ← hP.cancel_right_is_iso _ e₂.to_CommRing_iso.hom, ← eq_iff_iff],
-  congr' 1,
-  change e₂.to_ring_hom.comp (ring_hom.comp _ e₁.to_ring_hom) = _,
-  refine is_localization.ring_hom_ext (submonoid.powers r) _,
-  ext,
-  erw is_localization.alg_equiv_apply,
-  dsimp,
-  delta localization.away_map is_localization.away.map,
-  erw is_localization.alg_equiv_apply,
-  rw [ring_equiv.to_fun_eq_coe, is_localization.ring_equiv_of_ring_equiv_eq, is_localization.map_eq,
-    is_localization.map_eq, is_localization.map_eq],
-  refl
-end
+(hP.basic_open_iff _ _).trans (hP.is_localization_away_iff _ _ _ _).symm
 
 lemma _root_.ring_hom.localization_preserves.away (hP : ring_hom.localization_preserves @P)
   {R S : Type*} (R' S' : Type*) [comm_ring R] [comm_ring R'] [comm_ring S] [comm_ring S']
@@ -212,6 +275,57 @@ begin
   haveI : is_localization (submonoid.map (f : R →* S) (submonoid.powers r)) S',
   { convert hS', rw submonoid.map_powers, refl },
   exact hP f (submonoid.powers r) R' S' H
+end
+
+lemma _root_.ring_hom.respects_iso.of_restrict_morphism_restrict_iff (hP : ring_hom.respects_iso @P)
+  {X Y : Scheme} [is_affine Y] (f : X ⟶ Y) (r : Y.presheaf.obj (op ⊤)) (U : opens X.carrier)
+  (hU : is_affine_open U) {V : opens _}
+  (e : V = (opens.map (X.of_restrict ((opens.map f.1.base).obj _).open_embedding).1.base).obj U) :
+  P (Scheme.Γ.map ((X.restrict ((opens.map f.1.base).obj _).open_embedding).of_restrict
+    V.open_embedding ≫ f ∣_ Y.basic_open r).op) ↔
+    P (localization.away_map (Scheme.Γ.map (X.of_restrict U.open_embedding ≫ f).op) r) :=
+begin
+  subst e,
+  convert (hP.is_localization_away_iff _ _ _ _).symm,
+  rotate,
+  { exact algebraic_geometry.Γ_restrict_algebra _ _ },
+  { apply ring_hom.to_algebra,
+    refine X.presheaf.map
+      (@hom_of_le _ _ ((is_open_map.functor _).obj _) ((is_open_map.functor _).obj _) _).op,
+    change coe '' (coe '' set.univ) ⊆ coe '' set.univ,
+    rw [subtype.coe_image_univ, subtype.coe_image_univ],
+    exact set.image_preimage_subset _ _ },
+  { exact algebraic_geometry.Γ_restrict_is_localization Y r },
+  { rw ← U.open_embedding_obj_top at hU,
+    dsimp only [Scheme.Γ_obj_op, Scheme.Γ_map_op, Scheme.restrict],
+    convert (is_localization.is_localization_iff_of_ring_equiv _ (X.presheaf.map_iso (eq_to_iso _))
+      .CommRing_iso_to_ring_equiv).mp (is_localization_basic_open hU _) using 2,
+    swap,
+    { dsimp only [functor.op, unop_op],
+      congr' 1,
+      ext1,
+      rw [Scheme.comp_val_c_app, comp_apply],
+      erw X.basic_open_res,
+      rw [opens.open_embedding_obj_top, opens.open_embedding_obj_top],
+      refine eq.trans _ (set.image_preimage_eq_inter_range).symm,
+      erw subtype.range_coe,
+      rw Scheme.preimage_basic_open,
+      refl },
+    { rw [ring_hom.algebra_map_to_algebra, iso.CommRing_iso_to_ring_equiv_to_ring_hom],
+      refine eq.trans _ (X.presheaf.map_comp _ _),
+      congr } },
+  { apply is_localization.ring_hom_ext (submonoid.powers r) _,
+    { apply_instance },
+    { apply_instance },
+    rw [is_localization.away.map, is_localization.map_comp, ring_hom.algebra_map_to_algebra,
+      ring_hom.algebra_map_to_algebra, op_comp, functor.map_comp, op_comp, functor.map_comp],
+    refine (@category.assoc CommRing _ _ _ _ _ _ _ _).symm.trans _,
+    refine eq.trans _ (@category.assoc CommRing _ _ _ _ _ _ _ _),
+    dsimp only [Scheme.Γ_map, quiver.hom.unop_op],
+    rw [morphism_restrict_c_app, category.assoc, category.assoc, category.assoc],
+    erw [f.1.c.naturality_assoc, ← X.presheaf.map_comp, ← X.presheaf.map_comp,
+      ← X.presheaf.map_comp],
+    congr },
 end
 
 variable (P)
@@ -279,12 +393,10 @@ def _root_.ring_hom.localization_away_is : Prop :=
 lemma is_local_source_affine_locally
   (h₁ : ring_hom.respects_iso @P)
   (h₂ : ring_hom.localization_preserves @P)
-  (h₃ : ring_hom.of_localization_span @P)
-  (h₄ : ring_hom.stable_under_composition @P)
-  (h₅ : ring_hom.localization_away_is @P) : (source_affine_locally @P).is_local :=
+  (h₃ : ring_hom.of_localization_span @P) : (source_affine_locally @P).is_local :=
 begin
   constructor,
-  sorry; { split,
+  { split,
     { introv H U,
       rw [← h₁.cancel_right_is_iso _ (Scheme.Γ.map (Scheme.restrict_map_is_iso e.inv U.1).hom.op),
         ← functor.map_comp, ← op_comp],
@@ -298,46 +410,220 @@ begin
   { introv H U,
     resetI,
     specialize H ⟨_, U.2.image_is_open_immersion (X.of_restrict _)⟩,
-    convert ring_hom.localization_preserves.away @h₂ _ _ _ r H using 1,
-    rotate,
-    { apply ring_hom.to_algebra,
-      exact Y.presheaf.map (hom_of_le
-        (@le_top _ _ _ ((Y.basic_open r).open_embedding.is_open_map.functor.obj ⊤))).op },
-    { apply ring_hom.to_algebra,
-      refine X.presheaf.map
-        (@eq_to_hom _ _ ((is_open_map.functor _).obj _) ((is_open_map.functor _).obj _) _).op,
-      ext1,
-      change coe '' (coe '' set.univ) = coe '' set.univ,
-      rw [subtype.coe_image_univ, subtype.coe_image_univ],
-      refl },
-    sorry; { convert (is_localization.is_localization_iff_of_ring_equiv (submonoid.powers r) _).mp
-        (is_localization_basic_open (top_is_affine_open Y) r) using 1,
-      swap,
-      { refine (Y.presheaf.map_iso (eq_to_iso _)).CommRing_iso_to_ring_equiv,
-        { dsimp only [functor.op, unop_op],
-        congr' 1,
-        ext1,
-        exact (subtype.coe_image_univ _).symm } },
-      { apply algebra.algebra_ext,
-        intro _, congr' 1,
-        rw [ring_hom.algebra_map_to_algebra, ring_hom.algebra_map_to_algebra,
-          ring_hom.algebra_map_to_algebra, iso.CommRing_iso_to_ring_equiv_to_ring_hom,
-          functor.map_iso_hom],
-        convert Y.presheaf.map_comp _ _ } },
-      { apply_with is_localization_away_of_is_iso_is_unit { instances := ff },
-        { change is_unit (X.presheaf.map _ _),
-          have := RingedSpace.is_unit_res_basic_open,
+    convert (h₁.of_restrict_morphism_restrict_iff _ _ _ _ _).mpr _ using 1,
+    swap 5,
+    { exact ring_hom.localization_preserves.away @h₂ _ _ _ r H },
+    { apply_instance },
+    { exact U.2.image_is_open_immersion _},
+    { ext1, exact (set.preimage_image_eq _ subtype.coe_injective).symm } },
+  { introv hs hs' U,
+    resetI,
+    apply h₃ _ _ hs,
+    intro r,
+    have := hs' r (@@affine_preimage (X.of_restrict _) (show _, from _) U),
+    rwa h₁.of_restrict_morphism_restrict_iff at this,
+    { exact U.2 },
+    { refl },
+    { apply_instance },
+    { convert Scheme.of_restrict.affine (Scheme.Γ.map f.op r.1) using 3;
+        rw Scheme.preimage_basic_open; refl } }
+end
+.
 
-        }
+def _root_.ring_hom.of_localization_span_target : Prop :=
+  ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+    (s : set S) (hs : by exactI ideal.span s = ⊤)
+    (H : by exactI (∀ (r : s), P ((algebra_map S (localization.away (r : S))).comp f))),
+    by exactI P f
 
-      }
-    -- rw [op_comp, functor.map_comp],
-    -- apply h₄,
-    -- { rw h₁.basic_open_iff, apply ring_hom.localization_preserves.away @h₂, }
-    -- dsimp,
-
-  }
+lemma source_affine_locally_of_source_open_cover_aux
+  (h₁ : ring_hom.respects_iso @P)
+  (h₃ : ring_hom.of_localization_span_target @P)
+  {X Y : Scheme} (f : X ⟶ Y) [is_affine Y] (U : X.affine_opens)
+  (s : set (X.presheaf.obj (op U.1))) (hs : ideal.span s = ⊤)
+  (hs' : ∀ (r : s), P (Scheme.Γ.map (X.of_restrict (X.basic_open r.1).open_embedding ≫ f).op)) :
+    P (Scheme.Γ.map (X.of_restrict U.1.open_embedding ≫ f).op) :=
+begin
+  apply_fun ideal.map (X.presheaf.map (eq_to_hom U.1.open_embedding_obj_top).op) at hs,
+  rw [ideal.map_span, ideal.map_top] at hs,
+  apply h₃ _ _ hs,
+  rintro ⟨_, r, hr, rfl⟩,
+  refine (h₁.cancel_right_is_iso _
+    (localization.alg_equiv _ _).to_ring_equiv.to_CommRing_iso.hom).mp _,
+  swap 4,
+  { exact @@algebraic_geometry.Γ_restrict_is_localization _ U.2 _ },
+  { apply_instance },
+  change P (ring_hom.comp _ _),
+  rw ← ring_hom.comp_assoc,
+  erw [is_localization.map_comp, ring_hom.comp_id],
+  rw [ring_hom.algebra_map_to_algebra, op_comp, functor.map_comp],
+  convert_to P (@category_struct.comp CommRing _ _ _ _ _ _),
+  rw [Scheme.Γ_map_op, Scheme.Γ_map_op, Scheme.Γ_map_op, category.assoc],
+  erw ← X.presheaf.map_comp,
+  rw [← h₁.cancel_right_is_iso _ (X.presheaf.map (eq_to_hom _))],
+  convert hs' ⟨r, hr⟩ using 1,
+  { erw category.assoc, rw [← X.presheaf.map_comp, op_comp, Scheme.Γ.map_comp,
+    Scheme.Γ_map_op, Scheme.Γ_map_op], congr },
+  { dsimp [functor.op],
+    conv_lhs { rw opens.open_embedding_obj_top },
+    conv_rhs { rw opens.open_embedding_obj_top },
+    erw image_basic_open_of_is_open_immersion (X.of_restrict U.1.open_embedding),
+    erw of_restrict_inv_app_apply,
+    rw Scheme.basic_open_res_eq },
+  { apply_instance }
 end
 
+lemma source_affine_locally_of_source_open_cover
+  (h₁ : ring_hom.respects_iso @P)
+  (h₂ : ring_hom.localization_preserves @P)
+  (h₃ : ring_hom.of_localization_span_target @P)
+  (h₄ : ring_hom.stable_under_composition @P)
+  (h₅ : ring_hom.localization_away_is @P)
+  {X Y : Scheme} (f : X ⟶ Y) [is_affine Y]
+  (𝒰 : X.open_cover) [∀ i, is_affine (𝒰.obj i)] (H : ∀ i, P (Scheme.Γ.map (𝒰.map i ≫ f).op)) :
+  source_affine_locally @P f :=
+begin
+  let S := λ i, (⟨⟨set.range (𝒰.map i).1.base, (𝒰.is_open i).base_open.open_range⟩,
+    range_is_affine_open_of_open_immersion (𝒰.map i)⟩ : X.affine_opens),
+  apply of_affine_open_cover,
+  swap 5, { exact set.range S },
+  { intros U r H,
+    convert h₄ _ _ H _ using 1,
+    swap,
+    { refine X.presheaf.map
+        (@hom_of_le _ _ ((is_open_map.functor _).obj _) ((is_open_map.functor _).obj _) _).op,
+      rw [unop_op, unop_op, opens.open_embedding_obj_top, opens.open_embedding_obj_top],
+      exact X.basic_open_subset _ },
+    { rw [op_comp, op_comp, functor.map_comp, functor.map_comp],
+      refine (eq.trans _ (category.assoc _ _ _).symm : _),
+      congr' 1,
+      refine eq.trans _ (X.presheaf.map_comp _ _),
+      change X.presheaf.map _ = _,
+      congr },
+    convert h₅ _ (X.presheaf.map (eq_to_hom U.1.open_embedding_obj_top).op r),
+    { exact (ring_hom.algebra_map_to_algebra _).symm },
+    { dsimp [Scheme.Γ],
+      have := U.2,
+      rw ← U.1.open_embedding_obj_top at this,
+      convert is_localization_basic_open this _ using 6;
+        rw opens.open_embedding_obj_top; exact (Scheme.basic_open_res_eq _ _ _).symm } },
+  { introv hs hs', exact source_affine_locally_of_source_open_cover_aux _ h₁ @h₃ _ _ _ hs hs' },
+  { rw set.eq_univ_iff_forall,
+    intro x,
+    rw set.mem_Union,
+    exact ⟨⟨_, 𝒰.f x, rfl⟩, 𝒰.covers x⟩ },
+  { rintro ⟨_, i, rfl⟩,
+    specialize H i,
+    rw ← h₁.cancel_right_is_iso _ (Scheme.Γ.map (is_open_immersion.iso_of_range_eq
+      (𝒰.map i) (X.of_restrict (S i).1.open_embedding) subtype.range_coe.symm).inv.op) at H,
+    rwa [← Scheme.Γ.map_comp, ← op_comp, is_open_immersion.iso_of_range_eq_inv,
+      is_open_immersion.lift_fac_assoc] at H }
+end
+
+lemma source_affine_locally.affine_open_cover_tfae
+  (h₁ : ring_hom.respects_iso @P)
+  (h₂ : ring_hom.localization_preserves @P)
+  (h₃ : ring_hom.of_localization_span_target @P)
+  (h₄ : ring_hom.stable_under_composition @P)
+  (h₅ : ring_hom.localization_away_is @P)
+  {X Y : Scheme.{u}} [is_affine Y] (f : X ⟶ Y) :
+  tfae [source_affine_locally @P f,
+    ∃ (𝒰 : Scheme.open_cover.{u} X) [∀ i, is_affine (𝒰.obj i)],
+      ∀ (i : 𝒰.J), P (Scheme.Γ.map (𝒰.map i ≫ f).op),
+    ∀ (𝒰 : Scheme.open_cover.{u} X) [∀ i, is_affine (𝒰.obj i)] (i : 𝒰.J),
+      P (Scheme.Γ.map (𝒰.map i ≫ f).op),
+    ∀ {U : Scheme} (g : U ⟶ X) [is_affine U] [is_open_immersion g],
+      P (Scheme.Γ.map (g ≫ f).op)] :=
+begin
+  tfae_have : 1 → 4,
+  { intros H U g _ hg,
+    resetI,
+    specialize H ⟨⟨_, hg.base_open.open_range⟩,
+      range_is_affine_open_of_open_immersion g⟩,
+    rw [← h₁.cancel_right_is_iso _ (Scheme.Γ.map (is_open_immersion.iso_of_range_eq
+      g (X.of_restrict (opens.open_embedding ⟨_, hg.base_open.open_range⟩))
+      subtype.range_coe.symm).hom.op), ← Scheme.Γ.map_comp, ← op_comp,
+      is_open_immersion.iso_of_range_eq_hom] at H,
+    erw is_open_immersion.lift_fac_assoc at H,
+    exact H },
+  tfae_have : 4 → 3,
+  { intros H 𝒰 _ i, resetI, apply H },
+  tfae_have : 3 → 2,
+  { intro H, refine ⟨X.affine_cover, infer_instance, H _⟩ },
+  tfae_have : 2 → 1,
+  { rintro ⟨𝒰, _, h𝒰⟩,
+    exactI source_affine_locally_of_source_open_cover @P h₁ @h₂ @h₃ @h₄ @h₅ f 𝒰 h𝒰 },
+  tfae_finish
+end
+
+lemma source_affine_locally.open_cover_tfae
+  (h₁ : ring_hom.respects_iso @P)
+  (h₂ : ring_hom.localization_preserves @P)
+  (h₃ : ring_hom.of_localization_span_target @P)
+  (h₄ : ring_hom.stable_under_composition @P)
+  (h₅ : ring_hom.localization_away_is @P)
+  {X Y : Scheme.{u}} [is_affine Y] (f : X ⟶ Y) :
+  tfae [source_affine_locally @P f,
+    ∃ (𝒰 : Scheme.open_cover.{u} X), ∀ (i : 𝒰.J), source_affine_locally @P (𝒰.map i ≫ f),
+    ∀ (𝒰 : Scheme.open_cover.{u} X) (i : 𝒰.J), source_affine_locally @P (𝒰.map i ≫ f),
+    ∀ {U : Scheme} (g : U ⟶ X) [is_open_immersion g], source_affine_locally @P (g ≫ f)] :=
+begin
+  tfae_have : 1 → 4,
+  { intros H U g hg V,
+    resetI,
+    rw (source_affine_locally.affine_open_cover_tfae @P h₁ @h₂ @h₃ @h₄ @h₅ f).out 0 3 at H,
+    haveI : is_affine _ := V.2,
+    rw ← category.assoc,
+    apply H },
+  tfae_have : 4 → 3,
+  { intros H 𝒰 _ i, resetI, apply H },
+  tfae_have : 3 → 2,
+  { intro H, refine ⟨X.affine_cover, H _⟩ },
+  tfae_have : 2 → 1,
+  { rintro ⟨𝒰, h𝒰⟩,
+    rw (source_affine_locally.affine_open_cover_tfae @P h₁ @h₂ @h₃ @h₄ @h₅ f).out 0 1,
+    refine ⟨𝒰.bind (λ _, Scheme.affine_cover _), _, _⟩,
+    { intro i, dsimp, apply_instance },
+    { intro i,
+      specialize h𝒰 i.1,
+      rw (source_affine_locally.affine_open_cover_tfae @P h₁ @h₂ @h₃ @h₄ @h₅
+        (𝒰.map i.fst ≫ f)).out 0 3 at h𝒰,
+      erw category.assoc,
+      apply @@h𝒰 _ (show _, from _),
+      dsimp, apply_instance } },
+  tfae_finish
+end
+
+
+lemma target_affine_locally_source_affine_locally.affine_open_cover_iff
+  (h₁ : ring_hom.respects_iso @P)
+  (h₂ : ring_hom.localization_preserves @P)
+  (h₃ : ring_hom.of_localization_span_target @P)
+  (h₄ : ring_hom.stable_under_composition @P)
+  (h₅ : ring_hom.localization_away_is @P)
+  {X Y : Scheme.{u}} (f : X ⟶ Y) (𝒰 : Scheme.open_cover.{u} Y)
+  (𝒰' : ∀ i, Scheme.open_cover ((𝒰.pullback_cover f).obj i))
+  (h𝒰' : ∀ i j, P (Scheme.Γ.map ((𝒰' i).map j ≫ limits.pullback.fst : (𝒰' i).obj j ⟶ 𝒰.obj i).op) :=
+begin
+  tfae_have : 1 → 4,
+  { intros H U g _ hg,
+    resetI,
+    specialize H ⟨⟨_, hg.base_open.open_range⟩,
+      range_is_affine_open_of_open_immersion g⟩,
+    rw [← h₁.cancel_right_is_iso _ (Scheme.Γ.map (is_open_immersion.iso_of_range_eq
+      g (X.of_restrict (opens.open_embedding ⟨_, hg.base_open.open_range⟩))
+      subtype.range_coe.symm).hom.op), ← Scheme.Γ.map_comp, ← op_comp,
+      is_open_immersion.iso_of_range_eq_hom] at H,
+    erw is_open_immersion.lift_fac_assoc at H,
+    exact H },
+  tfae_have : 4 → 3,
+  { intros H 𝒰 _ i, resetI, apply H },
+  tfae_have : 3 → 2,
+  { intro H, refine ⟨X.affine_cover, infer_instance, H _⟩ },
+  tfae_have : 2 → 1,
+  { rintro ⟨𝒰, _, h𝒰⟩,
+    exactI source_affine_locally_of_source_open_cover @P h₁ @h₂ @h₃ @h₄ @h₅ f 𝒰 h𝒰 },
+  tfae_finish
+end
 
 end algebraic_geometry

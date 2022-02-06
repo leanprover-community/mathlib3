@@ -46,6 +46,8 @@ Monad operations:
 * `pfun.map`: The monad `map` function, pointwise `part.map`.
 -/
 
+open function
+
 /-- `pfun α β`, or `α →. β`, is the type of partial functions from
   `α` to `β`. It is defined as `α → part β`. -/
 def pfun (α β : Type*) := α → part β
@@ -110,6 +112,9 @@ instance : has_coe (α → β) (α →. β) := ⟨pfun.lift⟩
   (f : α →. β) a = part.some (f a) := rfl
 
 @[simp] lemma dom_coe (f : α → β) : (f : α →. β).dom = set.univ := rfl
+
+lemma coe_injective : injective (coe : (α → β) → α →. β) :=
+λ f g h, funext $ λ a, part.some_injective $ congr_fun h a
 
 /-- Graph of a partial function `f` as the set of pairs `(x, f x)` where `x` is in the domain of
 `f`. -/
@@ -353,16 +358,12 @@ rfl
 @[simp] lemma to_subtype_apply (p : β → Prop) (f : α → β) (a : α) :
   to_subtype p f a = ⟨p (f a), subtype.mk _⟩ := rfl
 
-@[simp] lemma mem_to_subtype_iff {p : β → Prop} {f : α → β} {a : α} {b : subtype p} :
+lemma dom_to_subtype_apply_iff {p : β → Prop} {f : α → β} {a : α} :
+  (to_subtype p f a).dom ↔ p (f a) := iff.rfl
+
+lemma mem_to_subtype_iff {p : β → Prop} {f : α → β} {a : α} {b : subtype p} :
   b ∈ to_subtype p f a ↔ ↑b = f a :=
-begin
-  split,
-  { rintro ⟨h, rfl⟩,
-    refl },
-  { obtain ⟨b, h⟩ := b,
-    rintro (rfl : b = f a),
-    exact ⟨h, rfl⟩ }
-end
+by rw [to_subtype_apply, part.mem_mk_iff, exists_subtype_mk_eq_iff, eq_comm]
 
 /-- The identity as a partial function -/
 protected def id (α : Type*) : α →. α := part.some
@@ -410,7 +411,7 @@ end
   (f.comp g).comp h = f.comp (g.comp h) :=
 ext $ λ _ _, by simp only [comp_apply, part.bind_comp]
 
---TODO: Why can't this be `simp`?
+-- This can't be `simp`
 lemma coe_comp (g : β → γ) (f : α → β) : ((g ∘ f : α → γ) : α →. γ) = (g : β →. γ).comp f :=
 ext $ λ _ _, by simp only [coe_val, comp_apply, part.bind_some]
 

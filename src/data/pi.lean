@@ -148,8 +148,7 @@ function.update_injective _ i
 end
 
 /-- The mapping into a product type built from maps into each component. -/
-@[simp] protected def prod (f' : Π i, f i) (g' : Π i, g i) : Π i, f i × g i
-| i := (f' i, g' i)
+@[simp] protected def prod (f' : Π i, f i) (g' : Π i, g i) (i : I) : f i × g i := (f' i, g' i)
 
 @[simp] lemma prod_fst_snd : pi.prod (prod.fst : α × β → α) (prod.snd : α × β → β) = id :=
 funext $ λ _, prod.mk.eta

@@ -73,7 +73,7 @@ theorem snd_surjective : function.surjective (snd R M M₂) := λ x, ⟨(0, x), 
   (snd R M₂ M₃).comp (prod f g) = g := by ext; refl
 
 @[simp] theorem pair_fst_snd : prod (fst R M M₂) (snd R M M₂) = linear_map.id :=
-by ext; refl
+fun_like.coe_injective pi.prod_fst_snd
 
 /-- Taking the product of two maps with the same domain is equivalent to taking the product of
 their codomains.

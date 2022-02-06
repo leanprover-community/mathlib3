@@ -1059,7 +1059,7 @@ theorem bsup_id_limit {o} (ho : ∀ a < o, succ a < o) : bsup.{u u} o (λ x _, x
 le_antisymm (bsup_le.2 (λ i hi, hi.le))
   (not_lt.1 (λ h, (lt_bsup_of_limit.{u u} (λ _ _ _ _, id) ho _ h).false))
 
-theorem bsup_id_succ {o} : bsup.{u u} (succ o) (λ x _, x) = o :=
+theorem bsup_id_succ (o) : bsup.{u u} (succ o) (λ x _, x) = o :=
 le_antisymm (bsup_le.2 $ (λ o, lt_succ.1)) (le_bsup _ o (lt_succ_self o))
 
 theorem is_normal.bsup_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
@@ -1225,7 +1225,7 @@ by rw [blsub_le, lsub_le]; exact
 theorem blsub_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : blsub.{u v} o (λ _ _, a) = a + 1 :=
 bsup_const.{u v} ho a.succ
 
-theorem blsub_id {o} : blsub.{u u} o (λ x _, x) = o :=
+theorem blsub_id (o) : blsub.{u u} o (λ x _, x) = o :=
 begin
   apply le_antisymm,
   { rw blsub_le,
@@ -1241,7 +1241,7 @@ theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
   sup.{u u} (typein o.out.r) = o :=
 by rw (sup_eq_lsub_iff_succ.{u u} (typein o.out.r)).2; rwa lsub_typein o
 
-theorem sup_typein_succ {o : ordinal} : sup.{u u} (typein o.succ.out.r) = o :=
+theorem sup_typein_succ (o : ordinal) : sup.{u u} (typein o.succ.out.r) = o :=
 begin
   cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein o.succ.out.r) with h h,
   { rw sup_eq_lsub_iff_succ at h,

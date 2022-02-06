@@ -44,4 +44,16 @@ ext (by simp only [mem_unop, op_mem_op, iff_self, implies_true_iff])
 @[simp] lemma unop_op (s : set αᵒᵖ) : s.unop.op = s :=
 ext (by simp only [mem_op, unop_mem_unop, iff_self, implies_true_iff])
 
+@[simp] lemma singleton_op (x : α) : ({x} : set α).op = {op x} :=
+ext $ λ y, by simpa only [mem_op, mem_singleton_iff] using unop_eq_iff_eq_op
+
+@[simp] lemma singleton_unop (x : αᵒᵖ) : ({x} : set αᵒᵖ).unop = {unop x} :=
+ext $ λ y, by simpa only [mem_unop, mem_singleton_iff] using op_eq_iff_eq_unop
+
+@[simp] lemma singleton_op_unop (x : α) : ({op x} : set αᵒᵖ).unop = {x} :=
+by simp only [singleton_unop, opposite.unop_op]
+
+@[simp] lemma singleton_unop_op (x : αᵒᵖ) : ({unop x} : set α).op = {x} :=
+by simp only [singleton_op, opposite.op_unop]
+
 end set

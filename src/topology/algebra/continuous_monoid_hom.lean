@@ -153,7 +153,7 @@ variables (A B C D E)
 lemma is_inducing : inducing (to_continuous_map : continuous_monoid_hom A B → C(A, B)) := ⟨rfl⟩
 
 lemma is_embedding : embedding (to_continuous_map : continuous_monoid_hom A B → C(A, B)) :=
-⟨is_inducing A B, λ _ _, ext ∘ continuous_map.ext_iff.mp⟩
+⟨is_inducing A B, λ _ _, ext ∘ fun_like.ext_iff.mp⟩
 
 variables {A B C D E}
 

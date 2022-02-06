@@ -1289,14 +1289,13 @@ lemma enum_ord_def_nonempty (hS : unbounded (<) S) {o} :
   {x | x ∈ S ∧ ∀ c, c < o → enum_ord S c < x}.nonempty :=
 (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
 
-theorem enum_ord_zero {a} (ha : a ∈ S) : enum_ord S 0 ≤ a :=
-begin
-  rw enum_ord_def,
-  simp [ordinal.not_lt_zero],
-  exact cInf_le' ha
-end
+@[simp] theorem enum_ord_zero : enum_ord S 0 = Inf S :=
+by { rw enum_ord_def, simp [ordinal.not_lt_zero] }
 
-theorem enum_ord_succ {a b} (hS : unbounded (<) S) (ha : a ∈ S) (hb : enum_ord S b < a) :
+theorem enum_ord_zero_le {a} (ha : a ∈ S) : enum_ord S 0 ≤ a :=
+by { rw enum_ord_zero, exact cInf_le' ha }
+
+theorem enum_ord_succ_le {a b} (hS : unbounded (<) S) (ha : a ∈ S) (hb : enum_ord S b < a) :
   enum_ord S b.succ ≤ a :=
 begin
   rw enum_ord_def,
@@ -1309,12 +1308,12 @@ theorem enum_ord.surjective (hS : unbounded (<) S) : ∀ s ∈ S, ∃ a, enum_or
   { rw enum_ord_def,
     apply cInf_le',
     use hs,intros a ha,
-    rcases exists_lt_of_lt_cSup (by exact ⟨0, enum_ord_zero hs⟩) ha with ⟨b, hb, hab⟩,
+    rcases exists_lt_of_lt_cSup (by exact ⟨0, enum_ord_zero_le hs⟩) ha with ⟨b, hb, hab⟩,
     exact (enum_ord.strict_mono hS hab).trans_le hb },
   { by_contra' h,
     exact (le_cSup ⟨s, λ a,
       (well_founded.self_le_of_strict_mono wf (enum_ord.strict_mono hS) a).trans⟩
-      (enum_ord_succ hS hs h)).not_lt (lt_succ_self _) }
+      (enum_ord_succ_le hS hs h)).not_lt (lt_succ_self _) }
 end⟩
 
 /-- An order isomorphism between an unbounded set of ordinals and the ordinals. -/

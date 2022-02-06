@@ -941,7 +941,7 @@ Inf {c | ∀ i, f i ≤ c}
 /-- The set in the definition of the supremum is nonempty. -/
 theorem sup_nonempty {ι : Type u} {f : ι → ordinal.{max u v}} : {c | ∀ i, f i ≤ c}.nonempty :=
 ⟨(cardinal.sup.{u v} (cardinal.succ ∘ card ∘ f)).ord, λ i, le_of_lt $
-  cardinal.lt_ord.2 (lt_of_lt_of_le (cardinal.lt_succ_self _) (le_sup _ _))⟩
+  cardinal.lt_ord.2 ((cardinal.lt_succ_self _).trans_le (le_sup _ _))⟩
 
 theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
 Inf_mem sup_nonempty

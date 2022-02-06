@@ -82,7 +82,7 @@ def commensurator (H : subgroup G) : subgroup G :=
 @[simp] lemma commensurator_mem_iff (H : subgroup G) (g : G) :
   g ∈ (commensurator H) ↔ commensurable (conj_act.to_conj_act g • H) H := iff.rfl
 
-lemma commensurable.eq {H K : subgroup G} (hk : commensurable H K) :
+lemma eq {H K : subgroup G} (hk : commensurable H K) :
   commensurator H = commensurator K :=
   subgroup.ext (λ x, let hx := (commensurable_conj x).1 hk in
   ⟨λ h, hx.symm.trans (h.trans hk), λ h, hx.trans (h.trans hk.symm)⟩)

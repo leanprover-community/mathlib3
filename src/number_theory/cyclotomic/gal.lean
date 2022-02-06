@@ -3,29 +3,31 @@ Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
+
 import number_theory.cyclotomic.zeta
-import ring_theory.polynomial.cyclotomic.eval
 import field_theory.polynomial_galois_group
+
 /-!
 # Galois group of cyclotomic extensions
 
 In this file, we show the relationship between the Galois group of`K(ζₙ)` and `(zmod n)ˣ`;
 it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, they are isomorphic.
 
-# Main results
+## Main results
 
 * `is_cyclotomic_extension.aut_to_pow_injective`: `is_primitive_root.aut_to_pow` is injective
   in the case that it's considered over a cyclotomic field extension, where `n` does not divide
   the characteristic of K. As a corollary, $Gal(K(ζₙ)/K)$ is abelian.
 * `is_cyclotomic_extension.aut_equiv_pow`: If, additionally, the `n`th cyclotomic polynomial is
   irreducible in K, then `aut_to_pow` is a `mul_equiv`.
-* `gal_{X_pow/cyclotomic}_equiv_units_zmod`: Repackage `aut_to_pow` in terms of `polynomial.gal`.
+* `gal_X_pow_equiv_units_zmod`, `gal_cyclotomic_equiv_units_zmod`: Repackage `aut_equiv_pow` in
+  terms of `polynomial.gal`.
 
-# References
+## References
 
 * https://kconrad.math.uconn.edu/blurbs/galoistheory/cyclotomic.pdf
 
-# TODO
+## TODO
 
 * `zeta_pow_power_basis` is not sufficiently general; the correct solution is some
   `power_basis.map_conjugate`, but figuring out the exact correct assumptions + proof for this is
@@ -37,7 +39,7 @@ it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, 
 
 local attribute [instance] pnat.fact_pos
 
-variables {L : Type*} [field L] {μ : L} (n : ℕ+) (hμ : is_primitive_root μ n)
+variables (L : Type*) [field L] {μ : L} (n : ℕ+) (hμ : is_primitive_root μ n)
           (K : Type*) [field K] [algebra K L] [is_cyclotomic_extension {n} K L]
 
 local notation `ζ` := is_cyclotomic_extension.zeta n K L
@@ -46,6 +48,8 @@ open polynomial ne_zero
 
 namespace is_cyclotomic_extension
 
+/-- `is_primitive_root.aut_to_pow` is injective in the case that it's considered over a cyclotomic
+field extension, where `n` does not divide the characteristic of K. -/
 lemma aut_to_pow_injective [ne_zero ((n : ℕ) : K)] : function.injective $
     (@zeta_primitive_root n K L _ _ _ _ _ $ of_no_zero_smul_divisors K L n).aut_to_pow K :=
 begin
@@ -55,8 +59,6 @@ begin
   generalize_proofs hf' hg' at hfg,
   have hf := hf'.some_spec,
   have hg := hg'.some_spec,
-  dsimp only [alg_equiv.to_ring_equiv_eq_coe, ring_equiv.to_ring_hom_eq_coe,
-              ring_equiv.coe_to_ring_hom, alg_equiv.coe_ring_equiv] at hf hg,
   generalize_proofs hζ at hf hg,
   suffices : f hζ.to_roots_of_unity = g hζ.to_roots_of_unity,
   { apply alg_equiv.coe_alg_hom_injective,
@@ -75,10 +77,8 @@ end
 
 -- As a corollary, cyclotomic extensions are abelian extensions! (Note this cannot be an instance)
 noncomputable example [ne_zero ((n : ℕ) : K)] : comm_group (L ≃ₐ[K] L) :=
-function.injective.comm_group _ (aut_to_pow_injective n K) (map_one _)
+function.injective.comm_group _ (aut_to_pow_injective L n K) (map_one _)
   (map_mul _) (map_inv _) (map_div _)
-
-variables (L)
 
 /-- The power basis given by `ζ ^ t`. -/
 @[simps] noncomputable def zeta_pow_power_basis [ne_zero ((n : ℕ) : K)] (t : (zmod n)ˣ) :
@@ -149,7 +149,7 @@ let hζ := (zeta_primitive_root n K L).eq_pow_of_pow_eq_one hμ.pow_eq_one n.pos
 ((zeta_primitive_root n K L).pow_iff_coprime n.pos hζ.some).mp $ hζ.some_spec.some_spec.symm ▸ hμ
 
 lemma from_zeta_aut_spec (h : irreducible (cyclotomic n K)) [ne_zero ((n : ℕ) : K)] :
-  ((from_zeta_aut n hμ K h) ζ) = μ :=
+  ((from_zeta_aut L n hμ K h) ζ) = μ :=
 begin
   simp only [from_zeta_aut, exists_prop, aut_equiv_pow_symm_apply, ←zeta.power_basis_gen,
              power_basis.equiv_of_minpoly_gen, zeta_pow_power_basis_gen, zmod.coe_unit_of_coprime],

@@ -1097,8 +1097,7 @@ variables {S} [comm_ring S] [is_domain S] {μ : S} {n : ℕ+} (hμ : is_primitiv
           (R) [comm_ring R] [algebra R S]
 
 /-- The `monoid_hom` that takes an automorphism to the power of μ that μ gets mapped to under it. -/
-@[simps {attrs := []}] noncomputable def aut_to_pow  :
-  (S ≃ₐ[R] S) →* (zmod n)ˣ :=
+@[simps {attrs := []}] noncomputable def aut_to_pow : (S ≃ₐ[R] S) →* (zmod n)ˣ :=
 let μ' := hμ.to_roots_of_unity in
 have ho : order_of μ' = n :=
   by rw [hμ.eq_order_of, ←hμ.coe_to_roots_of_unity_coe, order_of_units, order_of_subgroup],

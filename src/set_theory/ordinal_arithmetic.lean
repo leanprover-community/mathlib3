@@ -454,8 +454,7 @@ theorem le_add_sub (a b : ordinal) : a ≤ b + (a - b) :=
 Inf_mem sub_nonempty
 
 theorem sub_le {a b c : ordinal} : a - b ≤ c ↔ a ≤ b + c :=
-⟨λ h, le_trans (le_add_sub a b) (add_le_add_left h _),
- λ h, ordinal.Inf_le h⟩
+⟨λ h, le_trans (le_add_sub a b) (add_le_add_left h _), λ h, cInf_le' h⟩
 
 theorem lt_sub {a b c : ordinal} : a < b - c ↔ c + a < b :=
 lt_iff_lt_of_le_iff_le sub_le
@@ -711,10 +710,11 @@ ordinal.div_aux a b h
 
 instance : has_div ordinal := ⟨ordinal.div⟩
 
-@[simp] theorem div_zero (a : ordinal) : a / 0 = 0 := dif_pos rfl
+@[simp] theorem div_zero (a : ordinal) : a / 0 = 0 :=
+dif_pos rfl
 
-lemma div_def (a) {b : ordinal} (h : b ≠ 0) :
-  a / b = Inf {o | a < b * succ o} := dif_neg h
+lemma div_def (a) {b : ordinal} (h : b ≠ 0) : a / b = Inf {o | a < b * succ o} :=
+dif_neg h
 
 theorem lt_mul_succ_div (a) {b : ordinal} (h : b ≠ 0) : a < b * succ (a / b) :=
 by rw div_def a h; exact Inf_mem (div_nonempty h)
@@ -724,7 +724,7 @@ by simpa only [mul_succ] using lt_mul_succ_div a h
 
 theorem div_le {a b c : ordinal} (b0 : b ≠ 0) : a / b ≤ c ↔ a < b * succ c :=
 ⟨λ h, (lt_mul_succ_div a b0).trans_le (mul_le_mul_left' (succ_le_succ.2 h) _),
- λ h, by rw div_def a b0; exact ordinal.Inf_le h⟩
+ λ h, by rw div_def a b0; exact cInf_le' h⟩
 
 theorem lt_div {a b c : ordinal} (c0 : c ≠ 0) : a < b / c ↔ c * succ a ≤ b :=
 by rw [← not_le, div_le c0, not_lt]
@@ -947,7 +947,7 @@ theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
 Inf_mem sup_nonempty
 
 theorem sup_le {ι} {f : ι → ordinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
-⟨λ h i, le_trans (le_sup _ _) h, λ h, ordinal.Inf_le h⟩
+⟨λ h i, le_trans (le_sup _ _) h, λ h, cInf_le' h⟩
 
 theorem lt_sup {ι} {f : ι → ordinal} {a} : a < sup f ↔ ∃ i, a < f i :=
 by simpa only [not_forall, not_le] using not_congr (@sup_le _ f a)

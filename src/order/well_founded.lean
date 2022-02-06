@@ -189,7 +189,7 @@ theorem _root_.eq_strict_mono_iff_eq_range {f g : β → γ} (hf : strict_mono f
   exact λ b H, le_antisymm
     (eq_strict_mono_iff_eq_range_aux h hf hg hfg H)
     (eq_strict_mono_iff_eq_range_aux h hg hf hfg.symm (λ a hab, (H a hab).symm))
-end, λ h, congr_arg _ h⟩
+end, congr_arg _⟩
 
 end linear_order
 

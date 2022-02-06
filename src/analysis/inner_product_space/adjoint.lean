@@ -306,6 +306,9 @@ begin
   rwa [(eq_adjoint_iff B A).mpr h₂] at h₁,
 end
 
+lemma _root_.is_star_normal.is_normal {A : E →ₗ[𝕜] E} (hA : is_star_normal A) : is_normal A :=
+(is_star_normal_iff_is_normal A).mp hA
+
 lemma is_normal.adjoint_eq_adjoint {A : E →ₗ[𝕜] E} (hA : is_normal A) :
   hA.adjoint = A.adjoint :=
 linear_map.ext $

@@ -188,12 +188,15 @@ hT.is_normal.orthogonal_supr_eigenspaces μ
 
 end is_self_adjoint
 
-namespace is_normal
+end inner_product_space
+
+namespace is_star_normal
 
 /-! ### Finite-dimensional theory for normal operators -/
 
 variables [finite_dimensional 𝕜 E] [is_alg_closed 𝕜]
 
+-- move this to general eigentheory file
 lemma subsingleton_of_no_eigenvalue_finite_dimensional (T : E →ₗ[𝕜] E)
   (hT' : ∀ μ : 𝕜, module.End.eigenspace (T : E →ₗ[𝕜] E) μ = ⊥) :
   subsingleton E :=
@@ -201,16 +204,17 @@ lemma subsingleton_of_no_eigenvalue_finite_dimensional (T : E →ₗ[𝕜] E)
   (λ h, by exactI absurd (hT' _) (classical.some_spec $ exists_eigenvalue T))
 
 
-variables {T : E →ₗ[𝕜] E} (hT : is_normal T)
+variables {T : E →ₗ[𝕜] E} (hT : is_star_normal T)
 include hT
 
 /-- The mutual orthogonal complement of the eigenspaces of a normal operator on a
 finite-dimensional inner product space is trivial. -/
 lemma orthogonal_supr_eigenspaces_eq_bot : (⨆ μ, eigenspace T μ)ᗮ = ⊥ :=
 begin
-  let T' := T.restrict hT.orthogonal_supr_eigenspaces_invariant,
+  let T' := T.restrict hT.is_normal.orthogonal_supr_eigenspaces_invariant,
   -- an operator on a nontrivial inner product space has an eigenvalue
-  haveI := (subsingleton_of_no_eigenvalue_finite_dimensional T') hT.orthogonal_supr_eigenspaces,
+  haveI := (subsingleton_of_no_eigenvalue_finite_dimensional T')
+    hT.is_normal.orthogonal_supr_eigenspaces,
   exact submodule.eq_bot_of_subsingleton _,
 end
 
@@ -222,8 +226,8 @@ by rw [supr_ne_bot_subtype, orthogonal_supr_eigenspaces_eq_bot hT]
 an internal direct sum decomposition of `F`. -/
 lemma direct_sum_submodule_is_internal [decidable_eq (eigenvalues T)] :
   direct_sum.submodule_is_internal (λ μ : eigenvalues T, eigenspace T μ) :=
-(orthogonal_family_eigenspaces' hT).submodule_is_internal_iff.mpr
-  (orthogonal_supr_eigenspaces_eq_bot' hT)
+hT.is_normal.orthogonal_family_eigenspaces'.submodule_is_internal_iff.mpr
+  hT.orthogonal_supr_eigenspaces_eq_bot'
 
 section version1
 
@@ -233,24 +237,24 @@ variable [decidable_eq (eigenvalues T)]
 normal operator `T` on `F`. -/
 noncomputable def diagonalization :
   E ≃ₗᵢ[𝕜] pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ) :=
-(direct_sum_submodule_is_internal hT).isometry_L2_of_orthogonal_family
-  (orthogonal_family_eigenspaces' hT)
+hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family
+  hT.is_normal.orthogonal_family_eigenspaces'
 
 @[simp] lemma diagonalization_symm_apply  (w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ)) :
   (diagonalization hT).symm w = ∑ μ, w μ :=
-(direct_sum_submodule_is_internal hT).isometry_L2_of_orthogonal_family_symm_apply
-  (orthogonal_family_eigenspaces' hT) w
+hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
+  hT.is_normal.orthogonal_family_eigenspaces' w
 
 /-- *Diagonalization theorem*, *spectral theorem*; version 1: A normal operator `T` on a
 finite-dimensional inner product space `F` acts diagonally on the decomposition of `F` into the
 direct sum of the eigenspaces of `T`. -/
 lemma diagonalization_apply_self_apply (v : E) (μ : eigenvalues T) :
-  diagonalization hT (T v) μ = (μ : 𝕜) • (diagonalization hT) v μ :=
+  hT.diagonalization (T v) μ = (μ : 𝕜) • hT.diagonalization v μ :=
 begin
   suffices : ∀ w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ),
     (T ((diagonalization hT).symm w)) = (diagonalization hT).symm (λ μ, (μ : 𝕜) • w μ),
   { simpa [linear_isometry_equiv.symm_apply_apply, -diagonalization_symm_apply]
-      using congr_arg (λ w, diagonalization hT w μ) (this (diagonalization hT v)) },
+      using congr_arg (λ w, hT.diagonalization w μ) (this (hT.diagonalization v)) },
   intros w,
   have hwT : ∀ μ : eigenvalues T, T (w μ) = (μ : 𝕜) • w μ,
   { intros μ,
@@ -269,21 +273,21 @@ finite-dimensional inner product space `E`.
 TODO Postcompose with a permutation so that these eigenvectors are listed in increasing order of
 eigenvalue. -/
 noncomputable def eigenvector_basis : basis (fin n) 𝕜 E :=
-(direct_sum_submodule_is_internal hT).subordinate_orthonormal_basis hn
+hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis hn
 
 lemma eigenvector_basis_orthonormal : orthonormal 𝕜 (eigenvector_basis hT hn) :=
-(direct_sum_submodule_is_internal hT).subordinate_orthonormal_basis_orthonormal hn
-  (orthogonal_family_eigenspaces' hT)
+hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_orthonormal hn
+  hT.is_normal.orthogonal_family_eigenspaces'
 
 /-- The sequence of eigenvalues associated to the standard orthonormal basis of eigenvectors
 for a normal operator `T` on `E`.
 
 TODO Postcompose with a permutation so that these eigenvalues are listed in increasing order. -/
 noncomputable def eigenvalues (i : fin n) : 𝕜 :=
-(direct_sum_submodule_is_internal hT).subordinate_orthonormal_basis_index hn i
+hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_index hn i
 
 lemma has_eigenvector_eigenvector_basis (i : fin n) :
-  has_eigenvector T (eigenvalues hT hn i) (eigenvector_basis hT hn i) :=
+  has_eigenvector T (hT.eigenvalues hn i) (hT.eigenvector_basis hn i) :=
 begin
   let v : E := eigenvector_basis hT hn i,
   let μ : 𝕜 := (direct_sum_submodule_is_internal hT).subordinate_orthonormal_basis_index hn i,
@@ -297,23 +301,23 @@ end
 attribute [irreducible] eigenvector_basis eigenvalues
 
 @[simp] lemma apply_eigenvector_basis (i : fin n) :
-  T (eigenvector_basis hT hn i) = (eigenvalues hT hn i : 𝕜) • eigenvector_basis hT hn i :=
+  T (hT.eigenvector_basis hn i) = (hT.eigenvalues hn i : 𝕜) • hT.eigenvector_basis hn i :=
 mem_eigenspace_iff.mp (has_eigenvector_eigenvector_basis hT hn i).1
 
 /-- An isometry from an inner product space `F` to Euclidean space, induced by a choice of
 orthonormal basis of eigenvectors for a normal operator `T` on `F`. -/
 noncomputable def diagonalization_basis : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 (fin n) :=
-(eigenvector_basis hT hn).isometry_euclidean_of_orthonormal (eigenvector_basis_orthonormal hT hn)
+(hT.eigenvector_basis hn).isometry_euclidean_of_orthonormal (hT.eigenvector_basis_orthonormal hn)
 
 @[simp] lemma diagonalization_basis_symm_apply (w : euclidean_space 𝕜 (fin n)) :
-  (diagonalization_basis hT hn).symm w = ∑ i, w i • eigenvector_basis hT hn i :=
+  (hT.diagonalization_basis hn).symm w = ∑ i, w i • hT.eigenvector_basis hn i :=
 by simp [diagonalization_basis]
 
 /-- *Diagonalization theorem*, *spectral theorem*; version 2: A normal operator `T` on a
 finite-dimensional inner product space `F` acts diagonally on the identification of `F` with
 Euclidean space induced by an orthonormal basis of eigenvectors of `T`. -/
 lemma diagonalization_basis_apply_self_apply (v : E) (i : fin n) :
-  diagonalization_basis hT hn (T v) i = eigenvalues hT hn i * diagonalization_basis hT hn v i :=
+  hT.diagonalization_basis hn (T v) i = eigenvalues hT hn i * hT.diagonalization_basis hn v i :=
 begin
   suffices : ∀ w : euclidean_space 𝕜 (fin n),
     T ((diagonalization_basis hT hn).symm w)
@@ -326,9 +330,9 @@ end
 
 end version2
 
-end is_normal
+end is_star_normal
 
-
+namespace inner_product_space
 namespace is_self_adjoint
 
 variables {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)

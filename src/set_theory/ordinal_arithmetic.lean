@@ -990,7 +990,7 @@ begin
     from @small_subset _ _ _ (by exact λ b hb, lt_succ.2 (h hb)) this,
   let f : a.succ.out.α → (set.Iio a.succ) := λ x, ⟨typein a.succ.out.r x, typein_lt_self x⟩,
   have hf : surjective f := λ b, ⟨enum a.succ.out.r b.val (by { rw type_out, exact b.prop }),
-      subtype.ext (typein_enum _ _)⟩,
+    subtype.ext (typein_enum _ _)⟩,
   exact small_of_surjective hf
 end
 

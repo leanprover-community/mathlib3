@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.real.nnreal
+import order.liminf_limsup
 
 /-!
 # Extended non-negative reals
@@ -1057,6 +1058,17 @@ le_inv_iff_le_inv.trans $ by rw inv_one
 @[simp] lemma inv_lt_one : a⁻¹ < 1 ↔ 1 < a :=
 inv_lt_iff_inv_lt.trans $ by rw [inv_one]
 
+/-- The inverse map `λ x, x⁻¹` is an order isomorphism between `ℝ≥0∞` and its `order_dual` -/
+@[simps apply]
+def order_iso_inv_dual : ℝ≥0∞ ≃o order_dual ℝ≥0∞ :=
+{ to_fun := λ x, x⁻¹,
+  inv_fun := λ x, x⁻¹,
+  left_inv := @ennreal.inv_inv,
+  right_inv := @ennreal.inv_inv,
+  map_rel_iff' := λ a b, ennreal.inv_le_inv }
+
+lemma order_iso_inv_dual_symm_apply : ∀ x, order_iso_inv_dual.symm x = x⁻¹ := λ x, rfl
+
 lemma pow_le_pow_of_le_one {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
 begin
   rw [← @inv_inv a, ← ennreal.inv_pow, ← @ennreal.inv_pow a⁻¹, inv_le_inv],
@@ -1853,5 +1865,27 @@ lemma supr_coe_nat : (⨆n:ℕ, (n : ℝ≥0∞)) = ∞ :=
 (supr_eq_top _).2 $ assume b hb, ennreal.exists_nat_gt (lt_top_iff_ne_top.1 hb)
 
 end supr
+
+section inv_supr_infi
+
+open filter
+
+theorem inv_map_supr {ι : Sort*} {x : ι → ℝ≥0∞} :
+  (supr x)⁻¹ = (⨅ i, (x i)⁻¹) :=
+order_iso_inv_dual.map_supr x
+
+theorem inv_map_infi {ι : Sort*} {x : ι → ℝ≥0∞} :
+  (infi x)⁻¹ = (⨆ i, (x i)⁻¹) :=
+order_iso_inv_dual.map_infi x
+
+theorem inv_limsup {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
+  (l.limsup x)⁻¹ = l.liminf (λ i, (x i)⁻¹) :=
+by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
+
+theorem inv_liminf {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
+  (l.liminf x)⁻¹ = l.limsup (λ i, (x i)⁻¹) :=
+by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
+
+end inv_supr_infi
 
 end ennreal

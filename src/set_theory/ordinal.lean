@@ -1135,12 +1135,6 @@ instance : conditionally_complete_linear_order_bot ordinal :=
 wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le _) $
   not_lt.1 (wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
 
-theorem bdd_below {s : set ordinal} : bdd_below s :=
-⟨0, λ b _, ordinal.zero_le b⟩
-
-protected theorem ordinal.Inf_le {s : set ordinal} {a} (h : a ∈ s) : Inf s ≤ a :=
-cInf_le ⟨0, λ b _, ordinal.zero_le b⟩ h
-
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 
 protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=

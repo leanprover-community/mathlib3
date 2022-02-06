@@ -16,8 +16,8 @@ instance [has_coequalizers C] : has_equalizers Cᵒᵖ := sorry
 -- instance [has_images C] : has_images Cᵒᵖ := sorry
 instance [has_zero_morphisms C] [has_cokernels C] : has_kernels Cᵒᵖ := sorry
 
-instance exact.op [has_zero_morphisms C] [has_equalizers C] [has_images C] [has_images Cᵒᵖ]
-  [has_coequalizers C]
-  {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [exact f g] : exact g.op f.op := sorry
+instance exact.op [has_zero_morphisms C] [has_equalizers C] [has_images C]
+  [has_equalizers Cᵒᵖ] [has_images Cᵒᵖ] {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [exact f g] :
+  exact g.op f.op := sorry
 
 end category_theory

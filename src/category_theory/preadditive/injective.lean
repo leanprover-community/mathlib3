@@ -209,8 +209,8 @@ end enough_injectives
 open injective
 
 section
-variables [has_zero_morphisms C] [has_coequalizers C] [has_equalizers C]
-  [has_images C] [has_images Cᵒᵖ]
+variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
+variables [has_equalizers Cᵒᵖ] [has_images Cᵒᵖ]
 
 /--
 Given a projective object `P` mapping via `h` into

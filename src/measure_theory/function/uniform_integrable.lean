@@ -30,6 +30,7 @@ snorm (s.indicator (f i)) p μ < ennreal.of_real ε
 
 section unif_integrable
 
+variables (μ)
 variables [borel_space β] [second_countable_topology β] [is_finite_measure μ] {p : ℝ≥0∞}
 
 lemma tendsto_indicator_ge_zero (f : α → β) (x : α):
@@ -77,6 +78,13 @@ begin
       { assumption } } }
 end
 
+lemma integral_indicator_ge_le_of_lintegral_ne_top
+  (f : α → β) (hf : ∫⁻ x, ∥f x∥₊ ∂μ ≠ ∞) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
+  ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
+begin
+  sorry
+end
+
 --move
 lemma ennreal.lt_add_one {a : ℝ≥0∞} (ha : a ≠ ∞) : a < a + 1 :=
 ennreal.lt_add_right ha one_ne_zero
@@ -108,22 +116,74 @@ begin
   measurability,
 end
 
+-- lemma lt_pow_of_pow_one_div_lt
+--   {a b c : ℝ} (ha : 0 < a) (hb : 0 ≤ b) (h : b ^ (1 / a) < c) : b < c ^ a :=
+-- begin
+--   convert real.rpow_lt_rpow (real.rpow_nonneg_of_nonneg hb (1 / a)) h ha,
+--   rw [← real.rpow_mul hb, one_div_mul_cancel ha.ne.symm, real.rpow_one]
+-- end
+
+-- lemma pow_one_div_lt_iff_lt_pow
+--   {a b c : ℝ} (ha : 0 < a) (hb : 0 ≤ b) : b ^ (1 / a) < c ↔ b < c ^ a :=
+-- begin
+--   refine ⟨lt_pow_of_pow_one_div_lt ha hb, λ h, _⟩,
+--   convert real.rpow_lt_rpow hb h (one_div_pos.2 ha),
+--   rw [← real.rpow_mul, mul_one_div_cancel ha.ne.symm, real.rpow_one],
+--   sorry
+-- end
+
 -- example {f : α → β} (hf : mem_ℒp f p μ) : integrable (λ x, ∥f x∥₊ ^ p.to_real) μ :=
 
 /-- This lemma implies that a single function is uniformly integrable (in the probability sense). -/
 lemma mem_ℒp.snorm_indicator_ge_lt'
   {f : α → β} (hf : mem_ℒp f p μ)  (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
-  ∃ M : ℝ, snorm ({x | M ≤ ∥f x∥₊}.indicator f) p μ < ennreal.of_real ε :=
+  ∃ M : ℝ, snorm ({x | M ≤ ∥f x∥₊}.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
   by_cases hp_ne_zero : p = 0,
   { refine ⟨1, hp_ne_zero.symm ▸ _⟩,
-    simp only [snorm_exponent_zero, ennreal.of_real_pos, hε] },
+    simp [snorm_exponent_zero] },
   by_cases hp_ne_top : p = ∞,
   { subst hp_ne_top,
-    obtain ⟨M, hM⟩ := hf.snorm_ess_sup_indicator_ge_eq_zero hmeas,
+    obtain ⟨M, hM⟩ := hf.snorm_ess_sup_indicator_ge_eq_zero μ hmeas,
     refine ⟨M, _⟩,
-    rwa [snorm_exponent_top, hM, ennreal.of_real_pos] },
-  sorry
+    simp only [snorm_exponent_top, hM, zero_le] },
+  obtain ⟨M, hM', hM⟩ := integral_indicator_ge_le_of_lintegral_ne_top μ (λ x, ∥f x∥^p.to_real) _ _
+    (real.rpow_pos_of_pos hε p.to_real),
+  { refine ⟨M ^(1 / p.to_real), _⟩,
+    rw [snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top,
+        ← ennreal.rpow_one (ennreal.of_real ε)],
+    conv_rhs { rw ← mul_one_div_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm },
+    rw [ennreal.rpow_mul,
+        ennreal.rpow_le_rpow_iff (one_div_pos.2 $ ennreal.to_real_pos hp_ne_zero hp_ne_top),
+        ennreal.of_real_rpow_of_pos hε],
+    convert hM,
+    ext1 x,
+    rw [ennreal.coe_rpow_of_nonneg _ ennreal.to_real_nonneg,
+        nnnorm_indicator_eq_indicator_nnnorm, nnnorm_indicator_eq_indicator_nnnorm],
+    have hiff : M ^ (1 / p.to_real) ≤ ∥f x∥₊ ↔ M ≤ ∥∥f x∥ ^ p.to_real∥₊,
+    { rw [coe_nnnorm, coe_nnnorm, real.norm_rpow_of_nonneg (norm_nonneg _), norm_norm,
+          ← real.rpow_le_rpow_iff hM' (real.rpow_nonneg_of_nonneg (norm_nonneg _) _)
+          (one_div_pos.2 $ ennreal.to_real_pos hp_ne_zero hp_ne_top),
+          ← real.rpow_mul (norm_nonneg _),
+          mul_one_div_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm, real.rpow_one] },
+    by_cases hx : x ∈ {x : α | M ^ (1 / p.to_real) ≤ ∥f x∥₊},
+    { rw [set.indicator_of_mem hx,set.indicator_of_mem, real.nnnorm_of_nonneg], refl,
+      change _ ≤ _,
+      rwa ← hiff },
+    { rw [set.indicator_of_not_mem hx, set.indicator_of_not_mem],
+      { simp [(ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm] },
+      { change ¬ _ ≤ _,
+        rwa ← hiff } } },
+  { have := hf.snorm_lt_top,
+    rw snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top at this,
+    convert (ennreal.rpow_lt_top_of_nonneg (@ennreal.to_real_nonneg p) this.ne).ne,
+    rw [← ennreal.rpow_mul, one_div_mul_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm,
+        ennreal.rpow_one],
+    congr,
+    ext1 x,
+    rw [ennreal.coe_rpow_of_nonneg _ ennreal.to_real_nonneg, real.nnnorm_of_nonneg],
+    congr },
+  { exact hmeas.norm.pow_const _ }
 end
 
 lemma mem_ℒp.snorm_indicator_ge_lt {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
@@ -148,7 +208,7 @@ begin
   sorry
 end
 
-lemma snorm_sub_le_of_dist_bdd (μ : measure α) [is_finite_measure μ]
+lemma snorm_sub_le_of_dist_bdd
   {p : ℝ≥0∞} (hp : p ≠ 0) (hp' : p ≠ ∞) {s : set α} (hs : measurable_set[m] s)
   {f g : α → β} {c : ℝ} (hc : 0 ≤ c) (hf : ∀ x ∈ s, dist (f x) (g x) ≤ c) :
   snorm (s.indicator (f - g)) p μ ≤ ennreal.of_real c * μ s ^ (1 / p.to_real) :=
@@ -208,7 +268,7 @@ begin
     have hpow : 0 < (measure_univ_nnreal μ) ^ (1 / p.to_real) :=
       real.rpow_pos_of_pos (measure_univ_nnreal_pos hμ) _,
     obtain ⟨δ₁, hδ₁, hsnorm₁⟩ := hui hε',
-    obtain ⟨δ₂, hδ₂, hsnorm₂⟩ := hg'.snorm_indicator_ge_lt hε',
+    obtain ⟨δ₂, hδ₂, hsnorm₂⟩ := hg'.snorm_indicator_ge_lt μ hε',
     obtain ⟨t, htm, ht₁, ht₂⟩ := tendsto_uniformly_on_of_ae_tendsto' hf hg hfg (lt_min hδ₁ hδ₂),
     rw metric.tendsto_uniformly_on_iff at ht₂,
     specialize ht₂ (ε.to_real / (3 * measure_univ_nnreal μ ^ (1 / p.to_real)))

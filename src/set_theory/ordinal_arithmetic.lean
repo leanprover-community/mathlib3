@@ -1252,7 +1252,7 @@ variables {S : set ordinal.{u}} (hS : ¬ bdd_above S)
 -- A characterization of unboundedness that's more convenient to our purposes.
 include hS
 private lemma unbounded_aux (a) : ∃ b, b ∈ S ∧ a ≤ b :=
-let ⟨b, hb, hb'⟩ := not_bdd_above_iff.1 hS a in ⟨b, hb, hb'.le⟩
+let ⟨b, hb, hb'⟩ := not_bdd_above_iff_le.1 hS a in ⟨b, hb, hb'⟩
 
 /-- Enumerator function for an unbounded set of ordinals. -/
 def enum_ord (S : set ordinal) (hS : ¬ bdd_above S) : ordinal → ordinal :=
@@ -2163,7 +2163,7 @@ le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
 /-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
 theorem is_normal.nfp_unbounded {f} (H : is_normal f) : ¬ bdd_above (fixed_points f) :=
-not_bdd_above_iff.2 $ λ a, ⟨_, H.nfp_fp a.succ, succ_le.1 (le_nfp_self f a.succ)⟩
+not_bdd_above_iff_le.2 $ λ a, ⟨_, H.nfp_fp a, (le_nfp_self f a)⟩
 
 /-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/
 def deriv (f : ordinal → ordinal) (o : ordinal) : ordinal :=

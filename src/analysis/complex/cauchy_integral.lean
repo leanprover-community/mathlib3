@@ -307,6 +307,23 @@ begin
       _ hs hc hd
 end
 
+/-- **Cauchy theorem** for an annulus. If `f : ℂ → E` is continuous on the closed annulus
+`r ≤ ∥z - c∥ ≤ R`, `0 < r ≤ R`, and is complex differentiable at all but countably many points of
+its interior, then the integrals of `f` over the circles `∥z - c∥ = r` and `∥z - c∥ = R` are equal
+to each other. -/
+lemma circle_integral_eq_of_differentiable_on_annulus_off_countable
+  {c : ℂ} {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : countable s)
+  (hc : continuous_on f (closed_ball c R \ ball c r))
+  (hd : ∀ z ∈ ball c R \ closed_ball c r \ s, differentiable_at ℂ f z) :
+  ∮ z in C(c, R), f z = ∮ z in C(c, r), f z :=
+calc ∮ z in C(c, R), f z = ∮ z in C(c, R), (z - c)⁻¹ • (z - c) • f z :
+  (circle_integral.integral_sub_inv_smul_sub_smul _ _ _ _).symm
+... = ∮ z in C(c, r), (z - c)⁻¹ • (z - c) • f z :
+  circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable h0 hle hs
+    ((continuous_on_id.sub continuous_on_const).smul hc)
+    (λ z hz, (differentiable_at_id.sub_const _).smul (hd z hz))
+... = ∮ z in C(c, r), f z : circle_integral.integral_sub_inv_smul_sub_smul _ _ _ _
+
 /-- **Cauchy integral formula** for the value at the center of a disc. If `f` is continuous on a
 punctured closed disc of radius `R`, is differentiable at all but countably many points of the
 interior of this disc, and has a limit `y` at the center of the disc, then the integral
@@ -385,11 +402,7 @@ lemma circle_integral_eq_zero_of_differentiable_on_off_countable {R : ℝ} (h0 :
 begin
   rcases h0.eq_or_lt with rfl|h0, { apply circle_integral.integral_radius_zero },
   calc ∮ z in C(c, R), f z = ∮ z in C(c, R), (z - c)⁻¹ • (z - c) • f z :
-    begin
-      refine circle_integral.integral_congr h0.le (λ z hz, (inv_smul_smul₀ (λ h₀, _) _).symm),
-      rw [mem_sphere, dist_eq, h₀, abs_zero] at hz,
-      exact h0.ne hz
-    end
+    (circle_integral.integral_sub_inv_smul_sub_smul _ _ _ _).symm
   ... = (2 * ↑π * I : ℂ) • (c - c) • f c :
     circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable h0 hs
       ((continuous_on_id.sub continuous_on_const).smul hc)

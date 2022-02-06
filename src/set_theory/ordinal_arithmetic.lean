@@ -966,7 +966,7 @@ eq_of_forall_ge_iff $ λ a,
 by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
   intros; simp only [sup_le, true_implies_iff]; tauto
 
-theorem sup_empty {ι} [is_empty ι] {f : ι → ordinal} : sup f = 0 :=
+theorem sup_empty {ι} [is_empty ι] (f : ι → ordinal) : sup f = 0 :=
 sup_eq_zero_iff.2 is_empty_elim
 
 theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=

@@ -145,6 +145,11 @@ function.update_injective _ i
 (pi.single_injective _ _).eq_iff
 
 end
+
+/-- The mapping into a product type built from maps into each component. -/
+def prod (f' : Π i, f i) (g' : Π i, g i) : Π i, f i × g i
+| i := (f' i, g' i)
+
 end pi
 
 namespace function

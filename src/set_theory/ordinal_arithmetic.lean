@@ -702,7 +702,7 @@ protected lemma div_aux (a b : ordinal.{u}) (h : b ≠ 0) : set.nonempty {o | a 
 /-- `a / b` is the unique ordinal `o` satisfying
   `a = b * o + o'` with `o' < b`. -/
 protected def div (a b : ordinal.{u}) : ordinal.{u} :=
-if h : b = 0 then 0 else Inf {o | a < b * succ o} --(ordinal.div_aux a b h)
+if h : b = 0 then 0 else Inf {o | a < b * succ o}
 
 /-- The set in the definition of division is nonempty. -/
 theorem div_nonempty {a b : ordinal.{u}} (h : b ≠ 0) : {o | a < b * succ o}.nonempty :=

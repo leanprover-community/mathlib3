@@ -97,7 +97,7 @@ theorem coe_injective : injective (coe : subtype p → α) :=
 theorem val_injective : injective (@val _ p) :=
 coe_injective
 
-@[simp] lemma exists_subtype_mk_eq_iff {p : α → Prop} {a : subtype p} {b : α} :
+@[simp] lemma _root_.exists_subtype_mk_eq_iff {p : α → Prop} {a : subtype p} {b : α} :
   (∃ h : p b, subtype.mk b h = a) ↔ b = a :=
 begin
   refine ⟨λ ⟨h, ha⟩, congr_arg subtype.val ha, λ h, _⟩,
@@ -105,7 +105,7 @@ begin
   exact ⟨a.2, subtype.coe_eta _ _⟩,
 end
 
-@[simp] lemma exists_eq_subtype_mk_iff {p : α → Prop} {a : subtype p} {b : α} :
+@[simp] lemma _root_.exists_eq_subtype_mk_iff {p : α → Prop} {a : subtype p} {b : α} :
   (∃ h : p b, a = subtype.mk b h) ↔ ↑a = b :=
 by simp only [@eq_comm _ a, exists_subtype_mk_eq_iff, @eq_comm _ _ b]
 

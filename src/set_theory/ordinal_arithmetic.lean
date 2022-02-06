@@ -978,19 +978,27 @@ lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_we
   (sup_le.2 $ λ y, le_of_lt $ (typein_lt_typein r).2 $ hx _ $ mem_range_self y)
   (typein_lt_type r x)
 
+private theorem le_sup_equiv {s : set ordinal.{u}} (hs : small.{u} s) (a) (ha : a ∈ s) :
+  a ≤ sup.{u u} (λ x, ((@equiv_shrink s hs).symm x).val) :=
+by { convert le_sup.{u u} _ ((@equiv_shrink s hs) ⟨a, ha⟩), rw symm_apply_apply }
+
 theorem bdd_above_iff_small {s : set ordinal.{u}} : bdd_above s ↔ small.{u} s :=
 begin
-  refine ⟨_, λ h, ⟨sup.{u u} (λ x, ((@equiv_shrink s h).symm x).val), λ a ha, _⟩⟩,
-  { rintro ⟨a, h⟩,
-    suffices : small ↥(Iio a.succ),
-      from @small_subset _ _ _ (by exact λ b hb, lt_succ.2 (h hb)) this,
-    let f : a.succ.out.α → (set.Iio a.succ) := λ x, ⟨typein a.succ.out.r x, typein_lt_self x⟩,
-    have hf : surjective f := λ b, ⟨enum a.succ.out.r b.val (by { rw type_out, exact b.prop }),
-       subtype.ext (typein_enum _ _)⟩,
-    exact small_of_surjective hf },
-  { convert le_sup.{u u} _ ((@equiv_shrink s h) ⟨a, ha⟩),
-    rw symm_apply_apply }
+  refine ⟨_, λ h, ⟨sup.{u u} (λ x, ((@equiv_shrink s h).symm x).val), le_sup_equiv h⟩⟩,
+  rintro ⟨a, h⟩,
+  suffices : small ↥(Iio a.succ),
+    from @small_subset _ _ _ (by exact λ b hb, lt_succ.2 (h hb)) this,
+  let f : a.succ.out.α → (set.Iio a.succ) := λ x, ⟨typein a.succ.out.r x, typein_lt_self x⟩,
+  have hf : surjective f := λ b, ⟨enum a.succ.out.r b.val (by { rw type_out, exact b.prop }),
+      subtype.ext (typein_enum _ _)⟩,
+  exact small_of_surjective hf
 end
+
+theorem sup_eq_Sup {s : set ordinal.{u}} (hs : small.{u} s) (hne : s.nonempty) :
+  Sup s = sup.{u u} (λ x, ((@equiv_shrink s hs).symm x).val) :=
+let hs' := bdd_above_iff_small.2 hs in le_antisymm
+  ((cSup_le_iff hs' hne).2 (le_sup_equiv hs))
+  (sup_le.2 (λ x, le_cSup hs' (subtype.mem _)))
 
 private theorem sup_le_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
   [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)

@@ -444,8 +444,8 @@ section instances
 
 /- We define several instances for constants and operations on `part α` inherited from `α`. -/
 
-instance [has_zero α] : has_zero (part α) := { zero := pure 0 }
-instance [has_one α] : has_one (part α) := { one := pure 1 }
+-- instance [has_zero α] : has_zero (part α) := { zero := pure 0 }
+-- instance [has_one α] : has_one (part α) := { one := pure 1 }
 instance [has_add α] : has_add (part α) := { add := λ a b, (+) <$> a <*> b }
 instance [has_mul α] : has_mul (part α) := { mul := λ a b, (*) <$> a <*> b }
 instance [has_inv α] : has_inv (part α) := { inv := map has_inv.inv }

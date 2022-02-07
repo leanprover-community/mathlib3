@@ -979,6 +979,9 @@ by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨�
 theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=
 eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_le]
 
+theorem sup_const {ι} [hι : nonempty ι] (o : ordinal) : sup (λ _ : ι, o) = o :=
+le_antisymm (sup_le.2 (λ _, le_rfl)) (le_sup _ hι.some)
+
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
   (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
 (not_bounded_iff _).1 $ λ ⟨x, hx⟩, not_lt_of_le h $ lt_of_le_of_lt
@@ -1056,16 +1059,22 @@ end
 
 theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (hf : ∀ {a a'} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha')
-  (ho : o.is_limit) (i h) : f i h < bsup o f :=
-lt_of_lt_of_le (hf _ _ $ lt_succ_self i) (le_bsup f i.succ $ ho.2 _ h)
+  (ho : ∀ a < o, succ a < o) (i h) : f i h < bsup o f :=
+(hf _ _ $ lt_succ_self i).trans_le (le_bsup f i.succ $ ho _ h)
 
-theorem bsup_id {o} (ho : is_limit o) : bsup.{u u} o (λ x _, x) = o :=
+theorem bsup_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : bsup o (λ _ _, a) = a :=
+le_antisymm (bsup_le.2 (λ _ _, le_rfl)) (le_bsup _ 0 (ordinal.pos_iff_ne_zero.2 ho))
+
+theorem bsup_id_limit {o} (ho : ∀ a < o, succ a < o) : bsup.{u u} o (λ x _, x) = o :=
 le_antisymm (bsup_le.2 (λ i hi, hi.le))
   (not_lt.1 (λ h, (lt_bsup_of_limit.{u u} (λ _ _ _ _, id) ho _ h).false))
 
+theorem bsup_id_succ (o) : bsup.{u u} (succ o) (λ x _, x) = o :=
+le_antisymm (bsup_le.2 $ (λ o, lt_succ.1)) (le_bsup _ o (lt_succ_self o))
+
 theorem is_normal.bsup_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
   bsup.{u} o (λ x _, f x) = f o :=
-by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id h] }
+by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id_limit h.2] }
 
 /-- The least strict upper bound of a family of ordinals. -/
 def lsub {ι} (f : ι → ordinal) : ordinal :=
@@ -1082,6 +1091,14 @@ sup_le.2 $ λ i, le_of_lt (lt_lsub f i)
 
 theorem lsub_le_sup_succ {ι} (f : ι → ordinal) : lsub f ≤ succ (sup f) :=
 lsub_le.2 $ λ i, lt_succ.2 (le_sup f i)
+
+theorem sup_eq_lsub_or_sup_succ_eq_lsub {ι} (f : ι → ordinal) :
+  sup f = lsub f ∨ (sup f).succ = lsub f :=
+begin
+  cases eq_or_lt_of_le (sup_le_lsub f),
+  { exact or.inl h },
+  { exact or.inr ((succ_le.2 h).antisymm (lsub_le_sup_succ f)) }
+end
 
 theorem sup_succ_le_lsub {ι} (f : ι → ordinal) : (sup f).succ ≤ lsub f ↔ ∃ i, f i = sup f :=
 begin
@@ -1127,6 +1144,9 @@ begin
   exact this.false
 end
 
+theorem lsub_const {ι} [hι : nonempty ι] (o : ordinal) : lsub (λ _ : ι, o) = o + 1 :=
+sup_const o.succ
+
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
 
@@ -1169,6 +1189,10 @@ bsup_le.2 (λ i h, le_of_lt (lt_blsub f i h))
 theorem blsub_le_bsup_succ {o} (f : Π a < o, ordinal) : blsub o f ≤ (bsup o f).succ :=
 blsub_le.2 (λ i h, lt_succ.2 (le_bsup f i h))
 
+theorem bsup_eq_blsub_or_succ_bsup_eq_blsub {o} (f : Π a < o, ordinal) :
+  bsup o f = blsub o f ∨ succ (bsup o f) = blsub o f :=
+by { rw [bsup_eq_sup, blsub_eq_lsub], exact sup_eq_lsub_or_sup_succ_eq_lsub _ }
+
 theorem bsup_succ_le_blsub {o} (f : Π a < o, ordinal) :
   (bsup o f).succ ≤ blsub o f ↔ ∃ i hi, f i hi = bsup o f :=
 begin
@@ -1208,13 +1232,33 @@ eq_of_forall_ge_iff $ λ o,
 by rw [blsub_le, lsub_le]; exact
   ⟨λ H b, H _ _, λ H i h, by simpa only [typein_enum] using H (enum r i h)⟩
 
-theorem blsub_id {o} : blsub.{u u} o (λ x _, x) = o :=
+theorem blsub_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : blsub.{u v} o (λ _ _, a) = a + 1 :=
+bsup_const.{u v} ho a.succ
+
+theorem blsub_id (o) : blsub.{u u} o (λ x _, x) = o :=
 begin
   apply le_antisymm,
   { rw blsub_le,
     exact λ _, id },
   by_contra' h,
   exact (lt_blsub.{u u} (λ x _, x) _ h).false
+end
+
+theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
+by { have := blsub_id o, rwa blsub_eq_lsub at this }
+
+theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
+  sup.{u u} (typein o.out.r) = o :=
+by rw (sup_eq_lsub_iff_succ.{u u} (typein o.out.r)).2; rwa lsub_typein o
+
+theorem sup_typein_succ (o : ordinal) : sup.{u u} (typein o.succ.out.r) = o :=
+begin
+  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein o.succ.out.r) with h h,
+  { rw sup_eq_lsub_iff_succ at h,
+    simp only [lsub_typein] at h,
+    exact (h o (lt_succ_self o)).false.elim },
+  rw [←succ_inj, h],
+  exact lsub_typein _
 end
 
 end ordinal

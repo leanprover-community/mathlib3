@@ -21,6 +21,13 @@ the least substructure of `M` containing `s`.
 substructure `s` under the homomorphism `f`, as a substructure.
 * `first_order.language.substructure.map` is defined so that `s.map f` is the image of the
 substructure `s` under the homomorphism `f`, as a substructure.
+* `first_order.language.hom.range` is defined so that `f.map` is the range of the
+the homomorphism `f`, as a substructure.
+* `first_order.language.hom.dom_restrict` and `first_order.language.hom.cod_restrict` restrict
+the domain and codomain respectively of first-order homomorphisms to substructures.
+* `first_order.language.embedding.dom_restrict` and `first_order.language.embedding.cod_restrict`
+restrict the domain and codomain respectively of first-order embeddings to substructures.
+* `first_order.language.substructure.inclusion` is the inclusion embedding between substructures.
 
 ## Main Results
 * `L.substructure M` forms a `complete_lattice`.

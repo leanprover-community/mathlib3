@@ -39,8 +39,6 @@ This file contains the definition of cofinality of a ordinal number and regular 
 
 cofinality, regular cardinals, limits cardinals, inaccessible cardinals,
 infinite pigeonhole principle
-
-
 -/
 noncomputable theory
 
@@ -48,66 +46,15 @@ open function cardinal set
 open_locale classical cardinal
 
 universes u v w
-variables {α : Type*} {r : α → α → Prop}
-
-namespace order
-/-- Cofinality of a reflexive order `≼`. This is the smallest cardinality
-  of a subset `S : set α` such that `∀ a, ∃ b ∈ S, a ≼ b`. -/
-def cof (r : α → α → Prop) [is_refl α r] : cardinal :=
-@cardinal.min {S : set α // ∀ a, ∃ b ∈ S, r a b}
-  ⟨⟨set.univ, λ a, ⟨a, ⟨⟩, refl _⟩⟩⟩
-  (λ S, #S)
-
-lemma cof_le (r : α → α → Prop) [is_refl α r] {S : set α} (h : ∀a, ∃(b ∈ S), r a b) :
-  order.cof r ≤ #S :=
-le_trans (cardinal.min_le _ ⟨S, h⟩) le_rfl
-
-lemma le_cof {r : α → α → Prop} [is_refl α r] (c : cardinal) :
-  c ≤ order.cof r ↔ ∀ {S : set α} (h : ∀a, ∃(b ∈ S), r a b) , c ≤ #S :=
-by { rw [order.cof, cardinal.le_min], exact ⟨λ H S h, H ⟨S, h⟩, λ H ⟨S, h⟩, H h ⟩ }
-
-end order
-
-theorem rel_iso.cof.aux {α : Type u} {β : Type v} {r s}
-  [is_refl α r] [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{(max u v)} (order.cof r) ≤
-  cardinal.lift.{(max u v)} (order.cof s) :=
-begin
-  rw [order.cof, order.cof, lift_min, lift_min, cardinal.le_min],
-  intro S, cases S with S H, simp only [comp, coe_sort_coe_base, subtype.coe_mk],
-  refine le_trans (min_le _ _) _,
-  { exact ⟨f ⁻¹' S, λ a,
-    let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, ← f.map_rel_iff, h,
-      -coe_fn_coe_base, -coe_fn_coe_trans, principal_seg.coe_coe_fn', initial_seg.coe_coe_fn]⟩⟩ },
-  { exact lift_mk_le.{u v (max u v)}.2
-    ⟨⟨λ ⟨x, h⟩, ⟨f x, h⟩, λ ⟨x, h₁⟩ ⟨y, h₂⟩ h₃,
-      by congr; injection h₃ with h'; exact f.to_equiv.injective h'⟩⟩ }
-end
-
-theorem rel_iso.cof {α : Type u} {β : Type v} {r s}
-  [is_refl α r] [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{(max u v)} (order.cof r) =
-  cardinal.lift.{(max u v)} (order.cof s) :=
-le_antisymm (rel_iso.cof.aux f) (rel_iso.cof.aux f.symm)
-
-def strict_order.cof (r : α → α → Prop) [h : is_irrefl α r] : cardinal :=
-@order.cof α (λ x y, ¬ r y x) ⟨h.1⟩
 
 namespace ordinal
 
-/-- Cofinality of an ordinal. This is the smallest cardinal of a
-  subset `S` of the ordinal which is unbounded, in the sense
-  `∀ a, ∃ b ∈ S, ¬(b > a)`. It is defined for all ordinals, but
-  `cof 0 = 0` and `cof (succ o) = 1`, so it is only really
-  interesting on limit ordinals (when it is an infinite cardinal). -/
+/-- Cofinality of an ordinal. This is the smallest cardinality of a type `ι` for which some family
+  `f : ι → ordinal` has a least strict upper bound equal to the ordinal. It is defined for all
+  ordinals, but `cof 0 = 0` and `cof (succ o) = 1`, so it is only really interesting on limit
+  ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
-quot.lift_on o (λ ⟨α, r, _⟩, by exactI strict_order.cof r)
-begin
-  rintros ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨⟨f, hf⟩⟩,
-  rw ← cardinal.lift_inj,
-  apply rel_iso.cof ⟨f, _⟩,
-  simp [hf]
-end
+cardinal.inf
 
 lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r := rfl
 

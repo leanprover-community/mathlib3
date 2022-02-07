@@ -161,21 +161,23 @@ end is_primitive_root
 
 section gal
 
+variables (h : irreducible (cyclotomic n K)) {K}
+
 local attribute [instance] splitting_field_X_pow_sub_one splitting_field_cyclotomic
 
 /-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
 Galois group of `cyclotomic n K` is equivalent to `(zmod n)ˣ` if `n` does not divide the
 characteristic of `K`, and `cyclotomic n K` is irreducible in the base field. -/
-noncomputable def gal_cyclotomic_equiv_units_zmod [ne_zero ((n : ℕ) : K)]
-  (h : irreducible (cyclotomic n K)) : (cyclotomic n K).gal ≃* (zmod n)ˣ :=
+noncomputable def gal_cyclotomic_equiv_units_zmod [ne_zero ((n : ℕ) : K)] :
+  (cyclotomic n K).gal ≃* (zmod n)ˣ :=
 (alg_equiv.aut_congr (is_splitting_field.alg_equiv _ _)).symm.trans
 (is_cyclotomic_extension.aut_equiv_pow L n h)
 
 /-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
 Galois group of `X ^ n - 1` is equivalent to `(zmod n)ˣ` if `n` does not divide the characteristic
 of `K`, and `cyclotomic n K` is irreducible in the base field. -/
-noncomputable def gal_X_pow_equiv_units_zmod [ne_zero ((n : ℕ) : K)]
-  (h : irreducible (cyclotomic n K)) : (X ^ (n : ℕ) - 1).gal ≃* (zmod n)ˣ :=
+noncomputable def gal_X_pow_equiv_units_zmod [ne_zero ((n : ℕ) : K)] :
+  (X ^ (n : ℕ) - 1).gal ≃* (zmod n)ˣ :=
 (alg_equiv.aut_congr (is_splitting_field.alg_equiv _ _)).symm.trans
 (is_cyclotomic_extension.aut_equiv_pow L n h)
 

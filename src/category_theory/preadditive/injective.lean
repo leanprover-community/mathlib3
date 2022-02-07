@@ -8,7 +8,7 @@ import algebra.homology.exact
 import category_theory.types
 import category_theory.preadditive.projective
 import category_theory.limits.shapes.biproducts
-import category_theory.preadditive.scratch2
+import category_theory.abelian.exact
 
 noncomputable theory
 
@@ -209,8 +209,7 @@ end enough_injectives
 open injective
 
 section
-variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
-variables [has_equalizers Cᵒᵖ] [has_images Cᵒᵖ]
+variables [abelian C]
 
 /--
 Given a projective object `P` mapping via `h` into

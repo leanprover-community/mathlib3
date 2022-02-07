@@ -107,6 +107,20 @@ def kernel_unop_unop : kernel g.unop ≅ (cokernel g).unop :=
 def cokernel_unop_unop : cokernel g.unop ≅ (kernel g).unop :=
 (cokernel_unop_op g).unop.symm
 
+lemma cokernel.π_op : (cokernel.π f.op).unop =
+  (cokernel_op_unop f).hom ≫ kernel.ι f ≫ eq_to_hom (opposite.unop_op _).symm :=
+begin
+  dsimp [cokernel_op_unop],
+  simp,
+end
+
+lemma kernel.ι_op : (kernel.ι f.op).unop =
+  eq_to_hom (opposite.unop_op _) ≫ cokernel.π f ≫ (kernel_op_unop f).inv :=
+begin
+  dsimp [kernel_op_unop],
+  simp,
+end
+
 end
 
 end category_theory

@@ -50,7 +50,7 @@ attribute [instance, priority 100] has_injective_resolutions.out
 end
 
 namespace InjectiveResolution
-variables (C) [has_zero_object C] [has_zero_morphisms C] [has_equalizers C] [has_images C]
+variables [has_zero_object C] [has_zero_morphisms C] [has_equalizers C] [has_images C]
 
 @[simp] lemma ι_f_succ {Z : C} (P : InjectiveResolution Z) (n : ℕ) :
   P.ι.f (n+1) = 0 :=
@@ -72,6 +72,16 @@ def self (Z : C) [category_theory.injective Z] : InjectiveResolution Z :=
   exact₀ := by { dsimp, apply_instance },
   exact := λ n, by { dsimp, apply_instance, },
   mono := by { dsimp, apply_instance, }, }
+
+def desc_f_zero {Y Z : C} (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z) :
+  Q.cocomplex.X 0 ⟶ P.cocomplex.X 0 :=
+factor_of (f ≫ P.ι.f 0) (Q.ι.f 0)
+
+def desc_f_one [has_equalizers Cᵒᵖ] [has_images Cᵒᵖ] {Y Z : C}
+  (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z) :
+  Q.cocomplex.X 1 ⟶ P.cocomplex.X 1 :=
+injective.exact.desc (desc_f_zero f P Q ≫ P.cocomplex.d 0 1) (Q.ι.f 0) (Q.cocomplex.d 0 1)
+  (by simp [←category.assoc, desc_f_zero])
 
 
 end InjectiveResolution

@@ -1557,5 +1557,3 @@ instance normed_space.to_locally_convex_space [normed_space ℝ E] :
 normed_space.to_locally_convex_space' ℝ
 
 end normed_space
-
-#lint

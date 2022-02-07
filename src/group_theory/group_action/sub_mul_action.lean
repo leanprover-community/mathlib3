@@ -165,6 +165,7 @@ section mul_action_group
 
 variables [group R] [mul_action R M]
 
+/-- Stabilizers in group sub_mul_action coincide with stabilizers in the ambient space -/
 lemma stabilizer_of_sub_mul {p : sub_mul_action R M} (m : p) :
   mul_action.stabilizer R m = mul_action.stabilizer R (m : M) :=
 begin

@@ -46,24 +46,9 @@ open_locale big_operators
 
 variables {α : Type*}
 
-lemma set.pairwise_disjoint.eq_of_le {α ι : Type*} [semilattice_inf α] [order_bot α] {s : set ι}
-  {f : ι → α} (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
-  (hf : f i ≠ ⊥) (hij : f i ≤ f j) :
-  i = j :=
-begin
-  classical,
-  by_contra,
-  exact hf (disjoint_self.1 $ (hs hi hj h).mono_right hij),
-end
-
-lemma mk_mem_product {β : Type*} {s : finset α} {t : finset β} {a : α} {b : β} (ha : a ∈ s)
-  (hb : b ∈ t) :
-  (a, b) ∈ s.product t :=
-mem_product.2 ⟨ha, hb⟩
-
 /-- A finite partition of `a : α` is a pairwise disjoint finite set of elements whose supremum is
 `a`. We forbid `⊥` as a part. -/
-@[ext, derive decidable_eq] structure finpartition {α : Type*} [lattice α] [order_bot α] (a : α) :=
+@[ext, derive decidable_eq] structure finpartition [lattice α] [order_bot α] (a : α) :=
 (parts : finset α)
 (sup_indep : parts.sup_indep id)
 (sup_parts : parts.sup id = a)
@@ -128,12 +113,6 @@ lemma ne_bot {b : α} (hb : b ∈ P.parts) : b ≠ ⊥ := λ h, P.not_bot_mem $ 
 
 protected lemma disjoint : (P.parts : set α).pairwise_disjoint id := P.sup_indep.pairwise_disjoint
 
-lemma eq_empty (P : finpartition (⊥ : α)) : P = finpartition.empty α :=
-begin
-  ext a,
-  exact iff_of_false (λ h, P.ne_bot h $ le_bot_iff.1 $ P.le h) (not_mem_empty a),
-end
-
 variables {P}
 
 lemma parts_eq_empty_iff : P.parts = ∅ ↔ a = ⊥ :=
@@ -150,9 +129,13 @@ by rw [nonempty_iff_ne_empty, not_iff_not, parts_eq_empty_iff]
 
 lemma parts_nonempty (P : finpartition a) (ha : a ≠ ⊥) : P.parts.nonempty := parts_nonempty_iff.2 ha
 
-instance : unique (finpartition (⊥ : α)) := { uniq := eq_empty, ..finpartition.inhabited α }
+instance : unique (finpartition (⊥ : α)) :=
+{ uniq := λ P,
+    by { ext a, exact iff_of_false (λ h, P.ne_bot h $ le_bot_iff.1 $ P.le h) (not_mem_empty a) },
+  ..finpartition.inhabited α }
 
 /-- There's a unique partition of an atom. -/
+@[reducible] -- See note [reducible non instances]
 def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a) :=
 { default := indiscrete ha.1,
   uniq := λ P, begin
@@ -332,7 +315,7 @@ section generalized_boolean_algebra
 variables [generalized_boolean_algebra α] [decidable_eq α] {a : α} (P : finpartition a)
 
 /-- Restricts a finpartition to avoid a given element. -/
-def avoid (b : α) : finpartition (a \ b) :=
+@[simps] def avoid (b : α) : finpartition (a \ b) :=
 of_erase
   (P.parts.image (\ b))
   (P.disjoint.image_finset_of_le $ λ a, sdiff_le).sup_indep

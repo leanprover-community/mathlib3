@@ -52,45 +52,78 @@ namespace ordinal
 set_option pp.universes true
 
 /-- Cofinality of an ordinal. This is the smallest cardinality of a type `ι` for which some family
-  `f : ι → ordinal` has a least strict upper bound equal to the ordinal. It is defined for all
-  ordinals, but `cof 0 = 0` and `cof (succ o) = 1`, so it is only really interesting on limit
-  ordinals (when it is an infinite cardinal). -/
+  `f : ι → ordinal` has a `lsub` equal to the ordinal.
+
+  It is defined for all ordinals, but `cof 0 = 0` and `cof (succ o) = 1`, so it is only really
+  interesting on limit ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
 Inf {a : cardinal | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a}
+
+theorem cof_def (o : ordinal.{u}) :
+  cof o = Inf {a : cardinal | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
+rfl
 
 private theorem card_mem_cof (o : ordinal) :
   o.card ∈ {a : cardinal.{u} | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
 ⟨_, typein o.out.r, lsub_typein o, mk_ordinal_out o⟩
 
-/-- The set in the definition of `cof` is nonempty. -/
-theorem cof_nonempty {o} :
+/-- The set in the `lsub` definition of `cof` is nonempty. -/
+theorem cof_def_nonempty {o} :
   {a : cardinal | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a}.nonempty :=
 ⟨_, card_mem_cof o⟩
 
 theorem cof_le_card (o : ordinal.{u}) : cof o ≤ o.card :=
 cInf_le' (card_mem_cof o)
 
-theorem cof_eq (o : ordinal) : ∃ {ι} (f : ι → ordinal), (lsub.{u u} f = o) ∧ #ι = cof o :=
-Inf_mem cof_nonempty
+theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
+by simpa using cof_le_card c.ord
 
-theorem cof_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
+theorem exists_lsub_cof (o : ordinal) : ∃ {ι} (f : ι → ordinal), (lsub.{u u} f = o) ∧ #ι = cof o :=
+Inf_mem cof_def_nonempty
+
+theorem cof_lsub_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
 cInf_le' ⟨ι, f, rfl, rfl⟩
 
-theorem le_cof_iff {o : ordinal} {a : cardinal} :
+theorem le_cof_iff_lsub {o : ordinal} {a : cardinal} :
   a ≤ cof o ↔ ∀ {ι} (f : ι → ordinal), lsub.{u u} f = o → a ≤ #ι :=
 begin
-  apply (le_cInf_iff'' cof_nonempty).trans,
-  use λ H ι f hf, H _ ⟨ι, f, hf, rfl⟩,
+  refine (le_cInf_iff'' cof_def_nonempty).trans ⟨λ H ι f hf, H _ ⟨ι, f, hf, rfl⟩, _⟩,
   rintros H b ⟨ι, f, hf, hb⟩,
   rw ←hb,
   exact H _ hf
 end
 
+theorem exists_blsub_cof (o : ordinal) : ∃ (f : Π a < (cof o).ord, ordinal), blsub.{u u} _ f = o :=
+begin
+  rcases exists_lsub_cof o with ⟨ι, f, hf, hι⟩,
+  rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
+  rw @lsub_eq_blsub' ι r hr at hf,
+  rw [←hι, hι'],
+  exact ⟨_, hf⟩
+end
+
+theorem cof_blsub_le {o} (f : Π a < o, ordinal) : cof (blsub.{u u} o f) ≤ o.card :=
+begin
+  rw blsub_eq_lsub,
+  convert cof_lsub_le _,
+  exact (mk_ordinal_out o).symm
+end
+
+theorem le_cof_iff_blsub {b : ordinal} {a : cardinal} :
+  a ≤ cof b ↔ ∀ {o} (f : Π a < o, ordinal), blsub.{u u} o f = b → a ≤ o.card :=
+begin
+  refine le_cof_iff_lsub.trans ⟨λ H o f hf, _, λ H ι f hf, _⟩,
+   { rw blsub_eq_lsub at hf,
+    convert H _ hf,
+    exact (mk_ordinal_out o).symm },
+  { rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
+    rw @lsub_eq_blsub' ι r hr at hf,
+    have := H _ hf,
+    rwa [←hι', card_ord] at this }
+end
+
 theorem lift_cof (o) : (cof o).lift = cof o.lift :=
 sorry
-
-theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
-by simpa using cof_le_card c.ord
 
 @[simp] theorem cof_zero : cof 0 = 0 :=
 le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
@@ -98,7 +131,7 @@ le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
 @[simp] theorem cof_zero_iff {o} : cof o = 0 ↔ o = 0 :=
 begin
   refine ⟨λ h, _, by { rintro rfl, exact cof_zero }⟩,
-  rcases cof_eq o with ⟨ι, f, hf, hι⟩,
+  rcases exists_lsub_cof o with ⟨ι, f, hf, hι⟩,
   rw h at hι,
   rw [←hf, lsub_eq_zero_iff],
   exact mk_eq_zero_iff.1 hι
@@ -109,7 +142,7 @@ begin
   apply le_antisymm,
   { change (o + 1).cof ≤ 1,
     rw ←lsub_const.{u u} o,
-    exact cof_le (λ _ : punit, o),
+    exact cof_lsub_le (λ _ : punit, o),
     apply_instance },
   { by_contra' h,
     rw [←cardinal.succ_zero, cardinal.lt_succ, cardinal.le_zero, cof_zero_iff] at h,
@@ -118,10 +151,10 @@ begin
     exact this.false }
 end
 
-@[simp] theorem cof_eq_one_iff_is_succ {o} : cof.{u} o = 1 ↔ ∃ a, o = succ a :=
+@[simp] theorem cof_succ_iff {o} : cof.{u} o = 1 ↔ ∃ a, o = succ a :=
 begin
   refine ⟨λ h, _, _⟩,
-  { rcases cof_eq o with ⟨ι, f, hf, hι⟩,
+  { rcases exists_lsub_cof o with ⟨ι, f, hf, hι⟩,
     rw h at hι,
     haveI : nonempty ι := begin
       rw [←mk_ne_zero_iff, hι], exact zero_ne_one.symm
@@ -158,8 +191,8 @@ end
 
 @[simp] theorem cof_add (a b : ordinal.{u}) (h : b ≠ 0) : cof (a + b) = cof b :=
 begin
-  apply le_antisymm; apply (le_cof_iff.2 (λ ι f hf, _)),
-  { convert cof_le (λ i, a + f i),
+  apply le_antisymm; apply (le_cof_iff_lsub.2 (λ ι f hf, _)),
+  { convert cof_lsub_le (λ i, a + f i),
     refine le_antisymm
       (add_le_of_forall_add_lt h (λ c hc, _))
       (lsub_le.2 (λ i, add_lt_add_left _ _)),
@@ -170,7 +203,7 @@ begin
     { rw ← hf,
       apply lt_lsub } },
   { apply le_trans _ (mk_subtype_le (λ i, a ≤ f i)),
-    convert cof_le (λ i : {i // a ≤ f i}, f ↑i - a),
+    convert cof_lsub_le (λ i : {i // a ≤ f i}, f ↑i - a),
     refine le_antisymm (le_of_forall_lt (λ c hc, _)) (lsub_le.2 (λ i, _)),
     { by_contra' H,
       suffices : lsub.{u u} f ≤ a + c,
@@ -186,19 +219,27 @@ begin
       apply lt_lsub } }
 end
 
-@[simp] theorem cof_cof (o : ordinal) : cof (cof o).ord= cof o :=
-le_antisymm (le_trans (cof_le_card _) (by simp)) $
-induction_on o $ λ α r _, by exactI
-let ⟨S, hS, e₁⟩ := ord_cof_eq r,
-    ⟨T, hT, e₂⟩ := cof_eq (subrel r S) in begin
-  rw e₁ at e₂, rw ← e₂,
-  refine le_trans (cof_type_le {a | ∃ h, (subtype.mk a h : S) ∈ T} (λ a, _)) ⟨⟨_, _⟩⟩,
-  { rcases hS a with ⟨b, bS, br⟩,
-    rcases hT ⟨b, bS⟩ with ⟨⟨c, cS⟩, cT, cs⟩,
-    exact ⟨c, ⟨cS, cT⟩, is_order_connected.neg_trans cs br⟩ },
-  { exact λ ⟨a, h⟩, ⟨⟨a, h.fst⟩, h.snd⟩ },
-  { exact λ ⟨a, ha⟩ ⟨b, hb⟩ h,
-      by injection h with h; congr; injection h },
+@[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=
+le_antisymm ((cof_le_card _).trans (by simp)) $
+begin
+  rw le_cof_iff_blsub,
+  intros o f hf,
+  cases exists_blsub_cof a with g hg,
+  suffices : blsub.{u u} o (λ b hb, g (f b hb) (by { rw ←hf, apply lt_blsub })) = a,
+  { rw ←this,
+    exact cof_blsub_le _ },
+  {
+    apply le_antisymm, {
+      rw blsub_le,
+      intros b hb,
+      simp_rw ←hg,
+      apply lt_blsub,
+    },{
+      apply le_of_forall_lt,
+      intros b hb,
+      have := lt_blsub.{u u} f,
+    }
+  }
 end
 
 theorem omega_le_cof {o} : ω ≤ cof o ↔ is_limit o :=
@@ -213,19 +254,19 @@ begin
     cases n,
     { simp at e, simpa [e, not_zero_is_limit] using l },
     { rw [← nat_cast_succ, cof_succ] at this,
-      rw [← this, cof_eq_one_iff_is_succ] at e,
+      rw [← this, exists_lsub_cof_one_iff_is_succ] at e,
       rcases e with ⟨a, rfl⟩,
       exact not_succ_is_limit _ l } }
 end
 
 @[simp] theorem cof_omega : cof omega = ω :=
 le_antisymm
-  (by rw ← card_omega; apply cof_le_card)
+  (by rw ← card_omega; apply cof_lsub_le_card)
   (omega_le_cof.2 omega_is_limit)
 
-theorem cof_eq' (r : α → α → Prop) [is_well_order α r] (h : is_limit (type r)) :
+theorem exists_lsub_cof' (r : α → α → Prop) [is_well_order α r] (h : is_limit (type r)) :
   ∃ S : set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = cof (type r) :=
-let ⟨S, H, e⟩ := cof_eq r in
+let ⟨S, H, e⟩ := exists_lsub_cof r in
 ⟨S, λ a,
   let a' := enum r _ (h.2 _ (typein_lt_type r a)) in
   let ⟨b, h, ab⟩ := H a' in
@@ -272,10 +313,10 @@ induction_on o $ λ α r _ f H,
 by simpa using cof_bsup_le_lift.{u u} f H
 
 @[simp] theorem cof_univ : cof univ.{u v} = cardinal.univ :=
-le_antisymm (cof_le_card _) begin
+le_antisymm (cof_lsub_le_card _) begin
   refine le_of_forall_lt (λ c h, _),
   rcases lt_univ'.1 h with ⟨c, rfl⟩,
-  rcases @cof_eq ordinal.{u} (<) _ with ⟨S, H, Se⟩,
+  rcases @exists_lsub_cof ordinal.{u} (<) _ with ⟨S, H, Se⟩,
   rw [univ, ← lift_cof, ← cardinal.lift_lift, cardinal.lift_lt, ← Se],
   refine lt_of_not_ge (λ h, _),
   cases cardinal.lift_down h with a e,
@@ -414,7 +455,7 @@ theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) 
   rcases ord_eq α with ⟨r, wo, re⟩, resetI,
   have := ord_is_limit (le_trans h $ le_of_lt $ lt_succ_self _),
   rw [← αe, re] at this ⊢,
-  rcases cof_eq' r this with ⟨S, H, Se⟩,
+  rcases exists_lsub_cof' r this with ⟨S, H, Se⟩,
   rw [← Se],
   apply lt_imp_lt_of_le_imp_le
     (λ (h : #S ≤ c), mul_le_mul_right' h c),
@@ -525,7 +566,7 @@ quotient.induction_on c $ λ α h, begin
   rcases ord_eq α with ⟨r, wo, re⟩, resetI,
   have := ord_is_limit h,
   rw [mk_def, re] at this ⊢,
-  rcases cof_eq' r this with ⟨S, H, Se⟩,
+  rcases exists_lsub_cof' r this with ⟨S, H, Se⟩,
   have := sum_lt_prod (λ a:S, #{x // r x a}) (λ _, #α) (λ i, _),
   { simp only [cardinal.prod_const, cardinal.lift_id, ← Se, ← mk_sigma, power_def] at this ⊢,
     refine lt_of_le_of_lt _ this,

@@ -116,18 +116,13 @@ Any ordered group can be extended to a linear ordered group.
 theorem extend_ordered_group {α : Type u} [o : ordered_add_comm_group α]
   (h_norm : ∀ (x : α), (∃ (n : ℕ) (hn : n ≠ 0), 0 ≤ n • x) → 0 ≤ x) : -- fuchs calls this normal
   ∃ l : linear_ordered_add_comm_group α, is_finer o
-    (@linear_ordered_add_comm_group.to_ordered_add_comm_group α l)
- :=
+    (@linear_ordered_add_comm_group.to_ordered_add_comm_group α l) :=
 begin
   let S := {s | is_partial_order α s ∧
                 (∀ a b : α, s a b → ∀ c : α, s (c + a) (c + b)) ∧
                 ∀ x, (∃ (n : ℕ) (hn : n ≠ 0), s 0 (n • x)) → s 0 x },
   have hS : ∀ c, c ⊆ S → zorn.chain (≤) c → ∀ y ∈ c, (∃ ub ∈ S, ∀ z ∈ c, z ≤ ub),
   { rintro c hc₁ hc₂ s hs,
-    -- haveI := (hc₁ hs).1,
-  -- let S := (univ : set (ordered_add_comm_group α)),
-  -- have hS : ∀ c, c ⊆ S → zorn.chain is_finer c → ∀ y ∈ c, ∃ ub ∈ S, ∀ z ∈ c, is_finer z ub,
-  -- { rintro c hc₁ hc₂ s hs,
     haveI := (hc₁ hs).1.1,
     refine ⟨Sup c, _, λ z hz, le_Sup hz⟩,
     refine ⟨{ refl := _, trans := _, antisymm := _ }, _, _⟩,
@@ -183,13 +178,14 @@ begin
       simpa [← smul_add], },
     have : s (y + 0) (y + (x - y)) := hs₁a _ _ (hs₁b _ ⟨_, hpq, this⟩) y,
     simpa, },
-  have hh := h,
   rw ← hs₂ s' _ _ at h,
-  { -- case α ????
-    exact h (or.inl ⟨1, 1, by simp, refl _⟩) },
-  { have trans : ∀ (a b c : α), s' a b → s' b c → s' a c,
-    { rintro a b c ⟨pab, qab, habn, hab⟩ ⟨pbc, qbc, hbcn, hbc⟩,
-      use [pab * pbc, qab * pbc + qbc * pab],
+  { exact h (or.inl ⟨1, 1, by simp, refl _⟩) }, -- case α ????    v) in Nakada
+  { have key : ∀ (a b c : α) (pab qab : ℕ) (habn : pab ≠ 0 ∨ qab ≠ 0)
+      (hab : s (qab • (y - x)) (pab • (b - a))) (pbc qbc : ℕ) (hbcn : pbc ≠ 0 ∨ qbc ≠ 0)
+      (hbc : s (qbc • (y - x)) (pbc • (c - b))),
+      (pab * pbc ≠ 0 ∨ qab * pbc + qbc * pab ≠ 0) ∧
+      s ((qab * pbc + qbc * pab) • (y - x)) ((pab * pbc) • (c - a)),
+    { intros a b c pab qab habn hab pbc qbc hbcn hbc,
       have habp : pab ≠ 0 := hp _ _ habn hab,
       have hbcp : pbc ≠ 0 := hp _ _ hbcn hbc,
       split,
@@ -224,6 +220,10 @@ begin
         convert this _ _ pab hbc using 1,
         { rw [mul_smul, smul_comm], },
         { rw [mul_smul, smul_comm], }, }, },
+    have trans : ∀ (a b c : α), s' a b → s' b c → s' a c,
+    { rintro a b c ⟨pab, qab, habn, hab⟩ ⟨pbc, qbc, hbcn, hbc⟩,
+      use [pab * pbc, qab * pbc + qbc * pab],
+      exact key a b c pab qab habn hab pbc qbc hbcn hbc, },
     repeat {split},
     refine
       { refl := _,
@@ -235,21 +235,30 @@ begin
         or_false, zero_smul, sub_self, smul_zero', true_and],
       exact refl _, },
     { exact trans },
-    { rintros a b ⟨pab, qab, habn, hab⟩ ⟨pba, qba, hban, hba⟩,
-      apply antisymm (_ : s a b),
-      { suffices : s 0 (a - b),
-        { convert hs₁a _ _ this b,
-          { rw add_zero, },
-          { rw add_sub_cancel'_right, }, },
-        sorry, },
-      sorry,
-      -- apply hs₁b,
-      -- obtain ⟨p, q, hpq, haa⟩ := trans a b a hab hba,
-      -- have : q = 0,
-      -- sorry,
-      -- simp [this] at haa,
-      -- simp at haa,
-       },
+    { rintros a b ⟨pab, qab, habn, hab⟩ ⟨pba, qba, hban, hba⟩, -- antisymm
+      have hpabn := hp _ _ habn hab,
+      have hqabn := hp _ _ hban hba,
+      obtain ⟨keyl, keyr⟩ := key a b a pab qab habn hab pba qba hban hba,
+      simp only [sub_self, smul_zero] at keyr,
+      have : s 0 ((qab * pba + qba * pab) • (x - y)),
+      { simpa [← smul_add] using hs₁a _ _ keyr ((qab * pba + qba * pab) • (x - y)), },
+      by_cases hqs : qab = 0 ∧ qba = 0,
+      { simp only [hqs, zero_smul] at hab hba,
+        apply antisymm (_ : s a b),
+        { have := hs₁b _ ⟨_, _, hba⟩,
+          simpa using hs₁a _ _ this b,
+          tauto, },
+        { have := hs₁b _ ⟨_, _, hab⟩,
+          simpa using hs₁a _ _ this a,
+          tauto, }, },
+      exfalso,
+      have : s 0 (x - y) := hs₁b _ ⟨_, _, this⟩,
+      have := hs₁a _ _ this y,
+      simp only [add_zero, add_sub_cancel'_right] at this,
+      tauto,
+      intro hz,
+      simp only [add_eq_zero_iff, nat.mul_eq_zero] at hz,
+      tauto, },
     { rintros a b ⟨pab, qab, habn, hab⟩ c, -- homog
       use [pab, qab, habn],
       simpa, },
@@ -270,21 +279,22 @@ begin
 end
 
 
-def linear_extension (α : Type u) : Type u := α
+-- def linear_extension (α : Type u) : Type u := α
 
-noncomputable instance {α : Type u} [partial_order α] : linear_order (linear_extension α) :=
-{ le := (extend_partial_order ((≤) : α → α → Prop)).some,
-  le_refl := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.1.1.1,
-  le_trans := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.1.2.1,
-  le_antisymm := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.2.1,
-  le_total := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.2.1,
-  decidable_le := classical.dec_rel _ }
+-- noncomputable instance {α : Type u} [partial_order α] : linear_order (linear_extension α) :=
+-- { le := (extend_partial_order ((≤) : α → α → Prop)).some,
+--   le_refl := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.1.1.1,
+--   le_trans := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.1.2.1,
+--   le_antisymm := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.2.1,
+--   le_total := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.2.1,
+--   decidable_le := classical.dec_rel _ }
 
-/-- The embedding of `α` into `linear_extension α` as a relation homomorphism. -/
-def to_linear_extension {α : Type u} [partial_order α] :
-  ((≤) : α → α → Prop) →r ((≤) : linear_extension α → linear_extension α → Prop) :=
-{ to_fun := λ x, x,
-  map_rel' := λ a b, (extend_partial_order ((≤) : α → α → Prop)).some_spec.some_spec _ _ }
+-- /-- The embedding of `α` into `linear_extension α` as a relation homomorphism. -/
+-- def to_linear_extension {α : Type u} [partial_order α] :
+--   ((≤) : α → α → Prop) →r ((≤) : linear_extension α → linear_extension α → Prop) :=
+-- { to_fun := λ x, x,
+--   map_rel' := λ a b, (extend_partial_order ((≤) : α → α → Prop)).some_spec.some_spec _ _ }
 
-instance {α : Type u} [inhabited α] : inhabited (linear_extension α) :=
-⟨(default : α)⟩
+-- instance {α : Type u} [inhabited α] : inhabited (linear_extension α) :=
+-- ⟨(default : α)⟩
+--

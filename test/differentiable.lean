@@ -2,7 +2,6 @@ import analysis.special_functions.trigonometric.deriv
 import analysis.special_functions.log_deriv
 
 namespace real
-open_locale polynomial
 
 example : differentiable ℝ (λ (x : ℝ), exp x) :=
 by simp
@@ -65,6 +64,7 @@ by simp [exp_ne_zero]
 end complex
 
 namespace polynomial
+open_locale polynomial
 
 variables {R : Type*} [comm_semiring R]
 

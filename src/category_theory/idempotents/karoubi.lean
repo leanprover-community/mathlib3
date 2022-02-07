@@ -79,6 +79,7 @@ begin
   { ext, }
 end
 
+@[simp]
 lemma p_comp {P Q : karoubi C} (f : hom P Q) : P.p ≫ f.f = f.f :=
 by rw [f.comm, ← assoc, P.idempotence]
 

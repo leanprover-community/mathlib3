@@ -24,13 +24,13 @@ Finally, we use this to show unique factorization domains are integrally closed.
  * https://en.wikipedia.org/wiki/Rational_root_theorem
 -/
 
+open_locale polynomial
 section scale_roots
 
 variables {A K R S : Type*} [comm_ring A] [field K] [comm_ring R] [comm_ring S]
 variables {M : submonoid A} [algebra A S] [is_localization M S] [algebra A K] [is_fraction_ring A K]
 
 open finsupp is_fraction_ring is_localization polynomial
-open_locale polynomial
 
 lemma scale_roots_aeval_eq_zero_of_aeval_mk'_eq_zero {p : A[X]} {r : A} {s : M}
   (hr : aeval (mk' S r s) p = 0) :

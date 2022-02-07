@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Copyright (c) 2022 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
@@ -151,7 +151,7 @@ by rw [nonempty_iff_ne_empty, not_iff_not, parts_eq_empty_iff]
 lemma parts_nonempty (P : finpartition a) (ha : a ≠ ⊥) : P.parts.nonempty :=
 parts_nonempty_iff.2 ha
 
-instance : unique (finpartition (⊥ : α)) := { uniq := eq_empty ..finpartition.inhabited α }
+instance : unique (finpartition (⊥ : α)) := { uniq := eq_empty, ..finpartition.inhabited α }
 
 /-- There's a unique partition of an atom. -/
 def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a) :=
@@ -180,15 +180,6 @@ variables (a)
 /-- We say that `P ≤ Q` if `P` refines `Q`: each part of `P` is less than some part of `Q`. -/
 instance : has_le (finpartition a) := ⟨λ P Q, ∀ ⦃b⦄, b ∈ P.parts → ∃ c ∈ Q.parts, b ≤ c⟩
 
-def finpartition.Ici_aux_parts {α : Type*} [distrib_lattice α] [decidable_eq α] [order_bot α]
-  (a : α) (P : finpartition a) :
-  finset (finpartition a) :=
-(P.parts.powerset.powerset.filter
-  (λ (i : finset (finset α)), i.sup_indep id ∧ i.sup id = P.parts ∧ ∅ ∉ i)).attach.image $ λ j,
-{ parts := (j : finset (finset α)).image (λ k, finset.sup k id),
-
-} -- yucky but I think it'll work
-
 instance : partial_order (finpartition a) :=
 { le_refl := λ P b hb, ⟨b, hb, le_rfl⟩,
   le_trans := λ P Q R hPQ hQR b hb, begin
@@ -208,7 +199,7 @@ instance : partial_order (finpartition a) :=
       rwa hbc.antisymm,
       rwa Q.disjoint.eq_of_le hb hd (Q.ne_bot hb) (hbc.trans hcd) }
   end,
-  .. finpartition.has_le a }
+   finpartition.has_le a }
 
 instance [decidable (a = ⊥)] : order_top (finpartition a) :=
 { top := if ha : a = ⊥ then (finpartition.empty α).copy ha.symm else indiscrete ha,
@@ -219,59 +210,6 @@ instance [decidable (a = ⊥)] : order_top (finpartition a) :=
       simpa [h, P.ne_bot hx] using P.le hx },
     { exact λ b hb, ⟨a, mem_singleton_self _, P.le hb⟩ }
   end }
-
-instance {α : Type*} [decidable_eq α] [distrib_lattice α] [order_bot α] (a : α) :
-  has_inf (finpartition a) :=
-⟨λ P Q, of_erase ((P.parts.product Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
-  begin
-    rw sup_indep_iff_disjoint_erase,
-    simp only [mem_image, and_imp, exists_prop, forall_exists_index, id.def, prod.exists,
-      mem_product, finset.disjoint_sup_right, mem_erase, ne.def],
-    rintro _ x₁ y₁ hx₁ hy₁ rfl _ h x₂ y₂ hx₂ hy₂ rfl,
-    rcases eq_or_ne x₁ x₂ with rfl | xdiff,
-    { refine disjoint.mono inf_le_right inf_le_right (Q.disjoint hy₁ hy₂ _),
-      intro t,
-      simpa [t] using h },
-    exact disjoint.mono inf_le_left inf_le_left (P.disjoint hx₁ hx₂ xdiff),
-  end
-  begin
-    rw [sup_image, comp.left_id, sup_product_left],
-    simp_rw [finset.sup_inf_left, finset.sup_inf_right],
-    erw [P.sup_parts, Q.sup_parts, inf_idem],
-  end⟩
-
-instance [decidable_eq α] : has_sup (finpartition a) :=
-⟨λ P Q,
-  { parts := sorry,
-    sup_indep := sorry,
-    sup_parts := sorry,
-    not_bot_mem := sorry }⟩
-
-instance [decidable_eq α] : lattice (finpartition a) :=
-{ le_sup_left := _,
-  le_sup_right := _,
-  sup_le := _,
-  inf_le_left := λ P Q b hb, begin
-    obtain ⟨c, hc, rfl⟩ := mem_image.1 (mem_of_mem_erase hb),
-    rw mem_product at hc,
-    exact ⟨c.1, hc.1, inf_le_left⟩,
-  end,
-  inf_le_right := λ P Q b hb, begin
-    obtain ⟨c, hc, rfl⟩ := mem_image.1 (mem_of_mem_erase hb),
-    rw mem_product at hc,
-    exact ⟨c.2, hc.2, inf_le_right⟩,
-  end,
-  le_inf := λ P Q R hPQ hPR b hb, begin
-    obtain ⟨c, hc, hbc⟩ := hPQ hb,
-    obtain ⟨d, hd, hbd⟩ := hPR hb,
-    have h := _root_.le_inf hbc hbd,
-    refine ⟨c ⊓ d, mem_erase_of_ne_of_mem (ne_bot_of_le_ne_bot (P.ne_bot hb) h)
-      (mem_image.2 ⟨(c, d), mem_product.2 ⟨hc, hd⟩, rfl⟩), h⟩,
-  end,
-  .. finpartition.partial_order a,
-  .. finpartition.has_inf a,
-  .. finpartition.has_sup a }
-
 
 end order
 
@@ -346,6 +284,50 @@ card_insert_of_not_mem $ λ h, hb $ hab.symm.eq_bot_of_le $ P.le h
 
 end lattice
 
+section distrib_lattice
+variables [distrib_lattice α] [order_bot α] [decidable_eq α]
+
+instance (a : α) : has_inf (finpartition a) :=
+⟨λ P Q, of_erase ((P.parts.product Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
+  begin
+    rw sup_indep_iff_disjoint_erase,
+    simp only [mem_image, and_imp, exists_prop, forall_exists_index, id.def, prod.exists,
+      mem_product, finset.disjoint_sup_right, mem_erase, ne.def],
+    rintro _ x₁ y₁ hx₁ hy₁ rfl _ h x₂ y₂ hx₂ hy₂ rfl,
+    rcases eq_or_ne x₁ x₂ with rfl | xdiff,
+    { refine disjoint.mono inf_le_right inf_le_right (Q.disjoint hy₁ hy₂ _),
+      intro t,
+      simpa [t] using h },
+    exact disjoint.mono inf_le_left inf_le_left (P.disjoint hx₁ hx₂ xdiff),
+  end
+  begin
+    rw [sup_image, comp.left_id, sup_product_left],
+    simp_rw [finset.sup_inf_left, finset.sup_inf_right],
+    erw [P.sup_parts, Q.sup_parts, inf_idem],
+  end⟩
+
+instance (a : α) : semilattice_inf (finpartition a) :=
+{ inf_le_left := λ P Q b hb, begin
+    obtain ⟨c, hc, rfl⟩ := mem_image.1 (mem_of_mem_erase hb),
+    rw mem_product at hc,
+    exact ⟨c.1, hc.1, inf_le_left⟩,
+  end,
+  inf_le_right := λ P Q b hb, begin
+    obtain ⟨c, hc, rfl⟩ := mem_image.1 (mem_of_mem_erase hb),
+    rw mem_product at hc,
+    exact ⟨c.2, hc.2, inf_le_right⟩,
+  end,
+  le_inf := λ P Q R hPQ hPR b hb, begin
+    obtain ⟨c, hc, hbc⟩ := hPQ hb,
+    obtain ⟨d, hd, hbd⟩ := hPR hb,
+    have h := _root_.le_inf hbc hbd,
+    refine ⟨c ⊓ d, mem_erase_of_ne_of_mem (ne_bot_of_le_ne_bot (P.ne_bot hb) h)
+      (mem_image.2 ⟨(c, d), mem_product.2 ⟨hc, hd⟩, rfl⟩), h⟩,
+  end,
+  ..finpartition.partial_order a, ..finpartition.has_inf a }
+
+end distrib_lattice
+
 section generalized_boolean_algebra
 variables [generalized_boolean_algebra α] [decidable_eq α] {a : α} (P : finpartition a)
 
@@ -413,7 +395,7 @@ instance (s : finset α) : order_bot (finpartition s) :=
     obtain ⟨t, ht, hat⟩ := P.exists_mem ha,
     exact ⟨t, ht, singleton_subset_iff.2 hat⟩,
   end,
-  .. finpartition.has_bot s }
+  ..finpartition.has_bot s }
 
 section atomise
 

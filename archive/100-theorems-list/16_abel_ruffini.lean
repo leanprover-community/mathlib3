@@ -24,6 +24,7 @@ Then all that remains is the construction of a specific polynomial satisfying th
 namespace abel_ruffini
 
 open function polynomial polynomial.gal ideal
+open_locale polynomial
 
 local attribute [instance] splits_ℚ_ℂ
 

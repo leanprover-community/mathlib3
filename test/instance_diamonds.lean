@@ -14,6 +14,7 @@ import data.complex.module
 
 /-! ## Scalar action instances -/
 section has_scalar
+open_locale polynomial
 
 example :
   (sub_neg_monoid.has_scalar_int : has_scalar ℤ ℂ) = (complex.has_scalar : has_scalar ℤ ℂ) :=

@@ -73,8 +73,8 @@ cInf_le' (card_mem_cof o)
 theorem cof_eq (o : ordinal) : ∃ {ι} (f : ι → ordinal), (lsub.{u u} f = o) ∧ #ι = cof o :=
 Inf_mem cof_nonempty
 
-theorem cof_le (o : ordinal) {ι} (f : ι → ordinal) (hf : lsub.{u u} f = o) : cof o ≤ #ι :=
-cInf_le' ⟨ι, f, hf, rfl⟩
+theorem cof_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
+cInf_le' ⟨ι, f, rfl, rfl⟩
 
 theorem le_cof_iff {o : ordinal} {a : cardinal} :
   a ≤ cof o ↔ ∀ {ι} (f : ι → ordinal), lsub.{u u} f = o → a ≤ #ι :=
@@ -107,7 +107,10 @@ end
 @[simp] theorem cof_succ (o : ordinal.{u}) : cof (succ o) = 1 :=
 begin
   apply le_antisymm,
-  { exact cof_le o.succ (λ _ : punit, o) (lsub_const o) },
+  { change (o + 1).cof ≤ 1,
+    rw ←lsub_const.{u u} o,
+    exact cof_le (λ _ : punit, o),
+    apply_instance },
   { by_contra' h,
     rw [←cardinal.succ_zero, cardinal.lt_succ, cardinal.le_zero, cof_zero_iff] at h,
     have := succ_pos o,
@@ -116,52 +119,71 @@ begin
 end
 
 @[simp] theorem cof_eq_one_iff_is_succ {o} : cof.{u} o = 1 ↔ ∃ a, o = succ a :=
-⟨induction_on o $ λ α r _ z, begin
-  resetI,
-  rcases cof_eq r with ⟨S, hl, e⟩, rw z at e,
-  cases mk_ne_zero_iff.1 (by rw e; exact one_ne_zero) with a,
-  refine ⟨typein r a, eq.symm $ quotient.sound
-    ⟨rel_iso.of_surjective (rel_embedding.of_monotone _
-      (λ x y, _)) (λ x, _)⟩⟩,
-  { apply sum.rec; [exact subtype.val, exact λ _, a] },
-  { rcases x with x|⟨⟨⟨⟩⟩⟩; rcases y with y|⟨⟨⟨⟩⟩⟩;
-      simp [subrel, order.preimage, empty_relation],
-    exact x.2 },
-  { suffices : r x a ∨ ∃ (b : punit), ↑a = x, {simpa},
-    rcases trichotomous_of r x a with h|h|h,
-    { exact or.inl h },
-    { exact or.inr ⟨punit.star, h.symm⟩ },
-    { rcases hl x with ⟨a', aS, hn⟩,
-      rw (_ : ↑a = a') at h, {exact absurd h hn},
-      refine congr_arg subtype.val (_ : a = ⟨a', aS⟩),
-      haveI := le_one_iff_subsingleton.1 (le_of_eq e),
-      apply subsingleton.elim } }
-end, λ ⟨a, e⟩, by simp [e]⟩
+begin
+  refine ⟨λ h, _, _⟩,
+  { rcases cof_eq o with ⟨ι, f, hf, hι⟩,
+    rw h at hι,
+    haveI : nonempty ι := begin
+      rw [←mk_ne_zero_iff, hι], exact zero_ne_one.symm
+    end,
+    let i := classical.arbitrary ι,
+    haveI : subsingleton ι := by rw [←le_one_iff_subsingleton, hι],
+    use f i,
+    have : f = (λ _, f i) := begin
+      funext, rw subsingleton.elim x i,
+    end,
+    rw [this, lsub_const] at hf,
+    exact hf.symm },
+  { rintro ⟨a, rfl⟩,
+    exact cof_succ a }
+end
 
-@[simp] theorem cof_add (a b : ordinal) : b ≠ 0 → cof (a + b) = cof b :=
-induction_on a $ λ α r _, induction_on b $ λ β s _ b0, begin
-  resetI,
-  change cof (type _) = _,
-  refine eq_of_forall_le_iff (λ c, _),
-  rw [le_cof_type, le_cof_type],
-  split; intros H S hS,
-  { refine le_trans (H {a | sum.rec_on a (∅:set α) S} (λ a, _)) ⟨⟨_, _⟩⟩,
-    { cases a with a b,
-      { cases type_ne_zero_iff_nonempty.1 b0 with b,
-        rcases hS b with ⟨b', bs, _⟩,
-        exact ⟨sum.inr b', bs, by simp⟩ },
-      { rcases hS b with ⟨b', bs, h⟩,
-        exact ⟨sum.inr b', bs, by simp [h]⟩ } },
-    { exact λ a, match a with ⟨sum.inr b, h⟩ := ⟨b, h⟩ end },
-    { exact λ a b, match a, b with
-        ⟨sum.inr a, h₁⟩, ⟨sum.inr b, h₂⟩, h := by congr; injection h
-      end } },
-  { refine le_trans (H (sum.inr ⁻¹' S) (λ a, _)) ⟨⟨_, _⟩⟩,
-    { rcases hS (sum.inr a) with ⟨a'|b', bs, h⟩; simp at h,
-      { cases h }, { exact ⟨b', bs, h⟩ } },
-    { exact λ ⟨a, h⟩, ⟨_, h⟩ },
-    { exact λ ⟨a, h₁⟩ ⟨b, h₂⟩ h,
-        by injection h with h; congr; injection h } }
+-- TODO: Put elsewhere.
+theorem add_le_of_forall_add_lt {a b c : ordinal} (hb : b ≠ 0) (h : ∀ d < b, a + d < c) :
+  a + b ≤ c :=
+begin
+  have hac : a ≤ c := begin
+    rw ←ordinal.pos_iff_ne_zero at hb,
+    convert (h _ hb).le,
+    rw add_zero,
+  end,
+  have haca : a + (c - a) = c := by rwa ordinal.add_sub_cancel_of_le,
+  rw ←haca,
+  refine add_le_add_left _ a,
+  by_contra' hb,
+  have := h _ hb,
+  rwa haca at this,
+  exact this.false
+end
+
+@[simp] theorem cof_add (a b : ordinal.{u}) (h : b ≠ 0) : cof (a + b) = cof b :=
+begin
+  apply le_antisymm; apply (le_cof_iff.2 (λ ι f hf, _)),
+  { convert cof_le (λ i, a + f i),
+    refine le_antisymm
+      (add_le_of_forall_add_lt h (λ c hc, _))
+      (lsub_le.2 (λ i, add_lt_add_left _ _)),
+    { by_contra' H,
+      rw lsub_le at H,
+      rw ←hf at hc,
+      exact (lsub_le.{u u}.2 (λ i, (add_lt_add_iff_left a).1 (H i))).not_lt hc },
+    { rw ← hf,
+      apply lt_lsub } },
+  { apply le_trans _ (mk_subtype_le (λ i, a ≤ f i)),
+    convert cof_le (λ i : {i // a ≤ f i}, f ↑i - a),
+    refine le_antisymm (le_of_forall_lt (λ c hc, _)) (lsub_le.2 (λ i, _)),
+    { by_contra' H,
+      suffices : lsub.{u u} f ≤ a + c,
+      { rw hf at this,
+        exact this.not_lt (add_lt_add_left hc a) },
+      rw lsub_le at *,
+      intro i,
+      cases le_or_lt a (f i) with hi ha,
+      { have : f i - a < c := H ⟨i, hi⟩,
+        rwa [←add_lt_add_iff_left a, ordinal.add_sub_cancel_of_le hi] at this },
+      { exact ha.trans_le (le_add_right a c) } },
+    { rw [←add_lt_add_iff_left a, ordinal.add_sub_cancel_of_le i.prop, ←hf],
+      apply lt_lsub } }
 end
 
 @[simp] theorem cof_cof (o : ordinal) : cof (cof o).ord= cof o :=

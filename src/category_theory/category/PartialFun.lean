@@ -82,8 +82,9 @@ noncomputable def PartialFun_to_Pointed : PartialFun ⥤ Pointed :=
 by classical; exact
 { obj := λ X, ⟨option X, none⟩,
   map := λ X Y f, ⟨λ o, o.elim none (λ a, (f a).to_option), rfl⟩,
-  map_id' := λ X, Pointed.hom.ext _ _ $ funext $ λ o, rec_on o rfl (λ a, part.some_to_option _),
-  map_comp' := λ X Y Z f g, Pointed.hom.ext _ _ $ funext $ λ o, rec_on o rfl $ λ a,
+  map_id' := λ X, Pointed.hom.ext _ _ $ funext $ λ o,
+    option.rec_on o rfl $ λ a, part.some_to_option _,
+  map_comp' := λ X Y Z f g, Pointed.hom.ext _ _ $ funext $ λ o, option.rec_on o rfl $ λ a,
     part.bind_to_option _ _ }
 
 /-- The equivalence induced by `PartialFun_to_Pointed` and `Pointed_to_PartialFun`.
@@ -120,18 +121,19 @@ equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
   (nat_iso.of_components (λ X,
     { hom := ⟨λ a, a.elim X.point subtype.val, rfl⟩,
       inv := ⟨λ a, if h : a = X.point then none else some ⟨_, h⟩, dif_pos rfl⟩,
-      hom_inv_id' := Pointed.hom.ext _ _ $ funext $ λ a, rec_on a (dif_pos rfl) $ λ a,
-        (dif_neg a.2).trans by { simp only [elim, subtype.val_eq_coe, subtype.coe_eta], refl },
+      hom_inv_id' := Pointed.hom.ext _ _ $ funext $ λ a, option.rec_on a (dif_pos rfl) $ λ a,
+        (dif_neg a.2).trans $
+        by { simp only [option.elim, subtype.val_eq_coe, subtype.coe_eta], refl },
       inv_hom_id' := Pointed.hom.ext _ _ $ funext $ λ a, begin
-          change elim (dite _ _ _) _ _ = _,
+          change option.elim (dite _ _ _) _ _ = _,
           split_ifs,
           { rw h, refl },
           { refl }
-        end }) $ λ X Y f, Pointed.hom.ext _ _ $ funext $ λ a, rec_on a f.map_point.symm $ λ a,
-    begin
+        end }) $ λ X Y f, Pointed.hom.ext _ _ $ funext $ λ a, option.rec_on a f.map_point.symm $
+    λ a, begin
       unfold_projs,
-      change elim (elim _ _ _) _ _ = _,
-      rw [elim, part.elim_to_option],
+      change option.elim (option.elim _ _ _) _ _ = _,
+      rw [option.elim, part.elim_to_option],
       split_ifs,
       { refl },
       { exact eq.symm (of_not_not h) }
@@ -145,4 +147,4 @@ nat_iso.of_components (λ X, { hom := ⟨id, rfl⟩,
                               inv := ⟨id, rfl⟩,
                               hom_inv_id' := rfl,
                               inv_hom_id' := rfl }) $ λ X Y f,
-  Pointed.hom.ext _ _ $ funext $ λ a, rec_on a rfl $ λ a, by convert part.some_to_option _
+  Pointed.hom.ext _ _ $ funext $ λ a, option.rec_on a rfl $ λ a, by convert part.some_to_option _

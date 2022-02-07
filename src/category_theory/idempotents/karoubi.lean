@@ -17,7 +17,6 @@ In this file, we define the Karoubi envelope `karoubi C` of a category `C`.
 
 - `karoubi C` is the Karoubi envelope of a category `C`: it is an idempotent
 complete category. It is also preadditive when `C` is preadditive.
-- `karoubi_is_idempotent_complete C` says that `karoubi C` is idempotent complete.
 - `to_karoubi C : C ⥤ karoubi C` is a fully faithful functor, which is an equivalence
 (`to_karoubi_is_equivalence`) when `C` is idempotent complete.
 

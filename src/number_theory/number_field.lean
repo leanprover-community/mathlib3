@@ -52,7 +52,7 @@ include nf
 -- See note [lower instance priority]
 attribute [priority 100, instance] number_field.to_char_zero number_field.to_finite_dimensional
 
-protected lemma is_algebraic : algebra.is_algebraic ℚ K := algebra.is_algebraic_of_finite
+protected lemma is_algebraic : algebra.is_algebraic ℚ K := algebra.is_algebraic_of_finite _ _
 
 omit nf
 

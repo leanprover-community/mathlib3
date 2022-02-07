@@ -678,4 +678,3 @@ end substructure
 
 end language
 end first_order
-#lint

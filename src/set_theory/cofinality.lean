@@ -49,90 +49,45 @@ universes u v w
 
 namespace ordinal
 
+set_option pp.universes true
+
 /-- Cofinality of an ordinal. This is the smallest cardinality of a type `ι` for which some family
   `f : ι → ordinal` has a least strict upper bound equal to the ordinal. It is defined for all
   ordinals, but `cof 0 = 0` and `cof (succ o) = 1`, so it is only really interesting on limit
   ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
-cardinal.inf
+Inf {a : cardinal | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a}
 
-lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r := rfl
+private theorem card_mem_cof (o : ordinal) :
+  o.card ∈ {a : cardinal.{u} | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
+⟨_, typein o.out.r, lsub_typein o, mk_ordinal_out o⟩
 
-theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔
-  ∀ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) → c ≤ #S :=
-by dsimp [cof, strict_order.cof, order.cof, type, quotient.mk, quot.lift_on];
-   rw [cardinal.le_min, subtype.forall]; refl
+/-- The set in the definition of `cof` is nonempty. -/
+theorem cof_nonempty {o} :
+  {a : cardinal | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a}.nonempty :=
+⟨_, card_mem_cof o⟩
 
-theorem cof_type_le [is_well_order α r] (S : set α) (h : ∀ a, ∃ b ∈ S, ¬ r b a) :
-  cof (type r) ≤ #S :=
-le_cof_type.1 le_rfl S h
+theorem cof_le_card (o : ordinal.{u}) : cof o ≤ o.card :=
+cInf_le' (card_mem_cof o)
 
-theorem lt_cof_type [is_well_order α r] (S : set α) (hl : #S < cof (type r)) :
-  ∃ a, ∀ b ∈ S, r b a :=
-not_forall_not.1 $ λ h, not_le_of_lt hl $ cof_type_le S (λ a, not_ball.1 (h a))
+theorem cof_eq (o : ordinal) : ∃ {ι} (f : ι → ordinal), (lsub.{u u} f = o) ∧ #ι = cof o :=
+Inf_mem cof_nonempty
 
-theorem cof_eq (r : α → α → Prop) [is_well_order α r] :
-  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ #S = cof (type r) :=
+theorem cof_le (o : ordinal) {ι} (f : ι → ordinal) (hf : lsub.{u u} f = o) : cof o ≤ #ι :=
+cInf_le' ⟨ι, f, hf, rfl⟩
+
+theorem le_cof_iff {o : ordinal} {a : cardinal} :
+  a ≤ cof o ↔ ∀ {ι} (f : ι → ordinal), lsub.{u u} f = o → a ≤ #ι :=
 begin
-  have : ∃ i, cof (type r) = _,
-  { dsimp [cof, order.cof, type, quotient.mk, quot.lift_on],
-    apply cardinal.min_eq },
-  exact let ⟨⟨S, hl⟩, e⟩ := this in ⟨S, hl, e.symm⟩,
-end
-
-theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
-  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ type (subrel r S) = (cof (type r)).ord :=
-let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
-    T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
-begin
-  resetI, suffices,
-  { refine ⟨T, this,
-      le_antisymm _ (cardinal.ord_le.2 $ cof_type_le T this)⟩,
-    rw [← e, e'],
-    refine type_le'.2 ⟨rel_embedding.of_monotone
-      (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
-    rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
-    change s ⟨a, _⟩ ⟨b, _⟩,
-    refine ((trichotomous_of s _ _).resolve_left (λ hn, _)).resolve_left _,
-    { exact asymm h (ha _ hn) },
-    { intro e, injection e with e, subst b,
-      exact irrefl _ h } },
-  { intro a,
-    have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
-    let b := (is_well_order.wf).min _ this,
-    have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
-    refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
-    rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
-    exact (is_well_order.wf).not_lt_min _ this
-      (is_order_connected.neg_trans h ba) }
+  apply (le_cInf_iff'' cof_nonempty).trans,
+  use λ H ι f hf, H _ ⟨ι, f, hf, rfl⟩,
+  rintros H b ⟨ι, f, hf, hb⟩,
+  rw ←hb,
+  exact H _ hf
 end
 
 theorem lift_cof (o) : (cof o).lift = cof o.lift :=
-induction_on o $ begin introsI α r _,
-  cases lift_type r with _ e, rw e,
-  apply le_antisymm,
-  { unfreezingI { refine le_cof_type.2 (λ S H, _) },
-    have : (#(ulift.up ⁻¹' S)).lift ≤ #S :=
-     ⟨⟨λ ⟨⟨x, h⟩⟩, ⟨⟨x⟩, h⟩,
-       λ ⟨⟨x, h₁⟩⟩ ⟨⟨y, h₂⟩⟩ e, by simp at e; congr; injection e⟩⟩,
-    refine le_trans (cardinal.lift_le.2 $ cof_type_le _ _) this,
-    exact λ a, let ⟨⟨b⟩, bs, br⟩ := H ⟨a⟩ in ⟨b, bs, br⟩ },
-  { rcases cof_eq r with ⟨S, H, e'⟩,
-    have : #(ulift.down ⁻¹' S) ≤ (#S).lift :=
-     ⟨⟨λ ⟨⟨x⟩, h⟩, ⟨⟨x, h⟩⟩,
-       λ ⟨⟨x⟩, h₁⟩ ⟨⟨y⟩, h₂⟩ e, by simp at e; congr; injections⟩⟩,
-    rw e' at this,
-    unfreezingI { refine le_trans (cof_type_le _ _) this },
-    exact λ ⟨a⟩, let ⟨b, bs, br⟩ := H a in ⟨⟨b⟩, bs, br⟩ }
-end
-
-theorem cof_le_card (o) : cof o ≤ card o :=
-induction_on o $ λ α r _, begin
-  resetI,
-  have : #(@set.univ α) = card (type r) :=
-    quotient.sound ⟨equiv.set.univ _⟩,
-  rw ← this, exact cof_type_le set.univ (λ a, ⟨a, ⟨⟩, irrefl a⟩)
-end
+sorry
 
 theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
 by simpa using cof_le_card c.ord
@@ -140,25 +95,24 @@ by simpa using cof_le_card c.ord
 @[simp] theorem cof_zero : cof 0 = 0 :=
 le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
 
-@[simp] theorem cof_eq_zero {o} : cof o = 0 ↔ o = 0 :=
-⟨induction_on o $ λ α r _ z, by exactI
-  let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_is_empty.2 $
-  ⟨λ a, let ⟨b, h, _⟩ := hl a in
-    (mk_eq_zero_iff.1 (e.trans z)).elim' ⟨_, h⟩⟩,
-λ e, by simp [e]⟩
+@[simp] theorem cof_zero_iff {o} : cof o = 0 ↔ o = 0 :=
+begin
+  refine ⟨λ h, _, by { rintro rfl, exact cof_zero }⟩,
+  rcases cof_eq o with ⟨ι, f, hf, hι⟩,
+  rw h at hι,
+  rw [←hf, lsub_eq_zero_iff],
+  exact mk_eq_zero_iff.1 hι
+end
 
-@[simp] theorem cof_succ (o) : cof (succ o) = 1 :=
+@[simp] theorem cof_succ (o : ordinal.{u}) : cof (succ o) = 1 :=
 begin
   apply le_antisymm,
-  { refine induction_on o (λ α r _, _),
-    change cof (type _) ≤ _,
-    rw [← (_ : #_ = 1)], apply cof_type_le,
-    { refine λ a, ⟨sum.inr punit.star, set.mem_singleton _, _⟩,
-      rcases a with a|⟨⟨⟨⟩⟩⟩; simp [empty_relation] },
-    { rw [cardinal.mk_fintype, set.card_singleton], simp } },
-  { rw [← cardinal.succ_zero, cardinal.succ_le],
-    simpa [lt_iff_le_and_ne, cardinal.zero_le] using
-      λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }
+  { exact cof_le o.succ (λ _ : punit, o) (lsub_const o) },
+  { by_contra' h,
+    rw [←cardinal.succ_zero, cardinal.lt_succ, cardinal.le_zero, cof_zero_iff] at h,
+    have := succ_pos o,
+    rw h at this,
+    exact this.false }
 end
 
 @[simp] theorem cof_eq_one_iff_is_succ {o} : cof.{u} o = 1 ↔ ∃ a, o = succ a :=

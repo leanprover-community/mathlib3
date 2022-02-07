@@ -152,7 +152,7 @@ lemma ring_hom.map_sum [non_assoc_semiring β] [non_assoc_semiring γ]
 g.to_add_monoid_hom.map_sum f s
 
 @[to_additive]
-lemma monoid_hom.coe_prod [mul_one_class β] [comm_monoid γ] (f : α → β →* γ) (s : finset α) :
+lemma monoid_hom.coe_finset_prod [mul_one_class β] [comm_monoid γ] (f : α → β →* γ) (s : finset α) :
   ⇑(∏ x in s, f x) = ∏ x in s, f x :=
 (monoid_hom.coe_fn β γ).map_prod _ _
 

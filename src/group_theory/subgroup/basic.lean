@@ -1093,6 +1093,11 @@ lemma prod_le_iff {H : subgroup G} {K : subgroup N} {J : subgroup (G × N)} :
   H.prod K ≤ J ↔ map (monoid_hom.inl G N) H ≤ J ∧ map (monoid_hom.inr G N) K ≤ J :=
 by simpa only [← subgroup.to_submonoid_le] using submonoid.prod_le_iff
 
+@[simp, to_additive prod_eq_bot_iff]
+lemma prod_eq_bot_iff {H : subgroup G} {K : subgroup N} :
+  H.prod K = ⊥ ↔ H = ⊥ ∧ K = ⊥ :=
+by simpa only [← subgroup.to_submonoid_eq] using submonoid.prod_eq_bot_iff
+
 /-- Product of subgroups is isomorphic to their product as groups. -/
 @[to_additive prod_equiv "Product of additive subgroups is isomorphic to their product
 as additive groups"]
@@ -1771,17 +1776,6 @@ set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
 lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N) (g : G' →* N') :
   (prod_map f g).ker = f.ker.prod g.ker :=
 by rw [←comap_bot, ←comap_bot, ←comap_bot, ←prod_map_comap_prod, bot_prod_bot]
-
-@[simp, to_additive prod_eq_bot_iff]
-lemma _root_.subgroup.prod_eq_bot_iff {H : subgroup G} {K : subgroup N} :
-  H.prod K = ⊥ ↔ H = ⊥ ∧ K = ⊥ :=
-begin
-  simp only [eq_bot_iff],
-  rw prod_le_iff,
-  repeat { rw [gc_map_comap, comap_bot, (ker_eq_bot_iff _).mpr ] },
-  exact prod.mk.inj_left 1,
-  exact prod.mk.inj_right 1,
-end
 
 end ker
 

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
 import measure_theory.measure.haar_lebesgue
+import measure_theory.group.action
+import measure_theory.group.fundamental_domain
 import analysis.convex.basic
 import algebra.order.pointwise
 import topology.bases
@@ -12,7 +14,7 @@ import algebra.module.pointwise_pi
 /-!
 # Geometry of numbers
 
-In this file we introduce prove some of the fundamental theorems in the geometry of numbers, as
+In this file we prove some of the fundamental theorems in the geometry of numbers, as
 studied by Hermann Minkowski.
 
 ## Main results
@@ -32,27 +34,15 @@ noncomputable theory
 
 open_locale ennreal pointwise
 open has_inv set function measure_theory.measure
+variables {α :Type*} [measurable_space α] {μ : measure α}
 
--- TODO
--- @[to_additive /-"The additive action by an add_subgroup is the action by the underlying
--- add_group. "-/]
-@[to_additive]
-instance submonoid.has_measurable_smul {G α : Type*} [monoid G] [mul_action G α]
-  [measurable_space G] [measurable_space α] [has_measurable_smul G α] (S : submonoid G) :
-  has_measurable_smul S α :=
-{ measurable_const_smul := λ c, (measurable_const_smul (c : G)).comp measurable_id,
-  measurable_smul_const := λ x, measurable_id'.subtype_coe.smul_const x, }
-
--- TODO
--- @[to_additive /-"The additive action by an add_subgroup is the action by the underlying
--- add_group. "-/]
-@[to_additive]
-instance subgroup.has_measurable_smul {G α : Type*} [group G] [mul_action G α] [measurable_space G]
-  [measurable_space α] [has_measurable_smul G α] (S : subgroup G) : has_measurable_smul S α :=
-S.to_submonoid.has_measurable_smul
-
--- { measurable_const_smul := λ c, (measurable_const_smul (c : G)).comp measurable_id,
---   measurable_smul_const := λ x, measurable_id'.subtype_coe.smul_const x, }
+@[simp] lemma measure_Union_null_iff' {ι : Prop} {s : ι → set α} :
+  μ (⋃ i : ι, s i) = 0 ↔ ∀ i : ι, μ (s i) = 0 :=
+begin
+  by_cases i : ι,
+  { simp [i], },
+  { simp [i], },
+end
 
 namespace measure_theory
 
@@ -62,32 +52,25 @@ section
 
 variables [measurable_space V]
 
-/-- A measure `μ` on a topological group is left invariant for an action
-  if the measure of left translations of a set are equal to the measure of the set itself.
-  To left translate sets we use preimage under left multiplication,
-  since preimages are nicer to work with than images. -/
-@[to_additive "A measure on a topological group is left invariant for an action
-  if the measure of left translations of a set are equal to the measure of the set itself.
-  To left translate sets we use preimage under left addition,
-  since preimages are nicer to work with than images."]
-def is_smul_left_invariant (G) [has_scalar G V] (μ : set V → ℝ≥0∞) : Prop :=
-∀ (g : G) {A : set V} (h : measurable_set A), μ ((λ h, g • h) ⁻¹' A) = μ A
-
+open smul_invariant_measure
+-- #check smul_invaria.nt_measure.measure_preimage_smul
 --TODO given subgroup we don't get has_scalar in the same way as mul_action
 @[to_additive]
-lemma is_smul_left_invariant.to_subgroup_is_smul_left_invariant {G : Type*} [group G]
-  (S : subgroup G) [mul_action G V] {μ : set V → ℝ≥0∞} (h : is_smul_left_invariant G μ) :
-  is_smul_left_invariant S μ := λ g A hA, h g hA
+instance smul_invariant_measure.to_subgroup_smul_invariant_measure {G : Type*} [group G]
+  [measurable_space G] (S : subgroup G) [mul_action G V] [has_measurable_smul G V]
+  {μ : measure V} [smul_invariant_measure G V μ] :
+  smul_invariant_measure S V μ := ⟨λ g A hA, by {convert measure_preimage_smul (g : G) μ A, }⟩
 
 @[to_additive]
-lemma is_smul_left_invariant.volume_smul {G : Type*} [group G] [mul_action G V] {μ : measure V}
-  (h : is_smul_left_invariant G μ) (g : G) {S : set V} (hS : measurable_set S) : μ (g • S) = μ S :=
-by rw [← h (g⁻¹) hS, preimage_smul, inv_inv]
+lemma smul_invariant_measure.volume_smul {G : Type*} [group G] [measurable_space G] [mul_action G V]
+  [has_measurable_smul G V] {μ : measure V}
+  [smul_invariant_measure G V μ] (g : G) {S : set V} : μ (g • S) = μ S :=
+by rw [← measure_preimage_smul (g⁻¹) μ S, preimage_smul, inv_inv]
 
 @[to_additive]
-lemma is_mul_left_invariant.to_is_smul_left_invariant [measurable_space G] [has_mul G]
-  {μ : set G → ℝ≥0∞} (h : is_mul_left_invariant μ) :
-is_smul_left_invariant G μ := h
+lemma is_mul_left_invariant.to_smul_invariant_measure [measurable_space G] [has_mul G]
+  {μ : measure G} (h : is_mul_left_invariant μ) :
+smul_invariant_measure G G μ := ⟨h⟩
 
 end
 end measure_theory
@@ -140,7 +123,7 @@ end
 
 end
 
-namespace geometry_of_numbers
+section geometry_of_numbers
 
 universe u
 variables (ι : Type u)
@@ -149,8 +132,7 @@ open set
 
 lemma is_add_left_invariant_pi_volume [fintype ι] {K : ι → Type*} [∀ i, measure_space (K i)]
   [∀ i, has_add (K i)] [∀ i, topological_space (K i)] [∀ i, has_continuous_add (K i)]
-  [∀ i, has_measurable_add (K i)] [borel_space (Π i, K i)]
-  [∀ i, sigma_finite (volume : measure (K i))]
+  [borel_space (Π i, K i)] [∀ i, sigma_finite (volume : measure (K i))]
   (h : ∀ i, is_add_left_invariant ⇑(volume : measure (K i))) :
   is_add_left_invariant (⇑(volume : measure (Π i, K i))) :=
 begin
@@ -178,8 +160,8 @@ def unit_cube [fintype ι] : positive_compacts (ι → ℝ) :=
 end,
 begin
   -- rw interior_Icc,
-  simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
-  rw [interior_pi_set, interior_Icc, univ_pi_nonempty_iff],
+  simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply,
+    interior_pi_set finite_univ, interior_Icc, univ_pi_nonempty_iff],
   exact (λ i, nonempty_Ioo.mpr zero_lt_one),
 end⟩
 
@@ -202,37 +184,40 @@ end
 
 variable {ι}
 
-/-- A fundamental domain for an additive group acting on a measure space. -/
-structure add_fundamental_domain (Y X : Type*) [measure_space Y] [add_group X] [has_vadd X Y] :=
-(domain : set Y)
-(measurable_set_domain : measurable_set domain)
-(almost_disjoint : volume (domain ∩ ⋃ (l : X) (h : l ≠ 0), (l +ᵥ domain)) = 0)
-(covers : ∀ (y : Y), ∃ (l : X), l +ᵥ y ∈ domain)
---TODO should these be set_like or something?
+-- /-- A fundamental domain for an additive group acting on a measure space. -/
+-- structure add_fundamental_domain (Y X : Type*) [measure_space Y] [add_group X] [has_vadd X Y] :=
+-- (domain : set Y)
+-- (measurable_set_domain : measurable_set domain)
+-- (almost_disjoint : volume (domain ∩ ⋃ (l : X) (h : l ≠ 0), (l +ᵥ domain)) = 0)
+-- (covers : ∀ (y : Y), ∃ (l : X), l +ᵥ y ∈ domain)
+-- --TODO should these be set_like or something?
 
-/-- A fundamental domain for a group acting on a measure space. -/
-@[to_additive add_fundamental_domain, nolint has_inhabited_instance]
-structure fundamental_domain (Y X : Type*) [measure_space Y] [group X] [has_scalar X Y] :=
-(domain : set Y)
-(measurable_set_domain : measurable_set domain)
-(almost_disjoint : volume (domain ∩ ⋃ (l : X) (h : l ≠ 1), l • domain) = 0)
-(covers : ∀ (y : Y), ∃ (l : X), l • y ∈ domain)
+-- /-- A fundamental domain for a group acting on a measure space. -/
+-- @[to_additive add_fundamental_domain, nolint has_inhabited_instance]
+-- structure fundamental_domain (Y X : Type*) [measure_space Y] [group X] [has_scalar X Y] :=
+-- (domain : set Y)
+-- (measurable_set_domain : measurable_set domain)
+-- (almost_disjoint : volume (domain ∩ ⋃ (l : X) (h : l ≠ 1), l • domain) = 0)
+-- (covers : ∀ (y : Y), ∃ (l : X), l • y ∈ domain)
 
-namespace fundamental_domain
-variables {X Y : Type*} [measure_space Y] [group X] [mul_action X Y] (F : fundamental_domain Y X)
+namespace measure_theory
+namespace is_fundamental_domain
+variables {X Y : Type*} [measure_space Y] [group X] [mul_action X Y] {F : set Y}
+variables (fund : is_fundamental_domain X F)
+include fund
 
-@[to_additive]
-lemma measurable_set_smul [measurable_space X] [has_measurable_smul X Y] (x : X) :
-  measurable_set (x • F.domain) := measurable_set_smul x F.measurable_set_domain
+-- @[to_additive]
+-- lemma measurable_set_smul [measurable_space X] [has_measurable_smul X Y] (x : X) :
+--   measurable_set (x • F) := measurable_set_smul x fund.measurable_set
 
 /-- The interior of a fundamental domain, those points of the domain not lying in any translate. -/
 @[to_additive "The interior of a fundamental domain, those points of the domain not lying in any
 translate."]
-protected def interior : set Y := F.domain \ ⋃ (l : X) (h : l ≠ 1), (l • F.domain)
+protected def interior : set Y := F \ ⋃ (l : X) (h : l ≠ 1), (l • F)
 
 @[to_additive]
 lemma measurable_set_nontrivial_translates [measurable_space X] [has_measurable_smul X Y]
-  [encodable X] : measurable_set ⋃ (l : X) (h : l ≠ 1), l • F.domain :=
+  [encodable X] : measurable_set ⋃ (l : X) (h : l ≠ 1), l • F :=
 begin
   apply measurable_set.Union,
   intros b,
@@ -240,45 +225,46 @@ begin
   { simp [h], },
   { -- TODO squeeze_simp output wrong
     simp [h, -set.image_smul, set.Union_true, ne.def, not_false_iff, set.Union_congr_Prop],
-    exact measurable_set_smul _ _, },
+    exact measurable_set_smul fund _, },
 end
 
 @[to_additive]
 lemma measurable_set_interior [measurable_space X] [has_measurable_smul X Y] [encodable X] :
-  measurable_set F.interior :=
-begin
-  rw fundamental_domain.interior,
-  exact measurable_set.diff F.measurable_set_domain F.measurable_set_nontrivial_translates,
-end
+  measurable_set fund.interior :=
+measurable_set.diff fund.measurable_set fund.measurable_set_nontrivial_translates
+
 
 /-- The boundary of a fundamental domain, those points of the domain that also lie in a nontrivial
 translate. -/
 @[to_additive "The boundary of a fundamental domain, those points of the domain that also lie in a
 nontrivial translate."]
-protected def boundary : set Y := F.domain ∩ ⋃ (l : X) (h : l ≠ 1), l • F.domain
+protected def boundary : set Y := F ∩ ⋃ (l : X) (h : l ≠ 1), l • F
 
 @[to_additive]
-lemma eq_interior_union_boundary : F.domain = F.interior ∪ F.boundary :=
-by rw [fundamental_domain.interior, fundamental_domain.boundary, diff_union_inter]
+lemma eq_interior_union_boundary : F = fund.interior ∪ fund.boundary :=
+(diff_union_inter _ _).symm
 
 @[to_additive]
 lemma measurable_set_boundary [measurable_space X] [has_measurable_smul X Y] [encodable X] :
-  measurable_set F.boundary :=
-begin
-  rw fundamental_domain.boundary,
-  apply measurable_set.inter F.measurable_set_domain,
-  exact F.measurable_set_nontrivial_translates,
-end
+  measurable_set fund.boundary :=
+measurable_set.inter fund.measurable_set fund.measurable_set_nontrivial_translates
 
 open set
 
 @[to_additive]
-lemma volume_boundary : volume F.boundary = 0 := F.almost_disjoint
+lemma volume_boundary [encodable X] : volume fund.boundary = 0 :=
+begin
+  rw is_fundamental_domain.boundary,
+  simp only [inter_Union, measure_Union_null_iff, measure_Union_null_iff'],
+  intros i hi,
+  rw [inter_comm], -- why wouldn't simp do this?
+  exact fund.ae_disjoint i hi,
+end
 
 @[to_additive]
-lemma disjoint_interior_boundary : disjoint F.interior F.boundary :=
+lemma disjoint_interior_boundary : disjoint fund.interior fund.boundary :=
 begin
-  rw [fundamental_domain.interior, fundamental_domain.boundary],
+  rw [is_fundamental_domain.interior, is_fundamental_domain.boundary],
   -- TODO from here is general lemma
   apply' disjoint.symm,
   apply disjoint_of_subset_left (inter_subset_right _ _),
@@ -286,63 +272,71 @@ begin
 end
 
 @[to_additive]
-lemma volume_interior : volume F.interior = volume F.domain :=
-by { rw [fundamental_domain.interior], exact measure_diff_null' (volume_boundary _), }
+lemma volume_interior [encodable X] : volume fund.interior = volume F :=
+measure_diff_null' (volume_boundary fund)
+
 open measure_theory
 
-@[to_additive]
-lemma volume_set_eq_tsum_volume_inter [measurable_space X] [has_measurable_smul X Y] [encodable X]
-  {S : set Y} (hS : measurable_set S) (h_smul_left : is_smul_left_invariant X ⇑(volume : measure Y))
-  : ∑' (x : X), volume (x • S ∩ F.domain) = volume S :=
-begin
-  rw (_ : ∑' (x : X), volume (x • S ∩ F.domain) = ∑' (x : X), volume (x⁻¹ • (x • S ∩ F.domain))),
-  { simp only [smul_set_inter, inv_smul_smul],
-    rw ← measure_Union_of_null_inter,
-    { congr,
-      rw [← set.inter_Union, set.inter_eq_self_of_subset_left],
-      convert set.subset_univ _,
-      rw set.eq_univ_iff_forall,
-      intros x,
-      rw set.mem_Union,
-      obtain ⟨l, hl⟩ := F.covers x,
-      use [l],
-      refine ⟨_, hl, _⟩,
-      rw [inv_smul_smul], },
-    { intro l,
-      exact hS.inter (F.measurable_set_smul l⁻¹), },
-    { intros x y hxy,
-      change volume _ = 0,
-      rw inter_assoc,
-      apply measure_inter_null_of_null_right,
-      rw [inter_comm, inter_assoc],
-      apply measure_inter_null_of_null_right,
-      rw ← h_smul_left.volume_smul y
-        ((F.measurable_set_smul y⁻¹).inter (F.measurable_set_smul x⁻¹)),
-      simp only [smul_set_inter, smul_inv_smul],
-      rw [smul_smul],
-      apply measure_mono_null (F.domain.inter_subset_inter_right _) F.almost_disjoint,
-      intros t ht,
-      rw mem_Union,
-      use y * x⁻¹,
-      rw [ne.def, mul_inv_eq_one, mem_Union],
-      exact ⟨hxy.symm, ht⟩, }, },
-  { congr,
-    ext1 l,
-    rw h_smul_left.volume_smul,
-    exact (_root_.measurable_set_smul l hS).inter F.measurable_set_domain, },
-end
+-- @[to_additive]
+-- lemma volume_set_eq_tsum_volume_inter [measurable_space X] [has_measurable_smul X Y] [encodable X]
+--   {S : set Y} (hS : measurable_set S) [smul_invariant_measure X Y (volume : measure Y)] :
+--   ∑' (x : X), volume (x • S ∩ F) = volume S :=
+-- begin
+--   rw (_ : ∑' (x : X), volume (x • S ∩ F) = ∑' (x : X), volume (x⁻¹ • (x • S ∩ F))),
+--   { simp only [smul_set_inter, inv_smul_smul],
+--     rw ← measure_Union₀,
+--     { library_search,
+--       congr,
+--       rw [← set.inter_Union, set.inter_eq_self_of_subset_left],
+--       convert set.subset_univ _,
+--       rw set.eq_univ_iff_forall,
+--       intros x,
+--       rw set.mem_Union,
+--       obtain ⟨l, hl⟩ := fund.ae_covers x,
+--       use [l],
+--       refine ⟨_, hl, _⟩,
+--       rw [inv_smul_smul], },
+--     { intros x y hxy,
+--       change volume _ = 0,
+--       rw inter_assoc,
+--       apply measure_inter_null_of_null_right,
+--       rw [inter_comm, inter_assoc],
+--       apply measure_inter_null_of_null_right,
+--       rw ← smul_invariant_measure.volume_smul y,
+--         -- ((F.measurable_set_smul y⁻¹).inter (F.measurable_set_smul x⁻¹)),
+--       rw [smul_set_inter, smul_inv_smul],
+--       -- simp [smul_set_inter, smul_inv_smul],
+--       rw [smul_smul],
+--       apply measure_mono_null (F.domain.inter_subset_inter_right _) F.almost_disjoint,
+--       intros t ht,
+--       rw mem_Union,
+--       use y * x⁻¹,
+--       rw [ne.def, mul_inv_eq_one, mem_Union],
+--       exact ⟨hxy.symm, ht⟩,
+--       apply_instance,
+--       apply_instance, },
+--     { intro l,
+--       simp,
+--       exact hS.inter (F.measurable_set_smul l⁻¹), },
+--  },
+--   { congr,
+--     ext1 l,
+--     rw h_smul_left.volume_smul,
+--     exact (_root_.measurable_set_smul l hS).inter F.measurable_set_domain, },
+-- end
 
 
-end fundamental_domain
+end is_fundamental_domain
+end measure_theory
 --TODO all f.d.s have same measure https://arxiv.org/pdf/1405.2119.pdf
 -- TODO fin index subgroup has given fundamental domain and covolume
 -- TODO some existence result? in presence of metric? voronoi
 
-instance : inhabited (add_fundamental_domain (fin 0 → ℝ) (fin 0 → ℝ)) :=
-{ default := { domain := ⊤,
-  measurable_set_domain := subsingleton.measurable_set,
-  almost_disjoint := by simp,
-  covers := λ v, by simp } }
+-- instance : inhabited (is_add_fundamental_domain (fin 0 → ℝ) (fin 0 → ℝ)) :=
+-- { default := { domain := ⊤,
+--   measurable_set_domain := subsingleton.measurable_set,
+--   almost_disjoint := by simp,
+--   covers := λ v, by simp } }
 
 instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} :
   measure_space (subtype p) :=
@@ -368,15 +362,15 @@ open measure_theory
 lemma exists_mul_inv_mem_lattice_of_volume_lt_volume {X Y : Type*} [measurable_space X]
   [measure_space Y] [group X] [mul_action X Y]
   [has_measurable_smul X Y] [encodable X] {S : set Y} (hS : measurable_set S)
-  (F : fundamental_domain Y X) (hlt : volume F.domain < volume S)
-  (h_smul_left : is_smul_left_invariant X ⇑(volume : measure Y))
+  (F : set Y) (fund : is_fundamental_domain X F) (hlt : volume F < volume S)
+  [smul_invariant_measure X Y (volume : measure Y)]
+  -- (h_smul_left : smul_invariant_measure X ⇑(volume : measure Y))
   (hnostab : ∀ (p₁ p₂ : X) (q : Y) (hq : q ∈ S) (hppq : p₁ • q = p₂ • q), p₁ = p₂) :
   ∃ (x y : Y) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), y ∈ (• x) '' (univ : set X) :=
 begin
   suffices : ∃ (p₁ p₂ : X) (hne : p₁ ≠ p₂),
-    ((p₁ • S ∩ F.domain) ∩ (p₂ • S ∩ F.domain)).nonempty,
-  begin
-    rcases this with ⟨p₁, p₂, hne, u, ⟨⟨q₁, ⟨hS₁, ht₁⟩⟩, hu⟩, ⟨⟨q₂, ⟨hS₂, ht₂⟩⟩, hu⟩⟩,
+    ((p₁ • S ∩ F) ∩ (p₂ • S ∩ F)).nonempty,
+  { rcases this with ⟨p₁, p₂, hne, u, ⟨⟨q₁, ⟨hS₁, ht₁⟩⟩, hu⟩, ⟨⟨q₂, ⟨hS₂, ht₂⟩⟩, hu⟩⟩,
     use [q₁, q₂, hS₁, hS₂],
     split,
     { rintros rfl,
@@ -386,11 +380,10 @@ begin
       use [p₂⁻¹ * p₁],
       split,
       exact mem_univ (p₂⁻¹ * p₁),
-      rw [mul_smul, ht₁, ← ht₂, ← mul_smul, inv_mul_self, one_smul], },
-  end,
-  rw ← volume_subtype_univ F.measurable_set_domain at hlt,
+      rw [mul_smul, ht₁, ← ht₂, ← mul_smul, inv_mul_self, one_smul], }, },
+  rw ← volume_subtype_univ fund.measurable_set at hlt,
   have := exists_nonempty_inter_of_measure_univ_lt_tsum_measure subtype.measure_space.volume
-    (_ : (∀ p : X, measurable_set (λ a, (p • S) a : set F.domain))) _,
+    (_ : (∀ p : X, measurable_set (λ a, (p • S) a : set F))) _,
   { rcases this with ⟨i, j, hij, t, ht⟩,
     use [i, j, hij, t],
     simp only [and_true, mem_inter_eq, subtype.coe_prop, image_smul],
@@ -398,8 +391,8 @@ begin
   { intro p,
     exact measurable_set_preimage (measurable_id'.subtype_coe) (measurable_set_smul p hS), },
   convert hlt,
-  have := F.volume_set_eq_tsum_volume_inter hS h_smul_left,
-  convert this,
+  symmetry,
+  convert fund.measure_eq_tsum S,
   ext1 l,
   dsimp only [subtype.measure_space], -- TODO lemma
   rw measure.comap_apply _ subtype.val_injective _ _ _,
@@ -409,13 +402,11 @@ begin
       subtype.coe_mk, subtype.val_eq_coe],
     split; { intros a, rcases a with ⟨a_left, a_right⟩, split; assumption, }, },
   { intros X hX,
-    convert measurable_set.subtype_image F.measurable_set_domain hX, },
+    convert measurable_set.subtype_image fund.measurable_set hX, },
   { erw [← inv_inv l, ← preimage_smul (l⁻¹ : X) S],
     exact measurable_set_preimage
       ((measurable_const_smul (l⁻¹ : X)).comp measurable_subtype_coe) hS, },
 end
-
-
 
 -- TODO version giving `ceiling (volume S / volume F)` points whose difference is in a subgroup
 -- needs the m-fold version of exists_nonempty_inter_of_measure_univ_lt_tsum_measure when
@@ -423,16 +414,27 @@ end
 @[to_additive]
 lemma exists_mul_inv_mem_lattice_of_volume_lt_volume' {X : Type*} [measure_space X] [group X]
   [has_measurable_mul X] (L : subgroup X) [encodable L] {S : set X} (hS : measurable_set S)
-  (F : fundamental_domain X L) (hlt : volume F.domain < volume S)
+  {F : set X} (fund : is_fundamental_domain L F) (hlt : volume F < volume S)
+  -- [smul_invariant_measure X Y (volume : measure Y)]
   (h_mul_left : is_mul_left_invariant ⇑(volume : measure X)) :
   ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), y * x⁻¹ ∈ L :=
 begin
-  obtain ⟨x, y, hx, hy, hne, h⟩ := exists_mul_inv_mem_lattice_of_volume_lt_volume hS F hlt _ _,
+  haveI : smul_invariant_measure L X measure_space.volume :=
+  begin
+    apply smul_invariant_measure.to_subgroup_smul_invariant_measure L,
+    apply_instance,
+    constructor,
+    intros c S hS,
+    dsimp,
+    -- have := h_mul_left.measure_preimage_mul c S,
+    sorry,
+  end,
+  obtain ⟨x, y, hx, hy, hne, h⟩ := exists_mul_inv_mem_lattice_of_volume_lt_volume hS F fund hlt _,
   { refine ⟨x, y, hx, hy, hne, _⟩,
     simp only [image_univ, mem_range] at h,
     obtain ⟨l, rfl⟩ := h,
     simp [subgroup.smul_def], },
-  { exact h_mul_left.to_is_smul_left_invariant.to_subgroup_is_smul_left_invariant _ , },
+  -- { exact smul_invariant_measure.to_subgroup_smul_invariant_measure _ , },
   { rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ q hq hleft,
     simpa [subgroup.smul_def] using hleft, },
 end
@@ -474,7 +476,7 @@ begin
   { exact smul_right_injective (ι → ℝ) (ne_of_gt hr), },
   { intros S hS,
     rw [image_smul],
-    exact measurable_set_smul' (ne_of_gt hr) hS, },
+    exact measurable_set.const_smul₀ hS r, },
   { exact measurable_set.univ_pi_fintype hS, },
 end
 
@@ -482,8 +484,9 @@ open ennreal fintype
 
 -- TODO version for any real vector space in terms of dimension
 lemma exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_volume [fintype ι]
-  (L : add_subgroup (ι → ℝ)) [encodable.{u} L] (F : add_fundamental_domain (ι → ℝ) L)
-  (S : set (ι → ℝ)) (hS : measurable_set S) (h : volume F.domain * 2 ^ (card ι) < volume S)
+  {L : add_subgroup (ι → ℝ)} [encodable.{u} L] {F S : set (ι → ℝ)}
+  (fund : is_add_fundamental_domain L F)
+  (hS : measurable_set S) (h : volume F * 2 ^ (card ι) < volume S)
   (h_symm : ∀ x ∈ S, -x ∈ S) (h_conv : convex ℝ S) : ∃ (x : L) (h : x ≠ 0), (x : ι → ℝ) ∈ S :=
 begin
   have mhalf : measurable_set ((1/2 : ℝ) • S),
@@ -509,7 +512,7 @@ begin
         exact measurable_id',
         exact two_ne_zero, },
       { exact two_ne_zero, }, }, },
-  have h2 : volume F.domain < volume ((1/2 : ℝ) • S),
+  have h2 : volume F < volume ((1/2 : ℝ) • S),
   { rw ← ennreal.mul_lt_mul_right (pow_ne_zero (card ι) two_ne_zero') (pow_ne_top two_ne_top),
     convert h, },
 
@@ -531,9 +534,11 @@ begin
       exact set.smul_mem_smul_set (h_symm _ hv), },
     use [y, -x, hy, this _ hx],
     refl, },
-  { refine exists_add_neg_mem_lattice_of_volume_lt_volume' L mhalf F h2 _,
+  { refine exists_add_neg_mem_lattice_of_volume_lt_volume' L mhalf fund h2 _,
     rw [← pi_haar_measure_eq_lebesgue_measure _],
     exact measure.is_add_left_invariant_add_haar_measure (unit_cube _), },
 end
 
 end geometry_of_numbers
+
+#lint

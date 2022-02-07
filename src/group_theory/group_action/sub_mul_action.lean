@@ -147,8 +147,13 @@ end
 
 
 /-- Orbits in a `sub_mul_action` coincide with orbits in the ambient space. -/
+lemma coe_image_orbit {p : sub_mul_action R M} (m : p) :
+  coe '' mul_action.orbit R m = mul_action.orbit R (m : M) := (set.range_comp _ _).symm
+
+/- -- Previously, the relatively useless :
 lemma orbit_of_sub_mul {p : sub_mul_action R M} (m : p) :
   (mul_action.orbit R m : set M) = mul_action.orbit R (m : M) := rfl
+-/
 
 /-- Stabilizers in monoid sub_mul_action coincide with stabilizers in the ambient space -/
 lemma stabilizer_of_sub_mul.submonoid {p : sub_mul_action R M} (m : p) :

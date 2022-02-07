@@ -43,7 +43,12 @@ attribute [instance, priority 100] has_injective_resolutions.out
 
 end
 
+end
+
 namespace InjectiveResolution
+
+section
+variables [has_zero_object C] [has_zero_morphisms C] [has_equalizers C] [has_images C]
 
 @[simp] lemma ι_f_succ {Z : C} (P : InjectiveResolution Z) (n : ℕ) :
   P.ι.f (n+1) = 0 :=
@@ -66,11 +71,16 @@ def self (Z : C) [category_theory.injective Z] : InjectiveResolution Z :=
   exact := λ n, by { dsimp, apply_instance, },
   mono := by { dsimp, apply_instance, }, }
 
+
 def desc_f_zero {Y Z : C} (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z) :
   Q.cocomplex.X 0 ⟶ P.cocomplex.X 0 :=
 factor_of (f ≫ P.ι.f 0) (Q.ι.f 0)
+end
 
-def desc_f_one [has_equalizers Cᵒᵖ] [has_images Cᵒᵖ] {Y Z : C}
+section abelian
+variable [abelian C]
+
+def desc_f_one {Y Z : C}
   (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z) :
   Q.cocomplex.X 1 ⟶ P.cocomplex.X 1 :=
 exact.desc (desc_f_zero f P Q ≫ P.cocomplex.d 0 1) (Q.ι.f 0) (Q.cocomplex.d 0 1)
@@ -120,16 +130,6 @@ begin
 end
 
 attribute [irreducible] desc
-
-end InjectiveResolution
-
-end
-
-namespace InjectiveResolution
-
-variables [preadditive C] [has_zero_object C]
-  [has_equalizers C] [has_images C]
-  [has_coequalizers Cᵒᵖ] [has_equalizers Cᵒᵖ] [has_images Cᵒᵖ]
 
 def desc_homotopy_zero_zero {Y Z : C} {P : InjectiveResolution Y} {Q : InjectiveResolution Z}
   (f : P.cocomplex ⟶ Q.cocomplex)
@@ -221,12 +221,13 @@ by simp [homotopy_equiv]
   Q.ι ≫ (homotopy_equiv P Q).inv = P.ι :=
 by simp [homotopy_equiv]
 
+end abelian
+
 end InjectiveResolution
 
 section
 
-variables [has_zero_morphisms C] [has_zero_object C] [has_equalizers C] [has_images C]
-  [has_images Cᵒᵖ] [has_equalizers Cᵒᵖ]
+variables [abelian C]
 
 /-- An arbitrarily chosen projective resolution of an object. -/
 abbreviation injective_resolution (Z : C) [has_injective_resolution Z] : cochain_complex C ℕ :=
@@ -243,8 +244,7 @@ InjectiveResolution.desc f _ _
 
 end
 
-variables (C) [preadditive C] [has_zero_object C] [has_equalizers C] [has_images C]
-  [has_injective_resolutions C] [has_images Cᵒᵖ] [has_equalizers Cᵒᵖ] [has_coequalizers Cᵒᵖ]
+variables (C) [abelian C] [has_injective_resolutions C]
 
 /--
 Taking projective resolutions is functorial,

@@ -794,7 +794,6 @@ lemma mrange_fst : (fst M N).mrange = ⊤ :=
 @[simp, to_additive]
 lemma mrange_snd : (snd M N).mrange = ⊤ :=
 (snd M N).mrange_top_of_surjective $ @prod.snd_surjective _ _ ⟨1⟩
-@[simp, to_additive]
 
 @[to_additive]
 lemma prod_eq_bot_iff {s : submonoid M} {t : submonoid N} :
@@ -807,6 +806,7 @@ lemma prod_eq_top_iff {s : submonoid M} {t : submonoid N} :
 by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, ← mrange_eq_map,
   mrange_fst, mrange_snd]
 
+@[simp, to_additive]
 lemma mrange_inl_sup_mrange_inr : (inl M N).mrange ⊔ (inr M N).mrange = ⊤ :=
 by simp only [mrange_inl, mrange_inr, prod_bot_sup_bot_prod, top_prod_top]
 

@@ -179,7 +179,7 @@ This is the `one_hom` version of `pi.mul_single`. -/
 @[to_additive zero_hom.single "The zero-preserving homomorphism including a single value
 into a dependent family of values, as functions supported at a point.
 
-This is the `zerohom` version of `pi._single`.", simps]
+This is the `zero_hom` version of `pi.single`.", simps]
 def one_hom.single [Π i, has_one $ f i] (i : I) : one_hom (f i) (Π i, f i) :=
 { to_fun := mul_single i,
   map_one' := mul_single_one i }

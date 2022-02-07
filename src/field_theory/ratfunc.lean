@@ -884,7 +884,7 @@ include hfield
 
 /-- `ratfunc.num_denom` are numerator and denominator of a rational function over a field,
 normalized such that the denominator is monic. -/
-def num_denom (x : ratfunc K) : K[X × K[X] :=
+def num_denom (x : ratfunc K) : K[X] × K[X] :=
 x.lift_on' (λ p q, if q = 0 then ⟨0, 1⟩ else let r := gcd p q in
   ⟨polynomial.C ((q / r).leading_coeff⁻¹) * (p / r),
    polynomial.C ((q / r).leading_coeff⁻¹) * (q / r)⟩)

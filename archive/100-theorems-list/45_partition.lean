@@ -273,33 +273,15 @@ begin
   { simp [zero_pow] },
 end
 
-lemma card_eq_of_bijection {β : Type*} {s : finset α} {t : finset β}
-  (f : α → β)
-  (hf : ∀ a ∈ s, f a ∈ t)
-  (hsurj : ∀ b ∈ t, ∃ (a ∈ s), f a = b)
-  (hinj : ∀ a₁ a₂ ∈ s, f a₁ = f a₂ → a₁ = a₂) :
-s.card = t.card :=
-finset.card_congr (λ a _, f a) hf hinj hsurj
-
--- TODO: name and move me
-lemma auxy (n : ℕ) (a_blocks : multiset ℕ) (s : finset ℕ)
-  (a_blocks_sum : a_blocks.sum = n)
-  (hp : ∀ (i : ℕ), i ∈ a_blocks → i ∈ s) :
-  ∑ (i : ℕ) in s, multiset.count i a_blocks * i = n :=
+lemma sum_multiset_count_of_subset (m : multiset ℕ) (s : finset ℕ)
+  (hp : m.to_finset ⊆ s) :
+  m.sum = ∑ (i : ℕ) in s, m.count i • i :=
 begin
-  rw ← a_blocks_sum,
   rw sum_multiset_count,
-  simp_rw nat.nsmul_eq_mul,
-  symmetry,
-  apply sum_subset_zero_on_sdiff,
-  intros i hi,
-  apply hp,
-  simpa using hi,
-  intros,
-  rw mem_sdiff at H,
-  simp only [multiset.mem_to_finset] at H,
-  rw [multiset.count_eq_zero_of_not_mem H.2, zero_mul],
-  intros, refl,
+  apply sum_subset hp,
+  rintros x - hx,
+  rw [multiset.mem_to_finset] at hx,
+  rw [multiset.count_eq_zero_of_not_mem hx, zero_smul],
 end
 
 def mk_odd : ℕ ↪ ℕ := ⟨λ i, 2 * i + 1, λ x y h, by linarith⟩
@@ -320,18 +302,29 @@ lemma partial_gf_prop
 begin
   simp_rw [coeff_prod_range, coeff_indicator, prod_boole, sum_boole],
   congr' 1,
-  refine card_eq_of_bijection _ _ _ _,
-  { intros p i, apply multiset.count i p.parts * i },
+  refine finset.card_congr (λ p _ i, multiset.count i p.parts • i) _ _ _,
   { simp only [mem_filter, mem_cut, mem_univ, true_and, exists_prop, and_assoc, and_imp,
-               nat.mul_eq_zero, function.embedding.coe_fn_mk, exists_imp_distrib],
+               smul_eq_zero, function.embedding.coe_fn_mk, exists_imp_distrib],
     rintro ⟨p, hp₁, hp₂⟩ hp₃ hp₄,
+    dsimp only at *,
     refine ⟨_, _, _⟩,
-    { rw auxy _ _ _ hp₂,
-      apply hp₄ },
+    { rw [←hp₂, ←sum_multiset_count_of_subset p s (λ x hx, hp₄ _ (multiset.mem_to_finset.mp hx))] },
     { intros i hi,
       left,
       exact multiset.count_eq_zero_of_not_mem (mt (hp₄ i) hi) },
     { exact λ i hi, ⟨_, hp₃ i, rfl⟩ } },
+  { intros p₁ p₂ hp₁ hp₂ h,
+    apply partition.ext,
+    simp only [true_and, mem_univ, mem_filter] at hp₁ hp₂,
+    ext i,
+    rw function.funext_iff at h,
+    specialize h i,
+    cases i,
+    { rw multiset.count_eq_zero_of_not_mem,
+      rw multiset.count_eq_zero_of_not_mem,
+      intro a, exact nat.lt_irrefl 0 (hs 0 (hp₂.2 0 a)),
+      intro a, exact nat.lt_irrefl 0 (hs 0 (hp₁.2 0 a)) },
+    { rwa [nat.nsmul_eq_mul, nat.nsmul_eq_mul, nat.mul_left_inj i.succ_pos] at h } },
   { simp only [mem_filter, mem_cut, mem_univ, exists_prop, true_and, and_assoc],
     rintros f ⟨hf₁, hf₂, hf₃⟩,
     refine ⟨⟨∑ i in s, multiset.repeat i (f i / i), _, _⟩, _, _, _⟩,
@@ -367,20 +360,7 @@ begin
       { apply nat.div_mul_cancel,
         rcases hf₃ i h with ⟨w, hw, hw₂⟩,
         apply dvd.intro_left _ hw₂ },
-      { rw [zero_mul],
-        apply (hf₂ i h).symm } } },
-  { intros p₁ p₂ hp₁ hp₂ h,
-    apply partition.ext,
-    simp only [true_and, mem_univ, mem_filter] at hp₁ hp₂,
-    ext i,
-    rw function.funext_iff at h,
-    specialize h i,
-    cases i,
-    { rw multiset.count_eq_zero_of_not_mem,
-      rw multiset.count_eq_zero_of_not_mem,
-      intro a, exact nat.lt_irrefl 0 (hs 0 (hp₂.2 0 a)),
-      intro a, exact nat.lt_irrefl 0 (hs 0 (hp₁.2 0 a)) },
-    { rwa nat.mul_left_inj i.succ_pos at h } },
+      { rw [zero_smul, hf₂ i h] } } },
 end
 
 lemma partial_odd_gf_prop [field α] (n m : ℕ) :

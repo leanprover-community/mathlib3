@@ -1,5 +1,6 @@
 import category_theory.preadditive.injective
 import algebra.homology.single
+import algebra.homology.homological_complex
 import algebra.homology.homotopy_category
 
 noncomputable theory
@@ -32,16 +33,9 @@ attribute [instance] InjectiveResolution.injective InjectiveResolution.exact₀
 class has_injective_resolution (Z : C) : Prop :=
 (out [] : nonempty (InjectiveResolution Z))
 
-end
-
 section
-variables (C) [has_zero_object C] [has_zero_morphisms C] [has_equalizers C] [has_images C]
+variables (C)
 
-/--
-You will rarely use this typeclass directly: it is implied by the combination
-`[enough_projectives C]` and `[abelian C]`.
-By itself it's enough to set up the basic theory of derived functors.
--/
 class has_injective_resolutions : Prop :=
 (out : ∀ Z : C, has_injective_resolution Z)
 
@@ -50,7 +44,6 @@ attribute [instance, priority 100] has_injective_resolutions.out
 end
 
 namespace InjectiveResolution
-variables [has_zero_object C] [has_zero_morphisms C] [has_equalizers C] [has_images C]
 
 @[simp] lemma ι_f_succ {Z : C} (P : InjectiveResolution Z) (n : ℕ) :
   P.ι.f (n+1) = 0 :=
@@ -129,5 +122,147 @@ end
 attribute [irreducible] desc
 
 end InjectiveResolution
+
+end
+
+namespace InjectiveResolution
+
+variables [preadditive C] [has_zero_object C]
+  [has_equalizers C] [has_images C]
+  [has_coequalizers Cᵒᵖ] [has_equalizers Cᵒᵖ] [has_images Cᵒᵖ]
+
+def desc_homotopy_zero_zero {Y Z : C} {P : InjectiveResolution Y} {Q : InjectiveResolution Z}
+  (f : P.cocomplex ⟶ Q.cocomplex)
+  (comm : P.ι ≫ f = 0) : P.cocomplex.X 1 ⟶ Q.cocomplex.X 0 :=
+exact.desc (f.f 0) (P.ι.f 0) (P.cocomplex.d 0 1)
+  (congr_fun (congr_arg homological_complex.hom.f comm) 0)
+
+def desc_homotopy_zero_one {Y Z : C} {P : InjectiveResolution Y} {Q : InjectiveResolution Z}
+  (f : P.cocomplex ⟶ Q.cocomplex)
+  (comm : P.ι ≫ f = (0 : _ ⟶ Q.cocomplex)) : P.cocomplex.X 2 ⟶ Q.cocomplex.X 1 :=
+exact.desc (f.f 1 - desc_homotopy_zero_zero f comm ≫ Q.cocomplex.d 0 1)
+  (P.cocomplex.d 0 1) (P.cocomplex.d 1 2)
+  (begin
+    simp only [desc_homotopy_zero_zero, ←category.assoc, preadditive.comp_sub, exact.desc_comp, homological_complex.hom.comm, sub_self],
+  end)
+
+def desc_homotopy_zero_succ {Y Z : C} {P : InjectiveResolution Y} {Q : InjectiveResolution Z}
+  (f : P.cocomplex ⟶ Q.cocomplex) (n : ℕ)
+  (g : P.cocomplex.X (n + 1) ⟶ Q.cocomplex.X n)
+  (g' : P.cocomplex.X (n + 2) ⟶ Q.cocomplex.X (n + 1))
+  (w : f.f (n + 1) = P.cocomplex.d (n+1) (n+2) ≫ g' + g ≫ Q.cocomplex.d n (n+1)) :
+  P.cocomplex.X (n + 3) ⟶ Q.cocomplex.X (n + 2) :=
+exact.desc (f.f (n+2) - g' ≫ Q.cocomplex.d _ _) (P.cocomplex.d (n+1) (n+2)) (P.cocomplex.d (n+2) (n+3))
+  begin
+    have w' : f.f (n + 1) - g ≫ Q.cocomplex.d n (n+1)= P.cocomplex.d (n+1) (n+2) ≫ g',
+    { rw w, simp only [add_sub_cancel], },
+    simp [preadditive.comp_sub, ←category.assoc, ←w', preadditive.sub_comp],
+  end
+
+def desc_homotopy_zero {Y Z : C} {P : InjectiveResolution Y} {Q : InjectiveResolution Z}
+  (f : P.cocomplex ⟶ Q.cocomplex)
+  (comm : P.ι ≫ f = 0) :
+  homotopy f 0 :=
+begin
+  fapply homotopy.mk_coinductive,
+  { exact desc_homotopy_zero_zero f comm, },
+  { simp [desc_homotopy_zero_zero], },
+  { exact desc_homotopy_zero_one f comm, },
+  { simp [desc_homotopy_zero_one], },
+  { rintro n ⟨g, g', w⟩,
+    fsplit,
+    { refine desc_homotopy_zero_succ f n g g' _,
+      simp only [w, add_comm], },
+    { simp [desc_homotopy_zero_succ, w], }, }
+end
+
+def desc_homotopy {Y Z : C} (f : Y ⟶ Z) {P : InjectiveResolution Y} {Q : InjectiveResolution Z}
+  (g h : P.cocomplex ⟶ Q.cocomplex)
+  (g_comm : P.ι ≫ g = (cochain_complex.single₀ C).map f ≫ Q.ι)
+  (h_comm : P.ι ≫ h = (cochain_complex.single₀ C).map f ≫ Q.ι) :
+  homotopy g h :=
+begin
+  apply homotopy.equiv_sub_zero.inv_fun,
+  apply desc_homotopy_zero,
+  simp [g_comm, h_comm],
+end
+
+def desc_id_homotopy (X : C) (P : InjectiveResolution X) :
+  homotopy (desc (𝟙 X) P P) (𝟙 P.cocomplex) :=
+by { apply desc_homotopy (𝟙 X); simp, }
+
+def desc_comp_homotopy {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  (P : InjectiveResolution X) (Q : InjectiveResolution Y) (R : InjectiveResolution Z) :
+  homotopy (desc (f ≫ g) R P) (desc f Q P ≫ desc g R Q)  :=
+by { apply desc_homotopy (f ≫ g); simp, }
+
+attribute [irreducible] desc_homotopy_zero desc_homotopy desc_id_homotopy desc_comp_homotopy
+
+def homotopy_equiv {X : C} (P Q : InjectiveResolution X) :
+  homotopy_equiv P.cocomplex Q.cocomplex :=
+{ hom := desc (𝟙 X) Q P,
+  inv := desc (𝟙 X) P Q,
+  homotopy_hom_inv_id := begin
+    refine (desc_comp_homotopy (𝟙 X) (𝟙 X) P Q P).symm.trans _,
+    simp [category.id_comp],
+    apply desc_id_homotopy,
+  end,
+  homotopy_inv_hom_id := begin
+    refine (desc_comp_homotopy (𝟙 X) (𝟙 X) Q P Q).symm.trans _,
+    simp [category.id_comp],
+    apply desc_id_homotopy,
+  end, }
+
+@[simp, reassoc] lemma homotopy_equiv_hom_π {X : C} (P Q : InjectiveResolution X) :
+  P.ι ≫ (homotopy_equiv P Q).hom = Q.ι :=
+by simp [homotopy_equiv]
+
+@[simp, reassoc] lemma homotopy_equiv_inv_π {X : C} (P Q : InjectiveResolution X) :
+  Q.ι ≫ (homotopy_equiv P Q).inv = P.ι :=
+by simp [homotopy_equiv]
+
+end InjectiveResolution
+
+section
+
+variables [has_zero_morphisms C] [has_zero_object C] [has_equalizers C] [has_images C]
+  [has_images Cᵒᵖ] [has_equalizers Cᵒᵖ]
+
+/-- An arbitrarily chosen projective resolution of an object. -/
+abbreviation injective_resolution (Z : C) [has_injective_resolution Z] : cochain_complex C ℕ :=
+(has_injective_resolution.out Z).some.cocomplex
+
+abbreviation injective_resolution.ι (Z : C) [has_injective_resolution Z] :
+  (cochain_complex.single₀ C).obj Z ⟶ injective_resolution Z :=
+(has_injective_resolution.out Z).some.ι
+
+abbreviation injective_resolution.desc {X Y : C} (f : Y ⟶ X)
+  [has_injective_resolution X] [has_injective_resolution Y] :
+  injective_resolution Y ⟶ injective_resolution X :=
+InjectiveResolution.desc f _ _
+
+end
+
+variables (C) [preadditive C] [has_zero_object C] [has_equalizers C] [has_images C]
+  [has_injective_resolutions C] [has_images Cᵒᵖ] [has_equalizers Cᵒᵖ] [has_coequalizers Cᵒᵖ]
+
+/--
+Taking projective resolutions is functorial,
+if considered with target the homotopy category
+(`ℕ`-indexed chain complexes and chain maps up to homotopy).
+-/
+def projective_resolutions : C ⥤ homotopy_category C (complex_shape.up ℕ) :=
+{ obj := λ X, (homotopy_category.quotient _ _).obj (injective_resolution X),
+  map := λ X Y f, (homotopy_category.quotient _ _).map (injective_resolution.desc f),
+  map_id' := λ X, begin
+    rw ←(homotopy_category.quotient _ _).map_id,
+    apply homotopy_category.eq_of_homotopy,
+    apply InjectiveResolution.desc_id_homotopy,
+  end,
+  map_comp' := λ X Y Z f g, begin
+    rw ←(homotopy_category.quotient _ _).map_comp,
+    apply homotopy_category.eq_of_homotopy,
+    apply InjectiveResolution.desc_comp_homotopy,
+  end, }
 
 end category_theory

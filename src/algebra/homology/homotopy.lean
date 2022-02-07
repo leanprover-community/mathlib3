@@ -285,13 +285,13 @@ def comp_left_id {f : D ⟶ D} (h : homotopy f (𝟙 D)) (g : C ⟶ D) : homotop
 /-!
 Null homotopic maps can be constructed using the formula `hd+dh`. We show that
 these morphisms are homotopic to `0` and provide some convenient simplification
-lemmas that give a degreewise description of `hd+dh`, depending on whether we have 
+lemmas that give a degreewise description of `hd+dh`, depending on whether we have
 two differentials going to and from a certain degree, only one, or none.
 -/
 
 /-- The null homotopic map associated to a family `hom` of morphisms `C_i ⟶ D_j`.
 This is the same datum as for the field `hom` in the structure `homotopy`. For
-this definition, we do not need the field `zero` of that structure 
+this definition, we do not need the field `zero` of that structure
 as this definition uses only the maps `C_i ⟶ C_j` when `c.rel j i`. -/
 def null_homotopic_map (hom : Π i j, C.X i ⟶ D.X j) : C ⟶ D :=
 { f      := λ i, d_next i hom + prev_d i hom,
@@ -306,7 +306,7 @@ def null_homotopic_map (hom : Π i j, C.X i ⟶ D.X j) : C ⟶ D :=
       { dsimp [d_next], rw h, erw comp_zero, },
       { rw [d_next_eq hom w, ← category.assoc, C.d_comp_d' i j j' hij w, zero_comp], }, },
     rw [d_next_eq hom hij, prev_d_eq hom hij, preadditive.comp_add, preadditive.add_comp,
-      eq1, eq2, add_zero, zero_add, category.assoc], 
+      eq1, eq2, add_zero, zero_add, category.assoc],
   end }
 
 /-- Variant of `null_homotopic_map` where the input consists only of the
@@ -409,7 +409,7 @@ begin
 end
 
 @[simp]
-lemma null_homotopic_map_f_eq_zero {k₀ : ι} 
+lemma null_homotopic_map_f_eq_zero {k₀ : ι}
   (hk₀ : ∀ l : ι, ¬c.rel k₀ l) (hk₀' : ∀ l : ι, ¬c.rel l k₀)
   (hom : Π i j, C.X i ⟶ D.X j) :
   (null_homotopic_map hom).f k₀ = 0 :=
@@ -424,7 +424,7 @@ begin
 end
 
 @[simp]
-lemma null_homotopic_map'_f_eq_zero {k₀ : ι} 
+lemma null_homotopic_map'_f_eq_zero {k₀ : ι}
   (hk₀ : ∀ l : ι, ¬c.rel k₀ l) (hk₀' : ∀ l : ι, ¬c.rel l k₀)
   (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
   (null_homotopic_map' h).f k₀ = 0 :=
@@ -567,6 +567,126 @@ def mk_inductive : homotopy e 0 :=
 end
 
 end mk_inductive
+
+section mk_coinductive
+
+variables {P Q : cochain_complex V ℕ}
+
+@[simp] lemma d_next_cochain_complex (f : Π i j, P.X i ⟶ Q.X j) (j : ℕ) :
+  d_next j f = P.d _ _ ≫ f (j+1) j :=
+begin
+  dsimp [d_next],
+  simp only [cochain_complex.next],
+  refl,
+end
+
+-- @[simp] lemma d_next_succ_cochain_complex (f : Π i j, P.X i ⟶ Q.X j) (i : ℕ) :
+--   prev_d _ f = f (i+1) (i+2) ≫ Q.d _ _ :=
+-- begin
+--   dsimp [prev_d],
+--   -- simp,
+--   simp only [cochain_complex.prev_d_succ],
+--   refl,
+-- end
+
+-- @[simp] lemma d_next_zero_chain_complex (f : Π i j, P.X i ⟶ Q.X j) :
+--   d_next 0 f = 0 :=
+-- begin
+--   dsimp [d_next],
+--   simp only [chain_complex.next_nat_zero],
+--   refl,
+-- end
+
+variables (e : P ⟶ Q)
+  (zero : P.X 0 ⟶ Q.X 1)
+  (comm_zero : e.f 0 = zero ≫ Q.d 1 0)
+  (one : P.X 1 ⟶ Q.X 2)
+  (comm_one : e.f 1 = P.d 1 0 ≫ zero + one ≫ Q.d 2 1)
+  (succ : ∀ (n : ℕ)
+    (p : Σ' (f : P.X n ⟶ Q.X (n+1)) (f' : P.X (n+1) ⟶ Q.X (n+2)),
+      e.f (n+1) = P.d (n+1) n ≫ f + f' ≫ Q.d (n+2) (n+1)),
+    Σ' f'' : P.X (n+2) ⟶ Q.X (n+3), e.f (n+2) = P.d (n+2) (n+1) ≫ p.2.1 + f'' ≫ Q.d (n+3) (n+2))
+
+include comm_one comm_zero
+
+/--
+An auxiliary construction for `mk_inductive`.
+
+Here we build by induction a family of diagrams,
+but don't require at the type level that these successive diagrams actually agree.
+They do in fact agree, and we then capture that at the type level (i.e. by constructing a homotopy)
+in `mk_inductive`.
+
+At this stage, we don't check the homotopy condition in degree 0,
+because it "falls off the end", and is easier to treat using `X_next` and `X_prev`,
+which we do in `mk_inductive_aux₂`.
+-/
+-- @[simp, nolint unused_arguments]
+-- def mk_coinductive_aux₁ :
+--   Π n, Σ' (f : P.X n ⟶ Q.X (n+1)) (f' : P.X (n+1) ⟶ Q.X (n+2)),
+--     e.f (n+1) = P.d (n+1) n ≫ f + f' ≫ Q.d (n+2) (n+1)
+-- | 0 := ⟨zero, one, comm_one⟩
+-- | 1 := ⟨one, (succ 0 ⟨zero, one, comm_one⟩).1, (succ 0 ⟨zero, one, comm_one⟩).2⟩
+-- | (n+2) :=
+--   ⟨(mk_coinductive_aux₁ (n+1)).2.1,
+--     (succ (n+1) (mk_coinductive_aux₁ (n+1))).1,
+--     (succ (n+1) (mk_coinductive_aux₁ (n+1))).2⟩
+
+section
+
+variable [has_zero_object V]
+
+/--
+An auxiliary construction for `mk_inductive`.
+-/
+-- @[simp]
+-- def mk_coinductive_aux₂ :
+--   Π n, Σ' (f : P.X_next n ⟶ Q.X n) (f' : P.X n ⟶ Q.X_prev n), e.f n = P.d_from n ≫ f + f' ≫ Q.d_to n
+-- | 0 := ⟨0, zero ≫ (Q.X_prev_iso rfl).inv, by simpa using comm_zero⟩
+-- | (n+1) := let I := mk_coinductive_aux₁ e zero comm_zero one comm_one succ n in
+--   ⟨(P.X_next_iso rfl).hom ≫ I.1, I.2.1 ≫ (Q.X_prev_iso rfl).inv, by simpa using I.2.2⟩
+
+-- lemma mk_coinductive_aux₃ (i : ℕ) :
+--   (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.1 ≫ (Q.X_prev_iso rfl).hom
+--     = (P.X_next_iso rfl).inv ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ (i+1)).1 :=
+-- by rcases i with (_|_|i); { dsimp, simp, }
+
+/--
+A constructor for a `homotopy e 0`, for `e` a chain map between `ℕ`-indexed chain complexes,
+working by induction.
+
+You need to provide the components of the homotopy in degrees 0 and 1,
+show that these satisfy the homotopy condition,
+and then give a construction of each component,
+and the fact that it satisfies the homotopy condition,
+using as an inductive hypothesis the data and homotopy condition for the previous two components.
+-/
+def mk_coinductive : homotopy e 0 := sorry
+-- { hom := λ i j, if h : i + 1 = j then
+--     (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.1 ≫ (Q.X_prev_iso h).hom
+--   else
+--     0,
+--   zero' := λ i j w, by rwa dif_neg,
+--   comm := λ i, begin
+--     dsimp, simp only [add_zero],
+--     convert (mk_inductive_aux₂ e zero comm_zero one comm_one succ i).2.2,
+--     { rcases i with (_|_|_|i),
+--       { dsimp,
+--         simp only [d_next_zero_chain_complex, d_from_eq_zero, limits.comp_zero], },
+--       all_goals
+--       { simp only [d_next_succ_chain_complex],
+--         dsimp,
+--         simp only [category.comp_id, category.assoc, iso.inv_hom_id, d_from_comp_X_next_iso_assoc,
+--           dite_eq_ite, if_true, eq_self_iff_true]}, },
+--     { cases i,
+--       all_goals
+--       { simp only [prev_d_chain_complex],
+--         dsimp,
+--         simp only [category.comp_id, category.assoc, iso.inv_hom_id, X_prev_iso_comp_d_to,
+--           dite_eq_ite, if_true, eq_self_iff_true], }, },
+--   end, }
+
+end mk_coinductive
 
 end homotopy
 

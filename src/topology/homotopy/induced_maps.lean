@@ -21,34 +21,48 @@ import category_theory.equivalence
     `π(X)` and `π(Y)` given a homotopy equivalence `hequiv : X ≃ₕ Y` between them.
 
 ## Implementation notes
-  - In order to be more universe polymorphic, we use the lower level `path.homotopic.prod`, rather
-    than `fundamental_groupoid_functor.prod_to_prod_Top`. The latter would have restricted `X` to
-    be of universe level `Type`, the same as `I`. Unfortunately, this does make it a little more
-    annoying in terms of simplifying what otherwise might have been a one-line `simp`, since we
-    have to dig and use a method directly from `path.homotopic.prod`.
+  - In order to be more universe polymorphic, we define `ulift_homotopy`
+  which lifts a homotopy from `I × X → Y` to `(Top.of ((ulift I) × X)) → Y`
 -/
 
 noncomputable theory
 
 universe u
 
-namespace fundamental_groupoid_functor
+namespace unit_interval
+open_locale unit_interval
+
+/-- The path 0 ⟶ 1 in I -/
+def path_zero_one : path (0 : I) 1
+:= { to_fun := id, source' := rfl, target' := rfl }
+
+/-- The path 0 ⟶ 1 in ulift I -/
+def upath_zero_one : path (ulift.up 0 : ulift.{u} I) (ulift.up 1)
+:= { to_fun := ulift.up, source' := rfl, target' := rfl }
+
+local attribute [instance] path.homotopic.setoid
+/-- The homotopy path class of 0 → 1 in `ulift I` -/
+def uhpath_zero_one := @fundamental_groupoid.from_path (Top.of $ ulift.{u} I) _ _ ⟦upath_zero_one⟧
+
+end unit_interval
+
+namespace continuous_map.homotopy
 open fundamental_groupoid
 open category_theory
-open_locale fundamental_groupoid
+open unit_interval (uhpath_zero_one)
+open fundamental_groupoid_functor
 
-section homotopic_maps_isomorphic
+open_locale fundamental_groupoid
 open_locale unit_interval
 
 local attribute [instance] path.homotopic.setoid
 
 
-/-- We let `X` and `Y` be spaces, and `f` and `g` be homotopic maps between them -/
-parameters {X : Top.{u}} {Y : Top.{u}} {f g : C(X, Y)} (H : continuous_map.homotopy f g)
+/- We let `X` and `Y` be spaces, and `f` and `g` be homotopic maps between them -/
+variables {X Y : Top.{u}} {f g : C(X, Y)} (H : continuous_map.homotopy f g)
+  {x₀ x₁ : X} (p : from_top x₀ ⟶ x₁)
 
-variables {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁)
-
-/--
+/-
 These definitions set up the following diagram, for each path `p`:
 
           f(p)
@@ -70,79 +84,98 @@ It is clear that the diagram commutes (`H₀ ≫ g(p) = d = f(p) ≫ H₁`), but
 many of the paths do not have defeq starting/ending points, so we end up needing some casting.
 -/
 
-/- The path 0 ⟶ 1 in I -/
-private def straight_path : path (0 : I) (1 : I) := { to_fun := id, source' := rfl, target' := rfl }
+/-- Interpret a homotopy `H : C(I × X, Y) as a map C(ulift I × X, Y) -/
+def ulift_map : C(Top.of (ulift.{u} unit_interval × X), Y) :=
+⟨λ x, H (x.1.down, x.2),
+  H.continuous.comp ((continuous_induced_dom.comp continuous_fst).prod_mk continuous_snd)⟩
 
-/-- Just a shortened form of H.to_continuous_map (also has the right type) -/
-private abbreviation H_map : C(Top.of (I × X), Y) := H.to_continuous_map
+@[simp] lemma ulift_apply (i : ulift.{u} unit_interval) (x : X)
+  : H.ulift_map (i, x) = H (i.down, x) := rfl
 
-/- The diagonal path `d` -/
-private def diagonal_path : from_top (H (0, x₀)) ⟶ H (1, x₁) :=
-(πₘ H_map).map (path.homotopic.prod ⟦straight_path⟧ p)
+/-- An abbreviation for `prod_to_prod_Top`, with some types already in place to help the
+ typechecker. In particular, the first path should be on the lifted unit interval. -/
+abbreviation prod_to_prod_Top_I {a₁ a₂ : Top.of (ulift I)} {b₁ b₂ : X}
+  (p₁ : from_top a₁ ⟶ a₂) (p₂ : from_top b₁ ⟶ b₂) :=
+@category_theory.functor.map _ _ _ _ (prod_to_prod_Top (Top.of $ ulift I) X)
+  (a₁, b₁) (a₂, b₂) (p₁, p₂)
 
-/- The diagonal path, but starting from `f x₀` and going to `g x₁` -/
-private def diagonal_path' : from_top (f x₀) ⟶ g x₁ :=
-hcast (H.apply_zero x₀).symm ≫ (diagonal_path p) ≫ hcast (H.apply_one x₁)
+/-- The diagonal path `d` of a homotopy `H` on a path `p` -/
+def diagonal_path : from_top (H (0, x₀)) ⟶ H (1, x₁) :=
+(πₘ H.ulift_map).map (prod_to_prod_Top_I uhpath_zero_one p)
 
-/- Proof that `f(p) = H(0 ⟶ 0, p)`, with the appropriate casts -/
-private lemma up_is_f : (πₘ f).map p = hcast (H.apply_zero x₀).symm
-  ≫ (πₘ H_map).map (path.homotopic.prod ⟦path.refl (0 : I)⟧ p)
+/-- The diagonal path, but starting from `f x₀` and going to `g x₁` -/
+def diagonal_path' : from_top (f x₀) ⟶ g x₁ :=
+hcast (H.apply_zero x₀).symm ≫ (H.diagonal_path p) ≫ hcast (H.apply_one x₁)
+
+/-- Proof that `f(p) = H(0 ⟶ 0, p)`, with the appropriate casts -/
+lemma apply_zero_path : (πₘ f).map p = hcast (H.apply_zero x₀).symm
+  ≫ (πₘ H.ulift_map).map (prod_to_prod_Top_I (𝟙 (ulift.up 0)) p)
   ≫ hcast (H.apply_zero x₁) :=
 begin
   apply quotient.induction_on p,
-  intro p',
-  rw path.homotopic.prod_lift,
-  apply @eq_path_of_eq_image _ (Top.of (I × X)),
+  intro p', dunfold prod_to_prod_Top_I,
+  simp only [prod_to_prod_Top_map, path.homotopic.prod_lift],
+  apply @eq_path_of_eq_image _ _ _ _ H.ulift_map _ _ _ _ _ ((path.refl (ulift.up _)).prod p'),
   simp,
 end
 
-/- Proof that `g(p) = H(1 ⟶ 1, p)`, with the appropriate casts -/
-private lemma down_is_g : (πₘ g).map p = hcast (H.apply_one x₀).symm
-  ≫ ((πₘ H_map).map (path.homotopic.prod ⟦path.refl (1 : I)⟧ p))
+/-- Proof that `g(p) = H(1 ⟶ 1, p)`, with the appropriate casts -/
+lemma apply_one_path : (πₘ g).map p = hcast (H.apply_one x₀).symm
+  ≫ ((πₘ H.ulift_map).map (prod_to_prod_Top_I (𝟙 (ulift.up 1)) p))
   ≫ hcast (H.apply_one x₁) :=
 begin
   apply quotient.induction_on p,
-  intro p',
-  rw path.homotopic.prod_lift,
-  apply @eq_path_of_eq_image _ (Top.of (I × X)),
+  intro p', dunfold prod_to_prod_Top_I,
+  simp only [prod_to_prod_Top_map, path.homotopic.prod_lift],
+  apply @eq_path_of_eq_image _ _ _ _ H.ulift_map _ _ _ _ _ ((path.refl (ulift.up _)).prod p'),
   simp,
 end
 
-/- Proof that `H.to_path x = H(0 ⟶ 1, x ⟶ x)`, with the appropriate casts -/
-private lemma H_to_path_eq (x : X) : ⟦H.to_path x⟧ =
+/-- Proof that `H.to_path x = H(0 ⟶ 1, x ⟶ x)`, with the appropriate casts -/
+lemma to_path_eq (x : X) : ⟦H.to_path x⟧ =
   hcast (H.apply_zero x).symm ≫
-  (πₘ H_map).map (path.homotopic.prod ⟦straight_path⟧ ⟦path.refl x⟧) ≫
+  (πₘ H.ulift_map).map (prod_to_prod_Top_I uhpath_zero_one (𝟙 x)) ≫
   hcast (H.apply_one x) :=
-by { rw path.homotopic.prod_lift, simp only [map_eq, ← path.homotopic.map_lift,
-  path_cast_left, path_cast_right], refl, }
+begin
+  dunfold prod_to_prod_Top_I, dunfold uhpath_zero_one,
+  simp only [id_eq_path_refl, prod_to_prod_Top_map, path.homotopic.prod_lift, map_eq,
+    ← path.homotopic.map_lift, path_cast_right, path_cast_left],
+  refl,
+end
 
 /- Finally, we show `d = f(p) ≫ H₁ = H₀ ≫ g(p)` -/
-private lemma eq_diag :
-  (πₘ f).map p ≫ ⟦H.to_path x₁⟧ = diagonal_path' p ∧
-  (⟦H.to_path x₀⟧ ≫ (πₘ g).map p : from_top (f x₀) ⟶ g x₁) = diagonal_path' p :=
+lemma eq_diag_path :
+  (πₘ f).map p ≫ ⟦H.to_path x₁⟧ = H.diagonal_path' p ∧
+  (⟦H.to_path x₀⟧ ≫ (πₘ g).map p : from_top (f x₀) ⟶ g x₁) = H.diagonal_path' p :=
 begin
-  rw [up_is_f H, down_is_g H, H_to_path_eq, H_to_path_eq],
+  rw [H.apply_zero_path, H.apply_one_path, H.to_path_eq, H.to_path_eq],
+  dunfold prod_to_prod_Top_I,
   split;
-  simp only [hcast_eq, category.id_comp, eq_to_hom_refl, category.assoc, eq_to_hom_trans_assoc,
-    ← functor.map_comp_assoc];
-  simp only [comp_eq, path.homotopic.comp_prod_eq_prod_comp];
-  simp [← comp_eq, ← id_eq_path_refl]; refl,
+  { slice_lhs 2 5 { simp [← category_theory.functor.map_comp], }, refl, },
 end
+
+
+end continuous_map.homotopy
+
+namespace fundamental_groupoid_functor
+open category_theory
+open_locale fundamental_groupoid
+local attribute [instance] path.homotopic.setoid
+
+variables {X Y : Top.{u}} {f g : C(X, Y)} (H : continuous_map.homotopy f g)
 
 /-- Given a homotopy H : f ∼ g, we have an associated natural isomorphism between the induced
 functors `f` and `g` -/
 def homotopic_maps_nat_iso : πₘ f ⟶ πₘ g :=
 { app := λ x, ⟦H.to_path x⟧,
-  naturality' := by { intros x y p, rw [(eq_diag H p).1, (eq_diag H p).2], } }
+  naturality' := by { intros x y p, rw [(H.eq_diag_path p).1, (H.eq_diag_path p).2], } }
 
-instance : is_iso homotopic_maps_nat_iso := by apply nat_iso.is_iso_of_is_iso_app
-
-end homotopic_maps_isomorphic
+instance : is_iso (homotopic_maps_nat_iso H) := by apply nat_iso.is_iso_of_is_iso_app
 
 open_locale continuous_map
 
 /-- Homotopy equivalent topological spaces have equivalent fundamental groupoids. -/
-def equiv_of_homotopy_equiv {X Y : Top.{u}} (hequiv : X ≃ₕ Y) : (πₓ X).α ≌ (πₓ Y).α :=
+def equiv_of_homotopy_equiv (hequiv : X ≃ₕ Y) : (πₓ X).α ≌ (πₓ Y).α :=
 begin
   apply equivalence.mk
     (πₘ hequiv.to_fun : (πₓ X).α ⥤ (πₓ Y).α)

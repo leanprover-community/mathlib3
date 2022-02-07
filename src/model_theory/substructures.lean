@@ -617,6 +617,8 @@ ext $ assume b, rfl
   p.subtype.comp (cod_restrict p f h) = f :=
 ext $ assume b, rfl
 
+/-- The equivalence between a substructure `s` and its image `s.map f.to_hom`, where `f` is an
+  embedding. -/
 noncomputable def substructure_equiv_map (f : M ↪[L] N) (s : L.substructure M) :
   s ≃[L] s.map f.to_hom :=
 { to_fun := cod_restrict (s.map f.to_hom) (f.dom_restrict s) (λ ⟨m, hm⟩, ⟨m, hm, rfl⟩),
@@ -628,6 +630,7 @@ noncomputable def substructure_equiv_map (f : M ↪[L] N) (s : L.substructure M)
 @[simp] lemma substructure_equiv_map_apply (f : M ↪[L] N) (p : L.substructure M) (x : p) :
   (f.substructure_equiv_map p x : N) = f x := rfl
 
+/-- The equivalence between the domain and the range of an embedding `f`. -/
 noncomputable def equiv_range (f : M ↪[L] N) :
   M ≃[L] f.to_hom.range :=
 { to_fun := cod_restrict f.to_hom.range f f.to_hom.mem_range_self,
@@ -675,3 +678,4 @@ end substructure
 
 end language
 end first_order
+#lint

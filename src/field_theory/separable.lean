@@ -493,7 +493,7 @@ variables (p : ℕ) [HF : char_p F p]
 include HF
 
 theorem separable_or {f : F[X]} (hf : irreducible f) : f.separable ∨
-  ¬f.separable ∧ ∃ g : polynomial F, irreducible g ∧ expand F p g = f :=
+  ¬f.separable ∧ ∃ g : F[X], irreducible g ∧ expand F p g = f :=
 if H : f.derivative = 0 then
 begin
   unfreezingI { rcases p.eq_zero_or_pos with rfl | hp },

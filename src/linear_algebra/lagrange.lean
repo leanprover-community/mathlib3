@@ -84,7 +84,7 @@ variables (f : F → F)
 /-- Lagrange interpolation: given a finset `s` and a function `f : F → F`,
 `interpolate s f` is the unique polynomial of degree `< s.card`
 that takes value `f x` on all `x` in `s`. -/
-def interpolate : polynomial F :=
+def interpolate : F[X] :=
 ∑ x in s, C (f x) * basis s x
 
 @[simp] theorem interpolate_empty (f) : interpolate (∅ : finset F) f = 0 :=
@@ -149,7 +149,7 @@ def linterpolate : (F → F) →ₗ[F] polynomial F :=
 @[simp] lemma interpolate_smul (c : F) (f) : interpolate s (c • f) = c • interpolate s f :=
 (linterpolate s).map_smul c f
 
-theorem eq_zero_of_eval_eq_zero {f : polynomial F'} (hf1 : f.degree < s'.card)
+theorem eq_zero_of_eval_eq_zero {f : F'[X]} (hf1 : f.degree < s'.card)
   (hf2 : ∀ x ∈ s', f.eval x = 0) : f = 0 :=
 by_contradiction $ λ hf3, not_le_of_lt hf1 $
 calc  (s'.card : with_bot ℕ)
@@ -158,7 +158,7 @@ calc  (s'.card : with_bot ℕ)
 ... ≤ f.roots.card : with_bot.coe_le_coe.2 $ f.roots.to_finset_card_le
 ... ≤ f.degree : card_roots hf3
 
-theorem eq_of_eval_eq {f g : polynomial F'} (hf : f.degree < s'.card) (hg : g.degree < s'.card)
+theorem eq_of_eval_eq {f g : F'[X]} (hf : f.degree < s'.card) (hg : g.degree < s'.card)
   (hfg : ∀ x ∈ s', f.eval x = g.eval x) : f = g :=
 eq_of_sub_eq_zero $ eq_zero_of_eval_eq_zero s'
   (lt_of_le_of_lt (degree_sub_le f g) $ max_lt hf hg)

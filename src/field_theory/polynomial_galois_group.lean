@@ -275,7 +275,7 @@ end
 lemma splits_in_splitting_field_of_comp (hq : q.nat_degree ≠ 0) :
   p.splits (algebra_map F (p.comp q).splitting_field) :=
 begin
-  let P : polynomial F → Prop := λ r, r.splits (algebra_map F (r.comp q).splitting_field),
+  let P : F[X] → Prop := λ r, r.splits (algebra_map F (r.comp q).splitting_field),
   have key1 : ∀ {r : F[X]}, irreducible r → P r,
   { intros r hr,
     by_cases hr' : nat_degree r = 0,
@@ -351,14 +351,14 @@ end
 
 section rationals
 
-lemma splits_ℚ_ℂ {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
+lemma splits_ℚ_ℂ {p : ℚ[X]} : fact (p.splits (algebra_map ℚ ℂ)) :=
 ⟨is_alg_closed.splits_codomain p⟩
 
 local attribute [instance] splits_ℚ_ℂ
 
 /-- The number of complex roots equals the number of real roots plus
     the number of roots not fixed by complex conjugation (i.e. with some imaginary component). -/
-lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : polynomial ℚ) :
+lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : ℚ[X]) :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
   (gal_action_hom p ℂ (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ))).support.card :=
 begin
@@ -411,7 +411,7 @@ end
 
 /-- An irreducible polynomial of prime degree with two non-real roots has full Galois group. -/
 lemma gal_action_hom_bijective_of_prime_degree
-  {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
+  {p : ℚ[X]} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
   (p_roots : fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) + 2) :
   function.bijective (gal_action_hom p ℂ) :=
 begin
@@ -439,7 +439,7 @@ end
 
 /-- An irreducible polynomial of prime degree with 1-3 non-real roots has full Galois group. -/
 lemma gal_action_hom_bijective_of_prime_degree'
-  {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
+  {p : ℚ[X]} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
   (p_roots1 : fintype.card (p.root_set ℝ) + 1 ≤ fintype.card (p.root_set ℂ))
   (p_roots2 : fintype.card (p.root_set ℂ) ≤ fintype.card (p.root_set ℝ) + 3) :
   function.bijective (gal_action_hom p ℂ) :=

@@ -613,26 +613,26 @@ variables [comm_ring T]
 
 If you have a non-separable polynomial, use `polynomial.roots` for the multiset
 where multiple roots have the appropriate multiplicity. -/
-def root_set (p : polynomial T) (S) [comm_ring S] [is_domain S] [algebra T S] : set S :=
+def root_set (p : T[X]) (S) [comm_ring S] [is_domain S] [algebra T S] : set S :=
 (p.map (algebra_map T S)).roots.to_finset
 
-lemma root_set_def (p : polynomial T) (S) [comm_ring S] [is_domain S] [algebra T S] :
+lemma root_set_def (p : T[X]) (S) [comm_ring S] [is_domain S] [algebra T S] :
   p.root_set S = (p.map (algebra_map T S)).roots.to_finset :=
 rfl
 
 @[simp] lemma root_set_zero (S) [comm_ring S] [is_domain S] [algebra T S] :
-  (0 : polynomial T).root_set S = ∅ :=
+  (0 : T[X]).root_set S = ∅ :=
 by rw [root_set_def, polynomial.map_zero, roots_zero, to_finset_zero, finset.coe_empty]
 
 @[simp] lemma root_set_C [comm_ring S] [is_domain S] [algebra T S] (a : T) :
   (C a).root_set S = ∅ :=
 by rw [root_set_def, map_C, roots_C, multiset.to_finset_zero, finset.coe_empty]
 
-instance root_set_fintype (p : polynomial T)
+instance root_set_fintype (p : T[X])
   (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : fintype (p.root_set S) :=
 finset_coe.fintype _
 
-lemma root_set_finite (p : polynomial T)
+lemma root_set_finite (p : T[X])
   (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : (p.root_set S).finite :=
 ⟨polynomial.root_set_fintype p S⟩
 

@@ -62,7 +62,7 @@ variables {K}
 variables (K)
 
 theorem normal.exists_is_splitting_field [h : normal F K] [finite_dimensional F K] :
-  ∃ p : polynomial F, is_splitting_field F K p :=
+  ∃ p : F[X], is_splitting_field F K p :=
 begin
   let s := basis.of_vector_space F K,
   refine ⟨∏ x, minpoly F (s x),

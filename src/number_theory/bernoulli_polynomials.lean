@@ -39,12 +39,12 @@ Bernoulli polynomials are defined using `bernoulli`, the Bernoulli numbers.
 
 noncomputable theory
 open_locale big_operators
-open_locale nat
+open_locale nat polynomial
 
 open nat finset
 
 /-- The Bernoulli polynomials are defined in terms of the negative Bernoulli numbers. -/
-def bernoulli_poly (n : ℕ) : polynomial ℚ :=
+def bernoulli_poly (n : ℕ) : ℚ[X] :=
   ∑ i in range (n + 1), polynomial.monomial (n - i) ((bernoulli i) * (choose n i))
 
 lemma bernoulli_poly_def (n : ℕ) : bernoulli_poly n =

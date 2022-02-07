@@ -49,12 +49,12 @@ g.separable ∧ ∃ m : ℕ, expand F (q^m) g = f
 
 /-- The condition of having a separable contration. -/
 def has_separable_contraction (f : F[X]) : Prop :=
-∃ g : polynomial F, is_separable_contraction q f g
+∃ g : F[X], is_separable_contraction q f g
 
 variables {q} {f : F[X]} (hf : has_separable_contraction q f)
 
 /-- A choice of a separable contraction. -/
-def has_separable_contraction.contraction : polynomial F := classical.some hf
+def has_separable_contraction.contraction : F[X] := classical.some hf
 
 /-- The separable degree of a polynomial is the degree of a given separable contraction. -/
 def has_separable_contraction.degree : ℕ := hf.contraction.nat_degree

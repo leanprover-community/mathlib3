@@ -113,7 +113,7 @@ variables {Q : Type*} [comm_semiring Q] [mul_semiring_action M Q]
 open polynomial
 
 /-- An equivariant map induces an equivariant map on polynomials. -/
-protected noncomputable def polynomial (g : P →+*[M] Q) : polynomial P →+*[M] polynomial Q :=
+protected noncomputable def polynomial (g : P →+*[M] Q) : P[X] →+*[M] Q[X] :=
 { to_fun := map g,
   map_smul' := λ m p, polynomial.induction_on p
     (λ b, by rw [smul_C, map_C, coe_fn_coe, g.map_smul, map_C, coe_fn_coe, smul_C])
@@ -127,7 +127,7 @@ protected noncomputable def polynomial (g : P →+*[M] Q) : polynomial P →+*[M
   map_mul' := λ p q, polynomial.map_mul g }
 
 @[simp] theorem coe_polynomial (g : P →+*[M] Q) :
-  (g.polynomial : polynomial P → polynomial Q) = map g :=
+  (g.polynomial : P[X] → Q[X]) = map g :=
 rfl
 
 end mul_semiring_action_hom

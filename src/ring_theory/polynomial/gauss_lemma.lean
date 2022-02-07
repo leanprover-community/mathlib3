@@ -171,11 +171,11 @@ end fraction_map
 /-- **Gauss's Lemma** for `ℤ` states that a primitive integer polynomial is irreducible iff it is
   irreducible over `ℚ`. -/
 theorem is_primitive.int.irreducible_iff_irreducible_map_cast
-  {p : polynomial ℤ} (hp : p.is_primitive) :
+  {p : ℤ[X]} (hp : p.is_primitive) :
   irreducible p ↔ irreducible (p.map (int.cast_ring_hom ℚ)) :=
 hp.irreducible_iff_irreducible_map_fraction_map
 
-lemma is_primitive.int.dvd_iff_map_cast_dvd_map_cast (p q : polynomial ℤ)
+lemma is_primitive.int.dvd_iff_map_cast_dvd_map_cast (p q : ℤ[X])
   (hp : p.is_primitive) (hq : q.is_primitive) :
   (p ∣ q) ↔ (p.map (int.cast_ring_hom ℚ) ∣ q.map (int.cast_ring_hom ℚ)) :=
 hp.dvd_iff_fraction_map_dvd_fraction_map ℚ hq

@@ -220,7 +220,7 @@ variables (p : R[X]) (T : subring R)
 
 /-- Given a polynomial `p` and a subring `T` that contains the coefficients of `p`,
 return the corresponding polynomial whose coefficients are in `T. -/
-def to_subring (hp : (↑p.frange : set R) ⊆ T) : polynomial T :=
+def to_subring (hp : (↑p.frange : set R) ⊆ T) : T[X] :=
 ∑ i in p.support, monomial i (⟨p.coeff i,
   if H : p.coeff i = 0 then H.symm ▸ T.zero_mem
   else hp (p.coeff_mem_frange _ H)⟩ : T)
@@ -279,10 +279,10 @@ variables (T : subring R)
 
 /-- Given a polynomial whose coefficients are in some subring, return
 the corresponding polynomial whose coefficients are in the ambient ring. -/
-def of_subring (p : polynomial T) : R[X] :=
+def of_subring (p : T[X]) : R[X] :=
 ∑ i in p.support, monomial i (p.coeff i : R)
 
-lemma coeff_of_subring (p : polynomial T) (n : ℕ) :
+lemma coeff_of_subring (p : T[X]) (n : ℕ) :
   coeff (of_subring T p) n = (coeff p n : T) :=
 begin
   simp only [of_subring, coeff_monomial, finset_sum_coeff, mem_support_iff, finset.sum_ite_eq',
@@ -292,7 +292,7 @@ begin
   refl
 end
 
-@[simp] theorem frange_of_subring {p : polynomial T} :
+@[simp] theorem frange_of_subring {p : T[X]} :
   (↑(p.of_subring T).frange : set R) ⊆ T :=
 begin
   assume i hi,

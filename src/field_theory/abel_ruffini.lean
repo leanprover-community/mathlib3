@@ -184,7 +184,7 @@ begin
   { rw [polynomial.map_sub, polynomial.map_sub, polynomial.map_pow, map_X, map_C,
         polynomial.map_one, sub_comp, pow_comp, X_comp, C_comp, mul_pow, ←C_pow, hb, mul_sub,
         ←mul_assoc, C_mul_C, one_mul] },
-  have key2 : (λ q : polynomial E, q.comp (C b * X)) ∘ (λ c : E, X - C c) =
+  have key2 : (λ q : E[X], q.comp (C b * X)) ∘ (λ c : E, X - C c) =
     (λ c : E, C b * (X - C (c / b))),
   { ext1 c,
     change (X - C c).comp (C b * X) = C b * (X - C (c / b)),

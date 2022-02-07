@@ -684,7 +684,7 @@ variables {R A B S T : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B] [comm_ring S] [comm_ring T]
 variables [algebra A B] [algebra R B] (f : R →+* S) (g : S →+* T)
 
-lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : aeval x p = 0) :
+lemma is_integral_trans_aux (x : B) {p : A[X]} (pmonic : monic p) (hp : aeval x p = 0) :
   is_integral (adjoin R (↑(p.map $ algebra_map A B).frange : set B)) x :=
 begin
   generalize hS : (↑(p.map $ algebra_map A B).frange : set B) = S,
@@ -693,7 +693,7 @@ begin
     { rw hi, exact subalgebra.zero_mem _ },
     rw ← hS,
     exact subset_adjoin (coeff_mem_frange _ _ hi) },
-  obtain ⟨q, hq⟩ : ∃ q : polynomial (adjoin R S), q.map (algebra_map (adjoin R S) B) =
+  obtain ⟨q, hq⟩ : ∃ q : (adjoin R S)[X], q.map (algebra_map (adjoin R S) B) =
       (p.map $ algebra_map A B),
   { rw ← set.mem_range, exact (polynomial.mem_map_range _).2 (λ i, ⟨⟨_, coeffs_mem i⟩, rfl⟩) },
   use q,

@@ -156,7 +156,7 @@ begin
     simp only [algebra.smul_def, ring_hom.map_add, ring_hom.map_mul, ring_hom.comp_apply],
     ring },
   rw ← eq_X_sub_C_of_separable_of_root_eq h_sep h_root h_splits h_roots,
-  transitivity euclidean_domain.gcd (_ : polynomial E) (_ : polynomial E),
+  transitivity euclidean_domain.gcd (_ : E[X]) (_ : E[X]),
   { dsimp only [p],
     convert (gcd_map (algebra_map F⟮γ⟯ E)).symm },
   { simpa [map_comp, polynomial.map_map, ←is_scalar_tower.algebra_map_eq, h] },

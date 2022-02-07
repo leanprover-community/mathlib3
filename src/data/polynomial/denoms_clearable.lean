@@ -83,7 +83,7 @@ denominators, yields a number greater than or equal to one.  The target can be a
 `linear_ordered_field K`.
 The assumption on `K` could be weakened to `linear_ordered_comm_ring` assuming that the
 image of the denominator is invertible in `K`. -/
-lemma one_le_pow_mul_abs_eval_div {K : Type*} [linear_ordered_field K] {f : polynomial ℤ}
+lemma one_le_pow_mul_abs_eval_div {K : Type*} [linear_ordered_field K] {f : ℤ[X]}
   {a b : ℤ} (b0 : 0 < b) (fab : eval ((a : K) / b) (f.map (algebra_map ℤ K)) ≠ 0) :
   (1 : K) ≤ b ^ f.nat_degree * |eval ((a : K) / b) (f.map (algebra_map ℤ K))| :=
 begin

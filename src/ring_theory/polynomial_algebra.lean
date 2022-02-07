@@ -49,7 +49,7 @@ The function underlying `A ⊗[R] R[X] →ₐ[R] polynomial A`,
 as a bilinear function of two arguments.
 -/
 @[simps apply_apply]
-def to_fun_bilinear : A →ₗ[A] R[X] →ₗ[R] polynomial A :=
+def to_fun_bilinear : A →ₗ[A] R[X] →ₗ[R] A[X] :=
 linear_map.to_span_singleton A _ (aeval (polynomial.X : polynomial A)).to_linear_map
 
 lemma to_fun_bilinear_apply_eq_sum (a : A) (p : R[X]) :
@@ -136,7 +136,7 @@ end
 The bare function `polynomial A → A ⊗[R] R[X]`.
 (We don't need to show that it's an algebra map, thankfully --- just that it's an inverse.)
 -/
-def inv_fun (p : polynomial A) : A ⊗[R] R[X] :=
+def inv_fun (p : A[X]) : A ⊗[R] R[X] :=
 p.eval₂
   (include_left : A →ₐ[R] A ⊗[R] R[X])
   ((1 : A) ⊗ₜ[R] (X : R[X]))
@@ -166,7 +166,7 @@ begin
     simp only [alg_hom.map_add, inv_fun_add, hp, hq], },
 end
 
-lemma right_inv (x : polynomial A) :
+lemma right_inv (x : A[X]) :
   (to_fun_alg_hom R A) (inv_fun R A x) = x :=
 begin
   apply polynomial.induction_on' x,
@@ -196,12 +196,12 @@ open poly_equiv_tensor
 /--
 The `R`-algebra isomorphism `polynomial A ≃ₐ[R] (A ⊗[R] R[X])`.
 -/
-def poly_equiv_tensor : polynomial A ≃ₐ[R] (A ⊗[R] R[X]) :=
+def poly_equiv_tensor : A[X] ≃ₐ[R] (A ⊗[R] R[X]) :=
 alg_equiv.symm
 { ..(poly_equiv_tensor.to_fun_alg_hom R A), ..(poly_equiv_tensor.equiv R A) }
 
 @[simp]
-lemma poly_equiv_tensor_apply (p : polynomial A) :
+lemma poly_equiv_tensor_apply (p : A[X]) :
   poly_equiv_tensor R A p =
     p.eval₂ (include_left : A →ₐ[R] A ⊗[R] R[X]) ((1 : A) ⊗ₜ[R] (X : R[X])) :=
 rfl
@@ -278,7 +278,7 @@ begin
 end
 
 @[simp] lemma mat_poly_equiv_symm_apply_coeff
-  (p : polynomial (matrix n n R)) (i j : n) (k : ℕ) :
+  (p : (matrix n n R)[X]) (i j : n) (k : ℕ) :
   coeff (mat_poly_equiv.symm p i j) k = coeff p k i j :=
 begin
   have t : p = mat_poly_equiv

@@ -111,7 +111,7 @@ lemma scale_roots_aeval_eq_zero [algebra S R] {p : S[X]}
 scale_roots_eval₂_eq_zero (algebra_map S R) hr
 
 lemma scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero
-  {p : polynomial A} {f : A →+* K} (hf : function.injective f)
+  {p : A[X]} {f : A →+* K} (hf : function.injective f)
   {r s : A} (hr : eval₂ f (f r / f s) p = 0) (hs : s ∈ non_zero_divisors A) :
   eval₂ f (f r) (scale_roots p s) = 0 :=
 begin
@@ -121,7 +121,7 @@ begin
 end
 
 lemma scale_roots_aeval_eq_zero_of_aeval_div_eq_zero [algebra A K]
-  (inj : function.injective (algebra_map A K)) {p : polynomial A} {r s : A}
+  (inj : function.injective (algebra_map A K)) {p : A[X]} {r s : A}
   (hr : aeval (algebra_map A K r / algebra_map A K s) p = 0) (hs : s ∈ non_zero_divisors A) :
   aeval (algebra_map A K r) (scale_roots p s) = 0 :=
 scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero inj hr hs

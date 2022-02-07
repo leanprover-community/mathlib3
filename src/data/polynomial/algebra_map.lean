@@ -63,7 +63,7 @@ variables {R}
   Extensionality lemma for algebra maps out of `polynomial A'` over a smaller base ring than `A'`
 -/
 @[ext] lemma alg_hom_ext' [algebra R A'] [algebra R B']
-  {f g : polynomial A' →ₐ[R] B'}
+  {f g : A'[X] →ₐ[R] B'}
   (h₁ : f.comp (is_scalar_tower.to_alg_hom R A' (polynomial A')) =
         g.comp (is_scalar_tower.to_alg_hom R A' (polynomial A')))
   (h₂ : f X = g X) : f = g :=
@@ -122,12 +122,12 @@ end
 -- these used to be about `algebra_map ℤ R`, but now the simp-normal form is `int.cast_ring_hom R`.
 @[simp]
 lemma ring_hom_eval₂_cast_int_ring_hom {R S : Type*} [ring R] [ring S]
-  (p : polynomial ℤ) (f : R →+* S) (r : R) :
+  (p : ℤ[X]) (f : R →+* S) (r : R) :
   f (eval₂ (int.cast_ring_hom R) r p) = eval₂ (int.cast_ring_hom S) (f r) p :=
 alg_hom_eval₂_algebra_map p f.to_int_alg_hom r
 
 @[simp]
-lemma eval₂_int_cast_ring_hom_X {R : Type*} [ring R] (p : polynomial ℤ) (f : polynomial ℤ →+* R) :
+lemma eval₂_int_cast_ring_hom_X {R : Type*} [ring R] (p : ℤ[X]) (f : ℤ[X] →+* R) :
   eval₂ (int.cast_ring_hom R) (f X) p = f p :=
 eval₂_algebra_map_X p f.to_int_alg_hom
 

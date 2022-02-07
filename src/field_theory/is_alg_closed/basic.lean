@@ -43,7 +43,7 @@ To show `polynomial.splits p f` for an arbitrary ring homomorphism `f`,
 see `is_alg_closed.splits_codomain` and `is_alg_closed.splits_domain`.
 -/
 class is_alg_closed : Prop :=
-(splits : ∀ p : polynomial k, p.splits $ ring_hom.id k)
+(splits : ∀ p : k[X], p.splits $ ring_hom.id k)
 
 /-- Every polynomial splits in the field extension `f : K →+* k` if `k` is algebraically closed.
 
@@ -58,14 +58,14 @@ by { convert is_alg_closed.splits (p.map f), simp [splits_map_iff] }
 See also `is_alg_closed.splits_codomain` for the case where `k` is algebraically closed.
 -/
 theorem is_alg_closed.splits_domain {k K : Type*} [field k] [is_alg_closed k] [field K]
-  {f : k →+* K} (p : polynomial k) : p.splits f :=
+  {f : k →+* K} (p : k[X]) : p.splits f :=
 polynomial.splits_of_splits_id _ $ is_alg_closed.splits _
 
 namespace is_alg_closed
 
 variables {k}
 
-theorem exists_root [is_alg_closed k] (p : polynomial k) (hp : p.degree ≠ 0) : ∃ x, is_root p x :=
+theorem exists_root [is_alg_closed k] (p : k[X]) (hp : p.degree ≠ 0) : ∃ x, is_root p x :=
 exists_root_of_splits _ (is_alg_closed.splits p) hp
 
 lemma exists_pow_nat_eq [is_alg_closed k] (x : k) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
@@ -84,7 +84,7 @@ begin
   exact ⟨z, sq z⟩
 end
 
-lemma roots_eq_zero_iff [is_alg_closed k] {p : polynomial k} :
+lemma roots_eq_zero_iff [is_alg_closed k] {p : k[X]} :
   p.roots = 0 ↔ p = polynomial.C (p.coeff 0) :=
 begin
   refine ⟨λ h, _, λ hp, by rw [hp, roots_C]⟩,
@@ -115,7 +115,7 @@ theorem exists_aeval_eq_zero {R : Type*} [field R] [is_alg_closed k] [algebra R 
   (p : R[X]) (hp : p.degree ≠ 0) : ∃ x : k, aeval x p = 0 :=
 exists_eval₂_eq_zero (algebra_map R k) p hp
 
-theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → ∃ x, p.eval x = 0) :
+theorem of_exists_root (H : ∀ p : k[X], p.monic → irreducible p → ∃ x, p.eval x = 0) :
   is_alg_closed k :=
 ⟨λ p, or.inr $ λ q hq hqp,
  have irreducible (q * C (leading_coeff q)⁻¹),
@@ -124,7 +124,7 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
-lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k}
+lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : k[X]}
   (hp : irreducible p) :
   p.degree = 1 :=
 degree_eq_one_of_irreducible_of_splits hp (is_alg_closed.splits_codomain _)

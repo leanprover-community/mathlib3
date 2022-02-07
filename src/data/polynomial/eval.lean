@@ -105,7 +105,7 @@ begin
 end
 
 variables [semiring T]
-lemma eval₂_sum (p : polynomial T) (g : ℕ → T → R[X]) (x : S) :
+lemma eval₂_sum (p : T[X]) (g : ℕ → T → R[X]) (x : S) :
   (p.sum g).eval₂ f x = p.sum (λ n a, (g n a).eval₂ f x) :=
 begin
   let T : R[X] →+ S :=

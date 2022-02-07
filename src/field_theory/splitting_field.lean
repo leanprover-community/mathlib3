@@ -61,7 +61,7 @@ variables (i : K →+* L)
 
 /-- A polynomial `splits` iff it is zero or all of its irreducible factors have `degree` 1. -/
 def splits (f : K[X]) : Prop :=
-f = 0 ∨ ∀ {g : polynomial L}, irreducible g → g ∣ f.map i → degree g = 1
+f = 0 ∨ ∀ {g : L[X]}, irreducible g → g ∣ f.map i → degree g = 1
 
 @[simp] lemma splits_zero : splits i (0 : K[X]) := or.inl rfl
 
@@ -175,7 +175,7 @@ begin
   rw [finset.prod_insert hat, splits_mul_iff i ht.1 (finset.prod_ne_zero_iff.2 ht.2), ih ht.2]
 end
 
-lemma degree_eq_one_of_irreducible_of_splits {p : polynomial L}
+lemma degree_eq_one_of_irreducible_of_splits {p : L[X]}
   (hp : irreducible p) (hp_splits : splits (ring_hom.id L) p) :
   p.degree = 1 :=
 begin
@@ -199,9 +199,9 @@ else
 
 lemma exists_multiset_of_splits {f : K[X]} : splits i f →
   ∃ (s : multiset L), f.map i = C (i f.leading_coeff) *
-  (s.map (λ a : L, (X : polynomial L) - C a)).prod :=
+  (s.map (λ a : L, (X : L[X]) - C a)).prod :=
 suffices splits (ring_hom.id _) (f.map i) → ∃ s : multiset L, f.map i =
-  (C (f.map i).leading_coeff) * (s.map (λ a : L, (X : polynomial L) - C a)).prod,
+  (C (f.map i).leading_coeff) * (s.map (λ a : L, (X : L[X]) - C a)).prod,
 by rwa [splits_map_iff, leading_coeff_map i] at this,
 wf_dvd_monoid.induction_on_irreducible (f.map i)
   (λ _, ⟨{37}, by simp [i.map_zero]⟩)
@@ -238,7 +238,7 @@ have hmf0 : f.map i ≠ 0 := map_ne_zero hf0,
 let ⟨m, hm⟩ := exists_multiset_of_splits _ hf in
 have h1 : (0 : K[X]) ∉ m.map (λ r, X - C r),
   from zero_nmem_multiset_map_X_sub_C _ _,
-have h2 : (0 : polynomial L) ∉ m.map (λ r, X - C (i r)),
+have h2 : (0 : L[X]) ∉ m.map (λ r, X - C (i r)),
   from zero_nmem_multiset_map_X_sub_C _ _,
 begin
   rw map_id at hm, rw hm at hf0 hmf0 ⊢, rw map_mul at hmf0 ⊢,
@@ -262,7 +262,7 @@ begin
   have prod_ne_zero : C (i p.leading_coeff) * (multiset.map (λ a, X - C a) s).prod ≠ 0 :=
     by rwa hs at map_ne_zero,
 
-  have zero_nmem : (0 : polynomial L) ∉ s.map (λ a, X - C a),
+  have zero_nmem : (0 : L[X]) ∉ s.map (λ a, X - C a),
     from zero_nmem_multiset_map_X_sub_C _ _,
   have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
   { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
@@ -304,7 +304,7 @@ begin
   rw eq_prod_roots_of_splits hsplit at map_ne_zero,
 
   conv_lhs { rw [← nat_degree_map i, eq_prod_roots_of_splits hsplit] },
-  have : (0 : polynomial L) ∉ (map i p).roots.map (λ a, X - C a),
+  have : (0 : L[X]) ∉ (map i p).roots.map (λ a, X - C a),
     from zero_nmem_multiset_map_X_sub_C _ _,
   simp [nat_degree_mul (left_ne_zero_of_mul map_ne_zero) (right_ne_zero_of_mul map_ne_zero),
         nat_degree_multiset_prod _ this]
@@ -322,13 +322,13 @@ local infix ` ~ᵤ ` : 50 := associated
 open unique_factorization_monoid associates
 
 lemma splits_of_exists_multiset {f : K[X]} {s : multiset L}
-  (hs : f.map i = C (i f.leading_coeff) * (s.map (λ a : L, (X : polynomial L) - C a)).prod) :
+  (hs : f.map i = C (i f.leading_coeff) * (s.map (λ a : L, (X : L[X]) - C a)).prod) :
   splits i f :=
 if hf0 : f = 0 then or.inl hf0
 else
   or.inr $ λ p hp hdp,
     have ht : multiset.rel associated
-      (normalized_factors (f.map i)) (s.map (λ a : L, (X : polynomial L) - C a)) :=
+      (normalized_factors (f.map i)) (s.map (λ a : L, (X : L[X]) - C a)) :=
     factors_unique
       (λ p hp, irreducible_of_normalized_factor _ hp)
       (λ p' m, begin
@@ -361,7 +361,7 @@ end UFD
 
 lemma splits_iff_exists_multiset {f : K[X]} : splits i f ↔
   ∃ (s : multiset L), f.map i = C (i f.leading_coeff) *
-  (s.map (λ a : L, (X : polynomial L) - C a)).prod :=
+  (s.map (λ a : L, (X : L[X]) - C a)).prod :=
 ⟨exists_multiset_of_splits i, λ ⟨s, hs⟩, splits_of_exists_multiset i hs⟩
 
 lemma splits_comp_of_splits (j : L →+* F) {f : K[X]}
@@ -607,7 +607,7 @@ open polynomial
 section splitting_field
 
 /-- Non-computably choose an irreducible factor from a polynomial. -/
-def factor (f : K[X]) : polynomial K :=
+def factor (f : K[X]) : K[X] :=
 if H : ∃ g, irreducible g ∧ g ∣ f then classical.some H else X
 
 instance irreducible_factor (f : K[X]) : irreducible (factor f) :=

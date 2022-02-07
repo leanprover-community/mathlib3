@@ -211,7 +211,7 @@ end
 monic polynomial with integer coefficients. -/
 lemma int_coeff_of_cyclotomic' {K : Type*} [comm_ring K] [is_domain K] {ζ : K} {n : ℕ}
   (h : is_primitive_root ζ n) :
-  (∃ (P : polynomial ℤ), map (int.cast_ring_hom K) P = cyclotomic' n K ∧
+  (∃ (P : ℤ[X]), map (int.cast_ring_hom K) P = cyclotomic' n K ∧
     P.degree = (cyclotomic' n K).degree ∧ P.monic) :=
 begin
   refine lifts_and_degree_eq_and_monic _ (cyclotomic'.monic n K),
@@ -220,7 +220,7 @@ begin
   { use 1,
     simp only [hzero, cyclotomic'_zero, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
     coe_map_ring_hom, map_one, and_self] },
-  let B : polynomial K := ∏ i in nat.proper_divisors k, cyclotomic' i K,
+  let B : K[X] := ∏ i in nat.proper_divisors k, cyclotomic' i K,
   have Bmo : B.monic,
   { apply monic_prod_of_monic,
     intros i hi,
@@ -234,7 +234,7 @@ begin
     exact hk x xsmall (is_primitive_root.pow hpos h hd) },
   replace Bint := lifts_and_degree_eq_and_monic Bint Bmo,
   obtain ⟨B₁, hB₁, hB₁deg, hB₁mo⟩ := Bint,
-  let Q₁ : polynomial ℤ := (X ^ k - 1) /ₘ B₁,
+  let Q₁ : ℤ[X] := (X ^ k - 1) /ₘ B₁,
   have huniq : 0 + B * cyclotomic' k K = X ^ k - 1 ∧ (0 : K[X]).degree < B.degree,
   { split,
     { rw [zero_add, mul_comm, ←(prod_cyclotomic'_eq_X_pow_sub_one hpos h),
@@ -254,7 +254,7 @@ end
 then `cyclotomic n K` comes from a unique polynomial with integer coefficients. -/
 lemma unique_int_coeff_of_cycl {K : Type*} [comm_ring K] [is_domain K] [char_zero K] {ζ : K}
   {n : ℕ+} (h : is_primitive_root ζ n) :
-  (∃! (P : polynomial ℤ), map (int.cast_ring_hom K) P = cyclotomic' n K) :=
+  (∃! (P : ℤ[X]), map (int.cast_ring_hom K) P = cyclotomic' n K) :=
 begin
   obtain ⟨P, hP⟩ := int_coeff_of_cyclotomic' h,
   refine ⟨P, hP.1, λ Q hQ, _⟩,
@@ -300,7 +300,7 @@ begin
   exact (int_coeff_of_cyclotomic' (complex.is_primitive_root_exp n hzero)).some_spec
 end
 
-lemma int_cyclotomic_unique {n : ℕ} {P : polynomial ℤ} (h : map (int.cast_ring_hom ℂ) P =
+lemma int_cyclotomic_unique {n : ℕ} {P : ℤ[X]} (h : map (int.cast_ring_hom ℂ) P =
   cyclotomic' n ℂ) : P = cyclotomic n ℤ :=
 begin
   apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
@@ -750,7 +750,7 @@ lemma order_of_root_cyclotomic_dvd {n : ℕ} (hpos : 0 < n) {p : ℕ} [fact p.pr
   order_of (zmod.unit_of_coprime a (coprime_of_root_cyclotomic hpos hroot)) ∣ n :=
 begin
   apply order_of_dvd_of_pow_eq_one,
-  suffices hpow : eval (nat.cast_ring_hom (zmod p) a) (X ^ n - 1 : polynomial (zmod p)) = 0,
+  suffices hpow : eval (nat.cast_ring_hom (zmod p) a) (X ^ n - 1 : (zmod p)[X]) = 0,
   { simp only [eval_X, eval_one, eval_pow, eval_sub, eq_nat_cast] at hpow,
     apply units.coe_eq_one.1,
     simp only [sub_eq_zero.mp hpow, zmod.coe_unit_of_coprime, units.coe_pow] },

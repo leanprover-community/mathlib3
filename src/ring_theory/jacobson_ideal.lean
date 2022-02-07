@@ -280,7 +280,7 @@ begin
     rwa [map_jacobson_of_bijective _, map_bot] at this,
     exact (ring_equiv.bijective (polynomial_quotient_equiv_quotient_polynomial j)) },
   refine eq_bot_iff.2 (λ f hf, _),
-  simpa [(λ hX, by simpa using congr_arg (λ f, coeff f 1) hX : (X : polynomial (R ⧸ j)) ≠ 0)]
+  simpa [(λ hX, by simpa using congr_arg (λ f, coeff f 1) hX : (X : (R ⧸ j)[X]) ≠ 0)]
     using eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit ((mem_jacobson_bot.1 hf) X)),
 end
 

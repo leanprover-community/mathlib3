@@ -323,8 +323,8 @@ lemma sq_add_sq (p : ℕ) [hp : fact p.prime] (x : zmod p) :
 begin
   cases hp.1.eq_two_or_odd with hp2 hp_odd,
   { substI p, change fin 2 at x, fin_cases x, { use 0, simp }, { use [0, 1], simp } },
-  let f : polynomial (zmod p) := X^2,
-  let g : polynomial (zmod p) := X^2 - C x,
+  let f : (zmod p)[X] := X^2,
+  let g : (zmod p)[X] := X^2 - C x,
   obtain ⟨a, b, hab⟩ : ∃ a b, f.eval a + g.eval b = 0 :=
     @exists_root_sum_quadratic _ _ _ _ f g
       (degree_X_pow 2) (degree_X_pow_sub_C dec_trivial _) (by rw [zmod.card, hp_odd]),

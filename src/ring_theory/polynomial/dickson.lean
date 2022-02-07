@@ -216,7 +216,7 @@ begin
     { rw this, clear this,
       refine h.bUnion (λ x hx, _),
       -- The following quadratic polynomial has as solutions the `y` for which `x = y + y⁻¹`.
-      let φ : polynomial K := X ^ 2 - C x * X + 1,
+      let φ : K[X] := X ^ 2 - C x * X + 1,
       have hφ : φ ≠ 0,
       { intro H,
         have : φ.eval 0 = 0, by rw [H, eval_zero],

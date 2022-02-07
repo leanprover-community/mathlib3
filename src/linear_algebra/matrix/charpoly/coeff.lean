@@ -165,7 +165,7 @@ variables {p : ℕ} [fact p.prime]
 
 lemma mat_poly_equiv_eq_X_pow_sub_C {K : Type*} (k : ℕ) [field K] (M : matrix n n K) :
   mat_poly_equiv
-      ((expand K (k) : polynomial K →+* K[X]).map_matrix (charmatrix (M ^ k))) =
+      ((expand K (k) : K[X] →+* K[X]).map_matrix (charmatrix (M ^ k))) =
     X ^ k - C (M ^ k) :=
 begin
   ext m,

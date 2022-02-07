@@ -251,7 +251,7 @@ Taking projective resolutions is functorial,
 if considered with target the homotopy category
 (`ℕ`-indexed chain complexes and chain maps up to homotopy).
 -/
-def projective_resolutions : C ⥤ homotopy_category C (complex_shape.up ℕ) :=
+def injective_resolutions : C ⥤ homotopy_category C (complex_shape.up ℕ) :=
 { obj := λ X, (homotopy_category.quotient _ _).obj (injective_resolution X),
   map := λ X Y f, (homotopy_category.quotient _ _).map (injective_resolution.desc f),
   map_id' := λ X, begin

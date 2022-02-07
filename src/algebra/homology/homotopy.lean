@@ -555,7 +555,7 @@ def mk_inductive : homotopy e 0 :=
       { simp only [d_next_succ_chain_complex],
         dsimp,
         simp only [category.comp_id, category.assoc, iso.inv_hom_id, d_from_comp_X_next_iso_assoc,
-          dite_eq_ite, if_true, eq_self_iff_true]}, },
+          dite_eq_ite, if_true, eq_self_iff_true], }, },
     { cases i,
       all_goals
       { simp only [prev_d_chain_complex],
@@ -580,22 +580,21 @@ begin
   refl,
 end
 
--- @[simp] lemma d_next_succ_cochain_complex (f : Π i j, P.X i ⟶ Q.X j) (i : ℕ) :
---   prev_d _ f = f (i+1) (i+2) ≫ Q.d _ _ :=
--- begin
---   dsimp [prev_d],
---   -- simp,
---   simp only [cochain_complex.prev_d_succ],
---   refl,
--- end
+@[simp] lemma prev_d_succ_cochain_complex (f : Π i j, P.X i ⟶ Q.X j) (i : ℕ) :
+  prev_d (i+1) f = f (i+1) _ ≫ Q.d i (i+1) :=
+begin
+  dsimp [prev_d],
+  simp [cochain_complex.prev_nat_succ],
+  refl,
+end
 
--- @[simp] lemma d_next_zero_chain_complex (f : Π i j, P.X i ⟶ Q.X j) :
---   d_next 0 f = 0 :=
--- begin
---   dsimp [d_next],
---   simp only [chain_complex.next_nat_zero],
---   refl,
--- end
+@[simp] lemma prev_d_zero_cochain_complex (f : Π i j, P.X i ⟶ Q.X j) :
+  prev_d 0 f = 0 :=
+begin
+  dsimp [prev_d],
+  simp only [cochain_complex.prev_nat_zero],
+  refl,
+end
 
 variables (e : P ⟶ Q)
   (zero : P.X 1 ⟶ Q.X 0)
@@ -609,11 +608,68 @@ variables (e : P ⟶ Q)
 
 include comm_one comm_zero succ
 
+@[simp, nolint unused_arguments]
+def mk_coinductive_aux₁ :
+  Π n, Σ' (f : P.X (n+1) ⟶ Q.X n) (f' : P.X (n+2) ⟶ Q.X (n+1)),
+    e.f (n+1) = f ≫ Q.d n (n+1) + P.d (n+1) (n+2) ≫ f'
+| 0 := ⟨zero, one, comm_one⟩
+| 1 := ⟨one, (succ 0 ⟨zero, one, comm_one⟩).1, (succ 0 ⟨zero, one, comm_one⟩).2⟩
+| (n+2) :=
+  ⟨(mk_coinductive_aux₁ (n+1)).2.1,
+    (succ (n+1) (mk_coinductive_aux₁ (n+1))).1,
+    (succ (n+1) (mk_coinductive_aux₁ (n+1))).2⟩
+
 section
 
 variable [has_zero_object V]
 
-def mk_coinductive : homotopy e 0 := sorry
+@[simp]
+def mk_coinductive_aux₂ :
+  Π n, Σ' (f : P.X n ⟶ Q.X_prev n) (f' : P.X_next n ⟶ Q.X n),
+    e.f n = f ≫ Q.d_to n + P.d_from n ≫ f'
+| 0 := ⟨0, (P.X_next_iso rfl).hom ≫ zero, by simpa using comm_zero⟩
+| (n+1) := let I := mk_coinductive_aux₁ e zero comm_zero one comm_one succ n in
+  ⟨I.1 ≫ (Q.X_prev_iso rfl).inv, (P.X_next_iso rfl).hom ≫ I.2.1, by simpa using I.2.2⟩
+
+lemma mk_coinductive_aux₃ (i : ℕ) :
+  (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.1 ≫ (Q.X_prev_iso rfl).inv
+    = (P.X_next_iso rfl).hom ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ (i+1)).1 :=
+by rcases i with (_|_|i); { dsimp, simp, }
+
+-- lemma mk_coinductive_aux₃' (i : ℕ) :
+--   (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.1 ≫ (Q.X_prev_iso rfl).inv
+--     = (P.X_next_iso rfl).hom ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ (i+1)).1 :=
+-- by rcases i with (_|_|i); { dsimp, simp, }
+
+def mk_coinductive : homotopy e 0 :=
+{ hom := λ i j, if h : j + 1 = i then
+    (P.X_next_iso h).inv ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ j).2.1
+  else
+    0,
+  zero' := λ i j w, by rwa dif_neg,
+  comm := λ i, begin
+    dsimp,
+    rw [add_zero, add_comm],
+    convert (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.2 using 2,
+    { rcases i with (_|_|_|i),
+      { simp only [mk_coinductive_aux₂, prev_d_zero_cochain_complex, zero_comp] },
+      all_goals
+      { simp only [prev_d_succ_cochain_complex],
+        dsimp,
+        simp only [eq_self_iff_true, iso.inv_hom_id_assoc, dite_eq_ite,
+          if_true, category.assoc, X_prev_iso_comp_d_to], }, },
+    { cases i,
+      { dsimp, simp only [eq_self_iff_true, d_next_cochain_complex, dif_pos,
+        d_from_comp_X_next_iso_assoc, ←comm_zero],
+      rw mk_coinductive_aux₂,
+      dsimp,
+      convert comm_zero.symm,
+      simp only [iso.inv_hom_id_assoc], },
+      { dsimp, simp only [eq_self_iff_true, d_next_cochain_complex, dif_pos, d_from_comp_X_next_iso_assoc],
+        rw mk_coinductive_aux₂,
+        dsimp only,
+        simp only [iso.inv_hom_id_assoc], }, },
+  end }
 
 end
 

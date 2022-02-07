@@ -171,8 +171,8 @@ lemma is_idempotent_complete_iff_of_equivalence {D : Type*} [category D] (ε : C
   is_idempotent_complete C ↔ is_idempotent_complete D :=
 begin
   split,
-  { exact is_idempotent_complete_imp_of_equivalence ε, },
-  { exact is_idempotent_complete_imp_of_equivalence ε.symm, },
+  { exact equivalence.is_idempotent_complete ε, },
+  { exact equivalence.is_idempotent_complete ε.symm, },
 end
 
 lemma is_idempotent_complete_of_is_idempotent_complete_opposite
@@ -198,6 +198,9 @@ begin
     rw is_idempotent_complete_iff_of_equivalence (op_op_equivalence C),
     exact h, },
 end
+
+instance [is_idempotent_complete C] : is_idempotent_complete (Cᵒᵖ) :=
+by rwa is_idempotent_complete_iff_opposite
 
 end idempotents
 

@@ -633,6 +633,14 @@ rfl
 lemma comap_mono {f : M →ₛₗ[σ₁₂] M₂} {q q' : submodule R₂ M₂} :
   q ≤ q' → comap f q ≤ comap f q' := preimage_mono
 
+lemma le_comap_pow_of_le_comap (p : submodule R M) {f : M →ₗ[R] M} (h : p ≤ p.comap f) (k : ℕ) :
+  p ≤ p.comap (f^k) :=
+begin
+  induction k with k ih,
+  { simp [linear_map.one_eq_id], },
+  { simp [linear_map.iterate_succ, comap_comp, h.trans (comap_mono ih)], },
+end
+
 section
 variables [ring_hom_surjective σ₁₂]
 

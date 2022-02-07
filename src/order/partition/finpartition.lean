@@ -33,6 +33,14 @@ We provide many ways to build finpartitions:
 `finpartition.indiscrete` and `finpartition.bind` together form the monadic structure of
 `finpartition`.
 
+## Implementation notes
+
+Forbidding `⊥` as a part follows mathematical tradition and is a pragmatic choice concerning
+operations on `finpartition`. Not caring about `⊥` being a part or not breaks extensionality (it's
+not because the parts of `P` and the parts of `Q` have the same elements that `P = Q`). Enforcing
+`⊥` to be a part makes `finpartition.bind` uglier and doesn't rid us of the need of
+`finpartition.of_erase`.
+
 ## TODO
 
 Link `finpartition` and `setoid.is_partition`.

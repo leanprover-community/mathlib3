@@ -290,11 +290,7 @@ hs.elim hi hj $ λ hij, h hij.eq_bot
 lemma pairwise_disjoint.eq_of_le (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
   (hf : f i ≠ ⊥) (hij : f i ≤ f j) :
   i = j :=
-begin
-  classical,
-  by_contra,
-  exact hf (disjoint_self.1 $ (hs hi hj h).mono_right hij),
-end
+hs.elim' hi hj $ λ h, hf $ (inf_of_le_left hij).symm.trans h
 
 end semilattice_inf_bot
 

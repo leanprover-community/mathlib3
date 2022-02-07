@@ -58,6 +58,10 @@ lemma mem_upper_bounds : a ∈ upper_bounds s ↔ ∀ x ∈ s, x ≤ a := iff.rf
 
 lemma mem_lower_bounds : a ∈ lower_bounds s ↔ ∀ x ∈ s, a ≤ x := iff.rfl
 
+lemma bdd_above_def : bdd_above s ↔ ∃ x, ∀ y ∈ s, y ≤ x := iff.rfl
+
+lemma bdd_below_def : bdd_below s ↔ ∃ x, ∀ y ∈ s, x ≤ y := iff.rfl
+
 lemma bot_mem_lower_bounds [order_bot α] (s : set α) : ⊥ ∈ lower_bounds s := λ _ _, bot_le
 lemma top_mem_upper_bounds [order_top α] (s : set α) : ⊤ ∈ upper_bounds s := λ _ _, le_top
 

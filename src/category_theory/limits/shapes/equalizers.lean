@@ -749,11 +749,11 @@ lemma is_iso_limit_cocone_parallel_pair_of_epi {c : cocone (parallel_pair f g)}
   (h : is_colimit c) [mono (c.ι.app one)] : is_iso (c.ι.app one) :=
 is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c)) h
 
-/-- Two morphisms are equal if there is a fork whose inclusion is epi. -/
+/-- Two morphisms are equal if there is a cofork whose projection is mono. -/
 lemma eq_of_mono_cofork_π (t : cofork f g) [mono (cofork.π t)] : f = g :=
 (cancel_mono (cofork.π t)).1 $ cofork.condition t
 
-/-- If the equalizer of two morphisms is an epimorphism, then the two morphisms are equal. -/
+/-- If the coequalizer of two morphisms is a monomorphism, then the two morphisms are equal. -/
 lemma eq_of_mono_coequalizer [has_coequalizer f g] [mono (coequalizer.π f g)] : f = g :=
 (cancel_mono (coequalizer.π f g)).1 $ coequalizer.condition _ _
 

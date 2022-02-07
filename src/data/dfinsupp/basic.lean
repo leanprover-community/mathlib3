@@ -1534,7 +1534,7 @@ lemma map_dfinsupp_prod [comm_monoid R] [comm_monoid S]
 @[to_additive]
 lemma coe_dfinsupp_prod [monoid R] [comm_monoid S]
   (f : Π₀ i, β i) (g : Π i, β i → R →* S) :
-  ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_prod _ _
+  ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_finset_prod _ _
 
 @[simp, to_additive]
 lemma dfinsupp_prod_apply [monoid R] [comm_monoid S]

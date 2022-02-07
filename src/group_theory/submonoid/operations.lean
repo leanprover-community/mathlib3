@@ -556,6 +556,33 @@ lemma comap_equiv_eq_map_symm (f : N ≃* M) (K : submonoid M) :
 lemma map_equiv_top (f : M ≃* N) : (⊤ : submonoid M).map f.to_monoid_hom = ⊤ :=
 set_like.coe_injective $ set.image_univ.trans f.surjective.range_eq
 
+@[to_additive le_prod_iff]
+lemma le_prod_iff {s : submonoid M} {t : submonoid N} {u : submonoid (M × N)} :
+  u ≤ s.prod t ↔ u.map (fst M N) ≤ s ∧ u.map (snd M N) ≤ t :=
+begin
+  split,
+  { intros h,
+    split,
+    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).1 },
+    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).2 }, },
+  { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ h, exact ⟨hH ⟨_ , h, rfl⟩, hK ⟨ _, h, rfl⟩⟩, }
+end
+
+@[to_additive prod_le_iff]
+lemma prod_le_iff {s : submonoid M} {t : submonoid N} {u : submonoid (M × N)} :
+  s.prod t ≤ u ↔ s.map (inl M N) ≤ u ∧ t.map (inr M N) ≤ u :=
+begin
+  split,
+  { intros h,
+    split,
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, (submonoid.one_mem _)⟩, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨submonoid.one_mem _, hx⟩, }, },
+  { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ ⟨h1, h2⟩,
+    have h1' : inl M N x1 ∈ u, { apply hH, simpa using h1, },
+    have h2' : inr M N x2 ∈ u, { apply hK, simpa using h2, },
+    simpa using submonoid.mul_mem _ h1' h2', }
+end
+
 end submonoid
 
 namespace monoid_hom

@@ -293,7 +293,95 @@ set.nontrivial_mono
   (lower_central_series_last_le_max_triv R L M)
   (nontrivial_lower_central_series_last R L M)
 
+@[simp] lemma coe_lcs_range_to_endomorphism_eq (k : ℕ) :
+  (lower_central_series R (to_endomorphism R L M).range M k : submodule R M) =
+  lower_central_series R L M k :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp only [lower_central_series_succ, lie_submodule.lie_ideal_oper_eq_linear_span',
+      ← (lower_central_series R (to_endomorphism R L M).range M k).mem_coe_submodule, ih],
+    congr,
+    ext m,
+    split,
+    { rintros ⟨⟨-, ⟨y, rfl⟩⟩, -, n, hn, rfl⟩,
+      exact ⟨y, lie_submodule.mem_top _, n, hn, rfl⟩, },
+    { rintros ⟨x, hx, n, hn, rfl⟩,
+      exact ⟨⟨to_endomorphism R L M x, lie_hom.mem_range_self _ x⟩, lie_submodule.mem_top _,
+        n, hn, rfl⟩, }, },
+end
+
+@[simp] lemma is_nilpotent_range_to_endomorphism_iff :
+  is_nilpotent R (to_endomorphism R L M).range M ↔ is_nilpotent R L M :=
+begin
+  split;
+  rintros ⟨k, hk⟩;
+  use k;
+  rw ← lie_submodule.coe_to_submodule_eq_iff at ⊢ hk;
+  simpa using hk,
+end
+
 end lie_module
+
+section morphisms
+
+open lie_module function
+
+variables {L₂ M₂ : Type*} [lie_ring L₂] [lie_algebra R L₂]
+variables [add_comm_group M₂] [module R M₂] [lie_ring_module L₂ M₂] [lie_module R L₂ M₂]
+variables {f : L →ₗ⁅R⁆ L₂} {g : M →ₗ[R] M₂}
+variables (hf : surjective f) (hg : surjective g) (hfg : ∀ x m, ⁅f x, g m⁆ = g ⁅x, m⁆)
+
+include hf hg hfg
+
+lemma function.surjective.lie_module_lcs_map_eq (k : ℕ) :
+  (lower_central_series R L M k : submodule R M).map g = lower_central_series R L₂ M₂ k :=
+begin
+  induction k with k ih,
+  { simp [linear_map.range_eq_top, hg], },
+  { suffices : g '' {m | ∃ (x : L) n, n ∈ lower_central_series R L M k ∧ ⁅x, n⁆ = m} =
+               {m | ∃ (x : L₂) n, n ∈ lower_central_series R L M k ∧ ⁅x, g n⁆ = m},
+    { simp only [← lie_submodule.mem_coe_submodule] at this,
+      simp [← lie_submodule.mem_coe_submodule, ← ih, lie_submodule.lie_ideal_oper_eq_linear_span',
+        submodule.map_span, -submodule.span_image, this], },
+    ext m₂,
+    split,
+    { rintros ⟨m, ⟨x, n, hn, rfl⟩, rfl⟩,
+      exact ⟨f x, n, hn, hfg x n⟩, },
+    { rintros ⟨x, n, hn, rfl⟩,
+      obtain ⟨y, rfl⟩ := hf x,
+      exact ⟨⁅y, n⁆, ⟨y, n, hn, rfl⟩, (hfg y n).symm⟩, }, },
+end
+
+lemma function.surjective.lie_module_is_nilpotent [is_nilpotent R L M] : is_nilpotent R L₂ M₂ :=
+begin
+  obtain ⟨k, hk⟩ := id (by apply_instance : is_nilpotent R L M),
+  use k,
+  rw ← lie_submodule.coe_to_submodule_eq_iff at ⊢ hk,
+  simp [← hf.lie_module_lcs_map_eq hg hfg k, hk],
+end
+
+omit hf hg hfg
+
+lemma equiv.lie_module_is_nilpotent_iff (f : L ≃ₗ⁅R⁆ L₂) (g : M ≃ₗ[R] M₂)
+  (hfg : ∀ x m, ⁅f x, g m⁆ = g ⁅x, m⁆) :
+  is_nilpotent R L M ↔ is_nilpotent R L₂ M₂ :=
+begin
+  split;
+  introsI h,
+  { have hg : surjective (g : M →ₗ[R] M₂) := g.surjective,
+    exact f.surjective.lie_module_is_nilpotent hg hfg, },
+  { have hg : surjective (g.symm : M₂ →ₗ[R] M) := g.symm.surjective,
+    refine f.symm.surjective.lie_module_is_nilpotent hg (λ x m, _),
+    rw [linear_equiv.coe_coe, lie_equiv.coe_to_lie_hom, ← g.symm_apply_apply ⁅f.symm x, g.symm m⁆,
+      ← hfg, f.apply_symm_apply, g.apply_symm_apply], },
+end
+
+@[simp] lemma lie_module.is_nilpotent_of_top_iff :
+  is_nilpotent R (⊤ : lie_subalgebra R L) M ↔ is_nilpotent R L M :=
+equiv.lie_module_is_nilpotent_iff lie_subalgebra.top_equiv_self (1 : M ≃ₗ[R] M) (λ x m, rfl)
+
+end morphisms
 
 end nilpotent_modules
 
@@ -359,6 +447,19 @@ begin
       exact ⟨⟨y, submodule.mem_top⟩, ⟨z, hz⟩, rfl⟩, }, },
 end
 
+/-- Note that the below inequality can be strict. For example the ideal of strictly-upper-triangular
+2x2 matrices inside the Lie algebra of upper-triangular 2x2 matrices with `k = 1`. -/
+lemma lie_module.coe_lower_central_series_ideal_le {I : lie_ideal R L} (k : ℕ) :
+  (lower_central_series R I I k : submodule R I) ≤ lower_central_series R L I k :=
+begin
+  induction k with k ih,
+  { simp, },
+  { simp only [lie_module.lower_central_series_succ, lie_submodule.lie_ideal_oper_eq_linear_span],
+    apply submodule.span_mono,
+    rintros x ⟨⟨y, -⟩, ⟨z, hz⟩, rfl : ⁅y, z⁆ = x⟩,
+    exact ⟨⟨y.val, submodule.mem_top⟩, ⟨z, ih hz⟩, rfl⟩, },
+end
+
 /-- A central extension of nilpotent Lie algebras is nilpotent. -/
 lemma lie_algebra.nilpotent_of_nilpotent_quotient {I : lie_ideal R L}
   (h₁ : I ≤ center R L) (h₂ : is_nilpotent R (L ⧸ I)) : is_nilpotent R L :=
@@ -421,6 +522,25 @@ begin
   split; introsI h,
   { exact e.symm.injective.lie_algebra_is_nilpotent, },
   { exact e.injective.lie_algebra_is_nilpotent, },
+end
+
+lemma lie_hom.is_nilpotent_range [is_nilpotent R L] (f : L →ₗ⁅R⁆ L') :
+  is_nilpotent R f.range :=
+f.surjective_range_restrict.lie_algebra_is_nilpotent
+
+/-- Note that this result is not quite a special case of
+`lie_module.is_nilpotent_range_to_endomorphism_iff` which concerns nilpotency of the
+`(ad R L).range`-module `L`, whereas this result concerns nilpotency of the `(ad R L).range`-module
+`(ad R L).range`. -/
+@[simp] lemma lie_algebra.is_nilpotent_range_ad_iff :
+  is_nilpotent R (ad R L).range ↔ is_nilpotent R L :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have : (ad R L).ker = center R L, { by simp, },
+    exact lie_algebra.nilpotent_of_nilpotent_quotient (le_of_eq this)
+      ((ad R L).quot_ker_equiv_range.nilpotent_iff_equiv_nilpotent.mpr h), },
+  { introsI h,
+    exact (ad R L).is_nilpotent_range, },
 end
 
 instance [h : lie_algebra.is_nilpotent R L] : lie_algebra.is_nilpotent R (⊤ : lie_subalgebra R L) :=

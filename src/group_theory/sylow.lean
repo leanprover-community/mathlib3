@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
+import data.nat.factorization
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
 import group_theory.pi_hom
-import data.nat.factorization
 
 /-!
 # Sylow theorems
@@ -469,20 +469,15 @@ begin
   rwa [h, card_bot] at key,
 end
 
-/-- The cardinality of a Sylow group is p ^ n where n is the multiplicity of p in the group order.
- -/
+/-- The cardinality of a Sylow group is `p ^ n`
+ where `n` is the multiplicity of `p` in the group order. -/
 lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
   card P = p ^ nat.factorization (card G) p :=
 begin
-  have hn : card G ≠ 0 := fintype.card_ne_zero,
-  haveI : nonempty G := nonempty.intro 1, -- TODO: Why is there no instance for that?
-  obtain ⟨n, heq⟩ := is_p_group.iff_card.mp (P.is_p_group'),
-  apply nat.dvd_antisymm,
-  { suffices : p ^ n ∣ p ^ nat.factorization (card G) p, by simpa [← heq] using this,
-    rw ← nat.prime_pow_dvd_multiplicity_iff _ _ _ hp.elim hn,
-    rw ← heq,
-    apply subgroup.card_subgroup_dvd_card, },
-  { apply pow_dvd_card_of_pow_dvd_card, apply nat.pow_factorization_dvd, }
+  obtain ⟨n, heq : card P = _⟩ := is_p_group.iff_card.mp (P.is_p_group'),
+  refine nat.dvd_antisymm _ (P.pow_dvd_card_of_pow_dvd_card (nat.pow_factorization_dvd p _)),
+  rw [heq, ←hp.out.pow_dvd_iff_dvd_pow_factorization (show card G ≠ 0, from card_ne_zero), ←heq],
+  exact P.1.card_subgroup_dvd_card,
 end
 
 lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)

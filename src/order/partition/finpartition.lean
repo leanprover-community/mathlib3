@@ -220,6 +220,9 @@ instance : has_inf (finpartition a) :=
     { rw [P.sup_parts, Q.sup_parts, inf_idem] }
   end⟩
 
+@[simp] lemma parts_inf (P Q : finpartition a) :
+  (P ⊓ Q).parts = ((P.parts.product Q.parts).image $ λ bc : α × α, bc.1 ⊓ bc.2).erase ⊥ := rfl
+
 instance : semilattice_inf (finpartition a) :=
 { inf_le_left := λ P Q b hb, begin
     obtain ⟨c, hc, rfl⟩ := mem_image.1 (mem_of_mem_erase hb),

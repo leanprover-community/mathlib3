@@ -185,7 +185,7 @@ by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _) a
 not_lt_of_le zero_le'
 
 @[simp] lemma le_zero_iff : a ≤ 0 ↔ a = 0 :=
-⟨λ h, le_antisymm h zero_le', λ h, h ▸ le_refl _⟩
+⟨λ h, le_antisymm h zero_le', λ h, h ▸ le_rfl⟩
 
 lemma zero_lt_iff : 0 < a ↔ a ≠ 0 :=
 ⟨ne_of_gt, λ h, lt_of_le_of_ne zero_le' h.symm⟩

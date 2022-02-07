@@ -1330,7 +1330,7 @@ namespace FTC_filter
 variables [linear_order β] [measurable_space β] [topological_space β]
 
 instance pure (a : β) : FTC_filter a (pure a) ⊥ :=
-{ pure_le := le_refl _,
+{ pure_le := le_rfl,
   le_nhds := bot_le }
 
 instance nhds_within_singleton (a : β) : FTC_filter a (𝓝[{a}] a) ⊥ :=
@@ -1345,7 +1345,7 @@ variables [opens_measurable_space β] [order_topology β]
 
 instance nhds (a : β) : FTC_filter a (𝓝 a) (𝓝 a) :=
 { pure_le := pure_le_nhds a,
-  le_nhds := le_refl _ }
+  le_nhds := le_rfl }
 
 instance nhds_univ (a : β) : FTC_filter a (𝓝[univ] a) (𝓝 a) :=
 by { rw nhds_within_univ, apply_instance }
@@ -2113,7 +2113,7 @@ begin
         { simp only [integrable_on_const, real.volume_Icc, ennreal.of_real_lt_top, or_true] },
         { exact integrable_on.mono_set G'int I },
         { have C1 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), G' x < ⊤ :=
-            ae_mono (measure.restrict_mono I (le_refl _)) G'lt_top,
+            ae_mono (measure.restrict_mono I le_rfl) G'lt_top,
           have C2 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), x ∈ Icc t u :=
             ae_restrict_mem measurable_set_Icc,
           filter_upwards [C1, C2] with x G'x hx,
@@ -2141,7 +2141,7 @@ begin
     -- choose a point `x` slightly to the right of `t` which satisfies the above bound
     rcases (I3.and I4).exists with ⟨x, hx, h'x⟩,
     -- we check that it belongs to `s`, essentially by construction
-    refine ⟨x, _, Ioc_subset_Ioc (le_refl _) (min_le_left _ _) h'x⟩,
+    refine ⟨x, _, Ioc_subset_Ioc le_rfl (min_le_left _ _) h'x⟩,
     calc g x - g a = (g t - g a) + (g x - g t) : by abel
     ... ≤ (∫ w in a..t, (G' w).to_real) + ∫ w in t..x, (G' w).to_real : add_le_add ht.1 hx
     ... = ∫ w in a..x, (G' w).to_real :
@@ -2210,9 +2210,9 @@ begin
     assume t ht,
     refine ⟨_, ⟨ht.1.le, ht.2⟩⟩,
     exact integral_eq_sub_of_has_deriv_right_of_le_real ht.2
-      (hcont.mono (Icc_subset_Icc ht.1.le (le_refl _)))
+      (hcont.mono (Icc_subset_Icc ht.1.le le_rfl))
       (λ x hx, hderiv x ⟨ht.1.trans_le hx.1, hx.2⟩)
-      (g'int.mono_set (Icc_subset_Icc ht.1.le (le_refl _))) },
+      (g'int.mono_set (Icc_subset_Icc ht.1.le le_rfl)) },
   rw closure_Ioc a_lt_b.ne at A,
   exact (A (left_mem_Icc.2 hab)).1,
 end

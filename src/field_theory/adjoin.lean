@@ -55,7 +55,7 @@ lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe :
 def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=
 { choice := λ s hs, (adjoin F s).copy s $ le_antisymm (gc.le_u_l s) hs,
   gc := intermediate_field.gc,
-  le_l_u := λ S, (intermediate_field.gc (S : set E) (adjoin F S)).1 $ le_refl _,
+  le_l_u := λ S, (intermediate_field.gc (S : set E) (adjoin F S)).1 $ le_rfl,
   choice_eq := λ _ _, copy_eq _ _ _ }
 
 instance : complete_lattice (intermediate_field F E) :=

@@ -140,6 +140,18 @@ begin
   exact absurd this one_ne_zero
 end
 
+/-- The sine of a `real.angle`. -/
+def sin (θ : angle) := sin_periodic.lift θ
+
+@[simp] lemma sin_coe (x : ℝ) : sin (x : angle) = real.sin x :=
+rfl
+
+/-- The cosine of a `real.angle`. -/
+def cos (θ : angle) := cos_periodic.lift θ
+
+@[simp] lemma cos_coe (x : ℝ) : cos (x : angle) = real.cos x :=
+rfl
+
 end angle
 
 end real

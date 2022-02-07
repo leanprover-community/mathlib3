@@ -146,7 +146,7 @@ instance : mul_action R p := p.mul_action'
 end
 
 
-/-- Orbits in sub_mul_action coincide with orbits -/
+/-- Orbits in a `sub_mul_action` coincide with orbits in the ambient space. -/
 lemma orbit_of_sub_mul {p : sub_mul_action R M} (m : p) :
   (mul_action.orbit R m : set M) = mul_action.orbit R (m : M) := rfl
 

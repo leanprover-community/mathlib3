@@ -70,7 +70,7 @@ end
 lemma mem_lift_sets (hg : monotone g) {s : set β} :
   s ∈ f.lift g ↔ ∃t∈f, s ∈ g t :=
 (f.basis_sets.mem_lift_iff (λ s, (g s).basis_sets) hg).trans $
-  by simp only [id, ← exists_mem_subset_iff]
+  by simp only [id, exists_mem_subset_iff]
 
 lemma mem_lift {s : set β} {t : set α} (ht : t ∈ f) (hs : s ∈ g t) :
   s ∈ f.lift g :=
@@ -124,7 +124,7 @@ le_antisymm
   (infi_le_infi2 $ assume s, ⟨image m s,
     infi_le_infi2 $ assume hs, ⟨
       f.sets_of_superset hs $ assume a h, mem_image_of_mem _ h,
-      le_refl _⟩⟩)
+      le_rfl⟩⟩)
   (infi_le_infi2 $ assume t, ⟨preimage m t,
     infi_le_infi2 $ assume ht, ⟨ht,
       hg $ assume x, assume h : x ∈ m '' preimage m t,
@@ -196,7 +196,7 @@ le_antisymm
 lemma lift_infi {f : ι → filter α} {g : set α → filter β}
   [hι : nonempty ι] (hg : ∀{s t}, g s ⊓ g t = g (s ∩ t)) : (infi f).lift g = (⨅i, (f i).lift g) :=
 le_antisymm
-  (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
+  (le_infi $ assume i, lift_mono (infi_le _ _) le_rfl)
   (assume s,
     have g_mono : monotone g,
       from assume s t h, le_of_inf_eq $ eq.trans hg $ congr_arg g $ inter_eq_self_of_subset_left h,
@@ -225,7 +225,7 @@ lift_top _
 
 lemma mem_lift' {t : set α} (ht : t ∈ f) : h t ∈ (f.lift' h) :=
 le_principal_iff.mp $ show f.lift' h ≤ 𝓟 (h t),
-  from infi_le_of_le t $ infi_le_of_le ht $ le_refl _
+  from infi_le_of_le t $ infi_le_of_le ht $ le_rfl
 
 lemma tendsto_lift' {m : γ → β} {l : filter γ} :
   tendsto m l (f.lift' h) ↔ ∀ s ∈ f, ∀ᶠ a in l, m a ∈ h s :=
@@ -347,7 +347,7 @@ le_infi $ assume s, le_infi $ assume hs,
 lemma lift_infi' {f : ι → filter α} {g : set α → filter β}
   [nonempty ι] (hf : directed (≥) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=
 le_antisymm
-  (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
+  (le_infi $ assume i, lift_mono (infi_le _ _) le_rfl)
   (assume s,
   begin
     rw mem_lift_sets hg,
@@ -388,8 +388,8 @@ eventually_lift'_iff monotone_powerset
 lemma eventually_lift'_powerset' {f : filter α} {p : set α → Prop}
   (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
   (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, p s :=
-eventually_lift'_powerset.trans $ exists_congr $ λ s, exists_congr $
-  λ hsf, ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
+eventually_lift'_powerset.trans $ exists₂_congr $ λ s hsf,
+  ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
 
 instance lift'_powerset_ne_bot (f : filter α) : ne_bot (f.lift' powerset) :=
 (lift'_ne_bot_iff monotone_powerset).2 $ λ _ _, powerset_nonempty

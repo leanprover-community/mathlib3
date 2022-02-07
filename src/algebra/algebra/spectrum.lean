@@ -329,3 +329,20 @@ end
 end scalar_field
 
 end spectrum
+
+namespace alg_hom
+
+variables {R : Type*} {A : Type*} [comm_ring R] [ring A] [algebra R A]
+local notation `σ` := spectrum R
+local notation `↑ₐ` := algebra_map R A
+
+lemma apply_mem_spectrum [nontrivial R] (φ : A →ₐ[R] R) (a : A) : φ a ∈ σ a :=
+begin
+  have h : ↑ₐ(φ a) - a ∈ φ.to_ring_hom.ker,
+  { simp only [ring_hom.mem_ker, coe_to_ring_hom, commutes, algebra.id.map_eq_id,
+               to_ring_hom_eq_coe, ring_hom.id_apply, sub_self, map_sub] },
+  simp only [spectrum.mem_iff, ←mem_nonunits_iff,
+             coe_subset_nonunits (φ.to_ring_hom.ker_ne_top) h],
+end
+
+end alg_hom

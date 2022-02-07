@@ -156,7 +156,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
   sum_congr rfl (λ σ _, fintype.sum_equiv (equiv.mul_right σ⁻¹) _ _
     (λ τ,
       have ∏ j, M (τ j) (σ j) = ∏ j, M ((τ * σ⁻¹) j) j,
-        by { rw ← σ⁻¹.prod_comp, simp only [equiv.perm.coe_mul, apply_inv_self] },
+        by { rw ← (σ⁻¹ : _ ≃ _).prod_comp, simp only [equiv.perm.coe_mul, apply_inv_self] },
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
           by { rw [mul_comm, sign_mul (τ * σ⁻¹)], simp only [int.cast_mul, units.coe_mul] }
@@ -286,7 +286,7 @@ f.to_alg_hom.map_det _
 end hom_map
 
 @[simp] lemma det_conj_transpose [star_ring R] (M : matrix m m R) : det (Mᴴ) = star (det M) :=
-((star_ring_aut : ring_aut R).map_det _).symm.trans $ congr_arg star M.det_transpose
+((star_ring_end R).map_det _).symm.trans $ congr_arg star M.det_transpose
 
 section det_zero
 /-!

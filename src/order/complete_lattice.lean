@@ -32,7 +32,7 @@ also use `bsupr`/`binfi` for "bounded" supremum or infimum, i.e. one of `⨆ i �
 -/
 
 set_option old_structure_cmd true
-open set
+open set function
 
 variables {α β β₂ : Type*} {ι ι₂ : Sort*}
 
@@ -262,7 +262,8 @@ def complete_lattice_of_complete_semilattice_Sup (α : Type*) [complete_semilatt
 complete_lattice_of_Sup α (λ s, is_lub_Sup s)
 
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
-class complete_linear_order (α : Type*) extends complete_lattice α, linear_order α
+class complete_linear_order (α : Type*) extends complete_lattice α,
+  linear_order α renaming max → sup min → inf
 
 namespace order_dual
 variable (α)
@@ -521,7 +522,7 @@ by simp only [Sup_eq_supr, order_iso.map_supr]
 
 lemma supr_comp_le {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨆ x, f (g x)) ≤ ⨆ y, f y :=
-supr_le_supr2 $ λ x, ⟨_, le_refl _⟩
+supr_le_supr2 $ λ x, ⟨_, le_rfl⟩
 
 lemma monotone.supr_comp_eq [preorder β] {f : β → α} (hf : monotone f)
   {s : ι → β} (hs : ∀ x, ∃ i, x ≤ s i) :
@@ -529,12 +530,12 @@ lemma monotone.supr_comp_eq [preorder β] {f : β → α} (hf : monotone f)
 le_antisymm (supr_comp_le _ _) (supr_le_supr2 $ λ x, (hs x).imp $ λ i hi, hf hi)
 
 lemma function.surjective.supr_comp {α : Type*} [has_Sup α] {f : ι → ι₂}
-  (hf : function.surjective f) (g : ι₂ → α) :
+  (hf : surjective f) (g : ι₂ → α) :
   (⨆ x, g (f x)) = ⨆ y, g y :=
 by simp only [supr, hf.range_comp]
 
 lemma supr_congr {α : Type*} [has_Sup α] {f : ι → α} {g : ι₂ → α} (h : ι → ι₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
+  (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
 by { convert h1.supr_comp g, exact (funext h2).symm }
 
 -- TODO: finish doesn't do well here.
@@ -618,7 +619,7 @@ order_iso.map_Sup f.dual _
 
 lemma le_infi_comp {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨅ y, f y) ≤ ⨅ x, f (g x) :=
-infi_le_infi2 $ λ x, ⟨_, le_refl _⟩
+infi_le_infi2 $ λ x, ⟨_, le_rfl⟩
 
 lemma monotone.infi_comp_eq [preorder β] {f : β → α} (hf : monotone f)
   {s : ι → β} (hs : ∀ x, ∃ i, s i ≤ x) :
@@ -626,12 +627,12 @@ lemma monotone.infi_comp_eq [preorder β] {f : β → α} (hf : monotone f)
 le_antisymm (infi_le_infi2 $ λ x, (hs x).imp $ λ i hi, hf hi) (le_infi_comp _ _)
 
 lemma function.surjective.infi_comp {α : Type*} [has_Inf α] {f : ι → ι₂}
-  (hf : function.surjective f) (g : ι₂ → α) :
+  (hf : surjective f) (g : ι₂ → α) :
   (⨅ x, g (f x)) = ⨅ y, g y :=
 @function.surjective.supr_comp _ _ (order_dual α) _ f hf g
 
 lemma infi_congr {α : Type*} [has_Inf α] {f : ι → α} {g : ι₂ → α} (h : ι → ι₂)
-  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
+  (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
 @supr_congr _ _ (order_dual α) _ _ _ h h1 h2
 
 @[congr] theorem infi_congr_Prop {α : Type*} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
@@ -653,7 +654,7 @@ theorem supr_const [nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
 @infi_const (order_dual α) _ _ _ _
 
 @[simp] lemma infi_top : (⨅i:ι, ⊤ : α) = ⊤ :=
-top_unique $ le_infi $ assume i, le_refl _
+top_unique $ le_infi $ assume i, le_rfl
 
 @[simp] lemma supr_bot : (⨆i:ι, ⊥ : α) = ⊥ :=
 @infi_top (order_dual α) _ _
@@ -665,13 +666,13 @@ Inf_eq_top.trans forall_range_iff
 Sup_eq_bot.trans forall_range_iff
 
 @[simp] lemma infi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
-le_antisymm (infi_le _ _) (le_infi $ assume h, le_refl _)
+le_antisymm (infi_le _ _) (le_infi $ assume h, le_rfl)
 
 @[simp] lemma infi_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨅ h : p, f h) = ⊤ :=
 le_antisymm le_top $ le_infi $ assume h, (hp h).elim
 
 @[simp] lemma supr_pos {p : Prop} {f : p → α} (hp : p) : (⨆ h : p, f h) = f hp :=
-le_antisymm (supr_le $ assume h, le_refl _) (le_supr _ _)
+le_antisymm (supr_le $ assume h, le_rfl) (le_supr _ _)
 
 @[simp] lemma supr_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨆ h : p, f h) = ⊥ :=
 le_antisymm (supr_le $ assume h, (hp h).elim) bot_le
@@ -735,13 +736,13 @@ theorem supr_comm {f : ι → ι₂ → α} : (⨆i, ⨆j, f i j) = (⨆j, ⨆i,
   (⨅x, ⨅h:x = b, f x h) = f b rfl :=
 le_antisymm
   (infi_le_of_le b $ infi_le _ rfl)
-  (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_refl _ end)
+  (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_rfl end)
 
 @[simp] theorem infi_infi_eq_right {b : β} {f : Πx:β, b = x → α} :
   (⨅x, ⨅h:b = x, f x h) = f b rfl :=
 le_antisymm
   (infi_le_of_le b $ infi_le _ rfl)
-  (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_refl _ end)
+  (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_rfl end)
 
 @[simp] theorem supr_supr_eq_left {b : β} {f : Πx:β, x = b → α} :
   (⨆x, ⨆h : x = b, f x h) = f b rfl :=
@@ -854,8 +855,8 @@ theorem infi_or {p q : Prop} {s : p ∨ q → α} :
   infi s = (⨅ h : p, s (or.inl h)) ⊓ (⨅ h : q, s (or.inr h)) :=
 le_antisymm
   (le_inf
-    (infi_le_infi2 $ assume j, ⟨_, le_refl _⟩)
-    (infi_le_infi2 $ assume j, ⟨_, le_refl _⟩))
+    (infi_le_infi2 $ assume j, ⟨_, le_rfl⟩)
+    (infi_le_infi2 $ assume j, ⟨_, le_rfl⟩))
   (le_infi $ assume i, match i with
   | or.inl i := inf_le_of_left_le $ infi_le _ _
   | or.inr j := inf_le_of_right_le $ infi_le _ _
@@ -998,6 +999,14 @@ lemma supr_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
   (⨆ c ∈ f '' t, g c) = (⨆ b ∈ t, g (f b)) :=
 @infi_image (order_dual α) _ _ _ _ _ _
 
+theorem supr_extend_bot {e : ι → β} (he : injective e) (f : ι → α) :
+  (⨆ j, extend e f ⊥ j) = ⨆ i, f i :=
+begin
+  rw supr_split _ (λ j, ∃ i, e i = j),
+  simp [extend_apply he, extend_apply', @supr_comm _ β ι] { contextual := tt }
+end
+
+
 /-!
 ### `supr` and `infi` under `Type`
 -/
@@ -1118,7 +1127,7 @@ lemma infi_ge_eq_infi_nat_add {u : ℕ → α} (n : ℕ) : (⨅ i ≥ n, u i) = 
 
 lemma monotone.supr_nat_add {f : ℕ → α} (hf : monotone f) (k : ℕ) :
   (⨆ n, f (n + k)) = ⨆ n, f n :=
-le_antisymm (supr_le (λ i, (le_refl _).trans (le_supr _ (i + k))))
+le_antisymm (supr_le (λ i, le_rfl.trans (le_supr _ (i + k))))
     (supr_le_supr (λ i, hf (nat.le_add_right i k)))
 
 @[simp] lemma supr_infi_ge_nat_add (f : ℕ → α) (k : ℕ) :
@@ -1343,7 +1352,7 @@ lemma set_independent_iff {α : Type*} [complete_lattice α] (s : set α) :
   set_independent s ↔ independent (coe : s → α) :=
 begin
   simp_rw [independent, set_independent, set_coe.forall, Sup_eq_supr],
-  apply forall_congr, intro a, apply forall_congr, intro ha,
+  refine forall₂_congr (λ a ha, _),
   congr' 2,
   convert supr_subtype.symm,
   simp [supr_and],

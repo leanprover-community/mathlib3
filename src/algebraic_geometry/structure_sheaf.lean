@@ -776,7 +776,7 @@ begin
     intros x hx,
     erw topological_space.opens.mem_supr,
     have := ht_cover hx,
-    rw [← finset.set_bUnion_coe, set.mem_bUnion_iff] at this,
+    rw [← finset.set_bUnion_coe, set.mem_Union₂] at this,
     rcases this with ⟨i, i_mem, x_mem⟩,
     use [i, i_mem] },
 

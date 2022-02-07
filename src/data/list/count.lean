@@ -109,8 +109,11 @@ countp_append _
 lemma count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
 by simp [-add_comm]
 
-lemma count_pos {a : α} {l : list α} : 0 < count a l ↔ a ∈ l :=
+@[simp] lemma count_pos {a : α} {l : list α} : 0 < count a l ↔ a ∈ l :=
 by simp only [count, countp_pos, exists_prop, exists_eq_right']
+
+@[simp] lemma one_le_count_iff_mem {a : α} {l : list α} : 1 ≤ count a l ↔ a ∈ l :=
+count_pos
 
 @[simp, priority 980]
 lemma count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
@@ -138,8 +141,7 @@ eq_of_sublist_of_length_eq (le_count_iff_repeat_sublist.mp (le_refl (count a l))
 
 @[simp] lemma count_filter {p} [decidable_pred p]
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=
-by simp only [count, countp_filter]; congr; exact
-set.ext (λ b, and_iff_left_of_imp (λ e, e ▸ h))
+by simp only [count, countp_filter, show (λ b, a = b ∧ p b) = eq a, by { ext b, constructor; cc }]
 
 lemma count_bind {α β} [decidable_eq β] (l : list α) (f : α → list β) (x : β)  :
   count x (l.bind f) = sum (map (count x ∘ f) l) :=

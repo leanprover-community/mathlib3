@@ -361,8 +361,7 @@ have A : ∀ a₁ b₁, (single x r).sum (λ a₂ b₂, ite (a₁ * a₂ = z) (b
   ite (a₁ * x = z) (b₁ * r) 0,
 from λ a₁ b₁, sum_single_index $ by simp,
 calc (f * single x r) z = sum f (λ a b, if (a = y) then (b * r) else 0) :
-  -- different `decidable` instances make it not trivial
-  by { simp only [mul_apply, A, H], congr, funext, split_ifs; refl }
+  by simp only [mul_apply, A, H]
 ... = if y ∈ f.support then f y * r else 0 : f.support.sum_ite_eq' _ _
 ... = f y * r : by split_ifs with h; simp at h; simp [h]
 
@@ -389,8 +388,7 @@ lemma single_mul_apply_aux [has_mul G] (f : monoid_algebra k G) {r : k} {x y z :
 have f.sum (λ a b, ite (x * a = y) (0 * b) 0) = 0, by simp,
 calc (single x r * f) y = sum f (λ a b, ite (x * a = y) (r * b) 0) :
   (mul_apply _ _ _).trans $ sum_single_index this
-... = f.sum (λ a b, ite (a = z) (r * b) 0) :
-  by { simp only [H], congr' with g s, split_ifs; refl }
+... = f.sum (λ a b, ite (a = z) (r * b) 0) : by simp only [H]
 ... = if z ∈ f.support then (r * f z) else 0 : f.support.sum_ite_eq' _ _
 ... = _ : by split_ifs with h; simp at h; simp [h]
 

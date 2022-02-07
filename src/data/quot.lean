@@ -33,6 +33,9 @@ local notation `⟦`:max a `⟧` := quot.mk _ a
 
 instance [inhabited α] : inhabited (quot ra) := ⟨⟦default⟧⟩
 
+instance [subsingleton α] : subsingleton (quot ra) :=
+⟨λ x, quot.induction_on x (λ y, quot.ind (λ b, congr_arg _ (subsingleton.elim _ _)))⟩
+
 /-- Recursion on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
   (ca : ∀ {b a₁ a₂}, ra a₁ a₂ → f a₁ b == f a₂ b)
@@ -137,6 +140,9 @@ variables [sa : setoid α] [sb : setoid β]
 variables {φ : quotient sa → quotient sb → Sort*}
 
 instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default⟧⟩
+
+instance (s : setoid α) [subsingleton α] : subsingleton (quotient s) :=
+quot.subsingleton
 
 /-- Induction on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)

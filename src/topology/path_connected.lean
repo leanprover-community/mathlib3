@@ -231,7 +231,7 @@ by split_ifs; rw extend_extends
   (γ.trans γ').symm = γ'.symm.trans γ.symm :=
 begin
   ext t,
-  simp only [trans_apply, one_div, symm_apply, not_le, comp_app],
+  simp only [trans_apply, ← one_div, symm_apply, not_le, comp_app],
   split_ifs with h h₁ h₂ h₃ h₄; rw [coe_symm_eq] at h,
   { have ht : (t : ℝ) = 1/2,
     { linarith [unit_interval.nonneg t, unit_interval.le_one t] },
@@ -372,21 +372,59 @@ begin
     simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
 end
 
-/-! #### Product of two paths -/
-
+/-! #### Product of paths -/
+section prod
+variables {a₁ a₂ a₃ : X} {b₁ b₂ b₃ : Y}
 /-- Given a path in `X` and a path in `Y`, we can take their pointwise product to get a path in
 `X × Y`. -/
-protected def prod {a₁ b₁ : X} {a₂ b₂ : Y} (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) :
-  path (a₁, a₂) (b₁, b₂) :=
+protected def prod (γ₁ : path a₁ a₂) (γ₂ : path b₁ b₂) :
+  path (a₁, b₁) (a₂, b₂) :=
 { to_continuous_map := continuous_map.prod_mk γ₁.to_continuous_map γ₂.to_continuous_map,
-  source' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.source, γ₂.source],
-  target' := by dsimp [continuous_map.prod_mk]; rwa [γ₁.target, γ₂.target] }
+  source' := by simp,
+  target' := by simp, }
 
+@[simp] lemma prod_coe_fn (γ₁ : path a₁ a₂) (γ₂ : path b₁ b₂) :
+  (coe_fn (γ₁.prod γ₂)) = λ t, (γ₁ t, γ₂ t) := rfl
+
+/-- Path composition commutes with products -/
+lemma trans_prod_eq_prod_trans
+  (γ₁ : path a₁ a₂) (δ₁ : path a₂ a₃) (γ₂ : path b₁ b₂) (δ₂ : path b₂ b₃) :
+  (γ₁.prod γ₂).trans (δ₁.prod δ₂) = (γ₁.trans δ₁).prod (γ₂.trans δ₂) :=
+begin
+  ext t;
+  unfold path.trans;
+  simp only [path.coe_mk, path.prod_coe_fn, function.comp_app];
+  split_ifs; refl,
+end
+
+end prod
+
+section pi
+variables {χ : ι → Type*} [∀ i, topological_space (χ i)] {as bs cs : Π i, χ i}
+/-- Given a family of paths, one in each Xᵢ, we take their pointwise product to get a path in
+Π i, Xᵢ. -/
+protected def pi (γ : Π i, path (as i) (bs i)) : path as bs :=
+{ to_continuous_map := continuous_map.pi (λ i, (γ i).to_continuous_map),
+  source' := by simp,
+  target' := by simp, }
+
+@[simp] lemma pi_coe_fn (γ : Π i, path (as i) (bs i)) : (coe_fn (path.pi γ)) = λ t i, γ i t := rfl
+
+/-- Path composition commutes with products -/
+lemma trans_pi_eq_pi_trans (γ₀ : Π i, path (as i) (bs i)) (γ₁ : Π i, path (bs i) (cs i)) :
+  (path.pi γ₀).trans (path.pi γ₁) = path.pi (λ i, (γ₀ i).trans (γ₁ i)) :=
+begin
+  ext t i,
+  unfold path.trans,
+  simp only [path.coe_mk, function.comp_app, pi_coe_fn],
+  split_ifs; refl,
+end
+end pi
 /-! #### Pointwise multiplication/addition of two paths in a topological (additive) group -/
 
 /-- Pointwise multiplication of paths in a topological group. The additive version is probably more
 useful. -/
-@[to_additive "Pointwise addition of paths in a topological additive group. -/"]
+@[to_additive "Pointwise addition of paths in a topological additive group."]
 protected def mul [has_mul X] [has_continuous_mul X] {a₁ b₁ a₂ b₂ : X}
   (γ₁ : path a₁ b₁) (γ₂ : path a₂ b₂) : path (a₁ * a₂) (b₁ * b₂) :=
 (γ₁.prod γ₂).map continuous_mul
@@ -762,7 +800,7 @@ begin
     { use path.refl (p' 0),
       { split,
         { rintros i hi, rw nat.le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
-        { rw range_subset_iff, rintros x, exact hp' 0 (le_refl _) } } },
+        { rw range_subset_iff, rintros x, exact hp' 0 le_rfl } } },
     { rcases hn (λ i hi, hp' i $ nat.le_succ_of_le hi) with ⟨γ₀, hγ₀⟩,
       rcases h.joined_in (p' n) (hp' n n.le_succ) (p' $ n+1) (hp' (n+1) $ le_rfl) with ⟨γ₁, hγ₁⟩,
       let γ : path (p' 0) (p' $ n+1) := γ₀.trans γ₁,

@@ -116,6 +116,16 @@ begin
   { simp only [degree_zero, bot_le] }
 end
 
+@[nontriviality] lemma subsingleton [subsingleton B] : minpoly A x = 1 :=
+begin
+  nontriviality A,
+  have := minpoly.min A x monic_one (subsingleton.elim _ _),
+  rw degree_one at this,
+  cases le_or_lt (minpoly A x).degree 0 with h h,
+  { rwa (monic ⟨1, monic_one, by simp⟩ : (minpoly A x).monic).degree_le_zero_iff_eq_one at h },
+  { exact (this.not_lt h).elim },
+end
+
 end ring
 
 section comm_ring

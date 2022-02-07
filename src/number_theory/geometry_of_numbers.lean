@@ -67,10 +67,10 @@ lemma smul_invariant_measure.volume_smul {G : Type*} [group G] [measurable_space
   [smul_invariant_measure G V μ] (g : G) {S : set V} : μ (g • S) = μ S :=
 by rw [← measure_preimage_smul (g⁻¹) μ S, preimage_smul, inv_inv]
 
-@[to_additive]
-lemma is_mul_left_invariant.to_smul_invariant_measure [measurable_space G] [has_mul G]
-  {μ : measure G} (h : is_mul_left_invariant μ) :
-smul_invariant_measure G G μ := ⟨h⟩
+-- @[to_additive]
+-- lemma is_mul_left_invariant.to_smul_invariant_measure [measurable_space G] [has_mul G]
+--   {μ : measure G} [is_mul_left_invariant μ] :
+-- smul_invariant_measure G G μ := ⟨h⟩
 
 end
 end measure_theory
@@ -131,12 +131,14 @@ noncomputable theory
 open set
 
 lemma is_add_left_invariant_pi_volume [fintype ι] {K : ι → Type*} [∀ i, measure_space (K i)]
-  [∀ i, has_add (K i)] [∀ i, topological_space (K i)] [∀ i, has_continuous_add (K i)]
+  [∀ i, add_group (K i)] [∀ i, topological_space (K i)] [∀ i, has_continuous_add (K i)]
+  [∀ i, has_measurable_add (K i)] -- TODO???
   [borel_space (Π i, K i)] [∀ i, sigma_finite (volume : measure (K i))]
-  (h : ∀ i, is_add_left_invariant ⇑(volume : measure (K i))) :
-  is_add_left_invariant (⇑(volume : measure (Π i, K i))) :=
+  [∀ i, is_add_left_invariant (volume : measure (K i))] :
+  is_add_left_invariant ((volume : measure (Π i, K i))) :=
 begin
-  rw [← map_add_left_eq_self],
+  constructor,
+  -- rw [← map_add_left_eq_self],
   intro v,
   refine (pi_eq _).symm,
   intros s hS,
@@ -145,7 +147,7 @@ begin
   { rw pi_pi,
     { congr',
       ext i : 1,
-      rw h _ _ (hS i), }, },
+      exact measure_preimage_add _ _ _, }, },
   { refl, },
   { exact measurable_const_add v, },
   { exact measurable_set.univ_pi_fintype hS, },
@@ -179,7 +181,7 @@ begin
     { rw [this, one_smul], },
     exact volume_Icc ι, },
   { apply_instance },
-  { exact is_add_left_invariant_pi_volume ι (λ i, is_add_left_invariant_real_volume), },
+  { exact is_add_left_invariant_pi_volume ι, },
 end
 
 variable {ι}
@@ -416,7 +418,7 @@ lemma exists_mul_inv_mem_lattice_of_volume_lt_volume' {X : Type*} [measure_space
   [has_measurable_mul X] (L : subgroup X) [encodable L] {S : set X} (hS : measurable_set S)
   {F : set X} (fund : is_fundamental_domain L F) (hlt : volume F < volume S)
   -- [smul_invariant_measure X Y (volume : measure Y)]
-  (h_mul_left : is_mul_left_invariant ⇑(volume : measure X)) :
+  [is_mul_left_invariant (volume : measure X)] :
   ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), y * x⁻¹ ∈ L :=
 begin
   haveI : smul_invariant_measure L X measure_space.volume :=
@@ -425,9 +427,7 @@ begin
     apply_instance,
     constructor,
     intros c S hS,
-    dsimp,
-    -- have := h_mul_left.measure_preimage_mul c S,
-    sorry,
+    exact measure_preimage_mul volume c S,
   end,
   obtain ⟨x, y, hx, hy, hne, h⟩ := exists_mul_inv_mem_lattice_of_volume_lt_volume hS F fund hlt _,
   { refine ⟨x, y, hx, hy, hne, _⟩,
@@ -534,11 +534,10 @@ begin
       exact set.smul_mem_smul_set (h_symm _ hv), },
     use [y, -x, hy, this _ hx],
     refl, },
-  { refine exists_add_neg_mem_lattice_of_volume_lt_volume' L mhalf fund h2 _,
-    rw [← pi_haar_measure_eq_lebesgue_measure _],
-    exact measure.is_add_left_invariant_add_haar_measure (unit_cube _), },
+  { exact exists_add_neg_mem_lattice_of_volume_lt_volume' L mhalf fund h2,
+    -- rw [← pi_haar_measure_eq_lebesgue_measure _],
+    -- exact measure.is_add_left_invariant_add_haar_measure (unit_cube _),
+    },
 end
 
 end geometry_of_numbers
-
-#lint

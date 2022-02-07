@@ -472,7 +472,7 @@ by simp only [eq_bot_iff, prod_le_iff, (gc_map_comap _).le_iff_le, comap_bot, ke
 
 lemma prod_eq_top_iff {p₁ : submodule R M} {p₂ : submodule R M₂} :
   p₁.prod p₂ = ⊤ ↔ p₁ = ⊤ ∧ p₂ = ⊤ :=
-by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, map_top, range_fst, range_snd],
+by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, map_top, range_fst, range_snd]
 
 end submodule
 

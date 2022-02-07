@@ -615,7 +615,7 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
       obtain ha | ha := (norm_nonneg a).eq_or_lt,
       { rw ← ha, ring_nf, apply le_antisymm,
         { apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
-          simp only [seminorm.zero, sub_zero, zero_add], rw q.smul, rw ← ha, simp only [zero_mul]},
+          simp only [seminorm.zero, sub_zero, zero_add, q.smul, ← ha, zero_mul] },
         { exact le_cinfi (λ u, add_nonneg (p.nonneg _) (q.nonneg _)) } },
       { apply le_antisymm,
         { rw ← div_le_iff' ha,

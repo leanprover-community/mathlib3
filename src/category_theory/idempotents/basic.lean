@@ -150,7 +150,7 @@ begin
     simpa only [id_comp], },
 end
 
-lemma is_idempotent_complete_imp_of_equivalence {D : Type*} [category D] (ε : C ≌ D)
+lemma equivalence.is_idempotent_complete {D : Type*} [category D] (ε : C ≌ D)
   (h : is_idempotent_complete C) : is_idempotent_complete D :=
 begin
   refine ⟨_⟩,

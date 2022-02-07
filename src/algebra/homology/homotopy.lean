@@ -598,93 +598,24 @@ end
 -- end
 
 variables (e : P ⟶ Q)
-  (zero : P.X 0 ⟶ Q.X 1)
-  (comm_zero : e.f 0 = zero ≫ Q.d 1 0)
-  (one : P.X 1 ⟶ Q.X 2)
-  (comm_one : e.f 1 = P.d 1 0 ≫ zero + one ≫ Q.d 2 1)
+  (zero : P.X 1 ⟶ Q.X 0)
+  (comm_zero : e.f 0 = P.d 0 1 ≫ zero)
+  (one : P.X 2 ⟶ Q.X 1)
+  (comm_one : e.f 1 = zero ≫ Q.d 0 1 + P.d 1 2 ≫ one)
   (succ : ∀ (n : ℕ)
-    (p : Σ' (f : P.X n ⟶ Q.X (n+1)) (f' : P.X (n+1) ⟶ Q.X (n+2)),
-      e.f (n+1) = P.d (n+1) n ≫ f + f' ≫ Q.d (n+2) (n+1)),
-    Σ' f'' : P.X (n+2) ⟶ Q.X (n+3), e.f (n+2) = P.d (n+2) (n+1) ≫ p.2.1 + f'' ≫ Q.d (n+3) (n+2))
+    (p : Σ' (f : P.X (n+1) ⟶ Q.X n) (f' : P.X (n+2) ⟶ Q.X (n+1)),
+      e.f (n+1) = f ≫ Q.d n (n+1) + P.d (n+1) (n+2) ≫ f'),
+    Σ' f'' : P.X (n+3) ⟶ Q.X (n+2), e.f (n+2) = p.2.1 ≫ Q.d (n+1) (n+2) + P.d (n+2) (n+3) ≫ f'')
 
-include comm_one comm_zero
-
-/--
-An auxiliary construction for `mk_inductive`.
-
-Here we build by induction a family of diagrams,
-but don't require at the type level that these successive diagrams actually agree.
-They do in fact agree, and we then capture that at the type level (i.e. by constructing a homotopy)
-in `mk_inductive`.
-
-At this stage, we don't check the homotopy condition in degree 0,
-because it "falls off the end", and is easier to treat using `X_next` and `X_prev`,
-which we do in `mk_inductive_aux₂`.
--/
--- @[simp, nolint unused_arguments]
--- def mk_coinductive_aux₁ :
---   Π n, Σ' (f : P.X n ⟶ Q.X (n+1)) (f' : P.X (n+1) ⟶ Q.X (n+2)),
---     e.f (n+1) = P.d (n+1) n ≫ f + f' ≫ Q.d (n+2) (n+1)
--- | 0 := ⟨zero, one, comm_one⟩
--- | 1 := ⟨one, (succ 0 ⟨zero, one, comm_one⟩).1, (succ 0 ⟨zero, one, comm_one⟩).2⟩
--- | (n+2) :=
---   ⟨(mk_coinductive_aux₁ (n+1)).2.1,
---     (succ (n+1) (mk_coinductive_aux₁ (n+1))).1,
---     (succ (n+1) (mk_coinductive_aux₁ (n+1))).2⟩
+include comm_one comm_zero succ
 
 section
 
 variable [has_zero_object V]
 
-/--
-An auxiliary construction for `mk_inductive`.
--/
--- @[simp]
--- def mk_coinductive_aux₂ :
---   Π n, Σ' (f : P.X_next n ⟶ Q.X n) (f' : P.X n ⟶ Q.X_prev n), e.f n = P.d_from n ≫ f + f' ≫ Q.d_to n
--- | 0 := ⟨0, zero ≫ (Q.X_prev_iso rfl).inv, by simpa using comm_zero⟩
--- | (n+1) := let I := mk_coinductive_aux₁ e zero comm_zero one comm_one succ n in
---   ⟨(P.X_next_iso rfl).hom ≫ I.1, I.2.1 ≫ (Q.X_prev_iso rfl).inv, by simpa using I.2.2⟩
-
--- lemma mk_coinductive_aux₃ (i : ℕ) :
---   (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.1 ≫ (Q.X_prev_iso rfl).hom
---     = (P.X_next_iso rfl).inv ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ (i+1)).1 :=
--- by rcases i with (_|_|i); { dsimp, simp, }
-
-/--
-A constructor for a `homotopy e 0`, for `e` a chain map between `ℕ`-indexed chain complexes,
-working by induction.
-
-You need to provide the components of the homotopy in degrees 0 and 1,
-show that these satisfy the homotopy condition,
-and then give a construction of each component,
-and the fact that it satisfies the homotopy condition,
-using as an inductive hypothesis the data and homotopy condition for the previous two components.
--/
 def mk_coinductive : homotopy e 0 := sorry
--- { hom := λ i j, if h : i + 1 = j then
---     (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.1 ≫ (Q.X_prev_iso h).hom
---   else
---     0,
---   zero' := λ i j w, by rwa dif_neg,
---   comm := λ i, begin
---     dsimp, simp only [add_zero],
---     convert (mk_inductive_aux₂ e zero comm_zero one comm_one succ i).2.2,
---     { rcases i with (_|_|_|i),
---       { dsimp,
---         simp only [d_next_zero_chain_complex, d_from_eq_zero, limits.comp_zero], },
---       all_goals
---       { simp only [d_next_succ_chain_complex],
---         dsimp,
---         simp only [category.comp_id, category.assoc, iso.inv_hom_id, d_from_comp_X_next_iso_assoc,
---           dite_eq_ite, if_true, eq_self_iff_true]}, },
---     { cases i,
---       all_goals
---       { simp only [prev_d_chain_complex],
---         dsimp,
---         simp only [category.comp_id, category.assoc, iso.inv_hom_id, X_prev_iso_comp_d_to,
---           dite_eq_ite, if_true, eq_self_iff_true], }, },
---   end, }
+
+end
 
 end mk_coinductive
 

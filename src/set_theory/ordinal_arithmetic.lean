@@ -966,6 +966,9 @@ eq_of_forall_ge_iff $ λ a,
 by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
   intros; simp only [sup_le, true_implies_iff]; tauto
 
+theorem sup_empty {ι} [is_empty ι] (f : ι → ordinal) : sup f = 0 :=
+sup_eq_zero_iff.2 is_empty_elim
+
 theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=
 eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_le]
 
@@ -1052,6 +1055,9 @@ theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (ho : o.is_limit) (i h) : f i h < bsup o f :=
 lt_of_lt_of_le (hf _ _ $ lt_succ_self i) (le_bsup f i.succ $ ho.2 _ h)
 
+theorem bsup_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : bsup o f = 0 :=
+bsup_eq_zero_iff.2 (λ i hi, by { subst ho, exact (ordinal.not_lt_zero i hi).elim })
+
 theorem bsup_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : bsup o (λ _ _, a) = a :=
 le_antisymm (bsup_le.2 (λ _ _, le_rfl)) (le_bsup _ 0 (ordinal.pos_iff_ne_zero.2 ho))
 
@@ -1109,7 +1115,7 @@ end
 theorem sup_eq_lsub_iff_lt_sup {ι} (f : ι → ordinal) : sup f = lsub f ↔ ∀ i, f i < sup f :=
 ⟨λ h i, (by { rw h, apply lt_lsub }), λ h, le_antisymm (sup_le_lsub f) (lsub_le.2 h)⟩
 
-lemma lsub_eq_zero {ι} [h : is_empty ι] (f : ι → ordinal) : lsub f = 0 :=
+lemma lsub_empty {ι} [h : is_empty ι] (f : ι → ordinal) : lsub f = 0 :=
 by { rw [←ordinal.le_zero, lsub_le], exact h.elim }
 
 lemma lsub_pos {ι} [h : nonempty ι] (f : ι → ordinal) : 0 < lsub f :=
@@ -1117,7 +1123,7 @@ h.elim $ λ i, (ordinal.zero_le _).trans_lt (lt_lsub f i)
 
 @[simp] theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
 begin
-  refine ⟨λ h, ⟨λ i, _⟩, λ h, @lsub_eq_zero _ h _⟩,
+  refine ⟨λ h, ⟨λ i, _⟩, λ h, @lsub_empty _ h _⟩,
   have := @lsub_pos _ ⟨i⟩ f,
   rw h at this,
   exact this.false
@@ -1195,7 +1201,7 @@ theorem bsup_eq_blsub_iff_lt_bsup {o} (f : Π a < o, ordinal) :
 @[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
 
-lemma blsub_eq_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : blsub o f = 0 :=
+lemma blsub_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : blsub o f = 0 :=
 by rwa blsub_eq_zero_iff
 
 lemma blsub_pos {o : ordinal} (ho : 0 < o) (f : Π a < o, ordinal) : 0 < blsub o f :=

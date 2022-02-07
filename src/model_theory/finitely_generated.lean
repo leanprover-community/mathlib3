@@ -98,6 +98,12 @@ def cg (N : L.substructure M) : Prop := ∃ S : set M, S.countable ∧ closure L
 theorem cg_def {N : L.substructure M} :
   N.cg ↔ ∃ S : set M, S.countable ∧ closure L S = N := iff.refl _
 
+theorem fg.cg {N : L.substructure M} (h : N.fg) : N.cg :=
+begin
+  obtain ⟨s, hf, rfl⟩ := fg_def.1 h,
+  refine ⟨s, hf.countable, rfl⟩,
+end
+
 lemma cg_iff_empty_or_exists_nat_generating_family {N : L.substructure M} :
   N.cg ↔ (↑N = (∅ : set M)) ∨ ∃ (s : ℕ → M), closure L (range s) = N :=
 begin
@@ -120,14 +126,12 @@ begin
       exact ⟨range f, countable_range _, rfl⟩ } },
 end
 
-theorem cg_bot : (⊥ : L.substructure M).cg :=
-⟨∅, countable_empty, closure_empty⟩
+theorem cg_bot : (⊥ : L.substructure M).cg := fg_bot.cg
 
 theorem cg_closure {s : set M} (hs : countable s) : cg (closure L s) :=
 ⟨s, hs, rfl⟩
 
-theorem cg_closure_singleton (x : M) : cg (closure L ({x} : set M)) :=
-cg_closure (countable_singleton x)
+theorem cg_closure_singleton (x : M) : cg (closure L ({x} : set M)) := fg_closure_singleton.cg
 
 theorem cg_sup {N₁ N₂ : L.substructure M}
   (hN₁ : N₁.cg) (hN₂ : N₂.cg) : (N₁ ⊔ N₂).cg :=
@@ -213,6 +217,9 @@ begin
   exact h.range f,
 end
 
+instance cg_of_fg [h : fg L M] : cg L M :=
+cg_def.2 (fg_def.1 h).cg
+
 end Structure
 
 lemma equiv.fg_iff {N : Type*} [L.Structure N] (f : M ≃[L] N) :
@@ -231,7 +238,6 @@ begin
     rw [← hom.range_eq_map, range_subtype] at h,
     exact h }
 end
-
 
 lemma equiv.cg_iff {N : Type*} [L.Structure N] (f : M ≃[L] N) :
   Structure.cg L M ↔ Structure.cg L N :=

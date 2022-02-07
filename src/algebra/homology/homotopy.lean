@@ -636,11 +636,6 @@ lemma mk_coinductive_aux₃ (i : ℕ) :
     = (P.X_next_iso rfl).hom ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ (i+1)).1 :=
 by rcases i with (_|_|i); { dsimp, simp, }
 
--- lemma mk_coinductive_aux₃' (i : ℕ) :
---   (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.1 ≫ (Q.X_prev_iso rfl).inv
---     = (P.X_next_iso rfl).hom ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ (i+1)).1 :=
--- by rcases i with (_|_|i); { dsimp, simp, }
-
 def mk_coinductive : homotopy e 0 :=
 { hom := λ i j, if h : j + 1 = i then
     (P.X_next_iso h).inv ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ j).2.1

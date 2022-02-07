@@ -59,7 +59,7 @@ This creates a little bit of friction, but lemmas like `is_primitive_root.is_uni
 
 -/
 
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 noncomputable theory
 
 open polynomial

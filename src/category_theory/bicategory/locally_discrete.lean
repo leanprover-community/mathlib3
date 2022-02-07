@@ -75,8 +75,8 @@ structure onecat_to_strict extends prefunctor I B :=
 (comp_id : ∀ ⦃X Y : I⦄ (f : X ⟶ Y), map_comp f (𝟙 Y) ≫ (map f ◁ map_id Y) =
   eq_to_hom (by simp) . obviously)
 (assoc : ∀ ⦃X Y Z W : I⦄ (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W),
-  map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ _ _ _).hom =
-  eq_to_hom (by simp) ≫ map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) . obviously)
+  map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) = eq_to_hom (by simp) ≫
+  map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) ≫ eq_to_hom (by simp) . obviously)
 
 variables {I B} (F : onecat_to_strict I B) (G : oplax_functor (locally_discrete I) B)
 
@@ -88,7 +88,8 @@ def functor.to_onecat_to_strict (F : I ⥤ B) : onecat_to_strict I B :=
 
 @[simps] def onecat_to_strict.to_oplax_functor : oplax_functor (locally_discrete I) B :=
 { map₂ := λ _ _ _ _ f, eq_to_hom (by rw eq_of_hom f),
-  map₂_associator' := λ _ _ _ _ f g h, (F.assoc f g h).symm,
+  map₂_associator' := λ _ _ _ _ f g h, by { dsimp,
+    rw [←category.assoc (F.map_comp _ _), F.assoc], simp },
   map₂_left_unitor' := λ _ _ f, by { rw [←category.assoc, F.id_comp], simp },
   map₂_right_unitor' := λ _ _ f, by { rw [←category.assoc, F.comp_id], simp },
   .. F }
@@ -103,11 +104,11 @@ F.to_onecat_to_strict.to_oplax_functor
 
 @[simps] def oplax_functor.to_onecat_to_strict : onecat_to_strict I B :=
 { id_comp := λ _ _ f, by { have := eq_whisker ((G.map₂_left_unitor' f).symm.trans
-      (eq_to_hom_map (G.map_functor _ _) _)) (λ_ _).inv, simp at this, exact this },
+    (eq_to_hom_map (G.map_functor _ _) _)) (λ_ _).inv, simp at this, exact this },
   comp_id := λ _ _ f, by { have := eq_whisker ((G.map₂_right_unitor' f).symm.trans
-      (eq_to_hom_map (G.map_functor _ _) _)) (ρ_ _).inv, simp at this, exact this },
-  assoc := λ _ _ _ _ f g h, by
-  { convert ← (G.map₂_associator' f g h).symm, apply eq_to_hom_map (G.map_functor _ _) },
+    (eq_to_hom_map (G.map_functor _ _) _)) (ρ_ _).inv, simp at this, exact this },
+  assoc := λ _ _ _ _ f g h, by { have := eq_whisker ((G.map₂_associator' f g h).symm.trans
+    (eq_whisker (eq_to_hom_map (G.map_functor _ _) _) _)) (α_ _ _ _).inv, simp at this, exact this },
   .. G }
 
 /-- -/

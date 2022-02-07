@@ -123,10 +123,10 @@ variables (α)
 /-- The identity as a continuous map. -/
 protected def id : C(α, α) := ⟨id⟩
 
-@[simp] lemma id_coe : (id : α → α) = _root_.id := rfl
+@[simp] lemma coe_id : ⇑(continuous_map.id α) = id := rfl
 
 /-- The constant map as a continuous map. -/
-@[simps] def const (b : β) : C(α, β) := ⟨const α b⟩
+def const (b : β) : C(α, β) := ⟨const α b⟩
 
 @[simp] lemma coe_const (b : β) : ⇑(const α b) = function.const α b := rfl
 

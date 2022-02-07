@@ -64,9 +64,12 @@ open_locale unit_interval
 
 namespace continuous_map
 
-/--
-The type of homotopies between two functions.
--/
+/-- `continuous_map.homotopy f₀ f₁` is the type of homotopies from `f₀` to `f₁`.
+
+When possible, instead of parametrizing results over `(f : homotopy f₀ f₁)`,
+you should parametrize over `(F : Type*) [homotopy_class F f₀ f₁] (f : F)`.
+
+When you extend this structure, make sure to extend `continuous_map.homotopy_class`. -/
 structure homotopy (f₀ f₁ : C(X, Y)) extends C(I × X, Y) :=
 (map_zero_left' : ∀ x, to_fun (0, x) = f₀ x)
 (map_one_left' : ∀ x, to_fun (1, x) = f₁ x)
@@ -75,22 +78,26 @@ structure homotopy (f₀ f₁ : C(X, Y)) extends C(I × X, Y) :=
 `f₁`.
 
 You should extend this class when you extend `continuous_map.homotopy`. -/
-class homotopy_class (F : Type*) (f₀ f₁ : C(X, Y)) extends continuous_map_class F (I × X) Y :=
+class homotopy_class (F : Type*) (f₀ f₁ : out_param $ C(X, Y))
+  extends continuous_map_class F (I × X) Y :=
 (map_zero_left (f : F) : ∀ x, f (0, x) = f₀ x)
 (map_one_left (f : F) : ∀ x, f (1, x) = f₁ x)
 
-instance homotopy.homotopy_class (f₀ f₁ : C(X, Y)) : homotopy_class (homotopy f₀ f₁) f₀ f₁ :=
-{ coe := λ f, f.to_fun,
-  coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
-  map_continuous := λ f, f.continuous_to_fun,
-  map_zero_left := λ f, f.map_zero_left',
-  map_one_left := λ f, f.map_one_left' }
+-- `f₀` and `f₁` are `out_param` so this is not dangerous
+attribute [nolint dangerous_instance] homotopy_class.to_continuous_map_class
 
 namespace homotopy
 
 section
 
 variables {f₀ f₁ : C(X, Y)}
+
+instance : homotopy_class (homotopy f₀ f₁) f₀ f₁ :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
+  map_continuous := λ f, f.continuous_to_fun,
+  map_zero_left := λ f, f.map_zero_left',
+  map_one_left := λ f, f.map_one_left' }
 
 instance : has_coe_to_fun (homotopy f₀ f₁) (λ _, I × X → Y) := ⟨λ F, F.to_fun⟩
 

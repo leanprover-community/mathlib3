@@ -40,7 +40,7 @@ example (R α : Type*) (β : α → Type*) [monoid R] [Π i, mul_action R (β i)
   (units.mul_action : mul_action Rˣ (Π i, β i)) = pi.mul_action _ := rfl
 
 example (R α : Type*) (β : α → Type*) [monoid R] [semiring α] [distrib_mul_action R α] :
-  (units.distrib_mul_action : distrib_mul_action Rˣ (polynomial α)) =
+  (units.distrib_mul_action : distrib_mul_action Rˣ α[X]) =
     polynomial.distrib_mul_action :=
 rfl
 

@@ -51,7 +51,7 @@ To prove `cyclotomic.irreducible`, the irreducibility of `cyclotomic n ℤ`, we 
 of unity `μ : K`, where `K` is a field of characteristic `0`.
 -/
 
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 noncomputable theory
 
 universe u
@@ -66,7 +66,7 @@ variables {R : Type*} [comm_ring R] [is_domain R]
 
 /-- The modified `n`-th cyclotomic polynomial with coefficients in `R`, it is the usual cyclotomic
 polynomial if there is a primitive `n`-th root of unity in `R`. -/
-def cyclotomic' (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : polynomial R :=
+def cyclotomic' (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : R[X] :=
 ∏ μ in primitive_roots n R, (X - C μ)
 
 /-- The zeroth modified cyclotomic polyomial is `1`. -/
@@ -235,7 +235,7 @@ begin
   replace Bint := lifts_and_degree_eq_and_monic Bint Bmo,
   obtain ⟨B₁, hB₁, hB₁deg, hB₁mo⟩ := Bint,
   let Q₁ : polynomial ℤ := (X ^ k - 1) /ₘ B₁,
-  have huniq : 0 + B * cyclotomic' k K = X ^ k - 1 ∧ (0 : polynomial K).degree < B.degree,
+  have huniq : 0 + B * cyclotomic' k K = X ^ k - 1 ∧ (0 : K[X]).degree < B.degree,
   { split,
     { rw [zero_add, mul_comm, ←(prod_cyclotomic'_eq_X_pow_sub_one hpos h),
       nat.divisors_eq_proper_divisors_insert_self_of_pos hpos],
@@ -243,7 +243,7 @@ begin
     rw [degree_zero, bot_lt_iff_ne_bot],
     intro habs,
     exact (monic.ne_zero Bmo) (degree_eq_bot.1 habs) },
-  replace huniq := div_mod_by_monic_unique (cyclotomic' k K) (0 : polynomial K) Bmo huniq,
+  replace huniq := div_mod_by_monic_unique (cyclotomic' k K) (0 : K[X]) Bmo huniq,
   simp only [lifts, ring_hom.mem_srange],
   use Q₁,
   rw [coe_map_ring_hom, (map_div_by_monic (int.cast_ring_hom K) hB₁mo), hB₁, ← huniq.1],
@@ -269,7 +269,7 @@ end cyclotomic'
 section cyclotomic
 
 /-- The `n`-th cyclotomic polynomial with coefficients in `R`. -/
-def cyclotomic (n : ℕ) (R : Type*) [ring R] : polynomial R :=
+def cyclotomic (n : ℕ) (R : Type*) [ring R] : R[X] :=
 if h : n = 0 then 1 else
   map (int.cast_ring_hom R) ((int_coeff_of_cyclotomic' (complex.is_primitive_root_exp n h)).some)
 
@@ -449,7 +449,7 @@ open_locale arithmetic_function
   using Möbius inversion. -/
 lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (R : Type*) [comm_ring R] [is_domain R] :
   algebra_map _ (ratfunc R) (cyclotomic n R) =
-    ∏ i in n.divisors_antidiagonal, (algebra_map (polynomial R) _ (X ^ i.snd - 1)) ^ μ i.fst :=
+    ∏ i in n.divisors_antidiagonal, (algebra_map R[X] _ (X ^ i.snd - 1)) ^ μ i.fst :=
 begin
   rcases n.eq_zero_or_pos with rfl | hpos,
   { simp },
@@ -634,7 +634,7 @@ begin
 end
 
 lemma eq_cyclotomic_iff {R : Type*} [comm_ring R] {n : ℕ} (hpos: 0 < n)
-  (P : polynomial R) :
+  (P : R[X]) :
   P = cyclotomic n R ↔ P * (∏ i in nat.proper_divisors n, polynomial.cyclotomic i R) = X ^ n - 1 :=
 begin
   nontriviality R,

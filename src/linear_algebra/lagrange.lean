@@ -19,7 +19,7 @@ import ring_theory.polynomial.basic
 -/
 
 noncomputable theory
-open_locale big_operators classical
+open_locale big_operators classical polynomial
 
 universe u
 
@@ -31,7 +31,7 @@ variables {F' : Type u} [field F'] (s' : finset F')
 open polynomial
 
 /-- Lagrange basis polynomials that evaluate to 1 at `x` and 0 at other elements of `s`. -/
-def basis (x : F) : polynomial F :=
+def basis (x : F) : F[X] :=
 ∏ y in s.erase x, C (x - y)⁻¹ * (X - C y)
 
 @[simp] theorem basis_empty (x : F) : basis ∅ x = 1 :=
@@ -76,7 +76,7 @@ begin
     rw [ne, finset.prod_eq_zero_iff], rintro ⟨z, hzs, hz⟩,
     rw mul_eq_zero at hz, cases hz with hz hz,
     { rw [← C_0, C_inj, inv_eq_zero, sub_eq_zero] at hz, exact hx.2 (hz.symm ▸ hzs) },
-    { rw ← pow_one (X : polynomial F) at hz, exact X_pow_sub_C_ne_zero zero_lt_one _ hz } }
+    { rw ← pow_one (X : F[X]) at hz, exact X_pow_sub_C_ne_zero zero_lt_one _ hz } }
 end
 
 variables (f : F → F)
@@ -164,14 +164,14 @@ eq_of_sub_eq_zero $ eq_zero_of_eval_eq_zero s'
   (lt_of_le_of_lt (degree_sub_le f g) $ max_lt hf hg)
   (λ x hx, by rw [eval_sub, hfg x hx, sub_self])
 
-theorem eq_interpolate_of_eval_eq {g : polynomial F} (hg : g.degree < s.card)
+theorem eq_interpolate_of_eval_eq {g : F[X]} (hg : g.degree < s.card)
   (hgf : ∀ x ∈ s, g.eval x = f x) : interpolate s f = g :=
 eq_of_eval_eq s (degree_interpolate_lt _ _) hg $ λ x hx, begin
   rw hgf x hx,
   exact eval_interpolate _ _ _ hx,
 end
 
-theorem eq_interpolate (f : polynomial F) (hf : f.degree < s.card) :
+theorem eq_interpolate (f : F[X]) (hf : f.degree < s.card) :
   interpolate s (λ x, f.eval x) = f :=
 eq_of_eval_eq s (degree_interpolate_lt s _) hf $ λ x hx, eval_interpolate s _ x hx
 

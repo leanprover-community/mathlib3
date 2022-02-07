@@ -40,13 +40,13 @@ equals the number of real roots plus the number of roots not fixed by complex co
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 open finite_dimensional
 
 namespace polynomial
 
-variables {F : Type*} [field F] (p q : polynomial F) (E : Type*) [field E] [algebra F E]
+variables {F : Type*} [field F] (p q : F[X]) (E : Type*) [field E] [algebra F E]
 
 /-- The Galois group of a polynomial. -/
 @[derive [group, fintype]]
@@ -74,22 +74,22 @@ def unique_gal_of_splits (h : p.splits (ring_hom.id F)) : unique p.gal :=
 instance [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
 unique_gal_of_splits _ (h.1)
 
-instance unique_gal_zero : unique (0 : polynomial F).gal :=
+instance unique_gal_zero : unique (0 : F[X]).gal :=
 unique_gal_of_splits _ (splits_zero _)
 
-instance unique_gal_one : unique (1 : polynomial F).gal :=
+instance unique_gal_one : unique (1 : F[X]).gal :=
 unique_gal_of_splits _ (splits_one _)
 
 instance unique_gal_C (x : F) : unique (C x).gal :=
 unique_gal_of_splits _ (splits_C _ _)
 
-instance unique_gal_X : unique (X : polynomial F).gal :=
+instance unique_gal_X : unique (X : F[X]).gal :=
 unique_gal_of_splits _ (splits_X _)
 
 instance unique_gal_X_sub_C (x : F) : unique (X - C x).gal :=
 unique_gal_of_splits _ (splits_X_sub_C _)
 
-instance unique_gal_X_pow (n : ℕ) : unique (X ^ n : polynomial F).gal :=
+instance unique_gal_X_pow (n : ℕ) : unique (X ^ n : F[X]).gal :=
 unique_gal_of_splits _ (splits_X_pow _ _)
 
 instance [h : fact (p.splits (algebra_map F E))] : algebra p.splitting_field E :=
@@ -257,7 +257,7 @@ begin
   { rwa [ne.def, mul_eq_zero, map_eq_zero, map_eq_zero, ←mul_eq_zero] }
 end
 
-lemma mul_splits_in_splitting_field_of_mul {p₁ q₁ p₂ q₂ : polynomial F}
+lemma mul_splits_in_splitting_field_of_mul {p₁ q₁ p₂ q₂ : F[X]}
   (hq₁ : q₁ ≠ 0) (hq₂ : q₂ ≠ 0) (h₁ : p₁.splits (algebra_map F q₁.splitting_field))
   (h₂ : p₂.splits (algebra_map F q₂.splitting_field)) :
   (p₁ * p₂).splits (algebra_map F (q₁ * q₂).splitting_field) :=
@@ -276,7 +276,7 @@ lemma splits_in_splitting_field_of_comp (hq : q.nat_degree ≠ 0) :
   p.splits (algebra_map F (p.comp q).splitting_field) :=
 begin
   let P : polynomial F → Prop := λ r, r.splits (algebra_map F (r.comp q).splitting_field),
-  have key1 : ∀ {r : polynomial F}, irreducible r → P r,
+  have key1 : ∀ {r : F[X]}, irreducible r → P r,
   { intros r hr,
     by_cases hr' : nat_degree r = 0,
     { exact splits_of_nat_degree_le_one _ (le_trans (le_of_eq hr') zero_le_one) },
@@ -290,7 +290,7 @@ begin
       (minpoly.ne_zero qx_int)
       (normal.splits h_normal _)
       ((minpoly.irreducible qx_int).dvd_symm hr (minpoly.dvd F _ hx)) },
-  have key2 : ∀ {p₁ p₂ : polynomial F}, P p₁ → P p₂ → P (p₁ * p₂),
+  have key2 : ∀ {p₁ p₂ : F[X]}, P p₁ → P p₂ → P (p₁ * p₂),
   { intros p₁ p₂ hp₁ hp₂,
     by_cases h₁ : p₁.comp q = 0,
     { cases comp_eq_zero_iff.mp h₁ with h h,

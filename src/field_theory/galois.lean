@@ -33,7 +33,7 @@ Together, these two result prove the Galois correspondence
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 open finite_dimensional alg_equiv
 
@@ -326,7 +326,7 @@ begin
           left_inv := λ g, rfl, right_inv := λ _, by { ext, refl } },
 end
 
-variables {F} {E} {p : polynomial F}
+variables {F} {E} {p : F[X]}
 
 lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
   [sp : p.is_splitting_field F E] (hp : p.separable) (K : intermediate_field F E) {x : E}

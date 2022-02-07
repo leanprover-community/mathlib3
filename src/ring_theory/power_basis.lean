@@ -40,6 +40,7 @@ power basis, powerbasis
 -/
 
 open polynomial
+open_locale polynomial
 
 variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
 variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
@@ -80,7 +81,7 @@ by rw [finite_dimensional.finrank_eq_card_basis pb.basis, fintype.card_fin]
 
 lemma mem_span_pow' {x y : S} {d : ℕ} :
   y ∈ submodule.span R (set.range (λ (i : fin d), x ^ (i : ℕ))) ↔
-    ∃ f : polynomial R, f.degree < d ∧ y = aeval x f :=
+    ∃ f : R[X], f.degree < d ∧ y = aeval x f :=
 begin
   have : set.range (λ (i : fin d), x ^ (i : ℕ)) = (λ (i : ℕ), x ^ i) '' ↑(finset.range d),
   { ext n,
@@ -97,7 +98,7 @@ end
 
 lemma mem_span_pow {x y : S} {d : ℕ} (hd : d ≠ 0) :
   y ∈ submodule.span R (set.range (λ (i : fin d), x ^ (i : ℕ))) ↔
-    ∃ f : polynomial R, f.nat_degree < d ∧ y = aeval x f :=
+    ∃ f : R[X], f.nat_degree < d ∧ y = aeval x f :=
 begin
   rw mem_span_pow',
   split;
@@ -116,11 +117,11 @@ lemma dim_pos [nontrivial S] (pb : power_basis R S) : 0 < pb.dim :=
 nat.pos_of_ne_zero pb.dim_ne_zero
 
 lemma exists_eq_aeval [nontrivial S] (pb : power_basis R S) (y : S) :
-  ∃ f : polynomial R, f.nat_degree < pb.dim ∧ y = aeval pb.gen f :=
+  ∃ f : R[X], f.nat_degree < pb.dim ∧ y = aeval pb.gen f :=
 (mem_span_pow pb.dim_ne_zero).mp (by simpa using pb.basis.mem_span y)
 
 lemma exists_eq_aeval' (pb : power_basis R S) (y : S) :
-  ∃ f : polynomial R, y = aeval pb.gen f :=
+  ∃ f : R[X], y = aeval pb.gen f :=
 begin
   nontriviality S,
   obtain ⟨f, _, hf⟩ := exists_eq_aeval pb y,
@@ -240,7 +241,7 @@ section equiv
 
 variables [algebra A S] {S' : Type*} [comm_ring S'] [algebra A S']
 
-lemma nat_degree_lt_nat_degree {p q : polynomial R} (hp : p ≠ 0) (hpq : p.degree < q.degree) :
+lemma nat_degree_lt_nat_degree {p q : R[X]} (hp : p ≠ 0) (hpq : p.degree < q.degree) :
   p.nat_degree < q.nat_degree :=
 begin
   by_cases hq : q = 0, { rw [hq, degree_zero] at hpq, have := not_lt_bot hpq, contradiction },
@@ -477,7 +478,7 @@ begin
 end
 
 lemma is_integral.mem_span_pow [nontrivial R] {x y : S} (hx : is_integral R x)
-  (hy : ∃ f : polynomial R, y = aeval x f) :
+  (hy : ∃ f : R[X], y = aeval x f) :
   y ∈ submodule.span R (set.range (λ (i : fin (minpoly R x).nat_degree),
     x ^ (i : ℕ))) :=
 begin

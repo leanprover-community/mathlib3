@@ -31,12 +31,13 @@ It is a finite field with `p ^ n` elements.
 noncomputable theory
 
 open polynomial
+open_locale polynomial
 
 lemma galois_poly_separable {K : Type*} [field K] (p q : ℕ) [char_p K p] (h : p ∣ q) :
-  separable (X ^ q - X : polynomial K) :=
+  separable (X ^ q - X : K[X]) :=
 begin
   use [1, (X ^ q - X - 1)],
-  rw [← char_p.cast_eq_zero_iff (polynomial K) p] at h,
+  rw [← char_p.cast_eq_zero_iff K[X] p] at h,
   rw [derivative_sub, derivative_pow, derivative_X, h],
   ring,
 end

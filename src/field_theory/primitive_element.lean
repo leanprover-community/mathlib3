@@ -34,7 +34,7 @@ exists_adjoin_simple_eq_top
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 open finite_dimensional polynomial intermediate_field
 
@@ -76,7 +76,7 @@ section primitive_element_inf
 
 variables {F : Type*} [field F] [infinite F] {E : Type*} [field E] (ϕ : F →+* E) (α β : E)
 
-lemma primitive_element_inf_aux_exists_c (f g : polynomial F) :
+lemma primitive_element_inf_aux_exists_c (f g : F[X]) :
   ∃ c : F, ∀ (α' ∈ (f.map ϕ).roots) (β' ∈ (g.map ϕ).roots), -(α' - α)/(β' - β) ≠ ϕ c :=
 begin
   let sf := (f.map ϕ).roots,

@@ -32,7 +32,7 @@ algebraic closure, algebraically closed
 -/
 universes u v w
 
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 open polynomial
 
 variables (k : Type u) [field k]
@@ -50,7 +50,7 @@ class is_alg_closed : Prop :=
 See also `is_alg_closed.splits_domain` for the case where `K` is algebraically closed.
 -/
 theorem is_alg_closed.splits_codomain {k K : Type*} [field k] [is_alg_closed k] [field K]
-  {f : K →+* k} (p : polynomial K) : p.splits f :=
+  {f : K →+* k} (p : K[X]) : p.splits f :=
 by { convert is_alg_closed.splits (p.map f), simp [splits_map_iff] }
 
 /-- Every polynomial splits in the field extension `f : K →+* k` if `K` is algebraically closed.
@@ -96,23 +96,23 @@ begin
 end
 
 theorem exists_eval₂_eq_zero_of_injective {R : Type*} [ring R] [is_alg_closed k] (f : R →+* k)
-  (hf : function.injective f) (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
+  (hf : function.injective f) (p : R[X]) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
 let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map_eq_of_injective hf]) in
 ⟨x, by rwa [eval₂_eq_eval_map, ← is_root]⟩
 
 theorem exists_eval₂_eq_zero {R : Type*} [field R] [is_alg_closed k] (f : R →+* k)
-  (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
+  (p : R[X]) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
 exists_eval₂_eq_zero_of_injective f f.injective p hp
 
 variables (k)
 
 theorem exists_aeval_eq_zero_of_injective {R : Type*} [comm_ring R] [is_alg_closed k] [algebra R k]
-  (hinj : function.injective (algebra_map R k)) (p : polynomial R) (hp : p.degree ≠ 0) :
+  (hinj : function.injective (algebra_map R k)) (p : R[X]) (hp : p.degree ≠ 0) :
   ∃ x : k, aeval x p = 0 :=
 exists_eval₂_eq_zero_of_injective (algebra_map R k) hinj p hp
 
 theorem exists_aeval_eq_zero {R : Type*} [field R] [is_alg_closed k] [algebra R k]
-  (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x : k, aeval x p = 0 :=
+  (p : R[X]) (hp : p.degree ≠ 0) : ∃ x : k, aeval x p = 0 :=
 exists_eval₂_eq_zero (algebra_map R k) p hp
 
 theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → ∃ x, p.eval x = 0) :

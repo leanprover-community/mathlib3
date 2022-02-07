@@ -49,12 +49,13 @@ When `a=0` they are just the family of monomials `X ^ n`.
 noncomputable theory
 
 namespace polynomial
+open_locale polynomial
 
 variables {R S : Type*} [comm_ring R] [comm_ring S] (k : ℕ) (a : R)
 
 /-- `dickson` is the `n`the (generalised) Dickson polynomial of the `k`-th kind associated to the
 element `a ∈ R`. -/
-noncomputable def dickson : ℕ → polynomial R
+noncomputable def dickson : ℕ → R[X]
 | 0       := 3 - k
 | 1       := X
 | (n + 2) := X * dickson (n + 1) - (C a) * dickson n

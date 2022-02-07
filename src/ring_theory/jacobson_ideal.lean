@@ -43,6 +43,7 @@ universes u v
 namespace ideal
 variables {R : Type u} [comm_ring R] {I : ideal R}
 variables {S : Type v} [comm_ring S]
+open_locale polynomial
 
 section jacobson
 
@@ -267,7 +268,7 @@ section polynomial
 open polynomial
 
 lemma jacobson_bot_polynomial_le_Inf_map_maximal :
-  jacobson (⊥ : ideal (polynomial R)) ≤ Inf (map C '' {J : ideal R | J.is_maximal}) :=
+  jacobson (⊥ : ideal R[X]) ≤ Inf (map C '' {J : ideal R | J.is_maximal}) :=
 begin
   refine le_Inf (λ J, exists_imp_distrib.2 (λ j hj, _)),
   haveI : j.is_maximal := hj.1,
@@ -284,7 +285,7 @@ begin
 end
 
 lemma jacobson_bot_polynomial_of_jacobson_bot (h : jacobson (⊥ : ideal R) = ⊥) :
-  jacobson (⊥ : ideal (polynomial R)) = ⊥ :=
+  jacobson (⊥ : ideal R[X]) = ⊥ :=
 begin
   refine eq_bot_iff.2 (le_trans jacobson_bot_polynomial_le_Inf_map_maximal _),
   refine (λ f hf, ((submodule.mem_bot _).2 (polynomial.ext (λ n, trans _ (coeff_zero n).symm)))),

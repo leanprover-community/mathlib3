@@ -39,6 +39,7 @@ noncomputable theory
 namespace cubic
 
 open cubic polynomial
+open_locale polynomial
 
 variables {R S F K : Type*}
 
@@ -51,7 +52,7 @@ section basic
 variables {P : cubic R} [semiring R]
 
 /-- Convert a cubic polynomial to a polynomial. -/
-def to_poly (P : cubic R) : polynomial R := C P.a * X ^ 3 + C P.b * X ^ 2 + C P.c * X + C P.d
+def to_poly (P : cubic R) : R[X] := C P.a * X ^ 3 + C P.b * X ^ 2 + C P.c * X + C P.d
 
 /-! ### Coefficients -/
 
@@ -131,7 +132,7 @@ end coeff
 section degree
 
 /-- The equivalence between cubic polynomials and polynomials of degree at most three. -/
-@[simps] def equiv : cubic R ≃ {p : polynomial R // p.degree ≤ 3} :=
+@[simps] def equiv : cubic R ≃ {p : R[X] // p.degree ≤ 3} :=
 { to_fun    := λ P, ⟨P.to_poly, degree_cubic_le⟩,
   inv_fun   := λ f, ⟨coeff f 3, coeff f 2, coeff f 1, coeff f 0⟩,
   left_inv  := λ P, by ext; simp only [subtype.coe_mk, coeffs],
@@ -140,7 +141,7 @@ section degree
     ext (_ | _ | _ | _ | n); simp only [subtype.coe_mk, coeffs],
     have h3 : 3 < n + 4 := by linarith only,
     rw [coeff_gt_three _ h3,
-        (degree_le_iff_coeff_zero (f : polynomial R) 3).mp f.2 _ $ with_bot.coe_lt_coe.mpr h3]
+        (degree_le_iff_coeff_zero (f : R[X]) 3).mp f.2 _ $ with_bot.coe_lt_coe.mpr h3]
   end }
 
 lemma degree (ha : P.a ≠ 0) : P.to_poly.degree = 3 := degree_cubic ha

@@ -217,7 +217,7 @@ begin
   exact h.range f,
 end
 
-instance cg_of_fg [h : fg L M] : cg L M :=
+@[priority 100] instance cg_of_fg [h : fg L M] : cg L M :=
 cg_def.2 (fg_def.1 h).cg
 
 end Structure

@@ -741,7 +741,10 @@ theorem has_fpower_series_at.eq_formal_multilinear_series
   p₁ = p₂ :=
 sub_eq_zero.mp (has_fpower_series_at.eq_zero (by simpa only [sub_self] using h₁.sub h₂))
 
-theorem has_fpower_series_on_ball.radius_of_eq
+/-- If a function `f` has a two power series representation at `x`, then the given radii in which
+convergence is guaranteed may be interchanged. This can be useful when the formal multilinear
+series in one representation has a particularly nice form, but the other has a larger radius. -/
+theorem has_fpower_series_on_ball.exchange_radius
   {p₁ p₂ : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {r₁ r₂ : ℝ≥0∞} {x : 𝕜}
   (h₁ : has_fpower_series_on_ball f p₁ x r₁) (h₂ : has_fpower_series_on_ball f p₂ x r₂) :
   has_fpower_series_on_ball f p₁ x r₂ :=

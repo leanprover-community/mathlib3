@@ -115,8 +115,8 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
       measure.map_apply meas_π (measurable_set_preimage (measurable_const_smul g) hA),
       measure.restrict_apply' 𝓕meas, measure.restrict_apply' 𝓕meas],
     set π_preA := π ⁻¹' A,
-    have : (quotient_group.mk ⁻¹' ((λ (x : G ⧸ Γ), g • x) ⁻¹' A)) = has_mul.mul g ⁻¹' π_preA :=
-      by ext1; simp,
+    have : (quotient_group.mk ⁻¹' ((λ (x : G ⧸ Γ), g • x) ⁻¹' A)) = has_mul.mul g ⁻¹' π_preA,
+    { ext1, simp },
     rw this,
     have : μ (has_mul.mul g ⁻¹' π_preA ∩ 𝓕) = μ (π_preA ∩ has_mul.mul (g⁻¹) ⁻¹' 𝓕),
     { transitivity μ (has_mul.mul g ⁻¹' (π_preA ∩ has_mul.mul g⁻¹ ⁻¹' 𝓕)),

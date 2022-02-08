@@ -191,12 +191,6 @@ update_comp_eq_of_injective _ inr_injective _ _
   update f (inr i) x (inr j) = update (f ∘ inr) i x j :=
 by rw ← update_inr_comp_inr
 
-@[simp] lemma compl_range_inl : (range (inl : α → α ⊕ β))ᶜ = range (inr : β → α ⊕ β) :=
-by { ext x, cases x; simp }
-
-@[simp] lemma compl_range_inr : (range (inr : β → α ⊕ β))ᶜ = range (inl : α → α ⊕ β) :=
-by { ext x, cases x; simp }
-
 /-- Swap the factors of a sum type -/
 @[simp] def swap : α ⊕ β → β ⊕ α
 | (inl a) := inr a

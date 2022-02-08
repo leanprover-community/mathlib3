@@ -159,8 +159,7 @@ lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.n
     { exact hA, },
   end }
 
-variables [t2_space (G ⧸ Γ)] [topological_space.second_countable_topology (G ⧸ Γ)]
-  (K : topological_space.positive_compacts (G ⧸ Γ))
+variables [t2_space (G ⧸ Γ)] [second_countable_topology (G ⧸ Γ)] (K : positive_compacts (G ⧸ Γ))
 
 /-- Given a normal subgroup `Γ` of a topological group `G` with Haar measure `μ`, which is also
   right-invariant, and a finite volume fundamental domain `𝓕`, the pushforward to the quotient

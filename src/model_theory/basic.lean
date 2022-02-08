@@ -132,7 +132,9 @@ instance : has_coe_t L.const M :=
 lemma fun_map_eq_coe_const {c : L.const} {x : fin 0 → M} :
   fun_map c x = c := congr rfl (funext fin.elim0)
 
-instance nonempty_of_nonempty_constants [h : nonempty L.const] : nonempty M :=
+/-- This throws errors as an instance, but could be useful for showing that a particular class of
+structures must be nonempty. -/
+lemma nonempty_of_nonempty_constants [h : nonempty L.const] : nonempty M :=
 h.map coe
 
 namespace hom

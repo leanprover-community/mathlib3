@@ -123,7 +123,6 @@ instance {β : Type v} (c : β → C) [has_product c] [∀ b, injective (c b)] :
   simp only [category.assoc, limit.lift_π, fan.mk_π_app, factor_of_comp],
 end }
 
--- disjoint unions should be injective?
 instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
   [injective P] [injective Q] :
   injective (P ⊞ Q) :=
@@ -131,8 +130,8 @@ instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
   resetI,
   refine ⟨biprod.lift (factor_of (g ≫ biprod.fst) f) (factor_of (g ≫ biprod.snd) f), _⟩,
   ext,
-  simp only [category.assoc, biprod.lift_fst, factor_of_comp],
-  simp only [category.assoc, biprod.lift_snd, factor_of_comp],
+  { simp only [category.assoc, biprod.lift_fst, factor_of_comp] },
+  { simp only [category.assoc, biprod.lift_snd, factor_of_comp] },
 end }
 
 instance {β : Type v} [decidable_eq β] (c : β → C) [has_zero_morphisms C] [has_biproduct c]
@@ -166,5 +165,3 @@ end }
 end injective
 
 end category_theory
-
-#lint_all

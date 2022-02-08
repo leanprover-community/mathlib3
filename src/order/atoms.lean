@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 
 import order.complete_boolean_algebra
+import order.cover
 import order.modular_lattice
 import data.fintype.basic
 
@@ -53,40 +54,52 @@ section atoms
 
 section is_atom
 
-variables [partial_order α] [order_bot α]
-
 /-- An atom of an `order_bot` is an element with no other element between it and `⊥`,
   which is not `⊥`. -/
-def is_atom (a : α) : Prop := a ≠ ⊥ ∧ (∀ b, b < a → b = ⊥)
+def is_atom [preorder α] [order_bot α] (a : α) : Prop := a ≠ ⊥ ∧ (∀ b, b < a → b = ⊥)
 
-lemma eq_bot_or_eq_of_le_atom {a b : α} (ha : is_atom a) (hab : b ≤ a) : b = ⊥ ∨ b = a :=
+variables [partial_order α] [order_bot α] {a b x : α}
+
+lemma eq_bot_or_eq_of_le_atom (ha : is_atom a) (hab : b ≤ a) : b = ⊥ ∨ b = a :=
 hab.lt_or_eq.imp_left (ha.2 b)
 
-lemma is_atom.Iic {x a : α} (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set.Iic x) :=
+lemma is_atom.Iic (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set.Iic x) :=
 ⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
 
-lemma is_atom.of_is_atom_coe_Iic {x : α} {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
+lemma is_atom.of_is_atom_coe_Iic {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, hba.le.trans a.prop⟩ hba)⟩
+
+@[simp] lemma bot_covers_iff : ⊥ ⋖ a ↔ is_atom a :=
+⟨λ h, ⟨h.lt.ne', λ b hba, not_not.1 $ λ hb, h.2 (ne.bot_lt hb) hba⟩,
+  λ h, ⟨h.1.bot_lt, λ b hb hba, hb.ne' $ h.2 _ hba⟩⟩
+
+alias bot_covers_iff ↔ covers.is_atom is_atom.bot_covers
 
 end is_atom
 
 section is_coatom
 
-variables [partial_order α] [order_top α]
-
 /-- A coatom of an `order_top` is an element with no other element between it and `⊤`,
   which is not `⊤`. -/
-def is_coatom (a : α) : Prop := a ≠ ⊤ ∧ (∀ b, a < b → b = ⊤)
+def is_coatom [preorder α] [order_top α] (a : α) : Prop := a ≠ ⊤ ∧ (∀ b, a < b → b = ⊤)
 
-lemma eq_top_or_eq_of_coatom_le {a b : α} (ha : is_coatom a) (hab : a ≤ b) : b = ⊤ ∨ b = a :=
+variables [partial_order α] [order_top α] {a b x : α}
+
+lemma eq_top_or_eq_of_coatom_le (ha : is_coatom a) (hab : a ≤ b) : b = ⊤ ∨ b = a :=
 hab.lt_or_eq.imp (ha.2 b) eq_comm.2
 
-lemma is_coatom.Ici {x a : α} (ha : is_coatom a) (hax : x ≤ a) : is_coatom (⟨a, hax⟩ : set.Ici x) :=
+lemma is_coatom.Ici (ha : is_coatom a) (hax : x ≤ a) : is_coatom (⟨a, hax⟩ : set.Ici x) :=
 ⟨λ con, ha.1 (subtype.mk_eq_mk.1 con), λ ⟨b, hb⟩ hba, subtype.mk_eq_mk.2 (ha.2 b hba)⟩
 
-lemma is_coatom.of_is_coatom_coe_Ici {x : α} {a : set.Ici x} (ha : is_coatom a) :
+lemma is_coatom.of_is_coatom_coe_Ici {a : set.Ici x} (ha : is_coatom a) :
   is_coatom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, le_trans a.prop hba.le⟩ hba)⟩
+
+@[simp] lemma covers_top_iff : a ⋖ ⊤ ↔ is_coatom a :=
+⟨λ h, ⟨h.ne, λ b hab, not_not.1 $ λ hb, h.2 hab $ ne.lt_top hb⟩,
+  λ h, ⟨h.1.lt_top, λ b hab hb, hb.ne $ h.2 _ hab⟩⟩
+
+alias covers_top_iff ↔ covers.is_coatom is_coatom.covers_top
 
 end is_coatom
 
@@ -331,9 +344,21 @@ protected def is_simple_order.linear_order [decidable_eq α] : linear_order α :
 
 @[simp] lemma is_coatom_bot : is_coatom (⊥ : α) := is_atom_dual_iff_is_coatom.1 is_atom_top
 
+lemma bot_covers_top : (⊥ : α) ⋖ ⊤ := is_atom_top.bot_covers
+
 end is_simple_order
 
 namespace is_simple_order
+section preorder
+variables [preorder α] [bounded_order α] [is_simple_order α] {a b : α} (h : a < b)
+
+lemma eq_bot_of_lt : a = ⊥ := (is_simple_order.eq_bot_or_eq_top _).resolve_right h.ne_top
+lemma eq_top_of_lt : b = ⊤ := (is_simple_order.eq_bot_or_eq_top _).resolve_left h.ne_bot
+
+alias eq_bot_of_lt ← has_lt.lt.eq_bot
+alias eq_top_of_lt ← has_lt.lt.eq_top
+
+end preorder
 
 section bounded_order
 
@@ -343,7 +368,7 @@ variables [lattice α] [bounded_order α] [is_simple_order α]
 This is not an instance to prevent loops -/
 protected def lattice {α} [decidable_eq α] [partial_order α] [bounded_order α]
   [is_simple_order α] : lattice α :=
-@lattice_of_linear_order α (is_simple_order.linear_order)
+@linear_order.to_lattice α (is_simple_order.linear_order)
 
 /-- A lattice that is a `bounded_order` is a distributive lattice.
 This is not an instance to prevent loops -/
@@ -450,11 +475,11 @@ protected noncomputable def complete_lattice : complete_lattice α :=
 /-- A simple `bounded_order` is also a `complete_boolean_algebra`. -/
 protected noncomputable def complete_boolean_algebra : complete_boolean_algebra α :=
 { infi_sup_le_sup_Inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
-    { simp only [bot_sup_eq, ← Inf_eq_infi], apply le_refl },
+    { simp only [bot_sup_eq, ← Inf_eq_infi], exact le_rfl },
     { simp only [top_sup_eq, le_top] }, },
   inf_Sup_le_supr_inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { simp only [bot_inf_eq, bot_le] },
-    { simp only [top_inf_eq, ← Sup_eq_supr], apply le_refl } },
+    { simp only [top_inf_eq, ← Sup_eq_supr], exact le_rfl } },
   .. is_simple_order.complete_lattice,
   .. is_simple_order.boolean_algebra }
 

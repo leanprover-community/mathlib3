@@ -30,7 +30,7 @@ begin
   -- Choose a countable basis, and consider the set `s` of pairs of set `(U, V)` such that `U ∈ B`,
   -- `V ∈ B`, and `closure U ⊆ V`.
   rcases exists_countable_basis X with ⟨B, hBc, -, hB⟩,
-  set s : set (set X × set X) := {UV ∈ B.prod B| closure UV.1 ⊆ UV.2},
+  set s : set (set X × set X) := {UV ∈ B ×ˢ B| closure UV.1 ⊆ UV.2},
   -- `s` is a countable set.
   haveI : encodable s := ((hBc.prod hBc).mono (inter_subset_left _ _)).to_encodable,
   -- We don't have the space of bounded (possibly discontinuous) functions, so we equip `s`

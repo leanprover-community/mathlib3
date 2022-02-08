@@ -154,7 +154,7 @@ le_antisymm
   (algebra.adjoin_mono (set.insert_subset_insert algebra.subset_adjoin))
 
 lemma adjoin_prod_le (s : set A) (t : set B) :
-  adjoin R (set.prod s t) ≤ (adjoin R s).prod (adjoin R t) :=
+  adjoin R (s ×ˢ t) ≤ (adjoin R s).prod (adjoin R t) :=
 adjoin_le $ set.prod_mono subset_adjoin subset_adjoin
 
 lemma mem_adjoin_of_map_mul {s} {x : A} {f : A →ₗ[R] B} (hf : ∀ a₁ a₂, f(a₁ * a₂) = f a₁ * f a₂)

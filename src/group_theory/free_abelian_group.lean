@@ -474,7 +474,7 @@ instance pempty_unique : unique (free_abelian_group pempty) :=
 /-- The free abelian group on a type with one term is isomorphic to `ℤ`. -/
 def punit_equiv (T : Type*) [unique T] : free_abelian_group T ≃+ ℤ :=
 { to_fun := free_abelian_group.lift (λ _, (1 : ℤ)),
-  inv_fun := λ n, n • of (inhabited.default T),
+  inv_fun := λ n, n • of (inhabited.default),
   left_inv := λ z, free_abelian_group.induction_on z
     (by simp only [zero_smul, add_monoid_hom.map_zero])
     (unique.forall_iff.2 $ by simp only [one_smul, lift.of])

@@ -441,9 +441,51 @@ end
 
 lemma fst_inf_snd : submodule.fst R M M₂ ⊓ submodule.snd R M M₂ = ⊥ := by tidy
 
+lemma le_prod_iff {p₁ : submodule R M} {p₂ : submodule R M₂} {q : submodule R (M × M₂)} :
+  q ≤ p₁.prod p₂ ↔ map (linear_map.fst R M M₂) q ≤ p₁ ∧ map (linear_map.snd R M M₂) q ≤ p₂ :=
+begin
+  split,
+  { intros h,
+    split,
+    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).1 },
+    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).2 }, },
+  { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ h, exact ⟨hH ⟨_ , h, rfl⟩, hK ⟨ _, h, rfl⟩⟩, }
+end
+
+lemma prod_le_iff {p₁ : submodule R M} {p₂ : submodule R M₂} {q : submodule R (M × M₂)} :
+  p₁.prod p₂ ≤ q ↔ map (linear_map.inl R M M₂) p₁ ≤ q ∧ map (linear_map.inr R M M₂) p₂ ≤ q :=
+begin
+  split,
+  { intros h,
+    split,
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, (zero_mem _)⟩, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨zero_mem _, hx⟩, }, },
+  { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ ⟨h1, h2⟩,
+    have h1' : (linear_map.inl R _ _) x1 ∈ q, { apply hH, simpa using h1, },
+    have h2' : (linear_map.inr R _ _) x2 ∈ q, { apply hK, simpa using h2, },
+    simpa using add_mem _ h1' h2', }
+end
+
+lemma prod_eq_bot_iff {p₁ : submodule R M} {p₂ : submodule R M₂} :
+  p₁.prod p₂ = ⊥ ↔ p₁ = ⊥ ∧ p₂ = ⊥ :=
+by simp only [eq_bot_iff, prod_le_iff, (gc_map_comap _).le_iff_le, comap_bot, ker_inl, ker_inr]
+
+lemma prod_eq_top_iff {p₁ : submodule R M} {p₂ : submodule R M₂} :
+  p₁.prod p₂ = ⊤ ↔ p₁ = ⊤ ∧ p₂ = ⊤ :=
+by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, map_top, range_fst, range_snd]
+
 end submodule
 
 namespace linear_equiv
+
+/-- Product of modules is commutative up to linear isomorphism. -/
+@[simps apply]
+def prod_comm (R M N : Type*) [semiring R] [add_comm_monoid M] [add_comm_monoid N]
+  [module R M] [module R N] : (M × N) ≃ₗ[R] (N × M) :=
+{ to_fun := prod.swap,
+  map_smul' := λ r ⟨m, n⟩, rfl,
+  ..add_equiv.prod_comm }
+
 section
 
 variables [semiring R]
@@ -579,7 +621,7 @@ noncomputable def tunnel' (f : M × N →ₗ[R] M) (i : injective f) :
 Give an injective map `f : M × N →ₗ[R] M` we can find a nested sequence of submodules
 all isomorphic to `M`.
 -/
-def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →ₘ order_dual (submodule R M) :=
+def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →o order_dual (submodule R M) :=
 ⟨λ n, (tunnel' f i n).1, monotone_nat_of_le_succ (λ n, begin
     dsimp [tunnel', tunnel_aux],
     rw [submodule.map_comp, submodule.map_comp],

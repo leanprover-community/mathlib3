@@ -369,12 +369,6 @@ apply_nolint stream.unfolds doc_blame
 -- data/stream/init.lean
 apply_nolint stream.is_bisimulation doc_blame
 
--- data/vector3.lean
-apply_nolint vector3 has_inhabited_instance
-apply_nolint vector3.cons_elim doc_blame
-apply_nolint vector3.nil_elim doc_blame
-apply_nolint vector3.rec_on doc_blame
-
 -- deprecated/subfield.lean
 apply_nolint is_subfield doc_blame
 

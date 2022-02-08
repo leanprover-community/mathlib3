@@ -24,6 +24,7 @@ Finally, we use this to show unique factorization domains are integrally closed.
  * https://en.wikipedia.org/wiki/Rational_root_theorem
 -/
 
+open_locale polynomial
 section scale_roots
 
 variables {A K R S : Type*} [comm_ring A] [field K] [comm_ring R] [comm_ring S]
@@ -31,7 +32,7 @@ variables {M : submonoid A} [algebra A S] [is_localization M S] [algebra A K] [i
 
 open finsupp is_fraction_ring is_localization polynomial
 
-lemma scale_roots_aeval_eq_zero_of_aeval_mk'_eq_zero {p : polynomial A} {r : A} {s : M}
+lemma scale_roots_aeval_eq_zero_of_aeval_mk'_eq_zero {p : A[X]} {r : A} {s : M}
   (hr : aeval (mk' S r s) p = 0) :
   aeval (algebra_map A S r) (scale_roots p s) = 0 :=
 begin
@@ -42,7 +43,7 @@ end
 variables [is_domain A]
 
 lemma num_is_root_scale_roots_of_aeval_eq_zero
-  [unique_factorization_monoid A] {p : polynomial A} {x : K} (hr : aeval x p = 0) :
+  [unique_factorization_monoid A] {p : A[X]} {x : K} (hr : aeval x p = 0) :
   is_root (scale_roots p (denom A x)) (num A x) :=
 begin
   apply is_root_of_eval₂_map_eq_zero (is_fraction_ring.injective A K),
@@ -63,7 +64,7 @@ open is_fraction_ring is_localization polynomial unique_factorization_monoid
 /-- Rational root theorem part 1:
 if `r : f.codomain` is a root of a polynomial over the ufd `A`,
 then the numerator of `r` divides the constant coefficient -/
-theorem num_dvd_of_is_root {p : polynomial A} {r : K} (hr : aeval r p = 0) :
+theorem num_dvd_of_is_root {p : A[X]} {r : K} (hr : aeval r p = 0) :
   num A r ∣ p.coeff 0 :=
 begin
   suffices : num A r ∣ (scale_roots p (denom A r)).coeff 0,
@@ -88,7 +89,7 @@ end
 /-- Rational root theorem part 2:
 if `r : f.codomain` is a root of a polynomial over the ufd `A`,
 then the denominator of `r` divides the leading coefficient -/
-theorem denom_dvd_of_is_root {p : polynomial A} {r : K} (hr : aeval r p = 0) :
+theorem denom_dvd_of_is_root {p : A[X]} {r : K} (hr : aeval r p = 0) :
   (denom A r : A) ∣ p.leading_coeff :=
 begin
   suffices : (denom A r : A) ∣ p.leading_coeff * num A r ^ p.nat_degree,
@@ -114,7 +115,7 @@ end
 /-- Integral root theorem:
 if `r : f.codomain` is a root of a monic polynomial over the ufd `A`,
 then `r` is an integer -/
-theorem is_integer_of_is_root_of_monic {p : polynomial A} (hp : monic p) {r : K}
+theorem is_integer_of_is_root_of_monic {p : A[X]} (hp : monic p) {r : K}
   (hr : aeval r p = 0) : is_integer A r :=
 is_integer_of_is_unit_denom (is_unit_of_dvd_one _ (hp ▸ denom_dvd_of_is_root hr))
 

@@ -311,7 +311,7 @@ lemma g_injective : injective (g m) :=
 begin
   rw g,
   intros x₁ x₂ h,
-  simp only [linear_map.prod_apply, linear_map.id_apply, prod.mk.inj_iff] at h,
+  simp only [linear_map.prod_apply, linear_map.id_apply, prod.mk.inj_iff, pi.prod] at h,
   exact h.right
 end
 

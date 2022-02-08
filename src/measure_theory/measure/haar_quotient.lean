@@ -147,7 +147,7 @@ lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.n
   [μ.is_mul_left_invariant] [μ.is_mul_right_invariant] :
   (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)).is_mul_left_invariant :=
 { map_mul_left_eq_self := begin
-    intros x,-- A hA,
+    intros x,
     apply measure.ext,
     intros A hA,
     obtain ⟨x₁, _⟩ := @quotient.exists_rep _ (quotient_group.left_rel Γ) x,

@@ -1067,10 +1067,7 @@ lemma dim_add_dim_split
   (eq₂ : ∀d e, db d = eb e → (∃c, cd c = d ∧ ce c = e)) :
   module.rank K V + module.rank K V₁ = module.rank K V₂ + module.rank K V₃ :=
 have hf : surjective (coprod db eb),
-begin
-  refine (range_eq_top.1 $ top_unique $ _),
-  rwa [← map_top, ← prod_top, map_coprod_prod, ←range_eq_map, ←range_eq_map]
-end,
+by rwa [←range_eq_top, range_coprod, eq_top_iff],
 begin
   conv {to_rhs, rw [← dim_prod, dim_eq_of_surjective _ hf] },
   congr' 1,

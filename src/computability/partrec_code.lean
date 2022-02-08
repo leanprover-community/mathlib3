@@ -2,10 +2,29 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Godel numbering for partial recursive functions.
 -/
 import computability.partrec
+
+/-!
+# Godel numbering for partial recursive functions.
+
+This file defines `nat.partrec.code`, and inductive datatype describing code for partial
+recursive functions on ℕ. It defines an encoding for these codes, and proves that the constructors
+are primitive recursive with respect to the encoding.
+
+It also defines the evalution of these codes as partial functions using
+`pfun`, and proves that a function is partially recursive (as defined by `nat.partrec`) if and only
+if it is the evaluation of some code.
+
+## Main Definitions
+
+* `nat.partrec.code`: Inductive datatype for partial recursive codes.
+* `nat.partrec.code.encode_code`: A (computable) encoding of codes as natural numbers.
+* `nat.partrec.code.of_nat_code`: The inverse of this encoding.
+* `nat.partrec.code.eval`: The interpretation of a `nat.partrec.code` as a partial function.
+
+-/
+
 
 open encodable denumerable
 
@@ -29,6 +48,10 @@ begin
   simp at this, exact this
 end
 
+/--
+Code for partial recursive functions from ℕ to ℕ.
+See `nat.partrec.code.eval` for the interpretation of these constructors.
+-/
 inductive code : Type
 | zero : code
 | succ : code
@@ -47,6 +70,7 @@ open nat.partrec (code)
 
 instance : inhabited code := ⟨zero⟩
 
+/-- Returns a code for the constant function outputting a particular natural. -/
 protected def const : ℕ → code
 | 0     := zero
 | (n+1) := comp succ (const n)
@@ -57,11 +81,16 @@ theorem const_inj : Π {n₁ n₂}, nat.partrec.code.const n₁ = nat.partrec.co
                           injection h with h₁ h₂,
                           simp only [const_inj h₂] }
 
+/-- A code for the identity function. -/
 protected def id : code := pair left right
 
+/--
+Given a code `c` taking a pair as input, returns a code using `n` as the first argument to `c`.
+-/
 def curry (c : code) (n : ℕ) : code :=
 comp c (pair (code.const n) code.id)
 
+/-- An encoding of a `nat.partrec.code` as a ℕ. -/
 def encode_code : code → ℕ
 | zero         := 0
 | succ         := 1
@@ -72,6 +101,9 @@ def encode_code : code → ℕ
 | (prec cf cg) := bit1 (bit0 $ mkpair (encode_code cf) (encode_code cg)) + 4
 | (rfind' cf)  := bit1 (bit1 $ encode_code cf) + 4
 
+/--
+A decoder for `nat.partrec.code.encode_code`, taking any ℕ to the `nat.partrec.code` it represents.
+-/
 def of_nat_code : ℕ → code
 | 0     := zero
 | 1     := succ
@@ -91,6 +123,7 @@ def of_nat_code : ℕ → code
   | tt, tt := rfind' (of_nat_code m)
   end
 
+/-- Proof that `nat.partrec.code.of_nat_code` is the inverse of `nat.partrec.code.encode_code`-/
 private theorem encode_of_nat_code : ∀ n, encode_code (of_nat_code n) = n
 | 0     := by simp [of_nat_code, encode_code]
 | 1     := by simp [of_nat_code, encode_code]
@@ -479,6 +512,17 @@ end
 
 end
 
+/--
+The inperpretation of a `nat.partrec.code` as a partial function.
+* `nat.partrec.code.zero`: The constant zero function.
+* `nat.partrec.code.succ`: The successor function.
+* `nat.partrec.code.left`: Left unpairing of a pair of ℕ (encoded by `nat.mkpair`)
+* `nat.partrec.code.right`: Right unpairing of a pair of ℕ (encoded by `nat.mkpair`)
+* `nat.partrec.code.pair`: Pairs the outputs of argument codes using `nat.mkpair`.
+* `nat.partrec.code.comp`: Composition of the two argument codes.
+* `nat.partrec.code.prec`: Primitive recursion. TODO maore detail
+* `nat.partrec.code.rfind'`: TODO
+-/
 def eval : code → ℕ →. ℕ
 | zero         := pure 0
 | succ         := nat.succ

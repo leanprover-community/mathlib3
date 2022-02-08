@@ -189,6 +189,9 @@ begin
     neg_mul_eq_neg_mul],
 end
 
+lemma log_sqrt {x : ℝ} (hx : 0 ≤ x) : log (sqrt x) = log x / 2 :=
+by { rw [eq_div_iff, mul_comm, ← nat.cast_two, ← log_pow, sq_sqrt hx], exact two_ne_zero }
+
 lemma log_le_sub_one_of_pos {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
 begin
   rw le_sub_iff_add_le,

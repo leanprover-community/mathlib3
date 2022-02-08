@@ -29,8 +29,8 @@ open_locale classical big_operators matrix_groups
 local attribute [instance] fintype.card_fin_even
 
 /-- The open upper half plane -/
-abbreviation upper_half_plane :=
-{point : ℂ // 0 < point.im}
+@[derive [topological_space, λ α, has_coe α ℂ]]
+def upper_half_plane := {point : ℂ // 0 < point.im}
 
 localized "notation `ℍ` := upper_half_plane" in upper_half_plane
 

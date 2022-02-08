@@ -97,9 +97,8 @@ private theorem pseudo_metric_space.dist_nonneg' {α} {x y : α} (dist : α → 
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z): 0 ≤ dist x y :=
-have 2 * dist x y ≥ 0,
-  from calc 2 * dist x y = dist x y + dist y x : by rw [dist_comm x y, two_mul]
-    ... ≥ 0 : by rw ← dist_self x; apply dist_triangle,
+have 0 ≤ 2 * dist x y,
+  by simpa only [dist_comm, two_mul, dist_self] using dist_triangle x y x,
 nonneg_of_mul_nonneg_left this zero_lt_two
 
 /-- This tactic is used to populate `pseudo_metric_space.edist_dist` when the default `edist` is
@@ -2256,6 +2255,15 @@ def metric_space.replace_uniformity {γ} [U : uniform_space γ] (m : metric_spac
   metric_space γ :=
 { eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
   ..pseudo_metric_space.replace_uniformity m.to_pseudo_metric_space H, }
+
+/-- Build a new metric space from an old one where the bundled topology is provably (but typically
+non-definitionaly) equal to some given topology.
+See Note [forgetful inheritance].  -/
+def metric_space.replace_topology {γ} [I : topological_space γ] (m : metric_space γ)
+  (H : I = uniform_space.to_topological_space) :
+  metric_space γ :=
+@metric_space.replace_uniformity γ (metric_space.to_uniform_space'.replace_topology H) m $
+  congr_arg _ $ uniform_space.replace_topology_eq _ _
 
   /-- One gets a metric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the

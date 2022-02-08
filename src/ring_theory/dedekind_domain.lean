@@ -51,7 +51,7 @@ dedekind domain, dedekind ring
 
 variables (R A K : Type*) [comm_ring R] [comm_ring A] [field K]
 
-open_locale non_zero_divisors
+open_locale non_zero_divisors polynomial
 
 /-- A ring `R` has Krull dimension at most one if all nonzero prime ideals are maximal. -/
 def ring.dimension_le_one : Prop :=
@@ -563,7 +563,7 @@ begin
     intros y hy,
     exact hx _ (fractional_ideal.mul_mem_mul hy hb) },
   -- It turns out the subalgebra consisting of all `p(x)` for `p : polynomial A` works.
-  refine ⟨alg_hom.range (polynomial.aeval x : polynomial A →ₐ[A] K),
+  refine ⟨alg_hom.range (polynomial.aeval x : A[X] →ₐ[A] K),
           is_noetherian_submodule.mp (fractional_ideal.is_noetherian I⁻¹) _ (λ y hy, _),
           ⟨polynomial.X, polynomial.aeval_X x⟩⟩,
   obtain ⟨p, rfl⟩ := (alg_hom.mem_range _).mp hy,

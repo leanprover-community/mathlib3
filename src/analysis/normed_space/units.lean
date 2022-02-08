@@ -105,7 +105,7 @@ begin
     cancel_denoms },
   have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
   have hleft := inverse_unit (x.add t ht),
-  simp only [← neg_mul_eq_neg_mul, sub_neg_eq_add] at hright,
+  simp only [neg_mul, sub_neg_eq_add] at hright,
   simp only [units.coe_add] at hleft,
   simp [hleft, hright, units.add]
 end

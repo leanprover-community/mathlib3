@@ -437,7 +437,7 @@ end homeomorph
 
 /-- An equiv between a space `α` and a topological space `β` becomes a homeomorphism when `α`
 is endowed with the induced topology. -/
-def equiv.to_homeomorph {α β : Type*} [t : topological_space β] (f : α ≃ β) :
+@[simps] def equiv.to_homeomorph {α β : Type*} [t : topological_space β] (f : α ≃ β) :
   @homeomorph α β (t.induced f) t :=
 { continuous_to_fun := continuous_induced_dom,
   continuous_inv_fun :=

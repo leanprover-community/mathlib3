@@ -3,7 +3,6 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
 import topology.metric_space.pi_nat
 import topology.metric_space.isometry
 import topology.metric_space.gluing
@@ -17,6 +16,7 @@ noncomputable theory
 open_locale classical topological_space filter
 open topological_space set metric filter function
 
+variables {α : Type*} {β : Type*}
 
 /-- A Polish space is a topological space with second countable topology, that can be endowed
 with a metric for which it is complete.
@@ -37,7 +37,7 @@ class polish_space (α : Type*) [h : topological_space α] : Prop :=
 
 @[priority 100]
 instance polish_space_of_complete_second_countable
-  {α : Type*} [m : metric_space α] [h : second_countable_topology α] [h' : complete_space α] :
+  [m : metric_space α] [h : second_countable_topology α] [h' : complete_space α] :
   polish_space α :=
 { second_countable := h,
   complete := ⟨m, rfl, h'⟩ }
@@ -54,24 +54,29 @@ begin
   exact metric_space.replace_topology_eq _ _
 end
 
+namespace polish_space
+
+protected lemma t2_space (α : Type*) [topological_space α] [polish_space α] : t2_space α :=
+by { letI : metric_space α := polish_space_metric α, apply_instance }
+
 /-- A countable product of Polish spaces is Polish. -/
-instance polish_space.pi {E : ℕ → Type*} [∀ n, topological_space (E n)] [∀ n, polish_space (E n)] :
+instance pi {E : ℕ → Type*} [∀ n, topological_space (E n)] [∀ n, polish_space (E n)] :
   polish_space (Π n, E n) :=
 begin
   letI : ∀ n, metric_space (E n) := λ n, polish_space_metric (E n),
   haveI : ∀ n, complete_space (E n) := λ n, complete_polish_space_metric (E n),
   haveI : ∀ n, second_countable_topology (E n) := λ n, polish_space.second_countable (E n),
-  letI m : metric_space (Π n, E n) := pi_nat_nondiscrete.metric_space E,
+  letI : metric_space (Π n, E n) := pi_nat_nondiscrete.metric_space E,
   apply_instance,
 end
 
 /-- Without this instance, `polish_space (ℕ → ℕ)` is not found by typeclass inference. -/
-instance polish_space.fun {α : Type*} [topological_space α] [polish_space α] :
+instance nat_fun [topological_space α] [polish_space α] :
   polish_space (ℕ → α) :=
 by apply_instance
 
 /-- A countable disjoint union of Polish spaces is Polish. -/
-instance polish_space.sigma {ι : Type*} [encodable ι]
+instance sigma {ι : Type*} [encodable ι]
   {E : ι → Type*} [∀ n, topological_space (E n)] [∀ n, polish_space (E n)] :
   polish_space (Σ n, E n) :=
 begin
@@ -84,8 +89,7 @@ begin
 end
 
 /-- The disjoint union of two Polish spaces is Polish. -/
-instance polish_space.sum {α : Type*} {β : Type*} [topological_space α] [polish_space α]
-  [topological_space β] [polish_space β] :
+instance sum [topological_space α] [polish_space α] [topological_space β] [polish_space β] :
   polish_space (α ⊕ β) :=
 begin
   letI : metric_space α := polish_space_metric α,
@@ -99,7 +103,7 @@ begin
 end
 
 /-- Any nonempty Polish space is the continuous image of the fundamental space `ℕ → ℕ`. -/
-lemma exists_nat_nat_continuous_surjective_of_polish_space
+lemma exists_nat_nat_continuous_surjective
   (α : Type*) [topological_space α] [polish_space α] [nonempty α] :
   ∃ (f : (ℕ → ℕ) → α), continuous f ∧ surjective f :=
 begin
@@ -110,8 +114,7 @@ begin
 end
 
 /-- Given a closed embedding into a Polish space, the source space is also Polish. -/
-lemma closed_embedding.polish_space {α : Type*} {β : Type*}
-  [topological_space α] [topological_space β]
+lemma _root_.closed_embedding.polish_space [topological_space α] [topological_space β]
   [polish_space β] {f : α → β} (hf : closed_embedding f) :
   polish_space α :=
 begin
@@ -127,7 +130,8 @@ begin
   apply_instance
 end
 
-lemma equiv.polish_space_induced {α : Type*} {β : Type*} [t : topological_space β] [polish_space β]
+/-- Pulling back a Polish topology under an equiv gives again a Polish topology. -/
+lemma _root_.equiv.polish_space_induced [t : topological_space β] [polish_space β]
   (f : α ≃ β) :
   @polish_space α (t.induced f) :=
 begin
@@ -136,17 +140,86 @@ begin
 end
 
 /-- A closed subset of a Polish space is also Polish. -/
-lemma is_closed.polish_space {α : Type*} [topological_space α] [polish_space α] {s : set α}
+lemma _root_.is_closed.polish_space {α : Type*} [topological_space α] [polish_space α] {s : set α}
   (hs : is_closed s) :
   polish_space s :=
 (is_closed.closed_embedding_subtype_coe hs).polish_space
 
+/-- A sequence of type synonyms of a given type `α`, useful in the proof of
+`exists_polish_space_forall_le` to endow each copy with a different topology. -/
+@[nolint unused_arguments has_inhabited_instance]
+def aux_copy (α : Type*) (n : ℕ) : Type* := α
+
+/-- Given a Polish space, and countably many finer Polish topologies, there exists another Polish
+topology which is finer than all of them. -/
+lemma exists_polish_space_forall_le [t : topological_space α] [polish_space α]
+  (m : ℕ → topological_space α) (hm : ∀ n, m n ≤ t) (h'm : ∀ n, @polish_space α (m n)) :
+  ∃ (t' : topological_space α), (∀ n, t' ≤ m n) ∧ @polish_space α t' :=
+begin
+  /- Consider the product of infinitely many copies of `α`, each endowed with the topology `m n`.
+  This is a Polish space, as a product of Polish spaces. Pulling back this topology under the
+  diagonal embedding of `α`, one gets a Polish topology which is finer than all the `m n`. -/
+  letI : ∀ n, topological_space (aux_copy α n) := λ n, m n,
+  haveI : ∀ n, polish_space (aux_copy α n) := λ n, h'm n,
+  haveI : t2_space α := polish_space.t2_space _,
+  letI T : topological_space (Π n, aux_copy α n) := by apply_instance,
+  let f : α → Π n, aux_copy α n := λ x n, x,
+  refine ⟨T.induced f, _, _⟩,
+  -- show that the new topology is finer than all the `m n`.
+  { assume n s hs,
+    refine ⟨set.pi ({n} : set ℕ) (λ i, s), _, _⟩,
+    { apply is_open_set_pi (finite_singleton _),
+      assume a ha,
+      rw mem_singleton_iff.1 ha,
+      exact hs },
+    { ext x,
+      simp only [singleton_pi, mem_preimage] } },
+  -- show that the new topology is Polish, as the pullback of a Polish topology under a closed
+  -- embedding.
+  { have A : range f = ⋂ n, {x | x n = x 0},
+    { ext x,
+      split,
+      { rintros ⟨y, rfl⟩,
+        exact mem_Inter.2 (λ n, by simp only [mem_set_of_eq]) },
+      { assume hx,
+        refine ⟨x 0, _⟩,
+        ext1 n,
+        symmetry,
+        exact (mem_Inter.1 hx n : _) } },
+    have f_closed : is_closed (range f),
+    { rw A,
+      apply is_closed_Inter (λ n, _),
+      have C : ∀ i, continuous (λ (x : Π n, aux_copy α n), (id (x i) : α)),
+      { assume i,
+        apply continuous.comp _ (continuous_apply i),
+        apply continuous_def.2 (λ s hs, _),
+        exact hm i s hs },
+      apply is_closed_eq (C n) (C 0) },
+    have K : @_root_.embedding _ _ (T.induced f) T f,
+    { apply function.injective.embedding_induced,
+      assume x y hxy,
+      have : f x 0 = f y 0, by rw hxy,
+      exact this },
+    have L : @closed_embedding _ _ (T.induced f) T f,
+    { split,
+      { exact K },
+      { exact f_closed } },
+    exact @closed_embedding.polish_space _ _ (T.induced f) T (by apply_instance) _ L }
+end
+
 section complete_copy
 
-variables {α : Type*} [metric_space α] {s : set α}
+variables [metric_space α] {s : set α}
 
-def complete_copy (s : set α) : Type* := s
+/-- A type synonym for a subset `s` of a metric space, on which we will construct another metric
+for which it will be complete. -/
+@[nolint has_inhabited_instance]
+def complete_copy {α : Type*} (s : set α) : Type* := s
 
+/-- A distance on a subset `s` of a metric space, designed to make it complete if `s` is open.
+It is given by `dist' x y = dist x y + |1 / dist x sᶜ - 1 / dist y sᶜ|`, where the second term
+blows up close to the boundary to ensure that Cauchy sequences for `dist'` remain well
+inside `s`. -/
 def has_dist_complete_copy (s : set α) : has_dist (complete_copy s) :=
 ⟨λ x y, dist x.1 y.1 + abs (1 / inf_dist x.1 sᶜ - 1 / inf_dist y.1 sᶜ)⟩
 
@@ -159,6 +232,10 @@ lemma dist_le_dist_complete_copy (x y : complete_copy s) :
   dist x.1 y.1 ≤ dist x y :=
 (le_add_iff_nonneg_right _).2 (abs_nonneg _)
 
+/-- A metric space structure on a subset `s` of a metric space, designed to make it complete
+if `s` is open. It is given by `dist' x y = dist x y + |1 / dist x sᶜ - 1 / dist y sᶜ|`, where the
+second term blows up close to the boundary to ensure that Cauchy sequences for `dist'` remain well
+inside `s`. -/
 def complete_copy_metric_space (s : set α) : metric_space (complete_copy s) :=
 { dist_self := λ x, by simp [dist_complete_copy_eq],
   dist_comm := λ x y, by simp [dist_complete_copy_eq, dist_comm, abs_sub_comm],
@@ -183,6 +260,8 @@ def complete_copy_metric_space (s : set α) : metric_space (complete_copy s) :=
 
 local attribute [instance] complete_copy_metric_space
 
+/-- The identity between the type synonym `complete_copy s` (with its modified metric) and the
+original subtype `s` is a homeomorphism. -/
 def complete_copy_id_homeo (hs : is_open s) (h's : sᶜ.nonempty) : complete_copy s ≃ₜ s :=
 { to_fun := id,
   inv_fun := id,
@@ -263,7 +342,7 @@ begin
 end
 
 /-- An open subset of a Polish space is also Polish. -/
-lemma is_open.polish_space {α : Type*} [topological_space α] [polish_space α] {s : set α}
+lemma _root_.is_open.polish_space {α : Type*} [topological_space α] [polish_space α] {s : set α}
   (hs : is_open s) :
   polish_space s :=
 begin
@@ -283,154 +362,93 @@ end
 
 end complete_copy
 
-/-- Given a closed set `s` in a Polish space, one can construct a new topology with the same Borel
-sets for which `s` is both open and closed. -/
-lemma frou {α : Type*} [tα : topological_space α] [polish_space α] (s : set α)
-  (hs : is_closed s) :
-  ∃ (t' : topological_space α) (ht' : @polish_space α t'), @is_closed α t' s ∧ @is_open α t' s
-    ∧ tα ≤ t' :=
+/-- A set in a topological space is clopenable if there exists a finer Polish topology for which
+this set is open and closed. -/
+def is_clopenable [t : topological_space α] (s : set α) : Prop :=
+∃ (t' : topological_space α), t' ≤ t ∧ @polish_space α t' ∧ @is_closed α t' s ∧ @is_open α t' s
+
+/-- Given a closed set `s` in a Polish space, one can construct a finer Polish topology for
+which `s` is both open and closed. -/
+lemma _root_.is_closed.is_clopenable [topological_space α] [polish_space α] {s : set α}
+  (hs : is_closed s) : is_clopenable s :=
 begin
+  /- Both sets `s` and `sᶜ` admit a Polish topology. So does their disjoint union `s ⊕ sᶜ`.
+  Pulling back this topology by the canonical bijection with `α` gives the desired Polish
+  topology in which `s` is both open and closed. -/
   haveI : polish_space s := hs.polish_space,
   let t : set α := sᶜ,
   haveI : polish_space t := hs.is_open_compl.polish_space,
-  haveI : polish_space (s ⊕ t) := by apply_instance,
   let f : α ≃ (s ⊕ t) := (equiv.set.sum_compl s).symm,
   letI T : topological_space (s ⊕ t) := by apply_instance,
   let t' : topological_space α := T.induced f,
   let g := f.to_homeomorph,
-  refine ⟨t', f.polish_space_induced, _, _, _⟩,
+  have A : g ⁻¹' (range (sum.inl : s → s ⊕ t)) = s,
+  { ext x,
+    by_cases h : x ∈ s,
+    { simp only [equiv.set.sum_compl_symm_apply_of_mem, h, mem_preimage, equiv.to_homeomorph_apply,
+        equiv.to_fun_as_coe, mem_range_self]},
+    { simp only [equiv.set.sum_compl_symm_apply_of_not_mem, h, not_false_iff, mem_preimage,
+        equiv.to_homeomorph_apply, equiv.to_fun_as_coe, mem_range, exists_false]} },
+  refine ⟨t', _, f.polish_space_induced, _, _⟩,
+  { assume u hu,
+    change ∃ (s' : set (↥s ⊕ ↥t)), T.is_open s' ∧ f ⁻¹' s' = u,
+    refine ⟨f.symm ⁻¹' u, _, by simp only [equiv.symm_symm, equiv.symm_preimage_preimage]⟩,
+    refine is_open_sum_iff.2 ⟨_, _⟩,
+    { have : is_open ((coe : s → α) ⁻¹' u) := is_open.preimage continuous_subtype_coe hu,
+      have : sum.inl ⁻¹' (⇑(f.symm) ⁻¹' u) = (coe : s → α) ⁻¹' u,
+        by { ext x, simp only [equiv.symm_symm, mem_preimage, equiv.set.sum_compl_apply_inl] },
+      rwa this },
+    { have : is_open ((coe : t → α) ⁻¹' u) := is_open.preimage continuous_subtype_coe hu,
+      have : sum.inr ⁻¹' (⇑(f.symm) ⁻¹' u) = (coe : t → α) ⁻¹' u,
+        by { ext x, simp only [equiv.symm_symm, mem_preimage, equiv.set.sum_compl_apply_inr] },
+      rwa this } },
   { have : @is_closed α t' (g ⁻¹' (range (sum.inl : s → s ⊕ t))),
     { apply is_closed.preimage,
       { exact @homeomorph.continuous _ _ t' _ g },
-      { have Z := closed_embedding_inl,
-
-      }
-
-
-    },
+      { exact is_closed_range_inl } },
     convert this,
-
-
-  }
-
+    exact A.symm },
+  { have : @is_open α t' (g ⁻¹' (range (sum.inl : s → s ⊕ t))),
+    { apply is_open.preimage,
+      { exact @homeomorph.continuous _ _ t' _ g },
+      { exact is_open_range_inl } },
+    convert this,
+    exact A.symm },
 end
 
-
-
-namespace measure_theory
-
-variables {α : Type*} [topological_space α]
-
-/-- An analytic set is a set which is the continuous image of some Polish space. There are several
-equivalent characterizations of this definition. For the definition, we pick one that avoids
-universe issues: a set is analytic if and only if it is a continuous image of `ℕ → ℕ` (or if it
-is empty). The above more usual characterization is given
-in `analytic_set_iff_exists_polish_space_range`.
-
-Warning: these are analytic sets in the context of descriptive set theory (which is why they are
-registered in the namespace `measure_theory`). They have nothing to do with analytic sets in the
-context of complex analysis. -/
-@[irreducible] def analytic_set (s : set α) : Prop :=
-s = ∅ ∨ ∃ (f : (ℕ → ℕ) → α), continuous f ∧ range f = s
-
-lemma analytic_set_empty :
-  analytic_set (∅ : set α) :=
-by { rw analytic_set, exact or.inl rfl }
-
-lemma analytic_set_of_polish_space_range
-  {β : Type*} [topological_space β] [polish_space β] (f : β → α) {s : set α}
-  (f_cont : continuous f) (hf : range f = s) :
-  analytic_set s :=
+lemma is_clopenable.compl [topological_space α] {s : set α} (hs : is_clopenable s) :
+  is_clopenable sᶜ :=
 begin
-  casesI is_empty_or_nonempty β,
-  { have : s = ∅, by rw [← hf, range_eq_empty],
-    rw [this, analytic_set],
-    exact or.inl rfl },
-  { rw analytic_set,
-    obtain ⟨g, g_cont, hg⟩ : ∃ (g : (ℕ → ℕ) → β), continuous g ∧ surjective g :=
-      exists_nat_nat_continuous_surjective_of_polish_space β,
-    right,
-    refine ⟨f ∘ g, f_cont.comp g_cont, _⟩,
-    rwa hg.range_comp }
+  rcases hs with ⟨t, t_le, t_polish, h, h'⟩,
+  exact ⟨t, t_le, t_polish, @is_open.is_closed_compl α t s h', @is_closed.is_open_compl α t s h⟩,
 end
 
-/-- A set is analytic if and only if it is the continuous image of some Polish space. -/
-theorem analytic_set_iff_exists_polish_space_range {s : set α} :
-  analytic_set s ↔ ∃ (β : Type) (h : topological_space β) (h' : @polish_space β h) (f : β → α),
-    @continuous _ _ h _ f ∧ range f = s :=
-begin
-  split,
-  { assume h,
-    rw analytic_set at h,
-    cases h,
-    { refine ⟨empty, by apply_instance, by apply_instance, empty.elim, continuous_bot, _⟩,
-      rw h,
-      exact range_eq_empty _ },
-    { exact ⟨ℕ → ℕ, by apply_instance, by apply_instance, h⟩ } },
-  { rintros ⟨β, h, h', f, f_cont, f_range⟩,
-    resetI,
-    exact analytic_set_of_polish_space_range f f_cont f_range }
-end
+lemma _root_.is_open.is_clopenable [topological_space α] [polish_space α] (s : set α)
+  (hs : is_open s) : is_clopenable s :=
+by simpa using hs.is_closed_compl.is_clopenable.compl
 
-/-- A countable intersection of analytic sets is analytic. -/
-theorem analytic_set.Inter [t2_space α] {s : ℕ → set α} (hs : ∀ n, analytic_set (s n)) :
-  analytic_set (⋂ n, s n) :=
+lemma is_clopenable.Union [t : topological_space α] [polish_space α] {s : ℕ → set α}
+  (hs : ∀ n, is_clopenable (s n)) :
+  is_clopenable (⋃ n, s n) :=
 begin
-  /- For the proof, write each `s n` as the continuous image under a map `f n` of a
-  Polish space `β n`. The product space `γ = Π n, β n` is also Polish, and so is the subset
-  `t` of sequences `x n` for which `f n (x n)` is independent of `n`. The set `t` is Polish, and the
-  range of `x ↦ f 0 (x 0)` on `t` is exactly `⋂ n, s n`, so this set is analytic. -/
-  choose β hβ h'β f f_cont f_range using λ n, analytic_set_iff_exists_polish_space_range.1 (hs n),
-  resetI,
-  let γ := Π n, β n,
-  let t : set γ := ⋂ n, {x | f n (x n) = f 0 (x 0)},
-  have t_closed : is_closed t,
-  { apply is_closed_Inter,
+  have : ∀ n, ∃ (t' : topological_space α), t' ≤ t ∧ @polish_space α t'
+    ∧ @is_closed α t' (s n) ∧ @is_open α t' (s n) := hs,
+  choose m mt m_polish m_closed m_open using this,
+  obtain ⟨t', t'm, t'_polish⟩ :
+    ∃ (t' : topological_space α), (∀ (n : ℕ), t' ≤ m n) ∧ @polish_space α t' :=
+      exists_polish_space_forall_le m mt m_polish,
+  have A : @is_open α t' (⋃ n, s n),
+  { apply is_open_Union,
     assume n,
-    exact is_closed_eq ((f_cont n).comp (continuous_apply n))
-      ((f_cont 0).comp (continuous_apply 0)) },
-  haveI : polish_space t := t_closed.polish_space,
-  let F : t → α := λ x, f 0 ((x : γ) 0),
-  have F_cont : continuous F := (f_cont 0).comp ((continuous_apply 0).comp continuous_subtype_coe),
-  have F_range : range F = ⋂ (n : ℕ), s n,
-  { apply subset.antisymm,
-    { rintros y ⟨x, rfl⟩,
-      apply mem_Inter.2 (λ n, _),
-      have : f n ((x : γ) n) = F x := (mem_Inter.1 x.2 n : _),
-      rw [← this, ← f_range n],
-      exact mem_range_self _ },
-    { assume y hy,
-      have A : ∀ n, ∃ (x : β n), f n x = y,
-      { assume n,
-        rw [← mem_range, f_range n],
-        exact mem_Inter.1 hy n },
-      choose x hx using A,
-      have xt : x ∈ t,
-      { apply mem_Inter.2 (λ n, _),
-        simp [hx] },
-        refine ⟨⟨x, xt⟩, _⟩,
-        exact hx 0 } },
-  exact analytic_set_of_polish_space_range F F_cont F_range,
+    apply t'm n,
+    exact m_open n },
+  obtain ⟨t'', t''_le, t''_polish, h1, h2⟩ :
+    ∃ (t'' : topological_space α), t'' ≤ t' ∧ @polish_space α t''
+      ∧ @is_closed α t'' (⋃ n, s n) ∧ @is_open α t'' (⋃ n, s n) :=
+        @is_open.is_clopenable α t' t'_polish _ A,
+  exact ⟨t'', t''_le.trans ((t'm 0).trans (mt 0)), t''_polish, h1, h2⟩,
 end
 
-/-- A countable union of analytic sets is analytic. -/
-theorem analytic_set.Union {s : ℕ → set α} (hs : ∀ n, analytic_set (s n)) :
-  analytic_set (⋃ n, s n) :=
-begin
-  /- For the proof, write each `s n` as the continuous image under a map `f n` of a
-  Polish space `β n`. The union space `γ = Σ n, β n` is also Polish, and the map `F : γ → α` which
-  coincides with `f n` on `β n` sends it to `⋃ n, s n`. -/
-  choose β hβ h'β f f_cont f_range using λ n, analytic_set_iff_exists_polish_space_range.1 (hs n),
-  resetI,
-  let γ := Σ n, β n,
-  let F : γ → α := by { rintros ⟨n, x⟩, exact f n x },
-  have F_cont : continuous F := continuous_sigma f_cont,
-  have F_range : range F = ⋃ n, s n,
-  { rw [range_sigma_eq_Union_range],
-    congr,
-    ext1 n,
-    rw ← f_range n },
-  exact analytic_set_of_polish_space_range F F_cont F_range,
-end
+end polish_space
 
-end measure_theory
+#lint

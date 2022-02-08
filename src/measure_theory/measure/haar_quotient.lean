@@ -107,7 +107,7 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
   begin
     let π : G → G ⧸ Γ := quotient_group.mk,
     have meas_π : measurable π :=
-      continuous.measurable continuous_quotient_mk,
+      continuous_quotient_mk.measurable,
     have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
     intros g A hA,
     have meas_πA : measurable_set (π ⁻¹' A) := measurable_set_preimage meas_π hA,

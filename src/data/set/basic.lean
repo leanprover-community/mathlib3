@@ -874,7 +874,7 @@ theorem compl_inter (s t : set α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ := compl_inf
 
 @[simp] lemma compl_univ_iff {s : set α} : sᶜ = univ ↔ s = ∅ := compl_eq_top
 
-@[simp] lemma compl_ne_univ : sᶜ ≠ univ ↔ s.nonempty :=
+lemma compl_ne_univ : sᶜ ≠ univ ↔ s.nonempty :=
 compl_univ_iff.not.trans ne_empty_iff_nonempty
 
 lemma nonempty_compl {s : set α} : sᶜ.nonempty ↔ s ≠ univ :=

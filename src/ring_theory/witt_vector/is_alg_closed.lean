@@ -21,7 +21,7 @@ there is a solution `b` to the equation `φ b * a = p ^ m * b`, where `φ` is th
 
 Most of this file builds up the equivalent theorem over `𝕎 k` directly,
 moving to the field of fractions at the end.
-See `witt_vector.frobenius_eigenvector` and its specification.
+See `witt_vector.frobenius_rotation` and its specification.
 
 The construction proceeds by recursively defining a sequence of coefficients as solutions to a
 polynomial equation in `k`. We must define these as generic polynomials using Witt vector API
@@ -534,47 +534,47 @@ end
 
 end base_case
 
-section frobenius_eigenvector
+section frobenius_rotation
 
 variables [is_alg_closed k] [char_p k p]
 
 /--
-Recursively defines the sequence of coefficients for `witt_vector.frobenius_eigenvector`.
+Recursively defines the sequence of coefficients for `witt_vector.frobenius_rotation`.
 -/
-noncomputable def frobenius_eigenvector_coeff {a₁ a₂ : 𝕎 k}
+noncomputable def frobenius_rotation_coeff {a₁ a₂ : 𝕎 k}
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : ℕ → k
 | 0       := solution p a₁ a₂
-| (n + 1) := succ_nth_val p n a₁ a₂ (λ i, frobenius_eigenvector_coeff i.val) ha₁ ha₂
+| (n + 1) := succ_nth_val p n a₁ a₂ (λ i, frobenius_rotation_coeff i.val) ha₁ ha₂
 using_well_founded { dec_tac := `[apply fin.is_lt] }
 
 /--
-For nonzero `a₁` and `a₂`, `frobenius_eigenvector a₁ a₂` is a Witt vector that satisfies the
-equation `frobenius (frobenius_eigenvector a₁ a₂) * a₁ = (frobenius_eigenvector a₁ a₂) * a₂`.
+For nonzero `a₁` and `a₂`, `frobenius_rotation a₁ a₂` is a Witt vector that satisfies the
+equation `frobenius (frobenius_rotation a₁ a₂) * a₁ = (frobenius_rotation a₁ a₂) * a₂`.
 -/
-def frobenius_eigenvector {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : 𝕎 k :=
-witt_vector.mk p (frobenius_eigenvector_coeff p ha₁ ha₂)
+def frobenius_rotation {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) : 𝕎 k :=
+witt_vector.mk p (frobenius_rotation_coeff p ha₁ ha₂)
 
-lemma frobenius_eigenvector_nonzero {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  frobenius_eigenvector p ha₁ ha₂ ≠ 0 :=
+lemma frobenius_rotation_nonzero {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  frobenius_rotation p ha₁ ha₂ ≠ 0 :=
 begin
   intro h,
   apply solution_nonzero p ha₁ ha₂,
-  simpa [← h, frobenius_eigenvector, frobenius_eigenvector_coeff] using witt_vector.zero_coeff p k 0
+  simpa [← h, frobenius_rotation, frobenius_rotation_coeff] using witt_vector.zero_coeff p k 0
 end
 
-lemma frobenius_frobenius_eigenvector {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
-  frobenius (frobenius_eigenvector p ha₁ ha₂) * a₁ = (frobenius_eigenvector p ha₁ ha₂) * a₂ :=
+lemma frobenius_frobenius_rotation {a₁ a₂ : 𝕎 k} (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
+  frobenius (frobenius_rotation p ha₁ ha₂) * a₁ = (frobenius_rotation p ha₁ ha₂) * a₂ :=
 begin
   ext n,
   induction n with n ih,
   { simp only [witt_vector.mul_coeff_zero, witt_vector.coeff_frobenius_char_p,
-      frobenius_eigenvector, frobenius_eigenvector_coeff],
+      frobenius_rotation, frobenius_rotation_coeff],
     apply solution_spec' _ ha₁ },
-  { simp only [nth_remainder_spec, witt_vector.coeff_frobenius_char_p, frobenius_eigenvector_coeff,
-      frobenius_eigenvector, fin.val_eq_coe],
+  { simp only [nth_remainder_spec, witt_vector.coeff_frobenius_char_p, frobenius_rotation_coeff,
+      frobenius_rotation, fin.val_eq_coe],
     have := succ_nth_val_spec' p n a₁ a₂
-      (λ (i : fin (n + 1)), frobenius_eigenvector_coeff p ha₁ ha₂ i.val) ha₁ ha₂,
-    simp only [frobenius_eigenvector_coeff, fin.val_eq_coe, fin.val_zero] at this,
+      (λ (i : fin (n + 1)), frobenius_rotation_coeff p ha₁ ha₂ i.val) ha₁ ha₂,
+    simp only [frobenius_rotation_coeff, fin.val_eq_coe, fin.val_zero] at this,
     convert this using 4,
     apply truncated_witt_vector.ext,
     intro i,
@@ -636,13 +636,13 @@ begin
   have : r ≠ 0 := λ h, hrq (by simp [h]),
   obtain ⟨m, r', hr', rfl⟩ := split p r this,
   obtain ⟨n, q', hq', rfl⟩ := split p q hq,
-  let b := frobenius_eigenvector p hr' hq',
+  let b := frobenius_rotation p hr' hq',
   refine ⟨algebra_map (𝕎 k) _ b, _, m - n, _⟩,
   { simpa only [map_zero] using
       (is_fraction_ring.injective (witt_vector p k) (fraction_ring (witt_vector p k))).ne
-        (frobenius_eigenvector_nonzero p hr' hq')},
+        (frobenius_rotation_nonzero p hr' hq')},
   have key : witt_vector.frobenius b * p ^ m * r' * p ^ n = p ^ m * b * (p ^ n * q'),
-  { have H := congr_arg (λ x : 𝕎 k, x * p ^ m * p ^ n) (frobenius_frobenius_eigenvector p hr' hq'),
+  { have H := congr_arg (λ x : 𝕎 k, x * p ^ m * p ^ n) (frobenius_frobenius_rotation p hr' hq'),
     dsimp at H,
     refine (eq.trans _ H).trans _; ring },
   have hq'' : algebra_map (𝕎 k) (fraction_ring (𝕎 k)) q' ≠ 0,
@@ -659,6 +659,6 @@ begin
   { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast] }
 end
 
-end frobenius_eigenvector
+end frobenius_rotation
 
 end witt_vector

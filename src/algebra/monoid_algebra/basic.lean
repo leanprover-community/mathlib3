@@ -274,7 +274,7 @@ finsupp.is_central_scalar G k
 
 instance comap_distrib_mul_action_self [group G] [semiring k] :
   distrib_mul_action G (monoid_algebra k G) :=
-finsupp.comap_distrib_mul_action_self
+finsupp.comap_distrib_mul_action
 
 end derived_instances
 

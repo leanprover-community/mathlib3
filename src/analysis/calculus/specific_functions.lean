@@ -400,10 +400,10 @@ by rw [euclidean.ball_eq_preimage, ← f.to_times_cont_diff_bump_of_inner.suppor
   ← support_comp_eq_preimage, coe_eq_comp]
 
 lemma tsupport_eq : tsupport f = euclidean.closed_ball c f.R :=
-by rw [f.support_eq, euclidean.closure_ball _ f.R_pos]
+by rw [tsupport, f.support_eq, euclidean.closure_ball _ f.R_pos]
 
 protected lemma has_compact_support : has_compact_support f :=
-by { rw f.tsupport_eq, exact euclidean.is_compact_closed_ball }
+by simp_rw [has_compact_support, f.tsupport_eq, euclidean.is_compact_closed_ball]
 
 lemma eventually_eq_one_of_mem_ball (h : x ∈ euclidean.ball c f.r) :
   f =ᶠ[𝓝 x] 1 :=

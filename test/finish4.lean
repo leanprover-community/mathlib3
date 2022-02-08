@@ -7,7 +7,7 @@ Tests for `finish using [...]`
 -/
 
 import tactic.finish
-import algebra.ordered_ring
+import algebra.order.ring
 
 section list_rev
 open list

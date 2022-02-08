@@ -13,8 +13,8 @@ We show that the continuants and convergents of a gcf stabilise once the gcf ter
 -/
 
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf
-variables {K : Type*} {g : gcf K} {n m : ℕ}
+
+variables {K : Type*} {g : generalized_continued_fraction K} {n m : ℕ}
 
 /-- If a gcf terminated at position `n`, it also terminated at `m ≥ n`.-/
 lemma terminated_stable (n_le_m : n ≤ m) (terminated_at_n : g.terminated_at n) :
@@ -40,13 +40,13 @@ begin
       have stable_step : g.continuants_aux (m - 1 + 2) = g.continuants_aux (m - 1 + 1), from
         continuants_aux_stable_step_of_terminated this,
       have one_le_m : 1 ≤ m, from nat.one_le_of_lt succ_n_le_m,
-      have : m - 1 + 2 = m + 2 - 1, from (nat.sub_add_comm one_le_m).symm,
-      have : m - 1 + 1 = m + 1 - 1, from (nat.sub_add_comm one_le_m).symm,
+      have : m - 1 + 2 = m + 2 - 1, from tsub_add_eq_add_tsub one_le_m,
+      have : m - 1 + 1 = m + 1 - 1, from tsub_add_eq_add_tsub one_le_m,
       simpa [*] using stable_step },
     exact (eq.trans this IH) }
 end
 
-lemma convergents'_aux_stable_step_of_terminated {s : seq $ gcf.pair K}
+lemma convergents'_aux_stable_step_of_terminated {s : seq $ pair K}
   (terminated_at_n : s.terminated_at n) :
   convergents'_aux s (n + 1) = convergents'_aux s n :=
 begin
@@ -62,7 +62,8 @@ begin
       simp only [convergents'_aux, s_head_eq, (IH this)] } }
 end
 
-lemma convergents'_aux_stable_of_terminated {s : seq $ gcf.pair K} (n_le_m : n ≤ m)
+lemma convergents'_aux_stable_of_terminated
+  {s : seq $ pair K} (n_le_m : n ≤ m)
   (terminated_at_n : s.terminated_at n) :
   convergents'_aux s m = convergents'_aux s n :=
 begin

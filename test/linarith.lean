@@ -1,5 +1,4 @@
 import tactic.linarith
-import algebra.field_power
 
 example {α : Type} (_inst : Π (a : Prop), decidable a)
   [linear_ordered_field α]
@@ -395,3 +394,9 @@ example (x y : ℚ) (h₁ : 0 ≤ y) (h₂ : y ≤ x) : y * x ≤ x ^ 2 := by nl
 
 axiom foo {x : int} : 1 ≤ x → 1 ≤ x*x
 lemma bar (x y: int)(h : 0 ≤ y ∧ 1 ≤ x) : 1 ≤ y + x*x := by linarith [foo h.2]
+
+-- issue #9822
+lemma mytest (j : ℕ) (h : 0 < j) : j-1 < j:=
+begin
+  linarith,
+end

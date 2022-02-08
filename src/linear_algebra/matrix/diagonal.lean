@@ -35,7 +35,8 @@ lemma proj_diagonal (i : n) (w : n → R) :
 by ext j; simp [mul_vec_diagonal]
 
 lemma diagonal_comp_std_basis (w : n → R) (i : n) :
-  (diagonal w).to_lin'.comp (std_basis R (λ_:n, R) i) = (w i) • std_basis R (λ_:n, R) i :=
+  (diagonal w).to_lin'.comp (linear_map.std_basis R (λ_:n, R) i) =
+  (w i) • linear_map.std_basis R (λ_:n, R) i :=
 begin
   ext j,
   simp_rw [linear_map.comp_apply, to_lin'_apply, mul_vec_diagonal, linear_map.smul_apply,
@@ -57,17 +58,18 @@ variables {m n : Type*} [fintype m] [fintype n]
 variables {K : Type u} [field K] -- maybe try to relax the universe constraint
 
 lemma ker_diagonal_to_lin' [decidable_eq m] (w : m → K) :
-  ker (diagonal w).to_lin' = (⨆i∈{i | w i = 0 }, range (std_basis K (λi, K) i)) :=
+  ker (diagonal w).to_lin' = (⨆i∈{i | w i = 0 }, range (linear_map.std_basis K (λi, K) i)) :=
 begin
-  rw [← comap_bot, ← infi_ker_proj],
-  simp only [comap_infi, (ker_comp _ _).symm, proj_diagonal, ker_smul'],
+  rw [← comap_bot, ← infi_ker_proj, comap_infi],
+  have := λ i : m, ker_comp (to_lin' (diagonal w)) (proj i),
+  simp only [comap_infi, ← this, proj_diagonal, ker_smul'],
   have : univ ⊆ {i : m | w i = 0} ∪ {i : m | w i = 0}ᶜ, { rw set.union_compl_self },
   exact (supr_range_std_basis_eq_infi_ker_proj K (λi:m, K)
     disjoint_compl_right this (finite.of_fintype _)).symm
 end
 
 lemma range_diagonal [decidable_eq m] (w : m → K) :
-  (diagonal w).to_lin'.range = (⨆ i ∈ {i | w i ≠ 0}, (std_basis K (λi, K) i).range) :=
+  (diagonal w).to_lin'.range = (⨆ i ∈ {i | w i ≠ 0}, (linear_map.std_basis K (λi, K) i).range) :=
 begin
   dsimp only [mem_set_of_eq],
   rw [← map_top, ← supr_range_std_basis, map_supr],

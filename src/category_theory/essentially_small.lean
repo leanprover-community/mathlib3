@@ -29,7 +29,7 @@ namespace category_theory
 /-- A category is `essentially_small.{w}` if there exists
 an equivalence to some `S : Type w` with `[small_category S]`. -/
 class essentially_small (C : Type u) [category.{v} C] : Prop :=
-(equiv_small_category : ∃ (S : Type w) [small_category S], by exactI nonempty (C ≌ S))
+(equiv_small_category : ∃ (S : Type w) (_ : small_category S), by exactI nonempty (C ≌ S))
 
 /-- Constructor for `essentially_small C` from an explicit small category witness. -/
 lemma essentially_small.mk' {C : Type u} [category.{v} C] {S : Type w} [small_category S]
@@ -188,7 +188,7 @@ begin
     refine ⟨⟨S, _, ⟨_⟩⟩⟩,
     apply induced_category.category (e'.trans e).symm,
     refine (shrink_homs.equivalence C).trans
-      ((from_skeleton _).as_equivalence.symm.trans
+      ((skeleton_equivalence _).symm.trans
       ((induced_functor (e'.trans e).symm).as_equivalence.symm)), },
 end
 

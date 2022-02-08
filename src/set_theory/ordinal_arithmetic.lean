@@ -1359,6 +1359,16 @@ end
 
 end
 
+/-! ### Enumerating bounded sets of ordinals -/
+
+section
+variables {S : set ordinal.{u}} (hS : bdd_above S)
+
+--theorem enum_ord_bdd (S : set ordinal) (hS : bdd_above S) :
+
+
+end
+
 /-! ### Ordinal exponential -/
 
 /-- The ordinal exponential, defined by transfinite recursion. -/

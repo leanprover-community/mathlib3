@@ -97,7 +97,7 @@ end
 
 end multiplicative
 
-/-! ## `finsupp` instsances-/
+/-! ## `finsupp` instances-/
 
 section finsupp
 

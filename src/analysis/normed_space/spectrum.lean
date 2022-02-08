@@ -208,6 +208,46 @@ end
 
 end one_sub_smul
 
+section gelfand_formula
+
+open filter ennreal continuous_multilinear_map
+open_locale topological_space
+
+/- the assumption below that `A` be second countable is a technical limitation due to
+the current implementation of Bochner integrals in mathlib. Once this is changed, we
+will be able to remove that hypothesis. -/
+variables
+[normed_ring A] [normed_algebra ℂ A] [complete_space A]
+[measurable_space A] [borel_space A] [topological_space.second_countable_topology A]
+
+lemma limsup_pow_nnnorm_pow_one_div_le_spectral_radius (a : A) :
+  limsup at_top (λ n : ℕ, ↑∥a ^ n∥₊ ^ (1 / n : ℝ)) ≤ spectral_radius ℂ a :=
+begin
+  refine ennreal.inv_le_inv.mp (le_of_forall_pos_nnreal_lt (λ r r_pos r_lt, _)),
+  simp_rw [inv_limsup, ←one_div],
+  let p : formal_multilinear_series ℂ ℂ A :=
+    λ n, continuous_multilinear_map.mk_pi_field ℂ (fin n) (a ^ n),
+  suffices h : (r : ℝ≥0∞) ≤ p.radius,
+  { convert h, simp only [p.radius_eq_liminf, ←norm_to_nnreal, norm_mk_pi_field],
+    refine congr_arg _ (funext (λ n, congr_arg _ _)),
+    rw [norm_to_nnreal, ennreal.coe_rpow_def (∥a ^ n∥₊) (1 / n : ℝ), if_neg],
+    exact λ ha, by linarith [ha.2, (one_div_nonneg.mpr n.cast_nonneg : 0 ≤ (1 / n : ℝ))], },
+  { have H₁ := (inverse_one_sub_smul_differentiable_on r_lt).has_fpower_series_on_ball r_pos,
+    exact ((inverse_one_sub_smul_has_fpower_series_on_ball ℂ a).radius_of_eq H₁).r_le, }
+end
+
+theorem gelfand_formula (a : A) :
+  tendsto (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)) at_top (𝓝 (spectral_radius ℂ a)) :=
+begin
+  refine tendsto_of_le_liminf_of_limsup_le _ _ (by apply_auto_param) (by apply_auto_param),
+  { rw [←liminf_nat_add _ 1, liminf_eq_supr_infi_of_nat],
+    refine le_trans _ (le_supr _ 0),
+    exact le_binfi (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
+  { exact limsup_pow_nnnorm_pow_one_div_le_spectral_radius a },
+end
+
+end gelfand_formula
+
 end spectrum
 
 namespace alg_hom

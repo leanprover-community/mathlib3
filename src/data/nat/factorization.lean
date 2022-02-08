@@ -201,11 +201,8 @@ end
 
 lemma prod_prime_factors_dvd (n : ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=
 begin
-  rcases (decidable.eq_or_ne n 0) with rfl | hn0, { simp },
-  convert multiset.to_finset_prod_dvd_prod,
-  simp [prod_factors hn0.bot_lt],
-  recover,
-  exact classical.dec_eq ℕ,
+  rcases n.eq_zero_or_pos with rfl | hn, { simp },
+  simpa [prod_factors hn] using multiset.to_finset_prod_dvd_prod (n.factors : multiset ℕ),
 end
 
 lemma prime.pow_dvd_iff_le_factorization {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :

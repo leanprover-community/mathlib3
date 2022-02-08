@@ -183,9 +183,6 @@ instance : nontrivial ordinal.{u} :=
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
-@[simp] theorem lt_one_iff {a : ordinal} : a < 1 ↔ a = 0 :=
-by rw [←succ_zero, lt_succ, le_zero]
-
 theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
 begin
   refine ⟨λ ha, _, _⟩,

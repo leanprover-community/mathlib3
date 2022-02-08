@@ -37,7 +37,7 @@ For the Flypitch project:
 the continuum hypothesis*][flypitch_itp]
 
 -/
-universes u v
+universe u
 
 namespace first_order
 
@@ -47,19 +47,19 @@ namespace first_order
   type of relations of every natural-number arity. -/
 @[nolint check_univs] -- intended to be used with explicit universe parameters
 structure language :=
-(functions : ℕ → Type u) (relations : ℕ → Type v)
+(functions : ℕ → Type u) (relations : ℕ → Type u)
 
 namespace language
 
 /-- The empty language has no symbols. -/
-def empty : language := ⟨λ _, pempty, λ _, pempty⟩
+def empty_lang : language := ⟨λ _, pempty, λ _, pempty⟩
 
-instance : inhabited language := ⟨empty⟩
+instance : inhabited language := ⟨empty_lang⟩
 
 /-- The type of constants in a given language. -/
 @[nolint has_inhabited_instance] def const (L : language) := L.functions 0
 
-variable (L : language.{u v})
+variable (L : language.{u})
 
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
@@ -77,8 +77,10 @@ instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational
 instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
 ⟨by { intro n, apply pempty.elim }⟩
 
-instance is_relational_empty : is_relational (empty) := language.is_relational_of_empty_functions
-instance is_algebraic_empty : is_algebraic (empty) := language.is_algebraic_of_empty_relations
+instance is_relational_empty : is_relational (empty_lang) :=
+  language.is_relational_of_empty_functions
+instance is_algebraic_empty : is_algebraic (empty_lang) :=
+  language.is_algebraic_of_empty_relations
 
 variables (L) (M : Type*)
 
@@ -129,6 +131,9 @@ instance : has_coe_t L.const M :=
 
 lemma fun_map_eq_coe_const {c : L.const} {x : fin 0 → M} :
   fun_map c x = c := congr rfl (funext fin.elim0)
+
+instance nonempty_of_nonempty_constants [h : nonempty L.const] : nonempty M :=
+h.map coe
 
 namespace hom
 

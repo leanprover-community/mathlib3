@@ -48,7 +48,7 @@ open_locale classical big_operators
 open finset finsupp
 
 universes u₁ u₂ u₃
-variables (k : Type u₁) (G : Type u₂)
+variables (k : Type u₁) (G : Type u₂) {R : Type*}
 
 /-! ### Multiplicative monoids -/
 section
@@ -70,6 +70,24 @@ end
 namespace monoid_algebra
 
 variables {k G}
+
+section
+variables [semiring k] [non_unital_non_assoc_semiring R]
+
+/-- A non-commutative version of `monoid_algebra.lift`: given a additive homomorphism `f : k →+ R`
+and a homomorphism `g : G → R`, returns the additive homomorphism from
+`monoid_algebra k G` such that `lift_nc f g (single a b) = f b * g a`. If `f` is a ring homomorphism
+and the range of either `f` or `g` is in center of `R`, then the result is a ring homomorphism.  If
+`R` is a `k`-algebra and `f = algebra_map k R`, then the result is an algebra homomorphism called
+`monoid_algebra.lift`. -/
+def lift_nc (f : k →+ R) (g : G → R) : monoid_algebra k G →+ R :=
+lift_add_hom (λ x : G, (add_monoid_hom.mul_right (g x)).comp f)
+
+@[simp] lemma lift_nc_single (f : k →+ R) (g : G → R) (a : G) (b : k) :
+  lift_nc f g (single a b) = f b * g a :=
+lift_add_hom_apply_single _ _ _
+
+end
 
 section has_mul
 
@@ -98,11 +116,24 @@ instance : non_unital_non_assoc_semiring (monoid_algebra k G) :=
   mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
   .. finsupp.add_comm_monoid }
 
+variables [semiring R]
+
+lemma lift_nc_mul {g_hom : Type*} [mul_hom_class g_hom G R] (f : k →+* R) (g : g_hom)
+  (a b : monoid_algebra k G) (h_comm : ∀ {x y}, y ∈ a.support → commute (f (b x)) (g y)) :
+  lift_nc (f : k →+ R) g (a * b) = lift_nc (f : k →+ R) g a * lift_nc (f : k →+ R) g b :=
+begin
+  conv_rhs { rw [← sum_single a, ← sum_single b] },
+  simp_rw [mul_def, (lift_nc _ g).map_finsupp_sum, lift_nc_single, finsupp.sum_mul,
+    finsupp.mul_sum],
+  refine finset.sum_congr rfl (λ y hy, finset.sum_congr rfl (λ x hx, _)),
+  simp [mul_assoc, (h_comm hy).left_comm]
+end
+
 end has_mul
 
 section semigroup
 
-variables [semiring k] [semigroup G]
+variables [semiring k] [semigroup G] [semiring R]
 
 instance : non_unital_semiring (monoid_algebra k G) :=
 { zero          := 0,
@@ -117,7 +148,7 @@ end semigroup
 
 section has_one
 
-variables [semiring k] [has_one G]
+variables [non_assoc_semiring R] [semiring k] [has_one G]
 
 /-- The unit of the multiplication is `single 1 1`, i.e. the function
   that is `1` at `1` and zero elsewhere. -/
@@ -126,6 +157,11 @@ instance : has_one (monoid_algebra k G) :=
 
 lemma one_def : (1 : monoid_algebra k G) = single 1 1 :=
 rfl
+
+@[simp] lemma lift_nc_one {g_hom : Type*} [one_hom_class g_hom G R] (f : k →+* R) (g : g_hom) :
+  lift_nc (f : k →+ R) g 1 = 1 :=
+
+by simp [one_def]
 
 end has_one
 
@@ -144,35 +180,6 @@ instance : non_assoc_semiring (monoid_algebra k G) :=
     single_zero, sum_zero, add_zero, mul_one, sum_single],
   ..monoid_algebra.non_unital_non_assoc_semiring }
 
-variables {R : Type*} [semiring R]
-
-/-- A non-commutative version of `monoid_algebra.lift`: given a additive homomorphism `f : k →+ R`
-and a multiplicative monoid homomorphism `g : G →* R`, returns the additive homomorphism from
-`monoid_algebra k G` such that `lift_nc f g (single a b) = f b * g a`. If `f` is a ring homomorphism
-and the range of either `f` or `g` is in center of `R`, then the result is a ring homomorphism.  If
-`R` is a `k`-algebra and `f = algebra_map k R`, then the result is an algebra homomorphism called
-`monoid_algebra.lift`. -/
-def lift_nc (f : k →+ R) (g : G →* R) : monoid_algebra k G →+ R :=
-lift_add_hom (λ x : G, (add_monoid_hom.mul_right (g x)).comp f)
-
-@[simp] lemma lift_nc_single (f : k →+ R) (g : G →* R) (a : G) (b : k) :
-  lift_nc f g (single a b) = f b * g a :=
-lift_add_hom_apply_single _ _ _
-
-@[simp] lemma lift_nc_one (f : k →+* R) (g : G →* R) : lift_nc (f : k →+ R) g 1 = 1 :=
-by simp [one_def]
-
-lemma lift_nc_mul (f : k →+* R) (g : G →* R)
-  (a b : monoid_algebra k G) (h_comm : ∀ {x y}, y ∈ a.support → commute (f (b x)) (g y)) :
-  lift_nc (f : k →+ R) g (a * b) = lift_nc (f : k →+ R) g a * lift_nc (f : k →+ R) g b :=
-begin
-  conv_rhs { rw [← sum_single a, ← sum_single b] },
-  simp_rw [mul_def, (lift_nc _ g).map_finsupp_sum, lift_nc_single, finsupp.sum_mul,
-    finsupp.mul_sum],
-  refine finset.sum_congr rfl (λ y hy, finset.sum_congr rfl (λ x hx, _)),
-  simp [mul_assoc, (h_comm hy).left_comm]
-end
-
 end mul_one_class
 
 /-! #### Semiring structure -/
@@ -188,7 +195,7 @@ instance : semiring (monoid_algebra k G) :=
   .. monoid_algebra.non_unital_semiring,
   .. monoid_algebra.non_assoc_semiring }
 
-variables {R : Type*} [semiring R]
+variables [semiring R]
 
 /-- `lift_nc` as a `ring_hom`, for when `f x` and `g y` commute -/
 def lift_nc_ring_hom (f : k →+* R) (g : G →* R) (h_comm : ∀ x y, commute (f x) (g y)) :
@@ -232,7 +239,7 @@ instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 { mul_comm := mul_comm, .. monoid_algebra.ring}
 
-variables {R S : Type*}
+variables {S : Type*}
 
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
   has_scalar R (monoid_algebra k G) :=
@@ -267,7 +274,7 @@ finsupp.is_central_scalar G k
 
 instance comap_distrib_mul_action_self [group G] [semiring k] :
   distrib_mul_action G (monoid_algebra k G) :=
-finsupp.comap_distrib_mul_action_self
+finsupp.comap_distrib_mul_action
 
 end derived_instances
 
@@ -424,7 +431,7 @@ end misc_theorems
 /-! #### Non-unital, non-associative algebra structure -/
 section non_unital_non_assoc_algebra
 
-variables {R : Type*} (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_mul G]
+variables (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_mul G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (monoid_algebra k G) (monoid_algebra k G) :=
@@ -808,6 +815,23 @@ namespace add_monoid_algebra
 
 variables {k G}
 
+section
+variables [semiring k] [non_unital_non_assoc_semiring R]
+
+/-- A non-commutative version of `add_monoid_algebra.lift`: given a additive homomorphism `f : k →+
+R` and a map `g : multiplicative G → R`, returns the additive
+homomorphism from `add_monoid_algebra k G` such that `lift_nc f g (single a b) = f b * g a`. If `f`
+is a ring homomorphism and the range of either `f` or `g` is in center of `R`, then the result is a
+ring homomorphism.  If `R` is a `k`-algebra and `f = algebra_map k R`, then the result is an algebra
+homomorphism called `add_monoid_algebra.lift`. -/
+def lift_nc (f : k →+ R) (g : multiplicative G → R) : add_monoid_algebra k G →+ R :=
+lift_add_hom (λ x : G, (add_monoid_hom.mul_right (g $ multiplicative.of_add x)).comp f)
+
+@[simp] lemma lift_nc_single (f : k →+ R) (g : multiplicative G → R) (a : G) (b : k) :
+  lift_nc f g (single a b) = f b * g (multiplicative.of_add a) :=
+lift_add_hom_apply_single _ _ _
+end
+
 section has_mul
 
 variables [semiring k] [has_add G]
@@ -839,11 +863,19 @@ instance : non_unital_non_assoc_semiring (add_monoid_algebra k G) :=
   nsmul_succ' := by { intros, ext, simp [-nsmul_eq_mul, nat.succ_eq_one_add, add_smul] },
   .. finsupp.add_comm_monoid }
 
+variables [semiring R]
+
+lemma lift_nc_mul {g_hom : Type*} [mul_hom_class g_hom (multiplicative G) R] (f : k →+* R)
+  (g : g_hom) (a b : add_monoid_algebra k G)
+  (h_comm : ∀ {x y}, y ∈ a.support → commute (f (b x)) (g $ multiplicative.of_add y)) :
+  lift_nc (f : k →+ R) g (a * b) = lift_nc (f : k →+ R) g a * lift_nc (f : k →+ R) g b :=
+(monoid_algebra.lift_nc_mul f g _ _ @h_comm : _)
+
 end has_mul
 
 section has_one
 
-variables [semiring k] [has_zero G]
+variables [semiring k] [has_zero G] [non_assoc_semiring R]
 
 /-- The unit of the multiplication is `single 1 1`, i.e. the function
   that is `1` at `0` and zero elsewhere. -/
@@ -852,6 +884,11 @@ instance : has_one (add_monoid_algebra k G) :=
 
 lemma one_def : (1 : add_monoid_algebra k G) = single 0 1 :=
 rfl
+
+@[simp] lemma lift_nc_one {g_hom : Type*} [one_hom_class g_hom (multiplicative G) R]
+  (f : k →+* R) (g : g_hom) :
+  lift_nc (f : k →+ R) g 1 = 1 :=
+(monoid_algebra.lift_nc_one f g : _)
 
 end has_one
 
@@ -885,30 +922,6 @@ instance : non_assoc_semiring (add_monoid_algebra k G) :=
     single_zero, sum_zero, add_zero, mul_one, sum_single],
   .. add_monoid_algebra.non_unital_non_assoc_semiring }
 
-variables {R : Type*} [semiring R]
-
-/-- A non-commutative version of `add_monoid_algebra.lift`: given a additive homomorphism `f : k →+
-R` and a multiplicative monoid homomorphism `g : multiplicative G →* R`, returns the additive
-homomorphism from `add_monoid_algebra k G` such that `lift_nc f g (single a b) = f b * g a`. If `f`
-is a ring homomorphism and the range of either `f` or `g` is in center of `R`, then the result is a
-ring homomorphism.  If `R` is a `k`-algebra and `f = algebra_map k R`, then the result is an algebra
-homomorphism called `add_monoid_algebra.lift`. -/
-def lift_nc (f : k →+ R) (g : multiplicative G →* R) : add_monoid_algebra k G →+ R :=
-lift_add_hom (λ x : G, (add_monoid_hom.mul_right (g $ multiplicative.of_add x)).comp f)
-
-@[simp] lemma lift_nc_single (f : k →+ R) (g : multiplicative G →* R) (a : G) (b : k) :
-  lift_nc f g (single a b) = f b * g (multiplicative.of_add a) :=
-lift_add_hom_apply_single _ _ _
-
-@[simp] lemma lift_nc_one (f : k →+* R) (g : multiplicative G →* R) :
-  lift_nc (f : k →+ R) g 1 = 1 :=
-@monoid_algebra.lift_nc_one k (multiplicative G) _ _ _ _ f g
-
-lemma lift_nc_mul (f : k →+* R) (g : multiplicative G →* R) (a b : add_monoid_algebra k G)
-  (h_comm : ∀ {x y}, y ∈ a.support → commute (f (b x)) (g $ multiplicative.of_add y)) :
-  lift_nc (f : k →+ R) g (a * b) = lift_nc (f : k →+ R) g a * lift_nc (f : k →+ R) g b :=
-@monoid_algebra.lift_nc_mul k (multiplicative G) _ _ _ _ f g a b @h_comm
-
 end mul_one_class
 
 /-! #### Semiring structure -/
@@ -928,7 +941,7 @@ instance : semiring (add_monoid_algebra k G) :=
   .. add_monoid_algebra.non_unital_semiring,
   .. add_monoid_algebra.non_assoc_semiring, }
 
-variables {R : Type*} [semiring R]
+variables [semiring R]
 
 /-- `lift_nc` as a `ring_hom`, for when `f` and `g` commute -/
 def lift_nc_ring_hom (f : k →+* R) (g : multiplicative G →* R)
@@ -968,7 +981,7 @@ instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
 { mul_comm := mul_comm, .. add_monoid_algebra.ring}
 
-variables {R S : Type*}
+variables {S : Type*}
 
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (add_monoid_algebra k G) :=
@@ -1195,7 +1208,7 @@ variables {k G}
 
 section non_unital_non_assoc_algebra
 
-variables {R : Type*} (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_add G]
+variables (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_add G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (add_monoid_algebra k G) (add_monoid_algebra k G) :=
@@ -1242,7 +1255,6 @@ end non_unital_non_assoc_algebra
 /-! #### Algebra structure -/
 section algebra
 
-variables {R : Type*}
 local attribute [reducible] add_monoid_algebra
 
 /-- `finsupp.single 0` as a `ring_hom` -/
@@ -1416,7 +1428,7 @@ end
 
 end add_monoid_algebra
 
-variables {R : Type*} [comm_semiring R] (k G)
+variables [comm_semiring R] (k G)
 
 /-- The algebra equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of
 `multiplicative`. -/

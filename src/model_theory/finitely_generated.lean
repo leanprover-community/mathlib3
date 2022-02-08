@@ -131,7 +131,7 @@ theorem cg_bot : (⊥ : L.substructure M).cg := fg_bot.cg
 theorem cg_closure {s : set M} (hs : countable s) : cg (closure L s) :=
 ⟨s, hs, rfl⟩
 
-theorem cg_closure_singleton (x : M) : cg (closure L ({x} : set M)) := fg_closure_singleton.cg
+theorem cg_closure_singleton (x : M) : cg (closure L ({x} : set M)) := (fg_closure_singleton x).cg
 
 theorem cg_sup {N₁ N₂ : L.substructure M}
   (hN₁ : N₁.cg) (hN₂ : N₂.cg) : (N₁ ⊔ N₂).cg :=

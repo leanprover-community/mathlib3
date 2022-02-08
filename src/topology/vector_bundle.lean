@@ -70,7 +70,7 @@ structure topological_vector_bundle.pretrivialization extends to_fiber_bundle_pr
   topological_fiber_bundle.pretrivialization F (proj E) :=
 (linear : ∀ x ∈ base_set, is_linear_map R (λ y : (E x), (to_fun y).2))
 
-instance : has_coe_to_fun (topological_vector_bundle.pretrivialization R F E) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe_to_fun (topological_vector_bundle.pretrivialization R F E) _ := ⟨λ e, e.to_fun⟩
 
 instance : has_coe (topological_vector_bundle.pretrivialization R F E)
   (topological_fiber_bundle.pretrivialization F (proj E)) :=

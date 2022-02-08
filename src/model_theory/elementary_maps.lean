@@ -144,6 +144,23 @@ lemma comp_assoc (f : M ↪ₑ[L] N) (g : N ↪ₑ[L] P) (h : P ↪ₑ[L] Q) :
 
 end elementary_embedding
 
+namespace embedding
+
+/-- A version of the Tarski-Vaught test. An embedding is elementary if it preserves  -/
+def elementary_of_map_exists_qf (f : M ↪[L] N)
+  (h : ∀ (n : ℕ) (φ : L.bounded_formula _root_.empty (n + 1)) (x : (fin n → M)) (n : N),
+    formula.is_qf φ → realize_bounded_formula N φ empty.elim (fin.cons n (f ∘ x)) →
+    ∃ m, realize_bounded_formula M φ empty.elim (fin.cons m x)) :
+  M ↪ₑ[L] N :=
+{ to_fun := f,
+  map_formula' := λ n φ x, begin
+    
+  end,
+
+}
+
+end embedding
+
 namespace equiv
 
 /-- A first-order equivalence is also an elementary embedding. -/

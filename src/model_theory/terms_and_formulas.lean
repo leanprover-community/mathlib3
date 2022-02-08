@@ -71,8 +71,8 @@ begin
   { simp [ih] }
 end
 
-@[simp] lemma hom.realize_term {α : Type} (v : α → M)
-  (t : L.term α) (g : M →[L] N) :
+@[simp] lemma hom.realize_term {α : Type} (g : M →[L] N) (v : α → M)
+  (t : L.term α) :
   realize_term (g ∘ v) t = g (realize_term v t) :=
 begin
   induction t,
@@ -83,13 +83,13 @@ begin
     simp [t_ih x], },
 end
 
-@[simp] lemma embedding.realize_term {α : Type}  (v : α → M)
-  (t : L.term α) (g : M ↪[L] N) :
+@[simp] lemma embedding.realize_term {α : Type} (g : M ↪[L] N) (v : α → M)
+  (t : L.term α) :
   realize_term (g ∘ v) t = g (realize_term v t) :=
 g.to_hom.realize_term v t
 
-@[simp] lemma equiv.realize_term {α : Type}  (v : α → M)
-  (t : L.term α) (g : M ≃[L] N) :
+@[simp] lemma equiv.realize_term {α : Type} (g : M ≃[L] N) (v : α → M)
+  (t : L.term α) :
   realize_term (g ∘ v) t = g (realize_term v t) :=
 g.to_hom.realize_term v t
 
@@ -128,6 +128,10 @@ variable {n : ℕ}
 @[reducible] def bd_not (φ : L.bounded_formula α n) : L.bounded_formula α n :=
   bd_imp φ ⊥
 
+/-- The exists quantifier on bounded formulas. -/
+def bd_exists (φ : L.bounded_formula α (n + 1)) : L.bounded_formula α n :=
+  bd_not (bd_all (bd_not φ))
+
 @[simps] instance : has_top (L.bounded_formula α n) := ⟨bd_not bd_falsum⟩
 
 @[simps] instance : has_inf (L.bounded_formula α n) := ⟨λ f g, bd_not (bd_imp f (bd_not g))⟩
@@ -145,6 +149,39 @@ variable {n : ℕ}
 | n (bd_all f) := bd_all f.relabel
 
 namespace formula
+
+inductive is_atomic : L.bounded_formula α n → Prop
+| equal {t₁ t₂ : L.term (α ⊕ fin n)} : is_atomic (bd_equal t₁ t₂)
+| rel {l : ℕ} {R : L.relations l} {ts : fin l → L.term (α ⊕ fin n)} : is_atomic (bd_rel R ts)
+
+lemma is_atomic.induction_on {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
+  (h : is_atomic φ)
+  (he : ∀ (t₁ t₂ : L.term (α ⊕ fin n)), P (bd_equal t₁ t₂))
+  (hr : ∀ {l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)), P (bd_rel R ts)) :
+  P φ :=
+begin
+  induction h,
+  { apply he },
+  { apply hr }
+end
+
+inductive is_qf : L.bounded_formula α n → Prop
+| falsum : is_qf bd_falsum
+| of_is_atomic {φ} (h : is_atomic φ) : is_qf φ
+| imp {φ₁ φ₂} (h₁ : is_qf φ₁) (h₂ : is_qf φ₂) : is_qf (bd_imp φ₁ φ₂)
+
+lemma is_qf.induction_on {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
+  (h : is_qf φ)
+  (hf : P (bd_falsum : L.bounded_formula α n))
+  (ha : ∀ (ψ : L.bounded_formula α n), is_atomic ψ → P ψ)
+  (himp : ∀ {φ₁ φ₂} (h₁ : P φ₁) (h₂ : P φ₂), P (bd_imp φ₁ φ₂)) :
+  P φ :=
+begin
+  induction h with _ ih0 _ _ _ _ ih1 ih2,
+  { exact hf },
+  { exact ha _ ih0 },
+  { exact himp ih1 ih2 }
+end
 
 /-- The equality of two terms as a first-order formula. -/
 def equal (t₁ t₂ : L.term α) : (L.formula α) :=
@@ -177,6 +214,11 @@ variables (M)
   realize_bounded_formula M (bd_not f) v xs = ¬ realize_bounded_formula M f v xs :=
 rfl
 
+@[simp] lemma realize_exists {l} (f : L.bounded_formula α (l + 1)) (v : α → M) (xs : fin l → M) :
+  realize_bounded_formula M (bd_exists f) v xs =
+    ∃ x, realize_bounded_formula M f v (fin.cons x xs) :=
+by simp [bd_exists]
+
 /-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
 @[reducible] def realize_formula (f : L.formula α) (v : α → M) : Prop :=
 realize_bounded_formula M f v fin_zero_elim
@@ -203,6 +245,19 @@ begin
   { simp [h _ xs] },
   { simp [ih1, ih2] },
   { simp [ih3] }
+end
+
+lemma embedding.realize_bounded_formula_of_is_qf {α : Type} {n : ℕ} (v : α → M) (xs : fin n → M)
+  (φ : L.bounded_formula α n) (h : formula.is_qf φ) (g : M ↪[L] N) :
+  realize_bounded_formula N φ (g ∘ v) (g ∘ xs) ↔ realize_bounded_formula M φ v xs :=
+begin
+  refine h.induction_on _ _ _,
+  { refl },
+  { refine λ φ h', h'.induction_on (λ _ _, _) (λ _ _ _, _),
+    { simp only [realize_bounded_formula, ← sum.comp_elim, g.realize_term, g.injective.eq_iff] },
+    { simp only [realize_bounded_formula, ← sum.comp_elim, g.realize_term, g.map_rel] } },
+  { intros _ _ h1 h2,
+    simp only [realize_bounded_formula, h1, h2] }
 end
 
 @[simp] lemma equiv.realize_bounded_formula {α : Type} {n : ℕ}  (v : α → M)

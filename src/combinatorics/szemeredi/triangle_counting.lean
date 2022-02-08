@@ -232,10 +232,10 @@ begin
   have : ε ≤ G.edge_density (filter (G.adj x) Y) (filter (G.adj x) Z),
   { rw abs_sub_lt_iff at this,
     linarith },
-  refine le_trans _ (mul_le_of_nonneg_of_le_div (nat.cast_nonneg _) (by exact_mod_cast (nat.zero_le _)) this),
-  apply le_trans _ (mul_le_mul_of_nonneg_left
+  refine le_trans _ (mul_le_of_nonneg_of_le_div (nat.cast_nonneg _) $
+    by exact_mod_cast (nat.zero_le _) this),
+  refine eq.trans_le _ (mul_le_mul_of_nonneg_left
     (mul_le_mul hY hZ (mul_nonneg (nat.cast_nonneg _) hε) (nat.cast_nonneg _)) hε),
-  apply le_of_eq,
   ring,
 end
 
@@ -245,8 +245,8 @@ lemma triangle_counting {X Y Z : finset α} {ε : ℝ} (hε₀ : 0 < ε) (hε₁
   (dXZ : 2 * ε ≤ G.edge_density X Z) (uXZ : G.is_uniform ε X Z)
   (dYZ : 2 * ε ≤ G.edge_density Y Z) (uYZ : G.is_uniform ε Y Z) :
   (1 - 2 * ε) * ε^3 * X.card * Y.card * Z.card ≤
-    ((X.product (Y.product Z)).filter
-    (λ (xyz : α × α × α), G.adj xyz.1 xyz.2.1 ∧ G.adj xyz.1 xyz.2.2 ∧ G.adj xyz.2.1 xyz.2.2)).card :=
+    ((X.product $ Y.product Z).filter $ λ (xyz : α × α × α),
+      G.adj xyz.1 xyz.2.1 ∧ G.adj xyz.1 xyz.2.2 ∧ G.adj xyz.2.1 xyz.2.2).card :=
 begin
   have h₁ : ((G.bad_vertices ε X Y).card : ℝ) ≤ X.card * ε := G.few_bad_vertices hε₀.le hε₁ dXY uXY,
   have h₂ : ((G.bad_vertices ε X Z).card : ℝ) ≤ X.card * ε := G.few_bad_vertices hε₀.le hε₁ dXZ uXZ,
@@ -462,7 +462,8 @@ begin
   { simp only [prod.forall, finpartition.mem_non_uniform_pairs, and_imp, mem_off_diag],
     rintro U V hU hV -,
     rw [sq, ←nat.cast_mul, nat.cast_le],
-    exact nat.mul_le_mul (hP.card_part_le_average_add_one hU) (hP.card_part_le_average_add_one hV) },
+    exact nat.mul_le_mul (hP.card_part_le_average_add_one hU)
+      (hP.card_part_le_average_add_one hV) },
   rw [nsmul_eq_mul, ←nat.cast_mul, ←nat.cast_add, ←nat.cast_pow, nat.cast_le, off_diag_card,
     nat.mul_sub_right_distrib],
   apply (nat.sub_le _ _).trans,
@@ -517,9 +518,10 @@ begin
   { simp only [prod.forall, finpartition.mem_non_uniform_pairs, and_imp],
     rintro U V hU hV hUV -,
     rw [sq, ←nat.cast_mul, nat.cast_le],
-    exact nat.mul_le_mul (hP.card_part_le_average_add_one hU) (hP.card_part_le_average_add_one hV) },
+    exact nat.mul_le_mul (hP.card_part_le_average_add_one hU)
+      (hP.card_part_le_average_add_one hV) },
   rw nsmul_eq_mul,
-  apply (mul_le_mul_of_nonneg_right hG (nat.cast_nonneg _)).trans_lt,
+  refine (mul_le_mul_of_nonneg_right hG (nat.cast_nonneg _)).trans_lt _,
   rw [mul_right_comm _ ε, mul_comm ε],
   apply mul_lt_mul_of_pos_right _ hε,
   norm_cast,

@@ -126,7 +126,8 @@ end
 
 -- lemma mul_roth_number_sixty_four : 20 ≤ mul_roth_number 64 :=
 -- begin
---   apply le_mul_roth_number_of_not_has_three_ap {1,3,8,9,11,16,20,22,25,26,38,40,45,46,48,53,57,59,62,63},
+--   apply le_mul_roth_number_of_not_has_three_ap
+    -- {1,3,8,9,11,16,20,22,25,26,38,40,45,46,48,53,57,59,62,63},
 --   { simp only [subset_iff, mem_range, mem_insert, mem_singleton, forall_eq_or_imp],
 --     simp },
 --   { dec_trivial },
@@ -819,7 +820,8 @@ end
 --     intros x,
 --     rw [normed_field.norm_mul, norm_coe_nat, norm_coe_nat, real.norm_eq_abs, abs_exp],
 --     apply roth_lower_bound },
---   suffices : is_o (λ (N:ℕ), ((N:ℝ) * N^(-δ))) (λ (N:ℕ), (N : ℝ) * exp (-4 * sqrt (log N))) at_top,
+--   suffices : is_o (λ (N:ℕ), ((N:ℝ) * N^(-δ)))
+    -- (λ (N:ℕ), (N : ℝ) * exp (-4 * sqrt (log N))) at_top,
 --   { apply is_o.congr' _ (eventually_eq.refl _ _) this,
 --     rw [eventually_eq, eventually_at_top],
 --     refine ⟨1, λ N hN, _⟩,
@@ -834,7 +836,8 @@ end
 --     ←div_le_iff' hc, ←log_le_iff_le_exp (div_pos hN' hc), log_div hN'.ne' hc.ne'],
 --   -- simp only [neg_mul_eq_neg_mul_symm, ge_iff_le, eventually_at_top, real.norm_eq_abs],
 
---   -- have : is_O (λ (N:ℕ), (N : ℝ) * exp (-4 * sqrt (log N))) (λ N, (mul_roth_number N : ℝ)) at_top,
+--   -- have : is_O (λ (N:ℕ), (N : ℝ) * exp (-4 * sqrt (log N)))
+      -- (λ N, (mul_roth_number N : ℝ)) at_top,
 --   -- { apply is_O_of_le,
 --   --   simp only [normed_field.norm_mul, norm_coe_nat],
 --   --   intro x,

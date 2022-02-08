@@ -296,8 +296,8 @@ begin
 end
 
 lemma alt_set (c : ℕ × ℕ) (A : finset (ℕ × ℕ)) :
-  (A.filter (λ (xy : ℕ × ℕ), xy.1 ≤ c.1 ∧ xy.2 ≤ c.2 ∧ (c.1 - xy.1, c.2 - xy.2) ∈ A)).card =
-    ((A.product A).filter (λ (ab : (ℕ × ℕ) × ℕ × ℕ), (ab.1.1 + ab.2.1, ab.1.2 + ab.2.2) = c)).card :=
+  (A.filter (λ (x : ℕ × ℕ), x.1 ≤ c.1 ∧ x.2 ≤ c.2 ∧ (c.1 - x.1, c.2 - x.2) ∈ A)).card =
+    ((A.product A).filter (λ (x : (ℕ × ℕ) × ℕ × ℕ), (x.1.1 + x.2.1, x.1.2 + x.2.2) = c)).card :=
 begin
   rcases c with ⟨c₁, c₂⟩,
   refine (card_congr (λ (a : _ × _) ha, a.1) _ _ _).symm,

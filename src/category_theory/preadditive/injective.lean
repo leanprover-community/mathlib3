@@ -77,23 +77,18 @@ end }
 lemma iso_iff {P Q : C} (i : P ≅ Q) : injective P ↔ injective Q :=
 ⟨of_iso i, of_iso i.symm⟩
 
-/-- The axiom of choice says that every type is an injective object in `Type`. -/
+set_option pp.proofs true
+/-- The axiom of choice says that every nonempty type is an injective object in `Type`. -/
 instance (X : Type u) [nonempty X] : injective X :=
-{ factors := λ Y Z g f mono, begin
-  by_cases nonempty_Y : nonempty Y,
-  { set h := ((@function.injective_iff_has_left_inverse _ _ nonempty_Y _).mp ((mono_iff_injective f).mp mono)).some,
-    have hl : function.left_inverse h f := ((@function.injective_iff_has_left_inverse _ _ nonempty_Y _).mp ((mono_iff_injective f).mp mono)).some_spec,
-    refine ⟨h ≫ g, _⟩,
-    ext,
-    change g (h (f x)) = _,
-    rw [hl x] },
-  { rw [not_nonempty_iff] at nonempty_Y,
-    use (⟨λ z, (nonempty.some (by apply_instance))⟩ : nonempty (Z ⟶ X)).some,
+{ factors := λ Y Z g f mono, ⟨λ z, by classical; exact if h : z ∈ set.range f then g (classical.some h) else
+  nonempty.some infer_instance, begin
     ext y,
-    exfalso,
-    apply nonempty_Y.false,
-    exact y, },
-end }
+    change dite _ _ _ = _,
+    split_ifs,
+    { rw mono_iff_injective at mono,
+      rw mono (classical.some_spec h) },
+    { exact false.elim (h ⟨y, rfl⟩) },
+  end⟩ }
 
 instance Type.enough_injectives : enough_injectives (Type u) :=
 { presentation := λ X, ⟨{ J := with_bot X,
@@ -108,8 +103,8 @@ instance {P Q : C} [has_binary_product P Q] [injective P] [injective Q] :
   use limits.prod.lift (factor_of (g ≫ limits.prod.fst) f) (factor_of (g ≫ limits.prod.snd) f),
   simp only [prod.comp_lift, factor_of_comp],
   ext,
-  simp only [prod.lift_fst],
-  simp only [prod.lift_snd],
+  { simp only [prod.lift_fst] },
+  { simp only [prod.lift_snd] },
 end }
 
 instance {β : Type v} (c : β → C) [has_product c] [∀ b, injective (c b)] :
@@ -121,6 +116,7 @@ instance {β : Type v} (c : β → C) [has_product c] [∀ b, injective (c b)] :
   simp only [category.assoc, limit.lift_π, fan.mk_π_app, factor_of_comp],
 end }
 
+-- disjoint unions should be injective?
 instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
   [injective P] [injective Q] :
   injective (P ⊞ Q) :=
@@ -158,6 +154,8 @@ instance {J : C} [injective J] : projective (opposite.op J) :=
   rw [quiver.hom.op_unop] at eq1,
   exact eq1,
 end }
+
+-- STOP HERE AND PR
 
 section enough_injectives
 variable [enough_injectives C]

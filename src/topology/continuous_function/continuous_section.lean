@@ -27,7 +27,7 @@ cover of a circle is a map that does not admit continuous sections. -/
 @[nolint has_inhabited_instance]
 structure continuous_section (f : α → β) extends right_inv f, C(β, α)
 
-instance : has_coe_to_fun (continuous_section f) := ⟨λ f, β → α, continuous_section.to_fun⟩
+instance : has_coe_to_fun (continuous_section f) _ := ⟨continuous_section.to_fun⟩
 
 instance : has_coe (continuous_section f) (right_inv f) :=
 ⟨continuous_section.to_right_inv⟩
@@ -39,7 +39,7 @@ attribute [nolint doc_blame] to_right_inv to_continuous_map
 
 variables {s t : continuous_section f}
 
-lemma coe_injective (H : ⇑s = t) : s = t :=
+lemma coe_injective (H : (s : β → α) = t) : s = t := /- Should work also with ⇑ -/
 by { cases s, cases t, congr' }
 
 @[ext] theorem ext (H : ∀ a, s a = t a) : s = t :=
@@ -79,7 +79,7 @@ namespace continuous_bundle_section
 
 variables (s t : continuous_bundle_section E)
 
-instance : has_coe_to_fun (continuous_bundle_section E) := ⟨λ s, Π x, E x, to_fun⟩
+instance : has_coe_to_fun (continuous_bundle_section E) _ := ⟨to_fun⟩
 
 /-- Natural identification as a `continuous_section`. -/
 def to_continuous_section (s : continuous_bundle_section E) : continuous_section (proj E) :=

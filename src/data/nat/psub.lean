@@ -62,14 +62,14 @@ begin
   { show m < n, refine lt_of_not_ge (λ h, _),
     cases le.dest h with k e,
     injection s.symm.trans (psub_eq_some.2 $ (add_comm _ _).trans e) },
-  { show n ≤ m, rw ← psub_eq_some.1 s, apply le_add_left }
+  { show n ≤ m, rw ← psub_eq_some.1 s, apply nat.le_add_left }
 end
 
 theorem ppred_eq_pred {n} (h : 0 < n) : ppred n = some (pred n) :=
 ppred_eq_some.2 $ succ_pred_eq_of_pos h
 
 theorem psub_eq_sub {m n} (h : n ≤ m) : psub m n = some (m - n) :=
-psub_eq_some.2 $ nat.sub_add_cancel h
+psub_eq_some.2 $ tsub_add_cancel_of_le h
 
 theorem psub_add (m n k) : psub m (n + k) = do x ← psub m n, psub x k :=
 by induction k; simp [*, add_succ, bind_assoc]

@@ -71,12 +71,12 @@ meta instance has_to_tactic_format_rule_data : has_to_tactic_format rule_data :=
   ma ← pp r.args,
   pat ← pp r.pat.target,
   output ← pp r.output,
-  return format!"{{ ⟨{pat}⟩ pr: {pr} → {output}, {up} {mp} {ua} {ma} }" ⟩
+  return format!"{{ ⟨{pat}⟩ pr: {pr} → {output}, {up} {mp} {ua} {ma} }}" ⟩
 
 private meta def get_lift_fun : expr → tactic (list rel_data × expr)
 | e :=
-  do {
-    guardb (is_constant_of (get_app_fn e) ``relator.lift_fun),
+  do
+  { guardb (is_constant_of (get_app_fn e) ``relator.lift_fun),
     [α, β, γ, δ, R, S] ← return $ get_app_args e,
     (ps, r) ← get_lift_fun S,
     return (rel_data.mk α β R :: ps, r)} <|>
@@ -98,7 +98,8 @@ private meta def analyse_rule (u' : list name) (pr : expr) : tactic rule_data :=
   p_data  ← return $ mark_occurences (app R p) params,
   p_vars  ← return $ list.map prod.fst (p_data.filter (λx, ↑x.2)),
   u       ← return $ collect_univ_params (app R p) ∩ u',
-  pat     ← mk_pattern (level.param <$> u) (p_vars ++ a_vars) (app R p) (level.param <$> u) (p_vars ++ a_vars),
+  pat     ← mk_pattern (level.param <$> u) (p_vars ++ a_vars) (app R p) (level.param <$> u)
+    (p_vars ++ a_vars),
   return $ rule_data.mk pr (u'.remove_all u) p_data u args pat g
 
 meta def analyse_decls : list name → tactic (list rule_data) :=
@@ -108,9 +109,12 @@ mmap (λn, do
   ls ← (repeat () c).mmap (λ_, mk_fresh_name),
   analyse_rule ls (const n (ls.map level.param)))
 
-private meta def split_params_args : list (expr × bool) → list expr → list (expr × option expr) × list expr
-| ((lc, tt) :: ps) (e :: es) := let (ps', es') := split_params_args ps es in ((lc, some e) :: ps', es')
-| ((lc, ff) :: ps) es        := let (ps', es') := split_params_args ps es in ((lc, none) :: ps', es')
+private meta def split_params_args :
+  list (expr × bool) → list expr → list (expr × option expr) × list expr
+| ((lc, tt) :: ps) (e :: es) := let (ps', es') :=
+  split_params_args ps es in ((lc, some e) :: ps', es')
+| ((lc, ff) :: ps) es        := let (ps', es') :=
+  split_params_args ps es in ((lc, none) :: ps', es')
 | _ es := ([], es)
 
 private meta def param_substitutions (ctxt : list expr) :

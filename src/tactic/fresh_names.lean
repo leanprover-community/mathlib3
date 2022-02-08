@@ -3,9 +3,7 @@ Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
-
-import data.sum
-import meta.rb_map
+import data.sum.basic
 import tactic.dependencies
 
 /-!
@@ -68,11 +66,10 @@ variation of `n`.
 -/
 meta def get_unused_name_reserved (ns : list name) (reserved : name_set) :
   tactic name :=
-(first $ ns.map $ λ n, do {
-  guard (¬ reserved.contains n),
+(first $ ns.map $ λ n, do
+{ guard (¬ reserved.contains n),
   fail_if_success (resolve_name n),
-  pure n
-})
+  pure n })
 <|>
 (do let fallback := match ns with | [] := `x | x :: _ := x end,
     get_unused_name_reserved_aux fallback reserved none)

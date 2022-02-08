@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.hom_functor
+import category_theory.currying
+import category_theory.products.basic
 
 /-!
 # The Yoneda embedding
@@ -384,5 +386,21 @@ lemma yoneda_sections_small_inv_app_apply {C : Type u₁} [small_category C] (X 
   (F : Cᵒᵖ ⥤ Type u₁) (t : F.obj (op X)) (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
   ((yoneda_sections_small X F).inv t).app Y f = F.map f.op t :=
 rfl
+
+local attribute[ext] functor.ext
+
+/-- The curried version of yoneda lemma when `C` is small. -/
+def curried_yoneda_lemma {C : Type u₁} [small_category C] :
+  (yoneda.op ⋙ coyoneda : Cᵒᵖ ⥤ (Cᵒᵖ ⥤ Type u₁) ⥤ Type u₁) ≅ evaluation Cᵒᵖ (Type u₁) :=
+eq_to_iso (by tidy) ≪≫ curry.map_iso (yoneda_lemma C ≪≫
+  iso_whisker_left (evaluation_uncurried Cᵒᵖ (Type u₁)) ulift_functor_trivial) ≪≫
+    eq_to_iso (by tidy)
+
+/-- The curried version of yoneda lemma when `C` is small. -/
+def curried_yoneda_lemma' {C : Type u₁} [small_category C] :
+  yoneda ⋙ (whiskering_left Cᵒᵖ (Cᵒᵖ ⥤ Type u₁)ᵒᵖ (Type u₁)).obj yoneda.op ≅ 𝟭 (Cᵒᵖ ⥤ Type u₁) :=
+eq_to_iso (by tidy) ≪≫ curry.map_iso (iso_whisker_left (prod.swap _ _)
+  (yoneda_lemma C ≪≫ iso_whisker_left
+    (evaluation_uncurried Cᵒᵖ (Type u₁)) ulift_functor_trivial : _)) ≪≫ eq_to_iso (by tidy)
 
 end category_theory

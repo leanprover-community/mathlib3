@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
+import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.shapes.reflexive
-import category_theory.limits.preserves.limits
-import category_theory.monad.limits
 import category_theory.monad.coequalizer
+import category_theory.monad.limits
 
 /-!
 # Monadicity theorems
@@ -229,10 +229,10 @@ def creates_G_split_coequalizers_of_monadic [monadic_right_adjoint G] ⦃A B⦄ 
 begin
   apply monadic_creates_colimit_of_preserves_colimit _ _,
   apply_instance,
-  { apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair _).symm,
+  { apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair.{v₁} _).symm,
     dsimp,
     apply_instance },
-  { apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair _).symm,
+  { apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair.{v₁} _).symm,
     dsimp,
     apply_instance }
 end
@@ -294,7 +294,7 @@ def monadic_of_creates_G_split_coequalizers
 begin
   letI : ∀ ⦃A B⦄ (f g : A ⟶ B) [G.is_split_pair f g], has_colimit (parallel_pair f g ⋙ G),
   { introsI A B f g i,
-    apply has_colimit_of_iso (diagram_iso_parallel_pair _),
+    apply has_colimit_of_iso (diagram_iso_parallel_pair.{v₁} _),
     change has_coequalizer (G.map f) (G.map g),
     apply_instance },
   apply monadic_of_has_preserves_reflects_G_split_coequalizers _,

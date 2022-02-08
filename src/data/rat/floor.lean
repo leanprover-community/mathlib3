@@ -3,7 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Kappelmann
 -/
-import algebra.floor
+import algebra.order.floor
 import tactic.field_simp
 
 /-!
@@ -18,6 +18,8 @@ We define the `floor` function and the `floor_ring` instance on `ℚ`. Some tech
 
 rat, rationals, ℚ, floor
 -/
+
+open int
 
 namespace rat
 
@@ -36,7 +38,7 @@ protected theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ rat.floor r ↔ (z :
 end
 
 instance : floor_ring ℚ :=
-{ floor := rat.floor, le_floor := @rat.le_floor }
+floor_ring.of_floor ℚ rat.floor $ λ a z, rat.le_floor.symm
 
 protected lemma floor_def {q : ℚ} : ⌊q⌋ = q.num / q.denom := by { cases q, refl }
 
@@ -106,7 +108,7 @@ begin
   have q_num_pos : 0 < q.num, from rat.num_pos_iff_pos.elim_right q_pos,
   -- we will work with the absolute value of the numerator, which is equal to the numerator
   have q_num_abs_eq_q_num : (q.num.nat_abs : ℤ) = q.num, from
-    (int.nat_abs_of_nonneg $ le_of_lt q_num_pos),
+    (int.nat_abs_of_nonneg q_num_pos.le),
   set q_inv := (q.denom : ℚ) / q.num with q_inv_def,
   have q_inv_eq : q⁻¹ = q_inv, from rat.inv_def',
   suffices : (q_inv - ⌊q_inv⌋).num < q.num, by rwa q_inv_eq,

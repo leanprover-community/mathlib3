@@ -5,7 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.lie.of_associative
 import algebra.ring_quot
-import linear_algebra.tensor_algebra
+import linear_algebra.tensor_algebra.basic
 
 /-!
 # Universal enveloping algebra

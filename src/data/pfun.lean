@@ -21,8 +21,11 @@ This file defines partial functions. Partial functions are like functions, excep
 * `pfun.fn`: Evaluation of a partial function. Takes in an element and a proof it belongs to the
   partial function's `dom`.
 * `pfun.as_subtype`: Returns a partial function as a function from its `dom`.
+* `pfun.to_subtype`: Restricts the codomain of a function to a subtype.
 * `pfun.eval_opt`: Returns a partial function with a decidable `dom` as a function `a → option β`.
 * `pfun.lift`: Turns a function into a partial function.
+* `pfun.id`: The identity as a partial function.
+* `pfun.comp`: Composition of partial functions.
 * `pfun.restrict`: Restriction of a partial function to a smaller `dom`.
 * `pfun.res`: Turns a function into a partial function with a prescribed domain.
 * `pfun.fix` : First return map of a partial function `f : α →. β ⊕ α`.

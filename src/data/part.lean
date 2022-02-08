@@ -156,7 +156,7 @@ lemma eq_none_or_eq_some (o : part α) : o = none ∨ ∃ x, o = some x :=
 or_iff_not_imp_left.2 ne_none_iff.1
 
 lemma some_injective : injective (@part.some α) :=
-(λ a b h, congr_fun (eq_of_heq (part.mk.inj h).2) trivial)
+λ a b h, congr_fun (eq_of_heq (part.mk.inj h).2) trivial
 
 @[simp] lemma some_inj {a b : α} : part.some a = some b ↔ a = b := some_injective.eq_iff
 

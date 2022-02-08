@@ -167,4 +167,3 @@ end injective
 
 end category_theory
 
-#lint_all

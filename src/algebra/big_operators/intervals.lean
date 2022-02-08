@@ -39,6 +39,23 @@ lemma prod_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
   (∏ x in Ico a b, f (c + x)) = (∏ x in Ico (a + c) (b + c), f x) :=
 @sum_Ico_add _ (additive β) _ _ _ _ f a b c
 
+lemma sum_neg_one_pow_eq_ite [comm_ring β] {n : ℕ} :
+  ∑ i in range n, (-1 : β) ^ i = if even n then 0 else 1 :=
+begin
+  induction n with n hn,
+  { simp only [range_zero, sum_empty, nat.even_zero, if_true] },
+  rw [sum_range_succ, hn],
+  by_cases (even n.succ),
+  { have := nat.even_succ.mp h,
+    simp only [this, h, if_true, if_false],
+    rw nat.neg_one_pow_of_odd (nat.odd_iff_not_even.mpr this),
+    norm_num },
+  { have := (iff_not_comm.mpr (nat.even_succ)).mpr h,
+    simp only [this, h, if_true, if_false],
+    rw nat.neg_one_pow_of_even this,
+    norm_num }
+end
+
 variables [comm_monoid β]
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
@@ -146,23 +163,6 @@ lemma sum_range_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (n : 
 @[simp] lemma prod_range_add_one_eq_factorial : ∀ n : ℕ, ∏ x in range n, (x+1) = n!
 | 0 := rfl
 | (n+1) := by simp [finset.range_succ, prod_range_add_one_eq_factorial n]
-
-lemma sum_neg_one_pow_eq_ite [comm_ring β] {n : ℕ} :
-  ∑ i in range n, (-1 : β) ^ i = if even n then 0 else 1 :=
-begin
-  induction n with n hn,
-  { simp only [range_zero, sum_empty, nat.even_zero, if_true] },
-  rw [sum_range_succ, hn],
-  by_cases (even n.succ),
-  { have := nat.even_succ.mp h,
-    simp only [this, h, if_true, if_false],
-    rw nat.neg_one_pow_of_odd (nat.odd_iff_not_even.mpr this),
-    norm_num },
-  { have := (iff_not_comm.mpr (nat.even_succ)).mpr h,
-    simp only [this, h, if_true, if_false],
-    rw nat.neg_one_pow_of_even this,
-    norm_num }
-end
 
 section gauss_sum
 

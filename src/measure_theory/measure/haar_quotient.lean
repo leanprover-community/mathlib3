@@ -102,7 +102,7 @@ variables [encodable Γ] [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
   `G`-invariant measure on `G ⧸ Γ`."]
 lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
   [μ.is_mul_left_invariant] [μ.is_mul_right_invariant] :
-  smul_invariant_measure G (G ⧸ Γ) (measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)) :=
+  smul_invariant_measure G (G ⧸ Γ) (measure.map quotient_group.mk (μ.restrict 𝓕)) :=
 { measure_preimage_smul :=
   begin
     let π : G → G ⧸ Γ := @quotient_group.mk G _ Γ ,

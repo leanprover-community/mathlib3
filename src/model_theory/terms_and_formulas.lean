@@ -280,6 +280,9 @@ instance is_satisfiable.nonempty_some_model {T : L.Theory} (h : T.is_satisfiable
   nonempty (h.some_model) :=
 classical.some (classical.some_spec h)
 
+noncomputable instance is_satisfiable.inhabited_some_model {T : L.Theory} (h : T.is_satisfiable) :
+  inhabited (h.some_model) := classical.inhabited_of_nonempty'
+
 noncomputable instance is_satisfiable.some_model_structure {T : L.Theory} (h : T.is_satisfiable) :
   L.Structure (h.some_model) :=
 classical.some (classical.some_spec (classical.some_spec h))
@@ -327,9 +330,21 @@ def semantically_equivalent_setoid (T : L.Theory) : setoid (L.bounded_formula α
   iseqv := ⟨λ φ M str hM, rfl, λ φ ψ se M str hM, (se M str hM).symm,
     λ φ ψ θ φψ ψθ M str hM, (φψ M str hM).trans (ψθ M str hM)⟩ }
 
-lemma semantically_equivalent_not_not {T : L.Theory} {φ : L.bounded_formula α n} :
+lemma not_not_semantically_equivalent {T : L.Theory} {φ : L.bounded_formula α n} :
   T.semantically_equivalent (bd_not (bd_not φ)) φ :=
 λ M str hM, by { ext, simp only [realize_not, not_not] }
+
+lemma imp_semantically_equivalent_not_sup {T : L.Theory} {φ ψ : L.bounded_formula α n} :
+  T.semantically_equivalent (bd_imp φ ψ) (bd_not φ ⊔ ψ) :=
+λ M str hM, by { ext, simp only [realize_bounded_formula, has_sup_sup, realize_not, not_not] }
+
+lemma sup_semantically_equivalent_not_inf_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
+  T.semantically_equivalent (φ ⊔ ψ) (bd_not ((bd_not φ) ⊓ (bd_not ψ))) :=
+λ M str hM, by { ext, simp }
+
+lemma inf_semantically_equivalent_not_sup_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
+  T.semantically_equivalent (φ ⊓ ψ) (bd_not ((bd_not φ) ⊔ (bd_not ψ))) :=
+λ M str hM, by { ext, simp }
 
 end Theory
 

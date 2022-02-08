@@ -105,8 +105,8 @@ begin
     exact ⟨b * a⁻¹, h, 1, rfl, by rw [mul_one, inv_mul_cancel_right]⟩ },
 end
 
-lemma mem_doset_of_not_disjoint (H K : subgroup G) (a b : G) (h : ¬ disjoint (doset a H K ) (doset b H K )) :
-  b ∈ doset a H K :=
+lemma mem_doset_of_not_disjoint (H K : subgroup G) (a b : G)
+  (h : ¬ disjoint (doset a H K ) (doset b H K )) : b ∈ doset a H K :=
 begin
   rw set.not_disjoint_iff at h,
   simp only [exists_prop, set_coe.exists, mem_doset, subgroup.mem_carrier, set_like.mem_coe,

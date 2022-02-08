@@ -497,20 +497,14 @@ namespace hom
 open substructure
 
 /-- The restriction of a first-order hom to a substructure `s ⊆ M` gives a hom `s → N`. -/
-def dom_restrict (f : M →[L] N) (p : L.substructure M) : p →[L] N :=
-  f.comp p.subtype.to_hom
-
-@[simp] lemma dom_restrict_apply (f : M →[L] N) (p : L.substructure M) (x : p) :
-  f.dom_restrict p x = f x := rfl
+@[simps] def dom_restrict (f : M →[L] N) (p : L.substructure M) : p →[L] N :=
+f.comp p.subtype.to_hom
 
 /-- A first-order hom `f : M → N` whose values lie in a substructure `p ⊆ N` can be restricted to a
 hom `M → p`. -/
-def cod_restrict (p : L.substructure N) (f : M →[L] N) (h : ∀c, f c ∈ p) : M →[L] p :=
+@[simps] def cod_restrict (p : L.substructure N) (f : M →[L] N) (h : ∀c, f c ∈ p) : M →[L] p :=
 { to_fun := λc, ⟨f c, h c⟩,
   map_rel' := λ n R x h, f.map_rel R x h }
-
-@[simp] theorem cod_restrict_apply (p : L.substructure N) (f : M →[L] N) {h} (x : M) :
-  (cod_restrict p f h x : N) = f x := rfl
 
 @[simp] lemma comp_cod_restrict (f : M →[L] N) (g : N →[L] P) (p : L.substructure P)
   (h : ∀b, g b ∈ p) :

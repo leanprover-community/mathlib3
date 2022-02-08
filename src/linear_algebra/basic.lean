@@ -945,6 +945,9 @@ by simpa [span_Union]
 lemma sup_span : p ⊔ span R s = span R (p ∪ s) :=
 by rw [submodule.span_union, p.span_eq]
 
+lemma span_sup : span R s ⊔ p = span R (s ∪ p) :=
+by rw [submodule.span_union, p.span_eq]
+
 lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, span R {x} :=
 by simp only [←span_Union, set.bUnion_of_singleton s]
 

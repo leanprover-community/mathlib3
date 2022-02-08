@@ -145,8 +145,8 @@ open lie_module (hiding is_nilpotent)
 
 variables (R L)
 
-/-- A Lie algebra `L` is said to be Engelian if a sufficient condition for any `L`-module `M` to
-be nilpotent is that image of the map `L → End(M)` consists of nilpotent elements.
+/-- A Lie algebra `L` is said to be Engelian if a sufficient condition for any `L`-Lie module `M` to
+be nilpotent is that the image of the map `L → End(M)` consists of nilpotent elements.
 
 Engel's theorem `lie_algebra.is_engelian_of_is_noetherian` states that any Noetherian Lie algebra is
 Engelian. -/
@@ -162,7 +162,7 @@ begin
   intros M _i1 _i2 _i3 _i4 h,
   use 1,
   suffices : (⊤ : lie_ideal R L) = ⊥, { simp [this], },
-  haveI := (lie_submodule.subsingleton_iff R L L).mpr (by apply_instance),
+  haveI := (lie_submodule.subsingleton_iff R L L).mpr infer_instance,
   apply subsingleton.elim,
 end
 
@@ -180,7 +180,7 @@ begin
   simp,
 end
 
-lemma lie_equiv.lie_algebra_is_engelian_iff (e : L ≃ₗ⁅R⁆ L₂) :
+lemma lie_equiv.is_engelian_iff (e : L ≃ₗ⁅R⁆ L₂) :
   lie_algebra.is_engelian.{u₁ u₂ u₄} R L ↔ lie_algebra.is_engelian.{u₁ u₃ u₄} R L₂ :=
 ⟨e.surjective.is_engelian, e.symm.surjective.is_engelian⟩
 
@@ -196,17 +196,18 @@ begin
   have hKK' : K ≤ K' := (lie_subalgebra.coe_submodule_le_coe_submodule K K').mp le_sup_right,
   have hK' : K' ≤ K.normalizer,
   { rw ← lie_subalgebra.coe_submodule_le_coe_submodule,
-    exact sup_le ((submodule.span_singleton_le_iff_mem _ _).mpr hx₁) (le_of_lt hK₂), },
+    exact sup_le ((submodule.span_singleton_le_iff_mem _ _).mpr hx₁) hK₂.le, },
   refine ⟨K', _, lt_iff_le_and_ne.mpr ⟨hKK', λ contra, hx₂ (contra.symm ▸ hxK')⟩⟩,
   introsI M _i1 _i2 _i3 _i4 h,
-  obtain ⟨I, hI₁⟩ := lie_subalgebra.exists_nested_lie_ideal_of_le_normalizer hKK' hK',
+  obtain ⟨I, hI₁ : (I : lie_subalgebra R K') = lie_subalgebra.of_le hKK'⟩ :=
+    lie_subalgebra.exists_nested_lie_ideal_of_le_normalizer hKK' hK',
   have hI₂ : (R ∙ (⟨x, hxK'⟩ : K')) ⊔ I = ⊤,
   { rw [← lie_ideal.coe_to_lie_subalgebra_to_submodule R K' I, hI₁],
     apply submodule.map_injective_of_injective (K' : submodule R L).injective_subtype,
     simpa, },
   have e : K ≃ₗ⁅R⁆ I := (lie_subalgebra.equiv_of_le hKK').trans
     (lie_equiv.of_eq _ _ ((lie_subalgebra.coe_set_eq _ _).mpr hI₁.symm)),
-  have hI₃ : lie_algebra.is_engelian R I := e.lie_algebra_is_engelian_iff.mp hK₁,
+  have hI₃ : lie_algebra.is_engelian R I := e.is_engelian_iff.mp hK₁,
   exact lie_submodule.is_nilpotent_of_is_nilpotent_span_sup_eq_top hI₂ (h _) (hI₃ _ (λ x, h x)),
 end
 

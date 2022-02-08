@@ -1,49 +1,63 @@
 /-
 Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Heather Macbeth
+Authors: Heather Macbeth, Frédéric Dupuis
 -/
+import algebra.star.self_adjoint
+import analysis.complex.polynomial
+import analysis.inner_product_space.adjoint
+import analysis.inner_product_space.l2_space
 import analysis.inner_product_space.rayleigh
 import analysis.inner_product_space.pi_L2
-import algebra.star.self_adjoint
-import analysis.inner_product_space.adjoint
-import analysis.complex.polynomial
-import analysis.inner_product_space.l2_space
 
-/-! # Spectral theory of self-adjoint operators
+/-! # Spectral theory of normal and self-adjoint operators
 
-This file covers the spectral theory of self-adjoint operators on an inner product space.
+This file covers the spectral theory of normal and self-adjoint operators on an inner product space.
 
 The first part of the file covers general properties, true without any condition on boundedness or
 compactness of the operator or finite-dimensionality of the underlying space, notably:
-* `is_self_adjoint.conj_eigenvalue_eq_self`: the eigenvalues are real
-* `is_self_adjoint.orthogonal_family_eigenspaces`: the eigenspaces are orthogonal
-* `is_self_adjoint.orthogonal_supr_eigenspaces`: the restriction of the operator to the mutual
-  orthogonal complement of the eigenspaces has, itself, no eigenvectors
+* `inner_product_space.is_normal.orthogonal_family_eigenspaces`: the eigenspaces are orthogonal
+* `inner_product_space.is_normal.orthogonal_supr_eigenspaces`: the restriction of the operator to
+  the mutual orthogonal complement of the eigenspaces has, itself, no eigenvectors
+* `inner_product_space.is_self_adjoint.conj_eigenvalue_eq_self`: the eigenvalues are real
 
-The second part of the file covers properties of self-adjoint operators in finite dimension.
-Letting `T` be a self-adjoint operator on a finite-dimensional inner product space `T`,
-* The definition `is_self_adjoint.diagonalization` provides a linear isometry equivalence `E` to
-  the direct sum of the eigenspaces of `T`.  The theorem
-  `is_self_adjoint.diagonalization_apply_self_apply` states that, when `T` is transferred via this
+The second and third parts of the file cover, respectively, properties of normal operators over `ℂ`
+in finite dimension, and properties of self-adjoint operators over `[is_R_or_C 𝕜]` in finite
+dimension. Letting `T` be a normal (respectively, self-adjoint) operator on a finite-dimensional
+inner product space `T`,
+* The definition `is_star_normal.diagonalization` (resp. `self_adjoint.diagonalization`) provides a
+  linear isometry equivalence from `E` to the direct sum of the eigenspaces of `T`.  The theorem
+  `is_star_normal.diagonalization_apply_self_apply` (resp.
+  `self_adjoint.diagonalization_apply_self_apply`) states that, when `T` is transferred via this
   equivalence to an operator on the direct sum, it acts diagonally.
-* The definition `is_self_adjoint.eigenvector_basis` provides an orthonormal basis for `E`
-  consisting of eigenvectors of `T`, with `is_self_adjoint.eigenvalues` giving the corresponding
-  list of eigenvalues, as real numbers.  The definition `is_self_adjoint.diagonalization_basis`
-  gives the associated linear isometry equivalence from `E` to Euclidean space, and the theorem
-  `is_self_adjoint.diagonalization_basis_apply_self_apply` states that, when `T` is transferred via
+* The definition `is_star_normal.eigenvector_basis` (resp. `self_adjoint.eigenvector_basis`)
+  provides an orthonormal basis for `E` consisting of eigenvectors of `T`, with
+  `is_star_normal.eigenvalues` (resp. `self_adjoint.eigenvalues`) giving the corresponding
+  list of eigenvalues, as complex (resp. real) numbers.  The definition
+  `is_star_normal.diagonalization_basis` (resp. `self_adjoint.diagonalization_basis`) gives the
+  associated linear isometry equivalence from `E` to Euclidean space, and the theorem
+  `is_star_normal.diagonalization_basis_apply_self_apply` (resp.
+  `self_adjoint.diagonalization_basis_apply_self_apply`) states that, when `T` is transferred via
   this equivalence to an operator on Euclidean space, it acts diagonally.
 
-These are forms of the *diagonalization theorem* for self-adjoint operators on finite-dimensional
-inner product spaces.
+The fourth part of the file covers properties of compact self-adjoint operators over `[is_R_or_C 𝕜]`
+on Hilbert spaces in possibly infinite dimension. Letting `T` be a self-adjoint operator on a
+Hilbert space `T`,
+* The definition `self_adjoint.diagonalization'` provides a
+  linear isometry equivalence from `E` to the Hilbert sum of the eigenspaces of `T`.  The theorem
+  `self_adjoint.diagonalization_apply_self_apply'` states that, when `T` is transferred via this
+  equivalence to an operator on the Hilbert sum, it acts diagonally.
+
+These are forms of the **spectral theorem**/**diagonalization theorem** for self-adjoint/normal
+operators on Hilbert spaces.
 
 ## TODO
 
-Spectral theory for compact self-adjoint operators, bounded self-adjoint operators.
+Spectral theory for compact normal operators, bounded normal/self-adjoint operators.
 
 ## Tags
 
-self-adjoint operator, spectral theorem, diagonalization theorem
+self-adjoint operator, normal operator, spectral theorem, diagonalization theorem
 
 -/
 
@@ -228,7 +242,7 @@ hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family
 hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
   hT.is_normal.orthogonal_family_eigenspaces' w
 
-/-- *Diagonalization theorem*, *spectral theorem*; version 1: A normal operator `T` on a
+/-- **Diagonalization theorem**, **spectral theorem**; version 1: A normal operator `T` on a
 finite-dimensional inner product space `F` acts diagonally on the decomposition of `F` into the
 direct sum of the eigenspaces of `T`. -/
 lemma diagonalization_apply_self_apply (v : F) (μ : eigenvalues T) :
@@ -291,7 +305,7 @@ noncomputable def diagonalization_basis : F ≃ₗᵢ[ℂ] euclidean_space ℂ (
   (hT.diagonalization_basis hn).symm w = ∑ i, w i • hT.eigenvector_basis hn i :=
 by simp [diagonalization_basis]
 
-/-- *Diagonalization theorem*, *spectral theorem*; version 2: A normal operator `T` on a
+/-- **Diagonalization theorem**, **spectral theorem**; version 2: A normal operator `T` on a
 finite-dimensional inner product space `F` acts diagonally on the identification of `F` with
 Euclidean space induced by an orthonormal basis of eigenvectors of `T`. -/
 lemma diagonalization_basis_apply_self_apply (v : F) (i : fin n) :
@@ -358,7 +372,7 @@ noncomputable def diagonalization : E ≃ₗᵢ[𝕜] pi_Lp 2 (λ μ : eigenvalu
 (direct_sum_submodule_is_internal hT).isometry_L2_of_orthogonal_family_symm_apply
   (linear_map.is_normal_of_mem_self_adjoint hT).orthogonal_family_eigenspaces' w
 
-/-- *Diagonalization theorem*, *spectral theorem*; version 1: A self-adjoint operator `T` on a
+/-- **Diagonalization theorem**, **spectral theorem**; version 1: A self-adjoint operator `T` on a
 finite-dimensional inner product space `E` acts diagonally on the decomposition of `E` into the
 direct sum of the eigenspaces of `T`. -/
 lemma diagonalization_apply_self_apply (v : E) (μ : eigenvalues T) :
@@ -432,7 +446,7 @@ noncomputable def diagonalization_basis : E ≃ₗᵢ[𝕜] euclidean_space 𝕜
   (diagonalization_basis hT hn).symm w = ∑ i, w i • eigenvector_basis hT hn i :=
 by simp [diagonalization_basis]
 
-/-- *Diagonalization theorem*, *spectral theorem*; version 2: A self-adjoint operator `T` on a
+/-- **Diagonalization theorem**, **spectral theorem**; version 2: A self-adjoint operator `T` on a
 finite-dimensional inner product space `E` acts diagonally on the identification of `E` with
 Euclidean space induced by an orthonormal basis of eigenvectors of `T`. -/
 lemma diagonalization_basis_apply_self_apply (v : E) (i : fin n) :
@@ -486,7 +500,7 @@ begin
   { convert hT'.restrict_invariant hT'.is_normal.orthogonal_supr_eigenspaces_invariant },
   have hT_cpct' : compact_map _ :=
     hT_cpct.restrict_invariant' hT'.is_normal.orthogonal_supr_eigenspaces_invariant,
-  -- a self-adjoint operator on a nontrivial inner product space has an eigenvalue
+  -- a compact self-adjoint operator on a nontrivial inner product space has an eigenvalue
   haveI := hT''.subsingleton_of_no_eigenvalue_of_compact hT_cpct'
     hT'.is_normal.orthogonal_supr_eigenspaces,
   exact submodule.eq_bot_of_subsingleton _,
@@ -537,8 +551,8 @@ end
 
 omit dec_𝕜
 
-/-- **Spectral theorem**; version 1: A compact self-adjoint operator `T` on a Hilbert space `E`
-acts diagonally on the decomposition of `E` into the direct sum of the eigenspaces of `T`. -/
+/-- **Spectral theorem**: A compact self-adjoint operator `T` on a Hilbert space `E`
+acts diagonally on the decomposition of `E` into the Hilbert sum of the eigenspaces of `T`. -/
 lemma diagonalization_apply_self_apply' (v : E) (μ : 𝕜) :
   diagonalization' hT hT_cpct (T v) μ = (μ : 𝕜) • diagonalization' hT hT_cpct v μ :=
 begin

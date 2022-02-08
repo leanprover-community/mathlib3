@@ -31,7 +31,7 @@ Note that a group `G` with Haar measure that is both left and right invariant is
 **unimodular**.
 -/
 
-open set measure_theory topological_space
+open set measure_theory topological_space measure_theory.measure
 
 variables {G : Type*} [group G] [measurable_space G] [topological_space G]
   [topological_group G] [borel_space G]

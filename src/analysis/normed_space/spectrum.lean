@@ -57,6 +57,10 @@ local notation `σ` := spectrum 𝕜
 local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
 
+lemma mem_resolvent_set_of_spectral_radius_lt {a : A} {k : 𝕜} (h : spectral_radius 𝕜 a < ∥k∥₊) :
+  k ∈ ρ a :=
+not_not.mp (λ hn, (lt_self_iff_false _).mp (lt_of_le_of_lt (le_bsupr k hn) h))
+
 lemma is_open_resolvent_set (a : A) : is_open (ρ a) :=
 units.is_open.preimage ((algebra_map_isometry 𝕜 A).continuous.sub continuous_const)
 

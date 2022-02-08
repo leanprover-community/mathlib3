@@ -38,6 +38,7 @@ noncomputable theory
 
 variables {ι : Type*}
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E]
+variables {E' : Type*} [inner_product_space 𝕜 E']
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 /-
@@ -175,6 +176,12 @@ rfl
   (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   ((v.isometry_euclidean_of_orthonormal hv).symm : euclidean_space 𝕜 ι → E) = v.equiv_fun.symm :=
 rfl
+
+@[simp] lemma basis.map_isometry_euclidean_of_orthonormal (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v)
+  (f : E ≃ₗᵢ[𝕜] E') :
+  (v.map f.to_linear_equiv).isometry_euclidean_of_orthonormal (hv.map_linear_isometry_equiv f) =
+    f.symm.trans (v.isometry_euclidean_of_orthonormal hv) :=
+linear_isometry_equiv.to_linear_equiv_injective $ v.map_equiv_fun _
 
 end
 

@@ -44,16 +44,12 @@ lemma sum_neg_one_pow_eq_ite [ring β] {n : ℕ} :
 begin
   induction n with n hn,
   { simp only [range_zero, sum_empty, nat.even_zero, if_true] },
-  rw [sum_range_succ, hn],
-  by_cases (even n.succ),
-  { have := nat.even_succ.mp h,
-    simp only [this, h, if_true, if_false],
-    rw nat.neg_one_pow_of_odd (nat.odd_iff_not_even.mpr this),
-    norm_num },
-  { have := (iff_not_comm.mpr (nat.even_succ)).mpr h,
-    simp only [this, h, if_true, if_false],
-    rw nat.neg_one_pow_of_even this,
-    norm_num }
+  simp_rw [sum_range_succ, hn, nat.even_succ],
+  by_cases even n,
+  all_goals { simp only [h, if_true, if_false, not_true, not_false_iff] },
+  { rw zero_add, exact nat.neg_one_pow_of_even h },
+  { rw [add_eq_zero_iff_neg_eq],
+    exact (nat.neg_one_pow_of_odd (nat.odd_iff_not_even.mpr h)).symm },
 end
 
 variables [comm_monoid β]

@@ -282,7 +282,7 @@ def trivial_topological_vector_bundle_core (ι : Type*) [inhabited ι] :
   topological_vector_bundle_core R B F ι :=
 { base_set := λ ι, univ,
   is_open_base_set := λ i, is_open_univ,
-  index_at := λ x, default ι,
+  index_at := λ x, default,
   mem_base_set_at := λ x, mem_univ x,
   coord_change := λ i j x, linear_map.id,
   coord_change_self := λ i x hx v, rfl,

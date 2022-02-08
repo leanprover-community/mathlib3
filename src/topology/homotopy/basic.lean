@@ -110,6 +110,7 @@ def simps.apply (F : homotopy f₀ f₁) : I × X → Y := F
 
 initialize_simps_projections homotopy (to_continuous_map_to_fun -> apply, -to_continuous_map)
 
+/-- Deprecated. Use `map_continuous` instead. -/
 @[continuity]
 protected lemma continuous (F : homotopy f₀ f₁) : continuous F := F.continuous_to_fun
 

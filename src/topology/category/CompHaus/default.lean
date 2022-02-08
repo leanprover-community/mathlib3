@@ -11,7 +11,6 @@ import category_theory.monad.limits
 import topology.urysohns_lemma
 
 /-!
-⟨set.preimage unop, set.preimage op, sorry, sorry⟩
 # The category of Compact Hausdorff Spaces
 
 We construct the category of compact Hausdorff spaces.

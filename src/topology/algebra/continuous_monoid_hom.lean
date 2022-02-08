@@ -84,6 +84,8 @@ instance : continuous_monoid_hom_class (continuous_monoid_hom α β) α β :=
   map_one := λ f, f.map_one',
   map_continuous := λ f, f.continuous_to_fun }
 
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 @[to_additive] instance : has_coe_to_fun (continuous_monoid_hom A B) (λ _, A → B) :=
 fun_like.has_coe_to_fun
 

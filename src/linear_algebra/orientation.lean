@@ -341,6 +341,17 @@ variables {R}
 @[simp] protected lemma neg_neg [nontrivial R] (x : module.ray R M) : -(-x) = x :=
 quotient.ind (λ a, congr_arg quotient.mk $ ray_vector.neg_neg _) x
 
+variables (R M)
+
+/-- Negating a ray is involutive. -/
+lemma neg_involutive [nontrivial R] : function.involutive (λ x : module.ray R M, -x) :=
+λ x, module.ray.neg_neg x
+
+variables {R M}
+
+protected lemma eq_neg_iff_eq_neg [nontrivial R] (x y : module.ray R M) : x = -y ↔ y = -x :=
+by rw [←module.ray.neg_neg x, (neg_involutive R M).injective.eq_iff, module.ray.neg_neg x, eq_comm]
+
 /-- A ray does not equal its own negation. -/
 lemma ne_neg_self [nontrivial R] [no_zero_smul_divisors R M] (x : module.ray R M) : x ≠ -x :=
 begin

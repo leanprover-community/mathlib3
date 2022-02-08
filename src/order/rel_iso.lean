@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import algebra.group.defs
 import data.equiv.set
-import data.fun_like
+import data.fun_like.basic
 import logic.embedding
 import order.rel_classes
 

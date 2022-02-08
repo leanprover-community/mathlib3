@@ -395,9 +395,8 @@ begin
     tendsto (λ x : ℂ, real.arcsin ((-x).im / x.abs) - π) (𝓝[{z : ℂ | z.im < 0}] z) (𝓝 (-π)),
   { refine H.congr' _,
     have : ∀ᶠ x : ℂ in 𝓝 z, x.re < 0, from continuous_re.tendsto z (gt_mem_nhds hre),
-    filter_upwards [self_mem_nhds_within, mem_nhds_within_of_mem_nhds this],
-    intros w him hre,
-    rw [arg, if_neg hre.not_le, if_neg him.not_le] },
+    filter_upwards [self_mem_nhds_within, mem_nhds_within_of_mem_nhds this] with _ him hre,
+    rw [arg, if_neg hre.not_le, if_neg him.not_le], },
   convert (real.continuous_at_arcsin.comp_continuous_within_at
     ((continuous_im.continuous_at.comp_continuous_within_at continuous_within_at_neg).div
       continuous_abs.continuous_within_at _)).sub tendsto_const_nhds,
@@ -411,8 +410,7 @@ lemma continuous_within_at_arg_of_re_neg_of_im_zero
 begin
   have : arg =ᶠ[𝓝[{z : ℂ | 0 ≤ z.im}] z] λ x, real.arcsin ((-x).im / x.abs) + π,
   { have : ∀ᶠ x : ℂ in 𝓝 z, x.re < 0, from continuous_re.tendsto z (gt_mem_nhds hre),
-    filter_upwards [self_mem_nhds_within, mem_nhds_within_of_mem_nhds this],
-    intros w him hre,
+    filter_upwards [self_mem_nhds_within, mem_nhds_within_of_mem_nhds this] with _ him hre,
     rw [arg, if_neg hre.not_le, if_pos him] },
   refine continuous_within_at.congr_of_eventually_eq _ this _,
   { refine (real.continuous_at_arcsin.comp_continuous_within_at

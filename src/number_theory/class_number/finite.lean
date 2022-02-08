@@ -58,8 +58,7 @@ lemma norm_bound_pos : 0 < norm_bound abv bS :=
 begin
   obtain ⟨i, j, k, hijk⟩ : ∃ i j k,
     algebra.left_mul_matrix bS (bS i) j k ≠ 0,
-  { by_contra h,
-    push_neg at h,
+  { by_contra' h,
     obtain ⟨i⟩ := bS.index_nonempty,
     apply bS.ne_zero i,
     apply (algebra.left_mul_matrix bS).injective_iff.mp (algebra.left_mul_matrix_injective bS),
@@ -110,7 +109,7 @@ begin
   have y'_nonneg : 0 ≤ y' := le_trans (abv.nonneg _) (hy' i),
   apply (int.cast_le.mpr (norm_le abv bS a hy')).trans_lt,
   simp only [int.cast_mul, int.cast_pow],
-  apply mul_lt_mul' (le_refl _),
+  apply mul_lt_mul' le_rfl,
   { exact pow_lt_pow_of_lt_left this
       (int.cast_nonneg.mpr y'_nonneg)
       (fintype.card_pos_iff.mpr ⟨i⟩) },
@@ -267,7 +266,7 @@ begin
   refine ⟨q, r, hr, _⟩,
   refine lt_of_mul_lt_mul_left _
     (show 0 ≤ abv (algebra.norm R (algebra_map R S b')), from abv.nonneg _),
-  refine lt_of_le_of_lt (le_of_eq _) (mul_lt_mul hqr (le_refl _)
+  refine lt_of_le_of_lt (le_of_eq _) (mul_lt_mul hqr le_rfl
     (abv.pos ((algebra.norm_ne_zero_iff_of_basis bS).mpr hb)) (abv.nonneg _)),
   rw [← abv.map_mul, ← monoid_hom.map_mul, ← abv.map_mul, ← monoid_hom.map_mul, ← algebra.smul_def,
       smul_sub b', sub_mul, smul_comm, h, mul_comm b a', algebra.smul_mul_assoc r a' b,
@@ -391,7 +390,7 @@ begin
     (is_integral_closure.range_le_span_dual_basis S b hb_int),
   let bS := b.map ((linear_map.quot_ker_equiv_range _).symm ≪≫ₗ _),
   refine fintype_of_admissible_of_algebraic L bS adm
-    (λ x, (is_fraction_ring.is_algebraic_iff R K).mpr (algebra.is_algebraic_of_finite x)),
+    (λ x, (is_fraction_ring.is_algebraic_iff R K L).mpr (algebra.is_algebraic_of_finite _ _ x)),
   { rw linear_map.ker_eq_bot.mpr,
     { exact submodule.quot_equiv_of_eq_bot _ rfl },
     { exact is_integral_closure.algebra_map_injective _ R _ } },

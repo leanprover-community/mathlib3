@@ -208,8 +208,7 @@ have hpd : p ∣ x * y, from ⟨z, by rwa [mul_right_inj' hp0] at h⟩,
 lemma irreducible.dvd_symm [monoid α] {p q : α}
   (hp : irreducible p) (hq : irreducible q) : p ∣ q → q ∣ p :=
 begin
-  tactic.unfreeze_local_instances,
-  rintros ⟨q', rfl⟩,
+  unfreezingI { rintros ⟨q', rfl⟩ },
   rw is_unit.mul_right_dvd (or.resolve_left (of_irreducible_mul hq) hp.not_unit),
 end
 
@@ -395,6 +394,23 @@ let ⟨u, hu⟩ := h in let ⟨v, hv⟩ := associated.symm h₁ in
 lemma associated.of_mul_right [cancel_comm_monoid_with_zero α] {a b c d : α} :
   a * b ~ᵤ c * d → b ~ᵤ d → b ≠ 0 → a ~ᵤ c :=
 by rw [mul_comm a, mul_comm c]; exact associated.of_mul_left
+
+lemma associated.of_pow_associated_of_prime [cancel_comm_monoid_with_zero α] {p₁ p₂ : α}
+  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₁) (h : p₁ ^ k₁ ~ᵤ p₂ ^ k₂) :
+  p₁ ~ᵤ p₂ :=
+begin
+  have : p₁ ∣ p₂ ^ k₂,
+  { rw ←h.dvd_iff_dvd_right,
+    apply dvd_pow_self _ hk₁.ne' },
+  rw ←hp₁.dvd_prime_iff_associated hp₂,
+  exact hp₁.dvd_of_dvd_pow this,
+end
+
+lemma associated.of_pow_associated_of_prime' [cancel_comm_monoid_with_zero α] {p₁ p₂ : α}
+  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₂ : 0 < k₂) (h : p₁ ^ k₁ ~ᵤ p₂ ^ k₂) :
+  p₁ ~ᵤ p₂ :=
+(h.symm.of_pow_associated_of_prime hp₂ hp₁ hk₂).symm
+
 
 section unique_units
 variables [monoid α] [unique αˣ]

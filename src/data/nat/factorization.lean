@@ -208,7 +208,7 @@ begin
   exact classical.dec_eq ℕ,
 end
 
-lemma prime_pow_dvd_iff_le_factorization (p k n : ℕ) (pp : prime p) (hn : n ≠ 0) :
+lemma prime.pow_dvd_iff_le_factorization {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :
   p ^ k ∣ n ↔ k ≤ n.factorization p :=
 by rw [←factorization_le_iff_dvd (pow_pos pp.pos k).ne' hn, pp.factorization_pow, single_le_iff]
 

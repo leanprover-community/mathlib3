@@ -289,8 +289,10 @@ instance : category_theory.groupoid (fundamental_groupoid X) :=
     (λ a, show ⟦a.trans a.symm⟧ = ⟦path.refl x⟧,
           from quotient.sound ⟨(path.homotopy.refl_trans_symm a).symm⟩) }
 
-lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) :
-  p ≫ q = p.comp q := rfl
+lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) : p ≫ q = p.comp q := rfl
+
+lemma id_eq_path_refl (x : fundamental_groupoid X) : 𝟙 x = ⟦path.refl x⟧ := rfl
+
 /--
 The functor sending a topological space `X` to its fundamental groupoid.
 -/
@@ -320,5 +322,33 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
     simp only [quotient.map_mk, path.map_map, quotient.eq],
     refl,
   end }
+
+localized "notation `π` := fundamental_groupoid.fundamental_groupoid_functor"
+  in fundamental_groupoid
+localized "notation `πₓ` := fundamental_groupoid.fundamental_groupoid_functor.obj"
+  in fundamental_groupoid
+localized "notation `πₘ` := fundamental_groupoid.fundamental_groupoid_functor.map"
+  in fundamental_groupoid
+
+/-- Help the typechecker by converting a point in a groupoid back to a point in
+the underlying topological space. -/
+@[reducible]
+def to_top {X : Top} (x : (πₓ X).α) : X := x
+
+/-- Help the typechecker by converting a point in a topological space to a
+point in the fundamental groupoid of that space -/
+@[reducible]
+def from_top {X : Top} (x : X) : (πₓ X).α := x
+
+/-- Help the typechecker by converting an arrow in the fundamental groupoid of
+a topological space back to a path in that space (i.e., `path.homotopic.quotient`). -/
+@[reducible]
+def to_path {X : Top} {x₀ x₁ : (πₓ X).α} (p : x₀ ⟶ x₁) :
+  path.homotopic.quotient x₀ x₁ := p
+
+/-- Help the typechecker by convering a path in a topological space to an arrow in the
+fundamental groupoid of that space. -/
+@[reducible]
+def from_path {X : Top} {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁) : (x₀ ⟶ x₁) := p
 
 end fundamental_groupoid

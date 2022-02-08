@@ -6,6 +6,7 @@ Authors: Yury Kudryashov
 import measure_theory.measure.complex_lebesgue
 import measure_theory.integral.divergence_theorem
 import measure_theory.integral.circle_integral
+import analysis.calculus.dslope
 import analysis.analytic.basic
 import analysis.complex.re_im_topology
 import data.real.cardinality
@@ -405,22 +406,15 @@ lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable_aux {R : �
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
 begin
   have hR : 0 < R := dist_nonneg.trans_lt hw.1,
-  set F : ℂ → E := update (λ z, (z - w)⁻¹ • (f z - f w)) w (deriv f w),
+  set F : ℂ → E := dslope f w,
   have hws : countable (insert w s) := hs.insert _,
   have hnhds : closed_ball c R ∈ 𝓝 w, from closed_ball_mem_nhds_of_mem hw.1,
   have hcF : continuous_on F (closed_ball c R),
-  { refine continuous_on_update_iff.2 ⟨_, _⟩,
-    { refine ((continuous_on_id.sub continuous_on_const).inv₀ $ λ z hz, sub_ne_zero.2 _).smul
-        ((hc.mono $ diff_subset _ _).sub continuous_on_const), exact hz.2 },
-    { have := has_deriv_at_iff_tendsto_slope.1 (hd _ hw).has_deriv_at,
-      exact λ _, this.mono_left (nhds_within_mono _ (inter_subset_right _ _)) } },
+    from (continuous_on_dslope $ closed_ball_mem_nhds_of_mem hw.1).2 ⟨hc, hd _ hw⟩,
   have hdF : ∀ z ∈ ball (c : ℂ) R \ (insert w s), differentiable_at ℂ F z,
-  { rintro z ⟨hzR, hzws⟩,
-    rw [mem_insert_iff, not_or_distrib] at hzws,
-    refine (((differentiable_at_id.sub_const w).inv $ sub_ne_zero.2 hzws.1).smul
-      ((hd z ⟨hzR, hzws.2⟩).sub_const (f w))).congr_of_eventually_eq _,
-    filter_upwards [is_open_ne.mem_nhds hzws.1],
-    exact λ x hx, update_noteq hx _ _ },
+    from λ z hz, (differentiable_at_dslope_of_ne
+      (ne_of_mem_of_not_mem (mem_insert _ _) hz.2).symm).2
+      (hd _ (diff_subset_diff_right (subset_insert _ _) hz)),
   have HI := circle_integral_eq_zero_of_differentiable_on_off_countable hR.le hws hcF hdF,
   have hne : ∀ z ∈ sphere c R, z ≠ w, from λ z hz, ne_of_mem_of_not_mem hz (ne_of_lt hw.1),
   have hFeq : eq_on F (λ z, (z - w)⁻¹ • f z - (z - w)⁻¹ • f w) (sphere c R),
@@ -571,4 +565,3 @@ protected lemma _root_.differentiable.analytic_at {f : ℂ → E} (hf : differen
 hf.differentiable_on.analytic_at univ_mem
 
 end complex
-

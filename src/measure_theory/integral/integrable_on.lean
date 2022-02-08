@@ -96,7 +96,7 @@ h.mono_measure $ measure.restrict_mono hs hμ
 
 lemma integrable_on.mono_set (h : integrable_on f t μ) (hst : s ⊆ t) :
   integrable_on f s μ :=
-h.mono hst (le_refl _)
+h.mono hst le_rfl
 
 lemma integrable_on.mono_measure (h : integrable_on f s ν) (hμ : μ ≤ ν) :
   integrable_on f s μ :=
@@ -147,9 +147,8 @@ lemma integrable_on.union (hs : integrable_on f s μ) (ht : integrable_on f t μ
   integrable_on f {x} μ ↔ f x = 0 ∨ μ {x} < ∞ :=
 begin
   have : f =ᵐ[μ.restrict {x}] (λ y, f x),
-  { filter_upwards [ae_restrict_mem (measurable_set_singleton x)],
-    assume a ha,
-    simp only [mem_singleton_iff.1 ha] },
+  { filter_upwards [ae_restrict_mem (measurable_set_singleton x)] with _ ha,
+    simp only [mem_singleton_iff.1 ha], },
   rw [integrable_on, integrable_congr this, integrable_const_iff],
   simp,
 end
@@ -176,8 +175,8 @@ by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas
 
 @[simp] lemma integrable_on_add_measure :
   integrable_on f s (μ + ν) ↔ integrable_on f s μ ∧ integrable_on f s ν :=
-⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
-  h.mono_measure (measure.le_add_left (le_refl _))⟩,
+⟨λ h, ⟨h.mono_measure (measure.le_add_right le_rfl),
+  h.mono_measure (measure.le_add_left le_rfl)⟩,
   λ h, h.1.add_measure h.2⟩
 
 lemma _root_.measurable_embedding.integrable_on_map_iff [measurable_space β] {e : α → β}
@@ -446,10 +445,9 @@ begin
   rcases is_compact.exists_bound_of_continuous_on ht hg with ⟨C, hC⟩,
   rw [integrable_on, ← mem_ℒp_one_iff_integrable] at hf ⊢,
   have : ∀ᵐ x ∂(μ.restrict s), ∥f x * g x∥ ≤ C * ∥f x∥,
-  { filter_upwards [ae_restrict_mem hs],
-    assume x hx,
+  { filter_upwards [ae_restrict_mem hs] with x hx,
     rw [real.norm_eq_abs, abs_mul, mul_comm, real.norm_eq_abs],
-    apply mul_le_mul_of_nonneg_right (hC x (hst hx)) (abs_nonneg _) },
+    apply mul_le_mul_of_nonneg_right (hC x (hst hx)) (abs_nonneg _), },
   exact mem_ℒp.of_le_mul hf (hf.ae_measurable.mul ((hg.mono hst).ae_measurable hs)) this,
 end
 

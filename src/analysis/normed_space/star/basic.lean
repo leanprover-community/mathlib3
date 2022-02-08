@@ -130,13 +130,8 @@ by rw [norm_star_mul_self, norm_star]
 
 @[simp] lemma norm_one [nontrivial E] : ∥(1 : E)∥ = 1 :=
 begin
-  cases mul_eq_mul_right_iff.mp
-    (calc 1 * ∥(1 : E)∥ = ∥(1 : E)∥              : one_mul _
-                   ...  = ∥(1 : E)⋆ * 1∥         : by rw [mul_one, star_one]
-                   ...  = ∥(1 : E)∥ * ∥(1 : E)∥  : norm_star_mul_self) with h,
-  { exact h.symm },
-  { exfalso,
-    exact one_ne_zero (norm_eq_zero.mp h) }
+  have : 0 < ∥(1 : E)∥ := norm_pos_iff.mpr one_ne_zero,
+  rw [←mul_left_inj' this.ne', ←norm_star_mul_self, mul_one, star_one, one_mul],
 end
 
 @[priority 100] -- see Note [lower instance priority]
@@ -144,13 +139,8 @@ instance [nontrivial E] : norm_one_class E := ⟨norm_one⟩
 
 lemma norm_coe_unitary [nontrivial E] (U : unitary E) : ∥(U : E)∥ = 1 :=
 begin
-  have := calc
-    ∥(U : E)∥^2 = ∥(U : E)∥ * ∥(U : E)∥ : pow_two _
-           ...  = ∥(U⋆ * U : E)∥        : cstar_ring.norm_star_mul_self.symm
-           ...  = ∥(1 : E)∥             : by rw unitary.coe_star_mul_self
-           ...  = 1                     : cstar_ring.norm_one,
-  refine (sq_eq_sq (norm_nonneg _) zero_le_one).mp _,
-  rw [one_pow 2, this],
+  rw [←sq_eq_sq (norm_nonneg _) zero_le_one, one_pow 2, sq, ←cstar_ring.norm_star_mul_self,
+    unitary.coe_star_mul_self, cstar_ring.norm_one],
 end
 
 @[simp] lemma norm_of_mem_unitary [nontrivial E] {U : E} (hU : U ∈ unitary E) : ∥U∥ = 1 :=
@@ -158,17 +148,13 @@ norm_coe_unitary ⟨U, hU⟩
 
 @[simp] lemma norm_coe_unitary_mul (U : unitary E) (A : E) : ∥(U : E) * A∥ = ∥A∥ :=
 begin
-  by_cases h_nontriv : ∃ (x y : E), x ≠ y,
-  { haveI : nontrivial E := ⟨h_nontriv⟩,
-    refine le_antisymm _ _,
-    { calc _  ≤ ∥(U : E)∥ * ∥A∥     : norm_mul_le _ _
-          ... = ∥A∥                 : by rw [norm_coe_unitary, one_mul] },
-    { calc ∥A∥ = ∥(U : E)⋆ * U * A∥  : by { nth_rewrite_lhs 0 [←one_mul A],
-                                           rw [←unitary.coe_star_mul_self U, mul_assoc] }
-          ... ≤ ∥(U : E)⋆∥ * ∥(U : E) * A∥   : by { rw [mul_assoc], exact norm_mul_le _ _ }
-          ... = ∥(U : E) * A∥   : by simp only [one_mul, norm_coe_unitary, norm_star] } },
-  { push_neg at h_nontriv,
-    rw [h_nontriv (U * A)] }
+  nontriviality E,
+  refine le_antisymm _ _,
+  { calc _  ≤ ∥(U : E)∥ * ∥A∥     : norm_mul_le _ _
+        ... = ∥A∥                 : by rw [norm_coe_unitary, one_mul] },
+  { calc _ = ∥(U : E)⋆ * U * A∥         : by rw [unitary.coe_star_mul_self U, one_mul]
+       ... ≤ ∥(U : E)⋆∥ * ∥(U : E) * A∥ : by { rw [mul_assoc], exact norm_mul_le _ _ }
+       ... = ∥(U : E) * A∥              : by rw [norm_star, norm_coe_unitary, one_mul] },
 end
 
 @[simp] lemma norm_unitary_smul (U : unitary E) (A : E) : ∥U • A∥ = ∥A∥ :=
@@ -178,10 +164,10 @@ lemma norm_mem_unitary_mul {U : E} (A : E) (hU : U ∈ unitary E) : ∥U * A∥ 
 norm_coe_unitary_mul ⟨U, hU⟩ A
 
 @[simp] lemma norm_mul_coe_unitary (A : E) (U : unitary E) : ∥A * U∥ = ∥A∥ :=
-calc _ = ∥star (star (U : E) * star A)∥   : by simp only [star_star, star_mul]
-  ...  = ∥star (U : E) * star A∥          : by rw [norm_star]
-  ...  = ∥star A∥                         : norm_mem_unitary_mul (star A) (unitary.star_mem U.prop)
-  ...  = ∥A∥                              : norm_star
+calc _ = ∥((U : E)⋆ * A⋆)⋆∥ : by simp only [star_star, star_mul]
+  ...  = ∥(U : E)⋆ * A⋆∥    : by rw [norm_star]
+  ...  = ∥A⋆∥               : norm_mem_unitary_mul (star A) (unitary.star_mem U.prop)
+  ...  = ∥A∥                : norm_star
 
 lemma norm_mul_mem_unitary (A : E) {U : E} (hU : U ∈ unitary E) : ∥A * U∥ = ∥A∥ :=
 norm_mul_coe_unitary A ⟨U, hU⟩

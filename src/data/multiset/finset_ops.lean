@@ -185,13 +185,13 @@ theorem le_ndinter {s t u : multiset α} : s ≤ ndinter t u ↔ s ≤ t ∧ s �
 by simp [ndinter, le_filter, subset_iff]
 
 theorem ndinter_le_left (s t : multiset α) : ndinter s t ≤ s :=
-(le_ndinter.1 (le_refl _)).1
+(le_ndinter.1 le_rfl).1
 
 theorem ndinter_subset_left (s t : multiset α) : ndinter s t ⊆ s :=
 subset_of_le (ndinter_le_left s t)
 
 theorem ndinter_subset_right (s t : multiset α) : ndinter s t ⊆ t :=
-(le_ndinter.1 (le_refl _)).2
+(le_ndinter.1 le_rfl).2
 
 theorem ndinter_le_right {s} (t : multiset α) (d : nodup s) : ndinter s t ≤ t :=
 (le_iff_subset $ nodup_ndinter _ d).2 (ndinter_subset_right _ _)

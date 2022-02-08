@@ -176,7 +176,7 @@ lemma measure_theory.is_fundamental_domain.map_restrict_quotient [subgroup.norma
 begin
   let π : G →* G ⧸ Γ := quotient_group.mk' Γ,
   have meas_π : measurable π :=
-    continuous.measurable continuous_quotient_mk, -- projection notation doesn't work here?
+    continuous_quotient_mk.measurable
   have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
   haveI : is_finite_measure (μ.restrict 𝓕) :=
     ⟨by { rw [measure.restrict_apply' 𝓕meas, univ_inter], exact h𝓕_finite }⟩,

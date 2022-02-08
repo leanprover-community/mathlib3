@@ -1556,6 +1556,16 @@ begin
   simp [multiset.erase_dup_le S],
 end
 
+@[to_additive]
+lemma prod_sum {α : Type*} {ι : Type*} [comm_monoid α] (f : ι → multiset α) (s : finset ι) :
+  (∑ x in s, f x).prod = ∏ x in s, (f x).prod :=
+begin
+  classical,
+  induction s using finset.induction_on with a t hat ih,
+  { rw [finset.sum_empty, finset.prod_empty, multiset.prod_zero] },
+  { rw [finset.sum_insert hat, finset.prod_insert hat, multiset.prod_add, ih] }
+end
+
 end multiset
 
 @[simp, norm_cast] lemma nat.cast_sum [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :

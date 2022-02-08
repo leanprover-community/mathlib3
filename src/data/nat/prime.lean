@@ -234,7 +234,7 @@ theorem min_fac_aux_has_prop {n : ℕ} (n2 : 2 ≤ n) :
     { subst me, contradiction },
     apply (nat.eq_or_lt_of_le ml).resolve_left, intro me,
     rw [← me, e] at d, change 2 * (i + 2) ∣ n at d,
-    have := a _ (le_refl _) (dvd_of_mul_right_dvd d),
+    have := a _ le_rfl (dvd_of_mul_right_dvd d),
     rw e at this, exact absurd this dec_trivial }
 end
 using_well_founded {rel_tac :=
@@ -247,7 +247,7 @@ begin
   have n2 : 2 ≤ n, { revert n0 n1, rcases n with _|_|_; exact dec_trivial },
   simp [min_fac_eq],
   by_cases d2 : 2 ∣ n; simp [d2],
-  { exact ⟨le_refl _, d2, λ k k2 d, k2⟩ },
+  { exact ⟨le_rfl, d2, λ k k2 d, k2⟩ },
   { refine min_fac_aux_has_prop n2 3 0 rfl
       (λ m m2 d, (nat.eq_or_lt_of_le m2).resolve_left (mt _ d2)),
     exact λ e, e.symm ▸ d }
@@ -1016,7 +1016,7 @@ factors_helper_cons _ _ _ _ _ (mul_one _) h₁ h₂ (factors_helper_nil _)
 
 lemma factors_helper_same (n m a : ℕ) (l : list ℕ) (h : a * m = n)
   (H : factors_helper m a l) : factors_helper n a (a :: l) :=
-λ pa, factors_helper_cons' _ _ _ _ _ h (le_refl _) (nat.prime_def_min_fac.1 pa).2 H pa
+λ pa, factors_helper_cons' _ _ _ _ _ h le_rfl (nat.prime_def_min_fac.1 pa).2 H pa
 
 lemma factors_helper_same_sn (a : ℕ) : factors_helper a a [a] :=
 factors_helper_same _ _ _ _ (mul_one _) (factors_helper_nil _)

@@ -306,7 +306,7 @@ by classical; exact decidable.le_mul_of_one_le_left
 protected lemma decidable.lt_mul_of_one_lt_right [@decidable_rel α (≤)]
   (hb : 0 < b) (h : 1 < a) : b < b * a :=
 suffices b * 1 < b * a, by rwa mul_one at this,
-decidable.mul_lt_mul' (le_refl _) h zero_le_one hb
+decidable.mul_lt_mul' le_rfl h zero_le_one hb
 
 lemma lt_mul_of_one_lt_right : 0 < b → 1 < a → b < b * a :=
 by classical; exact decidable.lt_mul_of_one_lt_right
@@ -315,7 +315,7 @@ by classical; exact decidable.lt_mul_of_one_lt_right
 protected lemma decidable.lt_mul_of_one_lt_left [@decidable_rel α (≤)]
   (hb : 0 < b) (h : 1 < a) : b < a * b :=
 suffices 1 * b < a * b, by rwa one_mul at this,
-decidable.mul_lt_mul h (le_refl _) hb (zero_le_one.trans h.le)
+decidable.mul_lt_mul h le_rfl hb (zero_le_one.trans h.le)
 
 lemma lt_mul_of_one_lt_left : 0 < b → 1 < a → b < a * b :=
 by classical; exact decidable.lt_mul_of_one_lt_left

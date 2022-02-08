@@ -154,6 +154,14 @@ uniform_continuous_of_tendsto_one $
   (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (u * v) :=
 uniform_continuous_mul.comp_cauchy_seq (hu.prod hv)
 
+@[to_additive] lemma cauchy_seq.mul_const {ι : Type*} [semilattice_sup ι] [nonempty ι]
+  {u : ι → α} {x : α} (hu : cauchy_seq u) : cauchy_seq (λ n, u n * x) :=
+uniform_continuous_mul.comp_cauchy_seq (hu.prod $ cauchy_seq_const x)
+
+@[to_additive] lemma cauchy_seq.const_mul {ι : Type*} [semilattice_sup ι] [nonempty ι]
+  {u : ι → α} {x : α} (hu : cauchy_seq u) : cauchy_seq (λ n, x * u n) :=
+uniform_continuous_mul.comp_cauchy_seq ((cauchy_seq_const x).prod hu)
+
 lemma cauchy_seq.neg {ι : Type*} [add_group α] [uniform_add_group α] [semilattice_sup ι]
   {u : ι → α} (h : cauchy_seq u) : cauchy_seq (-u) :=
 uniform_continuous_neg.comp_cauchy_seq h

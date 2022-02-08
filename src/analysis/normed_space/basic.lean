@@ -94,6 +94,14 @@ variables [semi_normed_ring α]
 lemma norm_mul_le (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 semi_normed_ring.norm_mul _ _
 
+lemma nnnorm_mul_le (a b : α) : ∥a * b∥₊ ≤ ∥a∥₊ * ∥b∥₊ :=
+by simpa only [←norm_to_nnreal, ←real.to_nnreal_mul (norm_nonneg _)]
+  using real.to_nnreal_mono (norm_mul_le _ _)
+
+lemma nnnorm_pow_succ_le (a : α) (n : ℕ) : ∥a ^ n.succ∥₊ ≤ ∥a∥₊ ^ n.succ :=
+nat.rec_on n (by simp only [pow_one]) $ λ k hk,
+  by simpa only [pow_succ] using le_trans (nnnorm_mul_le _ _) (mul_le_mul_left' hk _)
+
 /-- A subalgebra of a seminormed ring is also a seminormed ring, with the restriction of the norm.
 
 See note [implicit instance arguments]. -/

@@ -122,23 +122,6 @@ begin
     rwa [←hι', card_ord] at this }
 end
 
-theorem le_cof_iff_blsub' {b : ordinal} {a : cardinal} :
-  a ≤ cof b ↔ ∀ {o} {f : Π a < o, ordinal} (hf : ∀ x hx y hy, x < y → f x hx < f y hy),
-  blsub.{u u} o f = b → a ≤ o.card :=
-begin
-  rw le_cof_iff_blsub,
-  use λ H o f h, H f,
-  intros H o f h,
-  let g : Π a < o, ordinal.{u} := λ a ha, begin
-    apply @well_founded.fix _ (λ _, ordinal.{u}) _ wf (λ x g, begin
-      
-    end),
-  end,
-end
-
-theorem lift_cof (o) : cardinal.lift.{v u} (cof.{u} o) = cof.{max u v} (ordinal.lift.{v u} o) :=
-sorry
-
 @[simp] theorem cof_zero : cof 0 = 0 :=
 le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
 
@@ -184,6 +167,9 @@ begin
   { rintro ⟨a, rfl⟩,
     exact cof_succ a }
 end
+
+theorem lift_cof (o) : cardinal.lift.{v u} (cof.{u} o) = cof.{max u v} (ordinal.lift.{v u} o) :=
+sorry
 
 -- TODO: Put elsewhere.
 theorem add_le_of_forall_add_lt {a b c : ordinal} (hb : b ≠ 0) (h : ∀ d < b, a + d < c) :
@@ -233,6 +219,9 @@ begin
       apply lt_lsub } }
 end
 
+def bsort_aux {o : ordinal.{u}} (f : Π a < o, ordinal) : ordinal → ordinal :=
+enum_ord (brange f)
+
 @[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=
 le_antisymm ((cof_le_card _).trans (by simp)) $
 begin
@@ -251,7 +240,21 @@ begin
     },{
       apply le_of_forall_lt,
       intros b hb,
-      have := lt_blsub.{u u} f,
+      rw ←hg at hb,
+      apply hb.trans_le,
+      rw blsub_le,
+      intros c hc,
+      have hg' : ∀ a ha b hb, a ≤ b → g a ha ≤ g b hb := sorry,
+      suffices : ∃ i hi, c ≤ f i hi, {
+        rcases this with ⟨i, hi, hc'⟩,
+        apply (hg' c hc (f i hi) (by { rw ←hf, apply lt_blsub }) hc').trans_lt,
+        apply lt_blsub.{u u},
+      },
+      by_contra h,
+      simp at h,
+      rw ←blsub_le.{u u} at h,
+      rw ←hf at hc,
+      exact h.not_lt hc,
     }
   }
 end
@@ -268,69 +271,21 @@ begin
     cases n,
     { simp at e, simpa [e, not_zero_is_limit] using l },
     { rw [← nat_cast_succ, cof_succ] at this,
-      rw [← this, exists_lsub_cof_one_iff_is_succ] at e,
+      rw [← this, cof_succ_iff] at e,
       rcases e with ⟨a, rfl⟩,
       exact not_succ_is_limit _ l } }
 end
 
 @[simp] theorem cof_omega : cof omega = ω :=
 le_antisymm
-  (by rw ← card_omega; apply cof_lsub_le_card)
+  (by rw ← card_omega; apply cof_le_card)
   (omega_le_cof.2 omega_is_limit)
 
-theorem exists_lsub_cof' (r : α → α → Prop) [is_well_order α r] (h : is_limit (type r)) :
-  ∃ S : set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = cof (type r) :=
-let ⟨S, H, e⟩ := exists_lsub_cof r in
-⟨S, λ a,
-  let a' := enum r _ (h.2 _ (typein_lt_type r a)) in
-  let ⟨b, h, ab⟩ := H a' in
-  ⟨b, h, (is_order_connected.conn a b a' $ (typein_lt_typein r).1
-    (by rw typein_enum; apply ordinal.lt_succ_self)).resolve_right ab⟩,
-e⟩
-
-theorem cof_sup_le_lift {ι} (f : ι → ordinal) (H : ∀ i, f i < sup f) :
-  cof (sup f) ≤ (#ι).lift :=
-begin
-  generalize e : sup f = o,
-  refine ordinal.induction_on o _ e, introsI α r _ e',
-  rw e' at H,
-  refine le_trans (cof_type_le (set.range (λ i, enum r _ (H i))) _)
-    ⟨embedding.of_surjective _ _⟩,
-  { intro a, by_contra h,
-    apply not_le_of_lt (typein_lt_type r a),
-    rw [← e', sup_le],
-    intro i,
-    have h : ∀ (x : ι), r (enum r (f x) _) a, { simpa using h },
-    simpa only [typein_enum] using le_of_lt ((typein_lt_typein r).2 (h i)) },
-  { exact λ i, ⟨_, set.mem_range_self i.1⟩ },
-  { intro a, rcases a with ⟨_, i, rfl⟩, exact ⟨⟨i⟩, by simp⟩ }
-end
-
-theorem cof_sup_le {ι} (f : ι → ordinal) (H : ∀ i, f i < sup.{u u} f) :
-  cof (sup.{u u} f) ≤ #ι :=
-by simpa using cof_sup_le_lift.{u u} f H
-
-theorem cof_bsup_le_lift {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup o f) →
-  cof (bsup o f) ≤ o.card.lift :=
-induction_on o $ λ α r _ f H,
-begin
-  resetI,
-  rw bsup_eq_sup' r rfl,
-  refine cof_sup_le_lift _ _,
-  rw ← bsup_eq_sup',
-  exact λ a, H _ _
-end
-
-theorem cof_bsup_le {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup.{u u} o f) →
-  cof (bsup.{u u} o f) ≤ o.card :=
-induction_on o $ λ α r _ f H,
-by simpa using cof_bsup_le_lift.{u u} f H
-
 @[simp] theorem cof_univ : cof univ.{u v} = cardinal.univ :=
-le_antisymm (cof_lsub_le_card _) begin
+le_antisymm (cof_le_card _) begin
   refine le_of_forall_lt (λ c h, _),
   rcases lt_univ'.1 h with ⟨c, rfl⟩,
-  rcases @exists_lsub_cof ordinal.{u} (<) _ with ⟨S, H, Se⟩,
+  rcases exists_lsub_cof univ.{u v} with ⟨S, H, Se⟩,
   rw [univ, ← lift_cof, ← cardinal.lift_lift, cardinal.lift_lt, ← Se],
   refine lt_of_not_ge (λ h, _),
   cases cardinal.lift_down h with a e,
@@ -564,7 +519,7 @@ theorem is_inaccessible.mk {c}
 ⟨h₁, ⟨le_of_lt h₁, le_antisymm (cof_ord_le _) h₂⟩,
   ne_of_gt (lt_trans omega_pos h₁), h₃⟩
 
-/- Lean's foundations prove the existence of ω many inaccessible cardinals -/
+/-- Lean's foundations prove the existence of `ω` many inaccessible cardinals. -/
 theorem univ_inaccessible : is_inaccessible (univ.{u v}) :=
 is_inaccessible.mk
   (by simpa using lift_lt_univ' ω)

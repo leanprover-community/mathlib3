@@ -82,10 +82,9 @@ begin
   simp_rw aux1,
 end
 
-lemma slash_k_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ ) : (f +g )  ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
+lemma slash_k_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) : (f + g) ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
 begin
-  simp_rw slash_k,
-  simp only [pi.add_apply, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe],
+  simp only [slash_k, pi.add_apply, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe],
   ext1,
   simp only [pi.add_apply],
   ring,
@@ -234,7 +233,7 @@ end
 
 lemma mul_modular  (k_1 k_2 : ℤ) (Γ : subgroup SL(2,ℤ)) (f g : ℍ → ℂ)
   (hf : f ∈  weakly_modular_submodule k_1 Γ)  (hg : g ∈ weakly_modular_submodule k_2 Γ) :
-  f*g  ∈  weakly_modular_submodule (k_1+k_2) Γ :=
+  f * g  ∈  weakly_modular_submodule (k_1+k_2) Γ :=
 begin
   simp only [wmodular_mem', pi.mul_apply, coe_coe] at *,
   intros γ z,
@@ -434,8 +433,6 @@ begin
  exact dec_trivial,
 end
 
-
-
 /--The extension of a function from `ℍ` to `ℍ'`-/
 def hol_extn (f : ℍ → ℂ) : ℍ' → ℂ := λ (z : ℍ'), (f (z : ℍ) )
 
@@ -471,7 +468,6 @@ begin
   intros h,
   apply mk Γ k f h.1 h.2.1 h.2.2,
 end
-
 
   /-- The zero modular form is a modular form-/
 lemma zero_mod_form :  (is_modular_form_of_lvl_and_weight Γ   (k : ℤ) ) (zero_form ):=

@@ -225,14 +225,6 @@ begin
   exact h₀ (eq_zero_iff_abs_lt_one.mp h),
 end
 
-lemma is_zero_or_one_of_nonneg_of_le_one {z : ℤ} (h₀ : 0 ≤ z) (h₁ : z ≤ 1) : z = 0 ∨ z = 1 :=
-begin
-  lift z to ℕ using h₀,
-  norm_cast at h₁,
-  exact_mod_cast nat.is_zero_or_one_of_le_one h₁,
-end
-
-
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀ i : ℕ, p i → p (i + 1)) (hn : ∀ i : ℕ, p (-i) → p (-i - 1)) : p i :=
 begin

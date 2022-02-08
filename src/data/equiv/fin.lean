@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.fin
+import data.fin.vec_notation
 import data.equiv.basic
 import tactic.norm_num
 
@@ -11,7 +11,7 @@ import tactic.norm_num
 # Equivalences for `fin n`
 -/
 
-universe variables u
+universes u
 
 variables {m n : ℕ}
 
@@ -42,9 +42,55 @@ def fin_two_equiv : fin 2 ≃ bool :=
     { rw ← fin.succ_zero_eq_one, refl }
   end⟩
 
+/-- `Π i : fin 2, α i` is equivalent to `α 0 × α 1`. See also `fin_two_arrow_equiv` for a
+non-dependent version and `prod_equiv_pi_fin_two` for a version with inputs `α β : Type u`. -/
+@[simps {fully_applied := ff}] def pi_fin_two_equiv (α : fin 2 → Type u) : (Π i, α i) ≃ α 0 × α 1 :=
+{ to_fun := λ f, (f 0, f 1),
+  inv_fun := λ p, fin.cons p.1 $ fin.cons p.2 fin_zero_elim,
+  left_inv := λ f, funext $ fin.forall_fin_two.2 ⟨rfl, rfl⟩,
+  right_inv := λ ⟨x, y⟩, rfl }
+
+lemma fin.preimage_apply_01_prod {α : fin 2 → Type u} (s : set (α 0)) (t : set (α 1)) :
+  (λ f : Π i, α i, (f 0, f 1)) ⁻¹' (s ×ˢ t) =
+    set.pi set.univ (fin.cons s $ fin.cons t fin.elim0) :=
+begin
+  ext f,
+  have : (fin.cons s (fin.cons t fin.elim0) : Π i, set (α i)) 1 = t := rfl,
+  simp [fin.forall_fin_two, this]
+end
+
+lemma fin.preimage_apply_01_prod' {α : Type u} (s t : set α) :
+  (λ f : fin 2 → α, (f 0, f 1)) ⁻¹' (s ×ˢ t) = set.pi set.univ ![s, t] :=
+fin.preimage_apply_01_prod s t
+
+/-- A product space `α × β` is equivalent to the space `Π i : fin 2, γ i`, where
+`γ = fin.cons α (fin.cons β fin_zero_elim)`. See also `pi_fin_two_equiv` and
+`fin_two_arrow_equiv`. -/
+@[simps {fully_applied := ff }] def prod_equiv_pi_fin_two (α β : Type u) :
+  α × β ≃ Π i : fin 2, ![α, β] i :=
+(pi_fin_two_equiv (fin.cons α (fin.cons β fin_zero_elim))).symm
+
+/-- The space of functions `fin 2 → α` is equivalent to `α × α`. See also `pi_fin_two_equiv` and
+`prod_equiv_pi_fin_two`. -/
+@[simps { fully_applied := ff }] def fin_two_arrow_equiv (α : Type*) : (fin 2 → α) ≃ α × α :=
+{ inv_fun := λ x, ![x.1, x.2],
+  .. pi_fin_two_equiv (λ _, α) }
+
+/-- `Π i : fin 2, α i` is order equivalent to `α 0 × α 1`. See also `order_iso.fin_two_arrow_equiv`
+for a non-dependent version. -/
+def order_iso.pi_fin_two_iso (α : fin 2 → Type u) [Π i, preorder (α i)] :
+  (Π i, α i) ≃o α 0 × α 1 :=
+{ to_equiv := pi_fin_two_equiv α,
+  map_rel_iff' := λ f g, iff.symm fin.forall_fin_two }
+
+/-- The space of functions `fin 2 → α` is order equivalent to `α × α`. See also
+`order_iso.pi_fin_two_iso`. -/
+def order_iso.fin_two_arrow_iso (α : Type*) [preorder α] : (fin 2 → α) ≃o α × α :=
+{ to_equiv := fin_two_arrow_equiv α, .. order_iso.pi_fin_two_iso (λ _, α) }
+
 /-- The 'identity' equivalence between `fin n` and `fin m` when `n = m`. -/
 def fin_congr {n m : ℕ} (h : n = m) : fin n ≃ fin m :=
-equiv.subtype_equiv_right (λ x, by subst h)
+(fin.cast h).to_equiv
 
 @[simp] lemma fin_congr_apply_mk {n m : ℕ} (h : n = m) (k : ℕ) (w : k < n) :
   fin_congr h ⟨k, w⟩ = ⟨k, by { subst h, exact w }⟩ :=
@@ -64,62 +110,56 @@ by { cases k, refl, }
 /-- An equivalence that removes `i` and maps it to `none`.
 This is a version of `fin.pred_above` that produces `option (fin n)` instead of
 mapping both `i.cast_succ` and `i.succ` to `i`. -/
-def fin_succ_equiv' {n : ℕ} (i : fin n) :
+def fin_succ_equiv' {n : ℕ} (i : fin (n + 1)) :
   fin (n + 1) ≃ option (fin n) :=
-{ to_fun := λ x, if x = i.cast_succ then none else some (i.pred_above x),
-  inv_fun := λ x, x.cases_on' i.cast_succ (fin.succ_above i.cast_succ),
-  left_inv := λ x, if h : x = i.cast_succ then by simp [h]
-                   else by simp [h, fin.succ_above_ne],
-  right_inv := λ x, by { cases x; simp [fin.succ_above_ne] }}
+{ to_fun := i.insert_nth none some,
+  inv_fun := λ x, x.cases_on' i (fin.succ_above i),
+  left_inv := λ x, fin.succ_above_cases i (by simp) (λ j, by simp) x,
+  right_inv := λ x, by cases x; dsimp; simp }
 
 @[simp] lemma fin_succ_equiv'_at {n : ℕ} (i : fin (n + 1)) :
-  (fin_succ_equiv' i) i.cast_succ = none := by simp [fin_succ_equiv']
+  (fin_succ_equiv' i) i = none := by simp [fin_succ_equiv']
 
-lemma fin_succ_equiv'_below {n : ℕ} {i m : fin (n + 1)} (h : m < i) :
+@[simp] lemma fin_succ_equiv'_succ_above {n : ℕ} (i : fin (n + 1)) (j : fin n) :
+  fin_succ_equiv' i (i.succ_above j) = some j :=
+@fin.insert_nth_apply_succ_above n (λ _, option (fin n)) i _ _ _
+
+lemma fin_succ_equiv'_below {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : m.cast_succ < i) :
   (fin_succ_equiv' i) m.cast_succ = some m :=
-begin
-  have : m.cast_succ ≤ i.cast_succ := h.le,
-  simp [fin_succ_equiv', h.ne, fin.pred_above_below, this]
-end
+by rw [← fin.succ_above_below _ _ h, fin_succ_equiv'_succ_above]
 
-lemma fin_succ_equiv'_above {n : ℕ} {i m : fin (n + 1)} (h : i ≤ m) :
+lemma fin_succ_equiv'_above {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : i ≤ m.cast_succ) :
   (fin_succ_equiv' i) m.succ = some m :=
-begin
-  have : i.cast_succ < m.succ,
-    { refine (lt_of_le_of_lt _ m.cast_succ_lt_succ), exact h },
-  simp [fin_succ_equiv', this, fin.pred_above_above, ne_of_gt]
-end
+by rw [← fin.succ_above_above _ _ h, fin_succ_equiv'_succ_above]
 
 @[simp] lemma fin_succ_equiv'_symm_none {n : ℕ} (i : fin (n + 1)) :
-  (fin_succ_equiv' i).symm none = i.cast_succ := rfl
+  (fin_succ_equiv' i).symm none = i := rfl
 
-lemma fin_succ_equiv_symm'_some_below {n : ℕ} {i m : fin (n + 1)} (h : m < i) :
+@[simp] lemma fin_succ_equiv'_symm_some {n : ℕ} (i : fin (n + 1)) (j : fin n) :
+  (fin_succ_equiv' i).symm (some j) = i.succ_above j :=
+rfl
+
+lemma fin_succ_equiv'_symm_some_below {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : m.cast_succ < i) :
   (fin_succ_equiv' i).symm (some m) = m.cast_succ :=
-by simp [fin_succ_equiv', ne_of_gt h, fin.succ_above, not_le_of_gt h]
+fin.succ_above_below i m h
 
-lemma fin_succ_equiv_symm'_some_above {n : ℕ} {i m : fin (n + 1)} (h : i ≤ m) :
+lemma fin_succ_equiv'_symm_some_above {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : i ≤ m.cast_succ) :
   (fin_succ_equiv' i).symm (some m) = m.succ :=
-by simp [fin_succ_equiv', fin.succ_above, h.not_lt]
+fin.succ_above_above i m h
 
-lemma fin_succ_equiv_symm'_coe_below {n : ℕ} {i m : fin (n + 1)} (h : m < i) :
+lemma fin_succ_equiv'_symm_coe_below {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : m.cast_succ < i) :
   (fin_succ_equiv' i).symm m = m.cast_succ :=
-by { convert fin_succ_equiv_symm'_some_below h; simp }
+fin_succ_equiv'_symm_some_below h
 
-lemma fin_succ_equiv_symm'_coe_above {n : ℕ} {i m : fin (n + 1)} (h : i ≤ m) :
+lemma fin_succ_equiv'_symm_coe_above {n : ℕ} {i : fin (n + 1)} {m : fin n} (h : i ≤ m.cast_succ) :
   (fin_succ_equiv' i).symm m = m.succ :=
-by { convert fin_succ_equiv_symm'_some_above h; simp }
+fin_succ_equiv'_symm_some_above h
 
 /-- Equivalence between `fin (n + 1)` and `option (fin n)`.
 This is a version of `fin.pred` that produces `option (fin n)` instead of
 requiring a proof that the input is not `0`. -/
--- TODO: make the `n = 0` case neater
 def fin_succ_equiv (n : ℕ) : fin (n + 1) ≃ option (fin n) :=
-nat.cases_on n
-{ to_fun := λ _, none,
-  inv_fun := λ _, 0,
-  left_inv := λ _, by simp,
-  right_inv := λ x, by { cases x, simp, exact x.elim0 } }
-(λ _, fin_succ_equiv' 0)
+fin_succ_equiv' 0
 
 @[simp] lemma fin_succ_equiv_zero {n : ℕ} :
   (fin_succ_equiv n) 0 = none :=
@@ -127,21 +167,15 @@ by cases n; refl
 
 @[simp] lemma fin_succ_equiv_succ {n : ℕ} (m : fin n):
   (fin_succ_equiv n) m.succ = some m :=
-begin
-  cases n, { exact m.elim0 },
-  convert fin_succ_equiv'_above m.zero_le
-end
+fin_succ_equiv'_above (fin.zero_le _)
 
 @[simp] lemma fin_succ_equiv_symm_none {n : ℕ} :
   (fin_succ_equiv n).symm none = 0 :=
-by cases n; refl
+fin_succ_equiv'_symm_none _
 
 @[simp] lemma fin_succ_equiv_symm_some {n : ℕ} (m : fin n) :
   (fin_succ_equiv n).symm (some m) = m.succ :=
-begin
-  cases n, { exact m.elim0 },
-  convert fin_succ_equiv_symm'_some_above m.zero_le
-end
+congr_fun fin.succ_above_zero m
 
 @[simp] lemma fin_succ_equiv_symm_coe {n : ℕ} (m : fin n) :
   (fin_succ_equiv n).symm m = m.succ :=
@@ -149,68 +183,77 @@ fin_succ_equiv_symm_some m
 
 /-- The equiv version of `fin.pred_above_zero`. -/
 lemma fin_succ_equiv'_zero {n : ℕ} :
-  fin_succ_equiv' (0 : fin (n + 1)) = fin_succ_equiv (n + 1) := rfl
+  fin_succ_equiv' (0 : fin (n + 1)) = fin_succ_equiv n := rfl
+
+/-- `equiv` between `fin (n + 1)` and `option (fin n)` sending `fin.last n` to `none` -/
+def fin_succ_equiv_last {n : ℕ} : fin (n + 1) ≃ option (fin n) :=
+fin_succ_equiv' (fin.last n)
+
+@[simp] lemma fin_succ_equiv_last_cast_succ {n : ℕ} (i : fin n) :
+  fin_succ_equiv_last i.cast_succ = some i :=
+fin_succ_equiv'_below i.2
+
+@[simp] lemma fin_succ_equiv_last_last {n : ℕ} :
+  fin_succ_equiv_last (fin.last n) = none :=
+by simp [fin_succ_equiv_last]
+
+@[simp] lemma fin_succ_equiv_last_symm_some {n : ℕ} (i : fin n) :
+  fin_succ_equiv_last.symm (some i) = i.cast_succ :=
+fin_succ_equiv'_symm_some_below i.2
+
+@[simp] lemma fin_succ_equiv_last_symm_coe {n : ℕ} (i : fin n) :
+  fin_succ_equiv_last.symm ↑i = i.cast_succ :=
+fin_succ_equiv'_symm_some_below i.2
+
+@[simp] lemma fin_succ_equiv_last_symm_none {n : ℕ}  :
+  fin_succ_equiv_last.symm none = fin.last n :=
+fin_succ_equiv'_symm_none _
 
 /-- Equivalence between `fin m ⊕ fin n` and `fin (m + n)` -/
 def fin_sum_fin_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
-{ to_fun := λ x, sum.rec_on x
-    (λ y, ⟨y.1, nat.lt_of_lt_of_le y.2 $ nat.le_add_right m n⟩)
-    (λ y, ⟨m + y.1, nat.add_lt_add_left y.2 m⟩),
-  inv_fun := λ x, if H : x.1 < m
-    then sum.inl ⟨x.1, H⟩
-    else sum.inr ⟨x.1 - m, nat.lt_of_add_lt_add_left $
-      show m + (x.1 - m) < m + n,
-      from (nat.add_sub_of_le $ le_of_not_gt H).symm ▸ x.2⟩,
-  left_inv := λ x, begin
-    cases x with y y,
-    { simp [fin.ext_iff, y.is_lt], },
-    { have H : ¬m + y.val < m := not_lt_of_ge (nat.le_add_right _ _),
-      simp [H, nat.add_sub_cancel_left, fin.ext_iff] }
-  end,
-  right_inv := λ x, begin
-    by_cases H : (x:ℕ) < m,
-    { dsimp, rw [dif_pos H], simp },
-    { dsimp, rw [dif_neg H], simp [fin.ext_iff, nat.add_sub_of_le (le_of_not_gt H)] }
-  end }
+{ to_fun := sum.elim (fin.cast_add n) (fin.nat_add m),
+  inv_fun := λ i, @fin.add_cases m n (λ _, fin m ⊕ fin n) sum.inl sum.inr i,
+  left_inv := λ x, by { cases x with y y; dsimp; simp },
+  right_inv := λ x, by refine fin.add_cases (λ i, _) (λ i, _) x; simp }
 
-@[simp] lemma fin_sum_fin_equiv_apply_left (x : fin m) :
-  @fin_sum_fin_equiv m n (sum.inl x) = ⟨x.1, nat.lt_of_lt_of_le x.2 $ nat.le_add_right m n⟩ :=
-rfl
+@[simp] lemma fin_sum_fin_equiv_apply_left (i : fin m) :
+  (fin_sum_fin_equiv (sum.inl i) : fin (m + n)) = fin.cast_add n i := rfl
 
-@[simp] lemma fin_sum_fin_equiv_apply_right (x : fin n) :
-  @fin_sum_fin_equiv m n (sum.inr x) = ⟨m + x.1, nat.add_lt_add_left x.2 m⟩ :=
-rfl
+@[simp] lemma fin_sum_fin_equiv_apply_right (i : fin n) :
+  (fin_sum_fin_equiv (sum.inr i) : fin (m + n)) = fin.nat_add m i := rfl
 
-@[simp] lemma fin_sum_fin_equiv_symm_apply_left (x : fin (m + n)) (h : ↑x < m) :
-  fin_sum_fin_equiv.symm x = sum.inl ⟨x.1, h⟩ :=
-by simp [fin_sum_fin_equiv, dif_pos h]
+@[simp] lemma fin_sum_fin_equiv_symm_apply_cast_add (x : fin m) :
+  fin_sum_fin_equiv.symm (fin.cast_add n x) = sum.inl x :=
+fin_sum_fin_equiv.symm_apply_apply (sum.inl x)
 
-@[simp] lemma fin_sum_fin_equiv_symm_apply_right (x : fin (m + n)) (h : m ≤ ↑x) :
-  fin_sum_fin_equiv.symm x = sum.inr ⟨x.1 - m, nat.lt_of_add_lt_add_left $
-      show m + (x.1 - m) < m + n, from (nat.add_sub_of_le $ h).symm ▸ x.2⟩ :=
-by simp [fin_sum_fin_equiv, dif_neg (not_lt.mpr h)]
+@[simp] lemma fin_sum_fin_equiv_symm_apply_nat_add (x : fin n) :
+  fin_sum_fin_equiv.symm (fin.nat_add m x) = sum.inr x :=
+fin_sum_fin_equiv.symm_apply_apply (sum.inr x)
 
 /-- The equivalence between `fin (m + n)` and `fin (n + m)` which rotates by `n`. -/
 def fin_add_flip : fin (m + n) ≃ fin (n + m) :=
 (fin_sum_fin_equiv.symm.trans (equiv.sum_comm _ _)).trans fin_sum_fin_equiv
 
-@[simp] lemma fin_add_flip_apply_left {k : ℕ} (h : k < m)
+@[simp] lemma fin_add_flip_apply_cast_add (k : fin m) (n : ℕ) :
+  fin_add_flip (fin.cast_add n k) = fin.nat_add n k :=
+by simp [fin_add_flip]
+
+@[simp] lemma fin_add_flip_apply_nat_add (k : fin n) (m : ℕ) :
+  fin_add_flip (fin.nat_add m k) = fin.cast_add m k :=
+by simp [fin_add_flip]
+
+@[simp] lemma fin_add_flip_apply_mk_left {k : ℕ} (h : k < m)
   (hk : k < m + n := nat.lt_add_right k m n h)
   (hnk : n + k < n + m := add_lt_add_left h n) :
   fin_add_flip (⟨k, hk⟩ : fin (m + n)) = ⟨n + k, hnk⟩ :=
-begin
-  dsimp [fin_add_flip, fin_sum_fin_equiv],
-  rw [dif_pos h],
-  refl,
-end
+by convert fin_add_flip_apply_cast_add ⟨k, h⟩ n
 
-@[simp] lemma fin_add_flip_apply_right {k : ℕ} (h₁ : m ≤ k) (h₂ : k < m + n) :
-  fin_add_flip (⟨k, h₂⟩ : fin (m + n)) =
-    ⟨k - m, lt_of_le_of_lt (nat.sub_le _ _) (by { convert h₂ using 1, simp [add_comm] })⟩ :=
+@[simp] lemma fin_add_flip_apply_mk_right {k : ℕ} (h₁ : m ≤ k) (h₂ : k < m + n) :
+  fin_add_flip (⟨k, h₂⟩ : fin (m + n)) = ⟨k - m, tsub_le_self.trans_lt $ add_comm m n ▸ h₂⟩ :=
 begin
-  dsimp [fin_add_flip, fin_sum_fin_equiv],
-  rw [dif_neg (not_lt.mpr h₁)],
-  refl,
+  convert fin_add_flip_apply_nat_add ⟨k - m, (tsub_lt_iff_right h₁).2 _⟩ m,
+  { simp [add_tsub_cancel_of_le h₁] },
+  { rwa add_comm }
 end
 
 /-- Rotate `fin n` one step to the right. -/
@@ -228,7 +271,7 @@ end
 lemma fin_rotate_last' : fin_rotate (n+1) ⟨n, lt_add_one _⟩ = ⟨0, nat.zero_lt_succ _⟩ :=
 begin
   dsimp [fin_rotate],
-  rw fin_add_flip_apply_right,
+  rw fin_add_flip_apply_mk_right,
   simp,
 end
 
@@ -282,17 +325,15 @@ lemma coe_fin_rotate {n : ℕ} (i : fin n.succ) :
 by rw [fin_rotate_succ_apply, fin.coe_add_one i]
 
 /-- Equivalence between `fin m × fin n` and `fin (m * n)` -/
+@[simps]
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
-{ to_fun := λ x, ⟨x.2.1 + n * x.1.1,
+{ to_fun := λ x, ⟨x.2 + n * x.1,
     calc x.2.1 + n * x.1.1 + 1
         = x.1.1 * n + x.2.1 + 1 : by ac_refl
     ... ≤ x.1.1 * n + n : nat.add_le_add_left x.2.2 _
     ... = (x.1.1 + 1) * n : eq.symm $ nat.succ_mul _ _
     ... ≤ m * n : nat.mul_le_mul_right _ x.1.2⟩,
-  inv_fun := λ x,
-    have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero x.1 $ by subst H; from x.2,
-    (⟨x.1 / n, (nat.div_lt_iff_lt_mul _ _ H).2 x.2⟩,
-     ⟨x.1 % n, nat.mod_lt _ H⟩),
+  inv_fun := λ x, (x.div_nat, x.mod_nat),
   left_inv := λ ⟨x, y⟩,
     have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero y.1 $ H ▸ y.2,
     prod.ext

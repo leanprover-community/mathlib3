@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 import logic.embedding
-import data.set.lattice
 
 /-!
 # Equivalences on embeddings
@@ -37,8 +36,8 @@ def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
       rintros (a₁|b₁) (a₂|b₂) f_eq;
       simp only [equiv.coe_fn_symm_mk, sum.elim_inl, sum.elim_inr] at f_eq,
       { rw f.injective f_eq },
-      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₁, by simp⟩, ⟨b₂, by simp [f_eq]⟩⟩  },
-      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₂, by simp⟩, ⟨b₁, by simp [f_eq]⟩⟩  },
+      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₁, by simp⟩, ⟨b₂, by simp [f_eq]⟩⟩ },
+      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₂, by simp⟩, ⟨b₁, by simp [f_eq]⟩⟩ },
       { rw g.injective f_eq }
     end⟩,
   left_inv := λ f, by { dsimp only, ext, cases x; simp! },
@@ -77,7 +76,7 @@ def sum_embedding_equiv_sigma_embedding_restricted {α β γ : Type*} :
 
 /-- Embeddings from a single-member type are equivalent to members of the target type. -/
 def unique_embedding_equiv_result {α β : Type*} [unique α] : (α ↪ β) ≃ β :=
-{ to_fun := λ f, f (default α),
+{ to_fun := λ f, f default,
   inv_fun := λ x, ⟨λ _, x, λ _ _ _, subsingleton.elim _ _⟩,
   left_inv := λ _, by { ext, simp_rw [function.embedding.coe_fn_mk], congr },
   right_inv := λ _, by simp }

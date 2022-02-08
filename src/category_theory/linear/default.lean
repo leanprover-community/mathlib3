@@ -64,8 +64,8 @@ instance preadditive_nat_linear : linear ℕ C :=
   comp_smul' := λ X Y Z f r g, (preadditive.left_comp Z f).map_nsmul g r, }
 
 instance preadditive_int_linear : linear ℤ C :=
-{ smul_comp' := λ X Y Z r f g, (preadditive.right_comp X g).map_gsmul f r,
-  comp_smul' := λ X Y Z f r g, (preadditive.left_comp Z f).map_gsmul g r, }
+{ smul_comp' := λ X Y Z r f g, (preadditive.right_comp X g).map_zsmul f r,
+  comp_smul' := λ X Y Z f r g, (preadditive.left_comp Z f).map_zsmul g r, }
 
 section End
 

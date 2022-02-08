@@ -122,7 +122,21 @@ begin
     rwa [←hι', card_ord] at this }
 end
 
-theorem lift_cof (o) : (cof o).lift = cof o.lift :=
+theorem le_cof_iff_blsub' {b : ordinal} {a : cardinal} :
+  a ≤ cof b ↔ ∀ {o} {f : Π a < o, ordinal} (hf : ∀ x hx y hy, x < y → f x hx < f y hy),
+  blsub.{u u} o f = b → a ≤ o.card :=
+begin
+  rw le_cof_iff_blsub,
+  use λ H o f h, H f,
+  intros H o f h,
+  let g : Π a < o, ordinal.{u} := λ a ha, begin
+    apply @well_founded.fix _ (λ _, ordinal.{u}) _ wf (λ x g, begin
+      
+    end),
+  end,
+end
+
+theorem lift_cof (o) : cardinal.lift.{v u} (cof.{u} o) = cof.{max u v} (ordinal.lift.{v u} o) :=
 sorry
 
 @[simp] theorem cof_zero : cof 0 = 0 :=

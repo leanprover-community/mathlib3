@@ -144,7 +144,7 @@ begin
   simpa using (l.map f).norm_prod_le
 end
 
-/-- If `α` is a seminormed ring, then `∥a ^ n∥₊ ≤ ∥a∥ ^ n` for `n > 0`. See also `nnnorm_pow_le`. -/
+/-- If `α` is a seminormed ring, then `∥a ^ n∥₊ ≤ ∥a∥₊ ^ n` for `n > 0`. See also `nnnorm_pow_le`. -/
 lemma nnnorm_pow_le' (a : α) : ∀ {n : ℕ}, 0 < n → ∥a ^ n∥₊ ≤ ∥a∥₊ ^ n
 | 1 h := by simp only [pow_one]
 | (n + 2) h := by simpa only [pow_succ _ (n + 1)] using

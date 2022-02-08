@@ -584,13 +584,13 @@ begin
   refl,
 end
 
-lemma eq_to_iso_of_iso {x y : simplex_category.{u}} (e : x ≅ y) :
+lemma eq_eq_to_iso_of_iso {x y : simplex_category.{u}} (e : x ≅ y) :
   e = eq_to_iso (skeletal (nonempty.intro e)) :=
 by { have h := skeletal (nonempty.intro e), subst h, dsimp, exact iso_eq_iso_refl e, }
 
 lemma eq_eq_to_hom_of_is_iso {x y : simplex_category.{u}} {f : x ⟶ y} (hf : is_iso f) :
   f = eq_to_hom (skeletal (nonempty.intro (as_iso f))) :=
-congr_arg (λ (φ : _ ≅ _), φ.hom) (eq_to_iso_of_iso (as_iso f))
+congr_arg (λ (φ : _ ≅ _), φ.hom) (eq_eq_to_iso_of_iso (as_iso f))
 
 lemma eq_id_of_is_iso {x : simplex_category.{u}} {f : x ⟶ x} (hf : is_iso f) : f = 𝟙 _ :=
 by simpa only using eq_eq_to_hom_of_is_iso hf

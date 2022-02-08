@@ -162,16 +162,11 @@ uniform_continuous_mul.comp_cauchy_seq (hu.prod hv)
   {u : ι → α} {x : α} (hu : cauchy_seq u) : cauchy_seq (λ n, x * u n) :=
 (uniform_continuous_const.mul uniform_continuous_id).comp_cauchy_seq hu
 
-end uniform_group
-
-section uniform_add_group
-variables {α : Type*} [uniform_space α] [add_group α] [uniform_add_group α]
-
 @[to_additive] lemma cauchy_seq.inv {ι : Type*} [semilattice_sup ι]
-  {u : ι → α} (h : cauchy_seq u) : cauchy_seq (-u) :=
-uniform_continuous_neg.comp_cauchy_seq h
+  {u : ι → α} (h : cauchy_seq u) : cauchy_seq (u⁻¹) :=
+uniform_continuous_inv.comp_cauchy_seq h
 
-end uniform_add_group
+end uniform_group
 
 section topological_comm_group
 open filter

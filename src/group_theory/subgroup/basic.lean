@@ -2607,7 +2607,7 @@ mul_opposite.op_equiv.subtype_equiv $ λ _, iff.rfl
 @[to_additive] instance (H : subgroup G) [encodable H] : encodable H.opposite :=
 encodable.of_equiv H H.opposite_equiv.symm
 
-@[to_additive] lemma left_right_mul {H : subgroup G} (x g : G) (h : H.opposite) :
+@[to_additive] lemma smul_opposite_mul {H : subgroup G} (x g : G) (h : H.opposite) :
   h • (g * x) = g * (h • x) :=
 begin
   cases h,

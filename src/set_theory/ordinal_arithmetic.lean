@@ -1253,18 +1253,19 @@ theorem not_small_ordinal : ¬ small.{u} ordinal.{max u v} :=
 namespace ordinal
 
 section
-variables {S : set ordinal.{u}} (hS : unbounded (<) S)
+variables {S : set ordinal.{u}} (hS : ¬ bdd_above S)
 
 -- A characterization of unboundedness that's more convenient to our purposes.
+include hS
 private lemma unbounded_aux (a) : ∃ b, b ∈ S ∧ a ≤ b :=
-let ⟨b, hb, hb'⟩ := hS a in ⟨b, hb, le_of_not_gt hb'⟩
+let ⟨b, hb, hb'⟩ := not_bdd_above_iff_le.1 hS a in ⟨b, hb, hb'⟩
 
 /-- Enumerator function for an unbounded set of ordinals. -/
-def enum_ord (S : set ordinal) (hS : unbounded (<) S) : ordinal → ordinal :=
+def enum_ord (S : set ordinal) (hS : ¬ bdd_above S) : ordinal → ordinal :=
 wf.fix (λ o f, omin _ (unbounded_aux hS (blsub.{u u} o f)))
 
 /-- The hypothesis that asserts that the `omin` from `enum_ord_def'` exists. -/
-lemma enum_ord_def'_H {hS : unbounded (<) S} {o} :
+lemma enum_ord_def'_H {hS : ¬ bdd_above S} {o} :
   ∃ x, x ∈ S ∧ blsub.{u u} o (λ c _, enum_ord S hS c) ≤ x :=
 unbounded_aux hS _
 
@@ -1288,7 +1289,7 @@ theorem enum_ord.strict_mono : strict_mono (enum_ord S hS) :=
 λ _ _ h, (lt_blsub.{u u} _ _ h).trans_le (blsub_le_enum_ord hS _)
 
 /-- The hypothesis that asserts that the `omin` from `enum_ord_def` exists. -/
-lemma enum_ord_def_H {hS : unbounded (<) S} {o} :
+lemma enum_ord_def_H {hS : ¬ bdd_above S} {o} :
   ∃ x, x ∈ S ∧ ∀ c, c < o → enum_ord S hS c < x :=
 (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
 
@@ -2167,8 +2168,8 @@ theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
 
 /-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
-theorem is_normal.nfp_unbounded {f} (H : is_normal f) : unbounded (<) (fixed_points f) :=
-λ a, ⟨_, H.nfp_fp a, not_lt_of_ge (le_nfp_self f a)⟩
+theorem is_normal.nfp_unbounded {f} (H : is_normal f) : ¬ bdd_above (fixed_points f) :=
+not_bdd_above_iff_le.2 $ λ a, ⟨_, H.nfp_fp a, (le_nfp_self f a)⟩
 
 /-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/
 def deriv (f : ordinal → ordinal) (o : ordinal) : ordinal :=

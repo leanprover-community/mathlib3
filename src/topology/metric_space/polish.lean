@@ -65,14 +65,28 @@ begin
   apply_instance,
 end
 
-lemma zoug {E : ℕ → Type*} [∀ n, topological_space (E n)] [∀ n, second_countable_topology (E n)] :
-  topological_space (Σ n, E n) := sigma.topological_space
+/-- Without this instance, `polish_space (ℕ → ℕ)` is not found by typeclass inference. -/
+instance polish_space.fun {α : Type*} [topological_space α] [polish_space α] :
+  polish_space (ℕ → α) :=
+by apply_instance
 
+/-- A countable disjoint union of Polish spaces is Polish. -/
+instance polish_space.sigma {ι : Type*} [encodable ι]
+  {E : ι → Type*} [∀ n, topological_space (E n)] [∀ n, polish_space (E n)] :
+  polish_space (Σ n, E n) :=
+begin
+  letI : ∀ n, metric_space (E n) := λ n, polish_space_metric (E n),
+  haveI : ∀ n, complete_space (E n) := λ n, complete_polish_space_metric (E n),
+  haveI : ∀ n, second_countable_topology (E n) := λ n, polish_space.second_countable (E n),
+  letI : metric_space (Σ n, E n) := sigma.metric_space,
+  haveI : complete_space (Σ n, E n) := sigma.complete_space,
+  apply_instance
+end
 
-#print zoug
-
-lemma polish_space.sum {α β : Type*} [topological_space α] [polish_space α]
-  [topological_space β] [polish_space β] : polish_space (α ⊕ β) :=
+/-- The disjoint union of two Polish spaces is Polish. -/
+instance polish_space.sum {α : Type*} {β : Type*} [topological_space α] [polish_space α]
+  [topological_space β] [polish_space β] :
+  polish_space (α ⊕ β) :=
 begin
   letI : metric_space α := polish_space_metric α,
   haveI : complete_space α := complete_polish_space_metric α,
@@ -81,33 +95,8 @@ begin
   haveI : complete_space β := complete_polish_space_metric β,
   haveI : second_countable_topology β := polish_space.second_countable β,
   letI : metric_space (α ⊕ β) := metric_space_sum,
-  haveI : second_countable_topology (α ⊕ β) := sorry,
-  haveI : complete_space (α ⊕ β) := sorry,
-  apply_instance,
+  apply_instance
 end
-
-
-
-
-#exit
-/-- A countable union of Polish spaces is Polish-/
-instance polish_space.sigma
-  {E : ℕ → Type*} [∀ n, topological_space (E n)] [∀ n, polish_space (E n)] :
-  polish_space (Σ n, E n) :=
-begin
-  letI : ∀ n, metric_space (E n) := λ n, polish_space_metric (E n),
-  haveI : ∀ n, complete_space (E n) := λ n, complete_polish_space_metric (E n),
-  haveI : ∀ n, second_countable_topology (E n) := λ n, polish_space.second_countable (E n),
-
-  letI : topological_space (Σ n, E n) := sigma.topological_space,
-  sorry,
-
-end
-
-/-- Without this instance, `polish_space (ℕ → ℕ)` is not found by typeclass inference. -/
-instance polish_space.fun {α : Type*} [topological_space α] [polish_space α] :
-  polish_space (ℕ → α) :=
-by apply_instance
 
 /-- Any nonempty Polish space is the continuous image of the fundamental space `ℕ → ℕ`. -/
 lemma exists_nat_nat_continuous_surjective_of_polish_space
@@ -136,6 +125,14 @@ begin
     apply is_closed.is_complete,
     exact hf.closed_range },
   apply_instance
+end
+
+lemma equiv.polish_space_induced {α : Type*} {β : Type*} [t : topological_space β] [polish_space β]
+  (f : α ≃ β) :
+  @polish_space α (t.induced f) :=
+begin
+  letI : topological_space α := t.induced f,
+  exact f.to_homeomorph.closed_embedding.polish_space,
 end
 
 /-- A closed subset of a Polish space is also Polish. -/
@@ -288,15 +285,36 @@ end complete_copy
 
 /-- Given a closed set `s` in a Polish space, one can construct a new topology with the same Borel
 sets for which `s` is both open and closed. -/
-lemma frou {α : Type*} (t : topological_space α) (hp : @polish_space α t) (s : set α)
-  (hs : @is_closed α t s) :
+lemma frou {α : Type*} [tα : topological_space α] [polish_space α] (s : set α)
+  (hs : is_closed s) :
   ∃ (t' : topological_space α) (ht' : @polish_space α t'), @is_closed α t' s ∧ @is_open α t' s
-    ∧ t ≤ t' :=
+    ∧ tα ≤ t' :=
 begin
+  haveI : polish_space s := hs.polish_space,
+  let t : set α := sᶜ,
+  haveI : polish_space t := hs.is_open_compl.polish_space,
+  haveI : polish_space (s ⊕ t) := by apply_instance,
+  let f : α ≃ (s ⊕ t) := (equiv.set.sum_compl s).symm,
+  letI T : topological_space (s ⊕ t) := by apply_instance,
+  let t' : topological_space α := T.induced f,
+  let g := f.to_homeomorph,
+  refine ⟨t', f.polish_space_induced, _, _, _⟩,
+  { have : @is_closed α t' (g ⁻¹' (range (sum.inl : s → s ⊕ t))),
+    { apply is_closed.preimage,
+      { exact @homeomorph.continuous _ _ t' _ g },
+      { have Z := closed_embedding_inl,
+
+      }
+
+
+    },
+    convert this,
+
+
+  }
 
 end
 
-#exit
 
 
 namespace measure_theory

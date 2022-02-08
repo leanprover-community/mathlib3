@@ -90,6 +90,38 @@ by simp only [uniform_embedding_def, uniform_continuous_def]; exact
  λ ⟨I, H₁, H₂⟩, ⟨I, λ s, ⟨H₂ s,
    λ ⟨t, tu, h⟩, mem_of_superset (H₁ t tu) (λ ⟨a, b⟩, h a b)⟩⟩⟩
 
+theorem uniform_embedding_inl : uniform_embedding (sum.inl : α → α ⊕ β) :=
+begin
+  apply uniform_embedding_def.2 ⟨sum.inl_injective, λ s, ⟨_, _⟩⟩,
+  { assume hs,
+    refine ⟨(λ p : α × α, (sum.inl p.1, sum.inl p.2)) '' s ∪
+      (λ p : β × β, (sum.inr p.1, sum.inr p.2)) '' univ, _, _⟩,
+    { exact union_mem_uniformity_sum hs univ_mem },
+    { simp } },
+  { rintros ⟨t, ht, h't⟩,
+    simp only [sum.uniformity, mem_sup, mem_map] at ht,
+    apply filter.mem_of_superset ht.1,
+    rintros ⟨x, y⟩ hx,
+    simp at hx,
+    exact h't _ _ hx }
+end
+
+theorem uniform_embedding_inr : uniform_embedding (sum.inr : β → α ⊕ β) :=
+begin
+  apply uniform_embedding_def.2 ⟨sum.inr_injective, λ s, ⟨_, _⟩⟩,
+  { assume hs,
+    refine ⟨(λ p : α × α, (sum.inl p.1, sum.inl p.2)) '' univ ∪
+      (λ p : β × β, (sum.inr p.1, sum.inr p.2)) '' s, _, _⟩,
+    { exact union_mem_uniformity_sum univ_mem hs },
+    { simp } },
+  { rintros ⟨t, ht, h't⟩,
+    simp only [sum.uniformity, mem_sup, mem_map] at ht,
+    apply filter.mem_of_superset ht.2,
+    rintros ⟨x, y⟩ hx,
+    simp at hx,
+    exact h't _ _ hx }
+end
+
 /-- If the domain of a `uniform_inducing` map `f` is a `separated_space`, then `f` is injective,
 hence it is a `uniform_embedding`. -/
 protected theorem uniform_inducing.uniform_embedding [separated_space α] {f : α → β}
@@ -353,6 +385,21 @@ lemma totally_bounded_preimage {f : α → β} {s : set β} (hf : uniform_embedd
   rcases this with ⟨z, zc, zt⟩,
   rcases cs zc with ⟨y, yc, rfl⟩,
   exact ⟨y, zc, ts (by exact zt)⟩
+end
+
+instance complete_space.sum [uniform_space β] [complete_space α] [complete_space β] :
+  complete_space (α ⊕ β) :=
+begin
+  rw complete_space_iff_is_complete_univ,
+  have A : is_complete (range (sum.inl : α → α ⊕ β)) :=
+    uniform_embedding_inl.to_uniform_inducing.is_complete_range,
+  have B : is_complete (range (sum.inr : β → α ⊕ β)) :=
+    uniform_embedding_inr.to_uniform_inducing.is_complete_range,
+  convert A.union B,
+  apply (eq_univ_of_forall (λ x, _)).symm,
+  cases x,
+  { left, exact mem_range_self _ },
+  { right, exact mem_range_self _ }
 end
 
 end

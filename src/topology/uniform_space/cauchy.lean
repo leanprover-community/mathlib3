@@ -110,6 +110,26 @@ lemma le_nhds_iff_adhp_of_cauchy {f : filter α} {x : α} (hf : cauchy f) :
   f ≤ 𝓝 x ↔ cluster_pt x f :=
 ⟨assume h, cluster_pt.of_le_nhds' h hf.1, le_nhds_of_cauchy_adhp hf⟩
 
+lemma is_complete.union {s t : set α} (hs : is_complete s) (ht : is_complete t) :
+  is_complete (s ∪ t) :=
+begin
+  assume f f_cauchy hf,
+  let fs := f ⊓ 𝓟 s,
+  let ft := f ⊓ 𝓟 t,
+  have fst : fs ⊔ ft = f, by simpa [fs, ft, ← inf_sup_left, sup_principal] using hf,
+  rcases eq_or_ne fs ⊥ with h|h,
+  { rw [h, bot_sup_eq] at fst,
+    rw ← fst at f_cauchy,
+    obtain ⟨x, xt, hx⟩ : ∃ (x : α) (H : x ∈ t), ft ≤ 𝓝 x := ht ft f_cauchy inf_le_right,
+    exact ⟨x, mem_union_right _ xt, by rwa fst at hx⟩ },
+  { have hfs : ne_bot fs := ⟨h⟩,
+    obtain ⟨x, xs, hx⟩ : ∃ (x : α) (H : x ∈ s), fs ≤ 𝓝 x :=
+      hs fs (f_cauchy.mono' hfs inf_le_left) inf_le_right,
+    refine ⟨x, mem_union_left _ xs, _⟩,
+    rw le_nhds_iff_adhp_of_cauchy f_cauchy,
+    exact hfs.mono (le_inf hx inf_le_left) }
+end
+
 lemma cauchy.map [uniform_space β] {f : filter α} {m : α → β}
   (hf : cauchy f) (hm : uniform_continuous m) : cauchy (map m f) :=
 ⟨hf.1.map _,
@@ -308,6 +328,22 @@ lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : com
 lemma complete_space_iff_is_complete_univ :
   complete_space α ↔ is_complete (univ : set α) :=
 ⟨@complete_univ α _, complete_space_of_is_complete_univ⟩
+
+/-
+lemma is_complete.union {s t : set α} (hs : is_complete s) (ht : is_complete t) :
+  is_complete (s ∪ t) :=
+begin
+  assume f hf h'f,
+  simp at h'f,
+  let g := f ⊓ 𝓟 s,
+  have hg : ne_bot g := sorry,
+  have : cauchy g := hf.mono' hg inf_le_left,
+  obtain ⟨x, xs, hx⟩ : ∃ x ∈ s, g ≤ 𝓝 x :=
+      hs _ this inf_le_right,
+
+end
+-/
+
 
 lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} [ne_bot l] :
   cauchy l ↔ (∃x, l ≤ 𝓝 x) :=

@@ -683,6 +683,52 @@ end
 
 end sigma
 
+
+section sum
+omit t
+
+variables {β : Type*} [topological_space α] [topological_space β]
+
+/-- In a sum space `α ⊕ β`, one can form a topological basis by taking the union of
+topological bases on each of the two components. -/
+lemma is_topological_basis.sum
+  {s : set (set α)} (hs : is_topological_basis s) {t : set (set β)} (ht : is_topological_basis t) :
+  is_topological_basis (((λ u, sum.inl '' u) '' s) ∪ ((λ u, sum.inr '' u) '' t)) :=
+begin
+  apply is_topological_basis_of_open_of_nhds,
+  { assume u hu,
+    cases hu,
+    { rcases hu with ⟨w, hw, rfl⟩,
+      exact open_embedding_inl.is_open_map w (hs.is_open hw) },
+    { rcases hu with ⟨w, hw, rfl⟩,
+      exact open_embedding_inr.is_open_map w (ht.is_open hw) } },
+  { rintros x u hxu u_open,
+    cases x,
+    { have h'x : x ∈ sum.inl ⁻¹' u := hxu,
+      obtain ⟨v, vs, xv, vu⟩ : ∃ (v : set α) (H : v ∈ s), x ∈ v ∧ v ⊆ sum.inl ⁻¹' u :=
+        hs.exists_subset_of_mem_open h'x (is_open_sum_iff.1 u_open).1,
+      exact ⟨sum.inl '' v, mem_union_left _ (mem_image_of_mem _ vs), mem_image_of_mem _ xv,
+        image_subset_iff.2 vu⟩ },
+    { have h'x : x ∈ sum.inr ⁻¹' u := hxu,
+      obtain ⟨v, vs, xv, vu⟩ : ∃ (v : set β) (H : v ∈ t), x ∈ v ∧ v ⊆ sum.inr ⁻¹' u :=
+        ht.exists_subset_of_mem_open h'x (is_open_sum_iff.1 u_open).2,
+      exact ⟨sum.inr '' v, mem_union_right _ (mem_image_of_mem _ vs), mem_image_of_mem _ xv,
+        image_subset_iff.2 vu⟩ } }
+end
+
+/-- A sum type of two second countable spaces is second countable. -/
+instance [second_countable_topology α] [second_countable_topology β] :
+  second_countable_topology (α ⊕ β) :=
+begin
+  let b := (λ u, sum.inl '' u) '' (countable_basis α) ∪ (λ u, sum.inr '' u) '' (countable_basis β),
+  have A : is_topological_basis b := (is_basis_countable_basis α).sum (is_basis_countable_basis β),
+  have B : countable b := (countable.image (countable_countable_basis _) _).union
+    (countable.image (countable_countable_basis _) _),
+  exact A.second_countable_topology B,
+end
+
+end sum
+
 end topological_space
 
 open topological_space

@@ -28,10 +28,11 @@ to this predistance is the desired space.
 This is an instance of a more general construction, where `Φ` and `Ψ` do not have to be isometries,
 but the distances in the image almost coincide, up to `2ε` say. Then one can almost glue the two
 spaces so that the images of a point under `Φ` and `Ψ` are `ε`-close. If `ε > 0`, this yields a
-metric space structure on `X ⊕ Y`, without the need to take a quotient. In particular, when `X`
-and `Y` are inhabited, this gives a natural metric space structure on `X ⊕ Y`, where the basepoints
+metric space structure on `X ⊕ Y`, without the need to take a quotient. In particular,
+this gives a natural metric space structure on `X ⊕ Y`, where the basepoints
 are at distance 1, say, and the distances between other points are obtained by going through the two
 basepoints.
+(We also register the same metric space structure on a general disjoint union `Σ i, E i`).
 
 We also define the inductive limit of metric spaces. Given
 ```
@@ -335,127 +336,194 @@ local attribute [instance] metric_space_sum
 
 lemma sum.dist_eq {x y : X ⊕ Y} : dist x y = sum.dist x y := rfl
 
-/-- The left injection of a space in a disjoint union in an isometry -/
+/-- The left injection of a space in a disjoint union is an isometry -/
 lemma isometry_on_inl : isometry (sum.inl : X → (X ⊕ Y)) :=
 isometry_emetric_iff_metric.2 $ λx y, rfl
 
-/-- The right injection of a space in a disjoint union in an isometry -/
+/-- The right injection of a space in a disjoint union is an isometry -/
 lemma isometry_on_inr : isometry (sum.inr : Y → (X ⊕ Y)) :=
 isometry_emetric_iff_metric.2 $ λx y, rfl
 
 end sum
 
-section sigma
-/- A particular case of the previous construction is when one uses basepoints in `X` and `Y` and one
-glues only along the basepoints, putting them at distance 1. We give a direct definition of
-the distance, without infi, as it is easier to use in applications, and show that it is equal to
-the gluing distance defined above to take advantage of the lemmas we have already proved. -/
+namespace sigma
+/- Copy of the previous paragraph, but for arbitrary disjoint unions instead of the disjoint union
+of two spaces. I.e., work with sigma types instead of sum types.² -/
 
 variables {ι : Type*} {E : ι → Type*} [∀ i, metric_space (E i)]
-variables [metric_space X] [metric_space Y]
-open sum (inl inr)
+
+open_locale classical
 
 /-- Distance on a disjoint union. There are many (noncanonical) ways to put a distance compatible
 with each factor.
-If the two spaces are bounded, one can say for instance that each point in the first is at distance
-`diam X + diam Y + 1` of each point in the second.
-Instead, we choose a construction that works for unbounded spaces, but requires basepoints,
+We choose a construction that works for unbounded spaces, but requires basepoints,
 chosen arbitrarily.
-We embed isometrically each factor, set the basepoints at distance 1,
-arbitrarily, and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
+We embed isometrically each factor, set the basepoints at distance 1, arbitrarily,
+and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
 their respective basepoints, plus the distance 1 between the basepoints.
 Since there is an arbitrary choice in this construction, it is not an instance by default. -/
-def sum.dist : X ⊕ Y → X ⊕ Y → ℝ
-| (inl a) (inl a') := dist a a'
-| (inr b) (inr b') := dist b b'
-| (inl a) (inr b)  := dist a (nonempty.some ⟨a⟩) + 1 + dist (nonempty.some ⟨b⟩) b
-| (inr b) (inl a)  := dist b (nonempty.some ⟨b⟩) + 1 + dist (nonempty.some ⟨a⟩) a
+protected def dist : (Σ i, (E i)) → (Σ i, (E i)) → ℝ
+| ⟨i, x⟩ ⟨j, y⟩ :=
+    if h : i = j then by { have : E j = E i, by rw h, exact has_dist.dist x (cast this y) }
+    else has_dist.dist x (nonempty.some ⟨x⟩) + 1 + has_dist.dist (nonempty.some ⟨y⟩) y
 
-lemma sum.dist_eq_glue_dist {p q : X ⊕ Y} (x : X) (y : Y) :
-  sum.dist p q = glue_dist (λ _ : unit, nonempty.some ⟨x⟩) (λ _ : unit, nonempty.some ⟨y⟩) 1 p q :=
-by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm, add_comm, add_left_comm]
+/-- A `has_dist` instance on the disjoint union `Σ i, E i`.
+We embed isometrically each factor, set the basepoints at distance 1, arbitrarily,
+and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
+their respective basepoints, plus the distance 1 between the basepoints.
+Since there is an arbitrary choice in this construction, it is not an instance by default. -/
+def has_dist : has_dist (Σ i, E i) :=
+⟨sigma.dist⟩
 
-private lemma sum.dist_comm (x y : X ⊕ Y) : sum.dist x y = sum.dist y x :=
-by cases x; cases y; simp only [sum.dist, dist_comm, add_comm, add_left_comm]
+local attribute [instance] sigma.has_dist
 
-lemma sum.one_dist_le {x : X} {y : Y} : 1 ≤ sum.dist (inl x) (inr y) :=
-le_trans (le_add_of_nonneg_right dist_nonneg) $
-add_le_add_right (le_add_of_nonneg_left dist_nonneg) _
+@[simp] lemma dist_same (i : ι) (x : E i) (y : E i) :
+  dist (⟨i, x⟩ : Σ j, E j) ⟨i, y⟩ = dist x y :=
+by simp [has_dist.dist, sigma.dist]
 
-lemma sum.one_dist_le' {x : X} {y : Y} : 1 ≤ sum.dist (inr y) (inl x) :=
-by rw sum.dist_comm; exact sum.one_dist_le
+@[simp] lemma dist_ne {i j : ι} (h : i ≠ j) (x : E i) (y : E j) :
+  dist (⟨i, x⟩ : Σ k, E k) ⟨j, y⟩ = dist x (nonempty.some ⟨x⟩) + 1 + dist (nonempty.some ⟨y⟩) y :=
+by simp [has_dist.dist, sigma.dist, h]
 
-private lemma sum.mem_uniformity (s : set ((X ⊕ Y) × (X ⊕ Y))) :
-  s ∈ 𝓤 (X ⊕ Y) ↔ ∃ ε > 0, ∀ a b, sum.dist a b < ε → (a, b) ∈ s :=
+lemma one_le_dist_of_ne {i j : ι} (h : i ≠ j) (x : E i) (y : E j) :
+  1 ≤ dist (⟨i, x⟩ : Σ k, E k) ⟨j, y⟩ :=
 begin
-  split,
-  { rintro ⟨hsX, hsY⟩,
-    rcases mem_uniformity_dist.1 hsX with ⟨εX, εX0, hX⟩,
-    rcases mem_uniformity_dist.1 hsY with ⟨εY, εY0, hY⟩,
-    refine ⟨min (min εX εY) 1, lt_min (lt_min εX0 εY0) zero_lt_one, _⟩,
-    rintro (a|a) (b|b) h,
-    { exact hX (lt_of_lt_of_le h (le_trans (min_le_left _ _) (min_le_left _ _))) },
-    { cases not_le_of_lt (lt_of_lt_of_le h (min_le_right _ _)) sum.one_dist_le },
-    { cases not_le_of_lt (lt_of_lt_of_le h (min_le_right _ _)) sum.one_dist_le' },
-    { exact hY (lt_of_lt_of_le h (le_trans (min_le_left _ _) (min_le_right _ _))) } },
-  { rintro ⟨ε, ε0, H⟩,
-    split; rw [filter.mem_sets, filter.mem_map, mem_uniformity_dist];
-      exact ⟨ε, ε0, λ x y h, H _ _ (by exact h)⟩ }
+  rw sigma.dist_ne h x y,
+  linarith [@dist_nonneg _ _ x (nonempty.some ⟨x⟩), @dist_nonneg _ _ (nonempty.some ⟨y⟩) y]
 end
 
-/-- The distance on the disjoint union indeed defines a metric space. All the distance properties
-follow from our choice of the distance. The harder work is to show that the uniform structure
-defined by the distance coincides with the disjoint union uniform structure. -/
-def metric_space_sum : metric_space (X ⊕ Y) :=
-{ dist               := sum.dist,
-  dist_self          := λx, by cases x; simp only [sum.dist, dist_self],
-  dist_comm          := sum.dist_comm,
-  dist_triangle      := λ p q r,
-  begin
-    cases p; cases q; cases r,
-    { exact dist_triangle _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist p r],
-      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist p q],
-      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist p q],
-      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist q p],
-      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist q p],
-      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
-    { simp only [dist, sum.dist_eq_glue_dist r p],
-      exact glue_dist_triangle _ _ _ (by norm_num) _ _ _ },
-    { exact dist_triangle _ _ _ },
-  end,
-  eq_of_dist_eq_zero := λ p q,
-  begin
-    cases p; cases q,
-    { simp only [sum.dist, dist_eq_zero, imp_self] },
+lemma fst_eq_of_dist_lt_one (x y : Σ i, E i) (h : dist x y < 1) :
+  x.1 = y.1 :=
+begin
+  rcases x with ⟨i, x⟩, rcases y with ⟨j, y⟩,
+  rcases eq_or_ne i j with rfl|hij,
+  { refl },
+  { apply (lt_irrefl (1 : ℝ) _).elim,
+    calc 1 ≤ dist (⟨i, x⟩ : Σ k, E k) ⟨j, y⟩ : one_le_dist_of_ne hij _ _
+    ... < 1 : h }
+end
+
+protected lemma dist_triangle (x y z : Σ i, (E i)) :
+  dist x z ≤ dist x y + dist y z :=
+begin
+  rcases x with ⟨i, x⟩, rcases y with ⟨j, y⟩, rcases z with ⟨k, z⟩,
+  rcases eq_or_ne i k with rfl|hik,
+  { rcases eq_or_ne i j with rfl|hij,
+    { simpa using dist_triangle x y z },
+    { simp only [hij, hij.symm, sigma.dist_same, sigma.dist_ne, ne.def, not_false_iff],
+      calc dist x z ≤ dist x (nonempty.some ⟨x⟩) + 0 + 0 + (0 + 0 + dist (nonempty.some ⟨z⟩) z) :
+        by simpa only [zero_add, add_zero] using dist_triangle _ _ _
+      ... ≤ _ : by apply_rules [add_le_add, le_rfl, dist_nonneg, zero_le_one] } },
+  { rcases eq_or_ne i j with rfl|hij,
+    { simp only [hik, sigma.dist_ne, ne.def, not_false_iff, sigma.dist_same],
+      calc dist x (nonempty.some ⟨x⟩) + 1 + dist (nonempty.some ⟨z⟩) z ≤
+        (dist x y + dist y (nonempty.some ⟨y⟩) + 1 + dist (nonempty.some ⟨z⟩) z) :
+          by apply_rules [add_le_add, le_rfl, dist_triangle]
+      ... = _ : by abel },
+    { rcases eq_or_ne j k with rfl|hjk,
+      { simp only [hij, sigma.dist_ne, ne.def, not_false_iff, sigma.dist_same],
+        calc dist x (nonempty.some ⟨x⟩) + 1 + dist (nonempty.some ⟨z⟩) z ≤
+          dist x (nonempty.some ⟨x⟩) + 1 + (dist (nonempty.some ⟨z⟩) y + dist y z) :
+            by apply_rules [add_le_add, le_rfl, dist_triangle]
+        ... = _ : by abel },
+      { simp only [hik, hij, hjk, sigma.dist_ne, ne.def, not_false_iff],
+        calc dist x (nonempty.some ⟨x⟩) + 1 + dist (nonempty.some ⟨z⟩) z
+          = dist x (nonempty.some ⟨x⟩) + 1 + 0 + (0 + 0 + dist (nonempty.some ⟨z⟩) z) :
+            by simp only [add_zero, zero_add]
+        ... ≤ _ :
+          by apply_rules [add_le_add, zero_le_one, dist_nonneg, le_rfl] } } }
+end
+
+protected lemma is_open_iff (s : set (Σ i, E i)) :
+  is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, dist x y < ε → y ∈ s :=
+begin
+  split,
+  { rintros hs ⟨i, x⟩ hx,
+    obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ball x ε ⊆ sigma.mk i ⁻¹' s :=
+      metric.is_open_iff.1 (is_open_sigma_iff.1 hs i) x hx,
+    refine ⟨min ε 1, lt_min εpos zero_lt_one, _⟩,
+    rintros ⟨j, y⟩ hy,
+    rcases eq_or_ne i j with rfl|hij,
+    { simp only [sigma.dist_same, lt_min_iff] at hy,
+      exact hε (mem_ball'.2 hy.1) },
+    { apply (lt_irrefl (1 : ℝ) _).elim,
+      calc 1 ≤ sigma.dist ⟨i, x⟩ ⟨j, y⟩ : sigma.one_le_dist_of_ne hij _ _
+      ... < 1 : hy.trans_le (min_le_right _ _) } },
+  { assume H,
+    apply is_open_sigma_iff.2 (λ i, _),
+    apply metric.is_open_iff.2 (λ x hx, _),
+    obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ y, dist (⟨i, x⟩ : Σ j, E j) y < ε → y ∈ s :=
+      H ⟨i, x⟩ hx,
+    refine ⟨ε, εpos, λ y hy, _⟩,
+    apply hε ⟨i, y⟩,
+    rw sigma.dist_same,
+    exact mem_ball'.1 hy }
+end
+
+/-- A metric space structure on the disjoint union `Σ i, E i`.
+We embed isometrically each factor, set the basepoints at distance 1, arbitrarily,
+and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
+their respective basepoints, plus the distance 1 between the basepoints.
+Since there is an arbitrary choice in this construction, it is not an instance by default. -/
+protected def metric_space : metric_space (Σ i, E i) :=
+begin
+  refine metric_space.of_metrizable sigma.dist _ _ sigma.dist_triangle
+    sigma.is_open_iff _,
+  { rintros ⟨i, x⟩, simp [sigma.dist] },
+  { rintros ⟨i, x⟩ ⟨j, y⟩,
+    rcases eq_or_ne i j with rfl|h,
+    { simp [sigma.dist, dist_comm] },
+    { simp only [sigma.dist, dist_comm, h, h.symm, not_false_iff, dif_neg], abel } },
+  { rintros ⟨i, x⟩ ⟨j, y⟩,
+    rcases eq_or_ne i j with rfl|hij,
+    { simp [sigma.dist] },
     { assume h,
-      simp only [dist, sum.dist_eq_glue_dist p q] at h,
-      exact glue_eq_of_dist_eq_zero _ _ _ zero_lt_one _ _ h },
-    { assume h,
-      simp only [dist, sum.dist_eq_glue_dist q p] at h,
-      exact glue_eq_of_dist_eq_zero _ _ _ zero_lt_one _ _ h },
-    { simp only [sum.dist, dist_eq_zero, imp_self] },
-  end,
-  to_uniform_space   := sum.uniform_space,
-  uniformity_dist    := uniformity_dist_of_mem_uniformity _ _ sum.mem_uniformity }
+      apply (lt_irrefl (1 : ℝ) _).elim,
+      calc 1 ≤ sigma.dist (⟨i, x⟩ : Σ k, E k) ⟨j, y⟩ : sigma.one_le_dist_of_ne hij _ _
+      ... < 1 : by { rw h, exact zero_lt_one } } }
+end
 
-local attribute [instance] metric_space_sum
+local attribute [instance] sigma.metric_space
 
-lemma sum.dist_eq {x y : X ⊕ Y} : dist x y = sum.dist x y := rfl
+open_locale topological_space
+open filter
 
-/-- The left injection of a space in a disjoint union in an isometry -/
-lemma isometry_on_inl : isometry (sum.inl : X → (X ⊕ Y)) :=
-isometry_emetric_iff_metric.2 $ λx y, rfl
+/-- The injection of a space in a disjoint union is an isometry -/
+lemma isometry_mk (i : ι) : isometry (sigma.mk i : E i → Σ k, E k) :=
+isometry_emetric_iff_metric.2 (by simp)
 
-/-- The right injection of a space in a disjoint union in an isometry -/
-lemma isometry_on_inr : isometry (sum.inr : Y → (X ⊕ Y)) :=
-isometry_emetric_iff_metric.2 $ λx y, rfl
+/-- A disjoint union of complete metric spaces is complete. -/
+protected lemma complete_space [∀ i, complete_space (E i)] : complete_space (Σ i, E i) :=
+begin
+  obtain ⟨b, -, bIoo, b_lim⟩ :
+    ∃ (b : ℕ → ℝ), strict_anti b ∧ (∀ (n : ℕ), b n ∈ set.Ioo (0 : ℝ) 1)
+      ∧ tendsto b at_top (𝓝 0) := exists_seq_strict_anti_tendsto' (zero_lt_one : (0 : ℝ) < 1),
+  refine complete_of_convergent_controlled_sequences b (λ n, (bIoo n).1) (λ u hu, _),
+  have A : ∀ n, (u n).1 = (u 0).1 :=
+    λ n, fst_eq_of_dist_lt_one _ _ ((hu 0 n 0 (zero_le _) (zero_le _)).trans (bIoo 0).2),
+  let i := (u 0).1,
+  let y : ℕ → E i := λ n, by { have : E (u n).1 = E i, by rw A, exact cast this (u n).2 },
+  have uy : ∀ n, u n = sigma.mk i (y n),
+  { assume n,
+    ext,
+    { exact A n },
+    { simp [y],
+      exact heq_of_cast_eq (congr_arg E (A n)) rfl } },
+  have dy : ∀ m n, dist (y m) (y n) = dist (u m) (u n) :=
+    λ m n, by simp [uy],
+  have C : cauchy_seq y,
+  { refine cauchy_seq_of_le_tendsto_0 b _ b_lim,
+    assume n m N hn hm,
+    rw dy,
+    exact (hu N n m hn hm).le },
+  haveI : nonempty (E i) := ⟨y 0⟩,
+  refine ⟨⟨i, lim at_top y⟩, _⟩,
+  convert (continuous_sigma_mk.tendsto (lim at_top y)).comp C.tendsto_lim,
+  ext1 n,
+  exact uy n
+end
 
-end sum
+end sigma
 
 section gluing
 /- Exact gluing of two metric spaces along isometric subsets. -/

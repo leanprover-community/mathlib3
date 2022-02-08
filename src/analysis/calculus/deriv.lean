@@ -83,7 +83,7 @@ See the explanations there.
 
 universes u v w
 noncomputable theory
-open_locale classical topological_space big_operators filter ennreal
+open_locale classical topological_space big_operators filter ennreal polynomial
 open filter asymptotics set
 open continuous_linear_map (smul_right smul_right_one_eq_iff)
 
@@ -1006,7 +1006,7 @@ theorem has_deriv_within_at.continuous_within_at
 has_deriv_at_filter.tendsto_nhds inf_le_left h
 
 theorem has_deriv_at.continuous_at (h : has_deriv_at f f' x) : continuous_at f x :=
-has_deriv_at_filter.tendsto_nhds (le_refl _) h
+has_deriv_at_filter.tendsto_nhds le_rfl h
 
 protected theorem has_deriv_at.continuous_on {f f' : 𝕜 → F}
   (hderiv : ∀ x ∈ s, has_deriv_at f (f' x) x) : continuous_on f s :=
@@ -1774,7 +1774,7 @@ namespace polynomial
 /-! ### Derivative of a polynomial -/
 
 variables {x : 𝕜} {s : set 𝕜}
-variable (p : polynomial 𝕜)
+variable (p : 𝕜[X])
 
 /-- The derivative (in the analysis sense) of a polynomial `p` is given by `p.derivative`. -/
 protected lemma has_strict_deriv_at (x : 𝕜) :

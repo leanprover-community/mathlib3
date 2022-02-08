@@ -443,7 +443,7 @@ begin
       intros a b h,
       dsimp only [],
       split_ifs with h1 h2 h3,
-      any_goals { exact le_refl _ },
+      any_goals { exact le_rfl },
       { exact bot_le },
       { exact false.elim (h1 (le_trans h h3)) }
     end ⟩,
@@ -451,7 +451,7 @@ begin
       intros a b h,
       dsimp only [],
       split_ifs with h1 h2 h3,
-      any_goals { exact le_refl _ },
+      any_goals { exact le_rfl },
       { exact bot_le },
       { exact false.elim (h1 (lt_of_le_of_lt h h3)) }
     end ⟩,

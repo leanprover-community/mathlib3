@@ -296,6 +296,15 @@ variables [monoid M] [mul_action M α]
 variable (M)
 @[simp, to_additive] theorem one_smul (b : α) : (1 : M) • b = b := mul_action.one_smul _
 
+/-- `has_scalar` version of `one_mul_eq_id` -/
+@[to_additive]
+lemma one_smul_eq_id : ((•) (1 : M) : α → α) = id := funext $ one_smul _
+
+/-- `has_scalar` version of `comp_mul_left` -/
+@[to_additive]
+lemma comp_smul_left (a₁ a₂ : M) : (•) a₁ ∘ (•) a₂ = ((•) (a₁ * a₂) : α → α) :=
+funext $ λ _, (mul_smul _ _ _).symm
+
 variables {M}
 
 /-- Pullback a multiplicative action along an injective map respecting `•`.

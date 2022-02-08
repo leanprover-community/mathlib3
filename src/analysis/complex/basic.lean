@@ -66,6 +66,13 @@ normed_space.restrict_scalars ℝ ℂ E
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 
+lemma dist_self_conj (z : ℂ) : dist z (conj z) = 2 * |z.im| :=
+by simp only [dist_eq, sub_conj, of_real_mul, of_real_bit0, of_real_one, abs_mul, abs_two,
+  abs_of_real, abs_I, mul_one]
+
+lemma dist_conj_self (z : ℂ) : dist (conj z) z = 2 * |z.im| :=
+by rw [dist_comm, dist_self_conj]
+
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
 @[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = |(r : ℝ)| :=
@@ -140,7 +147,15 @@ def conj_lie : ℂ ≃ₗᵢ[ℝ] ℂ := ⟨conj_ae.to_linear_equiv, abs_conj⟩
 
 @[simp] lemma conj_lie_apply (z : ℂ) : conj_lie z = conj z := rfl
 
+@[simp] lemma conj_lie_symm : conj_lie.symm = conj_lie := rfl
+
 lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_lie.isometry
+
+@[simp] lemma dist_conj_conj (z w : ℂ) : dist (conj z) (conj w) = dist z w :=
+isometry_conj.dist_eq z w
+
+lemma dist_conj_comm (z w : ℂ) : dist (conj z) w = dist z (conj w) :=
+by rw [← dist_conj_conj, conj_conj]
 
 /-- The determinant of `conj_lie`, as a linear map. -/
 @[simp] lemma det_conj_lie : (conj_lie.to_linear_equiv : ℂ →ₗ[ℝ] ℂ).det = -1 :=

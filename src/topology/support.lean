@@ -40,7 +40,7 @@ variables [topological_space X]
 
 /-- The topological support of a function is the closure of its support, i.e. the closure of the
   set of all elements where the function is not equal to 1. -/
-@[to_additive tsupport
+@[to_additive
 /-" The topological support of a function is the closure of its support. i.e. the closure of the
   set of all elements where the function is nonzero. "-/]
 def mul_tsupport (f : X → α) : set X := closure (mul_support f)

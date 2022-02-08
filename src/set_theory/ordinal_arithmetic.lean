@@ -1015,11 +1015,7 @@ le_antisymm (sup_le.2 (λ _, le_rfl)) (le_sup _ hι.some)
 
 theorem sup_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f ⊆ set.range g) : sup f ≤ sup g :=
-sup_le.2 $ λ i, begin
-  obtain ⟨j, hj⟩ := h (mem_range_self i),
-  rw ←hj,
-  apply le_sup
-end
+sup_le.2 $ λ i, match h (mem_range_self i) with ⟨j, hj⟩ := hj ▸ le_sup _ _ end
 
 theorem sup_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f = set.range g) : sup f = sup g :=

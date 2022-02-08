@@ -39,7 +39,7 @@ lemma prod_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
   (∏ x in Ico a b, f (c + x)) = (∏ x in Ico (a + c) (b + c), f x) :=
 @sum_Ico_add _ (additive β) _ _ _ _ f a b c
 
-lemma sum_neg_one_pow_eq_ite [comm_ring β] {n : ℕ} :
+lemma sum_neg_one_pow_eq_ite [ring β] {n : ℕ} :
   ∑ i in range n, (-1 : β) ^ i = if even n then 0 else 1 :=
 begin
   induction n with n hn,

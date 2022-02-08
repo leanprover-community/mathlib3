@@ -105,7 +105,7 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
   smul_invariant_measure G (G ⧸ Γ) (measure.map quotient_group.mk (μ.restrict 𝓕)) :=
 { measure_preimage_smul :=
   begin
-    let π : G → G ⧸ Γ := @quotient_group.mk G _ Γ ,
+    let π : G → G ⧸ Γ := quotient_group.mk,
     have meas_π : measurable π :=
       continuous.measurable continuous_quotient_mk,
     have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,

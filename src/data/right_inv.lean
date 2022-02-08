@@ -45,11 +45,11 @@ namespace right_inv
 
 variables {α: Type*} {β: Type*} {f : α → β} {g h : right_inv f}
 
-instance : has_coe_to_fun (right_inv f) := ⟨_, right_inv.to_fun⟩
+instance : has_coe_to_fun (right_inv f) (λ _, β → α) := ⟨right_inv.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (g : right_inv f) : g.to_fun = ⇑g := rfl
 
-lemma coe_injective (H : ⇑g = h) : g = h :=
+lemma coe_injective (H : (g : β → α) = h) : g = h :=
 by { cases g, cases h, congr' }
 
 @[ext] theorem ext (H : ∀ a, g a = h a) : g = h :=

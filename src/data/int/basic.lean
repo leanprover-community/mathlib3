@@ -56,7 +56,7 @@ instance : comm_ring int :=
   zsmul_zero'    := int.zero_mul,
   zsmul_succ'    := λ n x, by rw [succ_eq_one_add, of_nat_add, int.distrib_right, of_nat_one,
                                   int.one_mul],
-  zsmul_neg'     := λ n x, neg_mul (n.succ : ℤ) x }
+  zsmul_neg'     := λ n x, int.neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
 
 /-! ### Extra instances to short-circuit type class resolution
 

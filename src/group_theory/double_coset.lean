@@ -34,7 +34,6 @@ open_locale pointwise
 /--The double_coset as an element of `set α` corresponding to `s a t` -/
 def doset (a : α) (s t : set α) : set α := s * {a} * t
 
-
 lemma mem_doset {s t : set α} {a b : α} : b ∈ doset a s t ↔ ∃ (x ∈ s) (y ∈ t), b = x * a * y :=
 ⟨λ ⟨_, y, ⟨x, _, hx, rfl, rfl⟩, hy, h⟩, ⟨x, hx, y, hy, h.symm⟩,
   λ ⟨x, hx, y, hy, h⟩, ⟨x * a, y, ⟨x, a, hx, rfl, rfl⟩, hy, h.symm⟩⟩
@@ -54,7 +53,6 @@ lemma rel_transitive {H K : set G} : transitive (rel H K) :=
 
 lemma rel_equivalence {H K : set G} : equivalence (rel H K) :=
 ⟨rel_reflexive, rel_symmetric, rel_transitive⟩
-
 
 /-- The setoid defined by the double_coset relation -/
 def setoid (H K : set G) : setoid G :=

@@ -38,16 +38,26 @@ topological group
 -/
 
 noncomputable theory
-open topological_space set (hiding prod_eq) function
+open topological_space set (hiding prod_eq) function measure_theory
 open_locale classical ennreal pointwise
+
+variables (G : Type*) [measurable_space G]
+variables [group G] [has_measurable_mul₂ G]
+variables (μ ν : measure G) [sigma_finite ν] [sigma_finite μ]
+
+/-- The map `(x, y) ↦ (x, xy)` as a `measurable_equiv`. This is a shear mapping. -/
+@[to_additive "The map `(x, y) ↦ (x, x + y)` as a `measurable_equiv`.
+This is a shear mapping."]
+protected def measurable_equiv.shear_mul_right [has_measurable_inv G] : G × G ≃ᵐ G × G :=
+{ measurable_to_fun  := measurable_fst.prod_mk measurable_mul,
+  measurable_inv_fun := measurable_fst.prod_mk $ measurable_fst.inv.mul measurable_snd,
+  .. equiv.prod_shear (equiv.refl _) equiv.mul_left }
+
+variables {G}
 
 namespace measure_theory
 
 open measure
-
-variables {G : Type*} [topological_space G] [measurable_space G] [second_countable_topology G]
-variables [borel_space G] [group G] [topological_group G]
-variables (μ ν : measure G) [sigma_finite ν] [sigma_finite μ]
 
 /-- This condition is part of the definition of a measurable group in [Halmos, §59].
   There, the map in this lemma is called `S`. -/
@@ -74,13 +84,25 @@ begin
   exact map_prod_mul_eq ν μ
 end
 
+@[to_additive]
+lemma measurable_measure_mul_right {E : set G} (hE : measurable_set E) :
+  measurable (λ x, μ ((λ y, y * x) ⁻¹' E)) :=
+begin
+  suffices : measurable (λ y,
+    μ ((λ x, (x, y)) ⁻¹' ((λ z : G × G, ((1 : G), z.1 * z.2)) ⁻¹' ((univ : set G) ×ˢ E)))),
+  { convert this, ext1 x, congr' 1 with y : 1, simp },
+  apply measurable_measure_prod_mk_right,
+  exact measurable_const.prod_mk (measurable_fst.mul measurable_snd) (measurable_set.univ.prod hE)
+end
+
+variables [has_measurable_inv G]
+
 /-- The function we are mapping along is `S⁻¹` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq`. -/
 @[to_additive map_prod_neg_add_eq]
 lemma map_prod_inv_mul_eq [is_mul_left_invariant ν] :
   map (λ z : G × G, (z.1, z.1⁻¹ * z.2)) (μ.prod ν) = μ.prod ν :=
-(homeomorph.shear_mul_right G).to_measurable_equiv.map_apply_eq_iff_map_symm_apply_eq.mp $
-  map_prod_mul_eq μ ν
+(measurable_equiv.shear_mul_right G).map_apply_eq_iff_map_symm_apply_eq.mp $ map_prod_mul_eq μ ν
 
 /-- The function we are mapping along is `S⁻¹R` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
@@ -100,7 +122,6 @@ end
 lemma map_prod_mul_inv_eq [is_mul_left_invariant μ] [is_mul_left_invariant ν] :
   map (λ z : G × G, (z.2 * z.1, z.1⁻¹)) (μ.prod ν) = μ.prod ν :=
 begin
-  let S := (homeomorph.shear_mul_right G).to_measurable_equiv,
   suffices : map ((λ z : G × G, (z.2, z.2⁻¹ * z.1)) ∘ (λ z : G × G, (z.2, z.2 * z.1))) (μ.prod ν) =
     μ.prod ν,
   { convert this, ext1 ⟨x, y⟩, simp },
@@ -133,17 +154,6 @@ begin
 end
 
 @[to_additive]
-lemma measurable_measure_mul_right {E : set G} (hE : measurable_set E) :
-  measurable (λ x, μ ((λ y, y * x) ⁻¹' E)) :=
-begin
-  suffices : measurable (λ y,
-    μ ((λ x, (x, y)) ⁻¹' ((λ z : G × G, ((1 : G), z.1 * z.2)) ⁻¹' ((univ : set G) ×ˢ E)))),
-  { convert this, ext1 x, congr' 1 with y : 1, simp },
-  apply measurable_measure_prod_mk_right,
-  exact measurable_const.prod_mk (measurable_fst.mul measurable_snd) (measurable_set.univ.prod hE)
-end
-
-@[to_additive]
 lemma lintegral_lintegral_mul_inv [is_mul_left_invariant μ] [is_mul_left_invariant ν]
   (f : G → G → ℝ≥0∞) (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f (y * x) x⁻¹ ∂ν ∂μ = ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ :=
@@ -170,6 +180,50 @@ lemma measure_mul_right_ne_zero [is_mul_left_invariant μ] {E : set G}
   (h2E : μ E ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' E) ≠ 0 :=
 (not_iff_not_of_iff (measure_mul_right_null μ y)).mpr h2E
 
+@[to_additive]
+lemma measure_mul_lintegral_eq [is_mul_left_invariant μ]
+  [is_mul_left_invariant ν] {E : set G} (Em : measurable_set E) (f : G → ℝ≥0∞) (hf : measurable f) :
+  μ E * ∫⁻ y, f y ∂ν = ∫⁻ x, ν ((λ z, z * x) ⁻¹' E) * f (x⁻¹) ∂μ :=
+begin
+  rw [← set_lintegral_one, ← lintegral_indicator _ Em,
+    ← lintegral_lintegral_mul (measurable_const.indicator Em).ae_measurable hf.ae_measurable,
+    ← lintegral_lintegral_mul_inv μ ν],
+  swap, { exact (((measurable_const.indicator Em).comp measurable_fst).mul
+      (hf.comp measurable_snd)).ae_measurable },
+  have mE : ∀ x : G, measurable (λ y, ((λ z, z * x) ⁻¹' E).indicator (λ z, (1 : ℝ≥0∞)) y) :=
+  λ x, measurable_const.indicator (measurable_mul_const _ Em),
+  have : ∀ x y, E.indicator (λ (z : G), (1 : ℝ≥0∞)) (y * x) =
+    ((λ z, z * x) ⁻¹' E).indicator (λ (b : G), 1) y,
+  { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, refl },
+  simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_const _ Em),
+    set_lintegral_one],
+end
+
+instance : sigma_finite ν.inv :=
+sorry
+
+@[to_additive]
+lemma ae_measure_preimage_mul_right_ne_top [is_mul_left_invariant μ] [is_mul_left_invariant ν]
+  {E : set G} (Em : measurable_set E) (hμE : μ E < ∞) :
+  ∀ᵐ x ∂μ, ν ((λ y, y * x) ⁻¹' E) < ∞ :=
+begin
+  -- this is not quite what we want
+  apply filter.eventually.filter_mono (ae_mono (measure.le_add_right le_rfl)),
+  swap, exact ν.inv,
+  apply ae_of_forall_measure_lt_top_ae_restrict,
+  intros A hA h2A,
+  simp only [coe_add, pi.add_apply, ennreal.add_lt_top] at h2A,
+  apply ae_lt_top (measurable_measure_mul_right ν Em),
+  have h1 := measure_mul_lintegral_eq μ ν Em (A⁻¹.indicator 1) (measurable_one.indicator hA.inv),
+  rw [lintegral_indicator _ hA.inv] at h1,
+  simp_rw [pi.one_apply, set_lintegral_one] at h1,
+  have h2 : ∫⁻ x, ν ((λ y, y * x) ⁻¹' E) * A⁻¹.indicator 1 x⁻¹ ∂μ =
+    ∫⁻ x in A, (λ x, ν ((λ y, y * x) ⁻¹' E)) x ∂μ,
+  { sorry },
+  rw [← h2, ← h1],
+  refine ennreal.mul_ne_top hμE.ne _,
+end
+
 /-- A technical lemma relating two different measures. This is basically [Halmos, §60 Th. A].
   Note that if `f` is the characteristic function of a measurable set `F` this states that
   `μ F = c * μ E` for a constant `c` that does not depend on `μ`.
@@ -180,31 +234,22 @@ lemma measure_mul_right_ne_zero [is_mul_left_invariant μ] {E : set G}
   additionally assume that `ν` is a regular measure (we only need that it is finite on compact
   sets). -/
 @[to_additive]
-lemma measure_lintegral_div_measure [t2_space G] [is_mul_left_invariant μ]
-  [is_mul_left_invariant ν] [regular ν] {E : set G} (hE : is_compact E) (h2E : ν E ≠ 0)
+lemma measure_lintegral_div_measure [is_mul_left_invariant μ]
+  [is_mul_left_invariant ν] {E : set G} (Em : measurable_set E) (h2E : ν E ≠ 0) (h3E : ν E < ∞)
   (f : G → ℝ≥0∞) (hf : measurable f) :
-  μ E * ∫⁻ y, f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E) ∂ν = ∫⁻ x, f x ∂μ :=
+  μ E * ∫⁻ y, f y⁻¹ / ν ((λ x, x * y⁻¹) ⁻¹' E) ∂ν = ∫⁻ x, f x ∂μ :=
 begin
-  have Em := hE.measurable_set,
-  symmetry,
-  set g := λ y, f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E),
+  -- have Em := hE.measurable_set,
+  -- symmetry,
+  set g := λ y, f y⁻¹ / ν ((λ x, x * y⁻¹) ⁻¹' E),
   have hg : measurable g := (hf.comp measurable_inv).div
     ((measurable_measure_mul_right ν Em).comp measurable_inv),
-  rw [← set_lintegral_one, ← lintegral_indicator _ Em,
-    ← lintegral_lintegral_mul (measurable_const.indicator Em).ae_measurable hg.ae_measurable,
-    ← lintegral_lintegral_mul_inv μ ν],
-  swap, { exact (((measurable_const.indicator Em).comp measurable_fst).mul
-      (hg.comp measurable_snd)).ae_measurable },
-  have mE : ∀ x : G, measurable (λ y, ((λ z, z * x) ⁻¹' E).indicator (λ z, (1 : ℝ≥0∞)) y) :=
-  λ x, measurable_const.indicator (measurable_mul_const _ Em),
-  have : ∀ x y, E.indicator (λ (z : G), (1 : ℝ≥0∞)) (y * x) =
-    ((λ z, z * x) ⁻¹' E).indicator (λ (b : G), 1) y,
-  { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, refl },
-  have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
-    λ y, (is_compact.measure_lt_top $ (homeomorph.mul_right _).compact_preimage.mpr hE).ne,
-  simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_const _ Em),
-    set_lintegral_one, g, inv_inv,
-    ennreal.mul_div_cancel' (measure_mul_right_ne_zero ν h2E _) (h3E _)]
+  -- have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
+  --   sorry, --λ y, (is_compact.measure_lt_top $ (homeomorph.mul_right _).compact_preimage.mpr hE).ne,
+  simp_rw [measure_mul_lintegral_eq μ ν Em g hg, g, inv_inv],
+  refine lintegral_congr_ae _,
+  refine (ae_measure_preimage_mul_right_ne_top μ ν Em h3E).mono (λ x hx , _),
+  simp_rw [ennreal.mul_div_cancel' (measure_mul_right_ne_zero ν h2E _) hx.ne]
 end
 
 /-- This is roughly the uniqueness (up to a scalar) of left invariant Borel measures on a second

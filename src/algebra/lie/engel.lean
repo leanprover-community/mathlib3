@@ -9,7 +9,7 @@ import algebra.lie.cartan_subalgebra
 /-!
 # Engel's theorem
 
-This file contains a proof Engel's theorem providing necessary and sufficient conditions for Lie
+This file contains a proof of Engel's theorem providing necessary and sufficient conditions for Lie
 algebras and Lie modules to be nilpotent.
 
 Engel's theorem is true for any coefficients (i.e., it is really a theorem about Lie rings) and so

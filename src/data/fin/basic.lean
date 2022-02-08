@@ -673,6 +673,11 @@ lt_iff_coe_lt_coe.2 $ by simp only [coe_cast_succ, coe_succ, nat.lt_succ_self]
 lemma le_cast_succ_iff {i : fin (n + 1)} {j : fin n} : i ≤ j.cast_succ ↔ i < j.succ :=
 by simpa [lt_iff_coe_lt_coe, le_iff_coe_le_coe] using nat.succ_le_succ_iff.symm
 
+lemma cast_succ_lt_iff_succ_le {n : ℕ} {i : fin n} {j : fin (n+1)} :
+  i.cast_succ < j ↔ i.succ ≤ j :=
+by simpa only [fin.lt_iff_coe_lt_coe, fin.le_iff_coe_le_coe, fin.coe_succ, fin.coe_cast_succ]
+  using nat.lt_iff_add_one_le
+
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 
 @[simp] lemma succ_eq_last_succ {n : ℕ} (i : fin n.succ) :

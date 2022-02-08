@@ -1067,7 +1067,8 @@ def order_iso_inv_dual : ℝ≥0∞ ≃o order_dual ℝ≥0∞ :=
   right_inv := @ennreal.inv_inv,
   map_rel_iff' := λ a b, ennreal.inv_le_inv }
 
-lemma order_iso_inv_dual_symm_apply : ∀ x, order_iso_inv_dual.symm x = x⁻¹ := λ x, rfl
+@[simp]
+lemma order_iso_inv_dual_symm_apply : order_iso_inv_dual.symm a = a⁻¹ := rfl
 
 lemma pow_le_pow_of_le_one {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
 begin

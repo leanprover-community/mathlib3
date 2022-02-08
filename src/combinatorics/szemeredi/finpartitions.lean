@@ -24,7 +24,7 @@ lemma equitabilise_aux1' {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finpar
     ((P.parts.filter (λ i, finset.card i = m+1)).card = b) :=
 begin
   subst h,
-  rw finpartition.eq_empty A,
+  rw unique.eq_default A,
   refine ⟨finpartition.empty _, by simp, by simp, _⟩,
   simp only [finset.card_empty, nat.mul_eq_zero, nat.succ_ne_zero, or_false,
     add_eq_zero_iff, and_false] at hs,
@@ -41,12 +41,11 @@ begin
   subst h,
   simp only [mul_one, zero_add, mul_zero] at hs,
   simp only [exists_prop, finset.card_eq_zero, zero_add, le_zero_iff, sdiff_eq_empty_iff_subset],
-  refine ⟨finpartition.discrete _, by simp, _, _⟩,
-  { intros x hx i hi,
-    simp only [mem_bUnion, exists_prop, mem_filter, id.def, and_assoc],
+  refine ⟨⊥, by simp, λ x hx i hi, _, _⟩,
+  { simp only [mem_bUnion, exists_prop, mem_filter, id.def, and_assoc],
     exact ⟨{i}, mem_map_of_mem _ (subs x hx hi), by simpa, by simp⟩ },
-  { rw [filter_true_of_mem, card_discrete, hs],
-    simp },
+  { rw [filter_true_of_mem, card_bot, hs],
+    simp }
 end
 
 lemma equitabilise_aux' {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finpartition s) :
@@ -127,7 +126,7 @@ begin
           mem_of_mem_erase hx, _⟩,
         rw finset.sdiff_eq_self_iff_disjoint,
         refine disjoint.mono_right hp'₁ _,
-        apply A.disjoint _ (mem_of_mem_erase hx) _ hp₁ (ne_of_mem_erase hx) } },
+        apply A.disjoint (mem_of_mem_erase hx) hp₁ (ne_of_mem_erase hx) } },
     simp only [extend_parts, filter_insert, hp'₂, h', nat.one_ne_zero, ite_eq_right_iff,
       self_eq_add_right],
     split_ifs,

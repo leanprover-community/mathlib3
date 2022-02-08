@@ -71,29 +71,27 @@ begin
   { apply h.trans,
     rw [off_diag_card, one_mul, ←nat.cast_pow, nat.cast_le, sq],
     apply tsub_le_self },
-  refine (sum_le_of_forall_le _ _ 1 _).trans _,
-  { intros UV _,
-    rw sq_le_one_iff (G.edge_density_nonneg _ _),
-    apply G.edge_density_le_one },
-  rw nat.smul_one_eq_coe,
+  rw ←nat.smul_one_eq_coe,
+  refine sum_le_of_forall_le _ _ 1 (λ UV _, _),
+  rw sq_le_one_iff (G.edge_density_nonneg _ _),
+  exact G.edge_density_le_one _ _,
 end
 
-lemma non_uniform_pairs_discrete {ε : ℝ} (hε : 0 < ε) :
-  (finpartition.discrete s).non_uniform_pairs G ε = ∅ :=
+lemma non_uniform_pairs_bot {ε : ℝ} (hε : 0 < ε) : (⊥ : finpartition s).non_uniform_pairs G ε = ∅ :=
 begin
   rw eq_empty_iff_forall_not_mem,
   rintro ⟨U, V⟩,
-  simp only [finpartition.mem_non_uniform_pairs, finpartition.discrete_parts, mem_map,
+  simp only [finpartition.mem_non_uniform_pairs, finpartition.parts_bot, mem_map,
     not_and, not_not, embedding.coe_fn_mk, exists_imp_distrib],
   rintro x hx rfl y hy rfl h,
-  apply G.is_uniform_singleton hε,
+  exact G.is_uniform_singleton hε,
 end
 
-lemma discrete_is_uniform {ε : ℝ} (hε : 0 < ε) : (finpartition.discrete s).is_uniform G ε :=
+lemma bot_is_uniform {ε : ℝ} (hε : 0 < ε) : (⊥ : finpartition s).is_uniform G ε :=
 begin
-  rw [finpartition.is_uniform, finpartition.card_discrete, non_uniform_pairs_discrete _ hε,
+  rw [finpartition.is_uniform, finpartition.card_bot, non_uniform_pairs_bot _ hε,
     finset.card_empty, nat.cast_zero],
-  apply mul_nonneg (nat.cast_nonneg _) hε.le,
+  exact mul_nonneg (nat.cast_nonneg _) hε.le,
 end
 
 end finpartition

@@ -30,8 +30,7 @@ open_locale classical
 def three_aps : finset (finset (fin (2 * N + 1))) :=
 A.powerset.filter (λ i, ∃ (a d : fin (2 * N + 1)), i = {a,a+d,a+2*d})
 
-def nontrivial_three_aps :
-  finset (finset (fin (2 * N + 1))) :=
+def nontrivial_three_aps : finset (finset (fin (2 * N + 1))) :=
 A.powerset.filter (λ i, ∃ (a d : fin (2 * N + 1)), d ≠ 0 ∧ i = {a,a+d,a+2*d})
 
 lemma nontrivial_three_aps_subset_three_aps :
@@ -44,11 +43,7 @@ end
 
 lemma m_le_card_three_aps : A.card ≤ (three_aps A).card :=
 begin
-  refine card_le_card_of_inj_on (λ i, {i}) _ _,
-  { intros i hi,
-    simp only [three_aps, mem_filter, mem_powerset, singleton_subset_iff, hi, true_and],
-    refine ⟨i, 0, _⟩,
-    simp },
-  { intros a₁ ha₁ a₂ ha₂,
-    apply singleton_injective }
+  refine card_le_card_of_inj_on (λ i, {i}) (λ i hi, _) (singleton_injective.inj_on _),
+  simp only [three_aps, mem_filter, mem_powerset, singleton_subset_iff, hi, true_and],
+  exact ⟨hi, i, 0, by simp only [add_zero, mul_zero, insert_singleton_self_eq]⟩,
 end

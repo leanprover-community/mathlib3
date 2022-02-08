@@ -4,34 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .mathlib
-import combinatorics.additive.salem_spencer
-import data.complex.exponential_bounds
 import analysis.inner_product_space.basic
 import analysis.inner_product_space.pi_L2
+import combinatorics.additive.salem_spencer
+import data.complex.exponential_bounds
 import data.nat.digits
 
 /-!
 # Behrend bound on Roth numbers
 
-This file defines Salem-Spencer sets, the Roth number of a set and calculate small Roth numbers.
-
-A Salem-Spencer set is a set without arithmetic progressions of length `3`. Equivalently, the
-average of any two distinct elements is not in the set.
-
-The Roth number of a finset is the size of its biggest Salem-Spencer subset. This is a more general
-definition than the one often found in mathematical litterature, where the `n`-th Roth number is
-the size of the biggest Salem-Spencer subset of `{0, ..., n - 1}`.
-
-## Main declarations
-
-* `mul_salem_spencer`: Predicate for a set to be Salem-Spencer.
-* `mul_roth_number`: The Roth number of a finset.
-* `roth_number_nat`: The Roth number of a natural. This corresponds to
-  `mul_roth_number (finset.range n)`.
-
-## Tags
-
-Salem-Spencer, Roth, arithmetic progression, average
+This file proves Behrend's bound on Roth numbers.
 -/
 
 open finset nat
@@ -203,8 +185,7 @@ lemma mem_sphere {n d : ℕ} (x : fin n → ℕ) : x ∈ sphere n d ↔ ∀ i, x
 lemma bound_of_mem_sphere {n d : ℕ} {x : fin n → ℕ} (hx : x ∈ sphere n d) : ∀ i, x i < d :=
 (mem_sphere _).1 hx
 
-def sphere_slice (n d k : ℕ) : finset (fin n → ℕ) :=
-(sphere n d).filter (λ x, ∑ i, x i^2 = k)
+def sphere_slice (n d k : ℕ) : finset (fin n → ℕ) := (sphere n d).filter (λ x, ∑ i, x i^2 = k)
 
 lemma sphere_slice_zero {n d : ℕ} : sphere_slice n d 0 ⊆ {λ _, 0} :=
 begin
@@ -215,8 +196,7 @@ begin
   apply hx.2
 end
 
-lemma sphere_to_nat_mod {n d : ℕ} (a : fin n.succ → ℕ) :
-  from_digits d a % d = a 0 % d :=
+lemma sphere_to_nat_mod {n d : ℕ} (a : fin n.succ → ℕ) : from_digits d a % d = a 0 % d :=
 by rw [from_digits_succ, nat.add_mul_mod_self_right]
 
 lemma sphere_to_nat_eq_iff {n d : ℕ} {x₁ x₂ : fin n.succ → ℕ}
@@ -440,17 +420,17 @@ variables {N : ℕ}
 
 lemma two_pow_log_two_lt : (2 : ℝ) ^ log 2 < 2 :=
 begin
-  have : log 2 < 1 := log_two_lt_d9.trans_le (by norm_num),
+  have : real.log 2 < 1 := log_two_lt_d9.trans_le (by norm_num),
   simpa using rpow_lt_rpow_of_exponent_lt one_lt_two this,
 end
 
-noncomputable def n_value (N : ℕ) : ℕ := ⌈sqrt (log N)⌉₊
+noncomputable def n_value (N : ℕ) : ℕ := ⌈sqrt (real.log N)⌉₊
 noncomputable def d_value (N : ℕ) : ℕ := ⌊(N:ℝ)^(1/n_value N:ℝ)/2⌋₊
 
 lemma n_value_pos {N : ℕ} (hN : 2 ≤ N) : 0 < n_value N :=
 begin
   rw [pos_iff_ne_zero, n_value, ne.def, nat.ceil_eq_zero, not_le, real.sqrt_pos],
-  apply log_pos,
+  refine log_pos _,
   rw nat.one_lt_cast,
   apply hN
 end
@@ -484,18 +464,18 @@ begin
   exact lt_of_lt_of_le (by norm_num1) hN,
 end
 
-lemma log_two_mul_two_le_sqrt_log_eight : log 2 * 2 ≤ sqrt (log 8) :=
+lemma log_two_mul_two_le_sqrt_log_eight : real.log 2 * 2 ≤ sqrt (log 8) :=
 begin
-  suffices : log 2 * 2 ≤ sqrt ((3:ℕ) * log 2),
+  suffices : real.log 2 * 2 ≤ sqrt ((3:ℕ) * log 2),
   { rw [←log_rpow zero_lt_two (3:ℕ), rpow_nat_cast] at this,
     norm_num at this,
     apply this },
   apply le_sqrt_of_sq_le,
-  rw [mul_pow, sq (log 2), mul_assoc, mul_comm],
+  rw [mul_pow, sq (real.log 2), mul_assoc, mul_comm],
   refine mul_le_mul_of_nonneg_right _ (log_nonneg one_le_two),
   rw ←le_div_iff,
   apply log_two_lt_d9.le.trans,
-  all_goals { norm_num },
+  all_goals { norm_num }
 end
 
 lemma d_value_pos {N : ℕ} (hN₃ : 8 ≤ N) : 0 < d_value N :=
@@ -643,18 +623,7 @@ begin
   exact lt_of_lt_of_le (by norm_num1) hN,
 end
 
--- MOVE TO MATHLIB
-lemma monotone_on.congr {α β : Type*} [preorder α] [preorder β] {f g : α → β} {s : set α}
-  (hf : monotone_on f s) (fg : set.eq_on f g s) :
-  monotone_on g s :=
-begin
-  intros x hx y hy xy,
-  rw [←fg hx, ←fg hy],
-  apply hf hx hy xy,
-end
-
-lemma lower_bound_increasing_comp {c : ℝ} :
-  monotone_on (λ x, x * (x - c)) (set.Ici (c/2)) :=
+lemma lower_bound_increasing_comp {c : ℝ} : monotone_on (λ x, x * (x - c)) (set.Ici (c/2)) :=
 begin
   apply (convex_Ici _).monotone_on_of_deriv_nonneg,
   { exact continuous_on_id.mul (continuous_on_id.sub continuous_on_const) },
@@ -666,7 +635,7 @@ begin
 end
 
 lemma lower_bound_increasing (c : ℝ) :
-  monotone_on (λ N, N * exp (-c * sqrt (log N))) (set.Ici (exp ((c/2)^2))) :=
+  monotone_on (λ N, N * exp (-c * sqrt (log N))) (set.Ici $ exp $ (c/2)^2) :=
 begin
   have pos : set.Ici (exp ((c/2)^2)) ⊆ set.Ioi 0,
   { rintro x hx,
@@ -723,9 +692,7 @@ begin
   exact le_add_of_nonneg_right zero_le_one
 end
 
-lemma exp_one_rpow {r : ℝ} :
-  exp 1^r = exp r :=
-by rw [←exp_mul, one_mul]
+lemma exp_one_rpow {r : ℝ} : exp 1^r = exp r := by rw [←exp_mul, one_mul]
 
 lemma roth_lower_bound_explicit (hN : 4096 ≤ N) :
   (N : ℝ) * exp (-4 * sqrt (log N)) < roth_number_nat N :=

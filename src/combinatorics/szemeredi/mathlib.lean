@@ -111,13 +111,13 @@ namespace set
 variables {s : set ι} {t : set ι'} {f : ι → set α} {g : ι' → set β}
 
 lemma pairwise_disjoint.prod (hs : s.pairwise_disjoint f) (ht : t.pairwise_disjoint g) :
-  (s.prod t).pairwise_disjoint (λ i, (f i.1).prod (g i.2)) :=
+  (s ×ˢ t : set (ι × ι')).pairwise_disjoint (λ i, (f i.1) ×ˢ (g i.2)) :=
 λ ⟨i, i'⟩ ⟨hi, hi'⟩ ⟨j, j'⟩ ⟨hj, hj'⟩ hij ⟨a, b⟩ ⟨⟨hai, hbi⟩, haj, hbj⟩,
   hij $ prod.ext (hs.elim_set hi hj _ hai haj) $ ht.elim_set hi' hj' _ hbi hbj
 
 lemma pairwise_disjoint.product [decidable_eq α] [decidable_eq β] {f : ι → finset α}
   {g : ι' → finset β} (hs : s.pairwise_disjoint f) (ht : t.pairwise_disjoint g) :
-  (s.prod t).pairwise_disjoint (λ i, (f i.1).product (g i.2)) :=
+  (s ×ˢ t : set (ι × ι')).pairwise_disjoint (λ i, (f i.1).product (g i.2)) :=
 begin
   rintro ⟨i, i'⟩ ⟨hi, hi'⟩ ⟨j, j'⟩ ⟨hj, hj'⟩ hij ⟨a, b⟩ hab,
   simp_rw [finset.inf_eq_inter, finset.mem_inter, finset.mem_product] at hab,
@@ -146,7 +146,10 @@ lemma pairwise_disjoint_pi {α : ι' → Type*} {ι : ι' → Type*} {s : Π i, 
 lemma pairwise_disjoint.attach [semilattice_inf α] [order_bot α] {s : finset ι} {f : ι → α}
   (hs : (s : set ι).pairwise_disjoint f) :
   (s.attach : set {x // x ∈ s}).pairwise_disjoint (f ∘ subtype.val) :=
-λ i _ j _ hij, hs _ i.2 _ j.2 $ mt subtype.ext_val hij
+λ i _ j _ hij, hs i.2 j.2 $ mt subtype.ext_val hij
+
+lemma subsingleton_of_subset_singleton {s : set α} {a : α} (h : s ⊆ {a}) : s.subsingleton :=
+subsingleton_singleton.mono h
 
 end set
 
@@ -552,7 +555,7 @@ lemma pairs_count_finpartition_left {U : finset α} (P : finpartition U) (V : fi
 begin
   simp_rw [pairs_count, ←P.bUnion_parts, pairs_finset_bUnion_left, id.def],
   rw card_bUnion,
-  exact λ x hx y hy h, pairs_finset_disjoint_left r (P.disjoint x hx y hy h) _,
+  exact λ x hx y hy h, pairs_finset_disjoint_left r (P.disjoint hx hy h) _,
 end
 
 lemma pairs_count_finpartition_right (U : finset α) {V : finset α} (P : finpartition V) :
@@ -560,7 +563,7 @@ lemma pairs_count_finpartition_right (U : finset α) {V : finset α} (P : finpar
 begin
   simp_rw [pairs_count, ←P.bUnion_parts, pairs_finset_bUnion_right, id],
   rw card_bUnion,
-  exact λ x hx y hy h, pairs_finset_disjoint_right r _ (P.disjoint x hx y hy h),
+  exact λ x hx y hy h, pairs_finset_disjoint_right r _ (P.disjoint hx hy h),
 end
 
 lemma pairs_count_finpartition {U V : finset α} (P : finpartition U) (Q : finpartition V) :
@@ -618,7 +621,21 @@ set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simp⟩
 lemma indiscrete_is_equipartition {hs : s ≠ ∅} : (indiscrete hs).is_equipartition :=
 by { rw [is_equipartition, indiscrete_parts, coe_singleton], exact set.equitable_on_singleton s _ }
 
+lemma parts_top_subset [lattice α] [order_bot α] (a : α) : (⊤ : finpartition a).parts ⊆ {a} :=
+begin
+  rintro b hb,
+  change b ∈ finpartition.parts (dite _ _ _) at hb,
+  split_ifs at hb,
+  { simp only [copy_parts, empty_parts, not_mem_empty] at hb,
+    exact hb.elim },
+  { exact hb }
+end
+
+lemma parts_top_subsingleton [lattice α] [order_bot α] (a : α) :
+  ((⊤ : finpartition a).parts : set α).subsingleton :=
+set.subsingleton_of_subset_singleton $ λ b hb, mem_singleton.1 $ parts_top_subset _ hb
+
 lemma top_is_equipartition : (⊤ : finpartition s).is_equipartition :=
-parts_top_subsingleton.is_equipartition
+(parts_top_subsingleton _).is_equipartition
 
 end finpartition

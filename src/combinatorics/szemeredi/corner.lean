@@ -3,8 +3,8 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import .triangle_counting
-import .salem_spencer
+import .triangle_removal
+import combinatorics.additive.salem_spencer
 
 
 /-!
@@ -17,8 +17,7 @@ open finset
 
 variables {N : ℕ}
 
-open_locale big_operators
-open_locale classical
+open_locale big_operators classical
 
 def is_corner (A : finset (ℕ × ℕ)) : ℕ → ℕ → ℕ → Prop :=
 λ x y h, (x,y) ∈ A ∧ (x+h,y) ∈ A ∧ (x,y+h) ∈ A
@@ -26,6 +25,7 @@ def is_corner (A : finset (ℕ × ℕ)) : ℕ → ℕ → ℕ → Prop :=
 def is_anticorner (A : finset (ℕ × ℕ)) : ℕ → ℕ → ℕ → Prop :=
 λ x y h, (x,y) ∈ A ∧ (h ≤ x ∧ (x-h,y) ∈ A) ∧ (h ≤ y ∧ (x,y-h) ∈ A)
 
+/-- The type of vertices of the corners graph. -/
 inductive corners_vertices (N : ℕ)
 | horiz : fin N → corners_vertices
 | vert : fin N → corners_vertices
@@ -44,6 +44,7 @@ fintype.of_equiv (fin N ⊕ fin N ⊕ fin (2*N))
 lemma card_corners_vertices : fintype.card (corners_vertices N) = 4 * N :=
 by { simp only [fintype.of_equiv_card, fintype.card_fin, fintype.card_sum], ring }
 
+/-- The edges of the corners graph. -/
 inductive corners_edge (A : finset (ℕ × ℕ)) : corners_vertices N → corners_vertices N → Prop
 | hv {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ A → corners_edge (horiz h) (vert v)
 | vh {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ A → corners_edge (vert v) (horiz h)
@@ -408,20 +409,19 @@ begin
 end
 
 lemma roth' (δ : ℝ) (hδ : 0 < δ) :
-  ∃ n₀ : ℕ, ∀ n, n₀ ≤ n → ∀ A ⊆ range n, δ * n ≤ A.card → ¬ is_salem_spencer (A : set ℕ) :=
+  ∃ n₀ : ℕ, ∀ n, n₀ ≤ n → ∀ A ⊆ range n, δ * n ≤ A.card → ¬ add_salem_spencer (A : set ℕ) :=
 begin
   obtain ⟨n₀, hn₀⟩ := roth δ hδ,
   refine ⟨n₀, λ n hn A hA hAcard hA', _⟩,
   obtain ⟨a, d, hd, x, y, z⟩ := hn₀ n hn A hA hAcard,
   refine hd.ne' _,
-  have := hA' x z y (by { rw two_nsmul, ring }),
+  have := hA' x z y (by ring),
   sorry
 end
 
 open asymptotics filter
 
-theorem roth_asymptotic :
-  is_o (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
+lemma roth_asymptotic : is_o (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
 begin
   rw is_o_iff,
   intros δ hδ,
@@ -429,9 +429,8 @@ begin
   obtain ⟨n₀, hn₀⟩ := roth' δ hδ,
   refine ⟨n₀, λ n hn, _⟩,
   simp only [real.norm_coe_nat, ←not_lt],
-  obtain ⟨A, hA₁, hA₂, hA₃⟩ := roth_number_spec (range n),
-  intro h,
-  apply (hn₀ n hn _ hA₁ _) hA₃,
+  obtain ⟨A, hA₁, hA₂, hA₃⟩ := add_roth_number_spec (range n),
+  refine λ h, (hn₀ n hn _ hA₁ _) hA₃,
   rw hA₂,
-  apply h.le,
+  exact h.le,
 end

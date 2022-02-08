@@ -20,8 +20,8 @@ variables (r : α → α → Prop) [decidable_rel r] {A B A' B' : finset α}
 lemma lemma_B_ineq_zero {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) {x : ℝ}
   (hs : x^2 ≤ ((∑ x in s, f x)/s.card)^2) (hs' : (s.card : ℝ) ≠ 0) :
   (s.card : ℝ) * x^2 ≤ ∑ x in t, f x^2 :=
-(mul_le_mul_of_nonneg_left (hs.trans (chebyshev s f)) (nat.cast_nonneg _)).trans
-  ((mul_div_cancel' _ hs').le.trans (sum_le_sum_of_subset_of_nonneg hst (λ i _ _, sq_nonneg _)))
+(mul_le_mul_of_nonneg_left (hs.trans (chebyshev s f)) (nat.cast_nonneg _)).trans $
+  (mul_div_cancel' _ hs').le.trans $ sum_le_sum_of_subset_of_nonneg hst $ λ i _ _, sq_nonneg _
 
 lemma lemma_B_ineq {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) (d : ℝ) {x : ℝ} (hx : 0 ≤ x)
   (hs : x ≤ abs ((∑ i in s, f i)/s.card - (∑ i in t, f i)/t.card))

@@ -17,7 +17,12 @@ This file defines first-order languages and structures in the style of the
 * A `first_order.language.formula` is defined so that `L.formula α` is the type of `L`-formulas with
   free variables indexed by `α`.
 * A `first_order.language.sentence` is a formula with no free variables.
-* A `first_order.language.theory` is a set of sentences.
+* A `first_order.language.Theory` is a set of sentences.
+* `first_order.language.Theory.is_satisfiable` indicates that a theory has a nonempty model.
+* Given a theory `T`, `first_order.language.Theory.semantically_equivalent` defines an equivalence
+relation `T.semantically_equivalent` on formulas of a particular signature, indicating that the
+formulas have the same realization in models of `T`. (This is more often known as logical
+equivalence once it is known that this is equivalent to the proof-theoretic definition.)
 
 ## References
 For the Flypitch project:

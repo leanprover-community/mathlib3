@@ -915,6 +915,44 @@ by simp only [family_of_bfamily', typein_enum]
   family_of_bfamily o f (enum o.out.r i (by { convert hi, exact type_out _ })) = f i hi :=
 family_of_bfamily'_enum _ (type_out o) f _ _
 
+/-- The range of a family indexed by ordinals. -/
+def brange (o : ordinal) (f : Π a < o, α) : set α :=
+{a | ∃ i hi, f i hi = a}
+
+theorem mem_brange {o : ordinal} {f : Π a < o, α} {a} : a ∈ brange o f ↔ ∃ i hi, f i hi = a :=
+iff.rfl
+
+theorem mem_brange_self {o} (f : Π a < o, α) (i hi) : f i hi ∈ brange o f :=
+⟨i, hi, rfl⟩
+
+@[simp] theorem range_family_of_bfamily' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] {o}
+  (ho : type r = o) (f : Π a < o, α) : range (family_of_bfamily' r ho f) = brange o f :=
+begin
+  refine set.ext (λ a, ⟨_, _⟩),
+  { rintro ⟨b, rfl⟩,
+    apply mem_brange_self },
+  { rintro ⟨i, hi, rfl⟩,
+    exact ⟨_, family_of_bfamily'_enum _ _ _ _ _⟩ }
+end
+
+@[simp] theorem range_family_of_bfamily {o} (f : Π a < o, α) :
+  range (family_of_bfamily o f) = brange o f :=
+range_family_of_bfamily' _ _ f
+
+@[simp] theorem brange_bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r]
+  (f : ι → α) : brange _ (bfamily_of_family' r f) = range f :=
+begin
+  refine set.ext (λ a, ⟨_, _⟩),
+  { rintro ⟨i, hi, rfl⟩,
+    apply mem_range_self },
+  { rintro ⟨b, rfl⟩,
+    exact ⟨_, _, bfamily_of_family'_typein _ _ _⟩ },
+end
+
+@[simp] theorem brange_bfamily_of_family {ι : Type u} (f : ι → α) :
+  brange _ (bfamily_of_family f) = range f :=
+brange_bfamily_of_family' _ _
+
 theorem comp_bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α)
   (g : α → β) : (λ i hi, g (bfamily_of_family' r f i hi)) = bfamily_of_family' r (g ∘ f) :=
 rfl
@@ -976,11 +1014,26 @@ eq_of_forall_ge_iff $ λ a,
 by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
   intros; simp only [sup_le, true_implies_iff]; tauto
 
+theorem sup_empty {ι} [is_empty ι] (f : ι → ordinal) : sup f = 0 :=
+sup_eq_zero_iff.2 is_empty_elim
+
 theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=
 eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_le]
 
 theorem sup_const {ι} [hι : nonempty ι] (o : ordinal) : sup (λ _ : ι, o) = o :=
 le_antisymm (sup_le.2 (λ _, le_rfl)) (le_sup _ hι.some)
+
+theorem sup_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
+  (h : set.range f ⊆ set.range g) : sup f ≤ sup g :=
+sup_le.2 $ λ i, begin
+  obtain ⟨j, hj⟩ := h (mem_range_self i),
+  rw ←hj,
+  apply le_sup
+end
+
+theorem sup_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
+  (h : set.range f = set.range g) : sup f = sup g :=
+(sup_le_of_range_subset h.le).antisymm (sup_le_of_range_subset h.ge)
 
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
   (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
@@ -988,19 +1041,10 @@ lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_we
   (sup_le.2 $ λ y, le_of_lt $ (typein_lt_typein r).2 $ hx _ $ mem_range_self y)
   (typein_lt_type r x)
 
-private theorem sup_le_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
-  [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
-  (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) ≤ sup (family_of_bfamily' r' ho' f) :=
-sup_le.2 $ λ i, begin
-  cases typein_surj r' (by { rw [ho', ←ho], exact typein_lt_type r i }) with j hj,
-  simp_rw [family_of_bfamily', ←hj],
-  apply le_sup
-end
-
 theorem sup_eq_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
   [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
   (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) = sup (family_of_bfamily' r' ho' f) :=
-le_antisymm (sup_le_sup r r' ho ho' f) (sup_le_sup r' r ho' ho f)
+sup_eq_of_range_eq (by simp)
 
 /-- The supremum of a family of ordinals indexed by the set of ordinals less than some
   `o : ordinal.{u}`. This is a special case of `sup` over the family provided by
@@ -1062,8 +1106,23 @@ theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (ho : ∀ a < o, succ a < o) (i h) : f i h < bsup o f :=
 (hf _ _ $ lt_succ_self i).trans_le (le_bsup f i.succ $ ho _ h)
 
+theorem bsup_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : bsup o f = 0 :=
+bsup_eq_zero_iff.2 (λ i hi, by { subst ho, exact (ordinal.not_lt_zero i hi).elim })
+
 theorem bsup_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : bsup o (λ _ _, a) = a :=
 le_antisymm (bsup_le.2 (λ _ _, le_rfl)) (le_bsup _ 0 (ordinal.pos_iff_ne_zero.2 ho))
+
+theorem bsup_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
+  (h : brange o f ⊆ brange o' g) : bsup.{u u} o f ≤ bsup.{u u} o' g :=
+bsup_le.2 $ λ i hi, begin
+  obtain ⟨j, hj, hj'⟩ := h ⟨i, hi, rfl⟩,
+  rw ←hj',
+  apply le_bsup
+end
+
+theorem bsup_eq_of_brange_eq {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
+  (h : brange o f = brange o' g) : bsup.{u u} o f = bsup.{u u} o' g :=
+(bsup_le_of_brange_subset h.le).antisymm (bsup_le_of_brange_subset h.ge)
 
 theorem bsup_id_limit {o} (ho : ∀ a < o, succ a < o) : bsup.{u u} o (λ x _, x) = o :=
 le_antisymm (bsup_le.2 (λ i hi, hi.le))
@@ -1130,7 +1189,7 @@ end
 theorem sup_eq_lsub_iff_lt_sup {ι} (f : ι → ordinal) : sup f = lsub f ↔ ∀ i, f i < sup f :=
 ⟨λ h i, (by { rw h, apply lt_lsub }), λ h, le_antisymm (sup_le_lsub f) (lsub_le.2 h)⟩
 
-lemma lsub_eq_zero {ι} [h : is_empty ι] (f : ι → ordinal) : lsub f = 0 :=
+lemma lsub_empty {ι} [h : is_empty ι] (f : ι → ordinal) : lsub f = 0 :=
 by { rw [←ordinal.le_zero, lsub_le], exact h.elim }
 
 lemma lsub_pos {ι} [h : nonempty ι] (f : ι → ordinal) : 0 < lsub f :=
@@ -1138,7 +1197,7 @@ h.elim $ λ i, (ordinal.zero_le _).trans_lt (lt_lsub f i)
 
 @[simp] theorem lsub_eq_zero_iff {ι} {f : ι → ordinal} : lsub f = 0 ↔ is_empty ι :=
 begin
-  refine ⟨λ h, ⟨λ i, _⟩, λ h, @lsub_eq_zero _ h _⟩,
+  refine ⟨λ h, ⟨λ i, _⟩, λ h, @lsub_empty _ h _⟩,
   have := @lsub_pos _ ⟨i⟩ f,
   rw h at this,
   exact this.false
@@ -1146,6 +1205,17 @@ end
 
 theorem lsub_const {ι} [hι : nonempty ι] (o : ordinal) : lsub (λ _ : ι, o) = o + 1 :=
 sup_const o.succ
+
+theorem lsub_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
+  (h : set.range f ⊆ set.range g) : lsub f ≤ lsub g :=
+sup_le_of_range_subset begin
+  convert set.image_subset _ h;
+  apply set.range_comp
+end
+
+theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
+  (h : set.range f = set.range g) : lsub f = lsub g :=
+(lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset h.ge)
 
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
@@ -1220,7 +1290,7 @@ theorem bsup_eq_blsub_iff_lt_bsup {o} (f : Π a < o, ordinal) :
 @[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
 
-lemma blsub_eq_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : blsub o f = 0 :=
+lemma blsub_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : blsub o f = 0 :=
 by rwa blsub_eq_zero_iff
 
 lemma blsub_pos {o : ordinal} (ho : 0 < o) (f : Π a < o, ordinal) : 0 < blsub o f :=
@@ -1260,6 +1330,18 @@ begin
   rw [←succ_inj, h],
   exact lsub_typein _
 end
+
+theorem blsub_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
+  (h : brange o f ⊆ brange o' g) : blsub.{u u} o f ≤ blsub.{u u} o' g :=
+bsup_le_of_brange_subset $ λ a ⟨b, hb, hb'⟩, begin
+  obtain ⟨c, hc, hc'⟩ := h ⟨b, hb, rfl⟩,
+  simp_rw ←hc' at hb',
+  exact ⟨c, hc, hb'⟩
+end
+
+theorem blsub_eq_of_brange_eq {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
+  (h : {o | ∃ i hi, f i hi = o} = {o | ∃ i hi, g i hi = o}) : blsub.{u u} o f = blsub.{u u} o' g :=
+(blsub_le_of_brange_subset h.le).antisymm (blsub_le_of_brange_subset h.ge)
 
 end ordinal
 

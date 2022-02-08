@@ -1116,6 +1116,12 @@ lemma orthonormal.comp_linear_isometry_equiv {v : ι → E} (hv : orthonormal �
   orthonormal 𝕜 (f ∘ v) :=
 hv.comp_linear_isometry f.to_linear_isometry
 
+/-- A linear isometric equivalence, applied with `basis.map`, preserves the property of being
+orthonormal. --/
+lemma orthonormal.map_linear_isometry_equiv {v : basis ι 𝕜 E} (hv : orthonormal 𝕜 v)
+  (f : E ≃ₗᵢ[𝕜] E') : orthonormal 𝕜 (v.map f.to_linear_equiv) :=
+hv.comp_linear_isometry_equiv f
+
 /-- A linear map that sends an orthonormal basis to orthonormal vectors is a linear isometry. -/
 def linear_map.isometry_of_orthonormal (f : E →ₗ[𝕜] E') {v : basis ι 𝕜 E} (hv : orthonormal 𝕜 v)
   (hf : orthonormal 𝕜 (f ∘ v)) : E →ₗᵢ[𝕜] E' :=
@@ -1865,7 +1871,7 @@ begin
     have : ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 < (sqrt ε) ^ 2,
     { rw ← hV.norm_sq_diff_sum,
       apply sq_lt_sq,
-      rw _root_.abs_of_nonneg (norm_nonneg _),
+      rw [_root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
       exact H s₁ hs₁ s₂ hs₂ },
     have hη := sq_sqrt (le_of_lt hε),
     linarith },

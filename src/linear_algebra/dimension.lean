@@ -244,7 +244,7 @@ begin
     apply le_trans,
     swap,
     exact cardinal.le_sup _ ⟨range v, hv.coe_range⟩,
-    exact le_refl _, },
+    exact le_rfl, },
 end
 
 lemma cardinal_lift_le_dim_of_linear_independent'
@@ -1102,7 +1102,7 @@ dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (
     rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), map_sup, map_top,
       ← linear_map.range_comp, ← linear_map.range_comp, subtype_comp_of_le, subtype_comp_of_le,
       range_subtype, range_subtype, range_subtype],
-    exact le_refl _
+    exact le_rfl
   end
   (ker_of_le _ _ _)
   begin ext ⟨x, hx⟩, refl end

@@ -60,7 +60,7 @@ def cof (r : α → α → Prop) [is_refl α r] : cardinal :=
 
 lemma cof_le (r : α → α → Prop) [is_refl α r] {S : set α} (h : ∀a, ∃(b ∈ S), r a b) :
   order.cof r ≤ #S :=
-le_trans (cardinal.min_le _ ⟨S, h⟩) (le_refl _)
+le_trans (cardinal.min_le _ ⟨S, h⟩) le_rfl
 
 lemma le_cof {r : α → α → Prop} [is_refl α r] (c : cardinal) :
   c ≤ order.cof r ↔ ∀ {S : set α} (h : ∀a, ∃(b ∈ S), r a b) , c ≤ #S :=
@@ -118,7 +118,7 @@ by dsimp [cof, strict_order.cof, order.cof, type, quotient.mk, quot.lift_on];
 
 theorem cof_type_le [is_well_order α r] (S : set α) (h : ∀ a, ∃ b ∈ S, ¬ r b a) :
   cof (type r) ≤ #S :=
-le_cof_type.1 (le_refl _) S h
+le_cof_type.1 le_rfl S h
 
 theorem lt_cof_type [is_well_order α r] (S : set α) (hl : #S < cof (type r)) :
   ∃ a, ∀ b ∈ S, r b a :=
@@ -482,7 +482,7 @@ theorem cof_is_regular {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
 ⟨omega_le_cof.2 h, cof_cof _⟩
 
 theorem omega_is_regular : is_regular ω :=
-⟨le_refl _, by simp⟩
+⟨le_rfl, by simp⟩
 
 theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) :=
 ⟨le_trans h (le_of_lt $ lt_succ_self _), begin

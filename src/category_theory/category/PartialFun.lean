@@ -26,9 +26,6 @@ open category_theory option
 universes u
 variables {α β : Type*}
 
-@[simp] lemma subtype.coe_inj {p : α → Prop} {a b : subtype p} : (a : α) = b ↔ a = b :=
-subtype.coe_injective.eq_iff
-
 /-- The category of types equipped with partial functions. -/
 def PartialFun : Type* := Type*
 

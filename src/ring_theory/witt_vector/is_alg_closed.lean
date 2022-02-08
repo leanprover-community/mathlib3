@@ -103,7 +103,8 @@ section recursive_case_poly
 
 The first coefficient of our solution vector is easy to define below.
 In this section we focus on the recursive case.
-
+The goal is to turn `witt_poly_prod n` into a univariate polynomial
+whose variable represents the `n`th coefficient of `x` in `x * a`.
 -/
 
 open witt_vector finset
@@ -134,7 +135,7 @@ begin
     simp [witt_polynomial_vars,image_subset_iff] }
 end
 
-lemma sum_ident_1 (n : ℕ) :
+private lemma sum_ident_1 (n : ℕ) :
   (∑ i in range (n+1), p^i * (witt_mul p i)^(p^(n-i)) : mv_polynomial (fin 2 × ℕ) ℤ) =
     witt_poly_prod p n :=
 begin
@@ -177,7 +178,7 @@ begin
     exact hx }
 end
 
-lemma sum_ident_2 (n : ℕ) :
+private lemma sum_ident_2 (n : ℕ) :
   (p ^ n * witt_mul p n : mv_polynomial (fin 2 × ℕ) ℤ) + extra_poly p n = witt_poly_prod p n :=
 begin
   convert sum_ident_1 p n,
@@ -200,7 +201,7 @@ def diff (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
     range (n + 1),
     (rename (prod.mk 1)) ((monomial (finsupp.single x (p ^ (n + 1 - x)))) (↑p ^ x))
 
-lemma sum_ident_3 (n : ℕ) :
+private lemma sum_ident_3 (n : ℕ) :
   witt_poly_prod p (n+1) =
   - (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
   (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
@@ -248,7 +249,7 @@ begin
       exact_mod_cast hp.out.ne_zero } }
 end
 
-lemma sum_ident_4 (n : ℕ) :
+private lemma sum_ident_4 (n : ℕ) :
   (p ^ (n + 1) * witt_mul p (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) =
   - (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
   (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
@@ -265,7 +266,7 @@ witt_mul p (n + 1) + p^(n+1) * X (0, n+1) * X (1, n+1) -
   (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) -
   (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1))
 
-lemma sum_ident_5 (n : ℕ) :
+private lemma sum_ident_5 (n : ℕ) :
   (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) *
     poly_of_interest p n =
   (diff p n - extra_poly p (n + 1)) :=
@@ -581,7 +582,6 @@ begin
     refl }
 end
 
--- a better way here would be that the Witt vectors have characteristic 0, does mathlib know it?
 lemma p_nonzero (k : Type*) [comm_ring k] [char_p k p] [nontrivial k] : (p : 𝕎 k) ≠ 0 :=
 begin
   have : (p : 𝕎 k).coeff 1 = 1 := by simpa using witt_vector.coeff_p_pow 1,
@@ -608,7 +608,7 @@ lemma split (a : 𝕎 k) (ha : a ≠ 0) :
   ∃ (m : ℕ) (b : 𝕎 k), b.coeff 0 ≠ 0 ∧ a = p ^ m * b :=
 begin
   obtain ⟨m, c, hc, hcm⟩ := witt_vector.verschiebung_nonzero ha,
-  obtain ⟨b, rfl⟩ := (witt_vector.frobenius_bijective p k).surjective.iterate m c,
+  obtain ⟨b, rfl⟩ := (frobenius_bijective p k).surjective.iterate m c,
   rw witt_vector.iterate_frobenius_coeff at hc,
   have := congr_fun (witt_vector.verschiebung_frobenius_comm.comp_iterate m) b,
   simp only [function.comp_app] at this,
@@ -624,7 +624,7 @@ begin
 end
 
 local notation `φ` := is_fraction_ring.field_equiv_of_ring_equiv
-  (ring_equiv.of_bijective _ (witt_vector.frobenius_bijective p k))
+  (ring_equiv.of_bijective _ (frobenius_bijective p k))
 
 lemma exists_frobenius_solution_fraction_ring {a : fraction_ring (𝕎 k)} (ha : a ≠ 0) :
   ∃ (b : fraction_ring (𝕎 k)) (hb : b ≠ 0) (m : ℤ), φ b * a = p ^ m * b :=

@@ -52,7 +52,7 @@ namespace spectrum
 
 section spectrum_compact
 
-variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 local notation `σ` := spectrum 𝕜
 local notation `ρ` := resolvent_set 𝕜
@@ -61,6 +61,8 @@ local notation `↑ₐ` := algebra_map 𝕜 A
 lemma mem_resolvent_set_of_spectral_radius_lt {a : A} {k : 𝕜} (h : spectral_radius 𝕜 a < ∥k∥₊) :
   k ∈ ρ a :=
 not_not.mp (λ hn, (lt_self_iff_false _).mp (lt_of_le_of_lt (le_bsupr k hn) h))
+
+variable [complete_space A]
 
 lemma is_open_resolvent_set (a : A) : is_open (ρ a) :=
 units.is_open.preimage ((algebra_map_isometry 𝕜 A).continuous.sub continuous_const)
@@ -143,10 +145,10 @@ open continuous_multilinear_map ennreal formal_multilinear_series
 open_locale nnreal ennreal
 
 variables
-[nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+[nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 variable (𝕜)
-lemma inverse_one_sub_smul_has_fpower_series_on_ball (a : A) :
+lemma inverse_one_sub_smul_has_fpower_series_on_ball [complete_space A] (a : A) :
   has_fpower_series_on_ball (λ z : 𝕜, ring.inverse (1 - z • a))
     (λ n, continuous_multilinear_map.mk_pi_field 𝕜 (fin n) (a ^ n)) 0 (∥a∥₊)⁻¹ :=
 { r_le :=
@@ -192,7 +194,7 @@ begin
         (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
 end
 
-theorem inverse_one_sub_smul_differentiable_on {a : A} {r : ℝ≥0}
+theorem inverse_one_sub_smul_differentiable_on [complete_space A] {a : A} {r : ℝ≥0}
   (hr : (r : ℝ≥0∞) < (spectral_radius 𝕜 a)⁻¹) :
   differentiable_on 𝕜 (λ z : 𝕜, ring.inverse (1 - z • a)) (metric.closed_ball 0 r) :=
 begin

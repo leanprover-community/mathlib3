@@ -5,6 +5,7 @@ Authors: Markus Himmel, Scott Morrison
 -/
 import algebra.homology.exact
 import category_theory.types
+import category_theory.limits.shapes.biproducts
 
 /-!
 # Projective objects and categories with enough projectives

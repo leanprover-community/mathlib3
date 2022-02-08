@@ -65,7 +65,7 @@ lemma continuous_hat_inv [completable_top_field K] {x : hat K} (h : x ≠ 0) :
 begin
   haveI : regular_space (hat K) := completion.regular_space K,
   refine dense_inducing_coe.continuous_at_extend _,
-  apply mem_sets_of_superset (compl_singleton_mem_nhds h),
+  apply mem_of_superset (compl_singleton_mem_nhds h),
   intros y y_ne,
   rw mem_compl_singleton_iff at y_ne,
   apply complete_space.complete,
@@ -92,7 +92,7 @@ instance completion.has_inv : has_inv (hat K) := ⟨λ x, if x = 0 then 0 else h
 variables [topological_division_ring K]
 
 lemma hat_inv_extends {x : K} (h : x ≠ 0) : hat_inv (x : hat K) = coe (x⁻¹ : K) :=
-dense_inducing_coe.extend_eq_at _
+dense_inducing_coe.extend_eq_at
     ((continuous_coe K).continuous_at.comp (topological_division_ring.continuous_inv x h))
 
 variables [completable_top_field K]
@@ -104,15 +104,14 @@ begin
   { rw [h, inv_zero],
     dsimp [has_inv.inv],
     norm_cast,
-    simp [if_pos] },
+    simp },
   { conv_lhs { dsimp [has_inv.inv] },
-    norm_cast,
     rw if_neg,
     { exact hat_inv_extends h },
     { exact λ H, h (dense_embedding_coe.inj H) } }
 end
 
-variables [uniform_add_group K] [topological_ring K]
+variables [uniform_add_group K]
 
 lemma mul_hat_inv_cancel {x : hat K} (x_ne : x ≠ 0) : x*hat_inv x = 1 :=
 begin
@@ -164,7 +163,7 @@ instance topological_division_ring_completion : topological_division_ring (hat K
         rw mem_compl_singleton_iff at y_ne,
         dsimp [has_inv.inv],
         rw if_neg y_ne },
-      exact mem_sets_of_superset (compl_singleton_mem_nhds x_ne) this },
+      exact mem_of_superset (compl_singleton_mem_nhds x_ne) this },
     exact continuous_at.congr (continuous_hat_inv x_ne) this
   end,
   ..completion.top_ring_compl }

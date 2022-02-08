@@ -5,7 +5,7 @@ Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 -/
 
 import data.bracket
-import group_theory.subgroup
+import group_theory.subgroup.basic
 import tactic.group
 
 /-!

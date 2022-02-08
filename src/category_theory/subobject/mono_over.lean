@@ -5,6 +5,7 @@ Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.currying
 import category_theory.limits.over
+import category_theory.limits.shapes.images
 import category_theory.adjunction.reflective
 
 /-!

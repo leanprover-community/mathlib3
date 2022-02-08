@@ -77,17 +77,15 @@ begin
 
   have hreal₅ : k₀ > 4,
   { calc k₀ ≥ sqrt(p₀ - 4) : hreal₄
-    ...     > sqrt(4 ^ 2)  : (sqrt_lt (by linarith)).mpr (by linarith [hreal₂])
-    ...     = 4            : sqrt_sq (by linarith) },
+    ...     > sqrt(4 ^ 2)  : sqrt_lt_sqrt (by norm_num) (by linarith [hreal₂])
+    ...     = 4            : sqrt_sq zero_lt_four.le },
 
   have hreal₆ : p₀ > 2 * n₀ + sqrt(2 * n),
   { calc p₀ = 2 * n₀ + k₀                    : hreal₁
-    ...     ≥ 2 * n₀ + sqrt(p₀ - 4)          : by linarith [hreal₄]
+    ...     ≥ 2 * n₀ + sqrt(p₀ - 4)          : add_le_add_left hreal₄ _
     ...     = 2 * n₀ + sqrt(2 * n₀ + k₀ - 4) : by rw hreal₁
-    ...     > 2 * n₀ + sqrt(2 * n₀)     : by { refine add_lt_add_left _ (2 * n₀),
-                                               refine (sqrt_lt _).mpr _,
-                                               refine mul_nonneg zero_le_two (nat.cast_nonneg n),
-                                               linarith [hreal₅] } },
+    ...     > 2 * n₀ + sqrt(2 * n₀) : add_lt_add_left
+        (sqrt_lt_sqrt (mul_nonneg zero_le_two n.cast_nonneg) $ by linarith [hreal₅]) (2 * n₀) },
 
   exact ⟨n, hnat₁, hreal₆⟩,
 end

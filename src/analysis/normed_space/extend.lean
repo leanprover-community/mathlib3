@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ruben Van de Velde
 -/
 
+import algebra.algebra.restrict_scalars
 import data.complex.is_R_or_C
 
 /-!
@@ -31,7 +32,7 @@ Alternate forms which operate on `[is_scalar_tower ℝ 𝕜 F]` instead are prov
 
 open is_R_or_C
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [semi_normed_group F] [semi_normed_space 𝕜 F]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [semi_normed_group F] [normed_space 𝕜 F]
 local notation `abs𝕜` := @is_R_or_C.abs 𝕜 _
 
 /-- Extend `fr : F →ₗ[ℝ] ℝ` to `F →ₗ[𝕜] 𝕜` in a way that will also be continuous and have its norm
@@ -43,9 +44,7 @@ begin
   have add : ∀ x y : F, fc (x + y) = fc x + fc y,
   { assume x y,
     simp only [fc],
-    unfold_coes,
-    simp only [smul_add, ring_hom.map_add, ring_hom.to_fun_eq_coe, linear_map.to_fun_eq_coe,
-               linear_map.map_add],
+    simp only [smul_add, linear_map.map_add, of_real_add],
     rw mul_add,
     abel, },
   have A : ∀ (c : ℝ) (x : F), (fr ((c : 𝕜) • x) : 𝕜) = (c : 𝕜) * (fr x : 𝕜),
@@ -78,7 +77,7 @@ lemma linear_map.extend_to_𝕜'_apply [module ℝ F] [is_scalar_tower ℝ 𝕜 
   fr.extend_to_𝕜' x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
 
 /-- The norm of the extension is bounded by `∥fr∥`. -/
-lemma norm_bound [semi_normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F] (fr : F →L[ℝ] ℝ) (x : F) :
+lemma norm_bound [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F] (fr : F →L[ℝ] ℝ) (x : F) :
   ∥(fr.to_linear_map.extend_to_𝕜' x : 𝕜)∥ ≤ ∥fr∥ * ∥x∥ :=
 begin
   let lm : F →ₗ[𝕜] 𝕜 := fr.to_linear_map.extend_to_𝕜',
@@ -119,12 +118,12 @@ begin
 end
 
 /-- Extend `fr : F →L[ℝ] ℝ` to `F →L[𝕜] 𝕜`. -/
-noncomputable def continuous_linear_map.extend_to_𝕜' [semi_normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
+noncomputable def continuous_linear_map.extend_to_𝕜' [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
   (fr : F →L[ℝ] ℝ) :
   F →L[𝕜] 𝕜 :=
 linear_map.mk_continuous _ (∥fr∥) (norm_bound _)
 
-lemma continuous_linear_map.extend_to_𝕜'_apply [semi_normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
+lemma continuous_linear_map.extend_to_𝕜'_apply [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
   (fr : F →L[ℝ] ℝ) (x : F) :
   fr.extend_to_𝕜' x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
 

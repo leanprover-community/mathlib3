@@ -32,7 +32,8 @@ do hs ← local_context,
          | `(¬ (_ → (_ : Prop))) := replace h.local_pp_name ``(decidable.not_imp.mp %%h)
          | `(¬ (_ ↔ _)) := replace h.local_pp_name ``(decidable.not_iff.mp %%h)
          | `(_ ↔ _) := replace h.local_pp_name ``(decidable.iff_iff_and_or_not_and_not.mp %%h) <|>
-                       replace h.local_pp_name ``(decidable.iff_iff_and_or_not_and_not.mp (%%h).symm) <|>
+                       replace h.local_pp_name
+                         ``(decidable.iff_iff_and_or_not_and_not.mp (%%h).symm) <|>
                        () <$ tactic.cases h
          | `(_ → _)     := replace h.local_pp_name ``(decidable.not_or_of_imp %%h)
          | _ := failed

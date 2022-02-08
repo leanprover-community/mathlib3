@@ -3,10 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
-import algebra.group.hom
-import data.equiv.mul_add
-import data.prod
-import algebra.opposites
+import algebra.group.opposite
 
 /-!
 # Monoid, group etc structures on `M × N`
@@ -22,6 +19,13 @@ trivial `simp` lemmas, and define the following operations on `monoid_hom`s:
 * `f.coprod g : M × N →* P`: sends `(x, y)` to `f x * g y`;
 * `f.prod_map g : M × N → M' × N'`: `prod.map f g` as a `monoid_hom`,
   sends `(x, y)` to `(f x, g y)`.
+
+## Main declarations
+
+* `mul_mul_hom`/`mul_monoid_hom`/`mul_monoid_with_zero_hom`: Multiplication bundled as a
+  multiplicative/monoid/monoid with zero homomorphism.
+* `div_monoid_hom`/`div_monoid_with_zero_hom`: Division bundled as a monoid/monoid with zero
+  homomorphism.
 -/
 
 variables {A : Type*} {B : Type*} {G : Type*} {H : Type*} {M : Type*} {N : Type*} {P : Type*}
@@ -38,6 +42,8 @@ lemma snd_mul [has_mul M] [has_mul N] (p q : M × N) : (p * q).2 = p.2 * q.2 := 
 @[simp, to_additive]
 lemma mk_mul_mk [has_mul M] [has_mul N] (a₁ a₂ : M) (b₁ b₂ : N) :
   (a₁, b₁) * (a₂, b₂) = (a₁ * a₂, b₁ * b₂) := rfl
+@[to_additive]
+lemma mul_def [has_mul M] [has_mul N] (p q : M × N) : p * q = (p.1 * q.1, p.2 * q.2) := rfl
 
 @[to_additive]
 instance [has_one M] [has_one N] : has_one (M × N) := ⟨(1, 1)⟩
@@ -96,13 +102,24 @@ instance [mul_one_class M] [mul_one_class N] : mul_one_class (M × N) :=
 
 @[to_additive]
 instance [monoid M] [monoid N] : monoid (M × N) :=
-{ .. prod.semigroup, .. prod.mul_one_class }
+{ npow := λ z a, ⟨monoid.npow z a.1, monoid.npow z a.2⟩,
+  npow_zero' := λ z, ext (monoid.npow_zero' _) (monoid.npow_zero' _),
+  npow_succ' := λ z a, ext (monoid.npow_succ' _ _) (monoid.npow_succ' _ _),
+  .. prod.semigroup, .. prod.mul_one_class }
+
+@[to_additive]
+instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
+{ div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
+  zpow := λ z a, ⟨div_inv_monoid.zpow z a.1, div_inv_monoid.zpow z a.2⟩,
+  zpow_zero' := λ z, ext (div_inv_monoid.zpow_zero' _) (div_inv_monoid.zpow_zero' _),
+  zpow_succ' := λ z a, ext (div_inv_monoid.zpow_succ' _ _) (div_inv_monoid.zpow_succ' _ _),
+  zpow_neg' := λ z a, ext (div_inv_monoid.zpow_neg' _ _) (div_inv_monoid.zpow_neg' _ _),
+  .. prod.monoid, .. prod.has_inv, .. prod.has_div }
 
 @[to_additive]
 instance [group G] [group H] : group (G × H) :=
 { mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,
-  div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
-  .. prod.monoid, .. prod.has_inv, .. prod.has_div }
+  .. prod.div_inv_monoid }
 
 @[to_additive]
 instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=
@@ -314,7 +331,7 @@ variables {M N} [monoid M] [monoid N]
     units of each monoid. -/
 @[to_additive prod_add_units "The additive monoid equivalence between additive units of a product
 of two additive monoids, and the product of the additive units of each additive monoid."]
-def prod_units : units (M × N) ≃* units M × units N :=
+def prod_units : (M × N)ˣ ≃* Mˣ × Nˣ :=
 { to_fun := (units.map (monoid_hom.fst M N)).prod (units.map (monoid_hom.snd M N)),
   inv_fun := λ u, ⟨(u.1, u.2), (↑u.1⁻¹, ↑u.2⁻¹), by simp, by simp⟩,
   left_inv := λ u, by simp,
@@ -327,14 +344,54 @@ end mul_equiv
 
 section units
 
-open opposite
+open mul_opposite
 
-/-- Canonical homomorphism of monoids from `units α` into `α × αᵒᵖ`.
-Used mainly to define the natural topology of `units α`. -/
-def embed_product (α : Type*) [monoid α] : units α →* α × αᵒᵖ :=
+/-- Canonical homomorphism of monoids from `αˣ` into `α × αᵐᵒᵖ`.
+Used mainly to define the natural topology of `αˣ`. -/
+def embed_product (α : Type*) [monoid α] : αˣ →* α × αᵐᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
   map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
     and_self],
   map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk] }
 
 end units
+
+/-! ### Multiplication and division as homomorphisms -/
+
+section bundled_mul_div
+variables {α : Type*}
+
+/-- Multiplication as a multiplicative homomorphism. -/
+@[to_additive "Addition as an additive homomorphism.", simps]
+def mul_mul_hom [comm_semigroup α] : mul_hom (α × α) α :=
+{ to_fun := λ a, a.1 * a.2,
+  map_mul' := λ a b, mul_mul_mul_comm _ _ _ _ }
+
+/-- Multiplication as a monoid homomorphism. -/
+@[to_additive "Addition as an additive monoid homomorphism.", simps]
+def mul_monoid_hom [comm_monoid α] : α × α →* α :=
+{ map_one' := mul_one _,
+  .. mul_mul_hom }
+
+/-- Multiplication as a multiplicative homomorphism with zero. -/
+@[simps]
+def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : α × α →*₀ α :=
+{ map_zero' := mul_zero _,
+  .. mul_monoid_hom }
+
+/-- Division as a monoid homomorphism. -/
+@[to_additive "Subtraction as an additive monoid homomorphism.", simps]
+def div_monoid_hom [comm_group α] : α × α →* α :=
+{ to_fun := λ a, a.1 / a.2,
+  map_one' := div_one' _,
+  map_mul' := λ a b, mul_div_comm' _ _ _ _ }
+
+/-- Division as a multiplicative homomorphism with zero. -/
+@[simps]
+def div_monoid_with_zero_hom [comm_group_with_zero α] : α × α →*₀ α :=
+{ to_fun := λ a, a.1 / a.2,
+  map_zero' := zero_div _,
+  map_one' := div_one _,
+  map_mul' := λ a b, (div_mul_div _ _ _ _).symm }
+
+end bundled_mul_div

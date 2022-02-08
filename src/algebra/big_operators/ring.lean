@@ -112,12 +112,21 @@ calc ∏ a in s, (f a + g a)
     refine congr_arg2 _
       (prod_bij (λ (a : α) (ha : a ∈ t), ⟨a, mem_powerset.1 ht ha⟩)
          _ _ _
-        (λ b hb, ⟨b, by cases b; finish⟩))
+        (λ b hb, ⟨b, by cases b;
+          simpa only [true_and, exists_prop, mem_filter, and_true, mem_attach, eq_self_iff_true,
+            subtype.coe_mk] using hb⟩))
       (prod_bij (λ (a : α) (ha : a ∈ s \ t), ⟨a, by simp * at *⟩)
         _ _ _
-        (λ b hb, ⟨b, by cases b; finish⟩));
+        (λ b hb, ⟨b, by cases b; begin
+          simp only [true_and, mem_filter, mem_attach, subtype.coe_mk] at hb,
+          simpa only [true_and, exists_prop, and_true, mem_sdiff, eq_self_iff_true, subtype.coe_mk,
+            b_property],
+        end⟩));
     intros; simp * at *; simp * at * },
-  { finish [function.funext_iff, finset.ext_iff, subset_iff] },
+  { assume a₁ a₂ h₁ h₂ H,
+    ext x,
+    simp only [function.funext_iff, subset_iff, mem_powerset, eq_iff_iff] at h₁ h₂ H,
+    exact ⟨λ hx, (H x (h₁ hx)).1 hx, λ hx, (H x (h₂ hx)).2 hx⟩ },
   { assume f hf,
     exact ⟨s.filter (λ a : α, ∃ h : a ∈ s, f a h),
       by simp, by funext; intros; simp *⟩ }
@@ -191,6 +200,22 @@ lemma prod_nat_cast (s : finset α) (f : α → ℕ) :
 
 end comm_semiring
 
+section comm_ring
+
+variables {R : Type*} [comm_ring R]
+
+lemma prod_range_cast_nat_sub (n k : ℕ) :
+  ∏ i in range k, (n - i : R) = (∏ i in range k, (n - i) : ℕ) :=
+begin
+  rw prod_nat_cast,
+  cases le_or_lt k n with hkn hnk,
+  { exact prod_congr rfl (λ i hi, (nat.cast_sub $ (mem_range.1 hi).le.trans hkn).symm) },
+  { rw ← mem_range at hnk,
+    rw [prod_eq_zero hnk, prod_eq_zero hnk]; simp }
+end
+
+end comm_ring
+
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/
 @[to_additive]
@@ -219,7 +244,7 @@ begin
   classical,
   rw [powerset_card_bUnion, prod_bUnion],
   intros i hi j hj hij,
-  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
+  rw [function.on_fun, powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
   intros x hx hc hnc,
   apply hij,
   rwa ← hc,

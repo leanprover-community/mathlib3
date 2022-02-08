@@ -86,8 +86,9 @@ lemma iso_iff {P Q : C} (i : P ≅ Q) : injective P ↔ injective Q :=
 set_option pp.proofs true
 /-- The axiom of choice says that every nonempty type is an injective object in `Type`. -/
 instance (X : Type u) [nonempty X] : injective X :=
-{ factors := λ Y Z g f mono, ⟨λ z, by classical; exact if h : z ∈ set.range f then g (classical.some h) else
-  nonempty.some infer_instance, begin
+{ factors := λ Y Z g f mono, ⟨λ z, by classical; exact if h : z ∈ set.range f
+    then g (classical.some h) else
+    nonempty.some infer_instance, begin
     ext y,
     change dite _ _ _ = _,
     split_ifs,
@@ -147,7 +148,8 @@ instance {P : Cᵒᵖ} [projective P] : injective (P.unop) :=
 { factors := λ X Y g f mono, begin
   resetI,
   refine ⟨(@projective.factor_thru Cᵒᵖ _ P (opposite.op X) (opposite.op Y) _ g.op f.op _).unop, _⟩,
-  have eq1 := congr_arg quiver.hom.unop (@projective.factor_thru_comp Cᵒᵖ _ P (opposite.op X) (opposite.op Y) _ g.op f.op _),
+  have eq1 := congr_arg quiver.hom.unop (@projective.factor_thru_comp Cᵒᵖ _ P
+    (opposite.op X) (opposite.op Y) _ g.op f.op _),
   rw [quiver.hom.unop_op] at eq1,
   exact eq1,
 end }
@@ -164,3 +166,5 @@ end }
 end injective
 
 end category_theory
+
+#lint_all

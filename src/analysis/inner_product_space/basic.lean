@@ -268,8 +268,8 @@ begin
                   : inner_self_nonneg
       ... = re ⟪x, x⟫ - re ⟪T • y, x⟫ - re ⟪x, T • y⟫ + re ⟪T • y, T • y⟫
                   : by simp only [inner_sub_sub_self, inner_smul_left, inner_smul_right, h₁, h₂,
-                      neg_mul_eq_neg_mul_symm, add_monoid_hom.map_add, mul_re,
-                      conj_im, add_monoid_hom.map_sub, mul_neg_eq_neg_mul_symm, conj_re, neg_neg]
+                      neg_mul, add_monoid_hom.map_add, mul_re,
+                      conj_im, add_monoid_hom.map_sub, mul_neg, conj_re, neg_neg]
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
@@ -627,8 +627,8 @@ begin
                   : inner_self_nonneg
       ... = re ⟪x, x⟫ - re ⟪T • y, x⟫ - re ⟪x, T • y⟫ + re ⟪T • y, T • y⟫
                   : by simp only [inner_sub_sub_self, inner_smul_left, inner_smul_right, h₁, h₂,
-                      neg_mul_eq_neg_mul_symm, add_monoid_hom.map_add, conj_im,
-                      add_monoid_hom.map_sub, mul_neg_eq_neg_mul_symm, conj_re, neg_neg, mul_re]
+                      neg_mul, add_monoid_hom.map_add, conj_im,
+                      add_monoid_hom.map_sub, mul_neg, conj_re, neg_neg, mul_re]
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)

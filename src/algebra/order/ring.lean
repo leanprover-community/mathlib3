@@ -1028,7 +1028,7 @@ begin
   rw [abs_eq (decidable.mul_nonneg (abs_nonneg a) (abs_nonneg b))],
   cases le_total a 0 with ha ha; cases le_total b 0 with hb hb;
     simp only [abs_of_nonpos, abs_of_nonneg, true_or, or_true, eq_self_iff_true,
-      neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, neg_neg, *]
+      neg_mul, mul_neg, neg_neg, *]
 end
 
 /-- `abs` as a `monoid_with_zero_hom`. -/
@@ -1264,7 +1264,7 @@ lemma abs_sub_sq (a b : α) : |a - b| * |a - b| = a * a + b * b - (1 + 1) * a * 
 begin
   rw abs_mul_abs_self,
   simp only [mul_add, add_comm, add_left_comm, mul_comm, sub_eq_add_neg,
-    mul_one, mul_neg_eq_neg_mul_symm, neg_add_rev, neg_neg],
+    mul_one, mul_neg, neg_add_rev, neg_neg],
 end
 
 end linear_ordered_comm_ring

@@ -6,6 +6,8 @@ Authors: Aaron Anderson
 
 import linear_algebra.basic
 import order.atoms
+import category_theory.simple
+import algebra.category.Module.abelian
 
 /-!
 # Simple Modules
@@ -90,6 +92,32 @@ end is_semisimple_module
 theorem is_semisimple_iff_top_eq_Sup_simples :
   Sup {m : submodule R M | is_simple_module R m} = ⊤ ↔ is_semisimple_module R M :=
 ⟨is_semisimple_of_Sup_simples_eq_top, by { introI, exact is_semisimple_module.Sup_simples_eq_top }⟩
+
+section category
+open category_theory
+open Module
+
+/-- A simple module is a simple object in the category of modules. -/
+instance simple_of_is_simple_module [_inst : is_simple_module R M] : simple (of R M) :=
+{ mono_is_iso_iff_nonzero := λ N f inj, begin
+  split; intro h,
+  { intro f0,
+    have all_zero : ∀ x : M, x = 0,
+    { haveI : is_iso f := h,
+      have h : function.surjective f := (Module.epi_iff_surjective f).mp (is_iso.epi_of_iso f),
+      intro x, specialize h x, cases h with w h, rw [← h, f0], exact linear_map.zero_apply w},
+    { haveI : nontrivial M := is_simple_module.nontrivial R M,
+      cases exists_pair_ne M with x ne, cases ne with y ne,
+      apply ne, rw all_zero x, rw all_zero y } },
+  { haveI : mono f := inj,
+    haveI : is_simple_order (submodule R (of R M)) := _inst,
+    haveI : epi f,
+    { cases eq_bot_or_eq_top f.range,
+      { exfalso, apply h, rw ← linear_map.range_eq_bot, exact h_1 },
+      { rw epi_iff_range_eq_top, exact h_1 } },
+    { apply is_iso_of_mono_of_epi } } end}
+
+end category
 
 namespace linear_map
 

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 import algebra.algebra.spectrum
-import analysis.calculus.deriv
 import analysis.special_functions.pow
+import analysis.complex.cauchy_integral
+import analysis.analytic.radius_liminf
 /-!
 # The spectrum of elements in a complete normed algebra
 
@@ -135,6 +136,77 @@ begin
 end
 
 end resolvent_deriv
+
+section one_sub_smul
+
+open continuous_multilinear_map ennreal formal_multilinear_series
+open_locale nnreal ennreal
+
+variables
+[nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+
+variable (𝕜)
+lemma inverse_one_sub_smul_has_fpower_series_on_ball (a : A) :
+  has_fpower_series_on_ball (λ z : 𝕜, ring.inverse (1 - z • a))
+    (λ n, continuous_multilinear_map.mk_pi_field 𝕜 (fin n) (a ^ n)) 0 (∥a∥₊)⁻¹ :=
+{ r_le :=
+  begin
+    refine le_of_forall_nnreal_lt (λ r hr, le_radius_of_bound_nnreal _ (max 1 ∥(1 : A)∥₊) (λ n, _)),
+    rw [←norm_to_nnreal, norm_mk_pi_field, norm_to_nnreal],
+    cases n,
+    { simp only [le_refl, mul_one, or_true, le_max_iff, pow_zero] },
+    { refine le_trans (le_trans (mul_le_mul_right' (nnnorm_pow_succ_le a n) (r ^ n.succ)) _)
+        (le_max_left _ _),
+      { by_cases ∥a∥₊ = 0,
+        { simp only [h, zero_mul, zero_le', pow_succ], },
+        { rw [←mul_pow, mul_comm],
+          rw [←coe_inv h, coe_lt_coe, nnreal.lt_inv_iff_mul_lt h] at hr,
+          exact pow_le_one' hr.le n.succ } } }
+  end,
+  r_pos := ennreal.inv_pos.mpr coe_ne_top,
+  has_sum := λ y hy,
+  begin
+    have norm_lt : ∥y • a∥ < 1,
+    { by_cases h : ∥a∥₊ = 0,
+      { simp only [nnnorm_eq_zero.mp h, norm_zero, zero_lt_one, smul_zero] },
+      { have nnnorm_lt : ∥y∥₊ < ∥a∥₊⁻¹,
+          by simpa only [←coe_inv h, mem_ball_zero_iff, metric.emetric_ball_nnreal] using hy,
+        rwa [←coe_nnnorm, ←real.lt_to_nnreal_iff_coe_lt, real.to_nnreal_one, nnnorm_smul,
+          ←nnreal.lt_inv_iff_mul_lt h] } },
+    simpa [←smul_pow, (normed_ring.summable_geometric_of_norm_lt_1 _ norm_lt).has_sum_iff]
+      using (normed_ring.inverse_one_sub _ norm_lt).symm,
+  end }
+
+variable {𝕜}
+lemma is_unit_one_sub_smul_of_lt_inv_radius {a : A} {z : 𝕜} (h : ↑∥z∥₊ < (spectral_radius 𝕜 a)⁻¹) :
+  is_unit (1 - z • a) :=
+begin
+  by_cases hz : z = 0,
+  { simp only [hz, is_unit_one, sub_zero, zero_smul] },
+  { let u := units.mk0 z hz,
+    suffices hu : is_unit (u⁻¹ • 1 - a),
+    { rwa [is_unit.smul_sub_iff_sub_inv_smul, inv_inv u] at hu },
+    { rw [units.smul_def, ←algebra.algebra_map_eq_smul_one, ←mem_resolvent_set_iff],
+      refine mem_resolvent_set_of_spectral_radius_lt _,
+      rwa [units.coe_inv', normed_field.nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
+        (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
+end
+
+theorem inverse_one_sub_smul_differentiable_on {a : A} {r : ℝ≥0}
+  (hr : (r : ℝ≥0∞) < (spectral_radius 𝕜 a)⁻¹) :
+  differentiable_on 𝕜 (λ z : 𝕜, ring.inverse (1 - z • a)) (metric.closed_ball 0 r) :=
+begin
+  intros z z_mem,
+  apply differentiable_at.differentiable_within_at,
+  have hu : is_unit (1 - z • a),
+  { refine is_unit_one_sub_smul_of_lt_inv_radius (lt_of_le_of_lt (coe_mono _) hr),
+    simpa only [norm_to_nnreal, real.to_nnreal_coe]
+      using real.to_nnreal_mono (mem_closed_ball_zero_iff.mp z_mem) },
+  have H₁ : differentiable 𝕜 (λ w : 𝕜, 1 - w • a) := (differentiable_id.smul_const a).const_sub 1,
+  exact differentiable_at.comp z (differentiable_at_inverse hu.unit) (H₁.differentiable_at),
+end
+
+end one_sub_smul
 
 end spectrum
 

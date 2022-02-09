@@ -65,7 +65,7 @@ begin
     show z ∈ closed_ball x δ, from calc
       edist z x ≤ edist z y + edist y x : edist_triangle _ _ _
       ... ≤ (min (min (δ / 2) r) (B (n+1))) + (δ/2) : add_le_add hz (le_of_lt xy)
-      ... ≤ δ/2 + δ/2 : add_le_add (le_trans (min_le_left _ _) (min_le_left _ _)) (le_refl _)
+      ... ≤ δ/2 + δ/2 : add_le_add (le_trans (min_le_left _ _) (min_le_left _ _)) le_rfl
       ... = δ : ennreal.add_halves δ,
     show z ∈ f n, from hr (calc
       edist z y ≤ min (min (δ / 2) r) (B (n+1)) : hz
@@ -171,17 +171,17 @@ theorem dense_sInter_of_Gδ {S : set (set α)} (ho : ∀s∈S, is_Gδ s) (hS : c
 begin
   -- the result follows from the result for a countable intersection of dense open sets,
   -- by rewriting each set as a countable intersection of open sets, which are of course dense.
-  choose T hT using ho,
-  have : ⋂₀ S = ⋂₀ (⋃s∈S, T s ‹_›) := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
+  choose T hTo hTc hsT using ho,
+  have : ⋂₀ S = ⋂₀ (⋃ s ∈ S, T s ‹_›), -- := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
+    by simp only [sInter_Union, (hsT _ _).symm, ← sInter_eq_bInter],
   rw this,
-  refine dense_sInter_of_open _ (hS.bUnion (λs hs, (hT s hs).2.1)) _;
-    simp only [set.mem_Union, exists_prop]; rintro t ⟨s, hs, tTs⟩,
-  show is_open t,
-  { exact (hT s hs).1 t tTs },
+  refine dense_sInter_of_open _ (hS.bUnion hTc) _;
+    simp only [mem_Union]; rintro t ⟨s, hs, tTs⟩,
+  show is_open t, from hTo s hs t tTs,
   show dense t,
   { intro x,
     have := hd s hs x,
-    rw (hT s hs).2.2 at this,
+    rw hsT s hs at this,
     exact closure_mono (sInter_subset_of_mem tTs) this }
 end
 

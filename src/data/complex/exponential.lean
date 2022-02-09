@@ -41,7 +41,7 @@ have h : ∃ l, ∀ n ≥ m, a - l • ε < f n :=
     (neg_le.2 $ (abs_neg (f n)) ▸ le_abs_self _)⟩,
 let l := nat.find h in
 have hl : ∀ (n : ℕ), n ≥ m → f n > a - l • ε := nat.find_spec h,
-have hl0 : l ≠ 0 := λ hl0, not_lt_of_ge (ham m (le_refl _))
+have hl0 : l ≠ 0 := λ hl0, not_lt_of_ge (ham m le_rfl)
   (lt_of_lt_of_le (by have := hl m (le_refl m); simpa [hl0] using this) (le_abs_self (f m))),
 begin
   cases not_forall.1
@@ -105,7 +105,7 @@ end
 
 lemma is_cau_series_of_abv_cau {f : ℕ → β} : is_cau_seq abs (λ m, ∑ n in range m, abv (f n))
   → is_cau_seq abv (λ m, ∑ n in range m, f n) :=
-is_cau_series_of_abv_le_cau 0 (λ n h, le_refl _)
+is_cau_series_of_abv_le_cau 0 (λ n h, le_rfl)
 
 end no_archimedean
 
@@ -465,7 +465,7 @@ lemma exp_int_mul (z : ℂ) (n : ℤ) : complex.exp (n * z) = (complex.exp z) ^ 
 begin
   cases n,
   { apply complex.exp_nat_mul },
-  { simpa [complex.exp_neg, add_comm, ← neg_mul_eq_neg_mul_symm]
+  { simpa [complex.exp_neg, add_comm, ← neg_mul]
       using complex.exp_nat_mul (-z) (1 + n) },
 end
 
@@ -674,7 +674,7 @@ by rw ← cosh_mul_I; ring_nf; simp
 
 lemma sin_mul_I : sin (x * I) = sinh x * I :=
 have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring_nf, simp },
-by simpa only [neg_mul_eq_neg_mul_symm, div_I, neg_neg]
+by simpa only [neg_mul, div_I, neg_neg]
   using cancel_factors.cancel_factors_eq_div h I_ne_zero
 
 lemma tan_mul_I : tan (x * I) = tanh x * I :=
@@ -752,7 +752,7 @@ end
 lemma sin_conj : sin (conj x) = conj (sin x) :=
 by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
        ← conj_neg_I, ← ring_hom.map_mul, ← ring_hom.map_mul, sinh_conj,
-       mul_neg_eq_neg_mul_symm, sinh_neg, sinh_mul_I, mul_neg_eq_neg_mul_symm]
+       mul_neg, sinh_neg, sinh_mul_I, mul_neg]
 
 @[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
 eq_conj_iff_re.1 $ by rw [← sin_conj, conj_of_real]
@@ -767,7 +767,7 @@ lemma sin_of_real_re (x : ℝ) : (sin x).re = real.sin x := rfl
 
 lemma cos_conj : cos (conj x) = conj (cos x) :=
 by rw [← cosh_mul_I, ← conj_neg_I, ← ring_hom.map_mul, ← cosh_mul_I,
-       cosh_conj, mul_neg_eq_neg_mul_symm, cosh_neg]
+       cosh_conj, mul_neg, cosh_neg]
 
 @[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
 eq_conj_iff_re.1 $ by rw [← cos_conj, conj_of_real]
@@ -807,7 +807,7 @@ lemma cos_add_sin_I : cos x + sin x * I = exp (x * I) :=
 by rw [← cosh_add_sinh, sinh_mul_I, cosh_mul_I]
 
 lemma cos_sub_sin_I : cos x - sin x * I = exp (-x * I) :=
-by rw [← neg_mul_eq_neg_mul, ← cosh_sub_sinh, sinh_mul_I, cosh_mul_I]
+by rw [neg_mul, ← cosh_sub_sinh, sinh_mul_I, cosh_mul_I]
 
 @[simp] lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
 eq.trans
@@ -966,7 +966,7 @@ end
 theorem cos_sub_cos : cos x - cos y = -2 * sin((x + y)/2) * sin((x - y)/2) :=
 begin
   rw ← of_real_inj,
-  simp only [cos, neg_mul_eq_neg_mul_symm, of_real_sin, of_real_sub, of_real_add,
+  simp only [cos, neg_mul, of_real_sin, of_real_sub, of_real_add,
     of_real_cos_of_real_re, of_real_div, of_real_mul, of_real_one, of_real_neg, of_real_bit0],
   convert cos_sub_cos _ _,
   ring,
@@ -1149,7 +1149,7 @@ calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ 
         rw [← tsub_add_cancel_of_le hj, sum_range_succ', sum_range_succ',
           add_re, add_re, h₁, h₂, add_assoc,
           ← coe_re_add_group_hom, (re_add_group_hom).map_sum, coe_re_add_group_hom ],
-        refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) (le_refl _),
+        refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) le_rfl,
         rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
         exact div_nonneg (pow_nonneg hx _) (nat.cast_nonneg _),
       end⟩)
@@ -1302,7 +1302,7 @@ begin
   ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n! * n.succ ^ i) : _
   ... = ∑ (i : ℕ) in range k, (abs x) ^ (n) / (n!) * ((abs x)^i / n.succ ^ i) : _
   ... ≤ abs x ^ n / (↑n!) * 2 : _,
-  { refine sum_le_sum (λ m hm, div_le_div (pow_nonneg (abs_nonneg x) (n + m)) (le_refl _) _ _),
+  { refine sum_le_sum (λ m hm, div_le_div (pow_nonneg (abs_nonneg x) (n + m)) le_rfl _ _),
     { exact_mod_cast mul_pos n.factorial_pos (pow_pos n.succ_pos _), },
     { exact_mod_cast (nat.factorial_mul_pow_le_factorial), }, },
   { refine finset.sum_congr rfl (λ _ _, _),

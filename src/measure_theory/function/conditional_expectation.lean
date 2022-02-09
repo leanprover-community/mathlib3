@@ -688,8 +688,6 @@ We define a conditional expectation in `L2`: it is the orthogonal projection on 
 
 section condexp_L2
 
-local attribute [instance] fact_one_le_two_ennreal
-
 variables [complete_space E] {m m0 : measurable_space α} {μ : measure α}
   {s t : set α}
 
@@ -1125,8 +1123,6 @@ takes `x : G` to the conditional expectation of the indicator of the set `s` wit
 seen as an element of `α →₁[μ] G`.
 -/
 
-local attribute [instance] fact_one_le_two_ennreal
-
 variables {m m0 : measurable_space α} {μ : measure α} {s t : set α} [normed_space ℝ G]
 
 section condexp_ind_L1_fin
@@ -1409,8 +1405,6 @@ end condexp_ind
 
 section condexp_L1
 
-local attribute [instance] fact_one_le_one_ennreal
-
 variables {m m0 : measurable_space α} {μ : measure α}
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
 
@@ -1628,8 +1622,6 @@ section condexp
 /-! ### Conditional expectation of a function -/
 
 open_locale classical
-
-local attribute [instance] fact_one_le_one_ennreal
 
 variables {𝕜} {m m0 : measurable_space α} {μ : measure α}
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}

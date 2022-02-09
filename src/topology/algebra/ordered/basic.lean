@@ -291,6 +291,9 @@ is_open_Iio.interior_eq
 @[simp] lemma interior_Ioo : interior (Ioo a b) = Ioo a b :=
 is_open_Ioo.interior_eq
 
+lemma Ioo_subset_closure_interior : Ioo a b ⊆ closure (interior (Ioo a b)) :=
+by simp only [interior_Ioo, subset_closure]
+
 lemma Iio_mem_nhds {a b : α} (h : a < b) : Iio b ∈ 𝓝 a :=
 is_open.mem_nhds is_open_Iio h
 
@@ -2265,6 +2268,25 @@ by rw [← Ici_inter_Iio, interior_inter, interior_Ici, interior_Iio, Ioi_inter_
 
 @[simp] lemma interior_Ioc [no_max_order α] {a b : α} : interior (Ioc a b) = Ioo a b :=
 by rw [← Ioi_inter_Iic, interior_inter, interior_Ioi, interior_Iic, Ioi_inter_Iio]
+
+lemma closure_interior_Icc {a b : α} (h : a ≠ b) : closure (interior (Icc a b)) = Icc a b :=
+(closure_minimal interior_subset is_closed_Icc).antisymm $
+calc Icc a b = closure (Ioo a b) : (closure_Ioo h).symm
+... ⊆ closure (interior (Icc a b)) : closure_mono (interior_maximal Ioo_subset_Icc_self is_open_Ioo)
+
+lemma Ioc_subset_closure_interior (a b : α) : Ioc a b ⊆ closure (interior (Ioc a b)) :=
+begin
+  rcases eq_or_ne a b with rfl|h,
+  { simp },
+  { calc Ioc a b ⊆ Icc a b : Ioc_subset_Icc_self
+    ... = closure (Ioo a b) : (closure_Ioo h).symm
+    ... ⊆ closure (interior (Ioc a b)) :
+      closure_mono (interior_maximal Ioo_subset_Ioc_self is_open_Ioo) }
+end
+
+lemma Ico_subset_closure_interior (a b : α) : Ico a b ⊆ closure (interior (Ico a b)) :=
+by simpa only [dual_Ioc]
+  using Ioc_subset_closure_interior (order_dual.to_dual b) (order_dual.to_dual a)
 
 @[simp] lemma frontier_Ici' {a : α} (ha : (Iio a).nonempty) : frontier (Ici a) = {a} :=
 by simp [frontier, ha]

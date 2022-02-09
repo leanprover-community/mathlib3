@@ -436,7 +436,7 @@ theorem pairwise_coprime_X_sub {α : Type u} [field α] {I : Type v}
   pairwise (is_coprime on (λ i : I, polynomial.X - polynomial.C (s i))) :=
 λ i j hij, have h : s j - s i ≠ 0, from sub_ne_zero_of_ne $ function.injective.ne H hij.symm,
 ⟨polynomial.C (s j - s i)⁻¹, -polynomial.C (s j - s i)⁻¹,
-by rw [neg_mul_eq_neg_mul_symm, ← sub_eq_add_neg, ← mul_sub, sub_sub_sub_cancel_left,
+by rw [neg_mul, ← sub_eq_add_neg, ← mul_sub, sub_sub_sub_cancel_left,
     ← polynomial.C_sub, ← polynomial.C_mul, inv_mul_cancel h, polynomial.C_1]⟩
 
 /-- If `f` is a polynomial over a field, and `a : K` satisfies `f' a ≠ 0`,

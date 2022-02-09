@@ -992,7 +992,7 @@ begin
   rw r_eq_r' at h ⊢,
   cases h with t ht,
   use t,
-  rw [neg_mul_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm, ht],
+  rw [neg_mul, neg_mul, ht],
   ring_nf,
 end
 

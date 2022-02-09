@@ -626,7 +626,7 @@ begin
   rw [coeff_one, if_neg H, coeff_mul,
     ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
     coeff_zero_eq_constant_coeff_apply, h, coeff_inv_of_unit, if_neg H,
-    neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, units.mul_inv_cancel_left,
+    neg_mul, mul_neg, units.mul_inv_cancel_left,
     ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
     finset.insert_erase this, if_neg (not_lt_of_ge $ le_rfl), zero_add, add_comm,
     ← sub_eq_add_neg, sub_eq_zero, finset.sum_congr rfl],

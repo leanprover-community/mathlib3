@@ -248,7 +248,7 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
 { to_fun := λ x, ⟨⟨2 * x / (1 + x^2), (1 - x^2) / (1 + x^2)⟩,
     by { field_simp [hk x, div_pow], ring },
     begin
-      simp only [ne.def, div_eq_iff (hk x), ←neg_mul_eq_neg_mul, one_mul, neg_add,
+      simp only [ne.def, div_eq_iff (hk x), neg_mul, one_mul, neg_add,
         sub_eq_add_neg, add_left_inj],
       simpa only [eq_neg_iff_add_eq_zero, one_pow] using hk 1,
     end⟩,

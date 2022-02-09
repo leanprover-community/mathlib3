@@ -288,6 +288,17 @@ noncomputable instance polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'
   has_scalar (R'[X]) (S' → T') :=
 ⟨λ p f x, aeval x p • f x⟩
 
+open mul_opposite
+
+instance polynomial.has_op_scalar_pi [semiring R'] [has_scalar R'ᵐᵒᵖ S'] :
+  has_scalar (R'[X]ᵐᵒᵖ) (R' → S') :=
+⟨λ p f x, op (eval x p.unop) • f x⟩
+
+noncomputable instance polynomial.has_op_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
+  [has_scalar S'ᵐᵒᵖ T'] :
+  has_scalar (R'[X]ᵐᵒᵖ) (S' → T') :=
+⟨λ p f x, op (aeval x p.unop) • f x⟩
+
 variables {R} {S}
 
 @[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
@@ -297,6 +308,14 @@ variables {R} {S}
 @[simp] lemma polynomial_smul_apply' [comm_semiring R'] [semiring S'] [algebra R' S']
   [has_scalar S' T'] (p : R'[X]) (f : S' → T') (x : S') :
   (p • f) x = aeval x p • f x := rfl
+
+@[simp] lemma polynomial_op_smul_apply [semiring R'] [has_scalar R'ᵐᵒᵖ S']
+  (p : R'[X]) (f : R' → S') (x : R') :
+  (op p • f) x = op (eval x p) • f x := rfl
+
+@[simp] lemma polynomial_op_smul_apply' [comm_semiring R'] [semiring S'] [algebra R' S']
+  [has_scalar S'ᵐᵒᵖ T'] (p : R'[X]) (f : S' → T') (x : S') :
+  (op p • f) x = op (aeval x p) • f x := rfl
 
 variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S'] [algebra S' T']
 
@@ -309,6 +328,7 @@ noncomputable instance polynomial.algebra_pi :
   map_add' := λ f g, funext $ λ z, by simp,
   commutes' := λ p f, funext $ λ z, mul_comm _ _,
   smul_def' := λ p f, funext $ λ z, by simp [algebra.algebra_map_eq_smul_one],
+  op_smul_def' := λ p f, funext $ λ z, by simp [algebra.algebra_map_eq_smul_one, op_smul_eq_smul],
   ..polynomial.has_scalar_pi' R' S' T' }
 
 @[simp] lemma polynomial.algebra_map_pi_eq_aeval :

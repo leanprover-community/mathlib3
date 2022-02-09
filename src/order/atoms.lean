@@ -44,7 +44,7 @@ which are lattices with only two elements, and related ideas.
   connection between atoms, coatoms, and simple lattices
   * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
   bounded lattice, a complement of an atom is a coatom and vice versa.
-  * ``is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
+  * `is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
   * Finite partial orders with bottom resp. top are atomic resp. coatomic.
 
 -/

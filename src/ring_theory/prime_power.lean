@@ -281,6 +281,84 @@ begin
   exact ne_zero_of_dvd_ne_zero hn (subtype.prop (d ⟨c₁ 1 ^ s, _⟩))
 end
 
+lemma order_iso.map_eq_bot_iff {α β : Type*} [partial_order α] [partial_order β] [order_bot α]
+  [order_bot β] {a : α} (f : α ≃o β) : f a = ⊥ ↔ a = ⊥ :=
+  ⟨(λ h, by rw [(show a = f.symm ⊥, by simp only [← h, order_iso.symm_apply_apply]),
+  order_iso.map_bot f.symm]), λ h, by rw [h, f.map_bot]⟩
+
+variables [nontrivial M] [nontrivial N] {m : associates M}
+
+instance : ordered_comm_monoid (associates M) :=
+{ mul_le_mul_left := λ a b h c, by {obtain ⟨d, rfl⟩ := h, rw ← mul_assoc,
+  exact associates.le_mul_right},
+  ..associates.comm_monoid,
+  ..associates.partial_order}
+
+instance : canonically_ordered_monoid (associates M) :=
+{ le_iff_exists_mul := λ a b, ⟨λ h, h, λ h, h⟩,
+  ..associates.cancel_comm_monoid_with_zero,
+  ..associates.lattice,
+  ..associates.bounded_order,
+  ..associates.ordered_comm_monoid}
+
+instance order_bot_divisors : order_bot {l : associates M // l ≤ m} :=
+subtype.order_bot bot_le
+
+lemma map_is_unit_of_monotone_is_unit {m u : associates M} {n : associates N}
+  (hn : n ≠ 0) (hu : is_unit u) (hu' : u ≤ m)
+  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) (hd : monotone d)
+  (hd' : monotone d.symm) : is_unit (d ⟨u, hu'⟩ : associates N) :=
+begin
+  rw associates.is_unit_iff_eq_one,
+  have : (d ⟨u, hu'⟩ : associates N) ≠ 0,
+  apply ne_zero_of_dvd_ne_zero hn (d ⟨u, hu'⟩).prop,
+  rw ← bot_eq_one,
+  suffices : d ⟨u, hu'⟩ = ⟨⊥, bot_le⟩,
+  { rw [subtype.ext_iff, subtype.coe_mk] at this,
+    exact this },
+  have : (⊥ :  {l : associates N // l ≤ n}) = ⟨⊥, bot_le⟩ := rfl,
+  rw ← this,
+  rw order_iso.map_eq_bot_iff d,
+  rw associates.is_unit_iff_eq_one at hu,
+  have : (⊥ :  {l : associates M // l ≤ m}) = ⟨⊥, bot_le⟩ := rfl,
+  simp only [this, hu, bot_eq_one],
+end
+
+variable (hm : m ≠ 0)
+
+instance : has_bot {l : associates M // l ≤ m} :=
+{ bot := ⟨(⊥ : associates M), show ⊥ ≤ m, from by exact bot_le⟩ }
+
+lemma map_prime_of_monotone_equiv {m p : associates M} {n : associates N}
+  (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) (hd : monotone d)
+  (hd' : monotone d.symm) {s : ℕ} (hs : s ≠ 0) (hs' : p^s ≤ m) :
+  irreducible (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N) :=
+begin
+  rw ← associates.is_atom_iff,
+  split,
+  sorry,
+  intros b hb,
+  have hb' := le_trans (le_of_lt hb) (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop,
+  obtain ⟨x, hx⟩ := d.surjective ⟨b, hb'⟩,
+  obtain ⟨z, hz⟩ := d.surjective ⟨⊥, show ⊥ ≤ n, from bot_le⟩,
+  rw ← subtype.coe_mk b hb' at hb,
+  rw subtype.coe_lt_coe at hb,
+  rw ← hx at hb,
+
+  /-
+  obtain ⟨y, hy⟩ := x,
+  by_contra hcontra,
+  rw ← ne.def at hcontra,
+  rw ← bot_lt_iff_ne_bot at hcontra,-/
+  sorry,
+  sorry,
+
+
+
+end
+
+
 lemma multiplicity_le_of_monotone {m p : associates M} {n : associates N}
   (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
   (d : {l : associates M // l ≤ m} ≃ {l : associates N // l ≤ n}) (hd : monotone d)
@@ -307,5 +385,7 @@ begin
     rw hcases,
     exact le_top },
 end
+
+
 
 end factorisations_same_shape

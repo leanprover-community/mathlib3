@@ -796,23 +796,15 @@ units.ext $ neg_mul _ _
 /-- Multiplication of elements of a ring's unit group commutes with mapping the second argument
     to its additive inverse. -/
 @[simp] protected theorem mul_neg (u₁ u₂ : αˣ) : u₁ * -u₂ = -(u₁ * u₂) :=
-units.ext $ (neg_mul_eq_mul_neg _ _).symm
+units.ext $ mul_neg _ _
 
 /-- `units` version of `neg_mul_eq_neg_mul`. -/
 lemma neg_mul_eq_neg_mul (a b : αˣ) : -(a * b) = -a * b :=
-by simp
+units.ext $ neg_mul_eq_neg_mul _ _
 
 /-- `units` version of `neg_mul_eq_mul_neg`. -/
 lemma neg_mul_eq_mul_neg (a b : αˣ) : -(a * b) = a * -b :=
-by simp
-
-/-- `units` version of `neg_mul_eq_neg_mul_symm`. -/
-@[simp] lemma neg_mul_eq_neg_mul_symm (a b : αˣ) : - a * b = - (a * b) :=
-eq.symm (neg_mul_eq_neg_mul a b)
-
-/-- `units` version of `mul_neg_eq_neg_mul_symm`. -/
-@[simp] lemma mul_neg_eq_neg_mul_symm (a b : αˣ) : a * - b = - (a * b) :=
-eq.symm (neg_mul_eq_mul_neg a b)
+units.ext $ neg_mul_eq_mul_neg _ _
 
 /-- Multiplication of the additive inverses of two elements of a ring's unit group equals
     multiplication of the two original elements. -/
@@ -1190,13 +1182,13 @@ section units
 variables [ring R] {a b x y x' y' : Rˣ}
 
 lemma units_neg_right (h : semiconj_by a x y) : semiconj_by a (-x) (-y) :=
-by simp only [semiconj_by, h.eq, units.neg_mul_eq_neg_mul_symm, units.mul_neg_eq_neg_mul_symm]
+by simp only [semiconj_by, h.eq, units.neg_mul, units.mul_neg]
 
 @[simp] lemma units_neg_right_iff : semiconj_by a (-x) (-y) ↔ semiconj_by a x y :=
 ⟨λ h, units.neg_neg x ▸ units.neg_neg y ▸ h.units_neg_right, semiconj_by.units_neg_right⟩
 
 lemma units_neg_left (h : semiconj_by a x y) : semiconj_by (-a) x y :=
-by simp only [semiconj_by, h.eq, units.neg_mul_eq_neg_mul_symm, units.mul_neg_eq_neg_mul_symm]
+by simp only [semiconj_by, h.eq, units.neg_mul, units.mul_neg]
 
 @[simp] lemma units_neg_left_iff : semiconj_by (-a) x y ↔ semiconj_by a x y :=
 ⟨λ h, units.neg_neg a ▸ h.units_neg_left, semiconj_by.units_neg_left⟩

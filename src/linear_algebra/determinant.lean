@@ -128,7 +128,8 @@ or avoid mentioning a basis at all using `linear_map.det`.
 def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
 trunc.lift
   (λ b : basis ι A M,
-    (det_monoid_hom).comp (to_matrix_alg_equiv b : (M →ₗ[A] M) →* matrix ι ι A))
+    (det_monoid_hom).comp
+      (⟨linear_map.to_matrix b b, linear_map.to_matrix_one _, linear_map.to_matrix_mul _⟩))
   (λ b c, monoid_hom.ext $ det_to_matrix_eq_det_to_matrix b c)
 
 /-- Unfold lemma for `det_aux`.

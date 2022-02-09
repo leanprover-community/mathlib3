@@ -232,7 +232,7 @@ iff.symm add_monoid_hom.ext_iff₂
 @[simps] def add_monoid.End.mul_left : R →+ add_monoid.End R := add_monoid_hom.mul
 
 /-- The right multiplicaiton map: `(a, b) ↦ b * a`. See also `add_monoid_hom.mul_right`. -/
-@[simps] def add_monoid.End.mul_right : R →+ add_monoid.End R := (add_monoid_hom.mul :
-  R →+ add_monoid.End R).flip
+@[simps] def add_monoid.End.mul_right : R →+ add_monoid.End R :=
+(add_monoid_hom.mul : R →+ add_monoid.End R).flip
 
 end semiring

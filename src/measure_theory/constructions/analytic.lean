@@ -10,7 +10,9 @@ import measure_theory.constructions.borel_space
 # Analytic sets
 -/
 
-open set function polish_space
+open set function polish_space pi_nat
+open_locale topological_space
+
 
 namespace measure_theory
 
@@ -147,31 +149,8 @@ begin
     exact measurable_set.Inter (λ n, hu m n) }
 end
 
-open pi_nat
-
-open_locale topological_space
-
-lemma Union_cylinder_update {E : ℕ → Type*} (x : Π n, E n) (n : ℕ) :
-  (⋃ k, cylinder (update x n k) (n+1)) = cylinder x n :=
-begin
-  ext y,
-  simp only [mem_cylinder_iff, mem_Union],
-  split,
-  { rintros ⟨k, hk⟩ i hi,
-    simpa [hi.ne] using hk i (nat.lt_succ_of_lt hi) },
-  { assume H,
-    refine ⟨y n, λ i hi, _⟩,
-    rcases nat.lt_succ_iff_lt_or_eq.1 hi with h'i|rfl,
-    { simp [H i h'i, h'i.ne] },
-    { simp } },
-end
-
-lemma update_mem_cylinder {E : ℕ → Type*} (x : Π n, E n) (n : ℕ) (y : E n) :
-  update x n y ∈ cylinder x n :=
-mem_cylinder_iff.2 (λ i hi, by simp [hi.ne])
-
-lemma zoug [measurable_space α] [t2_space α] (f g : (ℕ → ℕ) → α)
-  (hf : continuous f) (hg : continuous g) (h : disjoint (range f) (range g)) :
+lemma borel_separable_range_of_disjoint [measurable_space α] [borel_space α] [t2_space α]
+  {f g : (ℕ → ℕ) → α} (hf : continuous f) (hg : continuous g) (h : disjoint (range f) (range g)) :
   borel_separable (range f) (range g) :=
 begin
   by_contra hfg,
@@ -222,7 +201,7 @@ begin
     rw [prec, I, IH] },
   set x : ℕ → ℕ := λ n, (p (n+1)).1.2.1 n with hx,
   set y : ℕ → ℕ := λ n, (p (n+1)).1.2.2 n with hy,
-  have : ∀ n, ¬(borel_separable (f '' (cylinder x n)) (g '' (cylinder y n))),
+  have M : ∀ n, ¬(borel_separable (f '' (cylinder x n)) (g '' (cylinder y n))),
   { assume n,
     convert (p n).2 using 3,
     { rw [pn_fst, ← mem_cylinder_iff_eq, mem_cylinder_iff],
@@ -237,12 +216,43 @@ begin
     ∃ u v : set α, is_open u ∧ is_open v ∧ f x ∈ u ∧ g y ∈ v ∧ u ∩ v = ∅,
   { apply t2_separation,
     exact disjoint_iff_forall_ne.1 h _ (mem_range_self _) _ (mem_range_self _) },
-  have : f ⁻¹' u ∈ 𝓝 x,
-  { apply hf.continuous_at.preimage_mem_nhds,
+  letI : metric_space (ℕ → ℕ) := metric_space_nat_nat,
+  obtain ⟨εx, εxpos, hεx⟩ : ∃ (εx : ℝ) (H : εx > 0), metric.ball x εx ⊆ f ⁻¹' u,
+  { apply metric.mem_nhds_iff.1,
+    exact hf.continuous_at.preimage_mem_nhds (u_open.mem_nhds xu) },
+  obtain ⟨εy, εypos, hεy⟩ : ∃ (εy : ℝ) (H : εy > 0), metric.ball y εy ⊆ g ⁻¹' v,
+  { apply metric.mem_nhds_iff.1,
+    exact hg.continuous_at.preimage_mem_nhds (v_open.mem_nhds yv) },
+  obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2 : ℝ)^n < min εx εy :=
+    exists_pow_lt_of_lt_one (lt_min εxpos εypos) (by norm_num),
+  have B : borel_separable (f '' (cylinder x n)) (g '' (cylinder y n)),
+  { refine ⟨u, _, _, u_open.measurable_set⟩,
+    { rw image_subset_iff,
+      apply subset.trans _ hεx,
+      assume z hz,
+      rw mem_cylinder_iff_dist_le at hz,
+      exact hz.trans_lt (hn.trans_le (min_le_left _ _)) },
+    { have D : disjoint v u, by rwa [disjoint_iff_inter_eq_empty, inter_comm],
+      apply disjoint.mono_left _ D,
+      change g '' cylinder y n ⊆ v,
+      rw image_subset_iff,
+      apply subset.trans _ hεy,
+      assume z hz,
+      rw mem_cylinder_iff_dist_le at hz,
+      exact hz.trans_lt (hn.trans_le (min_le_right _ _)) } },
+  exact M n B
+end
 
-  }
-
-
+theorem analytic_set.borel_separable [measurable_space α] [borel_space α] [t2_space α]
+  {s t : set α} (hs : analytic_set s) (ht : analytic_set t) (h : disjoint s t) :
+  borel_separable s t :=
+begin
+  rw analytic_set at hs ht,
+  rcases hs with rfl|⟨f, f_cont, rfl⟩,
+  { exact ⟨∅, subset.refl _, by simp, measurable_set.empty⟩ },
+  rcases ht with rfl|⟨g, g_cont, rfl⟩,
+  { exact ⟨univ, subset_univ _, by simp, measurable_set.univ⟩ },
+  exact borel_separable_range_of_disjoint f_cont g_cont h,
 end
 
 end measure_theory

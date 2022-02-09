@@ -144,6 +144,25 @@ begin
   exact apply_eq_of_lt_first_diff (hi.trans_le hn),
 end
 
+lemma Union_cylinder_update (x : Π n, E n) (n : ℕ) :
+  (⋃ k, cylinder (update x n k) (n+1)) = cylinder x n :=
+begin
+  ext y,
+  simp only [mem_cylinder_iff, mem_Union],
+  split,
+  { rintros ⟨k, hk⟩ i hi,
+    simpa [hi.ne] using hk i (nat.lt_succ_of_lt hi) },
+  { assume H,
+    refine ⟨y n, λ i hi, _⟩,
+    rcases nat.lt_succ_iff_lt_or_eq.1 hi with h'i|rfl,
+    { simp [H i h'i, h'i.ne] },
+    { simp } },
+end
+
+lemma update_mem_cylinder (x : Π n, E n) (n : ℕ) (y : E n) :
+  update x n y ∈ cylinder x n :=
+mem_cylinder_iff.2 (λ i hi, by simp [hi.ne])
+
 /-!
 ### A distance function on `Π n, E n`
 

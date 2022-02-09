@@ -39,7 +39,7 @@ lemma cauchy_iff {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, t ×ˢ t ⊆ s)) :=
 cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
 
-lemma cauchy.to_ultrafilter {l : filter α} (h : cauchy l) :
+lemma cauchy.ultrafilter_of {l : filter α} (h : cauchy l) :
   cauchy (@ultrafilter.of _ l h.1 : filter α) :=
 begin
   haveI := h.1,
@@ -294,7 +294,7 @@ lemma is_complete_iff_ultrafilter {s : set α} :
 begin
   refine ⟨λ h l, h l, λ H, is_complete_iff_cluster_pt.2 $ λ l hl hls, _⟩,
   haveI := hl.1,
-  rcases H (ultrafilter.of l) hl.to_ultrafilter ((ultrafilter.of_le l).trans hls)
+  rcases H (ultrafilter.of l) hl.ultrafilter_of ((ultrafilter.of_le l).trans hls)
     with ⟨x, hxs, hxl⟩,
   exact ⟨x, hxs, (cluster_pt.of_le_nhds hxl).mono (ultrafilter.of_le l)⟩
 end
@@ -342,6 +342,10 @@ lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : com
 lemma complete_space_iff_is_complete_univ :
   complete_space α ↔ is_complete (univ : set α) :=
 ⟨@complete_univ α _, complete_space_of_is_complete_univ⟩
+
+lemma complete_space_iff_ultrafilter :
+  complete_space α ↔ ∀ l : ultrafilter α, cauchy (l : filter α) → ∃ x : α, ↑l ≤ 𝓝 x :=
+by simp [complete_space_iff_is_complete_univ, is_complete_iff_ultrafilter]
 
 lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} [ne_bot l] :
   cauchy l ↔ (∃x, l ≤ 𝓝 x) :=

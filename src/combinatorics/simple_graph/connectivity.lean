@@ -412,8 +412,9 @@ def take_until : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.
   then by subst u
   else cons r (take_until p _ $ h.cases_on (λ h', (hx h'.symm).elim) id)
 
-/-- Given a vertex in the support of a path, give the path from (and including) that vertex to the end.
-In other words, drop vertices from the front of a path until (and not including) that vertex. -/
+/-- Given a vertex in the support of a path, give the path from (and including) that vertex to
+the end. In other words, drop vertices from the front of a path until (and not including)
+that vertex. -/
 def drop_until : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.walk u w
 | v w nil u h := by rw mem_support_nil_iff.mp h
 | v w (cons r p) u h :=

@@ -3103,7 +3103,7 @@ begin
   rcases h with ⟨g, hgm, hg⟩,
   rcases hs.exists_measurable_proj ⟨f default, hfs _⟩ with ⟨π, hπm, hπ⟩,
   refine ⟨π ∘ g, hπm.comp hgm, hg.mono $ λ x hx, _⟩,
-  rw [comp_apply, ← hx, ← coe_cod_restrict_apply hfs, hπ]
+  rw [comp_apply, ← hx, ← coe_cod_restrict_apply f s hfs, hπ]
 end
 
 protected lemma null_measurable (h : ae_measurable f μ) : null_measurable f μ :=

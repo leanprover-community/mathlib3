@@ -109,7 +109,7 @@ has codomain `↥s` instead of `subtype s`. -/
 def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s :=
 λ x, ⟨f x, h x⟩
 
-@[simp] lemma coe_cod_restrict_apply {f : α → β} {s : set β} (h : ∀ x, f x ∈ s) (x : α) :
+@[simp] lemma coe_cod_restrict_apply (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) (x : α) :
   (cod_restrict f s h x : β) = f x :=
 rfl
 

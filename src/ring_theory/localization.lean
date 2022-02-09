@@ -100,7 +100,7 @@ variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
 variables [algebra R S] {P : Type*} [comm_ring P]
 
 open function
-open_locale big_operators
+open_locale big_operators polynomial
 
 /-- The typeclass `is_localization (M : submodule R) S` where `S` is an `R`-algebra
 expresses that `S` is isomorphic to the localization of `R` at `M`. -/
@@ -992,7 +992,7 @@ begin
   rw r_eq_r' at h ⊢,
   cases h with t ht,
   use t,
-  rw [neg_mul_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm, ht],
+  rw [neg_mul, neg_mul, ht],
   ring_nf,
 end
 
@@ -1755,7 +1755,7 @@ variables (M) {S}
 
 /-- `coeff_integer_normalization p` gives the coefficients of the polynomial
 `integer_normalization p` -/
-noncomputable def coeff_integer_normalization (p : polynomial S) (i : ℕ) : R :=
+noncomputable def coeff_integer_normalization (p : S[X]) (i : ℕ) : R :=
 if hi : i ∈ p.support
 then classical.some (classical.some_spec
       (exist_integer_multiples_of_finset M (p.support.image p.coeff))
@@ -1763,12 +1763,12 @@ then classical.some (classical.some_spec
       (finset.mem_image.mpr ⟨i, hi, rfl⟩))
 else 0
 
-lemma coeff_integer_normalization_of_not_mem_support (p : polynomial S) (i : ℕ)
+lemma coeff_integer_normalization_of_not_mem_support (p : S[X]) (i : ℕ)
   (h : coeff p i = 0) : coeff_integer_normalization M p i = 0 :=
 by simp only [coeff_integer_normalization, h, mem_support_iff, eq_self_iff_true, not_true,
   ne.def, dif_neg, not_false_iff]
 
-lemma coeff_integer_normalization_mem_support (p : polynomial S) (i : ℕ)
+lemma coeff_integer_normalization_mem_support (p : S[X]) (i : ℕ)
   (h : coeff_integer_normalization M p i ≠ 0) : i ∈ p.support :=
 begin
   contrapose h,
@@ -1777,17 +1777,17 @@ end
 
 /-- `integer_normalization g` normalizes `g` to have integer coefficients
 by clearing the denominators -/
-noncomputable def integer_normalization (p : polynomial S) :
-  polynomial R :=
+noncomputable def integer_normalization (p : S[X]) :
+  R[X] :=
 ∑ i in p.support, monomial i (coeff_integer_normalization M p i)
 
 @[simp]
-lemma integer_normalization_coeff (p : polynomial S) (i : ℕ) :
+lemma integer_normalization_coeff (p : S[X]) (i : ℕ) :
   (integer_normalization M p).coeff i = coeff_integer_normalization M p i :=
 by simp [integer_normalization, coeff_monomial, coeff_integer_normalization_of_not_mem_support]
   {contextual := tt}
 
-lemma integer_normalization_spec (p : polynomial S) :
+lemma integer_normalization_spec (p : S[X]) :
   ∃ (b : M), ∀ i,
     algebra_map R S ((integer_normalization M p).coeff i) = (b : R) • p.coeff i :=
 begin
@@ -1804,14 +1804,14 @@ begin
     { exact not_mem_support_iff.mp hi } }
 end
 
-lemma integer_normalization_map_to_map (p : polynomial S) :
+lemma integer_normalization_map_to_map (p : S[X]) :
   ∃ (b : M), (integer_normalization M p).map (algebra_map R S) = (b : R) • p :=
 let ⟨b, hb⟩ := integer_normalization_spec M p in
 ⟨b, polynomial.ext (λ i, by { rw [coeff_map, coeff_smul], exact hb i })⟩
 
 variables {R' : Type*} [comm_ring R']
 
-lemma integer_normalization_eval₂_eq_zero (g : S →+* R') (p : polynomial S)
+lemma integer_normalization_eval₂_eq_zero (g : S →+* R') (p : S[X])
   {x : R'} (hx : eval₂ g x p = 0) :
   eval₂ (g.comp (algebra_map R S)) x (integer_normalization M p) = 0 :=
 let ⟨b, hb⟩ := integer_normalization_map_to_map M p in
@@ -1819,7 +1819,7 @@ trans (eval₂_map (algebra_map R S) g x).symm
   (by rw [hb, ← is_scalar_tower.algebra_map_smul S (b : R) p, eval₂_smul, hx, mul_zero])
 
 lemma integer_normalization_aeval_eq_zero [algebra R R'] [algebra S R'] [is_scalar_tower R S R']
-  (p : polynomial S) {x : R'} (hx : aeval x p = 0) :
+  (p : S[X]) {x : R'} (hx : aeval x p = 0) :
   aeval x (integer_normalization M p) = 0 :=
 by rw [aeval_def, is_scalar_tower.algebra_map_eq R S R',
        integer_normalization_eval₂_eq_zero _ _ _ hx]
@@ -2267,7 +2267,7 @@ begin
   exact h.symm.map_ne_zero_iff
 end
 
-lemma integer_normalization_eq_zero_iff {p : polynomial K} :
+lemma integer_normalization_eq_zero_iff {p : K[X]} :
   integer_normalization (non_zero_divisors A) p = 0 ↔ p = 0 :=
 begin
   refine (polynomial.ext_iff.trans (polynomial.ext_iff.trans _).symm),
@@ -2504,7 +2504,7 @@ open polynomial
 
 lemma ring_hom.is_integral_elem_localization_at_leading_coeff
   {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
-  (x : S) (p : polynomial R) (hf : p.eval₂ f x = 0) (M : submonoid R)
+  (x : S) (p : R[X]) (hf : p.eval₂ f x = 0) (M : submonoid R)
   (hM : p.leading_coeff ∈ M) {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
   [algebra R Rₘ] [is_localization M Rₘ]
   [algebra S Sₘ] [is_localization (M.map f : submonoid S) Sₘ] :
@@ -2527,7 +2527,7 @@ end
 /-- Given a particular witness to an element being algebraic over an algebra `R → S`,
 We can localize to a submonoid containing the leading coefficient to make it integral.
 Explicitly, the map between the localizations will be an integral ring morphism -/
-theorem is_integral_localization_at_leading_coeff {x : S} (p : polynomial R)
+theorem is_integral_localization_at_leading_coeff {x : S} (p : R[X])
   (hp : aeval x p = 0) (hM : p.leading_coeff ∈ M) :
   (map Sₘ (algebra_map R S)
       (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map)

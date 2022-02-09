@@ -744,6 +744,10 @@ by simp [basis.equiv_fun, finsupp.total_apply, finsupp.sum_fintype]
 @[simp]
 lemma basis.equiv_fun_apply (u : M) : b.equiv_fun u = b.repr u := rfl
 
+@[simp] lemma basis.map_equiv_fun (f : M ≃ₗ[R] M') :
+  (b.map f).equiv_fun = f.symm.trans b.equiv_fun :=
+rfl
+
 lemma basis.sum_equiv_fun (u : M) : ∑ i, b.equiv_fun u i • b i = u :=
 begin
   conv_rhs { rw ← b.total_repr u },

@@ -52,9 +52,9 @@ structure language :=
 namespace language
 
 /-- The empty language has no symbols. -/
-def empty_lang : language := ⟨λ _, pempty, λ _, pempty⟩
+@[protected] def empty : language := ⟨λ _, pempty, λ _, pempty⟩
 
-instance : inhabited language := ⟨empty_lang⟩
+instance : inhabited language := ⟨empty⟩
 
 /-- The type of constants in a given language. -/
 @[nolint has_inhabited_instance] def const (L : language) := L.functions 0
@@ -77,9 +77,9 @@ instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational
 instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
 ⟨by { intro n, apply pempty.elim }⟩
 
-instance is_relational_empty : is_relational (empty_lang) :=
+instance is_relational_empty : is_relational empty :=
   language.is_relational_of_empty_functions
-instance is_algebraic_empty : is_algebraic (empty_lang) :=
+instance is_algebraic_empty : is_algebraic empty :=
   language.is_algebraic_of_empty_relations
 
 variables (L) (M : Type*)

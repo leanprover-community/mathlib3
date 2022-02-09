@@ -198,14 +198,15 @@ lemma ae_measure_preimage_mul_right_ne_top [is_mul_left_invariant μ] [is_mul_le
   {E : set G} (Em : measurable_set E) (hμE : μ E < ∞) :
   ∀ᵐ x ∂μ, ν ((λ y, y * x) ⁻¹' E) < ∞ :=
 begin
-  apply ae_of_forall_measure_lt_top_ae_restrict' ν,
+  refine ae_of_forall_measure_lt_top_ae_restrict' ν.inv _ _,
   intros A hA h2A h3A,
   simp only [ν.inv_apply] at h3A,
   apply ae_lt_top (measurable_measure_mul_right ν Em),
   have h1 := measure_mul_lintegral_eq μ ν Em (A⁻¹.indicator 1) (measurable_one.indicator hA.inv),
   rw [lintegral_indicator _ hA.inv] at h1,
-  simp_rw [pi.one_apply, set_lintegral_one, ← image_inv, image_indicator inv_injective,
-    ← indicator_mul_right _ (λ x, ν ((λ y, y * x) ⁻¹' E)), pi.one_apply, mul_one] at h1,
+  simp_rw [pi.one_apply, set_lintegral_one, ← image_inv, image_indicator inv_injective, image_inv,
+    ← indicator_mul_right _ (λ x, ν ((λ y, y * x) ⁻¹' E)), function.comp, pi.one_apply,
+    mul_one] at h1,
   rw [← lintegral_indicator _ hA, ← h1],
   refine ennreal.mul_ne_top hμE.ne h3A.ne,
 end

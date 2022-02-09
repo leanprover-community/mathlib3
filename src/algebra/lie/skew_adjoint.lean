@@ -50,10 +50,13 @@ end
 
 /-- Given an `R`-module `M`, equipped with a bilinear form, the skew-adjoint endomorphisms form a
 Lie subalgebra of the Lie algebra of endomorphisms. -/
-def skew_adjoint_lie_subalgebra : lie_subalgebra R (module.End R M) :=
+def skew_adjoint_lie_subalgebra [module Rᵐᵒᵖ M] [is_central_scalar R M] :
+  lie_subalgebra R (module.End R M) :=
 { lie_mem' := B.is_skew_adjoint_bracket, ..B.skew_adjoint_submodule }
 
 variables {N : Type w} [add_comm_group N] [module R N] (e : N ≃ₗ[R] M)
+
+variables [module Rᵐᵒᵖ M] [is_central_scalar R M] [module Rᵐᵒᵖ N] [is_central_scalar R N]
 
 /-- An equivalence of modules with bilinear forms gives equivalence of Lie algebras of skew-adjoint
 endomorphisms. -/

@@ -49,6 +49,7 @@ universes u v w w₁ w₂ w₃
 variables {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
 variables (H : lie_subalgebra R L) [lie_algebra.is_nilpotent R H]
 variables (M : Type w) [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables [module Rᵐᵒᵖ M] [is_central_scalar R M]
 
 namespace lie_module
 
@@ -75,10 +76,13 @@ variables (L)
 
 /-- See also `bourbaki1975b` Chapter VII §1.1, Proposition 2 (ii). -/
 protected lemma weight_vector_multiplication (M₁ : Type w₁) (M₂ : Type w₂) (M₃ : Type w₃)
-  [add_comm_group M₁] [module R M₁] [lie_ring_module L M₁] [lie_module R L M₁]
-  [add_comm_group M₂] [module R M₂] [lie_ring_module L M₂] [lie_module R L M₂]
-  [add_comm_group M₃] [module R M₃] [lie_ring_module L M₃] [lie_module R L M₃]
- (g : M₁ ⊗[R] M₂ →ₗ⁅R,L⁆ M₃) (χ₁ χ₂ : L → R) :
+  [add_comm_group M₁] [module R M₁] [module Rᵐᵒᵖ M₁] [is_central_scalar R M₁] [lie_ring_module L M₁]
+  [lie_module R L M₁]
+  [add_comm_group M₂] [module R M₂] [module Rᵐᵒᵖ M₂] [is_central_scalar R M₂] [lie_ring_module L M₂]
+  [lie_module R L M₂]
+  [add_comm_group M₃] [module R M₃] [module Rᵐᵒᵖ M₃] [is_central_scalar R M₃] [lie_ring_module L M₃]
+  [lie_module R L M₃]
+  (g : M₁ ⊗[R] M₂ →ₗ⁅R,L⁆ M₃) (χ₁ χ₂ : L → R) :
   ((g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp
   (map_incl (pre_weight_space M₁ χ₁) (pre_weight_space M₂ χ₂))).range ≤
     pre_weight_space M₃ (χ₁ + χ₂) :=

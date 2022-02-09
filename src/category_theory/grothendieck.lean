@@ -5,7 +5,6 @@ Authors: Scott Morrison, Junyan Xu
 -/
 
 import category_theory.category.Cat
-import category_theory.bicategory.natural_transformation
 import category_theory.bicategory.locally_discrete
 import category_theory.elements
 import category_theory.over

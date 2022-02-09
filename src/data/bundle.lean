@@ -24,10 +24,6 @@ we will make will be of this form.
 
 -/
 
-/-- TEMPORARY: to be removed when Lean will be updated. -/
-instance lift_fn_range' {α : Sort*} {A : α → Sort*} {B : α → Sort*} [Π i, has_lift_t (A i) (B i)] :
-  has_lift (Π i, A i) (Π i, B i) := ⟨λ f i, ↑(f i)⟩
-
 namespace bundle
 
 variables {B : Type*} (E : B → Type*)

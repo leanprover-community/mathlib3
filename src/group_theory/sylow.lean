@@ -552,7 +552,6 @@ lemma normal_of_all_max_groups_normal
   {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   (↑P : subgroup G).normal :=
 normalizer_eq_top.mp begin
-  haveI : is_coatomic (subgroup G), sorry,
   rcases eq_top_or_exists_le_coatom ((↑P : subgroup G).normalizer) with heq | ⟨K, hK, hNK⟩,
   { exact heq },
   { haveI := hnc _ hK,

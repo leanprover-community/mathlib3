@@ -77,7 +77,7 @@ lemma measure_theory.is_fundamental_domain.smul (g : G) [μ.is_mul_left_invarian
     change μ {x : G | ¬∃ (γ : ↥(Γ.opposite)), g * γ • x ∈ 𝓕} = 0,
     have : {x : G | ¬∃ (γ : ↥(Γ.opposite)), g * γ • x ∈ 𝓕} = has_mul.mul g ⁻¹' s,
     { ext,
-      simp [s, subgroup.left_right_mul], },
+      simp [s, subgroup.smul_opposite_mul], },
     rw [this, measure_preimage_mul μ g s, μs_eq_zero],
   end,
   ae_disjoint := begin
@@ -89,7 +89,7 @@ lemma measure_theory.is_fundamental_domain.smul (g : G) [μ.is_mul_left_invarian
     { ext,
       simp only [mem_inter_eq, image_smul, and.congr_left_iff, mem_preimage],
       intros gx,
-      convert subgroup.left_right_mem_preimage x g γ 𝓕, },
+      convert subgroup.smul_opposite_mul_mem_preimage x g γ 𝓕, },
     rw [this, measure_preimage_mul μ g _, μs_eq_zero],
   end }
 
@@ -174,8 +174,7 @@ lemma measure_theory.is_fundamental_domain.map_restrict_quotient [subgroup.norma
   = (μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K.val)) • (measure_theory.measure.haar_measure K) :=
 begin
   let π : G →* G ⧸ Γ := quotient_group.mk' Γ,
-  have meas_π : measurable π :=
-    continuous_quotient_mk.measurable
+  have meas_π : measurable π := continuous_quotient_mk.measurable,
   have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
   haveI : is_finite_measure (μ.restrict 𝓕) :=
     ⟨by { rw [measure.restrict_apply' 𝓕meas, univ_inter], exact h𝓕_finite }⟩,

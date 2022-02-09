@@ -26,7 +26,7 @@ Recall that `∑` and `∏` are notation for `finset.sum` and `finset.prod` resp
 open finset
 open multiset
 
-open_locale big_operators
+open_locale big_operators polynomial
 
 universes u w
 
@@ -38,21 +38,21 @@ variables (s : finset ι)
 
 section semiring
 
-variables {α : Type*} [semiring α]
+variables {S : Type*} [semiring S]
 
-lemma nat_degree_list_sum_le (l : list (polynomial α)) :
+lemma nat_degree_list_sum_le (l : list S[X]) :
   nat_degree l.sum ≤ (l.map nat_degree).foldr max 0 :=
 list.sum_le_foldr_max nat_degree (by simp) nat_degree_add_le _
 
-lemma nat_degree_multiset_sum_le (l : multiset (polynomial α)) :
+lemma nat_degree_multiset_sum_le (l : multiset S[X]) :
   nat_degree l.sum ≤ (l.map nat_degree).foldr max max_left_comm 0 :=
 quotient.induction_on l (by simpa using nat_degree_list_sum_le)
 
-lemma nat_degree_sum_le (f : ι → polynomial α) :
+lemma nat_degree_sum_le (f : ι → S[X]) :
   nat_degree (∑ i in s, f i) ≤ s.fold max 0 (nat_degree ∘ f) :=
 by simpa using nat_degree_multiset_sum_le (s.val.map f)
 
-lemma degree_list_sum_le (l : list (polynomial α)) :
+lemma degree_list_sum_le (l : list S[X]) :
   degree l.sum ≤ (l.map nat_degree).maximum :=
 begin
   by_cases h : l.sum = 0,
@@ -68,7 +68,7 @@ begin
     simp [h] }
 end
 
-lemma nat_degree_list_prod_le (l : list (polynomial α)) :
+lemma nat_degree_list_prod_le (l : list S[X]) :
   nat_degree l.prod ≤ (l.map nat_degree).sum :=
 begin
   induction l with hd tl IH,
@@ -76,7 +76,7 @@ begin
   { simpa using nat_degree_mul_le.trans (add_le_add_left IH _) }
 end
 
-lemma degree_list_prod_le (l : list (polynomial α)) :
+lemma degree_list_prod_le (l : list S[X]) :
   degree l.prod ≤ (l.map degree).sum :=
 begin
   induction l with hd tl IH,
@@ -84,7 +84,7 @@ begin
   { simpa using (degree_mul_le _ _).trans (add_le_add_left IH _) }
 end
 
-lemma coeff_list_prod_of_nat_degree_le (l : list (polynomial α)) (n : ℕ)
+lemma coeff_list_prod_of_nat_degree_le (l : list S[X]) (n : ℕ)
   (hl : ∀ p ∈ l, nat_degree p ≤ n) :
   coeff (list.prod l) (l.length * n) = (l.map (λ p, coeff p n)).prod :=
 begin
@@ -111,7 +111,7 @@ end
 end semiring
 
 section comm_semiring
-variables [comm_semiring R] (f : ι → polynomial R) (t : multiset (polynomial R))
+variables [comm_semiring R] (f : ι → R[X]) (t : multiset R[X])
 
 lemma nat_degree_multiset_prod_le :
   t.prod.nat_degree ≤ (t.map nat_degree).sum :=
@@ -211,7 +211,7 @@ begin
   simpa using coeff_list_prod_of_nat_degree_le _ _ hl
 end
 
-lemma coeff_prod_of_nat_degree_le (f : ι → polynomial R) (n : ℕ)
+lemma coeff_prod_of_nat_degree_le (f : ι → R[X]) (n : ℕ)
   (h : ∀ p ∈ s, nat_degree (f p) ≤ n) :
   coeff (∏ i in s, f i) (s.card * n) = ∏ i in s, coeff (f i) n :=
 begin
@@ -275,7 +275,7 @@ by simpa using multiset_prod_X_sub_C_coeff_card_pred (s.1.map f) (by simpa using
 end comm_ring
 
 section no_zero_divisors
-variables [comm_ring R] [no_zero_divisors R] (f : ι → polynomial R) (t : multiset (polynomial R))
+variables [comm_ring R] [no_zero_divisors R] (f : ι → R[X]) (t : multiset R[X])
 
 /--
 The degree of a product of polynomials is equal to
@@ -292,8 +292,8 @@ begin
   intros x hx, simp [h x hx]
 end
 
-lemma nat_degree_multiset_prod [nontrivial R] (s : multiset (polynomial R))
-  (h : (0 : polynomial R) ∉ s) :
+lemma nat_degree_multiset_prod [nontrivial R] (s : multiset R[X])
+  (h : (0 : R[X]) ∉ s) :
   nat_degree s.prod = (s.map nat_degree).sum :=
 begin
   rw nat_degree_multiset_prod',

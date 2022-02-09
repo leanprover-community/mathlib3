@@ -19,7 +19,7 @@ a tower of algebraic field extensions is algebraic.
 
 universes u v w
 
-open_locale classical
+open_locale classical polynomial
 open polynomial
 
 section
@@ -27,7 +27,7 @@ variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
 
 /-- An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial. -/
 def is_algebraic (x : A) : Prop :=
-∃ p : polynomial R, p ≠ 0 ∧ aeval x p = 0
+∃ p : R[X], p ≠ 0 ∧ aeval x p = 0
 
 /-- An element of an R-algebra is transcendental over R if it is not algebraic over R. -/
 def transcendental (x : A) : Prop := ¬ is_algebraic R x
@@ -66,7 +66,7 @@ begin
 end
 
 lemma is_algebraic_iff_not_injective {x : A} : is_algebraic R x ↔
-  ¬ function.injective (polynomial.aeval x : polynomial R →ₐ[R] A) :=
+  ¬ function.injective (polynomial.aeval x : R[X] →ₐ[R] A) :=
 by simp only [is_algebraic, alg_hom.injective_iff, not_forall, and.comm, exists_prop]
 
 end
@@ -211,7 +211,7 @@ section field
 
 variables {K L : Type*} [field K] [field L] [algebra K L] (A : subalgebra K L)
 
-lemma inv_eq_of_aeval_div_X_ne_zero {x : L} {p : polynomial K}
+lemma inv_eq_of_aeval_div_X_ne_zero {x : L} {p : K[X]}
   (aeval_ne : aeval x (div_X p) ≠ 0) :
   x⁻¹ = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)) :=
 begin
@@ -221,7 +221,7 @@ begin
   exact aeval_ne
 end
 
-lemma inv_eq_of_root_of_coeff_zero_ne_zero {x : L} {p : polynomial K}
+lemma inv_eq_of_root_of_coeff_zero_ne_zero {x : L} {p : K[X]}
   (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) :
   x⁻¹ = - (aeval x (div_X p) / algebra_map _ _ (p.coeff 0)) :=
 begin
@@ -233,7 +233,7 @@ begin
   rw [alg_hom.map_add, alg_hom.map_mul, h, zero_mul, zero_add, aeval_C]
 end
 
-lemma subalgebra.inv_mem_of_root_of_coeff_zero_ne_zero {x : A} {p : polynomial K}
+lemma subalgebra.inv_mem_of_root_of_coeff_zero_ne_zero {x : A} {p : K[X]}
   (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) : (x⁻¹ : L) ∈ A :=
 begin
   have : (x⁻¹ : L) = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)),
@@ -280,28 +280,28 @@ section pi
 variables (R' : Type u) (S' : Type v) (T' : Type w)
 
 instance polynomial.has_scalar_pi [semiring R'] [has_scalar R' S'] :
-  has_scalar (polynomial R') (R' → S') :=
+  has_scalar (R'[X]) (R' → S') :=
 ⟨λ p f x, eval x p • f x⟩
 
 noncomputable instance polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
   [has_scalar S' T'] :
-  has_scalar (polynomial R') (S' → T') :=
+  has_scalar (R'[X]) (S' → T') :=
 ⟨λ p f x, aeval x p • f x⟩
 
 variables {R} {S}
 
 @[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
-  (p : polynomial R') (f : R' → S') (x : R') :
+  (p : R'[X]) (f : R' → S') (x : R') :
   (p • f) x = eval x p • f x := rfl
 
 @[simp] lemma polynomial_smul_apply' [comm_semiring R'] [semiring S'] [algebra R' S']
-  [has_scalar S' T'] (p : polynomial R') (f : S' → T') (x : S') :
+  [has_scalar S' T'] (p : R'[X]) (f : S' → T') (x : S') :
   (p • f) x = aeval x p • f x := rfl
 
 variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S'] [algebra S' T']
 
 noncomputable instance polynomial.algebra_pi :
-  algebra (polynomial R') (S' → T') :=
+  algebra (R'[X]) (S' → T') :=
 { to_fun := λ p z, algebra_map S' T' (aeval z p),
   map_one' := funext $ λ z, by simp,
   map_mul' := λ f g, funext $ λ z, by simp,
@@ -312,10 +312,10 @@ noncomputable instance polynomial.algebra_pi :
   ..polynomial.has_scalar_pi' R' S' T' }
 
 @[simp] lemma polynomial.algebra_map_pi_eq_aeval :
-  (algebra_map (polynomial R') (S' → T') : polynomial R' → (S' → T')) =
+  (algebra_map (R'[X]) (S' → T') : R'[X] → (S' → T')) =
     λ p z, algebra_map _ _ (aeval z p) := rfl
 
 @[simp] lemma polynomial.algebra_map_pi_self_eq_eval :
-  (algebra_map (polynomial R') (R' → R') : polynomial R' → (R' → R')) = λ p z, eval z p := rfl
+  (algebra_map (R'[X]) (R' → R') : R'[X] → (R' → R')) = λ p z, eval z p := rfl
 
 end pi

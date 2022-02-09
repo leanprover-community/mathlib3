@@ -156,7 +156,7 @@ lemma filter.tendsto.cauchy_seq [semilattice_sup β] [nonempty β] {f : β → �
   cauchy_seq f :=
 hx.cauchy_map
 
-lemma cauchy_seq_const (x : α) : cauchy_seq (λ n : ℕ, x) :=
+lemma cauchy_seq_const [semilattice_sup β] [nonempty β] (x : α) : cauchy_seq (λ n : β, x) :=
 tendsto_const_nhds.cauchy_seq
 
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :

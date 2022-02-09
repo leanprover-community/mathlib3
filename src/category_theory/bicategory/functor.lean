@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuma Mizuno
 -/
 import category_theory.bicategory.basic
+import category_theory.eq_to_hom
 
 /-!
 # Oplax functors
@@ -163,6 +164,9 @@ def map_functor (a b : B) : (a ⟶ b) ⥤ (F.obj a ⟶ F.obj b) :=
 { obj := λ f, F.map f,
   map := λ f g η, F.map₂ η }
 
+@[simp] lemma eq_to_hom_map₂ {a b : B} (f g : a ⟶ b) (h : f = g) :
+  F.map₂ (eq_to_hom h) = eq_to_hom (by rw h) := eq_to_hom_map (F.map_functor a b) h
+
 /-- The prelax functor between the underlying quivers. -/
 add_decl_doc oplax_functor.to_prelax_functor
 
@@ -201,17 +205,17 @@ def comp : oplax_functor B D :=
   map₂_associator' := λ a b c d f g h, by
   { dsimp,
     simp only [map₂_associator, ←map₂_comp_assoc, ←map_comp_naturality_right_assoc,
-      whisker_left_comp, assoc],
+      bicategory.whisker_left_comp, assoc],
     simp only [map₂_associator, map₂_comp, map_comp_naturality_left_assoc,
-      whisker_right_comp, assoc] },
+      bicategory.whisker_right_comp, assoc] },
   map₂_left_unitor' := λ a b f, by
   { dsimp,
     simp only [map₂_left_unitor, map₂_comp, map_comp_naturality_left_assoc,
-      whisker_right_comp, assoc] },
+      bicategory.whisker_right_comp, assoc] },
   map₂_right_unitor' := λ a b f, by
   { dsimp,
     simp only [map₂_right_unitor, map₂_comp, map_comp_naturality_right_assoc,
-      whisker_left_comp, assoc] },
+      bicategory.whisker_left_comp, assoc] },
   .. F.to_prelax_functor.comp G.to_prelax_functor }
 
 end oplax_functor

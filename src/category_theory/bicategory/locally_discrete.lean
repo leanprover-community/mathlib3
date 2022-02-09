@@ -38,11 +38,6 @@ instance : Π [inhabited C], inhabited (locally_discrete C) := id
 
 instance : Π [category_struct.{v} C], category_struct (locally_discrete C) := id
 
-variables {C} [category_struct.{v} C]
-
-instance (X Y : locally_discrete C) : small_category (X ⟶ Y) :=
-category_theory.discrete_category (X ⟶ Y)
-
 end locally_discrete
 
 variables (C) [category.{v} C]
@@ -53,7 +48,8 @@ The locally discrete bicategory on a category is a bicategory in which the objec
 equalities between 1-morphisms.
 -/
 instance locally_discrete_bicategory : bicategory (locally_discrete C) :=
-{ whisker_left  := λ X Y Z f g h η, eq_to_hom (congr_arg2 (≫) rfl (eq_of_hom η)),
+{ hom_category := λ X Y, category_theory.discrete_category (X ⟶ Y),
+  whisker_left  := λ X Y Z f g h η, eq_to_hom (congr_arg2 (≫) rfl (eq_of_hom η)),
   whisker_right := λ X Y Z f g η h, eq_to_hom (congr_arg2 (≫) (eq_of_hom η) rfl),
   associator := λ W X Y Z f g h, eq_to_iso (category.assoc f g h),
   left_unitor  := λ X Y f, eq_to_iso (category.id_comp f),
@@ -62,63 +58,41 @@ instance locally_discrete_bicategory : bicategory (locally_discrete C) :=
 /-- A locally discrete bicategory is strict. -/
 instance locally_discrete_bicategory.strict : strict (locally_discrete C) := { }
 
-variables {I : Type u₁} [category.{v₁} I] {B : Type u₂} [bicategory.{w₂ v₂} B] [strict B]
+variables {I : Type u₁} [category.{v₁} I] {B : Type u₂} [bicategory.{w₂ v₂} B]
+  (F : oplax_functor (locally_discrete I) B)
 
+namespace oplax_functor
 
-variables (I B)
+@[simp] lemma map₂_eq {X Y : locally_discrete I} {f g : X ⟶ Y} (η : f ⟶ g) :
+  F.map₂ η = eq_to_hom (by rw eq_of_hom η) :=
+by convert F.eq_to_hom_map₂ f g (eq_of_hom η)
 
-structure onecat_to_strict extends prefunctor I B :=
-(map_id (X : I) : map (𝟙 X) ⟶ 𝟙 (obj X))
-(map_comp ⦃X Y Z : I⦄ (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ⟶ map f ≫ map g)
-(id_comp : ∀ ⦃X Y : I⦄ (f : X ⟶ Y), map_comp (𝟙 X) f ≫ (map_id X ▷ map f) =
-  eq_to_hom (by simp) . obviously)
-(comp_id : ∀ ⦃X Y : I⦄ (f : X ⟶ Y), map_comp f (𝟙 Y) ≫ (map f ◁ map_id Y) =
-  eq_to_hom (by simp) . obviously)
-(assoc : ∀ ⦃X Y Z W : I⦄ (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W),
-  map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) = eq_to_hom (by simp) ≫
-  map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) ≫ eq_to_hom (by simp) . obviously)
+variables [strict B]
 
-variables {I B} (F : onecat_to_strict I B) (G : oplax_functor (locally_discrete I) B)
+@[simp] lemma id_comp ⦃X Y : I⦄ (f : X ⟶ Y) :
+  F.map_comp (𝟙 X) f ≫ (F.map_id X ▷ F.map f) = eq_to_hom (by simp) :=
+by convert eq_whisker (F.map₂_left_unitor' f).symm (λ_ _).inv using 1; simp
 
-@[simps]
-def functor.to_onecat_to_strict (F : I ⥤ B) : onecat_to_strict I B :=
-{ map_id := λ i, eq_to_hom (F.map_id i),
-  map_comp := λ i j k f g, eq_to_hom (F.map_comp f g),
-  .. F }
+@[simp] lemma comp_id ⦃X Y : I⦄ (f : X ⟶ Y) :
+  F.map_comp f (𝟙 Y) ≫ (F.map f ◁ F.map_id Y) = eq_to_hom (by simp) :=
+by convert eq_whisker (F.map₂_right_unitor' f).symm (ρ_ _).inv using 1; simp
 
-@[simps] def onecat_to_strict.to_oplax_functor : oplax_functor (locally_discrete I) B :=
-{ map₂ := λ _ _ _ _ f, eq_to_hom (by rw eq_of_hom f),
-  map₂_associator' := λ _ _ _ _ f g h, by { dsimp,
-    rw [←category.assoc (F.map_comp _ _), F.assoc], simp },
-  map₂_left_unitor' := λ _ _ f, by { rw [←category.assoc, F.id_comp], simp },
-  map₂_right_unitor' := λ _ _ f, by { rw [←category.assoc, F.comp_id], simp },
-  .. F }
+@[simp] lemma assoc ⦃X Y Z W : I⦄ (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W) :
+  F.map_comp (f ≫ g) h ≫ (F.map_comp f g ▷ F.map h) = eq_to_hom (by simp) ≫
+  F.map_comp f (g ≫ h) ≫ (F.map f ◁ F.map_comp g h) ≫ eq_to_hom (by simp) :=
+by convert eq_whisker (F.map₂_associator' f g h).symm (α_ _ _ _).inv using 1; simp
+
+end oplax_functor
 
 /--
 If `B` is a strict bicategory and `I` is a (1-)category, any functor (of 1-categories) `I ⥤ B` can
 be promoted to an oplax functor from `locally_discrete I` to `B`.
 -/
 @[simps]
-def functor.to_oplax_functor (F : I ⥤ B) : oplax_functor (locally_discrete I) B :=
-F.to_onecat_to_strict.to_oplax_functor
-
-@[simps] def oplax_functor.to_onecat_to_strict : onecat_to_strict I B :=
-{ id_comp := λ _ _ f, by { have := eq_whisker ((G.map₂_left_unitor' f).symm.trans
-    (eq_to_hom_map (G.map_functor _ _) _)) (λ_ _).inv, simp at this, exact this },
-  comp_id := λ _ _ f, by { have := eq_whisker ((G.map₂_right_unitor' f).symm.trans
-    (eq_to_hom_map (G.map_functor _ _) _)) (ρ_ _).inv, simp at this, exact this },
-  assoc := λ _ _ _ _ f g h, by { have := eq_whisker ((G.map₂_associator' f g h).symm.trans
-    (eq_whisker (eq_to_hom_map (G.map_functor _ _) _) _)) (α_ _ _ _).inv, simp at this, exact this },
-  .. G }
-
-/-- -/
-def onecat_to_strict_equiv_oplax_functor :
-  onecat_to_strict I B ≃ oplax_functor (locally_discrete I) B :=
-{ to_fun := λ F, F.to_oplax_functor,
-  inv_fun := λ G, G.to_onecat_to_strict,
-  left_inv := λ F, by { cases F with F, cases F, refl } ,
-  right_inv := λ G, by { let := G.map_functor, cases G, dsimp [onecat_to_strict.to_oplax_functor],
-    congr, ext _ _ _ _ f, convert (eq_to_hom_map (this _ _) (eq_of_hom f)).symm } }
-
+def functor.to_oplax_functor [strict B] (F : I ⥤ B) : oplax_functor (locally_discrete I) B :=
+{ map₂ := λ i j f g η, eq_to_hom (congr_arg _ (eq_of_hom η)),
+  map_id := λ i, eq_to_hom (F.map_id i),
+  map_comp := λ i j k f g, eq_to_hom (F.map_comp f g),
+  .. F }
 
 end category_theory

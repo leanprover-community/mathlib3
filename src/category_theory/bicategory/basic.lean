@@ -130,7 +130,7 @@ attribute [reassoc]
   bicategory.left_unitor_naturality bicategory.right_unitor_naturality
   bicategory.pentagon bicategory.triangle
 attribute [simp] bicategory.whisker_left_comp bicategory.whisker_right_comp
-attribute [instance, priority 1001] bicategory.hom_category
+attribute [instance] bicategory.hom_category
 
 localized "infixr ` ◁ `:70 := bicategory.whisker_left" in bicategory
 localized "infixr ` ▷ `:70 := bicategory.whisker_right" in bicategory

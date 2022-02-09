@@ -238,10 +238,9 @@ lemma closed_symm_image_closed_ball :
 f.compact_symm_image_closed_ball.is_closed
 
 lemma closure_support_subset_symm_image_closed_ball :
-  tsupport f ⊆
-    (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I) :=
+  tsupport f ⊆ (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I) :=
 begin
-  rw support_eq_symm_image,
+  rw [tsupport, support_eq_symm_image],
   exact closure_minimal (image_subset _ $ inter_subset_inter_left _ ball_subset_closed_ball)
     f.closed_symm_image_closed_ball
 end

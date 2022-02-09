@@ -172,8 +172,8 @@ lemma dvd_iff_of_modeq_of_dvd {a b d m : ℕ} (h : a ≡ b [MOD m]) (hdm : d ∣
   d ∣ a ↔ d ∣ b :=
 begin
   simp only [←modeq_zero_iff_dvd],
-  have habd := modeq.modeq_of_dvd hdm h,
-  exact ⟨(modeq.symm habd).trans, modeq.trans habd⟩,
+  replace h := h.modeq_of_dvd hdm,
+  exact ⟨h.symm.trans, h.trans⟩,
 end
 
 lemma gcd_eq_of_modeq {a b m : ℕ} (h : a ≡ b [MOD m]) : gcd a m = gcd b m :=
@@ -196,19 +196,19 @@ end
 lemma modeq_cancel_left_div_gcd {a b c m : ℕ} (hm : 0 < m) (h : c * a ≡ c * b [MOD m]) :
   a ≡ b [MOD m / gcd m c] :=
 begin
-  set d := (gcd m c),
+  let d := gcd m c,
   have hmd := gcd_dvd_left m c,
   have hcd := gcd_dvd_right m c,
   rw modeq_iff_dvd,
-  have h1 : ((m:ℤ)/↑d) ∣ (↑c/↑d) * (↑b - ↑a),
-  { rw [mul_comm, ←int.mul_div_assoc (↑b - ↑a) (int.coe_nat_dvd.mpr hcd), mul_comm],
-    refine int.div_dvd_div (int.coe_nat_dvd.mpr hmd) _,
+  refine int.dvd_of_dvd_mul_right_of_gcd_one _ _,
+  show (m/d : ℤ) ∣ (c/d) * (b - a),
+  { rw [mul_comm, ←int.mul_div_assoc (b - a) (int.coe_nat_dvd.mpr hcd), mul_comm],
+    apply int.div_dvd_div (int.coe_nat_dvd.mpr hmd),
     rw mul_sub,
     exact modeq_iff_dvd.mp h },
-  have h2 : int.gcd ((m/d):ℤ) (c/d) = 1 :=
-    by simp only [←int.coe_nat_div, int.coe_nat_gcd (m / d) (c / d), gcd_div hmd hcd,
-        nat.div_self (gcd_pos_of_pos_left c hm)],
-  exact int.dvd_of_dvd_mul_right_of_gcd_one h1 h2,
+  show int.gcd (m/d) (c/d) = 1,
+  { simp only [←int.coe_nat_div, int.coe_nat_gcd (m / d) (c / d), gcd_div hmd hcd,
+        nat.div_self (gcd_pos_of_pos_left c hm)] },
 end
 
 lemma modeq_cancel_right_div_gcd {a b c m : ℕ} (hm : 0 < m) (h : a * c ≡ b * c [MOD m]) :
@@ -218,7 +218,7 @@ by { apply modeq_cancel_left_div_gcd hm, simpa [mul_comm] using h }
 lemma modeq_cancel_left_div_gcd' {a b c d m : ℕ} (hm : 0 < m) (hcd : c ≡ d [MOD m])
   (h : c * a ≡ d * b [MOD m]) :
   a ≡ b [MOD m / gcd m c] :=
-modeq_cancel_left_div_gcd hm (modeq.trans h (modeq.symm (modeq.mul_right b hcd)))
+modeq_cancel_left_div_gcd hm (h.trans (modeq.mul_right b hcd).symm)
 
 lemma modeq_cancel_right_div_gcd' {a b c d m : ℕ} (hm : 0 < m) (hcd : c ≡ d [MOD m])
   (h : a * c ≡ b * d [MOD m]) :

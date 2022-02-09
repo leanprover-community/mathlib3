@@ -1,0 +1,12 @@
+import algebra.monoid_algebra.basic
+import data.finsupp.basic
+
+noncomputable theory
+
+variables (k G : Type) [semiring k] [monoid G]
+
+def monomial_hom : k × G →* monoid_algebra k G := 
+{ to_fun := λ x , finsupp.single x.2 x.1,
+  map_one' := rfl,
+  map_mul' := λ x y, monoid_algebra.single_mul_single.symm,
+}

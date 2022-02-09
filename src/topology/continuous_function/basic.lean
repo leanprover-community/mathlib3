@@ -84,7 +84,7 @@ protected def copy (f : C(α, β)) (f' : α → β) (h : f' = f) : C(α, β) :=
 variables {α β} {f g : C(α, β)}
 
 /-- Deprecated. Use `map_continuous` instead. -/
-@[continuity] protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
+protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
 @[continuity] lemma continuous_set_coe (s : set C(α, β)) (f : s) : continuous f := f.1.continuous
 
 /-- Deprecated. Use `map_continuous_at` instead. -/
@@ -121,7 +121,6 @@ end
 variables (α)
 
 /-- The identity as a continuous map. -/
-@[simps coe {fully_applied := ff}]
 protected def id : C(α, α) := ⟨id⟩
 
 @[simp] lemma coe_id : ⇑(continuous_map.id α) = id := rfl

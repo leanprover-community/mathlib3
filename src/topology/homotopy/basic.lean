@@ -67,24 +67,24 @@ namespace continuous_map
 /-- `continuous_map.homotopy f₀ f₁` is the type of homotopies from `f₀` to `f₁`.
 
 When possible, instead of parametrizing results over `(f : homotopy f₀ f₁)`,
-you should parametrize over `{F : Type*} [homotopy_class F f₀ f₁] (f : F)`.
+you should parametrize over `{F : Type*} [homotopy_like F f₀ f₁] (f : F)`.
 
-When you extend this structure, make sure to extend `continuous_map.homotopy_class`. -/
+When you extend this structure, make sure to extend `continuous_map.homotopy_like`. -/
 structure homotopy (f₀ f₁ : C(X, Y)) extends C(I × X, Y) :=
 (map_zero_left' : ∀ x, to_fun (0, x) = f₀ x)
 (map_one_left' : ∀ x, to_fun (1, x) = f₁ x)
 
-/-- `continuous_map.homotopy_class F f₀ f₁` states that `F` is a type of homotopies between `f₀` and
+/-- `continuous_map.homotopy_like F f₀ f₁` states that `F` is a type of homotopies between `f₀` and
 `f₁`.
 
 You should extend this class when you extend `continuous_map.homotopy`. -/
-class homotopy_class (F : Type*) (f₀ f₁ : out_param $ C(X, Y))
+class homotopy_like (F : Type*) (f₀ f₁ : out_param $ C(X, Y))
   extends continuous_map_class F (I × X) Y :=
 (map_zero_left (f : F) : ∀ x, f (0, x) = f₀ x)
 (map_one_left (f : F) : ∀ x, f (1, x) = f₁ x)
 
 -- `f₀` and `f₁` are `out_param` so this is not dangerous
-attribute [nolint dangerous_instance] homotopy_class.to_continuous_map_class
+attribute [nolint dangerous_instance] homotopy_like.to_continuous_map_class
 
 namespace homotopy
 
@@ -92,14 +92,16 @@ section
 
 variables {f₀ f₁ : C(X, Y)}
 
-instance : homotopy_class (homotopy f₀ f₁) f₀ f₁ :=
+instance : homotopy_like (homotopy f₀ f₁) f₀ f₁ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
   map_continuous := λ f, f.continuous_to_fun,
   map_zero_left := λ f, f.map_zero_left',
   map_one_left := λ f, f.map_one_left' }
 
-instance : has_coe_to_fun (homotopy f₀ f₁) (λ _, I × X → Y) := ⟨λ F, F.to_fun⟩
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (homotopy f₀ f₁) (λ _, I × X → Y) := fun_like.has_coe_to_fun
 
 @[ext]
 lemma ext {F G : homotopy f₀ f₁} (h : ∀ x, F x = G x) : F = G := fun_like.ext _ _ h
@@ -111,7 +113,6 @@ def simps.apply (F : homotopy f₀ f₁) : I × X → Y := F
 initialize_simps_projections homotopy (to_continuous_map_to_fun -> apply, -to_continuous_map)
 
 /-- Deprecated. Use `map_continuous` instead. -/
-@[continuity]
 protected lemma continuous (F : homotopy f₀ f₁) : continuous F := F.continuous_to_fun
 
 @[simp]

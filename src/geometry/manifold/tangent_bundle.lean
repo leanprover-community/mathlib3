@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.vector_bundle
 import geometry.manifold.smooth_manifold_with_corners
+import data.set.prod
 
 /-!
 # Basic smooth bundles
@@ -172,7 +173,7 @@ def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F 
   (Z.to_topological_vector_bundle_core.local_triv i).base_set = i.1.source := rfl
 
 @[simp, mfld_simps] lemma target (i : atlas H M) :
-  (Z.to_topological_vector_bundle_core.local_triv i).target = i.1.source.prod univ := rfl
+  (Z.to_topological_vector_bundle_core.local_triv i).target = i.1.source ×ˢ (univ : set F) := rfl
 
 /-- Local chart for the total space of a basic smooth bundle -/
 def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :

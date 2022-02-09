@@ -254,8 +254,8 @@ S.to_subalgebra.is_scalar_tower
   (r : R) (x : S) :
   ↑(r • x) = (r • x : L) := rfl
 
-instance algebra' {K'} [comm_semiring K'] [has_scalar K' K] [algebra K' L]
-  [is_scalar_tower K' K L] :
+instance algebra' {K'} [comm_semiring K'] [has_scalar K' K] [has_scalar K'ᵐᵒᵖ K] [algebra K' L]
+  [is_scalar_tower K'ᵐᵒᵖ K L] [is_scalar_tower K' K L] :
   algebra K' S :=
 S.to_subalgebra.algebra'
 instance algebra : algebra K S := S.to_subalgebra.algebra

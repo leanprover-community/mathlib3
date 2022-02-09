@@ -5,9 +5,7 @@ Authors: Nicolò Cavalleri
 -/
 
 import data.set.Union_lift
-import topology.subset_properties
-import topology.tactic
-import topology.algebra.ordered.proj_Icc
+import topology.homeomorph
 
 /-!
 # Continuous bundled map
@@ -58,7 +56,7 @@ lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨continuous_map.congr_fun, ext⟩
 
 instance [inhabited β] : inhabited C(α, β) :=
-⟨{ to_fun := λ _, default _, }⟩
+⟨{ to_fun := λ _, default, }⟩
 
 lemma coe_inj ⦃f g : C(α, β)⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
@@ -91,125 +89,60 @@ def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) := ⟨f ∘ g⟩
 @[simp] lemma comp_coe (f : C(β, γ)) (g : C(α, β)) : (comp f g : α → γ) = f ∘ g := rfl
 lemma comp_apply (f : C(β, γ)) (g : C(α, β)) (a : α) : comp f g a = f (g a) := rfl
 
+@[simp] lemma id_comp (f : C(β, γ)) : id.comp f = f := by { ext, refl }
+@[simp] lemma comp_id (f : C(α, β)) : f.comp id = f := by { ext, refl }
+
 /-- Constant map as a continuous map -/
 def const (b : β) : C(α, β) := ⟨λ x, b⟩
 
 @[simp] lemma const_coe (b : β) : (const b : α → β) = (λ x, b) := rfl
 lemma const_apply (b : β) (a : α) : const b a = b := rfl
 
-instance [nonempty α] [nontrivial β] : nontrivial C(α, β) :=
+instance [h : nonempty α] [nontrivial β] : nontrivial C(α, β) :=
 { exists_pair_ne := begin
     obtain ⟨b₁, b₂, hb⟩ := exists_pair_ne β,
     refine ⟨const b₁, const b₂, _⟩,
     contrapose! hb,
-    inhabit α,
-    change const b₁ (default α) = const b₂ (default α),
+    change const b₁ h.some = const b₂ h.some,
     simp [hb]
   end }
 
-section
-variables [linear_ordered_add_comm_group β] [order_topology β]
+section prod
 
-/-- The pointwise absolute value of a continuous function as a continuous function. -/
-def abs (f : C(α, β)) : C(α, β) :=
-{ to_fun := λ x, |f x|, }
+variables {α₁ α₂ β₁ β₂ : Type*}
+          [topological_space α₁] [topological_space α₂]
+          [topological_space β₁] [topological_space β₂]
 
-@[priority 100] -- see Note [lower instance priority]
-instance : has_abs C(α, β) := ⟨λf, abs f⟩
+/-- Given two continuous maps `f` and `g`, this is the continuous map `x ↦ (f x, g x)`. -/
+def prod_mk (f : C(α, β₁)) (g : C(α, β₂)) :
+  C(α, β₁ × β₂) :=
+{ to_fun := (λ x, (f x, g x)),
+  continuous_to_fun := continuous.prod_mk f.continuous g.continuous }
 
-@[simp] lemma abs_apply (f : C(α, β)) (x : α) : |f| x = |f x| :=
-rfl
+/-- Given two continuous maps `f` and `g`, this is the continuous map `(x, y) ↦ (f x, g y)`. -/
+def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
+  C(α₁ × β₁, α₂ × β₂) :=
+{ to_fun := prod.map f g,
+  continuous_to_fun := continuous.prod_map f.continuous g.continuous }
 
-end
+@[simp] lemma prod_eval (f : C(α, β₁)) (g : C(α, β₂)) (a : α) :
+  (prod_mk f g) a = (f a, g a) := rfl
 
-/-!
-We now set up the partial order and lattice structure (given by pointwise min and max)
-on continuous functions.
--/
-section lattice
+end prod
 
-instance partial_order [partial_order β] :
-  partial_order C(α, β) :=
-partial_order.lift (λ f, f.to_fun) (by tidy)
+section pi
 
-lemma le_def [partial_order β] {f g : C(α, β)} : f ≤ g ↔ ∀ a, f a ≤ g a :=
-pi.le_def
+variables {I A : Type*} {X : I → Type*}
+          [topological_space A] [∀ i, topological_space (X i)]
 
-lemma lt_def [partial_order β] {f g : C(α, β)} :
-  f < g ↔ (∀ a, f a ≤ g a) ∧ (∃ a, f a < g a) :=
-pi.lt_def
+/-- Abbreviation for product of continuous maps, which is continuous -/
+def pi (f : Π i, C(A, X i)) : C(A, Π i, X i) :=
+{ to_fun := λ (a : A) (i : I), f i a, }
 
-instance has_sup [linear_order β] [order_closed_topology β] : has_sup C(α, β) :=
-{ sup := λ f g, { to_fun := λ a, max (f a) (g a), } }
+@[simp] lemma pi_eval (f : Π i, C(A, X i)) (a : A) :
+  (pi f) a = λ i : I, (f i) a := rfl
 
-@[simp, norm_cast] lemma sup_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
-  ((f ⊔ g : C(α, β)) : α → β) = (f ⊔ g : α → β) :=
-rfl
-
-@[simp] lemma sup_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
-  (f ⊔ g) a = max (f a) (g a) :=
-rfl
-
-instance [linear_order β] [order_closed_topology β] : semilattice_sup C(α, β) :=
-{ le_sup_left := λ f g, le_def.mpr (by simp [le_refl]),
-  le_sup_right := λ f g, le_def.mpr (by simp [le_refl]),
-  sup_le := λ f₁ f₂ g w₁ w₂, le_def.mpr (λ a, by simp [le_def.mp w₁ a, le_def.mp w₂ a]),
-  ..continuous_map.partial_order,
-  ..continuous_map.has_sup, }
-
-instance has_inf [linear_order β] [order_closed_topology β] : has_inf C(α, β) :=
-{ inf := λ f g, { to_fun := λ a, min (f a) (g a), } }
-
-@[simp, norm_cast] lemma inf_coe [linear_order β] [order_closed_topology β] (f g : C(α, β)) :
-  ((f ⊓ g : C(α, β)) : α → β) = (f ⊓ g : α → β) :=
-rfl
-
-@[simp] lemma inf_apply [linear_order β] [order_closed_topology β] (f g : C(α, β)) (a : α) :
-  (f ⊓ g) a = min (f a) (g a) :=
-rfl
-
-instance [linear_order β] [order_closed_topology β] : semilattice_inf C(α, β) :=
-{ inf_le_left := λ f g, le_def.mpr (by simp [le_refl]),
-  inf_le_right := λ f g, le_def.mpr (by simp [le_refl]),
-  le_inf := λ f₁ f₂ g w₁ w₂, le_def.mpr (λ a, by simp [le_def.mp w₁ a, le_def.mp w₂ a]),
-  ..continuous_map.partial_order,
-  ..continuous_map.has_inf, }
-
-instance [linear_order β] [order_closed_topology β] : lattice C(α, β) :=
-{ ..continuous_map.semilattice_inf,
-  ..continuous_map.semilattice_sup }
-
--- TODO transfer this lattice structure to `bounded_continuous_function`
-
-section sup'
-variables [linear_order γ] [order_closed_topology γ]
-
-lemma sup'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
-  s.sup' H f b = s.sup' H (λ a, f a b) :=
-finset.comp_sup'_eq_sup'_comp H (λ f : C(β, γ), f b) (λ i j, rfl)
-
-@[simp, norm_cast]
-lemma sup'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
-  ((s.sup' H f : C(β, γ)) : ι → β) = s.sup' H (λ a, (f a : β → γ)) :=
-by { ext, simp [sup'_apply], }
-
-end sup'
-
-section inf'
-variables [linear_order γ] [order_closed_topology γ]
-
-lemma inf'_apply {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) (b : β) :
-  s.inf' H f b = s.inf' H (λ a, f a b) :=
-@sup'_apply _ (order_dual γ) _ _ _ _ _ _ H f b
-
-@[simp, norm_cast]
-lemma inf'_coe {ι : Type*} {s : finset ι} (H : s.nonempty) (f : ι → C(β, γ)) :
-  ((s.inf' H f : C(β, γ)) : ι → β) = s.inf' H (λ a, (f a : β → γ)) :=
-@sup'_coe _ (order_dual γ) _ _ _ _ _ _ H f
-
-end inf'
-
-end lattice
+end pi
 
 section restrict
 
@@ -221,20 +154,6 @@ def restrict (f : C(α, β)) : C(s, β) := ⟨f ∘ coe⟩
 @[simp] lemma coe_restrict (f : C(α, β)) : ⇑(f.restrict s) = f ∘ coe := rfl
 
 end restrict
-
-section extend
-
-variables [linear_order α] [order_topology α] {a b : α} (h : a ≤ b)
-
-/--
-Extend a continuous function `f : C(set.Icc a b, β)` to a function `f : C(α, β)`.
--/
-def Icc_extend (f : C(set.Icc a b, β)) : C(α, β) := ⟨set.Icc_extend h f⟩
-
-@[simp] lemma coe_Icc_extend (f : C(set.Icc a b, β)) :
-  ((Icc_extend h f : C(α, β)) : α → β) = set.Icc_extend h f := rfl
-
-end extend
 
 section gluing
 

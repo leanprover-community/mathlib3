@@ -3,7 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.dfinsupp
+import data.dfinsupp.basic
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
 
@@ -183,7 +183,7 @@ omit dec_ι
 protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique ι] :
   (⨁ (_ : ι), M) ≃+ M :=
 { to_fun := direct_sum.to_add_monoid (λ _, add_monoid_hom.id M),
-  inv_fun := of (λ _, M) (default ι),
+  inv_fun := of (λ _, M) default,
   left_inv := λ x, direct_sum.induction_on x
     (by rw [add_monoid_hom.map_zero, add_monoid_hom.map_zero])
     (λ p x, by rw [unique.default_eq p, to_add_monoid_of]; refl)
@@ -201,6 +201,15 @@ to_add_monoid (λ i, (A i).subtype)
   (A : ι → add_submonoid M) (i : ι) (x : A i) :
   add_submonoid_coe A (of (λ i, A i) i x) = x :=
 to_add_monoid_of _ _ _
+
+lemma coe_of_add_submonoid_apply {M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  {A : ι → add_submonoid M} (i j : ι) (x : A i) :
+  (of _ i x j : M) = if i = j then x else 0 :=
+begin
+  obtain rfl | h := decidable.eq_or_ne i j,
+  { rw [direct_sum.of_eq_same, if_pos rfl], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_submonoid.coe_zero], },
+end
 
 /-- The `direct_sum` formed by a collection of `add_submonoid`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →+ M` is bijective.
@@ -228,6 +237,15 @@ to_add_monoid (λ i, (A i).subtype)
   (A : ι → add_subgroup M) (i : ι) (x : A i) :
   add_subgroup_coe A (of (λ i, A i) i x) = x :=
 to_add_monoid_of _ _ _
+
+lemma coe_of_add_subgroup_apply {M : Type*} [decidable_eq ι] [add_comm_group M]
+  {A : ι → add_subgroup M} (i j : ι) (x : A i) :
+  (of _ i x j : M) = if i = j then x else 0 :=
+begin
+  obtain rfl | h := decidable.eq_or_ne i j,
+  { rw [direct_sum.of_eq_same, if_pos rfl], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_subgroup.coe_zero], },
+end
 
 /-- The `direct_sum` formed by a collection of `add_subgroup`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →+ M` is bijective.

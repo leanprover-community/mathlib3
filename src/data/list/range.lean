@@ -148,6 +148,12 @@ by simp only [range_eq_range', range'_concat, zero_add]
 
 @[simp] lemma range_zero : range 0 = [] := rfl
 
+lemma range_add (a : ℕ) :
+  ∀ b, range (a + b) = range a ++ (range b).map (λ x, a + x)
+| 0 := by rw [add_zero, range_zero, map_nil, append_nil]
+| (b + 1) := by rw [nat.add_succ, range_succ, range_add b, range_succ,
+  map_append, map_singleton, append_assoc]
+
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
 | 0     := rfl
 | (n+1) := by simp only [iota, range'_concat, iota_eq_reverse_range' n,
@@ -192,6 +198,22 @@ by rw [fin_range, length_pmap, length_range]
 
 @[simp] lemma fin_range_eq_nil {n : ℕ} : fin_range n = [] ↔ n = 0 :=
 by rw [← length_eq_zero, length_fin_range]
+
+@[simp] lemma map_coe_fin_range (n : ℕ) : (fin_range n).map coe = list.range n :=
+begin
+  simp_rw [fin_range, map_pmap, fin.mk, subtype.coe_mk, pmap_eq_map],
+  exact list.map_id _
+end
+
+lemma fin_range_succ_eq_map (n : ℕ) :
+  fin_range n.succ = 0 :: (fin_range n).map fin.succ :=
+begin
+  apply map_injective_iff.mpr subtype.coe_injective,
+  rw [map_cons, map_coe_fin_range, range_succ_eq_map, fin.coe_zero, ←map_coe_fin_range, map_map,
+    map_map, function.comp, function.comp],
+  congr' 2 with x,
+  exact (fin.coe_succ _).symm,
+end
 
 @[to_additive]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :

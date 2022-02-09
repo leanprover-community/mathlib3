@@ -265,8 +265,8 @@ theorem sq_le_mul {d x y z w : ℕ} :
   (sq_le x 1 y d → sq_le w d z 1 → sq_le (x * z + d * y * w) 1 (x * w + y * z) d) ∧
   (sq_le y d x 1 → sq_le z 1 w d → sq_le (x * z + d * y * w) 1 (x * w + y * z) d) ∧
   (sq_le y d x 1 → sq_le w d z 1 → sq_le (x * w + y * z) d (x * z + d * y * w) 1) :=
-by refine ⟨_, _, _, _⟩; {
-  intros xy zw,
+by refine ⟨_, _, _, _⟩;
+{ intros xy zw,
   have := int.mul_nonneg (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le xy))
                          (sub_nonneg_of_le (int.coe_nat_le_coe_nat_of_le zw)),
   refine int.le_of_coe_nat_le_coe_nat (le_of_sub_nonneg _),
@@ -327,8 +327,8 @@ lemma norm_eq_mul_conj (n : ℤ√d) : (norm n : ℤ√d) = n * n.conj :=
 by cases n; simp [norm, conj, zsqrtd.ext, mul_comm, sub_eq_add_neg]
 
 @[simp] lemma norm_neg (x : ℤ√d) : (-x).norm = x.norm :=
-coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul_eq_neg_mul_symm,
-  mul_neg_eq_neg_mul_symm, neg_neg]
+coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul,
+  mul_neg, neg_neg]
 
 @[simp] lemma norm_conj (x : ℤ√d) : x.conj.norm = x.norm :=
 coe_int_inj $ by simp only [norm_eq_mul_conj, conj_conj, mul_comm]
@@ -428,7 +428,7 @@ have nonneg ⟨int.sub_nat_nat x z, int.sub_nat_nat w y⟩, from int.sub_nat_nat
   (λj k, int.sub_nat_nat_elim w y
     (λm n i, sq_le n d k 1 → sq_le (k + j + 1) 1 m d → nonneg ⟨-[1+ j], i⟩)
     (λm n xy zw, sq_le_cancel xy zw)
-    (λm n xy zw, let t := nat.le_trans zw (sq_le_of_le (nat.le_add_right n (m+1)) (le_refl _) xy) in
+    (λm n xy zw, let t := nat.le_trans zw (sq_le_of_le (nat.le_add_right n (m+1)) le_rfl xy) in
       have k + j + 1 ≤ k, from nat.mul_self_le_mul_self_iff.2 (by repeat{rw one_mul at t}; exact t),
       absurd this (not_le_of_gt $ nat.succ_le_succ $ nat.le_add_right _ _))) (nonnegg_pos_neg.1 xy)
         (nonnegg_neg_pos.1 zw),
@@ -708,8 +708,8 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
     map_zero' := by simp,
     map_add' := λ a b, by { simp, ring, },
     map_one' := by simp,
-    map_mul' := λ a b, by {
-      have : (a.re + a.im * r : R) * (b.re + b.im * r) =
+    map_mul' := λ a b, by
+    { have : (a.re + a.im * r : R) * (b.re + b.im * r) =
               a.re * b.re + (a.re * b.im + a.im * b.re) * r + a.im * b.im * (r * r) := by ring,
       simp [this, r.prop],
       ring, } },

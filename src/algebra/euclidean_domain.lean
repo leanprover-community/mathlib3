@@ -5,7 +5,7 @@ Authors: Louis Carlin, Mario Carneiro
 -/
 
 import data.int.basic
-import algebra.field
+import algebra.field.basic
 
 /-!
 # Euclidean domains

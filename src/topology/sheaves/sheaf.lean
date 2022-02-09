@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.sheaves.sheaf_condition.equalizer_products
 import category_theory.full_subcategory
+import category_theory.limits.punit
 
 /-!
 # Sheaves
@@ -104,6 +105,10 @@ The forgetful functor from sheaves to presheaves.
 @[derive [full, faithful]]
 def forget : Top.sheaf C X ⥤ Top.presheaf C X :=
 full_subcategory_inclusion presheaf.is_sheaf
+
+@[simp] lemma id_app (F : sheaf C X) (t) : (𝟙 F : F ⟶ F).app t = 𝟙 _ := rfl
+@[simp] lemma comp_app {F G H : sheaf C X} (f : F ⟶ G) (g : G ⟶ H) (t) :
+  (f ≫ g).app t = f.app t ≫ g.app t := rfl
 
 end sheaf
 

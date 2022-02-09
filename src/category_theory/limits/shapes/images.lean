@@ -306,8 +306,8 @@ lemma has_image.uniq
 
 /-- If `has_image g`, then `has_image (f ≫ g)` when `f` is an isomorphism. -/
 instance {X Y Z : C} (f : X ⟶ Y) [is_iso f] (g : Y ⟶ Z) [has_image g] : has_image (f ≫ g) :=
-{ exists_image := ⟨{
-  F :=
+{ exists_image := ⟨
+{ F :=
   { I := image g,
     m := image.ι g,
     e := f ≫ factor_thru_image g, },

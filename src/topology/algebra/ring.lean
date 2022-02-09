@@ -5,7 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.ring.prod
 import ring_theory.ideal.quotient
-import ring_theory.subring
+import ring_theory.subring.basic
 import topology.algebra.group
 
 /-!
@@ -39,8 +39,21 @@ If `R` is a ring, then negation is automatically continuous, as it is multiplica
 class topological_ring [topological_space α] [semiring α]
   extends has_continuous_add α, has_continuous_mul α : Prop
 
+@[priority 50]
+instance discrete_topology.topological_ring {α} [topological_space α] [semiring α]
+  [discrete_topology α] : topological_ring α := ⟨⟩
+
 section
 variables {α} [topological_space α] [semiring α] [topological_ring α]
+
+namespace subsemiring
+
+instance (S : subsemiring α) :
+  topological_ring S :=
+{ ..S.to_submonoid.has_continuous_mul,
+  ..S.to_add_submonoid.has_continuous_add }
+
+end subsemiring
 
 /-- The (topological-space) closure of a subsemiring of a topological semiring is
 itself a subsemiring. -/
@@ -139,6 +152,14 @@ continuous_const.mul continuous_id
 lemma mul_right_continuous (x : α) : continuous (add_monoid_hom.mul_right x) :=
 continuous_id.mul continuous_const
 
+namespace subring
+
+instance (S : subring α) :
+  topological_ring S :=
+S.to_subsemiring.topological_ring
+
+end subring
+
 /-- The (topological-space) closure of a subring of a topological semiring is
 itself a subring. -/
 def subring.topological_closure (S : subring α) : subring α :=
@@ -180,8 +201,8 @@ section topological_ring
 variables {α : Type*} [topological_space α] [comm_ring α] (N : ideal α)
 open ideal.quotient
 
-instance topological_ring_quotient_topology : topological_space N.quotient :=
-by dunfold ideal.quotient submodule.quotient; apply_instance
+instance topological_ring_quotient_topology : topological_space (α ⧸ N) :=
+show topological_space (quotient _), by apply_instance
 
 -- note for the reader: in the following, `mk` is `ideal.quotient.mk`, the canonical map `R → R/I`.
 
@@ -201,7 +222,7 @@ is_open_map.to_quotient_map
 ((continuous_quot_mk.comp continuous_fst).prod_mk (continuous_quot_mk.comp continuous_snd))
 (by rintro ⟨⟨x⟩, ⟨y⟩⟩; exact ⟨(x, y), rfl⟩)
 
-instance topological_ring_quotient : topological_ring N.quotient :=
+instance topological_ring_quotient : topological_ring (α ⧸ N) :=
 { continuous_add :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst + p.snd)) :=
       continuous_quot_mk.comp continuous_add,
@@ -309,5 +330,33 @@ begin
   rintros _ ⟨t', ht', rfl⟩,
   exact ht',
 end
+
+/-- The forgetful functor from ring topologies on `a` to additive group topologies on `a`. -/
+def to_add_group_topology (t : ring_topology α) : add_group_topology α :=
+{ to_topological_space     := t.to_topological_space,
+  to_topological_add_group := @topological_ring.to_topological_add_group _ _ t.to_topological_space
+    t.to_topological_ring }
+
+/-- The order embedding from ring topologies on `a` to additive group topologies on `a`. -/
+def to_add_group_topology.order_embedding : order_embedding (ring_topology α)
+  (add_group_topology α) :=
+{ to_fun       := λ t, t.to_add_group_topology,
+  inj'         :=
+  begin
+    intros t₁ t₂ h_eq,
+    dsimp only at h_eq,
+    ext,
+    have h_t₁ : t₁.to_topological_space = t₁.to_add_group_topology.to_topological_space := rfl,
+    rw [h_t₁, h_eq],
+    refl,
+  end,
+  map_rel_iff' :=
+  begin
+    intros t₁ t₂,
+    rw [embedding.coe_fn_mk],
+    have h_le : t₁ ≤ t₂ ↔ t₁.to_topological_space ≤ t₂.to_topological_space := by refl,
+    rw h_le,
+    refl,
+  end }
 
 end ring_topology

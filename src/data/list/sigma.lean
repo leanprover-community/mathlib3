@@ -3,9 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Sean Leather
 -/
-import data.list.perm
 import data.list.range
-import data.sigma
+import data.list.perm
 
 /-!
 # Utilities for lists of sigmas
@@ -372,15 +371,15 @@ theorem exists_of_kerase {a : α} {l : list (sigma β)} (h : a ∈ l.keys) :
 begin
   induction l,
   case list.nil { cases h },
-  case list.cons : hd tl ih {
-    by_cases e : a = hd.1,
+  case list.cons : hd tl ih
+  { by_cases e : a = hd.1,
     { subst e,
       exact ⟨hd.2, [], tl, by simp, by cases hd; refl, by simp⟩ },
     { simp at h,
       cases h,
       case or.inl : h { exact absurd h e },
-      case or.inr : h {
-        rcases ih h with ⟨b, tl₁, tl₂, h₁, h₂, h₃⟩,
+      case or.inr : h
+      { rcases ih h with ⟨b, tl₁, tl₂, h₁, h₂, h₃⟩,
         exact ⟨b, hd :: tl₁, tl₂, not_mem_cons_of_ne_of_not_mem e h₁,
                by rw h₂; refl, by simp [e, h₃]⟩ } } }
 end
@@ -425,8 +424,8 @@ by rintro x y h rfl; exact h
 begin
   induction l,
   case list.nil { simp },
-  case list.cons : hd tl ih {
-    simp at nd,
+  case list.cons : hd tl ih
+  { simp at nd,
     by_cases h : a = hd.1,
     { subst h, simp [nd.1] },
     { simp [h, ih nd.2] } }
@@ -441,8 +440,8 @@ lookup_eq_none.mpr (not_mem_keys_kerase a nd)
 begin
   induction l,
   case list.nil { refl },
-  case list.cons : hd tl ih {
-    cases hd with ah bh,
+  case list.cons : hd tl ih
+  { cases hd with ah bh,
     by_cases h₁ : a = ah; by_cases h₂ : a' = ah,
     { substs h₁ h₂, cases ne.irrefl h },
     { subst h₁, simp [h₂] },
@@ -624,8 +623,8 @@ theorem kunion_nodupkeys {l₁ l₂ : list (sigma β)}
 begin
   induction l₁ generalizing l₂,
   case list.nil { simp only [nil_kunion, nd₂] },
-  case list.cons : s l₁ ih {
-    simp at nd₁,
+  case list.cons : s l₁ ih
+  { simp at nd₁,
     simp [not_or_distrib, nd₁.1, nd₂, ih nd₁.2 (kerase_nodupkeys s.1 nd₂)] }
 end
 
@@ -634,12 +633,12 @@ theorem perm.kunion_right {l₁ l₂ : list (sigma β)} (p : l₁ ~ l₂) (l) :
 begin
   induction p generalizing l,
   case list.perm.nil { refl },
-  case list.perm.cons : hd tl₁ tl₂ p ih {
-    simp [ih (kerase hd.1 l), perm.cons] },
-  case list.perm.swap : s₁ s₂ l {
-    simp [kerase_comm, perm.swap] },
-  case list.perm.trans : l₁ l₂ l₃ p₁₂ p₂₃ ih₁₂ ih₂₃ {
-    exact perm.trans (ih₁₂ l) (ih₂₃ l) }
+  case list.perm.cons : hd tl₁ tl₂ p ih
+  { simp [ih (kerase hd.1 l), perm.cons] },
+  case list.perm.swap : s₁ s₂ l
+  { simp [kerase_comm, perm.swap] },
+  case list.perm.trans : l₁ l₂ l₃ p₁₂ p₂₃ ih₁₂ ih₂₃
+  { exact perm.trans (ih₁₂ l) (ih₂₃ l) }
 end
 
 theorem perm.kunion_left : ∀ l {l₁ l₂ : list (sigma β)},
@@ -676,8 +675,8 @@ end
 begin
   induction l₁ generalizing l₂,
   case list.nil { simp },
-  case list.cons : s _ ih {
-    cases s with a',
+  case list.cons : s _ ih
+  { cases s with a',
     by_cases h₁ : a = a',
     { subst h₁, simp },
     { let h₂ := @ih (kerase a' l₂), simp [h₁] at h₂, simp [h₁, h₂] } }

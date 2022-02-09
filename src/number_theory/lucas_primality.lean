@@ -3,11 +3,11 @@ Copyright (c) 2020 Bolton Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
-import data.zmod.basic
 import data.fintype.basic
-import field_theory.finite.basic
 import group_theory.order_of_element
 import tactic.zify
+import data.nat.totient
+import data.zmod.basic
 
 /-!
 # The Lucas test for primes.
@@ -52,8 +52,8 @@ begin
   -- Prove cardinality of `units` of `zmod p` is both `≤ p-1` and `≥ p-1`
   refine le_antisymm (nat.card_units_zmod_lt_sub_one hp1) _,
   have hp' : p - 2 + 1 = p - 1 := tsub_add_eq_add_tsub hp1,
-  let a' : units (zmod p) := units.mk_of_mul_eq_one a (a ^ (p-2)) (by rw [←pow_succ, hp', ha]),
+  let a' : (zmod p)ˣ := units.mk_of_mul_eq_one a (a ^ (p-2)) (by rw [←pow_succ, hp', ha]),
   calc p - 1 = order_of a : order_of_a.symm
   ... = order_of a' : order_of_injective (units.coe_hom (zmod p)) units.ext a'
-  ... ≤ fintype.card (units (zmod p)) : order_of_le_card_univ,
+  ... ≤ fintype.card (zmod p)ˣ : order_of_le_card_univ,
 end

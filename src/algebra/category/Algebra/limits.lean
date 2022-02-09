@@ -74,7 +74,7 @@ namespace has_limits
 Construction of a limit cone in `Algebra R`.
 (Internal use only; use the limits API.)
 -/
-def limit_cone (F : J ⥤ Algebra R) : cone F :=
+def limit_cone (F : J ⥤ Algebra.{v} R) : cone F :=
 { X := Algebra.of R (types.limit_cone (F ⋙ forget _)).X,
   π :=
   { app := limit_π_alg_hom F,

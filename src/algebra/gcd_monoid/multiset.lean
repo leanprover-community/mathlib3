@@ -24,7 +24,7 @@ multiset, gcd
 -/
 
 namespace multiset
-variables {α : Type*} [comm_cancel_monoid_with_zero α] [normalized_gcd_monoid α]
+variables {α : Type*} [cancel_comm_monoid_with_zero α] [normalized_gcd_monoid α]
 
 /-! ### lcm -/
 section lcm
@@ -57,6 +57,13 @@ lcm_dvd.2 $ assume b hb, dvd_lcm (h hb)
 
 @[simp] lemma normalize_lcm (s : multiset α) : normalize (s.lcm) = s.lcm :=
 multiset.induction_on s (by simp) $ λ a s IH, by simp
+
+@[simp] theorem lcm_eq_zero_iff [nontrivial α] (s : multiset α) : s.lcm = 0 ↔ (0 : α) ∈ s :=
+begin
+  induction s using multiset.induction_on with a s ihs,
+  { simp only [lcm_zero, one_ne_zero, not_mem_zero] },
+  { simp only [mem_cons, lcm_cons, lcm_eq_zero_iff, ihs, @eq_comm _ a] },
+end
 
 variables [decidable_eq α]
 

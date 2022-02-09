@@ -207,6 +207,17 @@ begin
   simp with parity_simps
 end
 
+lemma even_mul_self_pred (n : ℕ) : even (n * (n - 1)) :=
+begin
+  cases n,
+  { exact even_zero },
+  { rw mul_comm,
+    apply even_mul_succ_self }
+end
+
+lemma even_sub_one_of_prime_ne_two {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
+odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
+
 variables {R : Type*} [ring R]
 
 theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
@@ -223,6 +234,19 @@ by { rintro ⟨c, rfl⟩, simp [pow_mul] }
 
 theorem neg_one_pow_of_odd : odd n → (-1 : R) ^ n = -1 :=
 by { rintro ⟨c, rfl⟩, simp [pow_add, pow_mul] }
+
+lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n := nat.mul_div_cancel_left'
+
+lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n := nat.div_mul_cancel
+
+lemma two_mul_div_two_add_one_of_odd (h : odd n) : 2 * (n / 2) + 1 = n :=
+by { rw mul_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
+
+lemma div_two_mul_two_add_one_of_odd (h : odd n) : n / 2 * 2 + 1 = n :=
+by { convert nat.div_add_mod' n 2, rw odd_iff.mp h }
+
+lemma one_add_div_two_mul_two_of_odd (h : odd n) : 1 + n / 2 * 2 = n :=
+by { rw add_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
 -- Here are examples of how `parity_simps` can be used with `nat`.
 

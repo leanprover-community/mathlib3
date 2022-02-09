@@ -63,8 +63,15 @@ begin
     simp [unpair, ae, nat.not_lt_zero, add_assoc] }
 end
 
+/-- An equivalence between `ℕ × ℕ` and `ℕ`. -/
+@[simps { fully_applied := ff }] def mkpair_equiv : ℕ × ℕ ≃ ℕ :=
+⟨uncurry mkpair, unpair, λ ⟨a, b⟩, unpair_mkpair a b, mkpair_unpair⟩
+
 lemma surjective_unpair : surjective unpair :=
-λ ⟨m, n⟩, ⟨mkpair m n, unpair_mkpair m n⟩
+mkpair_equiv.symm.surjective
+
+@[simp] lemma mkpair_eq_mkpair {a b c d : ℕ} : mkpair a b = mkpair c d ↔ a = c ∧ b = d :=
+mkpair_equiv.injective.eq_iff.trans (@prod.ext_iff ℕ ℕ (a, b) (c, d))
 
 theorem unpair_lt {n : ℕ} (n1 : 1 ≤ n) : (unpair n).1 < n :=
 let s := sqrt n in begin
@@ -140,7 +147,7 @@ end complete_lattice
 namespace set
 
 lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
-  (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
+  (⋃ n : ℕ, s n.unpair.fst ×ˢ t n.unpair.snd) = (⋃ n, s n) ×ˢ (⋃ n, t n) :=
 by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
 
 lemma Union_unpair {α} (f : ℕ → ℕ → set α) :

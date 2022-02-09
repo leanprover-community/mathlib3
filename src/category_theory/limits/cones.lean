@@ -8,14 +8,14 @@ import category_theory.discrete_category
 import category_theory.yoneda
 import category_theory.reflects_isomorphisms
 
-universes v u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
-
+-- morphism levels before object levels. See note [category_theory universes].
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 open category_theory
 
-variables {J : Type v} [small_category J]
-variables {K : Type v} [small_category K]
-variables {C : Type u₁} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {J : Type u₁} [category.{v₁} J]
+variables {K : Type u₂} [category.{v₂} K]
+variables {C : Type u₃} [category.{v₃} C]
+variables {D : Type u₄} [category.{v₄} D]
 
 open category_theory
 open category_theory.category
@@ -33,7 +33,7 @@ natural transformations from the constant functor with value `X` to `F`.
 An object representing this functor is a limit of `F`.
 -/
 @[simps]
-def cones : Cᵒᵖ ⥤ Type v := (const J).op ⋙ yoneda.obj F
+def cones : Cᵒᵖ ⥤ Type (max u₁ v₃) := (const J).op ⋙ yoneda.obj F
 
 /--
 `F.cocones` is the functor assigning to an object `X` the type of
@@ -41,7 +41,7 @@ natural transformations from `F` to the constant functor with value `X`.
 An object corepresenting this functor is a colimit of `F`.
 -/
 @[simps]
-def cocones : C ⥤ Type v := const J ⋙ coyoneda.obj (op F)
+def cocones : C ⥤ Type (max u₁ v₃) := const J ⋙ coyoneda.obj (op F)
 
 end functor
 
@@ -52,7 +52,7 @@ variables (J C)
 Functorially associated to each functor `J ⥤ C`, we have the `C`-presheaf consisting of
 cones with a given cone point.
 -/
-@[simps] def cones : (J ⥤ C) ⥤ (Cᵒᵖ ⥤ Type v) :=
+@[simps] def cones : (J ⥤ C) ⥤ (Cᵒᵖ ⥤ Type (max u₁ v₃)) :=
 { obj := functor.cones,
   map := λ F G f, whisker_left (const J).op (yoneda.map f) }
 
@@ -60,7 +60,7 @@ cones with a given cone point.
 Contravariantly associated to each functor `J ⥤ C`, we have the `C`-copresheaf consisting of
 cocones with a given cocone point.
 -/
-@[simps] def cocones : (J ⥤ C)ᵒᵖ ⥤ (C ⥤ Type v) :=
+@[simps] def cocones : (J ⥤ C)ᵒᵖ ⥤ (C ⥤ Type (max u₁ v₃)) :=
 { obj := λ F, functor.cocones (unop F),
   map := λ F G f, whisker_left (const J) (coyoneda.map f) }
 
@@ -120,13 +120,13 @@ def equiv (F : J ⥤ C) : cone F ≅ Σ X, F.cones.obj X :=
 
 /-- A map to the vertex of a cone naturally induces a cone by composition. -/
 @[simps] def extensions (c : cone F) :
-  yoneda.obj c.X ⟶ F.cones :=
-{ app := λ X f, (const J).map f ≫ c.π }
+  yoneda.obj c.X ⋙ ulift_functor.{u₁} ⟶ F.cones :=
+{ app := λ X f, (const J).map f.down ≫ c.π }
 
 /-- A map to the vertex of a cone induces a cone by composition. -/
 @[simps] def extend (c : cone F) {X : C} (f : X ⟶ c.X) : cone F :=
 { X := X,
-  π := c.extensions.app (op X) f }
+  π := c.extensions.app (op X) ⟨f⟩ }
 
 /-- Whisker a cone by precomposition of a functor. -/
 @[simps] def whisker (E : K ⥤ J) (c : cone F) : cone (E ⋙ F) :=
@@ -145,13 +145,13 @@ def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
   inv_hom_id' := by { ext1, cases x, refl } }
 
 /-- A map from the vertex of a cocone naturally induces a cocone by composition. -/
-@[simps] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
-{ app := λ X f, c.ι ≫ (const J).map f }
+@[simps] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⋙ ulift_functor.{u₁} ⟶ F.cocones :=
+{ app := λ X f, c.ι ≫ (const J).map f.down }
 
 /-- A map from the vertex of a cocone induces a cocone by composition. -/
 @[simps] def extend (c : cocone F) {X : C} (f : c.X ⟶ X) : cocone F :=
 { X := X,
-  ι := c.extensions.app X f }
+  ι := c.extensions.app X ⟨f⟩ }
 
 /--
 Whisker a cocone by precomposition of a functor. See `whiskering` for a functorial

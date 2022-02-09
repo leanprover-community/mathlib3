@@ -3,11 +3,12 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.affine_space.basic
-import linear_algebra.tensor_product
-import linear_algebra.prod
-import linear_algebra.pi
+import algebra.add_torsor
 import data.set.intervals.unordered_interval
+import linear_algebra.affine_space.basic
+import linear_algebra.bilinear_map
+import linear_algebra.pi
+import linear_algebra.prod
 import tactic.abel
 
 /-!
@@ -153,8 +154,7 @@ lemma linear_eq_zero_iff_exists_const (f : P1 →ᵃ[k] P2) :
   f.linear = 0 ↔ ∃ q, f = const k P1 q :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
-  { inhabit P1,
-    use f (default P1),
+  { use f (classical.arbitrary P1),
     ext,
     rw [coe_const, function.const_apply, ← @vsub_eq_zero_iff_eq V2, ← f.linear_map_vsub, h,
       linear_map.zero_apply], },
@@ -304,6 +304,12 @@ instance : monoid (P1 →ᵃ[k] P1) :=
 
 @[simp] lemma coe_mul (f g : P1 →ᵃ[k] P1) : ⇑(f * g) = f ∘ g := rfl
 @[simp] lemma coe_one : ⇑(1 : P1 →ᵃ[k] P1) = _root_.id := rfl
+
+/-- `affine_map.linear` on endomorphisms is a `monoid_hom`. -/
+@[simps] def linear_hom : (P1 →ᵃ[k] P1) →* (V1 →ₗ[k] V1) :=
+{ to_fun := linear,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
 
 include V2
 

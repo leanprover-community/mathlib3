@@ -5,7 +5,6 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.pullbacks
-import category_theory.limits.over
 
 /-!
 # Disjoint coproducts

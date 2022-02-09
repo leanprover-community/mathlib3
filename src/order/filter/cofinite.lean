@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov
 -/
 import order.filter.at_top_bot
+import order.filter.pi
 
 /-!
 # The cofinite filter
@@ -40,8 +41,11 @@ def cofinite : filter α :=
 @[simp] lemma eventually_cofinite {p : α → Prop} :
   (∀ᶠ x in cofinite, p x) ↔ finite {x | ¬p x} := iff.rfl
 
+lemma has_basis_cofinite : has_basis cofinite (λ s : set α, s.finite) compl :=
+⟨λ s, ⟨λ h, ⟨sᶜ, h, (compl_compl s).subset⟩, λ ⟨t, htf, hts⟩, htf.subset $ compl_subset_comm.2 hts⟩⟩
+
 instance cofinite_ne_bot [infinite α] : ne_bot (@cofinite α) :=
-⟨mt empty_mem_iff_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }⟩
+has_basis_cofinite.ne_bot_iff.2 $ λ s hs, hs.infinite_compl.nonempty
 
 lemma frequently_cofinite_iff_infinite {p : α → Prop} :
   (∃ᶠ x in cofinite, p x) ↔ set.infinite {x | p x} :=
@@ -71,29 +75,12 @@ lemma Coprod_cofinite {δ : Type*} {κ : δ → Type*} [fintype δ] :
   filter.Coprod (λ d, (cofinite : filter (κ d))) = cofinite :=
 begin
   ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap, mem_cofinite],
+  rcases compl_surjective S with ⟨S, rfl⟩,
+  simp_rw [compl_mem_Coprod_iff, mem_cofinite, compl_compl],
   split,
-  { rintros h,
-    rw mem_Coprod_iff at h,
-    choose t ht1 ht2 using h,
-    have ht1d : ∀ (d : δ), (t d)ᶜ.finite := λ d, mem_cofinite.mp (ht1 d),
-    refine (set.finite.pi ht1d).subset _,
-    have ht2d : ∀ (d : δ), Sᶜ ⊆ ((λ (k : Π (d1 : δ), (λ (d2 : δ), κ d2) d1), k d) ⁻¹' ((t d)ᶜ)) :=
-     λ d, compl_subset_compl.mpr (ht2 d),
-    convert set.subset_Inter ht2d,
-    ext,
-    simp },
-  { intro hS,
-    rw mem_Coprod_iff,
-    intros d,
-    refine ⟨((λ (k : Π (d1 : δ), κ d1), k d) '' (Sᶜ))ᶜ, _, _⟩,
-    { rw [mem_cofinite, compl_compl],
-      exact set.finite.image _ hS },
-    { intros x,
-      contrapose,
-      intros hx,
-      simp only [not_not, mem_preimage, mem_compl_eq, not_forall],
-      exact ⟨x, hx, rfl⟩ } },
+  { rintro ⟨t, htf, hsub⟩,
+    exact (finite.pi htf).subset hsub },
+  { exact λ hS, ⟨λ i, function.eval i '' S, λ i, hS.image _, subset_pi_eval_image _ _⟩ }
 end
 
 end filter

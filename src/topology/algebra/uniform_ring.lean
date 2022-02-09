@@ -29,6 +29,7 @@ the main constructions deal with continuous ring morphisms.
 open classical set filter topological_space add_comm_group
 open_locale classical
 noncomputable theory
+universes u
 
 namespace uniform_space.completion
 open dense_inducing uniform_space function
@@ -106,7 +107,6 @@ def coe_ring_hom : α →+* completion α :=
 lemma continuous_coe_ring_hom : continuous (coe_ring_hom : α → completion α) :=
 continuous_coe α
 
-universes u
 variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [topological_ring β]
           (f : α →+* β) (hf : continuous f)
 
@@ -114,7 +114,7 @@ variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [top
 def extension_hom [complete_space β] [separated_space β] :
   completion α →+* β :=
 have hf' : continuous (f : α →+ β), from hf, -- helping the elaborator
-have hf : uniform_continuous f, from uniform_continuous_of_continuous hf',
+have hf : uniform_continuous f, from uniform_continuous_add_monoid_hom_of_continuous hf',
 { to_fun := completion.extension f,
   map_zero' := by rw [← coe_zero, extension_coe hf, f.map_zero],
   map_add' := assume a b, completion.induction_on₂ a b
@@ -157,11 +157,11 @@ namespace uniform_space
 variables {α : Type*}
 lemma ring_sep_rel (α) [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   separation_setoid α = submodule.quotient_rel (ideal.closure ⊥) :=
-setoid.ext $ assume x y, group_separation_rel x y
+setoid.ext $ assume x y, add_group_separation_rel x y
 
 lemma ring_sep_quot
-  (α) [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
-  quotient (separation_setoid α) = (⊥ : ideal α).closure.quotient :=
+  (α : Type u) [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
+  quotient (separation_setoid α) = (α ⧸ (⊥ : ideal α).closure) :=
 by rw [@ring_sep_rel α r]; refl
 
 /-- Given a topological ring `α` equipped with a uniform structure that makes subtraction uniformly
@@ -169,8 +169,8 @@ continuous, get an equivalence between the separated quotient of `α` and the qu
 corresponding to the closure of zero. -/
 def sep_quot_equiv_ring_quot (α)
   [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
-  quotient (separation_setoid α) ≃ (⊥ : ideal α).closure.quotient :=
-quotient.congr_right $ assume x y, group_separation_rel x y
+  quotient (separation_setoid α) ≃ (α ⧸ (⊥ : ideal α).closure) :=
+quotient.congr_right $ assume x y, add_group_separation_rel x y
 
 /- TODO: use a form of transport a.k.a. lift definition a.k.a. transfer -/
 instance comm_ring [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :

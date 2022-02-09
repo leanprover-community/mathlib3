@@ -314,7 +314,7 @@ end
 
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/
 def discrete_is_connected_equiv_punit {α : Type u₁} [is_connected (discrete α)] : α ≃ punit :=
-discrete.equiv_of_equivalence
+discrete.equiv_of_equivalence.{u₁ u₁}
   { functor := functor.star α,
     inverse := discrete.functor (λ _, classical.arbitrary _),
     unit_iso := by { exact (iso_constant _ (classical.arbitrary _)), },

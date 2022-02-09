@@ -228,22 +228,14 @@ lemma form_perm_rotate_one (l : list α) (h : nodup l) :
 begin
   have h' : nodup (l.rotate 1),
   { simpa using h },
-  by_cases hl : ∀ (x : α), l ≠ [x],
-  { have hl' : ∀ (x : α), l.rotate 1 ≠ [x],
-    { intro,
-      rw [ne.def, rotate_eq_iff],
-      simpa using hl _ },
-    ext x,
-    by_cases hx : x ∈ l.rotate 1,
-    { obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
-      rw [form_perm_apply_nth_le _ h', nth_le_rotate l, nth_le_rotate l,
-        form_perm_apply_nth_le _ h],
-      simp },
-    { rw [form_perm_apply_of_not_mem _ _ hx, form_perm_apply_of_not_mem],
-      simpa using hx } },
-  { push_neg at hl,
-    obtain ⟨x, rfl⟩ := hl,
-    simp }
+  ext x,
+  by_cases hx : x ∈ l.rotate 1,
+  { obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
+    rw [form_perm_apply_nth_le _ h', nth_le_rotate l, nth_le_rotate l,
+      form_perm_apply_nth_le _ h],
+    simp },
+  { rw [form_perm_apply_of_not_mem _ _ hx, form_perm_apply_of_not_mem],
+    simpa using hx }
 end
 
 lemma form_perm_rotate (l : list α) (h : nodup l) (n : ℕ) :

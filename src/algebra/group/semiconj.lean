@@ -90,34 +90,34 @@ section monoid
 variables {M : Type u} [monoid M]
 
 /-- If `a` semiconjugates a unit `x` to a unit `y`, then it semiconjugates `x⁻¹` to `y⁻¹`. -/
-@[to_additive] lemma units_inv_right {a : M} {x y : units M} (h : semiconj_by a x y) :
+@[to_additive] lemma units_inv_right {a : M} {x y : Mˣ} (h : semiconj_by a x y) :
   semiconj_by a ↑x⁻¹ ↑y⁻¹ :=
 calc a * ↑x⁻¹ = ↑y⁻¹ * (y * a) * ↑x⁻¹ : by rw [units.inv_mul_cancel_left]
           ... = ↑y⁻¹ * a              : by rw [← h.eq, mul_assoc, units.mul_inv_cancel_right]
 
-@[simp, to_additive] lemma units_inv_right_iff {a : M} {x y : units M} :
+@[simp, to_additive] lemma units_inv_right_iff {a : M} {x y : Mˣ} :
   semiconj_by a ↑x⁻¹ ↑y⁻¹ ↔ semiconj_by a x y :=
 ⟨units_inv_right, units_inv_right⟩
 
 /-- If a unit `a` semiconjugates `x` to `y`, then `a⁻¹` semiconjugates `y` to `x`. -/
-@[to_additive] lemma units_inv_symm_left {a : units M} {x y : M} (h : semiconj_by ↑a x y) :
+@[to_additive] lemma units_inv_symm_left {a : Mˣ} {x y : M} (h : semiconj_by ↑a x y) :
   semiconj_by ↑a⁻¹ y x :=
 calc ↑a⁻¹ * y = ↑a⁻¹ * (y * a * ↑a⁻¹) : by rw [units.mul_inv_cancel_right]
           ... = x * ↑a⁻¹              : by rw [← h.eq, ← mul_assoc, units.inv_mul_cancel_left]
 
-@[simp, to_additive] lemma units_inv_symm_left_iff {a : units M} {x y : M} :
+@[simp, to_additive] lemma units_inv_symm_left_iff {a : Mˣ} {x y : M} :
   semiconj_by ↑a⁻¹ y x ↔ semiconj_by ↑a x y :=
 ⟨units_inv_symm_left, units_inv_symm_left⟩
 
-@[to_additive] theorem units_coe {a x y : units M} (h : semiconj_by a x y) :
+@[to_additive] theorem units_coe {a x y : Mˣ} (h : semiconj_by a x y) :
   semiconj_by (a : M) x y :=
 congr_arg units.val h
 
-@[to_additive] theorem units_of_coe {a x y : units M} (h : semiconj_by (a : M) x y) :
+@[to_additive] theorem units_of_coe {a x y : Mˣ} (h : semiconj_by (a : M) x y) :
   semiconj_by a x y :=
 units.ext h
 
-@[simp, to_additive] theorem units_coe_iff {a x y : units M} :
+@[simp, to_additive] theorem units_coe_iff {a x y : Mˣ} :
   semiconj_by (a : M) x y ↔ semiconj_by a x y :=
 ⟨units_of_coe, units_coe⟩
 
@@ -171,6 +171,6 @@ lemma semiconj_by_iff_eq {M : Type u} [cancel_comm_monoid M] {a x y : M} :
 
 /-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
 @[to_additive]
-lemma units.mk_semiconj_by {M : Type u} [monoid M] (u : units M) (x : M) :
+lemma units.mk_semiconj_by {M : Type u} [monoid M] (u : Mˣ) (x : M) :
   semiconj_by ↑u x (u * x * ↑u⁻¹) :=
 by unfold semiconj_by; rw [units.inv_mul_cancel_right]

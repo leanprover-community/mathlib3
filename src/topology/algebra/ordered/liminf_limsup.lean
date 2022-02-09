@@ -31,6 +31,14 @@ lemma filter.tendsto.is_bounded_under_le {f : filter β} {u : β → α} {a : α
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≤) u :=
 (is_bounded_le_nhds a).mono h
 
+lemma filter.tendsto.bdd_above_range_of_cofinite {u : β → α} {a : α}
+  (h : tendsto u cofinite (𝓝 a)) : bdd_above (set.range u) :=
+h.is_bounded_under_le.bdd_above_range_of_cofinite
+
+lemma filter.tendsto.bdd_above_range {u : ℕ → α} {a : α}
+  (h : tendsto u at_top (𝓝 a)) : bdd_above (set.range u) :=
+h.is_bounded_under_le.bdd_above_range
+
 lemma is_cobounded_ge_nhds (a : α) : (𝓝 a).is_cobounded (≥) :=
 (is_bounded_le_nhds a).is_cobounded_flip
 
@@ -49,6 +57,14 @@ lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) :=
 lemma filter.tendsto.is_bounded_under_ge {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≥) u :=
 (is_bounded_ge_nhds a).mono h
+
+lemma filter.tendsto.bdd_below_range_of_cofinite {u : β → α} {a : α}
+  (h : tendsto u cofinite (𝓝 a)) : bdd_below (set.range u) :=
+h.is_bounded_under_ge.bdd_below_range_of_cofinite
+
+lemma filter.tendsto.bdd_below_range {u : ℕ → α} {a : α}
+  (h : tendsto u at_top (𝓝 a)) : bdd_below (set.range u) :=
+h.is_bounded_under_ge.bdd_below_range
 
 lemma is_cobounded_le_nhds (a : α) : (𝓝 a).is_cobounded (≤) :=
 (is_bounded_ge_nhds a).is_cobounded_flip
@@ -157,8 +173,7 @@ begin
   haveI : ne_bot f := ⟨hbot⟩,
   refine ⟨limsup f u, _⟩,
   apply tendsto_of_le_liminf_of_limsup_le _ le_rfl h h',
-  by_contra hlt,
-  push_neg at hlt,
+  by_contra' hlt,
   obtain ⟨a, ⟨⟨la, au⟩, as⟩⟩ : ∃ a, (f.liminf u < a ∧ a < f.limsup u) ∧ a ∈ s :=
     dense_iff_inter_open.1 hs (set.Ioo (f.liminf u) (f.limsup u)) is_open_Ioo
     (set.nonempty_Ioo.2 hlt),

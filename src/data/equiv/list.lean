@@ -164,7 +164,7 @@ def fintype_equiv_fin {α} [fintype α] [encodable α] :
 begin
   haveI : decidable_eq α := encodable.decidable_eq_of_encodable _,
   transitivity,
-  { exact fintype.equiv_fin_of_forall_mem_list mem_sorted_univ (sorted_univ_nodup α) },
+  { exact ((sorted_univ_nodup α).nth_le_equiv_of_forall_mem_list _ mem_sorted_univ).symm },
   exact equiv.cast (congr_arg _ (length_sorted_univ α))
 end
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.algebra.subalgebra
-import topology.algebra.module
+import topology.algebra.module.basic
 
 /-!
 # Topological (sub)algebras

@@ -3,8 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Nicolò Cavalleri
 -/
-import topology.algebra.module
-import topology.continuous_function.basic
+import topology.algebra.module.basic
+import topology.continuous_function.ordered
+import topology.algebra.uniform_group
+import topology.uniform_space.compact_convergence
 import algebra.algebra.subalgebra
 import tactic.field_simp
 
@@ -209,6 +211,26 @@ instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_group β] [topological_group β] : comm_group C(α, β) :=
 { ..continuous_map.group,
   ..continuous_map.comm_monoid }
+
+@[to_additive] instance {α : Type*} {β : Type*} [topological_space α]
+  [topological_space β] [comm_group β] [topological_group β] : topological_group C(α, β) :=
+{ continuous_mul := by
+  { letI : uniform_space β := topological_group.to_uniform_space β,
+    have : uniform_group β := topological_group_is_uniform,
+    rw continuous_iff_continuous_at,
+    rintros ⟨f, g⟩,
+    rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on, nhds_prod_eq],
+    exactI λ K hK, ((tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).prod
+      (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK)).comp'
+      uniform_continuous_mul },
+  continuous_inv := by
+  { letI : uniform_space β := topological_group.to_uniform_space β,
+    have : uniform_group β := topological_group_is_uniform,
+    rw continuous_iff_continuous_at,
+    intro f,
+    rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on],
+    exactI λ K hK, (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).comp'
+      uniform_continuous_inv } }
 
 end continuous_map
 

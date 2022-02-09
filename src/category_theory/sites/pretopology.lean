@@ -70,11 +70,20 @@ namespace pretopology
 
 instance : has_coe_to_fun (pretopology C) (λ _, Π X : C, set (presieve X)) := ⟨coverings⟩
 
+variable {C}
+
+instance : has_le (pretopology C) :=
+{ le := λ K₁ K₂, (K₁ : Π (X : C), set (presieve X)) ≤ K₂ }
+
+lemma le_def {K₁ K₂ : pretopology C} : K₁ ≤ K₂ ↔ (K₁ : Π (X : C), set (presieve X)) ≤ K₂ := iff.rfl
+
+variable (C)
+
 instance : partial_order (pretopology C) :=
-{ le := λ K₁ K₂, (K₁ : Π (X : C), set _) ≤ K₂,
-  le_refl := λ K, le_refl _,
-  le_trans := λ K₁ K₂ K₃ h₁₂ h₂₃, le_trans h₁₂ h₂₃,
-  le_antisymm := λ K₁ K₂ h₁₂ h₂₁, pretopology.ext _ _ (le_antisymm h₁₂ h₂₁) }
+{ le_refl := λ K, le_def.mpr le_rfl,
+  le_trans := λ K₁ K₂ K₃ h₁₂ h₂₃, le_def.mpr (le_trans h₁₂ h₂₃),
+  le_antisymm := λ K₁ K₂ h₁₂ h₂₁, pretopology.ext _ _ (le_antisymm h₁₂ h₂₁),
+  ..pretopology.has_le }
 
 instance : order_top (pretopology C) :=
 { top :=
@@ -153,7 +162,7 @@ def gi : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
       apply J.superset_covering _ (h _ hR),
       rwa sieve.gi_generate.gc }
   end,
-  le_l_u := λ J X S hS, ⟨S, J.superset_covering S.le_generate hS, le_refl _⟩,
+  le_l_u := λ J X S hS, ⟨S, J.superset_covering S.le_generate hS, le_rfl⟩,
   choice := λ x hx, to_grothendieck C x,
   choice_eq := λ _ _, rfl }
 

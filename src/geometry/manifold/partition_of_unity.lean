@@ -3,10 +3,11 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import topology.paracompact
-import topology.shrinking_lemma
+import geometry.manifold.algebra.structures
 import geometry.manifold.bump_function
+import topology.paracompact
 import topology.partition_of_unity
+import topology.shrinking_lemma
 
 /-!
 # Smooth partition of unity
@@ -389,7 +390,7 @@ def single (i : ι) (s : set M) : smooth_partition_of_unity ι I M s :=
   end
 
 instance [inhabited ι] (s : set M) : inhabited (smooth_partition_of_unity ι I M s) :=
-⟨single (default ι) s⟩
+⟨single default s⟩
 
 variables [t2_space M] [sigma_compact_space M]
 

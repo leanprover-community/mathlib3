@@ -35,7 +35,7 @@ def arrow := comma.{v v v} (𝟭 T) (𝟭 T)
 
 -- Satisfying the inhabited linter
 instance arrow.inhabited [inhabited T] : inhabited (arrow T) :=
-{ default := show comma (𝟭 T) (𝟭 T), from default (comma (𝟭 T) (𝟭 T)) }
+{ default := show comma (𝟭 T) (𝟭 T), from default }
 
 end
 
@@ -114,6 +114,13 @@ is_iso.eq_inv_of_hom_inv_id $ by rw [← comma.comp_left, is_iso.hom_inv_id, id_
 
 @[simp] lemma inv_right [is_iso sq] : (inv sq).right = inv sq.right :=
 is_iso.eq_inv_of_hom_inv_id $ by rw [← comma.comp_right, is_iso.hom_inv_id, id_right]
+
+@[simp] lemma left_hom_inv_right [is_iso sq] : sq.left ≫ g.hom ≫ inv sq.right = f.hom :=
+by simp only [← category.assoc, is_iso.comp_inv_eq, w]
+
+-- simp proves this
+lemma inv_left_hom_right [is_iso sq] : inv sq.left ≫ f.hom ≫ sq.right = g.hom :=
+by simp only [w, is_iso.inv_comp_eq]
 
 instance mono_left [mono sq] : mono sq.left :=
 { right_cancellation := λ Z φ ψ h, begin

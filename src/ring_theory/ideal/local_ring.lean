@@ -119,7 +119,7 @@ lemma local_of_nonunits_ideal [comm_ring R] (hnze : (0:R) ≠ 1)
   is_local := λ x, or_iff_not_imp_left.mpr $ λ hx,
   begin
     by_contra H,
-    apply h _ _ hx H,
+    apply h _ hx _ H,
     simp [-sub_eq_add_neg, add_sub_cancel'_right]
   end }
 
@@ -127,7 +127,7 @@ lemma local_of_unique_max_ideal [comm_ring R] (h : ∃! I : ideal R, I.is_maxima
   local_ring R :=
 local_of_nonunits_ideal
 (let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem))
-$ λ x y hx hy H,
+$ λ x hx y hy H,
 let ⟨I, Imax, Iuniq⟩ := h in
 let ⟨Ix, Ixmax, Hx⟩ := exists_max_ideal_of_mem_nonunits hx in
 let ⟨Iy, Iymax, Hy⟩ := exists_max_ideal_of_mem_nonunits hy in
@@ -177,6 +177,26 @@ instance is_local_ring_hom_comp [semiring R] [semiring S] [semiring T]
   (g : S →+* T) (f : R →+* S) [is_local_ring_hom g] [is_local_ring_hom f] :
   is_local_ring_hom (g.comp f) :=
 { map_nonunit := λ a, is_local_ring_hom.map_nonunit a ∘ is_local_ring_hom.map_nonunit (f a) }
+
+instance _root_.CommRing.is_local_ring_hom_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T)
+  [is_local_ring_hom g] [is_local_ring_hom f] :
+  is_local_ring_hom (f ≫ g) := is_local_ring_hom_comp _ _
+
+/-- If `f : R →+* S` is a local ring hom, then `R` is a local ring if `S` is. -/
+lemma _root_.ring_hom.domain_local_ring {R S : Type*} [comm_ring R] [comm_ring S]
+  [H : _root_.local_ring S] (f : R →+* S)
+  [is_local_ring_hom f] : _root_.local_ring R :=
+begin
+  haveI : nontrivial R := pullback_nonzero f f.map_zero f.map_one,
+  constructor,
+  intro x,
+  rw [← is_unit_map_iff f, ← is_unit_map_iff f, f.map_sub, f.map_one],
+  exact _root_.local_ring.is_local (f x)
+end
+
+lemma is_local_ring_hom_of_comp {R S T: Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  (f : R →+* S) (g : S →+* T) [is_local_ring_hom (g.comp f)] : is_local_ring_hom f :=
+⟨λ a ha, (is_unit_map_iff (g.comp f) _).mp (g.is_unit_map ha)⟩
 
 instance is_local_ring_hom_equiv [semiring R] [semiring S] (f : R ≃+* S) :
   is_local_ring_hom f.to_ring_hom :=
@@ -249,7 +269,7 @@ end
 
 variable (R)
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
-def residue_field := (maximal_ideal R).quotient
+def residue_field := R ⧸ maximal_ideal R
 
 noncomputable instance residue_field.field : field (residue_field R) :=
 ideal.quotient.field (maximal_ideal R)

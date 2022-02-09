@@ -200,7 +200,7 @@ begin
   intros b' hb',
   rw [nhds_eq_uniformity, lift'_inf_principal_eq, lift'_ne_bot_iff],
   exact assume s, this b' s hb',
-  exact monotone_inter monotone_preimage monotone_const
+  exact monotone_preimage.inter monotone_const
 end,
 have ∀b', (b, b') ∈ t → b' ∈ closure (e '' {a' | (a, a') ∈ s}),
   from assume b' hb', by rw [closure_eq_cluster_pts]; exact this b' hb',
@@ -315,17 +315,17 @@ have cauchy g, from
   let
     ⟨s₁, hs₁, (comp_s₁ : comp_rel s₁ s₁ ⊆ s)⟩ := comp_mem_uniformity_sets hs,
     ⟨s₂, hs₂, (comp_s₂ : comp_rel s₂ s₂ ⊆ s₁)⟩ := comp_mem_uniformity_sets hs₁,
-    ⟨t, ht, (prod_t : set.prod t t ⊆ s₂)⟩ := mem_prod_same_iff.mp (hf.right hs₂)
+    ⟨t, ht, (prod_t : t ×ˢ t ⊆ s₂)⟩ := mem_prod_same_iff.mp (hf.right hs₂)
   in
   have hg₁ : p (preimage prod.swap s₁) t ∈ g,
     from mem_lift (symm_le_uniformity hs₁) $ @mem_lift' α α f _ t ht,
   have hg₂ : p s₂ t ∈ g,
     from mem_lift hs₂ $ @mem_lift' α α f _ t ht,
-  have hg : set.prod (p (preimage prod.swap s₁) t) (p s₂ t) ∈ g ×ᶠ g,
+  have hg : p (prod.swap ⁻¹' s₁) t ×ˢ p s₂ t ∈ g ×ᶠ g,
     from @prod_mem_prod α α _ _ g g hg₁ hg₂,
   (g ×ᶠ g).sets_of_superset hg
     (assume ⟨a, b⟩ ⟨⟨c₁, c₁t, hc₁⟩, ⟨c₂, c₂t, hc₂⟩⟩,
-      have (c₁, c₂) ∈ set.prod t t, from ⟨c₁t, c₂t⟩,
+      have (c₁, c₂) ∈ t ×ˢ t, from ⟨c₁t, c₂t⟩,
       comp_s₁ $ prod_mk_mem_comp_rel hc₁ $
       comp_s₂ $ prod_mk_mem_comp_rel (prod_t this) hc₂)⟩,
 
@@ -416,29 +416,11 @@ begin
     end⟩
 end
 
-variables [separated_space γ]
-
-lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
-dense_inducing.extend_eq_at _ h_f.continuous.continuous_at
-
-lemma uniformly_extend_unique {g : α → γ} (hg : ∀ b, g (e b) = f b)
-  (hc : continuous g) :
-  ψ = g :=
-dense_inducing.extend_unique _ hg hc
-
 include h_f
 
 lemma uniformly_extend_spec [complete_space γ] (a : α) :
   tendsto f (comap e (𝓝 a)) (𝓝 (ψ a)) :=
-let de := (h_e.dense_inducing h_dense) in
-begin
-  by_cases ha : a ∈ range e,
-  { rcases ha with ⟨b, rfl⟩,
-    rw [uniformly_extend_of_ind _ _ h_f, ← de.nhds_eq_comap],
-    exact h_f.continuous.tendsto _ },
-  { simp only [dense_inducing.extend, dif_neg ha],
-    exact tendsto_nhds_lim (uniformly_extend_exists h_e h_dense h_f _) }
-end
+by simpa only [dense_inducing.extend] using tendsto_nhds_lim (uniformly_extend_exists h_e ‹_› h_f _)
 
 lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_continuous ψ :=
 assume d hd,
@@ -466,19 +448,32 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
     from is_open_iff_nhds.mp is_open_interior (x₁, x₂) hx_t,
   have interior t ∈ 𝓝 x₁ ×ᶠ 𝓝 x₂,
     by rwa [nhds_prod_eq, le_principal_iff] at this,
-  let ⟨m₁, hm₁, m₂, hm₂, (hm : set.prod m₁ m₂ ⊆ interior t)⟩ := mem_prod_iff.mp this in
+  let ⟨m₁, hm₁, m₂, hm₂, (hm : m₁ ×ˢ m₂ ⊆ interior t)⟩ := mem_prod_iff.mp this in
   let ⟨a, ha₁, _, ha₂⟩ := h_pnt hm₁ in
   let ⟨b, hb₁, hb₂, _⟩ := h_pnt hm₂ in
-  have set.prod (preimage e m₁) (preimage e m₂) ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s,
+  have (e ⁻¹' m₁) ×ˢ (e ⁻¹' m₂) ⊆ (λ p : β × β, (f p.1, f p.2)) ⁻¹' s,
     from calc _ ⊆ preimage (λp:(β×β), (e p.1, e p.2)) (interior t) : preimage_mono hm
     ... ⊆ preimage (λp:(β×β), (e p.1, e p.2)) t : preimage_mono interior_subset
     ... ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s : ts,
-  have set.prod (f '' preimage e m₁) (f '' preimage e m₂) ⊆ s,
-    from calc set.prod (f '' preimage e m₁) (f '' preimage e m₂) =
-      (λp:(β×β), (f p.1, f p.2)) '' (set.prod (preimage e m₁) (preimage e m₂)) : prod_image_image_eq
-    ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' preimage (λp:(β×β), (f p.1, f p.2)) s : monotone_image this
-    ... ⊆ s : image_subset_iff.mpr $ subset.refl _,
+  have f '' (e ⁻¹' m₁) ×ˢ f '' (e ⁻¹' m₂) ⊆ s,
+    from calc (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) =
+      (λp:(β×β), (f p.1, f p.2)) '' (e ⁻¹' m₁ ×ˢ e ⁻¹' m₂) : prod_image_image_eq
+    ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' ((λp:(β×β), (f p.1, f p.2)) ⁻¹' s) : monotone_image this
+    ... ⊆ s : image_preimage_subset _ _,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,
   hs_comp $ show (ψ x₁, ψ x₂) ∈ comp_rel s (comp_rel s s),
     from ⟨a, ha₂, ⟨b, this, hb₂⟩⟩
+
+omit h_f
+
+variables [separated_space γ]
+
+lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
+dense_inducing.extend_eq_at _ h_f.continuous.continuous_at
+
+lemma uniformly_extend_unique {g : α → γ} (hg : ∀ b, g (e b) = f b)
+  (hc : continuous g) :
+  ψ = g :=
+dense_inducing.extend_unique _ hg hc
+
 end uniform_extension

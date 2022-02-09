@@ -83,12 +83,12 @@ begin
     have b0:_, from ne_of_gt (pow_pos (show 0 < 2, from dec_trivial) m),
     nat.mul_ne_zero b0 b0,
   have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
-            n < (r+2^m)*(r+2^m), {
-    rw [tsub_lt_iff_right h₁],
+            n < (r+2^m)*(r+2^m),
+  { rw [tsub_lt_iff_right h₁],
     simp [left_distrib, right_distrib, two_mul, mul_comm, mul_assoc,
       add_comm, add_assoc, add_left_comm] },
-  have re : div2 (2 * r * 2^m) = r * 2^m, {
-    rw [div2_val, mul_assoc,
+  have re : div2 (2 * r * 2^m) = r * 2^m,
+  { rw [div2_val, mul_assoc,
         nat.mul_div_cancel_left _ (dec_trivial:2>0)] },
   cases lt_or_ge n ((r+2^m)*(r+2^m)) with hl hl,
   { rw [sqrt_aux_2 b0 (lb.2 hl), hm, re], apply H1 hl },
@@ -126,8 +126,8 @@ begin
   generalize e : size n = s, cases s with s; simp [e, sqrt],
   { rw [size_eq_zero.1 e, is_sqrt], exact dec_trivial },
   { have := sqrt_aux_is_sqrt n (div2 s) 0 (zero_le _),
-    simp [show 2^div2 s * 2^div2 s = shiftl 1 (bit0 (div2 s)), by {
-      generalize: div2 s = x,
+    simp [show 2^div2 s * 2^div2 s = shiftl 1 (bit0 (div2 s)), by
+    { generalize: div2 s = x,
       change bit0 x with x+x,
       rw [one_shiftl, pow_add] }] at this,
     apply this,

@@ -5,7 +5,6 @@ Authors: Yury G. Kudryashov
 -/
 import topology.algebra.monoid
 import algebra.group.pi
-import algebra.group_with_zero.power
 import topology.homeomorph
 
 /-!

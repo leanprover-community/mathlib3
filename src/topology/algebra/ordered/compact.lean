@@ -217,10 +217,10 @@ lemma continuous.exists_forall_le [nonempty β] {f : β → α}
   ∃ x, ∀ y, f x ≤ f y :=
 begin
   inhabit β,
-  obtain ⟨s : set β, hsc : is_compact s, hsf : ∀ x ∉ s, f (default β) ≤ f x⟩ :=
-    (has_basis_cocompact.tendsto_iff at_top_basis).1 hlim (f $ default β) trivial,
-  obtain ⟨x, -, hx⟩ : ∃ x ∈ insert (default β) s, ∀ y ∈ insert (default β) s, f x ≤ f y :=
-    (hsc.insert (default β)).exists_forall_le (nonempty_insert _ _) hf.continuous_on,
+  obtain ⟨s : set β, hsc : is_compact s, hsf : ∀ x ∉ s, f default ≤ f x⟩ :=
+    (has_basis_cocompact.tendsto_iff at_top_basis).1 hlim (f default) trivial,
+  obtain ⟨x, -, hx⟩ : ∃ x ∈ insert default s, ∀ y ∈ insert default s, f x ≤ f y :=
+    (hsc.insert default).exists_forall_le (nonempty_insert _ _) hf.continuous_on,
   refine ⟨x, λ y, _⟩,
   by_cases hy : y ∈ s,
   exacts [hx y (or.inr hy), (hx _ (or.inl rfl)).trans (hsf y hy)]

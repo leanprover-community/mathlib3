@@ -113,8 +113,7 @@ add_tactic_doc
 { name := "continuity / continuity'",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.continuity, `tactic.interactive.continuity'],
-  tags := ["lemma application"]
-}
+  tags := ["lemma application"] }
 
 end interactive
 

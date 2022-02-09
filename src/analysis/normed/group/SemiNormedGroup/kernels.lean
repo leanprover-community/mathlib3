@@ -35,7 +35,7 @@ noncomputable theory
 def cokernel_cocone {X Y : SemiNormedGroup₁.{u}} (f : X ⟶ Y) : cofork f 0 :=
 cofork.of_π
   (@SemiNormedGroup₁.mk_hom
-    _ (SemiNormedGroup.of (quotient_add_group.quotient (normed_group_hom.range f.1)))
+    _ (SemiNormedGroup.of (Y ⧸ (normed_group_hom.range f.1)))
     f.1.range.normed_mk
     (normed_group_hom.is_quotient_quotient _).norm_le)
   begin
@@ -122,7 +122,7 @@ section cokernel
 /-- Auxiliary definition for `has_cokernels SemiNormedGroup`. -/
 def cokernel_cocone {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) : cofork f 0 :=
 @cofork.of_π _ _ _ _ _ _
-  (SemiNormedGroup.of (quotient_add_group.quotient (normed_group_hom.range f)))
+  (SemiNormedGroup.of (Y ⧸ (normed_group_hom.range f)))
   f.range.normed_mk
   begin
     ext,
@@ -287,7 +287,7 @@ end
 
 lemma explicit_cokernel_desc_norm_le {X Y Z : SemiNormedGroup.{u}}
   {f : X ⟶ Y} {g : Y ⟶ Z} (w : f ≫ g = 0) : ∥ explicit_cokernel_desc w ∥ ≤ ∥ g ∥ :=
-explicit_cokernel_desc_norm_le_of_norm_le w ∥ g ∥₊ (le_refl _)
+explicit_cokernel_desc_norm_le_of_norm_le w ∥ g ∥₊ le_rfl
 
 /-- The explicit cokernel is isomorphic to the usual cokernel. -/
 def explicit_cokernel_iso {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :

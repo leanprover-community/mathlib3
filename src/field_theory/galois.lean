@@ -170,22 +170,32 @@ def fixed_points.intermediate_field (M : Type*) [monoid M] [mul_semiring_action 
   algebra_map_mem' := λ a g, by rw [algebra.algebra_map_eq_smul_one, smul_comm, smul_one],
   ..fixed_points.subfield M E }
 
+/-- The submonoid fixing a set under a `mul_action`. -/
+@[to_additive /-" The additive submonoid fixing a set under an `add_action`. "-/]
+def fixing_submonoid (M : Type*) {α} [monoid M] [mul_action M α] (s : set α) : submonoid M :=
+{ carrier := { ϕ : M | ∀ x : s, ϕ • (x : α) = x },
+  one_mem' := λ _, one_smul _ _,
+  mul_mem' := λ x y hx hy z, by rw [mul_smul, hy z, hx z], }
+
+/-- The subgroup fixing a set under a `mul_action`. -/
+@[to_additive /-" The additive subgroup fixing a set under an `add_action`. "-/]
+def fixing_subgroup (M : Type*) {α} [group M] [mul_action M α] (s : set α) : subgroup M :=
+{ inv_mem' := λ _ hx z, by rw [inv_smul_eq_iff, hx z],
+  ..fixing_submonoid M s, }
+
 namespace intermediate_field
 
 /-- The intermediate_field fixed by a subgroup -/
 def fixed_field : intermediate_field F E :=
 fixed_points.intermediate_field H
 
-lemma finrank_fixed_field_eq_card [finite_dimensional F E] [fintype H] :
+lemma finrank_fixed_field_eq_card [finite_dimensional F E] [decidable_pred (∈ H)] :
   finrank (fixed_field H) E = fintype.card H :=
 fixed_points.finrank_eq_card H E
 
 /-- The subgroup fixing an intermediate_field -/
 def fixing_subgroup : subgroup (E ≃ₐ[F] E) :=
-{ carrier := λ ϕ, ∀ x : K, ϕ x = x,
-  one_mem' := λ _, rfl,
-  mul_mem' := λ _ _ hx hy _, (congr_arg _ (hy _)).trans (hx _),
-  inv_mem' := λ _ hx _, (equiv.symm_apply_eq (to_equiv _)).mpr (hx _).symm }
+fixing_subgroup (E ≃ₐ[F] E) (K : set E)
 
 lemma le_iff_le : K ≤ fixed_field H ↔ H ≤ fixing_subgroup K :=
 ⟨λ h g hg x, h (subtype.mem x) ⟨g, hg⟩, λ h x hx g, h (subtype.mem g) ⟨x, hx⟩⟩
@@ -244,8 +254,8 @@ begin
   exact (card_aut_eq_finrank K E).symm,
 end
 
-lemma card_fixing_subgroup_eq_finrank [finite_dimensional F E] [is_galois F E]
-  [fintype ↥(K.fixing_subgroup)] :
+lemma card_fixing_subgroup_eq_finrank [decidable_pred (∈ intermediate_field.fixing_subgroup K)]
+  [finite_dimensional F E] [is_galois F E] :
   fintype.card (intermediate_field.fixing_subgroup K) = finrank K E :=
 by conv { to_rhs, rw [←fixed_field_fixing_subgroup K,
   intermediate_field.finrank_fixed_field_eq_card] }

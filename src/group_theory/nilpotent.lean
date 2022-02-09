@@ -745,7 +745,7 @@ begin
   rw normalizer_condition_iff_only_full_group_self_normalizing,
   unfreezingI
   { induction h using nilpotent_center_quotient_ind with G' _ _ G' _ _ ih;
-    clear _inst_1 G; rename  G' → G, },
+    clear _inst_1 G; rename G' → G, },
   { rintros H -, apply subsingleton.elim, },
   { intros H hH,
     by_cases hch : center G ≤ H,

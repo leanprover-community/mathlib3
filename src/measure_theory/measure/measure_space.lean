@@ -2401,7 +2401,7 @@ lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : measurable f)
 lemma _root_.measurable_equiv.sigma_finite_map {μ : measure α} (f : α ≃ᵐ β) (h : sigma_finite μ) :
   sigma_finite (map f μ) :=
 by { refine sigma_finite.of_map _ f.symm.measurable _,
-     rwa [map_map f.symm.measurable f.measurable, f.symm_comp_self, map_id] }
+     rwa [map_map f.symm.measurable f.measurable, f.symm_comp_self, measure.map_id] }
 
 /-- Similar to `ae_of_forall_measure_lt_top_ae_restrict`, but where you additionally get the
   hypothesis that another σ-finite measure has finite values on `s`. -/
@@ -2453,10 +2453,7 @@ lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure
   ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ∞ :=
 by simpa only [exists_prop, and.assoc]
   using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
-lemma _root_.measurable_equiv.sigma_finite_map {μ : measure α} (f : α ≃ᵐ β) (h : sigma_finite μ) :
-  sigma_finite (map f μ) :=
-by { refine sigma_finite.of_map _ f.symm.measurable _,
-     rwa [map_map f.symm.measurable f.measurable, f.symm_comp_self, map_id] }
+
 instance is_locally_finite_measure_smul_nnreal [topological_space α] (μ : measure α)
   [is_locally_finite_measure μ] (c : ℝ≥0) : is_locally_finite_measure (c • μ) :=
 begin

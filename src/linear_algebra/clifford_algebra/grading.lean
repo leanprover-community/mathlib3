@@ -15,7 +15,8 @@ The main result is `clifford_algebra.graded_algebra`, which says that the cliffo
 -/
 
 namespace clifford_algebra
-variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+variables {R M : Type*} [comm_ring R] [add_comm_group M]
+variables [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
 variables {Q : quadratic_form R M}
 
 open_locale direct_sum

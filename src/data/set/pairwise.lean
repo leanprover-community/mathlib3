@@ -308,6 +308,22 @@ begin
   { exact (hs hc hd (ne_of_apply_ne _ hcd)).mono (le_bsupr a ha) (le_bsupr b hb) }
 end
 
+lemma pairwise_disjoint.prod {s : set ι} {t : set ι'} {f : ι × ι' → α}
+  (hs : s.pairwise_disjoint $ λ i, ⨆ i' ∈ t, f (i, i'))
+  (ht : t.pairwise_disjoint $ λ i', ⨆ i ∈ s, f (i, i')) :
+  (s ×ˢ t : set (ι × ι')).pairwise_disjoint f :=
+begin
+  rintro ⟨i, i'⟩ hi ⟨j, j'⟩ hj h,
+  rw mem_prod at hi hj,
+  obtain rfl | hij := eq_or_ne i j,
+  { refine (ht hi.2 hj.2 $ (prod.mk.inj_left _).ne_iff.1 h).mono _ _,
+    { convert le_bsupr i hi.1, refl },
+    { convert le_bsupr i hj.1, refl } },
+  { refine (hs hi.1 hj.1 hij).mono _ _,
+    { convert le_bsupr i' hi.2, refl },
+    { convert le_bsupr j' hj.2, refl } }
+end
+
 end complete_lattice
 
 /-! ### Pairwise disjoint set of sets -/

@@ -50,14 +50,14 @@ structure bounded_order_hom (α β : Type*) [preorder α] [preorder β] [bounded
 
 /-- `top_hom_class F α β` states that `F` is a type of `⊤`-preserving morphisms.
 
-You should extend this class when you extend `sup_hom`. -/
+You should extend this class when you extend `top_hom`. -/
 class top_hom_class (F : Type*) (α β : out_param $ Type*) [has_top α] [has_top β]
   extends fun_like F α (λ _, β) :=
 (map_top (f : F) : f ⊤ = ⊤)
 
 /-- `bot_hom_class F α β` states that `F` is a type of `⊥`-preserving morphisms.
 
-You should extend this class when you extend `sup_hom`. -/
+You should extend this class when you extend `bot_hom`. -/
 class bot_hom_class (F : Type*) (α β : out_param $ Type*) [has_bot α] [has_bot β]
   extends fun_like F α (λ _, β) :=
 (map_bot (f : F) : f ⊥ = ⊥)
@@ -112,7 +112,7 @@ instance : top_hom_class (top_hom α β) α β :=
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
-instance : has_coe_to_fun (top_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
+instance : has_coe_to_fun (top_hom α β) (λ _, α → β) := fun_like.has_coe_to_fun
 
 @[simp] lemma to_fun_eq_coe {f : top_hom α β} : f.to_fun = (f : α → β) := rfl
 
@@ -226,7 +226,7 @@ instance : bot_hom_class (bot_hom α β) α β :=
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
-instance : has_coe_to_fun (bot_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
+instance : has_coe_to_fun (bot_hom α β) (λ _, α → β) := fun_like.has_coe_to_fun
 
 @[simp] lemma to_fun_eq_coe {f : bot_hom α β} : f.to_fun = (f : α → β) := rfl
 
@@ -346,7 +346,7 @@ instance : bounded_order_hom_class (bounded_order_hom α β) α β :=
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
-instance : has_coe_to_fun (bounded_order_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
+instance : has_coe_to_fun (bounded_order_hom α β) (λ _, α → β) := fun_like.has_coe_to_fun
 
 @[simp] lemma to_fun_eq_coe {f : bounded_order_hom α β} : f.to_fun = (f : α → β) := rfl
 

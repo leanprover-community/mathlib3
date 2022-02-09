@@ -19,7 +19,7 @@ the star-linear versions.
 We also prove some trivial lemmas and provide convenience constructors.
 
 Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
-theory for `semi_normed_space` and we specialize to `normed_space` when needed.
+theory for `semi_normed_group` and we specialize to `normed_group` when needed.
 -/
 open function set
 
@@ -396,6 +396,11 @@ def trans (e' : E₂ ≃ₛₗᵢ[σ₂₃] E₃) : E ≃ₛₗᵢ[σ₁₃] E�
 include σ₁₃ σ₂₁
 @[simp] lemma coe_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ :=
 rfl
+
+@[simp] lemma to_linear_equiv_trans (e' : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
+  (e.trans e').to_linear_equiv = e.to_linear_equiv.trans e'.to_linear_equiv :=
+rfl
+
 omit σ₁₃ σ₂₁ σ₃₁ σ₃₂
 
 @[simp] lemma trans_refl : e.trans (refl R₂ E₂) = e := ext $ λ x, rfl
@@ -406,7 +411,11 @@ omit σ₁₃ σ₂₁ σ₃₁ σ₃₂
 @[simp] lemma self_comp_symm : e ∘ e.symm = id := e.symm.symm_comp_self
 
 include σ₁₃ σ₂₁ σ₃₂ σ₃₁
-@[simp] lemma coe_symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
+@[simp] lemma symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
+  (e₁.trans e₂).symm = e₂.symm.trans e₁.symm :=
+rfl
+
+lemma coe_symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
   ⇑(e₁.trans e₂).symm = e₁.symm ∘ e₂.symm :=
 rfl
 
@@ -507,6 +516,11 @@ noncomputable def of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂)
   F ≃ₛₗᵢ[σ₁₂] E₂ :=
 { norm_map' := f.norm_map,
   .. linear_equiv.of_bijective f.to_linear_map f.injective hfr }
+
+@[simp] lemma coe_of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂) (hfr : function.surjective f) :
+  ⇑(linear_isometry_equiv.of_surjective f hfr) = f :=
+by { ext, refl }
+
 omit σ₂₁
 
 variables (R)
@@ -531,7 +545,7 @@ noncomputable def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E�
   norm_map' :=
     begin
       rintros ⟨⟨e, f⟩, g⟩,
-      simp only [linear_equiv.coe_mk, equiv.prod_assoc_apply, prod.semi_norm_def, max_assoc],
+      simp only [linear_equiv.coe_mk, equiv.prod_assoc_apply, prod.norm_def, max_assoc],
     end,
   .. equiv.prod_assoc E E₂ E₃, }
 

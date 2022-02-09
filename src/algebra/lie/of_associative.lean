@@ -66,6 +66,34 @@ lemma of_associative_ring_bracket (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
 
 end lie_ring
 
+section associative_module
+
+variables {M : Type w} [add_comm_group M] [module A M]
+
+/-- We can regard a module over an associative ring `A` as a Lie ring module over `A` with Lie
+bracket equal to its ring commutator.
+
+Note that this cannot be a global instance because it would create a diamond when `M = A`,
+specifically we can build two mathematically-different `has_bracket A A`s:
+ 1. `@ring.has_bracket A _` which says `⁅a, b⁆ = a * b - b * a`
+ 2. `(@lie_ring_module.of_associative_module A _ A _ _).to_has_bracket` which says `⁅a, b⁆ = a • b`
+    (and thus `⁅a, b⁆ = a * b`)
+
+See note [reducible non-instances] -/
+@[reducible]
+def lie_ring_module.of_associative_module : lie_ring_module A M :=
+{ bracket     := (•),
+  add_lie     := add_smul,
+  lie_add     := smul_add,
+  leibniz_lie :=
+    by simp [lie_ring.of_associative_ring_bracket, sub_smul, mul_smul, sub_add_cancel], }
+
+local attribute [instance] lie_ring_module.of_associative_module
+
+lemma lie_eq_smul (a : A) (m : M) : ⁅a, m⁆ = a • m := rfl
+
+end associative_module
+
 section lie_algebra
 
 variables {R : Type u} [comm_ring R] [algebra R A]
@@ -77,6 +105,29 @@ instance lie_algebra.of_associative_algebra : lie_algebra R A :=
 { lie_smul := λ t x y,
     by rw [lie_ring.of_associative_ring_bracket, lie_ring.of_associative_ring_bracket,
            algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub], }
+
+local attribute [instance] lie_ring_module.of_associative_module
+
+section associative_representation
+
+variables {M : Type w} [add_comm_group M] [module R M] [module A M] [is_scalar_tower R A M]
+
+/-- A representation of an associative algebra `A` is also a representation of `A`, regarded as a
+Lie algebra via the ring commutator.
+
+See the comment at `lie_ring_module.of_associative_module` for why the possibility `M = A` means
+this cannot be a global instance. -/
+def lie_module.of_associative_module : lie_module R A M :=
+{ smul_lie := smul_assoc,
+  lie_smul := smul_algebra_smul_comm }
+
+instance module.End.lie_ring_module : lie_ring_module (module.End R M) M :=
+lie_ring_module.of_associative_module
+
+instance module.End.lie_module : lie_module R (module.End R M) M :=
+lie_module.of_associative_module
+
+end associative_representation
 
 namespace alg_hom
 
@@ -134,6 +185,10 @@ See also `lie_module.to_module_hom`. -/
 def lie_algebra.ad : L →ₗ⁅R⁆ module.End R L := lie_module.to_endomorphism R L L
 
 @[simp] lemma lie_algebra.ad_apply (x y : L) : lie_algebra.ad R L x y = ⁅x, y⁆ := rfl
+
+@[simp] lemma lie_module.to_endomorphism_module_End :
+  lie_module.to_endomorphism R (module.End R M) M = lie_hom.id :=
+by { ext g m, simp [lie_eq_smul], }
 
 open lie_algebra
 

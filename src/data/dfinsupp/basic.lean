@@ -57,8 +57,19 @@ namespace dfinsupp
 section basic
 variables [Π i, has_zero (β i)] [Π i, has_zero (β₁ i)] [Π i, has_zero (β₂ i)]
 
-instance : has_coe_to_fun (Π₀ i, β i) (λ _, Π i, β i) :=
-⟨λ f, quotient.lift_on f pre.to_fun $ λ _ _, funext⟩
+instance fun_like : fun_like (Π₀ i, β i) ι β :=
+⟨λ f, quotient.lift_on f pre.to_fun $ λ _ _, funext,
+  λ f g H, quotient.induction_on₂ f g (λ _ _ H, quotient.sound H) (congr_fun H)⟩
+
+/-- Helper instance for when there are too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (Π₀ i, β i) (λ _, Π i, β i) := fun_like.has_coe_to_fun
+
+@[ext] lemma ext {f g : Π₀ i, β i} (h : ∀ i, f i = g i) : f = g := fun_like.ext _ _ h
+/-- Deprecated. Use `fun_like.ext_iff` instead. -/
+lemma ext_iff {f g : Π₀ i, β i} : f = g ↔ ∀ i, f i = g i := fun_like.ext_iff
+/-- Deprecated. Use `fun_like.coe_injective` instead. -/
+lemma coe_fn_injective : @function.injective (Π₀ i, β i) (Π i, β i) coe_fn := fun_like.coe_injective
 
 instance : has_zero (Π₀ i, β i) := ⟨⟦⟨0, ∅, λ i, or.inr rfl⟩⟧⟩
 instance : inhabited (Π₀ i, β i) := ⟨0⟩
@@ -69,15 +80,6 @@ lemma coe_pre_mk (f : Π i, β i) (s : multiset ι) (hf) :
 
 @[simp] lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
 lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
-
-lemma coe_fn_injective : @function.injective (Π₀ i, β i) (Π i, β i) coe_fn :=
-λ f g H, quotient.induction_on₂ f g (λ _ _ H, quotient.sound H) (congr_fun H)
-
-@[ext] lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
-coe_fn_injective (funext H)
-
-lemma ext_iff {f g : Π₀ i, β i} : f = g ↔ ∀ i, f i = g i :=
-coe_fn_injective.eq_iff.symm.trans function.funext_iff
 
 /-- The composition of `f : β₁ → β₂` and `g : Π₀ i, β₁ i` is
   `map_range f hf g : Π₀ i, β₂ i`, well defined when `f 0 = 0`.

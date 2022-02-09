@@ -80,7 +80,7 @@ lemma bottom_row_coprime {R : Type*} [comm_ring R] (g : SL(2, R)) :
   is_coprime ((↑g : matrix (fin 2) (fin 2) R) 1 0) ((↑g : matrix (fin 2) (fin 2) R) 1 1) :=
 begin
   use [- (↑g : matrix (fin 2) (fin 2) R) 0 1, (↑g : matrix (fin 2) (fin 2) R) 0 0],
-  rw [add_comm, ←neg_mul_eq_neg_mul, ←sub_eq_add_neg, ←det_fin_two],
+  rw [add_comm, neg_mul, ←sub_eq_add_neg, ←det_fin_two],
   exact g.det_coe,
 end
 
@@ -184,7 +184,7 @@ linear_equiv.Pi_congr_right
     rw neg_sq,
     exact hcd.sq_add_sq_ne_zero
   end,
-  (linear_equiv.refl _ _)]
+  linear_equiv.refl ℝ (fin 2 → ℝ)]
 
 /-- The map `lc_row0` is proper, that is, preimages of cocompact sets are finite in
 `[[* , *], [c, d]]`.-/

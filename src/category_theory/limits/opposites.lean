@@ -148,6 +148,20 @@ lemma has_finite_products_opposite [has_finite_coproducts C] :
     apply_instance,
   end }
 
+lemma has_equalizers_opposite [has_coequalizers C] : has_equalizers Cᵒᵖ :=
+begin
+  haveI : has_colimits_of_shape walking_parallel_pair.{v}ᵒᵖ C :=
+    has_colimits_of_shape_of_equivalence walking_parallel_pair_op_equiv.{v},
+  apply_instance
+end
+
+lemma has_coequalizers_opposite [has_equalizers C] : has_coequalizers Cᵒᵖ :=
+begin
+  haveI : has_limits_of_shape walking_parallel_pair.{v}ᵒᵖ C :=
+    has_limits_of_shape_of_equivalence walking_parallel_pair_op_equiv.{v},
+  apply_instance
+end
+
 local attribute [instance] fin_category_opposite
 
 lemma has_finite_colimits_opposite [has_finite_limits C] :

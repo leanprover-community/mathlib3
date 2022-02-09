@@ -26,7 +26,7 @@ universes u v w
 variables {R : Type u} {M : Type v} [comm_ring R] [nontrivial R]
 variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M] (f : M →ₗ[R] M)
 
-open_locale classical matrix
+open_locale classical matrix polynomial
 
 noncomputable theory
 
@@ -37,7 +37,7 @@ namespace linear_map
 section basic
 
 /-- The characteristic polynomial of `f : M →ₗ[R] M`. -/
-def charpoly : polynomial R :=
+def charpoly : R[X] :=
 (to_matrix (choose_basis R M) (choose_basis R M) f).charpoly
 
 lemma charpoly_def :

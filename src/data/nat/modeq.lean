@@ -86,20 +86,6 @@ by rw [mul_comm a, mul_comm b]; exact h.mul_left c
 protected theorem mul (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a * c ≡ b * d [MOD n] :=
 (h₂.mul_left _ ).trans (h₁.mul_right _)
 
-protected theorem mul_left_iff {a b c m : ℕ} (hc : c ≠ 0) :
-  a ≡ b [MOD m] ↔ c * a ≡ c * b [MOD c * m] :=
-begin
-  have hc' : (c:ℤ) ≠ 0 := by simp [hc],
-  simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub, mul_dvd_mul_iff_left hc'],
-end
-
-protected theorem mul_right_iff {a b c m : ℕ} (hc : c ≠ 0) :
-  a ≡ b [MOD m] ↔ a * c ≡ b * c [MOD m * c] :=
-begin
-  have hc' : (c:ℤ) ≠ 0 := by simp [hc],
-  simp only [modeq_iff_dvd, int.coe_nat_mul, ←mul_sub_right_distrib, mul_dvd_mul_iff_right hc'],
-end
-
 protected theorem pow (m : ℕ) (h : a ≡ b [MOD n]) : a ^ m ≡ b ^ m [MOD n] :=
 begin
   induction m with d hd, {refl},
@@ -137,6 +123,22 @@ by { rw [add_comm a, add_comm b] at h₂, exact h₁.add_left_cancel h₂ }
 
 protected theorem add_right_cancel' (c : ℕ) (h : a + c ≡ b + c [MOD n]) : a ≡ b [MOD n] :=
 modeq.rfl.add_right_cancel h
+
+protected theorem mul_left_cancel' {a b c m : ℕ} (hc : c ≠ 0) :
+  c * a ≡ c * b [MOD c * m] → a ≡ b [MOD m] :=
+by simp [modeq_iff_dvd, ←mul_sub, mul_dvd_mul_iff_left (by simp [hc] : (c : ℤ) ≠ 0)]
+
+protected theorem mul_left_cancel_iff' {a b c m : ℕ} (hc : c ≠ 0) :
+  c * a ≡ c * b [MOD c * m] ↔ a ≡ b [MOD m] :=
+⟨modeq.mul_left_cancel' hc, modeq.mul_left' _⟩
+
+protected theorem mul_right_cancel' {a b c m : ℕ} (hc : c ≠ 0) :
+  a * c ≡ b * c [MOD m * c] → a ≡ b [MOD m] :=
+by simp [modeq_iff_dvd, ←sub_mul, mul_dvd_mul_iff_right (by simp [hc] : (c : ℤ) ≠ 0)]
+
+protected theorem mul_right_cancel_iff' {a b c m : ℕ} (hc : c ≠ 0) :
+  a * c ≡ b * c [MOD m * c] ↔ a ≡ b [MOD m] :=
+⟨modeq.mul_right_cancel' hc, modeq.mul_right' _⟩
 
 theorem of_modeq_mul_left (m : ℕ) (h : a ≡ b [MOD m * n]) : a ≡ b [MOD n] :=
 by { rw [modeq_iff_dvd] at *, exact (dvd_mul_left (n : ℤ) (m : ℤ)).trans h }

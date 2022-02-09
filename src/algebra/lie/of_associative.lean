@@ -124,7 +124,8 @@ def lie_module.of_associative_module : lie_module R A M :=
 instance module.End.lie_ring_module : lie_ring_module (module.End R M) M :=
 lie_ring_module.of_associative_module
 
-instance module.End.lie_module : lie_module R (module.End R M) M :=
+instance module.End.lie_module [module Rᵐᵒᵖ M] [is_central_scalar R M] :
+  lie_module R (module.End R M) M :=
 lie_module.of_associative_module
 
 end associative_representation

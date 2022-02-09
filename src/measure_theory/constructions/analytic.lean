@@ -10,6 +10,7 @@ import measure_theory.constructions.borel_space
 # Analytic sets
 -/
 
+open set function polish_space
 
 namespace measure_theory
 
@@ -42,7 +43,7 @@ begin
     exact or.inl rfl },
   { rw analytic_set,
     obtain ⟨g, g_cont, hg⟩ : ∃ (g : (ℕ → ℕ) → β), continuous g ∧ surjective g :=
-      exists_nat_nat_continuous_surjective_of_polish_space β,
+      exists_nat_nat_continuous_surjective β,
     right,
     refine ⟨f ∘ g, f_cont.comp g_cont, _⟩,
     rwa hg.range_comp }
@@ -125,6 +126,123 @@ begin
     ext1 n,
     rw ← f_range n },
   exact analytic_set_of_polish_space_range F F_cont F_range,
+end
+
+def borel_separable [measurable_space α] (s t : set α) : Prop :=
+  ∃ u, s ⊆ u ∧ disjoint t u ∧ measurable_set u
+
+lemma borel_separable.Union [measurable_space α] (s t : ℕ → set α)
+  (h : ∀ m n, borel_separable (s m) (t n)) :
+  borel_separable (⋃ n, s n) (⋃ m, t m) :=
+begin
+  choose u hsu htu hu using h,
+  refine ⟨⋃ m, (⋂ n, u m n), _, _, _⟩,
+  { refine Union_subset (λ m, subset_Union_of_subset m _),
+    exact subset_Inter (λ n, hsu m n) },
+  { simp_rw [disjoint_Union_left, disjoint_Union_right],
+    assume n m,
+    apply disjoint.mono_right _ (htu m n),
+    apply Inter_subset },
+  { refine measurable_set.Union (λ m, _),
+    exact measurable_set.Inter (λ n, hu m n) }
+end
+
+open pi_nat
+
+open_locale topological_space
+
+lemma Union_cylinder_update {E : ℕ → Type*} (x : Π n, E n) (n : ℕ) :
+  (⋃ k, cylinder (update x n k) (n+1)) = cylinder x n :=
+begin
+  ext y,
+  simp only [mem_cylinder_iff, mem_Union],
+  split,
+  { rintros ⟨k, hk⟩ i hi,
+    simpa [hi.ne] using hk i (nat.lt_succ_of_lt hi) },
+  { assume H,
+    refine ⟨y n, λ i hi, _⟩,
+    rcases nat.lt_succ_iff_lt_or_eq.1 hi with h'i|rfl,
+    { simp [H i h'i, h'i.ne] },
+    { simp } },
+end
+
+lemma update_mem_cylinder {E : ℕ → Type*} (x : Π n, E n) (n : ℕ) (y : E n) :
+  update x n y ∈ cylinder x n :=
+mem_cylinder_iff.2 (λ i hi, by simp [hi.ne])
+
+lemma zoug [measurable_space α] [t2_space α] (f g : (ℕ → ℕ) → α)
+  (hf : continuous f) (hg : continuous g) (h : disjoint (range f) (range g)) :
+  borel_separable (range f) (range g) :=
+begin
+  by_contra hfg,
+  have I : ∀ n x y, (¬(borel_separable (f '' (cylinder x n)) (g '' (cylinder y n))))
+    → ∃ x' y', x' ∈ cylinder x n ∧ y' ∈ cylinder y n ∧
+                ¬(borel_separable (f '' (cylinder x' (n+1))) (g '' (cylinder y' (n+1)))),
+  { assume n x y,
+    contrapose!,
+    assume H,
+    rw [← Union_cylinder_update x n, ← Union_cylinder_update y n, image_Union, image_Union],
+    apply borel_separable.Union _ _ (λ i j, _),
+    exact H _ _ (update_mem_cylinder _ _ _) (update_mem_cylinder _ _ _) },
+  let A := {p // ¬(borel_separable (f '' (cylinder (p : ℕ × (ℕ → ℕ) × (ℕ → ℕ)).2.1 p.1))
+                                   (g '' (cylinder p.2.2 p.1)))},
+  have : ∀ (p : A), ∃ (q : A), q.1.1 = p.1.1 + 1 ∧ q.1.2.1 ∈ cylinder p.1.2.1 p.1.1
+    ∧ q.1.2.2 ∈ cylinder p.1.2.2 p.1.1,
+  { rintros ⟨⟨n, x, y⟩, hp⟩,
+    rcases I n x y hp with ⟨x', y', hx', hy', h'⟩,
+    exact ⟨⟨⟨n+1, x', y'⟩, h'⟩, rfl, hx', hy'⟩ },
+  choose F hFn hFx hFy using this,
+  let p0 : A := ⟨⟨0, λ n, 0, λ n, 0⟩, by simp [hfg]⟩,
+  let p : ℕ → A := λ n, F^[n] p0,
+  have prec : ∀ n, p (n+1) = F (p n) := λ n, by simp only [p, iterate_succ'],
+  have pn_fst : ∀ n, (p n).1.1 = n,
+  { assume n,
+    induction n with n IH,
+    { refl },
+    { simp only [prec, hFn, IH] } },
+  have Ix : ∀ m n, m + 1 ≤ n → (p n).1.2.1 m = (p (m+1)).1.2.1 m,
+  { assume m,
+    apply nat.le_induction,
+    { refl },
+    assume n hmn IH,
+    have I : (F (p n)).val.snd.fst m = (p n).val.snd.fst m,
+    { apply hFx (p n) m,
+      rw pn_fst,
+      exact hmn },
+    rw [prec, I, IH] },
+  have Iy : ∀ m n, m + 1 ≤ n → (p n).1.2.2 m = (p (m+1)).1.2.2 m,
+  { assume m,
+    apply nat.le_induction,
+    { refl },
+    assume n hmn IH,
+    have I : (F (p n)).val.snd.snd m = (p n).val.snd.snd m,
+    { apply hFy (p n) m,
+      rw pn_fst,
+      exact hmn },
+    rw [prec, I, IH] },
+  set x : ℕ → ℕ := λ n, (p (n+1)).1.2.1 n with hx,
+  set y : ℕ → ℕ := λ n, (p (n+1)).1.2.2 n with hy,
+  have : ∀ n, ¬(borel_separable (f '' (cylinder x n)) (g '' (cylinder y n))),
+  { assume n,
+    convert (p n).2 using 3,
+    { rw [pn_fst, ← mem_cylinder_iff_eq, mem_cylinder_iff],
+      assume i hi,
+      rw hx,
+      exact (Ix i n hi).symm },
+    { rw [pn_fst, ← mem_cylinder_iff_eq, mem_cylinder_iff],
+      assume i hi,
+      rw hy,
+      exact (Iy i n hi).symm } },
+  obtain ⟨u, v, u_open, v_open, xu, yv, huv⟩ :
+    ∃ u v : set α, is_open u ∧ is_open v ∧ f x ∈ u ∧ g y ∈ v ∧ u ∩ v = ∅,
+  { apply t2_separation,
+    exact disjoint_iff_forall_ne.1 h _ (mem_range_self _) _ (mem_range_self _) },
+  have : f ⁻¹' u ∈ 𝓝 x,
+  { apply hf.continuous_at.preimage_mem_nhds,
+
+  }
+
+
 end
 
 end measure_theory

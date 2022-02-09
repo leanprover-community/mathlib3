@@ -28,8 +28,8 @@ variables (C : Type*) [category C]
 /-- The canonical functor `karoubi (karoubi C) ⥤ karoubi C` -/
 @[simps]
 def inverse : karoubi (karoubi C) ⥤ karoubi C :=
-  { obj := λ P, ⟨P.X.X, P.p.f, by simpa only [hom_ext] using P.idempotence⟩,
-    map := λ P Q f, ⟨f.f.f, by simpa only [hom_ext] using f.comm⟩, }
+{ obj := λ P, ⟨P.X.X, P.p.f, by simpa only [hom_ext] using P.idempotence⟩,
+  map := λ P Q f, ⟨f.f.f, by simpa only [hom_ext] using f.comm⟩, }
 
 instance [preadditive C] : functor.additive (inverse C) := { }
 

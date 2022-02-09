@@ -12,7 +12,7 @@ import combinatorics.additive.salem_spencer
 This file proves the corners theorem and Roth's theorem.
 -/
 
-open_locale big_operators classical
+open_locale classical
 open finset
 
 variables {N : ℕ}

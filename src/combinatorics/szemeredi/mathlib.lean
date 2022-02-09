@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.special_functions.log
-import combinatorics.simple_graph.basic
+import combinatorics.simple_graph.degree_sum
 import combinatorics.pigeonhole
 import data.set.equitable
 import .finpartition
@@ -304,6 +304,19 @@ begin
     exact ⟨a, b, hsa, hsb, hGab, h.symm⟩ },
   { rintro ⟨a, b, hsa, hsb, hGab, h⟩,
     exact ⟨⟨a, b⟩, ⟨⟨hsa, hsb⟩, hGab⟩, h.symm⟩ }
+end
+
+@[simp] lemma dart.adj (d : G.dart) : G.adj d.fst d.snd := d.3
+
+variables [fintype α]
+
+lemma double_edge_finset_card_eq [decidable_eq α] [decidable_rel G.adj] :
+  2 * G.edge_finset.card = (univ.filter (λ (xy : α × α), G.adj xy.1 xy.2)).card :=
+begin
+  rw [←dart_card_eq_twice_card_edges, ←card_univ],
+  refine card_congr (λ i _, (i.1, i.2)) (by simp) (by simp [dart.ext_iff, ←and_imp]) _,
+  rintro ⟨x, y⟩ h,
+  exact ⟨⟨x, y, (mem_filter.1 h).2⟩, mem_univ _, rfl⟩,
 end
 
 end simple_graph

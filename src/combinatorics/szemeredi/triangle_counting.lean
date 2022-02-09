@@ -529,8 +529,7 @@ begin
   { exact this.trans (le_of_eq (by ring)) },
   apply mul_le_mul_of_nonneg_left _ hε.le,
   refine pow_le_pow_of_le_left (by exact_mod_cast (nat.zero_le _)) _ _,
-  refine add_le_add_left (nat.cast_le.2 _) _,
-  apply card_parts_le_card,
+  exact add_le_add_left (nat.cast_le.2 P.card_parts_le_card) _,
 end
 
 lemma sum_sparse {ε : ℝ} (hε : 0 ≤ ε)
@@ -544,8 +543,7 @@ begin
   { exact this.trans (le_of_eq (by ring)) },
   apply mul_le_mul_of_nonneg_left _ hε,
   refine pow_le_pow_of_le_left (by exact_mod_cast (nat.zero_le _)) _ _,
-  refine add_le_add_left (nat.cast_le.2 _) _,
-  apply card_parts_le_card
+  exact add_le_add_left (nat.cast_le.2 P.card_parts_le_card) _,
 end
 
 lemma internal_killed_card' [nonempty α] {ε : ℝ} (hε : 0 < ε)
@@ -557,7 +555,7 @@ begin
   have : (card α : ℝ) + P.parts.card ≤ 2 * card α,
   { rw two_mul,
     apply add_le_add_left,
-    exact nat.cast_le.2 (card_parts_le_card _) },
+    exact nat.cast_le.2 P.card_parts_le_card },
   apply (mul_le_mul_of_nonneg_left this (nat.cast_nonneg _)).trans,
   suffices : 1 ≤ (ε/4) * P.parts.card,
   { rw [mul_left_comm, ←sq],
@@ -617,7 +615,7 @@ begin
   rw div_le_iff',
   { norm_cast,
     apply (annoying_thing (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
-      (card_parts_le_card P)).le.trans,
+      P.card_parts_le_card).le.trans,
     apply nat.mul_le_mul_right,
     exact nat.mul_le_mul_left _ hP₃ },
   refine mul_pos zero_lt_two _,
@@ -675,4 +673,3 @@ begin
 end
 
 end simple_graph
-#lint

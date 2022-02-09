@@ -128,8 +128,8 @@ lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1)
     / P.parts.card ^ 2
       ≤ ∑ x in P.parts.off_diag.attach, pair_contrib G ε hP x / (hP.increment G ε).parts.card ^ 2 :=
 begin
-  conv_rhs {
-    rw [←sum_div, card_increment hPα hPG, exp_bound, ←nat.cast_pow, mul_pow, pow_right_comm,
+  conv_rhs
+  { rw [←sum_div, card_increment hPα hPG, exp_bound, ←nat.cast_pow, mul_pow, pow_right_comm,
       nat.cast_mul, mul_comm, ←div_div_eq_div_mul, (show 4^2 = 16, by norm_num), sum_div] },
   rw [←nat.cast_pow, nat.cast_pow 16],
   refine div_le_div_of_le_of_nonneg _ (nat.cast_nonneg _),

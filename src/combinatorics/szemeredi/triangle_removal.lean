@@ -5,32 +5,17 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .regularity_lemma
 import .triangle_counting
-import combinatorics.simple_graph.degree_sum
 
 /-!
 # Triangle counting lemma
 -/
 
 open finset fintype
+open_locale classical
 
-variables {α : Type*} {G : simple_graph α}
+variables {α : Type*} [fintype α] {G : simple_graph α}
 
 namespace simple_graph
-
-@[simp] lemma dart.adj (d : G.dart) : G.adj d.fst d.snd := d.3
-
-variables [fintype α]
-
-lemma double_edge_finset_card_eq [decidable_eq α] [decidable_rel G.adj] :
-  2 * G.edge_finset.card = (univ.filter (λ (xy : α × α), G.adj xy.1 xy.2)).card :=
-begin
-  rw [←dart_card_eq_twice_card_edges, ←card_univ],
-  refine card_congr (λ i _, (i.1, i.2)) (by simp) (by simp [dart.ext_iff, ←and_imp]) _,
-  rintro ⟨x, y⟩ h,
-  exact ⟨⟨x, y, (mem_filter.1 h).2⟩, mem_univ _, rfl⟩,
-end
-
-open_locale classical
 
 lemma reduced_edges_card_aux [nonempty α] {ε : ℝ} {P : finpartition (univ : finset α)} (hε : 0 < ε)
   (hP : P.is_equipartition) (hPε : P.is_uniform G (ε/8)) (hP' : 4 / ε ≤ P.parts.card) :
@@ -83,7 +68,7 @@ begin
   rw mul_assoc at k,
   replace k := lt_of_mul_lt_mul_left k zero_le_two,
   obtain ⟨t, ht⟩ := has_triangle_of_few_edges_removed G reduced_graph_le hG k,
-  apply triangle_removal_aux hε hε₁ hP₁ hP₃ hP₄ ht,
+  apply triangle_removal_aux hε hε₁ hP₁ hP₃ ht,
 end
 
 /-- If there are not too many triangles, then you can remove some edges to remove all triangles. -/

@@ -373,16 +373,6 @@ begin
   rw [this, measure_preimage_add]
 end
 
-lemma add_haar_ball_pos {E : Type*} [normed_group E] [measurable_space E]
-  (μ : measure E) [is_add_haar_measure μ] (x : E) {r : ℝ} (hr : 0 < r) :
-  0 < μ (ball x r) :=
-is_open_ball.add_haar_pos μ (nonempty_ball.2 hr)
-
-lemma add_haar_closed_ball_pos {E : Type*} [normed_group E] [measurable_space E]
-  (μ : measure E) [is_add_haar_measure μ] (x : E) {r : ℝ} (hr : 0 < r) :
-  0 < μ (closed_ball x r) :=
-lt_of_lt_of_le (add_haar_ball_pos μ x hr) (measure_mono ball_subset_closed_ball)
-
 lemma add_haar_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
   μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 s) :=
 begin
@@ -560,7 +550,7 @@ begin
     = (μ (closed_ball x r) * (μ (closed_ball x r))⁻¹) * (μ (s ∩ ({x} + r • t)) / μ ({x} + r • u)) :
       by { simp only [div_eq_mul_inv], ring }
     ... = μ (s ∩ ({x} + r • t)) / μ ({x} + r • u) :
-      by rw [ennreal.mul_inv_cancel (add_haar_closed_ball_pos μ x rpos).ne'
+      by rw [ennreal.mul_inv_cancel (measure_closed_ball_pos μ x rpos).ne'
           measure_closed_ball_lt_top.ne, one_mul],
 end
 
@@ -673,7 +663,7 @@ begin
     { simp only [uzero, ennreal.inv_eq_top, implies_true_iff, ne.def, not_false_iff] },
     congr' 1,
     apply ennreal.sub_eq_of_add_eq
-      (lt_of_le_of_lt (measure_mono (inter_subset_right _ _)) utop.lt_top).ne,
+      (ne_top_of_le_ne_top utop (measure_mono (inter_subset_right _ _))),
     rw [inter_comm _ u, inter_comm _ u],
     exact measure_inter_add_diff u vmeas },
   have L : tendsto (λ r, μ (sᶜ ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 0),
@@ -682,14 +672,14 @@ begin
       filter_upwards [self_mem_nhds_within],
       assume r hr,
       rw [div_eq_mul_inv, ennreal.mul_inv_cancel],
-      { apply (add_haar_closed_ball_pos μ _ hr).ne' },
+      { exact (measure_closed_ball_pos μ _ hr).ne' },
       { exact measure_closed_ball_lt_top.ne } },
     have B := ennreal.tendsto.sub A h (or.inl ennreal.one_ne_top),
     simp only [tsub_self] at B,
     apply B.congr' _,
     filter_upwards [self_mem_nhds_within],
     rintros r (rpos : 0 < r),
-    convert I (closed_ball x r) sᶜ (add_haar_closed_ball_pos μ _ rpos).ne'
+    convert I (closed_ball x r) sᶜ (measure_closed_ball_pos μ _ rpos).ne'
       (measure_closed_ball_lt_top).ne hs.compl,
     rw compl_compl },
   have L' : tendsto (λ (r : ℝ), μ (sᶜ ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 0) :=

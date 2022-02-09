@@ -349,6 +349,16 @@ lemma bot_covers_top : (⊥ : α) ⋖ ⊤ := is_atom_top.bot_covers
 end is_simple_order
 
 namespace is_simple_order
+section preorder
+variables [preorder α] [bounded_order α] [is_simple_order α] {a b : α} (h : a < b)
+
+lemma eq_bot_of_lt : a = ⊥ := (is_simple_order.eq_bot_or_eq_top _).resolve_right h.ne_top
+lemma eq_top_of_lt : b = ⊤ := (is_simple_order.eq_bot_or_eq_top _).resolve_left h.ne_bot
+
+alias eq_bot_of_lt ← has_lt.lt.eq_bot
+alias eq_top_of_lt ← has_lt.lt.eq_top
+
+end preorder
 
 section bounded_order
 
@@ -465,11 +475,11 @@ protected noncomputable def complete_lattice : complete_lattice α :=
 /-- A simple `bounded_order` is also a `complete_boolean_algebra`. -/
 protected noncomputable def complete_boolean_algebra : complete_boolean_algebra α :=
 { infi_sup_le_sup_Inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
-    { simp only [bot_sup_eq, ← Inf_eq_infi], apply le_refl },
+    { simp only [bot_sup_eq, ← Inf_eq_infi], exact le_rfl },
     { simp only [top_sup_eq, le_top] }, },
   inf_Sup_le_supr_inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { simp only [bot_inf_eq, bot_le] },
-    { simp only [top_inf_eq, ← Sup_eq_supr], apply le_refl } },
+    { simp only [top_inf_eq, ← Sup_eq_supr], exact le_rfl } },
   .. is_simple_order.complete_lattice,
   .. is_simple_order.boolean_algebra }
 

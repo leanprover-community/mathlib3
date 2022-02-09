@@ -177,7 +177,7 @@ by { rw ← h, exact not_prime_mul h₁ h₂ }
 
 section min_fac
 
-private lemma min_fac_lemma (n k : ℕ) (h : ¬ n < k * k) :
+lemma min_fac_lemma (n k : ℕ) (h : ¬ n < k * k) :
   sqrt n - k < sqrt n + 2 - k :=
 (tsub_lt_tsub_iff_right $ le_sqrt.2 $ le_of_not_gt h).2 $
 nat.lt_add_of_pos_right dec_trivial
@@ -187,10 +187,10 @@ nat.lt_add_of_pos_right dec_trivial
   If `n` is odd and `1 < n`, then then `min_fac_aux n 3` is the smallest prime factor of `n`. -/
 def min_fac_aux (n : ℕ) : ℕ → ℕ
 | k :=
-if h : n < k * k then n else
-if k ∣ n then k else
-have _, from min_fac_lemma n k h,
-min_fac_aux (k + 2)
+  if h : n < k * k then n else
+  if k ∣ n then k else
+  have _, from min_fac_lemma n k h,
+  min_fac_aux (k + 2)
 using_well_founded {rel_tac :=
   λ _ _, `[exact ⟨_, measure_wf (λ k, sqrt n + 2 - k)⟩]}
 
@@ -214,7 +214,7 @@ theorem min_fac_eq : ∀ n, min_fac n = if 2 ∣ n then 2 else min_fac_aux n 3
 private def min_fac_prop (n k : ℕ) :=
   2 ≤ k ∧ k ∣ n ∧ ∀ m, 2 ≤ m → m ∣ n → k ≤ m
 
-theorem min_fac_aux_has_prop {n : ℕ} (n2 : 2 ≤ n) (nd2 : ¬ 2 ∣ n) :
+theorem min_fac_aux_has_prop {n : ℕ} (n2 : 2 ≤ n) :
   ∀ k i, k = 2*i+3 → (∀ m, 2 ≤ m → m ∣ n → k ≤ m) → min_fac_prop n (min_fac_aux n k)
 | k := λ i e a, begin
   rw min_fac_aux,
@@ -234,7 +234,8 @@ theorem min_fac_aux_has_prop {n : ℕ} (n2 : 2 ≤ n) (nd2 : ¬ 2 ∣ n) :
     { subst me, contradiction },
     apply (nat.eq_or_lt_of_le ml).resolve_left, intro me,
     rw [← me, e] at d, change 2 * (i + 2) ∣ n at d,
-    have := dvd_of_mul_right_dvd d, contradiction }
+    have := a _ le_rfl (dvd_of_mul_right_dvd d),
+    rw e at this, exact absurd this dec_trivial }
 end
 using_well_founded {rel_tac :=
   λ _ _, `[exact ⟨_, measure_wf (λ k, sqrt n + 2 - k)⟩]}
@@ -246,8 +247,8 @@ begin
   have n2 : 2 ≤ n, { revert n0 n1, rcases n with _|_|_; exact dec_trivial },
   simp [min_fac_eq],
   by_cases d2 : 2 ∣ n; simp [d2],
-  { exact ⟨le_refl _, d2, λ k k2 d, k2⟩ },
-  { refine min_fac_aux_has_prop n2 d2 3 0 rfl
+  { exact ⟨le_rfl, d2, λ k k2 d, k2⟩ },
+  { refine min_fac_aux_has_prop n2 3 0 rfl
       (λ m m2 d, (nat.eq_or_lt_of_le m2).resolve_left (mt _ d2)),
     exact λ e, e.symm ▸ d }
 end
@@ -978,7 +979,7 @@ factors_helper_cons _ _ _ _ _ (mul_one _) h₁ h₂ (factors_helper_nil _)
 
 lemma factors_helper_same (n m a : ℕ) (l : list ℕ) (h : a * m = n)
   (H : factors_helper m a l) : factors_helper n a (a :: l) :=
-λ pa, factors_helper_cons' _ _ _ _ _ h (le_refl _) (nat.prime_def_min_fac.1 pa).2 H pa
+λ pa, factors_helper_cons' _ _ _ _ _ h le_rfl (nat.prime_def_min_fac.1 pa).2 H pa
 
 lemma factors_helper_same_sn (a : ℕ) : factors_helper a a [a] :=
 factors_helper_same _ _ _ _ (mul_one _) (factors_helper_nil _)
@@ -1053,11 +1054,9 @@ namespace nat
 
 theorem prime_three : prime 3 := by norm_num
 
-/-- See note [fact non-instances].-/
-lemma fact_prime_two : fact (prime 2) := ⟨prime_two⟩
+instance fact_prime_two : fact (prime 2) := ⟨prime_two⟩
 
-/-- See note [fact non-instances].-/
-lemma fact_prime_three : fact (prime 3) := ⟨prime_three⟩
+instance fact_prime_three : fact (prime 3) := ⟨prime_three⟩
 
 end nat
 

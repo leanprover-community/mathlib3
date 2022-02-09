@@ -88,7 +88,7 @@ variables [is_alg_closed 𝕜] [linear 𝕜 C]
 -- To get around this, we use `convert I`,
 -- then check the various instances agree field-by-field,
 -- using `ext` equipped with the following extra lemmas:
-local attribute [ext] module distrib_mul_action mul_action has_scalar
+local attribute [ext] module distrib_mul_action mul_action has_scalar.ext
 
 /--
 An auxiliary lemma for Schur's lemma.
@@ -108,9 +108,15 @@ begin
   apply finrank_eq_one (𝟙 X),
   { exact id_nonzero, },
   { intro f,
+    -- hack: create a right-module structure so that an `algebra 𝕜 (End X)` instance appears
+    letI : linear 𝕜ᵐᵒᵖ C :=
+    { hom_module := λ X Y, module.comp_hom (X ⟶ Y) $ (ring_hom.id 𝕜).from_opposite commute.all,
+      smul_comp' := λ X Y Z k f, linear.smul_comp X Y Z k.unop f,
+      comp_smul' := λ X Y Z f k, linear.comp_smul X Y Z f k.unop, },
+    haveI : is_central_scalar 𝕜 (X ⟶ X) := ⟨λ k x, rfl⟩,
     haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
     obtain ⟨c, nu⟩ := @spectrum.nonempty_of_is_alg_closed_of_finite_dimensional 𝕜 (End X) _ _ _ _ _
-      (by { convert I, ext, refl, ext, refl, }) (End.of f),
+      (by { convert I, { ext, refl }, { ext, refl }, }) (End.of f),
     use c,
     rw [spectrum.mem_iff, is_unit.sub_iff, is_unit_iff_is_iso, is_iso_iff_nonzero, ne.def,
       not_not, sub_eq_zero, algebra.algebra_map_eq_smul_one] at nu,

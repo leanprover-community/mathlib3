@@ -819,7 +819,8 @@ instance : topological_group αˣ :=
 def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
 { continuous_to_fun  :=
   begin
-    apply continuous.prod_mk,
+    show continuous (λ i : (α × β)ˣ, (map (monoid_hom.fst α β) i, map (monoid_hom.snd α β) i)),
+    refine continuous.prod_mk _ _,
     { refine continuous_induced_rng ((continuous_fst.comp units.continuous_coe).prod_mk _),
       refine continuous_op.comp (continuous_fst.comp _),
       simp_rw units.inv_eq_coe_inv,

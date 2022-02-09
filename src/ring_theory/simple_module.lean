@@ -6,6 +6,8 @@ Authors: Aaron Anderson
 
 import linear_algebra.basic
 import order.atoms
+import category_theory.simple
+import algebra.category.Module.abelian
 
 /-!
 # Simple Modules
@@ -90,6 +92,38 @@ end is_semisimple_module
 theorem is_semisimple_iff_top_eq_Sup_simples :
   Sup {m : submodule R M | is_simple_module R m} = ⊤ ↔ is_semisimple_module R M :=
 ⟨is_semisimple_of_Sup_simples_eq_top, by { introI, exact is_semisimple_module.Sup_simples_eq_top }⟩
+
+section category
+open category_theory
+open Module
+
+lemma subsingleton_of_epi_zero (N : Module R) [epi (0 : N ⟶ of R M)] : subsingleton M :=
+begin
+  apply subsingleton_of_forall_eq (0 : M),
+  have : function.surjective (0 : N ⟶ of R M) := (Module.epi_iff_surjective _).mp ‹_›,
+  exact this.forall.mpr (λ _, rfl),
+end
+
+instance is_simple_module_of [_inst : is_simple_module R M] : is_simple_module R (of R M) :=
+_inst
+
+/-- A simple module is a simple object in the category of modules. -/
+instance simple_of_is_simple_module [is_simple_module R M] : simple (of R M) :=
+{ mono_is_iso_iff_nonzero := λ N f inj, begin
+    split,
+    { unfreezingI { rintro h rfl },
+      haveI : subsingleton M := subsingleton_of_epi_zero N,
+      haveI : nontrivial M := is_simple_module.nontrivial R M,
+      exact false_of_nontrivial_of_subsingleton M },
+    { intro h,
+      haveI : epi f,
+      { rw epi_iff_range_eq_top,
+        refine (eq_bot_or_eq_top f.range).resolve_left _,
+        exact (mt linear_map.range_eq_bot.mp h)},
+      exact is_iso_of_mono_of_epi _ }
+  end }
+
+end category
 
 namespace linear_map
 

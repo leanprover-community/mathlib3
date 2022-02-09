@@ -67,7 +67,7 @@ namespace continuous_map
 /-- `continuous_map.homotopy f₀ f₁` is the type of homotopies from `f₀` to `f₁`.
 
 When possible, instead of parametrizing results over `(f : homotopy f₀ f₁)`,
-you should parametrize over `(F : Type*) [homotopy_class F f₀ f₁] (f : F)`.
+you should parametrize over `{F : Type*} [homotopy_class F f₀ f₁] (f : F)`.
 
 When you extend this structure, make sure to extend `continuous_map.homotopy_class`. -/
 structure homotopy (f₀ f₁ : C(X, Y)) extends C(I × X, Y) :=

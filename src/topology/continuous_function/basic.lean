@@ -21,7 +21,7 @@ open function
 /-- The type of continuous maps from `α` to `β`.
 
 When possible, instead of parametrizing results over `(f : C(α, β))`,
-you should parametrize over `(F : Type*) [continuous_map_class F α β] (f : F)`.
+you should parametrize over `{F : Type*} [continuous_map_class F α β] (f : F)`.
 
 When you extend this structure, make sure to extend `continuous_map_class`. -/
 @[protect_proj]
@@ -121,6 +121,7 @@ end
 variables (α)
 
 /-- The identity as a continuous map. -/
+@[simps coe {fully_applied := ff}]
 protected def id : C(α, α) := ⟨id⟩
 
 @[simp] lemma coe_id : ⇑(continuous_map.id α) = id := rfl

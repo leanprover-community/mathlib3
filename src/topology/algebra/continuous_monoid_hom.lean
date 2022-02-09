@@ -27,7 +27,7 @@ variables {F α β : Type*} (A B C D E : Type*)
 /-- The type of continuous additive monoid homomorphisms from `α` to `β`.
 
 When possible, instead of parametrizing results over `(f : continuous_add_monoid_hom α β)`,
-you should parametrize over `(F : Type*) [continuous_add_monoid_hom_class F α β] (f : F)`.
+you should parametrize over `{F : Type*} [continuous_add_monoid_hom_class F α β] (f : F)`.
 
 When you extend this structure, make sure to extend `continuous_add_monoid_hom_class`. -/
 structure continuous_add_monoid_hom (A B : Type*) [add_monoid A] [add_monoid B]

@@ -412,7 +412,8 @@ def take_until : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.
   then by subst u
   else cons r (take_until p _ $ h.cases_on (λ h', (hx h'.symm).elim) id)
 
-/-- Given a vertex in the support of a path, give the path from that vertex to the end. -/
+/-- Given a vertex in the support of a path, give the path from (and including) that vertex to the end.
+In other words, drop vertices from the front of a path until (and not including) that vertex. -/
 def drop_until : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.walk u w
 | v w nil u h := by rw mem_support_nil_iff.mp h
 | v w (cons r p) u h :=
@@ -488,18 +489,38 @@ lemma edges_drop_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support)
   (p.drop_until u h).edges ⊆ p.edges :=
 λ x hx, by { rw [← take_spec p h, edges_append, list.mem_append], exact or.inr hx }
 
+lemma length_take_until_le {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
+  (p.take_until u h).length ≤ p.length :=
+begin
+  have := congr_arg walk.length (p.take_spec h),
+  rw [length_append] at this,
+  exact nat.le.intro this,
+end
+
+lemma length_drop_until_le {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
+  (p.drop_until u h).length ≤ p.length :=
+begin
+  have := congr_arg walk.length (p.take_spec h),
+  rw [length_append, add_comm] at this,
+  exact nat.le.intro this,
+end
+
+protected
 lemma is_trail.take_until {u v w : V} {p : G.walk v w} (hc : p.is_trail) (h : u ∈ p.support) :
   (p.take_until u h).is_trail :=
 is_trail.of_append_left (by rwa ← take_spec _ h at hc)
 
+protected
 lemma is_trail.drop_until {u v w : V} {p : G.walk v w} (hc : p.is_trail) (h : u ∈ p.support) :
   (p.drop_until u h).is_trail :=
 is_trail.of_append_right (by rwa ← take_spec _ h at hc)
 
+protected
 lemma is_path.take_until {u v w : V} {p : G.walk v w} (hc : p.is_path) (h : u ∈ p.support) :
   (p.take_until u h).is_path :=
 is_path.of_append_left (by rwa ← take_spec _ h at hc)
 
+protected
 lemma is_path.drop_until {u v w : V} (p : G.walk v w) (hc : p.is_path) (h : u ∈ p.support) :
   (p.drop_until u h).is_path :=
 is_path.of_append_right (by rwa ← take_spec _ h at hc)
@@ -509,7 +530,7 @@ def rotate {u v : V} (c : G.walk v v) (h : u ∈ c.support) : G.walk u u :=
 (c.drop_until u h).append (c.take_until u h)
 
 @[simp]
-lemma rotate_support {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
+lemma support_rotate {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
   (c.rotate h).support.tail ~r c.support.tail :=
 begin
   simp only [rotate, tail_support_append],
@@ -525,6 +546,7 @@ begin
   rw [←edges_append, take_spec],
 end
 
+protected
 lemma is_trail.rotate {u v : V} {c : G.walk v v} (hc : c.is_trail) (h : u ∈ c.support) :
   (c.rotate h).is_trail :=
 begin
@@ -532,6 +554,7 @@ begin
   exact hc.edges_nodup,
 end
 
+protected
 lemma is_circuit.rotate {u v : V} {c : G.walk v v} (hc : c.is_circuit) (h : u ∈ c.support) :
   (c.rotate h).is_circuit :=
 begin
@@ -544,11 +567,12 @@ begin
     simpa using hn', },
 end
 
+protected
 lemma is_cycle.rotate {u v : V} {c : G.walk v v} (hc : c.is_cycle) (h : u ∈ c.support) :
   (c.rotate h).is_cycle :=
 begin
   refine ⟨hc.to_circuit.rotate _, _⟩,
-  rw list.is_rotated.nodup_iff (rotate_support _ _),
+  rw list.is_rotated.nodup_iff (support_rotate _ _),
   exact hc.support_nodup,
 end
 
@@ -564,30 +588,46 @@ abbreviation path (u v : V) := {p : G.walk u v // p.is_path}
 namespace walk
 variables {G} [decidable_eq V]
 
-/-- Given a walk, produces a walk with the same endpoints and no repeated vertices. -/
-def to_path_aux : Π {u v : V}, G.walk u v → G.walk u v
+/-- Given a walk, produces a walk from it by bypassing subwalks between repeated vertices.
+The result is a path, as shown in `simple_graph.walk.bypass_is_path`.
+This is packaged up in `simple_graph.walk.to_path`. -/
+def bypass : Π {u v : V}, G.walk u v → G.walk u v
 | u v nil := nil
 | u v (cons ha p) :=
-  let p' := p.to_path_aux
+  let p' := p.bypass
   in if hs : u ∈ p'.support
      then p'.drop_until u hs
      else cons ha p'
 
-lemma to_path_aux_is_path {u v : V} (p : G.walk u v) : p.to_path_aux.is_path :=
+lemma bypass_is_path {u v : V} (p : G.walk u v) : p.bypass.is_path :=
 begin
   induction p,
   { simp!, },
-  { simp only [to_path_aux],
+  { simp only [bypass],
     split_ifs,
     { apply is_path.drop_until,
       assumption, },
     { simp [*, cons_is_path_iff], } },
 end
 
-/-- Given a walk, produces a path with the same endpoints using `simple_graph.walk.to_path_aux`. -/
-def to_path {u v : V} (p : G.walk u v) : G.path u v := ⟨p.to_path_aux, p.to_path_aux_is_path⟩
+lemma length_bypass_le {u v : V} (p : G.walk u v) : p.bypass.length ≤ p.length :=
+begin
+  induction p,
+  { refl },
+  { simp only [bypass],
+    split_ifs,
+    { transitivity,
+      apply length_drop_until_le,
+      rw [length_cons],
+      exact le_add_right p_ih, },
+    { rw [length_cons, length_cons],
+      exact add_le_add_right p_ih 1, } },
+end
 
-lemma support_to_path_aux_subset {u v : V} (p : G.walk u v) : p.to_path_aux.support ⊆ p.support :=
+/-- Given a walk, produces a path with the same endpoints using `simple_graph.walk.bypass`. -/
+def to_path {u v : V} (p : G.walk u v) : G.path u v := ⟨p.bypass, p.bypass_is_path⟩
+
+lemma support_bypass_subset {u v : V} (p : G.walk u v) : p.bypass.support ⊆ p.support :=
 begin
   induction p,
   { simp!, },
@@ -603,9 +643,9 @@ end
 
 lemma support_to_path_subset {u v : V} (p : G.walk u v) :
   (p.to_path : G.walk u v).support ⊆ p.support :=
-by simp [to_path, support_to_path_aux_subset]
+support_bypass_subset _
 
-lemma edges_to_path_aux_subset {u v : V} (p : G.walk u v) : p.to_path_aux.edges ⊆ p.edges :=
+lemma edges_bypass_subset {u v : V} (p : G.walk u v) : p.bypass.edges ⊆ p.edges :=
 begin
   induction p,
   { simp!, },
@@ -619,7 +659,7 @@ end
 
 lemma edges_to_path_subset {u v : V} (p : G.walk u v) :
   (p.to_path : G.walk u v).edges ⊆ p.edges :=
-by simp [to_path, edges_to_path_aux_subset]
+edges_bypass_subset _
 
 end walk
 

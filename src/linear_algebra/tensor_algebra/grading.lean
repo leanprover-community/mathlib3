@@ -14,7 +14,8 @@ The main result is `tensor_algebra.graded_algebra`, which says that the tensor a
 -/
 
 namespace tensor_algebra
-variables {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
+variables {R M : Type*} [comm_semiring R] [add_comm_monoid M]
+variables [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
 
 open_locale direct_sum
 

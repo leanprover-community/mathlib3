@@ -187,11 +187,9 @@ theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
 begin
   refine ⟨λ ha, _, _⟩,
   { rcases eq_or_lt_of_le ha with rfl | ha,
-    { exact or.inr rfl },
-    { exact or.inl (lt_one_iff_zero.1 ha) } },
+    exacts [or.inr rfl, or.inl (lt_one_iff_zero.1 ha)], },
   { rintro (rfl | rfl),
-    { exact le_of_lt zero_lt_one },
-    { refl } }
+    exacts [le_of_lt zero_lt_one, le_refl _], }
 end
 
 /-! ### The predecessor of an ordinal -/

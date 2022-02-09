@@ -40,16 +40,19 @@ lemma prod_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
 @sum_Ico_add _ (additive β) _ _ _ _ f a b c
 
 lemma sum_neg_one_pow_eq_ite [ring β] {n : ℕ} :
-  ∑ i in range n, (-1 : β) ^ i = if even n then 0 else 1 :=
+  ∑ i in range n, (-1 : β) ^ i = (n % 2 : ℕ) :=
 begin
   induction n with n hn,
-  { simp only [range_zero, sum_empty, nat.even_zero, if_true] },
-  simp_rw [sum_range_succ, hn, nat.even_succ],
+  { simp only [range_zero, sum_empty, nat.zero_mod, nat.cast_zero]},
+  simp_rw [sum_range_succ, hn],
   by_cases even n,
-  all_goals { simp only [h, if_true, if_false, not_true, not_false_iff] },
-  { rw zero_add, exact nat.neg_one_pow_of_even h },
-  { rw [add_eq_zero_iff_neg_eq],
-    exact (nat.neg_one_pow_of_odd (nat.odd_iff_not_even.mpr h)).symm },
+  { have := (iff_not_comm.mpr nat.even_succ).mp h,
+    rw [nat.even_iff.mp h, nat.not_even_iff.mp this, nat.neg_one_pow_of_even h],
+    norm_num },
+  { have := nat.even_succ.mpr h,
+    rw [nat.even_iff.mp this, nat.not_even_iff.mp h,
+        nat.neg_one_pow_of_odd (nat.odd_iff_not_even.mpr h)],
+    norm_num }
 end
 
 variables [comm_monoid β]

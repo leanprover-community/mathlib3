@@ -218,13 +218,17 @@ end
 instance fixed_field.algebra : algebra K (fixed_field (fixing_subgroup K)) :=
 { smul := λ x y, ⟨x*y, λ ϕ, by rw [smul_mul', (show ϕ • ↑x = ↑x, by exact subtype.mem ϕ x),
     (show ϕ • ↑y = ↑y, by exact subtype.mem y ϕ)]⟩,
+  to_has_opposite_scalar := { smul := λ x y,
+    ⟨y*x.unop, λ ϕ, by rw [smul_mul', (show ϕ • ↑x.unop = ↑x.unop, by exact subtype.mem ϕ x.unop),
+    (show ϕ • ↑y = ↑y, by exact subtype.mem y ϕ)]⟩, },
   to_fun := λ x, ⟨x, λ ϕ, subtype.mem ϕ x⟩,
   map_zero' := rfl,
   map_add' := λ _ _, rfl,
   map_one' := rfl,
   map_mul' := λ _ _, rfl,
   commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ _ _, rfl }
+  smul_def' := λ _ _, rfl,
+  op_smul_def' := λ _ _, rfl }
 
 instance fixed_field.is_scalar_tower : is_scalar_tower K (fixed_field (fixing_subgroup K)) E :=
 ⟨λ _ _ _, mul_assoc _ _ _⟩

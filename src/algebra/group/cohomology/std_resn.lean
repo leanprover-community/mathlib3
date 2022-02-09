@@ -28,14 +28,16 @@ def d_aux {i j : ℕ} (hj : i = j + 1) (g : fin i → G) : ℤ →+ (group_ring 
   map_add' := λ v w, by simp only [mul_add, finsupp.single_add, finset.sum_add_distrib] }
 
 /-- Sends `g ∈ Gⁱ` to `∑ (-1)ᵏ • (g₁, ..., ĝₖ, ..., gⱼ)`. -/
-def d_add_hom {i j : ℕ} (hj : i = j + 1) : group_ring (fin i → G) →+ group_ring (fin j → G) :=
+def d_add_hom {i j : ℕ} (hj : i = j + 1) :
+  group_ring (fin i → G) →+ group_ring (fin j → G) :=
 finsupp.lift_add_hom (d_aux G hj)
 
 /-- Sends `g ∈ Gⁱ` to `∑ (-1)ᵏ • (g₁, ..., ĝₖ, ..., gⱼ)`. -/
-def d {i j : ℕ} (hj : i = j + 1) : group_ring (fin i → G) →ₗ[group_ring G] group_ring (fin j → G) :=
+def d {i j : ℕ} (hj : i = j + 1) :
+  group_ring (fin i → G) →ₗ[group_ring G] group_ring (fin j → G) :=
 { map_smul' := λ g x,
   begin
-    refine map_smul_of_map_of_smul_of (finsupp.lift_add_hom (d_aux G hj)) (λ g x, _) _ _,
+    refine map_smul_of_map_smul_of (finsupp.lift_add_hom (d_aux G hj)) (λ g x, _) _ _,
     dsimp,
     show finsupp.sum _ (λ _ _, _) = _ • finsupp.sum _ (λ _ _, _),
     erw of_smul_of,
@@ -43,7 +45,7 @@ def d {i j : ℕ} (hj : i = j + 1) : group_ring (fin i → G) →ₗ[group_ring 
       finset.sum_const_zero, of_apply, pi.smul_apply, mul_zero, finsupp.sum_single_index],
     congr,
     ext1 p,
-    simpa only [zsmul_single_one, smul_algebra_smul_comm, one_smul, of_smul_of],
+    simpa only [←zsmul_single_one, smul_algebra_smul_comm, one_smul, of_smul_of],
   end,
   ..finsupp.lift_add_hom (d_aux G hj) }
 
@@ -69,7 +71,7 @@ theorem d_squared_of {i j k : ℕ} (hj : i = j + 1) (hk : j = k + 1) (c : fin i 
   (d G hk (d G hj $ of _ c)) = 0 :=
 begin
   ext g,
-  simp only [d_of, linear_map.map_sum, zsmul_single_one, linear_map.map_smul_of_tower,
+  simp only [d_of, linear_map.map_sum, ←zsmul_single_one, linear_map.map_smul_of_tower,
     finset.smul_sum, ←finset.sum_product'],
   congr,
   refine finset.sum_involution (λ pq h, invo pq) _ _ _ _,
@@ -123,10 +125,13 @@ by refine { smul := λ g n, n, .. }; {intros, refl}
 
 /-- Don't want a `ℤ[G]`-module instance on `(ulift) ℤ` I don't think, so here's `ulift ℤ`
   with the trivial action as a `Module`. -/
+
+
 def trivial : Module (group_ring G) :=
 { carrier := (ulift ℤ : Type u),
   is_add_comm_group := ulift.add_comm_group,
-  is_module := @ulift.module' _ _ _ _ $ @group_ring.to_module _ _ _ _ (trivial_action G) }
+  is_module := @ulift.module' _ _ _ _ $
+    @group_ring.to_module _ _ _ _ (trivial_action G) }
 
 open category_theory
 
@@ -138,7 +143,7 @@ chain_complex.of (λ n, Module.of (group_ring G) (group_ring (fin (n + 1) → G)
 /-- The hom `ℤ[G] → ℤ` sending `∑ nᵢgᵢ ↦ ∑ nᵢ`. -/
 def coeff_sum : group_ring G →ₗ[group_ring G] trivial G :=
 { map_smul' := λ g x, by
-  { refine map_smul_of_map_of_smul_of (finsupp.total G (trivial G) ℤ
+  { refine map_smul_of_map_smul_of (finsupp.total G (trivial G) ℤ
       (λ g, ulift.up 1)).to_add_monoid_hom (λ g x, _) _ _,
     dsimp,
     erw monoid_algebra.single_mul_single,
@@ -446,11 +451,10 @@ begin
   rw [C.d_to_eq rfl, C.d_from_eq rfl, exact_iso_comp, exact_comp_iso],
 end
 
--- idk how to do this stupid obvious thing (update: I still can't do this, christ)
--- there's no major issue I just get a bit lost in the category theory library
 instance exact_of_AddCommGroup_exact {R : Type*} [ring R]
   {A B C : Module R} (f : A ⟶ B) (g : B ⟶ C)
-  [h : exact ((forget₂ (Module R) AddCommGroup).map f) ((forget₂ (Module R) AddCommGroup).map g)] :
+  [h : exact ((forget₂ (Module R) AddCommGroup).map f)
+    ((forget₂ (Module R) AddCommGroup).map g)] :
   exact f g :=
 sorry
 

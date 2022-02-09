@@ -39,7 +39,7 @@ local attribute [instance] group_ring.to_module
 `ℤ[G]`-linear homs `ℤ[Gⁿ] → M`. -/
 def cochain_succ_add_equiv : cochain_succ G M n ≃+ (group_ring (fin n → G) →ₗ[group_ring G] M) :=
 { to_fun := λ f,
-  { map_smul' := λ g x, by { refine group_ring.map_smul_of_map_of_smul_of
+  { map_smul' := λ g x, by { refine group_ring.map_smul_of_map_smul_of
         (finsupp.lift_add_hom (λ v, zmultiples_hom M (f v))) _ _ _,
       intros g x,
       simp only [finsupp.lift_add_hom_apply_single, finsupp.lift_add_hom_apply, one_zsmul,
@@ -218,22 +218,47 @@ def homotopy_equiv_cochain_succ :
 def cochain_succ_homology_iso :
   (cochain_succ.complex G M).homology n ≅ (map_std_resn G M).unop_obj.homology n :=
 homology_obj_iso_of_homotopy_equiv (homotopy_equiv_cochain_succ G M) n
-
+#check chain_complex.homology_unop (map_std_resn G M) n
 /-- This has type
   `opposite.op ((map_std_resn G M).unop_obj.homology n) ≅ (map_std_resn G M).homology n`,
   saying homology 'commutes' with viewing `Hom(P., M)` as a cochain complex (instead of a chain
   complex of AddCommGroupᵒᵖs). But Lean times out when I give a type ascription :) -/
+
 def map_std_resn_homology_iso := chain_complex.homology_unop (map_std_resn G M) n
-#exit
+
+noncomputable def force_noncomputable {α : Sort*} (a : α) : α :=
+  function.const _ a (classical.choice ⟨a⟩)
+
+def tautological (R : Type*) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
+  [enough_projectives C] (n : ℕ) (X Y : C) :
+  (((linear_yoneda R C).obj Y).right_op.left_derived n).left_op.obj (opposite.op X)
+    ≅ ((Ext R C n).obj (opposite.op X)).obj Y := force_noncomputable sorry
+
 instance gg : @has_projective_resolutions (Module.{u} (group_ring G)) _ abelian.has_zero_object _ _ _ :=
 @ProjectiveResolution.category_theory.has_projective_resolutions (Module.{u} (group_ring G)) _ _
 Module.Module_enough_projectives.{u}
 #check Ext
+instance dsfdsf : @enough_projectives (Module.{u} (group_ring G)) _ :=
+Module.Module_enough_projectives.{u}
+
+
 
 def huhh (R : Type*) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
   [enough_projectives C] (n : ℕ) (X Y : C) :
   (((linear_yoneda R C).obj Y).right_op.left_derived n).left_op.obj (opposite.op X)
-    ≅ ((Ext R C n).obj (opposite.op X)).obj Y := _
+    ≅ ((Ext R C n).obj (opposite.op X)).obj Y := force_noncomputable sorry
+
+
+
+#check functor.left_derived_obj_iso (((linear_yoneda ℤ (Module.{u} (group_ring G))).obj
+  (group_ring.Module_of.{u} G M)).right_op) n (group_ring.std_resn.{u} G)
+--  (group_ring.Module_of G M)).right_op n (group_ring.std_resn G)
+lemma Extish_obj_iso : ((Ext ℤ (Module.{u} (group_ring G)) n).obj (opposite.op $ group_ring.trivial G)).obj (group_ring.Module_of G M)
+   ≅ (map_std_resn G M).unop_obj.homology n :=
+sorry --functor.left_derived_obj_iso ((linear_yoneda ℤ (Module.{u} (group_ring G))).obj
+--  (group_ring.Module_of G M)).right_op n (group_ring.std_resn G)
+
+#check ((Ext ℤ (Module.{u} (group_ring G)) n).obj (opposite.op $ group_ring.trivial G)).obj (group_ring.Module_of G M)
 #check functor.flip
 #check (@functor.left_derived (Module.{u} (group_ring G)) _ (Module.{u} ℤ)ᵒᵖ _ _
   abelian.has_zero_object _ _ _ _ _ _ _ _ _ ((linear_yoneda ℤ (Module (group_ring G))).obj

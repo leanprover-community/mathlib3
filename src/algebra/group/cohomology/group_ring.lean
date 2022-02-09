@@ -33,7 +33,8 @@ group ring, group cohomology, monoid algebra
 
 noncomputable theory
 
-/-- The group ring `ℤ[G]` of a group `G` (although this is defined for any type `G`). -/
+/-- The group ring `ℤ[G]` of a group `G` (although this is defined
+  for any type `G`). -/
 def group_ring (G : Type*) := monoid_algebra ℤ G
 
 namespace group_ring
@@ -170,7 +171,8 @@ begin
 end
 
 /-- The hom sending `ℤ[Gⁿ] → ℤ[Gⁿ⁺¹]` sending `(g₁, ..., gₙ) ↦ (r, g₁, ..., gₙ)` -/
-def cons {G : Type*} (n : ℕ) (r : G) : group_ring (fin n → G) →+ group_ring (fin (n + 1) → G) :=
+def cons {G : Type*} (n : ℕ) (r : G) :
+  group_ring (fin n → G) →+ group_ring (fin (n + 1) → G) :=
 finsupp.map_domain.add_monoid_hom (@fin.cons n (λ i, G) r)
 
 lemma cons_of {n : ℕ} {r : G} (g : fin n → G) :
@@ -188,10 +190,12 @@ def to_basis_add_hom_aux (g : fin (n + 1) → G) : ℤ →+ ((fin (n + 1) → G)
     map_zero' := by simp only [finsupp.single_zero],
     map_add' := λ x y, by simp only [finsupp.single_add]}
 
-/-- Extends the map sending `g : Gⁿ⁺¹` to `g₀ • ⟦g⟧` -/
+/-- The map sending `g = (g₀, ..., gₙ) ∈ ℤ[Gⁿ⁺¹]` to `g₀ • ⟦g⟧`, as an element of the free
+  `ℤ[G]`-module on the set `Gⁿ⁺¹` modulo the left action of `G`. -/
 def to_basis_add_hom :
   group_ring (fin (n + 1) → G) →+ (orbit_quot G n →₀ group_ring G) :=
-(@finsupp.map_domain.add_monoid_hom (fin (n + 1) → G) (orbit_quot G n) (group_ring G) _ quotient.mk').comp
+(@finsupp.map_domain.add_monoid_hom (fin (n + 1) → G) (orbit_quot G n)
+  (group_ring G) _ quotient.mk').comp
 (finsupp.lift_add_hom $ to_basis_add_hom_aux G n)
 
 variables {G n}
@@ -207,8 +211,8 @@ end
 
 variables (G n)
 
-/-- The `ℤ[G]`-linear map on `ℤ[Gⁿ⁺¹]` sending `g` to `g₀ • ⟦g⟧`; image is a basis
-  of the free `ℤ[G]`-module on `Gⁿ⁺¹/G`. -/
+/-- The `ℤ[G]`-linear map on `ℤ[Gⁿ⁺¹]` sending `g` to `g₀ • ⟦g⟧` as an element of the free
+  `ℤ[G]`-module on the set `Gⁿ⁺¹` modulo the left action of `G`. -/
 noncomputable def to_basis :
   group_ring (fin (n + 1) → G) →ₗ[group_ring G] (orbit_quot G n →₀ group_ring G) :=
 mk_linear (to_basis_add_hom G n) $ λ x g,
@@ -231,7 +235,8 @@ variables (G n)
 
 /-- Inverse of `to_basis` from the free `ℤ[G]`-module on `Gⁿ⁺¹/G` to `ℤ[Gⁿ⁺¹]`,
   sending `⟦g⟧ ∈ Gⁿ⁺¹/G` to `g₀⁻¹ • g ∈ ℤ[Gⁿ⁺¹]` -/
-def of_basis : (orbit_quot G n →₀ (group_ring G)) →ₗ[group_ring G] group_ring (fin (n + 1) → G) :=
+def of_basis : (orbit_quot G n →₀ (group_ring G))
+  →ₗ[group_ring G] group_ring (fin (n + 1) → G) :=
 finsupp.lift (group_ring (fin (n + 1) → G)) (group_ring G) (orbit_quot G n)
   (λ y, quotient.lift_on' y (λ x, of _ ((x 0)⁻¹ • x)) $
   begin
@@ -245,7 +250,8 @@ finsupp.lift (group_ring (fin (n + 1) → G)) (group_ring G) (orbit_quot G n)
 lemma left_inverse (x : group_ring (fin (n + 1) → G)) :
   of_basis G n (to_basis G n x) = x :=
 begin
-  refine ext ((of_basis G n).comp (to_basis G n)).to_add_monoid_hom (add_monoid_hom.id _) _,
+  refine ext ((of_basis G n).comp (to_basis G n)).to_add_monoid_hom
+    (add_monoid_hom.id _) _,
   { intro g,
     dsimp,
     erw to_basis_add_hom_of,
@@ -264,16 +270,18 @@ begin
   { intros a b,
     refine quotient.induction_on' a (λ c, _),
     unfold of_basis,
-    simp only [quotient.lift_on'_mk', zero_smul, of_apply, finsupp.sum_single_index,
-      linear_map.map_smul, finsupp.lift_apply],
+    simp only [quotient.lift_on'_mk', zero_smul, of_apply,
+      finsupp.sum_single_index, linear_map.map_smul, finsupp.lift_apply],
     erw to_basis_add_hom_of,
-    simp only [finsupp.smul_single', smul_eq_mul, of_apply, pi.smul_apply, mul_left_inv],
+    simp only [finsupp.smul_single', smul_eq_mul, of_apply,
+      pi.smul_apply, mul_left_inv],
     erw mul_one,
     congr' 1,
     exact quotient.sound' (mul_action.mem_orbit _ _) }
 end
 
-/-- An isomorphism of `ℤ[Gⁿ⁺¹]` with the free `ℤ[G]`-module on `Gⁿ⁺¹/G`, given by `to_basis`. -/
+/-- An isomorphism of `ℤ[Gⁿ⁺¹]` with the free `ℤ[G]`-module on the set `Gⁿ⁺¹`
+  modulo the left action of `G`, given by `to_basis`. -/
 def basis : basis (orbit_quot G n) (group_ring G) (group_ring (fin (n + 1) → G)) :=
 { repr :=
   { inv_fun := of_basis G n,

@@ -764,24 +764,35 @@ lemma trivialization_at_fst {e : trivialization F (proj E)} (f : right_inv (proj
   (x : B) (h : x ∈ e.base_set) : (e (f x)).fst = x :=
 by {rw [e.coe_fst (f.mem_base_set_image_mem_source h)], exact congr_fun f.right_inv_def x }
 
-/-- Continuity of sections can be checked locally through trivialization. This lemma is the main
-tool to prove continuity of sections when it is not straightforward. -/
+/-- Continuity of sections within a set at a point can be checked locally through trivialization.
+  This lemma is the main tool to prove continuity of sections when it is not straightforward. -/
+lemma continuous_within_at_iff_continuous_within_at (f : right_inv (proj E)) {b : B} {U : set B}
+  (e : trivialization F (proj E)) (hb : b ∈ e.base_set) :
+  continuous_within_at f U b ↔ continuous_within_at (λ x, (e (f x)).snd) (U ∩ e.base_set) b :=
+⟨λ h, begin
+  have h2 : continuous_within_at _ e.source _ :=
+    (e.to_local_homeomorph.continuous_at (f.mem_base_set_image_mem_source hb)).continuous_within_at,
+  convert (h2.comp' h).snd,
+  rw preimage_source_eq_base_set,
+end,
+λ h, begin
+  rw e.to_local_homeomorph.continuous_within_at_iff_continuous_within_at_comp_left
+    (f.mem_base_set_image_mem_source hb) _,
+  { rw ←continuous_within_at_inter (e.open_base_set.mem_nhds hb),
+    exact continuous_within_at_prod_iff.mpr ⟨continuous_within_at_id.congr
+      (λ y hy, f.trivialization_at_fst y hy.2) (f.trivialization_at_fst b hb), h⟩, },
+  { rw right_inv.preimage_source_eq_base_set,
+    exact mem_nhds_within_of_mem_nhds (e.open_base_set.mem_nhds hb), }
+end ⟩
+
 lemma continuous_at_iff_continuous_within_at (f : right_inv (proj E)) {b : B}
   (e : trivialization F (proj E)) (hb : b ∈ e.base_set) :
   continuous_at f b ↔ continuous_within_at (λ x, (e (f x)).snd) e.base_set b :=
-⟨λ h, begin
-  have h2 := e.to_local_homeomorph.continuous_at (f.mem_base_set_image_mem_source hb),
-  exact (h2.comp h).continuous_within_at.snd,
-end,
-λ h, begin
-  refine continuous_within_at.continuous_at _ (is_open.mem_nhds e.open_base_set hb),
-  rw e.to_local_homeomorph.continuous_within_at_iff_continuous_within_at_comp_left,
-  { rw continuous_within_at_prod_iff,
-    exact ⟨continuous_within_at.congr continuous_within_at_id (f.trivialization_at_fst)
-      (f.trivialization_at_fst b hb), h⟩ },
-  { exact f.mem_base_set_image_mem_source hb },
-  { rw right_inv.preimage_source_eq_base_set, exact self_mem_nhds_within }
-end ⟩
+begin
+  rw ←continuous_within_at_univ,
+  convert continuous_within_at_iff_continuous_within_at f e hb,
+  rw univ_inter,
+end
 
 end right_inv
 

@@ -652,6 +652,7 @@ section fintype
 
 open finset
 
+@[priority 100]  -- see Note [lower instance priority]
 instance fintype.to_is_coatomic [partial_order α] [order_top α] [fintype α] : is_coatomic α :=
 begin
   refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
@@ -663,6 +664,7 @@ begin
   exact (lt_self_iff_false _).mp hcy
 end
 
+@[priority 100]  -- see Note [lower instance priority]
 instance fintype.to_is_atomic [partial_order α] [order_bot α] [fintype α] : is_atomic α :=
 is_coatomic_dual_iff_is_atomic.mp fintype.to_is_coatomic
 

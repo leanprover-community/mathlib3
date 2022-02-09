@@ -9,6 +9,7 @@ import data.polynomial.basic
 import group_theory.group_action.prod
 import group_theory.group_action.units
 import data.complex.module
+import ring_theory.algebraic
 
 /-! # Tests that instances do not form diamonds -/
 
@@ -97,3 +98,37 @@ begin
 end
 
 end multiplicative
+
+/-! ## `polynomial` instances -/
+section polynomial
+
+variables (R A : Type*)
+open_locale polynomial
+open polynomial
+
+local attribute [ext] has_scalar
+
+/-- `polynomial.has_scalar_pi` forms a diamond with `pi.has_scalar`. -/
+example [semiring R] [nontrivial R] :
+  polynomial.has_scalar_pi _ _ ≠ (pi.has_scalar : has_scalar R[X] (R → R[X])) :=
+begin
+  intro h,
+  simp_rw [has_scalar.ext_iff, function.funext_iff, polynomial.ext_iff] at h,
+  simpa using h X 1 1 0,
+end
+
+/-- `polynomial.has_scalar_pi'` forms a diamond with `pi.has_scalar`. -/
+example [comm_semiring R] [nontrivial R] :
+  polynomial.has_scalar_pi' _ _ _ ≠ (pi.has_scalar : has_scalar R[X] (R → R[X])) :=
+begin
+  intro h,
+  simp_rw [has_scalar.ext_iff, function.funext_iff, polynomial.ext_iff] at h,
+  simpa using h X 1 1 0,
+end
+
+/-- `polynomial.has_scalar_pi'` is consistent with `polynomial.has_scalar_pi`. -/
+example [comm_semiring R] [nontrivial R] :
+  polynomial.has_scalar_pi' _ _ _ = (polynomial.has_scalar_pi _ _ : has_scalar R[X] (R → R[X])) :=
+rfl
+
+end polynomial

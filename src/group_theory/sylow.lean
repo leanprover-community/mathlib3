@@ -564,7 +564,6 @@ normalizer_eq_top.mp begin
     ... = ⊤ : normalizer_sup_eq_top P' },
 end
 
-
 lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
  {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
  (↑P : subgroup G).normal :=

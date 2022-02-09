@@ -1047,3 +1047,20 @@ noncomputable instance with_top.with_bot.complete_linear_order {α : Type*}
   .. with_top.linear_order }
 
 end with_top_bot
+
+
+section comm_group
+
+variables [conditionally_complete_lattice α] [comm_group α] [covariant_class α α (*) (≤)]
+          [nonempty ι]
+
+@[to_additive]
+lemma le_cinfi_mul_cinfi {a : α} {g h : ι → α} (H : ∀ i j, a ≤ g i * h j) : a ≤ infi g * infi h :=
+(mul_comm (infi h) (infi g)) ▸
+  div_le_iff_le_mul.mp (le_cinfi (λ u, div_le''.mp (le_cinfi (λ v, div_le_iff_le_mul.mpr (H v u)))))
+
+@[to_additive]
+lemma csupr_mul_csupr_le {a : α} {g h : ι → α} (H : ∀ i j, g i * h j ≤ a) : supr g * supr h ≤ a:=
+@le_cinfi_mul_cinfi (order_dual α) _ _ _ _ _ _ _ _ H
+
+end comm_group

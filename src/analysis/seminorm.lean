@@ -601,15 +601,11 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
 { inf := λ p q,
   { to_fun := λ x, ⨅ u : E, p u + q (x-u),
     triangle' := λ x y, begin
-      rw ← sub_le_iff_le_add,
-      refine le_cinfi (λ u, _),
-      rw sub_le,
-      refine le_cinfi (λ v, _),
-      rw sub_le_iff_le_add,
+      refine le_cinfi_add_cinfi (λ u v, _),
       apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v+u), dsimp only,
       convert add_le_add (p.triangle v u) (q.triangle (y-v) (x-u)) using 1,
-      { have h : x + y - (v + u) = y - v + (x - u), { abel }, { rw h } },
-      { exact add_add_add_comm _ _ _ _ },
+      { rw show x + y - (v + u) = y - v + (x - u), by abel },
+      { abel },
     end,
     smul' := λ a x, begin
       obtain ha | ha := (norm_nonneg a).eq_or_lt,

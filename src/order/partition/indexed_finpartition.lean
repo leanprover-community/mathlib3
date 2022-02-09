@@ -34,8 +34,6 @@ We provide many ways to build finpartitions:
 
 ## TODO
 
-`distrib_lattice_bot` should be replaced everywhere by `lattice_bot`, which we don't have.
-
 Link `finpartition` and `setoid.is_partition`.
 -/
 
@@ -44,85 +42,24 @@ open_locale big_operators
 
 variables (ι : Type*) {ι' α : Type*} [fintype ι] [fintype ι']
 
-lemma set.univ_unique [unique α] : @set.univ α = {default α} :=
-begin
-  ext,
-  exact iff_of_true trivial (subsingleton.elim x (default α)),
-end
-
-lemma univ_option (α : Type*) [fintype α] : (univ : finset (option α)) = insert_none univ := rfl
-
-lemma sup_sigma {ι α : Type*} {β : ι → Type*} [semilattice_sup_bot α] (s : finset ι)
-  (t : Π i, finset (β i)) (f : sigma β → α) :
-  (s.sigma t).sup f = s.sup (λ i, (t i).sup $ λ b, f ⟨i, b⟩) :=
-begin
-  refine le_antisymm _ (sup_le (λ i hi, sup_le $ λ b hb, le_sup $ mem_sigma.2 ⟨hi, hb⟩)),
-  refine sup_le _,
-  rintro ⟨i, b⟩ hb,
-  rw mem_sigma at hb,
-  refine le_trans _ (le_sup hb.1),
-  convert le_sup hb.2,
-end
-
-/-- Also see `finset.product_bUnion`. -/
-lemma sup_product_left {ι ι' α : Type*} [semilattice_sup_bot α] (s : finset ι) (t : finset ι')
-  (f : ι × ι' → α) :
-  (s.product t).sup f = s.sup (λ i, t.sup $ λ i', f ⟨i, i'⟩) :=
-begin
-  refine le_antisymm _ (sup_le (λ i hi, sup_le $ λ i' hi', le_sup $ mem_product.2 ⟨hi, hi'⟩)),
-  refine sup_le _,
-  rintro ⟨i, i'⟩ hi,
-  rw mem_product at hi,
-  refine le_trans _ (le_sup hi.1),
-  convert le_sup hi.2,
-end
-
-/-- Also see `finset.product_bUnion`. -/
-lemma sup_product_right {ι ι' α : Type*} [semilattice_sup_bot α] (s : finset ι) (t : finset ι')
-  (f : ι × ι' → α) :
-  (s.product t).sup f = t.sup (λ i', s.sup $ λ i, f ⟨i, i'⟩) :=
-begin
-  refine le_antisymm _ (sup_le (λ i' hi', sup_le $ λ i hi, le_sup $ mem_product.2 ⟨hi, hi'⟩)),
-  refine sup_le _,
-  rintro ⟨i, i'⟩ hi,
-  rw mem_product at hi,
-  refine le_trans _ (le_sup hi.2),
-  convert le_sup hi.1,
-end
-
-lemma inf_sigma {ι α : Type*} {β : ι → Type*} [semilattice_inf_top α] (s : finset ι)
-  (t : Π i, finset (β i)) (f : sigma β → α) :
-  (s.sigma t).inf f = s.inf (λ i, (t i).inf $ λ b, f ⟨i, b⟩) :=
-@sup_sigma _ (order_dual α) _ _ _ _ _
-
-lemma inf_product_left {ι ι' α : Type*} [semilattice_inf_top α] (s : finset ι) (t : finset ι')
-  (f : ι × ι' → α) :
-  (s.product t).inf f = s.inf (λ i, t.inf $ λ i', f ⟨i, i'⟩) :=
-@sup_product_left _ _ (order_dual α) _ _ _ _
-
-lemma inf_product_right {ι ι' α : Type*} [semilattice_inf_top α] (s : finset ι) (t : finset ι')
-  (f : ι × ι' → α) :
-  (s.product t).inf f = t.inf (λ i', s.inf $ λ i, f ⟨i, i'⟩) :=
-@sup_product_right _ _ (order_dual α) _ _ _ _
-
 /-- A finite partition of `a : α` is a sup-independent finite set of elements whose supremum is
 `a`. We forbid `⊥` as a part. -/
-@[ext] structure finpartition [distrib_lattice_bot α] (a : α) :=
+@[ext] structure finpartition [lattice α] [order_bot α] (a : α) :=
 (parts : ι → α)
 (sup_indep : univ.sup_indep parts)
 (sup_parts : univ.sup parts = a)
 (ne_bot : ∀ i, parts i ≠ ⊥)
 
 variables {ι}
--- instance {ι : Type*} [fintype ι] [distrib_lattice_bot α] {a : α} :
---   has_coe (finpartition ι a) (ι → α) :=
--- { coe := λ F, F.parts }
+
+-- instance [lattice α] [order_bot α] {a : α} : has_coe (finpartition ι a) (λ _, ι → α) :=
+-- ⟨finpartition.parts⟩
 
 attribute [protected] finpartition.sup_indep
 
 namespace finpartition
 section distrib_lattice_bot
-variables [distrib_lattice_bot α]
+variables [lattice α] [order_bot α]
 
 /-- A `finpartition` constructor which does not insist on `⊥` not being a part. -/
 @[simps] def of_erase [decidable_eq α] {a : α} (parts : ι → α) (disj : univ.sup_indep parts)
@@ -182,16 +119,10 @@ protected lemma bot_lt (P : finpartition ι a) [nonempty ι] : ⊥ < a :=
 (P.ne_bot $ classical.arbitrary ι).bot_lt.trans_le $ (le_sup $ mem_univ _).trans P.sup_parts.le
 
 protected lemma eq_bot (P : finpartition ι a) [is_empty ι] : a = ⊥ :=
-by rw [←P.sup_parts, univ_is_empty, sup_empty]
-
-lemma eq_empty [is_empty ι] (P : finpartition ι (⊥ : α)) : P = finpartition.empty ι α :=
-begin
-  ext i,
-  exact is_empty_elim i,
-end
+by rw [←P.sup_parts, univ_eq_empty, sup_empty]
 
 instance [is_empty ι] : unique (finpartition ι (⊥ : α)) :=
-{ uniq := eq_empty ..finpartition.inhabited }
+{ uniq := λ P, by { ext i, exact is_empty_elim i}, ..finpartition.inhabited }
 
 variables {P}
 

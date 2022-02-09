@@ -22,9 +22,6 @@ would require decidable equality on `ι`.
 ## TODO
 
 `complete_lattice.independent` and `complete_lattice.set_independent` should live in this file.
-
-There are ways to state `finset.sup_indep` without resorting to `decidable_eq ι`. Should we switch
-to such a definition?
 -/
 
 variables {α β ι ι' : Type*}

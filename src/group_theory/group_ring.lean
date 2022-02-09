@@ -61,7 +61,7 @@ instance {k : Type*} [semiring k] {G : Type*}
   {M : Type*} [add_comm_monoid M] [has_scalar G M] [module k M] :
   is_scalar_tower k (group_ring k G) M :=
 { smul_assoc := λ g x m, show finsupp.total _ _ _ _ _ = g • finsupp.total _ _ _ _ _,
-    by simp only [ring_hom.id_apply, linear_map.map_smulₛₗ] }
+    by simp only [ring_hom.id_apply, linear_map.map_smul] }
 
 /-- If `M` has compatible `G`-module and `k`-module structures for a semiring `k`,
 it is also a `k[G]`-module. -/
@@ -105,18 +105,6 @@ variables {k : Type*} [semiring k] {G : Type*} [monoid G]
 lemma smul_of_eq_single (g : G) (r : k) :
   r • (of k G g) = finsupp.single g r :=
 by simp only [mul_one, finsupp.smul_single', of_apply]
-
-lemma ext {P : Type*} [add_comm_monoid P] [module k P]
-  (f : group_ring k G →ₗ[k] P) (g : group_ring k G →ₗ[k] P)
-  (H : ∀ x, f (of k G x) = g (of k G x)) {x} :
-  f x = g x :=
-begin
-  refine x.induction_on H _ _,
-  { intros y z hy hz,
-    rw [f.map_add, g.map_add, hy, hz] },
-  { intros r y hy,
-    rw [f.map_smul, g.map_smul, hy] }
-end
 
 lemma mk_linear_smul {P : Type*} {P' : Type*} [add_comm_monoid P] [add_comm_monoid P']
   [module k P] [module k P']

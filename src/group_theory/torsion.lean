@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Berman
 -/
 
+import group_theory.exponent
 import group_theory.quotient_group
 
 /-!
@@ -40,7 +41,7 @@ def is_torsion := ∀ g : G, ∃ n, 0 < n ∧ g ^ n = 1
 
 end monoid
 
-open monoid (is_torsion)
+open monoid (exponent_exists is_torsion)
 
 variables [group G] {N : subgroup G}
 
@@ -60,4 +61,12 @@ lemma quotient_group.is_torsion [nN : N.normal] (tG : is_torsion G) : is_torsion
   intro a,
   obtain ⟨n, ⟨npos, hn⟩⟩ := tG a,
   exact ⟨n, npos, (quotient_group.con N).eq.mpr $ hn ▸ (quotient_group.con N).eq.mp rfl⟩,
+end
+
+/--If a group exponent exists, the group is torsion. -/
+lemma exponent_exists.is_torsion (h : exponent_exists G) : is_torsion G :=
+begin
+  intro g,
+  obtain ⟨n, ⟨npos, hn⟩⟩ := h,
+  exact ⟨n, npos, hn g⟩,
 end

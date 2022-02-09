@@ -635,10 +635,12 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
 { inf := (⊓),
   inf_le_left := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) x,
-    simp only [sub_self, seminorm.zero, add_zero], end,
+    simp only [sub_self, seminorm.zero, add_zero],
+  end,
   inf_le_right := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
-    simp only [sub_self, seminorm.zero, zero_add, sub_zero], end,
+    simp only [sub_self, seminorm.zero, zero_add, sub_zero],
+  end,
   le_inf := λ a b c hab hac x,
     le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
   ..seminorm.semilattice_sup }

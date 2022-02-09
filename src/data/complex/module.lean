@@ -190,13 +190,8 @@ by rw [← finite_dimensional.finrank_mul_finrank ℝ ℂ E, complex.finrank_rea
 @[priority 900]
 instance star_module.complex_to_real {E : Type*} [add_comm_group E] [has_star E] [module ℂ E]
   [star_module ℂ E] : star_module ℝ E :=
-⟨λ r a,
-begin
-  have h : (r : ℂ) = algebra_map ℝ ℂ r := rfl,
-  have h₁ : ∀ x : E, r • x = (r : ℂ) • x := λ x, by rw [h, algebra.algebra_map_eq_smul_one,
-                                                        smul_assoc, one_smul],
-  rw [star_trivial r, h₁ a, star_smul, complex.star_def, complex.conj_of_real, ←h₁ (star a)],
-end⟩
+⟨λ r a, by rw [star_trivial r, restrict_scalars_smul_def, restrict_scalars_smul_def, star_smul,
+  complex.coe_algebra_map, complex.star_def, complex.conj_of_real]⟩
 
 namespace complex
 

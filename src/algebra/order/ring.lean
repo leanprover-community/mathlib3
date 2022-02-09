@@ -138,6 +138,11 @@ lemma zero_lt_three : 0 < (3:α) := add_pos zero_lt_two zero_lt_one
 
 lemma zero_lt_four : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
 
+alias zero_lt_one ← one_pos
+alias zero_lt_two ← two_pos
+alias zero_lt_three ← three_pos
+alias zero_lt_four ← four_pos
+
 end nontrivial
 
 lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=

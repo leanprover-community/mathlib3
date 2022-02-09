@@ -97,25 +97,31 @@ section category
 open category_theory
 open Module
 
+lemma subsingleton_of_epi_zero (N : Module R) [epi (0 : N ⟶ of R M)] : subsingleton M :=
+begin
+  apply subsingleton_of_forall_eq (0 : M),
+  have : function.surjective (0 : N ⟶ of R M) := (Module.epi_iff_surjective _).mp ‹_›,
+  exact this.forall.mpr (λ _, rfl),
+end
+
+instance is_simple_module_of [_inst : is_simple_module R M] : is_simple_module R (of R M) :=
+_inst
+
 /-- A simple module is a simple object in the category of modules. -/
-instance simple_of_is_simple_module [_inst : is_simple_module R M] : simple (of R M) :=
+instance simple_of_is_simple_module [is_simple_module R M] : simple (of R M) :=
 { mono_is_iso_iff_nonzero := λ N f inj, begin
-  split; intro h,
-  { intro f0,
-    have all_zero : ∀ x : M, x = 0,
-    { haveI : is_iso f := h,
-      have h : function.surjective f := (Module.epi_iff_surjective f).mp (is_iso.epi_of_iso f),
-      intro x, specialize h x, cases h with w h, rw [← h, f0], exact linear_map.zero_apply w},
-    { haveI : nontrivial M := is_simple_module.nontrivial R M,
-      cases exists_pair_ne M with x ne, cases ne with y ne,
-      apply ne, rw all_zero x, rw all_zero y } },
-  { haveI : mono f := inj,
-    haveI : is_simple_order (submodule R (of R M)) := _inst,
-    haveI : epi f,
-    { cases eq_bot_or_eq_top f.range,
-      { exfalso, apply h, rw ← linear_map.range_eq_bot, exact h_1 },
-      { rw epi_iff_range_eq_top, exact h_1 } },
-    { apply is_iso_of_mono_of_epi } } end}
+    split,
+    { unfreezingI { rintro h rfl },
+      haveI : subsingleton M := subsingleton_of_epi_zero N,
+      haveI : nontrivial M := is_simple_module.nontrivial R M,
+      exact false_of_nontrivial_of_subsingleton M },
+    { intro h,
+      haveI : epi f,
+      { rw epi_iff_range_eq_top,
+        refine (eq_bot_or_eq_top f.range).resolve_left _,
+        exact (mt linear_map.range_eq_bot.mp h)},
+      exact is_iso_of_mono_of_epi _ }
+  end }
 
 end category
 

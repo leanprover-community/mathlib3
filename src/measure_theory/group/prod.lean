@@ -238,21 +238,42 @@ begin
   simp_rw [ennreal.mul_div_cancel' (measure_mul_right_ne_zero ν h2E _) hx.ne]
 end
 
-/-- This is roughly the uniqueness (up to a scalar) of left invariant Borel measures on a second
-  countable locally compact group. The uniqueness of Haar measure is proven from this in
-  `measure_theory.measure.haar_measure_unique`. -/
 @[to_additive]
 lemma measure_mul_measure_eq [is_mul_left_invariant μ]
   [is_mul_left_invariant ν] {E F : set G}
-  (hE : measurable_set E) (hF : measurable_set F) (h2E : ν E ≠ 0) (h3E : μ E < ∞) (h4E : ν E < ∞) :
+  (hE : measurable_set E) (hF : measurable_set F) (h2E : ν E ≠ 0) (h3E : ν E < ∞) (hμE : μ E < ∞) :
     μ E * ν F = ν E * μ F :=
 begin
-  have h1 := measure_lintegral_div_measure ν ν hE h2E h4E (F.indicator (λ x, 1))
+  have h1 := measure_lintegral_div_measure ν ν hE h2E h3E (F.indicator (λ x, 1))
     (measurable_const.indicator hF),
-  have h2 := measure_lintegral_div_measure μ ν hE h2E h3E (F.indicator (λ x, 1))
+  have h2 := measure_lintegral_div_measure μ ν hE h2E hμE (F.indicator (λ x, 1))
     (measurable_const.indicator hF),
   rw [lintegral_indicator _ hF, set_lintegral_one] at h1 h2,
   rw [← h1, mul_left_comm, h2],
 end
+
+/-- Left invariant Borel measures on a measurable group are unique (up to a scalar). -/
+@[to_additive]
+lemma measure_eq_div_smul [is_mul_left_invariant μ]
+  [is_mul_left_invariant ν] {E : set G}
+  (hE : measurable_set E) (h2E : ν E ≠ 0) (h3E : ν E < ∞) (hμE : μ E < ∞) :
+    μ = (μ E / ν E) • ν :=
+begin
+  ext1 F hF,
+  have := measure_mul_measure_eq μ ν hE hF h2E h3E hμE,
+  rw [smul_apply, mul_comm, ← mul_div_assoc, mul_comm, this, mul_div_assoc,
+    ennreal.mul_div_cancel' h2E h3E.ne]
+end
+
+/-- A variant of the uniqueness, where the inequality of `μ` can be in a different set than the one
+  that occurs in the conclusion. -/
+@[to_additive]
+lemma measure_eq_div_smul' [is_mul_left_invariant μ]
+  [is_mul_left_invariant ν] {E E' : set G}
+  (hE : measurable_set E) (hE' : measurable_set E') (h2E : ν E ≠ 0) (h3E : ν E < ∞) (hμE : μ E < ∞)
+  (h2E' : ν E' ≠ 0) (h3E' : ν E' < ∞) : μ = (μ E' / ν E') • ν :=
+by rw [measure_eq_div_smul μ ν hE h2E h3E hμE, smul_apply, mul_div_assoc,
+    ennreal.div_self h2E' h3E'.ne, mul_one]
+
 
 end measure_theory

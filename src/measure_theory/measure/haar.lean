@@ -578,23 +578,42 @@ section second_countable
 
 variables [second_countable_topology G]
 
+@[to_additive]
+theorem haar_measure_unique' (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
+  (K₀ K : positive_compacts G) (hμK : μ K.1 < ∞) : μ = μ K₀.1 • haar_measure K₀ :=
+begin
+  refine (measure_eq_div_smul' μ (haar_measure K₀) K.2.1.measurable_set K₀.2.1.measurable_set
+    (measure_pos_of_nonempty_interior _ K.2.2).ne' K.2.1.measure_lt_top hμK
+    (measure_pos_of_nonempty_interior _ K₀.2.2).ne' K₀.2.1.measure_lt_top).trans _,
+  rw [haar_measure_self, ennreal.div_one]
+end
+
 /-- The Haar measure is unique up to scaling. More precisely: every σ-finite left invariant measure
-  is a scalar multiple of the Haar measure. -/
+  finite on open compacts is a scalar multiple of the Haar measure.
+  This is slightly weaker than assuming that `μ` is a Haar measure (in particular we don't require
+  `μ ≠ 0`).
+  In case you have a measure that you only know is finite on some set with non-empty interior,
+  use `measure_theory.measure.regular_of_is_mul_left_invariant` to obtain
+  `is_finite_measure_on_compacts`. -/
 @[to_additive]
 theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
   [is_finite_measure_on_compacts μ] (K₀ : positive_compacts G) : μ = μ K₀.1 • haar_measure K₀ :=
-begin
-  ext1 s hs,
-  have := λ h1 h2, measure_mul_measure_eq μ (haar_measure K₀) K₀.2.1.measurable_set hs h1 _ h2,
-  rw [haar_measure_self, one_mul] at this,
-  rw [smul_apply, this (by norm_num) (by norm_num)],
-  exact K₀.2.1.measure_lt_top
-end
+haar_measure_unique' μ K₀ K₀ K₀.2.1.measure_lt_top
+
+example [locally_compact_space G] (μ : measure G) [is_haar_measure μ] (K₀ : positive_compacts G) :
+  μ = μ K₀.1 • haar_measure K₀ :=
+haar_measure_unique μ K₀
+
+@[to_additive]
+theorem regular_of_is_mul_left_invariant {μ : measure G} [sigma_finite μ] [is_mul_left_invariant μ]
+  {K : set G} (hK : is_compact K) (h2K : (interior K).nonempty) (hμK : μ K < ∞) :
+  regular μ :=
+by { rw [haar_measure_unique' μ ⟨K, hK, h2K⟩ ⟨K, hK, h2K⟩ hμK], exact regular.smul hμK.ne }
 
 @[to_additive is_add_haar_measure_eq_smul_is_add_haar_measure]
 theorem is_haar_measure_eq_smul_is_haar_measure
   [locally_compact_space G] (μ ν : measure G) [is_haar_measure μ] [is_haar_measure ν] :
-  ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (μ = c • ν) :=
+  ∃ (c : ℝ≥0∞), c ≠ 0 ∧ c ≠ ∞ ∧ μ = c • ν :=
 begin
   have K : positive_compacts G := classical.choice (topological_space.nonempty_positive_compacts G),
   have νpos : 0 < ν K.1 := measure_pos_of_nonempty_interior _ K.2.2,

@@ -265,15 +265,4 @@ begin
     ennreal.mul_div_cancel' h2E h3E.ne]
 end
 
-/-- A variant of the uniqueness, where the inequality of `μ` can be in a different set than the one
-  that occurs in the conclusion. -/
-@[to_additive]
-lemma measure_eq_div_smul' [is_mul_left_invariant μ]
-  [is_mul_left_invariant ν] {E E' : set G}
-  (hE : measurable_set E) (hE' : measurable_set E') (h2E : ν E ≠ 0) (h3E : ν E < ∞) (hμE : μ E < ∞)
-  (h2E' : ν E' ≠ 0) (h3E' : ν E' < ∞) : μ = (μ E' / ν E') • ν :=
-by rw [measure_eq_div_smul μ ν hE h2E h3E hμE, smul_apply, mul_div_assoc,
-    ennreal.div_self h2E' h3E'.ne, mul_one]
-
-
 end measure_theory

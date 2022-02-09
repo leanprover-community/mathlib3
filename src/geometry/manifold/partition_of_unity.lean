@@ -257,7 +257,7 @@ begin
   { refine (mem_Union.1 $ hsV hx).imp (λ i hi, _),
     exact ((f i).update_r _ _).eventually_eq_one_of_dist_lt
       ((f i).support_subset_source $ hVf _ hi) (hr i hi).2 },
-  { simpa only [coe_mk, smooth_bump_function.support_update_r] using hfU i }
+  { simpa only [coe_mk, smooth_bump_function.support_update_r, tsupport] using hfU i }
 end
 
 variables {I M}

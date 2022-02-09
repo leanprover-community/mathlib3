@@ -14,9 +14,9 @@ import data.real.cardinality
 /-!
 # Cauchy integral formula
 
-In this file we prove Cauchy theorem and Cauchy integral formula for integrals over circles. Most
-results are formulated for a function `f : ℂ → E` that takes values in a complex Banach space with
-second countable topology.
+In this file we prove the Cauchy-Goursat theorem and the Cauchy integral formula for integrals over
+circles. Most results are formulated for a function `f : ℂ → E` that takes values in a complex
+Banach space with second countable topology.
 
 ## Main statements
 
@@ -86,7 +86,7 @@ First, we reformulate the theorem for a *real*-differentiable map `ℂ → E`, a
 of `f` over the boundary of a rectangle in `ℂ` to the integral of the derivative
 $\frac{\partial f}{\partial \bar z}$ over the interior of this box. In particular, for a *complex*
 differentiable function, the latter derivative is zero, hence the integral over the boundary of a
-rectangle is zero. Thus we get Cauchy theorem for a rectangle in `ℂ`.
+rectangle is zero. Thus we get the Cauchy-Goursat theorem for a rectangle in `ℂ`.
 
 Next, we apply the this theorem to the function $F(z)=f(c+e^{z})$ on the rectangle
 $[\ln r, \ln R]\times [0, 2\pi]$ to prove that
@@ -134,7 +134,7 @@ function is analytic on the open ball.
 
 ## Tags
 
-Cauchy theorem, Cauchy integral formula
+Cauchy-Goursat theorem, Cauchy integral formula
 -/
 
 open topological_space set measure_theory interval_integral metric filter function
@@ -226,10 +226,10 @@ integral_boundary_rect_of_has_fderiv_at_real_off_countable f (fderiv ℝ f) z w 
   (λ x hx, Hd.has_fderiv_at $ by simpa only [← mem_interior_iff_mem_nhds,
     interior_preimage_re_inter_preimage_im, interval, interior_Icc] using hx.1) Hi
 
-/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
-rectangle equals zero. More precisely, if `f` is continuous on a closed rectangle and is complex
-differentiable at all but countably many points of the corresponding open rectangle, then its
-integral over the boundary of the rectangle equals zero. -/
+/-- **Cauchy-Goursat theorem** for a rectangle: the integral of a complex differentiable function
+over the boundary of a rectangle equals zero. More precisely, if `f` is continuous on a closed
+rectangle and is complex differentiable at all but countably many points of the corresponding open
+rectangle, then its integral over the boundary of the rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_differentiable_on_off_countable (f : ℂ → E)
   (z w : ℂ) (s : set ℂ) (hs : countable s)
   (Hc : continuous_on f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
@@ -243,10 +243,10 @@ by refine (integral_boundary_rect_of_has_fderiv_at_real_off_countable f
   (λ x hx, (Hd x hx).has_fderiv_at.restrict_scalars ℝ) _).trans _;
     simp [← continuous_linear_map.map_smul]
 
-/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
-rectangle equals zero. More precisely, if `f` is continuous on a closed rectangle and is complex
-differentiable on the corresponding open rectangle, then its integral over the boundary of the
-rectangle equals zero. -/
+/-- **Cauchy-Goursat theorem for a rectangle**: the integral of a complex differentiable function
+over the boundary of a rectangle equals zero. More precisely, if `f` is continuous on a closed
+rectangle and is complex differentiable on the corresponding open rectangle, then its integral over
+the boundary of the rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_continuous_on_of_differentiable_on (f : ℂ → E) (z w : ℂ)
   (Hc : continuous_on f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
   (Hd : differentiable_on ℂ f (re ⁻¹' (Ioo (min z.re w.re) (max z.re w.re)) ∩
@@ -257,9 +257,9 @@ lemma integral_boundary_rect_eq_zero_of_continuous_on_of_differentiable_on (f : 
 integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f z w ∅ countable_empty
   Hc $ λ x hx, Hd.differentiable_at $ (is_open_Ioo.re_prod_im is_open_Ioo).mem_nhds hx.1
 
-/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
-rectangle equals zero. More precisely, if `f` is complex differentiable on a closed rectangle, then
-its integral over the boundary of the rectangle equals zero. -/
+/-- **Cauchy-Goursat theorem** for a rectangle: the integral of a complex differentiable function
+over the boundary of a rectangle equals zero. More precisely, if `f` is complex differentiable on a
+closed rectangle, then its integral over the boundary of the rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_differentiable_on (f : ℂ → E) (z w : ℂ)
   (H : differentiable_on ℂ f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im])) :
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
@@ -307,7 +307,7 @@ begin
       _ hs hc hd
 end
 
-/-- **Cauchy theorem** for an annulus. If `f : ℂ → E` is continuous on the closed annulus
+/-- **Cauchy-Goursat theorem** for an annulus. If `f : ℂ → E` is continuous on the closed annulus
 `r ≤ ∥z - c∥ ≤ R`, `0 < r ≤ R`, and is complex differentiable at all but countably many points of
 its interior, then the integrals of `f` over the circles `∥z - c∥ = r` and `∥z - c∥ = R` are equal
 to each other. -/
@@ -392,9 +392,9 @@ circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendst
   (hc.mono $ diff_subset _ _) (λ z hz, hd z ⟨hz.1.1, hz.2⟩)
   (hc.continuous_at $ closed_ball_mem_nhds _ h0).continuous_within_at
 
-/-- **Cauchy theorem**: if `f : ℂ → E` is continuous on a closed ball `{z | ∥z - c∥ ≤ R}` and is
-complex differentiable at all but countably many points of its interior, then the integral
-$\oint_{|z-c|=R}f(z)\,dz$ equals zero. -/
+/-- **Cauchy-Goursat theorem** for a disk: if `f : ℂ → E` is continuous on a closed disk
+`{z | ∥z - c∥ ≤ R}` and is complex differentiable at all but countably many points of its interior,
+then the integral $\oint_{|z-c|=R}f(z)\,dz$ equals zero. -/
 lemma circle_integral_eq_zero_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 ≤ R) {f : ℂ → E}
   {c : ℂ} {s : set ℂ} (hs : countable s) (hc : continuous_on f (closed_ball c R))
   (hd : ∀ z ∈ ball c R \ s, differentiable_at ℂ f z) :

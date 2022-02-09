@@ -78,8 +78,7 @@ lemma mul_eq_one_of_disjoint
   {H₁ H₂ : subgroup G} (hdis : disjoint H₁ H₂) {x y : G} (hx : x ∈ H₁) (hy : y ∈ H₂)
   (heq : x * y = 1) : x = 1 ∧ y = 1 :=
 begin
-  have : y = x⁻¹ := symm (inv_eq_iff_mul_eq_one.mpr heq),
-  subst this,
+  obtain rfl : y = x⁻¹ := symm (inv_eq_iff_mul_eq_one.mpr heq),
   have hy := H₂.inv_mem_iff.mp hy,
   have : x ∈ H₁ ⊓ H₂, by { simp, cc },
   rw [hdis.eq_bot, subgroup.mem_bot] at this,

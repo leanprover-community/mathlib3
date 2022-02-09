@@ -129,7 +129,8 @@ begin
     apply lie_submodule.subset_lie_span, use [x, m], refl, },
 end
 
-lemma iterate_to_endomorphism_mem_lower_central_series (x : L) (m : M) (k : ℕ) :
+lemma iterate_to_endomorphism_mem_lower_central_series [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  (x : L) (m : M) (k : ℕ) :
   (to_endomorphism R L M x)^[k] m ∈ lower_central_series R L M k :=
 begin
   induction k with k ih,
@@ -175,7 +176,8 @@ class is_nilpotent : Prop :=
 instance trivial_is_nilpotent [is_trivial L M] : is_nilpotent R L M :=
 ⟨by { use 1, change ⁅⊤, ⊤⁆ = ⊥, simp, }⟩
 
-lemma nilpotent_endo_of_nilpotent_module [hM : is_nilpotent R L M] :
+lemma nilpotent_endo_of_nilpotent_module [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [hM : is_nilpotent R L M] :
   ∃ (k : ℕ), ∀ (x : L), (to_endomorphism R L M x)^k = 0 :=
 begin
   unfreezingI { obtain ⟨k, hM⟩ := hM, },
@@ -189,7 +191,8 @@ end
 
 This result will be used downstream to show that weight spaces are Lie submodules, at which time
 it will be possible to state it in the language of weight spaces. -/
-lemma infi_max_gen_zero_eigenspace_eq_top_of_nilpotent [is_nilpotent R L M] :
+lemma infi_max_gen_zero_eigenspace_eq_top_of_nilpotent  [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [is_nilpotent R L M] :
   (⨅ (x : L), (to_endomorphism R L M x).maximal_generalized_eigenspace 0) = ⊤ :=
 begin
   ext m,
@@ -207,7 +210,8 @@ is nilpotent then `M` is nilpotent.
 This is essentially the Lie module equivalent of the fact that a central
 extension of nilpotent Lie algebras is nilpotent. See `lie_algebra.nilpotent_of_nilpotent_quotient`
 below for the corresponding result for Lie algebras. -/
-lemma nilpotent_of_nilpotent_quotient {N : lie_submodule R L M}
+lemma nilpotent_of_nilpotent_quotient  [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  {N : lie_submodule R L M}
   (h₁ : N ≤ max_triv_submodule R L M) (h₂ : is_nilpotent R L (M ⧸ N)) : is_nilpotent R L M :=
 begin
   unfreezingI { obtain ⟨k, hk⟩ := h₂, },
@@ -293,7 +297,7 @@ set.nontrivial_mono
   (lower_central_series_last_le_max_triv R L M)
   (nontrivial_lower_central_series_last R L M)
 
-@[simp] lemma coe_lcs_range_to_endomorphism_eq (k : ℕ) :
+@[simp] lemma coe_lcs_range_to_endomorphism_eq [module Rᵐᵒᵖ M] [is_central_scalar R M] (k : ℕ) :
   (lower_central_series R (to_endomorphism R L M).range M k : submodule R M) =
   lower_central_series R L M k :=
 begin
@@ -311,7 +315,7 @@ begin
         n, hn, rfl⟩, }, },
 end
 
-@[simp] lemma is_nilpotent_range_to_endomorphism_iff :
+@[simp] lemma is_nilpotent_range_to_endomorphism_iff [module Rᵐᵒᵖ M] [is_central_scalar R M] :
   is_nilpotent R (to_endomorphism R L M).range M ↔ is_nilpotent R L M :=
 begin
   split;

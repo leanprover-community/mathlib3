@@ -12,6 +12,11 @@ import algebra.lie.cartan_subalgebra
 This file contains a proof of Engel's theorem providing necessary and sufficient conditions for Lie
 algebras and Lie modules to be nilpotent.
 
+The key result `lie_module.is_nilpotent_iff_forall` says that if `M` is a Lie module of a
+Noetherian Lie algebra `L`, then `M` is nilpotent iff the image of `L → End(M)` consists of
+nilpotent elements. In the special case that we have the adjoint representation `M = L`, this says
+that a Lie algebra is nilpotent iff `ad x : End(L)` is nilpotent for all `x : L`.
+
 Engel's theorem is true for any coefficients (i.e., it is really a theorem about Lie rings) and so
 we work with coefficients in any commutative ring `R` throughout.
 
@@ -264,6 +269,7 @@ begin
   exact hK₃ ▸ hK₁,
 end
 
+/-- Engel's theorem. -/
 lemma lie_module.is_nilpotent_iff_forall :
   lie_module.is_nilpotent R L M ↔ ∀ x, is_nilpotent $ to_endomorphism R L M x :=
 ⟨begin
@@ -273,6 +279,7 @@ lemma lie_module.is_nilpotent_iff_forall :
 end,
 λ h, lie_algebra.is_engelian_of_is_noetherian M h⟩
 
+/-- Engel's theorem. -/
 lemma lie_algebra.is_nilpotent_iff_forall :
   lie_algebra.is_nilpotent R L ↔ ∀ x, is_nilpotent $ lie_algebra.ad R L x :=
 lie_module.is_nilpotent_iff_forall

@@ -147,7 +147,7 @@ section inv
 variables [group G] [has_measurable_inv G] {μ : measure G}
 
 @[to_additive]
-instance [has_measurable_inv G] [sigma_finite μ] : sigma_finite μ.inv :=
+instance [sigma_finite μ] : sigma_finite μ.inv :=
 (measurable_equiv.inv G).sigma_finite_map ‹_›
 
 variables [has_measurable_mul G]

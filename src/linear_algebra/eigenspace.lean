@@ -49,7 +49,8 @@ open module principal_ideal_ring polynomial finite_dimensional
 open_locale polynomial
 
 variables {K R : Type v} {V M : Type w}
-  [comm_ring R] [add_comm_group M] [module R M] [field K] [add_comm_group V] [module K V]
+  [comm_ring R] [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+  [field K] [add_comm_group V] [module K V] [module Kᵐᵒᵖ V] [is_central_scalar K V]
 
 /-- The submodule `eigenspace f μ` for a linear map `f` and a scalar `μ` consists of all vectors `x`
     such that `f x = μ • x`. (Def 5.36 of [axler2015])-/

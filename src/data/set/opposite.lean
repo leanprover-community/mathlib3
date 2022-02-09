@@ -20,20 +20,20 @@ namespace set
 
 /-- The opposite of a set `s` is the set obtained by taking the opposite of each member of `s`. -/
 protected def op (s : set α) : set αᵒᵖ :=
-op '' s
+unop ⁻¹' s
 
 /-- The unop of a set `s` is the set obtained by taking the unop of each member of `s`. -/
 protected def unop (s : set αᵒᵖ) : set α :=
-unop '' s
+op ⁻¹' s
 
 @[simp] lemma mem_op {s : set α} {a : αᵒᵖ} : a ∈ s.op ↔ unop a ∈ s :=
-by tidy
+iff.rfl
 
 @[simp] lemma op_mem_op {s : set α} {a : α} : op a ∈ s.op ↔ a ∈ s :=
 by rw [mem_op, unop_op]
 
 @[simp] lemma mem_unop {s : set αᵒᵖ} {a : α} : a ∈ s.unop ↔ op a ∈ s :=
-by tidy
+iff.rfl
 
 @[simp] lemma unop_mem_unop {s : set αᵒᵖ} {a : αᵒᵖ} : unop a ∈ s.unop ↔ a ∈ s :=
 by rw [mem_unop, op_unop]
@@ -43,6 +43,10 @@ ext (by simp only [mem_unop, op_mem_op, iff_self, implies_true_iff])
 
 @[simp] lemma unop_op (s : set αᵒᵖ) : s.unop.op = s :=
 ext (by simp only [mem_op, unop_mem_unop, iff_self, implies_true_iff])
+
+/-- Taking opposites as an equivalence of powersets. -/
+@[simps] def op_equiv : set α ≃ set αᵒᵖ :=
+⟨set.op, set.unop, op_unop, unop_op⟩
 
 @[simp] lemma singleton_op (x : α) : ({x} : set α).op = {op x} :=
 ext $ λ y, by simpa only [mem_op, mem_singleton_iff] using unop_eq_iff_eq_op

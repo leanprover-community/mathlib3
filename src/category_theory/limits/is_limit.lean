@@ -97,6 +97,11 @@ lemma exists_unique {t : cone F} (h : is_limit t) (s : cone F) :
   ∃! (l : s.X ⟶ t.X), ∀ j, l ≫ t.π.app j = s.π.app j :=
 ⟨h.lift s, h.fac s, h.uniq s⟩
 
+/-- Noncomputably make a colimit cocone from the existence of unique factorizations. -/
+def of_exists_unique {t : cone F}
+  (ht : ∀ s : cone F, ∃! l : s.X ⟶ t.X, ∀ j, l ≫ t.π.app j = s.π.app j) : is_limit t :=
+by { choose s hs hs' using ht, exact ⟨s, hs, hs'⟩ }
+
 /--
 Alternative constructor for `is_limit`,
 providing a morphism of cones rather than a morphism between the cone points
@@ -532,6 +537,11 @@ this.trans this.symm
 lemma exists_unique {t : cocone F} (h : is_colimit t) (s : cocone F) :
   ∃! (d : t.X ⟶ s.X), ∀ j, t.ι.app j ≫ d = s.ι.app j :=
 ⟨h.desc s, h.fac s, h.uniq s⟩
+
+/-- Noncomputably make a colimit cocone from the existence of unique factorizations. -/
+def of_exists_unique {t : cocone F}
+  (ht : ∀ s : cocone F, ∃! d : t.X ⟶ s.X, ∀ j, t.ι.app j ≫ d = s.ι.app j) : is_colimit t :=
+by { choose s hs hs' using ht, exact ⟨s, hs, hs'⟩ }
 
 /--
 Alternative constructor for `is_colimit`,

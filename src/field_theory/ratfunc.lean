@@ -664,6 +664,10 @@ instance (R : Type*) [comm_semiring R] [algebra R K[X]] :
   smul_def' := λ c x, x.induction_on' $ λ p q hq,
     by simp_rw [mk_one', ← mk_smul, mk_def_of_ne (c • p) hq, mk_def_of_ne p hq,
       ← of_fraction_ring_mul, is_localization.mul_mk'_eq_mk'_of_mul, algebra.smul_def],
+  op_smul_def' := λ x c, x.induction_on' $ λ p q hq,
+    by simp_rw [mk_one', ← mk_smul, mk_def_of_ne (mul_opposite.op c • p) hq, mk_def_of_ne p hq,
+      ← of_fraction_ring_mul, mul_comm, is_localization.mul_mk'_eq_mk'_of_mul, algebra.op_smul_def,
+      mul_comm],
   commutes' := λ c x, mul_comm _ _ }
 
 variables {K}

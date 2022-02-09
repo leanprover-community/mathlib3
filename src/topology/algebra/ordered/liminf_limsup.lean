@@ -173,8 +173,7 @@ begin
   haveI : ne_bot f := ⟨hbot⟩,
   refine ⟨limsup f u, _⟩,
   apply tendsto_of_le_liminf_of_limsup_le _ le_rfl h h',
-  by_contra hlt,
-  push_neg at hlt,
+  by_contra' hlt,
   obtain ⟨a, ⟨⟨la, au⟩, as⟩⟩ : ∃ a, (f.liminf u < a ∧ a < f.limsup u) ∧ a ∈ s :=
     dense_iff_inter_open.1 hs (set.Ioo (f.liminf u) (f.limsup u)) is_open_Ioo
     (set.nonempty_Ioo.2 hlt),

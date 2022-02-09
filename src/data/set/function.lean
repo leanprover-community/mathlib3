@@ -375,6 +375,8 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (restrict f s) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
+alias inj_on_iff_injective ↔ set.inj_on.injective _
+
 lemma inj_on_preimage {B : set (set β)} (hB : B ⊆ 𝒫 (range f)) :
   inj_on (preimage f) B :=
 λ s hs t ht hst, (preimage_eq_preimage' (hB hs) (hB ht)).1 hst

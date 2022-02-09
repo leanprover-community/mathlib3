@@ -171,7 +171,7 @@ lemma to_stalk_stalk_map_to_Γ_Spec (x : X) : to_stalk _ _ ≫
 begin
   rw PresheafedSpace.stalk_map,
   erw ← to_open_germ _ (basic_open (1 : Γ.obj (op X)))
-    ⟨X.to_Γ_Spec_fun x, by rw basic_open_one; triv⟩,
+    ⟨X.to_Γ_Spec_fun x, by rw basic_open_one; trivial⟩,
   rw [← category.assoc, category.assoc (to_open _ _)],
   erw stalk_functor_map_germ,
   rw [← category.assoc (to_open _ _), X.to_Γ_Spec_SheafedSpace_app_spec 1],

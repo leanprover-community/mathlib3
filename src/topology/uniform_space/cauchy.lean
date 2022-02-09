@@ -394,7 +394,7 @@ let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ :
   calc closure s ⊆ closure (⋃ (y : α) (H : y ∈ c), {x : α | (x, y) ∈ t'}) : closure_mono hc
     ... = _ : is_closed.closure_eq $ is_closed_bUnion hcf $ assume i hi,
       continuous_iff_is_closed.mp (continuous_id.prod_mk continuous_const) _ hct'
-    ... ⊆ _ : bUnion_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
+    ... ⊆ _ : Union₂_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
       (subset_bUnion_of_mem hi)⟩
 
 /-- The image of a totally bounded set under a unifromly continuous map is totally bounded. -/

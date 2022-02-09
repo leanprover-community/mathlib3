@@ -164,6 +164,12 @@ instance preadditive_has_zero_morphisms : has_zero_morphisms C :=
   comp_zero' := λ P Q f R, show left_comp R f 0 = 0, from map_zero _,
   zero_comp' := λ P Q R f, show right_comp P f 0 = 0, from map_zero _ }
 
+instance module_End_right {X Y : C} : module (End Y) (X ⟶ Y) :=
+{ smul_add := λ r f g, add_comp _ _ _ _ _ _,
+  smul_zero := λ r, zero_comp,
+  add_smul := λ r s f, comp_add _ _ _ _ _ _,
+  zero_smul := λ r, comp_zero }
+
 lemma mono_of_cancel_zero {Q R : C} (f : Q ⟶ R) (h : ∀ {P : C} (g : P ⟶ Q), g ≫ f = 0 → g = 0) :
   mono f :=
 ⟨λ P g g' hg, sub_eq_zero.1 $ h _ $ (map_sub (right_comp P f) g g').trans $ sub_eq_zero.2 hg⟩

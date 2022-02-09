@@ -87,7 +87,7 @@ variables {𝕜 : Type*} {V₁ V₂  : Type*} {P₁ P₂ : Type*}
   [normed_group V₁] [semi_normed_group V₂]
   [normed_space 𝕜 V₁] [normed_space 𝕜 V₂]
   [metric_space P₁] [pseudo_metric_space P₂]
-  [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
+  [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]
 
 variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
 
@@ -212,7 +212,7 @@ begin
     have C0_le : ∀i, C0 i ≤ C :=
       λi, finset.single_le_sum (λj hj, (hC0 j).1) (finset.mem_univ _),
     apply ξ.equiv_fun.to_linear_map.continuous_of_bound C (λx, _),
-    rw pi_semi_norm_le_iff,
+    rw pi_norm_le_iff,
     { exact λi, le_trans ((hC0 i).2 x) (mul_le_mul_of_nonneg_right (C0_le i) (norm_nonneg _)) },
     { exact mul_nonneg C_nonneg (norm_nonneg _) } }
 end

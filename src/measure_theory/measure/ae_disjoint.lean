@@ -106,4 +106,7 @@ lemma of_null_left (h : μ s = 0) : ae_disjoint μ s t := (of_null_right h).symm
 
 end ae_disjoint
 
+lemma ae_disjoint_compl_left : ae_disjoint μ sᶜ s := (@disjoint_compl_left _ s _).ae_disjoint
+lemma ae_disjoint_compl_right : ae_disjoint μ s sᶜ := (@disjoint_compl_right _ s _).ae_disjoint
+
 end measure_theory

@@ -375,7 +375,7 @@ def mul_monoid_hom [comm_monoid α] : α × α →* α :=
 
 /-- Multiplication as a multiplicative homomorphism with zero. -/
 @[simps]
-def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : monoid_with_zero_hom (α × α) α :=
+def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : α × α →*₀ α :=
 { map_zero' := mul_zero _,
   .. mul_monoid_hom }
 
@@ -388,7 +388,7 @@ def div_monoid_hom [comm_group α] : α × α →* α :=
 
 /-- Division as a multiplicative homomorphism with zero. -/
 @[simps]
-def div_monoid_with_zero_hom [comm_group_with_zero α] : monoid_with_zero_hom (α × α) α :=
+def div_monoid_with_zero_hom [comm_group_with_zero α] : α × α →*₀ α :=
 { to_fun := λ a, a.1 / a.2,
   map_zero' := zero_div _,
   map_one' := div_one _,

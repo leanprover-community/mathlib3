@@ -53,6 +53,8 @@ end coeff
 
 section cayley_hamilton
 
+variables [module Rᵐᵒᵖ M] [is_central_scalar R M]
+
 /-- The Cayley-Hamilton Theorem, that the characteristic polynomial of a linear map, applied to
 the linear map itself, is zero. -/
 lemma aeval_self_charpoly : aeval f f.charpoly = 0 :=
@@ -66,6 +68,7 @@ end
 lemma is_integral : is_integral R f := ⟨f.charpoly, ⟨charpoly_monic f, aeval_self_charpoly f⟩⟩
 
 lemma minpoly_dvd_charpoly {K : Type u} {M : Type v} [field K] [add_comm_group M] [module K M]
+  [module Kᵐᵒᵖ M] [is_central_scalar K M]
   [finite_dimensional K M] (f : M →ₗ[K] M) : minpoly K f ∣ f.charpoly :=
 minpoly.dvd _ _ (aeval_self_charpoly f)
 

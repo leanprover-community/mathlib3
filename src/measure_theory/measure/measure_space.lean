@@ -426,7 +426,7 @@ lemma tendsto_measure_Union [semilattice_sup ι] [encodable ι] {s : ι → set 
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋃ n, s n))) :=
 begin
   rw measure_Union_eq_supr (directed_of_sup hm),
-  exact tendsto_at_top_supr (assume n m hnm, measure_mono $ hm hnm)
+  exact tendsto_at_top_supr (λ n m hnm, measure_mono $ hm hnm)
 end
 
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
@@ -436,7 +436,7 @@ lemma tendsto_measure_Inter [encodable ι] [semilattice_sup ι] {s : ι → set 
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂ n, s n))) :=
 begin
   rw measure_Inter_eq_infi hs (directed_of_sup hm) hf,
-  exact tendsto_at_top_infi (assume n m hnm, measure_mono $ hm hnm),
+  exact tendsto_at_top_infi (λ n m hnm, measure_mono $ hm hnm),
 end
 
 /-- The measure of the intersection of a decreasing sequence of measurable
@@ -458,7 +458,7 @@ begin
     exact ⟨w, w_anti, λ n, (w_mem n).1, w_lim⟩ },
   have A : tendsto (μ ∘ (s ∘ u)) at_top (𝓝(μ (⋂ n, s (u n)))),
   { refine tendsto_measure_Inter (λ n, hs _ (u_pos n)) _ _,
-    { assume m n hmn,
+    { intros m n hmn,
       exact hm _ _ (u_pos n) (u_anti.antitone hmn) },
     { rcases hf with ⟨r, rpos, hr⟩,
       obtain ⟨n, hn⟩ : ∃ (n : ℕ), u n < r := ((tendsto_order.1 u_lim).2 r rpos).exists,
@@ -467,11 +467,11 @@ begin
   have B : (⋂ n, s (u n)) = (⋂ r > a, s r),
   { apply subset.antisymm,
     { simp only [subset_Inter_iff, gt_iff_lt],
-      assume r rpos,
+      intros r rpos,
       obtain ⟨n, hn⟩ : ∃ n, u n < r := ((tendsto_order.1 u_lim).2 _ rpos).exists,
       exact subset.trans (Inter_subset _ n) (hm (u n) r (u_pos n) hn.le) },
     { simp only [subset_Inter_iff, gt_iff_lt],
-      assume n,
+      intros n,
       apply bInter_subset_of_mem,
       exact u_pos n } },
   rw B at A,
@@ -708,10 +708,10 @@ this way since, to prove `μ ≤ ν`, we may simply `intros s hs` instead of rew
 by `intros s hs`. -/
 instance [measurable_space α] : partial_order (measure α) :=
 { le          := λ m₁ m₂, ∀ s, measurable_set s → m₁ s ≤ m₂ s,
-  le_refl     := assume m s hs, le_rfl,
-  le_trans    := assume m₁ m₂ m₃ h₁ h₂ s hs, le_trans (h₁ s hs) (h₂ s hs),
-  le_antisymm := assume m₁ m₂ h₁ h₂, ext $
-    assume s hs, le_antisymm (h₁ s hs) (h₂ s hs) }
+  le_refl     := λ m s hs, le_rfl,
+  le_trans    := λ m₁ m₂ m₃ h₁ h₂ s hs, le_trans (h₁ s hs) (h₂ s hs),
+  le_antisymm := λ m₁ m₂ h₁ h₂, ext $
+    λ s hs, le_antisymm (h₁ s hs) (h₂ s hs) }
 
 theorem le_iff : μ₁ ≤ μ₂ ↔ ∀ s, measurable_set s → μ₁ s ≤ μ₂ s := iff.rfl
 
@@ -765,12 +765,12 @@ to_measure_apply _ _ hs
 
 private lemma measure_Inf_le (h : μ ∈ m) : Inf m ≤ μ :=
 have Inf (to_outer_measure '' m) ≤ μ.to_outer_measure := Inf_le (mem_image_of_mem _ h),
-assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
+λ s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
 
 private lemma measure_le_Inf (h : ∀ μ' ∈ m, μ ≤ μ') : μ ≤ Inf m :=
 have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
-  le_Inf $ ball_image_of_ball $ assume μ hμ, to_outer_measure_le.2 $ h _ hμ,
-assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
+  le_Inf $ ball_image_of_ball $ λ μ hμ, to_outer_measure_le.2 $ h _ hμ,
+λ s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
 
 instance [measurable_space α] : complete_semilattice_Inf (measure α) :=
 { Inf_le := λ s a, measure_Inf_le,
@@ -780,11 +780,11 @@ instance [measurable_space α] : complete_semilattice_Inf (measure α) :=
 
 instance [measurable_space α] : complete_lattice (measure α) :=
 { bot := 0,
-  bot_le := assume a s hs, by exact bot_le,
+  bot_le := λ a s hs, by exact bot_le,
 /- Adding an explicit `top` makes `leanchecker` fail, see lean#364, disable for now
 
   top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
-  le_top := assume a s hs,
+  le_top := λ a s hs,
     by cases s.eq_empty_or_nonempty with h  h;
       simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
 -/
@@ -936,7 +936,7 @@ by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_m
       outer_measure.restrict_apply s t _, coe_to_outer_measure]
 
 lemma restrict_le_self : μ.restrict s ≤ μ :=
-assume t ht,
+λ t ht,
 calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
 ... ≤ μ t : measure_mono $ inter_subset_left t s
 
@@ -1097,7 +1097,7 @@ ext $ λ t ht, by simp [*, hf ht]
 lemma restrict_mono' {m0 : measurable_space α} ⦃s s' : set α⦄ ⦃μ ν : measure α⦄
   (hs : s ≤ᵐ[μ] s') (hμν : μ ≤ ν) :
   μ.restrict s ≤ ν.restrict s' :=
-assume t ht,
+λ t ht,
 calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
 ... ≤ μ (t ∩ s') : measure_mono_ae $ hs.mono $ λ x hx ⟨hxt, hxs⟩, ⟨hxt, hx hxs⟩
 ... ≤ ν (t ∩ s') : le_iff'.1 hμν (t ∩ s')
@@ -1321,7 +1321,7 @@ end
 
 lemma map_dirac {f : α → β} (hf : measurable f) (a : α) :
   map f (dirac a) = dirac (f a) :=
-ext $ assume s hs, by simp [hs, map_apply hf hs, hf hs, indicator_apply]
+ext $ λ s hs, by simp [hs, map_apply hf hs, hf hs, indicator_apply]
 
 @[simp] lemma restrict_singleton (μ : measure α) (a : α) : μ.restrict {a} = μ {a} • dirac a :=
 begin
@@ -2212,17 +2212,6 @@ lemma eventually_mem_spanning_sets (μ : measure α) [sigma_finite μ] (x : α) 
   ∀ᶠ n in at_top, x ∈ spanning_sets μ n :=
 eventually_at_top.2 ⟨spanning_sets_index μ x, λ b, mem_spanning_sets_of_index_le μ x⟩
 
-lemma ae_of_forall_measure_lt_top_ae_restrict {μ : measure α} [sigma_finite μ] (P : α → Prop)
-  (h : ∀ s, measurable_set s → μ s < ∞ → ∀ᵐ x ∂(μ.restrict s), P x) :
-  ∀ᵐ x ∂μ, P x :=
-begin
-  have : ∀ n, ∀ᵐ x ∂μ, x ∈ spanning_sets μ n → P x,
-  { assume n,
-    have := h (spanning_sets μ n) (measurable_spanning_sets _ _) (measure_spanning_sets_lt_top _ _),
-    rwa ae_restrict_iff' (measurable_spanning_sets _ _) at this },
-  filter_upwards [ae_all_iff.2 this] with _ hx using hx _ (mem_spanning_sets_index _ _),
-end
-
 omit m0
 
 namespace measure
@@ -2233,7 +2222,7 @@ calc (⨆ i, μ.restrict (spanning_sets μ i) s) = μ.restrict (⋃ i, spanning_
   (restrict_Union_apply_eq_supr (directed_of_sup (monotone_spanning_sets μ)) hs).symm
 ... = μ s : by rw [Union_spanning_sets, restrict_univ]
 
-/-- In a sigma-finite space, any measurable set of measure `> r` contains a measurable subset of
+/-- In a σ-finite space, any measurable set of measure `> r` contains a measurable subset of
 finite measure `> r`. -/
 lemma exists_subset_measure_lt_top [sigma_finite μ]
   {r : ℝ≥0∞} (hs : measurable_set s) (h's : r < μ s) :
@@ -2250,7 +2239,7 @@ end
 
 /-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
 satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (t ∩ s)`.
-This only holds when `μ` is sigma-finite. For a version without this assumption (but requiring
+This only holds when `μ` is σ-finite. For a version without this assumption (but requiring
 that `t` has finite measure), see `measure_to_measurable_inter`. -/
 lemma measure_to_measurable_inter_of_sigma_finite
   [sigma_finite μ] {s : set α} (hs : measurable_set s) (t : set α) :
@@ -2293,7 +2282,7 @@ begin
       begin
         rw measure_Union,
         { exact disjoint_disjointed _ },
-        { assume i, exact measurable_set.disjointed (measurable_spanning_sets _) _ }
+        { intro i, exact measurable_set.disjointed (measurable_spanning_sets _) _ }
       end
     ... = μ (t ∩ u) :
       by rw [Union_disjointed, Union_spanning_sets, restrict_apply measurable_set.univ,
@@ -2409,6 +2398,34 @@ lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : measurable f)
    λ n, by simp only [← map_apply hf, measurable_spanning_sets, measure_spanning_sets_lt_top],
    by rw [← preimage_Union, Union_spanning_sets, preimage_univ]⟩⟩⟩
 
+lemma _root_.measurable_equiv.sigma_finite_map {μ : measure α} (f : α ≃ᵐ β) (h : sigma_finite μ) :
+  sigma_finite (map f μ) :=
+by { refine sigma_finite.of_map _ f.symm.measurable _,
+     rwa [map_map f.symm.measurable f.measurable, f.symm_comp_self, map_id] }
+
+/-- Similar to `ae_of_forall_measure_lt_top_ae_restrict`, but where you additionally get the
+  hypothesis that another σ-finite measure has finite values on `s`. -/
+lemma ae_of_forall_measure_lt_top_ae_restrict' {μ : measure α} (ν : measure α) [sigma_finite μ]
+  [sigma_finite ν] (P : α → Prop)
+  (h : ∀ s, measurable_set s → μ s < ∞ → ν s < ∞ → ∀ᵐ x ∂(μ.restrict s), P x) :
+  ∀ᵐ x ∂μ, P x :=
+begin
+  have : ∀ n, ∀ᵐ x ∂μ, x ∈ spanning_sets (μ + ν) n → P x,
+  { intro n,
+    have := h (spanning_sets (μ + ν) n) (measurable_spanning_sets _ _) _ _,
+    exacts [(ae_restrict_iff' (measurable_spanning_sets _ _)).mp this,
+      (self_le_add_right _ _).trans_lt (measure_spanning_sets_lt_top (μ + ν) _),
+      (self_le_add_left _ _).trans_lt (measure_spanning_sets_lt_top (μ + ν) _)] },
+  filter_upwards [ae_all_iff.2 this] with _ hx using hx _ (mem_spanning_sets_index _ _)
+end
+
+/-- To prove something for almost all `x` w.r.t. a σ-finite measure, it is sufficient to show that
+  this holds almost everywhere in sets where the measure has finite value. -/
+lemma ae_of_forall_measure_lt_top_ae_restrict {μ : measure α} [sigma_finite μ] (P : α → Prop)
+  (h : ∀ s, measurable_set s → μ s < ∞ → ∀ᵐ x ∂(μ.restrict s), P x) :
+  ∀ᵐ x ∂μ, P x :=
+ae_of_forall_measure_lt_top_ae_restrict' μ P $ λ s hs h2s _, h s hs h2s
+
 /-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
 class is_locally_finite_measure [topological_space α] (μ : measure α) : Prop :=
 (finite_at_nhds : ∀ x, μ.finite_at_filter (𝓝 x))
@@ -2436,7 +2453,10 @@ lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure
   ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ∞ :=
 by simpa only [exists_prop, and.assoc]
   using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
-
+lemma _root_.measurable_equiv.sigma_finite_map {μ : measure α} (f : α ≃ᵐ β) (h : sigma_finite μ) :
+  sigma_finite (map f μ) :=
+by { refine sigma_finite.of_map _ f.symm.measurable _,
+     rwa [map_map f.symm.measurable f.measurable, f.symm_comp_self, map_id] }
 instance is_locally_finite_measure_smul_nnreal [topological_space α] (μ : measure α)
   [is_locally_finite_measure μ] (c : ℝ≥0) : is_locally_finite_measure (c • μ) :=
 begin
@@ -2499,7 +2519,7 @@ lemma is_locally_finite_measure_of_is_finite_measure_on_compacts [topological_sp
   [locally_compact_space α] [is_finite_measure_on_compacts μ] :
   is_locally_finite_measure μ :=
 ⟨begin
-  assume x,
+  intro x,
   rcases exists_compact_mem_nhds x with ⟨K, K_compact, K_mem⟩,
   exact ⟨K, K_mem, K_compact.measure_lt_top⟩,
 end⟩
@@ -3328,9 +3348,9 @@ lemma ae_measurable_indicator_iff {s} (hs : measurable_set s) :
   ae_measurable (indicator s f) μ ↔ ae_measurable f (μ.restrict s)  :=
 begin
   split,
-  { assume h,
+  { intro h,
     exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) },
-  { assume h,
+  { intro h,
     refine ⟨indicator s (h.mk f), h.measurable_mk.indicator hs, _⟩,
     have A : s.indicator f =ᵐ[μ.restrict s] s.indicator (ae_measurable.mk f h) :=
       (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),

@@ -144,8 +144,12 @@ lemma inv_apply (μ : measure G) (s : set G) : μ.inv s = μ s⁻¹ :=
 end measure
 
 section inv
-variables [group G] [has_measurable_mul G] [has_measurable_inv G]
-  {μ : measure G}
+variables [group G] [has_measurable_inv G] {μ : measure G}
+
+instance [has_measurable_inv G] [sigma_finite μ] : sigma_finite μ.inv :=
+(measurable_equiv.inv G).sigma_finite_map ‹_›
+
+variables [has_measurable_mul G]
 
 @[to_additive]
 instance [is_mul_left_invariant μ] : is_mul_right_invariant μ.inv :=

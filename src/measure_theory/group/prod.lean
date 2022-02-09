@@ -7,11 +7,10 @@ import measure_theory.constructions.prod
 
 /-!
 # Measure theory in the product of groups
+In this file we show properties about measure theory in products of measurable groups
+and properties of iterated integrals in measurable groups.
 
-In this file we show properties about measure theory in products of topological groups
-and properties of iterated integrals in topological groups.
-
-These lemmas show the uniqueness of left invariant measures on locally compact groups, up to
+These lemmas show the uniqueness of left invariant measures on measurable groups, up to
 scaling. In this file we follow the proof and refer to the book *Measure Theory* by Paul Halmos.
 
 The idea of the proof is to use the translation invariance of measures to prove `μ(F) = c * μ(E)`
@@ -28,17 +27,12 @@ Applying this to `μ` and to `ν` gives `μ (F) / μ (E) = ν (F) / ν (E)`, whi
 scalar multiplication.
 
 The proof in [Halmos] seems to contain an omission in §60 Th. A, see
-`measure_theory.measure_lintegral_div_measure` and
-https://math.stackexchange.com/questions/3974485/does-right-translation-preserve-finiteness-for-a-left-invariant-measure
+`measure_theory.measure_lintegral_div_measure`.
 
-## Todo
-
-Much of the results in this file work in a group with measurable multiplication instead of a
-topological group
 -/
 
 noncomputable theory
-open topological_space set (hiding prod_eq) function measure_theory
+open set (hiding prod_eq) function measure_theory
 open_locale classical ennreal pointwise
 
 variables (G : Type*) [measurable_space G]
@@ -199,53 +193,44 @@ begin
     set_lintegral_one],
 end
 
-instance : sigma_finite ν.inv :=
-sorry
-
 @[to_additive]
 lemma ae_measure_preimage_mul_right_ne_top [is_mul_left_invariant μ] [is_mul_left_invariant ν]
   {E : set G} (Em : measurable_set E) (hμE : μ E < ∞) :
   ∀ᵐ x ∂μ, ν ((λ y, y * x) ⁻¹' E) < ∞ :=
 begin
-  -- this is not quite what we want
-  apply filter.eventually.filter_mono (ae_mono (measure.le_add_right le_rfl)),
-  swap, exact ν.inv,
-  apply ae_of_forall_measure_lt_top_ae_restrict,
-  intros A hA h2A,
-  simp only [coe_add, pi.add_apply, ennreal.add_lt_top] at h2A,
+  apply ae_of_forall_measure_lt_top_ae_restrict' ν,
+  intros A hA h2A h3A,
+  simp only [ν.inv_apply] at h3A,
   apply ae_lt_top (measurable_measure_mul_right ν Em),
   have h1 := measure_mul_lintegral_eq μ ν Em (A⁻¹.indicator 1) (measurable_one.indicator hA.inv),
   rw [lintegral_indicator _ hA.inv] at h1,
-  simp_rw [pi.one_apply, set_lintegral_one] at h1,
-  have h2 : ∫⁻ x, ν ((λ y, y * x) ⁻¹' E) * A⁻¹.indicator 1 x⁻¹ ∂μ =
-    ∫⁻ x in A, (λ x, ν ((λ y, y * x) ⁻¹' E)) x ∂μ,
-  { sorry },
-  rw [← h2, ← h1],
-  refine ennreal.mul_ne_top hμE.ne _,
+  simp_rw [pi.one_apply, set_lintegral_one, ← image_inv, image_indicator inv_injective,
+    ← indicator_mul_right _ (λ x, ν ((λ y, y * x) ⁻¹' E)), pi.one_apply, mul_one] at h1,
+  rw [← lintegral_indicator _ hA, ← h1],
+  refine ennreal.mul_ne_top hμE.ne h3A.ne,
 end
 
 /-- A technical lemma relating two different measures. This is basically [Halmos, §60 Th. A].
   Note that if `f` is the characteristic function of a measurable set `F` this states that
   `μ F = c * μ E` for a constant `c` that does not depend on `μ`.
-  There seems to be a gap in the last step of the proof in [Halmos].
+
+  Note: There seems to be a gap in the last step of the proof in [Halmos].
   In the last line, the equality `g(x⁻¹)ν(Ex⁻¹) = f(x)` holds if we can prove that
-  `0 < ν(Ex⁻¹) < ∞`. The first inequality follows from §59, Th. D, but I couldn't find the second
-  inequality. For this reason, we use a compact `E` instead of a measurable `E` as in [Halmos], and
-  additionally assume that `ν` is a regular measure (we only need that it is finite on compact
-  sets). -/
+  `0 < ν(Ex⁻¹) < ∞`. The first inequality follows from §59, Th. D, but the second inequality is
+  injustified. We prove this inequality for almost all `x` in
+  `measure_theory.ae_measure_preimage_mul_right_ne_top`, using the computation done in the proof of
+  §60 Th. A (`measure_theory.measure_mul_lintegral_eq`) which is sufficient for our purposes.
+  This has the funny consequence that the hypothesis `ν E < ∞` in §60 Th. A is not needed, and
+  instead we need `μ E < ∞`. -/
 @[to_additive]
 lemma measure_lintegral_div_measure [is_mul_left_invariant μ]
-  [is_mul_left_invariant ν] {E : set G} (Em : measurable_set E) (h2E : ν E ≠ 0) (h3E : ν E < ∞)
+  [is_mul_left_invariant ν] {E : set G} (Em : measurable_set E) (h2E : ν E ≠ 0) (h3E : μ E < ∞)
   (f : G → ℝ≥0∞) (hf : measurable f) :
   μ E * ∫⁻ y, f y⁻¹ / ν ((λ x, x * y⁻¹) ⁻¹' E) ∂ν = ∫⁻ x, f x ∂μ :=
 begin
-  -- have Em := hE.measurable_set,
-  -- symmetry,
   set g := λ y, f y⁻¹ / ν ((λ x, x * y⁻¹) ⁻¹' E),
   have hg : measurable g := (hf.comp measurable_inv).div
     ((measurable_measure_mul_right ν Em).comp measurable_inv),
-  -- have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
-  --   sorry, --λ y, (is_compact.measure_lt_top $ (homeomorph.mul_right _).compact_preimage.mpr hE).ne,
   simp_rw [measure_mul_lintegral_eq μ ν Em g hg, g, inv_inv],
   refine lintegral_congr_ae _,
   refine (ae_measure_preimage_mul_right_ne_top μ ν Em h3E).mono (λ x hx , _),
@@ -254,15 +239,16 @@ end
 
 /-- This is roughly the uniqueness (up to a scalar) of left invariant Borel measures on a second
   countable locally compact group. The uniqueness of Haar measure is proven from this in
-  `measure_theory.measure.haar_measure_unique` -/
+  `measure_theory.measure.haar_measure_unique`. -/
 @[to_additive]
-lemma measure_mul_measure_eq [t2_space G] [is_mul_left_invariant μ]
-  [is_mul_left_invariant ν] [regular ν] {E F : set G}
-  (hE : is_compact E) (hF : measurable_set F) (h2E : ν E ≠ 0) : μ E * ν F = ν E * μ F :=
+lemma measure_mul_measure_eq [is_mul_left_invariant μ]
+  [is_mul_left_invariant ν] {E F : set G}
+  (hE : measurable_set E) (hF : measurable_set F) (h2E : ν E ≠ 0) (h3E : μ E < ∞) (h4E : ν E < ∞) :
+    μ E * ν F = ν E * μ F :=
 begin
-  have h1 := measure_lintegral_div_measure ν ν hE h2E (F.indicator (λ x, 1))
+  have h1 := measure_lintegral_div_measure ν ν hE h2E h4E (F.indicator (λ x, 1))
     (measurable_const.indicator hF),
-  have h2 := measure_lintegral_div_measure μ ν hE h2E (F.indicator (λ x, 1))
+  have h2 := measure_lintegral_div_measure μ ν hE h2E h3E (F.indicator (λ x, 1))
     (measurable_const.indicator hF),
   rw [lintegral_indicator _ hF, set_lintegral_one] at h1 h2,
   rw [← h1, mul_left_comm, h2],

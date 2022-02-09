@@ -156,7 +156,7 @@ lemma filter.tendsto.cauchy_seq [semilattice_sup β] [nonempty β] {f : β → �
   cauchy_seq f :=
 hx.cauchy_map
 
-lemma cauchy_seq_const (x : α) : cauchy_seq (λ n : ℕ, x) :=
+lemma cauchy_seq_const [semilattice_sup β] [nonempty β] (x : α) : cauchy_seq (λ n : β, x) :=
 tendsto_const_nhds.cauchy_seq
 
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
@@ -359,7 +359,7 @@ theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
   { haveI : fintype u := (fk.inter_of_left _).fintype,
     exact finite_range f },
   { intros x xs,
-    obtain ⟨y, hy, xy⟩ : ∃ y ∈ k, (x, y) ∈ r, from mem_bUnion_iff.1 (ks xs),
+    obtain ⟨y, hy, xy⟩ : ∃ y ∈ k, (x, y) ∈ r, from mem_Union₂.1 (ks xs),
     rw [bUnion_range, mem_Union],
     set z : ↥u := ⟨y, hy, ⟨x, xs, xy⟩⟩,
     exact ⟨z, rd $ mem_comp_rel.2 ⟨y, xy, rs (hfr z)⟩⟩ }
@@ -394,7 +394,7 @@ let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ :
   calc closure s ⊆ closure (⋃ (y : α) (H : y ∈ c), {x : α | (x, y) ∈ t'}) : closure_mono hc
     ... = _ : is_closed.closure_eq $ is_closed_bUnion hcf $ assume i hi,
       continuous_iff_is_closed.mp (continuous_id.prod_mk continuous_const) _ hct'
-    ... ⊆ _ : bUnion_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
+    ... ⊆ _ : Union₂_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
       (subset_bUnion_of_mem hi)⟩
 
 /-- The image of a totally bounded set under a unifromly continuous map is totally bounded. -/
@@ -624,11 +624,11 @@ begin
   choose ht_mem hto hts using hto,
   refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
   refine (is_topological_basis_of_open_of_nhds _ _).eq_generate_from,
-  { simp only [mem_bUnion_iff, mem_range],
+  { simp only [mem_Union₂, mem_range],
     rintros _ ⟨x, hxs, k, rfl⟩,
     exact is_open_ball x (hto k) },
   { intros x V hxV hVo,
-    simp only [mem_bUnion_iff, mem_range, exists_prop],
+    simp only [mem_Union₂, mem_range, exists_prop],
     rcases uniform_space.mem_nhds_iff.1 (is_open.mem_nhds hVo hxV) with ⟨U, hU, hUV⟩,
     rcases comp_symm_of_uniformity hU with ⟨U', hU', hsymm, hUU'⟩,
     rcases h_basis.to_has_basis.mem_iff.1 hU' with ⟨k, -, hk⟩,

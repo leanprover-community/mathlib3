@@ -477,3 +477,83 @@ def to_module_aut : S →* M ≃ₗ[R] M :=
   map_mul' := λ a b, linear_equiv.ext $ mul_smul _ _ }
 
 end distrib_mul_action
+
+namespace add_equiv
+
+section add_comm_monoid
+
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R M₂]
+
+variable (e : M ≃+ M₂)
+
+/-- An additive equivalence whose underlying function preserves `smul` is a linear equivalence. -/
+def to_linear_equiv (h : ∀ (c : R) x, e (c • x) = c • e x) : M ≃ₗ[R] M₂ :=
+{ map_smul' := h, .. e, }
+
+@[simp] lemma coe_to_linear_equiv (h : ∀ (c : R) x, e (c • x) = c • e x) :
+  ⇑(e.to_linear_equiv h) = e :=
+rfl
+
+@[simp] lemma coe_to_linear_equiv_symm (h : ∀ (c : R) x, e (c • x) = c • e x) :
+  ⇑(e.to_linear_equiv h).symm = e.symm :=
+rfl
+
+/-- An additive equivalence between commutative additive monoids is a linear equivalence between
+ℕ-modules -/
+def to_nat_linear_equiv  : M ≃ₗ[ℕ] M₂ :=
+e.to_linear_equiv $ λ c a, by { erw e.to_add_monoid_hom.map_nsmul, refl }
+
+@[simp] lemma coe_to_nat_linear_equiv :
+  ⇑(e.to_nat_linear_equiv) = e := rfl
+
+@[simp] lemma to_nat_linear_equiv_to_add_equiv :
+  e.to_nat_linear_equiv.to_add_equiv = e := by { ext, refl }
+
+@[simp] lemma _root_.linear_equiv.to_add_equiv_to_nat_linear_equiv
+  (e : M ≃ₗ[ℕ] M₂) : e.to_add_equiv.to_nat_linear_equiv = e := fun_like.coe_injective rfl
+
+@[simp] lemma to_nat_linear_equiv_symm :
+  (e.to_nat_linear_equiv).symm = e.symm.to_nat_linear_equiv := rfl
+
+@[simp] lemma to_nat_linear_equiv_refl :
+  ((add_equiv.refl M).to_nat_linear_equiv) = linear_equiv.refl ℕ M := rfl
+
+@[simp] lemma to_nat_linear_equiv_trans (e₂ : M₂ ≃+ M₃) :
+  (e.to_nat_linear_equiv).trans (e₂.to_nat_linear_equiv) = (e.trans e₂).to_nat_linear_equiv := rfl
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
+
+variable (e : M ≃+ M₂)
+
+/-- An additive equivalence between commutative additive groups is a linear
+equivalence between ℤ-modules -/
+def to_int_linear_equiv : M ≃ₗ[ℤ] M₂ :=
+e.to_linear_equiv $ λ c a, e.to_add_monoid_hom.map_zsmul a c
+
+@[simp] lemma coe_to_int_linear_equiv :
+  ⇑(e.to_int_linear_equiv) = e := rfl
+
+@[simp] lemma to_int_linear_equiv_to_add_equiv :
+  e.to_int_linear_equiv.to_add_equiv = e := by { ext, refl }
+
+@[simp] lemma _root_.linear_equiv.to_add_equiv_to_int_linear_equiv
+  (e : M ≃ₗ[ℤ] M₂) : e.to_add_equiv.to_int_linear_equiv = e := fun_like.coe_injective rfl
+
+@[simp] lemma to_int_linear_equiv_symm :
+  (e.to_int_linear_equiv).symm = e.symm.to_int_linear_equiv := rfl
+
+@[simp] lemma to_int_linear_equiv_refl :
+  ((add_equiv.refl M).to_int_linear_equiv) = linear_equiv.refl ℤ M := rfl
+
+@[simp] lemma to_int_linear_equiv_trans (e₂ : M₂ ≃+ M₃)  :
+  (e.to_int_linear_equiv).trans (e₂.to_int_linear_equiv) = (e.trans e₂).to_int_linear_equiv :=
+rfl
+
+end add_comm_group
+
+end add_equiv

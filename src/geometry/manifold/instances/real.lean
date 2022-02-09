@@ -40,7 +40,6 @@ typeclass. We provide it as `[fact (x < y)]`.
 noncomputable theory
 open set function
 open_locale manifold
-local attribute [instance] fact_one_le_two_real
 
 /--
 The half-space in `ℝ^n`, used to model manifolds with boundary. We only define it when
@@ -63,8 +62,8 @@ variable {n : ℕ}
 
 instance [has_zero (fin n)] : topological_space (euclidean_half_space n) := by apply_instance
 instance : topological_space (euclidean_quadrant n) := by apply_instance
-instance [has_zero (fin n)] : inhabited (euclidean_half_space n) := ⟨⟨0, le_refl _⟩⟩
-instance : inhabited (euclidean_quadrant n) := ⟨⟨0, λ i, le_refl _⟩⟩
+instance [has_zero (fin n)] : inhabited (euclidean_half_space n) := ⟨⟨0, le_rfl⟩⟩
+instance : inhabited (euclidean_quadrant n) := ⟨⟨0, λ i, le_rfl⟩⟩
 
 lemma range_half_space (n : ℕ) [has_zero (fin n)] :
   range (λx : euclidean_half_space n, x.val) = {y | 0 ≤ y 0} :=

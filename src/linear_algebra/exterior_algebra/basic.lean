@@ -5,7 +5,7 @@ Authors: Zhangir Azerbayev, Adam Topaz, Eric Wieser
 -/
 
 import algebra.ring_quot
-import linear_algebra.tensor_algebra
+import linear_algebra.tensor_algebra.basic
 import linear_algebra.alternating
 import group_theory.perm.sign
 

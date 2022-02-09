@@ -571,21 +571,21 @@ end semiring
 section ring
 variables [ring α] [fintype n]
 
-@[simp] theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
+@[simp] protected theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
   (-M) ⬝ N = -(M ⬝ N) :=
 by { ext, apply neg_dot_product }
 
-@[simp] theorem mul_neg (M : matrix m n α) (N : matrix n o α) :
+@[simp] protected theorem mul_neg (M : matrix m n α) (N : matrix n o α) :
   M ⬝ (-N) = -(M ⬝ N) :=
 by { ext, apply dot_product_neg }
 
 protected theorem sub_mul (M M' : matrix m n α) (N : matrix n o α) :
   (M - M') ⬝ N = M ⬝ N - M' ⬝ N :=
-by rw [sub_eq_add_neg, matrix.add_mul, neg_mul, sub_eq_add_neg]
+by rw [sub_eq_add_neg, matrix.add_mul, matrix.neg_mul, sub_eq_add_neg]
 
 protected theorem mul_sub (M : matrix m n α) (N N' : matrix n o α) :
   M ⬝ (N - N') = M ⬝ N - M ⬝ N' :=
-by rw [sub_eq_add_neg, matrix.mul_add, mul_neg, sub_eq_add_neg]
+by rw [sub_eq_add_neg, matrix.mul_add, matrix.mul_neg, sub_eq_add_neg]
 
 end ring
 

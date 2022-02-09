@@ -133,7 +133,7 @@ instance decidable_lt [has_lt R] [decidable_rel ((<) : R → R → Prop)] :
 λ x y, ‹decidable_rel (<)› (untrop x) (untrop y)
 
 instance [preorder R] : preorder (tropical R) :=
-{ le_refl := λ _, le_refl _,
+{ le_refl := λ _, le_rfl,
   le_trans := λ _ _ _ h h', le_trans h h',
   lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
   ..tropical.has_le,

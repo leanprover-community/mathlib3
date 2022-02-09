@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 -/
 import category_theory.groupoid
+import category_theory.opposites
 import data.equiv.mul_add
+import group_theory.group_action.defs
 
 /-!
 # Endomorphisms
@@ -55,6 +57,26 @@ instance monoid {C : Type u} [category.{v} C] {X : C} : monoid (End X) :=
   one_mul := category.comp_id,
   mul_assoc := λ x y z, (category.assoc z y x).symm,
   ..End.has_mul X, ..End.has_one X }
+
+section mul_action
+variables {C : Type u} [category.{v} C]
+
+open opposite
+
+instance mul_action_right {X Y : C} : mul_action (End Y) (X ⟶ Y) :=
+{ smul := λ r f, f ≫ r,
+  one_smul := category.comp_id,
+  mul_smul := λ r s f, eq.symm $ category.assoc _ _ _ }
+
+instance mul_action_left {X : Cᵒᵖ} {Y : C} : mul_action (End X) (unop X ⟶ Y) :=
+{ smul := λ r f, r.unop ≫ f,
+  one_smul := category.id_comp,
+  mul_smul := λ r s f, category.assoc _ _ _ }
+
+lemma smul_right {X Y : C} {r : End Y} {f : X ⟶ Y} : r • f = f ≫ r := rfl
+lemma smul_left {X : Cᵒᵖ} {Y : C} {r : (End X)} {f : unop X ⟶ Y} : r • f = r.unop ≫ f := rfl
+
+end mul_action
 
 /-- In a groupoid, endomorphisms form a group -/
 instance group {C : Type u} [groupoid.{v} C] (X : C) : group (End X) :=

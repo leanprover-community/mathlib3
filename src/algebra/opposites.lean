@@ -35,8 +35,8 @@ open function
 
 /-- Multiplicative opposite of a type. This type inherits all additive structures on `α` and
 reverses left and right in multiplication.-/
-@[to_additive "/-- Additive opposite of a type. This type inherits all multiplicative structures on
-`α` and reverses left and right in addition. -/"]
+@[to_additive "Additive opposite of a type. This type inherits all multiplicative structures on
+`α` and reverses left and right in addition."]
 def mul_opposite (α : Type u) : Type u := α
 
 postfix `ᵐᵒᵖ`:std.prec.max_plus := mul_opposite

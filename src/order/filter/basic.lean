@@ -170,6 +170,15 @@ lemma exists_mem_subset_iff : (∃ t ∈ f, t ⊆ s) ↔ s ∈ f :=
 lemma monotone_mem {f : filter α} : monotone (λ s, s ∈ f) :=
 λ s t hst h, mem_of_superset h hst
 
+lemma exists_mem_and_iff {P : set α → Prop} {Q : set α → Prop} (hP : antitone P) (hQ : antitone Q) :
+  (∃ u ∈ f, P u) ∧ (∃ u ∈ f, Q u) ↔ (∃ u ∈ f, P u ∧ Q u) :=
+begin
+  split,
+  { rintro ⟨⟨u, huf, hPu⟩, v, hvf, hQv⟩, exact ⟨u ∩ v, inter_mem huf hvf,
+    hP (inter_subset_left _ _) hPu, hQ (inter_subset_right _ _) hQv⟩ },
+  { rintro ⟨u, huf, hPu, hQu⟩, exact ⟨⟨u, huf, hPu⟩, u, huf, hQu⟩ }
+end
+
 end filter
 
 namespace tactic.interactive

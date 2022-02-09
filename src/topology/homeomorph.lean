@@ -232,7 +232,7 @@ lemma preimage_frontier (h : α ≃ₜ β) (s : set β) : h ⁻¹' (frontier s) 
 h.is_open_map.preimage_frontier_eq_frontier_preimage h.continuous _
 
 @[to_additive]
-lemma _root_.has_compact_mul_support.comp_homeomorph [has_one γ] {f : β → γ}
+lemma _root_.has_compact_mul_support.comp_homeomorph {M} [has_one M] {f : β → M}
   (hf : has_compact_mul_support f) (φ : α ≃ₜ β) : has_compact_mul_support (f ∘ φ) :=
 begin
   rw [has_compact_mul_support_def, function.mul_support_comp_eq_preimage, ← φ.preimage_closure],

@@ -302,7 +302,7 @@ namespace module_filter_basis
 variables {R M : Type*} [comm_ring R] [topological_space R]
   [add_comm_group M] [module R M] (B : module_filter_basis R M)
 
-instance group_filter_basis.has_mem : has_mem (set M) (module_filter_basis R M) :=
+instance has_mem : has_mem (set M) (module_filter_basis R M) :=
 ⟨λ s B, s ∈ B.sets⟩
 
 lemma smul  {U : set M} (hU : U ∈ B) : ∃ (V ∈ 𝓝 (0 : R)) (W ∈ B), V • W ⊆ U :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.convex.topology
+import topology.algebra.filter_basis
 /-!
 # Locally convex topological modules
 
@@ -100,3 +101,32 @@ begin
 end
 
 end module
+
+section basis
+
+structure locally_convex_filter_basis (𝕜 M : Type*) [ordered_comm_ring 𝕜] [topological_space 𝕜]
+  [add_comm_group M] [module 𝕜 M] extends module_filter_basis 𝕜 M :=
+(convex' : ∀ {U}, U ∈ sets → convex 𝕜 U)
+
+namespace locally_convex_filter_basis
+variables {𝕜 M : Type*} [ordered_comm_ring 𝕜] [topological_space 𝕜]
+  [add_comm_group M] [module 𝕜 M] (B : locally_convex_filter_basis 𝕜 M)
+
+instance has_mem : has_mem (set M) (locally_convex_filter_basis 𝕜 M) :=
+⟨λ s B, s ∈ B.sets⟩
+
+lemma convex {U : set M} (hU : U ∈ B) : convex 𝕜 U :=
+B.convex' hU
+
+/-- The topology associated to a module filter basis on a module over a topological ring.
+It has the given basis as a basis of neighborhoods of zero. -/
+def topology : topological_space M := B.to_module_filter_basis.topology
+
+@[priority 100] instance foo : @locally_convex_space 𝕜 M _ _ _ B.topology :=
+begin
+  refine locally_convex_of_basis_zero 𝕜 M,
+end
+
+end locally_convex_filter_basis
+
+end basis

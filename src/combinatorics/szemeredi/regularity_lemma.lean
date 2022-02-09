@@ -13,24 +13,18 @@ import order.iterate
 In this file, we prove Szemerédi's Regularity Lemma.
 -/
 
-open_locale big_operators classical
+open_locale classical
 open finpartition finset fintype function
 
 variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
-  (G : simple_graph α) (ε : ℝ)
-
-local notation `m` := (card α/exp_bound P.size : ℕ)
+  (G : simple_graph α) (ε : ℝ) (l : ℕ)
 
 /-- The size of the equipartition by which we start blowing. -/
-noncomputable def initial_bound (ε : ℝ) (l : ℕ) : ℕ :=
-max 7 $ max l (⌊real.log (100/ε^5) / real.log 4⌋₊ + 1)
+noncomputable def initial_bound : ℕ := max 7 $ max l (⌊real.log (100/ε^5) / real.log 4⌋₊ + 1)
 
-lemma le_initial_bound (ε : ℝ) (l : ℕ) : l ≤ initial_bound ε l :=
-(le_max_left _ _).trans (le_max_right _ _)
-
-lemma seven_le_initial_bound (ε : ℝ) (l : ℕ) : 7 ≤ initial_bound ε l := le_max_left _ _
-
-lemma initial_bound_pos (ε : ℝ) (l : ℕ) : 0 < initial_bound ε l :=
+lemma le_initial_bound : l ≤ initial_bound ε l := (le_max_left _ _).trans (le_max_right _ _)
+lemma seven_le_initial_bound : 7 ≤ initial_bound ε l := le_max_left _ _
+lemma initial_bound_pos : 0 < initial_bound ε l :=
 nat.succ_pos'.trans_le $ seven_le_initial_bound _ _
 
 lemma const_lt_pow_initial_bound_mul {ε : ℝ} (hε : 0 < ε) (l : ℕ) :
@@ -46,13 +40,13 @@ end
 
 /-- An explicit bound on the size of the equipartition in the proof of Szemerédi's Regularity Lemma
 -/
-noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
+noncomputable def szemeredi_bound : ℕ :=
 (exp_bound^[⌊4 / ε^5⌋₊] (initial_bound ε l)) * 16^(exp_bound^[⌊4 / ε^5⌋₊] (initial_bound ε l))
 
 lemma initial_bound_le_szemeredi_bound (ε l) : initial_bound ε l ≤ szemeredi_bound ε l :=
 (id_le_iterate_of_id_le le_exp_bound _ _).trans $ nat.le_mul_of_pos_right (pow_pos (by norm_num) _)
 
-lemma le_szemeredi_bound (ε : ℝ) (l : ℕ) : l ≤ szemeredi_bound ε l :=
+lemma le_szemeredi_bound : l ≤ szemeredi_bound ε l :=
 (le_initial_bound ε l).trans $ initial_bound_le_szemeredi_bound ε l
 
 /-- Effective Szemerédi Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
@@ -78,26 +72,26 @@ begin
     apply ht.trans_le ((initial_bound_le_szemeredi_bound _ _).trans hα) },
   suffices h : ∀ i, ∃ (P : finpartition (univ : finset α)), P.is_equipartition ∧
     t ≤ P.parts.card ∧ P.parts.card ≤ (exp_bound^[i]) t ∧
-      (P.is_uniform G ε ∨ ε^5 / 4 * i ≤ P.index G),
+      (P.is_uniform G ε ∨ ε^5 / 4 * i ≤ P.energy G),
   { obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := h (⌊4 / ε^5⌋₊ + 1),
     refine ⟨P, hP₁, (le_initial_bound _ _).trans hP₂, hP₃.trans _, _⟩,
     { rw function.iterate_succ_apply',
       exact mul_le_mul_left' (pow_le_pow_of_le_left (by norm_num) (by norm_num) _) _ },
     apply hP₄.resolve_right,
-    rintro hPindex,
+    rintro hPenergy,
     apply lt_irrefl (1 : ℝ),
     calc
       1 = ε ^ 5 / 4 * (4 / ε ^ 5)
           : by { rw [mul_comm, div_mul_div_cancel 4 (pow_pos hε 5).ne'], norm_num }
       ... < ε ^ 5 / 4 * (⌊4 / ε ^ 5⌋₊ + 1)
           : (mul_lt_mul_left (div_pos (pow_pos hε 5) (by norm_num))).2 (nat.lt_floor_add_one _)
-      ... ≤ P.index G : hPindex
-      ... ≤ 1 : P.index_le_one G },
+      ... ≤ P.energy G : hPenergy
+      ... ≤ 1 : P.energy_le_one G },
   intro i,
   induction i with i ih,
   { refine ⟨dum, hdum₁, hdum₂.ge, hdum₂.le, or.inr _⟩,
     rw [nat.cast_zero, mul_zero],
-    exact dum.index_nonneg G },
+    exact dum.energy_nonneg G },
   obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := ih,
   by_cases huniform : P.is_uniform G ε,
   { refine ⟨P, hP₁, hP₂, _, or.inl huniform⟩,
@@ -109,7 +103,7 @@ begin
     rw mul_le_mul_right (pow_pos hε 5),
     refine pow_le_pow (by norm_num) hP₂ },
   have hi : (i : ℝ) ≤ 4 / ε^5,
-  { have hi := hP₄.trans (P.index_le_one G),
+  { have hi := hP₄.trans (P.energy_le_one G),
     rw [div_mul_eq_mul_div, div_le_iff (show (0:ℝ) < 4, by norm_num)] at hi,
     norm_num at hi,
     rwa le_div_iff' (pow_pos hε _) },
@@ -118,7 +112,7 @@ begin
   have hPα : P.parts.card * 16^P.parts.card ≤ card α :=
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
   refine ⟨hP₁.increment G ε, increment_is_equipartition hP₁ G ε, _, _,
-    or.inr (le_trans _ (index_increment hP₁ ((seven_le_initial_bound ε l).trans hP₂)
+    or.inr (le_trans _ (energy_increment hP₁ ((seven_le_initial_bound ε l).trans hP₂)
       hεl' hPα huniform hε₁))⟩,
   { rw card_increment hPα huniform,
     exact hP₂.trans (le_exp_bound _) },

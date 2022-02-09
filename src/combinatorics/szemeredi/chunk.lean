@@ -19,7 +19,6 @@ variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : 
   (G : simple_graph α) (ε : ℝ) {U : finset α} (hU : U ∈ P.parts) (V : finset α)
 
 local notation `m` := (card α/exp_bound P.parts.card : ℕ)
--- local notation `a` := (card α/P.parts.card - m * 4^P.parts.card : ℕ)
 
 /-- The witnesses of non uniformity among the parts of a finpartition. -/
 noncomputable def finpartition.witnesses
@@ -41,7 +40,7 @@ noncomputable def finpartition.is_equipartition.star (V : finset α) : finset (f
 
 /-! # star -/
 
-/-- Each thing in star is a subset of the witness -/
+/-- Each thing in star is a subset of the witness. -/
 lemma subset_witness_of_mem_star : ∀ A ∈ hP.star G ε hU V, A ⊆ G.witness ε U V :=
 λ A hA, (mem_filter.1 hA).2
 
@@ -520,9 +519,9 @@ calc
             ring_nf,
             apply mul_le_mul_of_nonneg_right,
             norm_num,
-            apply pow_nonneg (eps_pos hPε).le },
+            exact pow_nonneg (eps_pos hPε).le _ },
           { norm_num,
-            apply pow_nonneg (eps_pos hPε).le },
+            exact pow_nonneg (eps_pos hPε).le _ },
         end
   ... ≤ (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
           G.edge_density ab.1 ab.2^2)/16^P.parts.card :
@@ -539,10 +538,10 @@ calc
         exact this },
       { simp_rw [card_product, card_chunk_increment (m_pos hPα), ←mul_pow],
         norm_num,
-        apply stuff hPα hPε hε₁ h_diff hUV },
+        exact stuff hPα hPε hε₁ h_diff hUV },
       { rw card_product,
         apply (sq_density_sub_eps_le_sum_sq_density_div_card_aux hPα hPε hU hV).trans,
         rw [card_chunk_increment (m_pos hPα), card_chunk_increment (m_pos hPα), ←mul_pow],
         norm_num,
-        apply hP }
+        exact hP }
     end

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .chunk
-import .index
+import .energy
 
 /-!
 # Increment
@@ -23,8 +23,8 @@ local notation `m` := (card α/exp_bound P.parts.card : ℕ)
 namespace finpartition
 
 /-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then
-we can make a (much bigger) equipartition with a slightly higher index. This is helpful since the
-index is bounded by a constant (see `index_le_one`), so this process eventually terminates and
+we can make a (much bigger) equipartition with a slightly higher energy. This is helpful since the
+energy is bounded by a constant (see `energy_le_one`), so this process eventually terminates and
 yields a not-too-big uniform equipartition. -/
 noncomputable def is_equipartition.increment : finpartition (univ : finset α) :=
 P.bind (λ U, hP.chunk_increment G ε)
@@ -81,7 +81,7 @@ begin
     (finpartition.le _ hVj hi)),
 end
 
-/-- The contribution to `index` of a pair of distinct parts of a finpartition. -/
+/-- The contribution to `energy` of a pair of distinct parts of a finpartition. -/
 noncomputable def pair_contrib (G : simple_graph α) (ε : ℝ) (hP : P.is_equipartition)
   (x : {x // x ∈ P.parts.off_diag}) :=
 (∑ i in
@@ -89,9 +89,9 @@ noncomputable def pair_contrib (G : simple_graph α) (ε : ℝ) (hP : P.is_equip
     (hP.chunk_increment G ε ((mem_off_diag _ _).1 x.2).2.1).parts,
   G.edge_density i.fst i.snd ^ 2)
 
-lemma off_diag_pairs_le_increment_index :
+lemma off_diag_pairs_le_increment_energy :
   ∑ x in P.parts.off_diag.attach, pair_contrib G ε hP x / (hP.increment G ε).parts.card ^ 2 ≤
-    (hP.increment G ε).index G :=
+    (hP.increment G ε).energy G :=
 begin
   simp_rw [pair_contrib, ←sum_div],
   refine div_le_div_of_le_of_nonneg _ (sq_nonneg _),
@@ -162,14 +162,14 @@ begin
   exact div_nonneg (pow_bit0_nonneg _ _) (by norm_num),
 end
 
-lemma index_increment [nonempty α] (hP : P.is_equipartition) (hP₇ : 7 ≤ P.parts.card)
+lemma energy_increment [nonempty α] (hP : P.is_equipartition) (hP₇ : 7 ≤ P.parts.card)
   (hε : 100 < 4^P.parts.card * ε^5) (hPα : P.parts.card * 16^P.parts.card ≤ card α)
   (hPG : ¬P.is_uniform G ε) (hε₁ : ε ≤ 1) :
-  P.index G + ε^5 / 4 ≤ (hP.increment G ε).index G :=
+  P.energy G + ε^5 / 4 ≤ (hP.increment G ε).energy G :=
 begin
   have h := uniform_add_nonuniform_eq_off_diag_pairs hε₁ hP₇ hPα hε.le hPG,
   rw [add_div, mul_div_cancel_left] at h,
-  exact h.trans off_diag_pairs_le_increment_index,
+  exact h.trans off_diag_pairs_le_increment_energy,
   refine (sq_pos_of_ne_zero _ $ _).ne',
   norm_cast,
   linarith,

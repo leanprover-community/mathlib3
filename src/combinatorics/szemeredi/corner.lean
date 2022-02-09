@@ -6,35 +6,40 @@ Authors: Bhavik Mehta
 import .triangle_removal
 import combinatorics.additive.salem_spencer
 
-
 /-!
-# Roth's theorem
+# The corners theorem and Roth's theorem
 
-This file proves Roth's theorem
+This file proves the corners theorem and Roth's theorem.
 -/
 
+open_locale big_operators classical
 open finset
 
 variables {N : ℕ}
 
-open_locale big_operators classical
+/-- A corner in `s` is three points of the form `(x, y), (x + h, y), (x, y + h)` with `0 < h`. Here,
+we record `x`, `y`, `h`. -/
+def is_corner (s : finset (ℕ × ℕ)) : ℕ → ℕ → ℕ → Prop :=
+λ x y h, (x, y) ∈ s ∧ (x + h, y) ∈ s ∧ (x, y + h) ∈ s
 
-def is_corner (A : finset (ℕ × ℕ)) : ℕ → ℕ → ℕ → Prop :=
-λ x y h, (x,y) ∈ A ∧ (x+h,y) ∈ A ∧ (x,y+h) ∈ A
-
-def is_anticorner (A : finset (ℕ × ℕ)) : ℕ → ℕ → ℕ → Prop :=
-λ x y h, (x,y) ∈ A ∧ (h ≤ x ∧ (x-h,y) ∈ A) ∧ (h ≤ y ∧ (x,y-h) ∈ A)
+/-- A corner in `s` is three points of the form `(x, y), (x + h, y), (x, y + h)` with `h < 0`. Here,
+we record `x`, `y`, `h`. Note that we use a slightly different formulation because of natural
+subtraction.-/
+def is_anticorner (s : finset (ℕ × ℕ)) : ℕ → ℕ → ℕ → Prop :=
+λ x y h, (x, y) ∈ s ∧ (h ≤ x ∧ (x - h, y) ∈ s) ∧ (h ≤ y ∧ (x, y - h) ∈ s)
 
 /-- The type of vertices of the corners graph. -/
 inductive corners_vertices (N : ℕ)
 | horiz : fin N → corners_vertices
 | vert : fin N → corners_vertices
-| diag : fin (2*N) → corners_vertices
+| diag : fin (2 * N) → corners_vertices
 
 open corners_vertices
 
+instance (N : ℕ) : inhabited (corners_vertices (N + 1)) := ⟨vert default⟩
+
 instance : fintype (corners_vertices N) :=
-fintype.of_equiv (fin N ⊕ fin N ⊕ fin (2*N))
+fintype.of_equiv (fin N ⊕ fin N ⊕ fin (2 * N))
 { to_fun := sum.elim horiz (sum.elim vert diag),
   inv_fun := λ i, corners_vertices.rec_on i sum.inl (sum.inr ∘ sum.inl) (sum.inr ∘ sum.inr),
   left_inv := λ i, by { rcases i with (_ | _ | _); refl },
@@ -45,24 +50,24 @@ lemma card_corners_vertices : fintype.card (corners_vertices N) = 4 * N :=
 by { simp only [fintype.of_equiv_card, fintype.card_fin, fintype.card_sum], ring }
 
 /-- The edges of the corners graph. -/
-inductive corners_edge (A : finset (ℕ × ℕ)) : corners_vertices N → corners_vertices N → Prop
-| hv {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ A → corners_edge (horiz h) (vert v)
-| vh {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ A → corners_edge (vert v) (horiz h)
+inductive corners_edge (s : finset (ℕ × ℕ)) : corners_vertices N → corners_vertices N → Prop
+| hv {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ s → corners_edge (horiz h) (vert v)
+| vh {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ s → corners_edge (vert v) (horiz h)
 | hd {h : fin N} {k : fin (2 * N)} :
-    (h : ℕ) ≤ k → ((h : ℕ), (k : ℕ) - h) ∈ A → corners_edge (horiz h) (diag k)
+    (h : ℕ) ≤ k → ((h : ℕ), (k : ℕ) - h) ∈ s → corners_edge (horiz h) (diag k)
 | dh {h : fin N} {k : fin (2 * N)} :
-    (h : ℕ) ≤ k → ((h : ℕ), (k : ℕ) - h) ∈ A → corners_edge (diag k) (horiz h)
+    (h : ℕ) ≤ k → ((h : ℕ), (k : ℕ) - h) ∈ s → corners_edge (diag k) (horiz h)
 | vd {v : fin N} {k : fin (2 * N)} :
-    (v : ℕ) ≤ k → ((k : ℕ) - v, (v : ℕ)) ∈ A → corners_edge (vert v) (diag k)
+    (v : ℕ) ≤ k → ((k : ℕ) - v, (v : ℕ)) ∈ s → corners_edge (vert v) (diag k)
 | dv {v : fin N} {k : fin (2 * N)} :
-    (v : ℕ) ≤ k → ((k : ℕ) - v, (v : ℕ)) ∈ A → corners_edge (diag k) (vert v)
+    (v : ℕ) ≤ k → ((k : ℕ) - v, (v : ℕ)) ∈ s → corners_edge (diag k) (vert v)
 
-variables {A : finset (ℕ × ℕ)}
+variables {s : finset (ℕ × ℕ)}
 
 section corners_edge
 open corners_edge
 
-lemma corners_edge_symm : ∀ (x y : corners_vertices N), corners_edge A x y → corners_edge A y x
+lemma corners_edge_symm : ∀ (x y : corners_vertices N), corners_edge s x y → corners_edge s y x
 | _ _ (hv h) := vh h
 | _ _ (vh h) := hv h
 | _ _ (hd h₁ h₂) := dh h₁ h₂
@@ -70,31 +75,34 @@ lemma corners_edge_symm : ∀ (x y : corners_vertices N), corners_edge A x y →
 | _ _ (vd h₁ h₂) := dv h₁ h₂
 | _ _ (dv h₁ h₂) := vd h₁ h₂
 
-lemma corners_edge_irrefl : ∀ (x : corners_vertices N), ¬ corners_edge A x x.
+lemma corners_edge_irrefl : ∀ (x : corners_vertices N), ¬ corners_edge s x x.
 
-def corners_graph (N : ℕ) (A : finset (ℕ × ℕ)) : simple_graph (corners_vertices N) :=
-{ adj := corners_edge A, symm := corners_edge_symm, loopless := corners_edge_irrefl }
+/-- Picturing a `N × N` grid, this is the graph whose vertices are vertical, horizontal and diagonal
+(one way) lines and whose edges are the pairs of lines that meet within `s`. -/
+def corners_graph (N : ℕ) (s : finset (ℕ × ℕ)) : simple_graph (corners_vertices N) :=
+{ adj := corners_edge s, symm := corners_edge_symm, loopless := corners_edge_irrefl }
 
 @[simp] lemma corners_edge_horiz_vert {h v : fin N} :
-  (corners_graph _ A).adj (horiz h) (vert v) ↔ ((h : ℕ), (v : ℕ)) ∈ A :=
+  (corners_graph _ s).adj (horiz h) (vert v) ↔ ((h : ℕ), (v : ℕ)) ∈ s :=
 ⟨by { rintro ⟨⟩, assumption }, corners_edge.hv⟩
 
 @[simp] lemma corners_edge_horiz_diag {h : fin N} {k} :
-  (corners_graph _ A).adj (horiz h) (diag k) ↔ (h : ℕ) ≤ k ∧ ((h : ℕ), (k : ℕ) - h) ∈ A :=
+  (corners_graph _ s).adj (horiz h) (diag k) ↔ (h : ℕ) ≤ k ∧ ((h : ℕ), (k : ℕ) - h) ∈ s :=
 ⟨by { rintro ⟨⟩, tauto }, λ i, corners_edge.hd i.1 i.2⟩
 
 @[simp] lemma corners_edge_vert_diag {v : fin N} {k} :
-  (corners_graph _ A).adj (vert v) (diag k) ↔ (v : ℕ) ≤ k ∧ ((k : ℕ) - v, (v : ℕ)) ∈ A :=
+  (corners_graph _ s).adj (vert v) (diag k) ↔ (v : ℕ) ≤ k ∧ ((k : ℕ) - v, (v : ℕ)) ∈ s :=
 ⟨by { rintro ⟨⟩, tauto }, λ i, corners_edge.vd i.1 i.2⟩
 
+/-- Throwaway tactic. -/
 meta def sets_simp : tactic unit :=
 `[ext] >> `[simp only [finset.mem_insert, finset.mem_singleton]] >> `[try {tauto}]
 
-lemma corners_triple {A : finset (ℕ × ℕ)} {N : ℕ} :
-  ∀ x y z, (corners_graph N A).adj x y → (corners_graph N A).adj x z → (corners_graph N A).adj y z →
+lemma corners_triple {s : finset (ℕ × ℕ)} {N : ℕ} :
+  ∀ x y z, (corners_graph N s).adj x y → (corners_graph N s).adj x z → (corners_graph N s).adj y z →
     ∃ h v {k : fin (2 * N)}, {horiz h, vert v, diag k} = ({x, y, z} : finset (corners_vertices N)) ∧
-      (corners_graph _ A).adj (horiz h) (vert v) ∧ (corners_graph _ A).adj (horiz h) (diag k) ∧
-        (corners_graph _ A).adj (vert v) (diag k)
+      (corners_graph _ s).adj (horiz h) (vert v) ∧ (corners_graph _ s).adj (horiz h) (diag k) ∧
+        (corners_graph _ s).adj (vert v) (diag k)
 | _ _ _ h₁@(hv _) h₂@(hd _ _) h₃ := ⟨_, _, _, rfl, h₁, h₂, h₃⟩
 | _ _ _ (vh h₁) (vd h₂ i₂) (hd h₃ i₃) := ⟨_, _, _, by sets_simp, hv h₁, hd h₃ i₃, vd h₂ i₂⟩
 | _ _ _ (hd h₁ i₁) (hv h₂) (dv h₃ i₃) := ⟨_, _, _, by sets_simp, hv h₂, hd h₁ i₁, vd h₃ i₃⟩
@@ -104,19 +112,19 @@ lemma corners_triple {A : finset (ℕ × ℕ)} {N : ℕ} :
 
 end corners_edge
 
-noncomputable def triangle_map : fin N × fin N × fin (2*N) → finset (corners_vertices N) :=
+/-- Maps an horizontal, a vertical and a diagonal line to their three points of intersection. -/
+noncomputable def triangle_map : fin N × fin N × fin (2 * N) → finset (corners_vertices N) :=
 λ hvk, {horiz hvk.1, vert hvk.2.1, diag hvk.2.2}
 
+/-- State whether an horizontal, a vertical and a diagonal line meet within `s`. -/
 @[derive decidable_pred]
-def explicit_triangles (A : finset (ℕ × ℕ)) (N : ℕ) : fin N × fin N × fin (2*N) → Prop :=
-λ (i : fin N × fin N × fin (2*N)),
-  (↑i.1, ↑i.2.1) ∈ A ∧ ((i.1 : ℕ) ≤ i.2.2 ∧ (↑i.1, ↑i.2.2 - ↑i.1) ∈ A) ∧
-    ((i.2.1 : ℕ) ≤ i.2.2 ∧ (↑i.2.2 - ↑i.2.1, ↑i.2.1) ∈ A)
+def explicit_triangles (s : finset (ℕ × ℕ)) (N : ℕ) : fin N × fin N × fin (2 * N) → Prop :=
+λ (i : fin N × fin N × fin (2 * N)),
+  (↑i.1, ↑i.2.1) ∈ s ∧ ((i.1 : ℕ) ≤ i.2.2 ∧ (↑i.1, ↑i.2.2 - ↑i.1) ∈ s) ∧
+    ((i.2.1 : ℕ) ≤ i.2.2 ∧ (↑i.2.2 - ↑i.2.1, ↑i.2.1) ∈ s)
 
-open_locale classical
-
-lemma triangle_map_mem (x : fin N × fin N × fin (2*N)) (hx : explicit_triangles A N x) :
-  triangle_map x ∈ (corners_graph N A).triangle_finset :=
+lemma triangle_map_mem (x : fin N × fin N × fin (2 * N)) (hx : explicit_triangles s N x) :
+  triangle_map x ∈ (corners_graph N s).triangle_finset :=
 by simpa [simple_graph.mem_triangle_finset'', explicit_triangles, triangle_map] using hx
 
 lemma triangle_map_injective :
@@ -127,8 +135,8 @@ begin
     forall_eq_or_imp, forall_eq, prod.mk.inj_iff, or_false, false_or] using and.left,
 end
 
-lemma triangle_map_surj {t} (ht : t ∈ (corners_graph N A).triangle_finset) :
-  ∃ a, explicit_triangles A N a ∧ triangle_map a = t :=
+lemma triangle_map_surj {t} (ht : t ∈ (corners_graph N s).triangle_finset) :
+  ∃ a, explicit_triangles s N a ∧ triangle_map a = t :=
 begin
   rw simple_graph.mem_triangle_finset''' at ht,
   obtain ⟨x, y, z, xy, xz, yz, rfl⟩ := ht,
@@ -136,9 +144,9 @@ begin
   exact ⟨⟨h, v, k⟩, ⟨by simpa using i₁, by simpa using i₂, by simpa using i₃⟩, i₀⟩,
 end
 
-lemma triangles_corners_graph {A : finset (ℕ × ℕ)} {N : ℕ} :
-  (corners_graph N A).triangle_finset.card =
-    (univ.filter (explicit_triangles A N)).card :=
+lemma triangles_corners_graph {s : finset (ℕ × ℕ)} {N : ℕ} :
+  (corners_graph N s).triangle_finset.card =
+    (univ.filter (explicit_triangles s N)).card :=
 begin
   refine (card_congr (λ a _, triangle_map a) (λ t ht, _) (λ x y _ _, _) (λ t ht, _)).symm,
   { apply triangle_map_mem _ (mem_filter.1 ht).2 },
@@ -148,11 +156,11 @@ begin
 end
 
 lemma triangle_gives_corner_or_anticorner {h v : fin N} {k : fin (2 * N)}
-  (hv : (↑h, ↑v) ∈ A)
-  (hk₁ : (h : ℕ) ≤ k) (hk₁' : ((h : ℕ), (k : ℕ) - h) ∈ A)
-  (vk₁ : (v : ℕ) ≤ k) (vk₁' : ((k : ℕ) - v, (v : ℕ)) ∈ A) :
-  ((h : ℕ) + v ≤ k ∧ is_corner A h v (k - (h + v))) ∨
-    ((k : ℕ) ≤ h + v ∧ is_anticorner A h v (h + v - k)) :=
+  (hv : (↑h, ↑v) ∈ s)
+  (hk₁ : (h : ℕ) ≤ k) (hk₁' : ((h : ℕ), (k : ℕ) - h) ∈ s)
+  (vk₁ : (v : ℕ) ≤ k) (vk₁' : ((k : ℕ) - v, (v : ℕ)) ∈ s) :
+  ((h : ℕ) + v ≤ k ∧ is_corner s h v (k - (h + v))) ∨
+    ((k : ℕ) ≤ h + v ∧ is_anticorner s h v (h + v - k)) :=
 begin
   cases le_total ((h : ℕ) + v) (k : ℕ) with hvk hvk,
   { refine or.inl ⟨hvk, hv, _, _⟩,
@@ -170,11 +178,11 @@ begin
       rw [eq_tsub_iff_add_eq_of_le hk₁, add_comm, ←nat.add_sub_assoc hvkv, nat.sub_sub_self hvk] } }
 end
 
-lemma triangle_trivial_of_no_corners (cs : ∀ (x y h : ℕ), is_corner A x y h → h = 0)
-  (as : ∀ (x y h : ℕ), is_anticorner A x y h → h = 0)
-  {h v : fin N} {k : fin (2 * N)} (hv : (↑h, ↑v) ∈ A)
-  (hk₁ : (h : ℕ) ≤ k) (hk₁' : ((h : ℕ), (k : ℕ) - h) ∈ A)
-  (vk₁ : (v : ℕ) ≤ k) (vk₁' : ((k : ℕ) - v, (v : ℕ)) ∈ A) :
+lemma triangle_trivial_of_no_corners (cs : ∀ (x y h : ℕ), is_corner s x y h → h = 0)
+  (as : ∀ (x y h : ℕ), is_anticorner s x y h → h = 0)
+  {h v : fin N} {k : fin (2 * N)} (hv : (↑h, ↑v) ∈ s)
+  (hk₁ : (h : ℕ) ≤ k) (hk₁' : ((h : ℕ), (k : ℕ) - h) ∈ s)
+  (vk₁ : (v : ℕ) ≤ k) (vk₁' : ((k : ℕ) - v, (v : ℕ)) ∈ s) :
   (k : ℕ) = h + v :=
 begin
   rcases triangle_gives_corner_or_anticorner hv hk₁ hk₁' vk₁ vk₁' with (⟨i₁, i₂⟩ | ⟨i₁, i₂⟩),
@@ -182,10 +190,10 @@ begin
   { apply le_antisymm i₁ (nat.le_of_sub_eq_zero (as _ _ _ i₂)) },
 end
 
-lemma trivial_triangles_corners_graph {A : finset (ℕ × ℕ)} {n : ℕ}
-  (cs : ∀ (x y h : ℕ), is_corner A x y h → h = 0)
-  (as : ∀ (x y h : ℕ), is_anticorner A x y h → h = 0) :
-  (corners_graph n A).triangle_finset.card ≤ n^2 :=
+lemma trivial_triangles_corners_graph {s : finset (ℕ × ℕ)} {n : ℕ}
+  (cs : ∀ (x y h : ℕ), is_corner s x y h → h = 0)
+  (as : ∀ (x y h : ℕ), is_anticorner s x y h → h = 0) :
+  (corners_graph n s).triangle_finset.card ≤ n^2 :=
 begin
   have : ((range n).product (range n)).card = n^2,
   { simp [sq] },
@@ -204,19 +212,20 @@ begin
   rw triangle_trivial_of_no_corners cs as hv hk₂' hk₂ vk₂' vk₂,
 end
 
-def trivial_triangles (N : ℕ) (A : finset (ℕ × ℕ)) : finset (fin N × fin N × fin (2 * N)) :=
-univ.filter (λ xyz, (↑xyz.1, ↑xyz.2.1) ∈ A ∧ (xyz.1 : ℕ) + xyz.2.1 = xyz.2.2)
+/-- The trivial triangles -/
+def trivial_triangles (N : ℕ) (s : finset (ℕ × ℕ)) : finset (fin N × fin N × fin (2 * N)) :=
+univ.filter (λ xyz, (↑xyz.1, ↑xyz.2.1) ∈ s ∧ (xyz.1 : ℕ) + xyz.2.1 = xyz.2.2)
 
 lemma trivial_triangles_mem :
-  ∀ x ∈ trivial_triangles N A, explicit_triangles A N x :=
+  ∀ x ∈ trivial_triangles N s, explicit_triangles s N x :=
 λ ⟨h, v, k⟩ t,
 begin
   simp only [trivial_triangles, true_and, mem_filter, mem_univ] at t,
   exact ⟨t.1, by simp [←t.2, t.1]⟩,
 end
 
-lemma card_trivial_triangles (hA : A ⊆ (range N).product (range N)) :
-  (trivial_triangles N A).card = A.card :=
+lemma card_trivial_triangles (hA : s ⊆ (range N).product (range N)) :
+  (trivial_triangles N s).card = s.card :=
 begin
   refine card_congr (λ xyz _, (xyz.1, xyz.2.1)) _ _ _,
   { rintro ⟨x, y, z⟩ t,
@@ -235,11 +244,11 @@ begin
   apply add_lt_add this.1 this.2,
 end
 
-lemma disjoint_triangles {ε : ℝ} (hA : A ⊆ (range N).product (range N)) (hA' : ε * N^2 ≤ A.card) :
-  (corners_graph N A).triangle_free_far (ε/16) :=
+lemma disjoint_triangles {ε : ℝ} (hA : s ⊆ (range N).product (range N)) (hA' : ε * N^2 ≤ s.card) :
+  (corners_graph N s).triangle_free_far (ε/16) :=
 begin
   refine simple_graph.triangle_free_far_of_disjoint_triangles
-    ((trivial_triangles N A).map ⟨_, triangle_map_injective⟩) _ _ _,
+    ((trivial_triangles N s).map ⟨_, triangle_map_injective⟩) _ _ _,
   { simp only [subset_iff, and_imp, exists_prop, forall_exists_index, function.embedding.coe_fn_mk,
       mem_map],
     rintro _ x hx rfl,
@@ -267,10 +276,10 @@ end
 
 lemma weak_corners_theorem {ε : ℝ} (hε : 0 < ε) :
   ∃ n₀ : ℕ, ∀ n, n₀ ≤ n →
-    ∀ A ⊆ (range n).product (range n), ε * n^2 ≤ A.card →
-      ∃ x y h, 0 < h ∧ (is_corner A x y h ∨ is_anticorner A x y h) :=
+    ∀ s ⊆ (range n).product (range n), ε * n^2 ≤ s.card →
+      ∃ x y h, 0 < h ∧ (is_corner s x y h ∨ is_anticorner s x y h) :=
 begin
-  refine ⟨⌊1/(simple_graph.triangle_removal_bound (ε / 16) * 64)⌋₊ + 1, λ n hn A hA hA', _⟩,
+  refine ⟨⌊1/(simple_graph.triangle_removal_bound (ε / 16) * 64)⌋₊ + 1, λ n hn s hA hA', _⟩,
   rw nat.add_one_le_iff at hn,
   have n_pos : 0 < n := (nat.zero_le _).trans_lt hn,
   have : ε ≤ 1,
@@ -278,7 +287,7 @@ begin
     simp only [sq, card_range, nat.cast_mul, card_product] at this,
     rwa mul_le_iff_le_one_left at this,
     exact mul_pos (nat.cast_pos.2 n_pos) (nat.cast_pos.2 n_pos) },
-  have tf : (corners_graph n A).triangle_free_far (ε/16) := disjoint_triangles hA hA',
+  have tf : (corners_graph n s).triangle_free_far (ε/16) := disjoint_triangles hA hA',
   by_contra h,
   simp only [not_and', or_imp_distrib, forall_and_distrib, not_exists, not_lt, le_zero_iff] at h,
   have h₁ := simple_graph.triangle_removal_2 (show 0 < ε/16, by linarith) (by linarith) tf,
@@ -295,9 +304,9 @@ begin
   rwa [nat.floor_lt (one_div_nonneg.2 po.le), div_lt_iff' po] at hn,
 end
 
-lemma alt_set (c : ℕ × ℕ) (A : finset (ℕ × ℕ)) :
-  (A.filter (λ (x : ℕ × ℕ), x.1 ≤ c.1 ∧ x.2 ≤ c.2 ∧ (c.1 - x.1, c.2 - x.2) ∈ A)).card =
-    ((A.product A).filter (λ (x : (ℕ × ℕ) × ℕ × ℕ), (x.1.1 + x.2.1, x.1.2 + x.2.2) = c)).card :=
+lemma alt_set (c : ℕ × ℕ) (s : finset (ℕ × ℕ)) :
+  (s.filter (λ (x : ℕ × ℕ), x.1 ≤ c.1 ∧ x.2 ≤ c.2 ∧ (c.1 - x.1, c.2 - x.2) ∈ s)).card =
+    ((s.product s).filter (λ (x : (ℕ × ℕ) × ℕ × ℕ), (x.1.1 + x.2.1, x.1.2 + x.2.2) = c)).card :=
 begin
   rcases c with ⟨c₁, c₂⟩,
   refine (card_congr (λ (a : _ × _) ha, a.1) _ _ _).symm,
@@ -319,14 +328,14 @@ begin
   { rw [←nat.add_sub_assoc hy, nat.add_sub_cancel_left] },
 end
 
-lemma correlate {n : ℕ} (hn : 0 < n) (A : finset (ℕ × ℕ)) (hA : A ⊆ (range n).product (range n)) :
+lemma correlate {n : ℕ} (hn : 0 < n) (s : finset (ℕ × ℕ)) (hA : s ⊆ (range n).product (range n)) :
   ∃ c ∈ (range (2 * n)).product (range (2 * n)),
-    (A.card : ℝ)^2 / ((2 * n)^2) ≤
-      (A.filter (λ (xy : ℕ × ℕ), xy.1 ≤ c.1 ∧ xy.2 ≤ c.2 ∧ (c.1 - xy.1, c.2 - xy.2) ∈ A)).card :=
+    (s.card : ℝ)^2 / ((2 * n)^2) ≤
+      (s.filter (λ (xy : ℕ × ℕ), xy.1 ≤ c.1 ∧ xy.2 ≤ c.2 ∧ (c.1 - xy.1, c.2 - xy.2) ∈ s)).card :=
 begin
-  simp_rw [alt_set _ A],
+  simp_rw [alt_set _ s],
   let f : (ℕ × ℕ) × ℕ × ℕ → ℕ × ℕ := λ ab, (ab.1.1 + ab.2.1, ab.1.2 + ab.2.2),
-  have : ∀ a ∈ A.product A, f a ∈ (range (2 * n)).product (range (2 * n)),
+  have : ∀ a ∈ s.product s, f a ∈ (range (2 * n)).product (range (2 * n)),
   { rintro ⟨⟨a₁, a₂⟩, a₃, a₄⟩ h,
     simp only [mem_product] at h,
     have i := and.intro (hA h.1) (hA h.2),
@@ -343,17 +352,17 @@ end
 
 lemma corners_theorem {ε : ℝ} (hε : 0 < ε) :
   ∃ n₀ : ℕ, ∀ n, n₀ ≤ n →
-    ∀ A ⊆ (range n).product (range n), ε * n^2 ≤ A.card →
-      ∃ x y h, 0 < h ∧ is_corner A x y h :=
+    ∀ s ⊆ (range n).product (range n), ε * n^2 ≤ s.card →
+      ∃ x y h, 0 < h ∧ is_corner s x y h :=
 begin
   let ε' : ℝ := (ε/2)^2,
   have hε' : 0 < ε' := pow_pos (by linarith) _,
   obtain ⟨n₀, hn₀⟩ := weak_corners_theorem hε',
-  refine ⟨n₀ + 1, λ n hn A hA hAcard, _⟩,
-  obtain ⟨⟨c₁, c₂⟩, -, hA'card⟩ := correlate (nat.succ_pos'.trans_le hn) A hA,
-  let A' : finset (ℕ × ℕ) := A.filter (λ xy, xy.1 ≤ c₁ ∧ xy.2 ≤ c₂ ∧ (c₁ - xy.1, c₂ - xy.2) ∈ A),
-  have hA' : A' ⊆ A := filter_subset _ _,
-  have : (A.card : ℝ)^2 / ((2 * n)^2) ≤ A'.card := hA'card,
+  refine ⟨n₀ + 1, λ n hn s hA hAcard, _⟩,
+  obtain ⟨⟨c₁, c₂⟩, -, hA'card⟩ := correlate (nat.succ_pos'.trans_le hn) s hA,
+  let A' : finset (ℕ × ℕ) := s.filter (λ xy, xy.1 ≤ c₁ ∧ xy.2 ≤ c₂ ∧ (c₁ - xy.1, c₂ - xy.2) ∈ s),
+  have hA' : A' ⊆ s := filter_subset _ _,
+  have : (s.card : ℝ)^2 / ((2 * n)^2) ≤ A'.card := hA'card,
   by_contra h,
   simp only [not_and', or_imp_distrib, forall_and_distrib, not_exists, not_lt, le_zero_iff] at h,
   have nc : ¬(∃ (x y h : ℕ), 0 < h ∧ (is_corner A' x y h ∨ is_anticorner A' x y h)),
@@ -374,15 +383,15 @@ end
 
 lemma roth (δ : ℝ) (hδ : 0 < δ) :
   ∃ n₀ : ℕ, ∀ n, n₀ ≤ n →
-    ∀ A ⊆ range n, δ * n ≤ A.card → ∃ a d, 0 < d ∧ a ∈ A ∧ a + d ∈ A ∧ a + 2 * d ∈ A :=
+    ∀ s ⊆ range n, δ * n ≤ s.card → ∃ a d, 0 < d ∧ a ∈ s ∧ a + d ∈ s ∧ a + 2 * d ∈ s :=
 begin
   let δ' : ℝ := δ/4,
   have hδ' : 0 < δ' := div_pos hδ (by norm_num),
   obtain ⟨n₀, hn₀⟩ := corners_theorem hδ',
-  refine ⟨n₀, λ n hn A hA hAcard, _⟩,
+  refine ⟨n₀, λ n hn s hA hAcard, _⟩,
   let B : finset (ℕ × ℕ) :=
-    ((range (2 * n)).product (range (2 * n))).filter (λ xy, xy.1 ≤ xy.2 ∧ xy.2 - xy.1 ∈ A),
-  have : n * card A ≤ card B,
+    ((range (2 * n)).product (range (2 * n))).filter (λ xy, xy.1 ≤ xy.2 ∧ xy.2 - xy.1 ∈ s),
+  have : n * card s ≤ card B,
   { rw [←card_range n, ←card_product],
     refine card_le_card_of_inj_on (λ ia, (ia.1, ia.1 + ia.2)) _ _,
     { rintro ⟨i, a⟩ t,
@@ -397,7 +406,7 @@ begin
   { refine le_trans _ (nat.cast_le.2 this),
     rw [nat.cast_mul, nat.cast_two, mul_pow, ←mul_assoc, nat.cast_mul],
     norm_num,
-    rw [sq, ←mul_assoc, mul_comm _ (A.card : ℝ)],
+    rw [sq, ←mul_assoc, mul_comm _ (s.card : ℝ)],
     apply mul_le_mul_of_nonneg_right hAcard (nat.cast_nonneg _) },
   obtain ⟨x, y, k, hk, xy, xky, xyk⟩ :=
     hn₀ _ (hn.trans (nat.le_mul_of_pos_left zero_lt_two)) B (filter_subset _ _) this,
@@ -409,14 +418,12 @@ begin
 end
 
 lemma roth' (δ : ℝ) (hδ : 0 < δ) :
-  ∃ n₀ : ℕ, ∀ n, n₀ ≤ n → ∀ A ⊆ range n, δ * n ≤ A.card → ¬ add_salem_spencer (A : set ℕ) :=
+  ∃ n₀ : ℕ, ∀ n, n₀ ≤ n → ∀ s ⊆ range n, δ * n ≤ s.card → ¬ add_salem_spencer (s : set ℕ) :=
 begin
   obtain ⟨n₀, hn₀⟩ := roth δ hδ,
-  refine ⟨n₀, λ n hn A hA hAcard hA', _⟩,
-  obtain ⟨a, d, hd, x, y, z⟩ := hn₀ n hn A hA hAcard,
-  refine hd.ne' _,
-  have := hA' x z y (by ring),
-  sorry
+  refine ⟨n₀, λ n hn s hA hAcard hA', _⟩,
+  obtain ⟨a, d, hd, x, y, z⟩ := hn₀ n hn s hA hAcard,
+  exact mul_ne_zero two_ne_zero hd.ne' (self_eq_add_right.1 $ hA' x z y $ by ring),
 end
 
 open asymptotics filter
@@ -429,7 +436,7 @@ begin
   obtain ⟨n₀, hn₀⟩ := roth' δ hδ,
   refine ⟨n₀, λ n hn, _⟩,
   simp only [real.norm_coe_nat, ←not_lt],
-  obtain ⟨A, hA₁, hA₂, hA₃⟩ := add_roth_number_spec (range n),
+  obtain ⟨s, hA₁, hA₂, hA₃⟩ := add_roth_number_spec (range n),
   refine λ h, (hn₀ n hn _ hA₁ _) hA₃,
   rw hA₂,
   exact h.le,

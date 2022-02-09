@@ -12,29 +12,27 @@ import combinatorics.simple_graph.degree_sum
 -/
 
 open finset fintype
-open_locale big_operators
 
 variables {α : Type*} {G : simple_graph α}
 
 namespace simple_graph
 
-variables [fintype α]
+@[simp] lemma dart.adj (d : G.dart) : G.adj d.fst d.snd := d.3
 
-@[simp] lemma dart_adj (d : G.dart) : G.adj d.fst d.snd := d.3
+variables [fintype α]
 
 lemma double_edge_finset_card_eq [decidable_eq α] [decidable_rel G.adj] :
   2 * G.edge_finset.card = (univ.filter (λ (xy : α × α), G.adj xy.1 xy.2)).card :=
 begin
   rw [←dart_card_eq_twice_card_edges, ←card_univ],
   refine card_congr (λ i _, (i.1, i.2)) (by simp) (by simp [dart.ext_iff, ←and_imp]) _,
-  { rintro ⟨x, y⟩ h,
-    exact ⟨⟨x, y, (mem_filter.1 h).2⟩, mem_univ _, rfl⟩ },
+  rintro ⟨x, y⟩ h,
+  exact ⟨⟨x, y, (mem_filter.1 h).2⟩, mem_univ _, rfl⟩,
 end
 
 open_locale classical
 
-lemma reduced_edges_card_aux [nonempty α] {ε : ℝ} {P : finpartition (univ : finset α)}
-  (hε : 0 < ε)
+lemma reduced_edges_card_aux [nonempty α] {ε : ℝ} {P : finpartition (univ : finset α)} (hε : 0 < ε)
   (hP : P.is_equipartition) (hPε : P.is_uniform G (ε/8)) (hP' : 4 / ε ≤ P.parts.card) :
   2 * (G.edge_finset.card - (reduced_graph G ε P).edge_finset.card : ℝ) < 2 * ε * (card α)^2 :=
 begin
@@ -63,8 +61,7 @@ begin
   ring,
 end
 
-lemma triangle_removal_2 {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1)
-  (hG : G.triangle_free_far ε) :
+lemma triangle_removal_2 {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1) (hG : G.triangle_free_far ε) :
   triangle_removal_bound ε * (card α)^3 ≤ G.triangle_finset.card :=
 begin
   let l : ℕ := nat.ceil (4/ε),

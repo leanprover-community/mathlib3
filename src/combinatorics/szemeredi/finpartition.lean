@@ -267,6 +267,30 @@ instance : semilattice_inf (finpartition a) :=
   end,
   ..finpartition.partial_order, ..finpartition.has_inf }
 
+lemma exists_le_of_le {P Q : finpartition a} (h : P ≤ Q) (hb : b ∈ Q.parts) :
+  ∃ c ∈ P.parts, c ≤ b :=
+begin
+  by_contra' H,
+  refine Q.ne_bot hb (disjoint_self.1 $ disjoint.mono_right (Q.le hb) _),
+  rw [←P.sup_parts, finset.disjoint_sup_right],
+  rintro c hc,
+  obtain ⟨d, hd, hcd⟩ := h hc,
+  refine (Q.disjoint hb hd _).mono_right hcd,
+  rintro rfl,
+  exact H _ hc hcd,
+end
+
+lemma card_mono {P Q : finpartition a} (h : P ≤ Q) : Q.parts.card ≤ P.parts.card :=
+begin
+  classical,
+  have : ∀ b ∈ Q.parts, ∃ c ∈ P.parts, c ≤ b := λ b, exists_le_of_le h,
+  choose f hP hf using this,
+  rw ←card_attach,
+  refine card_le_card_of_inj_on (λ b, f _ b.2) (λ b _, hP _ b.2) (λ b hb c hc h, _),
+  exact subtype.coe_injective (Q.disjoint.elim b.2 c.2 $ λ H, P.ne_bot (hP _ b.2) $
+    disjoint_self.1 $ H.mono (hf _ b.2) $ h.le.trans $ hf _ c.2),
+end
+
 section bind
 variables {a} {P : finpartition a} {Q : Π i ∈ P.parts, finpartition i}
 
@@ -399,6 +423,9 @@ instance (s : finset α) : order_bot (finpartition s) :=
     exact ⟨t, ht, singleton_subset_iff.2 hat⟩,
   end,
   ..finpartition.has_bot s }
+
+lemma card_parts_le_card (P : finpartition s) : P.parts.card ≤ s.card :=
+by { rw ←card_bot s, exact card_mono bot_le }
 
 section atomise
 

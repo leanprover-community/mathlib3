@@ -54,17 +54,17 @@ begin
   rw [off_diag_card, nat.mul_sub_left_distrib, mul_one],
 end
 
-/-- The index is the auxiliary quantity that drives the induction process in the proof of
+/-- The energy is the auxiliary quantity that drives the induction process in the proof of
 Szemerédi's Regularity Lemma (see `increment`). As long as we do not have a suitable equipartition,
-we will find a new one that has an index greater than the previous one plus some fixed constant.
-Then `index_le_one` ensures this process only happens finitely many times. -/
-noncomputable def index (P : finpartition s) : ℝ :=
+we will find a new one that has an energy greater than the previous one plus some fixed constant.
+Then `energy_le_one` ensures this process only happens finitely many times. -/
+noncomputable def energy (P : finpartition s) : ℝ :=
 (∑ UV in P.parts.off_diag, G.edge_density UV.1 UV.2^2)/P.parts.card^2
 
-lemma index_nonneg (P : finpartition s) : 0 ≤ P.index G :=
+lemma energy_nonneg (P : finpartition s) : 0 ≤ P.energy G :=
 div_nonneg (finset.sum_nonneg (λ _ _, sq_nonneg _)) (sq_nonneg _)
 
-lemma index_le_one (P : finpartition s) : P.index G ≤ 1 :=
+lemma energy_le_one (P : finpartition s) : P.energy G ≤ 1 :=
 begin
   refine div_le_of_nonneg_of_le_mul (sq_nonneg _) zero_le_one _,
   suffices h : ∑ UV in P.parts.off_diag, G.edge_density UV.1 UV.2^2 ≤ P.parts.off_diag.card,

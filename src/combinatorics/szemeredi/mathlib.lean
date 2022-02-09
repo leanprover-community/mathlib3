@@ -22,6 +22,16 @@ lemma weird_thing : ∀ {d : ℕ}, d ≤ 2 * d - 1
 | 0 := by simp
 | (n+1) := by simp [mul_add, two_mul]
 
+lemma thing2 (i j : ℕ) (hj : 0 < j) : j * (j - 1) * (i / j + 1) ^ 2 < (i + j) ^ 2 :=
+begin
+  have : j * (j-1) < j^2,
+  { rw sq,
+    exact nat.mul_lt_mul_of_pos_left (nat.sub_lt hj zero_lt_one) hj },
+  apply (nat.mul_lt_mul_of_pos_right this $ pow_pos nat.succ_pos' _).trans_le,
+  rw ←mul_pow,
+  exact nat.pow_le_pow_of_le_left (add_le_add_right (nat.mul_div_le i j) _) _,
+end
+
 def from_digits {n : ℕ} (d : ℕ) (a : fin n → ℕ) : ℕ := ∑ i, a i * d^(i : ℕ)
 
 @[simp] lemma from_digits_zero (d : ℕ) (a : fin 0 → ℕ) : from_digits d a = 0 :=

@@ -25,6 +25,7 @@ instance [decidable_eq α] [decidable_rel G.adj] {n} {s : finset α} :
 decidable_of_iff (s.card = n ∧ ∀ x ∈ s, ∀ y ∈ s, x ≠ y → G.adj x y)
   (by simp [simple_graph.is_n_clique, set.pairwise])
 
+/-- `G` has no triangles. -/
 def no_triangles := ∀ t, ¬ G.is_n_clique 3 t
 
 lemma bot_no_triangles : (⊥ : simple_graph α).no_triangles :=
@@ -38,20 +39,22 @@ begin
   apply ht₂ hx hy hxy,
 end
 
-variables [fintype α]
+section triangle_finset
+variables [fintype α] [decidable_eq α] [decidable_rel G.adj]
 
-def triangle_finset [decidable_eq α] [decidable_rel G.adj] : finset (finset α) :=
-  (powerset_len 3 univ).filter (G.is_n_clique 3)
+/-- The triangles in a graph as a finset. -/
+def triangle_finset : finset (finset α) :=
+(powerset_len 3 univ).filter $ G.is_n_clique 3
 
-lemma mem_triangle_finset [decidable_eq α] [decidable_rel G.adj] (s : finset α) :
+lemma mem_triangle_finset (s : finset α) :
   s ∈ G.triangle_finset ↔ s.card = 3 ∧ (s : set α).pairwise G.adj :=
 by simp [triangle_finset, mem_powerset_len, is_n_clique]
 
-lemma mem_triangle_finset' [decidable_eq α] [decidable_rel G.adj] (s : finset α) :
+lemma mem_triangle_finset' (s : finset α) :
   s ∈ G.triangle_finset ↔ G.is_n_clique 3 s :=
 G.mem_triangle_finset s
 
-lemma mem_triangle_finset'' [decidable_eq α] [decidable_rel G.adj] (x y z : α) :
+lemma mem_triangle_finset'' (x y z : α) :
   {x, y, z} ∈ G.triangle_finset ↔ G.adj x y ∧ G.adj x z ∧ G.adj y z :=
 begin
   rw [mem_triangle_finset],
@@ -74,7 +77,7 @@ begin
   exact ⟨_, _, _, G.ne_of_adj xy, G.ne_of_adj xz, G.ne_of_adj yz, rfl⟩,
 end
 
-lemma mem_triangle_finset''' [decidable_eq α] [decidable_rel G.adj] {s : finset α} :
+lemma mem_triangle_finset''' {s : finset α} :
   s ∈ G.triangle_finset ↔ ∃ x y z, G.adj x y ∧ G.adj x z ∧ G.adj y z ∧ s = {x,y,z} :=
 begin
   split,
@@ -88,14 +91,20 @@ begin
   tauto
 end
 
-lemma triangle_finset_empty_iff [decidable_eq α]  [decidable_rel G.adj] :
-  G.triangle_finset = ∅ ↔ G.no_triangles :=
+lemma triangle_finset_empty_iff : G.triangle_finset = ∅ ↔ G.no_triangles :=
 by simp only [mem_triangle_finset, eq_empty_iff_forall_not_mem, no_triangles, is_n_clique]
+
+end triangle_finset
 
 open_locale classical
 
+section triangle_free_far
+variables [fintype α]
+
+/-- A simple graph is `ε`-triangle-free far if one must remove a density of `ε` edges to make it
+triangle-free. -/
 def triangle_free_far (G : simple_graph α) (ε : ℝ) : Prop :=
-  ∀ (G' ≤ G), G'.no_triangles → ε * (card α)^2 ≤ (G.edge_finset.card - G'.edge_finset.card : ℝ)
+∀ G' ≤ G, G'.no_triangles → ε * (card α)^2 ≤ (G.edge_finset.card - G'.edge_finset.card : ℝ)
 
 lemma has_triangle_of_few_edges_removed {ε : ℝ} {G' : simple_graph α} (hG' : G' ≤ G)
   (hG : G.triangle_free_far ε)
@@ -118,8 +127,10 @@ begin
   simp only [nat.cast_ne_zero, ←pos_iff_ne_zero, fintype.card_pos],
 end
 
+end triangle_free_far
+
 noncomputable def bad_vertices (ε : ℝ) (X Y : finset α) :=
-  X.filter (λ x, ((Y.filter (G.adj x)).card : ℝ) < (G.edge_density X Y - ε) * Y.card)
+X.filter (λ x, ((Y.filter (G.adj x)).card : ℝ) < (G.edge_density X Y - ε) * Y.card)
 
 lemma of_mem_bad_vertices {ε : ℝ} {X Y : finset α} :
   ∀ x ∈ G.bad_vertices ε X Y, ((Y.filter (G.adj x)).card : ℝ) ≤ (G.edge_density X Y - ε) * Y.card :=
@@ -160,25 +171,26 @@ begin
   apply G.pairs_card_bad_le,
 end
 
-@[simp] lemma edge_density_empty_left {X : finset α} : G.edge_density ∅ X = 0 :=
+@[simp] lemma edge_density_empty_left (s : finset α) : G.edge_density ∅ s = 0 :=
 by simp [edge_density_eq_edge_count_div_card]
 
-@[simp] lemma edge_density_empty_right {X : finset α} : G.edge_density X ∅ = 0 :=
+@[simp] lemma edge_density_empty_right (s : finset α) : G.edge_density s ∅ = 0 :=
 by simp [edge_density_eq_edge_count_div_card]
 
-lemma nonempty_left_of_pos_edge_density {X Y : finset α} : 0 < G.edge_density X Y → X.nonempty :=
+lemma nonempty_of_edge_density_ne_zero_left {s t : finset α} :
+  G.edge_density s t ≠ 0 → s.nonempty :=
 begin
   rw nonempty_iff_ne_empty,
   rintro h rfl,
-  simpa using h
+  exact h (edge_density_empty_left _ _),
 end
 
-lemma nonempty_right_of_pos_edge_density {X Y : finset α} :
-  0 < G.edge_density X Y → Y.nonempty :=
+lemma nonempty_of_edge_density_ne_zero_right {s t : finset α} :
+  G.edge_density s t ≠ 0 → t.nonempty :=
 begin
   rw nonempty_iff_ne_empty,
   rintro h rfl,
-  simpa using h
+  exact h (edge_density_empty_right _ _),
 end
 
 lemma few_bad_vertices {X Y : finset α} {ε : ℝ} (hε₀ : 0 ≤ ε) (hε : ε ≤ 1)
@@ -232,8 +244,8 @@ begin
   have : ε ≤ G.edge_density (filter (G.adj x) Y) (filter (G.adj x) Z),
   { rw abs_sub_lt_iff at this,
     linarith },
-  refine le_trans _ (mul_le_of_nonneg_of_le_div (nat.cast_nonneg _) $
-    by exact_mod_cast (nat.zero_le _) this),
+  refine le_trans _ (mul_le_of_nonneg_of_le_div (nat.cast_nonneg _)
+    (by exact_mod_cast (nat.zero_le _)) this),
   refine eq.trans_le _ (mul_le_mul_of_nonneg_left
     (mul_le_mul hY hZ (mul_nonneg (nat.cast_nonneg _) hε) (nat.cast_nonneg _)) hε),
   ring,
@@ -274,8 +286,10 @@ begin
   simp only [prod.forall, mem_image, not_exists, exists_prop, mem_filter, prod.mk.inj_iff,
     exists_imp_distrib, and_imp, not_and, mem_product, or.assoc],
   rintro - - - - - - _ _ _ rfl rfl _ _ _ _ _ _ _ rfl _,
-  apply t rfl,
+  exact t rfl,
 end
+
+variables [fintype α]
 
 lemma triangle_counting2 {X Y Z : finset α} {ε : ℝ}
   (dXY : 2 * ε ≤ G.edge_density X Y) (uXY : G.is_uniform ε X Y) (hXY : disjoint X Y)
@@ -474,39 +488,15 @@ begin
   apply nat.mul_div_le,
 end
 
-
 lemma triangle_free_far.not_no_triangles [nonempty α] {ε : ℝ} (hG : G.triangle_free_far ε)
   (hε : 0 < ε) : ¬ G.no_triangles :=
 λ hG', hε.ne' (eps_eq_zero_of_no_triangles G hε.le hG hG')
-
--- lemma triangle_free_far.le_card_triangle_finset (hG : G.triangle_free_far ε) :
---   ε * (card α)^2 ≤ G.triangle_finset.card :=
--- begin
---   refine (hG (G.kill_finsets G.triangle_finset) kill_finsets_le _).trans _,
---   sorry,
---   sorry
--- end
 
 lemma triangle_free_far.triangle_finset_card_pos {ε : ℝ} [nonempty α] (hG : G.triangle_free_far ε)
   (hε : 0 < ε) : 0 < G.triangle_finset.card :=
 begin
   rw [finset.card_pos, nonempty_iff_ne_empty, ne.def, triangle_finset_empty_iff],
   apply hG.not_no_triangles hε,
-end
-
-lemma thing2 (i j : ℕ) (hj : 0 < j) :
-  j * (j - 1) * (i / j + 1) ^ 2 < (i + j) ^ 2 :=
-begin
-  suffices : j * (j-1) < j^2,
-  { apply (nat.mul_lt_mul_of_pos_right this _).trans_le,
-    { rw ←mul_pow,
-      apply nat.pow_le_pow_of_le_left,
-      rw [mul_add, mul_one],
-      apply add_le_add_right (nat.mul_div_le i j) },
-    apply pow_pos,
-    apply nat.succ_pos },
-  rw sq,
-  exact nat.mul_lt_mul_of_pos_left (nat.sub_lt hj zero_lt_one) hj,
 end
 
 lemma sum_irreg_pairs_le_of_uniform [nonempty α] {ε : ℝ} (hε : 0 < ε)
@@ -525,17 +515,8 @@ begin
   rw [mul_right_comm _ ε, mul_comm ε],
   apply mul_lt_mul_of_pos_right _ hε,
   norm_cast,
-  apply thing2 _ _,
+  apply nat.thing2 _ _,
   exact (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos,
-end
-
-lemma parts_card_le_card (P : finpartition (univ : finset α)) : P.parts.card ≤ card α :=
-begin
-  suffices : P.parts.card ≤ (P.parts.bUnion id).card,
-  { simpa [P.bUnion_parts] },
-  rw [finset.card_eq_sum_ones, card_bUnion],
-  refine sum_le_sum (λ i hi, (P.nonempty_of_mem_parts hi).card_pos),
-  apply P.disjoint
 end
 
 lemma sum_irreg_pairs_le_of_uniform' [nonempty α] {ε : ℝ} (hε : 0 < ε)
@@ -549,7 +530,7 @@ begin
   apply mul_le_mul_of_nonneg_left _ hε.le,
   refine pow_le_pow_of_le_left (by exact_mod_cast (nat.zero_le _)) _ _,
   refine add_le_add_left (nat.cast_le.2 _) _,
-  apply parts_card_le_card,
+  apply card_parts_le_card,
 end
 
 lemma sum_sparse {ε : ℝ} (hε : 0 ≤ ε)
@@ -564,7 +545,7 @@ begin
   apply mul_le_mul_of_nonneg_left _ hε,
   refine pow_le_pow_of_le_left (by exact_mod_cast (nat.zero_le _)) _ _,
   refine add_le_add_left (nat.cast_le.2 _) _,
-  apply parts_card_le_card
+  apply card_parts_le_card
 end
 
 lemma internal_killed_card' [nonempty α] {ε : ℝ} (hε : 0 < ε)
@@ -576,7 +557,7 @@ begin
   have : (card α : ℝ) + P.parts.card ≤ 2 * card α,
   { rw two_mul,
     apply add_le_add_left,
-    exact nat.cast_le.2 (parts_card_le_card _) },
+    exact nat.cast_le.2 (card_parts_le_card _) },
   apply (mul_le_mul_of_nonneg_left this (nat.cast_nonneg _)).trans,
   suffices : 1 ≤ (ε/4) * P.parts.card,
   { rw [mul_left_comm, ←sq],
@@ -588,6 +569,7 @@ begin
   exact (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
 end
 
+/-- An explicit form for the constant in the triangle removal lemma. -/
 noncomputable def triangle_removal_bound (ε : ℝ) : ℝ :=
 min (1 / (2 * ⌈4/ε⌉₊^3)) ((1 - ε/4) * (ε/(16 * szemeredi_bound (ε/8) ⌈4/ε⌉₊))^3)
 
@@ -635,7 +617,7 @@ begin
   rw div_le_iff',
   { norm_cast,
     apply (annoying_thing (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
-      (parts_card_le_card P)).le.trans,
+      (card_parts_le_card P)).le.trans,
     apply nat.mul_le_mul_right,
     exact nat.mul_le_mul_left _ hP₃ },
   refine mul_pos zero_lt_two _,
@@ -648,7 +630,6 @@ lemma triangle_removal_aux [nonempty α] {ε : ℝ}
   {P : finpartition univ}
   (hP₁ : P.is_equipartition)
   (hP₃ : P.parts.card ≤ szemeredi_bound (ε / 8) ⌈4/ε⌉₊)
-  (hP₄ : P.is_uniform G (ε / 8))
   {t : finset α} (ht : t ∈ (G.reduced_graph ε P).triangle_finset) :
   triangle_removal_bound ε * ↑(card α) ^ 3 ≤ ↑(G.triangle_finset.card) :=
 begin
@@ -694,3 +675,4 @@ begin
 end
 
 end simple_graph
+#lint

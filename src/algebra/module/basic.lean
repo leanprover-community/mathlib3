@@ -219,7 +219,7 @@ lemma module.ext' {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q 
   P = Q :=
 begin
   ext,
-  exact w
+  exact w _ _
 end
 
 section module

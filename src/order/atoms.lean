@@ -659,11 +659,11 @@ begin
     (set.finite.of_fintype _) ⟨b, le_rfl, ht⟩,
   refine ⟨c, ⟨hc.2, λ y hcy, _⟩, hc.1⟩,
   by_contra hyt,
-  have : c = y := hmax y ⟨hc.1.trans hcy.le, hyt⟩ hcy.le,
-  subst this, exact (lt_self_iff_false _).mp hcy
+  obtain rfl : c = y := hmax y ⟨hc.1.trans hcy.le, hyt⟩ hcy.le,
+  exact (lt_self_iff_false _).mp hcy
 end
 
 instance fintype.to_is_atomic [partial_order α] [order_bot α] [fintype α] : is_atomic α :=
-  is_coatomic_dual_iff_is_atomic.mp fintype.to_is_coatomic
+is_coatomic_dual_iff_is_atomic.mp fintype.to_is_coatomic
 
 end fintype

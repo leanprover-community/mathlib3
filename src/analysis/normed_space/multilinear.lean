@@ -58,7 +58,7 @@ open_locale classical big_operators nnreal
 open finset metric
 
 local attribute [instance, priority 1001]
-add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_module
+add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_module'
 
 -- hack to speed up simp when dealing with complicated types
 local attribute [-instance] unique.subsingleton pi.subsingleton
@@ -196,7 +196,7 @@ begin
         { assume j hj,
           by_cases h : j = i,
           { rw h, simp, exact norm_le_pi_norm (m₁ - m₂) i },
-          { simp [h, max_le_max, norm_le_pi_norm] } }
+          { simp [h, max_le_max, norm_le_pi_norm (_ : Π i, E i)] } }
       end
     ... = ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) :
       by { rw prod_update_of_mem (finset.mem_univ _), simp [card_univ_diff] } },
@@ -328,7 +328,7 @@ calc
   ∥f m∥ ≤ ∥f∥ * ∏ i, ∥m i∥ : f.le_op_norm m
   ... ≤ ∥f∥ * ∏ i : ι, 1 :
     mul_le_mul_of_nonneg_left (prod_le_prod (λi hi, norm_nonneg _)
-      (λi hi, le_trans (norm_le_pi_norm _ _) h)) (op_norm_nonneg f)
+      (λi hi, le_trans (norm_le_pi_norm (_ : Π i, E i) _) h)) (op_norm_nonneg f)
   ... = ∥f∥ : by simp
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `f`. -/
@@ -618,7 +618,7 @@ begin
     have A : ∀ᶠ m in at_top, ∥(f n - f m) v∥ ≤ b n * ∏ i, ∥v i∥,
     { refine eventually_at_top.2 ⟨n, λ m hm, _⟩,
       apply le_trans ((f n - f m).le_op_norm _) _,
-      exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (nonneg v) },
+      exact mul_le_mul_of_nonneg_right (b_bound n m n le_rfl hm) (nonneg v) },
     have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Fcont) v∥)) :=
       tendsto.norm (tendsto_const_nhds.sub (hF v)),
     exact le_of_tendsto B A },

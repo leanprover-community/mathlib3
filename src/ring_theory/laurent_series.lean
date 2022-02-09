@@ -20,7 +20,7 @@ import ring_theory.localization
 -/
 
 open hahn_series
-open_locale big_operators classical
+open_locale big_operators classical polynomial
 noncomputable theory
 
 universe u
@@ -149,7 +149,7 @@ rfl
 instance {K : Type u} [field K] : is_fraction_ring (power_series K) (laurent_series K) :=
 is_localization.of_le (submonoid.powers (power_series.X : power_series K)) _
   (powers_le_non_zero_divisors_of_no_zero_divisors power_series.X_ne_zero)
-  (λ f hf, is_unit_of_mem_non_zero_divisors $ ring_hom.map_mem_non_zero_divisors _
+  (λ f hf, is_unit_of_mem_non_zero_divisors $ map_mem_non_zero_divisors _
     hahn_series.of_power_series_injective hf)
 
 end laurent_series
@@ -158,7 +158,7 @@ namespace power_series
 
 open laurent_series
 
-variables [semiring R] (f g : power_series R)
+variables {R' : Type*} [semiring R] [ring R'] (f g : power_series R) (f' g' : power_series R')
 
 @[simp, norm_cast] lemma coe_zero : ((0 : power_series R) : laurent_series R) = 0 :=
 (of_power_series ℤ R).map_zero
@@ -168,6 +168,12 @@ variables [semiring R] (f g : power_series R)
 
 @[simp, norm_cast] lemma coe_add : ((f + g : power_series R) : laurent_series R) = f + g :=
 (of_power_series ℤ R).map_add _ _
+
+@[simp, norm_cast] lemma coe_sub : ((f' - g' : power_series R') : laurent_series R') = f' - g' :=
+(of_power_series ℤ R').map_sub _ _
+
+@[simp, norm_cast] lemma coe_neg : ((-f' : power_series R') : laurent_series R') = -f' :=
+(of_power_series ℤ R').map_neg _
 
 @[simp, norm_cast] lemma coe_mul : ((f * g : power_series R) : laurent_series R) = f * g :=
 (of_power_series ℤ R).map_mul _ _

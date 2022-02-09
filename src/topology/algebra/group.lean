@@ -230,6 +230,10 @@ lemma continuous_within_at.inv (hf : continuous_within_at f s x) :
   continuous_within_at (λ x, (f x)⁻¹) s x :=
 hf.inv
 
+@[to_additive]
+lemma is_compact.inv {s : set G} (hs : is_compact s) : is_compact (s⁻¹) :=
+by { rw [← image_inv], exact hs.image continuous_inv }
+
 section ordered_comm_group
 
 variables [topological_space H] [ordered_comm_group H] [topological_group H]

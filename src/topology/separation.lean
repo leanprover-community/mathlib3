@@ -1045,6 +1045,11 @@ lemma compact_closure_of_subset_compact [t2_space α] {s t : set α} (ht : is_co
   is_compact (closure s) :=
 compact_of_is_closed_subset ht is_closed_closure (closure_minimal h ht.is_closed)
 
+@[simp]
+lemma exists_compact_superset_iff [t2_space α] {s : set α} :
+  (∃ K, is_compact K ∧ s ⊆ K) ↔ is_compact (closure s) :=
+⟨λ ⟨K, hK, hsK⟩, compact_closure_of_subset_compact hK hsK, λ h, ⟨closure s, h, subset_closure⟩⟩
+
 lemma image_closure_of_compact [t2_space β]
   {s : set α} (hs : is_compact (closure s)) {f : α → β} (hf : continuous_on f (closure s)) :
   f '' closure s = closure (f '' s) :=

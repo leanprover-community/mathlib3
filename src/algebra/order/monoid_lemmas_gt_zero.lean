@@ -27,25 +27,25 @@ positive elements is (strictly) monotone on a `mul_zero_class`, `monoid_with_zer
 More specifically, we use extensively the following typeclasses:
 
 * monotone left
-* * `covariant_class α>0 α pos_mul (≤)`, expressing that multiplication by positive elements on the
-    left is monotone;
-* * `covariant_class α>0 α pos_mul (<)`, expressing that multiplication by positive elements on the
-    left is strictly monotone;
+* * `covariant_class α>0 α pos_mul (≤)`, abbreviated `pos_mul_mono α`,
+    expressing that multiplication by positive elements on the left is monotone;
+* * `covariant_class α>0 α pos_mul (<)`, abbreviated `pos_mul_strict_mono α`,
+    expressing that multiplication by positive elements on the left is strictly monotone;
 * monotone right
-* * `covariant_class α>0 α mul_pos (≤)`, expressing that multiplication by positive elements on the
-    right is monotone;
-* * `covariant_class α>0 α mul_pos (<)`, expressing that multiplication by positive elements on the
-    right is strictly monotone.
+* * `covariant_class α>0 α mul_pos (≤)`, abbreviated `mul_pos_mono α`,
+    expressing that multiplication by positive elements on the right is monotone;
+* * `covariant_class α>0 α mul_pos (<)`, abbreviated `mul_pos_strict_mono α`,
+    expressing that multiplication by positive elements on the right is strictly monotone.
 * reverse monotone left
-* * `contravariant_class α>0 α pos_mul (≤)`, expressing that multiplication by positive elements on
-    the left is reverse monotone;
-* * `contravariant_class α>0 α pos_mul (<)`, expressing that multiplication by positive elements on
-    the left is strictly reverse monotone;
+* * `contravariant_class α>0 α pos_mul (≤)`, abbreviated `pos_mul_mono_rev α`,
+    expressing that multiplication by positive elements on the left is reverse monotone;
+* * `contravariant_class α>0 α pos_mul (<)`, abbreviated `pos_mul_strict_mono_rev α`,
+    expressing that multiplication by positive elements on the left is strictly reverse monotone;
 * reverse reverse monotone right
-* * `contravariant_class α>0 α mul_pos (≤)`, expressing that multiplication by positive elements on
-    the right is reverse monotone;
-* * `contravariant_class α>0 α mul_pos (<)`, expressing that multiplication by positive elements on
-    the right is strictly reverse monotone.
+* * `contravariant_class α>0 α mul_pos (≤)`, abbreviated `mul_pos_mono_rev α`,
+    expressing that multiplication by positive elements on the right is reverse monotone;
+* * `contravariant_class α>0 α mul_pos (<)`, abbreviated `mul_pos_strict_mono_rev α`,
+    expressing that multiplication by positive elements on the right is strictly reverse monotone.
 
 ##  Formalization comments
 
@@ -154,8 +154,7 @@ lemma mul_lt_mul_iff_left [pos_mul_strict_mono α] [pos_mul_strict_mono_rev α]
 let a₀ : α>0 := ⟨a, a0⟩ in by apply rel_iff_cov α>0 α pos_mul (<) a₀
 
 @[simp]
-lemma mul_lt_mul_iff_right
-  [mul_pos_strict_mono α] [mul_pos_strict_mono_rev α]
+lemma mul_lt_mul_iff_right [mul_pos_strict_mono α] [mul_pos_strict_mono_rev α]
   {a b c : α} (a0 : 0 < a) :
   b * a < c * a ↔ b < c :=
 let a₀ : α>0 := ⟨a, a0⟩ in rel_iff_cov α>0 α mul_pos (<) a₀

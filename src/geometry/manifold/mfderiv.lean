@@ -1251,8 +1251,9 @@ begin
   rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },
-  simp only [tangent_bundle_core, basic_smooth_vector_bundle_core.chart, h, continuous_linear_map.coe_coe,
-    basic_smooth_vector_bundle_core.to_topological_vector_bundle_core, chart_at] with mfld_simps,
+  simp only [continuous_linear_map.coe_coe, basic_smooth_vector_bundle_core.chart, h,
+    tangent_bundle_core, basic_smooth_vector_bundle_core.to_topological_vector_bundle_core,
+    chart_at] with mfld_simps,
 end
 
 end charts

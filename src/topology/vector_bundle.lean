@@ -276,7 +276,7 @@ structure topological_vector_bundle_core (ι : Type*) :=
 (coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
 
-/-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
+/-- The trivial topological vector bundle core, in which all the changes of coordinates are the
 identity. -/
 def trivial_topological_vector_bundle_core (ι : Type*) [inhabited ι] :
   topological_vector_bundle_core R B F ι :=

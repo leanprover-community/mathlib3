@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import algebra.associated
 import data.nat.factorization
+import number_theory.divisors
 
 /-!
 # Prime powers

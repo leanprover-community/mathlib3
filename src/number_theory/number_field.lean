@@ -43,8 +43,8 @@ class number_field (K : Type*) [field K] : Prop :=
 open function
 open_locale classical big_operators
 
-/-- `ℤ` is not a field. -/
-lemma int.not_field : ¬ is_field ℤ :=
+/-- `ℤ` with its usual ring structure is not a field. -/
+lemma int.not_is_field : ¬ is_field ℤ :=
 begin
   rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
   use ideal.span{(2 : ℤ)},
@@ -112,7 +112,7 @@ variables (K)
 instance [number_field K] : char_zero (𝓞 K) := char_zero.of_module _ K
 
 /-- The ring of integers of a number field is not a field. -/
-lemma not_field [number_field K] : ¬ is_field (𝓞 K) :=
+lemma not_is_field [number_field K] : ¬ is_field (𝓞 K) :=
 begin
   have h_inj: function.injective ⇑(algebra_map ℤ ↥(ring_of_integers K)),
   { rw ring_hom.injective_iff,
@@ -120,7 +120,7 @@ begin
     rw [ring_hom.eq_int_cast, int.cast_eq_zero] at ha,
     exact ha, },
   intro hf,
-  exact int.not_field ((is_integral.is_field_iff_is_field
+  exact int.not_is_field ((is_integral.is_field_iff_is_field
     (is_integral_closure.is_integral_algebra ℤ K) h_inj).mpr hf)
 end
 

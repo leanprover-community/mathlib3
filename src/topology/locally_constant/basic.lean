@@ -434,8 +434,7 @@ variables {R : Type*} [has_zero R] {U : set X} (f : locally_constant X R)
 @[simps]
 noncomputable def indicator (hU : is_clopen U) :
   locally_constant X R :=
-{
-  to_fun := set.indicator U f,
+{ to_fun := set.indicator U f,
   is_locally_constant :=
     begin
       rw is_locally_constant.iff_exists_open, rintros x,
@@ -447,8 +446,7 @@ noncomputable def indicator (hU : is_clopen U) :
       { rw ←set.mem_compl_iff at h, refine ⟨Uᶜ, (is_clopen.compl hU).1, h, _⟩,
         rintros y hy, rw set.mem_compl_iff at h, rw set.mem_compl_iff at hy,
         simp [h, hy], },
-    end,
-}
+    end, }
 
 variables (a : X)
 

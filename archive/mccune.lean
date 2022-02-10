@@ -1,11 +1,10 @@
 /-
 Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta
+Authors: Bhavik Mehta, Yury Kudryashov
 -/
 
 import tactic
-
 class mccune_group (G : Type*) extends has_mul G, has_inv G, inhabited G :=
 (mccune (x y z u : G) : x * (y * (((z * z⁻¹) * (u * y)⁻¹) * x))⁻¹ = u)
 
@@ -129,30 +128,56 @@ lemma l88 : 1⁻¹ * x⁻¹⁻¹ = x :=
 calc 1⁻¹ * x⁻¹⁻¹ = 1⁻¹ * (x⁻¹ * 1)⁻¹ : congr_arg2 (*) rfl (l76 x⁻¹).symm
              ... = x                 : l32 x
 
-@[simp] lemma mul_one : y * 1 = y := by simpa [l76, l88] using (l88 (y * 1)).symm
-lemma one_inv_inv : (1 : G)⁻¹⁻¹ = 1 := by simpa using l48
-@[simp] lemma one_inv : (1 : G)⁻¹ = 1 := by simpa [one_inv_inv] using l88 (1 : G)
-lemma l92 : (1 * y⁻¹)⁻¹ = y := by simpa using l36 y
+lemma mul_one : y * 1 = y :=
+calc y * 1 = 1⁻¹ * (y * 1)⁻¹⁻¹ : (l88 (y * 1)).symm
+       ... = 1⁻¹ * y⁻¹⁻¹       : by rw l76
+       ... = y                 : l88 y
 
-lemma l126 : (y * z) * z⁻¹ = y :=
-begin
-  have := l5 ((1 : G) * (y * z)⁻¹)⁻¹ z z y,
-  rw [mul_right_inv, mul_right_inv] at this,
-  simpa [l92] using this,
-end
+lemma one_inv_inv : (1 : G)⁻¹⁻¹ = 1 :=
+calc (1 : G)⁻¹⁻¹ = 1⁻¹⁻¹ * 1 : (mul_one _).symm
+             ... = 1         : l48
 
-lemma l201 : x * y⁻¹⁻¹ = x * y :=
-calc x * y⁻¹⁻¹ =  x * y * y⁻¹ * y⁻¹⁻¹ : congr_arg2 (*) (l126 x y).symm rfl
-           ... = x * y                : l126 (x * y) y⁻¹
+lemma one_inv : (1 : G)⁻¹ = 1 :=
+calc (1 : G)⁻¹ = 1⁻¹ * 1⁻¹⁻¹ : by rw [one_inv_inv, mul_one]
+           ... = 1           : l88 1
+
+lemma l92 : (1 * x⁻¹)⁻¹ = x := 
+calc _ = (1 * (x * 1⁻¹⁻¹)⁻¹)⁻¹ : by rw [one_inv_inv, mul_one]
+... = x : l36 x
+
+lemma mul_inv_cancel_right : y * z * z⁻¹ = y :=
+calc y * z * z⁻¹ = (1 * (y * z)⁻¹)⁻¹ * (z * (z * z⁻¹ * (y * z)⁻¹ * (1 * (y * z)⁻¹)⁻¹))⁻¹ :
+  by simp_rw [mul_right_inv, l92, mul_one]
+... = y : l5 ((1 : G) * (y * z)⁻¹)⁻¹ z z y
+
+lemma mul_inv_inv : x * y⁻¹⁻¹ = x * y :=
+calc x * y⁻¹⁻¹ =  x * y * y⁻¹ * y⁻¹⁻¹ : congr_arg2 (*) (mul_inv_cancel_right x y).symm rfl
+           ... = x * y                : mul_inv_cancel_right (x * y) y⁻¹
 
 lemma one_mul : 1 * z = z :=
-have z * z⁻¹ * z⁻¹⁻¹ = z := l126 z z⁻¹,
-by simpa [l201] using l126 z z⁻¹
+calc 1 * z = z * z⁻¹ * z⁻¹⁻¹ : by rw [mul_inv_inv, mul_right_inv]
+       ... = z               : mul_inv_cancel_right z z⁻¹
 
-@[simp] lemma inv_inv : y⁻¹⁻¹ = y := by simpa using l201 1 y
-@[simp] lemma mul_left_inv : x⁻¹ * x = 1 := by simpa using mul_right_inv x⁻¹
-lemma l229 : (z * x)⁻¹ = x⁻¹ * z⁻¹ := by simpa [l126] using (l25 x⁻¹ (z * x)).symm
-lemma thingy : x * (x⁻¹ * z) = z := by simpa [l229] using l5 x z⁻¹ x z
+
+lemma inv_inv : y⁻¹⁻¹ = y :=
+calc y⁻¹⁻¹ = 1 * y⁻¹⁻¹ : (one_mul _).symm
+       ... = 1 * y     : mul_inv_inv _ _
+       ... = y         : one_mul y
+
+lemma mul_left_inv : x⁻¹ * x = 1 :=
+calc x⁻¹ * x = x⁻¹ * x⁻¹⁻¹ : (mul_inv_inv _ _).symm
+         ... = 1           : mul_right_inv _
+
+lemma mul_inv_rev : (x * y)⁻¹ = y⁻¹ * x⁻¹ :=
+calc (x * y)⁻¹ = y⁻¹ * (1⁻¹⁻¹ * (x * y * y⁻¹))⁻¹ : (l25 y⁻¹ (x * y)).symm
+           ... = y⁻¹ * x⁻¹                       : by rw [mul_inv_cancel_right, inv_inv, one_mul]
+
+lemma mul_inv_cancel_left : x * (x⁻¹ * y) = y :=
+calc x * (x⁻¹ * y) = x * (y⁻¹ * (x * x⁻¹ * (y * y⁻¹)⁻¹ * x))⁻¹ :
+  by simp only [mul_right_inv, one_mul, mul_inv_rev, one_inv, inv_inv]
+... = y : l5 x y⁻¹ x y
+
+
 lemma l239 : x * (x⁻¹ * u * y) = u * y := by simpa [l229, l126] using l5 x y⁻¹ x (u * y)
 
 lemma mul_assoc : x * y * z = x * (y * z) :=

@@ -14,6 +14,7 @@ import data.complex.module
 
 /-! ## Scalar action instances -/
 section has_scalar
+open_locale polynomial
 
 example :
   (sub_neg_monoid.has_scalar_int : has_scalar ℤ ℂ) = (complex.has_scalar : has_scalar ℤ ℂ) :=
@@ -40,7 +41,7 @@ example (R α : Type*) (β : α → Type*) [monoid R] [Π i, mul_action R (β i)
   (units.mul_action : mul_action Rˣ (Π i, β i)) = pi.mul_action _ := rfl
 
 example (R α : Type*) (β : α → Type*) [monoid R] [semiring α] [distrib_mul_action R α] :
-  (units.distrib_mul_action : distrib_mul_action Rˣ (polynomial α)) =
+  (units.distrib_mul_action : distrib_mul_action Rˣ α[X]) =
     polynomial.distrib_mul_action :=
 rfl
 

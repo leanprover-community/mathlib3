@@ -99,12 +99,7 @@ lemma chain'_dedup_is_chain' : l.chain'_dedup.chain' ne :=
 begin
   induction l with h l hl,
   { simp },
-  cases l with i l,
-  { simp },
-  rw chain'_dedup_cons_cons,
-  split_ifs with hih,
-  { rwa hih },
-  { exact chain_cons.mpr ⟨hih, hl⟩ }
+  exact l.chain_dedup_is_chain h
 end
 
 lemma chain'_dedup_of_chain (h : l.chain' ne) : l.chain'_dedup = l :=

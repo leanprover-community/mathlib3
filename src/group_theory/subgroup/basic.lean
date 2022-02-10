@@ -1434,11 +1434,11 @@ def centralizer : subgroup G :=
 @[to_additive] lemma mem_centralizer_iff {g : G} : g ∈ H.centralizer ↔ ∀ h ∈ H, h * g = g * h :=
 iff.rfl
 
-lemma mem_centralizer_iff_commutator_eq_one {g : G} :
+@[to_additive] lemma mem_centralizer_iff_commutator_eq_one {g : G} :
   g ∈ H.centralizer ↔ ∀ h ∈ H, h * g * h⁻¹ * g⁻¹ = 1 :=
 by simp only [mem_centralizer_iff, mul_inv_eq_iff_eq_mul, one_mul]
 
-lemma centralizer_top : centralizer ⊤ = center G :=
+@[to_additive] lemma centralizer_top : centralizer ⊤ = center G :=
 by simp only [set_like.ext_iff, mem_centralizer_iff, mem_center_iff,
   mem_top, iff_self, forall_const]
 

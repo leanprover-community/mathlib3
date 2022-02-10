@@ -1,8 +1,9 @@
 /-
-Copyright (c) 2022 Eric Rodriguez. All rights reserved.
+Copyright (c) 2022 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Eric Rodriguez, Riccardo Brasca, Alex J Best, Chris Birkbeck
+Authors: Alex Best, Riccardo Brasca, Eric Rodriguez
 -/
+
 import number_theory.cyclotomic.basic
 import ring_theory.adjoin.power_basis
 import ring_theory.norm

@@ -112,19 +112,17 @@ Yoneda embedding.
 rfl
 
 instance preadditive_yoneda_full : full (preadditive_yoneda : C ⥤ Cᵒᵖ ⥤ AddCommGroup) :=
-{ preimage := λ X Y f, f.app (op X) (𝟙 X),
-  witness' := λ X Y f,
-  begin
-    dsimp,
-    ext Z x,
-    dsimp at x,
-    dsimp,
-    have := congr_fun (congr_arg (@functor.map _ _ _ _ (forget AddCommGroup) _ _) (f.naturality x.op))
-      (𝟙 X),
-    simp only [functor.map_comp] at this,
+let yoneda_full : full (preadditive_yoneda ⋙
+  (whiskering_right Cᵒᵖ AddCommGroup (Type v)).obj (forget AddCommGroup)) := yoneda.yoneda_full in
+by exactI full.of_comp_faithful preadditive_yoneda
+  ((whiskering_right Cᵒᵖ AddCommGroup (Type v)).obj (forget AddCommGroup))
 
-
-  end }
+instance preadditive_coyoneda_full : full (preadditive_coyoneda : Cᵒᵖ ⥤ C ⥤ AddCommGroup) :=
+let coyoneda_full : full (preadditive_coyoneda ⋙
+  (whiskering_right C AddCommGroup (Type v)).obj (forget AddCommGroup)) :=
+    coyoneda.coyoneda_full in
+by exactI full.of_comp_faithful preadditive_coyoneda
+  ((whiskering_right C AddCommGroup (Type v)).obj (forget AddCommGroup))
 
 instance preadditive_yoneda_faithful : faithful (preadditive_yoneda : C ⥤ Cᵒᵖ ⥤ AddCommGroup) :=
 faithful.of_comp_eq whiskering_preadditive_yoneda

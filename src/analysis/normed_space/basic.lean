@@ -727,7 +727,7 @@ begin
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
   { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv₀, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
+    rw [norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 

@@ -215,7 +215,7 @@ lemma inv_eq_of_aeval_div_X_ne_zero {x : L} {p : K[X]}
   (aeval_ne : aeval x (div_X p) ≠ 0) :
   x⁻¹ = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)) :=
 begin
-  rw [inv_eq_iff, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
+  rw [inv_eq_iff_inv_eq, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
   conv_lhs { rw ← div_X_mul_X_add p },
   rw [alg_hom.map_add, alg_hom.map_mul, aeval_X, aeval_C],
   exact aeval_ne

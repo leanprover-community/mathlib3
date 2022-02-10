@@ -570,7 +570,7 @@ function.involutive.to_equiv has_inv.inv inv_inv
 /-- Inversion on a `group_with_zero` is a permutation of the underlying type. -/
 @[simps apply {fully_applied := ff}]
 protected def inv₀ (G : Type*) [group_with_zero G] : perm G :=
-function.involutive.to_equiv has_inv.inv inv_inv₀
+function.involutive.to_equiv has_inv.inv inv_inv
 
 variable {G}
 

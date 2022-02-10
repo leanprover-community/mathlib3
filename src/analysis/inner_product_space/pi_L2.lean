@@ -177,7 +177,7 @@ rfl
   ((v.isometry_euclidean_of_orthonormal hv).symm : euclidean_space 𝕜 ι → E) = v.equiv_fun.symm :=
 rfl
 
-/-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of normed vector spaces then an orthonormal basis `v`
+/-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of inner product spaces then an orthonormal basis `v`
 of `E` determines a linear isometry `e : E' ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`. This result states that
 `e` may be obtained either by transporting `v` to `E'` or by composing with the linear isometry
 `E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι` provided by `v`. -/

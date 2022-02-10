@@ -17,35 +17,35 @@ for the subtype `{x : α // 0 < x}`:
 If the type `α` also has a multiplication, then we also define the multiplications on the left and
 on the right of an element of `α>0` and an element of `α`:
 
-*  `sx : α>0 → α → α` is defined as `sx a b = a * b`, with `a` coerced to `α` by virtue of being in
-  a subtype of `α`;
-*  `dx : α>0 → α → α` is defined as `dx a b = b * a`, with `a` coerced to `α` by virtue of being in
-  a subtype of `α`.
+*  `pos_mul : α>0 → α → α` is defined as `pos_mul a b = a * b`, with `a` coerced to `α` by virtue of
+  being in a subtype of `α`;
+*  `mul_pos : α>0 → α → α` is defined as `mul_pos a b = b * a`, with `a` coerced to `α` by virtue of
+  being in a subtype of `α`.
 
 We combine this with (`contravariant_`) `covariant_class`es to assume that multiplication by
 positive elements is (strictly) monotone on a `mul_zero_class`, `monoid_with_zero`,...
 More specifically, we use extensively the following typeclasses:
 
 * monotone left
-* * `covariant_class α>0 α sx (≤)`, expressing that multiplication by positive elements on the left
-    is monotone;
-* * `covariant_class α>0 α sx (<)`, expressing that multiplication by positive elements on the left
-    is strictly monotone;
+* * `covariant_class α>0 α pos_mul (≤)`, expressing that multiplication by positive elements on the
+    left is monotone;
+* * `covariant_class α>0 α pos_mul (<)`, expressing that multiplication by positive elements on the
+    left is strictly monotone;
 * monotone right
-* * `covariant_class α>0 α dx (≤)`, expressing that multiplication by positive elements on the right
-    is monotone;
-* * `covariant_class α>0 α dx (<)`, expressing that multiplication by positive elements on the right
-    is strictly monotone.
+* * `covariant_class α>0 α mul_pos (≤)`, expressing that multiplication by positive elements on the
+    right is monotone;
+* * `covariant_class α>0 α mul_pos (<)`, expressing that multiplication by positive elements on the
+    right is strictly monotone.
 * reverse monotone left
-* * `contravariant_class α>0 α sx (≤)`, expressing that multiplication by positive elements on the
-    left is reverse monotone;
-* * `contravariant_class α>0 α sx (<)`, expressing that multiplication by positive elements on the
-    left is strictly reverse monotone;
+* * `contravariant_class α>0 α pos_mul (≤)`, expressing that multiplication by positive elements on
+    the left is reverse monotone;
+* * `contravariant_class α>0 α pos_mul (<)`, expressing that multiplication by positive elements on
+    the left is strictly reverse monotone;
 * reverse reverse monotone right
-* * `contravariant_class α>0 α dx (≤)`, expressing that multiplication by positive elements on the
-    right is reverse monotone;
-* * `contravariant_class α>0 α dx (<)`, expressing that multiplication by positive elements on the
-    right is strictly reverse monotone.
+* * `contravariant_class α>0 α mul_pos (≤)`, expressing that multiplication by positive elements on
+    the right is reverse monotone;
+* * `contravariant_class α>0 α mul_pos (<)`, expressing that multiplication by positive elements on
+    the right is strictly reverse monotone.
 
 ##  Formalization comments
 
@@ -69,63 +69,96 @@ local notation `α>0` := {x : α // 0 < x}
 
 namespace zero_lt
 
-/--  `sx` is the multiplication of an element of the subtype `α>0 = {x : α // 0 < x}` of positive
+/--
+`pos_mul` is the multiplication of an element of the subtype `α>0 = {x : α // 0 < x}` of positive
 elements by an element of the type itself.  The element of the subtype appears on the left:
-`sx a b = a * b`.
+`pos_mul a b = a * b`.
 
-`dx` is the multiplication in the other order. -/
-def sx [has_zero α] [has_lt α] [has_mul α] : α>0 → α → α :=
+`mul_pos` is the multiplication in the other order. -/
+@[protected]
+private def pos_mul [has_zero α] [has_lt α] [has_mul α] : α>0 → α → α :=
 λ x y, x * y
 
-/--  `dx` is the multiplication of an element of the subtype `α>0 = {x : α // 0 < x}` of positive
+/--
+`mul_pos` is the multiplication of an element of the subtype `α>0 = {x : α // 0 < x}` of positive
 elements by an element of the type itself.  The element of the subtype appears on the right:
-`dx a b = b * a`.
+`mul_pos a b = b * a`.
 
-`sx` is the multiplication in the other order. -/
-def dx [has_zero α] [has_lt α] [has_mul α] : α>0 → α → α :=
+`pos_mul` is the multiplication in the other order. -/
+@[protected]
+private def mul_pos [has_zero α] [has_lt α] [has_mul α] : α>0 → α → α :=
 λ x y, y * x
+
+section abbreviations_strict_mono
+variables (X : Type u) [has_mul X] [has_zero X] [has_lt X]
+
+abbreviation pos_mul_strict_mono : Prop :=
+covariant_class {x : X // 0 < x} X pos_mul (<)
+
+abbreviation mul_pos_strict_mono : Prop :=
+covariant_class {x : X // 0 < x} X mul_pos (<)
+
+abbreviation pos_mul_strict_mono_rev : Prop :=
+contravariant_class {x : X // 0 < x} X pos_mul (<)
+
+abbreviation mul_pos_strict_mono_rev : Prop :=
+contravariant_class {x : X // 0 < x} X mul_pos (<)
+
+end abbreviations_strict_mono
+
+section abbreviations_mono
+variables (X : Type*) [has_mul X] [has_zero X] [preorder X]
+
+abbreviation pos_mul_mono : Prop :=
+covariant_class {x : X // 0 < x} X pos_mul (≤)
+
+abbreviation mul_pos_mono : Prop :=
+covariant_class {x : X // 0 < x} X mul_pos (≤)
+
+abbreviation pos_mul_mono_rev : Prop :=
+contravariant_class {x : X // 0 < x} X pos_mul (≤)
+
+abbreviation mul_pos_mono_rev : Prop :=
+contravariant_class {x : X // 0 < x} X mul_pos (≤)
+
+end abbreviations_mono
 
 section has_mul_zero_lt
 variables [has_mul α] [has_zero α] [has_lt α]
 
-lemma mul_lt_mul_left' [covariant_class α>0 α (λ x y, x * y) (<)]
-  {a b c : α} (bc : b < c) (a0 : 0 < a) :
+lemma mul_lt_mul_left' [pos_mul_strict_mono α] {a b c : α} (bc : b < c) (a0 : 0 < a) :
   a * b < a * c :=
-let a₀ : α>0 := ⟨a, a0⟩ in
-suffices (λ (x : α>0) (y : α), (x : α) * y) a₀ b < (λ (x : α>0) (y : α), (x : α) * y) a₀ c,
-by simpa using this,
-covariant_class.elim a₀ bc
---let a₀ : α>0 := ⟨a, a0⟩ in show sx a₀ b < sx a₀ c, from covariant_class.elim a₀ bc
+let a₀ : α>0 := ⟨a, a0⟩ in show pos_mul a₀ b < pos_mul a₀ c, from covariant_class.elim a₀ bc
 
-lemma mul_lt_mul_right' [covariant_class α>0 α dx (<)]
+lemma mul_lt_mul_right' [mul_pos_strict_mono α]
   {a b c : α} (bc : b < c) (a0 : 0 < a) :
   b * a < c * a :=
-let a₀ : α>0 := ⟨a, a0⟩ in show dx a₀ b < dx a₀ c, by exact covariant_class.elim a₀ bc
+let a₀ : α>0 := ⟨a, a0⟩ in show mul_pos a₀ b < mul_pos a₀ c, by exact covariant_class.elim a₀ bc
 
 -- proven with `a0 : 0 ≤ a` as `lt_of_mul_lt_mul_left''`
-lemma lt_of_mul_lt_mul_left' [contravariant_class α>0 α sx (<)]
+lemma lt_of_mul_lt_mul_left' [pos_mul_strict_mono_rev α]
   {a b c : α} (bc : a * b < a * c) (a0 : 0 < a) :
   b < c :=
-let a₀ : α>0 := ⟨a, a0⟩ in contravariant_class.elim a₀ (id bc : sx a₀ b < sx a₀ c)
+let a₀ : α>0 := ⟨a, a0⟩ in contravariant_class.elim a₀ (id bc : pos_mul a₀ b < pos_mul a₀ c)
 
 -- proven with `a0 : 0 ≤ a` as `lt_of_mul_lt_mul_right''`
-lemma lt_of_mul_lt_mul_right' [contravariant_class α>0 α dx (<)]
+lemma lt_of_mul_lt_mul_right' [mul_pos_strict_mono_rev α]
   {a b c : α} (bc : b * a < c * a) (a0 : 0 < a) :
   b < c :=
-let a₀ : α>0 := ⟨a, a0⟩ in contravariant_class.elim a₀ (id bc : dx a₀ b < dx a₀ c)
+let a₀ : α>0 := ⟨a, a0⟩ in contravariant_class.elim a₀ (id bc : mul_pos a₀ b < mul_pos a₀ c)
 
 @[simp]
-lemma mul_lt_mul_iff_left [covariant_class α>0 α sx (<)] [contravariant_class α>0 α sx (<)]
+lemma mul_lt_mul_iff_left [pos_mul_strict_mono α] [pos_mul_strict_mono_rev α]
   {a b c : α} (a0 : 0 < a) :
   a * b < a * c ↔ b < c :=
-let a₀ : α>0 := ⟨a, a0⟩ in by apply rel_iff_cov α>0 α sx (<) a₀
+let a₀ : α>0 := ⟨a, a0⟩ in by apply rel_iff_cov α>0 α pos_mul (<) a₀
 
 @[simp]
 lemma mul_lt_mul_iff_right
-  [covariant_class α>0 α dx (<)] [contravariant_class α>0 α dx (<)]
+  [mul_pos_strict_mono α] [mul_pos_strict_mono_rev α]
   {a b c : α} (a0 : 0 < a) :
   b * a < c * a ↔ b < c :=
-let a₀ : α>0 := ⟨a, a0⟩ in rel_iff_cov α>0 α dx (<) a₀
+let a₀ : α>0 := ⟨a, a0⟩ in rel_iff_cov α>0 α mul_pos (<) a₀
 
 end has_mul_zero_lt
 

@@ -906,7 +906,7 @@ by simp [← bit1_zero]
 by simp [← bit1_zero]
 
 @[simp] lemma one_le_one : (1 : cardinal) ≤ 1 :=
-le_refl _
+le_rfl
 
 end bit
 

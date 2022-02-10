@@ -8,7 +8,7 @@ import ring_theory.eisenstein_criterion
 
 /-!
 # Eisenstein polynomials
-Given an ideal `𝓟` of a commutative semiring `R`, we say that a polynomial `f : polynomial R` is
+Given an ideal `𝓟` of a commutative semiring `R`, we say that a polynomial `f : R[X]` is
 *Eisenstein at `𝓟`* if `f.leading_coeff ∉ 𝓟`, `∀ n, n < f.nat_degree → f.coeff n ∈ 𝓟` and
 `f.coeff 0 ∉ 𝓟 ^ 2`. In this file we gather miscellaneous results about Eisenstein polynomials.
 
@@ -32,19 +32,19 @@ variables {R : Type u}
 
 open ideal algebra finset
 
-open_locale big_operators
+open_locale big_operators polynomial
 
 namespace polynomial
 
-/-- Given an ideal `𝓟` of a commutative semiring `R`, we say that a polynomial `f : polynomial R`
+/-- Given an ideal `𝓟` of a commutative semiring `R`, we say that a polynomial `f : R[X]`
 is *weakly Eisenstein at `𝓟`* if `∀ n, n < f.nat_degree → f.coeff n ∈ 𝓟`. -/
-@[mk_iff] structure is_weakly_eisenstein_at [comm_semiring R] (f : polynomial R) (𝓟 : ideal R) :
+@[mk_iff] structure is_weakly_eisenstein_at [comm_semiring R] (f : R[X]) (𝓟 : ideal R) :
   Prop := (mem : ∀ {n}, n < f.nat_degree → f.coeff n ∈ 𝓟)
 
-/-- Given an ideal `𝓟` of a commutative semiring `R`, we say that a polynomial `f : polynomial R`
+/-- Given an ideal `𝓟` of a commutative semiring `R`, we say that a polynomial `f : R[X]`
 is *Eisenstein at `𝓟`* if `f.leading_coeff ∉ 𝓟`, `∀ n, n < f.nat_degree → f.coeff n ∈ 𝓟` and
 `f.coeff 0 ∉ 𝓟 ^ 2`. -/
-@[mk_iff] structure is_eisenstein_at [comm_semiring R] (f : polynomial R) (𝓟 : ideal R) : Prop :=
+@[mk_iff] structure is_eisenstein_at [comm_semiring R] (f : R[X]) (𝓟 : ideal R) : Prop :=
 (leading : f.leading_coeff ∉ 𝓟)
 (mem : ∀ {n}, n < f.nat_degree → f.coeff n ∈ 𝓟)
 (not_mem : f.coeff 0 ∉ 𝓟 ^ 2)
@@ -53,7 +53,7 @@ namespace is_weakly_eisenstein_at
 
 section comm_semiring
 
-variables [comm_semiring R] {𝓟 : ideal R} {f : polynomial R} (hf : f.is_weakly_eisenstein_at 𝓟)
+variables [comm_semiring R] {𝓟 : ideal R} {f : R[X]} (hf : f.is_weakly_eisenstein_at 𝓟)
 
 include hf
 
@@ -68,7 +68,7 @@ end comm_semiring
 
 section comm_ring
 
-variables [comm_ring R] {𝓟 : ideal R} {f : polynomial R} (hf : f.is_weakly_eisenstein_at 𝓟)
+variables [comm_ring R] {𝓟 : ideal R} {f : R[X]} (hf : f.is_weakly_eisenstein_at 𝓟)
 variables {S : Type v} [comm_ring S] [algebra R S]
 
 section principal
@@ -153,7 +153,7 @@ namespace is_eisenstein_at
 
 section comm_semiring
 
-variables [comm_semiring R] {𝓟 : ideal R} {f : polynomial R} (hf : f.is_eisenstein_at 𝓟)
+variables [comm_semiring R] {𝓟 : ideal R} {f : R[X]} (hf : f.is_eisenstein_at 𝓟)
 
 include hf
 
@@ -171,7 +171,7 @@ end comm_semiring
 
 section is_domain
 
-variables [comm_ring R] [is_domain R] {𝓟 : ideal R} {f : polynomial R} (hf : f.is_eisenstein_at 𝓟)
+variables [comm_ring R] [is_domain R] {𝓟 : ideal R} {f : R[X]} (hf : f.is_eisenstein_at 𝓟)
 
 /-- If a primitive `f` satisfies `f.is_eisenstein_at 𝓟`, where `𝓟.is_prime`, then `f` is
 irreducible. -/

@@ -19,7 +19,7 @@ are irreducible, and uniquely determined by their defining property.
 
 -/
 
-open_locale classical
+open_locale classical polynomial
 open polynomial set function
 
 variables {A B : Type*}
@@ -37,7 +37,7 @@ if such exists (`is_integral A x`) or zero otherwise.
 For example, if `V` is a `𝕜`-vector space for some field `𝕜` and `f : V →ₗ[𝕜] V` then
 the minimal polynomial of `f` is `minpoly 𝕜 f`.
 -/
-noncomputable def minpoly (x : B) : polynomial A :=
+noncomputable def minpoly (x : B) : A[X] :=
 if hx : is_integral A x then well_founded.min degree_lt_wf _ hx else 0
 
 end min_poly_def
@@ -108,7 +108,7 @@ end
 
 /-- The defining property of the minimal polynomial of an element `x`:
 it is the monic polynomial with smallest degree that has `x` as its root. -/
-lemma min {p : polynomial A} (pmonic : p.monic) (hp : polynomial.aeval x p = 0) :
+lemma min {p : A[X]} (pmonic : p.monic) (hp : polynomial.aeval x p = 0) :
   degree (minpoly A x) ≤ degree p :=
 begin
   delta minpoly, split_ifs with hx,
@@ -189,7 +189,7 @@ variables [is_domain A] [ring B] [algebra A B]
 variables {x : B}
 
 /-- If `a` strictly divides the minimal polynomial of `x`, then `x` cannot be a root for `a`. -/
-lemma aeval_ne_zero_of_dvd_not_unit_minpoly {a : polynomial A} (hx : is_integral A x)
+lemma aeval_ne_zero_of_dvd_not_unit_minpoly {a : A[X]} (hx : is_integral A x)
   (hamonic : a.monic) (hdvd : dvd_not_unit a (minpoly A x)) :
   polynomial.aeval x a ≠ 0 :=
 begin
@@ -264,7 +264,7 @@ variables (A x)
 /-- If an element `x` is a root of a nonzero polynomial `p`,
 then the degree of `p` is at least the degree of the minimal polynomial of `x`. -/
 lemma degree_le_of_ne_zero
-  {p : polynomial A} (pnz : p ≠ 0) (hp : polynomial.aeval x p = 0) :
+  {p : A[X]} (pnz : p ≠ 0) (hp : polynomial.aeval x p = 0) :
   degree (minpoly A x) ≤ degree p :=
 calc degree (minpoly A x) ≤ degree (p * C (leading_coeff p)⁻¹) :
     min A x (monic_mul_leading_coeff_inv pnz) (by simp [hp])
@@ -273,9 +273,9 @@ calc degree (minpoly A x) ≤ degree (p * C (leading_coeff p)⁻¹) :
 /-- The minimal polynomial of an element `x` is uniquely characterized by its defining property:
 if there is another monic polynomial of minimal degree that has `x` as a root,
 then this polynomial is equal to the minimal polynomial of `x`. -/
-lemma unique {p : polynomial A}
+lemma unique {p : A[X]}
   (pmonic : p.monic) (hp : polynomial.aeval x p = 0)
-  (pmin : ∀ q : polynomial A, q.monic → polynomial.aeval x q = 0 → degree p ≤ degree q) :
+  (pmin : ∀ q : A[X], q.monic → polynomial.aeval x q = 0 → degree p ≤ degree q) :
   p = minpoly A x :=
 begin
   have hx : is_integral A x := ⟨p, pmonic, hp⟩,
@@ -291,7 +291,7 @@ end
 
 /-- If an element `x` is a root of a polynomial `p`,
 then the minimal polynomial of `x` divides `p`. -/
-lemma dvd {p : polynomial A} (hp : polynomial.aeval x p = 0) : minpoly A x ∣ p :=
+lemma dvd {p : A[X]} (hp : polynomial.aeval x p = 0) : minpoly A x ∣ p :=
 begin
   by_cases hp0 : p = 0,
   { simp only [hp0, dvd_zero] },
@@ -324,14 +324,14 @@ by { rw is_scalar_tower.aeval_apply R K,
 variables {A x}
 
 theorem eq_of_irreducible_of_monic
-  [nontrivial B] {p : polynomial A} (hp1 : _root_.irreducible p)
+  [nontrivial B] {p : A[X]} (hp1 : _root_.irreducible p)
   (hp2 : polynomial.aeval x p = 0) (hp3 : p.monic) : p = minpoly A x :=
 let ⟨q, hq⟩ := dvd A x hp2 in
 eq_of_monic_of_associated hp3 (monic ⟨p, ⟨hp3, hp2⟩⟩) $
 mul_one (minpoly A x) ▸ hq.symm ▸ associated.mul_left _ $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit A x
 
-lemma eq_of_irreducible [nontrivial B] {p : polynomial A}
+lemma eq_of_irreducible [nontrivial B] {p : A[X]}
   (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0) :
   p * C p.leading_coeff⁻¹ = minpoly A x :=
 begin
@@ -385,7 +385,7 @@ lemma gcd_domain_dvd {A R : Type*} (K : Type*)
   [comm_ring R] [is_domain R] [algebra A K]
   [is_fraction_ring A K] [algebra K R] [algebra A R] [is_scalar_tower A K R]
   {x : R} (hx : is_integral A x)
-  {P : polynomial A} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
+  {P : A[X]} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
   minpoly A x ∣ P :=
 begin
   apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map K

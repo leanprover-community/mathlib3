@@ -28,6 +28,8 @@ monoids, expressing that an element is a primitive root of unity.
 * `is_primitive_root ζ k`: an element `ζ` is a primitive `k`-th root of unity if `ζ ^ k = 1`,
   and if `l` satisfies `ζ ^ l = 1` then `k ∣ l`.
 * `primitive_roots k R`: the finset of primitive `k`-th roots of unity in an integral domain `R`.
+* `is_primitive_root.aut_to_pow`: the monoid hom that takes an automorphism of a ring to the power
+  it sends that specific primitive root, as a member of `(zmod n)ˣ`.
 
 ## Main results
 
@@ -59,7 +61,7 @@ This creates a little bit of friction, but lemmas like `is_primitive_root.is_uni
 
 -/
 
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 noncomputable theory
 
 open polynomial
@@ -81,6 +83,9 @@ def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 
 @[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : Mˣ) :
   ζ ∈ roots_of_unity k M ↔ ζ ^ (k : ℕ) = 1 := iff.rfl
+
+lemma roots_of_unity.coe_injective {n : ℕ+} : function.injective (coe : (roots_of_unity n M) → M) :=
+units.ext.comp (λ x y, subtype.ext)
 
 /-- Make an element of `roots_of_unity` from a member of the base ring, and a proof that it has
 a positive power equal to one. -/
@@ -1014,7 +1019,7 @@ begin
   { use R },
   replace habs := lt_of_lt_of_le (enat.coe_lt_coe.2 one_lt_two)
     (multiplicity.le_multiplicity_of_pow_dvd (dvd_trans habs prod)),
-  have hfree : squarefree (X ^ n - 1 : polynomial (zmod p)),
+  have hfree : squarefree (X ^ n - 1 : (zmod p)[X]),
   { exact (separable_X_pow_sub_C 1
           (λ h, hdiv $ (zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 h) one_ne_zero).squarefree },
   cases (multiplicity.squarefree_iff_multiplicity_le_one (X ^ n - 1)).1 hfree
@@ -1075,8 +1080,8 @@ end
 
 /-- The degree of the minimal polynomial of `μ` is at least `totient n`. -/
 lemma totient_le_degree_minpoly : nat.totient n ≤ (minpoly ℤ μ).nat_degree :=
-let P : polynomial ℤ := minpoly ℤ μ,-- minimal polynomial of `μ`
-    P_K : polynomial K := map (int.cast_ring_hom K) P -- minimal polynomial of `μ` sent to `K[X]`
+let P : ℤ[X] := minpoly ℤ μ,-- minimal polynomial of `μ`
+    P_K : K[X] := map (int.cast_ring_hom K) P -- minimal polynomial of `μ` sent to `K[X]`
 in calc
 n.totient = (primitive_roots n K).card : h.card_primitive_roots.symm
 ... ≤ P_K.roots.to_finset.card : finset.card_le_of_subset (is_roots_of_minpoly h)
@@ -1085,5 +1090,60 @@ n.totient = (primitive_roots n K).card : h.card_primitive_roots.symm
 ... ≤ P.nat_degree : nat_degree_map_le _ _
 
 end minpoly
+
+section automorphisms
+
+variables {S} [comm_ring S] [is_domain S] {μ : S} {n : ℕ+} (hμ : is_primitive_root μ n)
+          (R) [comm_ring R] [algebra R S]
+
+/-- The `monoid_hom` that takes an automorphism to the power of μ that μ gets mapped to under it. -/
+@[simps {attrs := []}] noncomputable def aut_to_pow : (S ≃ₐ[R] S) →* (zmod n)ˣ :=
+let μ' := hμ.to_roots_of_unity in
+have ho : order_of μ' = n :=
+  by rw [hμ.eq_order_of, ←hμ.coe_to_roots_of_unity_coe, order_of_units, order_of_subgroup],
+monoid_hom.to_hom_units
+{ to_fun := λ σ, (map_root_of_unity_eq_pow_self σ.to_alg_hom μ').some,
+  map_one' := begin
+    generalize_proofs h1,
+    have h := h1.some_spec,
+    dsimp only [alg_equiv.one_apply, alg_equiv.to_ring_equiv_eq_coe, ring_equiv.to_ring_hom_eq_coe,
+                ring_equiv.coe_to_ring_hom, alg_equiv.coe_ring_equiv] at *,
+    replace h : μ' = μ' ^ h1.some := roots_of_unity.coe_injective
+                 (by simpa only [roots_of_unity.coe_pow] using h),
+    rw ←pow_one μ' at h {occs := occurrences.pos [1]},
+    rw [←@nat.cast_one $ zmod n, zmod.nat_coe_eq_nat_coe_iff, ←ho, ←pow_eq_pow_iff_modeq μ', h]
+  end,
+  map_mul' := begin
+    generalize_proofs hxy' hx' hy',
+    have hxy := hxy'.some_spec,
+    have hx := hx'.some_spec,
+    have hy := hy'.some_spec,
+    dsimp only [alg_equiv.to_ring_equiv_eq_coe, ring_equiv.to_ring_hom_eq_coe,
+                ring_equiv.coe_to_ring_hom, alg_equiv.coe_ring_equiv, alg_equiv.mul_apply] at *,
+    replace hxy : x (↑μ' ^ hy'.some) = ↑μ' ^ hxy'.some := hy ▸ hxy,
+    rw x.map_pow at hxy,
+    replace hxy : ((μ' : S) ^ hx'.some) ^ hy'.some = μ' ^ hxy'.some := hx ▸ hxy,
+    rw ←pow_mul at hxy,
+    replace hxy : μ' ^ (hx'.some * hy'.some) = μ' ^ hxy'.some := roots_of_unity.coe_injective
+                                           (by simpa only [roots_of_unity.coe_pow] using hxy),
+    rw [←nat.cast_mul, zmod.nat_coe_eq_nat_coe_iff, ←ho, ←pow_eq_pow_iff_modeq μ', hxy]
+  end }
+
+@[simp] lemma aut_to_pow_spec (f : S ≃ₐ[R] S) :
+  μ ^ (hμ.aut_to_pow R f : zmod n).val = f μ :=
+begin
+  rw is_primitive_root.coe_aut_to_pow_apply,
+  generalize_proofs h,
+  have := h.some_spec,
+  dsimp only [alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom] at this,
+  refine (_ : ↑hμ.to_roots_of_unity ^ _ = _).trans this.symm,
+  rw [←roots_of_unity.coe_pow, ←roots_of_unity.coe_pow],
+  congr' 1,
+  rw [pow_eq_pow_iff_modeq, ←order_of_subgroup, ←order_of_units, hμ.coe_to_roots_of_unity_coe,
+      ←hμ.eq_order_of, zmod.val_nat_cast],
+  exact nat.mod_modeq _ _
+end
+
+end automorphisms
 
 end is_primitive_root

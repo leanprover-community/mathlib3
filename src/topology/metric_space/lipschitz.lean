@@ -149,10 +149,10 @@ protected lemma const (b : β) : lipschitz_with 0 (λa:α, b) :=
 assume x y, by simp only [edist_self, zero_le]
 
 protected lemma id : lipschitz_with 1 (@id α) :=
-lipschitz_with.of_edist_le $ assume x y, le_refl _
+lipschitz_with.of_edist_le $ assume x y, le_rfl
 
 protected lemma subtype_val (s : set α) : lipschitz_with 1 (subtype.val : s → α) :=
-lipschitz_with.of_edist_le $ assume x y, le_refl _
+lipschitz_with.of_edist_le $ assume x y, le_rfl
 
 protected lemma subtype_coe (s : set α) : lipschitz_with 1 (coe : s → α) :=
 lipschitz_with.subtype_val s

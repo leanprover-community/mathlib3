@@ -206,7 +206,7 @@ then the norm of `zeta (p ^ k) K L - 1` is `p`. -/
 lemma prime_ne_two_pow.norm_zeta_sub_one {p : ℕ+} {K : Type u} (L : Type v) [field K] [field L]
   [ne_zero ((p : ℕ) : K)] (k : ℕ) [hpri : fact (p : ℕ).prime] [algebra K L]
   [is_cyclotomic_extension {p ^ (k + 1)} K L]
-  (hirr : irreducible (cyclotomic ((↑(p ^ (k + 1)) : ℕ)) K)) (h : p ≠ 2) :
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ)) K) (h : p ≠ 2) :
   norm K ((zeta (p ^ (k + 1)) K L) - 1) = p :=
 begin
   haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),

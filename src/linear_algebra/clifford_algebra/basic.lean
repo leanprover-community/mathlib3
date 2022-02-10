@@ -75,7 +75,8 @@ namespace clifford_algebra
 The canonical linear map `M →ₗ[R] clifford_algebra Q`.
 -/
 def ι : M →ₗ[R] clifford_algebra Q :=
-(ring_quot.mk_alg_hom R _).to_linear_map.comp (tensor_algebra.ι R)
+-- without `by exact` this puts the wrong instance arguments in the type
+by exact (ring_quot.mk_alg_hom R _).to_linear_map.comp (tensor_algebra.ι R)
 
 /-- As well as being linear, `ι Q` squares to the quadratic form -/
 @[simp]
@@ -107,7 +108,7 @@ def lift :
     (λ x y (h : rel Q x y), by
     { induction h,
       rw [alg_hom.commutes, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop], })⟩,
-  inv_fun := λ F, ⟨F.to_linear_map.comp (ι Q), λ m, by rw [
+  inv_fun := λ F, ⟨F.to_linear_map ∘ₗ ι Q, λ m, by rw [
     linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_scalar]⟩,
   left_inv := λ f, by { ext,
     simp only [ι, alg_hom.to_linear_map_apply, function.comp_app, linear_map.coe_comp,

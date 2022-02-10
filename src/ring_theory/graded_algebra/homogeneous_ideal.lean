@@ -106,7 +106,7 @@ end
 variables {𝒜 I}
 
 lemma ideal.is_homogeneous.homogeneous_core_eq_self (h : I.is_homogeneous 𝒜) :
-  I = I.homogeneous_core 𝒜 :=
+  I.homogeneous_core 𝒜 = I :=
 begin
   apply le_antisymm _ (I.homogeneous_core_le_ideal 𝒜),
   intros x hx,

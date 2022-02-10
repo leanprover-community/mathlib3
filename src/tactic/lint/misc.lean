@@ -132,7 +132,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   no_errors_found := "No declarations have a duplicate namespace.",
   errors_found := "DUPLICATED NAMESPACES IN NAME:" }
 
-
+attribute [nolint dup_namespace] iff.iff
 
 /-!
 ## Linter for unused arguments

@@ -7,6 +7,7 @@ import tactic.tidy
 import topology.continuous_function.basic
 import topology.homeomorph
 import topology.subset_properties
+import topology.maps
 
 /-!
 # The compact-open topology
@@ -336,3 +337,39 @@ rfl
 rfl
 
 end homeomorph
+
+section quotient_map
+
+variables {X₀ X Y Z : Type*} [topological_space X₀] [topological_space X]
+  [topological_space Y] [topological_space Z] [locally_compact_space Y] {f : X₀ → X}
+
+lemma quotient_map.continuous_lift_prod_left (hf : quotient_map f) {g : X × Y → Z}
+  (hg : continuous (λ p : X₀ × Y, g (f p.1, p.2))) : continuous g :=
+begin
+  let Gf : C(X₀, C(Y, Z)) := continuous_map.curry ⟨_, hg⟩,
+  have h : ∀ x : X, continuous (λ y, g (x, y)),
+  { intros x,
+    obtain ⟨x₀, rfl⟩ := hf.surjective x,
+    exact (Gf x₀).continuous },
+  let G : X → C(Y, Z) := λ x, ⟨_, h x⟩,
+  have : continuous G,
+  { rw hf.continuous_iff,
+    exact Gf.continuous },
+  convert continuous_map.continuous_uncurry_of_continuous ⟨G, this⟩,
+  ext x,
+  cases x,
+  refl,
+end
+
+lemma quotient_map.continuous_lift_prod_right (hf : quotient_map f) {g : Y × X → Z}
+  (hg : continuous (λ p : Y × X₀, g (p.1, f p.2))) : continuous g :=
+begin
+  have : continuous (λ p : X₀ × Y, g ((prod.swap p).1, f (prod.swap p).2)),
+  { exact hg.comp continuous_swap },
+  have : continuous (λ p : X₀ × Y, (g ∘ prod.swap) (f p.1, p.2)) := this,
+  convert (hf.continuous_lift_prod_left this).comp continuous_swap,
+  ext x,
+  simp,
+end
+
+end quotient_map

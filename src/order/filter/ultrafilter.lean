@@ -200,9 +200,9 @@ begin
       infi_ne_bot_of_directed
         (directed_of_chain $ chain_insert hc $ λ ⟨b, _, hb⟩ _ _, or.inl hb)
         (assume ⟨⟨a, ha, _⟩, _⟩, ha),
-      infi_le_of_le ⟨top, mem_insert _ _⟩ (le_refl _)⟩,
+      infi_le_of_le ⟨top, mem_insert _ _⟩ le_rfl⟩,
   have : ∀c (hc: chain r c) a (ha : a ∈ c), r a (sup c hc),
-    from assume c hc a ha, infi_le_of_le ⟨a, mem_insert_of_mem _ ha⟩ (le_refl _),
+    from assume c hc a ha, infi_le_of_le ⟨a, mem_insert_of_mem _ ha⟩ le_rfl,
   have : (∃ (u : τ), ∀ (a : τ), r u a → r a u),
     from exists_maximal_of_chains_bounded (assume c hc, ⟨sup c hc, this c hc⟩)
       (assume f₁ f₂ f₃ h₁ h₂, le_trans h₂ h₁),

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
+import data.nat.factorization
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
@@ -467,6 +468,17 @@ begin
   rwa [h, card_bot] at key,
 end
 
+/-- The cardinality of a Sylow group is `p ^ n`
+ where `n` is the multiplicity of `p` in the group order. -/
+lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
+  card P = p ^ nat.factorization (card G) p :=
+begin
+  obtain ⟨n, heq : card P = _⟩ := is_p_group.iff_card.mp (P.is_p_group'),
+  refine nat.dvd_antisymm _ (P.pow_dvd_card_of_pow_dvd_card (nat.pow_factorization_dvd p _)),
+  rw [heq, ←hp.out.pow_dvd_iff_dvd_pow_factorization (show card G ≠ 0, from card_ne_zero), ←heq],
+  exact P.1.card_subgroup_dvd_card,
+end
+
 lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
   (h : (P : subgroup G).normal) : subsingleton (sylow p G) :=
 begin
@@ -528,5 +540,28 @@ P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
 @[simp]
 lemma coe_subtype {p : ℕ} {P : sylow p G} {N : subgroup G} {h : P.1 ≤ N} :
   ↑(P.subtype N h) = subgroup.comap N.subtype ↑P := rfl
+
+lemma normal_of_normalizer_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)]
+  (P : sylow p G) (hn : (↑P : subgroup G).normalizer.normal) :
+  (↑P : subgroup G).normal :=
+by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype _ le_normalizer), coe_subtype,
+  map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))), sup_idem]
+
+@[simp] lemma normalizer_normalizer {p : ℕ} [fact p.prime] [fintype (sylow p G)]
+ (P : sylow p G) :
+ (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
+begin
+  have := normal_of_normalizer_normal (P.subtype _ (le_normalizer.trans le_normalizer)),
+  simp_rw [←normalizer_eq_top, coe_subtype, ←comap_subtype_normalizer_eq le_normalizer,
+    ←comap_subtype_normalizer_eq le_rfl, comap_subtype_self_eq_top] at this,
+  rw [←subtype_range (P : subgroup G).normalizer.normalizer, monoid_hom.range_eq_map, ←this rfl],
+  exact map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))),
+end
+
+lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
+ {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+ (↑P : subgroup G).normal :=
+normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing.mp hnc _ $
+  normalizer_normalizer _
 
 end sylow

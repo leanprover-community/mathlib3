@@ -144,6 +144,8 @@ include i
   nolint dangerous_instance] -- `α` and `β` are out_params, so this instance should not be dangerous
 instance : has_coe_to_fun F (λ _, Π a : α, β a) := { coe := fun_like.coe }
 
+@[simp] lemma coe_eq_coe_fn : (fun_like.coe : F → Π a : α, β a) = coe_fn := rfl
+
 theorem coe_injective : function.injective (coe_fn : F → Π a : α, β a) :=
 fun_like.coe_injective'
 

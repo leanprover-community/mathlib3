@@ -280,7 +280,7 @@ begin
   { intros a b h c ca h₂,
     cases b with b,
     { rw le_antisymm h bot_le at h₂,
-      exact ⟨_, h₂, le_refl _⟩ },
+      exact ⟨_, h₂, le_rfl⟩ },
     cases a with a,
     { change c + 0 = some ca at h₂,
       simp at h₂, simp [h₂],

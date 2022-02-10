@@ -74,7 +74,7 @@ M ⧸ (⨅ n : ℕ, I ^ n • ⊤ : submodule R M)
 In fact, this is only complete if the ideal is finitely generated. -/
 def adic_completion : submodule R (Π n : ℕ, (M ⧸ (I ^ n • ⊤ : submodule R M))) :=
 { carrier := { f | ∀ {m n} (h : m ≤ n), liftq _ (mkq _)
-    (by { rw ker_mkq, exact smul_mono (ideal.pow_le_pow h) (le_refl _) }) (f n) = f m },
+    (by { rw ker_mkq, exact smul_mono (ideal.pow_le_pow h) le_rfl }) (f n) = f m },
   zero_mem' := λ m n hmn, by rw [pi.zero_apply, pi.zero_apply, linear_map.map_zero],
   add_mem' := λ f g hf hg m n hmn, by rw [pi.add_apply, pi.add_apply,
     linear_map.map_add, hf hmn, hg hmn],
@@ -128,7 +128,7 @@ include h
 unique map from the Hausdorffification. -/
 def lift (f : M →ₗ[R] N) : Hausdorffification I M →ₗ[R] N :=
 liftq _ f $ map_le_iff_le_comap.1 $ h.infi_pow_smul ▸ le_infi (λ n,
-le_trans (map_mono $ infi_le _ n) $ by { rw map_smul'', exact smul_mono (le_refl _) le_top })
+le_trans (map_mono $ infi_le _ n) $ by { rw map_smul'', exact smul_mono le_rfl le_top })
 
 theorem lift_of (f : M →ₗ[R] N) (x : M) : lift I f (of I M x) = f x := rfl
 
@@ -233,7 +233,7 @@ begin
   obtain ⟨L, hL⟩ := is_precomplete.prec to_is_precomplete hf,
   { rw is_unit_iff_exists_inv,
     use L,
-    rw [← sub_eq_zero, neg_mul_eq_neg_mul_symm],
+    rw [← sub_eq_zero, neg_mul],
     apply is_Hausdorff.haus (to_is_Hausdorff : is_Hausdorff I R),
     intros n,
     specialize hL n,
@@ -245,7 +245,7 @@ begin
     cases n,
     { simp only [ideal.one_eq_top, pow_zero] },
     { dsimp [f],
-      rw [← neg_sub _ (1:R), neg_mul_eq_neg_mul_symm, mul_geom_sum, neg_sub,
+      rw [← neg_sub _ (1:R), neg_mul, mul_geom_sum, neg_sub,
         sub_sub, add_comm, ← sub_sub, sub_self, zero_sub, neg_mem_iff, mul_pow],
       exact ideal.mul_mem_right _ (I ^ _) (ideal.pow_mem_pow hx _), } },
 end

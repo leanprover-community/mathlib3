@@ -120,4 +120,8 @@ lemma chain'_dedup_of_chain' : ∀ (l : list α), l.chain' ne → l.chain'_dedup
 lemma chain'_dedup_idem : l.chain'_dedup.chain'_dedup = l.chain'_dedup :=
 chain'_dedup_of_chain' _ $ l.chain'_dedup_is_chain'
 
+@[simp] lemma chain'_dedup_eq_nil : ∀ {l : list α}, chain'_dedup l = [] ↔ l = []
+| [] := iff.rfl
+| (a :: l) := ⟨λ h, list.no_confusion h, λ h, h.symm ▸ chain'_dedup_nil⟩
+
 end list

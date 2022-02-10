@@ -9,7 +9,6 @@ import linear_algebra.matrix.diagonal
 import linear_algebra.matrix.transvection
 import measure_theory.constructions.pi
 import measure_theory.measure.stieltjes
-import measure_theory.group.measure
 
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`
@@ -268,21 +267,10 @@ eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
 ### Images of the Lebesgue measure under translation/linear maps in ℝⁿ
 -/
 
-lemma map_volume_pi_add_left (a : ι → ℝ) : measure.map ((+) a) volume = volume :=
-begin
-  refine (measure.pi_eq (λ s hs, _)).symm,
-  have A : has_add.add a ⁻¹' (set.pi univ (λ (i : ι), s i))
-    = set.pi univ (λ (i : ι), ((+) (a i)) ⁻¹' (s i)), by { ext, simp },
-  rw [measure.map_apply (measurable_const_add a) (measurable_set.univ_pi_fintype hs), A,
-      volume_pi_pi],
-  simp only [measure_preimage_add]
-end
-
-@[simp] lemma volume_pi_preimage_add_left (a : ι → ℝ) (s : set (ι → ℝ)) :
-  volume (((+) a) ⁻¹' s) = volume s :=
-calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
-  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_pi_add_left
+-- for some reason `apply_instance` doesn't find this
+instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
+  is_add_left_invariant (volume : measure (ι → ℝ)) :=
+pi.is_add_left_invariant_volume
 
 open matrix
 
@@ -353,7 +341,7 @@ begin
       refine measurable.add (measurable_pi_lambda _ (λ i, measurable.const_mul _ _)) measurable_snd,
       exact this.comp measurable_fst },
     exact measure_preserving.skew_product (measure_preserving.id _) g_meas
-      (eventually_of_forall (λ a, map_volume_pi_add_left _)) },
+      (eventually_of_forall (λ a, map_add_left_eq_self _ _)) },
   have C : measure_preserving e.symm volume volume :=
   ⟨ (measurable_pi_equiv_pi_subtype_prod_symm (λ (i : ι), ℝ) p : _),
     (measure.map_pi_equiv_pi_subtype_prod_symm (λ (i : ι), volume) p : _) ⟩,

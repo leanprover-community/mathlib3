@@ -195,8 +195,7 @@ instance : group G :=
   mul_one := mul_one,
   mul_left_inv := mul_left_inv,
   .. mccune_group.has_one,
-  .. mccune_group.to_has_mul,
-  .. mccune_group.to_has_inv }
+  .. ‹mccune_group G› }
 
 end mccune_group
 

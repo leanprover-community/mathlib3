@@ -40,10 +40,11 @@ def nfp_family_iterate (f : ι → ordinal → ordinal) (a : ordinal) : list ι 
 | []       := a
 | (i :: l) := f i (nfp_family_iterate l)
 
-theorem nfp_family_iterate_nil (f : ι → ordinal → ordinal) (a) : nfp_family_iterate f a [] = a :=
+@[simp] theorem nfp_family_iterate_nil (f : ι → ordinal → ordinal) (a) :
+  nfp_family_iterate f a [] = a :=
 rfl
 
-theorem nfp_family_iterate_cons (f : ι → ordinal → ordinal) (i l a) :
+@[simp] theorem nfp_family_iterate_cons (f : ι → ordinal → ordinal) (i l a) :
   nfp_family_iterate f a (i :: l) = f i (nfp_family_iterate f a l) :=
 rfl
 
@@ -65,8 +66,8 @@ theorem nfp_family_iterate_eq_iterate (f : ordinal → ordinal) (a) :
   exact function.iterate_succ_apply' f _ a
 end
 
-theorem nfp_family_iterate_monotone {f : ι → ordinal → ordinal}
-  (H : ∀ i, monotone (f i)) (l : list ι) : monotone (λ a, nfp_family_iterate f a l) :=
+theorem nfp_family_iterate_monotone {f : ι → ordinal → ordinal} (H : ∀ i, monotone (f i))
+  (l : list ι) : monotone (λ a, nfp_family_iterate f a l) :=
 λ a b h, list.rec_on l h (λ i l hl, H i hl)
 
 /-- The next common fixed point, at least `a`, for a family of normal functions. -/

@@ -348,7 +348,7 @@ end sum
 
 namespace sigma
 /- Copy of the previous paragraph, but for arbitrary disjoint unions instead of the disjoint union
-of two spaces. I.e., work with sigma types instead of sum types.² -/
+of two spaces. I.e., work with sigma types instead of sum types. -/
 
 variables {ι : Type*} {E : ι → Type*} [∀ i, metric_space (E i)]
 

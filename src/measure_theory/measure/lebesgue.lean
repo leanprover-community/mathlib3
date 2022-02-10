@@ -275,6 +275,8 @@ eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
   by simp [show measure.map has_neg.neg volume (Ioo (p : ℝ) q) = _,
     from measure.map_apply measurable_neg measurable_set_Ioo]
 
+instance : is_neg_invariant (volume : measure ℝ) := ⟨real.map_volume_neg⟩
+
 /-!
 ### Images of the Lebesgue measure under translation/linear maps in ℝⁿ
 -/

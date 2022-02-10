@@ -478,5 +478,6 @@ meta def linter.unprintable_interactive : linter :=
 "This means that an interactive tactic is using `parse p` where `p` does not have " ++
 "an associated description. You can fix this by wrapping `p` as `with_desc \"p\" p`, " ++
 "and provide the description there, or you can stick to \"approved\" tactic combinators " ++
-"like `?` that automatically generate a description.",
+"like `?` `*>` `<*` `<*>` `<|>` and `<$>` (but not `>>=` or `do` blocks) " ++
+"that automatically generate a description.",
   is_fast := tt }

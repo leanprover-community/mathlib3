@@ -27,7 +27,7 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 -/
 
 open finite_dimensional polynomial
-open_locale classical
+open_locale classical polynomial
 
 namespace intermediate_field
 
@@ -861,7 +861,7 @@ noncomputable def equiv_adjoin_simple (pb : power_basis K L) :
     (by rw [adjoin.power_basis_gen, adjoin_simple.algebra_map_gen]))
 
 @[simp]
-lemma equiv_adjoin_simple_aeval (pb : power_basis K L) (f : polynomial K) :
+lemma equiv_adjoin_simple_aeval (pb : power_basis K L) (f : K[X]) :
   pb.equiv_adjoin_simple (aeval (adjoin_simple.gen K pb.gen) f) = aeval pb.gen f :=
 equiv_of_minpoly_aeval _ pb _ f
 
@@ -871,7 +871,7 @@ lemma equiv_adjoin_simple_gen (pb : power_basis K L) :
 equiv_of_minpoly_gen _ pb _
 
 @[simp]
-lemma equiv_adjoin_simple_symm_aeval (pb : power_basis K L) (f : polynomial K) :
+lemma equiv_adjoin_simple_symm_aeval (pb : power_basis K L) (f : K[X]) :
   pb.equiv_adjoin_simple.symm (aeval pb.gen f) = aeval (adjoin_simple.gen K pb.gen) f :=
 by rw [equiv_adjoin_simple, equiv_of_minpoly_symm, equiv_of_minpoly_aeval, adjoin.power_basis_gen]
 

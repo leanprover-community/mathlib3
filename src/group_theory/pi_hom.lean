@@ -111,10 +111,10 @@ variables (S : finset I)
 
 /-- The underlying function of `pi_hom_restr.hom` -/
 def to_fun (S : finset I) : G := finset.noncomm_prod S (λ i, ϕ i (f i)) $
-  by { rintros i - j -, by_cases (i = j), { subst h }, { exact hcomm.elim _ _ h _ _} }
+  by { rintros i - j -, by_cases h : i = j, { subst h }, { exact hcomm.elim _ _ h _ _} }
 
 @[simp]
-lemma to_fun_empty : to_fun f ∅ = 1 := by simp [to_fun]
+lemma to_fun_empty : to_fun f ∅ = 1 := finset.noncomm_prod_empty _ _
 
 @[simp]
 lemma to_fun_insert_of_not_mem (S : finset I) (i : I) (h : i ∉ S) :
@@ -139,9 +139,9 @@ begin
     have hiS : i ∉ S, by {simp at hnmem, tauto},
     calc ϕ i (g i) * (ϕ j (f j) * (to_fun ϕ f S : G)) -- TODO: Why do I have to mention `ϕ`?
         = (ϕ i (g i) * ϕ j (f j)) * to_fun ϕ f S : by rw ← mul_assoc
-    ... = (ϕ j (f j) * ϕ i (g i)) * to_fun ϕ f S : by {congr' 1, apply (fact.elim hcomm _ _ hij)}
+    ... = (ϕ j (f j) * ϕ i (g i)) * to_fun ϕ f S : by { congr' 1, apply fact.elim hcomm _ _ hij }
     ... = ϕ j (f j) * (ϕ i (g i) * to_fun ϕ f S) : by rw mul_assoc
-    ... = ϕ j (f j) * (to_fun ϕ f S * ϕ i (g i)) : by { congr' 1, apply (ih hiS) }
+    ... = ϕ j (f j) * (to_fun ϕ f S * ϕ i (g i)) : by { congr' 1, apply ih hiS }
     ... = (ϕ j (f j) * to_fun ϕ f S) * ϕ i (g i) : by rw ← mul_assoc }
 end
 
@@ -150,7 +150,7 @@ lemma to_fun_mul (S : finset I) : to_fun (f * g) S = to_fun f S * to_fun g S :=
 begin
   induction S using finset.induction_on with i S hnmem ih,
   { simp, },
-  { simp only [ to_fun_insert_of_not_mem _ _ _ _ hnmem],
+  { simp only [to_fun_insert_of_not_mem _ _ _ _ hnmem],
     rw ih, clear ih,
     simp only [pi.mul_apply, map_mul],
     repeat { rw mul_assoc }, congr' 1,
@@ -163,11 +163,11 @@ lemma to_fun_in_sup_range (S : finset I) :
 begin
   induction S using finset.induction_on with i S hnmem ih,
   { simp, },
-  { simp only [ to_fun_insert_of_not_mem _ _ _ _ hnmem],
+  { simp only [to_fun_insert_of_not_mem _ _ _ _ hnmem],
     refine (subgroup.mul_mem _ _ _),
-    { apply (subgroup.mem_Sup_of_mem), { use i }, { simp, }, },
-    { refine (@bsupr_le_bsupr' _ _ _ _ _ _ (λ i, (ϕ i).range) _ ih),
-      by { intro, simp, intro h, right, exact h}, } }
+    { apply subgroup.mem_Sup_of_mem, { use i }, { simp, }, },
+    { refine @bsupr_le_bsupr' _ _ _ _ _ _ (λ i, (ϕ i).range) _ ih,
+      exact λ i, finset.mem_insert_of_mem } }
 end
 
 /-- The canonical homomorphism from a pi group, restricted to a subset  -/
@@ -185,8 +185,7 @@ begin
     by_cases (i = j),
     { subst h, rw ih, simp [hnmem], },
     { change i ≠ j at h,
-      simp [h, hnmem, function.update_noteq (ne_comm.mp h)],
-      exact ih, } }
+      simpa [h, hnmem, function.update_noteq (ne_comm.mp h)] using ih, } }
 end
 
 @[simp]
@@ -232,8 +231,8 @@ begin
   intros i hmem,
   simp only [pi.pow_apply, pi.one_apply],
   rw ← order_of_dvd_iff_pow_eq_one,
-  calc order_of (f i) ∣ fintype.card (H i) : order_of_dvd_card_univ
-    ... ∣ (∏ (i : I) in S, fintype.card (H i)) : finset.dvd_prod_of_mem _ hmem,
+  calc order_of (f i) ∣ fintype.card (H i)                   : order_of_dvd_card_univ
+                  ... ∣ (∏ (i : I) in S, fintype.card (H i)) : finset.dvd_prod_of_mem _ hmem,
 end
 
 end pi_hom_restr
@@ -250,7 +249,7 @@ def hom : (Π (i : I), H i) →* G := pi_hom_restr.hom ϕ finset.univ
 
 @[simp]
 lemma hom_update_one (i : I) (y : H i): hom (function.update 1 i y) = ϕ i y :=
-by { change pi_hom_restr.hom ϕ finset.univ (function.update 1 i y) = ϕ i y, simp }
+by { show pi_hom_restr.hom ϕ finset.univ (function.update 1 i y) = ϕ i y, simp }
 
 lemma range : hom.range = ⨆ i : I, (ϕ i).range :=
 by { show (pi_hom_restr.hom ϕ finset.univ).range = _, simp [pi_hom_restr.range] }
@@ -301,7 +300,7 @@ begin
   rcases hxi with ⟨ y, rfl ⟩,
   let S := finset.erase finset.univ i,
   have hnmem : i ∉ S := finset.not_mem_erase i finset.univ,
-  have : (⨆ (j : I) (x : ¬j = i), (ϕ j).range) = (⨆ j ∈ S, (ϕ j).range) :=
+  have : (⨆ (j : I) (_ : ¬j = i), (ϕ j).range) = (⨆ j ∈ S, (ϕ j).range) :=
   begin
     congr' 1,
     ext i,
@@ -318,16 +317,15 @@ begin
   let z := pi_hom_restr.hom ϕ S f,
   change z = x at heq1,
   let p := ∏ (i : I) in S, fintype.card (H i),
-  have h1 := calc order_of x = order_of y : order_of_injective _ (hinj i) _
-    ... ∣ fintype.card (H i) : order_of_dvd_card_univ,
+  have h1 := calc order_of x = order_of y         : order_of_injective _ (hinj i) _
+                         ... ∣ fintype.card (H i) : order_of_dvd_card_univ,
   have h2 := calc order_of x = order_of z : by rw heq1
-    ... ∣ p : pi_hom_restr.order_of_hom_dvd_prod_card ϕ f S ,
+                         ... ∣ p          : pi_hom_restr.order_of_hom_dvd_prod_card ϕ f S ,
   have hcop : p.coprime (fintype.card (H i)),
   { apply coprime_prod_left, intros j hmem, apply hcoprime, rintro rfl, contradiction, },
   have hx : ϕ i y = 1,
-  { have := nat.dvd_gcd h2 h1,
-    unfold nat.coprime at hcop,
-    simpa [hcop] using this, },
+  { unfold nat.coprime at hcop,
+    simpa [hcop] using nat.dvd_gcd h2 h1, },
   simpa using hx,
 end
 
@@ -351,11 +349,7 @@ include hcomm
 
 lemma hcomm_subtype :
   fact (∀ (i j : I), i ≠ j → ∀ (x : H i) (y : H j), commute ((H i).subtype x) ((H j).subtype y)) :=
-fact.mk begin
-  rintros i j hne ⟨x, hx⟩ ⟨y, hy⟩,
-  simp only [subgroup.coe_subtype, subgroup.coe_mk],
-  exact hcomm i j hne x y hx hy,
-end
+fact.mk (by { rintros i j hne ⟨x, hx⟩ ⟨y, hy⟩, exact hcomm i j hne x y hx hy })
 
 include hfin
 
@@ -368,7 +362,7 @@ lemma hom_update_one (i : I) (y : H i): hom (function.update 1 i y) = y :=
 by apply pi_hom.hom_update_one
 
 lemma range : hom.range = ⨆ i : I, H i :=
-by { unfold hom, simp [pi_hom.range] }
+by simp [hom, pi_hom.range]
 
 lemma pow (k : ℕ) : (hom f) ^ k = hom (f ^ k) :=
 by apply pi_hom_restr.pow
@@ -386,9 +380,8 @@ lemma _root_.independent_of_coprime_order [∀ i, fintype (H i)]
   complete_lattice.independent H :=
 begin
   haveI := hcomm_subtype hcomm,
-  have := independent_range_of_coprime_order (λ i, (H i).subtype) hcoprime
+  simpa using independent_range_of_coprime_order (λ i, (H i).subtype) hcoprime
     (λ i , subtype.coe_injective),
-  simpa using this,
 end
 
 end commuting_subgroups

@@ -969,7 +969,7 @@ begin
 end
 
 instance : has_involutive_inv ℝ≥0∞ :=
-{ inv := inv,
+{ inv := has_inv.inv,
   inv_inv := λ a, by
     by_cases a = 0; cases a; simp [*, none_eq_top, some_eq_coe, -coe_inv, (coe_inv _).symm] at * }
 

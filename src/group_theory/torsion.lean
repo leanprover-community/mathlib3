@@ -41,7 +41,7 @@ def is_torsion := ∀ g : G, ∃ n, 0 < n ∧ g ^ n = 1
 
 end monoid
 
-open monoid (exponent_exists is_torsion)
+open monoid
 
 variables [group G] {N : subgroup G}
 
@@ -64,9 +64,12 @@ lemma quotient_group.is_torsion [nN : N.normal] (tG : is_torsion G) : is_torsion
 end
 
 /--If a group exponent exists, the group is torsion. -/
-lemma exponent_exists.is_torsion (h : exponent_exists G) : is_torsion G :=
-begin
+lemma exponent_exists.is_torsion (h : exponent_exists G) : is_torsion G := begin
   intro g,
   obtain ⟨n, ⟨npos, hn⟩⟩ := h,
   exact ⟨n, npos, hn g⟩,
 end
+
+/--Finite groups are torsion groups.-/
+lemma is_torsion_of_fintype [fintype G] : is_torsion G :=
+exponent_exists.is_torsion $ exponent_exists_iff_ne_zero.mpr exponent_ne_zero_of_fintype

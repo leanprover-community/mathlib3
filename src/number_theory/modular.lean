@@ -531,7 +531,7 @@ end
 lemma T_pow_mul_g_eq_S_mul_T_pow_of_c_eq_one (g : SL(2,ℤ))
   (hc : g 1 0 = 1) : T_pow (- g 0 0) * g = S * T_pow (g 1 1) :=
 begin
-  rw g_is_of_c_is_one g hc,
+  rw g_eq_of_c_eq_one g hc,
   ext i,
   fin_cases i; fin_cases j,
   { simp [T_pow, S, matrix.mul_apply, fin.sum_univ_succ], },

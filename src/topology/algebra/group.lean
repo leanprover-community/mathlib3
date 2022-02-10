@@ -779,8 +779,8 @@ section quotient
 variables [group G] [topological_space G] [topological_group G] {Γ : subgroup G}
 
 @[to_additive]
-instance quotient_group.has_continuous_smul₂ : has_continuous_smul₂ G (G ⧸ Γ) :=
-{ continuous_smul₂ := λ g₀, begin
+instance quotient_group.has_continuous_const_smul : has_continuous_const_smul G (G ⧸ Γ) :=
+{ continuous_const_smul := λ g₀, begin
     apply continuous_coinduced_dom,
     change continuous (λ g : G, quotient_group.mk (g₀ * g)),
     exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
@@ -823,7 +823,8 @@ instance : topological_group αˣ :=
 def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
 { continuous_to_fun  :=
   begin
-    apply continuous.prod_mk,
+    show continuous (λ i : (α × β)ˣ, (map (monoid_hom.fst α β) i, map (monoid_hom.snd α β) i)),
+    refine continuous.prod_mk _ _,
     { refine continuous_induced_rng ((continuous_fst.comp units.continuous_coe).prod_mk _),
       refine continuous_op.comp (continuous_fst.comp _),
       simp_rw units.inv_eq_coe_inv,

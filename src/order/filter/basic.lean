@@ -2591,6 +2591,9 @@ lemma prod_map_map_eq' {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : 
   (map f F) ×ᶠ (map g G) = map (prod.map f g) (F ×ᶠ G) :=
 prod_map_map_eq
 
+lemma le_prod_map_fst_snd {f : filter (α × β)} : f ≤ map prod.fst f ×ᶠ map prod.snd f :=
+le_inf le_comap_map le_comap_map
+
 lemma tendsto.prod_map {δ : Type*} {f : α → γ} {g : β → δ} {a : filter α} {b : filter β}
   {c : filter γ} {d : filter δ} (hf : tendsto f a c) (hg : tendsto g b d) :
   tendsto (prod.map f g) (a ×ᶠ b) (c ×ᶠ d) :=

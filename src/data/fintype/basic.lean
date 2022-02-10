@@ -1138,8 +1138,11 @@ instance Prop.fintype : fintype Prop :=
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)
 
-@[simp] lemma set.to_finset_univ [hu : fintype (set.univ : set α)] [fintype α] :
-  @set.to_finset _ (set.univ : set α) hu = finset.univ :=
+/- TODO Without the coercion arrow (`↥`) there is an elaboration bug;
+it essentially infers `fintype.{v} (set.univ.{u} : set α)` with `v` and `u` distinct.
+Reported in leanprover-community/lean#672 -/
+@[simp] lemma set.to_finset_univ [fintype ↥(set.univ : set α)] [fintype α] :
+  (set.univ : set α).to_finset = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
 
 @[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] : s.to_finset = ∅ ↔ s = ∅ :=

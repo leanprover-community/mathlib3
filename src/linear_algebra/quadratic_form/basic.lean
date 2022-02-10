@@ -243,15 +243,15 @@ instance : has_neg (quadratic_form R M) :=
 ⟨ λ Q,
   { to_fun := -Q,
   to_fun_smul := λ a x,
-    by simp only [pi.neg_apply, map_smul, mul_neg_eq_neg_mul_symm],
+    by simp only [pi.neg_apply, map_smul, mul_neg],
   polar_add_left' := λ x x' y,
     by simp only [polar_neg, polar_add_left, neg_add],
   polar_smul_left' := λ a x y,
-    by simp only [polar_neg, polar_smul_left, mul_neg_eq_neg_mul_symm, smul_eq_mul],
+    by simp only [polar_neg, polar_smul_left, mul_neg, smul_eq_mul],
   polar_add_right' := λ x y y',
     by simp only [polar_neg, polar_add_right, neg_add],
   polar_smul_right' := λ a x y,
-    by simp only [polar_neg, polar_smul_right, mul_neg_eq_neg_mul_symm, smul_eq_mul] } ⟩
+    by simp only [polar_neg, polar_smul_right, mul_neg, smul_eq_mul] } ⟩
 
 @[simp] lemma coe_fn_neg (Q : quadratic_form R M) : ⇑(-Q) = -Q := rfl
 

@@ -48,13 +48,12 @@ in the implementation details section.
 `is_cyclotomic_extension {n} A B`. It is not true in general that it is a primitive `n`-th root of
 unity, but this holds if `is_domain B` and `ne_zero (↑n : B)`.
 
-`zeta n A B` is defined using `Exists.some`, which means we have zero control about what it is.
-For example, in normal mathematics we can demand that `(zeta p ℤ ℤ[ζₚ] : ℚ(ζₚ))` is equal to
-`zeta p ℚ ℚ(ζₚ)`, as we are just choosing "an arbitrary" one and we can internally specify that they
-should agree. This is NOT the case for Lean (without much difficulty), and indeed it is independent
-of Lean whether these two are equal or not. Therefore, whenever possible, we specialize results to
-primitive roots, and only at the "final step", when we need to provide a primitive root as evidence
-that stuff works, should we then use zeta.
+`zeta n A B` is defined using `exists.some`, which means we cannot control it.
+For example, in normal mathematics, we can demand that `(zeta p ℤ ℤ[ζₚ] : ℚ(ζₚ))` is equal to
+`zeta p ℚ ℚ(ζₚ)`, as we are just choosing "an arbitrary primitive root" and we can internally specify that
+our choices agree. This is not the case here, and it is indeed impossible to prove that these two are equal.
+Therefore, whenever possible, we prove our results for any primitive root, and only at the "final step", when
+we need to provide an "explicit" primitive root, we then use zeta.
 
 -/
 

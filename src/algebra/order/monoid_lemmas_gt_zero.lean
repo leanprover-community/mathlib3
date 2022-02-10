@@ -8,10 +8,11 @@ import algebra.covariant_and_contravariant
 /-!
 # Multiplication by ·positive· elements is monotonic
 
-Let `α` be a type with `<` and `0`.  We introduce the type `gt_zero α = {x : α // 0 < x}` of
-positive elements of `α`.  We also introduce a local notation for the subtype `gt_zero α`:
+Let `α` be a type with `<` and `0`.  We usee the type `{x : α // 0 < x}` of positive elements of `α`
+to prove results about monotonicity of multiplication.  We also introduce the local notation `α>0`
+for the subtype `{x : α // 0 < x}`:
 
-*  the notation `α>0` to stands for `gt_zero α`.
+*  the notation `α>0` to stands for `{x : α // 0 < x}`.
 
 If the type `α` also has a multiplication, then we also define the multiplications on the left and
 on the right of an element of `α>0` and an element of `α`:
@@ -60,17 +61,13 @@ reproducing almost all of the proofs in `algebra/order/ring` with weaker assumpt
 universe u
 variable {α : Type u}
 
-/--  The type of positive elements in a type that has a `0` and a `<`. -/
-@[reducible]
-def gt_zero (α : Type u) [has_zero α] [has_lt α] := {x : α // 0 < x}
-
 /-  Notation for positive elements
 https://
 leanprover.zulipchat.com/#narrow/stream/113488-general/topic/notation.20for.20positive.20elements
 -/
-local notation `α>0` := gt_zero α
+local notation `α>0` := {x : α // 0 < x}
 
-namespace gt_zero
+namespace zero_lt
 
 /--  `sx` is the multiplication of an element of the subtype `α>0 = {x : α // 0 < x}` of positive
 elements by an element of the type itself.  The element of the subtype appears on the left:
@@ -128,4 +125,4 @@ let a₀ : α>0 := ⟨a, a0⟩ in rel_iff_cov α>0 α dx (<) a₀
 
 end has_mul_zero_lt
 
-end gt_zero
+end zero_lt

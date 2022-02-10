@@ -587,7 +587,7 @@ theorem _root_.differentiable.has_fpower_series_on_ball {f : ℂ → E}
 
 /- **Liouville's Theorem**: If `f : ℂ → E` is differentiable and bounded in the entirety
 of `ℂ`, then `f` is constant. -/
-theorem differentiable.const_of_bounded {f : ℂ → E} (h : differentiable ℂ f)
+theorem _root_.differentiable.const_of_bounded {f : ℂ → E} (h : differentiable ℂ f)
   {C : ℝ} (hC : ∀ z, ∥f z∥ ≤ C) : f = (λ z, f 0) :=
 begin
   let C' := ∥C∥ + 1,

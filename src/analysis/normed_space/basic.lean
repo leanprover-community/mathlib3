@@ -674,7 +674,7 @@ def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [normed_space ℝ E] 
 variables (α)
 
 lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : r ≠ 0) (x : sphere (0:E) r) : x ≠ - x :=
-λ h, ne_zero_of_mem_sphere hr x ((eq_neg_iff_eq_zero α _).mp (by { conv_lhs {rw h}, simp }))
+λ h, ne_zero_of_mem_sphere hr x ((self_eq_neg α _).mp (by { conv_lhs {rw h}, simp }))
 
 lemma ne_neg_of_mem_unit_sphere [char_zero α] (x : sphere (0:E) 1) : x ≠ - x :=
 ne_neg_of_mem_sphere α one_ne_zero x

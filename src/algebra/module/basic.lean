@@ -564,17 +564,17 @@ section nat
 variables (R M) [no_zero_smul_divisors R M] [char_zero R]
 include R
 
-lemma eq_neg_iff_eq_zero {v : M} : v = - v ↔ v = 0 :=
+lemma self_eq_neg {v : M} : v = - v ↔ v = 0 :=
 by rw [← two_nsmul_eq_zero R M, two_smul, add_eq_zero_iff_eq_neg]
 
-lemma neg_eq_iff_eq_zero {v : M} : - v = v ↔ v = 0 :=
-by rw [eq_comm, eq_neg_iff_eq_zero R M]
+lemma neg_eq_self {v : M} : - v = v ↔ v = 0 :=
+by rw [eq_comm, self_eq_neg R M]
 
-lemma ne_neg_iff_ne_zero {v : M} : v ≠ -v ↔ v ≠ 0 :=
-(eq_neg_iff_eq_zero R M).not
+lemma self_ne_neg {v : M} : v ≠ -v ↔ v ≠ 0 :=
+(self_eq_neg R M).not
 
-lemma neg_ne_iff_ne_zero {v : M} : -v ≠ v ↔ v ≠ 0 :=
-(neg_eq_iff_eq_zero R M).not
+lemma neg_ne_self {v : M} : -v ≠ v ↔ v ≠ 0 :=
+(neg_eq_self R M).not
 
 end nat
 

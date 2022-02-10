@@ -182,6 +182,16 @@ def order_iso.dual_antisymmetrization :
   right_inv := λ a, quotient.induction_on' a $ λ a, by simp_rw [quotient.map'_mk', id],
   map_rel_iff' := λ a b, quotient.induction_on₂' a b $ λ a b, iff.rfl }
 
+@[simp] lemma order_iso.dual_antisymmetrization_apply (a : α) :
+  order_iso.dual_antisymmetrization _ (to_dual $ to_antisymmetrization _ a) =
+    to_antisymmetrization _ (to_dual a) :=
+rfl
+
+@[simp] lemma order_iso.dual_antisymmetrization_symm_apply (a : α) :
+  (order_iso.dual_antisymmetrization _).symm (to_antisymmetrization _ $ to_dual a) =
+    to_dual (to_antisymmetrization _ a) :=
+rfl
+
 end preorder
 
 section partial_order

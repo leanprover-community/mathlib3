@@ -67,7 +67,7 @@ by { ext, refl }
 lemma is_open_map_mul_left (a : G) : is_open_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_open_map
 
-lemma left_coset_open {U : set G} (x : G) (h : is_open U) :
+lemma is_open.left_coset {U : set G} (x : G) (h : is_open U) :
 is_open (left_coset x U) :=
 is_open_map_mul_left x _ h
 
@@ -75,7 +75,7 @@ is_open_map_mul_left x _ h
 lemma is_closed_map_mul_left (a : G) : is_closed_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_closed_map
 
-lemma left_coset_closed {U : set G} (x : G) (h : is_closed U) :
+lemma is_closed.left_coset {U : set G} (x : G) (h : is_closed U) :
 is_closed (left_coset x U) :=
 is_closed_map_mul_left x _ h
 
@@ -99,7 +99,7 @@ by { ext, refl }
 lemma is_open_map_mul_right (a : G) : is_open_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_open_map
 
-lemma right_coset_open {U : set G} (x : G) (h : is_open U) :
+lemma is_open.right_coset {U : set G} (x : G) (h : is_open U) :
 is_open (right_coset U x) :=
 is_open_map_mul_right x _ h
 
@@ -107,7 +107,7 @@ is_open_map_mul_right x _ h
 lemma is_closed_map_mul_right (a : G) : is_closed_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_closed_map
 
-lemma right_coset_closed {U : set G} (x : G) (h : is_closed U) :
+lemma is_closed.right_coset {U : set G} (x : G) (h : is_closed U) :
 is_closed (right_coset U x) :=
 is_closed_map_mul_right x _ h
 

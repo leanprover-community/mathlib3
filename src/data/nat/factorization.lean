@@ -151,7 +151,7 @@ lemma factorization_mul_support {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
 begin
   ext q,
   simp only [finset.mem_union, factor_iff_mem_factorization],
-  rw mem_factors_mul ha hb,
+  exact mem_factors_mul ha hb,
 end
 
 /-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`,
@@ -197,6 +197,12 @@ begin
     rw [←factorization_prod_pow_eq_self hn, ←factorization_prod_pow_eq_self hd,
         ←finsupp.prod_add_index pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
+end
+
+lemma prod_prime_factors_dvd (n : ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn, { simp },
+  simpa [prod_factors hn] using multiset.to_finset_prod_dvd_prod (n.factors : multiset ℕ),
 end
 
 lemma prime.pow_dvd_iff_le_factorization {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :
@@ -261,15 +267,6 @@ begin
     { rw factorization_eq_zero_of_non_prime d p pp, exact zero_le' },
     rw ←pp.pow_dvd_iff_le_factorization hn,
     exact h p _ pp (pow_factorization_dvd p _) },
-end
-
-lemma prod_prime_factors_dvd (n : ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=
-begin
-  rcases (decidable.eq_or_ne n 0) with rfl | hn0, { simp },
-  nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self hn0,
-  rw [finsupp.prod, support_factorization],
-  refine finset.prod_dvd_prod _ _ (λ p hp, (dvd_pow (dvd_refl p) _)),
-  rwa [←finsupp.mem_support_iff, support_factorization],
 end
 
 end nat

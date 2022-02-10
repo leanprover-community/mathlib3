@@ -423,6 +423,22 @@ lemma infi_mul_right {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
   (⨅ i, f i * a) = (⨅ i, f i) * a :=
 infi_mul_right' h (λ _, ‹nonempty ι›)
 
+lemma inv_map_infi {ι : Sort*} {x : ι → ℝ≥0∞} :
+  (infi x)⁻¹ = (⨆ i, (x i)⁻¹) :=
+inv_order_iso.map_infi x
+
+lemma inv_map_supr {ι : Sort*} {x : ι → ℝ≥0∞} :
+  (supr x)⁻¹ = (⨅ i, (x i)⁻¹) :=
+inv_order_iso.map_supr x
+
+lemma inv_limsup {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
+  (l.limsup x)⁻¹ = l.liminf (λ i, (x i)⁻¹) :=
+by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
+
+lemma inv_liminf {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
+  (l.liminf x)⁻¹ = l.limsup (λ i, (x i)⁻¹) :=
+by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
+
 protected lemma continuous_inv : continuous (has_inv.inv : ℝ≥0∞ → ℝ≥0∞) :=
 continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
 ⟨begin

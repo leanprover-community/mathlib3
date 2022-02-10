@@ -74,7 +74,7 @@ convention:
 ## References
 
 * [F. Borceux, *Handbook of Categorical Algebra 2*][borceux-vol2]
-* [P. Aluffi, *Algebra: Chaper 0*][aluffi2016]
+* [P. Aluffi, *Algebra: Chapter 0*][aluffi2016]
 
 -/
 

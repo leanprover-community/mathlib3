@@ -484,6 +484,24 @@ theorem bind_defined {f : part α} {g : α → part β} :
 @[simp] theorem bind_dom {f : part α} {g : α → part β} :
   (f.bind g).dom ↔ ∃ h : f.dom, (g (f.get h)).dom := iff.rfl
 
+section instances
+
+/- We define several instances for constants and operations on `part α` inherited from `α`. -/
+
+instance [has_zero α] : has_zero (part α) := { zero := pure 0 }
+instance [has_one α] : has_one (part α) := { one := pure 1 }
 instance [has_add α] : has_add (part α) := { add := λ a b, (+) <$> a <*> b }
+instance [has_mul α] : has_mul (part α) := { mul := λ a b, (*) <$> a <*> b }
+instance [has_inv α] : has_inv (part α) := { inv := map has_inv.inv }
+instance [has_neg α] : has_neg (part α) := { neg := map has_neg.neg }
+instance [has_sub α] : has_sub (part α) := { sub := λ a b, (λ x y, x - y) <$> a <*> b }
+instance [has_div α] : has_div (part α) := { div := λ a b, (/) <$> a <*> b }
+instance [has_mod α] : has_mod (part α) := { mod := λ a b, (%) <$> a <*> b }
+instance [has_append α] : has_append (part α) := { append := λ a b, (++) <$> a <*> b }
+instance [has_inter α] : has_inter (part α) := { inter := λ a b, (∩) <$> a <*> b }
+instance [has_union α] : has_union (part α) := { union := λ a b, (∪) <$> a <*> b }
+instance [has_sdiff α] : has_sdiff (part α) := { sdiff := λ a b, (\) <$> a <*> b }
+
+end instances
 
 end part

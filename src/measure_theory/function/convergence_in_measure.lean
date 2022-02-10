@@ -10,10 +10,12 @@ import measure_theory.function.uniform_integrable
 # Convergence in measure
 
 We define convergence in measure which is one of the many notions of convergence in probability.
-Convergence in measure is most notably used in the formulation of the weak law of large numbers
-and is also useful in theorems such as the Vitali convergence theorem. This file provides some
-basic lemmas for working with convergence in measure and establishes some relations between
-convergence in measure and other notions of convergence.
+In particular, a sequence of functions `f` is said to converge in measure to some function `g`
+if for all `ε > 0`, the measure of the set `{x | ε ≤ dist (f i x) (g x)}` tends to 0 as `i`
+tends to infinity. Convergence in measure is most notably used in the formulation of the weak
+law of large numbers and is also useful in theorems such as the Vitali convergence theorem.
+This file provides some basic lemmas for working with convergence in measure and establishes
+some relations between convergence in measure and other notions of convergence.
 
 ## Main definitions
 
@@ -135,11 +137,58 @@ begin
   exact hxfg,
 end
 
+namespace exists_seq_tendsto_ae
+
+variables (μ)
+
+lemma exists_nat_measure_lt_two_inv (hfg : tendsto_in_measure μ f g) (n : ℕ) :
+  ∃ N, ∀ m ≥ N, μ {x | 2⁻¹ ^ n ≤ dist (f m x) (g x)} ≤ 2⁻¹ ^ n :=
+begin
+  specialize hfg (2⁻¹ ^ n) (by simp only [zero_lt_bit0, pow_pos, zero_lt_one, inv_pos]),
+  rw ennreal.tendsto_at_top_zero at hfg,
+  exact hfg (2⁻¹ ^ n) (pos_iff_ne_zero.mpr (λ h_zero, by simpa using pow_eq_zero h_zero))
+end
+
+noncomputable
+def exists_seq_tendsto_ae_seq' (hfg : tendsto_in_measure μ f g) (n : ℕ) :=
+  classical.some (exists_nat_measure_lt_two_inv μ hfg n)
+
+noncomputable
+def exists_seq_tendsto_ae_seq (hfg : tendsto_in_measure μ f g) : ℕ → ℕ
+| 0 := exists_seq_tendsto_ae_seq' μ hfg 0
+| (n + 1) :=  max (exists_seq_tendsto_ae_seq' μ hfg (n + 1))
+  (exists_seq_tendsto_ae_seq n + 1)
+
+lemma exists_seq_tendsto_ae_seq_succ (hfg : tendsto_in_measure μ f g) {n : ℕ} :
+  exists_seq_tendsto_ae_seq μ hfg (n + 1) =
+  max (exists_seq_tendsto_ae_seq' μ hfg (n + 1)) (exists_seq_tendsto_ae_seq μ hfg n + 1) :=
+by rw exists_seq_tendsto_ae_seq
+
+lemma exists_seq_tendsto_ae_seq_spec (hfg : tendsto_in_measure μ f g)
+  (n k : ℕ) (hn : exists_seq_tendsto_ae_seq μ hfg n ≤ k) :
+  μ {x | 2⁻¹ ^ n ≤ dist (f k x) (g x)} ≤ 2⁻¹ ^ n :=
+begin
+  cases n,
+  { exact classical.some_spec (exists_nat_measure_lt_two_inv μ hfg 0) k hn },
+  { exact classical.some_spec (exists_nat_measure_lt_two_inv μ hfg _) _
+      (le_trans (le_max_left _ _) hn) }
+end
+
+lemma exists_seq_tendsto_ae_seq_strict_mono (hfg : tendsto_in_measure μ f g) :
+  strict_mono (exists_seq_tendsto_ae_seq μ hfg) :=
+begin
+  refine strict_mono_nat_of_lt_succ (λ n, _),
+  rw exists_seq_tendsto_ae_seq_succ,
+  exact lt_of_lt_of_le (lt_add_one $ exists_seq_tendsto_ae_seq μ hfg n) (le_max_right _ _),
+end
+
+end exists_seq_tendsto_ae
+
 /-- If `f` is a sequence of functions which converges in measure to `g`, then there exists a
 subsequence of `f` which converges a.e. to `g`. -/
 lemma tendsto_in_measure.exists_seq_tendsto_ae
   (hfg : tendsto_in_measure μ f g) :
-  ∃ ns : ℕ → ℕ, ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
+  ∃ ns : ℕ → ℕ, strict_mono ns ∧ ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
 begin
   have : ∀ k : ℕ, ∃ N, ∀ n ≥ N, μ {x | 2⁻¹ ^ k ≤ dist (f n x) (g x)} ≤ 2⁻¹ ^ k,
   { intro k,
@@ -151,13 +200,11 @@ begin
     obtain ⟨k, h_k⟩ : ∃ (k : ℕ), 2⁻¹ ^ k < ε := exists_pow_lt_of_lt_one hε (by norm_num),
     refine ⟨k+1, (le_of_eq _).trans_lt h_k⟩,
     rw [nat.cast_add, nat.cast_one, add_tsub_cancel_right, real.rpow_nat_cast] },
-  let ns := λ k, (this k).some,
+  set ns := exists_seq_tendsto_ae.exists_seq_tendsto_ae_seq μ hfg,
   use ns,
   let S := λ k, {x | 2⁻¹ ^ k ≤ dist (f (ns k) x) (g x)},
-  have hμS_le : ∀ k, μ (S k) ≤ 2⁻¹ ^ k,
-  { have h_ns_k : ∀ k, ∀ n, n ≥ ns k → μ {x | 2⁻¹ ^ k ≤ dist (f n x) (g x)} ≤ 2⁻¹ ^ k,
-      from λ k, (this k).some_spec,
-    exact λ k, h_ns_k k (ns k) (le_rfl) },
+  have hμS_le : ∀ k, μ (S k) ≤ 2⁻¹ ^ k :=
+    λ k, exists_seq_tendsto_ae.exists_seq_tendsto_ae_seq_spec μ hfg k (ns k) (le_rfl),
   let s := ⋂ k, ⋃ i (hik : k ≤ i), S i,
   have hμs : μ s = 0,
   { suffices hμs_le : ∀ k : ℕ, μ s ≤ ennreal.of_real (2⁻¹ ^ ((k : ℝ) - 1)),
@@ -211,7 +258,8 @@ begin
     rw [set.mem_compl_iff, set.nmem_set_of_eq, not_le] at hNx,
     exact hNx.le },
   rw ae_iff,
-  refine measure_mono_null (λ x, _) hμs,
+  refine ⟨exists_seq_tendsto_ae.exists_seq_tendsto_ae_seq_strict_mono μ hfg,
+    measure_mono_null (λ x, _) hμs⟩,
   rw [set.mem_set_of_eq, ← @not_not (x ∈ s), not_imp_not],
   exact h_tendsto x,
 end

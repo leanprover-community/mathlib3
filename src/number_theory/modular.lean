@@ -632,7 +632,7 @@ begin
       have neg_g_𝒟 : (-g) • z ∈ 𝒟ᵒ,
       { convert hg using 1,
         simp, },
-      exact false_of_c_eq_one neg_c_one hz neg_g_𝒟, }, },
+      exact c_neq_one hz neg_g_𝒟 neg_c_one, }, },
 end
 
 end fundamental_domain

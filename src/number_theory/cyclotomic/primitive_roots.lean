@@ -292,7 +292,7 @@ begin
   exact norm_zeta_eq_one K (zeta_primitive_root n K L) hodd,
 end
 
-variables {K} [field K] [field L] [algebra K L] [ne_zero ((n : ℕ) : K)]
+variables {K} (L) [field K] [field L] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
 /-- If `is_prime_pow (n : ℕ)`, `n ≠ 2` and `irreducible (cyclotomic n K)` (in particular for
 `K = ℚ`), then the norm of `zeta n K L - 1` is `(n : ℕ).min_fac`. -/

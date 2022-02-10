@@ -61,7 +61,7 @@ lemma PartialOrder_dual_equiv_comp_forget_to_Preorder :
 
 /-- `antisymmetrization` as a functor. It is the free functor. -/
 def Preorder_to_PartialOrder : Preorder.{u} ⥤ PartialOrder :=
-{ obj := λ X, PartialOrder.of (antisymmetrization X),
+{ obj := λ X, PartialOrder.of (antisymmetrization X (≤)),
   map := λ X Y f, f.antisymmetrization,
   map_id' := λ X,
     by { ext, exact quotient.induction_on' x (λ x, quotient.map'_mk' _ (λ a b, id) _) },

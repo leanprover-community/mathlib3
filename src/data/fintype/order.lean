@@ -161,3 +161,13 @@ lemma fintype.exists_le [nonempty α] [preorder α] [is_directed α (≤)]
   {β : Type*} [fintype β] (f : β → α) :
   ∃ M, ∀ i, (f i) ≤ M :=
 directed_id.fintype_le _
+
+lemma fintype.bdd_above_range [nonempty α] [preorder α] [is_directed α (≤)]
+  {β : Type*} [fintype β] (f : β → α) :
+  bdd_above (set.range f) :=
+begin
+  obtain ⟨M, hM⟩ := fintype.exists_le f,
+  refine ⟨M, λ a ha, _⟩,
+  obtain ⟨b, rfl⟩ := ha,
+  exact hM b,
+end

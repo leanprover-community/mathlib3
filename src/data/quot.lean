@@ -191,7 +191,7 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
 
 @[simp] lemma quotient.lift_comp_mk [setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) :
   quotient.lift f h ∘ quotient.mk = f :=
-funext (λ a, by rw [function.comp_app, quotient.lift_mk])
+rfl
 
 @[simp] lemma quotient.lift₂_mk {α : Sort*} {β : Sort*} {γ : Sort*} [setoid α] [setoid β]
   (f : α → β → γ)

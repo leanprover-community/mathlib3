@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Best, Riccardo Brasca, Eric Rodriguez
 -/
 
-import number_theory.cyclotomic.basic
-import ring_theory.polynomial.cyclotomic.eval
-import ring_theory.adjoin.power_basis
-import ring_theory.norm
 import algebra.is_prime_pow
+import number_theory.cyclotomic.basic
+import ring_theory.adjoin.power_basis
+import ring_theory.polynomial.cyclotomic.eval
+import ring_theory.norm
 
 /-!
 # `ζ` elements in cyclotomic fields

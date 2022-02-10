@@ -399,8 +399,7 @@ begin
     -- left_distrib
     { rw left_distrib, },
     -- right_distrib
-    { rw right_distrib, },
-  }
+    { rw right_distrib, } }
 end
 
 /-- The ring homomorphism from the colimit commutative ring to the cone point of any other

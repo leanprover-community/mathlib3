@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import order.conditionally_complete_lattice
+import data.int.least_greatest
 
 /-!
 ## `ℤ` forms a conditionally complete linear order
@@ -44,7 +45,7 @@ instance : conditionally_complete_linear_order ℤ :=
     rw [dif_pos this],
     exact hns (least_of_bdd _ (classical.some_spec this.2) _).2.1
   end,
-  .. int.linear_order, ..lattice_of_linear_order }
+  .. int.linear_order, ..linear_order.to_lattice }
 
 namespace int
 

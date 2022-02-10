@@ -3,7 +3,6 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov
 -/
-import data.finset
 import data.fintype.basic
 import algebra.geom_sum
 
@@ -32,9 +31,13 @@ fixed size. If the size is 3, colex on ℕ starts
 * `sum_two_pow_le_iff_lt`: colex for α = ℕ is the same as binary
   (this also proves binary expansions are unique)
 
-## Notation
-We define `<` and `≤` to denote colex ordering, useful in particular when
-multiple orderings are available in context.
+## See also
+
+Related files are:
+* `data.list.lex`: Lexicographic order on lists.
+* `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
+* `data.sigma.order`: Lexicographic order on `Σ i, α i`.
+* `order.lexicographic`: Lexicographic order on `α × β`.
 
 ## Tags
 colex, colexicographic, binary
@@ -109,8 +112,8 @@ begin
   rintro ⟨k, z, ka, _⟩,
   refine ⟨f k, λ x hx, _, _, k, ‹k ∈ B›, rfl⟩,
   { split,
-    any_goals {
-      rintro ⟨x', hx', rfl⟩,
+    any_goals
+    { rintro ⟨x', hx', rfl⟩,
       refine ⟨x', _, rfl⟩,
       rwa ← z _ <|> rwa z _,
       rwa strict_mono.lt_iff_lt h₁ at hx } },
@@ -181,14 +184,28 @@ end
 
 instance [linear_order α] : is_trichotomous (finset.colex α) (<) := ⟨lt_trichotomy⟩
 
--- It should be possible to do this computably but it doesn't seem to make any difference for now.
-noncomputable instance [linear_order α] : linear_order (finset.colex α) :=
+instance decidable_lt [linear_order α] : ∀ {A B : finset.colex α}, decidable (A < B) :=
+show ∀ A B : finset α, decidable (A.to_colex < B.to_colex),
+from λ A B, decidable_of_iff'
+  (∃ (k ∈ B), (∀ x ∈ A ∪ B, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A)
+  begin
+    rw colex.lt_def,
+    apply exists_congr,
+    simp only [mem_union, exists_prop, or_imp_distrib, and_comm (_ ∈ B), and_assoc],
+    intro k,
+    refine and_congr_left' (forall_congr _),
+    tauto,
+  end
+
+instance [linear_order α] : linear_order (finset.colex α) :=
 { le_refl := λ A, or.inr rfl,
   le_trans := le_trans,
   le_antisymm := λ A B AB BA, AB.elim (λ k, BA.elim (λ t, (asymm k t).elim) (λ t, t.symm)) id,
   le_total := λ A B,
           (lt_trichotomy A B).elim3 (or.inl ∘ or.inl) (or.inl ∘ or.inr) (or.inr ∘ or.inl),
-  decidable_le := classical.dec_rel _,
+  decidable_le := λ A B, by apply_instance,
+  decidable_lt := λ A B, by apply_instance,
+  decidable_eq := λ A B, by apply_instance,
   lt_iff_le_not_le := λ A B,
   begin
     split,
@@ -197,7 +214,7 @@ noncomputable instance [linear_order α] : linear_order (finset.colex α) :=
       rintro (i | rfl),
       { apply asymm_of _ t i },
       { apply irrefl _ t } },
-    rintro ⟨(h₁ | rfl), h₂⟩,
+    rintro ⟨h₁ | rfl, h₂⟩,
     { apply h₁ },
     apply h₂.elim (or.inr rfl),
   end,
@@ -337,22 +354,19 @@ def to_colex_rel_hom [linear_order α] :
 
 instance [linear_order α] : order_bot (finset.colex α) :=
 { bot := (∅ : finset α).to_colex,
-  bot_le := λ x, empty_to_colex_le,
-  ..(by apply_instance : partial_order (finset.colex α)) }
+  bot_le := λ x, empty_to_colex_le }
 
-noncomputable instance [linear_order α] : semilattice_inf_bot (finset.colex α) :=
-{ ..finset.colex.order_bot,
+instance [linear_order α] [fintype α] : order_top (finset.colex α) :=
+{ top := finset.univ.to_colex,
+  le_top := λ x, colex_le_of_subset (subset_univ _) }
+
+instance [linear_order α] : lattice (finset.colex α) :=
+{ ..(by apply_instance : semilattice_sup (finset.colex α)),
   ..(by apply_instance : semilattice_inf (finset.colex α)) }
 
-noncomputable instance [linear_order α] : semilattice_sup_bot (finset.colex α) :=
-{ ..finset.colex.order_bot,
-  ..(by apply_instance : semilattice_sup (finset.colex α)) }
-
-noncomputable instance [linear_order α] [fintype α] : bounded_lattice (finset.colex α) :=
-{ top := finset.univ.to_colex,
-  le_top := λ x, colex_le_of_subset (subset_univ _),
-  ..(by apply_instance : semilattice_sup (finset.colex α)),
-  ..(by apply_instance : semilattice_inf_bot (finset.colex α)) }
+instance [linear_order α] [fintype α] : bounded_order (finset.colex α) :=
+{ ..(by apply_instance : order_top (finset.colex α)),
+  ..(by apply_instance : order_bot (finset.colex α)) }
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
 lemma sum_two_pow_lt_iff_lt (A B : finset ℕ) :

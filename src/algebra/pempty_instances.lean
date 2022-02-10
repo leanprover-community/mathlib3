@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 
-import algebra.module.basic
+import algebra.group.defs
+import algebra.group.to_additive
 
 /-!
 # Instances on pempty

@@ -246,6 +246,8 @@ lemma ghost_component_apply (n : ℕ) (x : 𝕎 R) : ghost_component n x = aeval
 
 @[simp] lemma ghost_map_apply (x : 𝕎 R) (n : ℕ) : ghost_map x n = ghost_component n x := rfl
 
+section invertible
+
 variables (p R) [invertible (p : R)]
 
 /-- `witt_vector.ghost_map` is a ring isomorphism when `p` is invertible in `R`. -/
@@ -256,5 +258,20 @@ def ghost_equiv : 𝕎 R ≃+* (ℕ → R) :=
 
 lemma ghost_map.bijective_of_invertible : function.bijective (ghost_map : 𝕎 R → ℕ → R) :=
 (ghost_equiv p R).bijective
+
+end invertible
+
+/-- `witt_vector.coeff x 0` as a `ring_hom` -/
+@[simps]
+def constant_coeff : 𝕎 R →+* R :=
+{ to_fun := λ x, x.coeff 0,
+  map_zero' := by simp,
+  map_one' := by simp,
+  map_add' := add_coeff_zero,
+  map_mul' := mul_coeff_zero }
+
+instance [nontrivial R] : nontrivial (𝕎 R) :=
+constant_coeff.domain_nontrivial
+
 
 end witt_vector

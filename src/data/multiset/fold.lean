@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.multiset.erase_dup
+import data.list.min_max
 
 /-!
 # The fold operation for a commutative associative operation over a multiset.
@@ -54,7 +55,7 @@ multiset.induction_on s₂
   (by rw [add_zero, fold_zero, ← fold_cons'_right, ← fold_cons_right op])
   (by simp {contextual := tt}; cc)
 
-theorem fold_singleton (b a : α) : (a ::ₘ 0 : multiset α).fold op b = a * b := by simp
+theorem fold_singleton (b a : α) : ({a} : multiset α).fold op b = a * b := foldr_singleton _ _ _ _
 
 theorem fold_distrib {f g : β → α} (u₁ u₂ : α) (s : multiset β) :
   (s.map (λx, f x * g x)).fold op (u₁ * u₂) = (s.map f).fold op u₁ * (s.map g).fold op u₂ :=
@@ -80,13 +81,29 @@ end
 
 end fold
 
+section order
+
+lemma max_le_of_forall_le {α : Type*} [canonically_linear_ordered_add_monoid α]
+  (l : multiset α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
+  l.fold max ⊥ ≤ n :=
+begin
+  induction l using quotient.induction_on,
+  simpa using list.max_le_of_forall_le _ _ h
+end
+
+lemma max_nat_le_of_forall_le (l : multiset ℕ) (n : ℕ) (h : ∀ (x ∈ l), x ≤ n) :
+  l.fold max 0 ≤ n :=
+max_le_of_forall_le l n h
+
+end order
+
 open nat
 
 theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
   ∃ n : ℕ, s ≤ n • erase_dup s :=
 ⟨(s.map (λ a, count a s)).fold max 0, le_iff_count.2 $ λ a, begin
   rw count_nsmul, by_cases a ∈ s,
-  { refine le_trans _ (mul_le_mul_left _ $ count_pos.2 $ mem_erase_dup.2 h),
+  { refine le_trans _ (nat.mul_le_mul_left _ $ count_pos.2 $ mem_erase_dup.2 h),
     have : count a s ≤ fold max 0 (map (λ a, count a s) (a ::ₘ erase s a));
     [simp [le_max_left], simpa [cons_erase h]] },
   { simp [count_eq_zero.2 h, nat.zero_le] }

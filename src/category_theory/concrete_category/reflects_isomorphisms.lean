@@ -13,7 +13,7 @@ whose forgetful functors both reflect isomorphisms, itself reflects isomorphisms
 
 universes u
 
-open category_theory
+namespace category_theory
 
 instance : reflects_isomorphisms (forget (Type u)) :=
 { reflects := λ X Y f i, i }
@@ -25,8 +25,9 @@ variables (D : Type (u+1)) [category D] [concrete_category.{u} D]
 A `forget₂ C D` forgetful functor between concrete categories `C` and `D`
 where `forget C` reflects isomorphisms, itself reflects isomorphisms.
 -/
-@[priority 50] -- Even lower than the instance from `full` and `faithful`.
-instance [has_forget₂ C D] [reflects_isomorphisms (forget C)] :
+-- This should not be an instance, as it causes a typeclass loop
+-- with `category_theory.has_forget_to_Type`
+lemma reflects_isomorphisms_forget₂ [has_forget₂ C D] [reflects_isomorphisms (forget C)] :
   reflects_isomorphisms (forget₂ C D) :=
 { reflects := λ X Y f i,
   begin
@@ -41,3 +42,5 @@ instance [has_forget₂ C D] [reflects_isomorphisms (forget C)] :
     end,
     apply is_iso_of_reflects_iso f (forget C),
   end }
+
+end category_theory

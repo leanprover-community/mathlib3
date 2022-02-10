@@ -68,7 +68,14 @@ protected lemma map {x : α} (hx : is_fixed_pt fa x) {g : α → β} (h : semico
 calc fb (g x) = g (fa x) : (h.eq x).symm
           ... = g x      : congr_arg g hx
 
+protected lemma apply {x : α} (hx : is_fixed_pt f x) : is_fixed_pt f (f x) :=
+by convert hx
+
 end is_fixed_pt
+
+@[simp] lemma injective.is_fixed_pt_apply_iff (hf : injective f) {x : α} :
+  is_fixed_pt f (f x) ↔ is_fixed_pt f x :=
+⟨λ h, hf h.eq, is_fixed_pt.apply⟩
 
 /-- The set of fixed points of a map `f : α → α`. -/
 def fixed_points (f : α → α) : set α := {x : α | is_fixed_pt f x}
@@ -78,6 +85,10 @@ instance fixed_points.decidable [decidable_eq α] (f : α → α) (x : α) :
 is_fixed_pt.decidable
 
 @[simp] lemma mem_fixed_points : x ∈ fixed_points f ↔ is_fixed_pt f x := iff.rfl
+
+lemma mem_fixed_points_iff {α : Type*} {f : α → α} {x : α} :
+  x ∈ fixed_points f ↔ f x = x :=
+by refl
 
 @[simp] lemma fixed_points_id : fixed_points (@id α) = set.univ :=
 set.ext $ λ _, by simpa using is_fixed_pt_id _

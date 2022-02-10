@@ -50,10 +50,14 @@ instance sum : category.{v₁} (C ⊕ D) :=
     | inr X, inr Y, inr Z, f, g := f ≫ g
     end }
 
-@[simp] lemma sum_comp_inl {P Q R : C} (f : (inl P : C ⊕ D) ⟶ inl Q) (g : inl Q ⟶ inl R) :
-  f ≫ g = (f : P ⟶ Q) ≫ (g : Q ⟶ R) := rfl
-@[simp] lemma sum_comp_inr {P Q R : D} (f : (inr P : C ⊕ D) ⟶ inr Q) (g : inr Q ⟶ inr R) :
-  f ≫ g = (f : P ⟶ Q) ≫ (g : Q ⟶ R) := rfl
+@[simp] lemma sum_comp_inl {P Q R : C} (f : (inl P : C ⊕ D) ⟶ inl Q)
+  (g : (inl Q : C ⊕ D) ⟶ inl R) :
+  @category_struct.comp _ _ P Q R (f : P ⟶ Q) (g : Q ⟶ R) =
+  @category_struct.comp _ _ (inl P) (inl Q) (inl R) (f : P ⟶ Q) (g : Q ⟶ R) := rfl
+@[simp] lemma sum_comp_inr {P Q R : D} (f : (inr P : C ⊕ D) ⟶ inr Q)
+  (g : (inr Q : C ⊕ D) ⟶ inr R) :
+  @category_struct.comp _ _ P Q R (f : P ⟶ Q) (g : Q ⟶ R) =
+  @category_struct.comp _ _ (inr P) (inr Q) (inr R) (f : P ⟶ Q) (g : Q ⟶ R) := rfl
 end
 
 namespace sum

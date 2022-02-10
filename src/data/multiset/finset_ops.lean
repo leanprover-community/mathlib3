@@ -27,7 +27,7 @@ quot.lift_on s (λ l, (l.insert a : multiset α))
 
 @[simp] theorem coe_ndinsert (a : α) (l : list α) : ndinsert a l = (insert a l : list α) := rfl
 
-@[simp] theorem ndinsert_zero (a : α) : ndinsert a 0 = a ::ₘ 0 := rfl
+@[simp] theorem ndinsert_zero (a : α) : ndinsert a 0 = {a} := rfl
 
 @[simp, priority 980]
 theorem ndinsert_of_mem {a : α} {s : multiset α} : a ∈ s → ndinsert a s = s :=
@@ -41,7 +41,7 @@ quot.induction_on s $ λ l h, congr_arg coe $ insert_of_not_mem h
 quot.induction_on s $ λ l, mem_insert_iff
 
 @[simp] theorem le_ndinsert_self (a : α) (s : multiset α) : s ≤ ndinsert a s :=
-quot.induction_on s $ λ l, (sublist_of_suffix $ suffix_insert _ _).subperm
+quot.induction_on s $ λ l, (sublist_insert _ _).subperm
 
 @[simp] theorem mem_ndinsert_self (a : α) (s : multiset α) : a ∈ ndinsert a s :=
 mem_ndinsert.2 (or.inl rfl)
@@ -123,8 +123,7 @@ quotient.induction_on₂ s t $ λ l₁ l₂, rfl
 quotient.induction_on₂ s t $ λ l₁ l₂, list.mem_union
 
 theorem le_ndunion_right (s t : multiset α) : t ≤ ndunion s t :=
-quotient.induction_on₂ s t $ λ l₁ l₂,
-(sublist_of_suffix $ suffix_union_right _ _).subperm
+quotient.induction_on₂ s t $ λ l₁ l₂, (suffix_union_right _ _).sublist.subperm
 
 theorem subset_ndunion_right (s t : multiset α) : t ⊆ ndunion s t :=
 subset_of_le (le_ndunion_right s t)
@@ -186,13 +185,13 @@ theorem le_ndinter {s t u : multiset α} : s ≤ ndinter t u ↔ s ≤ t ∧ s �
 by simp [ndinter, le_filter, subset_iff]
 
 theorem ndinter_le_left (s t : multiset α) : ndinter s t ≤ s :=
-(le_ndinter.1 (le_refl _)).1
+(le_ndinter.1 le_rfl).1
 
 theorem ndinter_subset_left (s t : multiset α) : ndinter s t ⊆ s :=
 subset_of_le (ndinter_le_left s t)
 
 theorem ndinter_subset_right (s t : multiset α) : ndinter s t ⊆ t :=
-(le_ndinter.1 (le_refl _)).2
+(le_ndinter.1 le_rfl).2
 
 theorem ndinter_le_right {s} (t : multiset α) (d : nodup s) : ndinter s t ≤ t :=
 (le_iff_subset $ nodup_ndinter _ d).2 (ndinter_subset_right _ _)

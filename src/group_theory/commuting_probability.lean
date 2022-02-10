@@ -3,6 +3,7 @@ Copyright (c) 2022 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
+import group_theory.complement
 import group_theory.group_action.conj_act
 import group_theory.index
 import group_theory.solvable
@@ -124,6 +125,85 @@ open_locale classical
 open_locale big_operators
 
 open fintype
+
+section technical
+
+open_locale pointwise
+
+namespace mem_left_transversals
+
+def to_equiv {G : Type*} [group G] {H : subgroup G} {S : set G}
+  (hS : S ∈ subgroup.left_transversals (H : set G)) : G ⧸ H ≃ S :=
+(equiv.of_bijective _ (subgroup.mem_left_transversals_iff_bijective.mp hS)).symm
+
+lemma mk'_to_equiv {G : Type*} [group G] {H : subgroup G} {S : set G}
+  (hS : S ∈ subgroup.left_transversals (H : set G)) (q : G ⧸ H) :
+  quotient.mk' (to_equiv hS q : G) = q :=
+(to_equiv hS).symm_apply_apply q
+
+def to_fun {G : Type*} [group G] {H : subgroup G} {S : set G}
+  (hS : S ∈ subgroup.left_transversals (H : set G)) : G → S :=
+to_equiv hS ∘ quotient.mk'
+
+lemma to_fun_inv_mul {G : Type*} [group G] {H : subgroup G} {S : set G}
+  (hS : S ∈ subgroup.left_transversals (H : set G)) (g : G) : (to_fun hS g : G)⁻¹ * g ∈ H :=
+quotient.exact' (mk'_to_equiv hS g)
+
+end mem_left_transversals
+
+namespace mem_right_transversals
+
+def to_equiv {G : Type*} [group G] {H : subgroup G} {S : set G}
+  (hS : S ∈ subgroup.right_transversals (H : set G)) : quotient (quotient_group.right_rel H) ≃ S :=
+(equiv.of_bijective _ (subgroup.mem_right_transversals_iff_bijective.mp hS)).symm
+
+lemma mk'_to_equiv {G : Type*} [group G] {H : subgroup G} {S : set G}
+  (hS : S ∈ subgroup.right_transversals (H : set G)) (q : quotient (quotient_group.right_rel H)) :
+  quotient.mk' (to_equiv hS q : G) = q :=
+(to_equiv hS).symm_apply_apply q
+
+def to_fun {G : Type*} [group G] {H : subgroup G} {S : set G}
+  (hS : S ∈ subgroup.right_transversals (H : set G)) : G → S :=
+to_equiv hS ∘ quotient.mk'
+
+lemma to_fun_mul_inv {G : Type*} [group G] {H : subgroup G} {S : set G}
+  (hS : S ∈ subgroup.right_transversals (H : set G)) (g : G) : g * (to_fun hS g : G)⁻¹ ∈ H :=
+quotient.exact' (mk'_to_equiv hS _)
+
+end mem_right_transversals
+
+/-- **Schreier's Lemma** -/
+lemma schreier {G : Type*} [group G] {H : subgroup G} {R S : set G}
+  (hR : R ∈ subgroup.right_transversals (H : set G)) (hS : subgroup.closure S = ⊤) :
+  subgroup.closure ((R * S).image (λ g, g * mem_right_transversals.to_fun hR g)) = H :=
+begin
+  sorry
+end
+
+/-- **Schreier's Lemma** -/
+lemma schreier' {G : Type*} [group G] {H : subgroup G} {R S : set G}
+  (hR : R ∈ subgroup.right_transversals (H : set G)) (hS : subgroup.closure S = ⊤) :
+  subgroup.closure ((R * S).image (λ g, (⟨g * (mem_right_transversals.to_fun hR g)⁻¹,
+    mem_right_transversals.to_fun_mul_inv hR g⟩ : H))) =
+    (⊤ : subgroup H) :=
+begin
+  sorry
+end
+
+def generated_by (G : Type*) [group G] (n : ℕ) :=
+∃ S : set G, subgroup.closure S = ⊤ ∧ ∃ hS, @fintype.card S hS ≤ n
+
+lemma schreier_bound : ℕ → ℕ → ℕ := (*)
+
+lemma schreier'' {m n : ℕ} {G : Type*} [group G] {H : subgroup G}
+  (h1 : H.index ≤ m) (h2 : generated_by G n) : generated_by H (schreier_bound m n) :=
+begin
+  obtain ⟨R, hR⟩ := @subgroup.right_transversals.inhabited G _ H,
+  obtain ⟨S, hS, hS_fintype, hS_card⟩ := h2,
+  refine ⟨_, schreier' hR hS, sorry, sorry⟩,
+end
+
+end technical
 
 variables (M : Type*) [fintype M] [has_mul M]
 

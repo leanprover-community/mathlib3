@@ -5,6 +5,7 @@ Authors: Nicolò Cavalleri
 -/
 
 import tactic.basic
+import data.fun_like.basic
 
 /-!
 # Bundled right inverse (section)
@@ -45,15 +46,14 @@ namespace right_inv
 
 variables {α: Type*} {β: Type*} {f : α → β} {g h : right_inv f}
 
+instance right_inv_fun_like : fun_like (right_inv f) β (λ _, α) :=
+⟨right_inv.to_fun, λ g h H, by { cases g, cases h, congr'}⟩
+
 instance : has_coe_to_fun (right_inv f) (λ _, β → α) := ⟨right_inv.to_fun⟩
 
-@[simp] lemma to_fun_eq_coe (g : right_inv f) : g.to_fun = ⇑g := rfl
+@[simp] lemma to_fun_eq_coe (g : right_inv f) : g.to_fun = g := rfl
 
-lemma coe_injective (H : (g : β → α) = h) : g = h := /- Why is ⇑g not working? -/
-by { cases g, cases h, congr' }
-
-@[ext] theorem ext (H : ∀ a, g a = h a) : g = h :=
-coe_injective $ funext H
+@[ext] theorem ext {g h : right_inv f} (H : ∀ x, g x = h x) : g = h := fun_like.ext g h H
 
 lemma right_inv_def {f : α → β} (g : right_inv f) : f ∘ g = id := g.right_inv'.id
 

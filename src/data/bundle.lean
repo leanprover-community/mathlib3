@@ -94,7 +94,7 @@ open bundle
 variables {B : Type*} {E : B → Type*}
 
 /-- Type synonym for name clarity. -/
-@[reducible, nolint has_coe_to_fun] def bundle_section (E : B → Type*) := Π x, E x
+@[reducible] def bundle_section (E : B → Type*) := Π x, E x
 
 @[simp] lemma right_inv.fst_eq_id (f : right_inv (proj E)) (b : B) : (f b).fst = b :=
 congr_fun f.right_inv_def b

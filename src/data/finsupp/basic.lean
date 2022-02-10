@@ -1068,7 +1068,7 @@ h.map_prod _ _
 lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
   (f : α →₀ β) (g : α → β → N →* P) :
   ⇑(f.prod g) = f.prod (λ i fi, g i fi) :=
-monoid_hom.coe_prod _ _
+monoid_hom.coe_finset_prod _ _
 
 @[simp, to_additive]
 lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]

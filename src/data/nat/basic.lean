@@ -607,7 +607,7 @@ theorem mul_self_inj {n m : ℕ} : n * n = m * m ↔ n = m :=
 le_antisymm_iff.trans (le_antisymm_iff.trans
   (and_congr mul_self_le_mul_self_iff mul_self_le_mul_self_iff)).symm
 
-lemma le_of_pos_add_prec (n : ℕ) {i : ℕ} (hi : i ≠ 0) : n ≤ i + (n - 1) :=
+lemma le_add_pred_of_pos (n : ℕ) {i : ℕ} (hi : i ≠ 0) : n ≤ i + (n - 1) :=
 begin
   cases n,
   { simp },

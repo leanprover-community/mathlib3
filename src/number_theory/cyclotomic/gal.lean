@@ -17,11 +17,12 @@ it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, 
 
 * `is_cyclotomic_extension.aut_to_pow_injective`: `is_primitive_root.aut_to_pow` is injective
   in the case that it's considered over a cyclotomic field extension, where `n` does not divide
-  the characteristic of K. As a corollary, $Gal(K(ζₙ)/K)$ is abelian.
+  the characteristic of K.
 * `is_cyclotomic_extension.aut_equiv_pow`: If, additionally, the `n`th cyclotomic polynomial is
   irreducible in K, then `aut_to_pow` is a `mul_equiv` (for example, in ℚ and certain 𝔽ₚ).
 * `gal_X_pow_equiv_units_zmod`, `gal_cyclotomic_equiv_units_zmod`: Repackage `aut_equiv_pow` in
   terms of `polynomial.gal`.
+* `is_cyclotomic_extension.aut.comm_group`: Cyclotomic extensions are abelian.
 
 ## References
 
@@ -75,10 +76,9 @@ begin
   rw [order_of_units, order_of_subgroup]
 end
 
--- As a corollary, cyclotomic extensions are abelian extensions! (Note this cannot be an instance)
-noncomputable example [ne_zero ((n : ℕ) : K)] : comm_group (L ≃ₐ[K] L) :=
-function.injective.comm_group _ (aut_to_pow_injective n K L) (map_one _)
-  (map_mul _) (map_inv _) (map_div _)
+/-- Cyclotomic extensions are abelian. -/
+noncomputable def aut.comm_group [ne_zero ((n : ℕ) : K)] : comm_group (L ≃ₐ[K] L) :=
+(aut_to_pow_injective n K L).comm_group _ (map_one _) (map_mul _) (map_inv _) (map_div _)
 
 /-- The power basis given by `ζ ^ t`. -/
 @[simps] noncomputable def zeta_pow_power_basis [ne_zero ((n : ℕ) : K)] (t : (zmod n)ˣ) :

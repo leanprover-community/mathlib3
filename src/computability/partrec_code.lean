@@ -513,7 +513,7 @@ end
 end
 
 /--
-The inperpretation of a `nat.partrec.code` as a partial function.
+The interpretation of a `nat.partrec.code` as a partial function.
 * `nat.partrec.code.zero`: The constant zero function.
 * `nat.partrec.code.succ`: The successor function.
 * `nat.partrec.code.left`: Left unpairing of a pair of ℕ (encoded by `nat.mkpair`)

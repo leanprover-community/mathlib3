@@ -191,8 +191,8 @@ theorem zpow_mul₀ (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 theorem zpow_mul₀' (a : G₀) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, zpow_mul₀]
 
-@[simp, norm_cast] lemma units.coe_zpow₀ (u : units G₀) :
-  ∀ (n : ℤ), ((u ^ n : units G₀) : G₀) = u ^ n
+@[simp, norm_cast] lemma units.coe_zpow₀ (u : G₀ˣ) :
+  ∀ (n : ℤ), ((u ^ n : G₀ˣ) : G₀) = u ^ n
 | (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact u.coe_pow n }
 | -[1+k] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, units.coe_inv', u.coe_pow]
 
@@ -274,7 +274,7 @@ end
 /-- If a monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,
 `n : ℤ`, to `(f x)^n`. -/
 lemma monoid_with_zero_hom.map_zpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
-  (f : monoid_with_zero_hom G₀ G₀') (x : G₀) :
+  (f : G₀ →*₀ G₀') (x : G₀) :
   ∀ n : ℤ, f (x ^ n) = f x ^ n
 | (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact f.to_monoid_hom.map_pow x n }
 | -[1+n] := begin

@@ -131,6 +131,8 @@ lemma pos_of_floor_pos (h : 0 < ⌊a⌋₊) : 0 < a :=
 lemma lt_of_lt_floor (h : n < ⌊a⌋₊) : ↑n < a :=
 (nat.cast_lt.2 h).trans_le $ floor_le (pos_of_floor_pos $ (nat.zero_le n).trans_lt h).le
 
+lemma floor_le_of_le (h : a ≤ n) : ⌊a⌋₊ ≤ n := le_imp_le_iff_lt_imp_lt.2 lt_of_lt_floor h
+
 @[simp] lemma floor_eq_zero : ⌊a⌋₊ = 0 ↔ a < 1 :=
 by { rw [←lt_one_iff, ←@cast_one α], exact floor_lt' nat.one_ne_zero }
 
@@ -590,20 +592,6 @@ cast_lt.1 $ (floor_le a).trans_lt $ h.trans_le $ le_ceil b
 @[simp] lemma preimage_ceil_singleton (m : ℤ) : (ceil : α → ℤ) ⁻¹' {m} = Ioc (m - 1) m :=
 ext $ λ x, ceil_eq_iff
 
-/-! #### A floor ring as a floor semiring -/
-
-@[priority 100] -- see Note [lower instance priority]
-instance _root_.floor_ring.to_floor_semiring : floor_semiring α :=
-{ floor := λ a, ⌊a⌋.to_nat,
-  ceil := λ a, ⌈a⌉.to_nat,
-  floor_of_neg := λ a ha, int.to_nat_of_nonpos (int.floor_nonpos ha.le),
-  gc_floor := λ a n ha, by { rw [int.le_to_nat_iff (int.floor_nonneg.2 ha), int.le_floor], refl },
-  gc_ceil := λ a n, by { rw [int.to_nat_le, int.ceil_le], refl } }
-
-lemma floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
-
-lemma ceil_to_nat  (a : α) : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
-
 /-! #### Intervals -/
 
 @[simp] lemma preimage_Ioo {a b : α} : ((coe : ℤ → α) ⁻¹' (set.Ioo a b)) = set.Ioo ⌊a⌋ ⌈b⌉ :=
@@ -631,6 +619,36 @@ by { ext, simp [lt_ceil] }
 by { ext, simp [le_floor] }
 
 end int
+
+variables {α} [linear_ordered_ring α] [floor_ring α]
+
+/-! #### A floor ring as a floor semiring -/
+
+@[priority 100] -- see Note [lower instance priority]
+instance _root_.floor_ring.to_floor_semiring : floor_semiring α :=
+{ floor := λ a, ⌊a⌋.to_nat,
+  ceil := λ a, ⌈a⌉.to_nat,
+  floor_of_neg := λ a ha, int.to_nat_of_nonpos (int.floor_nonpos ha.le),
+  gc_floor := λ a n ha, by { rw [int.le_to_nat_iff (int.floor_nonneg.2 ha), int.le_floor], refl },
+  gc_ceil := λ a n, by { rw [int.to_nat_le, int.ceil_le], refl } }
+
+lemma int.floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
+
+lemma int.ceil_to_nat  (a : α) : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
+
+variables {a : α}
+
+lemma nat.cast_floor_eq_int_floor (ha : 0 ≤ a) : (⌊a⌋₊ : ℤ) = ⌊a⌋ :=
+by rw [←int.floor_to_nat, int.to_nat_of_nonneg (int.floor_nonneg.2 ha)]
+
+lemma nat.cast_floor_eq_cast_int_floor (ha : 0 ≤ a) : (⌊a⌋₊ : α) = ⌊a⌋ :=
+by rw [←nat.cast_floor_eq_int_floor ha, int.cast_coe_nat]
+
+lemma nat.cast_ceil_eq_int_ceil (ha : 0 ≤ a) : (⌈a⌉₊ : ℤ) = ⌈a⌉ :=
+by { rw [←int.ceil_to_nat, int.to_nat_of_nonneg (int.ceil_nonneg ha)] }
+
+lemma nat.cast_ceil_eq_cast_int_ceil (ha : 0 ≤ a) : (⌈a⌉₊ : α) = ⌈a⌉ :=
+by rw [←nat.cast_ceil_eq_int_ceil ha, int.cast_coe_nat]
 
 /-- There exists at most one `floor_ring` structure on a given linear ordered ring. -/
 lemma subsingleton_floor_ring {α} [linear_ordered_ring α] :

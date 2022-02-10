@@ -201,7 +201,7 @@ begin
   rcases is_empty_or_nonempty β; resetI,
   { exact subsingleton.strongly_measurable f, },
   { inhabit β,
-    exact ⟨simple_func.approx_on f hf set.univ (default β) (set.mem_univ _),
+    exact ⟨simple_func.approx_on f hf set.univ default (set.mem_univ _),
       λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩, },
 end
 

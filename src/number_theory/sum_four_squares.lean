@@ -60,7 +60,7 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
           (add_le_add
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _)
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
-          (le_refl _)
+          le_rfl
       ... < (p / 2) ^ 2 + (p / 2)^ 2 + (p % 2)^2 + ((2 * (p / 2)^2 + (4 * (p / 2) * (p % 2)))) :
         by rw [hp1, one_pow, mul_one];
           exact (lt_add_iff_pos_right _).2
@@ -99,7 +99,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
       ← int.sq_add_sq_of_two_mul_sq_add_sq hy.symm,
       ← mul_right_inj' (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
     have : ∑ x, f (σ x)^2 = ∑ x, f x^2,
-    { conv_rhs { rw ← σ.sum_comp } },
+    { conv_rhs { rw ←equiv.sum_comp σ } },
     have fin4univ : (univ : finset (fin 4)).1 = 0 ::ₘ 1 ::ₘ 2 ::ₘ 3 ::ₘ 0, from dec_trivial,
     simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc]
   end⟩

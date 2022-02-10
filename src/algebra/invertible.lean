@@ -113,7 +113,7 @@ def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = 
 
 /-- An `invertible` element is a unit. -/
 @[simps]
-def unit_of_invertible [monoid α] (a : α) [invertible a] : units α :=
+def unit_of_invertible [monoid α] (a : α) [invertible a] : αˣ :=
 { val     := a,
   inv     := ⅟a,
   val_inv := by simp,
@@ -123,10 +123,10 @@ lemma is_unit_of_invertible [monoid α] (a : α) [invertible a] : is_unit a :=
 ⟨unit_of_invertible a, rfl⟩
 
 /-- Units are invertible in their associated monoid. -/
-def units.invertible [monoid α] (u : units α) : invertible (u : α) :=
+def units.invertible [monoid α] (u : αˣ) : invertible (u : α) :=
 { inv_of := ↑(u⁻¹), inv_of_mul_self := u.inv_mul, mul_inv_of_self := u.mul_inv }
 
-@[simp] lemma inv_of_units [monoid α] (u : units α) [invertible (u : α)] : ⅟(u : α) = ↑(u⁻¹) :=
+@[simp] lemma inv_of_units [monoid α] (u : αˣ) [invertible (u : α)] : ⅟(u : α) = ↑(u⁻¹) :=
 inv_of_eq_right_inv u.mul_inv
 
 lemma is_unit.nonempty_invertible [monoid α] {a : α} (h : is_unit a) : nonempty (invertible a) :=

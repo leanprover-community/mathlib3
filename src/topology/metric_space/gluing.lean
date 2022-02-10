@@ -112,7 +112,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc
         dist z (Φ p) + dist x (Ψ p) ≤ (dist y z + dist y (Φ p)) + dist x (Ψ p) :
-          add_le_add (dist_triangle_left _ _ _) (le_refl _)
+          add_le_add (dist_triangle_left _ _ _) le_rfl
         ... = dist y (Φ p) + dist x (Ψ p) + dist y z : by ring },
     linarith
   end
@@ -130,7 +130,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc
         dist z (Φ p) + dist x (Ψ p) ≤ dist z (Φ p) + (dist x y + dist y (Ψ p)) :
-          add_le_add (le_refl _) (dist_triangle _ _ _)
+          add_le_add le_rfl (dist_triangle _ _ _)
         ... = dist x y + (dist z (Φ p) + dist y (Ψ p)) : by ring },
     linarith
   end
@@ -148,7 +148,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc
         dist x (Φ p) + dist z (Ψ p) ≤ (dist x y + dist y (Φ p)) + dist z (Ψ p) :
-          add_le_add (dist_triangle _ _ _) (le_refl _)
+          add_le_add (dist_triangle _ _ _) le_rfl
         ... = dist x y + (dist y (Φ p) + dist z (Ψ p)) : by ring },
     linarith
   end
@@ -166,7 +166,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
       refine cinfi_le_cinfi (B _ _) (λp, _),
       calc
         dist x (Φ p) + dist z (Ψ p) ≤ dist x (Φ p) + (dist y z + dist y (Ψ p)) :
-          add_le_add (le_refl _) (dist_triangle_left _ _ _)
+          add_le_add le_rfl (dist_triangle_left _ _ _)
         ... = dist x (Φ p) + dist y (Ψ p) + dist y z : by ring },
     linarith
   end
@@ -180,7 +180,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
     calc dist x z ≤ dist x (Φ p) + dist (Φ p) (Φ q) + dist (Φ q) z : dist_triangle4 _ _ _ _
       ... ≤ dist x (Φ p) + dist (Ψ p) (Ψ q) + dist z (Φ q) + 2 * ε : by rw [dist_comm z]; linarith
       ... ≤ dist x (Φ p) + (dist y (Ψ p) + dist y (Ψ q)) + dist z (Φ q) + 2 * ε :
-        add_le_add (add_le_add (add_le_add (le_refl _) (dist_triangle_left _ _ _)) le_rfl) le_rfl
+        add_le_add (add_le_add (add_le_add le_rfl (dist_triangle_left _ _ _)) le_rfl) le_rfl
       ... ≤ ((⨅ p, dist x (Φ p) + dist y (Ψ p)) + ε) +
             ((⨅ p, dist z (Φ p) + dist y (Ψ p)) + ε) + δ : by linarith
   end
@@ -256,11 +256,11 @@ Since there is an arbitrary choice in this construction, it is not an instance b
 def sum.dist : X ⊕ Y → X ⊕ Y → ℝ
 | (inl a) (inl a') := dist a a'
 | (inr b) (inr b') := dist b b'
-| (inl a) (inr b)  := dist a (default X) + 1 + dist (default Y) b
-| (inr b) (inl a)  := dist b (default Y) + 1 + dist (default X) a
+| (inl a) (inr b)  := dist a default + 1 + dist default b
+| (inr b) (inl a)  := dist b default + 1 + dist default a
 
 lemma sum.dist_eq_glue_dist {p q : X ⊕ Y} :
-  sum.dist p q = glue_dist (λ_ : unit, default X) (λ_ : unit, default Y) 1 p q :=
+  sum.dist p q = glue_dist (λ_ : unit, default) (λ_ : unit, default) 1 p q :=
 by cases p; cases q; refl <|> simp [sum.dist, glue_dist, dist_comm, add_comm, add_left_comm]
 
 private lemma sum.dist_comm (x y : X ⊕ Y) : sum.dist x y = sum.dist y x :=
@@ -355,11 +355,11 @@ by letI : pseudo_metric_space (X ⊕ Y) := glue_premetric hΦ hΨ; exact ⟦inr 
 
 instance inhabited_left (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited X] :
   inhabited (glue_space hΦ hΨ) :=
-⟨to_glue_l _ _ (default _)⟩
+⟨to_glue_l _ _ default⟩
 
 instance inhabited_right (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited Y] :
   inhabited (glue_space hΦ hΨ) :=
-⟨to_glue_r _ _ (default _)⟩
+⟨to_glue_r _ _ default⟩
 
 lemma to_glue_commute (hΦ : isometry Φ) (hΨ : isometry Ψ) :
   (to_glue_l hΦ hΨ) ∘ Φ = (to_glue_r hΦ hΨ) ∘ Ψ :=
@@ -464,7 +464,7 @@ def to_inductive_limit (I : ∀ n, isometry (f n)) (n : ℕ) (x : X n) : metric.
 by letI : pseudo_metric_space (Σ n, X n) := inductive_premetric I; exact ⟦sigma.mk n x⟧
 
 instance (I : ∀ n, isometry (f n)) [inhabited (X 0)] : inhabited (inductive_limit I) :=
-⟨to_inductive_limit _ 0 (default _)⟩
+⟨to_inductive_limit _ 0 default⟩
 
 /-- The map `to_inductive_limit n` mapping `X n` to the inductive limit is an isometry. -/
 lemma to_inductive_limit_isometry (I : ∀ n, isometry (f n)) (n : ℕ) :
@@ -484,8 +484,8 @@ begin
   show inductive_limit_dist f ⟨n.succ, f n x⟩ ⟨n, x⟩ = 0,
   { rw [inductive_limit_dist_eq_dist I ⟨n.succ, f n x⟩ ⟨n, x⟩ n.succ,
         le_rec_on_self, le_rec_on_succ, le_rec_on_self, dist_self],
-    exact le_refl _,
-    exact le_refl _,
+    exact le_rfl,
+    exact le_rfl,
     exact le_succ _ }
 end
 

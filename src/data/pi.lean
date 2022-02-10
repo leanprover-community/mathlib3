@@ -7,6 +7,7 @@ import tactic.split_ifs
 import tactic.simpa
 import tactic.congr
 import algebra.group.to_additive
+import data.prod
 /-!
 # Instances and theorems on pi types
 
@@ -111,7 +112,7 @@ function.update_apply 0 i x i'
 /-- On non-dependent functions, `pi.single` is symmetric in the two indices. -/
 lemma single_comm {β : Sort*} [has_zero β] (i : I) (x : β) (i' : I) :
   single i x i' = single i' x i :=
-by simp only [single_apply, eq_comm]; congr -- deal with `decidable_eq`
+by simp [single_apply, eq_comm]
 
 lemma apply_single (f' : Π i, f i → g i) (hf' : ∀ i, f' i 0 = 0) (i : I) (x : f i) (j : I):
   f' j (single i x j) = single i (f' i x) j :=
@@ -145,6 +146,16 @@ function.update_injective _ i
 (pi.single_injective _ _).eq_iff
 
 end
+
+/-- The mapping into a product type built from maps into each component. -/
+@[simp] protected def prod (f' : Π i, f i) (g' : Π i, g i) (i : I) : f i × g i := (f' i, g' i)
+
+@[simp] lemma prod_fst_snd : pi.prod (prod.fst : α × β → α) (prod.snd : α × β → β) = id :=
+funext $ λ _, prod.mk.eta
+
+@[simp] lemma prod_snd_fst : pi.prod (prod.snd : α × β → β) (prod.fst : α × β → α) = prod.swap :=
+rfl
+
 end pi
 
 namespace function

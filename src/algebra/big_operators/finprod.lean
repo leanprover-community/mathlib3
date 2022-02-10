@@ -139,8 +139,8 @@ begin
   rw [finprod_eq_prod_plift_of_mul_support_subset this, finset.prod_singleton],
 end
 
-@[to_additive] lemma finprod_unique [unique α] (f : α → M) : ∏ᶠ i, f i = f (default α) :=
-finprod_eq_single f (default α) $ λ x hx, (hx $ unique.eq_default _).elim
+@[to_additive] lemma finprod_unique [unique α] (f : α → M) : ∏ᶠ i, f i = f default :=
+finprod_eq_single f default $ λ x hx, (hx $ unique.eq_default _).elim
 
 @[simp, to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
 @finprod_unique M true _ ⟨⟨trivial⟩, λ _, rfl⟩ f
@@ -375,6 +375,11 @@ begin
   rwa [← mul_support_mul_indicator] at hs
 end
 
+@[to_additive]
+lemma finprod_mem_eq_one_of_forall_eq_one {f : α → M} {s : set α} (h : ∀ x ∈ s, f x = 1) :
+  ∏ᶠ i ∈ s, f i = 1 :=
+by simp [h] {contextual := tt}
+
 @[to_additive] lemma finprod_mem_inter_mul_support (f : α → M) (s : set α) :
   ∏ᶠ i ∈ (s ∩ mul_support f), f i = ∏ᶠ i ∈ s, f i :=
 by rw [finprod_mem_def, finprod_mem_def, mul_indicator_inter_mul_support]
@@ -401,6 +406,11 @@ variables {f g : α → M} {a b : α} {s t : set α}
 @[to_additive] lemma finprod_mem_congr (h₀ : s = t) (h₁ : ∀ x ∈ t, f x = g x) :
   ∏ᶠ i ∈ s, f i = ∏ᶠ i ∈ t, g i :=
 h₀.symm ▸ (finprod_congr $ λ i, finprod_congr_Prop rfl (h₁ i))
+
+@[to_additive]
+lemma finprod_eq_one_of_forall_eq_one {f : α → M} (h : ∀ x, f x = 1) :
+  ∏ᶠ i, f i = 1 :=
+by simp [h] {contextual := tt}
 
 /-!
 ### Distributivity w.r.t. addition, subtraction, and (scalar) multiplication
@@ -456,7 +466,7 @@ such that `f x ≠ 1`. -/
 @[to_additive] lemma exists_ne_one_of_finprod_mem_ne_one (h : ∏ᶠ i ∈ s, f i ≠ 1) :
   ∃ x ∈ s, f x ≠ 1 :=
 begin
-  by_contra h', push_neg at h',
+  by_contra' h',
   exact h (finprod_mem_of_eq_on_one h')
 end
 

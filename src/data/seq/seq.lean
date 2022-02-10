@@ -711,7 +711,7 @@ by dsimp [join]; rw [destruct_cons]; refl
   which produces a singleton sequence. -/
 def ret (a : α) : seq1 α := (a, nil)
 
-instance [inhabited α] : inhabited (seq1 α) := ⟨ret (default _)⟩
+instance [inhabited α] : inhabited (seq1 α) := ⟨ret default⟩
 
 /-- The `bind` operator for the `seq1` monad,
   which maps `f` on each element of `s` and appends the results together.

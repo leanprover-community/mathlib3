@@ -62,8 +62,8 @@ end multiplicative
 @[simp] lemma to_mul_of_mul (x : α) : (additive.of_mul x).to_mul = x := rfl
 @[simp] lemma of_mul_to_mul (x : additive α) : additive.of_mul x.to_mul = x := rfl
 
-instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
-instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
+instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul default⟩
+instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add default⟩
 
 instance [nontrivial α] : nontrivial (additive α) :=
 additive.of_mul.injective.nontrivial

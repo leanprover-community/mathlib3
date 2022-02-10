@@ -33,7 +33,7 @@ Together, these two result prove the Galois correspondence
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 open finite_dimensional alg_equiv
 
@@ -204,7 +204,7 @@ def fixing_subgroup_equiv : fixing_subgroup K ≃* (E ≃ₐ[K] E) :=
 theorem fixing_subgroup_fixed_field [finite_dimensional F E] :
   fixing_subgroup (fixed_field H) = H :=
 begin
-  have H_le : H ≤ (fixing_subgroup (fixed_field H)) := (le_iff_le _ _).mp (le_refl _),
+  have H_le : H ≤ (fixing_subgroup (fixed_field H)) := (le_iff_le _ _).mp le_rfl,
   suffices : fintype.card H = fintype.card (fixing_subgroup (fixed_field H)),
   { exact set_like.coe_injective
       (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
@@ -236,7 +236,7 @@ theorem fixed_field_fixing_subgroup [finite_dimensional F E] [h : is_galois F E]
   intermediate_field.fixed_field (intermediate_field.fixing_subgroup K) = K :=
 begin
   have K_le : K ≤ intermediate_field.fixed_field (intermediate_field.fixing_subgroup K) :=
-    (intermediate_field.le_iff_le _ _).mpr (le_refl _),
+    (intermediate_field.le_iff_le _ _).mpr le_rfl,
   suffices : finrank K E =
     finrank (intermediate_field.fixed_field (intermediate_field.fixing_subgroup K)) E,
   { exact (intermediate_field.eq_of_le_of_finrank_eq' K_le this).symm },
@@ -293,7 +293,7 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 namespace is_galois
 
 lemma is_separable_splitting_field [finite_dimensional F E] [is_galois F E] :
-  ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
+  ∃ p : F[X], p.separable ∧ p.is_splitting_field F E :=
 begin
   cases field.exists_primitive_element F E with α h1,
   use [minpoly F α, separable F α, is_galois.splits F α],
@@ -326,7 +326,7 @@ begin
           left_inv := λ g, rfl, right_inv := λ _, by { ext, refl } },
 end
 
-variables {F} {E} {p : polynomial F}
+variables {F} {E} {p : F[X]}
 
 lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
   [sp : p.is_splitting_field F E] (hp : p.separable) (K : intermediate_field F E) {x : E}
@@ -396,7 +396,7 @@ theorem tfae [finite_dimensional F E] :
   tfae [is_galois F E,
     intermediate_field.fixed_field (⊤ : subgroup (E ≃ₐ[F] E)) = ⊥,
     fintype.card (E ≃ₐ[F] E) = finrank F E,
-    ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E] :=
+    ∃ p : F[X], p.separable ∧ p.is_splitting_field F E] :=
 begin
   tfae_have : 1 → 2,
   { exact λ h, order_iso.map_bot (@intermediate_field_equiv_subgroup F _ E _ _ _ h).symm },

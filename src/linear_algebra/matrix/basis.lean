@@ -84,7 +84,7 @@ begin
 end
 
 /-- The basis constructed by `units_smul` has vectors given by a diagonal matrix. -/
-@[simp] lemma to_matrix_units_smul [decidable_eq ι] (w : ι → units R) :
+@[simp] lemma to_matrix_units_smul [decidable_eq ι] (w : ι → Rˣ) :
   e.to_matrix (e.units_smul w) = diagonal (coe ∘ w) :=
 begin
   ext i j,

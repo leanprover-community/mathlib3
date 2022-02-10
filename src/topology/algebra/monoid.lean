@@ -317,6 +317,10 @@ begin
 end
 
 @[to_additive]
+lemma is_compact.mul {s t : set M} (hs : is_compact s) (ht : is_compact t) : is_compact (s * t) :=
+by { rw [← image_mul_prod], exact (hs.prod ht).image continuous_mul }
+
+@[to_additive]
 lemma tendsto_list_prod {f : ι → α → M} {x : filter α} {a : ι → M} :
   ∀ l:list ι, (∀i∈l, tendsto (f i) x (𝓝 (a i))) →
     tendsto (λb, (l.map (λc, f c b)).prod) x (𝓝 ((l.map a).prod))

@@ -27,7 +27,7 @@ variables {α : Type*} (r r₁ r₂ : α → α → Prop) (s t : set α) (a : α
 /-- Turns a set into an antichain by keeping only the "maximal" elements. -/
 def maximals : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r a b → a = b}
 
-/-- Turns a set into an antichain by keeping only the "maximal" elements. -/
+/-- Turns a set into an antichain by keeping only the "minimal" elements. -/
 def minimals : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r b a → a = b}
 
 lemma maximals_subset : maximals r s ⊆ s := sep_subset _ _

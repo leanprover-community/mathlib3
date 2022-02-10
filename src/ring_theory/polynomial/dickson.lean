@@ -49,12 +49,13 @@ When `a=0` they are just the family of monomials `X ^ n`.
 noncomputable theory
 
 namespace polynomial
+open_locale polynomial
 
 variables {R S : Type*} [comm_ring R] [comm_ring S] (k : ℕ) (a : R)
 
 /-- `dickson` is the `n`the (generalised) Dickson polynomial of the `k`-th kind associated to the
 element `a ∈ R`. -/
-noncomputable def dickson : ℕ → polynomial R
+noncomputable def dickson : ℕ → R[X]
 | 0       := 3 - k
 | 1       := X
 | (n + 2) := X * dickson (n + 1) - (C a) * dickson n
@@ -215,7 +216,7 @@ begin
     { rw this, clear this,
       refine h.bUnion (λ x hx, _),
       -- The following quadratic polynomial has as solutions the `y` for which `x = y + y⁻¹`.
-      let φ : polynomial K := X ^ 2 - C x * X + 1,
+      let φ : K[X] := X ^ 2 - C x * X + 1,
       have hφ : φ ≠ 0,
       { intro H,
         have : φ.eval 0 = 0, by rw [H, eval_zero],

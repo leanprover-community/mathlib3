@@ -304,6 +304,17 @@ def cofork.is_colimit.desc' {s : cofork f g} (hs : is_colimit s) {W : C} (k : Y 
   (h : f ≫ k = g ≫ k) : {l : s.X ⟶ W // cofork.π s ≫ l = k} :=
 ⟨hs.desc $ cofork.of_π _ h, hs.fac _ _⟩
 
+lemma fork.is_limit.exists_unique {s : fork f g} (hs : is_limit s) {W : C} (k : W ⟶ X)
+  (h : k ≫ f = k ≫ g) : ∃! (l : W ⟶ s.X), l ≫ fork.ι s = k :=
+⟨hs.lift $ fork.of_ι _ h, hs.fac _ _, λ m hm, fork.is_limit.hom_ext hs $
+  hm.symm ▸ (hs.fac (fork.of_ι _ h) walking_parallel_pair.zero).symm⟩
+
+lemma cofork.is_colimit.exists_unique {s : cofork f g} (hs : is_colimit s) {W : C} (k : Y ⟶ W)
+  (h : f ≫ k = g ≫ k) : ∃! (d : s.X ⟶ W), cofork.π s ≫ d = k :=
+⟨hs.desc $ cofork.of_π _ h, hs.fac _ _, λ m hm, cofork.is_colimit.hom_ext hs $
+  hm.symm ▸ (hs.fac (cofork.of_π _ h) walking_parallel_pair.one).symm⟩
+
+
 /-- This is a slightly more convenient method to verify that a fork is a limit cone. It
     only asks for a proof of facts that carry any mathematical content -/
 def fork.is_limit.mk (t : fork f g)
@@ -351,6 +362,16 @@ cofork.is_colimit.mk t
   (λ s, (create s).1)
   (λ s, (create s).2.1)
   (λ s m w, (create s).2.2 (w one))
+
+/-- Noncomputably make a limit cone from the existence of unique factorizations. -/
+def fork.is_limit.of_exists_unique {t : fork f g}
+  (hs : ∀ (s : fork f g), ∃! l : s.X ⟶ t.X, l ≫ fork.ι t = fork.ι s) : is_limit t :=
+by { choose d hd hd' using hs, exact fork.is_limit.mk _ d hd (λ s m hm, hd' _ _ (hm _)) }
+
+/-- Noncomputably make a colimit cocone from the existence of unique factorizations. -/
+def cofork.is_colimit.of_exists_unique {t : cofork f g}
+  (hs : ∀ (s : cofork f g), ∃! d : t.X ⟶ s.X, cofork.π t ≫ d = cofork.π s) : is_colimit t :=
+by { choose d hd hd' using hs, exact cofork.is_colimit.mk _ d hd (λ s m hm, hd' _ _ (hm _)) }
 
 /--
 Given a limit cone for the pair `f g : X ⟶ Y`, for any `Z`, morphisms from `Z` to its point are in
@@ -559,6 +580,10 @@ def equalizer.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) :
   (h : k ≫ equalizer.ι f g = l ≫ equalizer.ι f g) : k = l :=
 fork.is_limit.hom_ext (limit.is_limit _) h
 
+lemma equalizer.exists_unique {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) :
+  ∃! (l : W ⟶ equalizer f g), l ≫ equalizer.ι f g = k :=
+fork.is_limit.exists_unique (limit.is_limit _) _ h
+
 /-- An equalizer morphism is a monomorphism -/
 instance equalizer.ι_mono : mono (equalizer.ι f g) :=
 { right_cancellation := λ Z h k w, equalizer.hom_ext w }
@@ -690,6 +715,10 @@ def coequalizer.desc' {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) :
 @[ext] lemma coequalizer.hom_ext {W : C} {k l : coequalizer f g ⟶ W}
   (h : coequalizer.π f g ≫ k = coequalizer.π f g ≫ l) : k = l :=
 cofork.is_colimit.hom_ext (colimit.is_colimit _) h
+
+lemma coequalizer.exists_unique {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) :
+  ∃! (d : coequalizer f g ⟶ W), coequalizer.π f g ≫ d = k :=
+cofork.is_colimit.exists_unique (colimit.is_colimit _) _ h
 
 /-- A coequalizer morphism is an epimorphism -/
 instance coequalizer.π_epi : epi (coequalizer.π f g) :=

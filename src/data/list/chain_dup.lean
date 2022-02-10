@@ -43,8 +43,22 @@ lemma chain_dedup_cons :
 @[simp] lemma chain_dedup_cons' : (a :: l).chain_dedup a = l.chain_dedup a :=
 by rw [chain_dedup, if_pos rfl]
 
+@[simp] lemma chain_dedup_cons_of_ne (h : a ≠ b) : (a :: l).chain_dedup b = a :: l.chain_dedup a :=
+by rw [chain_dedup, if_neg h.symm]
+
 @[simp] lemma chain_dedup_singleton : [b].chain_dedup a = if a = b then [] else [b] :=
 by split_ifs; simp! [h]
+
+lemma chain_dedup_sublist : l.chain_dedup a <+ l :=
+begin
+  induction l with h l hl generalizing a,
+  { simp },
+  obtain rfl | hab := eq_or_ne a h,
+  { rw chain_dedup_cons',
+    exact (hl a).cons _ _ _ },
+  { rw chain_dedup_cons_of_ne _ _ _ hab.symm,
+    exact (hl _).cons2 _ _ _ }
+end
 
 lemma chain_dedup_is_chain : (l.chain_dedup a).chain ne a :=
 begin
@@ -77,30 +91,13 @@ by split_ifs; simp [chain'_dedup, h]
 @[simp] lemma chain'_dedup_cons_cons' : (a :: a :: l).chain'_dedup = (a :: l).chain'_dedup :=
 show _, from congr_arg (cons a) $ l.chain_dedup_cons' a
 
-lemma chain'_dedup_eq_or_eq : (a :: l).chain'_dedup = l.chain'_dedup ∨
-  (a :: l).chain'_dedup = a :: l.chain'_dedup :=
-begin
-  induction l with h l hl,
-  { simp },
-  rw [chain'_dedup_cons_cons],
-  split_ifs with h; simp [h, chain'_dedup]
-end
+lemma chain'_dedup_sublist : ∀ (l : list α), l.chain'_dedup <+ l
+| [] := sublist.slnil
+| (h :: t) := (chain_dedup_sublist _ _).cons2 _ _ _
 
-lemma chain'_dedup_sublist : l.chain'_dedup <+ l :=
-begin
-  induction l with h l hl,
-  { simp },
-  cases chain'_dedup_eq_or_eq h l with h h; rw h,
-  { exact hl.cons _ _ _ },
-  { exact hl.cons2 _ _ _ }
-end
-
-lemma chain'_dedup_is_chain' : l.chain'_dedup.chain' ne :=
-begin
-  induction l with h l hl,
-  { simp },
-  exact l.chain_dedup_is_chain h
-end
+lemma chain'_dedup_is_chain' : ∀ (l : list α), l.chain'_dedup.chain' ne
+| [] := by simp
+| (h :: l) := l.chain_dedup_is_chain h
 
 lemma chain'_dedup_of_chain (h : l.chain' ne) : l.chain'_dedup = l :=
 begin

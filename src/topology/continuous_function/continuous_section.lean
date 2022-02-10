@@ -39,7 +39,7 @@ attribute [nolint doc_blame] to_right_inv to_continuous_map
 
 variables {s t : continuous_section f}
 
-lemma coe_injective (H : (s : β → α) = t) : s = t := /- Should work also with ⇑ -/
+lemma coe_injective (H : (s : β → α) = t) : s = t :=
 by { cases s, cases t, congr' }
 
 @[ext] theorem ext (H : ∀ a, s a = t a) : s = t :=

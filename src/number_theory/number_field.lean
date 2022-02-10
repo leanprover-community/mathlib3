@@ -43,6 +43,21 @@ class number_field (K : Type*) [field K] : Prop :=
 open function
 open_locale classical big_operators
 
+/-- `ℤ` is not a field. -/
+lemma int.not_field : ¬ is_field ℤ :=
+begin
+  rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
+  use ideal.span{(2 : ℤ)},
+  split,
+  { simp only [bot_lt_iff_ne_bot, ne.def, not_false_iff, bit0_eq_zero, one_ne_zero,
+      ideal.span_singleton_eq_bot] },
+  { rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ideal.mem_span_singleton],
+    intro h2,
+    have h2_nonneg: 0 ≤ (2 : ℤ) := by simp only [zero_le_bit0, zero_le_one],
+    have : (2 : ℤ) = 1 := int.eq_one_of_dvd_one h2_nonneg h2,
+    linarith, },
+end
+
 namespace number_field
 
 variables (K L : Type*) [field K] [field L] [nf : number_field K]
@@ -95,6 +110,19 @@ protected noncomputable def equiv (R : Type*) [comm_ring R] [algebra R K]
 variables (K)
 
 instance [number_field K] : char_zero (𝓞 K) := char_zero.of_module _ K
+
+/-- The ring of integers of a number field is not a field. -/
+lemma not_field [number_field K] : ¬ is_field (𝓞 K) :=
+begin
+  have h_inj: function.injective ⇑(algebra_map ℤ ↥(ring_of_integers K)),
+  { rw ring_hom.injective_iff,
+    intros a ha,
+    rw [ring_hom.eq_int_cast, int.cast_eq_zero] at ha,
+    exact ha, },
+  intro hf,
+  exact int.not_field ((is_integral.is_field_iff_is_field
+    (is_integral_closure.is_integral_algebra ℤ K) h_inj).mpr hf)
+end
 
 instance [number_field K] : is_dedekind_domain (𝓞 K) :=
 is_integral_closure.is_dedekind_domain ℤ ℚ K _

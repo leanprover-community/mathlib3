@@ -463,7 +463,7 @@ begin
   exact a.mem_base_pretrivialization_at b,
 end
 
-lemma total_space_mk_preimage_soure (b : B) :
+@[simp] lemma total_space_mk_preimage_source (b : B) :
   (total_space_mk E b) ⁻¹' (a.pretrivialization_at b).source = univ :=
 begin
   apply eq_univ_of_univ_subset,
@@ -478,7 +478,7 @@ end
 begin
   letI := a.total_space_topology,
   rw (a.trivialization_at b).to_local_homeomorph.continuous_iff_continuous_comp_left
-    (univ_subset_iff.mpr (a.total_space_mk_preimage_soure b)),
+    (univ_subset_iff.mpr (a.total_space_mk_preimage_source b)),
   exact continuous_iff_le_induced.mpr (le_antisymm_iff.mp (a.total_space_mk_inducing b).induced).1,
 end
 
@@ -487,7 +487,7 @@ lemma inducing_total_space_mk_of_inducing_comp (b : B)
   @inducing _ _ _ a.total_space_topology (total_space_mk E b) :=
 begin
   letI := a.total_space_topology,
-  rw restrict_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
+  rw ←restrict_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
   apply inducing_of_inducing_cod_restrict (a.mem_trivialization_at_source b),
   refine inducing_of_inducing_compose _ (continuous_on_iff_continuous_restrict.mp
     (a.trivialization_at b).continuous_to_fun) h,

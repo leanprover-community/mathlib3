@@ -31,7 +31,6 @@ Hausdorff
 -/
 
 variables (X : Type*) [topological_space X]
-variables {R : Type*} [normed_group R]
 variables (A : Type*) [normed_comm_ring A]
 
 /-- The A-linear injective map from `locally_constant X A` to `C(X, A)` -/
@@ -39,7 +38,7 @@ abbreviation inclusion : locally_constant X A →ₗ[A] C(X, A) :=
 locally_constant.to_continuous_map_linear_map A
 
 variable {X}
-variables [compact_space X] [t2_space X] [totally_disconnected_space X]
+variables [compact_space X]
 
 namespace set
 
@@ -176,6 +175,8 @@ begin
   simp [fj],
 end
 
+variables [t2_space X] [totally_disconnected_space X]
+
 /-- If there is a finite set of sets from `S` whose preimage forms a cover for `X`,
   then there is a cover of `X` by clopen sets, with the image of each set being
   contained in an element of `S`. -/
@@ -230,7 +231,7 @@ begin
   rcases hx with ⟨U, hU, xU⟩, refine ⟨U, hU, _⟩,
   obtain ⟨H, H1⟩ := classical.some_spec
     (topological_space.is_topological_basis.open_eq_sUnion
-    (@loc_compact_Haus_tot_disc_of_zero_dim X _ _ _ _) (@opens _ _ _ _ _ _ _ ε f U hU)),
+    (@loc_compact_Haus_tot_disc_of_zero_dim X _ _ _ _) (@opens _ _ _ _ _ ε f U hU)),
   rw H1, intros u hu, simp only [exists_prop, set.mem_set_of_eq],
   refine ⟨x, _, hu⟩,
   convert xU,
@@ -454,7 +455,7 @@ theorem loc_const_dense [nonempty X] : @dense (C(X, A)) _ (set.range (inclusion 
   rw metric.mem_closure_iff,
   rintros ε hε,
 -- we have all the ingredients from `loc_const_dense'`, only need `exists_finset_univ_sub_prop`
-  apply @loc_const_dense' _ _ _ _ _ _ _ ε f (fact_iff.2 hε) _,
+  apply @loc_const_dense' _ _ _ _ _ ε f (fact_iff.2 hε) _,
 end
 
 end locally_constant.density
@@ -497,17 +498,6 @@ begin
   rw [dist_eq_norm, ← linear_map.map_sub],
 end
 
-variables (X) (A)
-
-/-- The inclusion map from `locally_constant X A` to `C(X, A)` is dense inducing -/
-lemma dense_ind_inclusion [nonempty X] : dense_inducing (inclusion X A) :=
-  ⟨⟨rfl⟩, loc_const_dense X⟩
-
-/-- The inclusion map from `locally_constant X A` to `C(X, A)` is uniform inducing -/
-lemma uni_ind : uniform_inducing (inclusion X A) := ⟨rfl⟩
-
-variables {X} {A}
-
 /-- Any measure is uniformly continuous -/
 lemma uni_cont (φ : measures X A) : uniform_continuous (φ.val) :=
 begin
@@ -520,6 +510,19 @@ begin
   change ∥inclusion X A (a - b)∥ = dist (inclusion X A a) (inclusion X A b),
   rw [dist_eq_norm, ← linear_map.map_sub],
 end
+
+variables (X) (A)
+
+/-- The inclusion map from `locally_constant X A` to `C(X, A)` is uniform inducing -/
+lemma uni_ind : uniform_inducing (inclusion X A) := ⟨rfl⟩
+
+variables [t2_space X] [totally_disconnected_space X]
+
+/-- The inclusion map from `locally_constant X A` to `C(X, A)` is dense inducing -/
+lemma dense_ind_inclusion [nonempty X] : dense_inducing (inclusion X A) :=
+  ⟨⟨rfl⟩, loc_const_dense X⟩
+
+variables {X} {A}
 
 /-- If `A` is a complete space, the extension of `measures X A` to C(X, A) → A is
   uniformly continuous -/
@@ -585,5 +588,5 @@ noncomputable def integral [nonempty X] [complete_space A] (φ : measures X A) :
     map_add' := λ x y, map_add_extend φ x y,
     map_smul' := λ m x, map_smul_extend φ m x, },
     cont φ⟩
-#lint
+
 end measures

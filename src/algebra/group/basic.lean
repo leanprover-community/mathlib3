@@ -150,6 +150,24 @@ eq_comm.trans mul_left_eq_self
 
 end right_cancel_monoid
 
+section has_involutive_inv
+variables {G : Type u} [has_involutive_inv G]
+
+@[simp, to_additive]
+lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
+
+@[simp, to_additive]
+lemma inv_surjective : function.surjective (has_inv.inv : G → G) :=
+inv_involutive.surjective
+
+@[to_additive]
+lemma inv_injective : function.injective (has_inv.inv : G → G) :=
+inv_involutive.injective
+
+@[simp, to_additive] theorem inv_inj {a b : G} : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
+
+end has_involutive_inv
+
 section div_inv_monoid
 
 variables {G : Type u} [div_inv_monoid G]
@@ -192,19 +210,6 @@ inv_eq_of_mul_eq_one (one_mul 1)
 theorem left_inverse_inv (G) [group G] :
   function.left_inverse (λ a : G, a⁻¹) (λ a, a⁻¹) :=
 inv_inv
-
-@[simp, to_additive]
-lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
-
-@[simp, to_additive]
-lemma inv_surjective : function.surjective (has_inv.inv : G → G) :=
-inv_involutive.surjective
-
-@[to_additive]
-lemma inv_injective : function.injective (has_inv.inv : G → G) :=
-inv_involutive.injective
-
-@[simp, to_additive] theorem inv_inj : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
 
 @[simp, to_additive]
 theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 := inv_injective.eq_iff' one_inv

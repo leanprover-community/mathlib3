@@ -186,7 +186,7 @@ omit n
 lemma is_prime_pow.norm_zeta_sub_one {n : ℕ+} {K : Type u} (L : Type v) [field K] [field L]
   [ne_zero ((n : ℕ) : K)] (hn : is_prime_pow (n : ℕ)) [algebra K L]
   [is_cyclotomic_extension {n} K L]
-  (hirr : irreducible (cyclotomic ((n : ℕ)) K)) (h : n ≠ 2) :
+  (hirr : irreducible (cyclotomic (n : ℕ) K)) (h : n ≠ 2) :
   norm K ((zeta n K L) - 1) = (n : ℕ).min_fac :=
 begin
   have := (coe_lt_coe 2 _).1 (lt_of_le_of_ne (succ_le_of_lt (is_prime_pow.one_lt hn))

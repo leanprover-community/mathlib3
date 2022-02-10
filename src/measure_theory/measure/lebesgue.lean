@@ -9,6 +9,7 @@ import linear_algebra.matrix.diagonal
 import linear_algebra.matrix.transvection
 import measure_theory.constructions.pi
 import measure_theory.measure.stieltjes
+import measure_theory.group.measure
 
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`
@@ -25,7 +26,7 @@ are proved more generally for any additive Haar measure on a finite-dimensional 
 -/
 
 noncomputable theory
-open classical set filter measure_theory
+open classical set filter measure_theory measure_theory.measure
 open ennreal (of_real)
 open_locale big_operators ennreal nnreal topological_space
 
@@ -213,22 +214,10 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
 ### Images of the Lebesgue measure under translation/multiplication in ℝ
 -/
 
-lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
-eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]
-
-@[simp] lemma volume_preimage_add_left (a : ℝ) (s : set ℝ) : volume (((+) a) ⁻¹' s) = volume s :=
-calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
-  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_add_left
-
-lemma map_volume_add_right (a : ℝ) : measure.map (+ a) volume = volume :=
-by simpa only [add_comm] using real.map_volume_add_left a
-
-@[simp] lemma volume_preimage_add_right (a : ℝ) (s : set ℝ) : volume ((+ a) ⁻¹' s) = volume s :=
-calc volume ((+ a) ⁻¹' s) = measure.map (+ a) volume s :
-  ((homeomorph.add_right a).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_add_right
+instance is_add_left_invariant_real_volume :
+  is_add_left_invariant (volume : measure ℝ) :=
+⟨λ a, eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
+  by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]⟩
 
 lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real (|a|) • measure.map ((*) a) volume = volume :=
@@ -286,7 +275,7 @@ begin
     = set.pi univ (λ (i : ι), ((+) (a i)) ⁻¹' (s i)), by { ext, simp },
   rw [measure.map_apply (measurable_const_add a) (measurable_set.univ_pi_fintype hs), A,
       volume_pi_pi],
-  simp only [volume_preimage_add_left]
+  simp only [measure_preimage_add]
 end
 
 @[simp] lemma volume_pi_preimage_add_left (a : ι → ℝ) (s : set (ι → ℝ)) :

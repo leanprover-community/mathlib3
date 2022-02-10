@@ -251,7 +251,7 @@ begin
   have : 2 < (2 ^ k : ℕ+),
   { simp only [← coe_lt_coe, pnat.coe_bit0, one_coe, pow_coe],
     nth_rewrite 0 [← pow_one 2],
-    refine pow_lt_pow one_lt_two (lt_of_lt_of_le one_lt_two hk) },
+    exact pow_lt_pow one_lt_two (lt_of_lt_of_le one_lt_two hk) },
   replace hirr : irreducible (cyclotomic ((2 ^ k : ℕ+)) K) := by simp [hirr],
   obtain ⟨k₁, hk₁⟩ := exists_eq_succ_of_ne_zero ((lt_of_lt_of_le zero_lt_two hk).ne.symm),
   simpa [hk₁] using norm_zeta_sub_one_eq_eval_cyclotomic L hirr this,

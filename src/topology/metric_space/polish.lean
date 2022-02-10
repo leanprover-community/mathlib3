@@ -450,5 +450,3 @@ begin
 end
 
 end polish_space
-
-#lint

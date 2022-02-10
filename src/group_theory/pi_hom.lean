@@ -64,15 +64,6 @@ section with_group
 
 parameters {G : Type*} [group G]
 
--- TODO: Move to suitable file
-@[simp]
-lemma order_of_inv (x : G) : order_of x⁻¹ = order_of x :=
-begin
-  apply nat.dvd_antisymm; rewrite order_of_dvd_iff_pow_eq_one,
-  { rw [inv_pow, pow_order_of_eq_one, one_inv], },
-  { nth_rewrite 0 ← (inv_inv x), rw [inv_pow, pow_order_of_eq_one, one_inv], }
-end
-
 -- TODO: Move to suitable file? Or too specialized?
 lemma mul_eq_one_of_disjoint
   {H₁ H₂ : subgroup G} (hdis : disjoint H₁ H₂) {x y : G} (hx : x ∈ H₁) (hy : y ∈ H₂)

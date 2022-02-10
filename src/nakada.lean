@@ -5,6 +5,7 @@ Authors: Yakov Pechersky
 -/
 
 import algebra.order.group
+import algebra.order.with_zero
 import tactic.tfae
 
 /-!
@@ -23,40 +24,27 @@ variables (S : Type*) [has_mul S] [has_le S]
 -- Definition 1
 @[to_additive add_nakada_po]
 abbreviation nakada_po : Prop :=
-covariant_class S S (swap (*)) (≤)
+covariant_class S S (*) (≤)
 
 variables {S}
 
 @[to_additive add_homogeneity]
 lemma homogeneity [nakada_po S] {a b : S} (h : a ≤ b) (c : S) :
-  a * c ≤ b * c :=
-mul_le_mul_right' h c
-
--- extra API
-@[to_additive nsmul_le_nsmul_of_le]
-lemma pow_le_pow_of_le {S : Type*} [comm_monoid S] [preorder S] [nakada_po S] {a b : S}
-  (h : a ≤ b) (n : ℕ) : a ^ n ≤ b ^ n :=
-begin
-  induction n with n IH generalizing a b,
-  { simp },
-  { rw [pow_succ', pow_succ'],
-    refine (homogeneity (IH h) a).trans _,
-    rw [mul_comm _ a, mul_comm _ b],
-    exact homogeneity h _ }
-end
+  c * a ≤ c * b :=
+mul_le_mul_left' h c
 
 variables (S)
 
 -- Definition 2
 @[to_additive add_nakada_strong]
 abbreviation nakada_strong : Prop :=
-contravariant_class S S (swap (*)) (≤)
+contravariant_class S S (*) (≤)
 
 variables {S}
 
 @[to_additive add_strong]
-lemma strong [nakada_strong S] {a b c : S} (h : a * c ≤ b * c) : a ≤ b :=
-le_of_mul_le_mul_right' h
+lemma strong [nakada_strong S] {a b c : S} (h : a * b ≤ a * c) : b ≤ c :=
+le_of_mul_le_mul_left' h
 
 -- Theorem 1
 @[priority 10, to_additive add_group.add_nakada_strong]
@@ -72,16 +60,16 @@ variables {S S' : Type*} [has_mul S] [partial_order S] [has_mul S] [partial_orde
 
 -- Theorem 2.1
 @[to_additive]
-lemma nakada_strong.cancel_right [nakada_strong S] {a b c : S} (h : a * c = b * c) :
-  a = b :=
+lemma nakada_strong.cancel_left [nakada_strong S] {a b c : S} (h : a * b = a * c) :
+  b = c :=
 le_antisymm (strong h.le) (strong h.ge)
 
 -- Theorem 2.2
 @[to_additive]
 instance nakada_strong.contravariant_mul_lt [nakada_strong S] :
-  contravariant_class S S (swap (*)) (<) :=
-⟨λ c a b (h : a * c < b * c), begin
-  by_cases H : a = b,
+  contravariant_class S S (*) (<) :=
+⟨λ a b c h, begin
+  by_cases H : b = c,
   { simpa [H] using h },
   { simpa [lt_iff_le_and_ne, H] using strong h.le }
 end⟩
@@ -89,10 +77,10 @@ end⟩
 -- Theorem 2.3
 @[to_additive add_nakada_po.covariant_add_lt_of_add_nakada_strong]
 instance nakada_po.covariant_mul_lt_of_nakada_strong [nakada_po S] [nakada_strong S] :
-  covariant_class S S (swap (*)) (<) :=
-⟨λ c a b h, begin
-  by_cases H : a * c = b * c,
-  { rw [nakada_strong.cancel_right H] at h,
+  covariant_class S S (*) (<) :=
+⟨λ a b c h, begin
+  by_cases H : a * b = a * c,
+  { rw [nakada_strong.cancel_left H] at h,
     exact absurd h (lt_irrefl _) },
   { simpa [lt_iff_le_and_ne, H] using homogeneity h.le c }
 end⟩
@@ -100,11 +88,14 @@ end⟩
 -- Theorem 3.1
 @[to_additive add_nakada_lo.contravariant_add_lt]
 instance nakada_lo.contravariant_mul_lt {S : Type*} [has_mul S] [linear_order S] [nakada_po S] :
-  contravariant_class S S (swap (*)) (<) :=
-⟨λ c a b h, begin
+  contravariant_class S S (*) (<) :=
+⟨λ a b c h, begin
   refine (le_or_lt _ _).resolve_left (λ H, _),
-  exact absurd (homogeneity H c) h.not_le
+  exact absurd (homogeneity H a) h.not_le
 end⟩
+
+-- extra api
+attribute [to_additive nsmul_le_nsmul_of_le] pow_le_pow_of_le
 
 -- Theorem 3.2
 @[to_additive nsmul_lt_nsmul_cancel]
@@ -112,19 +103,19 @@ lemma pow_lt_pow_cancel {S : Type*} [comm_monoid S] [linear_order S] [nakada_po 
   (h : a ^ n < b ^ n) : a < b :=
 begin
   refine (le_or_lt _ _).resolve_left (λ H, _),
-  exact absurd (pow_le_pow_of_le H _) h.not_le,
+  exact absurd (pow_le_pow_of_le H) h.not_le,
 end
 
 -- Theorem 4
 lemma nakada_lo.tfae {S : Type*} [has_mul S] [linear_order S] [nakada_po S] :
-  tfae [∀ {a b c : S}, a * c ≤ b * c → a ≤ b,
-        ∀ {a b c : S}, a * c = b * c → a = b,
-        ∀ {a b : S} (h : a < b) (c : S), a * c < b * c] :=
+  tfae [∀ {a b c : S}, a * b ≤ a * c → b ≤ c,
+        ∀ {a b c : S}, a * b = a * c → b = c,
+        ∀ {a b : S} (h : a < b) (c : S), c * a < c * b] :=
 begin
   tfae_have : 1 → 2,
   { intros H a b c h,
     haveI : nakada_strong S := ⟨λ _ _ _, H⟩,
-    exact nakada_strong.cancel_right h },
+    exact nakada_strong.cancel_left h },
   tfae_have : 2 → 3,
   { intros H a b h c,
     refine lt_of_le_of_ne (homogeneity h.le c) (λ he, _),
@@ -132,7 +123,7 @@ begin
   tfae_have : 3 → 1,
   { intros H a b c,
     contrapose!,
-    exact λ h, H h c },
+    exact λ h, H h a },
   tfae_finish
 end
 

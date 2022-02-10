@@ -436,7 +436,7 @@ begin
   have : ∀ {u : Rˣ}, 0 < (u : R) → same_ray R (u⁻¹ • v) (u • v) :=
     λ u h, ((same_ray.refl v).pos_smul_left $ units.inv_pos.mpr h).pos_smul_right h,
   cases lt_or_lt_iff_ne.2 u.ne_zero,
-  { rw [←units.neg_neg u, units.neg_inv, (- u).neg_smul, units.neg_smul],
+  { rw [←neg_neg u, neg_inv', (- u).neg_smul, units.neg_smul],
     refine (this _).neg,
     exact neg_pos_of_neg h },
   { exact this h, },

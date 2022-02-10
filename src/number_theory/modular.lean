@@ -508,7 +508,7 @@ begin
       nlinarith, }, },
 end
 
-/-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`.   -/
+/-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`. -/
 lemma move_by_T {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T_pow n) • z) : ℍ) :=
 begin
   rw T_pow,

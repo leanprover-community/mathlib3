@@ -85,14 +85,6 @@ begin
   apply general_commutator_le_commutator,
 end
 
-lemma subgroup.map_le_map_iff_of_injective {G G' : Type*} [group G] [group G'] {H K : subgroup G}
-  {ϕ : G →* G'} (hϕ : function.injective ϕ) : H.map ϕ ≤ K.map ϕ ↔ H ≤ K :=
-begin
-  refine ⟨λ h, _, subgroup.map_mono⟩,
-  rw [←H.comap_map_eq_self_of_injective hϕ, ←K.comap_map_eq_self_of_injective hϕ],
-  exact subgroup.comap_mono h,
-end
-
 lemma subgroup.map_subtype_le_map_subtype {G' : Type*} [group G'] {G : subgroup G'}
   {H K : subgroup G} : H.map G.subtype ≤ K.map G.subtype ↔ H ≤ K :=
 subgroup.map_le_map_iff_of_injective subtype.coe_injective
@@ -173,14 +165,6 @@ quotient.exact' (mk'_to_equiv hS _)
 end mem_right_transversals
 
 /-- **Schreier's Lemma** -/
-lemma schreier {G : Type*} [group G] {H : subgroup G} {R S : set G}
-  (hR : R ∈ subgroup.right_transversals (H : set G)) (hS : subgroup.closure S = ⊤) :
-  subgroup.closure ((R * S).image (λ g, g * mem_right_transversals.to_fun hR g)) = H :=
-begin
-  sorry
-end
-
-/-- **Schreier's Lemma** -/
 lemma schreier' {G : Type*} [group G] {H : subgroup G} {R S : set G}
   (hR : R ∈ subgroup.right_transversals (H : set G)) (hS : subgroup.closure S = ⊤) :
   subgroup.closure ((R * S).image (λ g, (⟨g * (mem_right_transversals.to_fun hR g)⁻¹,
@@ -190,17 +174,53 @@ begin
   sorry
 end
 
+/-- **Schreier's Lemma** -/
+lemma schreier {G : Type*} [group G] {H : subgroup G} {R S : set G}
+  (hR : R ∈ subgroup.right_transversals (H : set G)) (hS : subgroup.closure S = ⊤) :
+  subgroup.closure ((R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹)) = H :=
+begin
+  conv_rhs { rw [←H.subtype_range] },
+  rw [monoid_hom.range_eq_map, ←schreier' hR hS, monoid_hom.map_closure],
+  apply congr_arg subgroup.closure,
+  simp only [set.ext_iff],
+  simp only [set.mem_image, subgroup.coe_subtype, exists_exists_and_eq_and, subgroup.coe_mk, iff_self, forall_const],
+end
+
 def generated_by (G : Type*) [group G] (n : ℕ) :=
 ∃ S : set G, subgroup.closure S = ⊤ ∧ ∃ hS, @fintype.card S hS ≤ n
 
-lemma schreier_bound : ℕ → ℕ → ℕ := (*)
+def schreier_bound : ℕ → ℕ → ℕ := (*)
+
+lemma fintype.card_image_le {α β : Type*} (f : α → β) (s : set α) [fintype s] :
+  fintype.card (f '' s) ≤ fintype.card s :=
+fintype.card_le_of_surjective (s.image_factorization f) set.surjective_onto_image
+
+lemma fintype.card_image2_le {α β γ : Type*} (f : α → β → γ) (s : set α) (t : set β) [fintype s] [fintype t] :
+  fintype.card (set.image2 f s t) ≤ fintype.card s * fintype.card t :=
+sorry
+
+def card_mul_le {α : Type*} [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
+  card (s * t : set α) ≤ card s * card t :=
+by convert fintype.card_image2_le _ s t
 
 lemma schreier'' {m n : ℕ} {G : Type*} [group G] {H : subgroup G}
   (h1 : H.index ≤ m) (h2 : generated_by G n) : generated_by H (schreier_bound m n) :=
 begin
   obtain ⟨R, hR⟩ := @subgroup.right_transversals.inhabited G _ H,
   obtain ⟨S, hS, hS_fintype, hS_card⟩ := h2,
-  refine ⟨_, schreier' hR hS, sorry, sorry⟩,
+  haveI : fintype (quotient (quotient_group.right_rel H)) := sorry,
+  haveI : fintype R := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
+  haveI : fintype S := hS_fintype,
+  let T : set G := R * S,
+  let f : G → H := λ g, (⟨g * (mem_right_transversals.to_fun hR g)⁻¹,
+    mem_right_transversals.to_fun_mul_inv hR g⟩ : H),
+
+  refine ⟨_, schreier' hR hS, by apply_instance, _⟩,
+  change card (f '' T) ≤ schreier_bound m n,
+  have key := fintype.card_image_le f T,
+  convert key.trans _,
+  convert (card_mul_le R S).trans _,
+  convert mul_le_mul' _ hS_card,
 end
 
 end technical

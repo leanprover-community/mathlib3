@@ -300,8 +300,8 @@ end
 lemma factorization_gcd (a b : ℕ) (ha_pos : a ≠ 0) (hb_pos : b ≠ 0) :
   (gcd a b).factorization = a.factorization ⊓ b.factorization :=
 begin
-  set dfac := a.factorization ⊓ b.factorization,
-  set d := dfac.prod pow,
+  let dfac := a.factorization ⊓ b.factorization,
+  let d := dfac.prod pow,
   have dfac_prime : ∀ (p : ℕ), p ∈ dfac.support → prime p,
   { intros p hp,
     have : p ∈ a.factors ∧ p ∈ b.factors, { simpa using hp },

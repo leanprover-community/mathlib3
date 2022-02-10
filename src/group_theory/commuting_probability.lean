@@ -23,10 +23,18 @@ section for_mathlib
 /-- The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`. -/
 @[to_additive "The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`."]
 def subgroup.centralizer {G : Type*} [group G] (H : subgroup G) : subgroup G :=
-{ carrier := {g : G | ∀ h ∈ H, g * h * g⁻¹ * h⁻¹ = 1},
-  one_mem' := sorry,
-  mul_mem' := sorry,
-  inv_mem' := sorry }
+{ carrier := {g : G | ∀ h ∈ H, h * g = g * h},
+  one_mem' := λ h hh, (mul_one h).trans (one_mul h).symm,
+  mul_mem' := λ g g' hg hg' h hh, by rw [←mul_assoc, hg h hh, mul_assoc, hg' h hh, mul_assoc],
+  inv_mem' := λ g hg h hh, by rw [←inv_inv h, ←mul_inv_rev, ←mul_inv_rev, hg h⁻¹ (H.inv_mem hh)] }
+
+lemma mem_centralizer_iff_commutator_eq_one {G : Type*} [group G] {H : subgroup G} {g : G} :
+  g ∈ H.centralizer ↔ ∀ h ∈ H, g * h * g⁻¹ * h⁻¹ = 1 :=
+begin
+  simp_rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul],
+  conv in (_ = _) begin rw eq_comm end, -- find better way
+  refl,
+end
 
 @[to_additive] instance subgroup.centralizer.characteristic
   {G : Type*} [group G] (H : subgroup G) [H.characteristic] :
@@ -55,6 +63,7 @@ lemma three_subgroups_lemma {G : Type*} [group G] {X Y Z : subgroup G}
   (h1 : ⁅⁅X, Y⁆, Z⁆ = ⊥) (h2 : ⁅⁅Y, Z⁆, X⁆ = ⊥) : ⁅⁅Z, X⁆, Y⁆ = ⊥ :=
 begin
   rw [general_commutator_eq_bot_iff_le_centralizer, general_commutator_le] at h1 h2 ⊢,
+  simp_rw [mem_centralizer_iff_commutator_eq_one] at h1 h2 ⊢,
   intros z hz x hx y hy,
   have key : z * x * z⁻¹ * x⁻¹ * y * (z * x * z⁻¹ * x⁻¹)⁻¹ * y⁻¹ =
     z * x * (x⁻¹ * y * x⁻¹⁻¹ * y⁻¹ * z⁻¹ * (x⁻¹ * y * x⁻¹⁻¹ * y⁻¹)⁻¹ * z⁻¹⁻¹)⁻¹ * x⁻¹
@@ -73,6 +82,39 @@ begin
   rw [general_commutator_comm, general_commutator_eq_bot_iff_le_centralizer],
   apply centralizer_mono,
   apply general_commutator_le_commutator,
+end
+
+lemma subgroup.map_le_map_iff_of_injective {G G' : Type*} [group G] [group G'] {H K : subgroup G}
+  {ϕ : G →* G'} (hϕ : function.injective ϕ) : H.map ϕ ≤ K.map ϕ ↔ H ≤ K :=
+begin
+  refine ⟨λ h, _, subgroup.map_mono⟩,
+  rw [←H.comap_map_eq_self_of_injective hϕ, ←K.comap_map_eq_self_of_injective hϕ],
+  exact subgroup.comap_mono h,
+end
+
+lemma subgroup.map_subtype_le_map_subtype {G' : Type*} [group G'] {G : subgroup G'}
+  {H K : subgroup G} : H.map G.subtype ≤ K.map G.subtype ↔ H ≤ K :=
+subgroup.map_le_map_iff_of_injective subtype.coe_injective
+
+lemma map_commutator_eq_general_commutator {G H : Type*} [group G] [group H] (ϕ : G →* H) :
+  (commutator G).map ϕ = ⁅ϕ.range, ϕ.range⁆ :=
+sorry
+
+lemma subgroup.commutator_eq_general_commutator {G : Type*} [group G] (H : subgroup G) :
+  (commutator H).map H.subtype = ⁅H, H⁆ :=
+by rw [map_commutator_eq_general_commutator, subgroup.subtype_range]
+
+lemma general_commutator_map {G G' : Type*} [group G] [group G'] (ϕ : G →* G') {H K : subgroup G} :
+  ⁅H, K⁆.map ϕ = ⁅H.map ϕ, K.map ϕ⁆ :=
+begin
+  sorry
+end
+
+lemma map_center_map {G : Type*} [group G] (H : subgroup G) (K : subgroup H) :
+  (subgroup.center (K.map H.subtype)).map (subgroup.subtype _) =
+    (K.center.map K.subtype).map H.subtype :=
+begin
+  sorry
 end
 
 end for_mathlib
@@ -198,12 +240,22 @@ begin
   { haveI : (commutator K).characteristic := by apply_instance,
     -- why doesn't apply_instance work directly?
     apply_instance },
-  { have key := commutator_centralizer_commutator_le_center K,
-    -- three subgroups lemma
-    sorry },
+  { rw [←subgroup.map_subtype_le_map_subtype, subgroup.commutator_eq_general_commutator,
+        ←general_commutator_map, map_center_map, subgroup.map_subtype_le_map_subtype],
+    refine (commutator_centralizer_commutator_le_center K).trans _,
+    refine λ a ha, ⟨⟨a, λ b hb, ha b⟩, λ b, subtype.ext (ha b), rfl⟩, },
   { refine le_trans _ hK2,
     refine nat.le_of_dvd card_pos _,
-    sorry },
+    have key : ∀ H : subgroup G, card (commutator H) =
+      card ↥⁅H, H⁆,
+    { intro H,
+      rw ← subgroup.commutator_eq_general_commutator,
+      exact fintype.card_congr
+        ((commutator H).equiv_map_of_injective H.subtype subtype.coe_injective).to_equiv },
+    rw [key, key],
+    apply subgroup.card_dvd_of_le,
+    apply general_commutator_mono (commutator ↥K).centralizer.map_subtype_le
+      (commutator ↥K).centralizer.map_subtype_le },
   { sorry },
 end
 

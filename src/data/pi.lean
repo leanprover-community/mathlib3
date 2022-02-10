@@ -87,42 +87,42 @@ variables [decidable_eq I]
 variables [Π i, has_one (f i)] [Π i, has_one (g i)] [Π i, has_one (h i)]
 
 /-- The function supported at `i`, with value `x` there, and `1` elsewhere. -/
-@[to_additive single "The function supported at `i`, with value `x` there, and `0` elsewhere." ]
+@[to_additive pi.single "The function supported at `i`, with value `x` there, and `0` elsewhere." ]
 def mul_single (i : I) (x : f i) : Π i, f i :=
 function.update 1 i x
 
-@[simp, to_additive single_eq_same]
+@[simp, to_additive]
 lemma mul_single_eq_same (i : I) (x : f i) : mul_single i x i = x :=
 function.update_same i x _
 
-@[simp, to_additive single_eq_of_ne]
+@[simp, to_additive]
 lemma mul_single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : mul_single i x i' = 1 :=
 function.update_noteq h x _
 
 /-- Abbreviation for `mul_single_eq_of_ne h.symm`, for ease of use by `simp`. -/
-@[simp, to_additive single_eq_of_ne' "Abbreviation for `single_eq_of_ne h.symm`, for ease of
+@[simp, to_additive "Abbreviation for `single_eq_of_ne h.symm`, for ease of
 use by `simp`."]
 lemma mul_single_eq_of_ne' {i i' : I} (h : i ≠ i') (x : f i) : mul_single i x i' = 1 :=
 mul_single_eq_of_ne h.symm x
 
-@[simp, to_additive single_zero]
+@[simp, to_additive]
 lemma mul_single_one (i : I) : mul_single i (1 : f i) = 1 :=
 function.update_eq_self _ _
 
 /-- On non-dependent functions, `pi.mul_single` can be expressed as an `ite` -/
-@[to_additive single_apply "On non-dependent functions, `pi.single` can be expressed as an `ite`"]
+@[to_additive "On non-dependent functions, `pi.single` can be expressed as an `ite`"]
 lemma mul_single_apply {β : Sort*} [has_one β] (i : I) (x : β) (i' : I) :
   mul_single i x i' = if i' = i then x else 1 :=
 function.update_apply 1 i x i'
 
 /-- On non-dependent functions, `pi.mul_single` is symmetric in the two indices. -/
-@[to_additive single_comm "On non-dependent functions, `pi.single` is symmetric in the two
+@[to_additive "On non-dependent functions, `pi.single` is symmetric in the two
 indices."]
 lemma mul_single_comm {β : Sort*} [has_one β] (i : I) (x : β) (i' : I) :
   mul_single i x i' = mul_single i' x i :=
 by simp [mul_single_apply, eq_comm]
 
-@[to_additive apply_single]
+@[to_additive]
 lemma apply_mul_single (f' : Π i, f i → g i) (hf' : ∀ i, f' i 1 = 1) (i : I) (x : f i) (j : I):
   f' j (mul_single i x j) = mul_single i (f' i x) j :=
 by simpa only [pi.one_apply, hf', mul_single] using function.apply_update f' 1 i x j
@@ -137,13 +137,13 @@ begin
   { simp only [mul_single_eq_of_ne h, hf'] },
 end
 
-@[to_additive single_op]
+@[to_additive]
 lemma mul_single_op {g : I → Type*} [Π i, has_one (g i)] (op : Π i, f i → g i) (h : ∀ i, op i 1 = 1)
   (i : I) (x : f i) :
   mul_single i (op i x) = λ j, op j (mul_single i x j) :=
 eq.symm $ funext $ apply_mul_single op h i x
 
-@[to_additive single_op₂]
+@[to_additive]
 lemma mul_single_op₂ {g₁ g₂ : I → Type*} [Π i, has_one (g₁ i)] [Π i, has_one (g₂ i)]
   (op : Π i, g₁ i → g₂ i → f i) (h : ∀ i, op i 1 1 = 1) (i : I) (x₁ : g₁ i) (x₂ : g₂ i) :
   mul_single i (op i x₁ x₂) = λ j, op j (mul_single i x₁ j) (mul_single i x₂ j) :=
@@ -151,11 +151,11 @@ eq.symm $ funext $ apply_mul_single₂ op h i x₁ x₂
 
 variables (f)
 
-@[to_additive single_injective]
+@[to_additive]
 lemma mul_single_injective (i : I) : function.injective (mul_single i : f i → Π i, f i) :=
 function.update_injective _ i
 
-@[simp, to_additive single_inj]
+@[simp, to_additive]
 lemma mul_single_inj (i : I) {x y : f i} : mul_single i x = mul_single i y ↔ x = y :=
 (pi.mul_single_injective _ _).eq_iff
 

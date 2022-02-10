@@ -188,7 +188,7 @@ def one_hom.single [Π i, has_one $ f i] (i : I) : one_hom (f i) (Π i, f i) :=
 as functions supported at a point.
 
 This is the `monoid_hom` version of `pi.mul_single`. -/
-@[to_additive add_monoid_hom.single "The additive monoid homomorphism including a single additive
+@[to_additive "The additive monoid homomorphism including a single additive
 monoid into a dependent family of additive monoids, as functions supported at a point.
 
 This is the `add_monoid_hom` version of `pi.single`.", simps]
@@ -202,21 +202,21 @@ into a dependent family of `mul_zero_class`es, as functions supported at a point
 This is the `mul_hom` version of `pi.single`. -/
 @[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
 { to_fun := single i,
-  map_mul' := single_op₂ (λ _, (*)) (λ _, zero_mul _) _, }
+  map_mul' := pi.single_op₂ (λ _, (*)) (λ _, zero_mul _) _, }
 
 variables {f}
 
-@[to_additive pi.single_add]
+@[to_additive]
 lemma pi.mul_single_mul [Π i, mul_one_class $ f i] (i : I) (x y : f i) :
   mul_single i (x * y) = mul_single i x * mul_single i y :=
 (monoid_hom.single f i).map_mul x y
 
-@[to_additive pi.single_neg]
+@[to_additive]
 lemma pi.mul_single_inv [Π i, group $ f i] (i : I) (x : f i) :
   mul_single i (x⁻¹) = (mul_single i x)⁻¹ :=
 (monoid_hom.single f i).map_inv x
 
-@[to_additive pi.single_sub]
+@[to_additive]
 lemma pi.single_div [Π i, group $ f i] (i : I) (x y : f i) :
   mul_single i (x / y) = mul_single i x / mul_single i y :=
 (monoid_hom.single f i).map_div x y
@@ -225,7 +225,7 @@ lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
 
-@[to_additive pi.update_eq_sub_add_single]
+@[to_additive update_eq_sub_add_single]
 lemma pi.update_eq_div_mul_single [Π i, group $ f i] (g : Π (i : I), f i) (x : f i) :
   function.update g i x = g / mul_single i (g i) * mul_single i x :=
 begin

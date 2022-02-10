@@ -8,7 +8,7 @@ import algebra.covariant_and_contravariant
 /-!
 # Multiplication by ·positive· elements is monotonic
 
-Let `α` be a type with `<` and `0`.  We usee the type `{x : α // 0 < x}` of positive elements of `α`
+Let `α` be a type with `<` and `0`.  We use the type `{x : α // 0 < x}` of positive elements of `α`
 to prove results about monotonicity of multiplication.  We also introduce the local notation `α>0`
 for the subtype `{x : α // 0 < x}`:
 
@@ -88,10 +88,14 @@ def dx [has_zero α] [has_lt α] [has_mul α] : α>0 → α → α :=
 section has_mul_zero_lt
 variables [has_mul α] [has_zero α] [has_lt α]
 
-lemma mul_lt_mul_left' [covariant_class α>0 α sx (<)]
+lemma mul_lt_mul_left' [covariant_class α>0 α (λ x y, x * y) (<)]
   {a b c : α} (bc : b < c) (a0 : 0 < a) :
   a * b < a * c :=
-let a₀ : α>0 := ⟨a, a0⟩ in show sx a₀ b < sx a₀ c, from covariant_class.elim a₀ bc
+let a₀ : α>0 := ⟨a, a0⟩ in
+suffices (λ (x : α>0) (y : α), (x : α) * y) a₀ b < (λ (x : α>0) (y : α), (x : α) * y) a₀ c,
+by simpa using this,
+covariant_class.elim a₀ bc
+--let a₀ : α>0 := ⟨a, a0⟩ in show sx a₀ b < sx a₀ c, from covariant_class.elim a₀ bc
 
 lemma mul_lt_mul_right' [covariant_class α>0 α dx (<)]
   {a b c : α} (bc : b < c) (a0 : 0 < a) :

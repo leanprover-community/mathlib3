@@ -97,8 +97,8 @@ protected def principal (s : set α) : (principal s).realizer := ⟨unit,
 { f            := λ _, s,
   pt           := (),
   inf          := λ _ _, (),
-  inf_le_left  := λ _ _, le_refl _,
-  inf_le_right := λ _ _, le_refl _ },
+  inf_le_left  := λ _ _, le_rfl,
+  inf_le_right := λ _ _, le_rfl },
 filter_eq $ set.ext $ λ x,
 ⟨λ ⟨_, s⟩, s, λ h, ⟨(), h⟩⟩⟩
 

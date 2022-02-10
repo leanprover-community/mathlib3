@@ -70,6 +70,14 @@ begin
   { exact chain_cons.mpr ⟨hih, hl h⟩ }
 end
 
+lemma chain_dedup_of_chain (h : l.chain ne a) : l.chain_dedup a = l :=
+begin
+  induction l with b l hb generalizing a,
+  { exact list.chain_dedup_nil _ },
+  obtain ⟨h, hc⟩ := chain_cons.mp h,
+  rw [chain_dedup_cons_of_ne _ _ _ h.symm, hb _ hc],
+end
+
 /-- Removes all adjacent duplicates in a list. -/
 def chain'_dedup : list α → list α
 | (h :: l) := h :: chain_dedup h l
@@ -96,19 +104,12 @@ lemma chain'_dedup_sublist : ∀ (l : list α), l.chain'_dedup <+ l
 | (h :: t) := (chain_dedup_sublist _ _).cons2 _ _ _
 
 lemma chain'_dedup_is_chain' : ∀ (l : list α), l.chain'_dedup.chain' ne
-| [] := by simp
+| [] := list.chain'_nil
 | (h :: l) := l.chain_dedup_is_chain h
 
-lemma chain'_dedup_of_chain (h : l.chain' ne) : l.chain'_dedup = l :=
-begin
-  induction l with a l ha,
-  { simp },
-  cases l with b l,
-  { simp },
-  have := chain'_cons.mp h,
-  specialize ha this.2,
-  rw [chain'_dedup_cons_cons, if_neg this.1, ←chain'_dedup, ha]
-end
+lemma chain'_dedup_of_chain : ∀ (l : list α), l.chain' ne → l.chain'_dedup = l
+| [] h := rfl
+| (a :: l) h := congr_arg (list.cons a) (chain_dedup_of_chain _ _ h)
 
 lemma chain_dedup_idem : l.chain'_dedup.chain'_dedup = l.chain'_dedup :=
 chain'_dedup_of_chain _ $ l.chain'_dedup_is_chain'

@@ -908,6 +908,10 @@ set_like.coe_injective $ image_id _
 lemma map_map (g : N →* P) (f : G →* N) : (K.map f).map g = K.map (g.comp f) :=
 set_like.coe_injective $ image_image _ _ _
 
+@[simp, to_additive]
+lemma map_one_eq_bot : K.map (1 : G →* N) = ⊥ :=
+eq_bot_iff.mpr $ by { rintros x ⟨y, _ , rfl⟩, simp }
+
 @[to_additive]
 lemma mem_map_equiv {f : G ≃* N} {K : subgroup G} {x : N} :
   x ∈ K.map f.to_monoid_hom ↔ f.symm x ∈ K :=
@@ -976,6 +980,10 @@ end
 
 @[simp, to_additive] lemma map_bot (f : G →* N) : (⊥ : subgroup G).map f = ⊥ :=
 (gc_map_comap f).l_bot
+
+@[simp, to_additive] lemma map_top_of_surjective (f : G →* N) (h : function.surjective f) :
+  subgroup.map f ⊤ = ⊤ :=
+by {rw eq_top_iff, intros x hx, obtain ⟨y, hy⟩ := (h x), exact ⟨y, trivial, hy⟩ }
 
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
@@ -1079,11 +1087,74 @@ lemma top_prod_top : (⊤ : subgroup G).prod (⊤ : subgroup N) = ⊤ :=
 @[to_additive] lemma bot_prod_bot : (⊥ : subgroup G).prod (⊥ : subgroup N) = ⊥ :=
 set_like.coe_injective $ by simp [coe_prod, prod.one_eq_mk]
 
+@[to_additive le_prod_iff]
+lemma le_prod_iff {H : subgroup G} {K : subgroup N} {J : subgroup (G × N)} :
+  J ≤ H.prod K ↔ map (monoid_hom.fst G N) J ≤ H ∧ map (monoid_hom.snd G N) J ≤ K :=
+by simpa only [← subgroup.to_submonoid_le] using submonoid.le_prod_iff
+
+@[to_additive prod_le_iff]
+lemma prod_le_iff {H : subgroup G} {K : subgroup N} {J : subgroup (G × N)} :
+  H.prod K ≤ J ↔ map (monoid_hom.inl G N) H ≤ J ∧ map (monoid_hom.inr G N) K ≤ J :=
+by simpa only [← subgroup.to_submonoid_le] using submonoid.prod_le_iff
+
+@[simp, to_additive prod_eq_bot_iff]
+lemma prod_eq_bot_iff {H : subgroup G} {K : subgroup N} :
+  H.prod K = ⊥ ↔ H = ⊥ ∧ K = ⊥ :=
+by simpa only [← subgroup.to_submonoid_eq] using submonoid.prod_eq_bot_iff
+
 /-- Product of subgroups is isomorphic to their product as groups. -/
 @[to_additive prod_equiv "Product of additive subgroups is isomorphic to their product
 as additive groups"]
 def prod_equiv (H : subgroup G) (K : subgroup N) : H.prod K ≃* H × K :=
 { map_mul' := λ x y, rfl, .. equiv.set.prod ↑H ↑K }
+
+section pi
+
+variables {η : Type*} {f : η → Type*}
+
+-- defined here and not in group_theory.submonoid.operations to have access to algebra.group.pi
+
+/-- A version of `set.pi` for submonoids. Given an index set `I` and a family of submodules
+`s : Π i, submonoid f i`, `pi I s` is the submonoid of dependent functions `f : Π i, f i` such that
+`f i` belongs to `pi I s` whenever `i ∈ I`. -/
+@[to_additive " A version of `set.pi` for `add_submonoid`s. Given an index set `I` and a family
+of submodules `s : Π i, add_submonoid f i`, `pi I s` is the `add_submonoid` of dependent functions
+`f : Π i, f i` such that `f i` belongs to `pi I s` whenever `i ∈ I`. -/ "]
+def _root_.submonoid.pi [∀ i, mul_one_class (f i)] (I : set η) (s : Π i, submonoid (f i)) :
+  submonoid (Π i, f i) :=
+{ carrier := I.pi (λ i, (s i).carrier),
+  one_mem' := λ i _ , (s i).one_mem,
+  mul_mem' := λ p q hp hq i hI, (s i).mul_mem (hp i hI) (hq i hI) }
+
+variables [∀ i, group (f i)]
+
+/-- A version of `set.pi` for subgroups. Given an index set `I` and a family of submodules
+`s : Π i, subgroup f i`, `pi I s` is the subgroup of dependent functions `f : Π i, f i` such that
+`f i` belongs to `pi I s` whenever `i ∈ I`. -/
+@[to_additive " A version of `set.pi` for `add_subgroup`s. Given an index set `I` and a family
+of submodules `s : Π i, add_subgroup f i`, `pi I s` is the `add_subgroup` of dependent functions
+`f : Π i, f i` such that `f i` belongs to `pi I s` whenever `i ∈ I`. -/ "]
+def pi (I : set η) (H : Π i, subgroup (f i)) : subgroup (Π i, f i) :=
+{ submonoid.pi I (λ i, (H i).to_submonoid) with
+  inv_mem' := λ p hp i hI, (H i).inv_mem (hp i hI) }
+
+@[to_additive] lemma coe_pi (I : set η) (H : Π i, subgroup (f i)) :
+  (pi I H : set (Π i, f i)) = set.pi I (λ i, (H i : set (f i))) := rfl
+
+@[to_additive] lemma mem_pi (I : set η) {H : Π i, subgroup (f i)} {p : Π i, f i} :
+  p ∈ pi I H ↔ (∀ i : η, i ∈ I → p i ∈ H i) := iff.rfl
+
+@[to_additive] lemma pi_top (I : set η) : pi I (λ i, (⊤ : subgroup (f i))) = ⊤ :=
+ext $ λ x, by simp [mem_pi]
+
+@[to_additive] lemma pi_empty (H : Π i, subgroup (f i)): pi ∅ H = ⊤ :=
+ext $ λ x, by simp [mem_pi]
+
+@[to_additive] lemma pi_bot : pi set.univ (λ i, (⊥ : subgroup (f i))) = ⊥ :=
+(eq_bot_iff_forall _).mpr $ λ p hp,
+by { simp only [mem_pi, mem_bot] at *, ext j, exact hp j trivial, }
+
+end pi
 
 /-- A subgroup is normal if whenever `n ∈ H`, then `g * n * g⁻¹ ∈ H` for every `g : G` -/
 structure normal : Prop :=
@@ -1344,6 +1415,11 @@ end
 
 variable (H)
 
+/-- In a group that satisifes the normalizer condition, every maximal subgroup is normal -/
+lemma normalizer_condition.normal_of_coatom
+  (hnc : normalizer_condition G) (hmax : is_coatom H) : H.normal :=
+normalizer_eq_top.mp (hmax.2 _ (hnc H (lt_top_iff_ne_top.mpr hmax.1)))
+
 /-- Commutivity of a subgroup -/
 structure is_commutative : Prop :=
 (is_comm : _root_.is_commutative H (*))
@@ -1456,7 +1532,7 @@ theorem normal_closure_eq_infi : normal_closure s =
 le_antisymm
   (le_infi (λ N, le_infi (λ hN, by exactI le_infi (normal_closure_le_normal))))
   (infi_le_of_le (normal_closure s) (infi_le_of_le (by apply_instance)
-    (infi_le_of_le subset_normal_closure (le_refl _))))
+    (infi_le_of_le subset_normal_closure le_rfl)))
 
 @[simp] theorem normal_closure_eq_self (H : subgroup G) [H.normal] : normal_closure ↑H = H :=
 le_antisymm (normal_closure_le_normal rfl.subset) (le_normal_closure)
@@ -2473,6 +2549,22 @@ end
 begin
   have := (normal_subgroup_of_iff hK).mp hN (a * b) b h hb,
   rwa [mul_assoc, mul_assoc, mul_right_inv, mul_one] at this,
+end
+
+/-- Elements of disjoint, normal subgroups commute -/
+@[to_additive] lemma commute_of_normal_of_disjoint
+  (H₁ H₂ : subgroup G) (hH₁ : H₁.normal) (hH₂ : H₂.normal) (hdis : disjoint H₁ H₂)
+  (x y : G) (hx : x ∈ H₁) (hy : y ∈ H₂) :
+  commute x y :=
+begin
+  suffices : x * y * x⁻¹ * y⁻¹ = 1,
+  { show x * y = y * x, by { rw [mul_assoc, mul_eq_one_iff_eq_inv] at this, simpa } },
+  apply hdis, split,
+  { suffices : x * (y * x⁻¹ * y⁻¹) ∈ H₁, by simpa [mul_assoc],
+    exact H₁.mul_mem hx (hH₁.conj_mem _ (H₁.inv_mem hx) _) },
+  { show x * y * x⁻¹ * y⁻¹ ∈ H₂,
+    apply H₂.mul_mem _ (H₂.inv_mem hy),
+    apply (hH₂.conj_mem _ hy), }
 end
 
 end subgroup_normal

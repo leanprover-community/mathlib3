@@ -51,8 +51,7 @@ begin
     ... = 2 * k : (two_mul _).symm, },
 
   -- Suppose the conclusion does not hold.
-  by_contra hneg,
-  push_neg at hneg,
+  by_contra' hneg,
   set k' := k / ∥g y∥,
 
   -- Demonstrate that `k' < k` using `hneg`.
@@ -105,7 +104,7 @@ begin
   obtain ⟨x, hx⟩ := hf3,
   set k := ⨆ x, ∥f x∥,
   have h : ∀ x, ∥f x∥ ≤ k := le_csupr hf2,
-  by_contradiction H, push_neg at H,
+  by_contra' H,
   have hgy : 0 < ∥g y∥,
     by linarith,
   have k_pos : 0 < k := lt_of_lt_of_le (norm_pos_iff.mpr hx) (h x),

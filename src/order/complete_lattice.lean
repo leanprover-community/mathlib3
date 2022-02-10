@@ -90,11 +90,14 @@ le_trans h (le_Sup hb)
 theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
 (is_lub_Sup s).mono (is_lub_Sup t) h
 
-@[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
+@[simp] theorem Sup_le_iff : Sup s ≤ a ↔ ∀b ∈ s, b ≤ a :=
 is_lub_le_iff (is_lub_Sup s)
 
-lemma le_Sup_iff : a ≤ Sup s ↔ (∀ b ∈ upper_bounds s, a ≤ b) :=
+lemma le_Sup_iff : a ≤ Sup s ↔ ∀ b ∈ upper_bounds s, a ≤ b :=
 ⟨λ h b hb, le_trans h (Sup_le hb), λ hb, hb _ (λ x, le_Sup)⟩
+
+lemma le_supr_iff {s : ι → α} : a ≤ supr s ↔ ∀ b, (∀ i, s i ≤ b) → a ≤ b :=
+by simp [supr, le_Sup_iff, upper_bounds]
 
 theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
 le_Sup_iff.2 $ λ b hb, Sup_le $ λ a ha, let ⟨c, hct, hac⟩ := h a ha in hac.trans (hb hct)
@@ -138,8 +141,11 @@ theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
 le_is_glb_iff (is_glb_Inf s)
 
 lemma Inf_le_iff :
-  Inf s ≤ a ↔ (∀ b, (∀ x ∈ s, b ≤ x) → b ≤ a) :=
+  Inf s ≤ a ↔ (∀ b ∈ lower_bounds s, b ≤ a) :=
 ⟨λ h b hb, le_trans (le_Inf hb) h, λ hb, hb _ (λ x, Inf_le)⟩
+
+lemma infi_le_iff {s : ι → α} : infi s ≤ a ↔ (∀ b, (∀ i, b ≤ s i) → b ≤ a) :=
+by simp [infi, Inf_le_iff, lower_bounds]
 
 theorem Inf_le_Inf_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, y ≤ x) : Inf t ≤ Inf s :=
 le_of_forall_le begin
@@ -467,7 +473,7 @@ theorem bsupr_le_bsupr' {p q : ι → Prop} (hpq : ∀ i, p i → q i) {f : ι �
   (⨆ i (hpi : p i), f i) ≤ ⨆ i (hqi : q i), f i :=
 supr_le_supr $ λ i, supr_le_supr_const (hpq i)
 
-@[simp] theorem supr_le_iff : supr s ≤ a ↔ (∀i, s i ≤ a) :=
+@[simp] theorem supr_le_iff : supr s ≤ a ↔ ∀ i, s i ≤ a :=
 (is_lub_le_iff is_lub_supr).trans forall_range_iff
 
 theorem supr_lt_iff : supr s < a ↔ ∃ b < a, ∀ i, s i ≤ b :=
@@ -492,9 +498,6 @@ begin
   { apply supr_le (λ t, _),
     exact supr_le (λ ts, Sup_le_Sup (λ x xt, ⟨t, ts, xt⟩)) }
 end
-
-lemma le_supr_iff : (a ≤ supr s) ↔ (∀ b, (∀ i, s i ≤ b) → a ≤ b) :=
-⟨λ h b hb, le_trans h (supr_le hb), λ h, h _ $ λ i, le_supr s i⟩
 
 lemma monotone.le_map_supr [complete_lattice β] {f : α → β} (hf : monotone f) :
   (⨆ i, f (s i)) ≤ f (supr s) :=
@@ -522,7 +525,7 @@ by simp only [Sup_eq_supr, order_iso.map_supr]
 
 lemma supr_comp_le {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨆ x, f (g x)) ≤ ⨆ y, f y :=
-supr_le_supr2 $ λ x, ⟨_, le_refl _⟩
+supr_le_supr2 $ λ x, ⟨_, le_rfl⟩
 
 lemma monotone.supr_comp_eq [preorder β] {f : β → α} (hf : monotone f)
   {s : ι → β} (hs : ∀ x, ∃ i, x ≤ s i) :
@@ -619,7 +622,7 @@ order_iso.map_Sup f.dual _
 
 lemma le_infi_comp {ι' : Sort*} (f : ι' → α) (g : ι → ι') :
   (⨅ y, f y) ≤ ⨅ x, f (g x) :=
-infi_le_infi2 $ λ x, ⟨_, le_refl _⟩
+infi_le_infi2 $ λ x, ⟨_, le_rfl⟩
 
 lemma monotone.infi_comp_eq [preorder β] {f : β → α} (hf : monotone f)
   {s : ι → β} (hs : ∀ x, ∃ i, s i ≤ x) :
@@ -654,7 +657,7 @@ theorem supr_const [nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
 @infi_const (order_dual α) _ _ _ _
 
 @[simp] lemma infi_top : (⨅i:ι, ⊤ : α) = ⊤ :=
-top_unique $ le_infi $ assume i, le_refl _
+top_unique $ le_infi $ assume i, le_rfl
 
 @[simp] lemma supr_bot : (⨆i:ι, ⊥ : α) = ⊥ :=
 @infi_top (order_dual α) _ _
@@ -666,13 +669,13 @@ Inf_eq_top.trans forall_range_iff
 Sup_eq_bot.trans forall_range_iff
 
 @[simp] lemma infi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
-le_antisymm (infi_le _ _) (le_infi $ assume h, le_refl _)
+le_antisymm (infi_le _ _) (le_infi $ assume h, le_rfl)
 
 @[simp] lemma infi_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨅ h : p, f h) = ⊤ :=
 le_antisymm le_top $ le_infi $ assume h, (hp h).elim
 
 @[simp] lemma supr_pos {p : Prop} {f : p → α} (hp : p) : (⨆ h : p, f h) = f hp :=
-le_antisymm (supr_le $ assume h, le_refl _) (le_supr _ _)
+le_antisymm (supr_le $ assume h, le_rfl) (le_supr _ _)
 
 @[simp] lemma supr_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨆ h : p, f h) = ⊥ :=
 le_antisymm (supr_le $ assume h, (hp h).elim) bot_le
@@ -736,13 +739,13 @@ theorem supr_comm {f : ι → ι₂ → α} : (⨆i, ⨆j, f i j) = (⨆j, ⨆i,
   (⨅x, ⨅h:x = b, f x h) = f b rfl :=
 le_antisymm
   (infi_le_of_le b $ infi_le _ rfl)
-  (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_refl _ end)
+  (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_rfl end)
 
 @[simp] theorem infi_infi_eq_right {b : β} {f : Πx:β, b = x → α} :
   (⨅x, ⨅h:b = x, f x h) = f b rfl :=
 le_antisymm
   (infi_le_of_le b $ infi_le _ rfl)
-  (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_refl _ end)
+  (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_rfl end)
 
 @[simp] theorem supr_supr_eq_left {b : β} {f : Πx:β, x = b → α} :
   (⨆x, ⨆h : x = b, f x h) = f b rfl :=
@@ -855,8 +858,8 @@ theorem infi_or {p q : Prop} {s : p ∨ q → α} :
   infi s = (⨅ h : p, s (or.inl h)) ⊓ (⨅ h : q, s (or.inr h)) :=
 le_antisymm
   (le_inf
-    (infi_le_infi2 $ assume j, ⟨_, le_refl _⟩)
-    (infi_le_infi2 $ assume j, ⟨_, le_refl _⟩))
+    (infi_le_infi2 $ assume j, ⟨_, le_rfl⟩)
+    (infi_le_infi2 $ assume j, ⟨_, le_rfl⟩))
   (le_infi $ assume i, match i with
   | or.inl i := inf_le_of_left_le $ infi_le _ _
   | or.inr j := inf_le_of_right_le $ infi_le _ _
@@ -1127,7 +1130,7 @@ lemma infi_ge_eq_infi_nat_add {u : ℕ → α} (n : ℕ) : (⨅ i ≥ n, u i) = 
 
 lemma monotone.supr_nat_add {f : ℕ → α} (hf : monotone f) (k : ℕ) :
   (⨆ n, f (n + k)) = ⨆ n, f n :=
-le_antisymm (supr_le (λ i, (le_refl _).trans (le_supr _ (i + k))))
+le_antisymm (supr_le (λ i, le_rfl.trans (le_supr _ (i + k))))
     (supr_le_supr (λ i, hf (nat.le_add_right i k)))
 
 @[simp] lemma supr_infi_ge_nat_add (f : ℕ → α) (k : ℕ) :

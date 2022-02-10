@@ -362,7 +362,7 @@ theorem zorn_nonempty_partial_order₀ {α : Type u} [partial_order α] (s : set
   ∃ m ∈ s, x ≤ m ∧ ∀ z ∈ s, m ≤ z → z = m :=
 let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m} _
   (λ c hc, c.eq_empty_or_nonempty.elim
-    (λ hce, hce.symm ▸ ⟨⟨x, hxs, le_refl _⟩, λ _, false.elim⟩)
+    (λ hce, hce.symm ▸ ⟨⟨x, hxs, le_rfl⟩, λ _, false.elim⟩)
     (λ ⟨m, hmc⟩,
       let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (image_subset_iff.2 $ λ z hzc, z.2.1)
         (by rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;

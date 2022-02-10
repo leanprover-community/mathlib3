@@ -362,7 +362,7 @@ We embed isometrically each factor, set the basepoints at distance 1, arbitraril
 and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
 their respective basepoints, plus the distance 1 between the basepoints.
 Since there is an arbitrary choice in this construction, it is not an instance by default. -/
-protected def dist : (Σ i, (E i)) → (Σ i, (E i)) → ℝ
+protected def dist : (Σ i, E i) → (Σ i, E i) → ℝ
 | ⟨i, x⟩ ⟨j, y⟩ :=
     if h : i = j then by { have : E j = E i, by rw h, exact has_dist.dist x (cast this y) }
     else has_dist.dist x (nonempty.some ⟨x⟩) + 1 + has_dist.dist (nonempty.some ⟨y⟩) y
@@ -403,7 +403,7 @@ begin
     ... < 1 : h }
 end
 
-protected lemma dist_triangle (x y z : Σ i, (E i)) :
+protected lemma dist_triangle (x y z : Σ i, E i) :
   dist x z ≤ dist x y + dist y z :=
 begin
   rcases x with ⟨i, x⟩, rcases y with ⟨j, y⟩, rcases z with ⟨k, z⟩,

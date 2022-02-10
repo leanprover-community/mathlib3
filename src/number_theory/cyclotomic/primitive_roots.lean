@@ -9,28 +9,30 @@ import ring_theory.adjoin.power_basis
 import ring_theory.norm
 
 /-!
-# Primitive roots in cyclotmic fields
+# Primitive roots in cyclotomic fields
 If `is_cyclotomic_extension {n} A B`, we define an element `zeta n A B : B` that is (under certain
 assumptions) a primitive `n`-root of unity in `B` and we study its properties. We also prove related
 theorems under the more general assumption of just being a primitive root, for reasons described
 in the implementation details section.
 
 ## Main definitions
-* `is_cyclotomic_extension.zeta n A B` : if `is_cyclotomic_extension {n} A B`, than `zeta n A B`
+* `is_cyclotomic_extension.zeta n A B`: if `is_cyclotomic_extension {n} A B`, than `zeta n A B`
   is an element of `B` that plays the role of a primitive `n`-th root of unity.
-* `is_primitive_root.power_basis` : if `K` and `L` are fields such that
+* `is_primitive_root.power_basis`: if `K` and `L` are fields such that
   `is_cyclotomic_extension {n} K L` and `ne_zero (↑n : K)`, then `is_primitive_root.power_basis`
-  gives a K-power basis for L given a primitive root ζ.
-* `is_primitive_root.embeddings_equiv_primitive_roots` : the equivalence between `L →ₐ[K] A`
-  and `primitive_roots n A` given by the choice of ζ.
+  gives a K-power basis for L given a primitive root `ζ`.
+* `is_primitive_root.embeddings_equiv_primitive_roots`: the equivalence between `L →ₐ[K] A`
+  and `primitive_roots n A` given by the choice of `ζ`.
 
 ## Main results
-* `is_cyclotomic_extension.zeta_primitive_root` : if `is_domain B` and `ne_zero (↑n : B)` then
+* `is_cyclotomic_extension.zeta_primitive_root`: if `is_domain B` and `ne_zero (↑n : B)`, then
   `zeta n A B` is a primitive `n`-th root of unity.
-* `is_cyclotomic_extension.finrank` : if `irreducible (cyclotomic n K)` (in particular for
+* `is_cyclotomic_extension.finrank`: if `irreducible (cyclotomic n K)` (in particular for
   `K = ℚ`), then the `finrank` of a cyclotomic extension is `n.totient`.
-* `is_primitive_root.norm_zeta_sub_one` : if `irreducible (cyclotomic n K)` (in particular for
-  `K = ℚ`), then the norm of `ζ - 1` is `eval 1 (cyclotomic n ℤ)`, for a primitive root ζ.
+* `is_primitive_root.norm_sub_one`: If `K` is linearly ordered (in particular for `K = ℚ`), the norm
+  of a primitive root is `1` if `n` is odd.
+* `is_primitive_root.sub_one_norm_eq_eval_cyclotomic`: If `irreducible (cyclotomic n K)`, then
+  the norm of `ζ - 1` is `eval 1 (cyclotomic n ℤ)`.
 
 ## Implementation details
 `zeta n A B` is defined as any root of `cyclotomic n A` in `B`, that exists because of
@@ -93,7 +95,7 @@ variables [field K] [field L] [comm_ring C] [algebra K L] [algebra K C]
 
 namespace is_primitive_root
 
-/-- The `power_basis` given by `zeta n K L`. -/
+/-- The `power_basis` given by a primitive root `ζ`. -/
 @[simps] noncomputable def power_basis : power_basis K L :=
 power_basis.map (algebra.adjoin.power_basis $ integral {n} K L ζ) $
 (subalgebra.equiv_of_eq _ _ (is_cyclotomic_extension.adjoin_primitive_root_eq_top n _ hζ)).trans
@@ -150,15 +152,13 @@ namespace is_primitive_root
 
 section norm
 
-variables [linear_ordered_field K] [field L] [comm_ring C] [algebra K L] [algebra K C]
-          {ζ : L} (hζ : is_primitive_root ζ n)
+variables [field L] {ζ : L} (hζ : is_primitive_root ζ n)
 
 include hζ
 
-/-- If `K` is linearly ordered (in particular for `K = ℚ`), the norm of `ζ` is `1`
-if `n` is odd, for `ζ` a primitive root. -/
--- TODO: generalize this result to units in general!
-lemma norm_zeta_eq_one (hodd : odd (n : ℕ)) : norm K ζ = 1 :=
+/-- If `K` is linearly ordered (in particular for `K = ℚ`), the norm of a primitive root is `1`
+if `n` is odd. -/
+lemma norm_eq_one [linear_ordered_field K] [algebra K L] (hodd : odd (n : ℕ)) : norm K ζ = 1 :=
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L n,
   have hz := congr_arg (norm K) ((is_primitive_root.iff_def _ n).1 hζ).1,
@@ -169,9 +169,10 @@ end
 variables {K}
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the norm of
-`ζ - 1` is `eval 1 (cyclotomic n ℤ)`, for `ζ` a primitive root. -/
-lemma norm_zeta_sub_one_eq_eval_cyclotomic [is_cyclotomic_extension {n} K L] (h : 2 < (n : ℕ))
-  (hirr : irreducible (cyclotomic n K)) : norm K (ζ - 1) = ↑(eval 1 (cyclotomic n ℤ)) :=
+`ζ - 1` is `eval 1 (cyclotomic n ℤ)`. -/
+lemma sub_one_norm_eq_eval_cyclotomic [field K] [algebra K L] [is_cyclotomic_extension {n} K L]
+  [ne_zero ((n : ℕ) : K)] (h : 2 < (n : ℕ)) (hirr : irreducible (cyclotomic n K)) :
+  norm K (ζ - 1) = ↑(eval 1 (cyclotomic n ℤ)) :=
 begin
   let E := algebraic_closure L,
   obtain ⟨z, hz⟩ := is_alg_closed.exists_root _ (degree_cyclotomic_pos n E n.pos).ne.symm,

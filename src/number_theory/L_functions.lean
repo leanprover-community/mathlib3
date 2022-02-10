@@ -30,8 +30,7 @@ p-adic L-function, p-adic integral, measure, totally disconnected, locally const
 Hausdorff
 -/
 
-variables (X : Type*) [topological_space X] [compact_space X] [t2_space X]
-  [totally_disconnected_space X]
+variables (X : Type*) [topological_space X]
 variables {R : Type*} [normed_group R]
 variables (A : Type*) [normed_comm_ring A]
 
@@ -40,6 +39,7 @@ abbreviation inclusion : locally_constant X A →ₗ[A] C(X, A) :=
 locally_constant.to_continuous_map_linear_map A
 
 variable {X}
+variables [compact_space X] [t2_space X] [totally_disconnected_space X]
 
 namespace set
 
@@ -111,6 +111,8 @@ end is_clopen
 namespace locally_constant.density
 
 variables (ε : ℝ)
+
+/-- Takes an element of `A` to an `ε/4`-ball centered around it. -/
 abbreviation h {A : Type*} [normed_ring A] : A → set A :=
   λ (x : A), metric.ball x (ε / 4)
 
@@ -154,15 +156,18 @@ begin
     refine @metric.is_open_ball A _ y (ε/4), },
 end
 
+/-- Choosing a finset as given in `exists_finset_univ_sub` -/
 noncomputable abbreviation t : finset (set A) := classical.some (exists_finset_univ_sub ε f)
-abbreviation ht := classical.some_spec (exists_finset_univ_sub ε f)
+
+lemma exists_finset_univ_sub_prop : set.univ ⊆ ⨆ (i : set A) (H : i ∈ t ε f)
+  (H : i ∈ ((S ε) : set(set A))), f ⁻¹' i := classical.some_spec (exists_finset_univ_sub ε f)
 
 /-- If there is a finite set of sets from `S` whose preimage forms a cover for `X`,
   then the union of the preimages of all the sets from `S` also forms a cover. -/
 lemma sUnion_sub_of_finset_sub : set.univ ⊆ set.sUnion (B ε f) :=
 begin
   rintros x hx, simp only [exists_prop, set.mem_range, exists_exists_eq_and, set.mem_set_of_eq],
-  have xt := (ht ε f) hx,
+  have xt := (exists_finset_univ_sub_prop ε f) hx,
   simp only [exists_prop, set.mem_preimage, set.mem_Union, set.mem_range, exists_and_distrib_right,
     set.supr_eq_Union, set.Union_exists] at xt,
   rcases xt with ⟨j, ⟨hj, jS⟩, fj⟩, refine ⟨f⁻¹' j, _, _⟩,
@@ -244,9 +249,7 @@ by { convert univ_sub_sUnion_set_clopen ε f, rw set.sUnion_eq_Union, }
 /-- Obtain a finite subcover of `set_clopen` using the compactness of `X`. -/
 noncomputable abbreviation s' := classical.some (is_compact.elim_finite_subcover
   (@compact_univ X _ _) _ (mem_set_clopen_is_open ε f) (cover ε f))
-/-- `s'` covers `X`. -/
-abbreviation h's := classical.some_spec (is_compact.elim_finite_subcover
-  (@compact_univ X _ _) _ (mem_set_clopen_is_open ε f) (cover ε f))
+
 /-- Coercing a subset of `set_clopen` in `s'` to `set X`. -/
 abbreviation s1 := λ (x : s' ε f), (x.1 : set X)
 
@@ -273,24 +276,17 @@ noncomputable def finset_clopen : finset (set X) :=
   classical.some (is_clopen.clopen_Union_disjoint
     (set.finite.to_finset (fin ε f)) (λ x hx, (is_clopen_x ε f hx)))
 
--- The various parts of `is_clopen.clopen_Union_disjoint`, to be used for properties of `s`.
-abbreviation clo := (classical.some_spec (is_clopen.clopen_Union_disjoint
-    (set.finite.to_finset (fin ε f)) (λ x hx, (is_clopen_x ε f hx)))).1
-abbreviation hs := (classical.some_spec (is_clopen.clopen_Union_disjoint
-    (set.finite.to_finset (fin ε f)) (λ x hx, (is_clopen_x ε f hx)))).2.1
-abbreviation sub := (classical.some_spec (is_clopen.clopen_Union_disjoint
-    (set.finite.to_finset (fin ε f)) (λ x hx, (is_clopen_x ε f hx)))).2.2.1
-abbreviation disj := (classical.some_spec (is_clopen.clopen_Union_disjoint
-    (set.finite.to_finset (fin ε f)) (λ x hx, (is_clopen_x ε f hx)))).2.2.2
-
 /-- Elements of `finset_clopen` are clopen. -/
-lemma finset_clopen_is_clopen {x : set X} (hx : x ∈ finset_clopen ε f) : is_clopen x := clo ε f x hx
+lemma finset_clopen_is_clopen {x : set X} (hx : x ∈ finset_clopen ε f) : is_clopen x :=
+  (classical.some_spec (is_clopen.clopen_Union_disjoint (set.finite.to_finset (fin ε f))
+    (λ x hx, (is_clopen_x ε f hx)))).1 x hx
 
 /-- The image of every element of `finset_clopen` is contained in some element of `S`. -/
 lemma exists_sub_S {x : set X} (hx : x ∈ finset_clopen ε f) :
   ∃ U ∈ ((S ε) : set(set A)), (set.image f x : set A) ⊆ U :=
 begin
-  rcases sub ε f x hx with ⟨z, hz, wz⟩,
+  rcases (classical.some_spec (is_clopen.clopen_Union_disjoint
+    (set.finite.to_finset (fin ε f)) (λ x hx, (is_clopen_x ε f hx)))).2.2.1 x hx with ⟨z, hz, wz⟩,
   simp only [set.mem_range, set_coe.exists, set.finite.mem_to_finset, finset.mem_coe] at hz,
   -- `z'` is a lift of `x` in `V`
   rcases hz with ⟨⟨⟨z', h1⟩, h2⟩, h3⟩,
@@ -309,8 +305,11 @@ lemma finset_clopen_prop (a : X) : ∃! (b ∈ finset_clopen ε f), a ∈ b :=
 begin
 -- proving that every element `a : X` is contained in a unique element `j` of `s`
   obtain ⟨j, hj, aj⟩ : ∃ j ∈ finset_clopen ε f, a ∈ j,
-  { have ha := h's ε f (set.mem_univ a),
-    have hs := hs ε f,
+  { -- `s'` covers `X`
+    have ha := classical.some_spec (is_compact.elim_finite_subcover
+      (@compact_univ X _ _) _ (mem_set_clopen_is_open ε f) (cover ε f)) (set.mem_univ a),
+    have hs := (classical.some_spec (is_clopen.clopen_Union_disjoint
+      (set.finite.to_finset (fin ε f)) (λ x hx, (is_clopen_x ε f hx)))).2.1,
     delta s1 at hs,
     suffices : a ∈ ⋃₀ (finset_clopen ε f : set(set X)),
     { simp only [exists_prop, set.mem_set_of_eq, finset.mem_coe] at this,
@@ -332,7 +331,8 @@ begin
   { -- uniqueness, coming from the disjointness of the clopen cover, `disj`
     simp only [exists_prop, exists_unique_iff_exists] at hy,
     cases hy with h1 h2,
-    have disj := disj ε f j y hj h1,
+    have disj := (classical.some_spec (is_clopen.clopen_Union_disjoint
+      (set.finite.to_finset (fin ε f)) (λ x hx, (is_clopen_x ε f hx)))).2.2.2 j y hj h1,
     by_cases h : j = y,
     { rw h.symm, },
     { exfalso, specialize disj h, rw ←set.mem_empty_eq, rw ←disj,
@@ -360,14 +360,15 @@ end).
 
 /-- Any element of `finset_clopen` is open. -/
 lemma mem_finset_clopen_is_open {U : set X} (hU : U ∈ finset_clopen ε f) : is_open U :=
-by { rw finset_clopen at hU, apply (clo ε f U hU).1, }
+by { rw finset_clopen at hU, apply (finset_clopen_is_clopen ε f hU).1, }
 
 /-- An equivalent version of `disj`. -/
-lemma mem_finset_clopen_unique' {U V : set X} {x y : X}
+lemma mem_finset_clopen_unique' {U V : set X} {y : X}
   (hU : U ∈ finset_clopen ε f) (hUy : y ∈ U) (hVy : y ∈ V) (hV : V ∈ finset_clopen ε f) : V = U :=
 begin
   by_contra,
-  have := disj ε f _ _ hV hU h,
+  have := (classical.some_spec (is_clopen.clopen_Union_disjoint
+    (set.finite.to_finset (fin ε f)) (λ x hx, (is_clopen_x ε f hx)))).2.2.2 _ _ hV hU h,
   revert this,
   change (V ∩ U) ≠ ∅,
   refine set.nonempty.ne_empty ⟨y, set.mem_inter hVy hUy⟩,
@@ -452,7 +453,7 @@ theorem loc_const_dense [nonempty X] : @dense (C(X, A)) _ (set.range (inclusion 
   λ f, begin
   rw metric.mem_closure_iff,
   rintros ε hε,
--- we have all the ingredients from `loc_const_dense'`, only need `ht`
+-- we have all the ingredients from `loc_const_dense'`, only need `exists_finset_univ_sub_prop`
   apply @loc_const_dense' _ _ _ _ _ _ _ ε f (fact_iff.2 hε) _,
 end
 
@@ -503,7 +504,7 @@ lemma dense_ind_inclusion [nonempty X] : dense_inducing (inclusion X A) :=
   ⟨⟨rfl⟩, loc_const_dense X⟩
 
 /-- The inclusion map from `locally_constant X A` to `C(X, A)` is uniform inducing -/
-lemma uni_ind [nonempty X] : uniform_inducing (inclusion X A) := ⟨rfl⟩
+lemma uni_ind : uniform_inducing (inclusion X A) := ⟨rfl⟩
 
 variables {X} {A}
 
@@ -584,5 +585,5 @@ noncomputable def integral [nonempty X] [complete_space A] (φ : measures X A) :
     map_add' := λ x y, map_add_extend φ x y,
     map_smul' := λ m x, map_smul_extend φ m x, },
     cont φ⟩
-
+#lint
 end measures

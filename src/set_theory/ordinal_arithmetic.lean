@@ -1009,13 +1009,10 @@ begin
 end
 
 theorem bdd_above_iff_small {s : set ordinal.{u}} : bdd_above s ↔ small.{u} s :=
-begin
-  refine ⟨_, λ h, ⟨sup.{u u} (λ x, ((@equiv_shrink s h).symm x).val), le_sup_equiv h⟩⟩,
-  rintro ⟨a, h⟩,
-  exact @small_subset _ _ _ (by exact λ b hb, lt_succ.2 (h hb)) (small_Iio a.succ)
-end
+⟨λ ⟨a, h⟩, @small_subset _ _ _ (by exact λ b hb, lt_succ.2 (h hb)) (small_Iio a.succ),
+λ h, ⟨sup.{u u} (λ x, ((@equiv_shrink s h).symm x).val), le_sup_equiv h⟩⟩
 
-@[simp] theorem Sup_eq_sup {s : set ordinal.{u}} (hs : small.{u} s) (hne : s.nonempty) :
+@[simp] theorem sup_eq_Sup {s : set ordinal.{u}} (hs : small.{u} s) (hne : s.nonempty) :
   sup.{u u} (λ x, ((@equiv_shrink s hs).symm x).val) = Sup s :=
 let hs' := bdd_above_iff_small.2 hs in
   (sup_le.2 (λ x, le_cSup hs' (subtype.mem _))).antisymm

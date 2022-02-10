@@ -78,6 +78,9 @@ begin
   rw [chain_dedup_cons_of_ne _ _ _ h.symm, hb _ hc],
 end
 
+@[simp] lemma chain_dedup_eq_self_iff : l.chain_dedup a = l ↔ l.chain ne a :=
+⟨λ h, h ▸ chain_dedup_is_chain _ _, chain_dedup_of_chain _ _⟩
+
 /-- Removes all adjacent duplicates in a list. -/
 def chain'_dedup : list α → list α
 | (h :: l) := h :: chain_dedup h l
@@ -107,11 +110,14 @@ lemma chain'_dedup_is_chain' : ∀ (l : list α), l.chain'_dedup.chain' ne
 | [] := list.chain'_nil
 | (h :: l) := l.chain_dedup_is_chain h
 
-lemma chain'_dedup_of_chain : ∀ (l : list α), l.chain' ne → l.chain'_dedup = l
+lemma chain'_dedup_of_chain' : ∀ (l : list α), l.chain' ne → l.chain'_dedup = l
 | [] h := rfl
 | (a :: l) h := congr_arg (list.cons a) (chain_dedup_of_chain _ _ h)
 
-lemma chain_dedup_idem : l.chain'_dedup.chain'_dedup = l.chain'_dedup :=
-chain'_dedup_of_chain _ $ l.chain'_dedup_is_chain'
+@[simp] lemma chain'_dedup_eq_self_iff : l.chain'_dedup = l ↔ l.chain' ne :=
+⟨λ h, h ▸ chain'_dedup_is_chain' _, chain'_dedup_of_chain' _⟩
+
+lemma chain'_dedup_idem : l.chain'_dedup.chain'_dedup = l.chain'_dedup :=
+chain'_dedup_of_chain' _ $ l.chain'_dedup_is_chain'
 
 end list

@@ -65,7 +65,7 @@ local extremum, Fermat's Theorem, Rolle's Theorem
 universes u v
 
 open filter set
-open_locale topological_space classical
+open_locale topological_space classical polynomial
 
 section module
 
@@ -357,7 +357,7 @@ end Rolle
 
 namespace polynomial
 
-lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
+lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : F[X]) :
   fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
 begin
   haveI : char_zero F :=

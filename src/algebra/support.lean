@@ -54,6 +54,15 @@ iff.rfl
   mul_support f ⊆ s ↔ ∀ x ∉ s, f x = 1 :=
 forall_congr $ λ x, not_imp_comm
 
+@[to_additive] lemma mul_support_disjoint_iff {f : α → M} {s : set α} :
+  disjoint (mul_support f) s ↔ eq_on f 1 s :=
+by simp_rw [disjoint_iff_subset_compl_right, mul_support_subset_iff', not_mem_compl_iff, eq_on,
+  pi.one_apply]
+
+@[to_additive] lemma disjoint_mul_support_iff {f : α → M} {s : set α} :
+  disjoint s (mul_support f) ↔ eq_on f 1 s :=
+by rw [disjoint.comm, mul_support_disjoint_iff]
+
 @[simp, to_additive] lemma mul_support_eq_empty_iff {f : α → M} :
   mul_support f = ∅ ↔ f = 1 :=
 by { simp_rw [← subset_empty_iff, mul_support_subset_iff', funext_iff], simp }

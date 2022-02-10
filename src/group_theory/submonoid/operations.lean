@@ -556,6 +556,33 @@ lemma comap_equiv_eq_map_symm (f : N ≃* M) (K : submonoid M) :
 lemma map_equiv_top (f : M ≃* N) : (⊤ : submonoid M).map f.to_monoid_hom = ⊤ :=
 set_like.coe_injective $ set.image_univ.trans f.surjective.range_eq
 
+@[to_additive le_prod_iff]
+lemma le_prod_iff {s : submonoid M} {t : submonoid N} {u : submonoid (M × N)} :
+  u ≤ s.prod t ↔ u.map (fst M N) ≤ s ∧ u.map (snd M N) ≤ t :=
+begin
+  split,
+  { intros h,
+    split,
+    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).1 },
+    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).2 }, },
+  { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ h, exact ⟨hH ⟨_ , h, rfl⟩, hK ⟨ _, h, rfl⟩⟩, }
+end
+
+@[to_additive prod_le_iff]
+lemma prod_le_iff {s : submonoid M} {t : submonoid N} {u : submonoid (M × N)} :
+  s.prod t ≤ u ↔ s.map (inl M N) ≤ u ∧ t.map (inr M N) ≤ u :=
+begin
+  split,
+  { intros h,
+    split,
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, (submonoid.one_mem _)⟩, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨submonoid.one_mem _, hx⟩, }, },
+  { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ ⟨h1, h2⟩,
+    have h1' : inl M N x1 ∈ u, { apply hH, simpa using h1, },
+    have h2' : inr M N x2 ∈ u, { apply hK, simpa using h2, },
+    simpa using submonoid.mul_mem _ h1' h2', }
+end
+
 end submonoid
 
 namespace monoid_hom
@@ -712,6 +739,12 @@ lemma mker_prod_map {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class 
   (g : M' →* N') : (prod_map f g).mker = f.mker.prod g.mker :=
 by rw [←comap_bot', ←comap_bot', ←comap_bot', ←prod_map_comap_prod', bot_prod_bot]
 
+@[simp, to_additive]
+lemma mker_inl : (inl M N).mker = ⊥ := by { ext x, simp [mem_mker] }
+
+@[simp, to_additive]
+lemma mker_inr : (inr M N).mker = ⊥ := by { ext x, simp [mem_mker] }
+
 /-- The `monoid_hom` from the preimage of a submonoid to itself. -/
 @[to_additive "the `add_monoid_hom` from the preimage of an additive submonoid to itself.", simps]
 def submonoid_comap (f : M →* N) (N' : submonoid N) :
@@ -761,8 +794,19 @@ lemma mrange_fst : (fst M N).mrange = ⊤ :=
 @[simp, to_additive]
 lemma mrange_snd : (snd M N).mrange = ⊤ :=
 (snd M N).mrange_top_of_surjective $ @prod.snd_surjective _ _ ⟨1⟩
-@[simp, to_additive]
 
+@[to_additive]
+lemma prod_eq_bot_iff {s : submonoid M} {t : submonoid N} :
+  s.prod t = ⊥ ↔ s = ⊥ ∧ t = ⊥ :=
+by simp only [eq_bot_iff, prod_le_iff, (gc_map_comap _).le_iff_le, comap_bot', mker_inl, mker_inr]
+
+@[to_additive]
+lemma prod_eq_top_iff {s : submonoid M} {t : submonoid N} :
+  s.prod t = ⊤ ↔ s = ⊤ ∧ t = ⊤ :=
+by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, ← mrange_eq_map,
+  mrange_fst, mrange_snd]
+
+@[simp, to_additive]
 lemma mrange_inl_sup_mrange_inr : (inl M N).mrange ⊔ (inr M N).mrange = ⊤ :=
 by simp only [mrange_inl, mrange_inr, prod_bot_sup_bot_prod, top_prod_top]
 

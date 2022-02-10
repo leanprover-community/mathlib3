@@ -84,6 +84,12 @@ def circle_map (c : ℂ) (R : ℝ) : ℝ → ℂ := λ θ, c + R * exp (θ * I)
 lemma periodic_circle_map (c : ℂ) (R : ℝ) : periodic (circle_map c R) (2 * π) :=
 λ θ, by simp [circle_map, add_mul, exp_periodic _]
 
+lemma set.countable.preimage_circle_map {s : set ℂ} (hs : s.countable) (c : ℂ)
+  {R : ℝ} (hR : R ≠ 0) : (circle_map c R ⁻¹' s).countable :=
+show (coe ⁻¹' ((* I) ⁻¹' (exp ⁻¹' ((*) R ⁻¹' ((+) c ⁻¹' s))))).countable,
+  from (((hs.preimage (add_right_injective _)).preimage $ mul_right_injective₀ $ of_real_ne_zero.2
+    hR).preimage_cexp.preimage $ mul_left_injective₀ I_ne_zero).preimage of_real_injective
+
 @[simp] lemma circle_map_sub_center (c : ℂ) (R : ℝ) (θ : ℝ) :
   circle_map c R θ - c = circle_map 0 R θ :=
 by simp [circle_map]
@@ -278,6 +284,16 @@ by simp [circle_integral]
 lemma integral_congr {f g : ℂ → E} {c : ℂ} {R : ℝ} (hR : 0 ≤ R) (h : eq_on f g (sphere c R)) :
   ∮ z in C(c, R), f z = ∮ z in C(c, R), g z :=
 interval_integral.integral_congr $ λ θ hθ, by simp only [h (circle_map_mem_sphere _ hR _)]
+
+lemma integral_sub_inv_smul_sub_smul (f : ℂ → E) (c w : ℂ) (R : ℝ) :
+  ∮ z in C(c, R), (z - w)⁻¹ • (z - w) • f z = ∮ z in C(c, R), f z :=
+begin
+  rcases eq_or_ne R 0 with rfl|hR, { simp only [integral_radius_zero] },
+  have : countable (circle_map c R ⁻¹' {w}), from (countable_singleton _).preimage_circle_map c hR,
+  refine interval_integral.integral_congr_ae ((this.ae_not_mem _).mono $ λ θ hθ hθ', _),
+  change circle_map c R θ ≠ w at hθ,
+  simp only [inv_smul_smul₀ (sub_ne_zero.2 $ hθ)]
+end
 
 lemma integral_undef {f : ℂ → E} {c : ℂ} {R : ℝ} (hf : ¬circle_integrable f c R) :
   ∮ z in C(c, R), f z = 0 :=

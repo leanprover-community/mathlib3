@@ -741,6 +741,18 @@ begin
         ←order_of_is_cycle (is_cycle_cycle_of f hx), ←pow_eq_mod_order_of] }
 end
 
+/-- x is in the support of f iff cycle_of f x is a cycle.-/
+lemma is_cycle_cycle_of_iff [fintype α] (f : perm α) {x : α} :
+  is_cycle (cycle_of f x) ↔ (f x ≠ x) :=
+begin
+  split,
+  { intro hx, rw ne.def, rw ← cycle_of_eq_one_iff f,
+    exact equiv.perm.is_cycle.ne_one hx, },
+  { intro hx,
+    apply equiv.perm.is_cycle_cycle_of, exact hx }
+end
+
+
 /-!
 ### `cycle_factors`
 -/
@@ -1032,6 +1044,25 @@ begin
     rwa [←support_inv, apply_mem_support, support_inv, mem_support] }
 end
 
+/-- If c is a cycle, a ∈ c.support and c is a cycle of f, then `c = f.cycle_of a` -/
+lemma cycle_is_cycle_of {f c : equiv.perm α} {a : α}
+  (ha : a ∈ c.support) (hc : c ∈ f.cycle_factors_finset) : c = f.cycle_of a :=
+begin
+  suffices : f.cycle_of a = c.cycle_of a,
+  { rw this,
+    apply symm,
+    exact equiv.perm.is_cycle.cycle_of_eq
+     ((equiv.perm.mem_cycle_factors_finset_iff.mp hc).left)
+     (equiv.perm.mem_support.mp ha), },
+  let hfc := (equiv.perm.disjoint_mul_inv_of_mem_cycle_factors_finset hc).symm,
+  let hfc2 := (perm.disjoint.commute hfc),
+  rw ← equiv.perm.cycle_of_mul_of_apply_right_eq_self hfc2,
+  simp only [hfc2.eq, inv_mul_cancel_right],
+  -- a est dans le support de c, donc pas dans celui de g c⁻¹
+  exact equiv.perm.not_mem_support.mp
+    (finset.disjoint_left.mp (equiv.perm.disjoint.disjoint_support  hfc) ha),
+end
+
 end cycle_factors_finset
 
 @[elab_as_eliminator] lemma cycle_induction_on [fintype β] (P : perm β → Prop) (σ : perm β)
@@ -1164,6 +1195,32 @@ begin
     rw [not_mem_support] at hx,
     rw [pow_apply_eq_self_of_apply_eq_self hx,
         zpow_apply_eq_self_of_apply_eq_self hx] }
+end
+
+
+/-- nodup in the iterates of a permutation -/
+lemma nodup_powers_of_cycle_of [fintype α] {f : perm α} {x : α}
+  (i j : ℕ) (hij : i < j) (hj : j < (f.cycle_of x).support.card) :
+  (f ^ i) x ≠ (f ^ j) x :=
+begin
+  have hx : f x ≠ x := equiv.perm.card_support_cycle_of_pos_iff.mp (lt_of_le_of_lt (zero_le j) hj),
+  -- have hf : (f.cycle_of x).is_cycle := f.is_cycle_cycle_of hx,
+
+  rw ← equiv.perm.order_of_is_cycle (f.is_cycle_cycle_of hx) at hj,
+  obtain ⟨k, hk, rfl⟩ := lt_iff_exists_add.mp  hij,
+  rw pow_add f i k,
+  rw equiv.perm.mul_apply,
+
+  intro hfix,
+  let hfix' := equiv.injective (f ^ i) hfix,
+  rw ← equiv.perm.cycle_of_pow_apply_self  at  hfix',
+
+  refine perm.mem_support.mp _ hfix'.symm,
+  refine (equiv.perm.is_cycle.mem_support_pos_pow_iff_of_lt_order_of
+    (f.is_cycle_cycle_of hx) hk _).mpr _,
+    exact lt_of_le_of_lt (nat.le_add_left k i) hj,
+    rw perm.mem_support, rw equiv.perm.cycle_of_apply_self,
+    exact hx,
 end
 
 section generation

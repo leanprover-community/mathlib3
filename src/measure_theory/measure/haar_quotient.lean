@@ -84,7 +84,8 @@ lemma measure_theory.is_fundamental_domain.smul (g : G) [μ.is_mul_left_invarian
     intros γ γ_ne_one,
     have μs_eq_zero : μ (((λ x, γ • x) '' 𝓕) ∩ 𝓕) = 0 := h𝓕.3 γ γ_ne_one,
     change μ (((λ x, γ • x) '' (has_mul.mul g ⁻¹' 𝓕)) ∩ (has_mul.mul g ⁻¹' 𝓕)) = 0,
-    rw [smul_opposite_image_mul_preimage, ← preimage_inter, measure_preimage_mul μ g _, μs_eq_zero],
+    rw [subgroup.smul_opposite_image_mul_preimage, ← preimage_inter, measure_preimage_mul μ g _,
+      μs_eq_zero],
   end }
 
 variables [encodable Γ] [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]

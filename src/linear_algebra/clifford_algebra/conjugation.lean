@@ -28,7 +28,7 @@ https://en.wikipedia.org/wiki/Clifford_algebra#Antiautomorphisms
 -/
 
 variables {R : Type*} [comm_ring R]
-variables {M : Type*} [add_comm_group M] [module R M]
+variables {M : Type*} [add_comm_group M] [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
 variables {Q : quadratic_form R M}
 
 namespace clifford_algebra

@@ -44,7 +44,9 @@ which are lattices with only two elements, and related ideas.
   connection between atoms, coatoms, and simple lattices
   * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
   bounded lattice, a complement of an atom is a coatom and vice versa.
-  * ``is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
+  * `is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
+  * `fintype.to_is_atomic`, `fintype.to_is_coatomic`: Finite partial orders with bottom resp. top
+    are atomic resp. coatomic.
 
 -/
 
@@ -475,11 +477,11 @@ protected noncomputable def complete_lattice : complete_lattice α :=
 /-- A simple `bounded_order` is also a `complete_boolean_algebra`. -/
 protected noncomputable def complete_boolean_algebra : complete_boolean_algebra α :=
 { infi_sup_le_sup_Inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
-    { simp only [bot_sup_eq, ← Inf_eq_infi], apply le_refl },
+    { simp only [bot_sup_eq, ← Inf_eq_infi], exact le_rfl },
     { simp only [top_sup_eq, le_top] }, },
   inf_Sup_le_supr_inf := λ x s, by { rcases eq_bot_or_eq_top x with rfl | rfl,
     { simp only [bot_inf_eq, bot_le] },
-    { simp only [top_inf_eq, ← Sup_eq_supr], apply le_refl } },
+    { simp only [top_inf_eq, ← Sup_eq_supr], exact le_rfl } },
   .. is_simple_order.complete_lattice,
   .. is_simple_order.boolean_algebra }
 
@@ -646,3 +648,25 @@ theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
   λ h, @is_atomic_of_is_coatomic_of_is_complemented_of_is_modular _ _ _ _ _ h⟩
 
 end is_modular_lattice
+
+section fintype
+
+open finset
+
+@[priority 100]  -- see Note [lower instance priority]
+instance fintype.to_is_coatomic [partial_order α] [order_top α] [fintype α] : is_coatomic α :=
+begin
+  refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
+  obtain ⟨c, hc, hmax⟩ := set.finite.exists_maximal_wrt id { x : α | b ≤ x ∧ x ≠ ⊤ }
+    (set.finite.of_fintype _) ⟨b, le_rfl, ht⟩,
+  refine ⟨c, ⟨hc.2, λ y hcy, _⟩, hc.1⟩,
+  by_contra hyt,
+  obtain rfl : c = y := hmax y ⟨hc.1.trans hcy.le, hyt⟩ hcy.le,
+  exact (lt_self_iff_false _).mp hcy
+end
+
+@[priority 100]  -- see Note [lower instance priority]
+instance fintype.to_is_atomic [partial_order α] [order_bot α] [fintype α] : is_atomic α :=
+is_coatomic_dual_iff_is_atomic.mp fintype.to_is_coatomic
+
+end fintype

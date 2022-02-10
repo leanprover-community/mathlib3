@@ -108,3 +108,32 @@ by { rw eq_bot_iff, exact general_commutator_le_left ⊥ H }
 lemma general_commutator_le_inf (H₁ H₂ : subgroup G) [normal H₁] [normal H₂] :
   ⁅H₁, H₂⁆ ≤ H₁ ⊓ H₂ :=
 by simp only [general_commutator_le_left, general_commutator_le_right, le_inf_iff, and_self]
+
+lemma map_general_commutator {G₂ : Type*} [group G₂] (f : G →* G₂) (H₁ H₂ : subgroup G)  :
+  map f ⁅H₁, H₂⁆ = ⁅map f H₁, map f H₂⁆ :=
+begin
+  apply le_antisymm,
+  { rw [gc_map_comap, general_commutator_le],
+    intros p hp q hq,
+    simp only [mem_comap, map_inv, map_mul],
+    exact general_commutator_containment _ _ (mem_map_of_mem _ hp) (mem_map_of_mem _ hq), },
+  { rw [general_commutator_le],
+    rintros _ ⟨p, hp, rfl⟩ _ ⟨q, hq, rfl⟩,
+    simp only [← map_inv, ← map_mul],
+    exact mem_map_of_mem _ (general_commutator_containment _ _ hp hq), }
+end
+
+lemma general_commutator_prod_prod {G₂ : Type*} [group G₂]
+  (H₁ K₁ : subgroup G) (H₂ K₂ : subgroup G₂) :
+  ⁅H₁.prod H₂, K₁.prod K₂⁆ = ⁅H₁, K₁⁆.prod ⁅H₂, K₂⁆ :=
+begin
+  apply le_antisymm,
+  { rw general_commutator_le,
+    rintros ⟨p₁, p₂⟩ ⟨hp₁, hp₂⟩ ⟨q₁, q₂⟩ ⟨hq₁, hq₂⟩,
+    exact ⟨general_commutator_containment _ _ hp₁ hq₁, general_commutator_containment _ _ hp₂ hq₂⟩},
+  { rw prod_le_iff, split;
+    { rw map_general_commutator,
+      apply general_commutator_mono;
+      simp [le_prod_iff, map_map, monoid_hom.fst_comp_inl, monoid_hom.snd_comp_inl,
+        monoid_hom.fst_comp_inr, monoid_hom.snd_comp_inr ], }, }
+end

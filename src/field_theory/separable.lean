@@ -26,7 +26,7 @@ properties about separable polynomials here.
 -/
 
 universes u v w
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 open finset
 
 namespace polynomial
@@ -36,92 +36,92 @@ section comm_semiring
 variables {R : Type u} [comm_semiring R] {S : Type v} [comm_semiring S]
 
 /-- A polynomial is separable iff it is coprime with its derivative. -/
-def separable (f : polynomial R) : Prop :=
+def separable (f : R[X]) : Prop :=
 is_coprime f f.derivative
 
-lemma separable_def (f : polynomial R) :
+lemma separable_def (f : R[X]) :
   f.separable ↔ is_coprime f f.derivative :=
 iff.rfl
 
-lemma separable_def' (f : polynomial R) :
-  f.separable ↔ ∃ a b : polynomial R, a * f + b * f.derivative = 1 :=
+lemma separable_def' (f : R[X]) :
+  f.separable ↔ ∃ a b : R[X], a * f + b * f.derivative = 1 :=
 iff.rfl
 
-lemma not_separable_zero [nontrivial R] : ¬ separable (0 : polynomial R) :=
+lemma not_separable_zero [nontrivial R] : ¬ separable (0 : R[X]) :=
 begin
   rintro ⟨x, y, h⟩,
   simpa only [derivative_zero, mul_zero, add_zero, zero_ne_one] using h,
 end
 
-lemma separable_one : (1 : polynomial R).separable :=
+lemma separable_one : (1 : R[X]).separable :=
 is_coprime_one_left
 
-@[nontriviality] lemma separable_of_subsingleton [subsingleton R] (f : polynomial R) :
+@[nontriviality] lemma separable_of_subsingleton [subsingleton R] (f : R[X]) :
   f.separable := by simp [separable]
 
 lemma separable_X_add_C (a : R) : (X + C a).separable :=
 by { rw [separable_def, derivative_add, derivative_X, derivative_C, add_zero],
   exact is_coprime_one_right }
 
-lemma separable_X : (X : polynomial R).separable :=
+lemma separable_X : (X : R[X]).separable :=
 by { rw [separable_def, derivative_X], exact is_coprime_one_right }
 
 lemma separable_C (r : R) : (C r).separable ↔ is_unit r :=
 by rw [separable_def, derivative_C, is_coprime_zero_right, is_unit_C]
 
-lemma separable.of_mul_left {f g : polynomial R} (h : (f * g).separable) : f.separable :=
+lemma separable.of_mul_left {f g : R[X]} (h : (f * g).separable) : f.separable :=
 begin
   have := h.of_mul_left_left, rw derivative_mul at this,
   exact is_coprime.of_mul_right_left (is_coprime.of_add_mul_left_right this)
 end
 
-lemma separable.of_mul_right {f g : polynomial R} (h : (f * g).separable) : g.separable :=
+lemma separable.of_mul_right {f g : R[X]} (h : (f * g).separable) : g.separable :=
 by { rw mul_comm at h, exact h.of_mul_left }
 
-lemma separable.of_dvd {f g : polynomial R} (hf : f.separable) (hfg : g ∣ f) : g.separable :=
+lemma separable.of_dvd {f g : R[X]} (hf : f.separable) (hfg : g ∣ f) : g.separable :=
 by { rcases hfg with ⟨f', rfl⟩, exact separable.of_mul_left hf }
 
-lemma separable_gcd_left {F : Type*} [field F] {f : polynomial F}
-  (hf : f.separable) (g : polynomial F) : (euclidean_domain.gcd f g).separable :=
+lemma separable_gcd_left {F : Type*} [field F] {f : F[X]}
+  (hf : f.separable) (g : F[X]) : (euclidean_domain.gcd f g).separable :=
 separable.of_dvd hf (euclidean_domain.gcd_dvd_left f g)
 
-lemma separable_gcd_right {F : Type*} [field F] {g : polynomial F}
-  (f : polynomial F) (hg : g.separable) : (euclidean_domain.gcd f g).separable :=
+lemma separable_gcd_right {F : Type*} [field F] {g : F[X]}
+  (f : F[X]) (hg : g.separable) : (euclidean_domain.gcd f g).separable :=
 separable.of_dvd hg (euclidean_domain.gcd_dvd_right f g)
 
-lemma separable.is_coprime {f g : polynomial R} (h : (f * g).separable) : is_coprime f g :=
+lemma separable.is_coprime {f g : R[X]} (h : (f * g).separable) : is_coprime f g :=
 begin
   have := h.of_mul_left_left, rw derivative_mul at this,
   exact is_coprime.of_mul_right_right (is_coprime.of_add_mul_left_right this)
 end
 
-theorem separable.of_pow' {f : polynomial R} :
+theorem separable.of_pow' {f : R[X]} :
   ∀ {n : ℕ} (h : (f ^ n).separable), is_unit f ∨ (f.separable ∧ n = 1) ∨ n = 0
 | 0     := λ h, or.inr $ or.inr rfl
 | 1     := λ h, or.inr $ or.inl ⟨pow_one f ▸ h, rfl⟩
 | (n+2) := λ h, by { rw [pow_succ, pow_succ] at h,
     exact or.inl (is_coprime_self.1 h.is_coprime.of_mul_right_left) }
 
-theorem separable.of_pow {f : polynomial R} (hf : ¬is_unit f) {n : ℕ} (hn : n ≠ 0)
+theorem separable.of_pow {f : R[X]} (hf : ¬is_unit f) {n : ℕ} (hn : n ≠ 0)
   (hfs : (f ^ n).separable) : f.separable ∧ n = 1 :=
 (hfs.of_pow'.resolve_left hf).resolve_right hn
 
-theorem separable.map {p : polynomial R} (h : p.separable) {f : R →+* S} : (p.map f).separable :=
+theorem separable.map {p : R[X]} (h : p.separable) {f : R →+* S} : (p.map f).separable :=
 let ⟨a, b, H⟩ := h in ⟨a.map f, b.map f,
 by rw [derivative_map, ← map_mul, ← map_mul, ← map_add, H, map_one]⟩
 
 variables (R) (p q : ℕ)
 
 /-- Expand the polynomial by a factor of p, so `∑ aₙ xⁿ` becomes `∑ aₙ xⁿᵖ`. -/
-noncomputable def expand : polynomial R →ₐ[R] polynomial R :=
+noncomputable def expand : R[X] →ₐ[R] R[X] :=
 { commutes' := λ r, eval₂_C _ _,
-  .. (eval₂_ring_hom C (X ^ p) : polynomial R →+* polynomial R) }
+  .. (eval₂_ring_hom C (X ^ p) : R[X] →+* R[X]) }
 
-lemma coe_expand : (expand R p : polynomial R → polynomial R) = eval₂ C (X ^ p) := rfl
+lemma coe_expand : (expand R p : R[X] → R[X]) = eval₂ C (X ^ p) := rfl
 
 variables {R}
 
-lemma expand_eq_sum {f : polynomial R} :
+lemma expand_eq_sum {f : R[X]} :
   expand R p f = f.sum (λ e a, C a * (X ^ p) ^ e) :=
 by { dsimp [expand, eval₂], refl, }
 
@@ -130,33 +130,33 @@ by { dsimp [expand, eval₂], refl, }
 @[simp] lemma expand_monomial (r : R) : expand R p (monomial q r) = monomial (q * p) r :=
 by simp_rw [monomial_eq_smul_X, alg_hom.map_smul, alg_hom.map_pow, expand_X, mul_comm, pow_mul]
 
-theorem expand_expand (f : polynomial R) : expand R p (expand R q f) = expand R (p * q) f :=
+theorem expand_expand (f : R[X]) : expand R p (expand R q f) = expand R (p * q) f :=
 polynomial.induction_on f (λ r, by simp_rw expand_C)
   (λ f g ihf ihg, by simp_rw [alg_hom.map_add, ihf, ihg])
   (λ n r ih, by simp_rw [alg_hom.map_mul, expand_C, alg_hom.map_pow, expand_X,
     alg_hom.map_pow, expand_X, pow_mul])
 
-theorem expand_mul (f : polynomial R) : expand R (p * q) f = expand R p (expand R q f) :=
+theorem expand_mul (f : R[X]) : expand R (p * q) f = expand R p (expand R q f) :=
 (expand_expand p q f).symm
 
-@[simp] theorem expand_zero (f : polynomial R) : expand R 0 f = C (eval 1 f) :=
+@[simp] theorem expand_zero (f : R[X]) : expand R 0 f = C (eval 1 f) :=
 by simp [expand]
 
-@[simp] theorem expand_one (f : polynomial R) : expand R 1 f = f :=
+@[simp] theorem expand_one (f : R[X]) : expand R 1 f = f :=
 polynomial.induction_on f
   (λ r, by rw expand_C)
   (λ f g ihf ihg, by rw [alg_hom.map_add, ihf, ihg])
   (λ n r ih, by rw [alg_hom.map_mul, expand_C, alg_hom.map_pow, expand_X, pow_one])
 
-theorem expand_pow (f : polynomial R) : expand R (p ^ q) f = (expand R p ^[q] f) :=
+theorem expand_pow (f : R[X]) : expand R (p ^ q) f = (expand R p ^[q] f) :=
 nat.rec_on q (by rw [pow_zero, expand_one, function.iterate_zero, id]) $ λ n ih,
 by rw [function.iterate_succ_apply', pow_succ, expand_mul, ih]
 
-theorem derivative_expand (f : polynomial R) :
+theorem derivative_expand (f : R[X]) :
   (expand R p f).derivative = expand R p f.derivative * (p * X ^ (p - 1)) :=
 by rw [coe_expand, derivative_eval₂_C, derivative_pow, derivative_X, mul_one]
 
-theorem coeff_expand {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
+theorem coeff_expand {p : ℕ} (hp : 0 < p) (f : R[X]) (n : ℕ) :
   (expand R p f).coeff n = if p ∣ n then f.coeff (n / p) else 0 :=
 begin
   simp only [expand_eq_sum],
@@ -168,26 +168,26 @@ begin
   { rw finset.sum_eq_zero, intros k hk, rw if_neg, exact λ hkn, h ⟨k, hkn.symm⟩, },
 end
 
-@[simp] theorem coeff_expand_mul {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
+@[simp] theorem coeff_expand_mul {p : ℕ} (hp : 0 < p) (f : R[X]) (n : ℕ) :
   (expand R p f).coeff (n * p) = f.coeff n :=
 by rw [coeff_expand hp, if_pos (dvd_mul_left _ _), nat.mul_div_cancel _ hp]
 
-@[simp] theorem coeff_expand_mul' {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
+@[simp] theorem coeff_expand_mul' {p : ℕ} (hp : 0 < p) (f : R[X]) (n : ℕ) :
   (expand R p f).coeff (p * n) = f.coeff n :=
 by rw [mul_comm, coeff_expand_mul hp]
 
-theorem expand_inj {p : ℕ} (hp : 0 < p) {f g : polynomial R} :
+theorem expand_inj {p : ℕ} (hp : 0 < p) {f g : R[X]} :
   expand R p f = expand R p g ↔ f = g :=
 ⟨λ H, ext $ λ n, by rw [← coeff_expand_mul hp, H, coeff_expand_mul hp], congr_arg _⟩
 
-theorem expand_eq_zero {p : ℕ} (hp : 0 < p) {f : polynomial R} : expand R p f = 0 ↔ f = 0 :=
+theorem expand_eq_zero {p : ℕ} (hp : 0 < p) {f : R[X]} : expand R p f = 0 ↔ f = 0 :=
 by rw [← (expand R p).map_zero, expand_inj hp, alg_hom.map_zero]
 
-theorem expand_eq_C {p : ℕ} (hp : 0 < p) {f : polynomial R} {r : R} :
+theorem expand_eq_C {p : ℕ} (hp : 0 < p) {f : R[X]} {r : R} :
   expand R p f = C r ↔ f = C r :=
 by rw [← expand_C, expand_inj hp, expand_C]
 
-theorem nat_degree_expand (p : ℕ) (f : polynomial R) :
+theorem nat_degree_expand (p : ℕ) (f : R[X]) :
   (expand R p f).nat_degree = f.nat_degree * p :=
 begin
   cases p.eq_zero_or_pos with hp hp,
@@ -205,13 +205,13 @@ begin
     rw [coeff_expand_mul hp, ← leading_coeff], exact mt leading_coeff_eq_zero.1 hf }
 end
 
-lemma monic.expand {p : ℕ} {f : polynomial R} (hp : 0 < p) (h : f.monic) : (expand R p f).monic :=
+lemma monic.expand {p : ℕ} {f : R[X]} (hp : 0 < p) (h : f.monic) : (expand R p f).monic :=
 begin
   rw [monic.def, leading_coeff, nat_degree_expand, coeff_expand hp],
   simp [hp, h],
 end
 
-theorem map_expand {p : ℕ} {f : R →+* S} {q : polynomial R} :
+theorem map_expand {p : ℕ} {f : R →+* S} {q : R[X]} :
   map f (expand R p q) = expand S p (map f q) :=
 begin
   by_cases hp : p = 0,
@@ -239,13 +239,13 @@ lemma expand_injective {n : ℕ} (hn : 0 < n) :
 end
 
 @[simp]
-lemma expand_eval (p : ℕ) (P : polynomial R) (r : R) : eval r (expand R p P) = eval (r ^ p) P :=
+lemma expand_eval (p : ℕ) (P : R[X]) (r : R) : eval r (expand R p P) = eval (r ^ p) P :=
 begin
   refine polynomial.induction_on P (λ a, by simp) (λ f g hf hg, _) (λ n a h, by simp),
   rw [alg_hom.map_add, eval_add, eval_add, hf, hg]
 end
 
-lemma is_unit_of_self_mul_dvd_separable {p q : polynomial R}
+lemma is_unit_of_self_mul_dvd_separable {p q : R[X]}
   (hp : p.separable) (hq : q * q ∣ p) : is_unit q :=
 begin
   obtain ⟨p, rfl⟩ := hq,
@@ -259,10 +259,10 @@ begin
 end
 
 /-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
-noncomputable def contract (p : ℕ) (f : polynomial R) : polynomial R :=
+noncomputable def contract (p : ℕ) (f : R[X]) : R[X] :=
 ∑ n in range (f.nat_degree + 1), monomial n (f.coeff (n * p))
 
-theorem coeff_contract {p : ℕ} (hp : p ≠ 0) (f : polynomial R) (n : ℕ) :
+theorem coeff_contract {p : ℕ} (hp : p ≠ 0) (f : R[X]) (n : ℕ) :
   (contract p f).coeff n = f.coeff (n * p) :=
 begin
   simp only [contract, coeff_monomial, sum_ite_eq', finset_sum_coeff, mem_range, not_lt,
@@ -274,7 +274,7 @@ begin
     ... ≤ n * p : mul_le_mul_of_nonneg_left (show 1 ≤ p, from hp.bot_lt) (zero_le n)
 end
 
-theorem contract_expand {f : polynomial R} (hp : p ≠ 0) : contract p (expand R p f) = f :=
+theorem contract_expand {f : R[X]} (hp : p ≠ 0) : contract p (expand R p f) = f :=
 begin
   ext,
   simp [coeff_contract hp, coeff_expand hp.bot_lt, nat.mul_div_cancel _ hp.bot_lt]
@@ -284,7 +284,7 @@ section char_p
 
 variable [char_p R p]
 
-theorem expand_contract [no_zero_divisors R] {f : polynomial R} (hf : f.derivative = 0)
+theorem expand_contract [no_zero_divisors R] {f : R[X]} (hf : f.derivative = 0)
   (hp : p ≠ 0) : expand R p (contract p f) = f :=
 begin
   ext n,
@@ -304,7 +304,7 @@ end
 variable [hp : fact p.prime]
 include hp
 
-theorem expand_char (f : polynomial R) : map (frobenius R p) (expand R p f) = f ^ p :=
+theorem expand_char (f : R[X]) : map (frobenius R p) (expand R p f) = f ^ p :=
 begin
   refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
   { rw [alg_hom.map_add, map_add, ha, hb, add_pow_char], },
@@ -313,7 +313,7 @@ begin
     ring_exp }
 end
 
-theorem map_expand_pow_char (f : polynomial R) (n : ℕ) :
+theorem map_expand_pow_char (f : R[X]) (n : ℕ) :
    map ((frobenius R p) ^ n) (expand R (p ^ n) f) = f ^ (p ^ n) :=
 begin
   induction n,
@@ -325,7 +325,7 @@ end
 
 end char_p
 
-lemma multiplicity_le_one_of_separable {p q : polynomial R} (hq : ¬ is_unit q)
+lemma multiplicity_le_one_of_separable {p q : R[X]} (hq : ¬ is_unit q)
   (hsep : separable p) : multiplicity q p ≤ 1 :=
 begin
   contrapose! hq,
@@ -335,7 +335,7 @@ begin
   simpa only [nat.cast_one, nat.cast_bit0] using enat.add_one_le_of_lt hq
 end
 
-lemma separable.squarefree {p : polynomial R} (hsep : separable p) : squarefree p :=
+lemma separable.squarefree {p : R[X]} (hsep : separable p) : squarefree p :=
 begin
   rw multiplicity.squarefree_iff_multiplicity_le_one p,
   intro f,
@@ -353,12 +353,12 @@ variables {R : Type u} [comm_ring R]
 lemma separable_X_sub_C {x : R} : separable (X - C x) :=
 by simpa only [sub_eq_add_neg, C_neg] using separable_X_add_C (-x)
 
-lemma separable.mul {f g : polynomial R} (hf : f.separable) (hg : g.separable)
+lemma separable.mul {f g : R[X]} (hf : f.separable) (hg : g.separable)
   (h : is_coprime f g) : (f * g).separable :=
 by { rw [separable_def, derivative_mul], exact ((hf.mul_right h).add_mul_left_right _).mul_left
   ((h.symm.mul_right hg).mul_add_right_right _) }
 
-lemma separable_prod' {ι : Sort*} {f : ι → polynomial R} {s : finset ι} :
+lemma separable_prod' {ι : Sort*} {f : ι → R[X]} {s : finset ι} :
   (∀x∈s, ∀y∈s, x ≠ y → is_coprime (f x) (f y)) → (∀x∈s, (f x).separable) →
   (∏ x in s, f x).separable :=
 finset.induction_on s (λ _ _, separable_one) $ λ a s has ih h1 h2, begin
@@ -367,7 +367,7 @@ finset.induction_on s (λ _ _, separable_one) $ λ a s has ih h1 h2, begin
     ne.symm $ ne_of_mem_of_not_mem his has)
 end
 
-lemma separable_prod {ι : Sort*} [fintype ι] {f : ι → polynomial R}
+lemma separable_prod {ι : Sort*} [fintype ι] {f : ι → R[X]}
   (h1 : pairwise (is_coprime on f)) (h2 : ∀ x, (f x).separable) : (∏ x, f x).separable :=
 separable_prod' (λ x hx y hy hxy, h1 x y hxy) (λ x hx, h2 x)
 
@@ -413,7 +413,7 @@ begin
               nat.sub_add_cancel (show 1 ≤ n, from hpos), sub_add_cancel]
 end
 
-lemma root_multiplicity_le_one_of_separable [nontrivial R] {p : polynomial R}
+lemma root_multiplicity_le_one_of_separable [nontrivial R] {p : R[X]}
   (hsep : separable p) (x : R) : root_multiplicity x p ≤ 1 :=
 begin
   by_cases hp : p = 0,
@@ -429,7 +429,7 @@ section is_domain
 variables (R : Type u) [comm_ring R] [is_domain R]
 
 theorem is_local_ring_hom_expand {p : ℕ} (hp : 0 < p) :
-  is_local_ring_hom (↑(expand R p) : polynomial R →+* polynomial R) :=
+  is_local_ring_hom (↑(expand R p) : R[X] →+* R[X]) :=
 begin
   refine ⟨λ f hf1, _⟩, rw ← coe_fn_coe_base at hf1,
   have hf2 := eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit hf1),
@@ -439,23 +439,23 @@ end
 
 variable {R}
 
-theorem of_irreducible_expand {p : ℕ} (hp : p ≠ 0) {f : polynomial R}
+theorem of_irreducible_expand {p : ℕ} (hp : p ≠ 0) {f : R[X]}
   (hf : irreducible (expand R p f)) : irreducible f :=
 @@of_irreducible_map _ _ _ (is_local_ring_hom_expand R hp.bot_lt) hf
 
-theorem of_irreducible_expand_pow {p : ℕ} (hp : p ≠ 0) {f : polynomial R} {n : ℕ} :
+theorem of_irreducible_expand_pow {p : ℕ} (hp : p ≠ 0) {f : R[X]} {n : ℕ} :
   irreducible (expand R (p ^ n) f) → irreducible f :=
 nat.rec_on n (λ hf, by rwa [pow_zero, expand_one] at hf) $ λ n ih hf,
 ih $ of_irreducible_expand hp $ by { rw pow_succ at hf, rwa [expand_expand] }
 
-lemma count_roots_le_one {p : polynomial R} (hsep : separable p) (x : R) :
+lemma count_roots_le_one {p : R[X]} (hsep : separable p) (x : R) :
   p.roots.count x ≤ 1 :=
 begin
   rw count_roots p,
   exact root_multiplicity_le_one_of_separable hsep x
 end
 
-lemma nodup_roots {p : polynomial R} (hsep : separable p) : p.roots.nodup :=
+lemma nodup_roots {p : R[X]} (hsep : separable p) : p.roots.nodup :=
 multiset.nodup_iff_count_le_one.mpr (count_roots_le_one hsep)
 
 end is_domain
@@ -464,7 +464,7 @@ section field
 
 variables {F : Type u} [field F] {K : Type v} [field K]
 
-theorem separable_iff_derivative_ne_zero {f : polynomial F} (hf : irreducible f) :
+theorem separable_iff_derivative_ne_zero {f : F[X]} (hf : irreducible f) :
   f.separable ↔ f.derivative ≠ 0 :=
 ⟨λ h1 h2, hf.not_unit $ is_coprime_zero_right.1 $ h2 ▸ h1,
 λ h, euclidean_domain.is_coprime_of_dvd (mt and.right h) $ λ g hg1 hg2 ⟨p, hg3⟩ hg4,
@@ -472,7 +472,7 @@ let ⟨u, hu⟩ := (hf.is_unit_or_is_unit hg3).resolve_left hg1 in
 have f ∣ f.derivative, by { conv_lhs { rw [hg3, ← hu] }, rwa units.mul_right_dvd },
 not_lt_of_le (nat_degree_le_of_dvd this h) $ nat_degree_derivative_lt h⟩
 
-theorem separable_map (f : F →+* K) {p : polynomial F} : (p.map f).separable ↔ p.separable :=
+theorem separable_map (f : F →+* K) {p : F[X]} : (p.map f).separable ↔ p.separable :=
 by simp_rw [separable_def, derivative_map, is_coprime_map]
 
 lemma separable_prod_X_sub_C_iff' {ι : Sort*} {f : ι → F} {s : finset ι} :
@@ -492,8 +492,8 @@ section char_p
 variables (p : ℕ) [HF : char_p F p]
 include HF
 
-theorem separable_or {f : polynomial F} (hf : irreducible f) : f.separable ∨
-  ¬f.separable ∧ ∃ g : polynomial F, irreducible g ∧ expand F p g = f :=
+theorem separable_or {f : F[X]} (hf : irreducible f) : f.separable ∨
+  ¬f.separable ∧ ∃ g : F[X], irreducible g ∧ expand F p g = f :=
 if H : f.derivative = 0 then
 begin
   unfreezingI { rcases p.eq_zero_or_pos with rfl | hp },
@@ -510,8 +510,8 @@ begin
 end
 else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
 
-theorem exists_separable_of_irreducible {f : polynomial F} (hf : irreducible f) (hp : p ≠ 0) :
-  ∃ (n : ℕ) (g : polynomial F), g.separable ∧ expand F (p ^ n) g = f :=
+theorem exists_separable_of_irreducible {f : F[X]} (hf : irreducible f) (hp : p ≠ 0) :
+  ∃ (n : ℕ) (g : F[X]), g.separable ∧ expand F (p ^ n) g = f :=
 begin
   replace hp : p.prime := (char_p.char_is_prime_or_zero F p).resolve_right hp,
   unfreezingI
@@ -534,7 +534,7 @@ begin
     rw [← hgf, expand_expand, pow_succ] }
 end
 
-theorem is_unit_or_eq_zero_of_separable_expand {f : polynomial F} (n : ℕ) (hp : 0 < p)
+theorem is_unit_or_eq_zero_of_separable_expand {f : F[X]} (n : ℕ) (hp : 0 < p)
   (hf : (expand F (p ^ n) f).separable) : is_unit f ∨ n = 0 :=
 begin
   rw or_iff_not_imp_right,
@@ -548,9 +548,9 @@ begin
   rwa [hrf, is_unit_C]
 end
 
-theorem unique_separable_of_irreducible {f : polynomial F} (hf : irreducible f) (hp : 0 < p)
-  (n₁ : ℕ) (g₁ : polynomial F) (hg₁ : g₁.separable) (hgf₁ : expand F (p ^ n₁) g₁ = f)
-  (n₂ : ℕ) (g₂ : polynomial F) (hg₂ : g₂.separable) (hgf₂ : expand F (p ^ n₂) g₂ = f) :
+theorem unique_separable_of_irreducible {f : F[X]} (hf : irreducible f) (hp : 0 < p)
+  (n₁ : ℕ) (g₁ : F[X]) (hg₁ : g₁.separable) (hgf₁ : expand F (p ^ n₁) g₁ = f)
+  (n₂ : ℕ) (g₂ : F[X]) (hg₂ : g₂.separable) (hgf₂ : expand F (p ^ n₂) g₂ = f) :
   n₁ = n₂ ∧ g₁ = g₂ :=
 begin
   revert g₁ g₂,
@@ -578,7 +578,7 @@ separable_X_pow_sub_C_unit (units.mk0 a ha) (is_unit.mk0 n hn)
 -- bi-implication, but it is nontrivial!
 /-- In a field `F`, `X ^ n - 1` is separable iff `↑n ≠ 0`. -/
 lemma X_pow_sub_one_separable_iff {n : ℕ} :
-  (X ^ n - 1 : polynomial F).separable ↔ (n : F) ≠ 0 :=
+  (X ^ n - 1 : F[X]).separable ↔ (n : F) ≠ 0 :=
 begin
   refine ⟨_, λ h, separable_X_pow_sub_C_unit 1 (is_unit.mk0 ↑n h)⟩,
   rw [separable_def', derivative_sub, derivative_X_pow, derivative_one, sub_zero],
@@ -591,7 +591,7 @@ end
 
 section splits
 
-lemma card_root_set_eq_nat_degree [algebra F K] {p : polynomial F} (hsep : p.separable)
+lemma card_root_set_eq_nat_degree [algebra F K] {p : F[X]} (hsep : p.separable)
   (hsplit : splits (algebra_map F K) p) : fintype.card (p.root_set K) = p.nat_degree :=
 begin
   simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
@@ -601,7 +601,7 @@ end
 
 variable {i : F →+* K}
 
-lemma eq_X_sub_C_of_separable_of_root_eq {x : F} {h : polynomial F}
+lemma eq_X_sub_C_of_separable_of_root_eq {x : F} {h : F[X]}
   (h_sep : h.separable) (h_root : h.eval x = 0) (h_splits : splits i h)
   (h_roots : ∀ y ∈ (h.map i).roots, y = i x) : h = (C (leading_coeff h)) * (X - C x) :=
 begin
@@ -620,9 +620,9 @@ begin
 end
 
 lemma exists_finset_of_splits
-  (i : F →+* K) {f : polynomial F} (sep : separable f) (sp : splits i f) :
+  (i : F →+* K) {f : F[X]} (sep : separable f) (sp : splits i f) :
   ∃ (s : finset K), f.map i =
-    C (i f.leading_coeff) * (s.prod (λ a : K, (X : polynomial K) - C a)) :=
+    C (i f.leading_coeff) * (s.prod (λ a : K, (X : K[X]) - C a)) :=
 begin
   classical,
   obtain ⟨s, h⟩ := exists_multiset_of_splits i sp,
@@ -636,7 +636,7 @@ end
 
 end splits
 
-theorem _root_.irreducible.separable [char_zero F] {f : polynomial F}
+theorem _root_.irreducible.separable [char_zero F] {f : F[X]}
   (hf : irreducible f) : f.separable :=
 begin
   rw [separable_iff_derivative_ne_zero hf, ne, ← degree_eq_bot, degree_derivative_eq],

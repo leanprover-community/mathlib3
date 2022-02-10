@@ -175,7 +175,7 @@ end isometry
 
 /-- A uniform embedding from a uniform space to a metric space is an isometry with respect to the
 induced metric space structure on the source space. -/
-def uniform_embedding.to_isometry {α β} [uniform_space α] [metric_space β] {f : α → β}
+lemma uniform_embedding.to_isometry {α β} [uniform_space α] [metric_space β] {f : α → β}
   (h : uniform_embedding f) :
   @isometry α β
     (@pseudo_metric_space.to_pseudo_emetric_space α
@@ -189,7 +189,7 @@ end
 
 /-- An embedding from a topological space to a metric space is an isometry with respect to the
 induced metric space structure on the source space. -/
-def embedding.to_isometry {α β} [topological_space α] [metric_space β] {f : α → β}
+lemma embedding.to_isometry {α β} [topological_space α] [metric_space β] {f : α → β}
   (h : embedding f) :
   @isometry α β
     (@pseudo_metric_space.to_pseudo_emetric_space α

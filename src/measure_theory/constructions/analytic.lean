@@ -130,10 +130,14 @@ begin
   exact analytic_set_of_polish_space_range F F_cont F_range,
 end
 
-def borel_separable [measurable_space α] (s t : set α) : Prop :=
+/-- Two sets `u` and `v` in a space with its Borel sigma-algebra are Borel-separable if there
+exists a Borel set containing `u` and disjoint from `v`.
+The definition does not mention the Borel sigma-algebra as it makes sense for any measurable space
+structure, but it is designed to be applied in a Borel situation. -/
+def borel_separable {α : Type*} [measurable_space α] (s t : set α) : Prop :=
   ∃ u, s ⊆ u ∧ disjoint t u ∧ measurable_set u
 
-lemma borel_separable.Union [measurable_space α] (s t : ℕ → set α)
+lemma borel_separable.Union {α : Type*} [measurable_space α] (s t : ℕ → set α)
   (h : ∀ m n, borel_separable (s m) (t n)) :
   borel_separable (⋃ n, s n) (⋃ m, t m) :=
 begin

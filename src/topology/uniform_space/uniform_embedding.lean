@@ -387,7 +387,7 @@ lemma totally_bounded_preimage {f : α → β} {s : set β} (hf : uniform_embedd
   exact ⟨y, zc, ts (by exact zt)⟩
 end
 
-instance complete_space.sum [uniform_space β] [complete_space α] [complete_space β] :
+instance complete_space.sum [complete_space α] [complete_space β] :
   complete_space (α ⊕ β) :=
 begin
   rw complete_space_iff_is_complete_univ,

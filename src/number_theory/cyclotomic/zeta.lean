@@ -142,16 +142,24 @@ def zeta.embeddings_equiv_primitive_roots [is_domain C] (hirr : irreducible (cyc
   left_inv  := λ x, subtype.ext rfl,
   right_inv := λ x, subtype.ext rfl }
 
+/-- If `K` is linearly ordered (in particular for `K = ℚ`), the norm of any `n`-th primitive
+root of unity is `1` if `n` is odd. -/
+lemma norm_primitive_root_eq_one (K : Type u) [linear_ordered_field K] {L : Type v} [field L]
+  [algebra K L] {μ : L} (hμ : is_primitive_root μ n) (hodd : odd (n : ℕ)) : norm K μ = 1 :=
+begin
+  replace hμ := congr_arg (norm K) ((is_primitive_root.iff_def _ n).1 hμ).1,
+  rw [← ring_hom.map_one (algebra_map K L), norm_algebra_map, one_pow, monoid_hom.map_pow,
+    ← one_pow ↑n] at hμ,
+  exact strict_mono.injective hodd.strict_mono_pow hμ
+end
+
 /-- If `K` is linearly ordered (in particular for `K = ℚ`), the norm of `zeta n K L` is `1`
 if `n` is odd. -/
 lemma norm_zeta_eq_one (K : Type u) [linear_ordered_field K] (L : Type v) [field L] [algebra K L]
   [is_cyclotomic_extension {n} K L] (hodd : odd (n : ℕ)) : norm K (zeta n K L) = 1 :=
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L n,
-  have hz := congr_arg (norm K) ((is_primitive_root.iff_def _ n).1 (zeta_primitive_root n K L)).1,
-  rw [← ring_hom.map_one (algebra_map K L), norm_algebra_map, one_pow, monoid_hom.map_pow,
-    ← one_pow ↑n] at hz,
-  exact strict_mono.injective hodd.strict_mono_pow hz
+  exact norm_primitive_root_eq_one K (zeta_primitive_root n K L) hodd
 end
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the norm of

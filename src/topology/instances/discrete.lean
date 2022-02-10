@@ -14,8 +14,8 @@ We prove that the discrete topology is a first-countable topology, and is second
 encodable type. Also, in linear orders which are also `pred_order` and `succ_order`, the discrete
 topology is the order topology.
 
-When importing this file and `data.nat.succ_pred`, the instances `second_countable_topology ℕ` and
-`order_topology ℕ` become available.
+When importing this file and `data.nat.succ_pred.basic`, the instances `second_countable_topology ℕ`
+and `order_topology ℕ` become available.
 
 -/
 
@@ -43,7 +43,7 @@ end
 
 @[priority 100]
 instance discrete_topology.order_topology_of_pred_succ' [h : discrete_topology α] [partial_order α]
-  [succ_order α] [pred_order α] [no_max_order α] [no_min_order α] :
+  [pred_order α] [succ_order α] [no_min_order α] [no_max_order α] :
   order_topology α :=
 begin
   constructor,
@@ -61,7 +61,7 @@ end
 
 @[priority 100]
 instance discrete_topology.order_topology_of_pred_succ [h : discrete_topology α] [linear_order α]
-  [succ_order α] [pred_order α] :
+  [pred_order α] [succ_order α] :
   order_topology α :=
 begin
   constructor,

@@ -235,7 +235,7 @@ begin
   have aux : ∀ i ∈ (range (Q.nat_degree + 1)).erase 0, n ≤ i + (n - 1),
   { intros i hi,
     simp only [mem_range, mem_erase] at hi,
-    exact le_of_pos_add_prec _ hi.1 },
+    exact le_add_pred_of_pos _ hi.1 },
   have hintsum : is_integral R (z * B.gen ^ (n - 1) -
     ∑ (x : ℕ) in (range (Q.nat_degree + 1)).erase 0, Q.coeff x • f (x + (n - 1))),
   { refine is_integral_sub (is_integral_mul hzint (is_integral.pow hBint _))

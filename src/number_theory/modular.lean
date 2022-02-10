@@ -541,7 +541,7 @@ begin
 end
 
 /-- If both `z` and `g•z` are in `𝒟ᵒ`, then `c` can't be `1`. -/
-lemma false_of_c_eq_one {z : ℍ} {g : SL(2,ℤ)} (hc : g 1 0 = 1) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) :
+lemma c_neq_one {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : g 1 0 ≠ 1 
 false :=
 begin
   let z₁ := T_pow (g 1 1) • z,

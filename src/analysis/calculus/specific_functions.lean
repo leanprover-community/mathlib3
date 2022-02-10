@@ -424,7 +424,7 @@ protected lemma times_cont_diff_within_at {s n} :
   times_cont_diff_within_at ℝ n f s x :=
 f.times_cont_diff_at.times_cont_diff_within_at
 
-lemma exists_closure_support_subset {s : set E} (hs : s ∈ 𝓝 c) :
+lemma exists_tsupport_subset {s : set E} (hs : s ∈ 𝓝 c) :
   ∃ f : times_cont_diff_bump c, tsupport f ⊆ s :=
 let ⟨R, h0, hR⟩ := euclidean.nhds_basis_closed_ball.mem_iff.1 hs
 in ⟨⟨⟨R / 2, R, half_pos h0, half_lt_self h0⟩⟩, by rwa tsupport_eq⟩
@@ -455,6 +455,6 @@ lemma exists_times_cont_diff_bump_function_of_mem_nhds [normed_group E] [normed_
   [finite_dimensional ℝ E] {x : E} {s : set E} (hs : s ∈ 𝓝 x) :
   ∃ f : E → ℝ, f =ᶠ[𝓝 x] 1 ∧ (∀ y, f y ∈ Icc (0 : ℝ) 1) ∧ times_cont_diff ℝ ⊤ f ∧
     has_compact_support f ∧ tsupport f ⊆ s :=
-let ⟨f, hf⟩ := times_cont_diff_bump.exists_closure_support_subset hs in
+let ⟨f, hf⟩ := times_cont_diff_bump.exists_tsupport_subset hs in
 ⟨f, f.eventually_eq_one, λ y, ⟨f.nonneg, f.le_one⟩, f.times_cont_diff,
   f.has_compact_support, hf⟩

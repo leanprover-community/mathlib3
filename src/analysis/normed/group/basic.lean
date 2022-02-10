@@ -1014,7 +1014,7 @@ lemma tendsto_norm_sub_self_punctured_nhds (a : E) : tendsto (λ x, ∥x - a∥)
 lemma tendsto_norm_nhds_within_zero : tendsto (norm : E → ℝ) (𝓝[≠] 0) (𝓝[>] 0) :=
 tendsto_norm_zero.inf $ tendsto_principal_principal.2 $ λ x, norm_pos_iff.2
 
-/-! Some relations with `has_compact_support -/
+/-! Some relations with `has_compact_support` -/
 
 lemma has_compact_support_norm_iff [topological_space α] {f : α → E} :
   has_compact_support (λ x, ∥ f x ∥) ↔ has_compact_support f :=

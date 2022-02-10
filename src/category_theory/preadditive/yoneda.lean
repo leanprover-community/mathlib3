@@ -15,12 +15,10 @@ object `X` to the group of morphisms `X ⟶ Y`. At each point, we get an additio
 structure.
 
 We also show that this presheaf is additive and that it is compatible with the normal Yoneda
-embedding in the expected way.
+embedding in the expected way and deduce that the preadditive Yoneda embedding is fully faithful.
 
 ## TODO
 * The Yoneda embedding is additive itself
-* The Yoneda embedding for preadditive categories relates to the Yoneda embedding for linear
-  categories.
 
 -/
 

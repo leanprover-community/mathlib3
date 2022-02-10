@@ -149,10 +149,14 @@ begin
   exact hfg (2⁻¹ ^ n) (pos_iff_ne_zero.mpr (λ h_zero, by simpa using pow_eq_zero h_zero))
 end
 
+/-- Given a sequence of functions `f` which converges in measure to `g`,
+`exists_seq_tendsto_ae_seq'` is a sequence such that
+`∀ m ≥ exists_seq_tendsto_ae_seq' n, μ {x | 2⁻¹ ^ n ≤ dist (f m x) (g x)} ≤ 2⁻¹ ^ n`. -/
 noncomputable
 def exists_seq_tendsto_ae_seq' (hfg : tendsto_in_measure μ f g) (n : ℕ) :=
   classical.some (exists_nat_measure_lt_two_inv μ hfg n)
 
+/-- `exists_seq_tendsto_ae_seq'` makes sure `exists_seq_tendsto_ae_seq` is strictly monotone. -/
 noncomputable
 def exists_seq_tendsto_ae_seq (hfg : tendsto_in_measure μ f g) : ℕ → ℕ
 | 0 := exists_seq_tendsto_ae_seq' μ hfg 0

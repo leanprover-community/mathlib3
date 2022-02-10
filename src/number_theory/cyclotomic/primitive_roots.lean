@@ -108,7 +108,7 @@ variables {K}
   (hirr : irreducible (cyclotomic n K)) : (L →ₐ[K] C) ≃ primitive_roots n C :=
 ((hζ.power_basis K).lift_equiv).trans
 { to_fun    := λ x,
-  by begin
+  begin
     haveI hn := ne_zero.of_no_zero_smul_divisors K C n,
     refine ⟨x.1, _⟩,
     cases x,
@@ -117,7 +117,7 @@ variables {K}
          ←eval₂_eq_eval_map, ←aeval_def]
   end,
   inv_fun   := λ x,
-  by begin
+  begin
     haveI hn := ne_zero.of_no_zero_smul_divisors K C n,
     refine ⟨x.1, _⟩,
     cases x,

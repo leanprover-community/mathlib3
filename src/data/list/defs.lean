@@ -633,6 +633,16 @@ list.decidable_pairwise
      erase_dup [1, 0, 2, 2, 1] = [0, 2, 1] -/
 def erase_dup [decidable_eq α] : list α → list α := pw_filter (≠)
 
+/-- Removes all adjacent duplicates in `a :: l`. -/
+def chain_dedup [decidable_eq α] : α → list α → list α
+| a [] := []
+| a (h :: l) := if a = h then chain_dedup h l else h :: chain_dedup h l
+
+/-- Removes all adjacent duplicates in a list. -/
+def chain'_dedup [decidable_eq α] : list α → list α
+| (h :: l) := h :: chain_dedup h l
+| [] := []
+
 /-- `range' s n` is the list of numbers `[s, s+1, ..., s+n-1]`.
   It is intended mainly for proving properties of `range` and `iota`. -/
 @[simp] def range' : ℕ → ℕ → list ℕ

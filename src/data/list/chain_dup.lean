@@ -25,15 +25,9 @@ e.g. `[2, 2, 3, 3, 2].chain'_dedup = [2, 3, 2]`.
 adjacent, chain, duplicates, remove, list
 -/
 
-
 variables {α : Type*} [decidable_eq α] (a b : α) (l : list α)
 
 namespace list
-
-/-- Removes all adjacent duplicates in `a :: l`. -/
-def chain_dedup : α → list α → list α
-| a [] := []
-| a (h :: l) := if a = h then chain_dedup h l else h :: chain_dedup h l
 
 @[simp] lemma chain_dedup_nil : chain_dedup a [] = [] := rfl
 
@@ -80,11 +74,6 @@ end
 
 @[simp] lemma chain_dedup_eq_self_iff : l.chain_dedup a = l ↔ l.chain ne a :=
 ⟨λ h, h ▸ chain_dedup_is_chain _ _, chain_dedup_of_chain _ _⟩
-
-/-- Removes all adjacent duplicates in a list. -/
-def chain'_dedup : list α → list α
-| (h :: l) := h :: chain_dedup h l
-| [] := []
 
 @[simp] lemma chain'_dedup_nil : ([] : list α).chain'_dedup = [] := rfl
 

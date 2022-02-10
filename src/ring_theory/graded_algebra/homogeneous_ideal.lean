@@ -138,7 +138,7 @@ variables [decidable_eq ι] [add_comm_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 variable (I : ideal A)
 
-/--For any `comm_ring R`, we collect the homogeneous ideals of `R` into a type.-/
+/-- The type of homogeneous ideals in `A`, where `A` is a graded algebra. -/
 abbreviation homogeneous_ideal : Type* := { I : ideal A // I.is_homogeneous 𝒜 }
 
 lemma ideal.is_homogeneous.bot : ideal.is_homogeneous 𝒜 ⊥ := λ i r hr,

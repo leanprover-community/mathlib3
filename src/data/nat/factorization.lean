@@ -304,7 +304,7 @@ begin
   let d := dfac.prod pow,
   have dfac_prime : ∀ (p : ℕ), p ∈ dfac.support → prime p,
   { intros p hp,
-    have : p ∈ a.factors ∧ p ∈ b.factors, { simpa using hp },
+    have : p ∈ a.factors ∧ p ∈ b.factors := by simpa using hp,
     exact prime_of_mem_factors this.1 },
   have h1 : d.factorization = dfac := prod_pow_factorization_eq_self dfac_prime,
   have hd_pos : d ≠ 0 := (factorization_equiv.inv_fun ⟨dfac, dfac_prime⟩).2.ne.symm,

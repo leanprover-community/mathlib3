@@ -7,6 +7,8 @@ import algebra.big_operators.basic
 import data.nat.prime
 import data.zmod.basic
 import ring_theory.multiplicity
+import data.nat.periodic
+import algebra.char_p.two
 
 /-!
 # Euler's totient function
@@ -25,7 +27,7 @@ namespace nat
 
 /-- Euler's totient function. This counts the number of naturals strictly less than `n` which are
 coprime with `n`. -/
-def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
+def totient (n : ℕ) : ℕ := ((range n).filter n.coprime).card
 
 localized "notation `φ` := nat.totient" in nat
 
@@ -34,7 +36,7 @@ localized "notation `φ` := nat.totient" in nat
 @[simp] theorem totient_one : φ 1 = 1 :=
 by simp [totient]
 
-lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter (nat.coprime n)).card := rfl
+lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter n.coprime).card := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
 calc totient n ≤ (range n).card : card_filter_le _ _
@@ -56,6 +58,44 @@ lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 1 := by simp [totient]
 | (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
 
+lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
+  ((Ico n (n+a)).filter (coprime a)).card = totient a :=
+begin
+  rw [totient, filter_Ico_card_eq_of_periodic, count_eq_card_filter_range],
+  exact periodic_coprime a,
+end
+
+lemma Ico_filter_coprime_le {a : ℕ} (k n : ℕ) (a_pos : 0 < a) :
+  ((Ico k (k + n)).filter (coprime a)).card ≤ totient a * (n / a + 1) :=
+begin
+  conv_lhs { rw ←nat.mod_add_div n a },
+  induction n / a with i ih,
+  { rw ←filter_coprime_Ico_eq_totient a k,
+    simp only [add_zero, mul_one, mul_zero, le_of_lt (mod_lt n a_pos)],
+    mono,
+    refine monotone_filter_left a.coprime _,
+    simp only [finset.le_eq_subset],
+    exact Ico_subset_Ico rfl.le (add_le_add_left (le_of_lt (mod_lt n a_pos)) k), },
+  simp only [mul_succ],
+  simp_rw ←add_assoc at ih ⊢,
+  calc (filter a.coprime (Ico k (k + n % a + a * i + a))).card
+      = (filter a.coprime (Ico k (k + n % a + a * i)
+                            ∪ Ico (k + n % a + a * i) (k + n % a + a * i + a))).card :
+        begin
+          congr,
+          rw Ico_union_Ico_eq_Ico,
+          rw add_assoc,
+          exact le_self_add,
+          exact le_self_add,
+        end
+  ... ≤ (filter a.coprime (Ico k (k + n % a + a * i))).card + a.totient :
+        begin
+          rw [filter_union, ←filter_coprime_Ico_eq_totient a (k + n % a + a * i)],
+          apply card_union_le,
+        end
+  ... ≤ a.totient * i + a.totient + a.totient : add_le_add_right ih (totient a),
+end
+
 open zmod
 
 /-- Note this takes an explicit `fintype ((zmod n)ˣ)` argument to avoid trouble with instance
@@ -76,6 +116,14 @@ begin
       exact val_coe_unit_coprime u },
     { show zmod.val (b : zmod n) = b,
       rw [val_nat_cast, nat.mod_eq_of_lt hb.1], } }
+end
+
+lemma totient_even {n : ℕ} (hn : 2 < n) : even n.totient :=
+begin
+  haveI : fact (1 < n) := ⟨one_lt_two.trans hn⟩,
+  suffices : 2 = order_of (-1 : (zmod n)ˣ),
+  { rw [← zmod.card_units_eq_totient, even_iff_two_dvd, this], exact order_of_dvd_card_univ },
+  rw [←order_of_units, units.coe_neg_one, order_of_neg_one, ring_char.eq (zmod n) n, if_neg hn.ne'],
 end
 
 lemma totient_mul {m n : ℕ} (h : m.coprime n) : φ (m * n) = φ m * φ n :=
@@ -211,7 +259,7 @@ begin
       rw [totient_one, tsub_self] at h,
       exact one_ne_zero h } },
   rw [totient_eq_card_coprime, range_eq_Ico, ←Ico_insert_succ_left hp.le, finset.filter_insert,
-    if_neg (tactic.norm_num.nat_coprime_helper_zero_right p hp), ←nat.card_Ico 1 p] at h,
+      if_neg (not_coprime_of_dvd_of_dvd hp (dvd_refl p) (dvd_zero p)), ←nat.card_Ico 1 p] at h,
   refine p.prime_of_coprime hp (λ n hn hnz, finset.filter_card_eq h n $ finset.mem_Ico.mpr ⟨_, hn⟩),
   rwa [succ_le_iff, pos_iff_ne_zero],
 end

@@ -327,12 +327,12 @@ end add_monoid_hom
 This extends from both `monoid_hom` and `monoid_with_zero_hom` in order to put the fields in a
 sensible order, even though `monoid_with_zero_hom` already extends `monoid_hom`. -/
 structure ring_hom (α : Type*) (β : Type*) [non_assoc_semiring α] [non_assoc_semiring β]
-  extends monoid_hom α β, add_monoid_hom α β, monoid_with_zero_hom α β
+  extends α →* β, α →+ β, α →*₀ β
 
 infixr ` →+* `:25 := ring_hom
 
-/-- Reinterpret a ring homomorphism `f : R →+* S` as a `monoid_with_zero_hom R S`.
-The `simp`-normal form is `(f : monoid_with_zero_hom R S)`. -/
+/-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid with zero homomorphism `R →*₀ S`.
+The `simp`-normal form is `(f : R →*₀ S)`. -/
 add_decl_doc ring_hom.to_monoid_with_zero_hom
 
 /-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid homomorphism `R →* S`.
@@ -716,10 +716,10 @@ lemma neg_mul_eq_mul_neg (a b : α) : -(a * b) = a * -b :=
 neg_eq_of_add_eq_zero
   begin rw [← left_distrib, add_right_neg, mul_zero] end
 
-@[simp] lemma neg_mul_eq_neg_mul_symm (a b : α) : - a * b = - (a * b) :=
+@[simp] lemma neg_mul (a b : α) : - a * b = - (a * b) :=
 eq.symm (neg_mul_eq_neg_mul a b)
 
-@[simp] lemma mul_neg_eq_neg_mul_symm (a b : α) : a * - b = - (a * b) :=
+@[simp] lemma mul_neg (a b : α) : a * - b = - (a * b) :=
 eq.symm (neg_mul_eq_mul_neg a b)
 
 lemma neg_mul_neg (a b : α) : -a * -b = a * b :=
@@ -791,7 +791,7 @@ units.ext $ neg_neg _
 /-- Multiplication of elements of a ring's unit group commutes with mapping the first
     argument to its additive inverse. -/
 @[simp] protected theorem neg_mul (u₁ u₂ : αˣ) : -u₁ * u₂ = -(u₁ * u₂) :=
-units.ext $ neg_mul_eq_neg_mul_symm _ _
+units.ext $ neg_mul _ _
 
 /-- Multiplication of elements of a ring's unit group commutes with mapping the second argument
     to its additive inverse. -/
@@ -929,7 +929,7 @@ lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
 begin
   obtain ⟨k, hk⟩ := hp,
   use -(k + 1),
-  rw [mul_neg_eq_neg_mul_symm, mul_add, neg_add, add_assoc, two_mul (1 : α), neg_add,
+  rw [mul_neg, mul_add, neg_add, add_assoc, two_mul (1 : α), neg_add,
     neg_add_cancel_right, ←neg_add, hk],
 end
 
@@ -1031,6 +1031,18 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
  is_right_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
 
+/-- A ring with no zero divisors is a cancel_monoid_with_zero.
+
+Note this is not an instance as it forms a typeclass loop. -/
+@[reducible]
+def no_zero_divisors.to_cancel_monoid_with_zero [ring α] [no_zero_divisors α] :
+  cancel_monoid_with_zero α :=
+{ mul_left_cancel_of_ne_zero := λ a b c ha,
+    @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
+  mul_right_cancel_of_ne_zero := λ a b c hb,
+    @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
+  .. (infer_instance : semiring α) }
+
 /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
 
@@ -1046,11 +1058,7 @@ variables [ring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
-{ mul_left_cancel_of_ne_zero := λ a b c ha,
-    @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
-  mul_right_cancel_of_ne_zero := λ a b c hb,
-    @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
-  .. (infer_instance : semiring α) }
+no_zero_divisors.to_cancel_monoid_with_zero
 
 /-- Pullback an `is_domain` instance along an injective function. -/
 protected theorem function.injective.is_domain [ring β] (f : β →+* α) (hf : injective f) :
@@ -1129,13 +1137,13 @@ by simp only [semiconj_by, left_distrib, right_distrib, ha.eq, hb.eq]
 variables [ring R] {a b x y x' y' : R}
 
 lemma neg_right (h : semiconj_by a x y) : semiconj_by a (-x) (-y) :=
-by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm]
+by simp only [semiconj_by, h.eq, neg_mul, mul_neg]
 
 @[simp] lemma neg_right_iff : semiconj_by a (-x) (-y) ↔ semiconj_by a x y :=
 ⟨λ h, neg_neg x ▸ neg_neg y ▸ h.neg_right, semiconj_by.neg_right⟩
 
 lemma neg_left (h : semiconj_by a x y) : semiconj_by (-a) x y :=
-by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm]
+by simp only [semiconj_by, h.eq, neg_mul, mul_neg]
 
 @[simp] lemma neg_left_iff : semiconj_by (-a) x y ↔ semiconj_by a x y :=
 ⟨λ h, neg_neg a ▸ h.neg_left, semiconj_by.neg_left⟩

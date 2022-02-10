@@ -60,7 +60,7 @@ measurable space, σ-algebra, measurable function, measurable equivalence, dynki
 -/
 
 open set encodable function equiv
-open_locale classical filter measure_theory
+open_locale filter measure_theory
 
 
 variables {α β γ δ δ' : Type*} {ι : Sort*} {s t u : set α}
@@ -248,12 +248,10 @@ lemma measurable.indicator [has_zero β] (hf : measurable f) (hs : measurable_se
   measurable (s.indicator f) :=
 hf.piecewise hs measurable_const
 
-@[to_additive, measurability] lemma measurable_set_mul_support [has_one β]
+@[measurability, to_additive] lemma measurable_set_mul_support [has_one β]
   [measurable_singleton_class β] (hf : measurable f) :
   measurable_set (mul_support f) :=
 hf (measurable_set_singleton 1).compl
-
-attribute [measurability] measurable_set_support
 
 /-- If a function coincides with a measurable function outside of a countable set, it is
 measurable. -/
@@ -285,6 +283,13 @@ instance : measurable_space ℕ := ⊤
 instance : measurable_space ℤ := ⊤
 instance : measurable_space ℚ := ⊤
 
+instance : measurable_singleton_class empty := ⟨λ _, trivial⟩
+instance : measurable_singleton_class punit := ⟨λ _, trivial⟩
+instance : measurable_singleton_class bool := ⟨λ _, trivial⟩
+instance : measurable_singleton_class ℕ := ⟨λ _, trivial⟩
+instance : measurable_singleton_class ℤ := ⟨λ _, trivial⟩
+instance : measurable_singleton_class ℚ := ⟨λ _, trivial⟩
+
 lemma measurable_to_encodable [measurable_space α] [encodable α] {f : β → α}
   (h : ∀ y, measurable_set (f ⁻¹' {f y})) :
   measurable f :=
@@ -310,12 +315,13 @@ measurable_from_top
 lemma measurable_to_nat {f : α → ℕ} : (∀ y, measurable_set (f ⁻¹' {f y})) → measurable f :=
 measurable_to_encodable
 
-lemma measurable_find_greatest' {p : α → ℕ → Prop}
+lemma measurable_find_greatest' {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
   {N : ℕ} (hN : ∀ k ≤ N, measurable_set {x | nat.find_greatest (p x) N = k}) :
   measurable (λ x, nat.find_greatest (p x) N) :=
 measurable_to_nat $ λ x, hN _ N.find_greatest_le
 
-lemma measurable_find_greatest {p : α → ℕ → Prop} {N} (hN : ∀ k ≤ N, measurable_set {x | p x k}) :
+lemma measurable_find_greatest {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
+  {N} (hN : ∀ k ≤ N, measurable_set {x | p x k}) :
   measurable (λ x, nat.find_greatest (p x) N) :=
 begin
   refine measurable_find_greatest' (λ k hk, _),
@@ -324,8 +330,8 @@ begin
     measurable_set.Inter_Prop, measurable_set.compl, hN]; try { intros } }
 end
 
-lemma measurable_find {p : α → ℕ → Prop} (hp : ∀ x, ∃ N, p x N)
-  (hm : ∀ k, measurable_set {x | p x k}) :
+lemma measurable_find {p : α → ℕ → Prop} [∀ x, decidable_pred (p x)]
+  (hp : ∀ x, ∃ N, p x N) (hm : ∀ k, measurable_set {x | p x k}) :
   measurable (λ x, nat.find (hp x)) :=
 begin
   refine measurable_to_nat (λ x, _),
@@ -559,7 +565,10 @@ lemma measurable_set_swap_iff {s : set (α × β)} :
   measurable_set (prod.swap ⁻¹' s) ↔ measurable_set s :=
 ⟨λ hs, by { convert measurable_swap hs, ext ⟨x, y⟩, refl }, λ hs, measurable_swap hs⟩
 
-lemma measurable_from_prod_encodable [encodable β] [measurable_singleton_class β]
+omit m
+
+lemma measurable_from_prod_encodable
+  [measurable_space α] [encodable β] [measurable_singleton_class β]
   {f : α × β → γ} (hf : ∀ y, measurable (λ x, f (x, y))) :
   measurable f :=
 begin
@@ -569,6 +578,47 @@ begin
     simp [and_assoc, and.left_comm] },
   rw this,
   exact measurable_set.Union (λ y, (hf y hs).prod (measurable_set_singleton y))
+end
+
+/-- A piecewise function on countably many pieces is measurable if all the data is measurable. -/
+@[measurability]
+lemma measurable.find {m : measurable_space α}
+  {f : ℕ → α → β} {p : ℕ → α → Prop} [∀ n, decidable_pred (p n)]
+  (hf : ∀ n, measurable (f n)) (hp : ∀ n, measurable_set {x | p n x}) (h : ∀ x, ∃ n, p n x) :
+  measurable (λ x, f (nat.find (h x)) x) :=
+begin
+  have : measurable (λ (p : α × ℕ), f p.2 p.1) := measurable_from_prod_encodable (λ n, hf n),
+  exact this.comp (measurable.prod_mk measurable_id (measurable_find h hp)),
+end
+
+/-- Given countably many disjoint measurable sets `t n` and countably many measurable
+functions `g n`, one can construct a measurable function that coincides with `g n` on `t n`. -/
+lemma exists_measurable_piecewise_nat {m : measurable_space α} (t : ℕ → set β)
+  (t_meas : ∀ n, measurable_set (t n)) (t_disj : pairwise (disjoint on t))
+  (g : ℕ → β → α) (hg : ∀ n, measurable (g n)) :
+  ∃ f : β → α, measurable f ∧ (∀ n x, x ∈ t n → f x = g n x) :=
+begin
+  classical,
+  let p : ℕ → β → Prop := λ n x, x ∈ t n ∪ (⋃ k, t k)ᶜ,
+  have M : ∀ n, measurable_set {x | p n x} :=
+    λ n, (t_meas n).union (measurable_set.compl (measurable_set.Union t_meas)),
+  have P : ∀ x, ∃ n, p n x,
+  { assume x,
+    by_cases H : ∀ (i : ℕ), x ∉ t i,
+    { exact ⟨0, or.inr (by simpa only [mem_Inter, compl_Union] using H)⟩ },
+    { simp only [not_forall, not_not_mem] at H,
+      rcases H with ⟨n, hn⟩,
+      exact ⟨n, or.inl hn⟩ } },
+  refine ⟨λ x, g (nat.find (P x)) x, measurable.find hg M P, _⟩,
+  assume n x hx,
+  have : x ∈ t (nat.find (P x)),
+  { have B : x ∈ t (nat.find (P x)) ∪ (⋃ k, t k)ᶜ := nat.find_spec (P x),
+    have B' : (∀ (i : ℕ), x ∉ t i) ↔ false,
+    { simp only [iff_false, not_forall, not_not_mem], exact ⟨n, hx⟩ },
+    simpa only [B', mem_union_eq, mem_Inter, or_false, compl_Union, mem_compl_eq] using B },
+  congr,
+  by_contra h,
+  exact t_disj n (nat.find (P x)) (ne.symm h) ⟨hx, this⟩
 end
 
 end prod
@@ -605,7 +655,7 @@ measurable_pi_iff.mpr hf
   This doesn't require `f` to be measurable.
   This should not be confused with the statement that `update f a x` is measurable. -/
 @[measurability]
-lemma measurable_update (f : Π (a : δ), π a) {a : δ} : measurable (update f a) :=
+lemma measurable_update (f : Π (a : δ), π a) {a : δ} [decidable_eq δ] : measurable (update f a) :=
 begin
   apply measurable_pi_lambda,
   intro x, by_cases hx : x = a,
@@ -625,9 +675,11 @@ lemma measurable_set.univ_pi [encodable δ] {t : Π i : δ, set (π i)}
   (ht : ∀ i, measurable_set (t i)) : measurable_set (pi univ t) :=
 measurable_set.pi (countable_encodable _) (λ i _, ht i)
 
-lemma measurable_set_pi_of_nonempty {s : set δ} {t : Π i, set (π i)} (hs : countable s)
+lemma measurable_set_pi_of_nonempty
+  {s : set δ} {t : Π i, set (π i)} (hs : countable s)
   (h : (pi s t).nonempty) : measurable_set (pi s t) ↔ ∀ i ∈ s, measurable_set (t i) :=
 begin
+  classical,
   rcases h with ⟨f, hf⟩, refine ⟨λ hst i hi, _, measurable_set.pi hs⟩,
   convert measurable_update f hst, rw [update_preimage_pi hi], exact λ j hj _, hf j hj
 end
@@ -704,7 +756,7 @@ begin
   { exact (measurable_pi_apply i).prod_mk ih }
 end
 
-lemma measurable_tprod_elim : ∀ {l : list δ} {i : δ} (hi : i ∈ l),
+lemma measurable_tprod_elim [decidable_eq δ] : ∀ {l : list δ} {i : δ} (hi : i ∈ l),
   measurable (λ (v : tprod π l), v.elim hi)
 | (i :: is) j hj := begin
   by_cases hji : j = i,
@@ -713,7 +765,7 @@ lemma measurable_tprod_elim : ∀ {l : list δ} {i : δ} (hi : i ∈ l),
     exact (measurable_tprod_elim (hj.resolve_left hji)).comp measurable_snd }
 end
 
-lemma measurable_tprod_elim' {l : list δ} (h : ∀ i, i ∈ l) :
+lemma measurable_tprod_elim' [decidable_eq δ] {l : list δ} (h : ∀ i, i ∈ l) :
   measurable (tprod.elim' h : tprod π l → Π i, π i) :=
 measurable_pi_lambda _ (λ i, measurable_tprod_elim (h i))
 
@@ -1161,7 +1213,8 @@ def Pi_congr_right (e : Π a, π a ≃ᵐ π' a) : (Π a, π a) ≃ᵐ (Π a, π
 
 /-- Pi-types are measurably equivalent to iterated products. -/
 @[simps {fully_applied := ff}]
-noncomputable def pi_measurable_equiv_tprod {l : list δ'} (hnd : l.nodup) (h : ∀ i, i ∈ l) :
+def pi_measurable_equiv_tprod [decidable_eq δ']
+  {l : list δ'} (hnd : l.nodup) (h : ∀ i, i ∈ l) :
   (Π i, π i) ≃ᵐ list.tprod π l :=
 { to_equiv := list.tprod.pi_equiv_tprod hnd h,
   measurable_to_fun := measurable_tprod_mk l,
@@ -1279,8 +1332,8 @@ begin
   { rw [← equiv.plift.surjective.infi_comp, mem_infi],
     refine ⟨t, ht, U, hUf, rfl⟩ },
   { haveI := ht.countable.to_encodable,
-    refine measurable_set.Inter (λ i, (hU i).1) },
-  { exact Inter_subset_Inter (λ i, (hU i).2) }
+    exact measurable_set.Inter (λ i, (hU i).1) },
+  { exact Inter_mono (λ i, (hU i).2) }
 end
 
 end filter

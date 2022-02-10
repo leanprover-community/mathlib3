@@ -10,6 +10,7 @@ import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
 import linear_algebra.pi
+import linear_algebra.determinant
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -126,6 +127,24 @@ end
 
 end
 
+section lattice_ops
+
+variables {ι R M₁ M₂ : Type*} [semiring R] [add_comm_monoid M₁] [add_comm_monoid M₂]
+  [module R M₁] [module R M₂] [u : topological_space R] {t : topological_space M₂}
+  [has_continuous_smul R M₂] (f : M₁ →ₗ[R] M₂)
+
+lemma has_continuous_smul_induced :
+  @has_continuous_smul R M₁ _ u (t.induced f) :=
+{ continuous_smul :=
+    begin
+      letI : topological_space M₁ := t.induced f,
+      refine continuous_induced_rng _,
+      simp_rw [function.comp, f.map_smul],
+      refine continuous_fst.smul (continuous_induced_dom.comp continuous_snd)
+    end }
+
+end lattice_ops
+
 namespace submodule
 
 variables {α β : Type*} [topological_space β]
@@ -231,7 +250,7 @@ structure continuous_linear_map
 
 notation M ` →SL[`:25 σ `] ` M₂ := continuous_linear_map σ M M₂
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map (ring_hom.id R) M M₂
-notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (@star_ring_aut R _ _ : R →+* R) M M₂
+notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (star_ring_end R) M M₂
 
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
@@ -249,7 +268,7 @@ structure continuous_linear_equiv
 
 notation M ` ≃SL[`:50 σ `] ` M₂ := continuous_linear_equiv σ M M₂
 notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv (ring_hom.id R) M M₂
-notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (@star_ring_aut R _ _ : R →+* R) M M₂
+notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (star_ring_end R) M M₂
 
 section pointwise_limits
 
@@ -1158,6 +1177,12 @@ def smul_rightₗ (c : M →L[R] S) : M₂ →ₗ[T] (M →L[R] M₂) :=
 end smul_rightₗ
 
 section comm_ring
+
+/-- The determinant of a continuous linear map, mainly as a convenience device to be able to
+write `A.det` instead of `(A : M →ₗ[R] M).det`. -/
+@[reducible] noncomputable def det {R : Type*} [comm_ring R] [is_domain R]
+  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M →L[R] M) : R :=
+linear_map.det (A : M →ₗ[R] M)
 
 variables
 {R : Type*} [comm_ring R] [topological_space R]

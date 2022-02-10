@@ -219,13 +219,16 @@ section prod
 variable [mul_one_class P]
 
 /-- Combine two `monoid_hom`s `f : M →* N`, `g : M →* P` into `f.prod g : M →* N × P`
-given by `(f.prod g) x = (f x, g x)` -/
+given by `(f.prod g) x = (f x, g x)`. -/
 @[to_additive prod "Combine two `add_monoid_hom`s `f : M →+ N`, `g : M →+ P` into
 `f.prod g : M →+ N × P` given by `(f.prod g) x = (f x, g x)`"]
 protected def prod (f : M →* N) (g : M →* P) : M →* N × P :=
-{ to_fun := λ x, (f x, g x),
+{ to_fun := pi.prod f g,
   map_one' := prod.ext f.map_one g.map_one,
   map_mul' := λ x y, prod.ext (f.map_mul x y) (g.map_mul x y) }
+
+@[to_additive coe_prod]
+lemma coe_prod (f : M →* N) (g : M →* P) : ⇑(f.prod g) = pi.prod f g := rfl
 
 @[simp, to_additive prod_apply]
 lemma prod_apply (f : M →* N) (g : M →* P) (x) : f.prod g x = (f x, g x) := rfl
@@ -375,7 +378,7 @@ def mul_monoid_hom [comm_monoid α] : α × α →* α :=
 
 /-- Multiplication as a multiplicative homomorphism with zero. -/
 @[simps]
-def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : monoid_with_zero_hom (α × α) α :=
+def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : α × α →*₀ α :=
 { map_zero' := mul_zero _,
   .. mul_monoid_hom }
 
@@ -388,7 +391,7 @@ def div_monoid_hom [comm_group α] : α × α →* α :=
 
 /-- Division as a multiplicative homomorphism with zero. -/
 @[simps]
-def div_monoid_with_zero_hom [comm_group_with_zero α] : monoid_with_zero_hom (α × α) α :=
+def div_monoid_with_zero_hom [comm_group_with_zero α] : α × α →*₀ α :=
 { to_fun := λ a, a.1 / a.2,
   map_zero' := zero_div _,
   map_one' := div_one _,

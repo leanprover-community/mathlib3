@@ -190,7 +190,7 @@ def sections_subring (U : (opens (prime_spectrum.Top R))ᵒᵖ) :
     { exact nm, },
     { simp only [ring_hom.map_neg, pi.neg_apply],
       erw [←w],
-      simp only [neg_mul_eq_neg_mul_symm], }
+      simp only [neg_mul], }
   end,
   mul_mem' :=
   begin
@@ -776,7 +776,7 @@ begin
     intros x hx,
     erw topological_space.opens.mem_supr,
     have := ht_cover hx,
-    rw [← finset.set_bUnion_coe, set.mem_bUnion_iff] at this,
+    rw [← finset.set_bUnion_coe, set.mem_Union₂] at this,
     rcases this with ⟨i, i_mem, x_mem⟩,
     use [i, i_mem] },
 

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Eric Rodriguez
+Authors: Eric Rodriguez, Eric Wieser
 -/
 import data.list.chain
 

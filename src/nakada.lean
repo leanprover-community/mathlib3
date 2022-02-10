@@ -129,6 +129,60 @@ end
 
 -- Definition 3
 @[ext]
+structure add_order_embedding (S S' : Type*) [has_add S] [has_le S] [has_add S'] [has_le S'] extends
+  add_hom S S' :=
+(inj' : function.injective to_fun)
+(map_rel_iff' : ∀ {a b : S}, (to_fun a) ≤ (to_fun b) ↔ a ≤ b)
+
+@[ext, to_additive]
+structure mul_order_embedding (S S' : Type*) [has_mul S] [has_le S] [has_mul S'] [has_le S'] extends
+  mul_hom S S' :=
+(inj' : function.injective to_fun)
+(map_rel_iff' : ∀ {a b : S}, (to_fun a) ≤ (to_fun b) ↔ a ≤ b)
+
+namespace mul_order_embedding
+
+variables {M N : Type*} [has_mul M] [has_le M] [has_mul N] [has_le N]
+
+infix ` ↪*o `:25 := mul_order_embedding
+infix ` ↪+o `:25 := mul_order_embedding
+
+@[to_additive]
+instance : has_coe_to_fun (M ↪*o N) (λ _, M → N) := ⟨λ e, e.to_mul_hom⟩
+
+@[to_additive]
+def to_order_embedding (e : M ↪*o N) : M ↪o N := { ..e }
+
+@[refl, to_additive]
+def refl (M : Type*) [has_mul M] [has_le M] : M ↪*o M :=
+{ map_mul' := λ _ _, rfl,
+  ..rel_embedding.refl _ }
+
+@[to_additive]
+instance : inhabited (M ↪*o M) := ⟨refl M⟩
+
+@[simp, to_additive]
+lemma coe_to_mul_hom (e : M ↪*o N) : (e.to_mul_hom : M → N) = e := rfl
+
+@[simp, to_additive]
+lemma coe_to_order_embedding (e : M ↪*o N) : (e.to_order_embedding : M → N) = e := rfl
+
+@[to_additive]
+instance : mul_hom_class (M ↪*o N) M N :=
+{ coe := λ e, e,
+  coe_injective' := λ f g h, by { ext, exact congr_fun h _ },
+  map_mul := λ e, e.map_mul' }
+
+@[to_additive]
+instance {M N : Type*} [has_mul M] [preorder M] [has_mul N] [preorder N] :
+  order_hom_class (M ↪*o N) M N :=
+{ coe := λ e, e,
+  coe_injective' := λ f g h, by { ext x, exact congr_fun h x },
+  map_rel := λ e a b, (@mul_order_embedding.map_rel_iff' _ _ _ _ _ _ _ _ _).mpr }
+
+end mul_order_embedding
+
+@[ext]
 structure add_order_iso (S S' : Type*) [has_add S] [has_le S] [has_add S'] [has_le S'] extends
   S ≃+ S' :=
 (map_rel_iff' : ∀ {a b : S}, (to_fun a) ≤ (to_fun b) ↔ a ≤ b)
@@ -183,8 +237,122 @@ instance {M N : Type*} [has_mul M] [preorder M] [has_mul N] [preorder N] :
   coe_injective' := λ f g h, by { ext x, exact congr_fun h x },
   map_rel := λ e a b, (@mul_order_iso.map_rel_iff' _ _ _ _ _ _ _ _ _).mpr }
 
+-- how does `simps` work?
+@[to_additive]
+def to_mul_order_embedding (e : M ≃*o N) : M ↪*o N :=
+{ inj' := equiv_like.injective e, ..e }
+
+@[simp, to_additive]
+lemma coe_to_order_iso (e : M ≃*o N) : (e.to_order_iso : M → N) = e := rfl
+
+@[simp, to_additive]
+lemma coe_to_mul_order_embedding (e : M ≃*o N) : (e.to_mul_order_embedding : M → N) = e := rfl
+
+@[to_additive]
+def of_mul_order_embedding (f : M ↪*o N) (g : N ↪*o M) (h : function.left_inverse f g) :
+  M ≃*o N :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ x, f.to_order_embedding.injective (h (f x)),
+  right_inv := h,
+  map_mul' := map_mul _,
+  map_rel_iff' := f.map_rel_iff' }
+
 end mul_order_iso
 
 -- Theorem 5
+-- mp is Theorem 1
 
 end page182
+
+section page183
+
+variables {S : Type*} [comm_semigroup S] [partial_order S] [nakada_po S] [nakada_strong S]
+
+variables (S)
+-- we twist the multiplication to simplify refl and symm proofs
+-- the definition is equivalent due to the commutativity assumption
+def mul_pair_setoid : setoid (S × S) :=
+{ r := λ p q, p.1 * q.2 = q.1 * p.2,
+  iseqv := begin
+    refine ⟨λ _, rfl, λ _ _, eq.symm, _⟩,
+    intros p q r h h',
+    have := congr_arg ((*) p.snd) h',
+    rw [mul_left_comm, ←mul_assoc, ←h, mul_comm _ q.snd, mul_comm _ q.snd, ←mul_left_comm,
+        mul_assoc] at this,
+    rw [nakada_strong.cancel_left this, mul_comm],
+  end }
+
+variables {S}
+
+local attribute [instance] mul_pair_setoid
+
+@[simp] lemma mul_pair_equiv_iff (p q : S × S) : p ≈ q ↔ p.1 * q.2 = q.1 * p.2 := iff.rfl
+
+lemma mul_pair_left_eq (p : S × S) (x : S) : ⟦(x * p.1, x * p.2)⟧ = ⟦p⟧ :=
+by simp only [quotient.eq, mul_pair_equiv_iff, mul_assoc, mul_comm, mul_left_comm]
+
+namespace mul_pair_quotient
+
+local notation `G` := quotient (mul_pair_setoid S)
+
+protected def mul : G → G → G :=
+quotient.map₂ (*) begin
+  rintro ⟨a, a'⟩ ⟨c, c'⟩ hac ⟨b, b'⟩ ⟨d, d'⟩ hbd,
+  simp only [mul_pair_equiv_iff, quotient.eq, prod.mk_mul_mk] at hac hbd ⊢,
+  rw [mul_left_comm, ←mul_assoc, ←mul_assoc, mul_assoc, hbd, mul_comm c', hac],
+  simp [mul_left_comm, mul_assoc, mul_comm]
+end
+
+instance : has_mul G := ⟨mul_pair_quotient.mul⟩
+
+-- thanks to Eric Wieser who says
+-- "The elaborator can't infer the implicit arguments correctly for you
+--  unless you unfold things in the right order for it, it seems"
+@[simp] lemma mk_mul : ∀ (p q : S × S), ⟦p⟧ * ⟦q⟧ = ⟦(p.1 * q.1, p.2 * q.2)⟧ :=
+(quotient.map₂_mk _ _ : ∀ p q : S × S, mul_pair_quotient.mul ⟦p⟧ ⟦q⟧ = _)
+
+protected lemma mul_comm (x y : G) : x * y = y * x :=
+quotient.induction_on₂ x y $ by { intros, simp [mul_comm, mul_assoc, mul_left_comm] }
+
+protected lemma mul_assoc (x y z : G) : x * y * z = x * (y * z) :=
+quotient.induction_on₃ x y z $ by { intros, simp [mul_comm, mul_assoc, mul_left_comm] }
+
+def one (x : S) : G := ⟦(x, x)⟧
+
+lemma one_eq (x y : S) : one x = one y :=
+by simp [one, mul_comm]
+
+protected def inv : G → G :=
+quotient.map prod.swap $ λ _ _, by simp [mul_comm, eq_comm]
+
+@[simp] lemma inv_mk (p : S × S) : mul_pair_quotient.inv ⟦p⟧ = ⟦p.swap⟧ := rfl
+
+instance [inhabited S] : has_one G := ⟨one (default : S)⟩
+
+lemma one_def [inhabited S] : (1 : G) = one (default : S) := rfl
+
+instance [inhabited S] : comm_group G :=
+{ mul := (*),
+  mul_assoc := mul_pair_quotient.mul_assoc,
+  one := one (default : S),
+  one_mul := λ a, begin
+    induction a using quotient.induction_on,
+    simp [one, mul_comm, mul_assoc, mul_left_comm],
+  end,
+  mul_one := λ a, begin
+    induction a using quotient.induction_on,
+    simp [one, mul_comm, mul_assoc, mul_left_comm],
+  end,
+  inv := mul_pair_quotient.inv,
+  mul_left_inv := λ a, begin
+    induction a using quotient.induction_on,
+    simp [has_inv.inv, one_def, one, mul_comm, mul_assoc, mul_left_comm]
+  end,
+  mul_comm := mul_pair_quotient.mul_comm }
+
+end mul_pair_quotient
+
+-- Theorem 5, mpr
+
+end page183

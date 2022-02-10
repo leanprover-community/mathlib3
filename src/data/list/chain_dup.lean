@@ -18,6 +18,7 @@ e.g. `[2, 2, 3, 3, 2].chain'_dedup = [2, 3, 2]`.
 ## Main statements
 
 * `list.chain'_dedup_sublist`: `l.chain'_dedup` is a sublist of `l`.
+* `list.chain'_dedup_is_chain'`: `l.chain'_dedup` satisfies `chain' ne`.
 
 ## Tags
 
@@ -36,6 +37,25 @@ def chain_dedup : α → list α → list α
 
 @[simp] lemma chain_dedup_nil : chain_dedup a [] = [] := rfl
 
+lemma chain_dedup_cons :
+  (b :: l).chain_dedup a = if a = b then chain_dedup b l else b :: chain_dedup b l := rfl
+
+@[simp] lemma chain_dedup_cons' : (a :: l).chain_dedup a = l.chain_dedup a :=
+by rw [chain_dedup, if_pos rfl]
+
+@[simp] lemma chain_dedup_singleton : [b].chain_dedup a = if a = b then [] else [b] :=
+by split_ifs; simp! [h]
+
+lemma chain_dedup_is_chain : (l.chain_dedup a).chain ne a :=
+begin
+  induction l with h l hl generalizing a,
+  { simp },
+  rw chain_dedup,
+  split_ifs with hih,
+  { exact hih ▸ hl a },
+  { exact chain_cons.mpr ⟨hih, hl h⟩ }
+end
+
 /-- Removes all adjacent duplicates in a list. -/
 def chain'_dedup : list α → list α
 | (h :: l) := h :: chain_dedup h l
@@ -52,11 +72,10 @@ lemma chain'_dedup_cons_cons : (a :: b :: l).chain'_dedup =
 
 @[simp] lemma chain'_dedup_pair :
   chain'_dedup [a, b] = if a = b then [a] else [a, b] :=
-by split_ifs; simp [chain'_dedup_cons_cons, h]
+by split_ifs; simp [chain'_dedup, h]
 
-@[simp]
-lemma chain'_dedup_cons_cons' : (a :: a :: l).chain'_dedup = (a :: l).chain'_dedup :=
-by { rw [chain'_dedup_cons_cons, if_pos rfl], refl }
+@[simp] lemma chain'_dedup_cons_cons' : (a :: a :: l).chain'_dedup = (a :: l).chain'_dedup :=
+show _, from congr_arg (cons a) $ l.chain_dedup_cons' a
 
 lemma chain'_dedup_eq_or_eq : (a :: l).chain'_dedup = l.chain'_dedup ∨
   (a :: l).chain'_dedup = a :: l.chain'_dedup :=
@@ -76,7 +95,7 @@ begin
   { exact hl.cons2 _ _ _ }
 end
 
-lemma chain'_dedup_is_chain : l.chain'_dedup.chain' ne :=
+lemma chain'_dedup_is_chain' : l.chain'_dedup.chain' ne :=
 begin
   induction l with h l hl,
   { simp },
@@ -100,6 +119,6 @@ begin
 end
 
 lemma chain_dedup_idem : l.chain'_dedup.chain'_dedup = l.chain'_dedup :=
-chain'_dedup_of_chain _ $ l.chain'_dedup_is_chain
+chain'_dedup_of_chain _ $ l.chain'_dedup_is_chain'
 
 end list

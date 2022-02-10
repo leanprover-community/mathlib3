@@ -145,9 +145,9 @@ instance : add_comm_monoid (bilin_form R M) :=
 instance : add_comm_group (bilin_form R₁ M₁) :=
 { neg := λ B, { bilin := λ x y, - (B.1 x y),
                 bilin_add_left := λ x y z, by rw [bilin_add_left, neg_add],
-                bilin_smul_left := λ a x y, by rw [bilin_smul_left, mul_neg_eq_neg_mul_symm],
+                bilin_smul_left := λ a x y, by rw [bilin_smul_left, mul_neg],
                 bilin_add_right := λ x y z, by rw [bilin_add_right, neg_add],
-                bilin_smul_right := λ a x y, by rw [bilin_smul_right, mul_neg_eq_neg_mul_symm] },
+                bilin_smul_right := λ a x y, by rw [bilin_smul_right, mul_neg] },
   add_left_neg := by { intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw neg_add_self },
   .. bilin_form.add_comm_monoid }
 

@@ -207,8 +207,8 @@ lemma div_le_iff_of_neg' (hc : c < 0) : b / c ≤ a ↔ c * a ≤ b :=
 by rw [mul_comm, div_le_iff_of_neg hc]
 
 lemma le_div_iff_of_neg (hc : c < 0) : a ≤ b / c ↔ b ≤ a * c :=
-by rw [← neg_neg c, mul_neg_eq_neg_mul_symm, div_neg, le_neg,
-    div_le_iff (neg_pos.2 hc), neg_mul_eq_neg_mul_symm]
+by rw [← neg_neg c, mul_neg, div_neg, le_neg,
+    div_le_iff (neg_pos.2 hc), neg_mul]
 
 lemma le_div_iff_of_neg' (hc : c < 0) : a ≤ b / c ↔ b ≤ c * a :=
 by rw [mul_comm, le_div_iff_of_neg hc]

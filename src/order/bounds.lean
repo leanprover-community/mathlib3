@@ -55,8 +55,10 @@ def is_lub (s : set α) : α → Prop := is_least (upper_bounds s)
 def is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
 
 lemma mem_upper_bounds : a ∈ upper_bounds s ↔ ∀ x ∈ s, x ≤ a := iff.rfl
-
 lemma mem_lower_bounds : a ∈ lower_bounds s ↔ ∀ x ∈ s, a ≤ x := iff.rfl
+
+lemma bdd_above_def : bdd_above s ↔ ∃ x, ∀ y ∈ s, y ≤ x := iff.rfl
+lemma bdd_below_def : bdd_below s ↔ ∃ x, ∀ y ∈ s, x ≤ y := iff.rfl
 
 lemma bot_mem_lower_bounds [order_bot α] (s : set α) : ⊥ ∈ lower_bounds s := λ _ _, bot_le
 lemma top_mem_upper_bounds [order_top α] (s : set α) : ⊤ ∈ upper_bounds s := λ _ _, le_top
@@ -341,6 +343,22 @@ lemma is_lub.inter_Ici_of_mem [linear_order γ] {s : set γ} {a b : γ} (ha : is
 lemma is_glb.inter_Iic_of_mem [linear_order γ] {s : set γ} {a b : γ} (ha : is_glb s a)
   (hb : b ∈ s) : is_glb (s ∩ Iic b) a :=
 ha.dual.inter_Ici_of_mem hb
+
+lemma bdd_above_iff_exists_ge [semilattice_sup γ] {s : set γ} (x₀ : γ) :
+  bdd_above s ↔ ∃ x, x₀ ≤ x ∧ ∀ y ∈ s, y ≤ x :=
+by { rw [bdd_above_def, exists_ge_and_iff_exists], exact monotone.ball (λ x hx, monotone_le) }
+
+lemma bdd_below_iff_exists_le [semilattice_inf γ] {s : set γ} (x₀ : γ) :
+  bdd_below s ↔ ∃ x, x ≤ x₀ ∧ ∀ y ∈ s, x ≤ y :=
+bdd_above_iff_exists_ge (to_dual x₀)
+
+lemma bdd_above.exists_ge  [semilattice_sup γ] {s : set γ} (hs : bdd_above s) (x₀ : γ) :
+  ∃ x, x₀ ≤ x ∧ ∀ y ∈ s, y ≤ x :=
+(bdd_above_iff_exists_ge x₀).mp hs
+
+lemma bdd_below.exists_le  [semilattice_inf γ] {s : set γ} (hs : bdd_below s) (x₀ : γ) :
+  ∃ x, x ≤ x₀ ∧ ∀ y ∈ s, x ≤ y :=
+(bdd_below_iff_exists_le x₀).mp hs
 
 /-!
 ### Specific sets

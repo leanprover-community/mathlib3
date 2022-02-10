@@ -62,10 +62,11 @@ theorem snd_surjective : function.surjective (snd R M M₂) := λ x, ⟨(0, x), 
 
 /-- The prod of two linear maps is a linear map. -/
 @[simps] def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M₃) :=
-{ to_fun    := λ x, (f x, g x),
-  map_add'  := λ x y, by simp only [prod.mk_add_mk, map_add],
-  map_smul' := λ c x, by simp only [prod.smul_mk, map_smul, ring_hom.id_apply] }
+{ to_fun    := pi.prod f g,
+  map_add'  := λ x y, by simp only [pi.prod, prod.mk_add_mk, map_add],
+  map_smul' := λ c x, by simp only [pi.prod, prod.smul_mk, map_smul, ring_hom.id_apply] }
 
+lemma coe_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : ⇑(f.prod g) = pi.prod f g := rfl
 
 @[simp] theorem fst_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
   (fst R M₂ M₃).comp (prod f g) = f := by ext; refl
@@ -74,7 +75,7 @@ theorem snd_surjective : function.surjective (snd R M M₂) := λ x, ⟨(0, x), 
   (snd R M₂ M₃).comp (prod f g) = g := by ext; refl
 
 @[simp] theorem pair_fst_snd : prod (fst R M M₂) (snd R M M₂) = linear_map.id :=
-by ext; refl
+fun_like.coe_injective pi.prod_fst_snd
 
 /-- Taking the product of two maps with the same domain is equivalent to taking the product of
 their codomains.
@@ -552,7 +553,7 @@ lemma range_prod_eq {f : M →ₗ[R] M₂} {g : M →ₗ[R] M₃} (h : ker f ⊔
 begin
   refine le_antisymm (f.range_prod_le g) _,
   simp only [set_like.le_def, prod_apply, mem_range, set_like.mem_coe, mem_prod, exists_imp_distrib,
-    and_imp, prod.forall],
+    and_imp, prod.forall, pi.prod],
   rintros _ _ x rfl y rfl,
   simp only [prod.mk.inj_iff, ← sub_mem_ker_iff],
   have : y - x ∈ ker f ⊔ ker g, { simp only [h, mem_top] },

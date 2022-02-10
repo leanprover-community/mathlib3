@@ -624,7 +624,7 @@ begin
     -- then show this is impossible
     cases this with hc,
     { -- c = 1
-      exact false_of_c_eq_one hc hz hg, },
+      exact c_neq_one hz hg  hc, },
     { -- c = -1
       have neg_c_one : (-g) 1 0 = 1,
       { have := eq_neg_of_eq_neg this,

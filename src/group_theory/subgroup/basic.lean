@@ -1304,6 +1304,9 @@ def _root_.group.comm_group_of_center_eq_top (h : center G = ⊤) : comm_group G
   .. (_ : group G) }
 
 variables {G} (H)
+
+section normalizer
+
 /-- The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal. -/
 @[to_additive "The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal."]
 def normalizer : subgroup G :=
@@ -1415,6 +1418,31 @@ variable (H)
 lemma normalizer_condition.normal_of_coatom
   (hnc : normalizer_condition G) (hmax : is_coatom H) : H.normal :=
 normalizer_eq_top.mp (hmax.2 _ (hnc H (lt_top_iff_ne_top.mpr hmax.1)))
+
+end normalizer
+
+section centralizer
+
+/-- The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`. -/
+@[to_additive "The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`."]
+def centralizer : subgroup G :=
+{ carrier := {g : G | ∀ h ∈ H, h * g = g * h},
+  one_mem' := λ h hh, (mul_one h).trans (one_mul h).symm,
+  mul_mem' := λ g g' hg hg' h hh, by rw [←mul_assoc, hg h hh, mul_assoc, hg' h hh, mul_assoc],
+  inv_mem' := λ g hg h hh, by rw [←inv_inv h, ←mul_inv_rev, ←mul_inv_rev, hg h⁻¹ (H.inv_mem hh)] }
+
+@[to_additive] lemma mem_centralizer_iff {g : G} : g ∈ H.centralizer ↔ ∀ h ∈ H, h * g = g * h :=
+iff.rfl
+
+lemma mem_centralizer_iff_commutator_eq_one {g : G} :
+  g ∈ H.centralizer ↔ ∀ h ∈ H, h * g * h⁻¹ * g⁻¹ = 1 :=
+by simp only [mem_centralizer_iff, mul_inv_eq_iff_eq_mul, one_mul]
+
+lemma centralizer_top : centralizer ⊤ = center G :=
+by simp only [set_like.ext_iff, mem_centralizer_iff, mem_center_iff,
+  mem_top, iff_self, forall_const]
+
+end centralizer
 
 /-- Commutivity of a subgroup -/
 structure is_commutative : Prop :=

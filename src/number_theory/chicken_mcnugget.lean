@@ -38,7 +38,7 @@ chicken mcnugget, frobenius coin, chinese remainder theorem, submonoid.closure
 namespace nat
 
 /-- Auxiliary lemma for upper bound. -/
-lemma upper_bound_not_in_clos_nat_pair_aux {a b m n : ℕ} (ha : a ≠ 0) (hb : b ≠ 0)
+lemma mul_add_mul_ne_mul_of_coprime {a b m n : ℕ} (ha : a ≠ 0) (hb : b ≠ 0)
   (cop : coprime m n) : a * m + b * n ≠ m * n :=
 begin
   intro h,
@@ -57,7 +57,7 @@ lemma upper_bound_not_in_clos_nat_pair {m n : ℕ} (cop : coprime m n) (hm : 1 <
   a * m + b * n ≠ m * n - m - n :=
 begin
   intro h,
-  apply upper_bound_not_in_clos_nat_pair_aux (add_one_ne_zero a) (add_one_ne_zero b) cop,
+  apply mul_add_mul_ne_mul_of_coprime (add_one_ne_zero a) (add_one_ne_zero b) cop,
   rw [add_mul, add_mul, one_mul, one_mul, add_assoc, ←add_assoc m, add_comm m, add_assoc,
       ←add_assoc, h, nat.sub_sub, nat.sub_add_cancel (add_le_mul hm hn)],
 end

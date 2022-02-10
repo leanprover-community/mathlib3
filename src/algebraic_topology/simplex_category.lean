@@ -516,16 +516,6 @@ begin
     simpa only [fin.coe_succ, fin.coe_cast_succ] using nat.lt.step h, }
 end
 
-lemma bijective_of_mono_and_eq {x y : simplex_category.{u}} (i : x ⟶ y) [mono i]
-  (hxy : x = y) : function.bijective i.to_order_hom :=
-by simpa only [fintype.bijective_iff_injective_and_card i.to_order_hom,
-    ← mono_iff_injective, hxy, and_true, eq_self_iff_true]
-
-lemma bijective_of_epi_and_eq {x y : simplex_category.{u}} (e : x ⟶ y) [epi e]
-  (hxy : x = y) : function.bijective e.to_order_hom :=
-by simpa only [fintype.bijective_iff_surjective_and_card e.to_order_hom,
-    ← epi_iff_surjective, hxy, and_true, eq_self_iff_true]
-
 /-- A bijective map in `simplex_category` is an isomorphism. -/
 @[simps]
 noncomputable def iso_of_bijective {x y : simplex_category.{u}} {f : x ⟶ y}
@@ -584,25 +574,8 @@ begin
   refl,
 end
 
-lemma eq_eq_to_iso_of_iso {x y : simplex_category.{u}} (e : x ≅ y) :
-  e = eq_to_iso (skeletal (nonempty.intro e)) :=
-by { have h := skeletal (nonempty.intro e), subst h, dsimp, exact iso_eq_iso_refl e, }
-
-lemma eq_eq_to_hom_of_is_iso {x y : simplex_category.{u}} {f : x ⟶ y} (hf : is_iso f) :
-  f = eq_to_hom (skeletal (nonempty.intro (as_iso f))) :=
-congr_arg (λ (φ : _ ≅ _), φ.hom) (eq_eq_to_iso_of_iso (as_iso f))
-
 lemma eq_id_of_is_iso {x : simplex_category.{u}} {f : x ⟶ x} (hf : is_iso f) : f = 𝟙 _ :=
-by simpa only using eq_eq_to_hom_of_is_iso hf
-
-lemma eq_to_hom_eq {Δ Δ' : simplex_category.{u}} (e : Δ = Δ') (k : fin (Δ.len+1)):
-  (hom.to_order_hom (eq_to_hom e)) k =
-  ⟨k.val, by { rw ← e, exact fin.is_lt k, }⟩  :=
-begin
-  subst e,
-  simp only [hom.id, order_hom.id_coe, fin.val_eq_coe, id.def, hom.to_order_hom_mk,
-    eq_to_hom_refl, fin.eta, small_category_id],
-end
+congr_arg (λ (φ : _ ≅ _), φ.hom) (iso_eq_iso_refl (as_iso f))
 
 lemma eq_σ_comp_of_not_injective' {n : ℕ} {Δ' : simplex_category} (θ : mk (n+1) ⟶ Δ')
   (i : fin (n+1)) (hi : θ.to_order_hom i.cast_succ = θ.to_order_hom i.succ):
@@ -719,6 +692,24 @@ begin
   exact eq_comp_δ_of_not_surjective' θ i (not_exists.mp hi),
 end
 
+lemma eq_id_of_mono {x : simplex_category.{u}} (i : x ⟶ x) [mono i] : i = 𝟙 _ :=
+begin
+  apply eq_id_of_is_iso,
+  apply is_iso_of_bijective,
+  erw [fintype.bijective_iff_injective_and_card i.to_order_hom, ← mono_iff_injective,
+    eq_self_iff_true, and_true],
+  apply_instance,
+end
+
+lemma eq_id_of_epi {x : simplex_category.{u}} (i : x ⟶ x) [epi i] : i = 𝟙 _ :=
+begin
+  apply eq_id_of_is_iso,
+  apply is_iso_of_bijective,
+  erw [fintype.bijective_iff_surjective_and_card i.to_order_hom, ← epi_iff_surjective,
+    eq_self_iff_true, and_true],
+  apply_instance,
+end
+
 lemma eq_σ_of_epi {n : ℕ} (θ : mk (n+1) ⟶ mk n) [epi θ] : ∃ (i : fin (n+1)), θ = σ i :=
 begin
   rcases eq_σ_comp_of_not_injective θ _ with ⟨i, θ', h⟩, swap,
@@ -728,8 +719,7 @@ begin
   use i,
   haveI : epi (σ i ≫ θ') := by { rw ← h, apply_instance, },
   haveI := category_theory.epi_of_epi (σ i) θ',
-  rw [h, eq_id_of_is_iso (is_iso_of_bijective (bijective_of_epi_and_eq θ' rfl)),
-    category.comp_id],
+  erw [h, eq_id_of_epi θ', category.comp_id],
 end
 
 lemma eq_δ_of_mono {n : ℕ} (θ : mk n ⟶ mk (n+1)) [mono θ] : ∃ (i : fin (n+2)), θ = δ i :=
@@ -741,8 +731,7 @@ begin
   use i,
   haveI : mono (θ' ≫ δ i) := by { rw ← h, apply_instance, },
   haveI := category_theory.mono_of_mono θ' (δ i),
-  rw [h, eq_id_of_is_iso (is_iso_of_bijective (bijective_of_mono_and_eq θ' rfl)),
-    category.id_comp],
+  erw [h, eq_id_of_mono θ', category.id_comp],
 end
 
 end epi_mono

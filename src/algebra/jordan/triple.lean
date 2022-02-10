@@ -53,7 +53,7 @@ lemma add_right {A : Type*} [add_comm_monoid A] [has_trilinear_tp A] (a b c₁ c
 end has_trilinear_tp
 
 /-- A Jordan triple product satisfies a Leibniz law -/
-class is_jordan_tp (A : Type*) [add_comm_monoid A] [has_sub A] extends has_trilinear_tp A:=
+class is_jordan_tp (A : Type*) [add_comm_group A] extends has_trilinear_tp A :=
 (comm : ∀ (a b c : A), ⦃a, b, c⦄ = ⦃c, b, a⦄)
 (jordan : ∀ (a b c d e: A), ⦃a, b, ⦃c, d, e⦄⦄  =
   ⦃⦃a, b, c⦄, d, e⦄ - ⦃c, ⦃b, a, d⦄, e⦄ + ⦃c, d, ⦃a, b, e⦄⦄)

@@ -1183,10 +1183,7 @@ sup_const o.succ
 
 theorem lsub_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f ⊆ set.range g) : lsub f ≤ lsub g :=
-sup_le_of_range_subset begin
-  convert set.image_subset _ h;
-  apply set.range_comp
-end
+sup_le_of_range_subset (by convert set.image_subset _ h; apply set.range_comp)
 
 theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f = set.range g) : lsub f = lsub g :=

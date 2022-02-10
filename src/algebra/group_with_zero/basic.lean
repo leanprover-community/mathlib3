@@ -1094,6 +1094,8 @@ semiconj_by.inv_right_iff₀
 
 theorem inv_right₀ (h : commute a b) : commute a b⁻¹ := inv_right_iff₀.2 h
 
+theorem inv_inv₀ (h : commute a b) : commute a⁻¹ b⁻¹ := h.inv_left₀.inv_right₀
+
 @[simp] theorem div_right (hab : commute a b) (hac : commute a c) :
   commute a (b / c) :=
 hab.div_right hac

@@ -22,7 +22,7 @@ valuation from each `X i` to `r i`.
 -/
 
 universes u
-open_locale big_operators
+open_locale big_operators polynomial
 
 open finset polynomial fintype
 
@@ -68,7 +68,7 @@ begin
     polynomial.map_C, polynomial.map_pow, polynomial.map_X, polynomial.map_mul],
   congr,
   funext,
-  simp only [eval_prod, eval_X, (polynomial.C : R →+* polynomial R).map_prod],
+  simp only [eval_prod, eval_X, (polynomial.C : R →+* R[X]).map_prod],
 end
 
 lemma esymm_to_sum (r : σ → R) (j : ℕ) : polynomial.C (eval r (esymm σ R j)) =

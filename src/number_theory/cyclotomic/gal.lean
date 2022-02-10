@@ -138,8 +138,6 @@ let hζ := (zeta_primitive_root n K L).eq_pow_of_pow_eq_one hμ.pow_eq_one n.pos
 (aut_equiv_pow n L h).symm $ zmod.unit_of_coprime hζ.some $
 ((zeta_primitive_root n K L).pow_iff_coprime n.pos hζ.some).mp $ hζ.some_spec.some_spec.symm ▸ hμ
 
---set_option pp.proofs true
-
 lemma from_zeta_aut_spec [ne_zero ((n : ℕ) : K)] : from_zeta_aut hμ h (zeta n K L) = μ :=
 begin
   simp_rw [from_zeta_aut, aut_equiv_pow_symm_apply],

@@ -373,8 +373,6 @@ begin
       simp [T', sub_eq_add_neg] } }
 end
 
-lemma move_by_large {x y : ℝ} (h : |x| < 1/2) (h₁ : |x+y|<1/2) (h₂ : 1≤ |y|) : false :=
-  by cases abs_cases x; cases abs_cases y; cases abs_cases (x+y); linarith
 
 /-- Crucial lemma showing that if `c≠0`, then `3/4 < 4/(3c^4)` -/
 lemma ineq_1 (z : ℍ) (g: SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg: g • z ∈ 𝒟ᵒ) (c_ne_z : g 1 0 ≠ 0) :

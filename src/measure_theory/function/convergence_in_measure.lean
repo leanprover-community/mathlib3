@@ -54,21 +54,29 @@ namespace tendsto_in_measure
 
 variables [preorder ι] [has_dist E] {f f' : ι → α → E} {g g' : α → E}
 
-protected lemma congr (h_left : ∀ i, f i =ᵐ[μ] f' i) (h_right : g =ᵐ[μ] g')
+protected lemma congr' (h_left : ∀ᶠ i in at_top, f i =ᵐ[μ] f' i) (h_right : g =ᵐ[μ] g')
   (h_tendsto : tendsto_in_measure μ f g) :
   tendsto_in_measure μ f' g' :=
 begin
   intros ε hε,
-  specialize h_tendsto ε hε,
-  suffices : (λ i, μ {x | ε ≤ dist (f' i x) (g' x)}) = (λ i, μ {x | ε ≤ dist (f i x) (g x)}),
-    by rwa this,
-  refine funext (λ i, measure_congr _),
-  filter_upwards [h_left i, h_right],
+  suffices : (λ i, μ {x | ε ≤ dist (f' i x) (g' x)})
+      =ᶠ[at_top] (λ i, μ {x | ε ≤ dist (f i x) (g x)}),
+  { rw tendsto_congr' this,
+    exact h_tendsto ε hε, },
+  filter_upwards [h_left],
+  intros i h_ae_eq,
+  refine measure_congr _,
+  filter_upwards [h_ae_eq, h_right],
   intros x hxf hxg,
   rw eq_iff_iff,
   change ε ≤ dist (f' i x) (g' x) ↔ ε ≤ dist (f i x) (g x),
   rw [hxg, hxf],
 end
+
+protected lemma congr (h_left : ∀ i, f i =ᵐ[μ] f' i) (h_right : g =ᵐ[μ] g')
+  (h_tendsto : tendsto_in_measure μ f g) :
+  tendsto_in_measure μ f' g' :=
+tendsto_in_measure.congr' (eventually_of_forall h_left) h_right h_tendsto
 
 lemma congr_left (h : ∀ i, f i =ᵐ[μ] f' i) (h_tendsto : tendsto_in_measure μ f g) :
   tendsto_in_measure μ f' g :=

@@ -1380,9 +1380,9 @@ end tangent_map
 
 /-! ### Smoothness of the projection in a basic smooth bundle -/
 
-namespace smooth_vector_bundle_core
+namespace basic_smooth_vector_bundle_core
 
-variables (Z : smooth_vector_bundle_core I M E')
+variables (Z : basic_smooth_vector_bundle_core I M E')
 
 lemma times_cont_mdiff_proj :
   times_cont_mdiff ((I.prod 𝓘(𝕜, E'))) I n
@@ -1467,7 +1467,7 @@ begin
       exact mem_chart_source H x, } }
 end
 
-end smooth_vector_bundle_core
+end basic_smooth_vector_bundle_core
 
 /-! ### Smoothness of the tangent bundle projection -/
 
@@ -1477,39 +1477,39 @@ include Is
 
 lemma times_cont_mdiff_proj :
   times_cont_mdiff I.tangent I n (proj I M) :=
-smooth_vector_bundle_core.times_cont_mdiff_proj _
+basic_smooth_vector_bundle_core.times_cont_mdiff_proj _
 
 lemma smooth_proj : smooth I.tangent I (proj I M) :=
-smooth_vector_bundle_core.smooth_proj _
+basic_smooth_vector_bundle_core.smooth_proj _
 
 lemma times_cont_mdiff_on_proj {s : set (tangent_bundle I M)} :
   times_cont_mdiff_on I.tangent I n (proj I M) s :=
-smooth_vector_bundle_core.times_cont_mdiff_on_proj _
+basic_smooth_vector_bundle_core.times_cont_mdiff_on_proj _
 
 lemma smooth_on_proj {s : set (tangent_bundle I M)} :
   smooth_on I.tangent I (proj I M) s :=
-smooth_vector_bundle_core.smooth_on_proj _
+basic_smooth_vector_bundle_core.smooth_on_proj _
 
 lemma times_cont_mdiff_at_proj {p : tangent_bundle I M} :
   times_cont_mdiff_at I.tangent I n
     (proj I M) p :=
-smooth_vector_bundle_core.times_cont_mdiff_at_proj _
+basic_smooth_vector_bundle_core.times_cont_mdiff_at_proj _
 
 lemma smooth_at_proj {p : tangent_bundle I M} :
   smooth_at I.tangent I (proj I M) p :=
-smooth_vector_bundle_core.smooth_at_proj _
+basic_smooth_vector_bundle_core.smooth_at_proj _
 
 lemma times_cont_mdiff_within_at_proj
   {s : set (tangent_bundle I M)} {p : tangent_bundle I M} :
   times_cont_mdiff_within_at I.tangent I n
     (proj I M) s p :=
-smooth_vector_bundle_core.times_cont_mdiff_within_at_proj _
+basic_smooth_vector_bundle_core.times_cont_mdiff_within_at_proj _
 
 lemma smooth_within_at_proj
   {s : set (tangent_bundle I M)} {p : tangent_bundle I M} :
   smooth_within_at I.tangent I
     (proj I M) s p :=
-smooth_vector_bundle_core.smooth_within_at_proj _
+basic_smooth_vector_bundle_core.smooth_within_at_proj _
 
 variables (I M)
 /-- The zero section of the tangent bundle -/
@@ -1518,7 +1518,7 @@ variables {I M}
 
 lemma smooth_zero_section : smooth I I.tangent (zero_section I M) :=
 begin
-  apply smooth_vector_bundle_core.smooth_const_section (tangent_bundle_core I M) 0,
+  apply basic_smooth_vector_bundle_core.smooth_const_section (tangent_bundle_core I M) 0,
   assume i j x hx,
   simp only [tangent_bundle_core, continuous_linear_map.map_zero, continuous_linear_map.coe_coe]
     with mfld_simps,
@@ -1559,8 +1559,8 @@ begin
     { exact model_with_corners.unique_diff_at_image I },
     { exact differentiable_at_id'.prod (differentiable_at_const _) } },
   simp only [tangent_bundle.zero_section, tangent_map, mfderiv,
-    A, dif_pos, chart_at, smooth_vector_bundle_core.chart,
-    smooth_vector_bundle_core.to_topological_vector_bundle_core, tangent_bundle_core,
+    A, dif_pos, chart_at, basic_smooth_vector_bundle_core.chart,
+    basic_smooth_vector_bundle_core.to_topological_vector_bundle_core, tangent_bundle_core,
     function.comp, continuous_linear_map.map_zero] with mfld_simps,
   rw ← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)) at B,
   rw [← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)), ← B],

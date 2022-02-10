@@ -1251,8 +1251,8 @@ begin
   rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },
-  simp only [tangent_bundle_core, smooth_vector_bundle_core.chart, h, continuous_linear_map.coe_coe,
-    smooth_vector_bundle_core.to_topological_vector_bundle_core, chart_at] with mfld_simps,
+  simp only [tangent_bundle_core, basic_smooth_vector_bundle_core.chart, h, continuous_linear_map.coe_coe,
+    basic_smooth_vector_bundle_core.to_topological_vector_bundle_core, chart_at] with mfld_simps,
 end
 
 end charts
@@ -1516,7 +1516,7 @@ begin
 end
 
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-(Z : smooth_vector_bundle_core I M F)
+(Z : basic_smooth_vector_bundle_core I M F)
 
 /-- In a smooth fiber bundle constructed from core, the preimage under the projection of a set with
 unique differential in the basis also has unique differential. -/

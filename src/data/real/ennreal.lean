@@ -968,17 +968,10 @@ begin
   rw [← coe_inv h, ← coe_pow, ← coe_inv (pow_ne_zero _ h), ← inv_pow₀, coe_pow]
 end
 
-@[simp] lemma inv_inv : (a⁻¹)⁻¹ = a :=
-by by_cases a = 0; cases a; simp [*, none_eq_top, some_eq_coe,
-  -coe_inv, (coe_inv _).symm] at *
-
-lemma inv_involutive : function.involutive (λ a:ℝ≥0∞, a⁻¹) :=
-λ a, ennreal.inv_inv
-
-lemma inv_bijective : function.bijective (λ a:ℝ≥0∞, a⁻¹) :=
-ennreal.inv_involutive.bijective
-
-@[simp] lemma inv_eq_inv : a⁻¹ = b⁻¹ ↔ a = b := inv_bijective.1.eq_iff
+instance : has_involutive_inv ℝ≥0∞ :=
+{ inv := inv,
+  inv_inv := λ a, by
+    by_cases a = 0; cases a; simp [*, none_eq_top, some_eq_coe, -coe_inv, (coe_inv _).symm] at * }
 
 @[simp] lemma inv_eq_top : a⁻¹ = ∞ ↔ a = 0 :=
 inv_zero ▸ inv_eq_inv

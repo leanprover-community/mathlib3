@@ -133,26 +133,21 @@ lemma prime.dvd_of_pow_dvd_pow_mul_pow_of_square_not_dvd [cancel_comm_monoid_wit
   {p a b : α} {n : ℕ} (hn : 0 < n) (hp : prime p) (hpow : p ^ n ∣ a ^ n * b ^ (n - 1))
   (hb : ¬ p ^ 2 ∣ b) : p ∣ a :=
 begin
-  have := dvd_trans ((pow_dvd_pow_iff hp.ne_zero hp.not_unit).2 (nat.succ_le_iff.2 hn)) hpow,
-  rw pow_one at this,
-  by_contra H,
-  have hbdiv := (or_iff_right $ λ h, H $ prime.dvd_of_dvd_pow hp h).1 (hp.dvd_or_dvd this),
-  obtain ⟨x, hx⟩ := hp.dvd_of_dvd_pow hbdiv,
+  -- Suppose `p ∣ b`, write `b = p * x` and `hy : a ^ n * b ^ (n - 1) = p ^ n * y`.
+  cases (hp.dvd_or_dvd ((dvd_pow_self p hn.ne').trans hpow)) with H hbdiv,
+  { exact hp.dvd_of_dvd_pow H },
+  obtain ⟨x, rfl⟩ := hp.dvd_of_dvd_pow hbdiv,
   obtain ⟨y, hy⟩ := hpow,
-  rw [hx, mul_pow, ← mul_assoc, mul_comm (a ^ n), mul_assoc, ← nat.succ_pred_eq_of_pos hn,
-    pow_succ p, mul_comm p, nat.succ_pred_eq_of_pos hn, ← nat.sub_one, mul_assoc,
-    mul_eq_mul_left_iff] at hy,
-  cases hy with h₁ h₂,
-  { apply hb,
-    have hdvd := dvd_mul_right p y,
-    rw [← h₁] at hdvd,
-    obtain ⟨z, hz⟩ := hp.dvd_of_dvd_pow
-      ((or_iff_right $ λ h, H $ prime.dvd_of_dvd_pow hp h).1 (hp.dvd_or_dvd hdvd)),
-    rw [hz, ← mul_assoc, ← pow_two] at hx,
-    rw [hx],
-    exact dvd_mul_right _ _ },
-  { exfalso,
-    exact hp.ne_zero (pow_eq_zero h₂) }
+  -- Then we can divide out a common factor of `p ^ (n - 1)` from the equation `hy`.
+  have : a ^ n * x ^ (n - 1) = p * y,
+  { refine mul_left_cancel₀ (pow_ne_zero (n - 1) hp.ne_zero) _,
+    rwa [mul_pow, ← mul_assoc, mul_comm (a ^ n), mul_assoc, ← nat.succ_pred_eq_of_pos hn,
+      pow_succ p, mul_comm p, nat.succ_pred_eq_of_pos hn, ← nat.sub_one, mul_assoc] at hy },
+  -- So `p ∣ a` (and we're done) or `p ∣ x`, which can't be the case since it implies `p^2 ∣ b`.
+  refine hp.dvd_of_dvd_pow ((hp.dvd_or_dvd ⟨_, this⟩).resolve_right (λ hdvdx, hb _)),
+  obtain ⟨z, rfl⟩ := hp.dvd_of_dvd_pow hdvdx,
+  rw [pow_two, ← mul_assoc],
+  exact dvd_mul_right _ _,
 end
 
 /-- `irreducible p` states that `p` is non-unit and only factors into units.

@@ -123,8 +123,9 @@ abbreviation ideal.homogeneous_core : homogeneous_ideal 𝒜 :=
 variables {𝒜 I}
 
 lemma ideal.is_homogeneous.homogeneous_core_eq_self (h : I.is_homogeneous 𝒜) :
-  I = I.homogeneous_core 𝒜 :=
+  I.homogeneous_core' 𝒜 = I :=
 begin
+  symmetry,
   apply le_antisymm _ (I.homogeneous_core'_le_ideal 𝒜),
   intros x hx,
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
@@ -138,13 +139,16 @@ end
 variables (𝒜 I)
 
 lemma ideal.is_homogeneous.iff_eq :
-  I.is_homogeneous 𝒜 ↔ I = I.homogeneous_core 𝒜 :=
+  I.is_homogeneous 𝒜 ↔ I.homogeneous_core' 𝒜 = I:=
 ⟨ λ hI, hI.homogeneous_core_eq_self,
-  λ hI, hI.symm ▸ ideal.is_homogeneous.homogeneous_core 𝒜 I ⟩
+  λ hI, hI ▸ ideal.is_homogeneous.homogeneous_core 𝒜 I ⟩
 
 lemma ideal.is_homogeneous.iff_exists :
   I.is_homogeneous 𝒜 ↔ ∃ (S : set (homogeneous_submonoid 𝒜)), I = ideal.span (coe '' S) :=
-by { rw [ideal.is_homogeneous.exists_iff_eq_span, ideal.is_homogeneous.iff_eq], refl, }
+begin
+  rw [ideal.is_homogeneous.exists_iff_eq_span, ideal.is_homogeneous.iff_eq],
+  refine ⟨λ h, h.symm, λ h, h.symm⟩
+end
 
 end is_homogeneous_ideal_defs
 
@@ -258,7 +262,7 @@ lemma ideal.homogeneous_core.gc :
       ideal A → homogeneous_ideal 𝒜) :=
 λ I J, ⟨
   λ H, show I.1 ≤ ideal.homogeneous_core' 𝒜 J, begin
-    rw I.2.homogeneous_core_eq_self,
+    rw ←I.2.homogeneous_core_eq_self,
     exact ideal.homogeneous_core'_is_mono 𝒜 H,
   end,
   λ H, le_trans H (ideal.homogeneous_core'_le_ideal _ _)⟩

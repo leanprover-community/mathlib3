@@ -30,8 +30,27 @@ namespace topological_space
 /-- The type of closed subsets of a topological space. -/
 def closeds : Type* := {s : set α // is_closed s}
 
+namespace closeds
+variables {α}
+
+lemma closed (s : closeds α) : is_closed s.1 := s.2
+
+@[ext] protected lemma ext {s t : closeds α} (h : s.1 = t.1) : s = t := subtype.eq h
+
+instance : lattice (closeds α) := subtype.lattice (λ s t, is_closed.union) $ λ s t, is_closed.inter
+
+instance : order_bot (closeds α) := subtype.order_bot is_closed_empty
+instance : order_top (closeds α) := subtype.order_top is_closed_univ
+
 /-- The type of closed subsets is inhabited, with default element the empty set. -/
-instance : inhabited (closeds α) := ⟨⟨∅, is_closed_empty ⟩⟩
+instance : inhabited (closeds α) := ⟨⊥⟩
+
+@[simp] lemma val_sup (s t : closeds α) : (s ⊔ t).1 = s.1 ∪ t.1 := rfl
+@[simp] lemma val_inf (s t : closeds α) : (s ⊓ t).1 = s.1 ∩ t.1 := rfl
+@[simp] lemma val_bot : (⊥ : closeds α).1 = ∅ := rfl
+@[simp] lemma val_top : (⊤ : closeds α).1 = univ := rfl
+
+end closeds
 
 /-! ### Compact sets -/
 

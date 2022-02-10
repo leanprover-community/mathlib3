@@ -235,7 +235,7 @@ lemma ne_zero_of_mem_factors
   (ha : a ≠ 0) (hb : b ∈ factors a) : b ≠ 0 := irreducible.ne_zero ((factors_spec a ha).1 b hb)
 
 lemma mem_submonoid_of_factors_subset_of_units_subset (s : submonoid R)
-  {a : R} (ha : a ≠ 0) (hfac : ∀ b ∈ factors a, b ∈ s) (hunit : ∀ c : units R, (c : R) ∈ s) :
+  {a : R} (ha : a ≠ 0) (hfac : ∀ b ∈ factors a, b ∈ s) (hunit : ∀ c : Rˣ, (c : R) ∈ s) :
   a ∈ s :=
 begin
   rcases ((factors_spec a ha).2) with ⟨c, hc⟩,
@@ -248,7 +248,7 @@ also maps `a` into that submonoid. -/
 lemma ring_hom_mem_submonoid_of_factors_subset_of_units_subset {R S : Type*}
   [comm_ring R] [is_domain R] [is_principal_ideal_ring R] [semiring S]
   (f : R →+* S) (s : submonoid S) (a : R) (ha : a ≠ 0)
-  (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : units R, f c ∈ s) :
+  (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : Rˣ, f c ∈ s) :
   f a ∈ s :=
 mem_submonoid_of_factors_subset_of_units_subset (s.comap f.to_monoid_hom) ha h hf
 

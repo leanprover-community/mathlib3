@@ -76,6 +76,11 @@ by rw h
     ℱ.map (begin dsimp [functor.op], apply quiver.hom.op, apply eq_to_hom, rw h, end) :=
 by simp [pushforward_eq]
 
+lemma pushforward_eq'_hom_app
+  {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
+  nat_trans.app (eq_to_hom (pushforward_eq' h ℱ)) U = ℱ.map (eq_to_hom (by rw h)) :=
+by simpa
+
 @[simp]
 lemma pushforward_eq_rfl {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U) :
   (pushforward_eq (rfl : f = f) ℱ).hom.app (op U) = 𝟙 _ :=
@@ -223,11 +228,15 @@ def pushforward {X Y : Top.{v}} (f : X ⟶ Y) : X.presheaf C ⥤ Y.presheaf C :=
 { obj := pushforward_obj f,
   map := @pushforward_map _ _ X Y f }
 
+@[simp]
+lemma pushforward_map_app' {X Y : Top.{v}} (f : X ⟶ Y)
+  {ℱ 𝒢 : X.presheaf C} (α : ℱ ⟶ 𝒢) {U : (opens Y)ᵒᵖ} :
+  ((pushforward C f).map α).app U = α.app (op $ (opens.map f).obj U.unop) := rfl
+
 lemma id_pushforward {X : Top.{v}} : pushforward C (𝟙 X) = 𝟭 (X.presheaf C) :=
 begin
   apply category_theory.functor.ext,
-  { intros, ext U, have h := f.congr,
-    erw h (opens.op_map_id_obj U), simpa },
+  { intros, ext U, have h := f.congr, erw h (opens.op_map_id_obj U), simpa },
   { intros, apply pushforward.id_eq },
 end
 

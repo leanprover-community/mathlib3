@@ -45,13 +45,7 @@ variables {𝕜 s} {x y : E}
 
 lemma strict_convex_iff_open_segment_subset :
   strict_convex 𝕜 s ↔ s.pairwise (λ x y, open_segment 𝕜 x y ⊆ interior s) :=
-begin
-  split,
-  { rintro h x hx y hy hxy z ⟨a, b, ha, hb, hab, rfl⟩,
-    exact h hx hy hxy ha hb hab },
-  { rintro h x hx y hy hxy a b ha hb hab,
-    exact h hx hy hxy ⟨a, b, ha, hb, hab, rfl⟩ }
-end
+forall₅_congr $ λ x hx y hy hxy, (open_segment_subset_iff 𝕜).symm
 
 lemma strict_convex.open_segment_subset (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s)
   (h : x ≠ y) :
@@ -103,6 +97,7 @@ variables [module 𝕜 E] [module 𝕜 F] {s : set E}
 protected lemma strict_convex.convex (hs : strict_convex 𝕜 s) : convex 𝕜 s :=
 convex_iff_pairwise_pos.2 $ λ x hx y hy hxy a b ha hb hab, interior_subset $ hs hx hy hxy ha hb hab
 
+/-- An open convex set is strictly convex. -/
 protected lemma convex.strict_convex (h : is_open s) (hs : convex 𝕜 s) : strict_convex 𝕜 s :=
 λ x hx y hy _ a b ha hb hab, h.interior_eq.symm ▸ hs hx hy ha.le hb.le hab
 
@@ -398,6 +393,7 @@ Relates `convex` and `set.ord_connected`.
 section
 variables [topological_space E]
 
+/-- A set in a linear ordered field is strictly convex if and only if it is convex. -/
 @[simp] lemma strict_convex_iff_convex [linear_ordered_field 𝕜] [topological_space 𝕜]
   [order_topology 𝕜] {s : set 𝕜} :
   strict_convex 𝕜 s ↔ convex 𝕜 s :=

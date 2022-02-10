@@ -7,6 +7,7 @@ import algebra.big_operators.ring
 import number_theory.divisors
 import algebra.squarefree
 import algebra.invertible
+import data.nat.factorization
 
 /-!
 # Arithmetic Functions and Dirichlet Convolution
@@ -556,6 +557,13 @@ lemma pmul [comm_semiring R] {f g : arithmetic_function R}
   ring,
 end⟩
 
+/-- For any multiplicative function `f` and any `n > 0`,
+we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
+lemma multiplicative_factorization [comm_monoid_with_zero R] (f : arithmetic_function R)
+  (hf : f.is_multiplicative) :
+  ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+λ n hn, multiplicative_factorization f hf.2 hf.1 hn
+
 end is_multiplicative
 
 section special_functions
@@ -790,16 +798,16 @@ instance : invertible (ζ : arithmetic_function R) :=
   mul_inv_of_self := coe_zeta_mul_coe_moebius}
 
 /-- A unit in `arithmetic_function R` that evaluates to `ζ`, with inverse `μ`. -/
-def zeta_unit : units (arithmetic_function R) :=
+def zeta_unit : (arithmetic_function R)ˣ :=
 ⟨ζ, μ, coe_zeta_mul_coe_moebius, coe_moebius_mul_coe_zeta⟩
 
 @[simp]
 lemma coe_zeta_unit :
-  ((zeta_unit : units (arithmetic_function R)) : arithmetic_function R) = ζ := rfl
+  ((zeta_unit : (arithmetic_function R)ˣ) : arithmetic_function R) = ζ := rfl
 
 @[simp]
 lemma inv_zeta_unit :
-  ((zeta_unit⁻¹ : units (arithmetic_function R)) : arithmetic_function R) = μ := rfl
+  ((zeta_unit⁻¹ : (arithmetic_function R)ˣ) : arithmetic_function R) = μ := rfl
 
 end comm_ring
 
@@ -858,7 +866,7 @@ theorem prod_eq_iff_prod_pow_moebius_eq_of_nonzero [comm_group_with_zero R] {f g
   (∀ (n : ℕ), 0 < n → ∏ i in (n.divisors), f i = g n) ↔
     ∀ (n : ℕ), 0 < n → ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
 begin
-  refine iff.trans (iff.trans (forall_congr (λ n, _)) (@prod_eq_iff_prod_pow_moebius_eq (units R) _
+  refine iff.trans (iff.trans (forall_congr (λ n, _)) (@prod_eq_iff_prod_pow_moebius_eq Rˣ _
     (λ n, if h : 0 < n then units.mk0 (f n) (hf n h) else 1)
     (λ n, if h : 0 < n then units.mk0 (g n) (hg n h) else 1))) (forall_congr (λ n, _));
   refine imp_congr_right (λ hn, _),

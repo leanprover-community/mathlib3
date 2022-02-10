@@ -75,7 +75,7 @@ universes u v w
 /--
 A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
 The relation describes which pairs of vertices are adjacent.
-There is exactly one edge for every pair of adjacent edges;
+There is exactly one edge for every pair of adjacent vertices;
 see `simple_graph.edge_set` for the corresponding edge set.
 -/
 @[ext]
@@ -368,6 +368,9 @@ set.mem_to_finset
 fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
+iff.rfl
+
+@[simp] lemma mem_neighbor_set' (v w : V) : G.neighbor_set v w ↔ G.adj v w :=
 iff.rfl
 
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
@@ -780,10 +783,7 @@ end
 
 lemma card_common_neighbors_le_degree_right [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree w :=
-begin
-  convert G.card_common_neighbors_le_degree_left w v using 3,
-  apply common_neighbors_symm,
-end
+by simp_rw [common_neighbors_symm _ v w, card_common_neighbors_le_degree_left]
 
 lemma card_common_neighbors_lt_card_verts [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) < fintype.card V :=
@@ -817,10 +817,7 @@ lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
 begin
   simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_sdiff],
   rw finset.card_sdiff,
-  { congr' 1,
-    { simp_rw [← finset.card_univ, ← set.to_finset_univ],
-      congr, },
-    { simp [h], } },
+  { simp [finset.card_univ, h], },
   { simp only [←set.subset_iff_to_finset_subset, set.subset_univ] },
 end
 

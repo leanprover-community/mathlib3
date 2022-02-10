@@ -540,40 +540,6 @@ def eval : code → ℕ →. ℕ
     (nat.rfind (λ n, (λ m, m = 0) <$>
       eval cf (mkpair a (n + m)))).map (+ m))
 
-/-- Helper lemma for the evaluation of `prec` in the base case. -/
-lemma eval_prec_zero (cf cg : code) (a : ℕ) : eval (prec cf cg) (nat.mkpair a 0) = eval cf a :=
-begin
-  rw eval,
-  simp only [nat.unpaired, nat.unpair_mkpair, nat.elim_zero],
-end
-
-/-- Helper lemma for the evaluation of `prec` in the recursive case. -/
-lemma eval_prec_succ (cf cg : code) (a k : ℕ) :
-  eval (prec cf cg) (nat.mkpair a (nat.succ k))
-  = (nat.mkpair <$> pure a <*> ((nat.mkpair) <$> pure k <*> (eval (prec cf cg) (nat.mkpair a k))))
-      >>= eval cg
-  :=
-begin
-  rw eval,
-  simp only [nat.unpaired, part.bind_eq_bind, nat.unpair_mkpair, nat.elim_succ],
-  rw map_pure,
-  rw pure_seq_eq_map,
-  simp only [-part.pure_eq_some, part.map_eq_map, part.bind_map],
-  rw seq_eq_bind_map,
-  simp,
-end
-
-/-- Helper lemma for the evaluation of `prec` in the recursive case. -/
-lemma eval_rfind' (cf : code) (a m : ℕ) :
-  eval (rfind' cf) m = pure a
-  ↔
-  eval cf (nat.mkpair a m) = pure 0 ∧ (∀ b < a, ∃ v : ℕ, eval cf (nat.mkpair b m) = pure v)
-  :=
-begin
-  induction a with a ha,
-  TODO
-end
-
 instance : has_mem (ℕ →. ℕ) code := ⟨λ f c, eval c = f⟩
 
 @[simp] theorem eval_const : ∀ n m, eval (code.const n) m = part.some n

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Yury Kudryashov
 -/
 
-import tactic
+import algebra.group.basic
+
 class mccune_group (G : Type*) extends has_mul G, has_inv G, inhabited G :=
 (mccune (x y z u : G) : x * (y * (((z * z⁻¹) * (u * y)⁻¹) * x))⁻¹ = u)
 
@@ -178,24 +179,24 @@ calc x * (x⁻¹ * y) = x * (y⁻¹ * (x * x⁻¹ * (y * y⁻¹)⁻¹ * x))⁻¹
 ... = y : l5 x y⁻¹ x y
 
 
-lemma l239 : x * (x⁻¹ * u * y) = u * y := by simpa [l229, l126] using l5 x y⁻¹ x (u * y)
+lemma l239 : x * (x⁻¹ * u * y) = u * y :=
+calc x * (x⁻¹ * u * y) = x * (y⁻¹ * (x * x⁻¹ * (u * y * y⁻¹)⁻¹ * x))⁻¹ :
+  by simp only [mul_inv_cancel_right, mul_right_inv, one_mul, mul_inv_rev, inv_inv]
+... = u * y : l5 x y⁻¹ x (u * y)
 
 lemma mul_assoc : x * y * z = x * (y * z) :=
-begin
-  have := thingy x (x⁻¹⁻¹ * y * z),
-  simp only [l239] at this,
-  simp [this],
-end
+calc x * y * z = x * (x⁻¹ * (x⁻¹⁻¹ * y * z)) : by rw [mul_inv_cancel_left, inv_inv]
+           ... = x * (y * z)                 : by rw l239
 
 /-- Every McCune group is a group. -/
 instance : group G :=
 { mul_assoc := mul_assoc,
-  one_mul := by simp,
-  mul_one := by simp,
-  mul_left_inv := λ x, mul_left_inv _,
-  ..(by apply_instance : has_one G),
-  ..(by apply_instance : has_mul G),
-  ..(by apply_instance : has_inv G) }
+  one_mul := one_mul,
+  mul_one := mul_one,
+  mul_left_inv := mul_left_inv,
+  .. mccune_group.has_one,
+  .. mccune_group.to_has_mul,
+  .. mccune_group.to_has_inv }
 
 end mccune_group
 

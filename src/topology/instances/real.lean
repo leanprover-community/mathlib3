@@ -169,6 +169,13 @@ instance : proper_space ℕ :=
     exact (set.finite_Icc _ _).is_compact,
   end ⟩
 
+@[simp] lemma cocompact_eq : cocompact ℕ = at_top :=
+by simp only [← comap_dist_right_at_top_eq_cocompact (0 : ℕ), dist_eq, sub_zero, cast_zero,
+  abs_cast, comap_coe_at_top]
+
+instance : noncompact_space ℕ :=
+noncompact_space_of_ne_bot $ by simp [at_top_ne_bot]
+
 end nat
 
 instance : noncompact_space ℚ := int.closed_embedding_coe_rat.noncompact_space

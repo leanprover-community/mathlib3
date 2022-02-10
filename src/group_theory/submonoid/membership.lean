@@ -2,7 +2,7 @@
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
-Amelia Livingston, Yury Kudryashov
+Amelia Livingston, Yury Kudryashov, Alex Zhao
 -/
 import group_theory.submonoid.operations
 import algebra.big_operators.basic
@@ -23,8 +23,9 @@ In this file we prove various facts about membership in a submonoid:
   `coe_Sup_of_directed_on`: the supremum of a directed collection of submonoid is their union.
 * `sup_eq_range`, `mem_sup`: supremum of two submonoids `S`, `T` of a commutative monoid is the set
   of products;
-* `closure_singleton_eq`, `mem_closure_singleton`: the multiplicative (resp., additive) closure
-  of `{x}` consists of powers (resp., natural multiples) of `x`.
+* `closure_singleton_eq`, `mem_closure_singleton`, `mem_closure_pair`: the multiplicative (resp.,
+  additive) closure of `{x}` consists of powers (resp., natural multiples) of `x`, and a similar
+  result holds for the closure of '{x, y}.
 
 ## Tags
 submonoid, submonoids

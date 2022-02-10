@@ -206,7 +206,7 @@ then the norm of `zeta (p ^ k) K L - 1` is `p`. -/
 lemma prime_ne_two_pow.norm_zeta_sub_one {p : ℕ+} {K : Type u} (L : Type v) [field K] [field L]
   [ne_zero ((p : ℕ) : K)] (k : ℕ) [hpri : fact (p : ℕ).prime] [algebra K L]
   [is_cyclotomic_extension {p ^ (k + 1)} K L]
-  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ)) K) (h : p ≠ 2) :
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (h : p ≠ 2) :
   norm K ((zeta (p ^ (k + 1)) K L) - 1) = p :=
 begin
   haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
@@ -215,10 +215,9 @@ begin
     simpa [ne_zero.ne ((p : ℕ) : K)] using hzero },
   have : 2 < p ^ (k + 1),
   { rw [← coe_lt_coe, pow_coe, pnat.coe_bit0, one_coe],
-    have := lt_of_le_of_ne hpri.1.two_le (by contrapose! h; exact coe_injective h.symm),
-    refine lt_of_lt_of_le this _,
-    nth_rewrite 0 [← pow_one ↑p],
-    refine pow_le_pow (one_le_of_lt this) le_add_self },
+    calc 2 < (p : ℕ) : lt_of_le_of_ne hpri.1.two_le (by contrapose! h; exact coe_injective h.symm)
+      ...  = (p : ℕ) ^ 1 : (pow_one _).symm
+      ...  ≤ (p : ℕ) ^ (k + 1) : pow_le_pow (nat.prime.pos hpri.out) le_add_self },
   simp [norm_zeta_sub_one_eq_eval_cyclotomic L hirr this]
 end
 

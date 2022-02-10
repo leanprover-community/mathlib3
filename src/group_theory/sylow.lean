@@ -558,7 +558,7 @@ begin
   exact map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))),
 end
 
-lemma normal_of_all_max_groups_normal [fintype G] (hnc : ∀ (H : subgroup G), is_coatom H → H.normal)
+lemma normal_of_all_max_subgroups_normal [fintype G] (hnc : ∀ (H : subgroup G), is_coatom H → H.normal)
   {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   (↑P : subgroup G).normal :=
 normalizer_eq_top.mp begin

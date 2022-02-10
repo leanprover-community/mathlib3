@@ -41,10 +41,10 @@ unity, but this holds if `is_domain B` and `ne_zero (↑n : B)`.
 
 `zeta n A B` is defined using `exists.some`, which means we cannot control it.
 For example, in normal mathematics, we can demand that `(zeta p ℤ ℤ[ζₚ] : ℚ(ζₚ))` is equal to
-`zeta p ℚ ℚ(ζₚ)`, as we are just choosing "an arbitrary primitive root" and we can internally specify that
-our choices agree. This is not the case here, and it is indeed impossible to prove that these two are equal.
-Therefore, whenever possible, we prove our results for any primitive root, and only at the "final step", when
-we need to provide an "explicit" primitive root, we then use zeta.
+`zeta p ℚ ℚ(ζₚ)`, as we are just choosing "an arbitrary primitive root" and we can internally
+specify that our choices agree. This is not the case here, and it is indeed impossible to prove that
+these two are equal. Therefore, whenever possible, we prove our results for any primitive root,
+and only at the "final step", when we need to provide an "explicit" primitive root, we use `zeta`.
 
 -/
 

@@ -732,7 +732,7 @@ begin
     category.comp_id],
 end
 
-lemma mono_eq_δ {n : ℕ} (θ : mk n ⟶ mk (n+1)) [mono θ] : ∃ (i : fin (n+2)), θ = δ i :=
+lemma eq_δ_of_mono {n : ℕ} (θ : mk n ⟶ mk (n+1)) [mono θ] : ∃ (i : fin (n+2)), θ = δ i :=
 begin
   rcases eq_comp_δ_of_not_surjective θ _ with ⟨i, θ', h⟩, swap,
   { by_contradiction,

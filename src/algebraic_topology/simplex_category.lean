@@ -719,7 +719,7 @@ begin
   exact eq_comp_δ_of_not_surjective' θ i (not_exists.mp hi),
 end
 
-lemma epi_eq_σ {n : ℕ} (θ : mk (n+1) ⟶ mk n) [epi θ] : ∃ (i : fin (n+1)), θ = σ i :=
+lemma eq_σ_of_epi {n : ℕ} (θ : mk (n+1) ⟶ mk n) [epi θ] : ∃ (i : fin (n+1)), θ = σ i :=
 begin
   rcases eq_σ_comp_of_not_injective θ _ with ⟨i, θ', h⟩, swap,
   { by_contradiction,

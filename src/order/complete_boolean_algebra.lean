@@ -13,18 +13,20 @@ distributive Boolean algebras.
 
 ## Typeclasses
 
-* `frame`: Frame: A complete lattice whose `⊓` distributes over `⨆`.
+* `order.frame`: Frame: A complete lattice whose `⊓` distributes over `⨆`.
+* `order.coframe`: Coframe: A complete lattice whose `⊔` distributes over `⨅`.
 * `complete_distrib_lattice`: Completely distributive lattices: A complete lattice whose `⊓` and `⊔`
   distribute over `⨆` and `⨅` respectively.
 * `complete_boolean_algebra`: Completely distributive Boolean algebra: A Boolean algebra whose `⊓`
   and `⊔` distribute over `⨆` and `⨅` respectively.
 
 A set of opens gives rise to a topological space precisely if it forms a frame. Such a frame is also
-completely distributive, but not all frames are.
+completely distributive, but not all frames are. `filter` is a coframe but not a completely
+distributive lattice.
 
 ## TODO
 
-Add instances for `prod`
+Add instances for `prod`, `filter`
 
 ## References
 
@@ -38,11 +40,30 @@ universes u v w
 variables {α : Type u} {β : Type v} {ι : Sort w} {κ : ι → Sort*}
 
 /-- A frame, aka complete Heyting algebra, is a complete lattice whose `⊓` distributes over `⨆`. -/
-class frame (α : Type*) extends complete_lattice α :=
+class order.frame (α : Type*) extends complete_lattice α :=
 (inf_Sup_le_supr_inf (a : α) (s : set α) : a ⊓ Sup s ≤ ⨆ b ∈ s, a ⊓ b)
+
+/-- A coframe, aka complete Brouwer algebra or complete co-Heyting algebra, is a complete lattice
+whose `⊔` distributes over `⨅`. -/
+class order.coframe (α : Type*) extends complete_lattice α :=
+(infi_sup_le_sup_Inf (a : α) (s : set α) : (⨅ b ∈ s, a ⊔ b) ≤ a ⊔ Inf s)
+
+open order
+
+/-- A completely distributive lattice is a complete lattice whose `⊔` and `⊓` respectively
+distribute over `⨅` and `⨆`. -/
+class complete_distrib_lattice (α : Type*) extends frame α :=
+(infi_sup_le_sup_Inf : ∀ a s, (⨅ b ∈ s, a ⊔ b) ≤ a ⊔ Inf s)
+
+@[priority 100] -- See note [lower instance priority]
+instance complete_distrib_lattice.to_coframe [complete_distrib_lattice α] : coframe α :=
+{ .. ‹complete_distrib_lattice α› }
 
 section frame
 variables [frame α] {s t : set α} {a b : α}
+
+instance order_dual.coframe : coframe (order_dual α) :=
+{ infi_sup_le_sup_Inf := frame.inf_Sup_le_supr_inf, ..order_dual.complete_lattice α }
 
 lemma inf_Sup_eq : a ⊓ Sup s = ⨆ b ∈ s, a ⊓ b :=
 (frame.inf_Sup_le_supr_inf _ _).antisymm supr_inf_le_inf_Sup
@@ -86,30 +107,21 @@ instance pi.frame {ι : Type*} {π : ι → Type*} [Π i, frame (π i)] : frame 
 { inf_Sup_le_supr_inf := λ a s i,
     by simp only [complete_lattice.Sup, Sup_apply, supr_apply, pi.inf_apply, inf_supr_eq,
       ← supr_subtype''],
-  .. pi.complete_lattice }
+  ..pi.complete_lattice }
 
 end frame
 
-/-- A complete distributive lattice is a bit stronger than the name might
-  suggest; perhaps completely distributive lattice is more descriptive,
-  as this class includes a requirement that the lattice join
-  distribute over *arbitrary* infima, and similarly for the dual. -/
-class complete_distrib_lattice α extends frame α :=
-(infi_sup_le_sup_Inf : ∀ a s, (⨅ b ∈ s, a ⊔ b) ≤ a ⊔ Inf s)
+section coframe
+variables [coframe α] {s t : set α} {a b : α}
 
-section complete_distrib_lattice
-variables [complete_distrib_lattice α] {a b : α} {s t : set α}
-
-instance : complete_distrib_lattice (order_dual α) :=
-{ infi_sup_le_sup_Inf := complete_distrib_lattice.inf_Sup_le_supr_inf,
-  inf_Sup_le_supr_inf := complete_distrib_lattice.infi_sup_le_sup_Inf,
-  .. order_dual.complete_lattice α }
+instance order_dual.frame : frame (order_dual α) :=
+{ inf_Sup_le_supr_inf := coframe.infi_sup_le_sup_Inf, ..order_dual.complete_lattice α }
 
 theorem sup_Inf_eq : a ⊔ Inf s = (⨅ b ∈ s, a ⊔ b) :=
-sup_Inf_le_infi_sup.antisymm (complete_distrib_lattice.infi_sup_le_sup_Inf _ _)
+@inf_Sup_eq (order_dual α) _ _ _
 
 theorem Inf_sup_eq : Inf s ⊔ b = (⨅ a ∈ s, a ⊔ b) :=
-by simpa only [sup_comm] using @sup_Inf_eq α _ b s
+@Sup_inf_eq (order_dual α) _ _ _
 
 theorem infi_sup_eq (f : ι → α) (a : α) : (⨅ i, f i) ⊔ a = ⨅ i, f i ⊔ a :=
 @supr_inf_eq (order_dual α) _ _ _ _
@@ -125,16 +137,6 @@ theorem sup_binfi_eq (a : α) {p : α → Prop} {f : Π i (hi : p i), α} :
   a ⊔ (⨅ i hi, f i hi) = ⨅ i hi, a ⊔ f i hi :=
 @inf_bsupr_eq (order_dual α) _ _ _ _ _
 
-instance pi.complete_distrib_lattice {ι : Type*} {π : ι → Type*}
-  [∀ i, complete_distrib_lattice (π i)] : complete_distrib_lattice (Π i, π i) :=
-{ Sup := Sup,
-  Inf := Inf,
-  infi_sup_le_sup_Inf := λ a s i,
-    by simp only [←sup_infi_eq, Inf_apply, ←infi_subtype'', infi_apply, pi.sup_apply],
-  inf_Sup_le_supr_inf := λ a s i,
-    by simp only [Sup_apply, supr_apply, pi.inf_apply, inf_supr_eq, ←supr_subtype''],
-  .. pi.frame }
-
 lemma infi_sup_infi {ι ι' : Type*} {f : ι → α} {g : ι' → α} :
   (⨅ i, f i) ⊔ (⨅ i, g i) = ⨅ i : ι × ι', f i.1 ⊔ g i.2 :=
 @supr_inf_supr (order_dual α) _ _ _ _ _
@@ -145,6 +147,23 @@ lemma binfi_sup_binfi {ι ι' : Type*} {f : ι → α} {g : ι' → α} {s : set
 
 theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅ p ∈ s ×ˢ t, (p : α × α).1 ⊔ p.2) :=
 @Sup_inf_Sup (order_dual α) _ _ _
+
+instance pi.coframe {ι : Type*} {π : ι → Type*} [Π i, coframe (π i)] : coframe (Π i, π i) :=
+{ Inf := Inf,
+  infi_sup_le_sup_Inf := λ a s i,
+    by simp only [←sup_infi_eq, Inf_apply, ←infi_subtype'', infi_apply, pi.sup_apply],
+  ..pi.complete_lattice }
+
+end coframe
+
+section complete_distrib_lattice
+variables [complete_distrib_lattice α] {a b : α} {s t : set α}
+
+instance : complete_distrib_lattice (order_dual α) := { ..order_dual.frame, ..order_dual.coframe }
+
+instance pi.complete_distrib_lattice {ι : Type*} {π : ι → Type*}
+  [Π i, complete_distrib_lattice (π i)] : complete_distrib_lattice (Π i, π i) :=
+{ ..pi.frame, ..pi.coframe }
 
 end complete_distrib_lattice
 

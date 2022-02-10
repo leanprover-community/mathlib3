@@ -14,11 +14,14 @@ three forms: as statements about type-indexed families of normal functions, as s
 ordinal-indexed families of normal functions, and as statements about a single normal function. For
 the most part, the first case encompasses the others.
 
+Moreover, we prove some lemmas about the fixed points of specific normal functions.
+
 ## Main definitions and results
 
 * `nfp_family`, `nfp_bfamily`, `nfp`: the next fixed point of a (family of) normal function(s).
 * `fp_family_unbounded`, `fp_bfamily_unbounded`, `fp_unbounded`: the (common) fixed points of a
-(family of) normal function(s) are unbounded in the ordinals.
+  (family of) normal function(s) are unbounded in the ordinals.
+* `deriv_add_eq_mul_omega_add`: a characterization of the derivative of addition.
 -/
 
 noncomputable theory
@@ -434,6 +437,58 @@ by rw [←H.le_iff_eq, H.le_iff_deriv]
 
 theorem deriv_eq_enum_ord (H : is_normal f) : deriv f = enum_ord _ (fp_unbounded H) :=
 by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _).symm }
+
+/-! ### Fixed points of addition -/
+
+@[simp] theorem nfp_add_zero (a) : nfp ((+) a) 0 = a * omega :=
+begin
+  unfold nfp,
+  rw ←sup_mul_nat,
+  congr, funext,
+  induction n with n hn,
+  { rw [nat.cast_zero, mul_zero, iterate_zero_apply] },
+  { nth_rewrite 1 nat.succ_eq_one_add,
+    rw [nat.cast_add, nat.cast_one, mul_one_add, iterate_succ_apply', hn] }
+end
+
+theorem nfp_add_eq_mul_omega {a b} (hba : b ≤ a * omega) :
+  nfp ((+) a) b = a * omega :=
+begin
+  apply le_antisymm ((add_is_normal a).nfp_le_fp hba _),
+  { rw ←nfp_add_zero,
+    exact monotone.nfp (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
+  { rw [←mul_one_add, one_add_omega] }
+end
+
+theorem add_eq_right_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega ≤ b :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw [←nfp_add_zero a, ←deriv_zero],
+    cases (add_is_normal a).apply_eq_self_iff_deriv.1 h with c hc,
+    rw ←hc,
+    exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _) },
+  { have := ordinal.add_sub_cancel_of_le h,
+    nth_rewrite 0 ←this,
+    rwa [←add_assoc, ←mul_one_add, one_add_omega] }
+end
+
+theorem add_le_right_iff_mul_omega_le {a b : ordinal} : a + b ≤ b ↔ a * omega ≤ b :=
+by { rw ←add_eq_right_iff_mul_omega_le, exact (add_is_normal a).le_iff_eq }
+
+theorem deriv_add_eq_mul_omega_add (a b : ordinal.{u}) : deriv ((+) a) b = a * omega + b :=
+begin
+  refine b.limit_rec_on _ (λ o h, _) (λ o ho h, _),
+  { rw [deriv_zero, add_zero],
+    exact nfp_add_zero a },
+  { rw [deriv_succ, h, add_succ],
+    exact nfp_eq_self (add_eq_right_iff_mul_omega_le.2 ((le_add_right _ _).trans
+      (lt_succ_self _).le)) },
+  { rw [←is_normal.bsup_eq.{u u} (add_is_normal _) ho,
+      ←is_normal.bsup_eq.{u u} (deriv_is_normal _) ho],
+    congr,
+    ext a hao,
+    exact h a hao }
+end
 
 end
 end ordinal

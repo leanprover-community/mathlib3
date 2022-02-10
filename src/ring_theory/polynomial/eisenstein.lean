@@ -5,8 +5,8 @@ Authors: Riccardo Brasca
 -/
 
 import ring_theory.eisenstein_criterion
-import ring_theory.norm
 import ring_theory.integrally_closed
+import ring_theory.norm
 
 /-!
 # Eisenstein polynomials

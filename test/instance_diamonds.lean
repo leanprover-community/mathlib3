@@ -106,8 +106,6 @@ variables (R A : Type*)
 open_locale polynomial
 open polynomial
 
-local attribute [ext] has_scalar
-
 /-- `polynomial.has_scalar_pi` forms a diamond with `pi.has_scalar`. -/
 example [semiring R] [nontrivial R] :
   polynomial.has_scalar_pi _ _ ≠ (pi.has_scalar : has_scalar R[X] (R → R[X])) :=

@@ -87,7 +87,7 @@ variables (h : irreducible (cyclotomic n K)) {K} (L n)
 
 include h
 
-/-- The `mul_equiv` that takes an automorphism to the power of μ that μ gets mapped to under it.
+/-- The `mul_equiv` that takes an automorphism `f` to the element `k : (zmod n)ˣ` such that `f μ = μ ^ k`.
     A stronger version of `is_primitive_root.aut_to_pow`. -/
 @[simps] noncomputable def aut_equiv_pow [ne_zero ((n : ℕ) : K)] : (L ≃ₐ[K] L) ≃* (zmod n)ˣ :=
 let hn := of_no_zero_smul_divisors K L n in

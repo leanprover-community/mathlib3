@@ -541,8 +541,7 @@ begin
 end
 
 /-- If both `z` and `g•z` are in `𝒟ᵒ`, then `c` can't be `1`. -/
-lemma c_neq_one {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : g 1 0 ≠ 1 
-false :=
+lemma c_neq_one {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : g 1 0 ≠ 1 :=
 begin
   let z₁ := T_pow (g 1 1) • z,
   let w₁ := T_pow (- g 0 0) • (g • z),

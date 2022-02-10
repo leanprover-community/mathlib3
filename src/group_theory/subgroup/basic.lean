@@ -2614,13 +2614,9 @@ begin
   simp [(•), mul_assoc],
 end
 
-@[to_additive] lemma smul_opposite_mul_mem_preimage {H : subgroup G} (x g : G) (h : H.opposite)
-  (s : set G) :
-  x ∈ (λ y, h • y) '' (has_mul.mul g ⁻¹' s) ↔ g * x ∈ (λ y, h • y) '' s :=
-begin
-  cases h,
-  simp [(•), mul_assoc],
-end
+@[to_additive] lemma smul_opposite_image_mul_preimage {H : subgroup G} (g : G) (h : H.opposite)
+  (s : set G) : (λ y, h • y) '' (has_mul.mul g ⁻¹' s) = has_mul.mul g ⁻¹' ((λ y, h • y) '' s) :=
+by { ext x, cases h, simp [(•), mul_assoc] }
 
 end subgroup
 

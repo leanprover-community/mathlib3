@@ -5,7 +5,7 @@ Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
 import analysis.normed_space.dual
 import data.set.intervals.disjoint
-import measure_theory.measure.lebesgue
+import measure_theory.measure.haar_lebesgue
 import analysis.calculus.extend_deriv
 import measure_theory.integral.set_integral
 import measure_theory.integral.vitali_caratheodory
@@ -1191,26 +1191,19 @@ end
 `f c < g c` at some point `c ∈ [a, b]`, then `∫ x in a..b, f x < ∫ x in a..b, g x`. -/
 lemma integral_lt_integral_of_continuous_on_of_le_of_exists_lt {f g : ℝ → ℝ} {a b : ℝ}
   (hab : a < b) (hfc : continuous_on f (Icc a b)) (hgc : continuous_on g (Icc a b))
-  (hle : ∀ x ∈ Icc a b, f x ≤ g x) (hlt : ∃ c ∈ Icc a b, f c < g c) :
+  (hle : ∀ x ∈ Ioc a b, f x ≤ g x) (hlt : ∃ c ∈ Icc a b, f c < g c) :
   ∫ x in a..b, f x < ∫ x in a..b, g x :=
 begin
   refine integral_lt_integral_of_ae_le_of_measure_set_of_lt_ne_zero hab.le
     (hfc.interval_integrable_of_Icc hab.le) (hgc.interval_integrable_of_Icc hab.le)
-    ((ae_restrict_mem measurable_set_Ioc).mono $ λ x hx, hle x (Ioc_subset_Icc_self hx)) _,
-  simp only [measure.restrict_apply' measurable_set_Ioc],
-  rcases hlt with ⟨c, ⟨hac, hcb⟩, hlt⟩,
-  have : ∀ᶠ x in 𝓝[Icc a b] c, f x < g x,
-    from ((hfc c ⟨hac, hcb⟩).prod (hgc c ⟨hac, hcb⟩)).eventually (is_open_lt_prod.mem_nhds hlt),
-  rcases (eventually_nhds_within_iff.1 this).exists_Ioo_subset with ⟨l, u, ⟨hlc, hcu⟩, hsub⟩,
-  have A : Ioo (max a l) (min b u) ⊆ Ioc a b,
-    from Ioo_subset_Ioc_self.trans (Ioc_subset_Ioc (le_max_left _ _) (min_le_left _ _)),
-  have B : Ioo (max a l) (min b u) ⊆ Ioo l u,
-    from Ioo_subset_Ioo (le_max_right _ _) (min_le_right _ _),
-  refine ne_of_gt _,
-  calc (0 : ℝ≥0∞) < volume (Ioo (max a l) (min b u)) :
-    by simp [hab, hlc.trans_le hcb, hac.trans_lt hcu, hlc.trans hcu]
-  ... ≤ volume ({x | f x < g x} ∩ Ioc a b) :
-    measure_mono (λ x hx, ⟨hsub (B hx) (Ioc_subset_Icc_self $ A hx), A hx⟩)
+    ((ae_restrict_mem measurable_set_Ioc).mono hle) _,
+  contrapose! hlt,
+  have h_eq : f =ᵐ[volume.restrict (Ioc a b)] g,
+  { simp only [← not_le, ← ae_iff] at hlt,
+    exact eventually_le.antisymm ((ae_restrict_iff' measurable_set_Ioc).2 $
+      eventually_of_forall hle) hlt },
+  simp only [measure.restrict_congr_set Ioc_ae_eq_Icc] at h_eq,
+  exact λ c hc, (measure.eq_on_Icc_of_ae_eq volume hab.ne h_eq hfc hgc hc).ge
 end
 
 lemma integral_nonneg_of_ae_restrict (hab : a ≤ b) (hf : 0 ≤ᵐ[μ.restrict (Icc a b)] f) :
@@ -1337,7 +1330,7 @@ namespace FTC_filter
 variables [linear_order β] [measurable_space β] [topological_space β]
 
 instance pure (a : β) : FTC_filter a (pure a) ⊥ :=
-{ pure_le := le_refl _,
+{ pure_le := le_rfl,
   le_nhds := bot_le }
 
 instance nhds_within_singleton (a : β) : FTC_filter a (𝓝[{a}] a) ⊥ :=
@@ -1352,7 +1345,7 @@ variables [opens_measurable_space β] [order_topology β]
 
 instance nhds (a : β) : FTC_filter a (𝓝 a) (𝓝 a) :=
 { pure_le := pure_le_nhds a,
-  le_nhds := le_refl _ }
+  le_nhds := le_rfl }
 
 instance nhds_univ (a : β) : FTC_filter a (𝓝[univ] a) (𝓝 a) :=
 by { rw nhds_within_univ, apply_instance }
@@ -2120,7 +2113,7 @@ begin
         { simp only [integrable_on_const, real.volume_Icc, ennreal.of_real_lt_top, or_true] },
         { exact integrable_on.mono_set G'int I },
         { have C1 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), G' x < ⊤ :=
-            ae_mono (measure.restrict_mono I (le_refl _)) G'lt_top,
+            ae_mono (measure.restrict_mono I le_rfl) G'lt_top,
           have C2 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), x ∈ Icc t u :=
             ae_restrict_mem measurable_set_Icc,
           filter_upwards [C1, C2] with x G'x hx,
@@ -2148,7 +2141,7 @@ begin
     -- choose a point `x` slightly to the right of `t` which satisfies the above bound
     rcases (I3.and I4).exists with ⟨x, hx, h'x⟩,
     -- we check that it belongs to `s`, essentially by construction
-    refine ⟨x, _, Ioc_subset_Ioc (le_refl _) (min_le_left _ _) h'x⟩,
+    refine ⟨x, _, Ioc_subset_Ioc le_rfl (min_le_left _ _) h'x⟩,
     calc g x - g a = (g t - g a) + (g x - g t) : by abel
     ... ≤ (∫ w in a..t, (G' w).to_real) + ∫ w in t..x, (G' w).to_real : add_le_add ht.1 hx
     ... = ∫ w in a..x, (G' w).to_real :
@@ -2217,9 +2210,9 @@ begin
     assume t ht,
     refine ⟨_, ⟨ht.1.le, ht.2⟩⟩,
     exact integral_eq_sub_of_has_deriv_right_of_le_real ht.2
-      (hcont.mono (Icc_subset_Icc ht.1.le (le_refl _)))
+      (hcont.mono (Icc_subset_Icc ht.1.le le_rfl))
       (λ x hx, hderiv x ⟨ht.1.trans_le hx.1, hx.2⟩)
-      (g'int.mono_set (Icc_subset_Icc ht.1.le (le_refl _))) },
+      (g'int.mono_set (Icc_subset_Icc ht.1.le le_rfl)) },
   rw closure_Ioc a_lt_b.ne at A,
   exact (A (left_mem_Icc.2 hab)).1,
 end

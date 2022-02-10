@@ -63,9 +63,9 @@ section has_scalar
 
 variables [has_scalar M α] [has_continuous_smul M α]
 
-@[priority 100, to_additive] instance has_continuous_smul.has_continuous_smul₂ :
-  has_continuous_smul₂ M α :=
-{ continuous_smul₂ := λ _, continuous_smul.comp (continuous_const.prod_mk continuous_id) }
+@[priority 100, to_additive] instance has_continuous_smul.has_continuous_const_smul :
+  has_continuous_const_smul M α :=
+{ continuous_const_smul := λ _, continuous_smul.comp (continuous_const.prod_mk continuous_id) }
 
 @[to_additive]
 lemma filter.tendsto.smul {f : β → M} {g : β → α} {l : filter β} {c : M} {a : α}
@@ -322,3 +322,42 @@ instance {ι : Type*} {γ : ι → Type*}
 ⟨continuous_pi $ λ i,
   (continuous_fst.smul continuous_snd).comp $
     continuous_fst.prod_mk ((continuous_apply i).comp continuous_snd)⟩
+
+section lattice_ops
+
+variables {ι : Type*} [has_scalar M β]
+  {ts : set (topological_space β)} (h : Π t ∈ ts, @has_continuous_smul M β _ _ t)
+  {ts' : ι → topological_space β} (h' : Π i, @has_continuous_smul M β _ _ (ts' i))
+  {t₁ t₂ : topological_space β} [h₁ : @has_continuous_smul M β _ _ t₁]
+  [h₂ : @has_continuous_smul M β _ _ t₂]
+
+include h
+
+@[to_additive] lemma has_continuous_smul_Inf :
+  @has_continuous_smul M β _ _ (Inf ts) :=
+{ continuous_smul :=
+  begin
+    rw ← @Inf_singleton _ _ ‹topological_space M›,
+    exact continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ (eq.refl _) ht
+      (@has_continuous_smul.continuous_smul _ _ _ _ t (h t ht)))
+  end }
+
+omit h
+
+include h'
+
+@[to_additive] lemma has_continuous_smul_infi :
+  @has_continuous_smul M β _ _ (⨅ i, ts' i) :=
+by {rw ← Inf_range, exact has_continuous_smul_Inf (set.forall_range_iff.mpr h')}
+
+omit h'
+
+include h₁ h₂
+
+@[to_additive] lemma has_continuous_smul_inf :
+  @has_continuous_smul M β _ _ (t₁ ⊓ t₂) :=
+by {rw inf_eq_infi, refine has_continuous_smul_infi (λ b, _), cases b; assumption}
+
+omit h₁ h₂
+
+end lattice_ops

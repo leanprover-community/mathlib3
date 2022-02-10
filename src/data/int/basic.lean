@@ -56,7 +56,7 @@ instance : comm_ring int :=
   zsmul_zero'    := int.zero_mul,
   zsmul_succ'    := λ n x, by rw [succ_eq_one_add, of_nat_add, int.distrib_right, of_nat_one,
                                   int.one_mul],
-  zsmul_neg'     := λ n x, neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
+  zsmul_neg'     := λ n x, int.neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
 
 /-! ### Extra instances to short-circuit type class resolution
 
@@ -245,9 +245,9 @@ begin
     exact Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih },
   { induction n with n ih,
     { rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub],
-      exact Hp _ (le_refl _) H0 },
+      exact Hp _ le_rfl H0 },
     { rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub],
-      exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) (le_refl _))) ih } }
+      exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) le_rfl)) ih } }
 end
 
 /-! ### nat abs -/
@@ -699,7 +699,7 @@ suffices ∀ (m k : ℕ) (b : ℤ), (m.succ * b / (m.succ * k) : ℤ) = b / k, f
 match a, eq_succ_of_zero_lt H, c, eq_coe_or_neg c with
 | ._, ⟨m, rfl⟩, ._, ⟨k, or.inl rfl⟩ := this _ _ _
 | ._, ⟨m, rfl⟩, ._, ⟨k, or.inr rfl⟩ :=
-  by rw [← neg_mul_eq_mul_neg, int.div_neg, int.div_neg];
+  by rw [mul_neg, int.div_neg, int.div_neg];
      apply congr_arg has_neg.neg; apply this
 end,
 λ m k b, match b, k with

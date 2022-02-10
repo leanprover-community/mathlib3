@@ -146,8 +146,6 @@ noncomputable theory
 open_locale classical topological_space big_operators nnreal ennreal measure_theory
 open set filter topological_space ennreal emetric
 
-local attribute [instance] fact_one_le_one_ennreal
-
 namespace measure_theory
 
 variables {α E F 𝕜 : Type*}
@@ -659,8 +657,6 @@ lemma continuous_integral : continuous (λ (f : α →₁[μ] E), integral f) :=
 L1.integral_clm.continuous
 
 section pos_part
-
-local attribute [instance] fact_one_le_one_ennreal
 
 lemma integral_eq_norm_pos_part_sub (f : α →₁[μ] ℝ) :
   integral f = ∥Lp.pos_part f∥ - ∥Lp.neg_part f∥ :=
@@ -1302,8 +1298,7 @@ end properties
 
 section group
 
-variables {G : Type*} [measurable_space G] [topological_space G] [group G] [has_continuous_mul G]
-  [borel_space G]
+variables {G : Type*} [measurable_space G] [group G] [has_measurable_mul G]
 variables {μ : measure G}
 
 open measure
@@ -1311,62 +1306,40 @@ open measure
 /-- Translating a function by left-multiplication does not change its integral with respect to a
 left-invariant measure. -/
 @[to_additive]
-lemma integral_mul_left_eq_self (hμ : is_mul_left_invariant μ) {f : G → E} (g : G) :
+lemma integral_mul_left_eq_self [is_mul_left_invariant μ] (f : G → E) (g : G) :
   ∫ x, f (g * x) ∂μ = ∫ x, f x ∂μ :=
 begin
-  have hgμ : measure.map (has_mul.mul g) μ = μ,
-  { rw ← map_mul_left_eq_self at hμ,
-    exact hμ g },
-  have h_mul : closed_embedding (λ x, g * x) := (homeomorph.mul_left g).closed_embedding,
-  rw [← h_mul.integral_map, hgμ],
-  apply_instance,
+  have h_mul : measurable_embedding (λ x, g * x) :=
+    (measurable_equiv.mul_left g).measurable_embedding,
+  rw [← h_mul.integral_map, map_mul_left_eq_self]
 end
 
 /-- Translating a function by right-multiplication does not change its integral with respect to a
 right-invariant measure. -/
 @[to_additive]
-lemma integral_mul_right_eq_self (hμ : is_mul_right_invariant μ) {f : G → E} (g : G) :
+lemma integral_mul_right_eq_self [is_mul_right_invariant μ] (f : G → E) (g : G) :
   ∫ x, f (x * g) ∂μ = ∫ x, f x ∂μ :=
 begin
-  have hgμ : measure.map (λ x, x * g) μ = μ,
-  { rw ← map_mul_right_eq_self at hμ,
-    exact hμ g },
-  have h_mul : closed_embedding (λ x, x * g) := (homeomorph.mul_right g).closed_embedding,
-  rw [← h_mul.integral_map, hgμ],
-  apply_instance,
+  have h_mul : measurable_embedding (λ x, x * g) :=
+    (measurable_equiv.mul_right g).measurable_embedding,
+  rw [← h_mul.integral_map, map_mul_right_eq_self]
 end
 
 /-- If some left-translate of a function negates it, then the integral of the function with respect
 to a left-invariant measure is 0. -/
 @[to_additive]
-lemma integral_zero_of_mul_left_eq_neg (hμ : is_mul_left_invariant μ) {f : G → E} {g : G}
+lemma integral_zero_of_mul_left_eq_neg [is_mul_left_invariant μ] {f : G → E} {g : G}
   (hf' : ∀ x, f (g * x) = - f x) :
   ∫ x, f x ∂μ = 0 :=
-begin
-  refine eq_zero_of_eq_neg ℝ (eq.symm _),
-  have : ∫ x, f (g * x) ∂μ = ∫ x, - f x ∂μ,
-  { congr,
-    ext x,
-    exact hf' x },
-  convert integral_mul_left_eq_self hμ g using 1,
-  rw [this, integral_neg]
-end
+by { refine eq_zero_of_eq_neg ℝ _, simp_rw [← integral_neg, ← hf', integral_mul_left_eq_self] }
 
 /-- If some right-translate of a function negates it, then the integral of the function with respect
 to a right-invariant measure is 0. -/
 @[to_additive]
-lemma integral_zero_of_mul_right_eq_neg (hμ : is_mul_right_invariant μ) {f : G → E} {g : G}
+lemma integral_zero_of_mul_right_eq_neg [is_mul_right_invariant μ] {f : G → E} {g : G}
   (hf' : ∀ x, f (x * g) = - f x) :
   ∫ x, f x ∂μ = 0 :=
-begin
-  refine eq_zero_of_eq_neg ℝ (eq.symm _),
-  have : ∫ x, f (x * g) ∂μ = ∫ x, - f x ∂μ,
-  { congr,
-    ext x,
-    exact hf' x },
-  convert integral_mul_right_eq_self hμ g using 1,
-  rw [this, integral_neg]
-end
+by { refine eq_zero_of_eq_neg ℝ _, simp_rw [← integral_neg, ← hf', integral_mul_right_eq_self] }
 
 end group
 

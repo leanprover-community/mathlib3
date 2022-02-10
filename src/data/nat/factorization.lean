@@ -5,6 +5,7 @@ Authors: Stuart Presnell
 -/
 import data.nat.prime
 import data.nat.mul_ind
+import algebra.big_operators.finsupp
 
 /-!
 # Prime factorizations
@@ -126,7 +127,7 @@ end
 
 /-- Any finsupp `f : ℕ →₀ ℕ` whose support is in the primes is equal to the factorization of
 the product `∏ (a : ℕ) in f.support, a ^ f a`. -/
-lemma factorization_prod_pow_inv {f : ℕ →₀ ℕ} (hf : ∀ (p : ℕ), p ∈ f.support → prime p) :
+lemma prod_pow_factorization_eq_self {f : ℕ →₀ ℕ} (hf : ∀ (p : ℕ), p ∈ f.support → prime p) :
   (f.prod pow).factorization = f :=
 begin
   have h : ∀ x : ℕ, x ∈ f.support → x ^ f x ≠ 0 := λ p hp, pow_ne_zero _ (prime.ne_zero (hf p hp)),
@@ -135,21 +136,25 @@ begin
   exact sum_congr rfl (λ p hp, prime.factorization_pow (hf p hp)),
 end
 
-lemma prime_finsupp_prod_pow_pos {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) : 0 < f.prod pow :=
-prod_pos (λ p hp, (pow_ne_zero _ (hf p hp).ne_zero).bot_lt)
-
 lemma eq_factorization_iff {n : ℕ} {f : ℕ →₀ ℕ} (hn : n ≠ 0) (hf : ∀ p ∈ f.support, prime p) :
-  f.prod pow = n ↔ f = n.factorization :=
-⟨λ h, by {rw [←h, factorization_prod_pow_inv hf]},
- λ h, by {rw [h, factorization_prod_pow_eq_self hn]}⟩
+  f = n.factorization ↔ f.prod pow = n :=
+⟨λ h, by rw [h, factorization_prod_pow_eq_self hn],
+ λ h, by rw [←h, prod_pow_factorization_eq_self hf]⟩
 
-/-- The positive natural numbers are bijective with finsupps `ℕ →₀ ℕ` with support in the primes -/
+/-- The equiv between `ℕ+` and `ℕ →₀ ℕ` with support in the primes. -/
 noncomputable
-def factorization_equiv : pnat ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
+def factorization_equiv : ℕ+ ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
 { to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ _, prime_of_mem_factorization⟩,
-  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow, prime_finsupp_prod_pow_pos hf⟩,
-  left_inv  := λ ⟨x, hx⟩, subtype.mk_eq_mk.mpr (factorization_prod_pow_eq_self hx.ne.symm),
-  right_inv := λ ⟨f, hf⟩, subtype.mk_eq_mk.mpr (factorization_prod_pow_inv hf) }
+  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow,
+    prod_pow_pos_of_zero_not_mem_support (λ H, not_prime_zero (hf 0 H))⟩,
+  left_inv  := λ ⟨x, hx⟩, subtype.ext $ factorization_prod_pow_eq_self hx.ne.symm,
+  right_inv := λ ⟨f, hf⟩, subtype.ext $ prod_pow_factorization_eq_self hf }
+
+lemma factorization_equiv_apply (n : ℕ+) : (factorization_equiv n).1 = n.1.factorization :=
+by { cases n, refl }
+
+lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
+  (factorization_equiv.symm ⟨f, hf⟩).1 = f.prod pow := rfl
 
 /-! ### Factorizations of pairs of coprime numbers -/
 
@@ -193,7 +198,7 @@ begin
   { intros p k hp hk hpk, simp [prime.factorization_pow hp, finsupp.prod_single_index _, hf] },
   { simp },
   { rintros -, rw [factorization_one, hf], simp },
-  { intros a b hab ha hb hab_pos,
+  { intros a b _ _ hab ha hb hab_pos,
     rw [h_mult a b hab, ha (left_ne_zero_of_mul hab_pos), hb (right_ne_zero_of_mul hab_pos),
         factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
     convert (factorization_disjoint_of_coprime hab) },
@@ -209,7 +214,7 @@ begin
   { intros p k hp hk, simp only [hp.factorization_pow], rw prod_single_index _, simp [hf1] },
   { simp [hf0] },
   { rw [factorization_one, hf1], simp },
-  { intros a b hab ha hb,
+  { intros a b _ _ hab ha hb,
     rw [h_mult a b hab, ha, hb, factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
     convert (factorization_disjoint_of_coprime hab) },
 end
@@ -228,9 +233,13 @@ begin
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 
-lemma prime_pow_dvd_iff_le_factorization (p k n : ℕ) (pp : prime p) (hn : n ≠ 0) :
+lemma prime.pow_dvd_iff_le_factorization {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :
   p ^ k ∣ n ↔ k ≤ n.factorization p :=
 by rw [←factorization_le_iff_dvd (pow_pos pp.pos k).ne' hn, pp.factorization_pow, single_le_iff]
+
+lemma prime.pow_dvd_iff_dvd_pow_factorization {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :
+  p ^ k ∣ n ↔ p ^ k ∣ p ^ n.factorization p :=
+by rw [pow_dvd_pow_iff_le_right pp.one_lt, pp.pow_dvd_iff_le_factorization hn]
 
 lemma exists_factorization_lt_of_lt {a b : ℕ} (ha : a ≠ 0) (hab : a < b) :
   ∃ p : ℕ, a.factorization p < b.factorization p :=
@@ -270,7 +279,7 @@ lemma pow_factorization_dvd (p d : ℕ) : p ^ d.factorization p ∣ d :=
 begin
   rcases eq_or_ne d 0 with rfl | hd, { simp },
   by_cases pp : prime p,
-  { rw prime_pow_dvd_iff_le_factorization p _ d pp hd },
+  { rw pp.pow_dvd_iff_le_factorization hd },
   { rw factorization_eq_zero_of_non_prime d p pp, simp },
 end
 
@@ -284,7 +293,7 @@ begin
     intros p,
     by_cases pp : prime p, swap,
     { rw factorization_eq_zero_of_non_prime d p pp, exact zero_le' },
-    rw ←prime_pow_dvd_iff_le_factorization p _ n pp hn,
+    rw ←pp.pow_dvd_iff_le_factorization hn,
     exact h p _ pp (pow_factorization_dvd p _) },
 end
 

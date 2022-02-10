@@ -79,7 +79,7 @@ calc
   1 / (- a) = 1 / ((-1) * a)        : by rw neg_eq_neg_one_mul
         ... = (1 / a) * (1 / (- 1)) : by rw one_div_mul_one_div_rev
         ... = (1 / a) * (-1)        : by rw one_div_neg_one_eq_neg_one
-        ... = - (1 / a)             : by rw [mul_neg_eq_neg_mul_symm, mul_one]
+        ... = - (1 / a)             : by rw [mul_neg, mul_one]
 
 lemma div_neg_eq_neg_div (a b : K) : b / (- a) = - (b / a) :=
 calc

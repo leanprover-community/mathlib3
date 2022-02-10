@@ -1424,7 +1424,8 @@ end normalizer
 section centralizer
 
 /-- The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`. -/
-@[to_additive "The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`."]
+@[to_additive "The `centralizer` of `H` is the additive subgroup of `g : G` commuting with
+every `h : H`."]
 def centralizer : subgroup G :=
 { carrier := {g : G | ∀ h ∈ H, h * g = g * h},
   one_mem' := λ h hh, (mul_one h).trans (one_mul h).symm,

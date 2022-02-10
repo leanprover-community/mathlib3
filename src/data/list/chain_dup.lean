@@ -95,9 +95,8 @@ lemma chain'_dedup_cons_cons : (a :: b :: l).chain'_dedup =
 
 @[simp] lemma chain'_dedup_singleton : chain'_dedup [a] = [a] := rfl
 
-@[simp] lemma chain'_dedup_pair :
-  chain'_dedup [a, b] = if a = b then [a] else [a, b] :=
-by split_ifs; simp [chain'_dedup, h]
+@[simp] lemma chain'_dedup_pair : chain'_dedup [a, b] = if a = b then [a] else [a, b] :=
+(chain'_dedup_cons_cons _ _ _).trans $ apply_ite _ _ _ _
 
 @[simp] lemma chain'_dedup_cons_cons' : (a :: a :: l).chain'_dedup = (a :: l).chain'_dedup :=
 show _, from congr_arg (cons a) $ l.chain_dedup_cons' a

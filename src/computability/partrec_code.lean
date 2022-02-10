@@ -520,8 +520,12 @@ The interpretation of a `nat.partrec.code` as a partial function.
 * `nat.partrec.code.right`: Right unpairing of a pair of ℕ (encoded by `nat.mkpair`)
 * `nat.partrec.code.pair`: Pairs the outputs of argument codes using `nat.mkpair`.
 * `nat.partrec.code.comp`: Composition of the two argument codes.
-* `nat.partrec.code.prec`: Primitive recursion. TODO maore detail
-* `nat.partrec.code.rfind'`: TODO
+* `nat.partrec.code.prec`: Primitive recursion. Given an argument of the form `nat.mkpair a n`:
+  * If `n = 0`, returns `eval cf a`.
+  * If `n = succ k`, returns `eval cg (mkpair a (mkpair k (eval (prec cf cg) (mkpair a k))))`
+* `nat.partrec.code.rfind'`: Minimization. For `f` an argument of the form `nat.mkpair a m`,
+  `rfind' f m` returns the least `a` such that `f a m = 0`, if one exists and `f b m` terminates
+  for `b < a`
 -/
 def eval : code → ℕ →. ℕ
 | zero         := pure 0
@@ -535,6 +539,40 @@ def eval : code → ℕ →. ℕ
 | (rfind' cf)  := nat.unpaired (λ a m,
     (nat.rfind (λ n, (λ m, m = 0) <$>
       eval cf (mkpair a (n + m)))).map (+ m))
+
+/-- Helper lemma for the evaluation of `prec` in the base case. -/
+lemma eval_prec_zero (cf cg : code) (a : ℕ) : eval (prec cf cg) (nat.mkpair a 0) = eval cf a :=
+begin
+  rw eval,
+  simp only [nat.unpaired, nat.unpair_mkpair, nat.elim_zero],
+end
+
+/-- Helper lemma for the evaluation of `prec` in the recursive case. -/
+lemma eval_prec_succ (cf cg : code) (a k : ℕ) :
+  eval (prec cf cg) (nat.mkpair a (nat.succ k))
+  = (nat.mkpair <$> pure a <*> ((nat.mkpair) <$> pure k <*> (eval (prec cf cg) (nat.mkpair a k))))
+      >>= eval cg
+  :=
+begin
+  rw eval,
+  simp only [nat.unpaired, part.bind_eq_bind, nat.unpair_mkpair, nat.elim_succ],
+  rw map_pure,
+  rw pure_seq_eq_map,
+  simp only [-part.pure_eq_some, part.map_eq_map, part.bind_map],
+  rw seq_eq_bind_map,
+  simp,
+end
+
+/-- Helper lemma for the evaluation of `prec` in the recursive case. -/
+lemma eval_rfind' (cf : code) (a m : ℕ) :
+  eval (rfind' cf) m = pure a
+  ↔
+  eval cf (nat.mkpair a m) = pure 0 ∧ (∀ b < a, ∃ v : ℕ, eval cf (nat.mkpair b m) = pure v)
+  :=
+begin
+  induction a with a ha,
+  TODO
+end
 
 instance : has_mem (ℕ →. ℕ) code := ⟨λ f c, eval c = f⟩
 

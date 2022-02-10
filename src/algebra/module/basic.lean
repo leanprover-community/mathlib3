@@ -521,11 +521,8 @@ include R
 lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
 ⟨by { intros c x, rw [nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
 
-variables {M}
-
-lemma eq_zero_of_two_nsmul_eq_zero {v : M} (hv : 2 • v = 0) : v = 0 :=
-by haveI := nat.no_zero_smul_divisors R M;
-exact (smul_eq_zero.mp hv).resolve_left (by norm_num)
+@[simp] lemma two_nsmul_eq_zero {v : M} : 2 • v = 0 ↔ v = 0 :=
+by { haveI := nat.no_zero_smul_divisors R M, norm_num [smul_eq_zero] }
 
 end nat
 
@@ -559,15 +556,20 @@ end smul_injective
 
 section nat
 
-variables (R) [no_zero_smul_divisors R M] [char_zero R]
+variables (R M) [no_zero_smul_divisors R M] [char_zero R]
 include R
 
-lemma eq_zero_of_eq_neg {v : M} (hv : v = - v) : v = 0 :=
-begin
-  refine eq_zero_of_two_nsmul_eq_zero R _,
-  rw two_smul,
-  exact add_eq_zero_iff_eq_neg.mpr hv
-end
+lemma self_eq_neg {v : M} : v = - v ↔ v = 0 :=
+by rw [← two_nsmul_eq_zero R M, two_smul, add_eq_zero_iff_eq_neg]
+
+lemma neg_eq_self {v : M} : - v = v ↔ v = 0 :=
+by rw [eq_comm, self_eq_neg R M]
+
+lemma self_ne_neg {v : M} : v ≠ -v ↔ v ≠ 0 :=
+(self_eq_neg R M).not
+
+lemma neg_ne_self {v : M} : -v ≠ v ↔ v ≠ 0 :=
+(neg_eq_self R M).not
 
 end nat
 
@@ -588,15 +590,6 @@ lemma smul_left_injective {x : M} (hx : x ≠ 0) :
                 ... = 0 : sub_eq_zero.mpr h)).resolve_right hx)
 
 end smul_injective
-
-section nat
-
-variables [char_zero R]
-
-lemma ne_neg_of_ne_zero [no_zero_divisors R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
-λ h, hv (eq_zero_of_eq_neg R h)
-
-end nat
 
 end module
 

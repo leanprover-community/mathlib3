@@ -120,10 +120,10 @@ end
 /-- Convergence a.e. implies convergence in measure in a finite measure space. -/
 lemma tendsto_in_measure_of_tendsto_ae
   [measurable_space E] [second_countable_topology E] [borel_space E] [is_finite_measure μ]
-  (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ)
-  (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
+  (hf : ∀ n, ae_measurable (f n) μ) (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto_in_measure μ f g :=
 begin
+  have hg : ae_measurable g μ, from ae_measurable_of_tendsto_metric_ae hf hfg,
   refine tendsto_in_measure.congr (λ i, (hf i).ae_eq_mk.symm) hg.ae_eq_mk.symm _,
   refine tendsto_in_measure_of_tendsto_ae_of_measurable (λ i, (hf i).measurable_mk)
     hg.measurable_mk _,

@@ -13,19 +13,18 @@ import ring_theory.valuation.basic
 
 In this file, we define the non archimedean topology induced by a valuation on a ring.
 The main definition is a `valued` type class which equips a ring with a valuation taking
-values in a group with zero (living in the same universe). Other instances are then deduced from
-this.
+values in a group with zero. Other instances are then deduced from this.
 -/
 
 open_locale classical topological_space
 open set valuation
 noncomputable theory
 
-universe u
+universes u v
 
 /-- A valued ring is a ring that comes equipped with a distinguished valuation.-/
 class valued (R : Type u) [ring R] :=
-(Γ₀ : Type u)
+(Γ₀ : Type v)
 [grp : linear_ordered_comm_group_with_zero Γ₀]
 (v : valuation R Γ₀)
 

@@ -43,9 +43,39 @@ def time_bound (c : turing.to_partrec.code) (bound : ℕ → ℕ) : Prop :=
 ∀ (l : list ℕ), ∃ t ∈ time c l, t ≤ bound (l.length)
 
 -- TODO time_bound lemmas for all the constructors (except maybe fix)
-lemma time_bound_zero' : time_bound code.zero' (λ _, 1) :=
+lemma time_bound_zero' : time_bound code.zero' (id 1) :=
 begin
-  tidy,
+  intros l, dsimp at *, simp at *, fsplit, work_on_goal 1 { fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, refl }, refl },
+end
+
+lemma time_bound_succ : time_bound code.succ (id 1) :=
+begin
+  intros l, dsimp at *, simp at *, fsplit, work_on_goal 1 { fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, refl }, refl },
+end
+
+lemma time_bound_tail : time_bound code.tail (id 1) :=
+begin
+  intros l, dsimp at *, simp at *, fsplit, work_on_goal 1 { fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, refl }, refl },
+end
+
+lemma time_bound_cons (f fs : code) (b bs : ℕ → ℕ) (hb : time_bound f b) (hbs : time_bound fs bs) :
+  time_bound (code.cons f fs) (b + bs + id 1) :=
+begin
+  rw time_bound at *,
+  intro l,
+  rw time,
+  rcases hb l with ⟨t, H, ht⟩,
+  rcases hbs l with ⟨ts, Hs, hts⟩,
+  use t + ts + 1,
+  split,
+  simp,
+  apply part.add_mem_add,
+  apply part.add_mem_add,
+  assumption,
+  assumption,
+  exact part.mem_some 1,
+  simp,
+  exact add_le_add ht hts,
 end
 
 /--

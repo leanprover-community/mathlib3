@@ -502,6 +502,29 @@ instance [has_inter α] : has_inter (part α) := { inter := λ a b, (∩) <$> a 
 instance [has_union α] : has_union (part α) := { union := λ a b, (∪) <$> a <*> b }
 instance [has_sdiff α] : has_sdiff (part α) := { sdiff := λ a b, (\) <$> a <*> b }
 
+lemma some_add_some [has_add α] (a b : α) :
+  (some a + some b) = some (a + b) :=
+begin
+  ext1,
+  simp at *,
+  fsplit, work_on_goal 0 { intros ᾰ, cases ᾰ, induction ᾰ_h, cases ᾰ_w, refl }, intros ᾰ, fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { dsimp at *, exact dec_trivial }, dsimp at *, exact dec_trivial }, dsimp at *, solve_by_elim,
+end
+
+lemma add_mem_add [has_add α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma + mb ∈ a + b :=
+begin
+  cases hb,
+  cases ha,
+  induction ha_h,
+  induction hb_h,
+  fsplit,
+  { fsplit,
+    exact ha_w,
+    exact hb_w, },
+  refl,
+end
+
+
 end instances
 
 end part

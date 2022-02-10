@@ -37,7 +37,7 @@ For the Flypitch project:
 the continuum hypothesis*][flypitch_itp]
 
 -/
-universe u
+universes u v
 
 namespace first_order
 
@@ -47,7 +47,7 @@ namespace first_order
   type of relations of every natural-number arity. -/
 @[nolint check_univs] -- intended to be used with explicit universe parameters
 structure language :=
-(functions : ℕ → Type u) (relations : ℕ → Type u)
+(functions : ℕ → Type u) (relations : ℕ → Type v)
 
 namespace language
 
@@ -59,7 +59,7 @@ instance : inhabited language := ⟨empty⟩
 /-- The type of constants in a given language. -/
 @[nolint has_inhabited_instance] def const (L : language) := L.functions 0
 
-variable (L : language.{u})
+variable (L : language.{u v})
 
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
@@ -77,10 +77,9 @@ instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational
 instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
 ⟨by { intro n, apply pempty.elim }⟩
 
-instance is_relational_empty : is_relational empty :=
-  language.is_relational_of_empty_functions
-instance is_algebraic_empty : is_algebraic empty :=
-  language.is_algebraic_of_empty_relations
+instance is_relational_empty : is_relational empty := language.is_relational_of_empty_functions
+
+instance is_algebraic_empty : is_algebraic empty := language.is_algebraic_of_empty_relations
 
 variables (L) (M : Type*)
 

@@ -418,7 +418,7 @@ theorem is_normal.is_limit {f} (H : is_normal f) {o} (l : is_limit o) :
   lt_of_le_of_lt (succ_le.2 h₂) (H.lt_iff.2 h₁)⟩
 
 theorem is_normal.le_iff_eq {f} (H : is_normal f) {a} : f a ≤ a ↔ f a = a :=
-(H.le_self a).le_iff_eq
+(H.self_le a).le_iff_eq
 
 theorem add_le_of_limit {a b c : ordinal.{u}}
   (h : is_limit b) : a + b ≤ c ↔ ∀ b' < b, a + b' ≤ c :=
@@ -2207,7 +2207,7 @@ begin
 end
 
 theorem is_normal.le_nfp (H : is_normal f) {a b} : f b ≤ nfp f a ↔ b ≤ nfp f a :=
-⟨le_trans (H.le_self _), λ h, by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
+⟨le_trans (H.self_le _), λ h, by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
 
 theorem nfp_eq_self {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
@@ -2251,7 +2251,7 @@ end
 theorem is_normal.le_iff_deriv (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
 ⟨λ ha, begin
   suffices : ∀ o (_ : a ≤ deriv f o), ∃ o, deriv f o = a,
-  from this a ((deriv_is_normal _).le_self _),
+  from this a ((deriv_is_normal _).self_le _),
   refine λ o, limit_rec_on o (λ h₁, ⟨0, le_antisymm _ h₁⟩) (λ o IH h₁, _) (λ o l IH h₁, _),
   { rw deriv_zero,
     exact H.nfp_le_fp (ordinal.zero_le _) ha },

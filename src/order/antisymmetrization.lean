@@ -25,10 +25,6 @@ open function order_dual
 
 variables {α β : Type*}
 
-lemma antisymm_iff {r : α → α → Prop} [is_refl α r] [is_antisymm α r] {a b : α} :
-  r a b ∧ r b a ↔ a = b :=
-⟨λ h, antisymm h.1 h.2, by { rintro rfl, exact ⟨refl _, refl _⟩ }⟩
-
 section relation
 variables (r : α → α → Prop)
 

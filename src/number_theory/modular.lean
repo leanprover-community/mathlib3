@@ -442,8 +442,8 @@ begin
   simp,
 end ⟩
 
-/- If c=1, then `g=[[1,a],[0,1]] * S * [[1,d],[0,1]]` -/
-lemma g_is_of_c_is_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
+/- If c=1, then `g=[[1,a],[0,1]] * S * [[1,d],[0,1]]`. -/
+lemma g_eq_of_c_eq_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
   g = T_pow (g 0 0) * S * T_pow (g 1 1) :=
 begin
   rw [T_pow, T_pow],

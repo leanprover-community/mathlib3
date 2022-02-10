@@ -116,6 +116,7 @@ begin
   letI := classical.dec_eq ι,
   replace hextr : is_local_extr_on φ {x | (λ i, f i x) = (λ i, f i x₀)} x₀,
     by simpa only [function.funext_iff] using hextr,
+  haveI : complete_space (ι → ℝ) := by apply_instance,
   rcases hextr.exists_linear_map_of_has_strict_fderiv_at
     (has_strict_fderiv_at_pi.2 (λ i, hf' i)) hφ'
     with ⟨Λ, Λ₀, h0, hsum⟩,

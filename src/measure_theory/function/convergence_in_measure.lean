@@ -139,8 +139,6 @@ end
 
 namespace exists_seq_tendsto_ae
 
-variables (μ)
-
 lemma exists_nat_measure_lt_two_inv (hfg : tendsto_in_measure μ f g) (n : ℕ) :
   ∃ N, ∀ m ≥ N, μ {x | 2⁻¹ ^ n ≤ dist (f m x) (g x)} ≤ 2⁻¹ ^ n :=
 begin
@@ -150,40 +148,40 @@ begin
 end
 
 /-- Given a sequence of functions `f` which converges in measure to `g`,
-`exists_seq_tendsto_ae_seq'` is a sequence such that
-`∀ m ≥ exists_seq_tendsto_ae_seq' n, μ {x | 2⁻¹ ^ n ≤ dist (f m x) (g x)} ≤ 2⁻¹ ^ n`. -/
+`seq_tendsto_ae_seq_aux` is a sequence such that
+`∀ m ≥ seq_tendsto_ae_seq_aux n, μ {x | 2⁻¹ ^ n ≤ dist (f m x) (g x)} ≤ 2⁻¹ ^ n`. -/
 noncomputable
-def exists_seq_tendsto_ae_seq' (hfg : tendsto_in_measure μ f g) (n : ℕ) :=
-  classical.some (exists_nat_measure_lt_two_inv μ hfg n)
+def seq_tendsto_ae_seq_aux (hfg : tendsto_in_measure μ f g) (n : ℕ) :=
+  classical.some (exists_nat_measure_lt_two_inv hfg n)
 
-/-- `exists_seq_tendsto_ae_seq'` makes sure `exists_seq_tendsto_ae_seq` is strictly monotone. -/
+/-- Transformation of `seq_tendsto_ae_seq_aux` to makes sure it is strictly monotone. -/
 noncomputable
-def exists_seq_tendsto_ae_seq (hfg : tendsto_in_measure μ f g) : ℕ → ℕ
-| 0 := exists_seq_tendsto_ae_seq' μ hfg 0
-| (n + 1) :=  max (exists_seq_tendsto_ae_seq' μ hfg (n + 1))
-  (exists_seq_tendsto_ae_seq n + 1)
+def seq_tendsto_ae_seq (hfg : tendsto_in_measure μ f g) : ℕ → ℕ
+| 0 := seq_tendsto_ae_seq_aux hfg 0
+| (n + 1) :=  max (seq_tendsto_ae_seq_aux hfg (n + 1))
+  (seq_tendsto_ae_seq n + 1)
 
-lemma exists_seq_tendsto_ae_seq_succ (hfg : tendsto_in_measure μ f g) {n : ℕ} :
-  exists_seq_tendsto_ae_seq μ hfg (n + 1) =
-  max (exists_seq_tendsto_ae_seq' μ hfg (n + 1)) (exists_seq_tendsto_ae_seq μ hfg n + 1) :=
-by rw exists_seq_tendsto_ae_seq
+lemma seq_tendsto_ae_seq_succ (hfg : tendsto_in_measure μ f g) {n : ℕ} :
+  seq_tendsto_ae_seq hfg (n + 1) =
+  max (seq_tendsto_ae_seq_aux hfg (n + 1)) (seq_tendsto_ae_seq hfg n + 1) :=
+by rw seq_tendsto_ae_seq
 
-lemma exists_seq_tendsto_ae_seq_spec (hfg : tendsto_in_measure μ f g)
-  (n k : ℕ) (hn : exists_seq_tendsto_ae_seq μ hfg n ≤ k) :
+lemma seq_tendsto_ae_seq_spec (hfg : tendsto_in_measure μ f g)
+  (n k : ℕ) (hn : seq_tendsto_ae_seq hfg n ≤ k) :
   μ {x | 2⁻¹ ^ n ≤ dist (f k x) (g x)} ≤ 2⁻¹ ^ n :=
 begin
   cases n,
-  { exact classical.some_spec (exists_nat_measure_lt_two_inv μ hfg 0) k hn },
-  { exact classical.some_spec (exists_nat_measure_lt_two_inv μ hfg _) _
+  { exact classical.some_spec (exists_nat_measure_lt_two_inv hfg 0) k hn },
+  { exact classical.some_spec (exists_nat_measure_lt_two_inv hfg _) _
       (le_trans (le_max_left _ _) hn) }
 end
 
-lemma exists_seq_tendsto_ae_seq_strict_mono (hfg : tendsto_in_measure μ f g) :
-  strict_mono (exists_seq_tendsto_ae_seq μ hfg) :=
+lemma seq_tendsto_ae_seq_strict_mono (hfg : tendsto_in_measure μ f g) :
+  strict_mono (seq_tendsto_ae_seq hfg) :=
 begin
   refine strict_mono_nat_of_lt_succ (λ n, _),
-  rw exists_seq_tendsto_ae_seq_succ,
-  exact lt_of_lt_of_le (lt_add_one $ exists_seq_tendsto_ae_seq μ hfg n) (le_max_right _ _),
+  rw seq_tendsto_ae_seq_succ,
+  exact lt_of_lt_of_le (lt_add_one $ seq_tendsto_ae_seq hfg n) (le_max_right _ _),
 end
 
 end exists_seq_tendsto_ae
@@ -204,11 +202,11 @@ begin
     obtain ⟨k, h_k⟩ : ∃ (k : ℕ), 2⁻¹ ^ k < ε := exists_pow_lt_of_lt_one hε (by norm_num),
     refine ⟨k+1, (le_of_eq _).trans_lt h_k⟩,
     rw [nat.cast_add, nat.cast_one, add_tsub_cancel_right, real.rpow_nat_cast] },
-  set ns := exists_seq_tendsto_ae.exists_seq_tendsto_ae_seq μ hfg,
+  set ns := exists_seq_tendsto_ae.seq_tendsto_ae_seq hfg,
   use ns,
   let S := λ k, {x | 2⁻¹ ^ k ≤ dist (f (ns k) x) (g x)},
   have hμS_le : ∀ k, μ (S k) ≤ 2⁻¹ ^ k :=
-    λ k, exists_seq_tendsto_ae.exists_seq_tendsto_ae_seq_spec μ hfg k (ns k) (le_rfl),
+    λ k, exists_seq_tendsto_ae.seq_tendsto_ae_seq_spec hfg k (ns k) (le_rfl),
   let s := ⋂ k, ⋃ i (hik : k ≤ i), S i,
   have hμs : μ s = 0,
   { suffices hμs_le : ∀ k : ℕ, μ s ≤ ennreal.of_real (2⁻¹ ^ ((k : ℝ) - 1)),
@@ -262,7 +260,7 @@ begin
     rw [set.mem_compl_iff, set.nmem_set_of_eq, not_le] at hNx,
     exact hNx.le },
   rw ae_iff,
-  refine ⟨exists_seq_tendsto_ae.exists_seq_tendsto_ae_seq_strict_mono μ hfg,
+  refine ⟨exists_seq_tendsto_ae.seq_tendsto_ae_seq_strict_mono hfg,
     measure_mono_null (λ x, _) hμs⟩,
   rw [set.mem_set_of_eq, ← @not_not (x ∈ s), not_imp_not],
   exact h_tendsto x,

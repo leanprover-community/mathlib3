@@ -39,6 +39,8 @@ noncomputable theory
 variables {ι : Type*}
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E]
 variables {E' : Type*} [inner_product_space 𝕜 E']
+variables {F : Type*} [inner_product_space ℝ F]
+variables {F' : Type*} [inner_product_space ℝ F']
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 /-
@@ -219,6 +221,16 @@ by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
 @[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
   complex.isometry_euclidean z 1 = z.im :=
 by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+
+/-- The isometry between `ℂ` and a two-dimensional real inner product space given by a basis. -/
+def complex.isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) : ℂ ≃ₗᵢ[ℝ] F :=
+complex.isometry_euclidean.trans (v.isometry_euclidean_of_orthonormal hv).symm
+
+@[simp] lemma complex.map_isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v)
+  (f : F ≃ₗᵢ[ℝ] F') :
+  complex.isometry_of_orthonormal (hv.map_linear_isometry_equiv f) =
+    (complex.isometry_of_orthonormal hv).trans f :=
+by simp [complex.isometry_of_orthonormal, linear_isometry_equiv.trans_assoc]
 
 open finite_dimensional
 

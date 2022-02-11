@@ -661,7 +661,7 @@ This is not totally obvious as we need to check the convergence of the series. -
 protected lemma formal_multilinear_series.has_fpower_series_on_ball [complete_space F]
   (p : formal_multilinear_series 𝕜 E F) (h : 0 < p.radius) :
   has_fpower_series_on_ball p.sum p 0 p.radius :=
-{ r_le    := le_refl _,
+{ r_le    := le_rfl,
   r_pos   := h,
   has_sum := λ y hy, by { rw zero_add, exact p.has_sum hy } }
 
@@ -951,7 +951,7 @@ theorem has_fpower_series_on_ball.change_origin
   has_fpower_series_on_ball f (p.change_origin y) (x + y) (r - ∥y∥₊) :=
 { r_le := begin
     apply le_trans _ p.change_origin_radius,
-    exact tsub_le_tsub hf.r_le (le_refl _)
+    exact tsub_le_tsub hf.r_le le_rfl
   end,
   r_pos := by simp [h],
   has_sum := λ z hz, begin

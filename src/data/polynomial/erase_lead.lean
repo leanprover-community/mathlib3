@@ -18,22 +18,22 @@ and thus works for polynomials over semirings as well as rings.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 open polynomial finset
 
 namespace polynomial
 
-variables {R : Type*} [semiring R] {f : polynomial R}
+variables {R : Type*} [semiring R] {f : R[X]}
 
 /-- `erase_lead f` for a polynomial `f` is the polynomial obtained by
 subtracting from `f` the leading term of `f`. -/
-def erase_lead (f : polynomial R) : polynomial R :=
+def erase_lead (f : R[X]) : R[X] :=
 polynomial.erase f.nat_degree f
 
 section erase_lead
 
-lemma erase_lead_support (f : polynomial R) :
+lemma erase_lead_support (f : R[X]) :
   f.erase_lead.support = f.support.erase f.nat_degree :=
 by simp only [erase_lead, support_erase]
 
@@ -48,10 +48,10 @@ lemma erase_lead_coeff_of_ne (i : ℕ) (hi : i ≠ f.nat_degree) :
   f.erase_lead.coeff i = f.coeff i :=
 by simp [erase_lead_coeff, hi]
 
-@[simp] lemma erase_lead_zero : erase_lead (0 : polynomial R) = 0 :=
+@[simp] lemma erase_lead_zero : erase_lead (0 : R[X]) = 0 :=
 by simp only [erase_lead, erase_zero]
 
-@[simp] lemma erase_lead_add_monomial_nat_degree_leading_coeff (f : polynomial R) :
+@[simp] lemma erase_lead_add_monomial_nat_degree_leading_coeff (f : R[X]) :
   f.erase_lead + monomial f.nat_degree f.leading_coeff = f :=
 begin
   ext i,
@@ -61,15 +61,15 @@ begin
   { exact add_zero _ }
 end
 
-@[simp] lemma erase_lead_add_C_mul_X_pow (f : polynomial R) :
+@[simp] lemma erase_lead_add_C_mul_X_pow (f : R[X]) :
   f.erase_lead + (C f.leading_coeff) * X ^ f.nat_degree = f :=
 by rw [C_mul_X_pow_eq_monomial, erase_lead_add_monomial_nat_degree_leading_coeff]
 
-@[simp] lemma self_sub_monomial_nat_degree_leading_coeff {R : Type*} [ring R] (f : polynomial R) :
+@[simp] lemma self_sub_monomial_nat_degree_leading_coeff {R : Type*} [ring R] (f : R[X]) :
   f - monomial f.nat_degree f.leading_coeff = f.erase_lead :=
 (eq_sub_iff_add_eq.mpr (erase_lead_add_monomial_nat_degree_leading_coeff f)).symm
 
-@[simp] lemma self_sub_C_mul_X_pow {R : Type*} [ring R] (f : polynomial R) :
+@[simp] lemma self_sub_C_mul_X_pow {R : Type*} [ring R] (f : R[X]) :
   f - (C f.leading_coeff) * X ^ f.nat_degree = f.erase_lead :=
 by rw [C_mul_X_pow_eq_monomial, self_sub_monomial_nat_degree_leading_coeff]
 
@@ -117,10 +117,10 @@ end
 @[simp] lemma erase_lead_C (r : R) : erase_lead (C r) = 0 :=
 erase_lead_monomial _ _
 
-@[simp] lemma erase_lead_X : erase_lead (X : polynomial R) = 0 :=
+@[simp] lemma erase_lead_X : erase_lead (X : R[X]) = 0 :=
 erase_lead_monomial _ _
 
-@[simp] lemma erase_lead_X_pow (n : ℕ) : erase_lead (X ^ n : polynomial R) = 0 :=
+@[simp] lemma erase_lead_X_pow (n : ℕ) : erase_lead (X ^ n : R[X]) = 0 :=
 by rw [X_pow_eq_monomial, erase_lead_monomial]
 
 @[simp] lemma erase_lead_C_mul_X_pow (r : R) (n : ℕ) : erase_lead (C r * X ^ n) = 0 :=
@@ -143,7 +143,7 @@ lemma erase_lead_nat_degree_lt (f0 : 2 ≤ f.support.card) :
 lt_of_le_of_ne erase_lead_nat_degree_le $ ne_nat_degree_of_mem_erase_lead_support $
   nat_degree_mem_support_of_nonzero $ erase_lead_ne_zero f0
 
-lemma erase_lead_nat_degree_lt_or_erase_lead_eq_zero (f : polynomial R) :
+lemma erase_lead_nat_degree_lt_or_erase_lead_eq_zero (f : R[X]) :
   (erase_lead f).nat_degree < f.nat_degree ∨ f.erase_lead = 0 :=
 begin
   by_cases h : f.support.card ≤ 1,
@@ -160,12 +160,12 @@ end erase_lead
 required to be at least as big as the `nat_degree` of the polynomial.  This is useful to prove
 results where you want to change each term in a polynomial to something else depending on the
 `nat_degree` of the polynomial itself and not on the specific `nat_degree` of each term. -/
-lemma induction_with_nat_degree_le (P : polynomial R → Prop) (N : ℕ)
+lemma induction_with_nat_degree_le (P : R[X] → Prop) (N : ℕ)
   (P_0 : P 0)
   (P_C_mul_pow : ∀ n : ℕ, ∀ r : R, r ≠ 0 → n ≤ N → P (C r * X ^ n))
-  (P_C_add : ∀ f g : polynomial R, f.nat_degree < g.nat_degree →
+  (P_C_add : ∀ f g : R[X], f.nat_degree < g.nat_degree →
     g.nat_degree ≤ N → P f → P g → P (f + g)) :
-  ∀ f : polynomial R, f.nat_degree ≤ N → P f :=
+  ∀ f : R[X], f.nat_degree ≤ N → P f :=
 begin
   intros f df,
   generalize' hd : card f.support = c,
@@ -201,10 +201,10 @@ end
 * `φ` maps each monomial `m` in `R[x]` to a polynomial `φ m` of degree `fu (deg m)`.
 Then, `φ` maps each polynomial `p` in `R[x]` to a polynomial of degree `fu (deg p)`. -/
 lemma mono_map_nat_degree_eq {S F : Type*} [semiring S]
-  [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F}
-  {p : polynomial R} (k : ℕ)
+  [add_monoid_hom_class F R[X] S[X]] {φ : F}
+  {p : R[X]} (k : ℕ)
   (fu : ℕ → ℕ) (fu0 : ∀ {n}, n ≤ k → fu n = 0) (fc : ∀ {n m}, k ≤ n → n < m → fu n < fu m)
-  (φ_k : ∀ {f : polynomial R}, f.nat_degree < k → φ f = 0)
+  (φ_k : ∀ {f : R[X]}, f.nat_degree < k → φ f = 0)
   (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = fu n) :
   (φ p).nat_degree = fu p.nat_degree :=
 begin
@@ -223,15 +223,15 @@ begin
 end
 
 lemma map_nat_degree_eq_sub {S F : Type*} [semiring S]
-  [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F}
-  {p : polynomial R} {k : ℕ}
-  (φ_k : ∀ f : polynomial R, f.nat_degree < k → φ f = 0)
+  [add_monoid_hom_class F R[X] S[X]] {φ : F}
+  {p : R[X]} {k : ℕ}
+  (φ_k : ∀ f : R[X], f.nat_degree < k → φ f = 0)
   (φ_mon : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n - k) :
   (φ p).nat_degree = p.nat_degree - k :=
 mono_map_nat_degree_eq k (λ j, j - k) (by simp) (λ m n h, (tsub_lt_tsub_iff_right h).mpr) φ_k φ_mon
 
 lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]
-  [add_monoid_hom_class F (polynomial R) (polynomial S)] {φ : F} (p)
+  [add_monoid_hom_class F R[X] S[X]] {φ : F} (p)
   (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n) :
   (φ p).nat_degree = p.nat_degree :=
 (map_nat_degree_eq_sub (λ f h, (nat.not_lt_zero _ h).elim) (by simpa)).trans p.nat_degree.sub_zero

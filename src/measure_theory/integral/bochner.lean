@@ -146,8 +146,6 @@ noncomputable theory
 open_locale classical topological_space big_operators nnreal ennreal measure_theory
 open set filter topological_space ennreal emetric
 
-local attribute [instance] fact_one_le_one_ennreal
-
 namespace measure_theory
 
 variables {α E F 𝕜 : Type*}
@@ -659,8 +657,6 @@ lemma continuous_integral : continuous (λ (f : α →₁[μ] E), integral f) :=
 L1.integral_clm.continuous
 
 section pos_part
-
-local attribute [instance] fact_one_le_one_ennreal
 
 lemma integral_eq_norm_pos_part_sub (f : α →₁[μ] ℝ) :
   integral f = ∥Lp.pos_part f∥ - ∥Lp.neg_part f∥ :=
@@ -1335,7 +1331,7 @@ to a left-invariant measure is 0. -/
 lemma integral_zero_of_mul_left_eq_neg [is_mul_left_invariant μ] {f : G → E} {g : G}
   (hf' : ∀ x, f (g * x) = - f x) :
   ∫ x, f x ∂μ = 0 :=
-by { refine eq_zero_of_eq_neg ℝ _, simp_rw [← integral_neg, ← hf', integral_mul_left_eq_self] }
+by simp_rw [← self_eq_neg ℝ E, ← integral_neg, ← hf', integral_mul_left_eq_self]
 
 /-- If some right-translate of a function negates it, then the integral of the function with respect
 to a right-invariant measure is 0. -/
@@ -1343,7 +1339,7 @@ to a right-invariant measure is 0. -/
 lemma integral_zero_of_mul_right_eq_neg [is_mul_right_invariant μ] {f : G → E} {g : G}
   (hf' : ∀ x, f (x * g) = - f x) :
   ∫ x, f x ∂μ = 0 :=
-by { refine eq_zero_of_eq_neg ℝ _, simp_rw [← integral_neg, ← hf', integral_mul_right_eq_self] }
+by simp_rw [← self_eq_neg ℝ E, ← integral_neg, ← hf', integral_mul_right_eq_self]
 
 end group
 

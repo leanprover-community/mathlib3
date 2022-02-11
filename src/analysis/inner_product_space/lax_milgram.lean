@@ -19,8 +19,9 @@ Recall that a bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ` is *coercive*
 iff `∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u`.
 Under the hypothesis that `B` is coercive
 we prove the Lax-Milgram theorem:
-that is, the map `continuous_linear_map_of_bilin` from `analysis.inner_product_space.dual`
-can be upgraded to a continuous equivalence `continuous_linear_equiv_of_bilin : V ≃L[ℝ] V`.
+that is, the map `inner_product_space.continuous_linear_map_of_bilin` from
+`analysis.inner_product_space.dual` can be upgraded to a continuous equivalence
+`is_coercive.continuous_linear_equiv_of_bilin : V ≃L[ℝ] V`.
 
 ## References
 
@@ -105,8 +106,8 @@ end
 
 /--
 The Lax-Milgram equivalence of a coercive bounded bilinear operator:
-for all `v : V`, `lax_milgram_equiv B v` is the unique element `V`
-such that `⟪lax_milgram_equiv B v, w⟫ = B v w`.
+for all `v : V`, `continuous_linear_equiv_of_bilin B v` is the unique element `V`
+such that `⟪continuous_linear_equiv_of_bilin B v, w⟫ = B v w`.
 The Lax-Milgram theorem states that this is a continuous equivalence.
 -/
 def continuous_linear_equiv_of_bilin (coercive : is_coercive B) : V ≃L[ℝ] V :=

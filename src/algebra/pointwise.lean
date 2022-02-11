@@ -480,9 +480,6 @@ instance [has_involutive_inv α] : has_involutive_inv (set α) :=
   inv_inv := λ s, by { simp only [← inv_preimage, preimage_preimage, inv_inv, preimage_id'] } }
 
 @[simp, to_additive]
-protected lemma univ_inv [has_inv α] : (univ : set α)⁻¹ = univ := preimage_univ
-
-@[simp, to_additive]
 lemma inv_subset_inv [has_involutive_inv α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
 (equiv.inv α).surjective.preimage_subset_preimage_iff
 

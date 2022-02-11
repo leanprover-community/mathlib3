@@ -87,7 +87,9 @@ variable {C}
 @[simps {rhs_md := semireducible}]
 def counit_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
 { hom := { app := λ _, { hom := 𝟙 _ } },
-  inv := { app := λ _, { hom := 𝟙 _ } } }
+  inv := { app := λ _, { hom := 𝟙 _ } },
+  hom_inv_id' := by { ext, simp },
+  inv_hom_id' := by { ext, simp } }
 
 /-- Auxiliary definition for `Monad_Mon_equiv` -/
 @[simps]

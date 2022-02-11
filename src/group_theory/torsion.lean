@@ -64,8 +64,8 @@ end
 /--If a group exponent exists, the group is torsion. -/
 lemma exponent_exists.is_torsion (h : exponent_exists G) : is_torsion G := begin
   intro g,
-  obtain ⟨n, ⟨npos, hn⟩⟩ := h,
-  exact ⟨n, npos, (is_periodic_pt_mul_iff_pow_eq_one _).mpr $ hn g⟩,
+  obtain ⟨n, npos, hn⟩ := h,
+  exact (is_of_fin_order_iff_pow_eq_one g).mpr ⟨n, npos, hn g⟩,
 end
 
 /--Finite groups are torsion groups.-/

@@ -71,7 +71,7 @@ namespace zero_lt
 
 /--
 `pos_mul` is the multiplication of an element of the subtype `α>0 = {x : α // 0 < x}` of positive
-elements by an element of the type itself.  The element of the subtype appears on the left:
+elements by an element of the type `α` itself.  The element of the subtype appears on the left:
 `pos_mul a b = a * b`.
 
 `mul_pos` is the multiplication in the other order. -/
@@ -81,7 +81,7 @@ private def pos_mul [has_zero α] [has_lt α] [has_mul α] : α>0 → α → α 
 
 /--
 `mul_pos` is the multiplication of an element of the subtype `α>0 = {x : α // 0 < x}` of positive
-elements by an element of the type itself.  The element of the subtype appears on the right:
+elements by an element of the type `α` itself.  The element of the subtype appears on the right:
 `mul_pos a b = b * a`.
 
 `pos_mul` is the multiplication in the other order. -/

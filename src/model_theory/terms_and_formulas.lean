@@ -182,6 +182,16 @@ variables (M)
   realize_bounded_formula M (bd_not f) v xs = ¬ realize_bounded_formula M f v xs :=
 rfl
 
+lemma realize_inf {l} (φ ψ : L.bounded_formula α l) (v : α → M) (xs : fin l → M) :
+  realize_bounded_formula M (φ ⊓ ψ) v xs =
+    (realize_bounded_formula M φ v xs ∧ realize_bounded_formula M ψ v xs) :=
+by simp
+
+lemma realize_imp {l} (φ ψ : L.bounded_formula α l) (v : α → M) (xs : fin l → M) :
+  realize_bounded_formula M (φ.bd_imp ψ) v xs =
+    (realize_bounded_formula M φ v xs → realize_bounded_formula M ψ v xs) :=
+by simp only [realize_bounded_formula]
+
 /-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
 @[reducible] def realize_formula (f : L.formula α) (v : α → M) : Prop :=
 realize_bounded_formula M f v fin_zero_elim
@@ -190,9 +200,13 @@ realize_bounded_formula M f v fin_zero_elim
 @[reducible] def realize_sentence (φ : L.sentence) : Prop :=
 realize_formula M φ pempty.elim
 
+infix ` ⊨ `:51 := realize_sentence -- input using \|= or \vDash, but not using \models
+
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
 @[reducible] def Theory.model (T : L.Theory) : Prop :=
 ∀ φ ∈ T, realize_sentence M φ
+
+infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \models
 
 variable {M}
 
@@ -307,47 +321,96 @@ lemma is_satisfiable.is_finitely_satisfiable {T : L.Theory} (h : T.is_satisfiabl
   T.is_finitely_satisfiable :=
 λ _, h.mono
 
+/-- A theory models a (bounded) formula when any of its nonempty models realizes that formula on all
+  inputs.-/
+def models_bounded_formula {n : ℕ} {α : Type} (T : L.Theory) (φ : L.bounded_formula α n) : Prop :=
+  ∀ (M : Type (max u v)) [nonempty M] [str : L.Structure M] (v : α → M) (xs : fin n → M),
+    @Theory.model L M str T → @realize_bounded_formula L M str α n φ v xs
+
+infix ` ⊨ `:51 := models_bounded_formula -- input using \|= or \vDash, but not using \models
+
+lemma models_formula_iff {α : Type} (T : L.Theory) (φ : L.formula α) :
+  T ⊨ φ ↔ ∀ (M : Type (max u v)) [nonempty M] [str : L.Structure M] (v : α → M),
+    @Theory.model L M str T → @realize_formula L M str α φ v :=
+begin
+  refine forall_congr (λ M, forall_congr (λ ne, forall_congr (λ str, forall_congr
+    (λ v, ⟨λ h, h fin_zero_elim, λ h xs, _⟩)))),
+  rw subsingleton.elim xs fin_zero_elim,
+  exact h,
+end
+
+lemma models_sentence_iff (T : L.Theory) (φ : L.sentence) :
+  T ⊨ φ ↔ ∀ (M : Type (max u v)) [nonempty M] [str : L.Structure M],
+    @Theory.model L M str T → @realize_sentence L M str φ :=
+begin
+  rw [models_formula_iff],
+  refine forall_congr (λ M, forall_congr (λ ne, forall_congr (λ str, _))),
+  refine ⟨λ h, h pempty.elim, λ h v, _⟩,
+  rw subsingleton.elim v pempty.elim,
+  exact h,
+end
+
 variable {n : ℕ}
 
 /-- Two (bounded) formulas are semantically equivalent over a theory `T` when they have the same
 interpretation in every model of `T`. (This is also known as logical equivalence, which also has a
 proof-theoretic definition.) -/
 def semantically_equivalent (T : L.Theory) (φ ψ : L.bounded_formula α n) : Prop :=
-∀ (M : Type (max u v)) (str : L.Structure M), @model L M str T →
-  @realize_bounded_formula L M str _ _ φ = @realize_bounded_formula L M str _ _ ψ
+T ⊨ (bd_imp φ ψ ⊓ bd_imp ψ φ)
 
-lemma semantically_equivalent_model {T : L.Theory} {φ ψ : L.bounded_formula α n}
-  {M : Type (max u v)} [str : L.Structure M] (hM : T.model M)
+lemma semantically_equivalent.realize_eq {T : L.Theory} {φ ψ : L.bounded_formula α n}
+  {M : Type (max u v)} [ne : nonempty M] [str : L.Structure M] (hM : T.model M)
   (h : T.semantically_equivalent φ ψ) :
   realize_bounded_formula M φ = realize_bounded_formula M ψ :=
-h M _ hM
+funext (λ v, funext (λ xs, begin
+  have h' := h M v xs hM,
+  simp only [realize_bounded_formula, has_inf_inf, realize_not, not_forall, exists_prop, not_and,
+    not_not] at h',
+  exact iff_eq_eq.mp ⟨h'.1, h'.2⟩,
+end))
 
 lemma semantically_equivalent_some_model {T : L.Theory} {φ ψ : L.bounded_formula α n}
   (hsat : T.is_satisfiable) (h : T.semantically_equivalent φ ψ) :
   realize_bounded_formula (hsat.some_model) φ = realize_bounded_formula (hsat.some_model) ψ :=
-h hsat.some_model _ hsat.some_model_models
+h.realize_eq hsat.some_model_models
 
 /-- Semantic equivalence forms an equivalence relation on formulas. -/
 def semantically_equivalent_setoid (T : L.Theory) : setoid (L.bounded_formula α n) :=
 { r := semantically_equivalent T,
-  iseqv := ⟨λ φ M str hM, rfl, λ φ ψ se M str hM, (se M str hM).symm,
-    λ φ ψ θ φψ ψθ M str hM, (φψ M str hM).trans (ψθ M str hM)⟩ }
+  iseqv := ⟨λ φ M ne str v xs hM, by simp,
+    λ φ ψ h M ne str v xs hM, begin
+      haveI := ne,
+      have h := h M v xs hM,
+      rw [realize_inf, and_comm] at h,
+      rw realize_inf,
+      exact h,
+    end, λ φ ψ θ h1 h2 M ne str v xs hM, begin
+      haveI := ne,
+      have h1' := h1 M v xs hM,
+      have h2' := h2 M v xs hM,
+      rw [realize_inf, realize_imp, realize_imp] at *,
+      exact ⟨h2'.1 ∘ h1'.1, h1'.2 ∘ h2'.2⟩,
+    end⟩ }
 
-lemma not_not_semantically_equivalent {T : L.Theory} {φ : L.bounded_formula α n} :
-  T.semantically_equivalent (bd_not (bd_not φ)) φ :=
-λ M str hM, by { ext, simp only [realize_not, not_not] }
+lemma semantically_equivalent_not_not {T : L.Theory} {φ : L.bounded_formula α n} :
+  T.semantically_equivalent φ (bd_not (bd_not φ)) :=
+λ M ne str v xs hM, by simp
 
 lemma imp_semantically_equivalent_not_sup {T : L.Theory} {φ ψ : L.bounded_formula α n} :
   T.semantically_equivalent (bd_imp φ ψ) (bd_not φ ⊔ ψ) :=
-λ M str hM, by { ext, simp only [realize_bounded_formula, has_sup_sup, realize_not, not_not] }
+λ M ne str v xs hM, by simp
 
 lemma sup_semantically_equivalent_not_inf_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
   T.semantically_equivalent (φ ⊔ ψ) (bd_not ((bd_not φ) ⊓ (bd_not ψ))) :=
-λ M str hM, by { ext, simp }
+λ M ne str v xs hM, by simp
 
 lemma inf_semantically_equivalent_not_sup_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
   T.semantically_equivalent (φ ⊓ ψ) (bd_not ((bd_not φ) ⊔ (bd_not ψ))) :=
-λ M str hM, by { ext, simp }
+λ M ne str v xs hM, begin
+  simp only [realize_bounded_formula, has_inf_inf, has_sup_sup, realize_not, not_forall, not_not,
+    exists_prop, and_imp, not_and, and_self],
+  exact λ h1 h2, ⟨h1, h2⟩,
+end
 
 end Theory
 

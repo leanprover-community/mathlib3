@@ -57,8 +57,8 @@ begin
     rw [derivative_mul, derivative_sub, derivative_one, derivative_X, sub_zero, mul_one,
       derivative_sub, derivative_one, sub_zero, derivative_X_pow] at H,
     replace H := congr_arg (λ P, aeval ζ P) H,
-    simp only [minpoly_eq_cyclotomic_of_irreducible hζ hirr, aeval_add, _root_.map_mul,
-      _root_.map_sub, aeval_X, aeval_one, minpoly.aeval, add_zero, aeval_nat_cast, aeval_X_pow] at H,
+    simp only [minpoly_eq_cyclotomic_of_irreducible hζ hirr, aeval_add, _root_.map_mul, aeval_one,
+      _root_.map_sub, aeval_X, minpoly.aeval, add_zero, aeval_nat_cast, aeval_X_pow] at H,
     replace H := congr_arg (algebra.norm K) H,
     rw [monoid_hom.map_mul, prime_ne_two.sub_one_norm hζ hirr hodd, monoid_hom.map_mul,
       monoid_hom.map_pow, norm_eq_one K hζ (odd_iff.2 (or_iff_not_imp_left.1

@@ -76,6 +76,9 @@ instance : semiring (language α) :=
   one := 1,
   one_mul := λ l, by simp [mul_def, one_def],
   mul_one := λ l, by simp [mul_def, one_def],
+  nat_cast := λ n, if n = 0 then 0 else 1,
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, by cases n; simp [nat.cast, add_def, zero_def],
   left_distrib := λ l m n, by simp only [mul_def, add_def, set.image2_union_right],
   right_distrib := λ l m n, by simp only [mul_def, add_def, set.image2_union_left] }
 

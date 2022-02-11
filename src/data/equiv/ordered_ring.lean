@@ -1,10 +1,10 @@
 /-
-Copyright (c) 2021 Alex J. Best. All rights reserved.
+Copyright (c) 2022 Alex J. Best, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alex J. Best
+Authors: Alex J. Best, Yaël Dillies
 -/
+import algebra.order.hom.ring
 import data.equiv.ring
-import algebra.ordered_ring_hom
 
 /-!
 # Ordered ring equivalences
@@ -13,7 +13,7 @@ Equivalences between ordered (semi)rings that respect the order on both sides
 
 ## Main definitions
 
-* `ordered_ring_equiv` : An equivalence of ordered (semi)rings that respects the algebraic
+* `order_ring_equiv` : An equivalence of ordered (semi)rings that respects the algebraic
   operations and the order structure
 
 ## Notation
@@ -25,16 +25,16 @@ ordered ring, equivalence, order isomorphism, order preserving isomorphism
 -/
 
 /-- Equivalence commuting with multiplicative, additive and order structure. -/
-structure ordered_ring_equiv (R S : Type*) [has_mul R] [has_add R] [has_mul S] [has_add S]
+structure order_ring_equiv (R S : Type*) [has_mul R] [has_add R] [has_mul S] [has_add S]
   [has_le R] [has_le S] extends R ≃+* S :=
 (map_rel_iff' : ∀ {x y : R}, to_fun x ≤ to_fun y ↔ x ≤ y)
 
 /-- Reinterpret an ordered ring equivalence as a ring equivalence. -/
-add_decl_doc ordered_ring_equiv.to_ring_equiv
+add_decl_doc order_ring_equiv.to_ring_equiv
 
-namespace ordered_ring_equiv
+namespace order_ring_equiv
 
-infix ` ≃+*o `:25 := ordered_ring_equiv
+infix ` ≃+*o `:25 := order_ring_equiv
 
 section general
 variables {R S : Type*} [has_mul R] [has_add R] [has_le R] [has_mul S] [has_add S] [has_le S]
@@ -105,14 +105,14 @@ variable (R)
   ..rel_iso.refl _, }
 
 variable {R}
-@[simp] lemma refl_apply (x : R) : ordered_ring_equiv.refl R x = x := rfl
+@[simp] lemma refl_apply (x : R) : order_ring_equiv.refl R x = x := rfl
 
-@[simp] lemma coe_add_equiv_refl : (ordered_ring_equiv.refl R : R ≃+ R) = add_equiv.refl R := rfl
-@[simp] lemma coe_mul_equiv_refl : (ordered_ring_equiv.refl R : R ≃* R) = mul_equiv.refl R := rfl
-@[simp] lemma coe_ring_equiv_refl : (ordered_ring_equiv.refl R : R ≃+* R) = ring_equiv.refl R := rfl
-@[simp] lemma coe_order_iso_refl : (ordered_ring_equiv.refl R : R ≃o R) = rel_iso.refl _ := rfl
+@[simp] lemma coe_add_equiv_refl : (order_ring_equiv.refl R : R ≃+ R) = add_equiv.refl R := rfl
+@[simp] lemma coe_mul_equiv_refl : (order_ring_equiv.refl R : R ≃* R) = mul_equiv.refl R := rfl
+@[simp] lemma coe_ring_equiv_refl : (order_ring_equiv.refl R : R ≃+* R) = ring_equiv.refl R := rfl
+@[simp] lemma coe_order_iso_refl : (order_ring_equiv.refl R : R ≃o R) = rel_iso.refl _ := rfl
 
-instance : inhabited (R ≃+*o R) := ⟨ordered_ring_equiv.refl R⟩
+instance : inhabited (R ≃+*o R) := ⟨order_ring_equiv.refl R⟩
 
 /-- Inverse map of an ordered ring isomorphism is an order isomorphism. -/
 @[symm] protected def symm (f : R ≃+*o S) : S ≃+*o R :=
@@ -135,25 +135,25 @@ instance : inhabited (R ≃+*o R) := ⟨ordered_ring_equiv.refl R⟩
     (f₁ : R ≃+*o S) (f₂ : S ≃+*o T) (a : R) : f₁.trans f₂ a = f₂ (f₁ a) := rfl
 
 @[simp]
-lemma trans_symm (e : R ≃+*o S) : e.trans e.symm = ordered_ring_equiv.refl R := ext (e : R ≃ S).3
+lemma trans_symm (e : R ≃+*o S) : e.trans e.symm = order_ring_equiv.refl R := ext (e : R ≃ S).3
 @[simp]
-lemma symm_trans (e : R ≃+*o S) : e.symm.trans e = ordered_ring_equiv.refl S := ext (e : R ≃ S).4
+lemma symm_trans (e : R ≃+*o S) : e.symm.trans e = order_ring_equiv.refl S := ext (e : R ≃ S).4
 
 -- TODO check these for ring equivs
-@[simp] lemma trans_refl (e : R ≃+*o S) : e.trans (ordered_ring_equiv.refl S) = e := ext $ λ x, rfl
-@[simp] lemma refl_symm : (ordered_ring_equiv.refl R).symm = ordered_ring_equiv.refl R := rfl
-@[simp] lemma refl_trans (e : R ≃+*o S) : (ordered_ring_equiv.refl R).trans e = e := ext $ λ x, rfl
+@[simp] lemma trans_refl (e : R ≃+*o S) : e.trans (order_ring_equiv.refl S) = e := ext $ λ x, rfl
+@[simp] lemma refl_symm : (order_ring_equiv.refl R).symm = order_ring_equiv.refl R := rfl
+@[simp] lemma refl_trans (e : R ≃+*o S) : (order_ring_equiv.refl R).trans e = e := ext $ λ x, rfl
 
 end general
 
 variables {R S : Type*} [ordered_semiring R] [ordered_semiring S]
 
 /-- Reinterpret an ordered ring isomorphism as an ordered ring homomorphism. -/
-def to_ordered_ring_hom (f : R ≃+*o S) : R →+*o S := { ..f.to_ring_equiv.to_ring_hom,
+def to_order_ring_hom (f : R ≃+*o S) : R →+*o S := { ..f.to_ring_equiv.to_ring_hom,
   ..f.to_order_iso.to_rel_embedding.to_rel_hom }
 
-instance has_coe_to_ordered_ring_hom : has_coe (R ≃+*o S) (R →+*o S) := ⟨to_ordered_ring_hom⟩
+instance has_coe_to_order_ring_hom : has_coe (R ≃+*o S) (R →+*o S) := ⟨to_order_ring_hom⟩
 
-@[norm_cast] lemma coe_ordered_ring_hom (f : R ≃+*o S) (a : R) : (f : R →+*o S) a = f a := rfl
+@[norm_cast] lemma coe_order_ring_hom (f : R ≃+*o S) (a : R) : (f : R →+*o S) a = f a := rfl
 
-end ordered_ring_equiv
+end order_ring_equiv

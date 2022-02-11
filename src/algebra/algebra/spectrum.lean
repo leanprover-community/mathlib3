@@ -85,6 +85,7 @@ begin
 end
 
 namespace spectrum
+open_locale polynomial
 
 section scalar_ring
 
@@ -134,7 +135,7 @@ begin
   rw [h_eq, ←smul_sub, is_unit_smul_iff],
 end
 
-open_locale pointwise
+open_locale pointwise polynomial
 
 theorem unit_smul_eq_smul (a : A) (r : Rˣ) :
   σ (r • a) = r • σ a :=
@@ -247,7 +248,7 @@ open polynomial
 /-- Half of the spectral mapping theorem for polynomials. We prove it separately
 because it holds over any field, whereas `spectrum.map_polynomial_aeval_of_degree_pos` and
 `spectrum.map_polynomial_aeval_of_nonempty` need the field to be algebraically closed. -/
-theorem subset_polynomial_aeval (a : A) (p : polynomial 𝕜) :
+theorem subset_polynomial_aeval (a : A) (p : 𝕜[X]) :
   (λ k, eval k p) '' (σ a) ⊆ σ (aeval a p) :=
 begin
   rintros _ ⟨k, hk, rfl⟩,
@@ -262,7 +263,7 @@ begin
   simpa only [aeval_X, aeval_C, alg_hom.map_sub] using hk,
 end
 
-lemma exists_mem_of_not_is_unit_aeval_prod {p : polynomial 𝕜} {a : A} (hp : p ≠ 0)
+lemma exists_mem_of_not_is_unit_aeval_prod {p : 𝕜[X]} {a : A} (hp : p ≠ 0)
   (h : ¬is_unit (aeval a (multiset.map (λ (x : 𝕜), X - C x) p.roots).prod)) :
   ∃ k : 𝕜, k ∈ σ a ∧ eval k p = 0 :=
 begin
@@ -277,7 +278,7 @@ end
 /-- The *spectral mapping theorem* for polynomials.  Note: the assumption `degree p > 0`
 is necessary in case `σ a = ∅`, for then the left-hand side is `∅` and the right-hand side,
 assuming `[nontrivial A]`, is `{k}` where `p = polynomial.C k`. -/
-theorem map_polynomial_aeval_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : polynomial 𝕜)
+theorem map_polynomial_aeval_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : 𝕜[X])
   (hdeg : 0 < degree p) : σ (aeval a p) = (λ k, eval k p) '' (σ a) :=
 begin
   /- handle the easy direction via `spectrum.subset_polynomial_aeval` -/
@@ -302,7 +303,7 @@ end
 /-- In this version of the spectral mapping theorem, we assume the spectrum
 is nonempty instead of assuming the degree of the polynomial is positive. Note: the
 assumption `[nontrivial A]` is necessary for the same reason as in `spectrum.zero_eq`. -/
-theorem map_polynomial_aeval_of_nonempty [is_alg_closed 𝕜] [nontrivial A] (a : A) (p : polynomial 𝕜)
+theorem map_polynomial_aeval_of_nonempty [is_alg_closed 𝕜] [nontrivial A] (a : A) (p : 𝕜[X])
   (hnon : (σ a).nonempty) : σ (aeval a p) = (λ k, eval k p) '' (σ a) :=
 begin
   refine or.elim (le_or_gt (degree p) 0) (λ h, _) (map_polynomial_aeval_of_degree_pos a p),

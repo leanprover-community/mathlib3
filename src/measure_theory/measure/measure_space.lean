@@ -2040,6 +2040,11 @@ begin
   simp
 end
 
+lemma _root_.set.countable.ae_not_mem {α : Type*} {m : measurable_space α} {s : set α}
+  (h : countable s) (μ : measure α) [has_no_atoms μ] :
+  ∀ᵐ x ∂μ, x ∉ s :=
+by simpa only [ae_iff, not_not] using h.measure_zero μ
+
 lemma _root_.set.finite.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
   (h : s.finite) (μ : measure α) [has_no_atoms μ] : μ s = 0 :=
 h.countable.measure_zero μ

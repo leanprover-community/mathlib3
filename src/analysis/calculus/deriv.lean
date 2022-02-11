@@ -83,7 +83,7 @@ See the explanations there.
 
 universes u v w
 noncomputable theory
-open_locale classical topological_space big_operators filter ennreal
+open_locale classical topological_space big_operators filter ennreal polynomial
 open filter asymptotics set
 open continuous_linear_map (smul_right smul_right_one_eq_iff)
 
@@ -1774,7 +1774,7 @@ namespace polynomial
 /-! ### Derivative of a polynomial -/
 
 variables {x : 𝕜} {s : set 𝕜}
-variable (p : polynomial 𝕜)
+variable (p : 𝕜[X])
 
 /-- The derivative (in the analysis sense) of a polynomial `p` is given by `p.derivative`. -/
 protected lemma has_strict_deriv_at (x : 𝕜) :
@@ -1937,7 +1937,7 @@ begin
       [skip, exact zpow_ne_zero_of_ne_zero hx _],
     simp only [(∘), zpow_neg₀, one_div, inv_inv₀, smul_eq_mul] at this,
     convert this using 1,
-    rw [sq, mul_inv₀, inv_inv₀, int.cast_neg, ← neg_mul_eq_neg_mul, neg_mul_neg,
+    rw [sq, mul_inv₀, inv_inv₀, int.cast_neg, neg_mul, neg_mul_neg,
       ← zpow_add₀ hx, mul_assoc, ← zpow_add₀ hx], congr, abel },
   { simp only [hm, zpow_zero, int.cast_zero, zero_mul, has_strict_deriv_at_const] },
   { exact this m hm }

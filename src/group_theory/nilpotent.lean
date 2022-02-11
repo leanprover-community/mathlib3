@@ -801,29 +801,21 @@ begin
   rw normalizer_condition_iff_only_full_group_self_normalizing,
   unfreezingI
   { induction h using nilpotent_center_quotient_ind with G' _ _ G' _ _ ih;
-    clear _inst_1 G; rename  G' → G, },
+    clear _inst_1 G; rename G' → G, },
   { rintros H -, apply subsingleton.elim, },
   { intros H hH,
-    by_cases hch : center G ≤ H,
-    { let H' := H.map (mk' (center G)),
 
-      have hH' : H'.normalizer = H',
-      { apply (@comap_injective G _ _ _ (mk' (center G)) (surjective_quot_mk _)),
-        rw comap_normalizer_eq_of_surjective,
-        show function.surjective _, by exact (surjective_quot_mk _),
-        { rw comap_map_eq_self,
-          show (_ ≤ H), by { simpa using hch },
-          exact hH, }, },
+    have hch : center G ≤ H := subgroup.center_le_normalizer.trans (le_of_eq hH),
+    have hkh : (mk' (center G)).ker ≤ H, by simpa using hch,
+    have hsur : function.surjective (mk' (center G)), by exact surjective_quot_mk _,
 
-      specialize ih (H.map (mk' (center G))) hH',
-
-      show H = ⊤,
-      apply map_injective_of_ker_le (mk' (center G)) (by simpa using hch) le_top,
-      rw [ih, subgroup.map_top_of_surjective],
-      exact quotient.surjective_quotient_mk', },
-    { exfalso, apply hch,
-      calc center G ≤ H.normalizer : subgroup.center_le_normalizer
-                ... = H : hH, } },
+    let H' := H.map (mk' (center G)),
+    have hH' : H'.normalizer = H',
+    { apply comap_injective hsur,
+      rw [comap_normalizer_eq_of_surjective _ hsur, comap_map_eq_self hkh],
+      exact hH, },
+    apply map_injective_of_ker_le (mk' (center G)) hkh le_top,
+    exact (ih H' hH').trans (symm (map_top_of_surjective _ hsur)), },
 end
 
 end with_group

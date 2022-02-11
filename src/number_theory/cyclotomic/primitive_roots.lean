@@ -178,8 +178,8 @@ variables {K} [field K] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the norm of
 `ζ - 1` is `eval 1 (cyclotomic n ℤ)`. -/
-lemma sub_one_norm_eq_eval_cyclotomic [is_cyclotomic_extension {n} K L] (h : 2 < (n : ℕ))
-  (hirr : irreducible (cyclotomic n K)) :
+lemma sub_one_norm_eq_eval_cyclotomic [is_cyclotomic_extension {n} K L]
+  (h : 2 < (n : ℕ)) (hirr : irreducible (cyclotomic n K)) :
   norm K (ζ - 1) = ↑(eval 1 (cyclotomic n ℤ)) :=
 begin
   let E := algebraic_closure L,
@@ -204,8 +204,7 @@ end
 
 /-- If `is_prime_pow (n : ℕ)`, `n ≠ 2` and `irreducible (cyclotomic n K)` (in particular for
 `K = ℚ`), then the norm of `ζ - 1` is `(n : ℕ).min_fac`. -/
-lemma is_prime_pow_sub_one_norm [ne_zero ((n : ℕ) : K)] (hn : is_prime_pow (n : ℕ))
-  [is_cyclotomic_extension {n} K L]
+lemma is_prime_pow_sub_one_norm (hn : is_prime_pow (n : ℕ)) [is_cyclotomic_extension {n} K L]
   (hirr : irreducible (cyclotomic (n : ℕ) K)) (h : n ≠ 2) :
   norm K (ζ - 1) = (n : ℕ).min_fac :=
 begin
@@ -299,7 +298,7 @@ variables {K} (L) [field K] [field L] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
 /-- If `is_prime_pow (n : ℕ)`, `n ≠ 2` and `irreducible (cyclotomic n K)` (in particular for
 `K = ℚ`), then the norm of `zeta n K L - 1` is `(n : ℕ).min_fac`. -/
-lemma is_prime_pow.norm_zeta_sub_one [ne_zero ((n : ℕ) : K)] (hn : is_prime_pow (n : ℕ))
+lemma is_prime_pow.norm_zeta_sub_one (hn : is_prime_pow (n : ℕ))
   [is_cyclotomic_extension {n} K L]
   (hirr : irreducible (cyclotomic (n : ℕ) K)) (h : n ≠ 2) :
   norm K (zeta n K L - 1) = (n : ℕ).min_fac :=

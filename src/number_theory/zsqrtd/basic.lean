@@ -183,8 +183,8 @@ by simp [ext, of_int_re, of_int_im]
 @[simp] theorem smul_val (n x y : ℤ) : (n : ℤ√d) * ⟨x, y⟩ = ⟨n * x, n * y⟩ :=
 by simp [ext]
 
-theorem smul_re {d a : ℤ} {b : ℤ√d} : (↑a * b).re = a * b.re := by simp
-theorem smul_im {d a : ℤ} {b : ℤ√d} : (↑a * b).im = a * b.im := by simp
+theorem smul_re (a : ℤ) (b : ℤ√d) : (↑a * b).re = a * b.re := by simp
+theorem smul_im (a : ℤ) (b : ℤ√d) : (↑a * b).im = a * b.im := by simp
 
 @[simp] theorem muld_val (x y : ℤ) : sqrtd * ⟨x, y⟩ = ⟨d * y, x⟩ :=
 by simp [ext]

@@ -5,6 +5,8 @@ Authors: Mario Carneiro
 -/
 import algebra.order.field
 import data.nat.basic
+import data.nat.cast.defs
+import algebra.group.pi
 
 /-!
 # Cast of naturals
@@ -27,105 +29,14 @@ Setting up the coercions priorities is tricky. See Note [coercion into rings].
 namespace nat
 variables {α : Type*}
 
-section
-variables [has_zero α] [has_one α] [has_add α]
-
-/-- Canonical homomorphism from `ℕ` to a type `α` with `0`, `1` and `+`. -/
-protected def cast : ℕ → α
-| 0     := 0
-| (n+1) := cast n + 1
-
-/-- Computationally friendlier cast than `nat.cast`, using binary representation. -/
-protected def bin_cast (n : ℕ) : α :=
-@nat.binary_rec (λ _, α) 0 (λ odd k a, cond odd (a + a + 1) (a + a)) n
-
-/--
-Coercions such as `nat.cast_coe` that go from a concrete structure such as
-`ℕ` to an arbitrary ring `α` should be set up as follows:
-```lean
-@[priority 900] instance : has_coe_t ℕ α := ⟨...⟩
-```
-
-It needs to be `has_coe_t` instead of `has_coe` because otherwise type-class
-inference would loop when constructing the transitive coercion `ℕ → ℕ → ℕ → ...`.
-The reduced priority is necessary so that it doesn't conflict with instances
-such as `has_coe_t α (option α)`.
-
-For this to work, we reduce the priority of the `coe_base` and `coe_trans`
-instances because we want the instances for `has_coe_t` to be tried in the
-following order:
-
- 1. `has_coe_t` instances declared in mathlib (such as `has_coe_t α (with_top α)`, etc.)
- 2. `coe_base`, which contains instances such as `has_coe (fin n) n`
- 3. `nat.cast_coe : has_coe_t ℕ α` etc.
- 4. `coe_trans`
-
-If `coe_trans` is tried first, then `nat.cast_coe` doesn't get a chance to apply.
--/
-library_note "coercion into rings"
-attribute [instance, priority 950] coe_base
-attribute [instance, priority 500] coe_trans
-
--- see note [coercion into rings]
-@[priority 900] instance cast_coe : has_coe_t ℕ α := ⟨nat.cast⟩
-
-@[simp, norm_cast] theorem cast_zero : ((0 : ℕ) : α) = 0 := rfl
-
-theorem cast_add_one (n : ℕ) : ((n + 1 : ℕ) : α) = n + 1 := rfl
-
-@[simp, norm_cast, priority 500]
-theorem cast_succ (n : ℕ) : ((succ n : ℕ) : α) = n + 1 := rfl
-
-@[simp, norm_cast] theorem cast_ite (P : Prop) [decidable P] (m n : ℕ) :
-  (((ite P m n) : ℕ) : α) = ite P (m : α) (n : α) :=
-by { split_ifs; refl, }
-
-end
-
-@[simp, norm_cast] theorem cast_one [add_zero_class α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
-
-@[simp, norm_cast] theorem cast_add [add_monoid α] [has_one α] (m) : ∀ n, ((m + n : ℕ) : α) = m + n
-| 0     := (add_zero _).symm
-| (n+1) := show ((m + n : ℕ) : α) + 1 = m + (n + 1), by rw [cast_add n, add_assoc]
-
-@[simp] lemma bin_cast_eq [add_monoid α] [has_one α] (n : ℕ) :
-  (nat.bin_cast n : α) = ((n : ℕ) : α) :=
-begin
-  rw nat.bin_cast,
-  apply binary_rec _ _ n,
-  { rw [binary_rec_zero, cast_zero] },
-  { intros b k h,
-    rw [binary_rec_eq, h],
-    { cases b; simp [bit, bit0, bit1] },
-    { simp } },
-end
-
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
-def cast_add_monoid_hom (α : Type*) [add_monoid α] [has_one α] : ℕ →+ α :=
+def cast_add_monoid_hom (α : Type*) [has_nat_cast α] : ℕ →+ α :=
 { to_fun := coe,
   map_add' := cast_add,
   map_zero' := cast_zero }
 
-@[simp] lemma coe_cast_add_monoid_hom [add_monoid α] [has_one α] :
+@[simp] lemma coe_cast_add_monoid_hom [has_nat_cast α] :
   (cast_add_monoid_hom α : ℕ → α) = coe := rfl
-
-@[simp, norm_cast] theorem cast_bit0 [add_monoid α] [has_one α] (n : ℕ) :
-  ((bit0 n : ℕ) : α) = bit0 n := cast_add _ _
-
-@[simp, norm_cast] theorem cast_bit1 [add_monoid α] [has_one α] (n : ℕ) :
-  ((bit1 n : ℕ) : α) = bit1 n :=
-by rw [bit1, cast_add_one, cast_bit0]; refl
-
-lemma cast_two {α : Type*} [add_zero_class α] [has_one α] : ((2 : ℕ) : α) = 2 :=
-by rw [cast_add_one, cast_one, bit0]
-
-@[simp, norm_cast] theorem cast_pred [add_group α] [has_one α] :
-  ∀ {n}, 0 < n → ((n - 1 : ℕ) : α) = n - 1
-| (n+1) h := (add_sub_cancel (n:α) 1).symm
-
-@[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) :
-  ((n - m : ℕ) : α) = n - m :=
-eq_sub_of_add_eq $ by rw [← cast_add, tsub_add_cancel_of_le h]
 
 @[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
 | 0     := (mul_zero _).symm
@@ -140,24 +51,6 @@ begin
   rw nat.mul_div_cancel_left _ (pos_iff_ne_zero.2 this),
   rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
 end
-
-/-- `coe : ℕ → α` as a `ring_hom` -/
-def cast_ring_hom (α : Type*) [non_assoc_semiring α] : ℕ →+* α :=
-{ to_fun := coe,
-  map_one' := cast_one,
-  map_mul' := cast_mul,
-  .. cast_add_monoid_hom α }
-
-@[simp] lemma coe_cast_ring_hom [non_assoc_semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
-
-lemma cast_commute [non_assoc_semiring α] (n : ℕ) (x : α) : commute ↑n x :=
-nat.rec_on n (commute.zero_left x) $ λ n ihn, ihn.add_left $ commute.one_left x
-
-lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * n :=
-(cast_commute n x).eq
-
-lemma commute_cast [non_assoc_semiring α] (x : α) (n : ℕ) : commute x n :=
-(n.cast_commute x).symm
 
 section
 
@@ -215,11 +108,6 @@ end
   |(a : α)| = a :=
 abs_of_nonneg (cast_nonneg a)
 
-lemma coe_nat_dvd [semiring α] {m n : ℕ} (h : m ∣ n) : (m : α) ∣ (n : α) :=
-(nat.cast_ring_hom α).map_dvd h
-
-alias coe_nat_dvd ← has_dvd.dvd.nat_cast
-
 section linear_ordered_field
 variables [linear_ordered_field α]
 
@@ -251,8 +139,13 @@ end nat
 
 namespace prod
 
-variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α]
-  [has_zero β] [has_one β] [has_add β]
+variables {α : Type*} {β : Type*} [has_nat_cast α] [has_nat_cast β]
+
+instance : has_nat_cast (α × β) :=
+{ nat_cast := λ n, (n, n),
+  nat_cast_zero := congr_arg2 prod.mk nat.cast_zero nat.cast_zero,
+  nat_cast_succ := λ n, congr_arg2 prod.mk (nat.cast_succ _) (nat.cast_succ _),
+  .. prod.add_monoid, .. prod.has_one }
 
 @[simp] lemma fst_nat_cast (n : ℕ) : (n : α × β).fst = n :=
 by induction n; simp *
@@ -264,18 +157,19 @@ end prod
 
 section add_monoid_hom_class
 
-variables {A B F : Type*} [add_monoid A] [add_monoid B] [has_one B]
+variables {A B F : Type*} [has_nat_cast B]
 
-lemma ext_nat' [add_monoid_hom_class F ℕ A] (f g : F) (h : f 1 = g 1) : f = g :=
+lemma ext_nat' [add_monoid A] [add_monoid_hom_class F ℕ A] (f g : F) (h : f 1 = g 1) : f = g :=
 fun_like.ext f g $ begin
   apply nat.rec,
   { simp only [nat.nat_zero_eq_zero, map_zero] },
   simp [nat.succ_eq_add_one, h] {contextual := tt}
 end
 
-@[ext] lemma add_monoid_hom.ext_nat : ∀ {f g : ℕ →+ A}, ∀ h : f 1 = g 1, f = g := ext_nat'
+@[ext] lemma add_monoid_hom.ext_nat [add_monoid A] : ∀ {f g : ℕ →+ A}, ∀ h : f 1 = g 1, f = g :=
+ext_nat'
 
-variable [has_one A]
+variable [has_nat_cast A]
 
 -- these versions are primed so that the `ring_hom_class` versions aren't
 lemma eq_nat_cast' [add_monoid_hom_class F ℕ A] (f : F) (h1 : f 1 = 1) :
@@ -324,12 +218,10 @@ ext_nat' f g $ by simp only [map_one]
 end ring_hom_class
 
 @[simp, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
-(eq_nat_cast (ring_hom.id ℕ) n).symm
+rfl
 
-@[simp] theorem nat.cast_with_bot : ∀ (n : ℕ),
-  @coe ℕ (with_bot ℕ) (@coe_to_lift _ _ nat.cast_coe) n = n
-| 0     := rfl
-| (n+1) := by rw [with_bot.coe_add, nat.cast_add, nat.cast_with_bot n]; refl
+theorem nat.cast_with_bot (n : ℕ) :
+  @coe ℕ (with_bot ℕ) (@coe_to_lift _ _ nat.cast_coe) n = n := rfl
 
 -- I don't think `ring_hom_class` is good here, because of the `subsingleton` TC slowness
 instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℕ →+* R) :=
@@ -338,7 +230,7 @@ instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingl
 namespace with_top
 variables {α : Type*}
 
-variables [has_zero α] [has_one α] [has_add α]
+variables [has_nat_cast α]
 
 @[simp, norm_cast] lemma coe_nat : ∀ (n : ℕ), ((n : α) : with_top α) = n
 | 0     := rfl
@@ -377,13 +269,14 @@ namespace pi
 
 variables {α β : Type*}
 
-lemma nat_apply [has_zero β] [has_one β] [has_add β] :
-  ∀ (n : ℕ) (a : α), (n : α → β) a = n
-| 0     a := rfl
-| (n+1) a := by rw [nat.cast_succ, nat.cast_succ, add_apply, nat_apply, one_apply]
+instance [has_nat_cast β] : has_nat_cast (α → β) :=
+{ nat_cast := λ n i, n,
+  nat_cast_zero := funext $ λ i, nat.cast_zero,
+  nat_cast_succ := λ n, funext $ λ i, nat.cast_succ _,
+  .. pi.add_monoid, .. pi.has_one }
 
-@[simp] lemma coe_nat [has_zero β] [has_one β] [has_add β] (n : ℕ) :
-  (n : α → β) = λ _, n :=
-by { ext, rw pi.nat_apply }
+lemma nat_apply [has_nat_cast β] (n : ℕ) (a : α) : (n : α → β) a = n := rfl
+
+@[simp] lemma coe_nat [has_nat_cast β] (n : ℕ) : (n : α → β) = λ _, n := rfl
 
 end pi

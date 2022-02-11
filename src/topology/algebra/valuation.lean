@@ -20,7 +20,7 @@ open_locale classical topological_space
 open set valuation
 noncomputable theory
 
-universes u v
+universes v u
 
 /-- A valued ring is a ring that comes equipped with a distinguished valuation.-/
 class valued (R : Type u) [ring R] :=

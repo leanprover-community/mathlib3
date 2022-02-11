@@ -47,14 +47,7 @@ variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ
                  complex.conj_inv],
       rw [←neg_smul, this, neg_smul_neg],
     end⟩,
-  map_add' := λ x y,
-    begin
-      ext,
-      simp only [neg_mul_eq_neg_mul_symm, ←neg_smul, star_add, add_subgroup.coe_mk,
-                 add_subgroup.coe_add, ←smul_add],
-      refine congr_arg _ _,
-      abel,
-    end,
+  map_add' := λ x y, by { ext, simp [add_sub_comm], },
   map_smul' := λ r x,
     begin
       ext,

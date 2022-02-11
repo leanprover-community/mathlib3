@@ -105,7 +105,9 @@ def unit_iso_inv : Monad_to_Mon C ⋙ Mon_to_Monad C ⟶ 𝟭 _ :=
 @[simps]
 def unit_iso : 𝟭 _ ≅ Monad_to_Mon C ⋙ Mon_to_Monad C :=
 { hom := unit_iso_hom,
-  inv := unit_iso_inv }
+  inv := unit_iso_inv,
+  hom_inv_id' := by { ext, simp },
+  inv_hom_id' := by { ext, simp } }
 
 end Monad_Mon_equiv
 

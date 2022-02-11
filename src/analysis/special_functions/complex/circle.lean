@@ -94,3 +94,18 @@ periodic_exp_map_circle.lift θ
 @[simp] lemma real.angle.exp_map_circle_coe (x : ℝ) :
   real.angle.exp_map_circle x = exp_map_circle x :=
 rfl
+
+@[simp] lemma real.angle.exp_map_circle_neg (θ : real.angle) :
+  real.angle.exp_map_circle (-θ) = (real.angle.exp_map_circle θ)⁻¹ :=
+begin
+  induction θ using real.angle.induction_on,
+  simp_rw [←real.angle.coe_neg, real.angle.exp_map_circle_coe, exp_map_circle_neg]
+end
+
+@[simp] lemma real.angle.arg_exp_map_circle (θ : real.angle) :
+  (arg (real.angle.exp_map_circle θ) : real.angle) = θ :=
+begin
+  induction θ using real.angle.induction_on,
+  rw [real.angle.exp_map_circle_coe, exp_map_circle_apply, exp_mul_I, ←of_real_cos,
+      ←of_real_sin, ←real.angle.cos_coe, ←real.angle.sin_coe, arg_cos_add_sin_mul_I_coe_angle]
+end

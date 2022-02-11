@@ -5,7 +5,7 @@ Authors: Frédéric Dupuis
 -/
 
 import analysis.normed_space.star.basic
-import algebra.star.self_adjoint
+import algebra.star.module
 import analysis.complex.basic
 
 /-!
@@ -29,14 +29,6 @@ open complex
 
 variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ E]
 
-/-- The real part of an element of a star module, as a real-linear map. -/
-@[simps] noncomputable def re : E →ₗ[ℝ] self_adjoint E :=
-{ to_fun := λ x, ⟨(2⁻¹ : ℂ) • (x + star x), by simp only [self_adjoint.mem_iff, star_smul, add_comm,
-                                        star_add_monoid.star_add, star_inv', star_bit0,
-                                        star_one, star_star]⟩,
-  map_add' := λ x y, by { ext, simp [add_add_add_comm] },
-  map_smul' := λ r x, by { ext, simp [smul_comm (2⁻¹ : ℂ) r] } }
-
 /-- The imaginary part of an element of a star module, as a real-linear map. -/
 @[simps] noncomputable def im : E →ₗ[ℝ] self_adjoint E :=
 { to_fun := λ x, ⟨(-I * 2⁻¹) • (x - star x),
@@ -59,7 +51,7 @@ variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ
 
 /-- An element of a complex star module can be decomposed into self-adjoint "real" and "imaginary"
 parts -/
-lemma eq_re_add_im (x : E) : x = re x + I • im x :=
+lemma eq_re_add_im (x : E) : x = re ℝ x + I • im x :=
 by simp only [smul_smul, ← mul_assoc, neg_smul, smul_neg, I_mul_I, one_mul, neg_neg, smul_sub,
   ← add_smul, add_add_sub_cancel, re_apply_coe, smul_add, im_apply_coe, neg_mul,
   inv_eq_one_div, add_halves', one_smul]

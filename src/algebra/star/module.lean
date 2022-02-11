@@ -3,7 +3,7 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Frédéric Dupuis
 -/
-import algebra.star.basic
+import algebra.star.self_adjoint
 import data.equiv.module
 
 /-!
@@ -33,3 +33,17 @@ def star_linear_equiv (R : Type*) {A : Type*}
 { to_fun := star,
   map_smul' := star_smul,
   .. star_add_equiv }
+
+variables (R : Type*) {A : Type*}
+  [semiring R] [invertible (2 : R)] [star_monoid R] [has_trivial_star R]
+  [add_comm_group A] [module R A] [star_add_monoid A] [star_module R A]
+
+/-- The real part of an element of a star module, as a real-linear map. -/
+@[simps] def star_module.re : A →ₗ[R] self_adjoint A :=
+{ to_fun := λ x, ⟨(⅟2 : R) • (x + star x),
+  by simp only [self_adjoint.mem_iff, star_smul, add_comm,
+                  star_add_monoid.star_add, star_inv', star_bit0,
+                  star_one, star_star, star_inv_of (2 : R), star_trivial]⟩,
+  map_add' := λ x y, by { ext, simp [add_add_add_comm] },
+  map_smul' := λ r x, by { ext, by simp [←mul_smul,
+          show ⅟ 2 * r = r * ⅟ 2, from commute.inv_of_left (commute.one_left r).bit0_left] } }

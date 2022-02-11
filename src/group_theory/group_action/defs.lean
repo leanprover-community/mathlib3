@@ -28,7 +28,7 @@ interaction of different group actions,
 
 * `smul_comm_class M N α` and its additive version `vadd_comm_class M N α`;
 * `is_scalar_tower M N α` (no additive version).
-* `is_central_scalar M α` (no additive version).
+* `is_central_scalar M α` and its additive version `is_central_vadd M α`.
 
 ## Notation
 
@@ -183,26 +183,35 @@ is_scalar_tower.smul_assoc x y z
 
 instance semigroup.is_scalar_tower [semigroup α] : is_scalar_tower α α α := ⟨mul_assoc⟩
 
+/-- A typeclass indicating that the right (aka `add_opposite`) and left additive actions by `M` on
+`α` are equal, that is that `M` acts centrally on `α`. This can be thought of as a version of
+commutativity for `+ᵥ`. -/
+class is_central_vadd (M α : Type*) [has_vadd M α] [has_vadd Mᵃᵒᵖ α] : Prop :=
+(op_vadd_eq_vadd : ∀ (m : M) (a : α), add_opposite.op m +ᵥ a = m +ᵥ a)
+
 /-- A typeclass indicating that the right (aka `mul_opposite`) and left actions by `M` on `α` are
 equal, that is that `M` acts centrally on `α`. This can be thought of as a version of commutativity
 for `•`. -/
+@[to_additive is_central_vadd]
 class is_central_scalar (M α : Type*) [has_scalar M α] [has_scalar Mᵐᵒᵖ α] : Prop :=
 (op_smul_eq_smul : ∀ (m : M) (a : α), mul_opposite.op m • a = m • a)
 
+@[to_additive]
 lemma is_central_scalar.unop_smul_eq_smul {M α : Type*} [has_scalar M α] [has_scalar Mᵐᵒᵖ α]
   [is_central_scalar M α] (m : Mᵐᵒᵖ) (a : α) : (mul_opposite.unop m) • a = m • a :=
 mul_opposite.rec (by exact λ m, (is_central_scalar.op_smul_eq_smul _ _).symm) m
 
 export is_central_scalar (op_smul_eq_smul unop_smul_eq_smul)
+export is_central_vadd (op_vadd_eq_vadd unop_vadd_eq_vadd)
 
 -- these instances are very low priority, as there is usually a faster way to find these instances
 
-@[priority 50]
+@[priority 50, to_additive]
 instance smul_comm_class.op_left [has_scalar M α] [has_scalar Mᵐᵒᵖ α]
   [is_central_scalar M α] [has_scalar N α] [smul_comm_class M N α] : smul_comm_class Mᵐᵒᵖ N α :=
 ⟨λ m n a, by rw [←unop_smul_eq_smul m (n • a), ←unop_smul_eq_smul m a, smul_comm]⟩
 
-@[priority 50]
+@[priority 50, to_additive]
 instance smul_comm_class.op_right [has_scalar M α] [has_scalar N α] [has_scalar Nᵐᵒᵖ α]
   [is_central_scalar N α] [smul_comm_class M N α] : smul_comm_class M Nᵐᵒᵖ α :=
 ⟨λ m n a, by rw [←unop_smul_eq_smul n (m • a), ←unop_smul_eq_smul n a, smul_comm]⟩

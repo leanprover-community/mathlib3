@@ -50,14 +50,17 @@ instance {M N} [has_scalar M N] [has_scalar M α] [has_scalar N α] [is_scalar_t
   smul_comm_class M N αᵐᵒᵖ :=
 ⟨λ x y z, unop_injective $ smul_comm _ _ _⟩
 
+@[to_additive is_central_vadd]
 instance (R : Type*) [has_scalar R α] [has_scalar Rᵐᵒᵖ α] [is_central_scalar R α] :
   is_central_scalar R αᵐᵒᵖ :=
 ⟨λ r m, unop_injective $ op_smul_eq_smul _ _⟩
 
+@[to_additive]
 lemma op_smul_eq_op_smul_op {R : Type*} [has_scalar R α] [has_scalar Rᵐᵒᵖ α] [is_central_scalar R α]
   (r : R) (a : α) : op (r • a) = op r • op a :=
 (op_smul_eq_smul r (op a)).symm
 
+@[to_additive]
 lemma unop_smul_eq_unop_smul_unop {R : Type*} [has_scalar R α] [has_scalar Rᵐᵒᵖ α]
   [is_central_scalar R α] (r : Rᵐᵒᵖ) (a : αᵐᵒᵖ) : unop (r • a) = unop r • unop a :=
 (unop_smul_eq_smul r (unop a)).symm
@@ -94,7 +97,8 @@ See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_a
   smul_comm_class α αᵐᵒᵖ α :=
 smul_comm_class.symm _ _ _
 
-instance comm_semigroup.is_central_scalar [comm_semigroup α] : is_central_scalar α α :=
+@[to_additive is_central_vadd] instance comm_semigroup.is_central_scalar [comm_semigroup α] :
+  is_central_scalar α α :=
 ⟨λ r m, mul_comm _ _⟩
 
 /-- Like `monoid.to_mul_action`, but multiplies on the right. -/

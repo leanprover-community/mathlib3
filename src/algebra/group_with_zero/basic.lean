@@ -576,6 +576,7 @@ calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
 calc 1⁻¹ = 1 * 1⁻¹ : by rw [one_mul]
      ... = (1:G₀)  : by simp
 
+@[priority 100]
 instance group_with_zero.to_has_involutive_inv : has_involutive_inv G₀ :=
 { inv := has_inv.inv,
   inv_inv := λ a, begin

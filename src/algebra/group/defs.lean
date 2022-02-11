@@ -667,7 +667,7 @@ by rw [← mul_assoc, mul_left_inv, one_mul]
 lemma inv_eq_of_mul_eq_one (h : a * b = 1) : a⁻¹ = b :=
 left_inv_eq_right_inv (inv_mul_self a) h
 
-@[to_additive]
+@[priority 100, to_additive]
 instance group.to_has_involutive_inv : has_involutive_inv G :=
 { inv := has_inv.inv,
   inv_inv := λ a, inv_eq_of_mul_eq_one (mul_left_inv a) }

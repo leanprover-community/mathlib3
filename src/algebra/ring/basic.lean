@@ -777,6 +777,7 @@ protected def function.surjective.ring
   ring β :=
 { .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
+@[priority 100]
 instance ring.to_has_distrib_neg : has_distrib_neg α :=
 { neg := has_neg.neg,
   neg_neg := _,

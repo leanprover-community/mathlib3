@@ -28,7 +28,7 @@ We provide the natural inclusion from polynomials to formal power series.
 The file starts with setting up the (semi)ring structure on multivariate power series.
 
 `trunc n φ` truncates a formal power series to the polynomial
-that has the same coefficients as `φ`, for all `m ≤ n`, and `0` otherwise.
+that has the same coefficients as `φ`, for all `m < n`, and `0` otherwise.
 
 If the constant coefficient of a formal power series is invertible,
 then this formal power series is invertible.
@@ -67,7 +67,7 @@ Occasionally this leads to proofs that are uglier than expected.
 -/
 
 noncomputable theory
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 
 /-- Multivariate formal power series, where `σ` is the index set of the variables
 and `R` is the coefficient ring.-/
@@ -445,7 +445,7 @@ by { ext m, simp [coeff_monomial, apply_ite f] }
 @[simp] lemma map_C (a : R) : map σ f (C σ R a) = C σ S (f a) :=
 map_monomial _ _ _
 
-@[simp] lemma map_X (s : σ) : map σ f (X s) = X s := by simp [X]
+@[simp] lemma map_X (s : σ) : map σ f (X s) = X s := by simp [mv_power_series.X]
 
 end map
 
@@ -486,10 +486,10 @@ variables [comm_semiring R] (n : σ →₀ ℕ)
 
 /-- Auxiliary definition for the truncation function. -/
 def trunc_fun (φ : mv_power_series σ R) : mv_polynomial σ R :=
-∑ m in finset.Iic n, mv_polynomial.monomial m (coeff R m φ)
+∑ m in finset.Iio n, mv_polynomial.monomial m (coeff R m φ)
 
 lemma coeff_trunc_fun (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
-  (trunc_fun n φ).coeff m = if m ≤ n then coeff R m φ else 0 :=
+  (trunc_fun n φ).coeff m = if m < n then coeff R m φ else 0 :=
 by simp [trunc_fun, mv_polynomial.coeff_sum]
 
 variable (R)
@@ -503,10 +503,10 @@ def trunc : mv_power_series σ R →+ mv_polynomial σ R :=
 variable {R}
 
 lemma coeff_trunc (m : σ →₀ ℕ) (φ : mv_power_series σ R) :
-  (trunc R n φ).coeff m = if m ≤ n then coeff R m φ else 0 :=
+  (trunc R n φ).coeff m = if m < n then coeff R m φ else 0 :=
 by simp [trunc, coeff_trunc_fun]
 
-@[simp] lemma trunc_one : trunc R n 1 = 1 :=
+@[simp] lemma trunc_one (hnn : n ≠ 0) : trunc R n 1 = 1 :=
 mv_polynomial.ext _ _ $ λ m,
 begin
   rw [coeff_trunc, coeff_one],
@@ -514,15 +514,15 @@ begin
   { subst m, simp },
   { symmetry, rw mv_polynomial.coeff_one, exact if_neg (ne.symm H'), },
   { symmetry, rw mv_polynomial.coeff_one, refine if_neg _,
-    intro H', apply H, subst m, intro s, exact nat.zero_le _ }
+    intro H', apply H, subst m, exact ne.bot_lt hnn, }
 end
 
-@[simp] lemma trunc_C (a : R) : trunc R n (C σ R a) = mv_polynomial.C a :=
+@[simp] lemma trunc_C (hnn : n ≠ 0) (a : R) : trunc R n (C σ R a) = mv_polynomial.C a :=
 mv_polynomial.ext _ _ $ λ m,
 begin
   rw [coeff_trunc, coeff_C, mv_polynomial.coeff_C],
   split_ifs with H; refl <|> try {simp * at *},
-  exfalso, apply H, subst m, intro s, exact nat.zero_le _
+  exfalso, apply H, subst m, exact ne.bot_lt hnn,
 end
 
 end trunc
@@ -626,7 +626,7 @@ begin
   rw [coeff_one, if_neg H, coeff_mul,
     ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
     coeff_zero_eq_constant_coeff_apply, h, coeff_inv_of_unit, if_neg H,
-    neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, units.mul_inv_cancel_left,
+    neg_mul, mul_neg, units.mul_inv_cancel_left,
     ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
     finset.insert_erase this, if_neg (not_lt_of_ge $ le_rfl), zero_add, add_comm,
     ← sub_eq_add_neg, sub_eq_zero, finset.sum_congr rfl],
@@ -1125,7 +1125,7 @@ lemma coeff_zero_X_mul (φ : power_series R) : coeff R 0 (X * φ) = 0 := by simp
 -- The following section duplicates the api of `data.polynomial.coeff` and should attempt to keep
 -- up to date with that
 section
-lemma coeff_C_mul_X (x : R) (k n : ℕ) :
+lemma coeff_C_mul_X_pow (x : R) (k n : ℕ) :
   coeff R n (C R x * X ^ k : power_series R) = if n = k then x else 0 :=
 by simp [X_pow_eq, coeff_monomial]
 
@@ -1290,11 +1290,11 @@ by { ext, simp only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
 section trunc
 
 /-- The `n`th truncation of a formal power series to a polynomial -/
-def trunc (n : ℕ) (φ : power_series R) : polynomial R :=
-∑ m in Ico 0 (n + 1), polynomial.monomial m (coeff R m φ)
+def trunc (n : ℕ) (φ : power_series R) : R[X] :=
+∑ m in Ico 0 n, polynomial.monomial m (coeff R m φ)
 
 lemma coeff_trunc (m) (n) (φ : power_series R) :
-  (trunc n φ).coeff m = if m ≤ n then coeff R m φ else 0 :=
+  (trunc n φ).coeff m = if m < n then coeff R m φ else 0 :=
 by simp [trunc, polynomial.coeff_sum, polynomial.coeff_monomial, nat.lt_succ_iff]
 
 @[simp] lemma trunc_zero (n) : trunc n (0 : power_series R) = 0 :=
@@ -1304,7 +1304,7 @@ begin
   split_ifs; refl
 end
 
-@[simp] lemma trunc_one (n) : trunc n (1 : power_series R) = 1 :=
+@[simp] lemma trunc_one (n) : trunc (n + 1) (1 : power_series R) = 1 :=
 polynomial.ext $ λ m,
 begin
   rw [coeff_trunc, coeff_one],
@@ -1312,12 +1312,11 @@ begin
   { subst m, rw [if_pos rfl] },
   { symmetry, exact if_neg (ne.elim (ne.symm H')) },
   { symmetry, refine if_neg _,
-    intro H', apply H, subst m, exact nat.zero_le _ }
+    intro H', apply H, subst m, exact nat.zero_lt_succ _ }
 end
 
-@[simp] lemma trunc_C (n) (a : R) : trunc n (C R a) = polynomial.C a :=
+@[simp] lemma trunc_C (n) (a : R) : trunc (n + 1) (C R a) = polynomial.C a :=
 polynomial.ext $ λ m,
-
 begin
   rw [coeff_trunc, coeff_C, polynomial.coeff_C],
   split_ifs with H; refl <|> try {simp * at *}
@@ -1896,10 +1895,10 @@ end power_series
 
 namespace polynomial
 open finsupp
-variables {σ : Type*} {R : Type*} [comm_semiring R] (φ ψ : polynomial R)
+variables {σ : Type*} {R : Type*} [comm_semiring R] (φ ψ : R[X])
 
 /-- The natural inclusion from polynomials into formal power series.-/
-instance coe_to_power_series : has_coe (polynomial R) (power_series R) :=
+instance coe_to_power_series : has_coe R[X] (power_series R) :=
 ⟨λ φ, power_series.mk $ λ n, coeff φ n⟩
 
 lemma coe_def : (φ : power_series R) = power_series.mk (coeff φ) := rfl
@@ -1912,47 +1911,47 @@ congr_arg (coeff φ) (finsupp.single_eq_same)
   (monomial n a : power_series R) = power_series.monomial R n a :=
 by { ext, simp [coeff_coe, power_series.coeff_monomial, polynomial.coeff_monomial, eq_comm] }
 
-@[simp, norm_cast] lemma coe_zero : ((0 : polynomial R) : power_series R) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : R[X]) : power_series R) = 0 := rfl
 
-@[simp, norm_cast] lemma coe_one : ((1 : polynomial R) : power_series R) = 1 :=
+@[simp, norm_cast] lemma coe_one : ((1 : R[X]) : power_series R) = 1 :=
 begin
   have := coe_monomial 0 (1:R),
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
 @[simp, norm_cast] lemma coe_add :
-  ((φ + ψ : polynomial R) : power_series R) = φ + ψ :=
+  ((φ + ψ : R[X]) : power_series R) = φ + ψ :=
 by { ext, simp }
 
 @[simp, norm_cast] lemma coe_mul :
-  ((φ * ψ : polynomial R) : power_series R) = φ * ψ :=
+  ((φ * ψ : R[X]) : power_series R) = φ * ψ :=
 power_series.ext $ λ n,
 by simp only [coeff_coe, power_series.coeff_mul, coeff_mul]
 
 @[simp, norm_cast] lemma coe_C (a : R) :
-  ((C a : polynomial R) : power_series R) = power_series.C R a :=
+  ((C a : R[X]) : power_series R) = power_series.C R a :=
 begin
   have := coe_monomial 0 a,
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
 @[simp, norm_cast] lemma coe_bit0 :
-  ((bit0 φ : polynomial R) : power_series R) = bit0 (φ : power_series R) :=
+  ((bit0 φ : R[X]) : power_series R) = bit0 (φ : power_series R) :=
 coe_add φ φ
 
 @[simp, norm_cast] lemma coe_bit1 :
-  ((bit1 φ : polynomial R) : power_series R) = bit1 (φ : power_series R) :=
+  ((bit1 φ : R[X]) : power_series R) = bit1 (φ : power_series R) :=
 by rw [bit1, bit1, coe_add, coe_one, coe_bit0]
 
 @[simp, norm_cast] lemma coe_X :
-  ((X : polynomial R) : power_series R) = power_series.X :=
+  ((X : R[X]) : power_series R) = power_series.X :=
 coe_monomial _ _
 
 @[simp] lemma constant_coeff_coe : power_series.constant_coeff R φ = φ.coeff 0 := rfl
 
 variables (R)
 
-lemma coe_injective : function.injective (coe : polynomial R → power_series R) :=
+lemma coe_injective : function.injective (coe : R[X] → power_series R) :=
 λ x y h, by { ext, simp_rw [←coeff_coe, h] }
 
 variables {R φ ψ}
@@ -1972,8 +1971,8 @@ variables (φ ψ)
 The coercion from polynomials to power series
 as a ring homomorphism.
 -/
-def coe_to_power_series.ring_hom : polynomial R →+* power_series R :=
-{ to_fun := (coe : polynomial R → power_series R),
+def coe_to_power_series.ring_hom : R[X] →+* power_series R :=
+{ to_fun := (coe : R[X] → power_series R),
   map_zero' := coe_zero,
   map_one' := coe_one,
   map_add' := coe_add,
@@ -1982,7 +1981,7 @@ def coe_to_power_series.ring_hom : polynomial R →+* power_series R :=
 @[simp] lemma coe_to_power_series.ring_hom_apply : coe_to_power_series.ring_hom φ = φ := rfl
 
 @[simp, norm_cast] lemma coe_pow (n : ℕ):
-  ((φ ^ n : polynomial R) : power_series R) = (φ : power_series R) ^ n :=
+  ((φ ^ n : R[X]) : power_series R) = (φ : power_series R) ^ n :=
 coe_to_power_series.ring_hom.map_pow _ _
 
 variables (A : Type*) [semiring A] [algebra R A]
@@ -1991,7 +1990,7 @@ variables (A : Type*) [semiring A] [algebra R A]
 The coercion from polynomials to power series
 as an algebra homomorphism.
 -/
-def coe_to_power_series.alg_hom : polynomial R →ₐ[R] power_series A :=
+def coe_to_power_series.alg_hom : R[X] →ₐ[R] power_series A :=
 { commutes' := λ r, by simp [algebra_map_apply, power_series.algebra_map_apply],
   ..(power_series.map (algebra_map R A)).comp coe_to_power_series.ring_hom }
 
@@ -2004,7 +2003,7 @@ namespace power_series
 
 variables {R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A] (f : power_series R)
 
-instance algebra_polynomial : algebra (polynomial R) (power_series A) :=
+instance algebra_polynomial : algebra R[X] (power_series A) :=
 ring_hom.to_algebra (polynomial.coe_to_power_series.alg_hom A).to_ring_hom
 
 instance algebra_power_series : algebra (power_series R) (power_series A) :=
@@ -2017,8 +2016,8 @@ ring_hom.to_algebra $ polynomial.coe_to_power_series.ring_hom.comp (algebra_map 
 
 variables (A)
 
-lemma algebra_map_apply' (p : polynomial R) :
-  algebra_map (polynomial R) (power_series A) p = map (algebra_map R A) p := rfl
+lemma algebra_map_apply' (p : R[X]) :
+  algebra_map R[X] (power_series A) p = map (algebra_map R A) p := rfl
 
 lemma algebra_map_apply'' :
   algebra_map (power_series R) (power_series A) f = map (algebra_map R A) f := rfl

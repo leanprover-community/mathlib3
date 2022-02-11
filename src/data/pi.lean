@@ -7,6 +7,7 @@ import tactic.split_ifs
 import tactic.simpa
 import tactic.congr
 import algebra.group.to_additive
+import data.prod
 /-!
 # Instances and theorems on pi types
 
@@ -145,6 +146,16 @@ function.update_injective _ i
 (pi.single_injective _ _).eq_iff
 
 end
+
+/-- The mapping into a product type built from maps into each component. -/
+@[simp] protected def prod (f' : Π i, f i) (g' : Π i, g i) (i : I) : f i × g i := (f' i, g' i)
+
+@[simp] lemma prod_fst_snd : pi.prod (prod.fst : α × β → α) (prod.snd : α × β → β) = id :=
+funext $ λ _, prod.mk.eta
+
+@[simp] lemma prod_snd_fst : pi.prod (prod.snd : α × β → β) (prod.fst : α × β → α) = prod.swap :=
+rfl
+
 end pi
 
 namespace function

@@ -411,7 +411,11 @@ omit σ₁₃ σ₂₁ σ₃₁ σ₃₂
 @[simp] lemma self_comp_symm : e ∘ e.symm = id := e.symm.symm_comp_self
 
 include σ₁₃ σ₂₁ σ₃₂ σ₃₁
-@[simp] lemma coe_symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
+@[simp] lemma symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
+  (e₁.trans e₂).symm = e₂.symm.trans e₁.symm :=
+rfl
+
+lemma coe_symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
   ⇑(e₁.trans e₂).symm = e₁.symm ∘ e₂.symm :=
 rfl
 

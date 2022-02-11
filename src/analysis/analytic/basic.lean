@@ -704,7 +704,8 @@ begin
   obtain ⟨δ, δ_pos, δε⟩ := (metric.is_open_iff.mp t_open) 0 z_mem,
   clear h hc z_mem,
   cases n,
-  { exact norm_eq_zero.mp (by simpa [fin0_apply_norm]
+  { exact norm_eq_zero.mp (by simpa only [fin0_apply_norm, norm_eq_zero, norm_zero, zero_pow',
+      ne.def, nat.one_ne_zero, not_false_iff, mul_zero, norm_le_zero_iff]
       using ht 0 (δε (metric.mem_ball_self δ_pos))), },
   { refine or.elim (em (y = 0)) (λ hy, by simpa only [hy] using p.map_zero) (λ hy, _),
     replace hy := norm_pos_iff.mpr hy,
@@ -718,14 +719,16 @@ begin
         (lt_of_lt_of_le k_norm (min_le_left _ _)) hy },
     have h₂ := calc
       ∥p (λ i, k • y)∥ ≤ c * ∥k • y∥ ^ (n.succ + 1)
-                       : by simpa using ht (k • y) (δε (mem_ball_zero_iff.mpr h₁))
+                       : by simpa only [normed_field.norm_pow, norm_norm]
+                           using ht (k • y) (δε (mem_ball_zero_iff.mpr h₁))
       ...              = ∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
                        : by { simp only [norm_smul, mul_pow], rw pow_succ, ring },
     have h₃ : ∥k∥ * (c * ∥y∥ ^ (n.succ + 1)) < ε, from inv_mul_cancel_right₀ h₀.ne.symm ε ▸
       mul_lt_mul_of_pos_right (lt_of_lt_of_le k_norm (min_le_right _ _)) h₀,
     calc ∥p (λ i, y)∥ = ∥(k⁻¹) ^ n.succ∥ * ∥p (λ i, k • y)∥
-        : by simpa [inv_smul_smul₀ (norm_pos_iff.mp k_pos), norm_smul]
-            using congr_arg norm (p.map_smul_univ (λ i, k⁻¹) (λ i, k • y))
+        : by simpa only [inv_smul_smul₀ (norm_pos_iff.mp k_pos),
+            norm_smul, finset.prod_const, finset.card_fin] using
+            congr_arg norm (p.map_smul_univ (λ (i : fin n.succ), k⁻¹) (λ (i : fin n.succ), k • y))
     ...              ≤ ∥(k⁻¹) ^ n.succ∥ * (∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1))))
         : mul_le_mul_of_nonneg_left h₂ (norm_nonneg _)
     ...              = ∥(k⁻¹ * k) ^ n.succ∥ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))

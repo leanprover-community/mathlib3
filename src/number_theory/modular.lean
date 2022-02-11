@@ -373,8 +373,6 @@ begin
       simp [T', sub_eq_add_neg] } }
 end
 
-lemma move_by_large {x y : ℝ} (h : |x| < 1/2) (h₁ : |x+y|<1/2) (h₂ : 1≤ |y|) : false :=
-  by cases abs_cases x; cases abs_cases y; cases abs_cases (x+y); linarith
 
 /-- Crucial lemma showing that if `c≠0`, then `3/4 < 4/(3c^4)` -/
 lemma ineq_1 (z : ℍ) (g: SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg: g • z ∈ 𝒟ᵒ) (c_ne_z : g 1 0 ≠ 0) :
@@ -442,8 +440,8 @@ begin
   simp,
 end ⟩
 
-/- If c=1, then `g=[[1,a],[0,1]] * S * [[1,d],[0,1]]` -/
-lemma g_is_of_c_is_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
+/- If c=1, then `g=[[1,a],[0,1]] * S * [[1,d],[0,1]]`. -/
+lemma g_eq_of_c_eq_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
   g = T_pow (g 0 0) * S * T_pow (g 1 1) :=
 begin
   rw [T_pow, T_pow],
@@ -508,7 +506,7 @@ begin
       nlinarith, }, },
 end
 
-/-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`.   -/
+/-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`. -/
 lemma move_by_T {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T_pow n) • z) : ℍ) :=
 begin
   rw T_pow,
@@ -528,9 +526,10 @@ begin
 end
 
 /-- If `c=1`, then `[[1,-a],[0,1]]*g = S * [[1,d],[0,1]]`. -/
-lemma T_pow_S_of_g (g : SL(2,ℤ)) (hc : g 1 0 = 1) : T_pow (- g 0 0) * g = S * T_pow (g 1 1) :=
+lemma T_pow_mul_g_eq_S_mul_T_pow_of_c_eq_one (g : SL(2,ℤ))
+  (hc : g 1 0 = 1) : T_pow (- g 0 0) * g = S * T_pow (g 1 1) :=
 begin
-  rw g_is_of_c_is_one g hc,
+  rw g_eq_of_c_eq_one g hc,
   ext i,
   fin_cases i; fin_cases j,
   { simp [T_pow, S, matrix.mul_apply, fin.sum_univ_succ], },
@@ -541,8 +540,7 @@ begin
 end
 
 /-- If both `z` and `g•z` are in `𝒟ᵒ`, then `c` can't be `1`. -/
-lemma false_of_c_eq_one {z : ℍ} {g : SL(2,ℤ)} (hc : g 1 0 = 1) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) :
-false :=
+lemma c_neq_one {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : g 1 0 ≠ 1 :=
 begin
   let z₁ := T_pow (g 1 1) • z,
   let w₁ := T_pow (- g 0 0) • (g • z),
@@ -550,7 +548,8 @@ begin
   have z₁_norm : 1 < norm_sq z₁ := move_by_T hz (g 1 1),
   have w₁_S_z₁ : w₁ = S • z₁,
   { dsimp only [w₁, z₁],
-    rw [← mul_action.mul_smul, T_pow_S_of_g g hc, ← mul_action.mul_smul], },
+    rw [← mul_action.mul_smul, T_pow_mul_g_eq_S_mul_T_pow_of_c_eq_one g hc,
+      ← mul_action.mul_smul], },
   have := norm_sq_S_smul_lt_one z₁_norm,
   rw ← w₁_S_z₁ at this,
   linarith,
@@ -596,6 +595,8 @@ begin
           rw (by simp : z.re + gg 0 1 = ((z:ℂ )+ gg 0 1).re),
           apply congr_arg complex.re,
           exact_mod_cast (gzIs gg h₀ h₁ h₂).symm, },
+        have move_by_large {x y : ℝ} (h : |x| < 1/2) (h₁ : |x+y|<1/2) (h₂ : 1≤ |y|) : false :=
+          by cases abs_cases x; cases abs_cases y; cases abs_cases (x+y); linarith,
         refine move_by_large reZ reZpN _,
         exact_mod_cast  int.one_le_abs hhh, },
       simp only [h₀, nat.one_ne_zero, coe_one, fin.one_eq_zero_iff, ne.def, not_false_iff,
@@ -623,7 +624,7 @@ begin
     -- then show this is impossible
     cases this with hc,
     { -- c = 1
-      exact false_of_c_eq_one hc hz hg, },
+      exact c_neq_one hz hg  hc, },
     { -- c = -1
       have neg_c_one : (-g) 1 0 = 1,
       { have := eq_neg_of_eq_neg this,
@@ -631,7 +632,7 @@ begin
       have neg_g_𝒟 : (-g) • z ∈ 𝒟ᵒ,
       { convert hg using 1,
         simp, },
-      exact false_of_c_eq_one neg_c_one hz neg_g_𝒟, }, },
+      exact c_neq_one hz neg_g_𝒟 neg_c_one, }, },
 end
 
 end fundamental_domain

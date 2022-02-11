@@ -691,9 +691,7 @@ lemma insert_inter (x : α) (s t : set α) : insert x (s ∩ t) = insert x s ∩
 ext $ λ y, or_and_distrib_left
 
 lemma insert_inj (ha : a ∉ s) : insert a s = insert b s ↔ a = b :=
-⟨λ h, eq_of_not_mem_of_mem_insert (h ▸ mem_insert_self _ _) ha, congr_arg _⟩
-
-lemma insert_inj_on (s : set α) : sᶜ.inj_on (λ a, insert a s) := λ a ha b _, (insert_inj ha).1
+⟨λ h, eq_of_not_mem_of_mem_insert (h.subst $ mem_insert a s) ha, congr_arg _⟩
 
 -- useful in proofs by induction
 theorem forall_of_forall_insert {P : α → Prop} {a : α} {s : set α}

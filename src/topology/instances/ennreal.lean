@@ -454,7 +454,7 @@ end⟩
 
 @[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
   tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=
-⟨λ h, by simpa only [function.comp, ennreal.inv_inv]
+⟨λ h, by simpa only [function.comp, inv_inv]
   using (ennreal.continuous_inv.tendsto a⁻¹).comp h,
   (ennreal.continuous_inv.tendsto a).comp⟩
 

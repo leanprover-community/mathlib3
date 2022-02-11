@@ -744,7 +744,7 @@ end
 begin
   refine le_antisymm ((subgroup.closure_le _).2 _) ((subgroup.closure_le _).2 _),
   { exact inv_subset_closure S },
-  { simpa only [set.inv_inv] using inv_subset_closure S⁻¹ },
+  { simpa only [inv_inv] using inv_subset_closure S⁻¹ },
 end
 
 @[to_additive]
@@ -756,7 +756,7 @@ begin
     refine closure_induction hx (λ x hx, submonoid.closure_mono (subset_union_left S S⁻¹)
       (submonoid.subset_closure hx)) (submonoid.one_mem _) (λ x y hx hy, submonoid.mul_mem _ hx hy)
       (λ x hx, _),
-    rwa [←submonoid.mem_closure_inv, set.union_inv, set.inv_inv, set.union_comm] },
+    rwa [←submonoid.mem_closure_inv, set.union_inv, inv_inv, set.union_comm] },
   { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure, inv_subset_closure] }
 end
 

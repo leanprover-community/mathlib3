@@ -60,7 +60,7 @@ open_locale pointwise
 @[simp, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
 
 @[simp, to_additive] protected lemma inv_inv (S : submonoid G) : S⁻¹⁻¹ = S :=
-set_like.coe_injective set.inv_inv
+set_like.coe_injective inv_inv
 
 @[simp, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
 set_like.coe_subset_coe.symm.trans set.inv_subset_inv
@@ -80,7 +80,7 @@ def inv_order_iso : submonoid G ≃o submonoid G :=
 @[to_additive] lemma closure_inv (s : set G) : closure s⁻¹ = (closure s)⁻¹ :=
 begin
   apply le_antisymm,
-  { rw [closure_le, coe_inv, ←set.inv_subset, set.inv_inv],
+  { rw [closure_le, coe_inv, ←set.inv_subset, inv_inv],
     exact subset_closure },
   { rw [inv_le, closure_le, coe_inv, ←set.inv_subset],
     exact subset_closure }

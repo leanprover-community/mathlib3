@@ -418,13 +418,6 @@ section sections
 
 /-! ### Sections of topological vector bundles -/
 
-/-- Type synonym to allow to declare instances that depend on implicit parameters containing `R`
-and `F`. -/
-@[reducible, nolint unused_arguments]
-def topological_vector_bundle.vector_bundle_section (R : Type*) {B : Type*} (F : Type*)
-  (E : B → Type*) [topological_space F] [topological_space (total_space E)] [topological_space B] :=
-continuous_bundle_section E
-
 open topological_vector_bundle
 
 variables {R B E F}

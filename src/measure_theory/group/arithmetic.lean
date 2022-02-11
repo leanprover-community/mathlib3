@@ -131,6 +131,13 @@ measurable_mul.comp_ae_measurable (hf.prod_mk hg)
 
 omit m
 
+@[to_additive]
+instance pi.has_measurable_mul {ι : Type*} {α : ι → Type*} [∀ i, has_mul (α i)]
+  [∀ i, measurable_space (α i)] [∀ i, has_measurable_mul (α i)] :
+  has_measurable_mul (Π i, α i) :=
+⟨λ g, measurable_pi_iff.mpr $ λ i, (measurable_const_mul (g i)).comp $ measurable_pi_apply i,
+ λ g, measurable_pi_iff.mpr $ λ i, (measurable_mul_const (g i)).comp $ measurable_pi_apply i⟩
+
 @[priority 100, to_additive]
 instance has_measurable_mul₂.to_has_measurable_mul [has_measurable_mul₂ M] :
   has_measurable_mul M :=

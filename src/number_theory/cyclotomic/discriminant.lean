@@ -40,8 +40,6 @@ lemma discr_prime [is_cyclotomic_extension {p} K L] [hp : fact (p : ℕ).prime]
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p : ℕ) - 1) / 2) * p ^ ((p : ℕ) - 2) :=
 begin
-  haveI := ne_zero.of_no_zero_smul_divisors K L p,
-  have hprim := zeta_primitive_root p K L,
   have hodd' : (p : ℕ) ≠ 2 := λ hn, by exact hodd.symm (pnat.coe_inj.1 hn.symm),
   have hpos := pos_iff_ne_zero.2 (λ h, (tsub_pos_of_lt (prime.one_lt hp.out)).ne.symm h),
 

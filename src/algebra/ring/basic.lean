@@ -683,8 +683,8 @@ end mul_one_class
 section group
 variables [group α] [has_distrib_neg α]
 
-lemma neg_inv' (a : α) : - a⁻¹ = (- a)⁻¹ :=
-by rw [eq_inv_iff_mul_eq_one, neg_mul, mul_neg,neg_neg, mul_left_inv]
+@[simp] lemma inv_neg' (a : α) : (- a)⁻¹ = - a⁻¹ :=
+by rw [eq_comm, eq_inv_iff_mul_eq_one, neg_mul, mul_neg,neg_neg, mul_left_inv]
 
 end group
 

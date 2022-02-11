@@ -319,11 +319,7 @@ end
 
 @[simp, to_additive]
 lemma order_of_inv (x : G) : order_of x⁻¹ = order_of x :=
-begin
-  apply nat.dvd_antisymm; rewrite order_of_dvd_iff_pow_eq_one,
-  { rw [inv_pow, pow_order_of_eq_one, one_inv], },
-  { nth_rewrite 0 ← (inv_inv x), rw [inv_pow, pow_order_of_eq_one, one_inv], }
-end
+by simp [order_of_eq_order_of_iff]
 
 @[simp, norm_cast, to_additive] lemma order_of_subgroup {H : subgroup G}
   (y: H) : order_of (y : G) = order_of y :=

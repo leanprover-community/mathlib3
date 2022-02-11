@@ -15,7 +15,7 @@ This file defines the construction of the canoncial homomorphism from a product 
 
 Given a family of morphisms `ϕ i : H i →* G` for each `i : I` where elements in the
 image of different morphism commute, we obtain a canoncial morphism
-`pi_hom.hom : (Π (i : I), H i) →* G` that coincides with `ϕ``
+`pi_hom.hom : (Π (i : I), H i) →* G` that coincides with `ϕ`
 
 ## Main definitions
 
@@ -27,7 +27,7 @@ image of different morphism commute, we obtain a canoncial morphism
 
 ## Main theorems
 
-* `pi_hom.hom` conicides with each `ϕ`
+* `pi_hom.hom` conicides with `ϕ i` when restricted to `H i`
 * `pi_hom.range`: The range of `pi_hom.hom` is `⨆ (i : I), (ϕ i).range`
 * The range of `subgroup_pi_hom.hom` is `⨆ (i : I), H i`
 * `pi_hom.pow`: `pi_hom.hom` commutes with potentation.
@@ -48,17 +48,7 @@ lemma coprime_prod_left
   {I : Type*}
   {x : ℕ} {s : I → ℕ} {t : finset I} :
   (∀ (i : I), i ∈ t → nat.coprime (s i) x) → nat.coprime (∏ (i : I) in t, s i) x :=
-begin
-  intro h,
-  rw ← nat.is_coprime_iff_coprime,
-  have := @nat.cast_prod _ ℤ _ s t,
-  simp [ -nat.cast_prod ] at this,
-  rw this,
-  apply is_coprime.prod_left,
-  intros i hi,
-  rw nat.is_coprime_iff_coprime,
-  apply h i hi,
-end
+finset.prod_induction s (λ y, y.coprime x) (λ a b, nat.coprime.mul) (by simp)
 
 section with_group
 
@@ -128,7 +118,7 @@ begin
 
     have hij : i ≠ j, by {simp at hnmem, tauto},
     have hiS : i ∉ S, by {simp at hnmem, tauto},
-    calc ϕ i (g i) * (ϕ j (f j) * (to_fun ϕ f S : G)) -- TODO: Why do I have to mention `ϕ`?
+    calc ϕ i (g i) * (ϕ j (f j) * (to_fun ϕ f S : G))
         = (ϕ i (g i) * ϕ j (f j)) * to_fun ϕ f S : by rw ← mul_assoc
     ... = (ϕ j (f j) * ϕ i (g i)) * to_fun ϕ f S : by { congr' 1, apply fact.elim hcomm _ _ hij }
     ... = ϕ j (f j) * (ϕ i (g i) * to_fun ϕ f S) : by rw mul_assoc

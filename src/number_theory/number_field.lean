@@ -112,11 +112,11 @@ instance [number_field K] : char_zero (𝓞 K) := char_zero.of_module _ K
 /-- The ring of integers of a number field is not a field. -/
 lemma not_is_field [number_field K] : ¬ is_field (𝓞 K) :=
 begin
-  have h_inj : function.injective ⇑(algebra_map ℤ ↥(ring_of_integers K)),
-  { exact ring_hom.injective_int (algebra_map ℤ ↥(ring_of_integers K)) },
+  have h_inj : function.injective ⇑(algebra_map ℤ (𝓞 K)),
+  { exact ring_hom.injective_int (algebra_map ℤ (𝓞 K)) },
   intro hf,
   exact int.not_is_field ((is_integral.is_field_iff_is_field
-    (is_integral_closure.is_integral_algebra ℤ K) h_inj).mpr hf),
+    (is_integral_closure.is_integral_algebra ℤ K) h_inj).mpr hf)
 end
 
 instance [number_field K] : is_dedekind_domain (𝓞 K) :=

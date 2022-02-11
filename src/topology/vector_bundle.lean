@@ -478,7 +478,7 @@ end
 begin
   letI := a.total_space_topology,
   rw (a.trivialization_at b).to_local_homeomorph.continuous_iff_continuous_comp_left
-    (univ_subset_iff.mpr (a.total_space_mk_preimage_source b)),
+    (a.total_space_mk_preimage_source b),
   exact continuous_iff_le_induced.mpr (le_antisymm_iff.mp (a.total_space_mk_inducing b).induced).1,
 end
 

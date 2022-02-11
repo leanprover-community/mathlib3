@@ -872,11 +872,11 @@ forall₂_congr $ λ x hx, e.continuous_within_at_iff_continuous_within_at_comp_
 
 /-- A function is continuous if and only if its composition with a local homeomorphism
 on the left is continuous and its image is contained in the source. -/
-lemma continuous_iff_continuous_comp_left {f : γ → α} (h : univ ⊆ f ⁻¹' e.source) :
+lemma continuous_iff_continuous_comp_left {f : γ → α} (h : f ⁻¹' e.source = univ) :
   continuous f ↔ continuous (e ∘ f) :=
 begin
   simp only [continuous_iff_continuous_on_univ],
-  exact e.continuous_on_iff_continuous_on_comp_left h,
+  exact e.continuous_on_iff_continuous_on_comp_left (eq.symm h).subset,
 end
 
 end continuity

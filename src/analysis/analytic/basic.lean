@@ -761,26 +761,8 @@ end
 lemma asymptotics.is_O.continuous_multilinear_map_eq_zero {n : ℕ} {p : 𝕜 [×n]→L[𝕜] E}
   (h : asymptotics.is_O (λ y, p (λ i, y)) (λ (y : 𝕜), ∥y∥ ^ (n + 1)) (nhds 0)) :
   p = 0 :=
-begin
-  rw ←mk_pi_field_apply_one_eq_self p,
-  suffices h₁ : p (λ i, 1) = 0,
-  { exact ext (λ x, by simp only [mk_pi_field_apply, h₁, zero_apply, smul_zero]) },
-  { obtain ⟨c, c_pos, hc⟩ := h.exists_pos,
-    obtain ⟨t, ht, t_open, z_mem⟩ := eventually_nhds_iff.mp (asymptotics.is_O_with_iff.mp hc),
-    obtain ⟨ε, ε_pos, hε⟩ := (metric.is_open_iff.mp t_open) 0 z_mem,
-    refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ δ δ_pos, _)) (norm_nonneg _)),
-    obtain ⟨γ, γ_pos, γ_norm⟩ :=
-      normed_field.exists_norm_lt 𝕜 (lt_min (mul_pos (inv_pos.mpr c_pos) δ_pos) ε_pos),
-    specialize ht γ (hε (mem_ball_zero_iff.mpr (lt_of_lt_of_le γ_norm (min_le_right (c⁻¹ * δ) ε)))),
-    have norm_p_γ : ∥p (λ i, γ)∥ = ∥p (λ i, 1)∥ * ∥γ∥ ^ n,
-    { rw [mul_comm, ←mk_pi_field_apply_one_eq_self p],
-      simp [norm_smul, normed_field.norm_pow] },
-    rw [norm_p_γ, pow_succ, normed_field.norm_mul, norm_norm, real.norm_eq_abs,
-      abs_eq_self.mpr (pow_nonneg (norm_nonneg _) _), ←mul_assoc] at ht,
-    calc ∥p (λ i, 1)∥ ≤ c * ∥γ∥       : (mul_le_mul_right (pow_pos γ_pos n)).mp ht
-    ...              ≤ c * (c⁻¹ * δ) : by nlinarith [min_le_left (c⁻¹ * δ) ε]
-    ...               ≤ 0 + δ        : by simp [mul_inv_cancel_left₀ c_pos.ne.symm, ←zero_add] }
-end
+by { rw ←mk_pi_field_apply_one_eq_self p,
+     exact ext (λ x, by simp [h.continuous_multilinear_map_apply_eq_zero 1]) }
 
 lemma has_fpower_series_at.eq_zero {p : formal_multilinear_series 𝕜 𝕜 E} {x : 𝕜}
   (h : has_fpower_series_at 0 p x) : p = 0 :=

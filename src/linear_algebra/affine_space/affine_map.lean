@@ -502,35 +502,68 @@ end affine_map
 
 namespace affine_map
 
-variables {k : Type*} {V1 : Type*} {P1 : Type*} {V2 : Type*} [comm_ring k]
-    [add_comm_group V1] [module k V1] [affine_space V1 P1] [add_comm_group V2] [module k V2]
+variables {R : Type*} {k : Type*} {V1 : Type*} {P1 : Type*} {V2 : Type*}
+
+section ring
+variables [ring k] [add_comm_group V1] [affine_space V1 P1] [add_comm_group V2]
+variables [module k V1] [module k V2]
 include V1
 
-/-- If `k` is a commutative ring, then the set of affine maps with codomain in a `k`-module
-is a `k`-module. -/
-instance : module k (P1 →ᵃ[k] V2) :=
+section distrib_mul_action
+variables [monoid R] [distrib_mul_action R V2] [smul_comm_class k R V2]
+
+/-- Affine maps to a module inherit `R`-actions from that module. -/
+instance : distrib_mul_action R (P1 →ᵃ[k] V2) :=
 { smul := λ c f, ⟨c • f, c • f.linear, λ p v, by simp [smul_add]⟩,
   one_smul := λ f, ext $ λ p, one_smul _ _,
   mul_smul := λ c₁ c₂ f, ext $ λ p, mul_smul _ _ _,
   smul_add := λ c f g, ext $ λ p, smul_add _ _ _,
-  smul_zero := λ c, ext $ λ p, smul_zero _,
+  smul_zero := λ c, ext $ λ p, smul_zero _ }
+
+@[simp] lemma coe_smul (c : R) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
+
+@[simp] lemma smul_linear (t : R) (f : P1 →ᵃ[k] V2) : (t • f).linear = t • f.linear := rfl
+
+instance [distrib_mul_action Rᵐᵒᵖ V2] [is_central_scalar R V2] :
+  is_central_scalar R (P1 →ᵃ[k] V2) :=
+{ op_smul_eq_smul := λ r x, ext $ λ _, op_smul_eq_smul _ _ }
+
+end distrib_mul_action
+
+section module
+variables [semiring R] [module R V2] [smul_comm_class k R V2]
+
+/-- The set of affine maps with codomain in a `R`-module is a `R`-module. -/
+instance : module R (P1 →ᵃ[k] V2) :=
+{ smul := (•),
   add_smul := λ c₁ c₂ f, ext $ λ p, add_smul _ _ _,
-  zero_smul := λ f, ext $ λ p, zero_smul _ _ }
+  zero_smul := λ f, ext $ λ p, zero_smul _ _,
+  .. affine_map.distrib_mul_action }
 
-@[simp] lemma coe_smul (c : k) (f : P1 →ᵃ[k] V2) : ⇑(c • f) = c • f := rfl
-
-@[simp] lemma smul_linear (t : k) (f : P1 →ᵃ[k] V2) : (t • f).linear = t • f.linear := rfl
+variables (R)
 
 /-- The space of affine maps between two modules is linearly equivalent to the product of the
 domain with the space of linear maps, by taking the value of the affine map at `(0 : V1)` and the
-linear part. -/
-@[simps] def to_const_prod_linear_map : (V1 →ᵃ[k] V2) ≃ₗ[k] V2 × (V1 →ₗ[k] V2) :=
+linear part.
+
+See note [bundled maps over different rings]-/
+@[simps] def to_const_prod_linear_map : (V1 →ᵃ[k] V2) ≃ₗ[R] V2 × (V1 →ₗ[k] V2) :=
 { to_fun    := λ f, ⟨f 0, f.linear⟩,
   inv_fun   := λ p, p.2.to_affine_map + const k V1 p.1,
   left_inv  := λ f, by { ext, rw f.decomp, simp, },
   right_inv := by { rintros ⟨v, f⟩, ext; simp, },
   map_add'  := by simp,
   map_smul' := by simp, }
+
+end module
+
+end ring
+
+section comm_ring
+
+variables [comm_ring k] [add_comm_group V1] [affine_space V1 P1] [add_comm_group V2]
+variables [module k V1] [module k V2]
+include V1
 
 /-- `homothety c r` is the homothety (also known as dilation) about `c` with scale factor `r`. -/
 def homothety (c : P1) (r : k) : P1 →ᵃ[k] P1 :=
@@ -574,5 +607,7 @@ def homothety_affine (c : P1) : k →ᵃ[k] (P1 →ᵃ[k] P1) :=
 @[simp] lemma coe_homothety_affine (c : P1) :
   ⇑(homothety_affine c : k →ᵃ[k] _) = homothety c :=
 rfl
+
+end comm_ring
 
 end affine_map

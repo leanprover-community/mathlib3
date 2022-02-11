@@ -213,7 +213,7 @@ protected lemma coe_int_mul (m n : ℤ) : (↑(m * n) : ℤ√d) = ↑m * ↑n :
 protected lemma coe_int_inj {m n : ℤ} (h : (↑m : ℤ√d) = ↑n) : m = n :=
 by simpa using congr_arg re h
 
-lemma coe_int_dvd_iff {d : ℤ} (z : ℤ) (a : ℤ√d) : ↑z ∣ a ↔ z ∣ a.re ∧ z ∣ a.im :=
+lemma coe_int_dvd_iff (z : ℤ) (a : ℤ√d) : ↑z ∣ a ↔ z ∣ a.re ∧ z ∣ a.im :=
 begin
   split,
   { rintro ⟨x, rfl⟩,
@@ -226,7 +226,7 @@ begin
 end
 
 @[simp, norm_cast]
-lemma coe_int_dvd_coe_int {d : ℤ} (a b : ℤ) : (a : ℤ√d) ∣ b ↔ a ∣ b :=
+lemma coe_int_dvd_coe_int (a b : ℤ) : (a : ℤ√d) ∣ b ↔ a ∣ b :=
 begin
   rw coe_int_dvd_iff,
   split,
@@ -236,7 +236,7 @@ begin
     exact λ hc, ⟨hc, dvd_zero a⟩ },
 end
 
-protected lemma eq_of_smul_eq_smul_left {d a : ℤ} {b c : ℤ√d}
+protected lemma eq_of_smul_eq_smul_left {a : ℤ} {b c : ℤ√d}
   (ha : a ≠ 0) (h : ↑a * b = a * c) : b = c :=
 begin
   rw ext at h ⊢,
@@ -247,13 +247,13 @@ end
 
 section gcd
 
-lemma gcd_eq_zero_iff {d : ℤ} (a : ℤ√d) : int.gcd a.re a.im = 0 ↔ a = 0 :=
+lemma gcd_eq_zero_iff (a : ℤ√d) : int.gcd a.re a.im = 0 ↔ a = 0 :=
 by simp only [int.gcd_eq_zero_iff, ext, eq_self_iff_true, zero_im, zero_re]
 
-lemma gcd_pos_iff {d : ℤ} (a : ℤ√d) : 0 < int.gcd a.re a.im ↔ a ≠ 0 :=
+lemma gcd_pos_iff (a : ℤ√d) : 0 < int.gcd a.re a.im ↔ a ≠ 0 :=
 pos_iff_ne_zero.trans $ not_congr a.gcd_eq_zero_iff
 
-lemma coprime_of_dvd_coprime {d : ℤ} {a b : ℤ√d} (hcoprime : is_coprime a.re a.im) (hdvd : b ∣ a) :
+lemma coprime_of_dvd_coprime {a b : ℤ√d} (hcoprime : is_coprime a.re a.im) (hdvd : b ∣ a) :
   is_coprime b.re b.im :=
 begin
   apply is_coprime_of_dvd,
@@ -272,7 +272,7 @@ begin
     exact hcoprime.is_unit_of_dvd' ha hb },
 end
 
-lemma exists_coprime_of_gcd_pos {d : ℤ} {a : ℤ√d} (hgcd : 0 < int.gcd a.re a.im) :
+lemma exists_coprime_of_gcd_pos {a : ℤ√d} (hgcd : 0 < int.gcd a.re a.im) :
   ∃ b : ℤ√d, a = ((int.gcd a.re a.im : ℤ) : ℤ√d) * b ∧ is_coprime b.re b.im :=
 begin
   obtain ⟨re, im, H1, Hre, Him⟩ := int.exists_gcd_one hgcd,

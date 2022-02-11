@@ -9,8 +9,7 @@ import control.traversable.basic
 /-!
 # Bitraversable type class
 
-Type class for traversing bifunctors. The concepts and laws are taken from
-<https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Bitraversable.html>
+Type class for traversing bifunctors.
 
 Simple examples of `bitraversable` are `prod` and `sum`. A more elaborate example is
 to define an a-list as:
@@ -23,28 +22,37 @@ Then we can use `f : key → io key'` and `g : val → io val'` to manipulate th
 and value respectively with `bitraverse f g : alist key val → io (alist key' val')`
 
 ## Main definitions
-  * bitraversable - exposes the `bitraverse` function
-  * is_lawful_bitraversable - laws similar to is_lawful_traversable
+
+* `bitraversable`: Bare typeclass to hold the `bitraverse` function.
+* `is_lawful_bitraversable`: Typeclass for the laws of the `bitraverse` function. Similar to
+  `is_lawful_traversable`.
+
+## References
+
+The concepts and laws are taken from
+<https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Bitraversable.html>
 
 ## Tags
 
 traversable bitraversable iterator functor bifunctor applicative
-
 -/
 
 universes u
 
+/-- Lawless bitraversable bifunctor. This only holds data for the bimap and bitraverse. -/
 class bitraversable (t : Type u → Type u → Type u)
   extends bifunctor t :=
 (bitraverse : Π {m : Type u → Type u} [applicative m] {α α' β β'},
   (α → m α') → (β → m β') → t α β → m (t α' β'))
 export bitraversable ( bitraverse )
 
+/-- A bitraversable functor commutes with all applicative functors. -/
 def bisequence {t m} [bitraversable t] [applicative m] {α β} : t (m α) (m β) → m (t α β) :=
 bitraverse id id
 
 open functor
 
+/-- Bifunctor. This typeclass asserts that a lawless bitraversable bifunctor is lawful. -/
 class is_lawful_bitraversable (t : Type u → Type u → Type u) [bitraversable t]
   extends is_lawful_bifunctor t :=
 (id_bitraverse : ∀ {α β} (x : t α β), bitraverse id.mk id.mk x = id.mk x )

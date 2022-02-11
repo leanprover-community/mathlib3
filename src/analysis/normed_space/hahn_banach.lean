@@ -3,10 +3,9 @@ Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.operator_norm
-import analysis.normed_space.extend
 import analysis.convex.cone
-import data.complex.is_R_or_C
+import analysis.normed_space.is_R_or_C
+import analysis.normed_space.extend
 
 /-!
 # Hahn-Banach theorem
@@ -25,34 +24,8 @@ of `𝕜`).
 
 universes u v
 
-/--
-The norm of `x` as an element of `𝕜` (a normed algebra over `ℝ`). This is needed in particular to
-state equalities of the form `g x = norm' 𝕜 x` when `g` is a linear function.
-
-For the concrete cases of `ℝ` and `ℂ`, this is just `∥x∥` and `↑∥x∥`, respectively.
--/
-noncomputable def norm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
-  {E : Type*} [semi_normed_group E] (x : E) : 𝕜 :=
-algebra_map ℝ 𝕜 ∥x∥
-
-lemma norm'_def (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
-  {E : Type*} [semi_normed_group E] (x : E) :
-  norm' 𝕜 x = (algebra_map ℝ 𝕜 ∥x∥) := rfl
-
-lemma norm_norm'
-  (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
-  (A : Type*) [semi_normed_group A]
-  (x : A) : ∥norm' 𝕜 x∥ = ∥x∥ :=
-by rw [norm'_def, norm_algebra_map_eq, norm_norm]
-
-@[simp] lemma norm'_eq_zero_iff
-  (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
-  (A : Type*) [normed_group A] (x : A) :
-  norm' 𝕜 x = 0 ↔ x = 0 :=
-by simp [norm', ← norm_eq_zero, norm_algebra_map_eq]
-
 namespace real
-variables {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E]
+variables {E : Type*} [semi_normed_group E] [normed_space ℝ E]
 
 /-- Hahn-Banach theorem for continuous linear functions over `ℝ`. -/
 theorem exists_extension_norm_eq (p : subspace ℝ E) (f : p →L[ℝ] ℝ) :
@@ -79,7 +52,7 @@ end real
 section is_R_or_C
 open is_R_or_C
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [semi_normed_group F] [semi_normed_space 𝕜 F]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [semi_normed_group F] [normed_space 𝕜 F]
 
 /-- Hahn-Banach theorem for continuous linear functions over `𝕜` satisyfing `is_R_or_C 𝕜`. -/
 theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
@@ -87,7 +60,7 @@ theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
 begin
   letI : module ℝ F := restrict_scalars.module ℝ 𝕜 F,
   letI : is_scalar_tower ℝ 𝕜 F := restrict_scalars.is_scalar_tower _ _ _,
-  letI : semi_normed_space ℝ F := semi_normed_space.restrict_scalars _ 𝕜 _,
+  letI : normed_space ℝ F := normed_space.restrict_scalars _ 𝕜 _,
   -- Let `fr: p →L[ℝ] ℝ` be the real part of `f`.
   let fr := re_clm.comp (f.restrict_scalars ℝ),
   have fr_apply : ∀ x, fr x = re (f x), by { assume x, refl },
@@ -105,10 +78,10 @@ begin
     rw this,
     apply ext,
     { simp only [add_zero, algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add,
-        zero_sub, I_im', zero_mul, of_real_re, eq_self_iff_true, sub_zero, mul_neg_eq_neg_mul_symm,
+        zero_sub, I_im', zero_mul, of_real_re, eq_self_iff_true, sub_zero, mul_neg,
         of_real_neg, mul_re, mul_zero, sub_neg_eq_add, continuous_linear_map.map_smul] },
     { simp only [algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add, zero_sub, I_im',
-        zero_mul, of_real_re, mul_neg_eq_neg_mul_symm, mul_im, zero_add, of_real_neg, mul_re,
+        zero_mul, of_real_re, mul_neg, mul_im, zero_add, of_real_neg, mul_re,
         sub_neg_eq_add, continuous_linear_map.map_smul] } },
   -- And we derive the equality of the norms by bounding on both sides.
   refine ⟨h, le_antisymm _ _⟩,
@@ -129,34 +102,48 @@ variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 open continuous_linear_equiv submodule
 open_locale classical
 
-lemma coord_norm' (x : E) (h : x ≠ 0) : ∥norm' 𝕜 x • coord 𝕜 x h∥ = 1 :=
-by rw [norm_smul, norm_norm', coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
+lemma coord_norm' {x : E} (h : x ≠ 0) : ∥(∥x∥ : 𝕜) • coord 𝕜 x h∥ = 1 :=
+by rw [norm_smul, is_R_or_C.norm_coe_norm, coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
 
 /-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an
     element of the dual space, of norm `1`, whose value on `x` is `∥x∥`. -/
-theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
+theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = ∥x∥ :=
 begin
   let p : submodule 𝕜 E := 𝕜 ∙ x,
-  let f := norm' 𝕜 x • coord 𝕜 x h,
+  let f := (∥x∥ : 𝕜) • coord 𝕜 x h,
   obtain ⟨g, hg⟩ := exists_extension_norm_eq p f,
   refine ⟨g, _, _⟩,
   { rw [hg.2, coord_norm'] },
   { calc g x = g (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw coe_mk
-    ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw ← hg.1
-    ... = norm' 𝕜 x : by simp }
+    ... = ((∥x∥ : 𝕜) • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) : by rw ← hg.1
+    ... = ∥x∥ : by simp }
 end
 
 /-- Variant of Hahn-Banach, eliminating the hypothesis that `x` be nonzero, and choosing
     the dual element arbitrarily when `x = 0`. -/
 theorem exists_dual_vector' [nontrivial E] (x : E) :
-  ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
+  ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = ∥x∥ :=
 begin
   by_cases hx : x = 0,
   { obtain ⟨y, hy⟩ := exists_ne (0 : E),
-    obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = norm' 𝕜 y := exists_dual_vector 𝕜 y hy,
+    obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = ∥y∥ := exists_dual_vector 𝕜 y hy,
     refine ⟨g, hg.left, _⟩,
-    rw [norm'_def, hx, norm_zero, ring_hom.map_zero, continuous_linear_map.map_zero] },
+    simp [hx] },
   { exact exists_dual_vector 𝕜 x hx }
+end
+
+/-- Variant of Hahn-Banach, eliminating the hypothesis that `x` be nonzero, but only ensuring that
+    the dual element has norm at most `1` (this can not be improved for the trivial
+    vector space). -/
+theorem exists_dual_vector'' (x : E) :
+  ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g x = ∥x∥ :=
+begin
+  by_cases hx : x = 0,
+  { refine ⟨0, by simp, _⟩,
+    symmetry,
+    simp [hx], },
+  { rcases exists_dual_vector 𝕜 x hx with ⟨g, g_norm, g_eq⟩,
+    exact ⟨g, g_norm.le, g_eq⟩ }
 end
 
 end dual_vector

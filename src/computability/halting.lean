@@ -18,7 +18,7 @@ A universal partial recursive function, Rice's theorem, and the halting problem.
 open encodable denumerable
 
 namespace nat.partrec
-open computable roption
+open computable part
 
 theorem merge' {f g}
   (hf : nat.partrec f) (hg : nat.partrec g) :
@@ -60,7 +60,7 @@ namespace partrec
 variables {α : Type*} {β : Type*} {γ : Type*} {σ : Type*}
 variables [primcodable α] [primcodable β] [primcodable γ] [primcodable σ]
 
-open computable roption nat.partrec (code) nat.partrec.code
+open computable part nat.partrec (code) nat.partrec.code
 
 theorem merge' {f g : α →. σ}
   (hf : partrec f) (hg : partrec g) :
@@ -137,7 +137,16 @@ by exactI computable (λ a, to_bool (p a))
 /-- A recursively enumerable predicate is one which is the domain of a computable partial function.
  -/
 def re_pred {α} [primcodable α] (p : α → Prop) :=
-partrec (λ a, roption.assert (p a) (λ _, roption.some ()))
+partrec (λ a, part.assert (p a) (λ _, part.some ()))
+
+theorem re_pred.of_eq {α} [primcodable α]
+  {p q : α → Prop}
+  (hp : re_pred p) (H : ∀ a, p a ↔ q a) : re_pred q :=
+(funext (λ a, propext (H a)) : p = q) ▸ hp
+
+theorem partrec.dom_re {α β} [primcodable α] [primcodable β]
+  {f : α →. β} (h : partrec f) : re_pred (λ a, (f a).dom) :=
+(h.map (computable.const ()).to₂).of_eq $ λ n, part.ext $ λ _, by simp [part.dom_iff_mem]
 
 theorem computable_pred.of_eq {α} [primcodable α]
   {p q : α → Prop}
@@ -165,8 +174,8 @@ theorem to_re {p : α → Prop} (hp : computable_pred p) : re_pred p :=
 begin
   obtain ⟨f, hf, rfl⟩ := computable_iff.1 hp,
   unfold re_pred,
-  refine (partrec.cond hf (decidable.partrec.const' (roption.some ())) partrec.none).of_eq
-    (λ n, roption.ext $ λ a, _),
+  refine (partrec.cond hf (decidable.partrec.const' (part.some ())) partrec.none).of_eq
+    (λ n, part.ext $ λ a, _),
   cases a, cases f n; simp
 end
 
@@ -202,6 +211,9 @@ from λ f, ⟨set.mem_image_of_mem _, λ ⟨g, hg, e⟩, (H _ _ e).1 hg⟩,
 λ h, by obtain rfl | rfl := h; simp [computable_pred, set.mem_empty_eq];
   exact ⟨by apply_instance, computable.const _⟩⟩
 
+theorem halting_problem_re (n) : re_pred (λ c, (eval c n).dom) :=
+(eval_part.comp computable.id (computable.const _)).dom_re
+
 theorem halting_problem (n) : ¬ computable_pred (λ c, (eval c n).dom)
 | h := rice {f | (f n).dom} h nat.partrec.zero nat.partrec.none trivial
 
@@ -215,15 +227,22 @@ theorem computable_iff_re_compl_re {p : α → Prop} [decidable_pred p] :
   obtain ⟨k, pk, hk⟩ := partrec.merge
     (h₁.map (computable.const tt).to₂)
     (h₂.map (computable.const ff).to₂) _,
-  { refine partrec.of_eq pk (λ n, roption.eq_some_iff.2 _),
+  { refine partrec.of_eq pk (λ n, part.eq_some_iff.2 _),
     rw hk, simp, apply decidable.em },
   { intros a x hx y hy, simp at hx hy, cases hy.1 hx.1 }
 end⟩⟩
 
+theorem computable_iff_re_compl_re' {p : α → Prop} :
+  computable_pred p ↔ re_pred p ∧ re_pred (λ a, ¬ p a) :=
+by classical; exact computable_iff_re_compl_re
+
+theorem halting_problem_not_re (n) : ¬ re_pred (λ c, ¬ (eval c n).dom)
+| h := halting_problem _ $ computable_iff_re_compl_re'.2 ⟨halting_problem_re _, h⟩
+
 end computable_pred
 
 namespace nat
-open vector roption
+open vector part
 
 /-- A simplified basis for `partrec`. -/
 inductive partrec' : ∀ {n}, (vector ℕ n →. ℕ) → Prop
@@ -243,11 +262,11 @@ theorem to_part {n f} (pf : @partrec' n f) : partrec f :=
 begin
   induction pf,
   case nat.partrec'.prim : n f hf { exact hf.to_prim.to_comp },
-  case nat.partrec'.comp : m n f g _ _ hf hg {
-    exact (vector_m_of_fn (λ i, hg i)).bind (hf.comp snd) },
-  case nat.partrec'.rfind : n f _ hf {
-    have := ((primrec.eq.comp primrec.id (primrec.const 0)).to_comp.comp
-      (hf.comp (vector_cons.comp snd fst))).to₂.part,
+  case nat.partrec'.comp : m n f g _ _ hf hg
+  { exact (vector_m_of_fn (λ i, hg i)).bind (hf.comp snd) },
+  case nat.partrec'.rfind : n f _ hf
+  { have := ((primrec.eq.comp primrec.id (primrec.const 0)).to_comp.comp
+      (hf.comp (vector_cons.comp snd fst))).to₂.partrec₂,
     exact this.rfind },
 end
 
@@ -274,13 +293,15 @@ protected theorem bind {n f g}
     refine fin.cases _ (λ i, _) i; simp *,
     exact prim (nat.primrec'.nth _)
   end)).of_eq $
-λ v, by simp [m_of_fn, roption.bind_assoc, pure]
+λ v, by simp [m_of_fn, part.bind_assoc, pure]
 
 protected theorem map {n f} {g : vector ℕ (n+1) → ℕ}
   (hf : @partrec' n f) (hg : @partrec' (n+1) g) :
   @partrec' n (λ v, (f v).map (λ a, g (a ::ᵥ v))) :=
-by simp [(roption.bind_some_eq_map _ _).symm];
+by simp [(part.bind_some_eq_map _ _).symm];
    exact hf.bind hg
+
+local attribute [-instance] part.has_zero
 
 /-- Analogous to `nat.partrec'` for `ℕ`-valued functions, a predicate for partial recursive
   vector-valued functions.-/
@@ -312,16 +333,17 @@ theorem rfind_opt {n} {f : vector ℕ (n+1) → ℕ}
   (hf : @partrec' (n+1) f) :
   @partrec' n (λ v, nat.rfind_opt (λ a, of_nat (option ℕ) (f (a ::ᵥ v)))) :=
 ((rfind $ (of_prim (primrec.nat_sub.comp (primrec.const 1) primrec.vector_head))
-   .comp₁ (λ n, roption.some (1 - n)) hf)
+   .comp₁ (λ n, part.some (1 - n)) hf)
    .bind ((prim nat.primrec'.pred).comp₁ nat.pred hf)).of_eq $
-λ v, roption.ext $ λ b, begin
-  simp [nat.rfind_opt, -nat.mem_rfind],
+λ v, part.ext $ λ b, begin
+  simp only [nat.rfind_opt, exists_prop, tsub_eq_zero_iff_le, pfun.coe_val,
+    part.mem_bind_iff, part.mem_some_iff, option.mem_def, part.mem_coe],
   refine exists_congr (λ a,
     (and_congr (iff_of_eq _) iff.rfl).trans (and_congr_right (λ h, _))),
-  { congr; funext n,
-    simp, cases f (n ::ᵥ v); simp [nat.succ_ne_zero]; refl },
+  { congr, funext n,
+    simp only [part.some_inj, pfun.coe_val], cases f (n ::ᵥ v); simp [nat.succ_le_succ]; refl },
   { have := nat.rfind_spec h,
-    simp at this,
+    simp only [pfun.coe_val, part.mem_some_iff] at this,
     cases f (a ::ᵥ v) with c, {cases this},
     rw [← option.some_inj, eq_comm], refl }
 end
@@ -332,7 +354,7 @@ suffices ∀ f, nat.partrec f → @partrec' 1 (λ v, f v.head), from
 λ n f hf, begin
   let g, swap,
   exact (comp₁ g (this g hf) (prim nat.primrec'.encode)).of_eq
-    (λ i, by dsimp only [g]; simp [encodek, roption.map_id']),
+    (λ i, by dsimp only [g]; simp [encodek, part.map_id']),
 end,
 λ f hf, begin
   obtain ⟨c, rfl⟩ := exists_code.1 hf,

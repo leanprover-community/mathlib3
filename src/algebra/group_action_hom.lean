@@ -3,8 +3,8 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+import group_theory.group_action.basic
 import algebra.group_ring_action
-import group_theory.group_action
 
 /-!
 # Equivariant homomorphisms
@@ -55,8 +55,7 @@ notation X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
 
 namespace mul_action_hom
 
-instance : has_coe_to_fun (X →[M'] Y) :=
-⟨_, λ c, c.to_fun⟩
+instance : has_coe_to_fun (X →[M'] Y) (λ _, X → Y) := ⟨mul_action_hom.to_fun⟩
 
 variables {M M' X Y}
 
@@ -68,6 +67,8 @@ f.map_smul' m x
 
 theorem ext_iff {f g : X →[M'] Y} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
+
+protected lemma congr_fun {f g : X →[M'] Y} (h : f = g) (x : X) : f x = g x := h ▸ rfl
 
 variables (M M') {X}
 
@@ -108,7 +109,7 @@ variables {A B}
 variables {G} (H)
 
 /-- The canonical map to the left cosets. -/
-def to_quotient : G →[G] quotient_group.quotient H :=
+def to_quotient : G →[G] G ⧸ H :=
 ⟨coe, λ g x, rfl⟩
 
 @[simp] lemma to_quotient_apply (g : G) : to_quotient H g = g := rfl
@@ -134,8 +135,7 @@ instance has_coe : has_coe (A →+[M] B) (A →+ B) :=
 instance has_coe' : has_coe (A →+[M] B) (A →[M] B) :=
 ⟨to_mul_action_hom⟩
 
-instance : has_coe_to_fun (A →+[M] B) :=
-⟨_, to_fun⟩
+instance : has_coe_to_fun (A →+[M] B) (λ _, A → B) := ⟨to_fun⟩
 
 variables {M A B}
 
@@ -149,6 +149,16 @@ variables {M A B}
 
 theorem ext_iff {f g : A →+[M] B} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
+
+protected lemma congr_fun {f g : A →+[M] B} (h : f = g) (x : A) : f x = g x := h ▸ rfl
+
+lemma to_mul_action_hom_injective {f g : A →+[M] B}
+  (h : (f : A →[M] B) = (g : A →[M] B)) : f = g :=
+by { ext a, exact mul_action_hom.congr_fun h a, }
+
+lemma to_add_monoid_hom_injective {f g : A →+[M] B}
+  (h : (f : A →+ B) = (g : A →+ B)) : f = g :=
+by { ext a, exact add_monoid_hom.congr_fun h a, }
 
 @[simp] lemma map_zero (f : A →+[M] B) : f 0 = 0 :=
 f.map_zero'
@@ -212,6 +222,19 @@ ext $ λ x, by rw [comp_apply, id_apply]
   .. (f : A →+ B).inverse g h₁ h₂,
   .. (f : A →[M] B).inverse g h₁ h₂ }
 
+section semiring
+
+variables {R M'} [add_monoid M'] [distrib_mul_action R M']
+
+@[ext] lemma ext_ring
+  {f g : R →+[R] M'} (h : f 1 = g 1) : f = g :=
+by { ext x, rw [← mul_one x, ← smul_eq_mul R, f.map_smul, g.map_smul, h], }
+
+lemma ext_ring_iff {f g : R →+[R] M'} : f = g ↔ f 1 = g 1 :=
+⟨λ h, h ▸ rfl, ext_ring⟩
+
+end semiring
+
 end distrib_mul_action_hom
 
 /-- Equivariant ring homomorphisms. -/
@@ -234,8 +257,7 @@ instance has_coe : has_coe (R →+*[M] S) (R →+* S) :=
 instance has_coe' : has_coe (R →+*[M] S) (R →+[M] S) :=
 ⟨to_distrib_mul_action_hom⟩
 
-instance : has_coe_to_fun (R →+*[M] S) :=
-⟨_, λ c, c.to_fun⟩
+instance : has_coe_to_fun (R →+*[M] S) (λ _, R → S) := ⟨λ c, c.to_fun⟩
 
 variables {M R S}
 
@@ -295,17 +317,16 @@ ext $ λ x, by rw [comp_apply, id_apply]
 end mul_semiring_action_hom
 
 section
-variables (M) {R'} (U : set R') [is_subring U] [is_invariant_subring M U]
-local attribute [instance] subset.ring
+variables (M) {R'} (U : subring R') [is_invariant_subring M U]
 
 /-- The canonical inclusion from an invariant subring. -/
 def is_invariant_subring.subtype_hom : U →+*[M] R' :=
-{ map_smul' := λ m s, rfl, .. is_subring.subtype U }
+{ map_smul' := λ m s, rfl, ..U.subtype }
 
 @[simp] theorem is_invariant_subring.coe_subtype_hom :
   (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
 
 @[simp] theorem is_invariant_subring.coe_subtype_hom' :
-  (is_invariant_subring.subtype_hom M U : U →+* R') = is_subring.subtype U := rfl
+  (is_invariant_subring.subtype_hom M U : U →+* R') = U.subtype := rfl
 
 end

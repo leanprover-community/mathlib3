@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Matt Kempster
 -/
 import geometry.euclidean.triangle
-import analysis.special_functions.trigonometric
 
 /-!
 # Freek № 57: Heron's Formula
@@ -29,7 +28,7 @@ variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
 
 include V
 
-/-- Heron's formula: The area of a triangle with side lengths `a`, `b`, and `c` is
+/-- **Heron's formula**: The area of a triangle with side lengths `a`, `b`, and `c` is
   `√(s * (s - a) * (s - b) * (s - c))` where `s = (a + b + c) / 2` is the semiperimeter.
   We show this by equating this formula to `a * b * sin γ`, where `γ` is the angle opposite
   the side `c`.

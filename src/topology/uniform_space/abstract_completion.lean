@@ -110,7 +110,7 @@ begin
   exact pkg.dense_inducing.extend_eq hf.continuous a
 end
 
-variables [complete_space β] [separated_space β]
+variables [complete_space β]
 
 lemma uniform_continuous_extend : uniform_continuous (pkg.extend f) :=
 begin
@@ -125,6 +125,8 @@ end
 
 lemma continuous_extend : continuous (pkg.extend f) :=
 pkg.uniform_continuous_extend.continuous
+
+variables [separated_space β]
 
 lemma extend_unique (hf : uniform_continuous f) {g : hatα → β} (hg : uniform_continuous g)
   (h : ∀ a : α, f a = g (ι a)) : pkg.extend f = g :=
@@ -263,12 +265,17 @@ open function
 protected def extend₂ (f : α → β → γ) : hatα → hatβ → γ :=
 curry $ (pkg.prod pkg').extend (uncurry f)
 
+section separated_space
 variables [separated_space γ] {f : α → β → γ}
 
 lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry f) (a : α) (b : β) :
   pkg.extend₂ pkg' f (ι a) (ι' b) = f a b :=
 show (pkg.prod pkg').extend (uncurry f) ((pkg.prod pkg').coe (a, b)) = uncurry f (a, b),
   from (pkg.prod pkg').extend_coe hf _
+
+end separated_space
+
+variables {f : α → β → γ}
 
 variables [complete_space γ] (f)
 

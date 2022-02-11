@@ -3,8 +3,23 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison
 -/
-import category_theory.types
 import category_theory.equivalence
+
+/-!
+# Opposite categories
+
+We provide a category instance on `Cᵒᵖ`.
+The morphisms `X ⟶ Y` are defined to be the morphisms `unop Y ⟶ unop X` in `C`.
+
+Here `Cᵒᵖ` is an irreducible typeclass synonym for `C`
+(it is the same one used in the algebra library).
+
+We also provide various mechanisms for constructing opposite morphisms, functors,
+and natural transformations.
+
+Unfortunately, because we do not have a definitional equality `op (op X) = X`,
+there are quite a few variations that are needed in practice.
+-/
 
 universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
@@ -24,8 +39,8 @@ lemma quiver.hom.unop_inj {X Y : Cᵒᵖ} :
   function.injective (quiver.hom.unop : (X ⟶ Y) → (unop Y ⟶ unop X)) :=
 λ _ _ H, congr_arg quiver.hom.op H
 
-@[simp] lemma quiver.hom.unop_op {X Y : C} {f : X ⟶ Y} : f.op.unop = f := rfl
-@[simp] lemma quiver.hom.op_unop {X Y : Cᵒᵖ} {f : X ⟶ Y} : f.unop.op = f := rfl
+@[simp] lemma quiver.hom.unop_op {X Y : C} (f : X ⟶ Y) : f.op.unop = f := rfl
+@[simp] lemma quiver.hom.op_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) : f.unop.op = f := rfl
 
 end quiver
 
@@ -78,6 +93,11 @@ def op_op_equivalence : Cᵒᵖᵒᵖ ≌ C :=
 
 end
 
+/-- If `f` is an isomorphism, so is `f.op` -/
+instance is_iso_op {X Y : C} (f : X ⟶ Y) [is_iso f] : is_iso f.op :=
+⟨⟨(inv f).op,
+  ⟨quiver.hom.unop_inj (by tidy), quiver.hom.unop_inj (by tidy)⟩⟩⟩
+
 /--
 If `f.op` is an isomorphism `f` must be too.
 (This cannot be an instance as it would immediately loop!)
@@ -85,6 +105,9 @@ If `f.op` is an isomorphism `f` must be too.
 lemma is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
 ⟨⟨(inv (f.op)).unop,
   ⟨quiver.hom.op_inj (by simp), quiver.hom.op_inj (by simp)⟩⟩⟩
+
+@[simp] lemma op_inv {X Y : C} (f : X ⟶ Y) [f_iso : is_iso f] : (inv f).op = inv f.op :=
+by { ext, rw [← op_comp, is_iso.inv_hom_id, op_id] }
 
 namespace functor
 
@@ -231,7 +254,7 @@ we can take the "unopposite" of each component obtaining a natural transformatio
 end
 
 section
-variables {F G : C ⥤ Dᵒᵖ}
+variables {F G H : C ⥤ Dᵒᵖ}
 
 /--
 Given a natural transformation `α : F ⟶ G`, for `F G : C ⥤ Dᵒᵖ`,
@@ -244,6 +267,11 @@ taking `unop` of each component gives a natural transformation `G.left_op ⟶ F.
     dsimp,
     simp_rw [← unop_comp, α.naturality]
   end }
+
+@[simp] lemma left_op_id : (𝟙 F : F ⟶ F).left_op = 𝟙 F.left_op := rfl
+
+@[simp] lemma left_op_comp (α : F ⟶ G) (β : G ⟶ H) :
+  (α ≫ β).left_op = β.left_op ≫ α.left_op := rfl
 
 /--
 Given a natural transformation `α : F.left_op ⟶ G.left_op`, for `F G : C ⥤ Dᵒᵖ`,
@@ -262,7 +290,7 @@ taking `op` of each component gives a natural transformation `G ⟶ F`.
 end
 
 section
-variables {F G : Cᵒᵖ ⥤ D}
+variables {F G H : Cᵒᵖ ⥤ D}
 
 /--
 Given a natural transformation `α : F ⟶ G`, for `F G : Cᵒᵖ ⥤ D`,
@@ -275,6 +303,11 @@ taking `op` of each component gives a natural transformation `G.right_op ⟶ F.r
     dsimp,
     simp_rw [← op_comp, α.naturality]
   end }
+
+@[simp] lemma right_op_id : (𝟙 F : F ⟶ F).right_op = 𝟙 F.right_op := rfl
+
+@[simp] lemma right_op_comp (α : F ⟶ G) (β : G ⟶ H) :
+  (α ≫ β).right_op = β.right_op ≫ α.right_op := rfl
 
 /--
 Given a natural transformation `α : F.right_op ⟶ G.right_op`, for `F G : Cᵒᵖ ⥤ D`,
@@ -405,14 +438,6 @@ instance subsingleton_of_unop (A B : Cᵒᵖ) [subsingleton (unop B ⟶ unop A)]
 
 instance decidable_eq_of_unop (A B : Cᵒᵖ) [decidable_eq (unop B ⟶ unop A)] : decidable_eq (A ⟶ B) :=
 (op_equiv A B).decidable_eq
-
-universes v
-variables {α : Type v} [preorder α]
-
-/-- Construct a morphism in the opposite of a preorder category from an inequality. -/
-def op_hom_of_le {U V : αᵒᵖ} (h : unop V ≤ unop U) : U ⟶ V := h.hom.op
-
-lemma le_of_op_hom {U V : αᵒᵖ} (h : U ⟶ V) : unop V ≤ unop U := h.unop.le
 
 namespace functor
 

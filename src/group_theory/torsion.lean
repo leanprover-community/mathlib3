@@ -19,8 +19,10 @@ This file defines torsion groups, i.e. groups where all elements have finite ord
   elements are of finite order. Torsion groups are also known as periodic groups.
 * `add_monoid.is_torsion` the additive version of `monoid.is_torsion`.
 
-## Main results
+## Future work
 
+* Define `tor G` for the torsion subgroup of a group
+* torsion-free groups
 -/
 
 universe u

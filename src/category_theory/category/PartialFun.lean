@@ -12,8 +12,13 @@ import data.pfun
 This defines `PartialFun`, the category of types equipped with partial functions.
 
 This category is classically equivalent to the category of pointed types. The reason it doesn't hold
-classically stems from the difference between `part` and `option`. Both can model partial functions,
-but the latter forces a decidable domain.
+constructively stems from the difference between `part` and `option`. Both can model partial
+functions, but the latter forces a decidable domain.
+
+Precisely, `PartialFun_to_Pointed` turns a partial function `α →. β` into a function
+`option α → option β` by sending to `none` the undefined values (and `none` to `none`). But being
+defined is (generally) undecidable while being sent to `none` is decidable. So it can't be
+constructive.
 
 ## References
 
@@ -49,7 +54,7 @@ instance large_category : large_category.{u} PartialFun :=
 end PartialFun
 
 /-- The forgetful functor from `Type` to `PartialFun` which forgets that the maps are total. -/
-def Type_to_PartialFun : Type ⥤ PartialFun :=
+def Type_to_PartialFun : Type.{u} ⥤ PartialFun :=
 { obj := id,
   map := @pfun.lift,
   map_comp' := λ _ _ _ _ _, pfun.coe_comp _ _ }
@@ -85,7 +90,7 @@ by classical; exact
     part.bind_to_option _ _ }
 
 /-- The equivalence induced by `PartialFun_to_Pointed` and `Pointed_to_PartialFun`.
-`part.equiv_option` with extra steps. -/
+`part.equiv_option` made functorial. -/
 @[simps] noncomputable def PartialFun_equiv_Pointed : PartialFun.{u} ≌ Pointed :=
 by classical; exact
 equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
@@ -136,7 +141,7 @@ equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
       { exact eq.symm (of_not_not h) }
     end)
 
-/-- Forgetting that maps are total and make them total again by adding a point is the same as just
+/-- Forgetting that maps are total and making them total again by adding a point is the same as just
 adding a point. -/
 @[simps] noncomputable def Type_to_PartialFun_iso_PartialFun_to_Pointed :
   Type_to_PartialFun ⋙ PartialFun_to_Pointed ≅ Type_to_Pointed :=

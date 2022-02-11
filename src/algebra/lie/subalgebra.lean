@@ -144,8 +144,6 @@ by { cases p, refl, }
 lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
 set_like.coe_injective
 
-instance : set_like (lie_subalgebra R L) L := ⟨coe, coe_injective⟩
-
 @[norm_cast] theorem coe_set_eq (L₁' L₂' : lie_subalgebra R L) :
   (L₁' : set L) = L₂' ↔ L₁' = L₂' := set_like.coe_set_eq
 

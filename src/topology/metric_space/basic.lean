@@ -1214,7 +1214,7 @@ uniformity_basis_dist.cauchy_seq_iff'
 /-- If the distance between `s n` and `s m`, `n, m ≥ N` is bounded above by `b N`
 and `b` converges to zero, then `s` is a Cauchy sequence.  -/
 lemma cauchy_seq_of_le_tendsto_0 {s : β → α} (b : β → ℝ)
-  (h : ∀ n m N : β, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) (h₀ : tendsto b at_top (nhds 0)) :
+  (h : ∀ n m N : β, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) (h₀ : tendsto b at_top (𝓝 0)) :
   cauchy_seq s :=
 metric.cauchy_seq_iff.2 $ λ ε ε0,
   (metric.tendsto_at_top.1 h₀ ε ε0).imp $ λ N hN m hm n hn,
@@ -1222,6 +1222,20 @@ metric.cauchy_seq_iff.2 $ λ ε ε0,
                     ... ≤ |b N| : le_abs_self _
                     ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
                     ... < ε : (hN _ (le_refl N))
+
+/-- If the distance between `s n` and `s m`, `n ≤ m` is bounded above by `b n`
+and `b` converges to zero, then `s` is a Cauchy sequence.  -/
+lemma cauchy_seq_of_le_tendsto_0' {s : β → α} (b : β → ℝ)
+  (h : ∀ n m : β, n ≤ m → dist (s n) (s m) ≤ b n) (h₀ : tendsto b at_top (𝓝 0)) :
+  cauchy_seq s :=
+begin
+  have L : tendsto (λ n, 2 * b n) at_top (𝓝 (2 * 0)) := h₀.const_mul _,
+  rw mul_zero at L,
+  apply cauchy_seq_of_le_tendsto_0 _ (λ n m N hn hm, _) L,
+  calc dist (s n) (s m) ≤ dist (s N) (s n) + dist (s N) (s m) : dist_triangle_left _ _ _
+  ... ≤ b N + b N : add_le_add (h _ _ hn) (h _ _ hm)
+  ... = 2 * b N : (two_mul _).symm
+end
 
 /-- A Cauchy sequence on the natural numbers is bounded. -/
 theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :

@@ -10,9 +10,8 @@ import measure_theory.constructions.borel_space
 # Analytic sets
 -/
 
-open set function polish_space pi_nat
+open set function polish_space pi_nat topological_space metric filter
 open_locale topological_space
-
 
 namespace measure_theory
 
@@ -34,14 +33,12 @@ lemma analytic_set_empty :
   analytic_set (∅ : set α) :=
 by { rw analytic_set, exact or.inl rfl }
 
-lemma analytic_set_of_polish_space_range
-  {β : Type*} [topological_space β] [polish_space β] (f : β → α) {s : set α}
-  (f_cont : continuous f) (hf : range f = s) :
-  analytic_set s :=
+lemma analytic_set_range_of_polish_space
+  {β : Type*} [topological_space β] [polish_space β] {f : β → α} (f_cont : continuous f) :
+  analytic_set (range f) :=
 begin
   casesI is_empty_or_nonempty β,
-  { have : s = ∅, by rw [← hf, range_eq_empty],
-    rw [this, analytic_set],
+  { rw [range_eq_empty, analytic_set],
     exact or.inl rfl },
   { rw analytic_set,
     obtain ⟨g, g_cont, hg⟩ : ∃ (g : (ℕ → ℕ) → β), continuous g ∧ surjective g :=
@@ -49,6 +46,16 @@ begin
     right,
     refine ⟨f ∘ g, f_cont.comp g_cont, _⟩,
     rwa hg.range_comp }
+end
+
+/-- The image of an open set under a continuous map is analytic. -/
+lemma _root_.is_open.analytic_set_image {β : Type*} [topological_space β] [polish_space β]
+  {s : set β} (hs : is_open s) {f : β → α} (f_cont : continuous f) :
+  analytic_set (f '' s) :=
+begin
+  rw image_eq_range,
+  haveI : polish_space s := hs.polish_space,
+  exact analytic_set_range_of_polish_space (f_cont.comp continuous_subtype_coe),
 end
 
 /-- A set is analytic if and only if it is the continuous image of some Polish space. -/
@@ -66,7 +73,8 @@ begin
     { exact ⟨ℕ → ℕ, by apply_instance, by apply_instance, h⟩ } },
   { rintros ⟨β, h, h', f, f_cont, f_range⟩,
     resetI,
-    exact analytic_set_of_polish_space_range f f_cont f_range }
+    rw ← f_range,
+    exact analytic_set_range_of_polish_space f_cont }
 end
 
 /-- A countable intersection of analytic sets is analytic. -/
@@ -107,7 +115,8 @@ begin
         simp [hx] },
         refine ⟨⟨x, xt⟩, _⟩,
         exact hx 0 } },
-  exact analytic_set_of_polish_space_range F F_cont F_range,
+  rw ← F_range,
+  exact analytic_set_range_of_polish_space F_cont,
 end
 
 /-- A countable union of analytic sets is analytic. -/
@@ -127,7 +136,8 @@ begin
     congr,
     ext1 n,
     rw ← f_range n },
-  exact analytic_set_of_polish_space_range F F_cont F_range,
+  rw ← F_range,
+  exact analytic_set_range_of_polish_space F_cont,
 end
 
 /-- Two sets `u` and `v` in a space with its Borel sigma-algebra are Borel-separable if there
@@ -135,7 +145,7 @@ exists a Borel set containing `u` and disjoint from `v`.
 The definition does not mention the Borel sigma-algebra as it makes sense for any measurable space
 structure, but it is designed to be applied in a Borel situation. -/
 def borel_separable {α : Type*} [measurable_space α] (s t : set α) : Prop :=
-  ∃ u, s ⊆ u ∧ disjoint t u ∧ measurable_set u
+∃ u, s ⊆ u ∧ disjoint t u ∧ measurable_set u
 
 lemma borel_separable.Union {α : Type*} [measurable_space α] (s t : ℕ → set α)
   (h : ∀ m n, borel_separable (s m) (t n)) :
@@ -153,10 +163,22 @@ begin
     exact measurable_set.Inter (λ n, hu m n) }
 end
 
+/-- The hard part of the Lusin separation theorem saying that two disjoint analytic sets are
+contained in disjoint Borel sets (see the full statement in `analytic_set.borel_separable`).
+Here, we prove this when our analytic sets are the ranges of functions from `ℕ → ℕ`.
+-/
 lemma borel_separable_range_of_disjoint [measurable_space α] [borel_space α] [t2_space α]
   {f g : (ℕ → ℕ) → α} (hf : continuous f) (hg : continuous g) (h : disjoint (range f) (range g)) :
   borel_separable (range f) (range g) :=
 begin
+  /- We follow [Kechris, *Classical Descriptive Set Theory* (Theorem 14.7)][kechris1995].
+  If the ranges are not Borel-separated, then one can find two cylinders of length one whose images
+  are not Borel-separated, and then two smaller cylinders of length two whose images are not
+  Borel-separated, and so on. One thus gets two sequences of cylinders, that decrease to two
+  points `x` and `y`. Their images are different by the disjointness assumption, hence contained
+  in two disjoint open sets by the T2 property. By continuity, long enough cylinders around `x`
+  and `y` have images which are separated by these two disjoint open sets, a contradiction.
+  -/
   by_contra hfg,
   have I : ∀ n x y, (¬(borel_separable (f '' (cylinder x n)) (g '' (cylinder y n))))
     → ∃ x' y', x' ∈ cylinder x n ∧ y' ∈ cylinder y n ∧
@@ -167,8 +189,10 @@ begin
     rw [← Union_cylinder_update x n, ← Union_cylinder_update y n, image_Union, image_Union],
     apply borel_separable.Union _ _ (λ i j, _),
     exact H _ _ (update_mem_cylinder _ _ _) (update_mem_cylinder _ _ _) },
+  -- consider the set of pairs of cylinders of some length whose images are not Borel-separated
   let A := {p // ¬(borel_separable (f '' (cylinder (p : ℕ × (ℕ → ℕ) × (ℕ → ℕ)).2.1 p.1))
                                    (g '' (cylinder p.2.2 p.1)))},
+  -- for each such pair, one can find longer cylinders whose images are not Borel-separated either
   have : ∀ (p : A), ∃ (q : A), q.1.1 = p.1.1 + 1 ∧ q.1.2.1 ∈ cylinder p.1.2.1 p.1.1
     ∧ q.1.2.2 ∈ cylinder p.1.2.2 p.1.1,
   { rintros ⟨⟨n, x, y⟩, hp⟩,
@@ -176,13 +200,17 @@ begin
     exact ⟨⟨⟨n+1, x', y'⟩, h'⟩, rfl, hx', hy'⟩ },
   choose F hFn hFx hFy using this,
   let p0 : A := ⟨⟨0, λ n, 0, λ n, 0⟩, by simp [hfg]⟩,
+  -- construct inductively decreasing sequences of cylinders whose images are not separated
   let p : ℕ → A := λ n, F^[n] p0,
   have prec : ∀ n, p (n+1) = F (p n) := λ n, by simp only [p, iterate_succ'],
+  -- check that at the `n`-th step we deal with cylinders of length `n`
   have pn_fst : ∀ n, (p n).1.1 = n,
   { assume n,
     induction n with n IH,
     { refl },
     { simp only [prec, hFn, IH] } },
+  -- check that the cylinders we construct are indeed decreasing, by checking that the coordinates
+  -- are stationary.
   have Ix : ∀ m n, m + 1 ≤ n → (p n).1.2.1 m = (p (m+1)).1.2.1 m,
   { assume m,
     apply nat.le_induction,
@@ -203,8 +231,10 @@ begin
       rw pn_fst,
       exact hmn },
     rw [prec, I, IH] },
+  -- denote by `x` and `y` the limit points of these two sequences of cylinders.
   set x : ℕ → ℕ := λ n, (p (n+1)).1.2.1 n with hx,
   set y : ℕ → ℕ := λ n, (p (n+1)).1.2.2 n with hy,
+  -- by design, the cylinders around these points have images which are not Borel-separable.
   have M : ∀ n, ¬(borel_separable (f '' (cylinder x n)) (g '' (cylinder y n))),
   { assume n,
     convert (p n).2 using 3,
@@ -216,6 +246,7 @@ begin
       assume i hi,
       rw hy,
       exact (Iy i n hi).symm } },
+  -- consider two open sets separating `f x` and `g y`.
   obtain ⟨u, v, u_open, v_open, xu, yv, huv⟩ :
     ∃ u v : set α, is_open u ∧ is_open v ∧ f x ∈ u ∧ g y ∈ v ∧ u ∩ v = ∅,
   { apply t2_separation,
@@ -229,6 +260,7 @@ begin
     exact hg.continuous_at.preimage_mem_nhds (v_open.mem_nhds yv) },
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2 : ℝ)^n < min εx εy :=
     exists_pow_lt_of_lt_one (lt_min εxpos εypos) (by norm_num),
+  -- for large enough `n`, these open sets separate the images of long cylinders around `x` and `y`
   have B : borel_separable (f '' (cylinder x n)) (g '' (cylinder y n)),
   { refine ⟨u, _, _, u_open.measurable_set⟩,
     { rw image_subset_iff,
@@ -244,9 +276,12 @@ begin
       assume z hz,
       rw mem_cylinder_iff_dist_le at hz,
       exact hz.trans_lt (hn.trans_le (min_le_right _ _)) } },
+  -- this is a contradiction.
   exact M n B
 end
 
+/-- The Lusin separation theorem: if two analytic sets are disjoint, then they are contained in
+disjoint Borel sets. -/
 theorem analytic_set.borel_separable [measurable_space α] [borel_space α] [t2_space α]
   {s t : set α} (hs : analytic_set s) (ht : analytic_set t) (h : disjoint s t) :
   borel_separable s t :=
@@ -257,6 +292,155 @@ begin
   rcases ht with rfl|⟨g, g_cont, rfl⟩,
   { exact ⟨univ, subset_univ _, by simp, measurable_set.univ⟩ },
   exact borel_separable_range_of_disjoint f_cont g_cont h,
+end
+
+/-- The Lusin-Souslin theorem: the range of a continuous function defined on a Polish space
+is Borel-measurable when the function is injective. -/
+theorem measurable_set_range_of_continuous_injective {β : Type*} [polish_space α]
+  [topological_space β] [t2_space β] [measurable_space β] [borel_space β]
+  {f : α → β} (f_cont : continuous f) (f_inj : injective f) :
+  measurable_set (range f) :=
+begin
+  /- We follow [Fremlin, *Measure Theory* (volume 4, 423I)][fremlin_vol4].
+  Let `b = {s i}` be a countable basis for `α`. When `s i` and `s j` are disjoint, their images are
+  disjoint analytic sets, hence by the separation theorem one can find a Borel-measurable set
+  `q i j` separating them.
+  Let `E i = closure (f '' s i) ∩ ⋂ j, q i j \ q j i`. It contains `f '' (s i)` and it is
+  measurable. Let `F n = ⋃ E i`, where the union is taken over those `i` for which `diam (s i)`
+  is bounded by some number `u n` tending to `0` with `n`.
+  We claim that `range f = ⋂ F n`, from which the measurability is obvious. The inclusion `⊆` is
+  straightforward. To show `⊇`, consider a point `x` in the intersection. For each `k`, it belongs
+  to some `E i`. Pick a point `y i ∈ E i`. We claim that for such `i` and `j`, the intersection
+  `s i ∩ s j` is nonempty: if it were empty, then thanks to the separating set `q i j` in the
+  definition of `E i` one could not have `x ∈ E i ∩ E j`. Since these two sets have small diameter,
+  it follows that `y i` and `y j` are close. Thus, `y` is a Cauchy sequence, converging to a limit
+  `z`. We claim that `f z = x`, completing the proof. Otherwise, one could find open sets
+  `v` and `w` separating `f z` from `x`. Then, for large `n`, the image `f '' (s i)` would be
+  included in `v` by continuity of `f`, so its closure would be contained in the closure of `v`,
+  and therefore it would be disjoint from `w`. This is a contradiction since `x` belongs both to
+  this closure and to `w`. -/
+  letI : metric_space α := polish_space_metric α,
+  haveI : complete_space α := complete_polish_space_metric α,
+  haveI : second_countable_topology α := polish_space.second_countable α,
+  obtain ⟨b, b_count, b_nonempty, hb⟩ :
+    ∃ b : set (set α), countable b ∧ ∅ ∉ b ∧ is_topological_basis b := exists_countable_basis α,
+  haveI : encodable b := b_count.to_encodable,
+  let A := {p : b × b // disjoint (p.1 : set α) p.2},
+  -- for each pair of disjoint sets in the topological basis `b`, consider Borel sets separating
+  -- their images, by injectivity of `f` and the Lusin separation theorem.
+  have : ∀ (p : A), ∃ (q : set β), f  '' (p.1.1 : set α) ⊆ q ∧ disjoint (f '' (p.1.2 : set α)) q
+    ∧ measurable_set q,
+  { assume p,
+    apply analytic_set.borel_separable ((hb.is_open p.1.1.2).analytic_set_image f_cont)
+      ((hb.is_open p.1.2.2).analytic_set_image f_cont),
+    exact disjoint.image p.2 (f_inj.inj_on univ) (subset_univ _) (subset_univ _) },
+  choose q hq1 hq2 q_meas using this,
+  -- define sets `E s` and `F k` as in the proof sketch above
+  let E : b → set β := λ s, closure (f '' s) ∩
+    (⋂ (t : b) (ht : disjoint s.1 t.1), q ⟨(s, t), ht⟩ \ q ⟨(t, s), ht.symm⟩),
+  obtain ⟨u, u_anti, u_pos, u_lim⟩ :
+    ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ filter.tendsto u filter.at_top (𝓝 0) :=
+      exists_seq_strict_anti_tendsto (0 : ℝ),
+  let F : ℕ → set β := λ n, ⋃ (s : b) (hs : bounded s.1 ∧ diam s.1 ≤ u n), E s,
+  -- it is enough to show that `range f = ⋂ F n`, as the latter set is obviously measurable.
+  suffices : range f = ⋂ n, F n,
+  { have E_meas : ∀ (s : b), measurable_set (E s),
+    { assume b,
+      refine is_closed_closure.measurable_set.inter _,
+      refine measurable_set.Inter (λ s, _),
+      exact measurable_set.Inter_Prop (λ hs, (q_meas _).diff (q_meas _)) },
+    have F_meas : ∀ n, measurable_set (F n),
+    { assume n,
+      refine measurable_set.Union (λ s, _),
+      exact measurable_set.Union_Prop (λ hs, E_meas _) },
+    rw this,
+    exact measurable_set.Inter (λ n, F_meas n) },
+  -- we check both inclusions.
+  apply subset.antisymm,
+  -- we start with the easy inclusion `range f ⊆ ⋂ F n`. One just needs to unfold the definitions.
+  { rintros x ⟨y, rfl⟩,
+    apply mem_Inter.2 (λ n, _),
+    obtain ⟨s, sb, ys, hs⟩ : ∃ (s : set α) (H : s ∈ b), y ∈ s ∧ s ⊆ ball y (u n / 2),
+    { apply hb.mem_nhds_iff.1,
+      exact ball_mem_nhds _ (half_pos (u_pos n)) },
+    have diam_s : diam s ≤ u n,
+    { apply (diam_mono hs bounded_ball).trans,
+      convert diam_ball (half_pos (u_pos n)).le,
+      ring },
+    refine mem_Union.2 ⟨⟨s, sb⟩, _⟩,
+    refine mem_Union.2 ⟨⟨metric.bounded.mono hs bounded_ball, diam_s⟩, _⟩,
+    apply mem_inter (subset_closure (mem_image_of_mem _ ys)),
+    refine mem_Inter.2 (λ t, mem_Inter.2 (λ ht, ⟨_, _⟩)),
+    { apply hq1,
+      exact mem_image_of_mem _ ys },
+    { apply disjoint_left.1 (hq2 ⟨(t, ⟨s, sb⟩), ht.symm⟩),
+      exact mem_image_of_mem _ ys } },
+  -- Now, let us prove the harder inclusion `⋂ F n ⊆ range f`.
+  { assume x hx,
+    -- pick for each `n` a good set `s n` of small diameter for which `x ∈ E (s n)`.
+    have C1 : ∀ n, ∃ (s : b) (hs : bounded s.1 ∧ diam s.1 ≤ u n), x ∈ E s :=
+      λ n, by simpa only [mem_Union] using mem_Inter.1 hx n,
+    choose s hs hxs using C1,
+    have C2 : ∀ n, (s n).1.nonempty,
+    { assume n,
+      rw ← ne_empty_iff_nonempty,
+      assume hn,
+      have := (s n).2,
+      rw hn at this,
+      exact b_nonempty this },
+    -- choose a point `y n ∈ s n`.
+    choose y hy using C2,
+    have I : ∀ m n, ((s m).1 ∩ (s n).1).nonempty,
+    { assume m n,
+      rw ← not_disjoint_iff_nonempty_inter,
+      by_contra' h,
+      have A : x ∈ q ⟨(s m, s n), h⟩ \ q ⟨(s n, s m), h.symm⟩,
+      { have := mem_Inter.1 (hxs m).2 (s n), exact (mem_Inter.1 this h : _) },
+      have B : x ∈ q ⟨(s n, s m), h.symm⟩ \ q ⟨(s m, s n), h⟩,
+      { have := mem_Inter.1 (hxs n).2 (s m), exact (mem_Inter.1 this h.symm : _) },
+      exact A.2 B.1 },
+    -- the points `y n` are nearby, and therefore they form a Cauchy sequence.
+    have cauchy_y : cauchy_seq y,
+    { have : tendsto (λ n, 2 * u n) at_top (𝓝 0), by simpa only [mul_zero] using u_lim.const_mul 2,
+      apply cauchy_seq_of_le_tendsto_0' (λ n, 2 * u n) (λ m n hmn, _) this,
+      rcases I m n with ⟨z, zsm, zsn⟩,
+      calc dist (y m) (y n) ≤ dist (y m) z + dist z (y n) : dist_triangle _ _ _
+      ... ≤ u m + u n :
+        add_le_add ((dist_le_diam_of_mem (hs m).1 (hy m) zsm).trans (hs m).2)
+                   ((dist_le_diam_of_mem (hs n).1 zsn (hy n)).trans (hs n).2)
+      ... ≤ 2 * u m : by linarith [u_anti.antitone hmn] },
+    haveI : nonempty α := ⟨y 0⟩,
+    -- let `z` be its limit.
+    let z := lim at_top y,
+    have y_lim : tendsto y at_top (𝓝 z) := cauchy_y.tendsto_lim,
+    suffices : f z = x, by { rw ← this, exact mem_range_self _ },
+    -- assume for a contradiction that `f z ≠ x`.
+    by_contra' hne,
+    -- introduce disjoint open sets `v` and `w` separating `f z` from `x`.
+    obtain ⟨v, w, v_open, w_open, fzv, xw, hvw⟩ :
+      ∃ v w : set β, is_open v ∧ is_open w ∧ f z ∈ v ∧ x ∈ w ∧ v ∩ w = ∅ :=
+        t2_separation hne,
+    obtain ⟨δ, δpos, hδ⟩ : ∃ δ > (0 : ℝ), ball z δ ⊆ f ⁻¹' v,
+    { apply metric.mem_nhds_iff.1,
+      exact f_cont.continuous_at.preimage_mem_nhds (v_open.mem_nhds fzv) },
+    obtain ⟨n, hn⟩ : ∃ n, u n + dist (y n) z < δ,
+    { have : tendsto (λ n, u n + dist (y n) z) at_top (𝓝 0),
+        by simpa only [add_zero] using u_lim.add (tendsto_iff_dist_tendsto_zero.1 y_lim),
+      exact ((tendsto_order.1 this).2 _ δpos).exists },
+    -- for large enough `n`, the image of `s n` is contained in `v`, by continuity of `f`.
+    have fsnv : f '' (s n) ⊆ v,
+    { rw image_subset_iff,
+      apply subset.trans _ hδ,
+      assume a ha,
+      calc dist a z ≤ dist a (y n) + dist (y n) z : dist_triangle _ _ _
+      ... ≤ u n + dist (y n) z :
+        add_le_add_right ((dist_le_diam_of_mem (hs n).1 ha (hy n)).trans (hs n).2) _
+      ... < δ : hn },
+    -- as `x` belongs to the closure of `f '' (s n)`, it belongs to the closure of `v`.
+    have : x ∈ closure v := closure_mono fsnv (hxs n).1,
+    -- this is a contradiction, as `x` is supposed to belong to `w`, which is disjoint from
+    -- the closure of `v`.
+    exact disjoint_left.1 ((disjoint_iff_inter_eq_empty.2 hvw).closure_left w_open) this xw }
 end
 
 end measure_theory

@@ -16,10 +16,11 @@ open polynomial ideal.quotient
 variables {R : Type*} [comm_ring R]
 
 namespace polynomial
+open_locale polynomial
 namespace eisenstein_criterion_aux
 /- Section for auxiliary lemmas used in the proof of `irreducible_of_eisenstein_criterion`-/
 
-lemma map_eq_C_mul_X_pow_of_forall_coeff_mem {f : polynomial R} {P : ideal R}
+lemma map_eq_C_mul_X_pow_of_forall_coeff_mem {f : R[X]} {P : ideal R}
   (hfP : ∀ (n : ℕ), ↑n < f.degree → f.coeff n ∈ P) :
   map (mk P) f = C ((mk P) f.leading_coeff) * X ^ f.nat_degree :=
 polynomial.ext (λ n, begin
@@ -36,7 +37,7 @@ polynomial.ext (λ n, begin
 end)
 
 lemma le_nat_degree_of_map_eq_mul_X_pow {n : ℕ}
-  {P : ideal R} (hP : P.is_prime) {q : polynomial R} {c : polynomial (R ⧸ P)}
+  {P : ideal R} (hP : P.is_prime) {q : R[X]} {c : polynomial (R ⧸ P)}
   (hq : map (mk P) q = c * X ^ n) (hc0 : c.degree = 0) : n ≤ q.nat_degree :=
 with_bot.coe_le_coe.1
   (calc ↑n = degree (q.map (mk P)) :
@@ -45,12 +46,12 @@ with_bot.coe_le_coe.1
       ... ≤ nat_degree q : degree_le_nat_degree)
 
 lemma eval_zero_mem_ideal_of_eq_mul_X_pow {n : ℕ} {P : ideal R}
-  {q : polynomial R} {c : polynomial (R ⧸ P)}
+  {q : R[X]} {c : polynomial (R ⧸ P)}
   (hq : map (mk P) q = c * X ^ n) (hn0 : 0 < n) : eval 0 q ∈ P :=
 by rw [← coeff_zero_eq_eval_zero, ← eq_zero_iff_mem, ← coeff_map,
     coeff_zero_eq_eval_zero, hq, eval_mul, eval_pow, eval_X, zero_pow hn0, mul_zero]
 
-lemma is_unit_of_nat_degree_eq_zero_of_forall_dvd_is_unit {p q : polynomial R}
+lemma is_unit_of_nat_degree_eq_zero_of_forall_dvd_is_unit {p q : R[X]}
   (hu : ∀ (x : R), C x ∣ p * q → is_unit x) (hpm : p.nat_degree = 0) :
   is_unit p :=
 begin
@@ -70,7 +71,7 @@ variables [is_domain R]
 then if every coefficient in `R` except the leading coefficient is in `P`, and
 the trailing coefficient is not in `P^2` and no non units in `R` divide `f`, then `f` is
 irreducible. -/
-theorem irreducible_of_eisenstein_criterion {f : polynomial R} {P : ideal R} (hP : P.is_prime)
+theorem irreducible_of_eisenstein_criterion {f : R[X]} {P : ideal R} (hP : P.is_prime)
   (hfl : f.leading_coeff ∉ P)
   (hfP : ∀ n : ℕ, ↑n < degree f → f.coeff n ∈ P)
   (hfd0 : 0 < degree f) (h0 : f.coeff 0 ∉ P^2)

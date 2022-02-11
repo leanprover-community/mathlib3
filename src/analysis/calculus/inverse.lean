@@ -272,7 +272,7 @@ begin
       f'symm.nnnorm * (1 - (c * f'symm.nnnorm)^n.succ) / (1 - c * f'symm.nnnorm) * dist (f b) y :=
     calc
       dist (g (u n)) b ≤ dist (g (u n)) (u n) + dist (u n) b : dist_triangle _ _ _
-      ... ≤ f'symm.nnnorm * dist (f (u n)) y + dist (u n) b : add_le_add (A _) (le_refl _)
+      ... ≤ f'symm.nnnorm * dist (f (u n)) y + dist (u n) b : add_le_add (A _) le_rfl
       ... ≤ f'symm.nnnorm * ((c * f'symm.nnnorm)^n * dist (f b) y) +
         f'symm.nnnorm * (1 - (c * f'symm.nnnorm)^n) / (1 - c * f'symm.nnnorm) * dist (f b) y :
           add_le_add (mul_le_mul_of_nonneg_left IH.1 (nnreal.coe_nonneg _)) IH.2

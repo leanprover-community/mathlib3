@@ -88,6 +88,8 @@ begin
   exact ⟨t, z, hz, rfl⟩,
 end
 
+variables [module Rᵐᵒᵖ M] [is_central_scalar R M]
+
 lemma lie_top_eq_of_span_sup_eq_top (N : lie_submodule R L M) :
   (↑⁅(⊤ : lie_ideal R L), N⁆ : submodule R M) =
   (N : submodule R M).map (to_endomorphism R L M x) ⊔ (↑⁅I, N⁆ : submodule R M) :=
@@ -156,15 +158,18 @@ be nilpotent is that the image of the map `L → End(M)` consists of nilpotent e
 Engel's theorem `lie_algebra.is_engelian_of_is_noetherian` states that any Noetherian Lie algebra is
 Engelian. -/
 def lie_algebra.is_engelian : Prop :=
-  ∀ (M : Type u₄) [add_comm_group M], by exactI ∀ [module R M] [lie_ring_module L M], by exactI ∀
-    [lie_module R L M], by exactI ∀ (h : ∀ (x : L), is_nilpotent (to_endomorphism R L M x)),
+  ∀ (M : Type u₄) [add_comm_group M],
+    by exactI ∀ [module R M] [module Rᵐᵒᵖ M],
+    by exactI ∀ [is_central_scalar R M] [lie_ring_module L M],
+    by exactI ∀ [lie_module R L M],
+    by exactI ∀ (h : ∀ (x : L), is_nilpotent (to_endomorphism R L M x)),
     lie_module.is_nilpotent R L M
 
 variables {R L}
 
 lemma lie_algebra.is_engelian_of_subsingleton [subsingleton L] : lie_algebra.is_engelian R L :=
 begin
-  intros M _i1 _i2 _i3 _i4 h,
+  intros M _i1 _i2 _i3 _i4 _i5 _i6 h,
   use 1,
   suffices : (⊤ : lie_ideal R L) = ⊥, { simp [this], },
   haveI := (lie_submodule.subsingleton_iff R L L).mpr infer_instance,
@@ -175,7 +180,7 @@ lemma function.surjective.is_engelian
   {f : L →ₗ⁅R⁆ L₂} (hf : function.surjective f) (h : lie_algebra.is_engelian.{u₁ u₂ u₄} R L) :
   lie_algebra.is_engelian.{u₁ u₃ u₄} R L₂ :=
 begin
-  introsI M _i1 _i2 _i3 _i4 h',
+  introsI M _i1 _i2 _i3 _i4 _i5 _i6 h',
   letI : lie_ring_module L M := lie_ring_module.comp_lie_hom M f,
   letI : lie_module R L M := comp_lie_hom M f,
   have hnp : ∀ x, is_nilpotent (to_endomorphism R L M x) := λ x, h' (f x),
@@ -203,7 +208,7 @@ begin
   { rw ← lie_subalgebra.coe_submodule_le_coe_submodule,
     exact sup_le ((submodule.span_singleton_le_iff_mem _ _).mpr hx₁) hK₂.le, },
   refine ⟨K', _, lt_iff_le_and_ne.mpr ⟨hKK', λ contra, hx₂ (contra.symm ▸ hxK')⟩⟩,
-  introsI M _i1 _i2 _i3 _i4 h,
+  introsI M _i1 _i2 _i3 _i4 _i5 _i6 h,
   obtain ⟨I, hI₁ : (I : lie_subalgebra R K') = lie_subalgebra.of_le hKK'⟩ :=
     lie_subalgebra.exists_nested_lie_ideal_of_le_normalizer hKK' hK',
   have hI₂ : (R ∙ (⟨x, hxK'⟩ : K')) ⊔ I = ⊤,
@@ -227,7 +232,7 @@ Note that this implies all traditional forms of Engel's theorem via
 `lie_algebra.is_nilpotent_iff_forall`. -/
 lemma lie_algebra.is_engelian_of_is_noetherian : lie_algebra.is_engelian R L :=
 begin
-  introsI M _i1 _i2 _i3 _i4 h,
+  introsI M _i1 _i2 _i3 _i4 _i5 _i6 h,
   rw ← is_nilpotent_range_to_endomorphism_iff,
   let L' := (to_endomorphism R L M).range,
   replace h : ∀ (y : L'), is_nilpotent (y : module.End R M),
@@ -254,7 +259,8 @@ begin
       exact submodule.quotient.nontrivial_of_lt_top _ hK₂.lt_top, },
     haveI : lie_module.is_nilpotent R K (L' ⧸ K.to_lie_submodule),
     { refine hK₁ _ (λ x, _),
-      exact module.End.is_nilpotent.mapq _ (lie_algebra.is_nilpotent_ad_of_is_nilpotent (h x)), },
+      convert module.End.is_nilpotent.mapq _
+        (lie_algebra.is_nilpotent_ad_of_is_nilpotent (h x)) using 1 },
     exact nontrivial_max_triv_of_is_nilpotent R K (L' ⧸ K.to_lie_submodule), },
   haveI _i5 : is_noetherian R L' :=
     is_noetherian_of_surjective L _ (linear_map.range_range_restrict (to_endomorphism R L M)),
@@ -270,7 +276,7 @@ begin
 end
 
 /-- Engel's theorem. -/
-lemma lie_module.is_nilpotent_iff_forall :
+lemma lie_module.is_nilpotent_iff_forall [module Rᵐᵒᵖ M] [is_central_scalar R M] :
   lie_module.is_nilpotent R L M ↔ ∀ x, is_nilpotent $ to_endomorphism R L M x :=
 ⟨begin
   introsI h,

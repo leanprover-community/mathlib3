@@ -21,9 +21,7 @@ set_option old_structure_cmd true
 variables {α: Type*} {β: Type*} {f : α → β}
 variables [topological_space α] [topological_space β]
 
-/-- A continuous section of a map `f` is a continuous map that is a right inverse of `f`.
-Note that the `nolint has_inhabited_instance` here has a true matematical meaning: the universal
-cover of a circle is a map that does not admit continuous sections. -/
+/-- A continuous section of a map `f` is a continuous map that is a right inverse of `f`. -/
 @[nolint has_inhabited_instance]
 structure continuous_section (f : α → β) extends right_inv f, C(β, α)
 
@@ -67,9 +65,7 @@ instance bundle_section_to_right_inv : has_coe (bundle_section E) (right_inv (pr
 ⟨bundle_section_equiv_right_inv⟩
 
 /-- A continuous section of a bundle `E` is an element of `Π x, E x` that is continuous when
-coerced to the total space.
-Note that the `nolint has_inhabited_instance` here has a true matematical meaning: the universal
-cover of a circle is a map that does not admit continuous sections. -/
+coerced to the total space. -/
 @[nolint has_inhabited_instance]
 structure continuous_bundle_section (E : B → Type*) [topological_space (total_space E)] :=
 (to_fun : bundle_section E)

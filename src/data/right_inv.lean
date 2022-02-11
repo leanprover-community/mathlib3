@@ -35,8 +35,7 @@ in the first way one can use `.2` whereas the second way would make use of coerc
 
 -/
 
-/-- Bundled right inverse of a function. Note that here the `nolint` has a true mathematical
-meaning: the structure is inhabited iff the function is surjective. -/
+/-- Bundled right inverse of a function. -/
 @[nolint has_inhabited_instance]
 structure right_inv {α: Type*} {β: Type*} (f : α → β) :=
 (to_fun : β → α)

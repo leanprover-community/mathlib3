@@ -1068,7 +1068,7 @@ h.map_prod _ _
 lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
   (f : α →₀ β) (g : α → β → N →* P) :
   ⇑(f.prod g) = f.prod (λ i fi, g i fi) :=
-monoid_hom.coe_prod _ _
+monoid_hom.coe_finset_prod _ _
 
 @[simp, to_additive]
 lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]
@@ -2280,7 +2280,8 @@ variables [monoid G] [mul_action G α] [add_comm_monoid M]
 
 /-- Scalar multiplication acting on the domain.
 
-This is not an instance as it would conflict with the action on the range. -/
+This is not an instance as it would conflict with the action on the range.
+See the `instance_diamonds` test for examples of such conflicts. -/
 def comap_has_scalar : has_scalar G (α →₀ M) :=
 { smul := λ g, map_domain ((•) g) }
 

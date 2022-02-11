@@ -572,7 +572,7 @@ end
 @[reducible, to_additive "`add_haar` is some choice of a Haar measure, on a locally compact
 additive group."]
 def haar [locally_compact_space G] : measure G :=
-haar_measure $ classical.choice (topological_space.positive_compacts.nonempty G)
+haar_measure $ classical.choice topological_space.positive_compacts.nonempty
 
 section unique
 
@@ -604,7 +604,7 @@ theorem is_haar_measure_eq_smul_is_haar_measure
   (μ ν : measure G) [is_haar_measure μ] [is_haar_measure ν] :
   ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (μ = c • ν) :=
 begin
-  have K : positive_compacts G := classical.choice (topological_space.positive_compacts.nonempty G),
+  have K : positive_compacts G := classical.choice topological_space.positive_compacts.nonempty,
   have νpos : 0 < ν K.1 := measure_pos_of_nonempty_interior _ K.2.2,
   have νlt : ν K.1 < ∞ := is_compact.measure_lt_top K.2.1,
   refine ⟨μ K.1 / ν K.1, _, _, _⟩,
@@ -624,8 +624,8 @@ instance regular_of_is_haar_measure
   [locally_compact_space G] [second_countable_topology G] (μ : measure G) [is_haar_measure μ] :
   regular μ :=
 begin
-  have K : positive_compacts G := classical.choice (topological_space.positive_compacts.nonempty G),
-  obtain ⟨c, c0, ctop, hμ⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (μ = c • haar_measure K) :=
+  have K : positive_compacts G := classical.choice topological_space.positive_compacts.nonempty,
+  obtain ⟨c, c0, ctop, hμ⟩ : ∃ c : ℝ≥0∞, c ≠ 0 ∧ c ≠ ∞ ∧ μ = c • haar_measure K :=
     is_haar_measure_eq_smul_is_haar_measure μ _,
   rw hμ,
   exact regular.smul ctop,
@@ -652,7 +652,7 @@ begin
   { rw [map_map continuous_inv.measurable continuous_inv.measurable] at this,
     { simpa only [inv_involutive, involutive.comp_self, map_id] },
     all_goals { apply_instance } },
-  have K : positive_compacts G := classical.choice (topological_space.positive_compacts.nonempty G),
+  have K : positive_compacts G := classical.choice topological_space.positive_compacts.nonempty,
   have : c^2 * μ K.1 = 1^2 * μ K.1,
     by { conv_rhs { rw μeq },
          simp, },

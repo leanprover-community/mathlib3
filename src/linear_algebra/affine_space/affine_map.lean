@@ -189,7 +189,14 @@ instance : add_comm_group (P1 →ᵃ[k] V2) :=
   zero_add := λ f, ext $ λ p, zero_add (f p),
   add_zero := λ f, ext $ λ p, add_zero (f p),
   add_comm := λ f g, ext $ λ p, add_comm (f p) (g p),
-  add_left_neg := λ f, ext $ λ p, add_left_neg (f p) }
+  add_left_neg := λ f, ext $ λ p, add_left_neg (f p),
+  nsmul := λ n f, ⟨n • f, n • f.linear, λ p v, by simp⟩,
+  nsmul_zero' := λ f, ext $ λ p, add_monoid.nsmul_zero' _,
+  nsmul_succ' := λ n f, ext $ λ p, add_monoid.nsmul_succ' _ _,
+  zsmul := λ z f, ⟨z • f, z • f.linear, λ p v, by simp⟩,
+  zsmul_zero' := λ f, ext $ λ p, sub_neg_monoid.zsmul_zero' _,
+  zsmul_succ' := λ z f, ext $ λ p, sub_neg_monoid.zsmul_succ' _ _,
+  zsmul_neg' := λ z f, ext $ λ p, sub_neg_monoid.zsmul_neg' _ _, }
 
 @[simp, norm_cast] lemma coe_zero : ⇑(0 : P1 →ᵃ[k] V2) = 0 := rfl
 @[simp] lemma zero_linear : (0 : P1 →ᵃ[k] V2).linear = 0 := rfl

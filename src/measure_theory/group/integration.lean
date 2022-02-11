@@ -51,7 +51,7 @@ section measurable_inv
 variables [group G] [has_measurable_inv G]
 
 @[to_additive]
-lemma integrable.comp_inv [is_inv_invariant μ] {f : G → F} (hf : integrable f μ) (g : G) :
+lemma integrable.comp_inv [is_inv_invariant μ] {f : G → F} (hf : integrable f μ) :
   integrable (λ t, f t⁻¹) μ :=
 (hf.mono_measure (map_inv_eq_self μ).le).comp_measurable measurable_inv
 
@@ -127,18 +127,18 @@ lemma integral_zero_of_mul_right_eq_neg [is_mul_right_invariant μ] (hf' : ∀ x
 by simp_rw [← self_eq_neg ℝ E, ← integral_neg, ← hf', integral_mul_right_eq_self]
 
 @[to_additive]
-lemma integrable.comp_mul_left [opens_measurable_space F] {f : G → F}
-  [is_mul_left_invariant μ] (hf : integrable f μ) (g : G) : integrable (λ t, f (g * t)) μ :=
+lemma integrable.comp_mul_left {f : G → F} [is_mul_left_invariant μ] (hf : integrable f μ)
+  (g : G) : integrable (λ t, f (g * t)) μ :=
 (hf.mono_measure (map_mul_left_eq_self μ g).le).comp_measurable $ measurable_const_mul g
 
 @[to_additive]
-lemma integrable.comp_mul_right {f : G → F}
-  [is_mul_right_invariant μ] (hf : integrable f μ) (g : G) : integrable (λ t, f (t * g)) μ :=
+lemma integrable.comp_mul_right {f : G → F} [is_mul_right_invariant μ] (hf : integrable f μ)
+  (g : G) : integrable (λ t, f (t * g)) μ :=
 (hf.mono_measure (map_mul_right_eq_self μ g).le).comp_measurable $ measurable_mul_const g
 
 @[to_additive]
-lemma integrable.comp_div_right {f : G → F}
-  [is_mul_right_invariant μ] (hf : integrable f μ) (g : G) : integrable (λ t, f (t / g)) μ :=
+lemma integrable.comp_div_right {f : G → F} [is_mul_right_invariant μ] (hf : integrable f μ)
+  (g : G) : integrable (λ t, f (t / g)) μ :=
 by { simp_rw [div_eq_mul_inv], exact hf.comp_mul_right g⁻¹ }
 
 variables [has_measurable_inv G]

@@ -100,7 +100,7 @@ lemma simple_of_cosimple (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso 
     exact (h _).mp (cokernel.π_of_zero _ _) hx },
   { intro hf,
     suffices : epi f,
-    { resetI, apply abelian.is_iso_of_mono_of_epi },
+    { exactI is_iso_of_mono_of_epi _ },
     apply preadditive.epi_of_cokernel_zero,
     by_contra h',
     exact cokernel_not_iso_of_nonzero hf ((h _).mpr h') }
@@ -113,7 +113,7 @@ begin
   -- `f ≠ 0` means that `kernel.ι f` is not an iso, and hence zero, and hence `f` is a mono.
   haveI : mono f :=
     preadditive.mono_of_kernel_zero (mono_to_simple_zero_of_not_iso (kernel_not_iso_of_nonzero w)),
-  exact abelian.is_iso_of_mono_of_epi f,
+  exact is_iso_of_mono_of_epi f,
 end
 
 lemma cokernel_zero_of_nonzero_to_simple

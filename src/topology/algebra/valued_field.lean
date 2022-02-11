@@ -309,7 +309,7 @@ noncomputable def valued.extension_valuation :
       norm_cast,
       exact valuation.map_mul _ _ _ },
   end,
-  map_add' := λ x y, begin
+  map_add_le_max' := λ x y, begin
     rw le_max_iff,
     apply completion.induction_on₂ x y,
     { have cont : continuous (valued.extension : hat K → Γ₀ K) := valued.continuous_extension,

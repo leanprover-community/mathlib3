@@ -1086,29 +1086,17 @@ set_like.coe_injective $ by simp [coe_prod, prod.one_eq_mk]
 @[to_additive le_prod_iff]
 lemma le_prod_iff {H : subgroup G} {K : subgroup N} {J : subgroup (G × N)} :
   J ≤ H.prod K ↔ map (monoid_hom.fst G N) J ≤ H ∧ map (monoid_hom.snd G N) J ≤ K :=
-begin
-  split,
-  { intros h,
-    split,
-    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).1 },
-    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).2 }, },
-  { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ h, exact ⟨hH ⟨_ , h, rfl⟩, hK ⟨ _, h, rfl⟩⟩, }
-end
+by simpa only [← subgroup.to_submonoid_le] using submonoid.le_prod_iff
 
 @[to_additive prod_le_iff]
 lemma prod_le_iff {H : subgroup G} {K : subgroup N} {J : subgroup (G × N)} :
   H.prod K ≤ J ↔ map (monoid_hom.inl G N) H ≤ J ∧ map (monoid_hom.inr G N) K ≤ J :=
-begin
-  split,
-  { intros h,
-    split,
-    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, one_mem _⟩, },
-    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨one_mem _, hx⟩, }, },
-  { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ ⟨h1, h2⟩,
-    have h1' : (monoid_hom.inl G N) x1 ∈ J, { apply hH, simpa using h1, },
-    have h2' : (monoid_hom.inr G N) x2 ∈ J, { apply hK, simpa using h2, },
-    simpa using mul_mem _ h1' h2', }
-end
+by simpa only [← subgroup.to_submonoid_le] using submonoid.prod_le_iff
+
+@[simp, to_additive prod_eq_bot_iff]
+lemma prod_eq_bot_iff {H : subgroup G} {K : subgroup N} :
+  H.prod K = ⊥ ↔ H = ⊥ ∧ K = ⊥ :=
+by simpa only [← subgroup.to_submonoid_eq] using submonoid.prod_eq_bot_iff
 
 /-- Product of subgroups is isomorphic to their product as groups. -/
 @[to_additive prod_equiv "Product of additive subgroups is isomorphic to their product

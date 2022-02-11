@@ -24,7 +24,7 @@ This file contains results related to classifying algebraically closed fields.
 -/
 universe u
 
-open_locale cardinal
+open_locale cardinal polynomial
 open cardinal
 
 section algebraic_closure
@@ -35,8 +35,8 @@ variables (R L : Type u) [comm_ring R] [comm_ring L] [is_domain L] [algebra R L]
 variables [no_zero_smul_divisors R L] (halg : algebra.is_algebraic R L)
 
 lemma cardinal_mk_le_sigma_polynomial :
-  #L ≤ #(Σ p : polynomial R, { x : L // x ∈ (p.map (algebra_map R L)).roots }) :=
-@mk_le_of_injective L (Σ p : polynomial R, { x : L | x ∈ (p.map (algebra_map R L)).roots })
+  #L ≤ #(Σ p : R[X], { x : L // x ∈ (p.map (algebra_map R L)).roots }) :=
+@mk_le_of_injective L (Σ p : R[X], { x : L | x ∈ (p.map (algebra_map R L)).roots })
   (λ x : L, let p := classical.indefinite_description _ (halg x) in
     ⟨p.1, x,
       begin
@@ -57,19 +57,19 @@ lemma cardinal_mk_le_sigma_polynomial :
 /--The cardinality of an algebraic extension is at most the maximum of the cardinality
 of the base ring or `ω` -/
 lemma cardinal_mk_le_max : #L ≤ max (#R) ω :=
-calc #L ≤ #(Σ p : polynomial R, { x : L // x ∈ (p.map (algebra_map R L)).roots }) :
+calc #L ≤ #(Σ p : R[X], { x : L // x ∈ (p.map (algebra_map R L)).roots }) :
   cardinal_mk_le_sigma_polynomial R L halg
-... = cardinal.sum (λ p : polynomial R, #{ x : L | x ∈ (p.map (algebra_map R L)).roots }) :
+... = cardinal.sum (λ p : R[X], #{ x : L | x ∈ (p.map (algebra_map R L)).roots }) :
   by rw ← mk_sigma; refl
-... ≤ cardinal.sum.{u u} (λ p : polynomial R, ω) : sum_le_sum _ _
+... ≤ cardinal.sum.{u u} (λ p : R[X], ω) : sum_le_sum _ _
   (λ p, le_of_lt begin
     rw [lt_omega_iff_finite],
     classical,
     simp only [← @multiset.mem_to_finset _ _ _ (p.map (algebra_map R L)).roots],
     exact set.finite_mem_finset _,
   end)
-... = #(polynomial R) * ω : sum_const' _ _
-... ≤ max (max (#(polynomial R)) ω) ω : mul_le_max _ _
+... = #R[X] * ω : sum_const' _ _
+... ≤ max (max (#R[X]) ω) ω : mul_le_max _ _
 ... ≤ max (max (max (#R) ω) ω) ω :
   max_le_max (max_le_max polynomial.cardinal_mk_le_max le_rfl) le_rfl
 ... = max (#R) ω : by simp only [max_assoc, max_comm omega.{u}, max_left_comm omega.{u}, max_self]

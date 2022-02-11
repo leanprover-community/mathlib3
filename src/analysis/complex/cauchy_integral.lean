@@ -157,10 +157,10 @@ $2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\part
 over the rectangle. -/
 lemma integral_boundary_rect_of_has_fderiv_at_real_off_countable (f : ℂ → E)
   (f' : ℂ → ℂ →L[ℝ] E) (z w : ℂ) (s : set ℂ) (hs : countable s)
-  (Hc : continuous_on f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
-  (Hd : ∀ x ∈ (re ⁻¹' (Ioo (min z.re w.re) (max z.re w.re)) ∩
-    im ⁻¹' (Ioo (min z.im w.im) (max z.im w.im))) \ s, has_fderiv_at f (f' x) x)
-  (Hi : integrable_on (λ z, I • f' z 1 - f' z I) (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im])) :
+  (Hc : continuous_on f ([z.re, w.re] ×ℂ [z.im, w.im]))
+  (Hd : ∀ x ∈ (Ioo (min z.re w.re) (max z.re w.re) ×ℂ Ioo (min z.im w.im) (max z.im w.im)) \ s,
+    has_fderiv_at f (f' x) x)
+  (Hi : integrable_on (λ z, I • f' z 1 - f' z I) ([z.re, w.re] ×ℂ [z.im, w.im])) :
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
     (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) =
     ∫ x : ℝ in z.re..w.re, ∫ y : ℝ in z.im..w.im, I • f' (x + y * I) 1 - f' (x + y * I) I :=
@@ -176,7 +176,7 @@ begin
   set R : set (ℝ × ℝ) := [z.re, w.re] ×ˢ [w.im, z.im],
   set t : set (ℝ × ℝ) := e ⁻¹' s,
   rw [interval_swap z.im] at Hc Hi, rw [min_comm z.im, max_comm z.im] at Hd,
-  have hR : e ⁻¹' (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [w.im, z.im]) = R := rfl,
+  have hR : e ⁻¹' ([z.re, w.re] ×ℂ [w.im, z.im]) = R := rfl,
   have htc : continuous_on F R, from Hc.comp e.continuous_on hR.ge,
   have htd : ∀ p ∈ Ioo (min z.re w.re) (max z.re w.re) ×ˢ Ioo (min w.im z.im) (max w.im z.im) \ t,
     has_fderiv_at F (F' p) p := λ p hp, (Hd (e p) hp).comp p e.has_fderiv_at,
@@ -198,10 +198,10 @@ $2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\part
 over the rectangle. -/
 lemma integral_boundary_rect_of_continuous_on_of_has_fderiv_at_real (f : ℂ → E)
   (f' : ℂ → ℂ →L[ℝ] E) (z w : ℂ)
-  (Hc : continuous_on f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
-  (Hd : ∀ x ∈ (re ⁻¹' (Ioo (min z.re w.re) (max z.re w.re)) ∩
-    im ⁻¹' (Ioo (min z.im w.im) (max z.im w.im))), has_fderiv_at f (f' x) x)
-  (Hi : integrable_on (λ z, I • f' z 1 - f' z I) (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im])) :
+  (Hc : continuous_on f ([z.re, w.re] ×ℂ [z.im, w.im]))
+  (Hd : ∀ x ∈ (Ioo (min z.re w.re) (max z.re w.re) ×ℂ Ioo (min z.im w.im) (max z.im w.im)),
+    has_fderiv_at f (f' x) x)
+  (Hi : integrable_on (λ z, I • f' z 1 - f' z I) ([z.re, w.re] ×ℂ [z.im, w.im])) :
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
     (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) =
     ∫ x : ℝ in z.re..w.re, ∫ y : ℝ in z.im..w.im, I • f' (x + y * I) 1 - f' (x + y * I) I :=
@@ -214,9 +214,8 @@ the integral of `f` over the boundary of the rectangle is equal to the integral 
 $2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\partial f}{\partial y}$
 over the rectangle. -/
 lemma integral_boundary_rect_of_differentiable_on_real (f : ℂ → E) (z w : ℂ)
-  (Hd : differentiable_on ℝ f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
-  (Hi : integrable_on (λ z, I • fderiv ℝ f z 1 - fderiv ℝ f z I)
-    (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im])) :
+  (Hd : differentiable_on ℝ f ([z.re, w.re] ×ℂ [z.im, w.im]))
+  (Hi : integrable_on (λ z, I • fderiv ℝ f z 1 - fderiv ℝ f z I) ([z.re, w.re] ×ℂ [z.im, w.im])) :
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
     (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) =
     ∫ x : ℝ in z.re..w.re, ∫ y : ℝ in z.im..w.im,
@@ -224,17 +223,16 @@ lemma integral_boundary_rect_of_differentiable_on_real (f : ℂ → E) (z w : �
 integral_boundary_rect_of_has_fderiv_at_real_off_countable f (fderiv ℝ f) z w ∅ countable_empty
   Hd.continuous_on
   (λ x hx, Hd.has_fderiv_at $ by simpa only [← mem_interior_iff_mem_nhds,
-    interior_preimage_re_inter_preimage_im, interval, interior_Icc] using hx.1) Hi
+    interior_re_prod_im, interval, interior_Icc] using hx.1) Hi
 
 /-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
 rectangle equals zero. More precisely, if `f` is continuous on a closed rectangle and is complex
 differentiable at all but countably many points of the corresponding open rectangle, then its
 integral over the boundary of the rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_differentiable_on_off_countable (f : ℂ → E)
-  (z w : ℂ) (s : set ℂ) (hs : countable s)
-  (Hc : continuous_on f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
-  (Hd : ∀ x ∈ (re ⁻¹' (Ioo (min z.re w.re) (max z.re w.re)) ∩
-    im ⁻¹' (Ioo (min z.im w.im) (max z.im w.im))) \ s, differentiable_at ℂ f x) :
+  (z w : ℂ) (s : set ℂ) (hs : countable s) (Hc : continuous_on f ([z.re, w.re] ×ℂ [z.im, w.im]))
+  (Hd : ∀ x ∈ (Ioo (min z.re w.re) (max z.re w.re) ×ℂ Ioo (min z.im w.im) (max z.im w.im)) \ s,
+    differentiable_at ℂ f x) :
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
     (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) -
       I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) = 0 :=
@@ -248,9 +246,9 @@ rectangle equals zero. More precisely, if `f` is continuous on a closed rectangl
 differentiable on the corresponding open rectangle, then its integral over the boundary of the
 rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_continuous_on_of_differentiable_on (f : ℂ → E) (z w : ℂ)
-  (Hc : continuous_on f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im]))
-  (Hd : differentiable_on ℂ f (re ⁻¹' (Ioo (min z.re w.re) (max z.re w.re)) ∩
-    im ⁻¹' (Ioo (min z.im w.im) (max z.im w.im)))) :
+  (Hc : continuous_on f ([z.re, w.re] ×ℂ [z.im, w.im]))
+  (Hd : differentiable_on ℂ f
+    (Ioo (min z.re w.re) (max z.re w.re) ×ℂ Ioo (min z.im w.im) (max z.im w.im))) :
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
     (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) -
       I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) = 0 :=
@@ -261,7 +259,7 @@ integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f z w ∅ coun
 rectangle equals zero. More precisely, if `f` is complex differentiable on a closed rectangle, then
 its integral over the boundary of the rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_differentiable_on (f : ℂ → E) (z w : ℂ)
-  (H : differentiable_on ℂ f (re ⁻¹' [z.re, w.re] ∩ im ⁻¹' [z.im, w.im])) :
+  (H : differentiable_on ℂ f ([z.re, w.re] ×ℂ [z.im, w.im])) :
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
     (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) -
       I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) = 0 :=
@@ -291,15 +289,15 @@ begin
     by simpa only [circle_integral, add_sub_cancel', of_real_exp, ← exp_add, smul_smul,
       ← div_eq_mul_inv, mul_div_cancel_left _ (circle_map_ne_center (real.exp_pos _).ne'),
       circle_map_sub_center, deriv_circle_map],
-  set R := re ⁻¹' [a, b] ∩ im ⁻¹' [0, 2 * π],
+  set R := [a, b] ×ℂ [0, 2 * π],
   set g : ℂ → ℂ := (+) c ∘ exp,
   have hdg : differentiable ℂ g := differentiable_exp.const_add _,
   replace hs : countable (g ⁻¹' s) := (hs.preimage (add_right_injective c)).preimage_cexp,
   have h_maps : maps_to g R A,
   { rintro z ⟨h, -⟩, simpa [dist_eq, g, abs_exp, hle] using h.symm },
   replace hc : continuous_on (f ∘ g) R, from hc.comp hdg.continuous.continuous_on h_maps,
-  replace hd : ∀ z ∈ re ⁻¹' (Ioo (min a b) (max a b)) ∩
-    im ⁻¹' (Ioo (min 0 (2 * π)) (max 0 (2 * π))) \ g ⁻¹' s, differentiable_at ℂ (f ∘ g) z,
+  replace hd : ∀ z ∈ (Ioo (min a b) (max a b) ×ℂ Ioo (min 0 (2 * π)) (max 0 (2 * π))) \ g ⁻¹' s,
+    differentiable_at ℂ (f ∘ g) z,
   { refine λ z hz, (hd (g z) ⟨_, hz.2⟩).comp z (hdg _),
     simpa [g, dist_eq, abs_exp, hle, and.comm] using hz.1.1 },
   simpa [g, circle_map, exp_periodic _, sub_eq_zero, ← exp_add]
@@ -314,8 +312,7 @@ $\oint_{∥z-c∥=R} \frac{f(z)}{z-c}\,dz$ is equal to $2πiy`. -/
 lemma circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendsto
   {c : ℂ} {R : ℝ} (h0 : 0 < R) {f : ℂ → E} {y : E} {s : set ℂ} (hs : countable s)
   (hc : continuous_on f (closed_ball c R \ {c}))
-  (hd : ∀ z ∈ ball c R \ {c} \ s, differentiable_at ℂ f z)
-  (hy : tendsto f (𝓝[{c}ᶜ] c) (𝓝 y)) :
+  (hd : ∀ z ∈ ball c R \ {c} \ s, differentiable_at ℂ f z) (hy : tendsto f (𝓝[{c}ᶜ] c) (𝓝 y)) :
   ∮ z in C(c, R), (z - c)⁻¹ • f z = (2 * π * I : ℂ) • y :=
 begin
   rw [← sub_eq_zero, ← norm_le_zero_iff],

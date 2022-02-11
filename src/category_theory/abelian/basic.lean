@@ -101,12 +101,10 @@ and every epimorphism is the cokernel of some morphism.
 finite products give a terminal object, and in a preadditive category
 any terminal object is a zero object.)
 -/
-class abelian extends preadditive C :=
+class abelian extends preadditive C, normal_mono_category C, normal_epi_category C :=
 [has_finite_products : has_finite_products C]
 [has_kernels : has_kernels C]
 [has_cokernels : has_cokernels C]
-(normal_mono : Π {X Y : C} (f : X ⟶ Y) [mono f], normal_mono f)
-(normal_epi : Π {X Y : C} (f : X ⟶ Y) [epi f], normal_epi f)
 
 attribute [instance, priority 100] abelian.has_finite_products
 attribute [instance, priority 100] abelian.has_kernels abelian.has_cokernels
@@ -137,28 +135,6 @@ section to_non_preadditive_abelian
 def non_preadditive_abelian : non_preadditive_abelian C := { ..‹abelian C› }
 
 end to_non_preadditive_abelian
-
-section strong
-local attribute [instance] abelian.normal_epi abelian.normal_mono
-
-/-- In an abelian category, every epimorphism is strong. -/
-lemma strong_epi_of_epi {P Q : C} (f : P ⟶ Q) [epi f] : strong_epi f := by apply_instance
-
-/-- In an abelian category, every monomorphism is strong. -/
-lemma strong_mono_of_mono {P Q : C} (f : P ⟶ Q) [mono f] : strong_mono f := by apply_instance
-
-end strong
-
-section mono_epi_iso
-variables {X Y : C} (f : X ⟶ Y)
-
-local attribute [instance] strong_epi_of_epi
-
-/-- In an abelian category, a monomorphism which is also an epimorphism is an isomorphism. -/
-lemma is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
-is_iso_of_mono_of_strong_epi _
-
-end mono_epi_iso
 
 section factor
 local attribute [instance] non_preadditive_abelian
@@ -624,8 +600,8 @@ def abelian : abelian C :=
    the goal it creates for the two instances of `has_zero_morphisms`, and the proof is complete. -/
   has_kernels := by convert (by apply_instance : limits.has_kernels C),
   has_cokernels := by convert (by apply_instance : limits.has_cokernels C),
-  normal_mono := by { introsI, convert normal_mono f },
-  normal_epi := by { introsI, convert normal_epi f },
+  normal_mono_of_mono := by { introsI, convert normal_mono_of_mono f },
+  normal_epi_of_epi := by { introsI, convert normal_epi_of_epi f },
   ..non_preadditive_abelian.preadditive }
 
 end category_theory.non_preadditive_abelian

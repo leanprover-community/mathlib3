@@ -129,7 +129,7 @@ lemma measure_inv_null [is_mul_left_invariant μ] {E : set G} :
 begin
   refine ⟨λ hE, _, (quasi_measure_preserving_inv μ).preimage_null⟩,
   convert (quasi_measure_preserving_inv μ).preimage_null hE,
-  exact inv_inv.symm
+  exact (inv_inv _).symm
 end
 
 @[to_additive]

@@ -499,7 +499,7 @@ variables {s t : finset α} {a b : α}
 /-- `cons a s h` is the set `{a} ∪ s` containing `a` and the elements of `s`. It is the same as
 `insert a s` when it is defined, but unlike `insert a s` it does not require `decidable_eq α`,
 and the union is guaranteed to be disjoint. -/
-def cons (a : α) (s : finset α) (h : a ∉ s) : finset α := ⟨a ::ₘ s.1, multiset.nodup_cons.2 ⟨h, s.2⟩⟩
+def cons (a : α) (s : finset α) (h : a ∉ s) : finset α := ⟨a ::ₘ s.1, nodup_cons.2 ⟨h, s.2⟩⟩
 
 @[simp] lemma mem_cons {h} : b ∈ s.cons a h ↔ b = a ∨ b ∈ s := mem_cons
 @[simp] lemma mem_cons_self (a : α) (s : finset α) {h} : a ∈ cons a s h := mem_cons_self _ _

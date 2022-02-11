@@ -10,6 +10,11 @@ import data.two_pointing
 # The category of two-pointed types
 
 This defines `Twop`, the category of two-pointed types.
+
+## References
+
+* [nLab, *coalgebra of the real interval*]
+[http://nlab-pages.s3.us-east-2.amazonaws.com/nlab/show/coalgebra+of+the+real+interval]
 -/
 
 open category_theory option
@@ -65,14 +70,14 @@ end Twop
   Twop.swap ⋙ forget₂ Twop Bipointed = forget₂ Twop Bipointed ⋙ Bipointed.swap := rfl
 
 /-- The functor from `Pointed` to `Twop` which adds a second point. -/
-def Pointed_to_Twop_fst : Pointed.{u} ⥤ Twop :=
+@[simps] def Pointed_to_Twop_fst : Pointed.{u} ⥤ Twop :=
 { obj := λ X, ⟨option X, ⟨X.point, none⟩, some_ne_none _⟩,
   map := λ X Y f, ⟨option.map f.to_fun, congr_arg _ f.map_point, rfl⟩,
   map_id' := λ X, Bipointed.hom.ext _ _ option.map_id,
   map_comp' := λ X Y Z f g, Bipointed.hom.ext _ _ (option.map_comp_map  _ _).symm }
 
 /-- The functor from `Pointed` to `Twop` which adds a first point. -/
-def Pointed_to_Twop_snd : Pointed.{u} ⥤ Twop :=
+@[simps] def Pointed_to_Twop_snd : Pointed.{u} ⥤ Twop :=
 { obj := λ X, ⟨option X, ⟨none, X.point⟩, (some_ne_none _).symm⟩,
   map := λ X Y f, ⟨option.map f.to_fun, rfl, congr_arg _ f.map_point⟩,
   map_id' := λ X, Bipointed.hom.ext _ _ option.map_id,
@@ -90,7 +95,7 @@ def Pointed_to_Twop_snd : Pointed.{u} ⥤ Twop :=
 @[simp] lemma Pointed_to_Twop_snd_comp_forget_to_Bipointed :
   Pointed_to_Twop_snd ⋙ forget₂ Twop Bipointed = Pointed_to_Bipointed_snd := rfl
 
-/-- `Pointed_to_Twop_fst` is one of the two free functors. -/
+/-- Adding a second point is adjoint to forgetting the second point. -/
 def Pointed_to_Twop_fst_forget_comp_Bipointed_to_Pointed_fst_adjunction :
   Pointed_to_Twop_fst ⊣ forget₂ Twop Bipointed ⋙ Bipointed_to_Pointed_fst :=
 adjunction.mk_of_hom_equiv
@@ -101,7 +106,7 @@ adjunction.mk_of_hom_equiv
     right_inv := λ f, Pointed.hom.ext _ _ rfl },
   hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext, cases x; refl } }
 
-/-- `Pointed_to_Twop_snd` is one of the two free functors. -/
+/-- Adding a first point is adjoint to forgetting the first point. -/
 def Pointed_to_Twop_snd_forget_comp_Bipointed_to_Pointed_snd_adjunction :
   Pointed_to_Twop_snd ⊣ forget₂ Twop Bipointed ⋙ Bipointed_to_Pointed_snd :=
 adjunction.mk_of_hom_equiv

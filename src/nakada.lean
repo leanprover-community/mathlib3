@@ -318,38 +318,61 @@ quotient.induction_on₂ x y $ by { intros, simp [mul_comm, mul_assoc, mul_left_
 protected lemma mul_assoc (x y z : G) : x * y * z = x * (y * z) :=
 quotient.induction_on₃ x y z $ by { intros, simp [mul_comm, mul_assoc, mul_left_comm] }
 
+instance comm_semigroup : comm_semigroup G :=
+{ mul := (*),
+  mul_assoc := mul_pair_quotient.mul_assoc,
+  mul_comm := mul_pair_quotient.mul_comm }
+
+protected def inv : G → G :=
+quotient.map prod.swap $ λ _ _, by simp [mul_comm, eq_comm]
+
+instance has_inv : has_inv G := ⟨mul_pair_quotient.inv⟩
+
+@[simp] lemma inv_mk (p : S × S) : ⟦p⟧⁻¹ = ⟦p.swap⟧ := rfl
+
+lemma mul_rev_inv_eq (x y : G) : x * x⁻¹ = y * y⁻¹ :=
+quotient.induction_on₂ x y $ by { intros, simp [mul_comm] }
+
 def one (x : S) : G := ⟦(x, x)⟧
 
 lemma one_eq (x y : S) : one x = one y :=
 by simp [one, mul_comm]
 
-protected def inv : G → G :=
-quotient.map prod.swap $ λ _ _, by simp [mul_comm, eq_comm]
-
-@[simp] lemma inv_mk (p : S × S) : mul_pair_quotient.inv ⟦p⟧ = ⟦p.swap⟧ := rfl
-
-instance [inhabited S] : has_one G := ⟨one (default : S)⟩
+instance has_one [inhabited S] : has_one G := ⟨one (default : S)⟩
 
 lemma one_def [inhabited S] : (1 : G) = one (default : S) := rfl
 
+protected lemma inv_one [inhabited S] : (1 : G)⁻¹ = 1 :=
+by simp [one_def, one]
+
 instance [inhabited S] : comm_group G :=
 { mul := (*),
-  mul_assoc := mul_pair_quotient.mul_assoc,
-  one := one (default : S),
-  one_mul := λ a, begin
-    induction a using quotient.induction_on,
-    simp [one, mul_comm, mul_assoc, mul_left_comm],
-  end,
-  mul_one := λ a, begin
-    induction a using quotient.induction_on,
-    simp [one, mul_comm, mul_assoc, mul_left_comm],
-  end,
+  one := 1,
+  one_mul := λ a, quotient.induction_on a $ by simp [one_def, one, mul_comm, mul_left_comm],
+  mul_one := λ a, quotient.induction_on a $ by simp [one_def, one, mul_comm, mul_left_comm],
   inv := mul_pair_quotient.inv,
   mul_left_inv := λ a, begin
     induction a using quotient.induction_on,
-    simp [has_inv.inv, one_def, one, mul_comm, mul_assoc, mul_left_comm]
+    rw [mul_comm, mul_rev_inv_eq ⟦a⟧ 1, mul_pair_quotient.inv_one],
+    simp [one_def, one, mul_assoc]
   end,
-  mul_comm := mul_pair_quotient.mul_comm }
+  ..mul_pair_quotient.comm_semigroup }
+
+protected def le : G → G → Prop :=
+quotient.lift₂ (λ (p q : S × S), p.1 * q.2 ≤ q.1 * p.2) begin
+  rintro ⟨a, a'⟩ ⟨b, b'⟩ ⟨c, c'⟩ ⟨d, d'⟩ hac hbd,
+  simp only [mul_pair_equiv_iff, eq_iff_iff] at hac hbd ⊢,
+  split,
+  work_on_goal 1 { rename [a x, a' x', b y, b' y', c a, c' a', d b, d' b'],
+                   rename [x c, x' c', y d, y' d'],
+                   rw eq_comm at hac hbd },
+  all_goals { intro h,
+    replace h : c' * (a * b') ≤ c' * (b * a') := homogeneity h c',
+    rw [←mul_assoc, mul_comm c', hac, mul_comm b, mul_left_comm, mul_assoc, mul_left_comm] at h,
+    replace h : d * (c * b') ≤ d * (c' * b) := homogeneity (strong h) d,
+    rw [mul_left_comm, ←hbd, mul_left_comm, mul_comm _ b, mul_left_comm _ b] at h,
+    exact strong h }
+end
 
 end mul_pair_quotient
 

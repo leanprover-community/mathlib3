@@ -268,7 +268,7 @@ end
 
 end
 
-section
+section tendsto_in_measure_of
 
 variables [measurable_space E] [normed_group E] [borel_space E] [has_measurable_sub₂ E] {p : ℝ≥0∞}
 variables {f : ℕ → α → E} {g : α → E}
@@ -362,6 +362,6 @@ lemma tendsto_in_measure_of_tendsto_Lp [second_countable_topology E] [hp : fact 
 tendsto_in_measure_of_tendsto_snorm (ennreal.zero_lt_one.trans_le hp.elim).ne.symm
   (λ n, Lp.ae_measurable _) (Lp.ae_measurable _) ((Lp.tendsto_Lp_iff_tendsto_ℒp' _ _).mp hfg)
 
-end
+end tendsto_in_measure_of
 
 end measure_theory

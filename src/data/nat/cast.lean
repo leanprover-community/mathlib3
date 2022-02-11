@@ -38,10 +38,9 @@ def cast_add_monoid_hom (α : Type*) [has_nat_cast α] : ℕ →+ α :=
 @[simp] lemma coe_cast_add_monoid_hom [has_nat_cast α] :
   (cast_add_monoid_hom α : ℕ → α) = coe := rfl
 
-@[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
-| 0     := (mul_zero _).symm
-| (n+1) := (cast_add _ _).trans $
-show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mul_one]
+@[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m n : ℕ) :
+  ((m * n : ℕ) : α) = m * n :=
+by induction n; simp [mul_succ, mul_add, *]
 
 @[simp] theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) :
   ((m / n : ℕ) : α) = m / n :=
@@ -52,22 +51,39 @@ begin
   rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
 end
 
+/-- `coe : ℕ → α` as a `ring_hom` -/
+def cast_ring_hom (α : Type*) [non_assoc_semiring α] : ℕ →+* α :=
+{ to_fun := coe,
+  map_one' := cast_one,
+  map_mul' := cast_mul,
+  .. cast_add_monoid_hom α }
+
+@[simp] lemma coe_cast_ring_hom [non_assoc_semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
+
+lemma cast_commute [non_assoc_semiring α] (n : ℕ) (x : α) : commute ↑n x :=
+nat.rec_on n (by rw [cast_zero]; exact commute.zero_left x) $
+λ n ihn, by rw [cast_succ]; exact ihn.add_left (commute.one_left x)
+
+lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * n :=
+(cast_commute n x).eq
+
+lemma commute_cast [non_assoc_semiring α] (x : α) (n : ℕ) : commute x n :=
+(n.cast_commute x).symm
+
 section
 
 variables [ordered_semiring α]
 
-@[simp] theorem cast_nonneg : ∀ n : ℕ, 0 ≤ (n : α)
-| 0     := le_rfl
-| (n+1) := add_nonneg (cast_nonneg n) zero_le_one
-
 @[mono] theorem mono_cast : monotone (coe : ℕ → α) :=
-λ m n h, let ⟨k, hk⟩ := le_iff_exists_add.1 h in by simp [hk]
+monotone_nat_of_le_succ $ λ n, by rw [nat.cast_succ]; exact le_add_of_nonneg_right zero_le_one
+
+@[simp] theorem cast_nonneg (n : ℕ) : 0 ≤ (n : α) :=
+@nat.cast_zero α _ ▸ mono_cast (nat.zero_le n)
 
 variable [nontrivial α]
 
 theorem strict_mono_cast : strict_mono (coe : ℕ → α) :=
-λ m n h, nat.le_induction (lt_add_of_pos_right _ zero_lt_one)
-  (λ n _ h, lt_add_of_lt_of_pos' h zero_lt_one) _ h
+strict_mono_nat_of_lt_succ $ λ n, by rw [nat.cast_succ]; apply lt_add_one
 
 @[simp, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=
@@ -107,6 +123,11 @@ end
 @[simp, norm_cast] theorem abs_cast [linear_ordered_ring α] (a : ℕ) :
   |(a : α)| = a :=
 abs_of_nonneg (cast_nonneg a)
+
+lemma coe_nat_dvd [semiring α] {m n : ℕ} (h : m ∣ n) : (m : α) ∣ (n : α) :=
+(nat.cast_ring_hom α).map_dvd h
+
+alias coe_nat_dvd ← has_dvd.dvd.nat_cast
 
 section linear_ordered_field
 variables [linear_ordered_field α]

@@ -22,15 +22,16 @@ variables {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : 
 ### (Additive) monoid
 -/
 section monoid
-variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
-@[simp] theorem nsmul_one [has_one A] : ∀ n : ℕ, n • (1 : A) = n :=
+@[simp] theorem nsmul_one [has_nat_cast A] : ∀ n : ℕ, n • (1 : A) = n :=
 begin
   refine eq_nat_cast' (⟨_, _, _⟩ : ℕ →+ A) _,
-  { simp [zero_nsmul] },
-  { simp [add_nsmul] },
-  { simp }
+  { show 0 • (1 : A) = 0, simp [zero_nsmul] },
+  { show ∀ x y : ℕ, (x + y) • (1 : A) = x • 1 + y • 1, simp [add_nsmul] },
+  { show 1 • (1 : A) = 1, simp }
 end
+
+variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
 instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
 { inv_of := ⅟ m ^ n,
@@ -97,23 +98,25 @@ end
 end monoid
 
 section group
-variables [group G] [group H] [add_group A] [add_group B]
+variables [group G] [group H] [add_group B]
 
 open int
 
 local attribute [ematch] le_of_lt
 open nat
 
-theorem zsmul_one [has_one A] (n : ℤ) : n • (1 : A) = n :=
+theorem zsmul_one [add_group_with_one A] (n : ℤ) : n • (1 : A) = n :=
 by cases n; simp
 
 @[to_additive add_one_zsmul]
 lemma zpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
-| (of_nat n) := by simp [← int.coe_nat_succ, pow_succ']
-| -[1+0]     := by simp [int.neg_succ_of_nat_eq]
-| -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
-  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev,
-  inv_mul_cancel_right]
+| (n : ℕ) := by simp only [← int.coe_nat_succ, zpow_coe_nat, pow_succ']
+| -[1+ 0] := by erw [zpow_zero, zpow_neg_succ_of_nat, pow_one, mul_left_inv]
+| -[1+ n+1] := begin
+  rw [zpow_neg_succ_of_nat, pow_succ, mul_inv_rev, inv_mul_cancel_right],
+  rw [int.neg_succ_of_nat_eq, neg_add, add_assoc, neg_add_self, add_zero],
+  exact zpow_neg_succ_of_nat _ _
+end
 
 @[to_additive zsmul_sub_one]
 lemma zpow_sub_one (a : G) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=

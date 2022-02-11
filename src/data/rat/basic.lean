@@ -457,6 +457,10 @@ instance : field ℚ :=
   left_distrib     := rat.mul_add,
   right_distrib    := rat.add_mul,
   exists_pair_ne   := ⟨0, 1, rat.zero_ne_one⟩,
+  nat_cast         := λ n, rat.of_int n,
+  nat_cast_zero    := rfl,
+  nat_cast_succ    := λ n, show of_int _ = of_int _ + 1,
+    by simp only [of_int_eq_mk, add_def one_ne_zero one_ne_zero, ← mk_one_one]; simp,
   mul_inv_cancel   := rat.mul_inv_cancel,
   inv_zero         := rfl }
 
@@ -639,15 +643,9 @@ protected lemma add_mk (a b c : ℤ) : (a + b) /. c = a /. c + b /. c :=
 if h : c = 0 then by simp [h] else
 by { rw [add_def h h, mk_eq h (mul_ne_zero h h)], simp [add_mul, mul_assoc] }
 
-theorem coe_int_eq_mk : ∀ (z : ℤ), ↑z = z /. 1
-| (n : ℕ) := show (n:ℚ) = n /. 1,
-  by induction n with n IH n; simp [*, rat.add_mk]
-| -[1+ n] := show (-(n + 1) : ℚ) = -[1+ n] /. 1, begin
-  induction n with n IH, { rw ← of_int_eq_mk, simp, refl },
-  show -(n + 1 + 1 : ℚ) = -[1+ n.succ] /. 1,
-  rw [neg_add, IH, ← mk_neg_one_one],
-  simp [-mk_neg_one_one]
-end
+theorem coe_int_eq_mk : ∀ z : ℤ, ↑z = z /. 1
+| (n : ℕ) := of_int_eq_mk _
+| -[1+ n] := show -(of_int _) = _, by simp [of_int_eq_mk, neg_def, int.neg_succ_of_nat_coe]
 
 theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=
 begin

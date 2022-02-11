@@ -52,6 +52,9 @@ instance : comm_ring int :=
   left_distrib   := int.distrib_left,
   right_distrib  := int.distrib_right,
   mul_comm       := int.mul_comm,
+  nat_cast       := int.of_nat,
+  nat_cast_zero  := rfl,
+  nat_cast_succ  := λ n, rfl,
   zsmul          := (*),
   zsmul_zero'    := int.zero_mul,
   zsmul_succ'    := λ n x, by rw [succ_eq_one_add, of_nat_add, int.distrib_right, of_nat_one,
@@ -234,6 +237,7 @@ end
 
 /-- Inductively define a function on `ℤ` by defining it at `b`, for the `succ` of a number greater
   than `b`, and the `pred` of a number less than `b`. -/
+@[elab_as_eliminator]
 protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) :
   C b → (∀ k, b ≤ k → C k → C (k + 1)) → (∀ k ≤ b, C k → C (k - 1)) → C z :=
 λ H0 Hs Hp,

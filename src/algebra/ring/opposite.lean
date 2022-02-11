@@ -41,7 +41,8 @@ instance [non_unital_semiring α] : non_unital_semiring αᵐᵒᵖ :=
 { .. mul_opposite.semigroup_with_zero α, .. mul_opposite.non_unital_non_assoc_semiring α }
 
 instance [non_assoc_semiring α] : non_assoc_semiring αᵐᵒᵖ :=
-{ .. mul_opposite.mul_zero_one_class α, .. mul_opposite.non_unital_non_assoc_semiring α }
+{ .. mul_opposite.has_nat_cast α, .. mul_opposite.mul_zero_one_class α,
+  .. mul_opposite.non_unital_non_assoc_semiring α }
 
 instance [semiring α] : semiring αᵐᵒᵖ :=
 { .. mul_opposite.non_unital_semiring α, .. mul_opposite.non_assoc_semiring α,

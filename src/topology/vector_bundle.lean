@@ -517,42 +517,6 @@ continuous_iff_continuous_at.mpr (λ b, hg.continuous_at.smul_section F r)
 
 end
 
-instance [has_continuous_add F] : has_add (vector_bundle_section R F E) :=
-⟨λ g h, { to_fun := g + h, continuous_to_fun := g.continuous.add_section R F h.continuous }⟩
-
-instance : has_zero (vector_bundle_section R F E) :=
-⟨ { to_fun := 0, continuous_to_fun := continuous.zero_section R F }⟩
-
-instance : inhabited (vector_bundle_section R F E) := ⟨0⟩
-
-variables (E) {R F}
-
-@[simp] lemma coe_add [has_continuous_add F] (f g : vector_bundle_section R F E) :
-  ⇑(f + g) = f + g := rfl
-
-@[simp] lemma coe_zero : ⇑(0 : vector_bundle_section R F E) = 0 := rfl
-
-variables {E} (R F)
-
-instance [has_continuous_add F] : add_comm_monoid (vector_bundle_section R F E) :=
-continuous_bundle_section.coe_injective.add_comm_monoid _ (coe_zero E) (coe_add E)
-
-variable (E)
-
-/-- The coercion to function is a monoid homomorphism. -/
-@[simps] def coe_fn_add_monoid_hom [has_continuous_add F] :
-  vector_bundle_section R F E →+ bundle_section E := ⟨coe_fn, coe_zero E, coe_add E⟩
-
-variables {R F E} [topological_space R] [has_continuous_smul R F]
-
-instance : has_scalar R (vector_bundle_section R F E) :=
-⟨λ r g, { to_fun := r • g, continuous_to_fun := g.continuous_to_fun.smul_section F r }⟩
-
-@[simp] lemma coe_smul (r : R) (f : vector_bundle_section R F E) : ⇑(r • f) = r • f := rfl
-
-instance [has_continuous_add F] : module R (vector_bundle_section R F E) :=
-continuous_bundle_section.coe_injective.module _ (coe_fn_add_monoid_hom R F E) coe_smul
-
 end sections
 
 end monoid
@@ -603,20 +567,6 @@ lemma continuous.neg_section {g : bundle_section E}
   (hg : continuous g) : continuous ⇑(- g) :=
 continuous_iff_continuous_at.mpr (λ b, hg.continuous_at.neg_section R F)
 
-instance : has_neg (vector_bundle_section R F E) :=
-⟨λ g, { to_fun := - g, continuous_to_fun := g.continuous.neg_section R F }⟩
-
-variables {R F} (f g : vector_bundle_section R F E)
-
-@[simp] lemma coe_neg : ⇑(-f) = -f := rfl
-
-instance : add_comm_group (vector_bundle_section R F E) :=
--- continuous_bundle_section.coe_injective.add_comm_group _ (coe_zero E) (coe_add E) coe_neg coe_sub
---  ↑    ↑    ↑    ↑    ↑    ↑    ↑    ↑    does not work... Why!?
-{ add_left_neg :=  λ f, by { ext, simp only [coe_zero, add_left_neg, coe_neg, coe_add], },
-  ..topological_vector_bundle.vector_bundle_section.has_neg R F,
-  ..vector_bundle_section.add_comm_monoid R F, }
-
 end neg
 
 section sub
@@ -646,13 +596,6 @@ lemma continuous_on.sub_section {g h : bundle_section E} {U : set B}
 lemma continuous.sub_section {g h : bundle_section E} (hg : continuous g)
   (hh : continuous h) : continuous ⇑(g - h) :=
 continuous_iff_continuous_at.mpr (λ b, hg.continuous_at.sub_section R F hh.continuous_at)
-
-instance : has_sub (vector_bundle_section R F E) :=
-⟨λ g h, { to_fun := g - h, continuous_to_fun := g.continuous.sub_section R F h.continuous }⟩
-
-variables {R F} (f g : vector_bundle_section R F E)
-
-@[simp] lemma coe_sub : ⇑(f - g) = f - g := rfl
 
 end sub
 

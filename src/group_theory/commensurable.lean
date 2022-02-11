@@ -43,7 +43,7 @@ lemma comm {H K : subgroup G} : commensurable H K ↔ commensurable K H := and.c
 
 @[symm] lemma symm {H K : subgroup G} : commensurable H K → commensurable K H := and.symm
 
-@[trans] lemma trans {H K L : subgroup G} (hhk : commensurable H K ) (hkl : commensurable K L) :
+@[trans] lemma trans {H K L : subgroup G} (hhk : commensurable H K) (hkl : commensurable K L) :
   commensurable H L :=
 ⟨subgroup.relindex_ne_zero_trans hhk.1 hkl.1, subgroup.relindex_ne_zero_trans hkl.2 hhk.2⟩
 
@@ -68,7 +68,7 @@ lemma commensurable_inv (H : subgroup G) (g : conj_act G) :
 by rw [commensurable_conj, inv_smul_smul]
 
 /-- For `H` a subgroup of `G`, this is the subgroup of all elements `g : conj_aut G`
-such that `commensurable ( g • H) H`   -/
+such that `commensurable (g • H) H` -/
 def commensurator' (H : subgroup G) : subgroup (conj_act G) :=
 { carrier := {g : conj_act G | commensurable (g • H) H},
   one_mem' := by rw [set.mem_set_of_eq, one_smul],
@@ -78,7 +78,7 @@ def commensurator' (H : subgroup G) : subgroup (conj_act G) :=
   inv_mem' := λ a ha, by rwa [set.mem_set_of_eq, comm, ←commensurable_inv] }
 
 /-- For `H` a subgroup of `G`, this is the subgroup of all elements `g : G`
-such that `commensurable ( g H g⁻¹) H`   -/
+such that `commensurable (g H g⁻¹) H` -/
 def commensurator (H : subgroup G) : subgroup G :=
 (commensurator' H).comap (conj_act.to_conj_act.to_monoid_hom)
 
@@ -88,7 +88,7 @@ def commensurator (H : subgroup G) : subgroup G :=
 @[simp] lemma commensurator_mem_iff (H : subgroup G) (g : G) :
   g ∈ (commensurator H) ↔ commensurable (conj_act.to_conj_act g • H) H := iff.rfl
 
-lemma commensurator.eq {H K : subgroup G} (hk : commensurable H K) :
+lemma eq {H K : subgroup G} (hk : commensurable H K) :
   commensurator H = commensurator K :=
   subgroup.ext (λ x, let hx := (commensurable_conj x).1 hk in
   ⟨λ h, hx.symm.trans (h.trans hk), λ h, hx.trans (h.trans hk.symm)⟩)

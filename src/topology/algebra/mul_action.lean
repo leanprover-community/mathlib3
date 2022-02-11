@@ -63,9 +63,9 @@ section has_scalar
 
 variables [has_scalar M α] [has_continuous_smul M α]
 
-@[priority 100, to_additive] instance has_continuous_smul.has_continuous_smul₂ :
-  has_continuous_smul₂ M α :=
-{ continuous_smul₂ := λ _, continuous_smul.comp (continuous_const.prod_mk continuous_id) }
+@[priority 100, to_additive] instance has_continuous_smul.has_continuous_const_smul :
+  has_continuous_const_smul M α :=
+{ continuous_const_smul := λ _, continuous_smul.comp (continuous_const.prod_mk continuous_id) }
 
 @[to_additive]
 lemma filter.tendsto.smul {f : β → M} {g : β → α} {l : filter β} {c : M} {a : α}

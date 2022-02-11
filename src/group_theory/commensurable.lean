@@ -18,6 +18,12 @@ of `G`.
 
 * `commensurable`: defines commensurability for two subgroups `H`, `K` of  `G`
 * `commensurator`: defines the commensurator of a subgroup `H` of `G`.
+
+## Implementation details
+
+We define the commensurator of a subgroup `H` of `G` by first defining it as a subgroup of
+`(conj_act G)`, which we call commensurator' and then taking the pre-image under
+the map `G → (conj_act G)` to obtain our commensurator as a subgroup of `G`.
 -/
 
 variables {G : Type*} [group G]

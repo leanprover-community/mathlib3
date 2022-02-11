@@ -31,7 +31,6 @@ variables {X : Top} {x₀ x₁ x₀' x₁' : X} (p : path x₀ x₁)
 /-- Abbreviation for `eq_to_hom` that accepts points in a topological space -/
 abbreviation hcast (hx : x₀ = x₁) : from_top x₀ ⟶ x₁ := category_theory.eq_to_hom hx
 
--- Shouldn't this be unnecessary, since `hcast` is an abbreviation?
 @[simp] lemma hcast_eq (hx₀ : x₀ = x₁) : hcast hx₀ = category_theory.eq_to_hom hx₀ := rfl
 
 lemma path_cast_left  (hx₀ : x₀ = x₀') :
@@ -64,7 +63,7 @@ include hfg
 private lemma start_path : f x₀ = g x₂ := by { convert hfg 0; simp only [path.source], }
 private lemma end_path : f x₁ = g x₃ := by { convert hfg 1; simp only [path.target], }
 
-/- If `f(p(t) = g(q(t))` for two paths `p` and `q`, then the induced path homotopy classes
+/-- If `f(p(t) = g(q(t))` for two paths `p` and `q`, then the induced path homotopy classes
 `f(p)` and `g(p)` are the same as well, up to casts. -/
 lemma eq_path_of_eq_image :
   (πₘ f).map ⟦p⟧ = hcast (start_path hfg) ≫ (πₘ g).map ⟦q⟧ ≫ hcast (end_path hfg).symm :=

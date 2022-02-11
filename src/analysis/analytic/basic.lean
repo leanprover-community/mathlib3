@@ -706,55 +706,46 @@ open continuous_multilinear_map
 -/
 
 lemma asymptotics.is_O.continuous_multilinear_map_apply_eq_zero {n : ℕ} {p : E [×n]→L[𝕜] F}
-  (h : asymptotics.is_O (λ y, p (λ i, y)) (λ y, ∥y∥ ^ (n + 1)) (nhds 0)) (y : E) :
+  (h : is_O (λ y, p (λ i, y)) (λ y, ∥y∥ ^ (n + 1)) (nhds 0)) (y : E) :
   p (λ i, y) = 0 :=
 begin
   obtain ⟨c, c_pos, hc⟩ := h.exists_pos,
-  obtain ⟨t, ht, t_open, z_mem⟩ := eventually_nhds_iff.mp (asymptotics.is_O_with_iff.mp hc),
+  obtain ⟨t, ht, t_open, z_mem⟩ := eventually_nhds_iff.mp (is_O_with_iff.mp hc),
   obtain ⟨δ, δ_pos, δε⟩ := (metric.is_open_iff.mp t_open) 0 z_mem,
+  clear h hc z_mem,
   cases n,
-  { exact norm_eq_zero.mp (by simpa [fin0_apply_norm] using ht 0 (δε (metric.mem_ball_self δ_pos))), },
-  { refine or.elim (em (y = 0)) (λ hy, by { simp only [hy], exact p.map_zero }) (λ hy, _),
+  { exact norm_eq_zero.mp (by simpa [fin0_apply_norm]
+      using ht 0 (δε (metric.mem_ball_self δ_pos))), },
+  { refine or.elim (em (y = 0)) (λ hy, by { simpa only [hy] using p.map_zero }) (λ hy, _),
     replace hy := norm_pos_iff.mpr hy,
     refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ ε ε_pos, _)) (norm_nonneg _)),
     have h₀ := mul_pos c_pos (pow_pos hy (n.succ + 1)),
     obtain ⟨k, k_pos, k_norm⟩ := normed_field.exists_norm_lt 𝕜
       (lt_min (mul_pos δ_pos (inv_pos.mpr hy)) (mul_pos ε_pos (inv_pos.mpr h₀))),
-    have h₁ : ∥p (λ i, y)∥ = ∥(k⁻¹) ^ n.succ∥ * ∥p (λ i, k • y)∥,
-    { calc
+    have h₁ := calc
       ∥p (λ i, y)∥ = ∥p (λ i, k⁻¹ • k • y)∥
                   : by rw inv_smul_smul₀ (norm_pos_iff.mp k_pos)
       ...          = ∥(k⁻¹) ^ n.succ∥ * ∥p (λ i, k • y)∥
-                  : by { rw [p.map_smul_univ (λ i, k⁻¹) (λ i, k • y), norm_smul], simp }, },
+                  : by { rw [p.map_smul_univ (λ i, k⁻¹) (λ i, k • y), norm_smul], simp },
     have h₂ : ∥k • y∥ < δ,
-    { calc
-      ∥k • y∥ ≤ ∥k∥ * ∥y∥ : by rw norm_smul
-      ...     < (δ * ∥y∥⁻¹) * ∥y∥ : mul_lt_mul_of_pos_right (lt_of_lt_of_le k_norm (min_le_left _ _)) hy
-      ...     = δ : inv_mul_cancel_right₀ hy.ne.symm δ, },
-    have h₃ : ∥p (λ i, k • y)∥ ≤ ∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1))),
-    { calc
+    { rw norm_smul,
+      exact inv_mul_cancel_right₀ hy.ne.symm δ ▸ mul_lt_mul_of_pos_right
+        (lt_of_lt_of_le k_norm (min_le_left _ _)) hy },
+    have h₃ := calc
       ∥p (λ i, k • y)∥ ≤ c * ∥k • y∥ ^ (n.succ + 1)
-        : by simpa only [normed_field.norm_pow, norm_norm] using ht (k • y) (δε (mem_ball_zero_iff.mpr h₂))
-      ...              = c * (∥k∥ * ∥k∥ ^ n.succ * ∥y∥ ^ (n.succ + 1))
-        : by { simp only [norm_smul, mul_pow], rw pow_succ,  }
+                       : by simpa using ht (k • y) (δε (mem_ball_zero_iff.mpr h₂))
       ...              = ∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
-        : by ring, },
-    have h₄ : ∥k∥ * (c * ∥y∥ ^ (n.succ + 1)) < ε,
-    { calc
-      ∥k∥ * (c * ∥y∥ ^ (n.succ + 1)) < (ε * (c * ∥y∥ ^ (n.succ + 1))⁻¹) * (c * ∥y∥ ^ (n.succ + 1))
-        : mul_lt_mul_of_pos_right (lt_of_lt_of_le k_norm (min_le_right _ _)) h₀
-      ...     = ε : inv_mul_cancel_right₀ h₀.ne.symm ε, },
-    calc ∥p (λ i, y)∥ = ∥(k⁻¹) ^ n.succ∥ * ∥p (λ i, k • y)∥ : h₁
+                       : by { simp only [norm_smul, mul_pow], rw pow_succ, ring },
+    have h₄ : ∥k∥ * (c * ∥y∥ ^ (n.succ + 1)) < ε, from inv_mul_cancel_right₀ h₀.ne.symm ε ▸
+      mul_lt_mul_of_pos_right (lt_of_lt_of_le k_norm (min_le_right _ _)) h₀,
+    calc ∥p (λ i, y)∥ = ∥(k⁻¹) ^ n.succ∥ * ∥p (λ i, k • y)∥
+        : h₁
     ...              ≤ ∥(k⁻¹) ^ n.succ∥ * (∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1))))
         : mul_le_mul_of_nonneg_left h₃ (norm_nonneg _)
-    ...              = (∥(k⁻¹) ^ n.succ∥ * ∥k∥ ^ n.succ) * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
-        : by rw ←mul_assoc
     ...              = ∥(k⁻¹ * k) ^ n.succ∥ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
-        : by simp [normed_field.norm_mul, mul_pow]
-    ...              = (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
-        : by { rw inv_mul_cancel (norm_pos_iff.mp k_pos), simp }
+        : by { rw ←mul_assoc, simp [normed_field.norm_mul, mul_pow] }
     ...              ≤ 0 + ε
-        : by simpa using h₄.le, }
+        : by { rw inv_mul_cancel (norm_pos_iff.mp k_pos), simpa using h₄.le }, },
 end
 
 lemma has_fpower_series_at.apply_eq_zero {p : formal_multilinear_series 𝕜 E F} {x : E}

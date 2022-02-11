@@ -6,8 +6,6 @@ Authors: Mario Carneiro, Gabriel Ebner
 import algebra.group.defs
 import algebra.group.basic
 
-set_option old_structure_cmd true
-
 /-!
 # Cast of naturals
 
@@ -25,6 +23,8 @@ This file defines the *canonical* homomorphism from the natural numbers into a t
 
 Setting up the coercions priorities is tricky. See Note [coercion into rings].
 -/
+
+set_option old_structure_cmd true
 
 class has_nat_cast_aux (α : Type*) :=
 (nat_cast : ℕ → α)

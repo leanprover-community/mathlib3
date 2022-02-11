@@ -32,6 +32,8 @@ all intermediate fields `E` with `E/K` finite dimensional.
 - `krull_topology K L`. Given a field extension `L/K`, this is the topology on `L ≃ₐ[K] L`, induced
   by the group filter basis `gal_group_basis K L`.
 
+## Main Results
+
 - `krull_topology_t2 K L h_int`. For an integral field extension `L/K`,`krull_topology_t2 K L h_int`
   is a term of type `t2_space(L ≃ₐ[K] L)`. The existence of the such a term implies that the Krull
   topology is Hausdorff. Here `h_int` is a term of type `∀ (x : L), is_integral K x`. That is,
@@ -240,7 +242,7 @@ begin
 end
 
 /-- If `L/K` is an algebraic extension, then the Krull topology on `L ≃ₐ[K] L` is Hausdorff. -/
-def krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L] (h_int :
+lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L] (h_int :
 ∀ (x : L), is_integral K x):
 t2_space (L ≃ₐ[K] L)  :=
 { t2 :=

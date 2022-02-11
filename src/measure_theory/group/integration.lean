@@ -74,7 +74,7 @@ to a left-invariant measure is 0. -/
 lemma integral_zero_of_mul_left_eq_neg [is_mul_left_invariant μ] {f : G → E} {g : G}
   (hf' : ∀ x, f (g * x) = - f x) :
   ∫ x, f x ∂μ = 0 :=
-by { refine eq_zero_of_eq_neg ℝ _, simp_rw [← integral_neg, ← hf', integral_mul_left_eq_self] }
+by simp_rw [← self_eq_neg ℝ E, ← integral_neg, ← hf', integral_mul_left_eq_self]
 
 /-- If some right-translate of a function negates it, then the integral of the function with respect
 to a right-invariant measure is 0. -/
@@ -82,7 +82,7 @@ to a right-invariant measure is 0. -/
 lemma integral_zero_of_mul_right_eq_neg [is_mul_right_invariant μ] {f : G → E} {g : G}
   (hf' : ∀ x, f (x * g) = - f x) :
   ∫ x, f x ∂μ = 0 :=
-by { refine eq_zero_of_eq_neg ℝ _, simp_rw [← integral_neg, ← hf', integral_mul_right_eq_self] }
+by simp_rw [← self_eq_neg ℝ E, ← integral_neg, ← hf', integral_mul_right_eq_self]
 
 end measurable_mul
 

@@ -68,7 +68,7 @@ by { rw ← add_haar_measure_eq_volume, apply_instance }
 
 instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
   is_add_left_invariant (volume : measure (ι → ℝ)) :=
-⟨by simp [real.map_volume_pi_add_left]⟩
+⟨by simp [map_add_left_eq_self]⟩
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ^ι`. -/
 lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :

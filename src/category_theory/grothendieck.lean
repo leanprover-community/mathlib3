@@ -62,6 +62,27 @@ namespace category_theory
 
 variables {C : Type u} [category.{v} C] (F : oplax_functor (locally_discrete C) Cat.{v' u'})
 
+namespace oplax_functor
+
+variables ⦃X Y Z W : C⦄ (f : X ⟶ Y) (g : Y ⟶ Z) (h : Z ⟶ W) (E : F.obj X)
+
+@[simp, reassoc]
+lemma id_comp_components :
+  (F.map_comp (𝟙 X) f).app E ≫ (F.map f).map ((F.map_id X).app E) = eq_to_hom (by simpa) :=
+by { convert nat_trans.congr_app (F.id_comp f) E, simpa }
+
+@[simp, reassoc]
+lemma comp_id_components :
+  (F.map_comp f (𝟙 Y)).app E ≫ (F.map_id Y).app ((F.map f).obj E) = eq_to_hom (by simpa) :=
+by { convert nat_trans.congr_app (F.comp_id f) E, simpa }
+
+@[simp, reassoc]
+lemma assoc_components : (F.map_comp (f ≫ g) h).app E ≫ (F.map h).map ((F.map_comp f g).app E) =
+  eq_to_hom (by simp) ≫ (F.map_comp f (g ≫ h)).app E ≫ (F.map_comp g h).app ((F.map f).obj E) :=
+by { convert nat_trans.congr_app (F.assoc f g h) E using 1, simpa }
+
+end oplax_functor
+
 /--
 The Grothendieck construction (often written as `∫ F` in mathematics) for a functor `F : C ⥤ Cat`
 gives a category whose
@@ -138,8 +159,8 @@ instance : category (grothendieck F) :=
   id := λ X, grothendieck.id X,
   comp := λ X Y Z f g, grothendieck.comp f g,
   id_comp' := λ X Y f, by { ext, { dsimp [fiber_push_map], simp }, simp },
-  comp_id' := λ X Y f, by { ext, { dsimp [fiber_push_map], simp }, simp },
-  assoc' := λ W X Y Z e f g, by { ext, { dsimp [fiber_push_map], simp }, simp } }
+  comp_id' := λ X Y f, by { ext, { dsimp [fiber_push_map], simpa }, simp },
+  assoc' := λ W X Y Z e f g, by { ext, { dsimp [fiber_push_map], simpa }, simp } }
 
 end fiber_push_map
 
@@ -170,12 +191,12 @@ congr (by simp)
 @[simp, reassoc]
 lemma fiber_push_map_comp_left : fiber_push_map (e ≫ f) g =
   eq_to_hom (by simp) ≫ fiber_push_map e (f.base ≫ g) ≫ fiber_push_map f g :=
-by { dsimp [fiber_push_map], simp }
+by { dsimp [fiber_push_map], simpa }
 
 @[simp, reassoc]
 lemma fiber_push_map_comp_right : fiber_push_map f (g ≫ h) ≫ (F.map_comp _ _).app _ =
   eq_to_hom (by simp) ≫ (F.map_comp _ _).app _ ≫ (F.map h).map (fiber_push_map f g) :=
-by { dsimp [fiber_push_map], simp }
+by { dsimp [fiber_push_map], simpa }
 
 end fiber_push_map
 

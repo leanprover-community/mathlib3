@@ -682,12 +682,13 @@ end
 
 /-!
 ### Uniqueness of power series
-If a function `f : 𝕜 → E` has two representations as power series at a point `x : 𝕜`, corresponding
-to formal multilinear series `p₁` and `p₂`, then `p₁ = p₂`. It is important that the domain `𝕜` is
-one-dimensional, so that the continuous multilinear maps `p₁ n` for `n : ℕ` are given by
+If a function `f : E → F` has two representations as power series at a point `x : E`, corresponding
+to formal multilinear series `p₁` and `p₂`, then these representations agree term-by-term. That is,
+for any `n : ℕ` and `y : E`,  `p₁ n (λ i, y) = p₂ n (λ i, y)`. In the one-dimensional case, when
+`f : 𝕜 → E`, the continuous multilinear maps `p₁ n` and `p₂ n` are given by
 `formal_multilinear_series.mk_pi_field`, and hence are determined completely by the value of
-`p₁ n (λ i, 1)`. Consequently, the radius of convergence for one series can be transferred to the
-other.
+`p₁ n (λ i, 1)`, so `p₁ = p₂`. Consequently, the radius of convergence for one series can be
+transferred to the other.
 -/
 
 section uniqueness
@@ -705,7 +706,7 @@ begin
   cases n,
   { exact norm_eq_zero.mp (by simpa [fin0_apply_norm]
       using ht 0 (δε (metric.mem_ball_self δ_pos))), },
-  { refine or.elim (em (y = 0)) (λ hy, by { simpa only [hy] using p.map_zero }) (λ hy, _),
+  { refine or.elim (em (y = 0)) (λ hy, by simpa only [hy] using p.map_zero) (λ hy, _),
     replace hy := norm_pos_iff.mpr hy,
     refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ ε ε_pos, _)) (norm_nonneg _)),
     have h₀ := mul_pos c_pos (pow_pos hy (n.succ + 1)),
@@ -733,6 +734,8 @@ begin
         : by { rw inv_mul_cancel (norm_pos_iff.mp k_pos), simpa using h₃.le }, },
 end
 
+/-- If a formal multilinear series `p` represents the zero function at `x : E`, then the
+terms `p n (λ i, y)` appearing the in sum are zero for any `n : ℕ`, `y : E`. -/
 lemma has_fpower_series_at.apply_eq_zero {p : formal_multilinear_series 𝕜 E F} {x : E}
   (h : has_fpower_series_at 0 p x) (n : ℕ) :
   ∀ y : E, p n (λ i, y) = 0 :=
@@ -751,10 +754,12 @@ begin
   exact h.continuous_multilinear_map_apply_eq_zero,
 end
 
+/-- A one-dimensional formal multilinear series representing the zero function is zero. -/
 lemma has_fpower_series_at.eq_zero {p : formal_multilinear_series 𝕜 𝕜 E} {x : 𝕜}
   (h : has_fpower_series_at 0 p x) : p = 0 :=
 by { ext n x, rw ←mk_pi_field_apply_one_eq_self (p n), simp [h.apply_eq_zero n 1] }
 
+/-- One-dimensional formal multilinear series representing the same function are equal. -/
 theorem has_fpower_series_at.eq_formal_multilinear_series
   {p₁ p₂ : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {x : 𝕜}
   (h₁ : has_fpower_series_at f p₁ x) (h₂ : has_fpower_series_at f p₂ x) :

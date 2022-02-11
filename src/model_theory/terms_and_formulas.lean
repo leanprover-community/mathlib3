@@ -131,8 +131,7 @@ variable {n : ℕ}
 @[simps] instance : has_bot (L.bounded_formula α n) := ⟨bd_falsum⟩
 
 /-- The negation of a bounded formula is also a bounded formula. -/
-@[reducible] def bd_not (φ : L.bounded_formula α n) : L.bounded_formula α n :=
-  bd_imp φ ⊥
+@[reducible] def bd_not (φ : L.bounded_formula α n) : L.bounded_formula α n := bd_imp φ ⊥
 
 @[simps] instance : has_top (L.bounded_formula α n) := ⟨bd_not bd_falsum⟩
 
@@ -166,7 +165,7 @@ end formula
 variable {L}
 
 instance nonempty_bounded_formula {α : Type} (n : ℕ) : nonempty $ L.bounded_formula α n :=
-  nonempty.intro (by constructor)
+nonempty.intro (by constructor)
 
 variables (M)
 
@@ -197,7 +196,7 @@ realize_formula M φ pempty.elim
 
 variable {M}
 
-lemma realize_theory_subset {T T' : L.Theory} (h : T'.model M) (hs : T ⊆ T') :
+lemma Theory.model.mono {T T' : L.Theory} (h : T'.model M) (hs : T ⊆ T') :
   T.model M :=
 λ φ hφ, h φ (hs hφ)
 
@@ -278,8 +277,7 @@ def is_finitely_satisfiable (T : L.Theory) : Prop :=
 ∀ (T0 : finset L.sentence), (T0 : L.Theory) ⊆ T → (T0 : L.Theory).is_satisfiable
 
 /-- Given that a theory is satisfiable, selects a model using choice. -/
-def is_satisfiable.some_model {T : L.Theory} (h : T.is_satisfiable) : Type* :=
-  classical.some h
+def is_satisfiable.some_model {T : L.Theory} (h : T.is_satisfiable) : Type* := classical.some h
 
 instance is_satisfiable.nonempty_some_model {T : L.Theory} (h : T.is_satisfiable) :
   nonempty (h.some_model) :=
@@ -292,22 +290,22 @@ noncomputable instance is_satisfiable.some_model_structure {T : L.Theory} (h : T
   L.Structure (h.some_model) :=
 classical.some (classical.some_spec (classical.some_spec h))
 
-lemma is_satisfiable.some_model_realize_theory {T : L.Theory} (h : T.is_satisfiable) :
+lemma is_satisfiable.some_model_models {T : L.Theory} (h : T.is_satisfiable) :
   T.model h.some_model :=
 classical.some_spec (classical.some_spec (classical.some_spec h))
 
-lemma is_satisfiable.of_model {T : L.Theory} (M : Type (max u v)) [n : nonempty M]
+lemma model.is_satisfiable {T : L.Theory} (M : Type (max u v)) [n : nonempty M]
   [S : L.Structure M] (h : T.model M) : T.is_satisfiable :=
 ⟨M, n, S, h⟩
 
-lemma is_satisfiable.is_satisfiable_subset {T T' : L.Theory} (h : T'.is_satisfiable) (hs : T ⊆ T') :
+lemma is_satisfiable.mono {T T' : L.Theory} (h : T'.is_satisfiable) (hs : T ⊆ T') :
   T.is_satisfiable :=
 ⟨h.some_model, h.nonempty_some_model, h.some_model_structure,
-  realize_theory_subset h.some_model_realize_theory hs⟩
+  h.some_model_models.mono hs⟩
 
 lemma is_satisfiable.is_finitely_satisfiable {T : L.Theory} (h : T.is_satisfiable) :
   T.is_finitely_satisfiable :=
-λ _, h.is_satisfiable_subset
+λ _, h.mono
 
 variable {n : ℕ}
 
@@ -327,7 +325,7 @@ h M _ hM
 lemma semantically_equivalent_some_model {T : L.Theory} {φ ψ : L.bounded_formula α n}
   (hsat : T.is_satisfiable) (h : T.semantically_equivalent φ ψ) :
   realize_bounded_formula (hsat.some_model) φ = realize_bounded_formula (hsat.some_model) ψ :=
-h hsat.some_model _ hsat.some_model_realize_theory
+h hsat.some_model _ hsat.some_model_models
 
 /-- Semantic equivalence forms an equivalence relation on formulas. -/
 def semantically_equivalent_setoid (T : L.Theory) : setoid (L.bounded_formula α n) :=

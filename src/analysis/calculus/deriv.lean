@@ -388,7 +388,7 @@ lemma differentiable_on.has_deriv_at (h : differentiable_on 𝕜 f s) (hs : s �
 lemma has_deriv_at.deriv (h : has_deriv_at f f' x) : deriv f x = f' :=
 h.differentiable_at.has_deriv_at.unique h
 
-lemma deriv_eq {f' : 𝕜 → F} (h : ∀ x, has_deriv_at f₂ (f₂' x) x) : deriv f₂ = f₂' :=
+lemma deriv_eq {f' : 𝕜 → F} (h : ∀ x, has_deriv_at f (f' x) x) : deriv f = f' :=
 funext $ λ x, (h x).deriv
 
 lemma has_deriv_within_at.deriv_within

@@ -56,7 +56,7 @@ end}
   space `G/Γ`."]
 instance quotient_group.has_measurable_smul [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)] :
   has_measurable_smul G (G ⧸ Γ) :=
-{ measurable_const_smul := λ g, (continuous_smul₂ g).measurable,
+{ measurable_const_smul := λ g, (continuous_const_smul g).measurable,
   measurable_smul_const := λ x, (quotient_group.continuous_smul₁ x).measurable }
 
 variables {𝓕 : set G} (h𝓕 : is_fundamental_domain Γ.opposite 𝓕 μ)

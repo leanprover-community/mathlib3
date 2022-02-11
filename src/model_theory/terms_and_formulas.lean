@@ -369,7 +369,7 @@ funext (λ v, funext (λ xs, begin
   exact iff_eq_eq.mp ⟨h'.1, h'.2⟩,
 end))
 
-lemma semantically_equivalent_some_model {T : L.Theory} {φ ψ : L.bounded_formula α n}
+lemma semantically_equivalent.some_model_realize_eq {T : L.Theory} {φ ψ : L.bounded_formula α n}
   (hsat : T.is_satisfiable) (h : T.semantically_equivalent φ ψ) :
   realize_bounded_formula (hsat.some_model) φ = realize_bounded_formula (hsat.some_model) ψ :=
 h.realize_eq hsat.some_model_models

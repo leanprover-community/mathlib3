@@ -157,8 +157,8 @@ def hom : (Π (i : I), H i) →* G :=
   map_one' := to_fun_one _,
   map_mul' := λ f g, to_fun_mul f g S, }
 
-lemma to_fun_update_one (i : I) (y : H i) (S : finset I) :
-  to_fun (function.update 1 i y) S = if i ∈ S then ϕ i y else 1 :=
+lemma to_fun_single (i : I) (y : H i) (S : finset I) :
+  to_fun (monoid_hom.single _ i y) S = if i ∈ S then ϕ i y else 1 :=
 begin
   induction S using finset.induction_on with j S hnmem ih,
   { simp, },
@@ -166,12 +166,12 @@ begin
     by_cases (i = j),
     { subst h, rw ih, simp [hnmem], },
     { change i ≠ j at h,
-      simpa [h, hnmem, function.update_noteq (ne_comm.mp h)] using ih, } }
+      simpa [h] using ih, } }
 end
 
 @[simp]
-lemma hom_update_one (i : I) (y : H i):
-  hom S (function.update 1 i y) = if i ∈ S then ϕ i y else 1 := to_fun_update_one _ _ _
+lemma hom_single (i : I) (y : H i):
+  hom S (monoid_hom.single _ i y) = if i ∈ S then ϕ i y else 1 := to_fun_single _ _ _
 
 lemma range : (hom S).range = ⨆ i ∈ S, (ϕ i).range :=
 begin
@@ -180,7 +180,7 @@ begin
     exact (to_fun_in_sup_range ϕ f S), },
   { refine (bsupr_le _),
     rintro i hmem x ⟨y, rfl⟩,
-    use (function.update 1 i y),
+    use (monoid_hom.single _ i y),
     simp [hmem], }
 end
 
@@ -229,8 +229,8 @@ def to_fun : G := pi_hom_restr.to_fun ϕ f finset.univ
 def hom : (Π (i : I), H i) →* G := pi_hom_restr.hom ϕ finset.univ
 
 @[simp]
-lemma hom_update_one (i : I) (y : H i): hom (function.update 1 i y) = ϕ i y :=
-by { show pi_hom_restr.hom ϕ finset.univ (function.update 1 i y) = ϕ i y, simp }
+lemma hom_single (i : I) (y : H i): hom (monoid_hom.single _ i y) = ϕ i y :=
+by { show pi_hom_restr.hom ϕ finset.univ (monoid_hom.single _ i y) = ϕ i y, simp }
 
 lemma range : hom.range = ⨆ i : I, (ϕ i).range :=
 by { show (pi_hom_restr.hom ϕ finset.univ).range = _, simp [pi_hom_restr.range] }
@@ -339,8 +339,8 @@ def hom : (Π (i : I), H i) →* G :=
   let _ := hcomm_subtype in by exactI pi_hom.hom (λ i, (H i).subtype)
 
 @[simp]
-lemma hom_update_one (i : I) (y : H i): hom (function.update 1 i y) = y :=
-by apply pi_hom.hom_update_one
+lemma hom_single (i : I) (y : H i): hom (monoid_hom.single _ i y) = y :=
+by apply pi_hom.hom_single
 
 lemma range : hom.range = ⨆ i : I, H i :=
 by simp [hom, pi_hom.range]

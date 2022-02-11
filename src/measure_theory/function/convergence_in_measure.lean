@@ -298,7 +298,7 @@ begin
     exact or.inl (real.rpow_pos_of_pos hε _) },
 end
 
-private lemma tendsto_in_measure_of_tendsto_snorm'
+private lemma tendsto_in_measure_of_tendsto_snorm_of_ne_top
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
@@ -352,7 +352,7 @@ begin
   by_cases hp_ne_top : p = ∞,
   { subst hp_ne_top,
     exact tendsto_in_measure_of_tendsto_snorm_top hf hg hfg },
-  { exact tendsto_in_measure_of_tendsto_snorm' hp_ne_zero hp_ne_top hf hg hfg }
+  { exact tendsto_in_measure_of_tendsto_snorm_of_ne_top hp_ne_zero hp_ne_top hf hg hfg }
 end
 
 /-- Convergence in Lp implies convergence in measure. -/

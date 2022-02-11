@@ -9,10 +9,10 @@ import order.hom.lattice
 /-!
 # The category of lattices
 
-This defines `Lattice`, the category of distributive lattices.
+This defines `Lattice`, the category of lattices.
 -/
 
-universes u v
+universes u
 
 open category_theory
 
@@ -42,8 +42,7 @@ instance has_forget_to_PartialOrder : has_forget₂ Lattice PartialOrder :=
 { forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y f, f },
   forget_comp := rfl }
 
-/-- Constructs an equivalence between distributive lattices from an order isomorphism between them.
--/
+/-- Constructs an equivalence between lattices from an order isomorphism between them. -/
 @[simps] def iso.mk {α β : Lattice.{u}} (e : α ≃o β) : α ≅ β :=
 { hom := e,
   inv := e.symm,

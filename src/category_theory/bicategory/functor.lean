@@ -277,8 +277,7 @@ Functions between 2-morphisms strictly commute with compositions and preserve th
 They also preserve the associator, the left unitor, and the right unitor modulo some adjustments
 of domains and codomains of 2-morphisms.
 -/
-structure pseudofunctor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u₂) [bicategory.{w₂ v₂} C]
-  extends prelax_functor B C :=
+structure pseudofunctor extends prelax_functor B C :=
 (map_id (a : B) : map (𝟙 a) ≅ 𝟙 (obj a))
 (map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map (f ≫ g) ≅ map f ≫ map g)
 (map₂_whisker_right' : ∀ {a b c : B} {f g : a ⟶ b} (η : f ⟶ g) (h : b ⟶ c),
@@ -314,6 +313,8 @@ attribute [reassoc]
   pseudofunctor.map₂_left_unitor pseudofunctor.map₂_right_unitor
 attribute [simp]
   pseudofunctor.map₂_comp pseudofunctor.map₂_left_unitor pseudofunctor.map₂_right_unitor
+
+variables {B C}
 
 namespace pseudofunctor
 

@@ -162,12 +162,6 @@ namespace oplax_functor
 section
 variables (F : oplax_functor B C) (G : oplax_functor C D)
 
-/-- Function between 1-morphisms as a functor. -/
-@[simps]
-def map_functor (a b : B) : (a ⟶ b) ⥤ (F.obj a ⟶ F.obj b) :=
-{ obj := λ f, F.map f,
-  map := λ f g η, F.map₂ η }
-
 /-- The prelax functor between the underlying quivers. -/
 add_decl_doc oplax_functor.to_prelax_functor
 
@@ -178,6 +172,12 @@ instance has_coe_to_prelax : has_coe (oplax_functor B C) (prelax_functor B C) :=
 @[simp] lemma to_prelax_functor_obj : (F : prelax_functor B C).obj = F.obj := rfl
 @[simp] lemma to_prelax_functor_map : (F : prelax_functor B C).map = F.map := rfl
 @[simp] lemma to_prelax_functor_map₂ : (F : prelax_functor B C).map₂ = F.map₂ := rfl
+
+/-- Function between 1-morphisms as a functor. -/
+@[simps]
+def map_functor (a b : B) : (a ⟶ b) ⥤ (F.obj a ⟶ F.obj b) :=
+{ obj := λ f, F.map f,
+  map := λ f g η, F.map₂ η }
 
 variables (B)
 
@@ -223,7 +223,12 @@ def comp : oplax_functor B D :=
       whisker_left_comp, assoc] },
   .. (F : prelax_functor B C).comp ↑G }
 
-structure pseudo_core (F : oplax_functor B C) :=
+/--
+A structure on an oplax functor that promotes an oprax functors to a pseudofunctor.
+See `pseudofunctor.mk_of_oplax`.
+-/
+@[nolint has_inhabited_instance]
+structure pseudo_core :=
 (map_id_iso (a : B) : F.map (𝟙 a) ≅ 𝟙 (F.obj a))
 (map_comp_iso {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : F.map (f ≫ g) ≅ F.map f ≫ F.map g)
 (map_id_iso_hom' : ∀ {a : B}, (map_id_iso a).hom = F.map_id a . obviously)
@@ -234,6 +239,10 @@ restate_axiom pseudo_core.map_id_iso_hom'
 restate_axiom pseudo_core.map_comp_iso_hom'
 attribute [simp] pseudo_core.map_id_iso_hom pseudo_core.map_comp_iso_hom
 
+/--
+A predicate on an oplax functor that promotes an oprax functors to a pseudofunctor.
+See `pseudofunctor.mk_of_oplax'`.
+-/
 class is_pseudo : Prop :=
 (map_id_is_iso' : ∀ (a : B), is_iso (F.map_id a) . tactic.apply_instance)
 (map_comp_is_iso' : ∀ {a b c : B} (f : a ⟶ b) (g : b ⟶ c),
@@ -304,15 +313,14 @@ restate_axiom pseudofunctor.map₂_comp'
 restate_axiom pseudofunctor.map₂_associator'
 restate_axiom pseudofunctor.map₂_left_unitor'
 restate_axiom pseudofunctor.map₂_right_unitor'
-attribute [simp]
-  pseudofunctor.map₂_whisker_right pseudofunctor.map₂_whisker_left
-  pseudofunctor.map₂_id pseudofunctor.map₂_associator
 attribute [reassoc]
   pseudofunctor.map₂_whisker_right pseudofunctor.map₂_whisker_left
   pseudofunctor.map₂_comp pseudofunctor.map₂_associator
   pseudofunctor.map₂_left_unitor pseudofunctor.map₂_right_unitor
 attribute [simp]
-  pseudofunctor.map₂_comp pseudofunctor.map₂_left_unitor pseudofunctor.map₂_right_unitor
+  pseudofunctor.map₂_whisker_right pseudofunctor.map₂_whisker_left
+  pseudofunctor.map₂_id pseudofunctor.map₂_associator pseudofunctor.map₂_comp
+  pseudofunctor.map₂_left_unitor pseudofunctor.map₂_right_unitor
 
 variables {B C}
 
@@ -321,12 +329,6 @@ namespace pseudofunctor
 section
 open iso
 variables (F : pseudofunctor B C) (G : pseudofunctor C D)
-
-/-- Function on 1-morphisms as a functor. -/
-@[simps]
-def map_functor {a b : B} : (a ⟶ b) ⥤ (F.obj a ⟶ F.obj b) :=
-{ obj := λ f, F.map f,
-  map := λ f g η, F.map₂ η }
 
 /-- The prelax functor between the underlying quivers. -/
 add_decl_doc pseudofunctor.to_prelax_functor
@@ -354,6 +356,11 @@ instance has_coe_to_oplax : has_coe (pseudofunctor B C) (oplax_functor B C) := �
 @[simp] lemma to_oplax_map_id (a : B) : (F : oplax_functor B C).map_id a = (F.map_id a).hom := rfl
 @[simp] lemma to_oplax_map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) :
   (F : oplax_functor B C).map_comp f g = (F.map_comp f g).hom := rfl
+
+/-- Function on 1-morphisms as a functor. -/
+@[simps]
+def map_functor {a b : B} : (a ⟶ b) ⥤ (F.obj a ⟶ F.obj b) :=
+(F : oplax_functor B C).map_functor a b
 
 variables (B)
 

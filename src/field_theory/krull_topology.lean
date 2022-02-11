@@ -249,13 +249,11 @@ begin
   let φ := f⁻¹ * g,
   cases (diff_equivs_have_diff_values hfg) with x hx,
   have hφx : φ x ≠ x,
-  {
-    change f⁻¹(g x) ≠ x,
+  { change f⁻¹(g x) ≠ x,
     apply ne_of_apply_ne f,
     change f (f.symm (g x)) ≠ f x,
     rw [alg_equiv.apply_symm_apply f (g x), ne_comm],
-    exact hx,
-  },
+    exact hx },
   let E : intermediate_field K L := intermediate_field.adjoin K {x},
   let h_findim : finite_dimensional K E :=
   intermediate_field.adjoin.finite_dimensional (h_int x),
@@ -279,10 +277,8 @@ begin
   rw mem_fixing_subgroup_iff at h_in_H,
   specialize h_in_H x,
   have hxE : x ∈ E,
-  {
-    apply intermediate_field.subset_adjoin,
-    apply set.mem_singleton,
-  },
+  { apply intermediate_field.subset_adjoin,
+    apply set.mem_singleton },
   exact hφx (h_in_H hxE),
 end}
 

@@ -10,6 +10,13 @@ import order.hom.lattice
 # The category of lattices
 
 This defines `Lattice`, the category of lattices.
+
+Note that `Lattice` doesn't correspond to the literature definition of `Lat` as we don't require
+bottom or top elements. Instead, `Lat` corresponds to `BoundedLattice` (not yet in mathlib).
+
+## TODO
+
+The free functor from `Lattice` to `BoundedLattice` is `X → with_top (with_bot X)`.
 -/
 
 universes u
@@ -42,7 +49,7 @@ instance has_forget_to_PartialOrder : has_forget₂ Lattice PartialOrder :=
 { forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y f, f },
   forget_comp := rfl }
 
-/-- Constructs an equivalence between lattices from an order isomorphism between them. -/
+/-- Constructs an isomorphism of lattices from an order isomorphism between them. -/
 @[simps] def iso.mk {α β : Lattice.{u}} (e : α ≃o β) : α ≅ β :=
 { hom := e,
   inv := e.symm,
@@ -53,7 +60,7 @@ instance has_forget_to_PartialOrder : has_forget₂ Lattice PartialOrder :=
 @[simps] def dual : Lattice ⥤ Lattice :=
 { obj := λ X, of (order_dual X), map := λ X Y, lattice_hom.dual }
 
-/-- The equivalence between `NonemptyFinLinOrd` and itself induced by `order_dual` both ways. -/
+/-- The equivalence between `Lattice` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : Lattice ≌ Lattice :=
 equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)

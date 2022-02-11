@@ -16,7 +16,7 @@ We define the subtype of compact sets in a topological space.
 - `compacts α` is the type of compact subsets of a topological space `α`.
 - `nonempty_compacts α` is the type of non-empty compact subsets.
 - `positive_compacts α` is the type of compact subsets with non-empty interior.
-- `open_compacts α`: The type of open compact sets of a topological space `α`.
+- `compact_opens α`: The type of compact open sets of a topological space `α`.
 -/
 
 open set
@@ -152,7 +152,7 @@ def positive_compacts : Type* := {s : set α // is_compact s ∧ (interior s).no
 namespace positive_compacts
 variables {α}
 
-/-- Turns an open compact set into the corresponding compact set. -/
+/-- Turns a compact open set into the corresponding compact set. -/
 def to_opens : positive_compacts α → compacts α := inclusion $ λ s hs, hs.1
 
 @[ext] protected lemma ext {s t : positive_compacts α} (h : s.1 = t.1) : s = t := subtype.eq h
@@ -178,50 +178,50 @@ end positive_compacts
 
 /-! ### Open compact sets -/
 
-/-- The open compact sets of a topological space. See also `compacts` and `opens`. -/
-def open_compacts : Type* := {s : set α // is_open s ∧ is_compact s}
+/-- The compact open sets of a topological space. See also `compacts` and `opens`. -/
+def compact_opens : Type* := {s : set α // is_open s ∧ is_compact s}
 
-namespace open_compacts
+namespace compact_opens
 variables {α}
 
-/-- Turns an open compact set into the corresponding open set. -/
-def to_opens : open_compacts α → opens α := inclusion $ λ s hs, hs.1
+/-- Turns a compact open set into the corresponding open set. -/
+def to_opens : compact_opens α → opens α := inclusion $ λ s hs, hs.1
 
-/-- Turns an open compact set into the corresponding compact set. -/
-def to_compacts : open_compacts α → compacts α := inclusion $ λ s hs, hs.2
+/-- Turns a compact open set into the corresponding compact set. -/
+def to_compacts : compact_opens α → compacts α := inclusion $ λ s hs, hs.2
 
-lemma «open» (s : open_compacts α) : is_open s.1 := s.2.1
-lemma compact (s : open_compacts α) : is_compact s.1 := s.2.2
+lemma «open» (s : compact_opens α) : is_open s.1 := s.2.1
+lemma compact (s : compact_opens α) : is_compact s.1 := s.2.2
 
-@[ext] protected lemma ext {s t : open_compacts α} (h : s.1 = t.1) : s = t := subtype.eq h
+@[ext] protected lemma ext {s t : compact_opens α} (h : s.1 = t.1) : s = t := subtype.eq h
 
-instance : semilattice_sup (open_compacts α) :=
+instance : semilattice_sup (compact_opens α) :=
 subtype.semilattice_sup $ λ s t hs ht, ⟨hs.1.union ht.1, hs.2.union ht.2⟩
 
-instance : order_bot (open_compacts α) := subtype.order_bot ⟨is_open_empty, is_compact_empty⟩
-instance [compact_space α] : order_top (open_compacts α) :=
+instance : order_bot (compact_opens α) := subtype.order_bot ⟨is_open_empty, is_compact_empty⟩
+instance [compact_space α] : order_top (compact_opens α) :=
 subtype.order_top ⟨is_open_univ, compact_univ⟩
 
-instance : inhabited (open_compacts α) := ⟨⊥⟩
+instance : inhabited (compact_opens α) := ⟨⊥⟩
 
-instance [t2_space α] : semilattice_inf (open_compacts α) :=
+instance [t2_space α] : semilattice_inf (compact_opens α) :=
 subtype.semilattice_inf $ λ s t hs ht, ⟨hs.1.inter ht.1, hs.2.inter ht.2⟩
 
-instance [t2_space α] : lattice (open_compacts α) :=
-{ ..open_compacts.semilattice_sup, ..open_compacts.semilattice_inf }
+instance [t2_space α] : lattice (compact_opens α) :=
+{ ..compact_opens.semilattice_sup, ..compact_opens.semilattice_inf }
 
-@[simp] lemma val_sup (s t : open_compacts α) : (s ⊔ t).1 = s.1 ∪ t.1 := rfl
-@[simp] lemma val_inf [t2_space α] (s t : open_compacts α) : (s ⊓ t).1 = s.1 ∩ t.1 := rfl
-@[simp] lemma val_bot : (⊥ : open_compacts α).1 = ∅ := rfl
-@[simp] lemma val_top [compact_space α] : (⊤ : open_compacts α).1 = univ := rfl
+@[simp] lemma val_sup (s t : compact_opens α) : (s ⊔ t).1 = s.1 ∪ t.1 := rfl
+@[simp] lemma val_inf [t2_space α] (s t : compact_opens α) : (s ⊓ t).1 = s.1 ∩ t.1 := rfl
+@[simp] lemma val_bot : (⊥ : compact_opens α).1 = ∅ := rfl
+@[simp] lemma val_top [compact_space α] : (⊤ : compact_opens α).1 = univ := rfl
 
-/-- The image of an open compact under a continuous open map. -/
-def map (f : α → β) (hf : continuous f) (hf' : is_open_map f) (s : open_compacts α) :
-  open_compacts β :=
+/-- The image of a compact open under a continuous open map. -/
+def map (f : α → β) (hf : continuous f) (hf' : is_open_map f) (s : compact_opens α) :
+  compact_opens β :=
 ⟨f '' s.1, hf' _ s.open, s.compact.image hf⟩
 
-@[simp] lemma val_map {f : α → β} (hf : continuous f) (hf' : is_open_map f) (s : open_compacts α) :
+@[simp] lemma val_map {f : α → β} (hf : continuous f) (hf' : is_open_map f) (s : compact_opens α) :
   (s.map f hf hf').1 = f '' s.1 := rfl
 
-end open_compacts
+end compact_opens
 end topological_space

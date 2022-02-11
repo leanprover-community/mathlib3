@@ -31,7 +31,7 @@ variables (r : α → α → Prop)
 /-- The antisymmetrization relation. -/
 def antisymm_rel (a b : α) : Prop := r a b ∧ r b a
 
-@[simp] lemma antisymm_rel_swap : antisymm_rel (swap r) = antisymm_rel r :=
+lemma antisymm_rel_swap : antisymm_rel (swap r) = antisymm_rel r :=
 funext $ λ _, funext $ λ _, propext and.comm
 
 @[refl] lemma antisymm_rel_refl [is_refl α r] (a : α) : antisymm_rel r a a := ⟨refl _, refl _⟩

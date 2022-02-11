@@ -92,15 +92,27 @@ private def mul_pos [has_zero α] [has_lt α] [has_mul α] : α>0 → α → α 
 section abbreviations_strict_mono
 variables (X : Type u) [has_mul X] [has_zero X] [has_lt X]
 
+/--
+`zero_lt.pos_mul_strict_mono α` is an abbreviation for `covariant_class α>0 α pos_mul (<)`,
+expressing that multiplication by positive elements on the left is strictly monotone. -/
 abbreviation pos_mul_strict_mono : Prop :=
 covariant_class {x : X // 0 < x} X pos_mul (<)
 
+/--
+`zero_lt.mul_pos_strict_mono α` is an abbreviation for `covariant_class α>0 α mul_pos (<)`,
+expressing that multiplication by positive elements on the right is strictly monotone. -/
 abbreviation mul_pos_strict_mono : Prop :=
 covariant_class {x : X // 0 < x} X mul_pos (<)
 
+/--
+`zero_lt.pos_mul_strict_mono_rev α` is an abbreviation for `contravariant_class α>0 α pos_mul (<)`,
+expressing that multiplication by positive elements on the left is strictly reverse monotone. -/
 abbreviation pos_mul_strict_mono_rev : Prop :=
 contravariant_class {x : X // 0 < x} X pos_mul (<)
 
+/--
+`zero_lt.mul_pos_strict_mono_rev α` is an abbreviation for `contravariant_class α>0 α mul_pos (<)`,
+expressing that multiplication by positive elements on the right is strictly reverse monotone. -/
 abbreviation mul_pos_strict_mono_rev : Prop :=
 contravariant_class {x : X // 0 < x} X mul_pos (<)
 
@@ -109,15 +121,27 @@ end abbreviations_strict_mono
 section abbreviations_mono
 variables (X : Type*) [has_mul X] [has_zero X] [preorder X]
 
+/--
+`zero_lt.pos_mul_mono α` is an abbreviation for `covariant_class α>0 α pos_mul (≤)`,
+expressing that multiplication by positive elements on the left is monotone. -/
 abbreviation pos_mul_mono : Prop :=
 covariant_class {x : X // 0 < x} X pos_mul (≤)
 
+/--
+`zero_lt.mul_pos_mono α` is an abbreviation for `covariant_class α>0 α mul_pos (≤)`,
+expressing that multiplication by positive elements on the right is monotone. -/
 abbreviation mul_pos_mono : Prop :=
 covariant_class {x : X // 0 < x} X mul_pos (≤)
 
+/--
+`zero_lt.pos_mul_mono_rev α` is an abbreviation for `contravariant_class α>0 α pos_mul (≤)`,
+expressing that multiplication by positive elements on the left is reverse monotone. -/
 abbreviation pos_mul_mono_rev : Prop :=
 contravariant_class {x : X // 0 < x} X pos_mul (≤)
 
+/--
+`zero_lt.mul_pos_mono_rev α` is an abbreviation for `contravariant_class α>0 α mul_pos (≤)`,
+expressing that multiplication by positive elements on the right is reverse monotone. -/
 abbreviation mul_pos_mono_rev : Prop :=
 contravariant_class {x : X // 0 < x} X mul_pos (≤)
 

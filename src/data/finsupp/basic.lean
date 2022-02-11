@@ -1068,7 +1068,7 @@ h.map_prod _ _
 lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
   (f : α →₀ β) (g : α → β → N →* P) :
   ⇑(f.prod g) = f.prod (λ i fi, g i fi) :=
-monoid_hom.coe_prod _ _
+monoid_hom.coe_finset_prod _ _
 
 @[simp, to_additive]
 lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]
@@ -2276,61 +2276,51 @@ rfl
 end sum
 
 section
-variables [group G] [mul_action G α] [add_comm_monoid M]
+variables [monoid G] [mul_action G α] [add_comm_monoid M]
 
-/--
-Scalar multiplication by a group element g,
-given by precomposition with the action of g⁻¹ on the domain.
--/
+/-- Scalar multiplication acting on the domain.
+
+This is not an instance as it would conflict with the action on the range. -/
 def comap_has_scalar : has_scalar G (α →₀ M) :=
-{ smul := λ g f, f.comap_domain (λ a, g⁻¹ • a)
-  (λ a a' m m' h, by simpa [←mul_smul] using (congr_arg (λ a, g • a) h)) }
+{ smul := λ g, map_domain ((•) g) }
 
 local attribute [instance] comap_has_scalar
 
-/--
-Scalar multiplication by a group element,
-given by precomposition with the action of g⁻¹ on the domain,
-is multiplicative in g.
--/
+lemma comap_smul_def (g : G) (f : α →₀ M) : g • f = map_domain ((•) g) f := rfl
+
+@[simp] lemma comap_smul_single (g : G) (a : α) (b : M) :
+  g • single a b = single (g • a) b :=
+map_domain_single
+
+/-- `finsupp.comap_has_scalar` is multiplicative -/
 def comap_mul_action : mul_action G (α →₀ M) :=
-{ one_smul := λ f, by { ext, dsimp [(•)], simp, },
-  mul_smul := λ g g' f, by { ext, dsimp [(•)], simp [mul_smul], }, }
+{ one_smul := λ f, by  rw [comap_smul_def, one_smul_eq_id, map_domain_id],
+  mul_smul := λ g g' f, by rw [comap_smul_def, comap_smul_def, comap_smul_def, ←comp_smul_left,
+    map_domain_comp], }
 
 local attribute [instance] comap_mul_action
 
-/--
-Scalar multiplication by a group element,
-given by precomposition with the action of g⁻¹ on the domain,
-is additive in the second argument.
--/
+/-- `finsupp.comap_has_scalar` is distributive -/
 def comap_distrib_mul_action :
   distrib_mul_action G (α →₀ M) :=
 { smul_zero := λ g, by { ext, dsimp [(•)], simp, },
-  smul_add := λ g f f', by { ext, dsimp [(•)], simp, }, }
+  smul_add := λ g f f', by { ext, dsimp [(•)], simp [map_domain_add], }, }
 
-/--
-Scalar multiplication by a group element on finitely supported functions on a group,
-given by precomposition with the action of g⁻¹. -/
-def comap_distrib_mul_action_self :
-  distrib_mul_action G (G →₀ M) :=
-@finsupp.comap_distrib_mul_action G M G _ (monoid.to_mul_action G) _
-
-@[simp]
-lemma comap_smul_single (g : G) (a : α) (b : M) :
-  g • single a b = single (g • a) b :=
-begin
-  ext a',
-  dsimp [(•)],
-  by_cases h : g • a = a',
-  { subst h, simp [←mul_smul], },
-  { simp [single_eq_of_ne h], rw [single_eq_of_ne],
-    rintro rfl, simpa [←mul_smul] using h, }
 end
 
-@[simp]
-lemma comap_smul_apply (g : G) (f : α →₀ M) (a : α) :
-  (g • f) a = f (g⁻¹ • a) := rfl
+section
+variables [group G] [mul_action G α] [add_comm_monoid M]
+
+local attribute [instance] comap_has_scalar comap_mul_action comap_distrib_mul_action
+
+/-- When `G` is a group, `finsupp.comap_has_scalar` acts by precomposition with the action of `g⁻¹`.
+-/
+@[simp] lemma comap_smul_apply (g : G) (f : α →₀ M) (a : α) :
+  (g • f) a = f (g⁻¹ • a) :=
+begin
+  conv_lhs { rw ←smul_inv_smul g a },
+  exact map_domain_apply (mul_action.injective g) _ (g⁻¹ • a),
+end
 
 end
 

@@ -848,7 +848,7 @@ lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f
 (h.tendsto a).lim_eq
 
 @[simp] lemma Lim_nhds (a : α) : @Lim _ _ ⟨a⟩ (𝓝 a) = a :=
-Lim_eq (le_refl _)
+Lim_eq le_rfl
 
 @[simp] lemma lim_nhds_id (a : α) : @lim _ _ _ ⟨a⟩ (𝓝 a) id = a :=
 Lim_nhds a
@@ -1044,6 +1044,11 @@ hs.inter_right $ ht.is_closed
 lemma compact_closure_of_subset_compact [t2_space α] {s t : set α} (ht : is_compact t) (h : s ⊆ t) :
   is_compact (closure s) :=
 compact_of_is_closed_subset ht is_closed_closure (closure_minimal h ht.is_closed)
+
+@[simp]
+lemma exists_compact_superset_iff [t2_space α] {s : set α} :
+  (∃ K, is_compact K ∧ s ⊆ K) ↔ is_compact (closure s) :=
+⟨λ ⟨K, hK, hsK⟩, compact_closure_of_subset_compact hK hsK, λ h, ⟨closure s, h, subset_closure⟩⟩
 
 lemma image_closure_of_compact [t2_space β]
   {s : set α} (hs : is_compact (closure s)) {f : α → β} (hf : continuous_on f (closure s)) :

@@ -66,7 +66,7 @@ lemma rotate'_rotate' : ∀ (l : list α) (n m : ℕ), (l.rotate' n).rotate' m =
 | (a::l) (n+1) m := by rw [rotate'_cons_succ, rotate'_rotate', add_right_comm, rotate'_cons_succ]
 
 @[simp] lemma rotate'_length (l : list α) : rotate' l l.length = l :=
-by rw rotate'_eq_drop_append_take (le_refl _); simp
+by rw rotate'_eq_drop_append_take le_rfl; simp
 
 @[simp] lemma rotate'_length_mul (l : list α) : ∀ n : ℕ, l.rotate' (l.length * n) = l
 | 0     := by simp
@@ -210,7 +210,7 @@ begin
     { refine nat.le_of_lt_succ _,
       simpa using hk },
     rcases this.eq_or_lt with rfl|hk',
-    { simp [nth_le_append_right (le_refl _)] },
+    { simp [nth_le_append_right le_rfl] },
     { simpa [nth_le_append _ hk', length_cons, nat.mod_eq_of_lt (nat.succ_lt_succ hk')] } }
 end
 

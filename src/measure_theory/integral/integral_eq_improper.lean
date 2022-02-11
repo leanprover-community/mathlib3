@@ -267,7 +267,7 @@ lemma ae_cover.supr_lintegral_eq_of_countably_generated [nonempty ι] [l.ne_bot]
 begin
   have := hφ.lintegral_tendsto_of_countably_generated hfm,
   refine csupr_eq_of_forall_le_of_forall_lt_exists_gt
-    (λ i, lintegral_mono' measure.restrict_le_self (le_refl _)) (λ w hw, _),
+    (λ i, lintegral_mono' measure.restrict_le_self le_rfl) (λ w hw, _),
   rcases exists_between hw with ⟨m, hm₁, hm₂⟩,
   rcases (eventually_ge_of_tendsto_gt hm₂ this).exists with ⟨i, hi⟩,
   exact ⟨i, lt_of_lt_of_le hm₁ hi⟩,

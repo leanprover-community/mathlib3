@@ -67,9 +67,17 @@ by { ext, refl }
 lemma is_open_map_mul_left (a : G) : is_open_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_open_map
 
+@[to_additive is_open.left_add_coset]
+lemma is_open.left_coset {U : set G} (h : is_open U) (x : G) : is_open (left_coset x U) :=
+is_open_map_mul_left x _ h
+
 @[to_additive]
 lemma is_closed_map_mul_left (a : G) : is_closed_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_closed_map
+
+@[to_additive is_closed.left_add_coset]
+lemma is_closed.left_coset {U : set G} (h : is_closed U) (x : G) : is_closed (left_coset x U) :=
+is_closed_map_mul_left x _ h
 
 /-- Multiplication from the right in a topological group as a homeomorphism. -/
 @[to_additive "Addition from the right in a topological additive group as a homeomorphism."]
@@ -91,9 +99,17 @@ by { ext, refl }
 lemma is_open_map_mul_right (a : G) : is_open_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_open_map
 
+@[to_additive is_open.right_add_coset]
+lemma is_open.right_coset {U : set G} (h : is_open U) (x : G) : is_open (right_coset U x) :=
+is_open_map_mul_right x _ h
+
 @[to_additive]
 lemma is_closed_map_mul_right (a : G) : is_closed_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_closed_map
+
+@[to_additive is_closed.right_add_coset]
+lemma is_closed.right_coset {U : set G} (h : is_closed U) (x : G) : is_closed (right_coset U x) :=
+is_closed_map_mul_right x _ h
 
 @[to_additive]
 lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=
@@ -229,6 +245,10 @@ continuous_inv.comp_continuous_on hf
 lemma continuous_within_at.inv (hf : continuous_within_at f s x) :
   continuous_within_at (λ x, (f x)⁻¹) s x :=
 hf.inv
+
+@[to_additive]
+lemma is_compact.inv {s : set G} (hs : is_compact s) : is_compact (s⁻¹) :=
+by { rw [← image_inv], exact hs.image continuous_inv }
 
 section ordered_comm_group
 
@@ -467,7 +487,7 @@ lemma topological_group.of_nhds_one {G : Type u} [group G] [topological_space G]
     ... = map ((λ x, x₀*y₀*x) ∘ (uncurry (*))) ((map  (λ x, y₀⁻¹*x*y₀) $ 𝓝 1) ×ᶠ (𝓝 1))
             : by rw [← filter.map_map, ← prod_map_map_eq', map_id]
     ... ≤ map ((λ x, x₀*y₀*x) ∘ (uncurry (*))) ((𝓝 1) ×ᶠ (𝓝 1))
-            : map_mono (filter.prod_mono hconj $ le_refl _)
+            : map_mono (filter.prod_mono hconj $ le_rfl)
     ... = map (λ x, x₀*y₀*x) (map (uncurry (*)) ((𝓝 1) ×ᶠ (𝓝 1)))   : by rw filter.map_map
     ... ≤ map (λ x, x₀*y₀*x) (𝓝 1)   : map_mono hmul
     ... = 𝓝 (x₀*y₀)   : (hleft _).symm
@@ -775,8 +795,8 @@ section quotient
 variables [group G] [topological_space G] [topological_group G] {Γ : subgroup G}
 
 @[to_additive]
-instance quotient_group.has_continuous_smul₂ : has_continuous_smul₂ G (G ⧸ Γ) :=
-{ continuous_smul₂ := λ g₀, begin
+instance quotient_group.has_continuous_const_smul : has_continuous_const_smul G (G ⧸ Γ) :=
+{ continuous_const_smul := λ g₀, begin
     apply continuous_coinduced_dom,
     change continuous (λ g : G, quotient_group.mk (g₀ * g)),
     exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
@@ -819,7 +839,8 @@ instance : topological_group αˣ :=
 def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
 { continuous_to_fun  :=
   begin
-    apply continuous.prod_mk,
+    show continuous (λ i : (α × β)ˣ, (map (monoid_hom.fst α β) i, map (monoid_hom.snd α β) i)),
+    refine continuous.prod_mk _ _,
     { refine continuous_induced_rng ((continuous_fst.comp units.continuous_coe).prod_mk _),
       refine continuous_op.comp (continuous_fst.comp _),
       simp_rw units.inv_eq_coe_inv,
@@ -843,6 +864,53 @@ def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
   ..mul_equiv.prod_units }
 
 end units
+
+section lattice_ops
+
+variables {ι : Type*} [group G] [group H] {ts : set (topological_space G)}
+  (h : ∀ t ∈ ts, @topological_group G t _) {ts' : ι → topological_space G}
+  (h' : ∀ i, @topological_group G (ts' i) _) {t₁ t₂ : topological_space G}
+  (h₁ : @topological_group G t₁ _) (h₂ : @topological_group G t₂ _)
+  {t : topological_space H} [topological_group H] {F : Type*}
+  [monoid_hom_class F G H] (f : F)
+
+@[to_additive] lemma topological_group_Inf :
+  @topological_group G (Inf ts) _ :=
+{ continuous_inv := continuous_Inf_rng (λ t ht, continuous_Inf_dom ht
+    (@topological_group.continuous_inv G t _ (h t ht))),
+  continuous_mul := @has_continuous_mul.continuous_mul G (Inf ts) _
+    (@has_continuous_mul_Inf _ _ _
+      (λ t ht, @topological_group.to_has_continuous_mul G t _ (h t ht))) }
+
+include h'
+
+@[to_additive] lemma topological_group_infi :
+  @topological_group G (⨅ i, ts' i) _ :=
+by {rw ← Inf_range, exact topological_group_Inf (set.forall_range_iff.mpr h')}
+
+omit h'
+
+include h₁ h₂
+
+@[to_additive] lemma topological_group_inf :
+  @topological_group G (t₁ ⊓ t₂) _ :=
+by {rw inf_eq_infi, refine topological_group_infi (λ b, _), cases b; assumption}
+
+omit h₁ h₂
+
+@[to_additive] lemma topological_group_induced :
+  @topological_group G (t.induced f) _ :=
+{ continuous_inv :=
+    begin
+      letI : topological_space G := t.induced f,
+      refine continuous_induced_rng _,
+      simp_rw [function.comp, map_inv],
+      exact continuous_inv.comp (continuous_induced_dom : continuous f)
+    end,
+  continuous_mul := @has_continuous_mul.continuous_mul G (t.induced f) _
+    (@has_continuous_mul_induced G H _ _ t _ _ _ f) }
+
+end lattice_ops
 
 /-!
 ### Lattice of group topologies

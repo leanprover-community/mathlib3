@@ -275,8 +275,7 @@ section
 variables [measurable_space E] [normed_group E] [borel_space E] [has_measurable_sub₂ E] {p : ℝ≥0∞}
 variables {f : ℕ → α → E} {g : α → E}
 
-/-- Auxiliary lemma for `tendsto_in_measure_of_tendsto_snorm`. -/
-lemma tendsto_in_measure_of_tendsto_snorm_of_measurable
+private lemma tendsto_in_measure_of_tendsto_snorm_of_measurable
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf : ∀ n, measurable (f n)) (hg : measurable g)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :

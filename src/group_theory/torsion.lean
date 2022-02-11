@@ -47,19 +47,18 @@ variables [group G] {N : subgroup G}
 @[to_additive "Subgroups of additive torsion groups are additive torsion groups."]
 lemma subgroup.is_torsion {tG : is_torsion G} (H : subgroup G) : is_torsion H := begin
   intro g,
-  obtain ⟨n, ⟨npos, hn⟩⟩ := tG g,
+  obtain ⟨n, ⟨npos, hn⟩⟩ := (is_of_fin_order_iff_pow_eq_one ↑g).mp (tG _),
+  rw is_of_fin_order_iff_pow_eq_one,
   refine ⟨n, npos, subtype.coe_injective _⟩,
-  rw is_periodic_pt_mul_iff_pow_eq_one ↑g at hn,
-  simp only [hn, is_periodic_pt_mul_iff_pow_eq_one ↑g, mul_left_iterate, _root_.mul_one,
-             subgroup.coe_pow, subgroup.coe_one],
+  simp only [hn, subgroup.coe_pow, subgroup.coe_one],
 end
 
 /--Quotient groups of torsion groups are torsion groups. -/
 lemma quotient_group.is_torsion [nN : N.normal] (tG : is_torsion G) : is_torsion (G ⧸ N) :=
 λ g, quotient.induction_on' g $ λ a, begin
-  obtain ⟨n, ⟨npos, hn⟩⟩ := tG a,
-  refine ⟨n, npos, (is_periodic_pt_mul_iff_pow_eq_one _).mpr $ (quotient_group.con N).eq.mpr _⟩,
-  exact (is_periodic_pt_mul_iff_pow_eq_one a).mp hn ▸ (quotient_group.con N).eq.mp rfl,
+  rw is_of_fin_order_iff_pow_eq_one,
+  obtain ⟨n, ⟨npos, hn⟩⟩ := (is_of_fin_order_iff_pow_eq_one _).mp (tG a),
+  exact ⟨n, npos, (quotient_group.con N).eq.mpr (hn ▸ (quotient_group.con N).eq.mp rfl)⟩,
 end
 
 /--If a group exponent exists, the group is torsion. -/
@@ -68,7 +67,6 @@ lemma exponent_exists.is_torsion (h : exponent_exists G) : is_torsion G := begin
   obtain ⟨n, ⟨npos, hn⟩⟩ := h,
   exact ⟨n, npos, (is_periodic_pt_mul_iff_pow_eq_one _).mpr $ hn g⟩,
 end
-
 
 /--Finite groups are torsion groups.-/
 lemma is_torsion_of_fintype [fintype G] : is_torsion G :=

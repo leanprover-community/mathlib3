@@ -425,11 +425,11 @@ infi_mul_right' h (λ _, ‹nonempty ι›)
 
 lemma inv_map_infi {ι : Sort*} {x : ι → ℝ≥0∞} :
   (infi x)⁻¹ = (⨆ i, (x i)⁻¹) :=
-inv_order_iso.map_infi x
+order_iso.inv_ennreal.map_infi x
 
 lemma inv_map_supr {ι : Sort*} {x : ι → ℝ≥0∞} :
   (supr x)⁻¹ = (⨅ i, (x i)⁻¹) :=
-inv_order_iso.map_supr x
+order_iso.inv_ennreal.map_supr x
 
 lemma inv_limsup {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
   (l.limsup x)⁻¹ = l.liminf (λ i, (x i)⁻¹) :=

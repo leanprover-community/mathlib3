@@ -15,26 +15,29 @@ Facts about star modules and star algebras over the complex numbers.
 
 ## Main definitions
 
-* `star_ring.re`: the real part of an element of a star module, defined as `2⁻¹ • (x + star x)`
-* `star_ring.im`: the imaginary part of an element of a star module, defined as
-  `(-I * 2⁻¹) • (x - star x)`.
+* `star_module.re`: the real part of an element of a star module, defined as `⅟2 • (x + star x)`
+* `star_module.im`: the imaginary part of an element of a star module, defined as
+  `(-I * ⅟2) • (x - star x)`. The corresponding real part is defined in a more
+  general setting in `algebra/star/module`.
 
 -/
 
-variables {E : Type*}
+variables {𝕜 : Type*} {E : Type*}
 
 namespace star_module
 open_locale complex_conjugate
-open complex
+open is_R_or_C
 
-variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ E]
+variables [is_R_or_C 𝕜] [add_comm_group E] [star_add_monoid E] [module 𝕜 E] [star_module 𝕜 E]
+  [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [star_module ℝ E]
 
+variables (𝕜)
 /-- The imaginary part of an element of a star module, as a real-linear map. -/
 @[simps] noncomputable def im : E →ₗ[ℝ] self_adjoint E :=
-{ to_fun := λ x, ⟨(-I * 2⁻¹) • (x - star x),
+{ to_fun := λ x, ⟨(-(I : 𝕜) * ⅟ 2) • (x - star x),
     begin
       have : x - star x = -(star x - x) := by simp,
-      simp only [self_adjoint.mem_iff, neg_mul, neg_smul, star_neg, star_smul,
+      simp only [self_adjoint.mem_iff, neg_mul, neg_smul, star_neg, star_smul, star_inv_of (2 : ℝ),
                  map_mul, map_one, star_sub, star_star, neg_neg, star_def, conj_I, map_bit0,
                  complex.conj_inv],
       rw [←neg_smul, this, neg_smul_neg],
@@ -51,7 +54,7 @@ variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ
 
 /-- An element of a complex star module can be decomposed into self-adjoint "real" and "imaginary"
 parts -/
-lemma eq_re_add_im (x : E) : x = re ℝ x + I • im x :=
+lemma eq_re_add_im (x : E) : x = re ℝ x + (I : 𝕜) • im 𝕜 x :=
 by simp only [smul_smul, ← mul_assoc, neg_smul, smul_neg, I_mul_I, one_mul, neg_neg, smul_sub,
   ← add_smul, add_add_sub_cancel, re_apply_coe, smul_add, im_apply_coe, neg_mul,
   inv_eq_one_div, add_halves', one_smul]

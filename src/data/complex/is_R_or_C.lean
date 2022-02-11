@@ -451,23 +451,13 @@ by rw [← of_real_rat_cast, of_real_re]
 by rw [← of_real_rat_cast, of_real_im]
 
 /-! ### Characteristic zero -/
-
--- TODO: I think this can be instance, because it is a `Prop`
-
-/--
-ℝ and ℂ are both of characteristic zero.
-
-Note: This is not registered as an instance to avoid having multiple instances on ℝ and ℂ.
--/
-lemma char_zero_R_or_C : char_zero K :=
+/-- ℝ and ℂ are both of characteristic zero.  -/
+instance char_zero_R_or_C : char_zero K :=
 char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 theorem re_eq_add_conj (z : K) : ↑(re z) = (z + conj z) / 2 :=
-begin
-  haveI : char_zero K := char_zero_R_or_C,
-  rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero'],
-end
+by rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero']
 
 theorem im_eq_conj_sub (z : K) : ↑(im z) = I * (conj z - z) / 2 :=
 begin

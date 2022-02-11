@@ -7,7 +7,6 @@ Authors: Alex Best, Riccardo Brasca, Eric Rodriguez
 import algebra.is_prime_pow
 import number_theory.cyclotomic.basic
 import ring_theory.adjoin.power_basis
-import ring_theory.polynomial.cyclotomic.eval
 import ring_theory.norm
 
 /-!

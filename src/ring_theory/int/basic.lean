@@ -149,7 +149,7 @@ begin
   cases (nat_abs_eq a) with h,
   { use [1, is_unit_one], rw [← h, one_mul], },
   { use [-1, is_unit_one.neg], rw [ ← neg_eq_iff_neg_eq.mp (eq.symm h)],
-    simp only [neg_mul_eq_neg_mul_symm, one_mul] }
+    simp only [neg_mul, one_mul] }
 end
 
 lemma gcd_eq_nat_abs {a b : ℤ} : int.gcd a b = nat.gcd a.nat_abs b.nat_abs := rfl

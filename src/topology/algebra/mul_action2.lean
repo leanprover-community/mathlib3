@@ -8,13 +8,13 @@ import group_theory.group_action.basic
 /-!
 # Monoid actions continuous in the second variable
 
-In this file we define class `has_continuous_smul₂`. We say `has_continuous_smul₂ Γ T` if `Γ` acts
-on `T` and for each `γ`, the map `x ↦ γ • x` is continuous. (This differs from
+In this file we define class `has_continuous_const_smul`. We say `has_continuous_const_smul Γ T` if
+`Γ` acts on `T` and for each `γ`, the map `x ↦ γ • x` is continuous. (This differs from
 `has_continuous_smul`, which requires simultaneous continuity in both variables.)
 
 ## Main definitions
 
-* `has_continuous_smul₂ Γ T` : typeclass saying that the map `x ↦ γ • x` is continuous on `T`;
+* `has_continuous_const_smul Γ T` : typeclass saying that the map `x ↦ γ • x` is continuous on `T`;
 * `properly_discontinuous_smul`: says that the scalar multiplication `(•) : Γ → T → T`
   is properly discontinuous, that is, for any pair of compact sets `K, L` in `T`, only finitely
   many `γ:Γ` move `K` to have nontrivial intersection with `L`.
@@ -39,27 +39,27 @@ open filter set
 
 local attribute [instance] mul_action.orbit_rel
 
-/-- Class `has_continuous_smul₂ Γ T` says that the scalar multiplication `(•) : Γ → T → T`
+/-- Class `has_continuous_const_smul Γ T` says that the scalar multiplication `(•) : Γ → T → T`
 is continuous in the second argument. We use the same class for all kinds of multiplicative
 actions, including (semi)modules and algebras.
 -/
-class has_continuous_smul₂ (Γ : Type*) (T : Type*) [topological_space T] [has_scalar Γ T]
+class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [has_scalar Γ T]
  : Prop :=
-(continuous_smul₂ : ∀ γ : Γ, continuous (λ x : T, γ • x))
+(continuous_const_smul : ∀ γ : Γ, continuous (λ x : T, γ • x))
 
-/-- Class `has_continuous_vadd₂ Γ T` says that the additive action `(+ᵥ) : Γ → T → T`
+/-- Class `has_continuous_const_vadd Γ T` says that the additive action `(+ᵥ) : Γ → T → T`
 is continuous in the second argument. We use the same class for all kinds of additive actions,
 including (semi)modules and algebras.
 -/
-class has_continuous_vadd₂ (Γ : Type*) (T : Type*) [topological_space T]
+class has_continuous_const_vadd (Γ : Type*) (T : Type*) [topological_space T]
   [has_vadd Γ T] : Prop :=
-(continuous_vadd₂ : ∀ γ : Γ, continuous (λ x : T, γ +ᵥ x))
+(continuous_const_vadd : ∀ γ : Γ, continuous (λ x : T, γ +ᵥ x))
 
-attribute [to_additive has_continuous_vadd₂] has_continuous_smul₂
+attribute [to_additive] has_continuous_const_smul
 
-export has_continuous_smul₂ (continuous_smul₂)
+export has_continuous_const_smul (continuous_const_smul)
 
-export has_continuous_vadd₂ (continuous_vadd₂)
+export has_continuous_const_vadd (continuous_const_vadd)
 
 /-- Class `properly_discontinuous_smul Γ T` says that the scalar multiplication `(•) : Γ → T → T`
 is properly discontinuous, that is, for any pair of compact sets `K, L` in `T`, only finitely many
@@ -96,26 +96,26 @@ export properly_discontinuous_vadd (finite_disjoint_inter_image)
 /-- The homeomorphism given by scalar multiplication by a given element of a group `Γ` acting on
   `T` is a homeomorphism from `T` to itself. -/
 def homeomorph.smul {T : Type*} [topological_space T] {Γ : Type*} [group Γ]
-  [mul_action Γ T] [has_continuous_smul₂ Γ T] (γ : Γ) :
+  [mul_action Γ T] [has_continuous_const_smul Γ T] (γ : Γ) :
   T ≃ₜ T :=
 { to_equiv := mul_action.to_perm_hom Γ T γ,
-  continuous_to_fun  := continuous_smul₂ γ,
-  continuous_inv_fun := continuous_smul₂ γ⁻¹ }
+  continuous_to_fun  := continuous_const_smul γ,
+  continuous_inv_fun := continuous_const_smul γ⁻¹ }
 
 /-- The homeomorphism given by affine-addition by an element of an additive group `Γ` acting on
   `T` is a homeomorphism from `T` to itself. -/
 def homeomorph.vadd {T : Type*} [topological_space T] {Γ : Type*} [add_group Γ]
-  [add_action Γ T] [has_continuous_vadd₂ Γ T] (γ : Γ) :
+  [add_action Γ T] [has_continuous_const_vadd Γ T] (γ : Γ) :
   T ≃ₜ T :=
 { to_equiv := add_action.to_perm_hom T Γ γ,
-  continuous_to_fun  := continuous_vadd₂ γ,
-  continuous_inv_fun := continuous_vadd₂ (-γ) }
+  continuous_to_fun  := continuous_const_vadd γ,
+  continuous_inv_fun := continuous_const_vadd (-γ) }
 
 attribute [to_additive homeomorph.vadd] homeomorph.smul
 
 /-- The quotient map by a group action is open. -/
 @[to_additive]
-lemma is_open_map_quotient_mk_mul [has_continuous_smul₂ Γ T] :
+lemma is_open_map_quotient_mk_mul [has_continuous_const_smul Γ T] :
   is_open_map (quotient.mk : T → quotient (mul_action.orbit_rel Γ T)) :=
 begin
   intros U hU,
@@ -125,7 +125,7 @@ end
 
 /-- The quotient by a discontinuous group action of a locally compact t2 space is t2. -/
 @[priority 100, to_additive] instance t2_space_of_properly_discontinuous_smul_of_t2_space
-  [t2_space T] [locally_compact_space T] [has_continuous_smul₂ Γ T]
+  [t2_space T] [locally_compact_space T] [has_continuous_const_smul Γ T]
   [properly_discontinuous_smul Γ T] : t2_space (quotient (mul_action.orbit_rel Γ T)) :=
 begin
   set Q := quotient (mul_action.orbit_rel Γ T),
@@ -146,7 +146,7 @@ begin
   let V₀ := V₀₀ ∩ L₀,
   have U_nhds : f '' U₀ ∈ 𝓝 (f x₀),
   { apply f_op.image_mem_nhds (inter_mem ((bInter_mem bad_Γ_finite).mpr $ λ γ hγ, _) K₀_in),
-    exact (has_continuous_smul₂.continuous_smul₂ γ).continuous_at (hu γ) },
+    exact (continuous_const_smul _).continuous_at (hu γ) },
   have V_nhds : f '' V₀ ∈ 𝓝 (f y₀),
     from f_op.image_mem_nhds (inter_mem ((bInter_mem bad_Γ_finite).mpr $ λ γ hγ, hv γ) L₀_in),
   refine ⟨f '' U₀, U_nhds, f '' V₀, V_nhds, _⟩,

@@ -398,6 +398,9 @@ begin
   simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, mem_bot],
 end
 
+lemma subsingleton_bot : subsingleton ↥(⊥ : lie_subalgebra R L) :=
+show subsingleton ((⊥ : lie_subalgebra R L) : set L), by simp
+
 variables (R L)
 
 lemma well_founded_of_noetherian [is_noetherian R L] :

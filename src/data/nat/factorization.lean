@@ -176,6 +176,39 @@ begin
     simp [prod_insert hxT, sum_insert hxT, ←IH, factorization_mul (hS x hxS) hT] }
 end
 
+/-! ### Bijection between pnats and finsupps `ℕ →₀ ℕ` with support on the primes -/
+
+/-- Any finsupp `f : ℕ →₀ ℕ` whose support is in the primes is equal to the factorization of
+the product `∏ (a : ℕ) in f.support, a ^ f a`. -/
+lemma prod_pow_factorization_eq_self {f : ℕ →₀ ℕ} (hf : ∀ (p : ℕ), p ∈ f.support → prime p) :
+  (f.prod pow).factorization = f :=
+begin
+  have h : ∀ x : ℕ, x ∈ f.support → x ^ f x ≠ 0 := λ p hp, pow_ne_zero _ (prime.ne_zero (hf p hp)),
+  simp only [finsupp.prod, factorization_prod h],
+  nth_rewrite_rhs 0 (sum_single f).symm,
+  exact sum_congr rfl (λ p hp, prime.factorization_pow (hf p hp)),
+end
+
+lemma eq_factorization_iff {n : ℕ} {f : ℕ →₀ ℕ} (hn : n ≠ 0) (hf : ∀ p ∈ f.support, prime p) :
+  f = n.factorization ↔ f.prod pow = n :=
+⟨λ h, by rw [h, factorization_prod_pow_eq_self hn],
+ λ h, by rw [←h, prod_pow_factorization_eq_self hf]⟩
+
+/-- The equiv between `ℕ+` and `ℕ →₀ ℕ` with support in the primes. -/
+noncomputable
+def factorization_equiv : ℕ+ ≃ {f : ℕ →₀ ℕ | ∀ p ∈ f.support, prime p} :=
+{ to_fun    := λ ⟨n, hn⟩, ⟨n.factorization, λ _, prime_of_mem_factorization⟩,
+  inv_fun   := λ ⟨f, hf⟩, ⟨f.prod pow,
+    prod_pow_pos_of_zero_not_mem_support (λ H, not_prime_zero (hf 0 H))⟩,
+  left_inv  := λ ⟨x, hx⟩, subtype.ext $ factorization_prod_pow_eq_self hx.ne.symm,
+  right_inv := λ ⟨f, hf⟩, subtype.ext $ prod_pow_factorization_eq_self hf }
+
+lemma factorization_equiv_apply (n : ℕ+) : (factorization_equiv n).1 = n.1.factorization :=
+by { cases n, refl }
+
+lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
+  (factorization_equiv.symm ⟨f, hf⟩).1 = f.prod pow := rfl
+
 /-! ### Factorizations of pairs of coprime numbers -/
 
 /-- The prime factorizations of coprime `a` and `b` are disjoint -/

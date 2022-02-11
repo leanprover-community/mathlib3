@@ -694,17 +694,6 @@ section uniqueness
 
 open continuous_multilinear_map
 
-/-
-  What is the idea? Let y : E, ε > 0 be given. We want to show that ∥p (λ i, y)∥ < ε
-  In a small ball of radius δ around zero, if we take some ∥z∥ < δ, we can get
-  ∥p (λ i, z)∥ < C * ∥z∥ ^ (n + 1). So, choose k : 𝕜 so that ∥k • y∥ < δ.
-  Actually, we want to choose it so that ∥k∥ < min (δ * ∥y∥⁻¹) (ε * (C * ∥y∥ ^ (n+1))⁻¹).
-  This means that ∥p (λ i, y)∥ = ∥p (λ i, k⁻¹ • k • y)∥ = ∥(k⁻¹) ^ n • p (λ i, k • y)∥
-    = ∥(k⁻¹) ^ n∥ * ∥p (λ i, k • y)∥ ≤  ∥(k⁻¹) ^ n∥ * C * ∥k • y)∥ ^ (n + 1)
-    = ∥k∥ * C * ∥y∥ ^ (n + 1) ≤ ε
-  Then we can
--/
-
 lemma asymptotics.is_O.continuous_multilinear_map_apply_eq_zero {n : ℕ} {p : E [×n]→L[𝕜] F}
   (h : is_O (λ y, p (λ i, y)) (λ y, ∥y∥ ^ (n + 1)) (nhds 0)) (y : E) :
   p (λ i, y) = 0 :=
@@ -722,30 +711,26 @@ begin
     have h₀ := mul_pos c_pos (pow_pos hy (n.succ + 1)),
     obtain ⟨k, k_pos, k_norm⟩ := normed_field.exists_norm_lt 𝕜
       (lt_min (mul_pos δ_pos (inv_pos.mpr hy)) (mul_pos ε_pos (inv_pos.mpr h₀))),
-    have h₁ := calc
-      ∥p (λ i, y)∥ = ∥p (λ i, k⁻¹ • k • y)∥
-                  : by rw inv_smul_smul₀ (norm_pos_iff.mp k_pos)
-      ...          = ∥(k⁻¹) ^ n.succ∥ * ∥p (λ i, k • y)∥
-                  : by { rw [p.map_smul_univ (λ i, k⁻¹) (λ i, k • y), norm_smul], simp },
-    have h₂ : ∥k • y∥ < δ,
+    have h₁ : ∥k • y∥ < δ,
     { rw norm_smul,
       exact inv_mul_cancel_right₀ hy.ne.symm δ ▸ mul_lt_mul_of_pos_right
         (lt_of_lt_of_le k_norm (min_le_left _ _)) hy },
-    have h₃ := calc
+    have h₂ := calc
       ∥p (λ i, k • y)∥ ≤ c * ∥k • y∥ ^ (n.succ + 1)
-                       : by simpa using ht (k • y) (δε (mem_ball_zero_iff.mpr h₂))
+                       : by simpa using ht (k • y) (δε (mem_ball_zero_iff.mpr h₁))
       ...              = ∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
                        : by { simp only [norm_smul, mul_pow], rw pow_succ, ring },
-    have h₄ : ∥k∥ * (c * ∥y∥ ^ (n.succ + 1)) < ε, from inv_mul_cancel_right₀ h₀.ne.symm ε ▸
+    have h₃ : ∥k∥ * (c * ∥y∥ ^ (n.succ + 1)) < ε, from inv_mul_cancel_right₀ h₀.ne.symm ε ▸
       mul_lt_mul_of_pos_right (lt_of_lt_of_le k_norm (min_le_right _ _)) h₀,
     calc ∥p (λ i, y)∥ = ∥(k⁻¹) ^ n.succ∥ * ∥p (λ i, k • y)∥
-        : h₁
+        : by simpa [inv_smul_smul₀ (norm_pos_iff.mp k_pos), norm_smul]
+            using congr_arg norm (p.map_smul_univ (λ i, k⁻¹) (λ i, k • y))
     ...              ≤ ∥(k⁻¹) ^ n.succ∥ * (∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1))))
-        : mul_le_mul_of_nonneg_left h₃ (norm_nonneg _)
+        : mul_le_mul_of_nonneg_left h₂ (norm_nonneg _)
     ...              = ∥(k⁻¹ * k) ^ n.succ∥ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
         : by { rw ←mul_assoc, simp [normed_field.norm_mul, mul_pow] }
     ...              ≤ 0 + ε
-        : by { rw inv_mul_cancel (norm_pos_iff.mp k_pos), simpa using h₄.le }, },
+        : by { rw inv_mul_cancel (norm_pos_iff.mp k_pos), simpa using h₃.le }, },
 end
 
 lemma has_fpower_series_at.apply_eq_zero {p : formal_multilinear_series 𝕜 E F} {x : E}

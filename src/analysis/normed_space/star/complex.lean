@@ -67,11 +67,8 @@ variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ
 /-- An element of a complex star module can be decomposed into self-adjoint "real" and "imaginary"
 parts -/
 lemma eq_re_add_im (x : E) : x = re x + I • im x :=
-begin
-  simp only [smul_smul, ←mul_assoc, neg_smul, smul_neg, I_mul_I, one_mul, neg_neg, smul_sub,
-             ←add_smul, add_add_sub_cancel, re_apply_coe, smul_add, im_apply_coe,
-            neg_mul_eq_neg_mul_symm],
-  field_simp
-end
+by simp only [smul_smul, ← mul_assoc, neg_smul, smul_neg, I_mul_I, one_mul, neg_neg, smul_sub,
+  ← add_smul, add_add_sub_cancel, re_apply_coe, smul_add, im_apply_coe, neg_mul_eq_neg_mul_symm,
+  inv_eq_one_div, add_halves', one_smul]
 
 end star_module

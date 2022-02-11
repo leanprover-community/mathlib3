@@ -811,12 +811,14 @@ end quotient
 
 namespace units
 
+open mul_opposite (continuous_op continuous_unop)
+
 variables [monoid α] [topological_space α] [has_continuous_mul α] [monoid β] [topological_space β]
   [has_continuous_mul β]
 
-instance : topological_group αˣ :=
-{ continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
-    (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
+@[to_additive] instance : topological_group αˣ :=
+{ continuous_inv := continuous_induced_rng ((continuous_unop.comp
+    (@continuous_embed_product α _ _).snd).prod_mk (continuous_op.comp continuous_coe)) }
 
 /-- The topological group isomorphism between the units of a product of two monoids, and the product
     of the units of each monoid. -/
@@ -826,7 +828,7 @@ def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
     show continuous (λ i : (α × β)ˣ, (map (monoid_hom.fst α β) i, map (monoid_hom.snd α β) i)),
     refine continuous.prod_mk _ _,
     { refine continuous_induced_rng ((continuous_fst.comp units.continuous_coe).prod_mk _),
-      refine continuous_op.comp (continuous_fst.comp _),
+      refine mul_opposite.continuous_op.comp (continuous_fst.comp _),
       simp_rw units.inv_eq_coe_inv,
       exact units.continuous_coe.comp continuous_inv, },
     { refine continuous_induced_rng ((continuous_snd.comp units.continuous_coe).prod_mk _),

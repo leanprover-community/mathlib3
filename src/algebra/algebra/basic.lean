@@ -781,6 +781,8 @@ instance : ring_equiv_class (A₁ ≃ₐ[R] A₂) A₁ A₂ :=
   left_inv := left_inv,
   right_inv := right_inv }
 
+/--  Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly. -/
 instance : has_coe_to_fun (A₁ ≃ₐ[R] A₂) (λ _, A₁ → A₂) := ⟨alg_equiv.to_fun⟩
 
 @[ext]

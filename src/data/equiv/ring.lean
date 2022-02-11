@@ -74,7 +74,7 @@ instance to_add_equiv_class (F R S : Type*)
   .. h }
 
 @[priority 100] -- See note [lower instance priority]
-instance to_ring_hom_class(F R S : Type*)
+instance to_ring_hom_class (F R S : Type*)
   [non_assoc_semiring R] [non_assoc_semiring S] [h : ring_equiv_class F R S] :
   ring_hom_class F R S :=
 { coe := coe_fn,

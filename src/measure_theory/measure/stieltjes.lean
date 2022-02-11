@@ -57,9 +57,7 @@ by { rw left_lim, exact f.mono.tendsto_nhds_within_Iio x }
 lemma left_lim_le {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f y :=
 begin
   apply le_of_tendsto (f.tendsto_left_lim x),
-  filter_upwards [self_mem_nhds_within],
-  assume z hz,
-  exact (f.mono (le_of_lt hz)).trans (f.mono h)
+  filter_upwards [self_mem_nhds_within] with _ hz using (f.mono (le_of_lt hz)).trans (f.mono h),
 end
 
 lemma le_left_lim {x y : ℝ} (h : x < y) : f x ≤ f.left_lim y :=
@@ -111,7 +109,7 @@ end
 
 lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
   f.length s₁ ≤ f.length s₂ :=
-infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans h h', le_refl _⟩
+infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans h h', le_rfl⟩
 
 open measure_theory
 
@@ -145,7 +143,7 @@ begin
   refine λ s, finset.strong_induction_on s (λ s IH b cv, _),
   cases le_total b a with ab ab,
   { rw ennreal.of_real_eq_zero.2 (sub_nonpos.2 (f.mono ab)), exact zero_le _, },
-  have := cv ⟨ab, le_refl _⟩, simp at this,
+  have := cv ⟨ab, le_rfl⟩, simp at this,
   rcases this with ⟨i, is, cb, bd⟩,
   rw [← finset.insert_erase is] at cv ⊢,
   rw [finset.coe_insert, bUnion_insert] at cv,

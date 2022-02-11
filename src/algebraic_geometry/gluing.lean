@@ -431,6 +431,16 @@ begin
   erw [is_iso.hom_inv_id_assoc, multicoequalizer.π_desc],
 end
 
+lemma hom_ext {Y : Scheme} (f₁ f₂ : X ⟶ Y) (h : ∀ x, 𝒰.map x ≫ f₁ = 𝒰.map x ≫ f₂) : f₁ = f₂ :=
+begin
+  rw ← cancel_epi 𝒰.from_glued,
+  apply multicoequalizer.hom_ext,
+  intro x,
+  erw multicoequalizer.π_desc_assoc,
+  erw multicoequalizer.π_desc_assoc,
+  exact h x,
+end
+
 end open_cover
 
 end Scheme

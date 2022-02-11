@@ -327,12 +327,12 @@ end add_monoid_hom
 This extends from both `monoid_hom` and `monoid_with_zero_hom` in order to put the fields in a
 sensible order, even though `monoid_with_zero_hom` already extends `monoid_hom`. -/
 structure ring_hom (α : Type*) (β : Type*) [non_assoc_semiring α] [non_assoc_semiring β]
-  extends monoid_hom α β, add_monoid_hom α β, monoid_with_zero_hom α β
+  extends α →* β, α →+ β, α →*₀ β
 
 infixr ` →+* `:25 := ring_hom
 
-/-- Reinterpret a ring homomorphism `f : R →+* S` as a `monoid_with_zero_hom R S`.
-The `simp`-normal form is `(f : monoid_with_zero_hom R S)`. -/
+/-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid with zero homomorphism `R →*₀ S`.
+The `simp`-normal form is `(f : R →*₀ S)`. -/
 add_decl_doc ring_hom.to_monoid_with_zero_hom
 
 /-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid homomorphism `R →* S`.
@@ -364,6 +364,10 @@ map_add _ _ _
 /-- Ring homomorphisms preserve `bit1`. -/
 @[simp] lemma map_bit1 (f : F) (a : α) : (f (bit1 a) : β) = bit1 (f a) :=
 by simp [bit1]
+
+instance : has_coe_t F (α →+* β) :=
+⟨λ f, { to_fun := f, map_zero' := map_zero f, map_one' := map_one f, map_mul' := map_mul f,
+  map_add' := map_add f }⟩
 
 end ring_hom_class
 
@@ -409,8 +413,6 @@ instance has_coe_monoid_hom : has_coe (α →+* β) (α →* β) := ⟨ring_hom.
   ((⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) : α →* β) = ⟨f, h₁, h₂⟩ :=
 rfl
 
-instance has_coe_add_monoid_hom : has_coe (α →+* β) (α →+ β) := ⟨ring_hom.to_add_monoid_hom⟩
-
 @[simp, norm_cast] lemma coe_add_monoid_hom (f : α →+* β) : ⇑(f : α →+ β) = f := rfl
 
 @[simp] lemma to_add_monoid_hom_eq_coe (f : α →+* β) : f.to_add_monoid_hom = f := rfl
@@ -418,6 +420,11 @@ instance has_coe_add_monoid_hom : has_coe (α →+* β) (α →+ β) := ⟨ring_
 @[simp] lemma coe_add_monoid_hom_mk (f : α → β) (h₁ h₂ h₃ h₄) :
   ((⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) : α →+ β) = ⟨f, h₃, h₄⟩ :=
 rfl
+
+/-- Copy of a `ring_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+def copy (f : α →+* β) (f' : α → β) (h : f' = f) : α →+* β :=
+{ ..f.to_monoid_with_zero_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
 
 end coe
 
@@ -716,10 +723,10 @@ lemma neg_mul_eq_mul_neg (a b : α) : -(a * b) = a * -b :=
 neg_eq_of_add_eq_zero
   begin rw [← left_distrib, add_right_neg, mul_zero] end
 
-@[simp] lemma neg_mul_eq_neg_mul_symm (a b : α) : - a * b = - (a * b) :=
+@[simp] lemma neg_mul (a b : α) : - a * b = - (a * b) :=
 eq.symm (neg_mul_eq_neg_mul a b)
 
-@[simp] lemma mul_neg_eq_neg_mul_symm (a b : α) : a * - b = - (a * b) :=
+@[simp] lemma mul_neg (a b : α) : a * - b = - (a * b) :=
 eq.symm (neg_mul_eq_mul_neg a b)
 
 lemma neg_mul_neg (a b : α) : -a * -b = a * b :=
@@ -791,12 +798,20 @@ units.ext $ neg_neg _
 /-- Multiplication of elements of a ring's unit group commutes with mapping the first
     argument to its additive inverse. -/
 @[simp] protected theorem neg_mul (u₁ u₂ : αˣ) : -u₁ * u₂ = -(u₁ * u₂) :=
-units.ext $ neg_mul_eq_neg_mul_symm _ _
+units.ext $ neg_mul _ _
 
 /-- Multiplication of elements of a ring's unit group commutes with mapping the second argument
     to its additive inverse. -/
 @[simp] protected theorem mul_neg (u₁ u₂ : αˣ) : u₁ * -u₂ = -(u₁ * u₂) :=
-units.ext $ (neg_mul_eq_mul_neg _ _).symm
+units.ext $ mul_neg _ _
+
+/-- `units` version of `neg_mul_eq_neg_mul`. -/
+lemma neg_mul_eq_neg_mul (a b : αˣ) : -(a * b) = -a * b :=
+units.ext $ neg_mul_eq_neg_mul _ _
+
+/-- `units` version of `neg_mul_eq_mul_neg`. -/
+lemma neg_mul_eq_mul_neg (a b : αˣ) : -(a * b) = a * -b :=
+units.ext $ neg_mul_eq_mul_neg _ _
 
 /-- Multiplication of the additive inverses of two elements of a ring's unit group equals
     multiplication of the two original elements. -/
@@ -805,6 +820,10 @@ units.ext $ (neg_mul_eq_mul_neg _ _).symm
 /-- The additive inverse of an element of a ring's unit group equals the additive inverse of
     one times the original element. -/
 protected theorem neg_eq_neg_one_mul (u : αˣ) : -u = -1 * u := by simp
+
+lemma mul_neg_one (a : α) : a * -1 = -a := by simp
+
+lemma neg_one_mul (a : α) : -1 * a = -a := by simp
 
 end units
 
@@ -929,7 +948,7 @@ lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
 begin
   obtain ⟨k, hk⟩ := hp,
   use -(k + 1),
-  rw [mul_neg_eq_neg_mul_symm, mul_add, neg_add, add_assoc, two_mul (1 : α), neg_add,
+  rw [mul_neg, mul_add, neg_add, add_assoc, two_mul (1 : α), neg_add,
     neg_add_cancel_right, ←neg_add, hk],
 end
 
@@ -1134,16 +1153,17 @@ by simp only [semiconj_by, left_distrib, right_distrib, h.eq, h'.eq]
   semiconj_by (a + b) x y :=
 by simp only [semiconj_by, left_distrib, right_distrib, ha.eq, hb.eq]
 
+section
 variables [ring R] {a b x y x' y' : R}
 
 lemma neg_right (h : semiconj_by a x y) : semiconj_by a (-x) (-y) :=
-by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm]
+by simp only [semiconj_by, h.eq, neg_mul, mul_neg]
 
 @[simp] lemma neg_right_iff : semiconj_by a (-x) (-y) ↔ semiconj_by a x y :=
 ⟨λ h, neg_neg x ▸ neg_neg y ▸ h.neg_right, semiconj_by.neg_right⟩
 
 lemma neg_left (h : semiconj_by a x y) : semiconj_by (-a) x y :=
-by simp only [semiconj_by, h.eq, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm]
+by simp only [semiconj_by, h.eq, neg_mul, mul_neg]
 
 @[simp] lemma neg_left_iff : semiconj_by (-a) x y ↔ semiconj_by a x y :=
 ⟨λ h, neg_neg a ▸ h.neg_left, semiconj_by.neg_left⟩
@@ -1161,6 +1181,32 @@ by simpa only [sub_eq_add_neg] using h.add_right h'.neg_right
 @[simp] lemma sub_left (ha : semiconj_by a x y) (hb : semiconj_by b x y) :
   semiconj_by (a - b) x y :=
 by simpa only [sub_eq_add_neg] using ha.add_left hb.neg_left
+
+end
+
+/- Copies of the above ring lemmas for `units R`. -/
+section units
+variables [ring R] {a b x y x' y' : Rˣ}
+
+lemma units_neg_right (h : semiconj_by a x y) : semiconj_by a (-x) (-y) :=
+by simp only [semiconj_by, h.eq, units.neg_mul, units.mul_neg]
+
+@[simp] lemma units_neg_right_iff : semiconj_by a (-x) (-y) ↔ semiconj_by a x y :=
+⟨λ h, units.neg_neg x ▸ units.neg_neg y ▸ h.units_neg_right, semiconj_by.units_neg_right⟩
+
+lemma units_neg_left (h : semiconj_by a x y) : semiconj_by (-a) x y :=
+by simp only [semiconj_by, h.eq, units.neg_mul, units.mul_neg]
+
+@[simp] lemma units_neg_left_iff : semiconj_by (-a) x y ↔ semiconj_by a x y :=
+⟨λ h, units.neg_neg a ▸ h.units_neg_left, semiconj_by.units_neg_left⟩
+
+@[simp] lemma units_neg_one_right (a : Rˣ) : semiconj_by a (-1) (-1) :=
+(one_right a).units_neg_right
+
+@[simp] lemma units_neg_one_left (x : Rˣ) : semiconj_by (-1) x x :=
+(semiconj_by.one_left x).units_neg_left
+
+end units
 
 end semiconj_by
 
@@ -1186,6 +1232,7 @@ h.bit0_right.add_right (commute.one_right x)
 lemma bit1_left [semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
 h.bit0_left.add_left (commute.one_left y)
 
+section
 variables [ring R] {a b c : R}
 
 theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
@@ -1199,5 +1246,23 @@ theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
 
 @[simp] theorem sub_right : commute a b → commute a c → commute a (b - c) := semiconj_by.sub_right
 @[simp] theorem sub_left : commute a c → commute b c → commute (a - b) c := semiconj_by.sub_left
+
+end
+
+/- Copies of the above ring lemmas for `units R`. -/
+section units
+variables [ring R] {a b c : Rˣ}
+
+theorem units_neg_right : commute a b → commute a (- b) := semiconj_by.units_neg_right
+@[simp] theorem units_neg_right_iff : commute a (-b) ↔ commute a b :=
+semiconj_by.units_neg_right_iff
+
+theorem units_neg_left : commute a b → commute (- a) b := semiconj_by.units_neg_left
+@[simp] theorem units_neg_left_iff : commute (-a) b ↔ commute a b := semiconj_by.units_neg_left_iff
+
+@[simp] theorem units_neg_one_right (a : Rˣ) : commute a (-1) := semiconj_by.units_neg_one_right a
+@[simp] theorem units_neg_one_left (a : Rˣ) : commute (-1) a := semiconj_by.units_neg_one_left a
+
+end units
 
 end commute

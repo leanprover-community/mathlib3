@@ -215,7 +215,7 @@ def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.cor
   is_open_inter  :=
     assume s t hs ht x ⟨xs, xt⟩, by filter_upwards [hs x xs, ht x xt]; simp {contextual := tt},
   is_open_sUnion :=
-    assume s hs x ⟨t, ts, xt⟩, by filter_upwards [hs t ts x xt] assume p ph h, ⟨t, ts, ph h⟩ }
+    assume s hs x ⟨t, ts, xt⟩, by filter_upwards [hs t ts x xt] with p ph h using ⟨t, ts, ph h⟩ }
 
 lemma uniform_space.core_eq :
   ∀{u₁ u₂ : uniform_space.core α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
@@ -328,8 +328,7 @@ lemma filter.tendsto.uniformity_trans {l : filter β} {f₁ f₂ f₃ : β → �
   tendsto (λ x, (f₁ x, f₃ x)) l (𝓤 α) :=
 begin
   refine le_trans (le_lift' $ λ s hs, mem_map.2 _) comp_le_uniformity,
-  filter_upwards [h₁₂ hs, h₂₃ hs],
-  exact λ x hx₁₂ hx₂₃, ⟨_, hx₁₂, hx₂₃⟩
+  filter_upwards [h₁₂ hs, h₂₃ hs] with x hx₁₂ hx₂₃ using ⟨_, hx₁₂, hx₂₃⟩,
 end
 
 /-- Relation `λ f g, tendsto (λ x, (f x, g x)) l (𝓤 α)` is symmetric -/
@@ -374,7 +373,7 @@ end
 theorem uniformity_lift_le_swap {g : set (α×α) → filter β} {f : filter β} (hg : monotone g)
   (h : (𝓤 α).lift (λs, g (preimage prod.swap s)) ≤ f) : (𝓤 α).lift g ≤ f :=
 calc (𝓤 α).lift g ≤ (filter.map (@prod.swap α α) $ 𝓤 α).lift g :
-    lift_mono uniformity_le_symm (le_refl _)
+    lift_mono uniformity_le_symm le_rfl
   ... ≤ _ :
     by rw [map_lift_eq2 hg, image_swap_eq_preimage_swap]; exact h
 
@@ -387,7 +386,7 @@ calc (𝓤 α).lift (λs, f (s ○ s)) =
     exact monotone_comp_rel monotone_id monotone_id,
     exact h
   end
-  ... ≤ (𝓤 α).lift f : lift_mono comp_le_uniformity (le_refl _)
+  ... ≤ (𝓤 α).lift f : lift_mono comp_le_uniformity le_rfl
 
 lemma comp_le_uniformity3 :
   (𝓤 α).lift' (λs:set (α×α), s ○ (s ○ s)) ≤ (𝓤 α) :=
@@ -507,7 +506,7 @@ lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α :=
 ⟨ begin
     simp only [mem_nhds_iff, is_open_uniformity, and_imp, exists_imp_distrib],
-    exact assume t ts ht xt, by filter_upwards [ht x xt] assume ⟨x', y⟩ h eq, ts $ h eq
+    exact assume t ts ht xt, by filter_upwards [ht x xt] using assume ⟨x', y⟩ h eq, ts $ h eq
   end,
 
   assume hs,
@@ -515,8 +514,8 @@ lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
     assume x' hx', refl_mem_uniformity hx' rfl,
     is_open_uniformity.mpr $ assume x' hx',
       let ⟨t, ht, tr⟩ := comp_mem_uniformity_sets hx' in
-      by filter_upwards [ht] assume ⟨a, b⟩ hp' (hax' : a = x'),
-      by filter_upwards [ht] assume ⟨a, b'⟩ hp'' (hab : a = b),
+      by filter_upwards [ht] using assume ⟨a, b⟩ hp' (hax' : a = x'),
+      by filter_upwards [ht] using assume ⟨a, b'⟩ hp'' (hab : a = b),
       have hp : (x', b) ∈ t, from hax' ▸ hp',
       have (b, b') ∈ t, from hab ▸ hp'',
       have (x', b') ∈ t ○ t, from ⟨b, hp, this⟩,
@@ -779,7 +778,7 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff
 
 lemma uniformity_eq_uniformity_closure : 𝓤 α = (𝓤 α).lift' closure :=
 le_antisymm
-  (le_infi $ assume s, le_infi $ assume hs, by simp; filter_upwards [hs] subset_closure)
+  (le_infi $ assume s, le_infi $ assume hs, by simp; filter_upwards [hs] using subset_closure)
   (calc (𝓤 α).lift' closure ≤ (𝓤 α).lift' (λd, d ○ (d ○ d)) :
       lift'_mono' (by intros s hs; rw [closure_eq_inter_uniformity]; exact bInter_subset_of_mem hs)
     ... ≤ (𝓤 α) : comp_le_uniformity3)
@@ -795,7 +794,7 @@ le_antisymm
       calc s ⊆ t : hst
        ... ⊆ interior d : (subset_interior_iff_subset_of_open ht).mpr $
         λ x (hx : x ∈ t), let ⟨x, y, h₁, h₂, h₃⟩ := ht_comp hx in hs_comp ⟨x, h₁, y, h₂, h₃⟩,
-    have interior d ∈ 𝓤 α, by filter_upwards [hs] this,
+    have interior d ∈ 𝓤 α, by filter_upwards [hs] using this,
     by simp [this])
   (assume s hs, ((𝓤 α).lift' interior).sets_of_superset (mem_lift' hs) interior_subset)
 
@@ -953,7 +952,7 @@ section constructions
 instance : partial_order (uniform_space α) :=
 { le          := λt s, t.uniformity ≤ s.uniformity,
   le_antisymm := assume t s h₁ h₂, uniform_space_eq $ le_antisymm h₁ h₂,
-  le_refl     := assume t, le_refl _,
+  le_refl     := assume t, le_rfl,
   le_trans    := assume a b c h₁ h₂, le_trans h₁ h₂ }
 
 instance : has_Inf (uniform_space α) :=
@@ -963,7 +962,7 @@ instance : has_Inf (uniform_space α) :=
   symm       := le_infi $ assume u, le_infi $ assume hu,
     le_trans (map_mono $ infi_le_of_le _ $ infi_le _ hu) u.symm,
   comp       := le_infi $ assume u, le_infi $ assume hu,
-    le_trans (lift'_mono (infi_le_of_le _ $ infi_le _ hu) $ le_refl _) u.comp }⟩
+    le_trans (lift'_mono (infi_le_of_le _ $ infi_le _ hu) $ le_rfl) u.comp }⟩
 
 private lemma Inf_le {tt : set (uniform_space α)} {t : uniform_space α} (h : t ∈ tt) :
   Inf tt ≤ t :=
@@ -981,7 +980,7 @@ instance : has_top (uniform_space α) :=
 instance : has_bot (uniform_space α) :=
 ⟨{ to_topological_space := ⊥,
   uniformity  := 𝓟 id_rel,
-  refl        := le_refl _,
+  refl        := le_rfl,
   symm        := by simp [tendsto]; apply subset.refl,
   comp        :=
   begin

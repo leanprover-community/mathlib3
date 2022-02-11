@@ -489,8 +489,8 @@ begin
     from hf.uniform_geometric_approx' h,
   refine is_O_iff.2 ⟨C * (a / r') ^ n, _⟩,
   replace r'0 : 0 < (r' : ℝ), by exact_mod_cast r'0,
-  filter_upwards [metric.ball_mem_nhds (0 : E) r'0], intros y hy,
-  simpa [mul_pow, mul_div_assoc, mul_assoc, div_mul_eq_mul_div] using hp y hy n
+  filter_upwards [metric.ball_mem_nhds (0 : E) r'0] with y hy,
+  simpa [mul_pow, mul_div_assoc, mul_assoc, div_mul_eq_mul_div] using hp y hy n,
 end
 
 -- hack to speed up simp when dealing with complicated types
@@ -661,7 +661,7 @@ This is not totally obvious as we need to check the convergence of the series. -
 protected lemma formal_multilinear_series.has_fpower_series_on_ball [complete_space F]
   (p : formal_multilinear_series 𝕜 E F) (h : 0 < p.radius) :
   has_fpower_series_on_ball p.sum p 0 p.radius :=
-{ r_le    := le_refl _,
+{ r_le    := le_rfl,
   r_pos   := h,
   has_sum := λ y hy, by { rw zero_add, exact p.has_sum hy } }
 
@@ -951,7 +951,7 @@ theorem has_fpower_series_on_ball.change_origin
   has_fpower_series_on_ball f (p.change_origin y) (x + y) (r - ∥y∥₊) :=
 { r_le := begin
     apply le_trans _ p.change_origin_radius,
-    exact tsub_le_tsub hf.r_le (le_refl _)
+    exact tsub_le_tsub hf.r_le le_rfl
   end,
   r_pos := by simp [h],
   has_sum := λ z hz, begin

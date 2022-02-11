@@ -84,9 +84,8 @@ lemma convex.smul_integral_mem
   (μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s :=
 begin
   have : ∀ᵐ (x : α) ∂μ, hfi.ae_measurable.mk f x ∈ s,
-  { filter_upwards [hfs, hfi.ae_measurable.ae_eq_mk],
-    assume a ha h,
-    rwa ← h },
+  { filter_upwards [hfs, hfi.ae_measurable.ae_eq_mk] with _ _ h,
+    rwa ← h, },
   convert convex.smul_integral_mem_of_measurable hs hsc hμ this
     (hfi.congr hfi.ae_measurable.ae_eq_mk) (hfi.ae_measurable.measurable_mk) using 2,
   apply integral_congr_ae,

@@ -334,7 +334,7 @@ lemma measure_lt_top_of_is_compact_of_is_mul_left_invariant'
 measure_lt_top_of_is_compact_of_is_mul_left_invariant (interior U) is_open_interior hU
   ((measure_mono (interior_subset)).trans_lt (lt_top_iff_ne_top.2 h)).ne hK
 
-end group
+end topological_group
 
 section comm_group
 

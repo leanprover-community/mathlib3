@@ -46,16 +46,14 @@ open_locale classical big_operators
 /-- `ℤ` with its usual ring structure is not a field. -/
 lemma int.not_is_field : ¬ is_field ℤ :=
 begin
-  rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
-  use ideal.span{(2 : ℤ)},
-  split,
-  { simp only [bot_lt_iff_ne_bot, ne.def, not_false_iff, bit0_eq_zero, one_ne_zero,
-      ideal.span_singleton_eq_bot] },
-  { rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ideal.mem_span_singleton],
-    intro h2,
-    have h2_nonneg: 0 ≤ (2 : ℤ) := by simp only [zero_le_bit0, zero_le_one],
-    have : (2 : ℤ) = 1 := int.eq_one_of_dvd_one h2_nonneg h2,
-    linarith, },
+  intro hf,
+  cases (hf.mul_inv_cancel two_ne_zero) with inv2 hinv2,
+  have not_even_2 : ¬ even (2 : ℤ),
+  { rw ← int.odd_iff_not_even,
+    apply int.odd.of_mul_left,
+    rw [hinv2, int.odd_iff_not_even],
+    exact int.not_even_one, },
+  exact not_even_2 (even_bit0 1),
 end
 
 namespace number_field

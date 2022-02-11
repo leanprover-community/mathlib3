@@ -216,7 +216,7 @@ instance is_adic_complete.henselian_ring
       swap, { intro i, rw zero_mul },
       refine ideal.add_mem _ _ _,
       { simp only [finset.sum_range_succ, taylor_coeff_one, mul_one, pow_one, taylor_coeff_zero,
-          mul_neg_eq_neg_mul_symm, finset.sum_singleton, finset.range_one, pow_zero],
+          mul_neg, finset.sum_singleton, finset.range_one, pow_zero],
         rw [mul_left_comm, ring.mul_inverse_cancel _ (hf'c n), mul_one, add_neg_self],
         exact ideal.zero_mem _ },
       { refine submodule.sum_mem _ _, simp only [finset.mem_Ico],

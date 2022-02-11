@@ -197,8 +197,6 @@ which we set to priority 0 shortly. See `smul_def` below for the public version.
 private lemma op_smul_def'' (r : R) (x : A) : mul_opposite.op r • x = x * algebra_map R A r :=
 algebra.op_smul_def' x r
 
-local attribute [ext] has_scalar
-
 /--
 To prove two algebra structures on a fixed `[comm_semiring R] [semiring A]` agree,
 it suffices to check the `algebra_map`s agree.

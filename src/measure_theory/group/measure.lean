@@ -166,18 +166,19 @@ end inv
 section group
 variables [group G] [has_measurable_inv G]
 
-@[to_additive]
+@[simp, to_additive]
 lemma inv_apply (μ : measure G) (s : set G) : μ.inv s = μ s⁻¹ :=
 (measurable_equiv.inv G).map_apply s
 
-@[simp, to_additive] protected lemma inv_inv (μ : measure G) : μ.inv.inv = μ :=
+@[simp, to_additive]
+protected lemma inv_inv (μ : measure G) : μ.inv.inv = μ :=
 (measurable_equiv.inv G).map_symm_map
 
-@[to_additive]
+@[simp, to_additive]
 lemma measure_inv (μ : measure G) [is_inv_invariant μ] (A : set G) : μ A⁻¹ = μ A :=
 by rw [← inv_apply, inv_eq_self]
 
-@[to_additive]
+@[simp, to_additive]
 lemma measure_preimage_inv (μ : measure G) [is_inv_invariant μ] (A : set G) :
   μ (has_inv.inv ⁻¹' A) = μ A :=
 μ.measure_inv A

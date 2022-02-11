@@ -47,7 +47,7 @@ open_locale classical big_operators
 lemma int.not_is_field : ¬ is_field ℤ :=
 begin
   intro hf,
-  cases (hf.mul_inv_cancel two_ne_zero) with inv2 hinv2,
+  cases hf.mul_inv_cancel two_ne_zero with inv2 hinv2,
   have not_even_2 : ¬ even (2 : ℤ),
   { rw ← int.odd_iff_not_even,
     apply int.odd.of_mul_left,
@@ -112,14 +112,11 @@ instance [number_field K] : char_zero (𝓞 K) := char_zero.of_module _ K
 /-- The ring of integers of a number field is not a field. -/
 lemma not_is_field [number_field K] : ¬ is_field (𝓞 K) :=
 begin
-  have h_inj: function.injective ⇑(algebra_map ℤ ↥(ring_of_integers K)),
-  { rw ring_hom.injective_iff,
-    intros a ha,
-    rw [ring_hom.eq_int_cast, int.cast_eq_zero] at ha,
-    exact ha, },
+  have h_inj : function.injective ⇑(algebra_map ℤ ↥(ring_of_integers K)),
+  { exact ring_hom.injective_int (algebra_map ℤ ↥(ring_of_integers K)) },
   intro hf,
   exact int.not_is_field ((is_integral.is_field_iff_is_field
-    (is_integral_closure.is_integral_algebra ℤ K) h_inj).mpr hf)
+    (is_integral_closure.is_integral_algebra ℤ K) h_inj).mpr hf),
 end
 
 instance [number_field K] : is_dedekind_domain (𝓞 K) :=

@@ -16,11 +16,6 @@ open category_theory
 
 universe u
 
-/-- Reinterpret an order homomorphism to a linear order as a `lattice_hom`. -/
-private def order_hom.to_lattice_hom {α β : Type*} [linear_order α] [linear_order β] (f : α →o β) :
-  lattice_hom α β :=
-order_hom_class.to_lattice_hom _ _ f
-
 /-- The category of linear orders. -/
 def LinearOrder := bundled linear_order
 
@@ -40,7 +35,8 @@ instance : inhabited LinearOrder := ⟨of punit⟩
 instance (α : LinearOrder) : linear_order α := α.str
 
 instance has_forget_to_Lattice : has_forget₂ LinearOrder Lattice :=
-{ forget₂ := { obj := λ X, Lattice.of X, map := λ X Y, order_hom.to_lattice_hom } }
+{ forget₂ := { obj := λ X, Lattice.of X,
+               map := λ X Y f, (order_hom_class.to_lattice_hom X Y f : lattice_hom X Y) } }
 
 /-- Constructs an equivalence between linear orders from an order isomorphism between them. -/
 @[simps] def iso.mk {α β : LinearOrder.{u}} (e : α ≃o β) : α ≅ β :=

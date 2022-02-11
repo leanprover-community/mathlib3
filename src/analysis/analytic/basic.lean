@@ -757,19 +757,13 @@ begin
         : by simpa using h₄.le, }
 end
 
-
-lemma asymptotics.is_O.continuous_multilinear_map_eq_zero {n : ℕ} {p : 𝕜 [×n]→L[𝕜] E}
-  (h : asymptotics.is_O (λ y, p (λ i, y)) (λ (y : 𝕜), ∥y∥ ^ (n + 1)) (nhds 0)) :
-  p = 0 :=
-by { rw ←mk_pi_field_apply_one_eq_self p,
-     exact ext (λ x, by simp [h.continuous_multilinear_map_apply_eq_zero 1]) }
-
-lemma has_fpower_series_at.eq_zero {p : formal_multilinear_series 𝕜 𝕜 E} {x : 𝕜}
-  (h : has_fpower_series_at 0 p x) : p = 0 :=
+lemma has_fpower_series_at.apply_eq_zero {p : formal_multilinear_series 𝕜 E F} {x : E}
+  (h : has_fpower_series_at 0 p x) (n : ℕ) :
+  ∀ y : E, p n (λ i, y) = 0 :=
 begin
-  refine funext (nat.strong_rec' (λ k hk, _)),
+  refine nat.strong_rec_on n (λ k hk, _),
   have psum_eq : p.partial_sum k.succ = (λ y, p k (λ i, y)),
-  { funext y,
+  { funext z,
     cases k,
     { exact finset.sum_range_one _ },
     { refine finset.sum_eq_single _ (λ b hb hnb, _) (λ hn, _),
@@ -778,8 +772,12 @@ begin
       { exact false.elim (hn (finset.mem_range.mpr (lt_add_one k.succ))) } }, },
   replace h := h.is_O_sub_partial_sum_pow k.succ,
   simp only [psum_eq, zero_sub, pi.zero_apply, asymptotics.is_O_neg_left] at h,
-  simp only [h.continuous_multilinear_map_eq_zero, pi.zero_apply],
+  exact h.continuous_multilinear_map_apply_eq_zero,
 end
+
+lemma has_fpower_series_at.eq_zero {p : formal_multilinear_series 𝕜 𝕜 E} {x : 𝕜}
+  (h : has_fpower_series_at 0 p x) : p = 0 :=
+by { ext n x, rw ←mk_pi_field_apply_one_eq_self (p n), simp [h.apply_eq_zero n 1] }
 
 theorem has_fpower_series_at.eq_formal_multilinear_series
   {p₁ p₂ : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {x : 𝕜}
@@ -787,8 +785,8 @@ theorem has_fpower_series_at.eq_formal_multilinear_series
   p₁ = p₂ :=
 sub_eq_zero.mp (has_fpower_series_at.eq_zero (by simpa only [sub_self] using h₁.sub h₂))
 
-/-- If a function `f` has a two power series representation at `x`, then the given radii in which
-convergence is guaranteed may be interchanged. This can be useful when the formal multilinear
+/-- If a function `f : 𝕜 → E` has two power series representation at `x`, then the given radii in
+which convergence is guaranteed may be interchanged. This can be useful when the formal multilinear
 series in one representation has a particularly nice form, but the other has a larger radius. -/
 theorem has_fpower_series_on_ball.exchange_radius
   {p₁ p₂ : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {r₁ r₂ : ℝ≥0∞} {x : 𝕜}

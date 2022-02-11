@@ -375,7 +375,8 @@ instance : has_involutive_neg ereal :=
   neg_neg := λ a, match a with
     | ⊥ := rfl
     | ⊤ := rfl
-    | (a : ℝ) := by { norm_cast, simp [neg_neg a] } }
+    | (a : ℝ) := by { norm_cast, simp [neg_neg a] }
+    end }
 
 @[simp] lemma to_real_neg : ∀ {a : ereal}, to_real (-a) = - to_real a
 | ⊤ := by simp
@@ -415,11 +416,10 @@ by conv_lhs { rw [ereal.neg_le, neg_neg] }
 
 /-- Negation as an order reversing isomorphism on `ereal`. -/
 def neg_order_iso : ereal ≃o (order_dual ereal) :=
-{ to_fun := ereal.neg,
-  inv_fun := ereal.neg,
-  left_inv := neg_neg,
-  right_inv := neg_neg,
-  map_rel_iff' := λ x y, neg_le_neg_iff }
+{ to_fun := λ x, order_dual.to_dual (-x),
+  inv_fun := λ x, -x.of_dual,
+  map_rel_iff' := λ x y, neg_le_neg_iff,
+  ..equiv.neg ereal }
 
 lemma neg_lt_of_neg_lt {a b : ereal} (h : -a < b) : -b < a :=
 begin
@@ -471,7 +471,7 @@ begin
   { have : (x : ereal) = - (- x : ℝ), by simp,
     conv_lhs { rw this },
     have : real.to_nnreal (-x) = ⟨-x, neg_nonneg.mpr h.le⟩, by { ext, simp [neg_nonneg.mpr h.le], },
-    simp only [real.to_nnreal_of_nonpos h.le, this, zero_sub, neg_eq_neg_iff, coe_neg,
+    simp only [real.to_nnreal_of_nonpos h.le, this, zero_sub, neg_inj, coe_neg,
       ennreal.coe_zero, coe_ennreal_zero, coe_coe],
     refl }
 end

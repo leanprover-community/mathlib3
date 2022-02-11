@@ -239,19 +239,6 @@ restate_axiom pseudo_core.map_id_iso_hom'
 restate_axiom pseudo_core.map_comp_iso_hom'
 attribute [simp] pseudo_core.map_id_iso_hom pseudo_core.map_comp_iso_hom
 
-/--
-A predicate on an oplax functor that promotes an oprax functors to a pseudofunctor.
-See `pseudofunctor.mk_of_oplax'`.
--/
-class is_pseudo : Prop :=
-(map_id_is_iso' : ∀ (a : B), is_iso (F.map_id a) . tactic.apply_instance)
-(map_comp_is_iso' : ∀ {a b c : B} (f : a ⟶ b) (g : b ⟶ c),
-  is_iso (F.map_comp f g) . tactic.apply_instance)
-
-restate_axiom is_pseudo.map_id_is_iso'
-restate_axiom is_pseudo.map_comp_is_iso'
-attribute [instance] is_pseudo.map_id_is_iso is_pseudo.map_comp_is_iso
-
 end
 
 end oplax_functor
@@ -408,7 +395,9 @@ def mk_of_oplax {F : oplax_functor B C} (F' : oplax_functor.pseudo_core F) : pse
 Construct a pseudofunctor from an oplax functor whose `map_id` and `map_comp` are isomorphisms.
 -/
 noncomputable
-def mk_of_oplax' {F : oplax_functor B C} [oplax_functor.is_pseudo F] : pseudofunctor B C :=
+def mk_of_oplax' {F : oplax_functor B C}
+  [∀ a, is_iso (F.map_id a)] [∀ {a b c} (f : a ⟶ b) (g : b ⟶ c), is_iso (F.map_comp f g)] :
+  pseudofunctor B C :=
 { map_id := λ a, as_iso (F.map_id a),
   map_comp := λ a b c f g, as_iso (F.map_comp f g),
   map₂_whisker_right' := λ a b c f g η h, by

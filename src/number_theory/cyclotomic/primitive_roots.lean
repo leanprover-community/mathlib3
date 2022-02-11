@@ -22,12 +22,12 @@ in the implementation details section.
   is an element of `B` that plays the role of a primitive `n`-th root of unity.
 * `is_primitive_root.power_basis`: if `K` and `L` are fields such that
   `is_cyclotomic_extension {n} K L` and `ne_zero (↑n : K)`, then `is_primitive_root.power_basis`
-  gives a K-power basis for L given a primitive root ζ.
+  gives a K-power basis for L given a primitive root `ζ`.
 * `is_primitive_root.embeddings_equiv_primitive_roots`: the equivalence between `L →ₐ[K] A`
-  and `primitive_roots n A` given by the choice of ζ.
+  and `primitive_roots n A` given by the choice of `ζ`.
 
 ## Main results
-* `is_cyclotomic_extension.zeta_primitive_root`: if `is_domain B` and `ne_zero (↑n : B)` then
+* `is_cyclotomic_extension.zeta_primitive_root`: if `is_domain B` and `ne_zero (↑n : B)`, then
   `zeta n A B` is a primitive `n`-th root of unity.
 * `is_cyclotomic_extension.finrank`: if `irreducible (cyclotomic n K)` (in particular for
   `K = ℚ`), then the `finrank` of a cyclotomic extension is `n.totient`.
@@ -50,14 +50,14 @@ unity, but this holds if `is_domain B` and `ne_zero (↑n : B)`.
 
 `zeta n A B` is defined using `exists.some`, which means we cannot control it.
 For example, in normal mathematics, we can demand that `(zeta p ℤ ℤ[ζₚ] : ℚ(ζₚ))` is equal to
-`zeta p ℚ ℚ(ζₚ)`, as we are just choosing "an arbitrary primitive root" and we can internally specify that
-our choices agree. This is not the case here, and it is indeed impossible to prove that these two are equal.
-Therefore, whenever possible, we prove our results for any primitive root, and only at the "final step", when
-we need to provide an "explicit" primitive root, we then use zeta.
+`zeta p ℚ ℚ(ζₚ)`, as we are just choosing "an arbitrary primitive root" and we can internally
+specify that our choices agree. This is not the case here, and it is indeed impossible to prove that
+these two are equal. Therefore, whenever possible, we prove our results for any primitive root,
+and only at the "final step", when we need to provide an "explicit" primitive root, we use `zeta`.
 
 -/
 
-open polynomial algebra finset finite_dimensional is_cyclotomic_extension pnat nat
+open polynomial algebra finset finite_dimensional is_cyclotomic_extension nat pnat
 
 
 universes u v w z
@@ -160,7 +160,7 @@ section norm
 
 namespace is_primitive_root
 
-variables [field L] [comm_ring C] {ζ : L} (hζ : is_primitive_root ζ n)
+variables [field L] {ζ : L} (hζ : is_primitive_root ζ n)
 
 include hζ
 
@@ -178,8 +178,8 @@ variables {K} [field K] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the norm of
 `ζ - 1` is `eval 1 (cyclotomic n ℤ)`. -/
-lemma sub_one_norm_eq_eval_cyclotomic [field K] [algebra K L] [is_cyclotomic_extension {n} K L]
-  [ne_zero ((n : ℕ) : K)] (h : 2 < (n : ℕ)) (hirr : irreducible (cyclotomic n K)) :
+lemma sub_one_norm_eq_eval_cyclotomic [is_cyclotomic_extension {n} K L] (h : 2 < (n : ℕ))
+  (hirr : irreducible (cyclotomic n K)) :
   norm K (ζ - 1) = ↑(eval 1 (cyclotomic n ℤ)) :=
 begin
   let E := algebraic_closure L,

@@ -253,9 +253,9 @@ protected lemma map_zero : f 0 = 0 := map_zero f
 
 variable {x}
 
-protected lemma map_eq_zero_iff : f x = 0 ↔ x = 0 := map_eq_zero_iff f (equiv_like.injective f)
+protected lemma map_eq_zero_iff : f x = 0 ↔ x = 0 := add_equiv_class.map_eq_zero_iff f
 
-lemma map_ne_zero_iff : f x ≠ 0 ↔ x ≠ 0 := (f : R ≃+ S).map_ne_zero_iff
+lemma map_ne_zero_iff : f x ≠ 0 ↔ x ≠ 0 := add_equiv_class.map_ne_zero_iff f
 
 end non_unital_semiring
 
@@ -268,9 +268,9 @@ protected lemma map_one : f 1 = 1 := map_one f
 
 variable {x}
 
-protected lemma map_eq_one_iff : f x = 1 ↔ x = 1 := map_eq_one_iff f (equiv_like.injective f)
+protected lemma map_eq_one_iff : f x = 1 ↔ x = 1 := mul_equiv_class.map_eq_one_iff f
 
-lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := (f : R ≃* S).map_ne_one_iff
+lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := mul_equiv_class.map_ne_one_iff f
 
 /-- Produce a ring isomorphism from a bijective ring homomorphism. -/
 noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R ≃+* S :=

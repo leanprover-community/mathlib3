@@ -119,6 +119,8 @@ namespace cofinite_topology
 
 /-- The identity equivalence between `α` and `cofinite_topology α`. -/
 def of : α ≃ cofinite_topology α := equiv.refl α
+instance [inhabited α] : inhabited (cofinite_topology α) :=
+{ default := of default }
 
 instance : topological_space (cofinite_topology α) :=
 { is_open := λ s, s.nonempty → set.finite sᶜ,

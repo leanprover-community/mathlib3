@@ -70,8 +70,8 @@ instance : inhabited (jordan_decomposition α) :=
 { default := 0 }
 
 instance : has_involutive_neg (jordan_decomposition α) :=
-{ neg := λ j, ⟨j.neg_part, j.pos_part, j.mutually_singular.symm⟩
-  neg_neg := λ j, jordan_decomposition.ext rfl rfl }
+{ neg := λ j, ⟨j.neg_part, j.pos_part, j.mutually_singular.symm⟩,
+  neg_neg := λ j, jordan_decomposition.ext _ _ rfl rfl }
 
 instance : has_scalar ℝ≥0 (jordan_decomposition α) :=
 { smul := λ r j, ⟨r • j.pos_part, r • j.neg_part,

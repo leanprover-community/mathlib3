@@ -32,12 +32,12 @@ More specifically, we use extensively the following typeclasses:
 * reverse monotone left
 * * `contravariant_class α>0 α (λ x y, x * y) (≤)`, abbreviated `pos_mul_mono_rev α`,
     expressing that multiplication by positive elements on the left is reverse monotone;
-* * `contravariant_class α>0 α (λ x y, x * y) (<)`, abbreviated `pos_mul_strict_mono_rev α`,
+* * `contravariant_class α>0 α (λ x y, x * y) (<)`, abbreviated `pos_mul_reflect_lt α`,
     expressing that multiplication by positive elements on the left is strictly reverse monotone;
 * reverse reverse monotone right
 * * `contravariant_class α>0 α (λ x y, y * x) (≤)`, abbreviated `mul_pos_mono_rev α`,
     expressing that multiplication by positive elements on the right is reverse monotone;
-* * `contravariant_class α>0 α (λ x y, y * x) (<)`, abbreviated `mul_pos_strict_mono_rev α`,
+* * `contravariant_class α>0 α (λ x y, y * x) (<)`, abbreviated `mul_pos_reflect_lt α`,
     expressing that multiplication by positive elements on the right is strictly reverse monotone.
 
 ##  Formalization comments
@@ -77,16 +77,16 @@ expressing that multiplication by positive elements on the right is strictly mon
 abbreviation mul_pos_strict_mono : Prop :=
 covariant_class {x : X // 0 < x} X (λ x y, y * x) (<)
 
-/--  `zero_lt.pos_mul_strict_mono_rev α` is an abbreviation for
+/--  `zero_lt.pos_mul_reflect_lt α` is an abbreviation for
 `contravariant_class α>0 α (λ x y, x * y) (<)`,
 expressing that multiplication by positive elements on the left is strictly reverse monotone. -/
-abbreviation pos_mul_strict_mono_rev : Prop :=
+abbreviation pos_mul_reflect_lt : Prop :=
 contravariant_class {x : X // 0 < x} X (λ x y, x * y) (<)
 
-/--  `zero_lt.mul_pos_strict_mono_rev α` is an abbreviation for
+/--  `zero_lt.mul_pos_reflect_lt α` is an abbreviation for
 `contravariant_class α>0 α (λ x y, y * x) (<)`,
 expressing that multiplication by positive elements on the right is strictly reverse monotone. -/
-abbreviation mul_pos_strict_mono_rev : Prop :=
+abbreviation mul_pos_reflect_lt : Prop :=
 contravariant_class {x : X // 0 < x} X (λ x y, y * x) (<)
 
 end abbreviations_strict_mono
@@ -133,25 +133,25 @@ lemma mul_lt_mul_right' [mul_pos_strict_mono α]
 @covariant_class.elim α>0 α (λ x y, y * x) (<) _ ⟨a, a0⟩ _ _ bc
 
 -- proven with `a0 : 0 ≤ a` as `lt_of_mul_lt_mul_left''`
-lemma lt_of_mul_lt_mul_left' [pos_mul_strict_mono_rev α]
+lemma lt_of_mul_lt_mul_left' [pos_mul_reflect_lt α]
   {a b c : α} (bc : a * b < a * c) (a0 : 0 < a) :
   b < c :=
 @contravariant_class.elim α>0 α (λ x y, x * y) (<) _ ⟨a, a0⟩ _ _ bc
 
 -- proven with `a0 : 0 ≤ a` as `lt_of_mul_lt_mul_right''`
-lemma lt_of_mul_lt_mul_right' [mul_pos_strict_mono_rev α]
+lemma lt_of_mul_lt_mul_right' [mul_pos_reflect_lt α]
   {a b c : α} (bc : b * a < c * a) (a0 : 0 < a) :
   b < c :=
 @contravariant_class.elim α>0 α (λ x y, y * x) (<) _ ⟨a, a0⟩ _ _ bc
 
 @[simp]
-lemma mul_lt_mul_iff_left [pos_mul_strict_mono α] [pos_mul_strict_mono_rev α]
+lemma mul_lt_mul_iff_left [pos_mul_strict_mono α] [pos_mul_reflect_lt α]
   {a b c : α} (a0 : 0 < a) :
   a * b < a * c ↔ b < c :=
 @rel_iff_cov α>0 α (λ x y, x * y) (<) _ _ ⟨a, a0⟩ _ _
 
 @[simp]
-lemma mul_lt_mul_iff_right [mul_pos_strict_mono α] [mul_pos_strict_mono_rev α]
+lemma mul_lt_mul_iff_right [mul_pos_strict_mono α] [mul_pos_reflect_lt α]
   {a b c : α} (a0 : 0 < a) :
   b * a < c * a ↔ b < c :=
 @rel_iff_cov α>0 α (λ x y, y * x) (<) _ _ ⟨a, a0⟩ _ _

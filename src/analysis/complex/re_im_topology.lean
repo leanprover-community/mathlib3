@@ -122,41 +122,36 @@ by simpa only [frontier_Ioi] using frontier_preimage_re (Ioi a)
 @[simp] lemma frontier_set_of_lt_im (a : ℝ) : frontier {z : ℂ | a < z.im} = {z | z.im = a} :=
 by simpa only [frontier_Ioi] using frontier_preimage_im (Ioi a)
 
-lemma closure_preimage_re_inter_preimage_im (s t : set ℝ) :
-  closure (re ⁻¹' s ∩ im ⁻¹' t) = re ⁻¹' (closure s) ∩ im ⁻¹' (closure t) :=
+lemma closure_re_prod_im (s t : set ℝ) : closure (s ×ℂ t) = closure s ×ℂ closure t :=
 by simpa only [← preimage_eq_preimage equiv_real_prodₗ.symm.to_homeomorph.surjective,
   equiv_real_prodₗ.symm.to_homeomorph.preimage_closure]
   using @closure_prod_eq _ _ _ _ s t
 
-lemma interior_preimage_re_inter_preimage_im (s t : set ℝ) :
-  interior (re ⁻¹' s ∩ im ⁻¹' t) = re ⁻¹' (interior s) ∩ im ⁻¹' (interior t) :=
-by rw [interior_inter, interior_preimage_re, interior_preimage_im]
+lemma interior_re_prod_im (s t : set ℝ) : interior (s ×ℂ t) = interior s ×ℂ interior t :=
+by rw [re_prod_im, re_prod_im, interior_inter, interior_preimage_re, interior_preimage_im]
 
-lemma frontier_preimage_re_inter_preimage_im (s t : set ℝ) :
-  frontier (re ⁻¹' s ∩ im ⁻¹' t) =
-    re ⁻¹' (closure s) ∩ im ⁻¹' (frontier t) ∪ re ⁻¹' (frontier s) ∩ im ⁻¹' (closure t) :=
+lemma frontier_re_prod_im (s t : set ℝ) :
+  frontier (s ×ℂ t) = (closure s ×ℂ frontier t) ∪ (frontier s ×ℂ closure t) :=
 by simpa only [← preimage_eq_preimage equiv_real_prodₗ.symm.to_homeomorph.surjective,
   equiv_real_prodₗ.symm.to_homeomorph.preimage_frontier]
   using frontier_prod_eq s t
 
 lemma frontier_set_of_le_re_and_le_im (a b : ℝ) :
   frontier {z | a ≤ re z ∧ b ≤ im z} = {z | a ≤ re z ∧ im z = b ∨ re z = a ∧ b ≤ im z} :=
-by simpa only [closure_Ici, frontier_Ici]
-  using frontier_preimage_re_inter_preimage_im (Ici a) (Ici b)
+by simpa only [closure_Ici, frontier_Ici] using frontier_re_prod_im (Ici a) (Ici b)
 
 lemma frontier_set_of_le_re_and_im_le (a b : ℝ) :
   frontier {z | a ≤ re z ∧ im z ≤ b} = {z | a ≤ re z ∧ im z = b ∨ re z = a ∧ im z ≤ b} :=
 by simpa only [closure_Ici, closure_Iic, frontier_Ici, frontier_Iic]
-  using frontier_preimage_re_inter_preimage_im (Ici a) (Iic b)
+  using frontier_re_prod_im (Ici a) (Iic b)
 
 end complex
 
 open complex
 
-lemma is_open.re_prod_im {s t : set ℝ} (hs : is_open s) (ht : is_open t) :
-  is_open (re ⁻¹' s ∩ im ⁻¹' t) :=
+lemma is_open.re_prod_im {s t : set ℝ} (hs : is_open s) (ht : is_open t) : is_open (s ×ℂ t) :=
 (hs.preimage continuous_re).inter (ht.preimage continuous_im)
 
 lemma is_closed.re_prod_im {s t : set ℝ} (hs : is_closed s) (ht : is_closed t) :
-  is_closed (re ⁻¹' s ∩ im ⁻¹' t) :=
+  is_closed (s ×ℂ t) :=
 (hs.preimage continuous_re).inter (ht.preimage continuous_im)

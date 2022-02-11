@@ -114,6 +114,8 @@ instance : has_scalar R punit :=
 
 @[simp] lemma smul_eq (r : R) : r • y = star := rfl
 
+instance : is_central_scalar R punit := ⟨λ _ _, rfl⟩
+
 instance : smul_comm_class R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
 
 instance [has_scalar R S] : is_scalar_tower R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩

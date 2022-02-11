@@ -151,12 +151,13 @@ end mul
 /-- Inversion as a measurable automorphism of a group or group with zero. -/
 @[to_additive "Negation as a measurable automorphism of an additive group.",
   simps to_equiv apply { fully_applied := ff }]
-def inv {G} [has_involutive_inv G] [has_measurable_inv G] : G ≃ᵐ G :=
+def inv (G) [measurable_space G] [has_involutive_inv G] [has_measurable_inv G] : G ≃ᵐ G :=
 { to_equiv := equiv.inv G,
   measurable_to_fun := measurable_inv,
   measurable_inv_fun := measurable_inv }
 
-@[simp] lemma symm_inv {G} [has_involutive_inv G] [has_measurable_inv G] :
+@[simp, to_additive]
+lemma symm_inv {G} [measurable_space G] [has_involutive_inv G] [has_measurable_inv G] :
   (inv G).symm = inv G := rfl
 
 end measurable_equiv

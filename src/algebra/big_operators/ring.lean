@@ -250,4 +250,15 @@ begin
   rwa ← hc,
 end
 
+lemma prod_sum_succ [comm_semiring β] (n k : ℕ) (f g : ℕ → β) :
+  (∑ i in range (n+1), f i) * (∑ i in range (k+1), g i) =
+    (∑ i in range n, f i) * (∑ i in range k, g i) +
+    f n * (∑ i in range k, g i) +
+    g k * (∑ i in range n, f i) +
+    f n * g k :=
+begin
+  rw [finset.sum_range_succ, finset.sum_range_succ],
+  simp [add_mul, mul_add, add_assoc, mul_assoc, mul_comm (g k)],
+end
+
 end finset

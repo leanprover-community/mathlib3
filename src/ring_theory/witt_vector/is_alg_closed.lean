@@ -33,40 +33,6 @@ noncomputable theory
 section move_elsewhere
 
 section
-open finset
-open_locale big_operators
-variables {α β : Type*} [comm_semiring β]
-
-lemma finset.prod_sum_succ (n k : ℕ) (f g : ℕ → β) :
-  (∑ i in range (n+1), f i) * (∑ i in range (k+1), g i) =
-    (∑ i in range n, f i) * (∑ i in range k, g i) +
-    f n * (∑ i in range k, g i) +
-    g k * (∑ i in range n, f i) +
-    f n * g k :=
-by rw [finset.sum_range_succ, finset.sum_range_succ]; ring
-
-end
-
-section
-open finset
-open_locale big_operators
-
--- this should hold on something slightly weaker than semiring
-lemma monoid_hom.map_sum (M N : Type*) [semiring M] [semiring N]
-  {T : Type*} [add_monoid_hom_class T M N] (f : T)
-  {ι : Type} (s : finset ι) (g : ι → M) :
-  f (∑ i in s, g i) = ∑ i in s, f (g i) :=
-begin
-  classical,
-  apply finset.induction_on s,
-  { simp },
-  { intros a s has hf,
-    simp [has, hf, map_add] }
-end
-
-end
-
-section
 
 variables (p : ℕ) [fact p.prime]
 
@@ -142,7 +108,7 @@ begin
   simp only [witt_poly_prod],
   convert witt_structure_int_prop p (X (0 : fin 2) * X 1) n using 1,
   { simp only [witt_polynomial, witt_mul, int.nat_cast_eq_coe_nat],
-    rw monoid_hom.map_sum,
+    rw alg_hom.map_sum,
     congr' 1 with i,
     congr' 1,
     have hsupp : (finsupp.single i (p ^ (n - i))).support = {i},

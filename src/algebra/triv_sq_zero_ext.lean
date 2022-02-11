@@ -235,7 +235,7 @@ variables (R M)
 /-- The canonical `R`-linear inclusion `M → triv_sq_zero_ext R M`. -/
 @[simps apply]
 def inr_hom [semiring R] [add_comm_monoid M] [module R M] : M →ₗ[R] tsze R M :=
-{ to_fun := inr, ..linear_map.inr _ _ _ }
+{ to_fun := inr, ..linear_map.inr R R M }
 
 /-- The canonical `R`-linear projection `triv_sq_zero_ext R M → M`. -/
 @[simps apply]

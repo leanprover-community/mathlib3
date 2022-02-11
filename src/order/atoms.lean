@@ -44,7 +44,9 @@ which are lattices with only two elements, and related ideas.
   connection between atoms, coatoms, and simple lattices
   * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
   bounded lattice, a complement of an atom is a coatom and vice versa.
-  * ``is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
+  * `is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
+  * `fintype.to_is_atomic`, `fintype.to_is_coatomic`: Finite partial orders with bottom resp. top
+    are atomic resp. coatomic.
 
 -/
 
@@ -646,3 +648,25 @@ theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
   λ h, @is_atomic_of_is_coatomic_of_is_complemented_of_is_modular _ _ _ _ _ h⟩
 
 end is_modular_lattice
+
+section fintype
+
+open finset
+
+@[priority 100]  -- see Note [lower instance priority]
+instance fintype.to_is_coatomic [partial_order α] [order_top α] [fintype α] : is_coatomic α :=
+begin
+  refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
+  obtain ⟨c, hc, hmax⟩ := set.finite.exists_maximal_wrt id { x : α | b ≤ x ∧ x ≠ ⊤ }
+    (set.finite.of_fintype _) ⟨b, le_rfl, ht⟩,
+  refine ⟨c, ⟨hc.2, λ y hcy, _⟩, hc.1⟩,
+  by_contra hyt,
+  obtain rfl : c = y := hmax y ⟨hc.1.trans hcy.le, hyt⟩ hcy.le,
+  exact (lt_self_iff_false _).mp hcy
+end
+
+@[priority 100]  -- see Note [lower instance priority]
+instance fintype.to_is_atomic [partial_order α] [order_bot α] [fintype α] : is_atomic α :=
+is_coatomic_dual_iff_is_atomic.mp fintype.to_is_coatomic
+
+end fintype

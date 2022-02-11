@@ -309,7 +309,7 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
   -- We check that `2 < n ≤ 5`, so that `interval_cases` has a precise range to check.
   swap, { obtain ⟨m, hm⟩ := multiset.exists_cons_of_mem ng,
     rw [← sum_cycle_type, hm, multiset.sum_cons],
-    exact le_add_right (le_refl _) },
+    exact le_add_right le_rfl },
   interval_cases n, -- This breaks into cases `n = 3`, `n = 4`, `n = 5`.
   { -- If `n = 3`, then `g` has a 3-cycle in its decomposition, so `g^2` is a 3-cycle.
     -- `g^2` is in the normal closure of `g`, so that normal closure must be $A_5$.

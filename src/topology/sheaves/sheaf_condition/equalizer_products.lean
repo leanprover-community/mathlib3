@@ -178,10 +178,10 @@ pi.map_iso (λ X, F.map_iso
     exact iso.op
     { hom := hom_of_le (by
       { simp only [oe.to_embedding.inj, set.image_inter],
-        apply le_refl _, }),
+        exact le_rfl, }),
       inv := hom_of_le (by
       { simp only [oe.to_embedding.inj, set.image_inter],
-        apply le_refl _, }), },
+        exact le_rfl, }), },
   end)
 
 /-- The isomorphism of sheaf condition diagrams corresponding to an open embedding. -/

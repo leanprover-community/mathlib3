@@ -103,8 +103,8 @@ instance : proper_space ℤ :=
 by simp only [← comap_dist_right_at_top_eq_cocompact (0 : ℤ), dist_eq, sub_zero, cast_zero,
   ← cast_abs, ← @comap_comap _ _ _ _ abs, int.comap_coe_at_top, comap_abs_at_top]
 
-instance : noncompact_space ℤ :=
-noncompact_space_of_ne_bot $ by simp [at_top_ne_bot]
+@[simp] lemma cofinite_eq : (cofinite : filter ℤ) = at_bot ⊔ at_top :=
+by rw [← cocompact_eq_cofinite, cocompact_eq]
 
 end int
 
@@ -207,7 +207,7 @@ show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f
 
 lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
-  cases no_top (|x|) with y xy,
+  cases exists_gt (|x|) with y xy,
   have y0 := lt_of_le_of_lt (abs_nonneg _) xy,
   refine ⟨_, div_pos ε0 y0, λ a b h, _⟩,
   rw [real.dist_eq, ← mul_sub, abs_mul, ← mul_div_cancel' ε (ne_of_gt y0)],
@@ -226,7 +226,7 @@ protected lemma real.continuous_mul : continuous (λp : ℝ × ℝ, p.1 * p.2) :
 continuous_iff_continuous_at.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_mul
-    ({x | |x| < |a₁| + 1}.prod {x | |x| < |a₂| + 1})
+    ({x | |x| < |a₁| + 1} ×ˢ {x | |x| < |a₂| + 1})
     (λ x, id))
   (is_open.mem_nhds
     (((is_open_gt' (|a₁| + 1)).preimage continuous_abs).prod

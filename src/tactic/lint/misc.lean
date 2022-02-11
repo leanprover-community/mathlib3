@@ -3,7 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis
 -/
-import data.bool
+import data.bool.basic
 import meta.rb_map
 import tactic.lint.basic
 
@@ -132,7 +132,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   no_errors_found := "No declarations have a duplicate namespace.",
   errors_found := "DUPLICATED NAMESPACES IN NAME:" }
 
-
+attribute [nolint dup_namespace] iff.iff
 
 /-!
 ## Linter for unused arguments

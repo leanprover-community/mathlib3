@@ -5,6 +5,7 @@ Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 -/
 
 import algebra.algebra.operations
+import algebra.algebra.subalgebra
 import algebra.direct_sum.algebra
 
 /-!
@@ -41,7 +42,10 @@ internally graded ring
 
 open_locale direct_sum big_operators
 
-variables {ι : Type*} {S R : Type*} [decidable_eq ι]
+variables {ι : Type*} {S R : Type*}
+
+section direct_sum
+variables [decidable_eq ι]
 
 /-! #### From `add_submonoid`s -/
 
@@ -186,6 +190,13 @@ def direct_sum.submodule_coe_alg_hom [add_monoid ι]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] : (⨁ i, A i) →ₐ[S] R :=
 direct_sum.to_algebra S _ (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl) (λ _, rfl)
 
+/-- The supremum of submodules that form a graded monoid is a subalgebra, and equal to the range of
+`direct_sum.submodule_coe_alg_hom`. -/
+lemma submodule.supr_eq_to_submodule_range [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R] (A : ι → submodule S R) [set_like.graded_monoid A] :
+  (⨆ i, A i) = (direct_sum.submodule_coe_alg_hom A).range.to_submodule :=
+(submodule.supr_eq_range_dfinsupp_lsum A).trans $ set_like.coe_injective rfl
+
 @[simp] lemma direct_sum.submodule_coe_alg_hom_of [add_monoid ι]
   [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] (i : ι) (x : A i) :
@@ -203,3 +214,19 @@ begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, submodule.coe_sum],
   simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
+
+end direct_sum
+
+section homogeneous_element
+
+lemma set_like.is_homogeneous_zero_submodule [has_zero ι]
+  [semiring S] [add_comm_monoid R] [module S R]
+  (A : ι → submodule S R) : set_like.is_homogeneous A (0 : R) :=
+⟨0, submodule.zero_mem _⟩
+
+lemma set_like.is_homogeneous.smul [comm_semiring S] [semiring R] [algebra S R]
+  {A : ι → submodule S R} {s : S}
+  {r : R} (hr : set_like.is_homogeneous A r) : set_like.is_homogeneous A (s • r) :=
+let ⟨i, hi⟩ := hr in ⟨i, submodule.smul_mem _ _ hi⟩
+
+end homogeneous_element

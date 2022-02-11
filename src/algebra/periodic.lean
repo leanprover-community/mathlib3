@@ -7,7 +7,7 @@ import algebra.field.opposite
 import algebra.module.basic
 import algebra.order.archimedean
 import data.int.parity
-import group_theory.subgroup.basic
+import group_theory.coset
 
 /-!
 # Periodicity
@@ -273,6 +273,12 @@ lemma periodic.exists_mem_Ioc [linear_ordered_add_comm_group α] [archimedean α
 let ⟨n, H, _⟩ := exists_unique_add_zsmul_mem_Ioc hc x a in
 ⟨x + n • c, H, (h.zsmul n x).symm⟩
 
+lemma periodic.image_Ioc [linear_ordered_add_comm_group α] [archimedean α]
+  (h : periodic f c) (hc : 0 < c) (a : α) :
+  f '' set.Ioc a (a + c) = set.range f :=
+(set.image_subset_range _ _).antisymm $ set.range_subset_iff.2 $ λ x,
+  let ⟨y, hy, hyx⟩ := h.exists_mem_Ioc hc x a in ⟨y, hy, hyx.symm⟩
+
 lemma periodic_with_period_zero [add_zero_class α]
   (f : α → β) :
   periodic f 0 :=
@@ -287,6 +293,15 @@ lemma periodic.map_vadd_multiples [add_comm_monoid α] (hf : periodic f c)
   (a : add_submonoid.multiples c) (x : α) :
   f (a +ᵥ x) = f x :=
 by { rcases a with ⟨_, m, rfl⟩, simp [add_submonoid.vadd_def, add_comm _ x, hf.nsmul m x] }
+
+/-- Lift a periodic function to a function from the quotient group. -/
+def periodic.lift [add_group α] (h : periodic f c) (x : α ⧸ add_subgroup.zmultiples c) : β :=
+quotient.lift_on' x f $
+  λ a b ⟨k, hk⟩, (h.zsmul k _).symm.trans $ congr_arg f $ add_eq_of_eq_neg_add hk
+
+@[simp] lemma periodic.lift_coe [add_group α] (h : periodic f c) (a : α) :
+  h.lift (a : α ⧸ add_subgroup.zmultiples c) = f a :=
+rfl
 
 /-! ### Antiperiodicity -/
 

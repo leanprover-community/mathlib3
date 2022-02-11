@@ -97,6 +97,18 @@ theorem coe_injective : injective (coe : subtype p → α) :=
 theorem val_injective : injective (@val _ p) :=
 coe_injective
 
+@[simp] lemma _root_.exists_subtype_mk_eq_iff {p : α → Prop} {a : subtype p} {b : α} :
+  (∃ h : p b, subtype.mk b h = a) ↔ b = a :=
+begin
+  refine ⟨λ ⟨h, ha⟩, congr_arg subtype.val ha, λ h, _⟩,
+  rw h,
+  exact ⟨a.2, subtype.coe_eta _ _⟩,
+end
+
+@[simp] lemma _root_.exists_eq_subtype_mk_iff {p : α → Prop} {a : subtype p} {b : α} :
+  (∃ h : p b, a = subtype.mk b h) ↔ ↑a = b :=
+by simp only [@eq_comm _ a, exists_subtype_mk_eq_iff, @eq_comm _ _ b]
+
 /-- Restrict a (dependent) function to a subtype -/
 def restrict {α} {β : α → Type*} (f : Π x, β x) (p : α → Prop) (x : subtype p) : β x.1 :=
 f x

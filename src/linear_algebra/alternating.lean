@@ -376,14 +376,39 @@ lemma comp_linear_map_inj (f : M₂ →ₗ[R] M) (hf : function.surjective f)
   (g₁ g₂ : alternating_map R M N ι) : g₁.comp_linear_map f = g₂.comp_linear_map f ↔ g₁ = g₂ :=
 (comp_linear_map_injective _ hf).eq_iff
 
+section dom_lcongr
+
+variables (ι R N) (S : Type*) [semiring S] [module S N] [smul_comm_class R S N]
+
+/-- Construct a linear equivalence between maps from a linear equivalence between domains. -/
+@[simps apply]
+def dom_lcongr (e : M ≃ₗ[R] M₂) : alternating_map R M N ι ≃ₗ[S] alternating_map R M₂ N ι :=
+{ to_fun := λ f, f.comp_linear_map e.symm,
+  inv_fun := λ g, g.comp_linear_map e,
+  map_add' := λ _ _, rfl,
+  map_smul' := λ _ _, rfl,
+  left_inv := λ f, alternating_map.ext $ λ v, f.congr_arg $ funext $ λ i, e.symm_apply_apply _,
+  right_inv := λ f, alternating_map.ext $ λ v, f.congr_arg $ funext $ λ i, e.apply_symm_apply _ }
+
+@[simp] lemma dom_lcongr_refl :
+  dom_lcongr R N ι S (linear_equiv.refl R M) = linear_equiv.refl S _ :=
+linear_equiv.ext $ λ _, alternating_map.ext $ λ v, rfl
+
+@[simp] lemma dom_lcongr_symm (e : M ≃ₗ[R] M₂) :
+  (dom_lcongr R N ι S e).symm = dom_lcongr R N ι S e.symm :=
+rfl
+
+lemma dom_lcongr_trans (e : M ≃ₗ[R] M₂) (f : M₂ ≃ₗ[R] M₃):
+  (dom_lcongr R N ι S e).trans (dom_lcongr R N ι S f) = dom_lcongr R N ι S (e.trans f) :=
+rfl
+
+end dom_lcongr
+
 /-- Composing an alternating map with the same linear equiv on each argument gives the zero map
 if and only if the alternating map is the zero map. -/
-@[simp] lemma comp_linear_equiv_eq_zero_iff (f : alternating_map R M N ι) (g : M ≃ₗ[R] M) :
-  f.comp_linear_map (g : M →ₗ[R] M) = 0 ↔ f = 0 :=
-begin
-  simp_rw ←alternating_map.coe_multilinear_map_injective.eq_iff,
-  exact multilinear_map.comp_linear_equiv_eq_zero_iff _ _
-end
+@[simp] lemma comp_linear_equiv_eq_zero_iff (f : alternating_map R M N ι) (g : M₂ ≃ₗ[R] M) :
+  f.comp_linear_map (g : M₂ →ₗ[R] M) = 0 ↔ f = 0 :=
+(dom_lcongr R N ι ℕ g.symm).map_eq_zero_iff
 
 variables (f f' : alternating_map R M N ι)
 variables (g g₂ : alternating_map R M N' ι)

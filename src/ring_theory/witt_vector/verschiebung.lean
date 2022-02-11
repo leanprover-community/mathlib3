@@ -159,7 +159,7 @@ begin
   { simp only [hn, verschiebung_poly_zero, witt_polynomial_zero, bind₁_X_right] },
   { obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
     rw [nat.succ_eq_add_one, add_tsub_cancel_right, ring_hom.map_mul,
-        ring_hom.map_nat_cast, hom_bind₁],
+        map_nat_cast, hom_bind₁],
     calc  _
         = ghost_component (n + 1) (verschiebung $ mk p x) : _
     ... = _ : _,

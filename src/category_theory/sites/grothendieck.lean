@@ -232,7 +232,7 @@ lemma le_def {J₁ J₂ : grothendieck_topology C} :
 
 /-- See https://stacks.math.columbia.edu/tag/00Z6 -/
 instance : partial_order (grothendieck_topology C) :=
-{ le_refl := λ J₁, le_def.mpr (le_refl _),
+{ le_refl := λ J₁, le_def.mpr le_rfl,
   le_trans := λ J₁ J₂ J₃ h₁₂ h₂₃, le_def.mpr (le_trans h₁₂ h₂₃),
   le_antisymm := λ J₁ J₂ h₁₂ h₂₁, grothendieck_topology.ext (le_antisymm h₁₂ h₂₁),
   ..grothendieck_topology.has_le }

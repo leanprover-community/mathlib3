@@ -37,7 +37,7 @@ def graded_object (β : Type w) (C : Type u) : Type (max w u) := β → C
 -- Satisfying the inhabited linter...
 instance inhabited_graded_object (β : Type w) (C : Type u) [inhabited C] :
   inhabited (graded_object β C) :=
-⟨λ b, inhabited.default C⟩
+⟨λ b, inhabited.default⟩
 
 /--
 A type synonym for `β → C`, used for `β`-graded objects in a category `C`
@@ -82,6 +82,10 @@ begin
   simp,
 end
 
+@[simp] lemma eq_to_hom_apply {β : Type w} {X Y : Π b : β, C} (h : X = Y) (b : β) :
+  (eq_to_hom h : X ⟶ Y) b = eq_to_hom (by subst h) :=
+by { subst h, refl }
+
 /--
 The equivalence between β-graded objects and γ-graded objects,
 given an equivalence between β and γ.
@@ -97,21 +101,26 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
 
 end
 
-instance has_shift {β : Type*} [add_comm_group β] (s : β) :
-  has_shift (graded_object_with_shift s C) :=
-{ shift := comap_equiv C
-  { to_fun := λ b, b-s,
-    inv_fun := λ b, b+s,
-    left_inv := λ x, (by simp),
-    right_inv := λ x, (by simp), } }
+local attribute [reducible, instance] endofunctor_monoidal_category discrete.add_monoidal
 
-@[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β] (s : β) (X : β → C) (t : β) :
-  (shift (graded_object_with_shift s C)).functor.obj X t = X (t + s) :=
+instance has_shift {β : Type*} [add_comm_group β] (s : β) :
+  has_shift (graded_object_with_shift s C) ℤ :=
+has_shift_mk _ _
+{ F := λ n, comap (λ _, C) $ λ (b : β), b + n • s,
+  ε := (comap_id β (λ _, C)).symm ≪≫ (comap_eq C (by { ext, simp })),
+  μ := λ m n, comap_comp _ _ _ ≪≫ comap_eq C (by { ext, simp [add_zsmul, add_comm] }),
+  left_unitality := by { introv, ext, dsimp, simpa },
+  right_unitality := by { introv, ext, dsimp, simpa },
+  associativity := by { introv, ext, dsimp, simp } }
+
+@[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β]
+  (s : β) (X : β → C) (t : β) (n : ℤ) :
+  (shift_functor (graded_object_with_shift s C) n).obj X t = X (t + n • s) :=
 rfl
 
 @[simp] lemma shift_functor_map_apply {β : Type*} [add_comm_group β] (s : β)
-  {X Y : graded_object_with_shift s C} (f : X ⟶ Y) (t : β) :
-  (shift (graded_object_with_shift s C)).functor.map f t = f (t + s) :=
+  {X Y : graded_object_with_shift s C} (f : X ⟶ Y) (t : β) (n : ℤ) :
+  (shift_functor (graded_object_with_shift s C) n).map f t = f (t + n • s) :=
 rfl
 
 instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :

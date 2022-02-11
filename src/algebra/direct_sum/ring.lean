@@ -116,7 +116,7 @@ section one
 variables [has_zero ι] [graded_monoid.ghas_one A] [Π i, add_comm_monoid (A i)]
 
 instance : has_one (⨁ i, A i) :=
-{ one := direct_sum.of (λ i, A i) 0 graded_monoid.ghas_one.one}
+{ one := direct_sum.of (λ i, A i) 0 graded_monoid.ghas_one.one }
 
 end one
 
@@ -224,6 +224,20 @@ begin
     exact of_eq_of_graded_monoid_eq (pow_succ (graded_monoid.mk _ a) n).symm, },
 end
 
+lemma of_list_dprod {α} (l : list α) (fι : α → ι) (fA : Π a, A (fι a)) :
+  of A _ (l.dprod fι fA) = (l.map $ λ a, of A (fι a) (fA a)).prod :=
+begin
+  induction l,
+  { simp only [list.map_nil, list.prod_nil, list.dprod_nil],
+    refl },
+  { simp only [list.map_cons, list.prod_cons, list.dprod_cons, ←l_ih, direct_sum.of_mul_of],
+    refl },
+end
+
+lemma list_prod_of_fn_of_eq_dprod (n : ℕ) (fι : fin n → ι) (fA : Π a, A (fι a)) :
+  (list.of_fn $ λ a, of A (fι a) (fA a)).prod = of A _ ((list.fin_range n).dprod fι fA) :=
+by rw [list.of_fn_eq_map, of_list_dprod]
+
 open_locale big_operators
 
 /-- A heavily unfolded version of the definition of multiplication -/
@@ -236,7 +250,7 @@ begin
   change direct_sum.mul_hom _ a a' = _,
   dsimp [direct_sum.mul_hom, direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply],
   simp only [dfinsupp.sum_add_hom_apply, dfinsupp.sum, dfinsupp.finset_sum_apply,
-    add_monoid_hom.coe_sum, finset.sum_apply, add_monoid_hom.flip_apply,
+    add_monoid_hom.coe_finset_sum, finset.sum_apply, add_monoid_hom.flip_apply,
     add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply,
     direct_sum.gmul_hom_apply_apply],
   rw finset.sum_product,

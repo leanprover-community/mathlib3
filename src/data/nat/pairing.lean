@@ -147,7 +147,7 @@ end complete_lattice
 namespace set
 
 lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
-  (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
+  (⋃ n : ℕ, s n.unpair.fst ×ˢ t n.unpair.snd) = (⋃ n, s n) ×ˢ (⋃ n, t n) :=
 by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
 
 lemma Union_unpair {α} (f : ℕ → ℕ → set α) :

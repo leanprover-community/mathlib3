@@ -3,6 +3,7 @@ Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
+import tactic.by_contra
 import data.set.basic
 
 /-!
@@ -111,6 +112,16 @@ begin
     left, exact hy },
   rintro (hy | rfl), exact trans hy (wo.wf.lt_succ h), exact wo.wf.lt_succ h
 end
+
+section linear_order
+
+variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → Prop))
+
+include h
+theorem self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
+by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hφ h₂) h₂ }
+
+end linear_order
 
 end well_founded
 

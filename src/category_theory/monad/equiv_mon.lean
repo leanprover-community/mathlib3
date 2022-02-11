@@ -119,7 +119,8 @@ def Monad_Mon_equiv : (monad C) ≌ (Mon_ (C ⥤ C)) :=
 { functor := Monad_to_Mon _,
   inverse := Mon_to_Monad _,
   unit_iso := unit_iso,
-  counit_iso := counit_iso }
+  counit_iso := counit_iso,
+  functor_unit_iso_comp' := by { intros X, ext, dsimp, simp } }
 
 -- Sanity check
 example (A : monad C) {X : C} : ((Monad_Mon_equiv C).unit_iso.app A).hom.app X = 𝟙 _ := rfl

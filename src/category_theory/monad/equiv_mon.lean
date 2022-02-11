@@ -38,6 +38,8 @@ def to_Mon : monad C → Mon_ (C ⥤ C) := λ M,
 { X := (M : C ⥤ C),
   one := M.η,
   mul := M.μ,
+  one_mul' := by { ext, simp },
+  mul_one' := by { ext, simp },
   mul_assoc' := by { ext, dsimp, simp [M.assoc] } }
 
 variable (C)

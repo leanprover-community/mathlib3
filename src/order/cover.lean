@@ -37,7 +37,7 @@ by { simp_rw [covby, not_and, not_forall, exists_prop, not_not], exact imp_iff_r
 alias not_covby_iff ↔ exists_lt_lt_of_not_covby _
 alias exists_lt_lt_of_not_covby ← has_lt.lt.exists_lt_lt
 
-/-- In a dense order, nothing covby anything. -/
+/-- In a dense order, nothing covers anything. -/
 lemma not_covby [densely_ordered α] : ¬ a ⋖ b :=
 λ h, let ⟨c, hc⟩ := exists_between h.1 in h.2 hc.1 hc.2
 

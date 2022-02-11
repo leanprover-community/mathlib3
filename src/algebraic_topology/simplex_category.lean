@@ -8,6 +8,7 @@ import category_theory.skeletal
 import tactic.linarith
 import data.fintype.sort
 import order.category.NonemptyFinLinOrd
+import category_theory.reflects_isomorphisms
 
 /-! # The simplex category
 
@@ -516,37 +517,33 @@ begin
     simpa only [fin.coe_succ, fin.coe_cast_succ] using nat.lt.step h, }
 end
 
-/-- A bijective map in `simplex_category` is an isomorphism. -/
-@[simps]
-noncomputable def iso_of_bijective {x y : simplex_category.{u}} {f : x ⟶ y}
-  (hf : function.bijective (f.to_order_hom.to_fun)) : x ≅ y :=
-{ hom := f,
-  inv := hom.mk
-    { to_fun := function.inv_fun f.to_order_hom.to_fun,
-      monotone' := λ y₁ y₂ h, begin
-        by_cases h' : y₁ < y₂,
-        { by_contradiction h'',
-          have ineq := f.to_order_hom.monotone' (le_of_not_ge h''),
-          have eq := λ i, function.inv_fun_eq (function.bijective.surjective hf i),
-          simp only at eq,
-          simp only [eq] at ineq,
-          exact not_le.mpr h' ineq, },
-        { rw eq_of_le_of_not_lt h h', }
-      end, },
-  hom_inv_id' := begin
-    ext1, ext1, ext1 i,
-    apply function.left_inverse_inv_fun (function.bijective.injective hf),
-  end,
-  inv_hom_id' := begin
-    ext1, ext1, ext1 i,
-    apply function.right_inverse_inv_fun (function.bijective.surjective hf),
-  end, }
+instance : reflects_isomorphisms (forget simplex_category) :=
+⟨begin
+  intros x y f,
+  introI,
+  exact is_iso.of_iso
+  { hom := f,
+    inv := hom.mk
+    { to_fun := inv ((forget simplex_category).map f),
+      monotone' :=λ y₁ y₂ h, begin
+          by_cases h' : y₁ < y₂,
+          { by_contradiction h'',
+            have eq := λ i, congr_hom (iso.inv_hom_id (as_iso ((forget _).map f))) i,
+            have ineq := f.to_order_hom.monotone' (le_of_not_ge h''),
+            dsimp at ineq,
+            erw [eq, eq] at ineq,
+            exact not_le.mpr h' ineq, },
+          { rw eq_of_le_of_not_lt h h', }
+        end, },
+    hom_inv_id' := by { ext1, ext1, exact iso.hom_inv_id (as_iso ((forget _).map f)), },
+    inv_hom_id' := by { ext1, ext1, exact iso.inv_hom_id (as_iso ((forget _).map f)), }, },
+end⟩
 
 lemma is_iso_of_bijective {x y : simplex_category.{u}} {f : x ⟶ y}
   (hf : function.bijective (f.to_order_hom.to_fun)) : is_iso f :=
 begin
-  rw [show f = (iso_of_bijective hf).hom, by simp only [iso_of_bijective_hom]],
-  apply_instance,
+  haveI : is_iso ((forget simplex_category).map f) := (is_iso_iff_bijective _).mpr hf,
+  exact is_iso_of_reflects_iso f (forget simplex_category),
 end
 
 /-- An isomorphism in `simplex_category` induces an `order_iso`. -/

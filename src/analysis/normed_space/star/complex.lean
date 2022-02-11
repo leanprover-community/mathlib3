@@ -42,7 +42,7 @@ variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ
 { to_fun := λ x, ⟨(-I * 2⁻¹) • (x - star x),
     begin
       have : x - star x = -(star x - x) := by simp,
-      simp only [self_adjoint.mem_iff, neg_mul_eq_neg_mul_symm, neg_smul, star_neg, star_smul,
+      simp only [self_adjoint.mem_iff, neg_mul, neg_smul, star_neg, star_smul,
                  map_mul, map_one, star_sub, star_star, neg_neg, star_def, conj_I, map_bit0,
                  complex.conj_inv],
       rw [←neg_smul, this, neg_smul_neg],
@@ -51,7 +51,7 @@ variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ
   map_smul' := λ r x,
     begin
       ext,
-      simp only [neg_mul_eq_neg_mul_symm, neg_smul, star_smul, is_R_or_C.star_def,
+      simp only [neg_mul, neg_smul, star_smul, is_R_or_C.star_def,
                  is_R_or_C.conj_to_real, ring_hom.id_apply, subtype.val_eq_coe,
                  self_adjoint.coe_smul, add_subgroup.coe_mk, smul_neg, neg_inj, ←smul_sub,
                  smul_comm r],
@@ -61,7 +61,7 @@ variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ
 parts -/
 lemma eq_re_add_im (x : E) : x = re x + I • im x :=
 by simp only [smul_smul, ← mul_assoc, neg_smul, smul_neg, I_mul_I, one_mul, neg_neg, smul_sub,
-  ← add_smul, add_add_sub_cancel, re_apply_coe, smul_add, im_apply_coe, neg_mul_eq_neg_mul_symm,
+  ← add_smul, add_add_sub_cancel, re_apply_coe, smul_add, im_apply_coe, neg_mul,
   inv_eq_one_div, add_halves', one_smul]
 
 end star_module

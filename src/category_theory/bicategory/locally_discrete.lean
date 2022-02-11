@@ -40,7 +40,8 @@ instance : Π [category_struct.{v} C], category_struct (locally_discrete C) := i
 
 variables {C} [category_struct.{v} C]
 
-instance (X Y : locally_discrete C) : small_category (X ⟶ Y) :=
+@[instance, priority 100]
+def hom_small_category (X Y : locally_discrete C) : small_category (X ⟶ Y) :=
 category_theory.discrete_category (X ⟶ Y)
 
 end locally_discrete

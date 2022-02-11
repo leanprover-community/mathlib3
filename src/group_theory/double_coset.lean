@@ -116,8 +116,8 @@ begin
   rwa [mul_assoc, mul_assoc, eq_inv_mul_iff_mul_eq, ←mul_assoc, ←mul_assoc, eq_mul_inv_iff_mul_eq],
 end
 
-lemma disjoint_doset (H K : subgroup G) (a b : G) (h: ¬ disjoint (doset a H K ) (doset b H K )) :
-  doset a H K  = doset b H K :=
+lemma disjoint_doset (H K : subgroup G) (a b : G) (h: ¬ disjoint (doset a H K) (doset b H K)) :
+  doset a H K = doset b H K :=
 begin
   rw disjoint.comm at h,
   have ha : a ∈ (doset b H K), by {apply mem_doset_of_not_disjoint _ _ _ _ h},
@@ -155,7 +155,7 @@ begin
   exact congr_arg quotient.out' (congr_arg (mk H K) (eq.symm T)),
 end
 
-lemma doset_eq_quot_eq (H K : subgroup G) (a b : G) (h : doset a H K = doset b H K ) :
+lemma doset_eq_quot_eq (H K : subgroup G) (a b : G) (h : doset a H K = doset b H K) :
   mk H K a = mk H K b :=
 begin
   rw eq,

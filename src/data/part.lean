@@ -523,13 +523,13 @@ lemma some_mul_some [has_mul α] (a b : α) :
 lemma inv_mem_inv [has_inv α] (a : part α) (ma : α) (ha : ma ∈ a) :
   ma ⁻¹ ∈ a ⁻¹ := by tidy
 
-lemma some_inv_some [has_inv α] (a b : α) :
+lemma some_inv_some [has_inv α] (a : α) :
   (some a) ⁻¹ = some (a ⁻¹) := by tidy
 
 lemma neg_mem_neg [has_neg α] (a : part α) (ma : α) (ha : ma ∈ a) :
   - ma ∈ - a := by tidy
 
-lemma some_neg_some [has_neg α] (a b : α) :
+lemma some_neg_some [has_neg α] (a : α) :
   - (some a) = some (- a) := by tidy
 
 lemma sub_mem_sub [has_sub α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :

@@ -515,10 +515,7 @@ lemma some_add_some [has_add α] (a b : α) :
   (some a + some b) = some (a + b) := by tidy
 
 lemma mul_mem_mul [has_mul α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
-  ma * mb ∈ a * b :=
-begin
-  tidy,
-end
+  ma * mb ∈ a * b := by tidy
 
 lemma some_mul_some [has_mul α] (a b : α) :
   (some a * some b) = some (a * b) := by tidy

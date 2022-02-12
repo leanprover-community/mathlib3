@@ -94,6 +94,11 @@ lemma continuous.const_smul (hg : continuous g) (c : M) :
   continuous (λ x, c • g x) :=
 (continuous_const_smul _).comp hg
 
+/-- If a scalar is central, then its right action is continuous when its left action is. -/
+instance has_continuous_const_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α] :
+  has_continuous_const_smul Mᵐᵒᵖ α :=
+⟨ mul_opposite.rec $ λ c, by simpa only [op_smul_eq_smul] using continuous_const_smul c ⟩
+
 end has_scalar
 
 section monoid
@@ -235,7 +240,7 @@ lemma is_closed_map_smul_of_ne_zero {c : G₀} (hc : c ≠ 0) : is_closed_map (�
 The lemma that `smul` is a closed map in the first argument (for a normed space over a complete
 normed field) is `is_closed_map_smul_left` in `analysis.normed_space.finite_dimension`. -/
 lemma is_closed_map_smul₀ {𝕜 M : Type*} [division_ring 𝕜] [add_comm_monoid M] [topological_space M]
-  [t1_space M] [module 𝕜 M] [topological_space 𝕜] [has_continuous_const_smul 𝕜 M] (c : 𝕜) :
+  [t1_space M] [module 𝕜 M] [has_continuous_const_smul 𝕜 M] (c : 𝕜) :
   is_closed_map (λ x : M, c • x) :=
 begin
   rcases eq_or_ne c 0 with (rfl|hne),

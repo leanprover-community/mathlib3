@@ -23,6 +23,10 @@ if it is the evaluation of some code.
 * `nat.partrec.code.of_nat_code`: The inverse of this encoding.
 * `nat.partrec.code.eval`: The interpretation of a `nat.partrec.code` as a partial function.
 
+## Main Results
+
+* `nat.partrec.code.evaln_prim`: `evaln` is primitive recursive.
+
 -/
 
 
@@ -570,6 +574,7 @@ theorem smn : ∃ f : code → ℕ → code,
   computable₂ f ∧ ∀ c n x, eval (f c n) x = eval c (mkpair n x) :=
 ⟨curry, primrec₂.to_comp curry_prim, eval_curry⟩
 
+/-- A function is partial recursive if and only if there is a code implementing it. -/
 theorem exists_code {f : ℕ →. ℕ} : nat.partrec f ↔ ∃ c : code, eval c = f :=
 ⟨λ h, begin
   induction h,
@@ -602,6 +607,12 @@ end, λ h, begin
   case nat.partrec.code.rfind' : cf pf { exact pf.rfind' },
 end⟩
 
+/--
+A modified evaluation for the code which returns an `option ℕ` instead of a `part ℕ`.
+To avoid undecidability, `evaln` takes a parameter `k` and fails if it encounters a number ≥ k in
+the course of its execution.
+Other than this, the semantics are the same as in `nat.partrec.code.eval`.
+-/
 def evaln : ∀ k : ℕ, code → ℕ → option ℕ
 | 0     _            := λ m, none
 | (k+1) zero         := λ n, guard (n ≤ k) >> pure 0
@@ -879,6 +890,7 @@ begin
     simpa using kn }
 end
 
+/-- The `nat.partrec.code.evaln` function is primitive recursive. -/
 theorem evaln_prim : primrec (λ (a : (ℕ × code) × ℕ), evaln a.1.1 a.1.2 a.2) :=
 have primrec₂ (λ (_:unit) (n : ℕ),
   let a := of_nat (ℕ × code) n in

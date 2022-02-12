@@ -81,9 +81,9 @@ lemma differentiable_within_at_arcsin_Ici {x : ℝ} :
 begin
   refine ⟨_, λ h, (has_deriv_within_at_arcsin_Ici h).differentiable_within_at⟩,
   rintro h rfl,
-  have : sin ∘ arcsin =ᶠ[𝓝[Ici (-1:ℝ)] (-1)] id,
-  { filter_upwards [Icc_mem_nhds_within_Ici ⟨le_rfl, neg_lt_self (@zero_lt_one ℝ _ _)⟩],
-    exact λ x, sin_arcsin' },
+  have : sin ∘ arcsin =ᶠ[𝓝[≥] (-1 : ℝ)] id,
+  { filter_upwards [Icc_mem_nhds_within_Ici ⟨le_rfl, neg_lt_self (@zero_lt_one ℝ _ _)⟩]
+      with x using sin_arcsin', },
   have := h.has_deriv_within_at.sin.congr_of_eventually_eq this.symm (by simp),
   simpa using (unique_diff_on_Ici _ _ left_mem_Ici).eq_deriv _ this (has_deriv_within_at_id _ _)
 end

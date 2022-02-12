@@ -34,10 +34,10 @@ namespace category_theory
 
 open limits
 
-universes v u₁ u₂ u₃
+universes v v₁ v₂ v₃ u₁ u₂ u₃
 
-variables {S : Type v} {L : Type u₂} {D : Type u₃}
-variables [category.{v} S] [category.{v} L] [category.{v} D]
+variables {S : Type u₁} {L : Type u₂} {D : Type u₃}
+variables [category.{v₁} S] [category.{v₂} L] [category.{v₃} D]
 variables (ι : S ⥤ L)
 
 namespace Ran

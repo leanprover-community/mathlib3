@@ -30,7 +30,7 @@ proves Noether's first and second isomorphism theorems.
   isomorphism between `H/(H ∩ N)` and `(HN)/N` given a subgroup `H` and a normal subgroup `N` of a
   group `G`.
 * `quotient_group.quotient_quotient_equiv_quotient`: Noether's third isomorphism theorem,
-  the canonical isomorphism between `(G / M) / (M / N)` and `G / N`, where `N ≤ M`.
+  the canonical isomorphism between `(G / N) / (M / N)` and `G / M`, where `N ≤ M`.
 
 ## Tags
 
@@ -120,15 +120,14 @@ lemma coe_mul (a b : G) : ((a * b : G) : Q) = a * b := rfl
 @[simp, to_additive quotient_add_group.coe_neg]
 lemma coe_inv (a : G) : ((a⁻¹ : G) : Q) = a⁻¹ := rfl
 
--- TODO: make it `rfl`
 @[simp, to_additive quotient_add_group.coe_sub]
-lemma coe_div (a b : G) : ((a / b : G) : Q) = a / b := by simp [div_eq_mul_inv]
+lemma coe_div (a b : G) : ((a / b : G) : Q) = a / b := rfl
 
-@[simp] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : Q) = a ^ n :=
-(mk' N).map_pow a n
+@[simp, to_additive quotient_add_group.coe_nsmul]
+lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : Q) = a ^ n := rfl
 
-@[simp] lemma coe_zpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n :=
-(mk' N).map_zpow a n
+@[simp, to_additive quotient_add_group.coe_zsmul]
+lemma coe_zpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n := rfl
 
 /-- A group homomorphism `φ : G →* H` with `N ⊆ ker(φ)` descends (i.e. `lift`s) to a
 group homomorphism `G/N →* H`. -/
@@ -193,7 +192,7 @@ lift_mk _ _ _
 lemma ker_lift_mk' (g : G) : (ker_lift φ) (mk g) = φ g :=
 lift_mk' _ _ _
 
-@[to_additive quotient_add_group.injective_ker_lift]
+@[to_additive quotient_add_group.ker_lift_injective]
 lemma ker_lift_injective : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : φ a = φ b), quotient.sound' $
@@ -405,5 +404,19 @@ top_unique $ λ x _,
   by rwa [one_inv, one_mul] at this
 
 end trivial
+
+@[to_additive quotient_add_grup.comap_comap_center]
+lemma comap_comap_center {H₁ : subgroup G} [H₁.normal] {H₂ : subgroup (G ⧸ H₁)} [H₂.normal] :
+  (((subgroup.center ((G ⧸ H₁) ⧸ H₂))).comap (mk' H₂)).comap (mk' H₁) =
+  (subgroup.center (G ⧸ H₂.comap (mk' H₁))).comap (mk' (H₂.comap (mk' H₁))) :=
+begin
+  ext x,
+  simp only [mk'_apply, subgroup.mem_comap, subgroup.mem_center_iff, forall_coe],
+  apply forall_congr,
+  change ∀ (y : G), (↑↑(y * x) = ↑↑(x * y) ↔ ↑(y * x) = ↑(x * y)),
+  intro y,
+  repeat { rw [eq_iff_div_mem] },
+  simp,
+end
 
 end quotient_group

@@ -443,6 +443,19 @@ mul_lt_mul_of_le_of_lt h₁.le h₂
 
 end contravariant_mul_lt_left_le_right
 
+@[to_additive] lemma mul_eq_mul_iff_eq_and_eq {α : Type*} [semigroup α] [partial_order α]
+  [contravariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
+  [covariant_class α α (*) (<)] [contravariant_class α α (swap (*)) (≤)]
+  {a b c d : α} (hac : a ≤ c) (hbd : b ≤ d) : a * b = c * d ↔ a = c ∧ b = d :=
+begin
+  refine ⟨λ h, _, λ h, congr_arg2 (*) h.1 h.2⟩,
+  rcases hac.eq_or_lt with rfl | hac,
+  { exact ⟨rfl, mul_left_cancel'' h⟩ },
+  rcases eq_or_lt_of_le hbd with rfl | hbd,
+  { exact ⟨mul_right_cancel'' h, rfl⟩ },
+  exact ((mul_lt_mul''' hac hbd).ne h).elim,
+end
+
 variable [covariant_class α α (*) (≤)]
 
 @[to_additive]

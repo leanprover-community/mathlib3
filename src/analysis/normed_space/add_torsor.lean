@@ -20,44 +20,23 @@ noncomputable theory
 open_locale nnreal topological_space
 open filter
 
-/-- A `semi_normed_add_torsor V P` is a torsor of an additive seminormed group
+/-- A `normed_add_torsor V P` is a torsor of an additive seminormed group
 action by a `semi_normed_group V` on points `P`. We bundle the pseudometric space
 structure and require the distance to be the same as results from the
 norm (which in fact implies the distance yields a pseudometric space, but
 bundling just the distance and using an instance for the pseudometric space
 results in type class problems). -/
-class semi_normed_add_torsor (V : out_param $ Type*) (P : Type*)
+class normed_add_torsor (V : out_param $ Type*) (P : Type*)
   [out_param $ semi_normed_group V] [pseudo_metric_space P]
   extends add_torsor V P :=
 (dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
 
-/-- A `normed_add_torsor V P` is a torsor of an additive normed group
-action by a `normed_group V` on points `P`. We bundle the metric space
-structure and require the distance to be the same as results from the
-norm (which in fact implies the distance yields a metric space, but
-bundling just the distance and using an instance for the metric space
-results in type class problems). -/
-class normed_add_torsor (V : out_param $ Type*) (P : Type*)
-  [out_param $ normed_group V] [metric_space P]
-  extends add_torsor V P :=
-(dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
-
-/-- A `normed_add_torsor` is a `semi_normed_add_torsor`. -/
-@[priority 100]
-instance normed_add_torsor.to_semi_normed_add_torsor {V P : Type*} [normed_group V] [metric_space P]
-  [β : normed_add_torsor V P] : semi_normed_add_torsor V P := { ..β }
-
-variables {α V P : Type*} [semi_normed_group V] [pseudo_metric_space P] [semi_normed_add_torsor V P]
+variables {α V P : Type*} [semi_normed_group V] [pseudo_metric_space P] [normed_add_torsor V P]
 variables {W Q : Type*} [normed_group W] [metric_space Q] [normed_add_torsor W Q]
 
-/-- A `semi_normed_group` is a `semi_normed_add_torsor` over itself. -/
+/-- A `semi_normed_group` is a `normed_add_torsor` over itself. -/
 @[priority 100]
-instance semi_normed_group.normed_add_torsor : semi_normed_add_torsor V V :=
-{ dist_eq_norm' := dist_eq_norm }
-
-/-- A `normed_group` is a `normed_add_torsor` over itself. -/
-@[priority 100]
-instance normed_group.normed_add_torsor : normed_add_torsor W W :=
+instance semi_normed_group.to_normed_add_torsor : normed_add_torsor V V :=
 { dist_eq_norm' := dist_eq_norm }
 
 include V
@@ -69,9 +48,7 @@ variables (V W)
 /-- The distance equals the norm of subtracting two points. In this
 lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub` sometimes doesn't work. -/
-lemma dist_eq_norm_vsub (x y : P) :
-  dist x y = ∥(x -ᵥ y)∥ :=
-semi_normed_add_torsor.dist_eq_norm' x y
+lemma dist_eq_norm_vsub (x y : P) : dist x y = ∥x -ᵥ y∥ := normed_add_torsor.dist_eq_norm' x y
 
 end
 
@@ -89,11 +66,52 @@ by simp [dist_eq_norm_vsub V _ x]
 @[simp] lemma dist_vadd_right (v : V) (x : P) : dist x (v +ᵥ x) = ∥v∥ :=
 by rw [dist_comm, dist_vadd_left]
 
+/-- Isometry between the tangent space `V` of a (semi)normed add torsor `P` and `P` given by
+addition/subtraction of `x : P`. -/
+@[simps] def isometric.vadd_const (x : P) : V ≃ᵢ P :=
+{ to_equiv := equiv.vadd_const x,
+  isometry_to_fun := isometry_emetric_iff_metric.2 $ λ _ _, dist_vadd_cancel_right _ _ _ }
+
+section
+
+variable (P)
+
+/-- Self-isometry of a (semi)normed add torsor given by addition of a constant vector `x`. -/
+@[simps] def isometric.const_vadd (x : V) : P ≃ᵢ P :=
+{ to_equiv := equiv.const_vadd P x,
+  isometry_to_fun := isometry_emetric_iff_metric.2 $ λ _ _, dist_vadd_cancel_left _ _ _ }
+
+end
+
 @[simp] lemma dist_vsub_cancel_left (x y z : P) : dist (x -ᵥ y) (x -ᵥ z) = dist y z :=
 by rw [dist_eq_norm, vsub_sub_vsub_cancel_left, dist_comm, dist_eq_norm_vsub V]
 
+/-- Isometry between the tangent space `V` of a (semi)normed add torsor `P` and `P` given by
+subtraction from `x : P`. -/
+@[simps] def isometric.const_vsub (x : P) : P ≃ᵢ V :=
+{ to_equiv := equiv.const_vsub x,
+  isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_vsub_cancel_left _ _ _ }
+
 @[simp] lemma dist_vsub_cancel_right (x y z : P) : dist (x -ᵥ z) (y -ᵥ z) = dist x y :=
-by rw [dist_eq_norm, vsub_sub_vsub_cancel_right, dist_eq_norm_vsub V]
+(isometric.vadd_const z).symm.dist_eq x y
+
+section pointwise
+
+open_locale pointwise
+
+@[simp] lemma vadd_ball (x : V) (y : P) (r : ℝ) :
+  x +ᵥ metric.ball y r = metric.ball (x +ᵥ y) r :=
+(isometric.const_vadd P x).image_ball y r
+
+@[simp] lemma vadd_closed_ball (x : V) (y : P) (r : ℝ) :
+  x +ᵥ metric.closed_ball y r = metric.closed_ball (x +ᵥ y) r :=
+(isometric.const_vadd P x).image_closed_ball y r
+
+@[simp] lemma vadd_sphere (x : V) (y : P) (r : ℝ) :
+  x +ᵥ metric.sphere y r = metric.sphere (x +ᵥ y) r :=
+(isometric.const_vadd P x).image_sphere y r
+
+end pointwise
 
 lemma dist_vadd_vadd_le (v v' : V) (p p' : P) :
   dist (v +ᵥ p) (v' +ᵥ p') ≤ dist v v' + dist p p' :=
@@ -183,8 +201,7 @@ lemma uniform_continuous_vadd : uniform_continuous (λ x : V × P, x.1 +ᵥ x.2)
 lemma uniform_continuous_vsub : uniform_continuous (λ x : P × P, x.1 -ᵥ x.2) :=
 (lipschitz_with.prod_fst.vsub lipschitz_with.prod_snd).uniform_continuous
 
-@[priority 100] instance semi_normed_add_torsor.has_continuous_vadd :
-  has_continuous_vadd V P :=
+@[priority 100] instance normed_add_torsor.to_has_continuous_vadd : has_continuous_vadd V P :=
 { continuous_vadd := uniform_continuous_vadd.continuous }
 
 lemma continuous_vsub : continuous (λ x : P × P, x.1 -ᵥ x.2) :=
@@ -232,7 +249,7 @@ end
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 V]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
 
 open affine_map
 
@@ -283,7 +300,7 @@ end
 
 end normed_space
 
-variables [semi_normed_space ℝ V] [normed_space ℝ W]
+variables [normed_space ℝ V] [normed_space ℝ W]
 
 lemma dist_midpoint_midpoint_le (p₁ p₂ p₃ p₄ : V) :
   dist (midpoint ℝ p₁ p₂) (midpoint ℝ p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / 2 :=

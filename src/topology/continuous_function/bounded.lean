@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.operator_norm
-import analysis.normed_space.star
+import analysis.normed_space.star.basic
 import topology.continuous_function.algebra
 import data.real.sqrt
 import analysis.normed_space.lattice_ordered_group
@@ -144,7 +144,7 @@ begin
       convert C0,
       apply le_antisymm _ dist_nonneg',
       rw [dist_eq],
-      exact cInf_le ⟨0, λ C, and.left⟩ ⟨le_refl _, λ x, false.elim (h (nonempty.intro x))⟩, }, },
+      exact cInf_le ⟨0, λ C, and.left⟩ ⟨le_rfl, λ x, false.elim (h (nonempty.intro x))⟩, }, },
 end
 
 lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
@@ -153,7 +153,7 @@ lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
 
 /-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
 instance : metric_space (α →ᵇ β) :=
-{ dist_self := λ f, le_antisymm ((dist_le (le_refl _)).2 $ λ x, by simp) dist_nonneg',
+{ dist_self := λ f, le_antisymm ((dist_le le_rfl).2 $ λ x, by simp) dist_nonneg',
   eq_of_dist_eq_zero := λ f g hfg, by ext x; exact
     eq_of_dist_eq_zero (le_antisymm (hfg ▸ dist_coe_le_dist _) dist_nonneg),
   dist_comm := λ f g, by simp [dist_eq, dist_comm],
@@ -183,7 +183,7 @@ variable {α}
 lemma const_apply' (a : α) (b : β) : (const α b : α → β) a = b := rfl
 
 /-- If the target space is inhabited, so is the space of bounded continuous functions -/
-instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)⟩
+instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α default⟩
 
 lemma lipschitz_evalx (x : α) : lipschitz_with 1 (λ f : α →ᵇ β, f x) :=
 lipschitz_with.mk_one $ λ f g, dist_coe_le_dist x
@@ -382,7 +382,7 @@ begin
     f ∈ A → dist (f y) (f z) < ε₂ := λ x,
       let ⟨U, nhdsU, hU⟩ := H x _ ε₂0,
           ⟨V, VU, openV, xV⟩ := _root_.mem_nhds_iff.1 nhdsU in
-      ⟨V, xV, openV, λy z hy hz f hf, hU y z (VU hy) (VU hz) f hf⟩,
+      ⟨V, xV, openV, λy hy z hz f hf, hU y (VU hy) z (VU hz) f hf⟩,
   choose U hU using this,
   /- For all x, the set hU x is an open set containing x on which the elements of A
   fluctuate by at most ε₂.
@@ -404,13 +404,13 @@ begin
   rintro ⟨f, hf⟩ ⟨g, hg⟩ f_eq_g,
   /- If two functions have the same approximation, then they are within distance ε -/
   refine lt_of_le_of_lt ((dist_le $ le_of_lt ε₁0).2 (λ x, _)) εε₁,
-  obtain ⟨x', x'tα, hx'⟩ : ∃x' ∈ tα, x ∈ U x' := mem_bUnion_iff.1 (htα (mem_univ x)),
+  obtain ⟨x', x'tα, hx'⟩ : ∃x' ∈ tα, x ∈ U x' := mem_Union₂.1 (htα (mem_univ x)),
   calc dist (f x) (g x)
       ≤ dist (f x) (f x') + dist (g x) (g x') + dist (f x') (g x') : dist_triangle4_right _ _ _ _
   ... ≤ ε₂ + ε₂ + ε₁/2 : le_of_lt (add_lt_add (add_lt_add _ _) _)
   ... = ε₁ : by rw [add_halves, add_halves],
-  { exact (hU x').2.2 _ _ hx' ((hU x').1) hf },
-  { exact (hU x').2.2 _ _ hx' ((hU x').1) hg },
+  { exact (hU x').2.2 _ hx' _ ((hU x').1) hf },
+  { exact (hU x').2.2 _ hx' _ ((hU x').1) hg },
   { have F_f_g : F (f x') = F (g x') :=
       (congr_arg (λ f:tα → tβ, (f ⟨x', x'tα⟩ : β)) f_eq_g : _),
     calc dist (f x') (g x')
@@ -438,9 +438,9 @@ begin
     ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
   { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
     refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
-      (λ x ε ε0, bex.imp_right (λ U U_nhds hU y z hy hz f hf, _) (H x ε ε0)),
+      (λ x ε ε0, bex.imp_right (λ U U_nhds hU y hy z hz f hf, _) (H x ε ε0)),
     calc dist (f y) (f z) = dist (F f y) (F f z) : rfl
-                        ... < ε : hU y z hy hz (F f) hf },
+                        ... < ε : hU y hy z hz (F f) hf },
   { let g := cod_restrict s f (λx, in_s f x hf),
     rw [show f = F g, by ext; refl] at hf ⊢,
     exact ⟨g, hf, rfl⟩ }
@@ -464,13 +464,13 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
   (λ x ε ε0, show ∃ U ∈ 𝓝 x,
       ∀ y z ∈ U, ∀ (f : α →ᵇ β), f ∈ closure A → dist (f y) (f z) < ε,
     begin
-      refine bex.imp_right (λ U U_set hU y z hy hz f hf, _) (H x (ε/2) (half_pos ε0)),
+      refine bex.imp_right (λ U U_set hU y hy z hz f hf, _) (H x (ε/2) (half_pos ε0)),
       rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
       replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
       calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) :
         dist_triangle4_right _ _ _ _
           ... < ε/2/2 + ε/2/2 + ε/2 :
-            add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y z hy hz g gA)
+            add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y hy z hz g gA)
           ... = ε : by rw [add_halves, add_halves]
     end)
 
@@ -486,7 +486,7 @@ lemma equicontinuous_of_continuity_modulus {α : Type u} [metric_space α]
     f ∈ A → dist (f y) (f z) < ε :=
 begin
   rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
-  refine ⟨ball x (δ/2), ball_mem_nhds x (half_pos δ0), λ y z hy hz f hf, _⟩,
+  refine ⟨ball x (δ/2), ball_mem_nhds x (half_pos δ0), λ y hy z hz f hf, _⟩,
   have : dist y z < δ := calc
     dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _
     ... < δ/2 + δ/2 : add_lt_add hy hz
@@ -680,7 +680,7 @@ variable (f)
 /-- Norm of `const α b` is less than or equal to `∥b∥`. If `α` is nonempty,
 then it is equal to `∥b∥`. -/
 lemma norm_const_le (b : β) : ∥const α b∥ ≤ ∥b∥ :=
-(norm_le (norm_nonneg b)).2 $ λ x, le_refl _
+(norm_le (norm_nonneg b)).2 $ λ x, le_rfl
 
 @[simp] lemma norm_const_eq [h : nonempty α] (b : β) : ∥const α b∥ = ∥b∥ :=
 le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x
@@ -715,7 +715,7 @@ of_normed_group f continuous_of_discrete_topology C H
 /-- Taking the pointwise norm of a bounded continuous function with values in a `normed_group`,
 yields a bounded continuous function with values in ℝ. -/
 def norm_comp : α →ᵇ ℝ :=
-of_normed_group (norm ∘ f) (by continuity) ∥f∥ (λ x, by simp only [f.norm_coe_le_norm, norm_norm])
+f.comp norm lipschitz_with_one_norm
 
 @[simp] lemma coe_norm_comp : (f.norm_comp : α → ℝ) = norm ∘ f := rfl
 
@@ -771,6 +771,11 @@ by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }
 
 lemma coe_le_coe_add_dist {f g : α →ᵇ ℝ} : f x ≤ g x + dist f g :=
 sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
+
+lemma norm_comp_continuous_le [topological_space γ] (f : α →ᵇ β) (g : C(γ, α)) :
+  ∥f.comp_continuous g∥ ≤ ∥f∥ :=
+((lipschitz_comp_continuous g).dist_le_mul f 0).trans $
+  by rw [nnreal.coe_one, one_mul, dist_zero_right]
 
 end normed_group
 
@@ -1020,6 +1025,15 @@ module over the algebra of bounded continuous functions from `α` to `𝕜`. -/
 
 end normed_algebra
 
+lemma nnreal.upper_bound {α : Type*} [topological_space α]
+  (f : α →ᵇ ℝ≥0) (x : α) : f x ≤ nndist f 0 :=
+begin
+  have key : nndist (f x) ((0 : α →ᵇ ℝ≥0) x) ≤ nndist f 0,
+  { exact @dist_coe_le_dist α ℝ≥0 _ _ f 0 x, },
+  simp only [coe_zero, pi.zero_apply] at key,
+  rwa nnreal.nndist_zero_eq_val' (f x) at key,
+end
+
 /-!
 ### Star structures
 
@@ -1066,9 +1080,9 @@ end normed_group
 section cstar_ring
 
 variables [topological_space α]
-variables [normed_ring β] [star_ring β] [normed_star_monoid β]
+variables [normed_ring β] [star_ring β]
 
-instance : star_ring (α →ᵇ β) :=
+instance [normed_star_monoid β] : star_ring (α →ᵇ β) :=
 { star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
   ..bounded_continuous_function.star_add_monoid }
 

@@ -42,14 +42,14 @@ end bounded
 
 section unbounded_below
 
-variables [no_bot_order α]
+variables [no_min_order α]
 
 lemma Iio.infinite {b : α} : infinite (Iio b) :=
 begin
   rintro (f : finite (Iio b)),
   obtain ⟨m, hm₁, hm₂⟩ : ∃ m < b, ∀ x < b, ¬x < m,
   { simpa using finset.exists_minimal f.to_finset },
-  obtain ⟨z, hz⟩ : ∃ z, z < m := no_bot _,
+  obtain ⟨z, hz⟩ : ∃ z, z < m := exists_lt _,
   exact hm₂ z (lt_trans hz hm₁) hz
 end
 
@@ -60,7 +60,7 @@ end unbounded_below
 
 section unbounded_above
 
-variables [no_top_order α]
+variables [no_max_order α]
 
 lemma Ioi.infinite {a : α} : infinite (Ioi a) :=
 by apply @Iio.infinite (order_dual α)

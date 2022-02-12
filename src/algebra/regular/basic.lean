@@ -233,8 +233,8 @@ lemma is_left_regular_of_mul_eq_one (h : b * a = 1) : is_left_regular a :=
 lemma is_right_regular_of_mul_eq_one (h : a * b = 1) : is_right_regular a :=
 @is_right_regular.of_mul R _ a _ (by { rw h, exact is_regular_one.right })
 
-/-- If `R` is a monoid, an element in `units R` is regular. -/
-lemma units.is_regular (a : units R) : is_regular (a : R) :=
+/-- If `R` is a monoid, an element in `Rˣ` is regular. -/
+lemma units.is_regular (a : Rˣ) : is_regular (a : R) :=
 ⟨is_left_regular_of_mul_eq_one a.inv_mul, is_right_regular_of_mul_eq_one a.mul_inv⟩
 
 /-- A unit in a monoid is regular. -/

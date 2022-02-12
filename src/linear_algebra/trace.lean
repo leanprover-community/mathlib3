@@ -97,7 +97,7 @@ else by rw [trace, dif_neg H, linear_map.zero_apply, linear_map.zero_apply]
 
 /-- The trace of an endomorphism is invariant under conjugation -/
 @[simp]
-theorem trace_conj (g : M →ₗ[R] M) (f : units (M →ₗ[R] M)) :
+theorem trace_conj (g : M →ₗ[R] M) (f : (M →ₗ[R] M)ˣ) :
   trace R M (↑f * g * ↑f⁻¹) = trace R M g :=
 by { rw trace_mul_comm, simp }
 

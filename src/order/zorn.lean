@@ -272,6 +272,12 @@ begin
         (λ ht, h t₁ ht₁ hc₁ (ht hc₂) hneq) }
 end
 
+lemma chain_empty : chain ∅ :=
+chain_chain_closure chain_closure_empty
+
+lemma _root_.set.subsingleton.chain (hc : set.subsingleton c) : chain c :=
+λ _ hx _ hy hne, (hne (hc hx hy)).elim
+
 /-- An explicit maximal chain. `max_chain` is taken to be the union of all sets in `chain_closure`.
 -/
 def max_chain := ⋃₀ chain_closure
@@ -356,7 +362,7 @@ theorem zorn_nonempty_partial_order₀ {α : Type u} [partial_order α] (s : set
   ∃ m ∈ s, x ≤ m ∧ ∀ z ∈ s, m ≤ z → z = m :=
 let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m} _
   (λ c hc, c.eq_empty_or_nonempty.elim
-    (λ hce, hce.symm ▸ ⟨⟨x, hxs, le_refl _⟩, λ _, false.elim⟩)
+    (λ hce, hce.symm ▸ ⟨⟨x, hxs, le_rfl⟩, λ _, false.elim⟩)
     (λ ⟨m, hmc⟩,
       let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (image_subset_iff.2 $ λ z hzc, z.2.1)
         (by rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;
@@ -385,6 +391,27 @@ theorem zorn_superset_nonempty {α : Type u} (S : set (set α))
   ∃ m ∈ S, m ⊆ x ∧ ∀ a ∈ S, a ⊆ m → a = m :=
 @zorn_nonempty_partial_order₀ (order_dual (set α)) _ S (λ c cS hc y yc, H _ cS
   hc.symm ⟨y, yc⟩) _ hx
+
+/-- Every chain is contained in a maximal chain. This generalizes Hausdorff's maximality principle.
+-/
+theorem chain.max_chain_of_chain {α r} {c : set α} (hc : zorn.chain r c) :
+  ∃ M, @zorn.is_max_chain _ r M ∧ c ⊆ M :=
+begin
+  obtain ⟨M, ⟨_, hM₀⟩, hM₁, hM₂⟩ :=
+    zorn.zorn_subset_nonempty {s | c ⊆ s ∧ zorn.chain r s} _ c ⟨subset.rfl, hc⟩,
+  { refine ⟨M, ⟨hM₀, _⟩, hM₁⟩,
+    rintro ⟨d, hd, hMd, hdM⟩,
+    exact hdM (hM₂ _ ⟨hM₁.trans hMd, hd⟩ hMd).le },
+  rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
+  refine ⟨⋃₀ cs, ⟨λ _ ha, set.mem_sUnion_of_mem ((hcs₀ hs).left ha) hs, _⟩,
+    λ _, set.subset_sUnion_of_mem⟩,
+  rintros y ⟨sy, hsy, hysy⟩ z ⟨sz, hsz, hzsz⟩ hyz,
+  obtain rfl | hsseq := eq_or_ne sy sz,
+  { exact (hcs₀ hsy).right hysy hzsz hyz },
+  cases hcs₁ hsy hsz hsseq with h h,
+  { exact (hcs₀ hsz).right (h hysy) hzsz hyz },
+  { exact (hcs₀ hsy).right hysy (h hzsz) hyz }
+end
 
 lemma chain.total {α : Type u} [preorder α] {c : set α} (H : chain (≤) c) :
   ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=

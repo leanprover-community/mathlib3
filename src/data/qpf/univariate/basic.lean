@@ -341,7 +341,7 @@ def Mcongr : q.P.M → q.P.M → Prop :=
 /-- coinductive type defined as the final coalgebra of a qpf -/
 def cofix (F : Type u → Type u) [functor F] [q : qpf F]:= quot (@Mcongr F _ q)
 
-instance [inhabited q.P.A] : inhabited (cofix F) := ⟨ quot.mk _ (default _) ⟩
+instance [inhabited q.P.A] : inhabited (cofix F) := ⟨ quot.mk _ default ⟩
 
 /-- corecursor for type defined by `cofix` -/
 def cofix.corec {α : Type*} (g : α → F α) (x : α) : cofix F :=

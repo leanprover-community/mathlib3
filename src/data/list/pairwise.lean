@@ -330,6 +330,11 @@ theorem pairwise_sublists {R} {l : list α} (H : pairwise R l) :
 by have := pairwise_sublists' (pairwise_reverse.2 H);
    rwa [sublists'_reverse, pairwise_map] at this
 
+lemma pairwise_repeat {α : Type*} {r : α → α → Prop} {x : α} (hx : r x x) :
+  ∀ (n : ℕ), pairwise r (repeat x n)
+| 0 := by simp
+| (n+1) := by simp [hx, mem_repeat, pairwise_repeat n]
+
 /-! ### Pairwise filtering -/
 
 variable [decidable_rel R]

@@ -38,6 +38,8 @@ instance {S : Type*} [semiring S] [Π i, module S (M i)] [Π i, smul_comm_class 
 instance {S : Type*} [semiring S] [has_scalar R S] [Π i, module S (M i)]
   [Π i, is_scalar_tower R S (M i)] :
   is_scalar_tower R S (⨁ i, M i) := dfinsupp.is_scalar_tower
+instance [Π i, module Rᵐᵒᵖ (M i)] [Π i, is_central_scalar R (M i)] :
+  is_central_scalar R (⨁ i, M i) := dfinsupp.is_central_scalar
 
 lemma smul_apply (b : R) (v : ⨁ i, M i) (i : ι) :
   (b • v) i = b • (v i) := dfinsupp.smul_apply _ _ _

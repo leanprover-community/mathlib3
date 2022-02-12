@@ -168,7 +168,8 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
         have (x % (well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h) ∉ {x : R | x ∈ S ∧ x ≠ 0}),
           from λ h₁, well_founded.not_lt_min wf _ h h₁ (mod_lt x hmin.2),
         have x % well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h = 0,
-          by finish [(mod_mem_iff hmin.1).2 hx],
+          by { simp only [not_and_distrib, set.mem_set_of_eq, not_ne_iff] at this,
+               cases this, cases this ((mod_mem_iff hmin.1).2 hx), exact this },
         by simp *),
       λ hx, let ⟨y, hy⟩ := ideal.mem_span_singleton.1 hx in hy.symm ▸ S.mul_mem_right _ hmin.1⟩⟩
     else ⟨0, submodule.ext $ λ a,
@@ -234,7 +235,7 @@ lemma ne_zero_of_mem_factors
   (ha : a ≠ 0) (hb : b ∈ factors a) : b ≠ 0 := irreducible.ne_zero ((factors_spec a ha).1 b hb)
 
 lemma mem_submonoid_of_factors_subset_of_units_subset (s : submonoid R)
-  {a : R} (ha : a ≠ 0) (hfac : ∀ b ∈ factors a, b ∈ s) (hunit : ∀ c : units R, (c : R) ∈ s) :
+  {a : R} (ha : a ≠ 0) (hfac : ∀ b ∈ factors a, b ∈ s) (hunit : ∀ c : Rˣ, (c : R) ∈ s) :
   a ∈ s :=
 begin
   rcases ((factors_spec a ha).2) with ⟨c, hc⟩,
@@ -247,7 +248,7 @@ also maps `a` into that submonoid. -/
 lemma ring_hom_mem_submonoid_of_factors_subset_of_units_subset {R S : Type*}
   [comm_ring R] [is_domain R] [is_principal_ideal_ring R] [semiring S]
   (f : R →+* S) (s : submonoid S) (a : R) (ha : a ≠ 0)
-  (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : units R, f c ∈ s) :
+  (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : Rˣ, f c ∈ s) :
   f a ∈ s :=
 mem_submonoid_of_factors_subset_of_units_subset (s.comap f.to_monoid_hom) ha h hf
 
@@ -315,6 +316,14 @@ begin
     apply dvd_add; apply dvd_mul_of_dvd_right,
     exacts [gcd_dvd_left x y, gcd_dvd_right x y] },
 end
+
+theorem gcd_dvd_iff_exists (a b : R) {z} : gcd a b ∣ z ↔ ∃ x y, z = a * x + b * y :=
+by simp_rw [mul_comm a, mul_comm b, @eq_comm _ z, ←mem_span_pair, ←span_gcd,
+  ideal.mem_span_singleton]
+
+/-- **Bézout's lemma** -/
+theorem exists_gcd_eq_mul_add_mul (a b : R) : ∃ x y, gcd a b = a * x + b * y :=
+by rw [←gcd_dvd_iff_exists]
 
 theorem gcd_is_unit_iff (x y : R) : is_unit (gcd x y) ↔ is_coprime x y :=
 by rw [is_coprime, ←mem_span_pair, ←span_gcd, ←span_singleton_eq_top, eq_top_iff_one]

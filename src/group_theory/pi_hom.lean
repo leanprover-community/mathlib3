@@ -3,11 +3,9 @@ Copyright (c) 2022 Jocchim Breitner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joachim Breitner
 -/
-import group_theory.general_commutator
 import group_theory.order_of_element
 import data.finset.noncomm_prod
-import ring_theory.coprime.lemmas
-
+import data.fintype.card
 /-!
 # Canonical homomorphism from a pi group
 
@@ -43,7 +41,6 @@ image of different morphism commute, we obtain a canoncial morphism
 open_locale big_operators
 open_locale classical
 
--- A lot of faff just to transport `is_coprime.prod_left` from ℤ to ℕ
 lemma coprime_prod_left
   {I : Type*}
   {x : ℕ} {s : I → ℕ} {t : finset I} :
@@ -66,6 +63,10 @@ begin
   subst this,
   simp
 end
+-- I think it's worth keeping it and moving to appropriate file
+lemma mul_eq_one_iff_disjoint {H₁ H₂ : subgroup G} :
+  disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x * y = 1 → x = 1 ∧ y = 1 :=
+by sorry
 
 section family_of_groups
 
@@ -92,7 +93,7 @@ variables (S : finset I)
 
 /-- The underlying function of `pi_hom_restr.hom` -/
 def to_fun (S : finset I) : G := finset.noncomm_prod S (λ i, ϕ i (f i)) $
-  by { rintros i - j -, by_cases h : i = j, { subst h }, { exact hcomm.elim _ _ h _ _} }
+  by { rintros i - j -, by_cases h : i = j, { subst h }, { exact hcomm.elim _ _ h _ _ } }
 
 @[simp]
 lemma to_fun_empty : to_fun f ∅ = 1 := finset.noncomm_prod_empty _ _
@@ -105,8 +106,8 @@ finset.noncomm_prod_insert_of_not_mem _ _ _ _ h
 @[simp]
 lemma to_fun_one : to_fun 1 S = 1 :=
 begin
-   induction S using finset.cons_induction_on with i S hnmem ih,
-   { simp }, { simp [ih, hnmem], }
+  induction S using finset.cons_induction_on with i S hnmem ih,
+  { simp }, { simp [ih, hnmem], }
 end
 
 lemma to_fun_commutes (i : I) (hnmem : i ∉ S) :
@@ -115,7 +116,6 @@ begin
   induction S using finset.induction_on with j S hnmem' ih,
   { simp, },
   { simp only [to_fun_insert_of_not_mem _ _ _ _ hnmem'],
-
     have hij : i ≠ j, by {simp at hnmem, tauto},
     have hiS : i ∉ S, by {simp at hnmem, tauto},
     calc ϕ i (g i) * (ϕ j (f j) * (to_fun ϕ f S : G))
@@ -184,37 +184,8 @@ begin
     simp [hmem], }
 end
 
-lemma pow (k : ℕ) : (hom S f) ^ k = hom S (f ^ k) :=
-begin
-  change (to_fun ϕ f S) ^ k = to_fun ϕ (f ^ k) S,
-  induction S using finset.induction_on with i S hnmem ih,
-  { simp },
-  { simp only [ to_fun_insert_of_not_mem _ _ _ _ hnmem],
-    rw [(to_fun_commutes ϕ f f S i hnmem).mul_pow, ih, pi.pow_apply, map_pow] },
-end
-
-lemma hom_eq_one_of_eq_one (h : ∀ x ∈ S, f x = 1) : hom S f = 1 :=
-begin
-  change to_fun ϕ f S = 1,
-  induction S using finset.induction_on with i S hnmem ih,
-  { simp },
-  { simp only [ to_fun_insert_of_not_mem _ _ _ _ hnmem],
-    rw [h _ (finset.mem_insert_self _ _), ih (λ i h', h i (finset.mem_insert_of_mem h'))],
-    simp, },
-end
-
-lemma order_of_hom_dvd_prod_card [hfin : ∀ i, fintype (H i)]:
-  order_of (hom S f) ∣ (∏ i in S, fintype.card (H i)) :=
-begin
-  rw order_of_dvd_iff_pow_eq_one,
-  rw pow,
-  apply hom_eq_one_of_eq_one,
-  intros i hmem,
-  simp only [pi.pow_apply, pi.one_apply],
-  rw ← order_of_dvd_iff_pow_eq_one,
-  calc order_of (f i) ∣ fintype.card (H i)                   : order_of_dvd_card_univ
-                  ... ∣ (∏ (i : I) in S, fintype.card (H i)) : finset.dvd_prod_of_mem _ hmem,
-end
+lemma pow (k : ℕ) : (hom S f) ^ k = hom S (f ^ k) := by simp
+/- uses map_pow, and now unnecessary -/
 
 end pi_hom_restr
 
@@ -271,43 +242,24 @@ end pi_hom
 include hfin
 
 lemma independent_range_of_coprime_order [∀ i, fintype (H i)]
-  (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j)))
-  (hinj : ∀ i, function.injective (ϕ i)) :
+  (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j))) :
   complete_lattice.independent (λ i, (ϕ i).range) :=
 begin
   rintros i f ⟨hxi, hxp⟩,
   simp only [ne.def, subgroup.coe_to_submonoid, set_like.mem_coe,
     monoid_hom.coe_range, set.mem_range] at hxi hxp,
-  rcases hxi with ⟨ y, rfl ⟩,
-  let S := finset.erase finset.univ i,
-  have hnmem : i ∉ S := finset.not_mem_erase i finset.univ,
-  have : (⨆ (j : I) (_ : ¬j = i), (ϕ j).range) = (⨆ j ∈ S, (ϕ j).range) :=
-  begin
-    congr' 1,
-    ext i,
-    congr' 2,
-    apply supr_congr_Prop,
-    { simp [S] },
-    { exact λ _, rfl }
-  end,
-  rw this at hxp, clear this,
-  rw ← pi_hom_restr.range at hxp,
-  cases hxp with f heq1,
-
-  let x := ϕ i y,
-  let z := pi_hom_restr.hom ϕ S f,
-  change z = x at heq1,
-  let p := ∏ (i : I) in S, fintype.card (H i),
-  have h1 := calc order_of x = order_of y         : order_of_injective _ (hinj i) _
-                         ... ∣ fintype.card (H i) : order_of_dvd_card_univ,
-  have h2 := calc order_of x = order_of z : by rw heq1
-                         ... ∣ p          : pi_hom_restr.order_of_hom_dvd_prod_card ϕ f S ,
-  have hcop : p.coprime (fintype.card (H i)),
-  { apply coprime_prod_left, intros j hmem, apply hcoprime, rintro rfl, contradiction, },
-  have hx : ϕ i y = 1,
-  { unfold nat.coprime at hcop,
-    simpa [hcop] using nat.dvd_gcd h2 h1, },
-  simpa using hx,
+  rw [supr_subtype', ← @pi_hom.range _ _ _ _ _ _ _ _] at hxp,
+  rotate, apply_instance,
+  { constructor, intros j₁ j₂ hj, apply hcomm.1, intro h, apply hj, ext, exact h },
+  cases hxp with g hgf, cases hxi with g' hg'f,
+  have hxi : order_of f ∣ fintype.card (H i),
+  { rw ← hg'f, exact (map_order _ _).trans order_of_dvd_card_univ },
+  have hxp : order_of f ∣ ∏ j : {j // j ≠ i}, fintype.card (H j),
+  { subst hgf, apply (map_order _ _).trans, rw ← fintype.card_pi,
+    convert order_of_dvd_card_univ, apply_instance },
+  change f = 1, rw [← pow_one f, ← order_of_dvd_iff_pow_eq_one],
+  convert ← nat.dvd_gcd hxp hxi, rw ← nat.coprime_iff_gcd_eq_one,
+  apply coprime_prod_left, intros j _, apply hcoprime, exact j.2,
 end
 
 end family_of_groups
@@ -361,8 +313,7 @@ lemma _root_.independent_of_coprime_order [∀ i, fintype (H i)]
   complete_lattice.independent H :=
 begin
   haveI := hcomm_subtype hcomm,
-  simpa using independent_range_of_coprime_order (λ i, (H i).subtype) hcoprime
-    (λ i , subtype.coe_injective),
+  simpa using independent_range_of_coprime_order (λ i, (H i).subtype) hcoprime,
 end
 
 end commuting_subgroups

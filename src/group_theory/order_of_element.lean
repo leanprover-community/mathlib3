@@ -136,6 +136,11 @@ is_periodic_pt.minimal_period_dvd ((is_periodic_pt_mul_iff_pow_eq_one _).mpr h)
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of x ∣ n ↔ x ^ n = 1 :=
 ⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
 
+@[to_additive map_add_order]
+lemma map_order {H : Type*} [monoid H] (ψ : G →* H) (x : G) :
+  order_of (ψ x) ∣ order_of x :=
+by { apply order_of_dvd_of_pow_eq_one, rw [←map_pow, pow_order_of_eq_one], apply map_one }
+
 @[to_additive exists_nsmul_eq_self_of_coprime]
 lemma exists_pow_eq_self_of_coprime (h : n.coprime (order_of x)) :
   ∃ m : ℕ, (x ^ n) ^ m = x :=

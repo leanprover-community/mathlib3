@@ -18,7 +18,6 @@ An oplax functor `F` between bicategories `B` and `C` consists of
 
 A pseudofunctor is an oplax functor whose `map_id` and `map_comp` are isomorphisms. We provide
 several constructors for pseudofunctors:
-The former uses `iso` for the same type, and the latter uses` is_iso` for the same type.
 * `pseudofunctor.mk` : the default constructor, which requires `map₂_whisker_left` and
   `map₂_whisker_right` instead of naturality of `map_comp`.
 * `pseudofunctor.mk_of_oplax` : construct a pseudofunctor from an oplax functor whose

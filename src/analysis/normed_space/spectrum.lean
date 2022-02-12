@@ -25,6 +25,7 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 * `spectrum.is_compact`: the spectrum is compact.
 * `spectrum.spectral_radius_le_nnnorm`: the spectral radius is bounded above by the norm.
 * `spectrum.has_deriv_at_resolvent`: the resolvent function is differentiable on the resolvent set.
+* `spectrum.gelfand_formula`: Gelfand's formula for the spectral radius in Banach algebras over `ℂ`.
 
 
 ## TODO
@@ -148,6 +149,9 @@ variables
 [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 variable (𝕜)
+/-- In a Banach algebra `A` over a nondiscrete normed field `𝕜`, for any `a : A` the
+power series with coefficients `a ^ n` represents the function `(1 - z • a)⁻¹` in a disk of
+radius `∥a∥₊⁻¹`. -/
 lemma inverse_one_sub_smul_has_fpower_series_on_ball [complete_space A] (a : A) :
   has_fpower_series_on_ball (λ z : 𝕜, ring.inverse (1 - z • a))
     (λ n, continuous_multilinear_map.mk_pi_field 𝕜 (fin n) (a ^ n)) 0 (∥a∥₊)⁻¹ :=
@@ -157,13 +161,12 @@ lemma inverse_one_sub_smul_has_fpower_series_on_ball [complete_space A] (a : A) 
     rw [←norm_to_nnreal, norm_mk_pi_field, norm_to_nnreal],
     cases n,
     { simp only [le_refl, mul_one, or_true, le_max_iff, pow_zero] },
-    { refine le_trans (le_trans (mul_le_mul_right' (nnnorm_pow_succ_le a n) (r ^ n.succ)) _)
+    { refine le_trans (le_trans (mul_le_mul_right' (nnnorm_pow_le' a n.succ_pos) (r ^ n.succ)) _)
         (le_max_left _ _),
       { by_cases ∥a∥₊ = 0,
         { simp only [h, zero_mul, zero_le', pow_succ], },
-        { rw [←mul_pow, mul_comm],
-          rw [←coe_inv h, coe_lt_coe, nnreal.lt_inv_iff_mul_lt h] at hr,
-          exact pow_le_one' hr.le n.succ } } }
+        { rw [←coe_inv h, coe_lt_coe, nnreal.lt_inv_iff_mul_lt h] at hr,
+          simpa only [←mul_pow, mul_comm] using pow_le_one' hr.le n.succ } } }
   end,
   r_pos := ennreal.inv_pos.mpr coe_ne_top,
   has_sum := λ y hy,
@@ -194,6 +197,8 @@ begin
         (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
 end
 
+/-- In a Banach algebra `A` over `𝕜`, for `a : A` the function `λ z, (1 - z • a)⁻¹` is
+differentiable on any closed ball centered at zero of radius `r < (spectral_radius 𝕜 a)⁻¹`. -/
 theorem inverse_one_sub_smul_differentiable_on [complete_space A] {a : A} {r : ℝ≥0}
   (hr : (r : ℝ≥0∞) < (spectral_radius 𝕜 a)⁻¹) :
   differentiable_on 𝕜 (λ z : 𝕜, ring.inverse (1 - z • a)) (metric.closed_ball 0 r) :=
@@ -222,6 +227,7 @@ variables
 [normed_ring A] [normed_algebra ℂ A] [complete_space A]
 [measurable_space A] [borel_space A] [topological_space.second_countable_topology A]
 
+/-- The `limsup` relationship for the spectral radius used to prove `spectrum.gelfand_formula`. -/
 lemma limsup_pow_nnnorm_pow_one_div_le_spectral_radius (a : A) :
   limsup at_top (λ n : ℕ, ↑∥a ^ n∥₊ ^ (1 / n : ℝ)) ≤ spectral_radius ℂ a :=
 begin
@@ -230,14 +236,17 @@ begin
   let p : formal_multilinear_series ℂ ℂ A :=
     λ n, continuous_multilinear_map.mk_pi_field ℂ (fin n) (a ^ n),
   suffices h : (r : ℝ≥0∞) ≤ p.radius,
-  { convert h, simp only [p.radius_eq_liminf, ←norm_to_nnreal, norm_mk_pi_field],
+  { convert h,
+    simp only [p.radius_eq_liminf, ←norm_to_nnreal, norm_mk_pi_field],
     refine congr_arg _ (funext (λ n, congr_arg _ _)),
     rw [norm_to_nnreal, ennreal.coe_rpow_def (∥a ^ n∥₊) (1 / n : ℝ), if_neg],
     exact λ ha, by linarith [ha.2, (one_div_nonneg.mpr n.cast_nonneg : 0 ≤ (1 / n : ℝ))], },
   { have H₁ := (inverse_one_sub_smul_differentiable_on r_lt).has_fpower_series_on_ball r_pos,
-    exact ((inverse_one_sub_smul_has_fpower_series_on_ball ℂ a).radius_of_eq H₁).r_le, }
+    exact ((inverse_one_sub_smul_has_fpower_series_on_ball ℂ a).exchange_radius H₁).r_le, }
 end
 
+/-- **Gelfand's formula**: Given an element `a : A` of a complex Banach algebra, the
+`spectral_radius` of `a` is the limit of the sequence `∥a ^ n∥₊ ^ (1 / n)` -/
 theorem gelfand_formula (a : A) :
   tendsto (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)) at_top (𝓝 (spectral_radius ℂ a)) :=
 begin

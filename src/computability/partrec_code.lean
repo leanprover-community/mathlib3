@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 import computability.partrec
 
 /-!
-# Godel numbering for partial recursive functions.
+# Gödel numbering for partial recursive functions.
 
 This file defines `nat.partrec.code`, and inductive datatype describing code for partial
 recursive functions on ℕ. It defines an encoding for these codes, and proves that the constructors

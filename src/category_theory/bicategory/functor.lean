@@ -15,7 +15,16 @@ An oplax functor `F` between bicategories `B` and `C` consists of
 * a family of 2-morphisms `F.map_id a : F.map (𝟙 a) ⟶ 𝟙 (F.obj a)`,
 * a family of 2-morphisms `F.map_comp f g : F.map (f ≫ g) ⟶ F.map f ≫ F.map g`, and
 * certain consistency conditions on them.
-A pseudofunctor is an oplax functor whose `map_id` and `map_comp` are isomorphisms.
+
+A pseudofunctor is an oplax functor whose `map_id` and `map_comp` are isomorphisms. We provide
+several constructors for pseudofunctors:
+The former uses `iso` for the same type, and the latter uses` is_iso` for the same type.
+* `pseudofunctor.mk` : the default constructor, which requires `map₂_whisker_left` and
+  `map₂_whisker_right` instead of naturality of `map_comp`.
+* `pseudofunctor.mk_of_oplax` : construct a pseudofunctor from an oplax functor whose
+  `map_id` and `map_comp` are isomorphisms. This constructor uses `iso` to describe isomorphisms.
+* `pseudofunctor.mk_of_oplax'` : similar to `mk_of_oplax`, but uses` is_iso` to describe
+  isomorphisms.
 
 ## Main definitions
 
@@ -145,26 +154,22 @@ structure oplax_functor extends prelax_functor B C :=
 (map₂_right_unitor' : ∀ {a b : B} (f : a ⟶ b),
   map₂ (ρ_ f).hom = map_comp f (𝟙 b) ≫ (map f ◁ map_id b) ≫ (ρ_ (map f)).hom . obviously)
 
-restate_axiom oplax_functor.map_comp_naturality_left'
-restate_axiom oplax_functor.map_comp_naturality_right'
-restate_axiom oplax_functor.map₂_id'
-restate_axiom oplax_functor.map₂_comp'
-restate_axiom oplax_functor.map₂_associator'
-restate_axiom oplax_functor.map₂_left_unitor'
-restate_axiom oplax_functor.map₂_right_unitor'
-attribute [simp]
-  oplax_functor.map_comp_naturality_left oplax_functor.map_comp_naturality_right
-  oplax_functor.map₂_id oplax_functor.map₂_associator
-attribute [reassoc]
-  oplax_functor.map_comp_naturality_left oplax_functor.map_comp_naturality_right
-  oplax_functor.map₂_comp oplax_functor.map₂_associator
-  oplax_functor.map₂_left_unitor oplax_functor.map₂_right_unitor
-attribute [simp]
-  oplax_functor.map₂_comp oplax_functor.map₂_left_unitor oplax_functor.map₂_right_unitor
-
 variables {B C}
 
 namespace oplax_functor
+
+restate_axiom map_comp_naturality_left'
+restate_axiom map_comp_naturality_right'
+restate_axiom map₂_id'
+restate_axiom map₂_comp'
+restate_axiom map₂_associator'
+restate_axiom map₂_left_unitor'
+restate_axiom map₂_right_unitor'
+attribute [simp] map_comp_naturality_left map_comp_naturality_right map₂_id map₂_associator
+attribute [reassoc]
+  map_comp_naturality_left map_comp_naturality_right map₂_comp
+  map₂_associator map₂_left_unitor map₂_right_unitor
+attribute [simp] map₂_comp map₂_left_unitor map₂_right_unitor
 
 section
 variables (F : oplax_functor B C) (G : oplax_functor C D)
@@ -300,13 +305,13 @@ of domains and codomains of 2-morphisms.
 structure pseudofunctor extends prelax_functor B C :=
 (map_id (a : B) : map (𝟙 a) ≅ 𝟙 (obj a))
 (map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map (f ≫ g) ≅ map f ≫ map g)
-(map₂_whisker_right' : ∀ {a b c : B} {f g : a ⟶ b} (η : f ⟶ g) (h : b ⟶ c),
-  map₂ (η ▷ h) = (map_comp f h).hom ≫ (map₂ η ▷ map h) ≫ (map_comp g h).inv . obviously)
-(map₂_whisker_left' : ∀ {a b c : B} (f : a ⟶ b) {g h : b ⟶ c} (η : g ⟶ h),
-  map₂ (f ◁ η) = (map_comp f g).hom ≫ (map f ◁ map₂ η) ≫ (map_comp f h).inv . obviously)
 (map₂_id' : ∀ {a b : B} (f : a ⟶ b), map₂ (𝟙 f) = 𝟙 (map f) . obviously)
 (map₂_comp' : ∀ {a b : B} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
   map₂ (η ≫ θ) = map₂ η ≫ map₂ θ . obviously)
+(map₂_whisker_left' : ∀ {a b c : B} (f : a ⟶ b) {g h : b ⟶ c} (η : g ⟶ h),
+  map₂ (f ◁ η) = (map_comp f g).hom ≫ (map f ◁ map₂ η) ≫ (map_comp f h).inv . obviously)
+(map₂_whisker_right' : ∀ {a b c : B} {f g : a ⟶ b} (η : f ⟶ g) (h : b ⟶ c),
+  map₂ (η ▷ h) = (map_comp f h).hom ≫ (map₂ η ▷ map h) ≫ (map_comp g h).inv . obviously)
 (map₂_associator' : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
   pseudofunctor.map₂_associator_aux obj (λ a b, map) (λ a b f g, map₂) (λ a b c, map_comp) f g h
     . obviously)
@@ -317,29 +322,27 @@ structure pseudofunctor extends prelax_functor B C :=
   map₂ (ρ_ f).hom = (map_comp f (𝟙 b)).hom ≫ (map f ◁ (map_id b).hom) ≫ (ρ_ (map f)).hom
     . obviously)
 
-restate_axiom pseudofunctor.map₂_whisker_right'
-restate_axiom pseudofunctor.map₂_whisker_left'
-restate_axiom pseudofunctor.map₂_id'
-restate_axiom pseudofunctor.map₂_comp'
-restate_axiom pseudofunctor.map₂_associator'
-restate_axiom pseudofunctor.map₂_left_unitor'
-restate_axiom pseudofunctor.map₂_right_unitor'
-attribute [reassoc]
-  pseudofunctor.map₂_whisker_right pseudofunctor.map₂_whisker_left
-  pseudofunctor.map₂_comp pseudofunctor.map₂_associator
-  pseudofunctor.map₂_left_unitor pseudofunctor.map₂_right_unitor
-attribute [simp]
-  pseudofunctor.map₂_whisker_right pseudofunctor.map₂_whisker_left
-  pseudofunctor.map₂_id pseudofunctor.map₂_associator pseudofunctor.map₂_comp
-  pseudofunctor.map₂_left_unitor pseudofunctor.map₂_right_unitor
-
 variables {B C}
 
 namespace pseudofunctor
 
+restate_axiom map₂_id'
+restate_axiom map₂_comp'
+restate_axiom map₂_whisker_left'
+restate_axiom map₂_whisker_right'
+restate_axiom map₂_associator'
+restate_axiom map₂_left_unitor'
+restate_axiom map₂_right_unitor'
+attribute [reassoc]
+  map₂_comp map₂_whisker_left map₂_whisker_right map₂_associator map₂_left_unitor map₂_right_unitor
+attribute [simp]
+  map₂_id map₂_comp map₂_whisker_left map₂_whisker_right
+  map₂_associator map₂_left_unitor map₂_right_unitor
+
 section
-open iso
 variables (F : pseudofunctor B C) (G : pseudofunctor C D)
+
+open iso
 
 /-- The prelax functor between the underlying quivers. -/
 add_decl_doc pseudofunctor.to_prelax_functor
@@ -462,6 +465,11 @@ def mk_of_oplax' {F : oplax_functor B C}
 end
 
 end pseudofunctor
+
+#check @pseudofunctor.mk
+
+#check @pseudofunctor.mk_of_oplax
+
 
 end
 

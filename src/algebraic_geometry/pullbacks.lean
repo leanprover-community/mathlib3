@@ -57,19 +57,29 @@ begin
   rw [category.comp_id, category.id_comp]
 end
 
+-- The following 3 lemmas should be `by { delta t, simp }` but it times out.
+
 @[simp, reassoc]
 lemma t_fst_fst (i j : 𝒰.J) : t 𝒰 f g i j ≫ pullback.fst ≫ pullback.fst = pullback.snd :=
-by { delta t, simp }
+by { delta t, dsimp, simp only [category.assoc, pullback_symmetry_hom_comp_snd_assoc,
+  pullback_symmetry_hom_comp_fst_assoc, pullback_assoc_hom_snd_fst, pullback.lift_fst_assoc,
+  pullback_symmetry_hom_comp_snd, pullback_assoc_inv_fst_fst, pullback_symmetry_hom_comp_fst] }
 
 @[simp, reassoc]
 lemma t_fst_snd (i j : 𝒰.J) :
   t 𝒰 f g i j ≫ pullback.fst ≫ pullback.snd = pullback.fst ≫ pullback.snd :=
-by { delta t, simp }
+by { delta t, dsimp, simp only [category.assoc, pullback_symmetry_hom_comp_snd_assoc,
+  pullback_symmetry_hom_comp_fst_assoc, pullback_assoc_hom_snd_snd, pullback.lift_snd,
+  pullback_symmetry_hom_comp_snd, pullback_assoc_inv_snd, pullback_symmetry_hom_comp_fst,
+  category.comp_id] }
 
 @[simp, reassoc]
 lemma t_snd (i j : 𝒰.J) :
   t 𝒰 f g i j ≫ pullback.snd = pullback.fst ≫ pullback.fst :=
-by { delta t, simp }
+by { delta t, dsimp, simp only [category.assoc, pullback_symmetry_hom_comp_snd_assoc,
+  pullback_symmetry_hom_comp_fst_assoc, pullback_assoc_hom_fst, pullback.lift_fst_assoc,
+  pullback_symmetry_hom_comp_snd, pullback_assoc_inv_fst_snd, pullback_symmetry_hom_comp_fst] }
+
 
 lemma t_id (i : 𝒰.J) : t 𝒰 f g i i = 𝟙 _ :=
 begin

@@ -34,15 +34,19 @@ noncomputable theory
 
 open_locale ennreal pointwise
 open has_inv set function measure_theory.measure
-variables {α :Type*} [measurable_space α] {μ : measure α}
-
-@[simp] lemma measure_Union_null_iff' {ι : Prop} {s : ι → set α} :
+section
+variables {α :Type*} [measurable_space α] (μ : outer_measure α)
+@[simp] lemma measure_theory.outer_measure.measure_Union_null_iff' {ι : Prop} {s : ι → set α} :
   μ (⋃ i : ι, s i) = 0 ↔ ∀ i : ι, μ (s i) = 0 :=
 begin
-  by_cases i : ι,
-  { simp [i], },
-  { simp [i], },
+  by_cases i : ι;
+  simp [i],
 end
+end
+variables {α :Type*} [measurable_space α] {μ : measure α}
+@[simp] lemma measure_Union_null_iff' {ι : Prop} {s : ι → set α} :
+  μ (⋃ i : ι, s i) = 0 ↔ ∀ i : ι, μ (s i) = 0 :=
+μ.to_outer_measure.measure_Union_null_iff'
 
 namespace measure_theory
 

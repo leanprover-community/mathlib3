@@ -285,18 +285,15 @@ lemma independent_range_of_coprime_order [∀ i, fintype (H i)]
   (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j))) :
   complete_lattice.independent (λ i, (ϕ i).range) :=
 begin
-  rintros i f ⟨hxi, hxp⟩,
-  simp only [ne.def, subgroup.coe_to_submonoid, set_like.mem_coe,
-    monoid_hom.coe_range, set.mem_range] at hxi hxp,
+  rintros i f ⟨hxi, hxp⟩, dsimp at hxi hxp,
   rw [supr_subtype', ← @pi_hom.range _ _ _ _ _ _ _ _] at hxp,
   rotate, apply_instance,
-  { constructor, intros j₁ j₂ hj, apply hcomm.1, intro h, apply hj, ext, exact h },
+  { split, intros _ _ hj, apply hcomm.1, exact hj ∘ subtype.ext },
   cases hxp with g hgf, cases hxi with g' hg'f,
   have hxi : order_of f ∣ fintype.card (H i),
   { rw ← hg'f, exact (map_order _ _).trans order_of_dvd_card_univ },
   have hxp : order_of f ∣ ∏ j : {j // j ≠ i}, fintype.card (H j),
-  { subst hgf, apply (map_order _ _).trans, rw ← fintype.card_pi,
-    convert order_of_dvd_card_univ, apply_instance },
+  { rw [← hgf, ← fintype.card_pi], exact (map_order _ _).trans order_of_dvd_card_univ },
   change f = 1, rw [← pow_one f, ← order_of_dvd_iff_pow_eq_one],
   convert ← nat.dvd_gcd hxp hxi, rw ← nat.coprime_iff_gcd_eq_one,
   apply coprime_prod_left, intros j _, apply hcoprime, exact j.2,

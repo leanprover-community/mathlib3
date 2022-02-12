@@ -279,7 +279,7 @@ begin
     exact ⟨u, u_open.mem_nhds au, v, v_open.mem_nhds bv, huv⟩ }
 end
 
-lemma _root_.prod.tendsto_iff (seq : α → β × γ) {f : filter α} (x : β × γ) :
+lemma _root_.prod.tendsto_iff {α} (seq : α → β × γ) {f : filter α} (x : β × γ) :
   tendsto seq f (𝓝 x)
     ↔ tendsto (λ n, (seq n).fst) f (𝓝 x.fst) ∧ tendsto (λ n, (seq n).snd) f (𝓝 x.snd) :=
 by { cases x, rw [nhds_prod_eq, filter.tendsto_prod_iff'], }

@@ -205,11 +205,11 @@ end
 
 open_locale big_operators ennreal
 
-theorem disjoint.inter {α : Type*} {s t : set α} (u : set α) (h : disjoint s t) :
-disjoint (u ∩ s) (u ∩ t) := by apply_rules [disjoint.inter_right', disjoint.inter_left']
+-- theorem disjoint.inter {α : Type*} {s t : set α} (u : set α) (h : disjoint s t) :
+-- disjoint (u ∩ s) (u ∩ t) := by apply_rules [disjoint.inter_right', disjoint.inter_left']
 
-theorem disjoint.inter' {α : Type*} {s t : set α} (u : set α) (h : disjoint s t) :
-disjoint (s ∩ u) (t ∩ u) := by apply_rules [disjoint.inter_left, disjoint.inter_right]
+-- theorem disjoint.inter' {α : Type*} {s t : set α} (u : set α) (h : disjoint s t) :
+-- disjoint (s ∩ u) (t ∩ u) := by apply_rules [disjoint.inter_left, disjoint.inter_right]
 
 
 /-
@@ -229,15 +229,15 @@ by simp [subgroup.opposite]
 
 /-- This is the "unfolding" trick -/
 lemma unfolding_trick [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
-  (f : G → ℂ) (f_measurable : measurable f)
+  {f : G → ℂ}
   (f_summable: ∀ x : G, summable (λ (γ : Γ.opposite), f (γ⁻¹ • x))) -- NEEDED??
-  (g : G ⧸ Γ → ℂ) (g_measurable : measurable g)
-  (g_ℒ_infinity : mem_ℒp g ∞ μ_𝓕)
   (f_ℒ_1 : integrable f μ)
-  (F : G ⧸ Γ → ℂ)
-  (F_measurable : measurable F)
+  {g : G ⧸ Γ → ℂ}
+  (g_ℒ_infinity : mem_ℒp g ∞ μ_𝓕)
+  {F : G ⧸ Γ → ℂ}
+  (F_ae_measurable : ae_measurable F μ_𝓕) -- NEEDED??
   (hFf : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ • x)) :
-  ∫ (x : G), f x * g (x : G ⧸ Γ) ∂μ = ∫ (x : G ⧸ Γ), F(x) * g(x) ∂ μ_𝓕 :=
+  ∫ (x : G), f x * g (x : G ⧸ Γ) ∂μ = ∫ (x : G ⧸ Γ), F x * g x ∂μ_𝓕 :=
 begin
 --  set F : G ⧸ Γ → ℂ :=  λ x , ∑' (γ : Γ.opposite), f(γ • x)) ,
   have hFf' : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ⁻¹ • x),
@@ -272,7 +272,11 @@ begin
     --- simpa using hfg,
     },
   { intros γ,
-    exact ((f_measurable.comp (measurable_const_smul _)).mul
-      (g_measurable.comp meas_π)).ae_measurable, },
-  { exact (F_measurable.mul g_measurable).ae_measurable, },
+    have hf : ae_measurable f (measure.map ((•) γ⁻¹) μ),
+    { rw measure_theory.map_smul,
+      exact f_ℒ_1.ae_measurable },
+    refine ((hf.comp_measurable (measurable_const_smul _)).mono_measure _).mul _,
+    { exact measure.restrict_le_self },
+    { exact g_ℒ_infinity.ae_measurable.comp_measurable meas_π } },
+  { exact F_ae_measurable.mul g_ℒ_infinity.ae_measurable, },
 end

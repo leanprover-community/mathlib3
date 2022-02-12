@@ -62,8 +62,7 @@ begin
     simp },
   { rintros h x ⟨hx1, hx2⟩,
     obtain rfl : x = 1 := (h hx1 (H₂.inv_mem hx2) (mul_inv_self x)).1,
-    exact rfl,
-  },
+    exact rfl, },
 end
 
 section family_of_monoids

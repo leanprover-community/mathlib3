@@ -47,8 +47,7 @@ instance concrete_category : concrete_category BoundedOrder :=
   forget_faithful := ⟨λ X Y, by convert fun_like.coe_injective⟩ }
 
 instance has_forget_to_PartialOrder : has_forget₂ BoundedOrder PartialOrder :=
-{ forget₂ := { obj := λ X, PartialOrder.of X, map := λ X Y, bounded_order_hom.to_order_hom },
-  forget_comp := rfl }
+{ forget₂ := { obj := λ X, X.to_PartialOrder, map := λ X Y, bounded_order_hom.to_order_hom } }
 
 instance has_forget_to_Bipointed : has_forget₂ BoundedOrder Bipointed :=
 { forget₂ := { obj := λ X, ⟨X, ⊥, ⊤⟩, map := λ X Y f, ⟨f, map_bot f, map_top f⟩ },

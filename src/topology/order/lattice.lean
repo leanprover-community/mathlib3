@@ -82,3 +82,32 @@ has_continuous_sup.continuous_sup
   {f g : X → L} (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x ⊔ g x) :=
 continuous_sup.comp (hf.prod_mk hg : _)
+
+open filter
+open_locale filter topological_space
+
+lemma filter.tendsto.sup_right {ι β} [preorder ι] [topological_space β] [has_sup β]
+  [has_continuous_sup β] {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (f ⊔ g) l (𝓝 (x ⊔ y)) :=
+begin
+  have h_prod_left : f ⊔ g = (λ p : β × β, (p.fst ⊔ p.snd : β)) ∘ (λ i, (f i, g i)) := rfl,
+  have h_prod_right : x ⊔ y = (λ p : β × β, p.fst ⊔ p.snd) (x, y) := rfl,
+  rw [h_prod_left, h_prod_right],
+  refine (continuous_sup.tendsto (x,y)).comp _,
+  rw prod.tendsto_iff,
+  exact ⟨hf, hg⟩,
+end
+
+lemma filter.tendsto.inf_right {ι β} [preorder ι] [topological_space β] [has_inf β]
+  [has_continuous_inf β] {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (f ⊓ g) l (𝓝 (x ⊓ y)) :=
+begin
+  have h_prod_left : f ⊓ g = (λ p : β × β, (p.fst ⊓ p.snd : β)) ∘ (λ i, (f i, g i)) := rfl,
+  have h_prod_right : x ⊓ y = (λ p : β × β, p.fst ⊓ p.snd) (x, y) := rfl,
+  rw [h_prod_left, h_prod_right],
+  refine (continuous_inf.tendsto (x,y)).comp _,
+  rw prod.tendsto_iff,
+  exact ⟨hf, hg⟩,
+end

@@ -243,9 +243,9 @@ by { cases x, rw [nhds_prod_eq, tendsto_prod_iff'], }
 
 -- TODO: move this
 lemma _root_.filter.tendsto.sup_right {ι} [preorder ι] {f g : ι → β} [has_sup β]
-  [has_continuous_sup β]
-  {x y : β} (hf : tendsto f at_top (𝓝 x)) (hg : tendsto g at_top (𝓝 y)) :
-  tendsto (f ⊔ g) at_top (𝓝 (x ⊔ y)) :=
+  [has_continuous_sup β] {l : filter ι} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (f ⊔ g) l (𝓝 (x ⊔ y)) :=
 begin
   have h_prod_left : f ⊔ g = (λ p : β × β, (p.fst ⊔ p.snd : β)) ∘ (λ i, (f i, g i)) := rfl,
   have h_prod_right : x ⊔ y = (λ p : β × β, p.fst ⊔ p.snd) (x, y) := rfl,
@@ -257,9 +257,9 @@ end
 
 -- TODO: move this
 lemma _root_.filter.tendsto.inf_right {ι} [preorder ι] {f g : ι → β} [has_inf β]
-  [has_continuous_inf β]
-  {x y : β} (hf : tendsto f at_top (𝓝 x)) (hg : tendsto g at_top (𝓝 y)) :
-  tendsto (f ⊓ g) at_top (𝓝 (x ⊓ y)) :=
+  [has_continuous_inf β] {l : filter ι} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (f ⊓ g) l (𝓝 (x ⊓ y)) :=
 begin
   have h_prod_left : f ⊓ g = (λ p : β × β, (p.fst ⊓ p.snd : β)) ∘ (λ i, (f i, g i)) := rfl,
   have h_prod_right : x ⊓ y = (λ p : β × β, p.fst ⊓ p.snd) (x, y) := rfl,
@@ -593,8 +593,8 @@ notation α ` →ₛₘ[`:25 μ `] ` β := ae_str_meas β μ
 namespace ae_str_meas
 variables {γ δ : Type*} [topological_space γ] [topological_space δ]
 
-/-- Construct the equivalence class `[f]` of an almost everywhere measurable function `f`, based
-    on the equivalence relation of being almost everywhere equal. -/
+/-- Construct the equivalence class `[f]` of an almost everywhere strongly measurable function `f`,
+  based on the equivalence relation of being almost everywhere equal. -/
 def mk (f : α → β) (hf : ae_strongly_measurable f μ) : α →ₛₘ[μ] β := quotient.mk' ⟨f, hf⟩
 
 /-- A measurable representative of an `ae_eq_fun` [f] -/

@@ -596,9 +596,9 @@ begin
           rw (by simp : z.re + gg 0 1 = ((z:ℂ )+ gg 0 1).re),
           apply congr_arg complex.re,
           exact_mod_cast (gzIs gg h₀ h₁ h₂).symm, },
-        have move_by_large {x y : ℝ} (h : |x| < 1/2) (h₁ : |x+y|<1/2) (h₂ : 1≤ |y|) : false :=
+        have move_by_large : ∀ x y : ℝ, |x| < 1/2 → |x+y|<1/2 → 1 ≤ |y| → false := λ x y hx hxy hy,
           by cases abs_cases x; cases abs_cases y; cases abs_cases (x+y); linarith,
-        refine move_by_large reZ reZpN _,
+        refine move_by_large _ _ reZ reZpN _,
         exact_mod_cast  int.one_le_abs hhh, },
       simp only [h₀, nat.one_ne_zero, coe_one, fin.one_eq_zero_iff, ne.def, not_false_iff,
         one_apply_ne],

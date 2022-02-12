@@ -31,17 +31,7 @@ Note that a group `G` with Haar measure that is both left and right invariant is
 **unimodular**.
 -/
 
--- THIS GOES ELSEWHERE
-open_locale pointwise
 
-theorem measure_theory.is_fundamental_domain.set_integral_eq_tsum {G : Type*} {α : Type*} [group G]
-  [mul_action G α] [measurable_space α] {s : set α} {μ : measure_theory.measure α}
-  [measurable_space G] [has_measurable_smul G α] [measure_theory.smul_invariant_measure G α μ]
-  [encodable G] {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E]
-  [borel_space E] [complete_space E] [topological_space.second_countable_topology E]
-  (h : measure_theory.is_fundamental_domain G s μ) (f : α → E) (t : set α) :
-∫ (x : α) in t, f x ∂μ = ∑' (g : G), ∫ (x : α) in g • t ∩ s, f (g⁻¹ • x) ∂μ :=
-sorry
 
 theorem measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_space α}
   {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_group E] [normed_space ℝ E]
@@ -221,7 +211,7 @@ end
 
 ---------------------------- UNFOLDING TRICK ---------------
 
-open_locale big_operators
+open_locale big_operators ennreal
 
 theorem disjoint.inter {α : Type*} {s t : set α} (u : set α) (h : disjoint s t) :
 disjoint (u ∩ s) (u ∩ t) := by apply_rules [disjoint.inter_right', disjoint.inter_left']
@@ -240,229 +230,59 @@ sorry
 
 local notation `μ_𝓕` := measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)
 
+@[simp] lemma subgroup_mem_opposite_iff (γ : Gᵐᵒᵖ) : γ ∈ Γ.opposite ↔ mul_opposite.unop γ ∈ Γ :=
+by simp [subgroup.opposite]
+
+
 
 /-- This is the "unfolding" trick -/
 lemma unfolding_trick [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
-  (f : G → ℂ) (hf : measurable f) (g : G ⧸ Γ → ℂ) (hg : measurable g) (F : G ⧸ Γ → ℂ)
-  (hF : measurable F) (hFf : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ • x)) :
+  (f : G → ℂ) (f_measurable : measurable f)
+  (f_summable: ∀ x : G, summable (λ (γ : Γ.opposite), f (γ⁻¹ • x))) -- NEEDED??
+  (g : G ⧸ Γ → ℂ) (g_measurable : measurable g)
+  (g_ℒ_infinity : mem_ℒp g ∞ (measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)) )
+  (f_ℒ_1 : integrable f μ)
+  (F : G ⧸ Γ → ℂ)
+  (F_measurable : measurable F)
+  (hFf : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ • x)) :
   ∫ (x : G), f x * g (x : G ⧸ Γ) ∂μ = ∫ (x : G ⧸ Γ), F(x) * g(x) ∂ μ_𝓕 :=
 begin
+--  set F : G ⧸ Γ → ℂ :=  λ x , ∑' (γ : Γ.opposite), f(γ • x)) ,
   have hFf' : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ⁻¹ • x),
-  {
-    intros x,
-    sorry,
-  },
+  { intros x,
+    rw hFf x,
+    exact ((equiv.inv (Γ.opposite)).tsum_eq  (λ γ, f(γ • x))).symm, },
   rw integral_map,
   have : ∀ (x : G), F (x : G ⧸ Γ) * g (x) = ∑' (γ : Γ.opposite), f(γ⁻¹ • x) * g (x),
-  {
-    intros x,
+  { intros x,
     rw hFf' x,
---    refine tsum_smul_const _,
-    sorry,
-    --simp [hFf],
-  },
+    convert (@tsum_smul_const _ Γ.opposite _ _ _ _ _ _ _ (λ γ, f(γ⁻¹ • x)) _ (g x) _).symm using 1,
+    exact f_summable x, },
   refine eq.trans _ (integral_congr_ae (filter.eventually_of_forall this)).symm,
   rw measure_theory.integral_tsum,
   haveI := h𝓕.smul_invariant_measure_map,
   haveI : smul_invariant_measure ↥(Γ.opposite) G μ := Γ.smul_invariant_measure μ,
-  convert measure_theory.is_fundamental_domain.set_integral_eq_tsum h𝓕 (λ x, f x * g x) univ,
+  convert measure_theory.is_fundamental_domain.set_integral_eq_tsum h𝓕 (λ x, f x * g x) univ _,
   { simp, },
-  {
-    ext1 γ,
+  { ext1 γ,
     simp only [smul_set_univ, univ_inter],
     congr,
     ext1 x,
     have : g ↑(γ⁻¹ • x) = g x,
-    {
+    { congr' 1,
+      rw quotient_group.eq,
+      dsimp [(•)],
+      obtain ⟨γ_0, hγ_0⟩ := γ,
+      simpa using hγ_0, },
+    rw this, },
+  {
+    sorry, -- some version of Holder
 
-      sorry,
+    --- simpa using hfg,
     },
-    rw this,
-  },
-  {
-    intros γ,
-    sorry,
-    --- use hf, hg
-  },
-  {
-    sorry,
-  },
-  {
-    sorry,
-  },
+  { intros γ,
+    exact (f_measurable.comp (measurable_const_smul _)).mul
+      (g_measurable.comp continuous_coinduced_rng.measurable), },
+  { exact continuous_coinduced_rng.measurable, },
+  { exact (F_measurable.mul g_measurable).ae_measurable, },
 end
-/-
-
-  rw integral_map,
-    {
-      symmetry,
-      calc
-      ∫ (x : ℝ) in Ico 0 1, F (↑x) * g (↑x)
-      = ∫ (x : ℝ) in Ico 0 1, (∑' (n:ℤ ), f ((n:ℝ)+x)) * g (↑x) : _
-      ... = ∑' (n : ℤ), ∫ (x : ℝ) in Ico 0 1,  f (↑n+x) * g (↑x) : _
-      ... = ∑' (n : ℤ), ∫ (x : ℝ) in Ico 0 1,
-              (λ x, f (x) * g (↑x)) (has_add.add n x) : _
-      ... = ∑' (n : ℤ), ∫ (x : ℝ), f (x) * g (↑x)
-              ∂(measure_theory.measure.map (has_add.add (n:ℝ))
-              (volume.restrict (Ico (0:ℝ) 1))) : _
-      ... = ∑' (n : ℤ), ∫ (x : ℝ) in (has_add.add (-(n:ℝ))) ⁻¹' (Ico 0 1),
-              f (x) * g (↑x) : _
-      ... = ∫ (x : ℝ) in ⋃ (n : ℤ), (λ x:ℝ, -(n:ℝ)+x) ⁻¹' (Ico 0 1), f x * g x : _
-      ... = ∫ (x : ℝ), f x * g x : _,
-
-      { congr' 1,
-        ext1,
-        rw (_ : F (↑x) = (∑' (n : ℤ), f (↑n+x))),
-        convert hFf x, },
-      { -- dominated convergence, need to reverse sum (n:ℤ ) int_0^1
-        sorry, },
-      { congr' 1,
-        ext1 n,
-        congr' 1,
-        ext1 x,
-        rw ←  (_ : g (↑(↑n + x)) = g (↑x)),
-        congr' 1,
-        rw quotient_add_group.eq,
-        use -n,
-        simp, },
-      {
-        congr' 1,
-        ext1 n,
-        rw measure_theory.integral_map,
-        { exact measurable_const_add (↑n), },
-        sorry,
-        -- need ae measurable f * g
-      },
-      {
-        congr' 1, ext1 n,
-        congr' 1,
-
-        transitivity (map (has_add.add (n:ℝ)) volume).restrict (has_add.add ↑(-n) ⁻¹' Ico 0 1),
-
-        {
-          convert (@measure_theory.measure.restrict_map _ _ _ _ (volume : measure ℝ)
-            (has_add.add (n:ℝ)) _ ((has_add.add ↑(-n) ⁻¹' Ico 0 1)) _).symm,
-
-          { rw ← set.preimage_comp ,
-            convert ( set.preimage_id).symm,
-            ext1 x,
-            simp, },
-
-          { exact measurable_const_add ↑n, },
-
-          sorry, -- measurability of Ico
-        },
-
-
-
-        rw real.map_volume_add_left,
-        congr,
-        norm_cast,
-      },
-      {
-        symmetry,
-        refine integral_Union (λ x, f x * g x) _ _ _,
-        { intros n,
-          sorry,
-          --exact measurable_set_Ico,
-          },
-        { rintros i j ineqj x ⟨ hx1, hx2⟩ ,
-          exact ineqj (RmodZuniqueRep' hx1 hx2), },
-        { --  integrable volume
-          sorry, }, },
-      { congr' 1,
-        convert measure.restrict_univ using 2,
-        rw set.eq_univ_iff_forall ,
-        intros x,
-        rw set.mem_Union,
-        let n := floor x,
-        use n,
-        have := floor_eq_on_Ico'',
-        refine floor_eq_on_Ico'' _ _ _,
-        dsimp only [n],
-        refl, }, },
-    { -- measurable quotient_add_group.mk
-      -- continuous by definition. no content
-      sorry,
-    },
-    {
-      -- ae_measurable, no content
-      sorry,
-    },
-  },
-  { exact measurable_set_Ico, },
-  { exact RmodZuniqueRep, },
-  sorry,
-end
-  -/
-
-
-/-
-lemma real_to_haar (f : Schwarz) : ∫ (x : ℝ), f x = ∑' (n : ℤ), ∫ x in set.Icc (0:ℝ) (1:ℝ), f( x + n) :=
-begin
-  -- need lemma relating tsum to partial sums, same on the other side. then take limits (dominated convergence)
-
-  have :∀ᶠ n in (filter.cofinite), ae_measurable (indicator (set.Icc (n:ℝ) (n+1)) f ),
-  {
---    intros n,
-   sorry,
-  },
-  have h2 : ae_measurable f,
-  {
-    sorry,
-  },
-  have :=  measure_theory.tendsto_integral_filter_of_dominated_convergence (λ x, complex.abs (f x)) _ this h2 _ _,
-
-  repeat {sorry},
-end
-
--- Schwarz are integrable,
--- they are almost everywhere measurable
--- Multiply by |⬝|=1 and get another Schwarz function.
-
-
--- pushforward under expm of rest_Lebesgue = haar
--- map under expm ...
-lemma pushforward_is_Haar :
-measure_theory.measure.map exp_map_circle (volume.restrict (Icc (0:ℝ) 1))
-=
-haar_circle
-:=
-begin
-
-  --  measure_theory.measure.map
-  sorry,
-end
-
-
-
-lemma unfolding_trick (f : Schwarz ) ( y : ℝ ) (m : ℤ ) :
-cof f (quotient.mk' y) m = Fourier_transform f (m:ℝ ) * complex.exp (-2 * real.pi * complex.I * m * y) :=
-begin
-  rw cof,
-  simp,
-  dsimp [inner],
-  have : ∫ (a : ↥circle), complex.conj ((fourier_Lp 2 m) a) * (auto_descend''' f (quotient.mk' y)) a ∂haar_circle
-  =
-  ∫ (a : ↥circle), complex.conj ((fourier m) a) * (auto_descend'' f (quotient.mk' y)) a ∂haar_circle
-  := sorry,
-  rw this,
-  clear this,
-  simp,
-  rw auto_descend'',
-  rw auto_descend,
-  simp,
-  dsimp [auto_descend, auto_descend', automorphic_point_pair_invariant'],
-  rw real_to_haar,
---  simp,
-
-  sorry,
-end
-
-theorem Poisson_summation (f : Schwarz) : ∑' (n:ℤ), f n = ∑' (m:ℤ), (Fourier_transform f) m :=
-begin
---  let K := (auto_descend f) ∘ (expm × expm) ,
-
-  sorry,
-end
--/

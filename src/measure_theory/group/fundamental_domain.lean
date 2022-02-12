@@ -99,6 +99,7 @@ calc μ (g₁ • s ∩ g₂ • s) = μ (g₂ • ((g₂⁻¹ * g₁) • s ∩
 
 variables [encodable G] {ν : measure α}
 
+
 @[to_additive] lemma sum_restrict_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ) :
   sum (λ g : G, ν.restrict (g • s)) = ν :=
 by rw [← restrict_Union_ae (h.pairwise_ae_disjoint.mono $ λ i j h, hν h) h.measurable_set_smul,
@@ -242,6 +243,72 @@ begin
   { rw [integral_undef hfs, integral_undef],
     rwa [hs.integrable_on_iff ht hf] at hfs }
 end
+
+------------------ADDING STUFF HERE -------------------
+
+-- theorem measure_theory.simple_func.integral_sum {α : Type*} {m : measurable_space α} {ι : Type*}
+--   (f : measure_theory.simple_func α E) (μ : ι → measure_theory.measure α) :
+-- f.integral (measure_theory.measure.sum μ) = ∑' (i : ι), f.integral (μ i) :=
+-- begin
+
+--   sorry,
+--   simp only [integral, measure.sum_apply, f.measurable_set_preimage, ← finset.tsum_subtype,
+--     ← ennreal.tsum_mul_left],
+--   apply ennreal.tsum_comm
+-- end
+
+theorem _root_.measure_theory.integral_sum_measure {α : Type*} {m : measurable_space α} {ι : Type*}
+  (f : α → E) (μ : ι → measure_theory.measure α)
+  (hf : integrable f (measure_theory.measure.sum μ)) :
+∫ (a : α), f a ∂measure_theory.measure.sum μ = ∑' (i : ι), ∫ (a : α), f a ∂μ i :=
+begin
+  refine integrable.induction _ _ _ _ _ hf,
+
+  repeat {sorry},
+
+  -- simp only [integral, supr_subtype', simple_func.integral_sum, ennreal.tsum_eq_supr_sum],
+  -- rw [supr_comm],
+  -- congr, funext s,
+  -- induction s using finset.induction_on with i s hi hs, { apply bot_unique, simp },
+  -- simp only [finset.sum_insert hi, ← hs],
+  -- refine (ennreal.supr_add_supr _).symm,
+  -- intros φ ψ,
+  -- exact ⟨⟨φ ⊔ ψ, λ x, sup_le (φ.2 x) (ψ.2 x)⟩,
+  --   add_le_add (simple_func.lintegral_mono le_sup_left le_rfl)
+  --     (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right le_rfl)⟩
+end
+
+@[to_additive] lemma integral_eq_tsum_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ)
+  (f : α → E) (hf : integrable f ν) : ∫ x, f x ∂ν = ∑' g : G, ∫ x in g • s, f x ∂ν :=
+begin
+  rw ← measure_theory.integral_sum_measure,
+  rw h.sum_restrict_of_ac hν,
+  rw h.sum_restrict_of_ac hν,
+  exact hf,
+end
+
+@[to_additive] lemma set_integral_eq_tsum' (h : is_fundamental_domain G s μ) (f : α → E)
+ (t : set α) (hf : integrable f (μ.restrict t)) :
+ ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :=
+calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t) :
+  h.integral_eq_tsum_of_ac restrict_le_self.absolutely_continuous f hf
+... = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
+  by simp only [restrict_restrict, h.measurable_set_smul, inter_comm]
+
+
+@[to_additive] lemma set_integral_eq_tsum (h : is_fundamental_domain G s μ) (f : α → E)
+  (t : set α) (hf : integrable f (μ.restrict t)) :
+  ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • t ∩ s, f (g⁻¹ • x) ∂μ :=
+calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
+  h.set_integral_eq_tsum' f t hf
+... = ∑' g : G, ∫ x in t ∩ g⁻¹ • s, f x ∂μ : ((equiv.inv G).tsum_eq _).symm
+... = ∑' g : G, ∫ x in g⁻¹ • (g • t ∩ s), f (x) ∂μ :
+  by simp only [smul_set_inter, inv_smul_smul]
+... = ∑' g : G, ∫ x in g • t ∩ s, f (g⁻¹ • x) ∂μ :
+  tsum_congr $ λ g, (measure_preserving_smul g⁻¹ μ).set_integral_image_emb
+    (measurable_embedding_const_smul _) _ _
+
+
 
 end is_fundamental_domain
 

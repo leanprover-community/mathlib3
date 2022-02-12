@@ -318,46 +318,54 @@ topological semiring `R` inherit the structure of a module.
 section subtype
 
 variables (α : Type*) [topological_space α]
-variables (R : Type*) [semiring R] [topological_space R]
+variables (R : Type*) [semiring R]
 variables (M : Type*) [topological_space M] [add_comm_group M]
-variables [module R M] [has_continuous_smul R M] [topological_add_group M]
+variables [module R M] [has_continuous_const_smul R M] [topological_add_group M]
 
 /-- The `R`-submodule of continuous maps `α → M`. -/
 def continuous_submodule : submodule R (α → M) :=
 { carrier := { f : α → M | continuous f },
-  smul_mem' := λ c f hf, continuous_smul.comp
-    (continuous.prod_mk (continuous_const : continuous (λ x, c)) hf),
+  smul_mem' := λ c f hf, hf.const_smul c,
   ..continuous_add_subgroup α M }
 
 end subtype
 
 namespace continuous_map
 variables {α : Type*} [topological_space α]
-  {R : Type*} [semiring R] [topological_space R]
-  {M : Type*} [topological_space M] [add_comm_monoid M]
-  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
+  {R R₁ : Type*}
+  {M : Type*} [topological_space M]
+  {M₂ : Type*} [topological_space M₂]
 
-instance
-  [module R M] [has_continuous_smul R M] :
-  has_scalar R C(α, M) :=
+instance [has_scalar R M] [has_continuous_const_smul R M] : has_scalar R C(α, M) :=
 ⟨λ r f, ⟨r • f, f.continuous.const_smul r⟩⟩
 
 @[simp, norm_cast]
-lemma coe_smul [module R M] [has_continuous_smul R M]
+lemma coe_smul [has_scalar R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) : ⇑(c • f) = c • f := rfl
 
-lemma smul_apply [module R M] [has_continuous_smul R M]
+lemma smul_apply [has_scalar R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) (a : α) : (c • f) a = c • (f a) :=
-by simp
+rfl
 
 @[simp] lemma smul_comp {α : Type*} {β : Type*}
   [topological_space α] [topological_space β]
-   [module R M] [has_continuous_smul R M] (r : R) (f : C(β, M)) (g : C(α, β)) :
+   [has_scalar R M] [has_continuous_const_smul R M] (r : R) (f : C(β, M)) (g : C(α, β)) :
   (r • f).comp g = r • (f.comp g) :=
-by { ext, simp, }
+rfl
 
-variables [has_continuous_add M] [module R M] [has_continuous_smul R M]
-variables [has_continuous_add M₂] [module R M₂] [has_continuous_smul R M₂]
+instance [has_scalar R M] [has_continuous_const_smul R M]
+  [has_scalar R₁ M] [has_continuous_const_smul R₁ M]
+  [smul_comm_class R R₁ M] : smul_comm_class R R₁ C(α, M) :=
+{ smul_comm := λ _ _ _, ext $ λ _, smul_comm _ _ _ }
+
+instance [has_scalar R M] [has_continuous_const_smul R M]
+  [has_scalar R₁ M] [has_continuous_const_smul R₁ M]
+  [has_scalar R R₁] [is_scalar_tower R R₁ M] : is_scalar_tower R R₁ C(α, M) :=
+{ smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
+
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
+variables [has_continuous_add M] [module R M] [has_continuous_const_smul R M]
+variables [has_continuous_add M₂] [module R M₂] [has_continuous_const_smul R M₂]
 
 instance module : module R C(α, M) :=
 { smul     := (•),
@@ -433,7 +441,7 @@ def continuous_map.C : R →+* C(α, A) :=
 @[simp] lemma continuous_map.C_apply (r : R) (a : α) : continuous_map.C r a = algebra_map R A r :=
 rfl
 
-variables [topological_space R] [has_continuous_smul R A] [has_continuous_smul R A₂]
+variables [has_continuous_const_smul R A] [has_continuous_const_smul R A₂]
 
 instance continuous_map.algebra : algebra R C(α, A) :=
 { to_ring_hom := continuous_map.C,
@@ -460,9 +468,6 @@ def continuous_map.coe_fn_alg_hom : C(α, A) →ₐ[R] (α → A) :=
   map_one' := continuous_map.coe_one,
   map_add' := continuous_map.coe_add,
   map_mul' := continuous_map.coe_mul }
-
-instance: is_scalar_tower R A C(α, A) :=
-{ smul_assoc := λ _ _ _, by { ext, simp } }
 
 variables {R}
 

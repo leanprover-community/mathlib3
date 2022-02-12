@@ -1311,22 +1311,6 @@ end
 instance [H : compact_space X.carrier] : fintype 𝒰.finite_subcover.J :=
 by { delta open_cover.finite_subcover, apply_instance }
 
-@[simps J obj map]
-def open_cover_of_supr_eq_top {s : Type*} (X : Scheme) (U : s → opens X.carrier)
-  (hU : (⨆ i, U i) = ⊤) : X.open_cover :=
-{ J := s,
-  obj := λ i, X.restrict (U i).open_embedding,
-  map := λ i, X.of_restrict (U i).open_embedding,
-  f := λ x, begin
-    have : x ∈ ⨆ i, U i := hU.symm ▸ (show x ∈ (⊤ : opens X.carrier), by triv),
-    exact (opens.mem_supr.mp this).some,
-  end,
-  covers := λ x, begin
-    erw subtype.range_coe,
-    have : x ∈ ⨆ i, U i := hU.symm ▸ (show x ∈ (⊤ : opens X.carrier), by triv),
-    exact (opens.mem_supr.mp this).some_spec,
-  end }
-
 end Scheme
 
 end open_cover
@@ -1671,6 +1655,60 @@ end
 
 instance {X Y : Scheme} (f : X ⟶ Y) [is_iso f] (U : opens Y.carrier) : is_iso (f ∣_ U) :=
 by { delta morphism_restrict, apply_instance }
+
+lemma morphism_restrict_base_coe {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) (x) :
+  @coe U Y.carrier _ ((f ∣_ U).1.base x) = f.1.base x.1 :=
+congr_arg (λ f, PresheafedSpace.hom.base (subtype.val f) x) (morphism_restrict_ι f U)
+
+lemma image_morphism_restrict_preimage {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier)
+  (V : opens U) :
+  ((opens.map f.val.base).obj U).open_embedding.is_open_map.functor.obj
+    ((opens.map (f ∣_ U).val.base).obj V) =
+    (opens.map f.val.base).obj (U.open_embedding.is_open_map.functor.obj V) :=
+begin
+  ext1,
+  ext x,
+  split,
+  { rintro ⟨⟨x, hx⟩, (hx' : (f ∣_ U).1.base _ ∈ _), rfl⟩,
+    refine ⟨⟨_, hx⟩, _, rfl⟩,
+    convert hx',
+    ext1,
+    exact (morphism_restrict_base_coe f U ⟨x, hx⟩).symm },
+  { rintro ⟨⟨x, hx⟩, hx', (rfl : x = _)⟩,
+    refine ⟨⟨_, hx⟩, (_: ((f ∣_ U).1.base ⟨x, hx⟩) ∈ V.1), rfl⟩,
+    convert hx',
+    ext1,
+    exact morphism_restrict_base_coe f U ⟨x, hx⟩ }
+end
+
+lemma morphism_restrict_c_app {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) (V : opens U) :
+   (f ∣_ U).1.c.app (op V) = f.1.c.app (op (U.open_embedding.is_open_map.functor.obj V)) ≫
+    X.presheaf.map (eq_to_hom (image_morphism_restrict_preimage f U V)).op :=
+begin
+  have := Scheme.congr_app (morphism_restrict_ι f U)
+    (op (U.open_embedding.is_open_map.functor.obj V)),
+  rw [Scheme.comp_val_c_app, Scheme.comp_val_c_app_assoc] at this,
+  have e : (opens.map U.inclusion).obj (U.open_embedding.is_open_map.functor.obj V) = V,
+  { ext1, exact set.preimage_image_eq _ subtype.coe_injective },
+  have : _ ≫ X.presheaf.map _ = _ :=
+    (((f ∣_ U).1.c.naturality (eq_to_hom e).op).symm.trans _).trans this,
+  swap, { change Y.presheaf.map _ ≫ _ = Y.presheaf.map _ ≫ _, congr,  },
+  rw [← is_iso.eq_comp_inv, ← functor.map_inv, category.assoc] at this,
+  rw this,
+  congr' 1,
+  erw [← X.presheaf.map_comp, ← X.presheaf.map_comp],
+  congr' 1,
+end
+
+lemma Γ_map_morphism_restrict {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
+  Scheme.Γ.map (f ∣_ U).op = Y.presheaf.map (eq_to_hom $ U.open_embedding_obj_top.symm).op ≫
+    f.1.c.app (op U) ≫
+      X.presheaf.map (eq_to_hom (((opens.map f.val.base).obj U).open_embedding_obj_top)).op :=
+begin
+  rw [Scheme.Γ_map_op, morphism_restrict_c_app f U ⊤, f.val.c.naturality_assoc],
+  erw ← X.presheaf.map_comp,
+  congr,
+end
 
 end morphism_restrict
 

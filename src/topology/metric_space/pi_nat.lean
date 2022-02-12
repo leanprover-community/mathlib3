@@ -3,11 +3,47 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.metric_space.baire
 import topology.metric_space.hausdorff_distance
 
 /-!
-# Study of spaces `Π (n : ℕ), E n`
+# Topological study of spaces `Π (n : ℕ), E n`
+
+When `E n` are topological spaces, the space `Π (n : ℕ), E n` is naturally a topological space
+(with the product topology). When `E n` are uniform spaces, it also inherits a uniform structure.
+However, it does not inherit a canonical metric space structure of the `E n`. Nevertheless, one
+can put a noncanonical metric space structure (or rather, several of them). This is done in this
+file.
+
+## Main definitions and results
+
+One can define a combinatorial distance on `Π (n : ℕ), E n`, as follows:
+
+* `pi_nat.cylinder x n` is the set of points `y` with `x i = y i` for `i < n`.
+* `pi_nat.first_diff x y` is the first index at which `x i ≠ y i`.
+* `pi_nat.dist x y` is equal to `(1/2) ^ (first_diff x y)`. It defines a distance
+  on `Π (n : ℕ), E n`, compatible with the topology when the `E n` have the discrete topology.
+* `pi_nat.metric_space`: the metric space structure, given by this distance. Not registered as an
+  instance. This space is a complete metric space.
+* `pi_nat.metric_space_of_discrete_uniformity`: the same metric space structure, but adjusting the
+  uniformity defeqness when the `E n` already have the discrete uniformity.
+* `pi_nat.metric_space_nat_nat`: the particular case of `ℕ → ℕ`.
+
+These results are used to construct continuous functions on `Π n, E n`:
+
+* `pi_nat.exists_retraction_of_is_closed`: given a nonempty closed subset `s` of `Π (n : ℕ), E n`,
+  there exists a retraction onto `s`, i.e., a continuous map from the whole space to `s`
+  restricting to the identity on `s`.
+* `exists_nat_nat_continuous_surjective_of_complete_space`: given any nonempty complete metric
+  space with second-countable topology, there exists a continuous surjection from `ℕ → ℕ` onto
+  this space.
+
+One can also put distances on `Π n, E n` when the spaces `E n` are metric spaces (not discrete
+in general):
+
+* `pi_nat_nondiscrete.dist` is the distance on `Π n, E n` given by
+    `dist x y = ∑' n, min (1/2)^n (dist (x n) (y n))`.
+* `pi_nat_nondiscrete.metric_space` is the corresponding metric space structure, adjusted so that
+  the uniformity is definitionally the product uniformity. Not registered as an instance.
 -/
 
 noncomputable theory
@@ -738,11 +774,10 @@ end
 namespace pi_nat_nondiscrete
 
 /-!
-### Products of (possible non-discrete) spaces
+### Products of (possibly non-discrete) metric spaces
 -/
 
 variable [∀ n, metric_space (E n)]
-
 
 /-- Given a countable family of metric spaces, one may put a distance on their product `Π n, E n`.
 It is highly non-canonical, though, and therefore not registered as a global instance.

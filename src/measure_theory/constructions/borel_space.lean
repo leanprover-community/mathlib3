@@ -55,9 +55,6 @@ open measurable_space topological_space
 def borel (α : Type u) [topological_space α] : measurable_space α :=
 generate_from {s : set α | is_open s}
 
-def borel_measurable_set {α : Type u} [topological_space α] (s : set α) :=
-measurable_set[borel α] s
-
 lemma borel_eq_top_of_discrete [topological_space α] [discrete_topology α] :
   borel α = ⊤ :=
 top_le_iff.1 $ λ s hs, generate_measurable.basic s (is_open_discrete s)
@@ -219,14 +216,6 @@ variables [topological_space α] [measurable_space α] [opens_measurable_space �
 
 lemma is_open.measurable_set (h : is_open s) : measurable_set s :=
 opens_measurable_space.borel_le _ $ generate_measurable.basic _ h
-
-lemma is_open.borel_measurable_set {α : Type*} [topological_space α] {s : set α} (hs : is_open s) :
-  borel_measurable_set s :=
-begin
-  letI : measurable_space α := borel α,
-  haveI : borel_space α := ⟨rfl⟩,
-  exact hs.measurable_set,
-end
 
 @[measurability]
 lemma measurable_set_interior : measurable_set (interior s) := is_open_interior.measurable_set

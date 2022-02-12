@@ -10,6 +10,39 @@ import topology.metric_space.gluing
 /-!
 # Polish spaces
 
+A topological space is Polish if its topology is second-countable and there exists a compatible
+complete metric. This is the class of spaces that is well-behaved with respect to measure theory.
+In this file, we establish the basic properties of Polish spaces.
+
+## Main definitions and results
+
+* `polish_space α` is a mixin typeclass on a topological space, requiring that the topology is
+  second-countable and compatible with a complete metric. To endow the space with such a metric,
+  use in a proof
+    ```
+    letI : metric_space α := polish_space_metric α,
+    haveI : complete_space α := complete_polish_space_metric α,
+    haveI : second_countable_topology α := polish_space.second_countable α,
+    ```
+  We register an instance from complete second-countable metric spaces to polish spaces, not the
+  other way around.
+* We register that countable products and sums of Polish spaces are Polish.
+* `is_closed.polish_space`: a closed subset of a Polish space is Polish.
+* `is_open.polish_space`: an open subset of a Polish space is Polish.
+* `exists_nat_nat_continuous_surjective`: any nonempty Polish space is the continuous image
+  of the fundamental Polish space `ℕ → ℕ`.
+
+A fundamental property of Polish spaces is that one can put finer topologies, still Polish,
+with additional properties:
+
+* `exists_polish_space_forall_le`: on a topological space, consider countably many topologies
+  `t n`, all Polish and finer than the original topology. Then there exists another Polish
+  topology which is finer than all the `t n`.
+* `is_clopenable s` is a property of a subset `s` of a topological space, requiring that there
+  exists a finer topology, which is Polish, for which `s` becomes open and closed. We show that
+  this property is satisfied for open sets, closed sets, for complements, and for countable unions.
+  Once Borel-measurable sets are defined in later files, it will follow that any Borel-measurable
+  set is clopenable.
 -/
 
 noncomputable theory
@@ -17,6 +50,8 @@ open_locale classical topological_space filter
 open topological_space set metric filter function
 
 variables {α : Type*} {β : Type*}
+
+/-! ### Basic properties of Polish spaces -/
 
 /-- A Polish space is a topological space with second countable topology, that can be endowed
 with a metric for which it is complete.
@@ -56,7 +91,7 @@ end
 
 namespace polish_space
 
-protected lemma t2_space (α : Type*) [topological_space α] [polish_space α] : t2_space α :=
+instance t2_space (α : Type*) [topological_space α] [polish_space α] : t2_space α :=
 by { letI : metric_space α := polish_space_metric α, apply_instance }
 
 /-- A countable product of Polish spaces is Polish. -/
@@ -161,7 +196,6 @@ begin
   diagonal embedding of `α`, one gets a Polish topology which is finer than all the `m n`. -/
   letI : ∀ n, topological_space (aux_copy α n) := λ n, m n,
   haveI : ∀ n, polish_space (aux_copy α n) := λ n, h'm n,
-  haveI : t2_space α := polish_space.t2_space _,
   letI T : topological_space (Π n, aux_copy α n) := by apply_instance,
   let f : α → Π n, aux_copy α n := λ x n, x,
   refine ⟨T.induced f, _, _⟩,
@@ -206,6 +240,15 @@ begin
       { exact f_closed } },
     exact @closed_embedding.polish_space _ _ (T.induced f) T (by apply_instance) _ L }
 end
+
+/-!
+### An open subset of a Polish space is Polish
+
+To prove this fact, one needs to construct another metric, giving rise to the same topology,
+for which the open subset is complete. This is not obvious, as for instance `(0,1) ⊆ ℝ` is not
+complete for the usual metric of `ℝ`: one should build a new metric that blows up close to the
+boundary.
+-/
 
 section complete_copy
 
@@ -362,8 +405,11 @@ end
 
 end complete_copy
 
+/-! ### Clopenable sets in Polish spaces -/
+
 /-- A set in a topological space is clopenable if there exists a finer Polish topology for which
-this set is open and closed. -/
+this set is open and closed. It turns out that this notion is equivalent to being Borel-measurable,
+but this is nontrivial (see `is_clopenable_iff_measurable_set`). -/
 def is_clopenable [t : topological_space α] (s : set α) : Prop :=
 ∃ (t' : topological_space α), t' ≤ t ∧ @polish_space α t' ∧ @is_closed α t' s ∧ @is_open α t' s
 
@@ -423,7 +469,7 @@ begin
   exact ⟨t, t_le, t_polish, @is_open.is_closed_compl α t s h', @is_closed.is_open_compl α t s h⟩,
 end
 
-lemma _root_.is_open.is_clopenable [topological_space α] [polish_space α] (s : set α)
+lemma _root_.is_open.is_clopenable [topological_space α] [polish_space α] {s : set α}
   (hs : is_open s) : is_clopenable s :=
 by simpa using hs.is_closed_compl.is_clopenable.compl
 

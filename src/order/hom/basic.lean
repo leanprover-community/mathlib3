@@ -78,7 +78,7 @@ infixr ` →o `:25 := order_hom
 
 /-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
 abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [preorder α] [preorder β] :=
-rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop).
+rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop)
 
 /-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`.
 This definition is an abbreviation of `rel_embedding (≤) (≤)`. -/
@@ -134,6 +134,10 @@ instance : can_lift (α → β) (α →o β) :=
 { coe := coe_fn,
   cond := monotone,
   prf := λ f h, ⟨⟨f, h⟩, rfl⟩ }
+
+/-- Copy of an `order_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (f : α →o β) (f' : α → β) (h : f' = f) : α →o β := ⟨f', h.symm.subst f.monotone'⟩
 
 /-- The identity function as bundled monotone function. -/
 @[simps {fully_applied := ff}]

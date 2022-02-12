@@ -577,29 +577,36 @@ end mul_action
 section opposite
 open mul_opposite
 
+@[to_additive]
 instance {α : Type*} [h : measurable_space α] : measurable_space αᵐᵒᵖ := measurable_space.map op h
 
-lemma measurable_op {α : Type*} [measurable_space α] : measurable (op : α → αᵐᵒᵖ) := λ s, id
+@[to_additive]
+lemma measurable_mul_op {α : Type*} [measurable_space α] : measurable (op : α → αᵐᵒᵖ) := λ s, id
 
-lemma measurable_unop {α : Type*} [measurable_space α] : measurable (unop : αᵐᵒᵖ → α) := λ s, id
+@[to_additive]
+lemma measurable_mul_unop {α : Type*} [measurable_space α] : measurable (unop : αᵐᵒᵖ → α) := λ s, id
 
+@[to_additive]
 instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul M] :
   has_measurable_mul Mᵐᵒᵖ :=
-⟨λ c, measurable_op.comp (measurable_unop.mul_const _),
-  λ c, measurable_op.comp (measurable_unop.const_mul _)⟩
+⟨λ c, measurable_mul_op.comp (measurable_mul_unop.mul_const _),
+  λ c, measurable_mul_op.comp (measurable_mul_unop.const_mul _)⟩
 
+@[to_additive]
 instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul₂ M] :
   has_measurable_mul₂ Mᵐᵒᵖ :=
-⟨measurable_op.comp ((measurable_unop.comp measurable_snd).mul
-  (measurable_unop.comp measurable_fst))⟩
+⟨measurable_mul_op.comp ((measurable_mul_unop.comp measurable_snd).mul
+  (measurable_mul_unop.comp measurable_fst))⟩
 
+@[to_additive]
 instance has_measurable_smul_opposite_of_mul {M : Type*} [has_mul M] [measurable_space M]
   [has_measurable_mul M] : has_measurable_smul Mᵐᵒᵖ M :=
-⟨λ c, measurable_mul_const (unop c), λ x, measurable_unop.const_mul x⟩
+⟨λ c, measurable_mul_const (unop c), λ x, measurable_mul_unop.const_mul x⟩
 
+@[to_additive]
 instance has_measurable_smul₂_opposite_of_mul {M : Type*} [has_mul M] [measurable_space M]
   [has_measurable_mul₂ M] : has_measurable_smul₂ Mᵐᵒᵖ M :=
-⟨measurable_snd.mul (measurable_unop.comp measurable_fst)⟩
+⟨measurable_snd.mul (measurable_mul_unop.comp measurable_fst)⟩
 
 end opposite
 

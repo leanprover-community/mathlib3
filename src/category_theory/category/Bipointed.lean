@@ -128,11 +128,13 @@ def Pointed_to_Bipointed_snd : Pointed.{u} ⥤ Bipointed :=
 @[simp] lemma Pointed_to_Bipointed_snd_comp_swap :
   Pointed_to_Bipointed_snd ⋙ Bipointed.swap = Pointed_to_Bipointed_fst := rfl
 
-@[simps] lemma Pointed_to_Bipointed_comp_Bipointed_to_Pointed_fst :
+/-- `Bipointed_to_Pointed_fst` is inverse to `Pointed_to_Bipointed`. -/
+@[simps] def Pointed_to_Bipointed_comp_Bipointed_to_Pointed_fst :
   Pointed_to_Bipointed ⋙ Bipointed_to_Pointed_fst ≅ 𝟭 _ :=
 nat_iso.of_components (λ X, { hom := ⟨id, rfl⟩, inv := ⟨id, rfl⟩ }) $ λ X Y f, rfl
 
-@[simps] lemma Pointed_to_Bipointed_comp_Bipointed_to_Pointed_snd :
+/-- `Bipointed_to_Pointed_snd` is inverse to `Pointed_to_Bipointed`. -/
+@[simps] def Pointed_to_Bipointed_comp_Bipointed_to_Pointed_snd :
   Pointed_to_Bipointed ⋙ Bipointed_to_Pointed_snd ≅ 𝟭 _ :=
 nat_iso.of_components (λ X, { hom := ⟨id, rfl⟩, inv := ⟨id, rfl⟩ }) $ λ X Y f, rfl
 

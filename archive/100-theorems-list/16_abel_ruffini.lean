@@ -24,13 +24,14 @@ Then all that remains is the construction of a specific polynomial satisfying th
 namespace abel_ruffini
 
 open function polynomial polynomial.gal ideal
+open_locale polynomial
 
 local attribute [instance] splits_ℚ_ℂ
 
 variables (R : Type*) [comm_ring R] (a b : ℕ)
 
 /-- A quintic polynomial that we will show is irreducible -/
-noncomputable def Φ : polynomial R := X ^ 5 - C ↑a * X + C ↑b
+noncomputable def Φ : R[X] := X ^ 5 - C ↑a * X + C ↑b
 
 variables {R}
 

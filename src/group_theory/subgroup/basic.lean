@@ -908,6 +908,10 @@ set_like.coe_injective $ image_id _
 lemma map_map (g : N →* P) (f : G →* N) : (K.map f).map g = K.map (g.comp f) :=
 set_like.coe_injective $ image_image _ _ _
 
+@[simp, to_additive]
+lemma map_one_eq_bot : K.map (1 : G →* N) = ⊥ :=
+eq_bot_iff.mpr $ by { rintros x ⟨y, _ , rfl⟩, simp }
+
 @[to_additive]
 lemma mem_map_equiv {f : G ≃* N} {K : subgroup G} {x : N} :
   x ∈ K.map f.to_monoid_hom ↔ f.symm x ∈ K :=
@@ -976,6 +980,10 @@ end
 
 @[simp, to_additive] lemma map_bot (f : G →* N) : (⊥ : subgroup G).map f = ⊥ :=
 (gc_map_comap f).l_bot
+
+@[simp, to_additive] lemma map_top_of_surjective (f : G →* N) (h : function.surjective f) :
+  subgroup.map f ⊤ = ⊤ :=
+by {rw eq_top_iff, intros x hx, obtain ⟨y, hy⟩ := (h x), exact ⟨y, trivial, hy⟩ }
 
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
@@ -1078,6 +1086,21 @@ lemma top_prod_top : (⊤ : subgroup G).prod (⊤ : subgroup N) = ⊤ :=
 
 @[to_additive] lemma bot_prod_bot : (⊥ : subgroup G).prod (⊥ : subgroup N) = ⊥ :=
 set_like.coe_injective $ by simp [coe_prod, prod.one_eq_mk]
+
+@[to_additive le_prod_iff]
+lemma le_prod_iff {H : subgroup G} {K : subgroup N} {J : subgroup (G × N)} :
+  J ≤ H.prod K ↔ map (monoid_hom.fst G N) J ≤ H ∧ map (monoid_hom.snd G N) J ≤ K :=
+by simpa only [← subgroup.to_submonoid_le] using submonoid.le_prod_iff
+
+@[to_additive prod_le_iff]
+lemma prod_le_iff {H : subgroup G} {K : subgroup N} {J : subgroup (G × N)} :
+  H.prod K ≤ J ↔ map (monoid_hom.inl G N) H ≤ J ∧ map (monoid_hom.inr G N) K ≤ J :=
+by simpa only [← subgroup.to_submonoid_le] using submonoid.prod_le_iff
+
+@[simp, to_additive prod_eq_bot_iff]
+lemma prod_eq_bot_iff {H : subgroup G} {K : subgroup N} :
+  H.prod K = ⊥ ↔ H = ⊥ ∧ K = ⊥ :=
+by simpa only [← subgroup.to_submonoid_eq] using submonoid.prod_eq_bot_iff
 
 /-- Product of subgroups is isomorphic to their product as groups. -/
 @[to_additive prod_equiv "Product of additive subgroups is isomorphic to their product
@@ -1913,6 +1936,12 @@ lemma comap_map_eq_self_of_injective {f : G →* N} (h : function.injective f) (
 comap_map_eq_self (((ker_eq_bot_iff _).mpr h).symm ▸ bot_le)
 
 @[to_additive]
+lemma map_le_map_iff_of_injective {f : G →* N} (hf : function.injective f) {H K : subgroup G} :
+  H.map f ≤ K.map f ↔ H ≤ K :=
+⟨(congr_arg2 (≤) (H.comap_map_eq_self_of_injective hf)
+  (K.comap_map_eq_self_of_injective hf)).mp ∘ comap_mono, map_mono⟩
+
+@[to_additive]
 lemma map_injective {f : G →* N} (h : function.injective f) : function.injective (map f) :=
 λ K L hKL, by { apply_fun comap f at hKL, simpa [comap_map_eq_self_of_injective h] using hKL }
 
@@ -2631,6 +2660,44 @@ S.to_submonoid.mul_distrib_mul_action
 end subgroup
 
 end actions
+
+/-! ### Mul-opposite subgroups -/
+
+section mul_opposite
+
+namespace subgroup
+
+/-- A subgroup `H` of `G` determines a subgroup `H.opposite` of the opposite group `Gᵐᵒᵖ`. -/
+@[to_additive "An additive subgroup `H` of `G` determines an additive subgroup `H.opposite` of the
+  opposite additive group `Gᵃᵒᵖ`."]
+def opposite (H : subgroup G) : subgroup Gᵐᵒᵖ :=
+{ carrier := mul_opposite.unop ⁻¹' (H : set G),
+  one_mem' := H.one_mem,
+  mul_mem' := λ a b ha hb, H.mul_mem hb ha,
+  inv_mem' := λ a, H.inv_mem }
+
+/-- Bijection between a subgroup `H` and its opposite. -/
+@[to_additive "Bijection between an additive subgroup `H` and its opposite.", simps]
+def opposite_equiv (H : subgroup G) : H ≃ H.opposite :=
+mul_opposite.op_equiv.subtype_equiv $ λ _, iff.rfl
+
+@[to_additive] instance (H : subgroup G) [encodable H] : encodable H.opposite :=
+encodable.of_equiv H H.opposite_equiv.symm
+
+@[to_additive] lemma smul_opposite_mul {H : subgroup G} (x g : G) (h : H.opposite) :
+  h • (g * x) = g * (h • x) :=
+begin
+  cases h,
+  simp [(•), mul_assoc],
+end
+
+@[to_additive] lemma smul_opposite_image_mul_preimage {H : subgroup G} (g : G) (h : H.opposite)
+  (s : set G) : (λ y, h • y) '' (has_mul.mul g ⁻¹' s) = has_mul.mul g ⁻¹' ((λ y, h • y) '' s) :=
+by { ext x, cases h, simp [(•), mul_assoc] }
+
+end subgroup
+
+end mul_opposite
 
 /-! ### Saturated subgroups -/
 

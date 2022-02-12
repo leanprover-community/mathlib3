@@ -502,142 +502,80 @@ instance [has_inter α] : has_inter (part α) := { inter := λ a b, (∩) <$> a 
 instance [has_union α] : has_union (part α) := { union := λ a b, (∪) <$> a <*> b }
 instance [has_sdiff α] : has_sdiff (part α) := { sdiff := λ a b, (\) <$> a <*> b }
 
+lemma zero_mem_zero [has_zero α] :
+  (0 : α) ∈ (0 : part α) := by tidy
+
+lemma one_mem_one [has_one α] :
+  (1 : α) ∈ (1 : part α) := by tidy
+
 lemma add_mem_add [has_add α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
-  ma + mb ∈ a + b :=
-begin
-  cases hb,
-  cases ha,
-  induction ha_h,
-  induction hb_h,
-  fsplit,
-  { fsplit,
-    exact ha_w,
-    exact hb_w, },
-  refl,
-end
+  ma + mb ∈ a + b := by tidy
 
 lemma some_add_some [has_add α] (a b : α) :
-  (some a + some b) = some (a + b) :=
-begin
-  ext1,
-  rw [part.mem_some_iff],
-  fsplit,
-  { intros h,
-    cases h,
-    rw ←h_h,
-    refl, },
-  intro h,
-  rw h,
-  exact (some a).add_mem_add (some b) a b (mem_some a) (mem_some b),
-end
+  (some a + some b) = some (a + b) := by tidy
 
 lemma mul_mem_mul [has_mul α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
   ma * mb ∈ a * b :=
 begin
-  cases hb,
-  cases ha,
-  induction ha_h,
-  induction hb_h,
-  fsplit,
-  { fsplit,
-    exact ha_w,
-    exact hb_w, },
-  refl,
+  tidy,
 end
 
 lemma some_mul_some [has_mul α] (a b : α) :
-  (some a * some b) = some (a * b) :=
-begin
-  ext1,
-  rw [part.mem_some_iff],
-  fsplit,
-  { intros h,
-    cases h,
-    rw ←h_h,
-    refl, },
-  intro h,
-  rw h,
-  exact (some a).mul_mem_mul (some b) a b (mem_some a) (mem_some b),
-end
+  (some a * some b) = some (a * b) := by tidy
 
 lemma inv_mem_inv [has_inv α] (a : part α) (ma : α) (ha : ma ∈ a) :
-  ma ⁻¹ ∈ a ⁻¹ :=
-begin
-  cases ha,
-  induction ha_h,
-  fsplit,
-  { exact ha_w, },
-  refl,
-end
+  ma ⁻¹ ∈ a ⁻¹ := by tidy
 
 lemma some_inv_some [has_inv α] (a b : α) :
-  (some a) ⁻¹ = some (a ⁻¹) :=
-begin
-  ext1,
-  rw [part.mem_some_iff],
-  fsplit,
-  { intros h,
-    cases h,
-    rw ←h_h,
-    refl, },
-  intro h,
-  rw h,
-  exact (some a).inv_mem_inv a (mem_some a),
-end
+  (some a) ⁻¹ = some (a ⁻¹) := by tidy
 
 lemma neg_mem_neg [has_neg α] (a : part α) (ma : α) (ha : ma ∈ a) :
-  - ma ∈ - a :=
-begin
-  cases ha,
-  induction ha_h,
-  fsplit,
-  { exact ha_w, },
-  refl,
-end
+  - ma ∈ - a := by tidy
 
 lemma some_neg_some [has_neg α] (a b : α) :
-  - (some a) = some (- a) :=
-begin
-  ext1,
-  rw [part.mem_some_iff],
-  fsplit,
-  { intros h,
-    cases h,
-    rw ←h_h,
-    refl, },
-  intro h,
-  rw h,
-  exact (some a).neg_mem_neg a (mem_some a),
-end
+  - (some a) = some (- a) := by tidy
 
 lemma sub_mem_sub [has_sub α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
-  ma - mb ∈ a - b :=
-begin
-  cases hb,
-  cases ha,
-  induction ha_h,
-  induction hb_h,
-  fsplit,
-  { fsplit,
-    exact ha_w,
-    exact hb_w, },
-  refl,
-end
+  ma - mb ∈ a - b := by tidy
 
 lemma some_sub_some [has_sub α] (a b : α) :
-  (some a - some b) = some (a - b) :=
-begin
-  ext1,
-  rw [part.mem_some_iff],
-  fsplit,
-  { intros h,
-    cases h,
-    rw ←h_h,
-    refl, },
-  intro h,
-  rw h,
-  exact (some a).sub_mem_sub (some b) a b (mem_some a) (mem_some b),
-end
+  (some a - some b) = some (a - b) := by tidy
+
+lemma div_mem_div [has_div α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma / mb ∈ a / b := by tidy
+
+lemma some_div_some [has_div α] (a b : α) :
+  (some a / some b) = some (a / b) := by tidy
+
+lemma mod_mem_mod [has_mod α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma % mb ∈ a % b := by tidy
+
+lemma some_mod_some [has_mod α] (a b : α) :
+  (some a % some b) = some (a % b) := by tidy
+
+lemma append_mem_append [has_append α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma ++ mb ∈ a ++ b := by tidy
+
+lemma some_append_some [has_append α] (a b : α) :
+  (some a ++ some b) = some (a ++ b) := by tidy
+
+lemma inter_mem_inter [has_inter α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma ∩ mb ∈ a ∩ b := by tidy
+
+lemma some_inter_some [has_inter α] (a b : α) :
+  (some a ∩ some b) = some (a ∩ b) := by tidy
+
+lemma union_mem_union [has_union α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma ∪ mb ∈ a ∪ b := by tidy
+
+lemma some_union_some [has_union α] (a b : α) :
+  (some a ∪ some b) = some (a ∪ b) := by tidy
+
+lemma sdiff_mem_sdiff [has_sdiff α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma \  mb ∈ a \ b := by tidy
+
+lemma some_sdiff_some [has_sdiff α] (a b : α) :
+  (some a \ some b) = some (a \ b) := by tidy
 
 end instances
 

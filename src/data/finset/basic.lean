@@ -81,10 +81,10 @@ In Lean, we use lattice notation to talk about things involving unions and inter
 `order.lattice`. For the lattice structure on finsets, `⊥` is called `bot` with `⊥ = ∅` and `⊤` is
 called `top` with `⊤ = univ`.
 
-* `finset.subset`: Lots of API about lattices, otherwise behaves exactly as one would expect.
-* `finset.union`: Defines `s ∪ t` (or `s ⊔ t`) as the union of `s` and `t`.
+* `finset.has_subset`: Lots of API about lattices, otherwise behaves exactly as one would expect.
+* `finset.has_union`: Defines `s ∪ t` (or `s ⊔ t`) as the union of `s` and `t`.
   See `finset.sup`/`finset.bUnion` for finite unions.
-* `finset.inter`: Defines `s ∩ t` (or `s ⊓ t`) as the intersection of `s` and `t`.
+* `finset.has_inter`: Defines `s ∩ t` (or `s ⊓ t`) as the intersection of `s` and `t`.
   See `finset.inf` for finite intersections.
 * `finset.disj_union`: Given a hypothesis `h` which states that finsets `s` and `t` are disjoint,
   `s.disj_union t h` is the set such that `a ∈ disj_union s t h` iff `a ∈ s` or `a ∈ t`; this does
@@ -92,13 +92,13 @@ called `top` with `⊤ = univ`.
 
 ### Operations on two or more finsets
 
-* `finset.insert` and `finset.cons`: For any `a : α`, `insert s a` returns `s ∪ {a}`. `cons s a h`
+* `insert` and `finset.cons`: For any `a : α`, `insert s a` returns `s ∪ {a}`. `cons s a h`
   returns the same except that it requires a hypothesis stating that `a` is not already in `s`.
   This does not require decidable equality on the type `α`.
-* `finset.union`: see "The lattice structure on subsets of finsets"
-* `finset.inter`: see "The lattice structure on subsets of finsets"
+* `finset.has_union`: see "The lattice structure on subsets of finsets"
+* `finset.has_inter`: see "The lattice structure on subsets of finsets"
 * `finset.erase`: For any `a : α`, `erase s a` returns `s` with the element `a` removed.
-* `finset.sdiff`: Defines the set difference `s \ t` for finsets `s` and `t`.
+* `finset.has_sdiff`: Defines the set difference `s \ t` for finsets `s` and `t`.
 * `finset.product`: Given finsets of `α` and `β`, defines finsets of `α × β`.
   For arbitrary dependent products, see `data.finset.pi`.
 * `finset.bUnion`: Finite unions of finsets; given an indexing function `f : α → finset β` and a

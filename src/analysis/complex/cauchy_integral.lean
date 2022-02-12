@@ -66,6 +66,13 @@ differentiability at all but countably many points of the set mentioned below.
   on a neighborhood of a point, then it is analytic at this point. In particular, if `f : ℂ → E`
   is differentiable on the whole `ℂ`, then it is analytic at every point `z : ℂ`.
 
+* `differentiable.has_power_series_on_ball`: If `f : ℂ → E` is differentiable everywhere then the
+  `cauchy_power_series f z R` is a formal power series representing `f` at `z` with infinite
+  radius of convergence (this holds for any choice of `0 < R`).
+
+* `differentiable.const_of_bounded` **Liouville's theorem**: If `f : ℂ → E` is differentiable and
+  bounded in the entirety of `ℂ`, then it is constant.
+
 ## Implementation details
 
 The proof of the Cauchy integral formula in this file is based on a very general version of the
@@ -576,8 +583,8 @@ hf.differentiable_on.analytic_at univ_mem
 
 section liouville
 
-/- When `f : ℂ → E` is differentiable, the `cauchy_power_series f z R` represents `f`
-as a power series centered at `z` in the entirety of `ℂ`, regardless of `R : ℝ≥0`. -/
+/- When `f : ℂ → E` is differentiable, the `cauchy_power_series f z R` represents `f` as a power
+series centered at `z` in the entirety of `ℂ`, regardless of `R : ℝ≥0`, with  `0 < R`. -/
 theorem _root_.differentiable.has_fpower_series_on_ball {f : ℂ → E}
   (h : differentiable ℂ f) (z : ℂ) {R : ℝ≥0} (hR : 0 < R) :
   has_fpower_series_on_ball f (cauchy_power_series f z R) z ∞ :=
@@ -619,10 +626,8 @@ begin
           : mul_le_mul_of_nonneg_right ((mul_le_mul_left (inv_pos.mpr real.two_pi_pos)).mpr
             (integral_mono real.two_pi_pos.le h.continuous.norm.continuous_on.circle_integrable'
             (by simp) (λ θ, hC' _))) (by simp)
-      ... = (2 * π)⁻¹ * (2 * π * C') * (R⁻¹) ^ n
-          : by simp
       ... = C' * (R⁻¹) ^ n
-          : by rw inv_mul_cancel_left₀ real.two_pi_pos.ne.symm, },
+          : by simp [inv_mul_cancel_left₀ real.two_pi_pos.ne.symm], },
     have H₃ : ∀ ε > 0, ∃ {R : ℝ≥0}, 0 < R ∧ (R : ℝ)⁻¹ ^ n ≤ ε,
     { intros ε hε,
       let R : ℝ≥0 := ⟨max 1 ε⁻¹, le_trans zero_le_one (le_max_left 1 ε⁻¹)⟩,
@@ -635,10 +640,8 @@ begin
       ... ≤ ε            : inv_inv₀ ε ▸ inv_le_inv_of_le (inv_pos.mpr hε) (le_max_right 1 ε⁻¹), },
     refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ ε hε, _)) (norm_nonneg _)),
     obtain ⟨R, hR, hRε⟩ := H₃ (C'⁻¹ * ε) (mul_pos (inv_pos.mpr C'_pos) hε),
-    calc ∥cauchy_power_series f 0 1 n∥
-        ≤ C' * R⁻¹ ^ n    : H₂ hR
-    ... ≤ C' * (C'⁻¹ * ε) : mul_le_mul_of_nonneg_left hRε C'_pos.le
-    ... = 0 + ε           : by simpa using mul_inv_cancel_left₀ C'_pos.ne.symm _, },
+    exact (zero_add ε).symm ▸ (mul_inv_cancel_left₀ C'_pos.ne.symm ε ▸
+      le_trans (H₂ hR) (mul_le_mul_of_nonneg_left hRε C'_pos.le)), },
   ext z,
   have H₄ := h.has_fpower_series_on_ball 0 zero_lt_one,
   have H₅ := (H₄.has_sum (mem_emetric_ball_zero_iff.mpr (@ennreal.coe_lt_top ∥z∥₊))).tsum_eq,

@@ -466,11 +466,6 @@ end
 
 end pseudofunctor
 
-#check @pseudofunctor.mk
-
-#check @pseudofunctor.mk_of_oplax
-
-
 end
 
 end category_theory

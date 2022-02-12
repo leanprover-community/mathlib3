@@ -16,6 +16,25 @@ We define the action of `SL(2,ℤ)` on `ℍ` (via restriction of the `SL(2,ℝ)`
 (`modular_group.exists_smul_mem_fundamental_domain`) that any point in `ℍ` can be
 moved inside `𝒟`.
 
+## Main definitions
+
+The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`:
+`fundamental_domain := {z | 1 ≤ (complex.norm_sq z) ∧ |z.re| ≤ (1 : ℝ) / 2}`
+
+The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`:
+`fundamental_domain_open := {z | 1 < ((z:ℂ).norm_sq) ∧ |z.re| < (1 : ℝ) / 2}`
+
+
+## Main results
+
+Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`:
+`exists_smul_mem_fundamental_domain (z : ℍ) : ∃ γ : SL(2,ℤ), γ • z ∈ 𝒟`
+
+If both `z` and `γ • z` are in the open domain `𝒟ᵒ` then `z = g • z`:
+`fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
+
+# Discussion
+
 Standard proofs make use of the identity
 
 `g • z = a / c - 1 / (c (cz + d))`
@@ -35,6 +54,7 @@ instead using abstract theory on the properness of certain maps (phrased in term
 existence of `g` maximizing `(g•z).im` (see `modular_group.exists_max_im`), and then among
 those, to minimize `|(g•z).re|` (see `modular_group.exists_row_one_eq_and_min_re`).
 -/
+
 
 open complex matrix matrix.special_linear_group upper_half_plane
 noncomputable theory

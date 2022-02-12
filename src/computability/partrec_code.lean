@@ -6,15 +6,15 @@ Authors: Mario Carneiro
 import computability.partrec
 
 /-!
-# Gödel numbering for partial recursive functions.
+# Gödel Numbering for Partial Recursive Functions.
 
-This file defines `nat.partrec.code`, and inductive datatype describing code for partial
+This file defines `nat.partrec.code`, an inductive datatype describing code for partial
 recursive functions on ℕ. It defines an encoding for these codes, and proves that the constructors
 are primitive recursive with respect to the encoding.
 
-It also defines the evalution of these codes as partial functions using
-`pfun`, and proves that a function is partially recursive (as defined by `nat.partrec`) if and only
-if it is the evaluation of some code.
+It also defines the evalution of these codes as partial functions using `pfun`, and proves that a
+function is partially recursive (as defined by `nat.partrec`) if and only if it is the evaluation
+of some code.
 
 ## Main Definitions
 
@@ -528,7 +528,7 @@ The interpretation of a `nat.partrec.code` as a partial function.
 * `nat.partrec.code.left`: Left unpairing of a pair of ℕ (encoded by `nat.mkpair`)
 * `nat.partrec.code.right`: Right unpairing of a pair of ℕ (encoded by `nat.mkpair`)
 * `nat.partrec.code.pair`: Pairs the outputs of argument codes using `nat.mkpair`.
-* `nat.partrec.code.comp`: Composition of the two argument codes.
+* `nat.partrec.code.comp`: Composition of two argument codes.
 * `nat.partrec.code.prec`: Primitive recursion. Given an argument of the form `nat.mkpair a n`:
   * If `n = 0`, returns `eval cf a`.
   * If `n = succ k`, returns `eval cg (mkpair a (mkpair k (eval (prec cf cg) (mkpair a k))))`
@@ -613,10 +613,9 @@ end, λ h, begin
 end⟩
 
 /--
-A modified evaluation for the code which returns an `option ℕ` instead of a `part ℕ`.
-To avoid undecidability, `evaln` takes a parameter `k` and fails if it encounters a number ≥ k in
-the course of its execution.
-Other than this, the semantics are the same as in `nat.partrec.code.eval`.
+A modified evaluation for the code which returns an `option ℕ` instead of a `part ℕ`. To avoid
+undecidability, `evaln` takes a parameter `k` and fails if it encounters a number ≥ k in the course
+of its execution. Other than this, the semantics are the same as in `nat.partrec.code.eval`.
 -/
 def evaln : ∀ k : ℕ, code → ℕ → option ℕ
 | 0     _            := λ m, none

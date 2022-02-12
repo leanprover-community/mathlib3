@@ -452,6 +452,7 @@ by rw [← of_real_rat_cast, of_real_im]
 
 /-! ### Characteristic zero -/
 /-- ℝ and ℂ are both of characteristic zero.  -/
+@[priority 100] -- see Note [lower instance priority]
 instance char_zero_R_or_C : char_zero K :=
 char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h

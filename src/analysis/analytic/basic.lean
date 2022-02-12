@@ -696,7 +696,7 @@ section uniqueness
 open continuous_multilinear_map
 
 lemma asymptotics.is_O.continuous_multilinear_map_apply_eq_zero {n : ℕ} {p : E [×n]→L[𝕜] F}
-  (h : is_O (λ y, p (λ i, y)) (λ y, ∥y∥ ^ (n + 1)) (nhds 0)) (y : E) :
+  (h : is_O (λ y, p (λ i, y)) (λ y, ∥y∥ ^ (n + 1)) (𝓝 0)) (y : E) :
   p (λ i, y) = 0 :=
 begin
   obtain ⟨c, c_pos, hc⟩ := h.exists_pos,

@@ -23,7 +23,7 @@ The former uses `iso` for the same type, and the latter uses` is_iso` for the sa
   `map₂_whisker_right` instead of naturality of `map_comp`.
 * `pseudofunctor.mk_of_oplax` : construct a pseudofunctor from an oplax functor whose
   `map_id` and `map_comp` are isomorphisms. This constructor uses `iso` to describe isomorphisms.
-* `pseudofunctor.mk_of_oplax'` : similar to `mk_of_oplax`, but uses` is_iso` to describe
+* `pseudofunctor.mk_of_oplax'` : similar to `mk_of_oplax`, but uses `is_iso` to describe
   isomorphisms.
 
 ## Main definitions
@@ -347,10 +347,10 @@ open iso
 /-- The prelax functor between the underlying quivers. -/
 add_decl_doc pseudofunctor.to_prelax_functor
 
-instance has_coe_to_prelax : has_coe (pseudofunctor B C) (prelax_functor B C) :=
+instance has_coe_to_prelax_functor : has_coe (pseudofunctor B C) (prelax_functor B C) :=
 ⟨to_prelax_functor⟩
 
-@[simp] lemma to_prelax_eq_coe : F.to_prelax_functor = F := rfl
+@[simp] lemma to_prelax_functor_eq_coe : F.to_prelax_functor = F := rfl
 @[simp] lemma to_prelax_functor_obj : (F : prelax_functor B C).obj = F.obj := rfl
 @[simp] lemma to_prelax_functor_map : (F : prelax_functor B C).map = F.map := rfl
 @[simp] lemma to_prelax_functor_map₂ : (F : prelax_functor B C).map₂ = F.map₂ := rfl

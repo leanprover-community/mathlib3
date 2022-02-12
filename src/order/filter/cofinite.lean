@@ -20,7 +20,7 @@ and prove its basic properties. In particular, we prove that for `ℕ` it is equ
 Define filters for other cardinalities of the complement.
 -/
 
-open set
+open set function
 open_locale classical
 
 variables {α : Type*}
@@ -80,7 +80,7 @@ begin
   split,
   { rintro ⟨t, htf, hsub⟩,
     exact (finite.pi htf).subset hsub },
-  { exact λ hS, ⟨λ i, function.eval i '' S, λ i, hS.image _, subset_pi_eval_image _ _⟩ }
+  { exact λ hS, ⟨λ i, eval i '' S, λ i, hS.image _, subset_pi_eval_image _ _⟩ }
 end
 
 end filter
@@ -162,6 +162,12 @@ lemma filter.tendsto.exists_forall_ge {α β : Type*} [nonempty α] [linear_orde
 @filter.tendsto.exists_forall_le _ (order_dual β) _ _ _ hf
 
 /-- For an injective function `f`, inverse images of finite sets are finite. -/
-lemma function.injective.tendsto_cofinite {α β : Type*} {f : α → β} (hf : function.injective f) :
+lemma function.injective.tendsto_cofinite {α β : Type*} {f : α → β} (hf : injective f) :
   tendsto f cofinite cofinite :=
 λ s h, h.preimage (hf.inj_on _)
+
+/-- An injective sequence `f : ℕ → ℕ` tends to infinity at infinity. -/
+lemma function.injective.tendsto_at_top {f : ℕ → ℕ} (hf : injective f) :
+  tendsto f at_top at_top :=
+nat.cofinite_eq_at_top ▸ hf.tendsto_cofinite
+

@@ -40,7 +40,7 @@ in the file `ring_theory/laurent_series`.
 
 ## TODO
   * Build an API for the variable `X` (defined to be `single 1 1 : hahn_series Γ R`) in analogy to
-    `X : polynomial R` and `X : power_series R`
+    `X : R[X]` and `X : power_series R`
 
 ## References
 - [J. van der Hoeven, *Operators on Generalized Power Series*][van_der_hoeven]
@@ -48,7 +48,7 @@ in the file `ring_theory/laurent_series`.
 -/
 
 open finset function
-open_locale big_operators classical pointwise
+open_locale big_operators classical pointwise polynomial
 noncomputable theory
 
 /-- If `Γ` is linearly ordered and `R` has zero, then `hahn_series Γ R` consists of
@@ -1148,11 +1148,11 @@ variables {R} {S : Type*} [comm_semiring S] [algebra S (power_series R)]
 lemma algebra_map_apply' (x : S) :
   algebra_map S (hahn_series Γ R) x = of_power_series Γ R (algebra_map S (power_series R) x) := rfl
 
-@[simp] lemma _root_.polynomial.algebra_map_hahn_series_apply (f : polynomial R) :
-  algebra_map (polynomial R) (hahn_series Γ R) f = of_power_series Γ R f := rfl
+@[simp] lemma _root_.polynomial.algebra_map_hahn_series_apply (f : R[X]) :
+  algebra_map R[X] (hahn_series Γ R) f = of_power_series Γ R f := rfl
 
 lemma _root_.polynomial.algebra_map_hahn_series_injective :
-  function.injective (algebra_map (polynomial R) (hahn_series Γ R)) :=
+  function.injective (algebra_map R[X] (hahn_series Γ R)) :=
 of_power_series_injective.comp (polynomial.coe_injective R)
 
 end algebra

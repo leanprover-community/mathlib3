@@ -22,6 +22,9 @@ and `has_continuous_sup`.
 topological, lattice
 -/
 
+open filter
+open_locale topological_space
+
 /--
 Let `L` be a topological space and let `L×L` be equipped with the product topology and let
 `⊓:L×L → L` be an infimum. Then `L` is said to have *(jointly) continuous infimum* if the map
@@ -83,11 +86,8 @@ has_continuous_sup.continuous_sup
   continuous (λx, f x ⊔ g x) :=
 continuous_sup.comp (hf.prod_mk hg : _)
 
-open filter
-open_locale filter topological_space
-
-lemma filter.tendsto.sup_right {ι β} [preorder ι] [topological_space β] [has_sup β]
-  [has_continuous_sup β] {l : filter ι} {f g : ι → β} {x y : β}
+lemma filter.tendsto.sup_right {ι β} [topological_space β] [has_sup β] [has_continuous_sup β]
+  {l : filter ι} {f g : ι → β} {x y : β}
   (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
   tendsto (f ⊔ g) l (𝓝 (x ⊔ y)) :=
 begin
@@ -99,8 +99,8 @@ begin
   exact ⟨hf, hg⟩,
 end
 
-lemma filter.tendsto.inf_right {ι β} [preorder ι] [topological_space β] [has_inf β]
-  [has_continuous_inf β] {l : filter ι} {f g : ι → β} {x y : β}
+lemma filter.tendsto.inf_right {ι β} [topological_space β] [has_inf β] [has_continuous_inf β]
+  {l : filter ι} {f g : ι → β} {x y : β}
   (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
   tendsto (f ⊓ g) l (𝓝 (x ⊓ y)) :=
 begin

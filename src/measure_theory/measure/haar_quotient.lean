@@ -38,7 +38,7 @@ theorem measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_s
   [measurable_space E] [borel_space E] [complete_space E]
   [topological_space.second_countable_topology E] {f : β → α → E}
   (hf : ∀ (i : β), measurable (f i)) :
-∫ (a : α), (∑' (i : β), f i a) ∂μ = ∑' (i : β), ∫ (a : α), f i a ∂μ :=
+  ∫ (a : α), (∑' (i : β), f i a) ∂μ = ∑' (i : β), ∫ (a : α), f i a ∂μ :=
 sorry
 
 
@@ -138,7 +138,7 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
     rw this,
     have h𝓕_translate_fundom : is_fundamental_domain Γ.opposite (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ :=
       h𝓕.smul (g⁻¹),
-    haveI : smul_invariant_measure ↥(Γ.opposite) G μ := subgroup.smul_invariant_measure,
+    haveI : smul_invariant_measure Γ.opposite G μ := Γ.smul_invariant_measure μ,
     rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA,
     rintros ⟨γ, γ_in_Γ⟩,
     ext,

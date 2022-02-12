@@ -51,7 +51,7 @@ results for those functions as if the measure was sigma-finite.
 -/
 
 open measure_theory filter topological_space function
-open_locale ennreal topological_space measure_theory
+open_locale nnreal ennreal topological_space measure_theory
 
 namespace measure_theory
 
@@ -188,6 +188,12 @@ protected lemma measurable [measurable_space α] [metric_space β] [measurable_s
   measurable f :=
 measurable_of_tendsto_metric (λ n, (hf.approx n).measurable) (tendsto_pi_nhds.mpr hf.tendsto_approx)
 
+protected lemma measurable_ennreal [measurable_space α] {f : α → ℝ≥0∞}
+  (hf : strongly_measurable f) :
+  measurable f :=
+measurable_of_tendsto_ennreal (λ n, (hf.approx n).measurable)
+  (tendsto_pi_nhds.mpr hf.tendsto_approx)
+
 section arithmetic
 variables [measurable_space α] [topological_space β]
 
@@ -213,6 +219,67 @@ protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_
 ⟨λ n, c • (hf.approx n), λ x, (hf.tendsto_approx x).const_smul c⟩
 
 end arithmetic
+
+section order
+variables [measurable_space α] [topological_space β]
+
+open filter
+open_locale filter
+
+/- Move next to `filter.tendsto_prod_iff` -/
+lemma tendsto_prod_iff' {ι G G'} {f : filter ι} {g : filter G} {g' : filter G'}
+  {s : ι → G × G'} :
+  tendsto s f (g ×ᶠ g') ↔ tendsto (λ n, (s n).1) f g ∧ tendsto (λ n, (s n).2) f g' :=
+begin
+  unfold filter.prod,
+  simp only [tendsto_inf, tendsto_comap_iff, iff_self]
+end
+
+lemma prod.tendsto_iff {ι G G'} [topological_space G] [topological_space G']
+  (seq : ι → G × G') {f : filter ι} (x : G × G') :
+  tendsto seq f (𝓝 x)
+    ↔ tendsto (λ n, (seq n).fst) f (𝓝 x.fst) ∧ tendsto (λ n, (seq n).snd) f (𝓝 x.snd) :=
+by { cases x, rw [nhds_prod_eq, tendsto_prod_iff'], }
+
+-- TODO: move this
+lemma _root_.filter.tendsto.sup_right {ι} [preorder ι] {f g : ι → β} [has_sup β]
+  [has_continuous_sup β]
+  {x y : β} (hf : tendsto f at_top (𝓝 x)) (hg : tendsto g at_top (𝓝 y)) :
+  tendsto (f ⊔ g) at_top (𝓝 (x ⊔ y)) :=
+begin
+  have h_prod_left : f ⊔ g = (λ p : β × β, (p.fst ⊔ p.snd : β)) ∘ (λ i, (f i, g i)) := rfl,
+  have h_prod_right : x ⊔ y = (λ p : β × β, p.fst ⊔ p.snd) (x, y) := rfl,
+  rw [h_prod_left, h_prod_right],
+  refine (continuous_sup.tendsto (x,y)).comp _,
+  rw prod.tendsto_iff,
+  exact ⟨hf, hg⟩,
+end
+
+-- TODO: move this
+lemma _root_.filter.tendsto.inf_right {ι} [preorder ι] {f g : ι → β} [has_inf β]
+  [has_continuous_inf β]
+  {x y : β} (hf : tendsto f at_top (𝓝 x)) (hg : tendsto g at_top (𝓝 y)) :
+  tendsto (f ⊓ g) at_top (𝓝 (x ⊓ y)) :=
+begin
+  have h_prod_left : f ⊓ g = (λ p : β × β, (p.fst ⊓ p.snd : β)) ∘ (λ i, (f i, g i)) := rfl,
+  have h_prod_right : x ⊓ y = (λ p : β × β, p.fst ⊓ p.snd) (x, y) := rfl,
+  rw [h_prod_left, h_prod_right],
+  refine (continuous_inf.tendsto (x,y)).comp _,
+  rw prod.tendsto_iff,
+  exact ⟨hf, hg⟩,
+end
+
+protected lemma sup [has_sup β] [has_continuous_sup β] (hf : strongly_measurable f)
+  (hg : strongly_measurable g) :
+  strongly_measurable (f ⊔ g) :=
+⟨λ n, hf.approx n ⊔ hg.approx n, λ x, (hf.tendsto_approx x).sup_right (hg.tendsto_approx x)⟩
+
+protected lemma inf [has_inf β] [has_continuous_inf β] (hf : strongly_measurable f)
+  (hg : strongly_measurable g) :
+  strongly_measurable (f ⊓ g) :=
+⟨λ n, hf.approx n ⊓ hg.approx n, λ x, (hf.tendsto_approx x).inf_right (hg.tendsto_approx x)⟩
+
+end order
 
 end strongly_measurable
 
@@ -262,6 +329,10 @@ protected lemma ae_measurable {β} [measurable_space β] [metric_space β] [bore
   ae_measurable f μ :=
 ⟨hf.mk f, hf.strongly_measurable_mk.measurable, hf.ae_eq_mk⟩
 
+protected lemma ae_measurable_ennreal {f : α → ℝ≥0∞} (hf : ae_strongly_measurable f μ) :
+  ae_measurable f μ :=
+⟨hf.mk f, hf.strongly_measurable_mk.measurable_ennreal, hf.ae_eq_mk⟩
+
 section arithmetic
 
 @[to_additive]
@@ -291,6 +362,24 @@ protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_
   by { refine hf.ae_eq_mk.mono (λ x hx, _), rw [pi.smul_apply, pi.smul_apply, hx], }⟩
 
 end arithmetic
+
+section order
+
+protected lemma sup [has_sup β] [has_continuous_sup β] (hf : ae_strongly_measurable f μ)
+  (hg : ae_strongly_measurable g μ) :
+  ae_strongly_measurable (f ⊔ g) μ :=
+⟨(hf.mk f) ⊔ (hg.mk g), hf.strongly_measurable_mk.sup hg.strongly_measurable_mk,
+  by { filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
+    rw [pi.sup_apply, pi.sup_apply, hfx, hgx], }⟩
+
+protected lemma inf [has_inf β] [has_continuous_inf β] (hf : ae_strongly_measurable f μ)
+  (hg : ae_strongly_measurable g μ) :
+  ae_strongly_measurable (f ⊓ g) μ :=
+⟨(hf.mk f) ⊓ (hg.mk g), hf.strongly_measurable_mk.inf hg.strongly_measurable_mk,
+  by { filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
+    rw [pi.inf_apply, pi.inf_apply, hfx, hgx], }⟩
+
+end order
 
 end ae_strongly_measurable
 
@@ -616,11 +705,12 @@ partial_order.lift to_germ to_germ_injective
 section lattice
 
 section sup
-variables [semilattice_sup β] [has_measurable_sup₂ β]
+variables [semilattice_sup β] [has_continuous_sup β]
 
-instance : has_sup (α →ₛₘ[μ] β) := { sup := λ f g, ae_str_meas.comp₂ (⊔) measurable_sup f g }
+noncomputable instance : has_sup (α →ₛₘ[μ] β) :=
+⟨λ f g, mk (f ⊔ g) (f.ae_strongly_measurable.sup g.ae_strongly_measurable)⟩
 
-lemma coe_fn_sup (f g : α →ₛₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x := coe_fn_comp₂ _ _ _ _
+lemma coe_fn_sup (f g : α →ₛₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x := coe_fn_mk _ _
 
 protected lemma le_sup_left (f g : α →ₛₘ[μ] β) : f ≤ f ⊔ g :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g] with _ ha, rw ha, exact le_sup_left, }
@@ -639,11 +729,12 @@ end
 end sup
 
 section inf
-variables [semilattice_inf β] [has_measurable_inf₂ β]
+variables [semilattice_inf β] [has_continuous_inf β]
 
-instance : has_inf (α →ₛₘ[μ] β) := { inf := λ f g, ae_eq_fun.comp₂ (⊓) measurable_inf f g }
+noncomputable instance : has_inf (α →ₛₘ[μ] β) :=
+⟨λ f g, mk (f ⊓ g) (f.ae_strongly_measurable.inf g.ae_strongly_measurable)⟩
 
-lemma coe_fn_inf (f g : α →ₛₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_comp₂ _ _ _ _
+lemma coe_fn_inf (f g : α →ₛₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_mk _ _
 
 protected lemma inf_le_left (f g : α →ₛₘ[μ] β) : f ⊓ g ≤ f :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g] with _ ha, rw ha, exact inf_le_left, }
@@ -661,7 +752,7 @@ end
 
 end inf
 
-instance [lattice β] [has_measurable_sup₂ β] [has_measurable_inf₂ β] : lattice (α →ₛₘ[μ] β) :=
+noncomputable instance [lattice β] [topological_lattice β] : lattice (α →ₛₘ[μ] β) :=
 { sup           := has_sup.sup,
   le_sup_left   := ae_str_meas.le_sup_left,
   le_sup_right  := ae_str_meas.le_sup_right,
@@ -811,6 +902,7 @@ to_germ_injective.module 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to_ger
 
 end module
 
+section lintegral
 open ennreal
 
 /-- For `f : α → ℝ≥0∞`, define `∫ [f]` to be `∫ f` -/
@@ -828,19 +920,18 @@ by rw [← lintegral_mk, mk_coe_fn]
 @[simp] lemma lintegral_eq_zero_iff {f : α →ₛₘ[μ] ℝ≥0∞} : lintegral f = 0 ↔ f = 0 :=
 begin
   refine induction_on f (λ f hf, _),
-  rw lintegral_mk,
-  rw lintegral_eq_zero_iff',
-  swap, { exact @ae_strongly_measurable.ae_measurable α _ μ ℝ≥0∞ _ _, },
-  rw [zero_def, mk_eq_mk],
+  rw [lintegral_mk, lintegral_eq_zero_iff' hf.ae_measurable_ennreal, zero_def, mk_eq_mk],
   refl,
 end
 
 lemma lintegral_add (f g : α →ₛₘ[μ] ℝ≥0∞) : lintegral (f + g) = lintegral f + lintegral g :=
-induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add' hf hg]
+induction_on₂ f g $ λ f hf g hg,
+  by simp [lintegral_add' hf.ae_measurable_ennreal hg.ae_measurable_ennreal]
 
 lemma lintegral_mono {f g : α →ₛₘ[μ] ℝ≥0∞} : f ≤ g → lintegral f ≤ lintegral g :=
 induction_on₂ f g $ λ f hf g hg hfg, lintegral_mono_ae hfg
 
+end lintegral
 
 end ae_str_meas
 

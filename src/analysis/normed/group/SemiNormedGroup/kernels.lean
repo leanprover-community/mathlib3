@@ -287,7 +287,7 @@ end
 
 lemma explicit_cokernel_desc_norm_le {X Y Z : SemiNormedGroup.{u}}
   {f : X ⟶ Y} {g : Y ⟶ Z} (w : f ≫ g = 0) : ∥ explicit_cokernel_desc w ∥ ≤ ∥ g ∥ :=
-explicit_cokernel_desc_norm_le_of_norm_le w ∥ g ∥₊ (le_refl _)
+explicit_cokernel_desc_norm_le_of_norm_le w ∥ g ∥₊ le_rfl
 
 /-- The explicit cokernel is isomorphic to the usual cokernel. -/
 def explicit_cokernel_iso {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :

@@ -332,17 +332,11 @@ Finally, if the original space `X` is *not* compact and is a preconnected space,
 instance : compact_space (alexandroff X) :=
 { compact_univ :=
   begin
-    refine is_compact_iff_ultrafilter_le_nhds.2 (λ f hf, _), clear hf,
-    by_cases hf : (f : filter (alexandroff X)) ≤ 𝓝 ∞,
-    { exact ⟨∞, mem_univ _, hf⟩ },
-    { simp only [ultrafilter_le_nhds_infty, not_forall, not_not] at hf,
-      rcases hf with ⟨s, h₁, h₂, hsf⟩,
-      have hf : range (coe : X → alexandroff X) ∈ f,
-        from mem_of_superset hsf (image_subset_range _ _),
-      have hsf' : s ∈ f.comap coe_injective hf, from (f.mem_comap _ _).2 hsf,
-      rcases h₂.ultrafilter_le_nhds _ (le_principal_iff.2 hsf') with ⟨a, has, hle⟩,
-      rw [ultrafilter.coe_comap, ← comap_coe_nhds, comap_le_comap_iff hf] at hle,
-      exact ⟨a, mem_univ _, hle⟩ }
+    have : tendsto (coe : X → alexandroff X) (cocompact X) (𝓝 ∞),
+    { rw [nhds_infty_eq],
+      exact (tendsto_map.mono_left cocompact_le_coclosed_compact).mono_right le_sup_left },
+    convert ← this.is_compact_insert_range_of_cocompact continuous_coe,
+    exact insert_none_range_some X
   end }
 
 /-- The one point compactification of a `t0_space` space is a `t0_space`. -/

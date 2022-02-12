@@ -300,7 +300,7 @@ begin
   intros i j,
   cases i,
   { apply ih },
-  { triv },
+  { trivial },
 end
 
 instance mvqpf_fix : mvqpf (fix F) :=

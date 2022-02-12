@@ -239,8 +239,7 @@ lemma exp_series_radius_eq_top : (exp_series 𝕂 𝔸).radius = ∞ :=
 begin
   refine (exp_series 𝕂 𝔸).radius_eq_top_of_summable_norm (λ r, _),
   refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial r) _,
-  filter_upwards [eventually_cofinite_ne 0],
-  intros n hn,
+  filter_upwards [eventually_cofinite_ne 0] with n hn,
   rw [norm_mul, norm_norm (exp_series 𝕂 𝔸 n), exp_series, norm_smul, norm_div, norm_one, norm_pow,
       nnreal.norm_eq, norm_eq_abs, abs_cast_nat, mul_comm, ←mul_assoc, ←mul_div_assoc, mul_one],
   have : ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸∥ ≤ 1 :=

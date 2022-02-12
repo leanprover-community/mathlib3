@@ -25,10 +25,12 @@ of some code.
 
 ## Main Results
 
-* `nat.partrec.code.rec_prim`: recursion on `nat.partrec.code` is primitive recursive.
-* `nat.partrec.code.rec_computable`: recursion on `nat.partrec.code` is computable.
+* `nat.partrec.code.rec_prim`: Recursion on `nat.partrec.code` is primitive recursive.
+* `nat.partrec.code.rec_computable`: Recursion on `nat.partrec.code` is computable.
+* `nat.partrec.code.smn`: The $S_n^m$ theorem.
 * `nat.partrec.code.exists_code`: Partial recursiveness is equivalent to being the eval of a code.
 * `nat.partrec.code.evaln_prim`: `evaln` is primitive recursive.
+* `nat.partrec.code.fixed_point`: Roger's fixed point theorem.
 
 ## References
 
@@ -579,6 +581,10 @@ theorem curry_inj {c₁ c₂ n₁ n₂} (h : curry c₁ n₁ = curry c₂ n₂) 
                       injection h₂ with h₃ h₄,
                       exact const_inj h₃ }⟩
 
+/--
+The $S_n^m$ theorem: There is a computable function, namely `nat.partrec.code.curry`, that takes a
+program and a ℕ `n`, and returns a new program using `n` as the first argument.
+-/
 theorem smn : ∃ f : code → ℕ → code,
   computable₂ f ∧ ∀ c n x, eval (f c n) x = eval c (mkpair n x) :=
 ⟨curry, primrec₂.to_comp curry_prim, eval_curry⟩
@@ -971,6 +977,11 @@ theorem eval_part : partrec₂ eval :=
   ((snd.pair (fst.comp fst)).pair (snd.comp fst))).to₂).of_eq $
 λ a, by simp [eval_eq_rfind_opt]
 
+/--
+Roger's fixed-point theorem: Any total, computable `f` has a fixed point: That is, under the
+interpretation given by `nat.partrec.code.eval`, there is a code `c` such that `c` and `f c` have
+the same evaluation.
+-/
 theorem fixed_point
   {f : code → code} (hf : computable f) : ∃ c : code, eval (f c) = eval c :=
 let g (x y : ℕ) : part ℕ :=

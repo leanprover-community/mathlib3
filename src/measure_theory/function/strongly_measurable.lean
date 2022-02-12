@@ -64,6 +64,12 @@ variables {α β : Type*} [topological_space β]
 def strongly_measurable [measurable_space α] (f : α → β) : Prop :=
 ∃ fs : ℕ → α →ₛ β, ∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x))
 
+/-- A function is `ae_strongly_measurable` with respect to a measure if it is almost everywhere
+equal to the limit of a sequence of simple functions. -/
+def ae_strongly_measurable {m0 : measurable_space α} (f : α → β) (μ : measure α) :
+  Prop :=
+∃ g, strongly_measurable g ∧ f =ᵐ[μ] g
+
 /-- A function is `fin_strongly_measurable` with respect to a measure if it is the limit of simple
   functions with support with finite measure. -/
 def fin_strongly_measurable [has_zero β] {m0 : measurable_space α} (f : α → β) (μ : measure α) :
@@ -92,20 +98,33 @@ begin
     exact measurable_set.univ, },
 end
 
+lemma strongly_measurable_const {α β} [measurable_space α] [topological_space β] {b : β} :
+  strongly_measurable (λ a : α, b) :=
+⟨λ n, simple_func.const α b, λ a, tendsto_const_nhds⟩
+
 namespace strongly_measurable
 
-variables {α β : Type*} {f g : α → β}
+variables {α β δ : Type*} {f g : α → β}
+
+section basic_properties_in_any_topological_space
+variables [topological_space β]
+
+protected lemma ae_strongly_measurable {m : measurable_space α} {μ : measure α}
+  (hf : strongly_measurable f) :
+  ae_strongly_measurable f μ :=
+⟨f, hf, eventually_eq.rfl⟩
 
 /-- A sequence of simple functions such that `∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x))`.
 That property is given by `strongly_measurable.tendsto_approx`. -/
 protected noncomputable
-def approx [measurable_space α] [topological_space β] (hf : strongly_measurable f) : ℕ → α →ₛ β :=
+def approx [measurable_space α] (hf : strongly_measurable f) : ℕ → α →ₛ β :=
 hf.some
 
-protected lemma tendsto_approx [measurable_space α] [topological_space β]
-  (hf : strongly_measurable f) :
+protected lemma tendsto_approx [measurable_space α] (hf : strongly_measurable f) :
   ∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x)) :=
 hf.some_spec
+
+end basic_properties_in_any_topological_space
 
 lemma fin_strongly_measurable_of_set_sigma_finite [topological_space β] [has_zero β]
   {m : measurable_space α} {μ : measure α} (hf_meas : strongly_measurable f) {t : set α}
@@ -172,14 +191,27 @@ measurable_of_tendsto_metric (λ n, (hf.approx n).measurable) (tendsto_pi_nhds.m
 section arithmetic
 variables [measurable_space α] [topological_space β]
 
+--@[to_additive] TODO fix this
+protected lemma mul [has_mul β] [has_continuous_mul β]
+  (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (f * g) :=
+⟨λ n, hf.approx n * hg.approx n, λ x, (hf.tendsto_approx x).mul (hg.tendsto_approx x)⟩
+
 protected lemma add [has_add β] [has_continuous_add β]
   (hf : strongly_measurable f) (hg : strongly_measurable g) :
   strongly_measurable (f + g) :=
 ⟨λ n, hf.approx n + hg.approx n, λ x, (hf.tendsto_approx x).add (hg.tendsto_approx x)⟩
 
+attribute [to_additive] strongly_measurable.mul
+
 protected lemma neg [add_group β] [topological_add_group β] (hf : strongly_measurable f) :
   strongly_measurable (-f) :=
 ⟨λ n, - hf.approx n, λ x, (hf.tendsto_approx x).neg⟩
+
+protected lemma div [group β] [topological_group β]
+  (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (f / g) :=
+⟨λ n, hf.approx n / hg.approx n, λ x, (hf.tendsto_approx x).div (hg.tendsto_approx x)⟩
 
 protected lemma sub [has_sub β] [has_continuous_sub β]
   (hf : strongly_measurable f) (hg : strongly_measurable g) :
@@ -212,6 +244,55 @@ lemma strongly_measurable_iff_measurable [metric_space β] [borel_space β]
 ⟨λ h, h.measurable, λ h, measurable.strongly_measurable h⟩
 
 end second_countable_strongly_measurable
+
+lemma ae_strongly_measurable_const {α β} {m : measurable_space α} {μ : measure α}
+  [topological_space β] {b : β} :
+  ae_strongly_measurable (λ a : α, b) μ :=
+strongly_measurable_const.ae_strongly_measurable
+
+namespace ae_strongly_measurable
+
+variables {α β : Type*} {m0 : measurable_space α} {μ : measure α} {f g : α → β}
+  [topological_space β]
+
+protected noncomputable def mk (f : α → β) (hf : ae_strongly_measurable f μ) : α → β := hf.some
+
+lemma strongly_measurable_mk (hf : ae_strongly_measurable f μ) : strongly_measurable (hf.mk f) :=
+hf.some_spec.1
+
+lemma ae_eq_mk (hf : ae_strongly_measurable f μ) : f =ᵐ[μ] hf.mk f :=
+hf.some_spec.2
+
+section arithmetic
+
+--@[to_additive] TODO fix this
+protected lemma mul [has_mul β] [has_continuous_mul β]
+  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  ae_strongly_measurable (f * g) μ :=
+⟨(hf.mk f) * (hg.mk g), hf.strongly_measurable_mk.mul hg.strongly_measurable_mk,
+  hf.ae_eq_mk.mul hg.ae_eq_mk⟩
+
+protected lemma add [has_add β] [has_continuous_add β]
+  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  ae_strongly_measurable (f + g) μ :=
+⟨(hf.mk f) + (hg.mk g), hf.strongly_measurable_mk.add hg.strongly_measurable_mk,
+  hf.ae_eq_mk.add hg.ae_eq_mk⟩
+
+attribute [to_additive] ae_strongly_measurable.mul
+
+protected lemma neg [add_group β] [topological_add_group β] (hf : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (-f) μ :=
+⟨- hf.mk f, hf.strongly_measurable_mk.neg, hf.ae_eq_mk.neg⟩
+
+protected lemma sub [add_group β] [topological_add_group β]
+  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  ae_strongly_measurable (f - g) μ :=
+⟨(hf.mk f) - (hg.mk g), hf.strongly_measurable_mk.sub hg.strongly_measurable_mk,
+  hf.ae_eq_mk.sub hg.ae_eq_mk⟩
+
+end arithmetic
+
+end ae_strongly_measurable
 
 /-! ## Finitely strongly measurable functions -/
 
@@ -358,6 +439,8 @@ hf.exists_set_sigma_finite.some_spec.2.2
 
 end ae_fin_strongly_measurable
 
+section second_countable_topology
+
 variables {α G : Type*} {p : ℝ≥0∞} {m m0 : measurable_space α} {μ : measure α}
   [normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
   {f : α → G}
@@ -402,5 +485,346 @@ lemma integrable.ae_fin_strongly_measurable (hf : integrable f μ) :
 lemma Lp.fin_strongly_measurable (f : Lp G p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   fin_strongly_measurable f μ :=
 (Lp.mem_ℒp f).fin_strongly_measurable_of_measurable (Lp.measurable f) hp_ne_zero hp_ne_top
+
+end second_countable_topology
+
+section
+
+variables {α β : Type*} {m : measurable_space α} {μ : measure α} [topological_space β]
+  [measurable_space β]
+
+variables (β μ)
+def measure.ae_str_meas_setoid : setoid {f : α → β // ae_strongly_measurable f μ} :=
+⟨λf g, (f : α → β) =ᵐ[μ] g, λ f, ae_eq_refl f, λ f g, ae_eq_symm, λ f g h, ae_eq_trans⟩
+
+def ae_str_meas : Type* := quotient (μ.ae_str_meas_setoid β)
+variables {β μ}
+
+notation α ` →ₛₘ[`:25 μ `] ` β := ae_str_meas β μ
+
+namespace ae_str_meas
+variables {γ δ : Type*} [measurable_space γ] [topological_space γ]
+  [measurable_space δ] [topological_space δ]
+
+/-- Construct the equivalence class `[f]` of an almost everywhere measurable function `f`, based
+    on the equivalence relation of being almost everywhere equal. -/
+def mk (f : α → β) (hf : ae_strongly_measurable f μ) : α →ₛₘ[μ] β := quotient.mk' ⟨f, hf⟩
+
+/-- A measurable representative of an `ae_eq_fun` [f] -/
+noncomputable
+instance : has_coe_to_fun (α →ₛₘ[μ] β) (λ _, α → β) :=
+⟨λf, ae_strongly_measurable.mk _ (quotient.out' f : {f : α → β // ae_strongly_measurable f μ}).2⟩
+
+protected lemma strongly_measurable (f : α →ₛₘ[μ] β) : strongly_measurable f :=
+ae_strongly_measurable.strongly_measurable_mk _
+
+protected lemma ae_strongly_measurable (f : α →ₛₘ[μ] β) : ae_strongly_measurable f μ :=
+f.strongly_measurable.ae_strongly_measurable
+
+@[simp] lemma quot_mk_eq_mk (f : α → β) (hf) :
+  (quot.mk (@setoid.r _ $ μ.ae_str_meas_setoid β) ⟨f, hf⟩ : α →ₛₘ[μ] β) = mk f hf :=
+rfl
+
+@[simp] lemma mk_eq_mk {f g : α → β} {hf hg} :
+  (mk f hf : α →ₛₘ[μ] β) = mk g hg ↔ f =ᵐ[μ] g :=
+quotient.eq'
+
+@[simp] lemma mk_coe_fn (f : α →ₛₘ[μ] β) : mk f f.ae_strongly_measurable = f :=
+begin
+  conv_rhs { rw ← quotient.out_eq' f },
+  set g : {f : α → β // ae_strongly_measurable f μ} := quotient.out' f with hg,
+  have : g = ⟨g.1, g.2⟩ := subtype.eq rfl,
+  rw [this, ← mk, mk_eq_mk],
+  exact (ae_strongly_measurable.ae_eq_mk _).symm,
+end
+
+@[ext] lemma ext {f g : α →ₛₘ[μ] β} (h : f =ᵐ[μ] g) : f = g :=
+by rwa [← f.mk_coe_fn, ← g.mk_coe_fn, mk_eq_mk]
+
+lemma ext_iff {f g : α →ₛₘ[μ] β} : f = g ↔ f =ᵐ[μ] g :=
+⟨λ h, by rw h, λ h, ext h⟩
+
+lemma coe_fn_mk (f : α → β) (hf) : (mk f hf : α →ₛₘ[μ] β) =ᵐ[μ] f :=
+begin
+  apply (ae_strongly_measurable.ae_eq_mk _).symm.trans,
+  exact @quotient.mk_out' _ (μ.ae_str_meas_setoid β) (⟨f, hf⟩ : {f // ae_strongly_measurable f μ})
+end
+
+@[elab_as_eliminator]
+lemma induction_on (f : α →ₛₘ[μ] β) {p : (α →ₛₘ[μ] β) → Prop} (H : ∀ f hf, p (mk f hf)) : p f :=
+quotient.induction_on' f $ subtype.forall.2 H
+
+@[elab_as_eliminator]
+lemma induction_on₂ {α' β' : Type*} [measurable_space α'] [measurable_space β']
+  [topological_space β'] {μ' : measure α'}
+  (f : α →ₛₘ[μ] β) (f' : α' →ₛₘ[μ'] β') {p : (α →ₛₘ[μ] β) → (α' →ₛₘ[μ'] β') → Prop}
+  (H : ∀ f hf f' hf', p (mk f hf) (mk f' hf')) :
+  p f f' :=
+induction_on f $ λ f hf, induction_on f' $ H f hf
+
+@[elab_as_eliminator]
+lemma induction_on₃ {α' β' : Type*} [measurable_space α'] [measurable_space β']
+  [topological_space β'] {μ' : measure α'} {α'' β'' : Type*} [measurable_space α'']
+  [measurable_space β''] [topological_space β''] {μ'' : measure α''}
+  (f : α →ₛₘ[μ] β) (f' : α' →ₛₘ[μ'] β') (f'' : α'' →ₛₘ[μ''] β'')
+  {p : (α →ₛₘ[μ] β) → (α' →ₛₘ[μ'] β') → (α'' →ₛₘ[μ''] β'') → Prop}
+  (H : ∀ f hf f' hf' f'' hf'', p (mk f hf) (mk f' hf') (mk f'' hf'')) :
+  p f f' f'' :=
+induction_on f $ λ f hf, induction_on₂ f' f'' $ H f hf
+
+/-- Interpret `f : α →ₛₘ[μ] β` as a germ at `μ.ae` forgetting that `f` is almost everywhere
+    strongly measurable. -/
+def to_germ (f : α →ₛₘ[μ] β) : germ μ.ae β :=
+quotient.lift_on' f (λ f, ((f : α → β) : germ μ.ae β)) $ λ f g H, germ.coe_eq.2 H
+
+@[simp] lemma mk_to_germ (f : α → β) (hf) : (mk f hf : α →ₛₘ[μ] β).to_germ = f := rfl
+
+lemma to_germ_eq (f : α →ₛₘ[μ] β) : f.to_germ = (f : α → β) :=
+by rw [← mk_to_germ, mk_coe_fn]
+
+lemma to_germ_injective : injective (to_germ : (α →ₛₘ[μ] β) → germ μ.ae β) :=
+λ f g H, ext $ germ.coe_eq.1 $ by rwa [← to_germ_eq, ← to_germ_eq]
+
+/-- Given a predicate `p` and an equivalence class `[f]`, return true if `p` holds of `f a`
+    for almost all `a` -/
+def lift_pred (p : β → Prop) (f : α →ₛₘ[μ] β) : Prop := f.to_germ.lift_pred p
+
+/-- Given a relation `r` and equivalence class `[f]` and `[g]`, return true if `r` holds of
+    `(f a, g a)` for almost all `a` -/
+def lift_rel (r : β → γ → Prop) (f : α →ₛₘ[μ] β) (g : α →ₛₘ[μ] γ) : Prop :=
+f.to_germ.lift_rel r g.to_germ
+
+lemma lift_rel_mk_mk {r : β → γ → Prop} {f : α → β} {g : α → γ} {hf hg} :
+  lift_rel r (mk f hf : α →ₛₘ[μ] β) (mk g hg) ↔ ∀ᵐ a ∂μ, r (f a) (g a) :=
+iff.rfl
+
+lemma lift_rel_iff_coe_fn {r : β → γ → Prop} {f : α →ₛₘ[μ] β} {g : α →ₛₘ[μ] γ} :
+  lift_rel r f g ↔ ∀ᵐ a ∂μ, r (f a) (g a) :=
+by rw [← lift_rel_mk_mk, mk_coe_fn, mk_coe_fn]
+
+section order
+
+instance [preorder β] : preorder (α →ₛₘ[μ] β) := preorder.lift to_germ
+
+@[simp] lemma mk_le_mk [preorder β] {f g : α → β} (hf hg) :
+  (mk f hf : α →ₛₘ[μ] β) ≤ mk g hg ↔ f ≤ᵐ[μ] g :=
+iff.rfl
+
+@[simp, norm_cast] lemma coe_fn_le [preorder β] {f g : α →ₛₘ[μ] β} :
+  (f : α → β) ≤ᵐ[μ] g ↔ f ≤ g :=
+lift_rel_iff_coe_fn.symm
+
+instance [partial_order β] : partial_order (α →ₛₘ[μ] β) :=
+partial_order.lift to_germ to_germ_injective
+
+section lattice
+
+section sup
+variables [semilattice_sup β] [has_measurable_sup₂ β]
+
+instance : has_sup (α →ₛₘ[μ] β) := { sup := λ f g, ae_str_meas.comp₂ (⊔) measurable_sup f g }
+
+lemma coe_fn_sup (f g : α →ₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x := coe_fn_comp₂ _ _ _ _
+
+protected lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g] with _ ha, rw ha, exact le_sup_left, }
+
+protected lemma le_sup_right (f g : α →ₘ[μ] β) : g ≤ f ⊔ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g] with _ ha, rw ha, exact le_sup_right, }
+
+protected lemma sup_le (f g f' : α →ₘ[μ] β) (hf : f ≤ f') (hg : g ≤ f') : f ⊔ g ≤ f' :=
+begin
+  rw ← coe_fn_le at hf hg ⊢,
+  filter_upwards [hf, hg, coe_fn_sup f g] with _ haf hag ha_sup,
+  rw ha_sup,
+  exact sup_le haf hag,
+end
+
+end sup
+
+section inf
+variables [semilattice_inf β] [has_measurable_inf₂ β]
+
+instance : has_inf (α →ₘ[μ] β) := { inf := λ f g, ae_eq_fun.comp₂ (⊓) measurable_inf f g }
+
+lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_comp₂ _ _ _ _
+
+protected lemma inf_le_left (f g : α →ₘ[μ] β) : f ⊓ g ≤ f :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g] with _ ha, rw ha, exact inf_le_left, }
+
+protected lemma inf_le_right (f g : α →ₘ[μ] β) : f ⊓ g ≤ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g] with _ ha, rw ha, exact inf_le_right, }
+
+protected lemma le_inf (f' f g : α →ₘ[μ] β) (hf : f' ≤ f) (hg : f' ≤ g) : f' ≤ f ⊓ g :=
+begin
+  rw ← coe_fn_le at hf hg ⊢,
+  filter_upwards [hf, hg, coe_fn_inf f g] with _ haf hag ha_inf,
+  rw ha_inf,
+  exact le_inf haf hag,
+end
+
+end inf
+
+instance [lattice β] [has_measurable_sup₂ β] [has_measurable_inf₂ β] : lattice (α →ₘ[μ] β) :=
+{ sup           := has_sup.sup,
+  le_sup_left   := ae_eq_fun.le_sup_left,
+  le_sup_right  := ae_eq_fun.le_sup_right,
+  sup_le        := ae_eq_fun.sup_le,
+  inf           := has_inf.inf,
+  inf_le_left   := ae_eq_fun.inf_le_left,
+  inf_le_right  := ae_eq_fun.inf_le_right,
+  le_inf        := ae_eq_fun.le_inf,
+  ..ae_eq_fun.partial_order}
+
+end lattice
+
+end order
+
+variable (α)
+/-- The equivalence class of a constant function: `[λ a : α, b]`, based on the equivalence relation
+of being almost everywhere equal -/
+def const (b : β) : α →ₛₘ[μ] β := mk (λ _, b) ae_strongly_measurable_const
+
+lemma coe_fn_const (b : β) : (const α b : α →ₛₘ[μ] β) =ᵐ[μ] function.const α b :=
+coe_fn_mk _ _
+
+variable {α}
+
+instance [inhabited β] : inhabited (α →ₛₘ[μ] β) := ⟨const α default⟩
+
+@[to_additive] instance [has_one β] : has_one (α →ₛₘ[μ] β) := ⟨const α 1⟩
+@[to_additive] lemma one_def [has_one β] :
+  (1 : α →ₛₘ[μ] β) = mk (λ _, 1) ae_strongly_measurable_const := rfl
+@[to_additive] lemma coe_fn_one [has_one β] : ⇑(1 : α →ₛₘ[μ] β) =ᵐ[μ] 1 := coe_fn_const _ _
+@[simp, to_additive] lemma one_to_germ [has_one β] : (1 : α →ₘ[μ] β).to_germ = 1 := rfl
+
+section monoid
+variables
+  [topological_space γ] [second_countable_topology γ] [borel_space γ]
+  [monoid γ] [has_continuous_mul γ]
+
+@[to_additive]
+noncomputable
+instance : has_mul (α →ₛₘ[μ] γ) :=
+⟨λ f g, mk (f * g) (f.ae_strongly_measurable.mul g.ae_strongly_measurable)⟩
+
+@[simp, to_additive] lemma mk_mul_mk (f g : α → γ) (hf hg) :
+  (mk f hf : α →ₛₘ[μ] γ) * (mk g hg) = mk (f * g) (hf.mul hg) :=
+begin
+  change mk ((mk f hf) * (mk g hg)) _ = mk (f * g) (hf.mul hg),
+  simp only [mk_eq_mk],
+  exact (coe_fn_mk f hf).mul (coe_fn_mk g hg),
+end
+
+@[to_additive] lemma coe_fn_mul (f g : α →ₛₘ[μ] γ) : ⇑(f * g) =ᵐ[μ] f * g := coe_fn_mk _ _
+
+@[simp, to_additive] lemma mul_to_germ (f g : α →ₛₘ[μ] γ) :
+  (f * g).to_germ = f.to_germ * g.to_germ :=
+begin
+  change (mk (f * g) _).to_germ = f.to_germ * g.to_germ,
+  rw [mk_to_germ, to_germ_eq, to_germ_eq, germ.coe_mul],
+end
+
+@[to_additive]
+noncomputable instance : monoid (α →ₛₘ[μ] γ) :=
+to_germ_injective.monoid to_germ one_to_germ mul_to_germ
+
+end monoid
+
+@[to_additive]
+noncomputable
+instance comm_monoid [topological_space γ] [second_countable_topology γ] [borel_space γ]
+  [comm_monoid γ] [has_continuous_mul γ] : comm_monoid (α →ₛₘ[μ] γ) :=
+to_germ_injective.comm_monoid to_germ one_to_germ mul_to_germ
+
+section group
+
+variables [topological_space γ] [borel_space γ] [group γ] [topological_group γ]
+
+@[to_additive] instance : has_inv (α →ₘ[μ] γ) := ⟨comp has_inv.inv measurable_inv⟩
+
+@[simp, to_additive] lemma inv_mk (f : α → γ) (hf) : (mk f hf : α →ₘ[μ] γ)⁻¹ = mk f⁻¹ hf.inv := rfl
+
+@[to_additive] lemma coe_fn_inv (f : α →ₘ[μ] γ) : ⇑(f⁻¹) =ᵐ[μ] f⁻¹ := coe_fn_comp _ _ _
+
+@[to_additive] lemma inv_to_germ (f : α →ₘ[μ] γ) : (f⁻¹).to_germ = f.to_germ⁻¹ := comp_to_germ _ _ _
+
+variables [second_countable_topology γ]
+
+@[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div measurable_div⟩
+
+@[simp, to_additive] lemma mk_div (f g : α → γ) (hf hg) :
+  mk (f / g) (ae_measurable.div hf hg) = (mk f hf : α →ₘ[μ] γ) / (mk g hg) :=
+rfl
+
+@[to_additive] lemma coe_fn_div (f g : α →ₘ[μ] γ) : ⇑(f / g) =ᵐ[μ] f / g := coe_fn_comp₂ _ _ _ _
+
+@[to_additive] lemma div_to_germ (f g : α →ₘ[μ] γ) : (f / g).to_germ = f.to_germ / g.to_germ :=
+comp₂_to_germ _ _ _ _
+
+@[to_additive]
+instance : group (α →ₘ[μ] γ) :=
+to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ
+
+end group
+
+@[to_additive]
+instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_group γ]
+  [second_countable_topology γ] : comm_group (α →ₘ[μ] γ) :=
+{ .. ae_eq_fun.group, .. ae_eq_fun.comm_monoid }
+
+section module
+
+variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
+  [opens_measurable_space 𝕜]
+variables [topological_space γ] [borel_space γ] [add_comm_monoid γ] [module 𝕜 γ]
+  [has_continuous_smul 𝕜 γ]
+
+instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
+⟨λ c f, comp ((•) c) (measurable_id.const_smul c) f⟩
+
+@[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf) :
+  c • (mk f hf : α →ₘ[μ] γ) = mk (c • f) (hf.const_smul _) :=
+rfl
+
+lemma coe_fn_smul (c : 𝕜) (f : α →ₘ[μ] γ) : ⇑(c • f) =ᵐ[μ] c • f := coe_fn_comp _ _ _
+
+lemma smul_to_germ (c : 𝕜) (f : α →ₘ[μ] γ) : (c • f).to_germ = c • f.to_germ :=
+comp_to_germ _ _ _
+
+variables [second_countable_topology γ] [has_continuous_add γ]
+
+instance : module 𝕜 (α →ₘ[μ] γ) :=
+to_germ_injective.module 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to_germ⟩ smul_to_germ
+
+end module
+
+open ennreal
+
+/-- For `f : α → ℝ≥0∞`, define `∫ [f]` to be `∫ f` -/
+def lintegral (f : α →ₘ[μ] ℝ≥0∞) : ℝ≥0∞ :=
+quotient.lift_on' f (λf, ∫⁻ a, (f : α → ℝ≥0∞) a ∂μ) (assume f g, lintegral_congr_ae)
+
+@[simp] lemma lintegral_mk (f : α → ℝ≥0∞) (hf) :
+  (mk f hf : α →ₘ[μ] ℝ≥0∞).lintegral = ∫⁻ a, f a ∂μ := rfl
+
+lemma lintegral_coe_fn (f : α →ₘ[μ] ℝ≥0∞) : ∫⁻ a, f a ∂μ = f.lintegral :=
+by rw [← lintegral_mk, mk_coe_fn]
+
+@[simp] lemma lintegral_zero : lintegral (0 : α →ₘ[μ] ℝ≥0∞) = 0 := lintegral_zero
+
+@[simp] lemma lintegral_eq_zero_iff {f : α →ₘ[μ] ℝ≥0∞} : lintegral f = 0 ↔ f = 0 :=
+induction_on f $ λ f hf, (lintegral_eq_zero_iff' hf).trans mk_eq_mk.symm
+
+lemma lintegral_add (f g : α →ₘ[μ] ℝ≥0∞) : lintegral (f + g) = lintegral f + lintegral g :=
+induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add' hf hg]
+
+lemma lintegral_mono {f g : α →ₘ[μ] ℝ≥0∞} : f ≤ g → lintegral f ≤ lintegral g :=
+induction_on₂ f g $ λ f hf g hg hfg, lintegral_mono_ae hfg
+
+
+end ae_str_meas
+
+end
 
 end measure_theory

@@ -35,10 +35,10 @@ from the natural numbers into it is injective.
 
 /-- Typeclass for monoids with characteristic zero.
   (This is usually stated on fields but it makes sense for any additive monoid with 1.) -/
-class char_zero (R : Type*) [add_monoid R] [has_one R] : Prop :=
+class char_zero (R : Type*) [has_nat_cast R] : Prop :=
 (cast_injective : function.injective (coe : ℕ → R))
 
-theorem char_zero_of_inj_zero {R : Type*} [add_left_cancel_monoid R] [has_one R]
+theorem char_zero_of_inj_zero {R : Type*} [add_group_with_one R]
   (H : ∀ n:ℕ, (n:R) = 0 → n = 0) : char_zero R :=
 ⟨λ m n, begin
    assume h,
@@ -60,7 +60,7 @@ instance linear_ordered_semiring.to_char_zero {R : Type*}
 ordered_semiring.to_char_zero
 
 namespace nat
-variables {R : Type*} [add_monoid R] [has_one R] [char_zero R]
+variables {R : Type*} [has_nat_cast R] [char_zero R]
 
 theorem cast_injective : function.injective (coe : ℕ → R) :=
 char_zero.cast_injective
@@ -95,7 +95,7 @@ end nat
 
 section
 
-variables (M : Type*) [add_monoid M] [has_one M] [char_zero M]
+variables (M : Type*) [has_nat_cast M] [char_zero M]
 
 @[priority 100] -- see Note [lower instance priority]
 instance char_zero.infinite : infinite M :=
@@ -190,7 +190,7 @@ end
 
 namespace with_top
 
-instance {R : Type*} [add_monoid R] [has_one R] [char_zero R] : char_zero (with_top R) :=
+instance {R : Type*} [has_nat_cast R] [char_zero R] : char_zero (with_top R) :=
 { cast_injective := λ m n h, by rwa [← coe_nat, ← coe_nat n, coe_eq_coe, nat.cast_inj] at h }
 
 end with_top
@@ -204,7 +204,7 @@ lemma ring_hom.char_zero (ϕ : R →+* S) [hS : char_zero S] : char_zero R :=
 
 lemma ring_hom.char_zero_iff {ϕ : R →+* S} (hϕ : function.injective ϕ) :
   char_zero R ↔ char_zero S :=
-⟨λ hR, ⟨λ a b h, by rwa [←@nat.cast_inj R _ _ hR, ←hϕ.eq_iff, map_nat_cast ϕ, map_nat_cast ϕ]⟩,
+⟨λ hR, ⟨by introsI a b h; rwa [← @nat.cast_inj R, ← hϕ.eq_iff, map_nat_cast ϕ, map_nat_cast ϕ]⟩,
   λ hS, by exactI ϕ.char_zero⟩
 
 end ring_hom

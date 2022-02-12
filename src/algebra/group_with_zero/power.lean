@@ -110,8 +110,8 @@ theorem inv_zpow₀ (a : G₀) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, inv_pow₀]
 
 lemma zpow_add_one₀ {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
-| (n : ℕ)    := by simp [← int.coe_nat_succ, pow_succ']
-| -[1+0]     := by simp [int.neg_succ_of_nat_eq, ha]
+| (n : ℕ)    := by simp only [← int.coe_nat_succ, zpow_coe_nat, pow_succ']
+| -[1+0]     := by erw [zpow_zero, zpow_neg_succ_of_nat, pow_one, inv_mul_cancel ha]
 | -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, zpow_neg₀, neg_add, neg_add_cancel_right, zpow_neg₀,
   ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev₀, mul_assoc,
   inv_mul_cancel ha, mul_one]

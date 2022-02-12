@@ -30,6 +30,10 @@ of some code.
 * `nat.partrec.code.exists_code`: Partial recursiveness is equivalent to being the eval of a code.
 * `nat.partrec.code.evaln_prim`: `evaln` is primitive recursive.
 
+## References
+
+* [Mario Carneiro, *Formalizing computability theory via partial recursive functions*][carneiro2019]
+
 -/
 
 

@@ -140,15 +140,12 @@ begin
   exact analytic_set_range_of_polish_space F_cont,
 end
 
-/-- Two sets `u` and `v` in a space with its Borel sigma-algebra are Borel-separable if there
-exists a Borel set containing `u` and disjoint from `v`.
-The definition does not mention the Borel sigma-algebra as it makes sense for any measurable space
-structure, but it is designed to be applied in a Borel situation. -/
-def borel_separable {α : Type*} [measurable_space α] (s t : set α) : Prop :=
-∃ u, s ⊆ u ∧ disjoint t u ∧ measurable_set u
+/-- Two sets `u` and `v` in a topological space are Borel-separable if there
+exists a Borel set containing `u` and disjoint from `v`. -/
+def borel_separable (s t : set α) : Prop :=
+∃ u, s ⊆ u ∧ disjoint t u ∧ borel_measurable_set u
 
-lemma borel_separable.Union {α : Type*} [measurable_space α] (s t : ℕ → set α)
-  (h : ∀ m n, borel_separable (s m) (t n)) :
+lemma borel_separable.Union {s t : ℕ → set α} (h : ∀ m n, borel_separable (s m) (t n)) :
   borel_separable (⋃ n, s n) (⋃ m, t m) :=
 begin
   choose u hsu htu hu using h,
@@ -167,7 +164,7 @@ end
 contained in disjoint Borel sets (see the full statement in `analytic_set.borel_separable`).
 Here, we prove this when our analytic sets are the ranges of functions from `ℕ → ℕ`.
 -/
-lemma borel_separable_range_of_disjoint [measurable_space α] [borel_space α] [t2_space α]
+lemma borel_separable_range_of_disjoint [t2_space α]
   {f g : (ℕ → ℕ) → α} (hf : continuous f) (hg : continuous g) (h : disjoint (range f) (range g)) :
   borel_separable (range f) (range g) :=
 begin
@@ -187,7 +184,7 @@ begin
     contrapose!,
     assume H,
     rw [← Union_cylinder_update x n, ← Union_cylinder_update y n, image_Union, image_Union],
-    apply borel_separable.Union _ _ (λ i j, _),
+    apply borel_separable.Union (λ i j, _),
     exact H _ _ (update_mem_cylinder _ _ _) (update_mem_cylinder _ _ _) },
   -- consider the set of pairs of cylinders of some length whose images are not Borel-separated
   let A := {p // ¬(borel_separable (f '' (cylinder (p : ℕ × (ℕ → ℕ) × (ℕ → ℕ)).2.1 p.1))
@@ -262,7 +259,7 @@ begin
     exists_pow_lt_of_lt_one (lt_min εxpos εypos) (by norm_num),
   -- for large enough `n`, these open sets separate the images of long cylinders around `x` and `y`
   have B : borel_separable (f '' (cylinder x n)) (g '' (cylinder y n)),
-  { refine ⟨u, _, _, u_open.measurable_set⟩,
+  { refine ⟨u, _, _, u_open.borel_measurable_set⟩,
     { rw image_subset_iff,
       apply subset.trans _ hεx,
       assume z hz,
@@ -282,13 +279,13 @@ end
 
 /-- The Lusin separation theorem: if two analytic sets are disjoint, then they are contained in
 disjoint Borel sets. -/
-theorem analytic_set.borel_separable [measurable_space α] [borel_space α] [t2_space α]
+theorem analytic_set.borel_separable [t2_space α]
   {s t : set α} (hs : analytic_set s) (ht : analytic_set t) (h : disjoint s t) :
   borel_separable s t :=
 begin
   rw analytic_set at hs ht,
   rcases hs with rfl|⟨f, f_cont, rfl⟩,
-  { exact ⟨∅, subset.refl _, by simp, measurable_set.empty⟩ },
+  { refine ⟨∅, subset.refl _, by simp, measurable_set.empty⟩ },
   rcases ht with rfl|⟨g, g_cont, rfl⟩,
   { exact ⟨univ, subset_univ _, by simp, measurable_set.univ⟩ },
   exact borel_separable_range_of_disjoint f_cont g_cont h,
@@ -441,6 +438,32 @@ begin
     -- this is a contradiction, as `x` is supposed to belong to `w`, which is disjoint from
     -- the closure of `v`.
     exact disjoint_left.1 ((disjoint_iff_inter_eq_empty.2 hvw).closure_left w_open) this xw }
+end
+
+theorem _root_.is_closed.measurable_set_image_of_continuous_on_inj_on [polish_space α]
+  {β : Type*} [topological_space β] [t2_space β] [measurable_space β] [borel_space β]
+  {s : set α} (hs : is_closed s) {f : α → β} (f_cont : continuous_on f s) (f_inj : inj_on f s) :
+  measurable_set (f '' s) :=
+begin
+  rw image_eq_range,
+  haveI : polish_space s := is_closed.polish_space hs,
+  apply measurable_set_range_of_continuous_injective,
+  { rwa continuous_on_iff_continuous_restrict at f_cont },
+  { rwa inj_on_iff_injective at f_inj }
+end
+
+theorem measurable_set.image_of_continuous_on_inj_on {α : Type*} [t : topological_space α]
+  [polish_space α] [measurable_space α] [borel_space α] {β : Type*}
+  [topological_space β] [t2_space β] [measurable_space β] [borel_space β] {s : set α}
+  (hs : measurable_set s) {f : α → β} (f_cont : continuous_on f s) (f_inj : inj_on f s) :
+  measurable_set (f '' s) :=
+begin
+  have A : is_clopenable s := sorry,
+  obtain ⟨t', t't, t'_polish, s_closed, s_open⟩ :
+    ∃ (t' : topological_space α), t' ≤ t ∧ @polish_space α t' ∧ @is_closed α t' s ∧
+      @is_open α t' s := A,
+  exact @is_closed.measurable_set_image_of_continuous_on_inj_on α t' t'_polish β _ _ _ _ s
+    s_closed f (f_cont.mono_dom t't) f_inj,
 end
 
 end measure_theory

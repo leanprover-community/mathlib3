@@ -143,11 +143,13 @@ lemma measure_eq_infi' (μ : measure α) (s : set α) :
 by simp_rw [infi_subtype, infi_and, subtype.coe_mk, ← measure_eq_infi]
 
 lemma measure_eq_induced_outer_measure :
-  μ s = induced_outer_measure (λ s _, μ s) measurable_set.empty μ.empty s :=
+  μ s = induced_outer_measure (λ s _, μ s)
+    (@measurable_set.empty _ (by apply_instance)) μ.empty s :=
 measure_eq_trim _
 
 lemma to_outer_measure_eq_induced_outer_measure :
-  μ.to_outer_measure = induced_outer_measure (λ s _, μ s) measurable_set.empty μ.empty :=
+  μ.to_outer_measure = induced_outer_measure (λ s _, μ s)
+    (@measurable_set.empty _ (by apply_instance)) μ.empty :=
 μ.trimmed.symm
 
 lemma measure_eq_extend (hs : measurable_set s) :

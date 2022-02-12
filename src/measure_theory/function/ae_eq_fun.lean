@@ -424,7 +424,7 @@ to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ
 end group
 
 @[to_additive]
-instance[comm_group γ] [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
+instance [comm_group γ] [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
   comm_group (α →ₘ[μ] γ) :=
 { .. ae_eq_fun.group, .. ae_eq_fun.comm_monoid }
 

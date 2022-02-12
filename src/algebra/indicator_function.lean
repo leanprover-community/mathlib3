@@ -148,19 +148,6 @@ mul_indicator_one M s
 
 variables (s t) {M}
 
-instance _root_.set.mem_inter.decidable : decidable_pred (∈ s ∩ t) := λ x, and.decidable
-
-instance _root_.set.mem_union.decidable : decidable_pred (∈ s ∪ t) := λ x, or.decidable
-
-instance _root_.set.mem_sdiff.decidable : decidable_pred (∈ s \ t) := λ x, and.decidable
-
-instance _root_.set.mem_preimage.decidable (f : α → β) (s : set β) [decidable_pred (∈ s)] :
-  decidable_pred (∈ f ⁻¹' s) :=
-λ x, ‹decidable_pred (∈ s)› (f x)
-
-instance _root_.set.mem_prod.decidable (t : set β) [decidable_pred (∈ t)] :
-  decidable_pred (∈ s.prod t) := λ x, and.decidable
-
 @[to_additive] lemma mul_indicator_mul_indicator (f : α → M) :
   mul_indicator s (mul_indicator t f) = mul_indicator (s ∩ t) f :=
 funext $ λx, by { simp only [mul_indicator], split_ifs, repeat {simp * at * {contextual := tt}} }
@@ -175,7 +162,8 @@ variables {s}
   h (s.mul_indicator f x) = s.piecewise (h ∘ f) (const α (h 1)) x :=
 s.apply_piecewise _ _ (λ _, h)
 
-@[to_additive] lemma mul_indicator_comp_right (f : β → α) {g : α → M} {x : β} :
+@[to_additive] lemma mul_indicator_comp_right (f : β → α) [decidable_pred (∈ f ⁻¹' s)] {g : α → M}
+  {x : β} :
   mul_indicator (f ⁻¹' s) (g ∘ f) x = mul_indicator s g (f x) :=
 by { simp only [mul_indicator], split_ifs; refl }
 
@@ -333,20 +321,19 @@ mul_indicator_div s f g
   mul_indicator sᶜ f = f * (mul_indicator s f)⁻¹ :=
 eq_mul_inv_of_mul_eq $ s.mul_indicator_compl_mul_self f
 
-@[to_additive] lemma indicator_compl (f : α → G) : indicator sᶜ f = f / indicator s f :=
+@[to_additive] lemma mul_indicator_compl (f : α → G) : mul_indicator sᶜ f = f / mul_indicator s f :=
 by rw [div_eq_mul_inv, mul_indicator_compl']
 
 variables {s t}
 
-@[to_additive indicator_diff'] lemma mul_indicator_diff (h : s ⊆ t) (f : α → G) :
+@[to_additive] lemma mul_indicator_diff' (h : s ⊆ t) (f : α → G) :
   mul_indicator (t \ s) f = mul_indicator t f * (mul_indicator s f)⁻¹ :=
-eq_mul_inv_of_mul_eq $ by{ simp_rw [pi.mul_def,
-  ←mul_indicator_union_of_disjoint disjoint_diff.symm f, diff_union_self,
-  union_eq_self_of_subset_right h], congr }
+eq_mul_inv_of_mul_eq $ by simp_rw [pi.mul_def, ←mul_indicator_union_of_disjoint disjoint_diff.symm,
+  diff_union_self, union_eq_self_of_subset_right h]
 
-lemma indicator_diff {G : Type*} [add_group G] (h : s ⊆ t) (f : α → G) :
-  indicator (t \ s) f = indicator t f - indicator s f :=
-by rw [indicator_diff' h, sub_eq_add_neg]
+@[to_additive] lemma mul_indicator_diff (h : s ⊆ t) (f : α → G) :
+  mul_indicator (t \ s) f = mul_indicator t f / mul_indicator s f :=
+by rw [mul_indicator_diff' h, div_eq_mul_inv]
 
 end group
 

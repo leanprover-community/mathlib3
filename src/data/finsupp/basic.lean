@@ -1937,7 +1937,8 @@ end has_zero
 
 lemma filter_pos_add_filter_neg [add_zero_class M] (f : α →₀ M) (p : α → Prop) :
   f.filter p + f.filter (λa, ¬ p a) = f :=
-coe_fn_injective $ set.indicator_self_add_compl {x | p x} f
+fun_like.coe_injective $ by { rw coe_add, convert set.indicator_self_add_compl {x | p x} f,
+  convert filter_eq_indicator _ _ }
 
 end filter
 

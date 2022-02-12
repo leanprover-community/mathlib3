@@ -167,7 +167,7 @@ lemma function.injective.tendsto_cofinite {α β : Type*} {f : α → β} (hf : 
 λ s h, h.preimage (hf.inj_on _)
 
 /-- An injective sequence `f : ℕ → ℕ` tends to infinity at infinity. -/
-lemma function.injective.tendsto_at_top {f : ℕ → ℕ} (hf : injective f) :
+lemma function.injective.nat_tendsto_at_top {f : ℕ → ℕ} (hf : injective f) :
   tendsto f at_top at_top :=
 nat.cofinite_eq_at_top ▸ hf.tendsto_cofinite
 

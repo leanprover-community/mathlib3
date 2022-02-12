@@ -502,6 +502,143 @@ instance [has_inter α] : has_inter (part α) := { inter := λ a b, (∩) <$> a 
 instance [has_union α] : has_union (part α) := { union := λ a b, (∪) <$> a <*> b }
 instance [has_sdiff α] : has_sdiff (part α) := { sdiff := λ a b, (\) <$> a <*> b }
 
+lemma add_mem_add [has_add α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma + mb ∈ a + b :=
+begin
+  cases hb,
+  cases ha,
+  induction ha_h,
+  induction hb_h,
+  fsplit,
+  { fsplit,
+    exact ha_w,
+    exact hb_w, },
+  refl,
+end
+
+lemma some_add_some [has_add α] (a b : α) :
+  (some a + some b) = some (a + b) :=
+begin
+  ext1,
+  rw [part.mem_some_iff],
+  fsplit,
+  { intros h,
+    cases h,
+    rw ←h_h,
+    refl, },
+  intro h,
+  rw h,
+  exact (some a).add_mem_add (some b) a b (mem_some a) (mem_some b),
+end
+
+lemma mul_mem_mul [has_mul α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma * mb ∈ a * b :=
+begin
+  cases hb,
+  cases ha,
+  induction ha_h,
+  induction hb_h,
+  fsplit,
+  { fsplit,
+    exact ha_w,
+    exact hb_w, },
+  refl,
+end
+
+lemma some_mul_some [has_mul α] (a b : α) :
+  (some a * some b) = some (a * b) :=
+begin
+  ext1,
+  rw [part.mem_some_iff],
+  fsplit,
+  { intros h,
+    cases h,
+    rw ←h_h,
+    refl, },
+  intro h,
+  rw h,
+  exact (some a).mul_mem_mul (some b) a b (mem_some a) (mem_some b),
+end
+
+lemma inv_mem_inv [has_inv α] (a : part α) (ma : α) (ha : ma ∈ a) :
+  ma ⁻¹ ∈ a ⁻¹ :=
+begin
+  cases ha,
+  induction ha_h,
+  fsplit,
+  { exact ha_w, },
+  refl,
+end
+
+lemma some_inv_some [has_inv α] (a b : α) :
+  (some a) ⁻¹ = some (a ⁻¹) :=
+begin
+  ext1,
+  rw [part.mem_some_iff],
+  fsplit,
+  { intros h,
+    cases h,
+    rw ←h_h,
+    refl, },
+  intro h,
+  rw h,
+  exact (some a).inv_mem_inv a (mem_some a),
+end
+
+lemma neg_mem_neg [has_neg α] (a : part α) (ma : α) (ha : ma ∈ a) :
+  - ma ∈ - a :=
+begin
+  cases ha,
+  induction ha_h,
+  fsplit,
+  { exact ha_w, },
+  refl,
+end
+
+lemma some_neg_some [has_neg α] (a b : α) :
+  - (some a) = some (- a) :=
+begin
+  ext1,
+  rw [part.mem_some_iff],
+  fsplit,
+  { intros h,
+    cases h,
+    rw ←h_h,
+    refl, },
+  intro h,
+  rw h,
+  exact (some a).neg_mem_neg a (mem_some a),
+end
+
+lemma sub_mem_sub [has_sub α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma - mb ∈ a - b :=
+begin
+  cases hb,
+  cases ha,
+  induction ha_h,
+  induction hb_h,
+  fsplit,
+  { fsplit,
+    exact ha_w,
+    exact hb_w, },
+  refl,
+end
+
+lemma some_sub_some [has_sub α] (a b : α) :
+  (some a - some b) = some (a - b) :=
+begin
+  ext1,
+  rw [part.mem_some_iff],
+  fsplit,
+  { intros h,
+    cases h,
+    rw ←h_h,
+    refl, },
+  intro h,
+  rw h,
+  exact (some a).sub_mem_sub (some b) a b (mem_some a) (mem_some b),
+end
+
 end instances
 
 end part

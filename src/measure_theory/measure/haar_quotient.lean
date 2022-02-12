@@ -37,7 +37,7 @@ theorem measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_s
   {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_group E] [normed_space ℝ E]
   [measurable_space E] [borel_space E] [complete_space E]
   [topological_space.second_countable_topology E] {f : β → α → E}
-  (hf : ∀ (i : β), measurable (f i)) :
+  (hf : ∀ (i : β), ae_measurable (f i) μ) :
   ∫ (a : α), (∑' (i : β), f i a) ∂μ = ∑' (i : β), ∫ (a : α), f i a ∂μ :=
 sorry
 
@@ -54,7 +54,7 @@ variables {G : Type*} [group G] [measurable_space G] [topological_space G]
   invariant under the action of `Γ` on `G` by **right** multiplication. -/
 @[to_additive "Given a subgroup `Γ` of an additive group `G` and a right invariant measure `μ` on
   `G`, the measure is also invariant under the action of `Γ` on `G` by **right** addition."]
-lemma subgroup.smul_invariant_measure [μ.is_mul_right_invariant] :
+instance subgroup.smul_invariant_measure [μ.is_mul_right_invariant] :
   smul_invariant_measure Γ.opposite G μ :=
 { measure_preimage_smul :=
 begin
@@ -138,7 +138,6 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
     rw this,
     have h𝓕_translate_fundom : is_fundamental_domain Γ.opposite (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ :=
       h𝓕.smul (g⁻¹),
-    haveI : smul_invariant_measure Γ.opposite G μ := Γ.smul_invariant_measure μ,
     rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA,
     rintros ⟨γ, γ_in_Γ⟩,
     ext,
@@ -233,7 +232,7 @@ lemma unfolding_trick [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
   (f : G → ℂ) (f_measurable : measurable f)
   (f_summable: ∀ x : G, summable (λ (γ : Γ.opposite), f (γ⁻¹ • x))) -- NEEDED??
   (g : G ⧸ Γ → ℂ) (g_measurable : measurable g)
-  (g_ℒ_infinity : mem_ℒp g ∞ (measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)) )
+  (g_ℒ_infinity : mem_ℒp g ∞ μ_𝓕)
   (f_ℒ_1 : integrable f μ)
   (F : G ⧸ Γ → ℂ)
   (F_measurable : measurable F)
@@ -245,28 +244,27 @@ begin
   { intros x,
     rw hFf x,
     exact ((equiv.inv (Γ.opposite)).tsum_eq  (λ γ, f(γ • x))).symm, },
-  rw integral_map,
-  have : ∀ (x : G), F (x : G ⧸ Γ) * g (x) = ∑' (γ : Γ.opposite), f(γ⁻¹ • x) * g (x),
+  let π : G → G ⧸ Γ := quotient_group.mk,
+  have meas_π : measurable π := continuous_quotient_mk.measurable,
+  rw integral_map meas_π,
+  have : ∀ (x : G), F (x : G ⧸ Γ) * g (x) = ∑' (γ : Γ.opposite), f (γ⁻¹ • x) * g (x),
   { intros x,
     rw hFf' x,
-    convert (@tsum_smul_const _ Γ.opposite _ _ _ _ _ _ _ (λ γ, f(γ⁻¹ • x)) _ (g x) _).symm using 1,
+    convert (@tsum_smul_const _ Γ.opposite _ _ _ _ _ _ _ (λ γ, f (γ⁻¹ • x)) _ (g x) _).symm using 1,
     exact f_summable x, },
   refine eq.trans _ (integral_congr_ae (filter.eventually_of_forall this)).symm,
   rw measure_theory.integral_tsum,
   haveI := h𝓕.smul_invariant_measure_map,
-  haveI : smul_invariant_measure ↥(Γ.opposite) G μ := Γ.smul_invariant_measure μ,
-  convert measure_theory.is_fundamental_domain.set_integral_eq_tsum h𝓕 (λ x, f x * g x) univ _,
+  convert h𝓕.set_integral_eq_tsum (λ x, f x * g x) univ _,
   { simp, },
   { ext1 γ,
     simp only [smul_set_univ, univ_inter],
     congr,
     ext1 x,
     have : g ↑(γ⁻¹ • x) = g x,
-    { congr' 1,
-      rw quotient_group.eq,
-      dsimp [(•)],
-      obtain ⟨γ_0, hγ_0⟩ := γ,
-      simpa using hγ_0, },
+    { obtain ⟨γ₀, hγ₀⟩ := γ,
+      congr' 1,
+      simpa [quotient_group.eq, (•)] using hγ₀, },
     rw this, },
   {
     sorry, -- some version of Holder
@@ -274,8 +272,7 @@ begin
     --- simpa using hfg,
     },
   { intros γ,
-    exact (f_measurable.comp (measurable_const_smul _)).mul
-      (g_measurable.comp continuous_coinduced_rng.measurable), },
-  { exact continuous_coinduced_rng.measurable, },
+    exact ((f_measurable.comp (measurable_const_smul _)).mul
+      (g_measurable.comp meas_π)).ae_measurable, },
   { exact (F_measurable.mul g_measurable).ae_measurable, },
 end

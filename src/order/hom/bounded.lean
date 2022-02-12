@@ -426,8 +426,8 @@ orders. -/
                    map_top' := congr_arg to_dual (map_bot f),
                    map_bot' := congr_arg to_dual (map_top f) },
   inv_fun := λ f, { to_order_hom := order_hom.dual.symm f.to_order_hom,
-                   map_top' := map_bot f,
-                   map_bot' := map_top f },
+                    map_top' := map_bot f,
+                    map_bot' := map_top f },
   left_inv := λ f, ext $ λ a, rfl,
   right_inv := λ f, ext $ λ a, rfl }
 

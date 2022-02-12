@@ -437,7 +437,7 @@ end
 
 lemma prod_prime_factors_dvd (n : ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn, { simp },
+  by_cases hn : n = 0, { subst hn, simp },
   simpa [prod_factors hn] using multiset.to_finset_prod_dvd_prod (n.factors : multiset ℕ),
 end
 

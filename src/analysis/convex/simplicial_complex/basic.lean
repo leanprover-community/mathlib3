@@ -50,6 +50,7 @@ namespace geometry
 Note that the textbook meaning of "glue nicely" is given in
 `geometry.simplicial_complex.disjoint_or_exists_inter_eq_convex_hull`. It is mostly useless, as
 `geometry.simplicial_complex.convex_hull_inter_convex_hull` is enough for all purposes. -/
+-- TODO: update to new binder order? not sure what binder order is correct for `down_closed`.
 @[ext] structure simplicial_complex :=
 (faces : set (finset E))
 (not_empty_mem : ∅ ∉ faces)
@@ -67,7 +68,7 @@ instance : has_mem (finset E) (simplicial_complex 𝕜 E) := ⟨λ s K, s ∈ K.
 /-- The underlying space of a simplicial complex is the union of its faces. -/
 def space (K : simplicial_complex 𝕜 E) : set E := ⋃ s ∈ K.faces, convex_hull 𝕜 (s : set E)
 
-lemma mem_space_iff : x ∈ K.space ↔ ∃ s ∈ K.faces, x ∈ convex_hull 𝕜 (s : set E) := mem_bUnion_iff
+lemma mem_space_iff : x ∈ K.space ↔ ∃ s ∈ K.faces, x ∈ convex_hull 𝕜 (s : set E) := mem_Union₂
 
 lemma convex_hull_subset_space (hs : s ∈ K.faces) : convex_hull 𝕜 ↑s ⊆ K.space :=
 subset_bUnion_of_mem hs
@@ -108,7 +109,7 @@ end
   not_empty_mem := λ h, h.2 (mem_singleton _),
   indep := λ s hs, indep _ hs.1,
   down_closed := λ s t hs hts ht, ⟨down_closed _ hs.1 _ hts, ht⟩,
-  inter_subset_convex_hull := λ s t hs ht, inter_subset_convex_hull _ _ hs.1 ht.1 }
+  inter_subset_convex_hull := λ s t hs ht, inter_subset_convex_hull _ hs.1 _ ht.1 }
 
 /-- Construct a simplicial complex as a subset of a given simplicial complex. -/
 @[simps] def of_subcomplex (K : simplicial_complex 𝕜 E)
@@ -133,12 +134,12 @@ lemma vertices_eq : K.vertices = ⋃ k ∈ K.faces, (k : set E) :=
 begin
   ext x,
   refine ⟨λ h, mem_bUnion h $ mem_coe.2 $ mem_singleton_self x, λ h, _⟩,
-  obtain ⟨s, hs, hx⟩ := mem_bUnion_iff.1 h,
+  obtain ⟨s, hs, hx⟩ := mem_Union₂.1 h,
   exact K.down_closed hs (finset.singleton_subset_iff.2 $ mem_coe.1 hx) (singleton_ne_empty _),
 end
 
 lemma vertices_subset_space : K.vertices ⊆ K.space :=
-vertices_eq.subset.trans $ set.bUnion_mono $ λ x hx, subset_convex_hull 𝕜 x
+vertices_eq.subset.trans $ Union₂_mono $ λ x hx, subset_convex_hull 𝕜 x
 
 lemma vertex_mem_convex_hull_iff (hx : x ∈ K.vertices) (hs : s ∈ K.faces) :
   x ∈ convex_hull 𝕜 (s : set E) ↔ x ∈ s :=

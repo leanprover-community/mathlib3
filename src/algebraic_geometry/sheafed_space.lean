@@ -69,6 +69,10 @@ by apply_instance
 def forget_to_PresheafedSpace : (SheafedSpace C) ⥤ (PresheafedSpace C) :=
 induced_functor _
 
+instance is_PresheafedSpace_iso {X Y : SheafedSpace C} (f : X ⟶ Y) [is_iso f] :
+  @is_iso (PresheafedSpace C) _ _ _ f :=
+SheafedSpace.forget_to_PresheafedSpace.map_is_iso f
+
 variables {C}
 
 section
@@ -157,9 +161,8 @@ instance [has_limits C] : creates_colimits (forget_to_PresheafedSpace : SheafedS
 instance [has_limits C] : has_colimits (SheafedSpace C) :=
 has_colimits_of_has_colimits_creates_colimits forget_to_PresheafedSpace
 
-noncomputable
- instance [has_limits C] : preserves_colimits (forget C) :=
- limits.comp_preserves_colimits forget_to_PresheafedSpace (PresheafedSpace.forget C)
+noncomputable instance [has_limits C] : preserves_colimits (forget C) :=
+limits.comp_preserves_colimits forget_to_PresheafedSpace (PresheafedSpace.forget C)
 
 end SheafedSpace
 

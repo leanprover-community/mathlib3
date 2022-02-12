@@ -17,7 +17,7 @@ it is repeated, with slightly different names, for colimits.
 The main structures defined in this file is
 * `is_limit c`, for `c : cone F`, `F : J ⥤ C`, expressing that `c` is a limit cone,
 
-See also `category_theory.limits.limits` which further builds:
+See also `category_theory.limits.has_limits` which further builds:
 * `limit_cone F`, which consists of a choice of cone for `F` and the fact it is a limit cone, and
 * `has_limit F`, asserting the mere existence of some limit cone for `F`.
 
@@ -91,6 +91,16 @@ lemma uniq_cone_morphism {s t : cone F} (h : is_limit t) {f f' : s ⟶ t} :
   f = f' :=
 have ∀ {g : s ⟶ t}, g = h.lift_cone_morphism s, by intro g; ext; exact h.uniq _ _ g.w,
 this.trans this.symm
+
+/-- Restating the definition of a limit cone in terms of the ∃! operator. -/
+lemma exists_unique {t : cone F} (h : is_limit t) (s : cone F) :
+  ∃! (l : s.X ⟶ t.X), ∀ j, l ≫ t.π.app j = s.π.app j :=
+⟨h.lift s, h.fac s, h.uniq s⟩
+
+/-- Noncomputably make a colimit cocone from the existence of unique factorizations. -/
+def of_exists_unique {t : cone F}
+  (ht : ∀ s : cone F, ∃! l : s.X ⟶ t.X, ∀ j, l ≫ t.π.app j = s.π.app j) : is_limit t :=
+by { choose s hs hs' using ht, exact ⟨s, hs, hs'⟩ }
 
 /--
 Alternative constructor for `is_limit`,
@@ -279,6 +289,21 @@ If `s : cone F` is a limit cone, so is `s` whiskered by an equivalence `e`.
 def whisker_equivalence {s : cone F} (P : is_limit s) (e : K ≌ J) :
   is_limit (s.whisker e.functor) :=
 of_right_adjoint (cones.whiskering_equivalence e).functor P
+
+/--
+If `s : cone F` whiskered by an equivalence `e` is a limit cone, so is `s`.
+-/
+def of_whisker_equivalence {s : cone F} (e : K ≌ J) (P : is_limit (s.whisker e.functor)) :
+  is_limit s :=
+equiv_iso_limit ((cones.whiskering_equivalence e).unit_iso.app s).symm
+  (of_right_adjoint (cones.whiskering_equivalence e).inverse P : _)
+
+/--
+Given an equivalence of diagrams `e`, `s` is a limit cone iff `s.whisker e.functor` is.
+-/
+def whisker_equivalence_equiv {s : cone F} (e : K ≌ J) :
+  is_limit s ≃ is_limit (s.whisker e.functor) :=
+⟨λ h, h.whisker_equivalence e, of_whisker_equivalence e, by tidy, by tidy⟩
 
 /--
 We can prove two cone points `(s : cone F).X` and `(t.cone F).X` are isomorphic if
@@ -508,6 +533,16 @@ lemma uniq_cocone_morphism {s t : cocone F} (h : is_colimit t) {f f' : t ⟶ s} 
 have ∀ {g : t ⟶ s}, g = h.desc_cocone_morphism s, by intro g; ext; exact h.uniq _ _ g.w,
 this.trans this.symm
 
+/-- Restating the definition of a colimit cocone in terms of the ∃! operator. -/
+lemma exists_unique {t : cocone F} (h : is_colimit t) (s : cocone F) :
+  ∃! (d : t.X ⟶ s.X), ∀ j, t.ι.app j ≫ d = s.ι.app j :=
+⟨h.desc s, h.fac s, h.uniq s⟩
+
+/-- Noncomputably make a colimit cocone from the existence of unique factorizations. -/
+def of_exists_unique {t : cocone F}
+  (ht : ∀ s : cocone F, ∃! d : t.X ⟶ s.X, ∀ j, t.ι.app j ≫ d = s.ι.app j) : is_colimit t :=
+by { choose s hs hs' using ht, exact ⟨s, hs, hs'⟩ }
+
 /--
 Alternative constructor for `is_colimit`,
 providing a morphism of cocones rather than a morphism between the cocone points
@@ -690,11 +725,26 @@ section equivalence
 open category_theory.equivalence
 
 /--
-If `s : cone F` is a limit cone, so is `s` whiskered by an equivalence `e`.
+If `s : cocone F` is a colimit cocone, so is `s` whiskered by an equivalence `e`.
 -/
 def whisker_equivalence {s : cocone F} (P : is_colimit s) (e : K ≌ J) :
   is_colimit (s.whisker e.functor) :=
 of_left_adjoint (cocones.whiskering_equivalence e).functor P
+
+/--
+If `s : cocone F` whiskered by an equivalence `e` is a colimit cocone, so is `s`.
+-/
+def of_whisker_equivalence {s : cocone F} (e : K ≌ J) (P : is_colimit (s.whisker e.functor)) :
+  is_colimit s :=
+equiv_iso_colimit ((cocones.whiskering_equivalence e).unit_iso.app s).symm
+  (of_left_adjoint (cocones.whiskering_equivalence e).inverse P : _)
+
+/--
+Given an equivalence of diagrams `e`, `s` is a colimit cocone iff `s.whisker e.functor` is.
+-/
+def whisker_equivalence_equiv {s : cocone F} (e : K ≌ J) :
+  is_colimit s ≃ is_colimit (s.whisker e.functor) :=
+⟨λ h, h.whisker_equivalence e, of_whisker_equivalence e, by tidy, by tidy⟩
 
 /--
 We can prove two cocone points `(s : cocone F).X` and `(t.cocone F).X` are isomorphic if

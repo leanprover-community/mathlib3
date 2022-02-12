@@ -66,7 +66,7 @@ calc cardinal.sum (λ a : α, m ^ #(β a))
   cardinal.sum_le_sup _
 ... ≤ m * cardinal.sup.{u u}
       (λ a : α, m ^ #(β a)) :
-  mul_le_mul' (le_max_left _ _) (le_refl _)
+  mul_le_mul' (le_max_left _ _) le_rfl
 ... = m : mul_eq_left.{u} (le_max_right _ _)
   (cardinal.sup_le.2 (λ i, begin
     cases lt_omega.1 (lt_omega_iff_fintype.2 ⟨show fintype (β i), by apply_instance⟩) with n hn,

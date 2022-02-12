@@ -23,7 +23,7 @@ infixr `::ᵥ`:67  := vector.cons
 attribute [simp] head_cons tail_cons
 
 instance [inhabited α] : inhabited (vector α n) :=
-⟨of_fn (λ _, default α)⟩
+⟨of_fn (λ _, default)⟩
 
 theorem to_list_injective : function.injective (@to_list α n) :=
 subtype.val_injective
@@ -469,7 +469,7 @@ lemma prod_update_nth [monoid α] (v : vector α n) (i : fin n) (a : α) :
 begin
   refine (list.prod_update_nth v.to_list i a).trans _,
   have : ↑i < v.to_list.length := lt_of_lt_of_le i.2 (le_of_eq v.2.symm),
-  simp [this],
+  simp * at *
 end
 
 @[to_additive]

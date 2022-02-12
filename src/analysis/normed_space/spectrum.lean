@@ -5,6 +5,7 @@ Authors: Jireh Loreaux
 -/
 import algebra.algebra.spectrum
 import analysis.calculus.deriv
+import analysis.special_functions.pow
 /-!
 # The spectrum of elements in a complete normed algebra
 
@@ -44,11 +45,12 @@ noncomputable def spectral_radius (𝕜 : Type*) {A : Type*} [normed_field 𝕜]
   [algebra 𝕜 A] (a : A) : ℝ≥0∞ :=
 ⨆ k ∈ spectrum 𝕜 a, ∥k∥₊
 
+variables {𝕜 : Type*} {A : Type*}
+
 namespace spectrum
 
 section spectrum_compact
 
-variables {𝕜 : Type*} {A : Type*}
 variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 
 local notation `σ` := spectrum 𝕜
@@ -65,7 +67,7 @@ lemma mem_resolvent_of_norm_lt {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
   k ∈ ρ a :=
 begin
   rw [resolvent_set, set.mem_set_of_eq, algebra.algebra_map_eq_smul_one],
-  have hk : k ≠ 0 := ne_zero_of_norm_pos (by linarith [norm_nonneg a]),
+  have hk : k ≠ 0 := ne_zero_of_norm_ne_zero (by linarith [norm_nonneg a]),
   let ku := units.map (↑ₐ).to_monoid_hom (units.mk0 k hk),
   have hku : ∥-a∥ < ∥(↑ku⁻¹:A)∥⁻¹ := by simpa [ku, algebra_map_isometry] using h,
   simpa [ku, sub_eq_add_neg, algebra.algebra_map_eq_smul_one] using (ku.add (-a) hku).is_unit,
@@ -87,18 +89,32 @@ metric.is_compact_of_is_closed_bounded (is_closed a) (is_bounded a)
 
 theorem spectral_radius_le_nnnorm (a : A) :
   spectral_radius 𝕜 a ≤ ∥a∥₊ :=
+by { refine bsupr_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
+
+open ennreal polynomial
+
+theorem spectral_radius_le_pow_nnnorm_pow_one_div (a : A) (n : ℕ) :
+  spectral_radius 𝕜 a ≤ ∥a ^ (n + 1)∥₊ ^ (1 / (n + 1) : ℝ) :=
 begin
-  suffices h : ∀ k ∈ σ a, (∥k∥₊ : ℝ≥0∞) ≤ ∥a∥₊,
-  { exact bsupr_le h, },
-  { intros _ hk,
-    exact_mod_cast norm_le_norm_of_mem hk },
+  refine bsupr_le (λ k hk, _),
+  /- apply easy direction of the spectral mapping theorem for polynomials -/
+  have pow_mem : k ^ (n + 1) ∈ σ (a ^ (n + 1)),
+    by simpa only [one_mul, algebra.algebra_map_eq_smul_one, one_smul, aeval_monomial, one_mul,
+      eval_monomial] using subset_polynomial_aeval a (monomial (n + 1) (1 : 𝕜)) ⟨k, hk, rfl⟩,
+  /- power of the norm is bounded by norm of the power -/
+  have nnnorm_pow_le : (↑(∥k∥₊ ^ (n + 1)) : ℝ≥0∞) ≤ ↑∥a ^ (n + 1)∥₊,
+    by simpa only [norm_to_nnreal, normed_field.nnnorm_pow k (n+1)]
+      using coe_mono (real.to_nnreal_mono (norm_le_norm_of_mem pow_mem)),
+  /- take (n + 1)ᵗʰ roots and clean up the left-hand side -/
+  have hn : 0 < ((n + 1) : ℝ), by exact_mod_cast nat.succ_pos',
+  convert monotone_rpow_of_nonneg (one_div_pos.mpr hn).le nnnorm_pow_le,
+  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one],
 end
 
 end spectrum_compact
 
 section resolvent_deriv
 
-variables {𝕜 : Type*} {A : Type*}
 variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 
 local notation `ρ` := resolvent_set 𝕜
@@ -116,3 +132,33 @@ end
 end resolvent_deriv
 
 end spectrum
+
+namespace alg_hom
+
+section normed_field
+variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+local notation `↑ₐ` := algebra_map 𝕜 A
+
+/-- An algebra homomorphism into the base field, as a continuous linear map (since it is
+automatically bounded). -/
+@[simps] def to_continuous_linear_map (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
+φ.to_linear_map.mk_continuous_of_exists_bound $
+  ⟨1, λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _)⟩
+
+lemma continuous (φ : A →ₐ[𝕜] 𝕜) : continuous φ := φ.to_continuous_linear_map.continuous
+
+end normed_field
+
+section nondiscrete_normed_field
+variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+local notation `↑ₐ` := algebra_map 𝕜 A
+
+@[simp] lemma to_continuous_linear_map_norm [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) :
+  ∥φ.to_continuous_linear_map∥ = 1 :=
+continuous_linear_map.op_norm_eq_of_bounds zero_le_one
+  (λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _))
+  (λ _ _ h, by simpa only [to_continuous_linear_map_apply, mul_one, map_one, norm_one] using h 1)
+
+end nondiscrete_normed_field
+
+end alg_hom

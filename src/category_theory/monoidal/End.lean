@@ -121,7 +121,7 @@ end
 
 @[simp, reassoc]
 lemma μ_naturalityₗ {m n m' : M} (f : m ⟶ m') (X : C) :
-  (F.obj n).map((F.map f).app X) ≫ (F.μ m' n).app X =
+  (F.obj n).map ((F.map f).app X) ≫ (F.μ m' n).app X =
     (F.μ m n).app X ≫ (F.map (f ⊗ 𝟙 n)).app X :=
 begin
   rw ← μ_naturality₂ F f (𝟙 n) X,
@@ -134,6 +134,24 @@ lemma μ_naturalityᵣ {m n n' : M} (g : n ⟶ n') (X : C) :
     (F.μ m n).app X ≫ (F.map (𝟙 m ⊗ g)).app X :=
 begin
   rw ← μ_naturality₂ F (𝟙 m) g X,
+  simp,
+end
+
+@[simp, reassoc]
+lemma μ_inv_naturalityₗ {m n m' : M} (f : m ⟶ m') (X : C) :
+  (F.μ_iso m n).inv.app X ≫ (F.obj n).map ((F.map f).app X) =
+    (F.map (f ⊗ 𝟙 n)).app X ≫ (F.μ_iso m' n).inv.app X :=
+begin
+  rw [← is_iso.comp_inv_eq, category.assoc, ← is_iso.eq_inv_comp],
+  simp,
+end
+
+@[simp, reassoc]
+lemma μ_inv_naturalityᵣ {m n n' : M} (g : n ⟶ n') (X : C) :
+  (F.μ_iso m n).inv.app X ≫ (F.map g).app ((F.obj m).obj X) =
+    (F.map (𝟙 m ⊗ g)).app X ≫ (F.μ_iso m n').inv.app X :=
+begin
+  rw [← is_iso.comp_inv_eq, category.assoc, ← is_iso.eq_inv_comp],
   simp,
 end
 

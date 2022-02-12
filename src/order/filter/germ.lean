@@ -231,7 +231,7 @@ eventually_of_forall $ λ _, h
   lift_rel r (↑x : germ l β) ↑y ↔ r x y :=
 @eventually_const _ _ _ (r x y)
 
-instance [inhabited β] : inhabited (germ l β) := ⟨↑(default β)⟩
+instance [inhabited β] : inhabited (germ l β) := ⟨↑(default : β)⟩
 
 section monoid
 

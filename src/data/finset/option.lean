@@ -69,7 +69,7 @@ by simp [insert_none]
 
 /-- Given `s : finset (option α)`, `s.erase_none : finset α` is the set of `x : α` such that
 `some x ∈ s`. -/
-def erase_none : finset (option α) →ₘ finset α :=
+def erase_none : finset (option α) →o finset α :=
 (finset.map_embedding (equiv.option_is_some_equiv α).to_embedding).to_order_hom.comp
   ⟨finset.subtype _, subtype_mono⟩
 

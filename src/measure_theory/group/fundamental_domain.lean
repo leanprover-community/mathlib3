@@ -58,8 +58,8 @@ variables {G α E : Type*} [group G] [mul_action G α] [measurable_space α]
 
 /-- If for each `x : α`, exactly one of `g • x`, `g : G`, belongs to a measurable set `s`, then `s`
 is a fundamental domain for the action of `G` on `α`. -/
-@[to_additive "/- If for each `x : α`, exactly one of `g +ᵥ x`, `g : G`, belongs to a measurable set
-`s`, then `s` is a fundamental domain for the additive action of `G` on `α`. -/"]
+@[to_additive "If for each `x : α`, exactly one of `g +ᵥ x`, `g : G`, belongs to a measurable set
+`s`, then `s` is a fundamental domain for the additive action of `G` on `α`."]
 lemma mk' (h_meas : measurable_set s) (h_exists : ∀ x : α, ∃! g : G, g • x ∈ s) :
   is_fundamental_domain G s μ :=
 { measurable_set := h_meas,
@@ -152,6 +152,19 @@ calc ∫⁻ x in s, f x ∂μ = ∑' g : G, ∫⁻ x in s ∩ g • t, f x ∂μ
 ... = ∫⁻ x in t, f x ∂μ :
   (hs.set_lintegral_eq_tsum _ _).symm
 
+@[to_additive] lemma measure_set_eq (hs : is_fundamental_domain G s μ)
+  (ht : is_fundamental_domain G t μ) {A : set α} (hA₀ : measurable_set A)
+  (hA : ∀ (g : G), (λ x, g • x) ⁻¹' A = A) :
+  μ (A ∩ s) = μ (A ∩ t) :=
+begin
+  have : ∫⁻ x in s, A.indicator 1 x ∂μ = ∫⁻ x in t, A.indicator 1 x ∂μ,
+  { refine hs.set_lintegral_eq ht (set.indicator A (λ _, 1)) _,
+    intros g x,
+    convert (set.indicator_comp_right (λ x : α, g • x)).symm,
+    rw hA g },
+  simpa [measure.restrict_apply hA₀, lintegral_indicator _ hA₀] using this
+end
+
 /-- If `s` and `t` are two fundamental domains of the same action, then their measures are equal. -/
 @[to_additive] protected lemma measure_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) : μ s = μ t :=
@@ -209,7 +222,7 @@ begin
     calc ∫ x in s, f x ∂μ = ∫ x in ⋃ g : G, g • t, f x ∂(μ.restrict s) :
       by rw [restrict_congr_set (hac ht.Union_smul_ae_eq), restrict_univ]
     ... = ∑' g : G, ∫ x in g • t, f x ∂(μ.restrict s) :
-      integral_Union_of_null_inter ht.measurable_set_smul
+      integral_Union_of_null_inter (λ g, (ht.measurable_set_smul g).null_measurable_set)
         (ht.pairwise_ae_disjoint.mono $ λ i j h, hac h) hfs.integrable.integrable_on
     ... = ∑' g : G, ∫ x in s ∩ g • t, f x ∂μ :
       by simp only [restrict_restrict (ht.measurable_set_smul _), inter_comm]
@@ -222,7 +235,7 @@ begin
     ... = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t) :
       by simp only [hf, restrict_restrict (hs.measurable_set_smul _)]
     ... = ∫ x in ⋃ g : G, g • s, f x ∂(μ.restrict t) :
-      (integral_Union_of_null_inter hs.measurable_set_smul
+      (integral_Union_of_null_inter (λ g, (hs.measurable_set_smul g).null_measurable_set)
         (hs.pairwise_ae_disjoint.mono $ λ i j h, hac h) hft.integrable.integrable_on).symm
     ... = ∫ x in t, f x ∂μ :
       by rw [restrict_congr_set (hac hs.Union_smul_ae_eq), restrict_univ] },

@@ -6,7 +6,7 @@ Authors: Riccardo Brasca
 
 import ring_theory.trace
 import ring_theory.norm
-import ring_theory.integrally_closed
+import number_theory.number_field
 
 /-!
 # Discriminant of a family of vectors
@@ -71,6 +71,13 @@ lemma discr_def [decidable_eq ι] [fintype ι] (b : ι → B) :
 variable [fintype ι]
 
 section basic
+
+lemma discr_reindex {ι' : Type*} [fintype ι'] (b : basis ι A B) (f : ι ≃ ι') :
+  discr A (b.reindex f) = discr A b :=
+begin
+  classical,
+  rw [discr_def, trace_matrix_reindex, det_reindex_self, ← discr_def]
+end
 
 /-- If `b` is not linear independent, then `algebra.discr A b = 0`. -/
 lemma discr_zero_of_not_linear_independent [is_domain A] {b : ι → B}
@@ -269,6 +276,40 @@ begin
   classical,
   rw [discr_def],
   exact is_integral.det (λ i j, is_integral_trace (is_integral_mul (h i) (h j)))
+end
+
+/-- If `b` and `b'` are `ℚ`-basis of a number field `K` such that
+`∀ i j, is_integral ℤ (b.to_matrix b' i j)` and `∀ i j, is_integral ℤ (b'.to_matrix b i j` then
+`discr ℚ b = discr ℚ b'`. -/
+lemma discr_eq_discr_of_to_matrix_coeff_is_integral {K : Type u} {ι' : Type v} [fintype ι']
+  [field K] [number_field K] {b : basis ι ℚ K} {b' : basis ι' ℚ K}
+  (h : ∀ i j, is_integral ℤ (b.to_matrix b' i j)) (h' : ∀ i j, is_integral ℤ (b'.to_matrix b i j)) :
+  discr ℚ b = discr ℚ b' :=
+begin
+  replace h' : ∀ i j, is_integral ℤ (b'.to_matrix ((b.reindex (b.index_equiv b'))) i j),
+  { intros i j,
+    convert h' i ((b.index_equiv b').symm j),
+    simpa },
+  classical,
+  rw [← b.to_matrix_vec_mul b' (b.index_equiv b'), discr_of_matrix_vec_mul, ← one_mul (discr ℚ b),
+    discr_reindex],
+  congr,
+  have hint : is_integral ℤ (((b.reindex (b.index_equiv b')).to_matrix b').det) :=
+    is_integral.det (λ i j, h _ _),
+  obtain ⟨r, hr⟩ := is_integrally_closed.is_integral_iff.1 hint,
+  have hunit : is_unit r,
+  { have : is_integral ℤ ((b'.to_matrix (b.reindex (b.index_equiv b'))).det) :=
+      is_integral.det (λ i j, h' _ _),
+    obtain ⟨r', hr'⟩ := is_integrally_closed.is_integral_iff.1 this,
+    refine is_unit_iff_exists_inv.2 ⟨r', _⟩,
+    suffices : algebra_map ℤ ℚ (r * r') = 1,
+    { rw [← ring_hom.map_one (algebra_map ℤ ℚ)] at this,
+      exact (is_fraction_ring.injective ℤ ℚ) this },
+    rw [ring_hom.map_mul, hr, hr', ← det_mul, basis.to_matrix_mul_to_matrix_flip, det_one] },
+  rw [← ring_hom.map_one (algebra_map ℤ ℚ), ← hr],
+  cases int.is_unit_iff.1 hunit with hp hm,
+  { simp [hp] },
+  { simp [hm] }
 end
 
 /-- Let `K` be the fraction field of an integrally closed domain `R` and let `L` be a finite

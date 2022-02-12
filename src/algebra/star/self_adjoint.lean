@@ -14,7 +14,7 @@ This file defines `self_adjoint R`, where `R` is a star additive monoid, as the 
 containing the elements that satisfy `star x = x`. This includes, for instance, Hermitian
 operators on Hilbert spaces.
 
-We also define `star_normal R` as the set of normal elements, i.e. those that satisfy
+We also define `is_star_normal R`, a `Prop` that states that an element `x` satisfies
 `star x * x = x * star x`.
 
 ## Implementation notes

@@ -590,7 +590,7 @@ variables {F : Type*} [semi_normed_group F] [normed_space α F]
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
 have tendsto (λ y, ∥c • (y - x)∥) (𝓝 x) (𝓝 0),
-  from (continuous_const.smul (continuous_id.sub continuous_const)).norm.tendsto' _ _ (by simp),
+  from ((continuous_id.sub continuous_const).const_smul _).norm.tendsto' _ _ (by simp),
 this.eventually (gt_mem_nhds h)
 
 theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :

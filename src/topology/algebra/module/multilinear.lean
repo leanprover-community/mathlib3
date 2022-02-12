@@ -335,7 +335,7 @@ variables {R' R'' A : Type*} [monoid R'] [monoid R''] [semiring A]
   [smul_comm_class A R'' M₂]
 
 instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
-⟨λ c f, { cont := continuous_const.smul f.cont, .. c • f.to_multilinear_map }⟩
+⟨λ c f, { cont := f.cont.const_smul c, .. c • f.to_multilinear_map }⟩
 
 @[simp] lemma smul_apply (f : continuous_multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
   (c • f) m = c • f m := rfl

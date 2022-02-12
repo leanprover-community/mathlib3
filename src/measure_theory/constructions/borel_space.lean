@@ -715,8 +715,8 @@ instance has_continuous_smul.has_measurable_smul {M α} [topological_space M]
   [topological_space α] [measurable_space M] [measurable_space α]
   [opens_measurable_space M] [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
   has_measurable_smul M α :=
-⟨λ c, (continuous_const.smul continuous_id).measurable,
-  λ y, (continuous_id.smul continuous_const).measurable⟩
+⟨λ c, (continuous_const_smul _).measurable,
+  λ y, (continuous_smul_const _).measurable⟩
 
 section lattice
 

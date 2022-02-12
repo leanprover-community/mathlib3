@@ -1328,8 +1328,8 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
   map_smul' := λk,
   begin
     refine (λ b, h_dense.induction_on b _ _),
-    { exact is_closed_eq (cont.comp (continuous_const.smul continuous_id))
-        ((continuous_const.smul continuous_id).comp cont) },
+    { exact is_closed_eq (cont.comp (continuous_const_smul _))
+        ((continuous_const_smul _).comp cont) },
     { assume x, rw ← map_smul, simp only [eq], exact map_smulₛₗ _ _ _ },
   end,
   cont := cont }

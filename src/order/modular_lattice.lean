@@ -40,11 +40,14 @@ We define (semi)modularity typeclasses as Prop-valued mixins.
   Modularity is equivalent to the `inf_sup_inf_assoc`: `(x ⊓ z) ⊔ (y ⊓ z) = ((x ⊓ z) ⊔ y) ⊓ z`
 - `distrib_lattice.is_modular_lattice`: Distributive lattices are modular.
 
-## To do
+## References
+
+* [Wikipedia, *Modular Lattice*][https://en.wikipedia.org/wiki/Modular_lattice]
+
+## TODO
 
 - Relate atoms and coatoms in modular lattices
 - Prove that a modular lattice is both upper and lower modular.
-
 -/
 
 variable {α : Type*}
@@ -52,22 +55,22 @@ variable {α : Type*}
 /-- A weakly upper modular lattice is a lattice where `a ⊔ b` covers `a` and `b` if `a` and `b` both
 cover `a ⊓ b`. -/
 class is_weak_up_modular_lattice (α : Type*) [lattice α] : Prop :=
-(covers_sup_of_inf_covers_covers {a b : α} : a ⊓ b ⋖ a → a ⊓ b ⋖ b → a ⋖ a ⊔ b)
+(covby_sup_of_inf_covby_covby {a b : α} : a ⊓ b ⋖ a → a ⊓ b ⋖ b → a ⋖ a ⊔ b)
 
 /-- A weakly lower modular lattice is a lattice where `a` and `b` cover `a ⊓ b` if `a ⊔ b` covers
 both `a` and `b`. -/
 class is_weak_low_modular_lattice (α : Type*) [lattice α] : Prop :=
-(inf_covers_of_covers_covers_sup {a b : α} : a ⋖ a ⊔ b → b ⋖ a ⊔ b → a ⊓ b ⋖ a)
+(inf_covby_of_covby_covby_sup {a b : α} : a ⋖ a ⊔ b → b ⋖ a ⊔ b → a ⊓ b ⋖ a)
 
 /-- An upper modular lattice, aka semimodular lattice, is a lattice where `a ⊔ b` covers `a` and `b`
 if either `a` or `b` covers `a ⊓ b`. -/
 class is_up_modular_lattice (α : Type*) [lattice α] : Prop :=
-(covers_sup_of_inf_covers {a b : α} : a ⊓ b ⋖ a → b ⋖ a ⊔ b)
+(covby_sup_of_inf_covby {a b : α} : a ⊓ b ⋖ a → b ⋖ a ⊔ b)
 
 /-- A lower modular lattice is a lattice where `a` and `b` both cover `a ⊓ b` if `a ⊔ b` covers
 either `a` or `b`. -/
 class is_low_modular_lattice (α : Type*) [lattice α] : Prop :=
-(inf_covers_of_covers_sup {a b : α} : a ⋖ a ⊔ b → a ⊓ b ⋖ b)
+(inf_covby_of_covby_sup {a b : α} : a ⋖ a ⊔ b → a ⊓ b ⋖ b)
 
 /-- A modular lattice is one with a limited associativity between `⊓` and `⊔`. -/
 class is_modular_lattice (α : Type*) [lattice α] : Prop :=
@@ -76,14 +79,14 @@ class is_modular_lattice (α : Type*) [lattice α] : Prop :=
 section weak_up_modular
 variables [lattice α] [is_weak_up_modular_lattice α] {a b : α}
 
-lemma covers_sup_of_inf_covers_of_inf_covers_left : a ⊓ b ⋖ a → a ⊓ b ⋖ b → a ⋖ a ⊔ b :=
-is_weak_up_modular_lattice.covers_sup_of_inf_covers_covers
+lemma covby_sup_of_inf_covby_of_inf_covby_left : a ⊓ b ⋖ a → a ⊓ b ⋖ b → a ⋖ a ⊔ b :=
+is_weak_up_modular_lattice.covby_sup_of_inf_covby_covby
 
-lemma covers_sup_of_inf_covers_of_inf_covers_right : a ⊓ b ⋖ a → a ⊓ b ⋖ b → b ⋖ a ⊔ b :=
-by { rw [inf_comm, sup_comm], exact λ ha hb, covers_sup_of_inf_covers_of_inf_covers_left hb ha }
+lemma covby_sup_of_inf_covby_of_inf_covby_right : a ⊓ b ⋖ a → a ⊓ b ⋖ b → b ⋖ a ⊔ b :=
+by { rw [inf_comm, sup_comm], exact λ ha hb, covby_sup_of_inf_covby_of_inf_covby_left hb ha }
 
-alias covers_sup_of_inf_covers_of_inf_covers_left ← covers.sup_of_inf_of_inf_left
-alias covers_sup_of_inf_covers_of_inf_covers_right ← covers.sup_of_inf_of_inf_right
+alias covby_sup_of_inf_covby_of_inf_covby_left ← covby.sup_of_inf_of_inf_left
+alias covby_sup_of_inf_covby_of_inf_covby_right ← covby.sup_of_inf_of_inf_right
 
 instance : is_weak_low_modular_lattice (order_dual α) :=
 ⟨λ a b ha hb, (ha.of_dual.sup_of_inf_of_inf_left hb.of_dual).to_dual⟩
@@ -93,14 +96,14 @@ end weak_up_modular
 section weak_low_modular
 variables [lattice α] [is_weak_low_modular_lattice α] {a b : α}
 
-lemma inf_covers_of_covers_sup_of_covers_sup_left : a ⋖ a ⊔ b → b ⋖ a ⊔ b → a ⊓ b ⋖ a :=
-is_weak_low_modular_lattice.inf_covers_of_covers_covers_sup
+lemma inf_covby_of_covby_sup_of_covby_sup_left : a ⋖ a ⊔ b → b ⋖ a ⊔ b → a ⊓ b ⋖ a :=
+is_weak_low_modular_lattice.inf_covby_of_covby_covby_sup
 
-lemma inf_covers_of_covers_sup_of_covers_sup_right : a ⋖ a ⊔ b → b ⋖ a ⊔ b → a ⊓ b ⋖ b :=
-by { rw [sup_comm, inf_comm], exact λ ha hb, inf_covers_of_covers_sup_of_covers_sup_left hb ha }
+lemma inf_covby_of_covby_sup_of_covby_sup_right : a ⋖ a ⊔ b → b ⋖ a ⊔ b → a ⊓ b ⋖ b :=
+by { rw [sup_comm, inf_comm], exact λ ha hb, inf_covby_of_covby_sup_of_covby_sup_left hb ha }
 
-alias inf_covers_of_covers_sup_of_covers_sup_left ← covers.inf_of_sup_of_sup_left
-alias inf_covers_of_covers_sup_of_covers_sup_right ← covers.inf_of_sup_of_sup_right
+alias inf_covby_of_covby_sup_of_covby_sup_left ← covby.inf_of_sup_of_sup_left
+alias inf_covby_of_covby_sup_of_covby_sup_right ← covby.inf_of_sup_of_sup_right
 
 instance : is_weak_up_modular_lattice (order_dual α) :=
 ⟨λ a b ha hb, (ha.of_dual.inf_of_sup_of_sup_left hb.of_dual).to_dual⟩
@@ -110,18 +113,18 @@ end weak_low_modular
 section up_modular
 variables [lattice α] [is_up_modular_lattice α] {a b : α}
 
-lemma covers_sup_of_inf_covers_left : a ⊓ b ⋖ a → b ⋖ a ⊔ b :=
-is_up_modular_lattice.covers_sup_of_inf_covers
+lemma covby_sup_of_inf_covby_left : a ⊓ b ⋖ a → b ⋖ a ⊔ b :=
+is_up_modular_lattice.covby_sup_of_inf_covby
 
-lemma covers_sup_of_inf_covers_right : a ⊓ b ⋖ b → a ⋖ a ⊔ b :=
-by { rw [sup_comm, inf_comm], exact covers_sup_of_inf_covers_left }
+lemma covby_sup_of_inf_covby_right : a ⊓ b ⋖ b → a ⋖ a ⊔ b :=
+by { rw [sup_comm, inf_comm], exact covby_sup_of_inf_covby_left }
 
-alias covers_sup_of_inf_covers_left ← covers.sup_of_inf_left
-alias covers_sup_of_inf_covers_right ← covers.sup_of_inf_right
+alias covby_sup_of_inf_covby_left ← covby.sup_of_inf_left
+alias covby_sup_of_inf_covby_right ← covby.sup_of_inf_right
 
 @[priority 100] -- See note [lower instance priority]
 instance is_up_modular_lattice.to_is_weak_up_modular_lattice : is_weak_up_modular_lattice α :=
-⟨λ a b _, covers.sup_of_inf_right⟩
+⟨λ a b _, covby.sup_of_inf_right⟩
 
 instance : is_low_modular_lattice (order_dual α) := ⟨λ a b h, h.of_dual.sup_of_inf_left.to_dual⟩
 
@@ -130,18 +133,18 @@ end up_modular
 section low_modular
 variables [lattice α] [is_low_modular_lattice α] {a b : α}
 
-lemma inf_covers_of_covers_sup_left : a ⋖ a ⊔ b → a ⊓ b ⋖ b :=
-is_low_modular_lattice.inf_covers_of_covers_sup
+lemma inf_covby_of_covby_sup_left : a ⋖ a ⊔ b → a ⊓ b ⋖ b :=
+is_low_modular_lattice.inf_covby_of_covby_sup
 
-lemma inf_covers_of_covers_sup_right : b ⋖ a ⊔ b → a ⊓ b ⋖ a :=
-by { rw [inf_comm, sup_comm], exact inf_covers_of_covers_sup_left }
+lemma inf_covby_of_covby_sup_right : b ⋖ a ⊔ b → a ⊓ b ⋖ a :=
+by { rw [inf_comm, sup_comm], exact inf_covby_of_covby_sup_left }
 
-alias inf_covers_of_covers_sup_left ← covers.inf_of_sup_left
-alias inf_covers_of_covers_sup_right ← covers.inf_of_sup_right
+alias inf_covby_of_covby_sup_left ← covby.inf_of_sup_left
+alias inf_covby_of_covby_sup_right ← covby.inf_of_sup_right
 
 @[priority 100] -- See note [lower instance priority]
 instance is_low_modular_lattice.to_is_weak_low_modular_lattice : is_weak_low_modular_lattice α :=
-⟨λ a b _, covers.inf_of_sup_right⟩
+⟨λ a b _, covby.inf_of_sup_right⟩
 
 instance : is_up_modular_lattice (order_dual α) := ⟨λ a b h, h.of_dual.inf_of_sup_left.to_dual⟩
 

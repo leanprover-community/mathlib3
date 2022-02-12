@@ -706,6 +706,8 @@ instance : lattice (finset α) :=
   inf_le_right := λ s t a h, (mem_ndinter.1 h).2,
   ..finset.partial_order }
 
+/-! #### union -/
+
 @[simp] lemma sup_eq_union : ((⊔) : finset α → finset α → finset α) = (∪) := rfl
 @[simp] lemma inf_eq_inter : ((⊓) : finset α → finset α → finset α) = (∩) := rfl
 
@@ -829,7 +831,7 @@ begin
     exact ⟨hk hbj, trans hti hk'⟩ }
 end
 
-/-! ### inter -/
+/-! #### inter -/
 
 theorem inter_val_nd (s₁ s₂ : finset α) : (s₁ ∩ s₂).1 = ndinter s₁.1 s₂.1 := rfl
 
@@ -1206,7 +1208,7 @@ section piecewise
 
 /-- `s.piecewise f g` is the function equal to `f` on the finset `s`, and to `g` on its
 complement. -/
-def piecewise {α : Type*} {δ : α → Sort*} (s : finset α) (f g : Π i, δ i) [∀ j, decidable (j ∈ s)] :
+def piecewise {α : Type*} {δ : α → Sort*} (s : finset α) (f g : Π i, δ i) [Π j, decidable (j ∈ s)] :
   Π i, δ i :=
 λi, if i ∈ s then f i else g i
 

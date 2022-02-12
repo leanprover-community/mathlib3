@@ -208,22 +208,24 @@ section monoid
 variables [mul_one_class M] (f g : α → M) (s t : set α) [decidable_pred (∈ s)]
   [decidable_pred (∈ t)] {a : α}
 
-@[to_additive] lemma mul_indicator_union_mul_inter_apply (a : α) :
+@[to_additive] lemma mul_indicator_union_mul_inter_apply [decidable_pred (∈ s ∪ t)] (a : α) :
   mul_indicator (s ∪ t) f a * mul_indicator (s ∩ t) f a =
     mul_indicator s f a * mul_indicator t f a :=
 by by_cases hs : a ∈ s; by_cases ht : a ∈ t; simp *
 
-@[to_additive] lemma mul_indicator_union_mul_inter :
+@[to_additive] lemma mul_indicator_union_mul_inter [decidable_pred (∈ s ∪ t)] :
   mul_indicator (s ∪ t) f * mul_indicator (s ∩ t) f = mul_indicator s f * mul_indicator t f :=
 funext $ mul_indicator_union_mul_inter_apply f s t
 
 variables {s t}
 
-@[to_additive] lemma mul_indicator_union_of_not_mem_inter (h : a ∉ s ∩ t) (f : α → M) :
+@[to_additive] lemma mul_indicator_union_of_not_mem_inter [decidable_pred (∈ s ∪ t)] (h : a ∉ s ∩ t)
+  (f : α → M) :
   mul_indicator (s ∪ t) f a = mul_indicator s f a * mul_indicator t f a :=
 by rw [← mul_indicator_union_mul_inter_apply f s t, mul_indicator_of_not_mem h, mul_one]
 
-@[to_additive] lemma mul_indicator_union_of_disjoint (h : disjoint s t) (f : α → M) :
+@[to_additive] lemma mul_indicator_union_of_disjoint [decidable_pred (∈ s ∪ t)] (h : disjoint s t)
+  (f : α → M) :
   mul_indicator (s ∪ t) f = λa, mul_indicator s f a * mul_indicator t f a :=
 funext $ λa, mul_indicator_union_of_not_mem_inter (λ ha, h ha) _
 

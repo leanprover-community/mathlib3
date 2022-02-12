@@ -23,7 +23,7 @@ universes u
 variables {α β : Type*}
 
 /-- The category of two-pointed types. -/
-structure Twop : Type.{u + 1} :=
+structure Twop : Type.{u+1} :=
 (X : Type.{u})
 (to_two_pointing : two_pointing X)
 
@@ -41,7 +41,7 @@ alias of ← two_pointing.Twop
 instance : inhabited Twop := ⟨of two_pointing.bool⟩
 
 /-- Turns a two-pointed type into a bipointed type, by forgetting that the pointed elements are
-distinct.-/
+distinct. -/
 def to_Bipointed (X : Twop) : Bipointed := X.to_two_pointing.to_prod.Bipointed
 
 instance large_category : large_category Twop := induced_category.category to_Bipointed
@@ -95,7 +95,7 @@ end Twop
 @[simp] lemma Pointed_to_Twop_snd_comp_forget_to_Bipointed :
   Pointed_to_Twop_snd ⋙ forget₂ Twop Bipointed = Pointed_to_Bipointed_snd := rfl
 
-/-- Adding a second point is adjoint to forgetting the second point. -/
+/-- Adding a second point is left adjoint to forgetting the second point. -/
 def Pointed_to_Twop_fst_forget_comp_Bipointed_to_Pointed_fst_adjunction :
   Pointed_to_Twop_fst ⊣ forget₂ Twop Bipointed ⋙ Bipointed_to_Pointed_fst :=
 adjunction.mk_of_hom_equiv
@@ -106,7 +106,7 @@ adjunction.mk_of_hom_equiv
     right_inv := λ f, Pointed.hom.ext _ _ rfl },
   hom_equiv_naturality_left_symm' := λ X' X Y f g, by { ext, cases x; refl } }
 
-/-- Adding a first point is adjoint to forgetting the first point. -/
+/-- Adding a first point is left adjoint to forgetting the first point. -/
 def Pointed_to_Twop_snd_forget_comp_Bipointed_to_Pointed_snd_adjunction :
   Pointed_to_Twop_snd ⊣ forget₂ Twop Bipointed ⋙ Bipointed_to_Pointed_snd :=
 adjunction.mk_of_hom_equiv

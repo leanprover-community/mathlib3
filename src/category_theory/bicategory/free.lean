@@ -199,10 +199,10 @@ variables {a b c d : free_bicategory B}
 
 @[simp] lemma mk_vcomp {f g h : a ⟶ b} (η : hom₂ f g) (θ : hom₂ g h) :
   quot.mk rel (η.vcomp θ) = (quot.mk rel η ≫ quot.mk rel θ : f ⟶ h) := rfl
-@[simp] lemma mk_whisker_right {f g : a ⟶ b} (η : hom₂ f g) (h : b ⟶ c) :
-  quot.mk rel (hom₂.whisker_right h η) = (quot.mk rel η ▷ h : f ≫ h ⟶ g ≫ h) := rfl
 @[simp] lemma mk_whisker_left (f : a ⟶ b) {g h : b ⟶ c} (η : hom₂ g h) :
   quot.mk rel (hom₂.whisker_left f η) = (f ◁ quot.mk rel η: f ≫ g ⟶ f ≫ h) := rfl
+@[simp] lemma mk_whisker_right {f g : a ⟶ b} (η : hom₂ f g) (h : b ⟶ c) :
+  quot.mk rel (hom₂.whisker_right h η) = (quot.mk rel η ▷ h : f ≫ h ⟶ g ≫ h) := rfl
 
 variables (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d)
 

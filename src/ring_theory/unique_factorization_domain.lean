@@ -750,7 +750,7 @@ rfl
     by rw [← factor_set.coe_add, prod_coe, prod_coe, prod_coe, multiset.map_add, multiset.prod_add]
 
 theorem prod_mono : ∀{a b : factor_set α}, a ≤ b → a.prod ≤ b.prod
-| none b h := have b = ⊤, from top_unique h, by rw [this, prod_top]; exact le_refl _
+| none b h := have b = ⊤, from top_unique h, by rw [this, prod_top]; exact le_rfl
 | a none h := show a.prod ≤ (⊤ : factor_set α).prod, by simp; exact le_top
 | (some a) (some b) h := prod_le_prod $ multiset.map_le_map $ with_top.coe_le_coe.1 $ h
 

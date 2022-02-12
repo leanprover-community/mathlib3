@@ -63,6 +63,12 @@ instance : can_lift ℂ ℝ :=
   coe := coe,
   prf := λ z hz, ⟨z.re, ext rfl hz.symm⟩ }
 
+/-- The product of a set on the real axis and a set on the imaginary axis of the complex plane,
+denoted by `s ×ℂ t`. -/
+def _root_.set.re_prod_im (s t : set ℝ) : set ℂ := re ⁻¹' s ∩ im ⁻¹' t
+
+infix ` ×ℂ `:72 := set.re_prod_im
+
 instance : has_zero ℂ := ⟨(0 : ℝ)⟩
 instance : inhabited ℂ := ⟨0⟩
 
@@ -304,7 +310,7 @@ ext_iff.2 $ by simp [two_mul, sub_eq_add_neg]
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=
 by { rw [sub_eq_add_neg, norm_sq_add],
-     simp only [ring_hom.map_neg, mul_neg_eq_neg_mul_symm, neg_re,
+     simp only [ring_hom.map_neg, mul_neg, neg_re,
                 tactic.ring.add_neg_eq_sub, norm_sq_neg] }
 
 /-! ### Inversion -/

@@ -70,7 +70,7 @@ variables {Γ} {μ}
   space `G/Γ`."]
 instance quotient_group.has_measurable_smul [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)] :
   has_measurable_smul G (G ⧸ Γ) :=
-{ measurable_const_smul := λ g, (continuous_smul₂ g).measurable,
+{ measurable_const_smul := λ g, (continuous_const_smul g).measurable,
   measurable_smul_const := λ x, (quotient_group.continuous_smul₁ x).measurable }
 
 variables {𝓕 : set G} (h𝓕 : is_fundamental_domain Γ.opposite 𝓕 μ)
@@ -91,20 +91,15 @@ lemma measure_theory.is_fundamental_domain.smul (g : G) [μ.is_mul_left_invarian
     change μ {x : G | ¬∃ (γ : ↥(Γ.opposite)), g * γ • x ∈ 𝓕} = 0,
     have : {x : G | ¬∃ (γ : ↥(Γ.opposite)), g * γ • x ∈ 𝓕} = has_mul.mul g ⁻¹' s,
     { ext,
-      simp [s, subgroup.left_right_mul], },
+      simp [s, subgroup.smul_opposite_mul], },
     rw [this, measure_preimage_mul μ g s, μs_eq_zero],
   end,
   ae_disjoint := begin
     intros γ γ_ne_one,
     have μs_eq_zero : μ (((λ x, γ • x) '' 𝓕) ∩ 𝓕) = 0 := h𝓕.3 γ γ_ne_one,
     change μ (((λ x, γ • x) '' (has_mul.mul g ⁻¹' 𝓕)) ∩ (has_mul.mul g ⁻¹' 𝓕)) = 0,
-    have : ((λ x, γ • x) '' (has_mul.mul g ⁻¹' 𝓕)) ∩ (has_mul.mul g ⁻¹' 𝓕) =
-      has_mul.mul g ⁻¹' (((λ x, γ • x) '' 𝓕) ∩ 𝓕),
-    { ext,
-      simp only [mem_inter_eq, image_smul, and.congr_left_iff, mem_preimage],
-      intros gx,
-      convert subgroup.left_right_mem_preimage x g γ 𝓕, },
-    rw [this, measure_preimage_mul μ g _, μs_eq_zero],
+    rw [subgroup.smul_opposite_image_mul_preimage, ← preimage_inter, measure_preimage_mul μ g _,
+      μs_eq_zero],
   end }
 
 variables [encodable Γ] [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
@@ -116,12 +111,12 @@ variables [encodable Γ] [measurable_space (G ⧸ Γ)] [borel_space (G ⧸ Γ)]
   `G`-invariant measure on `G ⧸ Γ`."]
 lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
   [μ.is_mul_left_invariant] [μ.is_mul_right_invariant] :
-  smul_invariant_measure G (G ⧸ Γ) (measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)) :=
+  smul_invariant_measure G (G ⧸ Γ) (measure.map quotient_group.mk (μ.restrict 𝓕)) :=
 { measure_preimage_smul :=
   begin
-    let π : G → G ⧸ Γ := @quotient_group.mk G _ Γ ,
+    let π : G → G ⧸ Γ := quotient_group.mk,
     have meas_π : measurable π :=
-      continuous.measurable continuous_quotient_mk,
+      continuous_quotient_mk.measurable,
     have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
     intros g A hA,
     have meas_πA : measurable_set (π ⁻¹' A) := measurable_set_preimage meas_π hA,
@@ -129,8 +124,8 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
       measure.map_apply meas_π (measurable_set_preimage (measurable_const_smul g) hA),
       measure.restrict_apply' 𝓕meas, measure.restrict_apply' 𝓕meas],
     set π_preA := π ⁻¹' A,
-    have : (quotient_group.mk ⁻¹' ((λ (x : G ⧸ Γ), g • x) ⁻¹' A)) = has_mul.mul g ⁻¹' π_preA :=
-      by ext1; simp,
+    have : (quotient_group.mk ⁻¹' ((λ (x : G ⧸ Γ), g • x) ⁻¹' A)) = has_mul.mul g ⁻¹' π_preA,
+    { ext1, simp },
     rw this,
     have : μ (has_mul.mul g ⁻¹' π_preA ∩ 𝓕) = μ (π_preA ∩ has_mul.mul (g⁻¹) ⁻¹' 𝓕),
     { transitivity μ (has_mul.mul g ⁻¹' (π_preA ∩ has_mul.mul g⁻¹ ⁻¹' 𝓕)),
@@ -143,7 +138,7 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
     rw this,
     have h𝓕_translate_fundom : is_fundamental_domain Γ.opposite (has_mul.mul g⁻¹ ⁻¹' 𝓕) μ :=
       h𝓕.smul (g⁻¹),
-    haveI : smul_invariant_measure ↥(Γ.opposite) G μ := Γ.smul_invariant_measure μ,
+    haveI : smul_invariant_measure ↥(Γ.opposite) G μ := subgroup.smul_invariant_measure,
     rw h𝓕.measure_set_eq h𝓕_translate_fundom meas_πA,
     rintros ⟨γ, γ_in_Γ⟩,
     ext,
@@ -157,11 +152,11 @@ lemma measure_theory.is_fundamental_domain.smul_invariant_measure_map
 @[to_additive "Assuming `Γ` is a normal subgroup of an additive topological group `G`, the
   pushforward to the quotient group `G ⧸ Γ` of the restriction of a both left- and right-invariant
   measure on `G` to a fundamental domain `𝓕` is a left-invariant measure on `G ⧸ Γ`."]
-def measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.normal Γ]
+lemma measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.normal Γ]
   [μ.is_mul_left_invariant] [μ.is_mul_right_invariant] :
   (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)).is_mul_left_invariant :=
 { map_mul_left_eq_self := begin
-    intros x,-- A hA,
+    intros x,
     apply measure.ext,
     intros A hA,
     obtain ⟨x₁, _⟩ := @quotient.exists_rep _ (quotient_group.left_rel Γ) x,
@@ -173,8 +168,7 @@ def measure_theory.is_fundamental_domain.is_mul_left_invariant_map [subgroup.nor
     { exact hA, },
   end }
 
-variables [t2_space (G ⧸ Γ)] [topological_space.second_countable_topology (G ⧸ Γ)]
-  (K : topological_space.positive_compacts (G ⧸ Γ))
+variables [t2_space (G ⧸ Γ)] [second_countable_topology (G ⧸ Γ)] (K : positive_compacts (G ⧸ Γ))
 
 /-- Given a normal subgroup `Γ` of a topological group `G` with Haar measure `μ`, which is also
   right-invariant, and a finite volume fundamental domain `𝓕`, the pushforward to the quotient
@@ -189,8 +183,7 @@ lemma measure_theory.is_fundamental_domain.map_restrict_quotient [subgroup.norma
   = (μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K.val)) • (measure_theory.measure.haar_measure K) :=
 begin
   let π : G →* G ⧸ Γ := quotient_group.mk' Γ,
-  have meas_π : measurable π :=
-    continuous.measurable continuous_quotient_mk, -- projection notation doesn't work here?
+  have meas_π : measurable π := continuous_quotient_mk.measurable,
   have 𝓕meas : measurable_set 𝓕 := h𝓕.measurable_set,
   haveI : is_finite_measure (μ.restrict 𝓕) :=
     ⟨by { rw [measure.restrict_apply' 𝓕meas, univ_inter], exact h𝓕_finite }⟩,

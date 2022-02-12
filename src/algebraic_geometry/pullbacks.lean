@@ -626,3 +626,33 @@ end
 end pullback
 
 end algebraic_geometry.Scheme
+
+namespace algebraic_geometry
+
+instance {X Y S X' Y' S' : Scheme} (f : X ⟶ S) (g : Y ⟶ S) (f' : X' ⟶ S')
+  (g' : Y' ⟶ S') (i₁ : X ⟶ X') (i₂ : Y ⟶ Y') (i₃ : S ⟶ S') (e₁ : f ≫ i₃ = i₁ ≫ f')
+  (e₂ : g ≫ i₃ = i₂ ≫ g') [is_open_immersion i₁] [is_open_immersion i₂] [mono i₃] :
+  is_open_immersion (pullback.map f g f' g' i₁ i₂ i₃ e₁ e₂) :=
+begin
+  rw pullback_map_eq_pullback_fst_fst_iso_inv,
+  apply_instance
+end
+
+lemma is_open_immersion.range_pullback_map {X Y S X' Y' S' : Scheme} (f : X ⟶ S) (g : Y ⟶ S)
+  (f' : X' ⟶ S') (g' : Y' ⟶ S') (i₁ : X ⟶ X') (i₂ : Y ⟶ Y') (i₃ : S ⟶ S')
+  (e₁ : f ≫ i₃ = i₁ ≫ f') (e₂ : g ≫ i₃ = i₂ ≫ g') [is_open_immersion i₁] [is_open_immersion i₂]
+  [mono i₃] :
+  set.range (pullback.map f g f' g' i₁ i₂ i₃ e₁ e₂).1.base =
+    (pullback.fst : pullback f' g' ⟶ _).1.base ⁻¹' (set.range i₁.1.base) ∩
+    (pullback.snd : pullback f' g' ⟶ _).1.base ⁻¹' (set.range i₂.1.base) :=
+begin
+  rw [pullback_map_eq_pullback_fst_fst_iso_inv, Scheme.comp_val_base, coe_comp,
+    set.range_comp, set.range_iff_surjective.mpr, set.image_univ, Scheme.comp_val_base, coe_comp,
+    set.range_comp, is_open_immersion.range_pullback_snd_of_left, opens.map_obj, subtype.coe_mk,
+    set.image_preimage_eq_inter_range, is_open_immersion.range_pullback_fst_of_right,
+    is_open_immersion.range_pullback_fst_of_right],
+  refl,
+  rw ← Top.epi_iff_surjective, apply_instance,
+end
+
+end algebraic_geometry

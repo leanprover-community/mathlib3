@@ -442,17 +442,6 @@ lemma affine_target_morphism_property.is_local.open_cover_iff
 
 universe v
 
-/-- An isomorphism `X ⟶ Y` is an open cover of `Y`. -/
- @[simps J obj map]
- def open_cover_of_is_iso {X Y : Scheme.{u}} (f : X ⟶ Y) [is_iso f] :
-   Y.open_cover :=
- { J := punit.{v+1},
-   obj := λ _, X,
-   map := λ _, f,
-   f := λ _, punit.star,
-   covers := λ x, by { rw set.range_iff_surjective.mpr, { trivial }, rw ← Top.epi_iff_surjective,
-     apply_instance } }
-
 lemma affine_target_morphism_property.is_local.affine_target_iff
   {P : affine_target_morphism_property} (hP : P.is_local)
   {X Y : Scheme.{u}} (f : X ⟶ Y) [is_affine Y] :
@@ -466,15 +455,6 @@ begin
   rw [← category.comp_id pullback.snd, ← pullback.condition, hP.1.cancel_left_is_iso],
 end
 
--- @[simps]
--- def Scheme.open_cover.add {X : Scheme} (𝒰 : X.open_cover) {Y : Scheme} (f : Y ⟶ X)
---   [is_open_immersion f] : X.open_cover :=
--- { J := option 𝒰.J,
---   obj := λ i, option.rec Y 𝒰.obj i,
---   map := λ i, option.rec f 𝒰.map i,
---   f := λ x, some (𝒰.f x),
---   covers := 𝒰.covers,
---   is_open := by rintro (_|_); dsimp; apply_instance }
 
 def affine_target_morphism_property.stable_under_base_change
   (P : affine_target_morphism_property) : Prop :=
@@ -519,33 +499,6 @@ begin
   apply H
 end
 
-instance {X Y S X' Y' S' : Scheme} (f : X ⟶ S) (g : Y ⟶ S)
-  (f' : X' ⟶ S')
-  (g' : Y' ⟶ S') (i₁ : X ⟶ X') (i₂ : Y ⟶ Y') (i₃ : S ⟶ S') (e₁ : f ≫ i₃ = i₁ ≫ f')
-  (e₂ : g ≫ i₃ = i₂ ≫ g') [is_open_immersion i₁] [is_open_immersion i₂] [mono i₃] :
-  is_open_immersion (pullback.map f g f' g' i₁ i₂ i₃ e₁ e₂) :=
-begin
-  rw pullback_map_eq_pullback_fst_fst_iso_inv,
-  apply_instance
-end
-
-lemma is_open_immersion.range_pullback_map {X Y S X' Y' S' : Scheme} (f : X ⟶ S) (g : Y ⟶ S)
-  (f' : X' ⟶ S')
-  (g' : Y' ⟶ S') (i₁ : X ⟶ X') (i₂ : Y ⟶ Y') (i₃ : S ⟶ S') (e₁ : f ≫ i₃ = i₁ ≫ f')
-  (e₂ : g ≫ i₃ = i₂ ≫ g') [is_open_immersion i₁] [is_open_immersion i₂] [mono i₃] :
-  set.range (pullback.map f g f' g' i₁ i₂ i₃ e₁ e₂).1.base =
-    (pullback.fst : pullback f' g' ⟶ _).1.base ⁻¹' (set.range i₁.1.base) ∩
-    (pullback.snd : pullback f' g' ⟶ _).1.base ⁻¹' (set.range i₂.1.base) :=
-begin
-  rw [pullback.pullback_map_eq_pullback_fst_fst_iso_inv, Scheme.comp_val_base, coe_comp,
-    set.range_comp, set.range_iff_surjective.mpr, set.image_univ, Scheme.comp_val_base, coe_comp,
-    set.range_comp, is_open_immersion.range_pullback_snd_of_left, opens.map_obj, subtype.coe_mk,
-    set.image_preimage_eq_inter_range, is_open_immersion.range_pullback_fst_of_right,
-    is_open_immersion.range_pullback_fst_of_right],
-  refl,
-  rw ← Top.epi_iff_surjective, apply_instance,
-end
-
 def diagonal_is (P : morphism_property) : morphism_property :=
 λ X Y f, P (pullback.diagonal f)
 
@@ -582,7 +535,7 @@ lemma diagonal_is_stable_under_base_change  (P : morphism_property)
 begin
   introv X h,
   delta diagonal_is at *,
-  rw [pullback.diagonal_pullback_fst, hP'.cancel_left_is_iso, hP'.cancel_right_is_iso],
+  rw [diagonal_pullback_fst, hP'.cancel_left_is_iso, hP'.cancel_right_is_iso],
   convert hP.base_change_map hP' f _ _; simp; assumption
 end
 
@@ -604,7 +557,7 @@ begin
   { rintro ⟨i, j, k⟩,
     dsimp,
     convert (hP.1.cancel_left_is_iso
-     (pullback.pullback_diagonal_map_iso _ _ ((𝒰' i).map j) ((𝒰' i).map k)).inv pullback.snd).mp _,
+     (pullback_diagonal_map_iso _ _ ((𝒰' i).map j) ((𝒰' i).map k)).inv pullback.snd).mp _,
     swap 3,
     { convert h𝒰' i j k, apply pullback.hom_ext; simp, },
     all_goals

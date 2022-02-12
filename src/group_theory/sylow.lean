@@ -558,6 +558,23 @@ begin
   exact map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))),
 end
 
+lemma normal_of_all_max_subgroups_normal [fintype G]
+  (hnc : ∀ (H : subgroup G), is_coatom H → H.normal)
+  {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+  (↑P : subgroup G).normal :=
+normalizer_eq_top.mp begin
+  rcases eq_top_or_exists_le_coatom ((↑P : subgroup G).normalizer) with heq | ⟨K, hK, hNK⟩,
+  { exact heq },
+  { haveI := hnc _ hK,
+    have hPK := le_trans le_normalizer hNK,
+    let P' := P.subtype K hPK,
+    exfalso,
+    apply hK.1,
+    calc K = (↑P : subgroup G).normalizer ⊔ K : by { rw sup_eq_right.mpr, exact hNK }
+    ... = (map K.subtype (↑P' : subgroup K)).normalizer ⊔ K : by simp [map_comap_eq_self, hPK]
+    ... = ⊤ : normalizer_sup_eq_top P' },
+end
+
 lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
  {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
  (↑P : subgroup G).normal :=

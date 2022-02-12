@@ -97,7 +97,7 @@ by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
 lemma is_star_normal_of_mem {x : R} (hx : x ∈ self_adjoint R) : is_star_normal x :=
 show star x * x = x * star x, by { simp only [mem_iff] at hx, simp only [hx] }
 
-lemma is_star_normal (x : self_adjoint R) : is_star_normal (x : R) :=
+protected lemma is_star_normal (x : self_adjoint R) : is_star_normal (x : R) :=
 is_star_normal_of_mem (set_like.coe_mem _)
 
 end ring

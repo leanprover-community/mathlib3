@@ -33,10 +33,6 @@ namespace algebraic_geometry
 
 variable (P : ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S), Prop)
 
-def CommRing.iso_of (R : CommRing) : R ≅ CommRing.of R :=
-{ hom := ring_hom.id R,
-  inv := ring_hom.id R }
-
 noncomputable
 abbreviation Scheme.restrict_map_is_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] (U : opens Y.carrier) :
   X.restrict ((opens.map f.1.base).obj U).open_embedding ≅ Y.restrict U.open_embedding :=

@@ -1527,6 +1527,15 @@ begin
   apply_instance
 end
 
+lemma is_open_immersion.range_pullback_one [is_open_immersion g] :
+    set.range (pullback.fst ≫ f : pullback f g ⟶ S).1.base =
+      set.range f.1.base ∩ set.range g.1.base :=
+begin
+  rw [Scheme.comp_val_base, coe_comp, set.range_comp,
+    is_open_immersion.range_pullback_fst_of_right, opens.map_obj, subtype.coe_mk,
+    set.image_preimage_eq_inter_range, set.inter_comm],
+end
+
 /--
 The universal property of open immersions:
 For an open immersion `f : X ⟶ Z`, given any morphism of schemes `g : Y ⟶ Z` whose topological

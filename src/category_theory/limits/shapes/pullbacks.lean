@@ -2254,7 +2254,7 @@ lemma pullback_diagonal_map_id_iso_inv_snd_snd :
   (pullback_diagonal_map_id_iso f g i).inv ≫ pullback.snd ≫ pullback.snd = pullback.snd :=
 by { rw iso.inv_comp_eq, simp }
 
-lemma diagonal_comp (f : X ⟶ Y) (g : Y ⟶ Z) [has_pullback f f] [has_pullback g g]
+lemma pullback.diagonal_comp (f : X ⟶ Y) (g : Y ⟶ Z) [has_pullback f f] [has_pullback g g]
   [has_pullback (f ≫ g) (f ≫ g)] :
   diagonal (f ≫ g) = diagonal f ≫ (pullback_diagonal_map_id_iso f f g).inv ≫ pullback.snd :=
 by ext; simp

@@ -152,6 +152,11 @@ instance (R : CommRing) : comm_ring R := R.str
 
 @[simp] lemma coe_of (R : Type u) [comm_ring R] : (CommRing.of R : Type u) = R := rfl
 
+/-- A `R : CommRing` is isomorphic (actually equal) to `CommRing.of R`. -/
+@[simps] def CommRing.iso_of (R : CommRing) : R ≅ CommRing.of R :=
+{ hom := ring_hom.id R,
+  inv := ring_hom.id R }
+
 instance has_forget_to_Ring : has_forget₂ CommRing Ring := bundled_hom.forget₂ _ _
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/

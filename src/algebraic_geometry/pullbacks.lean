@@ -562,6 +562,23 @@ begin
   apply pullback.hom_ext; simp,
 end
 
+/-- Given an open cover `{ Xᵢ }` of `X` and an open cover `{ Yⱼ }` of `Y`, then
+`X ×[Z] Y` is covered by `Xᵢ ×[Z] Yⱼ`. -/
+@[simps J obj map]
+def open_cover_of_left_right (𝒰X : X.open_cover) (𝒰Y : Y.open_cover)
+  (f : X ⟶ Z) (g : Y ⟶ Z) : (pullback f g).open_cover :=
+begin
+  fapply ((open_cover_of_left 𝒰X f g).bind (λ x, open_cover_of_right 𝒰Y (𝒰X.map x ≫ f) g)).copy
+    (𝒰X.J × 𝒰Y.J)
+    (λ ij, pullback (𝒰X.map ij.1 ≫ f) (𝒰Y.map ij.2 ≫ g))
+    (λ ij, pullback.map _ _ _ _ (𝒰X.map ij.1) (𝒰Y.map ij.2) (𝟙 _)
+      (category.comp_id _) (category.comp_id _))
+    (equiv.sigma_equiv_prod _ _).symm
+    (λ _, iso.refl _),
+  rintro ⟨i, j⟩,
+  apply pullback.hom_ext; simpa,
+end
+
 /-- (Implementation). Use `open_cover_of_base` instead. -/
 def open_cover_of_base' (𝒰 : open_cover Z) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=
 begin

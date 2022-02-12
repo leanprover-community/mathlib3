@@ -8,7 +8,7 @@ import algebra.star.basic
 import group_theory.subgroup.basic
 
 /-!
-# Self-adjoint and normal elements of a star additive group
+# Self-adjoint and normal elements of a star type
 
 This file defines `self_adjoint R`, where `R` is a star additive monoid, as the additive subgroup
 containing the elements that satisfy `star x = x`. This includes, for instance, Hermitian

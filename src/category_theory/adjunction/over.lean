@@ -47,13 +47,6 @@ Note that the binary products assumption is necessary: the existence of a right 
 -/
 instance [has_binary_products C] : is_left_adjoint (over.forget X) := ⟨_, forget_adj_star X⟩
 
-@[simps {rhs_md := semireducible, simp_rhs := tt}]
-def base_change [has_pullbacks C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
-{ obj := λ g, over.mk (pullback.snd : pullback g.hom f ⟶ _),
-  map := λ g₁ g₂ i, over.hom_mk (pullback.map _ _ _ _ i.left (𝟙 _) (𝟙 _) (by simp) (by simp))
-    (by simp) }
-.
-
 @[simps]
 def base_change_unit [has_pullbacks C] {X Y : C} (f : X ⟶ Y) :
   𝟭 _ ⟶ over.map f ⋙ base_change f :=

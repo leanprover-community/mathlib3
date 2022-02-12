@@ -5,7 +5,6 @@ Authors: Andrew Yang
 -/
 import algebraic_geometry.AffineScheme
 import algebraic_geometry.pullbacks
-import category_theory.adjunction.over
 import algebraic_geometry.limits
 
 /-!

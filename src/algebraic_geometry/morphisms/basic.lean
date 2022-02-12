@@ -714,7 +714,7 @@ def pullback_diagonal_map_id_iso {X Y S T : C} (f : X ⟶ T) (g : Y ⟶ T) (i : 
   pullback (diagonal i) (pullback.map (f ≫ i) (g ≫ i) i i f g (𝟙 _)
     (category.comp_id _) (category.comp_id _)) ≅ pullback f g :=
 begin
-  refine (as_iso $ pullback.map _ _ _ _ (𝟙 _) (pullback.congr _ _).hom (𝟙 _) _ _) ≪≫
+  refine (as_iso $ pullback.map _ _ _ _ (𝟙 _) (pullback.congr_hom _ _).hom (𝟙 _) _ _) ≪≫
     pullback_diagonal_map_iso i (𝟙 _) (f ≫ inv pullback.fst) (g ≫ inv pullback.fst) ≪≫
       (as_iso $ pullback.map _ _ _ _ (𝟙 _) (𝟙 _) pullback.fst _ _),
   { rw [← category.comp_id pullback.snd, ← condition, category.assoc, is_iso.inv_hom_id_assoc] },
@@ -812,6 +812,26 @@ lemma diagonal_pullback_fst {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
     (diagonal_obj_pullback_fst_iso f g).inv :=
 by ext; simp
 
+/--
+Given the following diagram with `S ⟶ S'` a monomorphism,
+
+    X  ⟶ X'
+      ↘      ↘
+        S  ⟶ S'
+      ↗      ↗
+    Y  ⟶ Y'
+
+This iso witnesses the fact that
+
+      X ×[S] Y ⟶ (X' ×[S'] Y') ×[X'] X
+          |                  |
+          |                  |
+          ↓                  ↓
+(X' ×[S'] Y') ×[X'] X ⟶ X' ×[S'] Y'
+
+is a pullback square. The diagonal map of this square is `pullback.map`.
+
+-/
 @[simps]
 def pullback_fst_fst_iso {X Y S X' Y' S' : C} (f : X ⟶ S) (g : Y ⟶ S) (f' : X' ⟶ S')
   (g' : Y' ⟶ S') (i₁ : X ⟶ X') (i₂ : Y ⟶ Y') (i₃ : S ⟶ S') (e₁ : f ≫ i₃ = i₁ ≫ f')

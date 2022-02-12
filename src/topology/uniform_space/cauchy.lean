@@ -178,7 +178,7 @@ cauchy_seq_iff_tendsto.2 $ hf.tendsto_uniformity.comp (hg.prod_at_top hg)
 
 lemma cauchy_seq.comp_injective {u : ℕ → α} (hu : cauchy_seq u) {f : ℕ → ℕ} (hf : injective f) :
   cauchy_seq (u ∘ f) :=
-hu.comp_tendsto hf.tendsto_at_top
+hu.comp_tendsto hf.nat_tendsto_at_top
 
 lemma function.bijective.cauchy_seq_comp_iff {f : ℕ → ℕ} (hf : bijective f) (u : ℕ → α) :
   cauchy_seq (u ∘ f) ↔ cauchy_seq u :=

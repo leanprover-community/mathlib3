@@ -1528,7 +1528,7 @@ begin
 end
 
 lemma is_open_immersion.range_pullback_one [is_open_immersion g] :
-    set.range (pullback.fst ≫ f : pullback f g ⟶ S).1.base =
+    set.range (pullback.fst ≫ f : pullback f g ⟶ Z).1.base =
       set.range f.1.base ∩ set.range g.1.base :=
 begin
   rw [Scheme.comp_val_base, coe_comp, set.range_comp,

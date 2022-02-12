@@ -25,6 +25,9 @@ if it is the evaluation of some code.
 
 ## Main Results
 
+* `nat.partrec.code.rec_prim`: recursion on `nat.partrec.code` is primitive recursive.
+* `nat.partrec.code.rec_computable`: recursion on `nat.partrec.code` is computable.
+* `nat.partrec.code.exists_code`: Partial recursiveness is equivalent to being the eval of a code.
 * `nat.partrec.code.evaln_prim`: `evaln` is primitive recursive.
 
 -/
@@ -325,6 +328,7 @@ begin
   cases n.bodd; cases n.div2.bodd; refl
 end
 
+/-- Recursion on `nat.partrec.code` is primitive recursive. -/
 theorem rec_prim {α σ} [primcodable α] [primcodable σ]
   {c : α → code} (hc : primrec c)
   {z : α → σ} (hz : primrec z)
@@ -423,7 +427,7 @@ end
 section
 open computable
 
-/- TODO(Mario): less copy-paste from previous proof -/
+/-- Recursion on `nat.partrec.code` is computable. -/
 theorem rec_computable {α σ} [primcodable α] [primcodable σ]
   {c : α → code} (hc : computable c)
   {z : α → σ} (hz : computable z)
@@ -442,6 +446,7 @@ let PR (a) := λ cf cg hf hg, pr a (cf, cg, hf, hg),
       (z a) (s a) (l a) (r a) (PR a) (CO a) (PC a) (RF a) in
     computable (λ a, F a (c a)) :=
 begin
+  -- TODO(Mario): less copy-paste from previous proof
   intros,
   let G₁ : (α × list σ) × ℕ × ℕ → option σ := λ p,
     let a := p.1.1, IH := p.1.2, n := p.2.1, m := p.2.2 in

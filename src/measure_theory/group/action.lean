@@ -129,9 +129,14 @@ variables {G} [smul_invariant_measure G α μ]
 @[simp, to_additive] lemma measure_smul_set (s : set α) : μ (c • s) = μ s :=
 ((smul_invariant_measure_tfae G μ).out 0 4).mp ‹_› c s
 
-section is_minimal
+variable {μ}
 
-variables (G) {μ} [topological_space G] [topological_space α] [has_continuous_smul G α]
+@[to_additive] lemma null_measurable_set.smul {s} (hs : null_measurable_set s μ) (c : G) :
+  null_measurable_set (c • s) μ :=
+by simpa only [← preimage_smul_inv]
+  using hs.preimage (measure_preserving_smul _ _).quasi_measure_preserving
+
+variables (G) [topological_space G] [topological_space α] [has_continuous_smul G α]
   [mul_action.is_minimal G α] {K U : set α}
 
 /-- If measure `μ` is invariant under a group action and is nonzero on a compact set `K`, then it is
@@ -171,7 +176,5 @@ include G
   μ U = 0 ↔ U = ∅ :=
 by rw [← not_iff_not, ← ne.def, ← pos_iff_ne_zero,
   measure_pos_iff_nonempty_of_smul_invariant G hμ hU, ← ne_empty_iff_nonempty]
-
-end is_minimal
 
 end measure_theory

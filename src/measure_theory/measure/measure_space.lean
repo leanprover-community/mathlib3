@@ -940,12 +940,39 @@ lemma restrict_apply₀ (ht : null_measurable_set t (μ.restrict s)) :
 @[simp] lemma restrict_apply (ht : measurable_set t) : μ.restrict s t = μ (t ∩ s) :=
 restrict_apply₀ ht.null_measurable_set
 
+/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
+lemma restrict_mono' {m0 : measurable_space α} ⦃s s' : set α⦄ ⦃μ ν : measure α⦄
+  (hs : s ≤ᵐ[μ] s') (hμν : μ ≤ ν) :
+  μ.restrict s ≤ ν.restrict s' :=
+assume t ht,
+calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
+... ≤ μ (t ∩ s') : measure_mono_ae $ hs.mono $ λ x hx ⟨hxt, hxs⟩, ⟨hxt, hx hxs⟩
+... ≤ ν (t ∩ s') : le_iff'.1 hμν (t ∩ s')
+... = ν.restrict s' t : (restrict_apply ht).symm
+
+/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
+@[mono] lemma restrict_mono {m0 : measurable_space α} ⦃s s' : set α⦄ (hs : s ⊆ s') ⦃μ ν : measure α⦄
+  (hμν : μ ≤ ν) :
+  μ.restrict s ≤ ν.restrict s' :=
+restrict_mono' (ae_of_all _ hs) hμν
+
+lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
+restrict_mono' h (le_refl μ)
+
+lemma restrict_congr_set (h : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
+le_antisymm (restrict_mono_ae h.le) (restrict_mono_ae h.symm.le)
+
 /-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
 the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate version of
 `measure.restrict_apply`, requiring that `s` is measurable instead of `t`. -/
 @[simp] lemma restrict_apply' (hs : measurable_set s) : μ.restrict s t = μ (t ∩ s) :=
 by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
       outer_measure.restrict_apply s t _, coe_to_outer_measure]
+
+lemma restrict_apply₀' (hs : null_measurable_set s μ) : μ.restrict s t = μ (t ∩ s) :=
+by rw [← restrict_congr_set hs.to_measurable_ae_eq,
+  restrict_apply' (measurable_set_to_measurable _ _),
+  measure_congr ((ae_eq_refl t).inter hs.to_measurable_ae_eq)]
 
 lemma restrict_le_self : μ.restrict s ≤ μ :=
 assume t ht,
@@ -991,9 +1018,14 @@ lemma restrict_apply_superset (h : s ⊆ t) : μ.restrict s t = μ s :=
   (c • μ).restrict s = c • μ.restrict s :=
 (restrictₗ s).map_smul c μ
 
+lemma restrict_restrict₀ (hs : null_measurable_set s (μ.restrict t)) :
+  (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
+ext $ λ u hu, by simp only [set.inter_assoc, restrict_apply hu,
+  restrict_apply₀ (hu.null_measurable_set.inter hs)]
+
 @[simp] lemma restrict_restrict (hs : measurable_set s) :
   (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
-ext $ λ u hu, by simp [*, set.inter_assoc]
+restrict_restrict₀ hs.null_measurable_set
 
 lemma restrict_restrict_of_subset (h : s ⊆ t) :
   (μ.restrict t).restrict s = μ.restrict s :=
@@ -1003,9 +1035,13 @@ begin
   exact (inter_subset_right _ _).trans h
 end
 
+lemma restrict_restrict₀' (ht : null_measurable_set t μ) :
+  (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
+ext $ λ u hu, by simp only [restrict_apply hu, restrict_apply₀' ht, inter_assoc]
+
 lemma restrict_restrict' (ht : measurable_set t) :
   (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
-ext $ λ u hu, by simp [*, set.inter_assoc]
+restrict_restrict₀' ht.null_measurable_set
 
 lemma restrict_comm (hs : measurable_set s) :
   (μ.restrict t).restrict s = (μ.restrict s).restrict t :=
@@ -1025,7 +1061,7 @@ by rw [← measure_univ_eq_zero, restrict_apply_univ]
 
 lemma restrict_zero_set {s : set α} (h : μ s = 0) :
   μ.restrict s = 0 :=
-by rw [measure.restrict_eq_zero, h]
+restrict_eq_zero.2 h
 
 @[simp] lemma restrict_empty : μ.restrict ∅ = 0 := restrict_zero_set measure_empty
 
@@ -1104,28 +1140,6 @@ end
 lemma restrict_map {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   (map f μ).restrict s = map f (μ.restrict $ f ⁻¹' s) :=
 ext $ λ t ht, by simp [*, hf ht]
-
-/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
-lemma restrict_mono' {m0 : measurable_space α} ⦃s s' : set α⦄ ⦃μ ν : measure α⦄
-  (hs : s ≤ᵐ[μ] s') (hμν : μ ≤ ν) :
-  μ.restrict s ≤ ν.restrict s' :=
-assume t ht,
-calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
-... ≤ μ (t ∩ s') : measure_mono_ae $ hs.mono $ λ x hx ⟨hxt, hxs⟩, ⟨hxt, hx hxs⟩
-... ≤ ν (t ∩ s') : le_iff'.1 hμν (t ∩ s')
-... = ν.restrict s' t : (restrict_apply ht).symm
-
-/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
-@[mono] lemma restrict_mono {m0 : measurable_space α} ⦃s s' : set α⦄ (hs : s ⊆ s') ⦃μ ν : measure α⦄
-  (hμν : μ ≤ ν) :
-  μ.restrict s ≤ ν.restrict s' :=
-restrict_mono' (ae_of_all _ hs) hμν
-
-lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
-restrict_mono' h (le_refl μ)
-
-lemma restrict_congr_set (h : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
-le_antisymm (restrict_mono_ae h.le) (restrict_mono_ae h.symm.le)
 
 lemma restrict_to_measurable (h : μ s ≠ ∞) : μ.restrict (to_measurable μ s) = μ.restrict s :=
 ext $ λ t ht, by rw [restrict_apply ht, restrict_apply ht, inter_comm,
@@ -1665,9 +1679,18 @@ end measure
 open measure
 open_locale measure_theory
 
+
+/-- The preimage of a null measurable set under a (quasi) measure preserving map is a null
+measurable set. -/
+lemma null_measurable_set.preimage {ν : measure β} {f : α → β} {t : set β}
+  (ht : null_measurable_set t ν) (hf : quasi_measure_preserving f μ ν) :
+  null_measurable_set (f ⁻¹' t) μ :=
+⟨f ⁻¹' (to_measurable ν t), hf.measurable (measurable_set_to_measurable _ _),
+  hf.ae_eq ht.to_measurable_ae_eq.symm⟩
+
 lemma null_measurable_set.mono_ac (h : null_measurable_set s μ) (hle : ν ≪ μ) :
   null_measurable_set s ν :=
-⟨to_measurable μ s, measurable_set_to_measurable _ _, hle.ae_eq h.to_measurable_ae_eq.symm⟩
+h.preimage $ (quasi_measure_preserving.id μ).mono_left hle
 
 lemma null_measurable_set.mono (h : null_measurable_set s μ) (hle : ν ≤ μ) :
   null_measurable_set s ν :=

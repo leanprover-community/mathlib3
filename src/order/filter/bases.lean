@@ -340,18 +340,9 @@ end
 
 lemma has_basis.comp_of_surjective (h : l.has_basis p s) {g : ι' → ι} (hg : function.surjective g) :
   l.has_basis (p ∘ g) (s ∘ g) :=
-⟨begin
-  intros t,
-  rw h.mem_iff,
-  split,
-  { rintros ⟨i, hi, ht⟩,
-    rcases hg i with ⟨i', rfl⟩,
-    exact ⟨i', hi, ht⟩ },
-  { rintros ⟨i', hi', ht⟩,
-    exact ⟨g i', hi', ht⟩ }
-end⟩
+⟨λ t, h.mem_iff.trans hg.exists⟩
 
-lemma has_basis.equiv (h : l.has_basis p s) (e : ι' ≃ ι) : l.has_basis (p ∘ e) (s ∘ e) :=
+lemma has_basis.comp_equiv (h : l.has_basis p s) (e : ι' ≃ ι) : l.has_basis (p ∘ e) (s ∘ e) :=
 h.comp_of_surjective e.surjective
 
 /-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that

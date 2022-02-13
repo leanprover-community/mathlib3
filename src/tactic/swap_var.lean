@@ -27,7 +27,7 @@ end
 
 # See also
 * `rename`
-* `rename_vars`
+* `rename_var`
 
 ## Tags
 

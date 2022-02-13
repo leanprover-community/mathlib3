@@ -9,7 +9,7 @@ import field_theory.galois
 import algebraic_geometry.EllipticCurve
 
 /-!
-# The group of rational points on an elliptic curve over a field
+# Rational points on an elliptic curve over a field
 -/
 
 noncomputable theory
@@ -48,7 +48,7 @@ section zero
 /-- `E(K)` has zero. -/
 instance : has_zero E⟮K⟯ := ⟨zero⟩
 
-@[simp] lemma zero_def : zero = (0 : E⟮K⟯) := rfl
+@[simp] protected lemma zero_def : zero = (0 : E⟮K⟯) := rfl
 
 /-- `E(K)` is inhabited. -/
 instance : inhabited E⟮K⟯ := ⟨0⟩
@@ -66,7 +66,7 @@ variables (w : y ^ 2 + (F↑K)E.a₁ * x * y + (F↑K)E.a₃ * y
 
 include w
 
-lemma neg_weierstrass :
+private lemma neg_weierstrass :
   (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃) ^ 2 + (F↑K)E.a₁ * x * (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃)
     + (F↑K)E.a₃ * (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃)
     = x ^ 3 + (F↑K)E.a₂ * x ^ 2 + (F↑K)E.a₄ * x + (F↑K)E.a₆ :=
@@ -75,16 +75,16 @@ by { rw [← w], ring1 }
 omit w
 
 /-- Negation in `E(K)`. -/
-def neg : E⟮K⟯ → E⟮K⟯
+protected def neg : E⟮K⟯ → E⟮K⟯
 | 0            := 0
 | (some x y w) := some x (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃) $ neg_weierstrass w
 
 /-- `E(K)` has negation. -/
-instance : has_neg E⟮K⟯ := ⟨neg⟩
+instance : has_neg E⟮K⟯ := ⟨EllipticCurve.neg⟩
 
-@[simp] lemma neg_zero : -0 = (0 : E⟮K⟯) := rfl
+@[simp] protected lemma neg_zero : -0 = (0 : E⟮K⟯) := rfl
 
-@[simp] lemma neg_some :
+@[simp] protected lemma neg_some :
   -some x y w = some x (-y - (F↑K)E.a₁ * x - (F↑K)E.a₃) (neg_weierstrass w) :=
 rfl
 
@@ -101,7 +101,7 @@ variables (w : y ^ 2 + (F↑K)E.a₁ * x * y + (F↑K)E.a₃ * y
 
 include w
 
-lemma dbl_weierstrass
+private lemma dbl_weierstrass
   (y_ne : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ ≠ 0)
   (l_def : l  = (3 * x ^ 2 + 2 * (F↑K)E.a₂ * x + (F↑K)E.a₄ - (F↑K)E.a₁ * y)
                 * (2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃)⁻¹)
@@ -163,7 +163,7 @@ end
 omit w
 
 /-- Doubling in `E(K)`. -/
-def dbl : E⟮K⟯ → E⟮K⟯
+protected def dbl : E⟮K⟯ → E⟮K⟯
 | 0            := 0
 | (some x y w) :=
 if y_ne : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ ≠ 0 then
@@ -175,20 +175,20 @@ if y_ne : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ ≠ 0 then
 else
   0
 
-@[simp] lemma dbl_zero : dbl 0 = (0 : E⟮K⟯) := rfl
+@[simp] protected lemma dbl_zero : EllipticCurve.dbl 0 = (0 : E⟮K⟯) := rfl
 
-@[simp] lemma dbl_some_of_y_ne (y_ne : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ ≠ 0) :
-  dbl (some x y w)
+@[simp] protected lemma dbl_some_of_y_ne (y_ne : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ ≠ 0) :
+  EllipticCurve.dbl (some x y w)
     = let l  := (3 * x ^ 2 + 2 * (F↑K)E.a₂ * x + (F↑K)E.a₄ - (F↑K)E.a₁ * y)
                 * (2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃)⁻¹,
           x' := l ^ 2 + (F↑K)E.a₁ * l - (F↑K)E.a₂ - 2 * x,
           y' := -l * x' - (F↑K)E.a₁ * x' - y + l * x - (F↑K)E.a₃
       in  some x' y' $ dbl_weierstrass w y_ne rfl rfl rfl :=
-by rw [dbl, dif_pos y_ne]
+by rw [EllipticCurve.dbl, dif_pos y_ne]
 
-@[simp] lemma dbl_some_of_y_eq (y_eq : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ = 0) :
-  dbl (some x y w) = 0 :=
-by rw [dbl, dif_neg $ not_not.mpr y_eq]
+@[simp] protected lemma dbl_some_of_y_eq (y_eq : 2 * y + (F↑K)E.a₁ * x + (F↑K)E.a₃ = 0) :
+  EllipticCurve.dbl (some x y w) = 0 :=
+by rw [EllipticCurve.dbl, dif_neg $ not_not.mpr y_eq]
 
 end doubling
 
@@ -205,7 +205,7 @@ variables (w₂ : y₂ ^ 2 + (F↑K)E.a₁ * x₂ * y₂ + (F↑K)E.a₃ * y₂
 
 include w₁ w₂
 
-lemma add_weierstrass
+private lemma add_weierstrass
   (x_ne : x₁ ≠ x₂)
   (l_def : l  = (y₁ - y₂) * (x₁ - x₂)⁻¹)
   (x_def : x₃ = l ^ 2 + (F↑K)E.a₁ * l - (F↑K)E.a₂ - x₁ - x₂)
@@ -311,7 +311,7 @@ end
 omit w₁ w₂
 
 /-- Addition in `E(K)`. -/
-def add : E⟮K⟯ → E⟮K⟯ → E⟮K⟯
+protected def add : E⟮K⟯ → E⟮K⟯ → E⟮K⟯
 | 0               P               := P
 | P               0               := P
 | (some x₁ y₁ w₁) (some x₂ y₂ w₂) :=
@@ -321,24 +321,24 @@ if x_ne : x₁ ≠ x₂ then
       y₃ := -l * x₃ - (F↑K)E.a₁ * x₃ - y₁ + l * x₁ - (F↑K)E.a₃
   in  some x₃ y₃ $ add_weierstrass w₁ w₂ x_ne rfl rfl rfl
 else
-  if y_ne : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ ≠ 0 then dbl $ some x₁ y₁ w₁ else 0
+  if y_ne : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ ≠ 0 then EllipticCurve.dbl $ some x₁ y₁ w₁ else 0
 
 /-- `E(K)` has addition. -/
-instance : has_add E⟮K⟯ := ⟨add⟩
+instance : has_add E⟮K⟯ := ⟨EllipticCurve.add⟩
 
-@[simp] lemma zero_add (P : E⟮K⟯) : 0 + P = P := by cases P; refl
+@[simp] protected lemma zero_add (P : E⟮K⟯) : 0 + P = P := by cases P; refl
 
-@[simp] lemma add_zero (P : E⟮K⟯) : P + 0 = P := by cases P; refl
+@[simp] protected lemma add_zero (P : E⟮K⟯) : P + 0 = P := by cases P; refl
 
-@[simp] lemma some_add_some_of_x_ne (x_ne : x₁ ≠ x₂) :
+@[simp] protected lemma some_add_some_of_x_ne (x_ne : x₁ ≠ x₂) :
   some x₁ y₁ w₁ + some x₂ y₂ w₂
     = let l  := (y₁ - y₂) * (x₁ - x₂)⁻¹,
           x₃ := l ^ 2 + (F↑K)E.a₁ * l - (F↑K)E.a₂ - x₁ - x₂,
           y₃ := -l * x₃ - (F↑K)E.a₁ * x₃ - y₁ + l * x₁ - (F↑K)E.a₃
       in  some x₃ y₃ $ add_weierstrass w₁ w₂ x_ne rfl rfl rfl :=
-by { unfold has_add.add, rw [add, dif_pos x_ne] }
+by { unfold has_add.add, rw [EllipticCurve.add, dif_pos x_ne] }
 
-@[simp] lemma some_add_some_of_y_ne (x_eq : x₁ = x₂)
+@[simp] protected lemma some_add_some_of_y_ne (x_eq : x₁ = x₂)
   (y_ne : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ ≠ 0) :
   some x₁ y₁ w₁ + some x₂ y₂ w₂
     = let l  := (3 * x₁ ^ 2 + 2 * (F↑K)E.a₂ * x₁ + (F↑K)E.a₄ - (F↑K)E.a₁ * y₁)
@@ -348,12 +348,14 @@ by { unfold has_add.add, rw [add, dif_pos x_ne] }
       in  some x' y' $ dbl_weierstrass w₁ (y_ne_of_y_ne w₁ w₂ x_eq y_ne) rfl rfl rfl :=
 begin
   unfold has_add.add,
-  rw [add, dif_neg $ not_not.mpr x_eq, if_pos y_ne, dbl, dif_pos $ y_ne_of_y_ne w₁ w₂ x_eq y_ne]
+  rw [EllipticCurve.add, dif_neg $ not_not.mpr x_eq, if_pos y_ne, EllipticCurve.dbl,
+      dif_pos $ y_ne_of_y_ne w₁ w₂ x_eq y_ne]
 end
 
-@[simp] lemma some_add_some_of_y_eq (x_eq : x₁ = x₂)
+@[simp] protected lemma some_add_some_of_y_eq (x_eq : x₁ = x₂)
   (y_eq : y₁ + y₂ + (F↑K)E.a₁ * x₂ + (F↑K)E.a₃ = 0) : some x₁ y₁ w₁ + some x₂ y₂ w₂ = 0 :=
-by { unfold has_add.add, rw [add, dif_neg $ not_not.mpr x_eq, if_neg $ not_not.mpr y_eq] }
+by { unfold has_add.add, rw [EllipticCurve.add, dif_neg $ not_not.mpr x_eq,
+                             if_neg $ not_not.mpr y_eq] }
 
 end addition
 
@@ -362,35 +364,39 @@ end addition
 
 section add_comm_group
 
-@[simp] lemma add_left_neg (P : E⟮K⟯) : -P + P = 0 :=
-by { cases P, { refl }, { rw [neg_some, some_add_some_of_y_eq]; ring1 } }
+@[simp] protected lemma add_left_neg (P : E⟮K⟯) : -P + P = 0 :=
+begin
+  cases P,
+  { refl },
+  { rw [EllipticCurve.neg_some, EllipticCurve.some_add_some_of_y_eq]; ring1 }
+end
 
-lemma add_comm (P Q : E⟮K⟯) : P + Q = Q + P :=
+protected lemma add_comm (P Q : E⟮K⟯) : P + Q = Q + P :=
 begin
   rcases ⟨P, Q⟩ with ⟨_ | _, _ | _⟩,
   any_goals { refl },
   sorry
 end
 
-lemma add_assoc (P Q R : E⟮K⟯) : (P + Q) + R = P + (Q + R) :=
+protected lemma add_assoc (P Q R : E⟮K⟯) : (P + Q) + R = P + (Q + R) :=
 begin
   rcases ⟨P, Q, R⟩ with ⟨_ | _, _ | _, _ | _⟩,
   any_goals { refl },
-  { rw [zero_def, zero_add, zero_add] },
-  { rw [zero_def, add_zero, add_zero] },
+  { rw [EllipticCurve.zero_def, EllipticCurve.zero_add, EllipticCurve.zero_add] },
+  { rw [EllipticCurve.zero_def, EllipticCurve.add_zero, EllipticCurve.add_zero] },
   sorry
 end
 
 /-- `E(K)` is an additive commutative group. -/
 instance : add_comm_group E⟮K⟯ :=
 { zero         := 0,
-  neg          := neg,
-  add          := add,
-  zero_add     := zero_add,
-  add_zero     := add_zero,
-  add_left_neg := add_left_neg,
-  add_comm     := add_comm,
-  add_assoc    := add_assoc }
+  neg          := EllipticCurve.neg,
+  add          := EllipticCurve.add,
+  zero_add     := EllipticCurve.zero_add,
+  add_zero     := EllipticCurve.add_zero,
+  add_left_neg := EllipticCurve.add_left_neg,
+  add_comm     := EllipticCurve.add_comm,
+  add_assoc    := EllipticCurve.add_assoc }
 
 end add_comm_group
 
@@ -404,12 +410,8 @@ variables (φ : K →ₐ[F] L)
 /-- Set function `E(K) → E(L)`. -/
 def point_hom.to_fun : E⟮K⟯ → E⟮L⟯
 | 0            := 0
-| (some x y w) := some (φ x) (φ y)
-begin
-  apply_fun φ at w,
-  simp only [alg_hom.map_add, alg_hom.map_mul, alg_hom.map_pow, alg_hom.commutes] at w,
-  exact w
-end
+| (some x y w) := some (φ x) (φ y) $
+by { apply_fun φ at w, simp only [map_add, map_mul, map_pow, alg_hom.commutes] at w, exact w }
 
 /-- Group homomorphism `E(K) → E(L)`. -/
 def point_hom : E⟮K⟯ →+ E⟮L⟯ :=
@@ -492,10 +494,10 @@ notation E⟮L`⟯^`K := @point_gal.fixed _ _ E K _ _ L _ _ _ _
 
 lemma point_gal.fixed.zero_mem : (0 : E⟮L⟯) ∈ E⟮L⟯^K := point_gal.fixed.zero_mem'
 
-lemma point_gal.fixed.add_mem (P Q : E⟮L⟯) (hP : P ∈ E⟮L⟯^K) (hQ : Q ∈ E⟮L⟯^K) : P + Q ∈ E⟮L⟯^K :=
+lemma point_gal.fixed.add_mem {P Q : E⟮L⟯} (hP : P ∈ E⟮L⟯^K) (hQ : Q ∈ E⟮L⟯^K) : P + Q ∈ E⟮L⟯^K :=
 point_gal.fixed.add_mem' hP hQ
 
-lemma point_gal.fixed.neg_mem (P : E⟮L⟯) (hP : P ∈ E⟮L⟯^K) : -P ∈ E⟮L⟯^K :=
+lemma point_gal.fixed.neg_mem {P : E⟮L⟯} (hP : P ∈ E⟮L⟯^K) : -P ∈ E⟮L⟯^K :=
 point_gal.fixed.neg_mem' hP
 
 variables [finite_dimensional K L] [is_galois K L]
@@ -520,7 +522,7 @@ begin
         simp only [hx.some_spec, hy.some_spec],
         exact ⟨rfl, rfl⟩ },
       { apply_fun (K⟶[F]L) using (K⟶[F]L : K →+* L).injective,
-        simp only [alg_hom.map_add, alg_hom.map_mul, alg_hom.map_pow, alg_hom.commutes],
+        simp only [map_add, map_mul, map_pow, alg_hom.commutes],
         rw [hx.some_spec, hy.some_spec, w] } } },
   { intros hP σ,
     cases P with x y w,
@@ -615,7 +617,7 @@ def cov.equiv_add : (E.cov u r s t)⟮K⟯ ≃+ E⟮K⟯ :=
       by { intros, ring1 },
       simp only [cov.to_fun, cov.inv_fun],
       rw [x_rw, y_rw, ← map_mul, u.val_inv, map_one],
-      simp only [sub_self, sub_add_cancel, add_monoid.add_zero, zero_mul, one_mul, one_pow],
+      simp only [sub_self, sub_add_cancel, add_zero, zero_mul, one_mul, one_pow],
       exact ⟨rfl, rfl⟩ }
   end,
   map_add'  :=

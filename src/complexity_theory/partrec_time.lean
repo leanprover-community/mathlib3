@@ -38,6 +38,7 @@ def time : turing.to_partrec.code → list ℕ →. ℕ
 /--
 Holds for codes representing total functions, where `bound` is a function upper bounding the
 runtime of the code over all input lists of length `l`.
+TODO: May need to redefine this to bound time for any list of length ≤ l.
 -/
 def time_bound (c : turing.to_partrec.code) (bound : ℕ → ℕ) : Prop :=
 ∀ (l : list ℕ), ∃ t ∈ time c l, t ≤ bound (l.length)
@@ -78,8 +79,12 @@ begin
   exact add_le_add ht hts,
 end
 
+/-- Time bound lemma for composition.
+Note that we compose the f bound with the g bound plus the identity. This is because `g` may be a
+function with a very short time bound that does not read its whole input. `bg + id`, though, is
+guaranteed to upper bound the length of the input to f. -/
 lemma time_bound_comp (f g : code) (bf bg : ℕ → ℕ) (hbf : time_bound f bf) (hbg : time_bound g bg) :
-  time_bound (code.comp f g) (bf + (bf ∘ bg) + 1) :=
+  time_bound (code.comp f g) (bf + (bf ∘ (bg + id)) + 1) :=
 begin
   rw time_bound at *,
   sorry,
@@ -116,5 +121,20 @@ lemma poly_time_cons (f fs : code) (hf : poly_time f) (hfs : poly_time fs) :
   poly_time (code.cons f fs) :=
 begin
   rw poly_time at *,
+  rcases hf with ⟨fp, fpb⟩,
+  rcases hfs with ⟨fps, fpbs⟩,
+  use fp + fps + 1,
+  simp only [polynomial.eval_add, polynomial.eval_one],
+  apply time_bound_cons,
+  assumption,
+  assumption,
+end
+
+lemma poly_time_comp (f g : code) (hf : poly_time f) (hg : poly_time g) :
+  poly_time (code.comp f g) :=
+begin
+  rw poly_time at *,
+  rcases hf with ⟨fp, fpb⟩,
+  rcases hg with ⟨gp, gpb⟩,
   sorry,
 end

@@ -58,6 +58,8 @@ meta def swap_var (renames : parse swap_args_parser) : tactic unit := do
     propagate_tags $ tactic.rename_many $ native.rb_map.of_list [(n, e.2)]),
   pure ()
 
+end tactic.interactive
+
 /--
 `swap_var [x y, P ↔ Q]` swaps the names `x` and `y`, `P` and `Q`.
 Such a swapping can be used as a weak `wlog` if the tactic proofs use the same names.
@@ -76,5 +78,3 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.swap_var],
   tags       := ["renaming"] }
-
-end tactic.interactive

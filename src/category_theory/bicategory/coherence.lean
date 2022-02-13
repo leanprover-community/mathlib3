@@ -131,20 +131,6 @@ def full_normalize : pseudofunctor (free_bicategory B) (locally_discrete (paths 
     case comp : _ _ _ g _ ihf ihg { erw [ihg _ (f.comp g), ihf _ f, ihg _ g, assoc] }
   end }
 
-section
-variables {a' : B} {a b c : free_bicategory B}
-
-@[simp] lemma normalize'_comp (p : path a' a) (f : a ⟶ b) (g : b ⟶ c) :
-  ((normalize' _ _ _).obj (f ≫ g)).obj p =
-  (inclusion_path _ _).obj (((normalize _ _ _).obj g).obj (((normalize _ _ _).obj f).obj p)) := rfl
-@[simp] lemma full_normalize_obj (a : free_bicategory B) : full_normalize.obj a = a := rfl
-@[simp] lemma full_normalize_comp (f : a ⟶ b) (g : b ⟶ c) :
-full_normalize.map (f ≫ g) =
-  ((normalize _ _ _).obj g).obj (((normalize _ _ _).obj f).obj nil) := rfl
-@[simp] lemma full_normalize_id : full_normalize.map (𝟙 a) = nil := rfl
-
-end
-
 /--
 Given a 1-morphism `f : hom b c` in the free bicategory and a path `p : path a b`, taking the
 composition of `p` and `f` in the free bicategory is functorial in both `f` and `p`.

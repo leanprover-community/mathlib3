@@ -47,10 +47,7 @@ linear_isometry_equiv.ext $ λ x, rfl
 
 @[simp] lemma rotation_trans (a b : circle) :
   (rotation a).trans (rotation b) = rotation (b * a) :=
-begin
-  ext1 x,
-  simp
-end
+by { ext1, simp }
 
 lemma rotation_ne_conj_lie (a : circle) : rotation a ≠ conj_lie :=
 begin

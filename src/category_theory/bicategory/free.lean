@@ -137,7 +137,7 @@ end
 
 variables {B}
 
-instance locally_category (a b : B) : category (hom a b) :=
+instance hom_category (a b : B) : category (hom a b) :=
 { hom := λ f g, quot (@rel _ _ _ _ f g),
   id := λ f, quot.mk rel (hom₂.id f),
   comp := λ f g h, quot.map₂ hom₂.vcomp rel.vcomp_right rel.vcomp_left,
@@ -150,7 +150,7 @@ instance bicategory : bicategory (free_bicategory B) :=
 { hom := λ a b : B, hom a b,
   id := hom.id,
   comp := λ a b c, hom.comp,
-  hom_category := free_bicategory.locally_category,
+  hom_category := free_bicategory.hom_category,
   whisker_left := λ a b c f g h η,
     quot.map (hom₂.whisker_left f) (rel.whisker_left f g h) η,
   whisker_left_id' := λ a b c f g, quot.sound (rel.whisker_left_id f g),

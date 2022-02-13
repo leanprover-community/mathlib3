@@ -25,7 +25,8 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 * `spectrum.is_compact`: the spectrum is compact.
 * `spectrum.spectral_radius_le_nnnorm`: the spectral radius is bounded above by the norm.
 * `spectrum.has_deriv_at_resolvent`: the resolvent function is differentiable on the resolvent set.
-* `spectrum.gelfand_formula`: Gelfand's formula for the spectral radius in Banach algebras over `ℂ`.
+* `spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius`: Gelfand's formula for the
+  spectral radius in Banach algebras over `ℂ`.
 
 
 ## TODO
@@ -257,9 +258,10 @@ begin
   { exact limsup_pow_nnnorm_pow_one_div_le_spectral_radius a },
 end
 
-/-- **Gelfand's formula**: This is the same as
-`spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius` except phrased in terms of `norm`
+/- This is the same as `pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius` but for `norm`
 instead of `nnnorm`. -/
+/-- **Gelfand's formula**: Given an element `a : A` of a complex Banach algebra, the
+`spectral_radius` of `a` is the limit of the sequence `∥a ^ n∥₊ ^ (1 / n)` -/
 theorem pow_norm_pow_one_div_tendsto_nhds_spectral_radius (a : A) :
   tendsto (λ n : ℕ,  ennreal.of_real (∥a ^ n∥ ^ (1 / n : ℝ))) at_top (𝓝 (spectral_radius ℂ a)) :=
 begin

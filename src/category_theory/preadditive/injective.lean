@@ -82,7 +82,6 @@ end }
 lemma iso_iff {P Q : C} (i : P ≅ Q) : injective P ↔ injective Q :=
 ⟨of_iso i, of_iso i.symm⟩
 
-set_option pp.proofs true
 /-- The axiom of choice says that every nonempty type is an injective object in `Type`. -/
 instance (X : Type u) [nonempty X] : injective X :=
 { factors := λ Y Z g f mono, ⟨λ z, by classical; exact if h : z ∈ set.range f

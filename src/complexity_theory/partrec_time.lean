@@ -45,17 +45,17 @@ def time_bound (c : turing.to_partrec.code) (bound : ℕ → ℕ) : Prop :=
 -- TODO time_bound lemmas for all the constructors (except maybe fix)
 lemma time_bound_zero' : time_bound code.zero' (id 1) :=
 begin
-  intros l, dsimp at *, simp at *, fsplit, work_on_goal 1 { fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, refl }, refl },
+  tidy,
 end
 
 lemma time_bound_succ : time_bound code.succ (id 1) :=
 begin
-  intros l, dsimp at *, simp at *, fsplit, work_on_goal 1 { fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, refl }, refl },
+  tidy,
 end
 
 lemma time_bound_tail : time_bound code.tail (id 1) :=
 begin
-  intros l, dsimp at *, simp at *, fsplit, work_on_goal 1 { fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, refl }, refl },
+  tidy,
 end
 
 lemma time_bound_cons (f fs : code) (b bs : ℕ → ℕ) (hb : time_bound f b) (hbs : time_bound fs bs) :
@@ -78,6 +78,14 @@ begin
   exact add_le_add ht hts,
 end
 
+lemma time_bound_comp (f g : code) (bf bg : ℕ → ℕ) (hbf : time_bound f bf) (hbg : time_bound g bg) :
+  time_bound (code.comp f g) (bf + (bf ∘ bg) + 1) :=
+begin
+  rw time_bound at *,
+  sorry,
+end
+
+
 /--
 The code `c` always terminates in polynomial time.
 -/
@@ -85,3 +93,27 @@ def poly_time (c : turing.to_partrec.code) : Prop :=
 ∃ (p : polynomial ℕ), time_bound c (λ x, p.eval x) -- Why does this work but (p.eval) doesn't?
 
 -- TODO poly_time lemmas for all the constructors (except maybe fix)
+lemma poly_time_zero' : poly_time code.zero' :=
+begin
+  rw poly_time,
+  use polynomial.C 1,
+  tidy,
+end
+
+lemma poly_time_succ : poly_time code.succ :=
+begin
+  rw poly_time,
+  sorry,
+end
+
+lemma poly_time_tail : poly_time code.tail :=
+begin
+  rw poly_time,
+  sorry,
+end
+
+lemma poly_time_cons : poly_time code.tail :=
+begin
+  rw poly_time,
+  sorry,
+end

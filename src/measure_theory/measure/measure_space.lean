@@ -1679,7 +1679,6 @@ end measure
 open measure
 open_locale measure_theory
 
-
 /-- The preimage of a null measurable set under a (quasi) measure preserving map is a null
 measurable set. -/
 lemma null_measurable_set.preimage {ν : measure β} {f : α → β} {t : set β}
@@ -1695,6 +1694,11 @@ h.preimage $ (quasi_measure_preserving.id μ).mono_left hle
 lemma null_measurable_set.mono (h : null_measurable_set s μ) (hle : ν ≤ μ) :
   null_measurable_set s ν :=
 h.mono_ac hle.absolutely_continuous
+
+lemma ae_disjoint.preimage {ν : measure β} {f : α → β} {s t : set β}
+  (ht : ae_disjoint ν s t) (hf : quasi_measure_preserving f μ ν) :
+  ae_disjoint μ (f ⁻¹' s) (f ⁻¹' t) :=
+hf.preimage_null ht
 
 @[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_mem_iff_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]

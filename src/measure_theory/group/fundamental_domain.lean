@@ -97,6 +97,47 @@ calc μ (g₁ • s ∩ g₂ • s) = μ (g₂ • ((g₂⁻¹ * g₁) • s ∩
 ... = μ ((g₂⁻¹ * g₁) • s ∩ s) : measure_smul_set _ _ _
 ... = 0 : h.ae_disjoint _ $ mt inv_mul_eq_one.1 hne.symm
 
+@[to_additive] lemma preimage_of_equiv (h : is_fundamental_domain G s μ) {f : α → α}
+  (hf : quasi_measure_preserving f μ μ) {e : G → G} (he : bijective e)
+  (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
+  is_fundamental_domain G (f ⁻¹' s) μ :=
+{ null_measurable_set := h.null_measurable_set.preimage hf,
+  ae_covers := (hf.ae h.ae_covers).mono $ λ x ⟨g, hg⟩, ⟨e g, by rwa [mem_preimage, hef g x]⟩,
+  ae_disjoint := λ g hg,
+    begin
+      lift e to G ≃ G using he,
+      have : (e.symm g⁻¹)⁻¹ ≠ (e.symm 1)⁻¹, by simp [hg],
+      convert (h.pairwise_ae_disjoint _ _ this).preimage hf using 1,
+      { simp only [← preimage_smul_inv, preimage_preimage, ← hef _ _, e.apply_symm_apply,
+          inv_inv] },
+      { ext1 x,
+        simp only [mem_preimage, ← preimage_smul, ← hef _ _, e.apply_symm_apply, one_smul] }
+    end }
+
+@[to_additive] lemma image_of_equiv (h : is_fundamental_domain G s μ)
+  (f : measurable_equiv α α) (hfμ : measure_preserving f μ μ)
+  (e : equiv.perm G) (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
+  is_fundamental_domain G (f '' s) μ :=
+begin
+  rw f.image_eq_preimage,
+  refine h.preimage_of_equiv hfμ.symm.quasi_measure_preserving e.symm.bijective (λ g x, _),
+  rcases f.surjective x with ⟨x, rfl⟩,
+  rw [← hef _ _, f.symm_apply_apply, f.symm_apply_apply, e.apply_symm_apply]
+end
+
+@[to_additive] lemma smul (h : is_fundamental_domain G s μ) (g : G) :
+  is_fundamental_domain G (g • s) μ :=
+h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _)
+  ⟨λ g', g⁻¹ * g' * g, λ g', g * g' * g⁻¹, λ g', by simp [mul_assoc], λ g', by simp [mul_assoc]⟩ $
+  λ g' x, by simp [smul_smul, mul_assoc]
+
+@[to_additive] lemma smul_of_comm {G' : Type*} [group G'] [mul_action G' α] [measurable_space G']
+  [has_measurable_smul G' α] [smul_invariant_measure G' α μ] [smul_comm_class G' G α]
+  (h : is_fundamental_domain G s μ) (g : G') :
+  is_fundamental_domain G (g • s) μ :=
+h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _) (equiv.refl _) $
+  smul_comm g
+
 variables [encodable G] {ν : measure α}
 
 @[to_additive] lemma sum_restrict_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ) :

@@ -7,6 +7,7 @@ import measure_theory.integral.set_to_l1
 import measure_theory.group.basic
 import analysis.normed_space.bounded_linear_maps
 import topology.sequences
+import analysis.normed_space.dual
 
 /-!
 # Bochner integral

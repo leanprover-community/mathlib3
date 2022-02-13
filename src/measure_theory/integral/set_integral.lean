@@ -802,6 +802,29 @@ L.integral_comp_comm (L1.integrable_coe_fn φ)
 
 end continuous_linear_map
 
+section glou
+
+#where
+
+lemma integral_with_density_eq_integral_mul [borel_space E] [complete_space E] {f : α → ℝ≥0}
+  (f_meas : measurable f) (g : α → E) (hg : integrable g (μ.with_density (λ x, f x))) :
+  ∫ a, g a ∂(μ.with_density (λ x, f x)) = ∫ a, f a • g a ∂μ :=
+begin
+  refine integrable.induction _ _ _ _ _ hg,
+  { assume c s s_meas hs,
+    rw normed_space.eq_iff_forall_dual_eq ℝ,
+    rotate, { apply_instance }, { apply_instance },
+    assume φ,
+    rw ← integral_comp_comm φ,
+
+  }
+end
+
+#exit
+
+
+end glou
+
 namespace linear_isometry
 
 variables [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]

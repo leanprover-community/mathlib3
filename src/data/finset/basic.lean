@@ -538,8 +538,6 @@ def disj_union {α} (s t : finset α) (h : ∀ a ∈ s, a ∉ t) : finset α :=
   a ∈ @disj_union α s t h ↔ a ∈ s ∨ a ∈ t :=
 by rcases s with ⟨⟨s⟩⟩; rcases t with ⟨⟨t⟩⟩; apply list.mem_append
 
-end cons
-
 /-! ### insert -/
 
 section decidable_eq
@@ -622,7 +620,7 @@ theorem insert_subset_insert (a : α) {s t : finset α} (h : s ⊆ t) : insert a
 insert_subset.2 ⟨mem_insert_self _ _, subset.trans h (subset_insert _ _)⟩
 
 lemma insert_inj (ha : a ∉ s) : insert a s = insert b s ↔ a = b :=
-⟨λ h, eq_of_not_mem_of_mem_insert (h ▸ mem_insert_self _ _) ha, congr_arg _⟩
+⟨λ h, eq_of_not_mem_of_mem_insert (h.subst $ mem_insert_self _ _) ha, congr_arg _⟩
 
 lemma insert_inj_on (s : finset α) : set.inj_on (λ a, insert a s) sᶜ := λ a h b _, (insert_inj h).1
 
@@ -2430,15 +2428,17 @@ lemma disjoint_filter_filter_neg (s : finset α) (p : α → Prop) [decidable_pr
 lemma disjoint_iff_disjoint_coe : disjoint s t ↔ disjoint (s : set α) (t : set α) :=
 by { rw [finset.disjoint_left, set.disjoint_left], refl }
 
-@[simp] lemma disjoint_map {f : α ↪ β} : disjoint (s.map f) (t.map f) ↔ disjoint s t :=
+@[simp] lemma disjoint_image {f : α → β} (hf : injective f) :
+  disjoint (s.image f) (t.image f) ↔ disjoint s t :=
 begin
-  simp only [disjoint_iff_ne, mem_map, exists_prop, exists_imp_distrib, and_imp],
-  split,
-  { rintro h x hxs _ hxt rfl,
-    exact h _ x hxs rfl _ x hxt rfl rfl },
-  { rintro h _ x₁ hxs rfl _ x₂ hxt rfl,
-    apply f.inj'.ne, solve_by_elim }
+  simp only [disjoint_iff_ne, mem_image, exists_prop, exists_imp_distrib, and_imp],
+  refine ⟨λ h a ha b hb hab, h _ _ ha rfl _ _ hb rfl $ congr_arg _ hab, _⟩,
+  rintro h _ a ha rfl _ b hb rfl,
+  exact hf.ne (h _ ha _ hb),
 end
+
+@[simp] lemma disjoint_map {f : α ↪ β} : disjoint (s.map f) (t.map f) ↔ disjoint s t :=
+by { simp_rw map_eq_image, exact disjoint_image f.injective }
 
 end disjoint
 

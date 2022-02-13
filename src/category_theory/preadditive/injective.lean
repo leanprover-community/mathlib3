@@ -8,7 +8,6 @@ import algebra.homology.exact
 import category_theory.types
 import category_theory.preadditive.projective
 import category_theory.limits.shapes.biproducts
-import category_theory.abelian.exact
 
 /-!
 # Projective objects and categories with enough projectives

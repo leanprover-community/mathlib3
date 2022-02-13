@@ -14,17 +14,19 @@ In this file, we prove stars and bars.
 
 ## Informal statement
 
-If we have `n` objects to put in `k` boxes, we can do so in exactly `(n + k - 1).choose n` ways.
+If we have `k` objects to put in `n` boxes, we can do so in exactly `(n + k - 1).choose k` ways.
+Equivalently, given an alphabet of `n` letters, the number of multisets of size `k` we can form
+over this alphabet is `(n + k - 1).choose k`.
 
 ## Formal statement
 
-We can identify the `n` boxes with the elements of a fintype `α` of card `n`. Then placing `n`
+We can identify the `n` boxes with the elements of a fintype `α` of card `n`. Then placing `k`
 elements in those boxes corresponds to choosing how many of each element of `α` appear in a multiset
-of card `n`. `sym α n` being the subtype of `multiset α` of multisets of card `n`, writing stars
-and bars using types gives
+of card `k`. `sym α k` being the subtype of `multiset α` of multisets of card `k`,
+the statement of stars and bars is:
 ```lean
-lemma stars_and_bars {α : Type*} [fintype α] (n : ℕ) :
-  card (sym α n) = (card α + n - 1).choose n := sorry
+lemma stars_and_bars {α : Type*} [fintype α] (k : ℕ) :
+  card (sym α k) = (card α + k - 1).choose k := sorry
 ```
 
 ## Tags
@@ -201,11 +203,11 @@ begin
         { apply fintype.card_congr (sym.equiv_congr βeqv.symm), } } } },
 end
 
-/-- The *stars and bars* lemma: the cardinality of `sym α n` is equal to
-`nat.choose (card α + n - 1) n`. -/
-lemma stars_and_bars {α : Type*} [fintype α] (n : ℕ) [fintype (sym α n)] :
-  card (sym α n) = (card α + n - 1).choose n :=
-by simpa only [multichoose] using (multichoose_eq α n).symm
+/-- The *stars and bars* lemma: the cardinality of `sym α k` is equal to
+`nat.choose (card α + k - 1) k`. -/
+lemma stars_and_bars {α : Type*} [fintype α] (k : ℕ) [fintype (sym α k)] :
+  card (sym α k) = (card α + k - 1).choose k :=
+by simpa only [multichoose] using (multichoose_eq α k).symm
 
 end sym
 

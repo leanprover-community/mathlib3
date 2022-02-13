@@ -141,7 +141,7 @@ section monoid
 
 variables [monoid M] [mul_action M α] [has_continuous_smul M α]
 
-instance units.has_continuous_smul : has_continuous_smul Mˣ α :=
+@[to_additive] instance units.has_continuous_smul : has_continuous_smul Mˣ α :=
 { continuous_smul :=
     show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : Mˣ × α, (p.1, p.2))),
     from continuous_smul.comp ((units.continuous_coe.comp continuous_fst).prod_mk continuous_snd) }

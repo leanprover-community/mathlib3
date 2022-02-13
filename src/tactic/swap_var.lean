@@ -47,6 +47,9 @@ private meta def swap_args_parser : lean.parser (list (name × name)) :=
   <|>
   (tk "[" *> sep_by (tk ",") swap_arg_parser <* tk "]")
 
+/--
+`swap_var [x y, P ↔ Q]` swaps the names `x` and `y`, `P` and `Q`.
+-/
 meta def swap_var (renames : parse swap_args_parser) : tactic unit := do
   renames.mmap' (λ e, do
     n ← tactic.get_unused_name,
@@ -54,5 +57,24 @@ meta def swap_var (renames : parse swap_args_parser) : tactic unit := do
     propagate_tags $ tactic.rename_many $ native.rb_map.of_list [(e.1, n), (e.2, e.1)],
     propagate_tags $ tactic.rename_many $ native.rb_map.of_list [(n, e.2)]),
   pure ()
+
+/--
+`swap_var [x y, P ↔ Q]` swaps the names `x` and `y`, `P` and `Q`.
+Such a swapping can be used as a weak `wlog` if the tactic proofs use the same names.
+
+```lean
+example (P Q : Prop) (hp : P) (hq : Q) : P ∧ Q :=
+begin
+  split,
+  work_on_goal 1 { swap_var [P Q] },
+  all_goals { exact ‹P› }
+end
+```
+-/
+add_tactic_doc
+{ name       := "swap_var",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.swap_var],
+  tags       := ["renaming"] }
 
 end tactic.interactive

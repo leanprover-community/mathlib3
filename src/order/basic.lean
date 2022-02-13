@@ -537,6 +537,11 @@ end
   (x₁, y₁) < (x₂, y₂) ↔ x₁ < x₂ ∧ y₁ ≤ y₂ ∨ x₁ ≤ x₂ ∧ y₁ < y₂ :=
 lt_iff
 
+instance prod.decidable_le (α : Type u) (β : Type v)
+  [has_le α] [decidable_rel ((≤) : α → α → Prop)]
+  [has_le β] [decidable_rel ((≤) : β → β → Prop)] : decidable_rel ((≤) : α × β → α × β → Prop) :=
+λ _ _, decidable_of_iff' _ prod.le_def
+
 /-- The pointwise partial order on a product.
     (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
     available via the type synonym `α ×ₗ β = α × β`.) -/

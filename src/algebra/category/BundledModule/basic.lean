@@ -120,6 +120,21 @@ A morphism between two bundled module `M1, M2` is a pair of morphism `(f, g)` su
 def bundledMap (M1 M2 : BundledModule) : Type u :=
 Σ (f : M1.R ⟶ M2.R), M1.M ⟶ (f* M2).M
 
+@[ext] lemma bundledMap.ext {M1 M2 : BundledModule} (f1 f2 : bundledMap M1 M2) :
+  f1 = f2 ↔ (f1.1 = f2.1 ∧ (∀ (m : M1.M), f1.2 m = f2.2 m)) :=
+⟨λ eq1, ⟨eq1 ▸ rfl, λ m, eq1 ▸ rfl⟩, λ EQ, begin
+  obtain ⟨eq1, eq2⟩ := EQ,
+  ext,
+  { rw eq1, },
+  { rcases f1 with ⟨f1, m1⟩,
+    rcases f2 with ⟨f2, m2⟩,
+    dsimp only at eq1 eq2 ⊢,
+    subst eq1,
+    rw heq_iff_eq,
+    ext,
+    exact eq2 x, },
+end⟩
+
 instance BundledModule.is_cat : category BundledModule :=
 { hom := λ M1 M2, bundledMap M1 M2,
   id := λ M, ⟨𝟙 M.R, { to_fun := λ m, m,

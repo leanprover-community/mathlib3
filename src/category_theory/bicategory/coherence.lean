@@ -1,25 +1,31 @@
-import category_theory.bicategory.free
+/-
+Copyright (c) 2022 Yuma Mizuno. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yuma Mizuno
+-/
 import category_theory.path_category
 import category_theory.fully_faithful
+import category_theory.bicategory.free
 import category_theory.bicategory.locally_discrete
 /-!
 ## The coherence theorem for bicategories
 
 In this file, we prove the coherence theorem for bicategories, stated in the following form: the
-free bicategory over any quiver is locally subsingleton.
+free bicategory over any quiver is locally thin.
 
 The proof is almost the same as the proof of the coherence theorem for monoidal categories that
 has been previously formalized in mathlib, which is based on the proof described by Ilya Beylin
-and Peter Dybjer. The idea is to view paths on a quiver as a normal form of 1-morphisms in the
-free bicategory on the same quiver. It turns out that the normalization of 1-morphisms in the
-free bicategory gives an bicategorical equivalence between `free_bicategory B` and
-`locally_discrete (paths B)`, and the coherence theorem for bicategories is obtained along the way
-of proving this fact.
+and Peter Dybjer. The idea is to view a path on a quiver as a normal form of a 1-morphism in the
+free bicategory on the same quiver. A normalization procedure is then described by
+`full_normalize : pseudofunctor (free_bicategory B) (locally_discrete (paths B))`, which is a
+pseudofunctor from the free bicategory to the locally discrete bicategory on the path category.
+It turns out that this pseudofunctor is locally an equivalence of categories, and the coherence
+theorem follows from this fact.
 
 # Main definitions and statements
 
-* `locally_subsingleton` : the free bicategory is locally subsingleton, that is, there is at most
-  one 2-morphism between two fixed 1-morphisms.
+* `locally_thin` : the free bicategory is locally thin, that is, there is at most one
+  2-morphism between two fixed 1-morphisms.
 
 ## References
 
@@ -48,22 +54,27 @@ def inclusion_path_aux {a : B} : ∀ {b : B}, path a b → hom a b
 | _ (cons p f) := (inclusion_path_aux p).comp (hom.of f)
 
 /--
-The discrete category on the paths includes into the 1-morphisms in the free monoidal category.
+The discrete category on the paths includes into the category of 1-morphisms in the free
+bicategory.
 -/
 def inclusion_path (a b : B) : discrete (path.{v+1} a b) ⥤ hom a b :=
 { obj := inclusion_path_aux,
   map := λ f g η, eq_to_hom (congr_arg inclusion_path_aux (discrete.eq_of_hom η)) }
 
+variables (B)
+
 /--
 The inclusion from the locally discrete bicategory on the path category into the free bicategory
 as a prelax functor. This will be promoted to a pseudofunctor after proving the coherence theorem.
 See `inclusion`.
- -/
+-/
 @[simps]
 def preinclusion : prelax_functor (locally_discrete (paths B)) (free_bicategory B) :=
 { obj := id,
   map := λ a b, (inclusion_path a b).obj,
   map₂ := λ a b, (inclusion_path a b).map }
+
+variables {B}
 
 /--
 The normalization of the composition of `p : path a b` and `f : hom b c`. Defining this function
@@ -117,6 +128,8 @@ bicategory rather than a path.
 def normalize' (a b c : B) : hom b c ⥤ discrete (path.{v+1} a b) ⥤ hom a c :=
 normalize _ _ _ ⋙ (whiskering_right _ _ _).obj (inclusion_path _ _)
 
+variables (B)
+
 /-- The normalization pseudofunctor for the free bicategory on a quiver `B`. -/
 def full_normalize : pseudofunctor (free_bicategory B) (locally_discrete (paths B)) :=
 { obj := id,
@@ -131,13 +144,15 @@ def full_normalize : pseudofunctor (free_bicategory B) (locally_discrete (paths 
     case comp : _ _ _ g _ ihf ihg { erw [ihg _ (f.comp g), ihf _ f, ihg _ g, assoc] }
   end }
 
+variables {B}
+
 /--
 Given a 1-morphism `f : hom b c` in the free bicategory and a path `p : path a b`, taking the
 composition of `p` and `f` in the free bicategory is functorial in both `f` and `p`.
 -/
 def whisker_path (a b c : B) : hom b c ⥤ discrete (path.{v+1} a b) ⥤ hom a c :=
-{ obj := λ f, discrete.functor (λ p, preinclusion.map p ≫ f),
-  map := λ f g η, discrete.nat_trans (λ p, preinclusion.map p ◁ η) }
+{ obj := λ f, discrete.functor (λ p, (preinclusion _).map p ≫ f),
+  map := λ f g η, discrete.nat_trans (λ p, (preinclusion _).map p ◁ η) }
 
 lemma whisker_path_obj_map
   (a : B) {b c : B} (f : hom b c) {p p' : discrete (path.{v+1} a b)} (η : p ⟶ p') :
@@ -152,7 +167,7 @@ Auxiliary definition for `normalize_iso`. Here we construct the isomorphism betw
 def normalize_iso_app {a : B} : Π {b c : B} (f : hom b c) (p : path a b),
   ((whisker_path a b c).obj f).obj p ≅ ((normalize' a b c).obj f).obj p
 | _ _ (hom.of f) p := iso.refl _
-| _ _ (hom.id a) p := ρ_ (preinclusion.map p)
+| _ _ (hom.id a) p := ρ_ ((preinclusion _).map p)
 | _ _ (hom.comp f g) p :=
     (α_ _ _ _).symm ≪≫ whisker_right_iso (normalize_iso_app f p) g ≪≫
       normalize_iso_app g (((normalize _ _ _).obj f).obj p)
@@ -229,52 +244,53 @@ end
 /-- Auxiliary definition for `normalize_unit_iso`. -/
 @[simp]
 def normalize_unit_iso_app_aux {a b : free_bicategory B} (f : a ⟶ b) :
-  preinclusion.map (𝟙 a) ≫ f ≅ preinclusion.map ((full_normalize.map_functor a b).obj f) :=
-normalize_iso_app f nil
+  (preinclusion B).map (𝟙 a) ≫ f ≅
+    (preinclusion B).map (((full_normalize B).map_functor a b).obj f) :=
+((normalize_iso _ _ _).app f).app nil
 
-/-- The isomorphism between a 1-morphism and its normal form is natural. -/
+/-- Auxiliary definition for `normalize_equiv`. -/
 def normalize_unit_iso (a b : free_bicategory B) :
-  𝟭 (a ⟶ b) ≅ full_normalize.map_functor _ _ ⋙ inclusion_path _ _  :=
+  𝟭 (a ⟶ b) ≅ (full_normalize B).map_functor _ _ ⋙ inclusion_path _ _  :=
 nat_iso.of_components (λ f, (λ_ f).symm ≪≫ normalize_unit_iso_app_aux f)
 begin
   intros f g η,
-  dsimp only [iso.trans_hom],
-  slice_lhs 1 2 { erw left_unitor_inv_naturality },
-  simp only [assoc],
-  congr' 1,
+  dsimp,
+  rw [left_unitor_inv_naturality_assoc, assoc, iso.cancel_iso_inv_left],
   apply congr_arg (λ η, nat_trans.app η nil) ((normalize_iso _ _ _).hom.naturality η)
 end
 
-/-- The isomorphism between an object and its normal form is natural. -/
+/-- Auxiliary definition for `normalize_equiv`. -/
 def normalize_counit_iso (a b : locally_discrete (paths B)) :
-  (inclusion_path _ _ ⋙ full_normalize.map_functor _ _ : (a ⟶ b) ⥤ _) ≅ 𝟭 (a ⟶ b) :=
+  (inclusion_path _ _ ⋙ (full_normalize _).map_functor _ _ : (a ⟶ b) ⥤ _) ≅ 𝟭 (a ⟶ b) :=
 nat_iso.of_components (λ f, eq_to_iso (by { induction f, tidy })) (by tidy)
 
 /-- The normalization as an equivalence of categories. -/
 def normalize_equiv (a b : B) : hom a b ≌ discrete (path.{v+1} a b) :=
-equivalence.mk (full_normalize.map_functor a b) (inclusion_path a b)
+equivalence.mk ((full_normalize _).map_functor a b) (inclusion_path a b)
   (normalize_unit_iso a b) (normalize_counit_iso a b)
 
 /-- The coherence theorem for bicategories. -/
-instance locally_subsingleton {a b : free_bicategory B} (f g : a ⟶ b) : subsingleton (f ⟶ g) :=
+instance locally_thin {a b : free_bicategory B} (f g : a ⟶ b) : subsingleton (f ⟶ g) :=
 ⟨λ η θ, (normalize_equiv a b).functor.map_injective (subsingleton.elim _ _)⟩
 
 /-- Auxiliary definition for `inclusion`. -/
 def inclusion_map_comp_aux {a b : B} : ∀ {c : B} (f : path a b) (g : path b c),
-  preinclusion.map (f ≫ g) ≅ preinclusion.map f ≫ preinclusion.map g
-| _ f nil := (ρ_ (preinclusion.map f)).symm
+  (preinclusion _).map (f ≫ g) ≅ (preinclusion _).map f ≫ (preinclusion _).map g
+| _ f nil := (ρ_ ((preinclusion _).map f)).symm
 | _ f (cons g₁ g₂) := whisker_right_iso (inclusion_map_comp_aux f g₁) (hom.of g₂) ≪≫ α_ _ _ _
+
+variables (B)
 
  /--
 The inclusion pseudofunctor from the locally discrete bicategory on the path category into the
 free bicategory.
- -/
+-/
 @[simps]
 def inclusion : pseudofunctor (locally_discrete (paths B)) (free_bicategory B) :=
 { map_id := λ a, iso.refl (𝟙 a),
   map_comp := λ a b c f g, inclusion_map_comp_aux f g,
   -- All the conditions for 2-morphisms are trivial thanks to the coherence theorem!
-  .. preinclusion }
+  .. preinclusion B }
 
 end free_bicategory
 

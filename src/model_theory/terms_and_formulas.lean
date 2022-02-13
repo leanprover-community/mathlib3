@@ -105,11 +105,15 @@ inductive bounded_formula (α : Type) : ℕ → Type (max u v)
 
 export bounded_formula
 
-instance {α : Type} {n : ℕ} : inhabited (L.bounded_formula α n) :=
+instance {α β : Type} {n : ℕ} : inhabited (L.bounded_formula α n) :=
 ⟨bd_falsum⟩
 
 /-- `formula α` is the type of formulas with all free variables indexed by `α`. -/
 @[reducible] def formula (α : Type) := L.bounded_formula α 0
+
+/-- `partitioned_formula α β` is the type of formulas with all free variables indexed by `α` or `β`.
+-/
+@[reducible] def partitioned_formula (α : Type) (β : Type*) := L.bounded_formula (α ⊕ β) 0
 
 /-- A sentence is a formula with no free variables. -/
 @[reducible] def sentence           := L.formula pempty
@@ -177,9 +181,32 @@ variables (M)
   realize_bounded_formula M (bd_not f) v xs = ¬ realize_bounded_formula M f v xs :=
 rfl
 
+lemma realize_inf {l} (φ ψ : L.bounded_formula α l) (v : α → M) (xs : fin l → M) :
+  realize_bounded_formula M (φ ⊓ ψ) v xs =
+    (realize_bounded_formula M φ v xs ∧ realize_bounded_formula M ψ v xs) :=
+by simp
+
+lemma realize_imp {l} (φ ψ : L.bounded_formula α l) (v : α → M) (xs : fin l → M) :
+  realize_bounded_formula M (φ.bd_imp ψ) v xs =
+    (realize_bounded_formula M φ v xs → realize_bounded_formula M ψ v xs) :=
+by simp only [realize_bounded_formula]
+
+lemma realize_sup {l} (φ ψ : L.bounded_formula α l) (v : α → M) (xs : fin l → M) :
+  realize_bounded_formula M (φ ⊔ ψ) v xs =
+    (realize_bounded_formula M φ v xs ∨ realize_bounded_formula M ψ v xs) :=
+begin
+  simp only [realize_bounded_formula, bounded_formula.has_sup_sup, realize_not, eq_iff_iff],
+  tauto,
+end
+
 /-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
 @[reducible] def realize_formula (f : L.formula α) (v : α → M) : Prop :=
 realize_bounded_formula M f v fin_zero_elim
+
+/-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
+@[reducible] def realize_partitioned_formula {β : Type} (f : L.partitioned_formula α β)
+  (v : α → M) (w : β → M) : Prop :=
+realize_formula M f (sum.elim v w)
 
 /-- A sentence can be evaluated as true or false in a structure. -/
 @[reducible] def realize_sentence (φ : L.sentence) : Prop :=

@@ -626,6 +626,18 @@ instance add_comm_monoid [measurable_space α] : add_comm_monoid (measure α) :=
 to_outer_measure_injective.add_comm_monoid to_outer_measure zero_to_outer_measure
   add_to_outer_measure
 
+/-- Coercion to function as an additive monoid homomorphism. -/
+def coe_add_hom {m : measurable_space α} : measure α →+ (set α → ℝ≥0∞) :=
+⟨coe_fn, coe_zero, coe_add⟩
+
+@[simp] lemma coe_finset_sum {m : measurable_space α} (I : finset ι) (μ : ι → measure α) :
+  ⇑(∑ i in I, μ i) = ∑ i in I, μ i :=
+(@coe_add_hom α m).map_sum _ _
+
+theorem finset_sum_apply {m : measurable_space α} (I : finset ι) (μ : ι → measure α) (s : set α) :
+  (∑ i in I, μ i) s = ∑ i in I, μ i s :=
+by rw [coe_finset_sum, finset.sum_apply]
+
 instance [measurable_space α] : has_scalar ℝ≥0∞ (measure α) :=
 ⟨λ c μ,
   { to_outer_measure := c • μ.to_outer_measure,
@@ -1067,18 +1079,18 @@ end
 
 lemma restrict_Union_apply_ae [encodable ι] {s : ι → set α}
   (hd : pairwise (ae_disjoint μ on s))
-  (hm : ∀ i, measurable_set (s i)) {t : set α} (ht : measurable_set t) :
+  (hm : ∀ i, null_measurable_set (s i) μ) {t : set α} (ht : measurable_set t) :
   μ.restrict (⋃ i, s i) t = ∑' i, μ.restrict (s i) t :=
 begin
   simp only [restrict_apply, ht, inter_Union],
   exact measure_Union₀ (hd.mono $ λ i j h, h.mono (inter_subset_right _ _) (inter_subset_right _ _))
-    (λ i, (ht.inter (hm i)).null_measurable_set)
+    (λ i, (ht.null_measurable_set.inter (hm i)))
 end
 
 lemma restrict_Union_apply [encodable ι] {s : ι → set α} (hd : pairwise (disjoint on s))
   (hm : ∀ i, measurable_set (s i)) {t : set α} (ht : measurable_set t) :
   μ.restrict (⋃ i, s i) t = ∑' i, μ.restrict (s i) t :=
-restrict_Union_apply_ae (hd.mono $ λ i j h, h.ae_disjoint) hm ht
+restrict_Union_apply_ae (hd.mono $ λ i j h, h.ae_disjoint) (λ i, (hm i).null_measurable_set) ht
 
 lemma restrict_Union_apply_eq_supr [encodable ι] {s : ι → set α}
   (hd : directed (⊆) s) {t : set α} (ht : measurable_set t) :
@@ -1376,11 +1388,18 @@ lemma ae_sum_iff' {μ : ι → measure α} {p : α → Prop} (h : measurable_set
   (∀ᵐ x ∂(sum μ), p x) ↔ ∀ i, ∀ᵐ x ∂(μ i), p x :=
 sum_apply_eq_zero' h.compl
 
+@[simp] lemma sum_fintype [fintype ι] (μ : ι → measure α) : sum μ = ∑ i, μ i :=
+by { ext1 s hs, simp only [sum_apply, finset_sum_apply, hs, tsum_fintype] }
+
+@[simp] lemma sum_coe_finset (s : finset ι) (μ : ι → measure α) :
+  sum (λ i : s, μ i) = ∑ i in s, μ i :=
+by simpa only [sum_fintype] using @fintype.sum_finset_coe _ _ s μ _
+
 @[simp] lemma ae_sum_eq [encodable ι] (μ : ι → measure α) : (sum μ).ae = ⨆ i, (μ i).ae :=
 filter.ext $ λ s, ae_sum_iff.trans mem_supr.symm
 
 @[simp] lemma sum_bool (f : bool → measure α) : sum f = f tt + f ff :=
-ext $ λ s hs, by simp [hs, tsum_fintype]
+by rw [sum_fintype, fintype.sum_bool]
 
 @[simp] lemma sum_cond (μ ν : measure α) : sum (λ b, cond b μ ν) = μ + ν := sum_bool _
 
@@ -1391,8 +1410,18 @@ ext $ λ t ht, by simp only [sum_apply, restrict_apply, ht, ht.inter hs]
 @[simp] lemma sum_of_empty [is_empty ι] (μ : ι → measure α) : sum μ = 0 :=
 by rw [← measure_univ_eq_zero, sum_apply _ measurable_set.univ, tsum_empty]
 
+
+
+lemma sum_add_sum_compl (s : set ι) (μ : ι → measure α) :
+  sum (λ i : s, μ i) + sum (λ i : sᶜ, μ i) = sum μ :=
+begin
+  ext1 t ht,
+  simp only [add_apply, sum_apply _ ht],
+  exact @tsum_add_tsum_compl ℝ≥0∞ ι _ _ _ (λ i, μ i t) _ s ennreal.summable ennreal.summable
+end
+
 lemma sum_congr {μ ν : ℕ → measure α} (h : ∀ n, μ n = ν n) : sum μ = sum ν :=
-by { congr, ext1 n, exact h n }
+congr_arg sum (funext h)
 
 lemma sum_add_sum (μ ν : ℕ → measure α) : sum μ + sum ν = sum (λ n, μ n + ν n) :=
 begin
@@ -1420,8 +1449,8 @@ by simpa using (map_eq_sum μ id measurable_id).symm
 omit m0
 end sum
 
-lemma restrict_Union_ae [encodable ι] {s : ι → set α} (hd : pairwise (λ i j, μ (s i ∩ s j) = 0))
-  (hm : ∀ i, measurable_set (s i)) :
+lemma restrict_Union_ae [encodable ι] {s : ι → set α} (hd : pairwise (ae_disjoint μ on s))
+  (hm : ∀ i, null_measurable_set (s i) μ) :
   μ.restrict (⋃ i, s i) = sum (λ i, μ.restrict (s i)) :=
 ext $ λ t ht, by simp only [sum_apply _ ht, restrict_Union_apply_ae hd hm ht]
 

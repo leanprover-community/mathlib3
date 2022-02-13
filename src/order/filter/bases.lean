@@ -700,10 +700,11 @@ open equiv
 lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
   map (prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
 begin
-  rw map_eq_comap_of_inverse (prod_assoc α β γ).self_comp_symm (prod_assoc α β γ).symm_comp_self,
+  rw ← comap_equiv_symm,
   apply ((((basis_sets f).prod $ basis_sets g).prod $ basis_sets h).comap _).eq_of_same_basis,
-  convert ((basis_sets f).prod (((basis_sets g)).prod (basis_sets h))).equiv (prod_assoc _ _ _) ;
-  { ext, simp [and_assoc] },
+  convert ((basis_sets f).prod (((basis_sets g)).prod
+           (basis_sets h))).comp_equiv (prod_assoc _ _ _) ;
+  { ext, simp [and_assoc] }
 end
 
 end filter

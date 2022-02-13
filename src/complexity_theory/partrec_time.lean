@@ -112,8 +112,9 @@ begin
   sorry,
 end
 
-lemma poly_time_cons : poly_time code.tail :=
+lemma poly_time_cons (f fs : code) (hf : poly_time f) (hfs : poly_time fs) :
+  poly_time (code.cons f fs) :=
 begin
-  rw poly_time,
+  rw poly_time at *,
   sorry,
 end

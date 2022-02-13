@@ -1249,8 +1249,8 @@ end
 
 /-- In a preadditive category, any binary bicone which is a colimit cocone is in fact a
     bilimit bicone. -/
-def is_binary_bilimit_of_is_colimit {X Y : C} (t : binary_bicone X Y) (ht : is_colimit t.to_cocone) :
-  t.is_bilimit :=
+def is_binary_bilimit_of_is_colimit {X Y : C} (t : binary_bicone X Y)
+  (ht : is_colimit t.to_cocone) : t.is_bilimit :=
 is_binary_bilimit_of_total _
 begin
   refine binary_cofan.is_colimit.hom_ext ht _ _,

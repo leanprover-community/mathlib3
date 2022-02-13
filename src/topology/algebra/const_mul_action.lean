@@ -100,7 +100,7 @@ instance has_continuous_const_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_sca
 ⟨ mul_opposite.rec $ λ c, by simpa only [op_smul_eq_smul] using continuous_const_smul c ⟩
 
 @[to_additive]
-instance [topological_space β] [has_scalar M β] [has_continuous_const_smul M β] :
+instance [has_scalar M β] [has_continuous_const_smul M β] :
   has_continuous_const_smul M (α × β) :=
 ⟨λ _, (continuous_fst.const_smul _).prod_mk (continuous_snd.const_smul _)⟩
 

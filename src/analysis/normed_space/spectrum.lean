@@ -152,7 +152,7 @@ variable (𝕜)
 /-- In a Banach algebra `A` over a nondiscrete normed field `𝕜`, for any `a : A` the
 power series with coefficients `a ^ n` represents the function `(1 - z • a)⁻¹` in a disk of
 radius `∥a∥₊⁻¹`. -/
-lemma inverse_one_sub_smul_has_fpower_series_on_ball [complete_space A] (a : A) :
+lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) :
   has_fpower_series_on_ball (λ z : 𝕜, ring.inverse (1 - z • a))
     (λ n, continuous_multilinear_map.mk_pi_field 𝕜 (fin n) (a ^ n)) 0 (∥a∥₊)⁻¹ :=
 { r_le :=
@@ -199,7 +199,7 @@ end
 
 /-- In a Banach algebra `A` over `𝕜`, for `a : A` the function `λ z, (1 - z • a)⁻¹` is
 differentiable on any closed ball centered at zero of radius `r < (spectral_radius 𝕜 a)⁻¹`. -/
-theorem inverse_one_sub_smul_differentiable_on [complete_space A] {a : A} {r : ℝ≥0}
+theorem differentiable_on_inverse_one_sub_smul [complete_space A] {a : A} {r : ℝ≥0}
   (hr : (r : ℝ≥0∞) < (spectral_radius 𝕜 a)⁻¹) :
   differentiable_on 𝕜 (λ z : 𝕜, ring.inverse (1 - z • a)) (metric.closed_ball 0 r) :=
 begin
@@ -241,13 +241,13 @@ begin
     refine congr_arg _ (funext (λ n, congr_arg _ _)),
     rw [norm_to_nnreal, ennreal.coe_rpow_def (∥a ^ n∥₊) (1 / n : ℝ), if_neg],
     exact λ ha, by linarith [ha.2, (one_div_nonneg.mpr n.cast_nonneg : 0 ≤ (1 / n : ℝ))], },
-  { have H₁ := (inverse_one_sub_smul_differentiable_on r_lt).has_fpower_series_on_ball r_pos,
-    exact ((inverse_one_sub_smul_has_fpower_series_on_ball ℂ a).exchange_radius H₁).r_le, }
+  { have H₁ := (differentiable_on_inverse_one_sub_smul r_lt).has_fpower_series_on_ball r_pos,
+    exact ((has_fpower_series_on_ball_inverse_one_sub_smul ℂ a).exchange_radius H₁).r_le, }
 end
 
 /-- **Gelfand's formula**: Given an element `a : A` of a complex Banach algebra, the
 `spectral_radius` of `a` is the limit of the sequence `∥a ^ n∥₊ ^ (1 / n)` -/
-theorem gelfand_formula (a : A) :
+theorem pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A) :
   tendsto (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)) at_top (𝓝 (spectral_radius ℂ a)) :=
 begin
   refine tendsto_of_le_liminf_of_limsup_le _ _ (by apply_auto_param) (by apply_auto_param),
@@ -255,6 +255,18 @@ begin
     refine le_trans _ (le_supr _ 0),
     exact le_binfi (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
   { exact limsup_pow_nnnorm_pow_one_div_le_spectral_radius a },
+end
+
+/-- **Gelfand's formula**: This is the same as
+`spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius` except phrased in terms of `norm`
+instead of `nnnorm`. -/
+theorem pow_norm_pow_one_div_tendsto_nhds_spectral_radius (a : A) :
+  tendsto (λ n : ℕ,  ennreal.of_real (∥a ^ n∥ ^ (1 / n : ℝ))) at_top (𝓝 (spectral_radius ℂ a)) :=
+begin
+  convert pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a,
+  ext1,
+  rw [←of_real_rpow_of_nonneg (norm_nonneg _) _, ←coe_nnnorm, coe_nnreal_eq],
+  exact one_div_nonneg.mpr (by exact_mod_cast zero_le _),
 end
 
 end gelfand_formula

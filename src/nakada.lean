@@ -6,6 +6,7 @@ Authors: Yakov Pechersky
 
 import algebra.order.group
 import algebra.order.with_zero
+import group_theory.submonoid.basic
 import tactic.tfae
 
 /-!
@@ -260,8 +261,13 @@ def of_mul_order_embedding (f : M ↪*o N) (g : N ↪*o M) (h : function.left_in
 
 end mul_order_iso
 
--- Theorem 5
--- mp is Theorem 1
+-- Theorem 5 (by Theorem 1, we don't need to state that `G` is a group)
+lemma strong_of_mul_order_embedding {S G : Type*} [comm_semigroup S] [has_le S] [nakada_po S]
+  [comm_semigroup G] [has_le G] [nakada_po G] [nakada_strong G] (f : S ↪*o G) : nakada_strong S :=
+⟨λ a b c h, begin
+  rw ←f.map_rel_iff' at h ⊢,
+  simpa using h
+end⟩
 
 end page182
 
@@ -345,6 +351,12 @@ lemma one_def [inhabited S] : (1 : G) = one (default : S) := rfl
 protected lemma inv_one [inhabited S] : (1 : G)⁻¹ = 1 :=
 by simp [one_def, one]
 
+instance [subsingleton S] : subsingleton G :=
+⟨λ a b, quotient.induction_on₂ a b $ by simp⟩
+
+instance [h : nonempty S] : nonempty G :=
+nonempty.map one h
+
 instance [inhabited S] : comm_group G :=
 { mul := (*),
   one := 1,
@@ -374,8 +386,64 @@ quotient.lift₂ (λ (p q : S × S), p.1 * q.2 ≤ q.1 * p.2) begin
     exact strong h }
 end
 
+instance has_le : has_le G := ⟨mul_pair_quotient.le⟩
+
+@[simp] lemma le_def {p q : S × S} : ⟦p⟧ ≤ ⟦q⟧ ↔ p.1 * q.2 ≤ q.1 * p.2 := iff.rfl
+
+instance decidable_le [decidable_rel ((≤) : S → S → Prop)] : decidable_rel ((≤) : G → G → Prop) :=
+λ a b, quotient.rec_on_subsingleton₂ a b (λ p q, decidable_of_iff' _ le_def)
+
+instance partial_order : partial_order G :=
+{ le := (≤),
+  le_refl := λ a, quotient.induction_on a $ by simp,
+  le_trans := λ a b c, quotient.induction_on₃ a b c $ begin
+    rintro ⟨a, a'⟩ ⟨b, b'⟩ ⟨c, c'⟩ hab hbc,
+    simp only [le_def] at *,
+    suffices : b' * (a * c') ≤ b' * (c * a'),
+    { exact strong this },
+    calc b' * (a * c') ≤ c' * (b * a') : by simpa [mul_comm, mul_left_comm] using homogeneity hab c'
+    ... ≤ a' * (c * b') : by simpa [mul_comm, mul_left_comm] using homogeneity hbc a'
+    ... ≤ b' * (c * a') : by simp only [mul_comm, mul_left_comm]
+  end,
+  le_antisymm := λ a b, begin
+    induction a using quotient.induction_on,
+    induction b using quotient.induction_on,
+    simpa using le_antisymm
+  end }
+
+instance nakada_po : nakada_po G :=
+⟨λ a b c, quotient.induction_on₃ a b c begin
+  rintro ⟨a, a'⟩ ⟨b, b'⟩ ⟨c, c'⟩ hbc,
+  simp only [mk_mul, le_def] at hbc,
+  simpa only [mul_left_comm, mul_assoc, mk_mul, le_def] using homogeneity (homogeneity hbc a) a'
+end⟩
+
+-- Theorem 5, corollary
+instance linear_order {S : Type*} [comm_semigroup S] [linear_order S]
+  [nakada_po S] [nakada_strong S] : linear_order (quotient (mul_pair_setoid S)) :=
+{ le_total := λ a b, quotient.induction_on₂ a b $ by
+    { rintro ⟨a, a'⟩ ⟨b, b'⟩, simpa using le_total _ _ },
+  decidable_le := mul_pair_quotient.decidable_le,
+  ..mul_pair_quotient.partial_order }
+
 end mul_pair_quotient
 
 -- Theorem 5, mpr
+def to_mul_pair_quotient (x : S) : mul_order_embedding S (quotient (mul_pair_setoid S)) :=
+{ to_fun := λ a, ⟦(a * x, x)⟧,
+  map_mul' := λ _ _, by simp [mul_comm, mul_left_comm],
+  inj' := λ a b h, begin
+    suffices : x * x * a = x * x * b,
+    { exact nakada_strong.cancel_left this },
+    simpa only [mul_comm, mul_left_comm, quotient.eq, mul_pair_equiv_iff] using h
+  end,
+  map_rel_iff' := λ _ _, by simp }
+
+@[simp] lemma to_mul_pair_quotient_apply (x a : S) : to_mul_pair_quotient x a = ⟦(a * x, x)⟧ := rfl
+
+def of_mul_pair_quotient [inhabited S] (x : S) : submonoid (quotient (mul_pair_setoid S)) :=
+submonoid.closure (set.range (to_mul_pair_quotient default))
+
+-- how to prove minimality and uniqueness?
 
 end page183

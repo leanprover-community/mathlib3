@@ -444,6 +444,8 @@ lemma inv_def (e : E ≃ₗᵢ[R] E) : (e⁻¹ : E ≃ₗᵢ[R] E) = e.symm := r
 
 @[simp] lemma trans_one : e.trans (1 : E₂ ≃ₗᵢ[R₂] E₂) = e := trans_refl _
 @[simp] lemma one_trans : (1 : E ≃ₗᵢ[R] E).trans e = e := refl_trans _
+@[simp] lemma refl_mul (e : E ≃ₗᵢ[R] E) : (refl _ _) * e = e := trans_refl _
+@[simp] lemma mul_refl (e : E ≃ₗᵢ[R] E) : e * (refl _ _) = e := refl_trans _
 
 include σ₂₁
 

@@ -366,6 +366,10 @@ by convert has_sum_geometric_of_lt_1 _ _; norm_num
 lemma summable_geometric_two : summable (λn:ℕ, ((1:ℝ)/2) ^ n) :=
 ⟨_, has_sum_geometric_two⟩
 
+lemma summable_geometric_two_encode {ι : Type*} [encodable ι] :
+  summable (λ (i : ι), (1/2 : ℝ)^(encodable.encode i)) :=
+summable_geometric_two.comp_injective encodable.encode_injective
+
 lemma tsum_geometric_two : ∑'n:ℕ, ((1:ℝ)/2) ^ n = 2 :=
 has_sum_geometric_two.tsum_eq
 

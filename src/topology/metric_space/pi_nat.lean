@@ -25,8 +25,9 @@ One can define a combinatorial distance on `Π (n : ℕ), E n`, as follows:
 * `pi_nat.metric_space`: the metric space structure, given by this distance. Not registered as an
   instance. This space is a complete metric space.
 * `pi_nat.metric_space_of_discrete_uniformity`: the same metric space structure, but adjusting the
-  uniformity defeqness when the `E n` already have the discrete uniformity.
-* `pi_nat.metric_space_nat_nat`: the particular case of `ℕ → ℕ`.
+  uniformity defeqness when the `E n` already have the discrete uniformity. Not registered as an
+  instance
+* `pi_nat.metric_space_nat_nat`: the particular case of `ℕ → ℕ`, not registered as an instance.
 
 These results are used to construct continuous functions on `Π n, E n`:
 
@@ -37,12 +38,12 @@ These results are used to construct continuous functions on `Π n, E n`:
   space with second-countable topology, there exists a continuous surjection from `ℕ → ℕ` onto
   this space.
 
-One can also put distances on `Π n, E n` when the spaces `E n` are metric spaces (not discrete
-in general):
+One can also put distances on `Π (i : ι), E i` when the spaces `E i` are metric spaces (not discrete
+in general), and `ι` is countable.
 
-* `pi_nat_nondiscrete.dist` is the distance on `Π n, E n` given by
-    `dist x y = ∑' n, min (1/2)^n (dist (x n) (y n))`.
-* `pi_nat_nondiscrete.metric_space` is the corresponding metric space structure, adjusted so that
+* `pi_countable.dist` is the distance on `Π i, E E` given by
+    `dist x y = ∑' i, min (1/2)^(encode i) (dist (x i) (y i))`.
+* `pi_countable.metric_space` is the corresponding metric space structure, adjusted so that
   the uniformity is definitionally the product uniformity. Not registered as an instance.
 -/
 
@@ -771,37 +772,38 @@ begin
   exact ⟨g ∘ f, g_cont.comp f_cont, g_surj.comp f_surj⟩,
 end
 
-namespace pi_nat_nondiscrete
+namespace pi_countable
 
 /-!
 ### Products of (possibly non-discrete) metric spaces
 -/
 
-variable [∀ n, metric_space (E n)]
+variables {ι : Type*} [encodable ι] {F : ι → Type*} [∀ i, metric_space (F i)]
+open encodable
 
-/-- Given a countable family of metric spaces, one may put a distance on their product `Π n, E n`.
+/-- Given a countable family of metric spaces, one may put a distance on their product `Π i, E i`.
 It is highly non-canonical, though, and therefore not registered as a global instance.
-The distance we use here is `dist x y = ∑' n, min (1/2)^n (dist (x n) (y n))`. -/
-protected def has_dist : has_dist (Π n, E n) :=
-⟨λ x y, ∑' (n : ℕ), min ((1/2)^n) (dist (x n) (y n))⟩
+The distance we use here is `dist x y = ∑' i, min (1/2)^(encode i) (dist (x i) (y i))`. -/
+protected def has_dist : has_dist (Π i, F i) :=
+⟨λ x y, ∑' (i : ι), min ((1/2)^(encode i)) (dist (x i) (y i))⟩
 
-local attribute [instance] pi_nat_nondiscrete.has_dist
+local attribute [instance] pi_countable.has_dist
 
-lemma dist_eq_tsum (x y : Π n, E n) :
-  dist x y = ∑' (n : ℕ), min ((1/2)^n) (dist (x n) (y n)) := rfl
+lemma dist_eq_tsum (x y : Π i, F i) :
+  dist x y = ∑' (i : ι), min ((1/2)^(encode i)) (dist (x i) (y i)) := rfl
 
-lemma dist_summable (x y : Π n, E n) :
-  summable (λ (n : ℕ), min ((1/2)^n) (dist (x n) (y n))) :=
+lemma dist_summable (x y : Π i, F i) :
+  summable (λ (i : ι), min ((1/2)^(encode i)) (dist (x i) (y i))) :=
 begin
-  refine summable_of_nonneg_of_le (λ i, _) (λ i, min_le_left _ _) summable_geometric_two,
-  exact le_min (pow_nonneg (by norm_num) i) (dist_nonneg)
+  refine summable_of_nonneg_of_le (λ i, _) (λ i, min_le_left _ _) summable_geometric_two_encode,
+  exact le_min (pow_nonneg (by norm_num) _) (dist_nonneg)
 end
 
-lemma min_dist_le_dist_pi (x y : Π n, E n) (i : ℕ) :
-  min ((1/2)^i) (dist (x i) (y i)) ≤ dist x y :=
+lemma min_dist_le_dist_pi (x y : Π i, F i) (i : ι) :
+  min ((1/2)^(encode i)) (dist (x i) (y i)) ≤ dist x y :=
 le_tsum (dist_summable x y) i (λ j hj, le_min (by simp) (dist_nonneg))
 
-lemma dist_le_dist_pi_of_dist_lt {x y : Π n, E n} {i : ℕ} (h : dist x y < (1/2)^i) :
+lemma dist_le_dist_pi_of_dist_lt {x y : Π i, F i} {i : ι} (h : dist x y < (1/2)^(encode i)) :
   dist (x i) (y i) ≤ dist x y :=
 by simpa only [not_le.2 h, false_or] using min_le_iff.1 (min_dist_le_dist_pi x y i)
 
@@ -812,29 +814,32 @@ open_locale nnreal
 
 variable (E)
 
-/-- Given a countable family of metric spaces, one may put a distance on their product `Π n, E n`,
+/-- Given a countable family of metric spaces, one may put a distance on their product `Π i, E i`,
 defining the right topology and uniform structure. It is highly non-canonical, though, and therefore
 not registered as a global instance.
-The distance we use here is `dist x y = ∑' n, min (1/2)^n (dist (x n) (y n))`. -/
-protected def metric_space : metric_space (Π n, E n) :=
+The distance we use here is `dist x y = ∑' n, min (1/2)^(encode i) (dist (x n) (y n))`. -/
+protected def metric_space : metric_space (Π i, F i) :=
 { dist_self := λ x, by simp [dist_eq_tsum],
   dist_comm := λ x y, by simp [dist_eq_tsum, dist_comm],
   dist_triangle := λ x y z,
   begin
-    have I : ∀ n, min ((1/2)^n) (dist (x n) (z n)) ≤
-      min ((1/2)^n) (dist (x n) (y n)) + min ((1/2)^n) (dist (y n) (z n)) := λ n, calc
-        min ((1/2)^n) (dist (x n) (z n))
-            ≤ min ((1/2)^n) (dist (x n) (y n) + dist (y n) (z n)) :
+    have I : ∀ i, min ((1/2)^(encode i)) (dist (x i) (z i)) ≤
+      min ((1/2)^(encode i)) (dist (x i) (y i)) + min ((1/2)^(encode i)) (dist (y i) (z i)) :=
+    λ i, calc
+      min ((1/2)^(encode i)) (dist (x i) (z i))
+        ≤ min ((1/2)^(encode i)) (dist (x i) (y i) + dist (y i) (z i)) :
           min_le_min le_rfl (dist_triangle _ _ _)
-        ... = min ((1/2)^n) (min ((1/2)^n) (dist (x n) (y n)) + min ((1/2)^n) (dist (y n) (z n))) :
-          begin
-            convert congr_arg (coe : ℝ≥0 → ℝ)
-              (min_add_distrib ((1/2 : ℝ≥0)^n) (nndist (x n) (y n)) (nndist (y n) (z n)));
-            simp
-          end
-        ... ≤ min ((1/2)^n) (dist (x n) (y n)) + min ((1/2)^n) (dist (y n) (z n)) :
+      ... = min ((1/2)^(encode i)) (min ((1/2)^(encode i)) (dist (x i) (y i))
+            + min ((1/2)^(encode i)) (dist (y i) (z i))) :
+        begin
+          convert congr_arg (coe : ℝ≥0 → ℝ)
+            (min_add_distrib ((1/2 : ℝ≥0)^(encode i)) (nndist (x i) (y i)) (nndist (y i) (z i)));
+          simp
+        end
+      ... ≤ min ((1/2)^(encode i)) (dist (x i) (y i)) + min ((1/2)^(encode i)) (dist (y i) (z i)) :
           min_le_right _ _,
-    calc dist x z ≤ ∑' n, (min ((1/2)^n) (dist (x n) (y n)) + min ((1/2)^n) (dist (y n) (z n))) :
+    calc dist x z ≤ ∑' i, (min ((1/2)^(encode i)) (dist (x i) (y i))
+                          + min ((1/2)^(encode i)) (dist (y i) (z i))) :
       tsum_le_tsum I (dist_summable x z) ((dist_summable x y).add (dist_summable y z))
     ... = dist x y + dist y z : tsum_add (dist_summable x y) (dist_summable y z)
   end,
@@ -857,52 +862,56 @@ protected def metric_space : metric_space (Π n, E n) :=
     apply le_antisymm,
     { simp only [le_infi_iff, le_principal_iff],
       assume ε εpos,
-      obtain ⟨n, hn⟩ : ∃ (n : ℕ), (n : ℝ) * (1/2)^n + 2 * (1/2)^n < ε,
-      { have : tendsto (λ (n : ℕ), (n : ℝ) * (1/2)^n + 2 * (1/2)^n) at_top (𝓝 (0 + 2 * 0)) :=
-          (tendsto_self_mul_const_pow_of_lt_one I0 I1).add
-            (tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 I0 I1)),
-        simp only [zero_add, mul_zero] at this,
-        exact ((tendsto_order.1 this).2 ε εpos).exists },
-      apply @mem_infi_of_Inter _ _ _ _ _ (finset.range n).finite_to_set
-        (λ i, {p : (Π (n : ℕ), E n) × Π (n : ℕ), E n | dist (p.fst i) (p.snd i) < (1/2)^n}),
+      obtain ⟨K, hK⟩ : ∃ (K : finset ι), ∑' (i : {j // j ∉ K}), (1/2 : ℝ)^(encode (i : ι)) < ε/2 :=
+        ((tendsto_order.1 (tendsto_tsum_compl_at_top_zero (λ (i : ι), (1/2 : ℝ)^(encode i)))).2
+           _ (half_pos εpos)).exists,
+      obtain ⟨δ, δpos, hδ⟩ : ∃ (δ : ℝ) (δpos : 0 < δ), (K.card : ℝ) * δ ≤ ε/2,
+      { rcases nat.eq_zero_or_pos K.card with hK|hK,
+        { exact ⟨1, zero_lt_one,
+                  by simpa only [hK, nat.cast_zero, zero_mul] using (half_pos εpos).le⟩ },
+        { have Kpos : 0 < (K.card : ℝ) := nat.cast_pos.2 hK,
+          refine ⟨(ε / 2) / (K.card : ℝ), (div_pos (half_pos εpos) Kpos), le_of_eq _⟩,
+          field_simp [Kpos.ne'],
+          ring } },
+      apply @mem_infi_of_Inter _ _ _ _ _ K.finite_to_set
+        (λ i, {p : (Π (i : ι), F i) × Π (i : ι), F i | dist (p.fst i) (p.snd i) < δ}),
       { rintros ⟨i, hi⟩,
-        refine mem_infi_of_mem ((1/2)^n) _,
-        refine mem_infi_of_mem (by norm_num) _,
+        refine mem_infi_of_mem δ (mem_infi_of_mem δpos _),
         simp only [prod.forall, imp_self, mem_principal] },
       { rintros ⟨x, y⟩ hxy,
         simp only [mem_Inter, mem_set_of_eq, set_coe.forall, finset.mem_range, finset.mem_coe]
           at hxy,
-        calc dist x y = ∑' (i : ℕ), min ((1/2)^i) (dist (x i) (y i)) : rfl
-        ... = (∑ i in finset.range n, min ((1/2)^i) (dist (x i) (y i)))
-                + (∑' i, min ((1/2)^(i+n)) (dist (x (i+n)) (y (i+n)))) :
-          (sum_add_tsum_nat_add _ (dist_summable _ _)).symm
-        ... ≤ (∑ i in finset.range n, dist (x i) (y i)) + (∑' i, (1/2)^(i+n)) :
+        calc dist x y = ∑' (i : ι), min ((1/2)^(encode i)) (dist (x i) (y i)) : rfl
+        ... = ∑ i in K, min ((1/2)^(encode i)) (dist (x i) (y i))
+             + ∑' (i : (↑K : set ι)ᶜ), min ((1/2)^(encode (i : ι))) (dist (x i) (y i)) :
+          (sum_add_tsum_compl (dist_summable _ _)).symm
+        ... ≤ ∑ i in K, (dist (x i) (y i))
+             + ∑' (i : (↑K : set ι)ᶜ), (1/2)^(encode (i : ι)) :
           begin
             refine add_le_add (finset.sum_le_sum (λ i hi, min_le_right _ _)) _,
             refine tsum_le_tsum (λ i, min_le_left _ _) _ _,
-            { apply (summable_nat_add_iff n).2 (dist_summable x y) },
-            { exact (summable_nat_add_iff n).2 (summable_geometric_of_lt_1 I0 I1) }
+            { apply summable.subtype (dist_summable x y) (↑K : set ι)ᶜ },
+            { apply summable.subtype summable_geometric_two_encode (↑K : set ι)ᶜ }
           end
-        ... ≤ (∑ i in finset.range n, (1/2)^n) + (∑' (i : ℕ), (1/2)^i) * (1/2)^n:
+        ... < (∑ i in K, δ) + ε / 2 :
           begin
-            apply add_le_add,
-            { apply finset.sum_le_sum (λ i hi, _),
-              apply (hxy i _).le,
-              simpa using hi },
-            { simp_rw [pow_add, tsum_mul_right] },
+            apply add_lt_add_of_le_of_lt _ hK,
+            apply finset.sum_le_sum (λ i hi, _),
+            apply (hxy i _).le,
+            simpa using hi
           end
-        ... = n * (1/2)^n + 2 * (1/2)^n :
-          by simp only [tsum_geometric_two, finset.sum_const, nsmul_eq_mul, finset.card_range]
-        ... < ε : hn } },
+        ... ≤ ε / 2 + ε / 2 :
+          add_le_add_right (by simpa only [finset.sum_const, nsmul_eq_mul] using hδ) _
+        ... = ε : add_halves _ } },
     { simp only [le_infi_iff, le_principal_iff],
-      assume n ε εpos,
-      refine mem_infi_of_mem (min ((1/2)^n) ε) _,
-      have : 0 < min ((1/2)^n) ε := lt_min (by simp) εpos,
+      assume i ε εpos,
+      refine mem_infi_of_mem (min ((1/2)^(encode i)) ε) _,
+      have : 0 < min ((1/2)^(encode i)) ε := lt_min (by simp) εpos,
       refine mem_infi_of_mem this _,
       simp only [and_imp, prod.forall, set_of_subset_set_of, lt_min_iff, mem_principal],
       assume x y hn hε,
-      calc dist (x n) (y n) ≤ dist x y : dist_le_dist_pi_of_dist_lt hn
+      calc dist (x i) (y i) ≤ dist x y : dist_le_dist_pi_of_dist_lt hn
       ... < ε : hε }
   end }
 
-end pi_nat_nondiscrete
+end pi_countable

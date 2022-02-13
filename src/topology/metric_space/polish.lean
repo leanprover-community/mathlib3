@@ -42,7 +42,9 @@ with additional properties:
   exists a finer topology, which is Polish, for which `s` becomes open and closed. We show that
   this property is satisfied for open sets, closed sets, for complements, and for countable unions.
   Once Borel-measurable sets are defined in later files, it will follow that any Borel-measurable
-  set is clopenable.
+  set is clopenable. Once the Lusin-Souslin theorem is proved using analytic sets, we will even
+  show that a set is clopenable if and only if it is Borel-measurable, see
+  `is_clopenable_iff_measurable_set`.
 -/
 
 noncomputable theory
@@ -91,17 +93,19 @@ end
 
 namespace polish_space
 
+@[priority 100]
 instance t2_space (α : Type*) [topological_space α] [polish_space α] : t2_space α :=
 by { letI : metric_space α := polish_space_metric α, apply_instance }
 
 /-- A countable product of Polish spaces is Polish. -/
-instance pi {E : ℕ → Type*} [∀ n, topological_space (E n)] [∀ n, polish_space (E n)] :
-  polish_space (Π n, E n) :=
+instance pi_countable {ι : Type*} [encodable ι] {E : ι → Type*}
+  [∀ i, topological_space (E i)] [∀ i, polish_space (E i)] :
+  polish_space (Π i, E i) :=
 begin
-  letI : ∀ n, metric_space (E n) := λ n, polish_space_metric (E n),
-  haveI : ∀ n, complete_space (E n) := λ n, complete_polish_space_metric (E n),
-  haveI : ∀ n, second_countable_topology (E n) := λ n, polish_space.second_countable (E n),
-  letI : metric_space (Π n, E n) := pi_nat_nondiscrete.metric_space E,
+  letI : ∀ i, metric_space (E i) := λ i, polish_space_metric (E i),
+  haveI : ∀ i, complete_space (E i) := λ i, complete_polish_space_metric (E i),
+  haveI : ∀ i, second_countable_topology (E i) := λ i, polish_space.second_countable (E i),
+  letI : metric_space (Π i, E i) := pi_countable.metric_space,
   apply_instance,
 end
 
@@ -183,62 +187,67 @@ lemma _root_.is_closed.polish_space {α : Type*} [topological_space α] [polish_
 /-- A sequence of type synonyms of a given type `α`, useful in the proof of
 `exists_polish_space_forall_le` to endow each copy with a different topology. -/
 @[nolint unused_arguments has_inhabited_instance]
-def aux_copy (α : Type*) (n : ℕ) : Type* := α
+def aux_copy (α : Type*) {ι : Type*} (i : ι) : Type* := α
 
 /-- Given a Polish space, and countably many finer Polish topologies, there exists another Polish
 topology which is finer than all of them. -/
-lemma exists_polish_space_forall_le [t : topological_space α] [polish_space α]
-  (m : ℕ → topological_space α) (hm : ∀ n, m n ≤ t) (h'm : ∀ n, @polish_space α (m n)) :
-  ∃ (t' : topological_space α), (∀ n, t' ≤ m n) ∧ @polish_space α t' :=
+lemma exists_polish_space_forall_le {ι : Type*} [encodable ι]
+  [t : topological_space α] [p : polish_space α]
+  (m : ι → topological_space α) (hm : ∀ n, m n ≤ t) (h'm : ∀ n, @polish_space α (m n)) :
+  ∃ (t' : topological_space α), (∀ n, t' ≤ m n) ∧ (t' ≤ t) ∧ @polish_space α t' :=
 begin
+  rcases is_empty_or_nonempty ι with hι|hι,
+  { exact ⟨t, λ i, (is_empty.elim hι i : _), le_rfl, p⟩ },
+  unfreezingI { inhabit ι },
   /- Consider the product of infinitely many copies of `α`, each endowed with the topology `m n`.
   This is a Polish space, as a product of Polish spaces. Pulling back this topology under the
   diagonal embedding of `α`, one gets a Polish topology which is finer than all the `m n`. -/
-  letI : ∀ n, topological_space (aux_copy α n) := λ n, m n,
-  haveI : ∀ n, polish_space (aux_copy α n) := λ n, h'm n,
-  letI T : topological_space (Π n, aux_copy α n) := by apply_instance,
-  let f : α → Π n, aux_copy α n := λ x n, x,
-  refine ⟨T.induced f, _, _⟩,
-  -- show that the new topology is finer than all the `m n`.
+  letI : ∀ (n : ι), topological_space (aux_copy α n) := λ n, m n,
+  haveI : ∀ (n : ι), polish_space (aux_copy α n) := λ n, h'm n,
+  letI T : topological_space (Π (n : ι), aux_copy α n) := by apply_instance,
+  let f : α → Π (n : ι), aux_copy α n := λ x n, x,
+  -- show that the induced topology is finer than all the `m n`.
+  have T_le_m : ∀ n, T.induced f ≤ m n,
   { assume n s hs,
-    refine ⟨set.pi ({n} : set ℕ) (λ i, s), _, _⟩,
+    refine ⟨set.pi ({n} : set ι) (λ i, s), _, _⟩,
     { apply is_open_set_pi (finite_singleton _),
       assume a ha,
       rw mem_singleton_iff.1 ha,
       exact hs },
     { ext x,
       simp only [singleton_pi, mem_preimage] } },
+  refine ⟨T.induced f, λ n, T_le_m n, (T_le_m default).trans (hm default), _⟩,
   -- show that the new topology is Polish, as the pullback of a Polish topology under a closed
   -- embedding.
-  { have A : range f = ⋂ n, {x | x n = x 0},
-    { ext x,
-      split,
-      { rintros ⟨y, rfl⟩,
-        exact mem_Inter.2 (λ n, by simp only [mem_set_of_eq]) },
-      { assume hx,
-        refine ⟨x 0, _⟩,
-        ext1 n,
-        symmetry,
-        exact (mem_Inter.1 hx n : _) } },
-    have f_closed : is_closed (range f),
-    { rw A,
-      apply is_closed_Inter (λ n, _),
-      have C : ∀ i, continuous (λ (x : Π n, aux_copy α n), (id (x i) : α)),
-      { assume i,
-        apply continuous.comp _ (continuous_apply i),
-        apply continuous_def.2 (λ s hs, _),
-        exact hm i s hs },
-      apply is_closed_eq (C n) (C 0) },
-    have K : @_root_.embedding _ _ (T.induced f) T f,
-    { apply function.injective.embedding_induced,
-      assume x y hxy,
-      have : f x 0 = f y 0, by rw hxy,
-      exact this },
-    have L : @closed_embedding _ _ (T.induced f) T f,
-    { split,
-      { exact K },
-      { exact f_closed } },
-    exact @closed_embedding.polish_space _ _ (T.induced f) T (by apply_instance) _ L }
+  have A : range f = ⋂ n, {x | x n = x default},
+  { ext x,
+    split,
+    { rintros ⟨y, rfl⟩,
+      exact mem_Inter.2 (λ n, by simp only [mem_set_of_eq]) },
+    { assume hx,
+      refine ⟨x default, _⟩,
+      ext1 n,
+      symmetry,
+      exact (mem_Inter.1 hx n : _) } },
+  have f_closed : is_closed (range f),
+  { rw A,
+    apply is_closed_Inter (λ n, _),
+    have C : ∀ (i : ι), continuous (λ (x : Π n, aux_copy α n), (id (x i) : α)),
+    { assume i,
+      apply continuous.comp _ (continuous_apply i),
+      apply continuous_def.2 (λ s hs, _),
+      exact hm i s hs },
+    apply is_closed_eq (C n) (C default) },
+  have K : @_root_.embedding _ _ (T.induced f) T f,
+  { apply function.injective.embedding_induced,
+    assume x y hxy,
+    have : f x default = f y default, by rw hxy,
+    exact this },
+  have L : @closed_embedding _ _ (T.induced f) T f,
+  { split,
+    { exact K },
+    { exact f_closed } },
+  exact @closed_embedding.polish_space _ _ (T.induced f) T (by apply_instance) _ L
 end
 
 /-!
@@ -477,11 +486,9 @@ lemma is_clopenable.Union [t : topological_space α] [polish_space α] {s : ℕ 
   (hs : ∀ n, is_clopenable (s n)) :
   is_clopenable (⋃ n, s n) :=
 begin
-  have : ∀ n, ∃ (t' : topological_space α), t' ≤ t ∧ @polish_space α t'
-    ∧ @is_closed α t' (s n) ∧ @is_open α t' (s n) := hs,
-  choose m mt m_polish m_closed m_open using this,
-  obtain ⟨t', t'm, t'_polish⟩ :
-    ∃ (t' : topological_space α), (∀ (n : ℕ), t' ≤ m n) ∧ @polish_space α t' :=
+  choose m mt m_polish m_closed m_open using hs,
+  obtain ⟨t', t'm, -, t'_polish⟩ :
+    ∃ (t' : topological_space α), (∀ (n : ℕ), t' ≤ m n) ∧ (t' ≤ t) ∧ @polish_space α t' :=
       exists_polish_space_forall_le m mt m_polish,
   have A : @is_open α t' (⋃ n, s n),
   { apply is_open_Union,

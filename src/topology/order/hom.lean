@@ -10,14 +10,15 @@ import topology.continuous_function.basic
 # Continuous order homomorphisms
 
 This file defines continuous order homomorphisms, that is maps which are both continuous and
-monotone.
+monotone. They are also called Priestley homomorphisms because they are the morphisms of the
+category of Priestley spaces.
 
 We use the `fun_like` design, so each type of morphisms has a companion typeclass which is meant to
 be satisfied by itself and all stricter types.
 
 ## Types of morphisms
 
-* `continuous_order_hom`: Continuous monotone functions.
+* `continuous_order_hom`: Continuous monotone functions, aka Priestley homomorphisms.
 
 ## Typeclasses
 
@@ -28,7 +29,7 @@ open function
 
 variables {F α β γ δ : Type*}
 
-/-- The type of continuous monotone maps from `α` to `β`. -/
+/-- The type of continuous monotone maps from `α` to `β`, aka Priestley homomorphisms. -/
 structure continuous_order_hom (α β : Type*) [preorder α] [preorder β] [topological_space α]
   [topological_space β]
   extends order_hom α β :=

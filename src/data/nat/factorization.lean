@@ -435,4 +435,10 @@ begin
     exact h p _ pp (pow_factorization_dvd _ _) },
 end
 
+lemma prod_prime_factors_dvd (n : ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=
+begin
+  by_cases hn : n = 0, { subst hn, simp },
+  simpa [prod_factors hn] using multiset.to_finset_prod_dvd_prod (n.factors : multiset ℕ),
+end
+
 end nat

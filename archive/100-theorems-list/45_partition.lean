@@ -90,7 +90,7 @@ begin
 end
 
 lemma cut_equiv_antidiag (n : ℕ) :
-  equiv.finset_congr (equiv.bool_to_equiv_prod _) (cut univ n) = nat.antidiagonal n :=
+  equiv.finset_congr (equiv.bool_arrow_equiv_prod _) (cut univ n) = nat.antidiagonal n :=
 begin
   ext ⟨x₁, x₂⟩,
   simp_rw [equiv.finset_congr_apply, mem_map, equiv.to_embedding, function.embedding.coe_fn_mk,
@@ -190,16 +190,20 @@ begin
     rw [if_neg, add_zero],
     rintro rfl,
     apply hi hk },
-  { simp only [prod.forall, not_and, ne.def, nat.mem_antidiagonal, disjoint_left, mem_map,
-               exists_prop, function.embedding.coe_fn_mk, exists_imp_distrib, not_exists],
-    rintro p₁ q₁ rfl p₂ q₂ h t p q ⟨hq, rfl⟩ p hp z,
-    rw mem_cut at hp hq,
+  { simp only [set.pairwise_disjoint, set.pairwise, prod.forall, not_and, ne.def,
+      nat.mem_antidiagonal, disjoint_left, mem_map, exists_prop, function.embedding.coe_fn_mk,
+      exists_imp_distrib, not_exists, finset.mem_coe],
+    rintro p₁ q₁ rfl p₂ q₂ h t x hx,
+    simp only [finset.inf_eq_inter, finset.mem_map, finset.mem_inter, mem_cut, exists_prop,
+      function.embedding.coe_fn_mk] at hx,
+    rcases hx with ⟨⟨p, ⟨hp, hp2⟩, hp3⟩, ⟨q, ⟨hq, hq2⟩, hq3⟩⟩,
+    have z := hp3.trans hq3.symm,
     have := sum_congr (eq.refl s) (λ x _, function.funext_iff.1 z x),
-    obtain rfl : q₂ = q₁,
-    { simpa [sum_add_distrib, hp.1, hq.1, if_neg hi] using this },
+    obtain rfl : q₁ = q₂,
+    { simpa [sum_add_distrib, hp, hq, if_neg hi] using this },
     obtain rfl : p₂ = p₁,
     { simpa using h },
-    exact t rfl }
+    exact (t rfl).elim }
 end
 
 /-- A convience constructor for the power series whose coefficients indicate a subset. -/
@@ -273,30 +277,14 @@ begin
   { simp [zero_pow] },
 end
 
-lemma sum_multiset_count_of_subset (m : multiset ℕ) (s : finset ℕ)
-  (hp : m.to_finset ⊆ s) :
-  m.sum = ∑ (i : ℕ) in s, m.count i • i :=
-begin
-  rw sum_multiset_count,
-  apply sum_subset hp,
-  rintros x - hx,
-  rw [multiset.mem_to_finset] at hx,
-  rw [multiset.count_eq_zero_of_not_mem hx, zero_smul],
-end
-
 def mk_odd : ℕ ↪ ℕ := ⟨λ i, 2 * i + 1, λ x y h, by linarith⟩
-
--- TODO: move me
-lemma sum_sum {β : Type*} [add_comm_monoid β] (f : α → multiset β) (s : finset α) :
-  (∑ x in s, f x).sum = ∑ x in s, (f x).sum :=
-(sum_hom s multiset.sum).symm
 
 -- The main workhorse of the partition theorem proof.
 lemma partial_gf_prop
   (α : Type*) [comm_semiring α] (n : ℕ) (s : finset ℕ)
   (hs : ∀ i ∈ s, 0 < i) (c : ℕ → set ℕ) (hc : ∀ i ∉ s, 0 ∈ c i) :
   (finset.card
-    ((univ : finset (partition n)).filter
+    ((univ : finset (nat.partition n)).filter
       (λ p, (∀ j, p.parts.count j ∈ c j) ∧ ∀ j ∈ p.parts, j ∈ s)) : α) =
         (coeff α n) (∏ (i : ℕ) in s, indicator_series α ((* i) '' c i)) :=
 begin
@@ -314,7 +302,7 @@ begin
       exact multiset.count_eq_zero_of_not_mem (mt (hp₄ i) hi) },
     { exact λ i hi, ⟨_, hp₃ i, rfl⟩ } },
   { intros p₁ p₂ hp₁ hp₂ h,
-    apply partition.ext,
+    apply nat.partition.ext,
     simp only [true_and, mem_univ, mem_filter] at hp₁ hp₂,
     ext i,
     rw function.funext_iff at h,
@@ -333,7 +321,7 @@ begin
       rcases hi with ⟨t, ht, z⟩,
       apply hs,
       rwa multiset.eq_of_mem_repeat z },
-    { rw sum_sum,
+    { rw multiset.sum_sum,
       simp_rw [multiset.sum_repeat, nat.nsmul_eq_mul],
       have : ∀ i ∈ s, i ∣ f i,
       { intros i hi,
@@ -343,8 +331,7 @@ begin
       { rw sum_congr rfl (λ i hi, nat.div_mul_cancel (this i hi)),
         apply hf₁ } },
     { intro i,
-      rw ← sum_hom _ (multiset.count i),
-      simp_rw [multiset.count_repeat, sum_ite_eq],
+      simp_rw [multiset.count_sum', multiset.count_repeat, sum_ite_eq],
       split_ifs with h h,
       { rcases hf₃ i h with ⟨w, hw₁, hw₂⟩,
         rwa [← hw₂, nat.mul_div_cancel _ (hs i h)] },
@@ -354,8 +341,7 @@ begin
       rcases hi with ⟨j, hj₁, hj₂⟩,
       rwa multiset.eq_of_mem_repeat hj₂ },
     { ext i,
-      rw ← sum_hom _ (multiset.count i),
-      simp_rw [multiset.count_repeat, sum_ite_eq],
+      simp_rw [multiset.count_sum', multiset.count_repeat, sum_ite_eq],
       split_ifs,
       { apply nat.div_mul_cancel,
         rcases hf₃ i h with ⟨w, hw, hw₂⟩,
@@ -364,7 +350,7 @@ begin
 end
 
 lemma partial_odd_gf_prop [field α] (n m : ℕ) :
-  (finset.card ((univ : finset (partition n)).filter
+  (finset.card ((univ : finset (nat.partition n)).filter
     (λ p, ∀ j ∈ p.parts, j ∈ (range m).map mk_odd)) : α) = coeff α n (partial_odd_gf m) :=
 begin
   rw partial_odd_gf,
@@ -391,7 +377,7 @@ end
 
 /--  If m is big enough, the partial product's coefficient counts the number of odd partitions -/
 theorem odd_gf_prop [field α] (n m : ℕ) (h : n < m * 2) :
-  (finset.card (partition.odds n) : α) = coeff α n (partial_odd_gf m) :=
+  (finset.card (nat.partition.odds n) : α) = coeff α n (partial_odd_gf m) :=
 begin
   rw [← partial_odd_gf_prop],
   congr' 2,
@@ -417,7 +403,7 @@ end
 
 lemma partial_distinct_gf_prop [comm_semiring α] (n m : ℕ) :
   (finset.card
-    ((univ : finset (partition n)).filter
+    ((univ : finset (nat.partition n)).filter
       (λ p, p.parts.nodup ∧ ∀ j ∈ p.parts, j ∈ (range m).map ⟨nat.succ, nat.succ_injective⟩)) : α) =
   coeff α n (partial_distinct_gf m) :=
 begin
@@ -455,7 +441,7 @@ end
 If m is big enough, the partial product's coefficient counts the number of distinct partitions
 -/
 theorem distinct_gf_prop [comm_semiring α] (n m : ℕ) (h : n < m + 1) :
-  ((partition.distincts n).card : α) = coeff α n (partial_distinct_gf m) :=
+  ((nat.partition.distincts n).card : α) = coeff α n (partial_distinct_gf m) :=
 begin
   erw [← partial_distinct_gf_prop],
   congr' 2,
@@ -467,8 +453,8 @@ begin
   { simpa [p.parts_sum] using multiset.single_le_sum (λ _ _, nat.zero_le _) _ hi },
   simp only [mk_odd, exists_prop, mem_range, function.embedding.coe_fn_mk, mem_map],
   refine ⟨i-1, _, nat.succ_pred_eq_of_pos (p.parts_pos hi)⟩,
-  rw nat.sub_lt_right_iff_lt_add (p.parts_pos hi),
-  apply lt_of_le_of_lt this h,
+  rw tsub_lt_iff_right (nat.one_le_iff_ne_zero.mpr (p.parts_pos hi).ne'),
+  exact lt_of_le_of_lt this h,
 end
 
 /--
@@ -514,7 +500,7 @@ begin
           by rw [two_mul, add_right_comm _ n 1]
   ... = (1 - X ^ (2 * n + 1)) * (1 - X ^ (2 * n + 1))⁻¹ * π₂ * (π₁ * (1 + X ^ (n + 1))) :
           by ring
-  ... = π₂ * (π₁ * (1 + X ^ (n + 1))) : by rw [power_series.mul_inv _ h, one_mul]
+  ... = π₂ * (π₁ * (1 + X ^ (n + 1))) : by rw [power_series.mul_inv_cancel _ h, one_mul]
   ... = π₁ * π₂ * (1 + X ^ (n + 1)) : by ring
   ... = π₃ * (1 + X ^ (n + 1)) : by rw ih
   ... = _ : by rw prod_range_succ,
@@ -529,10 +515,10 @@ begin
   exact_mod_cast nat.lt_succ_of_le (le_add_right h),
 end
 
-theorem freek (n : ℕ) : (partition.odds n).card = (partition.distincts n).card :=
+theorem freek (n : ℕ) : (nat.partition.odds n).card = (nat.partition.distincts n).card :=
 begin
   -- We need the counts to live in some field (which contains ℕ), so let's just use ℚ
-  suffices : ((partition.odds n).card : ℚ) = (partition.distincts n).card,
+  suffices : ((nat.partition.odds n).card : ℚ) = (nat.partition.distincts n).card,
   { exact_mod_cast this },
   rw distinct_gf_prop n (n+1) (by linarith),
   rw odd_gf_prop n (n+1) (by linarith),

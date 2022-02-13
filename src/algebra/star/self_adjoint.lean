@@ -167,16 +167,12 @@ end module
 
 end self_adjoint
 
-lemma is_star_normal_iff [monoid R] [star_monoid R] {x : R} :
-  is_star_normal x ↔ star x * x = x * star x :=
-iff.rfl
-
 lemma is_star_normal_zero [semiring R] [star_ring R] : is_star_normal (0 : R) :=
-by simp only [is_star_normal_iff, star_zero]
+by simp only [is_star_normal, star_zero]
 
 lemma is_star_normal_one [monoid R] [star_monoid R] : is_star_normal (1 : R) :=
-by simp only [is_star_normal_iff, star_one]
+by simp only [is_star_normal, star_one]
 
 lemma is_star_normal_star_self [monoid R] [star_monoid R] {x : R} (hx : is_star_normal x) :
   is_star_normal (star x) :=
-by simp only [is_star_normal_iff, star_star, hx.symm]
+by simp only [is_star_normal, star_star, hx.symm]

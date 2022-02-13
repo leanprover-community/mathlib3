@@ -45,6 +45,13 @@ def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
 @[simp] lemma rotation_symm (a : circle) : (rotation a).symm = rotation a⁻¹ :=
 linear_isometry_equiv.ext $ λ x, rfl
 
+@[simp] lemma rotation_trans (a b : circle) :
+  (rotation a).trans (rotation b) = rotation (b * a) :=
+begin
+  ext1 x,
+  simp
+end
+
 lemma rotation_ne_conj_lie (a : circle) : rotation a ≠ conj_lie :=
 begin
   intro h,

@@ -442,6 +442,9 @@ lemma one_def : (1 : E ≃ₗᵢ[R] E) = refl _ _ := rfl
 lemma mul_def (e e' : E ≃ₗᵢ[R] E) : (e * e' : E ≃ₗᵢ[R] E) = e'.trans e := rfl
 lemma inv_def (e : E ≃ₗᵢ[R] E) : (e⁻¹ : E ≃ₗᵢ[R] E) = e.symm := rfl
 
+@[simp] lemma trans_one : e.trans (1 : E₂ ≃ₗᵢ[R₂] E₂) = e := trans_refl _
+@[simp] lemma one_trans : (1 : E ≃ₗᵢ[R] E).trans e = e := refl_trans _
+
 include σ₂₁
 
 /-- Reinterpret a `linear_isometry_equiv` as a `continuous_linear_equiv`. -/

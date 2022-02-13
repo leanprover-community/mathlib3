@@ -153,47 +153,43 @@ instance bicategory : bicategory (free_bicategory B) :=
   hom_category := free_bicategory.locally_category,
   whisker_left := λ a b c f g h η,
     quot.map (hom₂.whisker_left f) (rel.whisker_left f g h) η,
-  whisker_left_id' := by
-  { intros a b c f g, apply quot.sound (rel.whisker_left_id f g) },
+  whisker_left_id' := λ a b c f g, quot.sound (rel.whisker_left_id f g),
   whisker_left_comp' := by
-  { rintros a b c f g h i ⟨η⟩ ⟨θ⟩, apply quot.sound (rel.whisker_left_comp f η θ) },
+  { rintros a b c f g h i ⟨η⟩ ⟨θ⟩, exact quot.sound (rel.whisker_left_comp f η θ) },
   whisker_right := λ a b c f g η h,
     quot.map (hom₂.whisker_right h) (rel.whisker_right f g h) η,
-  whisker_right_id' := by
-  { intros a b c f g, apply quot.sound (rel.whisker_right_id f g) },
+  whisker_right_id' := λ a b c f g, quot.sound (rel.whisker_right_id f g),
   whisker_right_comp' := by
-  { rintros a b c f g h ⟨η⟩ ⟨θ⟩ i, apply quot.sound (rel.whisker_right_comp i η θ) },
+  { rintros a b c f g h ⟨η⟩ ⟨θ⟩ i, exact quot.sound (rel.whisker_right_comp i η θ) },
   whisker_exchange' := by
-  { rintros a b c f g h i ⟨η⟩ ⟨θ⟩, apply quot.sound (rel.whisker_exchange η θ) },
+  { rintros a b c f g h i ⟨η⟩ ⟨θ⟩, exact quot.sound (rel.whisker_exchange η θ) },
   associator := λ a b c d f g h,
   { hom := quot.mk rel (hom₂.associator f g h),
     inv := quot.mk rel (hom₂.associator_inv f g h),
-    hom_inv_id' := by apply quot.sound (rel.associator_hom_inv f g h),
-    inv_hom_id' := by apply quot.sound (rel.associator_inv_hom f g h) },
+    hom_inv_id' := quot.sound (rel.associator_hom_inv f g h),
+    inv_hom_id' := quot.sound (rel.associator_inv_hom f g h) },
   associator_naturality_left' := by
-  { rintros a b c d f f' ⟨η⟩ g h, apply quot.sound (rel.associator_naturality_left g h η) },
+  { rintros a b c d f f' ⟨η⟩ g h, exact quot.sound (rel.associator_naturality_left g h η) },
   associator_naturality_middle' := by
-  { rintros a b c d f g g' ⟨η⟩ h, apply quot.sound (rel.associator_naturality_middle f η h) },
+  { rintros a b c d f g g' ⟨η⟩ h, exact quot.sound (rel.associator_naturality_middle f η h) },
   associator_naturality_right' := by
-  { rintros a b c d f g h h' ⟨η⟩, apply quot.sound (rel.associator_naturality_right f g η) },
+  { rintros a b c d f g h h' ⟨η⟩, exact quot.sound (rel.associator_naturality_right f g η) },
   left_unitor := λ a b f,
   { hom := quot.mk rel (hom₂.left_unitor f),
     inv := quot.mk rel (hom₂.left_unitor_inv f),
-    hom_inv_id' := by apply quot.sound (rel.left_unitor_hom_inv f),
-    inv_hom_id' := by apply quot.sound (rel.left_unitor_inv_hom f) },
+    hom_inv_id' := quot.sound (rel.left_unitor_hom_inv f),
+    inv_hom_id' := quot.sound (rel.left_unitor_inv_hom f) },
   left_unitor_naturality' := by
-  { rintros a b f f' ⟨η⟩, apply quot.sound (rel.left_unitor_naturality η) },
+  { rintros a b f f' ⟨η⟩, exact quot.sound (rel.left_unitor_naturality η) },
   right_unitor := λ a b f,
   { hom := quot.mk rel (hom₂.right_unitor f),
     inv := quot.mk rel (hom₂.right_unitor_inv f),
-    hom_inv_id' := by apply quot.sound (rel.right_unitor_hom_inv f),
-    inv_hom_id' := by apply quot.sound (rel.right_unitor_inv_hom f) },
+    hom_inv_id' := quot.sound (rel.right_unitor_hom_inv f),
+    inv_hom_id' := quot.sound (rel.right_unitor_inv_hom f) },
   right_unitor_naturality' := by
-  { rintros a b f f' ⟨η⟩, apply quot.sound (rel.right_unitor_naturality η) },
-  pentagon' := by
-  { intros a b c d e f g h i, apply quot.sound (rel.pentagon f g h i) },
-  triangle' := by
-  { intros a b c f g, apply quot.sound (rel.triangle f g) } }
+  { rintros a b f f' ⟨η⟩, exact quot.sound (rel.right_unitor_naturality η) },
+  pentagon' := λ a b c d e f g h i, quot.sound (rel.pentagon f g h i),
+  triangle' := λ a b c f g, quot.sound (rel.triangle f g) }
 
 variables {a b c d : free_bicategory B}
 

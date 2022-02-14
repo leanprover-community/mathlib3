@@ -131,7 +131,7 @@ end coarsely_dense_with_in
 namespace coarsely_separated_with
 
 /--
-A directed union of `δ`-separated subsets of a set `S` is a `δ`-separated
+A directed union of `δ`-separated sets is a `δ`-separated.
 -/
 lemma of_directed_union {δ : ℝ≥0} {𝒸 : set $ set α}
   (allsep : ∀ s ∈ 𝒸, coarsely_separated_with δ s)

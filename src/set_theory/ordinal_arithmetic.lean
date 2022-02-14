@@ -1029,12 +1029,12 @@ theorem sup_const {ι} [hι : nonempty ι] (o : ordinal) : sup (λ _ : ι, o) = 
 le_antisymm (sup_le.2 (λ _, le_rfl)) (le_sup _ hι.some)
 
 theorem sup_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f ⊆ set.range g) : sup f ≤ sup g :=
+  (h : set.range f ⊆ set.range g) : sup.{u (max v w)} f ≤ sup.{v (max u w)} g :=
 sup_le.2 $ λ i, match h (mem_range_self i) with ⟨j, hj⟩ := hj ▸ le_sup _ _ end
 
 theorem sup_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f = set.range g) : sup f = sup g :=
-(sup_le_of_range_subset h.le).antisymm (sup_le_of_range_subset h.ge)
+  (h : set.range f = set.range g) : sup.{u (max v w)} f = sup.{v (max u w)} g :=
+(sup_le_of_range_subset h.le).antisymm (sup_le_of_range_subset.{v u w} h.ge)
 
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
   (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
@@ -1042,10 +1042,11 @@ lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_we
   (sup_le.2 $ λ y, le_of_lt $ (typein_lt_typein r).2 $ hx _ $ mem_range_self y)
   (typein_lt_type r x)
 
-theorem sup_eq_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
-  [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
-  (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) = sup (family_of_bfamily' r' ho' f) :=
-sup_eq_of_range_eq (by simp)
+theorem sup_eq_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop) [is_well_order ι r]
+  [is_well_order ι' r'] {o : ordinal.{u}} (ho : type r = o) (ho' : type r' = o)
+  (f : Π a < o, ordinal.{max u v}) :
+  sup (family_of_bfamily' r ho f) = sup (family_of_bfamily' r' ho' f) :=
+sup_eq_of_range_eq.{u u v} (by simp)
 
 /-- The supremum of a family of ordinals indexed by the set of ordinals less than some
   `o : ordinal.{u}`. This is a special case of `sup` over the family provided by
@@ -1114,7 +1115,7 @@ theorem bsup_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : bsup o (λ _ _, 
 le_antisymm (bsup_le.2 (λ _ _, le_rfl)) (le_bsup _ 0 (ordinal.pos_iff_ne_zero.2 ho))
 
 theorem bsup_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
-  (h : brange o f ⊆ brange o' g) : bsup.{u u} o f ≤ bsup.{u u} o' g :=
+  (h : brange o f ⊆ brange o' g) : bsup.{u (max v w)} o f ≤ bsup.{v (max u w)} o' g :=
 bsup_le.2 $ λ i hi, begin
   obtain ⟨j, hj, hj'⟩ := h ⟨i, hi, rfl⟩,
   rw ←hj',
@@ -1122,8 +1123,8 @@ bsup_le.2 $ λ i hi, begin
 end
 
 theorem bsup_eq_of_brange_eq {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
-  (h : brange o f = brange o' g) : bsup.{u u} o f = bsup.{u u} o' g :=
-(bsup_le_of_brange_subset h.le).antisymm (bsup_le_of_brange_subset h.ge)
+  (h : brange o f = brange o' g) : bsup.{u (max v w)} o f = bsup.{v (max u w)} o' g :=
+(bsup_le_of_brange_subset h.le).antisymm (bsup_le_of_brange_subset.{v u w} h.ge)
 
 theorem bsup_id_limit {o} (ho : ∀ a < o, succ a < o) : bsup.{u u} o (λ x _, x) = o :=
 le_antisymm (bsup_le.2 (λ i hi, hi.le))
@@ -1313,7 +1314,7 @@ begin
 end
 
 theorem blsub_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
-  (h : brange o f ⊆ brange o' g) : blsub.{u u} o f ≤ blsub.{u u} o' g :=
+  (h : brange o f ⊆ brange o' g) : blsub.{u (max v w)} o f ≤ blsub.{v (max u w)} o' g :=
 bsup_le_of_brange_subset $ λ a ⟨b, hb, hb'⟩, begin
   obtain ⟨c, hc, hc'⟩ := h ⟨b, hb, rfl⟩,
   simp_rw ←hc' at hb',
@@ -1321,8 +1322,9 @@ bsup_le_of_brange_subset $ λ a ⟨b, hb, hb'⟩, begin
 end
 
 theorem blsub_eq_of_brange_eq {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
-  (h : {o | ∃ i hi, f i hi = o} = {o | ∃ i hi, g i hi = o}) : blsub.{u u} o f = blsub.{u u} o' g :=
-(blsub_le_of_brange_subset h.le).antisymm (blsub_le_of_brange_subset h.ge)
+  (h : {o | ∃ i hi, f i hi = o} = {o | ∃ i hi, g i hi = o}) :
+  blsub.{u (max v w)} o f = blsub.{v (max u w)} o' g :=
+(blsub_le_of_brange_subset h.le).antisymm (blsub_le_of_brange_subset.{v u w} h.ge)
 
 theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
 by { have := blsub_id o, rwa blsub_eq_lsub at this }

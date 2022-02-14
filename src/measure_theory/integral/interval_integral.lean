@@ -666,7 +666,7 @@ have A : measurable_embedding (λ x, x + d) :=
 calc  ∫ x in a..b, f (x + d)
     = ∫ x in a+d..b+d, f x ∂(measure.map (λ x, x + d) volume)
                            : by simp [interval_integral, A.set_integral_map]
-... = ∫ x in a+d..b+d, f x : by rw [real.map_volume_add_right]
+... = ∫ x in a+d..b+d, f x : by rw [map_add_right_eq_self]
 
 @[simp] lemma integral_comp_add_left (d) :
   ∫ x in a..b, f (d + x) = ∫ x in d+a..d+b, f x :=

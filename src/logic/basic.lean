@@ -512,13 +512,21 @@ theorem or_iff_not_imp_right : a ∨ b ↔ (¬ b → a) := decidable.or_iff_not_
 protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b → a) :=
 ⟨assume h hb, decidable.by_contradiction $ assume na, h na hb, mt⟩
 
+theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
+
+-- See Note [decidable namespace]
+protected lemma decidable.or_congr_left [decidable c] (h : ¬ c → (a ↔ b)) : a ∨ c ↔ b ∨ c :=
+by { rw [decidable.or_iff_not_imp_right, decidable.or_iff_not_imp_right], exact imp_congr_right h }
+
 lemma or_congr_left (h : ¬ c → (a ↔ b)) : a ∨ c ↔ b ∨ c :=
-by { rw [or_iff_not_imp_right, or_iff_not_imp_right], exact imp_congr_right h }
+decidable.or_congr_left h
+
+-- See Note [decidable namespace]
+protected lemma decidable.or_congr_right [decidable a] (h : ¬ a → (b ↔ c)) : a ∨ b ↔ a ∨ c :=
+by { rw [decidable.or_iff_not_imp_left, decidable.or_iff_not_imp_left], exact imp_congr_right h }
 
 lemma or_congr_right (h : ¬ a → (b ↔ c)) : a ∨ b ↔ a ∨ c :=
-by { rw [or_iff_not_imp_left, or_iff_not_imp_left], exact imp_congr_right h }
-
-theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
+decidable.or_congr_right h
 
 @[simp] theorem or_iff_left_iff_imp : (a ∨ b ↔ a) ↔ (b → a) :=
 ⟨λ h hb, h.1 (or.inr hb), or_iff_left_of_imp⟩

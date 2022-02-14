@@ -3,10 +3,10 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.normed.group.pointwise
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
-import topology.algebra.ordered.liminf_limsup
+import analysis.normed.group.pointwise
+import topology.algebra.order.liminf_limsup
 
 /-!
 # ℓp space

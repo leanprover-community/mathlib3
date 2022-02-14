@@ -799,25 +799,32 @@ lemma mem_ℒp_map_measure_iff (hg : ae_measurable g (measure.map f μ)) (hf : m
   mem_ℒp g p (measure.map f μ) ↔ mem_ℒp (g ∘ f) p μ :=
 by simp [mem_ℒp, snorm_map_measure hg hf, hg.comp_measurable hf, hg]
 
-lemma _root_.measurable_embedding.snorm_map_measure_of_ne_top {g : β → F}
-  (hf : measurable_embedding f) (hp : p ≠ ∞) :
+lemma _root_.measurable_embedding.snorm_ess_sup_map_measure {g : β → F}
+  (hf : measurable_embedding f) :
+  snorm_ess_sup g (measure.map f μ) = snorm_ess_sup (g ∘ f) μ :=
+hf.ess_sup_map_measure
+
+lemma _root_.measurable_embedding.snorm_map_measure {g : β → F} (hf : measurable_embedding f) :
   snorm g p (measure.map f μ) = snorm (g ∘ f) p μ :=
 begin
   by_cases hp_zero : p = 0,
   { simp only [hp_zero, snorm_exponent_zero], },
-  simp_rw snorm_eq_lintegral_rpow_nnnorm hp_zero hp,
-  rw hf.lintegral_map,
+  by_cases hp : p = ∞,
+  { simp_rw [hp, snorm_exponent_top],
+    exact hf.ess_sup_map_measure, },
+  { simp_rw snorm_eq_lintegral_rpow_nnnorm hp_zero hp,
+    rw hf.lintegral_map, },
 end
 
-lemma _root_.measurable_embedding.mem_ℒp_map_measure_iff_of_ne_top [measurable_space F] {g : β → F}
-  (hf : measurable_embedding f) (hp : p ≠ ∞) :
+lemma _root_.measurable_embedding.mem_ℒp_map_measure_iff [measurable_space F] {g : β → F}
+  (hf : measurable_embedding f) :
   mem_ℒp g p (measure.map f μ) ↔ mem_ℒp (g ∘ f) p μ :=
-by simp_rw [mem_ℒp, hf.ae_measurable_map_iff, hf.snorm_map_measure_of_ne_top hp]
+by simp_rw [mem_ℒp, hf.ae_measurable_map_iff, hf.snorm_map_measure]
 
 lemma _root_.measurable_equiv.mem_ℒp_map_measure_iff_of_ne_top [measurable_space F] (f : α ≃ᵐ β)
-  {g : β → F} (hp : p ≠ ∞) :
+  {g : β → F} :
   mem_ℒp g p (measure.map f μ) ↔ mem_ℒp (g ∘ f) p μ :=
-f.measurable_embedding.mem_ℒp_map_measure_iff_of_ne_top hp
+f.measurable_embedding.mem_ℒp_map_measure_iff
 
 omit mβ
 

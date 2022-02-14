@@ -136,19 +136,24 @@ variables [measurable_space β] [topological_space β] [second_countable_topolog
 
 include mγ
 
+lemma ess_sup_comp_le_ess_sup_map_measure (hf : measurable f) :
+  ess_sup (g ∘ f) μ ≤ ess_sup g (measure.map f μ) :=
+begin
+  refine Limsup_le_Limsup_of_le (λ t, _) (by is_bounded_default) (by is_bounded_default),
+  simp_rw filter.mem_map,
+  have : (g ∘ f) ⁻¹' t = f ⁻¹' (g ⁻¹' t), by { ext1 x, simp_rw set.mem_preimage, },
+  rw this,
+  exact λ h, mem_ae_of_mem_ae_map hf h,
+end
+
 lemma ess_sup_map_measure_of_measurable (hg : measurable g) (hf : measurable f) :
   ess_sup g (measure.map f μ) = ess_sup (g ∘ f) μ :=
 begin
-  refine le_antisymm _ _,
-  { refine Limsup_le_Limsup (by is_bounded_default) (by is_bounded_default) (λ c h_le, _),
-    rw eventually_map at h_le ⊢,
-    rw ae_map_iff hf (measurable_set_le hg measurable_const),
-    exact h_le, },
-  { refine Limsup_le_Limsup_of_le (λ t, _) (by is_bounded_default) (by is_bounded_default),
-    simp_rw filter.mem_map,
-    have : (g ∘ f) ⁻¹' t = f ⁻¹' (g ⁻¹' t), by { ext1 x, simp_rw set.mem_preimage, },
-    rw this,
-    exact λ h, mem_ae_of_mem_ae_map hf h, },
+  refine le_antisymm _ (ess_sup_comp_le_ess_sup_map_measure hf),
+  refine Limsup_le_Limsup (by is_bounded_default) (by is_bounded_default) (λ c h_le, _),
+  rw eventually_map at h_le ⊢,
+  rw ae_map_iff hf (measurable_set_le hg measurable_const),
+  exact h_le,
 end
 
 lemma ess_sup_map_measure (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) :
@@ -159,6 +164,15 @@ begin
   have h_eq := ae_of_ae_map hf hg.ae_eq_mk,
   rw ← eventually_eq at h_eq,
   exact h_eq.symm,
+end
+
+lemma _root_.measurable_embedding.ess_sup_map_measure (hf : measurable_embedding f) :
+  ess_sup g (measure.map f μ) = ess_sup (g ∘ f) μ :=
+begin
+  refine le_antisymm _ (ess_sup_comp_le_ess_sup_map_measure hf.measurable),
+  refine Limsup_le_Limsup (by is_bounded_default) (by is_bounded_default) (λ c h_le, _),
+  rw eventually_map at h_le ⊢,
+  exact hf.ae_map_iff.mpr h_le,
 end
 
 omit mγ

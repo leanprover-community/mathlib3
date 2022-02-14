@@ -3,10 +3,9 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.algebra.monoid
+import topology.algebra.constructions
 import group_theory.group_action.prod
 import group_theory.group_action.basic
-import topology.homeomorph
 import topology.algebra.const_mul_action
 
 /-!
@@ -303,12 +302,6 @@ lemma is_closed_map_smul (hc : is_unit c) : is_closed_map (λ x : X, c • x) :=
 let ⟨u, hu⟩ := hc in hu ▸ is_closed_map_smul u
 
 end is_unit
-
-@[to_additive]
-instance has_continuous_mul.has_continuous_smul {M : Type*} [monoid M]
-  [topological_space M] [has_continuous_mul M] :
-  has_continuous_smul M M :=
-⟨continuous_mul⟩
 
 @[to_additive]
 instance [has_scalar M X] [has_scalar M Y] [has_continuous_smul M X]

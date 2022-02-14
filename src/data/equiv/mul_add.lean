@@ -419,15 +419,15 @@ lemma Pi_congr_right_trans {η : Type*}
   (Pi_congr_right es).trans (Pi_congr_right fs) = (Pi_congr_right $ λ i, (es i).trans (fs i)) := rfl
 
 
-/-- A family indexed by a singleton type is equivalent to the element at the default value -/
-@[to_additive add_equiv.Pi_singleton "A family indexed by a singleton type is equivalent to the
+/-- A family indexed by a unique type is equivalent to the element at the default value -/
+@[to_additive add_equiv.Pi_unique "A family indexed by a unique type is equivalent to the
 element at the default value"]
-def Pi_singleton
+def Pi_unique
   {η : Type*} (M : η → Type*) [Π (j : η), mul_one_class (M j)] [unique η] :
   (Π (j : η), M j) ≃* M default :=
 { to_fun := λ f, f default,
-  inv_fun := λ x, λ j, begin rw unique.eq_default j, exact x end,
-  left_inv := λ f, begin ext j, rw unique.eq_default j, reflexivity, end,
+  inv_fun := λ x, λ j, by { rw unique.eq_default j, exact x, },
+  left_inv := λ f, by { ext j, rw unique.eq_default j, reflexivity, },
   right_inv := λ x, rfl,
   map_mul' := λ f1 f2, pi.mul_apply _ _ _, }
 

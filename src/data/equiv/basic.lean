@@ -557,13 +557,13 @@ rfl
 
 /-- Type product is commutative up to an equivalence: `α × β ≃ β × α`. -/
 @[simps apply] def prod_comm (α β : Type*) : α × β ≃ β × α :=
-⟨prod.swap, prod.swap, λ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
+⟨prod.swap, prod.swap, prod.swap_swap, prod.swap_swap⟩
 
 @[simp] lemma prod_comm_symm (α β) : (prod_comm α β).symm = prod_comm β α := rfl
 
 /-- Type product is associative up to an equivalence. -/
 @[simps] def prod_assoc (α β γ : Sort*) : (α × β) × γ ≃ α × (β × γ) :=
-⟨λ p, (p.1.1, p.1.2, p.2), λp, ((p.1, p.2.1), p.2.2), λ ⟨⟨a, b⟩, c⟩, rfl, λ ⟨a, ⟨b, c⟩⟩, rfl⟩
+⟨prod.assoc, prod.assoc_symm, prod.assoc_symm_assoc, prod.assoc_assoc_symm⟩
 
 /-- Functions on `α × β` are equivalent to functions `α → β → γ`. -/
 @[simps {fully_applied := ff}] def curry (α β γ : Type*) :

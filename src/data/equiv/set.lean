@@ -102,15 +102,21 @@ set.eq_preimage_iff_image_eq e.bijective
 
 @[simp] lemma prod_comm_preimage {α β} {s : set α} {t : set β} :
   equiv.prod_comm α β ⁻¹' (t ×ˢ s) = (s ×ˢ t) :=
-by { ext, simp [and_comm] }
+by {  simp, }
 
 @[simp] lemma prod_comm_image {α β} {s : set α} {t : set β} :
   equiv.prod_comm α β '' (s ×ˢ t) = (t ×ˢ s) :=
-by simpa only [equiv.image_eq_preimage] using prod_comm_preimage
+by {
+  simp,
+  dsimp,
+  simp }
 
 @[simp] lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
   equiv.prod_assoc α β γ ⁻¹' (s ×ˢ (t ×ˢ u)) = (s ×ˢ t) ×ˢ u :=
-by { ext, simp [and_assoc] }
+-- by { ext, simp [and_assoc] }
+by simp [equiv.prod_assoc_apply]
+
+#lint
 
 @[simp] lemma prod_assoc_symm_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
   (equiv.prod_assoc α β γ).symm ⁻¹' ((s ×ˢ t) ×ˢ u) = s ×ˢ (t ×ˢ u) :=

@@ -131,6 +131,30 @@ lemma swap_bijective : function.bijective (@swap α β) :=
 
 @[simp] lemma swap_inj {p q : α × β} : swap p = swap q ↔ p = q := swap_injective.eq_iff
 
+/-- Associate the components of a product. `assoc ((a, b), c) = (a, (b, c))`. -/
+def assoc : (α × β) × γ → α × (β × γ) := λ p, (p.1.1, p.1.2, p.2)
+
+@[simp] lemma fst_assoc {p : (α × β) × γ} : (assoc p).1 = p.1.1 := rfl
+
+@[simp] lemma fst_snd_assoc {p : (α × β) × γ} : (assoc p).2.1 = p.1.2 := rfl
+
+@[simp] lemma snd_snd_assoc {p : (α × β) × γ} : (assoc p).2.2 = p.2 := rfl
+
+/-- Associate the components of a product. `assoc ((a, b), c) = (a, (b, c))`. -/
+def assoc_symm : α × (β × γ) → (α × β) × γ := λ p, ((p.1, p.2.1), p.2.2)
+
+@[simp] lemma fst_fst_assoc_symm {p : α × (β × γ)} : (assoc_symm p).1.1 = p.1 := rfl
+
+@[simp] lemma snd_fst_assoc_symm {p : α × (β × γ)} : (assoc_symm p).1.2 = p.2.1 := rfl
+
+@[simp] lemma snd_assoc_symm {p : α × (β × γ)} : (assoc_symm p).2 = p.2.2 := rfl
+
+@[simp] lemma assoc_symm_assoc : ∀ x : (α × β) × γ, assoc_symm (assoc x) = x
+| ⟨⟨a, b⟩, c⟩ := rfl
+
+@[simp] lemma assoc_assoc_symm : ∀ x : α × (β × γ), assoc (assoc_symm x) = x
+| ⟨a, ⟨b, c⟩⟩ := rfl
+
 lemma eq_iff_fst_eq_snd_eq : ∀{p q : α × β}, p = q ↔ (p.1 = q.1 ∧ p.2 = q.2)
 | ⟨p₁, p₂⟩ ⟨q₁, q₂⟩ := by simp
 

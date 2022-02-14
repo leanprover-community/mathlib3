@@ -138,11 +138,29 @@ lemma mk_preimage_prod_right_fn_eq_if [decidable_pred (∈ s)] (g : δ → β) :
   (λ b, (a, g b)) ⁻¹' (s ×ˢ t) = if a ∈ s then g ⁻¹' t else ∅ :=
 by rw [← mk_preimage_prod_right_eq_if, prod_preimage_right, preimage_preimage]
 
-lemma preimage_swap_prod {s : set α} {t : set β} : prod.swap ⁻¹' (t ×ˢ s) = s ×ˢ t :=
+@[simp] lemma preimage_swap_prod {s : set α} {t : set β} : prod.swap ⁻¹' (t ×ˢ s) = s ×ˢ t :=
 by { ext ⟨x, y⟩, simp [and_comm] }
 
-lemma image_swap_prod : prod.swap '' (t ×ˢ s) = s ×ˢ t :=
+@[simp] lemma image_swap_prod : prod.swap '' (t ×ˢ s) = s ×ˢ t :=
 by rw [image_swap_eq_preimage_swap, preimage_swap_prod]
+
+@[simp] lemma preimage_assoc_prod_prod {α β γ} {s : set α} {t : set β} {u : set γ} :
+  prod.assoc ⁻¹' (s ×ˢ (t ×ˢ u)) = (s ×ˢ t) ×ˢ u :=
+by { ext, simp [and_assoc] }
+
+@[simp] lemma preimage_assoc_symm_prod_prod {α β γ} {s : set α} {t : set β} {u : set γ} :
+  prod.assoc_symm ⁻¹' ((s ×ˢ t) ×ˢ u) = s ×ˢ (t ×ˢ u) :=
+by { ext, simp [and_assoc] }
+
+@[simp] lemma image_assoc_prod_prod {α β γ} {s : set α} {t : set β} {u : set γ} :
+  prod.assoc '' ((s ×ˢ t) ×ˢ u) = s ×ˢ (t ×ˢ u) :=
+(congr_fun (image_eq_preimage_of_inverse prod.assoc_symm_assoc prod.assoc_assoc_symm) _).trans
+  preimage_assoc_symm_prod_prod
+
+@[simp] lemma image_assoc_symm_prod_prod {α β γ} {s : set α} {t : set β} {u : set γ} :
+  prod.assoc_symm '' (s ×ˢ (t ×ˢ u)) = (s ×ˢ t) ×ˢ u :=
+(congr_fun (image_eq_preimage_of_inverse prod.assoc_assoc_symm prod.assoc_symm_assoc) _).trans
+  preimage_assoc_prod_prod
 
 lemma prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
   (m₁ '' s) ×ˢ (m₂ '' t) = image (λ p : α × β, (m₁ p.1, m₂ p.2)) (s ×ˢ t) :=

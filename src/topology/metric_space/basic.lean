@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 -/
 
 import data.int.interval
-import topology.algebra.ordered.compact
+import topology.algebra.order.compact
 import topology.metric_space.emetric_space
 import topology.uniform_space.complete_separated
 

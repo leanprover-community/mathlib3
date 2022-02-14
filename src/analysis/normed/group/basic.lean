@@ -774,7 +774,7 @@ by { rw [tendsto_iff_norm_tendsto_zero], simp only [sub_zero] }
 /-- Special case of the sandwich theorem: if the norm of `f` is eventually bounded by a real
 function `g` which tends to `0`, then `f` tends to `0`.
 In this pair of lemmas (`squeeze_zero_norm'` and `squeeze_zero_norm`), following a convention of
-similar lemmas in `topology.metric_space.basic` and `topology.algebra.ordered`, the `'` version is
+similar lemmas in `topology.metric_space.basic` and `topology.algebra.order`, the `'` version is
 phrased using "eventually" and the non-`'` version is phrased absolutely. -/
 lemma squeeze_zero_norm' {f : α → E} {g : α → ℝ} {t₀ : filter α}
   (h : ∀ᶠ n in t₀, ∥f n∥ ≤ g n)

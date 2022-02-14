@@ -39,7 +39,7 @@ a.e. disjoint and cover the whole space. -/
   [has_vadd G α] [measurable_space α] (s : set α) (μ : measure α . volume_tac) : Prop :=
 (measurable_set : measurable_set s)
 (ae_covers : ∀ᵐ x ∂μ, ∃ g : G, g +ᵥ x ∈ s)
-(ae_disjoint : ∀ g ≠ (0 : G), μ ((g +ᵥ s) ∩ s) = 0)
+(ae_disjoint : ∀ g ≠ (0 : G), ae_disjoint μ (g +ᵥ s) s)
 
 /-- A measurable set `s` is a *fundamental domain* for an action of a group `G` on a measurable
 space `α` with respect to a measure `α` if the sets `g • s`, `g : G`, are pairwise a.e. disjoint and
@@ -49,7 +49,7 @@ structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_scalar
   [measurable_space α] (s : set α) (μ : measure α . volume_tac) : Prop :=
 (measurable_set : measurable_set s)
 (ae_covers : ∀ᵐ x ∂μ, ∃ g : G, g • x ∈ s)
-(ae_disjoint : ∀ g ≠ (1 : G), μ ((g • s) ∩ s) = 0)
+(ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
 
 namespace is_fundamental_domain
 
@@ -64,10 +64,9 @@ lemma mk' (h_meas : measurable_set s) (h_exists : ∀ x : α, ∃! g : G, g • 
   is_fundamental_domain G s μ :=
 { measurable_set := h_meas,
   ae_covers := eventually_of_forall $ λ x, (h_exists x).exists,
-  ae_disjoint := λ g hne,
+  ae_disjoint := λ g hne, disjoint.ae_disjoint $ disjoint_left.2
     begin
-      suffices : g • s ∩ s = ∅, by rw [this, measure_empty],
-      refine eq_empty_iff_forall_not_mem.2 _, rintro _ ⟨⟨x, hx, rfl⟩, hgx⟩,
+      rintro _ ⟨x, hx, rfl⟩ hgx,
       rw ← one_smul G x at hx,
       exact hne ((h_exists x).unique hgx hx)
     end }
@@ -87,6 +86,12 @@ variables [measurable_space G] [has_measurable_smul G α]
 lemma measurable_set_smul (h : is_fundamental_domain G s μ) (g : G) : measurable_set (g • s) :=
 h.measurable_set.const_smul g
 
+@[to_additive]
+lemma null_measurable_set_smul {ν : measure α} (h : is_fundamental_domain G s μ) (g : G) :
+  null_measurable_set (g • s) ν :=
+(h.measurable_set_smul g).null_measurable_set
+
+
 variables [smul_invariant_measure G α μ]
 
 @[to_additive] lemma pairwise_ae_disjoint (h : is_fundamental_domain G s μ) :
@@ -101,7 +106,7 @@ variables [encodable G] {ν : measure α}
 
 @[to_additive] lemma sum_restrict_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ) :
   sum (λ g : G, ν.restrict (g • s)) = ν :=
-by rw [← restrict_Union_ae (h.pairwise_ae_disjoint.mono $ λ i j h, hν h) h.measurable_set_smul,
+by rw [← restrict_Union_ae (h.pairwise_ae_disjoint.mono $ λ i j h, hν h) h.null_measurable_set_smul,
   restrict_congr_set (hν h.Union_smul_ae_eq), restrict_univ]
 
 @[to_additive] lemma lintegral_eq_tsum_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ)
@@ -151,6 +156,19 @@ calc ∫⁻ x in s, f x ∂μ = ∑' g : G, ∫⁻ x in s ∩ g • t, f x ∂μ
   by simp only [hf, inter_comm]
 ... = ∫⁻ x in t, f x ∂μ :
   (hs.set_lintegral_eq_tsum _ _).symm
+
+@[to_additive] lemma measure_set_eq (hs : is_fundamental_domain G s μ)
+  (ht : is_fundamental_domain G t μ) {A : set α} (hA₀ : measurable_set A)
+  (hA : ∀ (g : G), (λ x, g • x) ⁻¹' A = A) :
+  μ (A ∩ s) = μ (A ∩ t) :=
+begin
+  have : ∫⁻ x in s, A.indicator 1 x ∂μ = ∫⁻ x in t, A.indicator 1 x ∂μ,
+  { refine hs.set_lintegral_eq ht (set.indicator A (λ _, 1)) _,
+    intros g x,
+    convert (set.indicator_comp_right (λ x : α, g • x)).symm,
+    rw hA g },
+  simpa [measure.restrict_apply hA₀, lintegral_indicator _ hA₀] using this
+end
 
 /-- If `s` and `t` are two fundamental domains of the same action, then their measures are equal. -/
 @[to_additive] protected lemma measure_eq (hs : is_fundamental_domain G s μ)

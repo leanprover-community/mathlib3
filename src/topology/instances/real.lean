@@ -103,8 +103,8 @@ instance : proper_space ℤ :=
 by simp only [← comap_dist_right_at_top_eq_cocompact (0 : ℤ), dist_eq, sub_zero, cast_zero,
   ← cast_abs, ← @comap_comap _ _ _ _ abs, int.comap_coe_at_top, comap_abs_at_top]
 
-instance : noncompact_space ℤ :=
-noncompact_space_of_ne_bot $ by simp [at_top_ne_bot]
+@[simp] lemma cofinite_eq : (cofinite : filter ℤ) = at_bot ⊔ at_top :=
+by rw [← cocompact_eq_cofinite, cocompact_eq]
 
 end int
 
@@ -168,6 +168,9 @@ instance : proper_space ℕ :=
     rw closed_ball_eq_Icc,
     exact (set.finite_Icc _ _).is_compact,
   end ⟩
+
+instance : noncompact_space ℕ :=
+noncompact_space_of_ne_bot $ by simp [at_top_ne_bot]
 
 end nat
 

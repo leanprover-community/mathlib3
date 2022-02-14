@@ -126,28 +126,29 @@ instance : field (self_adjoint R) :=
 
 end field
 
-section module
+section has_scalar
+variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
 
-variables {A : Type*} [semiring R] [has_star R] [has_trivial_star R] [add_comm_group A]
-  [star_add_monoid A] [module R A] [star_module R A]
-
-instance : has_scalar R (self_adjoint A) :=
+instance [has_scalar R A] [star_module R A] : has_scalar R (self_adjoint A) :=
 ⟨λ r x, ⟨r • x, by rw [mem_iff, star_smul, star_trivial, star_coe_eq]⟩⟩
 
-@[simp, norm_cast] lemma coe_smul (r : R) (x : self_adjoint A) :
-  (coe : self_adjoint A → A) (r • x) = r • x := rfl
+@[simp, norm_cast] lemma coe_smul [has_scalar R A] [star_module R A] (r : R) (x : self_adjoint A) :
+  ↑(r • x) = r • (x : A) := rfl
 
-instance : mul_action R (self_adjoint A) :=
-{ one_smul := λ x, by { ext, rw [coe_smul, one_smul] },
-  mul_smul := λ r s x, by { ext, simp only [mul_smul, coe_smul] } }
+instance [monoid R] [mul_action R A] [star_module R A] : mul_action R (self_adjoint A) :=
+function.injective.mul_action coe subtype.coe_injective coe_smul
 
-instance : distrib_mul_action R (self_adjoint A) :=
-{ smul_add := λ r x y, by { ext, simp only [smul_add, add_subgroup.coe_add, coe_smul] },
-  smul_zero := λ r, by { ext, simp only [smul_zero', coe_smul, add_subgroup.coe_zero] } }
+instance [monoid R] [distrib_mul_action R A] [star_module R A] :
+  distrib_mul_action R (self_adjoint A) :=
+function.injective.distrib_mul_action (self_adjoint A).subtype subtype.coe_injective coe_smul
 
-instance : module R (self_adjoint A) :=
-{ add_smul := λ r s x, by { ext, simp only [add_smul, add_subgroup.coe_add, coe_smul] },
-  zero_smul := λ x, by { ext, simp only [coe_smul, zero_smul, add_subgroup.coe_zero] } }
+end has_scalar
+
+section module
+variables [has_star R] [has_trivial_star R] [add_comm_group A] [star_add_monoid A]
+
+instance [semiring R] [module R A] [star_module R A] : module R (self_adjoint A) :=
+function.injective.module R (self_adjoint A).subtype subtype.coe_injective coe_smul
 
 end module
 

@@ -323,14 +323,13 @@ instance [has_le β] : has_le (α →ₛ β) := ⟨λf g, ∀a, f a ≤ g a⟩
 @[simp, norm_cast, to_additive] lemma coe_mul [has_mul β] (f g : α →ₛ β) : ⇑(f * g) = f * g := rfl
 @[simp, norm_cast, to_additive] lemma coe_inv [has_inv β] (f : α →ₛ β) : ⇑(f⁻¹) = f⁻¹ := rfl
 @[simp, norm_cast, to_additive] lemma coe_div [has_div β] (f g : α →ₛ β) : ⇑(f / g) = f / g := rfl
-
 @[simp, norm_cast] lemma coe_le [preorder β] {f g : α →ₛ β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
 
 @[to_additive] lemma mul_apply [has_mul β] (f g : α →ₛ β) (a : α) : (f * g) a = f a * g a := rfl
 @[to_additive] lemma div_apply [has_div β] (f g : α →ₛ β) (x : α) : (f / g) x = f x / g x := rfl
 @[to_additive] lemma inv_apply [has_inv β] (f : α →ₛ β) (x : α) : f⁻¹ x = (f x)⁻¹ := rfl
-
 lemma sup_apply [has_sup β] (f g : α →ₛ β) (a : α) : (f ⊔ g) a = f a ⊔ g a := rfl
+lemma inf_apply [has_inf β] (f g : α →ₛ β) (a : α) : (f ⊓ g) a = f a ⊓ g a := rfl
 
 @[simp, to_additive] lemma range_one [nonempty α] [has_one β] : (1 : α →ₛ β).range = {1} :=
 finset.ext $ λ x, by simp [eq_comm]

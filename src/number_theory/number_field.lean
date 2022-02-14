@@ -107,14 +107,16 @@ namespace rat
 
 open number_field
 
+local attribute [instance] subsingleton_rat_module
+
 instance rat.number_field : number_field ℚ :=
 { to_char_zero := infer_instance,
-  to_finite_dimensional := by { convert (infer_instance : finite_dimensional ℚ ℚ),
-             -- The vector space structure of `ℚ` over itself can arise in multiple ways:
-             -- all fields are vector spaces over themselves (used in `rat.finite_dimensional`)
-             -- all char 0 fields have a canonical embedding of `ℚ` (used in `number_field`).
-             -- Show that these coincide:
-             ext1, simp [algebra.smul_def] } }
+  to_finite_dimensional :=
+    -- The vector space structure of `ℚ` over itself can arise in multiple ways:
+    -- all fields are vector spaces over themselves (used in `rat.finite_dimensional`)
+    -- all char 0 fields have a canonical embedding of `ℚ` (used in `number_field`).
+    -- Show that these coincide:
+    by convert (infer_instance : finite_dimensional ℚ ℚ), }
 
 /-- The ring of integers of `ℚ` as a number field is just `ℤ`. -/
 noncomputable def ring_of_integers_equiv : ring_of_integers ℚ ≃+* ℤ :=

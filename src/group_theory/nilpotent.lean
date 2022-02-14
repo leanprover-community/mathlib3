@@ -872,7 +872,7 @@ theorem is_nilpotent_of_finite_tfae : tfae
 begin
   tfae_have : 1 → 2, { exact @normalizer_condition_of_is_nilpotent _ _ },
   tfae_have : 2 → 3, { exact λ h H, normalizer_condition.normal_of_coatom H h },
-  tfae_have : 3 → 4, { introsI h p _ P, exact sylow.normal_of_all_max_groups_normal h _ },
+  tfae_have : 3 → 4, { introsI h p _ P, exact sylow.normal_of_all_max_subgroups_normal h _ },
   tfae_have : 4 → 5, { exact λ h, nonempty.intro (sylow.direct_product_of_normal h) },
   tfae_have : 5 → 1, { rintros ⟨e⟩, exact is_nilpotent_of_product_of_sylow_group e },
   tfae_finish,

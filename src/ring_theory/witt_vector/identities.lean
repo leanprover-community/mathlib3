@@ -65,6 +65,21 @@ begin
       { exact ne_of_apply_ne (λ (j : ℕ), j.succ) hj } } }
 end
 
+variables (p R)
+
+lemma p_nonzero [nontrivial R] [char_p R p] : (p : 𝕎 R) ≠ 0 :=
+begin
+  have : (p : 𝕎 R).coeff 1 = 1 := by simpa using coeff_p_pow 1,
+  intros h,
+  simpa [h] using this
+end
+
+lemma fraction_ring.p_nonzero [char_p R p] [nontrivial R] :
+  (p : fraction_ring (𝕎 R)) ≠ 0 :=
+by simpa using (is_fraction_ring.injective (𝕎 R) (fraction_ring (𝕎 R))).ne (p_nonzero _ _)
+
+variables {p R}
+
 /-- The “projection formula” for Frobenius and Verschiebung. -/
 lemma verschiebung_mul_frobenius (x y : 𝕎 R) :
   verschiebung (x * frobenius y) = verschiebung x * y :=

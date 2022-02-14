@@ -682,11 +682,10 @@ localized "notation `τ` := σ 0" in arithmetic_function
 lemma nat.divisors_eq (n y : ℕ) (hn : 1 ≤ n) (hny : n ≤ y) :
   n.divisors = (finset.filter (λ (x : ℕ), x ∣ n) (finset.Icc 1 y)) :=
 begin
-  have n_neq_zero : n ≠ 0 := sorry, -- by linarith [finset.mem_Icc.mp hn],
+  have n_neq_zero : n ≠ 0 := by linarith [hn], -- sorry, -- by linarith [finset.mem_Icc.mp hn],
   ext a,
-  have : a ∣ n → a ≤ y :=
-    sorry,
---    λ ha, le_trans (nat.divisor_le (nat.mem_divisors.mpr ⟨ha,n_neq_zero⟩)) ( hn),
+  have : a ∣ n → a ≤ y := λ ha,
+    le_trans (nat.divisor_le (nat.mem_divisors.mpr ⟨ha, n_neq_zero⟩)) hny,
   simp only [n_neq_zero, nat.mem_divisors, finset.mem_Icc, and_true, iff_and_self, ne.def,
     not_false_iff, finset.mem_filter],
   exact λ ha, ⟨nat.succ_le_iff.mpr (nat.pos_of_mem_divisors (nat.mem_divisors.mpr
@@ -712,17 +711,16 @@ begin
   exact_mod_cast λ n hn, eq1 n hn,
 end
 
-theorem finset.filter_to_inter {α : Type*} [decidable_eq α] {s : finset α} {t : finset α}
-  (h : s ⊆ t) : finset.filter (λ (x : α), x ∈ s) t = s ∩ t :=
+theorem finset.filter_to_inter {α : Type*} [decidable_eq α] {s t : finset α} (h : s ⊆ t) :
+  finset.filter (λ (x : α), x ∈ s) t = s ∩ t :=
 begin
   ext1,
   rw [finset.mem_filter, and_comm],
   exact finset.mem_inter.symm,
 end
 
-theorem finset.sum_card_ite {α : Type*} [decidable_eq α]
-{s : finset α} {t : finset α} (h : s ⊆ t):
-∑ n in t, ite (n ∈ s) 1 0  = s.card :=
+theorem finset.sum_card_ite {α : Type*} [decidable_eq α] {s t : finset α} (h : s ⊆ t) :
+  ∑ n in t, ite (n ∈ s) 1 0  = s.card :=
 begin
   simp only [finset.sum_boole, nat.cast_id],
   congr,
@@ -738,7 +736,8 @@ begin
   rw [and_or_distrib_left, (by by_cases h : a = k + 1; simp [h] : 1 ≤ a ∧ a = k + 1 ↔ a = k + 1)],
 end
 
-lemma nat.divisors_eq_floor {d n : ℕ} : (finset.filter (has_dvd.dvd d) (finset.Icc 1 n)).card = n / d :=
+lemma nat.divisors_eq_floor {d n : ℕ} :
+  (finset.filter (has_dvd.dvd d) (finset.Icc 1 n)).card = n / d :=
 begin
   induction n with k hk,
   { simp },
@@ -766,10 +765,105 @@ begin
   exact nat.divisors_eq_floor,
 end
 
+-- for `n ≤ x`,  `τ n = ∑_{d ≤ x} ite (d ∣ n) 1 0`
+lemma tau_eq_sum_ite {n x : ℕ} : n ∈ finset.Icc 1 x →
+  ∑ (d : ℕ) in n.divisors, d ^ 0 = ∑ (a : ℕ) in finset.Icc 1 x, ite (a ∣ n) 1 0 :=
+begin
+  intros hn,
+  simp only [mul_one, algebra.id.smul_eq_mul, finset.sum_boole, nat.cast_id, finset.sum_const,
+    pow_zero],
+  congr',
+  rw finset.mem_Icc at hn,
+  exact nat.divisors_eq n _ hn.1 hn.2,
+end
+
+-- for `n ≤ x`,  `τ n = ∑_{d ≤ x} ite (d ∣ n) 1 0`
+lemma tau_eq_sum_sum_ite {n x : ℕ} : n ∈ finset.Icc 1 x →
+  ∑ (a : ℕ) in finset.Icc 1 x, ∑ (b : ℕ) in finset.Icc 1 x, ite (a * b = n) 1 0 = τ n :=
+begin
+  intros hn,
+  dsimp [σ],
+  rw tau_eq_sum_ite hn,
+  apply finset.sum_congr rfl,
+  intros a ha,
+  simp only [finset.sum_boole, nat.cast_id],
+  by_cases han : a ∣ n,
+  { simp only [han, if_true],
+    obtain ⟨b, hb⟩ := han,
+    rw ←finset.card_singleton b,
+    congr,
+    ext1 b₁,
+    simp only [finset.mem_Icc, finset.mem_singleton, finset.mem_filter, finset.card_singleton],
+    split, -- VERY UGLY!! Come on, there must be a better way?...
+    { rintros ⟨h₁, h₂⟩,
+      rw hb at h₂,
+      refine (mul_right_inj' _).mp h₂,
+      exact nat.one_le_iff_ne_zero.mp (finset.mem_Icc.mp ha).1, },
+    { intros ha1,
+      rw ha1,
+      have b_ne_zero : b ≠ 0,
+      { by_contra h,
+        rw h at hb,
+        simp only [mul_zero] at hb,
+        rw finset.mem_Icc at hn,
+        linarith, },
+      split,
+      { split,
+        { cases b,
+          { simp only [nat.one_ne_zero, le_zero_iff],
+            exact b_ne_zero (rfl : 0 = 0), },
+          { exact nat.one_le_iff_ne_zero.mpr b_ne_zero, }, },
+        { apply le_trans _ (finset.mem_Icc.mp hn).2,
+          apply nat.divisor_le,
+          apply nat.mem_divisors.mpr,
+          split,
+          { use a,
+            rw mul_comm,
+            exact hb, },
+          { exact nat.one_le_iff_ne_zero.mp (finset.mem_Icc.mp hn).1, }, }, },
+      { exact hb.symm, }, }, },
+  { simp only [han, finset.card_eq_zero, if_false],
+    ext1 b₁,
+    simp only [and_imp, finset.not_mem_empty, finset.mem_Icc, not_and, finset.mem_filter,
+      iff_false],
+    intros _ _,
+    by_contra h,
+    exact han ⟨b₁, h.symm⟩, },
+end
+
+-- for `y ≤ x`,  `∑_{n ≤ x} ite (n=y) 1 0 = 1`
+lemma one_eq_sum_ite {x y : ℕ} : y ∈ finset.Icc 1 x →
+  ∑ (n : ℕ) in finset.Icc 1 x, ite (n = y) 1 0 = 1 :=
+begin
+  intros hy,
+  simp only [finset.sum_boole, nat.cast_id],
+  have y_inter : {y} ∩ finset.Icc 1 x = {y},
+  { ext1,
+    simp only [finset.mem_Icc, and_iff_left_iff_imp, finset.mem_singleton, finset.mem_inter],
+    intros hay,
+    rw hay,
+    exact finset.mem_Icc.mp hy, },
+  have := finset.filter_to_inter (_ : {y} ⊆ finset.Icc 1 x),
+  rw y_inter at this,
+  have := congr_arg finset.card this,
+  rw finset.card_singleton at this,
+  convert this using 3,
+  { simp, },
+  { rw finset.singleton_subset_iff,
+    exact hy, },
+end
+
 -- finset.sum_bij finset.sum_sigma might be helpful
 lemma hyperbola_prelim2 {x : ℕ} :
   summatory (λ i, (τ i : ℝ)) x = ∑ a in finset.Icc 1 x, ∑ b in finset.Icc 1 x, ite (a * b ≤ x) 1 0 :=
 begin
+  dsimp [summatory],
+  rw (_ : ⌊(x : ℝ)⌋₊ = x),
+  apply finset.sum_congr rfl,
+  intros n hn,
+  rw sigma_zero_eq_ite hn,
+  norm_cast,
+  apply finset.sum_bij,
   sorry
 end
 

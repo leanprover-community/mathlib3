@@ -30,30 +30,6 @@ polynomial equation in `k`. We must define these as generic polynomials using Wi
 
 noncomputable theory
 
-section move_elsewhere
-
-section
-
-variables (p : ℕ) [fact p.prime]
-
-/-- A field is perfect if Frobenius is surjective -/
-def perfect_ring.of_surjective (k : Type*) [field k] [char_p k p]
-  (h : function.surjective $ frobenius k p) :
-  perfect_ring k p :=
-{ pth_root' := function.surj_inv h,
-  frobenius_pth_root' := function.surj_inv_eq h,
-  pth_root_frobenius' := λ x, (frobenius k p).injective $ function.surj_inv_eq h _ }
-
--- an algebraically closed field is perfect, many google hits, maybe somewhere in mathlib?
-@[priority 100]
-instance is_alg_closed.perfect_ring (k : Type*) [field k] [char_p k p] [is_alg_closed k] :
-  perfect_ring k p :=
-perfect_ring.of_surjective p k $ λ x, is_alg_closed.exists_pow_nat_eq _ $ fact.out _
-
-end
-
-end move_elsewhere
-
 namespace witt_vector
 
 variables (p : ℕ) [hp : fact p.prime]

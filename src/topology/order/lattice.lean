@@ -86,14 +86,26 @@ has_continuous_sup.continuous_sup
   continuous (λx, f x ⊔ g x) :=
 continuous_sup.comp (hf.prod_mk hg : _)
 
-lemma filter.tendsto.sup_right {ι β} [topological_space β] [has_sup β] [has_continuous_sup β]
+lemma filter.tendsto.sup_right_nhds' {ι β} [topological_space β] [has_sup β] [has_continuous_sup β]
   {l : filter ι} {f g : ι → β} {x y : β}
   (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
   tendsto (f ⊔ g) l (𝓝 (x ⊔ y)) :=
 (continuous_sup.tendsto _).comp (tendsto.prod_mk_nhds hf hg)
 
-lemma filter.tendsto.inf_right {ι β} [topological_space β] [has_inf β] [has_continuous_inf β]
+lemma filter.tendsto.sup_right_nhds {ι β} [topological_space β] [has_sup β] [has_continuous_sup β]
+  {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ i, f i ⊔ g i) l (𝓝 (x ⊔ y)) :=
+hf.sup_right_nhds' hg
+
+lemma filter.tendsto.inf_right_nhds' {ι β} [topological_space β] [has_inf β] [has_continuous_inf β]
   {l : filter ι} {f g : ι → β} {x y : β}
   (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
   tendsto (f ⊓ g) l (𝓝 (x ⊓ y)) :=
 (continuous_inf.tendsto _).comp (tendsto.prod_mk_nhds hf hg)
+
+lemma filter.tendsto.inf_right_nhds {ι β} [topological_space β] [has_inf β] [has_continuous_inf β]
+  {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ i, f i ⊓ g i) l (𝓝 (x ⊓ y)) :=
+hf.inf_right_nhds' hg

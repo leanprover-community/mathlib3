@@ -297,6 +297,7 @@ end
 
 variable [char_p k p]
 
+variable (k)
 lemma nth_mul_coeff' (n : ℕ) :
   ∃ f : (truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k),
   ∀ (x y : 𝕎 k),
@@ -337,25 +338,26 @@ lemma nth_mul_coeff (n : ℕ) :
       x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1)) +
       f (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
 begin
-  obtain ⟨f, hf⟩ := nth_mul_coeff' p n,
-  { use f,
-    intros x y,
-    rw hf x y,
-    ring },
-  all_goals { apply_instance },
+  obtain ⟨f, hf⟩ := nth_mul_coeff' p k n,
+  use f,
+  intros x y,
+  rw hf x y,
+  ring,
 end
+
+variable {k}
 
 /--
 Produces the "remainder function" of the `n+1`st coefficient, which does not depend on the `n+1`st
 coefficients of the inputs. -/
 def nth_remainder (n : ℕ) : (fin (n+1) → k) → (fin (n+1) → k) → k :=
-classical.some (nth_mul_coeff p n)
+classical.some (nth_mul_coeff p k n)
 
 lemma nth_remainder_spec (n : ℕ) (x y : 𝕎 k) :
   (x * y).coeff (n+1) =
     x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) + y.coeff (n+1) * x.coeff 0 ^ (p^(n+1)) +
     nth_remainder p n (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
-classical.some_spec (nth_mul_coeff p n) _ _
+classical.some_spec (nth_mul_coeff p k n) _ _
 
 end mv_poly
 

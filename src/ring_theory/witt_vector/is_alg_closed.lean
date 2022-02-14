@@ -25,6 +25,9 @@ See `witt_vector.frobenius_rotation` and its specification.
 The construction proceeds by recursively defining a sequence of coefficients as solutions to a
 polynomial equation in `k`. We must define these as generic polynomials using Witt vector API
 (`witt_vector.witt_mul`, `witt_polynomial`) to show that they satisfy the desired equation.
+
+This construction is described in Dupuis, Lewis, and Macbeth,
+[Formalized functional analysis via semilinear maps][dupuis-lewis-macbeth2022].
 -/
 
 noncomputable theory

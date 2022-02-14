@@ -11,6 +11,9 @@ import ring_theory.witt_vector.is_alg_closed
 
 https://www.math.ias.edu/~lurie/205notes/Lecture26-Isocrystals.pdf
 
+This construction is described in Dupuis, Lewis, and Macbeth,
+[Formalized functional analysis via semilinear maps][dupuis-lewis-macbeth2022].
+
 -/
 
 noncomputable theory

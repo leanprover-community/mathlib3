@@ -981,6 +981,10 @@ end
 @[simp, to_additive] lemma map_bot (f : G →* N) : (⊥ : subgroup G).map f = ⊥ :=
 (gc_map_comap f).l_bot
 
+@[simp, to_additive] lemma map_top_of_surjective (f : G →* N) (h : function.surjective f) :
+  subgroup.map f ⊤ = ⊤ :=
+by {rw eq_top_iff, intros x hx, obtain ⟨y, hy⟩ := (h x), exact ⟨y, trivial, hy⟩ }
+
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
@@ -1932,6 +1936,12 @@ lemma comap_map_eq_self_of_injective {f : G →* N} (h : function.injective f) (
 comap_map_eq_self (((ker_eq_bot_iff _).mpr h).symm ▸ bot_le)
 
 @[to_additive]
+lemma map_le_map_iff_of_injective {f : G →* N} (hf : function.injective f) {H K : subgroup G} :
+  H.map f ≤ K.map f ↔ H ≤ K :=
+⟨(congr_arg2 (≤) (H.comap_map_eq_self_of_injective hf)
+  (K.comap_map_eq_self_of_injective hf)).mp ∘ comap_mono, map_mono⟩
+
+@[to_additive]
 lemma map_injective {f : G →* N} (h : function.injective f) : function.injective (map f) :=
 λ K L hKL, by { apply_fun comap f at hKL, simpa [comap_map_eq_self_of_injective h] using hKL }
 
@@ -2650,6 +2660,44 @@ S.to_submonoid.mul_distrib_mul_action
 end subgroup
 
 end actions
+
+/-! ### Mul-opposite subgroups -/
+
+section mul_opposite
+
+namespace subgroup
+
+/-- A subgroup `H` of `G` determines a subgroup `H.opposite` of the opposite group `Gᵐᵒᵖ`. -/
+@[to_additive "An additive subgroup `H` of `G` determines an additive subgroup `H.opposite` of the
+  opposite additive group `Gᵃᵒᵖ`."]
+def opposite (H : subgroup G) : subgroup Gᵐᵒᵖ :=
+{ carrier := mul_opposite.unop ⁻¹' (H : set G),
+  one_mem' := H.one_mem,
+  mul_mem' := λ a b ha hb, H.mul_mem hb ha,
+  inv_mem' := λ a, H.inv_mem }
+
+/-- Bijection between a subgroup `H` and its opposite. -/
+@[to_additive "Bijection between an additive subgroup `H` and its opposite.", simps]
+def opposite_equiv (H : subgroup G) : H ≃ H.opposite :=
+mul_opposite.op_equiv.subtype_equiv $ λ _, iff.rfl
+
+@[to_additive] instance (H : subgroup G) [encodable H] : encodable H.opposite :=
+encodable.of_equiv H H.opposite_equiv.symm
+
+@[to_additive] lemma smul_opposite_mul {H : subgroup G} (x g : G) (h : H.opposite) :
+  h • (g * x) = g * (h • x) :=
+begin
+  cases h,
+  simp [(•), mul_assoc],
+end
+
+@[to_additive] lemma smul_opposite_image_mul_preimage {H : subgroup G} (g : G) (h : H.opposite)
+  (s : set G) : (λ y, h • y) '' (has_mul.mul g ⁻¹' s) = has_mul.mul g ⁻¹' ((λ y, h • y) '' s) :=
+by { ext x, cases h, simp [(•), mul_assoc] }
+
+end subgroup
+
+end mul_opposite
 
 /-! ### Saturated subgroups -/
 

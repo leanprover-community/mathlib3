@@ -2284,7 +2284,7 @@ by rw [←H.le_iff_deriv, H.le_iff_eq]
 /-- `deriv f` is the fixed point enumerator of `f`. -/
 theorem deriv_eq_enum_fp {f} (H : is_normal f) : deriv f = enum_ord (fixed_points f) :=
 begin
-  rw [←eq_enum_ord, range_eq_iff],
+  rw [←eq_enum_ord _ H.nfp_unbounded, range_eq_iff],
   exact ⟨(deriv_is_normal f).strict_mono, H.deriv_fp, λ _, H.apply_eq_self_iff_deriv.1⟩
 end
 

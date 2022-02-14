@@ -785,10 +785,10 @@ is locally compact. -/
   locally_compact_space G :=
 begin
   refine locally_compact_of_compact_nhds (λ x, _),
-  obtain ⟨y, hy⟩ : ∃ y, y ∈ interior K.1 := K.2.2,
+  obtain ⟨y, hy⟩ := K.interior_nonempty,
   let F := homeomorph.mul_left (x * y⁻¹),
-  refine ⟨F '' K.1, _, is_compact.image K.2.1 F.continuous⟩,
-  suffices : F.symm ⁻¹' K.1 ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
+  refine ⟨F '' K, _, K.compact.image F.continuous⟩,
+  suffices : F.symm ⁻¹' K ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
   apply continuous_at.preimage_mem_nhds F.symm.continuous.continuous_at,
   have : F.symm x = y, by simp [F, homeomorph.mul_left_symm],
   rw this,

@@ -116,8 +116,8 @@ begin
   induction S using finset.induction_on with j S hnmem' ih,
   { simp, },
   { simp only [to_fun_insert_of_not_mem _ _ _ _ hnmem'],
-    have hij : i ≠ j, by {simp at hnmem, tauto},
-    have hiS : i ∉ S, by {simp at hnmem, tauto},
+    have hij : i ≠ j, by {rintro rfl, apply hnmem, exact finset.mem_insert_self i S},
+    have hiS : i ∉ S, by {rintro h, apply hnmem, exact finset.mem_insert_of_mem h},
     calc ϕ i (g i) * (ϕ j (f j) * (to_fun ϕ hcomm f S : M))
         = (ϕ i (g i) * ϕ j (f j)) * to_fun ϕ hcomm f S : by rw ← mul_assoc
     ... = (ϕ j (f j) * ϕ i (g i)) * to_fun ϕ hcomm f S : by { congr' 1, apply hcomm _ _ hij }

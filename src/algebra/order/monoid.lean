@@ -1039,3 +1039,23 @@ def order_embedding.mul_right
   {α : Type*} [has_mul α] [linear_order α] [covariant_class α α (swap (*)) (<)] (m : α) :
   α ↪o α :=
 order_embedding.of_strict_mono (λ n, n * m) (λ a b w, mul_lt_mul_right' w m)
+
+namespace additive
+
+variables [partial_order α] {a b : α}
+
+@[simp] lemma of_mul_le : of_mul a ≤ of_mul b ↔ a ≤ b := by refl
+
+@[simp] lemma of_add_lt : of_mul a < of_mul b ↔ a < b := by refl
+
+end additive
+
+namespace multiplicative
+
+ variables [partial_order α] {a b : α}
+
+@[simp] lemma of_add_le : of_add a ≤ of_add b ↔ a ≤ b := by refl
+
+@[simp] lemma of_add_lt : of_add a < of_add b ↔ a < b := by refl
+
+end multiplicative

@@ -819,7 +819,7 @@ lemma _root_.measurable_embedding.mem_ℒp_map_measure_iff [measurable_space F] 
   mem_ℒp g p (measure.map f μ) ↔ mem_ℒp (g ∘ f) p μ :=
 by simp_rw [mem_ℒp, hf.ae_measurable_map_iff, hf.snorm_map_measure]
 
-lemma _root_.measurable_equiv.mem_ℒp_map_measure_iff_of_ne_top [measurable_space F] (f : α ≃ᵐ β)
+lemma _root_.measurable_equiv.mem_ℒp_map_measure_iff [measurable_space F] (f : α ≃ᵐ β)
   {g : β → F} :
   mem_ℒp g p (measure.map f μ) ↔ mem_ℒp (g ∘ f) p μ :=
 f.measurable_embedding.mem_ℒp_map_measure_iff

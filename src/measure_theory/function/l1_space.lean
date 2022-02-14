@@ -472,11 +472,11 @@ by { simp_rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_map_measure_iff hg 
 lemma _root_.measurable_embedding.integrable_map_iff {f : α → δ} (hf : measurable_embedding f)
   {g : δ → β} :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
-by { simp_rw ← mem_ℒp_one_iff_integrable, exact hf.mem_ℒp_map_measure_iff_of_ne_top one_ne_top, }
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact hf.mem_ℒp_map_measure_iff, }
 
 lemma integrable_map_equiv (f : α ≃ᵐ δ) (g : δ → β) :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
-by { simp_rw ← mem_ℒp_one_iff_integrable, exact f.mem_ℒp_map_measure_iff_of_ne_top one_ne_top, }
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact f.mem_ℒp_map_measure_iff, }
 
 lemma measure_preserving.integrable_comp [opens_measurable_space β] {ν : measure δ} {g : δ → β}
   {f : α → δ} (hf : measure_preserving f μ ν) (hg : ae_measurable g ν) :

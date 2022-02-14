@@ -40,17 +40,18 @@ open list
 
 /-- parse structure instance of the shape `{ field1 := value1, .. , field2 := value2 }` -/
 meta def struct_inst : lean.parser pexpr :=
-do tk "{",
-   ls ← sep_by (skip_info (tk ","))
-     ( sum.inl <$> (tk ".." *> texpr) <|>
-       sum.inr <$> (prod.mk <$> ident <* tk ":=" <*> texpr)),
-   tk "}",
-   let (srcs,fields) := partition_map id ls,
-   let (names,values) := unzip fields,
-   pure $ pexpr.mk_structure_instance
-     { field_names := names,
-       field_values := values,
-       sources := srcs }
+with_desc "cfg" $ do
+  tk "{",
+  ls ← sep_by (skip_info (tk ","))
+    ( sum.inl <$> (tk ".." *> texpr) <|>
+      sum.inr <$> (prod.mk <$> ident <* tk ":=" <*> texpr)),
+  tk "}",
+  let (srcs,fields) := partition_map id ls,
+  let (names,values) := unzip fields,
+  pure $ pexpr.mk_structure_instance
+    { field_names := names,
+      field_values := values,
+      sources := srcs }
 
 /-- pretty print structure instance -/
 meta def struct.to_tactic_format (e : pexpr) : tactic format :=

@@ -10,7 +10,7 @@ import data.fintype.card
 /-!
 # Canonical homomorphism from a pi monoid
 
-This file defines txinput set-prop 11 "libinput Scroll Method Enabled" 0, 0, 1  #he construction of the canoncial homomorphism from a family of monoids.
+This file defines the construction of the canoncial homomorphism from a family of monoids.
 
 Given a family of morphisms `ϕ i : N i →* M` for each `i : I` where elements in the
 image of different morphism commute, we obtain a canoncial morphism

@@ -150,10 +150,11 @@ lemma general_commutator_pi_pi_le {η : Type*} {Gs : η → Type*} [∀ i, group
 
 /-- The commutator of a finite direct product is contained in the direct product of the commutators.
 -/
-lemma general_commutator_pi_pi_of_fintype {η : Type*} [fintype η] [decidable_eq η] {Gs : η → Type*}
+lemma general_commutator_pi_pi_of_fintype {η : Type*} [fintype η] {Gs : η → Type*}
   [∀ i, group (Gs i)] (H K : Π i, subgroup (Gs i)) :
   ⁅subgroup.pi set.univ H, subgroup.pi set.univ K⁆ = subgroup.pi set.univ (λ i, ⁅H i, K i⁆) :=
 begin
+  classical,
   apply le_antisymm (general_commutator_pi_pi_le H K),
   { rw pi_le_iff, intros i hi,
     rw map_general_commutator,

@@ -712,7 +712,7 @@ begin
 end
 
 /-- products of nilpotent groups are nilpotent if their nipotency class is bounded -/
-instance is_nilpotent_pi_of_bounded_class [∀ i, is_nilpotent (Gs i)]
+lemma is_nilpotent_pi_of_bounded_class [∀ i, is_nilpotent (Gs i)]
   (n : ℕ) (h : ∀ i, group.nilpotency_class (Gs i) ≤ n) :
   is_nilpotent (Π i, Gs i) :=
 begin
@@ -732,7 +732,7 @@ section finite_pi
 
 -- Now for finite products
 
-variables {η : Type*} [fintype η] [decidable_eq η] {Gs : η → Type*} [∀ i, group (Gs i)]
+variables {η : Type*} [fintype η] {Gs : η → Type*} [∀ i, group (Gs i)]
 
 @[simp]
 lemma lower_central_series_pi_of_fintype (n : ℕ):

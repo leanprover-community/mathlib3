@@ -67,7 +67,7 @@ instance : borel_space circle := ⟨rfl⟩
 
 /-- Haar measure on the circle, normalized to have total measure 1. -/
 @[derive is_haar_measure]
-def haar_circle : measure circle := haar_measure positive_compacts_univ
+def haar_circle : measure circle := haar_measure ⊤
 
 instance : is_probability_measure haar_circle := ⟨haar_measure_self⟩
 

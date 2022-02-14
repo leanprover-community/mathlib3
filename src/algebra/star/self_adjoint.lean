@@ -34,7 +34,7 @@ operators on Hilbert spaces.
 
 -/
 
-variables (R : Type*)
+variables (R : Type*) {A : Type*}
 
 /-- The self-adjoint elements of a star additive group, as an additive subgroup. -/
 def self_adjoint [add_group R] [star_add_monoid R] : add_subgroup R :=

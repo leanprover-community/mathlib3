@@ -143,6 +143,43 @@ lemma congr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) :
   F.map f = eq_to_hom (congr_obj h X) ≫ G.map f ≫ eq_to_hom (congr_obj h Y).symm :=
 by subst h; simp
 
+
+section heq
+
+/- Composition of functors and maps w.r.t. heq -/
+
+variables
+  {E : Type u₁} [category.{v₁} E]
+  {F G : C ⥤ D} {x y z : C} {f : x ⟶ y} {g : y ⟶ z}
+
+lemma map_comp_heq (hx : F.obj x = G.obj x) (hy : F.obj y = G.obj y) (hz : F.obj z = G.obj z)
+  (hf : F.map f == G.map f) (hg : F.map g == G.map g) : F.map (f ≫ g) == G.map (f ≫ g) :=
+by { rw [F.map_comp, G.map_comp], congr' }
+
+lemma map_comp_heq' (hobj : ∀ x : C, F.obj x = G.obj x)
+  (hmap : ∀ {x y} (f : x ⟶ y), F.map f == G.map f) :
+  F.map (f ≫ g) == G.map (f ≫ g) :=
+by rw functor.hext hobj (λ _ _, hmap)
+
+lemma precomp_map_heq (H : E ⥤ C)
+  (hmap : ∀ {x y} (f : x ⟶ y), F.map f == G.map f) {x y : E} (f : x ⟶ y) :
+  (H ⋙ F).map f == (H ⋙ G).map f := hmap _
+
+lemma comp_map_heq (H : D ⥤ E) (hx : F.obj x = G.obj x) (hy : F.obj y = G.obj y)
+  (hmap : F.map f == G.map f) : (F ⋙ H).map f == (G ⋙ H).map f :=
+by { dsimp, congr' }
+
+lemma comp_map_heq' (H : D ⥤ E) (hobj : ∀ x : C, F.obj x = G.obj x)
+  (hmap : ∀ {x y} (f : x ⟶ y), F.map f == G.map f) :
+  (F ⋙ H).map f == (G ⋙ H).map f :=
+by rw functor.hext hobj (λ _ _, hmap)
+
+lemma hcongr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) :
+  F.map f == G.map f :=
+by subst h; simp
+
+end heq
+
 end functor
 
 @[simp] lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :

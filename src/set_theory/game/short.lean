@@ -165,7 +165,7 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-instance short_nat : Π n : ℕ, short n
+instance short_nat : Π n : ℕ, short (pgame.of_nat n)
 | 0 := pgame.short_0
 | (n+1) := @pgame.short_add _ _ (short_nat n) pgame.short_1
 

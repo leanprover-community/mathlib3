@@ -193,16 +193,6 @@ begin
     simp only [cond, add_one, bit1_succ], },
 end
 
--- lemma bit0_add [add_comm_monoid α] [has_one α] {x y : α} : bit0 (x + y) = bit0 x + bit0 y :=
--- by { unfold _root_.bit0, cc }
-
--- lemma bit_add {a b m n} :
---   nat.bit a m + nat.bit b n = nat.bit (bxor a b) (m + n + cond (a && b) 1 0) :=
--- begin
---   have : 1 + 1 = 2 := rfl,
---   cases a; cases b; simp [nat.bit, _root_.bit1, bit0_add]; cc
--- end
-
 @[simp] theorem add_of_nat' (m n) : num.of_nat' (m + n) = num.of_nat' m + num.of_nat' n :=
 by induction n; simp [nat.add_zero, of_nat'_succ, add_zero, nat.add_succ, add_one, add_succ, *]
 
@@ -833,11 +823,6 @@ by rw [← zneg_zneg (succ (-n)), zneg_succ, zneg_zneg]
     refl
   end
 
--- @[simp, norm_cast] theorem neg_of_int : ∀ n, ((-n : ℤ) : znum) = -n
--- | (n+1:ℕ) := rfl
--- | 0       := rfl
--- | -[1+n]  := (zneg_zneg _).symm
-
 @[simp] theorem abs_to_nat : ∀ n, (abs n : ℕ) = int.nat_abs n
 | 0       := rfl
 | (pos p) := congr_arg int.nat_abs p.to_nat_to_int
@@ -963,17 +948,30 @@ variables {α : Type*}
 | 0       (pos b) := (zero_sub _).symm
 | (pos a) (pos b) := pos_num.cast_sub' _ _
 
-@[simp] theorem of_nat_to_znum' : ∀ n : ℕ, to_znum n = of_nat' n
-| 0 := by rw [of_nat'_zero, cast_zero, nat.cast_zero]; refl
-| (n+1) := by rw [of_nat'_succ, nat.cast_succ]
+theorem to_znum_succ : ∀ n : num, n.succ.to_znum = n.to_znum.succ
+| 0 := rfl
+| (pos n) := rfl
 
--- @[simp] theorem of_nat_to_znum : ∀ n : ℕ, to_znum n = n
--- | 0     := rfl
--- | (n+1) := by rw [nat.cast_add_one, nat.cast_add_one,
---   znum.add_one, add_one, ← of_nat_to_znum]; cases (n:num); refl
+theorem to_znum_neg_succ : ∀ n : num, n.succ.to_znum_neg = n.to_znum_neg.pred
+| 0 := rfl
+| (pos n) := rfl
 
--- @[simp] theorem of_nat_to_znum_neg (n : ℕ) : to_znum_neg n = -n :=
--- by rw [← of_nat_to_znum, zneg_to_znum]
+@[simp] theorem pred_succ : ∀ n : znum, n.pred.succ = n
+| 0 := rfl
+| (znum.neg p) := show to_znum_neg (pos p).succ'.pred' = _, by rw [pos_num.pred'_succ']; refl
+| (znum.pos p) := by rw [znum.pred, ← to_znum_succ, num.succ, pos_num.succ'_pred', to_znum]
+
+@[simp] theorem succ_of_int' : ∀ n, znum.of_int' (n + 1) = znum.of_int' n + 1
+| (n : ℕ) := by erw [znum.of_int', znum.of_int', num.of_nat'_succ,
+  num.add_one, to_znum_succ, znum.add_one]
+| -[1+ 0] := by erw [znum.of_int', znum.of_int', of_nat'_succ, of_nat'_zero]; refl
+| -[1+ n+1] := by erw [znum.of_int', znum.of_int', @num.of_nat'_succ (n+1), num.add_one,
+  to_znum_neg_succ, @of_nat'_succ n, num.add_one, znum.add_one, pred_succ]
+
+@[simp] theorem of_int'_to_znum : ∀ n : ℕ, to_znum n = znum.of_int' n
+| 0 := rfl
+| (n+1) := by rw [nat.cast_succ, num.add_one, to_znum_succ, of_int'_to_znum, nat.cast_succ,
+  succ_of_int', znum.add_one]
 
 theorem mem_of_znum' : ∀ {m : num} {n : znum}, m ∈ of_znum' n ↔ n = to_znum m
 | 0       0      := ⟨λ _, rfl, λ _, rfl⟩
@@ -1034,55 +1032,19 @@ by rw [← add_one, cast_add, cast_one]
 theorem cast_mul [ring α] (m n) : ((m * n : znum) : α) = m * n :=
 by rw [← cast_to_int, mul_to_int, int.cast_mul, cast_to_int, cast_to_int]
 
-@[simp, norm_cast] theorem of_to_int' : Π (n : znum), znum.of_int' n = n
-| 0       := by erw [of_int', num.of_nat'_zero, num.to_znum]
-| (pos a) := by rw [cast_pos, ← pos_num.cast_to_nat,
-  int.cast_coe_nat', ← num.of_nat_to_znum, pos_num.of_to_nat]; refl
-| (neg a) := by rw [cast_neg, neg_of_int, ← pos_num.cast_to_nat,
-  int.cast_coe_nat', ← num.of_nat_to_znum_neg, pos_num.of_to_nat]; refl
+theorem of_int'_neg : ∀ n : ℤ, of_int' (-n) = -of_int' n
+| -[1+ n] := show of_int' (n + 1 : ℕ) = _, by simp only [of_int', num.zneg_to_znum_neg]
+| 0 := show num.to_znum _ = -num.to_znum _, by rw [num.of_nat'_zero]; refl
+| (n+1 : ℕ) := show num.to_znum_neg _ = -num.to_znum _, by rw [num.zneg_to_znum]; refl
 
-@[norm_cast]
-theorem to_of_int : Π (n : ℤ), (znum.of_int' n : ℤ) = n
-| (n : ℕ) := by rw [znum.of_int', int.cast_coe_nat,
-  ← num.of_nat_to_znum, num.cast_to_znum, ← num.cast_to_nat,
-  int.nat_cast_eq_coe_nat, num.to_of_nat]
-| -[1+ n] := by rw [int.cast_neg_succ_of_nat, cast_zneg,
-  add_one, cast_succ, int.neg_succ_of_nat_eq,
-  ← num.of_nat_to_znum, num.cast_to_znum, ← num.cast_to_nat,
-  int.nat_cast_eq_coe_nat, num.to_of_nat]
+@[simp, norm_cast] theorem of_to_int' : ∀ (n : znum), znum.of_int' n = n
+| 0       := by erw [of_int', num.of_nat'_zero, num.to_znum]
+| (pos a) := by rw [cast_pos, ← pos_num.cast_to_nat, ← num.of_int'_to_znum, pos_num.of_to_nat]; refl
+| (neg a) := by rw [cast_neg, of_int'_neg, ← pos_num.cast_to_nat, ← num.of_int'_to_znum,
+  pos_num.of_to_nat]; refl
 
 theorem to_int_inj {m n : znum} : (m : ℤ) = n ↔ m = n :=
-⟨λ h, function.left_inverse.injective of_to_int h, congr_arg _⟩
-
--- @[simp, norm_cast] theorem of_to_int : Π (n : znum), ((n : ℤ) : znum) = n
--- | 0       := rfl
--- | (pos a) := by rw [cast_pos, ← pos_num.cast_to_nat,
---   int.cast_coe_nat', ← num.of_nat_to_znum, pos_num.of_to_nat]; refl
--- | (neg a) := by rw [cast_neg, neg_of_int, ← pos_num.cast_to_nat,
---   int.cast_coe_nat', ← num.of_nat_to_znum_neg, pos_num.of_to_nat]; refl
-
--- @[norm_cast]
--- theorem to_of_int : Π (n : ℤ), ((n : znum) : ℤ) = n
--- | (n : ℕ) := by rw [int.cast_coe_nat,
---   ← num.of_nat_to_znum, num.cast_to_znum, ← num.cast_to_nat,
---   int.nat_cast_eq_coe_nat, num.to_of_nat]
--- | -[1+ n] := by rw [int.cast_neg_succ_of_nat, cast_zneg,
---   add_one, cast_succ, int.neg_succ_of_nat_eq,
---   ← num.of_nat_to_znum, num.cast_to_znum, ← num.cast_to_nat,
---   int.nat_cast_eq_coe_nat, num.to_of_nat]
-
--- theorem to_int_inj {m n : znum} : (m : ℤ) = n ↔ m = n :=
--- ⟨λ h, function.left_inverse.injective of_to_int h, congr_arg _⟩
-
--- @[simp, norm_cast] theorem of_int_cast [add_group α] [has_one α] (n : ℤ) : ((n : znum) : α) = n :=
--- by rw [← cast_to_int, to_of_int]
-
--- @[simp, norm_cast] theorem of_nat_cast [add_group α] [has_one α] (n : ℕ) : ((n : znum) : α) = n :=
--- of_int_cast n
-
--- @[simp] theorem of_int'_eq : ∀ n, znum.of_int' n = n
--- | (n : ℕ) := to_int_inj.1 $ by simp [znum.of_int']
--- | -[1+ n] := to_int_inj.1 $ by simp [znum.of_int']
+⟨λ h, function.left_inverse.injective of_to_int' h, congr_arg _⟩
 
 theorem cmp_to_int : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℤ) < n) (m = n) ((n:ℤ) < m) : Prop)
 | 0       0       := rfl
@@ -1177,6 +1139,14 @@ instance : add_comm_group znum :=
   neg              := has_neg.neg,
   add_left_neg     := by transfer }
 
+instance : has_nat_cast znum :=
+{ one := 1,
+  nat_cast := λ n, znum.of_int' n,
+  nat_cast_zero := show (num.of_nat' 0).to_znum = 0, by rw num.of_nat'_zero; refl,
+  nat_cast_succ := λ n, show (num.of_nat' (n+1)).to_znum = (num.of_nat' n).to_znum + 1,
+    by rw [num.of_nat'_succ, num.add_one, num.to_znum_succ, znum.add_one],
+  .. znum.add_comm_group }
+
 instance : linear_ordered_comm_ring znum :=
 { mul              := (*),
   mul_assoc        := by transfer,
@@ -1190,7 +1160,41 @@ instance : linear_ordered_comm_ring znum :=
   add_le_add_left  := by {intros a b h c, revert h, transfer_rw, exact λ h, add_le_add_left h c},
   mul_pos          := λ a b, show 0 < a → 0 < b → 0 < a * b, by {transfer_rw, apply mul_pos},
   zero_le_one      := dec_trivial,
-  ..znum.linear_order, ..znum.add_comm_group }
+  ..znum.linear_order, ..znum.add_comm_group, ..znum.has_nat_cast }
+
+@[simp, norm_cast] theorem cast_sub [ring α] (m n) : ((m - n : znum) : α) = m - n :=
+by simp [sub_eq_neg_add]
+
+@[simp, norm_cast] theorem neg_of_int : ∀ n, ((-n : ℤ) : znum) = -n
+| (n+1:ℕ) := rfl
+| 0       := by rw [int.cast_neg, int.cast_zero]
+| -[1+n]  := (zneg_zneg _).symm
+
+@[simp] theorem of_int'_eq : ∀ n : ℤ, znum.of_int' n = n
+| (n : ℕ) := rfl
+| -[1+ n] := begin
+  show num.to_znum_neg (n+1 : ℕ) = -(n+1 : ℕ),
+  rw [← neg_inj, neg_neg, nat.cast_succ, num.add_one, num.zneg_to_znum_neg, num.to_znum_succ,
+    nat.cast_succ, znum.add_one],
+  refl
+end
+
+@[simp] theorem of_nat_to_znum (n : ℕ) : num.to_znum n = n := rfl
+
+@[simp, norm_cast] theorem of_to_int (n : znum) : ((n : ℤ) : znum) = n :=
+by rw [← of_int'_eq, of_to_int']
+
+theorem to_of_int (n : ℤ) : ((n : znum) : ℤ) = n :=
+int.induction_on' n 0 (by simp) (by simp) (by simp)
+
+@[simp] theorem of_nat_to_znum_neg (n : ℕ) : num.to_znum_neg n = -n :=
+by rw [← of_nat_to_znum, num.zneg_to_znum]
+
+@[simp, norm_cast] theorem of_int_cast [add_group_with_one α] (n : ℤ) : ((n : znum) : α) = n :=
+by rw [← cast_to_int, to_of_int]
+
+@[simp, norm_cast] theorem of_nat_cast [add_group_with_one α] (n : ℕ) : ((n : znum) : α) = n :=
+of_int_cast n
 
 @[simp, norm_cast] theorem dvd_to_int (m n : znum) : (m : ℤ) ∣ n ↔ m ∣ n :=
 ⟨λ ⟨k, e⟩, ⟨k, by rw [← of_to_int n, e]; simp⟩,

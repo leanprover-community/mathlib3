@@ -1022,8 +1022,13 @@ theorem zero_lt_star : 0 < star :=
 by rw lt_def; exact
 or.inl ⟨⟨0, zero_lt_one⟩, (by split; rintros ⟨⟩)⟩
 
+/-- The pre-game `((0+1)+⋯)+1`. -/
+def of_nat : ℕ → pgame
+| 0 := 0
+| (n+1) := of_nat n + 1
+
 /-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
-def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
+def omega : pgame := ⟨ulift ℕ, pempty, λ n, of_nat n.1, pempty.elim⟩
 
 theorem zero_lt_one : (0 : pgame) < 1 :=
 begin

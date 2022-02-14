@@ -280,15 +280,6 @@ mk_congr ((equiv.ulift).symm.sum_congr (equiv.ulift).symm)
 @[simp] lemma mk_psum (α : Type u) (β : Type v) : #(psum α β) = lift.{v} (#α) + lift.{u} (#β) :=
 (mk_congr (equiv.psum_equiv_sum α β)).trans (mk_sum α β)
 
-@[simp] lemma mk_fintype (α : Type u) [fintype α] : #α = fintype.card α :=
-begin
-  refine fintype.induction_empty_option' _ _ _ α,
-  { introsI α β h e hα, letI := fintype.of_equiv β e.symm,
-    rwa [mk_congr e, fintype.card_congr e] at hα },
-  { refl },
-  { introsI α h hα, simp [hα] }
-end
-
 instance : has_mul cardinal.{u} := ⟨map₂ prod $ λ α β γ δ, equiv.prod_congr⟩
 
 theorem mul_def (α β : Type u) : #α * #β = #(α × β) := rfl
@@ -350,14 +341,22 @@ induction_on a $ assume α, (equiv.punit_arrow_equiv α).cardinal_eq
 theorem power_add {a b c : cardinal} : a ^ (b + c) = a ^ b * a ^ c :=
 induction_on₃ a b c $ assume α β γ, (equiv.sum_arrow_equiv_prod_arrow β γ α).cardinal_eq
 
+instance : has_nat_cast cardinal.{u} :=
+{ zero          := 0,
+  one           := 1,
+  add           := (+),
+  zero_add      := cardinal.zero_add,
+  add_zero      := assume a, by rw [cardinal.add_comm a 0, cardinal.zero_add a],
+  add_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.sum_assoc α β γ),
+  nat_cast      := λ n, nat.rec_on n 0 (λ _ a, a + 1),
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, rfl }
+
 instance : comm_semiring cardinal.{u} :=
 { zero          := 0,
   one           := 1,
   add           := (+),
   mul           := (*),
-  zero_add      := cardinal.zero_add,
-  add_zero      := assume a, by rw [cardinal.add_comm a 0, cardinal.zero_add a],
-  add_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.sum_assoc α β γ),
   add_comm      := cardinal.add_comm,
   zero_mul      := cardinal.zero_mul,
   mul_zero      := assume a, by rw [cardinal.mul_comm a 0, cardinal.zero_mul a],
@@ -370,7 +369,17 @@ instance : comm_semiring cardinal.{u} :=
     cardinal.mul_comm c a, cardinal.mul_comm c b],
   npow          := λ n c, c ^ n,
   npow_zero'    := @power_zero,
-  npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, cardinal.mul_comm] }
+  npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, cardinal.mul_comm],
+  .. cardinal.has_nat_cast }
+
+@[simp] lemma mk_fintype (α : Type u) [fintype α] : #α = fintype.card α :=
+begin
+  refine fintype.induction_empty_option' _ _ _ α,
+  { introsI α β h e hα, letI := fintype.of_equiv β e.symm,
+    rwa [mk_congr e, fintype.card_congr e] at hα },
+  { refl },
+  { introsI α h hα, simp [hα] }
+end
 
 @[simp] theorem one_power {a : cardinal} : 1 ^ a = 1 :=
 induction_on a $ assume α, (equiv.arrow_punit_equiv_punit α).cardinal_eq

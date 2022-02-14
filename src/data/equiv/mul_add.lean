@@ -420,7 +420,7 @@ lemma Pi_congr_right_trans {η : Type*}
 
 
 /-- A family indexed by a singleton type is equivalent to the element at the default value -/
-@[to_additive add_equiv.Pi_singleton]
+@[to_additive add_equiv.Pi_singleton "A family indexed by a singleton type is equivalent to the element at the default value"]
 def Pi_singleton
   {η : Type*} (M : η → Type*) [Π (j : η), mul_one_class (M j)] [unique η] :
   (Π (j : η), M j) ≃* M default :=

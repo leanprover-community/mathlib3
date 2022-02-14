@@ -427,6 +427,7 @@ end field
 
 end perfect_closure
 
+/-- A field with prime characteristic and surjective frobenius map is perfect. -/
 noncomputable def perfect_ring.of_surjective (k : Type*) [field k] (p : ℕ) [fact p.prime]
   [char_p k p] (h : function.surjective $ frobenius k p) :
   perfect_ring k p :=

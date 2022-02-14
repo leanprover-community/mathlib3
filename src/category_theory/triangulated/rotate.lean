@@ -218,7 +218,7 @@ def from_inv_rotate_rotate (T : triangle C) : inv_rotate.obj (rotate.obj T) ⟶ 
     comm₃' := begin
       dsimp,
       rw [unit_of_tensor_iso_unit_inv_app, ε_app_obj],
-      simp only [ discrete.functor_map_id, nat_trans.id_app, id_comp, assoc, functor.map_comp,
+      simp only [discrete.functor_map_id, nat_trans.id_app, id_comp, assoc, functor.map_comp,
         obj_μ_app, obj_ε_inv_app, comp_id, μ_inv_hom_app_assoc],
       erw [μ_inv_hom_app, μ_inv_hom_app_assoc, category.comp_id]
     end }

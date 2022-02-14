@@ -48,5 +48,16 @@ coe_nodup.2 $ list.nat.nodup_antidiagonal n
   antidiagonal (n + 1) = (0, n + 1) ::ₘ ((antidiagonal n).map (prod.map nat.succ id)) :=
 by simp only [antidiagonal, list.nat.antidiagonal_succ, coe_map, cons_coe]
 
+lemma antidiagonal_succ' {n : ℕ} :
+  antidiagonal (n + 1) = (n + 1, 0) ::ₘ ((antidiagonal n).map (prod.map id nat.succ)) :=
+by rw [antidiagonal, list.nat.antidiagonal_succ', ← coe_add, add_comm, antidiagonal, coe_map,
+  coe_add, list.singleton_append, cons_coe]
+
+lemma antidiagonal_succ_succ' {n : ℕ} :
+  antidiagonal (n + 2) =
+  (0, n + 2) ::ₘ (n + 2, 0) ::ₘ ((antidiagonal n).map (prod.map nat.succ nat.succ)) :=
+by rw [antidiagonal, list.nat.antidiagonal_succ_succ', ← coe_add, add_comm, coe_add,
+  list.singleton_append, cons_swap, antidiagonal, coe_map, cons_coe, cons_coe]
+
 end nat
 end multiset

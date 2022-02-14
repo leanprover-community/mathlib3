@@ -1182,7 +1182,7 @@ by rw (sup_eq_lsub_iff_succ.{u u} (typein o.out.r)).2; rwa lsub_typein o
 
 theorem sup_typein_succ {o : ordinal} : sup.{u u} (typein o.succ.out.r) = o :=
 begin
-  cases sup_eq_lsub_or_succ_sup_eq_lsub.{u u} (typein o.succ.out.r) with h h,
+  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein o.succ.out.r) with h h,
   { rw sup_eq_lsub_iff_succ at h,
     simp only [lsub_typein] at h,
     exact (h o (lt_succ_self o)).false.elim },

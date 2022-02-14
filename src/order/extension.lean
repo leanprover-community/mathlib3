@@ -104,22 +104,22 @@ fin 2 → ℕ
 
 /- s is finer than r, more things are related -/
 @[to_additive]
-def ordered_comm_group.is_finer {α : Type u} (r s : ordered_comm_group α) : Prop :=
+def ordered_cancel_comm_monoid.is_finer {α : Type u} (r s : ordered_cancel_comm_monoid α) : Prop :=
   @has_le.le α (@preorder.to_has_le α
     (@partial_order.to_preorder α
-      (@ordered_comm_group.to_partial_order α r))) ≤
+      (@ordered_cancel_comm_monoid.to_partial_order α r))) ≤
   @has_le.le α (@preorder.to_has_le α
     (@partial_order.to_preorder α
-      (@ordered_comm_group.to_partial_order α s)))
+      (@ordered_cancel_comm_monoid.to_partial_order α s)))
 
 /--
 Any ordered group can be extended to a linear ordered group.
 -/
 @[to_additive]
-theorem extend_ordered_group {α : Type u} [o : ordered_comm_group α]
+theorem extend_ordered_group {α : Type u} [o : ordered_cancel_comm_monoid α]
   (h_norm : ∀ (x y : α), (∃ (n : ℕ) (hn : n ≠ 0), y ^ n ≤ x ^ n) → y ≤ x) : -- fuchs calls this normal
-  ∃ l : linear_ordered_comm_group α, ordered_comm_group.is_finer o
-    (@linear_ordered_comm_group.to_ordered_comm_group α l) :=
+  ∃ l : linear_ordered_cancel_comm_monoid α, ordered_cancel_comm_monoid.is_finer o
+    (@linear_ordered_cancel_comm_monoid.to_ordered_cancel_comm_monoid α l) :=
 begin
   let S := { s | is_partial_order α s ∧
                 (∀ a b c : α, s a b ↔ s (c * a) (c * b)) ∧
@@ -158,7 +158,7 @@ begin
   have inst_refl : is_refl α s := by apply_instance, -- probably dont need to be haveI's
   have inst_trans : is_trans α s := by apply_instance,
   have inst_antisymm : is_antisymm α s := by apply_instance,
-  let t : linear_ordered_comm_group α :=
+  let t : linear_ordered_cancel_comm_monoid α :=
     { le := s,
       le_refl := inst_refl.refl,
       le_trans := inst_trans.trans,
@@ -166,7 +166,8 @@ begin
       le_total := _,
       decidable_le := by apply_instance,
       mul_le_mul_left := λ a b hab c, (hs₁a a _ _).mp hab,
-      ..(@ordered_comm_group.to_comm_group α o)},
+      le_of_mul_le_mul_left := λ a b c, (hs₁a b c a).mpr,
+      ..(@ordered_cancel_comm_monoid.to_cancel_comm_monoid α o)},
   refine ⟨t, rs⟩,
   intros x y,
   change s x y ∨ s y x,

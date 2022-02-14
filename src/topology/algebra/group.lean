@@ -219,6 +219,14 @@ continuous_inv.continuous_at
 lemma tendsto_inv (a : G) : tendsto has_inv.inv (𝓝 a) (𝓝 (a⁻¹)) :=
 continuous_at_inv
 
+/-- Conjugation in a topological group is continuous.-/
+@[to_additive "Conjugation in a topological additive group is continuous."]
+lemma topological_group.continuous_conj (g : G) : continuous (λ (h : G), g * h * g⁻¹) :=
+begin
+  convert continuous.comp (continuous_mul_left g) (continuous_mul_right g⁻¹),
+  { ext h, rw [comp_app, mul_assoc] }
+end
+
 /-- If a function converges to a value in a multiplicative topological group, then its inverse
 converges to the inverse of this value. For the version in normed fields assuming additionally
 that the limit is nonzero, use `tendsto.inv'`. -/
@@ -400,6 +408,40 @@ begin
   simp only [subgroup.topological_closure_coe, subgroup.coe_top, ← dense_iff_closure_eq] at hs ⊢,
   exact hf'.dense_image hf hs
 end
+
+/-- The topological closure of a normal subgroup is normal.-/
+@[to_additive "The topological closure of a normal additive subgroup is normal."]
+lemma subgroup.is_normal_topological_closure {G : Type*} [topological_space G] [group G]
+  [topological_group G] (N : subgroup G) [N.normal] :
+  (subgroup.topological_closure N).normal :=
+{ conj_mem := λ n hn g,
+  begin
+    apply mem_closure_of_continuous (topological_group.continuous_conj g) hn,
+    intros m hm,
+    exact subset_closure (subgroup.normal.conj_mem infer_instance m hm g),
+  end }
+
+/-- The connected component of 1 is a subgroup of `G`. -/
+@[to_additive "The connected component of 0 is a subgroup of `G`."]
+def subgroup.connected_component_of_one (G : Type*) [topological_space G] [group G]
+  [topological_group G] : subgroup G :=
+{ carrier  := connected_component (1 : G),
+  one_mem' := mem_connected_component,
+  mul_mem' := λ g h hg hh,
+  begin
+    rw connected_component_eq hg,
+    have hmul: g ∈ connected_component (g*h),
+    { apply continuous.image_connected_component_subset (continuous_mul_left g),
+      rw ← connected_component_eq hh,
+      exact ⟨(1 : G), mem_connected_component, by simp only [mul_one]⟩, },
+    simpa [← connected_component_eq hmul] using (mem_connected_component)
+  end,
+  inv_mem' := λ g hg,
+  begin
+    rw ← one_inv,
+    exact continuous.image_connected_component_subset continuous_inv _
+      ((set.mem_image _ _ _).mp ⟨g, hg, rfl⟩)
+  end }
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :

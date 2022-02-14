@@ -204,7 +204,7 @@ end
 
 /-- If `is_prime_pow (n : ℕ)`, `n ≠ 2` and `irreducible (cyclotomic n K)` (in particular for
 `K = ℚ`), then the norm of `ζ - 1` is `(n : ℕ).min_fac`. -/
-lemma is_prime_pow_sub_one_norm (hn : is_prime_pow (n : ℕ)) [is_cyclotomic_extension {n} K L]
+lemma sub_one_norm.is_prime_pow (hn : is_prime_pow (n : ℕ)) [is_cyclotomic_extension {n} K L]
   (hirr : irreducible (cyclotomic (n : ℕ) K)) (h : n ≠ 2) :
   norm K (ζ - 1) = (n : ℕ).min_fac :=
 begin

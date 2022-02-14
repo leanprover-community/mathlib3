@@ -140,7 +140,7 @@ section direct_limit
 open module
 
 variables {ι : Type v}
-variables [dec_ι : decidable_eq ι] [directed_order ι]
+variables [dec_ι : decidable_eq ι] [preorder ι]
 variables (G : ι → Type v)
 variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G (λ i j h, f i j h)]
@@ -175,7 +175,8 @@ def direct_limit_cocone : cocone (direct_limit_diagram G f) :=
 /-- The unbundled `direct_limit` of modules is a colimit
 in the sense of `category_theory`. -/
 @[simps]
-def direct_limit_is_colimit [nonempty ι] : is_colimit (direct_limit_cocone G f) :=
+def direct_limit_is_colimit [nonempty ι] [is_directed ι (≤)] :
+  is_colimit (direct_limit_cocone G f) :=
 { desc := λ s, direct_limit.lift R ι G f s.ι.app $ λ i j h x, by { rw [←s.w (hom_of_le h)], refl },
   fac' := λ s i,
   begin

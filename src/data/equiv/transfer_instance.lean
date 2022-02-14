@@ -218,7 +218,7 @@ let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, ne
   sub := e.has_sub in
 by resetI; apply e.injective.comm_ring _; intros; exact e.apply_symm_apply _
 
-/-- Transfer `nonzero` across an `equiv` -/
+/-- Transfer `nontrivial` across an `equiv` -/
 protected theorem nontrivial [nontrivial β] : nontrivial α :=
 e.surjective.nontrivial
 

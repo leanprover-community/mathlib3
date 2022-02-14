@@ -132,6 +132,11 @@ by tidy
 def nat_iso_functor {I : Type u₁} {F : discrete I ⥤ C} : F ≅ discrete.functor (F.obj) :=
 nat_iso $ λ i, iso.refl _
 
+/-- Composing `discrete.functor F` with another functor `G` amounts to composing `F` with `G.obj` -/
+def comp_nat_iso_discrete {I : Type u₁} {D : Type u₂} [category.{v₂} D]
+ (F : I → C) (G : C ⥤ D) : discrete.functor F ⋙ G ≅ discrete.functor (G.obj ∘ F) :=
+nat_iso $ λ i, iso.refl _
+
 /--
 We can promote a type-level `equiv` to
 an equivalence between the corresponding `discrete` categories.

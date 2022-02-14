@@ -183,6 +183,9 @@ card_le_of_subset $ filter_subset _ _
 lemma eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : t.card ≤ s.card) : s = t :=
 eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
 
+lemma map_eq_of_subset {f : α ↪ α} (hs : s.map f ⊆ s) : s.map f = s :=
+eq_of_subset_of_card_le hs (card_map _).ge
+
 lemma filter_card_eq {p : α → Prop} [decidable_pred p] (h : (s.filter p).card = s.card) (x : α)
   (hx : x ∈ s) :
   p x :=
@@ -398,6 +401,24 @@ by { rw ←not_iff_not, push_neg, exact card_le_one }
 
 lemma one_lt_card_iff : 1 < s.card ↔ ∃ a b, a ∈ s ∧ b ∈ s ∧ a ≠ b :=
 by { rw one_lt_card, simp only [exists_prop, exists_and_distrib_left] }
+
+lemma two_lt_card_iff : 2 < s.card ↔ ∃ a b c, a ∈ s ∧ b ∈ s ∧ c ∈ s ∧ a ≠ b ∧ a ≠ c ∧ b ≠ c :=
+begin
+  classical,
+  refine ⟨λ h, _, _⟩,
+  { obtain ⟨c, hc⟩ := card_pos.mp (zero_lt_two.trans h),
+    have : 1 < (s.erase c).card := by rwa [←add_lt_add_iff_right 1, card_erase_add_one hc],
+    obtain ⟨a, b, ha, hb, hab⟩ := one_lt_card_iff.mp this,
+    exact ⟨a, b, c, mem_of_mem_erase ha, mem_of_mem_erase hb, hc,
+      hab, ne_of_mem_erase ha, ne_of_mem_erase hb⟩ },
+  { rintros ⟨a, b, c, ha, hb, hc, hab, hac, hbc⟩,
+    rw [←card_erase_add_one hc, ←card_erase_add_one (mem_erase_of_ne_of_mem hbc hb),
+        ←card_erase_add_one (mem_erase_of_ne_of_mem hab (mem_erase_of_ne_of_mem hac ha))],
+    apply nat.le_add_left },
+end
+
+lemma two_lt_card : 2 < s.card ↔ ∃ (a ∈ s) (b ∈ s) (c ∈ s), a ≠ b ∧ a ≠ c ∧ b ≠ c :=
+by simp_rw [two_lt_card_iff, exists_prop, exists_and_distrib_left]
 
 lemma exists_ne_of_one_lt_card (hs : 1 < s.card) (a : α) : ∃ b, b ∈ s ∧ b ≠ a :=
 begin

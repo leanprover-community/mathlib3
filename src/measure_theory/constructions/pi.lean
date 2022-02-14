@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.constructions.prod
+import measure_theory.group.measure
 
 /-!
 # Product measures
@@ -124,7 +125,7 @@ lemma generate_from_eq_pi [h : Π i, measurable_space (α i)]
   generate_from (pi univ '' pi univ C) = measurable_space.pi :=
 by rw [← funext hC, generate_from_pi_eq h2C]
 
-/-- The product σ-algebra is generated from boxes, i.e. `s.prod t` for sets `s : set α` and
+/-- The product σ-algebra is generated from boxes, i.e. `s ×ˢ t` for sets `s : set α` and
   `t : set β`. -/
 lemma generate_from_pi [Π i, measurable_space (α i)] :
   generate_from (pi univ '' pi univ (λ i, { s : set (α i) | measurable_set s})) =
@@ -509,7 +510,7 @@ lemma map_pi_equiv_pi_subtype_prod_symm (p : ι → Prop) [decidable_pred p] :
 begin
   refine (measure.pi_eq (λ s hs, _)).symm,
   have A : (equiv.pi_equiv_pi_subtype_prod p α).symm ⁻¹' (set.pi set.univ (λ (i : ι), s i)) =
-    set.prod (set.pi set.univ (λ i, s i)) (set.pi set.univ (λ i, s i)),
+    (set.pi set.univ (λ i : {i // p i}, s i)) ×ˢ (set.pi set.univ (λ i : {i // ¬p i}, s i)),
   { ext x,
     simp only [equiv.pi_equiv_pi_subtype_prod_symm_apply, mem_prod, mem_univ_pi, mem_preimage,
       subtype.forall],
@@ -534,6 +535,18 @@ begin
   simp only [equiv.self_comp_symm, map_id]
 end
 
+@[to_additive] instance pi.is_mul_left_invariant [∀ i, group (α i)] [∀ i, has_measurable_mul (α i)]
+  [∀ i, is_mul_left_invariant (μ i)] : is_mul_left_invariant (measure.pi μ) :=
+begin
+  refine ⟨λ x, (measure.pi_eq (λ s hs, _)).symm⟩,
+  have A : has_mul.mul x ⁻¹' (set.pi univ (λ (i : ι), s i))
+    = set.pi univ (λ (i : ι), ((*) (x i)) ⁻¹' (s i)), by { ext, simp },
+  rw [measure.map_apply (measurable_const_mul x) (measurable_set.univ_pi_fintype hs), A,
+      pi_pi],
+  simp only [measure_preimage_mul]
+end
+
+
 end measure
 instance measure_space.pi [Π i, measure_space (α i)] : measure_space (Π i, α i) :=
 ⟨measure.pi (λ i, volume)⟩
@@ -556,6 +569,14 @@ lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (v
   [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
   volume (metric.closed_ball x r) = ∏ i, volume (metric.closed_ball (x i) r) :=
 measure.pi_closed_ball _ _ hr
+
+open measure
+@[to_additive]
+instance pi.is_mul_left_invariant_volume [∀ i, group (α i)] [Π i, measure_space (α i)]
+  [∀ i, sigma_finite (volume : measure (α i))]
+  [∀ i, has_measurable_mul (α i)] [∀ i, is_mul_left_invariant (volume : measure (α i))] :
+  is_mul_left_invariant (volume : measure (Π i, α i)) :=
+pi.is_mul_left_invariant _
 
 /-!
 ### Measure preserving equivalences

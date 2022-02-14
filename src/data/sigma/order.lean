@@ -33,7 +33,7 @@ Related files are:
 
 ## TODO
 
-Prove that a sigma type is a `no_top_order`, `no_bot_order`, `densely_ordered` when its summands
+Prove that a sigma type is a `no_max_order`, `no_min_order`, `densely_ordered` when its summands
 are.
 
 Upgrade `equiv.sigma_congr_left`, `equiv.sigma_congr`, `equiv.sigma_assoc`,
@@ -49,7 +49,42 @@ variables {ι : Type*} {α : ι → Type*}
 inductive le [Π i, has_le (α i)] : Π a b : Σ i, α i, Prop
 | fiber (i : ι) (a b : α i) : a ≤ b → le ⟨i, a⟩ ⟨i, b⟩
 
+/-- Disjoint sum of orders. `⟨i, a⟩ < ⟨j, b⟩` iff `i = j` and `a < b`. -/
+inductive lt [Π i, has_lt (α i)] : Π a b : Σ i, α i, Prop
+| fiber (i : ι) (a b : α i) : a < b → lt ⟨i, a⟩ ⟨i, b⟩
+
 instance [Π i, has_le (α i)] : has_le (Σ i, α i) := ⟨le⟩
+instance [Π i, has_lt (α i)] : has_lt (Σ i, α i) := ⟨lt⟩
+
+@[simp] lemma mk_le_mk_iff [Π i, has_le (α i)] {i : ι} {a b : α i} :
+  (⟨i, a⟩ : sigma α) ≤ ⟨i, b⟩ ↔ a ≤ b :=
+⟨λ ⟨_, _, _, h⟩, h, le.fiber _ _ _⟩
+
+@[simp] lemma mk_lt_mk_iff [Π i, has_lt (α i)] {i : ι} {a b : α i} :
+  (⟨i, a⟩ : sigma α) < ⟨i, b⟩ ↔ a < b :=
+⟨λ ⟨_, _, _, h⟩, h, lt.fiber _ _ _⟩
+
+lemma le_def [Π i, has_le (α i)] {a b : Σ i, α i} : a ≤ b ↔ ∃ h : a.1 = b.1, h.rec a.2 ≤ b.2 :=
+begin
+  split,
+  { rintro ⟨i, a, b, h⟩,
+    exact ⟨rfl, h⟩ },
+  { obtain ⟨i, a⟩ := a,
+    obtain ⟨j, b⟩ := b,
+    rintro ⟨(rfl : i = j), h⟩,
+    exact le.fiber _ _ _ h }
+end
+
+lemma lt_def [Π i, has_lt (α i)] {a b : Σ i, α i} : a < b ↔ ∃ h : a.1 = b.1, h.rec a.2 < b.2 :=
+begin
+  split,
+  { rintro ⟨i, a, b, h⟩,
+    exact ⟨rfl, h⟩ },
+  { obtain ⟨i, a⟩ := a,
+    obtain ⟨j, b⟩ := b,
+    rintro ⟨(rfl : i = j), h⟩,
+    exact lt.fiber _ _ _ h }
+end
 
 instance [Π i, preorder (α i)] : preorder (Σ i, α i) :=
 { le_refl := λ ⟨i, a⟩, le.fiber i a a le_rfl,
@@ -57,7 +92,16 @@ instance [Π i, preorder (α i)] : preorder (Σ i, α i) :=
     rintro _ _ _ ⟨i, a, b, hab⟩ ⟨_, _, c, hbc⟩,
     exact le.fiber i a c (hab.trans hbc),
   end,
-  .. sigma.has_le }
+  lt_iff_le_not_le := λ _ _, begin
+    split,
+    { rintro ⟨i, a, b, hab⟩,
+      rwa [mk_le_mk_iff, mk_le_mk_iff, ←lt_iff_le_not_le] },
+    { rintro ⟨⟨i, a, b, hab⟩, h⟩,
+      rw mk_le_mk_iff at h,
+      exact mk_lt_mk_iff.2 (hab.lt_of_not_le h) }
+  end,
+  .. sigma.has_le,
+  .. sigma.has_lt }
 
 instance [Π i, partial_order (α i)] : partial_order (Σ i, α i) :=
 { le_antisymm := begin

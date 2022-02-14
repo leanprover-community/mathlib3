@@ -219,6 +219,15 @@ def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
 
 @[simp] lemma conj_ae_coe : ⇑conj_ae = conj := rfl
 
+/-- The matrix representation of `conj_ae`. -/
+@[simp] lemma to_matrix_conj_ae :
+  linear_map.to_matrix basis_one_I basis_one_I conj_ae.to_linear_map = ![![1, 0], ![0, -1]] :=
+begin
+  ext i j,
+  simp [linear_map.to_matrix_apply],
+  fin_cases i; fin_cases j; simp
+end
+
 section lift
 
 variables {A : Type*} [ring A] [algebra ℝ A]

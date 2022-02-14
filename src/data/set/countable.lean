@@ -221,7 +221,7 @@ trunc.induction_on this $ assume h,
 @countable_range _ _ h _
 
 protected lemma countable.prod {s : set α} {t : set β} (hs : countable s) (ht : countable t) :
-  countable (set.prod s t) :=
+  countable (s ×ˢ t) :=
 begin
   haveI : encodable s := hs.to_encodable,
   haveI : encodable t := ht.to_encodable,

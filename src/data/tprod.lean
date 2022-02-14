@@ -122,7 +122,7 @@ open list
 /-- A product of sets in `tprod α l`. -/
 @[simp] protected def tprod : ∀ (l : list ι) (t : Π i, set (α i)), set (tprod α l)
 | []        t := univ
-| (i :: is) t := (t i).prod (tprod is t)
+| (i :: is) t := t i ×ˢ tprod is t
 
 lemma mk_preimage_tprod : ∀ (l : list ι) (t : Π i, set (α i)),
   tprod.mk l ⁻¹' set.tprod l t = {i | i ∈ l}.pi t

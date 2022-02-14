@@ -101,7 +101,7 @@ lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t �
 set.eq_preimage_iff_image_eq e.bijective
 
 lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
-  equiv.prod_assoc α β γ ⁻¹' s.prod (t.prod u) = (s.prod t).prod u :=
+  equiv.prod_assoc α β γ ⁻¹' (s ×ˢ (t ×ˢ u)) = (s ×ˢ t) ×ˢ u :=
 by { ext, simp [and_assoc] }
 
 /-- A set `s` in `α × β` is equivalent to the sigma-type `Σ x, {y | (x, y) ∈ s}`. -/
@@ -338,7 +338,7 @@ protected def compl {α : Type u} {β : Type v} {s : set α} {t : set β} [decid
 
 /-- The set product of two sets is equivalent to the type product of their coercions to types. -/
 protected def prod {α β} (s : set α) (t : set β) :
-  s.prod t ≃ s × t :=
+  ↥(s ×ˢ t) ≃ s × t :=
 @subtype_prod_equiv_prod α β s t
 
 /-- If a function `f` is injective on a set `s`, then `s` is equivalent to `f '' s`. -/
@@ -478,7 +478,7 @@ by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
 end equiv
 
 /-- If a function is a bijection between two sets `s` and `t`, then it induces an
-equivalence between the types `↥s` and ``↥t`. -/
+equivalence between the types `↥s` and `↥t`. -/
 noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set α} {t : set β} (f : α → β)
   (h : set.bij_on f s t) : s ≃ t :=
 equiv.of_bijective _ h.bijective
@@ -498,8 +498,7 @@ begin
         function.update_apply, function.update_apply,
         dif_pos h],
     have h_coe : (⟨i, h⟩ : s) = e j ↔ i = e j := subtype.ext_iff.trans (by rw subtype.coe_mk),
-    simp_rw h_coe,
-    congr, },
+    simp_rw h_coe },
   { have : i ≠ e j,
       by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
     simp [h, this] }

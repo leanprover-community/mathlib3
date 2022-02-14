@@ -3,18 +3,18 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import measure_theory.function.ae_measurable_sequence
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
+import measure_theory.function.ae_measurable_sequence
 import measure_theory.group.arithmetic
 import measure_theory.lattice
 import measure_theory.measure.open_pos
-import topology.algebra.ordered.liminf_limsup
+import topology.algebra.order.liminf_limsup
 import topology.continuous_function.basic
 import topology.instances.ereal
 import topology.G_delta
-import topology.semicontinuous
 import topology.order.lattice
+import topology.semicontinuous
 
 /-!
 # Borel (measurable) space

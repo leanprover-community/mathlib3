@@ -70,4 +70,22 @@ rfl
   (whiskering_right _ _ _).obj (forget₂ (Module.{v} R) AddCommGroup.{v}) = preadditive_coyoneda :=
 rfl
 
+instance linear_yoneda_full : full (linear_yoneda R C) :=
+let yoneda_full : full (linear_yoneda R C ⋙
+  (whiskering_right _ _ _).obj (forget (Module.{v} R))) := yoneda.yoneda_full in
+by exactI full.of_comp_faithful (linear_yoneda R C)
+  (((whiskering_right _ _ _)).obj (forget (Module.{v} R)))
+
+instance linear_coyoneda_full : full (linear_coyoneda R C) :=
+let coyoneda_full : full (linear_coyoneda R C ⋙
+  (whiskering_right _ _ _).obj (forget (Module.{v} R))) := coyoneda.coyoneda_full in
+by exactI full.of_comp_faithful (linear_coyoneda R C)
+  (((whiskering_right _ _ _)).obj (forget (Module.{v} R)))
+
+instance linear_yoneda_faithful : faithful (linear_yoneda R C) :=
+faithful.of_comp_eq (whiskering_linear_yoneda R C)
+
+instance linear_coyoneda_faithful : faithful (linear_coyoneda R C) :=
+faithful.of_comp_eq (whiskering_linear_coyoneda R C)
+
 end category_theory

@@ -1510,8 +1510,9 @@ end dfinsupp
 
 /-! ### Product and sum lemmas for bundled morphisms.
 
-In this section, we provide analogues of `add_monoid_hom.map_sum`, `add_monoid_hom.coe_sum`, and
-`add_monoid_hom.sum_apply` for `dfinsupp.sum` and `dfinsupp.sum_add_hom` instead of `finset.sum`.
+In this section, we provide analogues of `add_monoid_hom.map_sum`, `add_monoid_hom.coe_finset_sum`,
+and `add_monoid_hom.finset_sum_apply` for `dfinsupp.sum` and `dfinsupp.sum_add_hom` instead of
+`finset.sum`.
 
 We provide these for `add_monoid_hom`, `monoid_hom`, `ring_hom`, `add_equiv`, and `mul_equiv`.
 
@@ -1533,7 +1534,7 @@ lemma map_dfinsupp_prod [comm_monoid R] [comm_monoid S]
 @[to_additive]
 lemma coe_dfinsupp_prod [monoid R] [comm_monoid S]
   (f : Π₀ i, β i) (g : Π i, β i → R →* S) :
-  ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_prod _ _
+  ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_finset_prod _ _
 
 @[simp, to_additive]
 lemma dfinsupp_prod_apply [monoid R] [comm_monoid S]

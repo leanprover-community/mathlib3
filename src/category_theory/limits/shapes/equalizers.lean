@@ -632,6 +632,14 @@ lemma is_iso_limit_cone_parallel_pair_of_epi {c : cone (parallel_pair f g)}
   (h : is_limit c) [epi (c.π.app zero)] : is_iso (c.π.app zero) :=
 is_iso_limit_cone_parallel_pair_of_eq ((cancel_epi _).1 (fork.condition c)) h
 
+/-- Two morphisms are equal if there is a fork whose inclusion is epi. -/
+lemma eq_of_epi_fork_ι (t : fork f g) [epi (fork.ι t)] : f = g :=
+(cancel_epi (fork.ι t)).1 $ fork.condition t
+
+/-- If the equalizer of two morphisms is an epimorphism, then the two morphisms are equal. -/
+lemma eq_of_epi_equalizer [has_equalizer f g] [epi (equalizer.ι f g)] : f = g :=
+(cancel_epi (equalizer.ι f g)).1 $ equalizer.condition _ _
+
 end
 
 instance has_equalizer_of_self : has_equalizer f f :=
@@ -769,6 +777,14 @@ is_iso_colimit_cocone_parallel_pair_of_eq rfl h
 lemma is_iso_limit_cocone_parallel_pair_of_epi {c : cocone (parallel_pair f g)}
   (h : is_colimit c) [mono (c.ι.app one)] : is_iso (c.ι.app one) :=
 is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c)) h
+
+/-- Two morphisms are equal if there is a cofork whose projection is mono. -/
+lemma eq_of_mono_cofork_π (t : cofork f g) [mono (cofork.π t)] : f = g :=
+(cancel_mono (cofork.π t)).1 $ cofork.condition t
+
+/-- If the coequalizer of two morphisms is a monomorphism, then the two morphisms are equal. -/
+lemma eq_of_mono_coequalizer [has_coequalizer f g] [mono (coequalizer.π f g)] : f = g :=
+(cancel_mono (coequalizer.π f g)).1 $ coequalizer.condition _ _
 
 end
 

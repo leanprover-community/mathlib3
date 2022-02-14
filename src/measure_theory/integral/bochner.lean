@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import measure_theory.integral.set_to_l1
-import measure_theory.group.basic
 import analysis.normed_space.bounded_linear_maps
 import topology.sequences
 
@@ -1295,53 +1294,6 @@ calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
 end properties
-
-section group
-
-variables {G : Type*} [measurable_space G] [group G] [has_measurable_mul G]
-variables {μ : measure G}
-
-open measure
-
-/-- Translating a function by left-multiplication does not change its integral with respect to a
-left-invariant measure. -/
-@[to_additive]
-lemma integral_mul_left_eq_self [is_mul_left_invariant μ] (f : G → E) (g : G) :
-  ∫ x, f (g * x) ∂μ = ∫ x, f x ∂μ :=
-begin
-  have h_mul : measurable_embedding (λ x, g * x) :=
-    (measurable_equiv.mul_left g).measurable_embedding,
-  rw [← h_mul.integral_map, map_mul_left_eq_self]
-end
-
-/-- Translating a function by right-multiplication does not change its integral with respect to a
-right-invariant measure. -/
-@[to_additive]
-lemma integral_mul_right_eq_self [is_mul_right_invariant μ] (f : G → E) (g : G) :
-  ∫ x, f (x * g) ∂μ = ∫ x, f x ∂μ :=
-begin
-  have h_mul : measurable_embedding (λ x, x * g) :=
-    (measurable_equiv.mul_right g).measurable_embedding,
-  rw [← h_mul.integral_map, map_mul_right_eq_self]
-end
-
-/-- If some left-translate of a function negates it, then the integral of the function with respect
-to a left-invariant measure is 0. -/
-@[to_additive]
-lemma integral_zero_of_mul_left_eq_neg [is_mul_left_invariant μ] {f : G → E} {g : G}
-  (hf' : ∀ x, f (g * x) = - f x) :
-  ∫ x, f x ∂μ = 0 :=
-by { refine eq_zero_of_eq_neg ℝ _, simp_rw [← integral_neg, ← hf', integral_mul_left_eq_self] }
-
-/-- If some right-translate of a function negates it, then the integral of the function with respect
-to a right-invariant measure is 0. -/
-@[to_additive]
-lemma integral_zero_of_mul_right_eq_neg [is_mul_right_invariant μ] {f : G → E} {g : G}
-  (hf' : ∀ x, f (x * g) = - f x) :
-  ∫ x, f x ∂μ = 0 :=
-by { refine eq_zero_of_eq_neg ℝ _, simp_rw [← integral_neg, ← hf', integral_mul_right_eq_self] }
-
-end group
 
 mk_simp_attribute integral_simps "Simp set for integral rules."
 

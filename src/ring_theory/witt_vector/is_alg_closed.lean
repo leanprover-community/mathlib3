@@ -28,6 +28,8 @@ polynomial equation in `k`. We must define these as generic polynomials using Wi
 
 This construction is described in Dupuis, Lewis, and Macbeth,
 [Formalized functional analysis via semilinear maps][dupuis-lewis-macbeth2022].
+We approximately follow an approach sketched on MathOverflow:
+<https://mathoverflow.net/questions/62468/about-frobenius-of-witt-vectors>
 -/
 
 noncomputable theory

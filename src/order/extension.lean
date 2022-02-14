@@ -102,25 +102,27 @@ fin 2 → ℕ
 -/
 
 /- s is finer than r, more things are related -/
-def is_finer {α : Type u} (r s : ordered_add_comm_group α) : Prop :=
+@[to_additive]
+def ordered_comm_group.is_finer {α : Type u} (r s : ordered_comm_group α) : Prop :=
   @has_le.le α (@preorder.to_has_le α
     (@partial_order.to_preorder α
-      (@ordered_add_comm_group.to_partial_order α r))) ≤
+      (@ordered_comm_group.to_partial_order α r))) ≤
   @has_le.le α (@preorder.to_has_le α
     (@partial_order.to_preorder α
-      (@ordered_add_comm_group.to_partial_order α s)))
+      (@ordered_comm_group.to_partial_order α s)))
 
 /--
 Any ordered group can be extended to a linear ordered group.
 -/
-theorem extend_ordered_group {α : Type u} [o : ordered_add_comm_group α]
-  (h_norm : ∀ (x : α), (∃ (n : ℕ) (hn : n ≠ 0), 0 ≤ n • x) → 0 ≤ x) : -- fuchs calls this normal
-  ∃ l : linear_ordered_add_comm_group α, is_finer o
-    (@linear_ordered_add_comm_group.to_ordered_add_comm_group α l) :=
+@[to_additive]
+theorem extend_ordered_group {α : Type u} [o : ordered_comm_group α]
+  (h_norm : ∀ (x : α), (∃ (n : ℕ) (hn : n ≠ 0), 1 ≤ x ^ n) → 1 ≤ x) : -- fuchs calls this normal
+  ∃ l : linear_ordered_comm_group α, ordered_comm_group.is_finer o
+    (@linear_ordered_comm_group.to_ordered_comm_group α l) :=
 begin
   let S := { s | is_partial_order α s ∧
-                (∀ a b : α, s a b → ∀ c : α, s (c + a) (c + b)) ∧
-                ∀ x, (∃ (n : ℕ) (hn : n ≠ 0), s 0 (n • x)) → s 0 x },
+                (∀ a b : α, s a b → ∀ c : α, s (c * a) (c * b)) ∧
+                ∀ x, (∃ (n : ℕ) (hn : n ≠ 0), s 1 (x ^ n)) → s 1 x },
   have hS : ∀ c, c ⊆ S → zorn.chain (≤) c → ∀ y ∈ c, ∃ ub ∈ S, ∀ z ∈ c, z ≤ ub,
   { rintro c hc₁ hc₂ s hs,
     haveI := (hc₁ hs).1.1,
@@ -146,52 +148,52 @@ begin
     { rintro x ⟨n, hn, r, hr₁, hr₂⟩,
       use [r, hr₁, (hc₁ hr₁).2.2 _ ⟨n, hn, hr₂⟩], }, },
   obtain ⟨s, ⟨hs₁, hs₁a, hs₁b⟩, rs, hs₂⟩ := zorn.zorn_nonempty_partial_order₀ S hS (≤)
-    ⟨is_partial_order.mk, o.add_le_add_left, h_norm⟩,
+    ⟨is_partial_order.mk, o.mul_le_mul_left, h_norm⟩,
   resetI,
   have inst_refl : is_refl α s := by apply_instance, -- probably dont need to be haveI's
   have inst_trans : is_trans α s := by apply_instance,
   have inst_antisymm : is_antisymm α s := by apply_instance,
-  let t : linear_ordered_add_comm_group α :=
+  let t : linear_ordered_comm_group α :=
     { le := s,
       le_refl := inst_refl.refl,
       le_trans := inst_trans.trans,
       le_antisymm := inst_antisymm.antisymm,
       le_total := _,
       decidable_le := by apply_instance,
-      add_le_add_left := hs₁a,
-      ..(@ordered_add_comm_group.to_add_comm_group α o)},
+      mul_le_mul_left := hs₁a,
+      ..(@ordered_comm_group.to_comm_group α o)},
   refine ⟨t, rs⟩,
   intros x y,
   change s x y ∨ s y x,
   by_contra h,
-  let s' := λ x' y', ∃ p q (hpq : p ≠ 0 ∨ q ≠ 0), s (q • (y - x)) (p • (y' - x')), -- s x' y' ∨ s x' x ∧ s y y',
+  let s' := λ x' y', ∃ p q (hpq : p ≠ 0 ∨ q ≠ 0), s ((y / x) ^ q) ((y' / x') ^ p), -- s x' y' ∨ s x' x ∧ s y y',
   have hfine : s ≤ s',
   { intros a b h, --finer
     use [1, 0],
     simp only [ne.def, nat.one_ne_zero, not_false_iff, eq_self_iff_true, not_true,
       or_false, zero_smul, one_nsmul, true_and],
-    convert hs₁a _ _ h (-a),
-    simp only [add_left_neg],
-    exact sub_eq_neg_add b a, },
-  have hp : ∀ (x') (y') {p q} (hpq : p ≠ 0 ∨ q ≠ 0) (hs' : s (q • (y - x)) (p • (y' - x'))), p ≠ 0,
+    convert hs₁a _ _ h a⁻¹,
+    { simp only [pow_zero, mul_left_inv], },
+    { simp only [pow_one, div_eq_inv_mul' b a], }, },
+  have hp : ∀ (x') (y') {p q} (hpq : p ≠ 0 ∨ q ≠ 0) (hs' : s ((y / x) ^ q) ((y' / x') ^ p)), p ≠ 0,
   { rintro x' y' p q (hpq | hpq) hs',
     assumption,
     intro hp,
     apply h,
     right,
-    rw [hp, zero_smul] at hs',
-    have : s 0 (q • (x - y)),
-    { have : s (q • (x - y) + q • (y - x)) (q • (x - y) + 0) := hs₁a _ _ hs' _,
-      simpa [← smul_add], },
-    have : s (y + 0) (y + (x - y)) := hs₁a _ _ (hs₁b _ ⟨_, hpq, this⟩) y,
+    rw [hp, pow_zero] at hs',
+    have : s 1 ((x / y) ^ q),
+    { have : s ((x / y) ^ q * (y / x) ^ q) ((x / y) ^ q * 1) := hs₁a _ _ hs' _,
+      simpa [← mul_pow], },
+    have : s (y * 1) (y * (x / y)) := hs₁a _ _ (hs₁b _ ⟨_, hpq, this⟩) y,
     simpa, },
   rw ← hs₂ s' _ hfine at h,
   { exact h (or.inl ⟨1, 1, by simp, refl _⟩) }, -- case α ????    v) in Nakada
   { have key : ∀ (a b c : α) (pab qab : ℕ) (habn : pab ≠ 0 ∨ qab ≠ 0)
-      (hab : s (qab • (y - x)) (pab • (b - a))) (pbc qbc : ℕ) (hbcn : pbc ≠ 0 ∨ qbc ≠ 0)
-      (hbc : s (qbc • (y - x)) (pbc • (c - b))),
+      (hab : s ((y / x) ^ qab) ((b / a) ^ pab)) (pbc qbc : ℕ) (hbcn : pbc ≠ 0 ∨ qbc ≠ 0)
+      (hbc : s ((y / x) ^ qbc) ((c / b) ^ pbc)),
       (pab * pbc ≠ 0 ∨ qab * pbc + qbc * pab ≠ 0) ∧
-      s ((qab * pbc + qbc * pab) • (y - x)) ((pab * pbc) • (c - a)),
+      s ((y / x) ^ (qab * pbc + qbc * pab)) ((c / a) ^ (pab * pbc)),
     { intros a b c pab qab habn hab pbc qbc hbcn hbc,
       have habp : pab ≠ 0 := hp _ _ habn hab,
       have hbcp : pbc ≠ 0 := hp _ _ hbcn hbc,
@@ -200,30 +202,30 @@ begin
         intro hprod,
         rw [nat.mul_eq_zero] at hprod,
         tauto, },
-      rw [← sub_add_sub_cancel' b a c, smul_add, add_smul],
-      have : ∀ (l k : α) (n : ℕ), s k l → s (n • k) (n • l),
+      rw [← div_mul_div_cancel'' b a c, pow_add, mul_pow],
+      have : ∀ (l k : α) (n : ℕ), s k l → s (k ^ n) (l ^ n),
       { intros l k n hlk,
         induction n,
-        { rw [zero_smul, zero_smul],
+        { rw [pow_zero, pow_zero],
           exact refl _, },
-        { simp only [nat.succ_eq_add_one, add_smul, one_nsmul],
-          apply trans (_ : s (n_n • k + k) (n_n • l + k)),
+        { simp only [nat.succ_eq_add_one, pow_add, pow_one],
+          apply trans (_ : s (k ^ n_n * k) (l ^ n_n * k)),
           apply hs₁a,
           assumption,
-          rw [add_comm _ k, add_comm _ k],
+          rw [mul_comm _ k, mul_comm _ k],
           apply hs₁a,
           assumption, }, },
-      apply trans (_ : s ((qab * pbc) • (y - x) + (qbc * pab) • (y - x))
-                         ((qab * pbc) • (y - x) + (pab * pbc) • (c - b))),
-      { rw [add_comm _ ((pab * pbc) • (c - b)), add_comm _ ((pab * pbc) • (c - b))],
+      apply trans (_ : s ((y / x) ^ (qab * pbc) * (y / x) ^ (qbc * pab))
+                         ((y / x) ^ (qab * pbc) * (c / b) ^ (pab * pbc))),
+      { rw [mul_comm _ ((c / b) ^ (pab * pbc)), mul_comm _ ((c / b) ^ (pab * pbc))],
         apply hs₁a,
         convert this _ _ pbc hab using 1,
-        { rw [mul_smul, smul_comm], },
-        { rw [mul_smul, smul_comm], }, },
+        { rw [pow_mul], },
+        { rw [pow_mul], }, },
       { apply hs₁a,
         convert this _ _ pab hbc using 1,
-        { rw [mul_smul, smul_comm], },
-        { rw [mul_smul, smul_comm], }, }, },
+        { rw [pow_mul], },
+        { rw [pow_mul'], }, }, },
     have trans : ∀ (a b c : α), s' a b → s' b c → s' a c,
     { rintro a b c ⟨pab, qab, habn, hab⟩ ⟨pbc, qbc, hbcn, hbc⟩,
       use [pab * pbc, qab * pbc + qbc * pab],
@@ -237,11 +239,11 @@ begin
       have hpabn := hp _ _ habn hab,
       have hqabn := hp _ _ hban hba,
       obtain ⟨keyl, keyr⟩ := key a b a pab qab habn hab pba qba hban hba,
-      simp only [sub_self, smul_zero] at keyr,
-      have : s 0 ((qab * pba + qba * pab) • (x - y)),
-      { simpa [← smul_add] using hs₁a _ _ keyr ((qab * pba + qba * pab) • (x - y)), },
+      simp only [div_self', one_pow] at keyr,
+      have : s 1 ((x / y) ^ (qab * pba + qba * pab)),
+      { simpa [← mul_pow] using hs₁a _ _ keyr ((x / y) ^ (qab * pba + qba * pab)), },
       by_cases hqs : qab = 0 ∧ qba = 0,
-      { simp only [hqs, zero_smul] at hab hba,
+      { simp only [hqs, pow_zero] at hab hba,
         apply antisymm (_ : s a b),
         { have := hs₁b _ ⟨_, _, hba⟩,
           simpa using hs₁a _ _ this b,
@@ -250,9 +252,9 @@ begin
           simpa using hs₁a _ _ this a,
           tauto, }, },
       exfalso,
-      have : s 0 (x - y) := hs₁b _ ⟨_, _, this⟩,
+      have : s 1 (x / y) := hs₁b _ ⟨_, _, this⟩,
       have := hs₁a _ _ this y,
-      simp only [add_zero, add_sub_cancel'_right] at this,
+      simp only [mul_one, mul_div_cancel'_right] at this,
       tauto,
       intro hz,
       simp only [add_eq_zero_iff, nat.mul_eq_zero] at hz,
@@ -266,11 +268,11 @@ begin
       { left,
         simp only [hnn, ne.def, nat.mul_eq_zero, or_false],
         exact hp _ _ han ha, },
-      simpa [mul_smul] using ha, }, },
+      simpa [pow_mul'] using ha, }, },
 end
 
 
--- def linear_extension (α : Type u) : Type u := α
+def linear_group_extension (α : Type u) : Type u := α
 
 -- noncomputable instance {α : Type u} [partial_order α] : linear_order (linear_extension α) :=
 -- { le := (extend_partial_order ((≤) : α → α → Prop)).some,

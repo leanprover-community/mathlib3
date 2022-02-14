@@ -9,6 +9,8 @@ import ring_theory.witt_vector.is_alg_closed
 /-!
 ## F-isocrystals over a perfect field
 
+TODO: better docs!
+
 https://www.math.ias.edu/~lurie/205notes/Lecture26-Isocrystals.pdf
 
 This construction is described in Dupuis, Lewis, and Macbeth,
@@ -109,7 +111,7 @@ variables [is_domain k] [char_p k p] [perfect_ring k p]
 /-- The standard one-dimensional isocrystal is an isocrystal. -/
 instance (m : ℤ) : isocrystal p k (standard_one_dim_isocrystal p k m) :=
 { frob := (foo₀ p k).to_semilinear_equiv.trans
-            (linear_equiv.smul_of_ne_zero _ _ _ (zpow_ne_zero m (witt_vector.p_nonzero' p k))) }
+   (linear_equiv.smul_of_ne_zero _ _ _ (zpow_ne_zero m (witt_vector.fraction_ring.p_nonzero p k))) }
 
 @[simp] lemma frobenius_standard_one_dim_isocrystal_apply (m : ℤ)
   (x : standard_one_dim_isocrystal p k m) :

@@ -41,7 +41,7 @@ instance {ι : Type*} {Z : ι → Type*} [∀ i, canonically_ordered_monoid (Z i
       { ext i,
         exact (le_iff_exists_mul.mp (w i)).some_spec, }, },
     { rintro ⟨h, rfl⟩,
-      exact λ i, le_mul_right (le_refl _), },
+      exact λ i, le_mul_right le_rfl, },
   end,
   ..pi.order_bot,
   ..pi.ordered_comm_monoid, }

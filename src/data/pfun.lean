@@ -21,8 +21,11 @@ This file defines partial functions. Partial functions are like functions, excep
 * `pfun.fn`: Evaluation of a partial function. Takes in an element and a proof it belongs to the
   partial function's `dom`.
 * `pfun.as_subtype`: Returns a partial function as a function from its `dom`.
+* `pfun.to_subtype`: Restricts the codomain of a function to a subtype.
 * `pfun.eval_opt`: Returns a partial function with a decidable `dom` as a function `a → option β`.
 * `pfun.lift`: Turns a function into a partial function.
+* `pfun.id`: The identity as a partial function.
+* `pfun.comp`: Composition of partial functions.
 * `pfun.restrict`: Restriction of a partial function to a smaller `dom`.
 * `pfun.res`: Turns a function into a partial function with a prescribed domain.
 * `pfun.fix` : First return map of a partial function `f : α →. β ⊕ α`.
@@ -46,6 +49,8 @@ Monad operations:
 * `pfun.map`: The monad `map` function, pointwise `part.map`.
 -/
 
+open function
+
 /-- `pfun α β`, or `α →. β`, is the type of partial functions from
   `α` to `β`. It is defined as `α → part β`. -/
 def pfun (α β : Type*) := α → part β
@@ -53,21 +58,23 @@ def pfun (α β : Type*) := α → part β
 infixr ` →. `:25 := pfun
 
 namespace pfun
-variables {α β γ : Type*}
+variables {α β γ δ : Type*}
 
 instance : inhabited (α →. β) := ⟨λ a, part.none⟩
 
 /-- The domain of a partial function -/
 def dom (f : α →. β) : set α := {a | (f a).dom}
 
-theorem mem_dom (f : α →. β) (x : α) : x ∈ dom f ↔ ∃ y, y ∈ f x :=
+@[simp] lemma mem_dom (f : α →. β) (x : α) : x ∈ dom f ↔ ∃ y, y ∈ f x :=
 by simp [dom, part.dom_iff_mem]
 
 theorem dom_eq (f : α →. β) : dom f = {x | ∃ y, y ∈ f x} :=
 set.ext (mem_dom f)
 
 /-- Evaluate a partial function -/
-def fn (f : α →. β) (x) (h : dom f x) : β := (f x).get h
+def fn (f : α →. β) (a : α) : dom f a → β := (f a).get
+
+@[simp] lemma fn_apply (f : α →. β) (a : α) : f.fn a = (f a).get := rfl
 
 /-- Evaluate a partial function to return an `option` -/
 def eval_opt (f : α →. β) [D : decidable_pred (∈ dom f)] (x : α) : option β :=
@@ -106,6 +113,11 @@ instance : has_coe (α → β) (α →. β) := ⟨pfun.lift⟩
 
 @[simp] theorem coe_val (f : α → β) (a : α) :
   (f : α →. β) a = part.some (f a) := rfl
+
+@[simp] lemma dom_coe (f : α → β) : (f : α →. β).dom = set.univ := rfl
+
+lemma coe_injective : injective (coe : (α → β) → α →. β) :=
+λ f g h, funext $ λ a, part.some_injective $ congr_fun h a
 
 /-- Graph of a partial function `f` as the set of pairs `(x, f x)` where `x` is in the domain of
 `f`. -/
@@ -151,6 +163,9 @@ protected def pure (x : β) : α →. β := λ _, part.some x
 /-- The monad `bind` function, pointwise `part.bind` -/
 def bind (f : α →. β) (g : β → α →. γ) : α →. γ :=
 λ a, (f a).bind (λ b, g b a)
+
+@[simp] lemma bind_apply (f : α →. β) (g : β → α →. γ) (a : α) :
+  f.bind g a = (f a).bind (λ b, g b a) := rfl
 
 /-- The monad `map` function, pointwise `part.map` -/
 def map (f : β → γ) (g : α →. β) : α →. γ :=
@@ -233,11 +248,7 @@ begin
   exact IH _ fa' ⟨ha _ fa', this⟩ this
 end
 
-end pfun
-
-namespace pfun
-
-variables {α β : Type*} (f : α →. β)
+variables (f : α →. β)
 
 /-- Image of a set under a partial function. -/
 def image (s : set α) : set β := f.graph'.image s
@@ -261,8 +272,7 @@ def preimage (s : set β) : set α := rel.image (λ x y, x ∈ f y) s
 
 lemma preimage_def (s : set β) : f.preimage s = {x | ∃ y ∈ s, y ∈ f x} := rfl
 
-lemma mem_preimage (s : set β) (x : α) : x ∈ f.preimage s ↔ ∃ y ∈ s, y ∈ f x :=
-iff.rfl
+@[simp] lemma mem_preimage (s : set β) (x : α) : x ∈ f.preimage s ↔ ∃ y ∈ s, y ∈ f x := iff.rfl
 
 lemma preimage_subset_dom (s : set β) : f.preimage s ⊆ f.dom :=
 λ x ⟨y, ys, fxy⟩, part.dom_iff_mem.mpr ⟨y, fxy⟩
@@ -285,8 +295,7 @@ def core (s : set β) : set α := f.graph'.core s
 
 lemma core_def (s : set β) : f.core s = {x | ∀ y, y ∈ f x → y ∈ s} := rfl
 
-lemma mem_core (x : α) (s : set β) : x ∈ f.core s ↔ (∀ y, y ∈ f x → y ∈ s) :=
-iff.rfl
+@[simp] lemma mem_core (x : α) (s : set β) : x ∈ f.core s ↔ ∀ y, y ∈ f x → y ∈ s := iff.rfl
 
 lemma compl_dom_subset_core (s : set β) : f.domᶜ ⊆ f.core s :=
 λ x hx y fxy,
@@ -342,5 +351,71 @@ begin
       have f.fn x.val x.property ∈ f x.val := part.get_mem _,
       part.mem_unique fxy this ▸ ys)
 end
+
+/-- Turns a function into a partial function to a subtype. -/
+def to_subtype (p : β → Prop) (f : α → β) : α →. subtype p := λ a, ⟨p (f a), subtype.mk _⟩
+
+@[simp] lemma dom_to_subtype (p : β → Prop) (f : α → β) : (to_subtype p f).dom = {a | p (f a)} :=
+rfl
+
+@[simp] lemma to_subtype_apply (p : β → Prop) (f : α → β) (a : α) :
+  to_subtype p f a = ⟨p (f a), subtype.mk _⟩ := rfl
+
+lemma dom_to_subtype_apply_iff {p : β → Prop} {f : α → β} {a : α} :
+  (to_subtype p f a).dom ↔ p (f a) := iff.rfl
+
+lemma mem_to_subtype_iff {p : β → Prop} {f : α → β} {a : α} {b : subtype p} :
+  b ∈ to_subtype p f a ↔ ↑b = f a :=
+by rw [to_subtype_apply, part.mem_mk_iff, exists_subtype_mk_eq_iff, eq_comm]
+
+/-- The identity as a partial function -/
+protected def id (α : Type*) : α →. α := part.some
+
+@[simp] lemma coe_id (α : Type*) : ((id : α → α) : α →. α) = pfun.id α := rfl
+@[simp] lemma id_apply (a : α) : pfun.id α a = part.some a := rfl
+
+/-- Composition of partial functions as a partial function. -/
+def comp (f : β →. γ) (g : α →. β) : α →. γ := λ a, (g a).bind f
+
+@[simp] lemma comp_apply (f : β →. γ) (g : α →. β) (a : α) : f.comp g a = (g a).bind f := rfl
+@[simp] lemma id_comp (f : α →. β) : (pfun.id β).comp f = f := ext $ λ _ _, by simp
+@[simp] lemma comp_id (f : α →. β) : f.comp (pfun.id α) = f := ext $ λ _ _, by simp
+
+@[simp] lemma dom_comp (f : β →. γ) (g : α →. β) : (f.comp g).dom = g.preimage f.dom :=
+begin
+  ext,
+  simp_rw [mem_preimage, mem_dom, comp_apply, part.mem_bind_iff, exists_prop,
+    ←exists_and_distrib_right],
+  rw exists_comm,
+  simp_rw and.comm,
+end
+
+@[simp] lemma preimage_comp (f : β →. γ) (g : α →. β) (s :set γ) :
+  (f.comp g).preimage s = g.preimage (f.preimage s) :=
+begin
+  ext,
+  simp_rw [mem_preimage, comp_apply, part.mem_bind_iff, exists_prop, ←exists_and_distrib_right,
+    ←exists_and_distrib_left],
+  rw exists_comm,
+  simp_rw [and_assoc, and.comm],
+end
+
+@[simp] lemma _root_.part.bind_comp (f : β →. γ) (g : α →. β) (a : part α) :
+  a.bind (f.comp g) = (a.bind g).bind f :=
+begin
+  ext c,
+  simp_rw [part.mem_bind_iff, comp_apply, part.mem_bind_iff, exists_prop, ←exists_and_distrib_right,
+    ←exists_and_distrib_left],
+  rw exists_comm,
+  simp_rw and_assoc,
+end
+
+@[simp] lemma comp_assoc (f : γ →. δ) (g : β →. γ) (h : α →. β) :
+  (f.comp g).comp h = f.comp (g.comp h) :=
+ext $ λ _ _, by simp only [comp_apply, part.bind_comp]
+
+-- This can't be `simp`
+lemma coe_comp (g : β → γ) (f : α → β) : ((g ∘ f : α → γ) : α →. γ) = (g : β →. γ).comp f :=
+ext $ λ _ _, by simp only [coe_val, comp_apply, part.bind_some]
 
 end pfun

@@ -225,6 +225,8 @@ theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 
+lemma iff.imp (h₁ : a ↔ b) (h₂ : c ↔ d) : (a → c) ↔ (b → d) := imp_congr h₁ h₂
+
 @[simp] lemma eq_true_eq_id : eq true = id :=
 by { funext, simp only [true_iff, id.def, iff_self, eq_iff_iff], }
 
@@ -274,6 +276,8 @@ the arguments flipped, but it is in the `not` namespace so that projection notat
 def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
+
+lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
@@ -392,12 +396,14 @@ instance : is_commutative Prop xor := ⟨xor_comm⟩
 
 /-! ### Declarations about `and` -/
 
+lemma iff.and (h₁ : a ↔ b) (h₂ : c ↔ d) : a ∧ c ↔ b ∧ d := and_congr h₁ h₂
+
 theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=
 and.comm.trans $ (and_congr_right h).trans and.comm
 
-theorem and_congr_left' (h : a ↔ b) : a ∧ c ↔ b ∧ c := and_congr h iff.rfl
+theorem and_congr_left' (h : a ↔ b) : a ∧ c ↔ b ∧ c := h.and iff.rfl
 
-theorem and_congr_right' (h : b ↔ c) : a ∧ b ↔ a ∧ c := and_congr iff.rfl h
+theorem and_congr_right' (h : b ↔ c) : a ∧ b ↔ a ∧ c := iff.rfl.and h
 
 theorem not_and_of_not_left (b : Prop) : ¬a → ¬(a ∧ b) :=
 mt and.left
@@ -458,9 +464,11 @@ by simp only [and.comm, ← and.congr_right_iff]
 
 /-! ### Declarations about `or` -/
 
-theorem or_congr_left (h : a ↔ b) : a ∨ c ↔ b ∨ c := or_congr h iff.rfl
+lemma iff.or (h₁ : a ↔ b) (h₂ : c ↔ d) : a ∨ c ↔ b ∨ d := or_congr h₁ h₂
 
-theorem or_congr_right (h : b ↔ c) : a ∨ b ↔ a ∨ c := or_congr iff.rfl h
+theorem or_congr_left (h : a ↔ b) : a ∨ c ↔ b ∨ c := h.or iff.rfl
+
+theorem or_congr_right (h : b ↔ c) : a ∨ b ↔ a ∨ c := iff.rfl.or h
 
 theorem or.right_comm : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b := by rw [or_assoc, or_assoc, or_comm b]
 
@@ -519,7 +527,7 @@ theorem and_or_distrib_left : a ∧ (b ∨ c) ↔ (a ∧ b) ∨ (a ∧ c) :=
 
 /-- `∧` distributes over `∨` (on the right). -/
 theorem or_and_distrib_right : (a ∨ b) ∧ c ↔ (a ∧ c) ∨ (b ∧ c) :=
-(and.comm.trans and_or_distrib_left).trans (or_congr and.comm and.comm)
+(and.comm.trans and_or_distrib_left).trans (and.comm.or and.comm)
 
 /-- `∨` distributes over `∧` (on the left). -/
 theorem or_and_distrib_left : a ∨ (b ∧ c) ↔ (a ∨ b) ∧ (a ∨ c) :=
@@ -528,7 +536,7 @@ theorem or_and_distrib_left : a ∨ (b ∧ c) ↔ (a ∨ b) ∧ (a ∨ c) :=
 
 /-- `∨` distributes over `∧` (on the right). -/
 theorem and_or_distrib_right : (a ∧ b) ∨ c ↔ (a ∨ c) ∧ (b ∨ c) :=
-(or.comm.trans or_and_distrib_left).trans (and_congr or.comm or.comm)
+(or.comm.trans or_and_distrib_left).trans (or.comm.and or.comm)
 
 @[simp] lemma or_self_left : a ∨ a ∨ b ↔ a ∨ b :=
 ⟨λ h, h.elim or.inl id, λ h, h.elim or.inl (or.inr ∘ or.inr)⟩
@@ -537,6 +545,8 @@ theorem and_or_distrib_right : (a ∧ b) ∨ c ↔ (a ∨ c) ∧ (b ∨ c) :=
 ⟨λ h, h.elim id or.inr, λ h, h.elim (or.inl ∘ or.inl) or.inr⟩
 
 /-! Declarations about `iff` -/
+
+lemma iff.iff (h₁ : a ↔ b) (h₂ : c ↔ d) : (a ↔ c) ↔ (b ↔ d) := iff_congr h₁ h₂
 
 theorem iff_of_true (ha : a) (hb : b) : a ↔ b :=
 ⟨λ_, hb, λ _, ha⟩
@@ -606,13 +616,13 @@ theorem peirce' {a : Prop} (H : ∀ b : Prop, (a → b) → a) : a := H _ id
 
 -- See Note [decidable namespace]
 protected theorem decidable.not_iff_not [decidable a] [decidable b] : (¬ a ↔ ¬ b) ↔ (a ↔ b) :=
-by rw [@iff_def (¬ a), @iff_def' a]; exact and_congr decidable.not_imp_not decidable.not_imp_not
+by rw [@iff_def (¬ a), @iff_def' a]; exact decidable.not_imp_not.and decidable.not_imp_not
 
 theorem not_iff_not : (¬ a ↔ ¬ b) ↔ (a ↔ b) := decidable.not_iff_not
 
 -- See Note [decidable namespace]
 protected theorem decidable.not_iff_comm [decidable a] [decidable b] : (¬ a ↔ b) ↔ (¬ b ↔ a) :=
-by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr decidable.not_imp_comm imp_not_comm
+by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact decidable.not_imp_comm.and imp_not_comm
 
 theorem not_iff_comm : (¬ a ↔ b) ↔ (¬ b ↔ a) := decidable.not_iff_comm
 
@@ -624,7 +634,7 @@ theorem not_iff : ¬ (a ↔ b) ↔ (¬ a ↔ b) := decidable.not_iff
 
 -- See Note [decidable namespace]
 protected theorem decidable.iff_not_comm [decidable a] [decidable b] : (a ↔ ¬ b) ↔ (b ↔ ¬ a) :=
-by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm decidable.not_imp_comm
+by rw [@iff_def a, @iff_def b]; exact imp_not_comm.and decidable.not_imp_comm
 
 theorem iff_not_comm : (a ↔ ¬ b) ↔ (b ↔ ¬ a) := decidable.iff_not_comm
 

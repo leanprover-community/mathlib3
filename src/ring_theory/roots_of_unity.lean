@@ -59,7 +59,7 @@ This creates a little bit of friction, but lemmas like `is_primitive_root.is_uni
 
 -/
 
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 noncomputable theory
 
 open polynomial
@@ -81,6 +81,9 @@ def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 
 @[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : Mˣ) :
   ζ ∈ roots_of_unity k M ↔ ζ ^ (k : ℕ) = 1 := iff.rfl
+
+lemma roots_of_unity.coe_injective {n : ℕ+} : function.injective (coe : (roots_of_unity n M) → M) :=
+units.ext.comp (λ x y, subtype.ext)
 
 /-- Make an element of `roots_of_unity` from a member of the base ring, and a proof that it has
 a positive power equal to one. -/
@@ -1014,7 +1017,7 @@ begin
   { use R },
   replace habs := lt_of_lt_of_le (enat.coe_lt_coe.2 one_lt_two)
     (multiplicity.le_multiplicity_of_pow_dvd (dvd_trans habs prod)),
-  have hfree : squarefree (X ^ n - 1 : polynomial (zmod p)),
+  have hfree : squarefree (X ^ n - 1 : (zmod p)[X]),
   { exact (separable_X_pow_sub_C 1
           (λ h, hdiv $ (zmod.nat_coe_zmod_eq_zero_iff_dvd n p).1 h) one_ne_zero).squarefree },
   cases (multiplicity.squarefree_iff_multiplicity_le_one (X ^ n - 1)).1 hfree
@@ -1075,8 +1078,8 @@ end
 
 /-- The degree of the minimal polynomial of `μ` is at least `totient n`. -/
 lemma totient_le_degree_minpoly : nat.totient n ≤ (minpoly ℤ μ).nat_degree :=
-let P : polynomial ℤ := minpoly ℤ μ,-- minimal polynomial of `μ`
-    P_K : polynomial K := map (int.cast_ring_hom K) P -- minimal polynomial of `μ` sent to `K[X]`
+let P : ℤ[X] := minpoly ℤ μ,-- minimal polynomial of `μ`
+    P_K : K[X] := map (int.cast_ring_hom K) P -- minimal polynomial of `μ` sent to `K[X]`
 in calc
 n.totient = (primitive_roots n K).card : h.card_primitive_roots.symm
 ... ≤ P_K.roots.to_finset.card : finset.card_le_of_subset (is_roots_of_minpoly h)

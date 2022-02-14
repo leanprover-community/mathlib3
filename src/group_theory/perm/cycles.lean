@@ -1197,32 +1197,6 @@ begin
         zpow_apply_eq_self_of_apply_eq_self hx] }
 end
 
-
-/-- nodup in the iterates of a permutation -/
-lemma nodup_powers_of_cycle_of [fintype α] {f : perm α} {x : α}
-  (i j : ℕ) (hij : i < j) (hj : j < (f.cycle_of x).support.card) :
-  (f ^ i) x ≠ (f ^ j) x :=
-begin
-  have hx : f x ≠ x := equiv.perm.card_support_cycle_of_pos_iff.mp (lt_of_le_of_lt (zero_le j) hj),
-  -- have hf : (f.cycle_of x).is_cycle := f.is_cycle_cycle_of hx,
-
-  rw ← equiv.perm.order_of_is_cycle (f.is_cycle_cycle_of hx) at hj,
-  obtain ⟨k, hk, rfl⟩ := lt_iff_exists_add.mp  hij,
-  rw pow_add f i k,
-  rw equiv.perm.mul_apply,
-
-  intro hfix,
-  let hfix' := equiv.injective (f ^ i) hfix,
-  rw ← equiv.perm.cycle_of_pow_apply_self  at  hfix',
-
-  refine perm.mem_support.mp _ hfix'.symm,
-  refine (equiv.perm.is_cycle.mem_support_pos_pow_iff_of_lt_order_of
-    (f.is_cycle_cycle_of hx) hk _).mpr _,
-    exact lt_of_le_of_lt (nat.le_add_left k i) hj,
-    rw perm.mem_support, rw equiv.perm.cycle_of_apply_self,
-    exact hx,
-end
-
 section generation
 
 variables [fintype α] [fintype β]

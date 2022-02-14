@@ -37,7 +37,7 @@ variables {k : Type*} [field k]
 include hp
 local notation `𝕎` := witt_vector p
 
-section recursive_case_poly
+namespace alg_closed_recursive
 
 /-!
 
@@ -47,6 +47,10 @@ The first coefficient of our solution vector is easy to define below.
 In this section we focus on the recursive case.
 The goal is to turn `witt_poly_prod n` into a univariate polynomial
 whose variable represents the `n`th coefficient of `x` in `x * a`.
+
+For most of this section we work with terms of type `mv_polynomial (fin 2 × ℕ) ℤ`.
+We will eventually evaluate them in `k`, but first we must take care of a calculation
+that needs to happen in characteristic 0.
 -/
 
 open witt_vector finset
@@ -59,7 +63,10 @@ open mv_polynomial
 omit hp
 
 /--
-(∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i.val)*(∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i.val)
+```
+(∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i.val) *
+  (∑ i in range n, (y.coeff i)^(p^(n-i)) * p^i.val)
+```
 -/
 def witt_poly_prod (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ n) *
@@ -434,9 +441,10 @@ begin
   ring
 end
 
-end recursive_case_poly
+end alg_closed_recursive
+open alg_closed_recursive
 
-section base_case
+namespace alg_closed_base
 
 variable [is_alg_closed k]
 
@@ -473,8 +481,8 @@ begin
   field_simp [ha₁, mul_comm],
 end
 
-
-end base_case
+end alg_closed_base
+open alg_closed_base
 
 section frobenius_rotation
 

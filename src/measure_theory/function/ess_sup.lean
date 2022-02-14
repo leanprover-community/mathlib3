@@ -130,9 +130,7 @@ end
 
 section topological_space
 
-variables [measurable_space β] [topological_space β] [second_countable_topology β]
-  [order_closed_topology β] [opens_measurable_space β]
-  {γ : Type*} {mγ : measurable_space γ} {f : α → γ} {g : γ → β}
+variables {γ : Type*} {mγ : measurable_space γ} {f : α → γ} {g : γ → β}
 
 include mγ
 
@@ -145,6 +143,18 @@ begin
   rw this,
   exact λ h, mem_ae_of_mem_ae_map hf h,
 end
+
+lemma _root_.measurable_embedding.ess_sup_map_measure (hf : measurable_embedding f) :
+  ess_sup g (measure.map f μ) = ess_sup (g ∘ f) μ :=
+begin
+  refine le_antisymm _ (ess_sup_comp_le_ess_sup_map_measure hf.measurable),
+  refine Limsup_le_Limsup (by is_bounded_default) (by is_bounded_default) (λ c h_le, _),
+  rw eventually_map at h_le ⊢,
+  exact hf.ae_map_iff.mpr h_le,
+end
+
+variables [measurable_space β] [topological_space β] [second_countable_topology β]
+  [order_closed_topology β] [opens_measurable_space β]
 
 lemma ess_sup_map_measure_of_measurable (hg : measurable g) (hf : measurable f) :
   ess_sup g (measure.map f μ) = ess_sup (g ∘ f) μ :=
@@ -164,15 +174,6 @@ begin
   have h_eq := ae_of_ae_map hf hg.ae_eq_mk,
   rw ← eventually_eq at h_eq,
   exact h_eq.symm,
-end
-
-lemma _root_.measurable_embedding.ess_sup_map_measure (hf : measurable_embedding f) :
-  ess_sup g (measure.map f μ) = ess_sup (g ∘ f) μ :=
-begin
-  refine le_antisymm _ (ess_sup_comp_le_ess_sup_map_measure hf.measurable),
-  refine Limsup_le_Limsup (by is_bounded_default) (by is_bounded_default) (λ c h_le, _),
-  rw eventually_map at h_le ⊢,
-  exact hf.ae_map_iff.mpr h_le,
 end
 
 omit mγ

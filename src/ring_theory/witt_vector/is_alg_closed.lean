@@ -5,7 +5,6 @@ Authors: Robert Y. Lewis, Heather Macbeth
 -/
 
 import field_theory.is_alg_closed.basic
-import field_theory.perfect_closure
 import ring_theory.witt_vector.domain
 import ring_theory.witt_vector.truncated
 import data.mv_polynomial.supported
@@ -532,26 +531,7 @@ begin
     refl }
 end
 
--- lemma p_nonzero (k : Type*) [comm_ring k] [char_p k p] [nontrivial k] : (p : 𝕎 k) ≠ 0 :=
--- begin
---   have : (p : 𝕎 k).coeff 1 = 1 := by simpa using witt_vector.coeff_p_pow 1,
---   intros h,
---   simpa [h] using this
--- end
-
--- lemma p_nonzero' (k : Type*) [comm_ring k] [char_p k p] [nontrivial k] :
---   (p : fraction_ring (𝕎 k)) ≠ 0 :=
--- by simpa using (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne (p_nonzero p k)
-
 local notation `K` := fraction_ring (𝕎 k)
-
-lemma frobenius_bijective (R : Type*) [comm_ring R] [char_p R p] [perfect_ring R p] :
-  function.bijective (@witt_vector.frobenius p R _ _) :=
-begin
-  rw witt_vector.frobenius_eq_map_frobenius,
-  exact ⟨witt_vector.map_injective _ (frobenius_equiv R p).injective,
-    witt_vector.map_surjective _ (frobenius_equiv R p).surjective⟩,
-end
 
 /-- This is basically the same as `𝕎 k` being a DVR. -/
 lemma split (a : 𝕎 k) (ha : a ≠ 0) :

@@ -532,16 +532,16 @@ begin
     refl }
 end
 
-lemma p_nonzero (k : Type*) [comm_ring k] [char_p k p] [nontrivial k] : (p : 𝕎 k) ≠ 0 :=
-begin
-  have : (p : 𝕎 k).coeff 1 = 1 := by simpa using witt_vector.coeff_p_pow 1,
-  intros h,
-  simpa [h] using this
-end
+-- lemma p_nonzero (k : Type*) [comm_ring k] [char_p k p] [nontrivial k] : (p : 𝕎 k) ≠ 0 :=
+-- begin
+--   have : (p : 𝕎 k).coeff 1 = 1 := by simpa using witt_vector.coeff_p_pow 1,
+--   intros h,
+--   simpa [h] using this
+-- end
 
-lemma p_nonzero' (k : Type*) [comm_ring k] [char_p k p] [nontrivial k] :
-  (p : fraction_ring (𝕎 k)) ≠ 0 :=
-by simpa using (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne (p_nonzero p k)
+-- lemma p_nonzero' (k : Type*) [comm_ring k] [char_p k p] [nontrivial k] :
+--   (p : fraction_ring (𝕎 k)) ≠ 0 :=
+-- by simpa using (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne (p_nonzero p k)
 
 local notation `K` := fraction_ring (𝕎 k)
 
@@ -599,8 +599,8 @@ begin
   { have hq''' : q' ≠ 0 := λ h, hq' (by simp [h]),
     simpa only [ne.def, map_zero] using
       (is_fraction_ring.injective (𝕎 k) (fraction_ring (𝕎 k))).ne hq''' },
-  rw zpow_sub₀ (p_nonzero' p k),
-  field_simp [p_nonzero' p k],
+  rw zpow_sub₀ (fraction_ring.p_nonzero p k),
+  field_simp [fraction_ring.p_nonzero p k],
   simp only [is_fraction_ring.field_equiv_of_ring_equiv,
     is_localization.ring_equiv_of_ring_equiv_eq, ring_equiv.coe_of_bijective],
   convert congr_arg (λ x, algebra_map (𝕎 k) (fraction_ring (𝕎 k)) x) key using 1,

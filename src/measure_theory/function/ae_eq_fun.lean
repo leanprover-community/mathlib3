@@ -359,9 +359,7 @@ instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α default⟩
 @[simp, to_additive] lemma one_to_germ [has_one β] : (1 : α →ₘ[μ] β).to_germ = 1 := rfl
 
 section monoid
-variables
-  [topological_space γ] [second_countable_topology γ] [borel_space γ]
-  [monoid γ] [has_continuous_mul γ]
+variables [monoid γ] [has_measurable_mul₂ γ]
 
 @[to_additive]
 instance : has_mul (α →ₘ[μ] γ) := ⟨comp₂ (*) measurable_mul⟩
@@ -383,13 +381,14 @@ to_germ_injective.monoid to_germ one_to_germ mul_to_germ
 end monoid
 
 @[to_additive]
-instance comm_monoid [topological_space γ] [second_countable_topology γ] [borel_space γ]
-  [comm_monoid γ] [has_continuous_mul γ] : comm_monoid (α →ₘ[μ] γ) :=
+instance comm_monoid [comm_monoid γ] [has_measurable_mul₂ γ] : comm_monoid (α →ₘ[μ] γ) :=
 to_germ_injective.comm_monoid to_germ one_to_germ mul_to_germ
 
 section group
+variables [group γ]
 
-variables [topological_space γ] [borel_space γ] [group γ] [topological_group γ]
+section inv
+variables [has_measurable_inv γ]
 
 @[to_additive] instance : has_inv (α →ₘ[μ] γ) := ⟨comp has_inv.inv measurable_inv⟩
 
@@ -399,7 +398,10 @@ variables [topological_space γ] [borel_space γ] [group γ] [topological_group 
 
 @[to_additive] lemma inv_to_germ (f : α →ₘ[μ] γ) : (f⁻¹).to_germ = f.to_germ⁻¹ := comp_to_germ _ _ _
 
-variables [second_countable_topology γ]
+end inv
+
+section div
+variables [has_measurable_div₂ γ]
 
 @[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div measurable_div⟩
 
@@ -412,23 +414,24 @@ rfl
 @[to_additive] lemma div_to_germ (f g : α →ₘ[μ] γ) : (f / g).to_germ = f.to_germ / g.to_germ :=
 comp₂_to_germ _ _ _ _
 
+end div
+
 @[to_additive]
-instance : group (α →ₘ[μ] γ) :=
+instance [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
+  group (α →ₘ[μ] γ) :=
 to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ
 
 end group
 
 @[to_additive]
-instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_group γ]
-  [second_countable_topology γ] : comm_group (α →ₘ[μ] γ) :=
+instance [comm_group γ] [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
+  comm_group (α →ₘ[μ] γ) :=
 { .. ae_eq_fun.group, .. ae_eq_fun.comm_monoid }
 
 section module
 
-variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
-  [opens_measurable_space 𝕜]
-variables [topological_space γ] [borel_space γ] [add_comm_monoid γ] [module 𝕜 γ]
-  [has_continuous_smul 𝕜 γ]
+variables {𝕜 : Type*} [semiring 𝕜] [measurable_space 𝕜]
+variables [add_comm_monoid γ] [module 𝕜 γ] [has_measurable_smul 𝕜 γ]
 
 instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
 ⟨λ c f, comp ((•) c) (measurable_id.const_smul c) f⟩
@@ -442,7 +445,7 @@ lemma coe_fn_smul (c : 𝕜) (f : α →ₘ[μ] γ) : ⇑(c • f) =ᵐ[μ] c �
 lemma smul_to_germ (c : 𝕜) (f : α →ₘ[μ] γ) : (c • f).to_germ = c • f.to_germ :=
 comp_to_germ _ _ _
 
-variables [second_countable_topology γ] [has_continuous_add γ]
+variables [has_measurable_add₂ γ]
 
 instance : module 𝕜 (α →ₘ[μ] γ) :=
 to_germ_injective.module 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to_germ⟩ smul_to_germ

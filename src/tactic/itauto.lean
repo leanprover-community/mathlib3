@@ -660,7 +660,7 @@ find among the atomic propositions, and `itauto! *` will case on all proposition
 *Warning:* This can blow up the proof search, so it should be used sparingly.
 -/
 meta def itauto (classical : parse (tk "!")?)
-  : parse (some <$> pexpr_list <|> none <$ tk "*")? → tactic unit
+  : parse (some <$> pexpr_list <|> tk "*" *> pure none)? → tactic unit
 | none := tactic.itauto false classical.is_some []
 | (some none) := tactic.itauto true classical.is_some []
 | (some (some ls)) := ls.mmap i_to_expr >>= tactic.itauto false classical.is_some

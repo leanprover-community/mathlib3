@@ -7,7 +7,7 @@ import topology.algebra.monoid
 import group_theory.group_action.prod
 import group_theory.group_action.basic
 import topology.homeomorph
-import topology.algebra.mul_action2
+import topology.algebra.const_mul_action
 
 /-!
 # Continuous monoid action

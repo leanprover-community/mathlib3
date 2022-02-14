@@ -131,51 +131,24 @@ end coarsely_dense_with_in
 namespace coarsely_separated_with
 
 /--
-The set of all `δ`-separated subsets of `S`.
-This is only used in the proof of `exists_max`.
--/
-def all_with_in (δ : ℝ≥0) (S : set α) : set (set α) :=
-{t : set α | t ⊆ S ∧ coarsely_separated_with δ t}
-
-/--
 A directed union of `δ`-separated subsets of a set `S` is a `δ`-separated
 -/
-lemma of_directed_union (δ : ℝ≥0) (S : set α) (𝒸 ⊆ all_with_in δ S) (dir : directed_on (⊆) 𝒸) :
-  𝒸.sUnion ∈ all_with_in δ S :=
+lemma of_directed_union {δ : ℝ≥0} {𝒸 : set $ set α}
+  (allsep : ∀ s ∈ 𝒸, coarsely_separated_with δ s)
+  (dir : directed_on (⊆) 𝒸) :
+  coarsely_separated_with δ 𝒸.sUnion :=
 begin
   let 𝒞 := 𝒸.sUnion,
-  have : 𝒞 ⊆ S, by
-  { apply set.sUnion_subset ,
-    rintros s s_in_𝒸,
-    have : s ⊆ S, from (set.mem_of_subset_of_mem H s_in_𝒸).left,
-    exact ‹s ⊆ S›,},
-  have : coarsely_separated_with δ 𝒞, by
-  { rintros x x_in_𝒞,
-    rcases set.mem_sUnion.mp x_in_𝒞 with ⟨t,t_in_𝒸,x_in_t⟩,
-    rintros y y_in_𝒞,
-    rcases set.mem_sUnion.mp y_in_𝒞 with ⟨r,r_in_𝒸,y_in_r⟩,
-    intro x_ne_y,
-    rcases dir t t_in_𝒸 r r_in_𝒸 with ⟨s,s_in_𝒸,t_sub_s,r_sub_s⟩,
-    have x_in_s : x ∈ s, from set.mem_of_subset_of_mem t_sub_s x_in_t,
-    have y_in_s : y ∈ s, from set.mem_of_subset_of_mem r_sub_s y_in_r,
-    let s_coarse := set.mem_of_subset_of_mem H s_in_𝒸,
-    exact s_coarse.right x_in_s y_in_s x_ne_y,},
-  exact ⟨‹𝒞 ⊆ S›, this⟩,
-end
-
-/--
-A `⊆`-chain of `δ`-separated subsets of `S` has an upper bound.
--/
-lemma chain_has_ub (δ : ℝ≥0) (S : set α) (𝒸 ⊆ all_with_in δ S) :
-  zorn.chain has_subset.subset 𝒸 →
-  ∃ (ub : set α) (H : ub ∈ all_with_in δ S), ∀ (s : set α), s ∈ 𝒸 → s ⊆ ub :=
-begin
-  intro 𝒸chain,
-  let 𝒞 : set α := 𝒸.sUnion,
-  have H' : 𝒞 ∈ all_with_in δ S, from of_directed_union δ S 𝒸 H 𝒸chain.directed_on,
-  use [𝒞,H'],
-  rintros s s_in_𝒸,
-  exact set.subset_sUnion_of_mem s_in_𝒸,
+  rintros x x_in_𝒞,
+  rcases set.mem_sUnion.mp x_in_𝒞 with ⟨t,t_in_𝒸,x_in_t⟩,
+  rintros y y_in_𝒞,
+  rcases set.mem_sUnion.mp y_in_𝒞 with ⟨r,r_in_𝒸,y_in_r⟩,
+  intro x_ne_y,
+  rcases dir t t_in_𝒸 r r_in_𝒸 with ⟨s,s_in_𝒸,t_sub_s,r_sub_s⟩,
+  have x_in_s : x ∈ s, from set.mem_of_subset_of_mem t_sub_s x_in_t,
+  have y_in_s : y ∈ s, from set.mem_of_subset_of_mem r_sub_s y_in_r,
+  let s_sep := set.mem_of_subset_of_mem allsep s_in_𝒸,
+  exact s_sep x_in_s y_in_s x_ne_y,
 end
 
 /--
@@ -186,18 +159,33 @@ theorem exists_max (δ : ℝ≥0) (S : set α) :
              ∧ coarsely_separated_with δ s
              ∧ (∀ t : set α, s ⊆ t → t ⊆ S →  coarsely_separated_with δ t → s = t) :=
 begin
-  let 𝒮 : set (set α) := all_with_in δ S,
-  rcases zorn.zorn_subset 𝒮 (chain_has_ub δ S) with ⟨M,M_in_𝒮,M_max⟩,
-  use [M,M_in_𝒮.left,M_in_𝒮.right],
-  rintros t M_sub_t t_sub_S t_coarse,
-  exact (M_max t ⟨t_sub_S, t_coarse⟩ M_sub_t).symm,
+  let 𝒮 : set (set α) :=  {s : set α | s ⊆ S ∧ coarsely_separated_with δ s},
+  suffices : ∃ s ∈ 𝒮, ∀ t ∈ 𝒮, s ⊆ t → t = s,
+  { rcases this with ⟨s,⟨s_sub_S,s_sep⟩,s_max⟩, -- This whole block is just shuffling
+    use [s,s_sub_S,s_sep],
+    rintros t s_sub_t t_sub_S t_sep,
+    have : t ∈ 𝒮, from ⟨t_sub_S,t_sep⟩,
+    exact (s_max t ‹t ∈ 𝒮› s_sub_t).symm,},
+  apply zorn.zorn_subset,
+  rintro 𝒸 𝒸_sub_𝒮 𝒸_chain,
+  have 𝒸_sep : ∀ s ∈ 𝒸, coarsely_separated_with δ s, from λ s ∈ 𝒸, (𝒸_sub_𝒮 H).right,
+  let 𝒞 := 𝒸.sUnion,
+  let 𝒞_sep := of_directed_union 𝒸_sep 𝒸_chain.directed_on,
+  use 𝒞,
+  split,
+  { split,
+    { apply set.sUnion_subset ,
+      rintros s s_in_𝒸,
+      exact (set.mem_of_subset_of_mem 𝒸_sub_𝒮 s_in_𝒸).left,},
+    {exact 𝒞_sep,},},
+  { rintros s s_in_𝒸,
+    exact set.subset_sUnion_of_mem s_in_𝒸,},
 end
 
 end coarsely_separated_with
 
 /--
-Given any `δ` and subset `S` of `α`, there exists a `δ`-separated and
-`δ`-dense subset of `S`.
+Given any `δ` and subset `S` of `α`, there exists a `δ`-separated and `δ`-dense subset of `S`.
 -/
 theorem exists_coarsely_separated_coarsely_dense_with_in (δ : ℝ≥0) (S : set α) :
   ∃ s ⊆ S, coarsely_separated_with δ s

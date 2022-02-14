@@ -64,13 +64,7 @@ end
 lemma antidiagonal_succ_succ' {n : ℕ} :
   antidiagonal (n + 2) = insert (0, n + 2) (insert (n + 2, 0) ((antidiagonal n).map
   (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ ⟨nat.succ, nat.succ_injective⟩))) :=
-begin
-  apply eq_of_veq,
-  rw [insert_val_of_not_mem, insert_val_of_not_mem, map_val],
-  { apply multiset.nat.antidiagonal_succ_succ' },
-  { simp },
-  { simp },
-end
+by { rw [antidiagonal_succ, antidiagonal_succ', map_insert, map_map], refl }
 
 lemma map_swap_antidiagonal {n : ℕ} :
   (antidiagonal n).map ⟨prod.swap, prod.swap_right_inverse.injective⟩ = antidiagonal n :=

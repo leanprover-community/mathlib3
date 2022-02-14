@@ -6,8 +6,6 @@ Authors: Violeta Hernández Palacios
 
 import set_theory.ordinal_arithmetic
 
-set_option pp.universes true
-
 /-!
 # Fixed points of normal functions
 
@@ -138,8 +136,9 @@ theorem nfp_family_le_apply [nonempty ι] (H : ∀ i, is_normal (f i)) {a b} :
   (∃ i, nfp_family f a ≤ f i b) ↔ nfp_family f a ≤ b :=
 by { rw ←not_iff_not, push_neg, exact apply_lt_nfp_family_iff H }
 
-theorem nfp_family_eq_of_range_eq {ι : Type u} {ι' : Type v} {f : ι → ordinal.{max u v w} → ordinal.{max u v w}} {g : ι' → ordinal.{max u v w} → ordinal.{max u v w}}
-  (hfg : set.range f = set.range g) : nfp_family.{u (max v w)} f = nfp_family.{v (max u w)} g :=
+theorem nfp_family_eq_of_range_eq {ι : Type u} {ι' : Type v} {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal} (hfg : set.range f = set.range g) :
+  nfp_family.{u (max v w)} f = nfp_family.{v (max u w)} g :=
 funext (λ a, sup_eq_of_range_eq (by rw nfp_family_iterate_range_eq_of_range_eq hfg))
 
 theorem nfp_family_le_fp (H : ∀ i, is_normal (f i)) {a b} (ab : a ≤ b) (h : ∀ i, f i b ≤ b) :
@@ -157,9 +156,9 @@ begin
   unfold nfp_family,
   rw (H i).sup ⟨[]⟩,
   apply le_antisymm;
-  rw ordinal.sup_le,
-  { exact λ l, le_sup _ (i :: l) },
-  { exact λ l, ((H i).self_le _).trans (le_sup _ _) }
+  refine ordinal.sup_le.2 (λ l, _),
+  { exact le_sup _ (i :: l) },
+  { exact ((H i).self_le _).trans (le_sup _ _) }
 end
 
 theorem apply_le_nfp_family [hι : nonempty ι] {f : ι → ordinal → ordinal} (H : ∀ i, is_normal (f i))
@@ -271,9 +270,9 @@ theorem nfp_bfamily_eq_nfp_family (o : ordinal) (f : Π b < o, ordinal → ordin
   nfp_bfamily o f = nfp_family (family_of_bfamily o f) :=
 rfl
 
-theorem nfp_family_eq_nfp_bfamily {ι} (f : ι → ordinal → ordinal) :
-  nfp_family f = nfp_bfamily _ (bfamily_of_family f) :=
-sorry
+theorem nfp_family_eq_nfp_bfamily {ι : Type u} (f : ι → ordinal → ordinal) :
+  nfp_family.{u v} f = nfp_bfamily _ (bfamily_of_family f) :=
+nfp_family_eq_of_range_eq.{u u v} (by simp)
 
 theorem iterate_le_nfp_bfamily {o : ordinal} (f : Π b < o, ordinal → ordinal) (a l) :
   nfp_family_iterate (family_of_bfamily o f) a l ≤ nfp_bfamily o f a :=
@@ -399,12 +398,9 @@ nfp_family (λ _ : unit, f)
 theorem nfp_eq_nfp_family (f : ordinal → ordinal) : nfp f = nfp_family (λ _ : unit, f) :=
 rfl
 
-theorem nfp_eq_nfp_family' {ι} [nonempty ι] (f : ordinal → ordinal) :
+theorem nfp_eq_nfp_family' (ι) [nonempty ι] (f : ordinal → ordinal) :
   nfp f = nfp_family (λ _ : ι, f) :=
-begin
-  unfold nfp,
-  apply nfp_family_eq_of_range_eq,
-end
+nfp_family_eq_of_range_eq (by simp only [set.range_const])
 
 @[simp] theorem sup_iterate_eq_nfp (f : ordinal.{u} → ordinal.{u}) :
   (λ a, sup (λ n : ℕ, f^[n] a)) = nfp f :=
@@ -488,7 +484,7 @@ begin
   exact ⟨λ h _, h, λ h, h unit.star⟩
 end
 
-theorem is_normal.eq_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
+theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
 by rw [←H.le_iff_eq, H.le_iff_deriv]
 
 theorem deriv_eq_enum_ord (H : is_normal f) : deriv f = enum_ord _ (fp_unbounded H) :=

@@ -442,6 +442,18 @@ protected lemma measurable [metric_space β] [measurable_space β] [borel_space 
   measurable f :=
 measurable_of_tendsto_metric (λ n, (hf.some n).measurable) (tendsto_pi_nhds.mpr hf.some_spec.2)
 
+protected lemma mul {β} [topological_space β] [monoid_with_zero β] [no_zero_divisors β]
+  [has_continuous_mul β]
+  {f g : α → β} (hf : fin_strongly_measurable f μ) (hg : fin_strongly_measurable g μ) :
+  fin_strongly_measurable (f * g) μ :=
+begin
+  refine ⟨λ n, hf.approx n * hg.approx n, _, λ x, (hf.tendsto_approx x).mul (hg.tendsto_approx x)⟩,
+  intro n,
+  rw (_ : support ⇑(hf.approx n * hg.approx n) = support (hf.approx n) ∩ support (hg.approx n)),
+  { exact measure_inter_lt_top_of_left_ne_top (hf.fin_support_approx n).ne,},
+  { exact function.support_mul _ _, },
+end
+
 protected lemma add {β} [topological_space β] [add_monoid β] [has_continuous_add β] {f g : α → β}
   (hf : fin_strongly_measurable f μ) (hg : fin_strongly_measurable g μ) :
   fin_strongly_measurable (f + g) μ :=
@@ -449,6 +461,8 @@ protected lemma add {β} [topological_space β] [add_monoid β] [has_continuous_
   λ n, (measure_mono (function.support_add _ _)).trans_lt ((measure_union_le _ _).trans_lt
     (ennreal.add_lt_top.mpr ⟨hf.fin_support_approx n, hg.fin_support_approx n⟩)),
   λ x, (hf.tendsto_approx x).add (hg.tendsto_approx x)⟩
+
+attribute [to_additive] fin_strongly_measurable.mul
 
 protected lemma neg {β} [topological_space β] [add_group β] [topological_add_group β] {f : α → β}
   (hf : fin_strongly_measurable f μ) :

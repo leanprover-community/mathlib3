@@ -181,6 +181,9 @@ instance to_non_assoc_semiring : non_assoc_semiring s :=
   zero_mul := λ x, subtype.eq $ zero_mul x,
   right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
   left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
+  nat_cast := λ n, ⟨n, coe_nat_mem s n⟩,
+  nat_cast_zero := by simp [nat.cast]; refl,
+  nat_cast_succ := λ _, by simp [nat.cast]; refl,
   .. s.to_submonoid.to_mul_one_class, .. s.to_add_submonoid.to_add_comm_monoid }
 
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = (1 : R) := rfl

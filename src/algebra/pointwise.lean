@@ -837,6 +837,16 @@ instance set_semiring.add_comm_monoid : add_comm_monoid (set_semiring α) :=
   add_zero := union_empty,
   add_comm := union_comm, }
 
+instance [has_one α] : has_nat_cast (set_semiring α) :=
+{ nat_cast := λ n, (if n = 0 then ∅ else 1 : set α),
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, begin
+    cases n,
+    exact (empty_union _).symm,
+    exact (union_self _).symm,
+  end,
+  .. set.has_one, .. set_semiring.add_comm_monoid }
+
 instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
   non_unital_non_assoc_semiring (set_semiring α) :=
 { zero_mul := λ s, empty_mul,
@@ -846,7 +856,7 @@ instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
   ..set.has_mul, ..set_semiring.add_comm_monoid }
 
 instance set_semiring.non_assoc_semiring [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
-{ ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
+{ ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class, ..set_semiring.has_nat_cast }
 
 instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (set_semiring α) :=
 { ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }

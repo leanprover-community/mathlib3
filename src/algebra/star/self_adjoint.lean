@@ -144,7 +144,7 @@ instance : has_scalar R (self_adjoint A) :=
 ⟨λ r x, ⟨r • x, by rw [mem_iff, star_smul, star_trivial, star_coe_eq]⟩⟩
 
 @[simp, norm_cast] lemma coe_smul (r : R) (x : self_adjoint A) :
-  (coe : self_adjoint A → A) (r • x) = r • x := rfl
+  ↑(r • x) = r • (x : A) := rfl
 
 instance : mul_action R (self_adjoint A) :=
 { one_smul := λ x, by { ext, rw [coe_smul, one_smul] },
@@ -155,8 +155,9 @@ instance : distrib_mul_action R (self_adjoint A) :=
   smul_zero := λ r, by { ext, simp only [smul_zero', coe_smul, add_subgroup.coe_zero] } }
 
 instance : module R (self_adjoint A) :=
-{ add_smul := λ r s x, by { ext, simp only [add_smul, add_subgroup.coe_add, coe_smul] },
-  zero_smul := λ x, by { ext, simp only [coe_smul, zero_smul, add_subgroup.coe_zero] } }
+function.injective.module R (add_subgroup.subtype (self_adjoint A))
+(by { rw add_subgroup.coe_subtype, exact subtype.coe_injective })
+(λ c x, by simp only [add_subgroup.coe_subtype, coe_smul])
 
 end module
 
@@ -199,7 +200,7 @@ instance : has_scalar R (skew_adjoint A) :=
 ⟨λ r x, ⟨r • x, by rw [mem_iff, star_smul, star_trivial, star_coe_eq, smul_neg]⟩⟩
 
 @[simp, norm_cast] lemma coe_smul (r : R) (x : skew_adjoint A) :
-  (coe : skew_adjoint A → A) (r • x) = r • x := rfl
+  ↑(r • x) = r • (x : A) := rfl
 
 instance : mul_action R (skew_adjoint A) :=
 { one_smul := λ x, by { ext, rw [coe_smul, one_smul] },
@@ -210,8 +211,9 @@ instance : distrib_mul_action R (skew_adjoint A) :=
   smul_zero := λ r, by { ext, simp only [smul_zero', coe_smul, add_subgroup.coe_zero] } }
 
 instance : module R (skew_adjoint A) :=
-{ add_smul := λ r s x, by { ext, simp only [add_smul, add_subgroup.coe_add, coe_smul] },
-  zero_smul := λ x, by { ext, simp only [coe_smul, zero_smul, add_subgroup.coe_zero] } }
+function.injective.module R (add_subgroup.subtype (skew_adjoint A))
+(by { rw add_subgroup.coe_subtype, exact subtype.coe_injective })
+(λ c x, by simp only [add_subgroup.coe_subtype, coe_smul])
 
 end module
 

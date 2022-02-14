@@ -607,7 +607,7 @@ begin
     haveI : unique (sylow p G) := unique_of_subsingleton (P p),
     change (Π (P : sylow p G), ↥P) ≃* (↑(P p) : subgroup G),
     -- oddly exact doesn’t work here, but convert does
-    convert (mul_equiv.Pi_singleton (λ (P : sylow p G), ((↑P : subgroup G) : Type u))),
+    convert (mul_equiv.Pi_unique (λ (P : sylow p G), ((↑P : subgroup G) : Type u))),
   end,
 
   have hcomm : ∀ (p₁ p₂ : ps), p₁ ≠ p₂ →

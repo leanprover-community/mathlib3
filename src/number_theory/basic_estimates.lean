@@ -694,7 +694,7 @@ begin
 end
 
 -- ∑ τ n = ∑_d ∑_n (if d|n, 1 else 0)
-lemma hyperbola_prelim1 (x : ℝ) : summatory (λ i, (σ 0 i : ℝ)) x =
+lemma hyperbola_prelim1 (x : ℝ) : summatory (λ i, (σ 0 i)) x =
   ∑ d in finset.Icc 1 ⌊x⌋₊, ∑ n in finset.Icc 1 ⌊x⌋₊, (ite (d ∣ n) 1 0) :=
 begin
   dsimp [σ, summatory],
@@ -764,6 +764,56 @@ begin
   rw finset.sum_ite,
   simp only [add_zero, mul_one, algebra.id.smul_eq_mul, finset.sum_const, finset.sum_const_zero],
   exact nat.divisors_eq_floor,
+end
+
+-- finset.sum_bij finset.sum_sigma might be helpful
+lemma hyperbola_prelim2 {x : ℕ} :
+  summatory (λ i, (τ i : ℝ)) x = ∑ a in finset.Icc 1 x, ∑ b in finset.Icc 1 x, ite (a * b ≤ x) 1 0 :=
+begin
+  sorry
+end
+
+lemma region_split {x : ℕ} :
+  finset.filter (λ (a : ℕ × ℕ), a.fst * a.snd ≤ x) ((finset.Icc 1 x).product (finset.Icc 1 x)) =
+    finset.filter (λ (a : ℕ × ℕ), a.fst * a.snd ≤ x ∧ a.snd ≤ ⌊sqrt x⌋₊) ((finset.Icc 1 x).product (finset.Icc 1 x))
+      ∪ finset.filter (λ (a : ℕ × ℕ), a.fst * a.snd ≤ x ∧ ⌊sqrt x⌋₊ < a.snd) ((finset.Icc 1 x).product (finset.Icc 1 x)) :=
+begin
+  sorry -- ext
+  -- simp (only), finset.mem_filter
+  -- cases le_or_lt _ _,
+end
+
+/-- Implementation lemma for `hyperbola_split_sum`. -/
+lemma regions_disjoint {x : ℕ} :
+  disjoint (finset.filter (λ (a : ℕ × ℕ), a.fst * a.snd ≤ x ∧ a.snd ≤ ⌊sqrt x⌋₊) ((finset.Icc 1 x).product (finset.Icc 1 x)))
+      (finset.filter (λ (a : ℕ × ℕ), a.fst * a.snd ≤ x ∧ ⌊sqrt x⌋₊ < a.snd) ((finset.Icc 1 x).product (finset.Icc 1 x))) :=
+begin
+  sorry
+end
+
+lemma hyperbola_split_sum {x : ℕ} :
+  summatory (λ i, (τ i : ℝ)) x =
+    ∑ a in finset.Icc 1 ⌊sqrt x⌋₊, ∑ b in finset.Icc 1 (x / a), (1 : ℝ) +
+      ∑ b in finset.Icc 1 ⌊sqrt x⌋₊, ∑ a in finset.Icc 1 (x / b), 1 -
+        ∑ a in finset.Icc 1 ⌊sqrt x⌋₊, ∑ b in finset.Icc 1 ⌊sqrt x⌋₊, 1 :=
+begin
+  rw [hyperbola_prelim2],
+  rw ←finset.sum_product',
+  rw ←finset.sum_filter,
+  rw region_split,
+  rw finset.sum_union,
+  rw add_sub_assoc,
+  congr' 1,
+  { -- change second sum to be a sum over finset.Icc 1 ⌊x⌋₊ with an ite/filter
+      -- finset.sum_congr (probably)
+    -- then combine using finset.sum_product'
+    sorry },
+  rw ←finset.sum_sub_distrib,
+  -- we want a lemma saying a ≤ sqrt x implies x / a ≥ sqrt x
+
+  -- combine the sums ∑, 1 - ∑, 1 into one sum over a single set
+  -- change both sums to be over the whole range with an ite/filter
+
 end
 
 /-

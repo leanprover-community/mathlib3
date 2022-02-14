@@ -3,10 +3,9 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import topology.urysohns_bounded
-import topology.algebra.ordered.monotone_continuity
-import data.set.intervals.disjoint
 import data.set.intervals.monotone
+import topology.algebra.order.monotone_continuity
+import topology.urysohns_bounded
 
 /-!
 # Tietze extension theorem

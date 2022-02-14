@@ -104,7 +104,7 @@ lemma prod_comm_preimage {α β} {s : set α} {t : set β} :
   equiv.prod_comm α β ⁻¹' (t ×ˢ s) = (s ×ˢ t) :=
 by { ext, simp [and_comm] }
 
-lemma prod_comm_image {α β γ} {s : set α} {t : set β} {u : set γ} :
+lemma prod_comm_image {α β} {s : set α} {t : set β} :
   equiv.prod_comm α β '' (s ×ˢ t) = (t ×ˢ s) :=
 by simpa only [equiv.image_eq_preimage] using prod_comm_preimage
 

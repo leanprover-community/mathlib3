@@ -36,7 +36,11 @@ class has_nat_cast (α : Type*) extends add_monoid α, has_one α, has_nat_cast_
 (nat_cast_zero : nat.cast 0 = (0 : α))
 (nat_cast_succ : ∀ n, nat.cast (n + 1) = (nat.cast n + 1 : α))
 
+class add_comm_monoid_with_one (α : Type*) extends has_nat_cast α, add_comm_monoid α
+
 class add_group_with_one (α : Type*) extends add_group α, has_one α, has_nat_cast α
+
+class add_comm_group_with_one (α : Type*) extends add_comm_group α, add_group_with_one α
 
 section
 variables {α : Type*} [has_nat_cast α]

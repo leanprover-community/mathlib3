@@ -110,7 +110,7 @@ class non_unital_semiring (α : Type u) extends
 /-- A unital but not-necessarily-associative semiring. -/
 @[protect_proj, ancestor non_unital_non_assoc_semiring mul_zero_one_class]
 class non_assoc_semiring (α : Type u) extends
-  non_unital_non_assoc_semiring α, mul_zero_one_class α, has_nat_cast α
+  non_unital_non_assoc_semiring α, mul_zero_one_class α, add_comm_monoid_with_one α
 
 /-- A semiring is a type with the following structures: additive commutative monoid
 (`add_comm_monoid`), multiplicative monoid (`monoid`), distributive laws (`distrib`), and
@@ -679,7 +679,7 @@ end non_unital_non_assoc_ring
 multiplicative monoid (`monoid`), and distributive laws (`distrib`).  Equivalently, a ring is a
 `semiring` with a negation operation making it an additive group.  -/
 @[protect_proj, ancestor add_comm_group monoid distrib]
-class ring (α : Type u) extends add_comm_group α, monoid α, distrib α, add_group_with_one α
+class ring (α : Type u) extends add_comm_group_with_one α, monoid α, distrib α
 
 section ring
 variables [ring α] {a b c d e : α}

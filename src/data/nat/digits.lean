@@ -185,7 +185,7 @@ end
   ((of_digits b L : ℕ) : α) = of_digits (b : α) L :=
 begin
   induction L with d L ih,
-  { refl, },
+  { simp [of_digits], },
   { dsimp [of_digits], push_cast, rw ih, }
 end
 
@@ -194,7 +194,7 @@ end
 begin
   induction L with d L ih,
   { refl, },
-  { dsimp [of_digits], push_cast, rw ih, }
+  { dsimp [of_digits], push_cast }
 end
 
 lemma digits_zero_of_eq_zero {b : ℕ} (h : 1 ≤ b) {L : list ℕ} (w : of_digits b L = 0) :
@@ -206,7 +206,7 @@ begin
   { intros l m,
     dsimp [of_digits] at w,
     rcases m with ⟨rfl⟩,
-    { convert nat.eq_zero_of_add_eq_zero_right w, simp, },
+    { apply nat.eq_zero_of_add_eq_zero_right w },
     { exact ih ((nat.mul_right_inj h).mp (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
 end
 
@@ -261,7 +261,7 @@ begin
       { simp only [nat.succ_eq_add_one, digits_add_two_add_one],
         dsimp [of_digits],
         rw h _ (nat.div_lt_self' n b),
-        rw [nat.cast_id, nat.mod_add_div], }, }, },
+        rw [nat.mod_add_div], }, }, },
 end
 
 lemma of_digits_one (L : list ℕ) : of_digits 1 L = L.sum :=
@@ -548,7 +548,6 @@ lemma of_digits_neg_one : Π (L : list ℕ),
 | (a :: b :: t) :=
   begin
     simp only [of_digits, list.alternating_sum, list.map_cons, of_digits_neg_one t],
-    push_cast,
     ring,
   end
 

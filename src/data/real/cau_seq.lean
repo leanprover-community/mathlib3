@@ -203,7 +203,7 @@ instance : inhabited (cau_seq β abv) := ⟨0⟩
 @[simp] theorem const_zero : const 0 = 0 := rfl
 
 theorem const_add (x y : β) : const (x + y) = const x + const y :=
-ext $ λ i, rfl
+rfl
 
 instance : has_mul (cau_seq β abv) :=
 ⟨λ f g, ⟨λ i, (f i * g i : β), λ ε ε0,
@@ -234,6 +234,20 @@ instance : has_sub (cau_seq β abv) :=
 theorem const_sub (x y : β) : const (x - y) = const x - const y :=
 ext $ λ i, rfl
 
+instance : add_monoid (cau_seq β abv) :=
+by refine_struct
+     { add := (+),
+       zero := (0 : cau_seq β abv),
+       nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ };
+intros; try { refl }; apply ext; simp [add_comm, add_left_comm]
+
+instance : has_nat_cast (cau_seq β abv) :=
+{ one := 1,
+  nat_cast := λ n, const n,
+  nat_cast_zero := congr_arg const nat.cast_zero,
+  nat_cast_succ := λ n, congr_arg const (nat.cast_succ n),
+  .. cau_seq.add_monoid }
+
 instance : ring (cau_seq β abv) :=
 by refine_struct
      { neg := has_neg.neg,
@@ -244,7 +258,8 @@ by refine_struct
        sub := has_sub.sub,
        npow := @npow_rec (cau_seq β abv) ⟨1⟩ ⟨(*)⟩,
        nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩,
-       zsmul := @zsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+       zsmul := @zsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
+       .. cau_seq.has_nat_cast };
 intros; try { refl }; apply ext;
 simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
 

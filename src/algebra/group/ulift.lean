@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.equiv.mul_add
+import data.nat.cast.defs
 
 /-!
 # `ulift` instances for groups and monoids
@@ -66,6 +67,12 @@ instance has_pow {β : Type*} [has_pow α β] : has_pow (ulift α) β :=
 @[to_additive]
 instance monoid [monoid α] : monoid (ulift α) :=
 equiv.ulift.injective.monoid_pow _ rfl (λ _ _, rfl) (λ _ _, rfl)
+
+instance has_nat_cast [has_nat_cast α] : has_nat_cast (ulift α) :=
+{ nat_cast := λ n, ⟨n⟩,
+  nat_cast_zero := congr_arg ulift.up nat.cast_zero,
+  nat_cast_succ := λ n, congr_arg ulift.up (nat.cast_succ _),
+  .. ulift.has_one, .. ulift.add_monoid }
 
 @[to_additive]
 instance comm_monoid [comm_monoid α] : comm_monoid (ulift α) :=

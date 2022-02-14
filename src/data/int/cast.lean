@@ -27,11 +27,6 @@ open nat
 
 namespace int
 
-theorem nat_cast_eq_coe_nat (n : ℕ) :
-  @coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n =
-  @coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ int.has_coe)) n :=
-rfl
-
 /-- Coercion `ℕ → ℤ` as a `ring_hom`. -/
 def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_add⟩
 

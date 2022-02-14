@@ -32,7 +32,7 @@ variables {α : Type*}
 | (bit1 p) := (nat.cast_bit1 _).trans $ congr_arg _root_.bit1 p.cast_to_nat
 
 @[simp, norm_cast] theorem to_nat_to_int (n : pos_num) : ((n : ℕ) : ℤ) = n :=
-by rw [← int.nat_cast_eq_coe_nat, cast_to_nat]
+cast_to_nat _
 
 @[simp, norm_cast] theorem cast_to_int [add_group_with_one α] (n : pos_num) :
   ((n : ℤ) : α) = n :=
@@ -359,7 +359,7 @@ instance : linear_ordered_semiring num :=
 add_of_nat' _ _
 
 @[simp, norm_cast] theorem to_nat_to_int (n : num) : ((n : ℕ) : ℤ) = n :=
-by rw [← int.nat_cast_eq_coe_nat, cast_to_nat]
+cast_to_nat _
 
 @[simp, norm_cast] theorem cast_to_int {α} [add_group_with_one α] (n : num) : ((n : ℤ) : α) = n :=
 by rw [← to_nat_to_int, int.cast_coe_nat, cast_to_nat]

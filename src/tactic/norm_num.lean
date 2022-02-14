@@ -1241,7 +1241,7 @@ theorem nat_abs_neg (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exa
 
 theorem neg_succ_of_nat (a b : ℕ) (c : ℤ) (h₁ : a + 1 = b)
   (h₂ : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = c) :
-  -[1+ a] = -c := by rw [← h₂, ← h₁, int.nat_cast_eq_coe_nat]; refl
+  -[1+ a] = -c := by rw [← h₂, ← h₁]; refl
 
 /-- Evaluates some extra numeric operations on `nat` and `int`, specifically
 `nat.succ`, `/` and `%`, and `∣` (divisibility). -/

@@ -530,9 +530,10 @@ variables (R M)
 
 /-- If `M` is an `R`-module with one and `M` has characteristic zero, then `R` has characteristic
 zero as well. Usually `M` is an `R`-algebra. -/
-lemma char_zero.of_module [has_one M] [char_zero M] : char_zero R :=
+lemma char_zero.of_module (M) [add_comm_monoid_with_one M] [char_zero M] [module R M] :
+  char_zero R :=
 begin
-  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _ _⟩,
+  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _⟩,
   rw [← nsmul_one, ← nsmul_one, nsmul_eq_smul_cast R m (1 : M), nsmul_eq_smul_cast R n (1 : M), h]
 end
 

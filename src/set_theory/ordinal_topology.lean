@@ -44,7 +44,7 @@ begin
   { rcases zero_or_succ_or_limit o with rfl | ⟨a, ha⟩ | ho',
     { convert is_open_gt' (1 : ordinal),
       ext,
-      exact ordinal.lt_one_iff.symm },
+      exact ordinal.lt_one_iff_zero.symm },
     { convert @is_open_Ioo _ _ _ _ a (o + 1),
       ext b,
       refine ⟨λ hb, _, _⟩,

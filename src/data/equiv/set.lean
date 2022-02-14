@@ -100,21 +100,26 @@ set.preimage_eq_iff_eq_image e.bijective
 lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t ↔ e '' s = t :=
 set.eq_preimage_iff_image_eq e.bijective
 
-lemma prod_comm_preimage {α β} {s : set α} {t : set β} :
+@[simp] lemma prod_comm_preimage {α β} {s : set α} {t : set β} :
   equiv.prod_comm α β ⁻¹' (t ×ˢ s) = (s ×ˢ t) :=
 set.preimage_swap_prod
 
-lemma prod_comm_image {α β γ} {s : set α} {t : set β} {u : set γ} :
+lemma prod_comm_image {α β} {s : set α} {t : set β} :
   equiv.prod_comm α β '' (s ×ˢ t) = (t ×ˢ s) :=
 set.image_swap_prod
 
+@[simp]
 lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
   equiv.prod_assoc α β γ ⁻¹' (s ×ˢ (t ×ˢ u)) = (s ×ˢ t) ×ˢ u :=
 by { ext, simp [and_assoc] }
 
+@[simp]
 lemma prod_assoc_symm_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
   (equiv.prod_assoc α β γ).symm ⁻¹' ((s ×ˢ t) ×ˢ u) = s ×ˢ (t ×ˢ u) :=
 by { ext, simp [and_assoc] }
+
+-- `@[simp]` doesn't like these lemmas, as it uses `set.image_congr'` to turn `equiv.prod_assoc`
+-- into a lambda expression and then unfold it.
 
 lemma prod_assoc_image {α β γ} {s : set α} {t : set β} {u : set γ} :
   equiv.prod_assoc α β γ '' ((s ×ˢ t) ×ˢ u) = s ×ˢ (t ×ˢ u) :=

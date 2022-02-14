@@ -147,7 +147,7 @@ end
   (skew_adjoint_matrices_lie_subalgebra_equiv_transpose J e h A : matrix m m R) = e A :=
 rfl
 
-lemma mem_skew_adjoint_matrices_lie_subalgebra_unit_smul (u : units R) (J A : matrix n n R) :
+lemma mem_skew_adjoint_matrices_lie_subalgebra_unit_smul (u : Rˣ) (J A : matrix n n R) :
   A ∈ skew_adjoint_matrices_lie_subalgebra (u • J) ↔
   A ∈ skew_adjoint_matrices_lie_subalgebra J :=
 begin

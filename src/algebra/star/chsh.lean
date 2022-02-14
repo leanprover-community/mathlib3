@@ -131,7 +131,7 @@ begin
       simp only [mul_comm _ (2 : R), mul_comm _ (4 : R),
         mul_left_comm _ (2 : R), mul_left_comm _ (4 : R)],
       abel,
-      simp only [neg_mul_eq_neg_mul_symm, mul_one, int.cast_bit0, one_mul, int.cast_one,
+      simp only [neg_mul, mul_one, int.cast_bit0, one_mul, int.cast_one,
         zsmul_eq_mul, int.cast_neg],
       simp only [←mul_assoc, ←add_assoc],
       norm_num, },
@@ -171,13 +171,9 @@ we prepare some easy lemmas about √2.
 -- defeated me. Thanks for the rescue from Shing Tak Lam!
 lemma tsirelson_inequality_aux : √2 * √2 ^ 3 = √2 * (2 * √2⁻¹ + 4 * (√2⁻¹ * 2⁻¹)) :=
 begin
-  ring_nf,
-  rw [mul_assoc, inv_mul_cancel, real.sqrt_eq_rpow, ←real.rpow_nat_cast, ←real.rpow_mul],
-  { norm_num,
-    rw show (2 : ℝ) ^ (2 : ℝ) = (2 : ℝ) ^ (2 : ℕ), by { rw ←real.rpow_nat_cast, norm_num },
-    norm_num },
-  { norm_num, },
-  { norm_num, },
+  ring_nf, field_simp [(@real.sqrt_pos 2).2 (by norm_num)],
+  convert congr_arg (^2) (@real.sq_sqrt 2 (by norm_num)) using 1;
+    simp only [← pow_mul]; norm_num,
 end
 
 lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
@@ -221,7 +217,7 @@ begin
     abel,
     -- all terms coincide, but the last one. Simplify all other terms
     simp only [M],
-    simp only [neg_mul_eq_neg_mul_symm, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
+    simp only [neg_mul, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
       int.cast_one, one_smul, int.cast_neg, add_right_inj, neg_smul, ← add_smul],
     -- just look at the coefficients now:
     congr,

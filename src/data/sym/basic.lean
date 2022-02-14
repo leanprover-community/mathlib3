@@ -38,6 +38,8 @@ show these are equivalent in `sym.sym_equiv_sym'`.
 -/
 def sym (α : Type u) (n : ℕ) := {s : multiset α // s.card = n}
 
+instance sym.has_coe (α : Type*) (n : ℕ) : has_coe (sym α n) (multiset α) := coe_subtype
+
 /--
 This is the `list.perm` setoid lifted to `vector`.
 
@@ -51,7 +53,7 @@ local attribute [instance] vector.perm.is_setoid
 
 namespace sym
 
-variables {α : Type u} {n : ℕ}
+variables {α : Type u} {n : ℕ} {s : sym α n} {a b : α}
 
 /--
 The unique element in `sym α 0`.
@@ -157,6 +159,17 @@ def repeat (a : α) (n : ℕ) : sym α n := ⟨multiset.repeat a n, multiset.car
 
 lemma repeat_succ {a : α} {n : ℕ} : repeat a n.succ = a :: repeat a n := rfl
 
+lemma coe_repeat : (repeat a n : multiset α) = multiset.repeat a n := rfl
+
+@[simp] lemma mem_repeat : b ∈ repeat a n ↔ n ≠ 0 ∧ b = a := multiset.mem_repeat
+
+lemma eq_repeat_iff : s = repeat a n ↔ ∀ b ∈ s, b = a :=
+begin
+  rw [subtype.ext_iff, coe_repeat],
+  convert multiset.eq_repeat',
+  exact s.2.symm,
+end
+
 lemma exists_mem (s : sym α n.succ) : ∃ a, a ∈ s :=
 multiset.card_pos_iff_exists_mem.1 $ s.2.symm ▸ n.succ_pos
 
@@ -183,10 +196,10 @@ instance [subsingleton α] (n : ℕ) : subsingleton (sym α n) :=
 end⟩
 
 instance inhabited_sym [inhabited α] (n : ℕ) : inhabited (sym α n) :=
-⟨repeat (default α) n⟩
+⟨repeat default n⟩
 
 instance inhabited_sym' [inhabited α] (n : ℕ) : inhabited (sym' α n) :=
-⟨quotient.mk' (vector.repeat (default α) n)⟩
+⟨quotient.mk' (vector.repeat default n)⟩
 
 instance (n : ℕ) [is_empty α] : is_empty (sym α n.succ) :=
 ⟨λ s, by { obtain ⟨a, -⟩ := exists_mem s, exact is_empty_elim a }⟩
@@ -211,18 +224,18 @@ def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
   b ∈ sym.map f l ↔ ∃ a, a ∈ l ∧ f a = b := multiset.mem_map
 
 @[simp] lemma map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map id s = s :=
-by simp [sym.map, subtype.mk.inj_eq]
+by simp [sym.map]
 
 @[simp] lemma map_map {α β γ : Type*} {n : ℕ} (g : β → γ) (f : α → β) (s : sym α n) :
   sym.map g (sym.map f s) = sym.map (g ∘ f) s :=
-by simp [sym.map, subtype.mk.inj_eq]
+by simp [sym.map]
 
 @[simp] lemma map_zero {α β : Type*} (f : α → β) :
   sym.map f (0 : sym α 0) = (0 : sym β 0) := rfl
 
 @[simp] lemma map_cons {α β : Type*} {n : ℕ} (f : α → β) (a : α) (s : sym α n) :
   (a :: s).map f = (f a) :: s.map f :=
-by { cases s, simp [map, cons] }
+by simp [map, cons]
 
 /-- Mapping an equivalence `α ≃ β` using `sym.map` gives an equivalence between `sym α n` and
 `sym β n`. -/

@@ -3,10 +3,9 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import topology.urysohns_bounded
-import topology.algebra.ordered.monotone_continuity
-import data.set.intervals.disjoint
 import data.set.intervals.monotone
+import topology.algebra.order.monotone_continuity
+import topology.urysohns_bounded
 
 /-!
 # Tietze extension theorem
@@ -197,7 +196,7 @@ begin
   -- Then `f x ∈ [a, b]` for all `x`
   have hmem : ∀ x, f x ∈ Icc a b, from λ x, ⟨ha.1 ⟨x, rfl⟩, hb.1 ⟨x, rfl⟩⟩,
   -- Rule out the trivial case `a = b`
-  have hle : a ≤ b := (hmem (default X)).1.trans (hmem (default X)).2,
+  have hle : a ≤ b := (hmem default).1.trans (hmem default).2,
   rcases hle.eq_or_lt with (rfl|hlt),
   { have : ∀ x, f x = a, by simpa using hmem,
     use const Y a, simp [this, function.funext_iff] },
@@ -380,7 +379,7 @@ lemma exists_restrict_eq_forall_mem_of_closed {s : set Y} (f : C(s, ℝ)) {t : s
 let ⟨g, hgt, hgf⟩ := exists_extension_forall_mem_of_closed_embedding f ht hne
   (closed_embedding_subtype_coe hs)
 in ⟨g, hgt, coe_inj hgf⟩
-  
+
 /-- **Tietze extension theorem** for real-valued continuous maps, a version for a closed set. Let
 `s` be a closed set in a normal topological space `Y`. Let `f` be a continuous real-valued function
 on `s`. Then there exists a continuous real-valued function `g : C(Y, ℝ)` such that

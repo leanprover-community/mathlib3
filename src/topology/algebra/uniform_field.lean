@@ -104,9 +104,8 @@ begin
   { rw [h, inv_zero],
     dsimp [has_inv.inv],
     norm_cast,
-    simp [if_pos] },
+    simp },
   { conv_lhs { dsimp [has_inv.inv] },
-    norm_cast,
     rw if_neg,
     { exact hat_inv_extends h },
     { exact λ H, h (dense_embedding_coe.inj H) } }

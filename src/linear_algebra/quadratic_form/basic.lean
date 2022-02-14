@@ -243,15 +243,15 @@ instance : has_neg (quadratic_form R M) :=
 ⟨ λ Q,
   { to_fun := -Q,
   to_fun_smul := λ a x,
-    by simp only [pi.neg_apply, map_smul, mul_neg_eq_neg_mul_symm],
+    by simp only [pi.neg_apply, map_smul, mul_neg],
   polar_add_left' := λ x x' y,
     by simp only [polar_neg, polar_add_left, neg_add],
   polar_smul_left' := λ a x y,
-    by simp only [polar_neg, polar_smul_left, mul_neg_eq_neg_mul_symm, smul_eq_mul],
+    by simp only [polar_neg, polar_smul_left, mul_neg, smul_eq_mul],
   polar_add_right' := λ x y y',
     by simp only [polar_neg, polar_add_right, neg_add],
   polar_smul_right' := λ a x y,
-    by simp only [polar_neg, polar_smul_right, mul_neg_eq_neg_mul_symm, smul_eq_mul] } ⟩
+    by simp only [polar_neg, polar_smul_right, mul_neg, smul_eq_mul] } ⟩
 
 @[simp] lemma coe_fn_neg (Q : quadratic_form R M) : ⇑(-Q) = -Q := rfl
 
@@ -839,8 +839,7 @@ lemma exists_orthogonal_basis [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₂ : B.is_symm) :
   ∃ (v : basis (fin (finrank K V)) K V), B.is_Ortho v :=
 begin
-  tactic.unfreeze_local_instances,
-  induction hd : finrank K V with d ih generalizing V,
+  unfreezingI { induction hd : finrank K V with d ih generalizing V },
   { exact ⟨basis_of_finrank_zero hd, λ _ _ _, zero_left _⟩ },
   haveI := finrank_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < finrank K V),
   -- either the bilinear form is trivial or we can pick a non-null `x`
@@ -979,7 +978,7 @@ let ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q) in
 
 lemma equivalent_weighted_sum_squares_units_of_nondegenerate'
   (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
-  ∃ w : fin (finite_dimensional.finrank K V) → units K,
+  ∃ w : fin (finite_dimensional.finrank K V) → Kˣ,
     equivalent Q (weighted_sum_squares K w) :=
 begin
   obtain ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q),

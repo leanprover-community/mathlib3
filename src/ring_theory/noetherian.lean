@@ -138,6 +138,11 @@ end
 theorem fg_bot : (⊥ : submodule R M).fg :=
 ⟨∅, by rw [finset.coe_empty, span_empty]⟩
 
+lemma _root_.subalgebra.fg_bot_to_submodule {R A : Type*}
+  [comm_semiring R] [semiring A] [algebra R A] :
+  (⊥ : subalgebra R A).to_submodule.fg :=
+⟨{1}, by simp [algebra.to_submodule_bot] ⟩
+
 theorem fg_span {s : set M} (hs : finite s) : fg (span R s) :=
 ⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
 

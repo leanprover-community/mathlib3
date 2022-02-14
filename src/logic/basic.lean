@@ -888,12 +888,20 @@ exists_congr $ λ a, exists₄_congr $ h a
 
 end congr
 
-variables {β : Sort*} {p q : α → Prop} {b : Prop}
+variables {ι β : Sort*} {κ : ι → Sort*} {p q : α → Prop} {b : Prop}
 
 lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
 λ h' a, h a (h' a)
 
+lemma forall₂_imp{p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
+  (∀ i j, p i j) → ∀ i j, q i j :=
+forall_imp $ λ i, forall_imp $ h i
+
 lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
+
+lemma Exists₂.imp {p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
+  (∃ i j, p i j) → ∃ i j, q i j :=
+Exists.imp $ λ i, Exists.imp $ h i
 
 lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
   (hp : ∃ a, p a) : ∃ b, q b :=

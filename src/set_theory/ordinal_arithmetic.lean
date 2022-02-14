@@ -1016,7 +1016,7 @@ theorem bdd_above_iff_small {s : set ordinal.{u}} : bdd_above s ↔ small.{u} s 
   sup.{u u} (λ x, ((@equiv_shrink s hs).symm x).val) = Sup s :=
 let hs' := bdd_above_iff_small.2 hs in
   (sup_le.2 (λ x, le_cSup hs' (subtype.mem _))).antisymm
-  ((cSup_le_iff hs' hne).2 (le_sup_equiv hs))
+  ((cSup_le_iff hs' hne).2 (le_sup_shrink_equiv hs))
 
 private theorem sup_le_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
   [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)

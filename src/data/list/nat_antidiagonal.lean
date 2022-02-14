@@ -74,5 +74,14 @@ lemma antidiagonal_succ_succ' {n : ℕ} :
   (0, n + 2) :: ((antidiagonal n).map (prod.map nat.succ nat.succ)) ++ [(n + 2, 0)] :=
 by { rw antidiagonal_succ', simpa }
 
+lemma map_swap_antidiagonal {n : ℕ} :
+  (antidiagonal n).map prod.swap = (antidiagonal n).reverse :=
+begin
+  rw [antidiagonal, map_map, prod.swap, ← list.map_reverse,
+    range_eq_range', reverse_range', ← range_eq_range', map_map],
+  apply map_congr,
+  simp [nat.sub_sub_self, lt_succ_iff] { contextual := tt },
+end
+
 end nat
 end list

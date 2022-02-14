@@ -68,17 +68,7 @@ by { rw [antidiagonal_succ, antidiagonal_succ', map_insert, map_map], refl }
 
 lemma map_swap_antidiagonal {n : ℕ} :
   (antidiagonal n).map ⟨prod.swap, prod.swap_right_inverse.injective⟩ = antidiagonal n :=
-begin
-  ext,
-  simp only [exists_prop, mem_map, mem_antidiagonal, prod.exists],
-  rw add_comm,
-  split,
-  { rintro ⟨b, c, ⟨rfl, rfl⟩⟩,
-    simp },
-  { rintro rfl,
-    use [a.snd, a.fst],
-    simp }
-end
+eq_of_veq $ by simp [antidiagonal, multiset.nat.map_swap_antidiagonal]
 
 /-- A point in the antidiagonal is determined by its first co-ordinate. -/
 lemma antidiagonal_congr {n : ℕ} {p q : ℕ × ℕ} (hp : p ∈ antidiagonal n)

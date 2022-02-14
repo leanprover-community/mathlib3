@@ -60,7 +60,7 @@ end
 theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : ordinal.{u}}
   (hao : a < o) (H : is_normal (op a)) (ho : principal op o) (ho' : is_limit o) : op a o = o :=
 begin
-  refine le_antisymm _ (H.self_le _),
+  refine le_antisymm _ (H.le_self _),
   rw [←is_normal.bsup_eq.{u u} H ho', bsup_le],
   exact λ b hbo, le_of_lt (ho hao hbo)
 end
@@ -101,6 +101,6 @@ end
 
 theorem unbounded_principal (op : ordinal → ordinal → ordinal) :
   set.unbounded (<) {o | principal op o} :=
-λ o, ⟨_, principal_nfp_blsub₂ op o, (le_nfp_self _ o).not_lt⟩
+λ o, ⟨_, principal_nfp_blsub₂ op o, (self_le_nfp _ o).not_lt⟩
 
 end ordinal

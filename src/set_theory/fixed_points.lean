@@ -6,6 +6,8 @@ Authors: Violeta Hernández Palacios
 
 import set_theory.ordinal_arithmetic
 
+set_option pp.universes true
+
 /-!
 # Fixed points of normal functions
 
@@ -26,7 +28,9 @@ Moreover, we prove some lemmas about the fixed points of specific normal functio
 
 noncomputable theory
 
-universes u v
+universes u v w
+
+open function
 
 namespace ordinal
 
@@ -70,9 +74,32 @@ theorem nfp_family_iterate_monotone {f : ι → ordinal → ordinal} (H : ∀ i,
   (l : list ι) : monotone (λ a, nfp_family_iterate f a l) :=
 λ a b h, list.rec_on l h (λ i l hl, H i hl)
 
+theorem nfp_family_iterate_range_subset_of_range_subset {ι'} {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal} (hfg : set.range f ⊆ set.range g) (a) :
+  set.range (nfp_family_iterate f a) ⊆ set.range (nfp_family_iterate g a) :=
+begin
+  rintros x ⟨l, rfl⟩,
+  induction l with i l hl,
+  { exact ⟨[], rfl⟩ },
+  { cases hfg ⟨i, rfl⟩ with i' hi',
+    cases hl with l' hl',
+    rw [nfp_family_iterate_cons, ←hi', ←hl'],
+    exact ⟨i' :: l', rfl⟩ }
+end
+
+theorem nfp_family_iterate_range_eq_of_range_eq {ι'} {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal} (hfg : set.range f = set.range g) (a) :
+  set.range (nfp_family_iterate f a) = set.range (nfp_family_iterate g a) :=
+(nfp_family_iterate_range_subset_of_range_subset hfg.le a).antisymm
+(nfp_family_iterate_range_subset_of_range_subset hfg.ge a)
+
 /-- The next common fixed point, at least `a`, for a family of normal functions. -/
 def nfp_family (f : ι → ordinal → ordinal) (a) : ordinal :=
 sup (nfp_family_iterate f a)
+
+theorem nfp_family_eq_sup (f : ι → ordinal → ordinal) :
+  nfp_family f = (λ a, sup (nfp_family_iterate f a)) :=
+rfl
 
 theorem iterate_le_nfp_family (f : ι → ordinal → ordinal) (a l) :
   nfp_family_iterate f a l ≤ nfp_family f a :=
@@ -98,19 +125,22 @@ end (self_le_nfp_family f a)
 theorem nfp_family_monotone (hf : ∀ i, monotone (f i)) : monotone (nfp_family f) :=
 λ a b h, sup_le.2 $ λ l, (nfp_family_iterate_monotone hf l h).trans (le_sup _ l)
 
-theorem apply_lt_nfp_family [hι : nonempty ι] (H : ∀ i, is_normal (f i)) {a b} :
+theorem apply_lt_nfp_family (H : ∀ i, is_normal (f i)) {a b} (hb : b < nfp_family f a) (i) :
+  f i b < nfp_family f a :=
+let ⟨l, hl⟩ := lt_nfp_family.1 hb in lt_sup.2 ⟨i :: l, (H i).strict_mono hl⟩
+
+theorem apply_lt_nfp_family_iff [nonempty ι] (H : ∀ i, is_normal (f i)) {a b} :
   (∀ i, f i b < nfp_family f a) ↔ b < nfp_family f a :=
-begin
-  rw lt_nfp_family,
-  refine ⟨λ h, _, λ ⟨l, hl⟩ i, lt_sup.2 ⟨i :: l, (H i).strict_mono hl⟩⟩,
-  unfreezingI { cases hι with i },
-  cases lt_sup.1 (h i) with l hl,
-  exact ⟨l, ((H i).le_self b).trans_lt hl⟩
-end
+⟨λ h, lt_nfp_family.2 $ let ⟨l, hl⟩ := lt_sup.1 (h (classical.arbitrary ι)) in
+  ⟨l, ((H _).self_le b).trans_lt hl⟩, apply_lt_nfp_family H⟩
 
 theorem nfp_family_le_apply [nonempty ι] (H : ∀ i, is_normal (f i)) {a b} :
   (∃ i, nfp_family f a ≤ f i b) ↔ nfp_family f a ≤ b :=
-by { rw ←not_iff_not, push_neg, exact apply_lt_nfp_family H }
+by { rw ←not_iff_not, push_neg, exact apply_lt_nfp_family_iff H }
+
+theorem nfp_family_eq_of_range_eq {ι : Type u} {ι' : Type v} {f : ι → ordinal.{max u v w} → ordinal.{max u v w}} {g : ι' → ordinal.{max u v w} → ordinal.{max u v w}}
+  (hfg : set.range f = set.range g) : nfp_family.{u (max v w)} f = nfp_family.{v (max u w)} g :=
+funext (λ a, sup_eq_of_range_eq (by rw nfp_family_iterate_range_eq_of_range_eq hfg))
 
 theorem nfp_family_le_fp (H : ∀ i, is_normal (f i)) {a b} (ab : a ≤ b) (h : ∀ i, f i b ≤ b) :
   nfp_family f a ≤ b :=
@@ -129,7 +159,7 @@ begin
   apply le_antisymm;
   rw ordinal.sup_le,
   { exact λ l, le_sup _ (i :: l) },
-  { exact λ l, ((H i).le_self _).trans (le_sup _ _) }
+  { exact λ l, ((H i).self_le _).trans (le_sup _ _) }
 end
 
 theorem apply_le_nfp_family [hι : nonempty ι] {f : ι → ordinal → ordinal} (H : ∀ i, is_normal (f i))
@@ -137,7 +167,7 @@ theorem apply_le_nfp_family [hι : nonempty ι] {f : ι → ordinal → ordinal}
 begin
   refine ⟨λ h, _, λ h i, _⟩,
   { unfreezingI { cases hι with i },
-    exact ((H i).le_self b).trans (h i) },
+    exact ((H i).self_le b).trans (h i) },
   rw ←nfp_family_fp H i,
   exact (H i).strict_mono.monotone h
 end
@@ -194,7 +224,7 @@ theorem le_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
   (∀ i, f i a ≤ a) ↔ ∃ o, deriv_family f o = a :=
 ⟨λ ha, begin
   suffices : ∀ o (_ : a ≤ deriv_family f o), ∃ o, deriv_family f o = a,
-  from this a ((deriv_family_is_normal _).le_self _),
+  from this a ((deriv_family_is_normal _).self_le _),
   refine λ o, limit_rec_on o (λ h₁, ⟨0, le_antisymm _ h₁⟩) (λ o IH h₁, _) (λ o l IH h₁, _),
   { rw deriv_family_zero,
     exact nfp_family_le_fp H (ordinal.zero_le _) ha },
@@ -237,6 +267,14 @@ variables {o : ordinal.{u}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u 
 def nfp_bfamily (o : ordinal) (f : Π b < o, ordinal → ordinal) : ordinal → ordinal :=
 nfp_family (family_of_bfamily o f)
 
+theorem nfp_bfamily_eq_nfp_family (o : ordinal) (f : Π b < o, ordinal → ordinal) :
+  nfp_bfamily o f = nfp_family (family_of_bfamily o f) :=
+rfl
+
+theorem nfp_family_eq_nfp_bfamily {ι} (f : ι → ordinal → ordinal) :
+  nfp_family f = nfp_bfamily _ (bfamily_of_family f) :=
+sorry
+
 theorem iterate_le_nfp_bfamily {o : ordinal} (f : Π b < o, ordinal → ordinal) (a l) :
   nfp_family_iterate (family_of_bfamily o f) a l ≤ nfp_bfamily o f a :=
 le_sup _ _
@@ -257,11 +295,15 @@ theorem nfp_bfamily_zero {o : ordinal} (ho : o = 0) (f : Π b < o, ordinal → o
   nfp_bfamily o f a = a :=
 @nfp_family_empty _ (out_empty_iff_eq_zero.2 ho) _ a
 
+theorem nfp_bfamily_monotone (hf : ∀ i hi, monotone (f i hi)) : monotone (nfp_bfamily o f) :=
+nfp_family_monotone (λ i, hf _ _)
+
 theorem apply_lt_nfp_bfamily (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
   (∀ i hi, f i hi b < nfp_bfamily o f a) ↔ b < nfp_bfamily o f a :=
 begin
   unfold nfp_bfamily,
-  rw ←@apply_lt_nfp_family _ (family_of_bfamily o f) (out_nonempty_iff_ne_zero.2 ho) (λ i, H _ _),
+  rw ←@apply_lt_nfp_family_iff _ (family_of_bfamily o f) (out_nonempty_iff_ne_zero.2 ho)
+    (λ i, H _ _),
   refine ⟨λ h i, h _ (typein_lt_self i), λ h i hio, _⟩,
   rw ←family_of_bfamily_enum o f,
   apply h
@@ -284,7 +326,7 @@ theorem le_nfp_bfamily (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
 begin
   refine ⟨λ h, _, λ h i hi, _⟩,
   { have ho' : 0 < o := ordinal.pos_iff_ne_zero.2 ho,
-    exact ((H 0 ho').le_self b).trans (h 0 ho') },
+    exact ((H 0 ho').self_le b).trans (h 0 ho') },
   rw ←nfp_bfamily_fp H i,
   exact (H i hi).strict_mono.monotone h
 end
@@ -354,6 +396,16 @@ variable {f : ordinal.{u} → ordinal.{u}}
 def nfp (f : ordinal → ordinal) : ordinal → ordinal :=
 nfp_family (λ _ : unit, f)
 
+theorem nfp_eq_nfp_family (f : ordinal → ordinal) : nfp f = nfp_family (λ _ : unit, f) :=
+rfl
+
+theorem nfp_eq_nfp_family' {ι} [nonempty ι] (f : ordinal → ordinal) :
+  nfp f = nfp_family (λ _ : ι, f) :=
+begin
+  unfold nfp,
+  apply nfp_family_eq_of_range_eq,
+end
+
 @[simp] theorem sup_iterate_eq_nfp (f : ordinal.{u} → ordinal.{u}) :
   (λ a, sup (λ n : ℕ, f^[n] a)) = nfp f :=
 begin
@@ -378,11 +430,14 @@ by { rw ←sup_iterate_eq_nfp, exact lt_sup }
 theorem nfp_le {a b} : nfp f a ≤ b ↔ ∀ n, (f^[n]) a ≤ b :=
 by { rw ←sup_iterate_eq_nfp, exact sup_le }
 
+theorem nfp_monotone (hf : monotone f) : monotone (nfp f) :=
+nfp_family_monotone (λ i, hf)
+
 theorem is_normal.apply_lt_nfp {f} (H : is_normal f) {a b} :
   f b < nfp f a ↔ b < nfp f a :=
 begin
   unfold nfp,
-  rw ←@apply_lt_nfp_family unit (λ _, f) _ (λ _, H) a b,
+  rw ←@apply_lt_nfp_family_iff unit (λ _, f) _ (λ _, H) a b,
   exact ⟨λ h _, h, λ h, h unit.star⟩
 end
 
@@ -397,7 +452,7 @@ nfp_family_fp (λ _, H) unit.star
 
 theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
   f b ≤ nfp f a ↔ b ≤ nfp f a :=
-⟨le_trans (H.le_self _), λ h, by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
+⟨le_trans (H.self_le _), λ h, by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
 
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 nfp_family_eq_self (λ _, h)
@@ -443,9 +498,8 @@ by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _
 
 @[simp] theorem nfp_add_zero (a) : nfp ((+) a) 0 = a * omega :=
 begin
-  unfold nfp,
-  rw ←sup_mul_nat,
-  congr, funext,
+  rw [←sup_iterate_eq_nfp, ←sup_mul_nat],
+  dsimp, congr, funext,
   induction n with n hn,
   { rw [nat.cast_zero, mul_zero, iterate_zero_apply] },
   { nth_rewrite 1 nat.succ_eq_one_add,
@@ -457,7 +511,7 @@ theorem nfp_add_eq_mul_omega {a b} (hba : b ≤ a * omega) :
 begin
   apply le_antisymm ((add_is_normal a).nfp_le_fp hba _),
   { rw ←nfp_add_zero,
-    exact monotone.nfp (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
+    exact nfp_monotone (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
   { rw [←mul_one_add, one_add_omega] }
 end
 
@@ -465,7 +519,7 @@ theorem add_eq_right_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega 
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [←nfp_add_zero a, ←deriv_zero],
-    cases (add_is_normal a).apply_eq_self_iff_deriv.1 h with c hc,
+    cases (add_is_normal a).fp_iff_deriv.1 h with c hc,
     rw ←hc,
     exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _) },
   { have := ordinal.add_sub_cancel_of_le h,

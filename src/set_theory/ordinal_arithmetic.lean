@@ -1028,13 +1028,13 @@ eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_
 theorem sup_const {ι} [hι : nonempty ι] (o : ordinal) : sup (λ _ : ι, o) = o :=
 le_antisymm (sup_le.2 (λ _, le_rfl)) (le_sup _ hι.some)
 
-theorem sup_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f ⊆ set.range g) : sup f ≤ sup g :=
+theorem sup_le_of_range_subset {ι} {ι'} {f : ι → ordinal} {g : ι' → ordinal}
+  (h : set.range f ⊆ set.range g) : sup.{u (max v w)} f ≤ sup.{v (max u w)} g :=
 sup_le.2 $ λ i, match h (mem_range_self i) with ⟨j, hj⟩ := hj ▸ le_sup _ _ end
 
 theorem sup_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f = set.range g) : sup f = sup g :=
-(sup_le_of_range_subset h.le).antisymm (sup_le_of_range_subset h.ge)
+  (h : set.range f = set.range g) : sup.{u (max v w)} f = sup.{v (max u w)} g :=
+(sup_le_of_range_subset.{u v w} h.le).antisymm (sup_le_of_range_subset.{v u w} h.ge)
 
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
   (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
@@ -1042,10 +1042,11 @@ lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_we
   (sup_le.2 $ λ y, le_of_lt $ (typein_lt_typein r).2 $ hx _ $ mem_range_self y)
   (typein_lt_type r x)
 
-theorem sup_eq_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
-  [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
-  (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) = sup (family_of_bfamily' r' ho' f) :=
-sup_eq_of_range_eq (by simp)
+theorem sup_eq_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop) [is_well_order ι r]
+  [is_well_order ι' r'] {o : ordinal.{u}} (ho : type r = o) (ho' : type r' = o)
+  (f : Π a < o, ordinal.{max u v}) :
+  sup (family_of_bfamily' r ho f) = sup (family_of_bfamily' r' ho' f) :=
+sup_eq_of_range_eq.{u u v} (by simp)
 
 /-- The supremum of a family of ordinals indexed by the set of ordinals less than some
   `o : ordinal.{u}`. This is a special case of `sup` over the family provided by

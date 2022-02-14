@@ -9,6 +9,7 @@ import analysis.special_functions.pow
 import number_theory.arithmetic_function
 import measure_theory.function.floor
 import measure_theory.integral.integral_eq_improper
+import number_theory.divisors
 
 noncomputable theory
 
@@ -673,6 +674,95 @@ lemma sigma_zero_apply_eq_card_divisors {i : ℕ} :
  by rw [sigma_zero_apply_eq_sum_divisors, finset.card_eq_sum_ones]
 
 localized "notation `τ` := σ 0" in arithmetic_function
+
+
+----- NEW STUFF
+
+lemma nat.divisors_eq (n y : ℕ) (hn : n ∈ finset.Icc 1 y) :
+  n.divisors = (finset.filter (λ (x : ℕ), x ∣ n) (finset.Icc 1 y)) :=
+begin
+  have n_neq_zero : n ≠ 0 := by linarith [finset.mem_Icc.mp hn],
+  ext a,
+  have : a ∣ n → a ≤ y :=
+    λ ha, le_trans (nat.divisor_le (nat.mem_divisors.mpr ⟨ha,n_neq_zero⟩)) hny,
+  simp only [n_neq_zero, nat.mem_divisors, finset.mem_Icc, and_true, iff_and_self, ne.def,
+    not_false_iff, finset.mem_filter],
+  exact λ ha, ⟨nat.succ_le_iff.mpr (nat.pos_of_mem_divisors (nat.mem_divisors.mpr
+    ⟨ha,n_neq_zero⟩)), this ha⟩,
+end
+
+-- ∑ τ n = ∑_d ∑_n (if d|n, 1 else 0)
+lemma hyperbola_prelim1 (x : ℝ) : summatory (λ i, (σ 0 i : ℝ)) x =
+  ∑ d in finset.Icc 1 ⌊x⌋₊, ∑ n in finset.Icc 1 ⌊x⌋₊, (ite (d ∣ n) 1 0) :=
+begin
+  dsimp [σ, summatory],
+  rw finset.sum_comm,
+  have eq1 : ∀ n : ℕ, n ∈ finset.Icc 1 ⌊x⌋₊ →
+    ∑ (d : ℕ) in n.divisors, d ^ 0
+    = ∑ (a : ℕ) in finset.Icc 1 ⌊x⌋₊, ite (a ∣ n) 1 0,
+  { intros n hn,
+    simp only [mul_one, algebra.id.smul_eq_mul, finset.sum_boole, nat.cast_id, finset.sum_const,
+      pow_zero],
+    congr',
+    exact nat.divisors_eq n _ hn, },
+  apply finset.sum_congr rfl,
+  exact_mod_cast λ n hn, eq1 n hn,
+end
+
+theorem finset.filter_to_inter {α : Type*} [decidable_eq α] {s : finset α} {t : finset α}
+  (h : s ⊆ t) : finset.filter (λ (x : α), x ∈ s) t = s ∩ t :=
+begin
+  ext1,
+  rw [finset.mem_filter, and_comm],
+  exact finset.mem_inter.symm,
+end
+
+theorem finset.sum_card_ite {α : Type*} [decidable_eq α]
+{s : finset α} {t : finset α} (h : s ⊆ t):
+∑ n in t, ite (n ∈ s) 1 0  = s.card :=
+begin
+  simp only [finset.sum_boole, nat.cast_id],
+  congr,
+  rw finset.filter_to_inter h,
+  have : (s : set α) ⊆ (t : set α) := by exact_mod_cast h,
+  exact_mod_cast set.inter_eq_self_of_subset_left this,
+end
+
+lemma finset.Icc_succ (k : ℕ) : finset.Icc 1 k.succ = finset.Icc 1 k ∪ {k.succ} :=
+begin
+  ext,
+  simp only [nat.le_add_one_iff, finset.mem_Icc, finset.mem_union, finset.mem_singleton],
+  rw [and_or_distrib_left, (by by_cases h : a = k + 1; simp [h] : 1 ≤ a ∧ a = k + 1 ↔ a = k + 1)],
+end
+
+lemma nat.divisors_eq_floor {d n : ℕ} : (finset.filter (has_dvd.dvd d) (finset.Icc 1 n)).card = n / d :=
+begin
+  induction n with k hk,
+  { simp },
+  rw [finset.Icc_succ k, finset.filter_union, finset.filter_singleton, nat.succ_div],
+  by_cases h : d ∣ k.succ,
+  { simp only [h, if_true],
+    calc (finset.filter (has_dvd.dvd d) (finset.Icc 1 k) ∪ {k.succ}).card =
+      (finset.filter (has_dvd.dvd d) (finset.Icc 1 k)).card + ({k.succ} : finset ℕ).card : _
+      ... = k / d + ({k.succ} : finset ℕ).card : by simpa using hk
+      ... = k / d + 1 : by simp,
+    rw finset.card_disjoint_union,
+    refine finset.disjoint_of_subset_left (finset.filter_subset _ (finset.Icc 1 k)) _,
+    simp only [finset.mem_Icc, finset.disjoint_singleton_right, not_and, not_le],
+    intros h₁,
+    convert nat.add_lt_add_left (by simp: 0<1) k, },
+  { simp [h, hk], },
+end
+
+-- ∑_n (if d|n, 1 else 0) = ⌊(x / d)⌋
+lemma hyperbola_prelim (x : ℝ) (d : ℕ) (h : d ∈ finset.Icc 1 ⌊x⌋₊):
+  ∑ n in finset.Icc 1 ⌊x⌋₊, (ite (d ∣ n) 1 0) =  ⌊x⌋₊ / d :=
+begin
+  rw finset.sum_ite,
+  simp only [add_zero, mul_one, algebra.id.smul_eq_mul, finset.sum_const, finset.sum_const_zero],
+  exact nat.divisors_eq_floor,
+end
+
 
 -- BM: Bounds like these make me tempted to define a relation
 -- `equal_up_to p f g` to express that `f - g ≪ p` (probably stated `f - g = O(p)`) and show that

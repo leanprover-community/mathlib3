@@ -573,7 +573,7 @@ only if its kernel is open. -/
 @[to_additive continuous_iff_open_add_kernel "A homomorphism from a topological additive group to a
 discrete topological additive group is continuous if and only if its kernel is open."]
 lemma topological_group.continuous_iff_open_kernel [topological_space H] [dH : discrete_topology H]
-  [group H] [topological_group H] {f : G →* H} : continuous f ↔ is_open (f⁻¹' {1}) :=
+  [group H] [topological_group H] {f : G →* H} : continuous f ↔ is_open (f.ker : set G) :=
 begin
   refine ⟨λ hf, _, λ hf, _⟩,
   { apply continuous.is_open_preimage hf _ (singletons_open_iff_discrete.mpr (infer_instance) 1) },

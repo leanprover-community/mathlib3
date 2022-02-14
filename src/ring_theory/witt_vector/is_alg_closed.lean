@@ -55,8 +55,7 @@ that needs to happen in characteristic 0.
 open witt_vector finset
 open_locale big_operators
 
-
-section
+section mv_poly
 open mv_polynomial
 
 omit hp
@@ -103,12 +102,13 @@ begin
 end
 
 /-- The "remainder term" of `witt_poly_prod`. See `sum_ident_2`. -/
-def extra_poly (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+def witt_poly_prod_remainder (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 ∑ i in range n, p^i * (witt_mul p i)^(p^(n-i))
 
-lemma extra_poly_vars (n : ℕ) : (extra_poly p n).vars ⊆ finset.univ.product (finset.range n) :=
+lemma witt_poly_prod_remainder_vars (n : ℕ) :
+  (witt_poly_prod_remainder p n).vars ⊆ finset.univ.product (finset.range n) :=
 begin
-  rw [extra_poly],
+  rw [witt_poly_prod_remainder],
   apply subset.trans (vars_sum_subset _ _),
   rw bUnion_subset,
   intros x hx,
@@ -127,7 +127,8 @@ begin
 end
 
 private lemma sum_ident_2 (n : ℕ) :
-  (p ^ n * witt_mul p n : mv_polynomial (fin 2 × ℕ) ℤ) + extra_poly p n = witt_poly_prod p n :=
+  (p ^ n * witt_mul p n : mv_polynomial (fin 2 × ℕ) ℤ) + witt_poly_prod_remainder p n =
+    witt_poly_prod p n :=
 begin
   convert sum_ident_1 p n,
   rw [sum_range_succ, add_comm, nat.sub_self, pow_zero, pow_one],
@@ -137,11 +138,11 @@ end
 omit hp
 
 /--
-`diff p n` represents the remainder term from `sum_ident_3`.
+`remainder p n` represents the remainder term from `sum_ident_3`.
 `witt_poly_prod p (n+1)` will have variables up to `n+1`,
-but `diff` will only have variables up to `n`.
+but `remainder` will only have variables up to `n`.
 -/
-def diff (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+def remainder (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 (∑ (x : ℕ) in
      range (n + 1),
      (rename (prod.mk 0)) ((monomial (finsupp.single x (p ^ (n + 1 - x)))) (↑p ^ x))) *
@@ -154,7 +155,7 @@ private lemma sum_ident_3 (n : ℕ) :
   - (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
   (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
   (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
-  diff p n :=
+  remainder p n :=
 begin
   -- a useful auxiliary fact
   have mvpz : (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) = mv_polynomial.C (↑p ^ (n + 1)),
@@ -167,7 +168,7 @@ begin
   conv_lhs {congr, skip, rw [sum_range_succ] },
   simp only [add_mul, mul_add, tsub_self, int.nat_cast_eq_coe_nat, pow_zero, alg_hom.map_sum],
 
-  -- rearrange so that the first summand on rhs and lhs is `diff`, and peel off
+  -- rearrange so that the first summand on rhs and lhs is `remainder`, and peel off
   conv_rhs { rw add_comm },
   simp only [add_assoc],
   apply congr_arg (has_add.add _),
@@ -182,9 +183,9 @@ end
 
 include hp
 
-lemma diff_vars (n : ℕ) : (diff p n).vars ⊆ univ.product (range (n+1)) :=
+lemma remainder_vars (n : ℕ) : (remainder p n).vars ⊆ univ.product (range (n+1)) :=
 begin
-  rw [diff],
+  rw [remainder],
   apply subset.trans (vars_mul _ _),
   apply union_subset;
   { apply subset.trans (vars_sum_subset _ _),
@@ -202,13 +203,13 @@ private lemma sum_ident_4 (n : ℕ) :
   - (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
   (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
   (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
-  (diff p n - extra_poly p (n + 1)) :=
+  (remainder p n - witt_poly_prod_remainder p (n + 1)) :=
 begin
   rw [← add_sub_assoc, eq_sub_iff_add_eq, sum_ident_2],
   exact sum_ident_3 _ _
 end
 
-/-- This is the polynomial whose dimension we want to get a handle on. Appears in `sum_ident_4`. -/
+/-- This is the polynomial whose degree we want to get a handle on. Appears in `sum_ident_4`. -/
 def poly_of_interest (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 witt_mul p (n + 1) + p^(n+1) * X (0, n+1) * X (1, n+1) -
   (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) -
@@ -217,22 +218,22 @@ witt_mul p (n + 1) + p^(n+1) * X (0, n+1) * X (1, n+1) -
 private lemma sum_ident_5 (n : ℕ) :
   (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) *
     poly_of_interest p n =
-  (diff p n - extra_poly p (n + 1)) :=
+  (remainder p n - witt_poly_prod_remainder p (n + 1)) :=
 begin
   simp only [poly_of_interest, mul_sub, mul_add, sub_eq_iff_eq_add'],
   rw sum_ident_4 p n,
   ring,
 end
 
-lemma prod_vars_subset (n : ℕ) :
+lemma mul_poly_of_interest_vars (n : ℕ) :
   ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * poly_of_interest p n).vars ⊆
   univ.product (range (n+1)) :=
 begin
   rw sum_ident_5,
   apply subset.trans (vars_sub_subset _ _),
   apply union_subset,
-  { apply diff_vars },
-  { apply extra_poly_vars }
+  { apply remainder_vars },
+  { apply witt_poly_prod_remainder_vars }
 end
 
 lemma poly_of_interest_vars_eq (n : ℕ) :
@@ -250,7 +251,7 @@ begin
 end
 
 lemma poly_of_interest_vars (n : ℕ) : (poly_of_interest p n).vars ⊆ univ.product (range (n+1)) :=
-by rw poly_of_interest_vars_eq; apply prod_vars_subset
+by rw poly_of_interest_vars_eq; apply mul_poly_of_interest_vars
 
 lemma peval_poly_of_interest (n : ℕ) (x y : 𝕎 k) :
   peval (poly_of_interest p n) ![λ i, x.coeff i, λ i, y.coeff i] =
@@ -277,7 +278,7 @@ begin
   refl }
 end
 
-/- characteristic `p` version -/
+/-- The characteristic `p` version of `peval_poly_of_interest` -/
 lemma peval_poly_of_interest' [char_p k p] (n : ℕ) (x y : 𝕎 k) :
   peval (poly_of_interest p n) ![λ i, x.coeff i, λ i, y.coeff i] =
   (x * y).coeff (n + 1) - y.coeff (n+1) * x.coeff 0 ^ (p^(n+1))
@@ -293,22 +294,6 @@ begin
     { intros j _ hj,
       simp [zero_pow (zero_lt_iff.mpr hj)] } },
 end
-
-omit hp
-
-lemma restrict_to_vars {σ : Type*} {s : set σ} (R : Type*) [comm_ring R] {F : mv_polynomial σ ℤ}
-  (hF : ↑F.vars ⊆ s) :
-  ∃ f : (s → R) → R, ∀ x : σ → R, f (x ∘ coe : s → R) = aeval x F :=
-begin
-  classical,
-  rw [← mem_supported, supported_eq_range_rename, alg_hom.mem_range] at hF,
-  cases hF with F' hF',
-  use λ z, aeval z F',
-  intro x,
-  simp only [←hF', aeval_rename],
-end
-
-include hp
 
 variable [char_p k p]
 
@@ -346,10 +331,6 @@ begin
   { simpa only using x.coeff_truncate_fun ⟨m, ha'⟩ }
 end
 
-end
-
-variable [char_p k p]
-
 lemma nth_mul_coeff (n : ℕ) :
   ∃ f : (truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k), ∀ (x y : 𝕎 k),
     (x * y).coeff (n+1) =
@@ -376,7 +357,9 @@ lemma nth_remainder_spec (n : ℕ) (x y : 𝕎 k) :
     nth_remainder p n (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
 classical.some_spec (nth_mul_coeff p n) _ _
 
+end mv_poly
 
+variable [char_p k p]
 open polynomial
 
 /-- The root of this polynomial determines the `n+1`st coefficient of our solution. -/
@@ -534,7 +517,7 @@ end
 local notation `K` := fraction_ring (𝕎 k)
 
 /-- This is basically the same as `𝕎 k` being a DVR. -/
-lemma split (a : 𝕎 k) (ha : a ≠ 0) :
+lemma exists_eq_pow_p_mul (a : 𝕎 k) (ha : a ≠ 0) :
   ∃ (m : ℕ) (b : 𝕎 k), b.coeff 0 ≠ 0 ∧ a = p ^ m * b :=
 begin
   obtain ⟨m, c, hc, hcm⟩ := witt_vector.verschiebung_nonzero ha,
@@ -564,8 +547,8 @@ begin
   rintros ⟨r, q, hq⟩ hrq,
   rw mem_non_zero_divisors_iff_ne_zero at hq,
   have : r ≠ 0 := λ h, hrq (by simp [h]),
-  obtain ⟨m, r', hr', rfl⟩ := split p r this,
-  obtain ⟨n, q', hq', rfl⟩ := split p q hq,
+  obtain ⟨m, r', hr', rfl⟩ := exists_eq_pow_p_mul p r this,
+  obtain ⟨n, q', hq', rfl⟩ := exists_eq_pow_p_mul p q hq,
   let b := frobenius_rotation p hr' hq',
   refine ⟨algebra_map (𝕎 k) _ b, _, m - n, _⟩,
   { simpa only [map_zero] using

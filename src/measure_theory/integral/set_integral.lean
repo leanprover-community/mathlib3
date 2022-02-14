@@ -802,29 +802,6 @@ L.integral_comp_comm (L1.integrable_coe_fn φ)
 
 end continuous_linear_map
 
-section glou
-
-#where
-
-lemma integral_with_density_eq_integral_mul [borel_space E] [complete_space E] {f : α → ℝ≥0}
-  (f_meas : measurable f) (g : α → E) (hg : integrable g (μ.with_density (λ x, f x))) :
-  ∫ a, g a ∂(μ.with_density (λ x, f x)) = ∫ a, f a • g a ∂μ :=
-begin
-  refine integrable.induction _ _ _ _ _ hg,
-  { assume c s s_meas hs,
-    rw normed_space.eq_iff_forall_dual_eq ℝ,
-    rotate, { apply_instance }, { apply_instance },
-    assume φ,
-    rw ← integral_comp_comm φ,
-
-  }
-end
-
-#exit
-
-
-end glou
-
 namespace linear_isometry
 
 variables [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
@@ -915,5 +892,90 @@ lemma integral_eq_zero_of_forall_integral_inner_eq_zero (f : α → E') (hf : in
 by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq_zero] at hf_int }
 
 end inner
+
+lemma integral_with_density_eq_integral_smul
+  {f : α → ℝ≥0} (f_meas : measurable f) (g : α → E) :
+  ∫ a, g a ∂(μ.with_density (λ x, f x)) = ∫ a, f a • g a ∂μ :=
+begin
+  by_cases hg : integrable g (μ.with_density (λ x, f x)), swap,
+  { rw [integral_undef hg, integral_undef],
+    rwa [← integrable_with_density_iff_integrable_smul f_meas];
+    apply_instance },
+  refine integrable.induction _ _ _ _ _ hg,
+  { assume c s s_meas hs,
+    rw integral_indicator s_meas,
+    simp_rw [← indicator_smul_apply, integral_indicator s_meas],
+    simp only [s_meas, integral_const, measure.restrict_apply', univ_inter, with_density_apply],
+    rw [lintegral_coe_eq_integral, ennreal.to_real_of_real, ← integral_smul_const],
+    { refl },
+    { exact integral_nonneg (λ x, nnreal.coe_nonneg _) },
+    { refine ⟨(f_meas.coe_nnreal_real).ae_measurable, _⟩,
+      rw with_density_apply _ s_meas at hs,
+      rw has_finite_integral,
+      convert hs,
+      ext1 x,
+      simp only [nnreal.nnnorm_eq] } },
+  { assume u u' h_disj u_int u'_int h h',
+    change ∫ (a : α), (u a + u' a) ∂μ.with_density (λ (x : α), ↑(f x)) =
+      ∫ (a : α), f a • (u a + u' a) ∂μ,
+    simp_rw [smul_add],
+    rw [integral_add u_int u'_int, h, h', integral_add],
+    { exact (integrable_with_density_iff_integrable_smul f_meas).1 u_int },
+    { exact (integrable_with_density_iff_integrable_smul f_meas).1 u'_int } },
+  { have C1 : continuous (λ (u : Lp E 1 (μ.with_density (λ x, f x))),
+      ∫ x, u x ∂(μ.with_density (λ x, f x))) := continuous_integral,
+    have C2 : continuous (λ (u : Lp E 1 (μ.with_density (λ x, f x))),
+      ∫ x, f x • u x ∂μ),
+    { have : continuous ((λ (u : Lp E 1 μ), ∫ x, u x ∂μ) ∘ (with_density_smul_li μ f_meas)) :=
+        continuous_integral.comp (with_density_smul_li μ f_meas).continuous,
+      convert this,
+      ext1 u,
+      simp only [function.comp_app, with_density_smul_li_apply],
+      exact integral_congr_ae (mem_ℒ1_smul_of_L1_with_density f_meas u).coe_fn_to_Lp.symm },
+    exact is_closed_eq C1 C2 },
+  { assume u v huv u_int hu,
+    rw [← integral_congr_ae huv, hu],
+    apply integral_congr_ae,
+    filter_upwards [(ae_with_density_iff f_meas.coe_nnreal_ennreal).1 huv],
+    assume x hx,
+    rcases eq_or_ne (f x) 0 with h'x|h'x,
+    { simp only [h'x, zero_smul]},
+    { rw [hx _],
+      simpa only [ne.def, ennreal.coe_eq_zero] using h'x } }
+end
+
+lemma integral_with_density_eq_integral_smul₀
+  {f : α → ℝ≥0} (hf : ae_measurable f μ) (g : α → E) :
+  ∫ a, g a ∂(μ.with_density (λ x, f x)) = ∫ a, f a • g a ∂μ :=
+begin
+  let f' := hf.mk _,
+  calc ∫ a, g a ∂(μ.with_density (λ x, f x))
+  = ∫ a, g a ∂(μ.with_density (λ x, f' x)) :
+  begin
+    congr' 1,
+    apply with_density_congr_ae,
+    filter_upwards [hf.ae_eq_mk],
+    assume x hx,
+    rw hx,
+  end
+  ... = ∫ a, f' a • g a ∂μ : integral_with_density_eq_integral_smul hf.measurable_mk _
+  ... = ∫ a, f a • g a ∂μ :
+  begin
+    apply integral_congr_ae,
+    filter_upwards [hf.ae_eq_mk],
+    assume x hx,
+    rw hx,
+  end
+end
+
+lemma set_integral_with_density_eq_set_integral_smul
+  {f : α → ℝ≥0} (f_meas : measurable f) (g : α → E) {s : set α} (hs : measurable_set s) :
+  ∫ a in s, g a ∂(μ.with_density (λ x, f x)) = ∫ a in s, f a • g a ∂μ :=
+by rw [restrict_with_density hs, integral_with_density_eq_integral_smul f_meas]
+
+lemma set_integral_with_density_eq_set_integral_smul₀ {f : α → ℝ≥0} {s : set α}
+  (hf : ae_measurable f (μ.restrict s)) (g : α → E) (hs : measurable_set s) :
+  ∫ a in s, g a ∂(μ.with_density (λ x, f x)) = ∫ a in s, f a • g a ∂μ :=
+by rw [restrict_with_density hs, integral_with_density_eq_integral_smul₀ hf]
 
 end

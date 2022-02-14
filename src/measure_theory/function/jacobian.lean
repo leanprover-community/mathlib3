@@ -1121,7 +1121,10 @@ le_antisymm (lintegral_abs_det_fderiv_le_add_haar_image μ hs hf' hf)
 /-- Change of variable formula for differentiable functions, set version: if a function `f` is
 injective and differentiable on a measurable set `s`, then the pushforward of the measure with
 density `|(f' x).det|` on `s` is the Lebesgue measure on the image set. This version requires
-that `f` is measurable, as otherwise `measure.map f` is zero per our definitions. -/
+that `f` is measurable, as otherwise `measure.map f` is zero per our definitions.
+For a version without measurability assumption but dealing with the restricted
+function `s.restrict f`, see `restrict_map_with_density_abs_det_fderiv_eq_add_haar`.
+-/
 theorem map_with_density_abs_det_fderiv_eq_add_haar {f : E → E} {s : set E} (hs : measurable_set s)
   {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s)
   (h'f : measurable f) :
@@ -1136,34 +1139,19 @@ begin
       image_preimage_inter]
 end
 
-lemma _root_.continuous_on.measurable_piecewise {α β : Type*}
-  {f g : α → β} {s : set α} [Π (j : α), decidable (j ∈ s)]
-  [topological_space α] [measurable_space α] [opens_measurable_space α]
-  [topological_space β] [measurable_space β] [borel_space β]
-  (hf : continuous_on f s) (hg : continuous_on g sᶜ) (hs : measurable_set s) :
-  measurable (s.piecewise f g) :=
+/-- Change of variable formula for differentiable functions, set version: if a function `f` is
+injective and differentiable on a measurable set `s`, then the pushforward of the measure with
+density `|(f' x).det|` on `s` is the Lebesgue measure on the image set. This version is expressed
+in terms of the restricted function `s.restrict f`.
+For a version for the original function, but with a measurability assumption,
+see `map_with_density_abs_det_fderiv_eq_add_haar`.
+-/
+theorem restrict_map_with_density_abs_det_fderiv_eq_add_haar
+  {f : E → E} {s : set E} (hs : measurable_set s)
+  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
+  measure.map (s.restrict f)
+    (comap coe (μ.with_density (λ x, ennreal.of_real (|(f' x).det|)))) = μ.restrict (f '' s) :=
 begin
-  refine measurable_of_is_open (λ t ht, _),
-  rw [piecewise_preimage, set.ite],
-  apply measurable_set.union,
-  { rcases _root_.continuous_on_iff'.1 hf t ht with ⟨u, u_open, hu⟩,
-    rw hu,
-    exact u_open.measurable_set.inter hs },
-  { rcases _root_.continuous_on_iff'.1 hg t ht with ⟨u, u_open, hu⟩,
-    rw [diff_eq_compl_inter, inter_comm, hu],
-    exact u_open.measurable_set.inter hs.compl }
-end
-
-/- Change of variable formula for differentiable functions: if a function `f` is
-injective and differentiable on a measurable set `s`, then the integral of a function
-`g` on `f '' s` coincides with the integral of `|(f' x).det| * g ∘ f` on `s`.
-Note that the measurability of `f '' s` is given by `measurable_image_of_fderiv_within`. -/
-theorem lintegral_image_eq_lintegral_abs_det_fderiv_mul' {f : E → E} {s : set E}
-  (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
-  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → ℝ≥0∞) :
-  ∫⁻ x in f '' s, g x ∂μ = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) * g (f x) ∂μ :=
-begin
-  -- To express the formula in terms of `measure.map`, we replace `f` by a measurable version.
   obtain ⟨u, u_meas, uf⟩ : ∃ u, measurable u ∧ eq_on u f s,
   { classical,
     refine ⟨piecewise s f 0, _, piecewise_eq_on _ _ _⟩,
@@ -1172,25 +1160,34 @@ begin
     exact this.continuous_on },
   have u' : ∀ x ∈ s, has_fderiv_within_at u (f' x) s x :=
     λ x hx, (hf' x hx).congr (λ y hy, uf hy) (uf hx),
-  -- we express things in terms of the function `u ∘ coe`, which is a measurable embedding.
-  -- In this way, we avoid integrability assumptions in the change of variable formula for
-  -- `measure.map`.
   set F : s → E := u ∘ coe with hF,
-  have F_emb : measurable_embedding F,
-  { refine continuous_on.measurable_embedding hs _ _,
-    { have A : differentiable_on ℝ f s := λ x hx, (hf' x hx).differentiable_within_at,
-      exact continuous_on.congr A.continuous_on uf },
-    { exact inj_on.congr hf uf.symm } },
   have A : measure.map F
     (comap coe (μ.with_density (λ x, ennreal.of_real (|(f' x).det|)))) = μ.restrict (u '' s),
   { rw [hF, ← measure.map_map u_meas measurable_subtype_coe, map_comap_subtype_coe hs,
         restrict_with_density hs],
     exact map_with_density_abs_det_fderiv_eq_add_haar μ hs u' (hf.congr uf.symm) u_meas },
-  rw [← eq_on.image_eq uf, ← A, F_emb.lintegral_map],
-  have : ∀ (x : s), g (F x) = (g ∘ f) x,
-  { assume x,
-    have : u x = f x := uf x.2,
-    simp [hF, this] },
+  rw uf.image_eq at A,
+  have : F = s.restrict f,
+  { ext x,
+    exact uf x.2 },
+  rwa this at A,
+end
+
+/- Change of variable formula for differentiable functions: if a function `f` is
+injective and differentiable on a measurable set `s`, then the integral of a function
+`g` on `f '' s` coincides with the integral of `|(f' x).det| * g ∘ f` on `s`.
+Note that the measurability of `f '' s` is given by `measurable_image_of_fderiv_within`. -/
+theorem lintegral_image_eq_lintegral_abs_det_fderiv_mul {f : E → E} {s : set E}
+  (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → ℝ≥0∞) :
+  ∫⁻ x in f '' s, g x ∂μ = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) * g (f x) ∂μ :=
+begin
+  have F_emb : measurable_embedding (s.restrict f),
+  { refine continuous_on.measurable_embedding hs _ hf,
+    have : differentiable_on ℝ f s := λ x hx, (hf' x hx).differentiable_within_at,
+    exact differentiable_on.continuous_on this },
+  rw [← restrict_map_with_density_abs_det_fderiv_eq_add_haar μ hs hf' hf, F_emb.lintegral_map],
+  have : ∀ (x : s), g (s.restrict f x) = (g ∘ f) x := λ x, rfl,
   simp only [this],
   rw [← (measurable_embedding.subtype_coe hs).lintegral_map, map_comap_subtype_coe hs,
       set_lintegral_with_density_eq_set_lintegral_mul_non_measurable₀ _ _ _ hs],
@@ -1199,89 +1196,33 @@ begin
   { apply ae_measurable_of_real_abs_det_fderiv_within μ hs hf' }
 end
 
+variables [complete_space F] [measurable_space F] [borel_space F]
 
 /-- Change of variable formula for differentiable functions: if a function `f` is
 injective and differentiable on a measurable set `s`, then the integral of a measurable function
-`g` on `f '' s` coincides with the integral of `|(f' x).det| * g ∘ f` on `s`. -/
-theorem integral_image_eq_integral_abs_det_fderiv_mul {f : E → E} {s : set E}
-  (hs : measurable_set s)
-  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s)
-  {g : E → ℝ} (hg : measurable g) :
-  ∫ x in f '' s, g x ∂μ = ∫ x in s, (|(f' x).det|) * g (f x) ∂μ :=
-begin  -- To express the formula in terms of `measure.map`, we replace `f` by a measurable version.
-  obtain ⟨u, u_meas, uf⟩ : ∃ u, measurable u ∧ eq_on u f s,
-  { classical,
-    refine ⟨piecewise s f 0, _, piecewise_eq_on _ _ _⟩,
-    refine continuous_on.measurable_piecewise _ continuous_zero.continuous_on hs,
-    have : differentiable_on ℝ f s := λ x hx, (hf' x hx).differentiable_within_at,
-    exact this.continuous_on },
-  have u' : ∀ x ∈ s, has_fderiv_within_at u (f' x) s x :=
-    λ x hx, (hf' x hx).congr (λ y hy, uf hy) (uf hx),
-  -- we express things in terms of the function `u ∘ coe`, which is a measurable embedding.
-  -- In this way, we avoid integrability assumptions in the change of variable formula for
-  -- `measure.map`.
-  set F : s → E := u ∘ coe with hF,
-  have F_emb : measurable_embedding F,
-  { refine continuous_on.measurable_embedding hs _ _,
-    { have A : differentiable_on ℝ f s := λ x hx, (hf' x hx).differentiable_within_at,
-      exact continuous_on.congr A.continuous_on uf },
-    { exact inj_on.congr hf uf.symm } },
-  have A : measure.map F
-    (comap coe (μ.with_density (λ x, ennreal.of_real (|(f' x).det|)))) = μ.restrict (u '' s),
-  { rw [hF, ← measure.map_map u_meas measurable_subtype_coe, map_comap_subtype_coe hs,
-        restrict_with_density hs],
-    exact map_with_density_abs_det_fderiv_eq_add_haar μ hs u' (hf.congr uf.symm) u_meas },
-  rw [← eq_on.image_eq uf, ← A, F_emb.integral_map],
-  have : ∀ (x : s), g (F x) = (g ∘ f) x,
-  { assume x,
-    have : u x = f x := uf x.2,
-    simp [hF, this] },
-  simp only [this],
-  rw [← (measurable_embedding.subtype_coe hs).integral_map, map_comap_subtype_coe hs,
-      set_integral_with_density_eq_set_integral_mul_non_measurable₀ _ _ _ hs],
-  { refl },
-  { simp only [eventually_true, ennreal.of_real_lt_top] },
-  { apply ae_measurable_of_real_abs_det_fderiv_within μ hs hf' }
-
-end
-
-/- Change of variable formula for differentiable functions: if a function `f` is
-injective and differentiable on a measurable set `s`, then the integral of a measurable function
-`g` on `f '' s` coincides with the integral of `|(f' x).det| * g ∘ f` on `s`. -/
-/-theorem integral_image_eq_integral_abs_det_fderiv_mul {f : E → E} {s : set E}
-  (hs : measurable_set s)
-  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s)
-  {g : E → ℝ} (hg : measurable g) :
-  ∫ x in f '' s, g x ∂μ = ∫ x in s, (|(f' x).det|) * g (f x) ∂μ :=
+`g` on `f '' s` coincides with the integral of `|(f' x).det| • g ∘ f` on `s`. -/
+theorem integral_image_eq_integral_abs_det_fderiv_smul {f : E → E} {s : set E}
+  (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → F) :
+  ∫ x in f '' s, g x ∂μ = ∫ x in s, |(f' x).det| • g (f x) ∂μ :=
 begin
-  /- To reduce to a statement on the image measure, which requires global measurability of `f`,
-  we replace `f` by a measurable version `F`. -/
-  obtain ⟨F, F_meas, Ff⟩ : ∃ F, measurable F ∧ eq_on F f s,
-  { classical,
-    refine ⟨piecewise s f 0, _, piecewise_eq_on _ _ _⟩,
-    refine continuous_on.measurable_piecewise _ hs 0,
+  have F_emb : measurable_embedding (s.restrict f),
+  { refine continuous_on.measurable_embedding hs _ hf,
     have : differentiable_on ℝ f s := λ x hx, (hf' x hx).differentiable_within_at,
-    exact this.continuous_on },
-  have A : ∀ x ∈ s, has_fderiv_within_at F (f' x) s x :=
-    λ x hx, (hf' x hx).congr (λ y hy, Ff hy) (Ff hx),
-  calc ∫ x in f '' s, g x ∂μ = ∫ x in F '' s, g x ∂μ : by rw eq_on.image_eq Ff
-  ... = ∫ x in s, (|(f' x).det|) * g (F x) ∂μ :
-    begin
-      rw [← map_with_density_abs_det_fderiv_eq_add_haar μ hs A (hf.congr Ff.symm) F_meas],
-      rw integral_map_of_measurable F_meas hg,
-      rw integrable_with_density_iff,
---          lintegral_map hg F_meas, lintegral_with_density_eq_lintegral_mul₀],
-      { refl },
-      { exact ae_measurable_of_real_abs_det_fderiv_within μ hs hf' },
-      { apply (hg.comp F_meas).ae_measurable },
-    end
-  ... = ∫ x in s, (|(f' x).det|) * g (f x) ∂μ :
-    begin
-      apply lintegral_congr_ae,
-      filter_upwards [ae_restrict_mem hs],
-      assume x hx,
-      rw Ff hx,
-    end
-end -/
+    exact differentiable_on.continuous_on this },
+  rw [← restrict_map_with_density_abs_det_fderiv_eq_add_haar μ hs hf' hf, F_emb.integral_map],
+  have : ∀ (x : s), g (s.restrict f x) = (g ∘ f) x := λ x, rfl,
+  simp only [this, ennreal.of_real],
+  rw [← (measurable_embedding.subtype_coe hs).integral_map, map_comap_subtype_coe hs,
+      set_integral_with_density_eq_set_integral_smul₀ _ _ hs],
+  { congr,
+    ext x,
+    conv_rhs { rw ← real.coe_to_nnreal _ (abs_nonneg (f' x).det) },
+    refl },
+  { apply measurable_real_to_nnreal.comp_ae_measurable,
+    refine continuous_abs.measurable.comp_ae_measurable _,
+    refine continuous_linear_map.continuous_det.measurable.comp_ae_measurable _,
+    exact ae_measurable_fderiv_within μ hs hf' }
+end
 
 end measure_theory

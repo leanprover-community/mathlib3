@@ -155,9 +155,7 @@ instance : distrib_mul_action R (self_adjoint A) :=
   smul_zero := λ r, by { ext, simp only [smul_zero', coe_smul, add_subgroup.coe_zero] } }
 
 instance : module R (self_adjoint A) :=
-function.injective.module R (add_subgroup.subtype (self_adjoint A))
-(by { rw add_subgroup.coe_subtype, exact subtype.coe_injective })
-(λ c x, by simp only [add_subgroup.coe_subtype, coe_smul])
+function.injective.module R (self_adjoint A).subtype subtype.coe_injective coe_smul
 
 end module
 
@@ -211,9 +209,7 @@ instance : distrib_mul_action R (skew_adjoint A) :=
   smul_zero := λ r, by { ext, simp only [smul_zero', coe_smul, add_subgroup.coe_zero] } }
 
 instance : module R (skew_adjoint A) :=
-function.injective.module R (add_subgroup.subtype (skew_adjoint A))
-(by { rw add_subgroup.coe_subtype, exact subtype.coe_injective })
-(λ c x, by simp only [add_subgroup.coe_subtype, coe_smul])
+function.injective.module R (skew_adjoint A).subtype subtype.coe_injective coe_smul
 
 end module
 

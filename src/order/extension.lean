@@ -116,13 +116,13 @@ Any ordered group can be extended to a linear ordered group.
 -/
 @[to_additive]
 theorem extend_ordered_group {α : Type u} [o : ordered_comm_group α]
-  (h_norm : ∀ (x : α), (∃ (n : ℕ) (hn : n ≠ 0), 1 ≤ x ^ n) → 1 ≤ x) : -- fuchs calls this normal
+  (h_norm : ∀ (x y : α), (∃ (n : ℕ) (hn : n ≠ 0), y ^ n ≤ x ^ n) → y ≤ x) : -- fuchs calls this normal
   ∃ l : linear_ordered_comm_group α, ordered_comm_group.is_finer o
     (@linear_ordered_comm_group.to_ordered_comm_group α l) :=
 begin
   let S := { s | is_partial_order α s ∧
                 (∀ a b : α, s a b → ∀ c : α, s (c * a) (c * b)) ∧
-                ∀ x, (∃ (n : ℕ) (hn : n ≠ 0), s 1 (x ^ n)) → s 1 x },
+                ∀ x y, (∃ (n : ℕ) (hn : n ≠ 0), s (y ^ n) (x ^ n)) → s y x },
   have hS : ∀ c, c ⊆ S → zorn.chain (≤) c → ∀ y ∈ c, ∃ ub ∈ S, ∀ z ∈ c, z ≤ ub,
   { rintro c hc₁ hc₂ s hs,
     haveI := (hc₁ hs).1.1,
@@ -145,8 +145,8 @@ begin
       { apply antisymm h₂s₁ (h _ _ h₂s₂) } },
     { rintro x y ⟨s₁, h₁s₁, h₂s₁⟩ z, -- TODO is this junk removable?
       use [s₁, h₁s₁, (hc₁ h₁s₁).2.1 _ _ h₂s₁ z], },
-    { rintro x ⟨n, hn, r, hr₁, hr₂⟩,
-      use [r, hr₁, (hc₁ hr₁).2.2 _ ⟨n, hn, hr₂⟩], }, },
+    { rintro x y ⟨n, hn, r, hr₁, hr₂⟩,
+      use [r, hr₁, (hc₁ hr₁).2.2 _ _ ⟨n, hn, hr₂⟩], }, },
   obtain ⟨s, ⟨hs₁, hs₁a, hs₁b⟩, rs, hs₂⟩ := zorn.zorn_nonempty_partial_order₀ S hS (≤)
     ⟨is_partial_order.mk, o.mul_le_mul_left, h_norm⟩,
   resetI,
@@ -177,16 +177,12 @@ begin
     { simp only [pow_one, div_eq_inv_mul' b a], }, },
   have hp : ∀ (x') (y') {p q} (hpq : p ≠ 0 ∨ q ≠ 0) (hs' : s ((y / x) ^ q) ((y' / x') ^ p)), p ≠ 0,
   { rintro x' y' p q (hpq | hpq) hs',
-    assumption,
+    { assumption, },
     intro hp,
     apply h,
     right,
-    rw [hp, pow_zero] at hs',
-    have : s 1 ((x / y) ^ q),
-    { have : s ((x / y) ^ q * (y / x) ^ q) ((x / y) ^ q * 1) := hs₁a _ _ hs' _,
-      simpa [← mul_pow], },
-    have : s (y * 1) (y * (x / y)) := hs₁a _ _ (hs₁b _ ⟨_, hpq, this⟩) y,
-    simpa, },
+    rw [hp, pow_zero, ← one_pow q] at hs',
+    simpa using hs₁a _ _ (hs₁b _ _ ⟨q, hpq, hs'⟩) x, },
   rw ← hs₂ s' _ hfine at h,
   { exact h (or.inl ⟨1, 1, by simp, refl _⟩) }, -- case α ????    v) in Nakada
   { have key : ∀ (a b c : α) (pab qab : ℕ) (habn : pab ≠ 0 ∨ qab ≠ 0)
@@ -245,14 +241,17 @@ begin
       by_cases hqs : qab = 0 ∧ qba = 0,
       { simp only [hqs, pow_zero] at hab hba,
         apply antisymm (_ : s a b),
-        { have := hs₁b _ ⟨_, _, hba⟩,
+        { rw ← one_pow pba at hba,
+          have := hs₁b _ _ ⟨_, _, hba⟩,
           simpa using hs₁a _ _ this b,
           tauto, },
-        { have := hs₁b _ ⟨_, _, hab⟩,
+        { rw ← one_pow pab at hab,
+          have := hs₁b _ _ ⟨_, _, hab⟩,
           simpa using hs₁a _ _ this a,
           tauto, }, },
       exfalso,
-      have : s 1 (x / y) := hs₁b _ ⟨_, _, this⟩,
+      rw ← one_pow (qab * pba + qba * pab) at this,
+      have : s 1 (x / y) := hs₁b _ _ ⟨_, _, this⟩,
       have := hs₁a _ _ this y,
       simp only [mul_one, mul_div_cancel'_right] at this,
       tauto,
@@ -262,13 +261,15 @@ begin
     { rintros a b ⟨pab, qab, habn, hab⟩ c, -- homog
       use [pab, qab, habn],
       simpa, },
-    { rintros a ⟨n, hnn, ⟨pn, qn, han, ha⟩⟩, -- normal
+    { rintros a b ⟨n, hnn, ⟨pn, qn, han, ha⟩⟩, -- normal
       use [pn * n, qn],
       split,
       { left,
         simp only [hnn, ne.def, nat.mul_eq_zero, or_false],
         exact hp _ _ han ha, },
-      simpa [pow_mul'] using ha, }, },
+      have : (a / b) ^ n = a ^ n / b ^ n,
+      sorry,
+      simpa [pow_mul', this] using ha, }, },
 end
 
 

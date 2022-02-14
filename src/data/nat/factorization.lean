@@ -297,7 +297,7 @@ begin
     exact h p _ pp (pow_factorization_dvd p _) },
 end
 
-lemma factorization_gcd (a b : ℕ) (ha_pos : a ≠ 0) (hb_pos : b ≠ 0) :
+lemma factorization_gcd {a b : ℕ} (ha_pos : a ≠ 0) (hb_pos : b ≠ 0) :
   (gcd a b).factorization = a.factorization ⊓ b.factorization :=
 begin
   let dfac := a.factorization ⊓ b.factorization,

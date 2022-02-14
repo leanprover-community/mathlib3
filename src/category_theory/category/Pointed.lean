@@ -71,7 +71,6 @@ instance concrete_category : concrete_category Pointed :=
 
 end Pointed
 
---TODO: This is actually an equivalence
 /-- `option` as a functor from types to pointed types. This is the free functor. -/
 @[simps] def Type_to_Pointed : Type.{u} ⥤ Pointed.{u} :=
 { obj := λ X, ⟨option X, none⟩,

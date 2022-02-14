@@ -72,6 +72,9 @@ protected lemma dual {l : α → β} {u : β → α} (gc : galois_connection l u
     (order_dual.to_dual ∘ l ∘ order_dual.of_dual) :=
 λ a b, (gc b a).symm
 
+lemma le_iff_le {a : α} {b : β} : l a ≤ b ↔ a ≤ u b :=
+gc _ _
+
 lemma l_le {a : α} {b : β} : a ≤ u b → l a ≤ b :=
 (gc _ _).mpr
 

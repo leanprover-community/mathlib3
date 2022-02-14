@@ -7,7 +7,7 @@ import analysis.special_functions.log
 import combinatorics.simple_graph.degree_sum
 import combinatorics.pigeonhole
 import data.set.equitable
-import .finpartition
+import order.partition.finpartition
 
 /-! # Things that belong to mathlib -/
 

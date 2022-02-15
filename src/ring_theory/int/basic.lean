@@ -149,7 +149,7 @@ begin
   cases (nat_abs_eq a) with h,
   { use [1, is_unit_one], rw [← h, one_mul], },
   { use [-1, is_unit_one.neg], rw [ ← neg_eq_iff_neg_eq.mp (eq.symm h)],
-    simp only [neg_mul_eq_neg_mul_symm, one_mul] }
+    simp only [neg_mul, one_mul] }
 end
 
 lemma gcd_eq_nat_abs {a b : ℤ} : int.gcd a b = nat.gcd a.nat_abs b.nat_abs := rfl
@@ -276,7 +276,7 @@ begin
   cases n, { simp },
   rw [← multiset.rel_eq, ← associated_eq_eq],
   apply factors_unique (irreducible_of_normalized_factor) _,
-  { rw [multiset.coe_prod, nat.prod_factors (nat.succ_pos _)],
+  { rw [multiset.coe_prod, nat.prod_factors n.succ_ne_zero],
     apply normalized_factors_prod (nat.succ_ne_zero _) },
   { apply_instance },
   { intros x hx,

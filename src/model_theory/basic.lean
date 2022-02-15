@@ -257,6 +257,10 @@ instance : inhabited (M ↪[L] M) := ⟨refl L M⟩
 lemma comp_assoc (f : M ↪[L] N) (g : N ↪[L] P) (h : P ↪[L] Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
 
+@[simp] lemma comp_to_hom (hnp : N ↪[L] P) (hmn : M ↪[L] N) :
+  (hnp.comp hmn).to_hom = hnp.to_hom.comp hmn.to_hom :=
+by { ext, simp only [coe_to_hom, comp_apply, hom.comp_apply] }
+
 end embedding
 
 namespace equiv

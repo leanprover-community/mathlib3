@@ -438,7 +438,7 @@ lemma nat_gcd_helper_2 (d x y a b u v tx ty : ℕ) (hu : d * u = x) (hv : d * v 
 begin
   rw ← int.coe_nat_gcd, apply @int_gcd_helper' _ _ _ a (-b)
     (int.coe_nat_dvd.2 ⟨_, hu.symm⟩) (int.coe_nat_dvd.2 ⟨_, hv.symm⟩),
-  rw [mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg, sub_eq_iff_eq_add'],
+  rw [mul_neg, ← sub_eq_add_neg, sub_eq_iff_eq_add'],
   norm_cast, rw [hx, hy, h]
 end
 

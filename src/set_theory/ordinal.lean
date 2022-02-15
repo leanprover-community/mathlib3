@@ -940,9 +940,6 @@ quot.sound ⟨rel_iso.sum_lex_congr f g⟩⟩
 @[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
 
-@[simp] theorem card_nat (n : ℕ) : card.{u} n = n :=
-by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]
-
 @[simp] theorem type_add {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
   [is_well_order α r] [is_well_order β s] : type r + type s = type (sum.lex r s) := rfl
 
@@ -965,6 +962,16 @@ instance : add_monoid ordinal.{u} :=
     begin rcases a with ⟨a|a⟩|a; rcases b with ⟨b|b⟩|b;
       simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
         sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
+
+instance : has_nat_cast ordinal.{u} :=
+{ one := 1,
+  nat_cast := λ n, nat.rec_on n 0 (λ _ a, a + 1),
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, rfl,
+  .. ordinal.add_monoid }
+
+@[simp] theorem card_nat (n : ℕ) : card.{u} n = n :=
+by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]
 
 instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
 ⟨λ c a b h, begin

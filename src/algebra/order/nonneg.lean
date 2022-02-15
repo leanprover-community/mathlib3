@@ -158,6 +158,12 @@ protected lemma coe_mul [ordered_semiring α] (a b : {x : α // 0 ≤ x}) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) * ⟨y, hy⟩ = ⟨x * y, mul_nonneg hx hy⟩ :=
 rfl
 
+instance has_nat_cast [ordered_semiring α] : has_nat_cast {x : α // 0 ≤ x} :=
+{ nat_cast := λ n, ⟨n, nat.cast_nonneg n⟩,
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := λ _, by simp [nat.cast]; refl,
+  .. nonneg.has_one, .. nonneg.ordered_cancel_add_comm_monoid }
+
 instance ordered_semiring [ordered_semiring α] : ordered_semiring {x : α // 0 ≤ x} :=
 subtype.coe_injective.ordered_semiring
   (coe : {x : α // 0 ≤ x} → α) rfl rfl (λ x y, rfl) (λ x y, rfl)

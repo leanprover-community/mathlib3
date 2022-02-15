@@ -605,11 +605,13 @@ begin
   simp only [hx.ne, ne.def, not_false_iff, coe_to_nnreal],
 end
 
-lemma integrable_with_density_iff_integrable_coe_smul
-  {E : Type*} [normed_group E] [normed_space ℝ E] [second_countable_topology E]
+section
+variables  {E : Type*} [normed_group E] [normed_space ℝ E] [second_countable_topology E]
   [measurable_space E] [borel_space E]
+
+lemma integrable_with_density_iff_integrable_coe_smul
   {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
-  integrable g (μ.with_density (λ x, (f x : ℝ≥0∞))) ↔ integrable (λ x, (f x : ℝ) • g x) μ :=
+  integrable g (μ.with_density (λ x, f x)) ↔ integrable (λ x, (f x : ℝ) • g x) μ :=
 begin
   by_cases H : ae_measurable (λ (x : α), (f x : ℝ) • g x) μ,
   { simp only [integrable, ae_measurable_with_density_iff hf, has_finite_integral, H, true_and],
@@ -624,16 +626,11 @@ begin
   { simp only [integrable, ae_measurable_with_density_iff hf, H, false_and] }
 end
 
-lemma integrable_with_density_iff_integrable_smul
-  {E : Type*} [normed_group E] [normed_space ℝ E] [second_countable_topology E]
-  [measurable_space E] [borel_space E]
-  {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
-  integrable g (μ.with_density (λ x, (f x : ℝ≥0∞))) ↔ integrable (λ x, f x • g x) μ :=
+lemma integrable_with_density_iff_integrable_smul {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
+  integrable g (μ.with_density (λ x, f x)) ↔ integrable (λ x, f x • g x) μ :=
 integrable_with_density_iff_integrable_coe_smul hf
 
 lemma integrable_with_density_iff_integrable_smul'
-  {E : Type*} [normed_group E] [normed_space ℝ E] [second_countable_topology E]
-  [measurable_space E] [borel_space E]
   {f : α → ℝ≥0∞} (hf : measurable f) (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → E} :
   integrable g (μ.with_density f) ↔ integrable (λ x, (f x).to_real • g x) μ :=
 begin
@@ -641,6 +638,35 @@ begin
       integrable_with_density_iff_integrable_smul],
   { refl },
   { exact hf.ennreal_to_nnreal },
+end
+
+lemma integrable_with_density_iff_integrable_coe_smul₀
+  {f : α → ℝ≥0} (hf : ae_measurable f μ) {g : α → E} :
+  integrable g (μ.with_density (λ x, f x)) ↔ integrable (λ x, (f x : ℝ) • g x) μ :=
+calc
+integrable g (μ.with_density (λ x, f x))
+    ↔ integrable g (μ.with_density (λ x, hf.mk f x)) :
+begin
+  suffices : (λ x, (f x : ℝ≥0∞)) =ᵐ[μ] (λ x, hf.mk f x), by rw with_density_congr_ae this,
+  filter_upwards [hf.ae_eq_mk],
+  assume x hx,
+  simp [hx],
+end
+... ↔ integrable (λ x, (hf.mk f x : ℝ) • g x) μ :
+  integrable_with_density_iff_integrable_coe_smul hf.measurable_mk
+... ↔ integrable (λ x, (f x : ℝ) • g x) μ :
+begin
+  apply integrable_congr,
+  filter_upwards [hf.ae_eq_mk],
+  assume x hx,
+  simp [hx],
+end
+
+lemma integrable_with_density_iff_integrable_smul₀
+  {f : α → ℝ≥0} (hf : ae_measurable f μ) {g : α → E} :
+  integrable g (μ.with_density (λ x, f x)) ↔ integrable (λ x, f x • g x) μ :=
+integrable_with_density_iff_integrable_coe_smul₀ hf
+
 end
 
 lemma integrable_with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)

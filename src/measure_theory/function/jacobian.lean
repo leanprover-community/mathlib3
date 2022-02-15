@@ -17,7 +17,9 @@ Let `f : E → E` be a function which is injective and differentiable on a measu
 with derivative `f'`. Then we prove that `f '' s` is measurable, and
 its measure is given by the formula `μ (f '' s) = ∫⁻ x in s, |(f' x).det| ∂μ` (where `(f' x).det`
 is almost everywhere measurable, but not Borel-measurable in general). This formula is proved in
-this file, in `lintegral_abs_det_fderiv_eq_add_haar_image`.
+`lintegral_abs_det_fderiv_eq_add_haar_image`. We deduce the change of variables
+formula for the Lebesgue and Bochner integrals, in `integral_image_eq_integral_abs_det_fderiv_smul`
+and `integral_image_eq_integral_abs_det_fderiv_smul` respectively.
 
 ## Main results
 
@@ -27,10 +29,20 @@ this file, in `lintegral_abs_det_fderiv_eq_add_haar_image`.
   its derivative is never invertible, then `f '' s` has zero measure (a version of Sard's lemma).
 * `ae_measurable_fderiv_within`: if `f` is differentiable on a measurable set `s`, then `f'`
   is almost everywhere differentiable on `s`.
-* `measurable_image_of_fderiv_within`: if `f` is differentiable and injective on a measurable
-  set `s`, then `f '' s` is measurable.
-* `lintegral_abs_det_fderiv_eq_add_haar_image`: if `f` is injective and differentiable on a
-  measurable set `s`, then `μ (f '' s) = ∫⁻ x in s, |(f' x).det| ∂μ`.
+
+For the next statements, `s` is a measurable set and `f` is differentiable on `s`
+(with a derivative `f'`) and injective on `s`.
+
+* `measurable_image_of_fderiv_within`: the image `f '' s` is measurable.
+* `measurable_embedding_of_fderiv_within`: the function `s.restrict f` is a measurable embedding.
+* `lintegral_abs_det_fderiv_eq_add_haar_image`: the image measure is given by
+    `μ (f '' s) = ∫⁻ x in s, |(f' x).det| ∂μ`.
+* `lintegral_image_eq_lintegral_abs_det_fderiv_mul`: for `g : E → ℝ≥0∞`, one has
+    `∫⁻ x in f '' s, g x ∂μ = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) * g (f x) ∂μ`.
+* `integral_image_eq_integral_abs_det_fderiv_smul`: for `g : E → F`, one has
+    `∫ x in f '' s, g x ∂μ = ∫ x in s, |(f' x).det| • g (f x) ∂μ`.
+* `integrable_on_image_iff_integrable_on_abs_det_fderiv_smul`: for `g : E → F`, the function `g` is
+  integrable on `f '' s` if and only if `|(f' x).det| • g (f x))` is integrable on `s`.
 
 ## Implementation
 
@@ -230,7 +242,7 @@ end
 variables [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
 
 /-- Assume that a function `f` has a derivative at every point of a set `s`. Then one may
-partition `s` into countably many relatively measurable sets `t n` on which `f` is well
+partition `s` into countably many disjoint relatively measurable sets `t n` on which `f` is well
 approximated by linear maps `A n`. -/
 lemma exists_partition_approximates_linear_on_of_has_fderiv_within_at
   (f : E → F) (s : set E) (f' : E → E →L[ℝ] F) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
@@ -688,10 +700,6 @@ end
 We show that the derivative of a function on a set is almost everywhere measurable, and that the
 image `f '' s` is measurable if `f` is injective on `s`. The latter statement follows from the
 Lusin-Souslin theorem.
-above controls for
-(possibly non-measurable) sets whose image has measure `0`, making it possible to discard the set
-where the function is badly behaved, and only keep sets where it can be extended to a global
-homeomorphism.
 -/
 
 /-- The derivative of a function on a measurable set is almost everywhere measurable on this set
@@ -765,6 +773,17 @@ begin
   exact ae_measurable_fderiv_within μ hs hf'
 end
 
+lemma ae_measurable_to_nnreal_abs_det_fderiv_within
+  {f : E → E} {s : set E} (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
+  ae_measurable (λ x, |(f' x).det|.to_nnreal) (μ.restrict s) :=
+begin
+  apply measurable_real_to_nnreal.comp_ae_measurable,
+  refine continuous_abs.measurable.comp_ae_measurable _,
+  refine continuous_linear_map.continuous_det.measurable.comp_ae_measurable _,
+  exact ae_measurable_fderiv_within μ hs hf'
+end
+
 /-- If a function is differentiable and injective on a measurable set,
 then the image is measurable.-/
 lemma measurable_image_of_fderiv_within
@@ -774,6 +793,17 @@ lemma measurable_image_of_fderiv_within
 begin
   have : differentiable_on ℝ f s := λ x hx, (hf' x hx).differentiable_within_at,
   exact hs.image_of_continuous_on_inj_on (differentiable_on.continuous_on this) hf,
+end
+
+/-- If a function is differentiable and injective on a measurable set `s`, then its restriction
+to `s` is a measurable embedding. -/
+lemma measurable_embedding_of_fderiv_within
+  {f : E → E} {s : set E} (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
+  measurable_embedding (s.restrict f) :=
+begin
+  have : differentiable_on ℝ f s := λ x hx, (hf' x hx).differentiable_within_at,
+  exact this.continuous_on.measurable_embedding hs hf
 end
 
 /-!
@@ -1173,20 +1203,19 @@ begin
   rwa this at A,
 end
 
+/-! ### Change of variable formulas in integrals -/
+
 /- Change of variable formula for differentiable functions: if a function `f` is
-injective and differentiable on a measurable set `s`, then the integral of a function
-`g` on `f '' s` coincides with the integral of `|(f' x).det| * g ∘ f` on `s`.
+injective and differentiable on a measurable set `s`, then the Lebesgue integral of a function
+`g : E → ℝ≥0∞` on `f '' s` coincides with the integral of `|(f' x).det| * g ∘ f` on `s`.
 Note that the measurability of `f '' s` is given by `measurable_image_of_fderiv_within`. -/
 theorem lintegral_image_eq_lintegral_abs_det_fderiv_mul {f : E → E} {s : set E}
   (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → ℝ≥0∞) :
   ∫⁻ x in f '' s, g x ∂μ = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) * g (f x) ∂μ :=
 begin
-  have F_emb : measurable_embedding (s.restrict f),
-  { refine continuous_on.measurable_embedding hs _ hf,
-    have : differentiable_on ℝ f s := λ x hx, (hf' x hx).differentiable_within_at,
-    exact differentiable_on.continuous_on this },
-  rw [← restrict_map_with_density_abs_det_fderiv_eq_add_haar μ hs hf' hf, F_emb.lintegral_map],
+  rw [← restrict_map_with_density_abs_det_fderiv_eq_add_haar μ hs hf' hf,
+      (measurable_embedding_of_fderiv_within hs hf' hf).lintegral_map],
   have : ∀ (x : s), g (s.restrict f x) = (g ∘ f) x := λ x, rfl,
   simp only [this],
   rw [← (measurable_embedding.subtype_coe hs).lintegral_map, map_comap_subtype_coe hs,
@@ -1199,30 +1228,46 @@ end
 variables [complete_space F] [measurable_space F] [borel_space F]
 
 /-- Change of variable formula for differentiable functions: if a function `f` is
-injective and differentiable on a measurable set `s`, then the integral of a measurable function
-`g` on `f '' s` coincides with the integral of `|(f' x).det| • g ∘ f` on `s`. -/
+injective and differentiable on a measurable set `s`, then the Bochner integral of a function
+`g : E → F` on `f '' s` coincides with the integral of `|(f' x).det| • g ∘ f` on `s`. -/
 theorem integral_image_eq_integral_abs_det_fderiv_smul {f : E → E} {s : set E}
   (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → F) :
   ∫ x in f '' s, g x ∂μ = ∫ x in s, |(f' x).det| • g (f x) ∂μ :=
 begin
-  have F_emb : measurable_embedding (s.restrict f),
-  { refine continuous_on.measurable_embedding hs _ hf,
-    have : differentiable_on ℝ f s := λ x hx, (hf' x hx).differentiable_within_at,
-    exact differentiable_on.continuous_on this },
-  rw [← restrict_map_with_density_abs_det_fderiv_eq_add_haar μ hs hf' hf, F_emb.integral_map],
+  rw [← restrict_map_with_density_abs_det_fderiv_eq_add_haar μ hs hf' hf,
+      (measurable_embedding_of_fderiv_within hs hf' hf).integral_map],
   have : ∀ (x : s), g (s.restrict f x) = (g ∘ f) x := λ x, rfl,
   simp only [this, ennreal.of_real],
   rw [← (measurable_embedding.subtype_coe hs).integral_map, map_comap_subtype_coe hs,
-      set_integral_with_density_eq_set_integral_smul₀ _ _ hs],
-  { congr,
+      set_integral_with_density_eq_set_integral_smul₀
+        (ae_measurable_to_nnreal_abs_det_fderiv_within μ hs hf') _ hs],
+  congr,
+  ext x,
+  conv_rhs { rw ← real.coe_to_nnreal _ (abs_nonneg (f' x).det) },
+  refl
+end
+
+/-- Integrability in the change of variable formula for differentiable functions: if a
+function `f` is injective and differentiable on a measurable set `s`, then a function
+`g : E → F` isn integrable on `f '' s` if and only if  `|(f' x).det| • g ∘ f` is
+integrable on `s`. -/
+theorem integrable_on_image_iff_integrable_on_abs_det_fderiv_smul {f : E → E} {s : set E}
+  (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → F) :
+  integrable_on g (f '' s) μ ↔ integrable_on (λ x, |(f' x).det| • g (f x)) s μ :=
+begin
+  rw [integrable_on, ← restrict_map_with_density_abs_det_fderiv_eq_add_haar μ hs hf' hf,
+      (measurable_embedding_of_fderiv_within hs hf' hf).integrable_map_iff],
+  change (integrable ((g ∘ f) ∘ (coe : s → E)) _) ↔ _,
+  rw [← (measurable_embedding.subtype_coe hs).integrable_map_iff, map_comap_subtype_coe hs],
+  simp only [ennreal.of_real],
+  rw [restrict_with_density hs, integrable_with_density_iff_integrable_coe_smul₀, integrable_on],
+  { congr' 2,
     ext x,
-    conv_rhs { rw ← real.coe_to_nnreal _ (abs_nonneg (f' x).det) },
-    refl },
-  { apply measurable_real_to_nnreal.comp_ae_measurable,
-    refine continuous_abs.measurable.comp_ae_measurable _,
-    refine continuous_linear_map.continuous_det.measurable.comp_ae_measurable _,
-    exact ae_measurable_fderiv_within μ hs hf' }
+    rw real.coe_to_nnreal,
+    exact abs_nonneg _ },
+  { exact ae_measurable_to_nnreal_abs_det_fderiv_within μ hs hf' }
 end
 
 end measure_theory

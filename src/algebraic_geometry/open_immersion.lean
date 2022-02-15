@@ -60,7 +60,7 @@ open topological_space category_theory opposite
 open category_theory.limits
 namespace algebraic_geometry
 
-universes v u
+universes v v₁ v₂ u
 
 variables {C : Type u} [category.{v} C]
 
@@ -1206,17 +1206,6 @@ def open_cover.pushforward_iso {X Y : Scheme} (𝒰 : open_cover X)
   (λ _, iso.refl _)
   (λ _, (category.id_comp _).symm)
 
-/-- An isomorphism `X ⟶ Y` is an open cover of `Y`. -/
- @[simps J obj map]
- def open_cover_of_is_iso {X Y : Scheme.{u}} (f : X ⟶ Y) [is_iso f] :
-   Y.open_cover :=
- { J := punit.{v+1},
-   obj := λ _, X,
-   map := λ _, f,
-   f := λ _, punit.star,
-   covers := λ x, by { rw set.range_iff_surjective.mpr, { trivial }, rw ← Top.epi_iff_surjective,
-     apply_instance } }
-
 @[simps]
 def open_cover.add {X : Scheme} (𝒰 : X.open_cover) {Y : Scheme} (f : Y ⟶ X)
   [is_open_immersion f] : X.open_cover :=
@@ -1548,13 +1537,12 @@ begin
   apply_instance
 end
 
-lemma is_open_immersion.range_pullback_one [is_open_immersion g] :
+lemma range_pullback_one [is_open_immersion g] :
     set.range (pullback.fst ≫ f : pullback f g ⟶ Z).1.base =
       set.range f.1.base ∩ set.range g.1.base :=
 begin
-  rw [Scheme.comp_val_base, coe_comp, set.range_comp,
-    is_open_immersion.range_pullback_fst_of_right, opens.map_obj, subtype.coe_mk,
-    set.image_preimage_eq_inter_range, set.inter_comm],
+  rw [Scheme.comp_val_base, coe_comp, set.range_comp, range_pullback_fst_of_right, opens.map_obj,
+    subtype.coe_mk, set.image_preimage_eq_inter_range, set.inter_comm],
 end
 
 /--
@@ -1604,6 +1592,20 @@ def Scheme.restrict_functor (X : Scheme) : opens X.carrier ⥤ over X :=
       is_open_immersion.lift_fac, is_open_immersion.lift_fac, is_open_immersion.lift_fac]
   end }
 
+noncomputable
+abbreviation Scheme.restrict_map_is_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] (U : opens Y.carrier) :
+  X.restrict ((opens.map f.1.base).obj U).open_embedding ≅ Y.restrict U.open_embedding :=
+is_open_immersion.iso_of_range_eq (X.of_restrict _ ≫ f) (Y.of_restrict _)
+begin
+  dsimp [opens.inclusion],
+  rw [coe_comp, set.range_comp],
+  dsimp,
+  rw [subtype.range_coe, subtype.range_coe],
+  refine @set.image_preimage_eq _ _ f.1.base U.1 _,
+  rw ← Top.epi_iff_surjective,
+  apply_instance
+end
+
 /-- Given an open cover on `X`, we may pull them back along a morphism `W ⟶ X` to obtain
 an open cover of `W`. -/
 @[simps]
@@ -1623,6 +1625,14 @@ def Scheme.open_cover.pullback_cover {X : Scheme} (𝒰 : X.open_cover) {W : Sch
     exact ⟨y, h.symm⟩,
     { rw ← Top.epi_iff_surjective, apply_instance }
   end }
+
+def Scheme.open_cover.inter {X : Scheme.{u}} (𝒰₁ : Scheme.open_cover.{v₁} X)
+  (𝒰₂ : Scheme.open_cover.{v₂} X) : X.open_cover :=
+{ J := 𝒰₁.J × 𝒰₂.J,
+  obj := λ ij, pullback (𝒰₁.map ij.1) (𝒰₂.map ij.2),
+  map := λ ij, pullback.fst ≫ 𝒰₁.map ij.1,
+  f := λ x, ⟨𝒰₁.f x, 𝒰₂.f x⟩,
+  covers := λ x, by { rw is_open_immersion.range_pullback_one, exact ⟨𝒰₁.covers x, 𝒰₂.covers x⟩ } }
 
 section morphism_restrict
 

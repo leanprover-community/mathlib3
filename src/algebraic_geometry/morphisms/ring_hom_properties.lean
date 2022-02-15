@@ -14,335 +14,48 @@ of ring homs. For `P` a property of ring homs, we have two ways of defining a pr
 morphisms:
 
 Let `f : X ⟶ Y`,
-- `affine_and @P`: the preimage of an affine open `U = Spec A` is affine (`= Spec B`) and `A ⟶ B`
+- `affine_and P`: the preimage of an affine open `U = Spec A` is affine (`= Spec B`) and `A ⟶ B`
   satisfies `P`.
-- `target_affine_locally (source_affine_locally @P)`: For each pair of affine open
+- `target_affine_locally (source_affine_locally P)`: For each pair of affine open
   `U = Spec A ⊆ X` and `V = Spec B ⊆ f ⁻¹' U`, the ring hom `A ⟶ B` satisfies `P`.
 
 For these notions to be well defined, we require `P` be a sufficient local property. For the former,
-`P` should be local on source (`ring_hom.respects_iso P`)
+`P` should be local on source (`ring_hom.respects_iso P`, `ring_hom.localization_preserves P`,
+`ring_hom.of_localization_span`), and `affine_and P` will be local on target.
 
+For the latter `P` should be local on both the source and the target `ring_hom.property_is_local P`,
+and `target_affine_locally (source_affine_locally P)` will also be local on both the source and the
+target.
+
+Further more, these properties are stable under compositions (resp. base change) if `P` is.
 
 -/
 
 universe u
 
-open category_theory opposite topological_space category_theory.limits
-
-namespace algebraic_geometry
+open category_theory opposite topological_space category_theory.limits algebraic_geometry
 
 variable (P : ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S), Prop)
-
-noncomputable
-abbreviation Scheme.restrict_map_is_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] (U : opens Y.carrier) :
-  X.restrict ((opens.map f.1.base).obj U).open_embedding ≅ Y.restrict U.open_embedding :=
-is_open_immersion.iso_of_range_eq (X.of_restrict _ ≫ f) (Y.of_restrict _)
-begin
-  dsimp [opens.inclusion],
-  rw [coe_comp, set.range_comp],
-  dsimp,
-  rw [subtype.range_coe, subtype.range_coe],
-  refine @set.image_preimage_eq _ _ f.1.base U.1 _,
-  rw ← Top.epi_iff_surjective,
-  apply_instance
-end
-
-noncomputable
-def is_affine_open.restrict_basic_open_iso_Spec_basic_open {X : Scheme} {U : opens X.carrier}
-  (hU : is_affine_open U) (r : X.presheaf.obj (op U)) :
-  X.restrict (X.basic_open r).open_embedding ≅
-    Scheme.Spec.obj (op (X.presheaf.obj (op (X.basic_open r)))) :=
-begin
-  haveI := is_localization_basic_open hU r,
-  refine hU.restrict_basic_open_iso_Spec r ≪≫ Scheme.Spec.map_iso _,
-  refine (CommRing.iso_of _ ≪≫ (is_localization.alg_equiv (submonoid.powers r)
-    (X.presheaf.obj (op (X.basic_open r))) (localization.away r)).to_ring_equiv.to_CommRing_iso).op,
-end
-
-lemma morphism_restrict_base_coe {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) (x) :
-  @coe U Y.carrier _ ((f ∣_ U).1.base x) = f.1.base x.1 :=
-congr_arg (λ f, PresheafedSpace.hom.base (subtype.val f) x) (morphism_restrict_ι f U)
-
-lemma image_morphism_restrict_preimage {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier)
-  (V : opens U) :
-  ((opens.map f.val.base).obj U).open_embedding.is_open_map.functor.obj
-    ((opens.map (f ∣_ U).val.base).obj V) =
-    (opens.map f.val.base).obj (U.open_embedding.is_open_map.functor.obj V) :=
-begin
-  ext1,
-  ext x,
-  split,
-  { rintro ⟨⟨x, hx⟩, (hx' : (f ∣_ U).1.base _ ∈ _), rfl⟩,
-    refine ⟨⟨_, hx⟩, _, rfl⟩,
-    convert hx',
-    ext1,
-    exact (morphism_restrict_base_coe f U ⟨x, hx⟩).symm },
-  { rintro ⟨⟨x, hx⟩, hx', (rfl : x = _)⟩,
-    refine ⟨⟨_, hx⟩, (_: ((f ∣_ U).1.base ⟨x, hx⟩) ∈ V.1), rfl⟩,
-    convert hx',
-    ext1,
-    exact morphism_restrict_base_coe f U ⟨x, hx⟩ }
-end
-
-@[simp]
-lemma _root_.topological_space.opens.adjunction_counit_app_image {X : Top} (U : opens X) (V : opens U) :
-  U.open_embedding.is_open_map.adjunction.counit.app (U.open_embedding.is_open_map.functor.obj V) =
-  U.open_embedding.is_open_map.functor.map
-    (eq_to_hom (by { ext1, exact set.preimage_image_eq _ subtype.coe_injective })) :=
-by ext
-
-lemma morphism_restrict_c_app {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) (V : opens U) :
-   (f ∣_ U).1.c.app (op V) = f.1.c.app (op (U.open_embedding.is_open_map.functor.obj V)) ≫
-    X.presheaf.map (eq_to_hom (image_morphism_restrict_preimage f U V)).op :=
-begin
-  have := Scheme.congr_app (morphism_restrict_ι f U)
-    (op (U.open_embedding.is_open_map.functor.obj V)),
-  rw [Scheme.comp_val_c_app, Scheme.comp_val_c_app_assoc] at this,
-  have e : (opens.map U.inclusion).obj (U.open_embedding.is_open_map.functor.obj V) = V,
-  { ext1, exact set.preimage_image_eq _ subtype.coe_injective },
-  have : _ ≫ X.presheaf.map _ = _ :=
-    (((f ∣_ U).1.c.naturality (eq_to_hom e).op).symm.trans _).trans this,
-  swap, { change Y.presheaf.map _ ≫ _ = Y.presheaf.map _ ≫ _, congr,  },
-  rw [← is_iso.eq_comp_inv, ← functor.map_inv, category.assoc] at this,
-  rw this,
-  congr' 1,
-  erw [← X.presheaf.map_comp, ← X.presheaf.map_comp],
-  congr' 1,
-end
-
-lemma Γ_map_morphism_restrict {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
-  Scheme.Γ.map (f ∣_ U).op = Y.presheaf.map (eq_to_hom $ U.open_embedding_obj_top.symm).op ≫
-    f.1.c.app (op U) ≫
-      X.presheaf.map (eq_to_hom (((opens.map f.val.base).obj U).open_embedding_obj_top)).op :=
-begin
-  rw [Scheme.Γ_map_op, morphism_restrict_c_app f U ⊤, f.val.c.naturality_assoc],
-  erw ← X.presheaf.map_comp,
-  congr,
-end
-
-instance {X : Scheme} [is_affine X] (f : X.presheaf.obj $ op ⊤) :
-  is_localization.away f (X.presheaf.obj $ op $ X.basic_open f) :=
-is_localization_basic_open (top_is_affine_open X) f
-
-lemma is_localization_away_of_is_unit_bijective {R : Type*} (S : Type*) [comm_ring R] [comm_ring S]
-  [algebra R S] {r : R} (hr : is_unit r) (H : function.bijective (algebra_map R S)) :
-  is_localization.away r S :=
-{ map_units := by { rintros ⟨_, n, rfl⟩, exact (algebra_map R S).is_unit_map (hr.pow _) },
-  surj := λ z, by { obtain ⟨z', rfl⟩ := H.2 z, exact ⟨⟨z', 1⟩, by simp⟩ },
-  eq_iff_exists := λ x y, begin
-    erw H.1.eq_iff,
-    split,
-    { rintro rfl, exact ⟨1, rfl⟩ },
-    { rintro ⟨⟨_, n, rfl⟩, e⟩, exact (hr.pow _).mul_left_inj.mp e }
-  end }
-
-instance Γ_restrict_algebra (X : Scheme.{u}) {U : Top.{u}} {f : U ⟶ X.carrier}
-  (hf : open_embedding f) :
-  algebra ( X.presheaf.obj (op ⊤)) (Scheme.Γ.obj (op $ X.restrict hf)) :=
-(Scheme.Γ.map (X.of_restrict hf).op).to_algebra
-
-instance Γ_restrict_is_localization (X : Scheme.{u}) [is_affine X] (r : X.presheaf.obj (op ⊤)) :
-  is_localization.away r (Scheme.Γ.obj (op $ X.restrict (X.basic_open r).open_embedding)) :=
-begin
-  convert (is_localization.is_localization_iff_of_ring_equiv (submonoid.powers r) _).mp
-    (is_localization_basic_open (top_is_affine_open X : _) r) using 1,
-  swap,
-  { refine (X.presheaf.map_iso (eq_to_iso _)).CommRing_iso_to_ring_equiv,
-    { dsimp only [functor.op, unop_op],
-    congr' 1,
-    ext1,
-    exact (subtype.coe_image_univ _).symm } },
-  { apply algebra.algebra_ext,
-    intro _, congr' 1,
-    refine (ring_hom.algebra_map_to_algebra _).trans
-      (eq.trans _ (ring_hom.algebra_map_to_algebra _).symm),
-    rw [ring_hom.algebra_map_to_algebra, iso.CommRing_iso_to_ring_equiv_to_ring_hom,
-      functor.map_iso_hom, Scheme.Γ_map_op],
-    change X.presheaf.map _ = _ ≫ _,
-    rw ← X.presheaf.map_comp,
-    congr }
-end
-
-lemma is_open_immersion.is_affine_open_iff {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
-  (U : opens X.carrier) :
-  is_affine_open U ↔ is_affine_open (H.open_functor.obj U) :=
-begin
-  refine ⟨λ hU, hU.image_is_open_immersion f, λ hU, @@is_affine_of_iso _ _ hU⟩,
-  refine (is_open_immersion.iso_of_range_eq (X.of_restrict _ ≫ f) (Y.of_restrict _) _).hom,
-  { rw [Scheme.comp_val_base, coe_comp, set.range_comp],
-    dsimp [opens.inclusion],
-    rw [subtype.range_coe, subtype.range_coe],
-    refl },
-  { apply_instance }
-end
-
-instance {X : Scheme} (r : X.presheaf.obj (op ⊤)) :
-  affine (X.of_restrict (X.basic_open r).open_embedding) :=
-begin
-  constructor,
-  intros U hU,
-  fapply (is_open_immersion.is_affine_open_iff (X.of_restrict _) _).mpr,
-  swap,
-  { apply_instance },
-  convert hU.basic_open_is_affine (X.presheaf.map (hom_of_le le_top).op r),
-  ext1,
-  rw X.basic_open_res,
-  dsimp [opens.map, opens.inclusion],
-  rw [set.image_preimage_eq_inter_range, subtype.range_coe],
-  refl
-end
-
-@[simps]
-def affine_preimage {X Y : Scheme} (f : X ⟶ Y) [affine f] (U : Y.affine_opens) :
-  X.affine_opens :=
-⟨(opens.map f.1.base).obj (U : opens Y.carrier), affine.is_affine_preimage _ U.prop⟩
-
-universes v₁ v₂
-
-noncomputable
-def Scheme.open_cover.inter {X : Scheme.{u}} (𝒰₁ : Scheme.open_cover.{v₁} X)
-  (𝒰₂ : Scheme.open_cover.{v₂} X) : X.open_cover :=
-{ J := 𝒰₁.J × 𝒰₂.J,
-  obj := λ ij, pullback (𝒰₁.map ij.1) (𝒰₂.map ij.2),
-  map := λ ij, pullback.fst ≫ 𝒰₁.map ij.1,
-  f := λ x, ⟨𝒰₁.f x, 𝒰₂.f x⟩,
-  covers := λ x, by { rw is_open_immersion.range_pullback_one, exact ⟨𝒰₁.covers x, 𝒰₂.covers x⟩ } }
-
-
-def Scheme.AffineScheme (X : Scheme) [is_affine X] : AffineScheme :=
-⟨X, (mem_AffineScheme X).mpr infer_instance⟩
-
-def AffineScheme.of_hom {X Y : Scheme} (f : X ⟶ Y) [is_affine X] [is_affine Y] :
-  X.AffineScheme ⟶ Y.AffineScheme := f
-
-noncomputable
-instance : preserves_limits AffineScheme.Γ.{u}.right_op :=
-@@adjunction.is_equivalence_preserves_limits _ _ AffineScheme.Γ.right_op
-  (is_equivalence.of_equivalence AffineScheme.equiv_CommRing)
-
-noncomputable
-instance : preserves_limits AffineScheme.forget_to_Scheme :=
-begin
-  apply_with (@@preserves_limits_of_nat_iso _ _
-    (iso_whisker_right AffineScheme.equiv_CommRing.unit_iso AffineScheme.forget_to_Scheme).symm)
-    { instances := ff },
-  change preserves_limits_of_size (AffineScheme.equiv_CommRing.functor ⋙ Scheme.Spec),
-  apply_instance,
-end
 
 instance {C : Type*} [category C] {X Y : Cᵒᵖ} (f : X ⟶ Y) [H : is_iso f] : is_iso f.unop :=
 @@is_iso_of_op _ f.unop H
 
-noncomputable
-def pullback_iso_unop_pushout {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
-  [has_pullback f g] [has_pushout f.op g.op] : pullback f g ≅ unop (pushout f.op g.op) :=
-{ hom := (pushout.desc pullback.fst.op pullback.snd.op
-    (congr_arg quiver.hom.op pullback.condition) : pushout f.op g.op ⟶ op _).unop,
-  inv := pullback.lift (pushout.inl : _ ⟶ pushout f.op g.op).unop
-    (pushout.inr : _ ⟶ pushout f.op g.op).unop (congr_arg quiver.hom.unop
-      (@pushout.condition _ _ _ _ _ f.op g.op _)),
-  hom_inv_id' := by ext; simp [← unop_comp],
-  inv_hom_id' := by { apply quiver.hom.op_inj, ext; simp [← op_comp] } }
-
-@[simp, reassoc]
-lemma pullback_iso_unop_pushout_inv_fst {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z)
-  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
-  (pullback_iso_unop_pushout f g).inv ≫ pullback.fst =
-    (pushout.inl : _ ⟶ pushout f.op g.op).unop :=
-pullback.lift_fst _ _ _
-
-@[simp, reassoc]
-lemma pullback_iso_unop_pushout_inv_snd {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z)
-  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
-  (pullback_iso_unop_pushout f g).inv ≫ pullback.snd =
-    (pushout.inr : _ ⟶ pushout f.op g.op).unop :=
-pullback.lift_snd _ _ _
-
-@[simp, reassoc]
-lemma pullback_iso_unop_pushout_hom_inl {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z)
-  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
-  pushout.inl ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.fst.op :=
-pushout.inl_desc _ _ _
-
-@[simp, reassoc]
-lemma pullback_iso_unop_pushout_hom_inr {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z)
-  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
-  pushout.inr ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.snd.op :=
-pushout.inr_desc _ _ _
-
-noncomputable
-def pushout_iso_unop_pullback {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
-  [has_pushout f g] [has_pullback f.op g.op] : pushout f g ≅ unop (pullback f.op g.op) :=
-{ hom := pushout.desc (pullback.fst : pullback f.op g.op ⟶ _).unop
-    (pullback.snd : pullback f.op g.op ⟶ _).unop (congr_arg quiver.hom.unop
-      (@pullback.condition _ _ _ _ _ f.op g.op _)),
-  inv := (pullback.lift pushout.inl.op pushout.inr.op
-    (congr_arg quiver.hom.op pushout.condition) : op _ ⟶ pullback f.op g.op).unop,
-  hom_inv_id' := by ext; simp [← unop_comp],
-  inv_hom_id' := by { apply quiver.hom.op_inj, ext; erw [category.id_comp]; simp [← op_comp] } }
-.
-@[simp, reassoc]
-lemma pushout_iso_unop_pullback_inl_hom {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
-  [has_pushout f g] [has_pullback f.op g.op] :
-  pushout.inl ≫ (pushout_iso_unop_pullback f g).hom =
-    (pullback.fst : pullback f.op g.op ⟶ _).unop :=
-pushout.inl_desc _ _ _
-
-@[simp, reassoc]
-lemma pushout_iso_unop_pullback_inr_hom {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
-  [has_pushout f g] [has_pullback f.op g.op] :
-  pushout.inr ≫ (pushout_iso_unop_pullback f g).hom =
-    (pullback.snd : pullback f.op g.op ⟶ _).unop :=
-pushout.inr_desc _ _ _
-
-@[simp]
-lemma pushout_iso_unop_pullback_inv_fst {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
-  [has_pushout f g] [has_pullback f.op g.op] :
-  (pushout_iso_unop_pullback f g).inv.op ≫ pullback.fst = pushout.inl.op :=
-pullback.lift_fst _ _ _
-
-@[simp]
-lemma pushout_iso_unop_pullback_inv_snd {C : Type*} [category C] {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
-  [has_pushout f g] [has_pullback f.op g.op] :
-  (pushout_iso_unop_pullback f g).inv.op ≫ pullback.snd = pushout.inr.op :=
-pullback.lift_snd _ _ _
+namespace ring_hom
 
 include P
 
-def affine_and : affine_target_morphism_property :=
-λ X Y f hY, is_affine X ∧ P (Scheme.Γ.map f.op)
-
-local attribute [reducible] CommRing.of
-
-def _root_.ring_hom.respects_iso : Prop :=
-(∀ {R S T : Type u} [comm_ring R] [comm_ring S] [comm_ring T], by exactI
-    ∀ (f : R →+* S) (e : S ≃+* T) (hf : P f), P (e.to_ring_hom.comp f)) ∧
-  (∀ {R S T : Type u} [comm_ring R] [comm_ring S] [comm_ring T], by exactI
-    ∀ (f : S →+* T) (e : R ≃+* S) (hf : P f), P (f.comp e.to_ring_hom))
-
 variable {P}
 
-lemma _root_.ring_hom.respects_iso.cancel_left_is_iso (hP : ring_hom.respects_iso @P) {R S T : CommRing}
-  (f : R ⟶ S) (g : S ⟶ T)
-  [is_iso f] : P (f ≫ g) ↔ P g :=
-⟨λ H, by { convert hP.2 (f ≫ g) (as_iso f).symm.CommRing_iso_to_ring_equiv H,
-  exact (is_iso.inv_hom_id_assoc _ _).symm }, hP.2 g (as_iso f).CommRing_iso_to_ring_equiv⟩
-
-lemma _root_.ring_hom.respects_iso.cancel_right_is_iso (hP : ring_hom.respects_iso @P) {R S T : CommRing}
-  (f : R ⟶ S) (g : S ⟶ T)
-  [is_iso g] : P (f ≫ g) ↔ P f :=
-⟨λ H, by { convert hP.1 (f ≫ g) (as_iso g).symm.CommRing_iso_to_ring_equiv H,
-  change f = f ≫ g ≫ (inv g), simp }, hP.1 f (as_iso g).CommRing_iso_to_ring_equiv⟩
-
-lemma _root_.ring_hom.respects_iso.basic_open_iff (hP : ring_hom.respects_iso @P) {X Y : Scheme}
-  [is_affine X] [is_affine Y] (f : X ⟶ Y) (r : Y.presheaf.obj (op ⊤)) :
+lemma respects_iso.basic_open_iff (hP : respects_iso @P) {X Y : Scheme}
+  [is_affine X] [is_affine Y] (f : X ⟶ Y) (r : Y.presheaf.obj (opposite.op ⊤)) :
   P (Scheme.Γ.map (f ∣_ Y.basic_open r).op) ↔
-  P (@is_localization.away.map (Y.presheaf.obj (op ⊤)) _ (Y.presheaf.obj (op $ Y.basic_open r)) _ _
-    (X.presheaf.obj (op ⊤)) _ (X.presheaf.obj (op $ X.basic_open (Scheme.Γ.map f.op r))) _ _
-      (Scheme.Γ.map f.op) r _ _) :=
+  P (@is_localization.away.map (Y.presheaf.obj (opposite.op ⊤)) _
+      (Y.presheaf.obj (opposite.op $ Y.basic_open r)) _ _
+      (X.presheaf.obj (opposite.op ⊤)) _ (X.presheaf.obj
+      (opposite.op $ X.basic_open (Scheme.Γ.map f.op r))) _ _ (Scheme.Γ.map f.op) r _ _) :=
 begin
   rw [Γ_map_morphism_restrict, hP.cancel_left_is_iso, hP.cancel_right_is_iso,
-    ← (hP.cancel_right_is_iso (f.val.c.app (op (Y.basic_open r))) (X.presheaf.map
+    ← (hP.cancel_right_is_iso (f.val.c.app (opposite.op (Y.basic_open r))) (X.presheaf.map
       (eq_to_hom (Scheme.preimage_basic_open f r).symm).op)), ← eq_iff_iff],
   congr,
   delta is_localization.away.map,
@@ -354,48 +67,15 @@ begin
   congr,
 end
 
-lemma _root_.ring_hom.respects_iso.is_localization_away_iff (hP : ring_hom.respects_iso @P) {R S : Type*}
-  (R' S' : Type*)[comm_ring R] [comm_ring S] [comm_ring R'] [comm_ring S'] [algebra R R']
-  [algebra S S'] (f : R →+* S) (r : R) [is_localization.away r R'] [is_localization.away (f r) S'] :
-  P (localization.away_map f r) ↔ P (is_localization.away.map R' S' f r) :=
-begin
-  let e₁ : R' ≃+* localization.away r :=
-    (is_localization.alg_equiv (submonoid.powers r) _ _).to_ring_equiv,
-  let e₂ : localization.away (f r) ≃+* S' :=
-    (is_localization.alg_equiv (submonoid.powers (f r)) _ _).to_ring_equiv,
-  refine (hP.cancel_left_is_iso e₁.to_CommRing_iso.hom (CommRing.of_hom _)).symm.trans _,
-  refine (hP.cancel_right_is_iso (CommRing.of_hom _) e₂.to_CommRing_iso.hom).symm.trans _,
-  rw ← eq_iff_iff,
-  congr' 1,
-  dsimp [CommRing.of_hom, CommRing.of, bundled.of],
-  refine is_localization.ring_hom_ext (submonoid.powers r) _,
-  ext1,
-  revert e₁ e₂,
-  dsimp [ring_equiv.to_ring_hom, is_localization.away.map],
-  simp only [comp_apply, ring_equiv.refl_apply, is_localization.alg_equiv_apply,
-    is_localization.ring_equiv_of_ring_equiv_apply, ring_hom.coe_mk, ring_equiv.to_fun_eq_coe,
-    is_localization.ring_equiv_of_ring_equiv_eq, is_localization.map_eq],
-end
-
-lemma _root_.ring_hom.respects_iso.basic_open_iff_localization (hP : ring_hom.respects_iso @P)
-  {X Y : Scheme} [is_affine X] [is_affine Y] (f : X ⟶ Y) (r : Y.presheaf.obj (op ⊤)) :
+lemma respects_iso.basic_open_iff_localization (hP : respects_iso @P)
+  {X Y : Scheme} [is_affine X] [is_affine Y] (f : X ⟶ Y) (r : Y.presheaf.obj (opposite.op ⊤)) :
   P (Scheme.Γ.map (f ∣_ Y.basic_open r).op) ↔
   P (localization.away_map (Scheme.Γ.map f.op) r) :=
 (hP.basic_open_iff _ _).trans (hP.is_localization_away_iff _ _ _ _).symm
 
-lemma _root_.ring_hom.localization_preserves.away (hP : ring_hom.localization_preserves @P)
-  {R S : Type*} (R' S' : Type*) [comm_ring R] [comm_ring R'] [comm_ring S] [comm_ring S']
-    [algebra R R'] [algebra S S'] (f : R →+* S) (r : R) [is_localization.away r R']
-    [hS' : is_localization.away (f r) S'] (H : P f) : P (is_localization.away.map R' S' f r) :=
-begin
-  haveI : is_localization (submonoid.map (f : R →* S) (submonoid.powers r)) S',
-  { convert hS', rw submonoid.map_powers, refl },
-  exact hP f (submonoid.powers r) R' S' H
-end
-
-lemma _root_.ring_hom.respects_iso.of_restrict_morphism_restrict_iff (hP : ring_hom.respects_iso @P)
-  {X Y : Scheme} [is_affine Y] (f : X ⟶ Y) (r : Y.presheaf.obj (op ⊤)) (U : opens X.carrier)
-  (hU : is_affine_open U) {V : opens _}
+lemma respects_iso.of_restrict_morphism_restrict_iff (hP : ring_hom.respects_iso @P)
+  {X Y : Scheme} [is_affine Y] (f : X ⟶ Y) (r : Y.presheaf.obj (opposite.op ⊤))
+  (U : opens X.carrier) (hU : is_affine_open U) {V : opens _}
   (e : V = (opens.map (X.of_restrict ((opens.map f.1.base).obj _).open_embedding).1.base).obj U) :
   P (Scheme.Γ.map ((X.restrict ((opens.map f.1.base).obj _).open_embedding).of_restrict
     V.open_embedding ≫ f ∣_ Y.basic_open r).op) ↔
@@ -420,7 +100,7 @@ begin
     { dsimp only [functor.op, unop_op],
       congr' 1,
       ext1,
-      rw [Scheme.comp_val_c_app, comp_apply],
+      rw [Scheme.comp_val_c_app, category_theory.comp_apply],
       erw X.basic_open_res,
       rw [opens.open_embedding_obj_top, opens.open_embedding_obj_top],
       refine eq.trans _ (set.image_preimage_eq_inter_range).symm,
@@ -442,6 +122,64 @@ begin
     erw [f.1.c.naturality_assoc, ← X.presheaf.map_comp, ← X.presheaf.map_comp,
       ← X.presheaf.map_comp],
     congr },
+end
+
+lemma stable_under_base_change.Γ_pullback_fst
+  (hP : stable_under_base_change @P) (hP' : respects_iso @P) {X Y S : Scheme}
+  [is_affine X] [is_affine Y] [is_affine S]
+  (f : X ⟶ S) (g : Y ⟶ S) (H : P (Scheme.Γ.map g.op)) :
+    P (Scheme.Γ.map (pullback.fst : pullback f g ⟶ _).op) :=
+begin
+  rw [← preserves_pullback.iso_inv_fst AffineScheme.forget_to_Scheme
+    (AffineScheme.of_hom f) (AffineScheme.of_hom g), op_comp, functor.map_comp,
+    hP'.cancel_right_is_iso, AffineScheme.forget_to_Scheme_map],
+  have := _root_.congr_arg quiver.hom.unop (preserves_pullback.iso_hom_fst AffineScheme.Γ.right_op
+    (AffineScheme.of_hom f) (AffineScheme.of_hom g)),
+  simp only [quiver.hom.unop_op, functor.right_op_map, unop_comp] at this,
+  delta AffineScheme.Γ at this,
+  simp only [quiver.hom.unop_op, functor.comp_map, AffineScheme.forget_to_Scheme_map,
+    functor.op_map] at this,
+  rw [← this, hP'.cancel_right_is_iso,
+    ← pushout_iso_unop_pullback_inl_hom (quiver.hom.unop _) (quiver.hom.unop _),
+    hP'.cancel_right_is_iso],
+  exact hP.pushout_inl _ hP' _ _ H
+end
+
+end ring_hom
+
+namespace algebraic_geometry
+
+lemma morphism_restrict_id (X : Scheme) (U : opens X.carrier) : 𝟙 X ∣_ U = 𝟙 _ :=
+begin
+  delta morphism_restrict,
+  rw [← cancel_mono (X.of_restrict _), category.id_comp, category.assoc, ← pullback.condition,
+    category.comp_id, pullback_restrict_iso_restrict_inv_fst],
+  refl,
+  apply_instance
+end
+
+instance {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) [is_open_immersion f] :
+  is_open_immersion (f ∣_ U) := by { delta morphism_restrict, apply_instance }
+
+include P
+
+def affine_and : affine_target_morphism_property :=
+λ X Y f hY, is_affine X ∧ P (Scheme.Γ.map f.op)
+
+variable {P}
+
+lemma affine_and_target_affine_locally_iff (hP : ring_hom.respects_iso @P)
+  {X Y : Scheme} (f : X ⟶ Y) :
+  target_affine_locally (affine_and @P) f ↔
+    affine f ∧ (∀ U : opens Y.carrier, is_affine_open U → P (f.1.c.app (op U))) :=
+begin
+  delta target_affine_locally Scheme.affine_opens,
+  simp_rw [affine_iff, ← forall_and_distrib, set_coe.forall],
+  apply forall₂_congr,
+  intros U hU,
+  apply and_congr iff.rfl,
+  rw [Γ_map_morphism_restrict, hP.cancel_left_is_iso, hP.cancel_right_is_iso],
+  refl
 end
 
 variable (P)
@@ -482,10 +220,6 @@ begin
     all_goals { assumption } },
 end
 
-def _root_.ring_hom.stable_under_composition : Prop :=
-  ∀ {R S T} [comm_ring R] [comm_ring S] [comm_ring T],
-    by exactI ∀ (f : R →+* S) (g : S →+* T) (hf : P f) (hg : P g), P (g.comp f)
-
 lemma affine_and_stable_under_composition (hP' : ring_hom.stable_under_composition @P) :
   stable_under_composition (target_affine_locally (affine_and @P)) :=
 begin
@@ -498,42 +232,6 @@ begin
     apply hP'; assumption }
 end
 
-def _root_.ring_hom.stable_under_base_change : Prop :=
-  ∀ ⦃R S T⦄ [comm_ring R] [comm_ring S] [comm_ring T], by exactI ∀ [algebra R S] [algebra R T],
-    by exactI (P (algebra_map R T) →
-      P (algebra.tensor_product.include_left.to_ring_hom : S →+* tensor_product R S T))
-
-lemma _root_.ring_hom.stable_under_base_change.pushout_inl
-  (hP : ring_hom.stable_under_base_change @P) (hP' : ring_hom.respects_iso @P) {R S T : CommRing}
-  (f : R ⟶ S) (g : R ⟶ T) (H : P g) : P (pushout.inl : S ⟶ pushout f g) :=
-begin
-  rw [← (show _ = pushout.inl, from colimit.iso_colimit_cocone_ι_inv
-    ⟨_, CommRing.pushout_cocone_is_colimit f g⟩ walking_span.left), hP'.cancel_right_is_iso],
-  apply hP,
-  exact H,
-end
-
-lemma _root_.ring_hom.stable_under_base_change.Γ_pullback_fst
-  (hP : ring_hom.stable_under_base_change @P) (hP' : ring_hom.respects_iso @P) {X Y S : Scheme}
-  [is_affine X] [is_affine Y] [is_affine S]
-  (f : X ⟶ S) (g : Y ⟶ S) (H : P (Scheme.Γ.map g.op)) :
-    P (Scheme.Γ.map (pullback.fst : pullback f g ⟶ _).op) :=
-begin
-  rw [← preserves_pullback.iso_inv_fst AffineScheme.forget_to_Scheme
-    (AffineScheme.of_hom f) (AffineScheme.of_hom g), op_comp, functor.map_comp,
-    hP'.cancel_right_is_iso, AffineScheme.forget_to_Scheme_map],
-  have := congr_arg quiver.hom.unop (preserves_pullback.iso_hom_fst AffineScheme.Γ.right_op
-    (AffineScheme.of_hom f) (AffineScheme.of_hom g)),
-  simp only [quiver.hom.unop_op, functor.right_op_map, unop_comp] at this,
-  delta AffineScheme.Γ at this,
-  simp only [quiver.hom.unop_op, functor.comp_map, AffineScheme.forget_to_Scheme_map,
-    functor.op_map] at this,
-  rw [← this, hP'.cancel_right_is_iso,
-    ← pushout_iso_unop_pullback_inl_hom (quiver.hom.unop _) (quiver.hom.unop _),
-    hP'.cancel_right_is_iso],
-  exact hP.pushout_inl _ hP' _ _ H
-end
-
 lemma affine_and_stable_under_base_change
   (hP : ring_hom.respects_iso @P)
   (h₁ : ring_hom.localization_preserves @P)
@@ -543,15 +241,11 @@ lemma affine_and_stable_under_base_change
 begin
   apply (is_local_affine_and @P hP @h₁ @h₂).stable_under_base_change,
   rintros X Y S hS hX f g ⟨hY, H⟩,
-  exactI ⟨infer_instance, h₃.Γ_pullback_fst _ hP _ _ H⟩
+  exactI ⟨infer_instance, h₃.Γ_pullback_fst hP _ _ H⟩
 end
 
 def source_affine_locally : affine_target_morphism_property :=
 λ X Y f hY, ∀ (U : X.affine_opens), P (Scheme.Γ.map (X.of_restrict U.1.open_embedding ≫ f).op)
-
-def _root_.ring_hom.localization_away_is : Prop :=
-∀ {R : Type*} (S : Type*) [comm_ring R] [comm_ring S] [by exactI algebra R S] (r : R)
-  [by exactI is_localization.away r S], by exactI P (algebra_map R S)
 
 lemma is_local_source_affine_locally
   (h₁ : ring_hom.respects_iso @P)
@@ -575,7 +269,7 @@ begin
     specialize H ⟨_, U.2.image_is_open_immersion (X.of_restrict _)⟩,
     convert (h₁.of_restrict_morphism_restrict_iff _ _ _ _ _).mpr _ using 1,
     swap 5,
-    { exact ring_hom.localization_preserves.away @h₂ _ _ _ r H },
+    { exact h₂.away r H },
     { apply_instance },
     { exact U.2.image_is_open_immersion _},
     { ext1, exact (set.preimage_image_eq _ subtype.coe_injective).symm } },
@@ -591,30 +285,8 @@ begin
     { convert Scheme.of_restrict.affine (Scheme.Γ.map f.op r.1) using 3;
         rw Scheme.preimage_basic_open; refl } }
 end
-.
-
-def _root_.ring_hom.of_localization_span_target : Prop :=
-  ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
-    (s : set S) (hs : by exactI ideal.span s = ⊤)
-    (H : by exactI (∀ (r : s), P ((algebra_map S (localization.away (r : S))).comp f))),
-    by exactI P f
-
-structure _root_.ring_hom.property_is_local : Prop :=
-(localization_preserves : ring_hom.localization_preserves @P)
-(of_localization_span_target :  ring_hom.of_localization_span_target @P)
-(stable_under_composition : ring_hom.stable_under_composition @P)
-(localization_away_is : ring_hom.localization_away_is @P)
 
 variables {P} (hP : ring_hom.property_is_local @P)
-
-lemma _root_.ring_hom.stable_under_composition.respects_iso (hP : ring_hom.stable_under_composition @P)
-  (hP' : ∀ {R S : Type*} [comm_ring R] [comm_ring S] (e : by exactI R ≃+* S),
-    by exactI P e.to_ring_hom) : ring_hom.respects_iso @P :=
-begin
-  split,
-  { introv H, resetI, apply hP, exacts [H, hP' e] },
-  { introv H, resetI, apply hP, exacts [hP' e, H] }
-end
 
 lemma source_affine_locally_of_source_open_cover_aux
   (h₁ : ring_hom.respects_iso @P)
@@ -681,17 +353,6 @@ begin
 end
 
 include hP
-
-lemma _root_.ring_hom.property_is_local.respects_iso : ring_hom.respects_iso @P :=
-begin
-  apply hP.stable_under_composition.respects_iso,
-  introv,
-  resetI,
-  letI := e.to_ring_hom.to_algebra,
-  apply_with hP.localization_away_is { instances := ff },
-  apply is_localization_away_of_is_unit_bijective _ is_unit_one,
-  exact e.bijective
-end
 
 lemma _root_.ring_hom.property_is_local.source_affine_locally_of_source_open_cover
   {X Y : Scheme} (f : X ⟶ Y) [is_affine Y]
@@ -809,19 +470,41 @@ lemma _root_.ring_hom.property_is_local.source_affine_open_cover_iff {X Y : Sche
 ⟨λ H, let h := ((hP.affine_open_cover_tfae f).out 0 2).mp H in h 𝒰,
   λ H, let h := ((hP.affine_open_cover_tfae f).out 1 0).mp in h ⟨𝒰, infer_instance, H⟩⟩
 
-lemma _root_.ring_hom.property_is_local.of_localization_span :
-  ring_hom.of_localization_span @P :=
+lemma target_affine_locally_source_affine_locally_iff_affine_opens_le
+  (hP : ring_hom.respects_iso @P) {X Y : Scheme} (f : X ⟶ Y) :
+  target_affine_locally (source_affine_locally @P) f ↔
+  (∀ (U : Y.affine_opens) (V : X.affine_opens) (e : V.1 ≤ (opens.map f.1.base).obj U.1),
+    P (f.1.c.app (op U) ≫ X.presheaf.map (hom_of_le e).op)) :=
 begin
-  introv R hs hs',
-  resetI,
-  apply_fun (ideal.map f) at hs,
-  rw [ideal.map_span, ideal.map_top] at hs,
-  apply hP.of_localization_span_target _ _ hs,
-  rintro ⟨_, r, hr, rfl⟩,
-  have := hs' ⟨r, hr⟩,
-  convert hP.stable_under_composition _ _ (hP.localization_away_is (localization.away r) r)
-    (hs' ⟨r, hr⟩) using 1,
-  exact (is_localization.map_comp _).symm
+  apply forall_congr,
+  intro U,
+  delta source_affine_locally,
+  simp_rw [op_comp, Scheme.Γ.map_comp, Γ_map_morphism_restrict, category.assoc, Scheme.Γ_map_op,
+    hP.cancel_left_is_iso],
+  split,
+  { intros H V e,
+    let U' := (opens.map f.val.base).obj U.1,
+    have e' : U'.open_embedding.is_open_map.functor.obj ((opens.map U'.inclusion).obj V.1) = V.1,
+    { ext1, refine set.image_preimage_eq_inter_range.trans (set.inter_eq_left_iff_subset.mpr _),
+      convert e, exact subtype.range_coe },
+    have := H ⟨(opens.map (X.of_restrict (U'.open_embedding)).1.base).obj V.1, _⟩,
+    erw ← X.presheaf.map_comp at this,
+    rw [← hP.cancel_right_is_iso _ (X.presheaf.map (eq_to_hom _)), category.assoc,
+      ← X.presheaf.map_comp],
+    convert this using 1,
+    { dsimp only [functor.op, unop_op], rw opens.open_embedding_obj_top, congr' 1, exact e'.symm },
+    { apply_instance },
+    { apply (is_open_immersion.is_affine_open_iff (X.of_restrict _) _).mpr,
+      convert V.2,
+      apply_instance } },
+  { intros H V,
+    specialize H ⟨_, V.2.image_is_open_immersion (X.of_restrict _)⟩ (subtype.coe_image_subset _ _),
+    erw ← X.presheaf.map_comp,
+    rw [← hP.cancel_right_is_iso _ (X.presheaf.map (eq_to_hom _)), category.assoc,
+      ← X.presheaf.map_comp],
+    convert H,
+    { dsimp only [functor.op, unop_op], rw opens.open_embedding_obj_top, refl },
+    { apply_instance } }
 end
 
 lemma _root_.ring_hom.property_is_local.is_local_source_affine_locally :
@@ -861,8 +544,24 @@ begin
         (pullback_symmetry _ _).hom, pullback_symmetry_hom_comp_snd_assoc] at H,
     exact H }
 end
+
+lemma affine_locally_of_is_open_immersion (hP : ring_hom.property_is_local @P) {X Y : Scheme}
+  (f : X ⟶ Y) [hf : is_open_immersion f] : target_affine_locally (source_affine_locally @P) f :=
+begin
+  intro U,
+  haveI H : is_affine _ := U.2,
+  rw ← category.comp_id (f ∣_ U),
+  apply hP.source_affine_locally_of_is_open_immersion_comp,
+  rw hP.source_affine_open_cover_iff _ (Scheme.open_cover_of_is_iso (𝟙 _)),
+  { intro i, erw [category.id_comp, op_id, Scheme.Γ.map_id],
+    convert hP.localization_away_is _ (1 : Scheme.Γ.obj _),
+    { exact (ring_hom.algebra_map_to_algebra _).symm },
+    { apply_instance },
+    { refine is_localization_away_of_is_unit_bijective _ is_unit_one function.bijective_id } },
+  { intro i, exact H }
+end
 .
-lemma affine_locally_stable_composition :
+lemma affine_locally_stable_under_composition :
   stable_under_composition (target_affine_locally (source_affine_locally @P)) :=
 begin
   intros X Y S f g hf hg,
@@ -906,7 +605,12 @@ begin
   intro i,
   erw pullback.lift_fst,
   rw category.comp_id,
-  exact h.Γ_pullback_fst _ hP.respects_iso _ _ (H Y.affine_cover i),
+  exact h.Γ_pullback_fst hP.respects_iso _ _ (H Y.affine_cover i),
 end
+
+lemma affine_locally_stable_under_base_change (h : ring_hom.stable_under_base_change @P) :
+  stable_under_base_change (target_affine_locally (source_affine_locally @P)) :=
+hP.is_local_source_affine_locally.stable_under_base_change
+  (source_affine_locally_stable_under_base_change hP h)
 
 end algebraic_geometry

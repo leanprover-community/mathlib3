@@ -51,6 +51,11 @@ def morphism_property := ∀ ⦃X Y : Scheme⦄ (f : X ⟶ Y), Prop
 
 def affine_target_morphism_property := ∀ ⦃X Y : Scheme⦄ (f : X ⟶ Y) [is_affine Y], Prop
 
+def morphism_property.implies (P₁ P₂ : morphism_property) : Prop :=
+∀ ⦃X Y : Scheme⦄ (f : X ⟶ Y), P₁ f → P₂ f
+
+infix `⤇` := morphism_property.implies
+
 def affine_target_morphism_property.to_property (P : affine_target_morphism_property) :
   morphism_property :=
 λ X Y f, ∃ h, @@P f h
@@ -448,7 +453,7 @@ lemma affine_target_morphism_property.is_local.affine_target_iff
   target_affine_locally P f ↔ P f :=
 begin
   rw hP.affine_open_cover_iff f _,
-  swap, { exact open_cover_of_is_iso (𝟙 Y) },
+  swap, { exact Scheme.open_cover_of_is_iso (𝟙 Y) },
   swap, { intro _, dsimp, apply_instance },
   transitivity (P (pullback.snd : pullback f (𝟙 _) ⟶ _)),
   { exact ⟨λ H, H punit.star, λ H _, H⟩ },
@@ -603,7 +608,7 @@ begin
     (by rw [category.assoc, category.assoc, pullback.condition]),
   let g₂ : pullback f₁ f₂ ⟶ pullback f g := pullback.fst ≫ f₁,
   specialize H g₁,
-  rw ← hP.1.cancel_left_is_iso (pullback.pullback_diagonal_map_iso f _ f₁ f₂).hom,
+  rw ← hP.1.cancel_left_is_iso (pullback_diagonal_map_iso f _ f₁ f₂).hom,
   convert H,
   { apply pullback.hom_ext; simp only [category.assoc, pullback.lift_fst, pullback.lift_snd,
     pullback.lift_fst_assoc, pullback.lift_snd_assoc, category.comp_id,

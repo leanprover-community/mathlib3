@@ -3,12 +3,13 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import algebraic_geometry.morphisms.basic
+import algebraic_geometry.morphisms.ring_hom_properties
 
 /-!
-# Affine morphisms
+# Finite morphisms
 
-A morphism of schemes is affine if the preimages of affine open sets are affine.
+A morphism of schemes is finite if it is affine and the component of the sheaf map on affine opens
+is finite.
 
 We show that this property is local, and is stable under compositions and base-changes.
 
@@ -28,17 +29,14 @@ variables {X Y : Scheme.{u}} (f : X ⟶ Y)
 A morphism is `affine` if the preimages of affine open sets are affine.
 -/
 @[mk_iff]
-class affine (f : X ⟶ Y) : Prop :=
-(is_affine_preimage : ∀ U : opens Y.carrier,
-  is_affine_open U → is_affine_open ((opens.map f.1.base).obj U))
+class finite (f : X ⟶ Y) extends affine f : Prop :=
+(is_finite_of_affine : ∀ U : opens Y.carrier, is_affine_open U → (f.1.c.app (op U)).finite)
 
-def affine.affine_property : affine_target_morphism_property :=
-λ X Y f hf, is_affine X
+lemma _root_.ring_hom.finite_respects_iso : ring_hom.respects_iso @ring_hom.finite := sorry
 
-@[simp] lemma affine_affine_property_to_property {X Y : Scheme} (f : X ⟶ Y) :
-  affine_target_morphism_property.to_property affine.affine_property f ↔
-    is_affine Y ∧ is_affine X :=
-by { delta affine_target_morphism_property.to_property affine.affine_property, simp }
+lemma finite_eq_affine_and_target_locally_finite :
+  @finite = target_affine_locally (affine_and @ring_hom.finite) :=
+by { ext, rw [finite_iff, affine_and_target_affine_locally_iff ring_hom.finite_respects_iso] }
 
 @[priority 900]
 instance affine_of_is_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] : affine f :=

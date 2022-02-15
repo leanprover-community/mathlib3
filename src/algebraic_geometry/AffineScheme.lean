@@ -64,6 +64,12 @@ lemma is_affine_of_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] [h : is_affine Y]
   is_affine X :=
 by { rw [← mem_AffineScheme] at h ⊢, exact functor.ess_image.of_iso (as_iso f).symm h }
 
+def Scheme.AffineScheme (X : Scheme) [is_affine X] : AffineScheme :=
+⟨X, (mem_AffineScheme X).mpr infer_instance⟩
+
+def AffineScheme.of_hom {X Y : Scheme} (f : X ⟶ Y) [is_affine X] [is_affine Y] :
+  X.AffineScheme ⟶ Y.AffineScheme := f
+
 namespace AffineScheme
 
 /-- The `Spec` functor into the category of affine schemes. -/
@@ -101,6 +107,20 @@ begin
   exactI adjunction.has_limits_of_equivalence (op_op_equivalence AffineScheme.{u}).inverse
 end
 
+noncomputable
+instance : preserves_limits Γ.{u}.right_op :=
+@@adjunction.is_equivalence_preserves_limits _ _ Γ.right_op
+  (is_equivalence.of_equivalence equiv_CommRing)
+
+noncomputable
+instance : preserves_limits forget_to_Scheme :=
+begin
+  apply_with (@@preserves_limits_of_nat_iso _ _
+    (iso_whisker_right equiv_CommRing.unit_iso forget_to_Scheme).symm) { instances := ff },
+  change preserves_limits (equiv_CommRing.functor ⋙ Scheme.Spec),
+  apply_instance,
+end
+
 end AffineScheme
 
 /-- An open subset of a scheme is affine if the open subscheme is affine. -/
@@ -131,6 +151,19 @@ begin
   ext1,
   change f.1.base '' U.1 = set.range (f.1.base ∘ coe),
   rw [set.range_comp, subtype.range_coe],
+end
+
+lemma is_open_immersion.is_affine_open_iff {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
+  (U : opens X.carrier) :
+  is_affine_open U ↔ is_affine_open (H.open_functor.obj U) :=
+begin
+  refine ⟨λ hU, hU.image_is_open_immersion f, λ hU, @@is_affine_of_iso _ _ hU⟩,
+  refine (is_open_immersion.iso_of_range_eq (X.of_restrict _ ≫ f) (Y.of_restrict _) _).hom,
+  { rw [Scheme.comp_val_base, coe_comp, set.range_comp],
+    dsimp [opens.inclusion],
+    rw [subtype.range_coe, subtype.range_coe],
+    refl },
+  { apply_instance }
 end
 
 lemma top_is_affine_open (X : Scheme) [is_affine X] : is_affine_open (⊤ : opens X.carrier) :=
@@ -458,6 +491,36 @@ begin
   dsimp,
   simp only [category.assoc, ← functor.map_comp, ← op_comp],
   apply structure_sheaf.to_open_res,
+end
+
+lemma is_localization_of_eq_basic_open {X : Scheme} {U V : opens X.carrier} (i : V ⟶ U)
+  (hU : is_affine_open U) (r : X.presheaf.obj (op U)) (e : V = X.basic_open r) :
+  @@is_localization.away _ r (X.presheaf.obj (op V)) _ (X.presheaf.map i.op).to_algebra :=
+by { subst e, convert is_localization_basic_open hU r using 3 }
+
+instance {X : Scheme} [is_affine X] (f : X.presheaf.obj $ op ⊤) :
+  is_localization.away f (X.presheaf.obj $ op $ X.basic_open f) :=
+is_localization_basic_open (top_is_affine_open X) f
+
+instance Γ_restrict_algebra (X : Scheme.{u}) {U : Top.{u}} {f : U ⟶ X.carrier}
+  (hf : open_embedding f) :
+  algebra ( X.presheaf.obj (op ⊤)) (Scheme.Γ.obj (op $ X.restrict hf)) :=
+(Scheme.Γ.map (X.of_restrict hf).op).to_algebra
+
+instance Γ_restrict_is_localization (X : Scheme.{u}) [is_affine X] (r : X.presheaf.obj (op ⊤)) :
+  is_localization.away r (Scheme.Γ.obj (op $ X.restrict (X.basic_open r).open_embedding)) :=
+is_localization_of_eq_basic_open _ (top_is_affine_open X) r (opens.open_embedding_obj_top _)
+
+noncomputable
+def is_affine_open.restrict_basic_open_iso_Spec_basic_open {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (r : X.presheaf.obj (op U)) :
+  X.restrict (X.basic_open r).open_embedding ≅
+    Scheme.Spec.obj (op (X.presheaf.obj (op (X.basic_open r)))) :=
+begin
+  haveI := is_localization_basic_open hU r,
+  refine hU.restrict_basic_open_iso_Spec r ≪≫ Scheme.Spec.map_iso _,
+  refine (CommRing.iso_of _ ≪≫ (is_localization.alg_equiv (submonoid.powers r)
+    (X.presheaf.obj (op (X.basic_open r))) (localization.away r)).to_ring_equiv.to_CommRing_iso).op,
 end
 
 lemma basic_open_basic_open_is_basic_open {X : Scheme} {U : opens X.carrier}

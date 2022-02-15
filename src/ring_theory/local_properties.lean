@@ -7,6 +7,7 @@ import ring_theory.localization
 import data.equiv.transfer_instance
 import group_theory.submonoid.pointwise
 import ring_theory.nilpotent
+import ring_theory.ring_hom_properties
 
 /-!
 # Local properties of commutative rings
@@ -40,6 +41,18 @@ variables {R S : Type u} [comm_ring R] [comm_ring S] (M : submonoid R)
 variables (N : submonoid S) (R' S' : Type u) [comm_ring R'] [comm_ring S'] (f : R →+* S)
 variables [algebra R R'] [algebra S S']
 
+lemma is_localization_away_of_is_unit_bijective {R : Type*} (S : Type*) [comm_ring R] [comm_ring S]
+  [algebra R S] {r : R} (hr : is_unit r) (H : function.bijective (algebra_map R S)) :
+  is_localization.away r S :=
+{ map_units := by { rintros ⟨_, n, rfl⟩, exact (algebra_map R S).is_unit_map (hr.pow _) },
+  surj := λ z, by { obtain ⟨z', rfl⟩ := H.2 z, exact ⟨⟨z', 1⟩, by simp⟩ },
+  eq_iff_exists := λ x y, begin
+    erw H.1.eq_iff,
+    split,
+    { rintro rfl, exact ⟨1, rfl⟩ },
+    { rintro ⟨⟨_, n, rfl⟩, e⟩, exact (hr.pow _).mul_left_inj.mp e }
+  end }
+
 section properties
 
 section comm_ring
@@ -71,7 +84,7 @@ include P
 /-- A property `P` of ring homs is said to be preserved by localization
  if `P` holds for `M⁻¹R →+* M⁻¹S` whenever `P` holds for `R →+* S`. -/
 def ring_hom.localization_preserves :=
-  ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S) (M : by exactI submonoid R)
+  ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S) (M : by exactI submonoid R)
     (R' S' : Type u) [comm_ring R'] [comm_ring S'] [by exactI algebra R R']
     [by exactI algebra S S'] [by exactI is_localization M R']
     [by exactI is_localization (M.map (f : R →* S)) S'],
@@ -95,9 +108,25 @@ if `P` holds for `R →+* S` whenever there exists a set `{ r }` that spans `R` 
 Note that this is equivalent to `ring_hom.of_localization_finite_span` via
 `ring_hom.of_localization_span_iff_finite`, but this has less restrictions when applying. -/
 def ring_hom.of_localization_span :=
-  ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+  ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
     (s : set R) (hs : by exactI ideal.span s = ⊤)
     (H : by exactI (∀ (r : s), P (localization.away_map f r))), by exactI P f
+
+def ring_hom.localization_away_is : Prop :=
+∀ {R : Type*} (S : Type*) [comm_ring R] [comm_ring S] [by exactI algebra R S] (r : R)
+  [by exactI is_localization.away r S], by exactI P (algebra_map R S)
+
+def ring_hom.of_localization_span_target : Prop :=
+∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+  (s : set S) (hs : by exactI ideal.span s = ⊤)
+  (H : by exactI (∀ (r : s), P ((algebra_map S (localization.away (r : S))).comp f))),
+  by exactI P f
+
+structure ring_hom.property_is_local : Prop :=
+(localization_preserves : ring_hom.localization_preserves @P)
+(of_localization_span_target : ring_hom.of_localization_span_target @P)
+(stable_under_composition : ring_hom.stable_under_composition @P)
+(localization_away_is : ring_hom.localization_away_is @P)
 
 lemma ring_hom.of_localization_span_iff_finite :
   ring_hom.of_localization_span @P ↔ ring_hom.of_localization_finite_span @P :=
@@ -114,9 +143,21 @@ end
 
 variables {P f R' S'}
 
+lemma _root_.ring_hom.property_is_local.respects_iso (hP : ring_hom.property_is_local @P) :
+  ring_hom.respects_iso @P :=
+begin
+  apply hP.stable_under_composition.respects_iso,
+  introv,
+  resetI,
+  letI := e.to_ring_hom.to_algebra,
+  apply_with hP.localization_away_is { instances := ff },
+  apply is_localization_away_of_is_unit_bijective _ is_unit_one,
+  exact e.bijective
+end
+
 -- Almost all arguments are implicit since this is not intended to use mid-proof.
-lemma ring_hom.localization_away_of_localization_preserves
-  (H : ring_hom.localization_preserves @P) {r : R} [is_localization.away r R']
+lemma ring_hom.localization_preserves.away
+  (H : ring_hom.localization_preserves @P) (r : R) [is_localization.away r R']
   [is_localization.away (f r) S'] (hf : P f) :
     P (by exactI is_localization.away.map R' S' f r) :=
 begin
@@ -124,6 +165,21 @@ begin
   haveI : is_localization ((submonoid.powers r).map (f : R →* S)) S',
   { rw submonoid.map_powers, assumption },
   exact H f (submonoid.powers r) R' S' hf,
+end
+
+lemma ring_hom.property_is_local.of_localization_span (hP : ring_hom.property_is_local @P) :
+  ring_hom.of_localization_span @P :=
+begin
+  introv R hs hs',
+  resetI,
+  apply_fun (ideal.map f) at hs,
+  rw [ideal.map_span, ideal.map_top] at hs,
+  apply hP.of_localization_span_target _ _ hs,
+  rintro ⟨_, r, hr, rfl⟩,
+  have := hs' ⟨r, hr⟩,
+  convert hP.stable_under_composition _ _ (hP.localization_away_is (localization.away r) r)
+    (hs' ⟨r, hr⟩) using 1,
+  exact (is_localization.map_comp _).symm
 end
 
 end ring_hom
@@ -267,7 +323,7 @@ end
 lemma localization_away_map_finite (r : R) [is_localization.away r R']
   [is_localization.away (f r) S'] (hf : f.finite) :
     (is_localization.away.map R' S' f r).finite :=
-ring_hom.localization_away_of_localization_preserves @localization_finite hf
+localization_finite.away r hf
 
 /--
 Let `S` be an `R`-algebra, `M` an submonoid of `R`, and `S' = M⁻¹S`.
@@ -443,7 +499,7 @@ end
 lemma localization_away_map_finite_type (r : R) [is_localization.away r R']
   [is_localization.away (f r) S'] (hf : f.finite_type) :
     (is_localization.away.map R' S' f r).finite_type :=
-ring_hom.localization_away_of_localization_preserves @localization_finite_type hf
+localization_finite_type.away r hf
 
 /--
 Let `S` be an `R`-algebra, `M` an submonoid of `R`, and `S' = M⁻¹S`.

@@ -3,10 +3,10 @@ Copyright (c) 2021 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
-import analysis.normed_space.ordered
 import analysis.asymptotics.asymptotics
-import topology.algebra.ordered.liminf_limsup
+import analysis.normed_space.ordered
 import data.polynomial.eval
+import topology.algebra.order.liminf_limsup
 
 /-!
 # Super-Polynomial Function Decay

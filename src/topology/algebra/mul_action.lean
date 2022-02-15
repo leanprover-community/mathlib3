@@ -144,7 +144,7 @@ instance {ι : Type*} {γ : ι → Type*}
 
 section lattice_ops
 
-variables {ι : Type*} [has_scalar M β]
+variables {ι : Sort*} [has_scalar M β]
   {ts : set (topological_space β)} (h : Π t ∈ ts, @has_continuous_smul M β _ _ t)
   {ts' : ι → topological_space β} (h' : Π i, @has_continuous_smul M β _ _ (ts' i))
   {t₁ t₂ : topological_space β} [h₁ : @has_continuous_smul M β _ _ t₁]

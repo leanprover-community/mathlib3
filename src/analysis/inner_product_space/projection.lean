@@ -1143,6 +1143,7 @@ variables (𝕜 E)
 def orthonormal_basis_index : set E :=
 classical.some (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E))
 
+
 /-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
 def std_orthonormal_basis :
   basis (orthonormal_basis_index 𝕜 E) 𝕜 E :=

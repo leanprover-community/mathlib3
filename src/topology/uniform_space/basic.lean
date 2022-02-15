@@ -1133,11 +1133,7 @@ by rw [to_topological_space_Inf, infi_pair]
 lemma discrete_topology_of_discrete_uniformity [hα : uniform_space α]
   (h : uniformity α = 𝓟 id_rel) :
   discrete_topology α :=
-⟨begin
-  have : hα = ⊥, by { ext1, exact h },
-  rw this,
-  refl
-end⟩
+⟨(uniform_space_eq h.symm : ⊥ = hα) ▸ rfl⟩
 
 instance : uniform_space empty := ⊥
 instance : uniform_space punit := ⊥

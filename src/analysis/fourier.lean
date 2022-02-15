@@ -8,6 +8,7 @@ import analysis.inner_product_space.l2_space
 import measure_theory.function.continuous_map_dense
 import measure_theory.function.l2_space
 import measure_theory.measure.haar
+import measure_theory.group.integration
 import topology.metric_space.emetric_paracompact
 import topology.continuous_function.stone_weierstrass
 
@@ -54,8 +55,6 @@ this Hilbert basis.
 noncomputable theory
 open_locale ennreal complex_conjugate classical
 open topological_space continuous_map measure_theory measure_theory.measure algebra submodule set
-
-local attribute [instance] fact_one_le_two_ennreal
 
 /-! ### Choice of measure on the circle -/
 

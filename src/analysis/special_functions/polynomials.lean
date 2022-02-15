@@ -21,11 +21,11 @@ polynomials.
 -/
 
 open filter finset asymptotics
-open_locale asymptotics topological_space
+open_locale asymptotics polynomial topological_space
 
 namespace polynomial
 
-variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : polynomial 𝕜)
+variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : 𝕜[X])
 
 lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in filter.at_top, ¬ P.is_root x :=
 begin

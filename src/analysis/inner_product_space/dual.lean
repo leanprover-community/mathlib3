@@ -5,7 +5,7 @@ Authors: Frédéric Dupuis
 -/
 import analysis.inner_product_space.projection
 import analysis.normed_space.dual
-import analysis.normed_space.star
+import analysis.normed_space.star.basic
 
 /-!
 # The Fréchet-Riesz representation theorem
@@ -19,8 +19,8 @@ conjugate-linear isometric *equivalence* of `E` onto its dual; that is, we estab
 surjectivity of `to_dual_map`.  This is the Fréchet-Riesz representation theorem: every element of
 the dual of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.
 
-For a bilinear form `B : E →L⋆[𝕜] E →L[𝕜] 𝕜`,
-we define a map `continuous_linear_map_of_bilin B : E →L[𝕜] E`,
+For a bounded sesquilinear form `B : E →L⋆[𝕜] E →L[𝕜] 𝕜`,
+we define a map `inner_product_space.continuous_linear_map_of_bilin B : E →L[𝕜] E`,
 given by substituting `E →L[𝕜] 𝕜` with `E` using `to_dual`.
 
 

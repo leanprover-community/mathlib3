@@ -34,14 +34,11 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 open real set filter is_R_or_C
 open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
 
-local attribute [instance] fact_one_le_two_real
-
-local attribute [instance] fact_one_le_two_real
-
 noncomputable theory
 
 variables {ι : Type*}
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E]
+variables {E' : Type*} [inner_product_space 𝕜 E']
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 /-
@@ -179,6 +176,16 @@ rfl
   (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   ((v.isometry_euclidean_of_orthonormal hv).symm : euclidean_space 𝕜 ι → E) = v.equiv_fun.symm :=
 rfl
+
+/-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of inner product spaces then an orthonormal basis `v`
+of `E` determines a linear isometry `e : E' ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`. This result states that
+`e` may be obtained either by transporting `v` to `E'` or by composing with the linear isometry
+`E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι` provided by `v`. -/
+@[simp] lemma basis.map_isometry_euclidean_of_orthonormal (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v)
+  (f : E ≃ₗᵢ[𝕜] E') :
+  (v.map f.to_linear_equiv).isometry_euclidean_of_orthonormal (hv.map_linear_isometry_equiv f) =
+    f.symm.trans (v.isometry_euclidean_of_orthonormal hv) :=
+linear_isometry_equiv.to_linear_equiv_injective $ v.map_equiv_fun _
 
 end
 

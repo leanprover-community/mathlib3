@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Yury Kudryashov
 -/
 import analysis.normed_space.basic
+import topology.algebra.order.liminf_limsup
 import topology.local_homeomorph
-import topology.algebra.ordered.liminf_limsup
 
 /-!
 # Asymptotics
@@ -358,7 +358,7 @@ theorem is_O_of_le (hfg : ∀ x, ∥f x∥ ≤ ∥g x∥) : is_O f g l :=
 end
 
 theorem is_O_with_refl (f : α → E) (l : filter α) : is_O_with 1 f f l :=
-is_O_with_of_le l $ λ _, le_refl _
+is_O_with_of_le l $ λ _, le_rfl
 
 theorem is_O_refl (f : α → E) (l : filter α) : is_O f f l := (is_O_with_refl f l).is_O
 

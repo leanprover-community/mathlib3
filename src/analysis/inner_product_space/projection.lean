@@ -78,7 +78,7 @@ begin
   -- maybe this should be a separate lemma
   have exists_seq : ∃ w : ℕ → K, ∀ n, ∥u - w n∥ < δ + 1 / (n + 1),
   { have hδ : ∀n:ℕ, δ < δ + 1 / (n + 1), from
-      λ n, lt_add_of_le_of_pos (le_refl _) nat.one_div_pos_of_nat,
+      λ n, lt_add_of_le_of_pos le_rfl nat.one_div_pos_of_nat,
     have h := λ n, exists_lt_of_cinfi_lt (hδ n),
     let w : ℕ → K := λ n, classical.some (h n),
     exact ⟨w, λ n, classical.some_spec (h n)⟩ },

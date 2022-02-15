@@ -25,7 +25,7 @@ are proved more generally for any additive Haar measure on a finite-dimensional 
 -/
 
 noncomputable theory
-open classical set filter measure_theory
+open classical set filter measure_theory measure_theory.measure
 open ennreal (of_real)
 open_locale big_operators ennreal nnreal topological_space
 
@@ -213,22 +213,10 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
 ### Images of the Lebesgue measure under translation/multiplication in ℝ
 -/
 
-lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
-eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]
-
-@[simp] lemma volume_preimage_add_left (a : ℝ) (s : set ℝ) : volume (((+) a) ⁻¹' s) = volume s :=
-calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
-  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_add_left
-
-lemma map_volume_add_right (a : ℝ) : measure.map (+ a) volume = volume :=
-by simpa only [add_comm] using real.map_volume_add_left a
-
-@[simp] lemma volume_preimage_add_right (a : ℝ) (s : set ℝ) : volume ((+ a) ⁻¹' s) = volume s :=
-calc volume ((+ a) ⁻¹' s) = measure.map (+ a) volume s :
-  ((homeomorph.add_right a).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_add_right
+instance is_add_left_invariant_real_volume :
+  is_add_left_invariant (volume : measure ℝ) :=
+⟨λ a, eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
+  by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]⟩
 
 lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real (|a|) • measure.map ((*) a) volume = volume :=
@@ -237,7 +225,7 @@ begin
   cases lt_or_gt_of_ne h with h h,
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
       measure.map_apply (measurable_const_mul a) measurable_set_Ioo, neg_sub_neg,
-      ← neg_mul_eq_neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub,
+      neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub,
       mul_div_cancel' _ (ne_of_lt h)] },
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
       measure.map_apply (measurable_const_mul a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
@@ -279,21 +267,10 @@ eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
 ### Images of the Lebesgue measure under translation/linear maps in ℝⁿ
 -/
 
-lemma map_volume_pi_add_left (a : ι → ℝ) : measure.map ((+) a) volume = volume :=
-begin
-  refine (measure.pi_eq (λ s hs, _)).symm,
-  have A : has_add.add a ⁻¹' (set.pi univ (λ (i : ι), s i))
-    = set.pi univ (λ (i : ι), ((+) (a i)) ⁻¹' (s i)), by { ext, simp },
-  rw [measure.map_apply (measurable_const_add a) (measurable_set.univ_pi_fintype hs), A,
-      volume_pi_pi],
-  simp only [volume_preimage_add_left]
-end
-
-@[simp] lemma volume_pi_preimage_add_left (a : ι → ℝ) (s : set (ι → ℝ)) :
-  volume (((+) a) ⁻¹' s) = volume s :=
-calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
-  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_pi_add_left
+-- for some reason `apply_instance` doesn't find this
+instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
+  is_add_left_invariant (volume : measure (ι → ℝ)) :=
+pi.is_add_left_invariant_volume
 
 open matrix
 
@@ -364,7 +341,7 @@ begin
       refine measurable.add (measurable_pi_lambda _ (λ i, measurable.const_mul _ _)) measurable_snd,
       exact this.comp measurable_fst },
     exact measure_preserving.skew_product (measure_preserving.id _) g_meas
-      (eventually_of_forall (λ a, map_volume_pi_add_left _)) },
+      (eventually_of_forall (λ a, map_add_left_eq_self _ _)) },
   have C : measure_preserving e.symm volume volume :=
   ⟨ (measurable_pi_equiv_pi_subtype_prod_symm (λ (i : ι), ℝ) p : _),
     (measure.map_pi_equiv_pi_subtype_prod_symm (λ (i : ι), volume) p : _) ⟩,

@@ -76,8 +76,6 @@ noncomputable theory
 open_locale classical topological_space big_operators nnreal ennreal measure_theory pointwise
 open set filter topological_space ennreal emetric
 
-local attribute [instance] fact_one_le_one_ennreal
-
 namespace measure_theory
 
 variables {α E F F' G 𝕜 : Type*} {p : ℝ≥0∞}

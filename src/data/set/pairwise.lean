@@ -287,6 +287,11 @@ lemma pairwise_disjoint.elim' (hs : s.pairwise_disjoint f) {i j : ι} (hi : i �
   i = j :=
 hs.elim hi hj $ λ hij, h hij.eq_bot
 
+lemma pairwise_disjoint.eq_of_le (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
+  (hf : f i ≠ ⊥) (hij : f i ≤ f j) :
+  i = j :=
+hs.elim' hi hj $ λ h, hf $ (inf_of_le_left hij).symm.trans h
+
 end semilattice_inf_bot
 
 section complete_lattice
@@ -338,7 +343,7 @@ end
 
 /-- Equivalence between a disjoint bounded union and a dependent sum. -/
 noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
-  (h : s.pairwise (disjoint on f)) :
+  (h : s.pairwise_disjoint f) :
   (⋃ i ∈ s, f i) ≃ (Σ i : s, f i) :=
 (equiv.set_congr (bUnion_eq_Union _ _)).trans $ Union_eq_sigma_of_disjoint $
   λ ⟨i, hi⟩ ⟨j, hj⟩ ne, h hi hj $ λ eq, ne $ subtype.eq eq

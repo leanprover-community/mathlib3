@@ -73,10 +73,8 @@ set_like.coe_subset_coe.symm.trans set.inv_subset
 /-- `submonoid.has_inv` as an order isomorphism. -/
 @[to_additive /-" `add_submonoid.has_neg` as an order isomorphism "-/, simps]
 def inv_order_iso : submonoid G ≃o submonoid G :=
-{ to_fun := has_inv.inv,
-  inv_fun := has_inv.inv,
-  map_rel_iff' := inv_le_inv,
-  .. equiv.inv _ }
+{ to_equiv := equiv.inv _,
+  map_rel_iff' := inv_le_inv }
 
 @[to_additive] lemma closure_inv (s : set G) : closure s⁻¹ = (closure s)⁻¹ :=
 begin

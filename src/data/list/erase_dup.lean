@@ -8,8 +8,8 @@ import data.list.nodup
 /-!
 # Erasure of duplicates in a list
 
-This file proves basic results about `list.erase_dup` (definition in `data.list.defs`).
-`erase_dup l` returns `l` without its duplicates. It keeps the earliest (that is, rightmost)
+This file proves basic results about `list.dedup` (definition in `data.list.defs`).
+`dedup l` returns `l` without its duplicates. It keeps the earliest (that is, rightmost)
 occurrence of each.
 
 ## Tags
@@ -23,52 +23,52 @@ namespace list
 
 variables {α : Type u} [decidable_eq α]
 
-@[simp] theorem erase_dup_nil : erase_dup [] = ([] : list α) := rfl
+@[simp] theorem dedup_nil : dedup [] = ([] : list α) := rfl
 
-theorem erase_dup_cons_of_mem' {a : α} {l : list α} (h : a ∈ erase_dup l) :
-  erase_dup (a :: l) = erase_dup l :=
+theorem dedup_cons_of_mem' {a : α} {l : list α} (h : a ∈ dedup l) :
+  dedup (a :: l) = dedup l :=
 pw_filter_cons_of_neg $ by simpa only [forall_mem_ne] using h
 
-theorem erase_dup_cons_of_not_mem' {a : α} {l : list α} (h : a ∉ erase_dup l) :
-  erase_dup (a :: l) = a :: erase_dup l :=
+theorem dedup_cons_of_not_mem' {a : α} {l : list α} (h : a ∉ dedup l) :
+  dedup (a :: l) = a :: dedup l :=
 pw_filter_cons_of_pos $ by simpa only [forall_mem_ne] using h
 
-@[simp] theorem mem_erase_dup {a : α} {l : list α} : a ∈ erase_dup l ↔ a ∈ l :=
-by simpa only [erase_dup, forall_mem_ne, not_not] using not_congr (@forall_mem_pw_filter α (≠) _
+@[simp] theorem mem_dedup {a : α} {l : list α} : a ∈ dedup l ↔ a ∈ l :=
+by simpa only [dedup, forall_mem_ne, not_not] using not_congr (@forall_mem_pw_filter α (≠) _
   (λ x y z xz, not_and_distrib.1 $ mt (and.rec eq.trans) xz) a l)
 
-@[simp] theorem erase_dup_cons_of_mem {a : α} {l : list α} (h : a ∈ l) :
-  erase_dup (a :: l) = erase_dup l :=
-erase_dup_cons_of_mem' $ mem_erase_dup.2 h
+@[simp] theorem dedup_cons_of_mem {a : α} {l : list α} (h : a ∈ l) :
+  dedup (a :: l) = dedup l :=
+dedup_cons_of_mem' $ mem_dedup.2 h
 
-@[simp] theorem erase_dup_cons_of_not_mem {a : α} {l : list α} (h : a ∉ l) :
-  erase_dup (a :: l) = a :: erase_dup l :=
-erase_dup_cons_of_not_mem' $ mt mem_erase_dup.1 h
+@[simp] theorem dedup_cons_of_not_mem {a : α} {l : list α} (h : a ∉ l) :
+  dedup (a :: l) = a :: dedup l :=
+dedup_cons_of_not_mem' $ mt mem_dedup.1 h
 
-theorem erase_dup_sublist : ∀ (l : list α), erase_dup l <+ l := pw_filter_sublist
+theorem dedup_sublist : ∀ (l : list α), dedup l <+ l := pw_filter_sublist
 
-theorem erase_dup_subset : ∀ (l : list α), erase_dup l ⊆ l := pw_filter_subset
+theorem dedup_subset : ∀ (l : list α), dedup l ⊆ l := pw_filter_subset
 
-theorem subset_erase_dup (l : list α) : l ⊆ erase_dup l :=
-λ a, mem_erase_dup.2
+theorem subset_dedup (l : list α) : l ⊆ dedup l :=
+λ a, mem_dedup.2
 
-theorem nodup_erase_dup : ∀ l : list α, nodup (erase_dup l) := pairwise_pw_filter
+theorem nodup_dedup : ∀ l : list α, nodup (dedup l) := pairwise_pw_filter
 
-theorem erase_dup_eq_self {l : list α} : erase_dup l = l ↔ nodup l := pw_filter_eq_self
+theorem dedup_eq_self {l : list α} : dedup l = l ↔ nodup l := pw_filter_eq_self
 
-protected lemma nodup.erase_dup {l : list α} (h : l.nodup) : l.erase_dup = l :=
-list.erase_dup_eq_self.2 h
+protected lemma nodup.dedup {l : list α} (h : l.nodup) : l.dedup = l :=
+list.dedup_eq_self.2 h
 
-@[simp] theorem erase_dup_idempotent {l : list α} : erase_dup (erase_dup l) = erase_dup l :=
+@[simp] theorem dedup_idempotent {l : list α} : dedup (dedup l) = dedup l :=
 pw_filter_idempotent
 
-theorem erase_dup_append (l₁ l₂ : list α) : erase_dup (l₁ ++ l₂) = l₁ ∪ erase_dup l₂ :=
+theorem dedup_append (l₁ l₂ : list α) : dedup (l₁ ++ l₂) = l₁ ∪ dedup l₂ :=
 begin
   induction l₁ with a l₁ IH, {refl}, rw [cons_union, ← IH],
-  show erase_dup (a :: (l₁ ++ l₂)) = insert a (erase_dup (l₁ ++ l₂)),
-  by_cases a ∈ erase_dup (l₁ ++ l₂);
-  [ rw [erase_dup_cons_of_mem' h, insert_of_mem h],
-    rw [erase_dup_cons_of_not_mem' h, insert_of_not_mem h]]
+  show dedup (a :: (l₁ ++ l₂)) = insert a (dedup (l₁ ++ l₂)),
+  by_cases a ∈ dedup (l₁ ++ l₂);
+  [ rw [dedup_cons_of_mem' h, insert_of_mem h],
+    rw [dedup_cons_of_not_mem' h, insert_of_not_mem h]]
 end
 
 end list

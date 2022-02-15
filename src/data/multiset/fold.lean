@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.multiset.erase_dup
+import data.multiset.dedup
 import data.list.min_max
 
 /-!
@@ -70,9 +70,9 @@ theorem fold_union_inter [decidable_eq α] (s₁ s₂ : multiset α) (b₁ b₂ 
   (s₁ ∪ s₂).fold op b₁ * (s₁ ∩ s₂).fold op b₂ = s₁.fold op b₁ * s₂.fold op b₂ :=
 by rw [← fold_add op, union_add_inter, fold_add op]
 
-@[simp] theorem fold_erase_dup_idem [decidable_eq α] [hi : is_idempotent α op] (s : multiset α)
+@[simp] theorem fold_dedup_idem [decidable_eq α] [hi : is_idempotent α op] (s : multiset α)
   (b : α) :
-  (erase_dup s).fold op b = s.fold op b :=
+  (dedup s).fold op b = s.fold op b :=
 multiset.induction_on s (by simp) $ λ a s IH, begin
   by_cases a ∈ s; simp [IH, h],
   show fold op b s = op a (fold op b s),
@@ -99,11 +99,11 @@ end order
 
 open nat
 
-theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
-  ∃ n : ℕ, s ≤ n • erase_dup s :=
+theorem le_smul_dedup [decidable_eq α] (s : multiset α) :
+  ∃ n : ℕ, s ≤ n • dedup s :=
 ⟨(s.map (λ a, count a s)).fold max 0, le_iff_count.2 $ λ a, begin
   rw count_nsmul, by_cases a ∈ s,
-  { refine le_trans _ (nat.mul_le_mul_left _ $ count_pos.2 $ mem_erase_dup.2 h),
+  { refine le_trans _ (nat.mul_le_mul_left _ $ count_pos.2 $ mem_dedup.2 h),
     have : count a s ≤ fold max 0 (map (λ a, count a s) (a ::ₘ erase s a));
     [simp [le_max_left], simpa [cons_erase h]] },
   { simp [count_eq_zero.2 h, nat.zero_le] }

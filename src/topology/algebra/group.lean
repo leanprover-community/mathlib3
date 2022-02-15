@@ -271,7 +271,7 @@ lemma continuous_at_zpow (x : G) (z : ℤ) : continuous_at (λ x, x ^ z) x :=
 (continuous_zpow z).continuous_at
 
 @[to_additive]
-lemma filter.tendsto.zpow {l : filter α} {f : α → G} {x : G} (hf : tendsto f l (𝓝 x)) (z : ℤ) :
+lemma filter.tendsto.zpow {α} {l : filter α} {f : α → G} {x : G} (hf : tendsto f l (𝓝 x)) (z : ℤ) :
   tendsto (λ x, f x ^ z) l (𝓝 (x ^ z)) :=
 (continuous_at_zpow _ _).tendsto.comp hf
 

@@ -518,7 +518,7 @@ instance : has_zero (α →ᵇ β) := ⟨const α 0⟩
 
 @[simp] lemma coe_zero : ((0 : α →ᵇ β) : α → β) = 0 := rfl
 
-@[simp] def mk_of_compact_zero [compact_space α] : mk_of_compact (0 : C(α, β)) = 0 := rfl
+@[simp] lemma mk_of_compact_zero [compact_space α] : mk_of_compact (0 : C(α, β)) = 0 := rfl
 
 lemma forall_coe_zero_iff_zero (f : α →ᵇ β) : (∀x, f x = 0) ↔ f = 0 := (@ext_iff _ _ _ _ f 0).symm
 
@@ -546,7 +546,7 @@ instance : has_add (α →ᵇ β) :=
 @[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
 
-@[simp] def mk_of_compact_add [compact_space α] (f g : C(α, β)) :
+@[simp] lemma mk_of_compact_add [compact_space α] (f g : C(α, β)) :
   mk_of_compact (f + g) = mk_of_compact f + mk_of_compact g := rfl
 
 lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
@@ -757,10 +757,10 @@ instance : has_sub (α →ᵇ β) :=
 @[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl
 
-@[simp] def mk_of_compact_neg [compact_space α] (f : C(α, β)) :
+@[simp] lemma mk_of_compact_neg [compact_space α] (f : C(α, β)) :
   mk_of_compact (-f) = -mk_of_compact f := rfl
 
-@[simp] def mk_of_compact_sub [compact_space α] (f g : C(α, β)) :
+@[simp] lemma mk_of_compact_sub [compact_space α] (f g : C(α, β)) :
   mk_of_compact (f - g) = mk_of_compact f - mk_of_compact g := rfl
 
 instance : add_comm_group (α →ᵇ β) :=

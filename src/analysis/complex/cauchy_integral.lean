@@ -6,10 +6,9 @@ Authors: Yury Kudryashov
 import measure_theory.measure.complex_lebesgue
 import measure_theory.integral.divergence_theorem
 import measure_theory.integral.circle_integral
-import analysis.calculus.fderiv_analytic
 import analysis.calculus.dslope
+import analysis.analytic.basic
 import analysis.complex.re_im_topology
-import analysis.asymptotics.specific_asymptotics
 import data.real.cardinality
 
 /-!
@@ -138,7 +137,7 @@ function is analytic on the open ball.
 Cauchy-Goursat theorem, Cauchy integral formula
 -/
 
-open topological_space set measure_theory interval_integral metric filter function asymptotics
+open topological_space set measure_theory interval_integral metric filter function
 open_locale interval real nnreal ennreal topological_space big_operators
 
 noncomputable theory

@@ -648,9 +648,9 @@ lemma is_open_immersion.range_pullback_map {X Y S X' Y' S' : Scheme} (f : X ⟶ 
 begin
   rw [pullback_map_eq_pullback_fst_fst_iso_inv, Scheme.comp_val_base, coe_comp,
     set.range_comp, set.range_iff_surjective.mpr, set.image_univ, Scheme.comp_val_base, coe_comp,
-    set.range_comp, is_open_immersion.range_pullback_snd_of_left, opens.map_obj, subtype.coe_mk,
-    set.image_preimage_eq_inter_range, is_open_immersion.range_pullback_fst_of_right,
-    is_open_immersion.range_pullback_fst_of_right],
+    set.range_comp, is_open_immersion.range_pullback_snd_of_left, topological_space.opens.map_obj,
+    subtype.coe_mk, set.image_preimage_eq_inter_range,
+    is_open_immersion.range_pullback_fst_of_right, is_open_immersion.range_pullback_fst_of_right],
   refl,
   rw ← Top.epi_iff_surjective, apply_instance,
 end

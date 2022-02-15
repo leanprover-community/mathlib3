@@ -250,7 +250,7 @@ begin
   rwa ← hc,
 end
 
-lemma sum_range_succ_mul_sum_range_succ [semiring β] (n k : ℕ) (f g : ℕ → β) :
+lemma sum_range_succ_mul_sum_range_succ [non_unital_non_assoc_semiring β] (n k : ℕ) (f g : ℕ → β) :
   (∑ i in range (n+1), f i) * (∑ i in range (k+1), g i) =
     (∑ i in range n, f i) * (∑ i in range k, g i) +
     f n * (∑ i in range k, g i) +

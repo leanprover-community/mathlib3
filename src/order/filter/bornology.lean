@@ -134,3 +134,5 @@ suffices is_bounded (⋃ (i : β) (hi : i ∈ @univ β), s i), by simpa,
 is_bounded_bUnion finite_univ (λ i _, h i)
 
 end bornological_space
+
+instance : bornological_space punit := ⟨⊥, bot_le⟩

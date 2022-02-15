@@ -12,7 +12,7 @@ import order.hom.lattice
 This defines `Lattice`, the category of lattices.
 
 Note that `Lattice` doesn't correspond to the literature definition of `Lat` as we don't require
-bottom or top elements. Instead, `Lat` corresponds to `BoundedLattice` (not yet in mathlib).
+bottom or top elements. Instead, `Lat` corresponds to `BoundedLattice`.
 
 ## TODO
 

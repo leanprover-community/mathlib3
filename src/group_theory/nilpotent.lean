@@ -55,7 +55,7 @@ subgroup `G` of `G`, and `⊥` denotes the trivial subgroup `{1}`.
   `least_descending_central_series_length_eq_nilpotency_class` and
   `lower_central_series_length_eq_nilpotency_class`.
 * If `G` is nilpotent, then so are its subgroups, images, quotients and preimages.
-  Finite products of nilpotent groups are nilpotent.
+  Binary products of nilpotent groups are nilpotent.
   Corresponding lemmas about the `nilpotency_class` are provided.
 * The `nilpotency_class` of `G ⧸ center G` is given explicitly, and an induction principle
   is derived from that.

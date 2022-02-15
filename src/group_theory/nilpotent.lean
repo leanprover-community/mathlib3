@@ -693,7 +693,7 @@ end
 
 section prod
 
-variables {G₁ : Type*} {G₂ : Type*} [group G₁] [group G₂]
+variables {G₁ G₂ : Type*} [group G₁] [group G₂]
 
 lemma lower_central_series_prod (n : ℕ):
   lower_central_series (G₁ × G₂) n = (lower_central_series G₁ n).prod (lower_central_series G₂ n) :=

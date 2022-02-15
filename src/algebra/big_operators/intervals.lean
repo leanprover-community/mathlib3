@@ -180,15 +180,6 @@ local notation `G` n:80 := ∑ i in range n, g i
 section monoid
 variable [add_comm_monoid β]
 
-lemma sum_Ico_empty : (∑ i in Ico n n, f i) = 0 :=
-begin
-  convert sum_empty,
-  exact Ico_self n,
-end
-
-lemma sum_Ico_single : (∑ i in Ico n (n+1), f i) = f n :=
-by rw [sum_eq_sum_Ico_succ_bot (lt_add_one n), sum_Ico_empty, add_zero]
-
 lemma sum_Ico_sub {c: ℕ} (hm : c ≤ m) (hmn : m ≤ n) :
   ∑ (i : ℕ) in Ico (m-c) (n-c), f (i+c) = ∑ (i : ℕ) in Ico m n, f i :=
 begin

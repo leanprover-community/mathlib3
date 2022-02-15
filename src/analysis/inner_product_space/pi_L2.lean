@@ -32,7 +32,7 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 -/
 
 open real set filter is_R_or_C
-open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum classical
+open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
 
 noncomputable theory
 
@@ -150,14 +150,14 @@ begin
   simp [e₂, direct_sum.submodule_coe, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
 end
 
-variables (ι) (𝕜) (E) [fintype ι]
+variables (ι) (𝕜) (E) [fintype ι] [decidable_eq ι]
 
 
 def euclidean_space.single {𝕜 : Type*} {ι : Type*} [fintype ι] [is_R_or_C 𝕜] (i : ι) (a : 𝕜): euclidean_space 𝕜 ι :=
   set.indicator {i} (λ j, a)
 
 
-theorem euclidean_space.single_apply {𝕜 : Type*} {ι : Type*} [fintype ι] [is_R_or_C 𝕜] (i : ι) (a : 𝕜) (j : ι) :
+theorem euclidean_space.single_apply {𝕜 : Type*} {ι : Type*} [fintype ι] [decidable_eq ι] [is_R_or_C 𝕜] (i : ι) (a : 𝕜) (j : ι) :
   (euclidean_space.single i a) j = dite (j = i) (λ (h : j = i), a) (λ (h : ¬j = i), 0) :=
   begin
     rw [euclidean_space.single, dite_eq_ite, set.indicator],

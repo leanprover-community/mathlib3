@@ -45,6 +45,14 @@ begin
   simp_rw add_comm,
 end
 
+@[to_additive]
+lemma prod_Ico_sub' {f : ℕ → β} {m n c: ℕ} (hm : c ≤ m) (hmn : m ≤ n) :
+  ∏ i in Ico (m - c) (n - c), f (i + c) = ∏ i in Ico m n, f i :=
+begin
+  rw [prod_Ico_add' f _ _],
+  simp only [nat.sub_add_cancel hm, nat.sub_add_cancel (le_trans hm hmn)],
+end
+
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=
 by rw [nat.Ico_succ_right_eq_insert_Ico hab, sum_insert right_not_mem_Ico, add_comm]
@@ -180,19 +188,6 @@ variables (f g : ℕ → β) {m n : ℕ}
 local notation `F` n:80 := ∑ i in range n, f i
 local notation `G` n:80 := ∑ i in range n, g i
 
-section monoid
-variable [add_comm_monoid β]
-
-lemma sum_Ico_sub {c: ℕ} (hm : c ≤ m) (hmn : m ≤ n) :
-  ∑ (i : ℕ) in Ico (m-c) (n-c), f (i+c) = ∑ (i : ℕ) in Ico m n, f i :=
-begin
-  have hn : c ≤ n := le_trans hm hmn,
-  conv in (f (_+c)) { rw add_comm },
-  rw [sum_Ico_add f (m-c) (n-c), nat.sub_add_cancel hm, nat.sub_add_cancel hn],
-end
-
-end monoid
-
 section group
 variable [add_comm_group β]
 
@@ -219,7 +214,7 @@ theorem sum_Ico_by_parts (hmn : m < n) :
     f (n-1) * G n - f m * G m - ∑ i in Ico m (n-1), G (i+1) * (f (i+1) - f i) :=
 begin
   have h₁ : ∑ i in Ico (m+1) n, (f i * G i) = ∑ i in Ico m (n-1), (f (i+1) * G (i+1)) :=
-    (sum_Ico_sub _ m.succ_pos $ nat.succ_le_iff.mpr hmn).symm,
+    (sum_Ico_sub' m.succ_pos $ nat.succ_le_iff.mpr hmn).symm,
 
   have h₂ : ∑ i in Ico (m+1) n, (f i * G (i+1))
           = ∑ i in Ico m (n-1), (f i * G (i+1)) + f (n-1) * G n - f m * G (m+1) :=

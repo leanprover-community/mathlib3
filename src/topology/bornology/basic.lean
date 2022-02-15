@@ -135,3 +135,6 @@ instance : bornology punit := ⟨⊥, bot_le⟩
 @[reducible] def bornology.cofinite : bornology α :=
 { cobounded := cofinite,
   le_cofinite := le_refl _ }
+
+class bounded_space extends bornology α :=
+(bounded_univ : is_bounded (univ : set α))

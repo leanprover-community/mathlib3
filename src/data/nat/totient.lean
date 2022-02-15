@@ -310,38 +310,7 @@ begin
 end
 
 theorem totient_Euler_product_formula' (n : ℕ) :
-   ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹ : ℚ) :=
-begin
-  have h1 : ∏ (i : ℕ) in n.factors.to_finset, ↑(i - 1) =
-    (∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹)) * (∏ (x : ℕ) in n.factors.to_finset, ↑x),
-  { simp only [←prod_mul_distrib],
-    refine prod_congr rfl (λ p hp, _),
-    rw ←support_factorization at hp,
-    have p_pos : 0 < p := pos_of_mem_factorization hp,
-    have p_pos' : (p:ℚ) ≠ 0 := cast_ne_zero.mpr p_pos.ne.symm,
-    rw [sub_mul, one_mul, mul_comm, mul_inv_cancel p_pos', cast_pred p_pos] },
-
-  have h2 : ∏ (p : ℕ) in n.factors.to_finset, (1 - (↑p:ℚ)⁻¹) ≠ 0,
-  { refine ne_of_gt (prod_pos (λ p hp, _)),
-    have h : 1 < p := prime.one_lt (prime_of_mem_factors (list.mem_to_finset.mp hp)),
-    rw [sub_pos, @inv_lt ℚ _ _ 1 (nat.cast_pos.mpr (lt_trans one_pos h)) (by simp)],
-    simp [h] },
-
-  have h3 : (n.factors.to_finset.prod coe : ℚ) ≠ 0,
-  { refine ne_of_gt (prod_pos (λ p hp, _)),
-    convert (@cast_pos ℚ _ _ p).mpr (prime.pos (prime_of_mem_factors (list.mem_to_finset.mp hp))) },
-
-  rw totient_Euler_product_formula n,
-  simp only [finsupp.prod, cast_prod, support_factorization, cast_mul, prod_congr, h1],
-  rw rat.coe_nat_div _ _ (prod_prime_factors_dvd n),
-  nth_rewrite_lhs 0 mul_comm,
-  nth_rewrite_rhs 0 mul_comm,
-  rw mul_assoc,
-  simpa only [h2, mul_eq_mul_left_iff, cast_prod, or_false] using mul_div_cancel' (n:ℚ) h3,
-end
-
-theorem totient_Euler_product_formula'' (n : ℕ) :
-   ↑(φ n) = ↑n * ∏ p in n.factors.to_finset, (1 - p⁻¹ : ℚ) :=
+  ↑(φ n) = ↑n * ∏ p in n.factors.to_finset, (1 - p⁻¹ : ℚ) :=
 begin
   by_cases hn : n = 0, { subst hn, simp },
   have hn' : (n : ℚ) ≠ 0, { simp [hn] },
@@ -355,10 +324,5 @@ begin
   have hp' : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp.ne.symm,
   rw [sub_mul, one_mul, mul_comm, mul_inv_cancel hp', cast_pred hp],
 end
-
-
-
-
-
 
 end nat

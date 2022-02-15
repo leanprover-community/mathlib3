@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.constructions.prod
+import measure_theory.group.measure
 
 /-!
 # Product measures
@@ -534,6 +535,18 @@ begin
   simp only [equiv.self_comp_symm, map_id]
 end
 
+@[to_additive] instance pi.is_mul_left_invariant [∀ i, group (α i)] [∀ i, has_measurable_mul (α i)]
+  [∀ i, is_mul_left_invariant (μ i)] : is_mul_left_invariant (measure.pi μ) :=
+begin
+  refine ⟨λ x, (measure.pi_eq (λ s hs, _)).symm⟩,
+  have A : has_mul.mul x ⁻¹' (set.pi univ (λ (i : ι), s i))
+    = set.pi univ (λ (i : ι), ((*) (x i)) ⁻¹' (s i)), by { ext, simp },
+  rw [measure.map_apply (measurable_const_mul x) (measurable_set.univ_pi_fintype hs), A,
+      pi_pi],
+  simp only [measure_preimage_mul]
+end
+
+
 end measure
 instance measure_space.pi [Π i, measure_space (α i)] : measure_space (Π i, α i) :=
 ⟨measure.pi (λ i, volume)⟩
@@ -556,6 +569,14 @@ lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (v
   [∀ i, metric_space (α i)] (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
   volume (metric.closed_ball x r) = ∏ i, volume (metric.closed_ball (x i) r) :=
 measure.pi_closed_ball _ _ hr
+
+open measure
+@[to_additive]
+instance pi.is_mul_left_invariant_volume [∀ i, group (α i)] [Π i, measure_space (α i)]
+  [∀ i, sigma_finite (volume : measure (α i))]
+  [∀ i, has_measurable_mul (α i)] [∀ i, is_mul_left_invariant (volume : measure (α i))] :
+  is_mul_left_invariant (volume : measure (Π i, α i)) :=
+pi.is_mul_left_invariant _
 
 /-!
 ### Measure preserving equivalences

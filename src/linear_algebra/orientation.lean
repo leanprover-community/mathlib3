@@ -455,7 +455,7 @@ begin
     rw [not_lt, ←neg_le_neg_iff, neg_zero] at hr,
     have hzzz := ne_of_gt (add_pos_of_pos_of_nonneg hr₁ (mul_nonneg hr₂.le hr)),
     simpa [ne_of_gt (add_pos_of_pos_of_nonneg hr₁ (mul_nonneg hr₂.le hr)),
-           -mul_neg_eq_neg_mul_symm] using h },
+           -mul_neg] using h },
   { exact λ h, same_ray_pos_smul_right v h }
 end
 

@@ -9,7 +9,7 @@ import data.nat.basic
 # Basic properties of lists
 -/
 
-open function nat
+open function nat (hiding one_pos)
 
 namespace list
 universes u v w x

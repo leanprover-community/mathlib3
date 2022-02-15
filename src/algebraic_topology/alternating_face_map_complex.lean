@@ -94,8 +94,8 @@ begin
   { /- identification of corresponding terms in both sums -/
     rintro ⟨i, j⟩ hij,
     simp only [term, d_l, d_r, φ, comp_zsmul, zsmul_comp, ← neg_smul, ← mul_smul,
-      pow_add, neg_mul_eq_neg_mul_symm, mul_one, fin.coe_cast_lt,
-      fin.coe_succ, pow_one, mul_neg_eq_neg_mul_symm, neg_neg],
+      pow_add, neg_mul, mul_one, fin.coe_cast_lt,
+      fin.coe_succ, pow_one, mul_neg, neg_neg],
     let jj : fin (n+2) := (φ (i,j) hij).1,
     have ineq : jj ≤ i, { rw ← fin.coe_fin_le, simpa using hij, },
     rw [category_theory.simplicial_object.δ_comp_δ X ineq, fin.cast_succ_cast_lt, mul_comm] },

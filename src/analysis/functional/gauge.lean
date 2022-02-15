@@ -35,12 +35,6 @@ For a real vector space,
 Minkowski functional, gauge
 -/
 
-/-!
-### Set Properties
-
-Absorbent and balanced sets in a vector space over a normed field.
--/
-
 open normed_field set
 open_locale pointwise
 

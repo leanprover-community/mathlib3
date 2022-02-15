@@ -340,6 +340,47 @@ begin
   simpa only [h2, mul_eq_mul_left_iff, cast_prod, or_false] using mul_div_cancel' (n:ℚ) h3,
 end
 
+-- NOW LET'S TRY TO WRITE A NICER PROOF:
+theorem totient_Euler_product_formula'' (n : ℕ) :
+   ↑(φ n) = ↑n * ∏ p in n.factors.to_finset, (1 - p⁻¹ : ℚ) :=
+begin
+  by_cases hn : n = 0, { subst hn, simp },
+  rw totient_Euler_product_formula n,
+  simp only [prod_prime_factors_dvd n, cast_mul, cast_dvd_char_zero, cast_prod],
+  rw mul_comm_div',
+  have hn' : (n:ℚ) ≠ 0, { simp [hn] },
+  rw mul_right_inj' hn',
+  rw div_eq_iff,
+
+  {
+    rw ←finset.prod_mul_distrib,
+    refine prod_congr rfl (λ p hp, _),
+    have hp0 : p ≠ 0, {
+      have := pos_of_mem_factorization,
+      rw support_factorization at this,
+      exact (this hp).ne.symm,
+    },
+    have hp0' : 0 < p := hp0.bot_lt,
+    rw sub_mul,
+    simp,
+    rw mul_comm,
+    rw mul_inv_cancel,
+    { simp only [hp0', cast_pred] },
+    { simp [hp0] },
+  },
+
+  suffices : ∏ p in n.factors.to_finset, (p:ℚ) ≠ 0, { exact this },
+
+  have h1 : 0 < ∏ p in n.factors.to_finset, p,
+  { simpa [←factorization_rebase_prod] using prod_pos (λ p hp, pos_of_mem_factorization hp) },
+  have h2 : ∏ p in n.factors.to_finset, p ≠ 0 := h1.ne.symm,
+  rw ←cast_prod,
+  rwa cast_ne_zero,
+end
+
+
+
+
 
 
 end nat

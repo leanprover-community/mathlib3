@@ -6,7 +6,6 @@ Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 import measure_theory.integral.set_to_l1
 import analysis.normed_space.bounded_linear_maps
 import topology.sequences
-import analysis.normed_space.dual
 
 /-!
 # Bochner integral

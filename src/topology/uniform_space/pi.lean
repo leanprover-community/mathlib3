@@ -61,5 +61,4 @@ begin
   apply eq_of_separated_of_uniform_continuous (Pi.uniform_continuous_proj α i),
   apply H,
 end
-
 end

@@ -1243,7 +1243,7 @@ variables {α : Type*} [measurable_space α] (m : outer_measure α)
 /-- Given an outer measure `m` we can forget its value on non-measurable sets, and then consider
   `m.trim`, the unique maximal outer measure less than that function. -/
 def trim : outer_measure α :=
-induced_outer_measure (λ s _, m s) (@measurable_set.empty _ (by apply_instance)) m.empty
+induced_outer_measure (λ s _, m s) measurable_set.empty m.empty
 
 theorem le_trim : m ≤ m.trim :=
 le_of_function.mpr $ λ s, le_infi $ λ _, le_rfl

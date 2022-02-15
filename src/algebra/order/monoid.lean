@@ -1023,21 +1023,29 @@ instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (addit
 
 namespace additive
 
-variables [preorder α] {a b : α}
+variables [preorder α]
 
-@[simp] lemma of_mul_le : of_mul a ≤ of_mul b ↔ a ≤ b := by refl
+@[simp] lemma of_mul_le {a b : α} : of_mul a ≤ of_mul b ↔ a ≤ b := by refl
 
-@[simp] lemma of_mul_lt : of_mul a < of_mul b ↔ a < b := by refl
+@[simp] lemma of_mul_lt {a b : α} : of_mul a < of_mul b ↔ a < b := by refl
+
+@[simp] lemma to_mul_le {a b : additive α} : to_mul a ≤ to_mul b ↔ a ≤ b := by refl
+
+@[simp] lemma to_mul_lt {a b : additive α} : to_mul a < to_mul b ↔ a < b := by refl
 
 end additive
 
 namespace multiplicative
 
-variables [preorder α] {a b : α}
+variables [preorder α]
 
-@[simp] lemma of_add_le : of_add a ≤ of_add b ↔ a ≤ b := by refl
+@[simp] lemma of_add_le {a b : α} : of_add a ≤ of_add b ↔ a ≤ b := by refl
 
-@[simp] lemma of_add_lt : of_add a < of_add b ↔ a < b := by refl
+@[simp] lemma of_add_lt {a b : α} : of_add a < of_add b ↔ a < b := by refl
+
+@[simp] lemma to_add_le {a b : multiplicative α} : to_add a ≤ to_add b ↔ a ≤ b := by refl
+
+@[simp] lemma to_add_lt {a b : multiplicative α} : to_add a < to_add b ↔ a < b := by refl
 
 end multiplicative
 

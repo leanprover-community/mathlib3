@@ -3,8 +3,8 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Alistair Tucker
 -/
-import topology.algebra.ordered.basic
 import order.complete_lattice_intervals
+import topology.algebra.order.basic
 
 /-!
 # Intermediate Value Theorem

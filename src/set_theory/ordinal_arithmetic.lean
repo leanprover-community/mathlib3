@@ -378,8 +378,8 @@ le_iff_le_iff_lt_iff_lt.2 H.lt_iff
 theorem is_normal.inj {f} (H : is_normal f) {a b} : f a = f b ↔ a = b :=
 by simp only [le_antisymm_iff, H.le_iff]
 
-theorem is_normal.le_self {f} (H : is_normal f) (a) : a ≤ f a :=
-well_founded.self_le_of_strict_mono wf H.strict_mono a
+theorem is_normal.self_le {f} (H : is_normal f) (a) : a ≤ f a :=
+wf.self_le_of_strict_mono H.strict_mono a
 
 theorem is_normal.le_set {f} (H : is_normal f) (p : set ordinal) (p0 : p.nonempty) (b)
   (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, a ≤ o) {o} : f b ≤ o ↔ ∀ a ∈ p, f a ≤ o :=
@@ -418,7 +418,7 @@ theorem is_normal.is_limit {f} (H : is_normal f) {o} (l : is_limit o) :
   lt_of_le_of_lt (succ_le.2 h₂) (H.lt_iff.2 h₁)⟩
 
 theorem is_normal.le_iff_eq {f} (H : is_normal f) {a} : f a ≤ a ↔ f a = a :=
-(H.le_self a).le_iff_eq
+(H.self_le a).le_iff_eq
 
 theorem add_le_of_limit {a b c : ordinal.{u}}
   (h : is_limit b) : a + b ≤ c ↔ ∀ b' < b, a + b' ≤ c :=
@@ -1354,7 +1354,7 @@ begin
   by_contra' H,
   cases omin_mem _ H with hal har,
   apply har (omin (λ b, omin _ H ≤ enum_ord S hS b)
-    ⟨_, well_founded.self_le_of_strict_mono wf (enum_ord.strict_mono hS) _⟩),
+    ⟨_, wf.self_le_of_strict_mono (enum_ord.strict_mono hS) _⟩),
   rw enum_ord_def,
   refine le_antisymm (omin_le ⟨hal, λ b hb, _⟩) _,
   { by_contra' h,
@@ -1379,28 +1379,13 @@ theorem enum_ord_range : range (enum_ord S hS) = S :=
 by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord.surjective hS⟩ }
 
 /-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
-theorem eq_enum_ord (f : ordinal → ordinal) :
-  strict_mono f ∧ range f = S ↔ f = enum_ord S hS :=
+theorem eq_enum_ord (f : ordinal → ordinal) : strict_mono f ∧ range f = S ↔ f = enum_ord S hS :=
 begin
-  split, swap,
+  split,
+  { rintro ⟨h₁, h₂⟩,
+    rwa [←wf.eq_strict_mono_iff_eq_range h₁ (enum_ord.strict_mono hS), enum_ord_range hS] },
   { rintro rfl,
-    exact ⟨enum_ord.strict_mono hS, enum_ord_range hS⟩ },
-  rw range_eq_iff,
-  rintro ⟨h, hl, hr⟩,
-  refine funext (λ a, _),
-  apply wf.induction a,
-  refine λ b H, le_antisymm _ _,
-  { cases hr _ (enum_ord_mem hS b) with d hd,
-    rw ←hd,
-    apply h.monotone,
-    by_contra' hbd,
-    have := enum_ord.strict_mono hS hbd,
-    rw ←(H d hbd) at this,
-    exact ne_of_lt this hd },
-  rw enum_ord_def,
-  refine omin_le ⟨hl b, λ c hc, _⟩,
-  rw ←(H c hc),
-  exact h hc
+    exact ⟨enum_ord.strict_mono hS, enum_ord_range hS⟩ }
 end
 
 end
@@ -1527,7 +1512,7 @@ begin
 end
 
 theorem le_opow_self {a : ordinal} (b) (a1 : 1 < a) : b ≤ a ^ b :=
-(opow_is_normal a1).le_self _
+(opow_is_normal a1).self_le _
 
 theorem opow_lt_opow_left_of_succ {a b c : ordinal}
   (ab : a < b) : a ^ succ c < b ^ succ c :=
@@ -2174,7 +2159,7 @@ lt_sup
 protected theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} : f b < nfp f a ↔ b < nfp f a :=
 lt_sup.trans $ iff.trans
   (by exact
-   ⟨λ ⟨n, h⟩, ⟨n, lt_of_le_of_lt (H.le_self _) h⟩,
+   ⟨λ ⟨n, h⟩, ⟨n, lt_of_le_of_lt (H.self_le _) h⟩,
     λ ⟨n, h⟩, ⟨n+1, by rw iterate_succ'; exact H.lt_iff.2 h⟩⟩)
   lt_sup.symm
 
@@ -2189,7 +2174,7 @@ end
 
 theorem is_normal.nfp_fp (H : is_normal f) (a) : f (nfp f a) = nfp f a :=
 begin
-  refine le_antisymm _ (H.le_self _),
+  refine le_antisymm _ (H.self_le _),
   cases le_or_lt (f a) a with aa aa,
   { rwa le_antisymm (H.nfp_le_fp le_rfl aa) (le_nfp_self _ _) },
   rcases zero_or_succ_or_limit (nfp f a) with e|⟨b, e⟩|l,
@@ -2207,7 +2192,7 @@ begin
 end
 
 theorem is_normal.le_nfp (H : is_normal f) {a b} : f b ≤ nfp f a ↔ b ≤ nfp f a :=
-⟨le_trans (H.le_self _), λ h, by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
+⟨le_trans (H.self_le _), λ h, by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
 
 theorem nfp_eq_self {a} (h : f a = a) : nfp f a = a :=
 le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
@@ -2251,7 +2236,7 @@ end
 theorem is_normal.le_iff_deriv (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
 ⟨λ ha, begin
   suffices : ∀ o (_ : a ≤ deriv f o), ∃ o, deriv f o = a,
-  from this a ((deriv_is_normal _).le_self _),
+  from this a ((deriv_is_normal _).self_le _),
   refine λ o, limit_rec_on o (λ h₁, ⟨0, le_antisymm _ h₁⟩) (λ o IH h₁, _) (λ o l IH h₁, _),
   { rw deriv_zero,
     exact H.nfp_le_fp (ordinal.zero_le _) ha },

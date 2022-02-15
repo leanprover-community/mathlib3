@@ -124,8 +124,7 @@ finite.induction_on hs
 
 lemma is_bounded_Union [fintype β] {s : β → set α}
   (h : ∀ i, is_bounded (s i)) : is_bounded (⋃ i, s i) :=
-suffices is_bounded (⋃ (i : β) (hi : i ∈ @univ β), s i), by simpa,
-is_bounded_bUnion finite_univ (λ i _, h i)
+by simpa using is_bounded_bUnion finite_univ (λ i _, h i)
 
 end bornology
 

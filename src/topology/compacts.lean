@@ -138,6 +138,9 @@ instance : set_like (nonempty_compacts α) α :=
 lemma compact (s : nonempty_compacts α) : is_compact (s : set α) := s.compact'
 protected lemma nonempty (s : nonempty_compacts α) : (s : set α).nonempty := s.nonempty'
 
+/-- Reinterpret a nonempty compact as a closed set. -/
+def to_closeds (s : nonempty_compacts α) : closeds α := ⟨s, s.compact.is_closed⟩
+
 @[ext] protected lemma ext {s t : nonempty_compacts α} (h : (s : set α) = t) : s = t :=
 set_like.ext' h
 

@@ -514,7 +514,7 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
 
 /-- If `α` is `subsingleton` and `a : α`, then the type of dependent functions `Π (i : α), f
 i` is equivalent to `f i`. -/
-def Pi_subsingleton (α) (f : α → Type*) [subsingleton α] (a : α): (Π (i : α), f i) ≃ f a :=
+def Pi_subsingleton (α) (f : α → Sort*) [subsingleton α] (a : α): (Π (i : α), f i) ≃ f a :=
 { to_fun := eval a,
   inv_fun := λ x, λ b, by { rw subsingleton.elim b a, exact x, },
   left_inv := λ f, funext $ λ b, by { rw subsingleton.elim b a, reflexivity },
@@ -522,7 +522,7 @@ def Pi_subsingleton (α) (f : α → Type*) [subsingleton α] (a : α): (Π (i :
 
 /-- If `α` has a unique term, then the type of dependent functions `Π (i : α), f
 i` is equivalent to `f unique`. -/
-def Pi_unique (α) (f : α → Type*) [unique α] : (Π (i : α), f i) ≃ f default :=
+def Pi_unique (α) (f : α → Sort*) [unique α] : (Π (i : α), f i) ≃ f default :=
 Pi_subsingleton α f default
 
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/

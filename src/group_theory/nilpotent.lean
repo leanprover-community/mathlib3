@@ -725,8 +725,7 @@ end
 lemma nilpotency_class_prod [is_nilpotent G₁] [is_nilpotent G₂] :
   group.nilpotency_class (G₁ × G₂) = max (group.nilpotency_class G₁) (group.nilpotency_class G₂) :=
 begin
-  apply eq_of_forall_ge_iff,
-  intros k,
+  refine eq_of_forall_ge_iff (λ k, _),
   simp only [max_le_iff, ← lower_central_series_eq_bot_iff_nilpotency_class_le,
     lower_central_series_prod, prod_eq_bot_iff ],
 end

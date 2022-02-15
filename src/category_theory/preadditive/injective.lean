@@ -8,7 +8,6 @@ import algebra.homology.exact
 import category_theory.types
 import category_theory.preadditive.projective
 import category_theory.limits.shapes.biproducts
-import category_theory.abelian.exact
 
 noncomputable theory
 
@@ -207,24 +206,22 @@ end enough_injectives
 open injective
 
 section
-variables [abelian C]
+variables [has_zero_morphisms C] [has_images Cᵒᵖ] [has_equalizers Cᵒᵖ]
+-- variables [abelian C]
 
 /--
 Given a projective object `P` mapping via `h` into
 the middle object `R` of a pair of exact morphisms `f : Q ⟶ R` and `g : R ⟶ S`,
 such that `h ≫ g = 0`, there is a lift of `h` to `Q`.
 -/
-def exact.desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S) [exact f g]
+def exact.desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S) [exact g.op f.op]
   (w : f ≫ h = 0)  : S ⟶ J :=
-(@exact.lift Cᵒᵖ _ _ _ _ (opposite.op J) (opposite.op S) (opposite.op R) (opposite.op Q) _ h.op
-  g.op f.op _ (congr_arg quiver.hom.op w)).unop
+(exact.lift h.op g.op f.op (congr_arg quiver.hom.op w)).unop
 
 @[simp] lemma exact.desc_comp {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S)
-  [exact f g] (w : f ≫ h = 0) : g ≫ exact.desc h f g w = h :=
+  [exact g.op f.op] (w : f ≫ h = 0) : g ≫ exact.desc h f g w = h :=
 begin
-  have := congr_arg quiver.hom.unop (@exact.lift_comp Cᵒᵖ _ _ _ _
-    (opposite.op J) (opposite.op S) (opposite.op R) (opposite.op Q) _ h.op g.op f.op _
-    (congr_arg quiver.hom.op w)),
+  have := congr_arg quiver.hom.unop (exact.lift_comp h.op g.op f.op (congr_arg quiver.hom.op w)),
   simp only [quiver.hom.unop_op] at this,
   convert this,
 end

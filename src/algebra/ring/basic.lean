@@ -780,7 +780,7 @@ protected def function.surjective.ring
 @[priority 100]
 instance ring.to_has_distrib_neg : has_distrib_neg α :=
 { neg := has_neg.neg,
-  neg_neg := _,
+  neg_neg := neg_neg,
   neg_mul := λ a b, (neg_eq_of_add_eq_zero $ by rw [← right_distrib, add_right_neg, zero_mul]).symm,
   mul_neg := λ a b, (neg_eq_of_add_eq_zero $ by rw [← left_distrib, add_right_neg, mul_zero]).symm }
 

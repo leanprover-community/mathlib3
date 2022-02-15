@@ -6,15 +6,18 @@ Authors: Eric Rodriguez, Eric Wieser
 import data.list.chain
 
 /-!
-# Chain Deduplication of Lists
+# Destuttering of Lists
 
-This file proves theorems about `list.chain'_dedup` (in `data.list.defs`), which removes all
-duplicates that are adjacent in a list, e.g. `[2, 2, 3, 3, 2].chain'_dedup (≠) = [2, 3, 2]`.
+This file proves theorems about `list.destutter` (in `data.list.defs`), which greedily removes all
+non-related items that are adjacent in a list, e.g. `[2, 2, 3, 3, 2].destutter (≠) = [2, 3, 2]`.
+Note that we make no guarantees of being the longest sublist with this property; e.g.,
+`[123,1,2,5,543,1000].destutter (<) = [123, 543, 1000]`, but a longer ascending chain could be
+`[1,2,5,543,1000]`.
 
 ## Main statements
 
-* `list.chain'_dedup_sublist`: `l.chain'_dedup` is a sublist of `l`.
-* `list.chain'_dedup_is_chain'`: `l.chain'_dedup` satisfies `chain' ne`.
+* `list.destutter_sublist`: `l.destutter` is a sublist of `l`.
+* `list.destutter_is_chain'`: `l.destutter` satisfies `chain' R`.
 
 ## Tags
 
@@ -25,114 +28,114 @@ variables {α : Type*} (l : list α) (R : α → α → Prop) [decidable_rel R] 
 
 namespace list
 
-@[simp] lemma chain_dedup_nil : chain_dedup R a [] = [a] := rfl
+@[simp] lemma destutter'_nil : destutter' R a [] = [a] := rfl
 
-lemma chain_dedup_cons :
-  (b :: l).chain_dedup R a = if R a b then a :: chain_dedup R b l else chain_dedup R a l := rfl
+lemma destutter'_cons :
+  (b :: l).destutter' R a = if R a b then a :: destutter' R b l else destutter' R a l := rfl
 
 variables {R}
 
-@[simp] lemma chain_dedup_cons_pos (h : R b a) :
-  (a :: l).chain_dedup R b = b :: l.chain_dedup R a :=
-by rw [chain_dedup, if_pos h]
+@[simp] lemma destutter'_cons_pos (h : R b a) :
+  (a :: l).destutter' R b = b :: l.destutter' R a :=
+by rw [destutter', if_pos h]
 
-@[simp] lemma chain_dedup_cons_neg (h : ¬ R b a) :
-  (a :: l).chain_dedup R b = l.chain_dedup R b :=
-by rw [chain_dedup, if_neg h]
+@[simp] lemma destutter'_cons_neg (h : ¬ R b a) :
+  (a :: l).destutter' R b = l.destutter' R b :=
+by rw [destutter', if_neg h]
 
 variables (R)
 
-@[simp] lemma chain_dedup_singleton : [b].chain_dedup R a = if R a b then [a, b] else [a] :=
+@[simp] lemma destutter'_singleton : [b].destutter' R a = if R a b then [a, b] else [a] :=
 by split_ifs; simp! [h]
 
-lemma chain_dedup_sublist (a) : l.chain_dedup R a <+ a :: l :=
+lemma destutter'_sublist (a) : l.destutter' R a <+ a :: l :=
 begin
   induction l with b l hl generalizing a,
   { simp },
-  rw chain_dedup,
+  rw destutter',
   split_ifs,
   { exact sublist.cons2 _ _ _ (hl b) },
   { exact (hl a).trans ((l.sublist_cons b).cons_cons a) }
 end
 
-lemma mem_chain_dedup (a) : a ∈ l.chain_dedup R a :=
+lemma mem_destutter' (a) : a ∈ l.destutter' R a :=
 begin
   induction l with b l hl,
   { simp },
-  rw chain_dedup,
+  rw destutter',
   split_ifs,
   { simp },
   { assumption }
 end
 
-lemma chain_dedup_is_chain : ∀ l : list α, ∀ {a b}, R a b → (l.chain_dedup R b).chain R a
+lemma destutter'_is_chain : ∀ l : list α, ∀ {a b}, R a b → (l.destutter' R b).chain R a
 | [] a b h := chain_singleton.mpr h
 | (c :: l) a b h :=
 begin
-  rw chain_dedup,
+  rw destutter',
   split_ifs with hbc,
   { rw chain_cons,
-    exact ⟨h, chain_dedup_is_chain l hbc⟩ },
-  { exact chain_dedup_is_chain l h },
+    exact ⟨h, destutter'_is_chain l hbc⟩ },
+  { exact destutter'_is_chain l h },
 end
 
-lemma chain_dedup_is_chain' (a) : (l.chain_dedup R a).chain' R :=
+lemma destutter'_is_chain' (a) : (l.destutter' R a).chain' R :=
 begin
   induction l with b l hl generalizing a,
   { simp },
-  rw chain_dedup,
+  rw destutter',
   split_ifs,
-  { exact chain_dedup_is_chain R l h },
+  { exact destutter'_is_chain R l h },
   { exact hl a },
 end
 
-lemma chain_dedup_of_chain (h : l.chain R a) : l.chain_dedup R a = a :: l :=
+lemma destutter'_of_chain (h : l.chain R a) : l.destutter' R a = a :: l :=
 begin
   induction l with b l hb generalizing a,
   { simp },
   obtain ⟨h, hc⟩ := chain_cons.mp h,
-  rw [l.chain_dedup_cons_pos h, hb hc]
+  rw [l.destutter'_cons_pos h, hb hc]
 end
 
-@[simp] lemma chain_dedup_eq_self_iff (a) : l.chain_dedup R a = a :: l ↔ l.chain R a :=
-⟨λ h, by { rw [←chain', ←h], exact l.chain_dedup_is_chain' R a }, chain_dedup_of_chain _ _⟩
+@[simp] lemma destutter'_eq_self_iff (a) : l.destutter' R a = a :: l ↔ l.chain R a :=
+⟨λ h, by { rw [←chain', ←h], exact l.destutter'_is_chain' R a }, destutter'_of_chain _ _⟩
 
-lemma chain_dedup_ne_nil : l.chain_dedup R a ≠ [] :=
-ne_nil_of_mem $ l.mem_chain_dedup R a
+lemma destutter'_ne_nil : l.destutter' R a ≠ [] :=
+ne_nil_of_mem $ l.mem_destutter' R a
 
-@[simp] lemma chain'_dedup_nil : ([] : list α).chain'_dedup R = [] := rfl
+@[simp] lemma destutter_nil : ([] : list α).destutter R = [] := rfl
 
-lemma chain'_dedup_cons' : (a :: l).chain'_dedup R = chain_dedup R a l := rfl
+lemma destutter_cons' : (a :: l).destutter R = destutter' R a l := rfl
 
-lemma chain'_dedup_cons_cons : (a :: b :: l).chain'_dedup R =
-  if R a b then a :: chain_dedup R b l else chain_dedup R a l := rfl
+lemma destutter_cons_cons : (a :: b :: l).destutter R =
+  if R a b then a :: destutter' R b l else destutter' R a l := rfl
 
-@[simp] lemma chain'_dedup_singleton : chain'_dedup R [a] = [a] := rfl
+@[simp] lemma destutter_singleton : destutter R [a] = [a] := rfl
 
-@[simp] lemma chain'_dedup_pair : chain'_dedup R [a, b] = if R a b then [a, b] else [a] :=
-chain'_dedup_cons_cons _ R
+@[simp] lemma destutter_pair : destutter R [a, b] = if R a b then [a, b] else [a] :=
+destutter_cons_cons _ R
 
-lemma chain'_dedup_sublist : ∀ (l : list α), l.chain'_dedup R <+ l
+lemma destutter_sublist : ∀ (l : list α), l.destutter R <+ l
 | [] := sublist.slnil
-| (h :: l) := l.chain_dedup_sublist R h
+| (h :: l) := l.destutter'_sublist R h
 
-lemma chain'_dedup_is_chain' : ∀ (l : list α), (l.chain'_dedup R).chain' R
+lemma destutter_is_chain' : ∀ (l : list α), (l.destutter R).chain' R
 | [] := list.chain'_nil
-| (h :: l) := l.chain_dedup_is_chain' R h
+| (h :: l) := l.destutter'_is_chain' R h
 
-lemma chain'_dedup_of_chain' : ∀ (l : list α), l.chain' R → l.chain'_dedup R = l
+lemma destutter_of_chain' : ∀ (l : list α), l.chain' R → l.destutter R = l
 | [] h := rfl
-| (a :: l) h := l.chain_dedup_of_chain _ h
+| (a :: l) h := l.destutter'_of_chain _ h
 
-@[simp] lemma chain'_dedup_eq_self_iff : ∀ (l : list α), l.chain'_dedup R = l ↔ l.chain' R
+@[simp] lemma destutter_eq_self_iff : ∀ (l : list α), l.destutter R = l ↔ l.chain' R
 | [] := by simp
-| (a :: l) := l.chain_dedup_eq_self_iff R a
+| (a :: l) := l.destutter'_eq_self_iff R a
 
-lemma chain'_dedup_idem : (l.chain'_dedup R).chain'_dedup R = l.chain'_dedup R :=
-chain'_dedup_of_chain' R _ $ l.chain'_dedup_is_chain' R
+lemma destutter_idem : (l.destutter R).destutter R = l.destutter R :=
+destutter_of_chain' R _ $ l.destutter_is_chain' R
 
-@[simp] lemma chain'_dedup_eq_nil : ∀ {l : list α}, chain'_dedup R l = [] ↔ l = []
+@[simp] lemma destutter_eq_nil : ∀ {l : list α}, destutter R l = [] ↔ l = []
 | [] := iff.rfl
-| (a :: l) := ⟨λ h, absurd h $ l.chain_dedup_ne_nil R, λ h, match h with end⟩
+| (a :: l) := ⟨λ h, absurd h $ l.destutter'_ne_nil R, λ h, match h with end⟩
 
 end list

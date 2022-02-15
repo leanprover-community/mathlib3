@@ -634,13 +634,13 @@ list.decidable_pairwise
 def erase_dup [decidable_eq α] : list α → list α := pw_filter (≠)
 
 /-- Create a list based on `a :: l` that is greedily such that `chain R`. -/
-def chain_dedup (R : α → α → Prop) [decidable_rel R] : α → list α → list α
+def destutter' (R : α → α → Prop) [decidable_rel R] : α → list α → list α
 | a [] := [a]
-| a (h :: l) := if R a h then a :: chain_dedup h l else chain_dedup a l
+| a (h :: l) := if R a h then a :: destutter' h l else destutter' a l
 
 /-- Create a list based on `l` that is greedily such that `chain' R`. -/
-def chain'_dedup (R : α → α → Prop) [decidable_rel R] : list α → list α
-| (h :: l) := chain_dedup R h l
+def destutter (R : α → α → Prop) [decidable_rel R] : list α → list α
+| (h :: l) := destutter' R h l
 | [] := []
 
 /-- `range' s n` is the list of numbers `[s, s+1, ..., s+n-1]`.

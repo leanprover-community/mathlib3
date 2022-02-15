@@ -6,6 +6,7 @@ Authors: Anne Baanen, Paul Lezeau
 
 import algebra.squarefree
 import ring_theory.unique_factorization_domain
+import ring_theory.dedekind_domain
 
 /-!
 
@@ -283,7 +284,7 @@ end
 
 lemma order_iso.map_eq_bot_iff {α β : Type*} [partial_order α] [partial_order β] [order_bot α]
   [order_bot β] {a : α} (f : α ≃o β) : f a = ⊥ ↔ a = ⊥ :=
-  ⟨(λ h, by rw [(show a = f.symm ⊥, by simp only [← h, order_iso.symm_apply_apply]),
+⟨(λ h, by rw [(show a = f.symm ⊥, by simp only [← h, order_iso.symm_apply_apply]),
   order_iso.map_bot f.symm]), λ h, by rw [h, f.map_bot]⟩
 
 variables [nontrivial M] [nontrivial N] {m : associates M}
@@ -297,21 +298,28 @@ instance : ordered_comm_monoid (associates M) :=
 instance : canonically_ordered_monoid (associates M) :=
 { le_iff_exists_mul := λ a b, ⟨λ h, h, λ h, h⟩,
   ..associates.cancel_comm_monoid_with_zero,
-  ..associates.lattice,
   ..associates.bounded_order,
   ..associates.ordered_comm_monoid}
 
 instance order_bot_divisors : order_bot {l : associates M // l ≤ m} :=
 subtype.order_bot bot_le
 
+@[simp]
+lemma mem_subtype_eq_bot_iff {α : Type*} [preorder α] [order_bot α] {P : α → Prop}
+  (Pbot : P ⊥) {x : α} (Px : P x) :
+  (⟨x, Px⟩ : {y : α // P y}) = (subtype.order_bot Pbot).bot ↔ x = ⊥ := by simp
+
+
+
+lemma associates.is_unit_iff_eq_bot {a : associates M}: is_unit a ↔ a = ⊥ :=
+by rw [associates.is_unit_iff_eq_one, bot_eq_one]
+
 lemma map_is_unit_of_monotone_is_unit {m u : associates M} {n : associates N}
-  (hn : n ≠ 0) (hu : is_unit u) (hu' : u ≤ m)
-  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) (hd : monotone d)
-  (hd' : monotone d.symm) : is_unit (d ⟨u, hu'⟩ : associates N) :=
+  (hu : is_unit u) (hu' : u ≤ m)
+  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
+  is_unit (d ⟨u, hu'⟩ : associates N) :=
 begin
   rw associates.is_unit_iff_eq_one,
-  have : (d ⟨u, hu'⟩ : associates N) ≠ 0,
-  apply ne_zero_of_dvd_ne_zero hn (d ⟨u, hu'⟩).prop,
   rw ← bot_eq_one,
   suffices : d ⟨u, hu'⟩ = ⟨⊥, bot_le⟩,
   { rw [subtype.ext_iff, subtype.coe_mk] at this,
@@ -324,10 +332,25 @@ begin
   simp only [this, hu, bot_eq_one],
 end
 
+lemma map_is_unit_iff_is_unit {m u : associates M} {n : associates N} (hu' : u ≤ m)
+  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
+  is_unit u ↔ is_unit (d ⟨u, hu'⟩ : associates N) :=
+⟨λ hu, map_is_unit_of_monotone_is_unit hu hu' d, λ hu, by
+  { rw (show u = ↑(d.symm ⟨↑(d ⟨u, hu'⟩), (d ⟨u, hu'⟩).prop⟩), from by simp),
+    exact map_is_unit_of_monotone_is_unit hu _ d.symm }⟩
+
 variable (hm : m ≠ 0)
 
-instance : has_bot {l : associates M // l ≤ m} :=
+
+instance divisors_has_bot: has_bot {l : associates M // l ≤ m} :=
 { bot := ⟨(⊥ : associates M), show ⊥ ≤ m, from by exact bot_le⟩ }
+
+lemma mem_divisors_eq_bot_iff {a : associates M} (ha : a ≤ m) : a = ⊥
+  ↔ (⟨a, ha⟩ : {l : associates M // l ≤ m}) = ⟨⊥, bot_le⟩ := by simp
+
+lemma divisors_bot : ↑(⟨⊥, bot_le⟩ : {l : associates M // l ≤ m}) = (⊥ : associates M) := rfl
+
+lemma divisors_bot' : (@divisors_has_bot M _ _ _ m).bot = ⟨⊥, bot_le⟩ := rfl
 
 lemma map_prime_of_monotone_equiv {m p : associates M} {n : associates N}
   (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
@@ -337,27 +360,22 @@ lemma map_prime_of_monotone_equiv {m p : associates M} {n : associates N}
 begin
   rw ← associates.is_atom_iff,
   split,
-  sorry,
-  intros b hb,
-  have hb' := le_trans (le_of_lt hb) (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop,
-  obtain ⟨x, hx⟩ := d.surjective ⟨b, hb'⟩,
-  obtain ⟨z, hz⟩ := d.surjective ⟨⊥, show ⊥ ≤ n, from bot_le⟩,
-  rw ← subtype.coe_mk b hb' at hb,
-  rw subtype.coe_lt_coe at hb,
-  rw ← hx at hb,
-
-  /-
-  obtain ⟨y, hy⟩ := x,
-  by_contra hcontra,
-  rw ← ne.def at hcontra,
-  rw ← bot_lt_iff_ne_bot at hcontra,-/
-  sorry,
-  sorry,
-
-
-
+  { rw [ne.def, ← associates.is_unit_iff_eq_bot, ← map_is_unit_iff_is_unit
+    (dvd_of_mem_normalized_factors hp) d],
+    exact prime.not_unit (prime_of_normalized_factor p hp) },
+  { intros b hb,
+    obtain ⟨x, hx⟩ := d.surjective ⟨b, le_trans (le_of_lt hb)
+      (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop⟩,
+    rw [← subtype.coe_mk b _ , subtype.coe_lt_coe, ← hx] at hb,
+    suffices : x = ⊥,
+    { rw [this, order_iso.map_bot d, divisors_bot'] at hx,
+      exact subtype.mk_eq_mk.mp hx.symm  },
+    obtain ⟨a, ha⟩ := x,
+    rw [divisors_bot', ← mem_divisors_eq_bot_iff],
+    exact ((associates.is_atom_iff (prime.ne_zero (prime_of_normalized_factor p hp))).mpr
+      (irreducible_of_normalized_factor p hp) ).right a (subtype.mk_lt_mk.mp (d.lt_iff_lt.mp hb)) },
+  { exact ne_zero_of_dvd_ne_zero hn (d ⟨p, _⟩).prop },
 end
-
 
 lemma multiplicity_le_of_monotone {m p : associates M} {n : associates N}
   (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
@@ -385,6 +403,14 @@ begin
     rw hcases,
     exact le_top },
 end
+
+variable [unique (units M)]
+
+def associates.mk_monoid_equiv : M ≃* associates M :=
+mul_equiv.of_bijective (@associates.mk_monoid_hom M _)
+⟨associates.mk_injective, associates.mk_surjective⟩
+
+variables [comm_ring M] [is_domain M] [is_dedekind_domain M]
 
 
 

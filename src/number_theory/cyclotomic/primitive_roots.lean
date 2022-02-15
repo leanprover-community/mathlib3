@@ -225,7 +225,7 @@ omit hζ
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is an odd
 prime, then the norm of `ζ - 1` is `p`. -/
 lemma prime_ne_two_pow.sub_one_norm {p : ℕ+} [ne_zero ((p : ℕ) : K)] (k : ℕ)
-  (hζ: is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
+  (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
   [is_cyclotomic_extension {p ^ (k + 1)} K L]
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (h : p ≠ 2) :
   norm K (ζ - 1) = p :=

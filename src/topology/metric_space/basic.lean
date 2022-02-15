@@ -7,6 +7,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 import data.int.interval
 import topology.algebra.order.compact
 import topology.metric_space.emetric_space
+import topology.uniform_space.complete_separated
 
 /-!
 # Metric spaces
@@ -85,7 +86,7 @@ uniform_space.of_core (uniform_space.core_of_dist dist dist_self dist_comm dist_
 
 /-- The distance function (given an ambient metric space on `α`), which returns
   a nonnegative real number `dist x y` given `x y : α`. -/
-class has_dist (α : Type*) := (dist : α → α → ℝ)
+@[ext] class has_dist (α : Type*) := (dist : α → α → ℝ)
 
 export has_dist (dist)
 
@@ -125,6 +126,22 @@ class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
   edist x y = ennreal.of_real (dist x y) . pseudo_metric_space.edist_dist_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+
+/-- Two pseudo metric space structures with the same distance function coincide. -/
+@[ext] lemma pseudo_metric_space_eq {α : Type*} {m m' : pseudo_metric_space α}
+  (h : m.to_has_dist = m'.to_has_dist) : m = m' :=
+begin
+  unfreezingI { rcases m, rcases m' },
+  dsimp at h,
+  unfreezingI { subst h },
+  congr,
+  { ext x y : 2,
+    dsimp at m_edist_dist m'_edist_dist,
+    simp [m_edist_dist, m'_edist_dist] },
+  { dsimp at m_uniformity_dist m'_uniformity_dist,
+    rw ← m'_uniformity_dist at m_uniformity_dist,
+    exact uniform_space_eq m_uniformity_dist }
+end
 
 variables [pseudo_metric_space α]
 
@@ -879,6 +896,24 @@ lemma exists_closed_ball_inter_eq_singleton_of_discrete [discrete_topology s] {x
   ∃ ε > 0, metric.closed_ball x ε ∩ s = {x} :=
 nhds_basis_closed_ball.exists_inter_eq_singleton_of_mem_discrete hx
 
+lemma _root_.dense.exists_dist_lt {s : set α} (hs : dense s) (x : α) {ε : ℝ} (hε : 0 < ε) :
+  ∃ y ∈ s, dist x y < ε :=
+begin
+  have : (ball x ε).nonempty, by simp [hε],
+  rcases hs.exists_mem_open is_open_ball this with ⟨y, ys, hy⟩,
+  refine ⟨y, ys, _⟩,
+  rw dist_comm,
+  exact hy,
+end
+
+lemma _root_.dense_range.exists_dist_lt {β : Type*} {f : β → α} (hf : dense_range f)
+  (x : α) {ε : ℝ} (hε : 0 < ε) :
+  ∃ y, dist x (f y) < ε :=
+begin
+  rcases dense.exists_dist_lt hf x hε with ⟨y, ⟨z, rfl⟩, h⟩,
+  exact ⟨z, h⟩
+end
+
 end metric
 
 open metric
@@ -966,6 +1001,12 @@ def pseudo_metric_space.replace_uniformity {α} [U : uniform_space α] (m : pseu
   edist_dist         := edist_dist,
   to_uniform_space   := U,
   uniformity_dist    := H.trans pseudo_metric_space.uniformity_dist }
+
+lemma pseudo_metric_space.replace_uniformity_eq {α} [U : uniform_space α]
+  (m : pseudo_metric_space α)
+  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space') :
+  m.replace_uniformity H = m :=
+by { ext, refl }
 
 /-- One gets a pseudometric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
@@ -1173,7 +1214,7 @@ uniformity_basis_dist.cauchy_seq_iff'
 /-- If the distance between `s n` and `s m`, `n, m ≥ N` is bounded above by `b N`
 and `b` converges to zero, then `s` is a Cauchy sequence.  -/
 lemma cauchy_seq_of_le_tendsto_0 {s : β → α} (b : β → ℝ)
-  (h : ∀ n m N : β, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) (h₀ : tendsto b at_top (nhds 0)) :
+  (h : ∀ n m N : β, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) (h₀ : tendsto b at_top (𝓝 0)) :
   cauchy_seq s :=
 metric.cauchy_seq_iff.2 $ λ ε ε0,
   (metric.tendsto_at_top.1 h₀ ε ε0).imp $ λ N hN m hm n hn,
@@ -1181,6 +1222,20 @@ metric.cauchy_seq_iff.2 $ λ ε ε0,
                     ... ≤ |b N| : le_abs_self _
                     ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
                     ... < ε : (hN _ (le_refl N))
+
+/-- If the distance between `s n` and `s m`, `n ≤ m` is bounded above by `b n`
+and `b` converges to zero, then `s` is a Cauchy sequence.  -/
+lemma cauchy_seq_of_le_tendsto_0' {s : β → α} (b : β → ℝ)
+  (h : ∀ n m : β, n ≤ m → dist (s n) (s m) ≤ b n) (h₀ : tendsto b at_top (𝓝 0)) :
+  cauchy_seq s :=
+begin
+  have L : tendsto (λ n, 2 * b n) at_top (𝓝 (2 * 0)) := h₀.const_mul _,
+  rw mul_zero at L,
+  apply cauchy_seq_of_le_tendsto_0 _ (λ n m N hn hm, _) L,
+  calc dist (s n) (s m) ≤ dist (s N) (s n) + dist (s N) (s m) : dist_triangle_left _ _ _
+  ... ≤ b N + b N : add_le_add (h _ _ hn) (h _ _ hm)
+  ... = 2 * b N : (two_mul _).symm
+end
 
 /-- A Cauchy sequence on the natural numbers is bounded. -/
 theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :
@@ -2086,6 +2141,41 @@ diam_le_of_subset_closed_ball h subset.rfl
 lemma diam_ball {r : ℝ} (h : 0 ≤ r) : diam (ball x r) ≤ 2 * r :=
 diam_le_of_subset_closed_ball h ball_subset_closed_ball
 
+/-- If a family of complete sets with diameter tending to `0` is such that each finite intersection
+is nonempty, then the total intersection is also nonempty. -/
+lemma _root_.is_complete.nonempty_Inter_of_nonempty_bInter {s : ℕ → set α} (h0 : is_complete (s 0))
+  (hs : ∀ n, is_closed (s n)) (h's : ∀ n, bounded (s n)) (h : ∀ N, (⋂ n ≤ N, s n).nonempty)
+  (h' : tendsto (λ n, diam (s n)) at_top (𝓝 0)) :
+  (⋂ n, s n).nonempty :=
+begin
+  let u := λ N, (h N).some,
+  have I : ∀ n N, n ≤ N → u N ∈ s n,
+  { assume n N hn,
+    apply mem_of_subset_of_mem _ ((h N).some_spec),
+    assume x hx,
+    simp only [mem_Inter] at hx,
+    exact hx n hn },
+  have : ∀ n, u n ∈ s 0 := λ n, I 0 n (zero_le _),
+  have : cauchy_seq u,
+  { apply cauchy_seq_of_le_tendsto_0 _ _ h',
+    assume m n N hm hn,
+    exact dist_le_diam_of_mem (h's N) (I _ _ hm) (I _ _ hn) },
+  obtain ⟨x, hx, xlim⟩ : ∃ (x : α) (H : x ∈ s 0), tendsto (λ (n : ℕ), u n) at_top (𝓝 x) :=
+    cauchy_seq_tendsto_of_is_complete h0 (λ n, I 0 n (zero_le _)) this,
+  refine ⟨x, mem_Inter.2 (λ n, _)⟩,
+  apply (hs n).mem_of_tendsto xlim,
+  filter_upwards [Ici_mem_at_top n] with p hp,
+  exact I n p hp,
+end
+
+/-- In a complete space, if a family of closed sets with diameter tending to `0` is such that each
+finite intersection is nonempty, then the total intersection is also nonempty. -/
+lemma nonempty_Inter_of_nonempty_bInter [complete_space α] {s : ℕ → set α}
+  (hs : ∀ n, is_closed (s n)) (h's : ∀ n, bounded (s n)) (h : ∀ N, (⋂ n ≤ N, s n).nonempty)
+  (h' : tendsto (λ n, diam (s n)) at_top (𝓝 0)) :
+  (⋂ n, s n).nonempty :=
+(hs 0).is_complete.nonempty_Inter_of_nonempty_bInter hs h's h h'
+
 end diam
 
 end metric
@@ -2129,6 +2219,16 @@ end int
 /-- We now define `metric_space`, extending `pseudo_metric_space`. -/
 class metric_space (α : Type u) extends pseudo_metric_space α : Type u :=
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
+
+/-- Two metric space structures with the same distance coincide. -/
+@[ext] lemma metric_space_eq {α : Type*} {m m' : metric_space α}
+  (h : m.to_has_dist = m'.to_has_dist) : m = m' :=
+begin
+  have h' : m.to_pseudo_metric_space = m'.to_pseudo_metric_space := pseudo_metric_space_eq h,
+  unfreezingI { rcases m, rcases m' },
+  dsimp at h',
+  unfreezingI { subst h' },
+end
 
 /-- Construct a metric space structure whose underlying topological space structure
 (definitionally) agrees which a pre-existing topology which is compatible with a given distance
@@ -2213,7 +2313,7 @@ instance metric_space.to_separated : separated_space γ :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
 
-/-- If a  `pseudo_metric_space` is separated, then it is a `metric_space`. -/
+/-- If a `pseudo_metric_space` is separated, then it is a `metric_space`. -/
 def of_t2_pseudo_metric_space {α : Type*} [pseudo_metric_space α]
   (h : separated_space α) : metric_space α :=
 { eq_of_dist_eq_zero := λ x y hdist,
@@ -2257,6 +2357,30 @@ def metric_space.replace_uniformity {γ} [U : uniform_space γ] (m : metric_spac
 { eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
   ..pseudo_metric_space.replace_uniformity m.to_pseudo_metric_space H, }
 
+lemma metric_space.replace_uniformity_eq {γ} [U : uniform_space γ] (m : metric_space γ)
+  (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space') :
+  m.replace_uniformity H = m :=
+by { ext, refl }
+
+/-- Build a new metric space from an old one where the bundled topological structure is provably
+(but typically non-definitionaly) equal to some given topological structure.
+See Note [forgetful inheritance].
+-/
+@[reducible] def metric_space.replace_topology {γ} [U : topological_space γ] (m : metric_space γ)
+  (H : U = m.to_pseudo_metric_space.to_uniform_space.to_topological_space) :
+  metric_space γ :=
+begin
+  let t := m.to_pseudo_metric_space.to_uniform_space.replace_topology H,
+  letI : uniform_space γ := t,
+  have : @uniformity _ t = @uniformity _ m.to_pseudo_metric_space.to_uniform_space := rfl,
+  exact m.replace_uniformity this
+end
+
+lemma metric_space.replace_topology_eq {γ} [U : topological_space γ] (m : metric_space γ)
+  (H : U = m.to_pseudo_metric_space.to_uniform_space.to_topological_space) :
+  m.replace_topology H = m :=
+by { ext, refl }
+
   /-- One gets a metric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
 uniformity are defeq in the metric space and the emetric space. In this definition, the distance
@@ -2292,25 +2416,57 @@ def uniform_embedding.comap_metric_space {α β} [uniform_space α] [metric_spac
   (h : uniform_embedding f) : metric_space α :=
 (metric_space.induced f h.inj ‹_›).replace_uniformity h.comap_uniformity.symm
 
+/-- Pull back a metric space structure by an embedding. This is a version of
+`metric_space.induced` useful in case if the domain already has a `topological_space` structure. -/
+def embedding.comap_metric_space {α β} [topological_space α] [metric_space β] (f : α → β)
+  (h : embedding f) : metric_space α :=
+begin
+  letI : uniform_space α := embedding.comap_uniform_space f h,
+  exact uniform_embedding.comap_metric_space f (h.to_uniform_embedding f),
+end
+
 instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
   metric_space (subtype p) :=
 metric_space.induced coe (λ x y, subtype.ext) t
 
 theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
 
+local attribute [instance] filter.unique
+
 instance : metric_space empty :=
 { dist := λ _ _, 0,
   dist_self := λ _, rfl,
   dist_comm := λ _ _, rfl,
   eq_of_dist_eq_zero := λ _ _ _, subsingleton.elim _ _,
-  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero, }
+  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero,
+  to_uniform_space := empty.uniform_space,
+  uniformity_dist := subsingleton.elim _ _ }
 
 instance : metric_space punit :=
 { dist := λ _ _, 0,
   dist_self := λ _, rfl,
   dist_comm := λ _ _, rfl,
   eq_of_dist_eq_zero := λ _ _ _, subsingleton.elim _ _,
-  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero, }
+  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero,
+  to_uniform_space := punit.uniform_space,
+  uniformity_dist :=
+  begin
+    apply le_antisymm,
+    { simp only [gt_iff_lt, le_infi_iff, le_principal_iff],
+      assume i hi,
+      simp [hi] },
+    { refine infi_le_of_le 1 (infi_le_of_le zero_lt_one _),
+      simp only [zero_lt_one, set_of_true, principal_univ, top_le_iff],
+      ext x,
+      simp only [uniformity, uniform_space.to_core, mem_principal, id_rel_subset, mem_top],
+      split,
+      { assume H,
+        ext y,
+        rcases y with ⟨u, v⟩,
+        rw subsingleton.elim u v,
+        simp [H] },
+      { simp {contextual := tt} } }
+  end }
 
 section real
 

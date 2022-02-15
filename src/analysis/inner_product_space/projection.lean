@@ -1144,36 +1144,36 @@ def orthonormal_basis_index : set E :=
 classical.some (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E))
 
 /-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
-def orthonormal_basis :
+def std_orthonormal_basis :
   basis (orthonormal_basis_index 𝕜 E) 𝕜 E :=
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some
 
-lemma orthonormal_basis_orthonormal :
-  orthonormal 𝕜 (orthonormal_basis 𝕜 E) :=
+lemma std_orthonormal_basis_orthonormal :
+  orthonormal 𝕜 (std_orthonormal_basis 𝕜 E) :=
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.1
 
-@[simp] lemma coe_orthonormal_basis :
-  ⇑(orthonormal_basis 𝕜 E) = coe :=
+@[simp] lemma coe_std_orthonormal_basis :
+  ⇑(std_orthonormal_basis 𝕜 E) = coe :=
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.2
 
 instance : fintype (orthonormal_basis_index 𝕜 E) :=
 @is_noetherian.fintype_basis_index _ _ _ _ _ _ _
-  (is_noetherian.iff_fg.2 infer_instance) (orthonormal_basis 𝕜 E)
+  (is_noetherian.iff_fg.2 infer_instance) (std_orthonormal_basis 𝕜 E)
 
 variables {𝕜 E}
 
 /-- An `n`-dimensional `inner_product_space` has an orthonormal basis indexed by `fin n`. -/
-def fin_orthonormal_basis {n : ℕ} (hn : finrank 𝕜 E = n) :
+def fin_std_orthonormal_basis {n : ℕ} (hn : finrank 𝕜 E = n) :
   basis (fin n) 𝕜 E :=
 have h : fintype.card (orthonormal_basis_index 𝕜 E) = n,
-by rw [← finrank_eq_card_basis (orthonormal_basis 𝕜 E), hn],
-(orthonormal_basis 𝕜 E).reindex (fintype.equiv_fin_of_card_eq h)
+by rw [← finrank_eq_card_basis (std_orthonormal_basis 𝕜 E), hn],
+(std_orthonormal_basis 𝕜 E).reindex (fintype.equiv_fin_of_card_eq h)
 
-lemma fin_orthonormal_basis_orthonormal {n : ℕ} (hn : finrank 𝕜 E = n) :
-  orthonormal 𝕜 (fin_orthonormal_basis hn) :=
-suffices orthonormal 𝕜 (orthonormal_basis _ _ ∘ equiv.symm _),
-by { simp only [fin_orthonormal_basis, basis.coe_reindex], assumption }, -- why doesn't simpa work?
-(orthonormal_basis_orthonormal 𝕜 E).comp _ (equiv.injective _)
+lemma fin_std_orthonormal_basis_orthonormal {n : ℕ} (hn : finrank 𝕜 E = n) :
+  orthonormal 𝕜 (fin_std_orthonormal_basis hn) :=
+suffices orthonormal 𝕜 (std_orthonormal_basis _ _ ∘ equiv.symm _),
+by { simp only [fin_std_orthonormal_basis, basis.coe_reindex], assumption }, -- why doesn't simpa work?
+(std_orthonormal_basis_orthonormal 𝕜 E).comp _ (equiv.injective _)
 
 section subordinate_orthonormal_basis
 open direct_sum
@@ -1184,14 +1184,14 @@ variables {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι] [decidab
 inner product space `E`.  This should not be accessed directly, but only via the subsequent API. -/
 @[irreducible] def direct_sum.submodule_is_internal.sigma_orthonormal_basis_index_equiv :
   (Σ i, orthonormal_basis_index 𝕜 (V i)) ≃ fin n :=
-let b := hV.collected_basis (λ i, orthonormal_basis 𝕜 (V i)) in
+let b := hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i)) in
 fintype.equiv_fin_of_card_eq $ (finite_dimensional.finrank_eq_card_basis b).symm.trans hn
 
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. -/
 @[irreducible] def direct_sum.submodule_is_internal.subordinate_orthonormal_basis :
   basis (fin n) 𝕜 E :=
-(hV.collected_basis (λ i, orthonormal_basis 𝕜 (V i))).reindex
+(hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i))).reindex
   (hV.sigma_orthonormal_basis_index_equiv hn)
 
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
@@ -1206,8 +1206,8 @@ lemma direct_sum.submodule_is_internal.subordinate_orthonormal_basis_orthonormal
   orthonormal 𝕜 (hV.subordinate_orthonormal_basis hn) :=
 begin
   simp only [direct_sum.submodule_is_internal.subordinate_orthonormal_basis, basis.coe_reindex],
-  have : orthonormal 𝕜 (hV.collected_basis (λ i, orthonormal_basis 𝕜 (V i))) :=
-    hV.collected_basis_orthonormal hV' (λ i, orthonormal_basis_orthonormal 𝕜 (V i)),
+  have : orthonormal 𝕜 (hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i))) :=
+    hV.collected_basis_orthonormal hV' (λ i, std_orthonormal_basis_orthonormal 𝕜 (V i)),
   exact this.comp _ (equiv.injective _),
 end
 
@@ -1216,7 +1216,7 @@ the `orthogonal_family` in question. -/
 lemma direct_sum.submodule_is_internal.subordinate_orthonormal_basis_subordinate (a : fin n) :
   hV.subordinate_orthonormal_basis hn a ∈ V (hV.subordinate_orthonormal_basis_index hn a) :=
 by simpa only [direct_sum.submodule_is_internal.subordinate_orthonormal_basis, basis.coe_reindex]
-  using hV.collected_basis_mem (λ i, orthonormal_basis 𝕜 (V i))
+  using hV.collected_basis_mem (λ i, std_orthonormal_basis 𝕜 (V i))
     ((hV.sigma_orthonormal_basis_index_equiv hn).symm a)
 
 attribute [irreducible] direct_sum.submodule_is_internal.subordinate_orthonormal_basis_index

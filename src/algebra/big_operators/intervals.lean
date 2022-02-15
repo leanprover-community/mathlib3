@@ -183,10 +183,10 @@ local notation `G` n:80 := ∑ i in range n, g i
 section group
 variable [add_comm_group β]
 
-lemma sum_range_succ_sub_sum_eq_top : F (n+1) - F n = f n :=
+lemma sum_range_succ_sub_sum : F (n+1) - F n = f n :=
 sub_eq_iff_eq_add'.mpr $ sum_range_succ f n
 
-lemma sum_range_succ_sub_top_eq_sum : F (n+1) - f n = F n :=
+lemma sum_range_succ_sub_top : F (n+1) - f n = F n :=
 sub_eq_iff_eq_add.mpr $ sum_range_succ f n
 
 lemma sum_Ico_sub_bot (hmn : m < n) : ∑ i in Ico m n, f i - f m = ∑ i in Ico (m+1) n, f i :=
@@ -217,12 +217,12 @@ begin
          nat.sub_add_cancel (pos_of_gt hmn), sub_add_cancel],
 
   rw sum_eq_sum_Ico_succ_bot hmn,
-  conv { for (f _ * g _) [2] { rw [←sum_range_succ_sub_sum_eq_top g, mul_sub_left_distrib] }},
+  conv { for (f _ * g _) [2] { rw [←sum_range_succ_sub_sum g, mul_sub_left_distrib] }},
   rw [sum_sub_distrib, h₂, h₁],
   conv_lhs { congr, skip, rw [←add_sub, add_comm, ←add_sub, ←sum_sub_distrib] },
   conv in (f _ * G (_+1) - _) { rw [←sub_mul, ←neg_sub, mul_comm, mul_neg] },
   rw [sum_neg_distrib, ←sub_eq_add_neg, add_sub, add_comm, sub_add, ←mul_sub,
-      sum_range_succ_sub_top_eq_sum]
+      sum_range_succ_sub_top]
 end
 
 /-- **Summation by parts** for ranges -/

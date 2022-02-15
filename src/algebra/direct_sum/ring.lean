@@ -213,6 +213,7 @@ instance semiring : semiring (⨁ i, A i) :=
   one_mul := one_mul A,
   mul_one := mul_one A,
   mul_assoc := mul_assoc A,
+  ..has_nat_cast.unary,
   ..direct_sum.non_unital_non_assoc_semiring _, }
 
 lemma of_pow {i} (a : A i) (n : ℕ) :
@@ -355,7 +356,7 @@ variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gsemiring A]
 
 /-- The `semiring` structure derived from `gsemiring A`. -/
 instance grade_zero.semiring : semiring (A 0) :=
-function.injective.semiring (of A 0) dfinsupp.single_injective
+function.injective.semiring' (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
 
 /-- `of A 0` is a `ring_hom`, using the `direct_sum.grade_zero.semiring` structure. -/

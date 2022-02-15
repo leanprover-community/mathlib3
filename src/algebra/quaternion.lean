@@ -91,6 +91,9 @@ instance : inhabited ℍ[R, c₁, c₂] := ⟨0⟩
   (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) + mk b₁ b₂ b₃ b₄ = mk (a₁ + b₁) (a₂ + b₂) (a₃ + b₃) (a₄ + b₄) :=
 rfl
 
+@[norm_cast, simp] lemma coe_add : ((x + y : R) : ℍ[R, c₁, c₂]) = x + y :=
+by ext; simp
+
 @[simps] instance : has_neg ℍ[R, c₁, c₂] := ⟨λ a, ⟨-a.1, -a.2, -a.3, -a.4⟩⟩
 
 @[simp] lemma neg_mk (a₁ a₂ a₃ a₄ : R) : -(mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) = ⟨-a₁, -a₂, -a₃, -a₄⟩ :=
@@ -125,17 +128,31 @@ rfl
      a₁ * b₃ + c₁ * a₂ * b₄ + a₃ * b₁ - c₁ *  a₄ * b₂,
      a₁ * b₄ + a₂ * b₃ - a₃ * b₂ + a₄ * b₁⟩ := rfl
 
-instance : ring ℍ[R, c₁, c₂] :=
+instance : add_comm_monoid ℍ[R, c₁, c₂] :=
 by refine_struct
   { add := (+),
     zero := (0 : ℍ[R, c₁, c₂]),
+    nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ };
+  intros; try { refl }; ext; simp; ring_exp
+
+instance : has_nat_cast ℍ[R, c₁, c₂] :=
+{ nat_cast := λ n, ((n : R) : ℍ[R, c₁, c₂]),
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := by simp [nat.cast],
+  one := 1,
+  .. quaternion_algebra.add_comm_monoid }
+
+instance : ring ℍ[R, c₁, c₂] :=
+by refine_struct
+  { add := (+),
     neg := has_neg.neg,
     sub := has_sub.sub,
     mul := (*),
     one := 1,
-    nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩,
     zsmul := @zsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
-    npow := @npow_rec _ ⟨(1 : ℍ[R, c₁, c₂])⟩ ⟨(*)⟩ };
+    npow := @npow_rec _ ⟨(1 : ℍ[R, c₁, c₂])⟩ ⟨(*)⟩,
+    .. quaternion_algebra.has_nat_cast,
+    .. quaternion_algebra.add_comm_monoid };
   intros; try { refl }; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=
@@ -178,9 +195,6 @@ variables (R c₁ c₂)
 { to_fun := im_k, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
 
 end
-
-@[norm_cast, simp] lemma coe_add : ((x + y : R) : ℍ[R, c₁, c₂]) = x + y :=
-(algebra_map R ℍ[R, c₁, c₂]).map_add x y
 
 @[norm_cast, simp] lemma coe_sub : ((x - y : R) : ℍ[R, c₁, c₂]) = x - y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_sub x y

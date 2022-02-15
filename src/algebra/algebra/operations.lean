@@ -244,6 +244,7 @@ instance : semiring (submodule R A) :=
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
+  ..has_nat_cast.unary,
   ..submodule.pointwise_add_comm_monoid,
   ..submodule.has_one,
   ..submodule.has_mul }

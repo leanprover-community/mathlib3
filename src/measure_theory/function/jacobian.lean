@@ -1225,28 +1225,7 @@ begin
   { apply ae_measurable_of_real_abs_det_fderiv_within μ hs hf' }
 end
 
-variables [complete_space F] [measurable_space F] [borel_space F]
-
-/-- Change of variable formula for differentiable functions: if a function `f` is
-injective and differentiable on a measurable set `s`, then the Bochner integral of a function
-`g : E → F` on `f '' s` coincides with the integral of `|(f' x).det| • g ∘ f` on `s`. -/
-theorem integral_image_eq_integral_abs_det_fderiv_smul {f : E → E} {s : set E}
-  (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
-  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → F) :
-  ∫ x in f '' s, g x ∂μ = ∫ x in s, |(f' x).det| • g (f x) ∂μ :=
-begin
-  rw [← restrict_map_with_density_abs_det_fderiv_eq_add_haar μ hs hf' hf,
-      (measurable_embedding_of_fderiv_within hs hf' hf).integral_map],
-  have : ∀ (x : s), g (s.restrict f x) = (g ∘ f) x := λ x, rfl,
-  simp only [this, ennreal.of_real],
-  rw [← (measurable_embedding.subtype_coe hs).integral_map, map_comap_subtype_coe hs,
-      set_integral_with_density_eq_set_integral_smul₀
-        (ae_measurable_to_nnreal_abs_det_fderiv_within μ hs hf') _ hs],
-  congr,
-  ext x,
-  conv_rhs { rw ← real.coe_to_nnreal _ (abs_nonneg (f' x).det) },
-  refl
-end
+variables [measurable_space F] [borel_space F]
 
 /-- Integrability in the change of variable formula for differentiable functions: if a
 function `f` is injective and differentiable on a measurable set `s`, then a function
@@ -1268,6 +1247,27 @@ begin
     rw real.coe_to_nnreal,
     exact abs_nonneg _ },
   { exact ae_measurable_to_nnreal_abs_det_fderiv_within μ hs hf' }
+end
+
+/-- Change of variable formula for differentiable functions: if a function `f` is
+injective and differentiable on a measurable set `s`, then the Bochner integral of a function
+`g : E → F` on `f '' s` coincides with the integral of `|(f' x).det| • g ∘ f` on `s`. -/
+theorem integral_image_eq_integral_abs_det_fderiv_smul [complete_space F]  {f : E → E} {s : set E}
+  (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → F) :
+  ∫ x in f '' s, g x ∂μ = ∫ x in s, |(f' x).det| • g (f x) ∂μ :=
+begin
+  rw [← restrict_map_with_density_abs_det_fderiv_eq_add_haar μ hs hf' hf,
+      (measurable_embedding_of_fderiv_within hs hf' hf).integral_map],
+  have : ∀ (x : s), g (s.restrict f x) = (g ∘ f) x := λ x, rfl,
+  simp only [this, ennreal.of_real],
+  rw [← (measurable_embedding.subtype_coe hs).integral_map, map_comap_subtype_coe hs,
+      set_integral_with_density_eq_set_integral_smul₀
+        (ae_measurable_to_nnreal_abs_det_fderiv_within μ hs hf') _ hs],
+  congr,
+  ext x,
+  conv_rhs { rw ← real.coe_to_nnreal _ (abs_nonneg (f' x).det) },
+  refl
 end
 
 end measure_theory

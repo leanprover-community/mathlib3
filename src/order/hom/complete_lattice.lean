@@ -29,7 +29,7 @@ be satisfied by itself and all stricter types.
 * `complete_lattice_hom_class`
 -/
 
-open function
+open function order_dual
 
 variables {F α β γ δ : Type*} {ι : Sort*} {κ : ι → Sort*}
 
@@ -148,6 +148,13 @@ instance complete_lattice_hom_class.to_bounded_lattice_hom_class [complete_latti
   [complete_lattice β] [complete_lattice_hom_class F α β] :
   bounded_lattice_hom_class F α β :=
 { ..Sup_hom_class.to_bot_hom_class, ..Inf_hom_class.to_top_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso.complete_lattice_hom_class [complete_lattice α] [complete_lattice β] :
+  complete_lattice_hom_class (α ≃o β) α β :=
+{ map_Sup := λ f s, (f.map_Sup s).trans Sup_image.symm,
+  map_Inf := λ f s, (f.map_Inf s).trans Inf_image.symm,
+  ..rel_iso.rel_hom_class }
 
 instance [has_Sup α] [has_Sup β] [Sup_hom_class F α β] : has_coe_t F (Sup_hom α β) :=
 ⟨λ f, ⟨f, map_Sup f⟩⟩
@@ -413,6 +420,9 @@ instance : complete_lattice_hom_class (complete_lattice_hom α β) α β :=
   map_Sup := λ f, f.map_Sup',
   map_Inf := λ f, f.map_Inf' }
 
+/-- Reinterpret a `complete_lattice_hom` as a `bounded_lattice_hom`. -/
+def to_bounded_lattice_hom (f : complete_lattice_hom α β) : bounded_lattice_hom α β := f
+
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
 instance : has_coe_to_fun (complete_lattice_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
@@ -465,5 +475,17 @@ lemma cancel_left {g : complete_lattice_hom β γ} {f₁ f₂ : complete_lattice
   (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
 ⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
+
+/-- Reinterpret a lattice homomorphism as a lattice homomorphism between the dual lattices. -/
+@[simps] protected def dual :
+   complete_lattice_hom α β ≃ complete_lattice_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, { to_fun := to_dual ∘ f ∘ of_dual,
+                   map_Sup' := λ _, congr_arg to_dual (map_Inf f _),
+                   map_Inf' := λ _, congr_arg to_dual (map_Sup f _) },
+  inv_fun := λ f, { to_fun := of_dual ∘ f ∘ to_dual,
+                   map_Sup' := λ _, congr_arg of_dual (map_Inf f _),
+                   map_Inf' := λ _, congr_arg of_dual (map_Sup f _) },
+  left_inv := λ f, ext $ λ a, rfl,
+  right_inv := λ f, ext $ λ a, rfl }
 
 end complete_lattice_hom

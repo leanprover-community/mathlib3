@@ -9,7 +9,7 @@ import order.category.Lattice
 /-!
 # The category of bounded lattices
 
-This defines `BoundedLattice`, the category of bounded lattices.
+This file defines `BoundedLattice`, the category of bounded lattices.
 
 In literature, this is usually called `Lat`, the category of lattices, because being a lattice is
 understood to entail having a bottom and a top element.

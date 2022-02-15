@@ -10,10 +10,6 @@ import topology.bornology.hom
 # The category of bornological spaces
 
 This defines `Born`, the category of bornological spaces.
-
-## TODO
-
-The free functor from `Born` to `BoundedBorn` is `X → with_top (with_bot X)`.
 -/
 
 universes u

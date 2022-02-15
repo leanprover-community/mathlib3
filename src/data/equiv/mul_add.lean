@@ -425,7 +425,7 @@ equivalent to the element at the single index."]
 def Pi_subsingleton
   {η : Type*} (M : η → Type*) [Π (j : η), mul_one_class (M j)] [subsingleton η] (i : η):
   (Π (j : η), M j) ≃* M i :=
-{ equiv.Pi_subsingleton η M i with map_mul' := λ f1 f2, pi.mul_apply _ _ _, }
+{ map_mul' := λ f1 f2, pi.mul_apply _ _ _, ..equiv.Pi_subsingleton η M i }
 
 /-- A family indexed by a unique type is equivalent to the element at the default value -/
 @[to_additive add_equiv.Pi_unique "A family indexed by a unique type is equivalent to the

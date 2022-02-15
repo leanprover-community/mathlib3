@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 import algebra.algebra.spectrum
-import analysis.calculus.deriv
 import analysis.special_functions.pow
+import analysis.complex.cauchy_integral
+import analysis.analytic.radius_liminf
 /-!
 # The spectrum of elements in a complete normed algebra
 
@@ -24,6 +25,8 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 * `spectrum.is_compact`: the spectrum is compact.
 * `spectrum.spectral_radius_le_nnnorm`: the spectral radius is bounded above by the norm.
 * `spectrum.has_deriv_at_resolvent`: the resolvent function is differentiable on the resolvent set.
+* `spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius`: Gelfand's formula for the
+  spectral radius in Banach algebras over `ℂ`.
 
 
 ## TODO
@@ -51,11 +54,17 @@ namespace spectrum
 
 section spectrum_compact
 
-variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 local notation `σ` := spectrum 𝕜
 local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
+
+lemma mem_resolvent_set_of_spectral_radius_lt {a : A} {k : 𝕜} (h : spectral_radius 𝕜 a < ∥k∥₊) :
+  k ∈ ρ a :=
+not_not.mp (λ hn, (lt_self_iff_false _).mp (lt_of_le_of_lt (le_bsupr k hn) h))
+
+variable [complete_space A]
 
 lemma is_open_resolvent_set (a : A) : is_open (ρ a) :=
 units.is_open.preimage ((algebra_map_isometry 𝕜 A).continuous.sub continuous_const)
@@ -93,6 +102,7 @@ by { refine bsupr_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
 
 open ennreal polynomial
 
+variable (𝕜)
 theorem spectral_radius_le_pow_nnnorm_pow_one_div (a : A) (n : ℕ) :
   spectral_radius 𝕜 a ≤ ∥a ^ (n + 1)∥₊ ^ (1 / (n + 1) : ℝ) :=
 begin
@@ -130,6 +140,138 @@ begin
 end
 
 end resolvent_deriv
+
+section one_sub_smul
+
+open continuous_multilinear_map ennreal formal_multilinear_series
+open_locale nnreal ennreal
+
+variables
+[nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
+
+variable (𝕜)
+/-- In a Banach algebra `A` over a nondiscrete normed field `𝕜`, for any `a : A` the
+power series with coefficients `a ^ n` represents the function `(1 - z • a)⁻¹` in a disk of
+radius `∥a∥₊⁻¹`. -/
+lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) :
+  has_fpower_series_on_ball (λ z : 𝕜, ring.inverse (1 - z • a))
+    (λ n, continuous_multilinear_map.mk_pi_field 𝕜 (fin n) (a ^ n)) 0 (∥a∥₊)⁻¹ :=
+{ r_le :=
+  begin
+    refine le_of_forall_nnreal_lt (λ r hr, le_radius_of_bound_nnreal _ (max 1 ∥(1 : A)∥₊) (λ n, _)),
+    rw [←norm_to_nnreal, norm_mk_pi_field, norm_to_nnreal],
+    cases n,
+    { simp only [le_refl, mul_one, or_true, le_max_iff, pow_zero] },
+    { refine le_trans (le_trans (mul_le_mul_right' (nnnorm_pow_le' a n.succ_pos) (r ^ n.succ)) _)
+        (le_max_left _ _),
+      { by_cases ∥a∥₊ = 0,
+        { simp only [h, zero_mul, zero_le', pow_succ], },
+        { rw [←coe_inv h, coe_lt_coe, nnreal.lt_inv_iff_mul_lt h] at hr,
+          simpa only [←mul_pow, mul_comm] using pow_le_one' hr.le n.succ } } }
+  end,
+  r_pos := ennreal.inv_pos.mpr coe_ne_top,
+  has_sum := λ y hy,
+  begin
+    have norm_lt : ∥y • a∥ < 1,
+    { by_cases h : ∥a∥₊ = 0,
+      { simp only [nnnorm_eq_zero.mp h, norm_zero, zero_lt_one, smul_zero] },
+      { have nnnorm_lt : ∥y∥₊ < ∥a∥₊⁻¹,
+          by simpa only [←coe_inv h, mem_ball_zero_iff, metric.emetric_ball_nnreal] using hy,
+        rwa [←coe_nnnorm, ←real.lt_to_nnreal_iff_coe_lt, real.to_nnreal_one, nnnorm_smul,
+          ←nnreal.lt_inv_iff_mul_lt h] } },
+    simpa [←smul_pow, (normed_ring.summable_geometric_of_norm_lt_1 _ norm_lt).has_sum_iff]
+      using (normed_ring.inverse_one_sub _ norm_lt).symm,
+  end }
+
+variable {𝕜}
+lemma is_unit_one_sub_smul_of_lt_inv_radius {a : A} {z : 𝕜} (h : ↑∥z∥₊ < (spectral_radius 𝕜 a)⁻¹) :
+  is_unit (1 - z • a) :=
+begin
+  by_cases hz : z = 0,
+  { simp only [hz, is_unit_one, sub_zero, zero_smul] },
+  { let u := units.mk0 z hz,
+    suffices hu : is_unit (u⁻¹ • 1 - a),
+    { rwa [is_unit.smul_sub_iff_sub_inv_smul, inv_inv u] at hu },
+    { rw [units.smul_def, ←algebra.algebra_map_eq_smul_one, ←mem_resolvent_set_iff],
+      refine mem_resolvent_set_of_spectral_radius_lt _,
+      rwa [units.coe_inv', normed_field.nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
+        (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
+end
+
+/-- In a Banach algebra `A` over `𝕜`, for `a : A` the function `λ z, (1 - z • a)⁻¹` is
+differentiable on any closed ball centered at zero of radius `r < (spectral_radius 𝕜 a)⁻¹`. -/
+theorem differentiable_on_inverse_one_sub_smul [complete_space A] {a : A} {r : ℝ≥0}
+  (hr : (r : ℝ≥0∞) < (spectral_radius 𝕜 a)⁻¹) :
+  differentiable_on 𝕜 (λ z : 𝕜, ring.inverse (1 - z • a)) (metric.closed_ball 0 r) :=
+begin
+  intros z z_mem,
+  apply differentiable_at.differentiable_within_at,
+  have hu : is_unit (1 - z • a),
+  { refine is_unit_one_sub_smul_of_lt_inv_radius (lt_of_le_of_lt (coe_mono _) hr),
+    simpa only [norm_to_nnreal, real.to_nnreal_coe]
+      using real.to_nnreal_mono (mem_closed_ball_zero_iff.mp z_mem) },
+  have H₁ : differentiable 𝕜 (λ w : 𝕜, 1 - w • a) := (differentiable_id.smul_const a).const_sub 1,
+  exact differentiable_at.comp z (differentiable_at_inverse hu.unit) (H₁.differentiable_at),
+end
+
+end one_sub_smul
+
+section gelfand_formula
+
+open filter ennreal continuous_multilinear_map
+open_locale topological_space
+
+/- the assumption below that `A` be second countable is a technical limitation due to
+the current implementation of Bochner integrals in mathlib. Once this is changed, we
+will be able to remove that hypothesis. -/
+variables
+[normed_ring A] [normed_algebra ℂ A] [complete_space A]
+[measurable_space A] [borel_space A] [topological_space.second_countable_topology A]
+
+/-- The `limsup` relationship for the spectral radius used to prove `spectrum.gelfand_formula`. -/
+lemma limsup_pow_nnnorm_pow_one_div_le_spectral_radius (a : A) :
+  limsup at_top (λ n : ℕ, ↑∥a ^ n∥₊ ^ (1 / n : ℝ)) ≤ spectral_radius ℂ a :=
+begin
+  refine ennreal.inv_le_inv.mp (le_of_forall_pos_nnreal_lt (λ r r_pos r_lt, _)),
+  simp_rw [inv_limsup, ←one_div],
+  let p : formal_multilinear_series ℂ ℂ A :=
+    λ n, continuous_multilinear_map.mk_pi_field ℂ (fin n) (a ^ n),
+  suffices h : (r : ℝ≥0∞) ≤ p.radius,
+  { convert h,
+    simp only [p.radius_eq_liminf, ←norm_to_nnreal, norm_mk_pi_field],
+    refine congr_arg _ (funext (λ n, congr_arg _ _)),
+    rw [norm_to_nnreal, ennreal.coe_rpow_def (∥a ^ n∥₊) (1 / n : ℝ), if_neg],
+    exact λ ha, by linarith [ha.2, (one_div_nonneg.mpr n.cast_nonneg : 0 ≤ (1 / n : ℝ))], },
+  { have H₁ := (differentiable_on_inverse_one_sub_smul r_lt).has_fpower_series_on_ball r_pos,
+    exact ((has_fpower_series_on_ball_inverse_one_sub_smul ℂ a).exchange_radius H₁).r_le, }
+end
+
+/-- **Gelfand's formula**: Given an element `a : A` of a complex Banach algebra, the
+`spectral_radius` of `a` is the limit of the sequence `∥a ^ n∥₊ ^ (1 / n)` -/
+theorem pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A) :
+  tendsto (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)) at_top (𝓝 (spectral_radius ℂ a)) :=
+begin
+  refine tendsto_of_le_liminf_of_limsup_le _ _ (by apply_auto_param) (by apply_auto_param),
+  { rw [←liminf_nat_add _ 1, liminf_eq_supr_infi_of_nat],
+    refine le_trans _ (le_supr _ 0),
+    exact le_binfi (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
+  { exact limsup_pow_nnnorm_pow_one_div_le_spectral_radius a },
+end
+
+/- This is the same as `pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius` but for `norm`
+instead of `nnnorm`. -/
+/-- **Gelfand's formula**: Given an element `a : A` of a complex Banach algebra, the
+`spectral_radius` of `a` is the limit of the sequence `∥a ^ n∥₊ ^ (1 / n)` -/
+theorem pow_norm_pow_one_div_tendsto_nhds_spectral_radius (a : A) :
+  tendsto (λ n : ℕ,  ennreal.of_real (∥a ^ n∥ ^ (1 / n : ℝ))) at_top (𝓝 (spectral_radius ℂ a)) :=
+begin
+  convert pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a,
+  ext1,
+  rw [←of_real_rpow_of_nonneg (norm_nonneg _) _, ←coe_nnnorm, coe_nnreal_eq],
+  exact one_div_nonneg.mpr (by exact_mod_cast zero_le _),
+end
+
+end gelfand_formula
 
 end spectrum
 

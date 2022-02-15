@@ -595,6 +595,10 @@ lemma div_eq_mul_inv {G : Type u} [div_inv_monoid G] :
   ∀ a b : G, a / b = a * b⁻¹ :=
 div_inv_monoid.div_eq_mul_inv
 
+section
+-- ensure that we don't go via these typeclasses to find `has_inv` on groups and groups with zero
+set_option extends_priority 50
+
 /-- Auxiliary typeclass for types with an involutive `has_inv`. -/
 @[ancestor has_inv]
 class has_involutive_inv (G : Type*) extends has_inv G :=
@@ -606,6 +610,8 @@ class has_involutive_neg (A : Type*) extends has_neg A :=
 (neg_neg : ∀ x : A, - -x = x)
 
 attribute [to_additive] has_involutive_inv
+
+end
 
 section has_involutive_inv
 variables {G : Type*} [has_involutive_inv G]

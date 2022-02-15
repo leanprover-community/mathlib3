@@ -33,7 +33,7 @@ Hausdorff, discrete group, properly discontinuous, quotient space
 
 -/
 
-open_locale topological_space
+open_locale topological_space pointwise
 
 open filter set
 
@@ -60,6 +60,232 @@ attribute [to_additive] has_continuous_const_smul
 export has_continuous_const_smul (continuous_const_smul)
 
 export has_continuous_const_vadd (continuous_const_vadd)
+
+variables {M α β : Type*}
+
+section has_scalar
+variables [topological_space α] [has_scalar M α] [has_continuous_const_smul M α]
+
+@[to_additive]
+lemma filter.tendsto.const_smul {f : β → α} {l : filter β} {a : α} (hf : tendsto f l (𝓝 a))
+  (c : M) :
+  tendsto (λ x, c • f x) l (𝓝 (c • a)) :=
+((continuous_const_smul _).tendsto _).comp hf
+
+variables [topological_space β] {f : β → M} {g : β → α} {b : β} {s : set β}
+
+@[to_additive]
+lemma continuous_within_at.const_smul (hg : continuous_within_at g s b) (c : M) :
+  continuous_within_at (λ x, c • g x) s b :=
+hg.const_smul c
+
+@[to_additive]
+lemma continuous_at.const_smul (hg : continuous_at g b) (c : M) :
+  continuous_at (λ x, c • g x) b :=
+hg.const_smul c
+
+@[to_additive]
+lemma continuous_on.const_smul (hg : continuous_on g s) (c : M) :
+  continuous_on (λ x, c • g x) s :=
+λ x hx, (hg x hx).const_smul c
+
+@[to_additive]
+lemma continuous.const_smul (hg : continuous g) (c : M) :
+  continuous (λ x, c • g x) :=
+(continuous_const_smul _).comp hg
+
+/-- If a scalar is central, then its right action is continuous when its left action is. -/
+instance has_continuous_const_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α] :
+  has_continuous_const_smul Mᵐᵒᵖ α :=
+⟨ mul_opposite.rec $ λ c, by simpa only [op_smul_eq_smul] using continuous_const_smul c ⟩
+
+@[to_additive]
+instance [has_scalar M β] [has_continuous_const_smul M β] :
+  has_continuous_const_smul M (α × β) :=
+⟨λ _, (continuous_fst.const_smul _).prod_mk (continuous_snd.const_smul _)⟩
+
+@[to_additive]
+instance {ι : Type*} {γ : ι → Type*} [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)]
+  [∀ i, has_continuous_const_smul M (γ i)] : has_continuous_const_smul M (Π i, γ i) :=
+⟨λ _, continuous_pi $ λ i, (continuous_apply i).const_smul _⟩
+
+end has_scalar
+
+section monoid
+
+variables [topological_space α]
+variables [monoid M] [mul_action M α] [has_continuous_const_smul M α]
+
+@[to_additive] instance units.has_continuous_const_smul : has_continuous_const_smul Mˣ α :=
+{ continuous_const_smul := λ m, (continuous_const_smul (m : M) : _) }
+
+@[to_additive]
+lemma smul_closure_subset (c : M) (s : set α) : c • closure s ⊆ closure (c • s) :=
+((set.maps_to_image _ _).closure $ continuous_id.const_smul c).image_subset
+
+@[to_additive]
+lemma smul_closure_orbit_subset (c : M) (x : α) :
+  c • closure (mul_action.orbit M x) ⊆ closure (mul_action.orbit M x) :=
+(smul_closure_subset c _).trans $ closure_mono $ mul_action.smul_orbit_subset _ _
+
+end monoid
+
+section group
+
+variables {G : Type*} [topological_space α] [group G] [mul_action G α]
+  [has_continuous_const_smul G α]
+
+@[to_additive]
+lemma tendsto_const_smul_iff {f : β → α} {l : filter β} {a : α} (c : G) :
+  tendsto (λ x, c • f x) l (𝓝 $ c • a) ↔ tendsto f l (𝓝 a) :=
+⟨λ h, by simpa only [inv_smul_smul] using h.const_smul c⁻¹,
+  λ h, h.const_smul _⟩
+
+variables [topological_space β] {f : β → α} {b : β}  {s : set β}
+
+@[to_additive]
+lemma continuous_within_at_const_smul_iff (c : G) :
+  continuous_within_at (λ x, c • f x) s b ↔ continuous_within_at f s b :=
+tendsto_const_smul_iff c
+
+@[to_additive]
+lemma continuous_on_const_smul_iff (c : G) : continuous_on (λ x, c • f x) s ↔ continuous_on f s :=
+forall₂_congr $ λ b hb, continuous_within_at_const_smul_iff c
+
+@[to_additive]
+lemma continuous_at_const_smul_iff (c : G) :
+  continuous_at (λ x, c • f x) b ↔ continuous_at f b :=
+tendsto_const_smul_iff c
+
+@[to_additive]
+lemma continuous_const_smul_iff (c : G) :
+  continuous (λ x, c • f x) ↔ continuous f :=
+by simp only [continuous_iff_continuous_at, continuous_at_const_smul_iff]
+
+/-- The homeomorphism given by scalar multiplication by a given element of a group `Γ` acting on
+  `T` is a homeomorphism from `T` to itself. -/
+@[to_additive] def homeomorph.smul {G : Type*} [group G]
+  [mul_action G α] [has_continuous_const_smul G α] (γ : G) : α ≃ₜ α :=
+{ to_equiv := mul_action.to_perm γ,
+  continuous_to_fun  := continuous_const_smul γ,
+  continuous_inv_fun := continuous_const_smul γ⁻¹ }
+
+/-- The homeomorphism given by affine-addition by an element of an additive group `Γ` acting on
+  `T` is a homeomorphism from `T` to itself. -/
+add_decl_doc homeomorph.vadd
+
+@[to_additive]
+lemma is_open_map_smul (c : G) : is_open_map (λ x : α, c • x) :=
+(homeomorph.smul c).is_open_map
+
+@[to_additive] lemma is_open.smul {s : set α} (hs : is_open s) (c : G) : is_open (c • s) :=
+is_open_map_smul c s hs
+
+@[to_additive]
+lemma is_closed_map_smul (c : G) : is_closed_map (λ x : α, c • x) :=
+(homeomorph.smul c).is_closed_map
+
+@[to_additive] lemma is_closed.smul {s : set α} (hs : is_closed s) (c : G) : is_closed (c • s) :=
+is_closed_map_smul c s hs
+
+end group
+
+section group_with_zero
+
+variables {G₀ : Type*} [topological_space α] [group_with_zero G₀] [mul_action G₀ α]
+  [has_continuous_const_smul G₀ α]
+
+lemma tendsto_const_smul_iff₀ {f : β → α} {l : filter β} {a : α} {c : G₀} (hc : c ≠ 0) :
+  tendsto (λ x, c • f x) l (𝓝 $ c • a) ↔ tendsto f l (𝓝 a) :=
+tendsto_const_smul_iff (units.mk0 c hc)
+
+variables [topological_space β] {f : β → α} {b : β} {c : G₀} {s : set β}
+
+lemma continuous_within_at_const_smul_iff₀ (hc : c ≠ 0) :
+  continuous_within_at (λ x, c • f x) s b ↔ continuous_within_at f s b :=
+tendsto_const_smul_iff (units.mk0 c hc)
+
+lemma continuous_on_const_smul_iff₀ (hc : c ≠ 0) :
+  continuous_on (λ x, c • f x) s ↔ continuous_on f s :=
+continuous_on_const_smul_iff (units.mk0 c hc)
+
+lemma continuous_at_const_smul_iff₀ (hc : c ≠ 0) :
+  continuous_at (λ x, c • f x) b ↔ continuous_at f b :=
+continuous_at_const_smul_iff (units.mk0 c hc)
+
+lemma continuous_const_smul_iff₀ (hc : c ≠ 0) :
+  continuous (λ x, c • f x) ↔ continuous f :=
+continuous_const_smul_iff (units.mk0 c hc)
+
+/-- Scalar multiplication by a non-zero element of a group with zero acting on `α` is a
+homeomorphism from `α` onto itself. -/
+protected def homeomorph.smul_of_ne_zero (c : G₀) (hc : c ≠ 0) : α ≃ₜ α :=
+homeomorph.smul (units.mk0 c hc)
+
+lemma is_open_map_smul₀ {c : G₀} (hc : c ≠ 0) : is_open_map (λ x : α, c • x) :=
+(homeomorph.smul_of_ne_zero c hc).is_open_map
+
+lemma is_open.smul₀ {c : G₀} {s : set α} (hs : is_open s) (hc : c ≠ 0) : is_open (c • s) :=
+is_open_map_smul₀ hc s hs
+
+lemma interior_smul₀ {c : G₀} (hc : c ≠ 0) (s : set α) : interior (c • s) = c • interior s :=
+((homeomorph.smul_of_ne_zero c hc).image_interior s).symm
+
+/-- `smul` is a closed map in the second argument.
+
+The lemma that `smul` is a closed map in the first argument (for a normed space over a complete
+normed field) is `is_closed_map_smul_left` in `analysis.normed_space.finite_dimension`. -/
+lemma is_closed_map_smul_of_ne_zero {c : G₀} (hc : c ≠ 0) : is_closed_map (λ x : α, c • x) :=
+(homeomorph.smul_of_ne_zero c hc).is_closed_map
+
+/-- `smul` is a closed map in the second argument.
+
+The lemma that `smul` is a closed map in the first argument (for a normed space over a complete
+normed field) is `is_closed_map_smul_left` in `analysis.normed_space.finite_dimension`. -/
+lemma is_closed_map_smul₀ {𝕜 M : Type*} [division_ring 𝕜] [add_comm_monoid M] [topological_space M]
+  [t1_space M] [module 𝕜 M] [has_continuous_const_smul 𝕜 M] (c : 𝕜) :
+  is_closed_map (λ x : M, c • x) :=
+begin
+  rcases eq_or_ne c 0 with (rfl|hne),
+  { simp only [zero_smul], exact is_closed_map_const },
+  { exact (homeomorph.smul_of_ne_zero c hne).is_closed_map },
+end
+
+end group_with_zero
+
+namespace is_unit
+
+variables [monoid M] [topological_space α] [mul_action M α] [has_continuous_const_smul M α]
+
+lemma tendsto_const_smul_iff {f : β → α} {l : filter β} {a : α} {c : M} (hc : is_unit c) :
+  tendsto (λ x, c • f x) l (𝓝 $ c • a) ↔ tendsto f l (𝓝 a) :=
+let ⟨u, hu⟩ := hc in hu ▸ tendsto_const_smul_iff u
+
+variables [topological_space β] {f : β → α} {b : β} {c : M} {s : set β}
+
+lemma continuous_within_at_const_smul_iff (hc : is_unit c) :
+  continuous_within_at (λ x, c • f x) s b ↔ continuous_within_at f s b :=
+let ⟨u, hu⟩ := hc in hu ▸ continuous_within_at_const_smul_iff u
+
+lemma continuous_on_const_smul_iff (hc : is_unit c) :
+  continuous_on (λ x, c • f x) s ↔ continuous_on f s :=
+let ⟨u, hu⟩ := hc in hu ▸ continuous_on_const_smul_iff u
+
+lemma continuous_at_const_smul_iff (hc : is_unit c) :
+  continuous_at (λ x, c • f x) b ↔ continuous_at f b :=
+let ⟨u, hu⟩ := hc in hu ▸ continuous_at_const_smul_iff u
+
+lemma continuous_const_smul_iff (hc : is_unit c) :
+  continuous (λ x, c • f x) ↔ continuous f :=
+let ⟨u, hu⟩ := hc in hu ▸ continuous_const_smul_iff u
+
+lemma is_open_map_smul (hc : is_unit c) : is_open_map (λ x : α, c • x) :=
+let ⟨u, hu⟩ := hc in hu ▸ is_open_map_smul u
+
+lemma is_closed_map_smul (hc : is_unit c) : is_closed_map (λ x : α, c • x) :=
+let ⟨u, hu⟩ := hc in hu ▸ is_closed_map_smul u
+
+end is_unit
 
 /-- Class `properly_discontinuous_smul Γ T` says that the scalar multiplication `(•) : Γ → T → T`
 is properly discontinuous, that is, for any pair of compact sets `K, L` in `T`, only finitely many
@@ -92,26 +318,6 @@ variables {Γ : Type*} [group Γ] {T : Type*} [topological_space T] [mul_action 
 export properly_discontinuous_smul (finite_disjoint_inter_image)
 
 export properly_discontinuous_vadd (finite_disjoint_inter_image)
-
-/-- The homeomorphism given by scalar multiplication by a given element of a group `Γ` acting on
-  `T` is a homeomorphism from `T` to itself. -/
-def homeomorph.smul {T : Type*} [topological_space T] {Γ : Type*} [group Γ]
-  [mul_action Γ T] [has_continuous_const_smul Γ T] (γ : Γ) :
-  T ≃ₜ T :=
-{ to_equiv := mul_action.to_perm_hom Γ T γ,
-  continuous_to_fun  := continuous_const_smul γ,
-  continuous_inv_fun := continuous_const_smul γ⁻¹ }
-
-/-- The homeomorphism given by affine-addition by an element of an additive group `Γ` acting on
-  `T` is a homeomorphism from `T` to itself. -/
-def homeomorph.vadd {T : Type*} [topological_space T] {Γ : Type*} [add_group Γ]
-  [add_action Γ T] [has_continuous_const_vadd Γ T] (γ : Γ) :
-  T ≃ₜ T :=
-{ to_equiv := add_action.to_perm_hom T Γ γ,
-  continuous_to_fun  := continuous_const_vadd γ,
-  continuous_inv_fun := continuous_const_vadd (-γ) }
-
-attribute [to_additive homeomorph.vadd] homeomorph.smul
 
 /-- The quotient map by a group action is open. -/
 @[to_additive]

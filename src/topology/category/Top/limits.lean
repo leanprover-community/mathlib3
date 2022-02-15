@@ -57,7 +57,7 @@ def limit_cone_infi (F : J ⥤ Top.{u}) : cone F :=
   { app := λ j, ⟨(types.limit_cone (F ⋙ forget)).π.app j,
                  continuous_iff_le_induced.mpr (infi_le _ _)⟩,
     naturality' := λ j j' f,
-                   continuous_map.coe_inj ((types.limit_cone (F ⋙ forget)).π.naturality f) } }
+                   continuous_map.coe_injective ((types.limit_cone (F ⋙ forget)).π.naturality f) } }
 
 /--
 The chosen cone `Top.limit_cone F` for a functor `F : J ⥤ Top` is a limit cone.

@@ -103,23 +103,23 @@ frequently_cofinite_iff_infinite.symm
 lemma filter.eventually_cofinite_ne (x : α) : ∀ᶠ a in cofinite, a ≠ x :=
 (set.finite_singleton x).eventually_cofinite_nmem
 
+/-- If `α` is a sup-semilattice with no maximal element, then `at_top ≤ cofinite`. -/
+lemma at_top_le_cofinite [semilattice_sup α] [no_max_order α] : (at_top : filter α) ≤ cofinite :=
+begin
+  refine compl_surjective.forall.2 (λ s hs, _),
+  rcases eq_empty_or_nonempty s with rfl|hne, { simp only [compl_empty, univ_mem] },
+  rw [mem_cofinite, compl_compl] at hs, lift s to finset α using hs,
+  rcases exists_gt (s.sup' hne id) with ⟨y, hy⟩,
+  filter_upwards [mem_at_top y] with x hx hxs,
+  exact (finset.le_sup' id hxs).not_lt (hy.trans_le hx)
+end
+
 /-- For natural numbers the filters `cofinite` and `at_top` coincide. -/
 lemma nat.cofinite_eq_at_top : @cofinite ℕ = at_top :=
 begin
-  ext s,
-  simp only [mem_cofinite, mem_at_top_sets],
-  split,
-  { assume hs,
-    use (hs.to_finset.sup id) + 1,
-    assume b hb,
-    by_contradiction hbs,
-    have := hs.to_finset.subset_range_sup_succ (hs.mem_to_finset.2 hbs),
-    exact not_lt_of_le hb (finset.mem_range.1 this) },
-  { rintros ⟨N, hN⟩,
-    apply (finite_lt_nat N).subset,
-    assume n hn,
-    change n < N,
-    exact lt_of_not_ge (λ hn', hn $ hN n hn') }
+  refine le_antisymm _ at_top_le_cofinite,
+  refine at_top_basis.ge_iff.2 (λ N hN, _),
+  simpa only [mem_cofinite, compl_Ici] using finite_lt_nat N
 end
 
 lemma nat.frequently_at_top_iff_infinite {p : ℕ → Prop} :

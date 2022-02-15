@@ -1052,14 +1052,14 @@ inv_lt_iff_inv_lt.trans $ by rw [inv_one]
 
 /-- The inverse map `λ x, x⁻¹` is an order isomorphism between `ℝ≥0∞` and its `order_dual` -/
 @[simps apply]
-def inv_order_iso : ℝ≥0∞ ≃o order_dual ℝ≥0∞ :=
+def _root_.order_iso.inv_ennreal : ℝ≥0∞ ≃o order_dual ℝ≥0∞ :=
 { to_fun := λ x, x⁻¹,
   inv_fun := λ x, x⁻¹,
   map_rel_iff' := λ a b, ennreal.inv_le_inv,
   ..equiv.inv ℝ≥0∞ }
 
 @[simp]
-lemma inv_order_iso_symm_apply : inv_order_iso.symm a = a⁻¹ := rfl
+lemma _root_.order_iso.inv_ennreal_symm_apply : order_iso.inv_ennreal.symm a = a⁻¹ := rfl
 
 lemma pow_le_pow_of_le_one {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
 begin

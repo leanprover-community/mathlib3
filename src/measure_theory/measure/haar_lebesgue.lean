@@ -59,10 +59,6 @@ open measure topological_space.positive_compacts finite_dimensional
 ### The Lebesgue measure is a Haar measure on `ℝ` and on `ℝ^ι`.
 -/
 
-instance is_add_left_invariant_real_volume :
-  is_add_left_invariant (volume : measure ℝ) :=
-⟨by simp [real.map_volume_add_left]⟩
-
 /-- The Haar measure equals the Lebesgue measure on `ℝ`. -/
 lemma add_haar_measure_eq_volume : add_haar_measure Icc01 = volume :=
 by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
@@ -72,7 +68,7 @@ by { rw ← add_haar_measure_eq_volume, apply_instance }
 
 instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
   is_add_left_invariant (volume : measure (ι → ℝ)) :=
-⟨by simp [real.map_volume_pi_add_left]⟩
+⟨by simp [map_add_left_eq_self]⟩
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ^ι`. -/
 lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :

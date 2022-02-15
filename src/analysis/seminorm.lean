@@ -10,6 +10,7 @@ import analysis.normed_space.pointwise
 import data.real.pointwise
 import topology.algebra.filter_basis
 import topology.algebra.uniform_filter_basis
+import topology.algebra.module.locally_convex
 import data.real.sqrt
 
 /-!
@@ -1514,8 +1515,45 @@ end
 
 end topology
 
+section locally_convex_space
+
+open locally_convex_space
+
+variables [nonempty ι] [normed_linear_ordered_field 𝕜] [normed_space ℝ 𝕜]
+  [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
+  [topological_add_group E]
+
+lemma with_seminorms.to_locally_convex_space (p : ι → seminorm 𝕜 E) [with_seminorms p] :
+  locally_convex_space ℝ E :=
+begin
+  apply of_basis_zero ℝ E id (λ s, s ∈ seminorm_basis_zero p),
+  { rw [with_seminorms_eq p, add_group_filter_basis.nhds_eq _, add_group_filter_basis.N_zero],
+    exact filter_basis.has_basis _ },
+  { intros s hs,
+    change s ∈ set.Union _ at hs,
+    simp_rw [set.mem_Union, set.mem_singleton_iff] at hs,
+    rcases hs with ⟨I, r, hr, rfl⟩,
+    exact convex_ball _ _ _ }
+end
+
+end locally_convex_space
+
 end seminorm
 
+section normed_space
 
+variables (𝕜) [normed_linear_ordered_field 𝕜] [normed_space ℝ 𝕜] [semi_normed_group E]
 
--- TODO: local convexity.
+/-- Not an instance since `𝕜` can't be inferred. See `normed_space.to_locally_convex_space` for a
+slightly weaker instance version. -/
+lemma normed_space.to_locally_convex_space' [normed_space 𝕜 E] [module ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] : locally_convex_space ℝ E :=
+seminorm.with_seminorms.to_locally_convex_space (λ _ : fin 1, norm_seminorm 𝕜 E)
+
+/-- See `normed_space.to_locally_convex_space'` for a slightly stronger version which is not an
+instance. -/
+instance normed_space.to_locally_convex_space [normed_space ℝ E] :
+  locally_convex_space ℝ E :=
+normed_space.to_locally_convex_space' ℝ
+
+end normed_space

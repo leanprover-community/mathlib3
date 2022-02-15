@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 import set_theory.ordinal_arithmetic
-import topology.algebra.ordered.basic
+import topology.algebra.order.basic
 
 /-!
 ### Topology of ordinals

@@ -141,6 +141,7 @@ Given that `l_sum1 = r_sum1`, `l_h1 = r_h1`, ..., `l_hn = r_hn`, and given
   `= r_sum1 + (c_1 * r_h1) + ... + (c_n * r_hn)`
 
 * Input:
+  * `expected_tp`: the type of the terms being compared in the target equality
   * an `option (tactic expr)` : `none`, if there is no sum to add to yet, or
       `some` containing the base summation equation
   * a `list name` : a list of names, referring to equalities in the local context
@@ -153,7 +154,6 @@ Given that `l_sum1 = r_sum1`, `l_h1 = r_h1`, ..., `l_hn = r_hn`, and given
 meta def make_sum_of_hyps_helper (expected_tp : expr) :
   option (tactic expr) → list name → list pexpr → tactic expr
 | none [] []                                                             :=
-  -- do fail "There are no hypotheses to add"
   to_expr ``(rfl : (0 : %%expected_tp) = 0)
 | (some tactic_hcombo) [] []                                             :=
   do tactic_hcombo
@@ -190,6 +190,7 @@ Given a list of names referencing equalities and a list of pexprs representing
   (where each equation is multiplied by the corresponding coefficient) holds.
 
 * Input:
+  * `expected_tp`: the type of the terms being compared in the target equality
   * `h_eqs_names` : a list of names, referring to equalities in the local
       context
   * `coeffs` : a list of coefficients to be multiplied with the corresponding

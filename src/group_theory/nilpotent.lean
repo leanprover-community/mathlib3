@@ -717,10 +717,9 @@ instance is_nilpotent_prod [is_nilpotent G₁] [is_nilpotent G₂] :
 begin
   rw nilpotent_iff_lower_central_series,
   refine ⟨max (group.nilpotency_class G₁) (group.nilpotency_class G₂), _ ⟩,
-  rw lower_central_series_prod,
-  rw lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (le_max_left _ _),
-  rw lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (le_max_right _ _),
-  rw bot_prod_bot,
+  rw [lower_central_series_prod,
+    lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (le_max_left _ _),
+    lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (le_max_right _ _), bot_prod_bot],
 end
 
 /-- The nilpotency class of a product is the max of the nilpotency classes of the factors -/

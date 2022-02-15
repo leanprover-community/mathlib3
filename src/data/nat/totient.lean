@@ -292,25 +292,22 @@ end
 theorem totient_Euler_product_formula (n : ℕ) :
   φ n = n / (n.factorization.prod (λ p k, p)) * (n.factorization.prod (λ p k, p - 1)) :=
 begin
-  by_cases hn0 : n = 0, { subst hn0, simp },
-  let P1 := (n.factorization.prod (λ p k, p)),
-  let P2 := (n.factorization.prod (λ p k, p - 1)),
+  by_cases hn : n = 0, { subst hn, simp },
+  let P1 := n.factorization.prod (λ p k, p),
+  let P2 := n.factorization.prod (λ p k, p - 1),
   have h1 : 0 < P1 := prod_pos (λ p hp, pos_of_mem_factorization hp),
   have h2 : P1 ∣ n,
   { simp only [P1, finsupp.prod, support_factorization, prod_prime_factors_dvd n] },
-
   suffices : φ n * P1 = n * P2,
   { rw [(mul_div_left n.totient h1).symm, this, mul_comm, nat.mul_div_assoc P2 h2, mul_comm] },
-
-  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn0,
-  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn0),
+  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn,
+  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn),
   simp only [←finsupp.prod_mul],
   refine prod_congr rfl (λ p hp, _),
-  have hk : 0 < n.factorization p, { rwa [zero_lt_iff, ←finsupp.mem_support_iff] },
-  simp only [totient_prime_pow (prime_of_mem_factorization hp) hk],
-  simp only [mul_right_comm, ←(pow_sub_mul_pow p hk), pow_one],
+  have h : 0 < n.factorization p := (finsupp.mem_support_iff.mp hp).bot_lt,
+  simp only [totient_prime_pow (prime_of_mem_factorization hp) h],
+  simp only [mul_right_comm, ←(pow_sub_mul_pow p h), pow_one],
 end
-
 
 theorem totient_Euler_product_formula' (n : ℕ) :
    ↑(φ n) = ↑n * ∏ p in (n.factors.to_finset), (1 - p⁻¹ : ℚ) :=

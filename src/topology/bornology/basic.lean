@@ -130,3 +130,8 @@ is_bounded_bUnion finite_univ (λ i _, h i)
 end bornology
 
 instance : bornology punit := ⟨⊥, bot_le⟩
+
+/-- The cofinite filter as a bornology -/
+@[reducible] def bornology.cofinite : bornology α :=
+{ cobounded := cofinite,
+  le_cofinite := le_refl _ }

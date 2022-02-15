@@ -2412,14 +2412,16 @@ def metric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
 
 /-- Pull back a metric space structure by a uniform embedding. This is a version of
 `metric_space.induced` useful in case if the domain already has a `uniform_space` structure. -/
-def uniform_embedding.comap_metric_space {α β} [uniform_space α] [metric_space β] (f : α → β)
-  (h : uniform_embedding f) : metric_space α :=
+@[reducible] def uniform_embedding.comap_metric_space
+  {α β} [uniform_space α] [metric_space β] (f : α → β) (h : uniform_embedding f) :
+  metric_space α :=
 (metric_space.induced f h.inj ‹_›).replace_uniformity h.comap_uniformity.symm
 
 /-- Pull back a metric space structure by an embedding. This is a version of
 `metric_space.induced` useful in case if the domain already has a `topological_space` structure. -/
-def embedding.comap_metric_space {α β} [topological_space α] [metric_space β] (f : α → β)
-  (h : embedding f) : metric_space α :=
+@[reducible] def embedding.comap_metric_space
+  {α β} [topological_space α] [metric_space β] (f : α → β) (h : embedding f) :
+  metric_space α :=
 begin
   letI : uniform_space α := embedding.comap_uniform_space f h,
   exact uniform_embedding.comap_metric_space f (h.to_uniform_embedding f),

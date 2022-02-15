@@ -258,9 +258,7 @@ by simp only [← zsmul_one, zsmul_mem, one_mem]
 
 /-- A subring of a ring inherits a ring structure -/
 instance to_ring : ring s :=
-{ right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
-  left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
-  .. s.to_submonoid.to_monoid, .. s.to_add_subgroup.to_add_comm_group }
+{ .. s.to_subsemiring.to_semiring, .. s.to_add_subgroup.to_add_comm_group }
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : R) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : R) = -↑x := rfl

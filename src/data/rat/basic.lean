@@ -581,23 +581,17 @@ by cases d; refl
 lemma num_mk (n d : ℤ) :
   (n /. d).num = d.sign * n / n.gcd d :=
 begin
-  rcases d with ((_ | _) | _),
-  { simp },
-  { simpa [←int.coe_nat_succ, int.sign_coe_nat_of_nonzero] },
-  { rw rat.mk,
-    simpa [rat.mk_pnat_num, int.neg_succ_of_nat_eq, ←int.coe_nat_succ,
-           int.sign_coe_nat_of_nonzero] }
+  rcases d with ((_ | _) | _);
+  simp [rat.mk, mk_nat, mk_pnat, nat.succ_pnat, int.sign, int.gcd,
+    -nat.cast_succ, -int.coe_nat_succ]
 end
 
 lemma denom_mk (n d : ℤ) :
   (n /. d).denom = if d = 0 then 1 else d.nat_abs / n.gcd d :=
 begin
-  rcases d with ((_ | _) | _),
-  { simp },
-  { simpa [←int.coe_nat_succ, int.sign_coe_nat_of_nonzero] },
-  { rw rat.mk,
-    simpa [rat.mk_pnat_denom, int.neg_succ_of_nat_eq, ←int.coe_nat_succ,
-           int.sign_coe_nat_of_nonzero] }
+  rcases d with ((_ | _) | _);
+  simp [rat.mk, mk_nat, mk_pnat, nat.succ_pnat, int.sign, int.gcd,
+    -nat.cast_succ, -int.coe_nat_succ]
 end
 
 theorem mk_pnat_denom_dvd (n : ℤ) (d : ℕ+) :

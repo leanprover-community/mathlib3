@@ -18,18 +18,19 @@ universes u v
 variables (R : Type u)
 
 /-- The generator of the kernel of the unique homomorphism ℕ → R for a semiring R -/
-class char_p [add_monoid R] [has_one R] (p : ℕ) : Prop :=
+@[mk_iff]
+class char_p [has_nat_cast R] (p : ℕ) : Prop :=
 (cast_eq_zero_iff [] : ∀ x:ℕ, (x:R) = 0 ↔ p ∣ x)
 
-theorem char_p.cast_eq_zero [add_monoid R] [has_one R] (p : ℕ) [char_p R p] :
+theorem char_p.cast_eq_zero [has_nat_cast R] (p : ℕ) [char_p R p] :
   (p:R) = 0 :=
 (char_p.cast_eq_zero_iff R p p).2 (dvd_refl p)
 
-@[simp] lemma char_p.cast_card_eq_zero [add_group R] [has_one R] [fintype R] :
+@[simp] lemma char_p.cast_card_eq_zero [add_group_with_one R] [fintype R] :
   (fintype.card R : R) = 0 :=
 by rw [← nsmul_one, card_nsmul_eq_zero]
 
-lemma char_p.int_cast_eq_zero_iff [add_group R] [has_one R] (p : ℕ) [char_p R p]
+lemma char_p.int_cast_eq_zero_iff [add_group_with_one R] (p : ℕ) [char_p R p]
   (a : ℤ) :
   (a : R) = 0 ↔ (p:ℤ) ∣ a :=
 begin
@@ -42,25 +43,25 @@ begin
     rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] }
 end
 
-lemma char_p.int_coe_eq_int_coe_iff [add_group R] [has_one R] (p : ℕ) [char_p R p] (a b : ℤ) :
+lemma char_p.int_coe_eq_int_coe_iff [add_group_with_one R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = (b : R) ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
        char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
-theorem char_p.eq [add_monoid R] [has_one R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
+theorem char_p.eq [has_nat_cast R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
   p = q :=
 nat.dvd_antisymm
   ((char_p.cast_eq_zero_iff R p q).1 (char_p.cast_eq_zero _ _))
   ((char_p.cast_eq_zero_iff R q p).1 (char_p.cast_eq_zero _ _))
 
-instance char_p.of_char_zero [add_monoid R] [has_one R] [char_zero R] : char_p R 0 :=
+instance char_p.of_char_zero [has_nat_cast R] [char_zero R] : char_p R 0 :=
 ⟨λ x, by rw [zero_dvd_iff, ← nat.cast_zero, nat.cast_inj]⟩
 
 theorem char_p.exists [non_assoc_semiring R] : ∃ p, char_p R p :=
 by letI := classical.dec_eq R; exact
 classical.by_cases
   (assume H : ∀ p:ℕ, (p:R) = 0 → p = 0, ⟨0,
-    ⟨λ x, by rw [zero_dvd_iff]; exact ⟨H x, by rintro rfl; refl⟩⟩⟩)
+    ⟨λ x, by rw [zero_dvd_iff]; exact ⟨H x, by rintro rfl; simp⟩⟩⟩)
   (λ H, ⟨nat.find (not_forall.1 H), ⟨λ x,
     ⟨λ H1, nat.dvd_of_mod_eq_zero (by_contradiction $ λ H2,
       nat.find_min (not_forall.1 H)
@@ -76,7 +77,7 @@ classical.by_cases
 theorem char_p.exists_unique [non_assoc_semiring R] : ∃! p, char_p R p :=
 let ⟨c, H⟩ := char_p.exists R in ⟨c, H, λ y H2, char_p.eq R H2 H⟩
 
-theorem char_p.congr {R : Type u} [add_monoid R] [has_one R] {p : ℕ} (q : ℕ) [hq : char_p R q]
+theorem char_p.congr {R : Type u} [has_nat_cast R] {p : ℕ} (q : ℕ) [hq : char_p R q]
   (h : q = p) :
   char_p R p :=
 h ▸ hq
@@ -213,11 +214,7 @@ end
 lemma ring_hom.char_p_iff_char_p {K L : Type*} [division_ring K] [semiring L] [nontrivial L]
   (f : K →+* L) (p : ℕ) :
   char_p K p ↔ char_p L p :=
-begin
-  split;
-  { introI _c, constructor, intro n,
-    rw [← @char_p.cast_eq_zero_iff _ _ _ p _c n, ← f.injective.eq_iff, map_nat_cast f, f.map_zero] }
-end
+by simp only [char_p_iff, ← f.injective.eq_iff, map_nat_cast f, f.map_zero]
 
 section frobenius
 
@@ -330,7 +327,7 @@ calc (k : R) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
 theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p R p] [fintype R] : p ≠ 0 :=
 assume h : p = 0,
 have char_zero R := @char_p_to_char_zero R _ (h ▸ hc),
-absurd (@nat.cast_injective R _ _ this) (not_injective_infinite_fintype coe)
+absurd (@nat.cast_injective R _ this) (not_injective_infinite_fintype coe)
 
 end
 

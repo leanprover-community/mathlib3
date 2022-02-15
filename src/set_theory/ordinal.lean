@@ -963,12 +963,7 @@ instance : add_monoid ordinal.{u} :=
       simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
         sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
 
-instance : has_nat_cast ordinal.{u} :=
-{ one := 1,
-  nat_cast := λ n, nat.rec_on n 0 (λ _ a, a + 1),
-  nat_cast_zero := rfl,
-  nat_cast_succ := λ n, rfl,
-  .. ordinal.add_monoid }
+instance : has_nat_cast ordinal.{u} := has_nat_cast.unary
 
 @[simp] theorem card_nat (n : ℕ) : card.{u} n = n :=
 by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]

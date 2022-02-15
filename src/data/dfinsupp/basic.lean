@@ -221,8 +221,7 @@ instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 { zsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
   zsmul_neg' := λ n f, ext $ λ i, by
-    rw [neg_apply, map_range_apply, map_range_apply, zsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ,
-      int.nat_cast_eq_coe_nat],
+    rw [neg_apply, map_range_apply, map_range_apply, zsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ],
   zsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
   zsmul_succ' := λ n f, ext $ λ i, by simp [map_range_apply, add_smul, add_comm],
   ..@dfinsupp.add_comm_monoid _ β _,

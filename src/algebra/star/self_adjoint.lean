@@ -104,6 +104,9 @@ instance : comm_ring (self_adjoint R) :=
   mul_comm := λ x y, by { ext, exact mul_comm _ _ },
   left_distrib := λ x y z, by { ext, exact left_distrib _ _ _ },
   right_distrib := λ x y z, by { ext, exact right_distrib _ _ _ },
+  nat_cast := λ n, ⟨n, by simp [mem_iff]⟩,
+  nat_cast_zero := by { simp [nat.cast], refl },
+  nat_cast_succ := λ _, by { simp [nat.cast], refl },
   ..self_adjoint.add_comm_group,
   ..self_adjoint.has_one,
   ..self_adjoint.has_mul }

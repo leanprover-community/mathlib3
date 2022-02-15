@@ -29,7 +29,7 @@ set_option old_structure_cmd true
 class has_nat_cast_aux (α : Type*) :=
 (nat_cast : ℕ → α)
 
-/-- Canonical homomorphism from `ℕ` to a type `α` with `0`, `1` and `+`. -/
+/-- Canonical homomorphism from `ℕ` to a additive monoid `α` with a `1`. -/
 protected def nat.cast {α : Type*} [has_nat_cast_aux α] : ℕ → α := has_nat_cast_aux.nat_cast
 
 class has_nat_cast (α : Type*) extends add_monoid α, has_one α, has_nat_cast_aux α :=
@@ -101,7 +101,12 @@ by rw [cast_succ, cast_zero, zero_add]
 @[simp, norm_cast] theorem cast_add [has_nat_cast α] (m n : ℕ) : ((m + n : ℕ) : α) = m + n :=
 by induction n; simp [add_succ, add_assoc, nat.add_zero, *]
 
-/-- Computationally friendlier cast than `nat.cast`, using binary representation. -/
+/-- The numeral `((0+1)+⋯)+1`. -/
+protected def unary_cast [has_one α] [has_zero α] [has_add α] : ℕ → α
+| 0 := 0
+| (n + 1) := unary_cast n + 1
+
+/-- Computationally friendlier cast than `nat.unary_cast`, using binary representation. -/
 protected def bin_cast [has_zero α] [has_one α] [has_add α] (n : ℕ) : α :=
 @nat.binary_rec (λ _, α) 0 (λ odd k a, cond odd (a + a + 1) (a + a)) n
 
@@ -136,3 +141,20 @@ eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 | (n+1) h := by rw [cast_succ, add_sub_cancel]; refl
 
 end nat
+
+@[reducible] def has_nat_cast.unary {α : Type*} [add_monoid α] [has_one α] : has_nat_cast α :=
+{ nat_cast := nat.unary_cast,
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ _, rfl,
+  .. ‹has_one α›, .. ‹add_monoid α› }
+
+@[reducible] def has_nat_cast.binary {α : Type*} [add_monoid α] [has_one α] : has_nat_cast α :=
+{ nat_cast := nat.bin_cast,
+  nat_cast_zero := by simp [nat.bin_cast, nat.cast],
+  nat_cast_succ := λ n, begin
+    simp only [nat.cast],
+    letI : has_nat_cast α := has_nat_cast.unary,
+    erw [nat.bin_cast_eq, nat.bin_cast_eq, nat.cast_succ],
+    refl,
+  end,
+  .. ‹has_one α›, .. ‹add_monoid α› }

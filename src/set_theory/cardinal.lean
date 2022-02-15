@@ -341,16 +341,14 @@ induction_on a $ assume α, (equiv.punit_arrow_equiv α).cardinal_eq
 theorem power_add {a b c : cardinal} : a ^ (b + c) = a ^ b * a ^ c :=
 induction_on₃ a b c $ assume α β γ, (equiv.sum_arrow_equiv_prod_arrow β γ α).cardinal_eq
 
-instance : has_nat_cast cardinal.{u} :=
+instance : add_monoid cardinal.{u} :=
 { zero          := 0,
-  one           := 1,
   add           := (+),
   zero_add      := cardinal.zero_add,
   add_zero      := assume a, by rw [cardinal.add_comm a 0, cardinal.zero_add a],
-  add_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.sum_assoc α β γ),
-  nat_cast      := λ n, nat.rec_on n 0 (λ _ a, a + 1),
-  nat_cast_zero := rfl,
-  nat_cast_succ := λ n, rfl }
+  add_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.sum_assoc α β γ) }
+
+instance : has_nat_cast cardinal.{u} := has_nat_cast.unary
 
 instance : comm_semiring cardinal.{u} :=
 { zero          := 0,

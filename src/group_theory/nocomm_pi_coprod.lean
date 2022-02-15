@@ -8,34 +8,37 @@ import data.finset.noncomm_prod
 import data.fintype.card
 
 /-!
-# Canonical homomorphism from a pi monoid
+# Canonical homomorphism from a finite family of monoids
 
 This file defines the construction of the canoncial homomorphism from a family of monoids.
 
 Given a family of morphisms `ϕ i : N i →* M` for each `i : I` where elements in the
 image of different morphism commute, we obtain a canoncial morphism
-`pi_hom.hom : (Π (i : I), N i) →* M` that coincides with `ϕ`
+`monoid_hom.noncomm_pi_coprod : (Π (i : I), N i) →* M` that coincides with `ϕ`
 
 ## Main definitions
 
-* `pi_hom.hom : (Π (i : I), N i) →* M` is the main homomorphism
-* `pi_hom_restr.hom (S : finset S) : (Π (i : I), N i) →* M` is the homomorphism restricted to the
-   set `S`, and mostly of internal interest in this file, to allow inductive proofs.
-* `subgroup_pi_hom.hom : (Π (i : I), H i) →* G` is the specialization to `H i : subgroup G` and
-   the subgroup embedding.
+* `monoid_hom.noncomm_pi_coprod : (Π (i : I), N i) →* M` is the main homomorphism
+* `noncomm_pi_coprod_on.hom (S : finset S) : (Π (i : I), N i) →* M` is the homomorphism
+   restricted to the set `S`, and mostly of internal interest in this file, to allow inductive
+   proofs (and thus in its own namespace).
+* `subgroup.noncomm_pi_coprod : (Π (i : I), H i) →* G` is the specialization to `H i : subgroup G`
+   and the subgroup embedding.
 
 ## Main theorems
 
-* `pi_hom.hom` conicides with `ϕ i` when restricted to `N i`
-* `pi_hom.mrange`: The range of `pi_hom.hom` is `⨆ (i : I), (ϕ i).mrange`
-* `pi_hom.range`: The range of `pi_hom.hom` is `⨆ (i : I), (ϕ i).range`
-* The range of `subgroup_pi_hom.hom` is `⨆ (i : I), H i`
-* `pi_hom.injective_of_independent`: in the case of groups, `pi_hom.hom` is injective if the `ϕ`
-   are injective and the ranges of the `ϕ` are independent.
-* `pi_hom.independent_range_of_coprime_order`: If the `N i` have coprime orders, then the ranges are
-   independent.
-* `independent_of_coprime_order`: If commuting, normal subgroups `H i` have coprime orders, they are
-   independent.
+* `monoid_hom.noncomm_pi_coprod` conicides with `ϕ i` when restricted to `N i`
+* `monoid_hom.noncomm_pi_coprod_mrange`: The range of `monoid_hom.noncomm_pi_coprod` is
+  `⨆ (i : I), (ϕ i).mrange`
+* `monoid_hom.noncomm_pi_coprod_range`: The range of `monoid_hom.noncomm_pi_coprod` is
+  `⨆ (i : I), (ϕ i).range`
+* `subgroup.noncomm_pi_coprod_range`: The range of `subgroup.noncomm_pi_coprod` is `⨆ (i : I), H i`.
+* `monoid_hom.injective_noncomm_pi_coprod_of_independent`: in the case of groups, `pi_hom.hom` is
+   injective if the `ϕ` are injective and the ranges of the `ϕ` are independent.
+* `monid_hom.independent_range_of_coprime_order`: If the `N i` have coprime orders, then the ranges
+   of the `ϕ` are independent.
+* `subgroup.independent_of_coprime_order`: If commuting, normal subgroups `H i` have coprime orders,
+   they are independent.
 
 -/
 
@@ -84,7 +87,7 @@ include hcomm
 -- We use `f` and `g` to denote elements of `Π (i : I), N i`
 variables (f g : Π (i : I), N i)
 
-namespace pi_hom_restr
+namespace noncomm_pi_coprod_on
 
 -- In this section, we restrict the hom to a set S
 variables (S : finset I)
@@ -154,7 +157,8 @@ end
 
 variable (hcomm)
 
-/-- The canonical homomorphism from a pi group, restricted to a subset  -/
+/-- The canonical homomorphism from a family of monoids, restricted to a subset of the index space.
+-/
 def hom : (Π (i : I), N i) →* M :=
 { to_fun := λ f, to_fun ϕ hcomm f S,
   map_one' := to_fun_one ϕ _,
@@ -189,27 +193,31 @@ begin
     simp [hmem], }
 end
 
-end pi_hom_restr
+end noncomm_pi_coprod_on
 
-namespace pi_hom
+namespace monoid_hom
 
 include hfin
 
 variable (hcomm)
 
-/-- The canonical homomorphism from a pi group -/
-def hom : (Π (i : I), N i) →* M := pi_hom_restr.hom ϕ hcomm finset.univ
+/-- The canonical homomorphism from a family of monoids. -/
+def noncomm_pi_coprod : (Π (i : I), N i) →* M := noncomm_pi_coprod_on.hom ϕ hcomm finset.univ
 
 variable {hcomm}
 
 @[simp]
-lemma hom_single (i : I) (y : N i): hom ϕ hcomm (monoid_hom.single _ i y) = ϕ i y :=
-by { show pi_hom_restr.hom ϕ hcomm finset.univ (monoid_hom.single _ i y) = ϕ i y, simp }
+lemma noncomm_pi_coprod_single (i : I) (y : N i):
+  noncomm_pi_coprod ϕ hcomm (monoid_hom.single _ i y) = ϕ i y :=
+by { show noncomm_pi_coprod_on.hom ϕ hcomm finset.univ (monoid_hom.single _ i y) = ϕ i y, simp }
 
-lemma mrange : (hom ϕ hcomm).mrange = ⨆ i : I, (ϕ i).mrange :=
-by { show (pi_hom_restr.hom ϕ hcomm finset.univ).mrange = _, simp [pi_hom_restr.mrange] }
+lemma noncomm_pi_coprod_mrange : (noncomm_pi_coprod ϕ hcomm).mrange = ⨆ i : I, (ϕ i).mrange :=
+begin
+  show (noncomm_pi_coprod_on.hom ϕ hcomm finset.univ).mrange = _,
+  simp [noncomm_pi_coprod_on.mrange],
+end
 
-end pi_hom
+end monoid_hom
 
 end family_of_monoids
 
@@ -225,26 +233,26 @@ include hcomm
 -- We use `f` and `g` to denote elements of `Π (i : I), H i`
 variables (f g : Π (i : I), H i)
 
--- The subgroup version of to_fun_in_sup_mrange
-lemma pi_hom_restr.to_fun_in_sup_range (S : finset I) :
-  pi_hom_restr.to_fun ϕ hcomm f S ∈ ⨆ i ∈ S, (ϕ i).range :=
+-- The subgroup version of `noncomm_pi_coprod_on.to_fun_in_sup_mrange`
+lemma noncomm_pi_coprod_on.to_fun_in_sup_range (S : finset I) :
+  noncomm_pi_coprod_on.to_fun ϕ hcomm f S ∈ ⨆ i ∈ S, (ϕ i).range :=
 begin
   induction S using finset.induction_on with i S hnmem ih,
   { simp, },
-  { simp only [pi_hom_restr.to_fun_insert_of_not_mem _ _ _ _ hnmem],
+  { simp only [noncomm_pi_coprod_on.to_fun_insert_of_not_mem _ _ _ _ hnmem],
     refine (subgroup.mul_mem _ _ _),
     { apply subgroup.mem_Sup_of_mem, { use i }, { simp, }, },
     { refine @bsupr_le_bsupr' _ _ _ _ _ _ (λ i, (ϕ i).range) _ ih,
       exact λ i, finset.mem_insert_of_mem } }
 end
 
--- The subgroup version of pi_hom_restr.mrange
-lemma pi_hom_restr.range (S : finset I) :
-  (pi_hom_restr.hom ϕ hcomm S).range = ⨆ i ∈ S, (ϕ i).range :=
+-- The subgroup version of `noncomm_pi_coprod_on.mrange`
+lemma noncomm_pi_coprod_on.range (S : finset I) :
+  (noncomm_pi_coprod_on.hom ϕ hcomm S).range = ⨆ i ∈ S, (ϕ i).range :=
 begin
   apply le_antisymm,
   { rintro x ⟨f, rfl⟩,
-    exact (pi_hom_restr.to_fun_in_sup_range ϕ f S), },
+    exact (noncomm_pi_coprod_on.to_fun_in_sup_range ϕ f S), },
   { refine (bsupr_le _),
     rintro i hmem x ⟨y, rfl⟩,
     use (monoid_hom.single _ i y),
@@ -253,32 +261,36 @@ end
 
 include hfin
 
-namespace pi_hom
+namespace monoid_hom
 
--- The subgroup version of pi_hom.mrange
-lemma range : (pi_hom.hom ϕ hcomm).range = ⨆ i : I, (ϕ i).range :=
-by { show (pi_hom_restr.hom ϕ hcomm finset.univ).range = _, simp [pi_hom_restr.range] }
+-- The subgroup version of `noncomm_pi_coprod_on_mrange`
+lemma noncomm_pi_coprod_range : (noncomm_pi_coprod ϕ hcomm).range = ⨆ i : I, (ϕ i).range :=
+begin
+  show (noncomm_pi_coprod_on.hom ϕ hcomm finset.univ).range = _,
+  simp [noncomm_pi_coprod_on.range]
+end
 
-lemma injective_of_independent
+lemma injective_noncomm_pi_coprod_of_independent
   (hind : complete_lattice.independent (λ i, (ϕ i).range))
   (hinj : ∀ i, function.injective (ϕ i)) :
-  function.injective (pi_hom.hom ϕ hcomm):=
+  function.injective (noncomm_pi_coprod ϕ hcomm):=
 begin
   apply (monoid_hom.ker_eq_bot_iff _).mp,
   apply eq_bot_iff.mpr,
   intro f,
-  show pi_hom_restr.to_fun ϕ hcomm f finset.univ = 1 → f = 1,
-  suffices : pi_hom_restr.to_fun ϕ hcomm f finset.univ = 1 → (∀ (i : I), i ∈ finset.univ → f i = 1),
+  show noncomm_pi_coprod_on.to_fun ϕ hcomm f finset.univ = 1 → f = 1,
+  suffices : noncomm_pi_coprod_on.to_fun ϕ hcomm f finset.univ = 1 →
+    (∀ (i : I), i ∈ finset.univ → f i = 1),
   by exact (λ h, funext (λ (i : I), this h i (finset.mem_univ i))),
   induction (finset.univ : finset I) using finset.induction_on with i S hnmem ih,
   { simp },
   { intro heq1,
-    simp only [ pi_hom_restr.to_fun_insert_of_not_mem _ _ _ _ hnmem] at heq1,
+    simp only [ noncomm_pi_coprod_on.to_fun_insert_of_not_mem _ _ _ _ hnmem] at heq1,
     have hnmem' : i ∉ (S : set I), by simpa,
-    have heq1' : ϕ i (f i) = 1 ∧ pi_hom_restr.to_fun ϕ hcomm f S = 1,
+    have heq1' : ϕ i (f i) = 1 ∧ noncomm_pi_coprod_on.to_fun ϕ hcomm f S = 1,
     { apply mul_eq_one_iff_disjoint.mp (hind.disjoint_bsupr hnmem') _ _ heq1,
       { simp, },
-      { apply pi_hom_restr.to_fun_in_sup_range, }, },
+      { apply noncomm_pi_coprod_on.to_fun_in_sup_range, }, },
     rcases heq1' with ⟨ heq1i, heq1S ⟩,
     specialize ih heq1S,
     intros i h,
@@ -294,7 +306,7 @@ lemma independent_range_of_coprime_order [∀ i, fintype (H i)]
   complete_lattice.independent (λ i, (ϕ i).range) :=
 begin
   rintros i f ⟨hxi, hxp⟩, dsimp at hxi hxp,
-  rw [supr_subtype', ← @pi_hom.range _ _ _ _ _ _ _ _] at hxp,
+  rw [supr_subtype', ← @noncomm_pi_coprod_range _ _ _ _ _ _ _ _] at hxp,
   rotate, apply_instance,
   { intros _ _ hj, apply hcomm, exact hj ∘ subtype.ext },
   cases hxp with g hgf, cases hxi with g' hg'f,
@@ -307,13 +319,11 @@ begin
   apply coprime_prod_left, intros j _, apply hcoprime, exact j.2,
 end
 
-end pi_hom
+end monoid_hom
 
 end family_of_groups
 
-namespace subgroup_pi_hom
-
-section subgroup_pi_hom
+namespace subgroup
 
 -- We have an family of subgroups
 variables {G : Type*} [group G]
@@ -335,22 +345,23 @@ by { rintros ⟨x, hx⟩ ⟨y, hy⟩, exact hcomm i j hne x y hx hy }
 include hfin
 
 /-- The canonical homomorphism from a pi group of subgroups -/
-def hom : (Π (i : I), H i) →* G :=
-  pi_hom.hom (λ i, (H i).subtype) (hcomm_subtype hcomm)
+def noncomm_pi_coprod : (Π (i : I), H i) →* G :=
+  monoid_hom.noncomm_pi_coprod (λ i, (H i).subtype) (hcomm_subtype hcomm)
 
 variable {hcomm}
 
 @[simp]
-lemma hom_single (i : I) (y : H i): hom hcomm (monoid_hom.single _ i y) = y :=
-by apply pi_hom.hom_single
+lemma noncomm_pi_coprod_single (i : I) (y : H i) :
+  noncomm_pi_coprod hcomm (monoid_hom.single _ i y) = y :=
+by apply monoid_hom.noncomm_pi_coprod_single
 
-lemma range : (hom hcomm).range = ⨆ i : I, H i :=
-by simp [hom, pi_hom.range]
+lemma range : (noncomm_pi_coprod hcomm).range = ⨆ i : I, H i :=
+by simp [noncomm_pi_coprod, monoid_hom.noncomm_pi_coprod_range]
 
 lemma injective_of_independent (hind : complete_lattice.independent H) :
-  function.injective (hom hcomm) :=
+  function.injective (noncomm_pi_coprod hcomm) :=
 begin
-  apply pi_hom.injective_of_independent,
+  apply monoid_hom.injective_noncomm_pi_coprod_of_independent,
   { simpa using hind },
   { intro i, exact subtype.coe_injective }
 end
@@ -359,12 +370,10 @@ lemma _root_.independent_of_coprime_order [∀ i, fintype (H i)]
   (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j))) :
   complete_lattice.independent H :=
 begin
-  simpa using
-    pi_hom.independent_range_of_coprime_order (λ i, (H i).subtype) (hcomm_subtype hcomm) hcoprime,
+  simpa using monoid_hom.independent_range_of_coprime_order
+    (λ i, (H i).subtype) (hcomm_subtype hcomm) hcoprime,
 end
 
 end commuting_subgroups
 
-end subgroup_pi_hom
-
-end subgroup_pi_hom
+end subgroup

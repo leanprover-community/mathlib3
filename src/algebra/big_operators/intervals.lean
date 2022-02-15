@@ -25,22 +25,25 @@ section generic
 variables {α : Type u} {β : Type v} {γ : Type w} {s₂ s₁ s : finset α} {a : α}
   {g f : α → β}
 
-lemma sum_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
-  [locally_finite_order α] [add_comm_monoid β] (f : α → β) (a b c : α) :
-  (∑ x in Ico a b, f (c + x)) = (∑ x in Ico (a + c) (b + c), f x) :=
+variables [comm_monoid β]
+
+@[to_additive]
+lemma prod_Ico_add' [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
+  [locally_finite_order α] (f : α → β) (a b c : α) :
+  (∏ x in Ico a b, f (x + c)) = (∏ x in Ico (a + c) (b + c), f x) :=
 begin
   classical,
-  rw [←image_add_right_Ico, sum_image (λ x hx y hy h, add_right_cancel h)],
-  simp_rw add_comm,
+  rw [←image_add_right_Ico, prod_image (λ x hx y hy h, add_right_cancel h)],
 end
 
 @[to_additive]
 lemma prod_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
-  [locally_finite_order α] [comm_monoid β] (f : α → β) (a b c : α) :
+  [locally_finite_order α] (f : α → β) (a b c : α) :
   (∏ x in Ico a b, f (c + x)) = (∏ x in Ico (a + c) (b + c), f x) :=
-@sum_Ico_add _ (additive β) _ _ _ _ f a b c
-
-variables [comm_monoid β]
+begin
+  convert prod_Ico_add' f a b c,
+  simp_rw add_comm,
+end
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=

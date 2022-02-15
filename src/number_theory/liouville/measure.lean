@@ -3,16 +3,16 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import measure_theory.measure.lebesgue
-import number_theory.liouville.residual
-import number_theory.liouville.liouville_with
 import analysis.p_series
+import measure.measure.lebesgue
+import number_theory.liouville.liouville_with
+import number_theory.liouville.residual
 
 /-!
 # Volume of the set of Liouville numbers
 
 In this file we prove that the set of Liouville numbers with exponent (irrationality measure)
-strictly greater than two is a set of Lebesuge measure zero, see
+strictly greater than two is a set of Lebesgue measure zero, see
 `volume_Union_set_of_liouville_with`.
 
 Since this set is a residual set, we show that the filters `residual` and `volume.ae` are disjoint.

@@ -3,8 +3,8 @@ Copyright (c) 2021 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.constructions.borel_space
-import measure_theory.function.l1_space
+import measure.constructions.borel_space
+import measure.function.l1_space
 
 /-!
 # Filtration and stopping time

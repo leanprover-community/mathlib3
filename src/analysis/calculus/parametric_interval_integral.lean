@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.parametric_integral
-import measure_theory.integral.interval_integral
+import measure.integral.interval_integral
 
 /-!
 # Derivatives of interval integrals depending on parameters

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.convex.function
-import measure_theory.integral.set_integral
+import measure.integral.set_integral
 
 /-!
 # Jensen's inequality for integrals

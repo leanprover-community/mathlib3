@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import algebra.big_operators.intervals
-import measure_theory.measure.measure_space
-import measure_theory.pi_system
+import measure.measure.measure_space
+import measure.pi_system
 
 /-!
 # Independence of sets of sets and measure spaces (σ-algebras)

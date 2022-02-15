@@ -11,17 +11,18 @@ import data.list.chain
 This file proves theorems about `list.destutter` (in `data.list.defs`), which greedily removes all
 non-related items that are adjacent in a list, e.g. `[2, 2, 3, 3, 2].destutter (≠) = [2, 3, 2]`.
 Note that we make no guarantees of being the longest sublist with this property; e.g.,
-`[123,1,2,5,543,1000].destutter (<) = [123, 543, 1000]`, but a longer ascending chain could be
-`[1,2,5,543,1000]`.
+`[123, 1, 2, 5, 543, 1000].destutter (<) = [123, 543, 1000]`, but a longer ascending chain could be
+`[1, 2, 5, 543, 1000]`.
 
 ## Main statements
 
 * `list.destutter_sublist`: `l.destutter` is a sublist of `l`.
 * `list.destutter_is_chain'`: `l.destutter` satisfies `chain' R`.
+* Analogies of these theorems for `list.destutter'`, which is the `destutter` equivalent of `chain`.
 
 ## Tags
 
-adjacent, chain, duplicates, remove, list
+adjacent, chain, duplicates, remove, list, stutter, destutter
 -/
 
 variables {α : Type*} (l : list α) (R : α → α → Prop) [decidable_rel R] {a b : α}

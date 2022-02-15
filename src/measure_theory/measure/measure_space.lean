@@ -708,7 +708,7 @@ this way since, to prove `μ ≤ ν`, we may simply `intros s hs` instead of rew
 by `intros s hs`. -/
 instance [measurable_space α] : partial_order (measure α) :=
 { le          := λ m₁ m₂, ∀ s, measurable_set s → m₁ s ≤ m₂ s,
-  le_refl     := assume m s hs, le_refl _,
+  le_refl     := assume m s hs, le_rfl,
   le_trans    := assume m₁ m₂ m₃ h₁ h₂ s hs, le_trans (h₁ s hs) (h₂ s hs),
   le_antisymm := assume m₁ m₂ h₁ h₂, ext $
     assume s hs, le_antisymm (h₁ s hs) (h₂ s hs) }
@@ -928,12 +928,39 @@ lemma restrict_apply₀ (ht : null_measurable_set t (μ.restrict s)) :
 @[simp] lemma restrict_apply (ht : measurable_set t) : μ.restrict s t = μ (t ∩ s) :=
 restrict_apply₀ ht.null_measurable_set
 
+/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
+lemma restrict_mono' {m0 : measurable_space α} ⦃s s' : set α⦄ ⦃μ ν : measure α⦄
+  (hs : s ≤ᵐ[μ] s') (hμν : μ ≤ ν) :
+  μ.restrict s ≤ ν.restrict s' :=
+assume t ht,
+calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
+... ≤ μ (t ∩ s') : measure_mono_ae $ hs.mono $ λ x hx ⟨hxt, hxs⟩, ⟨hxt, hx hxs⟩
+... ≤ ν (t ∩ s') : le_iff'.1 hμν (t ∩ s')
+... = ν.restrict s' t : (restrict_apply ht).symm
+
+/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
+@[mono] lemma restrict_mono {m0 : measurable_space α} ⦃s s' : set α⦄ (hs : s ⊆ s') ⦃μ ν : measure α⦄
+  (hμν : μ ≤ ν) :
+  μ.restrict s ≤ ν.restrict s' :=
+restrict_mono' (ae_of_all _ hs) hμν
+
+lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
+restrict_mono' h (le_refl μ)
+
+lemma restrict_congr_set (h : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
+le_antisymm (restrict_mono_ae h.le) (restrict_mono_ae h.symm.le)
+
 /-- If `s` is a measurable set, then the outer measure of `t` with respect to the restriction of
 the measure to `s` equals the outer measure of `t ∩ s`. This is an alternate version of
 `measure.restrict_apply`, requiring that `s` is measurable instead of `t`. -/
 @[simp] lemma restrict_apply' (hs : measurable_set s) : μ.restrict s t = μ (t ∩ s) :=
 by rw [← coe_to_outer_measure, measure.restrict_to_outer_measure_eq_to_outer_measure_restrict hs,
       outer_measure.restrict_apply s t _, coe_to_outer_measure]
+
+lemma restrict_apply₀' (hs : null_measurable_set s μ) : μ.restrict s t = μ (t ∩ s) :=
+by rw [← restrict_congr_set hs.to_measurable_ae_eq,
+  restrict_apply' (measurable_set_to_measurable _ _),
+  measure_congr ((ae_eq_refl t).inter hs.to_measurable_ae_eq)]
 
 lemma restrict_le_self : μ.restrict s ≤ μ :=
 assume t ht,
@@ -979,9 +1006,14 @@ lemma restrict_apply_superset (h : s ⊆ t) : μ.restrict s t = μ s :=
   (c • μ).restrict s = c • μ.restrict s :=
 (restrictₗ s).map_smul c μ
 
+lemma restrict_restrict₀ (hs : null_measurable_set s (μ.restrict t)) :
+  (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
+ext $ λ u hu, by simp only [set.inter_assoc, restrict_apply hu,
+  restrict_apply₀ (hu.null_measurable_set.inter hs)]
+
 @[simp] lemma restrict_restrict (hs : measurable_set s) :
   (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
-ext $ λ u hu, by simp [*, set.inter_assoc]
+restrict_restrict₀ hs.null_measurable_set
 
 lemma restrict_restrict_of_subset (h : s ⊆ t) :
   (μ.restrict t).restrict s = μ.restrict s :=
@@ -991,9 +1023,13 @@ begin
   exact (inter_subset_right _ _).trans h
 end
 
+lemma restrict_restrict₀' (ht : null_measurable_set t μ) :
+  (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
+ext $ λ u hu, by simp only [restrict_apply hu, restrict_apply₀' ht, inter_assoc]
+
 lemma restrict_restrict' (ht : measurable_set t) :
   (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
-ext $ λ u hu, by simp [*, set.inter_assoc]
+restrict_restrict₀' ht.null_measurable_set
 
 lemma restrict_comm (hs : measurable_set s) :
   (μ.restrict t).restrict s = (μ.restrict s).restrict t :=
@@ -1013,7 +1049,7 @@ by rw [← measure_univ_eq_zero, restrict_apply_univ]
 
 lemma restrict_zero_set {s : set α} (h : μ s = 0) :
   μ.restrict s = 0 :=
-by rw [measure.restrict_eq_zero, h]
+restrict_eq_zero.2 h
 
 @[simp] lemma restrict_empty : μ.restrict ∅ = 0 := restrict_zero_set measure_empty
 
@@ -1067,18 +1103,18 @@ end
 
 lemma restrict_Union_apply_ae [encodable ι] {s : ι → set α}
   (hd : pairwise (ae_disjoint μ on s))
-  (hm : ∀ i, measurable_set (s i)) {t : set α} (ht : measurable_set t) :
+  (hm : ∀ i, null_measurable_set (s i) μ) {t : set α} (ht : measurable_set t) :
   μ.restrict (⋃ i, s i) t = ∑' i, μ.restrict (s i) t :=
 begin
   simp only [restrict_apply, ht, inter_Union],
   exact measure_Union₀ (hd.mono $ λ i j h, h.mono (inter_subset_right _ _) (inter_subset_right _ _))
-    (λ i, (ht.inter (hm i)).null_measurable_set)
+    (λ i, (ht.null_measurable_set.inter (hm i)))
 end
 
 lemma restrict_Union_apply [encodable ι] {s : ι → set α} (hd : pairwise (disjoint on s))
   (hm : ∀ i, measurable_set (s i)) {t : set α} (ht : measurable_set t) :
   μ.restrict (⋃ i, s i) t = ∑' i, μ.restrict (s i) t :=
-restrict_Union_apply_ae (hd.mono $ λ i j h, h.ae_disjoint) hm ht
+restrict_Union_apply_ae (hd.mono $ λ i j h, h.ae_disjoint) (λ i, (hm i).null_measurable_set) ht
 
 lemma restrict_Union_apply_eq_supr [encodable ι] {s : ι → set α}
   (hd : directed (⊆) s) {t : set α} (ht : measurable_set t) :
@@ -1092,28 +1128,6 @@ end
 lemma restrict_map {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   (map f μ).restrict s = map f (μ.restrict $ f ⁻¹' s) :=
 ext $ λ t ht, by simp [*, hf ht]
-
-/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
-lemma restrict_mono' {m0 : measurable_space α} ⦃s s' : set α⦄ ⦃μ ν : measure α⦄
-  (hs : s ≤ᵐ[μ] s') (hμν : μ ≤ ν) :
-  μ.restrict s ≤ ν.restrict s' :=
-assume t ht,
-calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
-... ≤ μ (t ∩ s') : measure_mono_ae $ hs.mono $ λ x hx ⟨hxt, hxs⟩, ⟨hxt, hx hxs⟩
-... ≤ ν (t ∩ s') : le_iff'.1 hμν (t ∩ s')
-... = ν.restrict s' t : (restrict_apply ht).symm
-
-/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
-@[mono] lemma restrict_mono {m0 : measurable_space α} ⦃s s' : set α⦄ (hs : s ⊆ s') ⦃μ ν : measure α⦄
-  (hμν : μ ≤ ν) :
-  μ.restrict s ≤ ν.restrict s' :=
-restrict_mono' (ae_of_all _ hs) hμν
-
-lemma restrict_mono_ae (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
-restrict_mono' h (le_refl μ)
-
-lemma restrict_congr_set (h : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
-le_antisymm (restrict_mono_ae h.le) (restrict_mono_ae h.symm.le)
 
 lemma restrict_to_measurable (h : μ s ≠ ∞) : μ.restrict (to_measurable μ s) = μ.restrict s :=
 ext $ λ t ht, by rw [restrict_apply ht, restrict_apply ht, inter_comm,
@@ -1420,8 +1434,8 @@ by simpa using (map_eq_sum μ id measurable_id).symm
 omit m0
 end sum
 
-lemma restrict_Union_ae [encodable ι] {s : ι → set α} (hd : pairwise (λ i j, μ (s i ∩ s j) = 0))
-  (hm : ∀ i, measurable_set (s i)) :
+lemma restrict_Union_ae [encodable ι] {s : ι → set α} (hd : pairwise (ae_disjoint μ on s))
+  (hm : ∀ i, null_measurable_set (s i) μ) :
   μ.restrict (⋃ i, s i) = sum (λ i, μ.restrict (s i)) :=
 ext $ λ t ht, by simp only [sum_apply _ ht, restrict_Union_apply_ae hd hm ht]
 
@@ -2039,6 +2053,11 @@ begin
   refine le_trans (measure_bUnion_le h _) _,
   simp
 end
+
+lemma _root_.set.countable.ae_not_mem {α : Type*} {m : measurable_space α} {s : set α}
+  (h : countable s) (μ : measure α) [has_no_atoms μ] :
+  ∀ᵐ x ∂μ, x ∉ s :=
+by simpa only [ae_iff, not_not] using h.measure_zero μ
 
 lemma _root_.set.finite.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
   (h : s.finite) (μ : measure α) [has_no_atoms μ] : μ s = 0 :=
@@ -2715,7 +2734,7 @@ begin
 end
 
 lemma sub_le : μ - ν ≤ μ :=
-Inf_le (measure.le_add_right (le_refl _))
+Inf_le (measure.le_add_right le_rfl)
 
 end measure_sub
 
@@ -2767,7 +2786,7 @@ begin
     apply exists.intro (t.restrict s), split,
     { rw [set.mem_set_of_eq, ← restrict_add],
       apply restrict_mono (set.subset.refl _) h_t_in },
-    { apply le_refl _ } },
+    { exact le_rfl } },
 end
 
 lemma sub_apply_eq_zero_of_restrict_le_restrict

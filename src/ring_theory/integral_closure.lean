@@ -28,7 +28,7 @@ Let `R` be a `comm_ring` and let `A` be an R-algebra.
 -/
 
 open_locale classical
-open_locale big_operators
+open_locale big_operators polynomial
 open polynomial submodule
 
 section ring
@@ -36,9 +36,9 @@ variables {R S A : Type*}
 variables [comm_ring R] [ring A] [ring S] (f : R →+* S)
 
 /-- An element `x` of `A` is said to be integral over `R` with respect to `f`
-if it is a root of a monic polynomial `p : polynomial R` evaluated under `f` -/
+if it is a root of a monic polynomial `p : R[X]` evaluated under `f` -/
 def ring_hom.is_integral_elem (f : R →+* A) (x : A) :=
-∃ p : polynomial R, monic p ∧ eval₂ f x p = 0
+∃ p : R[X], monic p ∧ eval₂ f x p = 0
 
 /-- A ring homomorphism `f : R →+* A` is said to be integral
 if every element `A` is integral with respect to the map `f` -/
@@ -48,7 +48,7 @@ def ring_hom.is_integral (f : R →+* A) :=
 variables [algebra R A] (R)
 
 /-- An element `x` of an algebra `A` over a commutative ring `R` is said to be *integral*,
-if it is a root of some monic polynomial `p : polynomial R`.
+if it is a root of some monic polynomial `p : R[X]`.
 Equivalently, the element is integral over `R` with respect to the induced `algebra_map` -/
 def is_integral (x : A) : Prop :=
 (algebra_map R A).is_integral_elem x
@@ -70,7 +70,7 @@ theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
 theorem is_integral_of_noetherian (H : is_noetherian R A) (x : A) :
   is_integral R x :=
 begin
-  let leval : (polynomial R →ₗ[R] A) := (aeval x).to_linear_map,
+  let leval : (R[X] →ₗ[R] A) := (aeval x).to_linear_map,
   let D : ℕ → submodule R A := λ n, (degree_le R n).map leval,
   let M := well_founded.min (is_noetherian_iff_well_founded.1 H)
     (set.range D) ⟨_, ⟨0, rfl⟩⟩,
@@ -462,11 +462,11 @@ end
 
 section
 
-variables (p : polynomial R) (x : S)
+variables (p : R[X]) (x : S)
 
 /--  The monic polynomial whose roots are `p.leading_coeff * x` for roots `x` of `p`. -/
 noncomputable
-def normalize_scale_roots (p : polynomial R) : polynomial R :=
+def normalize_scale_roots (p : R[X]) : R[X] :=
 ∑ i in p.support, monomial i
   (if i = p.nat_degree then 1 else p.coeff i * p.leading_coeff ^ (p.nat_degree - 1 - i))
 
@@ -485,7 +485,7 @@ begin
     exact ⟨le_nat_degree_of_ne_zero h₁, h₂⟩, },
 end
 
-lemma leading_coeff_smul_normalize_scale_roots (p : polynomial R) :
+lemma leading_coeff_smul_normalize_scale_roots (p : R[X]) :
   p.leading_coeff • normalize_scale_roots p = scale_roots p p.leading_coeff :=
 begin
   ext,
@@ -542,7 +542,7 @@ begin
   exact λ h', (h h').rec _,
 end
 
-/-- Given a `p : polynomial R` and a `x : S` such that `p.eval₂ f x = 0`,
+/-- Given a `p : R[X]` and a `x : S` such that `p.eval₂ f x = 0`,
 `f p.leading_coeff * x` is integral. -/
 lemma ring_hom.is_integral_elem_leading_coeff_mul (h : p.eval₂ f x = 0) :
   f.is_integral_elem (f p.leading_coeff * x) :=
@@ -564,7 +564,7 @@ begin
       rw [eq_C_of_nat_degree_eq_zero h', map_C, h, C_eq_zero] } }
 end
 
-/-- Given a `p : polynomial R` and a root `x : S`,
+/-- Given a `p : R[X]` and a root `x : S`,
 then `p.leading_coeff • x : S` is integral over `R`. -/
 lemma is_integral_leading_coeff_smul [algebra R S] (h : aeval x p = 0) :
   is_integral R (p.leading_coeff • x) :=
@@ -684,7 +684,7 @@ variables {R A B S T : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B] [comm_ring S] [comm_ring T]
 variables [algebra A B] [algebra R B] (f : R →+* S) (g : S →+* T)
 
-lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : aeval x p = 0) :
+lemma is_integral_trans_aux (x : B) {p : A[X]} (pmonic : monic p) (hp : aeval x p = 0) :
   is_integral (adjoin R (↑(p.map $ algebra_map A B).frange : set B)) x :=
 begin
   generalize hS : (↑(p.map $ algebra_map A B).frange : set B) = S,
@@ -693,7 +693,7 @@ begin
     { rw hi, exact subalgebra.zero_mem _ },
     rw ← hS,
     exact subset_adjoin (coeff_mem_frange _ _ hi) },
-  obtain ⟨q, hq⟩ : ∃ q : polynomial (adjoin R S), q.map (algebra_map (adjoin R S) B) =
+  obtain ⟨q, hq⟩ : ∃ q : (adjoin R S)[X], q.map (algebra_map (adjoin R S) B) =
       (p.map $ algebra_map A B),
   { rw ← set.mem_range, exact (polynomial.mem_map_range _).2 (λ i, ⟨⟨_, coeffs_mem i⟩, rfl⟩) },
   use q,
@@ -821,7 +821,7 @@ begin
   -- then we need to show that `a_inv` is of the form `algebra_map R S b`.
   obtain ⟨a_inv, ha_inv⟩ := hS.mul_inv_cancel (λ h, ha (hRS (trans h (ring_hom.map_zero _).symm))),
 
-  -- Let `p : polynomial R` be monic with root `a_inv`,
+  -- Let `p : R[X]` be monic with root `a_inv`,
   -- and `q` be `p` with coefficients reversed (so `q(a) = q'(a) * a + 1`).
   -- We claim that `q(a) = 0`, so `-q'(a)` is the inverse of `a`.
   obtain ⟨p, p_monic, hp⟩ := H a_inv,
@@ -846,7 +846,7 @@ begin
   -- TODO: we could use a lemma for `polynomial.div_X` here.
   rw [finset.sum_range_succ_comm, p_monic.coeff_nat_degree, one_mul, tsub_self, pow_zero,
       add_eq_zero_iff_eq_neg, eq_comm] at hq,
-  rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
+  rw [mul_comm, neg_mul, finset.sum_mul],
   convert hq using 2,
   refine finset.sum_congr rfl (λ i hi, _),
   have : 1 ≤ p.nat_degree - i := le_tsub_of_add_le_left (finset.mem_range.mp hi),

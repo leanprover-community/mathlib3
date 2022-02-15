@@ -17,7 +17,7 @@ it is repeated, with slightly different names, for colimits.
 The main structures defined in this file is
 * `is_limit c`, for `c : cone F`, `F : J ⥤ C`, expressing that `c` is a limit cone,
 
-See also `category_theory.limits.limits` which further builds:
+See also `category_theory.limits.has_limits` which further builds:
 * `limit_cone F`, which consists of a choice of cone for `F` and the fact it is a limit cone, and
 * `has_limit F`, asserting the mere existence of some limit cone for `F`.
 
@@ -91,6 +91,16 @@ lemma uniq_cone_morphism {s t : cone F} (h : is_limit t) {f f' : s ⟶ t} :
   f = f' :=
 have ∀ {g : s ⟶ t}, g = h.lift_cone_morphism s, by intro g; ext; exact h.uniq _ _ g.w,
 this.trans this.symm
+
+/-- Restating the definition of a limit cone in terms of the ∃! operator. -/
+lemma exists_unique {t : cone F} (h : is_limit t) (s : cone F) :
+  ∃! (l : s.X ⟶ t.X), ∀ j, l ≫ t.π.app j = s.π.app j :=
+⟨h.lift s, h.fac s, h.uniq s⟩
+
+/-- Noncomputably make a colimit cocone from the existence of unique factorizations. -/
+def of_exists_unique {t : cone F}
+  (ht : ∀ s : cone F, ∃! l : s.X ⟶ t.X, ∀ j, l ≫ t.π.app j = s.π.app j) : is_limit t :=
+by { choose s hs hs' using ht, exact ⟨s, hs, hs'⟩ }
 
 /--
 Alternative constructor for `is_limit`,
@@ -522,6 +532,16 @@ lemma uniq_cocone_morphism {s t : cocone F} (h : is_colimit t) {f f' : t ⟶ s} 
   f = f' :=
 have ∀ {g : t ⟶ s}, g = h.desc_cocone_morphism s, by intro g; ext; exact h.uniq _ _ g.w,
 this.trans this.symm
+
+/-- Restating the definition of a colimit cocone in terms of the ∃! operator. -/
+lemma exists_unique {t : cocone F} (h : is_colimit t) (s : cocone F) :
+  ∃! (d : t.X ⟶ s.X), ∀ j, t.ι.app j ≫ d = s.ι.app j :=
+⟨h.desc s, h.fac s, h.uniq s⟩
+
+/-- Noncomputably make a colimit cocone from the existence of unique factorizations. -/
+def of_exists_unique {t : cocone F}
+  (ht : ∀ s : cocone F, ∃! d : t.X ⟶ s.X, ∀ j, t.ι.app j ≫ d = s.ι.app j) : is_colimit t :=
+by { choose s hs hs' using ht, exact ⟨s, hs, hs'⟩ }
 
 /--
 Alternative constructor for `is_colimit`,

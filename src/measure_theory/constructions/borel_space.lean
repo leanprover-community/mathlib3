@@ -3,18 +3,18 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import measure_theory.function.ae_measurable_sequence
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
+import measure_theory.function.ae_measurable_sequence
 import measure_theory.group.arithmetic
 import measure_theory.lattice
 import measure_theory.measure.open_pos
-import topology.algebra.ordered.liminf_limsup
+import topology.algebra.order.liminf_limsup
 import topology.continuous_function.basic
 import topology.instances.ereal
 import topology.G_delta
-import topology.semicontinuous
 import topology.order.lattice
+import topology.semicontinuous
 
 /-!
 # Borel (measurable) space
@@ -420,8 +420,7 @@ begin
   have humeas : measurable_set u := huopen.measurable_set,
   have hfinite : (s \ u).finite,
   { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
-    by_contra h,
-    push_neg at h,
+    by_contra' h,
     exact hy.2 (mem_Union₂.mpr ⟨x, hx.1,
       mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
   have : u ⊆ s :=

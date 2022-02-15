@@ -213,10 +213,10 @@ begin
   letI hprime : fact ((n : ℕ).min_fac.prime) := ⟨min_fac_prime (is_prime_pow.ne_one hn)⟩,
   rw [sub_one_norm_eq_eval_cyclotomic hζ this hirr],
   nth_rewrite 0 [← is_prime_pow.min_fac_pow_factorization_eq hn],
-  obtain ⟨k, hk⟩ : ∃ k, ((n : ℕ).factorization) (n : ℕ).min_fac = k + 1 := exists_eq_succ_of_ne_zero
-      (((n : ℕ).factorization.mem_support_to_fun (n : ℕ).min_fac).1
-      $ factor_iff_mem_factorization.2 $ (mem_factors (is_prime_pow.ne_zero hn)).2 ⟨hprime.out,
-      min_fac_dvd _⟩),
+  obtain ⟨k, hk⟩ : ∃ k, ((n : ℕ).factorization) (n : ℕ).min_fac = k + 1 :=
+    exists_eq_succ_of_ne_zero (((n : ℕ).factorization.mem_support_to_fun (n : ℕ).min_fac).1 $
+      factor_iff_mem_factorization.2 $ (mem_factors (is_prime_pow.ne_zero hn)).2
+        ⟨hprime.out, min_fac_dvd _⟩),
   simp [hk, sub_one_norm_eq_eval_cyclotomic hζ this hirr],
 end
 

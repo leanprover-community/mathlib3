@@ -104,7 +104,7 @@ open ennreal polynomial
 
 variable (𝕜)
 theorem spectral_radius_le_pow_nnnorm_pow_one_div (a : A) (n : ℕ) :
-  spectral_radius 𝕜 a ≤ (∥a ^ (n + 1)∥₊ ^ (1 / (n + 1) : ℝ) : ℝ≥0∞) :=
+  spectral_radius 𝕜 a ≤ ∥a ^ (n + 1)∥₊ ^ (1 / (n + 1) : ℝ) :=
 begin
   refine bsupr_le (λ k hk, _),
   /- apply easy direction of the spectral mapping theorem for polynomials -/

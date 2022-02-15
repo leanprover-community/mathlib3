@@ -136,5 +136,6 @@ instance : bornology punit := ⟨⊥, bot_le⟩
 { cobounded := cofinite,
   le_cofinite := le_refl _ }
 
+/-- A **bounded space** is a `bornology α` such that `set.univ : set α` is bounded. -/
 class bounded_space extends bornology α :=
 (bounded_univ : is_bounded (univ : set α))

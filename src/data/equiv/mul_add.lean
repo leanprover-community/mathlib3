@@ -418,6 +418,14 @@ lemma Pi_congr_right_trans {η : Type*}
   (es : ∀ j, Ms j ≃* Ns j) (fs : ∀ j, Ns j ≃* Ps j) :
   (Pi_congr_right es).trans (Pi_congr_right fs) = (Pi_congr_right $ λ i, (es i).trans (fs i)) := rfl
 
+/-- A family indexed by a nonempty subsingleton type is equivalent to the element at the single
+index. -/
+@[to_additive add_equiv.Pi_subsingleton "A family indexed by a nonempty subsingleton type is
+equivalent to the element at the single index."]
+def Pi_subsingleton
+  {η : Type*} (M : η → Type*) [Π (j : η), mul_one_class (M j)] [subsingleton η] (i : η):
+  (Π (j : η), M j) ≃* M i :=
+{ equiv.Pi_subsingleton η M i with map_mul' := λ f1 f2, pi.mul_apply _ _ _, }
 
 /-- A family indexed by a unique type is equivalent to the element at the default value -/
 @[to_additive add_equiv.Pi_unique "A family indexed by a unique type is equivalent to the
@@ -425,11 +433,7 @@ element at the default value"]
 def Pi_unique
   {η : Type*} (M : η → Type*) [Π (j : η), mul_one_class (M j)] [unique η] :
   (Π (j : η), M j) ≃* M default :=
-{ to_fun := λ f, f default,
-  inv_fun := λ x, λ j, by { rw unique.eq_default j, exact x, },
-  left_inv := λ f, by { ext j, rw unique.eq_default j, reflexivity, },
-  right_inv := λ x, rfl,
-  map_mul' := λ f1 f2, pi.mul_apply _ _ _, }
+Pi_subsingleton M default
 
 /-!
 # Groups

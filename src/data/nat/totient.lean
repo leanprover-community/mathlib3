@@ -292,13 +292,10 @@ end
 theorem totient_Euler_product_formula (n : ℕ) :
   φ n = n / (n.factorization.prod (λ p k, p)) * (n.factorization.prod (λ p k, p - 1)) :=
 begin
-  rcases em (n = 0) with rfl | hn0, { simp },
-
-  set P1 := (n.factorization.prod (λ p k, p)),
-  set P2 := (n.factorization.prod (λ p k, p - 1)),
-
+  by_cases hn0 : n = 0, { subst hn0, simp },
+  let P1 := (n.factorization.prod (λ p k, p)),
+  let P2 := (n.factorization.prod (λ p k, p - 1)),
   have h1 : 0 < P1 := prod_pos (λ p hp, pos_of_mem_factorization hp),
-
   have h2 : P1 ∣ n,
   { simp only [P1, finsupp.prod, support_factorization, prod_prime_factors_dvd n] },
 

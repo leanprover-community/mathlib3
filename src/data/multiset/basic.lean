@@ -252,7 +252,7 @@ lemma ssubset_cons {s : multiset α} {a : α} (ha : a ∉ s) : s ⊂ a ::ₘ s :
 @[simp] theorem cons_subset {a : α} {s t : multiset α} : (a ::ₘ s) ⊆ t ↔ a ∈ t ∧ s ⊆ t :=
 by simp [subset_iff, or_imp_distrib, forall_and_distrib]
 
-@[simp] lemma cons_subset_cons {a : α} {s t : multiset α} : s ⊆ t → a ::ₘ s ⊆ a ::ₘ t :=
+lemma cons_subset_cons {a : α} {s t : multiset α} : s ⊆ t → a ::ₘ s ⊆ a ::ₘ t :=
 quotient.induction_on₂ s t $ λ _ _, cons_subset_cons _
 
 theorem eq_zero_of_subset_zero {s : multiset α} (h : s ⊆ 0) : s = 0 :=

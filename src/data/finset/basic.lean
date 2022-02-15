@@ -2340,7 +2340,7 @@ end bUnion
 /-! ### disjoint -/
 --TODO@Yaël: Kill lemmas duplicate with `boolean_algebra`
 section disjoint
-variables [decidable_eq α] [decidable_eq β] {s t u : finset α} {a b : α}
+variables [decidable_eq α] [decidable_eq β] {f : α → β} {s t u : finset α} {a b : α}
 
 lemma disjoint_left : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
 by simp only [_root_.disjoint, inf_eq_inter, le_iff_subset, subset_iff, mem_inter, not_and,
@@ -2355,6 +2355,9 @@ decidable_of_decidable_of_iff (by apply_instance) eq_bot_iff
 lemma disjoint_right : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
 lemma disjoint_iff_ne : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=
 by simp only [disjoint_left, imp_not_comm, forall_eq']
+
+lemma _root_.disjoint.forall_ne_finset (h : disjoint s t) (ha : a ∈ s) (hb : b ∈ t) : a ≠ b :=
+disjoint_iff_ne.1 h _ ha _ hb
 
 lemma not_disjoint_iff : ¬ disjoint s t ↔ ∃ a, a ∈ s ∧ a ∈ t :=
 not_forall.trans $ exists_congr $ λ a, not_not.trans mem_inter
@@ -2427,6 +2430,11 @@ lemma disjoint_filter_filter_neg (s : finset α) (p : α → Prop) [decidable_pr
 
 lemma disjoint_iff_disjoint_coe : disjoint s t ↔ disjoint (s : set α) (t : set α) :=
 by { rw [finset.disjoint_left, set.disjoint_left], refl }
+
+@[simp] lemma _root_.disjoint.of_image_finset (h : disjoint (s.image f) (t.image f)) :
+  disjoint s t :=
+disjoint_iff_ne.2 $ λ a ha b hb, ne_of_apply_ne f $ h.forall_ne_finset
+  (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
 
 @[simp] lemma disjoint_image {f : α → β} (hf : injective f) :
   disjoint (s.image f) (t.image f) ↔ disjoint s t :=

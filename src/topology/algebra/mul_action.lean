@@ -132,7 +132,7 @@ continuous_smul.comp (continuous_const.prod_mk hg)
 instance has_continuous_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α] :
   has_continuous_smul Mᵐᵒᵖ α :=
 ⟨ suffices continuous (λ p : M × α, mul_opposite.op p.fst • p.snd),
-  from this.comp (continuous_unop.prod_map continuous_id),
+  from this.comp (mul_opposite.continuous_unop.prod_map continuous_id),
   by simpa only [op_smul_eq_smul] using (continuous_smul : continuous (λ p : M × α, _)) ⟩
 
 end has_scalar
@@ -141,7 +141,7 @@ section monoid
 
 variables [monoid M] [mul_action M α] [has_continuous_smul M α]
 
-instance units.has_continuous_smul : has_continuous_smul Mˣ α :=
+@[to_additive] instance units.has_continuous_smul : has_continuous_smul Mˣ α :=
 { continuous_smul :=
     show continuous ((λ p : M × α, p.fst • p.snd) ∘ (λ p : Mˣ × α, (p.1, p.2))),
     from continuous_smul.comp ((units.continuous_coe.comp continuous_fst).prod_mk continuous_snd) }

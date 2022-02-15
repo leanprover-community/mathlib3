@@ -166,6 +166,12 @@ lemma prime.factorization_pow {p k : ℕ} (hp : prime p) :
   factorization (p ^ k) = single p k :=
 by simp [hp]
 
+/-- If a product over `n.factorization` doesn't use the multiplicities of the prime factors
+then it's equal to the corresponding product over `n.factors.to_finset` -/
+lemma factorization_rebase_prod {n : ℕ} {β : Type*} [comm_monoid β] (f : ℕ → β) :
+  n.factorization.prod (λ p k, f p) = ∏ p in n.factors.to_finset, (f p) :=
+by { apply prod_congr support_factorization, simp }
+
 /-- For any `p : ℕ` and any function `g : α → ℕ` that's non-zero on `S : finset α`,
 the power of `p` in `S.prod g` equals the sum over `x ∈ S` of the powers of `p` in `g x`.
 Generalises `factorization_mul`, which is the special case where `S.card = 2` and `g = id`. -/

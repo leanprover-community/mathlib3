@@ -117,7 +117,6 @@ begin
     simp only [sum.uniformity, mem_sup, mem_map] at ht,
     apply filter.mem_of_superset ht.2,
     rintros ⟨x, y⟩ hx,
-    simp at hx,
     exact h't _ _ hx }
 end
 

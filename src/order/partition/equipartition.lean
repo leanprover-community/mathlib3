@@ -50,24 +50,10 @@ variables (s)
 lemma bot_is_equipartition : (⊥ : finpartition s).is_equipartition :=
 set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simp⟩
 
-lemma indiscrete_is_equipartition {hs : s ≠ ∅} : (indiscrete hs).is_equipartition :=
-by { rw [is_equipartition, indiscrete_parts, coe_singleton], exact set.equitable_on_singleton s _ }
-
-lemma parts_top_subset [lattice α] [order_bot α] (a : α) : (⊤ : finpartition a).parts ⊆ {a} :=
-begin
-  intros b hb,
-  change b ∈ finpartition.parts (dite _ _ _) at hb,
-  split_ifs at hb,
-  { simp only [copy_parts, empty_parts, not_mem_empty] at hb,
-    exact hb.elim },
-  { exact hb }
-end
-
-lemma parts_top_subsingleton [lattice α] [order_bot α] (a : α) :
-  ((⊤ : finpartition a).parts : set α).subsingleton :=
-set.subsingleton_of_subset_singleton $ λ b hb, mem_singleton.1 $ parts_top_subset _ hb
-
 lemma top_is_equipartition : (⊤ : finpartition s).is_equipartition :=
 (parts_top_subsingleton _).is_equipartition
+
+lemma indiscrete_is_equipartition {hs : s ≠ ∅} : (indiscrete hs).is_equipartition :=
+by { rw [is_equipartition, indiscrete_parts, coe_singleton], exact set.equitable_on_singleton s _ }
 
 end finpartition

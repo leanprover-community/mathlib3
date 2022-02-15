@@ -289,35 +289,37 @@ end
 @[simp] lemma totient_two : φ 2 = 1 :=
 (totient_prime prime_two).trans (by norm_num)
 
-theorem totient_Euler_product_formula (n : ℕ) :
+/-- **Euler's product formula for the totient function** -/
+theorem totient_eq_prod_div_prod (n : ℕ) :
   φ n = n / (∏ p in n.factors.to_finset, p) * (∏ p in n.factors.to_finset, (p - 1)) :=
 begin
-  by_cases hn : n = 0, { subst hn, simp },
+  by_cases hn : n = 0, { simp [hn] },
   let P1 := ∏ p in n.factors.to_finset, p,
   let P2 := ∏ p in n.factors.to_finset, (p - 1),
   have h1 : 0 < P1,
-  { simpa [P1, ←factorization_rebase_prod] using prod_pos (λ p hp, pos_of_mem_factorization hp) },
+  { simpa [P1, ←factorization_finset_prod] using prod_pos (λ p hp, pos_of_mem_factorization hp) },
   suffices : φ n * P1 = n * P2,
   { rw [(mul_div_left n.totient h1).symm, this, mul_comm,
         nat.mul_div_assoc P2 (prod_prime_factors_dvd n), mul_comm] },
   rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn,
   nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn),
-  simp only [P1, P2, ←factorization_rebase_prod, ←finsupp.prod_mul],
+  simp only [P1, P2, ←factorization_finset_prod, ←finsupp.prod_mul],
   refine prod_congr rfl (λ p hp, _),
   have h : 0 < n.factorization p := (finsupp.mem_support_iff.mp hp).bot_lt,
   simp only [totient_prime_pow (prime_of_mem_factorization hp) h],
   simp only [mul_right_comm, ←(pow_sub_mul_pow p h), pow_one],
 end
 
-theorem totient_Euler_product_formula' (n : ℕ) :
+/--  An alternative statement of Euler's product formula for the totient function -/
+theorem totient_eq_prod_div_prod' (n : ℕ) :
   ↑(φ n) = ↑n * ∏ p in n.factors.to_finset, (1 - p⁻¹ : ℚ) :=
 begin
-  by_cases hn : n = 0, { subst hn, simp },
+  by_cases hn : n = 0, { simp [hn] },
   have hn' : (n : ℚ) ≠ 0, { simp [hn] },
   have hpQ : ∏ p in n.factors.to_finset, (p : ℚ) ≠ 0,
-  { rw [←cast_prod, cast_ne_zero, ←zero_lt_iff, ←factorization_rebase_prod],
+  { rw [←cast_prod, cast_ne_zero, ←zero_lt_iff, ←factorization_finset_prod],
     exact prod_pos (λ p hp, pos_of_mem_factorization hp) },
-  simp only [totient_Euler_product_formula n, prod_prime_factors_dvd n, cast_mul, cast_prod,
+  simp only [totient_eq_prod_div_prod n, prod_prime_factors_dvd n, cast_mul, cast_prod,
       cast_dvd_char_zero, mul_comm_div', mul_right_inj' hn', div_eq_iff hpQ, ←prod_mul_distrib],
   refine prod_congr rfl (λ p hp, _),
   have hp := pos_of_mem_factors (list.mem_to_finset.mp hp),

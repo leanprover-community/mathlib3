@@ -168,7 +168,7 @@ by simp [hp]
 
 /-- If a product over `n.factorization` doesn't use the multiplicities of the prime factors
 then it's equal to the corresponding product over `n.factors.to_finset` -/
-lemma factorization_rebase_prod {n : ℕ} {β : Type*} [comm_monoid β] (f : ℕ → β) :
+lemma factorization_finset_prod {n : ℕ} {β : Type*} [comm_monoid β] (f : ℕ → β) :
   n.factorization.prod (λ p k, f p) = ∏ p in n.factors.to_finset, (f p) :=
 by { apply prod_congr support_factorization, simp }
 

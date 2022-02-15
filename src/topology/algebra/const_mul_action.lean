@@ -116,7 +116,7 @@ section monoid
 variables [topological_space α]
 variables [monoid M] [mul_action M α] [has_continuous_const_smul M α]
 
-instance units.has_continuous_const_smul : has_continuous_const_smul Mˣ α :=
+@[to_additive] instance units.has_continuous_const_smul : has_continuous_const_smul Mˣ α :=
 { continuous_const_smul := λ m, (continuous_const_smul (m : M) : _) }
 
 @[to_additive]
@@ -164,22 +164,15 @@ by simp only [continuous_iff_continuous_at, continuous_at_const_smul_iff]
 
 /-- The homeomorphism given by scalar multiplication by a given element of a group `Γ` acting on
   `T` is a homeomorphism from `T` to itself. -/
-def homeomorph.smul {G : Type*} [group G]
+@[to_additive] def homeomorph.smul {G : Type*} [group G]
   [mul_action G α] [has_continuous_const_smul G α] (γ : G) : α ≃ₜ α :=
-{ to_equiv := mul_action.to_perm_hom G α γ,
+{ to_equiv := mul_action.to_perm γ,
   continuous_to_fun  := continuous_const_smul γ,
   continuous_inv_fun := continuous_const_smul γ⁻¹ }
 
 /-- The homeomorphism given by affine-addition by an element of an additive group `Γ` acting on
   `T` is a homeomorphism from `T` to itself. -/
-def homeomorph.vadd {A : Type*} [add_group A]
-  [add_action A α] [has_continuous_const_vadd A α] (γ : A) :
-  α ≃ₜ α :=
-{ to_equiv := add_action.to_perm_hom α A γ,
-  continuous_to_fun  := continuous_const_vadd γ,
-  continuous_inv_fun := continuous_const_vadd (-γ) }
-
-attribute [to_additive homeomorph.vadd] homeomorph.smul
+add_decl_doc homeomorph.vadd
 
 @[to_additive]
 lemma is_open_map_smul (c : G) : is_open_map (λ x : α, c • x) :=

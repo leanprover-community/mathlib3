@@ -11,13 +11,13 @@ import ring_theory.unique_factorization_domain
 
 # Chains of divisors
 
-The results in this file show that in the monoid `associates M` of a unique_factorization_monoid
+The results in this file show that in the monoid `associates M` of a `unique_factorization_monoid`
 `M`, an element `a` is an n-th prime power iff its set of divisors is a strictly increasing chain
-of length `n + 1`, aka we can find strictly increasing bijection bewteen `fin (n + 1)` and
-the set of factors of `a`
+of length `n + 1`, aka we can find a strictly increasing bijection bewteen `fin (n + 1)` and
+the set of factors of `a`.
 
 We can then use this to show that given `a b : M`, if there is an monotone bijection
-between the sets of factors of `associates.mk a` and `associates.mk b` then the prime
+between the sets of factors of `associates.mk a` and `associates.mk b`, then the prime
 factorisations of `a` and `b` have the same shape.
 
 
@@ -25,7 +25,7 @@ factorisations of `a` and `b` have the same shape.
 - `prime_pow_has_chain` : existence of chain for prime powers
 - `eq_prime_pow_of_has_chain` : elements that have a chain are prime powers
 - `multiplicity_le_of_monotone` : if there is a monotone bijection `d` between the set
-  of factors of `a : associates M` and the set of factors of `b : associates N` then
+  of factors of `a : associates M` and the set of factors of `b : associates N`, then,
   for any prime `p ∣ a`, `multiplicity p a ≤ multiplicity (d p) b`.
 
 ## Todo
@@ -53,7 +53,7 @@ begin
   { rw [fin.coe_one', nat.mod_eq_of_lt, pow_one],
     exact nat.lt_succ_of_le (nat.one_le_iff_ne_zero.mpr hn) },
   { exact associates.dvd_not_unit_iff_lt.mp ⟨pow_ne_zero n hp.ne_zero, p^(m - n : ℕ),
-      not_is_unit_of_not_is_unit_dvd hp.not_unit (dvd_pow (dvd_refl _) (nat.sub_pos_of_lt h).ne'),
+      not_is_unit_of_not_is_unit_dvd hp.not_unit (dvd_pow dvd_rfl (nat.sub_pos_of_lt h).ne'),
       (pow_mul_pow_sub p h.le).symm⟩ },
   { obtain ⟨i, i_le, hi⟩ := (dvd_prime_pow hp n).1 h,
     rw associated_iff_eq at hi,
@@ -201,7 +201,7 @@ begin
     cases n, { contradiction },
     rw finset.card_image_eq_iff_inj_on,
     refine set.inj_on_of_injective (λ m m' h, fin.ext _) _,
-    refine pow_injective_of_not_unit (second_of_chain_not_is_unit (n+1) 1 dec_trivial c h₁) _ h,
+    refine pow_injective_of_not_unit (second_of_chain_not_is_unit (n+1) 1 (by simp) c h₁) _ h,
     exact irreducible.ne_zero (second_of_chain_is_irreducible _ hn c h₁ (λ r, h₂) hq) },
 
   suffices H' : ∀ r ∈ (finset.univ.image (λ (m : fin (i + 1)), (c 1) ^ (m : ℕ))), r ≤ q,

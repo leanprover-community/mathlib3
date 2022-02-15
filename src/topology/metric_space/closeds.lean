@@ -250,7 +250,10 @@ lemma nonempty_compacts.is_closed_in_closeds [complete_space α] :
 begin
   have : range nonempty_compacts.to_closeds =
     {s : closeds α | (s : set α).nonempty ∧ is_compact (s : set α) },
-    from range_inclusion _,
+  { ext s,
+    refine ⟨_, λ h, ⟨⟨⟨s, h.2⟩, h.1⟩, closeds.ext rfl⟩⟩,
+    rintro ⟨s, hs, rfl⟩,
+    exact ⟨s.nonempty, s.compact⟩ },
   rw this,
   refine is_closed_of_closure_subset (λs hs, ⟨_, _⟩),
   { -- take a set set t which is nonempty and at a finite distance of s
@@ -258,7 +261,7 @@ begin
     rw edist_comm at Dst,
     -- since `t` is nonempty, so is `s`
     exact nonempty_of_Hausdorff_edist_ne_top ht.1 (ne_of_lt Dst) },
-  { refine compact_iff_totally_bounded_complete.2 ⟨_, s.property.is_complete⟩,
+  { refine compact_iff_totally_bounded_complete.2 ⟨_, s.closed.is_complete⟩,
     refine totally_bounded_iff.2 (λε (εpos : 0 < ε), _),
     -- we have to show that s is covered by finitely many eballs of radius ε
     -- pick a nonempty compact set t at distance at most ε/2 of s

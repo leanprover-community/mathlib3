@@ -20,12 +20,12 @@ variables {R M : Type*} [ring R] [add_comm_group M] [module R M]
 open category_theory
 open Module
 
-/-lemma subsingleton_of_epi_zero (N : Module R) [epi (0 : N ⟶ of R M)] : subsingleton M :=
+lemma subsingleton_of_epi_zero (N : Module R) [epi (0 : N ⟶ of R M)] : subsingleton M :=
 begin
-  apply subsingleton_of_forall_eq (0 : M),
+  apply subsingleton_of_surjective_zero N,
   have : function.surjective (0 : N ⟶ of R M) := (Module.epi_iff_surjective _).mp ‹_›,
-  exact this.forall.mpr (λ _, rfl),
-end-/
+  exact this,
+end
 
 instance is_simple_module_of [_inst : is_simple_module R M] : is_simple_module R (of R M) :=
 _inst
@@ -35,8 +35,7 @@ instance simple_of_is_simple_module [is_simple_module R M] : simple (of R M) :=
 { mono_is_iso_iff_nonzero := λ N f inj, begin
     split,
     { unfreezingI { rintro h rfl },
-      haveI : subsingleton M :=
-        subsingleton_of_surjective_zero N ((Module.epi_iff_surjective _).mp ‹_›),
+      haveI : subsingleton M := subsingleton_of_epi_zero N,
       haveI : nontrivial M := is_simple_module.nontrivial R M,
       exact false_of_nontrivial_of_subsingleton M },
     { intro h,

@@ -222,10 +222,7 @@ continuous_at_inv
 /-- Conjugation in a topological group is continuous.-/
 @[to_additive "Conjugation in a topological additive group is continuous."]
 lemma topological_group.continuous_conj (g : G) : continuous (λ (h : G), g * h * g⁻¹) :=
-begin
-  convert continuous.comp (continuous_mul_left g) (continuous_mul_right g⁻¹),
-  { ext h, rw [comp_app, mul_assoc] }
-end
+(continuous_mul_right g⁻¹).comp (continuous_mul_left g)
 
 /-- If a function converges to a value in a multiplicative topological group, then its inverse
 converges to the inverse of this value. For the version in normed fields assuming additionally

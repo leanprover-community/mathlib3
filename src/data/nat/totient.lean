@@ -314,7 +314,7 @@ theorem totient_Euler_product_formula' (n : ℕ) :
 begin
   by_cases hn : n = 0, { subst hn, simp },
   have hn' : (n : ℚ) ≠ 0, { simp [hn] },
-  have hpQ : ∏ p in n.factors.to_finset, (p:ℚ) ≠ 0,
+  have hpQ : ∏ p in n.factors.to_finset, (p : ℚ) ≠ 0,
   { rw [←cast_prod, cast_ne_zero, ←zero_lt_iff, ←factorization_rebase_prod],
     exact prod_pos (λ p hp, pos_of_mem_factorization hp) },
   simp only [totient_Euler_product_formula n, prod_prime_factors_dvd n, cast_mul, cast_prod,

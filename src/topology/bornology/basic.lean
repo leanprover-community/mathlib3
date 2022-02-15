@@ -111,16 +111,18 @@ variables [bornology α]
 
 lemma is_bounded_sUnion {s : set (set α)} (hs : finite s) :
   (∀ t ∈ s, is_bounded t) → is_bounded (⋃₀ s) :=
-finite.induction_on hs (λ _, by rw sUnion_empty; exact is_bounded_empty) $
-λ a s has hs ih h, by rw sUnion_insert; exact
-is_bounded.union (h _ $ mem_insert _ _) (ih $ λ t, h t ∘ mem_insert_of_mem _)
+finite.induction_on hs (λ _, by { rw sUnion_empty, exact is_bounded_empty }) $
+λ a s has hs ih h, by
+  { rw sUnion_insert,
+    exact is_bounded.union (h _ $ mem_insert _ _) (ih $ λ t, h t ∘ mem_insert_of_mem _) }
 
 lemma is_bounded_bUnion {s : set β} {f : β → set α} (hs : finite s) :
   (∀ i ∈ s, is_bounded (f i)) → is_bounded (⋃ i ∈ s, f i) :=
 finite.induction_on hs
-  (λ _, by rw bUnion_empty; exact is_bounded_empty)
-  (λ a s has hs ih h, by rw bUnion_insert; exact
-    is_bounded.union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
+  (λ _, by { rw bUnion_empty, exact is_bounded_empty })
+  (λ a s has hs ih h, by
+    { rw bUnion_insert,
+      exact is_bounded.union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))) })
 
 lemma is_bounded_Union [fintype β] {s : β → set α}
   (h : ∀ i, is_bounded (s i)) : is_bounded (⋃ i, s i) :=

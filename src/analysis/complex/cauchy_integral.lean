@@ -588,19 +588,8 @@ series centered at `z` in the entirety of `ℂ`, regardless of `R : ℝ≥0`, wi
 theorem _root_.differentiable.has_fpower_series_on_ball {f : ℂ → E}
   (h : differentiable ℂ f) (z : ℂ) {R : ℝ≥0} (hR : 0 < R) :
   has_fpower_series_on_ball f (cauchy_power_series f z R) z ∞ :=
-{ r_le :=
-  begin
-    refine top_le_iff.mpr (ennreal.eq_top_of_forall_nnreal_le (λ r, _)),
-    by_cases hr : 0 < r,
-    { exact ((h.differentiable_on.has_fpower_series_on_ball hR).exchange_radius
-        (h.differentiable_on.has_fpower_series_on_ball hr)).r_le, },
-    { exact le_trans (ennreal.coe_mono (not_lt.mp hr)) (by simp only [ennreal.coe_zero, zero_le]) },
-  end,
-  r_pos := dec_trivial,
-  has_sum := λ y hy, let hy' := lt_of_le_of_lt (zero_le _) (lt_add_one ∥y∥₊) in
-    ((h.differentiable_on.has_fpower_series_on_ball hR).exchange_radius
-      (h.differentiable_on.has_fpower_series_on_ball hy')).has_sum
-      (mem_emetric_ball_zero_iff.mpr (by exact_mod_cast (lt_add_one ∥y∥₊))) }
+(h.differentiable_on.has_fpower_series_on_ball hR).r_eq_top_of_exists $ λ r hr,
+  ⟨_, h.differentiable_on.has_fpower_series_on_ball hr⟩
 
 /- **Liouville's Theorem**: If `f : ℂ → E` is differentiable and bounded in the entirety
 of `ℂ`, then `f` is constant. -/

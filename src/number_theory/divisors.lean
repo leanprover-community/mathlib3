@@ -435,4 +435,56 @@ begin
     simpa [hn, hn.ne', mem_factors] using and_comm (prime q) (q ∣ n) }
 end
 
+lemma div_eq_iff_eq_of_dvd_dvd {n x y : ℕ} (hn : n ≠ 0) (hx : x ∣ n) (hy : y ∣ n) :
+  n / x = n / y ↔ x = y :=
+begin
+  split,
+  { intros h,
+    rw ←mul_right_inj' hn,
+    apply nat.eq_mul_of_div_eq_left (dvd_mul_of_dvd_left hy x),
+    rw [eq_comm, mul_comm, nat.mul_div_assoc _ hy],
+    exact nat.eq_mul_of_div_eq_right hx h },
+  { intros h, rw h },
+end
+
+lemma image_div_divisors_eq_divisors (n : ℕ) : image (λ (x : ℕ), n / x) n.divisors = n.divisors :=
+begin
+  by_cases hn : n = 0, { simp [hn] },
+  ext,
+  rw mem_divisors,
+  rw mem_image,
+  split,
+  {
+    rintros ⟨x, hx1, hx2⟩,
+    split, swap, exact hn,
+    rw mem_divisors at hx1,
+    replace hx1 := hx1.1,
+    rw ←hx2,
+    exact div_dvd_of_dvd hx1,
+  },
+  {
+    rintros ⟨h1, -⟩,
+    use n/a,
+    split,
+    {
+      rw mem_divisors,
+      split, swap, exact hn,
+      exact div_dvd_of_dvd h1,
+    },
+    { exact nat.div_div_self h1 (pos_iff_ne_zero.mpr hn) },
+  },
+
+end
+
+@[simp]
+lemma sum_div_divisors (n : ℕ) (f : ℕ → ℕ) : ∑ d in n.divisors, f (n/d) = n.divisors.sum f :=
+begin
+  by_cases hn : n = 0, { simp [hn] },
+  rw ←sum_image,
+  { exact sum_congr (image_div_divisors_eq_divisors n) (by simp) },
+  { intros x hx y hy h,
+    rw mem_divisors at hx hy,
+    exact (div_eq_iff_eq_of_dvd_dvd hn hx.1 hy.1).mp h }
+end
+
 end nat

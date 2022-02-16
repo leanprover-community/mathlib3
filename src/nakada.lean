@@ -6,7 +6,7 @@ Authors: Yakov Pechersky
 
 import algebra.order.group
 import algebra.order.with_zero
-import group_theory.submonoid.basic
+import group_theory.subsemigroup.operations
 import tactic.tfae
 
 /-!
@@ -521,15 +521,14 @@ def to_mul_pair_quotient [nakada_po S] (x : S) : S ↪*o (quotient (mul_pair_set
   to_mul_pair_quotient x = to_mul_pair_quotient y :=
 by { ext, simp [mul_right_comm] }
 
--- If only we had subsemigroups
 @[to_additive]
-def of_mul_pair_quotient' [nakada_po S] [inhabited S] (x : S) :
-  submonoid (quotient (mul_pair_setoid S)) :=
-submonoid.closure (set.range (to_mul_pair_quotient x))
+def of_mul_pair_quotient' [nakada_po S] (x : S) :
+  subsemigroup (quotient (mul_pair_setoid S)) :=
+subsemigroup.closure (set.range (to_mul_pair_quotient x))
 
 -- "Uniquely determined by S apart from its order-isomorphism"
 @[to_additive]
-lemma of_mul_pair_quotient'_eq [nakada_po S] [inhabited S] (x y : S) :
+lemma of_mul_pair_quotient'_eq [nakada_po S] (x y : S) :
   of_mul_pair_quotient' x = of_mul_pair_quotient' y :=
 by rw [of_mul_pair_quotient', of_mul_pair_quotient', to_mul_pair_quotient_eq]
 
@@ -598,3 +597,99 @@ begin
 end
 
 end page183
+
+section page184
+
+-- Definition 4
+@[reducible, to_additive add_positive]
+def positive {S : Type*} [has_mul S] [has_le S] (a : S) : Prop := a ≤ a * a
+@[reducible, to_additive add_negative]
+def negative {S : Type*} [has_mul S] [has_le S] (a : S) : Prop := a * a ≤ a
+
+section
+
+variables {S : Type*} [comm_semigroup S] [preorder S] [nakada_po S]
+
+@[to_additive]
+lemma positive.mul {a b : S} (ha : positive a) (hb : positive b) : positive (a * b) :=
+begin
+  refine (homogeneity hb a).trans _,
+  rw [mul_left_comm, mul_comm a, mul_assoc],
+  refine homogeneity _ _,
+  rw mul_left_comm,
+  exact homogeneity ha _
+end
+
+@[to_additive]
+lemma negative.mul {a b : S} (ha : negative a) (hb : negative b) : negative (a * b) :=
+begin
+  refine (le_trans _ (homogeneity hb a)),
+  rw [←mul_assoc, mul_comm, mul_left_comm a],
+  refine homogeneity _ _,
+  rw [mul_comm _ b, mul_assoc],
+  exact homogeneity ha _
+end
+
+variables (S)
+
+@[to_additive pos_add_subsemigroup]
+def pos_subsemigroup : subsemigroup S :=
+{ carrier := set_of positive,
+  mul_mem' := λ _ _, positive.mul }
+
+@[to_additive neg_add_subsemigroup]
+def neg_subsemigroup : subsemigroup S :=
+{ carrier := set_of negative,
+  mul_mem' := λ _ _, negative.mul }
+
+end
+
+section
+
+variables {S : Type*} [comm_semigroup S]
+
+@[to_additive]
+instance [preorder S] [nakada_po S] : preorder (pos_subsemigroup S) :=
+subtype.preorder _
+
+-- TODO: define subtype.nakada_po
+@[to_additive]
+instance [preorder S] [nakada_po S] : nakada_po (pos_subsemigroup S) := sorry
+
+@[to_additive]
+instance [preorder S] [nakada_po S] [nakada_strong S] : nakada_strong (pos_subsemigroup S) := sorry
+
+@[to_additive]
+instance [partial_order S] [nakada_po S] : partial_order (pos_subsemigroup S) :=
+subtype.partial_order _
+
+@[to_additive]
+instance [linear_order S] [nakada_po S] : linear_order (pos_subsemigroup S) :=
+subtype.linear_order _
+
+@[to_additive]
+instance [preorder S] [nakada_po S] : preorder (neg_subsemigroup S) :=
+subtype.preorder _
+
+@[to_additive]
+instance [preorder S] [nakada_po S] : nakada_po (neg_subsemigroup S) := sorry
+
+@[to_additive]
+instance [preorder S] [nakada_po S] [nakada_strong S] : nakada_strong (neg_subsemigroup S) := sorry
+
+@[to_additive]
+instance [partial_order S] [nakada_po S] : partial_order (neg_subsemigroup S) :=
+subtype.partial_order _
+
+@[to_additive]
+instance [linear_order S] [nakada_po S] : linear_order (neg_subsemigroup S) :=
+subtype.linear_order _
+
+end
+
+-- Theorem 8, mpr
+example {G : Type*} [comm_group G] [partial_order G] [nakada_po G] [is_directed G (≤)] :
+  nonempty (G ≃*o quotient (mul_pair_setoid (neg_subsemigroup G))) := sorry
+
+
+end page184

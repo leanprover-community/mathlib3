@@ -93,8 +93,8 @@ namespace noncomm_pi_coprod_on
 -- In this section, we restrict the hom to a set S
 variables (S : finset I)
 
-/-- The underlying function of `pi_hom_restr.hom` -/
-@[to_additive add_to_fun]
+/-- The underlying function of `noncomm_pi_coprod_on.hom` -/
+@[to_additive add_to_fun "The underlying function of `noncomm_pi_coprod_on.add_hom` "]
 def to_fun (S : finset I) : M := finset.noncomm_prod S (λ i, ϕ i (f i)) $
   by { rintros i - j -, by_cases h : i = j, { subst h }, { exact hcomm _ _ h _ _ } }
 
@@ -163,7 +163,8 @@ variable (hcomm)
 
 /-- The canonical homomorphism from a family of monoids, restricted to a subset of the index space.
 -/
-@[to_additive add_hom]
+@[to_additive add_hom "The canonical homomorphism from a family of additive monoids, restricted to a
+subset of the index space"]
 def hom : (Π (i : I), N i) →* M :=
 { to_fun := λ f, to_fun ϕ hcomm f S,
   map_one' := to_fun_one ϕ _,
@@ -209,7 +210,7 @@ include hfin
 variable (hcomm)
 
 /-- The canonical homomorphism from a family of monoids. -/
-@[to_additive]
+@[to_additive "The canonical homomorphism from a family of additive monoids."]
 def noncomm_pi_coprod : (Π (i : I), N i) →* M := noncomm_pi_coprod_on.hom ϕ hcomm finset.univ
 
 variable {hcomm}
@@ -360,8 +361,10 @@ by { rintros ⟨x, hx⟩ ⟨y, hy⟩, exact hcomm i j hne x y hx hy }
 
 include hfin
 
-/-- The canonical homomorphism from a pi group of subgroups -/
-@[to_additive]
+/-- The canonical homomorphism from a family of subgroups where elements from different subgroups
+commute -/
+@[to_additive "The canonical homomorphism from a family of additive subgroups where elements from
+different subgroups commute"]
 def noncomm_pi_coprod : (Π (i : I), H i) →* G :=
   monoid_hom.noncomm_pi_coprod (λ i, (H i).subtype) (hcomm_subtype hcomm)
 

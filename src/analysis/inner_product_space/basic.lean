@@ -1091,10 +1091,8 @@ If `⟪T x, x⟫_ℂ = 0` for all x, then T = 0.
 lemma inner_map_self_eq_zero (T : V →ₗ[ℂ] V) (hT : ∀ (x : V), ⟪T x, x⟫_ℂ = 0) :
   T = 0 :=
 begin
-  apply linear_map.ext,
-  intro x,
-  rw [linear_map.zero_apply, ← inner_self_eq_zero, inner_map_polarization],
-  iterate {rw hT},
+  ext x,
+  simp only [linear_map.zero_apply, ← inner_self_eq_zero, inner_map_polarization, hT],
   norm_num,
 end
 

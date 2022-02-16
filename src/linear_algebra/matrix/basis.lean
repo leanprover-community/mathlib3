@@ -101,15 +101,13 @@ e.to_matrix_units_smul _
 @[simp] lemma sum_to_matrix_smul_self [fintype ι] : ∑ (i : ι), e.to_matrix v i j • e i = v j :=
 by simp_rw [e.to_matrix_apply, e.sum_repr]
 
-lemma to_matrix_map_vec_mul {S : Type*} [comm_ring S] [algebra R S] [fintype ι'] (b : basis ι R S)
-  (v : ι' → S) [fintype ι] :
-  ((b.to_matrix v).map (algebra_map R S)).vec_mul b = v :=
+lemma to_matrix_map_vec_mul {S : Type*} [ring S] [algebra R S] [fintype ι]
+  (b : basis ι R S) (v : ι' → S) :
+  ((b.to_matrix v).map $ algebra_map R S).vec_mul b = v :=
 begin
-  ext x,
-  simp only [vec_mul, dot_product],
-  conv_lhs { congr, skip, funext,
-    rw [mul_comm, matrix.map_apply, ← algebra.smul_def] },
-  rw [sum_to_matrix_smul_self],
+  ext i,
+  simp_rw [vec_mul, dot_product, matrix.map_apply, ← algebra.commutes, ← algebra.smul_def,
+    sum_to_matrix_smul_self],
 end
 
 @[simp] lemma to_lin_to_matrix [fintype ι] [fintype ι'] [decidable_eq ι'] (v : basis ι' R M) :

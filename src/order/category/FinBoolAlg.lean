@@ -9,12 +9,12 @@ import order.category.FinDistribLattice
 /-!
 # The category of finite boolean algebras
 
-This defines `FinBoolAlg`, the category of finite boolean algebras.
+This file defines `FinBoolAlg`, the category of finite boolean algebras.
 -/
 
-universes u v
+universes u
 
-open category_theory
+open category_theory order_dual opposite
 
 /-- The category of finite boolean algebras with bounded lattice morphisms. -/
 structure FinBoolAlg :=
@@ -42,9 +42,9 @@ induced_category.concrete_category FinBoolAlg.to_BoolAlg
 instance has_forget_to_BoolAlg : has_forget₂ FinBoolAlg BoolAlg :=
 induced_category.has_forget₂ FinBoolAlg.to_BoolAlg
 
-instance has_forget_to_FinDistribLattice : has_forget₂ FinBoolAlg FinDistribLattice :=
-{ forget₂ := { obj := λ X, FinDistribLattice.of X, map := λ X Y f, f },
-  forget_comp := rfl }
+-- instance has_forget_to_FinDistribLattice : has_forget₂ FinBoolAlg FinDistribLattice :=
+-- { forget₂ := { obj := λ X, FinDistribLattice.of X, map := λ X Y f, f },
+--   forget_comp := rfl }
 
 /-- Constructs an equivalence between finite Boolean algebras from an order isomorphism between
 them. -/
@@ -56,7 +56,7 @@ them. -/
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : FinBoolAlg ⥤ FinBoolAlg :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+{ obj := λ X, of (order_dual X), map := λ X Y, bounded_lattice_hom.dual }
 
 /-- The equivalence between `FinBoolAlg` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : FinBoolAlg ≌ FinBoolAlg :=
@@ -66,6 +66,11 @@ equivalence.mk dual dual
 
 end FinBoolAlg
 
-lemma FinBoolAlg_dual_comp_forget_to_FinDistribLattice :
-  FinBoolAlg.dual ⋙ forget₂ FinBoolAlg FinDistribLattice =
-    forget₂ FinBoolAlg FinDistribLattice ⋙ FinDistribLattice.dual := rfl
+-- lemma FinBoolAlg_dual_comp_forget_to_FinDistribLattice :
+--   FinBoolAlg.dual ⋙ forget₂ FinBoolAlg FinDistribLattice =
+--     forget₂ FinBoolAlg FinDistribLattice ⋙ FinDistribLattice.dual := rfl
+
+/-- The powerset functor. `set` as a functor. -/
+def Fintype_to_FinBoolAlg_op : Fintype ⥤ FinBoolAlgᵒᵖ :=
+{ obj := λ X, op $ FinBoolAlg.of (set X),
+  map := λ X Y f, quiver.hom.op $ bounded_lattice_hom.set_preimage f }

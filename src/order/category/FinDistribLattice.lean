@@ -10,11 +10,11 @@ import order.category.FinPartialOrder
 /-!
 # The category of finite distributive lattices
 
-This defines `FinBoundedDistribLattice`, the category of finite distributive lattices with bounded
-lattice homomorphisms.
+This file defines `FinBoundedDistribLattice`, the category of finite distributive lattices with
+bounded lattice homomorphisms.
 -/
 
-universes u v
+universes u
 
 open category_theory
 
@@ -33,7 +33,11 @@ instance (X : FinBoundedDistribLattice) : bounded_order X := X.to_BoundedDistrib
 attribute [instance]  FinBoundedDistribLattice.is_fintype
 
 /-- Construct a bundled `FinBoundedDistribLattice` from a `nonempty` `bounded_order` `distrib_lattice`. -/
-def of (α : Type*) [distrib_lattice α] [fintype α] [nonempty α] : FinBoundedDistribLattice :=
+def of (α : Type*) [distrib_lattice α] [bounded_order α] [fintype α] : FinBoundedDistribLattice :=
+⟨⟨⟨α⟩⟩⟩
+
+/-- Construct a bundled `FinBoundedDistribLattice` from a `nonempty` `bounded_order` `distrib_lattice`. -/
+def of' (α : Type*) [distrib_lattice α] [fintype α] [nonempty α] : FinBoundedDistribLattice :=
 by { haveI := fintype.to_bounded_order α, exact ⟨⟨⟨α⟩⟩⟩ }
 
 instance : inhabited FinBoundedDistribLattice := ⟨of punit⟩
@@ -51,8 +55,7 @@ example {α β : Type*} [lattice α] [lattice β] [bounded_order α] [bounded_or
    (f : bounded_lattice_hom α β) : α →o β := f
 instance has_forget_to_FinPartialOrder : has_forget₂ FinBoundedDistribLattice FinPartialOrder :=
 { forget₂ := { obj := λ X, FinPartialOrder.of X,
-               map := λ X Y f, ((f : bounded_lattice_hom X Y) : X →o Y) },
-  forget_comp := rfl }
+               map := λ X Y f, (show bounded_lattice_hom X Y, from f : X →o Y) } }
 
 /-- Constructs an equivalence between finite distributive lattices from an order isomorphism
 between them. -/
@@ -62,20 +65,22 @@ between them. -/
   hom_inv_id' := by { ext, exact e.symm_apply_apply _ },
   inv_hom_id' := by { ext, exact e.apply_symm_apply _ } }
 
-/-- `order_dual` as a functor. -/
-@[simps] def dual : FinBoundedDistribLattice ⥤ FinBoundedDistribLattice :=
-{ obj := λ X, of (order_dual X), map := λ X Y, bounded_lattice_hom.dual }
+example {X Y : FinBoundedDistribLattice} : (X ⟶ Y) = bounded_lattice_hom X Y := rfl
 
-/-- The equivalence between `FinBoundedDistribLattice` and itself induced by `order_dual` both ways. -/
-@[simps functor inverse] def dual_equiv : FinBoundedDistribLattice ≌ FinBoundedDistribLattice :=
-equivalence.mk dual dual
-  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
-  (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
+example {X : FinBoundedDistribLattice} : of X = X := rfl
 
-end FinBoundedDistribLattice
+-- /-- `order_dual` as a functor. -/
+-- @[simps] def dual : FinBoundedDistribLattice ⥤ FinBoundedDistribLattice :=
+-- { obj := λ X, ⟨BoundedDistribLattice.dual.obj X.to_BoundedDistribLattice⟩, map := λ X Y, _ }
 
-lemma FinBoundedDistribLattice_dual_comp_forget_to_DistribLattice :
-  FinBoundedDistribLattice.dual ⋙ forget₂ FinBoundedDistribLattice DistribLattice =
-    forget₂ FinBoundedDistribLattice DistribLattice ⋙ DistribLattice.dual := rfl
+-- /-- The equivalence between `FinBoundedDistribLattice` and itself induced by `order_dual` both ways. -/
+-- @[simps functor inverse] def dual_equiv : FinBoundedDistribLattice ≌ FinBoundedDistribLattice :=
+-- equivalence.mk dual dual
+--   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
+--   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
 end FinBoundedDistribLattice
+
+-- lemma FinBoundedDistribLattice_dual_comp_forget_to_DistribLattice :
+--   FinBoundedDistribLattice.dual ⋙ forget₂ FinBoundedDistribLattice DistribLattice =
+--     forget₂ FinBoundedDistribLattice DistribLattice ⋙ DistribLattice.dual := rfl

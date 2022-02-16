@@ -13,9 +13,7 @@ import order.category.PartialOrder
 This defines `FinPartialOrder`, the category of finite partial orders.
 -/
 
-instance (α : Type*) [fintype α] : fintype (order_dual α) := ‹fintype α›
-
-universes u v
+universes u
 
 open category_theory
 
@@ -46,20 +44,19 @@ instance has_forget_to_PartialOrder : has_forget₂ FinPartialOrder PartialOrder
 induced_category.has_forget₂ FinPartialOrder.to_PartialOrder
 
 instance has_forget_to_Fintype : has_forget₂ FinPartialOrder Fintype :=
-{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y, coe_fn },
-  forget_comp := rfl }
-
-/-- `order_dual` as a functor. -/
-@[simps] def to_dual : FinPartialOrder ⥤ FinPartialOrder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y, coe_fn } }
 
 /-- Constructs an equivalence between finite partial orders from an order isomorphism between them.
 -/
 @[simps] def iso.mk {α β : FinPartialOrder} (e : α ≃o β) : α ≅ β :=
 { hom := e,
   inv := e.symm,
-  hom_inv_id' := by { ext, exact e.symm_apply_apply x },
-  inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
+  hom_inv_id' := by { ext, exact e.symm_apply_apply _ },
+  inv_hom_id' := by { ext, exact e.apply_symm_apply _ } }
+
+/-- `order_dual` as a functor. -/
+@[simps] def to_dual : FinPartialOrder ⥤ FinPartialOrder :=
+{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
 @[simps] def dual_equiv : FinPartialOrder ≌ FinPartialOrder :=
@@ -70,5 +67,5 @@ equivalence.mk to_dual to_dual
 end FinPartialOrder
 
 lemma FinPartialOrder_dual_equiv_comp_forget_to_PartialOrder :
-  FinPartialOrder.dual_equiv.functor ⋙ forget₂ FinPartialOrder PartialOrder
-  = forget₂ FinPartialOrder PartialOrder ⋙ PartialOrder.dual_equiv.functor := rfl
+  FinPartialOrder.dual_equiv.functor ⋙ forget₂ FinPartialOrder PartialOrder =
+    forget₂ FinPartialOrder PartialOrder ⋙ PartialOrder.dual_equiv.functor := rfl

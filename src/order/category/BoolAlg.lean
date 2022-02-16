@@ -12,7 +12,7 @@ import order.category.BoundedDistribLattice
 This defines `BoolAlg`, the category of boolean algebras.
 -/
 
-open order_dual
+open order_dual opposite
 
 --TODO@Yaël: Once we have Heyting algebras, we won't need to go through `boolean_algebra.of_core`
 instance {α : Type*} [boolean_algebra α] : boolean_algebra (order_dual α) :=
@@ -21,6 +21,15 @@ boolean_algebra.of_core
   inf_compl_le_bot := λ _, sup_compl_eq_top.ge,
   top_le_sup_compl := λ _, inf_compl_eq_bot.ge,
   ..order_dual.distrib_lattice α, ..order_dual.bounded_order α }
+
+/-- `set.preimage` as a bounded lattice homomorphism. -/
+def bounded_lattice_hom.set_preimage {α β : Type*} (f : α → β) :
+  bounded_lattice_hom (set β) (set α) :=
+{ to_fun := set.preimage f,
+  map_sup' := λ s t, set.preimage_union,
+  map_inf' := λ s t, set.preimage_inter,
+  map_top' := set.preimage_univ,
+  map_bot' := set.preimage_empty }
 
 universes u
 
@@ -71,3 +80,8 @@ end BoolAlg
 lemma BoolAlg_dual_comp_forget_to_BoundedDistribLattice :
   BoolAlg.dual ⋙ forget₂ BoolAlg BoundedDistribLattice =
     forget₂ BoolAlg BoundedDistribLattice ⋙ BoundedDistribLattice.dual := rfl
+
+/-- The powerset functor. `set` as a functor. -/
+def Type_to_BoolAlg : Type* ⥤ BoolAlgᵒᵖ :=
+{ obj := λ X, op $ BoolAlg.of (set X),
+  map := λ X Y f, quiver.hom.op $ bounded_lattice_hom.set_preimage f }

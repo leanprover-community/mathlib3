@@ -84,7 +84,7 @@ def uniform_space_of_dist
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
 uniform_space.of_core (uniform_space.core_of_dist dist dist_self dist_comm dist_triangle)
 
-/- This is an internal lemma used to construct a bornology from a metric in `bornology.of_dist`. -/
+/-- This is an internal lemma used to construct a bornology from a metric in `bornology.of_dist`. -/
 private lemma bounded_iff_aux {α : Type*} (dist : α → α → ℝ)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
@@ -101,7 +101,7 @@ begin
            (dist_triangle x a y).trans (add_le_add (hC x hx) (by {rw dist_comm, exact hC y hy}))⟩ }
 end
 
-/- Construct a bornology from a distance function and metric space axioms. -/
+/-- Construct a bornology from a distance function and metric space axioms. -/
 def bornology.of_dist {α : Type*} (dist : α → α → ℝ)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) :

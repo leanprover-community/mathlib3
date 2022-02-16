@@ -1521,19 +1521,24 @@ end subtype_equiv_codomain
 
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
 @[simps apply]
-noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=
+noncomputable def of_bijective (f : α → β) (hf : bijective f) : α ≃ β :=
 { to_fun := f,
   inv_fun := function.surj_inv hf.surjective,
   left_inv := function.left_inverse_surj_inv hf,
   right_inv := function.right_inverse_surj_inv _}
 
-lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (x : β) :
+lemma of_bijective_apply_symm_apply (f : α → β) (hf : bijective f) (x : β) :
   f ((of_bijective f hf).symm x) = x :=
 (of_bijective f hf).apply_symm_apply x
 
-@[simp] lemma of_bijective_symm_apply_apply {α β} (f : α → β) (hf : bijective f) (x : α) :
+@[simp] lemma of_bijective_symm_apply_apply (f : α → β) (hf : bijective f) (x : α) :
   (of_bijective f hf).symm (f x) = x :=
 (of_bijective f hf).symm_apply_apply x
+
+instance : can_lift (α → β) (α ≃ β) :=
+{ coe := coe_fn,
+  cond := bijective,
+  prf := λ f hf, ⟨of_bijective f hf, rfl⟩ }
 
 section
 

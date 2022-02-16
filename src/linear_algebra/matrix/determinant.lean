@@ -710,14 +710,8 @@ lemma det_fin_three (A : matrix (fin 3) (fin 3) R) :
   det A = A 0 0 * A 1 1 * A 2 2 - A 0 0 * A 1 2 * A 2 1 - A 0 1 * A 1 0 * A 2 2
   + A 0 1 * A 1 2 * A 2 0 + A 0 2 * A 1 0 * A 2 1 - A 0 2 * A 1 1 * A 2 0 :=
 begin
-  -- This used to work as `simp [matrix.det_succ_row_zero, fin.sum_univ_succ], ring`, but that now
-  -- hits timeouts.
-  simp only [matrix.det_succ_row_zero, fin.sum_univ_succ, fintype.sum_empty, det_fin_zero,
-    minor_minor, minor],
-  simp only [fin.one_succ_above_zero, fin.one_succ_above_one, fin.succ_succ_above_zero,
-    fin.zero_succ_above, fin.succ_succ_above_succ],
-  simp,
-  ring,
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+  ring
 end
 
 end matrix

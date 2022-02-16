@@ -447,33 +447,22 @@ begin
   { intros h, rw h },
 end
 
+@[simp]
 lemma image_div_divisors_eq_divisors (n : ℕ) : image (λ (x : ℕ), n / x) n.divisors = n.divisors :=
 begin
   by_cases hn : n = 0, { simp [hn] },
   ext,
-  rw mem_divisors,
-  rw mem_image,
   split,
-  {
+  { rw mem_image,
     rintros ⟨x, hx1, hx2⟩,
-    split, swap, exact hn,
-    rw mem_divisors at hx1,
-    replace hx1 := hx1.1,
+    rw mem_divisors at *,
+    refine ⟨_,hn⟩,
     rw ←hx2,
-    exact div_dvd_of_dvd hx1,
-  },
-  {
+    exact div_dvd_of_dvd hx1.1 },
+  { rw [mem_divisors, mem_image],
     rintros ⟨h1, -⟩,
-    use n/a,
-    split,
-    {
-      rw mem_divisors,
-      split, swap, exact hn,
-      exact div_dvd_of_dvd h1,
-    },
-    { exact nat.div_div_self h1 (pos_iff_ne_zero.mpr hn) },
-  },
-
+    exact ⟨n/a, mem_divisors.mpr ⟨div_dvd_of_dvd h1, hn⟩,
+           nat.div_div_self h1 (pos_iff_ne_zero.mpr hn)⟩ },
 end
 
 @[simp]

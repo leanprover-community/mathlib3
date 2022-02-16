@@ -158,13 +158,13 @@ begin
     { intros n s hn ih, rw [finset.sup_insert, finset.sum_insert hn],
       exact le_trans (μ.sup_le _ _) (add_le_add_left ih _) }},
   refine bsupr_le (λ K hK, _),
-  rcases is_compact.elim_finite_subcover K.2 _ (λ i, (U i).prop) _ with ⟨t, ht⟩, swap,
+  obtain ⟨t, ht⟩ := K.compact.elim_finite_subcover  _ (λ i, (U i).prop) _, swap,
   { convert hK, rw [opens.supr_def, subtype.coe_mk] },
-  rcases K.2.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simp only [ht])
+  rcases K.compact.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simp only [ht])
     with ⟨K', h1K', h2K', h3K'⟩,
   let L : ℕ → compacts G := λ n, ⟨K' n, h1K' n⟩,
   convert le_trans (h3 t L) _,
-  { ext1, simp only [h3K', compacts.coe_finset_sup, finset.sup_eq_supr, set.supr_eq_Union] },
+  { ext1, rw [compacts.coe_finset_sup, finset.sup_eq_supr], exact h3K' },
   refine le_trans (finset.sum_le_sum _) (ennreal.sum_le_tsum t),
   intros i hi, refine le_trans _ (le_supr _ (L i)),
   refine le_trans _ (le_supr _ (h2K' i)), refl'

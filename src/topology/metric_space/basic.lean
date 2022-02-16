@@ -8,6 +8,8 @@ import data.int.interval
 import topology.algebra.ordered.compact
 import topology.metric_space.emetric_space
 
+set_option old_structure_cmd true
+
 /-!
 # Metric spaces
 
@@ -127,6 +129,8 @@ class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 
 variables [pseudo_metric_space α]
+
+@[simp] protected lemma pseudo_metric_space.dist_eq : @pseudo_metric_space.dist α _ = dist := rfl
 
 @[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_uniform_space' : uniform_space α :=
@@ -539,9 +543,9 @@ theorem uniformity_basis_dist :
 begin
   rw ← pseudo_metric_space.uniformity_dist.symm,
   refine has_basis_binfi_principal _ nonempty_Ioi,
-  exact λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
-     λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
-     λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩
+  refine λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp, _, _⟩,
+  exact λ x (hx : _ < _), lt_of_lt_of_le hx (min_le_left r p),
+  exact λ x (hx : _ < _), lt_of_lt_of_le hx (min_le_right r p),
 end
 
 /-- Given `f : β → ℝ`, if `f` sends `{i | p i}` to a set of positive numbers
@@ -569,7 +573,7 @@ metric.mk_uniformity_basis (λ n _, div_pos zero_lt_one $ nat.cast_add_one_pos n
 theorem uniformity_basis_dist_inv_nat_pos :
   (𝓤 α).has_basis (λ n:ℕ, 0<n) (λ n:ℕ, {p:α×α | dist p.1 p.2 < 1 / ↑n }) :=
 metric.mk_uniformity_basis (λ n hn, div_pos zero_lt_one $ nat.cast_pos.2 hn)
-  (λ ε ε0, let ⟨n, hn⟩ := exists_nat_one_div_lt ε0 in ⟨n+1, nat.succ_pos n, hn.le⟩)
+  (λ ε ε0, let ⟨n, hn⟩ := exists_nat_one_div_lt ε0 in ⟨n+1, nat.succ_pos n, by simpa using hn.le⟩)
 
 theorem uniformity_basis_dist_pow {r : ℝ} (h0 : 0 < r) (h1 : r < 1) :
   (𝓤 α).has_basis (λ n:ℕ, true) (λ n:ℕ, {p:α×α | dist p.1 p.2 < r ^ n }) :=
@@ -958,14 +962,9 @@ See Note [forgetful inheritance].
 def pseudo_metric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_metric_space α)
   (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space') :
   pseudo_metric_space α :=
-{ dist               := @dist _ m.to_has_dist,
-  dist_self          := dist_self,
-  dist_comm          := dist_comm,
-  dist_triangle      := dist_triangle,
-  edist              := edist,
-  edist_dist         := edist_dist,
-  to_uniform_space   := U,
-  uniformity_dist    := H.trans pseudo_metric_space.uniformity_dist }
+{ to_uniform_space   := U,
+  uniformity_dist    := H.trans pseudo_metric_space.uniformity_dist,
+  .. m }
 
 /-- One gets a pseudometric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
@@ -2221,8 +2220,8 @@ def of_t2_pseudo_metric_space {α : Type*} [pseudo_metric_space α]
     refine separated_def.1 h x y (λ s hs, _),
     obtain ⟨ε, hε, H⟩ := mem_uniformity_dist.1 hs,
     exact H (show dist x y < ε, by rwa [hdist])
-  end
-  ..‹pseudo_metric_space α› }
+  end,
+  dist := dist, .. ‹pseudo_metric_space α› }
 
 /-- A metric space induces an emetric space -/
 @[priority 100] -- see Note [lower instance priority]
@@ -2255,7 +2254,7 @@ def metric_space.replace_uniformity {γ} [U : uniform_space γ] (m : metric_spac
   (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space') :
   metric_space γ :=
 { eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
-  ..pseudo_metric_space.replace_uniformity m.to_pseudo_metric_space H, }
+  ..pseudo_metric_space.replace_uniformity _ H }
 
   /-- One gets a metric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
@@ -2284,7 +2283,7 @@ ensure that `dist x y = 0` only if `x = y`. -/
 def metric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
   (m : metric_space β) : metric_space γ :=
 { eq_of_dist_eq_zero := λ x y h, hf (dist_eq_zero.1 h),
-  ..pseudo_metric_space.induced f m.to_pseudo_metric_space }
+  .. pseudo_metric_space.induced f _ }
 
 /-- Pull back a metric space structure by a uniform embedding. This is a version of
 `metric_space.induced` useful in case if the domain already has a `uniform_space` structure. -/
@@ -2316,8 +2315,8 @@ section real
 
 /-- Instantiate the reals as a metric space. -/
 noncomputable instance real.metric_space : metric_space ℝ :=
-{ eq_of_dist_eq_zero := λ x y h, by simpa [dist, sub_eq_zero] using h,
-  ..real.pseudo_metric_space }
+{ eq_of_dist_eq_zero := λ x y h, by simpa [real.dist_eq, sub_eq_zero] using h,
+  .. real.pseudo_metric_space }
 
 end real
 
@@ -2354,7 +2353,7 @@ noncomputable instance metric_space_pi : metric_space (Πb, π b) :=
     simp only [finset.sup_le_iff] at eq2,
     exact (funext $ assume b, edist_le_zero.1 $ eq2 b $ mem_univ b)
   end,
-  ..pseudo_metric_space_pi }
+  dist := dist, ..pseudo_metric_space_pi }
 
 end pi
 
@@ -2394,7 +2393,7 @@ begin
   unfold equivalence,
   repeat { split },
   { exact pseudo_metric_space.dist_self },
-  { assume x y h, rwa pseudo_metric_space.dist_comm },
+  { assume x y h, rwa dist_comm },
   { assume x y z hxy hyz,
     refine le_antisymm _ dist_nonneg,
     calc dist x z ≤ dist x y + dist y z : pseudo_metric_space.dist_triangle _ _ _
@@ -2416,14 +2415,14 @@ begin
   have Hxx' : dist x x' = 0 := hxx',
   have Hyy' : dist y y' = 0 := hyy',
   have A : dist x y ≤ dist x' y' := calc
-    dist x y ≤ dist x x' + dist x' y : pseudo_metric_space.dist_triangle _ _ _
+    dist x y ≤ dist x x' + dist x' y : dist_triangle _ _ _
     ... = dist x' y : by simp [Hxx']
-    ... ≤ dist x' y' + dist y' y : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x' y' : by simp [pseudo_metric_space.dist_comm, Hyy'],
+    ... ≤ dist x' y' + dist y' y : dist_triangle _ _ _
+    ... = dist x' y' : by simp [dist_comm, Hyy'],
   have B : dist x' y' ≤ dist x y := calc
-    dist x' y' ≤ dist x' x + dist x y' : pseudo_metric_space.dist_triangle _ _ _
-    ... = dist x y' : by simp [pseudo_metric_space.dist_comm, Hxx']
-    ... ≤ dist x y + dist y y' : pseudo_metric_space.dist_triangle _ _ _
+    dist x' y' ≤ dist x' x + dist x y' : dist_triangle _ _ _
+    ... = dist x y' : by simp [dist_comm, Hxx']
+    ... ≤ dist x y + dist y y' : dist_triangle _ _ _
     ... = dist x y : by simp [Hyy'],
   exact le_antisymm A B
 end }
@@ -2437,6 +2436,7 @@ instance metric_space_quot {α : Type u} [pseudo_metric_space α] :
     refine quotient.ind (λy, _),
     exact pseudo_metric_space.dist_self _
   end,
+  dist := dist,
   eq_of_dist_eq_zero := λxc yc, by exact quotient.induction_on₂ xc yc (λx y H, quotient.sound H),
   dist_comm :=
     λxc yc, quotient.induction_on₂ xc yc (λx y, pseudo_metric_space.dist_comm _ _),

@@ -172,6 +172,7 @@ instance completion.metric_space : metric_space (completion α) :=
   eq_of_dist_eq_zero := completion.eq_of_dist_eq_zero,
   dist_comm          := completion.dist_comm,
   dist_triangle      := completion.dist_triangle,
+  dist               := dist,
   to_uniform_space   := by apply_instance,
   uniformity_dist    := completion.uniformity_dist }
 

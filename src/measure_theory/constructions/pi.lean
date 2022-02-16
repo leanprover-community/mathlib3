@@ -580,7 +580,7 @@ measure.pi_closed_ball _ _ hr
 
 open measure
 /-- We intentionally restrict this only to the nondependent function space, since type-class
-  inference fails when this is stated for dependent function spaces. -/
+inference cannot find an instance for `ι → ℝ` when this is stated for dependent function spaces. -/
 @[to_additive]
 instance pi.is_mul_left_invariant_volume {α} [group α] [measure_space α]
   [sigma_finite (volume : measure α)]
@@ -589,7 +589,7 @@ instance pi.is_mul_left_invariant_volume {α} [group α] [measure_space α]
 pi.is_mul_left_invariant _
 
 /-- We intentionally restrict this only to the nondependent function space, since type-class
-  inference fails when this is stated for dependent function spaces. -/
+inference cannot find an instance for `ι → ℝ` when this is stated for dependent function spaces. -/
 @[to_additive]
 instance pi.is_inv_invariant_volume {α} [group α] [measure_space α]
   [sigma_finite (volume : measure α)]

@@ -281,8 +281,8 @@ end
 /-- If `b` and `b'` are `ℚ`-bases of a number field `K` such that
 `∀ i j, is_integral ℤ (b.to_matrix b' i j)` and `∀ i j, is_integral ℤ (b'.to_matrix b i j)` then
 `discr ℚ b = discr ℚ b'`. -/
-lemma discr_eq_discr_of_to_matrix_coeff_is_integral {K : Type u} [field K] [number_field K]
-  {b : basis ι ℚ K} {b' : basis ι' ℚ K} (h : ∀ i j, is_integral ℤ (b.to_matrix b' i j))
+lemma discr_eq_discr_of_to_matrix_coeff_is_integral [number_field K] {b : basis ι ℚ K}
+  {b' : basis ι' ℚ K} (h : ∀ i j, is_integral ℤ (b.to_matrix b' i j))
   (h' : ∀ i j, is_integral ℤ (b'.to_matrix b i j)) :
   discr ℚ b = discr ℚ b' :=
 begin

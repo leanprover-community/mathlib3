@@ -337,11 +337,11 @@ local attribute [instance] metric_space_sum
 lemma sum.dist_eq {x y : X ⊕ Y} : dist x y = sum.dist x y := rfl
 
 /-- The left injection of a space in a disjoint union is an isometry -/
-lemma isometry_on_inl : isometry (sum.inl : X → (X ⊕ Y)) :=
+lemma isometry_inl : isometry (sum.inl : X → (X ⊕ Y)) :=
 isometry_emetric_iff_metric.2 $ λx y, rfl
 
 /-- The right injection of a space in a disjoint union is an isometry -/
-lemma isometry_on_inr : isometry (sum.inr : Y → (X ⊕ Y)) :=
+lemma isometry_inr : isometry (sum.inr : Y → (X ⊕ Y)) :=
 isometry_emetric_iff_metric.2 $ λx y, rfl
 
 end sum

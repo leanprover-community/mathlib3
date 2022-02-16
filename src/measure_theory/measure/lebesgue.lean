@@ -266,17 +266,6 @@ instance : is_neg_invariant (volume : measure ℝ) :=
 ### Images of the Lebesgue measure under translation/linear maps in ℝⁿ
 -/
 
--- for some reason `apply_instance` doesn't find this
-instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
-  is_add_left_invariant (volume : measure (ι → ℝ)) :=
-pi.is_add_left_invariant_volume
-
--- for some reason `apply_instance` doesn't find this
-instance is_neg_invariant_real_volume_pi (ι : Type*) [fintype ι] :
-  is_neg_invariant (volume : measure (ι → ℝ)) :=
-pi.is_neg_invariant_volume
-
-
 open matrix
 
 /-- A diagonal matrix rescales Lebesgue according to its determinant. This is a special case of

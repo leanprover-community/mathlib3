@@ -100,8 +100,8 @@ by simp_rw [← self_eq_neg ℝ E, ← integral_neg, ← hf', integral_mul_left_
 /-- If some right-translate of a function negates it, then the integral of the function with respect
 to a right-invariant measure is 0. -/
 @[to_additive]
-lemma integral_eq_zero_of_mul_right_eq_neg [is_mul_right_invariant μ] (hf' : ∀ x, f (x * g) = - f x) :
-  ∫ x, f x ∂μ = 0 :=
+lemma integral_eq_zero_of_mul_right_eq_neg [is_mul_right_invariant μ]
+  (hf' : ∀ x, f (x * g) = - f x) : ∫ x, f x ∂μ = 0 :=
 by simp_rw [← self_eq_neg ℝ E, ← integral_neg, ← hf', integral_mul_right_eq_self]
 
 @[to_additive]

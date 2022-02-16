@@ -893,7 +893,7 @@ variables {ι β : Sort*} {κ : ι → Sort*} {p q : α → Prop} {b : Prop}
 lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
 λ h' a, h a (h' a)
 
-lemma forall₂_imp{p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
+lemma forall₂_imp {p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
   (∀ i j, p i j) → ∀ i j, q i j :=
 forall_imp $ λ i, forall_imp $ h i
 

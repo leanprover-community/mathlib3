@@ -1078,14 +1078,11 @@ lemma inner_map_polarization (T : V →ₗ[ℂ] V) (x y : V):
     complex.I * ⟪T (x + complex.I • y) , x + complex.I • y⟫_ℂ -
     complex.I * ⟪T (x - complex.I • y), x - complex.I • y ⟫_ℂ) / 4 :=
 begin
-  iterate {rw [map_add, inner_add_left, inner_add_right, inner_add_right]},
-  iterate {rw [map_sub,inner_sub_left, inner_sub_right, inner_sub_right]},
-  rw [linear_map.map_smul, inner_smul_left, inner_smul_right],
-  ring_nf,
-  rw complex.conj_I,
-  ring_nf,
-  rw complex.I_sq,
-  ring_nf,
+  simp only [map_add, map_sub, inner_add_left, inner_add_right, linear_map.map_smul,
+             inner_smul_left, inner_smul_right, complex.conj_I, ←pow_two, complex.I_sq,
+             inner_sub_left, inner_sub_right, mul_add, ←mul_assoc, mul_neg, neg_neg,
+             sub_neg_eq_add, one_mul, neg_one_mul, mul_sub, sub_sub],
+  ring,
 end
 
 /--

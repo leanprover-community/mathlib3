@@ -453,13 +453,13 @@ begin
            nat.div_div_self h1 (pos_iff_ne_zero.mpr hn)⟩ },
 end
 
-@[simp]
-lemma sum_div_divisors {α : Type*} [add_comm_monoid α] (n : ℕ) (f : ℕ → α) :
-  ∑ d in n.divisors, f (n/d) = n.divisors.sum f :=
+@[simp, to_additive]
+lemma prod_div_divisors {α : Type*} [comm_monoid α] (n : ℕ) (f : ℕ → α) :
+  ∏ d in n.divisors, f (n/d) = n.divisors.prod f :=
 begin
-  by_cases hn : n = 0, { simp [hn, zero_nsmul (f 0)] },
-  rw ←sum_image,
-  { exact sum_congr (image_div_divisors_eq_divisors n) (by simp) },
+  by_cases hn : n = 0, { simp [hn] },
+  rw ←prod_image,
+  { exact prod_congr (image_div_divisors_eq_divisors n) (by simp) },
   { intros x hx y hy h,
     rw mem_divisors at hx hy,
     exact (div_eq_iff_eq_of_dvd_dvd hn hx.1 hy.1).mp h }

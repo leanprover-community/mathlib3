@@ -88,6 +88,16 @@ begin
   exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
+/-- The (scalar) product of a sequence that tends to zero with a bounded one also tends to zero. -/
+lemma tendsto_zero_smul_of_tendsto_zero_of_bounded {ι 𝕜 𝔸 : Type*} [normed_field 𝕜]
+  [normed_group 𝔸] [normed_space 𝕜 𝔸] {l : filter ι} {ε : ι → 𝕜} {f : ι → 𝔸}
+  (hε : tendsto ε l (𝓝 0)) (hf : filter.is_bounded_under (≤) l (norm ∘ f)) :
+  tendsto (ε • f) l (𝓝 0) :=
+begin
+  rw ← is_o_one_iff 𝕜 at hε ⊢,
+  simpa using is_o.smul_is_O hε (hf.is_O_const (one_ne_zero : (1 : 𝕜) ≠ 0))
+end
+
 @[simp] lemma continuous_at_zpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
   continuous_at (λ x, x ^ m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
 begin
@@ -563,7 +573,7 @@ begin
   simp only [div_eq_mul_inv, ennreal.inv_pow] at *,
   rw [mul_assoc, mul_comm],
   convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
-  rw [ennreal.one_sub_inv_two, ennreal.inv_inv]
+  rw [ennreal.one_sub_inv_two, inv_inv]
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from
@@ -815,8 +825,7 @@ begin
     refine summable_of_norm_bounded_eventually 0 summable_zero _,
     rw nat.cofinite_eq_at_top,
     filter_upwards [h] with _ hn,
-    by_contra h,
-    push_neg at h,
+    by_contra' h,
     exact not_lt.mpr (norm_nonneg _) (lt_of_le_of_lt hn $ mul_neg_of_neg_of_pos hr₀ h), },
 end
 
@@ -893,7 +902,7 @@ begin
   rcases hf.summable.comp_injective (@encodable.encode_injective ι _) with ⟨c, hg⟩,
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
   { assume i _, exact le_of_lt (f0 _) },
-  { assume n, exact le_refl _ }
+  { assume n, exact le_rfl }
 end
 
 lemma set.countable.exists_pos_has_sum_le {ι : Type*} {s : set ι} (hs : s.countable)

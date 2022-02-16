@@ -280,7 +280,7 @@ begin
   { intros a b h c ca h₂,
     cases b with b,
     { rw le_antisymm h bot_le at h₂,
-      exact ⟨_, h₂, le_refl _⟩ },
+      exact ⟨_, h₂, le_rfl⟩ },
     cases a with a,
     { change c + 0 = some ca at h₂,
       simp at h₂, simp [h₂],
@@ -1020,6 +1020,34 @@ instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multi
 instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (additive α) :=
 { ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
+
+namespace additive
+
+variables [preorder α]
+
+@[simp] lemma of_mul_le {a b : α} : of_mul a ≤ of_mul b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma of_mul_lt {a b : α} : of_mul a < of_mul b ↔ a < b := iff.rfl
+
+@[simp] lemma to_mul_le {a b : additive α} : to_mul a ≤ to_mul b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma to_mul_lt {a b : additive α} : to_mul a < to_mul b ↔ a < b := iff.rfl
+
+end additive
+
+namespace multiplicative
+
+variables [preorder α]
+
+@[simp] lemma of_add_le {a b : α} : of_add a ≤ of_add b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma of_add_lt {a b : α} : of_add a < of_add b ↔ a < b := iff.rfl
+
+@[simp] lemma to_add_le {a b : multiplicative α} : to_add a ≤ to_add b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma to_add_lt {a b : multiplicative α} : to_add a < to_add b ↔ a < b := iff.rfl
+
+end multiplicative
 
 end type_tags
 

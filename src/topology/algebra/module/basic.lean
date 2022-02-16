@@ -127,6 +127,24 @@ end
 
 end
 
+section lattice_ops
+
+variables {ι R M₁ M₂ : Type*} [semiring R] [add_comm_monoid M₁] [add_comm_monoid M₂]
+  [module R M₁] [module R M₂] [u : topological_space R] {t : topological_space M₂}
+  [has_continuous_smul R M₂] (f : M₁ →ₗ[R] M₂)
+
+lemma has_continuous_smul_induced :
+  @has_continuous_smul R M₁ _ u (t.induced f) :=
+{ continuous_smul :=
+    begin
+      letI : topological_space M₁ := t.induced f,
+      refine continuous_induced_rng _,
+      simp_rw [function.comp, f.map_smul],
+      refine continuous_fst.smul (continuous_induced_dom.comp continuous_snd)
+    end }
+
+end lattice_ops
+
 namespace submodule
 
 variables {α β : Type*} [topological_space β]
@@ -475,18 +493,6 @@ variables [has_continuous_add M₂]
 
 instance : has_add (M₁ →SL[σ₁₂] M₂) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
-
-lemma continuous_nsmul (n : ℕ) : continuous (λ (x : M₂), n • x) :=
-begin
-  induction n with n ih,
-  { simp [continuous_const] },
-  { simp [nat.succ_eq_add_one, add_smul], exact ih.add continuous_id }
-end
-
-@[continuity]
-lemma continuous.nsmul {α : Type*} [topological_space α] {n : ℕ} {f : α → M₂} (hf : continuous f) :
-  continuous (λ (x : α), n • (f x)) :=
-(continuous_nsmul n).comp hf
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp, norm_cast] lemma coe_add : (((f + g) : M₁ →SL[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂) = f + g := rfl

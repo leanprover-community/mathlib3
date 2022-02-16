@@ -274,8 +274,8 @@ uniform_space_eq rfl
 
 /-- Replace topology in a `uniform_space` instance with a propositionally (but possibly not
 definitionally) equal one. -/
-def uniform_space.replace_topology {α : Type*} [i : topological_space α] (u : uniform_space α)
-  (h : i = u.to_topological_space) : uniform_space α :=
+@[reducible] def uniform_space.replace_topology {α : Type*} [i : topological_space α]
+  (u : uniform_space α) (h : i = u.to_topological_space) : uniform_space α :=
 uniform_space.of_core_eq u.to_core i $ h.trans u.to_core_to_topological_space.symm
 
 lemma uniform_space.replace_topology_eq {α : Type*} [i : topological_space α] (u : uniform_space α)
@@ -373,7 +373,7 @@ end
 theorem uniformity_lift_le_swap {g : set (α×α) → filter β} {f : filter β} (hg : monotone g)
   (h : (𝓤 α).lift (λs, g (preimage prod.swap s)) ≤ f) : (𝓤 α).lift g ≤ f :=
 calc (𝓤 α).lift g ≤ (filter.map (@prod.swap α α) $ 𝓤 α).lift g :
-    lift_mono uniformity_le_symm (le_refl _)
+    lift_mono uniformity_le_symm le_rfl
   ... ≤ _ :
     by rw [map_lift_eq2 hg, image_swap_eq_preimage_swap]; exact h
 
@@ -386,7 +386,7 @@ calc (𝓤 α).lift (λs, f (s ○ s)) =
     exact monotone_comp_rel monotone_id monotone_id,
     exact h
   end
-  ... ≤ (𝓤 α).lift f : lift_mono comp_le_uniformity (le_refl _)
+  ... ≤ (𝓤 α).lift f : lift_mono comp_le_uniformity le_rfl
 
 lemma comp_le_uniformity3 :
   (𝓤 α).lift' (λs:set (α×α), s ○ (s ○ s)) ≤ (𝓤 α) :=
@@ -952,7 +952,7 @@ section constructions
 instance : partial_order (uniform_space α) :=
 { le          := λt s, t.uniformity ≤ s.uniformity,
   le_antisymm := assume t s h₁ h₂, uniform_space_eq $ le_antisymm h₁ h₂,
-  le_refl     := assume t, le_refl _,
+  le_refl     := assume t, le_rfl,
   le_trans    := assume a b c h₁ h₂, le_trans h₁ h₂ }
 
 instance : has_Inf (uniform_space α) :=
@@ -962,7 +962,7 @@ instance : has_Inf (uniform_space α) :=
   symm       := le_infi $ assume u, le_infi $ assume hu,
     le_trans (map_mono $ infi_le_of_le _ $ infi_le _ hu) u.symm,
   comp       := le_infi $ assume u, le_infi $ assume hu,
-    le_trans (lift'_mono (infi_le_of_le _ $ infi_le _ hu) $ le_refl _) u.comp }⟩
+    le_trans (lift'_mono (infi_le_of_le _ $ infi_le _ hu) $ le_rfl) u.comp }⟩
 
 private lemma Inf_le {tt : set (uniform_space α)} {t : uniform_space α} (h : t ∈ tt) :
   Inf tt ≤ t :=
@@ -980,7 +980,7 @@ instance : has_top (uniform_space α) :=
 instance : has_bot (uniform_space α) :=
 ⟨{ to_topological_space := ⊥,
   uniformity  := 𝓟 id_rel,
-  refl        := le_refl _,
+  refl        := le_rfl,
   symm        := by simp [tendsto]; apply subset.refl,
   comp        :=
   begin
@@ -1128,6 +1128,12 @@ end
 lemma to_topological_space_inf {u v : uniform_space α} :
   (u ⊓ v).to_topological_space = u.to_topological_space ⊓ v.to_topological_space :=
 by rw [to_topological_space_Inf, infi_pair]
+
+/-- A uniform space with the discrete uniformity has the discrete topology. -/
+lemma discrete_topology_of_discrete_uniformity [hα : uniform_space α]
+  (h : uniformity α = 𝓟 id_rel) :
+  discrete_topology α :=
+⟨(uniform_space_eq h.symm : ⊥ = hα) ▸ rfl⟩
 
 instance : uniform_space empty := ⊥
 instance : uniform_space punit := ⊥

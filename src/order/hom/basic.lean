@@ -67,6 +67,8 @@ We also define two functions to convert other bundled maps to `α →o β`:
 monotone map, bundled morphism
 -/
 
+open order_dual
+
 /-- Bundled monotone (aka, increasing) function -/
 structure order_hom (α β : Type*) [preorder α] [preorder β] :=
 (to_fun   : α → β)
@@ -76,7 +78,7 @@ infixr ` →o `:25 := order_hom
 
 /-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
 abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [preorder α] [preorder β] :=
-rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop).
+rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop)
 
 /-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`.
 This definition is an abbreviation of `rel_embedding (≤) (≤)`. -/
@@ -132,6 +134,10 @@ instance : can_lift (α → β) (α →o β) :=
 { coe := coe_fn,
   cond := monotone,
   prf := λ f h, ⟨⟨f, h⟩, rfl⟩ }
+
+/-- Copy of an `order_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (f : α →o β) (f' : α → β) (h : f' = f) : α →o β := ⟨f', h.symm.subst f.monotone'⟩
 
 /-- The identity function as bundled monotone function. -/
 @[simps {fully_applied := ff}]
@@ -495,6 +501,21 @@ lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e
 @[simp] lemma refl_trans (e : α ≃o β) : (refl α).trans e = e := by { ext x, refl }
 
 @[simp] lemma trans_refl (e : α ≃o β) : e.trans (refl β) = e := by { ext x, refl }
+
+variables (α)
+
+/-- The order isomorphism between a type and its double dual. -/
+def dual_dual : α ≃o order_dual (order_dual α) := refl α
+
+@[simp] lemma coe_dual_dual : ⇑(dual_dual α) = to_dual ∘ to_dual := rfl
+@[simp] lemma coe_dual_dual_symm : ⇑(dual_dual α).symm = of_dual ∘ of_dual := rfl
+
+variables {α}
+
+@[simp] lemma dual_dual_apply (a : α) : dual_dual α a = to_dual (to_dual a) := rfl
+
+@[simp] lemma dual_dual_symm_apply (a : order_dual (order_dual α)) :
+  (dual_dual α).symm a = of_dual (of_dual a) := rfl
 
 end has_le
 

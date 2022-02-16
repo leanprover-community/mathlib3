@@ -346,26 +346,16 @@ alias add_sq ← add_pow_two
 
 end comm_semiring
 
-section ring
-variable [ring R]
+section has_distrib_neg
+variables [monoid R] [has_distrib_neg R]
 
-section
 variables (R)
 theorem neg_one_pow_eq_or : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := or.inl (pow_zero _)
 | (n+1) := (neg_one_pow_eq_or n).swap.imp
   (λ h, by rw [pow_succ, h, neg_one_mul, neg_neg])
   (λ h, by rw [pow_succ, h, mul_one])
-
-end
-
-@[simp]
-lemma neg_one_pow_mul_eq_zero_iff {n : ℕ} {r : R} : (-1)^n * r = 0 ↔ r = 0 :=
-by rcases neg_one_pow_eq_or R n; simp [h]
-
-@[simp]
-lemma mul_neg_one_pow_eq_zero_iff {n : ℕ} {r : R} : r * (-1)^n = 0 ↔ r = 0 :=
-by rcases neg_one_pow_eq_or R n; simp [h]
+variables {R}
 
 theorem neg_pow (a : R) (n : ℕ) : (- a) ^ n = (-1) ^ n * a ^ n :=
 (neg_one_mul a) ▸ (commute.neg_one_left a).mul_pow n
@@ -380,6 +370,19 @@ by simp only [bit1, pow_succ, neg_pow_bit0, neg_mul_eq_neg_mul]
 by simp [sq]
 
 alias neg_sq ← neg_pow_two
+
+end has_distrib_neg
+
+section ring
+variable [ring R]
+
+@[simp]
+lemma neg_one_pow_mul_eq_zero_iff {n : ℕ} {r : R} : (-1)^n * r = 0 ↔ r = 0 :=
+by rcases neg_one_pow_eq_or R n; simp [h]
+
+@[simp]
+lemma mul_neg_one_pow_eq_zero_iff {n : ℕ} {r : R} : r * (-1)^n = 0 ↔ r = 0 :=
+by rcases neg_one_pow_eq_or R n; simp [h]
 
 end ring
 
@@ -396,9 +399,21 @@ by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
         ← sq_sub_sq a b, sub_eq_zero]
 
 lemma sub_sq (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
-by rw [sub_eq_add_neg, add_sq, neg_sq, mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg]
+by rw [sub_eq_add_neg, add_sq, neg_sq, mul_neg, ← sub_eq_add_neg]
 
 alias sub_sq ← sub_pow_two
+
+/- Copies of the above comm_ring lemmas for `units R`. -/
+namespace units
+
+lemma eq_or_eq_neg_of_sq_eq_sq [is_domain R] (a b : Rˣ) (h : a ^ 2 = b ^ 2) : a = b ∨ a = -b :=
+begin
+  refine (eq_or_eq_neg_of_sq_eq_sq _ _ _).imp (λ h, units.ext h) (λ h, units.ext h),
+  replace h := congr_arg (coe : Rˣ → R) h,
+  rwa [units.coe_pow, units.coe_pow] at h,
+end
+
+end units
 
 end comm_ring
 

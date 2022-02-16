@@ -428,8 +428,8 @@ def lift_monoid : (α →* R) ≃ (free_abelian_group α →+* R) :=
           iterate 3 { rw (lift _).map_add },
           rw [ih1, ih2, add_mul] } },
       { intros L2 ih,
-        rw [mul_neg_eq_neg_mul_symm, add_monoid_hom.map_neg, add_monoid_hom.map_neg,
-          mul_neg_eq_neg_mul_symm, ih] },
+        rw [mul_neg, add_monoid_hom.map_neg, add_monoid_hom.map_neg,
+          mul_neg, ih] },
       { intros y1 y2 ih1 ih2,
         rw [mul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, mul_add, ih1, ih2] },
     end,
@@ -457,9 +457,9 @@ instance [comm_monoid α] : comm_ring (free_abelian_group α) :=
     { intros s, refine free_abelian_group.induction_on y (zero_mul _).symm _ _ _,
       { intros t, unfold has_mul.mul semigroup.mul ring.mul,
         iterate 4 { rw lift.of }, congr' 1, exact mul_comm _ _ },
-      { intros t ih, rw [mul_neg_eq_neg_mul_symm, ih, neg_mul_eq_neg_mul] },
+      { intros t ih, rw [mul_neg, ih, neg_mul_eq_neg_mul] },
       { intros y1 y2 ih1 ih2, rw [mul_add, add_mul, ih1, ih2] } },
-    { intros s ih, rw [neg_mul_eq_neg_mul_symm, ih, neg_mul_eq_mul_neg] },
+    { intros s ih, rw [neg_mul, ih, neg_mul_eq_mul_neg] },
     { intros x1 x2 ih1 ih2, rw [add_mul, mul_add, ih1, ih2] }
   end,
   .. free_abelian_group.ring α }

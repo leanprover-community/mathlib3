@@ -5,6 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.lie.submodule
 import algebra.lie.of_associative
+import linear_algebra.isomorphisms
 
 /-!
 # Quotients of Lie algebras and Lie modules
@@ -165,3 +166,23 @@ lie_module_hom.ext $ λ x, quotient.induction_on' x $ lie_module_hom.congr_fun h
 end quotient
 
 end lie_submodule
+
+namespace lie_hom
+
+variables {R L L' : Type*}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
+variables (f : L →ₗ⁅R⁆ L')
+
+/-- The first isomorphism theorem for morphisms of Lie algebras. -/
+@[simps] noncomputable def quot_ker_equiv_range : L ⧸ f.ker ≃ₗ⁅R⁆ f.range :=
+{ to_fun := (f : L →ₗ[R] L').quot_ker_equiv_range,
+  map_lie' :=
+  begin
+    rintros ⟨x⟩ ⟨y⟩,
+    rw [← set_like.coe_eq_coe, lie_subalgebra.coe_bracket],
+    simp only [submodule.quotient.quot_mk_eq_mk, linear_map.quot_ker_equiv_range_apply_mk,
+      ← lie_submodule.quotient.mk_bracket, coe_to_linear_map, map_lie],
+  end,
+  .. (f : L →ₗ[R] L').quot_ker_equiv_range, }
+
+end lie_hom

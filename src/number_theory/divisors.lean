@@ -453,7 +453,7 @@ begin
            nat.div_div_self h1 (pos_iff_ne_zero.mpr hn)⟩ },
 end
 
-@[simp, to_additive]
+@[simp, to_additive sum_div_divisors]
 lemma prod_div_divisors {α : Type*} [comm_monoid α] (n : ℕ) (f : ℕ → α) :
   ∏ d in n.divisors, f (n/d) = n.divisors.prod f :=
 begin

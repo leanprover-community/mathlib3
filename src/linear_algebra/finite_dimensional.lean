@@ -950,6 +950,10 @@ theorem finrank_range_add_finrank_ker [finite_dimensional K V] (f : V →ₗ[K] 
   finrank K f.range + finrank K f.ker = finrank K V :=
 by { rw [← f.quot_ker_equiv_range.finrank_eq], exact submodule.finrank_quotient_add_finrank _ }
 
+/-- The dimensions of the domain and range of an injective linear map are equal. -/
+lemma finrank_range_of_inj {f : V →ₗ[K] V₂} [finite_dimensional K V] (hf: function.injective f) :
+  finrank K f.range = finrank K V := by rw (linear_equiv.of_injective f hf).finrank_eq
+
 end linear_map
 
 namespace linear_equiv

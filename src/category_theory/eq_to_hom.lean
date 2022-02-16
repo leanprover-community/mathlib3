@@ -129,7 +129,7 @@ by { cases h, cases h', simp }
 lemma hext {F G : C ⥤ D} (h_obj : ∀ X, F.obj X = G.obj X)
   (h_map : ∀ X Y (f : X ⟶ Y), F.map f == G.map f) : F = G :=
 functor.ext h_obj (λ _ _ f,
-  (map_conj_eq_to_hom_iff_map_heq f (h_obj _) (h_obj _)).2 $ h_map _ _ f)
+  (conj_eq_to_hom_iff_heq _ _ (h_obj _) (h_obj _)).2 $ h_map _ _ f)
 
 -- Using equalities between functors.
 

@@ -509,7 +509,7 @@ end affine_map
 
 namespace affine_map
 
-variables {R : Type*} {k : Type*} {V1 : Type*} {P1 : Type*} {V2 : Type*}
+variables {R k V1 P1 V2 : Type*}
 
 section ring
 variables [ring k] [add_comm_group V1] [affine_space V1 P1] [add_comm_group V2]
@@ -519,7 +519,7 @@ include V1
 section distrib_mul_action
 variables [monoid R] [distrib_mul_action R V2] [smul_comm_class k R V2]
 
-/-- Affine maps to a module inherit `R`-actions from that module. -/
+/-- The space of affine maps to a module inherits an `R`-action from the action on its codomain. -/
 instance : distrib_mul_action R (P1 →ᵃ[k] V2) :=
 { smul := λ c f, ⟨c • f, c • f.linear, λ p v, by simp [smul_add]⟩,
   one_smul := λ f, ext $ λ p, one_smul _ _,
@@ -540,7 +540,7 @@ end distrib_mul_action
 section module
 variables [semiring R] [module R V2] [smul_comm_class k R V2]
 
-/-- The set of affine maps with codomain in a `R`-module is a `R`-module. -/
+/-- The space of affine maps taking values in an `R`-module is an `R`-module. -/
 instance : module R (P1 →ᵃ[k] V2) :=
 { smul := (•),
   add_smul := λ c₁ c₂ f, ext $ λ p, add_smul _ _ _,

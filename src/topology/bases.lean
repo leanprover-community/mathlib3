@@ -44,7 +44,7 @@ More fine grained instances for `first_countable_topology`, `separable_space`, `
 (see the comment below `subtype.second_countable_topology`.)
 -/
 
-open set filter classical
+open set filter function
 open_locale topological_space filter
 noncomputable theory
 
@@ -291,27 +291,15 @@ lemma _root_.set.pairwise_disjoint.countable_of_is_open [separable_space α] {ι
   (h'a : ∀ i ∈ a, (s i).nonempty) :
   countable a :=
 begin
-  rcases eq_empty_or_nonempty a with rfl|H, { exact countable_empty },
-  haveI : inhabited α,
-  { choose i ia using H,
-    choose y hy using h'a i ia,
-    exact ⟨y⟩ },
-  rcases exists_countable_dense α with ⟨u, u_count, u_dense⟩,
-  have : ∀ i, i ∈ a → ∃ y, y ∈ s i ∩ u :=
-    λ i hi, dense_iff_inter_open.1 u_dense (s i) (ha i hi) (h'a i hi),
-  choose! f hf using this,
-  have f_inj : inj_on f a,
-  { assume i hi j hj hij,
-    have : ¬disjoint (s i) (s j),
-    { rw not_disjoint_iff_nonempty_inter,
-      refine ⟨f i, (hf i hi).1, _⟩,
-      rw hij,
-      exact (hf j hj).1 },
-    contrapose! this,
-    exact h hi hj this },
-  apply countable_of_injective_of_countable_image f_inj,
-  apply u_count.mono _,
-  exact image_subset_iff.2 (λ i hi, (hf i hi).2)
+  rcases exists_countable_dense α with ⟨u, ⟨u_encodable⟩, u_dense⟩,
+  have : ∀ i : a, ∃ y, y ∈ s i ∩ u :=
+    λ i, dense_iff_inter_open.1 u_dense (s i) (ha i i.2) (h'a i i.2),
+  choose f hfs hfu using this,
+  lift f to a → u using hfu,
+  have f_inj : injective f,
+  { refine injective_iff_pairwise_ne.mpr ((h.subtype _ _).mono $ λ i j hij hfij, hij ⟨hfs i, _⟩),
+    simp only [congr_arg coe hfij, hfs j] },
+  exact ⟨@encodable.of_inj _ _ u_encodable f f_inj⟩
 end
 
 /-- In a separable space, a family of disjoint sets with nonempty interiors is countable. -/

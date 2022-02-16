@@ -55,6 +55,7 @@ subgroup `G` of `G`, and `⊥` denotes the trivial subgroup `{1}`.
   `least_descending_central_series_length_eq_nilpotency_class` and
   `lower_central_series_length_eq_nilpotency_class`.
 * If `G` is nilpotent, then so are its subgroups, images, quotients and preimages.
+  Binary products of nilpotent groups are nilpotent.
   Corresponding lemmas about the `nilpotency_class` are provided.
 * The `nilpotency_class` of `G ⧸ center G` is given explicitly, and an induction principle
   is derived from that.
@@ -690,6 +691,46 @@ begin
   exact upper_central_series_eq_top_iff_nilpotency_class_le.mpr h,
 end
 
+section prod
+
+variables {G₁ G₂ : Type*} [group G₁] [group G₂]
+
+lemma lower_central_series_prod (n : ℕ):
+  lower_central_series (G₁ × G₂) n = (lower_central_series G₁ n).prod (lower_central_series G₂ n) :=
+begin
+  induction n with n ih,
+  { simp, },
+  { calc lower_central_series (G₁ × G₂) n.succ
+        = ⁅lower_central_series (G₁ × G₂) n, ⊤⁆  : rfl
+    ... = ⁅(lower_central_series G₁ n).prod (lower_central_series G₂ n), ⊤⁆ : by rw ih
+    ... = ⁅(lower_central_series G₁ n).prod (lower_central_series G₂ n), (⊤ : subgroup G₁).prod ⊤⁆ :
+      by simp
+    ... = ⁅lower_central_series G₁ n, (⊤ : subgroup G₁)⁆.prod ⁅lower_central_series G₂ n, ⊤⁆ :
+      general_commutator_prod_prod _ _ _ _
+    ... = (lower_central_series G₁ n.succ).prod (lower_central_series G₂ n.succ) : rfl }
+end
+
+/-- Products of nilpotent groups are nilpotent -/
+instance is_nilpotent_prod [is_nilpotent G₁] [is_nilpotent G₂] :
+  is_nilpotent (G₁ × G₂) :=
+begin
+  rw nilpotent_iff_lower_central_series,
+  refine ⟨max (group.nilpotency_class G₁) (group.nilpotency_class G₂), _ ⟩,
+  rw [lower_central_series_prod,
+    lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (le_max_left _ _),
+    lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (le_max_right _ _), bot_prod_bot],
+end
+
+/-- The nilpotency class of a product is the max of the nilpotency classes of the factors -/
+lemma nilpotency_class_prod [is_nilpotent G₁] [is_nilpotent G₂] :
+  group.nilpotency_class (G₁ × G₂) = max (group.nilpotency_class G₁) (group.nilpotency_class G₂) :=
+begin
+  refine eq_of_forall_ge_iff (λ k, _),
+  simp only [max_le_iff, ← lower_central_series_eq_bot_iff_nilpotency_class_le,
+    lower_central_series_prod, prod_eq_bot_iff ],
+end
+
+end prod
 
 /-- A nilpotent subgroup is solvable -/
 @[priority 100]

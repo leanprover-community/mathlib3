@@ -186,6 +186,12 @@ lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   s ×ˢ t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
 by simp [subset_def]
 
+lemma image_prod_mk_subset_prod_left (hb : b ∈ t) : (λ a, (a, b)) '' s ⊆ s ×ˢ t :=
+by { rintro _ ⟨a, ha, rfl⟩, exact ⟨ha, hb⟩ }
+
+lemma image_prod_mk_subset_prod_right (ha : a ∈ s) : prod.mk a '' t ⊆ s ×ˢ t :=
+by { rintro _ ⟨b, hb, rfl⟩, exact ⟨ha, hb⟩ }
+
 lemma fst_image_prod_subset (s : set α) (t : set β) : prod.fst '' (s ×ˢ t) ⊆ s :=
 λ _ h, let ⟨_, ⟨h₂, _⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
 

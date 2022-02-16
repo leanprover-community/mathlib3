@@ -181,6 +181,9 @@ begin
   { exact himp ih1 ih2 }
 end
 
+lemma is_atomic.is_qf {φ : L.bounded_formula α n} : is_atomic φ → is_qf φ :=
+is_qf.of_is_atomic
+
 /-- The equality of two terms as a first-order formula. -/
 def equal (t₁ t₂ : L.term α) : (L.formula α) :=
 bd_equal (t₁.relabel sum.inl) (t₂.relabel sum.inl)
@@ -188,6 +191,35 @@ bd_equal (t₁.relabel sum.inl) (t₂.relabel sum.inl)
 /-- The graph of a function as a first-order formula. -/
 def graph (f : L.functions n) : L.formula (fin (n + 1)) :=
 equal (func f (λ i, var i)) (var n)
+
+end formula
+
+namespace bounded_formula
+
+open formula
+
+lemma is_qf_bd_falsum : is_qf (bd_falsum : L.bounded_formula α n) :=
+formula.is_qf.falsum
+
+lemma is_atomic_bd_equal (t₁ t₂) : is_atomic (bd_equal t₁ t₂ : L.bounded_formula α n) :=
+formula.is_atomic.equal
+
+lemma is_atomic_bd_rel {m} (R : L.relations m) (ts) :
+  is_atomic (bd_rel R ts : L.bounded_formula α n) :=
+is_atomic.rel
+
+lemma is_qf.bd_imp {φ ψ : L.bounded_formula α n} : is_qf φ → is_qf ψ → is_qf (bd_imp φ ψ) :=
+is_qf.imp
+
+end bounded_formula
+
+namespace formula
+
+lemma is_qf_equal (t₁ t₂ : L.term α) : (equal t₁ t₂).is_atomic :=
+is_atomic_bd_equal _ _
+
+lemma is_qf_graph (f : L.functions n) : (graph f).is_atomic :=
+is_qf_equal _ _
 
 end formula
 end formula
@@ -379,11 +411,94 @@ def semantically_equivalent_setoid (T : L.Theory) : setoid (L.bounded_formula α
   iseqv := ⟨λ φ M str hM, rfl, λ φ ψ se M str hM, (se M str hM).symm,
     λ φ ψ θ φψ ψθ M str hM, (φψ M str hM).trans (ψθ M str hM)⟩ }
 
-lemma semantically_equivalent_not_not {T : L.Theory} {φ : L.bounded_formula α n} :
+lemma not_not_semantically_equivalent {T : L.Theory} {φ : L.bounded_formula α n} :
   T.semantically_equivalent (bd_not (bd_not φ)) φ :=
 λ M str hM, by { ext, simp only [realize_not, not_not] }
 
+lemma imp_semantically_equivalent_not_sup {T : L.Theory} {φ ψ : L.bounded_formula α n} :
+  T.semantically_equivalent (bd_imp φ ψ) (bd_not φ ⊔ ψ) :=
+λ M str hM, by { ext, simp only [realize_bounded_formula, has_sup_sup, realize_not, not_not] }
+
+lemma sup_semantically_equivalent_not_inf_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
+  T.semantically_equivalent (φ ⊔ ψ) (bd_not ((bd_not φ) ⊓ (bd_not ψ))) :=
+λ M str hM, by { ext, simp }
+
+lemma inf_semantically_equivalent_not_sup_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
+  T.semantically_equivalent (φ ⊓ ψ) (bd_not ((bd_not φ) ⊔ (bd_not ψ))) :=
+λ M str hM, by { ext, simp }
+
 end Theory
+
+namespace formula
+
+variable {n : ℕ}
+
+lemma is_qf.induction_on_sup_not {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
+  (h : is_qf φ)
+  (hf : P (bd_falsum : L.bounded_formula α n))
+  (ha : ∀ (ψ : L.bounded_formula α n), is_atomic ψ → P ψ)
+  (hsup : ∀ {φ₁ φ₂} (h₁ : P φ₁) (h₂ : P φ₂), P (φ₁ ⊔ φ₂))
+  (hnot : ∀ {φ} (h : P φ), P (bd_not φ))
+  (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
+    (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
+  P φ :=
+begin
+  refine h.induction_on hf ha (λ φ₁ φ₂ h1 h2, _),
+  rw hse Theory.imp_semantically_equivalent_not_sup,
+  exact hsup (hnot h1) h2,
+end
+
+lemma is_qf.induction_on_inf_not {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
+  (h : is_qf φ)
+  (hf : P (bd_falsum : L.bounded_formula α n))
+  (ha : ∀ (ψ : L.bounded_formula α n), is_atomic ψ → P ψ)
+  (hinf : ∀ {φ₁ φ₂} (h₁ : P φ₁) (h₂ : P φ₂), P (φ₁ ⊓ φ₂))
+  (hnot : ∀ {φ} (h : P φ), P (bd_not φ))
+  (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
+    (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
+  P φ :=
+begin
+  refine h.induction_on_sup_not hf ha (λ φ₁ φ₂ h1 h2, _) (λ _, hnot) (λ _ _, hse),
+  rw hse Theory.sup_semantically_equivalent_not_inf_not,
+  exact hnot (hinf (hnot h1) (hnot h2)),
+end
+
+lemma induction_on_prenex {P : Π {m}, L.bounded_formula α m → Prop} (φ : L.bounded_formula α n)
+  (hqf : ∀ (ψ : L.bounded_formula α n), is_qf ψ → P ψ)
+  (hall : ∀ {m} {ψ  : L.bounded_formula α (m + 1)} (h : P ψ), P (bd_all ψ))
+  (hex : ∀ {m} {φ : L.bounded_formula α (m + 1)} (h : P φ), P (bd_exists φ))
+  (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
+    (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
+  P φ :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ h1 h2,
+  { exact hqf _ is_qf_bd_falsum },
+  { exact hqf _ (is_atomic_bd_equal _ _).is_qf },
+  { exact hqf _ (is_atomic_bd_rel _ _).is_qf },
+  { refine hqf _ (h1.bd_imp h2), },
+
+end
+
+lemma induction_on_exists_not {P : Π {m}, L.bounded_formula α m → Prop} (φ : L.bounded_formula α n)
+  (hqf : ∀ (ψ : L.bounded_formula α n), is_qf ψ → P ψ)
+  (hnot : ∀ {m} {φ : L.bounded_formula α m} (h : P φ), P (bd_not φ))
+  (hex : ∀ {m} {φ : L.bounded_formula α (m + 1)} (h : P φ), P (bd_exists φ))
+  (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
+  (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
+  P φ :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ h1 h2,
+  { exact hqf _ is_qf_bd_falsum },
+  { exact hqf _ (is_atomic_bd_equal _ _).is_qf },
+  { exact hqf _ (is_atomic_bd_rel _ _).is_qf },
+  { refine hqf _ (h1.bd_imp h2), },
+end
+
+
+
+
+
+end formula
 
 end language
 end first_order

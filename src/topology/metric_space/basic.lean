@@ -128,7 +128,7 @@ class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 
 /-- Two pseudo metric space structures with the same distance function coincide. -/
-@[ext] lemma pseudo_metric_space_eq {α : Type*} {m m' : pseudo_metric_space α}
+@[ext] lemma pseudo_metric_space.ext {α : Type*} {m m' : pseudo_metric_space α}
   (h : m.to_has_dist = m'.to_has_dist) : m = m' :=
 begin
   unfreezingI { rcases m, rcases m' },
@@ -2221,7 +2221,7 @@ class metric_space (α : Type u) extends pseudo_metric_space α : Type u :=
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
 
 /-- Two metric space structures with the same distance coincide. -/
-@[ext] lemma metric_space_eq {α : Type*} {m m' : metric_space α}
+@[ext] lemma metric_space.ext {α : Type*} {m m' : metric_space α}
   (h : m.to_has_dist = m'.to_has_dist) : m = m' :=
 begin
   have h' : m.to_pseudo_metric_space = m'.to_pseudo_metric_space := pseudo_metric_space_eq h,

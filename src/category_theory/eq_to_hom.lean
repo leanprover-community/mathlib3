@@ -120,13 +120,10 @@ begin
   simpa using h_map X Y f
 end
 
-/-- Maps under functors are equal up to conjugation if and only if they are heterogeneously equal -/
-lemma map_conj_eq_to_hom_iff_map_heq {F G : C ⥤ D} {x y : C} (f : x ⟶ y)
-  (hx : F.obj x = G.obj x) (hy : F.obj y = G.obj y) :
-  F.map f = eq_to_hom hx ≫ G.map f ≫ eq_to_hom hy.symm ↔ F.map f == G.map f :=
-by { generalize : F.map f = Ff, generalize : G.map f = Gf, clear f,
-  generalize_hyp : F.obj x = F₁ at hx Ff ⊢,
-  generalize_hyp : F.obj y = F₂ at hy Ff ⊢, cases hx, cases hy, simp }
+/-- Two morphisms are conjugate via eq_to_hom if and only if they are heterogeneously equal. --/
+lemma conj_eq_to_hom_iff_heq {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) (h : W = Y) (h' : X = Z) :
+  f = eq_to_hom h ≫ g ≫ eq_to_hom h'.symm ↔ f == g :=
+by { cases h, cases h', simp }
 
 /-- Proving equality between functors using heterogeneous equality. -/
 lemma hext {F G : C ⥤ D} (h_obj : ∀ X, F.obj X = G.obj X)

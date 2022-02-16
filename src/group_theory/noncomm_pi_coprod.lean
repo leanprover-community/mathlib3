@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2022 Jocchim Breitner. All rights reserved.
-Released under Apache 2.0 license as described in the file LιCENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joachim Breitner
 -/
 import group_theory.order_of_element
@@ -35,9 +35,9 @@ image of different morphism commute, we obtain a canoncial morphism
 * `subgroup.noncomm_pi_coprod_range`: The range of `subgroup.noncomm_pi_coprod` is `⨆ (i : ι), H i`.
 * `monoid_hom.injective_noncomm_pi_coprod_of_independent`: in the case of groups, `pi_hom.hom` is
    injective if the `ϕ` are injective and the ranges of the `ϕ` are independent.
-* `monoid_hom.independent_range_of_coprime_order`: ιf the `N i` have coprime orders, then the ranges
+* `monoid_hom.independent_range_of_coprime_order`: If the `N i` have coprime orders, then the ranges
    of the `ϕ` are independent.
-* `subgroup.independent_of_coprime_order`: ιf commuting, normal subgroups `H i` have coprime orders,
+* `subgroup.independent_of_coprime_order`: If commuting, normal subgroups `H i` have coprime orders,
    they are independent.
 
 -/
@@ -51,7 +51,7 @@ lemma coprime_prod_left
   (∀ (i : ι), i ∈ t → nat.coprime (s i) x) → nat.coprime (∏ (i : ι) in t, s i) x :=
 finset.prod_induction s (λ y, y.coprime x) (λ a b, nat.coprime.mul) (by simp)
 
--- ι think it's worth keeping it and moving to appropriate file
+-- I think it's worth keeping it and moving to appropriate file
 @[to_additive]
 lemma mul_eq_one_iff_disjoint {G : Type*} [group G] {H₁ H₂ : subgroup G} :
   disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x * y = 1 → x = 1 ∧ y = 1 :=
@@ -90,7 +90,7 @@ variables (f g : Π (i : ι), N i)
 
 namespace noncomm_pi_coprod_on
 
--- ιn this section, we restrict the hom to a set S
+-- In this section, we restrict the hom to a set S
 variables (S : finset ι)
 
 /-- The underlying function of `noncomm_pi_coprod_on.hom` -/

@@ -170,8 +170,7 @@ lemma comp_map_heq' (H : D ⥤ E) (hobj : ∀ x : C, F.obj x = G.obj x)
   (F ⋙ H).map f == (G ⋙ H).map f :=
 by rw functor.hext hobj (λ _ _, hmap)
 
-lemma hcongr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) :
-  F.map f == G.map f :=
+lemma hcongr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) : F.map f == G.map f :=
 by subst h; simp
 
 end heq

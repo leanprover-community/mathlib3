@@ -17,6 +17,8 @@ This file defines first-order languages and structures in the style of the
   variables indexed by `α`.
 * A `first_order.language.formula` is defined so that `L.formula α` is the type of `L`-formulas with
   free variables indexed by `α`.
+* A `first_order.language.partitioned_formula` is defined so that `L.formula α β` is the type of
+`L`-formulas with free variables indexed by `α` and `β`.
 * A `first_order.language.sentence` is a formula with no free variables.
 * A `first_order.language.Theory` is a set of sentences.
 * `first_order.language.Theory.is_satisfiable` indicates that a theory has a nonempty model.
@@ -141,7 +143,7 @@ namespace bounded_formula
 @[reducible] def bd_not (φ : L.bounded_formula α n) : L.bounded_formula α n := bd_imp φ ⊥
 
 /-- Puts an `∃` quantifier on a bounded formula. -/
-@[reducible] def bd_exists (φ : L.bounded_formula α n.succ) : L.bounded_formula α n :=
+@[reducible] def bd_exists (φ : L.bounded_formula α (n + 1)) : L.bounded_formula α n :=
   bd_not (bd_all (bd_not φ))
 
 @[simps] instance : has_top (L.bounded_formula α n) := ⟨bd_not bd_falsum⟩

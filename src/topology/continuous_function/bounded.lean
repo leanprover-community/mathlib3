@@ -256,33 +256,36 @@ lemma continuous_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, 
 def restrict (f : α →ᵇ β) (s : set α) : s →ᵇ β := f.comp_continuous (continuous_map.id.restrict s)
 
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
-gives a bounded continuous function -/
-def comp (G : β → γ) {C : ℝ≥0} (H : lipschitz_with C G)
+gives a bounded continuous function.
+
+Note that we hide `C` in an existential so that it can be provided classically without making
+the result unnecessarily noncomputable. -/
+def comp (G : β → γ) (H : ∃ C, lipschitz_with C G)
   (f : α →ᵇ β) : α →ᵇ γ :=
-⟨⟨λx, G (f x), H.continuous.comp f.continuous⟩,
-  let ⟨D, hD⟩ := f.bounded in
+⟨⟨λx, G (f x), let ⟨C, hC⟩ := H in hC.continuous.comp f.continuous⟩,
+  let ⟨D, hD⟩ := f.bounded, ⟨C, hC⟩ := H in
   ⟨max C 0 * D, λ x y, calc
-    dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H.dist_le_mul _ _
+    dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : hC.dist_le_mul _ _
     ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left C 0) dist_nonneg
     ... ≤ max C 0 * D : mul_le_mul_of_nonneg_left (hD _ _) (le_max_right C 0)⟩⟩
 
 /-- The composition operator (in the target) with a Lipschitz map is Lipschitz -/
 lemma lipschitz_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
-  lipschitz_with C (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
+  lipschitz_with C (comp G ⟨C, H⟩ : (α →ᵇ β) → α →ᵇ γ) :=
 lipschitz_with.of_dist_le_mul $ λ f g,
 (dist_le (mul_nonneg C.2 dist_nonneg)).2 $ λ x,
 calc dist (G (f x)) (G (g x)) ≤ C * dist (f x) (g x) : H.dist_le_mul _ _
   ... ≤ C * dist f g : mul_le_mul_of_nonneg_left (dist_coe_le_dist _) C.2
 
 /-- The composition operator (in the target) with a Lipschitz map is uniformly continuous -/
-lemma uniform_continuous_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
+lemma uniform_continuous_comp {G : β → γ} (H : ∃ C, lipschitz_with C G) :
   uniform_continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
-(lipschitz_comp H).uniform_continuous
+let ⟨C, hC⟩ := H in (lipschitz_comp hC).uniform_continuous
 
 /-- The composition operator (in the target) with a Lipschitz map is continuous -/
-lemma continuous_comp {G : β → γ} {C : ℝ≥0} (H : lipschitz_with C G) :
+lemma continuous_comp {G : β → γ} (H : ∃ C, lipschitz_with C G) :
   continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
-(lipschitz_comp H).continuous
+let ⟨C, hC⟩ := H in (lipschitz_comp hC).continuous
 
 /-- Restriction (in the target) of a bounded continuous function taking values in a subset -/
 def cod_restrict (s : set β) (f : α →ᵇ β) (H : ∀x, f x ∈ s) : α →ᵇ s :=
@@ -432,11 +435,11 @@ theorem arzela_ascoli₂
 using compactness there and then lifting everything to the original space. -/
 begin
   have M : lipschitz_with 1 coe := lipschitz_with.subtype_coe s,
-  let F : (α →ᵇ s) → α →ᵇ β := comp coe M,
+  let F : (α →ᵇ s) → α →ᵇ β := comp coe ⟨_, M⟩,
   refine compact_of_is_closed_subset
-    ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
+    ((_ : is_compact (F ⁻¹' A)).image (continuous_comp ⟨_, M⟩)) closed (λ f hf, _),
   { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
-    refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
+    refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp ⟨_, M⟩) _ closed)
       (λ x ε ε0, bex.imp_right (λ U U_nhds hU y hy z hz f hf, _) (H x ε ε0)),
     calc dist (f y) (f z) = dist (F f y) (F f z) : rfl
                         ... < ε : hU y hy z hz (F f) hf },
@@ -690,7 +693,10 @@ lemma norm_const_le (b : β) : ∥const α b∥ ≤ ∥b∥ :=
 le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x
 
 /-- Constructing a bounded continuous function from a uniformly bounded continuous
-function taking values in a normed group. -/
+function taking values in a normed group.
+
+Note that we hide `C` in an existential so that it can be provided classically without making
+the result unnecessarily noncomputable. -/
 def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
   (f : C(α, β)) (h : ∃ C : ℝ, ∀x, ∥f x∥ ≤ C) : α →ᵇ β :=
 ⟨f, let ⟨C, H⟩ := h in ⟨_, dist_le_two_norm' H⟩⟩
@@ -719,7 +725,7 @@ of_normed_group ⟨f, continuous_of_discrete_topology⟩ h
 /-- Taking the pointwise norm of a bounded continuous function with values in a `normed_group`,
 yields a bounded continuous function with values in ℝ. -/
 noncomputable def norm_comp : α →ᵇ ℝ :=
-f.comp norm lipschitz_with_one_norm
+f.comp norm ⟨_, lipschitz_with_one_norm⟩
 
 @[simp] lemma coe_norm_comp : (f.norm_comp : α → ℝ) = norm ∘ f := rfl
 
@@ -922,7 +928,11 @@ instance : ring (α →ᵇ R) :=
 coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
 
 noncomputable instance : normed_ring (α →ᵇ R) :=
-{ norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
+{ norm_mul := λ f g, begin
+    change ∥of_normed_group _ _∥ ≤ _,
+    dunfold has_mul._proof_2,
+    exact norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
+  end,
   .. bounded_continuous_function.normed_group }
 
 end normed_ring
@@ -978,7 +988,7 @@ instance : algebra 𝕜 (α →ᵇ γ) :=
   algebra_map 𝕜 (α →ᵇ γ) k a = k • 1 :=
 by { rw algebra.algebra_map_eq_smul_one, refl, }
 
-instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
+noncomputable instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
 { norm_algebra_map_eq := λ c, begin
     calc ∥ (algebra_map 𝕜 (α →ᵇ γ)).to_fun c∥ = ∥(algebra_map 𝕜 γ) c∥ : _
     ... = ∥c∥ : norm_algebra_map_eq _ _,
@@ -994,11 +1004,12 @@ functions from `α` to `β` is naturally a module over the algebra of bounded co
 functions from `α` to `𝕜`. -/
 
 instance has_scalar' : has_scalar (α →ᵇ 𝕜) (α →ᵇ β) :=
-⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_group (λ x, (f x) • (g x))
-(f.continuous.smul g.continuous) (∥f∥ * ∥g∥) (λ x, calc
-  ∥f x • g x∥ ≤ ∥f x∥ * ∥g x∥ : normed_space.norm_smul_le _ _
-  ... ≤ ∥f∥ * ∥g∥ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
-    (norm_nonneg _)) ⟩
+{ smul := λ f g, of_normed_group
+    (f.to_continuous_map • g.to_continuous_map)
+    ⟨∥f∥ * ∥g∥, λ x, calc
+      ∥f x • g x∥ ≤ ∥f x∥ * ∥g x∥ : normed_space.norm_smul_le _ _
+      ... ≤ ∥f∥ * ∥g∥ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
+        (norm_nonneg _)⟩ }
 
 instance module' : module (α →ᵇ 𝕜) (α →ᵇ β) :=
 module.of_core $
@@ -1009,7 +1020,11 @@ module.of_core $
   one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x) }
 
 lemma norm_smul_le (f : α →ᵇ 𝕜) (g : α →ᵇ β) : ∥f • g∥ ≤ ∥f∥ * ∥g∥ :=
-norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
+begin
+  change ∥of_normed_group _ _∥ ≤ _,
+  dunfold has_scalar'._proof_2,
+  exact norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
+end
 
 /- TODO: When `normed_module` has been added to `normed_space.basic`, the above facts
 show that the space of bounded continuous functions from `α` to `β` is naturally a normed
@@ -1050,7 +1065,7 @@ variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_
 variables [normed_space 𝕜 β] [star_module 𝕜 β]
 
 instance : star_add_monoid (α →ᵇ β) :=
-{ star            := λ f, f.comp star star_normed_group_hom.lipschitz,
+{ star            := λ f, f.comp star ⟨_, star_normed_group_hom.lipschitz⟩,
   star_involutive := λ f, ext $ λ x, star_star (f x),
   star_add        := λ f g, ext $ λ x, star_add (f x) (g x) }
 
@@ -1060,7 +1075,7 @@ instance `pi.has_star`. Upon inspecting the goal, one sees `⊢ ⇑(star f) = st
 
 @[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
 
-instance : normed_star_monoid (α →ᵇ β) :=
+noncomputable instance : normed_star_monoid (α →ᵇ β) :=
 { norm_star := λ f, by
   { simp only [norm_eq], congr, ext, conv_lhs { find (∥_∥) { erw (@norm_star β _ _ _ (f x)) } } } }
 
@@ -1080,7 +1095,7 @@ instance [normed_star_monoid β] : star_ring (α →ᵇ β) :=
 
 variable [cstar_ring β]
 
-instance : cstar_ring (α →ᵇ β) :=
+noncomputable instance : cstar_ring (α →ᵇ β) :=
 { norm_star_mul_self :=
   begin
     intro f,
@@ -1150,7 +1165,7 @@ instance  : lattice (α →ᵇ β) :=
 
 @[simp] lemma coe_fn_abs (f : α →ᵇ β) : ⇑|f| = |f| := rfl
 
-instance : normed_lattice_add_comm_group (α →ᵇ β) :=
+noncomputable instance : normed_lattice_add_comm_group (α →ᵇ β) :=
 { add_le_add_left := begin
     intros f g h₁ h t,
     simp only [coe_to_continuous_fun, pi.add_apply, add_le_add_iff_left, coe_add,

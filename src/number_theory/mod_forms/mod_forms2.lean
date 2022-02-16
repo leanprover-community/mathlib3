@@ -84,7 +84,8 @@ end
 
 lemma slash_k_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) : (f + g) ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
 begin
-  simp only [slash_k, pi.add_apply, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe],
+  simp only [slash_k, pi.add_apply, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe,
+  coe_coe],
   ext1,
   simp only [pi.add_apply],
   ring,
@@ -100,7 +101,7 @@ begin
 matrix.general_linear_group.coe_fn_eq_coe, coe_coe, monoid_hom.map_one],
 end
 
-lemma smul_slash_k (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ ) (c  : ℂ) : (c • f) ∣[k] A = c • (f ∣[k] A) :=
+lemma smul_slash_k (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ ) (c  : ℂ) : (c • f) ∣[k] A = c • (f ∣[k] A):=
 begin
   ext1,
   simp_rw slash_k,

@@ -10,10 +10,12 @@ import measure_theory.function.egorov
 # Convergence in measure
 
 We define convergence in measure which is one of the many notions of convergence in probability.
-Convergence in measure is most notably used in the formulation of the weak law of large numbers
-and is also useful in theorems such as the Vitali convergence theorem. This file provides some
-basic lemmas for working with convergence in measure and establishes some relations between
-convergence in measure and other notions of convergence.
+In particular, a sequence of functions `f` is said to converge in measure to some function `g`
+if for all `ε > 0`, the measure of the set `{x | ε ≤ dist (f i x) (g x)}` tends to 0 as `i`
+tends to infinity. Convergence in measure is most notably used in the formulation of the weak
+law of large numbers and is also useful in theorems such as the Vitali convergence theorem.
+This file provides some basic lemmas for working with convergence in measure and establishes
+some relations between convergence in measure and other notions of convergence.
 
 ## Main definitions
 
@@ -54,21 +56,29 @@ namespace tendsto_in_measure
 
 variables [preorder ι] [has_dist E] {f f' : ι → α → E} {g g' : α → E}
 
-protected lemma congr (h_left : ∀ i, f i =ᵐ[μ] f' i) (h_right : g =ᵐ[μ] g')
+protected lemma congr' (h_left : ∀ᶠ i in at_top, f i =ᵐ[μ] f' i) (h_right : g =ᵐ[μ] g')
   (h_tendsto : tendsto_in_measure μ f g) :
   tendsto_in_measure μ f' g' :=
 begin
   intros ε hε,
-  specialize h_tendsto ε hε,
-  suffices : (λ i, μ {x | ε ≤ dist (f' i x) (g' x)}) = (λ i, μ {x | ε ≤ dist (f i x) (g x)}),
-    by rwa this,
-  refine funext (λ i, measure_congr _),
-  filter_upwards [h_left i, h_right],
+  suffices : (λ i, μ {x | ε ≤ dist (f' i x) (g' x)})
+      =ᶠ[at_top] (λ i, μ {x | ε ≤ dist (f i x) (g x)}),
+  { rw tendsto_congr' this,
+    exact h_tendsto ε hε, },
+  filter_upwards [h_left],
+  intros i h_ae_eq,
+  refine measure_congr _,
+  filter_upwards [h_ae_eq, h_right],
   intros x hxf hxg,
   rw eq_iff_iff,
   change ε ≤ dist (f' i x) (g' x) ↔ ε ≤ dist (f i x) (g x),
   rw [hxg, hxf],
 end
+
+protected lemma congr (h_left : ∀ i, f i =ᵐ[μ] f' i) (h_right : g =ᵐ[μ] g')
+  (h_tendsto : tendsto_in_measure μ f g) :
+  tendsto_in_measure μ f' g' :=
+tendsto_in_measure.congr' (eventually_of_forall h_left) h_right h_tendsto
 
 lemma congr_left (h : ∀ i, f i =ᵐ[μ] f' i) (h_tendsto : tendsto_in_measure μ f g) :
   tendsto_in_measure μ f' g :=
@@ -112,10 +122,10 @@ end
 /-- Convergence a.e. implies convergence in measure in a finite measure space. -/
 lemma tendsto_in_measure_of_tendsto_ae
   [measurable_space E] [second_countable_topology E] [borel_space E] [is_finite_measure μ]
-  (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ)
-  (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
+  (hf : ∀ n, ae_measurable (f n) μ) (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto_in_measure μ f g :=
 begin
+  have hg : ae_measurable g μ, from ae_measurable_of_tendsto_metric_ae hf hfg,
   refine tendsto_in_measure.congr (λ i, (hf i).ae_eq_mk.symm) hg.ae_eq_mk.symm _,
   refine tendsto_in_measure_of_tendsto_ae_of_measurable (λ i, (hf i).measurable_mk)
     hg.measurable_mk _,
@@ -127,11 +137,60 @@ begin
   exact hxfg,
 end
 
+namespace exists_seq_tendsto_ae
+
+lemma exists_nat_measure_lt_two_inv (hfg : tendsto_in_measure μ f g) (n : ℕ) :
+  ∃ N, ∀ m ≥ N, μ {x | 2⁻¹ ^ n ≤ dist (f m x) (g x)} ≤ 2⁻¹ ^ n :=
+begin
+  specialize hfg (2⁻¹ ^ n) (by simp only [zero_lt_bit0, pow_pos, zero_lt_one, inv_pos]),
+  rw ennreal.tendsto_at_top_zero at hfg,
+  exact hfg (2⁻¹ ^ n) (pos_iff_ne_zero.mpr (λ h_zero, by simpa using pow_eq_zero h_zero))
+end
+
+/-- Given a sequence of functions `f` which converges in measure to `g`,
+`seq_tendsto_ae_seq_aux` is a sequence such that
+`∀ m ≥ seq_tendsto_ae_seq_aux n, μ {x | 2⁻¹ ^ n ≤ dist (f m x) (g x)} ≤ 2⁻¹ ^ n`. -/
+noncomputable
+def seq_tendsto_ae_seq_aux (hfg : tendsto_in_measure μ f g) (n : ℕ) :=
+  classical.some (exists_nat_measure_lt_two_inv hfg n)
+
+/-- Transformation of `seq_tendsto_ae_seq_aux` to makes sure it is strictly monotone. -/
+noncomputable
+def seq_tendsto_ae_seq (hfg : tendsto_in_measure μ f g) : ℕ → ℕ
+| 0 := seq_tendsto_ae_seq_aux hfg 0
+| (n + 1) :=  max (seq_tendsto_ae_seq_aux hfg (n + 1))
+  (seq_tendsto_ae_seq n + 1)
+
+lemma seq_tendsto_ae_seq_succ (hfg : tendsto_in_measure μ f g) {n : ℕ} :
+  seq_tendsto_ae_seq hfg (n + 1) =
+  max (seq_tendsto_ae_seq_aux hfg (n + 1)) (seq_tendsto_ae_seq hfg n + 1) :=
+by rw seq_tendsto_ae_seq
+
+lemma seq_tendsto_ae_seq_spec (hfg : tendsto_in_measure μ f g)
+  (n k : ℕ) (hn : seq_tendsto_ae_seq hfg n ≤ k) :
+  μ {x | 2⁻¹ ^ n ≤ dist (f k x) (g x)} ≤ 2⁻¹ ^ n :=
+begin
+  cases n,
+  { exact classical.some_spec (exists_nat_measure_lt_two_inv hfg 0) k hn },
+  { exact classical.some_spec (exists_nat_measure_lt_two_inv hfg _) _
+      (le_trans (le_max_left _ _) hn) }
+end
+
+lemma seq_tendsto_ae_seq_strict_mono (hfg : tendsto_in_measure μ f g) :
+  strict_mono (seq_tendsto_ae_seq hfg) :=
+begin
+  refine strict_mono_nat_of_lt_succ (λ n, _),
+  rw seq_tendsto_ae_seq_succ,
+  exact lt_of_lt_of_le (lt_add_one $ seq_tendsto_ae_seq hfg n) (le_max_right _ _),
+end
+
+end exists_seq_tendsto_ae
+
 /-- If `f` is a sequence of functions which converges in measure to `g`, then there exists a
 subsequence of `f` which converges a.e. to `g`. -/
 lemma tendsto_in_measure.exists_seq_tendsto_ae
   (hfg : tendsto_in_measure μ f g) :
-  ∃ ns : ℕ → ℕ, ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
+  ∃ ns : ℕ → ℕ, strict_mono ns ∧ ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
 begin
   have : ∀ k : ℕ, ∃ N, ∀ n ≥ N, μ {x | 2⁻¹ ^ k ≤ dist (f n x) (g x)} ≤ 2⁻¹ ^ k,
   { intro k,
@@ -143,13 +202,11 @@ begin
     obtain ⟨k, h_k⟩ : ∃ (k : ℕ), 2⁻¹ ^ k < ε := exists_pow_lt_of_lt_one hε (by norm_num),
     refine ⟨k+1, (le_of_eq _).trans_lt h_k⟩,
     rw [nat.cast_add, nat.cast_one, add_tsub_cancel_right, real.rpow_nat_cast] },
-  let ns := λ k, (this k).some,
+  set ns := exists_seq_tendsto_ae.seq_tendsto_ae_seq hfg,
   use ns,
   let S := λ k, {x | 2⁻¹ ^ k ≤ dist (f (ns k) x) (g x)},
-  have hμS_le : ∀ k, μ (S k) ≤ 2⁻¹ ^ k,
-  { have h_ns_k : ∀ k, ∀ n, n ≥ ns k → μ {x | 2⁻¹ ^ k ≤ dist (f n x) (g x)} ≤ 2⁻¹ ^ k,
-      from λ k, (this k).some_spec,
-    exact λ k, h_ns_k k (ns k) (le_rfl) },
+  have hμS_le : ∀ k, μ (S k) ≤ 2⁻¹ ^ k :=
+    λ k, exists_seq_tendsto_ae.seq_tendsto_ae_seq_spec hfg k (ns k) (le_rfl),
   let s := ⋂ k, ⋃ i (hik : k ≤ i), S i,
   have hμs : μ s = 0,
   { suffices hμs_le : ∀ k : ℕ, μ s ≤ ennreal.of_real (2⁻¹ ^ ((k : ℝ) - 1)),
@@ -203,20 +260,20 @@ begin
     rw [set.mem_compl_iff, set.nmem_set_of_eq, not_le] at hNx,
     exact hNx.le },
   rw ae_iff,
-  refine measure_mono_null (λ x, _) hμs,
+  refine ⟨exists_seq_tendsto_ae.seq_tendsto_ae_seq_strict_mono hfg,
+    measure_mono_null (λ x, _) hμs⟩,
   rw [set.mem_set_of_eq, ← @not_not (x ∈ s), not_imp_not],
   exact h_tendsto x,
 end
 
 end
 
-section
+section tendsto_in_measure_of
 
 variables [measurable_space E] [normed_group E] [borel_space E] [has_measurable_sub₂ E] {p : ℝ≥0∞}
 variables {f : ℕ → α → E} {g : α → E}
 
-/-- Auxiliary lemma for `tendsto_in_measure_of_tendsto_snorm`. -/
-lemma tendsto_in_measure_of_tendsto_snorm_of_measurable
+private lemma tendsto_in_measure_of_tendsto_snorm_of_measurable
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf : ∀ n, measurable (f n)) (hg : measurable g)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
@@ -241,8 +298,7 @@ begin
     exact or.inl (real.rpow_pos_of_pos hε _) },
 end
 
-/-- Convergence in Lp implies convergence in measure. -/
-lemma tendsto_in_measure_of_tendsto_snorm
+private lemma tendsto_in_measure_of_tendsto_snorm_of_ne_top
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
@@ -259,14 +315,53 @@ begin
   exact hfg,
 end
 
+private lemma tendsto_in_measure_of_tendsto_snorm_top
+  (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ)
+  (hfg : tendsto (λ n, snorm (f n - g) ∞ μ) at_top (𝓝 0)) :
+  tendsto_in_measure μ f g :=
+begin
+  intros δ hδ,
+  simp only [snorm_exponent_top, snorm_ess_sup] at hfg,
+  rw ennreal.tendsto_at_top ennreal.zero_ne_top at hfg ⊢,
+  { intros ε hε,
+    obtain ⟨N, hN⟩ := hfg ((ennreal.of_real δ) / 2) (ennreal.div_pos_iff.2
+      ⟨(ennreal.of_real_pos.2 hδ).ne.symm, ennreal.two_ne_top⟩),
+    refine ⟨N, λ n hn, _⟩,
+    simp at *,
+    specialize hN n hn,
+    have : ess_sup (λ (x : α), (∥f n x - g x∥₊ : ℝ≥0∞)) μ < ennreal.of_real δ :=
+      lt_of_le_of_lt hN (ennreal.half_lt_self (ennreal.of_real_pos.2 hδ).ne.symm
+        ennreal.of_real_lt_top.ne),
+    have h' := ae_lt_of_ess_sup_lt this,
+    refine le_trans (le_trans (le_of_eq _) h'.le) hε.le,
+    congr,
+    ext x,
+    simp only [ennreal.of_real_le_iff_le_to_real ennreal.coe_lt_top.ne, ennreal.coe_to_real,
+      not_lt, coe_nnnorm, set.mem_set_of_eq, set.mem_compl_eq],
+    rw ← dist_eq_norm (f n x) (g x),
+    refl },
+  all_goals { apply_instance }
+end
+
+/-- Convergence in Lp implies convergence in measure. -/
+lemma tendsto_in_measure_of_tendsto_snorm
+  (hp_ne_zero : p ≠ 0) (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ)
+  (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
+  tendsto_in_measure μ f g :=
+begin
+  by_cases hp_ne_top : p = ∞,
+  { subst hp_ne_top,
+    exact tendsto_in_measure_of_tendsto_snorm_top hf hg hfg },
+  { exact tendsto_in_measure_of_tendsto_snorm_of_ne_top hp_ne_zero hp_ne_top hf hg hfg }
+end
+
 /-- Convergence in Lp implies convergence in measure. -/
 lemma tendsto_in_measure_of_tendsto_Lp [second_countable_topology E] [hp : fact (1 ≤ p)]
-  {f : ℕ → Lp E p μ} {g : Lp E p μ} (hp_ne_top : p ≠ ∞)
-  (hfg : tendsto f at_top (𝓝 g)) :
+  {f : ℕ → Lp E p μ} {g : Lp E p μ} (hfg : tendsto f at_top (𝓝 g)) :
   tendsto_in_measure μ (λ n, f n) g :=
-tendsto_in_measure_of_tendsto_snorm (ennreal.zero_lt_one.trans_le hp.elim).ne.symm hp_ne_top
+tendsto_in_measure_of_tendsto_snorm (ennreal.zero_lt_one.trans_le hp.elim).ne.symm
   (λ n, Lp.ae_measurable _) (Lp.ae_measurable _) ((Lp.tendsto_Lp_iff_tendsto_ℒp' _ _).mp hfg)
 
-end
+end tendsto_in_measure_of
 
 end measure_theory

@@ -299,21 +299,22 @@ protected def mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range
 protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :
   ⇑(orthonormal_basis.mk hon hsp) = v :=
 begin
+  classical,
   ext i,
   show (orthonormal_basis.mk hon hsp).repr.symm _ = v i,
   simp only [basis.coe_isometry_euclidean_of_orthonormal_symm,
- orthonormal_basis.mk.equations._eqn_1,
- basis.coe_mk,
- basis.equiv_fun_symm_apply,
- finset.sum_congr],
- simp_rw [euclidean_space.single_apply, ite_smul],
- simp only [finset.mem_univ,
- if_true,
- eq_self_iff_true,
- one_smul,
- finset.sum_ite_eq',
- zero_smul,
- finset.sum_congr],
+  orthonormal_basis.mk.equations._eqn_1,
+  basis.coe_mk,
+  basis.equiv_fun_symm_apply,
+  finset.sum_congr],
+  simp_rw [euclidean_space.single_apply, ite_smul],
+  simp only [finset.mem_univ,
+  if_true,
+  eq_self_iff_true,
+  one_smul,
+  finset.sum_ite_eq',
+  zero_smul,
+  finset.sum_congr],
 end
 
 

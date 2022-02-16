@@ -279,10 +279,11 @@ op_injective $
 @[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
 (star_ring_end R).map_div _ _
 
-@[simp] lemma star_bit0 [ring R] [star_ring R] (r : R) : star (bit0 r) = bit0 (star r) :=
+@[simp] lemma star_bit0 [add_monoid R] [star_add_monoid R] (r : R) :
+  star (bit0 r) = bit0 (star r) :=
 by simp [bit0]
 
-@[simp] lemma star_bit1 [ring R] [star_ring R] (r : R) : star (bit1 r) = bit1 (star r) :=
+@[simp] lemma star_bit1 [semiring R] [star_ring R] (r : R) : star (bit1 r) = bit1 (star r) :=
 by simp [bit1]
 
 /--
@@ -393,6 +394,17 @@ begin
     rw [ring.inverse_unit, ←units.coe_star, ring.inverse_unit, ←units.coe_star_inv], },
   rw [ring.inverse_non_unit _ ha, ring.inverse_non_unit _ (mt is_unit_star.mp ha), star_zero],
 end
+
+instance invertible.star {R : Type*} [monoid R] [star_monoid R] (r : R) [invertible r] :
+  invertible (star r) :=
+{ inv_of := star (⅟r),
+  inv_of_mul_self := by rw [←star_mul, mul_inv_of_self, star_one],
+  mul_inv_of_self := by rw [←star_mul, inv_of_mul_self, star_one] }
+
+lemma star_inv_of {R : Type*} [monoid R] [star_monoid R] (r : R)
+  [invertible r] [invertible (star r)] :
+  star (⅟r) = ⅟(star r) :=
+by { letI := invertible.star r, convert (rfl : star (⅟r) = _) }
 
 namespace mul_opposite
 

@@ -68,7 +68,7 @@ def discr (A : Type u) {B : Type v} [comm_ring A] [comm_ring B] [algebra A B] [f
 lemma discr_def [decidable_eq ι] [fintype ι] (b : ι → B) :
   discr A b = (trace_matrix A b).det := by convert rfl
 
-variables [fintype ι] {ι' : Type*} [fintype ι'] [fintype ι]
+variables {ι' : Type*} [fintype ι'] [fintype ι]
 
 section basic
 

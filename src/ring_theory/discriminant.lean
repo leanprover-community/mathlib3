@@ -72,7 +72,7 @@ variables [fintype ι] {ι' : Type*} [fintype ι'] [fintype ι]
 
 section basic
 
-lemma discr_reindex (b : basis ι A B) (f : ι ≃ ι') :
+@[simp] lemma discr_reindex (b : basis ι A B) (f : ι ≃ ι') :
   discr A (b.reindex f) = discr A b :=
 begin
   classical,

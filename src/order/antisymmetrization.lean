@@ -53,7 +53,6 @@ instance antisymm_rel.decidable_rel [decidable_rel r] : decidable_rel (antisymm_
 
 alias antisymm_rel_iff_eq ↔ antisymm_rel.eq _
 
-
 end relation
 
 section is_preorder
@@ -95,7 +94,7 @@ end is_preorder
 section preorder
 variables {α} [preorder α] [preorder β] {a b : α}
 
-lemma antisymm_rel.image {f : α → β} (hf : monotone f) {a b : α} (h : antisymm_rel (≤) a b) :
+lemma antisymm_rel.image {a b : α} (h : antisymm_rel (≤) a b) {f : α → β} (hf : monotone f) :
   antisymm_rel (≤) (f a) (f b) :=
 ⟨hf h.1, hf h.2⟩
 
@@ -134,7 +133,7 @@ by convert to_antisymmetrization_le_to_antisymmetrization_iff.symm;
 by convert to_antisymmetrization_lt_to_antisymmetrization_iff.symm;
   exact (to_antisymmetrization_of_antisymmetrization _ _).symm
 
-lemma to_antisymmetrization_mono : monotone (@to_antisymmetrization α (≤) _) := λ a b, id
+@[mono] lemma to_antisymmetrization_mono : monotone (@to_antisymmetrization α (≤) _) := λ a b, id
 
 /-- `to_antisymmetrization` as an order homomorphism. -/
 @[simps] def order_hom.to_antisymmetrization : α →o antisymmetrization α (≤) :=
@@ -180,13 +179,11 @@ def order_iso.dual_antisymmetrization :
 
 @[simp] lemma order_iso.dual_antisymmetrization_apply (a : α) :
   order_iso.dual_antisymmetrization _ (to_dual $ to_antisymmetrization _ a) =
-    to_antisymmetrization _ (to_dual a) :=
-rfl
+    to_antisymmetrization _ (to_dual a) := rfl
 
 @[simp] lemma order_iso.dual_antisymmetrization_symm_apply (a : α) :
   (order_iso.dual_antisymmetrization _).symm (to_antisymmetrization _ $ to_dual a) =
-    to_dual (to_antisymmetrization _ a) :=
-rfl
+    to_dual (to_antisymmetrization _ a) := rfl
 
 end preorder
 

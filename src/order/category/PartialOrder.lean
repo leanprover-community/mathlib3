@@ -75,7 +75,7 @@ def Preorder_to_PartialOrder_forget_adjunction :
 adjunction.mk_of_hom_equiv
   { hom_equiv := λ X Y, { to_fun := λ f,
       ⟨f ∘ to_antisymmetrization (≤), f.mono.comp to_antisymmetrization_mono⟩,
-    inv_fun := λ f, ⟨λ a, quotient.lift_on' a f $ λ a b h, (antisymm_rel.image f.mono h).eq, λ a b,
+    inv_fun := λ f, ⟨λ a, quotient.lift_on' a f $ λ a b h, (antisymm_rel.image h f.mono).eq, λ a b,
       quotient.induction_on₂' a b $ λ a b h, f.mono h⟩,
     left_inv := λ f, order_hom.ext _ _ $ funext $ λ x, quotient.induction_on' x $ λ x, rfl,
     right_inv := λ f, order_hom.ext _ _ $ funext $ λ x, rfl },

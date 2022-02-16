@@ -2017,9 +2017,6 @@ lemma surjective.nonempty_preimage (hf : surjective f) {s : set β} :
   (f ⁻¹' s).nonempty ↔ s.nonempty :=
 by rw [← nonempty_image_iff, hf.image_preimage]
 
-lemma surjective.nonempty [h : nonempty β] (hf : surjective f) : nonempty α :=
-let ⟨y⟩ := h, ⟨x, hx⟩ := hf y in ⟨x⟩
-
 lemma injective.image_injective (hf : injective f) : injective (image f) :=
 by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }
 

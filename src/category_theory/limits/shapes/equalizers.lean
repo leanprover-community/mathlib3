@@ -314,7 +314,6 @@ lemma cofork.is_colimit.exists_unique {s : cofork f g} (hs : is_colimit s) {W : 
 ⟨hs.desc $ cofork.of_π _ h, hs.fac _ _, λ m hm, cofork.is_colimit.hom_ext hs $
   hm.symm ▸ (hs.fac (cofork.of_π _ h) walking_parallel_pair.one).symm⟩
 
-
 /-- This is a slightly more convenient method to verify that a fork is a limit cone. It
     only asks for a proof of facts that carry any mathematical content -/
 def fork.is_limit.mk (t : fork f g)

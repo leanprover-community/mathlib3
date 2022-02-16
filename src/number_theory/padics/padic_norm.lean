@@ -473,26 +473,12 @@ protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
       { exact hc } },
   end
 
-lemma padic_val_nat_eq_factorization (p : ℕ) [hp : fact p.prime] :
-  ∀ (n : ℕ), padic_val_nat p n = n.factorization p
-| 0 := by simp
-| 1 := by simp
-| (m + 2) :=
-let n := m + 2 in
-let q := min_fac n in
-have hq : fact q.prime := ⟨min_fac_prime (show m + 2 ≠ 1, by linarith)⟩,
-have wf : n / q < n := nat.div_lt_self (nat.succ_pos _) hq.1.one_lt,
+lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
+  padic_val_nat p n = n.factorization p :=
 begin
-  rw [←factors_count_eq, factors_add_two],
-  show padic_val_nat p n = list.count p (q :: (factors (n / q))),
-  rw [list.count_cons', factors_count_eq, ← padic_val_nat_eq_factorization],
-  split_ifs with h,
-  { have hp : p ∣ n := h.symm ▸ nat.min_fac_dvd n,
-    rw [←h, padic_val_nat.div hp],
-    exact (tsub_eq_iff_eq_add_of_le $ one_le_padic_val_nat_of_dvd (by linarith) hp).mp rfl, },
-  { suffices : p.coprime q,
-    { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero] },
-    rwa nat.coprime_primes hp.1 hq.1, },
+  by_cases hn : n = 0, { subst hn, simp },
+  rw @padic_val_nat_def p _ n hn,
+  simp [@multiplicity_eq_factorization n p hp.elim hn],
 end
 
 open_locale big_operators

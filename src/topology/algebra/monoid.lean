@@ -498,8 +498,8 @@ instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_ad
 
 section lattice_ops
 
-variables [has_mul M] [has_mul N] {ts : set (topological_space M)}
-  (h : Π t ∈ ts, @has_continuous_mul M t _) {ts' : ι → topological_space M}
+variables {ι' : Sort*} [has_mul M] [has_mul N] {ts : set (topological_space M)}
+  (h : Π t ∈ ts, @has_continuous_mul M t _) {ts' : ι' → topological_space M}
   (h' : Π i, @has_continuous_mul M (ts' i) _) {t₁ t₂ : topological_space M}
   (h₁ : @has_continuous_mul M t₁ _) (h₂ : @has_continuous_mul M t₂ _)
   {t : topological_space N} [has_continuous_mul N] {F : Type*}

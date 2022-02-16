@@ -9,6 +9,7 @@ import algebra.iterate_hom
 import data.nat.choose.sum
 import group_theory.order_of_element
 import data.nat.choose.dvd
+import ring_theory.nilpotent
 /-!
 # Characteristic of semirings
 -/
@@ -309,10 +310,10 @@ end comm_ring
 
 end frobenius
 
-theorem frobenius_inj [comm_ring R] [no_zero_divisors R]
+theorem frobenius_inj [comm_ring R] [is_reduced R]
   (p : ℕ) [fact p.prime] [char_p R p] :
   function.injective (frobenius R p) :=
-λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact pow_eq_zero H }
+λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact is_reduced.eq_zero _ ⟨_,H⟩ }
 
 namespace char_p
 

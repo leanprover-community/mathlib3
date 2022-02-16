@@ -345,6 +345,16 @@ instance : has_sup (fractional_ideal S P) := ⟨λ I J, ⟨I ⊔ J, I.is_fractio
 @[simp, norm_cast]
 lemma coe_sup (I J : fractional_ideal S P) : ↑(I ⊔ J) = (I ⊔ J : submodule R P) := rfl
 
+instance : has_inf (fractional_ideal S P) := ⟨λ I J, ⟨I ⊓ J, fractional_inf I J⟩⟩
+
+@[simp, norm_cast]
+lemma coe_inf (I J : fractional_ideal S P) : ↑(I ⊓ J) = (I ⊓ J : submodule R P) := rfl
+
+instance : has_sup (fractional_ideal S P) := ⟨λ I J, ⟨I ⊔ J, fractional_sup I J⟩⟩
+
+@[norm_cast]
+lemma coe_sup (I J : fractional_ideal S P) : ↑(I ⊔ J) = (I ⊔ J : submodule R P) := rfl
+
 instance lattice : lattice (fractional_ideal S P) :=
 function.injective.lattice _ subtype.coe_injective coe_sup coe_inf
 

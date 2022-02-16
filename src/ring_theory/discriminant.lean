@@ -278,8 +278,8 @@ begin
   exact is_integral.det (λ i j, is_integral_trace (is_integral_mul (h i) (h j)))
 end
 
-/-- If `b` and `b'` are `ℚ`-basis of a number field `K` such that
-`∀ i j, is_integral ℤ (b.to_matrix b' i j)` and `∀ i j, is_integral ℤ (b'.to_matrix b i j` then
+/-- If `b` and `b'` are `ℚ`-bases of a number field `K` such that
+`∀ i j, is_integral ℤ (b.to_matrix b' i j)` and `∀ i j, is_integral ℤ (b'.to_matrix b i j)` then
 `discr ℚ b = discr ℚ b'`. -/
 lemma discr_eq_discr_of_to_matrix_coeff_is_integral {K : Type u} {ι' : Type v} [fintype ι']
   [field K] [number_field K] {b : basis ι ℚ K} {b' : basis ι' ℚ K}

@@ -1424,8 +1424,6 @@ ext $ λ t ht, by simp only [sum_apply, restrict_apply, ht, ht.inter hs]
 @[simp] lemma sum_of_empty [is_empty ι] (μ : ι → measure α) : sum μ = 0 :=
 by rw [← measure_univ_eq_zero, sum_apply _ measurable_set.univ, tsum_empty]
 
-
-
 lemma sum_add_sum_compl (s : set ι) (μ : ι → measure α) :
   sum (λ i : s, μ i) + sum (λ i : sᶜ, μ i) = sum μ :=
 begin

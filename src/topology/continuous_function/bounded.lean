@@ -509,7 +509,7 @@ variables [topological_space α] [metric_space β] [has_one β]
 @[simp, to_additive] lemma coe_one : ((1 : α →ᵇ β) : α → β) = 1 := rfl
 
 @[simp, to_additive]
-lemma mk_of_compact_one [compact_space α] : mk_of_compact (1 : C(α, β)) = 0 := rfl
+lemma mk_of_compact_one [compact_space α] : mk_of_compact (1 : C(α, β)) = 1 := rfl
 
 @[to_additive] lemma forall_coe_one_iff_one (f : α →ᵇ β) : (∀x, f x = 1) ↔ f = 1 :=
 (@ext_iff _ _ _ _ f 1).symm

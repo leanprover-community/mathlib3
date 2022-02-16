@@ -2224,7 +2224,7 @@ class metric_space (α : Type u) extends pseudo_metric_space α : Type u :=
 @[ext] lemma metric_space.ext {α : Type*} {m m' : metric_space α}
   (h : m.to_has_dist = m'.to_has_dist) : m = m' :=
 begin
-  have h' : m.to_pseudo_metric_space = m'.to_pseudo_metric_space := pseudo_metric_space_eq h,
+  have h' : m.to_pseudo_metric_space = m'.to_pseudo_metric_space := pseudo_metric_space.ext h,
   unfreezingI { rcases m, rcases m' },
   dsimp at h',
   unfreezingI { subst h' },

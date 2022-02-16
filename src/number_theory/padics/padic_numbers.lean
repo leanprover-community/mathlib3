@@ -831,7 +831,7 @@ by rw [normed_field.norm_zpow, norm_p]; field_simp
 
 instance : nondiscrete_normed_field ℚ_[p] :=
 { non_trivial := ⟨p⁻¹, begin
-    rw [normed_field.norm_inv, norm_p, inv_inv₀],
+    rw [normed_field.norm_inv, norm_p, inv_inv],
     exact_mod_cast hp.1.one_lt
   end⟩ }
 

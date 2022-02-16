@@ -734,6 +734,19 @@ end propositional
 
 /-! ### Declarations about equality -/
 
+section mem
+variables {α β : Type*} [has_mem α β] {s t : β} {a b : α}
+
+lemma ne_of_mem_of_not_mem (h : a ∈ s) : b ∉ s → a ≠ b := mt $ λ e, e ▸ h
+lemma ne_of_mem_of_not_mem' (h : a ∈ s) : a ∉ t → s ≠ t := mt $ λ e, e ▸ h
+
+/-- **Alias** of `ne_of_mem_of_not_mem`. -/
+lemma has_mem.mem.ne_of_not_mem : a ∈ s → b ∉ s → a ≠ b := ne_of_mem_of_not_mem
+/-- **Alias** of `ne_of_mem_of_not_mem'`. -/
+lemma has_mem.mem.ne_of_not_mem' : a ∈ s → a ∉ t → s ≠ t := ne_of_mem_of_not_mem'
+
+end mem
+
 section equality
 variables {α : Sort*} {a b : α}
 
@@ -743,10 +756,6 @@ variables {α : Sort*} {a b : α}
 theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : hp == hq :=
 have p = q, from propext ⟨λ _, hq, λ _, hp⟩,
 by subst q; refl
-
-theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
-  (h : a ∈ s) : b ∉ s → a ≠ b :=
-mt $ λ e, e ▸ h
 
 -- todo: change name
 lemma ball_cond_comm {α} {s : α → Prop} {p : α → α → Prop} :

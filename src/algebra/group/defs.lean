@@ -43,7 +43,7 @@ class has_vadd (G : Type*) (P : Type*) := (vadd : G → P → P)
 class has_vsub (G : out_param Type*) (P : Type*) := (vsub : P → P → G)
 
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
-@[to_additive has_vadd]
+@[ext, to_additive has_vadd]
 class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
 
 infix ` +ᵥ `:65 := has_vadd.vadd

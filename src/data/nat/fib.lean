@@ -155,7 +155,7 @@ by rwa [gcd_eq_left_iff_dvd, ← fib_gcd, gcd_eq_left_iff_dvd.mp]
 
 lemma fib_succ_eq_sum_choose :
   ∀ (n : ℕ), fib (n + 1) = ∑ p in finset.nat.antidiagonal n, choose p.1 p.2 :=
-nat.two_step_induction rfl rfl (λ n h1 h2, by
+two_step_induction rfl rfl (λ n h1 h2, by
 { rw [fib_add_two, h1, h2, finset.nat.antidiagonal_succ_succ', finset.nat.antidiagonal_succ'],
   simp [choose_succ_succ, finset.sum_add_distrib, add_left_comm] })
 

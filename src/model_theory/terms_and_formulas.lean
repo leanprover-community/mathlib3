@@ -143,7 +143,7 @@ namespace bounded_formula
 @[reducible] def bd_not (φ : L.bounded_formula α n) : L.bounded_formula α n := bd_imp φ ⊥
 
 /-- Puts an `∃` quantifier on a bounded formula. -/
-@[reducible] def bd_exists (φ : L.bounded_formula α n.succ) : L.bounded_formula α n :=
+@[reducible] def bd_exists (φ : L.bounded_formula α (n + 1)) : L.bounded_formula α n :=
   bd_not (bd_all (bd_not φ))
 
 @[simps] instance : has_top (L.bounded_formula α n) := ⟨bd_not bd_falsum⟩

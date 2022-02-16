@@ -79,6 +79,9 @@ prime_of_mem_factors ∘ (@factor_iff_mem_factorization n p).mp
 lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p :=
 prime.pos ∘ (@prime_of_mem_factorization n p)
 
+lemma le_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ≤ n :=
+le_of_mem_factors (factor_iff_mem_factorization.mp h)
+
 lemma factorization_eq_zero_of_non_prime (n p : ℕ) (hp : ¬p.prime) : n.factorization p = 0 :=
 not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
 

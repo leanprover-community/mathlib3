@@ -435,20 +435,12 @@ def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
 
 end homeomorph
 
-/-- An equiv between a space `α` and a topological space `β` becomes a homeomorphism when `α`
-is endowed with the induced topology. -/
-@[simps] def equiv.to_homeomorph {α β : Type*} [t : topological_space β] (f : α ≃ β) :
-  @homeomorph α β (t.induced f) t :=
-{ continuous_to_fun := continuous_induced_dom,
-  continuous_inv_fun :=
-  begin
-    rw continuous_def,
-    assume s hs,
-    obtain ⟨u, hu, su⟩ : ∃ (u : set β), is_open u ∧ f ⁻¹' u = s := is_open_induced_iff.1 hs,
-    change is_open (f.symm ⁻¹' s),
-    have : f.symm ⁻¹' s = u, by simp [← su],
-    rwa this,
-  end,
+/-- An inducing equiv between topological spaces is a homeomorphism. -/
+@[simps] def equiv.to_homeomorph_of_inducing [topological_space α] [topological_space β] (f : α ≃ β)
+  (hf : inducing f) :
+  homeomorph α β :=
+{ continuous_to_fun := hf.continuous,
+  continuous_inv_fun := hf.continuous_iff.2 $ by simpa using continuous_id,
   .. f }
 
 namespace continuous

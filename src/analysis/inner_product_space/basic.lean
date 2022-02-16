@@ -1068,7 +1068,7 @@ end
 
 section complex
 
-variables (V : Type*)
+variables {V : Type*}
 [inner_product_space ℂ V]
 /--
 A complex polarization identity, with a linear map

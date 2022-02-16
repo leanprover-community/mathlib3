@@ -33,12 +33,12 @@ the continuum hypothesis*][flypitch_itp]
 
 -/
 
-universes u
+universes u v
 
 namespace first_order
 namespace language
 
-variables {L : language.{u}} {M N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
+variables {L : language.{u v}} {M N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
 open_locale first_order
 open Structure
 
@@ -99,7 +99,7 @@ g.to_hom.realize_term v t
 variable (L)
 /-- `bounded_formula α n` is the type of formulas with free variables indexed by `α` and up to `n`
   additional free variables. -/
-inductive bounded_formula (α : Type) : ℕ → Type u
+inductive bounded_formula (α : Type) : ℕ → Type (max u v)
 | bd_falsum {} {n} : bounded_formula n
 | bd_equal {n} (t₁ t₂ : L.term (α ⊕ fin n)) : bounded_formula n
 | bd_rel {n l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)) : bounded_formula n

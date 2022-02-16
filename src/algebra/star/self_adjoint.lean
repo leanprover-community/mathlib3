@@ -179,10 +179,12 @@ instance is_star_normal_star_self [monoid R] [star_monoid R] {x : R} [is_star_no
   is_star_normal (star x) :=
 ⟨by rw [star_star, star_comm_self]⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance has_trivial_star.is_star_normal [monoid R] [star_monoid R] [has_trivial_star R] {x : R} :
   is_star_normal x :=
 ⟨by rw [star_trivial]⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance comm_monoid.is_star_normal [comm_monoid R] [star_monoid R] {x : R} :
   is_star_normal x :=
 ⟨by rw [mul_comm]⟩

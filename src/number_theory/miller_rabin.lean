@@ -9,6 +9,13 @@ import group_theory.order_of_element
 import tactic.zify
 import data.nat.totient
 import data.zmod.basic
+import number_theory.padics.padic_norm
+import field_theory.finite.basic
+
+def strong_probable_prime (n : nat) (a : zmod n) : Prop :=
+let s := padic_val_nat 2 (n - 1), d := (n-1)/2^s in
+  a^d = 1 ∨ (∃ r : ℕ, r < s ∧ a^(2^r * d) = -1)
+
 
 lemma square_roots_of_one (p : ℕ) [fact (p.prime)] (x : zmod p) (root : x^2 = 1) :
   x = 1 ∨ x = -1 :=
@@ -28,4 +35,17 @@ begin
   exact eq_neg_of_add_eq_zero zero1,
   left,
   exact sub_eq_zero.mp zero2,
+end
+
+
+lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
+  strong_probable_prime p a :=
+begin
+  unfold strong_probable_prime,
+  simp only [],
+  induction padic_val_nat 2 (p - 1) with s hs,
+  { sorry, },
+  { cases hs,
+    { sorry, },
+    { sorry, }, },
 end

@@ -232,6 +232,16 @@ complex.isometry_euclidean.trans (v.isometry_euclidean_of_orthonormal hv).symm
     (complex.isometry_of_orthonormal hv).trans f :=
 by simp [complex.isometry_of_orthonormal, linear_isometry_equiv.trans_assoc]
 
+lemma complex.isometry_of_orthonormal_symm_apply
+  {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (f : F) :
+  (complex.isometry_of_orthonormal hv).symm f = (v.coord 0 f : ℂ) + (v.coord 1 f : ℂ) * I :=
+by simp [complex.isometry_of_orthonormal]
+
+lemma complex.isometry_of_orthonormal_apply
+  {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (z : ℂ) :
+  complex.isometry_of_orthonormal hv z = z.re • v 0 + z.im • v 1 :=
+by simp [complex.isometry_of_orthonormal, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1})]
+
 open finite_dimensional
 
 /-- Given a natural number `n` equal to the `finrank` of a finite-dimensional inner product space,

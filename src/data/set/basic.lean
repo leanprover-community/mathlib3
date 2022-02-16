@@ -1738,10 +1738,10 @@ by { ext, simp }
 by { ext, simp }
 
 @[simp] lemma compl_range_inl : (range (sum.inl : α → α ⊕ β))ᶜ = range (sum.inr : β → α ⊕ β) :=
-by { ext x, cases x; simp }
+is_compl_range_inl_range_inr.compl_eq
 
 @[simp] lemma compl_range_inr : (range (sum.inr : β → α ⊕ β))ᶜ = range (sum.inl : α → α ⊕ β) :=
-by { ext x, cases x; simp }
+is_compl_range_inl_range_inr.symm.compl_eq
 
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq
@@ -2017,12 +2017,8 @@ lemma surjective.nonempty_preimage (hf : surjective f) {s : set β} :
   (f ⁻¹' s).nonempty ↔ s.nonempty :=
 by rw [← nonempty_image_iff, hf.image_preimage]
 
-lemma surjective.nonempty [nonempty β] (hf : surjective f) : nonempty α :=
-begin
-  inhabit β,
-  obtain ⟨x, hx⟩ : ∃ x, f x = default := hf _,
-  exact ⟨x⟩
-end
+lemma surjective.nonempty [h : nonempty β] (hf : surjective f) : nonempty α :=
+let ⟨y⟩ := h, ⟨x, hx⟩ := hf y in ⟨x⟩
 
 lemma injective.image_injective (hf : injective f) : injective (image f) :=
 by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }

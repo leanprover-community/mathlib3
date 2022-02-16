@@ -318,13 +318,13 @@ def pi_iso : category_theory.Groupoid.of (Π i : I, (πₓ (X i)).α) ≅ (πₓ
   inv := category_theory.functor.pi' (proj X),
   hom_inv_id' :=
   begin
-    change pi_to_pi_Top X ⋙ (category_theory.functor.pi' (proj X)) = 𝟭 _,
+    rw [← category_theory.Groupoid.id_to_functor, category_theory.Groupoid.hom_to_functor],
     apply category_theory.functor.ext; intros,
     { ext, simp, }, { refl, },
   end,
   inv_hom_id' :=
   begin
-    change (category_theory.functor.pi' (proj X)) ⋙ pi_to_pi_Top X = 𝟭 _,
+    rw [← category_theory.Groupoid.id_to_functor, category_theory.Groupoid.hom_to_functor],
     apply category_theory.functor.ext; intros,
     { suffices : path.homotopic.pi ((category_theory.functor.pi' (proj X)).map f) = f, { simpa, },
       change (category_theory.functor.pi' (proj X)).map f
@@ -421,7 +421,7 @@ def prod_iso : category_theory.Groupoid.of ((πₓ A).α × (πₓ B).α) ≅ (�
   inv := (proj_left A B).prod' (proj_right A B),
   hom_inv_id' :=
   begin
-    change prod_to_prod_Top A B ⋙ ((proj_left A B).prod' (proj_right A B)) = 𝟭 _,
+    rw [← category_theory.Groupoid.id_to_functor, category_theory.Groupoid.hom_to_functor],
     apply category_theory.functor.hext, { intros, ext; simp; refl, },
     rintros ⟨x₀, x₁⟩ ⟨y₀, y₁⟩ ⟨f₀, f₁⟩,
     have := and.intro (path.homotopic.proj_left_prod f₀ f₁) (path.homotopic.proj_right_prod f₀ f₁),
@@ -429,7 +429,7 @@ def prod_iso : category_theory.Groupoid.of ((πₓ A).α × (πₓ B).α) ≅ (�
   end,
   inv_hom_id' :=
   begin
-    change ((proj_left A B).prod' (proj_right A B)) ⋙ prod_to_prod_Top A B = 𝟭 _,
+    rw [← category_theory.Groupoid.id_to_functor, category_theory.Groupoid.hom_to_functor],
     apply category_theory.functor.hext, { intros, ext; simp; refl, },
     rintros ⟨x₀, x₁⟩ ⟨y₀, y₁⟩ f,
     have := path.homotopic.prod_proj_left_proj_right f,

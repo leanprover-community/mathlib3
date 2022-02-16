@@ -133,7 +133,7 @@ lemma to_path_eq (x : X) : ⟦H.to_path x⟧ =
   (πₘ H.ulift_map).map (prod_to_prod_Top_I uhpath01 (𝟙 x)) ≫
   hcast (H.apply_one x) :=
 begin
-  dunfold prod_to_prod_Top_I, dunfold uhpath01,
+  dunfold prod_to_prod_Top_I uhpath01,
   simp only [id_eq_path_refl, prod_to_prod_Top_map, path.homotopic.prod_lift, map_eq,
     ← path.homotopic.map_lift, path_cast_right, path_cast_left],
   refl,
@@ -146,8 +146,7 @@ lemma eq_diag_path :
 begin
   rw [H.apply_zero_path, H.apply_one_path, H.to_path_eq, H.to_path_eq],
   dunfold prod_to_prod_Top_I,
-  split;
-  { slice_lhs 2 5 { simp [← category_theory.functor.map_comp], }, refl, },
+  split; { slice_lhs 2 5 { simp [← category_theory.functor.map_comp], }, refl, },
 end
 
 end continuous_map.homotopy

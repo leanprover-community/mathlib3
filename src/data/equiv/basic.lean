@@ -512,8 +512,8 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
 ⟨λ f, punit.star, λ u f, punit.star,
   λ f, by { funext x, cases f x, refl }, λ u, by { cases u, reflexivity }⟩
 
-/-- If `α` is `subsingleton` and `a : α`, then the type of dependent functions `Π (i : α), f
-i` is equivalent to `f i`. -/
+/-- If `α` is `subsingleton` and `a : α`, then the type of dependent functions `Π (i : α), β
+i` is equivalent to `β i`. -/
 @[simps]
 def Pi_subsingleton {α} (β : α → Sort*) [subsingleton α] (a : α) : (Π a', β a') ≃ β a :=
 { to_fun := eval a,

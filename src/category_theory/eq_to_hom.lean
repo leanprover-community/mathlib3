@@ -144,9 +144,7 @@ section heq
 
 /- Composition of functors and maps w.r.t. heq -/
 
-variables
-  {E : Type u₁} [category.{v₁} E]
-  {F G : C ⥤ D} {x y z : C} {f : x ⟶ y} {g : y ⟶ z}
+variables {E : Type u₃} [category.{v₃} E] {F G : C ⥤ D} {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z}
 
 lemma map_comp_heq (hx : F.obj x = G.obj x) (hy : F.obj y = G.obj y) (hz : F.obj z = G.obj z)
   (hf : F.map f == G.map f) (hg : F.map g == G.map g) : F.map (f ≫ g) == G.map (f ≫ g) :=

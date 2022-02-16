@@ -272,7 +272,9 @@ instance [monoid R] [semiring k] [distrib_mul_action R k] [distrib_mul_action Rá
   is_central_scalar R (monoid_algebra k G) :=
 finsupp.is_central_scalar G k
 
-instance comap_distrib_mul_action_self [group G] [semiring k] :
+/-- This is not an instance as it conflicts with `monoid_algebra.distrib_mul_action` when `G = kË£`.
+-/
+def comap_distrib_mul_action_self [group G] [semiring k] :
   distrib_mul_action G (monoid_algebra k G) :=
 finsupp.comap_distrib_mul_action
 

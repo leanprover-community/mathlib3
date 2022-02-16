@@ -150,9 +150,10 @@ begin
   simp [e₂, direct_sum.submodule_coe, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
 end
 
-variables (ι) (𝕜) (E) [fintype ι] [decidable_eq ι]
+variables (ι) (𝕜) (E)
 
-
+/-- The vector given in euclidean space by being `1 : 𝕜` at coordinate `i : ι` and `0 : 𝕜` at
+all other coordinates. -/
 def euclidean_space.single {𝕜 : Type*} {ι : Type*} [fintype ι] [is_R_or_C 𝕜] (i : ι) (a : 𝕜) :
  euclidean_space 𝕜 ι :=
   set.indicator {i} (λ j, a)
@@ -168,7 +169,7 @@ end
 
 lemma euclidean_space.inner_single_left (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪ euclidean_space.single i (a : 𝕜), v ⟫ = star_ring_end 𝕜 a * (v i) :=
-by simp [apply_ite conj]
+by {classical, simp [apply_ite conj]}
 
 lemma euclidean_space.inner_single_right (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪ v, euclidean_space.single i (a : 𝕜) ⟫ =  a * (star_ring_end 𝕜) (v i) :=
@@ -215,6 +216,7 @@ end
 @[simp]
 protected lemma orthonormal (b : orthonormal_basis ι 𝕜 E) : orthonormal 𝕜 b :=
 begin
+  classical,
   rw orthonormal_iff_ite,
   intros i j,
   rw [← b.repr.inner_map_map (b i) (b j), b.repr_self _ _ _, b.repr_self _ _ _],
@@ -226,6 +228,7 @@ end
 protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
   ∑ i , v i • b i = (b.repr.symm v) :=
 begin
+  classical,
   have : b.repr (∑ i, v i • b i) = v :=
   begin
     have : ⇑(b.repr) = (b.repr.to_linear_isometry.to_linear_map) :=

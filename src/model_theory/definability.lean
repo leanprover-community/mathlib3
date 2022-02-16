@@ -12,6 +12,10 @@ import model_theory.terms_and_formulas
 This file defines what it means for a set over a first-order structure to be definable.
 
 ## Main Definitions
+* A `first_order.language.is_definable` is defined so that `L.is_definable A s` indicates that the
+set `s` of a finite cartesian power of `M` is definable with parameters in `A`.
+* A `first_order.language.is_definable_set` is defined so that `L.is_definable A s` indicates that
+`(s : set M)` is definable with parameters in `A`.
 * A `first_order.language.definable_set` is defined so that `L.definable_set α A` is the boolean
   algebra of subsets of `α → M` defined by formulas with parameters in `A`.
 
@@ -196,14 +200,6 @@ variables (L) {M} (A)
 /-- A 1-dimensional version of `is_definable`, for `set M`. -/
 def is_definable_set (s : set M) : Prop := L.is_definable A { x : fin 1 → M | x 0 ∈ s }
 
-/-- Indicates that the singleton set of an element of `M` is definable over a fixed parameter set.
- -/
-def is_definable_element (x : M) : Prop := L.is_definable_set A {x}
-
-/-- Indicates that an element of `M` is contained in a finite definable set (over fixed parameters).
--/
-def is_algebraic_element (x : M) : Prop := ∃ s : finset M, x ∈ s ∧ L.is_definable_set A s
-
 variables {L A}
 
 lemma is_definable_set_iff {s : set M} :
@@ -233,36 +229,6 @@ begin
     { simp only [fin.cons_zero, function.comp_app, fin.cases_zero, sum.elim_inr] },
     { simp } }
 end
-
-lemma is_definable_element_of_mem {x : M} (h : x ∈ A) : L.is_definable_element A x :=
-is_definable_set_iff.2 ⟨1, formula.equal (var 0) (var 1), λ _, x, λ _, h, begin
-  ext y,
-  simp only [set.mem_singleton_iff, realize_term, realize_equal, fin.cons_zero, set.mem_set_of_eq],
-  rw [← fin.succ_zero_eq_one, fin.cons_succ],
-end⟩
-
-lemma is_definable_element.fun_map {n : ℕ} (f : L.functions n) {x : fin n → M}
-  (h : ∀ i, (x i) ∈ A) :
-  L.is_definable_element A (fun_map f x) :=
-is_definable_set_iff.2 ⟨n, formula.graph f, x, h, begin
-  ext y,
-  simp only [set.mem_singleton_iff, set.mem_set_of_eq],
-  rw [realize_graph, eq_comm],
-end⟩
-
-lemma is_definable_element.restrict_params {B : set M} {x : M} (hx : L.is_definable_element B x)
-  (hAB : ∀ b, b ∈ B → L.is_definable_element A b) :
-  L.is_definable_element A x :=
-begin
-  obtain ⟨n, φ, a, ha, h⟩ := hx,
-  have h1 : L.is_definable A (set_of (realize_formula M φ)) := sorry,
-  have h2 : L.is_definable A (set.range (sum.elim a) : set ((fin n ⊕ fin 1) → M)) := sorry,
-  have h3 := h1.inter h2,
-end
-
-lemma is_definable_element.is_algebraic_element {x : M} (h : L.is_definable_element A x) :
-  L.is_algebraic_element A x :=
-⟨{x}, finset.mem_singleton_self x, (finset.coe_singleton x).symm ▸ h⟩
 
 variables (L) {M} (α) (A)
 

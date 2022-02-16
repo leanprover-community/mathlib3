@@ -428,7 +428,7 @@ end field
 end perfect_closure
 
 /-- A domain with prime characteristic and surjective frobenius map is perfect. -/
-noncomputable def perfect_ring.of_surjective (k : Type*) [comm_ring k] [is_domain k] (p : ℕ)
+noncomputable def perfect_ring.of_surjective (k : Type*) [comm_ring k] [is_reduced k] (p : ℕ)
   [fact p.prime] [char_p k p] (h : function.surjective $ frobenius k p) :
   perfect_ring k p :=
 { pth_root' := function.surj_inv h,

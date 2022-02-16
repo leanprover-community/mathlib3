@@ -50,8 +50,10 @@ def self_adjoint [add_group R] [star_add_monoid R] : add_subgroup R :=
 variables {R}
 
 /-- An element of a star monoid is normal if it commutes with its adjoint. -/
-def is_star_normal [monoid R] [has_star R] (x : R) := star x * x = x * star x
+class is_star_normal [monoid R] [has_star R] (x : R) : Prop :=
+  (star_comm_self : star x * x = x * star x)
 
+export is_star_normal (star_comm_self)
 
 namespace self_adjoint
 
@@ -95,9 +97,9 @@ lemma conjugate' {x : R} (hx : x ∈ self_adjoint R) (z : R) : star z * x * z �
 by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
 
 lemma is_star_normal_of_mem {x : R} (hx : x ∈ self_adjoint R) : is_star_normal x :=
-show star x * x = x * star x, by { simp only [mem_iff] at hx, simp only [hx] }
+⟨by { simp only [mem_iff] at hx, simp only [hx] }⟩
 
-protected lemma is_star_normal (x : self_adjoint R) : is_star_normal (x : R) :=
+instance (x : self_adjoint R) : is_star_normal (x : R) :=
 is_star_normal_of_mem (set_like.coe_mem _)
 
 end ring
@@ -167,12 +169,20 @@ end module
 
 end self_adjoint
 
-lemma is_star_normal_zero [semiring R] [star_ring R] : is_star_normal (0 : R) :=
-by simp only [is_star_normal, star_zero]
+instance is_star_normal_zero [semiring R] [star_ring R] : is_star_normal (0 : R) :=
+⟨by simp only [star_comm_self, star_zero]⟩
 
-lemma is_star_normal_one [monoid R] [star_monoid R] : is_star_normal (1 : R) :=
-by simp only [is_star_normal, star_one]
+instance is_star_normal_one [monoid R] [star_monoid R] : is_star_normal (1 : R) :=
+⟨by simp only [star_comm_self, star_one]⟩
 
-lemma is_star_normal_star_self [monoid R] [star_monoid R] {x : R} (hx : is_star_normal x) :
+instance is_star_normal_star_self [monoid R] [star_monoid R] {x : R} [is_star_normal x] :
   is_star_normal (star x) :=
-by simp only [is_star_normal, star_star, hx.symm]
+⟨by rw [star_star, star_comm_self]⟩
+
+instance has_trivial_star.is_star_normal [monoid R] [star_monoid R] [has_trivial_star R] {x : R} :
+  is_star_normal x :=
+⟨by rw [star_trivial]⟩
+
+instance comm_monoid.is_star_normal [comm_monoid R] [star_monoid R] {x : R} :
+  is_star_normal x :=
+⟨by rw [mul_comm]⟩

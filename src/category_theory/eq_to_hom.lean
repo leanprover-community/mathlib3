@@ -161,7 +161,7 @@ lemma precomp_map_heq (H : E ⥤ C)
   (hmap : ∀ {x y} (f : x ⟶ y), F.map f == G.map f) {x y : E} (f : x ⟶ y) :
   (H ⋙ F).map f == (H ⋙ G).map f := hmap _
 
-lemma comp_map_heq (H : D ⥤ E) (hx : F.obj x = G.obj x) (hy : F.obj y = G.obj y)
+lemma postcomp_map_heq (H : D ⥤ E) (hx : F.obj x = G.obj x) (hy : F.obj y = G.obj y)
   (hmap : F.map f == G.map f) : (F ⋙ H).map f == (G ⋙ H).map f :=
 by { dsimp, congr' }
 

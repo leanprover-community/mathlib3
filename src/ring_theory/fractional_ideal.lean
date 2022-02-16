@@ -349,7 +349,7 @@ lemma coe_inf (I J : fractional_ideal S P) : ↑(I ⊓ J) = (I ⊓ J : submodule
 
 instance : has_sup (fractional_ideal S P) := ⟨λ I J, ⟨I ⊔ J, fractional_sup I J⟩⟩
 
-@[simp, norm_cast]
+@[norm_cast]
 lemma coe_sup (I J : fractional_ideal S P) : ↑(I ⊔ J) = (I ⊔ J : submodule R P) := rfl
 
 instance lattice : lattice (fractional_ideal S P) :=

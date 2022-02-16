@@ -196,7 +196,7 @@ namespace functor
 variables {D : Type u₂} [category.{v₂} D] [abelian D]
 variables (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
-lemma reflects_exact_of_preserves_zero_morphisms_of_faitful [preserves_zero_morphisms F]
+lemma reflects_exact_of_preserves_zero_morphisms_of_faithful [preserves_zero_morphisms F]
   [faithful F] (hfg : exact (F.map f) (F.map g)) : exact f g :=
 begin
   rw [abelian.exact_iff, ← F.map_comp, F.map_eq_zero_iff] at hfg,

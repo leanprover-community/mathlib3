@@ -146,25 +146,25 @@ section heq
 
 variables {E : Type u₃} [category.{v₃} E] {F G : C ⥤ D} {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z}
 
-lemma map_comp_heq (hx : F.obj x = G.obj x) (hy : F.obj y = G.obj y) (hz : F.obj z = G.obj z)
+lemma map_comp_heq (hx : F.obj X = G.obj X) (hy : F.obj Y = G.obj Y) (hz : F.obj Z = G.obj Z)
   (hf : F.map f == G.map f) (hg : F.map g == G.map g) : F.map (f ≫ g) == G.map (f ≫ g) :=
 by { rw [F.map_comp, G.map_comp], congr' }
 
-lemma map_comp_heq' (hobj : ∀ x : C, F.obj x = G.obj x)
-  (hmap : ∀ {x y} (f : x ⟶ y), F.map f == G.map f) :
+lemma map_comp_heq' (hobj : ∀ X : C, F.obj X = G.obj X)
+  (hmap : ∀ {X Y} (f : X ⟶ Y), F.map f == G.map f) :
   F.map (f ≫ g) == G.map (f ≫ g) :=
 by rw functor.hext hobj (λ _ _, hmap)
 
 lemma precomp_map_heq (H : E ⥤ C)
-  (hmap : ∀ {x y} (f : x ⟶ y), F.map f == G.map f) {x y : E} (f : x ⟶ y) :
+  (hmap : ∀ {X Y} (f : X ⟶ Y), F.map f == G.map f) {X Y : E} (f : X ⟶ Y) :
   (H ⋙ F).map f == (H ⋙ G).map f := hmap _
 
-lemma postcomp_map_heq (H : D ⥤ E) (hx : F.obj x = G.obj x) (hy : F.obj y = G.obj y)
+lemma postcomp_map_heq (H : D ⥤ E) (hx : F.obj X = G.obj X) (hy : F.obj Y = G.obj Y)
   (hmap : F.map f == G.map f) : (F ⋙ H).map f == (G ⋙ H).map f :=
 by { dsimp, congr' }
 
-lemma postcomp_map_heq' (H : D ⥤ E) (hobj : ∀ x : C, F.obj x = G.obj x)
-  (hmap : ∀ {x y} (f : x ⟶ y), F.map f == G.map f) :
+lemma postcomp_map_heq' (H : D ⥤ E) (hobj : ∀ X : C, F.obj X = G.obj X)
+  (hmap : ∀ {X Y} (f : X ⟶ Y), F.map f == G.map f) :
   (F ⋙ H).map f == (G ⋙ H).map f :=
 by rw functor.hext hobj (λ _ _, hmap)
 

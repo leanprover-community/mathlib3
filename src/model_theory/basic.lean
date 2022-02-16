@@ -52,15 +52,9 @@ structure language :=
 namespace language
 
 /-- The empty language has no symbols. -/
-<<<<<<< HEAD
-def empty_lang : language := ⟨λ _, pempty, λ _, pempty⟩
-
-instance : inhabited language := ⟨empty_lang⟩
-=======
 protected def empty : language := ⟨λ _, pempty, λ _, pempty⟩
 
 instance : inhabited language := ⟨language.empty⟩
->>>>>>> origin/master
 
 /-- The type of constants in a given language. -/
 @[nolint has_inhabited_instance] def const (L : language) := L.functions 0
@@ -83,18 +77,11 @@ instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational
 instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
 ⟨by { intro n, apply pempty.elim }⟩
 
-<<<<<<< HEAD
-instance is_relational_empty : is_relational (empty_lang) :=
-  language.is_relational_of_empty_functions
-instance is_algebraic_empty : is_algebraic (empty_lang) :=
-  language.is_algebraic_of_empty_relations
-=======
 instance is_relational_empty : is_relational language.empty :=
 language.is_relational_of_empty_functions
 
 instance is_algebraic_empty : is_algebraic language.empty :=
 language.is_algebraic_of_empty_relations
->>>>>>> origin/master
 
 variables (L) (M : Type*)
 
@@ -146,13 +133,9 @@ instance : has_coe_t L.const M :=
 lemma fun_map_eq_coe_const {c : L.const} {x : fin 0 → M} :
   fun_map c x = c := congr rfl (funext fin.elim0)
 
-<<<<<<< HEAD
-instance nonempty_of_nonempty_constants [h : nonempty L.const] : nonempty M :=
-=======
 /-- Given a language with a nonempty type of constants, any structure will be nonempty. This cannot
   be a global instance, because `L` becomes a metavariable. -/
 lemma nonempty_of_nonempty_constants [h : nonempty L.const] : nonempty M :=
->>>>>>> origin/master
 h.map coe
 
 namespace hom

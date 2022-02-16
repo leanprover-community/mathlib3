@@ -8,11 +8,11 @@ import algebra.star.basic
 import group_theory.subgroup.basic
 
 /-!
-# Self-adjoint elements of a star additive group
+# Self-adjoint and skew-adjoint elements of a star additive group
 
-This file defines `self_adjoint R`, where `R` is a star additive monoid, as the additive subgroup
-containing the elements that satisfy `star x = x`. This includes, for instance, Hermitian
-operators on Hilbert spaces.
+This file defines `self_adjoint R` (resp. `skew_adjoint R`), where `R` is a star additive group,
+as the additive subgroup containing the elements that satisfy `star x = x` (resp. `star x = -x`).
+This includes, for instance, (skew-)Hermitian operators on Hilbert spaces.
 
 ## Implementation notes
 
@@ -43,6 +43,15 @@ def self_adjoint [add_group R] [star_add_monoid R] : add_subgroup R :=
   add_mem' := λ x y (hx : star x = x) (hy : star y = y),
                 show star (x + y) = x + y, by simp only [star_add x y, hx, hy],
   neg_mem' := λ x (hx : star x = x), show star (-x) = -x, by simp only [hx, star_neg] }
+
+/-- The skew-adjoint elements of a star additive group, as an additive subgroup. -/
+def skew_adjoint [add_comm_group R] [star_add_monoid R] : add_subgroup R :=
+{ carrier := {x | star x = -x},
+  zero_mem' := show star (0 : R) = -0, by simp only [star_zero, neg_zero],
+  add_mem' := λ x y (hx : star x = -x) (hy : star y = -y),
+                show star (x + y) = -(x + y), by rw [star_add x y, hx, hy, neg_add],
+  neg_mem' := λ x (hx : star x = -x), show star (-x) = (- -x), by simp only [hx, star_neg] }
+
 variables {R}
 
 namespace self_adjoint
@@ -56,6 +65,9 @@ by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
 @[simp, norm_cast] lemma star_coe_eq {x : self_adjoint R} : star (x : R) = x := x.prop
 
 instance : inhabited (self_adjoint R) := ⟨0⟩
+
+lemma bit0_mem {x : R} (hx : x ∈ self_adjoint R) : bit0 x ∈ self_adjoint R :=
+by simp only [mem_iff, star_bit0, mem_iff.mp hx]
 
 end add_group
 
@@ -73,9 +85,6 @@ instance : has_one (self_adjoint R) := ⟨⟨1, by rw [mem_iff, star_one]⟩⟩
 instance [nontrivial R] : nontrivial (self_adjoint R) := ⟨⟨0, 1, subtype.ne_of_val_ne zero_ne_one⟩⟩
 
 lemma one_mem : (1 : R) ∈ self_adjoint R := by simp only [mem_iff, star_one]
-
-lemma bit0_mem {x : R} (hx : x ∈ self_adjoint R) : bit0 x ∈ self_adjoint R :=
-by simp only [mem_iff, star_bit0, mem_iff.mp hx]
 
 lemma bit1_mem {x : R} (hx : x ∈ self_adjoint R) : bit1 x ∈ self_adjoint R :=
 by simp only [mem_iff, star_bit1, mem_iff.mp hx]
@@ -153,3 +162,51 @@ function.injective.module R (self_adjoint A).subtype subtype.coe_injective coe_s
 end module
 
 end self_adjoint
+
+namespace skew_adjoint
+
+section add_group
+variables [add_comm_group R] [star_add_monoid R]
+
+lemma mem_iff {x : R} : x ∈ skew_adjoint R ↔ star x = -x :=
+by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
+
+@[simp, norm_cast] lemma star_coe_eq {x : skew_adjoint R} : star (x : R) = -x := x.prop
+
+instance : inhabited (skew_adjoint R) := ⟨0⟩
+
+lemma bit0_mem {x : R} (hx : x ∈ skew_adjoint R) : bit0 x ∈ skew_adjoint R :=
+by rw [mem_iff, star_bit0, mem_iff.mp hx, bit0, bit0, neg_add]
+
+end add_group
+
+section ring
+variables [ring R] [star_ring R]
+
+lemma conjugate {x : R} (hx : x ∈ skew_adjoint R) (z : R) : z * x * star z ∈ skew_adjoint R :=
+by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, neg_mul, mul_neg, mul_assoc]
+
+lemma conjugate' {x : R} (hx : x ∈ skew_adjoint R) (z : R) : star z * x * z ∈ skew_adjoint R :=
+by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, neg_mul, mul_neg, mul_assoc]
+
+end ring
+
+section has_scalar
+variables [has_star R] [has_trivial_star R] [add_comm_group A] [star_add_monoid A]
+
+instance [monoid R] [distrib_mul_action R A] [star_module R A] : has_scalar R (skew_adjoint A) :=
+⟨λ r x, ⟨r • x, by rw [mem_iff, star_smul, star_trivial, star_coe_eq, smul_neg r]⟩⟩
+
+@[simp, norm_cast] lemma coe_smul [monoid R] [distrib_mul_action R A] [star_module R A]
+  (r : R) (x : skew_adjoint A) : ↑(r • x) = r • (x : A) := rfl
+
+instance [monoid R] [distrib_mul_action R A] [star_module R A] :
+  distrib_mul_action R (skew_adjoint A) :=
+function.injective.distrib_mul_action (skew_adjoint A).subtype subtype.coe_injective coe_smul
+
+instance [semiring R] [module R A] [star_module R A] : module R (skew_adjoint A) :=
+function.injective.module R (skew_adjoint A).subtype subtype.coe_injective coe_smul
+
+end has_scalar
+
+end skew_adjoint

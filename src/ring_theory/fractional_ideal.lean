@@ -342,16 +342,18 @@ begin
   exact hI b hbI
 end
 
+instance : has_inf (fractional_ideal S P) := ⟨λ I J, ⟨I ⊓ J, fractional_inf I J⟩⟩
+
+@[simp, norm_cast]
+lemma coe_inf (I J : fractional_ideal S P) : ↑(I ⊓ J) = (I ⊓ J : submodule R P) := rfl
+
+instance : has_sup (fractional_ideal S P) := ⟨λ I J, ⟨I ⊔ J, fractional_sup I J⟩⟩
+
+@[simp, norm_cast]
+lemma coe_sup (I J : fractional_ideal S P) : ↑(I ⊔ J) = (I ⊔ J : submodule R P) := rfl
+
 instance lattice : lattice (fractional_ideal S P) :=
-{ inf := λ I J, ⟨I ⊓ J, fractional_inf I J⟩,
-  sup := λ I J, ⟨I ⊔ J, fractional_sup I J⟩,
-  inf_le_left := λ I J, show (I ⊓ J : submodule R P) ≤ I, from inf_le_left,
-  inf_le_right := λ I J, show (I ⊓ J : submodule R P) ≤ J, from inf_le_right,
-  le_inf := λ I J K hIJ hIK, show (I : submodule R P) ≤ J ⊓ K, from le_inf hIJ hIK,
-  le_sup_left := λ I J, show (I : submodule R P) ≤ I ⊔ J, from le_sup_left,
-  le_sup_right := λ I J, show (J : submodule R P) ≤ I ⊔ J, from le_sup_right,
-  sup_le := λ I J K hIK hJK, show (I ⊔ J : submodule R P) ≤ K, from sup_le hIK hJK,
-  ..set_like.partial_order }
+function.injective.lattice _ subtype.coe_injective coe_sup coe_inf
 
 instance : semilattice_sup (fractional_ideal S P) :=
 { ..fractional_ideal.lattice }
@@ -435,47 +437,8 @@ submodule.mul_le
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
 submodule.mul_induction_on hr hm ha
 
-instance comm_semiring : comm_semiring (fractional_ideal S P) :=
-{ add_assoc := λ I J K, sup_assoc,
-  add_comm := λ I J, sup_comm,
-  add_zero := λ I, sup_bot_eq,
-  zero_add := λ I, bot_sup_eq,
-  mul_assoc := λ I J K, coe_to_submodule_injective (submodule.mul_assoc _ _ _),
-  mul_comm := λ I J, coe_to_submodule_injective (submodule.mul_comm _ _),
-  mul_one := λ I, begin
-    ext,
-    split; intro h,
-    { apply mul_le.mpr _ h,
-      rintros x hx y ⟨y', y'_mem_R, rfl⟩,
-      convert submodule.smul_mem _ y' hx,
-      rw [mul_comm, eq_comm],
-      exact algebra.smul_def y' x },
-    { have : x * 1 ∈ (I * 1) := mul_mem_mul h (one_mem_one _),
-      rwa [mul_one] at this }
-  end,
-  one_mul := λ I, begin
-    ext,
-    split; intro h,
-    { apply mul_le.mpr _ h,
-      rintros x ⟨x', x'_mem_R, rfl⟩ y hy,
-      convert submodule.smul_mem _ x' hy,
-      rw eq_comm,
-      exact algebra.smul_def x' y },
-    { have : 1 * x ∈ (1 * I) := mul_mem_mul (one_mem_one _) h,
-      rwa one_mul at this }
-  end,
-  mul_zero := λ I, eq_zero_iff.mpr (λ x hx, submodule.mul_induction_on hx
-    (λ x hx y hy, by simp [(mem_zero_iff S).mp hy])
-    (λ x y hx hy, by simp [hx, hy])),
-  zero_mul := λ I, eq_zero_iff.mpr (λ x hx, submodule.mul_induction_on hx
-    (λ x hx y hy, by simp [(mem_zero_iff S).mp hx])
-    (λ x y hx hy, by simp [hx, hy])),
-  left_distrib := λ I J K, coe_to_submodule_injective (mul_add _ _ _),
-  right_distrib := λ I J K, coe_to_submodule_injective (add_mul _ _ _),
-  ..fractional_ideal.has_zero S,
-  ..fractional_ideal.has_add,
-  ..fractional_ideal.has_one,
-  ..fractional_ideal.has_mul }
+instance : comm_semiring (fractional_ideal S P) :=
+function.injective.comm_semiring _ subtype.coe_injective coe_zero coe_one coe_add coe_mul
 
 section order
 

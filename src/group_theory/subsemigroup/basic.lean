@@ -7,6 +7,7 @@ Amelia Livingston, Yury Kudryashov
 import data.set.lattice
 import data.set_like.basic
 import group_theory.submonoid
+import algebra.group.inj_surj
 
 /-!
 # Subsemigroups: definition and `complete_lattice` structure

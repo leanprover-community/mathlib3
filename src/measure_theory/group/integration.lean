@@ -18,28 +18,6 @@ namespace measure_theory
 open measure topological_space
 open_locale ennreal
 
-section
---todo
-variables {α β γ δ G : Type*} [measurable_space α] [measurable_space β] [measurable_space δ]
-  [normed_group β]
-  [normed_group G] [measurable_space G] [opens_measurable_space G]
-  {μ : measure α}
-@[simp] lemma map_id' {μ : measure α} : map (λ x, x) μ = μ := map_id
-
-lemma integral_norm_eq_lintegral_nnnorm {f : α → G} (hf : ae_measurable f μ) :
-  ∫ x, ∥f x∥ ∂μ = ennreal.to_real ∫⁻ x, ∥f x∥₊ ∂μ :=
-begin
-  rw integral_eq_lintegral_of_nonneg_ae _ hf.norm,
-  { simp_rw [of_real_norm_eq_coe_nnnorm], },
-  { refine ae_of_all _ _, simp_rw [pi.zero_apply, norm_nonneg, imp_true_iff] },
-end
-
-lemma integrable.comp_measurable [opens_measurable_space β] {f : α → δ} {g : δ → β}
-  (hg : integrable g (map f μ)) (hf : measurable f) : integrable (g ∘ f) μ :=
-(integrable_map_measure hg.ae_measurable hf).mp $ hg
-
-end
-
 variables {𝕜 G E F : Type*} [measurable_space G]
 variables [normed_group E] [second_countable_topology E] [normed_space ℝ E] [complete_space E]
 variables [measurable_space E] [borel_space E]

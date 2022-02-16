@@ -88,8 +88,7 @@ def ulift_map : C(Top.of (ulift.{u} I × X), Y) :=
 ⟨λ x, H (x.1.down, x.2),
   H.continuous.comp ((continuous_induced_dom.comp continuous_fst).prod_mk continuous_snd)⟩
 
-@[simp] lemma ulift_apply (i : ulift.{u} I) (x : X)
-  : H.ulift_map (i, x) = H (i.down, x) := rfl
+@[simp] lemma ulift_apply (i : ulift.{u} I) (x : X) : H.ulift_map (i, x) = H (i.down, x) := rfl
 
 /-- An abbreviation for `prod_to_prod_Top`, with some types already in place to help the
  typechecker. In particular, the first path should be on the ulifted unit interval. -/

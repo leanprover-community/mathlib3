@@ -342,16 +342,6 @@ lemma coe_inf (I J : fractional_ideal S P) : ↑(I ⊓ J) = (I ⊓ J : submodule
 
 instance : has_sup (fractional_ideal S P) := ⟨λ I J, ⟨I ⊔ J, I.is_fractional.sup J.is_fractional⟩⟩
 
-@[simp, norm_cast]
-lemma coe_sup (I J : fractional_ideal S P) : ↑(I ⊔ J) = (I ⊔ J : submodule R P) := rfl
-
-instance : has_inf (fractional_ideal S P) := ⟨λ I J, ⟨I ⊓ J, fractional_inf I J⟩⟩
-
-@[simp, norm_cast]
-lemma coe_inf (I J : fractional_ideal S P) : ↑(I ⊓ J) = (I ⊓ J : submodule R P) := rfl
-
-instance : has_sup (fractional_ideal S P) := ⟨λ I J, ⟨I ⊔ J, fractional_sup I J⟩⟩
-
 @[norm_cast]
 lemma coe_sup (I J : fractional_ideal S P) : ↑(I ⊔ J) = (I ⊔ J : submodule R P) := rfl
 
@@ -446,19 +436,15 @@ lemma coe_pow (I : fractional_ideal S P) (n : ℕ) : ↑(I ^ n) = (I ^ n : submo
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
 submodule.mul_induction_on hr hm ha
 
-instance : comm_semigroup (fractional_ideal S P) :=
-function.injective.comm_semigroup _ subtype.coe_injective coe_mul
-
-instance : monoid (fractional_ideal S P) :=
-function.injective.monoid_pow _ subtype.coe_injective coe_one coe_mul coe_pow
-
-instance : non_unital_non_assoc_semiring (fractional_ideal S P) :=
-function.injective.non_unital_non_assoc_semiring _ subtype.coe_injective coe_zero coe_add coe_mul
-
+-- There is no `function.injective.comm_semiring_pow` so we need to do this in three parts to keep
+-- our custom power operator.
 instance : comm_semiring (fractional_ideal S P) :=
-{ ..fractional_ideal.monoid,
-  ..fractional_ideal.comm_semigroup,
-  ..fractional_ideal.non_unital_non_assoc_semiring }
+{ ..(function.injective.monoid_pow _ subtype.coe_injective
+      coe_one coe_mul coe_pow : monoid (fractional_ideal S P)),
+  ..(function.injective.comm_semigroup _ subtype.coe_injective
+      coe_mul : comm_semigroup (fractional_ideal S P)),
+  ..(function.injective.non_unital_non_assoc_semiring _ subtype.coe_injective
+      coe_zero coe_add coe_mul : non_unital_non_assoc_semiring (fractional_ideal S P)) }
 
 section order
 

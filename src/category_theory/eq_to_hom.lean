@@ -140,7 +140,6 @@ lemma congr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) :
   F.map f = eq_to_hom (congr_obj h X) ≫ G.map f ≫ eq_to_hom (congr_obj h Y).symm :=
 by subst h; simp
 
-
 section heq
 
 /- Composition of functors and maps w.r.t. heq -/

@@ -51,8 +51,7 @@ lemma continuous_mul : continuous (λp:M×M, p.1 * p.2) :=
 has_continuous_mul.continuous_mul
 
 @[to_additive]
-instance has_continuous_mul.has_continuous_smul {M : Type*} [monoid M]
-  [topological_space M] [has_continuous_mul M] :
+instance has_continuous_mul.has_continuous_smul :
   has_continuous_smul M M :=
 ⟨continuous_mul⟩
 

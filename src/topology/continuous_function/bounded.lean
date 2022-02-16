@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
 import analysis.normed_space.operator_norm
-import analysis.normed_space.star
+import analysis.normed_space.star.basic
 import topology.continuous_function.algebra
 import data.real.sqrt
 import analysis.normed_space.lattice_ordered_group
@@ -144,7 +144,7 @@ begin
       convert C0,
       apply le_antisymm _ dist_nonneg',
       rw [dist_eq],
-      exact cInf_le ⟨0, λ C, and.left⟩ ⟨le_refl _, λ x, false.elim (h (nonempty.intro x))⟩, }, },
+      exact cInf_le ⟨0, λ C, and.left⟩ ⟨le_rfl, λ x, false.elim (h (nonempty.intro x))⟩, }, },
 end
 
 lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
@@ -153,7 +153,7 @@ lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
 
 /-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
 instance : metric_space (α →ᵇ β) :=
-{ dist_self := λ f, le_antisymm ((dist_le (le_refl _)).2 $ λ x, by simp) dist_nonneg',
+{ dist_self := λ f, le_antisymm ((dist_le le_rfl).2 $ λ x, by simp) dist_nonneg',
   eq_of_dist_eq_zero := λ f g hfg, by ext x; exact
     eq_of_dist_eq_zero (le_antisymm (hfg ▸ dist_coe_le_dist _) dist_nonneg),
   dist_comm := λ f g, by simp [dist_eq, dist_comm],
@@ -680,7 +680,7 @@ variable (f)
 /-- Norm of `const α b` is less than or equal to `∥b∥`. If `α` is nonempty,
 then it is equal to `∥b∥`. -/
 lemma norm_const_le (b : β) : ∥const α b∥ ≤ ∥b∥ :=
-(norm_le (norm_nonneg b)).2 $ λ x, le_refl _
+(norm_le (norm_nonneg b)).2 $ λ x, le_rfl
 
 @[simp] lemma norm_const_eq [h : nonempty α] (b : β) : ∥const α b∥ = ∥b∥ :=
 le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x

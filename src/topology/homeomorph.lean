@@ -199,19 +199,13 @@ h.quotient_map.is_open_preimage
 @[simp] lemma is_open_image (h : α ≃ₜ β) {s : set α} : is_open (h '' s) ↔ is_open s :=
 by rw [← preimage_symm, is_open_preimage]
 
+protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h := λ s, h.is_open_image.2
+
 @[simp] lemma is_closed_preimage (h : α ≃ₜ β) {s : set β} : is_closed (h ⁻¹' s) ↔ is_closed s :=
 by simp only [← is_open_compl_iff, ← preimage_compl, is_open_preimage]
 
 @[simp] lemma is_closed_image (h : α ≃ₜ β) {s : set α} : is_closed (h '' s) ↔ is_closed s :=
 by rw [← preimage_symm, is_closed_preimage]
-
-lemma preimage_closure (h : α ≃ₜ β) (s : set β) : h ⁻¹' (closure s) = closure (h ⁻¹' s) :=
-by rw [h.embedding.closure_eq_preimage_closure_image, h.image_preimage]
-
-lemma image_closure (h : α ≃ₜ β) (s : set α) : h '' (closure s) = closure (h '' s) :=
-by rw [← preimage_symm, preimage_closure]
-
-protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h := λ s, h.is_open_image.2
 
 protected lemma is_closed_map (h : α ≃ₜ β) : is_closed_map h := λ s, h.is_closed_image.2
 
@@ -220,6 +214,18 @@ open_embedding_of_embedding_open h.embedding h.is_open_map
 
 protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
 closed_embedding_of_embedding_closed h.embedding h.is_closed_map
+
+lemma preimage_closure (h : α ≃ₜ β) (s : set β) : h ⁻¹' (closure s) = closure (h ⁻¹' s) :=
+h.is_open_map.preimage_closure_eq_closure_preimage h.continuous _
+
+lemma image_closure (h : α ≃ₜ β) (s : set α) : h '' (closure s) = closure (h '' s) :=
+by rw [← preimage_symm, preimage_closure]
+
+lemma preimage_interior (h : α ≃ₜ β) (s : set β) : h⁻¹' (interior s) = interior (h ⁻¹' s) :=
+h.is_open_map.preimage_interior_eq_interior_preimage h.continuous _
+
+lemma image_interior (h : α ≃ₜ β) (s : set α) : h '' (interior s) = interior (h '' s) :=
+by rw [← preimage_symm, preimage_interior]
 
 lemma preimage_frontier (h : α ≃ₜ β) (s : set β) : h ⁻¹' (frontier s) = frontier (h ⁻¹' s) :=
 h.is_open_map.preimage_frontier_eq_frontier_preimage h.continuous _
@@ -451,47 +457,5 @@ def homeo_of_equiv_compact_to_t2 [compact_space α] [t2_space β]
 { continuous_to_fun := hf,
   continuous_inv_fun := hf.continuous_symm_of_equiv_compact_to_t2,
   ..f }
-
-/--
-A concrete counterexample shows that  `continuous.homeo_of_equiv_compact_to_t2`
-cannot be generalized from `t2_space` to `t1_space`.
-
-Let `α = ℕ` be the one-point compactification of `{1, 2, ...}` with the discrete topology,
-where `0` is the adjoined point, and let `β = ℕ` be given the cofinite topology.
-Then `α` is compact, `β` is T1, and the identity map `id : α → β` is a continuous equivalence
-that is not a homeomorphism.
--/
-lemma homeo_of_equiv_compact_to_t2.t1_counterexample :
-  ∃ (α β : Type) (Iα : topological_space α) (Iβ : topological_space β), by exactI
-  compact_space α ∧ t1_space β ∧ ∃ f : α ≃ β, continuous f ∧ ¬ continuous f.symm :=
-begin
-  /- In the `nhds_adjoint 0 filter.cofinite` topology, a set is open if (1) 0 is not in the set or
-     (2) 0 is in the set and the set is cofinite.  This coincides with the one-point
-     compactification of {1, 2, ...} with the discrete topology. -/
-  let topα : topological_space ℕ := nhds_adjoint 0 filter.cofinite,
-  let topβ : topological_space ℕ := cofinite_topology ℕ,
-  refine ⟨ℕ, ℕ, topα, topβ, _, t1_space_cofinite, equiv.refl ℕ, _, _⟩,
-  { fsplit,
-    rw is_compact_iff_ultrafilter_le_nhds,
-    intros f,
-    suffices : ∃ a, ↑f ≤ @nhds _ topα a, by simpa,
-    by_cases hf : ↑f ≤ @nhds _ topα 0,
-    { exact ⟨0, hf⟩ },
-    { obtain ⟨U, h0U, hU_fin, hUf⟩ : ∃ U : set ℕ, 0 ∈ U ∧ Uᶜ.finite ∧ Uᶜ ∈ f,
-      { rw [nhds_adjoint_nhds, filter.le_def] at hf,
-        push_neg at hf,
-        simpa [and_assoc, ← ultrafilter.compl_mem_iff_not_mem] using hf },
-      obtain ⟨n, hn', hn⟩ := ultrafilter.eq_principal_of_finite_mem hU_fin hUf,
-      rw hn,
-      exact ⟨n, @mem_of_mem_nhds _ topα n⟩ } },
-  { rw continuous_iff_coinduced_le,
-    change topα ≤ topβ,
-    rw gc_nhds,
-    simp [nhds_cofinite] },
-  { intros h,
-    replace h : topβ ≤ topα := by simpa [continuous_iff_coinduced_le, coinduced_id] using h,
-    rw le_nhds_adjoint_iff at h,
-    exact (finite_singleton 1).infinite_compl (h.2 1 one_ne_zero ⟨1, mem_singleton 1⟩) }
-end
 
 end continuous

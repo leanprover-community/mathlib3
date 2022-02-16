@@ -72,7 +72,7 @@ begin
     have : ⋂₀ (t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂ := sInter_union t₁ t₂,
     exact ⟨_, ⟨t₁ ∪ t₂, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b, this.symm ▸ ⟨x, h⟩⟩, this⟩, h,
       subset.rfl⟩ },
-  { rw [sUnion_image, bUnion_eq_univ_iff],
+  { rw [sUnion_image, Union₂_eq_univ_iff],
     intro x, have : x ∈ ⋂₀ ∅, { rw sInter_empty, exact mem_univ x },
     exact ⟨∅, ⟨finite_empty, empty_subset _, x, this⟩, this⟩ },
   { rw hs,
@@ -601,8 +601,7 @@ begin
   let B := {b ∈ countable_basis α | ∃ i, b ⊆ s i},
   choose f hf using λ b : B, b.2.2,
   haveI : encodable B := ((countable_countable_basis α).mono (sep_subset _ _)).to_encodable,
-  refine ⟨_, countable_range f,
-    subset.antisymm (bUnion_subset_Union _ _) (sUnion_subset _)⟩,
+  refine ⟨_, countable_range f, (Union₂_subset_Union _ _).antisymm (sUnion_subset _)⟩,
   rintro _ ⟨i, rfl⟩ x xs,
   rcases (is_basis_countable_basis α).exists_subset_of_mem_open xs (H _) with ⟨b, hb, xb, bs⟩,
   exact ⟨_, ⟨_, rfl⟩, _, ⟨⟨⟨_, hb, _, bs⟩, rfl⟩, rfl⟩, hf _ (by exact xb)⟩
@@ -624,7 +623,7 @@ lemma countable_cover_nhds [second_countable_topology α] {f : α → set α}
 begin
   rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open_interior) with ⟨s, hsc, hsU⟩,
   suffices : (⋃ x ∈ s, interior (f x)) = univ,
-    from ⟨s, hsc, flip eq_univ_of_subset this (bUnion_mono $ λ _ _, interior_subset)⟩,
+    from ⟨s, hsc, flip eq_univ_of_subset this $ Union₂_mono $ λ _ _, interior_subset⟩,
   simp only [hsU, eq_univ_iff_forall, mem_Union],
   exact λ x, ⟨x, mem_interior_iff_mem_nhds.2 (hf x)⟩
 end

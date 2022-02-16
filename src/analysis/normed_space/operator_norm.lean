@@ -278,6 +278,14 @@ le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
 
 lemma op_norm_neg (f : E →SL[σ₁₂] F) : ∥-f∥ = ∥f∥ := by simp only [norm_def, neg_apply, norm_neg]
 
+theorem antilipschitz_of_bound (f : E →SL[σ₁₂] F) {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+  antilipschitz_with K f :=
+linear_map.antilipschitz_of_bound _ h
+
+lemma bound_of_antilipschitz (f : E →SL[σ₁₂] F) {K : ℝ≥0} (h : antilipschitz_with K f) (x) :
+  ∥x∥ ≤ K * ∥f x∥ :=
+linear_map.bound_of_antilipschitz _ h x
+
 section
 
 variables [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃]
@@ -342,10 +350,10 @@ begin
   { refine op_norm_le_of_ball ε_pos hC (λ x hx, hf x _ _),
     { simp [h0] },
     { rwa ball_zero_eq at hx } },
-  { rw [← inv_inv₀ c, normed_field.norm_inv,
+  { rw [← inv_inv c, normed_field.norm_inv,
       inv_lt_one_iff_of_pos (norm_pos_iff.2 $ inv_ne_zero h0)] at hc,
     refine op_norm_le_of_shell ε_pos hC hc _,
-    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv₀] }
+    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv] }
 end
 
 /-- The operator norm satisfies the triangle inequality. -/
@@ -438,7 +446,7 @@ end
 @[simp] lemma op_norm_prod (f : E →L[𝕜] Fₗ) (g : E →L[𝕜] Gₗ) : ∥f.prod g∥ = ∥(f, g)∥ :=
 le_antisymm
   (op_norm_le_bound _ (norm_nonneg _) $ λ x,
-    by simpa only [prod_apply, prod.semi_norm_def, max_mul_of_nonneg, norm_nonneg]
+    by simpa only [prod_apply, prod.norm_def, max_mul_of_nonneg, norm_nonneg]
       using max_le_max (le_op_norm f x) (le_op_norm g x)) $
   max_le
     (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_left _ _).trans ((f.prod g).le_op_norm x))
@@ -1611,3 +1619,12 @@ continuous_linear_equiv.uniform_embedding
 omit σ₂₁
 
 end normed
+
+/--
+A bounded bilinear form `B` in a real normed space is *coercive*
+if there is some positive constant C such that `C * ∥u∥ * ∥u∥ ≤ B u u`.
+-/
+def is_coercive
+  [normed_group E] [normed_space ℝ E]
+  (B : E →L[ℝ] E →L[ℝ] ℝ) : Prop :=
+∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u

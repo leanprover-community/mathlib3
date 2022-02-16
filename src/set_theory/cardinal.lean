@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 import data.nat.enat
 import data.set.countable
+import order.conditionally_complete_lattice
 import set_theory.schroeder_bernstein
 
 /-!
@@ -65,6 +66,8 @@ Cantor's theorem, König's theorem, Konig's theorem
 open function set
 open_locale classical
 
+noncomputable theory
+
 universes u v w x
 variables {α β : Type u}
 
@@ -114,7 +117,7 @@ protected lemma eq : #α = #β ↔ nonempty (α ≃ β) := quotient.eq
 @[simp] theorem mk_out (c : cardinal) : #(c.out) = c := quotient.out_eq _
 
 /-- The representative of the cardinal of a type is equivalent ot the original type. -/
-noncomputable def out_mk_equiv {α : Type v} : (#α).out ≃ α :=
+def out_mk_equiv {α : Type v} : (#α).out ≃ α :=
 nonempty.some $ cardinal.eq.mp (by simp)
 
 lemma mk_congr (e : α ≃ β) : # α = # β := quot.sound ⟨e⟩
@@ -431,7 +434,7 @@ protected theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → 
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
 
 protected theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
-cardinal.add_le_add (le_refl _)
+cardinal.add_le_add le_rfl
 
 protected theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
 ⟨induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
@@ -475,17 +478,17 @@ end
 instance : no_max_order cardinal.{u} :=
 { exists_gt := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
 
-noncomputable instance : linear_order cardinal.{u} :=
+instance : linear_order cardinal.{u} :=
 { le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total,
   decidable_le := classical.dec_rel _,
   .. cardinal.partial_order }
 
-noncomputable instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
+instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
 { .. (infer_instance : canonically_ordered_add_monoid cardinal.{u}),
   .. cardinal.linear_order }
 
 -- short-circuit type class inference
-noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance
+instance : distrib_lattice cardinal.{u} := by apply_instance
 
 theorem one_lt_iff_nontrivial {α : Type u} : 1 < #α ↔ nontrivial α :=
 by rw [← not_le, le_one_iff_subsingleton, ← not_nontrivial_iff_subsingleton, not_not]
@@ -503,10 +506,9 @@ induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_congr_right 
 end order_properties
 
 /-- The minimum cardinal in a family of cardinals (the existence
-  of which is provided by `injective_min`). -/
-noncomputable def min {ι} (I : nonempty ι) (f : ι → cardinal) : cardinal :=
-f $ classical.some $
-@embedding.min_injective _ (λ i, (f i).out) I
+  of which is provided by `min_injective`). -/
+def min {ι} (I : nonempty ι) (f : ι → cardinal) : cardinal :=
+f $ classical.some $ @embedding.min_injective _ (λ i, (f i).out) I
 
 theorem min_eq {ι} (I) (f : ι → cardinal) : ∃ i, min I f = f i :=
 ⟨_, rfl⟩
@@ -532,11 +534,15 @@ protected theorem wf : @well_founded cardinal.{u} (<) :=
 
 instance has_wf : @has_well_founded cardinal.{u} := ⟨(<), cardinal.wf⟩
 
+instance : conditionally_complete_linear_order_bot cardinal :=
+cardinal.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $
+  not_lt.1 (cardinal.wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+
 instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 
 /-- The successor cardinal - the smallest cardinal greater than
   `c`. This is not the same as `c + 1` except in the case of finite `c`. -/
-noncomputable def succ (c : cardinal) : cardinal :=
+def succ (c : cardinal) : cardinal :=
 @min {c' // c < c'} ⟨⟨_, cantor _⟩⟩ subtype.val
 
 theorem lt_succ_self (c : cardinal) : c < succ c :=
@@ -590,7 +596,7 @@ theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f
 
 /-- The indexed supremum of cardinals is the smallest cardinal above
   everything in the family. -/
-noncomputable def sup {ι} (f : ι → cardinal) : cardinal :=
+def sup {ι} (f : ι → cardinal) : cardinal :=
 @min {c // ∀ i, f i ≤ c} ⟨⟨sum f, le_sum f⟩⟩ (λ a, a.1)
 
 theorem le_sup {ι} (f : ι → cardinal) (i) : f i ≤ sup f :=
@@ -954,7 +960,7 @@ lemma omega_mul_omega : ω * ω = ω := mk_denumerable _
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to 0. -/
-noncomputable def to_nat : zero_hom cardinal ℕ :=
+def to_nat : zero_hom cardinal ℕ :=
 ⟨λ c, if h : c < omega.{v} then classical.some (lt_omega.1 h) else 0,
   begin
     have h : 0 < ω := nat_lt_omega 0,
@@ -1056,7 +1062,7 @@ end
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to `⊤`. -/
-noncomputable def to_enat : cardinal →+ enat :=
+def to_enat : cardinal →+ enat :=
 { to_fun := λ c, if c < omega.{v} then c.to_nat else ⊤,
   map_zero' := by simp [if_pos (lt_trans zero_lt_one one_lt_omega)],
   map_add' := λ x y, begin
@@ -1361,7 +1367,7 @@ end
 /-- The function α^{<β}, defined to be sup_{γ < β} α^γ.
   We index over {s : set β.out // #s < β } instead of {γ // γ < β}, because the latter lives in a
   higher universe -/
-noncomputable def powerlt (α β : cardinal.{u}) : cardinal.{u} :=
+def powerlt (α β : cardinal.{u}) : cardinal.{u} :=
 sup.{u u} (λ(s : {s : set β.out // #s < β}), α ^ mk.{u} s)
 
 infix ` ^< `:80 := powerlt

@@ -84,8 +84,8 @@ instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := 
 instance semi_normed_ring.to_semi_normed_group [β : semi_normed_ring α] :
   semi_normed_group α := { ..β }
 
-instance prod.norm_one_class [normed_group α] [has_one α] [norm_one_class α]
-  [normed_group β] [has_one β] [norm_one_class β] :
+instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class α]
+  [semi_normed_group β] [has_one β] [norm_one_class β] :
   norm_one_class (α × β) :=
 ⟨by simp [prod.norm_def]⟩
 
@@ -93,6 +93,10 @@ variables [semi_normed_ring α]
 
 lemma norm_mul_le (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 semi_normed_ring.norm_mul _ _
+
+lemma nnnorm_mul_le (a b : α) : ∥a * b∥₊ ≤ ∥a∥₊ * ∥b∥₊ :=
+by simpa only [←norm_to_nnreal, ←real.to_nnreal_mul (norm_nonneg _)]
+  using real.to_nnreal_mono (norm_mul_le _ _)
 
 /-- A subalgebra of a seminormed ring is also a seminormed ring, with the restriction of the norm.
 
@@ -140,18 +144,25 @@ begin
   simpa using (l.map f).norm_prod_le
 end
 
-/-- If `α` is a seminormed ring, then `∥a^n∥≤ ∥a∥^n` for `n > 0`. See also `norm_pow_le`. -/
-lemma norm_pow_le' (a : α) : ∀ {n : ℕ}, 0 < n → ∥a^n∥ ≤ ∥a∥^n
-| 1 h := by simp
-| (n+2) h := by { rw [pow_succ _ (n+1),  pow_succ _ (n+1)],
-  exact le_trans (norm_mul_le a (a^(n+1)))
-           (mul_le_mul (le_refl _)
-                       (norm_pow_le' (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _)) }
+/-- If `α` is a seminormed ring, then `∥a ^ n∥₊ ≤ ∥a∥₊ ^ n` for `n > 0`.
+See also `nnnorm_pow_le`. -/
+lemma nnnorm_pow_le' (a : α) : ∀ {n : ℕ}, 0 < n → ∥a ^ n∥₊ ≤ ∥a∥₊ ^ n
+| 1 h := by simp only [pow_one]
+| (n + 2) h := by simpa only [pow_succ _ (n + 1)] using
+    le_trans (nnnorm_mul_le _ _) (mul_le_mul_left' (nnnorm_pow_le' n.succ_pos) _)
 
-/-- If `α` is a seminormed ring with `∥1∥=1`, then `∥a^n∥≤ ∥a∥^n`. See also `norm_pow_le'`. -/
-lemma norm_pow_le [norm_one_class α] (a : α) : ∀ (n : ℕ), ∥a^n∥ ≤ ∥a∥^n
-| 0 := by simp
-| (n+1) := norm_pow_le' a n.zero_lt_succ
+/-- If `α` is a seminormed ring with `∥1∥₊ = 1`, then `∥a ^ n∥₊ ≤ ∥a∥₊ ^ n`.
+See also `nnnorm_pow_le'`.-/
+lemma nnnorm_pow_le [norm_one_class α] (a : α) (n : ℕ) : ∥a ^ n∥₊ ≤ ∥a∥₊ ^ n :=
+nat.rec_on n (by simp only [pow_zero, nnnorm_one]) (λ k hk, nnnorm_pow_le' a k.succ_pos)
+
+/-- If `α` is a seminormed ring, then `∥a ^ n∥ ≤ ∥a∥ ^ n` for `n > 0`. See also `norm_pow_le`. -/
+lemma norm_pow_le' (a : α) {n : ℕ} (h : 0 < n) : ∥a ^ n∥ ≤ ∥a∥ ^ n :=
+by simpa only [nnreal.coe_pow, coe_nnnorm] using nnreal.coe_mono (nnnorm_pow_le' a h)
+
+/-- If `α` is a seminormed ring with `∥1∥ = 1`, then `∥a ^ n∥ ≤ ∥a∥ ^ n`. See also `norm_pow_le'`.-/
+lemma norm_pow_le [norm_one_class α] (a : α) (n : ℕ) : ∥a ^ n∥ ≤ ∥a∥ ^ n :=
+nat.rec_on n (by simp only [pow_zero, norm_one]) (λ n hn, norm_pow_le' a n.succ_pos)
 
 lemma eventually_norm_pow_le (a : α) : ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
 eventually_at_top.mpr ⟨1, λ b h, norm_pow_le' a (nat.succ_le_iff.mp h)⟩
@@ -190,10 +201,10 @@ pi.semi_normed_group
 
 local attribute [instance] matrix.semi_normed_group
 
-lemma semi_norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
+lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
   {A : matrix n m α} :
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
-by simp [pi_semi_norm_le_iff hr]
+by simp [pi_norm_le_iff hr]
 
 end semi_normed_ring
 
@@ -271,12 +282,11 @@ instance to_norm_one_class : norm_one_class α :=
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
 
-/-- `norm` as a `monoid_hom`. -/
-@[simps] def norm_hom : monoid_with_zero_hom α ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
+/-- `norm` as a `monoid_with_zero_hom`. -/
+@[simps] def norm_hom : α →*₀ ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
 
-/-- `nnnorm` as a `monoid_hom`. -/
-@[simps] def nnnorm_hom : monoid_with_zero_hom α ℝ≥0 :=
-⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
+/-- `nnnorm` as a `monoid_with_zero_hom`. -/
+@[simps] def nnnorm_hom : α →*₀ ℝ≥0 := ⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
 
 @[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
 (norm_hom.to_monoid_hom : α →* ℝ).map_pow a
@@ -292,23 +302,19 @@ nnreal.eq $ norm_mul a b
   ∥∏ b in s, f b∥₊ = ∏ b in s, ∥f b∥₊ :=
 (nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_prod f s
 
-@[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_div a b
+@[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ := (norm_hom : α →*₀ ℝ).map_div a b
 
-@[simp] lemma nnnorm_div (a b : α) : ∥a / b∥₊ = ∥a∥₊ / ∥b∥₊ :=
-(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_div a b
+@[simp] lemma nnnorm_div (a b : α) : ∥a / b∥₊ = ∥a∥₊ / ∥b∥₊ := (nnnorm_hom : α →*₀ ℝ≥0).map_div a b
 
-@[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_inv a
+@[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ := (norm_hom : α →*₀ ℝ).map_inv a
 
 @[simp] lemma nnnorm_inv (a : α) : ∥a⁻¹∥₊ = ∥a∥₊⁻¹ :=
 nnreal.eq $ by simp
 
-@[simp] lemma norm_zpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n :=
-(norm_hom : monoid_with_zero_hom α ℝ).map_zpow
+@[simp] lemma norm_zpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n := (norm_hom : α →*₀ ℝ).map_zpow
 
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
-(nnnorm_hom : monoid_with_zero_hom α ℝ≥0).map_zpow
+(nnnorm_hom : α →*₀ ℝ≥0).map_zpow
 
 @[priority 100] -- see Note [lower instance priority]
 instance : has_continuous_inv₀ α :=
@@ -317,8 +323,7 @@ begin
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
   rcases exists_between r0' with ⟨ε, ε0, εr⟩,
   have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / ∥r∥ / ε,
-  { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr],
-    intros e he,
+  { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr] with e he,
     have e0 : e ≠ 0 := norm_pos_iff.1 (ε0.trans he),
     calc ∥e⁻¹ - r⁻¹∥ = ∥r - e∥ / ∥r∥ / ∥e∥ : by field_simp [mul_comm]
     ... ≤ ∥r - e∥ / ∥r∥ / ε :
@@ -596,7 +601,7 @@ begin
     ((continuous_id.smul continuous_const).add continuous_const).continuous_within_at,
   convert this.mem_closure _ _,
   { rw [one_smul, sub_add_cancel] },
-  { simp [closure_Ico (@zero_lt_one ℝ _ _), zero_le_one] },
+  { simp [closure_Ico (@zero_ne_one ℝ _ _), zero_le_one] },
   { rintros c ⟨hc0, hc1⟩,
     rw [set.mem_preimage, mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
       abs_of_nonneg hc0, mul_comm, ← mul_one r],
@@ -668,11 +673,11 @@ def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [normed_space ℝ E] 
 
 variables (α)
 
-lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : x ≠ - x :=
-λ h, nonzero_of_mem_sphere hr x (eq_zero_of_eq_neg α (by { conv_lhs {rw h}, simp }))
+lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : r ≠ 0) (x : sphere (0:E) r) : x ≠ - x :=
+λ h, ne_zero_of_mem_sphere hr x ((self_eq_neg α _).mp (by { conv_lhs {rw h}, simp }))
 
 lemma ne_neg_of_mem_unit_sphere [char_zero α] (x : sphere (0:E) 1) : x ≠ - x :=
-ne_neg_of_mem_sphere α  (by norm_num) x
+ne_neg_of_mem_sphere α one_ne_zero x
 
 variables {α}
 
@@ -680,7 +685,7 @@ open normed_field
 
 /-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance prod.normed_space : normed_space α (E × F) :=
-{ norm_smul_le := λ s x, le_of_eq $ by simp [prod.semi_norm_def, norm_smul, mul_max_of_nonneg],
+{ norm_smul_le := λ s x, le_of_eq $ by simp [prod.norm_def, norm_smul, mul_max_of_nonneg],
   ..prod.normed_group,
   ..prod.module }
 
@@ -722,7 +727,7 @@ begin
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
   { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv₀, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
+    rw [norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 
@@ -890,7 +895,7 @@ lemma normed_algebra.norm_one_class : norm_one_class 𝕜' :=
 
 lemma normed_algebra.zero_ne_one : (0:𝕜') ≠ 1 :=
 begin
-  refine (ne_zero_of_norm_pos _).symm,
+  refine (ne_zero_of_norm_ne_zero _).symm,
   rw normed_algebra.norm_one 𝕜 𝕜', norm_num,
 end
 

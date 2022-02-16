@@ -129,24 +129,6 @@ instance : has_zero_morphisms (C ⥤ D) :=
 
 @[simp] lemma zero_app (F G : C ⥤ D) (j : C) : (0 : F ⟶ G).app j = 0 := rfl
 
-variables [has_zero_morphisms C]
-
-lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
-  F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
-begin
-  have t : F.functor.map (0 : X ⟶ Y) =
-    F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
-  { apply faithful.map_injective (F.inverse),
-    rw [functor.map_comp, equivalence.inv_fun_map],
-    dsimp,
-    rw [zero_comp, comp_zero, zero_comp], },
-  exact t.trans (by simp)
-end
-
-@[simp] lemma is_equivalence_preserves_zero_morphisms (F : C ⥤ D) [is_equivalence F] (X Y : C) :
-  F.map (0 : X ⟶ Y) = 0 :=
-by rw [←functor.as_equivalence_functor F, equivalence_preserves_zero_morphisms]
-
 end
 
 variables (C)

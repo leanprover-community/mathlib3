@@ -454,9 +454,10 @@ begin
 end
 
 @[simp]
-lemma sum_div_divisors (n : ℕ) (f : ℕ → ℕ) : ∑ d in n.divisors, f (n/d) = n.divisors.sum f :=
+lemma sum_div_divisors {α : Type*} [add_comm_monoid α] (n : ℕ) (f : ℕ → α) :
+  ∑ d in n.divisors, f (n/d) = n.divisors.sum f :=
 begin
-  by_cases hn : n = 0, { simp [hn] },
+  by_cases hn : n = 0, { simp [hn, zero_nsmul (f 0)] },
   rw ←sum_image,
   { exact sum_congr (image_div_divisors_eq_divisors n) (by simp) },
   { intros x hx y hy h,

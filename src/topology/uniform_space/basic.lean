@@ -274,8 +274,8 @@ uniform_space_eq rfl
 
 /-- Replace topology in a `uniform_space` instance with a propositionally (but possibly not
 definitionally) equal one. -/
-def uniform_space.replace_topology {α : Type*} [i : topological_space α] (u : uniform_space α)
-  (h : i = u.to_topological_space) : uniform_space α :=
+@[reducible] def uniform_space.replace_topology {α : Type*} [i : topological_space α]
+  (u : uniform_space α) (h : i = u.to_topological_space) : uniform_space α :=
 uniform_space.of_core_eq u.to_core i $ h.trans u.to_core_to_topological_space.symm
 
 lemma uniform_space.replace_topology_eq {α : Type*} [i : topological_space α] (u : uniform_space α)
@@ -1128,6 +1128,12 @@ end
 lemma to_topological_space_inf {u v : uniform_space α} :
   (u ⊓ v).to_topological_space = u.to_topological_space ⊓ v.to_topological_space :=
 by rw [to_topological_space_Inf, infi_pair]
+
+/-- A uniform space with the discrete uniformity has the discrete topology. -/
+lemma discrete_topology_of_discrete_uniformity [hα : uniform_space α]
+  (h : uniformity α = 𝓟 id_rel) :
+  discrete_topology α :=
+⟨(uniform_space_eq h.symm : ⊥ = hα) ▸ rfl⟩
 
 instance : uniform_space empty := ⊥
 instance : uniform_space punit := ⊥

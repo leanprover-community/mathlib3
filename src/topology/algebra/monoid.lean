@@ -379,28 +379,27 @@ lemma continuous_on.pow {f : X → M} {s : set X} (hf : continuous_on f s) (n : 
 
 end has_continuous_mul
 
-section op
-
-open mul_opposite
+namespace mul_opposite
 
 /-- Put the same topological space structure on the opposite monoid as on the original space. -/
-instance [_i : topological_space α] : topological_space αᵐᵒᵖ :=
+@[to_additive] instance [_i : topological_space α] : topological_space αᵐᵒᵖ :=
 topological_space.induced (unop : αᵐᵒᵖ → α) _i
 
 variables [topological_space α]
 
-lemma continuous_unop : continuous (unop : αᵐᵒᵖ → α) := continuous_induced_dom
-lemma continuous_op : continuous (op : α → αᵐᵒᵖ) := continuous_induced_rng continuous_id
+@[to_additive] lemma continuous_unop : continuous (unop : αᵐᵒᵖ → α) := continuous_induced_dom
+@[to_additive] lemma continuous_op : continuous (op : α → αᵐᵒᵖ) :=
+continuous_induced_rng continuous_id
 
 variables [monoid α] [has_continuous_mul α]
 
 /-- If multiplication is continuous in the monoid `α`, then it also is in the monoid `αᵐᵒᵖ`. -/
-instance : has_continuous_mul αᵐᵒᵖ :=
+@[to_additive] instance : has_continuous_mul αᵐᵒᵖ :=
 ⟨ let h₁ := @continuous_mul α _ _ _ in
   let h₂ : continuous (λ p : α × α, _) := continuous_snd.prod_mk continuous_fst in
   continuous_induced_rng $ (h₁.comp h₂).comp (continuous_unop.prod_map continuous_unop) ⟩
 
-end op
+end mul_opposite
 
 namespace units
 
@@ -409,13 +408,13 @@ open mul_opposite
 variables [topological_space α] [monoid α]
 
 /-- The units of a monoid are equipped with a topology, via the embedding into `α × α`. -/
-instance : topological_space αˣ :=
+@[to_additive] instance : topological_space αˣ :=
 topological_space.induced (embed_product α) (by apply_instance)
 
-lemma continuous_embed_product : continuous (embed_product α) :=
+@[to_additive] lemma continuous_embed_product : continuous (embed_product α) :=
 continuous_induced_dom
 
-lemma continuous_coe : continuous (coe : αˣ → α) :=
+@[to_additive] lemma continuous_coe : continuous (coe : αˣ → α) :=
 by convert continuous_fst.comp continuous_induced_dom
 
 variables [has_continuous_mul α]
@@ -425,7 +424,7 @@ with respect to the induced topology, is continuous.
 
 Inversion is also continuous, but we register this in a later file, `topology.algebra.group`,
 because the predicate `has_continuous_inv` has not yet been defined. -/
-instance : has_continuous_mul αˣ :=
+@[to_additive] instance : has_continuous_mul αˣ :=
 ⟨ let h := @continuous_mul (α × αᵐᵒᵖ) _ _ _ in
   continuous_induced_rng $ h.comp $ continuous_embed_product.prod_map continuous_embed_product ⟩
 
@@ -499,8 +498,8 @@ instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_ad
 
 section lattice_ops
 
-variables [has_mul M] [has_mul N] {ts : set (topological_space M)}
-  (h : Π t ∈ ts, @has_continuous_mul M t _) {ts' : ι → topological_space M}
+variables {ι' : Sort*} [has_mul M] [has_mul N] {ts : set (topological_space M)}
+  (h : Π t ∈ ts, @has_continuous_mul M t _) {ts' : ι' → topological_space M}
   (h' : Π i, @has_continuous_mul M (ts' i) _) {t₁ t₂ : topological_space M}
   (h₁ : @has_continuous_mul M t₁ _) (h₂ : @has_continuous_mul M t₂ _)
   {t : topological_space N} [has_continuous_mul N] {F : Type*}

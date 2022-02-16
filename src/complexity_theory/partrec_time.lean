@@ -38,10 +38,9 @@ def time : turing.to_partrec.code → list ℕ →. ℕ
 /--
 Holds for codes representing total functions, where `bound` is a function upper bounding the
 runtime of the code over all input lists of length `l`.
-TODO: May need to redefine this to bound time for any list of length ≤ l.
 -/
 def time_bound (c : turing.to_partrec.code) (bound : ℕ → ℕ) : Prop :=
-∀ (l : list ℕ), ∃ t ∈ time c l, t ≤ bound (l.length)
+∀ (l : list ℕ) (len : ℕ), ∃ t ∈ time c l, l.length ≤ len -> t ≤ bound (len)
 
 -- TODO time_bound lemmas for all the constructors (except maybe fix)
 lemma time_bound_zero' : time_bound code.zero' (id 1) :=
@@ -63,10 +62,10 @@ lemma time_bound_cons (f fs : code) (b bs : ℕ → ℕ) (hb : time_bound f b) (
   time_bound (code.cons f fs) (b + bs + id 1) :=
 begin
   rw time_bound at *,
-  intro l,
+  intros l len,
   rw time,
-  rcases hb l with ⟨t, H, ht⟩,
-  rcases hbs l with ⟨ts, Hs, hts⟩,
+  rcases hb l len with ⟨t, H, ht⟩,
+  rcases hbs l len with ⟨ts, Hs, hts⟩,
   use t + ts + 1,
   split,
   simp,

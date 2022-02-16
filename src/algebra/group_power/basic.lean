@@ -346,26 +346,16 @@ alias add_sq ← add_pow_two
 
 end comm_semiring
 
-section ring
-variable [ring R]
+section has_distrib_neg
+variables [monoid R] [has_distrib_neg R]
 
-section
 variables (R)
 theorem neg_one_pow_eq_or : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := or.inl (pow_zero _)
 | (n+1) := (neg_one_pow_eq_or n).swap.imp
   (λ h, by rw [pow_succ, h, neg_one_mul, neg_neg])
   (λ h, by rw [pow_succ, h, mul_one])
-
-end
-
-@[simp]
-lemma neg_one_pow_mul_eq_zero_iff {n : ℕ} {r : R} : (-1)^n * r = 0 ↔ r = 0 :=
-by rcases neg_one_pow_eq_or R n; simp [h]
-
-@[simp]
-lemma mul_neg_one_pow_eq_zero_iff {n : ℕ} {r : R} : r * (-1)^n = 0 ↔ r = 0 :=
-by rcases neg_one_pow_eq_or R n; simp [h]
+variables {R}
 
 theorem neg_pow (a : R) (n : ℕ) : (- a) ^ n = (-1) ^ n * a ^ n :=
 (neg_one_mul a) ▸ (commute.neg_one_left a).mul_pow n
@@ -381,32 +371,18 @@ by simp [sq]
 
 alias neg_sq ← neg_pow_two
 
-/- Copies of the above ring lemmas for `units R`. -/
-namespace units
+end has_distrib_neg
 
-section
-variables (R)
-theorem neg_one_pow_eq_or : ∀ n : ℕ, (-1 : Rˣ)^n = 1 ∨ (-1 : Rˣ)^n = -1
-| 0     := or.inl (pow_zero _)
-| (n+1) := (neg_one_pow_eq_or n).swap.imp
-  (λ h, by rw [pow_succ, h, ←units.neg_eq_neg_one_mul, units.neg_neg])
-  (λ h, by rw [pow_succ, h, mul_one])
+section ring
+variable [ring R]
 
-end
+@[simp]
+lemma neg_one_pow_mul_eq_zero_iff {n : ℕ} {r : R} : (-1)^n * r = 0 ↔ r = 0 :=
+by rcases neg_one_pow_eq_or R n; simp [h]
 
-theorem neg_pow (a : Rˣ) (n : ℕ) : (- a) ^ n = (-1) ^ n * a ^ n :=
-(units.neg_eq_neg_one_mul a).symm ▸ (commute.units_neg_one_left a).mul_pow n
-
-@[simp] theorem neg_pow_bit0 (a : Rˣ) (n : ℕ) : (- a) ^ (bit0 n) = a ^ (bit0 n) :=
-by rw [pow_bit0', units.neg_mul_neg, pow_bit0']
-
-@[simp] theorem neg_pow_bit1 (a : Rˣ) (n : ℕ) : (- a) ^ (bit1 n) = - a ^ (bit1 n) :=
-by simp only [bit1, pow_succ, neg_pow_bit0, units.neg_mul_eq_neg_mul]
-
-@[simp] lemma neg_sq (a : Rˣ) : (-a)^2 = a^2 :=
-by simp [sq]
-
-end units
+@[simp]
+lemma mul_neg_one_pow_eq_zero_iff {n : ℕ} {r : R} : r * (-1)^n = 0 ↔ r = 0 :=
+by rcases neg_one_pow_eq_or R n; simp [h]
 
 end ring
 

@@ -370,26 +370,18 @@ instance : has_neg ereal := ⟨ereal.neg⟩
 @[simp] lemma neg_bot : - (⊥ : ereal) = ⊤ := rfl
 @[simp] lemma neg_zero : - (0 : ereal) = 0 := by { change ((-0 : ℝ) : ereal) = 0, simp }
 
-/-- `- -a = a` on `ereal`. -/
-@[simp] protected theorem neg_neg : ∀ (a : ereal), - (- a) = a
-| ⊥ := rfl
-| ⊤ := rfl
-| (a : ℝ) := by { norm_cast, simp [neg_neg a] }
-
-theorem neg_inj {a b : ereal} (h : -a = -b) : a = b := by rw [←ereal.neg_neg a, h, ereal.neg_neg b]
-
-@[simp] theorem neg_eq_neg_iff (a b : ereal) : - a = - b ↔ a = b :=
-⟨λ h, neg_inj h, λ h, by rw [h]⟩
+instance : has_involutive_neg ereal :=
+{ neg := has_neg.neg,
+  neg_neg := λ a, match a with
+    | ⊥ := rfl
+    | ⊤ := rfl
+    | (a : ℝ) := by { norm_cast, simp [neg_neg a] }
+    end }
 
 @[simp] lemma to_real_neg : ∀ {a : ereal}, to_real (-a) = - to_real a
 | ⊤ := by simp
 | ⊥ := by simp
 | (x : ℝ) := rfl
-
-/-- Even though `ereal` is not an additive group, `-a = b ↔ -b = a` still holds -/
-theorem neg_eq_iff_neg_eq {a b : ereal} : -a = b ↔ -b = a :=
-⟨by {intro h, rw ←h, exact ereal.neg_neg a},
- by {intro h, rw ←h, exact ereal.neg_neg b}⟩
 
 @[simp] lemma neg_eg_top_iff {x : ereal} : - x = ⊤ ↔ x = ⊥ :=
 by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
@@ -415,26 +407,25 @@ protected theorem neg_le {a b : ereal} : -a ≤ b ↔ -b ≤ a :=
 
 /-- `a ≤ -b → b ≤ -a` on ereal -/
 theorem le_neg_of_le_neg {a b : ereal} (h : a ≤ -b) : b ≤ -a :=
-by rwa [←ereal.neg_neg b, ereal.neg_le, ereal.neg_neg]
+by rwa [←neg_neg b, ereal.neg_le, neg_neg]
 
 @[simp] lemma neg_le_neg_iff {a b : ereal} : - a ≤ - b ↔ b ≤ a :=
-by conv_lhs { rw [ereal.neg_le, ereal.neg_neg] }
+by conv_lhs { rw [ereal.neg_le, neg_neg] }
 
 @[simp, norm_cast] lemma coe_neg (x : ℝ) : ((- x : ℝ) : ereal) = - (x : ereal) := rfl
 
 /-- Negation as an order reversing isomorphism on `ereal`. -/
 def neg_order_iso : ereal ≃o (order_dual ereal) :=
-{ to_fun := ereal.neg,
-  inv_fun := ereal.neg,
-  left_inv := ereal.neg_neg,
-  right_inv := ereal.neg_neg,
-  map_rel_iff' := λ x y, neg_le_neg_iff }
+{ to_fun := λ x, order_dual.to_dual (-x),
+  inv_fun := λ x, -x.of_dual,
+  map_rel_iff' := λ x y, neg_le_neg_iff,
+  ..equiv.neg ereal }
 
 lemma neg_lt_of_neg_lt {a b : ereal} (h : -a < b) : -b < a :=
 begin
   apply lt_of_le_of_ne (ereal.neg_le_of_neg_le h.le),
   assume H,
-  rw [← H, ereal.neg_neg] at h,
+  rw [← H, neg_neg] at h,
   exact lt_irrefl _ h
 end
 
@@ -480,7 +471,7 @@ begin
   { have : (x : ereal) = - (- x : ℝ), by simp,
     conv_lhs { rw this },
     have : real.to_nnreal (-x) = ⟨-x, neg_nonneg.mpr h.le⟩, by { ext, simp [neg_nonneg.mpr h.le], },
-    simp only [real.to_nnreal_of_nonpos h.le, this, zero_sub, neg_eq_neg_iff, coe_neg,
+    simp only [real.to_nnreal_of_nonpos h.le, this, zero_sub, neg_inj, coe_neg,
       ennreal.coe_zero, coe_ennreal_zero, coe_coe],
     refl }
 end

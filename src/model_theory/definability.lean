@@ -20,8 +20,6 @@ This file defines what it means for a set over a first-order structure to be def
 
 -/
 
-universes u v
-
 namespace first_order
 namespace language
 

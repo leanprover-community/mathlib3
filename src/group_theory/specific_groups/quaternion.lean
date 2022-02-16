@@ -174,7 +174,7 @@ end
 @[simp] lemma a_one_pow (k : ℕ) : (a 1 : quaternion_group n) ^ k = a k :=
 begin
   induction k with k IH,
-  { refl },
+  { rw nat.cast_zero, refl },
   { rw [pow_succ, IH, a_mul_a],
     congr' 1,
     norm_cast,

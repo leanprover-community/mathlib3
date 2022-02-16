@@ -185,19 +185,26 @@ protected def non_unital_semiring [non_unital_semiring β] :  non_unital_semirin
 let zero := e.has_zero, add := e.has_add, mul := e.has_mul in
 by resetI; apply e.injective.non_unital_semiring _; intros; exact e.apply_symm_apply _
 
+/-- Transfer `has_nat_cast` across an `equiv` -/
+protected def has_nat_cast [has_nat_cast β] : has_nat_cast α :=
+{ nat_cast := λ n, e.symm n,
+  nat_cast_zero := by simp [nat.cast]; refl,
+  nat_cast_succ := by simp [nat.cast, add_def, one_def],
+  .. e.add_monoid, .. e.has_one }
+
 /-- Transfer `non_assoc_semiring` across an `equiv` -/
 protected def non_assoc_semiring [non_assoc_semiring β] : non_assoc_semiring α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+let mul := e.has_mul, has_nat_cast := e.has_nat_cast in
 by resetI; apply e.injective.non_assoc_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `semiring` across an `equiv` -/
 protected def semiring [semiring β] : semiring α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+let mul := e.has_mul, has_nat_cast := e.has_nat_cast in
 by resetI; apply e.injective.semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_semiring` across an `equiv` -/
 protected def comm_semiring [comm_semiring β] : comm_semiring α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+let mul := e.has_mul, has_nat_cast := e.has_nat_cast in
 by resetI; apply e.injective.comm_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `non_unital_non_assoc_ring` across an `equiv` -/
@@ -208,14 +215,12 @@ by resetI; apply e.injective.non_unital_non_assoc_ring _; intros; exact e.apply_
 
 /-- Transfer `ring` across an `equiv` -/
 protected def ring [ring β] : ring α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
-  sub := e.has_sub in
+let mul := e.has_mul, neg := e.has_neg, sub := e.has_sub, has_nat_cast := e.has_nat_cast in
 by resetI; apply e.injective.ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_ring` across an `equiv` -/
 protected def comm_ring [comm_ring β] : comm_ring α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
-  sub := e.has_sub in
+let mul := e.has_mul, neg := e.has_neg, sub := e.has_sub, has_nat_cast := e.has_nat_cast in
 by resetI; apply e.injective.comm_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `nontrivial` across an `equiv` -/
@@ -228,13 +233,13 @@ function.injective.is_domain e.to_ring_hom e.injective
 
 /-- Transfer `division_ring` across an `equiv` -/
 protected def division_ring [division_ring β] : division_ring α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
+let has_nat_cast := e.has_nat_cast, mul := e.has_mul, neg := e.has_neg,
   sub := e.has_sub, inv := e.has_inv, div := e.has_div in
 by resetI; apply e.injective.division_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `field` across an `equiv` -/
 protected def field [field β] : field α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
+let has_nat_cast := e.has_nat_cast, mul := e.has_mul, neg := e.has_neg,
   sub := e.has_sub, inv := e.has_inv, div := e.has_div in
 by resetI; apply e.injective.field _; intros; exact e.apply_symm_apply _
 

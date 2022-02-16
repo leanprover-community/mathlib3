@@ -44,6 +44,11 @@ open_locale direct_sum big_operators
 
 variables {ι : Type*} {S R : Type*}
 
+instance add_comm_monoid.of_submonoid_on_semiring [semiring R] (A : ι → add_submonoid R) :
+  ∀ i, add_comm_monoid (A i) := λ i, by apply_instance
+instance add_comm_monoid.of_subgroup_on_ring [ring R] (A : ι → add_subgroup R) :
+  ∀ i, add_comm_monoid (A i) := λ i, by apply_instance
+
 section direct_sum
 variables [decidable_eq ι]
 

@@ -326,6 +326,7 @@ theorem sum_Ico_pow (n p : ℕ) :
   ∑ k in Ico 1 (n + 1), (k : ℚ) ^ p =
     ∑ i in range (p + 1), bernoulli' i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
 begin
+  rw ← nat.cast_succ,
   -- dispose of the trivial case
   cases p, { simp },
   let f := λ i, bernoulli i * p.succ.succ.choose i * n ^ (p.succ.succ - i) / p.succ.succ,
@@ -354,7 +355,8 @@ begin
   ... = ∑ i in range p, f i.succ.succ + (f 1 + n ^ p.succ) + f 0 : by ring
   ... = ∑ i in range p, f i.succ.succ + 1 / 2 * n ^ p.succ + f 0 : by rw h2
         -- convert from `bernoulli` to `bernoulli'`
-  ... = ∑ i in range p, f' i.succ.succ + f' 1 + f' 0 : by { simp only [f, f'], simpa [h1] }
+  ... = ∑ i in range p, f' i.succ.succ + f' 1 + f' 0 :
+        by { simp only [f, f'], simpa [h1, λ i, show i + 2 = i + 1 + 1, from rfl] }
         -- rejoin the first two terms of the sum
   ... = ∑ i in range p.succ.succ, f' i : by simp_rw [sum_range_succ'],
 end

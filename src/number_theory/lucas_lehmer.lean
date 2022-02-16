@@ -146,9 +146,7 @@ begin
     simp [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
     apply int.eq_zero_of_dvd_of_nonneg_of_lt _ _ h; clear h,
     apply s_mod_nonneg _ (nat.lt_of_succ_lt w),
-    convert s_mod_lt _ (nat.lt_of_succ_lt w) (p-2),
-    push_cast [nat.one_le_two_pow p],
-    refl, },
+    exact s_mod_lt _ (nat.lt_of_succ_lt w) (p-2) },
   { intro h, rw h, simp, },
 end
 
@@ -214,6 +212,12 @@ instance : monoid (X q) :=
   mul_one := λ x, by { ext; simp, },
   ..(infer_instance : has_mul (X q)) }
 
+instance : has_nat_cast (X q) :=
+{ nat_cast := λ n, ⟨n, 0⟩,
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := by simp [nat.cast, monoid.one],
+  .. X.monoid, .. X.add_comm_group _ }
+
 lemma left_distrib (x y z : X q) : x * (y + z) = x * y + x * z :=
 by { ext; { dsimp, ring }, }
 
@@ -223,6 +227,7 @@ by { ext; { dsimp, ring }, }
 instance : ring (X q) :=
 { left_distrib := left_distrib,
   right_distrib := right_distrib,
+  .. X.has_nat_cast,
   ..(infer_instance : add_comm_group (X q)),
   ..(infer_instance : monoid (X q)) }
 
@@ -235,18 +240,10 @@ instance [fact (1 < (q : ℕ))] : nontrivial (X q) :=
 
 @[simp]
 lemma nat_coe_fst (n : ℕ) : (n : X q).fst = (n : zmod q) :=
-begin
-  induction n,
-  { refl, },
-  { dsimp, simp only [add_left_inj], exact n_ih, }
-end
+by induction n; simp *
 @[simp]
 lemma nat_coe_snd (n : ℕ) : (n : X q).snd = (0 : zmod q) :=
-begin
-  induction n,
-  { refl, },
-  { dsimp, simp only [add_zero], exact n_ih, }
-end
+by induction n; simp *
 
 @[simp]
 lemma int_coe_fst (n : ℤ) : (n : X q).fst = (n : zmod q) :=
@@ -357,6 +354,7 @@ begin
   rw [mul_comm, coe_mul] at h,
   rw [mul_comm _ (k : X (q (p'+2)))] at h,
   replace h := eq_sub_of_add_eq h,
+  unfold mersenne,
   exact_mod_cast h,
 end
 

@@ -113,16 +113,31 @@ lemma _root_.is_smul_regular.polynomial {S : Type*} [monoid S] [distrib_mul_acti
 
 instance : inhabited R[X] := ⟨0⟩
 
+instance : add_comm_monoid R[X] :=
+by refine_struct
+{ zero := (0 : R[X]),
+  add := (+),
+  nsmul := (•) };
+{ repeat { rintro ⟨_⟩, };
+  simp [← zero_to_finsupp, ← one_to_finsupp, add_to_finsupp,
+    add_mul, smul_to_finsupp, nat.succ_eq_one_add]; abel }
+
+instance : has_nat_cast R[X] :=
+{ nat_cast := λ n, monomial_fun 0 n,
+  nat_cast_zero := by simp [nat.cast, monomial_fun]; refl,
+  nat_cast_succ := λ _, by simp [nat.cast, monomial_fun, add_to_finsupp, ← one_to_finsupp]; refl,
+  one := 1, .. polynomial.add_comm_monoid }
+
 instance : semiring R[X] :=
 by refine_struct
 { zero := (0 : R[X]),
   one := 1,
   mul := (*),
   add := (+),
-  nsmul := (•),
   npow := npow_rec,
   npow_zero' := λ x, rfl,
-  npow_succ' := λ n x, rfl };
+  npow_succ' := λ n x, rfl,
+  .. polynomial.add_comm_monoid, .. polynomial.has_nat_cast };
 { repeat { rintro ⟨_⟩, };
   simp [← zero_to_finsupp, ← one_to_finsupp, add_to_finsupp, mul_to_finsupp, mul_assoc, mul_add,
     add_mul, smul_to_finsupp, nat.succ_eq_one_add]; abel }

@@ -193,9 +193,7 @@ instance : inhabited (orthonormal_basis ι 𝕜 (euclidean_space 𝕜 ι)) :=
 
 /-- `b i` is the `i`th basis vector. -/
 instance : has_coe_to_fun (orthonormal_basis ι 𝕜 E) (λ _, ι → E) :=
-{
-  coe := λ b i, b.repr.symm (euclidean_space.single i (1 : 𝕜))
-}
+{ coe := λ b i, b.repr.symm (euclidean_space.single i (1 : 𝕜))  }
 
 @[simp] protected lemma repr_symm_single (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr.symm (euclidean_space.single i (1:𝕜)) = b i :=

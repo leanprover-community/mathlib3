@@ -1173,7 +1173,7 @@ by rw [← finrank_eq_card_basis (std_orthonormal_basis 𝕜 E), hn],
 lemma fin_std_orthonormal_basis_orthonormal {n : ℕ} (hn : finrank 𝕜 E = n) :
   orthonormal 𝕜 (fin_std_orthonormal_basis hn) :=
 suffices orthonormal 𝕜 (std_orthonormal_basis _ _ ∘ equiv.symm _),
-by { simp only [fin_std_orthonormal_basis, basis.coe_reindex], assumption }, -- why doesn't simpa work?
+by { simp only [fin_std_orthonormal_basis, basis.coe_reindex], assumption }, -- simpa doesn't work?
 (std_orthonormal_basis_orthonormal 𝕜 E).comp _ (equiv.injective _)
 
 section subordinate_orthonormal_basis

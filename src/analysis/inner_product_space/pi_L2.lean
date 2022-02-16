@@ -158,9 +158,9 @@ def euclidean_space.single {𝕜 : Type*} {ι : Type*} [fintype ι] [is_R_or_C �
   set.indicator {i} (λ j, a)
 
 
-theorem euclidean_space.single_apply {𝕜 : Type*} {ι : Type*} [fintype ι] [decidable_eq ι]
+@[simp] theorem euclidean_space.single_apply {𝕜 : Type*} {ι : Type*} [fintype ι] [decidable_eq ι]
   [is_R_or_C 𝕜] (i : ι) (a : 𝕜) (j : ι) :
-  (euclidean_space.single i a) j = dite (j = i) (λ (h : j = i), a) (λ (h : ¬j = i), 0) :=
+  (euclidean_space.single i a) j = ite (j = i) a 0 :=
   begin
     rw [euclidean_space.single, dite_eq_ite, set.indicator],
     simp only [set.mem_singleton_iff],
@@ -168,22 +168,7 @@ theorem euclidean_space.single_apply {𝕜 : Type*} {ι : Type*} [fintype ι] [d
 
 lemma euclidean_space.inner_single_left (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪ euclidean_space.single i (a : 𝕜), v ⟫ = star_ring_end 𝕜 a * (v i) :=
-  begin
-    simp only [is_R_or_C.inner_apply, pi_Lp.inner_apply, finset.sum_congr],
-    rw euclidean_space.single,
-    simp_rw [set.indicator,apply_ite (star_ring_end 𝕜),@star_ring_end_apply _ _ _ (0 : 𝕜),
-    star_zero, ite_mul],
-    simp only [finset.mem_univ,
- if_true,
- set.mem_singleton_iff,
- mul_eq_mul_left_iff,
- zero_mul,
- true_or,
- eq_self_iff_true,
- finset.sum_ite_eq',
- ring_hom.map_eq_zero,
- finset.sum_congr],
-  end
+by simp [apply_ite conj]
 
 lemma euclidean_space.inner_single_right (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪ v, euclidean_space.single i (a : 𝕜) ⟫ =  a * (star_ring_end 𝕜) (v i) :=
@@ -203,7 +188,7 @@ structure orthonormal_basis := of_repr :: (repr : E ≃ₗᵢ[𝕜] euclidean_sp
 namespace orthonormal_basis
 
 instance : inhabited (orthonormal_basis ι 𝕜 (euclidean_space 𝕜 ι)) :=
-  ⟨of_repr (linear_isometry_equiv.refl 𝕜 (euclidean_space 𝕜 ι)) ⟩
+⟨of_repr (linear_isometry_equiv.refl 𝕜 (euclidean_space 𝕜 ι))⟩
 
 
 /-- `b i` is the `i`th basis vector. -/

@@ -51,6 +51,13 @@ instance large_category : large_category.{u} PartialFun :=
   comp_id' := @pfun.id_comp,
   assoc' := λ W X Y Z _ _ _, (pfun.comp_assoc _ _ _).symm }
 
+/-- Constructs a partial function isomorphism between types from an equivalence between them. -/
+@[simps] def iso.mk {α β : PartialFun.{u}} (e : α ≃ β) : α ≅ β :=
+{ hom := e,
+  inv := e.symm,
+  hom_inv_id' := (pfun.coe_comp _ _).symm.trans $ congr_arg coe e.symm_comp_self,
+  inv_hom_id' := (pfun.coe_comp _ _).symm.trans $ congr_arg coe e.self_comp_symm }
+
 end PartialFun
 
 /-- The forgetful functor from `Type` to `PartialFun` which forgets that the maps are total. -/
@@ -94,46 +101,36 @@ by classical; exact
 @[simps] noncomputable def PartialFun_equiv_Pointed : PartialFun.{u} ≌ Pointed :=
 by classical; exact
 equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
-  (nat_iso.of_components (λ X,
-    { hom := λ a, part.some ⟨some a, some_ne_none _⟩,
-      inv := λ a, part.some (get $ ne_none_iff_is_some.1 a.2),
-      hom_inv_id' := pfun.ext $ λ a b, begin
+  (nat_iso.of_components (λ X, PartialFun.iso.mk
+    { to_fun := λ a, ⟨some a, some_ne_none a⟩,
+      inv_fun := λ a, get $ ne_none_iff_is_some.1 a.2,
+      left_inv := λ a, get_some _ _,
+      right_inv := λ a, by simp only [subtype.val_eq_coe, some_get, subtype.coe_eta] }) $ λ X Y f,
+      pfun.ext $ λ a b, begin
         unfold_projs,
-        refine (part.mem_bind_iff.trans _).trans part.mem_some_iff.symm,
-        simp_rw [part.mem_some_iff, exists_prop, exists_eq_left, get_some],
-      end,
-      inv_hom_id' := pfun.ext $ λ a b, begin
-        unfold_projs,
-        refine (part.mem_bind_iff.trans _).trans part.mem_some_iff.symm,
         dsimp,
-        simp_rw [part.mem_some_iff, exists_prop, exists_eq_left, some_get, subtype.coe_eta],
-      end }) $ λ X Y f, pfun.ext $ λ a b, begin
-      unfold_projs,
-      dsimp,
-      rw part.bind_some,
-      refine (part.mem_bind_iff.trans _).trans pfun.mem_to_subtype_iff.symm,
-      obtain ⟨b | b, hb⟩ := b,
-      { exact (hb rfl).elim },
-      simp_rw [part.mem_some_iff, subtype.mk_eq_mk, exists_prop, subtype.coe_mk, some_inj,
-        exists_eq_right'],
-      refine part.mem_to_option.symm.trans _,
-      convert eq_comm,
-      convert rfl,
-    end)
-  (nat_iso.of_components (λ X,
-    { hom := ⟨λ a, a.elim X.point subtype.val, rfl⟩,
-      inv := ⟨λ a, if h : a = X.point then none else some ⟨_, h⟩, dif_pos rfl⟩,
-      hom_inv_id' := Pointed.hom.ext _ _ $ funext $ λ a, option.rec_on a (dif_pos rfl) $ λ a,
-        (dif_neg a.2).trans $
-        by { simp only [option.elim, subtype.val_eq_coe, subtype.coe_eta], refl },
-      inv_hom_id' := Pointed.hom.ext _ _ $ funext $ λ a, begin
-          change option.elim (dite _ _ _) _ _ = _,
-          split_ifs,
-          { rw h, refl },
-          { refl }
-        end }) $ λ X Y f, Pointed.hom.ext _ _ $ funext $ λ a, option.rec_on a f.map_point.symm $
+        rw part.bind_some,
+        refine (part.mem_bind_iff.trans _).trans pfun.mem_to_subtype_iff.symm,
+        obtain ⟨b | b, hb⟩ := b,
+        { exact (hb rfl).elim },
+        dsimp,
+        simp_rw [part.mem_some_iff, subtype.mk_eq_mk, exists_prop, some_inj, exists_eq_right'],
+        refine part.mem_to_option.symm.trans _,
+        convert eq_comm,
+        convert rfl,
+      end)
+  (nat_iso.of_components (λ X, Pointed.iso.mk
+    { to_fun := λ a, a.elim X.point subtype.val,
+      inv_fun := λ a, if h : a = X.point then none else some ⟨_, h⟩,
+      left_inv := λ a, option.rec_on a (dif_pos rfl) $ λ a, (dif_neg a.2).trans $
+        by simp only [option.elim, subtype.val_eq_coe, subtype.coe_eta],
+      right_inv := λ a, begin
+        change option.elim (dite _ _ _) _ _ = _,
+        split_ifs,
+        { rw h, refl },
+        { refl }
+      end } rfl) $ λ X Y f, Pointed.hom.ext _ _ $ funext $ λ a, option.rec_on a f.map_point.symm $
     λ a, begin
-      unfold_projs,
       change option.elim (option.elim _ _ _) _ _ = _,
       rw [option.elim, part.elim_to_option],
       split_ifs,

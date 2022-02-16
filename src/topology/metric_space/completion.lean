@@ -53,7 +53,7 @@ begin
   { refine is_closed_eq _ continuous_const,
     exact completion.continuous_dist continuous_id continuous_id },
   { assume a,
-    rw [dist_eq, dist_self] }
+    rw [completion.dist_eq, dist_self] }
 end
 
 protected lemma dist_comm (x y : completion α) : dist x y = dist y x :=
@@ -62,7 +62,7 @@ begin
   { exact is_closed_eq (completion.continuous_dist continuous_fst continuous_snd)
       (completion.continuous_dist continuous_snd continuous_fst) },
   { assume a b,
-    rw [dist_eq, dist_eq, dist_comm] }
+    rw [completion.dist_eq, completion.dist_eq, dist_comm] }
 end
 
 protected lemma dist_triangle (x y z : completion α) : dist x z ≤ dist x y + dist y z :=
@@ -71,7 +71,7 @@ begin
   { refine is_closed_le _ (continuous.add _ _);
       apply_rules [completion.continuous_dist, continuous.fst, continuous.snd, continuous_id] },
   { assume a b c,
-    rw [dist_eq, dist_eq, dist_eq],
+    rw [completion.dist_eq, completion.dist_eq, completion.dist_eq],
     exact dist_triangle a b c }
 end
 

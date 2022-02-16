@@ -68,11 +68,11 @@ def discr (A : Type u) {B : Type v} [comm_ring A] [comm_ring B] [algebra A B] [f
 lemma discr_def [decidable_eq ι] [fintype ι] (b : ι → B) :
   discr A b = (trace_matrix A b).det := by convert rfl
 
-variable [fintype ι]
+variables [fintype ι] {ι' : Type*} [fintype ι'] [fintype ι]
 
 section basic
 
-lemma discr_reindex {ι' : Type*} [fintype ι'] (b : basis ι A B) (f : ι ≃ ι') :
+lemma discr_reindex (b : basis ι A B) (f : ι ≃ ι') :
   discr A (b.reindex f) = discr A b :=
 begin
   classical,
@@ -281,9 +281,9 @@ end
 /-- If `b` and `b'` are `ℚ`-bases of a number field `K` such that
 `∀ i j, is_integral ℤ (b.to_matrix b' i j)` and `∀ i j, is_integral ℤ (b'.to_matrix b i j)` then
 `discr ℚ b = discr ℚ b'`. -/
-lemma discr_eq_discr_of_to_matrix_coeff_is_integral {K : Type u} {ι' : Type v} [fintype ι']
-  [field K] [number_field K] {b : basis ι ℚ K} {b' : basis ι' ℚ K}
-  (h : ∀ i j, is_integral ℤ (b.to_matrix b' i j)) (h' : ∀ i j, is_integral ℤ (b'.to_matrix b i j)) :
+lemma discr_eq_discr_of_to_matrix_coeff_is_integral {K : Type u} [field K] [number_field K]
+  {b : basis ι ℚ K} {b' : basis ι' ℚ K} (h : ∀ i j, is_integral ℤ (b.to_matrix b' i j))
+  (h' : ∀ i j, is_integral ℤ (b'.to_matrix b i j)) :
   discr ℚ b = discr ℚ b' :=
 begin
   replace h' : ∀ i j, is_integral ℤ (b'.to_matrix ((b.reindex (b.index_equiv b'))) i j),

@@ -7,6 +7,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 import data.int.interval
 import topology.algebra.order.compact
 import topology.metric_space.emetric_space
+import topology.bornology.basic
 
 /-!
 # Metric spaces
@@ -83,6 +84,61 @@ def uniform_space_of_dist
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
 uniform_space.of_core (uniform_space.core_of_dist dist dist_self dist_comm dist_triangle)
 
+/- This is an internal lemma used to construct a bornology from a metric in `bornology.of_dist`. -/
+private lemma bounded_iff_aux {α : Type*} (dist : α → α → ℝ)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
+  (s : set α) (a : α) :
+  (∃ c, ∀ x y ∈ s, dist x y ≤ c) ↔ (∃ r, ∀ x ∈ s, dist x a ≤ r) :=
+begin
+  split; rintro ⟨C, hC⟩,
+  { cases s.eq_empty_or_nonempty with h h,
+    { subst s, exact ⟨0, by simp⟩ },
+    { rcases h with ⟨x, hx⟩,
+      exact ⟨C + dist x a, λ y hy,
+             (dist_triangle y x a).trans (add_le_add_right (hC y hy x hx) _)⟩ } },
+  { exact ⟨C + C, λ x hx y hy,
+           (dist_triangle x a y).trans (add_le_add (hC x hx) (by {rw dist_comm, exact hC y hy}))⟩ }
+end
+
+/- Construct a bornology from a distance function and metric space axioms. -/
+def bornology.of_dist {α : Type*} (dist : α → α → ℝ)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) :
+  bornology α :=
+{ cobounded :=
+  { sets := { s : set α | ∃ C, ∀ x y ∈ sᶜ, dist x y ≤ C },
+    univ_sets := ⟨0, λ x hx, false.elim (compl_univ.subst hx)⟩,
+    sets_of_superset := by
+    { rintros s t ⟨c, hc⟩ h,
+      exact ⟨c, (λ x hx y hy, hc x (compl_subset_compl.mpr h hx) y (compl_subset_compl.mpr h hy))⟩ },
+    inter_sets := λ s t hs ht,
+    begin
+      by_cases hs' : s = univ,
+      { simpa [hs'] using ht, },
+      { obtain ⟨z, hz⟩ := (ne_univ_iff_exists_not_mem s).mp hs',
+        simp only [λ u, bounded_iff_aux dist dist_comm dist_triangle u z] at hs ht ⊢,
+        rcases ⟨hs, ht⟩ with ⟨⟨r₁, hr₁⟩, ⟨r₂, hr₂⟩⟩,
+        exact ⟨max r₁ r₂, λ x hx, or.elim ((compl_inter _ _).subst hx)
+          (λ hx', (hr₁ x hx').trans (le_max_left _ _))
+          (λ hx', (hr₂ x hx').trans (le_max_right _ _))⟩, }
+    end },
+  le_cofinite :=
+  begin
+    refine le_def.mpr (λ s hs, _),
+    simp only [filter.mem_mk, mem_set_of_eq],
+    rw mem_cofinite at hs,
+    revert hs,
+    generalize : sᶜ = t,
+    refine λ h, h.dinduction_on _ (λ x s hx hs h, _),
+    { exact ⟨0, λ x hx, false.elim hx⟩ },
+    { simp only [λ u, bounded_iff_aux dist dist_comm dist_triangle u x] at h ⊢,
+      rcases h with ⟨r, hr⟩,
+      exact ⟨max r (dist x x), λ y hy, or.elim ((insert_eq x s).subst hy)
+        (λ hy', mem_singleton_iff.mp hy' ▸ le_max_right _ _)
+        (λ hy', (hr y hy').trans (le_max_left _ _))⟩ }
+  end }
+
 /-- The distance function (given an ambient metric space on `α`), which returns
   a nonnegative real number `dist x y` given `x y : α`. -/
 class has_dist (α : Type*) := (dist : α → α → ℝ)
@@ -125,6 +181,7 @@ class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
   edist x y = ennreal.of_real (dist x y) . pseudo_metric_space.edist_dist_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+(to_bornology : bornology α := bornology.of_dist dist dist_comm dist_triangle)
 
 variables [pseudo_metric_space α]
 

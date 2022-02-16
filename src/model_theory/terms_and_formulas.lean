@@ -617,7 +617,6 @@ end
 
 variable {n : ℕ}
 
-
 section bounded_formula
 open bounded_formula
 
@@ -627,7 +626,7 @@ proof-theoretic definition.) -/
 def semantically_equivalent (T : L.Theory) (φ ψ : L.bounded_formula α n) : Prop :=
 T ⊨ (φ.bd_iff ψ)
 
-lemma semantically_equivalent.realize_eq {T : L.Theory} {φ ψ : L.bounded_formula α n}
+lemma semantically_equivalent.realize_bd_eq {T : L.Theory} {φ ψ : L.bounded_formula α n}
   {M : Type (max u v)} [ne : nonempty M] [str : L.Structure M] (hM : T.model M)
   (h : T.semantically_equivalent φ ψ) :
   realize_bounded_formula M φ = realize_bounded_formula M ψ :=
@@ -637,9 +636,23 @@ funext (λ v, funext (λ xs, begin
   exact iff_eq_eq.mp ⟨h'.1, h'.2⟩,
 end))
 
-lemma semantically_equivalent.some_model_realize_eq {T : L.Theory} {φ ψ : L.bounded_formula α n}
+lemma semantically_equivalent.some_model_realize_bd_eq {T : L.Theory} {φ ψ : L.bounded_formula α n}
   (hsat : T.is_satisfiable) (h : T.semantically_equivalent φ ψ) :
   realize_bounded_formula (hsat.some_model) φ = realize_bounded_formula (hsat.some_model) ψ :=
+h.realize_bd_eq hsat.some_model_models
+
+lemma semantically_equivalent.realize_eq {T : L.Theory} {φ ψ : L.formula α}
+  {M : Type (max u v)} [ne : nonempty M] [str : L.Structure M] (hM : T.model M)
+  (h : T.semantically_equivalent φ ψ) :
+  realize_formula M φ = realize_formula M ψ :=
+begin
+  ext,
+  rw [realize_formula, h.realize_bd_eq hM, ← realize_formula],
+end
+
+lemma semantically_equivalent.some_model_realize_eq {T : L.Theory} {φ ψ : L.formula α}
+  (hsat : T.is_satisfiable) (h : T.semantically_equivalent φ ψ) :
+  realize_formula (hsat.some_model) φ = realize_formula (hsat.some_model) ψ :=
 h.realize_eq hsat.some_model_models
 
 /-- Semantic equivalence forms an equivalence relation on formulas. -/

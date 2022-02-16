@@ -81,7 +81,7 @@ rfl
 
 @[to_additive]
 instance [group β] [topological_group β] : has_inv C(α, β) :=
-{ inv := λ f, ⟨f⁻¹, continuous_inv.comp f.continuous⟩ }
+{ inv := λ f, ⟨f⁻¹, f.continuous.inv⟩ }
 
 @[simp, norm_cast, to_additive]
 lemma coe_inv [group β] [topological_group β] (f : C(α, β)) :
@@ -94,7 +94,7 @@ rfl
 
 @[to_additive]
 instance [has_div β] [has_continuous_div β] : has_div C(α, β) :=
-{ div := λ f g, ⟨f / g, continuous_div'.comp (f.continuous.prod_mk g.continuous : _)⟩ }
+{ div := λ f g, ⟨f / g, f.continuous.div' g.continuous⟩ }
 
 @[simp, norm_cast, to_additive]
 lemma coe_div [has_div β] [has_continuous_div β] (f g : C(α, β)) : ⇑(f / g) = f / g :=
@@ -118,7 +118,7 @@ lemma coe_zpow [group β] [topological_group β] (f : C(α, β)) (z : ℤ) :
   ⇑(f ^ z) = f ^ z :=
 rfl
 
-@[simp] lemma zpow_comp [group γ] [topological_group γ] (f : C(β, γ)) (z : ℤ) (g : C(α, β)) :
+@[simp, to_additive] lemma zpow_comp [group γ] [topological_group γ] (f : C(β, γ)) (z : ℤ) (g : C(α, β)) :
   (f^z).comp g = (f.comp g)^z :=
 rfl
 

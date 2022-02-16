@@ -405,6 +405,17 @@ lemma mk'_eq_zero_iff (x : R) (s : M) :
   mk' S x s = 0 ↔ ∃ (m : M), x * m = 0 :=
 by rw [← (map_units S s).mul_left_inj, mk'_spec, zero_mul, map_eq_zero_iff M]
 
+lemma mk'_zero {s : M} : is_localization.mk' S 0 s = 0 :=
+by rw [eq_comm, is_localization.eq_mk'_iff_mul_eq, zero_mul, map_zero]
+
+lemma mk'_num_ne_zero_of_ne_zero {z : S}  {x : R} {y : M} (hxyz : z = is_localization.mk' S x y)
+  (hz : z ≠ 0) : x ≠ 0 :=
+begin
+  intro hx,
+  rw [hx, is_localization.mk'_zero] at hxyz,
+  exact hz hxyz,
+end
+
 section ext
 
 variables [algebra R P] [is_localization M P]
@@ -2218,6 +2229,20 @@ lemma is_unit_map_of_injective (hg : function.injective g)
   (y : non_zero_divisors A) : is_unit (g y) :=
 is_unit.mk0 (g y) $ show g.to_monoid_with_zero_hom y ≠ 0,
   from map_ne_zero_of_mem_non_zero_divisors g hg y.2
+
+lemma eq_zero_of_mk'_eq_zero [algebra R K] [is_fraction_ring R K] {x : R} {y : non_zero_divisors R}
+ (hxy : mk' K x y = 0) : x = 0 :=
+begin
+  simp_rw [mk'_eq_zero_iff, mul_right_coe_non_zero_divisors_eq_zero_iff] at hxy,
+  exact (exists_const _).mp hxy
+end
+
+lemma eq_of_mk'_eq_one {x : A} {y : non_zero_divisors A} (hxy : mk' K x y = 1) : x = y :=
+begin
+  rw [is_fraction_ring.mk'_eq_div, div_eq_one_iff_eq] at hxy,
+  { exact is_fraction_ring.injective A K hxy },
+  { exact is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors y.property }
+end
 
 /-- Given an integral domain `A` with field of fractions `K`,
 and an injective ring hom `g : A →+* L` where `L` is a field, we get a

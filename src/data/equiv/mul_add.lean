@@ -427,14 +427,6 @@ def Pi_subsingleton
   (Π j, M j) ≃* M i :=
 { map_mul' := λ f1 f2, pi.mul_apply _ _ _, ..equiv.Pi_subsingleton M i }
 
-/-- A family indexed by a unique type is equivalent to the element at the default value -/
-@[to_additive add_equiv.Pi_unique "A family indexed by a unique type is equivalent to the
-element at the default value"]
-def Pi_unique
-  {ι : Type*} (M : ι → Type*) [Π j, mul_one_class (M j)] [unique ι] :
-  (Π (j : ι), M j) ≃* M default :=
-Pi_subsingleton M default
-
 /-!
 # Groups
 -/

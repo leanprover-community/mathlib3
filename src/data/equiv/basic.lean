@@ -521,14 +521,9 @@ def Pi_subsingleton {α} (β : α → Sort*) [subsingleton α] (a : α) : (Π a'
   left_inv := λ f, funext $ λ b, by { rw subsingleton.elim b a, reflexivity },
   right_inv := λ b, rfl }
 
-/-- If `α` has a unique term, then the type of dependent functions `Π (i : α), f
-i` is equivalent to `f unique`. -/
-def Pi_unique (α) (f : α → Sort*) [unique α] : (Π (i : α), f i) ≃ f default :=
-Pi_subsingleton f default
-
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
 @[simps { fully_applied := ff }] def fun_unique (α β) [unique α] : (α → β) ≃ β :=
-Pi_unique _ _
+Pi_subsingleton _ default
 
 /-- The sort of maps from `punit` is equivalent to the codomain. -/
 def punit_arrow_equiv (α : Sort*) : (punit.{u} → α) ≃ α :=

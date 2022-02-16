@@ -12,9 +12,7 @@ import category_theory.limits.preserves.shapes.pullbacks
 
 If `F` preserves (resp. reflects) pullbacks, then it preserves (resp. reflects) monomorphisms.
 
-## TODO
-
-Dualise and apply to functor categories.
+We also provide the dual version for epimorphisms.
 
 -/
 
@@ -59,7 +57,8 @@ lemma reflects_epi {X Y : C} (f : X ⟶ Y) [reflects_colimit (span f f) F] [epi 
 begin
   have := pushout_cocone.is_colimit_mk_id_id (F.map f),
   simp_rw [← F.map_id] at this,
-  apply pushout_cocone.epi_of_is_colimit_mk_id_id _ (is_colimit_of_is_colimit_pushout_cocone_map F _ this),
+  apply pushout_cocone.epi_of_is_colimit_mk_id_id _
+    (is_colimit_of_is_colimit_pushout_cocone_map F _ this)
 end
 
 end category_theory

@@ -24,8 +24,7 @@ Definition of the Fibonacci sequence `F₀ = 0, F₁ = 1, Fₙ₊₂ = Fₙ + F�
 
 - `nat.fib_add_two`: shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.`.
 - `nat.fib_gcd`: `fib n` is a strong divisibility sequence.
-- `nat.fib_succ_eq_sum_choose`: is that `fib` is given by the sum of `nat.choose`
-  along an antidiagonal.
+- `nat.fib_succ_eq_sum_choose`: `fib` is given by the sum of `nat.choose` along an antidiagonal.
 
 ## Implementation Notes
 

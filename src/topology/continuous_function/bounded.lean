@@ -515,7 +515,7 @@ variables [topological_space α] [metric_space β] [has_one β]
 @[to_additive] lemma forall_coe_one_iff_one (f : α →ᵇ β) : (∀x, f x = 1) ↔ f = 1 :=
 (@ext_iff _ _ _ _ f 1).symm
 
-@[simp] lemma one_comp_continuous [topological_space γ] (f : C(γ, α)) :
+@[simp, to_additive] lemma one_comp_continuous [topological_space γ] (f : C(γ, α)) :
   (1 : α →ᵇ β).comp_continuous f = 1 := rfl
 
 end has_one

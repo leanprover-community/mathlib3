@@ -30,8 +30,7 @@ Prove upward local LYM.
 Provide equality cases. Local LYM gives that the equality case of LYM and Sperner is precisely when
 `𝒜` is a middle layer.
 
-Most of the machinery (`from_above`, `from_below` and `falling`) is useful more generally in grade
-orders.
+`falling` could be useful more generally in grade orders.
 
 ## References
 
@@ -48,114 +47,7 @@ open_locale big_operators finset_family
 
 variables {𝕜 α : Type*} [linear_ordered_field 𝕜]
 
-namespace multiset
-
-instance : has_ssubset (multiset α) := ⟨λ s t, s ⊆ t ∧ ¬ t ⊆ s⟩
-
-lemma le_cons (m : multiset α) (a : α) : m ≤ a ::ₘ m :=
-quotient.induction_on m $ λ l, (list.sublist_cons _ _).subperm
-
-lemma lt_cons (m : multiset α) (a : α) : m < a ::ₘ m :=
-(m.le_cons _).lt_of_not_le $ λ h, begin
-  classical,
-  have := multiset.count_le_of_le a h,
-  rw multiset.count_cons_self at this,
-  exact not_succ_le_self _ this,
-end
-
-lemma subset_cons (m : multiset α) (a : α) : m ⊆ a ::ₘ m := λ _, multiset.mem_cons_of_mem
-
-lemma ssubset_cons {m : multiset α} {a : α} (ha : a ∉ m) : m ⊂ a ::ₘ m :=
-⟨subset_cons _ _, λ h, ha $ h $ mem_cons_self _ _⟩
-
-end multiset
-
 namespace finset
-
-/-- The only element of `insert a s` that is not an element of `s` is `a`. -/
-lemma eq_of_not_mem_of_mem_insert [decidable_eq α] {a b : α} {s : finset α} (hb : b ∉ s)
-  (ha : b ∈ insert a s) :
-  b = a :=
-(mem_insert.1 ha).resolve_right hb
-
-lemma insert_inj [decidable_eq α] {a b : α} {s : finset α} (ha : a ∉ s) :
-  insert a s = insert b s ↔ a = b :=
-begin
-  refine ⟨λ h, eq_of_not_mem_of_mem_insert ha _, congr_arg _⟩,
-  rw ←h,
-  exact mem_insert_self _ _,
-end
-
-lemma insert_inj_on' [decidable_eq α] (s : finset α) : set.inj_on (λ a, insert a s) sᶜ :=
-λ a ha b _, (insert_inj ha).1
-
-lemma insert_inj_on [decidable_eq α] [fintype α] (s : finset α) :
-  set.inj_on (λ a, insert a s) (sᶜ : finset α) :=
-by { rw coe_compl, exact s.insert_inj_on' }
-
-@[simp]
-lemma card_erase_of_mem' [decidable_eq α] {a : α} {s : finset α} (ha : a ∈ s) :
-  (s.erase a).card = s.card - 1 :=
-card_erase_of_mem ha
-
-lemma sdiff_nonempty [decidable_eq α] {s t : finset α} : (s \ t).nonempty ↔ ¬ s ⊆ t :=
-by rw [nonempty_iff_ne_empty, ne.def, sdiff_eq_empty_iff_subset]
-
-lemma exists_eq_insert_iff [decidable_eq α] {s t : finset α} :
-  (∃ a ∉ s, insert a s = t) ↔ s ⊆ t ∧ s.card + 1 = t.card :=
-begin
-  refine ⟨_, _⟩,
-  { rintro ⟨a, ha, rfl⟩,
-    exact ⟨subset_insert _ _, (card_insert_of_not_mem ha).symm⟩ },
-  { rintro ⟨hst, h⟩,
-    obtain ⟨a, ha⟩ : ∃ a, t \ s = {a},
-    { exact card_eq_one.1 (by rw [card_sdiff hst, ←h, add_tsub_cancel_left]) },
-    refine ⟨a, λ hs, (_ : a ∉ {a}) $ mem_singleton_self _,
-      by rw [insert_eq, ←ha, sdiff_union_of_subset hst]⟩,
-    rw ←ha,
-    exact not_mem_sdiff_of_mem_right hs }
-end
-
-lemma ssubset_of_subset_of_ne {s t : finset α} (h₁ : s ⊆ t) (h₂ : s ≠ t) : s ⊂ t :=
-lt_iff_ssubset.1 $ lt_of_le_of_ne h₁ h₂
-
-lemma subset_cons {s : finset α} {a : α} (h : a ∉ s) : s ⊆ s.cons a h := multiset.subset_cons _ _
-
-lemma ssubset_cons {s : finset α} {a : α} (h : a ∉ s) : s ⊂ s.cons a h :=
-⟨subset_cons h, λ hs, h $ hs $ mem_cons_self _ _⟩
-
-lemma ssubset_iff_exists_cons_subset {s t : finset α} : s ⊂ t ↔ ∃ a (h : a ∉ s), s.cons a h ⊆ t :=
-begin
-  refine ⟨λ h, _, λ ⟨a, ha, h⟩, ssubset_of_ssubset_of_subset (ssubset_cons _) h⟩,
-  obtain ⟨a, hs, ht⟩ := (not_subset _ _).1 h.2,
-  refine ⟨a, ht, _⟩,
-  sorry,
-end
-
-lemma ssubset_iff_exists_insert_subset [decidable_eq α] {s t : finset α} :
-  s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
-by simp_rw [ssubset_iff_exists_cons_subset, cons_eq_insert]
-
-lemma ssubset_iff_exists_subset_erase [decidable_eq α] {s t : finset α} :
-  s ⊂ t ↔ ∃ a ∈ t, s ⊆ t.erase a :=
-begin
-  refine ⟨λ h, _, λ ⟨a, ha, h⟩, ssubset_of_subset_of_ssubset h $ erase_ssubset ha⟩,
-  obtain ⟨a, hs, ht⟩ := (not_subset _ _).1 h.2,
-  refine ⟨a, hs, _⟩,
-  sorry,
-end
-
-lemma subset_singleton_iff' {s : finset α} {a : α} : s ⊆ {a} ↔ ∀ b ∈ s, b = a :=
-forall_congr $ λ b, forall_congr $ λ _, mem_singleton
-
-lemma _root_.has_mem.mem.ne_of_not_mem {β : Type*} [has_mem α β] {a b : α} {s : β} (ha : a ∈ s)
-  (hb : b ∉ s) :
-  a ≠ b :=
-ne_of_mem_of_not_mem ha hb
-
-lemma _root_.has_mem.mem.ne_of_not_mem' {β : Type*} [has_mem α β] {a : α} {s t : β} (h : a ∈ s) :
-  a ∉ t → s ≠ t :=
-mt $ λ e, e ▸ h
 
 /-! ### Local LYM inequality -/
 
@@ -173,7 +65,7 @@ begin
     simp_rw [image_subset_iff, mem_bipartite_below],
     exact λ a ha, ⟨erase_mem_shadow hs ha, erase_subset _ _⟩ },
   refine le_trans _ tsub_tsub_le_tsub_add,
-  rw [←h𝒜.shadow hs, ←card_compl, ←card_image_of_inj_on (insert_inj_on _)],
+  rw [←h𝒜.shadow hs, ←card_compl, ←card_image_of_inj_on (insert_inj_on' _)],
   refine card_le_of_subset (λ t ht, _),
   apply_instance,
   rw mem_bipartite_above at ht,
@@ -276,14 +168,16 @@ lemma le_card_falling [fintype α] (hk : k ≤ fintype.card α)
   (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α))) :
   ∑ r in range (k + 1),
     ((𝒜 # (fintype.card α - r)).card : 𝕜) / (fintype.card α).choose (fintype.card α - r)
-    ≤ (falling (fintype.card α - k) 𝒜).card / (fintype.card α).choose (fintype.card α - k) :=
+      ≤ (falling (fintype.card α - k) 𝒜).card / (fintype.card α).choose (fintype.card α - k) :=
 begin
   induction k with k ih,
   { simp only [tsub_zero, cast_one, cast_le, sum_singleton, div_one, choose_self, range_one],
     exact card_le_of_subset (slice_subset_falling _ _) },
+  rw succ_eq_add_one at *,
   rw [sum_range_succ, ←slice_union_shadow_falling_succ,
     card_disjoint_union h𝒜.disjoint_slice_shadow_falling, cast_add, _root_.add_div, add_comm],
-  convert add_le_add_left ((ih $ k.le_succ.trans hk).trans $
+  rw [←tsub_tsub, tsub_add_cancel_of_le (le_tsub_of_add_le_left hk)],
+  exact add_le_add_left ((ih $ le_of_succ_le hk).trans $
     local_lym (tsub_pos_iff_lt.2 $ nat.succ_le_iff.1 hk).ne' $ sized_falling _ _) _,
 end
 
@@ -300,8 +194,8 @@ begin
   rw ←sum_flip,
   refine (le_card_falling le_rfl h𝒜).trans _,
   rw div_le_iff; norm_cast,
-  { simpa only [mul_one, nat.choose_zero_right, nat.sub_self]
-      using (sized_falling (fintype.card α) 𝒜).card_le },
+  { simpa only [nat.sub_self, one_mul, nat.choose_zero_right, falling]
+      using (sized_falling 0 𝒜).card_le },
   { rw [tsub_self, choose_zero_right],
     exact zero_lt_one }
 end
@@ -317,11 +211,12 @@ lemma _root_.is_antichain.sperner [fintype α] {𝒜 : finset (finset α)}
   𝒜.card ≤ (fintype.card α).choose (fintype.card α / 2) :=
 begin
   classical,
-  suffices : ∑ r in range (fintype.card α + 1),
+  suffices : ∑ r in Iic (fintype.card α),
     ((𝒜 # r).card : ℚ) / (fintype.card α).choose (fintype.card α / 2) ≤ 1,
   { rwa [←sum_div, ←nat.cast_sum, div_le_one, cast_le, sum_card_slice] at this,
     norm_cast,
     exact choose_pos (nat.div_le_self _ _) },
+  rw [Iic, ←Ico_succ_right, bot_eq_zero, Ico_zero_eq_range],
   refine (sum_le_sum $ λ r hr, _).trans (lubell_yamamoto_meshalkin h𝒜),
   rw mem_range at hr,
   refine div_le_div_of_le_left _ _ _; norm_cast,

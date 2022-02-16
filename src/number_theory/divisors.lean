@@ -435,18 +435,6 @@ begin
     simpa [hn, hn.ne', mem_factors] using and_comm (prime q) (q ∣ n) }
 end
 
-lemma div_eq_iff_eq_of_dvd_dvd {n x y : ℕ} (hn : n ≠ 0) (hx : x ∣ n) (hy : y ∣ n) :
-  n / x = n / y ↔ x = y :=
-begin
-  split,
-  { intros h,
-    rw ←mul_right_inj' hn,
-    apply nat.eq_mul_of_div_eq_left (dvd_mul_of_dvd_left hy x),
-    rw [eq_comm, mul_comm, nat.mul_div_assoc _ hy],
-    exact nat.eq_mul_of_div_eq_right hx h },
-  { intros h, rw h },
-end
-
 @[simp]
 lemma image_div_divisors_eq_divisors (n : ℕ) : image (λ (x : ℕ), n / x) n.divisors = n.divisors :=
 begin

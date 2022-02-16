@@ -70,9 +70,6 @@ differentiability at all but countably many points of the set mentioned below.
   `cauchy_power_series f z R` is a formal power series representing `f` at `z` with infinite
   radius of convergence (this holds for any choice of `0 < R`).
 
-* `differentiable.const_of_bounded` **Liouville's theorem**: If `f : ℂ → E` is differentiable and
-  bounded in the entirety of `ℂ`, then it is constant.
-
 ## Implementation details
 
 The proof of the Cauchy integral formula in this file is based on a very general version of the
@@ -581,67 +578,12 @@ protected lemma _root_.differentiable.analytic_at {f : ℂ → E} (hf : differen
   analytic_at ℂ f z :=
 hf.differentiable_on.analytic_at univ_mem
 
-section liouville
-
-/- When `f : ℂ → E` is differentiable, the `cauchy_power_series f z R` represents `f` as a power
+/-- When `f : ℂ → E` is differentiable, the `cauchy_power_series f z R` represents `f` as a power
 series centered at `z` in the entirety of `ℂ`, regardless of `R : ℝ≥0`, with  `0 < R`. -/
-theorem _root_.differentiable.has_fpower_series_on_ball {f : ℂ → E}
+protected lemma _root_.differentiable.has_fpower_series_on_ball {f : ℂ → E}
   (h : differentiable ℂ f) (z : ℂ) {R : ℝ≥0} (hR : 0 < R) :
   has_fpower_series_on_ball f (cauchy_power_series f z R) z ∞ :=
 (h.differentiable_on.has_fpower_series_on_ball hR).r_eq_top_of_exists $ λ r hr,
   ⟨_, h.differentiable_on.has_fpower_series_on_ball hr⟩
-
-/- **Liouville's Theorem**: If `f : ℂ → E` is differentiable and bounded in the entirety
-of `ℂ`, then `f` is constant. -/
-theorem _root_.differentiable.const_of_bounded {f : ℂ → E} (h : differentiable ℂ f)
-  {C : ℝ} (hC : ∀ z, ∥f z∥ ≤ C) : f = (λ z, f 0) :=
-begin
-  let C' := ∥C∥ + 1,
-  obtain ⟨C'_pos : 0 < C', hC' : ∀ z, ∥f z∥ ≤ C'⟩ :=
-    ⟨lt_of_le_of_lt (norm_nonneg _) (lt_add_one (_)),
-      (λ z, le_trans (le_trans (hC z) (le_abs_self _)) (lt_add_one _).le)⟩,
-  have H₁ : ∀ n > 0, cauchy_power_series f 0 1 n = 0,
-  { intros n hn,
-    have H₂ : ∀ {R : ℝ≥0} (hR : 0 < R), ∥cauchy_power_series f 0 1 n∥ ≤ C' * (R⁻¹) ^ n,
-    { intros R hR,
-      have h₁ : cauchy_power_series f 0 1 = cauchy_power_series f 0 R,
-      from has_fpower_series_at.eq_formal_multilinear_series
-        ((h.differentiable_on.has_fpower_series_on_ball zero_lt_one).has_fpower_series_at)
-        ((h.differentiable_on.has_fpower_series_on_ball hR).has_fpower_series_at),
-      calc ∥cauchy_power_series f 0 1 n∥
-          ≤ (2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ∥f (circle_map 0 R θ)∥) * (|R|⁻¹) ^ n
-          : by simpa only [h₁] using norm_cauchy_power_series_le f 0 R n
-      ... ≤ (2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, C') * (|R|⁻¹) ^ n
-          : mul_le_mul_of_nonneg_right ((mul_le_mul_left (inv_pos.mpr real.two_pi_pos)).mpr
-            (integral_mono real.two_pi_pos.le h.continuous.norm.continuous_on.circle_integrable'
-            (by simp) (λ θ, hC' _))) (by simp)
-      ... = C' * (R⁻¹) ^ n
-          : by simp [inv_mul_cancel_left₀ real.two_pi_pos.ne.symm], },
-    have H₃ : ∀ ε > 0, ∃ {R : ℝ≥0}, 0 < R ∧ (R : ℝ)⁻¹ ^ n ≤ ε,
-    { intros ε hε,
-      let R : ℝ≥0 := ⟨max 1 ε⁻¹, le_trans zero_le_one (le_max_left 1 ε⁻¹)⟩,
-      have hR : 1 ≤ R, by exact_mod_cast le_max_left 1 ε⁻¹,
-      have Rpos : (0 : ℝ) < R, by exact_mod_cast (lt_of_lt_of_le zero_lt_one hR),
-      refine ⟨R, Rpos, _⟩,
-      calc (R : ℝ)⁻¹ ^ n
-          = ((↑R) ^ n)⁻¹ : inv_pow₀ _ _
-      ... ≤ (↑R)⁻¹       : inv_le_inv_of_le Rpos (by simpa using pow_le_pow (nnreal.coe_mono hR) hn)
-      ... ≤ ε            : inv_inv₀ ε ▸ inv_le_inv_of_le (inv_pos.mpr hε) (le_max_right 1 ε⁻¹), },
-    refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ ε hε, _)) (norm_nonneg _)),
-    obtain ⟨R, hR, hRε⟩ := H₃ (C'⁻¹ * ε) (mul_pos (inv_pos.mpr C'_pos) hε),
-    exact (zero_add ε).symm ▸ (mul_inv_cancel_left₀ C'_pos.ne.symm ε ▸
-      le_trans (H₂ hR) (mul_le_mul_of_nonneg_left hRε C'_pos.le)), },
-  ext z,
-  have H₄ := h.has_fpower_series_on_ball 0 zero_lt_one,
-  have H₅ := (H₄.has_sum (mem_emetric_ball_zero_iff.mpr (@ennreal.coe_lt_top ∥z∥₊))).tsum_eq,
-  calc f z = ∑' (b : ℕ), (cauchy_power_series f 0 1 b) (λ i, z)
-           : by simpa only [zero_add] using H₅.symm
-  ...      = (cauchy_power_series f 0 1 0) (λ i, z)
-           : tsum_eq_single 0 (λ n hn, (by simp [H₁ n (zero_lt_iff.mpr hn)]))
-  ...      = f 0
-           : H₄.coeff_zero (λ i, z),
-end
-
-end liouville
 
 end complex

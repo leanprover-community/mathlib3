@@ -1021,6 +1021,34 @@ instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (addit
 { ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
 
+namespace additive
+
+variables [preorder α]
+
+@[simp] lemma of_mul_le {a b : α} : of_mul a ≤ of_mul b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma of_mul_lt {a b : α} : of_mul a < of_mul b ↔ a < b := iff.rfl
+
+@[simp] lemma to_mul_le {a b : additive α} : to_mul a ≤ to_mul b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma to_mul_lt {a b : additive α} : to_mul a < to_mul b ↔ a < b := iff.rfl
+
+end additive
+
+namespace multiplicative
+
+variables [preorder α]
+
+@[simp] lemma of_add_le {a b : α} : of_add a ≤ of_add b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma of_add_lt {a b : α} : of_add a < of_add b ↔ a < b := iff.rfl
+
+@[simp] lemma to_add_le {a b : multiplicative α} : to_add a ≤ to_add b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma to_add_lt {a b : multiplicative α} : to_add a < to_add b ↔ a < b := iff.rfl
+
+end multiplicative
+
 end type_tags
 
 /-- The order embedding sending `b` to `a * b`, for some fixed `a`.

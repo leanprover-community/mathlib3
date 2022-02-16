@@ -101,9 +101,9 @@ e.to_matrix_units_smul _
 @[simp] lemma sum_to_matrix_smul_self [fintype ι] : ∑ (i : ι), e.to_matrix v i j • e i = v j :=
 by simp_rw [e.to_matrix_apply, e.sum_repr]
 
-lemma to_matrix_vec_mul {S : Type*} [comm_ring S] [algebra R S] [fintype ι'] (b : basis ι R S)
-  (v : ι' → S) (f : ι ≃ ι') :
-  (((b.reindex f).to_matrix v).map (algebra_map R S)).vec_mul (b.reindex f) = v :=
+lemma to_matrix_map_vec_mul {S : Type*} [comm_ring S] [algebra R S] [fintype ι'] (b : basis ι R S)
+  (v : ι' → S) [fintype ι] :
+  ((b.to_matrix v).map (algebra_map R S)).vec_mul b = v :=
 begin
   ext x,
   simp only [vec_mul, dot_product],

@@ -291,8 +291,8 @@ begin
     convert h' i ((b.index_equiv b').symm j),
     simpa },
   classical,
-  rw [← b.to_matrix_vec_mul b' (b.index_equiv b'), discr_of_matrix_vec_mul, ← one_mul (discr ℚ b),
-    discr_reindex],
+  rw [← (b.reindex (b.index_equiv b')).to_matrix_map_vec_mul b', discr_of_matrix_vec_mul,
+    ← one_mul (discr ℚ b), discr_reindex],
   congr,
   have hint : is_integral ℤ (((b.reindex (b.index_equiv b')).to_matrix b').det) :=
     is_integral.det (λ i j, h _ _),

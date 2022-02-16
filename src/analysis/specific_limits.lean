@@ -573,7 +573,7 @@ begin
   simp only [div_eq_mul_inv, ennreal.inv_pow] at *,
   rw [mul_assoc, mul_comm],
   convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
-  rw [ennreal.one_sub_inv_two, ennreal.inv_inv]
+  rw [ennreal.one_sub_inv_two, inv_inv]
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from

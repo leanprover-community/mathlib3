@@ -231,7 +231,7 @@ begin
     have := smul_pos (inv_pos.2 ha') hr,
     refine ⟨a⁻¹ • r, ⟨this, _⟩, smul_inv_smul₀ ha'.ne' _⟩,
     rwa [←mem_smul_set_iff_inv_smul_mem₀ this.ne', smul_assoc,
-      mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero ha'.ne'), inv_inv₀] },
+      mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero ha'.ne'), inv_inv] },
   { rintro ⟨r, ⟨hr, hx⟩, rfl⟩,
     rw mem_Ioi at ⊢ hr,
     rw ←mem_smul_set_iff_inv_smul_mem₀ hr.ne' at hx,
@@ -273,7 +273,7 @@ begin
     rw mem_Ioi at ⊢ hr,
     have := smul_pos ha' hr,
     refine ⟨smul_pos (inv_pos.2 ha') hr, r⁻¹ • x, hx, _⟩,
-    rw [smul_inv₀, smul_assoc, inv_inv₀] }
+    rw [smul_inv₀, smul_assoc, inv_inv] }
 end
 
 lemma gauge_smul_left [module α E] [smul_comm_class α ℝ ℝ] [is_scalar_tower α ℝ ℝ]

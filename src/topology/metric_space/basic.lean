@@ -111,7 +111,8 @@ def bornology.of_dist {α : Type*} (dist : α → α → ℝ)
     univ_sets := ⟨0, λ x hx, false.elim (compl_univ.subst hx)⟩,
     sets_of_superset := by
     { rintros s t ⟨c, hc⟩ h,
-      exact ⟨c, (λ x hx y hy, hc x (compl_subset_compl.mpr h hx) y (compl_subset_compl.mpr h hy))⟩ },
+      exact ⟨c, (λ x hx y hy,
+                 hc x (compl_subset_compl.mpr h hx) y (compl_subset_compl.mpr h hy))⟩ },
     inter_sets := λ s t hs ht,
     begin
       by_cases hs' : s = univ,

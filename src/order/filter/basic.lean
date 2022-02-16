@@ -2666,6 +2666,11 @@ lemma tendsto_prod_iff {f : α × β → γ} {x : filter α} {y : filter β} {z 
   ∀ W ∈ z, ∃ U ∈ x,  ∃ V ∈ y, ∀ x y, x ∈ U → y ∈ V → f (x, y) ∈ W :=
 by simp only [tendsto_def, mem_prod_iff, prod_sub_preimage_iff, exists_prop, iff_self]
 
+lemma tendsto_prod_iff' {f : filter α} {g : filter β} {g' : filter γ}
+  {s : α → β × γ} :
+  tendsto s f (g ×ᶠ g') ↔ tendsto (λ n, (s n).1) f g ∧ tendsto (λ n, (s n).2) f g' :=
+by { unfold filter.prod, simp only [tendsto_inf, tendsto_comap_iff, iff_self] }
+
 end prod
 
 /-! ### Coproducts of filters -/

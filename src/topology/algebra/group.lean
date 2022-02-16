@@ -869,7 +869,7 @@ end units
 
 section lattice_ops
 
-variables {ι : Type*} [group G] [group H] {ts : set (topological_space G)}
+variables {ι : Sort*} [group G] [group H] {ts : set (topological_space G)}
   (h : ∀ t ∈ ts, @topological_group G t _) {ts' : ι → topological_space G}
   (h' : ∀ i, @topological_group G (ts' i) _) {t₁ t₂ : topological_space G}
   (h₁ : @topological_group G t₁ _) (h₂ : @topological_group G t₂ _)

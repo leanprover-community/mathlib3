@@ -574,6 +574,10 @@ end
 
 variable {n : ℕ}
 
+
+section bounded_formula
+open bounded_formula
+
 /-- Two (bounded) formulas are semantically equivalent over a theory `T` when they have the same
 interpretation in every model of `T`. (This is also known as logical equivalence, which also has a
 proof-theoretic definition.) -/
@@ -586,7 +590,7 @@ lemma semantically_equivalent.realize_eq {T : L.Theory} {φ ψ : L.bounded_formu
   realize_bounded_formula M φ = realize_bounded_formula M ψ :=
 funext (λ v, funext (λ xs, begin
   have h' := h M v xs hM,
-  simp only [realize_bounded_formula, has_inf_inf, realize_not, not_forall, exists_prop, not_and,
+  simp only [realize_bounded_formula, has_inf_inf, realize_bd_not, not_forall, exists_prop, not_and,
     not_not] at h',
   exact iff_eq_eq.mp ⟨h'.1, h'.2⟩,
 end))
@@ -603,36 +607,59 @@ def semantically_equivalent_setoid (T : L.Theory) : setoid (L.bounded_formula α
     λ φ ψ h M ne str v xs hM, begin
       haveI := ne,
       have h := h M v xs hM,
-      rw [realize_inf, and_comm] at h,
-      rw realize_inf,
+      rw [bounded_formula.realize_bd_inf, and_comm] at h,
+      rw bounded_formula.realize_bd_inf,
       exact h,
     end, λ φ ψ θ h1 h2 M ne str v xs hM, begin
       haveI := ne,
       have h1' := h1 M v xs hM,
       have h2' := h2 M v xs hM,
-      rw [realize_inf, realize_imp, realize_imp] at *,
+      rw [realize_bd_inf, realize_bd_imp, realize_bd_imp] at *,
       exact ⟨h2'.1 ∘ h1'.1, h1'.2 ∘ h2'.2⟩,
     end⟩ }
 
-lemma semantically_equivalent_not_not {T : L.Theory} {φ : L.bounded_formula α n} :
+lemma semantically_equivalent_bd_not_bd_not {T : L.Theory} {φ : L.bounded_formula α n} :
   T.semantically_equivalent φ (bd_not (bd_not φ)) :=
 λ M ne str v xs hM, by simp
 
-lemma imp_semantically_equivalent_not_sup {T : L.Theory} {φ ψ : L.bounded_formula α n} :
+lemma imp_semantically_equivalent_bd_not_sup {T : L.Theory} {φ ψ : L.bounded_formula α n} :
   T.semantically_equivalent (bd_imp φ ψ) (bd_not φ ⊔ ψ) :=
 λ M ne str v xs hM, by simp
 
-lemma sup_semantically_equivalent_not_inf_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
+lemma sup_semantically_equivalent_bd_not_inf_bd_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
   T.semantically_equivalent (φ ⊔ ψ) (bd_not ((bd_not φ) ⊓ (bd_not ψ))) :=
 λ M ne str v xs hM, by simp
 
-lemma inf_semantically_equivalent_not_sup_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
+lemma inf_semantically_equivalent_bd_not_sup_bd_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
   T.semantically_equivalent (φ ⊓ ψ) (bd_not ((bd_not φ) ⊔ (bd_not ψ))) :=
 λ M ne str v xs hM, begin
-  simp only [realize_bounded_formula, has_inf_inf, has_sup_sup, realize_not, not_forall, not_not,
+  simp only [realize_bounded_formula, has_inf_inf, has_sup_sup, realize_bd_not, not_forall, not_not,
     exists_prop, and_imp, not_and, and_self],
   exact λ h1 h2, ⟨h1, h2⟩,
 end
+
+end bounded_formula
+
+section formula
+open formula
+
+lemma semantically_equivalent_not_not {T : L.Theory} {φ : L.formula α} :
+  T.semantically_equivalent φ (not (not φ)) :=
+semantically_equivalent_bd_not_bd_not
+
+lemma imp_semantically_equivalent_not_sup {T : L.Theory} {φ ψ : L.formula α} :
+  T.semantically_equivalent (bd_imp φ ψ) (bd_not φ ⊔ ψ) :=
+imp_semantically_equivalent_bd_not_sup
+
+lemma sup_semantically_equivalent_not_inf_not {T : L.Theory} {φ ψ : L.formula α} :
+  T.semantically_equivalent (φ ⊔ ψ) (not ((not φ) ⊓ (not ψ))) :=
+sup_semantically_equivalent_bd_not_inf_bd_not
+
+lemma inf_semantically_equivalent_not_sup_not {T : L.Theory} {φ ψ : L.formula α} :
+  T.semantically_equivalent (φ ⊓ ψ) (not ((not φ) ⊔ (not ψ))) :=
+inf_semantically_equivalent_bd_not_sup_bd_not
+
+end formula
 
 end Theory
 

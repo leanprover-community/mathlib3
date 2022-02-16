@@ -138,8 +138,8 @@ begin
     (fin m)).symm)) a ha (λ x, _),
   simp only [set.mem_image, set.mem_set_of_eq, realize_partitioned_formula,
     partitioned_formula.realize_exists_right, realize_formula_relabel],
-  have h' : ∀ (xs : α ⊕ fin m → M), sum.elim a xs = sum.elim (sum.elim a (xs ∘ sum.inl)) (xs ∘ sum.inr) ∘
-    ((equiv.sum_assoc (fin n) α (fin m)).symm),
+  have h' : ∀ (xs : α ⊕ fin m → M), sum.elim a xs = sum.elim (sum.elim a (xs ∘ sum.inl))
+    (xs ∘ sum.inr) ∘ ((equiv.sum_assoc (fin n) α (fin m)).symm),
   { intro xs,
     ext i,
     cases i,

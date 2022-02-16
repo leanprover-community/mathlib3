@@ -7,7 +7,6 @@ import algebra.big_operators.basic
 import data.nat.prime
 import data.zmod.basic
 import ring_theory.multiplicity
-import data.nat.factorization
 import data.nat.periodic
 import algebra.char_p.two
 
@@ -289,25 +288,28 @@ end
 @[simp] lemma totient_two : φ 2 = 1 :=
 (totient_prime prime_two).trans (by norm_num)
 
+/-- An alternative statement of Euler's product formula for the totient function -/
+theorem totient_mul_prod_factors (n : ℕ) :
+  φ n * ∏ p in n.factors.to_finset, p = n * ∏ p in n.factors.to_finset, (p - 1) :=
+begin
+  by_cases hn : n = 0, { simp [hn] },
+  rw multiplicative_factorization φ @totient_mul totient_one hn,
+  simp only [←factorization_finset_prod, ←finsupp.prod_mul],
+  nth_rewrite 1 ←factorization_prod_pow_eq_self hn,
+  rw ←finsupp.prod_mul,
+  refine finsupp.prod_congr (λ p hp, _),
+  have h := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
+  rw [totient_prime_pow (prime_of_mem_factorization hp) h,
+    mul_comm, ←mul_assoc, ←pow_succ, nat.sub_add_cancel h],
+end
+
 /-- **Euler's product formula for the totient function** -/
 theorem totient_eq_prod_div_prod (n : ℕ) :
   φ n = n / (∏ p in n.factors.to_finset, p) * (∏ p in n.factors.to_finset, (p - 1)) :=
 begin
-  by_cases hn : n = 0, { simp [hn] },
-  let P1 := ∏ p in n.factors.to_finset, p,
-  let P2 := ∏ p in n.factors.to_finset, (p - 1),
-  have h1 : 0 < P1,
-  { simpa [P1, ←factorization_finset_prod] using prod_pos (λ p hp, pos_of_mem_factorization hp) },
-  suffices : φ n * P1 = n * P2,
-  { rw [(mul_div_left n.totient h1).symm, this, mul_comm,
-        nat.mul_div_assoc P2 (prod_prime_factors_dvd n), mul_comm] },
-  rw multiplicative_factorization φ (λ a b, totient_mul) totient_one hn,
-  nth_rewrite_rhs 0 ←(factorization_prod_pow_eq_self hn),
-  simp only [P1, P2, ←factorization_finset_prod, ←finsupp.prod_mul],
-  refine prod_congr rfl (λ p hp, _),
-  have h : 0 < n.factorization p := (finsupp.mem_support_iff.mp hp).bot_lt,
-  simp only [totient_prime_pow (prime_of_mem_factorization hp) h],
-  simp only [mul_right_comm, ←(pow_sub_mul_pow p h), pow_one],
+  rw [← mul_div_left n.totient, totient_mul_prod_factors, mul_comm,
+      nat.mul_div_assoc _ (prod_prime_factors_dvd n), mul_comm],
+  simpa [factorization_finset_prod] using prod_pos (λ p, pos_of_mem_factorization),
 end
 
 /--  An alternative statement of Euler's product formula for the totient function -/

@@ -102,6 +102,15 @@ instance : inhabited (compacts α) := ⟨⊥⟩
 @[simp] lemma coe_top [compact_space α] : (↑(⊤ : compacts α) : set α) = univ := rfl
 @[simp] lemma coe_bot : (↑(⊥ : compacts α) : set α) = ∅ := rfl
 
+@[simp] lemma coe_finset_sup {ι : Type*} {s : finset ι} {f : ι → compacts α} :
+  (↑(s.sup f) : set α) = s.sup (λ i, f i) :=
+begin
+  classical,
+  refine finset.induction_on s rfl (λ a s _ h, _),
+  simp_rw [finset.sup_insert, coe_sup, sup_eq_union],
+  congr',
+end
+
 /-- The image of a compact set under a continuous function. -/
 protected def map (f : α → β) (hf : continuous f) (K : compacts α) : compacts β :=
 ⟨f '' K.1, K.2.image hf⟩

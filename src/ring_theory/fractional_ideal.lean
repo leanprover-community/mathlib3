@@ -477,13 +477,6 @@ instance comm_semiring : comm_semiring (fractional_ideal S P) :=
   ..fractional_ideal.has_one,
   ..fractional_ideal.has_mul }
 
-lemma coe_ideal_pow (I : ideal R) (n : ℕ) : (↑(I^n) : fractional_ideal S P) = I^n :=
-begin
-  induction n with n ih,
-  { simp only [pow_zero, ideal.one_eq_top, coe_ideal_top] },
-  { simp only [pow_succ, ih, coe_ideal_mul] }
-end
-
 section order
 
 lemma add_le_add_left {I J : fractional_ideal S P} (hIJ : I ≤ J) (J' : fractional_ideal S P) :
@@ -547,6 +540,9 @@ def coe_ideal_hom : ideal R →+* fractional_ideal S P :=
   map_mul' := coe_ideal_mul,
   map_one' := by rw [ideal.one_eq_top, coe_ideal_top],
   map_zero' := coe_to_fractional_ideal_bot }
+
+lemma coe_ideal_pow (I : ideal R) (n : ℕ) : (↑(I^n) : fractional_ideal S P) = I^n :=
+(fractional_ideal.coe_ideal_hom S P).map_pow _ n
 
 open_locale big_operators
 lemma coe_ideal_finprod [is_localization S P] {α : Type*} {f : α → ideal R}

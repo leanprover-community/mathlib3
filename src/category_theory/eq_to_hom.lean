@@ -171,7 +171,7 @@ lemma postcomp_map_heq' (H : D ⥤ E) (hobj : ∀ x : C, F.obj x = G.obj x)
 by rw functor.hext hobj (λ _ _, hmap)
 
 lemma hcongr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) : F.map f == G.map f :=
-by subst h; simp
+by subst h
 
 end heq
 

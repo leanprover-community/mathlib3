@@ -137,20 +137,23 @@ variable {n : ℕ}
 
 namespace bounded_formula
 
-@[simps] instance : has_bot (L.bounded_formula α n) := ⟨bd_falsum⟩
+instance : has_bot (L.bounded_formula α n) := ⟨bd_falsum⟩
 
 /-- The negation of a bounded formula is also a bounded formula. -/
-@[reducible] def bd_not (φ : L.bounded_formula α n) : L.bounded_formula α n := bd_imp φ ⊥
+def bd_not (φ : L.bounded_formula α n) : L.bounded_formula α n := bd_imp φ ⊥
 
 /-- Puts an `∃` quantifier on a bounded formula. -/
-@[reducible] def bd_exists (φ : L.bounded_formula α (n + 1)) : L.bounded_formula α n :=
+def bd_exists (φ : L.bounded_formula α (n + 1)) : L.bounded_formula α n :=
   bd_not (bd_all (bd_not φ))
 
-@[simps] instance : has_top (L.bounded_formula α n) := ⟨bd_not bd_falsum⟩
+instance : has_top (L.bounded_formula α n) := ⟨bd_not ⊥⟩
 
-@[simps] instance : has_inf (L.bounded_formula α n) := ⟨λ f g, bd_not (bd_imp f (bd_not g))⟩
+instance : has_inf (L.bounded_formula α n) := ⟨λ f g, bd_not (bd_imp f (bd_not g))⟩
 
-@[simps] instance : has_sup (L.bounded_formula α n) := ⟨λ f g, bd_imp (bd_not f) g⟩
+instance : has_sup (L.bounded_formula α n) := ⟨λ f g, bd_imp (bd_not f) g⟩
+
+/-- The biimplication between two bounded formulas. -/
+def bd_iff (φ ψ : L.bounded_formula α n) := φ.bd_imp ψ ⊓ ψ.bd_imp φ
 
 /-- A function to help relabel the variables in bounded formulas. -/
 def relabel_aux {n : ℕ} {α β : Type} (g : α → (β ⊕ fin n)) (k : ℕ) :
@@ -192,6 +195,12 @@ equal (var 0) (func f (λ i, var i.succ))
 
 /-- The negation of a formula. -/
 def not (φ : L.formula α) : L.formula α := bd_not φ
+
+/-- The implication between formulas, as a formula. -/
+def imp : L.formula α → L.formula α → L.formula α := bd_imp
+
+/-- The biimplication between formulas, as a formula. -/
+def iff (φ ψ : L.formula α) : L.formula α := bd_iff φ ψ
 
 end formula
 
@@ -239,7 +248,7 @@ nonempty.intro (by constructor)
 variables (M)
 
 /-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
-@[simp] def realize_bounded_formula :
+def realize_bounded_formula :
   ∀ {l} (f : L.bounded_formula α l) (v : α → M) (xs : fin l → M), Prop
 | _ bd_falsum  v     xs := false
 | _ (bd_equal t₁ t₂) v xs := realize_term (sum.elim v xs) t₁ = realize_term (sum.elim v xs) t₂
@@ -252,40 +261,60 @@ namespace bounded_formula
 variables {M} {l : ℕ} (φ ψ : L.bounded_formula α l) (θ : L.bounded_formula α l.succ)
 variables (v : α → M) (xs : fin l → M)
 
+@[simp] lemma realize_bot :
+  realize_bounded_formula M (⊥ : L.bounded_formula α l) v xs = false :=
+rfl
+
 @[simp] lemma realize_bd_not :
   realize_bounded_formula M (φ.bd_not) v xs = ¬ realize_bounded_formula M φ v xs :=
 rfl
 
-lemma realize_bd_inf : realize_bounded_formula M (φ ⊓ ψ) v xs =
-    (realize_bounded_formula M φ v xs ∧ realize_bounded_formula M ψ v xs) :=
-by simp
+@[simp] lemma realize_bd_equal (t₁ t₂ : L.term (α ⊕ fin l)) :
+  realize_bounded_formula M (bd_equal t₁ t₂) v xs =
+    (realize_term (sum.elim v xs) t₁ = realize_term (sum.elim v xs) t₂) :=
+rfl
 
-lemma realize_bd_imp : realize_bounded_formula M (φ.bd_imp ψ) v xs =
+@[simp] lemma realize_top :
+  realize_bounded_formula M (⊤ : L.bounded_formula α l) v xs = true :=
+by simp [has_top.top]
+
+@[simp] lemma realize_inf : realize_bounded_formula M (φ ⊓ ψ) v xs =
+    (realize_bounded_formula M φ v xs ∧ realize_bounded_formula M ψ v xs) :=
+by simp [has_inf.inf, realize_bounded_formula]
+
+@[simp] lemma realize_bd_imp : realize_bounded_formula M (φ.bd_imp ψ) v xs =
     (realize_bounded_formula M φ v xs → realize_bounded_formula M ψ v xs) :=
 by simp only [realize_bounded_formula]
 
-lemma realize_bd_sup : realize_bounded_formula M (φ ⊔ ψ) v xs =
+@[simp] lemma realize_sup : realize_bounded_formula M (φ ⊔ ψ) v xs =
     (realize_bounded_formula M φ v xs ∨ realize_bounded_formula M ψ v xs) :=
 begin
-  simp only [realize_bounded_formula, bounded_formula.has_sup_sup, realize_bd_not, eq_iff_iff],
+  simp only [realize_bounded_formula, has_sup.sup, realize_bd_not, eq_iff_iff],
   tauto,
 end
 
-lemma realize_bd_all : realize_bounded_formula M (bd_all θ) v xs =
+@[simp] lemma realize_bd_all : realize_bounded_formula M (bd_all θ) v xs =
     ∀ (a : M), (realize_bounded_formula M θ v (fin.snoc xs a)) :=
 rfl
 
-lemma realize_bd_exists : realize_bounded_formula M θ.bd_exists v xs =
+@[simp] lemma realize_bd_exists : realize_bounded_formula M θ.bd_exists v xs =
     ∃ (a : M), (realize_bounded_formula M θ v (fin.snoc xs a)) :=
 begin
   rw [bd_exists, realize_bd_not, realize_bd_all, not_forall],
   simp_rw [realize_bd_not, not_not],
 end
 
+@[simp] lemma realize_bd_iff : realize_bounded_formula M (φ.bd_iff ψ) v xs =
+  (realize_bounded_formula M φ v xs ↔ realize_bounded_formula M ψ v xs) :=
+begin
+  rw [bd_iff, iff_def],
+  simp,
+end
+
 end bounded_formula
 
 /-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
-@[reducible] def realize_formula (f : L.formula α) (v : α → M) : Prop :=
+def realize_formula (f : L.formula α) (v : α → M) : Prop :=
 realize_bounded_formula M f v fin_zero_elim
 
 namespace formula
@@ -296,17 +325,29 @@ variables {M} (φ ψ : L.formula α) (v : α → M)
   realize_formula M (φ.not) v = ¬ realize_formula M φ v :=
 rfl
 
-lemma realize_inf : realize_formula M (φ ⊓ ψ) v =
+@[simp] lemma realize_bot :
+  realize_formula M (⊥ : L.formula α) v = false :=
+rfl
+
+@[simp] lemma realize_top :
+  realize_formula M (⊤ : L.formula α) v = true :=
+bounded_formula.realize_top _ _
+
+@[simp] lemma realize_inf : realize_formula M (φ ⊓ ψ) v =
     (realize_formula M φ v ∧ realize_formula M ψ v) :=
-realize_bd_inf _ _ _ _
+realize_inf _ _ _ _
 
-lemma realize_imp : realize_formula M (φ.bd_imp ψ) v =
+@[simp] lemma realize_imp : realize_formula M (φ.imp ψ) v =
     (realize_formula M φ v → realize_formula M ψ v) :=
-realize_bd_imp _ _ _ _
+bounded_formula.realize_bd_imp _ _ _ _
 
-lemma realize_sup : realize_formula M (φ ⊔ ψ) v =
+@[simp] lemma realize_sup : realize_formula M (φ ⊔ ψ) v =
     (realize_formula M φ v ∨ realize_formula M ψ v) :=
-realize_bd_sup _ _ _ _
+realize_sup _ _ _ _
+
+@[simp] lemma realize_bd_iff : realize_formula M (φ.iff ψ) v=
+  (realize_formula M φ v ↔ realize_formula M ψ v) :=
+bounded_formula.realize_bd_iff _ _ _ _
 
 end formula
 
@@ -584,7 +625,7 @@ open bounded_formula
 interpretation in every model of `T`. (This is also known as logical equivalence, which also has a
 proof-theoretic definition.) -/
 def semantically_equivalent (T : L.Theory) (φ ψ : L.bounded_formula α n) : Prop :=
-T ⊨ (bd_imp φ ψ ⊓ bd_imp ψ φ)
+T ⊨ (φ.bd_iff ψ)
 
 lemma semantically_equivalent.realize_eq {T : L.Theory} {φ ψ : L.bounded_formula α n}
   {M : Type (max u v)} [ne : nonempty M] [str : L.Structure M] (hM : T.model M)
@@ -592,8 +633,7 @@ lemma semantically_equivalent.realize_eq {T : L.Theory} {φ ψ : L.bounded_formu
   realize_bounded_formula M φ = realize_bounded_formula M ψ :=
 funext (λ v, funext (λ xs, begin
   have h' := h M v xs hM,
-  simp only [realize_bounded_formula, has_inf_inf, realize_bd_not, not_forall, exists_prop, not_and,
-    not_not] at h',
+  simp only [realize_bd_iff] at h',
   exact iff_eq_eq.mp ⟨h'.1, h'.2⟩,
 end))
 
@@ -608,15 +648,13 @@ def semantically_equivalent_setoid (T : L.Theory) : setoid (L.bounded_formula α
   iseqv := ⟨λ φ M ne str v xs hM, by simp,
     λ φ ψ h M ne str v xs hM, begin
       haveI := ne,
-      have h := h M v xs hM,
-      rw [bounded_formula.realize_bd_inf, and_comm] at h,
-      rw bounded_formula.realize_bd_inf,
-      exact h,
+      rw [realize_bd_iff, iff.comm, ← realize_bd_iff],
+      exact h M v xs hM,
     end, λ φ ψ θ h1 h2 M ne str v xs hM, begin
       haveI := ne,
       have h1' := h1 M v xs hM,
       have h2' := h2 M v xs hM,
-      rw [realize_bd_inf, realize_bd_imp, realize_bd_imp] at *,
+      rw [realize_bd_iff] at *,
       exact ⟨h2'.1 ∘ h1'.1, h1'.2 ∘ h2'.2⟩,
     end⟩ }
 
@@ -626,19 +664,15 @@ lemma semantically_equivalent_bd_not_bd_not {T : L.Theory} {φ : L.bounded_formu
 
 lemma imp_semantically_equivalent_bd_not_sup {T : L.Theory} {φ ψ : L.bounded_formula α n} :
   T.semantically_equivalent (bd_imp φ ψ) (bd_not φ ⊔ ψ) :=
-λ M ne str v xs hM, by simp
+λ M ne str v xs hM, by simp [imp_iff_not_or]
 
 lemma sup_semantically_equivalent_bd_not_inf_bd_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
   T.semantically_equivalent (φ ⊔ ψ) (bd_not ((bd_not φ) ⊓ (bd_not ψ))) :=
-λ M ne str v xs hM, by simp
+λ M ne str v xs hM, by simp [imp_iff_not_or]
 
 lemma inf_semantically_equivalent_bd_not_sup_bd_not {T : L.Theory} {φ ψ : L.bounded_formula α n} :
   T.semantically_equivalent (φ ⊓ ψ) (bd_not ((bd_not φ) ⊔ (bd_not ψ))) :=
-λ M ne str v xs hM, begin
-  simp only [realize_bounded_formula, has_inf_inf, has_sup_sup, realize_bd_not, not_forall, not_not,
-    exists_prop, and_imp, not_and, and_self],
-  exact λ h1 h2, ⟨h1, h2⟩,
-end
+λ M ne str v xs hM, by simp [and_iff_not_or_not]
 
 end bounded_formula
 

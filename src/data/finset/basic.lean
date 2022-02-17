@@ -510,8 +510,21 @@ def cons (a : α) (s : finset α) (h : a ∉ s) : finset α := ⟨a ::ₘ s.1, n
 
 @[simp] lemma coe_cons {a s h} : (@cons α a s h : set α) = insert a s := by { ext, simp }
 
+lemma subset_cons (h : a ∉ s) : s ⊆ s.cons a h := subset_cons _ _
+lemma ssubset_cons (h : a ∉ s) : s ⊂ s.cons a h := ssubset_cons h
+lemma cons_subset {h : a ∉ s} : s.cons a h ⊆ t ↔ a ∈ t ∧ s ⊆ t := cons_subset
+
 @[simp] lemma cons_subset_cons {hs ht} : s.cons a hs ⊆ t.cons a ht ↔ s ⊆ t :=
 by rwa [← coe_subset, coe_cons, coe_cons, set.insert_subset_insert_iff, coe_subset]
+
+lemma ssubset_iff_exists_cons_subset : s ⊂ t ↔ ∃ a (h : a ∉ s), s.cons a h ⊆ t :=
+begin
+  refine ⟨λ h, _, λ ⟨a, ha, h⟩, ssubset_of_ssubset_of_subset (ssubset_cons _) h⟩,
+  obtain ⟨a, hs, ht⟩ := (not_subset _ _).1 h.2,
+  exact ⟨a, ht, cons_subset.2 ⟨hs, h.subset⟩⟩,
+end
+
+end cons
 
 /-! ### disjoint union -/
 
@@ -524,8 +537,6 @@ def disj_union {α} (s t : finset α) (h : ∀ a ∈ s, a ∉ t) : finset α :=
 @[simp] theorem mem_disj_union {α s t h a} :
   a ∈ @disj_union α s t h ↔ a ∈ s ∨ a ∈ t :=
 by rcases s with ⟨⟨s⟩⟩; rcases t with ⟨⟨t⟩⟩; apply list.mem_append
-
-end cons
 
 /-! ### insert -/
 
@@ -550,6 +561,8 @@ by rw [insert_val, ndinsert_of_not_mem h]
 theorem mem_insert_self (a : α) (s : finset α) : a ∈ insert a s := mem_ndinsert_self a s.1
 lemma mem_insert_of_mem (h : a ∈ s) : a ∈ insert b s := mem_ndinsert_of_mem h
 lemma mem_of_mem_insert_of_ne (h : b ∈ insert a s) : b ≠ a → b ∈ s := (mem_insert.1 h).resolve_left
+lemma eq_of_not_mem_of_mem_insert (ha : b ∈ insert a s) (hb : b ∉ s) : b = a :=
+(mem_insert.1 ha).resolve_right hb
 
 @[simp] theorem cons_eq_insert {α} [decidable_eq α] (a s h) : @cons α a s h = insert a s :=
 ext $ λ a, by simp
@@ -605,6 +618,11 @@ lemma subset_insert (a : α) (s : finset α) : s ⊆ insert a s := λ b, mem_ins
 
 theorem insert_subset_insert (a : α) {s t : finset α} (h : s ⊆ t) : insert a s ⊆ insert a t :=
 insert_subset.2 ⟨mem_insert_self _ _, subset.trans h (subset_insert _ _)⟩
+
+lemma insert_inj (ha : a ∉ s) : insert a s = insert b s ↔ a = b :=
+⟨λ h, eq_of_not_mem_of_mem_insert (h.subst $ mem_insert_self _ _) ha, congr_arg _⟩
+
+lemma insert_inj_on (s : finset α) : set.inj_on (λ a, insert a s) sᶜ := λ a h b _, (insert_inj h).1
 
 lemma ssubset_iff : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
 by exact_mod_cast @set.ssubset_iff_insert α s t
@@ -1115,6 +1133,9 @@ lemma sdiff_union_inter (s t : finset α) : (s \ t) ∪ (s ∩ t) = s := sup_sdi
 @[simp] lemma sdiff_idem (s t : finset α) : s \ t \ t = s \ t := sdiff_idem
 
 lemma sdiff_eq_empty_iff_subset : s \ t = ∅ ↔ s ⊆ t := sdiff_eq_bot_iff
+
+lemma sdiff_nonempty : (s \ t).nonempty ↔ ¬ s ⊆ t :=
+nonempty_iff_ne_empty.trans sdiff_eq_empty_iff_subset.not
 
 @[simp] lemma empty_sdiff (s : finset α) : ∅ \ s = ∅ := bot_sdiff
 
@@ -2319,7 +2340,7 @@ end bUnion
 /-! ### disjoint -/
 --TODO@Yaël: Kill lemmas duplicate with `boolean_algebra`
 section disjoint
-variables [decidable_eq α] [decidable_eq β] {s t u : finset α} {a b : α}
+variables [decidable_eq α] [decidable_eq β] {f : α → β} {s t u : finset α} {a b : α}
 
 lemma disjoint_left : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
 by simp only [_root_.disjoint, inf_eq_inter, le_iff_subset, subset_iff, mem_inter, not_and,
@@ -2334,6 +2355,9 @@ decidable_of_decidable_of_iff (by apply_instance) eq_bot_iff
 lemma disjoint_right : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
 lemma disjoint_iff_ne : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=
 by simp only [disjoint_left, imp_not_comm, forall_eq']
+
+lemma _root_.disjoint.forall_ne_finset (h : disjoint s t) (ha : a ∈ s) (hb : b ∈ t) : a ≠ b :=
+disjoint_iff_ne.1 h _ ha _ hb
 
 lemma not_disjoint_iff : ¬ disjoint s t ↔ ∃ a, a ∈ s ∧ a ∈ t :=
 not_forall.trans $ exists_congr $ λ a, not_not.trans mem_inter
@@ -2406,6 +2430,23 @@ lemma disjoint_filter_filter_neg (s : finset α) (p : α → Prop) [decidable_pr
 
 lemma disjoint_iff_disjoint_coe : disjoint s t ↔ disjoint (s : set α) (t : set α) :=
 by { rw [finset.disjoint_left, set.disjoint_left], refl }
+
+@[simp] lemma _root_.disjoint.of_image_finset (h : disjoint (s.image f) (t.image f)) :
+  disjoint s t :=
+disjoint_iff_ne.2 $ λ a ha b hb, ne_of_apply_ne f $ h.forall_ne_finset
+  (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
+
+@[simp] lemma disjoint_image {f : α → β} (hf : injective f) :
+  disjoint (s.image f) (t.image f) ↔ disjoint s t :=
+begin
+  simp only [disjoint_iff_ne, mem_image, exists_prop, exists_imp_distrib, and_imp],
+  refine ⟨λ h a ha b hb hab, h _ _ ha rfl _ _ hb rfl $ congr_arg _ hab, _⟩,
+  rintro h _ a ha rfl _ b hb rfl,
+  exact hf.ne (h _ ha _ hb),
+end
+
+@[simp] lemma disjoint_map {f : α ↪ β} : disjoint (s.map f) (t.map f) ↔ disjoint s t :=
+by { simp_rw map_eq_image, exact disjoint_image f.injective }
 
 end disjoint
 

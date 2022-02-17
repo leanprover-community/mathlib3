@@ -427,9 +427,10 @@ end field
 
 end perfect_closure
 
-noncomputable def perfect_ring.of_surjective (k : Type*) [field k] (p : ℕ) [fact p.prime]
-  [char_p k p] (h : function.surjective $ frobenius k p) :
+/-- A reduced ring with prime characteristic and surjective frobenius map is perfect. -/
+noncomputable def perfect_ring.of_surjective (k : Type*) [comm_ring k] [is_reduced k] (p : ℕ)
+  [fact p.prime] [char_p k p] (h : function.surjective $ frobenius k p) :
   perfect_ring k p :=
 { pth_root' := function.surj_inv h,
   frobenius_pth_root' := function.surj_inv_eq h,
-  pth_root_frobenius' := λ x, (frobenius k p).injective $ function.surj_inv_eq h _ }
+  pth_root_frobenius' := λ x, frobenius_inj _ _ $ function.surj_inv_eq h _ }

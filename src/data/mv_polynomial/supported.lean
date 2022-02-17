@@ -110,7 +110,7 @@ lemma supported_strict_mono [nontrivial R] :
   strict_mono (supported R : set σ → subalgebra R (mv_polynomial σ R)) :=
 strict_mono_of_le_iff_le (λ _ _, supported_le_supported_iff.symm)
 
-lemma restrict_to_vars (R : Type*) [comm_ring R] {F : mv_polynomial σ ℤ} (hF : ↑F.vars ⊆ s) :
+lemma exists_restrict_to_vars (R : Type*) [comm_ring R] {F : mv_polynomial σ ℤ} (hF : ↑F.vars ⊆ s) :
   ∃ f : (s → R) → R, ∀ x : σ → R, f (x ∘ coe : s → R) = aeval x F :=
 begin
   classical,

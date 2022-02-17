@@ -624,7 +624,7 @@ begin
   split,
 
   show injective _,
-  { apply subgroup.injective_of_independent,
+  { apply subgroup.injective_noncomm_pi_coprod_of_independent,
     apply independent_of_coprime_order hcomm,
     rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
     haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),

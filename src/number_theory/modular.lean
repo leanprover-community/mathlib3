@@ -30,7 +30,7 @@ The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`:
 Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`:
 `exists_smul_mem_fundamental_domain (z : ℍ) : ∃ γ : SL(2,ℤ), γ • z ∈ 𝒟`
 
-If both `z` and `γ • z` are in the open domain `𝒟ᵒ` then `z = g • z`:
+If both `z` and `γ • z` are in the open domain `𝒟ᵒ` then `z = γ • z`:
 `fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
 
 # Discussion

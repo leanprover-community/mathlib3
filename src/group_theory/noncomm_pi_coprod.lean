@@ -355,7 +355,7 @@ variables (hcomm : ∀ (i j : ι), i ≠ j → ∀ (x y : G), x ∈ H i → y �
 include hcomm
 
 @[to_additive]
-lemma hcomm_subtype (i j : ι) (hne : i ≠ j) :
+lemma commute_subtype_of_commute (i j : ι) (hne : i ≠ j) :
   ∀ (x : H i) (y : H j), commute ((H i).subtype x) ((H j).subtype y) :=
 by { rintros ⟨x, hx⟩ ⟨y, hy⟩, exact hcomm i j hne x y hx hy }
 
@@ -366,7 +366,7 @@ commute -/
 @[to_additive "The canonical homomorphism from a family of additive subgroups where elements from
 different subgroups commute"]
 def noncomm_pi_coprod : (Π (i : ι), H i) →* G :=
-  monoid_hom.noncomm_pi_coprod (λ i, (H i).subtype) (hcomm_subtype hcomm)
+  monoid_hom.noncomm_pi_coprod (λ i, (H i).subtype) (commute_subtype_of_commute hcomm)
 
 variable {hcomm}
 
@@ -376,11 +376,11 @@ lemma noncomm_pi_coprod_single (i : ι) (y : H i) :
 by apply monoid_hom.noncomm_pi_coprod_single
 
 @[to_additive]
-lemma range : (noncomm_pi_coprod hcomm).range = ⨆ i : ι, H i :=
+lemma noncomm_pi_coprod_range : (noncomm_pi_coprod hcomm).range = ⨆ i : ι, H i :=
 by simp [noncomm_pi_coprod, monoid_hom.noncomm_pi_coprod_range]
 
 @[to_additive]
-lemma injective_of_independent (hind : complete_lattice.independent H) :
+lemma injective_noncomm_pi_coprod_of_independent (hind : complete_lattice.independent H) :
   function.injective (noncomm_pi_coprod hcomm) :=
 begin
   apply monoid_hom.injective_noncomm_pi_coprod_of_independent,
@@ -394,7 +394,7 @@ lemma independent_of_coprime_order [∀ i, fintype (H i)]
   complete_lattice.independent H :=
 begin
   simpa using monoid_hom.independent_range_of_coprime_order
-    (λ i, (H i).subtype) (hcomm_subtype hcomm) hcoprime,
+    (λ i, (H i).subtype) (commute_subtype_of_commute hcomm) hcoprime,
 end
 
 end commuting_subgroups

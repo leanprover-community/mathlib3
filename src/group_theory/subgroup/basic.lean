@@ -5,7 +5,7 @@ Authors: Kexing Ying
 -/
 import group_theory.submonoid.pointwise
 import group_theory.submonoid.membership
-import group_theory.submonoid.center
+import group_theory.submonoid.centralizer
 import algebra.group.conj
 import algebra.module.basic
 import order.atoms
@@ -1431,10 +1431,9 @@ section centralizer
 @[to_additive "The `centralizer` of `H` is the additive subgroup of `g : G` commuting with
 every `h : H`."]
 def centralizer : subgroup G :=
-{ carrier := {g : G | ∀ h ∈ H, h * g = g * h},
-  one_mem' := λ h hh, (mul_one h).trans (one_mul h).symm,
-  mul_mem' := λ g g' hg hg' h hh, by rw [←mul_assoc, hg h hh, mul_assoc, hg' h hh, mul_assoc],
-  inv_mem' := λ g hg h hh, by rw [←inv_inv h, ←mul_inv_rev, ←mul_inv_rev, hg h⁻¹ (H.inv_mem hh)] }
+{ carrier := set.centralizer H,
+  inv_mem' := λ g, set.inv_mem_centralizer,
+  .. submonoid.centralizer ↑H }
 
 @[to_additive] lemma mem_centralizer_iff {g : G} : g ∈ H.centralizer ↔ ∀ h ∈ H, h * g = g * h :=
 iff.rfl

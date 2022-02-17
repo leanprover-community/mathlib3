@@ -40,9 +40,9 @@ def time : turing.to_partrec.code → list ℕ →. ℕ
 lemma time_dom_of_eval_dom (c : code) (l : list ℕ) (h : ((c.eval l).dom)) : (time c l).dom  :=
 begin
   induction c generalizing l,
-  { assumption, },
-  { assumption, },
-  { assumption, },
+  { rw time, unfold pure, },
+  { rw time, unfold pure, },
+  { rw time, unfold pure, },
   { cases h,
     cases h_h,
     fsplit,
@@ -69,6 +69,7 @@ begin
       { fsplit, work_on_goal 0 { solve_by_elim }, dsimp at *, exact dec_trivial, }, }, },
   { sorry,
     -- TODO note that time (fix f) is the same computation eval (fix f) with extra data tacked on.
+    -- this extra data tacked on to fix doesn't affect the values of type α
     -- Prove in general that doing this doesn't affect whether or not you end up in the domain
   },
 end

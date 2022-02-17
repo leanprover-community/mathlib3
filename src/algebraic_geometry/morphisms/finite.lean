@@ -34,9 +34,12 @@ class finite (f : X ⟶ Y) extends affine f : Prop :=
 
 lemma _root_.ring_hom.finite_respects_iso : ring_hom.respects_iso @ring_hom.finite := sorry
 
-lemma finite_eq_affine_and_target_locally_finite :
+lemma finite_eq_affine_locally_finite :
   @finite = target_affine_locally (affine_and @ring_hom.finite) :=
 by { ext, rw [finite_iff, affine_and_target_affine_locally_iff ring_hom.finite_respects_iso] }
+
+lemma finite_respects_iso : respects_iso @finite :=
+finite_eq_affine_locally_finite.symm ▸ affine_and_res ring_hom.finite_respects_iso
 
 @[priority 900]
 instance affine_of_is_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] : affine f :=

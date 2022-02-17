@@ -74,7 +74,7 @@ begin
   simpa [h] using this
 end
 
-lemma fraction_ring.p_nonzero [char_p R p] [nontrivial R] :
+lemma fraction_ring.p_nonzero [nontrivial R] [char_p R p] :
   (p : fraction_ring (𝕎 R)) ≠ 0 :=
 by simpa using (is_fraction_ring.injective (𝕎 R) (fraction_ring (𝕎 R))).ne (p_nonzero _ _)
 

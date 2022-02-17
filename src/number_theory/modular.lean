@@ -329,7 +329,7 @@ def S : SL(2,ℤ) := ⟨![![0, -1], ![1, 0]], by norm_num [matrix.det_fin_two]�
 
 /-- The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
 def fundamental_domain : set ℍ :=
-{z | 1 ≤ (complex.norm_sq z) ∧ |z.re| ≤ (1 : ℝ) / 2}
+{z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}
 
 /-- The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
 def fundamental_domain_open : set ℍ :=

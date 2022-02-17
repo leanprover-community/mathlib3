@@ -8,14 +8,17 @@ import analysis.seminorm
 # The lattice of seminorms is not distributive
 
 We provide an example of three seminorms over the ℝ-vector space ℝ×ℝ whih dont verify the lattice
-distributivity property (p ⊔ q1) ⊓ (p ⊔ q2) ≤ p ⊔ (q1 ⊓ q2).
+distributivity property `(p ⊔ q1) ⊓ (p ⊔ q2) ≤ p ⊔ (q1 ⊓ q2)`.
 
-This proves the lattice (seminorm ℝ ℝ×ℝ) is not distributive.
+This proves the lattice `seminorm ℝ (ℝ × ℝ)` is not distributive.
 
 ## References
 
 * https://en.wikipedia.org/wiki/Seminorm#Examples
 -/
+
+namespace seminorm_not_distrib
+open_locale nnreal
 
 private lemma bdd_below_range_add {𝕜 E : Type*} [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
   (x : E) (p q : seminorm 𝕜 E) :
@@ -23,40 +26,13 @@ private lemma bdd_below_range_add {𝕜 E : Type*} [normed_field 𝕜] [add_comm
 by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
 
 noncomputable def p : seminorm ℝ (ℝ×ℝ) :=
-{ to_fun := λ x, |x.fst| ⊔ |x.snd|,
-  triangle' := λ x y, begin
-    apply sup_le,
-    { apply le_trans (abs_add _ _), apply add_le_add, exact le_sup_left, exact le_sup_left },
-    { apply le_trans (abs_add _ _), apply add_le_add, exact le_sup_right, exact le_sup_right }
-  end,
-  smul' := λ a x, begin
-    change |a * x.fst| ⊔ |a * x.snd| = |a| * (|x.fst| ⊔ |x.snd|),
-    rw abs_mul, rw abs_mul,
-    cases (le_or_lt (|x.fst|) (|x.snd|)),
-    { rw sup_eq_right.mpr h, exact sup_eq_right.mpr (mul_le_mul_of_nonneg_left h (abs_nonneg _)) },
-    { have h := le_of_lt h,
-      rw sup_eq_left.mpr h, exact sup_eq_left.mpr (mul_le_mul_of_nonneg_left h (abs_nonneg _)) }
-  end }
+(norm_seminorm ℝ ℝ).comp (linear_map.fst _ _ _) ⊔ (norm_seminorm ℝ ℝ).comp (linear_map.snd _ _ _)
 
 noncomputable def q1 : seminorm ℝ (ℝ×ℝ) :=
-{ to_fun := λ x, 4 * |x.fst|,
-  triangle' := λ x y, begin
-    rw [← mul_add, mul_le_mul_left], { exact abs_add _ _ }, { norm_num }
-  end,
-  smul' := λ a x, begin
-    change 4 * |a * x.fst| = |a| * (4 * |x.fst|),
-    rw abs_mul, ring
-  end }
+(4 : ℝ≥0) • (norm_seminorm ℝ ℝ).comp (linear_map.fst _ _ _)
 
 noncomputable def q2 : seminorm ℝ (ℝ×ℝ) :=
-{ to_fun := λ x, 4 * |x.snd|,
-  triangle' := λ x y, begin
-    rw [← mul_add, mul_le_mul_left], { exact abs_add _ _ }, { norm_num }
-  end,
-  smul' := λ a x, begin
-    change 4 * |a * x.snd| = |a| * (4 * |x.snd|),
-    rw abs_mul, ring
-  end }
+(4 : ℝ≥0) • (norm_seminorm ℝ ℝ).comp (linear_map.snd _ _ _)
 
 lemma eq_one : (p ⊔ (q1 ⊓ q2)) (1, 1) = 1 := begin
   change |1| ⊔ |1| ⊔ (q1 ⊓ q2) (1, 1) = 1,
@@ -93,3 +69,5 @@ lemma not_distrib : ¬((p ⊔ q1) ⊓ (p ⊔ q2) ≤ p ⊔ (q1 ⊓ q2)) := begin
          ... ≤ (p ⊔ q1) x : le_sup_right
          ... ≤ (p ⊔ q1) x + (p ⊔ q2) ((1, 1) - x) : le_add_of_nonneg_right ((p ⊔ q2).nonneg _) }
 end
+
+end seminorm_not_distrib

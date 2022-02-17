@@ -21,7 +21,10 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
   from functions to `n` to `𝕜` with the `L²` norm. We register several instances on it (notably
   that it is a finite-dimensional inner product space).
 
-- `basis.isometry_euclidean_of_orthonormal`: provides the isometry to Euclidean space
+- `orthonormal_basis 𝕜 ι`: defined to be an isometry to Euclidean space from a given
+  finite-dimensional innner product space, `E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`.
+
+- `basis.to_orthonormal_basis`: provides the isometry to Euclidean space (i.e. orthonormal basis)
   from a given finite-dimensional inner product space, induced by a basis of the space.
 
 - `linear_isometry_equiv.of_inner_product_space`: provides an arbitrary isometry to Euclidean space

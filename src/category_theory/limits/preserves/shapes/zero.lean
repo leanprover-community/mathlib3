@@ -14,12 +14,8 @@ We define the class `preserves_zero_morphisms` and show basic properties.
 ## Main results
 
 We provide the following results:
-<<<<<<< HEAD
 * Left adjoints and right adjoints preserve zero morphisms;
-* full functors preserves zero morphisms;
-=======
-* Equivalences preserve zero morphisms;
->>>>>>> feat(category_theory/*): preserves biproducts implies additive
+* full functors preserve zero morphisms;
 * if both categories involved have a zero object, then a functor preserves zero morphisms if and
   only if it preserves the zero object;
 * functors which preserve initial or terminal objects preserve zero morphisms.

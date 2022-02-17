@@ -38,8 +38,8 @@ variables (R : Type*) {A : Type*}
   [semiring R] [invertible (2 : R)] [star_monoid R] [has_trivial_star R]
   [add_comm_group A] [module R A] [star_add_monoid A] [star_module R A]
 
-/-- The real part of an element of a star module, as a real-linear map. -/
-@[simps] def star_module.re : A →ₗ[R] self_adjoint A :=
+/-- The self-adjoint part of an element of a star module, as a linear map. -/
+@[simps] def self_adjoint_part : A →ₗ[R] self_adjoint A :=
 { to_fun := λ x, ⟨(⅟2 : R) • (x + star x),
   by simp only [self_adjoint.mem_iff, star_smul, add_comm,
                   star_add_monoid.star_add, star_inv', star_bit0,
@@ -47,3 +47,13 @@ variables (R : Type*) {A : Type*}
   map_add' := λ x y, by { ext, simp [add_add_add_comm] },
   map_smul' := λ r x, by { ext, by simp [←mul_smul,
           show ⅟ 2 * r = r * ⅟ 2, from commute.inv_of_left (commute.one_left r).bit0_left] } }
+
+/-- The skew-adjoint part of an element of a star module, as a linear map. -/
+@[simps] def skew_adjoint_part : A →ₗ[R] skew_adjoint A :=
+{ to_fun := λ x, ⟨(⅟2 : R) • (x - star x),
+    by simp only [skew_adjoint.mem_iff, star_smul, star_sub, star_star, star_trivial, ←smul_neg,
+                  neg_sub]⟩,
+  map_add' := λ x y, by { ext, simp only [sub_add, ←smul_add, sub_sub_assoc_swap, star_add,
+                                          add_subgroup.coe_mk, add_subgroup.coe_add] },
+  map_smul' := λ r x, by { ext, simp [←mul_smul, ←smul_sub,
+            show r * ⅟ 2 = ⅟ 2 * r, from commute.inv_of_right (commute.one_right r).bit0_right] } }

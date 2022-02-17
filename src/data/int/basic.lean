@@ -1240,11 +1240,10 @@ is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
 lemma eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) :
   (z = 1 ∧ w = 1) ∨ (z = -1 ∧ w = -1) :=
 begin
-  rcases eq_one_or_neg_one_of_mul_eq_one h with rfl | rfl,
-  { left,
-    refine ⟨rfl, by simpa using h⟩, },
-  { right,
-    refine ⟨rfl, by rw [← h, neg_mul_eq_neg_mul_symm, one_mul, neg_neg]⟩, },
+  have h' : w * z = 1 := (mul_comm z w) ▸ h,
+  rcases eq_one_or_neg_one_of_mul_eq_one h with rfl | rfl;
+  rcases eq_one_or_neg_one_of_mul_eq_one h' with rfl | rfl;
+  tauto,
 end
 
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=

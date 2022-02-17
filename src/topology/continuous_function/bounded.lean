@@ -580,8 +580,7 @@ lemma add_apply : (f + g) x = f x + g x := rfl
 lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
   (g + f).comp_continuous h = g.comp_continuous h + f.comp_continuous h := rfl
 
-instance : add_monoid (α →ᵇ β) :=
-coe_injective.add_monoid _ coe_zero coe_add
+instance : add_monoid (α →ᵇ β) := fun_like.coe_injective.add_monoid _ coe_zero coe_add
 
 instance : has_lipschitz_add (α →ᵇ β) :=
 { lipschitz_add := ⟨has_lipschitz_add.C β, begin
@@ -791,7 +790,7 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
   mk_of_compact (f - g) = mk_of_compact f - mk_of_compact g := rfl
 
 instance : add_comm_group (α →ᵇ β) :=
-coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
 
 instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
@@ -953,7 +952,7 @@ instance : has_mul (α →ᵇ R) :=
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 
 instance : ring (α →ᵇ R) :=
-coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
+fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
 
 instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,

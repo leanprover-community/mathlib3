@@ -134,7 +134,7 @@ lemma convex.closure {s : set E} (hs : convex ℝ s) : convex ℝ (closure s) :=
 λ x y hx hy a b ha hb hab,
 let f : E → E → E := λ x' y', a • x' + b • y' in
 have hf : continuous (λ p : E × E, f p.1 p.2), from
-  (continuous_fst.smul_const _).add (continuous_snd.smul_const _),
+  (continuous_fst.const_smul _).add (continuous_snd.const_smul _),
 show f x y ∈ closure s, from
   mem_closure_of_continuous2 hf hx hy (λ x' hx' y' hy', subset_closure
   (hs hx' hy' ha hb hab))

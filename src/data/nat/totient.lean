@@ -293,7 +293,7 @@ end
 We prove several different statements of this formula. -/
 
 /-- Euler's product formula for the totient function. -/
-theorem totient_mul_prod_factors {n : ℕ} (hn : n ≠ 0) :
+theorem totient_eq_prod_factorization {n : ℕ} (hn : n ≠ 0) :
   φ n = n.factorization.prod (λ p k, p ^ (k - 1) * (p - 1)) :=
 begin
   rw multiplicative_factorization φ @totient_mul totient_one hn,
@@ -303,11 +303,11 @@ begin
 end
 
 /-- Euler's product formula for the totient function. -/
-theorem totient_mul_prod_factors' (n : ℕ) :
+theorem totient_mul_prod_factors (n : ℕ) :
   φ n * ∏ p in n.factors.to_finset, p = n * ∏ p in n.factors.to_finset, (p - 1) :=
 begin
   by_cases hn : n = 0, { simp [hn] },
-  rw totient_mul_prod_factors hn,
+  rw totient_eq_prod_factorization hn,
   nth_rewrite 2 ←factorization_prod_pow_eq_self hn,
   simp only [←prod_factorization_eq_prod_factors, ←finsupp.prod_mul],
   refine finsupp.prod_congr (λ p hp, _),
@@ -316,16 +316,16 @@ begin
 end
 
 /-- Euler's product formula for the totient function. -/
-theorem totient_eq_prod_div_prod (n : ℕ) :
+theorem totient_eq_div_factors_mul (n : ℕ) :
   φ n = n / (∏ p in n.factors.to_finset, p) * (∏ p in n.factors.to_finset, (p - 1)) :=
 begin
-  rw [← mul_div_left n.totient, totient_mul_prod_factors', mul_comm,
+  rw [← mul_div_left n.totient, totient_mul_prod_factors, mul_comm,
       nat.mul_div_assoc _ (prod_prime_factors_dvd n), mul_comm],
   simpa [prod_factorization_eq_prod_factors] using prod_pos (λ p, pos_of_mem_factorization),
 end
 
 /-- Euler's product formula for the totient function. -/
-theorem totient_eq_prod_div_prod' (n : ℕ) :
+theorem totient_eq_mul_prod_factors (n : ℕ) :
   (φ n : ℚ) = n * ∏ p in n.factors.to_finset, (1 - p⁻¹) :=
 begin
   by_cases hn : n = 0, { simp [hn] },
@@ -333,7 +333,7 @@ begin
   have hpQ : ∏ p in n.factors.to_finset, (p : ℚ) ≠ 0,
   { rw [←cast_prod, cast_ne_zero, ←zero_lt_iff, ←prod_factorization_eq_prod_factors],
     exact prod_pos (λ p hp, pos_of_mem_factorization hp) },
-  simp only [totient_eq_prod_div_prod n, prod_prime_factors_dvd n, cast_mul, cast_prod,
+  simp only [totient_eq_div_factors_mul n, prod_prime_factors_dvd n, cast_mul, cast_prod,
       cast_dvd_char_zero, mul_comm_div', mul_right_inj' hn', div_eq_iff hpQ, ←prod_mul_distrib],
   refine prod_congr rfl (λ p hp, _),
   have hp := pos_of_mem_factors (list.mem_to_finset.mp hp),

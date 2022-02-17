@@ -326,7 +326,7 @@ end
 
 /-- Euler's product formula for the totient function. -/
 theorem totient_eq_prod_div_prod' (n : ℕ) :
-  ↑(φ n) = ↑n * ∏ p in n.factors.to_finset, (1 - p⁻¹ : ℚ) :=
+  (φ n : ℚ) = n * ∏ p in n.factors.to_finset, (1 - p⁻¹) :=
 begin
   by_cases hn : n = 0, { simp [hn] },
   have hn' : (n : ℚ) ≠ 0, { simp [hn] },

@@ -99,8 +99,8 @@ protected lemma congr_arg (f : C(α, β)) {x y : α} (h : x = y) : f x = f y := 
 instance [inhabited β] : inhabited C(α, β) :=
 ⟨{ to_fun := λ _, default, }⟩
 
-lemma coe_inj ⦃f g : C(α, β)⦄ (h : (f : α → β) = g) : f = g :=
-by cases f; cases g; cases h; refl
+lemma coe_injective : @function.injective (C(α, β)) (α → β) coe_fn :=
+λ f g h, by cases f; cases g; congr'
 
 @[simp] lemma coe_mk (f : α → β) (h : continuous f) :
   ⇑(⟨f, h⟩ : C(α, β)) = f := rfl

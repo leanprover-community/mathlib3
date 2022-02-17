@@ -3,10 +3,9 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import topology.urysohns_bounded
-import topology.algebra.ordered.monotone_continuity
-import data.set.intervals.disjoint
 import data.set.intervals.monotone
+import topology.algebra.order.monotone_continuity
+import topology.urysohns_bounded
 
 /-!
 # Tietze extension theorem
@@ -379,7 +378,7 @@ lemma exists_restrict_eq_forall_mem_of_closed {s : set Y} (f : C(s, ℝ)) {t : s
   ∃ g : C(Y, ℝ), (∀ y, g y ∈ t) ∧ g.restrict s = f :=
 let ⟨g, hgt, hgf⟩ := exists_extension_forall_mem_of_closed_embedding f ht hne
   (closed_embedding_subtype_coe hs)
-in ⟨g, hgt, coe_inj hgf⟩
+in ⟨g, hgt, coe_injective hgf⟩
 
 /-- **Tietze extension theorem** for real-valued continuous maps, a version for a closed set. Let
 `s` be a closed set in a normal topological space `Y`. Let `f` be a continuous real-valued function

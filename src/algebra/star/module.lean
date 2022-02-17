@@ -48,11 +48,6 @@ variables (R : Type*) {A : Type*}
   map_smul' := λ r x, by { ext, simp [←mul_smul,
           show ⅟ 2 * r = r * ⅟ 2, from commute.inv_of_left (commute.one_left r).bit0_left] } }
 
-lemma add_halves''' {R' : Type*} {E' : Type*}
-  [semiring R'] [invertible (2 : R')] [add_comm_monoid E'] [module R' E'] (x : E') :
-  ⅟ (2 : R') • x + ⅟ (2 : R') • x = x :=
-by rw [←smul_add, ←two_smul R', ←mul_smul, inv_of_mul_self, one_smul]
-
 /-- The skew-adjoint part of an element of a star module, as a linear map. -/
 @[simps] def skew_adjoint_part : A →ₗ[R] skew_adjoint A :=
 { to_fun := λ x, ⟨(⅟2 : R) • (x - star x),

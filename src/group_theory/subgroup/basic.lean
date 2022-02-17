@@ -1443,8 +1443,7 @@ iff.rfl
 by simp only [mem_centralizer_iff, mul_inv_eq_iff_eq_mul, one_mul]
 
 @[to_additive] lemma centralizer_top : centralizer ⊤ = center G :=
-by simp only [set_like.ext_iff, mem_centralizer_iff, mem_center_iff,
-  mem_top, iff_self, forall_const]
+set_like.ext' (set.centralizer_univ G)
 
 end centralizer
 

@@ -31,7 +31,7 @@ lemma preadditive.is_coseparating_iff {𝒢 : set C} :
   is_coseparating 𝒢 ↔ ∀ ⦃X Y : C⦄ (f : X ⟶ Y), (∀ (G ∈ 𝒢) (h : Y ⟶ G), f ≫ h = 0) → f = 0 :=
 ⟨λ h𝒢 X Y f hf, h𝒢 _ _ (by simpa only [limits.zero_comp] using hf),
  λ h𝒢 X Y f g hfg, sub_eq_zero.1 $ h𝒢 _
-  (by { simpa only [preadditive.sub_comp, sub_eq_zero] using hfg })⟩
+  (by simpa only [preadditive.sub_comp, sub_eq_zero] using hfg)⟩
 
 lemma preadditive.is_separator_iff {G : C} :
   is_separator G ↔ ∀ ⦃X Y : C⦄ (f : X ⟶ Y), (∀ h : G ⟶ X, h ≫ f = 0) → f = 0 :=

@@ -68,7 +68,8 @@ begin
       { fsplit, work_on_goal 0 { solve_by_elim }, dsimp at *, exact dec_trivial, },
       { fsplit, work_on_goal 0 { solve_by_elim }, dsimp at *, exact dec_trivial, }, }, },
   { sorry,
-    -- TODO prove that ∀ a ∈ α, (fix (f : α →. β ⊕ α) a).dom ↔ (fix (g : α →. γ ⊕ α) a).dom
+    -- TODO note that time (fix f) is the same computation eval (fix f) with extra data tacked on.
+    -- Prove in general that doing this doesn't affect whether or not you end up in the domain
   },
 end
 

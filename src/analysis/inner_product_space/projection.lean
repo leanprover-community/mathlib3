@@ -823,7 +823,7 @@ begin
 end
 
 /-- The Pythagorean theorem, for an orthogonal projection.-/
-lemma norm_sq_eq_sum_norm_sq_projection
+lemma norm_sq_eq_add_norm_sq_projection
   (x : E) (S : submodule 𝕜 E) [complete_space E] [complete_space S] :
   ∥ x ∥^2 = ∥ (orthogonal_projection S) x ∥^2 + ∥ (orthogonal_projection Sᗮ) x ∥^2 :=
 begin

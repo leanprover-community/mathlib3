@@ -236,6 +236,11 @@ variables {f g : X ⟶ Y} {h : Y ⟶ Z}
 instance inv_is_iso [is_iso f] : is_iso (inv f) :=
 is_iso.of_iso_inv (as_iso f)
 
+/- The following instance has lower priority for the following reason:
+Suppose we are given `f : X ≅ Y` with `X Y : Type u`.
+Without the lower priority, typeclass inference cannot deduce `is_iso f.hom`
+because `f.hom` is defeq to `(λ x, x) ≫ f.hom`, triggering a loop. -/
+@[priority 900]
 instance comp_is_iso [is_iso f] [is_iso h] : is_iso (f ≫ h) :=
 is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 

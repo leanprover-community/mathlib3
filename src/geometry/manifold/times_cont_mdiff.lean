@@ -397,7 +397,7 @@ begin
     have h'' : continuous_on _ univ := (model_with_corners.continuous I').continuous_on,
     convert (h''.comp' (chart_at H' y).continuous_to_fun).comp' h,
     simp },
-  { exact λ h' x y, (h' y).2 x (default E') }
+  { exact λ h' x y, (h' y).2 x default }
 end
 
 lemma smooth_on_iff :
@@ -562,7 +562,7 @@ begin
   refine ⟨λ h m hm, h.of_le hm, λ h, _⟩,
   cases n,
   { exact times_cont_mdiff_within_at_top.2 (λ n, h n le_top) },
-  { exact h n (le_refl _) }
+  { exact h n le_rfl }
 end
 
 /-! ### Restriction to a smaller set -/
@@ -641,7 +641,7 @@ begin
     simp only [times_cont_mdiff_within_at, lift_prop_within_at, times_cont_diff_within_at_prop]
       at h',
     -- let `u` be a good neighborhood in the chart where the function is smooth
-    rcases h.2.times_cont_diff_on (le_refl _) with ⟨u, u_nhds, u_subset, hu⟩,
+    rcases h.2.times_cont_diff_on le_rfl with ⟨u, u_nhds, u_subset, hu⟩,
     -- pull it back to the manifold, and intersect with a suitable neighborhood of `x`, to get the
     -- desired good neighborhood `v`.
     let v := ((insert x s) ∩ o) ∩ (ext_chart_at I x) ⁻¹' u,
@@ -1119,33 +1119,33 @@ begin
   { assume y hy,
     simpa only [unique_mdiff_on, unique_mdiff_within_at, hy.1, inter_comm] with mfld_simps
       using hs (I.symm y) hy.2 },
-  have U : unique_diff_on 𝕜 (set.prod (range I ∩ I.symm ⁻¹' s) (univ : set E)) :=
+  have U : unique_diff_on 𝕜 ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)) :=
     U'.prod unique_diff_on_univ,
   rw times_cont_mdiff_on_iff,
   refine ⟨hf.continuous_on_tangent_map_within_aux one_le_n hs, λp q, _⟩,
-  have A : (range I).prod univ ∩
+  have A : range I ×ˢ (univ : set E) ∩
       ((equiv.sigma_equiv_prod H E).symm ∘ λ (p : E × E), ((I.symm) p.fst, p.snd)) ⁻¹'
         (tangent_bundle.proj I H ⁻¹' s)
-      = set.prod (range I ∩ I.symm ⁻¹' s) univ,
+      = (range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E),
     by { ext ⟨x, v⟩, simp only with mfld_simps },
   suffices h : times_cont_diff_on 𝕜 m (((λ (p : H' × E'), (I' p.fst, p.snd)) ∘
       (equiv.sigma_equiv_prod H' E')) ∘ tangent_map_within I I' f s ∘
       ((equiv.sigma_equiv_prod H E).symm) ∘ λ (p : E × E), (I.symm p.fst, p.snd))
-    ((range ⇑I ∩ ⇑(I.symm) ⁻¹' s).prod univ),
+    ((range ⇑I ∩ ⇑(I.symm) ⁻¹' s) ×ˢ (univ : set E)),
     by simpa [A] using h,
   change times_cont_diff_on 𝕜 m (λ (p : E × E),
     ((I' (f (I.symm p.fst)), ((mfderiv_within I I' f s (I.symm p.fst)) : E → E') p.snd) : E' × E'))
-    (set.prod (range I ∩ I.symm ⁻¹' s) univ),
+    ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)),
   -- check that all bits in this formula are `C^n`
   have hf' := times_cont_mdiff_on_iff.1 hf,
   have A : times_cont_diff_on 𝕜 m (I' ∘ f ∘ I.symm) (range I ∩ I.symm ⁻¹' s) :=
     by simpa only with mfld_simps using (hf'.2 (I.symm 0) (I'.symm 0)).of_le m_le_n,
   have B : times_cont_diff_on 𝕜 m ((I' ∘ f ∘ I.symm) ∘ prod.fst)
-           (set.prod (range I ∩ I.symm ⁻¹' s) (univ : set E)) :=
+           ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)) :=
     A.comp (times_cont_diff_fst.times_cont_diff_on) (prod_subset_preimage_fst _ _),
   suffices C : times_cont_diff_on 𝕜 m (λ (p : E × E),
     ((fderiv_within 𝕜 (I' ∘ f ∘ I.symm) (I.symm ⁻¹' s ∩ range I) p.1 : _) p.2))
-    (set.prod (range I ∩ I.symm ⁻¹' s) univ),
+    ((range I ∩ I.symm ⁻¹' s) ×ˢ (univ : set E)),
   { apply times_cont_diff_on.prod B _,
     apply C.congr (λp hp, _),
     simp only with mfld_simps at hp,
@@ -1762,13 +1762,13 @@ within the product set at the product point. -/
 lemma times_cont_mdiff_within_at.prod_map' {p : M × N}
   (hf : times_cont_mdiff_within_at I I' n f s p.1)
   (hg : times_cont_mdiff_within_at J J' n g r p.2) :
-  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) p :=
+  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s ×ˢ r) p :=
 (hf.comp p times_cont_mdiff_within_at_fst (prod_subset_preimage_fst _ _)).prod_mk $
 hg.comp p times_cont_mdiff_within_at_snd (prod_subset_preimage_snd _ _)
 
 lemma times_cont_mdiff_within_at.prod_map
   (hf : times_cont_mdiff_within_at I I' n f s x) (hg : times_cont_mdiff_within_at J J' n g r y) :
-  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) (x, y) :=
+  times_cont_mdiff_within_at (I.prod J) (I'.prod J') n (prod.map f g) (s ×ˢ r) (x, y) :=
 times_cont_mdiff_within_at.prod_map' hf hg
 
 lemma times_cont_mdiff_at.prod_map
@@ -1790,7 +1790,7 @@ end
 
 lemma times_cont_mdiff_on.prod_map
   (hf : times_cont_mdiff_on I I' n f s) (hg : times_cont_mdiff_on J J' n g r) :
-  times_cont_mdiff_on (I.prod J) (I'.prod J') n (prod.map f g) (s.prod r) :=
+  times_cont_mdiff_on (I.prod J) (I'.prod J') n (prod.map f g) (s ×ˢ r) :=
 (hf.comp times_cont_mdiff_on_fst (prod_subset_preimage_fst _ _)).prod_mk $
 hg.comp (times_cont_mdiff_on_snd) (prod_subset_preimage_snd _ _)
 
@@ -1804,7 +1804,7 @@ end
 
 lemma smooth_within_at.prod_map
   (hf : smooth_within_at I I' f s x) (hg : smooth_within_at J J' g r y) :
-  smooth_within_at (I.prod J) (I'.prod J') (prod.map f g) (s.prod r) (x, y) :=
+  smooth_within_at (I.prod J) (I'.prod J') (prod.map f g) (s ×ˢ r) (x, y) :=
 hf.prod_map hg
 
 lemma smooth_at.prod_map
@@ -1814,7 +1814,7 @@ hf.prod_map hg
 
 lemma smooth_on.prod_map
   (hf : smooth_on I I' f s) (hg : smooth_on J J' g r) :
-  smooth_on (I.prod J) (I'.prod J') (prod.map f g) (s.prod r) :=
+  smooth_on (I.prod J) (I'.prod J') (prod.map f g) (s ×ˢ r) :=
 hf.prod_map hg
 
 lemma smooth.prod_map

@@ -47,7 +47,8 @@ protected def pointwise_distrib_mul_action : distrib_mul_action α (submodule R 
   one_smul := λ S,
     (congr_arg (λ f, S.map f) (linear_map.ext $ by exact one_smul α)).trans S.map_id,
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (linear_map.ext $ by exact mul_smul _ _)).trans (S.map_comp _ _),
+    (congr_arg (λ f : M →ₗ[R] M, S.map f) (linear_map.ext $ by exact mul_smul _ _)).trans
+      (S.map_comp _ _),
   smul_zero := λ a, map_bot _,
   smul_add := λ a S₁ S₂, map_sup _ _ _ }
 
@@ -66,6 +67,11 @@ open_locale pointwise
 
 lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submodule R M) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))
+
+instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ M] [smul_comm_class αᵐᵒᵖ R M]
+  [is_central_scalar α M] :
+  is_central_scalar α (submodule R M) :=
+⟨λ a S, congr_arg (λ f, S.map f) $ linear_map.ext $ by exact op_smul_eq_smul _⟩
 
 @[simp] lemma smul_le_self_of_tower {α : Type*}
   [semiring α] [module α R] [module α M] [smul_comm_class α R M] [is_scalar_tower α R M]
@@ -87,7 +93,7 @@ This is a stronger version of `submodule.pointwise_distrib_mul_action`. Note tha
 not hold so this cannot be stated as a `module`. -/
 protected def pointwise_mul_action_with_zero : mul_action_with_zero α (submodule R M) :=
 { zero_smul := λ S,
-    (congr_arg (λ f, S.map f) (linear_map.ext $ by exact zero_smul α)).trans S.map_zero,
+    (congr_arg (λ f : M →ₗ[R] M, S.map f) (linear_map.ext $ by exact zero_smul α)).trans S.map_zero,
   .. submodule.pointwise_distrib_mul_action }
 
 localized "attribute [instance] submodule.pointwise_mul_action_with_zero" in pointwise

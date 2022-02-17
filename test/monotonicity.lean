@@ -88,7 +88,7 @@ begin
   induction xs with x xs,
   { trivial },
   { simp [has_le.le,list.le],
-    split, apply le_refl, apply xs_ih }
+    split, exact le_rfl, apply xs_ih }
 end
 
 -- @[trans]
@@ -139,7 +139,7 @@ begin
     { apply list_le_mono_left,
       induction zs with z zs,
       { simp [has_le.le,list.le], apply h.left },
-      { simp [has_le.le,list.le], split, apply le_refl,
+      { simp [has_le.le,list.le], split, exact le_rfl,
         apply zs_ih, } },
     { apply xs_ih h.right, } }
 end

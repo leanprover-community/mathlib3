@@ -253,8 +253,7 @@ do
       "Try `solve_by_elim { max_depth := N }` for `N > " ++ (to_string opt.max_depth) ++ "`\n" ++
       "or use `set_option trace.solve_by_elim true` to view the search."))
 
-open interactive lean.parser interactive.types
-local postfix `?`:9001 := optional
+setup_tactic_parser
 
 namespace interactive
 /--

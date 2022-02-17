@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 -/
 
-import data.matrix.notation
+import data.fin.vec_notation
 import group_theory.abelianization
 import set_theory.cardinal
 import group_theory.general_commutator
@@ -45,9 +45,8 @@ def derived_series : ℕ → subgroup G
 lemma derived_series_normal (n : ℕ) : (derived_series G n).normal :=
 begin
   induction n with n ih,
-  { exact subgroup.top_normal, },
-  { rw derived_series_succ,
-    exactI general_commutator_normal (derived_series G n) (derived_series G n), }
+  { exact (⊤ : subgroup G).normal_of_characteristic },
+  { exactI general_commutator_normal (derived_series G n) (derived_series G n) }
 end
 
 @[simp] lemma general_commutator_eq_commutator :
@@ -144,8 +143,7 @@ lemma is_solvable_of_comm {G : Type*} [hG : group G]
   (h : ∀ a b : G, a * b = b * a) : is_solvable G :=
 begin
   letI hG' : comm_group G := { mul_comm := h .. hG },
-  tactic.unfreeze_local_instances,
-  cases hG,
+  casesI hG,
   exact comm_group.is_solvable,
 end
 
@@ -185,17 +183,16 @@ begin
 end
 
 instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solvable G] :
-  is_solvable (quotient_group.quotient H) :=
+  is_solvable (G ⧸ H) :=
 solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
 
 lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
   (g : G →* G'') (hfg : g.ker ≤ f.range) [hG' : is_solvable G'] [hG'' : is_solvable G''] :
   is_solvable G :=
 begin
-  tactic.unfreeze_local_instances,
-  obtain ⟨n, hn⟩ := hG'',
+  obtain ⟨n, hn⟩ := id hG'',
   suffices : ∀ k : ℕ, derived_series G (n + k) ≤ (derived_series G' k).map f,
-  { obtain ⟨m, hm⟩ := hG',
+  { obtain ⟨m, hm⟩ := id hG',
     use n + m,
     specialize this m,
     rwa [hm, map_bot, le_bot_iff] at this },

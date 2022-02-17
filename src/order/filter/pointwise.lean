@@ -82,12 +82,12 @@ begin
   ext s, split,
   { rintros ⟨a, b, ⟨a₁, a₂, ha₁, ha₂, a₁a₂⟩, hb, ab⟩,
     refine ⟨a₁, a₂ * b, ha₁, mul_mem_mul ha₂ hb, _⟩, rw [← mul_assoc],
-    exact calc
+    calc
       a₁ * a₂ * b ⊆ a * b : mul_subset_mul a₁a₂ (subset.refl _)
       ...         ⊆ s     : ab },
   { rintros ⟨a, b, ha, ⟨b₁, b₂, hb₁, hb₂, b₁b₂⟩, ab⟩,
     refine ⟨a * b₁, b₂, mul_mem_mul ha hb₁, hb₂, _⟩, rw [mul_assoc],
-    exact calc
+    calc
       a * (b₁ * b₂) ⊆ a * b : mul_subset_mul (subset.refl _) b₁b₂
       ...           ⊆ s     : ab }
 end

@@ -43,7 +43,7 @@ Additionally, he has an axiom:
 * `MI` is derivable.
 
 In Lean, it is natural to treat the rules of inference and the axiom on an equal footing via an
-inductive data type `derivable` designed so that `derviable x` represents the notion that the string
+inductive data type `derivable` designed so that `derivable x` represents the notion that the string
 `x` can be derived from the axiom by the rules of inference. The axiom is represented as a
 nonrecursive constructor for `derivable`. This mirrors the translation of Peano's axiom '0 is a
 natural number' into the nonrecursive constructor `zero` of the inductive type `nat`.

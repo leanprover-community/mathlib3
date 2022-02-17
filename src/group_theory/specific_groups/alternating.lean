@@ -104,7 +104,7 @@ begin
     refine ⟨⟨π, mem_alternating_group.mp h⟩, subtype.val_injective _⟩,
     simpa only [subtype.val_eq_coe, subgroup.coe_mul, coe_inv, coe_mk] using hπ },
   { have h2 : 2 ≤ σ.supportᶜ.card,
-    { rw [finset.card_compl, nat.le_sub_left_iff_add_le σ.support.card_le_univ],
+    { rw [finset.card_compl, le_tsub_iff_left σ.support.card_le_univ],
       exact hσ },
     obtain ⟨a, ha, b, hb, ab⟩ := finset.one_lt_card.1 h2,
     refine is_conj_iff.2 ⟨⟨π * swap a b, _⟩, subtype.val_injective _⟩,
@@ -112,7 +112,7 @@ begin
     { simp only [←hπ, coe_mk, subgroup.coe_mul, subtype.val_eq_coe],
       have hd : disjoint (swap a b) σ,
       { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
-          finset.singleton_disjoint],
+          finset.disjoint_singleton_left],
         exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
       rw [mul_assoc π _ σ, hd.commute.eq, coe_inv, coe_mk],
       simp [mul_assoc] } }
@@ -309,7 +309,7 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
   -- We check that `2 < n ≤ 5`, so that `interval_cases` has a precise range to check.
   swap, { obtain ⟨m, hm⟩ := multiset.exists_cons_of_mem ng,
     rw [← sum_cycle_type, hm, multiset.sum_cons],
-    exact le_add_right (le_refl _) },
+    exact le_add_right le_rfl },
   interval_cases n, -- This breaks into cases `n = 3`, `n = 4`, `n = 5`.
   { -- If `n = 3`, then `g` has a 3-cycle in its decomposition, so `g^2` is a 3-cycle.
     -- `g^2` is in the normal closure of `g`, so that normal closure must be $A_5$.

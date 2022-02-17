@@ -200,7 +200,7 @@ lemma is_equivalent_iff_tendsto_one (hz : ∀ᶠ x in l, v x ≠ 0) :
 begin
   split,
   { intro hequiv,
-    have := hequiv.is_o.tendsto_0,
+    have := hequiv.is_o.tendsto_div_nhds_zero,
     simp only [pi.sub_apply, sub_div] at this,
     have key : tendsto (λ x, v x / v x) l (𝓝 1),
     { exact (tendsto_congr' $ hz.mono $ λ x hnz, @div_self _ _ (v x) hnz).mpr tendsto_const_nhds },
@@ -264,10 +264,10 @@ begin
   rw is_equivalent_iff_exists_eq_mul at *,
   rcases huv with ⟨φ, hφ, h⟩,
   rw ← inv_one,
-  refine ⟨λ x, (φ x)⁻¹, tendsto.inv' hφ (by norm_num) , _⟩,
+  refine ⟨λ x, (φ x)⁻¹, tendsto.inv₀ hφ (by norm_num) , _⟩,
   convert h.inv,
   ext,
-  simp [mul_inv']
+  simp [mul_inv₀]
 end
 
 lemma is_equivalent.div (htu : t ~[l] u) (hvw : v ~[l] w) :

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller
 -/
 import combinatorics.simple_graph.adj_matrix
-import linear_algebra.charpoly.coeff
+import linear_algebra.matrix.charpoly.coeff
 import data.int.modeq
 import data.zmod.basic
 import tactic.interval_cases
@@ -77,7 +77,7 @@ theorem adj_matrix_sq_of_ne {v w : V} (hvw : v ≠ w) :
 begin
   rw [sq, ← nat.cast_one, ← hG hvw],
   simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter,
-    and_comm],
+    and_comm, ← neighbor_finset_def],
 end
 
 /-- This calculation amounts to counting the number of length 3 walks between nonadjacent vertices.
@@ -274,7 +274,7 @@ begin
   { cases fintype.card V with n,
     { exact zero_le _, },
     { have : n = 0,
-      { rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at h,
+      { rw [nat.succ_sub_succ_eq_sub, tsub_zero] at h,
         linarith },
       subst n, } },
   use classical.arbitrary V,

@@ -31,7 +31,7 @@ universes u
 variables (K : Type u) [field K]
 
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
-@[derive [category, has_coe_to_sort]]
+@[derive [category, λ α, has_coe_to_sort α (Sort*)]]
 def FinVect := { V : Module.{u} K // finite_dimensional K V }
 
 namespace FinVect
@@ -57,9 +57,8 @@ variables (V : FinVect K)
 def FinVect_dual : FinVect K :=
 ⟨Module.of K (module.dual K V), subspace.module.dual.finite_dimensional⟩
 
-instance : has_coe_to_fun (FinVect_dual K V) :=
-{ F := λ v, V → K,
-  coe := λ v, by { change V →ₗ[K] K at v, exact v, }, }
+instance : has_coe_to_fun (FinVect_dual K V) (λ _, V → K) :=
+{ coe := λ v, by { change V →ₗ[K] K at v, exact v, } }
 
 open category_theory.monoidal_category
 

@@ -3,7 +3,6 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import data.nat.basic
 import algebra.group_power.order
 
 /-! # `nat.pow`
@@ -116,9 +115,12 @@ alias nat.sq_sub_sq ← nat.pow_two_sub_pow_two
 
 /-! ### `pow` and `mod` / `dvd` -/
 
-theorem mod_pow_succ {b : ℕ} (b_pos : 0 < b) (w m : ℕ) :
+theorem mod_pow_succ {b : ℕ} (w m : ℕ) :
   m % (b^succ w) = b * (m/b % b^w) + m % b :=
 begin
+  by_cases b_h : b = 0,
+  { simp [b_h, pow_succ], },
+  have b_pos := nat.pos_of_ne_zero b_h,
   apply nat.strong_induction_on m,
   clear m,
   intros p IH,
@@ -132,8 +134,7 @@ begin
   -- step: p ≥ b^succ w
   { -- Generate condition for induction hypothesis
     have h₂ : p - b^succ w < p,
-    { apply nat.sub_lt_of_pos_le _ _ (pow_pos b_pos _) h₁ },
-
+    { exact tsub_lt_self ((pow_pos b_pos _).trans_le h₁) (pow_pos b_pos _) },
     -- Apply induction
     rw [mod_eq_sub_mod h₁, IH _ h₂],
     -- Normalize goal and h1
@@ -157,7 +158,7 @@ begin
     { simp only [one_pow], },
     { have le := (pow_le_iff_le_right (nat.le_add_left _ _)).mp a,
       use (x+2)^(l-k),
-      rw [←pow_add, add_comm k, nat.sub_add_cancel le], } }
+      rw [←pow_add, add_comm k, tsub_add_cancel_of_le le], } }
 end
 
 /-- If `1 < x`, then `x^k` divides `x^l` if and only if `k` is at most `l`. -/
@@ -306,7 +307,7 @@ by have := @size_pos n; simp [pos_iff_ne_zero] at this;
 theorem size_pow {n : ℕ} : size (2^n) = n+1 :=
 le_antisymm
   (size_le.2 $ pow_lt_pow_of_lt_right dec_trivial (lt_succ_self _))
-  (lt_size.2 $ le_refl _)
+  (lt_size.2 $ le_rfl)
 
 theorem size_le_size {m n : ℕ} (h : m ≤ n) : size m ≤ size n :=
 size_le.2 $ lt_of_le_of_lt h (lt_size_self _)

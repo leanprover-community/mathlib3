@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import data.finset.intervals
+import data.nat.interval
 import data.polynomial.derivative
 import tactic.linarith
 
@@ -16,7 +16,7 @@ We define and prove some lemmas about iterated (formal) derivative for polynomia
 noncomputable theory
 
 open finset nat polynomial
-open_locale big_operators
+open_locale big_operators polynomial
 
 namespace polynomial
 universes u
@@ -24,17 +24,17 @@ variable {R : Type u}
 
 section semiring
 
-variables [semiring R] (r : R) (f p q : polynomial R) (n k : ℕ)
+variables [semiring R] (r : R) (f p q : R[X]) (n k : ℕ)
 
 /-- `iterated_deriv f n` is the `n`-th formal derivative of the polynomial `f` -/
-def iterated_deriv : polynomial R := derivative ^[n] f
+def iterated_deriv : R[X] := derivative ^[n] f
 
 @[simp] lemma iterated_deriv_zero_right : iterated_deriv f 0 = f := rfl
 
 lemma iterated_deriv_succ : iterated_deriv f (n + 1) = (iterated_deriv f n).derivative :=
 by rw [iterated_deriv, iterated_deriv, function.iterate_succ']
 
-@[simp] lemma iterated_deriv_zero_left : iterated_deriv (0 : polynomial R) n = 0 :=
+@[simp] lemma iterated_deriv_zero_left : iterated_deriv (0 : R[X]) n = 0 :=
 begin
   induction n with n hn,
   { exact iterated_deriv_zero_right _ },
@@ -56,16 +56,16 @@ begin
   { simp only [iterated_deriv_succ, ih, derivative_smul] }
 end
 
-@[simp] lemma iterated_deriv_X_zero : iterated_deriv (X : polynomial R) 0 = X :=
+@[simp] lemma iterated_deriv_X_zero : iterated_deriv (X : R[X]) 0 = X :=
 by simp only [iterated_deriv_zero_right]
 
-@[simp] lemma iterated_deriv_X_one : iterated_deriv (X : polynomial R) 1 = 1 :=
+@[simp] lemma iterated_deriv_X_one : iterated_deriv (X : R[X]) 1 = 1 :=
 by simp only [iterated_deriv, derivative_X, function.iterate_one]
 
-@[simp] lemma iterated_deriv_X (h : 1 < n) : iterated_deriv (X : polynomial R) n = 0 :=
+@[simp] lemma iterated_deriv_X (h : 1 < n) : iterated_deriv (X : R[X]) n = 0 :=
 begin
   induction n with n ih,
-  { exfalso, exact nat.not_lt_zero 1 h},
+  { exfalso, exact nat.not_lt_zero 1 h },
   { simp only [iterated_deriv_succ],
     by_cases H : n = 1,
     { rw H, simp only [iterated_deriv_X_one, derivative_one] },
@@ -75,7 +75,7 @@ end
 
 
 @[simp] lemma iterated_deriv_C_zero : iterated_deriv (C r) 0 = C r :=
-  by simp only [iterated_deriv_zero_right]
+by simp only [iterated_deriv_zero_right]
 
 @[simp] lemma iterated_deriv_C (h : 0 < n) : iterated_deriv (C r) n = 0 :=
 begin
@@ -87,19 +87,19 @@ begin
       rw [iterated_deriv_succ, ih h], simp only [derivative_zero] } }
 end
 
-@[simp] lemma iterated_deriv_one_zero : iterated_deriv (1 : polynomial R) 0 = 1 :=
+@[simp] lemma iterated_deriv_one_zero : iterated_deriv (1 : R[X]) 0 = 1 :=
 by simp only [iterated_deriv_zero_right]
 
-@[simp] lemma iterated_deriv_one : 0 < n → iterated_deriv (1 : polynomial R) n = 0 := λ h,
+@[simp] lemma iterated_deriv_one : 0 < n → iterated_deriv (1 : R[X]) n = 0 := λ h,
 begin
-  have eq1 : (1 : polynomial R) = C 1 := by simp only [ring_hom.map_one],
+  have eq1 : (1 : R[X]) = C 1 := by simp only [ring_hom.map_one],
   rw eq1, exact iterated_deriv_C _ _ h,
 end
 
 end semiring
 
 section ring
-variables [ring R] (p q : polynomial R) (n : ℕ)
+variables [ring R] (p q : R[X]) (n : ℕ)
 
 @[simp] lemma iterated_deriv_neg : iterated_deriv (-p) n = - iterated_deriv p n :=
 begin
@@ -117,18 +117,18 @@ end ring
 
 section comm_semiring
 variable [comm_semiring R]
-variables (f p q : polynomial R) (n k : ℕ)
+variables (f p q : R[X]) (n k : ℕ)
 
 lemma coeff_iterated_deriv_as_prod_Ico :
   ∀ m : ℕ, (iterated_deriv f k).coeff m = (∏ i in Ico m.succ (m + k.succ), i) * (f.coeff (m+k)) :=
 begin
   induction k with k ih,
-  { simp only [add_zero, forall_const, one_mul, Ico.self_eq_empty, eq_self_iff_true,
+  { simp only [add_zero, forall_const, one_mul, Ico_self, eq_self_iff_true,
       iterated_deriv_zero_right, prod_empty] },
   { intro m, rw [iterated_deriv_succ, coeff_derivative, ih (m+1), mul_right_comm],
     apply congr_arg2,
     { have set_eq : (Ico m.succ (m + k.succ.succ)) = (Ico (m + 1).succ (m + 1 + k.succ)) ∪ {m+1},
-      { rw [union_comm, ←insert_eq, Ico.insert_succ_bot, add_succ, add_succ, add_succ _ k,
+      { rw [union_comm, ←insert_eq, Ico_insert_succ_left, add_succ, add_succ, add_succ _ k,
             ←succ_eq_add_one, succ_add],
         rw succ_eq_add_one,
         linarith },
@@ -136,8 +136,8 @@ begin
       apply congr_arg2,
       { refl },
       { simp only [prod_singleton], norm_cast },
-      { simp only [succ_pos', disjoint_singleton, and_true, lt_add_iff_pos_right, not_le, Ico.mem],
-        exact lt_add_one (m + 1) } },
+      { rw [disjoint_singleton_right, mem_Ico],
+        exact λ h, (nat.lt_succ_self _).not_le h.1 } },
     { exact congr_arg _ (succ_add m k) } },
 end
 
@@ -153,7 +153,7 @@ begin
   ... = f.coeff (m + k.succ) * (∏ i in range k, ↑(m + k.succ - i)) * ↑(m + 1) :
     by push_cast
   ... = f.coeff (m + k.succ) * (∏ i in range k.succ, ↑(m + k.succ - i)) :
-    by rw [prod_range_succ, nat.add_sub_assoc k.le_succ, succ_sub le_rfl, nat.sub_self, mul_assoc]
+    by rw [prod_range_succ, add_tsub_assoc_of_le k.le_succ, succ_sub le_rfl, tsub_self, mul_assoc]
 end
 
 lemma iterated_deriv_eq_zero_of_nat_degree_lt (h : f.nat_degree < n) : iterated_deriv f n = 0 :=
@@ -198,7 +198,7 @@ begin
     by simp_rw [choose_succ_succ, succ_sub_succ, cast_add, C.map_add, add_mul, sum_add_distrib]
   ... = ∑ (k : ℕ) in range n.succ.succ,
           C ↑(n.succ.choose k) * p.iterated_deriv (n.succ - k) * q.iterated_deriv k :
-    by rw [sum_range_succ' _ n.succ, choose_zero_right, nat.sub_zero],
+    by rw [sum_range_succ' _ n.succ, choose_zero_right, tsub_zero],
 
   congr,
   refine (sum_range_succ' _ _).trans (congr_arg2 (+) _ _),
@@ -206,8 +206,8 @@ begin
     refine sum_congr rfl (λ k hk, _),
     rw mem_range at hk,
     congr,
-    rw [← nat.sub_add_comm (nat.succ_le_of_lt hk), nat.succ_sub_succ] },
-  { rw [choose_zero_right, nat.sub_zero] },
+    rw [tsub_add_eq_add_tsub (nat.succ_le_of_lt hk), nat.succ_sub_succ] },
+  { rw [choose_zero_right, tsub_zero] },
 end
 
 end comm_semiring

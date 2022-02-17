@@ -3,9 +3,9 @@ Copyright (c) 2020 Kevin Kappelmann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
+import algebra.order.floor
 import algebra.continued_fractions.basic
 import algebra.order.field
-import algebra.archimedean
 /-!
 # Computable Continued Fractions
 
@@ -61,7 +61,6 @@ numerics, number theory, approximations, fractions
 -/
 
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf
 
 -- Fix a carrier `K`.
 variable (K : Type*)
@@ -81,7 +80,7 @@ namespace int_fract_pair
 instance [has_repr K] : has_repr (int_fract_pair K) :=
 ⟨λ p, "(b : " ++ (repr p.b) ++ ", fract : " ++ (repr p.fr) ++ ")"⟩
 
-instance inhabited [inhabited K] : inhabited (int_fract_pair K) := ⟨⟨0, (default _)⟩⟩
+instance inhabited [inhabited K] : inhabited (int_fract_pair K) := ⟨⟨0, default⟩⟩
 
 /--
 Maps a function `f` on the fractional components of a given pair.
@@ -111,7 +110,7 @@ end coe
 variables [linear_ordered_field K] [floor_ring K]
 
 /-- Creates the integer and fractional part of a value `v`, i.e. `⟨⌊v⌋, v - ⌊v⌋⟩`. -/
-protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, fract v⟩
+protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, int.fract v⟩
 
 /--
 Creates the stream of integer and fractional parts of a value `v` needed to obtain the continued
@@ -170,7 +169,8 @@ process stops when the fractional part `v - ⌊v⌋` hits 0 at some step.
 The implementation uses `int_fract_pair.stream` to obtain the partial denominators of the continued
 fraction. Refer to said function for more details about the computation process.
 -/
-protected def of [linear_ordered_field K] [floor_ring K] (v : K) : gcf K :=
+protected def of [linear_ordered_field K] [floor_ring K] (v : K) :
+  generalized_continued_fraction K :=
 let ⟨h, s⟩ := int_fract_pair.seq1 v in -- get the sequence of integer and fractional parts.
 ⟨ h.b, -- the head is just the first integer part
   s.map (λ p, ⟨1, p.b⟩) ⟩ -- the sequence consists of the remaining integer parts as the partial

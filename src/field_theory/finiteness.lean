@@ -13,7 +13,7 @@ import linear_algebra.dimension
 
 universes u v
 
-open_locale classical
+open_locale classical cardinal
 open cardinal submodule module function
 
 namespace is_noetherian
@@ -26,9 +26,9 @@ variables [is_noetherian_ring K]
 
 /--
 A module over a division ring is noetherian if and only if
-its dimension (as a cardinal) is strictly less than the first infinite cardinal `omega`.
+its dimension (as a cardinal) is strictly less than the first infinite cardinal `ω`.
 -/
-lemma iff_dim_lt_omega : is_noetherian K V ↔ module.rank K V < omega.{v} :=
+lemma iff_dim_lt_omega : is_noetherian K V ↔ module.rank K V < ω :=
 begin
   let b := basis.of_vector_space K V,
   rw [← b.mk_eq_dim'', lt_omega_iff_finite],
@@ -45,8 +45,8 @@ end
 variables (K V)
 
 /-- The dimension of a noetherian module over a division ring, as a cardinal,
-is strictly less than the first infinite cardinal `omega`. -/
-lemma dim_lt_omega : ∀ [is_noetherian K V], module.rank K V < omega.{v} :=
+is strictly less than the first infinite cardinal `ω`. -/
+lemma dim_lt_omega : ∀ [is_noetherian K V], module.rank K V < ω :=
 is_noetherian.iff_dim_lt_omega.1
 
 variables {K V}

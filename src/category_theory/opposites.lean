@@ -3,8 +3,23 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison
 -/
-import category_theory.types
 import category_theory.equivalence
+
+/-!
+# Opposite categories
+
+We provide a category instance on `Cᵒᵖ`.
+The morphisms `X ⟶ Y` are defined to be the morphisms `unop Y ⟶ unop X` in `C`.
+
+Here `Cᵒᵖ` is an irreducible typeclass synonym for `C`
+(it is the same one used in the algebra library).
+
+We also provide various mechanisms for constructing opposite morphisms, functors,
+and natural transformations.
+
+Unfortunately, because we do not have a definitional equality `op (op X) = X`,
+there are quite a few variations that are needed in practice.
+-/
 
 universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
@@ -78,6 +93,11 @@ def op_op_equivalence : Cᵒᵖᵒᵖ ≌ C :=
 
 end
 
+/-- If `f` is an isomorphism, so is `f.op` -/
+instance is_iso_op {X Y : C} (f : X ⟶ Y) [is_iso f] : is_iso f.op :=
+⟨⟨(inv f).op,
+  ⟨quiver.hom.unop_inj (by tidy), quiver.hom.unop_inj (by tidy)⟩⟩⟩
+
 /--
 If `f.op` is an isomorphism `f` must be too.
 (This cannot be an instance as it would immediately loop!)
@@ -85,6 +105,21 @@ If `f.op` is an isomorphism `f` must be too.
 lemma is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
 ⟨⟨(inv (f.op)).unop,
   ⟨quiver.hom.op_inj (by simp), quiver.hom.op_inj (by simp)⟩⟩⟩
+
+lemma is_iso_op_iff {X Y : C} (f : X ⟶ Y) : is_iso f.op ↔ is_iso f :=
+⟨λ hf, by exactI is_iso_of_op _, λ hf, by exactI infer_instance⟩
+
+lemma is_iso_unop_iff {X Y : Cᵒᵖ} (f : X ⟶ Y) : is_iso f.unop ↔ is_iso f :=
+by rw [← is_iso_op_iff f.unop, quiver.hom.op_unop]
+
+instance is_iso_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso f] : is_iso f.unop :=
+(is_iso_unop_iff _).2 infer_instance
+
+@[simp] lemma op_inv {X Y : C} (f : X ⟶ Y) [is_iso f] : (inv f).op = inv f.op :=
+by { ext, rw [← op_comp, is_iso.inv_hom_id, op_id] }
+
+@[simp] lemma unop_inv {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso f] : (inv f).unop = inv f.unop :=
+by { ext, rw [← unop_comp, is_iso.inv_hom_id, unop_id] }
 
 namespace functor
 

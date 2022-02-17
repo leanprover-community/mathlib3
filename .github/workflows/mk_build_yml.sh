@@ -48,7 +48,7 @@ on:
 
 name: continuous integration (staging)
 EOF
-  include 1 self-hosted == "" self-hosted
+  include 1 bors == "" bors
 }
 
 build_fork_yml() {

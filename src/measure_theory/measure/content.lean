@@ -12,7 +12,7 @@ import topology.compacts
 # Contents
 
 In this file we work with *contents*. A content `λ` is a function from a certain class of subsets
-(such as the the compact subsets) to `ℝ≥0` that is
+(such as the compact subsets) to `ℝ≥0` that is
 * additive: If `K₁` and `K₂` are disjoint sets in the domain of `λ`,
   then `λ(K₁ ∪ K₂) = λ(K₁) + λ(K₂)`;
 * subadditive: If `K₁` and `K₂` are in the domain of `λ`, then `λ(K₁ ∪ K₂) ≤ λ(K₁) + λ(K₂)`;
@@ -48,7 +48,7 @@ We prove that, on a locally compact space, the measure `μ.measure` is regular.
 * <https://en.wikipedia.org/wiki/Content_(measure_theory)>
 -/
 
-universe variables u v w
+universes u v w
 noncomputable theory
 
 open set topological_space
@@ -76,7 +76,7 @@ instance : inhabited (content G) :=
 /-- Although the `to_fun` field of a content takes values in `ℝ≥0`, we register a coercion to
 functions taking values in `ℝ≥0∞` as most constructions below rely on taking suprs and infs, which
 is more convenient in a complete lattice, and aim at constructing a measure. -/
-instance : has_coe_to_fun (content G) := ⟨_, λ μ s, (μ.to_fun s : ℝ≥0∞)⟩
+instance : has_coe_to_fun (content G) (λ _, compacts G → ℝ≥0∞) := ⟨λ μ s, μ.to_fun s⟩
 
 namespace content
 
@@ -144,7 +144,7 @@ begin
   have := ennreal.sub_lt_self hU h.ne_bot h'ε,
   conv at this {to_rhs, rw inner_content }, simp only [lt_supr_iff] at this,
   rcases this with ⟨U, h1U, h2U⟩, refine ⟨U, h1U, _⟩,
-  rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U
+  rw [← tsub_le_iff_right], exact le_of_lt h2U
 end
 
 /-- The inner content of a supremum of opens is at most the sum of the individual inner
@@ -179,7 +179,7 @@ by { have := μ.inner_content_Sup_nat (λ i, ⟨U i, hU i⟩), rwa [opens.supr_d
 
 lemma inner_content_comap (f : G ≃ₜ G)
   (h : ∀ ⦃K : compacts G⦄, μ (K.map f f.continuous) = μ K) (U : opens G) :
-  μ.inner_content (U.comap f.continuous) = μ.inner_content U :=
+  μ.inner_content (opens.comap f.to_continuous_map U) = μ.inner_content U :=
 begin
   refine supr_congr _ ((compacts.equiv f).surjective) _,
   intro K, refine supr_congr_Prop image_subset_iff _,
@@ -190,7 +190,8 @@ end
 @[to_additive]
 lemma is_mul_left_invariant_inner_content [group G] [topological_group G]
   (h : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K) (g : G)
-  (U : opens G) : μ.inner_content (U.comap $ continuous_mul_left g) = μ.inner_content U :=
+  (U : opens G) :
+  μ.inner_content (opens.comap (homeomorph.mul_left g).to_continuous_map U) = μ.inner_content U :=
 by convert μ.inner_content_comap (homeomorph.mul_left g) (λ K, h g) U
 
 @[to_additive]
@@ -203,7 +204,7 @@ begin
   rcases compact_covered_by_mul_left_translates K.2 this with ⟨s, hs⟩,
   suffices : μ K ≤ s.card * μ.inner_content U,
   { exact (ennreal.mul_pos_iff.mp $ hK.bot_lt.trans_le this).2 },
-  have : K.1 ⊆ ↑⨆ (g ∈ s), U.comap $ continuous_mul_left g,
+  have : K.1 ⊆ ↑⨆ (g ∈ s), opens.comap (homeomorph.mul_left g).to_continuous_map U,
   { simpa only [opens.supr_def, opens.coe_comap, subtype.coe_mk] },
   refine (μ.le_inner_content _ _ this).trans _,
   refine (rel_supr_sum (μ.inner_content) (μ.inner_content_empty) (≤)
@@ -338,7 +339,7 @@ begin
 end
 
 /-- The measure induced by the outer measure coming from a content, on the Borel sigma-algebra. -/
-def measure : measure G := μ.outer_measure.to_measure μ.borel_le_caratheodory
+protected def measure : measure G := μ.outer_measure.to_measure μ.borel_le_caratheodory
 
 lemma measure_apply {s : set G} (hs : measurable_set s) : μ.measure s = μ.outer_measure s :=
 to_measure_apply _ _ hs
@@ -346,24 +347,23 @@ to_measure_apply _ _ hs
 /-- In a locally compact space, any measure constructed from a content is regular. -/
 instance regular [locally_compact_space G] : μ.measure.regular :=
 begin
-  split,
-  { intros K hK,
+  haveI : μ.measure.outer_regular,
+  { refine ⟨λ A hA r (hr : _ < _), _⟩,
+    rw [μ.measure_apply hA, outer_measure_eq_infi] at hr,
+    simp only [infi_lt_iff] at hr,
+    rcases hr with ⟨U, hUo, hAU, hr⟩,
+    rw [← μ.outer_measure_of_is_open U hUo, ← μ.measure_apply hUo.measurable_set] at hr,
+    exact ⟨U, hAU, hUo, hr⟩ },
+  haveI : is_finite_measure_on_compacts μ.measure,
+  { refine ⟨λ K hK, _⟩,
     rw [measure_apply _ hK.measurable_set],
     exact μ.outer_measure_lt_top_of_is_compact hK },
-  { intros A hA,
-    rw [measure_apply _ hA, outer_measure_eq_infi],
-    refine binfi_le_binfi _,
-    intros U hU,
-    refine infi_le_infi _,
-    intro h2U,
-    rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU],
-    refl' },
-  { intros U hU,
-    rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU],
-    dsimp only [inner_content], refine bsupr_le (λ K hK, _),
-    refine le_supr_of_le K.1 _, refine le_supr_of_le K.2 _, refine le_supr_of_le hK _,
-    rw [measure_apply _ K.2.measurable_set],
-    apply le_outer_measure_compacts },
+  refine ⟨λ U hU r hr, _⟩,
+  rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU] at hr,
+  simp only [inner_content, lt_supr_iff] at hr,
+  rcases hr with ⟨K, hKU, hr⟩,
+  refine ⟨K.1, hKU, K.2, hr.trans_le _⟩,
+  exact (μ.le_outer_measure_compacts K).trans (le_to_measure_apply _ _ _)
 end
 
 end content

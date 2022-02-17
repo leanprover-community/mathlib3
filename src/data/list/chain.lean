@@ -214,6 +214,12 @@ theorem chain'.cons' {x} :
 theorem chain'_cons' {x l} : chain' R (x :: l) ↔ (∀ y ∈ head' l, R x y) ∧ chain' R l :=
 ⟨λ h, ⟨h.rel_head', h.tail⟩, λ ⟨h₁, h₂⟩, h₂.cons' h₁⟩
 
+theorem chain'.drop : ∀ (n) {l} (h : chain' R l), chain' R (drop n l)
+| 0       _             h := h
+| _       []            _ := by {rw drop_nil, exact chain'_nil}
+| (n + 1) [a]           _ := by {unfold drop, rw drop_nil, exact chain'_nil}
+| (n + 1) (a :: b :: l) h := chain'.drop n (chain'_cons'.mp h).right
+
 theorem chain'.append : ∀ {l₁ l₂ : list α} (h₁ : chain' R l₁) (h₂ : chain' R l₂)
   (h : ∀ (x ∈ l₁.last') (y ∈ l₂.head'), R x y),
   chain' R (l₁ ++ l₂)

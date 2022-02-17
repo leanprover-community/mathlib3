@@ -41,7 +41,7 @@ profinite
 
 -/
 
-universe variable u
+universe u
 
 open category_theory
 
@@ -65,7 +65,7 @@ instance category : category Profinite := induced_category.category to_CompHaus
 instance concrete_category : concrete_category Profinite := induced_category.concrete_category _
 instance has_forget₂ : has_forget₂ Profinite Top := induced_category.has_forget₂ _
 
-instance : has_coe_to_sort Profinite := ⟨Type*, λ X, X.to_CompHaus⟩
+instance : has_coe_to_sort Profinite Type* := ⟨λ X, X.to_CompHaus⟩
 instance {X : Profinite} : totally_disconnected_space X := X.is_totally_disconnected
 
 -- We check that we automatically infer that Profinite sets are compact and Hausdorff.
@@ -96,7 +96,6 @@ def Profinite.to_Top : Profinite ⥤ Top := forget₂ _ _
 rfl
 
 section Profinite
-local attribute [instance] connected_component_setoid
 
 /--
 (Implementation) The object part of the connected_components functor from compact Hausdorff spaces
@@ -118,13 +117,11 @@ spaces in compact Hausdorff spaces.
 -/
 def Profinite.to_CompHaus_equivalence (X : CompHaus.{u}) (Y : Profinite.{u}) :
   (CompHaus.to_Profinite_obj X ⟶ Y) ≃ (X ⟶ Profinite_to_CompHaus.obj Y) :=
-{ to_fun := λ f,
-  { to_fun := f.1 ∘ quotient.mk,
-    continuous_to_fun := continuous.comp f.2 (continuous_quotient_mk) },
+{ to_fun := λ f, f.comp ⟨quotient.mk', continuous_quotient_mk⟩,
   inv_fun := λ g,
     { to_fun := continuous.connected_components_lift g.2,
       continuous_to_fun := continuous.connected_components_lift_continuous g.2},
-  left_inv := λ f, continuous_map.ext $ λ x, quotient.induction_on x $ λ a, rfl,
+  left_inv := λ f, continuous_map.ext $ connected_components.surjective_coe.forall.2 $ λ a, rfl,
   right_inv := λ f, continuous_map.ext $ λ x, rfl }
 
 /--
@@ -225,7 +222,7 @@ noncomputable def iso_of_bijective (bij : function.bijective f) : X ≅ Y :=
 by letI := Profinite.is_iso_of_bijective f bij; exact as_iso f
 
 instance forget_reflects_isomorphisms : reflects_isomorphisms (forget Profinite) :=
-⟨by introsI A B f hf; exact Profinite.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
+⟨by introsI A B f hf; exact Profinite.is_iso_of_bijective _ ((is_iso_iff_bijective f).mp hf)⟩
 
 /-- Construct an isomorphism from a homeomorphism. -/
 @[simps hom inv] def iso_of_homeo (f : X ≃ₜ Y) : X ≅ Y :=

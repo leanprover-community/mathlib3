@@ -142,7 +142,7 @@ begin
   have h' : (x + y) * (x + y) = 4*z*z + 4*z + 1, { rw h, ring, },
   rw [← add_sq_add_sq_sub, h', add_le_add_iff_left],
   suffices : 0 < (x - y) * (x - y), { apply int.add_one_le_of_lt this, },
-  apply mul_self_pos, rw sub_ne_zero, apply int.ne_of_odd_add ⟨z, h⟩,
+  rw [mul_self_pos, sub_ne_zero], apply int.ne_of_odd_add ⟨z, h⟩,
 end
 
 section
@@ -174,7 +174,7 @@ begin
     { suffices : p.judge₁ = p.judge₂, { simp [this], }, finish, }, },
   have hst' : (s \ t).card = 2*z + 1, { rw [hst, finset.diag_card, ← hJ], refl, },
   rw [finset.filter_and, ← finset.sdiff_sdiff_self_left s t, finset.card_sdiff],
-  { rw hst', rw add_assoc at hs, apply nat.le_sub_right_of_add_le hs, },
+  { rw hst', rw add_assoc at hs, apply le_tsub_of_add_le_right hs, },
   { apply finset.sdiff_subset, },
 end
 

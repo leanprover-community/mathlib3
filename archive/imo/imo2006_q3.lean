@@ -64,7 +64,7 @@ le_of_sub_nonneg $
 lemma zero_lt_32 : (0 : ℝ) < 32 := by norm_num
 
 theorem subst_wlog {x y z s : ℝ} (hxy : 0 ≤ x * y) (hxyz : x + y + z = 0) :
-  32 * abs (x * y * z * s) ≤ sqrt 2 * (x^2 + y^2 + z^2 + s^2)^2 :=
+  32 * |x * y * z * s| ≤ sqrt 2 * (x^2 + y^2 + z^2 + s^2)^2 :=
 have hz : (x + y)^2 = z^2 := neg_eq_of_add_eq_zero hxyz ▸ (neg_sq _).symm,
 have hs : 0 ≤ 2 * s ^ 2 := mul_nonneg zero_le_two (sq_nonneg s),
 have this : _ :=
@@ -76,7 +76,7 @@ have this : _ :=
             (add_nonneg (mul_nonneg zero_lt_three.le (sq_nonneg _)) hs)
             (add_le_add_right rhs_ineq _) _,
 le_of_pow_le_pow _ (mul_nonneg (sqrt_nonneg _) (sq_nonneg _)) nat.succ_pos' $
-  calc  (32 * abs (x * y * z * s)) ^ 2
+  calc  (32 * |x * y * z * s|) ^ 2
       = 32 * ((2 * s^2) * (16 * x^2 * y^2 * (x + y)^2)) :
           by rw [mul_pow, sq_abs, hz]; ring
   ... ≤ 32 * ((2 * (x^2 + y^2 + (x + y)^2) + 2 * s^2)^4 / 4^4) :
@@ -88,7 +88,7 @@ le_of_pow_le_pow _ (mul_nonneg (sqrt_nonneg _) (sq_nonneg _)) nat.succ_pos' $
 
 /-- Proof that `M = 9 * sqrt 2 / 32` works with the substitution. -/
 theorem subst_proof₁ (x y z s : ℝ) (hxyz : x + y + z = 0) :
-  abs (x * y * z * s) ≤ sqrt 2 / 32 * (x^2 + y^2 + z^2 + s^2)^2 :=
+  |x * y * z * s| ≤ sqrt 2 / 32 * (x^2 + y^2 + z^2 + s^2)^2 :=
 begin
   wlog h' := mul_nonneg_of_three x y z using [x y z, y z x, z x y] tactic.skip,
   { rw [div_mul_eq_mul_div, le_div_iff' zero_lt_32],
@@ -109,7 +109,7 @@ lemma lhs_identity (a b c : ℝ) :
 by ring
 
 theorem proof₁ {a b c : ℝ} :
-  abs (a * b * (a^2 - b^2) + b * c * (b^2 - c^2) + c * a * (c^2 - a^2)) ≤
+  |a * b * (a^2 - b^2) + b * c * (b^2 - c^2) + c * a * (c^2 - a^2)| ≤
   9 * sqrt 2 / 32 * (a^2 + b^2 + c^2)^2 :=
 calc _ = _ : congr_arg _ $ lhs_identity a b c
    ... ≤ _ : subst_proof₁ (a - b) (b - c) (c - a) (-(a + b + c)) (by ring)
@@ -117,7 +117,7 @@ calc _ = _ : congr_arg _ $ lhs_identity a b c
 
 theorem proof₂ (M : ℝ)
   (h : ∀ a b c : ℝ,
-    abs (a * b * (a^2 - b^2) + b * c * (b^2 - c^2) + c * a * (c^2 - a^2)) ≤
+    |a * b * (a^2 - b^2) + b * c * (b^2 - c^2) + c * a * (c^2 - a^2)| ≤
     M * (a^2 + b^2 + c^2)^2) :
   9 * sqrt 2 / 32 ≤ M :=
 begin
@@ -137,7 +137,7 @@ end
 
 theorem imo2006_q3 (M : ℝ) :
   (∀ a b c : ℝ,
-    abs (a * b * (a^2 - b^2) + b * c * (b^2 - c^2) + c * a * (c^2 - a^2)) ≤
+    |a * b * (a^2 - b^2) + b * c * (b^2 - c^2) + c * a * (c^2 - a^2)| ≤
     M * (a^2 + b^2 + c^2)^2) ↔
   9 * sqrt 2 / 32 ≤ M :=
 ⟨proof₂ M, λ h _ _ _, le_trans proof₁ $ mul_le_mul_of_nonneg_right h $ sq_nonneg _⟩

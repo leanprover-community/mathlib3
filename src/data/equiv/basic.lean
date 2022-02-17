@@ -512,8 +512,8 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
 ⟨λ f, punit.star, λ u f, punit.star,
   λ f, by { funext x, cases f x, refl }, λ u, by { cases u, reflexivity }⟩
 
-/-- If `α` is `subsingleton` and `a : α`, then the type of dependent functions `Π (i : α), f
-i` is equivalent to `f i`. -/
+/-- If `α` is `subsingleton` and `a : α`, then the type of dependent functions `Π (i : α), β
+i` is equivalent to `β i`. -/
 @[simps]
 def Pi_subsingleton {α} (β : α → Sort*) [subsingleton α] (a : α) : (Π a', β a') ≃ β a :=
 { to_fun := eval a,
@@ -521,14 +521,9 @@ def Pi_subsingleton {α} (β : α → Sort*) [subsingleton α] (a : α) : (Π a'
   left_inv := λ f, funext $ λ b, by { rw subsingleton.elim b a, reflexivity },
   right_inv := λ b, rfl }
 
-/-- If `α` has a unique term, then the type of dependent functions `Π (i : α), f
-i` is equivalent to `f unique`. -/
-def Pi_unique (α) (f : α → Sort*) [unique α] : (Π (i : α), f i) ≃ f default :=
-Pi_subsingleton f default
-
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
 @[simps { fully_applied := ff }] def fun_unique (α β) [unique α] : (α → β) ≃ β :=
-Pi_unique _ _
+Pi_subsingleton _ default
 
 /-- The sort of maps from `punit` is equivalent to the codomain. -/
 def punit_arrow_equiv (α : Sort*) : (punit.{u} → α) ≃ α :=
@@ -1531,19 +1526,24 @@ end subtype_equiv_codomain
 
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
 @[simps apply]
-noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=
+noncomputable def of_bijective (f : α → β) (hf : bijective f) : α ≃ β :=
 { to_fun := f,
   inv_fun := function.surj_inv hf.surjective,
   left_inv := function.left_inverse_surj_inv hf,
   right_inv := function.right_inverse_surj_inv _}
 
-lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (x : β) :
+lemma of_bijective_apply_symm_apply (f : α → β) (hf : bijective f) (x : β) :
   f ((of_bijective f hf).symm x) = x :=
 (of_bijective f hf).apply_symm_apply x
 
-@[simp] lemma of_bijective_symm_apply_apply {α β} (f : α → β) (hf : bijective f) (x : α) :
+@[simp] lemma of_bijective_symm_apply_apply (f : α → β) (hf : bijective f) (x : α) :
   (of_bijective f hf).symm (f x) = x :=
 (of_bijective f hf).symm_apply_apply x
+
+instance : can_lift (α → β) (α ≃ β) :=
+{ coe := coe_fn,
+  cond := bijective,
+  prf := λ f hf, ⟨of_bijective f hf, rfl⟩ }
 
 section
 

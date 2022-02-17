@@ -86,9 +86,8 @@ lemma is_definable.union {f g : set (α → M)} (hf : L.is_definable A f) (hg : 
   rcases hg.exists_formula with ⟨θ, hθ⟩,
   refine ⟨φ ⊔ θ, _⟩,
   ext,
-  simp only [hφ, hθ, set.sup_eq_union, realize_not, realize_bounded_formula,
-    bounded_formula.has_sup_sup, set.mem_union_eq, set.mem_set_of_eq],
-  tauto,
+  rw [hφ, hθ, set.mem_set_of_eq, formula.realize_sup, set.mem_union_eq, set.mem_set_of_eq,
+    set.mem_set_of_eq],
 end⟩
 
 @[simp]

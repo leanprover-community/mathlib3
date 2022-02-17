@@ -231,7 +231,7 @@ le_trans (le_abs_self _) (abs_norm_sub_norm_le g h)
 lemma dist_norm_norm_le (g h : E) : dist ∥g∥ ∥h∥ ≤ ∥g - h∥ :=
 abs_norm_sub_norm_le g h
 
-/-- The direct path from `0` to v` is shorter than the path with `u` inserted in between. -/
+/-- The direct path from `0` to `v` is shorter than the path with `u` inserted in between. -/
 lemma norm_le_insert (u v : E) : ∥v∥ ≤ ∥u∥ + ∥u - v∥ :=
 calc ∥v∥ = ∥u - (u - v)∥ : by abel
 ... ≤ ∥u∥ + ∥u - v∥ : norm_sub_le u _

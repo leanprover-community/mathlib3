@@ -494,18 +494,6 @@ variables [has_continuous_add M₂]
 instance : has_add (M₁ →SL[σ₁₂] M₂) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
-lemma continuous_nsmul (n : ℕ) : continuous (λ (x : M₂), n • x) :=
-begin
-  induction n with n ih,
-  { simp [continuous_const] },
-  { simp [nat.succ_eq_add_one, add_smul], exact ih.add continuous_id }
-end
-
-@[continuity]
-lemma continuous.nsmul {α : Type*} [topological_space α] {n : ℕ} {f : α → M₂} (hf : continuous f) :
-  continuous (λ (x : α), n • (f x)) :=
-(continuous_nsmul n).comp hf
-
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp, norm_cast] lemma coe_add : (((f + g) : M₁ →SL[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂) = f + g := rfl
 @[norm_cast] lemma coe_add' : (((f + g) : M₁ →SL[σ₁₂] M₂) : M₁ → M₂) = (f : M₁ → M₂) + g := rfl

@@ -156,9 +156,10 @@ variables (ι) (𝕜) (E)
 
 /-- The vector given in euclidean space by being `1 : 𝕜` at coordinate `i : ι` and `0 : 𝕜` at
 all other coordinates. -/
-def euclidean_space.single {𝕜 : Type*} {ι : Type*} [fintype ι] [decidable_eq ι] [is_R_or_C 𝕜] (i : ι) (a : 𝕜) :
- euclidean_space 𝕜 ι :=
-  pi.single i a
+def euclidean_space.single {𝕜 : Type*} {ι : Type*} [fintype ι] [decidable_eq ι] [is_R_or_C 𝕜]
+  (i : ι) (a : 𝕜) :
+  euclidean_space 𝕜 ι :=
+    pi.single i a
 
 @[simp] theorem euclidean_space.single_apply {𝕜 : Type*} {ι : Type*} [fintype ι] [decidable_eq ι]
   [is_R_or_C 𝕜] (i : ι) (a : 𝕜) (j : ι) :
@@ -168,11 +169,13 @@ begin
   rw ← pi.single_apply i a j,
 end
 
-lemma euclidean_space.inner_single_left [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
+lemma euclidean_space.inner_single_left [decidable_eq ι]
+  (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=
 by simp [apply_ite conj]
 
-lemma euclidean_space.inner_single_right [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
+lemma euclidean_space.inner_single_right [decidable_eq ι]
+  (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪v, euclidean_space.single i (a : 𝕜)⟫ =  a * conj (v i) :=
 by simp [apply_ite conj, mul_comm]
 
@@ -217,7 +220,8 @@ begin
   simp only [mul_boole, map_one],
 end
 
-protected lemma sum_repr_symm [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
+protected lemma sum_repr_symm [decidable_eq ι]
+  (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
   ∑ i , v i • b i = (b.repr.symm v) :=
 begin
   have : b.repr (∑ i, v i • b i) = v :=
@@ -293,7 +297,8 @@ basis.to_orthonormal_basis (basis.mk (orthonormal.linear_independent hon) hsp)
   (by rwa basis.coe_mk)
 
 @[simp]
-protected lemma coe_mk [decidable_eq ι] (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :
+protected lemma coe_mk [decidable_eq ι]
+  (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :
   ⇑(orthonormal_basis.mk hon hsp) = v :=
 by rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
 

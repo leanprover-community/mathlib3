@@ -148,8 +148,7 @@ instance (R : Type*) [semiring R] [module R 𝕜] [smul_comm_class 𝕜 R 𝕜]
 continuous_linear_map.module
 
 instance (M : Type*) [monoid M] [distrib_mul_action M 𝕜] [smul_comm_class 𝕜 M 𝕜]
-  [topological_space M] [has_continuous_const_smul M 𝕜] :
-  has_continuous_const_smul M (weak_dual 𝕜 E) :=
+  [has_continuous_const_smul M 𝕜] : has_continuous_const_smul M (weak_dual 𝕜 E) :=
 ⟨λ m, continuous_induced_rng $ (coe_fn_continuous 𝕜 E).const_smul m⟩
 
 /-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with

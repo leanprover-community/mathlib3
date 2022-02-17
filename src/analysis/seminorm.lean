@@ -533,10 +533,12 @@ nonneg_of_mul_nonneg_left h zero_lt_two
 
 lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
+/-- The direct path from 0 to y is shorter than the path with x "inserted" in between. -/
 lemma le_insert : p y ≤ p x + p (x - y) :=
 calc p y = p (x - (x - y)) : by rw sub_sub_cancel
 ... ≤ p x + p (x - y) : p.sub_le _ _
 
+/-- The direct path from 0 to y is shorter than the path with x "inserted" in between. -/
 lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
 
 instance : order_bot (seminorm 𝕜 E) := ⟨0, nonneg⟩

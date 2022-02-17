@@ -294,7 +294,7 @@ theorem totient_mul_prod_factors (n : ℕ) :
 begin
   by_cases hn : n = 0, { simp [hn] },
   rw multiplicative_factorization φ @totient_mul totient_one hn,
-  simp only [←factorization_finset_prod, ←finsupp.prod_mul],
+  simp only [←prod_factorization_eq_prod_factors, ←finsupp.prod_mul],
   nth_rewrite 1 ←factorization_prod_pow_eq_self hn,
   rw ←finsupp.prod_mul,
   refine finsupp.prod_congr (λ p hp, _),
@@ -309,7 +309,7 @@ theorem totient_eq_prod_div_prod (n : ℕ) :
 begin
   rw [← mul_div_left n.totient, totient_mul_prod_factors, mul_comm,
       nat.mul_div_assoc _ (prod_prime_factors_dvd n), mul_comm],
-  simpa [factorization_finset_prod] using prod_pos (λ p, pos_of_mem_factorization),
+  simpa [prod_factorization_eq_prod_factors] using prod_pos (λ p, pos_of_mem_factorization),
 end
 
 /--  An alternative statement of Euler's product formula for the totient function -/
@@ -319,7 +319,7 @@ begin
   by_cases hn : n = 0, { simp [hn] },
   have hn' : (n : ℚ) ≠ 0, { simp [hn] },
   have hpQ : ∏ p in n.factors.to_finset, (p : ℚ) ≠ 0,
-  { rw [←cast_prod, cast_ne_zero, ←zero_lt_iff, ←factorization_finset_prod],
+  { rw [←cast_prod, cast_ne_zero, ←zero_lt_iff, ←prod_factorization_eq_prod_factors],
     exact prod_pos (λ p hp, pos_of_mem_factorization hp) },
   simp only [totient_eq_prod_div_prod n, prod_prime_factors_dvd n, cast_mul, cast_prod,
       cast_dvd_char_zero, mul_comm_div', mul_right_inj' hn', div_eq_iff hpQ, ←prod_mul_distrib],

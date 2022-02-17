@@ -218,7 +218,6 @@ begin
   apply (mem_image _ _ _).2,
   existsi (⟨A, B⟩ : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
   simp [AX, BY],
-  refl,
 end
 
 /-- The optimal coupling constructed above realizes exactly the Gromov-Hausdorff distance,

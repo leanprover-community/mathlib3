@@ -98,16 +98,17 @@ begin
 end
 
 @[simp]
-lemma is_definable.union {f g : set (α → M)} (hf : L.is_definable f) (hg : L.is_definable g) :
-  L.is_definable (f ∪ g) :=
-⟨begin
-  rcases hf.exists_formula with ⟨φ, hφ⟩,
-  rcases hg.exists_formula with ⟨θ, hθ⟩,
-  refine ⟨φ ⊔ θ, _⟩,
-  ext,
-  rw [hφ, hθ, set.mem_set_of_eq, formula.realize_sup, set.mem_union_eq, set.mem_set_of_eq,
-    set.mem_set_of_eq],
-end⟩
+lemma is_definable.union {f g : set (α → M)} (hf : L.is_definable A f) (hg : L.is_definable A g) :
+  L.is_definable A (f ∪ g) :=
+begin
+  rcases hf.exists_formula with ⟨m, φ, a, ha, rfl⟩,
+  rcases hg.exists_formula with ⟨n, ψ, b, hb, rfl⟩,
+  refine is_definable_of (φ.relabel (sum.map sum.inl id) ⊔ ψ.relabel (sum.map sum.inr id))
+    (sum.elim a b) (λ i, sum.cases_on i ha hb) (λ x, _),
+  simp only [set.mem_inter_eq, set.mem_set_of_eq, realize_partitioned_formula],
+  rw [formula.realize_sup, realize_formula_relabel, realize_formula_relabel],
+  simp,
+end
 
 @[simp]
 lemma is_definable.compl {s : set (α → M)} (hf : L.is_definable A s) :

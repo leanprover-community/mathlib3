@@ -555,34 +555,32 @@ topological_group.of_nhds_one hmul hinv hleft (by simpa using tendsto_id)
 /-- A homomorphism of topological groups is continuous if and only if it is continuous at 1. -/
 @[to_additive "A homomorphism of topological additive groups is continuous if and only if it is
 continuous at 0."]
-lemma topological_group.continuous_iff_continuous_at_one [topological_space H] [group H]
-  [topological_group H] {f : G →* H} : continuous f ↔ continuous_at f 1 :=
+lemma topological_group.continuous_iff_continuous_at_one {F : Type*} [topological_space H]
+  [group H] [topological_group H] [monoid_hom_class F G H] {f : F} :
+  continuous f ↔ continuous_at f 1 :=
 begin
   rw continuous_iff_continuous_at,
   refine ⟨λ hf, hf 1, λ hf, _⟩,
   { intros x U hUx,
-    rw [filter.mem_map, ← map_mul_left_nhds_one, filter.mem_map],
-    rw [← map_mul_left_nhds_one, filter.mem_map, ← monoid_hom.map_one f] at hUx,
-    convert continuous_at.preimage_mem_nhds hf hUx,
+    rw [← map_mul_left_nhds_one, mem_map, mem_map],
+    rw [← map_mul_left_nhds_one, mem_map, ← map_one f] at hUx,
+    convert hf hUx,
     ext y,
-    simp only [mem_preimage, monoid_hom.map_mul] }
+    simp only [mem_preimage, map_mul] }
 end
 
 /-- A homomorphism from a topological group to a discrete topological group is continuous if and
 only if its kernel is open. -/
-@[to_additive continuous_iff_open_add_kernel "A homomorphism from a topological additive group to a
+@[to_additive "A homomorphism from a topological additive group to a
 discrete topological additive group is continuous if and only if its kernel is open."]
-lemma topological_group.continuous_iff_open_kernel [topological_space H] [dH : discrete_topology H]
+lemma topological_group.continuous_iff_open_ker [topological_space H] [discrete_topology H]
   [group H] [topological_group H] {f : G →* H} : continuous f ↔ is_open (f.ker : set G) :=
 begin
   refine ⟨λ hf, _, λ hf, _⟩,
-  { apply continuous.is_open_preimage hf _ (singletons_open_iff_discrete.mpr (infer_instance) 1) },
+  { apply (is_open_discrete ({1} : set H)).preimage hf },
   { rw topological_group.continuous_iff_continuous_at_one,
-    intros U hU,
-    rw [monoid_hom.map_one, discrete_topology_iff_nhds.mp dH, filter.mem_pure] at hU,
-    rw [filter.mem_map, mem_nhds_iff],
-    exact ⟨f ⁻¹' {1}, λ x hx, by apply (singleton_subset_iff.mpr hU) hx, hf,
-      by rw [mem_preimage, mem_singleton_iff, monoid_hom.map_one]⟩ }
+    rw [continuous_at, nhds_discrete H, map_one, tendsto_pure],
+    exact hf.mem_nhds (map_one f) }
 end
 
 end topological_group

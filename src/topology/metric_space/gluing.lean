@@ -395,12 +395,9 @@ end
 lemma fst_eq_of_dist_lt_one (x y : Σ i, E i) (h : dist x y < 1) :
   x.1 = y.1 :=
 begin
-  rcases x with ⟨i, x⟩, rcases y with ⟨j, y⟩,
-  rcases eq_or_ne i j with rfl|hij,
-  { refl },
-  { apply (lt_irrefl (1 : ℝ) _).elim,
-    calc 1 ≤ dist (⟨i, x⟩ : Σ k, E k) ⟨j, y⟩ : one_le_dist_of_ne hij _ _
-    ... < 1 : h }
+  cases x, cases y,
+  contrapose! h,
+  apply one_le_dist_of_ne h,
 end
 
 protected lemma dist_triangle (x y z : Σ i, E i) :

@@ -59,7 +59,7 @@ variables {R}
 
 /-- An element of a star monoid is normal if it commutes with its adjoint. -/
 class is_star_normal [monoid R] [has_star R] (x : R) : Prop :=
-  (star_comm_self : star x * x = x * star x)
+(star_comm_self : commute (star x) x)
 
 export is_star_normal (star_comm_self)
 

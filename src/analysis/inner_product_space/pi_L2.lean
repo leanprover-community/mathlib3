@@ -152,29 +152,30 @@ begin
   simp [e₂, direct_sum.submodule_coe, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
 end
 
-open_locale classical
 variables (ι) (𝕜) (E)
 
 /-- The vector given in euclidean space by being `1 : 𝕜` at coordinate `i : ι` and `0 : 𝕜` at
 all other coordinates. -/
 def euclidean_space.single {𝕜 : Type*} {ι : Type*} [fintype ι] [is_R_or_C 𝕜] (i : ι) (a : 𝕜) :
  euclidean_space 𝕜 ι :=
-  pi.single i a
+  by {classical, exact pi.single i a}
 
-@[simp] theorem euclidean_space.single_apply {𝕜 : Type*} {ι : Type*} [fintype ι]
+@[simp] theorem euclidean_space.single_apply {𝕜 : Type*} {ι : Type*} [fintype ι] [decidable_eq ι]
   [is_R_or_C 𝕜] (i : ι) (a : 𝕜) (j : ι) :
   (euclidean_space.single i a) j = ite (j = i) a 0 :=
 begin
-  rw [euclidean_space.single, pi.single_apply i a j],
+  rw [euclidean_space.single],
+  rw ← pi.single_apply i a j,
+  congr,
 end
 
 lemma euclidean_space.inner_single_left (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=
-by simp [apply_ite conj]
+by {classical, simp [apply_ite conj]}
 
 lemma euclidean_space.inner_single_right (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪v, euclidean_space.single i (a : 𝕜)⟫ =  a * conj (v i) :=
-by simp [apply_ite conj, mul_comm]
+by {classical, simp [apply_ite conj, mul_comm]}
 
 /-- An orthonormal basis on E is an identification of `E` with its dimensional-matching
 `euclidean_space 𝕜 ι`. -/
@@ -209,6 +210,7 @@ end
 @[simp]
 protected lemma orthonormal (b : orthonormal_basis ι 𝕜 E) : orthonormal 𝕜 b :=
 begin
+  classical,
   rw orthonormal_iff_ite,
   intros i j,
   rw [← b.repr.inner_map_map (b i) (b j), b.repr_self _ _ _, b.repr_self _ _ _],
@@ -220,6 +222,7 @@ end
 protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
   ∑ i , v i • b i = (b.repr.symm v) :=
 begin
+  classical,
   have : b.repr (∑ i, v i • b i) = v :=
   begin
     have : ⇑(b.repr) = (b.repr.to_linear_isometry.to_linear_map) :=
@@ -278,6 +281,7 @@ rfl
   (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   ⇑(v.to_orthonormal_basis hv) = v :=
 begin
+  classical,
   ext i,
   show (v.to_orthonormal_basis hv).repr.symm _ = v i,
   simp only [euclidean_space.single_apply, basis.equiv_fun_symm_apply,

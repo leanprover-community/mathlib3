@@ -25,16 +25,6 @@ apply_nolint nat.rfind_x doc_blame
 apply_nolint partrec doc_blame
 apply_nolint partrec₂ doc_blame
 
--- computability/partrec_code.lean
-apply_nolint nat.partrec.code doc_blame
-apply_nolint nat.partrec.code.const doc_blame
-apply_nolint nat.partrec.code.curry doc_blame
-apply_nolint nat.partrec.code.encode_code doc_blame
-apply_nolint nat.partrec.code.eval doc_blame
-apply_nolint nat.partrec.code.evaln doc_blame
-apply_nolint nat.partrec.code.id doc_blame
-apply_nolint nat.partrec.code.of_nat_code doc_blame
-
 -- computability/primrec.lean
 apply_nolint nat.cases doc_blame
 apply_nolint nat.elim doc_blame

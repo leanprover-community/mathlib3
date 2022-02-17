@@ -74,7 +74,7 @@ end std_simplex
 
 /-! ### Topological vector space -/
 
-section has_continuous_smul
+section has_continuous_const_smul
 
 variables [add_comm_group E] [module ℝ E] [topological_space E]
   [topological_add_group E] [has_continuous_const_smul ℝ E]
@@ -138,6 +138,13 @@ have hf : continuous (λ p : E × E, f p.1 p.2), from
 show f x y ∈ closure s, from
   mem_closure_of_continuous2 hf hx hy (λ x' hx' y' hy', subset_closure
   (hs hx' hy' ha hb hab))
+
+end has_continuous_const_smul
+
+section has_continuous_smul
+
+variables [add_comm_group E] [module ℝ E] [topological_space E]
+  [topological_add_group E] [has_continuous_smul ℝ E]
 
 /-- Convex hull of a finite set is compact. -/
 lemma set.finite.compact_convex_hull {s : set E} (hs : finite s) :

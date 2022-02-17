@@ -1156,7 +1156,7 @@ by { simp only [mem_pi, mem_bot] at *, ext j, exact hp j trivial, }
 
 @[to_additive]
 lemma le_pi_iff {I : set η} {H : Π i, subgroup (f i)} {J : subgroup (Π i, f i)} :
-  J ≤ pi I H ↔ (∀ i ∈ I, map (pi.eval_monoid_hom f i) J ≤ H i) :=
+  J ≤ pi I H ↔ (∀ i : η , i ∈ I → map (pi.eval_monoid_hom f i) J ≤ H i) :=
 begin
   split,
   { intros h i hi, rintros _ ⟨x, hx, rfl⟩, exact (h hx) _ hi, },

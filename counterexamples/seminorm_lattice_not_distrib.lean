@@ -25,13 +25,13 @@ private lemma bdd_below_range_add {𝕜 E : Type*} [normed_field 𝕜] [add_comm
   bdd_below (set.range (λ (u : E), p u + q (x - u))) :=
 by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
 
-noncomputable def p : seminorm ℝ (ℝ×ℝ) :=
+@[simps] noncomputable def p : seminorm ℝ (ℝ×ℝ) :=
 (norm_seminorm ℝ ℝ).comp (linear_map.fst _ _ _) ⊔ (norm_seminorm ℝ ℝ).comp (linear_map.snd _ _ _)
 
-noncomputable def q1 : seminorm ℝ (ℝ×ℝ) :=
+@[simps] noncomputable def q1 : seminorm ℝ (ℝ×ℝ) :=
 (4 : ℝ≥0) • (norm_seminorm ℝ ℝ).comp (linear_map.fst _ _ _)
 
-noncomputable def q2 : seminorm ℝ (ℝ×ℝ) :=
+@[simps] noncomputable def q2 : seminorm ℝ (ℝ×ℝ) :=
 (4 : ℝ≥0) • (norm_seminorm ℝ ℝ).comp (linear_map.snd _ _ _)
 
 lemma eq_one : (p ⊔ (q1 ⊓ q2)) (1, 1) = 1 := begin

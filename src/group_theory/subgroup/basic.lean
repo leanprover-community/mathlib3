@@ -744,7 +744,7 @@ end
 begin
   refine le_antisymm ((subgroup.closure_le _).2 _) ((subgroup.closure_le _).2 _),
   { exact inv_subset_closure S },
-  { simpa only [set.inv_inv] using inv_subset_closure S⁻¹ },
+  { simpa only [inv_inv] using inv_subset_closure S⁻¹ },
 end
 
 @[to_additive]
@@ -756,7 +756,7 @@ begin
     refine closure_induction hx (λ x hx, submonoid.closure_mono (subset_union_left S S⁻¹)
       (submonoid.subset_closure hx)) (submonoid.one_mem _) (λ x y hx hy, submonoid.mul_mem _ hx hy)
       (λ x hx, _),
-    rwa [←submonoid.mem_closure_inv, set.union_inv, set.inv_inv, set.union_comm] },
+    rwa [←submonoid.mem_closure_inv, set.union_inv, inv_inv, set.union_comm] },
   { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure, inv_subset_closure] }
 end
 
@@ -1160,7 +1160,7 @@ lemma le_pi_iff {I : set η} {H : Π i, subgroup (f i)} {J : subgroup (Π i, f i
 begin
   split,
   { intros h i hi, rintros _ ⟨x, hx, rfl⟩, exact (h hx) _ hi, },
-  { intros h x hx i hi, refine h i hi  ⟨_, hx, rfl⟩, }
+  { intros h x hx i hi, refine h i hi ⟨_, hx, rfl⟩, }
 end
 
 @[simp]
@@ -1220,7 +1220,7 @@ lemma pi_eq_bot_iff (H : Π i, subgroup (f i)) :
   pi set.univ H = ⊥ ↔ ∀ i, H i = ⊥ :=
 begin
   classical,
-  simp only [ eq_bot_iff_forall ],
+  simp only [eq_bot_iff_forall],
   split,
   { intros h i x hx,
     have : monoid_hom.single f i x = 1 :=
@@ -2735,6 +2735,44 @@ S.to_submonoid.mul_distrib_mul_action
 end subgroup
 
 end actions
+
+/-! ### Mul-opposite subgroups -/
+
+section mul_opposite
+
+namespace subgroup
+
+/-- A subgroup `H` of `G` determines a subgroup `H.opposite` of the opposite group `Gᵐᵒᵖ`. -/
+@[to_additive "An additive subgroup `H` of `G` determines an additive subgroup `H.opposite` of the
+  opposite additive group `Gᵃᵒᵖ`."]
+def opposite (H : subgroup G) : subgroup Gᵐᵒᵖ :=
+{ carrier := mul_opposite.unop ⁻¹' (H : set G),
+  one_mem' := H.one_mem,
+  mul_mem' := λ a b ha hb, H.mul_mem hb ha,
+  inv_mem' := λ a, H.inv_mem }
+
+/-- Bijection between a subgroup `H` and its opposite. -/
+@[to_additive "Bijection between an additive subgroup `H` and its opposite.", simps]
+def opposite_equiv (H : subgroup G) : H ≃ H.opposite :=
+mul_opposite.op_equiv.subtype_equiv $ λ _, iff.rfl
+
+@[to_additive] instance (H : subgroup G) [encodable H] : encodable H.opposite :=
+encodable.of_equiv H H.opposite_equiv.symm
+
+@[to_additive] lemma smul_opposite_mul {H : subgroup G} (x g : G) (h : H.opposite) :
+  h • (g * x) = g * (h • x) :=
+begin
+  cases h,
+  simp [(•), mul_assoc],
+end
+
+@[to_additive] lemma smul_opposite_image_mul_preimage {H : subgroup G} (g : G) (h : H.opposite)
+  (s : set G) : (λ y, h • y) '' (has_mul.mul g ⁻¹' s) = has_mul.mul g ⁻¹' ((λ y, h • y) '' s) :=
+by { ext x, cases h, simp [(•), mul_assoc] }
+
+end subgroup
+
+end mul_opposite
 
 /-! ### Saturated subgroups -/
 

@@ -534,7 +534,6 @@ trivial inconvenience, but in any case there are no obvious applications of the 
 version. -/
 
 variables [topological_space α] [metric_space β] [add_monoid β]
-
 variables [has_lipschitz_add β]
 variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
@@ -763,11 +762,11 @@ instance : has_sub (α →ᵇ β) :=
 @[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl
 
-@[simp] lemma mk_of_compact_neg [compact_space α] (f : C(α, β)) :
-  mk_of_compact (-f) = -mk_of_compact f := rfl
-
 @[simp] lemma coe_sub : ⇑(f - g) = f - g := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
+
+@[simp] lemma mk_of_compact_neg [compact_space α] (f : C(α, β)) :
+  mk_of_compact (-f) = -mk_of_compact f := rfl
 
 @[simp] lemma mk_of_compact_sub [compact_space α] (f g : C(α, β)) :
   mk_of_compact (f - g) = mk_of_compact f - mk_of_compact g := rfl

@@ -73,10 +73,10 @@ variables {ι' : Type*} [fintype ι'] [fintype ι]
 section basic
 
 @[simp] lemma discr_reindex (b : basis ι A B) (f : ι ≃ ι') :
-  discr A (b.reindex f) = discr A b :=
+  discr A (b ∘ ⇑(f.symm)) = discr A b :=
 begin
   classical,
-  rw [discr_def, trace_matrix_reindex, det_reindex_self, ← discr_def]
+  rw [← basis.coe_reindex, discr_def, trace_matrix_reindex, det_reindex_self, ← discr_def]
 end
 
 /-- If `b` is not linear independent, then `algebra.discr A b = 0`. -/
@@ -292,7 +292,7 @@ begin
     simpa },
   classical,
   rw [← (b.reindex (b.index_equiv b')).to_matrix_map_vec_mul b', discr_of_matrix_vec_mul,
-    ← one_mul (discr ℚ b), discr_reindex],
+    ← one_mul (discr ℚ b), basis.coe_reindex, discr_reindex],
   congr,
   have hint : is_integral ℤ (((b.reindex (b.index_equiv b')).to_matrix b').det) :=
     is_integral.det (λ i j, h _ _),

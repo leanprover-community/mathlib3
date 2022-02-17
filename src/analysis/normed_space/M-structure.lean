@@ -53,7 +53,7 @@ begin
    }
 end
 
-lemma Lproj_PQ_eq_QPQ (P: X →L[𝕜] X) (Q: X →L[𝕜] X) [h₁: is_Lprojection P] [h₂: is_Lprojection Q] :
+lemma Lproj_PQ_eq_QPQ (P: X →L[𝕜] X) (Q: X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lprojection Q) :
   P * Q = Q * P * Q :=
 begin
   ext,
@@ -73,8 +73,32 @@ begin
   ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥) : by rw [zero_sub, norm_neg]
   ... = ∥Q (P (Q x))∥ + ∥Q x - Q (P (Q x))∥ + 2•∥(1-Q) (P (Q x))∥  : by abel
   ... ≥ ∥Q x∥ + 2 • ∥ (P * Q) x - (Q * P * Q) x∥ : by exact add_le_add_right (norm_le_insert' (Q x) (Q (P (Q x)))) (2•∥(1-Q) (P (Q x))∥),
-  sorry,
+  rw ge at e1,
+  nth_rewrite_rhs 0 ← add_zero (∥Q x∥) at e1,
+  rw [add_le_add_iff_left, two_smul,  ← two_mul]  at e1,
+  rw le_antisymm_iff,
+  split,
+  { rw ← mul_zero (2:ℝ) at e1,
+    rw mul_le_mul_left at e1, exact e1, norm_num, },
+  { apply norm_nonneg, }
 end
 
-lemma Lproj_commute (P: X →L[𝕜] X) (Q: X →L[𝕜] X) [is_Lprojection P] [is_Lprojection Q] : commute P Q :=
-  sorry
+lemma Lproj_QP_eq_QPQ (P: X →L[𝕜] X) (Q: X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lprojection Q) : Q * P = Q * P * Q :=
+begin
+  have e1: P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
+  calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw Lproj_PQ_eq_QPQ P (1 - Q) h₁ ((Lcomplement Q).mp h₂)
+  ... = 1 * (P * (1 - Q)) - Q * (P * (1 - Q)) : by {rw mul_assoc, rw sub_mul,}
+  ... = P * (1 - Q) - Q * (P * (1 - Q)) : by rw one_mul
+  ... = P * (1 - Q) - Q * (P - P * Q) : by rw [mul_sub, mul_one]
+  ... = P * (1 - Q) - (Q * P - Q * P * Q) : by rw [mul_sub Q, mul_assoc],
+  rw [eq_sub_iff_add_eq, add_right_eq_self, sub_eq_zero] at e1,
+  exact e1,
+end
+
+lemma Lproj_commute (P: X →L[𝕜] X) (Q: X →L[𝕜] X) [h₁: is_Lprojection P] [h₂ : is_Lprojection Q] : commute P Q :=
+begin
+  unfold commute,
+  unfold semiconj_by,
+  rw Lproj_PQ_eq_QPQ P Q h₁ h₂,
+  nth_rewrite_rhs 0 Lproj_QP_eq_QPQ P Q h₁ h₂,
+end

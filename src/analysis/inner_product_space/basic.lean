@@ -1092,12 +1092,12 @@ lemma inner_map_self_eq_zero (T : V →ₗ[ℂ] V) :
   (∀ (x : V), ⟪T x, x⟫_ℂ = 0) ↔ T = 0 :=
 begin
   split,
-  intro hT,
-  ext x,
-  simp only [linear_map.zero_apply, ← inner_self_eq_zero, inner_map_polarization, hT],
-  norm_num,
-  intros hT x,
-  simp only [eq_self_iff_true, inner_zero_left, linear_map.zero_apply, hT],
+  { intro hT,
+    ext x,
+    simp only [linear_map.zero_apply, ← inner_self_eq_zero, inner_map_polarization, hT],
+    norm_num },
+  { rintro rfl x,
+    simp only [linear_map.zero_apply, inner_zero_left] }
 end
 
 end complex

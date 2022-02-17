@@ -333,7 +333,7 @@ def fundamental_domain : set ℍ :=
 
 /-- The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
 def fundamental_domain_open : set ℍ :=
-{z | 1 < ((z:ℂ).norm_sq) ∧ |z.re| < (1 : ℝ) / 2}
+{z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}
 
 localized "notation `𝒟` := fundamental_domain" in modular
 

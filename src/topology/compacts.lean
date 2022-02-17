@@ -44,6 +44,8 @@ lemma closed (s : closeds α) : is_closed (s : set α) := s.closed'
 
 @[ext] protected lemma ext {s t : closeds α} (h : s.1 = t.1) : s = t := set_like.ext' h
 
+@[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
+
 instance : has_sup (closeds α) := ⟨λ s t, ⟨s ∪ t, s.closed.union t.closed⟩⟩
 instance : has_inf (closeds α) := ⟨λ s t, ⟨s ∩ t, s.closed.inter t.closed⟩⟩
 instance : has_top (closeds α) := ⟨⟨univ, is_closed_univ⟩⟩
@@ -78,6 +80,8 @@ instance : set_like (compacts α) α :=
 lemma compact (s : compacts α) : is_compact (s : set α) := s.compact'
 
 @[ext] protected lemma ext {s t : compacts α} (h : (s : set α) = t) : s = t := set_like.ext' h
+
+@[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
 
 instance : has_sup (compacts α) := ⟨λ s t, ⟨s ∪ t, s.compact.union t.compact⟩⟩
 instance [t2_space α] : has_inf (compacts α) := ⟨λ s t, ⟨s ∩ t, s.compact.inter t.compact⟩⟩
@@ -153,6 +157,8 @@ def to_closeds [t2_space α] (s : nonempty_compacts α) : closeds α := ⟨s, s.
 @[ext] protected lemma ext {s t : nonempty_compacts α} (h : (s : set α) = t) : s = t :=
 set_like.ext' h
 
+@[simp] lemma coe_mk (s : compacts α) (h) : (mk s h : set α) = s := rfl
+
 instance : has_sup (nonempty_compacts α) :=
 ⟨λ s t, ⟨s.to_compacts ⊔ t.to_compacts, s.nonempty.mono $ subset_union_left _ _⟩⟩
 instance [compact_space α] [nonempty α] : has_top (nonempty_compacts α) := ⟨⟨⊤, univ_nonempty⟩⟩
@@ -202,6 +208,8 @@ def to_nonempty_compacts (s : positive_compacts α) : nonempty_compacts α :=
 
 @[ext] protected lemma ext {s t : positive_compacts α} (h : (s : set α) = t) : s = t :=
 set_like.ext' h
+
+@[simp] lemma coe_mk (s : compacts α) (h) : (mk s h : set α) = s := rfl
 
 instance : has_sup (positive_compacts α) :=
 ⟨λ s t, ⟨s.to_compacts ⊔ t.to_compacts,

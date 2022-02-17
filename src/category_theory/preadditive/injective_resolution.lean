@@ -2,6 +2,7 @@ import category_theory.preadditive.injective
 import algebra.homology.single
 import algebra.homology.homological_complex
 import algebra.homology.homotopy_category
+import category_theory.abelian.exact
 
 noncomputable theory
 
@@ -78,7 +79,7 @@ factor_of (f ≫ P.ι.f 0) (Q.ι.f 0)
 end
 
 section abelian
-variable [abelian C]
+variables [abelian C]
 
 def desc_f_one {Y Z : C}
   (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z) :
@@ -86,7 +87,7 @@ def desc_f_one {Y Z : C}
 exact.desc (desc_f_zero f P Q ≫ P.cocomplex.d 0 1) (Q.ι.f 0) (Q.cocomplex.d 0 1)
   (by simp [←category.assoc, desc_f_zero])
 
-@[simp] lemma desc_f_one_zero_comm [has_equalizers Cᵒᵖ] [has_images Cᵒᵖ] {Y Z : C}
+@[simp] lemma desc_f_one_zero_comm {Y Z : C}
   (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z) :
   Q.cocomplex.d 0 1 ≫ desc_f_one f P Q = desc_f_zero f P Q ≫ P.cocomplex.d 0 1 :=
 begin
@@ -94,16 +95,19 @@ begin
   simp only [exact.desc_comp],
 end
 
-def desc_f_succ [has_equalizers Cᵒᵖ] [has_images Cᵒᵖ] {Y Z : C}
+def desc_f_succ {Y Z : C}
   (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z)
   (n : ℕ) (g : Q.cocomplex.X n ⟶ P.cocomplex.X n) (g' : Q.cocomplex.X (n+1) ⟶ P.cocomplex.X (n+1))
   (w : Q.cocomplex.d n (n+1) ≫ g' = g ≫ P.cocomplex.d n (n+1)) :
   Σ' g'' : Q.cocomplex.X (n+2) ⟶ P.cocomplex.X (n+2),
-    Q.cocomplex.d (n+1) (n+2) ≫ g'' = g' ≫ P.cocomplex.d (n+1) (n+2):=
-⟨exact.desc (g' ≫ P.cocomplex.d (n+1) (n+2)) (Q.cocomplex.d n (n+1)) (Q.cocomplex.d (n+1) (n+2))
+    Q.cocomplex.d (n+1) (n+2) ≫ g'' = g' ≫ P.cocomplex.d (n+1) (n+2) :=
+⟨@exact.desc C _ _ _ _ _ _ _ _ _
+  (g' ≫ P.cocomplex.d (n+1) (n+2))
+  (Q.cocomplex.d n (n+1))
+  (Q.cocomplex.d (n+1) (n+2)) _
   (by simp [←category.assoc, w]), (by simp)⟩
 
-def desc [has_equalizers Cᵒᵖ] [has_images Cᵒᵖ] {Y Z : C}
+def desc {Y Z : C}
   (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z) :
   Q.cocomplex ⟶ P.cocomplex :=
 begin
@@ -118,7 +122,7 @@ begin
 end
 
 @[simp, reassoc]
-lemma desc_commutes [has_equalizers Cᵒᵖ] [has_images Cᵒᵖ] {Y Z : C}
+lemma desc_commutes {Y Z : C}
   (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z) :
   Q.ι ≫ desc f P Q = (cochain_complex.single₀ C).map f ≫ P.ι :=
 begin

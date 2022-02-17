@@ -207,7 +207,6 @@ open injective
 
 section
 variables [has_zero_morphisms C] [has_images Cᵒᵖ] [has_equalizers Cᵒᵖ]
--- variables [abelian C]
 
 /--
 Given a projective object `P` mapping via `h` into

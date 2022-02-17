@@ -380,6 +380,10 @@ instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 �
         (mul_add _ _ _),
     end } }
 
+instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
+  is_scalar_tower R ℝ≥0 (seminorm 𝕜 E) :=
+{ smul_assoc := λ r a p, begin ext x, exact smul_assoc r a (p x) end }
+
 lemma coe_smul [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : seminorm 𝕜 E) : ⇑(r • p) = r • p := rfl
 
@@ -538,7 +542,7 @@ lemma le_insert : p y ≤ p x + p (x - y) :=
 calc p y = p (x - (x - y)) : by rw sub_sub_cancel
 ... ≤ p x + p (x - y) : p.sub_le _ _
 
-/-- The direct path from 0 to y is shorter than the path with x "inserted" in between. -/
+/-- The direct path from 0 to x is shorter than the path with y "inserted" in between. -/
 lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
 
 instance : order_bot (seminorm 𝕜 E) := ⟨0, nonneg⟩
@@ -640,6 +644,25 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
   le_inf := λ a b c hab hac x,
     le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
   ..seminorm.semilattice_sup }
+
+lemma smul_inf' (r : ℝ≥0) (p q : seminorm 𝕜 E) : r • (p ⊓ q) = r • p ⊓ r • q :=
+begin
+  ext x, dsimp,
+  obtain hr | hr := r.coe_nonneg.eq_or_lt,
+  { have : r = 0 := r.coe_eq_zero.mp hr.symm,
+    simp only [this, zero_smul, add_zero, real.cinfi_const_zero] },
+  { change order_iso.smul_left ℝ hr _ = _,
+    rw order_iso.map_cinfi _ (bdd_below_range_add x _ _),
+    dsimp, simp_rw mul_add, refl }
+end
+
+lemma smul_inf [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  (r : R) (p q : seminorm 𝕜 E) :
+  r • (p ⊓ q) = r • p ⊓ r • q :=
+begin
+  have : ∀ p : seminorm 𝕜 E, r • p = (r • (1 : ℝ≥0)) • p := λ p, by rw [smul_assoc, one_smul],
+  repeat { rw this }, exact smul_inf' _ _ _
+end
 
 end normed_field
 

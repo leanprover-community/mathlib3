@@ -15,10 +15,10 @@ Facts about star modules and star algebras over the complex numbers.
 
 ## Main definitions
 
-* `star_module.re`: the real part of an element of a star module, defined as `⅟2 • (x + star x)`
-* `star_module.im`: the imaginary part of an element of a star module, defined as
-  `(-I * ⅟2) • (x - star x)`. The corresponding real part is defined in a more
-  general setting in `algebra/star/module`.
+* `star_module.mul_neg_I_lin`: multiplication by -I as a real-linear equivalence between the
+  skew-adjoint and self-adjoint elements of a star module.
+* `star_module.im`: the imaginary part of an element of a star module, defined via
+  `skew_adjoint_part`.
 
 -/
 
@@ -30,40 +30,28 @@ open complex
 
 variables [add_comm_group E] [star_add_monoid E] [module ℂ E] [star_module ℂ E]
 
+/-- Multiplication by -I as a real-linear equivalence between the skew-adjoint and self-adjoint
+elements of a star module. -/
+@[simps] def mul_neg_I_lin : skew_adjoint E ≃ₗ[ℝ] self_adjoint E :=
+{ to_fun := λ x, ⟨-I • x, by simp [self_adjoint.mem_iff]⟩,
+  inv_fun := λ x, ⟨I • x, by simp [skew_adjoint.mem_iff]⟩,
+  map_add' := λ x y, by { ext, simp only [add_subgroup.coe_add, smul_add, add_subgroup.coe_mk] },
+  map_smul' := λ r x, by { ext, simp only [neg_smul, neg_inj, skew_adjoint.coe_smul,
+                add_subgroup.coe_mk, ring_hom.id_apply, self_adjoint.coe_smul, smul_neg],
+                rw [smul_comm] },
+  left_inv := λ x, by simp only [neg_smul, add_subgroup.coe_mk, smul_neg, ←mul_smul, I_mul_I,
+                                 neg_neg, one_smul, set_like.eta],
+  right_inv := λ x, by simp only [←mul_smul, I_mul_I, add_subgroup.coe_mk, neg_mul, neg_neg,
+                                  one_smul, set_like.eta] }
+
 /-- The imaginary part of an element of a star module, as a real-linear map. Note: the real part
-is defined in `algebra/star/module`. -/
+is simply `self_adjoint_part`, defined in `algebra/star/module`. -/
 @[simps] noncomputable def im : E →ₗ[ℝ] self_adjoint E :=
-{ to_fun := λ x, ⟨(-(I : ℂ) * ⅟ 2) • (x - star x),
-    begin
-      have h₁ : conj (⅟ 2 : ℂ) = ⅟ 2,
-      { rw [←star_def, star_inv_of (2 : ℂ), inv_of_eq_inv, star_bit0, star_one, ←inv_of_eq_inv] },
-      have h₂ : x - star x = -(star x - x) := by simp,
-      simp only [self_adjoint.mem_iff, neg_mul, neg_smul, star_neg, star_smul, star_inv_of (2 : ℝ),
-                 map_mul, map_one, star_sub, star_star, neg_neg, star_def, conj_I, map_bit0,
-                 complex.conj_inv, h₁],
-      rw [←neg_smul, h₂, neg_smul_neg],
-    end⟩,
-  map_add' := λ x y, by { ext, simp [add_sub_comm], },
-  map_smul' := λ r x,
-    begin
-      ext,
-      simp only [neg_mul, neg_smul, star_smul, is_R_or_C.star_def,
-                 is_R_or_C.conj_to_real, ring_hom.id_apply, subtype.val_eq_coe,
-                 self_adjoint.coe_smul, add_subgroup.coe_mk, smul_neg, neg_inj, ←smul_sub,
-                 smul_comm r],
-    end }
+  mul_neg_I_lin.to_linear_map.comp (skew_adjoint_part ℝ)
 
 /-- An element of a complex star module can be decomposed into self-adjoint "real" and
 "imaginary" parts -/
-lemma eq_re_add_im (x : E) : x = re ℝ x + I • im x :=
-begin
-  have h₁ : I * (-I * (2⁻¹ : ℂ)) = 2⁻¹,
-  { simp_rw [←mul_assoc, mul_neg, I_mul_I, neg_neg, one_mul], },
-  have h₂ : (2⁻¹ : ℂ) = algebra_map ℝ ℂ (2⁻¹ : ℝ),
-  { simp only [is_R_or_C.algebra_map_eq_of_real, of_real_inv, of_real_bit0, of_real_one] },
-  simp_rw [re_apply_coe, im_apply_coe, inv_of_eq_inv, smul_smul, h₁, ←algebra_map_smul ℂ (2⁻¹ : ℝ),
-           h₂, ←smul_add, algebra_map_smul, add_add_sub_cancel, inv_eq_one_div, smul_add, ←add_smul,
-           add_halves', one_smul],
-end
+lemma eq_re_add_im (x : E) : x = self_adjoint_part ℝ x + I • im x :=
+by simp [←mul_smul, I_mul_I, ←smul_add, ←two_smul ℝ]
 
 end star_module

@@ -324,6 +324,8 @@ instance [has_le β] : has_le (α →ₛ β) := ⟨λf g, ∀a, f a ≤ g a⟩
 @[simp, norm_cast, to_additive] lemma coe_inv [has_inv β] (f : α →ₛ β) : ⇑(f⁻¹) = f⁻¹ := rfl
 @[simp, norm_cast, to_additive] lemma coe_div [has_div β] (f g : α →ₛ β) : ⇑(f / g) = f / g := rfl
 @[simp, norm_cast] lemma coe_le [preorder β] {f g : α →ₛ β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
+@[simp, norm_cast] lemma coe_sup [has_sup β] (f g : α →ₛ β) : ⇑(f ⊔ g) = f ⊔ g := rfl
+@[simp, norm_cast] lemma coe_inf [has_inf β] (f g : α →ₛ β) : ⇑(f ⊓ g) = f ⊓ g := rfl
 
 @[to_additive] lemma mul_apply [has_mul β] (f g : α →ₛ β) (a : α) : (f * g) a = f a * g a := rfl
 @[to_additive] lemma div_apply [has_div β] (f g : α →ₛ β) (x : α) : (f / g) x = f x / g x := rfl

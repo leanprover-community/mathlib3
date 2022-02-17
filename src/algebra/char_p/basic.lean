@@ -422,6 +422,10 @@ lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) [hr : char_p R v] :
   nontrivial R :=
 ⟨⟨(1 : ℕ), 0, λ h, hv $ by rwa [char_p.cast_eq_zero_iff _ v, nat.dvd_one] at h; assumption ⟩⟩
 
+lemma ring_char_of_prime_eq_zero [nontrivial R] {p : ℕ}
+  (hprime : nat.prime p) (hp0 : (p : R) = 0) : ring_char R = p :=
+or.resolve_left ((nat.dvd_prime hprime).1 (ring_char.dvd hp0)) ring_char_ne_one
+
 end char_one
 
 end char_p

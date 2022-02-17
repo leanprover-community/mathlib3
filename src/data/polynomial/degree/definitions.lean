@@ -1156,6 +1156,20 @@ else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add
 else degree_mul' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
     (mt leading_coeff_eq_zero.1 hq0)
 
+lemma degree_le_of_dvd : (q ≠ 0) → (p ∣ q) → degree p ≤ degree q :=
+begin
+  intros hqnz hpq,
+  cases hpq with g hqpg,
+  exact if hp0: p = 0 then by { rw hp0 at hqpg, rw zero_mul at hqpg, rw [ hp0, hqpg], norm_num, }
+  else by {
+    rw hqpg,
+    rw degree_mul,
+    apply nat.with_bot.le_add,
+    have hgnz: g ≠ 0, { by_contra, rw h at hqpg, rw mul_zero at hqpg, exact hqnz hqpg, },
+    exact degree_nonneg_iff_ne_zero.2 hgnz,
+  }
+end
+
 @[simp] lemma degree_pow [nontrivial R] (p : R[X]) (n : ℕ) :
   degree (p ^ n) = n • (degree p) :=
 by induction n; [simp only [pow_zero, degree_one, zero_nsmul],

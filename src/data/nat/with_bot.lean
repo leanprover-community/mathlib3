@@ -49,4 +49,10 @@ end
 lemma with_bot.lt_one_iff_le_zero {x : with_bot ℕ} : x < 1 ↔ x ≤ 0 :=
 not_iff_not.mp (by simpa using with_bot.one_le_iff_zero_lt)
 
+lemma with_bot.le_add (n m : with_bot ℕ) (h: 0 ≤ m) : n ≤ n + m :=
+begin
+  calc n = n + 0 : by rw add_zero
+     ... ≤ n + m : by exact add_le_add_left h n,
+end
+
 end nat

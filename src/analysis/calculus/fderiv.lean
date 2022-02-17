@@ -1416,7 +1416,7 @@ end cartesian_product
 section const_smul
 
 variables {R : Type*} [semiring R] [module R F] [topological_space R] [smul_comm_class 𝕜 R F]
-  [has_continuous_smul R F]
+  [has_continuous_const_smul R F]
 
 /-! ### Derivative of a function multiplied by a constant -/
 theorem has_strict_fderiv_at.const_smul (h : has_strict_fderiv_at f f' x) (c : R) :

@@ -800,7 +800,7 @@ end smul
 section const_smul
 
 variables {R : Type*} [semiring R] [module R F] [topological_space R] [smul_comm_class 𝕜 R F]
-  [has_continuous_smul R F]
+  [has_continuous_const_smul R F]
 
 theorem has_strict_deriv_at.const_smul
   (c : R) (hf : has_strict_deriv_at f f' x) :

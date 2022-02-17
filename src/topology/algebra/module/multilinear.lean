@@ -329,10 +329,8 @@ variables {R' R'' A : Type*} [monoid R'] [monoid R''] [semiring A]
   [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
   [Π i, topological_space (M₁ i)] [topological_space M₂]
   [Π i, module A (M₁ i)] [module A M₂]
-  [topological_space R'] [distrib_mul_action R' M₂] [has_continuous_smul R' M₂]
-  [smul_comm_class A R' M₂]
-  [topological_space R''] [distrib_mul_action R'' M₂] [has_continuous_smul R'' M₂]
-  [smul_comm_class A R'' M₂]
+  [distrib_mul_action R' M₂] [has_continuous_const_smul R' M₂] [smul_comm_class A R' M₂]
+  [distrib_mul_action R'' M₂] [has_continuous_const_smul R'' M₂] [smul_comm_class A R'' M₂]
 
 instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
 ⟨λ c f, { cont := f.cont.const_smul c, .. c • f.to_multilinear_map }⟩
@@ -372,8 +370,7 @@ variables {R' A : Type*} [semiring R'] [semiring A]
   [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
   [Π i, topological_space (M₁ i)] [topological_space M₂] [has_continuous_add M₂]
   [Π i, module A (M₁ i)] [module A M₂]
-  [topological_space R'] [module R' M₂] [has_continuous_smul R' M₂]
-  [smul_comm_class A R' M₂]
+  [module R' M₂] [has_continuous_const_smul R' M₂] [smul_comm_class A R' M₂]
 
 /-- The space of continuous multilinear maps over an algebra over `R` is a module over `R`, for the
 pointwise addition and scalar multiplication. -/
@@ -394,7 +391,7 @@ the corresponding multilinear map. -/
 def pi_linear_equiv {ι' : Type*} {M' : ι' → Type*}
   [Π i, add_comm_monoid (M' i)] [Π i, topological_space (M' i)] [∀ i, has_continuous_add (M' i)]
   [Π i, module R' (M' i)] [Π i, module A (M' i)] [∀ i, smul_comm_class A R' (M' i)]
-  [Π i, has_continuous_smul R' (M' i)] :
+  [Π i, has_continuous_const_smul R' (M' i)] :
   (Π i, continuous_multilinear_map A M₁ (M' i)) ≃ₗ[R']
     continuous_multilinear_map A M₁ (Π i, M' i) :=
 { map_add' := λ x y, rfl,

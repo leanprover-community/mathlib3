@@ -456,7 +456,7 @@ have hunion :
   begin
     rw [filter_union_right],
     conv_rhs {rw [← @filter_true _ (Ico 1 (p / 2).succ)]},
-    exact filter_congr (λ x hx, by simp [hx2 _ hx, lt_or_le])
+    exact filter_congr (λ x hx, by simp [hx2 _ hx, lt_or_le, mul_comm 2 x])
   end,
 begin
   erw [gauss_lemma p (prime_ne_zero p 2 hp2),

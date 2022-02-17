@@ -331,6 +331,16 @@ protected def monoid [monoid M₁] (f : M₁ → M₂) (hf : surjective f)
   monoid M₂ :=
 { .. hf.semigroup f mul, .. hf.mul_one_class f one mul }
 
+/-- A type endowed with `0`, `1` and `+` is an additive monoid with one,
+if it admits a surjective map that preserves `0`, `1` and `*` from an additive monoid with one.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def add_monoid_with_one {M₂} [has_zero M₂] [has_one M₂] [has_add M₂]
+  [add_monoid_with_one M₁] (f : M₁ → M₂) (hf : surjective f)
+  (zero : f 0 = 0) (add : ∀ x y, f (x + y) = f x + f y) :
+  add_monoid_with_one M₂ :=
+{ one := 1, .. hf.add_monoid f zero add }
+
 /-- A type endowed with `1` and `*` is a monoid,
 if it admits a surjective map that preserves `1` and `*` to a monoid.
 This version takes a custom `npow` as a `[has_pow M₂ ℕ]` argument.

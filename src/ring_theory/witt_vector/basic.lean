@@ -206,7 +206,7 @@ private def comm_ring_aux₂ : comm_ring (𝕎 (mv_polynomial R ℤ)) :=
 
 /-- The commutative ring structure on `𝕎 R`. -/
 instance : comm_ring (𝕎 R) :=
-(map_fun.surjective _ $ counit_surjective _).comm_ring (map_fun $ mv_polynomial.counit _)
+(map_fun.surjective _ $ counit_surjective _).comm_ring' (map_fun $ mv_polynomial.counit _)
   (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)
 
 variables {p R}

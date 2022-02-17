@@ -298,7 +298,7 @@ instance [comm_monoid M] : comm_monoid (germ l M) :=
   one := 1,
   .. germ.comm_semigroup, .. germ.monoid }
 
-instance [has_nat_cast M] : has_nat_cast (germ l M) :=
+instance [add_monoid_with_one M] : add_monoid_with_one (germ l M) :=
 { nat_cast := λ n, ↑(n : M),
   nat_cast_zero := congr_arg coe nat.cast_zero,
   nat_cast_succ := λ n, congr_arg coe (nat.cast_succ _),
@@ -360,7 +360,7 @@ instance [distrib R] : distrib (germ l R) :=
 
 instance [semiring R] : semiring (germ l R) :=
 { .. germ.add_comm_monoid, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class,
-  .. germ.has_nat_cast }
+  .. germ.add_monoid_with_one }
 
 /-- Coercion `(α → R) → germ l R` as a `ring_hom`. -/
 def coe_ring_hom [semiring R] (l : filter α) : (α → R) →+* germ l R :=

@@ -212,7 +212,7 @@ instance : monoid (X q) :=
   mul_one := λ x, by { ext; simp, },
   ..(infer_instance : has_mul (X q)) }
 
-instance : has_nat_cast (X q) :=
+instance : add_monoid_with_one (X q) :=
 { nat_cast := λ n, ⟨n, 0⟩,
   nat_cast_zero := by simp [nat.cast],
   nat_cast_succ := by simp [nat.cast, monoid.one],
@@ -227,7 +227,7 @@ by { ext; { dsimp, ring }, }
 instance : ring (X q) :=
 { left_distrib := left_distrib,
   right_distrib := right_distrib,
-  .. X.has_nat_cast,
+  .. X.add_monoid_with_one,
   ..(infer_instance : add_comm_group (X q)),
   ..(infer_instance : monoid (X q)) }
 

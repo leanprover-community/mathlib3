@@ -363,7 +363,7 @@ instance add_comm_monoid (n : ℕ) : add_comm_monoid (fin (n + 1)) :=
   add_zero := fin.add_zero,
   add_comm := by simp [eq_iff_veq, add_def, add_comm] }
 
-instance : has_nat_cast (fin (n + 1)) :=
+instance : add_monoid_with_one (fin (n + 1)) :=
 { one := 1,
   nat_cast := fin.of_nat,
   nat_cast_zero := rfl,

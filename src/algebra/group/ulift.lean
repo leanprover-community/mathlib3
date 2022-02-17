@@ -68,7 +68,7 @@ instance has_pow {β : Type*} [has_pow α β] : has_pow (ulift α) β :=
 instance monoid [monoid α] : monoid (ulift α) :=
 equiv.ulift.injective.monoid_pow _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
-instance has_nat_cast [has_nat_cast α] : has_nat_cast (ulift α) :=
+instance add_monoid_with_one [add_monoid_with_one α] : add_monoid_with_one (ulift α) :=
 { nat_cast := λ n, ⟨n⟩,
   nat_cast_zero := congr_arg ulift.up nat.cast_zero,
   nat_cast_succ := λ n, congr_arg ulift.up (nat.cast_succ _),

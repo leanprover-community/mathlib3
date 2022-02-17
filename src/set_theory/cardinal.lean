@@ -348,7 +348,7 @@ instance : add_monoid cardinal.{u} :=
   add_zero      := assume a, by rw [cardinal.add_comm a 0, cardinal.zero_add a],
   add_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.sum_assoc α β γ) }
 
-instance : has_nat_cast cardinal.{u} := has_nat_cast.unary
+instance : add_monoid_with_one cardinal.{u} := add_monoid_with_one.unary
 
 instance : comm_semiring cardinal.{u} :=
 { zero          := 0,
@@ -368,7 +368,7 @@ instance : comm_semiring cardinal.{u} :=
   npow          := λ n c, c ^ n,
   npow_zero'    := @power_zero,
   npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, cardinal.mul_comm],
-  .. cardinal.has_nat_cast }
+  .. cardinal.add_monoid_with_one }
 
 @[simp] lemma mk_fintype (α : Type u) [fintype α] : #α = fintype.card α :=
 begin

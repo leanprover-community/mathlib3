@@ -23,7 +23,7 @@ variables {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : 
 -/
 section monoid
 
-@[simp] theorem nsmul_one [has_nat_cast A] : ∀ n : ℕ, n • (1 : A) = n :=
+@[simp] theorem nsmul_one [add_monoid_with_one A] : ∀ n : ℕ, n • (1 : A) = n :=
 begin
   refine eq_nat_cast' (⟨_, _, _⟩ : ℕ →+ A) _,
   { show 0 • (1 : A) = 0, simp [zero_nsmul] },

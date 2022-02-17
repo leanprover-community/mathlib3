@@ -91,7 +91,7 @@ by refine { add := (+), zero := (0 : Cauchy), nsmul := nsmul_rec, .. }; try { in
 { repeat {refine λ a, quotient.induction_on a (λ _, _)},
   simp [zero_def, add_comm, add_left_comm] }
 
-instance : has_nat_cast Cauchy :=
+instance : add_monoid_with_one Cauchy :=
 { nat_cast := λ n, mk n,
   nat_cast_zero := congr_arg mk nat.cast_zero,
   nat_cast_succ := λ n, congr_arg mk (nat.cast_succ n),
@@ -101,7 +101,7 @@ instance : has_nat_cast Cauchy :=
 instance : comm_ring Cauchy :=
 by refine { neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _,
     add := (+), zero := (0 : Cauchy), mul := (*), one := 1, npow := npow_rec,
-    zsmul := zsmul_rec, .. Cauchy.has_nat_cast, .. }; try { intros; refl };
+    zsmul := zsmul_rec, .. Cauchy.add_monoid_with_one, .. }; try { intros; refl };
 { repeat {refine λ a, quotient.induction_on a (λ _, _)},
   simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm,
           sub_eq_add_neg] }

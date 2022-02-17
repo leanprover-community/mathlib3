@@ -148,11 +148,11 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_assoc_semiring
   {α : Type u} [non_assoc_semiring α]
-  {β : Type v} [has_mul β] [has_nat_cast β]
+  {β : Type v} [has_mul β] [add_monoid_with_one β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   non_assoc_semiring β :=
-{ .. ‹has_nat_cast β›,
+{ .. ‹add_monoid_with_one β›,
   .. hf.non_unital_non_assoc_semiring f zero add mul, .. hf.mul_one_class f one mul }
 
 /-- Pullback a `semiring` instance along an injective function.
@@ -160,11 +160,11 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.semiring
   {α : Type u} [semiring α]
-  {β : Type v} [has_nat_cast β] [has_mul β]
+  {β : Type v} [add_monoid_with_one β] [has_mul β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   semiring β :=
-{ .. ‹has_nat_cast β›,
+{ .. ‹add_monoid_with_one β›,
   .. hf.monoid_with_zero f zero one mul, .. hf.add_comm_monoid f zero add,
   .. hf.distrib f add mul }
 
@@ -177,7 +177,7 @@ protected def function.injective.semiring'
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   semiring β :=
-{ .. @has_nat_cast.unary _ (hf.add_monoid f zero add) _,
+{ .. @add_monoid_with_one.unary _ (hf.add_monoid f zero add) _,
   .. hf.monoid_with_zero f zero one mul, .. hf.add_comm_monoid f zero add,
   .. hf.distrib f add mul }
 
@@ -206,11 +206,11 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_assoc_semiring
   {α : Type u} [non_assoc_semiring α]
-  {β : Type v} [has_nat_cast β] [has_mul β]
+  {β : Type v} [add_monoid_with_one β] [has_mul β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   non_assoc_semiring β :=
-{ .. ‹has_nat_cast β›,
+{ .. ‹add_monoid_with_one β›,
   .. hf.non_unital_non_assoc_semiring f zero add mul, .. hf.mul_one_class f one mul }
 
 /-- Pushforward a `semiring` instance along a surjective function.
@@ -218,11 +218,11 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.semiring
   {α : Type u} [semiring α]
-  {β : Type v} [has_nat_cast β] [has_mul β]
+  {β : Type v} [add_monoid_with_one β] [has_mul β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   semiring β :=
-{ .. ‹has_nat_cast β›,
+{ .. ‹add_monoid_with_one β›,
   .. hf.monoid_with_zero f zero one mul, .. hf.add_comm_monoid f zero add,
   .. hf.distrib f add mul }
 
@@ -626,7 +626,7 @@ variables [comm_semiring α] [comm_semiring β] {a b c : α}
 /-- Pullback a `semiring` instance along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.injective.comm_semiring [has_nat_cast γ] [has_mul γ]
+protected def function.injective.comm_semiring [add_monoid_with_one γ] [has_mul γ]
   (f : γ → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   comm_semiring γ :=
@@ -635,7 +635,7 @@ protected def function.injective.comm_semiring [has_nat_cast γ] [has_mul γ]
 /-- Pushforward a `semiring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.surjective.comm_semiring [has_nat_cast γ] [has_mul γ]
+protected def function.surjective.comm_semiring [add_monoid_with_one γ] [has_mul γ]
   (f : α → γ) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   comm_semiring γ :=
@@ -719,24 +719,24 @@ instance ring.to_semiring : semiring α :=
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.ring
-  [has_nat_cast β] [has_mul β] [has_neg β] [has_sub β]
+  [add_monoid_with_one β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   ring β :=
-{ .. ‹has_nat_cast β›,
+{ .. ‹add_monoid_with_one β›,
   .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
 /-- Pushforward a `ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.ring
-  [has_nat_cast β] [has_mul β] [has_neg β] [has_sub β]
+  [add_monoid_with_one β] [has_mul β] [has_neg β] [has_sub β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   ring β :=
-{ .. ‹has_nat_cast β›,
+{ .. ‹add_monoid_with_one β›,
   .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
 lemma neg_mul_eq_neg_mul (a b : α) : -(a * b) = -a * b :=
@@ -988,7 +988,7 @@ variables [comm_ring α] {a b c : α}
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.comm_ring
-  [has_nat_cast β] [has_mul β] [has_neg β] [has_sub β]
+  [add_monoid_with_one β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
@@ -999,7 +999,7 @@ protected def function.injective.comm_ring
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.comm_ring
-  [has_nat_cast β] [has_mul β] [has_neg β] [has_sub β]
+  [add_monoid_with_one β] [has_mul β] [has_neg β] [has_sub β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :

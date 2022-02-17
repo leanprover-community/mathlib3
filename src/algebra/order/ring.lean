@@ -347,7 +347,7 @@ by classical; exact decidable.one_le_mul_of_one_le_of_one_le
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.ordered_semiring {β : Type*}
-  [has_nat_cast β] [has_mul β]
+  [add_monoid_with_one β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_semiring β :=
@@ -479,7 +479,7 @@ class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semi
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.ordered_comm_semiring [ordered_comm_semiring α] {β : Type*}
-  [has_nat_cast β] [has_mul β]
+  [add_monoid_with_one β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_comm_semiring β :=
@@ -734,7 +734,7 @@ instance linear_ordered_semiring.to_no_max_order {α : Type*} [linear_ordered_se
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_semiring {β : Type*}
-  [has_nat_cast β] [has_mul β]
+  [add_monoid_with_one β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   linear_ordered_semiring β :=
@@ -946,7 +946,7 @@ by rwa zero_mul at this
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.ordered_ring {β : Type*}
-  [has_nat_cast β] [has_mul β] [has_neg β] [has_sub β]
+  [add_monoid_with_one β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y) :
@@ -978,7 +978,7 @@ instance ordered_comm_ring.to_ordered_comm_semiring {α : Type u} [ordered_comm_
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.ordered_comm_ring [ordered_comm_ring α] {β : Type*}
-  [has_nat_cast β] [has_mul β] [has_neg β] [has_sub β]
+  [add_monoid_with_one β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y) :
@@ -1224,7 +1224,7 @@ by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_ring {β : Type*}
-  [has_nat_cast β] [has_mul β] [has_neg β] [has_sub β]
+  [add_monoid_with_one β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
@@ -1307,7 +1307,7 @@ variables [linear_ordered_comm_ring α]
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_comm_ring {β : Type*}
-  [has_nat_cast β] [has_mul β] [has_neg β] [has_sub β]
+  [add_monoid_with_one β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
@@ -1457,7 +1457,7 @@ namespace with_top
 instance [nonempty α] : nontrivial (with_top α) :=
 option.nontrivial
 
-instance [has_nat_cast α] : has_nat_cast (with_top α) :=
+instance [add_monoid_with_one α] : add_monoid_with_one (with_top α) :=
 { nat_cast := λ n, ((n : α) : with_top α),
   nat_cast_zero := show (((0 : ℕ) : α) : with_top α) = 0, by simp,
   nat_cast_succ :=
@@ -1594,7 +1594,7 @@ of which are required for distributivity. -/
 instance [nontrivial α] : comm_semiring (with_top α) :=
 { right_distrib   := distrib',
   left_distrib    := assume a b c, by rw [mul_comm, distrib', mul_comm b, mul_comm c]; refl,
-  .. with_top.has_nat_cast, .. with_top.add_comm_monoid, .. with_top.comm_monoid_with_zero }
+  .. with_top.add_monoid_with_one, .. with_top.add_comm_monoid, .. with_top.comm_monoid_with_zero }
 
 instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
 { .. with_top.comm_semiring,
@@ -1608,7 +1608,7 @@ namespace with_bot
 instance [nonempty α] : nontrivial (with_bot α) :=
 option.nontrivial
 
-instance [has_nat_cast α] : has_nat_cast (with_bot α) :=
+instance [add_monoid_with_one α] : add_monoid_with_one (with_bot α) :=
 { nat_cast := λ n, ((n : α) : with_bot α),
   nat_cast_zero := show (((0 : ℕ) : α) : with_bot α) = 0, by simp,
   nat_cast_succ :=

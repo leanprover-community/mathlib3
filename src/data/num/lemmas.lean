@@ -25,7 +25,7 @@ variables {α : Type*}
 @[simp, norm_cast] theorem cast_bit1 [has_one α] [has_add α] (n : pos_num) :
   (n.bit1 : α) = _root_.bit1 n := rfl
 
-@[simp, norm_cast] theorem cast_to_nat [has_nat_cast α] :
+@[simp, norm_cast] theorem cast_to_nat [add_monoid_with_one α] :
   ∀ n : pos_num, ((n : ℕ) : α) = n
 | 1        := nat.cast_one
 | (bit0 p) := (nat.cast_bit0 _).trans $ congr_arg _root_.bit0 p.cast_to_nat
@@ -214,7 +214,7 @@ theorem succ'_to_nat : ∀ n, (succ' n : ℕ) = n + 1
 
 theorem succ_to_nat (n) : (succ n : ℕ) = n + 1 := succ'_to_nat n
 
-@[simp, norm_cast] theorem cast_to_nat [has_nat_cast α] : ∀ n : num, ((n : ℕ) : α) = n
+@[simp, norm_cast] theorem cast_to_nat [add_monoid_with_one α] : ∀ n : num, ((n : ℕ) : α) = n
 | 0       := nat.cast_zero
 | (pos p) := p.cast_to_nat
 
@@ -223,7 +223,7 @@ theorem to_of_nat' : Π (n : ℕ), (num.of_nat' n : ℕ) = n
 | (n+1) := by rw [of_nat'_succ, add_one, succ_to_nat, to_of_nat']
 
 @[simp]
-theorem of_nat_cast' [has_nat_cast α] (n : ℕ) : ((num.of_nat' n : num) : α) = n :=
+theorem of_nat_cast' [add_monoid_with_one α] (n : ℕ) : ((num.of_nat' n : num) : α) = n :=
 by rw [← cast_to_nat, to_of_nat']
 
 @[simp] theorem of_nat_inj' {m n : ℕ} : num.of_nat' m = num.of_nat' n ↔ m = n :=
@@ -313,7 +313,7 @@ instance : add_monoid num :=
   add_zero := add_zero,
   add_assoc := by transfer }
 
-instance : has_nat_cast num :=
+instance : add_monoid_with_one num :=
 { nat_cast := num.of_nat',
   one := 1,
   nat_cast_zero := of_nat'_zero,
@@ -327,7 +327,7 @@ by refine_struct
   add := (+),
   zero := 0,
   npow := @npow_rec num ⟨1⟩ ⟨(*)⟩,
-  .. num.add_monoid, .. num.has_nat_cast };
+  .. num.add_monoid, .. num.add_monoid_with_one };
 try { intros, refl }; try { transfer };
 simp [add_comm, mul_add, add_mul, mul_assoc, mul_comm, mul_left_comm]
 
@@ -367,7 +367,7 @@ by rw [← to_nat_to_int, int.cast_coe_nat, cast_to_nat]
 @[simp, norm_cast] theorem to_of_nat : Π (n : ℕ), ((n : num) : ℕ) = n := to_of_nat'
 
 @[simp, norm_cast]
-theorem of_nat_cast {α} [has_nat_cast α] (n : ℕ) : ((n : num) : α) = n :=
+theorem of_nat_cast {α} [add_monoid_with_one α] (n : ℕ) : ((n : num) : α) = n :=
 by rw [← cast_to_nat, to_of_nat]
 
 @[simp, norm_cast] theorem of_nat_inj {m n : ℕ} : (m : num) = n ↔ m = n := of_nat_inj'
@@ -489,15 +489,15 @@ theorem bit_to_nat (b n) : (bit b n : ℕ) = nat.bit b n :=
 by cases b; refl
 
 @[simp, norm_cast]
-theorem cast_add [has_nat_cast α] (m n) : ((m + n : pos_num) : α) = m + n :=
+theorem cast_add [add_monoid_with_one α] (m n) : ((m + n : pos_num) : α) = m + n :=
 by rw [← cast_to_nat, add_to_nat, nat.cast_add, cast_to_nat, cast_to_nat]
 
 @[simp, norm_cast, priority 500]
-theorem cast_succ [has_nat_cast α] (n : pos_num) : (succ n : α) = n + 1 :=
+theorem cast_succ [add_monoid_with_one α] (n : pos_num) : (succ n : α) = n + 1 :=
 by rw [← add_one, cast_add, cast_one]
 
 @[simp, norm_cast]
-theorem cast_inj [has_nat_cast α] [char_zero α] {m n : pos_num} : (m:α) = n ↔ m = n :=
+theorem cast_inj [add_monoid_with_one α] [char_zero α] {m n : pos_num} : (m:α) = n ↔ m = n :=
 by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_inj, to_nat_inj]
 
 @[simp]
@@ -537,10 +537,10 @@ open pos_num
 theorem bit_to_nat (b n) : (bit b n : ℕ) = nat.bit b n :=
 by cases b; cases n; refl
 
-theorem cast_succ' [has_nat_cast α] (n) : (succ' n : α) = n + 1 :=
+theorem cast_succ' [add_monoid_with_one α] (n) : (succ' n : α) = n + 1 :=
 by rw [← pos_num.cast_to_nat, succ'_to_nat, nat.cast_add_one, cast_to_nat]
 
-theorem cast_succ [has_nat_cast α] (n) : (succ n : α) = n + 1 := cast_succ' n
+theorem cast_succ [add_monoid_with_one α] (n) : (succ n : α) = n + 1 := cast_succ' n
 
 @[simp, norm_cast] theorem cast_add [semiring α] (m n) : ((m + n : num) : α) = m + n :=
 by rw [← cast_to_nat, add_to_nat, nat.cast_add, cast_to_nat, cast_to_nat]
@@ -1139,7 +1139,7 @@ instance : add_comm_group znum :=
   neg              := has_neg.neg,
   add_left_neg     := by transfer }
 
-instance : has_nat_cast znum :=
+instance : add_monoid_with_one znum :=
 { one := 1,
   nat_cast := λ n, znum.of_int' n,
   nat_cast_zero := show (num.of_nat' 0).to_znum = 0, by rw num.of_nat'_zero; refl,
@@ -1160,7 +1160,7 @@ instance : linear_ordered_comm_ring znum :=
   add_le_add_left  := by {intros a b h c, revert h, transfer_rw, exact λ h, add_le_add_left h c},
   mul_pos          := λ a b, show 0 < a → 0 < b → 0 < a * b, by {transfer_rw, apply mul_pos},
   zero_le_one      := dec_trivial,
-  ..znum.linear_order, ..znum.add_comm_group, ..znum.has_nat_cast }
+  ..znum.linear_order, ..znum.add_comm_group, ..znum.add_monoid_with_one }
 
 @[simp, norm_cast] theorem cast_sub [ring α] (m n) : ((m - n : znum) : α) = m - n :=
 by simp [sub_eq_neg_add]

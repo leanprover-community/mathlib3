@@ -97,7 +97,7 @@ instance [semigroup_with_zero Y] : semigroup_with_zero (locally_constant X Y) :=
 { mul := (*),
   .. locally_constant.semigroup, .. locally_constant.mul_one_class }
 
-instance [has_nat_cast Y] : has_nat_cast (locally_constant X Y) :=
+instance [add_monoid_with_one Y] : add_monoid_with_one (locally_constant X Y) :=
 { nat_cast := λ n, const X n,
   nat_cast_zero := by ext; simp [nat.cast],
   nat_cast_succ := λ _, by ext; simp [nat.cast],
@@ -127,7 +127,7 @@ instance [non_unital_semiring Y] : non_unital_semiring (locally_constant X Y) :=
 { .. locally_constant.semigroup, .. locally_constant.non_unital_non_assoc_semiring }
 
 instance [non_assoc_semiring Y] : non_assoc_semiring (locally_constant X Y) :=
-{ .. locally_constant.mul_one_class, .. locally_constant.has_nat_cast,
+{ .. locally_constant.mul_one_class, .. locally_constant.add_monoid_with_one,
   .. locally_constant.non_unital_non_assoc_semiring }
 
 /-- The constant-function embedding, as a ring hom.  -/

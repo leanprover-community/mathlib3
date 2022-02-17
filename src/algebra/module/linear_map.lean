@@ -745,7 +745,7 @@ instance _root_.module.End.semiring : semiring (module.End R M) :=
   zero_mul := zero_comp,
   left_distrib := λ f g h, comp_add _ _ _,
   right_distrib := λ f g h, add_comp _ _ _,
-  .. has_nat_cast.unary,
+  .. add_monoid_with_one.unary,
   .. _root_.module.End.monoid,
   .. linear_map.add_comm_monoid }
 

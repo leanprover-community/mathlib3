@@ -213,7 +213,7 @@ instance semiring : semiring (⨁ i, A i) :=
   one_mul := one_mul A,
   mul_one := mul_one A,
   mul_assoc := mul_assoc A,
-  ..has_nat_cast.unary,
+  ..add_monoid_with_one.unary,
   ..direct_sum.non_unital_non_assoc_semiring _, }
 
 lemma of_pow {i} (a : A i) (n : ℕ) :

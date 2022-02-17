@@ -100,7 +100,7 @@ lemma one_apply_ne {x : ℕ} (h : x ≠ 1) : (1 : arithmetic_function R) x = 0 :
 end has_one
 end has_zero
 
-instance nat_coe [has_nat_cast R] :
+instance nat_coe [add_monoid_with_one R] :
   has_coe (arithmetic_function ℕ) (arithmetic_function R) :=
 ⟨λ f, ⟨↑(f : ℕ → ℕ), by { transitivity ↑(f 0), refl, simp }⟩⟩
 
@@ -110,10 +110,10 @@ lemma nat_coe_nat (f : arithmetic_function ℕ) :
 ext $ λ _, cast_id _
 
 @[simp]
-lemma nat_coe_apply [has_nat_cast R] {f : arithmetic_function ℕ} {x : ℕ} :
+lemma nat_coe_apply [add_monoid_with_one R] {f : arithmetic_function ℕ} {x : ℕ} :
   (f : arithmetic_function R) x = f x := rfl
 
-instance int_coe [has_nat_cast R] [has_neg R] :
+instance int_coe [add_monoid_with_one R] [has_neg R] :
   has_coe (arithmetic_function ℤ) (arithmetic_function R) :=
 ⟨λ f, ⟨↑(f : ℕ → ℤ), by { transitivity ↑(f 0), refl, simp }⟩⟩
 
@@ -123,12 +123,12 @@ lemma int_coe_int (f : arithmetic_function ℤ) :
 ext $ λ _, int.cast_id _
 
 @[simp]
-lemma int_coe_apply [has_nat_cast R] [has_neg R]
+lemma int_coe_apply [add_monoid_with_one R] [has_neg R]
   {f : arithmetic_function ℤ} {x : ℕ} :
   (f : arithmetic_function R) x = f x := rfl
 
 @[simp]
-lemma coe_coe [has_nat_cast R] [has_neg R] {f : arithmetic_function ℕ} :
+lemma coe_coe [add_monoid_with_one R] [has_neg R] {f : arithmetic_function ℕ} :
   ((f : arithmetic_function ℤ) : arithmetic_function R) = f :=
 by { ext, simp, }
 
@@ -150,7 +150,7 @@ instance : add_monoid (arithmetic_function R) :=
 
 end add_monoid
 
-instance [has_nat_cast R] : has_nat_cast (arithmetic_function R) :=
+instance [add_monoid_with_one R] : add_monoid_with_one (arithmetic_function R) :=
 { nat_cast := λ n, ⟨λ x, if x = 1 then (n : R) else 0, by simp⟩,
   nat_cast_zero := by ext; simp [nat.cast],
   nat_cast_succ := λ _, by ext; by_cases x = 1; simp [nat.cast, *],
@@ -277,7 +277,7 @@ instance : semiring (arithmetic_function R) :=
   .. arithmetic_function.has_mul,
   .. arithmetic_function.has_add,
   .. arithmetic_function.add_comm_monoid,
-  .. arithmetic_function.has_nat_cast,
+  .. arithmetic_function.add_monoid_with_one,
   .. arithmetic_function.monoid }
 
 end semiring

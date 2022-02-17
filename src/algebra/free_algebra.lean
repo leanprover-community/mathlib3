@@ -161,7 +161,7 @@ instance : semiring (free_algebra R X) :=
   right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.right_distrib },
   zero_mul := by { rintros ⟨⟩, exact quot.sound rel.zero_mul },
   mul_zero := by { rintros ⟨⟩, exact quot.sound rel.mul_zero },
-  .. free_algebra.add_comm_monoid R X, .. free_algebra.monoid R X, .. has_nat_cast.unary }
+  .. free_algebra.add_comm_monoid R X, .. free_algebra.monoid R X, .. add_monoid_with_one.unary }
 
 instance : inhabited (free_algebra R X) := ⟨0⟩
 

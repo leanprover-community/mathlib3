@@ -335,7 +335,7 @@ end
 instance : has_one (A ⊗[R] B) :=
 { one := 1 ⊗ₜ 1 }
 
-instance : has_nat_cast (A ⊗[R] B) := has_nat_cast.unary
+instance : add_monoid_with_one (A ⊗[R] B) := add_monoid_with_one.unary
 
 instance : semiring (A ⊗[R] B) :=
 { zero := 0,
@@ -349,7 +349,7 @@ instance : semiring (A ⊗[R] B) :=
   mul_zero := by simp,
   left_distrib := by simp,
   right_distrib := by simp,
-  .. (by apply_instance : has_nat_cast (A ⊗[R] B)),
+  .. (by apply_instance : add_monoid_with_one (A ⊗[R] B)),
   .. (by apply_instance : add_comm_monoid (A ⊗[R] B)) }.
 
 lemma one_def : (1 : A ⊗[R] B) = (1 : A) ⊗ₜ (1 : B) := rfl

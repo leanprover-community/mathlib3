@@ -265,7 +265,7 @@ instance : comm_ring (perfect_closure K p) :=
     simp only [ring_hom.iterate_map_mul, ring_hom.iterate_map_add,
       ← iterate_add_apply, add_mul, add_comm, add_left_comm],
   .. perfect_closure.add_comm_group K p,
-  .. has_nat_cast.unary,
+  .. add_monoid_with_one.unary,
   .. (infer_instance : comm_monoid (perfect_closure K p)) }
 
 theorem eq_iff' (x y : ℕ × K) : mk K p x = mk K p y ↔

@@ -135,7 +135,7 @@ by refine_struct
     nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ };
   intros; try { refl }; ext; simp; ring_exp
 
-instance : has_nat_cast ℍ[R, c₁, c₂] :=
+instance : add_monoid_with_one ℍ[R, c₁, c₂] :=
 { nat_cast := λ n, ((n : R) : ℍ[R, c₁, c₂]),
   nat_cast_zero := by simp [nat.cast],
   nat_cast_succ := by simp [nat.cast],
@@ -151,7 +151,7 @@ by refine_struct
     one := 1,
     zsmul := @zsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
     npow := @npow_rec _ ⟨(1 : ℍ[R, c₁, c₂])⟩ ⟨(*)⟩,
-    .. quaternion_algebra.has_nat_cast,
+    .. quaternion_algebra.add_monoid_with_one,
     .. quaternion_algebra.add_comm_monoid };
   intros; try { refl }; ext; simp; ring_exp
 

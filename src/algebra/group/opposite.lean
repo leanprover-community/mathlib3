@@ -40,7 +40,7 @@ unop_injective.add_zero_class _ rfl (λ x y, rfl)
 instance [add_monoid α] : add_monoid αᵐᵒᵖ :=
 unop_injective.add_monoid_smul _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
-instance [has_nat_cast α] : has_nat_cast αᵐᵒᵖ :=
+instance [add_monoid_with_one α] : add_monoid_with_one αᵐᵒᵖ :=
 { nat_cast := λ n, op n,
   nat_cast_zero := show op ((0 : ℕ) : α) = 0, by simp,
   nat_cast_succ := show ∀ n, op ((n + 1 : ℕ) : α) = op (n : ℕ) + 1, by simp,

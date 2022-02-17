@@ -35,7 +35,7 @@ tactic.pi_instance_derive_field
 
 instance non_assoc_semiring [non_assoc_semiring α] : non_assoc_semiring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),
-  nsmul := add_monoid.nsmul, .. ulift.has_nat_cast };
+  nsmul := add_monoid.nsmul, .. ulift.add_monoid_with_one };
 tactic.pi_instance_derive_field
 
 instance non_unital_semiring [non_unital_semiring α] : non_unital_semiring (ulift α) :=
@@ -45,7 +45,7 @@ tactic.pi_instance_derive_field
 
 instance semiring [semiring α] : semiring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),
-  nsmul := add_monoid.nsmul, npow := monoid.npow, .. ulift.has_nat_cast };
+  nsmul := add_monoid.nsmul, npow := monoid.npow, .. ulift.add_monoid_with_one };
 tactic.pi_instance_derive_field
 
 /--

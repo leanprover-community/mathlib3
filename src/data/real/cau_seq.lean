@@ -241,7 +241,7 @@ by refine_struct
        nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ };
 intros; try { refl }; apply ext; simp [add_comm, add_left_comm]
 
-instance : has_nat_cast (cau_seq β abv) :=
+instance : add_monoid_with_one (cau_seq β abv) :=
 { one := 1,
   nat_cast := λ n, const n,
   nat_cast_zero := congr_arg const nat.cast_zero,
@@ -259,7 +259,7 @@ by refine_struct
        npow := @npow_rec (cau_seq β abv) ⟨1⟩ ⟨(*)⟩,
        nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩,
        zsmul := @zsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
-       .. cau_seq.has_nat_cast };
+       .. cau_seq.add_monoid_with_one };
 intros; try { refl }; apply ext;
 simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
 

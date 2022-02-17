@@ -19,10 +19,10 @@ variables (R : Type u)
 
 /-- The generator of the kernel of the unique homomorphism ℕ → R for a semiring R -/
 @[mk_iff]
-class char_p [has_nat_cast R] (p : ℕ) : Prop :=
+class char_p [add_monoid_with_one R] (p : ℕ) : Prop :=
 (cast_eq_zero_iff [] : ∀ x:ℕ, (x:R) = 0 ↔ p ∣ x)
 
-theorem char_p.cast_eq_zero [has_nat_cast R] (p : ℕ) [char_p R p] :
+theorem char_p.cast_eq_zero [add_monoid_with_one R] (p : ℕ) [char_p R p] :
   (p:R) = 0 :=
 (char_p.cast_eq_zero_iff R p p).2 (dvd_refl p)
 
@@ -48,13 +48,13 @@ lemma char_p.int_coe_eq_int_coe_iff [add_group_with_one R] (p : ℕ) [char_p R p
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
        char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
-theorem char_p.eq [has_nat_cast R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
+theorem char_p.eq [add_monoid_with_one R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
   p = q :=
 nat.dvd_antisymm
   ((char_p.cast_eq_zero_iff R p q).1 (char_p.cast_eq_zero _ _))
   ((char_p.cast_eq_zero_iff R q p).1 (char_p.cast_eq_zero _ _))
 
-instance char_p.of_char_zero [has_nat_cast R] [char_zero R] : char_p R 0 :=
+instance char_p.of_char_zero [add_monoid_with_one R] [char_zero R] : char_p R 0 :=
 ⟨λ x, by rw [zero_dvd_iff, ← nat.cast_zero, nat.cast_inj]⟩
 
 theorem char_p.exists [non_assoc_semiring R] : ∃ p, char_p R p :=
@@ -77,7 +77,7 @@ classical.by_cases
 theorem char_p.exists_unique [non_assoc_semiring R] : ∃! p, char_p R p :=
 let ⟨c, H⟩ := char_p.exists R in ⟨c, H, λ y H2, char_p.eq R H2 H⟩
 
-theorem char_p.congr {R : Type u} [has_nat_cast R] {p : ℕ} (q : ℕ) [hq : char_p R q]
+theorem char_p.congr {R : Type u} [add_monoid_with_one R] {p : ℕ} (q : ℕ) [hq : char_p R q]
   (h : q = p) :
   char_p R p :=
 h ▸ hq

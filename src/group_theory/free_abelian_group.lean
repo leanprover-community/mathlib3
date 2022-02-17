@@ -398,7 +398,7 @@ instance : ring (free_abelian_group α) :=
       rw [add_assoc, add_assoc], congr' 1, apply add_left_comm }
   end,
   .. free_abelian_group.add_comm_group α,
-  .. has_nat_cast.unary,
+  .. add_monoid_with_one.unary,
   .. free_abelian_group.semigroup α }
 
 variable {α}

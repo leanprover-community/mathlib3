@@ -49,7 +49,7 @@ defines a pseudometric space structure. -/
 class semi_normed_group (E : Type*) extends has_norm E, add_comm_group E, pseudo_metric_space E :=
 (dist_eq : ∀ x y : E, dist x y = norm (x - y))
 
-class semi_normed_group_with_one (E : Type*) extends semi_normed_group E, has_nat_cast E
+class semi_normed_group_with_one (E : Type*) extends semi_normed_group E, add_monoid_with_one E
 
 /-- A normed group is an additive group endowed with a norm for which `dist x y = ∥x - y∥` defines
 a metric space structure. -/

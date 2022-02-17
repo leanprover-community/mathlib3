@@ -30,12 +30,12 @@ namespace nat
 variables {α : Type*}
 
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
-def cast_add_monoid_hom (α : Type*) [has_nat_cast α] : ℕ →+ α :=
+def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
 { to_fun := coe,
   map_add' := cast_add,
   map_zero' := cast_zero }
 
-@[simp] lemma coe_cast_add_monoid_hom [has_nat_cast α] :
+@[simp] lemma coe_cast_add_monoid_hom [add_monoid_with_one α] :
   (cast_add_monoid_hom α : ℕ → α) = coe := rfl
 
 @[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m n : ℕ) :
@@ -160,9 +160,9 @@ end nat
 
 namespace prod
 
-variables {α : Type*} {β : Type*} [has_nat_cast α] [has_nat_cast β]
+variables {α : Type*} {β : Type*} [add_monoid_with_one α] [add_monoid_with_one β]
 
-instance : has_nat_cast (α × β) :=
+instance : add_monoid_with_one (α × β) :=
 { nat_cast := λ n, (n, n),
   nat_cast_zero := congr_arg2 prod.mk nat.cast_zero nat.cast_zero,
   nat_cast_succ := λ n, congr_arg2 prod.mk (nat.cast_succ _) (nat.cast_succ _),
@@ -178,7 +178,7 @@ end prod
 
 section add_monoid_hom_class
 
-variables {A B F : Type*} [has_nat_cast B]
+variables {A B F : Type*} [add_monoid_with_one B]
 
 lemma ext_nat' [add_monoid A] [add_monoid_hom_class F ℕ A] (f g : F) (h : f 1 = g 1) : f = g :=
 fun_like.ext f g $ begin
@@ -190,7 +190,7 @@ end
 @[ext] lemma add_monoid_hom.ext_nat [add_monoid A] : ∀ {f g : ℕ →+ A}, ∀ h : f 1 = g 1, f = g :=
 ext_nat'
 
-variable [has_nat_cast A]
+variable [add_monoid_with_one A]
 
 -- these versions are primed so that the `ring_hom_class` versions aren't
 lemma eq_nat_cast' [add_monoid_hom_class F ℕ A] (f : F) (h1 : f 1 = 1) :
@@ -251,7 +251,7 @@ instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingl
 namespace with_top
 variables {α : Type*}
 
-variables [has_nat_cast α]
+variables [add_monoid_with_one α]
 
 @[simp, norm_cast] lemma coe_nat : ∀ (n : ℕ), ((n : α) : with_top α) = n
 | 0     := rfl
@@ -290,14 +290,14 @@ namespace pi
 
 variables {α β : Type*}
 
-instance [has_nat_cast β] : has_nat_cast (α → β) :=
+instance [add_monoid_with_one β] : add_monoid_with_one (α → β) :=
 { nat_cast := λ n i, n,
   nat_cast_zero := funext $ λ i, nat.cast_zero,
   nat_cast_succ := λ n, funext $ λ i, nat.cast_succ _,
   .. pi.add_monoid, .. pi.has_one }
 
-lemma nat_apply [has_nat_cast β] (n : ℕ) (a : α) : (n : α → β) a = n := rfl
+lemma nat_apply [add_monoid_with_one β] (n : ℕ) (a : α) : (n : α → β) a = n := rfl
 
-@[simp] lemma coe_nat [has_nat_cast β] (n : ℕ) : (n : α → β) = λ _, n := rfl
+@[simp] lemma coe_nat [add_monoid_with_one β] (n : ℕ) : (n : α → β) = λ _, n := rfl
 
 end pi

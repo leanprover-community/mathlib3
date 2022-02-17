@@ -104,7 +104,7 @@ by refine_struct
   nsmul          := @nsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ };
 intros; try { refl }; simp [ext, add_comm, add_left_comm]
 
-instance : has_nat_cast ℤ√d :=
+instance : add_monoid_with_one ℤ√d :=
 { nat_cast := λ n, of_int n,
   nat_cast_zero := rfl,
   nat_cast_succ := λ _, rfl,
@@ -121,7 +121,7 @@ by refine_struct
   one            := 1,
   npow           := @npow_rec (ℤ√d) ⟨1⟩ ⟨(*)⟩,
   zsmul          := @zsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ ⟨zsqrtd.neg⟩,
-  .. zsqrtd.has_nat_cast };
+  .. zsqrtd.add_monoid_with_one };
 intros; try { refl }; simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm]
 
 instance : add_monoid ℤ√d         := by apply_instance

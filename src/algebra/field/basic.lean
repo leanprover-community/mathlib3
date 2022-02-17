@@ -329,7 +329,7 @@ end noncomputable_defs
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.division_ring [division_ring K] {K'}
-  [has_nat_cast K'] [has_mul K'] [has_neg K'] [has_sub K'] [has_inv K'] [has_div K']
+  [add_monoid_with_one K'] [has_mul K'] [has_neg K'] [has_sub K'] [has_inv K'] [has_div K']
   (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -342,7 +342,7 @@ protected def function.injective.division_ring [division_ring K] {K'}
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.field [field K] {K'}
-  [has_nat_cast K'] [has_mul K'] [has_neg K'] [has_sub K'] [has_inv K'] [has_div K']
+  [add_monoid_with_one K'] [has_mul K'] [has_neg K'] [has_sub K'] [has_inv K'] [has_div K']
   (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)

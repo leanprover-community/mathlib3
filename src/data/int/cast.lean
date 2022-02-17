@@ -34,7 +34,7 @@ section cast
 variables {α : Type*}
 
 section
-variables [has_nat_cast α] [has_neg α]
+variables [add_monoid_with_one α] [has_neg α]
 
 /-- Canonical homomorphism from the integers to any ring(-like) structure `α` -/
 protected def cast : ℤ → α
@@ -57,7 +57,7 @@ by rw [← cast_succ]; refl
 
 end
 
-@[simp, norm_cast] theorem cast_one [has_nat_cast α] [has_neg α] :
+@[simp, norm_cast] theorem cast_one [add_monoid_with_one α] [has_neg α] :
   ((1 : ℤ) : α) = 1 := nat.cast_one
 
 @[simp] theorem cast_sub_nat_nat [add_group_with_one α] (m n) :
@@ -194,7 +194,7 @@ end int
 
 namespace prod
 
-variables {α : Type*} {β : Type*} [has_nat_cast α] [has_neg α] [has_nat_cast β] [has_neg β]
+variables {α : Type*} {β : Type*} [add_monoid_with_one α] [has_neg α] [add_monoid_with_one β] [has_neg β]
 
 @[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n :=
 by induction n; simp *
@@ -296,10 +296,10 @@ namespace pi
 
 variables {α β : Type*}
 
-lemma int_apply [has_nat_cast β] [has_neg β] (n : ℤ) (a : α) : (n : α → β) a = n :=
+lemma int_apply [add_monoid_with_one β] [has_neg β] (n : ℤ) (a : α) : (n : α → β) a = n :=
 by cases n; refl
 
-@[simp] lemma coe_int [has_nat_cast β] [has_neg β] (n : ℤ) :
+@[simp] lemma coe_int [add_monoid_with_one β] [has_neg β] (n : ℤ) :
   (n : α → β) = λ _, n :=
 funext (int_apply n)
 

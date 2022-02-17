@@ -64,7 +64,7 @@ instance (n : ℕ) : comm_ring (fin (n+1)) :=
   mul_one := fin.mul_one,
   left_distrib := left_distrib_aux n,
   right_distrib := λ a b c, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]; refl,
-  ..fin.has_nat_cast,
+  ..fin.add_monoid_with_one,
   ..fin.add_comm_group n,
   ..fin.comm_semigroup n }
 
@@ -162,7 +162,7 @@ section universal_property
 variables {n : ℕ} {R : Type*}
 
 section
-variables [has_nat_cast R] [has_neg R]
+variables [add_monoid_with_one R] [has_neg R]
 
 /-- Cast an integer modulo `n` to another semiring.
 This function is a morphism if the characteristic of `R` divides `n`.
@@ -177,7 +177,7 @@ def cast : Π {n : ℕ}, zmod n → R
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
 by cases n; simp
 
-variables {S : Type*} [has_nat_cast S] [has_neg S]
+variables {S : Type*} [add_monoid_with_one S] [has_neg S]
 
 @[simp] lemma _root_.prod.fst_zmod_cast (a : zmod n) : (a : R × S).fst = a :=
 by cases n; simp

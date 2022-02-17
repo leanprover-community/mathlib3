@@ -346,7 +346,7 @@ variables [linear_ordered_field 𝕜] [topological_space E]
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E} {x : E}
 
-lemma strict_convex.smul [topological_space 𝕜] [has_continuous_smul 𝕜 E] (hs : strict_convex 𝕜 s)
+lemma strict_convex.smul [has_continuous_const_smul 𝕜 E] (hs : strict_convex 𝕜 s)
   (c : 𝕜) :
   strict_convex 𝕜 (c • s) :=
 begin
@@ -355,7 +355,7 @@ begin
   { exact hs.linear_image (linear_map.lsmul _ _ c) (is_open_map_smul₀ hc) }
 end
 
-lemma strict_convex.affinity [topological_space 𝕜] [has_continuous_add E] [has_continuous_smul 𝕜 E]
+lemma strict_convex.affinity [has_continuous_add E] [has_continuous_const_smul 𝕜 E]
   (hs : strict_convex 𝕜 s) (z : E) (c : 𝕜) :
   strict_convex 𝕜 ((λ x, z + c • x) '' s) :=
 begin

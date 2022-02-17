@@ -143,7 +143,7 @@ funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
   sum.elim (f ∘ inl) (f ∘ inr) = f :=
 funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
 
-@[simp] lemma sum.elim_comp_map {α β γ δ ε : Sort*}
+@[simp] lemma elim_comp_map {α β γ δ ε : Sort*}
   (f1 : α → β) (f2 : β → ε) (g1 : γ → δ) (g2 : δ → ε) :
   sum.elim f2 g2 ∘ (sum.map f1 g1) = sum.elim (f2 ∘ f1) (g2 ∘ g1) :=
 funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)

@@ -1416,6 +1416,15 @@ ext $ λ x, ⟨λ h, (mem_filter.1 h).1, λ hx, mem_filter.2 ⟨hx, h x hx⟩⟩
 lemma filter_false_of_mem {s : finset α} (h : ∀ x ∈ s, ¬ p x) : s.filter p = ∅ :=
 eq_empty_of_forall_not_mem (by simpa)
 
+lemma filter_empty_iff (s : finset ℕ) (p : ℕ → Prop) [decidable_pred p] :
+  (s.filter p = ∅) ↔ ∀ x ∈ s, ¬ p x :=
+begin
+  refine ⟨_, finset.filter_false_of_mem⟩,
+  intros hs,
+  injection hs with hs',
+  rwa filter_eq_nil at hs'
+end
+
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H
 
@@ -1506,15 +1515,6 @@ begin
   { simp [filter_union_right, em] },
   { intro x, simp },
   { intro x, simp, intros hx hx₂, refine ⟨or.resolve_left (h hx) hx₂, hx₂⟩ }
-end
-
-lemma filter_empty_iff (s : finset ℕ) (p : ℕ → Prop) [decidable_pred p] :
-  (s.filter p = ∅) ↔ ∀ x ∈ s, ¬ p x :=
-begin
-  refine ⟨_, finset.filter_false_of_mem⟩,
-  intros hs,
-  injection hs with hs',
-  rwa filter_eq_nil at hs'
 end
 
 /- We can simplify an application of filter where the decidability is inferred in "the wrong way" -/

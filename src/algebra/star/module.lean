@@ -45,7 +45,7 @@ variables (R : Type*) {A : Type*}
                   star_add_monoid.star_add, star_inv', star_bit0,
                   star_one, star_star, star_inv_of (2 : R), star_trivial]⟩,
   map_add' := λ x y, by { ext, simp [add_add_add_comm] },
-  map_smul' := λ r x, by { ext, by simp [←mul_smul,
+  map_smul' := λ r x, by { ext, simp [←mul_smul,
           show ⅟ 2 * r = r * ⅟ 2, from commute.inv_of_left (commute.one_left r).bit0_left] } }
 
 /-- The skew-adjoint part of an element of a star module, as a linear map. -/

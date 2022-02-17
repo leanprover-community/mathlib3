@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 
 import order.succ_pred.basic
-import topology.algebra.ordered.basic
+import topology.algebra.order.basic
 
 /-!
 # Instances related to the discrete topology

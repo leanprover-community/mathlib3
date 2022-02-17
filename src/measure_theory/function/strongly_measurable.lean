@@ -242,7 +242,7 @@ lemma prod.tendsto_iff {ι G G'} [topological_space G] [topological_space G']
 by { cases x, rw [nhds_prod_eq, tendsto_prod_iff'], }
 
 -- TODO: move this
-lemma _root_.filter.tendsto.sup_right {ι} [preorder ι] {f g : ι → β} [has_sup β]
+lemma _root_.filter.tendsto.sup_right {ι} {f g : ι → β} [has_sup β]
   [has_continuous_sup β] {l : filter ι} {x y : β}
   (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
   tendsto (f ⊔ g) l (𝓝 (x ⊔ y)) :=
@@ -256,7 +256,7 @@ begin
 end
 
 -- TODO: move this
-lemma _root_.filter.tendsto.inf_right {ι} [preorder ι] {f g : ι → β} [has_inf β]
+lemma _root_.filter.tendsto.inf_right {ι} {f g : ι → β} [has_inf β]
   [has_continuous_inf β] {l : filter ι} {x y : β}
   (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
   tendsto (f ⊓ g) l (𝓝 (x ⊓ y)) :=
@@ -355,35 +355,59 @@ protected lemma sub [add_group β] [topological_add_group β]
 ⟨(hf.mk f) - (hg.mk g), hf.strongly_measurable_mk.sub hg.strongly_measurable_mk,
   hf.ae_eq_mk.sub hg.ae_eq_mk⟩
 
+lemma _root_.filter.eventually_eq.const_smul {α β 𝕜} [has_scalar 𝕜 β] {l : filter α} {f g : α → β}
+  (h : f =ᶠ[l] g) (c : 𝕜) :
+  c • f =ᶠ[l] c • g :=
+by { filter_upwards [h] with x hx, rw [pi.smul_apply, pi.smul_apply, hx], }
+
+lemma _root_.filter.eventually_eq.smul {α β 𝕜} [has_scalar 𝕜 β] {l : filter α} {f f' : α → 𝕜}
+  {g g' : α → β} (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
+  f • g =ᶠ[l] f' • g' :=
+by { filter_upwards [hf, hg] with x hfx hgx, rw [pi.smul_apply', pi.smul_apply', hfx, hgx], }
+
 protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_comm_monoid β] [module 𝕜 β]
   [has_continuous_smul 𝕜 β] (hf : ae_strongly_measurable f μ) (c : 𝕜) :
   ae_strongly_measurable (c • f) μ :=
-⟨c • (hf.mk f), hf.strongly_measurable_mk.const_smul c,
-  by { refine hf.ae_eq_mk.mono (λ x hx, _), rw [pi.smul_apply, pi.smul_apply, hx], }⟩
+⟨c • (hf.mk f), hf.strongly_measurable_mk.const_smul c, hf.ae_eq_mk.const_smul c⟩
 
 end arithmetic
 
 section order
 
+lemma _root_.filter.eventually_eq.sup {α β} [has_sup β] {l : filter α} {f f' g g' : α → β}
+  (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
+  f ⊔ g =ᶠ[l] f' ⊔ g' :=
+by { filter_upwards [hf, hg] with x hfx hgx, rw [pi.sup_apply, pi.sup_apply, hfx, hgx], }
+
+lemma _root_.filter.eventually_eq.inf {α β} [has_inf β] {l : filter α} {f f' g g' : α → β}
+  (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
+  f ⊓ g =ᶠ[l] f' ⊓ g' :=
+by { filter_upwards [hf, hg] with x hfx hgx, rw [pi.inf_apply, pi.inf_apply, hfx, hgx], }
+
 protected lemma sup [has_sup β] [has_continuous_sup β] (hf : ae_strongly_measurable f μ)
   (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (f ⊔ g) μ :=
 ⟨(hf.mk f) ⊔ (hg.mk g), hf.strongly_measurable_mk.sup hg.strongly_measurable_mk,
-  by { filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
-    rw [pi.sup_apply, pi.sup_apply, hfx, hgx], }⟩
+  hf.ae_eq_mk.sup hg.ae_eq_mk⟩
 
 protected lemma inf [has_inf β] [has_continuous_inf β] (hf : ae_strongly_measurable f μ)
   (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (f ⊓ g) μ :=
 ⟨(hf.mk f) ⊓ (hg.mk g), hf.strongly_measurable_mk.inf hg.strongly_measurable_mk,
-  by { filter_upwards [hf.ae_eq_mk, hg.ae_eq_mk] with x hfx hgx,
-    rw [pi.inf_apply, pi.inf_apply, hfx, hgx], }⟩
+  hf.ae_eq_mk.inf hg.ae_eq_mk⟩
 
 end order
 
 end ae_strongly_measurable
 
 /-! ## Finitely strongly measurable functions -/
+
+lemma fin_strongly_measurable_zero {α β} {m : measurable_space α} {μ : measure α} [has_zero β]
+  [topological_space β] :
+  fin_strongly_measurable (0 : α → β) μ :=
+⟨0, by simp only [pi.zero_apply, simple_func.coe_zero, support_zero', measure_empty,
+    with_top.zero_lt_top, forall_const],
+  λ n, tendsto_const_nhds⟩
 
 namespace fin_strongly_measurable
 
@@ -487,24 +511,48 @@ protected lemma sub [add_group β] [has_continuous_sub β]
     (ennreal.add_lt_top.mpr ⟨hf.fin_support_approx n, hg.fin_support_approx n⟩)),
   λ x, (hf.tendsto_approx x).sub (hg.tendsto_approx x)⟩
 
+lemma support_const_smul_of_ne_zero {R M} [semiring R] [add_comm_monoid M] [module R M]
+  [no_zero_smul_divisors R M] (c : R) (g : α → M) (hc : c ≠ 0) :
+  support (c • g) = support g :=
+by { ext, simp only [hc, mem_support, pi.smul_apply, ne.def, smul_eq_zero, false_or], }
+
+protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_comm_monoid β] [module 𝕜 β]
+  [no_zero_smul_divisors 𝕜 β] [has_continuous_smul 𝕜 β]
+  (hf : fin_strongly_measurable f μ) (c : 𝕜) :
+  fin_strongly_measurable (c • f) μ :=
+begin
+  refine ⟨λ n, c • (hf.approx n), λ n, _, λ x, (hf.tendsto_approx x).const_smul c⟩,
+  rw simple_func.coe_smul,
+  by_cases hc : c = 0,
+  { simp only [hc, zero_smul, support_zero', measure_empty, with_top.zero_lt_top], },
+  { rw support_const_smul_of_ne_zero c (hf.approx n) hc,
+    exact hf.fin_support_approx n, },
+end
+
 end arithmetic
 
 section order
-variables [topological_space β]
+variables [topological_space β] [has_zero β]
 
-protected lemma sup [has_zero β] [has_sup β] [has_continuous_sup β] (hf : fin_strongly_measurable f μ)
-  (hg : fin_strongly_measurable g μ) :
+protected lemma sup [semilattice_sup β] [has_continuous_sup β]
+  (hf : fin_strongly_measurable f μ) (hg : fin_strongly_measurable g μ) :
   fin_strongly_measurable (f ⊔ g) μ :=
 begin
   refine ⟨λ n, hf.approx n ⊔ hg.approx n, λ n, _,
     λ x, (hf.tendsto_approx x).sup_right (hg.tendsto_approx x)⟩,
-  --refine (measure_mono (support_sup _ _)).trans_lt _,
+  refine (measure_mono (support_sup _ _)).trans_lt _,
+  exact measure_union_lt_top_iff.mpr ⟨hf.fin_support_approx n, hg.fin_support_approx n⟩,
 end
 
-protected lemma inf [has_inf β] [has_continuous_inf β] (hf : strongly_measurable f)
-  (hg : strongly_measurable g) :
-  strongly_measurable (f ⊓ g) :=
-⟨λ n, hf.approx n ⊓ hg.approx n, λ x, (hf.tendsto_approx x).inf_right (hg.tendsto_approx x)⟩
+protected lemma inf [semilattice_inf β] [has_continuous_inf β]
+  (hf : fin_strongly_measurable f μ) (hg : fin_strongly_measurable g μ) :
+  fin_strongly_measurable (f ⊓ g) μ :=
+begin
+  refine ⟨λ n, hf.approx n ⊓ hg.approx n, λ n, _,
+    λ x, (hf.tendsto_approx x).inf_right (hg.tendsto_approx x)⟩,
+  refine (measure_mono (support_inf _ _)).trans_lt _,
+  exact measure_union_lt_top_iff.mpr ⟨hf.fin_support_approx n, hg.fin_support_approx n⟩,
+end
 
 end order
 
@@ -517,6 +565,11 @@ lemma fin_strongly_measurable_iff_strongly_measurable_and_exists_set_sigma_finit
 ⟨λ hf, ⟨hf.strongly_measurable, hf.exists_set_sigma_finite⟩,
   λ hf, hf.1.fin_strongly_measurable_of_set_sigma_finite hf.2.some_spec.1 hf.2.some_spec.2.1
     hf.2.some_spec.2.2⟩
+
+lemma ae_fin_strongly_measurable_zero {α β} {m : measurable_space α} (μ : measure α) [has_zero β]
+  [topological_space β] :
+  ae_fin_strongly_measurable (0 : α → β) μ :=
+⟨0, fin_strongly_measurable_zero, eventually_eq.rfl⟩
 
 namespace ae_fin_strongly_measurable
 
@@ -570,7 +623,30 @@ protected lemma sub [add_group β] [has_continuous_sub β]
 ⟨hf.mk f - hg.mk g, hf.fin_strongly_measurable_mk.sub hg.fin_strongly_measurable_mk,
   hf.ae_eq_mk.sub hg.ae_eq_mk⟩
 
+protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_comm_monoid β] [module 𝕜 β]
+  [no_zero_smul_divisors 𝕜 β] [has_continuous_smul 𝕜 β]
+  (hf : ae_fin_strongly_measurable f μ) (c : 𝕜) :
+  ae_fin_strongly_measurable (c • f) μ :=
+⟨c • hf.mk f, hf.fin_strongly_measurable_mk.const_smul c, hf.ae_eq_mk.const_smul c⟩
+
 end arithmetic
+
+section order
+variables [has_zero β]
+
+protected lemma sup [semilattice_sup β] [has_continuous_sup β]
+  (hf : ae_fin_strongly_measurable f μ) (hg : ae_fin_strongly_measurable g μ) :
+  ae_fin_strongly_measurable (f ⊔ g) μ :=
+⟨hf.mk f ⊔ hg.mk g, hf.fin_strongly_measurable_mk.sup hg.fin_strongly_measurable_mk,
+  hf.ae_eq_mk.sup hg.ae_eq_mk⟩
+
+protected lemma inf [semilattice_inf β] [has_continuous_inf β]
+  (hf : ae_fin_strongly_measurable f μ) (hg : ae_fin_strongly_measurable g μ) :
+  ae_fin_strongly_measurable (f ⊓ g) μ :=
+⟨hf.mk f ⊓ hg.mk g, hf.fin_strongly_measurable_mk.inf hg.fin_strongly_measurable_mk,
+  hf.ae_eq_mk.inf hg.ae_eq_mk⟩
+
+end order
 
 variables [has_zero β] [t2_space β]
 
@@ -1216,26 +1292,15 @@ end lattice
 
 end order
 
-variable (α)
-/-- The equivalence class of a constant function: `[λ a : α, b]`, based on the equivalence relation
-of being almost everywhere equal -/
-def const (b : β) : α →ₛₘ₀[μ] β := mk (λ _, b) ae_fin_strongly_measurable_const
+instance : has_zero (α →ₛₘ₀[μ] β) :=
+⟨mk (0 : α → β) (ae_fin_strongly_measurable_zero μ)⟩
 
-lemma coe_fn_const (b : β) : (const α b : α →ₛₘ₀[μ] β) =ᵐ[μ] function.const α b :=
-coe_fn_mk _ _
-
-variable {α}
-
-instance [inhabited β] : inhabited (α →ₛₘ₀[μ] β) := ⟨const α default⟩
-
-@[to_additive] instance [has_one β] : has_one (α →ₛₘ₀[μ] β) := ⟨const α 1⟩
-@[to_additive] lemma one_def [has_one β] :
-  (1 : α →ₛₘ₀[μ] β) = mk (λ _, 1) ae_fin_strongly_measurable_const := rfl
-@[to_additive] lemma coe_fn_one [has_one β] : ⇑(1 : α →ₛₘ₀[μ] β) =ᵐ[μ] 1 := coe_fn_const _ _
-@[simp] lemma one_to_germ [has_one β] : (1 : α →ₛₘ₀[μ] β).to_germ = 1 := rfl
+instance : inhabited (α →ₛₘ₀[μ] β) := ⟨0⟩
+lemma zero_def : (0 : α →ₛₘ₀[μ] β) = mk (λ _, 0) (ae_fin_strongly_measurable_zero μ) := rfl
+lemma coe_fn_zero : ⇑(0 : α →ₛₘ₀[μ] β) =ᵐ[μ] 0 := coe_fn_mk _ _
 @[simp] lemma zero_to_germ : (0 : α →ₛₘ₀[μ] β).to_germ = 0 := rfl
 
-section monoid
+section mul
 variables [monoid_with_zero γ] [no_zero_divisors γ] [has_continuous_mul γ]
 
 noncomputable instance : has_mul (α →ₛₘ₀[μ] γ) :=
@@ -1258,15 +1323,7 @@ begin
   rw [mk_to_germ, to_germ_eq, to_germ_eq, germ.coe_mul],
 end
 
-noncomputable instance : monoid (α →ₛₘ₀[μ] γ) :=
-to_germ_injective.monoid to_germ one_to_germ mul_to_germ
-
-end monoid
-
-noncomputable instance comm_monoid [comm_monoid_with_zero γ] [no_zero_divisors γ]
-  [has_continuous_mul γ] :
-  comm_monoid (α →ₛₘ₀[μ] γ) :=
-to_germ_injective.comm_monoid to_germ one_to_germ mul_to_germ
+end mul
 
 section add_monoid
 variables [add_monoid γ] [has_continuous_add γ]
@@ -1345,7 +1402,7 @@ instance [add_comm_group γ] [topological_add_group γ] : add_comm_group (α →
 section module
 
 variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜]
-variables [add_comm_monoid γ] [module 𝕜 γ] [has_continuous_smul 𝕜 γ]
+variables [add_comm_monoid γ] [module 𝕜 γ] [no_zero_smul_divisors 𝕜 γ] [has_continuous_smul 𝕜 γ]
 
 noncomputable instance : has_scalar 𝕜 (α →ₛₘ₀[μ] γ) :=
 ⟨λ c f, mk (c • f) (f.ae_fin_strongly_measurable.const_smul c)⟩

@@ -437,6 +437,9 @@ lemma prime_of_mem_factors : ∀ {n p}, p ∈ factors n → prime p
   or.cases_on h₁ (λ h₂, h₂.symm ▸ min_fac_prime dec_trivial)
     prime_of_mem_factors
 
+lemma pos_of_mem_factors {n p : ℕ} (h : p ∈ factors n) : 0 < p :=
+prime.pos (prime_of_mem_factors h)
+
 lemma prod_factors : ∀ {n}, n ≠ 0 → list.prod (factors n) = n
 | 0       := by simp
 | 1       := by simp

@@ -66,10 +66,6 @@ is_noetherian_of_surjective S (ideal.quotient.mkₐ R _).to_linear_map $
 linear_map.range_eq_top.mpr ideal.quotient.mk_surjective
 -/
 
-instance is_fraction_ring.no_zero_smul_divisors
-  {R K : Type*} [comm_ring R] [field K] [algebra R K] [is_fraction_ring R K] :
-  no_zero_smul_divisors R K :=
-⟨λ x z h, by rwa [algebra.smul_def, mul_eq_zero, is_fraction_ring.to_map_eq_zero_iff] at h⟩
 
 open fractional_ideal
 
@@ -135,7 +131,112 @@ by { unfold finrank, rw [← cardinal.to_nat_lift, f.lift_dim_eq, cardinal.to_na
 
 end linear_equiv
 
+@[simp] lemma submodule.mem_restrict_scalars {R S M : Type*}
+  [semiring R] [semiring S] [add_comm_monoid M] [has_scalar R S] [module R M] [module S M]
+  [is_scalar_tower R S M] (s : submodule S M) (x : M) :
+  x ∈ s.restrict_scalars R ↔ x ∈ s := iff.rfl
+
+@[simp] lemma linear_map.coe_restrict_scalars (R : Type*) {S M N : Type*}
+  [semiring R] [semiring S] [add_comm_monoid M] [add_comm_monoid N] [module R M] [module S M]
+  [module R N] [module S N] [linear_map.compatible_smul M N R S]
+  (f : M →ₗ[S] N) : (f.restrict_scalars R : M → N) = f :=
+rfl
+.
+lemma ideal.map_le_smul_top {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+  (I : ideal R) (f : R →ₗ[R] M) : submodule.map f I ≤ I • (⊤ : submodule R M) :=
+begin
+  rintros _ ⟨y, hy, rfl⟩,
+  rw [← mul_one y, ← smul_eq_mul, f.map_smul],
+  exact submodule.smul_mem_smul hy submodule.mem_top
+end
+
+lemma ideal.map_smul_le_smul_top' {R : Type*} (M : Type*) [comm_ring R] [add_comm_group M] [module R M]
+  (I : ideal R) (x : M) : submodule.map (linear_map.flip (linear_map.lsmul R M) x) I ≤ I • (⊤ : submodule R M) :=
+begin
+  rintros _ ⟨y, hy, rfl⟩,
+  simpa only [linear_map.flip_apply, linear_map.lsmul_apply]
+    using submodule.smul_mem_smul hy (show x ∈ ⊤, from submodule.mem_top)
+end
+
+lemma ideal.smul_top_le_map {R S : Type*} [comm_ring R] [comm_ring S] [algebra R S] (I : ideal R) :
+  I • (⊤ : submodule R S) ≤ (I.map (algebra_map R S)).restrict_scalars R :=
+submodule.smul_le.mpr (λ r hr y _,
+by { rw [submodule.mem_restrict_scalars, algebra.smul_def],
+     exact ideal.mul_mem_right _ _ (ideal.mem_map_of_mem _ hr) })
+
+open_locale pointwise
+
+lemma submodule.mem_smul_span {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+  {I : ideal R} {s : set M} {x : M} : x ∈ I • submodule.span R s ↔
+    x ∈ submodule.span R (⋃ (a ∈ I) (b ∈ s), ({a • b} : set M)) :=
+by rw [← I.span_eq, submodule.span_smul_span, I.span_eq]; refl
+
+/-- If `x` is an `I`-multiple of the submodule spanned by `s`,
+then we can write `x` as an `I`-linear combination of the elements of `s`. -/
+lemma exists_sum_of_mem_ideal_smul_span {α R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+  (I : ideal R) (s : set α) (f : α → M)
+  (x : M) (hx : x ∈ I • submodule.span R (f '' s)) :
+  ∃ (a : s →₀ R) (ha : ∀ i, a i ∈ I), a.sum (λ i c, c • f i) = x :=
+begin
+  refine submodule.span_induction (submodule.mem_smul_span.mp hx) _ _ _ _,
+  { simp only [set.mem_Union, set.mem_range, set.mem_singleton_iff],
+    rintros x ⟨y, hy, x, ⟨i, hi, rfl⟩, rfl⟩,
+    refine ⟨finsupp.single ⟨i, hi⟩ y, λ j, _, _⟩,
+    { letI := classical.dec_eq s,
+      rw finsupp.single_apply, split_ifs, { assumption }, { exact I.zero_mem } },
+    refine @finsupp.sum_single_index s R M _ _ ⟨i, hi⟩ _ (λ i y, y • f i) _,
+    simp },
+  { exact ⟨0, λ i, I.zero_mem, finsupp.sum_zero_index⟩ },
+  { rintros x y ⟨ax, hax, rfl⟩ ⟨ay, hay, rfl⟩,
+    refine ⟨ax + ay, λ i, I.add_mem (hax i) (hay i), finsupp.sum_add_index _ _⟩;
+      intros; simp only [zero_smul, add_smul] },
+  { rintros c x ⟨a, ha, rfl⟩,
+    refine ⟨c • a, λ i, I.mul_mem_left c (ha i), _⟩,
+    rw [finsupp.sum_smul_index, finsupp.smul_sum];
+      intros; simp only [zero_smul, mul_smul] },
+end
+
+@[simp] lemma submodule.smul_comap_le_comap_smul {R M N : Type*} [comm_ring R] [add_comm_group M]
+  [module R M] [add_comm_group N] [module R N]
+  (f : M →ₗ[R] N) (S : submodule R N) (I : ideal R) :
+  I • S.comap f ≤ (I • S).comap f :=
+begin
+  refine (submodule.smul_le.mpr (λ r hr x hx, _)),
+  rw [submodule.mem_comap] at ⊢ hx,
+  rw f.map_smul,
+  exact submodule.smul_mem_smul hr hx
+end
+
+@[simp] lemma submodule.restrict_scalars_eq_top {R A M : Type*} [comm_semiring R] [semiring A]
+  [add_comm_monoid M] [algebra R A] [module R M] [module A M] [is_scalar_tower R A M]
+  {S : submodule A M} : S.restrict_scalars R = ⊤ ↔ S = ⊤ :=
+by simp [set_like.ext_iff]
+
+open_locale matrix
+
+lemma zero_hom_class.ne_zero_of_map {R S F : Type*} [has_zero R] [has_zero S]
+  [zero_hom_class F R S] {f : F} {x : R} (hx : f x ≠ 0) : x ≠ 0 :=
+mt (λ h, show f x = 0, from h.symm ▸ map_zero f) hx
+
+@[to_additive]
+lemma map_ne_one {R S F : Type*} [has_one R] [has_one S] [one_hom_class F R S] (f : F) {x : R}
+  (hx : f x ≠ 1) : x ≠ 1 :=
+λ h, hx (h.symm ▸ map_one f)
+
+@[to_additive]
+lemma map_ne_one_iff {R S F : Type*} [has_one R] [has_one S] [one_hom_class F R S]
+  (f : F) (hf : function.injective f) {x : R} :
+  f x ≠ 1 ↔ x ≠ 1 :=
+not_iff_not.mpr (map_eq_one_iff f hf)
+
+@[simp] lemma _root_.matrix.det_neg {R n : Type*} [comm_ring R] [decidable_eq n] [fintype n]
+  (M : matrix n n R) : (-M).det = (-1) ^ fintype.card n * M.det :=
+calc (-M).det = ((-1 : R) • M).det : by rw [neg_smul, one_smul]
+          ... = (-1 : R) ^ fintype.card n * M.det : matrix.det_smul _ _
+
 end move_me
+
+section dec_eq
 
 open_locale classical
 
@@ -204,6 +305,8 @@ begin
       ← ideal.quotient.algebra_map_eq, ← is_scalar_tower.algebra_map_apply]
 end
 
+end dec_eq
+
 lemma linear_independent.of_fraction_ring (R K : Type*) [comm_ring R] [nontrivial R] [field K]
   [algebra R K] [is_fraction_ring R K] {ι V : Type*}
   [add_comm_group V] [module R V] [module K V] [is_scalar_tower R K V] {b : ι → V} :
@@ -216,6 +319,7 @@ begin
     is_localization.exist_integer_multiples (non_zero_divisors R) s g,
   refine (smul_eq_zero.mp _).resolve_left (non_zero_divisors.coe_ne_zero a),
   rw [← hg' i hi, is_fraction_ring.to_map_eq_zero_iff],
+  letI := classical.prop_decidable,
   convert hli s (λ i, if hi : i ∈ s then g' i hi else 0) _ i hi,
   { rw dif_pos hi },
   { calc _ = (a : R) • ∑ i in s, g i • b i : _
@@ -263,6 +367,7 @@ begin
   obtain ⟨a, hag, j, hjs, hgI⟩ :=
     ideal.exist_integer_multiples_not_mem hRS s g hj's hj'g,
   choose g'' hg'' using hag,
+  letI := classical.prop_decidable,
   let g' := λ i, if h : i ∈ s then g'' i h else 0,
   have hg' : ∀ i ∈ s, algebra_map _ _ (g' i) = a * g i,
   { intros i hi, exact (congr_arg _ (dif_pos hi)).trans (hg'' i hi) },
@@ -280,39 +385,145 @@ begin
           (f.map_eq_zero_iff hf).mp eq, linear_map.map_zero],
 end
 
-.
+lemma map_mem_span_algebra_map_image {R A B : Type*} [comm_ring R] [comm_ring A] [comm_ring B]
+  [algebra R A] [algebra R B] [algebra A B] [is_scalar_tower R A B]
+  (x : A) (a : set A) (hx : x ∈ submodule.span R a) :
+  algebra_map A B x ∈ submodule.span R (algebra_map A B '' a) :=
+begin
+  rw [← algebra.coe_linear_map, ← linear_map.coe_restrict_scalars R, ← submodule.map_span],
+  exact submodule.mem_map_of_mem hx,
+  all_goals { apply_instance }
+end
+
+lemma is_localization.mem_span_iff {R K M : Type*} [comm_ring R] [comm_ring K] [add_comm_group M]
+  [algebra R K] [module R M] [module K M] [is_scalar_tower R K M]
+  (S : submonoid R) [is_localization S K] {x : M} {a : set M} :
+  x ∈ submodule.span K a ↔
+    ∃ (y ∈ submodule.span R a) (z : S), x = is_localization.mk' K 1 z • y :=
+begin
+  split, intro h,
+  { refine submodule.span_induction h _ _ _ _,
+    { rintros x hx,
+      exact ⟨x, submodule.subset_span hx, 1, by rw [is_localization.mk'_one, map_one, one_smul]⟩ },
+    { exact ⟨0, submodule.zero_mem _, 1, by rw [is_localization.mk'_one, map_one, one_smul]⟩ },
+    { rintros _ _ ⟨y, hy, z, rfl⟩ ⟨y', hy', z', rfl⟩,
+      refine ⟨(z' : R) • y + (z : R) • y',
+        (submodule.add_mem _ (submodule.smul_mem _ _ hy) (submodule.smul_mem _ _ hy')), z * z', _⟩,
+      rw [smul_add, ← is_scalar_tower.algebra_map_smul K (z : R),
+          ← is_scalar_tower.algebra_map_smul K (z' : R), smul_smul, smul_smul],
+      congr' 1,
+      { rw [← mul_one (1 : R), is_localization.mk'_mul, mul_assoc, is_localization.mk'_spec,
+            map_one, mul_one, mul_one] },
+      { rw [← mul_one (1 : R), is_localization.mk'_mul, mul_right_comm, is_localization.mk'_spec,
+            map_one, mul_one, one_mul] },
+      all_goals { apply_instance } },
+    { rintros a _ ⟨y, hy, z, rfl⟩,
+      obtain ⟨y', z', rfl⟩ := is_localization.mk'_surjective S a,
+      refine ⟨y' • y, submodule.smul_mem _ _ hy, z' * z, _⟩,
+      rw [← is_scalar_tower.algebra_map_smul K y', smul_smul, ← is_localization.mk'_mul,
+          smul_smul, mul_comm (is_localization.mk' K _ _), is_localization.mul_mk'_eq_mk'_of_mul],
+      all_goals { apply_instance } } },
+  { rintro ⟨y, hy, z, rfl⟩,
+    exact submodule.smul_mem _ _ (submodule.span_subset_span R K _ hy) }
+end
+
+lemma is_localization.mem_span_map {R K : Type*} [comm_ring R] [comm_ring K]
+  [algebra R K] (S : submonoid R) [is_localization S K] {x : K} {a : set R} :
+  x ∈ ideal.span (algebra_map R K '' a) ↔
+    ∃ (y ∈ ideal.span a) (z : S), x = is_localization.mk' K y z :=
+begin
+  refine (is_localization.mem_span_iff S).trans _,
+  split,
+  { rw ← is_localization.coe_submodule_span,
+    rintros ⟨_, ⟨y, hy, rfl⟩, z, hz⟩,
+    refine ⟨y, hy, z, _⟩,
+    rw [hz, algebra.linear_map_apply, smul_eq_mul, mul_comm, is_localization.mul_mk'_eq_mk'_of_mul,
+        mul_one] },
+  { rintros ⟨y, hy, z, hz⟩,
+    refine ⟨algebra_map R K y, _, z, _⟩,
+    { exact map_mem_span_algebra_map_image _ _ hy },
+    rw [hz, smul_eq_mul, mul_comm, is_localization.mul_mk'_eq_mk'_of_mul,
+        mul_one] },
+end
+
+/-- If the `S`-multiples of `a` are contained in some `R`-span, then `Frac(S)`-multiples of `a`
+are contained in the equivalent `Frac(R)`-span. -/
+lemma is_fraction_ring.ideal_span_singleton_subset (R : Type*) {S K L : Type*}
+  [comm_ring R] [comm_ring S] [is_domain R] [is_domain S] [field K] [field L]
+  [algebra R K] [algebra R S] [algebra R L] [algebra S L] [is_integral_closure S R L]
+  [is_fraction_ring S L] [algebra K L] [is_scalar_tower R S L] [is_scalar_tower R K L]
+  {a : S} {b : set S} (alg : algebra.is_algebraic R L) (inj : function.injective (algebra_map R L))
+  (h : (ideal.span ({a} : set S) : set S) ⊆ submodule.span R b) :
+  (ideal.span ({algebra_map S L a} : set L) : set L) ⊆ submodule.span K (algebra_map S L '' b) :=
+begin
+  intros x hx,
+  obtain ⟨x', rfl⟩ := ideal.mem_span_singleton.mp hx,
+  obtain ⟨y', z', rfl⟩ := is_localization.mk'_surjective (S⁰) x',
+  obtain ⟨y, z, hz0, yz_eq⟩ := is_integral_closure.exists_smul_eq_mul alg inj y'
+    (non_zero_divisors.coe_ne_zero z'),
+  have injRS : function.injective (algebra_map R S),
+  { refine function.injective.of_comp
+      (show function.injective (algebra_map S L ∘ algebra_map R S), from _),
+    rwa [← ring_hom.coe_comp, ← is_scalar_tower.algebra_map_eq] },
+  have hz0' : algebra_map R S z ∈ S⁰ := map_mem_non_zero_divisors (algebra_map R S) injRS
+    (mem_non_zero_divisors_of_ne_zero hz0),
+  have mk_yz_eq : is_localization.mk' L y' z' = is_localization.mk' L y ⟨_, hz0'⟩,
+  { rw [algebra.smul_def, mul_comm _ y, mul_comm _ y', ← set_like.coe_mk (algebra_map R S z) hz0']
+        at yz_eq,
+    exact is_localization.mk'_eq_of_eq yz_eq.symm },
+  suffices hy : algebra_map S L (a * y) ∈ submodule.span K (⇑(algebra_map S L) '' b),
+  { rw [mk_yz_eq, is_fraction_ring.mk'_eq_div, set_like.coe_mk,
+        ← is_scalar_tower.algebra_map_apply, is_scalar_tower.algebra_map_apply R K L,
+        div_eq_mul_inv, ← mul_assoc, mul_comm, ← ring_hom.map_inv, ← algebra.smul_def,
+        ← _root_.map_mul],
+    exact (submodule.span K _).smul_mem _ hy },
+  refine submodule.span_subset_span R K _ (map_mem_span_algebra_map_image _ _ _),
+  exact h (ideal.mem_span_singleton.mpr ⟨y, rfl⟩)
+end
 
 open_locale matrix
 
--- TODO: generalize?
+/-- If `b` mod `p` spans `S/p` as `R/p`-space, then `b` itself spans `Frac(S)` as `Frac(R)`-space.
+-/
 lemma finrank_quotient_map.span_eq_top {K L : Type*} [field K] [field L]
-  [algebra R S] [algebra S L] [algebra K L] [module.finite R S]
-  (b : set S) (hb' : submodule.span (R ⧸ p) ((map (algebra_map R S) p)^.quotient.mk '' b) = ⊤) :
+  [algebra R K]
+  [algebra R S] [algebra S L] [is_fraction_ring S L] [algebra K L] [is_noetherian R S]
+  [algebra R L] [is_scalar_tower R S L] [is_scalar_tower R K L]
+  [is_integral_closure S R L]
+  (hRL : function.injective (algebra_map R L)) (hp : p ≠ ⊤)
+  (b : set S) (hb' : submodule.span R b ⊔ submodule.map (algebra.linear_map R S) p = ⊤) :
   submodule.span K (algebra_map S L '' b) = ⊤ :=
 begin
   -- Let `M` be the `R`-module spanned by the proposed basis elements.
-  let M : submodule R S := submodule.span R b,
-  -- Then `S / M` is generated by some finite set of vectors `a`.
+  set M : submodule R S := submodule.span R b with hM,
+  -- Then `S / M` is generated by some finite set of `n` vectors `a`.
   letI h : module.finite R (S ⧸ M) :=
     module.finite.of_surjective (submodule.mkq _) (submodule.quotient.mk_surjective _),
   obtain ⟨n, a, ha⟩ := @@module.finite.exists_fin _ _ _ h,
-  -- Because the image of `p` in `S / M` is `⊤`, we can write the elements of `a` as `p`-linear
-  -- combinations of other elements of `a`.
-  have : ∀ x : (S ⧸ M), ∃ a' : fin n → R, (∀ i, a' i ∈ p) ∧ ∑ i, a' i • a i = x,
+  -- Because the image of `p` in `S / M` is `⊤`,
+  -- we can write the elements of `a` as `p`-linear combinations of other elements of `a`.
+  have exists_sum : ∀ x : (S ⧸ M), ∃ a' : fin n → R, (∀ i, a' i ∈ p) ∧ ∑ i, a' i • a i = x,
   { intro x,
-    have hx : x ∈ submodule.span R (set.range a) := ha.symm ▸ submodule.mem_top,
-    obtain ⟨a'', ha''⟩ := (finsupp.mem_span_iff_total _ _ _).mp hx,
-    refine ⟨λ i, a' ⟨_, ⟨i, rfl⟩⟩, _, _⟩,
-    { } },
-  choose A' hA'p hA' using λ i, this (a i),
-  -- This gives us a(n invertible) matrix `A` such that `span S {det A} ≤ M = span R b`,
-  -- and going to the fraction fields, `L = span L {det A} ≤ span K (algebra_map S L '' b)`.
+    obtain ⟨a'', ha'', hx⟩ := exists_sum_of_mem_ideal_smul_span p set.univ a x _,
+    refine ⟨λ i, a'' ⟨i, set.mem_univ _⟩, λ i, ha'' _, _⟩,
+    rwa [finsupp.sum_fintype, fintype.sum_equiv (equiv.set.univ (fin n))] at hx,
+    { intros, simp only [eq_self_iff_true, subtype.coe_eta, equiv.set.univ_apply] },
+    { intros, simp only [zero_smul] },
+    suffices : p • (⊤ : submodule R (S ⧸ M)) = ⊤,
+    { rw [set.image_univ, ha, this],
+      exact submodule.mem_top },
+    refine top_le_iff.mp ((top_le_iff.mpr _).trans $
+      ideal.map_le_smul_top p (submodule.mkq M ∘ₗ algebra.linear_map R S)),
+    rwa [submodule.map_comp, submodule.map_mkq_eq_top] },
+  choose A' hA'p hA' using λ i, exists_sum (a i),
+  -- This gives us a(n invertible) matrix `A` such that `det A ∈ M = span R b`,
   let A : matrix (fin n) (fin n) R := A' - 1,
   let B := A.adjugate,
   have A_smul : ∀ i, ∑ j, A i j • a j = 0,
   { intros,
     simp only [A, pi.sub_apply, sub_smul, finset.sum_sub_distrib, hA', matrix.one_apply, ite_smul,
       one_smul, zero_smul, finset.sum_ite_eq, finset.mem_univ, if_true, sub_self] },
+  -- since `span S {det A} / M = 0`.
   have d_smul : ∀ i, A.det • a i = 0,
   { intro i,
     calc A.det • a i = ∑ j, (B ⬝ A) i j • a j : _
@@ -324,26 +535,88 @@ begin
     { simp only [matrix.mul_apply, finset.smul_sum, finset.sum_smul, smul_smul],
       rw finset.sum_comm },
     { rw [A_smul, smul_zero] } },
-  have : (submodule.span S ({algebra_map R S A.det} : set S)).restrict_scalars R ≤ M,
+  -- In the rings of integers we have the desired inclusion.
+  have span_d : (submodule.span S ({algebra_map R S A.det} : set S)).restrict_scalars R ≤ M,
   { intros x hx,
-    rw ← submodule.quotient.mk_eq_zero,
-    sorry },
-  sorry
+    rw submodule.mem_restrict_scalars at hx,
+    obtain ⟨x', rfl⟩ := submodule.mem_span_singleton.mp hx,
+    rw [smul_eq_mul, mul_comm, ← algebra.smul_def] at ⊢ hx,
+    rw [← submodule.quotient.mk_eq_zero, submodule.quotient.mk_smul],
+    obtain ⟨a', _, quot_x_eq⟩ := exists_sum (submodule.quotient.mk x'),
+    simp_rw [← quot_x_eq, finset.smul_sum, smul_comm A.det, d_smul, smul_zero,
+      finset.sum_const_zero] },
+  -- So now we lift everything to the fraction field.
+  refine top_le_iff.mp (calc ⊤ = (ideal.span {algebra_map R L A.det}).restrict_scalars K : _
+                           ... ≤ submodule.span K (algebra_map S L '' b) : _),
+  -- Because `det A ≠ 0`, we have `span L {det A} = ⊤`.
+  { rw [eq_comm, submodule.restrict_scalars_eq_top, ideal.span_singleton_eq_top],
+    refine is_unit.mk0 _ ((map_ne_zero_iff ((algebra_map R L)) hRL).mpr
+      (map_ne_zero (ideal.quotient.mk p) _)),
+    haveI := ideal.quotient.nontrivial hp,
+    calc ideal.quotient.mk p (A.det)
+          = matrix.det ((ideal.quotient.mk p).map_matrix A) :
+        by rw [ring_hom.map_det, ring_hom.map_matrix_apply]
+      ... = matrix.det ((ideal.quotient.mk p).map_matrix (A' - 1)) : rfl
+      ... = matrix.det (λ i j, (ideal.quotient.mk p) (A' i j) -
+              (1 : matrix (fin n) (fin n) (R ⧸ p)) i j) : _
+      ... = matrix.det (-1 : matrix (fin n) (fin n) (R ⧸ p)) : _
+      ... = (-1 : R ⧸ p) ^ n : by rw [matrix.det_neg, fintype.card_fin, matrix.det_one, mul_one]
+      ... ≠ 0 : is_unit.ne_zero (is_unit_one.neg.pow _),
+    { refine congr_arg matrix.det (matrix.ext (λ i j, _)),
+      rw [map_sub, ring_hom.map_matrix_apply, map_one],
+      refl },
+    { refine congr_arg matrix.det (matrix.ext (λ i j, _)),
+      rw [ideal.quotient.eq_zero_iff_mem.mpr (hA'p i j), zero_sub],
+      refl } },
+  -- And we conclude `L = span L {det A} ≤ span K b`, so `span K b` spans everything.
+  { intros x hx,
+    rw [submodule.mem_restrict_scalars, is_scalar_tower.algebra_map_apply R S L] at hx,
+    refine is_fraction_ring.ideal_span_singleton_subset R _ hRL span_d hx,
+    haveI : no_zero_smul_divisors R L := no_zero_smul_divisors.of_algebra_map_injective hRL,
+    rw ← is_fraction_ring.is_algebraic_iff' R S,
+    intros x,
+    exact is_integral.is_algebraic _ (is_integral_of_noetherian infer_instance _) },
 end
 
-set_option pp.proofs true
+.
+
+lemma algebra.span_eq_span_of_surjective {R A M : Type*} [comm_semiring R] [semiring A]
+  [add_comm_monoid M]
+  [algebra R A] [module A M] [module R M] [is_scalar_tower R A M]
+  (h : function.surjective (algebra_map R A)) (s : set M) :
+  (submodule.span A s).restrict_scalars R = submodule.span R s :=
+begin
+  refine le_antisymm (λ x hx, _) (submodule.span_subset_span _ _ _),
+  refine submodule.span_induction hx _ _ _ _,
+  { exact λ x hx, submodule.subset_span hx },
+  { exact submodule.zero_mem _ },
+  { exact λ x y, submodule.add_mem _ },
+  { intros c x hx,
+    obtain ⟨c', rfl⟩ := h c,
+    rw is_scalar_tower.algebra_map_smul,
+    exact submodule.smul_mem _ _ hx },
+end
+
+lemma algebra.coe_span_eq_span_of_surjective {R A M : Type*} [comm_semiring R] [semiring A]
+  [add_comm_monoid M]
+  [algebra R A] [module A M] [module R M] [is_scalar_tower R A M]
+  (h : function.surjective (algebra_map R A)) (s : set M) :
+  (submodule.span A s : set M) = submodule.span R s :=
+congr_arg coe (algebra.span_eq_span_of_surjective h s)
 
 /-- If `p` is a maximal ideal of `R`, and `R` is contained in `S`,
 then the dimension `[S/pS : R/p]` is equal to `[Frac(S) : Frac(R)]`. -/
 lemma finrank_quotient_map [is_dedekind_domain R] (K L : Type*) [field K] [field L]
   [algebra R S] [algebra R K] [algebra S L] [algebra K L] [is_separable K L]
-  [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L]
+  [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L] [is_integral_closure S R L]
   [is_fraction_ring R K] [is_fraction_ring S L]
-  [hp : p.is_maximal] /- [module.free R S] [module.finite R S] -/ [is_noetherian R S] :
+  (hRL : function.injective (algebra_map R L))
+  [hp : p.is_maximal] [module.free R S] [is_noetherian R S] :
   finrank (R ⧸ p) (S ⧸ map (algebra_map R S) p) = finrank K L :=
 begin
+  letI : field (R ⧸ p) := ideal.quotient.field _,
   let ι := module.free.choose_basis_index (R ⧸ p) (S ⧸ map (algebra_map R S) p),
-  let b : basis ι _ _ := module.free.choose_basis  (R ⧸ p) (S ⧸ map (algebra_map R S) p),
+  let b : basis ι _ _ := module.free.choose_basis (R ⧸ p) (S ⧸ map (algebra_map R S) p),
   let b' : ι → S := λ i, (ideal.quotient.mk_surjective (b i)).some,
   have b_eq_b' : ⇑ b = (submodule.mkq _).restrict_scalars R ∘ b' :=
     funext (λ i, (ideal.quotient.mk_surjective (b i)).some_spec.symm),
@@ -352,7 +625,18 @@ begin
   have b''_sp : submodule.span _ (set.range b'') = ⊤ := _,
   let c : basis ι K L := basis.mk b''_li b''_sp,
   rw [finrank_eq_card_basis b, finrank_eq_card_basis c],
-  { rw eq_top_iff, rintros x -, sorry /- apply finrank_quotient_map.span_eq_top -/ },
+  { rw set.range_comp,
+    refine finrank_quotient_map.span_eq_top p hRL hp.ne_top _ _,
+    suffices : submodule.span R (set.range b') ⊔ (p.map (algebra_map R S)).restrict_scalars R = ⊤,
+    { rw [← top_le_iff, ← this],
+      refine sup_le_sup_left _ _,
+      },
+    rw [← submodule.ker_mkq (submodule.map (algebra.linear_map R S) p), ← top_le_iff,
+        ← linear_map.map_le_map_iff, submodule.map_top, submodule.range_mkq, submodule.map_span,
+        top_le_iff, submodule.eq_top_iff'],
+    rintros ⟨x, hx⟩,
+    convert submodule.eq_top_iff'.mp b.span_eq x,
+    rw [b_eq_b', set.range_comp, linear_map.coe_restrict_scalars] at this },
   { have := b.linear_independent, rw b_eq_b' at this,
     convert finrank_quotient_map.linear_independent_of_nontrivial _
       ((algebra.linear_map S L).restrict_scalars R) _
@@ -362,6 +646,8 @@ begin
     { apply_instance }, { apply_instance }, { apply_instance },
     exact is_fraction_ring.injective S L },
 end
+
+#exit
 
 lemma ideal.pow_succ_lt [is_dedekind_domain S]
   (P : ideal S) (hP0 : P ≠ ⊥) [hP : P.is_prime] (e : ℕ) : P^(e+1) < P^e :=
@@ -652,7 +938,7 @@ count_normalized_factors_eq ((ideal.prime_iff_is_prime hp0).mpr hp) (normalize_e
 end move_me
 
 lemma quotient_to_quotient_range_pow_quot_succ_injective [is_dedekind_domain S] [fact (e ≠ 0)]
-  [P.is_prime] (i : ℕ) (hi : i < e) (a : S) (a_mem : a ∈ P^i) (a_not_mem : a ∉ P^(i + 1)) :
+  [P.is_prime] {i : ℕ} (hi : i < e) {a : S} (a_mem : a ∈ P^i) (a_not_mem : a ∉ P^(i + 1)) :
   function.injective (quotient_to_quotient_range_pow_quot_succ f p P e i a a_mem) :=
 λ x, quotient.induction_on' x $ λ x y, quotient.induction_on' y $ λ y h,
 begin
@@ -702,17 +988,19 @@ begin
     contradiction },
 end
 
-/-- The quotient by `P^(i+1) ⧸ P^e` as a subspace of `P^i ⧸ P^e` is `R ⧸ p`-linear to `S ⧸ P`. -/
+/-- Quotienting `P^i / P^e` by its subspace `P^(i+1) ⧸ P^e` is `R ⧸ p`-linear to `S ⧸ P`. -/
 noncomputable def quotient_range_pow_quot_succ_inclusion_equiv [is_dedekind_domain S] [fact (e ≠ 0)]
-  [P.is_prime] (hP : P ≠ ⊥) (i : ℕ) (hi : i < e) :
+  [P.is_prime] (hP : P ≠ ⊥) {i : ℕ} (hi : i < e) :
   (_ ⧸ (pow_quot_succ_inclusion f p P e i).range) ≃ₗ[R ⧸ p] S ⧸ P :=
 begin
   choose a a_mem a_not_mem using set_like.exists_of_lt (ideal.pow_succ_lt P hP i),
   refine (linear_equiv.of_bijective
-    (quotient_to_quotient_range_pow_quot_succ f p P e i a a_mem)
-    (quotient_to_quotient_range_pow_quot_succ_injective f p P e i hi a a_mem a_not_mem)
-    (quotient_to_quotient_range_pow_quot_succ_surjective f p P e i hi a a_mem a_not_mem)).symm,
+    (quotient_to_quotient_range_pow_quot_succ f p P e i a a_mem) _ _).symm,
+  { exact quotient_to_quotient_range_pow_quot_succ_injective f p P e hi a_mem a_not_mem },
+  { exact quotient_to_quotient_range_pow_quot_succ_surjective f p P e hP hi a_mem a_not_mem }
 end
+
+.
 
 /-- Since the inclusion `(P^(i + 1) / P^e) ⊂ (P^i / P^e)` has a kernel isomorphic to `P / S`,
 `[P^i / P^e : R / p] = [P^(i+1) / P^e : R / p] + [P / S : R / p]` -/
@@ -722,7 +1010,7 @@ lemma dim_pow_quot_aux [is_dedekind_domain S] [p.is_maximal] [P.is_prime] (hP0 :
   module.rank (R ⧸ p) (S ⧸ P) + module.rank (R ⧸ p) (ideal.map (P^e)^.quotient.mk (P ^ (i + 1))) :=
 begin
   rw [dim_eq_of_injective _ (pow_quot_succ_inclusion_injective f p P e i),
-      (quotient_range_pow_quot_succ_inclusion f p P e hP0 i).symm.dim_eq,
+      (quotient_range_pow_quot_succ_inclusion_equiv f p P e hP0 hi).symm.dim_eq,
       dim_quotient_add_dim (linear_map.range _)],
 end
 

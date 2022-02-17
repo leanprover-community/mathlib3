@@ -239,7 +239,7 @@ variable [comm_ring R]
 include hp
 
 instance : comm_ring (truncated_witt_vector p n R) :=
-(truncate_fun_surjective p n R).comm_ring _
+(truncate_fun_surjective p n R).comm_ring' _
   (truncate_fun_zero p n R)
   (truncate_fun_one p n R)
   (truncate_fun_add n)

@@ -111,15 +111,6 @@ instance : has_one ℤ_[p] :=
 
 @[simp, norm_cast] lemma coe_one : ((1 : ℤ_[p]) : ℚ_[p]) = 1 := rfl
 
-@[simp, norm_cast] lemma coe_coe : ∀ n : ℕ, ((n : ℤ_[p]) : ℚ_[p]) = n
-| 0 := rfl
-| (k+1) := by simp [coe_coe]
-
-
-@[simp, norm_cast] lemma coe_coe_int : ∀ (z : ℤ), ((z : ℤ_[p]) : ℚ_[p]) = z
-| (int.of_nat n) := by simp
-| -[1+n] := by simp
-
 @[simp, norm_cast] lemma coe_zero : ((0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
 instance : ring ℤ_[p] :=
@@ -130,10 +121,19 @@ by refine_struct
   zero  := (0 : ℤ_[p]),
   one   := 1,
   sub   := has_sub.sub,
+  nat_cast := nat.unary_cast,
   npow  := @npow_rec _ ⟨(1 : ℤ_[p])⟩ ⟨(*)⟩,
   nsmul := @nsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩,
   zsmul := @zsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
 intros; try { refl }; ext; simp; ring
+
+@[simp, norm_cast] lemma coe_coe : ∀ n : ℕ, ((n : ℤ_[p]) : ℚ_[p]) = n
+| 0 := rfl
+| (k+1) := by simp [coe_coe]
+
+@[simp, norm_cast] lemma coe_coe_int : ∀ (z : ℤ), ((z : ℤ_[p]) : ℚ_[p]) = z
+| (int.of_nat n) := by simp
+| -[1+n] := by simp
 
 /-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
 def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
@@ -220,8 +220,9 @@ variables (p)
 
 instance : normed_comm_ring ℤ_[p] :=
 { dist_eq := λ ⟨_, _⟩ ⟨_, _⟩, rfl,
-  norm_mul := λ ⟨_, _⟩ ⟨_, _⟩, norm_mul_le _ _,
-  mul_comm := padic_int.mul_comm }
+  norm_mul := by simp [norm_def],
+  mul_comm := padic_int.mul_comm,
+  norm := norm, .. padic_int.ring, .. padic_int.metric_space p }
 
 instance : norm_one_class ℤ_[p] := ⟨norm_def.trans norm_one⟩
 

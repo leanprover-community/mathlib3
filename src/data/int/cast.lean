@@ -52,7 +52,7 @@ theorem cast_coe_nat' (n : ℕ) :
   (@coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n : α) = n :=
 by simp
 
-@[simp, norm_cast] theorem cast_neg_succ_of_nat (n : ℕ) : (-[1+ n] : α) = -(n + 1) :=
+@[simp] theorem cast_neg_succ_of_nat (n : ℕ) : (-[1+ n] : α) = -(n + 1) :=
 by rw [← cast_succ]; refl
 
 end
@@ -69,10 +69,12 @@ begin
         nat.cast_sub $ _root_.le_of_lt $ nat.lt_of_sub_eq_succ e, neg_sub] },
 end
 
-@[simp, norm_cast] theorem cast_neg_of_nat [add_group_with_one α] :
+@[simp] theorem cast_neg_of_nat [add_group_with_one α] :
   ∀ n, ((neg_of_nat n : ℤ) : α) = -n
 | 0     := show ((0 : ℕ) : α) = -(0 : ℕ), by simp
 | (n+1) := show -((n + 1 : ℕ) : α) = -(n + 1 : ℕ), by simp
+
+@[simp] lemma neg_of_nat_eq (n : ℕ) : neg_of_nat n = -(n : ℤ) := by cases n; refl
 
 @[simp, norm_cast] theorem cast_add [add_group_with_one α] : ∀ m n, ((m + n : ℤ) : α) = m + n
 | (m : ℕ) (n : ℕ) := nat.cast_add _ _

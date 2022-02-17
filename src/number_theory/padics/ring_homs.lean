@@ -284,7 +284,7 @@ begin
     rw ← sub_zero x at h,
     dsimp [to_zmod, to_zmod_hom],
     convert zmod_congr_of_sub_mem_max_ideal x _ 0 _ h,
-    apply sub_zmod_repr_mem, }
+    norm_cast, apply sub_zmod_repr_mem, }
 end
 
 /-- `appr n x` gives a value `v : ℕ` such that `x` and `↑v : ℤ_p` are congruent mod `p^n`.
@@ -541,13 +541,11 @@ begin
   rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
-  have : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  have : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  unfreezingI
-  { simp only [int.cast_coe_nat, int.cast_add, ring_hom.map_add, int.cast_sub, zmod.nat_cast_val] },
-  rw [zmod.cast_add (show p ^ n ∣ p ^ j, from _), sub_self],
+  haveI : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  haveI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  simp only [zmod.nat_cast_val, ring_hom.map_add, int.cast_sub, zmod.int_cast_cast, int.cast_add],
+  rw [zmod.cast_add (show p^n ∣ p^j, from pow_dvd_pow _ hj), sub_self],
   { apply_instance },
-  { apply pow_dvd_pow, linarith only [hj] },
 end
 
 lemma nth_hom_seq_mul (r s : R) :
@@ -562,13 +560,11 @@ begin
   rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
-  have : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  have : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  unfreezingI
-  { simp only [int.cast_coe_nat, int.cast_mul, int.cast_sub, ring_hom.map_mul, zmod.nat_cast_val] },
-  rw [zmod.cast_mul (show p ^ n ∣ p ^ j, from _), sub_self],
+  haveI : fact (p ^ n > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  haveI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  simp only [zmod.nat_cast_val, ring_hom.map_mul, int.cast_sub, zmod.int_cast_cast, int.cast_mul],
+  rw [zmod.cast_mul (show p^n ∣ p^j, from pow_dvd_pow _ hj), sub_self],
   { apply_instance },
-  { apply pow_dvd_pow, linarith only [hj] },
 end
 
 /--

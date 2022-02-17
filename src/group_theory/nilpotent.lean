@@ -807,7 +807,7 @@ begin
 end
 
 /-- The nilpotency class of an n-ary product is the sup of the nilpotency classes of the factors -/
-lemma nilpotency_class_prod [∀ i, is_nilpotent (Gs i)] :
+lemma nilpotency_class_pi [∀ i, is_nilpotent (Gs i)] :
   group.nilpotency_class (Π i, Gs i) = finset.univ.sup (λ i, group.nilpotency_class (Gs i)) :=
 begin
   apply eq_of_forall_ge_iff,

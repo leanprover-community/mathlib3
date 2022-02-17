@@ -44,17 +44,37 @@ protected lemma map_zero (F : C ⥤ D) [preserves_zero_morphisms F] (X Y : C) :
   F.map (0 : X ⟶ Y) = 0 :=
 preserves_zero_morphisms.map_zero' _ _
 
-lemma equivalence_preserves_zero_morphisms (F : C ≌ D) : preserves_zero_morphisms F.functor :=
-begin
-  refine ⟨λ X Y, eq.trans _ (@limits.comp_zero _ _ _ _ _ (F.functor.map (0 : X ⟶ Y)) _)⟩,
-  refine faithful.map_injective (F.inverse) _,
-  rw [functor.map_comp, equivalence.inv_fun_map, zero_comp, comp_zero, zero_comp]
-end
+@[priority 100]
+instance preserves_zero_morphisms_of_is_left_adjoint (F : C ⥤ D) [is_left_adjoint F] :
+  preserves_zero_morphisms F :=
+{ map_zero' := λ X Y, let adj := adjunction.of_left_adjoint F in
+  begin
+    calc F.map (0 : X ⟶ Y) = F.map 0 ≫ F.map (adj.unit.app Y) ≫ adj.counit.app (F.obj Y) : _
+    ... = F.map 0 ≫ F.map ((right_adjoint F).map (0 : F.obj X ⟶ _)) ≫ adj.counit.app (F.obj Y) : _
+    ... = 0 : _,
+    { rw adjunction.left_triangle_components, exact (category.comp_id _).symm },
+    { simp only [← category.assoc, ← F.map_comp, zero_comp] },
+    { simp only [adjunction.counit_naturality, comp_zero] }
+  end }
 
 @[priority 100]
-instance is_equivalence_preserves_zero_morphisms (F : C ⥤ D) [is_equivalence F] :
-  preserves_zero_morphisms F :=
-equivalence_preserves_zero_morphisms F.as_equivalence
+instance preserves_zero_morphisms_of_is_right_adjoint (G : C ⥤ D) [is_right_adjoint G] :
+  preserves_zero_morphisms G :=
+{ map_zero' := λ X Y, let adj := adjunction.of_right_adjoint G in
+  begin
+    calc G.map (0 : X ⟶ Y) = adj.unit.app (G.obj X) ≫ G.map (adj.counit.app X) ≫ G.map 0 : _
+    ... = adj.unit.app (G.obj X) ≫ G.map ((left_adjoint G).map (0 : _ ⟶ G.obj X)) ≫ G.map 0 : _
+    ... = 0 : _,
+    { rw adjunction.right_triangle_components_assoc },
+    { simp only [← G.map_comp, comp_zero] },
+    { simp only [adjunction.unit_naturality_assoc, zero_comp] }
+  end }
+
+@[priority 100]
+instance preserves_zero_morphisms_of_full (F : C ⥤ D) [full F] : preserves_zero_morphisms F :=
+{ map_zero' := λ X Y, calc
+  F.map (0 : X ⟶ Y) = F.map (0 ≫ (F.preimage (0 : F.obj Y ⟶ F.obj Y))) : by rw zero_comp
+                ... = 0 : by rw [F.map_comp, F.image_preimage, comp_zero] }
 
 end zero_morphisms
 

@@ -1512,19 +1512,9 @@ lemma filter_empty_iff (s : finset ℕ) (p : ℕ → Prop) [decidable_pred p] :
   (s.filter p = ∅) ↔ ∀ x ∈ s, ¬ p x :=
 begin
   refine ⟨_, finset.filter_false_of_mem⟩,
-  { induction s using finset.induction_on with a t hat IH, { intros hs, simp [hs] },
-    intros ht x hx,
-    have : filter p t = ∅,
-    { rw [←subset_empty, ←ht],
-      exact filter_subset_filter p (subset_insert a t) },
-    specialize IH this,
-    cases mem_insert.mp hx,
-    { rw h,
-      rw filter_insert p a t at ht,
-      intros H,
-      simp only [H, if_true, insert_ne_empty] at ht,
-      cases ht },
-    { exact IH x h } },
+  intros hs,
+  injection hs with hs',
+  rwa filter_eq_nil at hs'
 end
 
 /- We can simplify an application of filter where the decidability is inferred in "the wrong way" -/

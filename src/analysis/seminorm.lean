@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jean Lo, Yaël Dillies, Moritz Doll
+Authors: Jean Lo, Bhavik Mehta, Yaël Dillies, Moritz Doll
 -/
 import analysis.convex.function
 import analysis.normed_space.ordered

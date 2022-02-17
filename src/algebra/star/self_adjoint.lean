@@ -59,9 +59,14 @@ variables {R}
 
 /-- An element of a star monoid is normal if it commutes with its adjoint. -/
 class is_star_normal [monoid R] [has_star R] (x : R) : Prop :=
-(star_comm_self : commute (star x) x)
+(star_comm_self_aux : commute (star x) x)
 
-export is_star_normal (star_comm_self)
+lemma star_comm_self [monoid R] [has_star R] (x : R) [is_star_normal x] : commute (star x) x :=
+is_star_normal.star_comm_self_aux
+
+lemma star_comm_self' [monoid R] [has_star R] (x : R) [is_star_normal x] :
+  (star x) * x = x * star x :=
+is_star_normal.star_comm_self_aux
 
 namespace self_adjoint
 
@@ -234,7 +239,7 @@ instance is_star_normal_one [monoid R] [star_monoid R] : is_star_normal (1 : R) 
 
 instance is_star_normal_star_self [monoid R] [star_monoid R] {x : R} [is_star_normal x] :
   is_star_normal (star x) :=
-⟨by rw [star_star, star_comm_self]⟩
+⟨show star (star x) * (star x) = (star x) * star (star x), by rw [star_star, star_comm_self']⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_trivial_star.is_star_normal [monoid R] [star_monoid R] [has_trivial_star R] {x : R} :
@@ -244,4 +249,4 @@ instance has_trivial_star.is_star_normal [monoid R] [star_monoid R] [has_trivial
 @[priority 100] -- see Note [lower instance priority]
 instance comm_monoid.is_star_normal [comm_monoid R] [star_monoid R] {x : R} :
   is_star_normal x :=
-⟨by rw [mul_comm]⟩
+⟨mul_comm _ _⟩

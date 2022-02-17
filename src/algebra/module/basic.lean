@@ -78,8 +78,9 @@ theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
 
 theorem two_smul' : (2 : R) • x = bit0 x := two_smul R x
 
-@[simp] lemma halves_add_smul [invertible (2 : R)] (x : M) : ⅟ (2 : R) • x + ⅟ (2 : R) • x = x :=
-by rw [←add_smul, add_halves'', one_smul]
+@[simp] lemma inv_of_two_smul_add_inv_of_two_smul [invertible (2 : R)] (x : M) :
+  (⅟2 : R) • x + (⅟2 : R) • x = x :=
+by rw [←add_smul, inv_of_two_add_inv_of_two, one_smul]
 
 /-- Pullback a `module` structure along an injective additive monoid homomorphism.
 See note [reducible non-instances]. -/

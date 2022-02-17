@@ -60,8 +60,5 @@ variables (R : Type*) {A : Type*}
 
 lemma star_module.eq_self_adjoint_part_add_skew_adjoint_part (x : A) :
   x = self_adjoint_part R x + skew_adjoint_part R x :=
-begin
-  simp only [smul_sub, self_adjoint_part_apply_coe, smul_add, skew_adjoint_part_apply_coe,
-    add_add_sub_cancel],
-  rw [←smul_add, ←two_smul R, ←mul_smul, inv_of_mul_self, one_smul],
-end
+by simp only [smul_sub, self_adjoint_part_apply_coe, smul_add, skew_adjoint_part_apply_coe,
+              add_add_sub_cancel, inv_of_two_smul_add_inv_of_two_smul]

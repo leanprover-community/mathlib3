@@ -168,7 +168,8 @@ inv_of_eq_right_inv (by simp)
 (is_unit_of_invertible (2:α)).mul_right_inj.1 $
   by rw [mul_sub, mul_inv_of_self, mul_one, bit0, add_sub_cancel]
 
-@[simp] lemma add_halves'' [semiring α] [invertible (2 : α)] : (⅟2 : α) + (⅟2 : α) = 1 :=
+@[simp] lemma inv_of_two_add_inv_of_two [semiring α] [invertible (2 : α)] :
+  (⅟2 : α) + (⅟2 : α) = 1 :=
 by simp only [←two_mul, mul_inv_of_self]
 
 /-- `a` is the inverse of `⅟a`. -/

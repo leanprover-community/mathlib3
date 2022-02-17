@@ -637,6 +637,10 @@ lemma add_sub_lipschitz_with (hf : antilipschitz_with Kf f) (hg : lipschitz_with
   (hK : Kg < Kf⁻¹) : antilipschitz_with (Kf⁻¹ - Kg)⁻¹ g :=
 by simpa only [pi.sub_apply, add_sub_cancel'_right] using hf.add_lipschitz_with hg hK
 
+lemma le_mul_norm_sub {f : E → F} (hf : antilipschitz_with K f) (x y : E) :
+  ∥x - y∥ ≤ K * ∥f x - f y∥ :=
+by simp [← dist_eq_norm, hf.le_mul_dist x y]
+
 end antilipschitz_with
 
 /-- A group homomorphism from an `add_comm_group` to a `semi_normed_group` induces a

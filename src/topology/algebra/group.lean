@@ -67,9 +67,17 @@ by { ext, refl }
 lemma is_open_map_mul_left (a : G) : is_open_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_open_map
 
+@[to_additive is_open.left_add_coset]
+lemma is_open.left_coset {U : set G} (h : is_open U) (x : G) : is_open (left_coset x U) :=
+is_open_map_mul_left x _ h
+
 @[to_additive]
 lemma is_closed_map_mul_left (a : G) : is_closed_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_closed_map
+
+@[to_additive is_closed.left_add_coset]
+lemma is_closed.left_coset {U : set G} (h : is_closed U) (x : G) : is_closed (left_coset x U) :=
+is_closed_map_mul_left x _ h
 
 /-- Multiplication from the right in a topological group as a homeomorphism. -/
 @[to_additive "Addition from the right in a topological additive group as a homeomorphism."]
@@ -91,9 +99,17 @@ by { ext, refl }
 lemma is_open_map_mul_right (a : G) : is_open_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_open_map
 
+@[to_additive is_open.right_add_coset]
+lemma is_open.right_coset {U : set G} (h : is_open U) (x : G) : is_open (right_coset U x) :=
+is_open_map_mul_right x _ h
+
 @[to_additive]
 lemma is_closed_map_mul_right (a : G) : is_closed_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_closed_map
+
+@[to_additive is_closed.right_add_coset]
+lemma is_closed.right_coset {U : set G} (h : is_closed U) (x : G) : is_closed (right_coset U x) :=
+is_closed_map_mul_right x _ h
 
 @[to_additive]
 lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=
@@ -229,6 +245,10 @@ continuous_inv.comp_continuous_on hf
 lemma continuous_within_at.inv (hf : continuous_within_at f s x) :
   continuous_within_at (λ x, (f x)⁻¹) s x :=
 hf.inv
+
+@[to_additive]
+lemma is_compact.inv {s : set G} (hs : is_compact s) : is_compact (s⁻¹) :=
+by { rw [← image_inv], exact hs.image continuous_inv }
 
 section ordered_comm_group
 
@@ -775,8 +795,8 @@ section quotient
 variables [group G] [topological_space G] [topological_group G] {Γ : subgroup G}
 
 @[to_additive]
-instance quotient_group.has_continuous_smul₂ : has_continuous_smul₂ G (G ⧸ Γ) :=
-{ continuous_smul₂ := λ g₀, begin
+instance quotient_group.has_continuous_const_smul : has_continuous_const_smul G (G ⧸ Γ) :=
+{ continuous_const_smul := λ g₀, begin
     apply continuous_coinduced_dom,
     change continuous (λ g : G, quotient_group.mk (g₀ * g)),
     exact continuous_coinduced_rng.comp (continuous_mul_left g₀),
@@ -807,21 +827,24 @@ end quotient
 
 namespace units
 
+open mul_opposite (continuous_op continuous_unop)
+
 variables [monoid α] [topological_space α] [has_continuous_mul α] [monoid β] [topological_space β]
   [has_continuous_mul β]
 
-instance : topological_group αˣ :=
-{ continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
-    (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
+@[to_additive] instance : topological_group αˣ :=
+{ continuous_inv := continuous_induced_rng ((continuous_unop.comp
+    (@continuous_embed_product α _ _).snd).prod_mk (continuous_op.comp continuous_coe)) }
 
 /-- The topological group isomorphism between the units of a product of two monoids, and the product
     of the units of each monoid. -/
 def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
 { continuous_to_fun  :=
   begin
-    apply continuous.prod_mk,
+    show continuous (λ i : (α × β)ˣ, (map (monoid_hom.fst α β) i, map (monoid_hom.snd α β) i)),
+    refine continuous.prod_mk _ _,
     { refine continuous_induced_rng ((continuous_fst.comp units.continuous_coe).prod_mk _),
-      refine continuous_op.comp (continuous_fst.comp _),
+      refine mul_opposite.continuous_op.comp (continuous_fst.comp _),
       simp_rw units.inv_eq_coe_inv,
       exact units.continuous_coe.comp continuous_inv, },
     { refine continuous_induced_rng ((continuous_snd.comp units.continuous_coe).prod_mk _),

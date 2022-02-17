@@ -1517,23 +1517,23 @@ end topology
 
 section locally_convex_space
 
+open locally_convex_space
+
 variables [nonempty ι] [normed_linear_ordered_field 𝕜] [normed_space ℝ 𝕜]
   [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
   [topological_add_group E]
 
 lemma with_seminorms.to_locally_convex_space (p : ι → seminorm 𝕜 E) [with_seminorms p] :
   locally_convex_space ℝ E :=
-locally_convex_of_basis_zero ℝ E id (λ s, s ∈ seminorm_basis_zero p)
 begin
-  rw [with_seminorms_eq p, add_group_filter_basis.nhds_eq _, add_group_filter_basis.N_zero],
-  exact filter_basis.has_basis _
-end
-begin
-  intros s hs,
-  change s ∈ set.Union _ at hs,
-  simp_rw [set.mem_Union, set.mem_singleton_iff] at hs,
-  rcases hs with ⟨I, r, hr, rfl⟩,
-  exact convex_ball _ _ _
+  apply of_basis_zero ℝ E id (λ s, s ∈ seminorm_basis_zero p),
+  { rw [with_seminorms_eq p, add_group_filter_basis.nhds_eq _, add_group_filter_basis.N_zero],
+    exact filter_basis.has_basis _ },
+  { intros s hs,
+    change s ∈ set.Union _ at hs,
+    simp_rw [set.mem_Union, set.mem_singleton_iff] at hs,
+    rcases hs with ⟨I, r, hr, rfl⟩,
+    exact convex_ball _ _ _ }
 end
 
 end locally_convex_space

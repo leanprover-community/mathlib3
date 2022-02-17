@@ -327,8 +327,8 @@ lemma norm_eq_mul_conj (n : ℤ√d) : (norm n : ℤ√d) = n * n.conj :=
 by cases n; simp [norm, conj, zsqrtd.ext, mul_comm, sub_eq_add_neg]
 
 @[simp] lemma norm_neg (x : ℤ√d) : (-x).norm = x.norm :=
-coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul_eq_neg_mul_symm,
-  mul_neg_eq_neg_mul_symm, neg_neg]
+coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul,
+  mul_neg, neg_neg]
 
 @[simp] lemma norm_conj (x : ℤ√d) : x.conj.norm = x.norm :=
 coe_int_inj $ by simp only [norm_eq_mul_conj, conj_conj, mul_comm]

@@ -649,10 +649,7 @@ by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_f
 @[simp]
 lemma complete_graph_degree [decidable_eq V] (v : V) :
   (⊤ : simple_graph V).degree v = fintype.card V - 1 :=
-begin
-  convert univ.card.pred_eq_sub_one,
-  erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
-end
+by erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v), card_univ]
 
 lemma bot_degree (v : V) : (⊥ : simple_graph V).degree v = 0 :=
 begin

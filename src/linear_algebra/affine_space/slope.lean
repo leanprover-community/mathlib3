@@ -29,6 +29,8 @@ include E
 `[a, b]`. Note that `slope f a a = 0`, not the derivative of `f` at `a`. -/
 def slope (f : k → PE) (a b : k) : E := (b - a)⁻¹ • (f b -ᵥ f a)
 
+lemma slope_fun_def (f : k → PE) : slope f = λ a b, (b - a)⁻¹ • (f b -ᵥ f a) := rfl
+
 omit E
 
 lemma slope_def_field (f : k → k) (a b : k) : slope f a b = (f b - f a) / (b - a) :=

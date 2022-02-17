@@ -39,7 +39,7 @@ multiset.induction_on s (by simp)
   (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
 
 lemma le_sup {s : multiset α} {a : α} (h : a ∈ s) : a ≤ s.sup :=
-sup_le.1 (le_refl _) _ h
+sup_le.1 le_rfl _ h
 
 lemma sup_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₁.sup ≤ s₂.sup :=
 sup_le.2 $ assume b hb, le_sup (h hb)
@@ -98,7 +98,7 @@ multiset.induction_on s (by simp)
   (by simp [or_imp_distrib, forall_and_distrib] {contextual := tt})
 
 lemma inf_le {s : multiset α} {a : α} (h : a ∈ s) : s.inf ≤ a :=
-le_inf.1 (le_refl _) _ h
+le_inf.1 le_rfl _ h
 
 lemma inf_mono {s₁ s₂ : multiset α} (h : s₁ ⊆ s₂) : s₂.inf ≤ s₁.inf :=
 le_inf.2 $ assume b hb, inf_le (h hb)

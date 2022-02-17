@@ -88,6 +88,16 @@ begin
   exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
+/-- The (scalar) product of a sequence that tends to zero with a bounded one also tends to zero. -/
+lemma tendsto_zero_smul_of_tendsto_zero_of_bounded {ι 𝕜 𝔸 : Type*} [normed_field 𝕜]
+  [normed_group 𝔸] [normed_space 𝕜 𝔸] {l : filter ι} {ε : ι → 𝕜} {f : ι → 𝔸}
+  (hε : tendsto ε l (𝓝 0)) (hf : filter.is_bounded_under (≤) l (norm ∘ f)) :
+  tendsto (ε • f) l (𝓝 0) :=
+begin
+  rw ← is_o_one_iff 𝕜 at hε ⊢,
+  simpa using is_o.smul_is_O hε (hf.is_O_const (one_ne_zero : (1 : 𝕜) ≠ 0))
+end
+
 @[simp] lemma continuous_at_zpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
   continuous_at (λ x, x ^ m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
 begin
@@ -280,7 +290,7 @@ end
 
 lemma tendsto_pow_const_div_const_pow_of_one_lt (k : ℕ) {r : ℝ} (hr : 1 < r) :
   tendsto (λ n, n ^ k / r ^ n : ℕ → ℝ) at_top (𝓝 0) :=
-(is_o_pow_const_const_pow_of_one_lt k hr).tendsto_0
+(is_o_pow_const_const_pow_of_one_lt k hr).tendsto_div_nhds_zero
 
 /-- If `|r| < 1`, then `n ^ k r ^ n` tends to zero for any natural `k`. -/
 lemma tendsto_pow_const_mul_const_pow_of_abs_lt_one (k : ℕ) {r : ℝ} (hr : |r| < 1) :
@@ -814,11 +824,9 @@ begin
   { push_neg at hr₀,
     refine summable_of_norm_bounded_eventually 0 summable_zero _,
     rw nat.cofinite_eq_at_top,
-    filter_upwards [h],
-    intros n hn,
-    by_contra h,
-    push_neg at h,
-    exact not_lt.mpr (norm_nonneg _) (lt_of_le_of_lt hn $ mul_neg_of_neg_of_pos hr₀ h) }
+    filter_upwards [h] with _ hn,
+    by_contra' h,
+    exact not_lt.mpr (norm_nonneg _) (lt_of_le_of_lt hn $ mul_neg_of_neg_of_pos hr₀ h), },
 end
 
 lemma summable_of_ratio_test_tendsto_lt_one {α : Type*} [normed_group α] [complete_space α]
@@ -827,9 +835,8 @@ lemma summable_of_ratio_test_tendsto_lt_one {α : Type*} [normed_group α] [comp
 begin
   rcases exists_between hl₁ with ⟨r, hr₀, hr₁⟩,
   refine summable_of_ratio_norm_eventually_le hr₁ _,
-  filter_upwards [eventually_le_of_tendsto_lt hr₀ h, hf],
-  intros n h₀ h₁,
-  rwa ← div_le_iff (norm_pos_iff.mpr h₁)
+  filter_upwards [eventually_le_of_tendsto_lt hr₀ h, hf] with _ _ h₁,
+  rwa ← div_le_iff (norm_pos_iff.mpr h₁),
 end
 
 lemma not_summable_of_ratio_norm_eventually_ge {α : Type*} [semi_normed_group α]
@@ -860,14 +867,12 @@ lemma not_summable_of_ratio_test_tendsto_gt_one {α : Type*} [semi_normed_group 
   (h : tendsto (λ n, ∥f (n+1)∥/∥f n∥) at_top (𝓝 l)) : ¬ summable f :=
 begin
   have key : ∀ᶠ n in at_top, ∥f n∥ ≠ 0,
-  { filter_upwards [eventually_ge_of_tendsto_gt hl h],
-    intros n hn hc,
+  { filter_upwards [eventually_ge_of_tendsto_gt hl h] with _ hn hc,
     rw [hc, div_zero] at hn,
     linarith },
   rcases exists_between hl with ⟨r, hr₀, hr₁⟩,
   refine not_summable_of_ratio_norm_eventually_ge hr₀ key.frequently _,
-  filter_upwards [eventually_ge_of_tendsto_gt hr₁ h, key],
-  intros n h₀ h₁,
+  filter_upwards [eventually_ge_of_tendsto_gt hr₁ h, key] with _ _ h₁,
   rwa ← le_div_iff (lt_of_le_of_ne (norm_nonneg _) h₁.symm)
 end
 
@@ -897,7 +902,7 @@ begin
   rcases hf.summable.comp_injective (@encodable.encode_injective ι _) with ⟨c, hg⟩,
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
   { assume i _, exact le_of_lt (f0 _) },
-  { assume n, exact le_refl _ }
+  { assume n, exact le_rfl }
 end
 
 lemma set.countable.exists_pos_has_sum_le {ι : Type*} {s : set ι} (hs : s.countable)

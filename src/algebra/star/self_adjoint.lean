@@ -14,16 +14,19 @@ This file defines `self_adjoint R`, where `R` is a star additive monoid, as the 
 containing the elements that satisfy `star x = x`. This includes, for instance, Hermitian
 operators on Hilbert spaces.
 
-## TODO
+## Implementation notes
 
-* If `R` is a `star_module R₂ R`, put a module structure on `self_adjoint R`. This would naturally
-  be a `module (self_adjoint R₂) (self_adjoint R)`, but doing this literally would be undesirable
-  since in the main case of interest (`R₂ = ℂ`) we want `module ℝ (self_adjoint R)` and not
-  `module (self_adjoint ℂ) (self_adjoint R)`. One way of doing this would be to add the typeclass
-  `[has_trivial_star R]`, of which `ℝ` would be an instance, and then add a
-  `[module R (self_adjoint E)]` instance whenever we have `[module R E] [has_trivial_star E]`.
-  Another one would be to define a `[star_invariant_scalars R E]` to express the fact that
-  `star (x • v) = x • star v`.
+* When `R` is a `star_module R₂ R`, then `self_adjoint R` has a natural
+  `module (self_adjoint R₂) (self_adjoint R)` structure. However, doing this literally would be
+  undesirable since in the main case of interest (`R₂ = ℂ`) we want `module ℝ (self_adjoint R)`
+  and not `module (self_adjoint ℂ) (self_adjoint R)`. We solve this issue by adding the typeclass
+  `[has_trivial_star R₃]`, of which `ℝ` is an instance (registered in `data/real/basic`), and then
+  add a `[module R₃ (self_adjoint R)]` instance whenever we have
+  `[module R₃ R] [has_trivial_star R₃]`. (Another approach would have been to define
+  `[star_invariant_scalars R₃ R]` to express the fact that `star (x • v) = x • star v`, but
+  this typeclass would have the disadvantage of taking two type arguments.)
+
+## TODO
 
 * Define `λ z x, z * x * star z` (i.e. conjugation by `z`) as a monoid action of `R` on `R`
   (similar to the existing `conj_act` for groups), and then state the fact that `self_adjoint R` is
@@ -31,7 +34,7 @@ operators on Hilbert spaces.
 
 -/
 
-variables (R : Type*)
+variables (R : Type*) {A : Type*}
 
 /-- The self-adjoint elements of a star additive group, as an additive subgroup. -/
 def self_adjoint [add_group R] [star_add_monoid R] : add_subgroup R :=
@@ -52,6 +55,8 @@ by { rw [←add_subgroup.mem_carrier], exact iff.rfl }
 
 @[simp, norm_cast] lemma star_coe_eq {x : self_adjoint R} : star (x : R) = x := x.prop
 
+instance : inhabited (self_adjoint R) := ⟨0⟩
+
 end add_group
 
 instance [add_comm_group R] [star_add_monoid R] : add_comm_group (self_adjoint R) :=
@@ -64,6 +69,8 @@ variables [ring R] [star_ring R]
 instance : has_one (self_adjoint R) := ⟨⟨1, by rw [mem_iff, star_one]⟩⟩
 
 @[simp, norm_cast] lemma coe_one : (coe : self_adjoint R → R) (1 : self_adjoint R) = (1 : R) := rfl
+
+instance [nontrivial R] : nontrivial (self_adjoint R) := ⟨⟨0, 1, subtype.ne_of_val_ne zero_ne_one⟩⟩
 
 lemma one_mem : (1 : R) ∈ self_adjoint R := by simp only [mem_iff, star_one]
 
@@ -118,5 +125,31 @@ instance : field (self_adjoint R) :=
   (coe : self_adjoint R → R) (x⁻¹) = (x : R)⁻¹ := rfl
 
 end field
+
+section has_scalar
+variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
+
+instance [has_scalar R A] [star_module R A] : has_scalar R (self_adjoint A) :=
+⟨λ r x, ⟨r • x, by rw [mem_iff, star_smul, star_trivial, star_coe_eq]⟩⟩
+
+@[simp, norm_cast] lemma coe_smul [has_scalar R A] [star_module R A] (r : R) (x : self_adjoint A) :
+  ↑(r • x) = r • (x : A) := rfl
+
+instance [monoid R] [mul_action R A] [star_module R A] : mul_action R (self_adjoint A) :=
+function.injective.mul_action coe subtype.coe_injective coe_smul
+
+instance [monoid R] [distrib_mul_action R A] [star_module R A] :
+  distrib_mul_action R (self_adjoint A) :=
+function.injective.distrib_mul_action (self_adjoint A).subtype subtype.coe_injective coe_smul
+
+end has_scalar
+
+section module
+variables [has_star R] [has_trivial_star R] [add_comm_group A] [star_add_monoid A]
+
+instance [semiring R] [module R A] [star_module R A] : module R (self_adjoint A) :=
+function.injective.module R (self_adjoint A).subtype subtype.coe_injective coe_smul
+
+end module
 
 end self_adjoint

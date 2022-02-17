@@ -329,7 +329,7 @@ begin
   induction z using ereal.rec,
   { simpa only using hz },
   { calc x + z < y + z : add_lt_add_right_coe h _
-           ... ≤ y + t : add_le_add (le_refl _) h' },
+           ... ≤ y + t : add_le_add le_rfl h' },
   { exact (ht (top_le_iff.1 h')).elim }
 end
 
@@ -340,7 +340,7 @@ lemma add_lt_add {x y z t : ereal} (h1 : x < y) (h2 : z < t) : x + z < y + t :=
 begin
   induction y using ereal.rec,
   { exact (lt_irrefl _ (bot_le.trans_lt h1)).elim },
-  { calc x + z ≤ y + z : add_le_add h1.le (le_refl _)
+  { calc x + z ≤ y + z : add_le_add h1.le le_rfl
     ... < y + t : add_lt_add_left_coe h2 _ },
   { simp [lt_top_iff_ne_top, with_top.add_eq_top, h1.ne, (h2.trans_le le_top).ne] }
 end
@@ -407,7 +407,7 @@ protected theorem neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
 | ⊤ l h := le_top
 | (a : ℝ) ⊥ h := by cases (le_bot_iff.1 h)
 | l ⊤ h := bot_le
-| (a : ℝ) (b : ℝ) h := by { norm_cast at h ⊢, exact _root_.neg_le_of_neg_le h }
+| (a : ℝ) (b : ℝ) h := by { norm_cast at h ⊢, exact neg_le.mp h }
 
 /-- `-a ≤ b ↔ -b ≤ a` on `ereal`. -/
 protected theorem neg_le {a b : ereal} : -a ≤ b ↔ -b ≤ a :=

@@ -132,7 +132,7 @@ by simp [ennreal.to_real, ennreal.of_real, real.coe_to_nnreal _ h]
 lemma to_real_of_real' {r : ℝ} : ennreal.to_real (ennreal.of_real r) = max r 0 := rfl
 
 lemma coe_to_nnreal_le_self : ∀{a:ℝ≥0∞}, ↑(a.to_nnreal) ≤ a
-| (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_refl _
+| (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_rfl
 | none     := le_top
 
 lemma coe_nnreal_eq (r : ℝ≥0) : (r : ℝ≥0∞) = ennreal.of_real r :=
@@ -228,18 +228,15 @@ coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
 lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 
-/-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
--/
-lemma _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_refl _⟩
+/-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces. -/
+instance _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩
 
-/-- `(1 : ℝ≥0∞) ≤ 2`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
--/
-lemma _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
+/-- `(1 : ℝ≥0∞) ≤ 2`, recorded as a `fact` for use with `Lp` spaces. -/
+instance _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
 ⟨ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)⟩
 
-/-- `(1 : ℝ≥0∞) ≤ ∞`, recorded as a `fact` for use with `Lp` spaces, see note [fact non-instances].
--/
-lemma _root_.fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩
+/-- `(1 : ℝ≥0∞) ≤ ∞`, recorded as a `fact` for use with `Lp` spaces. -/
+instance _root_.fact_one_le_top_ennreal : fact ((1 : ℝ≥0∞) ≤ ∞) := ⟨le_top⟩
 
 /-- The set of numbers in `ℝ≥0∞` that are not equal to `∞` is equivalent to `ℝ≥0`. -/
 def ne_top_equiv_nnreal : {a | a ≠ ∞} ≃ ℝ≥0 :=
@@ -460,7 +457,7 @@ begin
   cases a,
   { cases m,
     { rw eq_bot_iff.mpr h,
-      exact le_refl _ },
+      exact le_rfl },
     { rw [none_eq_top, top_pow (nat.succ_pos m)],
       exact le_top } },
   { rw [some_eq_coe, ← coe_pow, ← coe_pow, coe_le_coe],
@@ -858,14 +855,11 @@ theorem sum_lt_sum_of_nonempty {s : finset α} (hs : s.nonempty)
   {f g : α → ℝ≥0∞} (Hlt : ∀ i ∈ s, f i < g i) :
   ∑ i in s, f i < ∑ i in s, g i :=
 begin
-  classical,
-  induction s using finset.induction_on with a s as IH,
-  { exact (finset.not_nonempty_empty hs).elim },
-  { rcases finset.eq_empty_or_nonempty s with rfl|h's,
-    { simp [Hlt _ (finset.mem_singleton_self _)] },
-    { simp only [as, finset.sum_insert, not_false_iff],
-      exact ennreal.add_lt_add (Hlt _ (finset.mem_insert_self _ _))
-        (IH h's (λ i hi, Hlt _ (finset.mem_insert_of_mem hi))) } }
+  induction hs using finset.nonempty.cons_induction with a a s as hs IH,
+  { simp [Hlt _ (finset.mem_singleton_self _)] },
+  { simp only [as, finset.sum_cons, not_false_iff],
+    exact ennreal.add_lt_add (Hlt _ (finset.mem_cons_self _ _))
+      (IH (λ i hi, Hlt _ (finset.mem_cons.2 $ or.inr hi))) }
 end
 
 theorem exists_le_of_sum_le {s : finset α} (hs : s.nonempty)
@@ -1002,6 +996,24 @@ inv_top ▸ inv_eq_inv
 
 lemma inv_ne_zero : a⁻¹ ≠ 0 ↔ a ≠ ∞ := by simp
 
+lemma mul_inv {a b : ℝ≥0∞} (ha : a ≠ 0 ∨ b ≠ ∞) (hb : a ≠ ∞ ∨ b ≠ 0) :
+  (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
+begin
+  induction b using with_top.rec_top_coe,
+  { simp at ha, simp [ha], },
+  induction a using with_top.rec_top_coe,
+  { simp at hb, simp [hb] },
+  by_cases h'a : a = 0,
+  { simp only [h'a, with_top.top_mul, ennreal.inv_zero, ennreal.coe_ne_top, zero_mul, ne.def,
+               not_false_iff, ennreal.coe_zero, ennreal.inv_eq_zero] },
+  by_cases h'b : b = 0,
+  { simp only [h'b, ennreal.inv_zero, ennreal.coe_ne_top, with_top.mul_top, ne.def, not_false_iff,
+               mul_zero, ennreal.coe_zero, ennreal.inv_eq_zero] },
+  rw [← ennreal.coe_mul, ← ennreal.coe_inv, ← ennreal.coe_inv h'a, ← ennreal.coe_inv h'b,
+      ← ennreal.coe_mul, nnreal.mul_inv, mul_comm],
+  simp [h'a, h'b],
+end
+
 @[simp] lemma inv_pos : 0 < a⁻¹ ↔ a ≠ ∞ :=
 pos_iff_ne_zero.trans inv_ne_zero
 
@@ -1044,6 +1056,18 @@ le_inv_iff_le_inv.trans $ by rw inv_one
 
 @[simp] lemma inv_lt_one : a⁻¹ < 1 ↔ 1 < a :=
 inv_lt_iff_inv_lt.trans $ by rw [inv_one]
+
+/-- The inverse map `λ x, x⁻¹` is an order isomorphism between `ℝ≥0∞` and its `order_dual` -/
+@[simps apply]
+def _root_.order_iso.inv_ennreal : ℝ≥0∞ ≃o order_dual ℝ≥0∞ :=
+{ to_fun := λ x, x⁻¹,
+  inv_fun := λ x, x⁻¹,
+  left_inv := @ennreal.inv_inv,
+  right_inv := @ennreal.inv_inv,
+  map_rel_iff' := λ a b, ennreal.inv_le_inv }
+
+@[simp]
+lemma _root_.order_iso.inv_ennreal_symm_apply : order_iso.inv_ennreal.symm a = a⁻¹ := rfl
 
 lemma pow_le_pow_of_le_one {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
 begin
@@ -1658,7 +1682,6 @@ end
 
 protected lemma dichotomy (p : ℝ≥0∞) [fact (1 ≤ p)] : p = ∞ ∨ 1 ≤ p.to_real :=
 begin
-  tactic.unfreeze_local_instances,
   have :  p = ⊤ ∨ 0 < p.to_real ∧ 1 ≤ p.to_real,
   { simpa using ennreal.trichotomy₂ (fact.out _ : 1 ≤ p) },
   exact this.imp_right (λ h, h.2)
@@ -1752,7 +1775,7 @@ variables {ι : Sort*} {f g : ι → ℝ≥0∞}
 
 lemma infi_add : infi f + a = ⨅i, f i + a :=
 le_antisymm
-  (le_infi $ assume i, add_le_add (infi_le _ _) $ le_refl _)
+  (le_infi $ assume i, add_le_add (infi_le _ _) $ le_rfl)
   (tsub_le_iff_right.1 $ le_infi $ assume i, tsub_le_iff_right.2 $ infi_le _ _)
 
 lemma supr_sub : (⨆i, f i) - a = (⨆i, f i - a) :=

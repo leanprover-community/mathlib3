@@ -3,9 +3,9 @@ Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import topology.unit_interval
-import topology.algebra.ordered.proj_Icc
+import topology.algebra.order.proj_Icc
 import topology.continuous_function.basic
+import topology.unit_interval
 
 /-!
 # Path connectedness
@@ -800,7 +800,7 @@ begin
     { use path.refl (p' 0),
       { split,
         { rintros i hi, rw nat.le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
-        { rw range_subset_iff, rintros x, exact hp' 0 (le_refl _) } } },
+        { rw range_subset_iff, rintros x, exact hp' 0 le_rfl } } },
     { rcases hn (λ i hi, hp' i $ nat.le_succ_of_le hi) with ⟨γ₀, hγ₀⟩,
       rcases h.joined_in (p' n) (hp' n n.le_succ) (p' $ n+1) (hp' (n+1) $ le_rfl) with ⟨γ₁, hγ₁⟩,
       let γ : path (p' 0) (p' $ n+1) := γ₀.trans γ₁,

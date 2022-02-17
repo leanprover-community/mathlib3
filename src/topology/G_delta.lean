@@ -124,7 +124,7 @@ is_open_compl_singleton.is_Gδ
 
 lemma set.countable.is_Gδ_compl {s : set α} (hs : countable s) : is_Gδ sᶜ :=
 begin
-  rw [← bUnion_of_singleton s, compl_bUnion],
+  rw [← bUnion_of_singleton s, compl_Union₂],
   exact is_Gδ_bInter hs (λ x _, is_Gδ_compl_singleton x)
 end
 
@@ -172,9 +172,7 @@ begin
     set_of_forall, id],
   refine is_Gδ_Inter (λ k, is_open.is_Gδ $ is_open_iff_mem_nhds.2 $ λ x, _),
   rintros ⟨s, ⟨hsx, hso⟩, hsU⟩,
-  filter_upwards [is_open.mem_nhds hso hsx],
-  intros y hy,
-  exact ⟨s, ⟨hy, hso⟩, hsU⟩
+  filter_upwards [is_open.mem_nhds hso hsx] with _ hy using ⟨s, ⟨hy, hso⟩, hsU⟩,
 end
 
 end continuous_at

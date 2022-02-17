@@ -10,7 +10,8 @@ import algebraic_geometry.locally_ringed_space.has_colimits
 /-!
 # Gluing Structured spaces
 
-Given a family of gluing data of structured spaces, we may glue them together.
+Given a family of gluing data of structured spaces (presheafed spaces, sheafed spaces, or locally
+ringed spaces), we may glue them together.
 
 The construction should be "sealed" and considered as a black box, while only using the API
 provided.
@@ -27,6 +28,12 @@ provided.
 
 * `algebraic_geometry.PresheafedSpace.glue_data.ι_is_open_immersion`: The map `ι i : U i ⟶ glued`
   is an open immersion for each `i : J`.
+* `algebraic_geometry.PresheafedSpace.glue_data.ι_jointly_surjective` : The underlying maps of
+  `ι i : U i ⟶ glued` are jointly surjective.
+* `algebraic_geometry.PresheafedSpace.glue_data.V_pullback_cone_is_limit` : `V i j` is the pullback
+  (intersection) of `U i` and `U j` over the glued space.
+
+Analogous results are also provided for `SheafedSpace` and `LocallyRingedSpace`.
 
 ## Implementation details
 
@@ -82,14 +89,9 @@ that the `U i`'s are open subspaces of the glued space.
 -/
 @[nolint has_inhabited_instance]
 structure glue_data extends glue_data (PresheafedSpace C) :=
-  (f_open : ∀ i j, is_open_immersion (f i j))
+(f_open : ∀ i j, is_open_immersion (f i j))
 
 attribute [instance] glue_data.f_open
-
-instance (X Y : PresheafedSpace C) : has_coe_to_fun (X ⟶ Y) (λ _, X → Y) :=
-⟨λ f, f.base⟩
-
-lemma coe_to_fun_eq {X Y : PresheafedSpace C} (f : X ⟶ Y) : (f : X → Y) = f.base := rfl
 
 namespace glue_data
 
@@ -424,8 +426,193 @@ instance ι_is_open_immersion (i : D.J) :
 { base_open := D.ι_open_embedding i,
   c_iso := λ U, by { erw ← colimit_presheaf_obj_iso_componentwise_limit_hom_π, apply_instance } }
 
+/-- The following diagram is a pullback, i.e. `Vᵢⱼ` is the intersection of `Uᵢ` and `Uⱼ` in `X`.
+
+Vᵢⱼ ⟶ Uᵢ
+ |      |
+ ↓      ↓
+ Uⱼ ⟶ X
+-/
+def V_pullback_cone_is_limit (i j : D.J) : is_limit (𝖣 .V_pullback_cone i j) :=
+pullback_cone.is_limit_aux' _ $ λ s,
+begin
+  refine ⟨_, _, _, _⟩,
+  { refine PresheafedSpace.is_open_immersion.lift (D.f i j) s.fst _,
+    erw ← D.to_Top_glue_data.preimage_range j i,
+    have : s.fst.base ≫ D.to_Top_glue_data.to_glue_data.ι i =
+      s.snd.base ≫ D.to_Top_glue_data.to_glue_data.ι j,
+    { rw [← 𝖣 .ι_glued_iso_hom (PresheafedSpace.forget _) _,
+        ← 𝖣 .ι_glued_iso_hom (PresheafedSpace.forget _) _],
+      have := congr_arg PresheafedSpace.hom.base s.condition,
+      rw [comp_base, comp_base] at this,
+      reassoc! this,
+      exact this _ },
+    rw [← set.image_subset_iff, ← set.image_univ, ← set.image_comp, set.image_univ,
+      ← coe_comp, this, coe_comp, ← set.image_univ, set.image_comp],
+    exact set.image_subset_range _ _ },
+  { apply is_open_immersion.lift_fac },
+  { rw [← cancel_mono (𝖣 .ι j), category.assoc, ← (𝖣 .V_pullback_cone i j).condition],
+    conv_rhs { rw ← s.condition },
+    erw is_open_immersion.lift_fac_assoc },
+  { intros m e₁ e₂, rw ← cancel_mono (D.f i j), erw e₁, rw is_open_immersion.lift_fac }
+end
+
+lemma ι_jointly_surjective (x : 𝖣 .glued) :
+  ∃ (i : D.J) (y : D.U i), (𝖣 .ι i).base y = x :=
+𝖣 .ι_jointly_surjective (PresheafedSpace.forget _ ⋙ category_theory.forget Top) x
+
 end glue_data
 
 end PresheafedSpace
+
+namespace SheafedSpace
+
+variables (C) [has_products C]
+
+/--
+A family of gluing data consists of
+1. An index type `J`
+2. A sheafed space `U i` for each `i : J`.
+3. A sheafed space `V i j` for each `i j : J`.
+  (Note that this is `J × J → SheafedSpace C` rather than `J → J → SheafedSpace C` to
+  connect to the limits library easier.)
+4. An open immersion `f i j : V i j ⟶ U i` for each `i j : ι`.
+5. A transition map `t i j : V i j ⟶ V j i` for each `i j : ι`.
+such that
+6. `f i i` is an isomorphism.
+7. `t i i` is the identity.
+8. `V i j ×[U i] V i k ⟶ V i j ⟶ V j i` factors through `V j k ×[U j] V j i ⟶ V j i` via some
+    `t' : V i j ×[U i] V i k ⟶ V j k ×[U j] V j i`.
+9. `t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _`.
+
+We can then glue the spaces `U i` together by identifying `V i j` with `V j i`, such
+that the `U i`'s are open subspaces of the glued space.
+-/
+@[nolint has_inhabited_instance]
+structure glue_data extends glue_data (SheafedSpace C) :=
+(f_open : ∀ i j, SheafedSpace.is_open_immersion (f i j))
+
+attribute [instance] glue_data.f_open
+
+namespace glue_data
+
+variables {C} (D : glue_data C)
+
+local notation `𝖣` := D.to_glue_data
+
+/-- The glue data of presheafed spaces associated to a family of glue data of sheafed spaces. -/
+abbreviation to_PresheafedSpace_glue_data : PresheafedSpace.glue_data C :=
+{ f_open := D.f_open,
+  to_glue_data := 𝖣 .map_glue_data forget_to_PresheafedSpace }
+
+variable [has_limits C]
+
+/-- The gluing as sheafed spaces is isomorphic to the gluing as presheafed spaces. -/
+abbreviation iso_PresheafedSpace : 𝖣 .glued.to_PresheafedSpace ≅
+  D.to_PresheafedSpace_glue_data.to_glue_data.glued :=
+𝖣 .glued_iso forget_to_PresheafedSpace
+
+lemma ι_iso_PresheafedSpace_inv (i : D.J) :
+  D.to_PresheafedSpace_glue_data.to_glue_data.ι i ≫ D.iso_PresheafedSpace.inv = 𝖣 .ι i :=
+𝖣 .ι_glued_iso_inv _ _
+
+instance ι_is_open_immersion (i : D.J) :
+  is_open_immersion (𝖣 .ι i) :=
+by { rw ← D.ι_iso_PresheafedSpace_inv, apply_instance }
+
+lemma ι_jointly_surjective (x : 𝖣 .glued) :
+  ∃ (i : D.J) (y : D.U i), (𝖣 .ι i).base y = x :=
+𝖣 .ι_jointly_surjective (SheafedSpace.forget _ ⋙ category_theory.forget Top) x
+
+/-- The following diagram is a pullback, i.e. `Vᵢⱼ` is the intersection of `Uᵢ` and `Uⱼ` in `X`.
+
+Vᵢⱼ ⟶ Uᵢ
+ |      |
+ ↓      ↓
+ Uⱼ ⟶ X
+-/
+def V_pullback_cone_is_limit (i j : D.J) : is_limit (𝖣 .V_pullback_cone i j) :=
+𝖣 .V_pullback_cone_is_limit_of_map forget_to_PresheafedSpace i j
+  (D.to_PresheafedSpace_glue_data.V_pullback_cone_is_limit _ _)
+
+end glue_data
+
+end SheafedSpace
+
+namespace LocallyRingedSpace
+
+/--
+A family of gluing data consists of
+1. An index type `J`
+2. A locally ringed space `U i` for each `i : J`.
+3. A locally ringed space `V i j` for each `i j : J`.
+  (Note that this is `J × J → LocallyRingedSpace` rather than `J → J → LocallyRingedSpace` to
+  connect to the limits library easier.)
+4. An open immersion `f i j : V i j ⟶ U i` for each `i j : ι`.
+5. A transition map `t i j : V i j ⟶ V j i` for each `i j : ι`.
+such that
+6. `f i i` is an isomorphism.
+7. `t i i` is the identity.
+8. `V i j ×[U i] V i k ⟶ V i j ⟶ V j i` factors through `V j k ×[U j] V j i ⟶ V j i` via some
+    `t' : V i j ×[U i] V i k ⟶ V j k ×[U j] V j i`.
+9. `t' i j k ≫ t' j k i ≫ t' k i j = 𝟙 _`.
+
+We can then glue the spaces `U i` together by identifying `V i j` with `V j i`, such
+that the `U i`'s are open subspaces of the glued space.
+-/
+@[nolint has_inhabited_instance]
+structure glue_data extends glue_data LocallyRingedSpace :=
+(f_open : ∀ i j, LocallyRingedSpace.is_open_immersion (f i j))
+
+attribute [instance] glue_data.f_open
+
+namespace glue_data
+
+variables (D : glue_data)
+
+local notation `𝖣` := D.to_glue_data
+
+/-- The glue data of ringed spaces associated to a family of glue data of locally ringed spaces. -/
+abbreviation to_SheafedSpace_glue_data : SheafedSpace.glue_data CommRing :=
+{ f_open := D.f_open,
+  to_glue_data := 𝖣 .map_glue_data forget_to_SheafedSpace }
+
+/-- The gluing as locally ringed spaces is isomorphic to the gluing as ringed spaces. -/
+abbreviation iso_SheafedSpace : 𝖣 .glued.to_SheafedSpace ≅
+  D.to_SheafedSpace_glue_data.to_glue_data.glued :=
+𝖣 .glued_iso forget_to_SheafedSpace
+
+lemma ι_iso_SheafedSpace_inv (i : D.J) :
+  D.to_SheafedSpace_glue_data.to_glue_data.ι i ≫ D.iso_SheafedSpace.inv = (𝖣 .ι i).1 :=
+𝖣 .ι_glued_iso_inv forget_to_SheafedSpace i
+
+instance ι_is_open_immersion (i : D.J) :
+  is_open_immersion (𝖣 .ι i) :=
+by { delta is_open_immersion, rw ← D.ι_iso_SheafedSpace_inv,
+  apply PresheafedSpace.is_open_immersion.comp }
+
+instance (i j k : D.J) :
+  preserves_limit (cospan (𝖣 .f i j) (𝖣 .f i k)) forget_to_SheafedSpace :=
+infer_instance
+
+lemma ι_jointly_surjective (x : 𝖣 .glued) :
+  ∃ (i : D.J) (y : D.U i), (𝖣 .ι i).1.base y = x :=
+𝖣 .ι_jointly_surjective ((LocallyRingedSpace.forget_to_SheafedSpace ⋙
+  SheafedSpace.forget _) ⋙ forget Top) x
+
+/-- The following diagram is a pullback, i.e. `Vᵢⱼ` is the intersection of `Uᵢ` and `Uⱼ` in `X`.
+
+Vᵢⱼ ⟶ Uᵢ
+ |      |
+ ↓      ↓
+ Uⱼ ⟶ X
+-/
+def V_pullback_cone_is_limit (i j : D.J) : is_limit (𝖣 .V_pullback_cone i j) :=
+𝖣 .V_pullback_cone_is_limit_of_map forget_to_SheafedSpace i j
+  (D.to_SheafedSpace_glue_data.V_pullback_cone_is_limit _ _)
+
+end glue_data
+
+end LocallyRingedSpace
 
 end algebraic_geometry

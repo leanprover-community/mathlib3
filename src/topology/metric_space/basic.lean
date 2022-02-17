@@ -1223,20 +1223,6 @@ lemma cauchy_seq_of_le_tendsto_0 {s : β → α} (b : β → ℝ)
   cauchy_seq s :=
 cauchy_seq_of_le_tendsto_0' b (λ n m hnm, h _ _ _ le_rfl hnm) h₀
 
-/-- If the distance between `s n` and `s m`, `n ≤ m` is bounded above by `b n`
-and `b` converges to zero, then `s` is a Cauchy sequence.  -/
-lemma cauchy_seq_of_le_tendsto_0' {s : β → α} (b : β → ℝ)
-  (h : ∀ n m : β, n ≤ m → dist (s n) (s m) ≤ b n) (h₀ : tendsto b at_top (𝓝 0)) :
-  cauchy_seq s :=
-begin
-  have L : tendsto (λ n, 2 * b n) at_top (𝓝 (2 * 0)) := h₀.const_mul _,
-  rw mul_zero at L,
-  apply cauchy_seq_of_le_tendsto_0 _ (λ n m N hn hm, _) L,
-  calc dist (s n) (s m) ≤ dist (s N) (s n) + dist (s N) (s m) : dist_triangle_left _ _ _
-  ... ≤ b N + b N : add_le_add (h _ _ hn) (h _ _ hm)
-  ... = 2 * b N : (two_mul _).symm
-end
-
 /-- A Cauchy sequence on the natural numbers is bounded. -/
 theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :
   ∃ R > 0, ∀ m n, dist (u m) (u n) < R :=

@@ -337,18 +337,18 @@ local attribute [instance] metric_space_sum
 lemma sum.dist_eq {x y : X ⊕ Y} : dist x y = sum.dist x y := rfl
 
 /-- The left injection of a space in a disjoint union is an isometry -/
-lemma isometry_on_inl : isometry (sum.inl : X → (X ⊕ Y)) :=
+lemma isometry_inl : isometry (sum.inl : X → (X ⊕ Y)) :=
 isometry_emetric_iff_metric.2 $ λx y, rfl
 
 /-- The right injection of a space in a disjoint union is an isometry -/
-lemma isometry_on_inr : isometry (sum.inr : Y → (X ⊕ Y)) :=
+lemma isometry_inr : isometry (sum.inr : Y → (X ⊕ Y)) :=
 isometry_emetric_iff_metric.2 $ λx y, rfl
 
 end sum
 
 namespace sigma
 /- Copy of the previous paragraph, but for arbitrary disjoint unions instead of the disjoint union
-of two spaces. I.e., work with sigma types instead of sum types.² -/
+of two spaces. I.e., work with sigma types instead of sum types. -/
 
 variables {ι : Type*} {E : ι → Type*} [∀ i, metric_space (E i)]
 
@@ -362,7 +362,7 @@ We embed isometrically each factor, set the basepoints at distance 1, arbitraril
 and say that the distance from `a` to `b` is the sum of the distances of `a` and `b` to
 their respective basepoints, plus the distance 1 between the basepoints.
 Since there is an arbitrary choice in this construction, it is not an instance by default. -/
-protected def dist : (Σ i, (E i)) → (Σ i, (E i)) → ℝ
+protected def dist : (Σ i, E i) → (Σ i, E i) → ℝ
 | ⟨i, x⟩ ⟨j, y⟩ :=
     if h : i = j then by { have : E j = E i, by rw h, exact has_dist.dist x (cast this y) }
     else has_dist.dist x (nonempty.some ⟨x⟩) + 1 + has_dist.dist (nonempty.some ⟨y⟩) y
@@ -395,15 +395,12 @@ end
 lemma fst_eq_of_dist_lt_one (x y : Σ i, E i) (h : dist x y < 1) :
   x.1 = y.1 :=
 begin
-  rcases x with ⟨i, x⟩, rcases y with ⟨j, y⟩,
-  rcases eq_or_ne i j with rfl|hij,
-  { refl },
-  { apply (lt_irrefl (1 : ℝ) _).elim,
-    calc 1 ≤ dist (⟨i, x⟩ : Σ k, E k) ⟨j, y⟩ : one_le_dist_of_ne hij _ _
-    ... < 1 : h }
+  cases x, cases y,
+  contrapose! h,
+  apply one_le_dist_of_ne h,
 end
 
-protected lemma dist_triangle (x y z : Σ i, (E i)) :
+protected lemma dist_triangle (x y z : Σ i, E i) :
   dist x z ≤ dist x y + dist y z :=
 begin
   rcases x with ⟨i, x⟩, rcases y with ⟨j, y⟩, rcases z with ⟨k, z⟩,
@@ -495,32 +492,17 @@ isometry_emetric_iff_metric.2 (by simp)
 /-- A disjoint union of complete metric spaces is complete. -/
 protected lemma complete_space [∀ i, complete_space (E i)] : complete_space (Σ i, E i) :=
 begin
-  obtain ⟨b, -, bIoo, b_lim⟩ :
-    ∃ (b : ℕ → ℝ), strict_anti b ∧ (∀ (n : ℕ), b n ∈ set.Ioo (0 : ℝ) 1)
-      ∧ tendsto b at_top (𝓝 0) := exists_seq_strict_anti_tendsto' (zero_lt_one : (0 : ℝ) < 1),
-  refine complete_of_convergent_controlled_sequences b (λ n, (bIoo n).1) (λ u hu, _),
-  have A : ∀ n, (u n).1 = (u 0).1 :=
-    λ n, fst_eq_of_dist_lt_one _ _ ((hu 0 n 0 (zero_le _) (zero_le _)).trans (bIoo 0).2),
-  let i := (u 0).1,
-  let y : ℕ → E i := λ n, by { have : E (u n).1 = E i, by rw A, exact cast this (u n).2 },
-  have uy : ∀ n, u n = sigma.mk i (y n),
-  { assume n,
-    ext,
-    { exact A n },
-    { simp [y],
-      exact heq_of_cast_eq (congr_arg E (A n)) rfl } },
-  have dy : ∀ m n, dist (y m) (y n) = dist (u m) (u n) :=
-    λ m n, by simp [uy],
-  have C : cauchy_seq y,
-  { refine cauchy_seq_of_le_tendsto_0 b _ b_lim,
-    assume n m N hn hm,
-    rw dy,
-    exact (hu N n m hn hm).le },
-  haveI : nonempty (E i) := ⟨y 0⟩,
-  refine ⟨⟨i, lim at_top y⟩, _⟩,
-  convert (continuous_sigma_mk.tendsto (lim at_top y)).comp C.tendsto_lim,
-  ext1 n,
-  exact uy n
+  set s : ι → set (Σ i, E i) := λ i, (sigma.fst ⁻¹' {i}),
+  set U := {p : (Σ k, E k) × (Σ k, E k) | dist p.1 p.2 < 1},
+  have hc : ∀ i, is_complete (s i),
+  { intro i,
+    simp only [s, ← range_sigma_mk],
+    exact (isometry_mk i).uniform_inducing.is_complete_range },
+  have hd : ∀ i j (x ∈ s i) (y ∈ s j), (x, y) ∈ U → i = j,
+    from λ i j x hx y hy hxy, (eq.symm hx).trans ((fst_eq_of_dist_lt_one _ _ hxy).trans hy),
+  refine complete_space_of_is_complete_univ _,
+  convert is_complete_Union_separated hc (dist_mem_uniformity zero_lt_one) hd,
+  simp [s, ← preimage_Union]
 end
 
 end sigma

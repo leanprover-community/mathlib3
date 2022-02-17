@@ -456,7 +456,7 @@ h.mono_measure $ measure.le_add_left $ le_rfl
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
 ⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
 
-@[simp] lemma integrable_zero_measure {m : measurable_space α} [measurable_space β] {f : α → β} :
+@[simp] lemma integrable_zero_measure {m : measurable_space α} {f : α → β} :
   integrable f (0 : measure α) :=
 ⟨ae_measurable_zero_measure, has_finite_integral_zero_measure f⟩
 

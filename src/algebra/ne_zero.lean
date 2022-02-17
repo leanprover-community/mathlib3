@@ -50,6 +50,9 @@ instance char_zero [ne_zero n] [add_monoid M] [has_one M] [char_zero M] : ne_zer
 instance coe_trans {r : R} [has_zero M] [has_coe R S] [has_coe_t S M] [h : ne_zero (r : M)] :
   ne_zero ((r : S) : M) := ⟨h.out⟩
 
+lemma trans {r : R} [has_zero M] [has_coe R S] [has_coe_t S M] (h : ne_zero ((r : S) : M)) :
+  ne_zero (r : M) := ⟨h.out⟩
+
 lemma of_map [has_zero R] [has_zero M] [zero_hom_class F R M] (f : F) [ne_zero (f r)] :
   ne_zero r := ⟨λ h, ne (f r) $ by convert map_zero f⟩
 
@@ -66,7 +69,7 @@ variables (R M)
 lemma of_not_dvd [add_monoid M] [has_one M] [char_p M p] (h : ¬ p ∣ n) : ne_zero (n : M) :=
 ⟨(not_iff_not.mpr $ char_p.cast_eq_zero_iff M p n).mpr h⟩
 
-lemma of_no_zero_smul_divisors [comm_ring R] [ne_zero (n : R)] [ring M] [nontrivial M]
+lemma of_no_zero_smul_divisors (n : ℕ) [comm_ring R] [ne_zero (n : R)] [ring M] [nontrivial M]
   [algebra R M] [no_zero_smul_divisors R M] : ne_zero (n : M) :=
 nat_of_injective $ no_zero_smul_divisors.algebra_map_injective R M
 

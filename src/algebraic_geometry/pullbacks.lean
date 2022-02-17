@@ -527,7 +527,6 @@ is_affine_of_iso (pullback.map f g (Spec.map (Γ.map f.op).op) (Spec.map (Γ.map
   (Γ_Spec.adjunction.unit.naturality f) (Γ_Spec.adjunction.unit.naturality g) ≫
     (preserves_pullback.iso Spec _ _).inv)
 
-
 /-- Given an open cover `{ Xᵢ }` of `X`, then `X ×[Z] Y` is covered by `Xᵢ ×[Z] Y`. -/
 @[simps J obj map]
 def open_cover_of_left (𝒰 : open_cover X) (f : X ⟶ Z) (g : Y ⟶ Z) : open_cover (pullback f g) :=

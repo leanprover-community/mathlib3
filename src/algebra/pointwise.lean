@@ -436,24 +436,25 @@ lemma inv_empty [has_inv α] : (∅ : set α)⁻¹ = ∅ := rfl
 lemma inv_univ [has_inv α] : (univ : set α)⁻¹ = univ := rfl
 
 @[simp, to_additive]
-lemma nonempty_inv [group α] {s : set α} : s⁻¹.nonempty ↔ s.nonempty :=
+lemma nonempty_inv [has_involutive_inv α] {s : set α} : s⁻¹.nonempty ↔ s.nonempty :=
 inv_involutive.surjective.nonempty_preimage
 
-@[to_additive] lemma nonempty.inv [group α] {s : set α} (h : s.nonempty) : s⁻¹.nonempty :=
+@[to_additive] lemma nonempty.inv [has_involutive_inv α] {s : set α} (h : s.nonempty) :
+  s⁻¹.nonempty :=
 nonempty_inv.2 h
 
 @[simp, to_additive]
 lemma mem_inv [has_inv α] : a ∈ s⁻¹ ↔ a⁻¹ ∈ s := iff.rfl
 
 @[to_additive]
-lemma inv_mem_inv [group α] : a⁻¹ ∈ s⁻¹ ↔ a ∈ s :=
+lemma inv_mem_inv [has_involutive_inv α] : a⁻¹ ∈ s⁻¹ ↔ a ∈ s :=
 by simp only [mem_inv, inv_inv]
 
 @[simp, to_additive]
 lemma inv_preimage [has_inv α] : has_inv.inv ⁻¹' s = s⁻¹ := rfl
 
 @[simp, to_additive]
-lemma image_inv [group α] : has_inv.inv '' s = s⁻¹ :=
+lemma image_inv [has_involutive_inv α] : has_inv.inv '' s = s⁻¹ :=
 by { simp only [← inv_preimage], rw [image_eq_preimage_of_inverse]; intro; simp only [inv_inv] }
 
 @[simp, to_additive]
@@ -474,23 +475,22 @@ preimage_Union
 lemma compl_inv [has_inv α] : (sᶜ)⁻¹ = (s⁻¹)ᶜ := preimage_compl
 
 @[simp, to_additive]
-protected lemma inv_inv [group α] : s⁻¹⁻¹ = s :=
-by { simp only [← inv_preimage, preimage_preimage, inv_inv, preimage_id'] }
+instance [has_involutive_inv α] : has_involutive_inv (set α) :=
+{ inv := has_inv.inv,
+  inv_inv := λ s, by { simp only [← inv_preimage, preimage_preimage, inv_inv, preimage_id'] } }
 
 @[simp, to_additive]
-protected lemma univ_inv [group α] : (univ : set α)⁻¹ = univ := preimage_univ
-
-@[simp, to_additive]
-lemma inv_subset_inv [group α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
+lemma inv_subset_inv [has_involutive_inv α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
 (equiv.inv α).surjective.preimage_subset_preimage_iff
 
-@[to_additive] lemma inv_subset [group α] {s t : set α} : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ :=
-by { rw [← inv_subset_inv, set.inv_inv] }
+@[to_additive] lemma inv_subset [has_involutive_inv α] {s t : set α} : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ :=
+by { rw [← inv_subset_inv, inv_inv] }
 
-@[to_additive] lemma finite.inv [group α] {s : set α} (hs : finite s) : finite s⁻¹ :=
+@[to_additive] lemma finite.inv [has_involutive_inv α] {s : set α} (hs : finite s) : finite s⁻¹ :=
 hs.preimage $ inv_injective.inj_on _
 
-@[to_additive] lemma inv_singleton {β : Type*} [group β] (x : β) : ({x} : set β)⁻¹ = {x⁻¹} :=
+@[to_additive] lemma inv_singleton {β : Type*} [has_involutive_inv β] (x : β) :
+  ({x} : set β)⁻¹ = {x⁻¹} :=
 by { ext1 y, rw [mem_inv, mem_singleton_iff, mem_singleton_iff, inv_eq_iff_inv_eq, eq_comm], }
 
 @[to_additive] protected lemma mul_inv_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
@@ -880,9 +880,27 @@ by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_ri
 lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
 by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (m.map_mul _ _).symm ⟩ }
 
+instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
+⟨λ a b ab, a.eq_empty_or_nonempty.imp_right $ λ ha, b.eq_empty_or_nonempty.resolve_right $
+  λ hb, nonempty.ne_empty ⟨_, mul_mem_mul ha.some_mem hb.some_mem⟩ ab⟩
+
+/- Since addition on `set_semiring` is commutative (it is set union), there is no need
+to also have the instance `covariant_class (set_semiring α) (set_semiring α) (swap (+)) (≤)`. -/
+instance set_semiring.covariant_class_add :
+  covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=
+{ elim := λ a b c, union_subset_union_right _ }
+
+instance set_semiring.covariant_class_mul_left :
+  covariant_class (set_semiring α) (set_semiring α) (*) (≤) :=
+{ elim := λ a b c, mul_subset_mul_left }
+
+instance set_semiring.covariant_class_mul_right :
+  covariant_class (set_semiring α) (set_semiring α) (swap (*)) (≤) :=
+{ elim := λ a b c, mul_subset_mul_right }
+
 end mul_hom
 
-/-- The image of a set under function is a ring homomorphism
+/-- The image of a set under a multiplicative homomorphism is a ring homomorphism
 with respect to the pointwise operations on sets. -/
 def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* set_semiring β :=
 { to_fun := image f,
@@ -892,6 +910,21 @@ def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* s
   map_mul' := λ _ _, image_mul f.to_mul_hom }
 
 end monoid
+
+section comm_monoid
+
+variable [comm_monoid α]
+
+instance : canonically_ordered_comm_semiring (set_semiring α) :=
+{ add_le_add_left := λ a b, add_le_add_left,
+  le_iff_exists_add := λ a b, ⟨λ ab, ⟨b, (union_eq_right_iff_subset.2 ab).symm⟩,
+    by { rintro ⟨c, rfl⟩, exact subset_union_left _ _ }⟩,
+  ..(infer_instance : comm_semiring (set_semiring α)),
+  ..(infer_instance : partial_order (set_semiring α)),
+  ..(infer_instance : order_bot (set_semiring α)),
+  ..(infer_instance : no_zero_divisors (set_semiring α)) }
+
+end comm_monoid
 
 end set
 

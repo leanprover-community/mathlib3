@@ -252,10 +252,10 @@ by rw [add_tsub_cancel_of_le h] at t;
     rw [t, mul_comm (pell_zd _ n) _, mul_assoc, (is_pell_norm _).1 (is_pell_pell_zd _ _), mul_one]
 
 theorem xz_sub {m n} (h : n ≤ m) : xz (m - n) = xz m * xz n - d * yz m * yz n :=
-by injection (pell_zd_sub _ h) with h _; repeat {rw ← neg_mul_eq_mul_neg at h}; exact h
+by injection (pell_zd_sub _ h) with h _; repeat {rw mul_neg at h}; exact h
 
 theorem yz_sub {m n} (h : n ≤ m) : yz (m - n) = xz n * yz m - xz m * yz n :=
-by injection (pell_zd_sub a1 h) with _ h; repeat {rw ← neg_mul_eq_mul_neg at h};
+by injection (pell_zd_sub a1 h) with _ h; repeat {rw mul_neg at h};
   rw [add_comm, mul_comm] at h; exact h
 
 theorem xy_coprime (n) : (xn n).coprime (yn n) :=

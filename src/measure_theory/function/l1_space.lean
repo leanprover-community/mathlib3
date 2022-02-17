@@ -160,7 +160,7 @@ lemma has_finite_integral_of_bounded [is_finite_measure μ] {f : α → β} {C :
 
 lemma has_finite_integral.mono_measure {f : α → β} (h : has_finite_integral f ν) (hμ : μ ≤ ν) :
   has_finite_integral f μ :=
-lt_of_le_of_lt (lintegral_mono' hμ (le_refl _)) h
+lt_of_le_of_lt (lintegral_mono' hμ le_rfl) h
 
 lemma has_finite_integral.add_measure {f : α → β} (hμ : has_finite_integral f μ)
   (hν : has_finite_integral f ν) : has_finite_integral f (μ + ν) :=
@@ -171,11 +171,11 @@ end
 
 lemma has_finite_integral.left_of_add_measure {f : α → β} (h : has_finite_integral f (μ + ν)) :
   has_finite_integral f μ :=
-h.mono_measure $ measure.le_add_right $ le_refl _
+h.mono_measure $ measure.le_add_right $ le_rfl
 
 lemma has_finite_integral.right_of_add_measure {f : α → β} (h : has_finite_integral f (μ + ν)) :
   has_finite_integral f ν :=
-h.mono_measure $ measure.le_add_left $ le_refl _
+h.mono_measure $ measure.le_add_left $ le_rfl
 
 @[simp] lemma has_finite_integral_add_measure {f : α → β} :
   has_finite_integral f (μ + ν) ↔ has_finite_integral f μ ∧ has_finite_integral f ν :=
@@ -447,10 +447,10 @@ lemma integrable.add_measure {f : α → β} (hμ : integrable f μ) (hν : inte
   hμ.has_finite_integral.add_measure hν.has_finite_integral⟩
 
 lemma integrable.left_of_add_measure {f : α → β} (h : integrable f (μ + ν)) : integrable f μ :=
-h.mono_measure $ measure.le_add_right $ le_refl _
+h.mono_measure $ measure.le_add_right $ le_rfl
 
 lemma integrable.right_of_add_measure {f : α → β} (h : integrable f (μ + ν)) : integrable f ν :=
-h.mono_measure $ measure.le_add_left $ le_refl _
+h.mono_measure $ measure.le_add_left $ le_rfl
 
 @[simp] lemma integrable_add_measure {f : α → β} :
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
@@ -592,34 +592,57 @@ end
 lemma of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : ∀ᵐ x ∂μ, f x < ∞) :
   (λ x, ennreal.of_real (f x).to_real) =ᵐ[μ] f :=
 begin
-  rw ae_iff at hf,
-  rw [filter.eventually_eq, ae_iff],
-  have : {x | ¬ ennreal.of_real (f x).to_real = f x} = {x | f x = ∞},
-  { ext x,
-    simp only [ne.def, set.mem_set_of_eq],
-    split; intro hx,
-    { by_contra hntop,
-      exact hx (ennreal.of_real_to_real hntop) },
-    { rw hx, simp } },
-  rw this,
-  simpa using hf,
+  filter_upwards [hf],
+  assume x hx,
+  simp only [hx.ne, of_real_to_real, ne.def, not_false_iff],
+end
+
+lemma coe_to_nnreal_ae_eq {f : α → ℝ≥0∞} (hf : ∀ᵐ x ∂μ, f x < ∞) :
+  (λ x, ((f x).to_nnreal : ℝ≥0∞)) =ᵐ[μ] f :=
+begin
+  filter_upwards [hf],
+  assume x hx,
+  simp only [hx.ne, ne.def, not_false_iff, coe_to_nnreal],
+end
+
+lemma integrable_with_density_iff_integrable_smul
+  {E : Type*} [normed_group E] [normed_space ℝ E] [second_countable_topology E]
+  [measurable_space E] [borel_space E]
+  {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :
+  integrable g (μ.with_density (λ x, (f x : ℝ≥0∞))) ↔ integrable (λ x, (f x : ℝ) • g x) μ :=
+begin
+  by_cases H : ae_measurable (λ (x : α), (f x : ℝ) • g x) μ,
+  { simp only [integrable, ae_measurable_with_density_iff hf, has_finite_integral, H, true_and],
+    rw lintegral_with_density_eq_lintegral_mul₀' hf.coe_nnreal_ennreal.ae_measurable,
+    { congr',
+      ext1 x,
+      simp only [nnnorm_smul, nnreal.nnnorm_eq, coe_mul, pi.mul_apply] },
+    { rw ae_measurable_with_density_ennreal_iff hf,
+      convert H.nnnorm.coe_nnreal_ennreal,
+      ext1 x,
+      simp only [nnnorm_smul, nnreal.nnnorm_eq, coe_mul] } },
+  { simp only [integrable, ae_measurable_with_density_iff hf, H, false_and] }
+end
+
+lemma integrable_with_density_iff_integrable_smul'
+  {E : Type*} [normed_group E] [normed_space ℝ E] [second_countable_topology E]
+  [measurable_space E] [borel_space E]
+  {f : α → ℝ≥0∞} (hf : measurable f) (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → E} :
+  integrable g (μ.with_density f) ↔ integrable (λ x, (f x).to_real • g x) μ :=
+begin
+  rw [← with_density_congr_ae (coe_to_nnreal_ae_eq hflt),
+      integrable_with_density_iff_integrable_smul],
+  { refl },
+  { exact hf.ennreal_to_nnreal },
 end
 
 lemma integrable_with_density_iff {f : α → ℝ≥0∞} (hf : measurable f)
-  (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → ℝ} (hg : measurable g) :
+  (hflt : ∀ᵐ x ∂μ, f x < ∞) {g : α → ℝ} :
   integrable g (μ.with_density f) ↔ integrable (λ x, g x * (f x).to_real) μ :=
 begin
-  simp only [integrable, has_finite_integral, hg.ae_measurable.mul hf.ae_measurable.ennreal_to_real,
-    hg.ae_measurable, true_and, coe_mul, normed_field.nnnorm_mul],
-  suffices h_int_eq : ∫⁻ a, ∥g a∥₊ ∂μ.with_density f = ∫⁻ a, ∥g a∥₊ * ∥(f a).to_real∥₊ ∂μ,
-    by rw h_int_eq,
-  rw lintegral_with_density_eq_lintegral_mul _ hf hg.nnnorm.coe_nnreal_ennreal,
-  refine lintegral_congr_ae _,
-  rw mul_comm,
-  refine filter.eventually_eq.mul (ae_eq_refl _) ((of_real_to_real_ae_eq hflt).symm.trans _),
-  convert ae_eq_refl _,
-  ext1 x,
-  exact real.ennnorm_eq_of_real ennreal.to_real_nonneg,
+  have : (λ x, g x * (f x).to_real) = (λ x, (f x).to_real • g x), by simp [mul_comm],
+  rw this,
+  exact integrable_with_density_iff_integrable_smul' hf hflt,
 end
 
 lemma mem_ℒ1_to_real_of_lintegral_ne_top

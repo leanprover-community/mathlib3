@@ -241,15 +241,6 @@ end
 
 end sup
 
-lemma disjoint_sup_right [distrib_lattice α] [order_bot α] {a : α} {s : finset β} {f : β → α} :
-  disjoint a (s.sup f) ↔ ∀ i ∈ s, disjoint a (f i) :=
-⟨λ h i hi, h.mono_right (le_sup hi), sup_induction
-  (disjoint_bot_right) $ ball_cond_comm.mpr $ @disjoint.sup_right _ _ _ _⟩
-
-lemma disjoint_sup_left [distrib_lattice α] [order_bot α] {a : α} {s : finset β} {f : β → α} :
-  disjoint (s.sup f) a ↔ ∀ i ∈ s, disjoint (f i) a :=
-by { simp_rw @disjoint.comm _ _ _ _ a, exact disjoint_sup_right }
-
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
 le_antisymm
   (finset.sup_le $ assume a ha, le_supr_of_le a $ le_supr _ ha)
@@ -418,7 +409,10 @@ end inf
 section distrib_lattice
 variables [distrib_lattice α]
 
-lemma sup_inf_distrib_left [order_bot α] (s : finset ι) (f : ι → α) (a : α) :
+section order_bot
+variables [order_bot α] {s : finset β} {f : β → α} {a : α}
+
+lemma sup_inf_distrib_left (s : finset ι) (f : ι → α) (a : α) :
   a ⊓ s.sup f = s.sup (λ i, a ⊓ f i) :=
 begin
   induction s using finset.cons_induction with i s hi h,
@@ -426,18 +420,30 @@ begin
   { rw [sup_cons, sup_cons, inf_sup_left, h] }
 end
 
-lemma sup_inf_distrib_right [order_bot α] (s : finset ι) (f : ι → α) (a : α) :
+lemma sup_inf_distrib_right (s : finset ι) (f : ι → α) (a : α) :
   s.sup f ⊓ a = s.sup (λ i, f i ⊓ a) :=
 by { rw [_root_.inf_comm, s.sup_inf_distrib_left], simp_rw _root_.inf_comm }
 
-lemma inf_sup_distrib_left [order_top α] (s : finset ι) (f : ι → α) (a : α) :
+lemma disjoint_sup_right : disjoint a (s.sup f) ↔ ∀ i ∈ s, disjoint a (f i) :=
+by simp only [disjoint_iff, sup_inf_distrib_left, sup_eq_bot_iff]
+
+lemma disjoint_sup_left : disjoint (s.sup f) a ↔ ∀ i ∈ s, disjoint (f i) a :=
+by simp only [disjoint_iff, sup_inf_distrib_right, sup_eq_bot_iff]
+
+end order_bot
+
+section order_top
+variables [order_top α]
+
+lemma inf_sup_distrib_left (s : finset ι) (f : ι → α) (a : α) :
   a ⊔ s.inf f = s.inf (λ i, a ⊔ f i) :=
 @sup_inf_distrib_left (order_dual α) _ _ _ _ _ _
 
-lemma inf_sup_distrib_right [order_top α] (s : finset ι) (f : ι → α) (a : α) :
+lemma inf_sup_distrib_right (s : finset ι) (f : ι → α) (a : α) :
   s.inf f ⊔ a = s.inf (λ i, f i ⊔ a) :=
 @sup_inf_distrib_right (order_dual α) _ _ _ _ _ _
 
+end order_top
 end distrib_lattice
 
 lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = (⨅a∈s, f a) :=
@@ -487,7 +493,7 @@ by { rw [←with_bot.coe_le_coe, coe_sup'], exact le_sup h, }
 @[simp] lemma sup'_const (a : α) : s.sup' H (λ b, a) = a :=
 begin
   apply le_antisymm,
-  { apply sup'_le, intros, apply le_refl, },
+  { apply sup'_le, intros, exact le_rfl, },
   { apply le_sup' (λ b, a) H.some_spec, }
 end
 
@@ -1127,7 +1133,7 @@ begin
   classical,
   exact le_antisymm
     (supr_le $ assume b, le_supr_of_le {b} $ le_supr_of_le b $ le_supr_of_le
-      (by simp) $ le_refl _)
+      (by simp) $ le_rfl)
     (supr_le $ assume t, supr_le $ assume b, supr_le $ assume hb, le_supr _ _)
 end
 

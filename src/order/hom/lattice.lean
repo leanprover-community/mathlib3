@@ -3,8 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.hom.basic
-import order.bounded_order
+import order.hom.bounded
 
 /-!
 # Lattice homomorphisms
@@ -16,8 +15,6 @@ be satisfied by itself and all stricter types.
 
 ## Types of morphisms
 
-* `top_hom`: Maps which preserve `⊤`.
-* `bot_hom`: Maps which preserve `⊥`.
 * `sup_hom`: Maps which preserve `⊔`.
 * `inf_hom`: Maps which preserve `⊓`.
 * `lattice_hom`: Lattice homomorphisms. Maps which preserve `⊔` and `⊓`.
@@ -25,8 +22,6 @@ be satisfied by itself and all stricter types.
 
 ## Typeclasses
 
-* `top_hom_class`
-* `bot_hom_class`
 * `sup_hom_class`
 * `inf_hom_class`
 * `lattice_hom_class`
@@ -37,17 +32,9 @@ be satisfied by itself and all stricter types.
 Do we need more intersections between `bot_hom`, `top_hom` and lattice homomorphisms?
 -/
 
-variables {F α β : Type*}
+open function order_dual
 
-/-- The type of `⊤`-preserving functions from `α` to `β`. -/
-structure top_hom (α β : Type*) [has_top α] [has_top β] :=
-(to_fun   : α → β)
-(map_top' : to_fun ⊤ = ⊤)
-
-/-- The type of `⊥`-preserving functions from `α` to `β`. -/
-structure bot_hom (α β : Type*) [has_bot α] [has_bot β] :=
-(to_fun   : α → β)
-(map_bot' : to_fun ⊥ = ⊥)
+variables {F α β γ δ : Type*}
 
 /-- The type of `⊔`-preserving functions from `α` to `β`. -/
 structure sup_hom (α β : Type*) [has_sup α] [has_sup β] :=
@@ -69,20 +56,6 @@ structure bounded_lattice_hom (α β : Type*) [lattice α] [lattice β] [bounded
   extends lattice_hom α β :=
 (map_top' : to_fun ⊤ = ⊤)
 (map_bot' : to_fun ⊥ = ⊥)
-
-/-- `top_hom_class F α β` states that `F` is a type of `⊤`-preserving morphisms.
-
-You should extend this class when you extend `sup_hom`. -/
-class top_hom_class (F : Type*) (α β : out_param $ Type*) [has_top α] [has_top β]
-  extends fun_like F α (λ _, β) :=
-(map_top (f : F) : f ⊤ = ⊤)
-
-/-- `bot_hom_class F α β` states that `F` is a type of `⊥`-preserving morphisms.
-
-You should extend this class when you extend `sup_hom`. -/
-class bot_hom_class (F : Type*) (α β : out_param $ Type*) [has_bot α] [has_bot β]
-  extends fun_like F α (λ _, β) :=
-(map_bot (f : F) : f ⊥ = ⊥)
 
 /-- `sup_hom_class F α β` states that `F` is a type of `⊔`-preserving morphisms.
 
@@ -114,198 +87,67 @@ class bounded_lattice_hom_class (F : Type*) (α β : out_param $ Type*) [lattice
 (map_top (f : F) : f ⊤ = ⊤)
 (map_bot (f : F) : f ⊥ = ⊥)
 
-export top_hom_class (map_top)
-export bot_hom_class (map_bot)
 export sup_hom_class (map_sup)
 export inf_hom_class (map_inf)
 
 attribute [simp] map_top map_bot map_sup map_inf
 
-namespace top_hom
-variables [has_top α]
-
-section has_top
-variables [has_top β]
-
-instance : top_hom_class (top_hom α β) α β :=
-{ coe := top_hom.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_top := top_hom.map_top' }
-
-/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
-directly. -/
-instance : has_coe_to_fun (top_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
-
-@[simp] lemma to_fun_eq_coe {f : top_hom α β} : f.to_fun = (f : α → β) := rfl
-
-@[ext] lemma ext {f g : top_hom α β} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
-
-/-- Copy of a `top_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
-equalities. -/
-protected def copy (f : top_hom α β) (f' : α → β) (h : f' = f) : top_hom α β :=
-{ to_fun := f',
-  map_top' := h.symm ▸ f.map_top' }
-
-instance : inhabited (top_hom α β) := ⟨⟨λ _, ⊤, rfl⟩⟩
-
-variables (α)
-
-/-- `id` as a `top_hom`. -/
-protected def id : top_hom α α := ⟨id, rfl⟩
-
-@[simp] lemma coe_id : ⇑(top_hom.id α) = id := rfl
-
-variables {α}
-
-@[simp] lemma id_apply (a : α) : top_hom.id α a = a := rfl
-
-end has_top
-
-instance [preorder β] [has_top β] : preorder (top_hom α β) :=
-preorder.lift (coe_fn : top_hom α β → α → β)
-
-instance [partial_order β] [has_top β] : partial_order (top_hom α β) :=
-partial_order.lift _ fun_like.coe_injective
-
-section order_top
-variables [preorder β] [order_top β]
-
-instance : order_top (top_hom α β) := ⟨⟨⊤, rfl⟩, λ _, le_top⟩
-
-@[simp] lemma coe_top : ⇑(⊤ : top_hom α β) = ⊤ := rfl
-@[simp] lemma top_apply (a : α) : (⊤ : top_hom α β) a = ⊤ := rfl
-
-end order_top
-
-section semilattice_inf
-variables [semilattice_inf β] [order_top β] (f g : top_hom α β)
-
-instance : has_inf (top_hom α β) :=
-⟨λ f g, ⟨f ⊓ g, by rw [pi.inf_apply, map_top, map_top, inf_top_eq]⟩⟩
-
-instance : semilattice_inf (top_hom α β) := fun_like.coe_injective.semilattice_inf _ $ λ _ _, rfl
-
-@[simp] lemma coe_inf : ⇑(f ⊓ g) = f ⊓ g := rfl
-@[simp] lemma inf_apply (a : α) : (f ⊓ g) a = f a ⊓ g a := rfl
-
-end semilattice_inf
-
-section semilattice_sup
-variables [semilattice_sup β] [order_top β] (f g : top_hom α β)
-
-instance : has_sup (top_hom α β) :=
-⟨λ f g, ⟨f ⊔ g, by rw [pi.sup_apply, map_top, map_top, sup_top_eq]⟩⟩
-
-instance : semilattice_sup (top_hom α β) := fun_like.coe_injective.semilattice_sup _ $ λ _ _, rfl
-
-@[simp] lemma coe_sup : ⇑(f ⊔ g) = f ⊔ g := rfl
-@[simp] lemma sup_apply (a : α) : (f ⊔ g) a = f a ⊔ g a := rfl
-
-end semilattice_sup
-
-instance [lattice β] [order_top β] : lattice (top_hom α β) :=
-fun_like.coe_injective.lattice _ (λ _ _, rfl) (λ _ _, rfl)
-
-instance [distrib_lattice β] [order_top β] : distrib_lattice (top_hom α β) :=
-fun_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
-
-end top_hom
-
-namespace bot_hom
-variables [has_bot α]
-
-section has_bot
-variables [has_bot β]
-
-instance : bot_hom_class (bot_hom α β) α β :=
-{ coe := bot_hom.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_bot := bot_hom.map_bot' }
-
-/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
-directly. -/
-instance : has_coe_to_fun (bot_hom α β) (λ _, α → β) := ⟨λ f, f.to_fun⟩
-
-@[simp] lemma to_fun_eq_coe {f : bot_hom α β} : f.to_fun = (f : α → β) := rfl
-
-@[ext] lemma ext {f g : bot_hom α β} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
-
-/-- Copy of a `bot_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
-equalities. -/
-protected def copy (f : bot_hom α β) (f' : α → β) (h : f' = f) : bot_hom α β :=
-{ to_fun := f',
-  map_bot' := h.symm ▸ f.map_bot' }
-
-instance : inhabited (bot_hom α β) := ⟨⟨λ _, ⊥, rfl⟩⟩
-
-variables (α)
-
-/-- `id` as a `bot_hom`. -/
-protected def id : bot_hom α α := ⟨id, rfl⟩
-
-@[simp] lemma coe_id : ⇑(bot_hom.id α) = id := rfl
-
-variables {α}
-
-@[simp] lemma id_apply (a : α) : bot_hom.id α a = a := rfl
-
-end has_bot
-
-instance [preorder β] [has_bot β] : preorder (bot_hom α β) :=
-preorder.lift (coe_fn : bot_hom α β → α → β)
-
-instance [partial_order β] [has_bot β] : partial_order (bot_hom α β) :=
-partial_order.lift _ fun_like.coe_injective
-
-section order_bot
-variables [preorder β] [order_bot β]
-
-instance : order_bot (bot_hom α β) := ⟨⟨⊥, rfl⟩, λ _, bot_le⟩
-
-@[simp] lemma coe_bot : ⇑(⊥ : bot_hom α β) = ⊥ := rfl
-@[simp] lemma bot_apply (a : α) : (⊥ : bot_hom α β) a = ⊥ := rfl
-
-end order_bot
-
-section semilattice_inf
-variables [semilattice_inf β] [order_bot β] (f g : bot_hom α β)
-
-instance : has_inf (bot_hom α β) :=
-⟨λ f g, ⟨f ⊓ g, by rw [pi.inf_apply, map_bot, map_bot, inf_bot_eq]⟩⟩
-
-instance : semilattice_inf (bot_hom α β) := fun_like.coe_injective.semilattice_inf _ $ λ _ _, rfl
-
-@[simp] lemma coe_inf : ⇑(f ⊓ g) = f ⊓ g := rfl
-@[simp] lemma inf_apply (a : α) : (f ⊓ g) a = f a ⊓ g a := rfl
-
-end semilattice_inf
-
-section semilattice_sup
-variables [semilattice_sup β] [order_bot β] (f g : bot_hom α β)
-
-instance : has_sup (bot_hom α β) :=
-⟨λ f g, ⟨f ⊔ g, by rw [pi.sup_apply, map_bot, map_bot, sup_bot_eq]⟩⟩
-
-instance : semilattice_sup (bot_hom α β) := fun_like.coe_injective.semilattice_sup _ $ λ _ _, rfl
-
-@[simp] lemma coe_sup : ⇑(f ⊔ g) = f ⊔ g := rfl
-@[simp] lemma sup_apply (a : α) : (f ⊔ g) a = f a ⊔ g a := rfl
-
-end semilattice_sup
-
-instance [lattice β] [order_bot β] : lattice (bot_hom α β) :=
-fun_like.coe_injective.lattice _ (λ _ _, rfl) (λ _ _, rfl)
-
-instance [distrib_lattice β] [order_bot β] : distrib_lattice (bot_hom α β) :=
-fun_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
-
-end bot_hom
+@[priority 100] -- See note [lower instance priority]
+instance sup_hom_class.to_order_hom_class [semilattice_sup α] [semilattice_sup β]
+  [sup_hom_class F α β] :
+  order_hom_class F α β :=
+⟨λ f a b h, by rw [←sup_eq_right, ←map_sup, sup_eq_right.2 h]⟩
+
+@[priority 100] -- See note [lower instance priority]
+instance inf_hom_class.to_order_hom_class [semilattice_inf α] [semilattice_inf β]
+  [inf_hom_class F α β] : order_hom_class F α β :=
+⟨λ f a b h, by rw [←inf_eq_left, ←map_inf, inf_eq_left.2 h]⟩
+
+@[priority 100] -- See note [lower instance priority]
+instance lattice_hom_class.to_inf_hom_class [lattice α] [lattice β] [lattice_hom_class F α β] :
+  inf_hom_class F α β :=
+{ .. ‹lattice_hom_class F α β› }
+
+@[priority 100] -- See note [lower instance priority]
+instance bounded_lattice_hom_class.to_bounded_order_hom_class [lattice α] [lattice β]
+  [bounded_order α] [bounded_order β] [bounded_lattice_hom_class F α β] :
+  bounded_order_hom_class F α β :=
+{ .. ‹bounded_lattice_hom_class F α β› }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso.sup_hom_class [semilattice_sup α] [semilattice_sup β] :
+  sup_hom_class (α ≃o β) α β :=
+{ map_sup := λ f, f.map_sup, ..rel_iso.rel_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso.inf_hom_class [semilattice_inf α] [semilattice_inf β] :
+  inf_hom_class (α ≃o β) α β :=
+{ map_inf := λ f, f.map_inf, ..rel_iso.rel_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso.lattice_hom_class [lattice α] [lattice β] : lattice_hom_class (α ≃o β) α β :=
+{ ..order_iso.sup_hom_class, ..order_iso.inf_hom_class }
+
+instance [has_sup α] [has_sup β] [sup_hom_class F α β] : has_coe_t F (sup_hom α β) :=
+⟨λ f, ⟨f, map_sup f⟩⟩
+
+instance [has_inf α] [has_inf β] [inf_hom_class F α β] : has_coe_t F (inf_hom α β) :=
+⟨λ f, ⟨f, map_inf f⟩⟩
+
+instance [lattice α] [lattice β] [lattice_hom_class F α β] : has_coe_t F (lattice_hom α β) :=
+⟨λ f, { to_fun := f, map_sup' := map_sup f, map_inf' := map_inf f }⟩
+
+instance [lattice α] [lattice β] [bounded_order α] [bounded_order β]
+  [bounded_lattice_hom_class F α β] : has_coe_t F (bounded_lattice_hom α β) :=
+⟨λ f, { to_fun := f, map_top' := map_top f, map_bot' := map_bot f, ..(f : lattice_hom α β) }⟩
+
+/-! ### Supremum homomorphisms -/
 
 namespace sup_hom
 variables [has_sup α]
 
 section has_sup
-variables [has_sup β]
+variables [has_sup β] [has_sup γ] [has_sup δ]
 
 instance : sup_hom_class (sup_hom α β) α β :=
 { coe := sup_hom.to_fun,
@@ -339,6 +181,28 @@ variables {α}
 
 @[simp] lemma id_apply (a : α) : sup_hom.id α a = a := rfl
 
+/-- Composition of `sup_hom`s as a `sup_hom`. -/
+def comp (f : sup_hom β γ) (g : sup_hom α β) : sup_hom α γ :=
+{ to_fun := f ∘ g,
+  map_sup' := λ a b, by rw [comp_apply, map_sup, map_sup] }
+
+@[simp] lemma coe_comp (f : sup_hom β γ) (g : sup_hom α β) : (f.comp g : α → γ) = f ∘ g := rfl
+@[simp] lemma comp_apply (f : sup_hom β γ) (g : sup_hom α β) (a : α) :
+  (f.comp g) a = f (g a) := rfl
+@[simp] lemma comp_assoc (f : sup_hom γ δ) (g : sup_hom β γ) (h : sup_hom α β) :
+  (f.comp g).comp h = f.comp (g.comp h) := rfl
+@[simp] lemma comp_id (f : sup_hom α β) : f.comp (sup_hom.id α) = f := sup_hom.ext $ λ a, rfl
+@[simp] lemma id_comp (f : sup_hom α β) : (sup_hom.id β).comp f = f := sup_hom.ext $ λ a, rfl
+
+lemma cancel_right {g₁ g₂ : sup_hom β γ} {f : sup_hom α β} (hf : surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, sup_hom.ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
+
+lemma cancel_left {g : sup_hom β γ} {f₁ f₂ : sup_hom α β} (hg : injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, sup_hom.ext $ λ a, hg $
+  by rw [←sup_hom.comp_apply, h, sup_hom.comp_apply], congr_arg _⟩
+
 end has_sup
 
 variables [semilattice_sup β]
@@ -353,7 +217,7 @@ instance : semilattice_sup (sup_hom α β) := fun_like.coe_injective.semilattice
 
 variables (α)
 
-/-- The constant function as an `sup_hom`. -/
+/-- The constant function as a `sup_hom`. -/
 def const (b : β) : sup_hom α β := ⟨λ _, b, λ _ _, sup_idem.symm⟩
 
 @[simp] lemma coe_const (b : β) : ⇑(const α b) = function.const α b := rfl
@@ -361,17 +225,13 @@ def const (b : β) : sup_hom α β := ⟨λ _, b, λ _ _, sup_idem.symm⟩
 
 end sup_hom
 
-@[priority 100] -- See note [lower instance priority]
-instance sup_hom_class.to_order_hom_class [semilattice_sup α] [semilattice_sup β]
-  [sup_hom_class F α β] :
-  order_hom_class F α β :=
-⟨λ f a b h, by rw [←sup_eq_right, ←map_sup, sup_eq_right.2 h]⟩
+/-! ### Infimum homomorphisms -/
 
 namespace inf_hom
 variables [has_inf α]
 
 section has_inf
-variables [has_inf β]
+variables [has_inf β] [has_inf γ] [has_inf δ]
 
 instance : inf_hom_class (inf_hom α β) α β :=
 { coe := inf_hom.to_fun,
@@ -405,6 +265,28 @@ variables {α}
 
 @[simp] lemma id_apply (a : α) : inf_hom.id α a = a := rfl
 
+/-- Composition of `inf_hom`s as a `inf_hom`. -/
+def comp (f : inf_hom β γ) (g : inf_hom α β) : inf_hom α γ :=
+{ to_fun := f ∘ g,
+  map_inf' := λ a b, by rw [comp_apply, map_inf, map_inf] }
+
+@[simp] lemma coe_comp (f : inf_hom β γ) (g : inf_hom α β) : (f.comp g : α → γ) = f ∘ g := rfl
+@[simp] lemma comp_apply (f : inf_hom β γ) (g : inf_hom α β) (a : α) :
+  (f.comp g) a = f (g a) := rfl
+@[simp] lemma comp_assoc (f : inf_hom γ δ) (g : inf_hom β γ) (h : inf_hom α β) :
+  (f.comp g).comp h = f.comp (g.comp h) := rfl
+@[simp] lemma comp_id (f : inf_hom α β) : f.comp (inf_hom.id α) = f := inf_hom.ext $ λ a, rfl
+@[simp] lemma id_comp (f : inf_hom α β) : (inf_hom.id β).comp f = f := inf_hom.ext $ λ a, rfl
+
+lemma cancel_right {g₁ g₂ : inf_hom β γ} {f : inf_hom α β} (hf : surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, inf_hom.ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
+
+lemma cancel_left {g : inf_hom β γ} {f₁ f₂ : inf_hom α β} (hg : injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, inf_hom.ext $ λ a, hg $
+  by rw [←inf_hom.comp_apply, h, inf_hom.comp_apply], congr_arg _⟩
+
 end has_inf
 
 variables [semilattice_inf β]
@@ -427,13 +309,10 @@ def const (b : β) : inf_hom α β := ⟨λ _, b, λ _ _, inf_idem.symm⟩
 
 end inf_hom
 
-@[priority 100] -- See note [lower instance priority]
-instance inf_hom_class.to_order_hom_class [semilattice_inf α] [semilattice_inf β]
-  [inf_hom_class F α β] : order_hom_class F α β :=
-⟨λ f a b h, by rw [←inf_eq_left, ←map_inf, inf_eq_left.2 h]⟩
+/-! ### Lattice homomorphisms -/
 
 namespace lattice_hom
-variables [lattice α] [lattice β]
+variables [lattice α] [lattice β] [lattice γ] [lattice δ]
 
 /-- Reinterpret a `lattice_hom` as an `inf_hom`. -/
 def to_inf_hom (f : lattice_hom α β) : inf_hom α β := { ..f }
@@ -455,9 +334,7 @@ instance : has_coe_to_fun (lattice_hom α β) (λ _, α → β) := ⟨λ f, f.to
 /-- Copy of a `lattice_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (f : lattice_hom α β) (f' : α → β) (h : f' = f) : lattice_hom α β :=
-{ to_fun := f',
-  .. f.to_sup_hom.copy f' $ by { ext, exact congr_fun h _ },
-  .. f.to_inf_hom.copy f' $ by { ext, exact congr_fun h _ } }
+{ .. f.to_sup_hom.copy f' h, .. f.to_inf_hom.copy f' h }
 
 variables (α)
 
@@ -475,21 +352,83 @@ variables {α}
 
 @[simp] lemma id_apply (a : α) : lattice_hom.id α a = a := rfl
 
+/-- Composition of `lattice_hom`s as a `lattice_hom`. -/
+def comp (f : lattice_hom β γ) (g : lattice_hom α β) : lattice_hom α γ :=
+{ ..f.to_sup_hom.comp g.to_sup_hom, ..f.to_inf_hom.comp g.to_inf_hom }
+
+@[simp] lemma coe_comp (f : lattice_hom β γ) (g : lattice_hom α β) : (f.comp g : α → γ) = f ∘ g :=
+rfl
+@[simp] lemma comp_apply (f : lattice_hom β γ) (g : lattice_hom α β) (a : α) :
+  (f.comp g) a = f (g a) := rfl
+@[simp] lemma coe_comp_sup_hom (f : lattice_hom β γ) (g : lattice_hom α β) :
+  (f.comp g : sup_hom α γ) = (f : sup_hom β γ).comp g := rfl
+@[simp] lemma coe_comp_inf_hom (f : lattice_hom β γ) (g : lattice_hom α β) :
+  (f.comp g : inf_hom α γ) = (f : inf_hom β γ).comp g := rfl
+@[simp] lemma comp_assoc (f : lattice_hom γ δ) (g : lattice_hom β γ) (h : lattice_hom α β) :
+  (f.comp g).comp h = f.comp (g.comp h) := rfl
+@[simp] lemma comp_id (f : lattice_hom α β) : f.comp (lattice_hom.id α) = f :=
+lattice_hom.ext $ λ a, rfl
+@[simp] lemma id_comp (f : lattice_hom α β) : (lattice_hom.id β).comp f = f :=
+lattice_hom.ext $ λ a, rfl
+
+lemma cancel_right {g₁ g₂ : lattice_hom β γ} {f : lattice_hom α β} (hf : surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, lattice_hom.ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
+
+lemma cancel_left {g : lattice_hom β γ} {f₁ f₂ : lattice_hom α β} (hg : injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, lattice_hom.ext $ λ a, hg $
+  by rw [←lattice_hom.comp_apply, h, lattice_hom.comp_apply], congr_arg _⟩
+
+/-- Reinterpret a lattice homomorphism as a lattice homomorphism between the dual lattices. -/
+@[simps] protected def dual :
+   lattice_hom α β ≃ lattice_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, { to_fun := to_dual ∘ f ∘ of_dual,
+                   map_sup' := λ _ _, congr_arg to_dual (map_inf f _ _),
+                   map_inf' := λ _ _, congr_arg to_dual (map_sup f _ _) },
+  inv_fun := λ f, { to_fun := of_dual ∘ f ∘ to_dual,
+                   map_sup' := λ _ _, congr_arg of_dual (map_inf f _ _),
+                   map_inf' := λ _ _, congr_arg of_dual (map_sup f _ _) },
+  left_inv := λ f, ext $ λ a, rfl,
+  right_inv := λ f, ext $ λ a, rfl }
+
 end lattice_hom
 
-@[priority 100] -- See note [lower instance priority]
-instance lattice_hom_class.to_inf_hom_class [lattice α] [lattice β] [lattice_hom_class F α β] :
-  inf_hom_class F α β :=
-{ .. ‹lattice_hom_class F α β› }
+namespace order_hom_class
+variables (α β) [linear_order α] [lattice β] [order_hom_class F α β]
+
+/-- An order homomorphism from a linear order is a lattice homomorphism. -/
+@[reducible] def to_lattice_hom_class : lattice_hom_class F α β :=
+{ map_sup := λ f a b, begin
+    obtain h | h := le_total a b,
+    { rw [sup_eq_right.2 h, sup_eq_right.2 (order_hom_class.mono f h : f a ≤ f b)] },
+    { rw [sup_eq_left.2 h, sup_eq_left.2 (order_hom_class.mono f h : f b ≤ f a)] }
+  end,
+  map_inf := λ f a b, begin
+    obtain h | h := le_total a b,
+    { rw [inf_eq_left.2 h, inf_eq_left.2 (order_hom_class.mono f h : f a ≤ f b)] },
+    { rw [inf_eq_right.2 h, inf_eq_right.2 (order_hom_class.mono f h : f b ≤ f a)] }
+  end,
+  .. ‹order_hom_class F α β› }
+
+/-- Reinterpret an order homomorphism to a linear order as a `lattice_hom`. -/
+def to_lattice_hom (f : F) : lattice_hom α β :=
+by { haveI : lattice_hom_class F α β := order_hom_class.to_lattice_hom_class α β, exact f }
+
+@[simp] lemma coe_to_lattice_hom (f : F) : ⇑(to_lattice_hom α β f) = f := rfl
+@[simp] lemma to_lattice_hom_apply (f : F) (a : α) : to_lattice_hom α β f a = f a := rfl
+
+end order_hom_class
+
+/-! ### Bounded lattice homomorphisms -/
 
 namespace bounded_lattice_hom
-variables [lattice α] [lattice β] [bounded_order α] [bounded_order β]
+variables [lattice α] [lattice β] [lattice γ] [lattice δ] [bounded_order α] [bounded_order β]
+  [bounded_order γ] [bounded_order δ]
 
-/-- Reinterpret a `bounded_lattice_hom` as a `top_hom`. -/
-def to_top_hom (f : bounded_lattice_hom α β) : top_hom α β := { ..f }
-
-/-- Reinterpret a `bounded_lattice_hom` as a `bot_hom`. -/
-def to_bot_hom (f : bounded_lattice_hom α β) : bot_hom α β := { ..f }
+/-- Reinterpret a `bounded_lattice_hom` as a `bounded_order_hom`. -/
+def to_bounded_order_hom (f : bounded_lattice_hom α β) : bounded_order_hom α β :=
+{ ..f, ..(f.to_lattice_hom : α →o β) }
 
 instance : bounded_lattice_hom_class (bounded_lattice_hom α β) α β :=
 { coe := λ f, f.to_fun,
@@ -511,20 +450,12 @@ instance : has_coe_to_fun (bounded_lattice_hom α β) (λ _, α → β) := ⟨λ
 definitional equalities. -/
 protected def copy (f : bounded_lattice_hom α β) (f' : α → β) (h : f' = f) :
   bounded_lattice_hom α β :=
-{ to_fun := f',
-  .. f.to_lattice_hom.copy f' $ by { ext, exact congr_fun h _ },
-  .. f.to_top_hom.copy f' $ by { ext, exact congr_fun h _ },
-  .. f.to_bot_hom.copy f' $ by { ext, exact congr_fun h _ } }
+{ .. f.to_lattice_hom.copy f' h, .. f.to_bounded_order_hom.copy f' h }
 
 variables (α)
 
-/-- `id` as an `bounded_lattice_hom`. -/
-protected def id : bounded_lattice_hom α α :=
-{ to_fun := id,
-  map_sup' := λ _ _, rfl,
-  map_inf' := λ _ _, rfl,
-  map_top' := rfl,
-  map_bot' := rfl }
+/-- `id` as a `bounded_lattice_hom`. -/
+protected def id : bounded_lattice_hom α α := { ..lattice_hom.id α, ..bounded_order_hom.id α }
 
 instance : inhabited (bounded_lattice_hom α α) := ⟨bounded_lattice_hom.id α⟩
 
@@ -534,16 +465,37 @@ variables {α}
 
 @[simp] lemma id_apply (a : α) : bounded_lattice_hom.id α a = a := rfl
 
+/-- Composition of `bounded_lattice_hom`s as a `bounded_lattice_hom`. -/
+def comp (f : bounded_lattice_hom β γ) (g : bounded_lattice_hom α β) : bounded_lattice_hom α γ :=
+{ ..f.to_lattice_hom.comp g.to_lattice_hom, ..f.to_bounded_order_hom.comp g.to_bounded_order_hom }
+
+@[simp] lemma coe_comp (f : bounded_lattice_hom β γ) (g : bounded_lattice_hom α β) :
+  (f.comp g : α → γ) = f ∘ g := rfl
+@[simp] lemma comp_apply (f : bounded_lattice_hom β γ) (g : bounded_lattice_hom α β) (a : α) :
+  (f.comp g) a = f (g a) := rfl
+@[simp] lemma coe_comp_lattice_hom (f : bounded_lattice_hom β γ) (g : bounded_lattice_hom α β) :
+  (f.comp g : lattice_hom α γ) = (f : lattice_hom β γ).comp g := rfl
+@[simp] lemma coe_comp_sup_hom (f : bounded_lattice_hom β γ) (g : bounded_lattice_hom α β) :
+  (f.comp g : sup_hom α γ) = (f : sup_hom β γ).comp g := rfl
+@[simp] lemma coe_comp_inf_hom (f : bounded_lattice_hom β γ) (g : bounded_lattice_hom α β) :
+  (f.comp g : inf_hom α γ) = (f : inf_hom β γ).comp g := rfl
+@[simp] lemma comp_assoc (f : bounded_lattice_hom γ δ) (g : bounded_lattice_hom β γ)
+  (h : bounded_lattice_hom α β) :
+  (f.comp g).comp h = f.comp (g.comp h) := rfl
+@[simp] lemma comp_id (f : bounded_lattice_hom α β) : f.comp (bounded_lattice_hom.id α) = f :=
+bounded_lattice_hom.ext $ λ a, rfl
+@[simp] lemma id_comp (f : bounded_lattice_hom α β) : (bounded_lattice_hom.id β).comp f = f :=
+bounded_lattice_hom.ext $ λ a, rfl
+
+lemma cancel_right {g₁ g₂ : bounded_lattice_hom β γ} {f : bounded_lattice_hom α β}
+  (hf : surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, bounded_lattice_hom.ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
+
+lemma cancel_left {g : bounded_lattice_hom β γ} {f₁ f₂ : bounded_lattice_hom α β}
+  (hg : injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, bounded_lattice_hom.ext $ λ a, hg $
+  by rw [←bounded_lattice_hom.comp_apply, h, bounded_lattice_hom.comp_apply], congr_arg _⟩
+
 end bounded_lattice_hom
-
-@[priority 100] -- See note [lower instance priority]
-instance bounded_lattice_hom_class.to_top_hom_class [lattice α] [lattice β]
-  [bounded_order α] [bounded_order β] [bounded_lattice_hom_class F α β] :
-  top_hom_class F α β :=
-{ .. ‹bounded_lattice_hom_class F α β› }
-
-@[priority 100] -- See note [lower instance priority]
-instance bounded_lattice_hom_class.to_bot_hom_class [lattice α] [lattice β]
-  [bounded_order α] [bounded_order β] [bounded_lattice_hom_class F α β] :
-  bot_hom_class F α β :=
-{ .. ‹bounded_lattice_hom_class F α β› }

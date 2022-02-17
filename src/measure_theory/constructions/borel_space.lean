@@ -3,17 +3,18 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import measure_theory.function.ae_measurable_sequence
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
+import measure_theory.function.ae_measurable_sequence
 import measure_theory.group.arithmetic
 import measure_theory.lattice
-import topology.algebra.ordered.liminf_limsup
+import measure_theory.measure.open_pos
+import topology.algebra.order.liminf_limsup
 import topology.continuous_function.basic
 import topology.instances.ereal
 import topology.G_delta
-import topology.semicontinuous
 import topology.order.lattice
+import topology.semicontinuous
 
 /-!
 # Borel (measurable) space
@@ -358,16 +359,6 @@ instance at_bot_is_measurably_generated : (filter.at_bot : filter α).is_measura
 @filter.infi_is_measurably_generated _ _ _ _ $
   λ a, (measurable_set_Iic : measurable_set (Iic a)).principal_is_measurably_generated
 
-lemma bsupr_measure_Iic {μ : measure α} {s : set α} (hsc : countable s)
-  (hst : ∀ x : α, ∃ y ∈ s, x ≤ y) (hdir : directed_on (≤) s) :
-  (⨆ x ∈ s, μ (Iic x)) = μ univ :=
-begin
-  rw ← measure_bUnion_eq_supr hsc,
-  { congr, exact Union₂_eq_univ_iff.2 hst },
-  { exact λ _ _, measurable_set_Iic },
-  { exact directed_on_iff_directed.2 (hdir.directed_coe.mono_comp _ $ λ x y, Iic_subset_Iic.2) }
-end
-
 end preorder
 
 section partial_order
@@ -429,8 +420,7 @@ begin
   have humeas : measurable_set u := huopen.measurable_set,
   have hfinite : (s \ u).finite,
   { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
-    by_contra h,
-    push_neg at h,
+    by_contra' h,
     exact hy.2 (mem_Union₂.mpr ⟨x, hx.1,
       mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
   have : u ⊆ s :=
@@ -693,6 +683,15 @@ h.measurable.ae_measurable
 lemma closed_embedding.measurable {f : α → γ} (hf : closed_embedding f) :
   measurable f :=
 hf.continuous.measurable
+
+lemma continuous.is_open_pos_measure_map {f : β → γ} (hf : continuous f)
+  (hf_surj : function.surjective f) {μ : measure β} [μ.is_open_pos_measure] :
+  (measure.map f μ).is_open_pos_measure :=
+begin
+  refine ⟨λ U hUo hUne, _⟩,
+  rw [measure.map_apply hf.measurable hUo.measurable_set],
+  exact (hUo.preimage hf).measure_ne_zero μ (hf_surj.nonempty_preimage.mpr hUne)
+end
 
 @[priority 100, to_additive]
 instance has_continuous_mul.has_measurable_mul [has_mul γ] [has_continuous_mul γ] :
@@ -1808,6 +1807,23 @@ begin
   { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
     exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hf x hx, },
   { exact tendsto_const_nhds, },
+end
+
+lemma ae_measurable_of_unif_approx {μ : measure α} {g : α → β}
+  (hf : ∀ ε > (0 : ℝ), ∃ (f : α → β), ae_measurable f μ ∧ ∀ᵐ x ∂μ, dist (f x) (g x) ≤ ε) :
+  ae_measurable g μ :=
+begin
+  obtain ⟨u, u_anti, u_pos, u_lim⟩ :
+    ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=
+      exists_seq_strict_anti_tendsto (0 : ℝ),
+  choose f Hf using λ (n : ℕ), hf (u n) (u_pos n),
+  have : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)),
+  { have : ∀ᵐ x ∂ μ, ∀ n, dist (f n x) (g x) ≤ u n := ae_all_iff.2 (λ n, (Hf n).2),
+    filter_upwards [this],
+    assume x hx,
+    rw tendsto_iff_dist_tendsto_zero,
+    exact squeeze_zero (λ n, dist_nonneg) hx u_lim },
+  exact ae_measurable_of_tendsto_metric_ae (λ n, (Hf n).1) this,
 end
 
 lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β} {g : α → β}

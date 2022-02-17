@@ -381,9 +381,9 @@ def to_signed_measure (μ : measure α) [hμ : is_finite_measure μ] : signed_me
     { congr, ext n, rw if_pos (hf₁ n) },
     { refine @summable_of_nonneg_of_le _ (ennreal.to_real ∘ μ ∘ f) _ _ _ _,
       { intro, split_ifs,
-        exacts [ennreal.to_real_nonneg, le_refl _] },
+        exacts [ennreal.to_real_nonneg, le_rfl] },
       { intro, split_ifs,
-        exacts [le_refl _, ennreal.to_real_nonneg] },
+        exacts [le_rfl, ennreal.to_real_nonneg] },
         exact summable_measure_to_real hf₁ hf₂ },
     { intros a ha,
       apply ne_of_lt hμ.measure_univ_lt_top,
@@ -751,7 +751,7 @@ include m
 This definition is consistent with `measure.partial_order`. -/
 instance : partial_order (vector_measure α M) :=
 { le          := λ v w, ∀ i, measurable_set i → v i ≤ w i,
-  le_refl     := λ v i hi, le_refl _,
+  le_refl     := λ v i hi, le_rfl,
   le_trans    := λ u v w h₁ h₂ i hi, le_trans (h₁ i hi) (h₂ i hi),
   le_antisymm := λ v w h₁ h₂, ext (λ i hi, le_antisymm (h₁ i hi) (h₂ i hi)) }
 
@@ -800,7 +800,7 @@ begin
   by_cases hi : measurable_set i,
   { exact (restrict_le_restrict_iff _ _ hi).2 h },
   { rw [restrict_not_measurable v hi, restrict_not_measurable w hi],
-    exact le_refl _ },
+    exact le_rfl },
 end
 
 lemma restrict_le_restrict_subset {i j : set α}
@@ -928,14 +928,14 @@ lemma zero_le_restrict_not_measurable (hi : ¬ measurable_set i) :
   0 ≤[i] v :=
 begin
   rw [restrict_zero, restrict_not_measurable _ hi],
-  exact le_refl _,
+  exact le_rfl,
 end
 
 lemma restrict_le_zero_of_not_measurable (hi : ¬ measurable_set i) :
   v ≤[i] 0 :=
 begin
   rw [restrict_zero, restrict_not_measurable _ hi],
-  exact le_refl _,
+  exact le_rfl,
 end
 
 lemma measurable_of_not_zero_le_restrict (hi : ¬ 0 ≤[i] v) : measurable_set i :=

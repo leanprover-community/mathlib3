@@ -3,9 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.local_homeomorph
-import topology.algebra.ordered.basic
 import data.bundle
+import topology.algebra.order.basic
+import topology.local_homeomorph
 
 /-!
 # Fiber bundles

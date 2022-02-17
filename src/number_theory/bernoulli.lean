@@ -149,7 +149,7 @@ begin
   field_simp [mul_comm _ (bernoulli' i), mul_assoc, add_choose],
   rw_mod_cast [mul_comm (j + 1), mul_div_assoc, ← mul_assoc],
   rw [cast_mul, cast_mul, mul_div_mul_right, cast_dvd_char_zero, cast_mul],
-  assumption',
+  assumption, rwa nat.cast_succ
 end
 
 /-- Odd Bernoulli numbers (greater than 1) are zero. -/
@@ -253,11 +253,11 @@ begin
   apply sum_congr rfl,
   rintro ⟨i, j⟩ h,
   rw mem_antidiagonal at h,
-  have hj : (j.succ : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero j,
-  field_simp [← h, mul_ne_zero hj (hfact j), hfact i, mul_comm _ (bernoulli i), mul_assoc],
-  rw_mod_cast [mul_comm (j + 1), mul_div_assoc, ← mul_assoc],
-  rw [cast_mul, cast_mul, mul_div_mul_right _ _ hj, add_choose, cast_dvd_char_zero],
-  apply factorial_mul_factorial_dvd_factorial_add,
+  have hj : (j + 1 : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero j,
+  field_simp [← h, mul_ne_zero hj (hfact j), hfact i, mul_comm _ (bernoulli i), mul_assoc,
+    add_choose, cast_dvd_char_zero (factorial_mul_factorial_dvd_factorial_add _ _),
+    nat.factorial_ne_zero, hj],
+  cc,
 end
 
 section faulhaber

@@ -35,12 +35,56 @@ def time : turing.to_partrec.code → list ℕ →. ℕ
     else (prod.mk <$> f.eval v.tail <*> (time f v.tail) + pure n).map sum.inr
 ) ⟨l, 0⟩)
 
+
+/-- A code running on a list returns a value, then there is a time at which it returns -/
+lemma time_dom_of_eval_dom (c : code) (l : list ℕ) (h : ((c.eval l).dom)) : (time c l).dom  :=
+begin
+  induction c generalizing l,
+  { assumption, },
+  { assumption, },
+  { assumption, },
+  { cases h,
+    cases h_h,
+    fsplit,
+    { fsplit,
+      { solve_by_elim },
+      solve_by_elim },
+    assumption, },
+  { cases h,
+    fsplit,
+    { fsplit,
+      { solve_by_elim },
+      fsplit,
+      { assumption },
+      solve_by_elim },
+    dsimp at *,
+    exact dec_trivial, },
+  { cases l,
+    { fsplit,
+      { solve_by_elim },
+      dsimp at *,
+      exact dec_trivial, },
+    { cases l_hd,
+      { fsplit, work_on_goal 0 { solve_by_elim }, dsimp at *, exact dec_trivial, },
+      { fsplit, work_on_goal 0 { solve_by_elim }, dsimp at *, exact dec_trivial, }, }, },
+  { sorry,
+    -- TODO prove that ∀ a ∈ α, (fix (f : α →. β ⊕ α) a).dom ↔ (fix (g : α →. γ ⊕ α) a).dom
+  },
+end
+
 /--
 Holds for codes representing total functions, where `bound` is a function upper bounding the
 runtime of the code over all input lists of length `l`.
 -/
 def time_bound (c : turing.to_partrec.code) (bound : ℕ → ℕ) : Prop :=
 ∀ (l : list ℕ) (len : ℕ), ∃ t ∈ time c l, l.length ≤ len -> t ≤ bound (len)
+
+lemma total_of_time_bound (c : turing.to_partrec.code) (bound : ℕ → ℕ) (H : time_bound c bound)
+  (l : list ℕ) : (c.eval l).dom :=
+begin
+  sorry,
+end
+
 
 -- TODO time_bound lemmas for all the constructors (except maybe fix)
 lemma time_bound_zero' : time_bound code.zero' (id 1) :=
@@ -75,18 +119,68 @@ begin
   assumption,
   exact part.mem_some 1,
   simp,
-  exact add_le_add ht hts,
+  intro hl,
+  exact add_le_add (ht hl) (hts hl),
+end
+
+lemma output_length_bound {c : code} {l : list ℕ} (hdom : (c.eval l).dom) :
+  ((c.eval l).get hdom).length ≤ l.length + ((time c l).get (time_dom_of_eval_dom c l hdom)) :=
+begin
+  induction c,
+  { tidy, },
+  { tidy, },
+  { tidy, rw add_assoc, exact le_self_add, },
+  sorry,
+  sorry,
+  sorry,
+  sorry,
 end
 
 /-- Time bound lemma for composition.
 Note that we compose the f bound with the g bound plus the identity. This is because `g` may be a
 function with a very short time bound that does not read its whole input. `bg + id`, though, is
 guaranteed to upper bound the length of the input to f. -/
-lemma time_bound_comp (f g : code) (bf bg : ℕ → ℕ) (hbf : time_bound f bf) (hbg : time_bound g bg) :
-  time_bound (code.comp f g) (bf + (bf ∘ (bg + id)) + 1) :=
+lemma time_bound_comp (f g : code) (bf bg : ℕ → ℕ) (mbf : monotone bf)
+  (hbf : time_bound f bf) (hbg : time_bound g bg) :
+  time_bound (code.comp f g) (bg + (bf ∘ (bg + id)) + 1) :=
 begin
   rw time_bound at *,
-  sorry,
+  intros l len,
+  rw time,
+  -- use bf + bf ∘ (bg + id) + 1,
+  rcases hbg l len with ⟨tg, Hg, hgt⟩,
+  have g_total := total_of_time_bound g bg hbg l,
+  -- have g_out := (g.eval l).get g_total,
+  rcases hbf ((g.eval l).get g_total) (((g.eval l).get g_total).length) with ⟨tf, Hf, hft⟩,
+  use tg + tf + 1,
+  split,
+  simp,
+  apply part.add_mem_add,
+  apply part.add_mem_add,
+  assumption,
+  simp,
+  use ((g.eval l).get g_total),
+  split,
+  exact part.get_mem g_total,
+  exact Hf,
+  exact part.mem_some 1,
+  simp,
+  intro hl,
+  apply add_le_add,
+  apply hgt,
+  assumption,
+  simp at hft,
+  apply trans hft,
+  apply mbf,
+  apply trans (output_length_bound g_total),
+  rw add_comm,
+  apply add_le_add,
+  apply trans _ (hgt hl),
+  apply le_of_eq,
+  exact part.get_eq_of_mem Hg (time_dom_of_eval_dom g l g_total),
+  assumption,
+  -- simp,
+
 end
 
 

@@ -15,7 +15,7 @@ In literature, this is usually called `Lat`, the category of lattices, because b
 understood to entail having a bottom and a top element.
 -/
 
-universes u v
+universes u
 
 open category_theory
 
@@ -82,3 +82,234 @@ lemma BoundedLattice_dual_comp_forget_to_Lattice :
 lemma BoundedLattice_dual_comp_forget_to_BoundedOrder :
   BoundedLattice.dual ⋙ forget₂ BoundedLattice BoundedOrder =
     forget₂ BoundedLattice BoundedOrder ⋙ BoundedOrder.dual := rfl
+
+namespace sup_hom
+variables {α β γ : Type*} [semilattice_sup α] [semilattice_sup β] [semilattice_sup γ]
+
+@[simps] protected def with_top (f : sup_hom α β) : sup_hom (with_top α) (with_top β) :=
+{ to_fun := option.map f,
+  map_sup' := begin
+    rintro (_ | a) b,
+    { refl },
+    cases b,
+    { refl },
+    { exact congr_arg _ (f.map_sup' _ _) }
+  end }
+
+@[simp] lemma with_top_id : (sup_hom.id α).with_top = sup_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_top_comp (f : sup_hom β γ) (g : sup_hom α β) :
+  (f.comp g).with_top = f.with_top.comp g.with_top :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+@[simps] protected def with_bot (f : sup_hom α β) : sup_hom (with_bot α) (with_bot β) :=
+{ to_fun := option.map f,
+  map_sup' := begin
+    rintro (_ | a) (_ | b),
+    { refl },
+    { refl },
+    { refl },
+    { exact congr_arg _ (f.map_sup' _ _) }
+  end }
+
+@[simp] lemma with_bot_id : (sup_hom.id α).with_bot = sup_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_bot_comp (f : sup_hom β γ) (g : sup_hom α β) :
+  (f.comp g).with_bot = f.with_bot.comp g.with_bot :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+@[simps] def with_top' [order_top β] (f : sup_hom α β) : sup_hom (with_top α) β :=
+{ to_fun := λ a, a.elim ⊤ f,
+  map_sup' := λ a b, match a, b with
+    | none, none := by simp only [sup_idem]
+    | none, some b := begin
+        simp only [with_bot.none_eq_bot, option.elim, bot_inf_eq],
+        exact top_sup_eq.symm,
+      end
+    | some a, none := begin
+        simp only [with_bot.none_eq_bot, option.elim, bot_inf_eq],
+        exact sup_top_eq.symm,
+      end
+    | some a, some b := f.map_sup' _ _
+  end }
+
+@[simps] def with_bot' [order_bot β] (f : sup_hom α β) : sup_hom (with_bot α) β :=
+{ to_fun := λ a, a.elim ⊥ f,
+  map_sup' := λ a b, match a, b with
+    | none, none := bot_sup_eq.symm
+    | none, some b := bot_sup_eq.symm
+    | some a, none := by { rw [with_bot.none_eq_bot, sup_bot_eq], exact sup_bot_eq.symm }
+    | some a, some b := f.map_sup' _ _
+  end }
+
+end sup_hom
+
+namespace inf_hom
+variables {α β γ : Type*} [semilattice_inf α] [semilattice_inf β] [semilattice_inf γ]
+
+@[simps] protected def with_top (f : inf_hom α β) : inf_hom (with_top α) (with_top β) :=
+{ to_fun := option.map f,
+  map_inf' := begin
+    rintro (_ | a) (_ | b),
+    { refl },
+    { refl },
+    { refl },
+    { exact congr_arg _ (f.map_inf' _ _) }
+  end }
+
+@[simp] lemma with_top_id : (inf_hom.id α).with_top = inf_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_top_comp (f : inf_hom β γ) (g : inf_hom α β) :
+  (f.comp g).with_top = f.with_top.comp g.with_top :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+@[simps] protected def with_bot (f : inf_hom α β) : inf_hom (with_bot α) (with_bot β) :=
+{ to_fun := option.map f,
+  map_inf' := begin
+    rintro (_ | a) b,
+    { refl },
+    cases b,
+    { refl },
+    { exact congr_arg _ (f.map_inf' _ _) }
+  end }
+
+@[simp] lemma with_bot_id : (inf_hom.id α).with_bot = inf_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_bot_comp (f : inf_hom β γ) (g : inf_hom α β) :
+  (f.comp g).with_bot = f.with_bot.comp g.with_bot :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+@[simps] def with_top' [order_top β] (f : inf_hom α β) : inf_hom (with_top α) β :=
+{ to_fun := λ a, a.elim ⊤ f,
+  map_inf' := λ a b, match a, b with
+    | none, none := top_inf_eq.symm
+    | none, some b := top_inf_eq.symm
+    | some a, none := by { rw [with_top.none_eq_top, inf_top_eq], exact inf_top_eq.symm }
+    | some a, some b := f.map_inf' _ _
+  end }
+
+@[simps] def with_bot' [order_bot β] (f : inf_hom α β) : inf_hom (with_bot α) β :=
+{ to_fun := λ a, a.elim ⊥ f,
+  map_inf' := λ a b, match a, b with
+    | none, none := by simp only [inf_idem]
+    | none, some b := begin
+        simp only [with_bot.none_eq_bot, option.elim, bot_inf_eq],
+        exact bot_inf_eq.symm,
+      end
+    | some a, none := begin
+        simp only [with_bot.none_eq_bot, option.elim, bot_inf_eq],
+        exact inf_bot_eq.symm,
+      end
+    | some a, some b := f.map_inf' _ _
+  end }
+
+end inf_hom
+
+namespace lattice_hom
+variables {α β γ : Type*} [lattice α] [lattice β] [lattice γ]
+
+@[simps] protected def with_top (f : lattice_hom α β) : lattice_hom (with_top α) (with_top β) :=
+{ ..f.to_sup_hom.with_top, ..f.to_inf_hom.with_top }
+
+@[simp] lemma with_top_id : (lattice_hom.id α).with_top = lattice_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_top_comp (f : lattice_hom β γ) (g : lattice_hom α β) :
+  (f.comp g).with_top = f.with_top.comp g.with_top :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+@[simps] protected def with_bot (f : lattice_hom α β) : lattice_hom (with_bot α) (with_bot β) :=
+{ ..f.to_sup_hom.with_bot, ..f.to_inf_hom.with_bot }
+
+@[simp] lemma with_bot_id : (lattice_hom.id α).with_bot = lattice_hom.id _ :=
+fun_like.coe_injective option.map_id
+
+@[simp] lemma with_bot_comp (f : lattice_hom β γ) (g : lattice_hom α β) :
+  (f.comp g).with_bot = f.with_bot.comp g.with_bot :=
+fun_like.coe_injective (option.map_comp_map _ _).symm
+
+@[simps] def with_top_with_bot (f : lattice_hom α β) :
+  bounded_lattice_hom (with_top $ with_bot α) (with_top $ with_bot β) :=
+{ to_lattice_hom := f.with_bot.with_top, map_top' := rfl, map_bot' := rfl }
+
+@[simp] lemma with_top_with_bot_id :
+  (lattice_hom.id α).with_top_with_bot = bounded_lattice_hom.id _ :=
+fun_like.coe_injective $ begin
+  refine (congr_arg option.map _).trans option.map_id,
+  rw with_bot_id,
+  refl,
+end
+
+@[simp] lemma with_top_with_bot_comp (f : lattice_hom β γ) (g : lattice_hom α β) :
+  (f.comp g).with_top_with_bot = f.with_top_with_bot.comp g.with_top_with_bot :=
+fun_like.coe_injective $ (congr_arg option.map $ (option.map_comp_map _ _).symm).trans
+  (option.map_comp_map _ _).symm
+
+@[simps] def with_top' [order_top β] (f : lattice_hom α β) : lattice_hom (with_top α) β :=
+{ ..f.to_sup_hom.with_top', ..f.to_inf_hom.with_top' }
+
+@[simps] def with_bot' [order_bot β] (f : lattice_hom α β) : lattice_hom (with_bot α) β :=
+{ ..f.to_sup_hom.with_bot', ..f.to_inf_hom.with_bot' }
+
+@[simps] def with_top_with_bot' [bounded_order β] (f : lattice_hom α β) :
+  bounded_lattice_hom (with_top $ with_bot α) β :=
+{ to_lattice_hom := f.with_bot'.with_top', map_top' := rfl, map_bot' := rfl }
+
+end lattice_hom
+
+/--  The functor that adds a bottom and a top element to a lattice. This is the free functor. -/
+def Lattice_to_BoundedLattice : Lattice.{u} ⥤ BoundedLattice :=
+{ obj := λ X, BoundedLattice.of $ with_top $ with_bot X,
+  map := λ X Y, lattice_hom.with_top_with_bot,
+  map_id' := λ X, lattice_hom.with_top_with_bot_id,
+  map_comp' := λ X Y Z _ _, lattice_hom.with_top_with_bot_comp _ _ }
+
+/-- `Lattice_to_BoundedLattice` is left adjoint to the forgetful functor, meaning it is the free
+functor from `Lattice` to `BoundedLattice`. -/
+def Lattice_to_BoundedLattice_forget_adjunction :
+  Lattice_to_BoundedLattice.{u} ⊣ forget₂ BoundedLattice Lattice :=
+adjunction.mk_of_hom_equiv
+  { hom_equiv := λ X Y,
+    { to_fun := λ f,
+      { to_fun := f ∘ some ∘ some,
+        map_sup' := λ a b, (congr_arg f $ by refl).trans (f.map_sup' _ _),
+        map_inf' := λ a b, (congr_arg f $ by refl).trans (f.map_inf' _ _) },
+      inv_fun := lattice_hom.with_top_with_bot',
+      left_inv := λ f, bounded_lattice_hom.ext $ λ a, match a with
+          | none := f.map_top'.symm
+          | some none := f.map_bot'.symm
+          | some (some a) := rfl
+        end,
+      right_inv := λ f, lattice_hom.ext $ λ a, rfl },
+  hom_equiv_naturality_left_symm' := λ X Y Z f g, bounded_lattice_hom.ext $ λ a, match a with
+          | none := rfl
+          | some none := rfl
+          | some (some a) := rfl
+        end,
+  hom_equiv_naturality_right' := λ X Y Z f g, lattice_hom.ext $ λ a, rfl }
+
+/-- `Lattice_to_BoundedLattice` and `order_dual` commute. -/
+@[simps] def Lattice_to_BoundedLattice_comp_dual_iso_dual_comp_Lattice_to_BoundedLattice :
+ (Lattice_to_BoundedLattice.{u} ⋙ BoundedLattice.dual) ≅
+    (Lattice.dual ⋙ Lattice_to_BoundedLattice) :=
+nat_iso.of_components (λ X, BoundedLattice.iso.mk $
+  { to_fun := λ a, a.elim ⊥ $ λ a, a.elim ⊤ $ some ∘ some,
+  inv_fun := λ a, a.elim ⊥ $ λ a, a.elim ⊤ $ some ∘ some,
+  left_inv := λ a, match a with
+          | none := by simp
+          | some none := rfl
+          | some (some a) := rfl
+        end,
+  right_inv := λ a, rfl,
+  map_rel_iff' := λ a b, match a, b with
+    | none, none := by simp only [le_rfl]
+    | none, some b := by { simpa only [equiv.coe_fn_mk, id.def] using iff.rfl,
+
+      }
+    | some a, none := by { rw [with_top.none_eq_top, inf_top_eq], exact inf_top_eq.symm }
+    | some a, some b := f.map_inf' _ _
+  end }) $ _

@@ -8,10 +8,10 @@ import order.category.Lattice
 /-!
 # The category of distributive lattices
 
-This defines `DistribLattice`, the category of distributive lattices.
+This file defines `DistribLattice`, the category of distributive lattices.
 -/
 
-universes u v
+universes u
 
 open category_theory
 
@@ -20,12 +20,13 @@ def DistribLattice := bundled distrib_lattice
 
 namespace DistribLattice
 
-instance : inhabited DistribLattice := ⟨⟨bool⟩⟩
 instance : has_coe_to_sort DistribLattice Type* := bundled.has_coe_to_sort
 instance (X : DistribLattice) : distrib_lattice X := X.str
 
 /-- Construct a bundled `DistribLattice` from a `distrib_lattice` underlying type and typeclass. -/
 def of (α : Type*) [distrib_lattice α] : DistribLattice := bundled.of α
+
+instance : inhabited DistribLattice := ⟨of punit⟩
 
 instance : bundled_hom.parent_projection @distrib_lattice.to_lattice := ⟨⟩
 

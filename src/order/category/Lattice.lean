@@ -13,10 +13,6 @@ This defines `Lattice`, the category of lattices.
 
 Note that `Lattice` doesn't correspond to the literature definition of `Lat` as we don't require
 bottom or top elements. Instead, `Lat` corresponds to `BoundedLattice`.
-
-## TODO
-
-The free functor from `Lattice` to `BoundedLattice` is `X → with_top (with_bot X)`.
 -/
 
 universes u

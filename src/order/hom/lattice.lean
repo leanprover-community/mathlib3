@@ -32,7 +32,7 @@ be satisfied by itself and all stricter types.
 Do we need more intersections between `bot_hom`, `top_hom` and lattice homomorphisms?
 -/
 
-open function
+open function order_dual
 
 variables {F α β γ δ : Type*}
 
@@ -113,6 +113,20 @@ instance bounded_lattice_hom_class.to_bounded_order_hom_class [lattice α] [latt
   [bounded_order α] [bounded_order β] [bounded_lattice_hom_class F α β] :
   bounded_order_hom_class F α β :=
 { .. ‹bounded_lattice_hom_class F α β› }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso.sup_hom_class [semilattice_sup α] [semilattice_sup β] :
+  sup_hom_class (α ≃o β) α β :=
+{ map_sup := λ f, f.map_sup, ..rel_iso.rel_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso.inf_hom_class [semilattice_inf α] [semilattice_inf β] :
+  inf_hom_class (α ≃o β) α β :=
+{ map_inf := λ f, f.map_inf, ..rel_iso.rel_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso.lattice_hom_class [lattice α] [lattice β] : lattice_hom_class (α ≃o β) α β :=
+{ ..order_iso.sup_hom_class, ..order_iso.inf_hom_class }
 
 instance [has_sup α] [has_sup β] [sup_hom_class F α β] : has_coe_t F (sup_hom α β) :=
 ⟨λ f, ⟨f, map_sup f⟩⟩
@@ -365,6 +379,18 @@ lemma cancel_left {g : lattice_hom β γ} {f₁ f₂ : lattice_hom α β} (hg : 
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
 ⟨λ h, lattice_hom.ext $ λ a, hg $
   by rw [←lattice_hom.comp_apply, h, lattice_hom.comp_apply], congr_arg _⟩
+
+/-- Reinterpret a lattice homomorphism as a lattice homomorphism between the dual lattices. -/
+@[simps] protected def dual :
+   lattice_hom α β ≃ lattice_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, { to_fun := to_dual ∘ f ∘ of_dual,
+                   map_sup' := λ _ _, congr_arg to_dual (map_inf f _ _),
+                   map_inf' := λ _ _, congr_arg to_dual (map_sup f _ _) },
+  inv_fun := λ f, { to_fun := of_dual ∘ f ∘ to_dual,
+                   map_sup' := λ _ _, congr_arg of_dual (map_inf f _ _),
+                   map_inf' := λ _ _, congr_arg of_dual (map_sup f _ _) },
+  left_inv := λ f, ext $ λ a, rfl,
+  right_inv := λ f, ext $ λ a, rfl }
 
 end lattice_hom
 

@@ -1419,7 +1419,7 @@ eq_empty_of_forall_not_mem (by simpa)
 lemma filter_false_iff (s : finset α) (p : α → Prop) [decidable_pred p] :
   (s.filter p = ∅) ↔ ∀ x ∈ s, ¬ p x :=
 begin
-  refine ⟨_, finset.filter_false_of_mem⟩,
+  refine ⟨_, filter_false_of_mem⟩,
   intros hs,
   injection hs with hs',
   rwa filter_eq_nil at hs'

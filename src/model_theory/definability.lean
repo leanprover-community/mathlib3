@@ -48,7 +48,7 @@ lemma is_definable_of {A : set M} {s : set (α → M)} {β : Type} [fintype β]
 begin
   ext,
   simp only [h, realize_partitioned_formula, set.mem_set_of_eq, realize_formula_relabel,
-    sum.sum.elim_comp_map, function.comp.right_id],
+    sum.elim_comp_map, function.comp.right_id],
   rw [function.comp.assoc, equiv.symm_comp_self, function.comp.right_id],
 end⟩⟩
 

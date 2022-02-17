@@ -613,19 +613,17 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
         { apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
           simp only [seminorm.zero, sub_zero, zero_add, q.smul, ← ha, zero_mul] },
         { exact le_cinfi (λ u, add_nonneg (p.nonneg _) (q.nonneg _)) } },
-      { apply le_antisymm,
-        { rw ← div_le_iff' ha,
-          refine le_cinfi (λ u, _),
-          rw div_le_iff' ha,
-          apply cinfi_le_of_le (bdd_below_range_add _ _ _) (a • u),
-          dsimp, rw [← smul_sub, p.smul, q.smul, mul_add] },
-        { apply le_cinfi, intro u,
-          have h1 : u = a • a⁻¹ • u,
-          { rw [smul_smul, mul_inv_cancel], { rw one_smul },
-            { intro f, apply (ne_of_lt ha), rw [f, norm_zero] } },
-          { rw [h1, ← smul_sub, p.smul, q.smul, ← mul_add, mul_le_mul_left ha],
-            apply cinfi_le, apply bdd_below_range_add } } },
+      change _ = order_iso.mul_left₀ (∥a∥) ha _,
+      rw order_iso.map_cinfi _ (bdd_below_range_add x _ _),
+      dsimp,
+      simp_rw mul_add,
+      have : a ≠ 0 := ne_zero_of_norm_ne_zero (ne.symm $ ne_of_lt ha),
+      have h : function.right_inverse (λ x : E, a • x) (λ x : E, a⁻¹ • x) := inv_smul_smul₀ this,
+      apply infi_congr (λ x : E, a⁻¹ • x) h.surjective,
+      simp [←seminorm.smul, smul_sub, smul_inv_smul₀ this],
     end } }
+
+@[simp] lemma inf_apply (p q : seminorm 𝕜 E) (x : E) : (p ⊓ q) x = ⨅ u : E, p u + q (x-u) := rfl
 
 noncomputable instance : lattice (seminorm 𝕜 E) :=
 { inf := (⊓),

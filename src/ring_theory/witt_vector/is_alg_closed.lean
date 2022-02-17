@@ -311,7 +311,7 @@ lemma nth_mul_coeff' (n : ℕ) :
     - x.coeff (n+1) * y.coeff 0 ^ (p^(n+1)) :=
 begin
   simp only [←peval_poly_of_interest'],
-  obtain ⟨f₀, hf₀⟩ := restrict_to_vars k (poly_of_interest_vars p n),
+  obtain ⟨f₀, hf₀⟩ := exists_restrict_to_vars k (poly_of_interest_vars p n),
   let f : truncated_witt_vector p (n+1) k → truncated_witt_vector p (n+1) k → k,
   { intros x y,
     apply f₀,

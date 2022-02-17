@@ -287,7 +287,7 @@ begin
     exacts [h, hMpos] }
 end
 
-lemma mem_ℒp.snorm_indicator_ge_le (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
+lemma mem_ℒp.snorm_indicator_ge_le_of_meas (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
   {f : α → β} (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ ennreal.of_real ε :=
@@ -299,10 +299,40 @@ begin
   norm_num,
 end
 
-lemma unif_integrable_subsingleton [subsingleton ι] {f : ι → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
+lemma restrict_ae_eq_of_ae_eq {m : measurable_space α} {μ : measure α}
+  {f g : α → β} {s : set α} (hfg : f =ᵐ[μ] g) :
+  f =ᵐ[μ.restrict s] g :=
+begin
+  refine hfg.filter_mono _,
+  rw measure.ae_le_iff_absolutely_continuous,
+  exact measure.absolutely_continuous_of_le measure.restrict_le_self,
+end
+
+lemma mem_ℒp.snorm_indicator_ge_le (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
+  {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
+  ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
+  snorm (s.indicator f) p μ ≤ ennreal.of_real ε :=
+begin
+  have hℒp := hf,
+  obtain ⟨⟨f', hf', heq⟩, hnorm⟩ := hf,
+  obtain ⟨δ, hδpos, hδ⟩ := (hℒp.ae_eq heq).snorm_indicator_ge_le_of_meas μ hp_one hp_top hf' hε,
+  refine ⟨δ, hδpos, λ s hs hμs, _⟩,
+  convert hδ s hs hμs using 1,
+  rw [snorm_indicator_eq_snorm_restrict hs, snorm_indicator_eq_snorm_restrict hs],
+  refine snorm_congr_ae (restrict_ae_eq_of_ae_eq heq),
+end
+
+lemma unif_integrable_subsingleton [subsingleton ι] (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
+  {f : ι → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
   unif_integrable f p μ :=
 begin
-  sorry
+  intros ε hε,
+  by_cases hι : nonempty ι,
+  { cases hι with i,
+    obtain ⟨δ, hδpos, hδ⟩ := (hf i).snorm_indicator_ge_le μ hp_one hp_top hε,
+    refine ⟨δ, hδpos, λ j s hs hμs, _⟩,
+    convert hδ s hs hμs },
+  { exact ⟨1, zero_lt_one, λ i, false.elim $ hι $ nonempty.intro i⟩ }
 end
 
 lemma unif_integrable_finite [fintype ι] {f : ι → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
@@ -371,7 +401,7 @@ begin
     have hpow : 0 < (measure_univ_nnreal μ) ^ (1 / p.to_real) :=
       real.rpow_pos_of_pos (measure_univ_nnreal_pos hμ) _,
     obtain ⟨δ₁, hδ₁, hsnorm₁⟩ := hui hε',
-    obtain ⟨δ₂, hδ₂, hsnorm₂⟩ := hg'.snorm_indicator_ge_le μ hp hp' hg hε',
+    obtain ⟨δ₂, hδ₂, hsnorm₂⟩ := hg'.snorm_indicator_ge_le μ hp hp' hε',
     obtain ⟨t, htm, ht₁, ht₂⟩ := tendsto_uniformly_on_of_ae_tendsto' hf hg hfg (lt_min hδ₁ hδ₂),
     rw metric.tendsto_uniformly_on_iff at ht₂,
     specialize ht₂ (ε.to_real / (3 * measure_univ_nnreal μ ^ (1 / p.to_real)))

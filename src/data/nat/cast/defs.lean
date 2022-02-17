@@ -24,12 +24,19 @@ This file defines the *canonical* homomorphism from the natural numbers into a t
 Setting up the coercions priorities is tricky. See Note [coercion into rings].
 -/
 
+universes u
+
 set_option old_structure_cmd true
 
-class add_monoid_with_one (α : Type*) extends add_monoid α, has_one α :=
-(nat_cast : ℕ → α)
-(nat_cast_zero : nat_cast 0 = (0 : α))
-(nat_cast_succ : ∀ n, nat_cast (n + 1) = (nat_cast n + 1 : α))
+/-- The numeral `((0+1)+⋯)+1`. -/
+protected def nat.unary_cast {α : Type u} [has_one α] [has_zero α] [has_add α] : ℕ → α
+| 0 := 0
+| (n + 1) := nat.unary_cast n + 1
+
+class add_monoid_with_one (α : Type u) extends add_monoid α, has_one α :=
+(nat_cast : ℕ → α := nat.unary_cast)
+(nat_cast_zero : nat_cast 0 = (0 : α) . control_laws_tac)
+(nat_cast_succ : ∀ n, nat_cast (n + 1) = (nat_cast n + 1 : α) . control_laws_tac)
 
 /-- Canonical homomorphism from `ℕ` to a additive monoid `α` with a `1`. -/
 protected def nat.cast {α : Type*} [add_monoid_with_one α] : ℕ → α := add_monoid_with_one.nat_cast
@@ -99,11 +106,6 @@ by rw [cast_succ, cast_zero, zero_add]
 @[simp, norm_cast] theorem cast_add [add_monoid_with_one α] (m n : ℕ) : ((m + n : ℕ) : α) = m + n :=
 by induction n; simp [add_succ, add_assoc, nat.add_zero, *]
 
-/-- The numeral `((0+1)+⋯)+1`. -/
-protected def unary_cast [has_one α] [has_zero α] [has_add α] : ℕ → α
-| 0 := 0
-| (n + 1) := unary_cast n + 1
-
 /-- Computationally friendlier cast than `nat.unary_cast`, using binary representation. -/
 protected def bin_cast [has_zero α] [has_one α] [has_add α] (n : ℕ) : α :=
 @nat.binary_rec (λ _, α) 0 (λ odd k a, cond odd (a + a + 1) (a + a)) n
@@ -140,13 +142,12 @@ eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 
 end nat
 
-@[reducible] def add_monoid_with_one.unary {α : Type*} [add_monoid α] [has_one α] : add_monoid_with_one α :=
-{ nat_cast := nat.unary_cast,
-  nat_cast_zero := rfl,
-  nat_cast_succ := λ _, rfl,
-  .. ‹has_one α›, .. ‹add_monoid α› }
+@[reducible] def add_monoid_with_one.unary {α : Type*} [add_monoid α] [has_one α] :
+  add_monoid_with_one α :=
+{ .. ‹has_one α›, .. ‹add_monoid α› }
 
-@[reducible] def add_monoid_with_one.binary {α : Type*} [add_monoid α] [has_one α] : add_monoid_with_one α :=
+@[reducible] def add_monoid_with_one.binary {α : Type*} [add_monoid α] [has_one α] :
+  add_monoid_with_one α :=
 { nat_cast := nat.bin_cast,
   nat_cast_zero := by simp [nat.bin_cast, nat.cast],
   nat_cast_succ := λ n, begin

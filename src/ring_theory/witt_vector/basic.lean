@@ -196,12 +196,12 @@ include hp
 
 local attribute [instance]
 private def comm_ring_aux₁ : comm_ring (𝕎 (mv_polynomial R ℚ)) :=
-(ghost_equiv' p (mv_polynomial R ℚ)).injective.comm_ring (ghost_fun)
+(ghost_equiv' p (mv_polynomial R ℚ)).injective.comm_ring' (ghost_fun)
   ghost_fun_zero ghost_fun_one ghost_fun_add ghost_fun_mul ghost_fun_neg ghost_fun_sub
 
 local attribute [instance]
 private def comm_ring_aux₂ : comm_ring (𝕎 (mv_polynomial R ℤ)) :=
-(map_fun.injective _ $ map_injective (int.cast_ring_hom ℚ) int.cast_injective).comm_ring _
+(map_fun.injective _ $ map_injective (int.cast_ring_hom ℚ) int.cast_injective).comm_ring' _
   (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)
 
 /-- The commutative ring structure on `𝕎 R`. -/

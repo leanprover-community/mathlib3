@@ -354,7 +354,7 @@ begin
   rw [mul_comm, coe_mul] at h,
   rw [mul_comm _ (k : X (q (p'+2)))] at h,
   replace h := eq_sub_of_add_eq h,
-  unfold mersenne,
+  have : 1 ≤ 2 ^ (p' + 2) := nat.one_le_pow _ _ dec_trivial,
   exact_mod_cast h,
 end
 

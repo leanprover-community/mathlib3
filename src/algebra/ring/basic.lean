@@ -995,6 +995,18 @@ protected def function.injective.comm_ring
   comm_ring β :=
 { .. hf.ring f zero one add mul neg sub, .. hf.comm_semigroup f mul }
 
+/-- Pullback a `comm_ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.comm_ring'
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  comm_ring β :=
+by letI add_monoid_with_one := hf.add_monoid_with_one f zero add; exact
+{ .. hf.ring f zero one add mul neg sub, .. hf.comm_semigroup f mul }
+
 /-- Pushforward a `comm_ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]

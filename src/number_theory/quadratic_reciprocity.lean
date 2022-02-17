@@ -448,7 +448,7 @@ have hx2 : ∀ x ∈ Ico 1 (p / 2).succ, (2 * x : zmod p).val = 2 * x,
 have hdisj : disjoint
     ((Ico 1 (p / 2).succ).filter (λ x, p / 2 < ((2 : ℕ) * x : zmod p).val))
     ((Ico 1 (p / 2).succ).filter (λ x, x * 2 ≤ p / 2)),
-  from disjoint_filter.2 (λ x hx, by simp [hx2 _ hx, mul_comm]),
+  from disjoint_filter.2 (λ x hx, by simp [hx2 _ hx, mul_comm 2 x]),
 have hunion :
     ((Ico 1 (p / 2).succ).filter (λ x, p / 2 < ((2 : ℕ) * x : zmod p).val)) ∪
     ((Ico 1 (p / 2).succ).filter (λ x, x * 2 ≤ p / 2)) =
@@ -456,7 +456,7 @@ have hunion :
   begin
     rw [filter_union_right],
     conv_rhs {rw [← @filter_true _ (Ico 1 (p / 2).succ)]},
-    exact filter_congr (λ x hx, by simp [hx2 _ hx, lt_or_le, mul_comm])
+    exact filter_congr (λ x hx, by simp [hx2 _ hx, lt_or_le])
   end,
 begin
   erw [gauss_lemma p (prime_ne_zero p 2 hp2),

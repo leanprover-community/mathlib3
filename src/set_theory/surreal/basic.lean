@@ -335,6 +335,8 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
+instance : add_monoid_with_one surreal := add_monoid_with_one.unary
+
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
 -- TODO define the inclusion of groups `surreal → game`

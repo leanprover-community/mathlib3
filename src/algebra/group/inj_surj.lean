@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 import algebra.group.defs
 import logic.function.basic
+import data.nat.cast.defs
 
 /-!
 # Lifting algebraic data classes along injective/surjective maps
@@ -108,6 +109,16 @@ protected def monoid [monoid M₂] (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
   monoid M₁ :=
 { .. hf.semigroup f mul, .. hf.mul_one_class f one mul }
+
+/-- A type endowed with `0`, `1` and `+` is an additive monoid with one,
+if it admits an injective map that preserves `0`, `1` and `+` to an additive monoid with one.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def add_monoid_with_one {M₁} [has_zero M₁] [has_one M₁] [has_add M₁]
+  [add_monoid_with_one M₂] (f : M₁ → M₂)
+  (hf : injective f) (zero : f 0 = 0) (add : ∀ x y, f (x + y) = f x + f y) :
+  add_monoid_with_one M₁ :=
+{ one := 1, .. hf.add_monoid f zero add }
 
 /-- A type endowed with `1` and `*` is a monoid,
 if it admits an injective map that preserves `1` and `*` to a monoid.

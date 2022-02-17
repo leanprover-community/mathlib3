@@ -19,7 +19,7 @@ moved inside `𝒟`.
 ## Main definitions
 
 The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`:
-`fundamental_domain := {z | 1 ≤ (complex.norm_sq z) ∧ |z.re| ≤ (1 : ℝ) / 2}`
+`fundamental_domain := {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}`
 
 The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`:
 `fundamental_domain_open := {z | 1 < ((z:ℂ).norm_sq) ∧ |z.re| < (1 : ℝ) / 2}`

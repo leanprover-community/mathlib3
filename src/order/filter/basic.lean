@@ -7,7 +7,6 @@ import control.traversable.instances
 import data.set.finite
 import order.copy
 import tactic.monotonicity
-import group_theory.group_action.pi
 
 /-!
 # Theory of filters on sets

@@ -8,13 +8,18 @@ import category_theory.limits.shapes.zero
 
 /-!
 # Preservation of zero objects and zero morphisms
+
 We define the class `preserves_zero_morphisms` and show basic properties.
+
 ## Main results
+
 We provide the following results:
-* Equivalences preserve zero morphisms;
+* Left adjoints and right adjoints preserve zero morphisms;
+* full functors preserves zero morphisms;
 * if both categories involved have a zero object, then a functor preserves zero morphisms if and
   only if it preserves the zero object;
 * functors which preserve initial or terminal objects preserve zero morphisms.
+
 -/
 
 universes v₁ v₂ u₁ u₂

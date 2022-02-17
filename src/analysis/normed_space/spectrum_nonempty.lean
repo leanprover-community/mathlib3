@@ -63,26 +63,31 @@ begin
 end
 
 
-lemma norm_resolvent_le (a : A) (hna : a ≠ 0) :
-  ∀ ε > 0, ∃ R > 0, ∀ z : ℂˣ, R ≤ ∥(z : ℂ)∥ → ∥resolvent a (z : ℂ)∥ ≤ ε :=
+lemma norm_resolvent_le (a : A) :
+  ∀ ε > 0, ∃ R > 0, ∀ z : ℂ, R ≤ ∥(z : ℂ)∥ → ∥resolvent a (z : ℂ)∥ ≤ ε :=
 begin
   obtain ⟨c, c_pos, hc⟩ := (@normed_ring.inverse_one_sub_norm A _ _).exists_pos,
   rw [is_O_with_iff, eventually_iff, metric.mem_nhds_iff] at hc,
   rcases hc with ⟨δ, δ_pos, hδ⟩,
   simp only [cstar_ring.norm_one, mul_one] at hδ,
   intros ε hε,
-  have min_pos : 0 < min (δ / 2 * ∥a∥⁻¹) (ε * c⁻¹),
-    from lt_min (mul_pos (half_pos δ_pos) (inv_pos.mpr (norm_pos_iff.mpr hna)))
-      (mul_pos hε (inv_pos.mpr c_pos)),
-  refine ⟨(min (δ / 2 * ∥a∥⁻¹) (ε * c⁻¹))⁻¹, inv_pos.mpr min_pos, (λ z hz, _)⟩,
-  have hnz : 0 < ∥(z : ℂ)∥ := norm_pos_iff.mpr (λ hz', not_is_unit_zero ⟨z, hz'⟩),
+  have ha₁ := lt_of_le_of_lt (norm_nonneg a) (lt_add_one _),
+  have min_pos : 0 < min (δ * (∥a∥ + 1)⁻¹) (ε * c⁻¹),
+    from lt_min (mul_pos δ_pos (inv_pos.mpr ha₁)) (mul_pos hε (inv_pos.mpr c_pos)),
+  refine ⟨(min (δ * (∥a∥ + 1)⁻¹) (ε * c⁻¹))⁻¹, inv_pos.mpr min_pos, (λ z hz, _)⟩,
+  have hnz : 0 < ∥(z : ℂ)∥ := lt_of_lt_of_le (inv_pos.mpr min_pos) hz,
   replace hz := inv_le_of_inv_le min_pos hz,
+  have : is_unit z := ⟨units.mk0 z (norm_pos_iff.mp hnz), units.coe_mk0 (norm_pos_iff.mp hnz)⟩,
+  rcases this with ⟨z, rfl⟩,
   have lt_δ : ∥z⁻¹ • a∥ < δ,
   { rw [units.smul_def, norm_smul, units.coe_inv', normed_field.norm_inv],
-  calc ∥(z : ℂ)∥⁻¹ * ∥a∥ ≤ (δ / 2) * ∥a∥⁻¹ * ∥a∥
+  calc ∥(z : ℂ)∥⁻¹ * ∥a∥ ≤ δ * (∥a∥ + 1)⁻¹ * ∥a∥
       : mul_le_mul_of_nonneg_right (hz.trans (min_le_left _ _)) (norm_nonneg _)
-  ...                   = δ / 2 : inv_mul_cancel_right₀ (norm_pos_iff.mpr hna).ne.symm _
-  ...                   < _ : half_lt_self δ_pos },
+  ...                   = δ * ((∥a∥ + 1)⁻¹ * ∥a∥) : by rw mul_assoc
+  ...                   < δ * 1
+      : by { refine mul_lt_mul_of_pos_left ((inv_mul_lt_iff ha₁).mpr _) δ_pos,
+             exact (mul_one (∥a∥ + 1)).symm ▸ (lt_add_one _) }
+  ...                   = δ : mul_one δ },
   rw [←inv_smul_smul z (resolvent a (z : ℂ)), smul_resolvent_self, resolvent,
     algebra.algebra_map_eq_smul_one, one_smul, units.smul_def, norm_smul, units.coe_inv',
     normed_field.norm_inv],
@@ -117,9 +122,8 @@ begin
   { refine λ z, (has_deriv_at_resolvent _).differentiable_at,
     rw H₀,
     trivial, },
-  /- The norm of the resolvent is small for all sufficently large `z`. restrict to units for
-  convenience in the proof. -/
-  have H₂ := norm_resolvent_le a hna,
+  /- The norm of the resolvent is small for all sufficently large `z`. -/
+  have H₂ := norm_resolvent_le a,
   have H₃ : ∃ C : ℝ, ∀ z : ℂ, ∥resolvent a (z : ℂ)∥ ≤ C,
   { rcases H₂ 1 zero_lt_one with ⟨R, R_pos, hR⟩,
     rcases (proper_space.is_compact_closed_ball (0 : ℂ) R).exists_bound_of_continuous_on
@@ -127,11 +131,7 @@ begin
     refine ⟨max C 1, (λ z, _)⟩,
     by_cases hz : ∥z∥ ≤ R,
     { exact (hC z (mem_closed_ball_zero_iff.mpr hz)).trans (le_max_left _ _) },
-    { push_neg at hz,
-      have := norm_pos_iff.mp (lt_trans R_pos hz),
-      refine (hR (units.mk0 z this) _).trans (le_max_right _ _),
-      rw units.coe_mk0 this,
-      exact hz.le }, },
+    { exact (hR z (not_le.mp hz).le).trans (le_max_right _ _), }, },
   /- apply Liouville's theorem to conclude `λ z, resolvent a z` is constant-/
   rcases H₃ with ⟨C, hC⟩,
   have H₄ := H₁.const_of_bounded hC,
@@ -139,13 +139,11 @@ begin
   have H₅ : resolvent a (0 : ℂ) = 0,
   { refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ ε hε, _)) (norm_nonneg _)),
     rcases H₂ ε hε with ⟨R, R_pos, hR⟩,
-    have foo₁ : (R : ℂ) ≠ 0, by exact_mod_cast R_pos.lt.ne.symm,
     rw zero_add ε,
-    have foo₂ := hR (units.mk0 R foo₁) (by simpa only [units.coe_mk0, complex.norm_real] using le_abs_self R),
-    simp only [units.coe_mk0] at foo₂,
+    have foo₁ := hR R (by exact_mod_cast (real.norm_of_nonneg R_pos.lt.le).symm.le),
     have foo₃ := congr_fun H₄ (R : ℂ),
     simp at foo₃,
-    simpa only [←foo₃] using foo₂, },
+    simpa only [←foo₃] using foo₁, },
   /- `not_is_unit_zero` is what requires `nontrivial A`. -/
   exact not_is_unit_zero (H₅.subst (is_unit_resolvent (H₀' 0))),
 end

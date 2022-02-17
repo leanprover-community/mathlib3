@@ -218,12 +218,8 @@ le_sub_iff_add_le
 ⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (le_of_lt_add_one (by exact hp)).antisymm hn,
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
-lemma one_le_abs {z : ℤ} (h₀: ¬ z = 0) : 1 ≤ |z| :=
-begin
-  by_contra h,
-  push_neg at h,
-  exact h₀ (eq_zero_iff_abs_lt_one.mp h),
-end
+lemma one_le_abs {z : ℤ} (h₀: z ≠ 0) : 1 ≤ |z| :=
+add_one_le_iff.mpr (abs_pos.mpr h₀)
 
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀ i : ℕ, p i → p (i + 1)) (hn : ∀ i : ℕ, p (-i) → p (-i - 1)) : p i :=

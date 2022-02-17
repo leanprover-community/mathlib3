@@ -57,3 +57,11 @@ variables (R : Type*) {A : Type*}
                                           add_subgroup.coe_mk, add_subgroup.coe_add] },
   map_smul' := λ r x, by { ext, simp [←mul_smul, ←smul_sub,
             show r * ⅟ 2 = ⅟ 2 * r, from commute.inv_of_right (commute.one_right r).bit0_right] } }
+
+lemma star_module.eq_self_adjoint_part_add_skew_adjoint_part (x : A) :
+  x = self_adjoint_part R x + skew_adjoint_part R x :=
+begin
+  simp only [smul_sub, self_adjoint_part_apply_coe, smul_add, skew_adjoint_part_apply_coe,
+    add_add_sub_cancel],
+  rw [←smul_add, ←two_smul R, ←mul_smul, inv_of_mul_self, one_smul],
+end

@@ -352,8 +352,7 @@ begin
   { rw (_ : {x | τ x = i} ∩ {x | τ x ≤ j} = ∅),
     { exact @measurable_set.empty _ (f j) },
     { ext,
-      simp only [set.mem_empty_eq, set.mem_inter_eq, not_and, not_le, set.mem_set_of_eq,
-        iff_false],
+      simp only [set.mem_empty_eq, set.mem_inter_eq, not_and, not_le, set.mem_set_of_eq, iff_false],
       rintro rfl,
       rwa not_le at h } }
 end

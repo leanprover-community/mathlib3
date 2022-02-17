@@ -166,7 +166,7 @@ def append {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n
   (u : fin (m + 1) → α) (v : fin n → α) :
   fin.append ho u v 0 = u 0 := rfl
 
-@[simp] lemma fin.append_comp_cast_add {α : Type*} {m n : ℕ} (f : fin m → α) (g : fin n → α) :
+@[simp] lemma append_comp_cast_add {α : Type*} {m n : ℕ} (f : fin m → α) (g : fin n → α) :
   fin.append rfl f g ∘ fin.cast_add n = f :=
 begin
   ext,
@@ -174,7 +174,7 @@ begin
   simp only [hx, fin.append, fin.cast_add_mk, fin.coe_mk, function.comp_app, dif_pos],
 end
 
-@[simp] lemma fin.append_comp_nat_add {α : Type*} {m n : ℕ} (f : fin m → α) (g : fin n → α) :
+@[simp] lemma append_comp_nat_add {α : Type*} {m n : ℕ} (f : fin m → α) (g : fin n → α) :
   fin.append rfl f g ∘ fin.nat_add m = g :=
 begin
   ext,

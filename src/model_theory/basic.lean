@@ -37,7 +37,7 @@ For the Flypitch project:
 the continuum hypothesis*][flypitch_itp]
 
 -/
-universes u v
+universes u v u' v' w
 
 namespace first_order
 
@@ -56,10 +56,16 @@ protected def empty : language := ⟨λ _, pempty, λ _, pempty⟩
 
 instance : inhabited language := ⟨language.empty⟩
 
-/-- The type of constants in a given language. -/
-@[nolint has_inhabited_instance] def const (L : language) := L.functions 0
+protected def sum (L : language.{u v}) (L' : language.{u' v'}) : language.{(max u u') (max v v')} :=
+⟨λn, L.functions n ⊕ L'.functions n, λ n, L.relations n ⊕ L'.relations n⟩
 
 variable (L : language.{u v})
+
+/-- The type of constants in a given language. -/
+@[nolint has_inhabited_instance] def const := L.functions 0
+
+/-- The type of symbols in a given language. -/
+@[nolint has_inhabited_instance] def symbols := (Σl, L.functions l) ⊕ (Σl, L.relations l)
 
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
@@ -83,7 +89,7 @@ language.is_relational_of_empty_functions
 instance is_algebraic_empty : is_algebraic language.empty :=
 language.is_algebraic_of_empty_relations
 
-variables (L) (M : Type*)
+variables (L) (M : Type w)
 
 /-- A first-order structure on a type `M` consists of interpretations of all the symbols in a given
   language. Each function of arity `n` is interpreted as a function sending tuples of length `n`
@@ -365,6 +371,116 @@ lemma comp_assoc (f : M ≃[L] N) (g : N ≃[L] P) (h : P ≃[L] Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
 
 end equiv
+
+structure Lhom (L L' : language) :=
+(on_function : ∀{n}, L.functions n → L'.functions n)
+(on_relation : ∀{n}, L.relations n → L'.relations n)
+
+infix ` →ᴸ `:10 := Lhom -- \^L
+
+namespace Lhom
+
+variables {L' : language} (ϕ : L →ᴸ L')
+
+protected def id (L : language) : L →ᴸ L :=
+⟨λn, id, λ n, id⟩
+
+instance : inhabited (L →ᴸ L) := ⟨Lhom.id L⟩
+
+protected def sum_inl : L →ᴸ L.sum L' :=
+⟨λn, sum.inl, λ n, sum.inl⟩
+
+protected def sum_inr : L' →ᴸ L.sum L' :=
+⟨λn, sum.inr, λ n, sum.inr⟩
+
+@[reducible] def comp {L1} {L2} {L3} (g : L2 →ᴸ L3) (f : L1 →ᴸ L2) : L1 →ᴸ L3 :=
+begin
+  rcases g with ⟨g1, g2⟩, rcases f with ⟨f1,f2⟩,
+  exact ⟨λn, g1 ∘ f1, λn, g2 ∘ f2⟩,
+end
+
+@[ext] lemma Lhom_funext {L1} {L2} {F G : L1 →ᴸ L2} (h_fun : F.on_function = G.on_function )
+  (h_rel : F.on_relation = G.on_relation ) : F = G :=
+by {cases F with Ff Fr, cases G with Gf Gr, simp only *, exact and.intro h_fun h_rel}
+
+local infix ` ∘ `:60 := Lhom.comp
+
+@[simp] lemma id_is_left_identity {L1 L2} {F : L1 →ᴸ L2} : (Lhom.id L2) ∘ F = F :=
+by {cases F, refl}
+
+@[simp] lemma id_is_right_identity {L1 L2} {F : L1 →ᴸ L2} : F ∘ (Lhom.id L1) = F :=
+by {cases F, refl}
+
+structure is_injective : Prop :=
+(on_function {n} : function.injective (on_function ϕ : L.functions n → L'.functions n))
+(on_relation {n} : function.injective (on_relation ϕ : L.relations n → L'.relations n))
+
+/-- The map between two sum-languages induced by maps on the two factors. -/
+def sum_map {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) : L.sum L₁ →ᴸ L'.sum L₂ :=
+{ on_function := λ n, sum.map (λ f, ϕ.on_function f) (λ f, ψ.on_function f),
+  on_relation := λ n, sum.map (λ f, ϕ.on_relation f) (λ f, ψ.on_relation f) }
+
+end Lhom
+
+instance sum_Structure (L : language) (L' : language) (M : Type*) [L.Structure M] [L'.Structure M] :
+  (L.sum L').Structure M :=
+{ fun_map := λ n, sum.elim fun_map fun_map,
+  rel_map := λ n, sum.elim rel_map rel_map, }
+
+section constants_on
+variables (α : Type u')
+
+/-- A language with constants indexed by a type. -/
+def constants_on : language.{u' 0} := ⟨λ n, nat.cases_on n α (λ _, pempty), λ _, pempty⟩
+
+variables {α}
+
+@[simp] lemma constants_on_const : (constants_on α).const = α := rfl
+
+instance is_algebraic_constants_on : is_algebraic (constants_on α) :=
+language.is_algebraic_of_empty_relations
+
+/-- Gives a `constants_on α` structure to a type by assigning each constant a value. -/
+def constants_on.Structure (f : α → M) : (constants_on α).Structure M :=
+{ fun_map := λ n, nat.cases_on n (λ a _, f a) (λ _, pempty.elim),
+  rel_map := λ _, pempty.elim }
+
+variables {β : Type v'}
+
+/-- A map between index types induces a map between constant languages. -/
+def Lhom.constants_on_map (f : α → β) : (constants_on α) →ᴸ (constants_on β) :=
+⟨λ n, nat.cases_on n f (λ _, pempty.elim), λ n, pempty.elim⟩
+
+end constants_on
+
+section with_params
+
+variables (A : set M)
+
+instance params_Structure : (constants_on A).Structure M := constants_on.Structure coe
+
+variables (L)
+
+/-- Extends a language with a constant for each element of a parameter set in `M`. -/
+def with_params : language.{(max u w) v} := L.sum (constants_on A)
+
+instance with_params_Structure : (L.with_params A).Structure M :=
+language.sum_Structure _ _ _
+
+/-- The language map adding parameters.  -/
+def Lhom_add_params : L →ᴸ L.with_params A := Lhom.sum_inl
+
+variables {A} {B : set M}
+
+/-- The language map extending the parameter set.  -/
+def Lhom_params_inclusion (h : A ⊆ B) : (L.with_params A) →ᴸ (L.with_params B) :=
+Lhom.sum_map (Lhom.id L) (Lhom.constants_on_map (set.inclusion h))
+
+@[simp] lemma Lhom.params_inclusion_comp_with_params (h : A ⊆ B) :
+  (L.Lhom_params_inclusion h).comp (L.Lhom_add_params A) = L.Lhom_add_params B :=
+by ext n f R; refl
+
+end with_params
 
 end language
 end first_order

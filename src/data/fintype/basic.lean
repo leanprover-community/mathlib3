@@ -1138,8 +1138,11 @@ instance Prop.fintype : fintype Prop :=
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)
 
-@[simp] lemma set.to_finset_univ [hu : fintype (set.univ : set α)] [fintype α] :
-  @set.to_finset _ (set.univ : set α) hu = finset.univ :=
+/- TODO Without the coercion arrow (`↥`) there is an elaboration bug;
+it essentially infers `fintype.{v} (set.univ.{u} : set α)` with `v` and `u` distinct.
+Reported in leanprover-community/lean#672 -/
+@[simp] lemma set.to_finset_univ [fintype ↥(set.univ : set α)] [fintype α] :
+  (set.univ : set α).to_finset = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
 
 @[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] : s.to_finset = ∅ ↔ s = ∅ :=
@@ -1775,37 +1778,63 @@ lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite �
 lemma of_surjective [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
 ⟨λ I, by { classical, exactI (fintype.of_surjective f hf).false }⟩
 
+end infinite
+
 instance : infinite ℕ :=
 ⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩
 
 instance : infinite ℤ :=
 infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)
 
-instance [infinite α] : infinite (set α) :=
-of_injective singleton (λ a b, set.singleton_eq_singleton_iff.1)
+instance infinite.set [infinite α] : infinite (set α) :=
+infinite.of_injective singleton (λ a b, set.singleton_eq_singleton_iff.1)
 
-instance [infinite α] : infinite (finset α) := of_injective singleton finset.singleton_injective
+instance [infinite α] : infinite (finset α) :=
+infinite.of_injective singleton finset.singleton_injective
 
 instance [nonempty α] : infinite (multiset α) :=
 begin
   inhabit α,
-  exact of_injective (multiset.repeat default) (multiset.repeat_injective _),
+  exact infinite.of_injective (multiset.repeat default) (multiset.repeat_injective _),
 end
 
 instance [nonempty α] : infinite (list α) :=
-of_surjective (coe : list α → multiset α) (surjective_quot_mk _)
+infinite.of_surjective (coe : list α → multiset α) (surjective_quot_mk _)
 
-instance sum_of_left [infinite α] : infinite (α ⊕ β) :=
-of_injective sum.inl sum.inl_injective
+instance [infinite α] : infinite (option α) :=
+infinite.of_injective some (option.some_injective α)
 
-instance sum_of_right [infinite β] : infinite (α ⊕ β) :=
-of_injective sum.inr sum.inr_injective
+instance sum.infinite_of_left [infinite α] : infinite (α ⊕ β) :=
+infinite.of_injective sum.inl sum.inl_injective
 
-instance prod_of_right [nonempty α] [infinite β] : infinite (α × β) :=
-of_surjective prod.snd prod.snd_surjective
+instance sum.infinite_of_right [infinite β] : infinite (α ⊕ β) :=
+infinite.of_injective sum.inr sum.inr_injective
 
-instance prod_of_left [infinite α] [nonempty β] : infinite (α × β) :=
-of_surjective prod.fst prod.fst_surjective
+@[simp] lemma infinite_sum : infinite (α ⊕ β) ↔ infinite α ∨ infinite β :=
+begin
+  refine ⟨λ H, _, λ H, H.elim (@sum.infinite_of_left α β) (@sum.infinite_of_right α β)⟩,
+  contrapose! H, haveI := fintype_of_not_infinite H.1, haveI := fintype_of_not_infinite H.2,
+  exact infinite.false
+end
+
+instance prod.infinite_of_right [nonempty α] [infinite β] : infinite (α × β) :=
+infinite.of_surjective prod.snd prod.snd_surjective
+
+instance prod.infinite_of_left [infinite α] [nonempty β] : infinite (α × β) :=
+infinite.of_surjective prod.fst prod.fst_surjective
+
+@[simp] lemma infinite_prod :
+  infinite (α × β) ↔ infinite α ∧ nonempty β ∨ nonempty α ∧ infinite β :=
+begin
+  refine ⟨λ H, _, λ H, H.elim (and_imp.2 $ @prod.infinite_of_left α β)
+    (and_imp.2 $ @prod.infinite_of_right α β)⟩,
+  rw and.comm, contrapose! H, introI H',
+  rcases infinite.nonempty (α × β) with ⟨a, b⟩,
+  haveI := fintype_of_not_infinite (H.1 ⟨b⟩), haveI := fintype_of_not_infinite (H.2 ⟨a⟩),
+  exact H'.false
+end
+
+namespace infinite
 
 private noncomputable def nat_embedding_aux (α : Type*) [infinite α] : ℕ → α
 | n := by letI := classical.dec_eq α; exact classical.some (exists_not_mem_finset
@@ -1837,24 +1866,6 @@ lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
 ⟨(range n).map (nat_embedding α), by rw [card_map, card_range]⟩
 
 end infinite
-
-@[simp] lemma infinite_sum : infinite (α ⊕ β) ↔ infinite α ∨ infinite β :=
-begin
-  refine ⟨λ H, _, λ H, H.elim (@infinite.sum_of_left α β) (@infinite.sum_of_right α β)⟩,
-  contrapose! H, haveI := fintype_of_not_infinite H.1, haveI := fintype_of_not_infinite H.2,
-  exact infinite.false
-end
-
-@[simp] lemma infinite_prod :
-  infinite (α × β) ↔ infinite α ∧ nonempty β ∨ nonempty α ∧ infinite β :=
-begin
-  refine ⟨λ H, _, λ H, H.elim (and_imp.2 $ @infinite.prod_of_left α β)
-    (and_imp.2 $ @infinite.prod_of_right α β)⟩,
-  rw and.comm, contrapose! H, introI H',
-  rcases infinite.nonempty (α × β) with ⟨a, b⟩,
-  haveI := fintype_of_not_infinite (H.1 ⟨b⟩), haveI := fintype_of_not_infinite (H.2 ⟨a⟩),
-  exact H'.false
-end
 
 /-- If every finset in a type has bounded cardinality, that type is finite. -/
 noncomputable def fintype_of_finset_card_le {ι : Type*} (n : ℕ)

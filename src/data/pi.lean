@@ -7,6 +7,7 @@ import tactic.split_ifs
 import tactic.simpa
 import tactic.congr
 import algebra.group.to_additive
+import data.prod
 /-!
 # Instances and theorems on pi types
 
@@ -84,67 +85,92 @@ instance has_mul [∀ i, has_mul $ f i] :
 section
 
 variables [decidable_eq I]
-variables [Π i, has_zero (f i)] [Π i, has_zero (g i)] [Π i, has_zero (h i)]
+variables [Π i, has_one (f i)] [Π i, has_one (g i)] [Π i, has_one (h i)]
 
-/-- The function supported at `i`, with value `x` there. -/
-def single (i : I) (x : f i) : Π i, f i :=
-function.update 0 i x
+/-- The function supported at `i`, with value `x` there, and `1` elsewhere. -/
+@[to_additive pi.single "The function supported at `i`, with value `x` there, and `0` elsewhere." ]
+def mul_single (i : I) (x : f i) : Π i, f i :=
+function.update 1 i x
 
-@[simp] lemma single_eq_same (i : I) (x : f i) : single i x i = x :=
+@[simp, to_additive]
+lemma mul_single_eq_same (i : I) (x : f i) : mul_single i x i = x :=
 function.update_same i x _
 
-@[simp] lemma single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single i x i' = 0 :=
+@[simp, to_additive]
+lemma mul_single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : mul_single i x i' = 1 :=
 function.update_noteq h x _
 
-/-- Abbreviation for `single_eq_of_ne h.symm`, for ease of use by `simp`. -/
-@[simp] lemma single_eq_of_ne' {i i' : I} (h : i ≠ i') (x : f i) : single i x i' = 0 :=
-single_eq_of_ne h.symm x
+/-- Abbreviation for `mul_single_eq_of_ne h.symm`, for ease of use by `simp`. -/
+@[simp, to_additive "Abbreviation for `single_eq_of_ne h.symm`, for ease of
+use by `simp`."]
+lemma mul_single_eq_of_ne' {i i' : I} (h : i ≠ i') (x : f i) : mul_single i x i' = 1 :=
+mul_single_eq_of_ne h.symm x
 
-@[simp] lemma single_zero (i : I) : single i (0 : f i) = 0 :=
+@[simp, to_additive]
+lemma mul_single_one (i : I) : mul_single i (1 : f i) = 1 :=
 function.update_eq_self _ _
 
-/-- On non-dependent functions, `pi.single` can be expressed as an `ite` -/
-lemma single_apply {β : Sort*} [has_zero β] (i : I) (x : β) (i' : I) :
-  single i x i' = if i' = i then x else 0 :=
-function.update_apply 0 i x i'
+/-- On non-dependent functions, `pi.mul_single` can be expressed as an `ite` -/
+@[to_additive "On non-dependent functions, `pi.single` can be expressed as an `ite`"]
+lemma mul_single_apply {β : Sort*} [has_one β] (i : I) (x : β) (i' : I) :
+  mul_single i x i' = if i' = i then x else 1 :=
+function.update_apply 1 i x i'
 
-/-- On non-dependent functions, `pi.single` is symmetric in the two indices. -/
-lemma single_comm {β : Sort*} [has_zero β] (i : I) (x : β) (i' : I) :
-  single i x i' = single i' x i :=
-by simp [single_apply, eq_comm]
+/-- On non-dependent functions, `pi.mul_single` is symmetric in the two indices. -/
+@[to_additive "On non-dependent functions, `pi.single` is symmetric in the two
+indices."]
+lemma mul_single_comm {β : Sort*} [has_one β] (i : I) (x : β) (i' : I) :
+  mul_single i x i' = mul_single i' x i :=
+by simp [mul_single_apply, eq_comm]
 
-lemma apply_single (f' : Π i, f i → g i) (hf' : ∀ i, f' i 0 = 0) (i : I) (x : f i) (j : I):
-  f' j (single i x j) = single i (f' i x) j :=
-by simpa only [pi.zero_apply, hf', single] using function.apply_update f' 0 i x j
+@[to_additive]
+lemma apply_mul_single (f' : Π i, f i → g i) (hf' : ∀ i, f' i 1 = 1) (i : I) (x : f i) (j : I):
+  f' j (mul_single i x j) = mul_single i (f' i x) j :=
+by simpa only [pi.one_apply, hf', mul_single] using function.apply_update f' 1 i x j
 
-lemma apply_single₂ (f' : Π i, f i → g i → h i) (hf' : ∀ i, f' i 0 0 = 0)
+@[to_additive apply_single₂]
+lemma apply_mul_single₂ (f' : Π i, f i → g i → h i) (hf' : ∀ i, f' i 1 1 = 1)
   (i : I) (x : f i) (y : g i) (j : I):
-  f' j (single i x j) (single i y j) = single i (f' i x y) j :=
+  f' j (mul_single i x j) (mul_single i y j) = mul_single i (f' i x y) j :=
 begin
   by_cases h : j = i,
-  { subst h, simp only [single_eq_same] },
-  { simp only [single_eq_of_ne h, hf'] },
+  { subst h, simp only [mul_single_eq_same] },
+  { simp only [mul_single_eq_of_ne h, hf'] },
 end
 
-lemma single_op {g : I → Type*} [Π i, has_zero (g i)] (op : Π i, f i → g i) (h : ∀ i, op i 0 = 0)
+@[to_additive]
+lemma mul_single_op {g : I → Type*} [Π i, has_one (g i)] (op : Π i, f i → g i) (h : ∀ i, op i 1 = 1)
   (i : I) (x : f i) :
-  single i (op i x) = λ j, op j (single i x j) :=
-eq.symm $ funext $ apply_single op h i x
+  mul_single i (op i x) = λ j, op j (mul_single i x j) :=
+eq.symm $ funext $ apply_mul_single op h i x
 
-lemma single_op₂ {g₁ g₂ : I → Type*} [Π i, has_zero (g₁ i)] [Π i, has_zero (g₂ i)]
-  (op : Π i, g₁ i → g₂ i → f i) (h : ∀ i, op i 0 0 = 0) (i : I) (x₁ : g₁ i) (x₂ : g₂ i) :
-  single i (op i x₁ x₂) = λ j, op j (single i x₁ j) (single i x₂ j) :=
-eq.symm $ funext $ apply_single₂ op h i x₁ x₂
+@[to_additive]
+lemma mul_single_op₂ {g₁ g₂ : I → Type*} [Π i, has_one (g₁ i)] [Π i, has_one (g₂ i)]
+  (op : Π i, g₁ i → g₂ i → f i) (h : ∀ i, op i 1 1 = 1) (i : I) (x₁ : g₁ i) (x₂ : g₂ i) :
+  mul_single i (op i x₁ x₂) = λ j, op j (mul_single i x₁ j) (mul_single i x₂ j) :=
+eq.symm $ funext $ apply_mul_single₂ op h i x₁ x₂
 
 variables (f)
 
-lemma single_injective (i : I) : function.injective (single i : f i → Π i, f i) :=
+@[to_additive]
+lemma mul_single_injective (i : I) : function.injective (mul_single i : f i → Π i, f i) :=
 function.update_injective _ i
 
-@[simp] lemma single_inj (i : I) {x y : f i} : pi.single i x = pi.single i y ↔ x = y :=
-(pi.single_injective _ _).eq_iff
+@[simp, to_additive]
+lemma mul_single_inj (i : I) {x y : f i} : mul_single i x = mul_single i y ↔ x = y :=
+(pi.mul_single_injective _ _).eq_iff
 
 end
+
+/-- The mapping into a product type built from maps into each component. -/
+@[simp] protected def prod (f' : Π i, f i) (g' : Π i, g i) (i : I) : f i × g i := (f' i, g' i)
+
+@[simp] lemma prod_fst_snd : pi.prod (prod.fst : α × β → α) (prod.snd : α × β → β) = id :=
+funext $ λ _, prod.mk.eta
+
+@[simp] lemma prod_snd_fst : pi.prod (prod.snd : α × β → β) (prod.fst : α × β → α) = prod.swap :=
+rfl
+
 end pi
 
 namespace function
@@ -186,7 +212,8 @@ lemma bijective_pi_map {F : Π i, f i → g i} (hF : ∀ i, bijective (F i)) :
 
 end function
 
-lemma subsingleton.pi_single_eq {α : Type*} [decidable_eq I] [subsingleton I] [has_zero α]
+@[to_additive subsingleton.pi_single_eq]
+lemma subsingleton.pi_mul_single_eq {α : Type*} [decidable_eq I] [subsingleton I] [has_one α]
   (i : I) (x : α) :
-  pi.single i x = λ _, x :=
-funext $ λ j, by rw [subsingleton.elim j i, pi.single_eq_same]
+  pi.mul_single i x = λ _, x :=
+funext $ λ j, by rw [subsingleton.elim j i, pi.mul_single_eq_same]

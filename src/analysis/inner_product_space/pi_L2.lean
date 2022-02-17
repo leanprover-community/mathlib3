@@ -273,8 +273,7 @@ begin
   { rw [← v.equiv_fun.symm_apply_apply y, v.equiv_fun_symm_apply] }
 end
 
-@[simp] lemma _root_.basis.coe_to_orthonormal_basis_repr
-  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+@[simp] lemma _root_.basis.coe_to_orthonormal_basis_repr (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   ((v.to_orthonormal_basis hv).repr : E → euclidean_space 𝕜 ι) = v.equiv_fun :=
 rfl
 
@@ -283,8 +282,7 @@ rfl
   ((v.to_orthonormal_basis hv).repr.symm : euclidean_space 𝕜 ι → E) = v.equiv_fun.symm :=
 rfl
 
-@[simp] lemma _root_.basis.coe_to_orthonormal_basis
-  [decidable_eq ι] (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+@[simp] lemma _root_.basis.coe_to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   ⇑(v.to_orthonormal_basis hv) = v :=
 begin
   classical,

@@ -335,10 +335,39 @@ begin
   { exact ⟨1, zero_lt_one, λ i, false.elim $ hι $ nonempty.intro i⟩ }
 end
 
-lemma unif_integrable_finite [fintype ι] {f : ι → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
+lemma fin.induction' {X : Type*} (P : Π {n : ℕ} (f : fin n → X), Prop)
+  (h : ∀ (f : fin 0 → X), P f)
+  (hsucc : ∀ (n : ℕ), ((∀ (f : fin n → X), P f) → ∀ (f : (fin n.succ → X)), P f))
+  (n : ℕ) (f : fin n → X) : P f :=
+begin
+  induction n with d hd,
+  { exact h f },
+  { exact hsucc _ hd _ },
+end
+
+lemma unif_integrable_fin (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
+  {n : ℕ} {f : fin n → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
   unif_integrable f p μ :=
 begin
-  sorry
+  revert f,
+  refine fin.induction' _ (λ f hf, unif_integrable_subsingleton μ hp_one hp_top hf)
+    (λ n h f hfLp, _) _,
+  set g : fin n → α → β := λ k, f k with hg,
+  have hgLp : ∀ i, mem_ℒp (g i) p μ := λ i, hfLp i,
+  intros ε hε,
+  obtain ⟨δ₁, hδ₁pos, hδ₁⟩ := h g hgLp hε,
+  obtain ⟨δ₂, hδ₂pos, hδ₂⟩ := (hfLp n).snorm_indicator_ge_le μ hp_one hp_top hε,
+  refine ⟨min δ₁ δ₂, lt_min hδ₁pos hδ₂pos, λ i s hs hμs, _⟩,
+  by_cases hi : i.val < n,
+  { rw (_ : f i = g ⟨i.val, hi⟩),
+    { exact hδ₁ _ s hs (le_trans hμs $ ennreal.of_real_le_of_real $ min_le_left _ _) },
+    { rw hg, simp } },
+  { rw (_ : i = n),
+    { exact hδ₂ _ hs (le_trans hμs $ ennreal.of_real_le_of_real $ min_le_right _ _) },
+    { have hi' := fin.is_lt i,
+      rw nat.lt_succ_iff at hi',
+      rw not_lt at hi,
+      simp [← le_antisymm hi' hi] } }
 end
 
 lemma snorm_sub_le_of_dist_bdd
@@ -380,7 +409,7 @@ end
 -- We have this now: `tendsto_in_measure.exists_seq_tendsto_ae`
 
 /-- A sequence of uniformly integrable functions which converges μ-a.e. converges in Lp. -/
-lemma tendsto_Lp_of_unif_integrable (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
+lemma tendsto_Lp_of_tendsto_ae (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   (hg' : mem_ℒp g p μ) (hui : unif_integrable f p μ)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
@@ -450,6 +479,33 @@ begin
     exact add_le_add_three hnf hng hlt },
   { rw [not_lt, top_le_iff] at h,
     exact ⟨0, λ n hn, by simp [h]⟩ }
+end
+
+section
+
+open filter
+
+-- a sequence is convergent if and only if every subsequence has a convergent subsequence
+lemma tendsto_at_top_of_seq_tendsto_at_top {α : Type*} [topological_space α] (x : ℕ → α) (y : α)
+  (hxy : ∀ ns : ℕ → ℕ, strict_mono ns → ∃ ms : ℕ → ℕ, strict_mono ms ∧
+    tendsto (λ n, x (ns $ ms n)) at_top (nhds y)) :
+  tendsto (λ n, x n) at_top (nhds y) :=
+begin
+  sorry
+end
+
+end
+
+lemma tendsto_Lp_of_tendsto_in_measure (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
+  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+  (hg' : mem_ℒp g p μ) (hui : unif_integrable f p μ)
+  (hfg : tendsto_in_measure μ f g) :
+  tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
+begin
+  refine tendsto_at_top_of_seq_tendsto_at_top _ _ (λ ns hns, _),
+  -- obtain ⟨ms, hms, hms'⟩ := hfg.exists_seq_tendsto_ae,
+  -- refine ⟨ms, hms, _⟩,
+  sorry
 end
 
 lemma unif_integrable_of_tendsto_Lp {f : ℕ → α → β} {g : α → β}

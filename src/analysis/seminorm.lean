@@ -1008,7 +1008,7 @@ begin
     have := smul_pos (inv_pos.2 hr') hβ,
     refine ⟨r⁻¹ • β, ⟨this, _⟩, smul_inv_smul₀ hr'.ne' _⟩,
     rw ←mem_smul_set_iff_inv_smul_mem₀ at ⊢ hx,
-    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hr'.ne'), inv_inv₀],
+    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hr'.ne'), inv_inv],
     { exact this.ne' },
     { exact hβ.ne' } },
   { rintro ⟨β, ⟨hβ, hx⟩, rfl⟩,
@@ -1054,7 +1054,7 @@ begin
     rw mem_Ioi at ⊢ hr,
     have := smul_pos ha' hr,
     refine ⟨smul_pos (inv_pos.2 ha') hr, r⁻¹ • x, hx, _⟩,
-    rw [smul_inv₀, smul_assoc, inv_inv₀] }
+    rw [smul_inv₀, smul_assoc, inv_inv] }
 end
 
 lemma gauge_smul_left [module α E] [smul_comm_class α ℝ ℝ] [is_scalar_tower α ℝ ℝ]

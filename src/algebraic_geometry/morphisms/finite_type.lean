@@ -47,10 +47,10 @@ lemma _root_.ring_hom.finite_type_respects_iso : ring_hom.respects_iso @ring_hom
 ring_hom.finite_type_is_local.respects_iso
 
 lemma locally_of_finite_type_eq :
-  @locally_of_finite_type = target_affine_locally (source_affine_locally @ring_hom.finite_type) :=
+  @locally_of_finite_type = affine_locally @ring_hom.finite_type :=
 begin
   ext X Y f,
-  rw [locally_of_finite_type_iff, target_affine_locally_source_affine_locally_iff_affine_opens_le],
+  rw [locally_of_finite_type_iff, affine_locally_iff_affine_opens_le],
   exact ring_hom.finite_type_respects_iso
 end
 

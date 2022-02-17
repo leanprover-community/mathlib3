@@ -54,7 +54,9 @@ def affine_target_morphism_property := ∀ ⦃X Y : Scheme⦄ (f : X ⟶ Y) [is_
 def morphism_property.implies (P₁ P₂ : morphism_property) : Prop :=
 ∀ ⦃X Y : Scheme⦄ (f : X ⟶ Y), P₁ f → P₂ f
 
-infix `⤇` := morphism_property.implies
+infix ` ⤇ `:50 := morphism_property.implies
+
+instance : has_add morphism_property := ⟨λ P₁ P₂ X Y f, P₁ f ∧ P₂ f⟩
 
 def affine_target_morphism_property.to_property (P : affine_target_morphism_property) :
   morphism_property :=
@@ -230,6 +232,25 @@ end
 
 def target_affine_locally (P : affine_target_morphism_property) : morphism_property :=
   λ {X Y : Scheme} (f : X ⟶ Y), ∀ (U : Y.affine_opens), @@P (f ∣_ U) U.prop
+
+lemma target_affine_locally_implies (P₁ P₂ : affine_target_morphism_property)
+  (H : ∀ {X Y : Scheme} [is_affine Y] (f : X ⟶ Y), by exactI P₁ f → P₂ f) :
+  target_affine_locally P₁ ⤇ target_affine_locally P₂ :=
+begin
+  rintros X Y f h U,
+  apply H,
+  apply h,
+end
+
+lemma morphism_property_eq_iff_implies (P₁ P₂ : morphism_property) :
+  (P₁ ⤇ P₂ ∧ P₂ ⤇ P₁) ↔ (P₁ = P₂) :=
+⟨λ H, funext (λ X, funext (λ Y, funext (λ f, propext ⟨H.left f, H.right f⟩))),
+  λ e, ⟨λ X Y f H, e ▸ H, λ X Y f H, e.symm ▸ H⟩⟩
+
+lemma target_affine_locally_and (P₁ P₂ : affine_target_morphism_property) :
+  target_affine_locally P₁ + target_affine_locally P₂ =
+    target_affine_locally (λ X Y f _, by exactI P₁ f ∧ P₂ f) :=
+by { ext X Y f, exact forall_and_distrib.symm }
 
 lemma target_affine_locally_respects_iso {P : affine_target_morphism_property}
   (hP : P.respects_iso) : respects_iso (target_affine_locally P) :=
@@ -612,7 +633,7 @@ begin
   convert H,
   { apply pullback.hom_ext; simp only [category.assoc, pullback.lift_fst, pullback.lift_snd,
     pullback.lift_fst_assoc, pullback.lift_snd_assoc, category.comp_id,
-    pullback.pullback_diagonal_map_iso_hom_fst, pullback.pullback_diagonal_map_iso_hom_snd], }
+    pullback_diagonal_map_iso_hom_fst, pullback_diagonal_map_iso_hom_snd], }
 end
 
 lemma diagonal_is_affine_property.affine_open_cover_tfae (P : affine_target_morphism_property)

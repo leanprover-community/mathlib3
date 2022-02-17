@@ -42,6 +42,40 @@ instance {C : Type*} [category C] {X Y : Cᵒᵖ} (f : X ⟶ Y) [H : is_iso f] :
 
 namespace ring_hom
 
+lemma Scheme.is_iso_iff {X Y : Scheme} (f : X ⟶ Y) :
+  is_iso f ↔ is_iso f.1.base ∧ is_iso f.1.c :=
+begin
+  split,
+  { intro H, resetI, split; apply_instance },
+  { rintro ⟨H₁, H₂⟩,
+    exactI @@is_iso_of_reflects_iso _ _ f (Scheme.forget_to_LocallyRingedSpace ⋙
+      LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace)
+      (PresheafedSpace.is_iso_of_components f.1 : _) _ }
+end
+
+lemma is_open_immersion.to_iso {X Y : Scheme} (f : X ⟶ Y) [h : is_open_immersion f]
+  [epi f.1.base] : is_iso f :=
+@@is_iso_of_reflects_iso _ _ f (Scheme.forget_to_LocallyRingedSpace ⋙
+  LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace)
+  (@@PresheafedSpace.is_open_immersion.to_iso _ f.1 h _) _
+
+lemma is_open_immersion.of_stalk_iso {X Y : Scheme} (f : X ⟶ Y) (hf : open_embedding f.1.base)
+  [∀ x, is_iso (PresheafedSpace.stalk_map f.1 x)] : is_open_immersion f :=
+SheafedSpace.is_open_immersion.of_stalk_iso f.1 hf
+
+lemma Scheme.is_iso_iff_stalk {X Y : Scheme} (f : X ⟶ Y) :
+  is_iso f ↔ is_iso f.1.base ∧ (∀ x, is_iso (PresheafedSpace.stalk_map f.1 x)) :=
+begin
+  split,
+  { intro h, resetI, split; apply_instance },
+  { rintro ⟨h₁, h₂⟩,
+    resetI,
+    apply_with is_open_immersion.to_iso { instances := ff },
+    { apply_with is_open_immersion.of_stalk_iso { instances := ff },
+      exacts [(Top.homeo_of_iso (as_iso f.1.base)).open_embedding, h₂] },
+    { apply_instance } }
+end
+
 include P
 
 variable {P}
@@ -244,8 +278,29 @@ begin
   exactI ⟨infer_instance, h₃.Γ_pullback_fst hP _ _ H⟩
 end
 
+lemma affine_and_implies
+  (P₁ P₂ : ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S), Prop)
+  (H : ∀ {R S : Type u} [comm_ring R] [comm_ring S], by exactI ∀ (f : R →+* S), P₁ f → P₂ f) :
+  target_affine_locally (affine_and P₁) ⤇ target_affine_locally (affine_and P₂) :=
+begin
+  apply target_affine_locally_implies,
+  rintros X Y hY f ⟨hX, hf⟩,
+  exact ⟨hX, H _ hf⟩,
+end
+
+lemma target_affine_locally_is_iso :
+  target_affine_locally (λ X Y f _, is_iso f) = @is_iso Scheme _ :=
+begin
+  ext X Y f,
+  split,
+  { intro H, rw ring_hom.Scheme.is_iso_iff_stalk, , }
+end
+
 def source_affine_locally : affine_target_morphism_property :=
 λ X Y f hY, ∀ (U : X.affine_opens), P (Scheme.Γ.map (X.of_restrict U.1.open_embedding ≫ f).op)
+
+abbreviation affine_locally : morphism_property :=
+target_affine_locally (source_affine_locally @P)
 
 lemma is_local_source_affine_locally
   (h₁ : ring_hom.respects_iso @P)
@@ -351,6 +406,10 @@ begin
     rw [← category.assoc, op_comp, functor.map_comp, h.cancel_left_is_iso],
     apply H }
 end
+
+lemma affine_locally_respects_iso (h : ring_hom.respects_iso @P) :
+  respects_iso (affine_locally @P) :=
+target_affine_locally_respects_iso (source_affine_locally_respects_iso h)
 
 include hP
 
@@ -470,9 +529,9 @@ lemma _root_.ring_hom.property_is_local.source_affine_open_cover_iff {X Y : Sche
 ⟨λ H, let h := ((hP.affine_open_cover_tfae f).out 0 2).mp H in h 𝒰,
   λ H, let h := ((hP.affine_open_cover_tfae f).out 1 0).mp in h ⟨𝒰, infer_instance, H⟩⟩
 
-lemma target_affine_locally_source_affine_locally_iff_affine_opens_le
+lemma affine_locally_iff_affine_opens_le
   (hP : ring_hom.respects_iso @P) {X Y : Scheme} (f : X ⟶ Y) :
-  target_affine_locally (source_affine_locally @P) f ↔
+  affine_locally @P f ↔
   (∀ (U : Y.affine_opens) (V : X.affine_opens) (e : V.1 ≤ (opens.map f.1.base).obj U.1),
     P (f.1.c.app (op U) ≫ X.presheaf.map (hom_of_le e).op)) :=
 begin
@@ -515,15 +574,14 @@ is_local_source_affine_locally _ hP.respects_iso hP.localization_preserves
 lemma _root_.ring_hom.property_is_local.affine_open_cover_iff {X Y : Scheme.{u}} (f : X ⟶ Y)
   (𝒰 : Scheme.open_cover.{u} Y) [∀ i, is_affine (𝒰.obj i)]
   (𝒰' : ∀ i, Scheme.open_cover.{u} ((𝒰.pullback_cover f).obj i)) [∀ i j, is_affine ((𝒰' i).obj j)] :
-  target_affine_locally (source_affine_locally @P) f ↔
+  affine_locally @P f ↔
     (∀ i j, P (Scheme.Γ.map ((𝒰' i).map j ≫ pullback.snd).op)) :=
 (hP.is_local_source_affine_locally.affine_open_cover_iff f 𝒰).trans
     (forall_congr (λ i, hP.source_affine_open_cover_iff _ (𝒰' i)))
 
 lemma _root_.ring_hom.property_is_local.source_open_cover_iff {X Y : Scheme.{u}} (f : X ⟶ Y)
   (𝒰 : Scheme.open_cover.{u} X) :
-  target_affine_locally (source_affine_locally @P) f ↔
-    (∀ i, target_affine_locally (source_affine_locally @P) (𝒰.map i ≫ f)) :=
+  affine_locally @P f ↔ ∀ i, affine_locally @P (𝒰.map i ≫ f) :=
 begin
   split,
   { intros H i U,
@@ -546,7 +604,7 @@ begin
 end
 
 lemma affine_locally_of_is_open_immersion (hP : ring_hom.property_is_local @P) {X Y : Scheme}
-  (f : X ⟶ Y) [hf : is_open_immersion f] : target_affine_locally (source_affine_locally @P) f :=
+  (f : X ⟶ Y) [hf : is_open_immersion f] : affine_locally @P f :=
 begin
   intro U,
   haveI H : is_affine _ := U.2,
@@ -562,7 +620,7 @@ begin
 end
 .
 lemma affine_locally_stable_under_composition :
-  stable_under_composition (target_affine_locally (source_affine_locally @P)) :=
+  stable_under_composition (affine_locally @P) :=
 begin
   intros X Y S f g hf hg,
   let 𝒰 : ∀ i, ((S.affine_cover.pullback_cover (f ≫ g)).obj i).open_cover,
@@ -585,7 +643,8 @@ begin
       pullback.lift_snd_assoc, category.assoc, ← category.assoc, op_comp, functor.map_comp],
     apply hP.stable_under_composition,
     { exact (hP.affine_open_cover_iff _ _ _).mp hg _ _ },
-    { rw (hP.is_local_source_affine_locally.affine_open_cover_tfae f).out 0 3 at hf,
+    { delta affine_locally at hf,
+      rw (hP.is_local_source_affine_locally.affine_open_cover_tfae f).out 0 3 at hf,
       specialize hf ((pullback g (S.affine_cover.map i)).affine_cover.map j ≫ pullback.fst),
       rw (hP.affine_open_cover_tfae (pullback.snd : pullback f ((pullback g (S.affine_cover.map i))
         .affine_cover.map j ≫ pullback.fst) ⟶ _)).out 0 3 at hf,
@@ -609,8 +668,33 @@ begin
 end
 
 lemma affine_locally_stable_under_base_change (h : ring_hom.stable_under_base_change @P) :
-  stable_under_base_change (target_affine_locally (source_affine_locally @P)) :=
+  stable_under_base_change (affine_locally @P) :=
 hP.is_local_source_affine_locally.stable_under_base_change
   (source_affine_locally_stable_under_base_change hP h)
+
+lemma affine_and_target_affine_locally_eq :
+  target_affine_locally (affine_and @P) = @affine + affine_locally @P :=
+begin
+  delta affine_locally,
+  rw [affine_eq_affine_property, target_affine_locally_and],
+  congr,
+  ext X Y f hY,
+  resetI,
+  split,
+  { rintro ⟨hX, h⟩, refine ⟨hX, _⟩, resetI,
+    rw hP.source_affine_open_cover_iff f _,
+    rotate,
+    { exact Scheme.open_cover_of_is_iso (𝟙 X) },
+    { intro _, exact hX },
+    { intro _, erw category.id_comp, exact h } },
+  { rintro ⟨hX : is_affine X, h⟩, refine ⟨hX, _⟩, resetI,
+    have := h ⟨_, top_is_affine_open X⟩,
+    rwa [op_comp, functor.map_comp, @@ring_hom.respects_iso.cancel_right_is_iso
+      @P hP.respects_iso _ _ (show _, from _)] at this,
+    change is_iso (X.presheaf.map _),
+    convert_to is_iso (X.presheaf.map (eq_to_hom $ opens.open_embedding_obj_top ⊤).op),
+    congr,
+    apply_instance },
+end
 
 end algebraic_geometry

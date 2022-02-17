@@ -237,7 +237,7 @@ begin
   cases lt_or_gt_of_ne h with h h,
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
       measure.map_apply (measurable_const_mul a) measurable_set_Ioo, neg_sub_neg,
-      ← neg_mul_eq_neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub,
+      neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub,
       mul_div_cancel' _ (ne_of_lt h)] },
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
       measure.map_apply (measurable_const_mul a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
@@ -491,10 +491,9 @@ begin
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,
   { rw measure.restrict_prod_eq_prod_univ,
-    exact (measure.restrict_eq_self' (hs.prod measurable_set.univ)
-      (region_between_subset f g s)).symm, },
+    exact (measure.restrict_eq_self _ (region_between_subset f g s)).symm, },
   { rw measure.restrict_prod_eq_prod_univ,
-    exact (measure.restrict_eq_self' (hs.prod measurable_set.univ)
+    exact (measure.restrict_eq_self _
       (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm },
 end
 

@@ -641,6 +641,10 @@ continuous_induced_dom
 lemma continuous_subtype_coe : continuous (coe : subtype p → α) :=
 continuous_subtype_val
 
+lemma continuous.subtype_coe {f : β → subtype p} (hf : continuous f) :
+  continuous (λ x, (f x : α)) :=
+continuous_subtype_coe.comp hf
+
 lemma is_open.open_embedding_subtype_coe {s : set α} (hs : is_open s) :
   open_embedding (coe : s → α) :=
 { induced := rfl,

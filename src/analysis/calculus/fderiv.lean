@@ -299,7 +299,7 @@ begin
   refine le_of_forall_pos_le_add (λ ε ε0, op_norm_le_of_nhds_zero _ _),
   exact add_nonneg hC₀ ε0.le,
   rw [← map_add_left_nhds_zero x₀, eventually_map] at hlip,
-  filter_upwards [is_o_iff.1 (has_fderiv_at_iff_is_o_nhds_zero.1 hf) ε0, hlip], intros y hy hyC,
+  filter_upwards [is_o_iff.1 (has_fderiv_at_iff_is_o_nhds_zero.1 hf) ε0, hlip] with y hy hyC,
   rw add_sub_cancel' at hyC,
   calc ∥f' y∥ ≤ ∥f (x₀ + y) - f x₀∥ + ∥f (x₀ + y) - f x₀ - f' y∥ : norm_le_insert _ _
           ... ≤ C * ∥y∥ + ε * ∥y∥                                : add_le_add hyC hy
@@ -312,8 +312,7 @@ lemma has_fderiv_at.le_of_lip {f : E → F} {f' : E →L[𝕜] F} {x₀ : E} (hf
   {s : set E} (hs : s ∈ 𝓝 x₀) {C : ℝ≥0} (hlip : lipschitz_on_with C f s) : ∥f'∥ ≤ C :=
 begin
   refine hf.le_of_lip' C.coe_nonneg _,
-  filter_upwards [hs],
-  exact λ x hx, hlip.norm_sub_le hx (mem_of_mem_nhds hs)
+  filter_upwards [hs] with x hx using hlip.norm_sub_le hx (mem_of_mem_nhds hs),
 end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
@@ -626,7 +625,7 @@ has_fderiv_at_filter.tendsto_nhds inf_le_left h
 
 theorem has_fderiv_at.continuous_at (h : has_fderiv_at f f' x) :
   continuous_at f x :=
-has_fderiv_at_filter.tendsto_nhds (le_refl _) h
+has_fderiv_at_filter.tendsto_nhds le_rfl h
 
 lemma differentiable_within_at.continuous_within_at (h : differentiable_within_at 𝕜 f s x) :
   continuous_within_at f s x :=
@@ -1024,7 +1023,7 @@ example {g : F → G} {g' : F →L[𝕜] G}
 begin
   unfold has_fderiv_at_filter at hg,
   have : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', f x' - f x) L,
-    from hg.comp_tendsto (le_refl _),
+    from hg.comp_tendsto le_rfl,
   have eq₁ : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', x' - x) L,
     from this.trans_is_O hf.is_O_sub,
   have eq₂ : is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L,

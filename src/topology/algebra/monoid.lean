@@ -182,9 +182,9 @@ variables {M₁ M₂} [mul_one_class M₁] [mul_one_class M₂] [has_continuous_
 /-- Construct a bundled monoid homomorphism `M₁ →* M₂` from a function `f` and a proof that it
 belongs to the closure of the range of the coercion from `M₁ →* M₂` (or another type of bundled
 homomorphisms that has a `monoid_hom_class` instance) to `M₁ → M₂`. -/
-@[to_additive "/-- Construct a bundled additive monoid homomorphism `M₁ →+ M₂` from a function `f`
+@[to_additive "Construct a bundled additive monoid homomorphism `M₁ →+ M₂` from a function `f`
 and a proof that it belongs to the closure of the range of the coercion from `M₁ →+ M₂` (or another
-type of bundled homomorphisms that has a `add_monoid_hom_class` instance) to `M₁ → M₂`. -/",
+type of bundled homomorphisms that has a `add_monoid_hom_class` instance) to `M₁ → M₂`.",
   simps { fully_applied := ff }]
 def monoid_hom_of_mem_closure_range_coe (f : M₁ → M₂)
   (hf : f ∈ closure (range (λ (f : F) (x : M₁), f x))) : M₁ →* M₂ :=
@@ -315,6 +315,10 @@ begin
   rintros _ ⟨x, y, hx, hy, rfl⟩,
   exact hV _ hx _ hy
 end
+
+@[to_additive]
+lemma is_compact.mul {s t : set M} (hs : is_compact s) (ht : is_compact t) : is_compact (s * t) :=
+by { rw [← image_mul_prod], exact (hs.prod ht).image continuous_mul }
 
 @[to_additive]
 lemma tendsto_list_prod {f : ι → α → M} {x : filter α} {a : ι → M} :
@@ -492,3 +496,46 @@ instance additive.has_continuous_add {M} [h : topological_space M] [has_mul M]
 instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_add M]
   [has_continuous_add M] : @has_continuous_mul (multiplicative M) h _ :=
 { continuous_mul := @continuous_add M _ _ _ }
+
+section lattice_ops
+
+variables [has_mul M] [has_mul N] {ts : set (topological_space M)}
+  (h : Π t ∈ ts, @has_continuous_mul M t _) {ts' : ι → topological_space M}
+  (h' : Π i, @has_continuous_mul M (ts' i) _) {t₁ t₂ : topological_space M}
+  (h₁ : @has_continuous_mul M t₁ _) (h₂ : @has_continuous_mul M t₂ _)
+  {t : topological_space N} [has_continuous_mul N] {F : Type*}
+  [mul_hom_class F M N] (f : F)
+
+@[to_additive] lemma has_continuous_mul_Inf :
+  @has_continuous_mul M (Inf ts) _ :=
+{ continuous_mul := continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ ht ht
+  (@has_continuous_mul.continuous_mul M t _ (h t ht))) }
+
+include h'
+
+@[to_additive] lemma has_continuous_mul_infi :
+  @has_continuous_mul M (⨅ i, ts' i) _ :=
+by {rw ← Inf_range, exact has_continuous_mul_Inf (set.forall_range_iff.mpr h')}
+
+omit h'
+
+include h₁ h₂
+
+@[to_additive] lemma has_continuous_mul_inf :
+  @has_continuous_mul M (t₁ ⊓ t₂) _ :=
+by {rw inf_eq_infi, refine has_continuous_mul_infi (λ b, _), cases b; assumption}
+
+omit h₁ h₂
+
+@[to_additive] lemma has_continuous_mul_induced :
+  @has_continuous_mul M (t.induced f) _ :=
+{ continuous_mul :=
+    begin
+      letI : topological_space M := t.induced f,
+      refine continuous_induced_rng _,
+      simp_rw [function.comp, map_mul],
+      change continuous ((λ p : N × N, p.1 * p.2) ∘ (prod.map f f)),
+      exact continuous_mul.comp (continuous_induced_dom.prod_map continuous_induced_dom),
+    end }
+
+end lattice_ops

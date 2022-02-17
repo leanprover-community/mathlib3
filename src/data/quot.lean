@@ -33,6 +33,9 @@ local notation `⟦`:max a `⟧` := quot.mk _ a
 
 instance [inhabited α] : inhabited (quot ra) := ⟨⟦default⟧⟩
 
+instance [subsingleton α] : subsingleton (quot ra) :=
+⟨λ x, quot.induction_on x (λ y, quot.ind (λ b, congr_arg _ (subsingleton.elim _ _)))⟩
+
 /-- Recursion on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
   (ca : ∀ {b a₁ a₂}, ra a₁ a₂ → f a₁ b == f a₂ b)
@@ -136,7 +139,10 @@ namespace quotient
 variables [sa : setoid α] [sb : setoid β]
 variables {φ : quotient sa → quotient sb → Sort*}
 
-instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default⟧⟩
+instance (s : setoid α) [inhabited α] : inhabited (quotient s) := ⟨⟦default⟧⟩
+
+instance (s : setoid α) [subsingleton α] : subsingleton (quotient s) :=
+quot.subsingleton
 
 /-- Induction on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
@@ -241,11 +247,11 @@ begin
   rw quotient.out_eq x,
 end
 
-@[simp] lemma quotient.out_equiv_out [s : setoid α] {x y : quotient s} :
+@[simp] lemma quotient.out_equiv_out {s : setoid α} {x y : quotient s} :
   x.out ≈ y.out ↔ x = y :=
 by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
 
-@[simp] lemma quotient.out_inj [s : setoid α] {x y : quotient s} :
+@[simp] lemma quotient.out_inj {s : setoid α} {x y : quotient s} :
   x.out = y.out ↔ x = y :=
 ⟨λ h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _, λ h, h ▸ rfl⟩
 
@@ -488,7 +494,7 @@ rfl
 
 /-- Map a function `f : α → β` that sends equivalent elements to equivalent elements
 to a function `quotient sa → quotient sb`. Useful to define unary operations on quotients. -/
-protected def map' (f : α → β) (h : ((≈) ⇒ (≈)) f f) :
+protected def map' (f : α → β) (h : (s₁.r ⇒ s₂.r) f f) :
   quotient s₁ → quotient s₂ :=
 quot.map f h
 
@@ -497,7 +503,7 @@ quot.map f h
 rfl
 
 /-- A version of `quotient.map₂` using curly braces and unification. -/
-protected def map₂' (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) :
+protected def map₂' (f : α → β → γ) (h : (s₁.r ⇒ s₂.r ⇒ s₃.r) f f) :
   quotient s₁ → quotient s₂ → quotient s₃ :=
 quotient.map₂ f h
 

@@ -260,7 +260,7 @@ begin
     refine (zpow_strict_anti this.1 this.2).le_iff_le.2 (int.lt_add_one_iff.1 _), exact hn },
   { rintro (rfl|H),
     exacts [circle_integrable_zero_radius,
-      ((continuous_on_id.sub continuous_on_const).zpow _ $ λ z hz, H.symm.imp_left $
+      ((continuous_on_id.sub continuous_on_const).zpow₀ _ $ λ z hz, H.symm.imp_left $
         λ hw, sub_ne_zero.2 $ ne_of_mem_of_not_mem hz hw).circle_integrable'] },
 end
 

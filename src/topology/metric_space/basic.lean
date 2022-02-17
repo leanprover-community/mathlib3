@@ -128,7 +128,7 @@ class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 
 /-- Two pseudo metric space structures with the same distance function coincide. -/
-@[ext] lemma pseudo_metric_space_eq {α : Type*} {m m' : pseudo_metric_space α}
+@[ext] lemma pseudo_metric_space.ext {α : Type*} {m m' : pseudo_metric_space α}
   (h : m.to_has_dist = m'.to_has_dist) : m = m' :=
 begin
   unfreezingI { rcases m, rcases m' },
@@ -900,19 +900,13 @@ lemma _root_.dense.exists_dist_lt {s : set α} (hs : dense s) (x : α) {ε : ℝ
   ∃ y ∈ s, dist x y < ε :=
 begin
   have : (ball x ε).nonempty, by simp [hε],
-  rcases hs.exists_mem_open is_open_ball this with ⟨y, ys, hy⟩,
-  refine ⟨y, ys, _⟩,
-  rw dist_comm,
-  exact hy,
+  simpa only [mem_ball'] using hs.exists_mem_open is_open_ball this
 end
 
 lemma _root_.dense_range.exists_dist_lt {β : Type*} {f : β → α} (hf : dense_range f)
   (x : α) {ε : ℝ} (hε : 0 < ε) :
   ∃ y, dist x (f y) < ε :=
-begin
-  rcases dense.exists_dist_lt hf x hε with ⟨y, ⟨z, rfl⟩, h⟩,
-  exact ⟨z, h⟩
-end
+exists_range_iff.1 (hf.exists_dist_lt x hε)
 
 end metric
 
@@ -1211,17 +1205,23 @@ theorem metric.cauchy_seq_iff' {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
 uniformity_basis_dist.cauchy_seq_iff'
 
+/-- If the distance between `s n` and `s m`, `n ≤ m` is bounded above by `b n`
+and `b` converges to zero, then `s` is a Cauchy sequence.  -/
+lemma cauchy_seq_of_le_tendsto_0' {s : β → α} (b : β → ℝ)
+  (h : ∀ n m : β, n ≤ m → dist (s n) (s m) ≤ b n) (h₀ : tendsto b at_top (𝓝 0)) :
+  cauchy_seq s :=
+metric.cauchy_seq_iff'.2 $ λ ε ε0,
+  (h₀.eventually (gt_mem_nhds ε0)).exists.imp $ λ N hN n hn,
+  calc dist (s n) (s N) = dist (s N) (s n) : dist_comm _ _
+                    ... ≤ b N              : h _ _ hn
+                    ... < ε                : hN
+
 /-- If the distance between `s n` and `s m`, `n, m ≥ N` is bounded above by `b N`
 and `b` converges to zero, then `s` is a Cauchy sequence.  -/
 lemma cauchy_seq_of_le_tendsto_0 {s : β → α} (b : β → ℝ)
   (h : ∀ n m N : β, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) (h₀ : tendsto b at_top (𝓝 0)) :
   cauchy_seq s :=
-metric.cauchy_seq_iff.2 $ λ ε ε0,
-  (metric.tendsto_at_top.1 h₀ ε ε0).imp $ λ N hN m hm n hn,
-  calc dist (s m) (s n) ≤ b N : h m n N hm hn
-                    ... ≤ |b N| : le_abs_self _
-                    ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
-                    ... < ε : (hN _ (le_refl N))
+cauchy_seq_of_le_tendsto_0' b (λ n m hnm, h _ _ _ le_rfl hnm) h₀
 
 /-- If the distance between `s n` and `s m`, `n ≤ m` is bounded above by `b n`
 and `b` converges to zero, then `s` is a Cauchy sequence.  -/
@@ -2221,10 +2221,10 @@ class metric_space (α : Type u) extends pseudo_metric_space α : Type u :=
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
 
 /-- Two metric space structures with the same distance coincide. -/
-@[ext] lemma metric_space_eq {α : Type*} {m m' : metric_space α}
+@[ext] lemma metric_space.ext {α : Type*} {m m' : metric_space α}
   (h : m.to_has_dist = m'.to_has_dist) : m = m' :=
 begin
-  have h' : m.to_pseudo_metric_space = m'.to_pseudo_metric_space := pseudo_metric_space_eq h,
+  have h' : m.to_pseudo_metric_space = m'.to_pseudo_metric_space := pseudo_metric_space.ext h,
   unfreezingI { rcases m, rcases m' },
   dsimp at h',
   unfreezingI { subst h' },
@@ -2412,14 +2412,16 @@ def metric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
 
 /-- Pull back a metric space structure by a uniform embedding. This is a version of
 `metric_space.induced` useful in case if the domain already has a `uniform_space` structure. -/
-def uniform_embedding.comap_metric_space {α β} [uniform_space α] [metric_space β] (f : α → β)
-  (h : uniform_embedding f) : metric_space α :=
+@[reducible] def uniform_embedding.comap_metric_space
+  {α β} [uniform_space α] [metric_space β] (f : α → β) (h : uniform_embedding f) :
+  metric_space α :=
 (metric_space.induced f h.inj ‹_›).replace_uniformity h.comap_uniformity.symm
 
 /-- Pull back a metric space structure by an embedding. This is a version of
 `metric_space.induced` useful in case if the domain already has a `topological_space` structure. -/
-def embedding.comap_metric_space {α β} [topological_space α] [metric_space β] (f : α → β)
-  (h : embedding f) : metric_space α :=
+@[reducible] def embedding.comap_metric_space
+  {α β} [topological_space α] [metric_space β] (f : α → β) (h : embedding f) :
+  metric_space α :=
 begin
   letI : uniform_space α := embedding.comap_uniform_space f h,
   exact uniform_embedding.comap_metric_space f (h.to_uniform_embedding f),
@@ -2442,7 +2444,7 @@ instance : metric_space empty :=
   to_uniform_space := empty.uniform_space,
   uniformity_dist := subsingleton.elim _ _ }
 
-instance : metric_space punit :=
+instance : metric_space punit.{u + 1} :=
 { dist := λ _ _, 0,
   dist_self := λ _, rfl,
   dist_comm := λ _ _, rfl,
@@ -2450,23 +2452,13 @@ instance : metric_space punit :=
   dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero,
   to_uniform_space := punit.uniform_space,
   uniformity_dist :=
-  begin
-    apply le_antisymm,
-    { simp only [gt_iff_lt, le_infi_iff, le_principal_iff],
-      assume i hi,
-      simp [hi] },
-    { refine infi_le_of_le 1 (infi_le_of_le zero_lt_one _),
-      simp only [zero_lt_one, set_of_true, principal_univ, top_le_iff],
-      ext x,
-      simp only [uniformity, uniform_space.to_core, mem_principal, id_rel_subset, mem_top],
-      split,
-      { assume H,
-        ext y,
-        rcases y with ⟨u, v⟩,
-        rw subsingleton.elim u v,
-        simp [H] },
-      { simp {contextual := tt} } }
-  end }
+    begin
+      simp only,
+      haveI : ne_bot (⨅ ε > (0 : ℝ), 𝓟 {p : punit.{u + 1} × punit.{u + 1} | 0 < ε}),
+      { exact @uniformity.ne_bot _ (uniform_space_of_dist (λ _ _, 0) (λ _, rfl) (λ _ _, rfl)
+          (λ _ _ _, by rw zero_add)) _ },
+      refine (eq_top_of_ne_bot _).trans (eq_top_of_ne_bot _).symm,
+    end}
 
 section real
 

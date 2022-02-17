@@ -67,6 +67,9 @@ instance has_nsmul [add_monoid β] [has_continuous_add β] : has_scalar ℕ C(α
 @[to_additive has_nsmul]
 instance has_pow [monoid β] [has_continuous_mul β] : has_pow C(α, β) ℕ :=
 ⟨λ f n, ⟨f ^ n, f.continuous.pow n⟩⟩
+
+@[simp, norm_cast, to_additive coe_nsmul]
+lemma coe_pow [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ⇑(f ^ n) = f ^ n := rfl
 
 @[simp, to_additive nsmul_comp] lemma pow_comp [monoid γ] [has_continuous_mul γ]
@@ -126,6 +129,7 @@ section group_structure
 ### Group stucture
 
 In this section we show that continuous functions valued in a topological group inherit
+the structure of a group.
 -/
 
 section subtype

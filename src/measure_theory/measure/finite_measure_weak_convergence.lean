@@ -223,7 +223,7 @@ end
 lemma test_against_nn_smul (μ : finite_measure α) (c : ℝ≥0) (f : α →ᵇ ℝ≥0) :
   μ.test_against_nn (c • f) = c * μ.test_against_nn f :=
 begin
-  simp only [←ennreal.coe_eq_coe, algebra.id.smul_eq_mul, bounded_continuous_function.coe_smul,
+  simp only [←ennreal.coe_eq_coe, algebra.id.smul_eq_mul, bounded_continuous_function.smul_apply,
              test_against_nn_coe_eq, ennreal.coe_mul],
   exact @lintegral_const_mul _ _ (μ : measure α) c _
                    (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f),

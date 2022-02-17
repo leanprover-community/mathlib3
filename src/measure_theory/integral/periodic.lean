@@ -40,11 +40,11 @@ begin
   haveI : encodable (add_subgroup.zmultiples a) := (countable_range _).to_encodable,
   simp only [interval_integral.integral_of_le, ha.le, le_add_iff_nonneg_right],
   haveI : vadd_invariant_measure (add_subgroup.zmultiples a) ℝ volume :=
-    ⟨λ c s hs, real.volume_preimage_add_left _ _⟩,
+    ⟨λ c s hs, measure_preimage_add _ _ _⟩,
   exact (is_add_fundamental_domain_Ioc ha b).set_integral_eq
     (is_add_fundamental_domain_Ioc ha c) hf.map_vadd_zmultiples
 end
-  
+
 /-- If `f` is a periodic function with period `a`, then its integral over `[b, b + a]` does not
 depend on `b`. -/
 lemma interval_integral_add_eq {f : ℝ → E} {a : ℝ} (hf : periodic f a)

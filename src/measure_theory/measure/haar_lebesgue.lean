@@ -59,10 +59,6 @@ open measure topological_space.positive_compacts finite_dimensional
 ### The Lebesgue measure is a Haar measure on `ℝ` and on `ℝ^ι`.
 -/
 
-instance is_add_left_invariant_real_volume :
-  is_add_left_invariant (volume : measure ℝ) :=
-⟨by simp [real.map_volume_add_left]⟩
-
 /-- The Haar measure equals the Lebesgue measure on `ℝ`. -/
 lemma add_haar_measure_eq_volume : add_haar_measure Icc01 = volume :=
 by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
@@ -72,7 +68,7 @@ by { rw ← add_haar_measure_eq_volume, apply_instance }
 
 instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
   is_add_left_invariant (volume : measure (ι → ℝ)) :=
-⟨by simp [real.map_volume_pi_add_left]⟩
+⟨by simp [map_add_left_eq_self]⟩
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ^ι`. -/
 lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
@@ -337,7 +333,7 @@ calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 begin
   rcases ne_or_eq r 0 with h|rfl,
-  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow₀, inv_inv₀] },
+  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow₀, inv_inv] },
   rcases eq_empty_or_nonempty s with rfl|hs,
   { simp only [measure_empty, mul_zero, smul_set_empty] },
   rw [zero_smul_set hs, ← singleton_zero],

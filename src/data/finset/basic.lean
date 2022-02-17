@@ -629,8 +629,7 @@ by exact_mod_cast @set.ssubset_iff_insert α s t
 
 lemma ssubset_insert (h : a ∉ s) : s ⊂ insert a s := ssubset_iff.mpr ⟨a, h, subset.rfl⟩
 
-lemma ssubset_iff_exists_insert_subset [decidable_eq α] {s t : finset α} :
-  s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
+lemma ssubset_iff_exists_insert_subset {s t : finset α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
 by simp_rw [ssubset_iff_exists_cons_subset, cons_eq_insert]
 
 @[elab_as_eliminator]
@@ -1047,8 +1046,7 @@ lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
 calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
   ... = _ : insert_erase h
 
-lemma ssubset_iff_exists_subset_erase [decidable_eq α] {s t : finset α} :
-  s ⊂ t ↔ ∃ a ∈ t, s ⊆ t.erase a :=
+lemma ssubset_iff_exists_subset_erase {s t : finset α} : s ⊂ t ↔ ∃ a ∈ t, s ⊆ t.erase a :=
 begin
   refine ⟨λ h, _, λ ⟨a, ha, h⟩, ssubset_of_subset_of_ssubset h $ erase_ssubset ha⟩,
   obtain ⟨a, ht, hs⟩ := (not_subset _ _).1 h.2,

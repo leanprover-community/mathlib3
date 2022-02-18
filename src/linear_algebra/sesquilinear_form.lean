@@ -303,12 +303,56 @@ lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
 
 end orthogonal
 
+section nondegenerate
+variables [comm_semiring R] [comm_semiring R₁] [add_comm_monoid M₁] [module R₁ M₁]
+  [comm_semiring R₂] [add_comm_monoid M₂] [module R₂ M₂]
+  {I₁ : R₁ →+* R} {I₂ : R₂ →+* R} {I₁' : R₁ →+* R}
+
+/-- A nondegenerate bilinear form is a bilinear form such that the only element that is orthogonal
+to every other element is `0`; i.e., for all nonzero `m` in `M`, there exists `n` in `M` with
+`B m n ≠ 0`.
+
+Note that for general (neither symmetric nor antisymmetric) bilinear forms this definition has a
+chirality; in addition to this "left" nondegeneracy condition one could define a "right"
+nondegeneracy condition that in the situation described, `B n m ≠ 0`.  This variant definition is
+not currently provided in mathlib. In finite dimension either definition implies the other. -/
+def separating_left (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop :=
+∀ x : M₁, (∀ y : M₂, B x y = 0) → x = 0
+
+def separating_right (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop :=
+∀ y : M₂, (∀ x : M₁, B x y = 0) → y = 0
+
+lemma separating_left_flip (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) :
+  separating_left B ↔ B.flip.separating_right :=
+begin
+  split,
+  { intro hB,
+    dunfold separating_right,
+    intros y hx,
+    exact hB y hx },
+  intro hB,
+  dunfold separating_left,
+  intros x hy,
+  exact hB x hy,
+end
+
+lemma separating_right_flip (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) :
+  separating_right B ↔ B.flip.separating_right :=
+begin
+  sorry,
+end
+
+def nondegenerate (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop := separating_left B ∧ separating_right B
+
+
+
+end nondegenerate
+
 section to_matrix
 
 variables [comm_ring R] [add_comm_group M] [module R M]
 variables [decidable_eq n] (b : basis n R M)
 
-#check b
 /-- This is an auxiliary definition for the equivalence `matrix.to_bilin_form'`. -/
 noncomputable def bilin_form_to_matrix_aux2 (b : basis n R M) : (M →ₗ[R] M →ₗ[R] R) →ₗ[R] matrix n n R :=
 { to_fun := λ B i j, B (b i) (b j),

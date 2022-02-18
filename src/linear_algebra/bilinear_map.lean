@@ -109,6 +109,9 @@ end
 
 @[simp] theorem flip_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (m : M) (n : N) : flip f n m = f m n := rfl
 
+@[simp] lemma flip_flip [smul_comm_class R₂ S₂ P] (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) :
+  f.flip.flip = f := linear_map.ext₂ (λ x y, ((f.flip).flip_apply _ _).trans (f.flip_apply _ _))
+
 open_locale big_operators
 
 variables {R}

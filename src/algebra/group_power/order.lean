@@ -191,6 +191,9 @@ strict_mono_pow h h2
 lemma pow_lt_pow_iff (h : 1 < a) : a ^ n < a ^ m ↔ n < m :=
 (strict_mono_pow h).lt_iff_lt
 
+lemma pow_le_pow_iff (h : 1 < a) : a ^ n ≤ a ^ m ↔ n ≤ m :=
+(strict_mono_pow h).le_iff_le
+
 lemma strict_anti_pow (h₀ : 0 < a) (h₁ : a < 1) : strict_anti (λ n : ℕ, a ^ n) :=
 strict_anti_nat_of_succ_lt $ λ n,
   by simpa only [pow_succ, one_mul] using mul_lt_mul h₁ le_rfl (pow_pos h₀ n) zero_le_one
@@ -311,6 +314,17 @@ theorem sq_pos_of_ne_zero (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
 pow_bit0_pos h 1
 
 alias sq_pos_of_ne_zero ← pow_two_pos_of_ne_zero
+
+theorem pow_bit0_pos_iff (a : R) {n : ℕ} (hn : n ≠ 0) : 0 < a ^ bit0 n ↔ a ≠ 0 :=
+begin
+  refine ⟨λ h, _, λ h, pow_bit0_pos h n⟩,
+  rintro rfl,
+  rw zero_pow (nat.zero_lt_bit0 hn) at h,
+  exact lt_irrefl _ h,
+end
+
+theorem sq_pos_iff (a : R) : 0 < a ^ 2 ↔ a ≠ 0 :=
+pow_bit0_pos_iff a one_ne_zero
 
 variables {x y : R}
 

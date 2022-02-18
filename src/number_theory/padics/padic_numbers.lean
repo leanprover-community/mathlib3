@@ -118,7 +118,7 @@ begin
     intros ε hε,
     existsi stationary_point hf,
     intros j hj,
-    have heq := stationary_point_spec hf (le_refl _) hj,
+    have heq := stationary_point_spec hf le_rfl hj,
     simpa [h, heq] },
   { intro h,
     simp [norm, h] }
@@ -162,7 +162,7 @@ lemma lift_index_left_left {f : padic_seq p} (hf : ¬ f ≈ 0) (v2 v3 : ℕ) :
 begin
   apply stationary_point_spec hf,
   { apply le_max_left },
-  { apply le_refl }
+  { exact le_rfl }
 end
 
 /-- An auxiliary lemma for manipulating sequence indices. -/
@@ -174,7 +174,7 @@ begin
   { apply le_trans,
     { apply le_max_left _ v3 },
     { apply le_max_right } },
-  { apply le_refl }
+  { exact le_rfl }
 end
 
 /-- An auxiliary lemma for manipulating sequence indices. -/
@@ -186,7 +186,7 @@ begin
   { apply le_trans,
     { apply le_max_right v2 },
     { apply le_max_right } },
-  { apply le_refl }
+  { exact le_rfl }
 end
 
 end embedding
@@ -213,7 +213,7 @@ begin
   intros ε hε,
   use (stationary_point hf),
   intros n hn,
-  rw stationary_point_spec hf (le_refl _) hn,
+  rw stationary_point_spec hf le_rfl hn,
   simpa [H] using hε,
 end
 
@@ -388,9 +388,9 @@ else
     simp only [hg, hf, norm, dif_neg, not_false_iff],
     let i := max (stationary_point hf) (stationary_point hg),
     have hpf : padic_norm p (f (stationary_point hf)) = padic_norm p (f i),
-    { apply stationary_point_spec, apply le_max_left, apply le_refl },
+    { apply stationary_point_spec, apply le_max_left, exact le_rfl },
     have hpg : padic_norm p (g (stationary_point hg)) = padic_norm p (g i),
-    { apply stationary_point_spec, apply le_max_right, apply le_refl },
+    { apply stationary_point_spec, apply le_max_right, exact le_rfl },
     rw [hpf, hpg, h]
   end
 
@@ -553,10 +553,10 @@ begin
   apply not_le_of_gt _ hge,
   cases decidable.em (N ≤ stationary_point hne) with hgen hngen,
   { apply hN; assumption },
-  { have := stationary_point_spec hne (le_refl _) (le_of_not_le hngen),
+  { have := stationary_point_spec hne le_rfl (le_of_not_le hngen),
     rw ←this,
     apply hN,
-    apply le_refl, assumption }
+    exact le_rfl, assumption }
 end
 
 protected lemma nonneg (q : ℚ_[p]) : 0 ≤ padic_norm_e q :=
@@ -647,11 +647,11 @@ quotient.induction_on q $ λ q',
         change padic_norm p (q' _ - q' _) < ε,
         have := stationary_point_spec hne',
         cases decidable.em (stationary_point hne' ≤ N) with hle hle,
-        { have := eq.symm (this (le_refl _) hle),
+        { have := eq.symm (this le_rfl hle),
           simp only [const_apply, sub_apply, padic_norm.zero, sub_self] at this,
           simpa only [this] },
         { apply hN,
-          apply le_of_lt, apply lt_of_not_ge, apply hle, apply le_refl }}
+          apply le_of_lt, apply lt_of_not_ge, apply hle, exact le_rfl }}
     end⟩
 
 variables {p : ℕ} [fact p.prime] (f : cau_seq _ (@padic_norm_e p _))
@@ -831,7 +831,7 @@ by rw [normed_field.norm_zpow, norm_p]; field_simp
 
 instance : nondiscrete_normed_field ℚ_[p] :=
 { non_trivial := ⟨p⁻¹, begin
-    rw [normed_field.norm_inv, norm_p, inv_inv₀],
+    rw [normed_field.norm_inv, norm_p, inv_inv],
     exact_mod_cast hp.1.one_lt
   end⟩ }
 
@@ -904,7 +904,7 @@ begin
   { rintro ⟨x, rfl⟩,
     push_cast,
     rw padic_norm_e.mul,
-    calc _ ≤ ∥(p : ℚ_[p])∥ * 1 : mul_le_mul (le_refl _) (by simpa using norm_int_le_one _)
+    calc _ ≤ ∥(p : ℚ_[p])∥ * 1 : mul_le_mul le_rfl (by simpa using norm_int_le_one _)
                                             (norm_nonneg _) (norm_nonneg _)
     ... < 1 : _,
     { rw [mul_one, padic_norm_e.norm_p],
@@ -964,7 +964,7 @@ lemma padic_norm_e_lim_le {f : cau_seq ℚ_[p] norm} {a : ℝ} (ha : 0 < a)
 let ⟨N, hN⟩ := setoid.symm (cau_seq.equiv_lim f) _ ha in
 calc ∥f.lim∥ = ∥f.lim - f N + f N∥ : by simp
                 ... ≤ max (∥f.lim - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
-                ... ≤ a : max_le (le_of_lt (hN _ (le_refl _))) (hf _)
+                ... ≤ a : max_le (le_of_lt (hN _ le_rfl)) (hf _)
 
 /-!
 ### Valuation on `ℚ_[p]`

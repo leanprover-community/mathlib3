@@ -287,12 +287,12 @@ begin
   rintro ⟨K, K0, hK⟩,
   obtain ⟨i, H⟩ := exists_forall_ge_and h
     (exists_forall_ge_and hK (f.cauchy₃ $ half_pos K0)),
-  apply not_lt_of_le (H _ (le_refl _)).1,
+  apply not_lt_of_le (H _ le_rfl).1,
   rw ← of_rat_eq_cast,
   rw [mk_lt] {md := tactic.transparency.semireducible},
   refine ⟨_, half_pos K0, i, λ j ij, _⟩,
   have := add_le_add (H _ ij).2.1
-    (le_of_lt (abs_lt.1 $ (H _ (le_refl _)).2.2 _ ij).1),
+    (le_of_lt (abs_lt.1 $ (H _ le_rfl).2.2 _ ij).1),
   rwa [← sub_eq_add_neg, sub_self_div_two, sub_apply, sub_add_sub_cancel] at this
 end
 

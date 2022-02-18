@@ -160,7 +160,7 @@ lemma has_finite_integral_of_bounded [is_finite_measure μ] {f : α → β} {C :
 
 lemma has_finite_integral.mono_measure {f : α → β} (h : has_finite_integral f ν) (hμ : μ ≤ ν) :
   has_finite_integral f μ :=
-lt_of_le_of_lt (lintegral_mono' hμ (le_refl _)) h
+lt_of_le_of_lt (lintegral_mono' hμ le_rfl) h
 
 lemma has_finite_integral.add_measure {f : α → β} (hμ : has_finite_integral f μ)
   (hν : has_finite_integral f ν) : has_finite_integral f (μ + ν) :=
@@ -171,11 +171,11 @@ end
 
 lemma has_finite_integral.left_of_add_measure {f : α → β} (h : has_finite_integral f (μ + ν)) :
   has_finite_integral f μ :=
-h.mono_measure $ measure.le_add_right $ le_refl _
+h.mono_measure $ measure.le_add_right $ le_rfl
 
 lemma has_finite_integral.right_of_add_measure {f : α → β} (h : has_finite_integral f (μ + ν)) :
   has_finite_integral f ν :=
-h.mono_measure $ measure.le_add_left $ le_refl _
+h.mono_measure $ measure.le_add_left $ le_rfl
 
 @[simp] lemma has_finite_integral_add_measure {f : α → β} :
   has_finite_integral f (μ + ν) ↔ has_finite_integral f μ ∧ has_finite_integral f ν :=
@@ -447,14 +447,23 @@ lemma integrable.add_measure {f : α → β} (hμ : integrable f μ) (hν : inte
   hμ.has_finite_integral.add_measure hν.has_finite_integral⟩
 
 lemma integrable.left_of_add_measure {f : α → β} (h : integrable f (μ + ν)) : integrable f μ :=
-h.mono_measure $ measure.le_add_right $ le_refl _
+h.mono_measure $ measure.le_add_right $ le_rfl
 
 lemma integrable.right_of_add_measure {f : α → β} (h : integrable f (μ + ν)) : integrable f ν :=
-h.mono_measure $ measure.le_add_left $ le_refl _
+h.mono_measure $ measure.le_add_left $ le_rfl
 
 @[simp] lemma integrable_add_measure {f : α → β} :
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
 ⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
+
+@[simp] lemma integrable_zero_measure {m : measurable_space α} {f : α → β} :
+  integrable f (0 : measure α) :=
+⟨ae_measurable_zero_measure, has_finite_integral_zero_measure f⟩
+
+theorem integrable_finset_sum_measure {ι} {m : measurable_space α} {f : α → β}
+  {μ : ι → measure α} {s : finset ι} :
+  integrable f (∑ i in s, μ i) ↔ ∀ i ∈ s, integrable f (μ i) :=
+by induction s using finset.induction_on; simp [*]
 
 lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ℝ≥0∞} (hc : c ≠ ∞) :
   integrable f (c • μ) :=
@@ -978,14 +987,6 @@ end integrable
 end measure_theory
 
 open measure_theory
-
-lemma integrable_zero_measure {m : measurable_space α} [measurable_space β] {f : α → β} :
-  integrable f (0 : measure α) :=
-begin
-  apply (integrable_zero _ _ _).congr,
-  change (0 : measure α) {x | 0 ≠ f x} = 0,
-  refl,
-end
 
 variables {E : Type*} [normed_group E] [measurable_space E] [borel_space E]
           {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]

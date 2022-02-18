@@ -75,7 +75,7 @@ lemma coe_pow [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ⇑(f ^ n) = f ^ n := rfl
   
 -- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul` 
-attribute [simp] coe_nsmul
+attribute [simp] coe_pow
 
 @[to_additive nsmul_comp] lemma pow_comp [monoid γ] [has_continuous_mul γ]
   (f : C(β, γ)) (n : ℕ) (g : C(α, β)) :
@@ -125,7 +125,7 @@ lemma coe_zpow [group β] [topological_group β] (f : C(α, β)) (z : ℤ) :
 rfl
 
 -- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul` 
-attribute [simp] coe_zsmul
+attribute [simp] coe_zpow
 
 @[to_additive]
 lemma zpow_comp [group γ] [topological_group γ] (f : C(β, γ)) (z : ℤ) (g : C(α, β)) :

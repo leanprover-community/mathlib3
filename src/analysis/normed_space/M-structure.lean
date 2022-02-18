@@ -21,6 +21,17 @@ begin
     rw [sq, ← h], }
 end
 
+lemma commuting_projections (P: X →L[𝕜] X) (Q: X →L[𝕜] X) (h: commute P Q): is_projection P → is_projection Q →  is_projection (P*Q)  :=
+begin
+  intros h₁ h₂,
+  unfold is_projection,
+  unfold is_projection at h₁,
+  unfold is_projection at h₂,
+  unfold commute at h,
+  unfold semiconj_by at h,
+  rw [sq, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, ← sq, h₂, ← mul_assoc, ← sq, h₁],
+end
+
 def is_Lprojection : (X →L[𝕜] X) → Prop := λ P, is_projection P ∧ ∀ (x : X), ∥x∥ = ∥P x∥ + ∥(1-P) x∥
 
 def is_Mprojection : (X →L[𝕜] X) → Prop := λ P, is_projection P ∧ ∀ (x : X), ∥x∥ = (max ∥P x∥  ∥(1-P) x∥)
@@ -95,10 +106,26 @@ begin
   exact e1,
 end
 
-lemma Lproj_commute (P: X →L[𝕜] X) (Q: X →L[𝕜] X) [h₁: is_Lprojection P] [h₂ : is_Lprojection Q] : commute P Q :=
+lemma Lproj_commute (P: X →L[𝕜] X) (Q: X →L[𝕜] X) (h₁: is_Lprojection P) (h₂ : is_Lprojection Q) : commute P Q :=
 begin
   unfold commute,
   unfold semiconj_by,
   rw Lproj_PQ_eq_QPQ P Q h₁ h₂,
   nth_rewrite_rhs 0 Lproj_QP_eq_QPQ P Q h₁ h₂,
+end
+
+lemma Lproj_prpduct (P: X →L[𝕜] X) (Q: X →L[𝕜] X) : is_Lprojection P → is_Lprojection Q → is_Lprojection (P*Q) :=
+begin
+  intros h₁ h₂,
+  unfold is_Lprojection,
+  split,
+  { apply commuting_projections P Q (Lproj_commute P Q h₁ h₂) h₁.left h₂.left, },
+  { intro x,
+    rw le_antisymm_iff,
+    split,
+    -- rw map_sub, apply norm_add_le,
+    { calc ∥ x ∥ = ∥(P * Q) x + (x - (P * Q) x)∥ : by abel
+      ... ≤ ∥(P * Q) x∥ + ∥ x - (P * Q) x ∥ : by apply norm_add_le
+      ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : rfl },
+    { sorry, } }
 end

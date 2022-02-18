@@ -15,6 +15,8 @@ import ring_theory.non_zero_divisors
 
 * `torsion R M a` : the `a`-torsion submodule, containing all elements `x` of `M` such that
   `a • x = 0`.
+* `torsion'' R M S`: the `S`-torsion submodule, containing all elements `x` of `M` such that
+  `a • x = 0` for some `a` in `S`.
 * `torsion' R M` : the torsion submoule, containing all elements `x` of `M` such that  `a • x = 0`
   for some non-zero-divisor `a` in `R`.
 
@@ -32,7 +34,7 @@ import ring_theory.non_zero_divisors
 ## Notation
 
 * The notions are defined for a `comm_semiring R` and a `module R M`. Some additional hypotheses on
-  `R` and `M`are required by some lemmas.
+  `R` and `M` are required by some lemmas.
 * The letters `a`, `b`, ... are used for scalars (in `R`), while `x`, `y`, ... are used for vectors
   (in `M`).
 
@@ -43,14 +45,16 @@ Torsion, submodule, module, quotient
 
 open_locale non_zero_divisors
 section defs
-variables (R M : Type*) [comm_semiring R] [add_comm_monoid M] [module R M] (a : R)
+variables (R M : Type*) [comm_semiring R] [add_comm_monoid M] [module R M]
 
-/-- The `a`-torsion submodule, for `a` in `R` -/
-def torsion : submodule R M := (distrib_mul_action.to_linear_map _ _ a).ker
+/-- The `a`-torsion submodule for `a` in `R`, containing all elements `x` of `M` such that
+  `a • x = 0`. -/
+def torsion (a : R) : submodule R M := (distrib_mul_action.to_linear_map _ _ a).ker
 
-/-- The torsion submodule, only defined when `R` is a domain. -/
-def torsion' [nontrivial R] : submodule R M :=
-{ carrier := { x | ∃ a : R⁰, a • x = 0 },
+/-- The `S`-torsion submodule, for `S` a multiplicative submonoid of `R`, containing all elements
+  `x` of `M` such that `a • x = 0` for some `a` in `S`. -/
+def torsion'' (S : submonoid R) : submodule R M :=
+{ carrier := { x | ∃ a : S, a • x = 0 },
   zero_mem' := ⟨1, smul_zero _⟩,
   add_mem' := λ x y ⟨a, hx⟩ ⟨b, hy⟩,
     ⟨b * a,
@@ -58,6 +62,11 @@ def torsion' [nontrivial R] : submodule R M :=
   smul_mem' := λ a x ⟨b, h⟩, ⟨b, begin
     have h' : (b : R) • x = 0 := h,
     change (b : R) • a • x = 0, rw [smul_smul, mul_comm, ←smul_smul, h', smul_zero] end⟩ }
+
+/-- The torsion submoule, containing all elements `x` of `M` such that  `a • x = 0` for some
+  non-zero-divisor `a` in `R`. -/
+def torsion' := torsion'' R M R⁰
+
 end defs
 
 section
@@ -125,7 +134,7 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 open submodule.quotient
 
 /-- Quotienting by the `torsion'` submodule gives a torsion-free module. -/
-lemma quotient_torsion.torsion'_eq_bot [nontrivial R] : torsion' R (M ⧸ torsion' R M) = ⊥ :=
+lemma quotient_torsion.torsion'_eq_bot : torsion' R (M ⧸ torsion' R M) = ⊥ :=
 begin
   ext z, split,
   { exact quotient.induction_on' z (λ x hx, begin

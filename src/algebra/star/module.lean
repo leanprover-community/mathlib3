@@ -35,9 +35,21 @@ def star_linear_equiv (R : Type*) {A : Type*}
   map_smul' := star_smul,
   .. star_add_equiv }
 
-variables (R : Type*) {A : Type*}
-  [semiring R] [invertible (2 : R)] [star_monoid R] [has_trivial_star R]
+variables (R : Type*) (A : Type*)
+  [semiring R] [star_monoid R] [has_trivial_star R]
   [add_comm_group A] [module R A] [star_add_monoid A] [star_module R A]
+
+/-- The self-adjoint elements of a star module, as a submodule. -/
+def self_adjoint.submodule : submodule R A :=
+{ smul_mem' := self_adjoint.smul_mem,
+  ..self_adjoint A }
+
+/-- The skew-adjoint elements of a star module, as a submodule. -/
+def skew_adjoint.submodule : submodule R A :=
+{ smul_mem' := skew_adjoint.smul_mem,
+  ..skew_adjoint A }
+
+variables {A} [invertible (2 : R)]
 
 /-- The self-adjoint part of an element of a star module, as a linear map. -/
 @[simps] def self_adjoint_part : A →ₗ[R] self_adjoint A :=
@@ -66,17 +78,9 @@ by simp only [smul_sub, self_adjoint_part_apply_coe, smul_add, skew_adjoint_part
 
 variables (A)
 
-/-- The self-adjoint elements of a star module, as a submodule. -/
-def self_adjoint.submodule : submodule R A :=
-{ smul_mem' := self_adjoint.smul_mem,
-  ..self_adjoint A }
-
-/-- The skew-adjoint elements of a star module, as a submodule. -/
-def skew_adjoint.submodule : submodule R A :=
-{ smul_mem' := skew_adjoint.smul_mem,
-  ..skew_adjoint A }
-
-lemma star_module.decompose_prod_adjoint : A ≃ₗ[R] self_adjoint A × skew_adjoint A :=
+/-- Linear equivalence between a star module and the product of the self-adjoint and
+skew-adjoint elements. -/
+def star_module.decompose_prod_adjoint : A ≃ₗ[R] self_adjoint A × skew_adjoint A :=
 linear_equiv.of_linear
 (linear_map.prod (self_adjoint_part R) (skew_adjoint_part R))
 (linear_map.coprod (self_adjoint.submodule R A).subtype (skew_adjoint.submodule R A).subtype)

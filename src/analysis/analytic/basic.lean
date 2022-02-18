@@ -682,73 +682,113 @@ end
 
 /-!
 ### Uniqueness of power series
-If a function `f : 𝕜 → E` has two representations as power series at a point `x : 𝕜`, corresponding
-to formal multilinear series `p₁` and `p₂`, then `p₁ = p₂`. It is important that the domain `𝕜` is
-one-dimensional, so that the continuous multilinear maps `p₁ n` for `n : ℕ` are given by
+If a function `f : E → F` has two representations as power series at a point `x : E`, corresponding
+to formal multilinear series `p₁` and `p₂`, then these representations agree term-by-term. That is,
+for any `n : ℕ` and `y : E`,  `p₁ n (λ i, y) = p₂ n (λ i, y)`. In the one-dimensional case, when
+`f : 𝕜 → E`, the continuous multilinear maps `p₁ n` and `p₂ n` are given by
 `formal_multilinear_series.mk_pi_field`, and hence are determined completely by the value of
-`p₁ n (λ i, 1)`. Consequently, the radius of convergence for one series can be transferred to the
-other.
+`p₁ n (λ i, 1)`, so `p₁ = p₂`. Consequently, the radius of convergence for one series can be
+transferred to the other.
 -/
 
 section uniqueness
 
 open continuous_multilinear_map
 
-lemma asymptotics.is_O.continuous_multilinear_map_eq_zero {n : ℕ} {p : 𝕜 [×n]→L[𝕜] E}
-  (h : asymptotics.is_O (λ y, p (λ i, y)) (λ (y : 𝕜), ∥y∥ ^ (n + 1)) (nhds 0)) :
-  p = 0 :=
+lemma asymptotics.is_O.continuous_multilinear_map_apply_eq_zero {n : ℕ} {p : E [×n]→L[𝕜] F}
+  (h : is_O (λ y, p (λ i, y)) (λ y, ∥y∥ ^ (n + 1)) (𝓝 0)) (y : E) :
+  p (λ i, y) = 0 :=
 begin
-  rw ←mk_pi_field_apply_one_eq_self p,
-  suffices h₁ : p (λ i, 1) = 0,
-  { exact ext (λ x, by simp only [mk_pi_field_apply, h₁, zero_apply, smul_zero]) },
-  { obtain ⟨c, c_pos, hc⟩ := h.exists_pos,
-    obtain ⟨t, ht, t_open, z_mem⟩ := eventually_nhds_iff.mp (asymptotics.is_O_with_iff.mp hc),
-    obtain ⟨ε, ε_pos, hε⟩ := (metric.is_open_iff.mp t_open) 0 z_mem,
-    refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ δ δ_pos, _)) (norm_nonneg _)),
-    obtain ⟨γ, γ_pos, γ_norm⟩ :=
-      normed_field.exists_norm_lt 𝕜 (lt_min (mul_pos (inv_pos.mpr c_pos) δ_pos) ε_pos),
-    specialize ht γ (hε (mem_ball_zero_iff.mpr (lt_of_lt_of_le γ_norm (min_le_right (c⁻¹ * δ) ε)))),
-    have norm_p_γ : ∥p (λ i, γ)∥ = ∥p (λ i, 1)∥ * ∥γ∥ ^ n,
-    { rw [mul_comm, ←mk_pi_field_apply_one_eq_self p],
-      simp [norm_smul, normed_field.norm_pow] },
-    rw [norm_p_γ, pow_succ, normed_field.norm_mul, norm_norm, real.norm_eq_abs,
-      abs_eq_self.mpr (pow_nonneg (norm_nonneg _) _), ←mul_assoc] at ht,
-    calc ∥p (λ i, 1)∥ ≤ c * ∥γ∥       : (mul_le_mul_right (pow_pos γ_pos n)).mp ht
-    ...              ≤ c * (c⁻¹ * δ) : by nlinarith [min_le_left (c⁻¹ * δ) ε]
-    ...               ≤ 0 + δ        : by simp [mul_inv_cancel_left₀ c_pos.ne.symm, ←zero_add] }
+  obtain ⟨c, c_pos, hc⟩ := h.exists_pos,
+  obtain ⟨t, ht, t_open, z_mem⟩ := eventually_nhds_iff.mp (is_O_with_iff.mp hc),
+  obtain ⟨δ, δ_pos, δε⟩ := (metric.is_open_iff.mp t_open) 0 z_mem,
+  clear h hc z_mem,
+  cases n,
+  { exact norm_eq_zero.mp (by simpa only [fin0_apply_norm, norm_eq_zero, norm_zero, zero_pow',
+      ne.def, nat.one_ne_zero, not_false_iff, mul_zero, norm_le_zero_iff]
+      using ht 0 (δε (metric.mem_ball_self δ_pos))), },
+  { refine or.elim (em (y = 0)) (λ hy, by simpa only [hy] using p.map_zero) (λ hy, _),
+    replace hy := norm_pos_iff.mpr hy,
+    refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ ε ε_pos, _)) (norm_nonneg _)),
+    have h₀ := mul_pos c_pos (pow_pos hy (n.succ + 1)),
+    obtain ⟨k, k_pos, k_norm⟩ := normed_field.exists_norm_lt 𝕜
+      (lt_min (mul_pos δ_pos (inv_pos.mpr hy)) (mul_pos ε_pos (inv_pos.mpr h₀))),
+    have h₁ : ∥k • y∥ < δ,
+    { rw norm_smul,
+      exact inv_mul_cancel_right₀ hy.ne.symm δ ▸ mul_lt_mul_of_pos_right
+        (lt_of_lt_of_le k_norm (min_le_left _ _)) hy },
+    have h₂ := calc
+      ∥p (λ i, k • y)∥ ≤ c * ∥k • y∥ ^ (n.succ + 1)
+                       : by simpa only [normed_field.norm_pow, norm_norm]
+                           using ht (k • y) (δε (mem_ball_zero_iff.mpr h₁))
+      ...              = ∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
+                       : by { simp only [norm_smul, mul_pow], rw pow_succ, ring },
+    have h₃ : ∥k∥ * (c * ∥y∥ ^ (n.succ + 1)) < ε, from inv_mul_cancel_right₀ h₀.ne.symm ε ▸
+      mul_lt_mul_of_pos_right (lt_of_lt_of_le k_norm (min_le_right _ _)) h₀,
+    calc ∥p (λ i, y)∥ = ∥(k⁻¹) ^ n.succ∥ * ∥p (λ i, k • y)∥
+        : by simpa only [inv_smul_smul₀ (norm_pos_iff.mp k_pos),
+            norm_smul, finset.prod_const, finset.card_fin] using
+            congr_arg norm (p.map_smul_univ (λ (i : fin n.succ), k⁻¹) (λ (i : fin n.succ), k • y))
+    ...              ≤ ∥(k⁻¹) ^ n.succ∥ * (∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1))))
+        : mul_le_mul_of_nonneg_left h₂ (norm_nonneg _)
+    ...              = ∥(k⁻¹ * k) ^ n.succ∥ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
+        : by { rw ←mul_assoc, simp [normed_field.norm_mul, mul_pow] }
+    ...              ≤ 0 + ε
+        : by { rw inv_mul_cancel (norm_pos_iff.mp k_pos), simpa using h₃.le }, },
 end
 
-lemma has_fpower_series_at.eq_zero {p : formal_multilinear_series 𝕜 𝕜 E} {x : 𝕜}
-  (h : has_fpower_series_at 0 p x) : p = 0 :=
+/-- If a formal multilinear series `p` represents the zero function at `x : E`, then the
+terms `p n (λ i, y)` appearing the in sum are zero for any `n : ℕ`, `y : E`. -/
+lemma has_fpower_series_at.apply_eq_zero {p : formal_multilinear_series 𝕜 E F} {x : E}
+  (h : has_fpower_series_at 0 p x) (n : ℕ) :
+  ∀ y : E, p n (λ i, y) = 0 :=
 begin
-  refine funext (nat.strong_rec' (λ k hk, _)),
-  have psum_eq : p.partial_sum k.succ = (λ y, p k (λ i, y)),
-  { funext y,
-    cases k,
-    { exact finset.sum_range_one _ },
-    { refine finset.sum_eq_single _ (λ b hb hnb, _) (λ hn, _),
-      { have := nat.le_of_lt_succ (finset.mem_range.mp hb),
-        simp only [hk b (lt_of_le_of_ne this hnb), pi.zero_apply, zero_apply] },
-      { exact false.elim (hn (finset.mem_range.mpr (lt_add_one k.succ))) } }, },
+  refine nat.strong_rec_on n (λ k hk, _),
+  have psum_eq : p.partial_sum (k + 1) = (λ y, p k (λ i, y)),
+  { funext z,
+    refine finset.sum_eq_single _ (λ b hb hnb, _) (λ hn, _),
+    { have := finset.mem_range_succ_iff.mp hb,
+      simp only [hk b (this.lt_of_ne hnb), pi.zero_apply, zero_apply] },
+    { exact false.elim (hn (finset.mem_range.mpr (lt_add_one k))) } },
   replace h := h.is_O_sub_partial_sum_pow k.succ,
   simp only [psum_eq, zero_sub, pi.zero_apply, asymptotics.is_O_neg_left] at h,
-  simp only [h.continuous_multilinear_map_eq_zero, pi.zero_apply],
+  exact h.continuous_multilinear_map_apply_eq_zero,
 end
 
+/-- A one-dimensional formal multilinear series representing the zero function is zero. -/
+lemma has_fpower_series_at.eq_zero {p : formal_multilinear_series 𝕜 𝕜 E} {x : 𝕜}
+  (h : has_fpower_series_at 0 p x) : p = 0 :=
+by { ext n x, rw ←mk_pi_field_apply_one_eq_self (p n), simp [h.apply_eq_zero n 1] }
+
+/-- One-dimensional formal multilinear series representing the same function are equal. -/
 theorem has_fpower_series_at.eq_formal_multilinear_series
   {p₁ p₂ : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {x : 𝕜}
   (h₁ : has_fpower_series_at f p₁ x) (h₂ : has_fpower_series_at f p₂ x) :
   p₁ = p₂ :=
 sub_eq_zero.mp (has_fpower_series_at.eq_zero (by simpa only [sub_self] using h₁.sub h₂))
 
-/-- If a function `f` has a two power series representation at `x`, then the given radii in which
-convergence is guaranteed may be interchanged. This can be useful when the formal multilinear
+/-- If a function `f : 𝕜 → E` has two power series representations at `x`, then the given radii in
+which convergence is guaranteed may be interchanged. This can be useful when the formal multilinear
 series in one representation has a particularly nice form, but the other has a larger radius. -/
 theorem has_fpower_series_on_ball.exchange_radius
   {p₁ p₂ : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {r₁ r₂ : ℝ≥0∞} {x : 𝕜}
   (h₁ : has_fpower_series_on_ball f p₁ x r₁) (h₂ : has_fpower_series_on_ball f p₂ x r₂) :
   has_fpower_series_on_ball f p₁ x r₂ :=
 h₂.has_fpower_series_at.eq_formal_multilinear_series h₁.has_fpower_series_at ▸ h₂
+
+/-- If a function `f : 𝕜 → E` has power series representation `p` on a ball of some radius and for
+each positive radius it has some power series representation, then `p` converges to `f` on the whole
+`𝕜`. -/
+theorem has_fpower_series_on_ball.r_eq_top_of_exists {f : 𝕜 → E} {r : ℝ≥0∞} {x : 𝕜}
+  {p : formal_multilinear_series 𝕜 𝕜 E} (h : has_fpower_series_on_ball f p x r)
+  (h' : ∀ (r' : ℝ≥0) (hr : 0 < r'),
+    ∃ p' : formal_multilinear_series 𝕜 𝕜 E, has_fpower_series_on_ball f p' x r') :
+  has_fpower_series_on_ball f p x ∞ :=
+{ r_le := ennreal.le_of_forall_pos_nnreal_lt $ λ r hr hr',
+    let ⟨p', hp'⟩ := h' r hr in (h.exchange_radius hp').r_le,
+  r_pos := ennreal.coe_lt_top,
+  has_sum := λ y hy, let ⟨r', hr'⟩ := exists_gt ∥y∥₊, ⟨p', hp'⟩ := h' r' hr'.ne_bot.bot_lt
+    in (h.exchange_radius hp').has_sum $ mem_emetric_ball_zero_iff.mpr (ennreal.coe_lt_coe.2 hr') }
 
 end uniqueness
 

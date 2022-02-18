@@ -273,15 +273,15 @@ by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [norm_sq_nonneg]
 by simp only [norm_sq_eq_def', norm_neg]
 
 @[simp, is_R_or_C_simps] lemma norm_sq_conj (z : K) : norm_sq (conj z) = norm_sq z :=
-by simp only [norm_sq, neg_mul_eq_neg_mul_symm, monoid_with_zero_hom.coe_mk,
-              mul_neg_eq_neg_mul_symm, neg_neg] with is_R_or_C_simps
+by simp only [norm_sq, neg_mul, monoid_with_zero_hom.coe_mk,
+              mul_neg, neg_neg] with is_R_or_C_simps
 
 @[simp, is_R_or_C_simps] lemma norm_sq_mul (z w : K) : norm_sq (z * w) = norm_sq z * norm_sq w :=
 norm_sq.map_mul z w
 
 lemma norm_sq_add (z w : K) :
   norm_sq (z + w) = norm_sq z + norm_sq w + 2 * (re (z * conj w)) :=
-by { simp only [norm_sq, map_add, monoid_with_zero_hom.coe_mk, mul_neg_eq_neg_mul_symm,
+by { simp only [norm_sq, map_add, monoid_with_zero_hom.coe_mk, mul_neg,
                 sub_neg_eq_add] with is_R_or_C_simps, ring }
 
 lemma re_sq_le_norm_sq (z : K) : re z * re z ≤ norm_sq z :=
@@ -293,7 +293,7 @@ le_add_of_nonneg_left (mul_self_nonneg _)
 theorem mul_conj (z : K) : z * conj z = ((norm_sq z) : K) :=
 by simp only [map_add, add_zero, ext_iff, monoid_with_zero_hom.coe_mk,
               add_left_inj, mul_eq_mul_left_iff, zero_mul, add_comm, true_or, eq_self_iff_true,
-              mul_neg_eq_neg_mul_symm, add_right_neg, zero_add, norm_sq, mul_comm, and_self,
+              mul_neg, add_right_neg, zero_add, norm_sq, mul_comm, and_self,
               neg_neg, mul_zero, sub_eq_neg_add, neg_zero] with is_R_or_C_simps
 
 theorem add_conj (z : K) : z + conj z = 2 * (re z) :=
@@ -324,7 +324,7 @@ by simp only [ext_iff, two_mul, sub_eq_add_neg, add_mul, map_add, add_zero, add_
               with is_R_or_C_simps
 
 lemma norm_sq_sub (z w : K) : norm_sq (z - w) = norm_sq z + norm_sq w - 2 * re (z * conj w) :=
-by simp only [norm_sq_add, sub_eq_add_neg, ring_equiv.map_neg, mul_neg_eq_neg_mul_symm,
+by simp only [norm_sq_add, sub_eq_add_neg, ring_equiv.map_neg, mul_neg,
               norm_sq_neg, map_neg]
 
 lemma sqrt_norm_sq_eq_norm {z : K} : real.sqrt (norm_sq z) = ∥z∥ :=
@@ -362,11 +362,11 @@ by rw [inv_def, ←mul_assoc, mul_conj, ←of_real_mul, ←norm_sq_eq_def',
       mul_inv_cancel (mt norm_sq_eq_zero.1 h), of_real_one]
 
 lemma div_re (z w : K) : re (z / w) = re z * re w / norm_sq w + im z * im w / norm_sq w :=
-by simp only [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, neg_mul_eq_neg_mul_symm,
-              mul_neg_eq_neg_mul_symm, neg_neg, map_neg] with is_R_or_C_simps
+by simp only [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, neg_mul,
+              mul_neg, neg_neg, map_neg] with is_R_or_C_simps
 lemma div_im (z w : K) : im (z / w) = im z * re w / norm_sq w - re z * im w / norm_sq w :=
-by simp only [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm, neg_mul_eq_neg_mul_symm,
-              mul_neg_eq_neg_mul_symm, map_neg] with is_R_or_C_simps
+by simp only [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm, neg_mul,
+              mul_neg, map_neg] with is_R_or_C_simps
 
 @[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_div (r s : ℝ) :
   ((r / s : ℝ) : K) = r / s :=
@@ -466,8 +466,8 @@ end
 theorem im_eq_conj_sub (z : K) : ↑(im z) = I * (conj z - z) / 2 :=
 begin
   rw [← neg_inj, ← of_real_neg, ← I_mul_re, re_eq_add_conj],
-  simp only [mul_add, sub_eq_add_neg, neg_div', neg_mul_eq_neg_mul_symm, conj_I,
-             mul_neg_eq_neg_mul_symm, neg_add_rev, neg_neg, ring_hom.map_mul]
+  simp only [mul_add, sub_eq_add_neg, neg_div', neg_mul, conj_I,
+             mul_neg, neg_add_rev, neg_neg, ring_hom.map_mul]
 end
 
 /-! ### Absolute value -/
@@ -621,9 +621,9 @@ by simp only [sq, ←norm_sq_eq_abs, norm_sq, map_add, add_zero, monoid_with_zer
 lemma conj_mul_eq_norm_sq_left (x : K) : conj x * x = ((norm_sq x) : K) :=
 begin
   rw ext_iff,
-  refine ⟨by simp only [norm_sq, neg_mul_eq_neg_mul_symm, monoid_with_zero_hom.coe_mk,
+  refine ⟨by simp only [norm_sq, neg_mul, monoid_with_zero_hom.coe_mk,
                         sub_neg_eq_add, map_add, sub_zero, mul_zero] with is_R_or_C_simps, _⟩,
-  simp only [mul_comm, mul_neg_eq_neg_mul_symm, add_left_neg] with is_R_or_C_simps
+  simp only [mul_comm, mul_neg, add_left_neg] with is_R_or_C_simps
 end
 
 /-! ### Cauchy sequences -/

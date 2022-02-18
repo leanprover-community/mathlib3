@@ -47,7 +47,7 @@ variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {
   connected by a "scalar multiplication" operation `r • x : M`
   (where `r : R` and `x : M`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
-@[protect_proj] class module (R : Type u) (M : Type v) [semiring R]
+@[ext, protect_proj] class module (R : Type u) (M : Type v) [semiring R]
   [add_comm_monoid M] extends distrib_mul_action R M :=
 (add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
 (zero_smul : ∀x : M, (0 : R) • x = 0)
@@ -212,19 +212,14 @@ by letI := H.to_has_scalar; exact
 
 end add_comm_group
 
-/--
-To prove two module structures on a fixed `add_comm_monoid` agree,
-it suffices to check the scalar multiplications agree.
--/
+/-- A variant of `module.ext` that's convenient for term-mode. -/
 -- We'll later use this to show `module ℕ M` and `module ℤ M` are subsingletons.
-@[ext]
-lemma module_ext {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : module R M)
+lemma module.ext' {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : module R M)
   (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
   P = Q :=
 begin
-  unfreezingI { rcases P with ⟨⟨⟨⟨P⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨Q⟩⟩⟩⟩ },
-  obtain rfl : P = Q, by { funext r m, exact w r m },
-  congr
+  ext,
+  exact w _ _
 end
 
 section module
@@ -318,7 +313,7 @@ by rw [nsmul_eq_smul_cast ℕ n x, nat.cast_id]
 should normally have exactly one `ℕ`-module structure by design. -/
 def add_comm_monoid.nat_module.unique : unique (module ℕ M) :=
 { default := by apply_instance,
-  uniq := λ P, module_ext P _ $ λ n, nat_smul_eq_nsmul P n }
+  uniq := λ P, module.ext' P _ $ λ n, nat_smul_eq_nsmul P n }
 
 instance add_comm_monoid.nat_is_scalar_tower :
   is_scalar_tower ℕ R M :=
@@ -360,7 +355,7 @@ by rw [zsmul_eq_smul_cast ℤ n x, int.cast_id]
 should normally have exactly one `ℤ`-module structure by design. -/
 def add_comm_group.int_module.unique : unique (module ℤ M) :=
 { default := by apply_instance,
-  uniq := λ P, module_ext P _ $ λ n, int_smul_eq_zsmul P n }
+  uniq := λ P, module.ext' P _ $ λ n, int_smul_eq_zsmul P n }
 
 end add_comm_group
 
@@ -422,7 +417,7 @@ end add_monoid_hom
 an instance because `simp` becomes very slow if we have many `subsingleton` instances,
 see [gh-6025]. -/
 lemma subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
-⟨λ P Q, module_ext P Q $ λ r x,
+⟨λ P Q, module.ext' P Q $ λ r x,
   @add_monoid_hom.map_rat_module_smul E ‹_› P E ‹_› Q (add_monoid_hom.id _) r x⟩
 
 /-- If `E` is a vector space over two division rings `R` and `S`, then scalar multiplications
@@ -526,11 +521,8 @@ include R
 lemma nat.no_zero_smul_divisors : no_zero_smul_divisors ℕ M :=
 ⟨by { intros c x, rw [nsmul_eq_smul_cast R, smul_eq_zero], simp }⟩
 
-variables {M}
-
-lemma eq_zero_of_two_nsmul_eq_zero {v : M} (hv : 2 • v = 0) : v = 0 :=
-by haveI := nat.no_zero_smul_divisors R M;
-exact (smul_eq_zero.mp hv).resolve_left (by norm_num)
+@[simp] lemma two_nsmul_eq_zero {v : M} : 2 • v = 0 ↔ v = 0 :=
+by { haveI := nat.no_zero_smul_divisors R M, norm_num [smul_eq_zero] }
 
 end nat
 
@@ -564,15 +556,20 @@ end smul_injective
 
 section nat
 
-variables (R) [no_zero_smul_divisors R M] [char_zero R]
+variables (R M) [no_zero_smul_divisors R M] [char_zero R]
 include R
 
-lemma eq_zero_of_eq_neg {v : M} (hv : v = - v) : v = 0 :=
-begin
-  refine eq_zero_of_two_nsmul_eq_zero R _,
-  rw two_smul,
-  exact add_eq_zero_iff_eq_neg.mpr hv
-end
+lemma self_eq_neg {v : M} : v = - v ↔ v = 0 :=
+by rw [← two_nsmul_eq_zero R M, two_smul, add_eq_zero_iff_eq_neg]
+
+lemma neg_eq_self {v : M} : - v = v ↔ v = 0 :=
+by rw [eq_comm, self_eq_neg R M]
+
+lemma self_ne_neg {v : M} : v ≠ -v ↔ v ≠ 0 :=
+(self_eq_neg R M).not
+
+lemma neg_ne_self {v : M} : -v ≠ v ↔ v ≠ 0 :=
+(neg_eq_self R M).not
 
 end nat
 
@@ -593,15 +590,6 @@ lemma smul_left_injective {x : M} (hx : x ≠ 0) :
                 ... = 0 : sub_eq_zero.mpr h)).resolve_right hx)
 
 end smul_injective
-
-section nat
-
-variables [char_zero R]
-
-lemma ne_neg_of_ne_zero [no_zero_divisors R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
-λ h, hv (eq_zero_of_eq_neg R h)
-
-end nat
 
 end module
 

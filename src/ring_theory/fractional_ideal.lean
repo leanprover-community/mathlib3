@@ -545,7 +545,7 @@ lemma coe_ideal_pow (I : ideal R) (n : ℕ) : (↑(I^n) : fractional_ideal S P) 
 (fractional_ideal.coe_ideal_hom S P).map_pow _ n
 
 open_locale big_operators
-lemma coe_ideal_finprod [is_localization S P] {α : Type*} {f : α → ideal R}
+lemma coe_ideal_finprod [is_localization S P] {α : Sort*} {f : α → ideal R}
   (hS : S ≤ non_zero_divisors R) :
   ((∏ᶠ a : α, f a : ideal R) : fractional_ideal S P) = ∏ᶠ a : α, (f a : fractional_ideal S P) :=
 monoid_hom.map_finprod_of_injective (fractional_ideal.coe_ideal_hom S P).to_monoid_hom

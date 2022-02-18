@@ -1741,10 +1741,10 @@ by { ext, simp }
 by { ext, simp }
 
 @[simp] lemma compl_range_inl : (range (sum.inl : α → α ⊕ β))ᶜ = range (sum.inr : β → α ⊕ β) :=
-by { ext x, cases x; simp }
+is_compl_range_inl_range_inr.compl_eq
 
 @[simp] lemma compl_range_inr : (range (sum.inr : β → α ⊕ β))ᶜ = range (sum.inl : α → α ⊕ β) :=
-by { ext x, cases x; simp }
+is_compl_range_inl_range_inr.symm.compl_eq
 
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq

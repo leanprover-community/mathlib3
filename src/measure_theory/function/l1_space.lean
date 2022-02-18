@@ -456,6 +456,15 @@ h.mono_measure $ measure.le_add_left $ le_rfl
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
 ⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
 
+@[simp] lemma integrable_zero_measure {m : measurable_space α} {f : α → β} :
+  integrable f (0 : measure α) :=
+⟨ae_measurable_zero_measure, has_finite_integral_zero_measure f⟩
+
+theorem integrable_finset_sum_measure {ι} {m : measurable_space α} {f : α → β}
+  {μ : ι → measure α} {s : finset ι} :
+  integrable f (∑ i in s, μ i) ↔ ∀ i ∈ s, integrable f (μ i) :=
+by induction s using finset.induction_on; simp [*]
+
 lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ℝ≥0∞} (hc : c ≠ ∞) :
   integrable f (c • μ) :=
 ⟨h.ae_measurable.smul_measure c, h.has_finite_integral.smul_measure hc⟩
@@ -1082,14 +1091,6 @@ end integrable
 end measure_theory
 
 open measure_theory
-
-lemma integrable_zero_measure {m : measurable_space α} [measurable_space β] {f : α → β} :
-  integrable f (0 : measure α) :=
-begin
-  apply (integrable_zero _ _ _).congr,
-  change (0 : measure α) {x | 0 ≠ f x} = 0,
-  refl,
-end
 
 variables {E : Type*} [normed_group E] [measurable_space E] [borel_space E]
           {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]

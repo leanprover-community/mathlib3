@@ -184,11 +184,8 @@ def set_clopen : set (set X) := {j : set X | ∃ (U : set X) (hU : U ∈ (B ε f
 
 lemma mem_set_clopen {x : set X} : x ∈ (set_clopen ε f) ↔ ∃ (U : set X) (hU : U ∈ (B ε f)),
     x ∈ classical.some (topological_space.is_topological_basis.open_eq_sUnion
-    (@loc_compact_Haus_tot_disc_of_zero_dim X _ _ _ _) (opens ε f hU)) :=
-begin
-  rw set_clopen,
-  simp only [exists_prop, set.mem_range, exists_exists_eq_and, set.mem_set_of_eq],
-end
+    (@loc_compact_Haus_tot_disc_of_zero_dim X _ _ _ _) (opens ε f hU)) := iff.rfl
+
 
 /-- Elements of `set_clopen` are clopen. -/
 lemma set_clopen_sub_clopen_set : (set_clopen ε f) ⊆ {s : set X | is_clopen s} :=

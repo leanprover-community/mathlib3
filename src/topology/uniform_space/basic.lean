@@ -299,6 +299,13 @@ uniform_space.is_open_uniformity s
 lemma refl_le_uniformity : 𝓟 id_rel ≤ 𝓤 α :=
 (@uniform_space.to_core α _).refl
 
+instance uniformity.ne_bot [nonempty α] : ne_bot (𝓤 α) :=
+begin
+  inhabit α,
+  refine (principal_ne_bot_iff.2 _).mono refl_le_uniformity,
+  exact ⟨(default, default), rfl⟩
+end
+
 lemma refl_mem_uniformity {x : α} {s : set (α × α)} (h : s ∈ 𝓤 α) :
   (x, x) ∈ s :=
 refl_le_uniformity h rfl

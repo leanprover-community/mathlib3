@@ -108,8 +108,8 @@ instance : has_pow (self_adjoint R) ℕ :=
 
 instance : comm_ring (self_adjoint R) :=
 function.injective.comm_ring _ subtype.coe_injective
-  (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul
-  (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul coe_npow
+  (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul (self_adjoint R).coe_neg
+  (self_adjoint R).coe_sub (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul coe_pow
 
 end comm_ring
 
@@ -134,8 +134,9 @@ instance : has_pow (self_adjoint R) ℤ :=
 
 instance : field (self_adjoint R) :=
 function.injective.field _ subtype.coe_injective
-  (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul coe_inv coe_div
-  (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul coe_npow coe_zpow
+  (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul (self_adjoint R).coe_neg
+  (self_adjoint R).coe_sub coe_inv coe_div (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul
+  coe_pow coe_zpow
 
 end field
 

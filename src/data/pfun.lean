@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Jeremy Avigad, Simon Hudon
 -/
 import data.part
 import data.rel
+import data.fin.basic
 
 /-!
 # Partial functions
@@ -236,16 +237,50 @@ end⟩
 /-- A recursion principle for `pfun.fix`. -/
 @[elab_as_eliminator] def fix_induction
   {f : α →. β ⊕ α} {b : β} {C : α → Sort*} {a : α} (h : b ∈ f.fix a)
-  (H : ∀ a, b ∈ f.fix a →
-    (∀ a', b ∈ f.fix a' → sum.inr a' ∈ f a → C a') → C a) : C a :=
+  (H : ∀ a', b ∈ f.fix a' →
+    (∀ a'', b ∈ f.fix a'' → sum.inr a'' ∈ f a' → C a'') → C a') : C a :=
 begin
   replace h := part.mem_assert_iff.1 h,
   have := h.snd, revert this,
   induction h.fst with a ha IH, intro h₂,
   refine H a (part.mem_assert_iff.2 ⟨⟨_, ha⟩, h₂⟩)
-    (λ a' ha' fa', _),
-  have := (part.mem_assert_iff.1 ha').snd,
-  exact IH _ fa' ⟨ha _ fa', this⟩ this
+    (λ a'' ha'' fa'', _),
+  have := (part.mem_assert_iff.1 ha'').snd,
+  exact IH _ fa'' ⟨ha _ fa'', this⟩ this,
+end
+
+lemma inheriting_predicates
+  {f : α →. β ⊕ α} {b : β} {P : α → Prop} {a : α} (h : b ∈ f.fix a)
+  (hbase : (∀ a_final : α, sum.inl b ∈ f a_final -> P a_final))
+  (hind : (∀ a_0 a_1 : α, sum.inr a_1 ∈ f a_0 -> P a_1 -> P a_0)) : P a :=
+begin
+  apply fix_induction h,
+  intros a' hba' H,
+  rw mem_fix_iff at hba',
+  rcases hba' with hba' | ⟨a'', f_a'_a'', f_fix_a_b⟩,
+  { exact hbase a' hba', },
+  { exact hind a' a'' f_a'_a'' (H a'' f_fix_a_b f_a'_a''), },
+end
+
+def adjoin_succ (f : α →. β ⊕ α) : α × ℕ →. β ⊕ (α × ℕ) :=
+λ ⟨a, n⟩, (f a >>= λ x, by { cases x, exact pure (sum.inl x), exact pure (sum.inr ⟨x, n.succ⟩), } )
+
+lemma fix_eq_adjoin_succ_fix (f : α →. β ⊕ α) (a : α) : f.fix a = f.adjoin_succ.fix ⟨a, 0⟩ :=
+begin
+  sorry,
+end
+
+lemma fix_dom_iff_trace (f : α →. β ⊕ α) (a : α) :
+  (f.fix a).dom
+  ↔
+  (∃ (b : β) (n : ℕ) (it : fin (n.succ) → α),
+    it 0 = a
+    ∧
+    (∀ i : fin n, f (it i.succ) = part.some (sum.inr (it (i : fin n.succ))))
+    ∧
+    f (it n) = part.some (sum.inl b)) :=
+begin
+  sorry,
 end
 
 variables (f : α →. β)

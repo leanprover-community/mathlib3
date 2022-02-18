@@ -550,7 +550,7 @@ variables {α : Type w} (A : set α)
 def with_params : language.{(max u w) v} := L.sum (constants_on A)
 
 /-- The parameter symbol representing an element of the parameter set. -/
-@[reducible] def param_mk (a : A) : (L.with_params A).const := sum.inr ⟨a, h⟩
+@[reducible] def param_mk (a : A) : (L.with_params A).const := sum.inr a
 
 /-- The language map adding parameters.  -/
 def Lhom_with_params : L →ᴸ L.with_params A := Lhom.sum_inl

@@ -41,29 +41,40 @@ variable {X}
 variables [compact_space X]
 
 namespace set
+lemma diff_inter_eq_empty {α : Type*} (a : set α) {b c : set α} (h : c ⊆ b) :
+  a \ b ∩ c = ∅ :=
+begin
+  ext x,
+  simp only [and_imp, mem_empty_eq, mem_inter_eq, not_and, mem_diff, iff_false],
+  intro _,
+  exact mt (@h x),
+end
+
 
 lemma diff_inter_mem_sUnion {α : Type*} {s : set (set α)} (a y : set α) (h : y ∈ s) :
   (a \ ⋃₀ s) ∩ y = ∅ :=
-begin
-  rw [set.inter_comm, ← set.inter_diff_assoc, set.diff_eq_empty],
-  exact (set.inter_subset_left y a).trans (set.subset_sUnion_of_mem h),
-end
+diff_inter_eq_empty a $ subset_sUnion_of_mem h
 
 end set
 
 namespace is_clopen
 
+lemma is_closed_sUnion {H : Type*} [topological_space H]
+  {s : finset(set H)} (hs : ∀ x ∈ s, is_closed x) :
+  is_closed ⋃₀ (s : set(set H)) :=
+by { simpa only [← is_open_compl_iff, set.compl_sUnion, set.sInter_image] using is_open_bInter
+    (finset.finite_to_set s) (λ i hi, _), apply is_open_compl_iff.2 (hs i hi), }
+
+lemma is_clopen_sUnion {H : Type*} [topological_space H]
+  (s : finset(set H)) (hs : ∀ x ∈ s, is_clopen x) :
+  is_clopen ⋃₀ (s : set(set H)) :=
+⟨is_open_sUnion (λ t ht, (hs t ht).1), is_closed_sUnion (λ t ht, (hs t ht).2) ⟩
+
 /-- The finite union of clopen sets is clopen. -/
 lemma clopen_finite_Union {H : Type*} [topological_space H]
   (s : finset(set H)) (hs : ∀ x ∈ s, is_clopen x) :
   is_clopen ⋃₀ (s : set(set H)) :=
-begin
-  classical,
-  apply finset.induction_on' s,
-  { simp, },
-  { rintros a S h's hS aS US,
-    simp, apply is_clopen.union (hs a h's) US, },
-end
+  by { rw set.sUnion_eq_bUnion, apply is_clopen_bUnion hs, }
 
 /-- Given a finite set of clopens, one can find a finite disjoint set of clopens contained in
   it. -/
@@ -77,32 +88,32 @@ lemma clopen_Union_disjoint {H : Type*} [topological_space H]
 begin
   classical,
   apply finset.induction_on' s,
-  { use ∅, simp, },
+  { use ∅, simp only [finset.not_mem_empty, forall_false_left, set.mem_empty_eq, forall_const,
+      finset.coe_empty, eq_self_iff_true, and_self], },
   { rintros a S h's hS aS ⟨t, clo, union, sub, disj⟩,
     set b := a \ ⋃₀ S with hb,
-    use insert b t, split,
-    { rintros x hx, simp at hx, cases hx,
-      { rw hx, rw hb, apply is_clopen.diff (hs a h's) _,
-        apply clopen_finite_Union, rintros y hy, apply hs y (hS hy), },
-      { apply clo x hx,  }, },
-    split,
-    { simp only [finset.coe_insert, set.sUnion_insert], rw hb, rw ←union, rw set.diff_union_self, },
-    { split,
-      { rintros x hx, simp only [finset.mem_insert] at hx, cases hx,
-        { use a, rw hx, rw hb, simp, apply set.diff_subset, },
-        { specialize sub x hx, rcases sub with ⟨z, hz, xz⟩,
-          refine ⟨z, _, xz⟩, rw finset.mem_insert, right, assumption, }, },
-      { rintros x y hx hy ne, rw finset.mem_insert at hx, rw finset.mem_insert at hy,
-        have : ∀ y ∈ t, b ∩ y = ∅,
-        { rintros y hy, rw hb, rw union,
-          apply set.diff_inter_mem_sUnion, assumption, },
-        cases hx,
-        { cases hy,
-          { rw [hx, hy] at ne, exfalso, simp at ne, assumption, },
-          { rw hx, apply this y hy, }, },
-        { cases hy,
-          { rw set.inter_comm, rw hy, apply this x hx, },
-          { apply disj x y hx hy ne, }, }, }, }, },
+    refine ⟨insert b t, _, _, ⟨λ x hx, _, λ x y hx hy ne, _⟩⟩,
+    { rintros x hx,
+      simp only [finset.coe_insert, set.mem_insert_iff, finset.mem_coe] at hx,
+      cases hx,
+      { rw hx, apply is_clopen.diff (hs a h's) (clopen_finite_Union _ (λ y hy, (hs y (hS hy)))), },
+      { apply clo x hx, }, },
+    { simp only [finset.coe_insert, set.sUnion_insert], rw [←union, set.diff_union_self], },
+    { simp only [finset.mem_insert] at hx, cases hx,
+      { use a, rw hx, simp only [true_and, true_or, eq_self_iff_true, finset.mem_insert],
+        apply set.diff_subset, },
+      { rcases sub x hx with ⟨z, hz, xz⟩, refine ⟨z, _, xz⟩,
+        rw finset.mem_insert, right, assumption, }, },
+    { rw finset.mem_insert at hx, rw finset.mem_insert at hy,
+      have : ∀ y ∈ t, b ∩ y = ∅,
+      { rintros y hy, rw [hb, union], apply set.diff_inter_mem_sUnion, assumption, },
+      cases hx,
+      { cases hy,
+        { exfalso, apply ne, rw [hx, hy], },
+        { rw hx, apply this y hy, }, },
+      { cases hy,
+        { rw set.inter_comm, rw hy, apply this x hx, },
+        { apply disj x y hx hy ne, }, }, }, },
 end
 
 end is_clopen
@@ -125,11 +136,8 @@ abbreviation B : set(set X) := { j : set X | ∃ (U ∈ ((S ε) : set(set A))), 
 
 lemma opens {j : set X} (hj : j ∈ (B ε f)) : is_open j :=
 begin
-  rw set.mem_set_of_eq at hj,
-  rcases hj with ⟨U, hU, jU⟩, rw jU, apply continuous.is_open_preimage,
-  { continuity, },
-  { rw set.mem_range at hU, cases hU with y hy, rw ←hy,
-    apply metric.is_open_ball, },
+  rcases hj with ⟨hj_w, ⟨hj_h_w_w, rfl⟩, rfl⟩,
+  exact continuous.is_open_preimage f.2 _ (metric.is_open_ball),
 end
 
 variable [fact (0 < ε)]
@@ -142,17 +150,12 @@ begin
     { simp only [set.mem_range, exists_apply_eq_apply], },
     { simp only [metric.mem_ball, dist_self],
       refine div_pos (fact.out _) zero_lt_four, }, },
-  set preh := set.preimage f (⋃₀ S ε) with preh',
-  have g' : preh = set.univ,
-  { rw [preh', g], exact set.preimage_univ, },
-  rw preh' at g',
-  rw set.preimage_sUnion at g',
-  rw set.subset.antisymm_iff at g',
-  refine is_compact.elim_finite_subcover compact_univ _ _ g'.2,
-  rintros i, apply is_open_Union, rintros hi,
-  apply continuous.is_open_preimage (continuous_map.continuous f),
-  { cases hi with y hy, conv { congr, rw ←hy, },
-    refine @metric.is_open_ball A _ y (ε/4), },
+  have g' : set.preimage f (⋃₀ S ε) = set.univ,
+  { rw g, exact set.preimage_univ, },
+  rw [set.preimage_sUnion, set.subset.antisymm_iff] at g',
+  refine is_compact.elim_finite_subcover compact_univ _ (λ i, is_open_Union
+    (λ hi, continuous.is_open_preimage (continuous_map.continuous f) i _)) g'.2,
+  cases hi with y hy, rw [←hy], refine @metric.is_open_ball A _ y (ε/4),
 end
 
 /-- Choosing a finset as given in `exists_finset_univ_sub` -/

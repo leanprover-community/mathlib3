@@ -4037,7 +4037,7 @@ noncomputable def f (hd : gcd d p = 1) [fact (0 < m)] (hc : gcd c p = 1) (hc' : 
 noncomputable def p_adic_L_function (hd : gcd d p = 1) [fact (0 < m)] (h : function.injective inj)
   (cont : continuous inj) (hc : gcd c p = 1) (hc' : gcd c d = 1) (na : ∀ (n : ℕ) (f : ℕ → R),
      ∥∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) (hu : is_unit (f' p d R m hd hc hc' χ w)) :=
- (f p d R m χ w hd hc hc' hu) * (integral (bernoulli_measure' p d R hc hc' hd na)
+ (f p d R m χ w hd hc hc' hu) * (measures.integral (bernoulli_measure' p d R hc hc' hd na)
 ⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R m hd χ) a) *
   (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj m χ w hd cont⟩)
 --independent of c, remove that!

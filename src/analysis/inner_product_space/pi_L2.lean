@@ -24,7 +24,8 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 - `orthonormal_basis 𝕜 ι`: defined to be an isometry to Euclidean space from a given
   finite-dimensional innner product space, `E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`.
 
-- `basis.to_orthonormal_basis`: constructs an `orthonormal_basis` for a finite-dimensional Euclidean space from a `basis` which is `orthonormal`.
+- `basis.to_orthonormal_basis`: constructs an `orthonormal_basis` for a finite-dimensional
+  Euclidean space from a `basis` which is `orthonormal`.
 
 - `linear_isometry_equiv.of_inner_product_space`: provides an arbitrary isometry to Euclidean space
   from a given finite-dimensional inner product space, induced by choosing an arbitrary basis.
@@ -281,8 +282,8 @@ by simp [basis.to_orthonormal_basis, orthonormal_basis.to_basis]
 
 @[simp] lemma _root_.basis.coe_to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   (v.to_orthonormal_basis hv : ι → E) = (v : ι → E) :=
-calc (v.to_orthonormal_basis hv : ι → E)
-    = ((v.to_orthonormal_basis hv).to_basis : ι → E) : by rw orthonormal_basis.coe_to_basis
+calc (v.to_orthonormal_basis hv : ι → E) = ((v.to_orthonormal_basis hv).to_basis : ι → E) :
+  by {classical, rw orthonormal_basis.coe_to_basis}
 ... = (v : ι → E) : by simp
 
 /-- An orthonormal set that spans is an orthonormal basis -/

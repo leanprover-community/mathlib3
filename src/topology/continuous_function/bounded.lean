@@ -508,6 +508,9 @@ variables [topological_space α] [metric_space β] [has_one β]
 
 @[simp, to_additive] lemma coe_one : ((1 : α →ᵇ β) : α → β) = 1 := rfl
 
+@[simp, to_additive]
+lemma mk_of_compact_one [compact_space α] : mk_of_compact (1 : C(α, β)) = 1 := rfl
+
 @[to_additive] lemma forall_coe_one_iff_one (f : α →ᵇ β) : (∀x, f x = 1) ↔ f = 1 :=
 (@ext_iff _ _ _ _ f 1).symm
 
@@ -529,7 +532,6 @@ trivial inconvenience, but in any case there are no obvious applications of the 
 version. -/
 
 variables [topological_space α] [metric_space β] [add_monoid β]
-
 variables [has_lipschitz_add β]
 variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
@@ -550,6 +552,9 @@ instance : has_add (α →ᵇ β) :=
 
 @[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
+
+@[simp] lemma mk_of_compact_add [compact_space α] (f g : C(α, β)) :
+  mk_of_compact (f + g) = mk_of_compact f + mk_of_compact g := rfl
 
 lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
   (g + f).comp_continuous h = g.comp_continuous h + f.comp_continuous h := rfl
@@ -757,6 +762,12 @@ lemma neg_apply : (-f) x = -f x := rfl
 
 @[simp] lemma coe_sub : ⇑(f - g) = f - g := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
+
+@[simp] lemma mk_of_compact_neg [compact_space α] (f : C(α, β)) :
+  mk_of_compact (-f) = -mk_of_compact f := rfl
+
+@[simp] lemma mk_of_compact_sub [compact_space α] (f g : C(α, β)) :
+  mk_of_compact (f - g) = mk_of_compact f - mk_of_compact g := rfl
 
 instance : add_comm_group (α →ᵇ β) :=
 coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub

@@ -293,8 +293,8 @@ lemma fin_succ_equiv_eq (n : ℕ) :
 begin
   ext : 2,
   { simp only [fin_succ_equiv, option_equiv_left_apply, aeval_C, alg_equiv.coe_trans,
-      alg_equiv.coe_alg_hom, coe_eval₂_hom, alg_hom.coe_to_ring_hom, comp_app, rename_equiv_apply,
-      eval₂_C, ring_hom.coe_comp, coe_coe, rename_C],
+      ring_hom.coe_coe, coe_eval₂_hom, comp_app, rename_equiv_apply, eval₂_C, ring_hom.coe_comp,
+      rename_C],
     refl },
   { intro i,
     refine fin.cases _ _ i;

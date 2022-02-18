@@ -266,6 +266,14 @@ by tidy
   initial.to P ≫ f = initial.to Q :=
 by tidy
 
+/-- The (unique) isomorphism between the chosen initial object and any other initial object. -/
+@[simp] def initial_iso_is_initial [has_initial C] {P : C} (t : is_initial P) : ⊥_ C ≅ P :=
+initial_is_initial.unique_up_to_iso t
+
+/-- The (unique) isomorphism between the chosen terminal object and any other terminal object. -/
+@[simp] def terminal_iso_is_terminal [has_terminal C] {P : C}  (t : is_terminal P) : ⊤_ C ≅ P :=
+terminal_is_terminal.unique_up_to_iso t
+
 /-- Any morphism from a terminal object is split mono. -/
 instance terminal.split_mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : split_mono f :=
 is_terminal.split_mono_from terminal_is_terminal _

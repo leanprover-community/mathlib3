@@ -101,7 +101,7 @@ end
 @[simp] lemma continuous_at_zpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
   continuous_at (λ x, x ^ m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
 begin
-  refine ⟨_, continuous_at_zpow _ _⟩,
+  refine ⟨_, continuous_at_zpow₀ _ _⟩,
   contrapose!, rintro ⟨rfl, hm⟩ hc,
   exact not_tendsto_at_top_of_tendsto_nhds (hc.tendsto.mono_left nhds_within_le_nhds).norm
       (tendsto_norm_zpow_nhds_within_0_at_top hm)

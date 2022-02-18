@@ -34,6 +34,13 @@ lemma homogeneity [nakada_po S] {a b : S} (h : a ≤ b) (c : S) :
   c * a ≤ c * b :=
 mul_le_mul_left' h c
 
+@[to_additive]
+lemma nakada_po.of_fun {S S' : Type*} [has_mul S] [has_le S] [has_mul S'] [has_le S']
+  [nakada_po S] (f : S' → S) (hrel : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
+  (hmul : ∀ x y, f (x * y) = f x * f y):
+  nakada_po S' :=
+⟨λ a b c h, by { rw [←hrel, hmul, hmul], exact homogeneity (hrel.mpr h) _ }⟩
+
 variables (S)
 
 -- Definition 2
@@ -654,7 +661,8 @@ subtype.preorder _
 
 -- TODO: define subtype.nakada_po
 @[to_additive]
-instance [preorder S] [nakada_po S] : nakada_po (pos_subsemigroup S) := sorry
+instance [preorder S] [nakada_po S] : nakada_po (pos_subsemigroup S) :=
+nakada_po.of_fun (coe : _ → S) (λ _ _, iff.rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance [preorder S] [nakada_po S] [nakada_strong S] : nakada_strong (pos_subsemigroup S) := sorry
@@ -672,7 +680,8 @@ instance [preorder S] [nakada_po S] : preorder (neg_subsemigroup S) :=
 subtype.preorder _
 
 @[to_additive]
-instance [preorder S] [nakada_po S] : nakada_po (neg_subsemigroup S) := sorry
+instance [preorder S] [nakada_po S] : nakada_po (neg_subsemigroup S) :=
+nakada_po.of_fun (coe : _ → S) (λ _ _, iff.rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance [preorder S] [nakada_po S] [nakada_strong S] : nakada_strong (neg_subsemigroup S) := sorry

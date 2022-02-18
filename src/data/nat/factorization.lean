@@ -248,6 +248,8 @@ begin
   exact mem_factors_mul ha hb
 end
 
+/-! ### Induction principles involving factorizations -/
+
 /-- Given `P 0, P 1` and a way to extend `P a` to `P (p ^ k * a)`,
 you can define `P` for all natural numbers. -/
 @[elab_as_eliminator]

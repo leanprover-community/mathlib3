@@ -11,9 +11,9 @@ import analysis.calculus.fderiv_analytic
 
 In this file we prove Liouville's theorem: if `f : E → F` is complex differentiable on the whole
 space and its range is bounded, then the function is a constant. Various versions of this theorem
-are formalized in `complex.apply_eq_apply_of_differentiable_of_bounded`,
-`complex.exists_const_forall_eq_of_differentiable_of_bounded`, and
-`complex.exists_eq_const_of_differentiable_of_bounded`.
+are formalized in `differentiable.apply_eq_apply_of_bounded`,
+`differentiable.exists_const_forall_eq_of_bounded`, and
+`differentiable.exists_eq_const_of_bounded`.
 
 The proof is based on the Cauchy integral formula for the derivative of an analytic function, see
 `complex.deriv_eq_smul_circle_integral`.
@@ -65,7 +65,7 @@ calc ∥deriv f c∥ = ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) 
 ... = C / R : by rw [mul_div_comm, div_self_mul_self', div_eq_mul_inv]
 
 /-- **Liouville's theorem**: a complex differentiable bounded function `f : ℂ → E` is a constant.
-Use a more general `complex.apply_eq_apply_of_differentiable_of_bounded` instead. -/
+Use a more general `differentiable.apply_eq_apply_of_bounded` instead. -/
 lemma liouville_theorem_aux {f : ℂ → F} (hf : differentiable ℂ f)
   (hb : bounded (range f)) (z w : ℂ) : f z = f w :=
 begin

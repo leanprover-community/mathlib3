@@ -288,7 +288,7 @@ by simp [basis.to_orthonormal_basis, orthonormal_basis.to_basis]
 @[simp] lemma _root_.basis.coe_to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   (v.to_orthonormal_basis hv : ι → E) = (v : ι → E) :=
 calc (v.to_orthonormal_basis hv : ι → E) = ((v.to_orthonormal_basis hv).to_basis : ι → E) :
-  by {classical, rw orthonormal_basis.coe_to_basis}
+  by { classical, rw orthonormal_basis.coe_to_basis }
 ... = (v : ι → E) : by simp
 
 /-- An orthonormal set that spans is an orthonormal basis -/

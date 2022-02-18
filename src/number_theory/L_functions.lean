@@ -168,14 +168,9 @@ lemma exists_finset_univ_sub_prop : set.univ ⊆ ⨆ (i : set A) (H : i ∈ t ε
   then the union of the preimages of all the sets from `S` also forms a cover. -/
 lemma sUnion_sub_of_finset_sub : set.univ ⊆ set.sUnion (B ε f) :=
 begin
-  rintros x hx, simp only [exists_prop, set.mem_range, exists_exists_eq_and, set.mem_set_of_eq],
-  have xt := (exists_finset_univ_sub_prop ε f) hx,
-  simp only [exists_prop, set.mem_preimage, set.mem_Union, set.mem_range, exists_and_distrib_right,
-    set.supr_eq_Union, set.Union_exists] at xt,
-  rcases xt with ⟨j, ⟨hj, jS⟩, fj⟩, refine ⟨f⁻¹' j, _, _⟩,
-  { cases jS with a jS,
-    refine ⟨a, by rw jS⟩, },
-  simp [fj],
+  rintros x hx,
+  obtain ⟨-, ⟨j, rfl⟩, -, ⟨hj, rfl⟩, -, ⟨⟨a, jS⟩, rfl⟩, fj⟩ := (exists_finset_univ_sub_prop ε f) hx,
+  exact ⟨f⁻¹' j, ⟨j, ⟨_, jS⟩, rfl⟩, fj⟩,
 end
 
 variables [t2_space X] [totally_disconnected_space X]

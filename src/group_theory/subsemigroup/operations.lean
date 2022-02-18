@@ -257,7 +257,8 @@ lemma map_comap_map {f : mul_hom M N} : ((S.map f).comap f).map f = S.map f :=
 (gc_map_comap f).l_u_l_eq_l _
 
 @[simp, to_additive]
-lemma comap_map_comap {S : subsemigroup N} {f : mul_hom M N} : ((S.comap f).map f).comap f = S.comap f :=
+lemma comap_map_comap {S : subsemigroup N} {f : mul_hom M N} :
+  ((S.comap f).map f).comap f = S.comap f :=
 (gc_map_comap f).u_l_u_eq_u _
 
 @[to_additive]
@@ -270,7 +271,8 @@ lemma map_supr {ι : Sort*} (f : mul_hom M N) (s : ι → subsemigroup M) :
 (gc_map_comap f).l_supr
 
 @[to_additive]
-lemma comap_inf (S T : subsemigroup N) (f : mul_hom M N) : (S ⊓ T).comap f = S.comap f ⊓ T.comap f :=
+lemma comap_inf (S T : subsemigroup N) (f : mul_hom M N) :
+  (S ⊓ T).comap f = S.comap f ⊓ T.comap f :=
 (gc_map_comap f).u_inf
 
 @[to_additive]

@@ -494,18 +494,6 @@ variables [has_continuous_add M₂]
 instance : has_add (M₁ →SL[σ₁₂] M₂) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
-lemma continuous_nsmul (n : ℕ) : continuous (λ (x : M₂), n • x) :=
-begin
-  induction n with n ih,
-  { simp [continuous_const] },
-  { simp [nat.succ_eq_add_one, add_smul], exact ih.add continuous_id }
-end
-
-@[continuity]
-lemma continuous.nsmul {α : Type*} [topological_space α] {n : ℕ} {f : α → M₂} (hf : continuous f) :
-  continuous (λ (x : α), n • (f x)) :=
-(continuous_nsmul n).comp hf
-
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp, norm_cast] lemma coe_add : (((f + g) : M₁ →SL[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂) = f + g := rfl
 @[norm_cast] lemma coe_add' : (((f + g) : M₁ →SL[σ₁₂] M₂) : M₁ → M₂) = (f : M₁ → M₂) + g := rfl
@@ -942,15 +930,6 @@ rfl
 @[norm_cast] lemma coe_neg' : (((-f) : M →SL[σ₁₂] M₂) : M → M₂) = -(f : M → M₂) := rfl
 
 instance : has_sub (M →SL[σ₁₂] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
-
-lemma continuous_zsmul : ∀ (n : ℤ), continuous (λ (x : M₂), n • x)
-| (n : ℕ) := by { simp only [coe_nat_zsmul], exact continuous_nsmul _ }
-| -[1+ n] := by { simp only [zsmul_neg_succ_of_nat], exact (continuous_nsmul _).neg }
-
-@[continuity]
-lemma continuous.zsmul {α : Type*} [topological_space α] {n : ℤ} {f : α → M₂} (hf : continuous f) :
-  continuous (λ (x : α), n • (f x)) :=
-(continuous_zsmul n).comp hf
 
 instance : add_comm_group (M →SL[σ₁₂] M₂) :=
 by refine

@@ -744,14 +744,12 @@ lemma has_fpower_series_at.apply_eq_zero {p : formal_multilinear_series 𝕜 E F
   ∀ y : E, p n (λ i, y) = 0 :=
 begin
   refine nat.strong_rec_on n (λ k hk, _),
-  have psum_eq : p.partial_sum k.succ = (λ y, p k (λ i, y)),
+  have psum_eq : p.partial_sum (k + 1) = (λ y, p k (λ i, y)),
   { funext z,
-    cases k,
-    { exact finset.sum_range_one _ },
-    { refine finset.sum_eq_single _ (λ b hb hnb, _) (λ hn, _),
-      { have := nat.le_of_lt_succ (finset.mem_range.mp hb),
-        simp only [hk b (lt_of_le_of_ne this hnb), pi.zero_apply, zero_apply] },
-      { exact false.elim (hn (finset.mem_range.mpr (lt_add_one k.succ))) } }, },
+    refine finset.sum_eq_single _ (λ b hb hnb, _) (λ hn, _),
+    { have := finset.mem_range_succ_iff.mp hb,
+      simp only [hk b (this.lt_of_ne hnb), pi.zero_apply, zero_apply] },
+    { exact false.elim (hn (finset.mem_range.mpr (lt_add_one k))) } },
   replace h := h.is_O_sub_partial_sum_pow k.succ,
   simp only [psum_eq, zero_sub, pi.zero_apply, asymptotics.is_O_neg_left] at h,
   exact h.continuous_multilinear_map_apply_eq_zero,
@@ -777,6 +775,20 @@ theorem has_fpower_series_on_ball.exchange_radius
   (h₁ : has_fpower_series_on_ball f p₁ x r₁) (h₂ : has_fpower_series_on_ball f p₂ x r₂) :
   has_fpower_series_on_ball f p₁ x r₂ :=
 h₂.has_fpower_series_at.eq_formal_multilinear_series h₁.has_fpower_series_at ▸ h₂
+
+/-- If a function `f : 𝕜 → E` has power series representation `p` on a ball of some radius and for
+each positive radius it has some power series representation, then `p` converges to `f` on the whole
+`𝕜`. -/
+theorem has_fpower_series_on_ball.r_eq_top_of_exists {f : 𝕜 → E} {r : ℝ≥0∞} {x : 𝕜}
+  {p : formal_multilinear_series 𝕜 𝕜 E} (h : has_fpower_series_on_ball f p x r)
+  (h' : ∀ (r' : ℝ≥0) (hr : 0 < r'),
+    ∃ p' : formal_multilinear_series 𝕜 𝕜 E, has_fpower_series_on_ball f p' x r') :
+  has_fpower_series_on_ball f p x ∞ :=
+{ r_le := ennreal.le_of_forall_pos_nnreal_lt $ λ r hr hr',
+    let ⟨p', hp'⟩ := h' r hr in (h.exchange_radius hp').r_le,
+  r_pos := ennreal.coe_lt_top,
+  has_sum := λ y hy, let ⟨r', hr'⟩ := exists_gt ∥y∥₊, ⟨p', hp'⟩ := h' r' hr'.ne_bot.bot_lt
+    in (h.exchange_radius hp').has_sum $ mem_emetric_ball_zero_iff.mpr (ennreal.coe_lt_coe.2 hr') }
 
 end uniqueness
 

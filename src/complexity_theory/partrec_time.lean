@@ -74,6 +74,38 @@ begin
   },
 end
 
+-- lemma eval_dom_of_time_dom_case (f g : code) (l : list ℕ) (h : ((time (code.case f g) l).dom)) :
+--   ((code.case f g).eval l).dom :=
+-- begin
+
+-- end
+
+/-- A code running on a list returns a value, then there is a time at which it returns -/
+lemma eval_dom_of_time_dom (c : code) (l : list ℕ) (h : ((time c l).dom)) : (c.eval l).dom  :=
+begin
+  induction c with f fs iHf iHfs f g iHf iHg f g iHf iHg generalizing l,
+  { -- tidy,
+    sorry, },
+  { -- tidy,
+    sorry, },
+  { -- tidy,
+    sorry, },
+  { -- tidy,
+    sorry, },
+  { -- tidy,
+    sorry, },
+  { cases h with h_w h_h, dsimp at *,
+    cases l.head,
+    simp at *,
+    apply iHf,
+    assumption,
+    simp at *,
+    apply iHg (n :: l.tail),
+    exact h_w,
+   },
+  { sorry, },
+end
+
 /--
 Holds for codes representing total functions, where `bound` is a function upper bounding the
 runtime of the code over all input lists of length `l`.
@@ -84,7 +116,12 @@ def time_bound (c : turing.to_partrec.code) (bound : ℕ → ℕ) : Prop :=
 lemma total_of_time_bound (c : turing.to_partrec.code) (bound : ℕ → ℕ) (H : time_bound c bound)
   (l : list ℕ) : (c.eval l).dom :=
 begin
-  sorry,
+  apply eval_dom_of_time_dom,
+  unfold time_bound at H,
+  replace H := H l 0,
+  rw part.dom_iff_mem,
+  rcases H with ⟨t, H, ht⟩,
+  exact Exists.intro t H,
 end
 
 
@@ -128,11 +165,16 @@ end
 lemma output_length_bound {c : code} {l : list ℕ} (hdom : (c.eval l).dom) :
   ((c.eval l).get hdom).length ≤ l.length + ((time c l).get (time_dom_of_eval_dom c l hdom)) :=
 begin
-  induction c,
+  induction c with f fs iHf iHfs f g iHf iHg f g iHf iHg,
   { tidy, },
   { tidy, },
   { tidy, rw add_assoc, exact le_self_add, },
-  sorry,
+  { tidy,
+    simp_rw part.bind_some_eq_map,
+    simp_rw <-part.map_bind,
+
+    simp_rw <-part.pure_eq_some,
+     }
   sorry,
   sorry,
   sorry,
@@ -142,7 +184,7 @@ end
 Note that we compose the f bound with the g bound plus the identity. This is because `g` may be a
 function with a very short time bound that does not read its whole input. `bg + id`, though, is
 guaranteed to upper bound the length of the input to f. -/
-lemma time_bound_comp (f g : code) (bf bg : ℕ → ℕ) (mbf : monotone bf)
+lemma time_bound_comp (f g : code) {bf bg : ℕ → ℕ} {mbf : monotone bf}
   (hbf : time_bound f bf) (hbg : time_bound g bg) :
   time_bound (code.comp f g) (bg + (bf ∘ (bg + id)) + 1) :=
 begin
@@ -203,13 +245,15 @@ end
 lemma poly_time_succ : poly_time code.succ :=
 begin
   rw poly_time,
-  sorry,
+  use polynomial.C 1,
+  tidy,
 end
 
 lemma poly_time_tail : poly_time code.tail :=
 begin
   rw poly_time,
-  sorry,
+  use polynomial.C 1,
+  tidy,
 end
 
 lemma poly_time_cons (f fs : code) (hf : poly_time f) (hfs : poly_time fs) :
@@ -225,11 +269,46 @@ begin
   assumption,
 end
 
+lemma polynomial.eval_comp' (p q : polynomial ℕ) :
+  (λ x, polynomial.eval x (p.comp q) : ℕ -> ℕ)
+  = ((λ (x : ℕ), polynomial.eval x p) : ℕ -> ℕ) ∘ ((λ (x : ℕ), polynomial.eval x q) : ℕ -> ℕ) :=
+begin
+  simp,
+end
+
+lemma monotone_eval_polynomial_nat (p : polynomial ℕ) : monotone (λ (x : ℕ), polynomial.eval x p) :=
+begin
+  apply polynomial.induction_on' p,
+  intros p q mp mq,
+  simp,
+  exact monotone.add mp mq,
+  intros n a,
+  simp,
+  refine monotone.mul _ _ _ _,
+  work_on_goal 0 { intros a_1 b ᾰ, refl }, work_on_goal 0 { intros a_1 b ᾰ, dsimp at * }, work_on_goal 1 { intros x, exact dec_trivial }, work_on_goal 1 { intros x, exact dec_trivial },
+  apply pow_le_pow_of_le_left,
+  work_on_goal 0 { exact dec_trivial }, assumption,
+end
+
 lemma poly_time_comp (f g : code) (hf : poly_time f) (hg : poly_time g) :
   poly_time (code.comp f g) :=
 begin
   rw poly_time at *,
   rcases hf with ⟨fp, fpb⟩,
   rcases hg with ⟨gp, gpb⟩,
-  sorry,
+  use gp + (fp.comp (gp + polynomial.X)) + 1,
+  simp only [polynomial.eval_add, polynomial.eval_comp', polynomial.eval_X, polynomial.eval_one],
+  -- have foo : λ (x : ℕ), polynomial.eval x (gp + fp.comp (gp + polynomial.X) + 1) =
+  --           ((λ (x : ℕ), polynomial.eval x gp) +
+  --        (λ (x : ℕ), polynomial.eval x fp) ∘ ((λ (x : ℕ), polynomial.eval x gp) + id) +
+  --      1),
+  -- simp
+  have foo := @time_bound_comp f g (λ x, fp.eval x) (λ x, gp.eval x) _ fpb gpb,
+  suffices : ((λ (x : ℕ), polynomial.eval x gp) + (λ (x : ℕ), polynomial.eval x fp) ∘ ((λ (x : ℕ), polynomial.eval x gp) + id) + 1) = (λ (x : ℕ), polynomial.eval x gp + polynomial.eval x (fp.comp (gp + polynomial.X)) + 1),
+  { simp_rw <-this, exact foo, },
+  clear foo,
+  ext,
+  simp,
+  apply monotone_eval_polynomial_nat,
+
 end

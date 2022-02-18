@@ -289,8 +289,7 @@ end
 /-- An orthonormal set that spans is an orthonormal basis -/
 protected def mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤):
   orthonormal_basis ι 𝕜 E :=
-basis.to_orthonormal_basis (basis.mk (orthonormal.linear_independent hon) hsp)
-  (by rwa basis.coe_mk)
+(basis.mk (orthonormal.linear_independent hon) hsp).to_orthonormal_basis (by rwa basis.coe_mk)
 
 @[simp]
 protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :

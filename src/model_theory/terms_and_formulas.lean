@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
 import data.equiv.fin
-import data.finset.basic
+import data.finset.preimage
 import model_theory.basic
 
 /-!
@@ -39,7 +39,8 @@ universes u v
 namespace first_order
 namespace language
 
-variables {L : language.{u v}} {L' : language} {M N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
+variables {L : language.{u v}} {L' : language}
+variables {M N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
 open_locale first_order
 open Structure
 
@@ -350,6 +351,12 @@ realize_inf _ _ _ _
     (realize_formula M φ v → realize_formula M ψ v) :=
 bounded_formula.realize_bd_imp _ _ _ _
 
+@[simp] lemma realize_rel {k : ℕ} {R : L.relations k} {ts : fin k → L.term α} :
+  realize_formula M (rel R ts) v =
+    rel_map R (λ i, realize_term v (ts i)) :=
+(realize_bd_rel v fin_zero_elim R (λ i, (ts i).relabel sum.inl)).trans
+    (congr rfl (funext (λ i, by simp only [realize_term_relabel, sum.elim_comp_inl])))
+
 @[simp] lemma realize_sup : realize_formula M (φ ⊔ ψ) v =
     (realize_formula M φ v ∨ realize_formula M ψ v) :=
 realize_sup _ _ _ _
@@ -357,12 +364,6 @@ realize_sup _ _ _ _
 @[simp] lemma realize_iff : realize_formula M (φ.iff ψ) v=
   (realize_formula M φ v ↔ realize_formula M ψ v) :=
 bounded_formula.realize_bd_iff _ _ _ _
-
-@[simp] lemma realize_rel {k : ℕ} {R : L.relations k} {ts : fin k → L.term α} :
-  realize_formula M (rel R ts) v =
-    rel_map R (λ i, realize_term v (ts i)) :=
-(realize_bd_rel v fin_zero_elim R (λ i, (ts i).relabel sum.inl)).trans
-    (congr rfl (funext (λ i, by simp only [realize_term_relabel, sum.elim_comp_inl])))
 
 end formula
 

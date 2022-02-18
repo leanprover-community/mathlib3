@@ -28,6 +28,10 @@ structures.
 * A `first_order.language.equiv`, denoted `M ≃[L] N`, is an equivalence from the `L`-structure `M`
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.
+* A `first_order.language.Lhom`, denoted `L →ᴸ L'`, is a map between languages, sending the symbols
+  of one to symbols of the same kind and arity in the other.
+* `first_order.language.with_params` is defined so that if `M` is an `L.Structure` and `A : set M`,
+  then `L.with_params A` is a language which adds constant symbols for elements of `A` to `L`.
 
 ## References
 For the Flypitch project:
@@ -56,6 +60,7 @@ protected def empty : language := ⟨λ _, pempty, λ _, pempty⟩
 
 instance : inhabited language := ⟨language.empty⟩
 
+/-- The sum of two languages consists of the disjoint union of their symbols. -/
 protected def sum (L : language.{u v}) (L' : language.{u' v'}) : language.{(max u u') (max v v')} :=
 ⟨λn, L.functions n ⊕ L'.functions n, λ n, L.relations n ⊕ L'.relations n⟩
 
@@ -75,7 +80,11 @@ class is_relational : Prop :=
 class is_algebraic : Prop :=
 (empty_relations : ∀ n, is_empty (L.relations n))
 
-variable {L}
+variables {L} {L' : language.{u' v'}}
+
+instance [L.is_relational] {n : ℕ} : is_empty (L.functions n) := is_relational.empty_functions n
+
+instance [L.is_algebraic] {n : ℕ} : is_empty (L.relations n) := is_algebraic.empty_relations n
 
 instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational ⟨λ _, pempty, symb⟩ :=
 ⟨λ _, pempty.is_empty⟩
@@ -88,6 +97,12 @@ language.is_relational_of_empty_functions
 
 instance is_algebraic_empty : is_algebraic language.empty :=
 language.is_algebraic_of_empty_relations
+
+instance is_relational_sum [L.is_relational] [L'.is_relational] : is_relational (L.sum L') :=
+⟨λ n, sum.is_empty⟩
+
+instance is_algebraic_sum [L.is_algebraic] [L'.is_algebraic] : is_algebraic (L.sum L') :=
+⟨λ n, sum.is_empty⟩
 
 variables (L) (M : Type w)
 
@@ -396,6 +411,7 @@ variables {L₁ L₂ S}
 
 end sum_Structure
 
+/-- A language homomorphism maps the symbols of one language to symbols of another. -/
 structure Lhom (L L' : language) :=
 (on_function : ∀{n}, L.functions n → L'.functions n)
 (on_relation : ∀{n}, L.relations n → L'.relations n)
@@ -404,26 +420,31 @@ infix ` →ᴸ `:10 := Lhom -- \^L
 
 namespace Lhom
 
-variables {L' : language} (ϕ : L →ᴸ L')
+variables (ϕ : L →ᴸ L')
 
+/-- The identity language homomorphism. -/
 protected def id (L : language) : L →ᴸ L :=
 ⟨λn, id, λ n, id⟩
 
 instance : inhabited (L →ᴸ L) := ⟨Lhom.id L⟩
 
+/-- The inclusion of the left factor into the sum of two languages. -/
 protected def sum_inl : L →ᴸ L.sum L' :=
 ⟨λn, sum.inl, λ n, sum.inl⟩
 
+/-- The inclusion of the right factor into the sum of two languages. -/
 protected def sum_inr : L' →ᴸ L.sum L' :=
 ⟨λn, sum.inr, λ n, sum.inr⟩
 
 variables (L L')
 
+/-- The inclusion of an empty language into any other language. -/
 protected def of_is_empty [L.is_algebraic] [L.is_relational] : L →ᴸ L' :=
 ⟨λ n, (is_relational.empty_functions n).elim, λ n, (is_algebraic.empty_relations n).elim⟩
 
 variables {L L'}
 
+/-- The composition of two language homomorphisms. -/
 @[reducible] def comp {L1} {L2} {L3} (g : L2 →ᴸ L3) (f : L1 →ᴸ L2) : L1 →ᴸ L3 :=
 begin
   rcases g with ⟨g1, g2⟩, rcases f with ⟨f1,f2⟩,
@@ -442,10 +463,13 @@ by {cases F, refl}
 @[simp] lemma id_is_right_identity {L1 L2} {F : L1 →ᴸ L2} : F ∘ (Lhom.id L1) = F :=
 by {cases F, refl}
 
+/-- A language homomorphism is injective when all the maps between symbol types are. -/
 structure is_injective : Prop :=
 (on_function {n} : function.injective (on_function ϕ : L.functions n → L'.functions n))
 (on_relation {n} : function.injective (on_relation ϕ : L.relations n → L'.relations n))
 
+/-- A language homomorphism is an expansion on a structure if it commutes with the interpretation of
+all symbols on that structure. -/
 class is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M] : Prop :=
 (map_on_function : ∀ {n} (f : L.functions n) (x : fin n → M),
   fun_map (ϕ.on_function f) x = fun_map f x)
@@ -525,6 +549,9 @@ variables {α : Type w} (A : set α)
 /-- Extends a language with a constant for each element of a parameter set in `M`. -/
 def with_params : language.{(max u w) v} := L.sum (constants_on A)
 
+/-- The parameter symbol representing an element of the parameter set. -/
+@[reducible] def param_mk (a : A) : (L.with_params A).const := sum.inr ⟨a, h⟩
+
 /-- The language map adding parameters.  -/
 def Lhom_with_params : L →ᴸ L.with_params A := Lhom.sum_inl
 
@@ -583,4 +610,3 @@ end with_params
 
 end language
 end first_order
-#lint

@@ -1194,7 +1194,7 @@ by rw [← of_nat_to_znum, num.zneg_to_znum]
 by rw [← cast_to_int, to_of_int]
 
 @[simp, norm_cast] theorem of_nat_cast [add_group_with_one α] (n : ℕ) : ((n : znum) : α) = n :=
-of_int_cast n
+by rw [← int.cast_coe_nat, of_int_cast, int.cast_coe_nat]
 
 @[simp, norm_cast] theorem dvd_to_int (m n : znum) : (m : ℤ) ∣ n ↔ m ∣ n :=
 ⟨λ ⟨k, e⟩, ⟨k, by rw [← of_to_int n, e]; simp⟩,

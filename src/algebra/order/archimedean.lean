@@ -133,7 +133,7 @@ by classical; exact let n := nat.find h in
   ⟨nat.pred n, le_of_not_lt (nat.find_min h hltn), by rwa hnsp⟩
 
 theorem exists_int_gt (x : α) : ∃ n : ℤ, x < n :=
-let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by rwa ← coe_coe⟩
+let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by rwa int.cast_coe_nat⟩
 
 theorem exists_int_lt (x : α) : ∃ n : ℤ, (n : α) < x :=
 let ⟨n, h⟩ := exists_int_gt (-x) in ⟨-n, by rw int.cast_neg; exact neg_lt.1 h⟩
@@ -304,7 +304,7 @@ begin
   rwa [← lt_sub_iff_add_lt', ← sub_mul,
        ← div_lt_iff' (sub_pos.2 h), one_div],
   { rw [rat.coe_int_denom, nat.cast_one], exact one_ne_zero },
-  { intro H, rw [rat.coe_nat_num, ← coe_coe, nat.cast_eq_zero] at H, subst H, cases n0 },
+  { intro H, rw [rat.coe_nat_num, int.cast_coe_nat, nat.cast_eq_zero] at H, subst H, cases n0 },
   { rw [rat.coe_nat_denom, nat.cast_one], exact one_ne_zero }
 end
 

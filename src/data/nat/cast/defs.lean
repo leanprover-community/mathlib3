@@ -25,7 +25,6 @@ Setting up the coercions priorities is tricky. See Note [coercion into rings].
 -/
 
 universes u
-
 set_option old_structure_cmd true
 
 /-- The numeral `((0+1)+⋯)+1`. -/
@@ -42,10 +41,6 @@ class add_monoid_with_one (α : Type u) extends add_monoid α, has_one α :=
 protected def nat.cast {α : Type*} [add_monoid_with_one α] : ℕ → α := add_monoid_with_one.nat_cast
 
 class add_comm_monoid_with_one (α : Type*) extends add_monoid_with_one α, add_comm_monoid α
-
-class add_group_with_one (α : Type*) extends add_group α, add_monoid_with_one α
-
-class add_comm_group_with_one (α : Type*) extends add_comm_group α, add_group_with_one α
 
 section
 variables {α : Type*} [add_monoid_with_one α]
@@ -131,22 +126,13 @@ by rw [bit1, cast_add_one, cast_bit0]; refl
 lemma cast_two [add_monoid_with_one α] : ((2 : ℕ) : α) = 2 :=
 by rw [cast_add_one, cast_one, bit0]
 
-@[simp, norm_cast] theorem cast_sub [add_group_with_one α] {m n} (h : m ≤ n) :
-  ((n - m : ℕ) : α) = n - m :=
-eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
-
-@[simp, norm_cast] theorem cast_pred [add_group_with_one α] :
-  ∀ {n}, 0 < n → ((n - 1 : ℕ) : α) = n - 1
-| 0 h := by cases h
-| (n+1) h := by rw [cast_succ, add_sub_cancel]; refl
-
 end nat
 
-@[reducible] def add_monoid_with_one.unary {α : Type*} [add_monoid α] [has_one α] :
+@[reducible] protected def add_monoid_with_one.unary {α : Type*} [add_monoid α] [has_one α] :
   add_monoid_with_one α :=
 { .. ‹has_one α›, .. ‹add_monoid α› }
 
-@[reducible] def add_monoid_with_one.binary {α : Type*} [add_monoid α] [has_one α] :
+@[reducible] protected def add_monoid_with_one.binary {α : Type*} [add_monoid α] [has_one α] :
   add_monoid_with_one α :=
 { nat_cast := nat.bin_cast,
   nat_cast_zero := by simp [nat.bin_cast, nat.cast],

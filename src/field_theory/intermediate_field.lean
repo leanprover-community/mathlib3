@@ -174,6 +174,9 @@ lemma zsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
 lemma coe_int_mem (n : ℤ) : (n : L) ∈ S :=
 by simp only [← zsmul_one, zsmul_mem, one_mem]
 
+lemma coe_nat_mem (n : ℕ) : (n : L) ∈ S :=
+by simpa using coe_int_mem S n
+
 end intermediate_field
 
 /-- Turn a subalgebra closed under inverses into an intermediate field -/

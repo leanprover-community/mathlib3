@@ -182,7 +182,8 @@ lemma finite_edist_eq (x y : e.finite_subspace) : edist x y = e (x - y) := rfl
 /-- Normed group instance on `e.finite_subspace`. -/
 instance : normed_group e.finite_subspace :=
 { norm := λ x, (e x).to_real,
-  dist_eq := λ x y, rfl }
+  dist_eq := λ x y, rfl,
+  .. finite_subspace.metric_space e, .. submodule.add_comm_group _ }
 
 lemma finite_norm_eq (x : e.finite_subspace) : ∥x∥ = (e x).to_real := rfl
 

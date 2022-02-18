@@ -162,10 +162,13 @@ by refine_struct
     zsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
-instance : add_monoid_with_one ℂ :=
+instance : add_group_with_one ℂ :=
 { nat_cast := λ n, ⟨n, 0⟩,
   nat_cast_zero := by ext; simp [nat.cast],
   nat_cast_succ := λ _, by ext; simp [nat.cast],
+  int_cast := λ n, ⟨n, 0⟩,
+  int_cast_of_nat := λ _, by ext; simp [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
+  int_cast_neg_succ_of_nat := λ _, by ext; simp [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
   one := 1,
   .. complex.add_comm_group }
 
@@ -176,7 +179,7 @@ by refine_struct
     one := 1,
     mul := (*),
     npow := @npow_rec _ ⟨(1 : ℂ)⟩ ⟨(*)⟩,
-    .. complex.add_comm_group, .. complex.add_monoid_with_one };
+    .. complex.add_group_with_one };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`

@@ -99,6 +99,9 @@ by ext; simp
 @[simp] lemma neg_mk (a₁ a₂ a₃ a₄ : R) : -(mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) = ⟨-a₁, -a₂, -a₃, -a₄⟩ :=
 rfl
 
+@[norm_cast, simp] lemma coe_neg : ((-x : R) : ℍ[R, c₁, c₂]) = -x :=
+by ext; simp
+
 @[simps] instance : has_sub ℍ[R, c₁, c₂] :=
 ⟨λ a b, ⟨a.1 - b.1, a.2 - b.2, a.3 - b.3, a.4 - b.4⟩⟩
 
@@ -128,31 +131,35 @@ rfl
      a₁ * b₃ + c₁ * a₂ * b₄ + a₃ * b₁ - c₁ *  a₄ * b₂,
      a₁ * b₄ + a₂ * b₃ - a₃ * b₂ + a₄ * b₁⟩ := rfl
 
-instance : add_comm_monoid ℍ[R, c₁, c₂] :=
-by refine_struct
-  { add := (+),
-    zero := (0 : ℍ[R, c₁, c₂]),
-    nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ };
-  intros; try { refl }; ext; simp; ring_exp
-
-instance : add_monoid_with_one ℍ[R, c₁, c₂] :=
-{ nat_cast := λ n, ((n : R) : ℍ[R, c₁, c₂]),
-  nat_cast_zero := by simp [nat.cast],
-  nat_cast_succ := by simp [nat.cast],
-  one := 1,
-  .. quaternion_algebra.add_comm_monoid }
-
-instance : ring ℍ[R, c₁, c₂] :=
+instance : add_comm_group ℍ[R, c₁, c₂] :=
 by refine_struct
   { add := (+),
     neg := has_neg.neg,
     sub := has_sub.sub,
+    zero := (0 : ℍ[R, c₁, c₂]),
+    zsmul := @zsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
+    nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ };
+  intros; try { refl }; ext; simp; ring_exp
+
+instance : add_group_with_one ℍ[R, c₁, c₂] :=
+{ nat_cast := λ n, ((n : R) : ℍ[R, c₁, c₂]),
+  nat_cast_zero := by simp,
+  nat_cast_succ := by simp,
+  int_cast := λ n, ((n : R) : ℍ[R, c₁, c₂]),
+  int_cast_of_nat := λ _, congr_arg coe (int.cast_of_nat _),
+  int_cast_neg_succ_of_nat := λ n,
+    show ↑↑_ = -↑↑_, by rw [int.cast_neg, int.cast_coe_nat, coe_neg],
+  one := 1,
+  .. quaternion_algebra.add_comm_group }
+
+instance : ring ℍ[R, c₁, c₂] :=
+by refine_struct
+  { add := (+),
     mul := (*),
     one := 1,
-    zsmul := @zsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
     npow := @npow_rec _ ⟨(1 : ℍ[R, c₁, c₂])⟩ ⟨(*)⟩,
-    .. quaternion_algebra.add_monoid_with_one,
-    .. quaternion_algebra.add_comm_monoid };
+    .. quaternion_algebra.add_group_with_one,
+    .. quaternion_algebra.add_comm_group };
   intros; try { refl }; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=
@@ -198,9 +205,6 @@ end
 
 @[norm_cast, simp] lemma coe_sub : ((x - y : R) : ℍ[R, c₁, c₂]) = x - y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_sub x y
-
-@[norm_cast, simp] lemma coe_neg : ((-x : R) : ℍ[R, c₁, c₂]) = -x :=
-(algebra_map R ℍ[R, c₁, c₂]).map_neg x
 
 @[norm_cast, simp] lemma coe_mul : ((x * y : R) : ℍ[R, c₁, c₂]) = x * y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_mul x y

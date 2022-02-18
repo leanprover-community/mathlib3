@@ -100,7 +100,7 @@ graded_algebra.of_alg_hom _
         rw [alg_hom.map_mul, ih, lift_ι_apply, graded_algebra.ι_apply, direct_sum.of_mul_of],
         refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext _ _),
           dsimp only [graded_monoid.mk, subtype.coe_mk],
-        { rw [nat.succ_eq_add_one, add_comm], refl },
+        { rw [nat.succ_eq_add_one, add_comm, nat.cast_succ] },
         refl } },
     { rw alg_hom.map_zero,
       apply eq.symm,

@@ -30,34 +30,23 @@ section semi_normed_ring
 
 /-- A seminormed ring is a ring endowed with a seminorm which satisfies the inequality
 `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
-class semi_normed_ring (α : Type*) extends has_norm α, ring α, pseudo_metric_space α :=
-(dist_eq : ∀ x y, dist x y = norm (x - y))
+@[protect_proj]
+class semi_normed_ring (α : Type*) extends semi_normed_group_with_one α, ring α :=
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
 
 /-- A normed ring is a ring endowed with a norm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
-class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
-(dist_eq : ∀ x y, dist x y = norm (x - y))
-(norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
-
-/-- A normed ring is a seminormed ring. -/
-@[priority 100] -- see Note [lower instance priority]
-instance normed_ring.to_semi_normed_ring [β : normed_ring α] : semi_normed_ring α :=
-{ ..β }
+@[protect_proj]
+class normed_ring (α : Type*) extends semi_normed_ring α, normed_group α, metric_space α
 
 /-- A seminormed commutative ring is a commutative ring endowed with a seminorm which satisfies
 the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
-class semi_normed_comm_ring (α : Type*) extends semi_normed_ring α :=
-(mul_comm : ∀ x y : α, x * y = y * x)
+@[protect_proj]
+class semi_normed_comm_ring (α : Type*) extends semi_normed_ring α, comm_ring α
 
 /-- A normed commutative ring is a commutative ring endowed with a norm which satisfies
 the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
-class normed_comm_ring (α : Type*) extends normed_ring α :=
-(mul_comm : ∀ x y : α, x * y = y * x)
-
-/-- A normed commutative ring is a seminormed commutative ring. -/
-@[priority 100] -- see Note [lower instance priority]
-instance normed_comm_ring.to_semi_normed_comm_ring [β : normed_comm_ring α] :
-  semi_normed_comm_ring α := { ..β }
+@[protect_proj]
+class normed_comm_ring (α : Type*) extends normed_ring α, semi_normed_comm_ring α
 
 instance : normed_comm_ring punit :=
 { norm_mul := λ _ _, by simp,
@@ -76,16 +65,6 @@ attribute [simp] norm_one
 
 @[simp] lemma nnnorm_one [semi_normed_group α] [has_one α] [norm_one_class α] : ∥(1 : α)∥₊ = 1 :=
 nnreal.eq norm_one
-
-@[priority 100] -- see Note [lower instance priority]
-instance semi_normed_comm_ring.to_comm_ring [β : semi_normed_comm_ring α] : comm_ring α := { ..β }
-
-@[priority 100] -- see Note [lower instance priority]
-instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
-
-@[priority 100] -- see Note [lower instance priority]
-instance semi_normed_ring.to_semi_normed_group [β : semi_normed_ring α] :
-  semi_normed_group α := { ..β }
 
 instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class α]
   [semi_normed_group β] [has_one β] [norm_one_class β] :
@@ -255,13 +234,13 @@ instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α := { }
 
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 @[protect_proj]
-class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
-(dist_eq : ∀ x y, dist x y = norm (x - y))
+class normed_field (α : Type*) extends semi_normed_group_with_one α, field α, metric_space α :=
 (norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
 /-- A nondiscrete normed field is a normed field in which there is an element of norm different from
 `0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by multiplication
 by the powers of any element, and thus to relate algebra and topology. -/
+@[protect_proj]
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
 
@@ -475,8 +454,7 @@ instance : normed_comm_ring ℤ :=
   norm_mul := λ m n, le_of_eq $
     by simp only [int.norm_eq_abs, int.cast_mul, abs_mul, real.norm_eq_abs],
   dist := dist,
-  dist_eq := λ m n, by simp only [normed_field.norm, normed_group.norm,
-    int.dist_eq, norm, int.cast_sub],
+  dist_eq := λ m n, by simp only [int.dist_eq, int.cast_sub, real.norm_eq_abs],
   mul_comm := mul_comm,
   .. int.ring, .. int.metric_space }
 
@@ -503,8 +481,7 @@ instance : normed_field ℚ :=
   .. rat.metric_space, .. rat.field }
 
 instance : nondiscrete_normed_field ℚ :=
-{ non_trivial := ⟨2, by { unfold norm normed_field.norm normed_group.norm,
-    rw abs_of_nonneg; norm_num }⟩,
+{ non_trivial := ⟨2, by rw [rat.norm_eq_abs, abs_of_nonneg]; norm_num⟩,
   .. rat.normed_field }
 
 @[norm_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ∥(r : ℝ)∥ = ∥r∥ := rfl
@@ -560,6 +537,7 @@ equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ �
 
 Note that since this requires `semi_normed_group` and not `normed_group`, this typeclass can be
 used for "semi normed spaces" too, just as `module` can be used for "semi modules". -/
+@[protect_proj]
 class normed_space (α : Type*) (β : Type*) [normed_field α] [semi_normed_group β]
   extends module α β :=
 (norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
@@ -860,6 +838,7 @@ section
 set_option old_structure_cmd false
 /-- A normed algebra `𝕜'` over `𝕜` is an algebra endowed with a norm for which the
 embedding of `𝕜` in `𝕜'` is an isometry. -/
+@[protect_proj]
 class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [semi_normed_ring 𝕜']
   extends algebra 𝕜 𝕜' :=
 (norm_algebra_map_eq : ∀x:𝕜, ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥)
@@ -1090,6 +1069,7 @@ variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
 
 /-- This class states that a ring homomorphism is isometric. This is a sufficient assumption
 for a continuous semilinear map to be bounded and this is the main use for this typeclass. -/
+@[protect_proj]
 class ring_hom_isometric [semiring R₁] [semiring R₂] [has_norm R₁] [has_norm R₂]
   (σ : R₁ →+* R₂) : Prop :=
 (is_iso : ∀ {x : R₁}, ∥σ x∥ = ∥x∥)

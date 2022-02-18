@@ -153,7 +153,7 @@ lemma zmod_congr_of_sub_mem_span (n : ℕ) (x : ℤ_[p]) (a b : ℕ)
   (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
   (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
   (a : zmod (p ^ n)) = b :=
-zmod_congr_of_sub_mem_span_aux n x a b ha hb
+by simpa using zmod_congr_of_sub_mem_span_aux n x a b ha hb
 
 lemma zmod_congr_of_sub_mem_max_ideal (x : ℤ_[p]) (m n : ℕ)
   (hm : x - m ∈ maximal_ideal ℤ_[p]) (hn : x - n ∈ maximal_ideal ℤ_[p]) :
@@ -164,7 +164,8 @@ begin
   simp only [pow_one] at this,
   specialize this hm hn,
   apply_fun zmod.cast_hom (show p ∣ p ^ 1, by rw pow_one) (zmod p) at this,
-  simpa only [ring_hom.map_int_cast],
+  simp only [ring_hom.map_int_cast] at this,
+  simpa only [int.cast_coe_nat] using this
 end
 
 variable (x : ℤ_[p])
@@ -495,9 +496,9 @@ begin
       int.cast_sub],
   dsimp [nth_hom],
   rw [← f_compat, ring_hom.comp_apply],
-  have : fact (p ^ i > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  have : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
-  unfreezingI { simp only [zmod.cast_id, zmod.cast_hom_apply, sub_self, zmod.nat_cast_val], },
+  haveI : fact (p ^ i > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  haveI : fact (p ^ j > 0) := ⟨pow_pos hp_prime.1.pos _⟩,
+  simp only [zmod.cast_id, zmod.cast_hom_apply, sub_self, zmod.nat_cast_val, zmod.int_cast_cast],
 end
 
 lemma is_cau_seq_nth_hom (r : R): is_cau_seq (padic_norm p) (λ n, nth_hom f r n) :=

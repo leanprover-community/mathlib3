@@ -42,7 +42,8 @@ equivalent to `C(α, β)`.
 -/
 @[simps { fully_applied := ff }]
 def equiv_bounded_of_compact : C(α, β) ≃ (α →ᵇ β) :=
-⟨mk_of_compact, to_continuous_map, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
+⟨mk_of_compact, bounded_continuous_function.to_continuous_map,
+ λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
 
 lemma uniform_inducing_equiv_bounded_of_compact :
   uniform_inducing (equiv_bounded_of_compact α β) :=
@@ -153,7 +154,8 @@ instance : normed_group C(α, E) :=
     rw [← norm_mk_of_compact, ← dist_mk_of_compact, dist_eq_norm],
     congr' 1,
     exact ((add_equiv_bounded_of_compact α E).map_sub _ _).symm
-  end, }
+  end,
+  dist := dist, norm := norm, .. continuous_map.metric_space _ _, .. continuous_map.add_comm_group }
 
 section
 variables (f : C(α, E))
@@ -198,7 +200,8 @@ variables {R : Type*} [normed_ring R]
 
 instance : normed_ring C(α,R) :=
 { norm_mul := λ f g, norm_mul_le (mk_of_compact f) (mk_of_compact g),
-  ..(infer_instance : normed_group C(α,R)) }
+  ..(infer_instance : normed_group C(α,R)),
+  .. continuous_map.ring }
 
 end
 

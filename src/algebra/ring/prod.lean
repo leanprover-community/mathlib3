@@ -59,7 +59,7 @@ instance [non_unital_non_assoc_ring R] [non_unital_non_assoc_ring S] :
 
 /-- Product of two rings is a ring. -/
 instance [ring R] [ring S] : ring (R × S) :=
-{ .. prod.add_comm_group, .. prod.semiring }
+{ .. prod.add_comm_group, .. prod.add_group_with_one, .. prod.semiring }
 
 /-- Product of two commutative rings is a commutative ring. -/
 instance [comm_ring R] [comm_ring S] : comm_ring (R × S) :=

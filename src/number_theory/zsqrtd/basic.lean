@@ -97,31 +97,31 @@ instance : has_mul ℤ√d := ⟨zsqrtd.mul⟩
 @[simp] theorem mul_im : ∀ z w : ℤ√d, (z * w).im = z.re * w.im + z.im * w.re
 | ⟨x, y⟩ ⟨x', y'⟩ := rfl
 
-instance : add_comm_monoid ℤ√d :=
+instance : add_comm_group ℤ√d :=
 by refine_struct
 { add            := (+),
   zero           := (0 : ℤ√d),
+  sub            := λ a b, a + -b,
+  neg            := has_neg.neg,
+  zsmul          := @zsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ ⟨zsqrtd.neg⟩,
   nsmul          := @nsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ };
 intros; try { refl }; simp [ext, add_comm, add_left_comm]
 
-instance : add_monoid_with_one ℤ√d :=
+instance : add_group_with_one ℤ√d :=
 { nat_cast := λ n, of_int n,
-  nat_cast_zero := rfl,
-  nat_cast_succ := λ _, rfl,
+  int_cast := of_int,
   one := 1,
-  .. zsqrtd.add_comm_monoid }
+  .. zsqrtd.add_comm_group }
 
 instance : comm_ring ℤ√d :=
 by refine_struct
 { add            := (+),
   zero           := (0 : ℤ√d),
-  neg            := has_neg.neg,
   mul            := (*),
-  sub            := λ a b, a + -b,
   one            := 1,
   npow           := @npow_rec (ℤ√d) ⟨1⟩ ⟨(*)⟩,
   zsmul          := @zsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ ⟨zsqrtd.neg⟩,
-  .. zsqrtd.add_monoid_with_one };
+  .. zsqrtd.add_group_with_one };
 intros; try { refl }; simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm]
 
 instance : add_monoid ℤ√d         := by apply_instance

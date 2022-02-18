@@ -398,14 +398,17 @@ by { convert floor_add_int a 1, exact cast_one.symm }
 @[simp] lemma floor_int_add (z : ℤ) (a : α) : ⌊↑z + a⌋ = z + ⌊a⌋ :=
 by simpa only [add_comm] using floor_add_int a z
 
-@[simp] lemma floor_add_nat (a : α) (n : ℕ) : ⌊a + n⌋ = ⌊a⌋ + n := floor_add_int a n
+@[simp] lemma floor_add_nat (a : α) (n : ℕ) : ⌊a + n⌋ = ⌊a⌋ + n :=
+by rw [← int.cast_coe_nat, floor_add_int]
 
-@[simp] lemma floor_nat_add (n : ℕ) (a : α) : ⌊↑n + a⌋ = n + ⌊a⌋ := floor_int_add n a
+@[simp] lemma floor_nat_add (n : ℕ) (a : α) : ⌊↑n + a⌋ = n + ⌊a⌋ :=
+by rw [← int.cast_coe_nat, floor_int_add]
 
 @[simp] lemma floor_sub_int (a : α) (z : ℤ) : ⌊a - z⌋ = ⌊a⌋ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (floor_add_int _ _)
 
-@[simp] lemma floor_sub_nat (a : α) (n : ℕ) : ⌊a - n⌋ = ⌊a⌋ - n := floor_sub_int a n
+@[simp] lemma floor_sub_nat (a : α) (n : ℕ) : ⌊a - n⌋ = ⌊a⌋ - n :=
+by rw [← int.cast_coe_nat, floor_sub_int]
 
 lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α] [floor_ring α]
   {a b : α} (h : ⌊a⌋ = ⌊b⌋) : |a - b| < 1 :=
@@ -629,8 +632,9 @@ instance _root_.floor_ring.to_floor_semiring : floor_semiring α :=
 { floor := λ a, ⌊a⌋.to_nat,
   ceil := λ a, ⌈a⌉.to_nat,
   floor_of_neg := λ a ha, int.to_nat_of_nonpos (int.floor_nonpos ha.le),
-  gc_floor := λ a n ha, by { rw [int.le_to_nat_iff (int.floor_nonneg.2 ha), int.le_floor], refl },
-  gc_ceil := λ a n, by { rw [int.to_nat_le, int.ceil_le], refl } }
+  gc_floor := λ a n ha,
+    by rw [int.le_to_nat_iff (int.floor_nonneg.2 ha), int.le_floor, int.cast_coe_nat],
+  gc_ceil := λ a n, by rw [int.to_nat_le, int.ceil_le, int.cast_coe_nat] }
 
 lemma int.floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
 

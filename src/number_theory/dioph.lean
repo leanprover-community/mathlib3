@@ -177,30 +177,29 @@ instance : has_mul (poly α) := ⟨poly.mul⟩
 @[simp] theorem mul_eval : Π (f g x), (f * g : poly α) x = f x * g x
 | ⟨f, pf⟩ ⟨g, pg⟩ x := rfl
 
-instance : add_comm_monoid (poly α) := by refine_struct
+instance : add_comm_group (poly α) := by refine_struct
 { add   := ((+) : poly α → poly α → poly α),
+  neg   := (has_neg.neg : poly α → poly α),
+  sub   := (has_sub.sub),
   zero  := 0,
+  zsmul := @zsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ ⟨neg⟩,
   nsmul := @nsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ };
 intros; try { refl }; refine ext (λ _, _);
 simp [sub_eq_add_neg, add_comm, add_assoc]
 
-instance : add_monoid_with_one (poly α) :=
+instance : add_group_with_one (poly α) :=
 { one := 1,
   nat_cast := λ n, poly.const n,
-  nat_cast_zero := rfl,
-  nat_cast_succ := λ _, rfl,
-  .. poly.add_comm_monoid }
+  int_cast := poly.const,
+  .. poly.add_comm_group }
 
 instance : comm_ring (poly α) := by refine_struct
 { add   := ((+) : poly α → poly α → poly α),
   zero  := 0,
-  neg   := (has_neg.neg : poly α → poly α),
   mul   := ((*)),
   one   := 1,
-  sub   := (has_sub.sub),
   npow  := @npow_rec _ ⟨(1 : poly α)⟩ ⟨(*)⟩,
-  zsmul := @zsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ ⟨neg⟩,
-  .. poly.add_monoid_with_one, .. poly.add_comm_monoid };
+  .. poly.add_group_with_one, .. poly.add_comm_group };
 intros; try { refl }; refine ext (λ _, _);
 simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc]
 

@@ -123,7 +123,8 @@ S.to_subsemiring.coe_nat_mem n
 
 theorem coe_int_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) (n : ℤ) : (n : A) ∈ S :=
-int.cases_on n (λ i, S.coe_nat_mem i) (λ i, S.neg_mem $ S.coe_nat_mem $ i + 1)
+int.cases_on n (λ i, by simpa using S.coe_nat_mem i)
+  (λ i, by simpa using S.neg_mem (S.coe_nat_mem $ i + 1))
 
 theorem list_prod_mem {L : list A} (h : ∀ x ∈ L, x ∈ S) : L.prod ∈ S :=
 S.to_subsemiring.list_prod_mem h

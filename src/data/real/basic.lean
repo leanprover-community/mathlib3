@@ -71,14 +71,16 @@ begin
                   neg   := @has_neg.neg ℝ _,
                   sub   := λ a b, a + (-b),
                   nat_cast := λ n, ⟨n⟩,
+                  int_cast := λ n, ⟨n⟩,
                   npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
                   nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
                   zsmul := @zsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
   repeat { rintro ⟨_⟩, };
   try { refl };
-  simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy, nat.cast];
+  simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy,
+    λ n, show @coe ℕ ℝ ⟨_⟩ n = ⟨n⟩, from rfl];
   apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
-    apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
+    apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip,
 end
 
 /-! Extra instances to short-circuit type class resolution.

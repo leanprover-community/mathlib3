@@ -113,6 +113,19 @@ instance : has_one ℤ_[p] :=
 
 @[simp, norm_cast] lemma coe_zero : ((0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
+instance : add_comm_group ℤ_[p] :=
+by refine_struct
+{ add   := (+),
+  neg   := has_neg.neg,
+  zero  := (0 : ℤ_[p]),
+  sub   := has_sub.sub,
+  nsmul := @nsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩,
+  zsmul := @zsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+intros; try { refl }; ext; simp; ring
+
+instance : add_group_with_one ℤ_[p] :=
+{ one := 1, .. padic_int.add_comm_group }
+
 instance : ring ℤ_[p] :=
 by refine_struct
 { add   := (+),
@@ -121,10 +134,8 @@ by refine_struct
   zero  := (0 : ℤ_[p]),
   one   := 1,
   sub   := has_sub.sub,
-  nat_cast := nat.unary_cast,
   npow  := @npow_rec _ ⟨(1 : ℤ_[p])⟩ ⟨(*)⟩,
-  nsmul := @nsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩,
-  zsmul := @zsmul_rec _ ⟨(0 : ℤ_[p])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+  .. padic_int.add_group_with_one };
 intros; try { refl }; ext; simp; ring
 
 @[simp, norm_cast] lemma coe_coe : ∀ n : ℕ, ((n : ℤ_[p]) : ℚ_[p]) = n

@@ -7,6 +7,7 @@ import algebra.order.field
 import data.nat.basic
 import data.nat.cast.defs
 import algebra.group.pi
+import tactic.pi_instances
 
 /-!
 # Cast of naturals
@@ -287,17 +288,13 @@ end
 end with_top
 
 namespace pi
+variables {α : Type*} {β : α → Type*} [∀ a, add_monoid_with_one (β a)]
 
-variables {α β : Type*}
+instance [∀ i, add_monoid_with_one (β i)] : add_monoid_with_one (∀ i, β i) :=
+by refine_struct { .. }; tactic.pi_instance_derive_field
 
-instance [add_monoid_with_one β] : add_monoid_with_one (α → β) :=
-{ nat_cast := λ n i, n,
-  nat_cast_zero := funext $ λ i, nat.cast_zero,
-  nat_cast_succ := λ n, funext $ λ i, nat.cast_succ _,
-  .. pi.add_monoid, .. pi.has_one }
+lemma nat_apply (n : ℕ) (a : α) : (n : ∀ a, β a) a = n := rfl
 
-lemma nat_apply [add_monoid_with_one β] (n : ℕ) (a : α) : (n : α → β) a = n := rfl
-
-@[simp] lemma coe_nat [add_monoid_with_one β] (n : ℕ) : (n : α → β) = λ _, n := rfl
+@[simp] lemma coe_nat (n : ℕ) : (n : ∀ a, β a) = λ _, n := rfl
 
 end pi

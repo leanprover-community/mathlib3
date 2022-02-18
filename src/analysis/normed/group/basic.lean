@@ -46,13 +46,19 @@ notation `∥` e `∥` := norm e
 
 /-- A seminormed group is an additive group endowed with a norm for which `dist x y = ∥x - y∥`
 defines a pseudometric space structure. -/
+@[protect_proj]
 class semi_normed_group (E : Type*) extends has_norm E, add_comm_group E, pseudo_metric_space E :=
 (dist_eq : ∀ x y : E, dist x y = norm (x - y))
 
+lemma dist_eq {E : Type*} [semi_normed_group E] (x y : E) : dist x y = ∥x - y∥ :=
+semi_normed_group.dist_eq x y
+
+@[protect_proj]
 class semi_normed_group_with_one (E : Type*) extends semi_normed_group E, add_monoid_with_one E
 
 /-- A normed group is an additive group endowed with a norm for which `dist x y = ∥x - y∥` defines
 a metric space structure. -/
+@[protect_proj]
 class normed_group (E : Type*) extends semi_normed_group E, metric_space E
 
 /-- Construct a seminormed group from a translation invariant pseudodistance. -/

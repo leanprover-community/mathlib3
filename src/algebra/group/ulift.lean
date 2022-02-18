@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.equiv.mul_add
-import data.nat.cast.defs
+import data.int.cast.defs
 
 /-!
 # `ulift` instances for groups and monoids
@@ -87,6 +87,12 @@ equiv.ulift.injective.div_inv_monoid_pow _ rfl (λ _ _, rfl) (λ _, rfl)
 instance group [group α] : group (ulift α) :=
 equiv.ulift.injective.group_pow _ rfl (λ _ _, rfl) (λ _, rfl)
   (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+instance add_group_with_one [add_group_with_one α] : add_group_with_one (ulift α) :=
+{ int_cast := λ n, ⟨n⟩,
+  int_cast_of_nat := λ n, congr_arg ulift.up (int.cast_of_nat _),
+  int_cast_neg_succ_of_nat := λ n, congr_arg ulift.up (int.cast_neg_succ_of_nat _),
+  .. ulift.add_monoid_with_one, .. ulift.add_group }
 
 @[to_additive]
 instance comm_group [comm_group α] : comm_group (ulift α) :=

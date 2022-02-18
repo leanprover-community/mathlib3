@@ -63,6 +63,8 @@ instance module.to_mul_action_with_zero :
   zero_smul := module.zero_smul,
   ..(infer_instance : mul_action R M) }
 
+@[reducible] def module.to_has_scalar : has_scalar R M := by apply_instance
+
 instance add_comm_monoid.nat_module : module ℕ M :=
 { one_smul := one_nsmul,
   mul_smul := λ m n a, mul_nsmul a m n,
@@ -397,7 +399,7 @@ lemma map_inv_nat_cast_smul {E F : Type*} [add_comm_group E] [add_comm_group F] 
   (R S : Type*) [division_ring R] [division_ring S] [module R E] [module S F]
   (n : ℕ) (x : E) :
   f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
-f.map_inv_int_cast_smul R S n x
+by exact_mod_cast f.map_inv_int_cast_smul R S n x
 
 lemma map_rat_cast_smul {E F : Type*} [add_comm_group E] [add_comm_group F] (f : E →+ F)
   (R S : Type*) [division_ring R] [division_ring S] [module R E] [module S F]

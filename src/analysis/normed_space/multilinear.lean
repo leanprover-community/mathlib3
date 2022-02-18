@@ -58,7 +58,16 @@ open_locale classical big_operators nnreal
 open finset metric
 
 local attribute [instance, priority 1001]
-add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_module'
+add_comm_group.to_add_comm_monoid normed_space.to_module' module.to_has_scalar
+
+@[reducible] def normed_group.to_add_comm_monoid {E} [normed_group E] : add_comm_monoid E :=
+by apply_instance
+local attribute [instance, priority 1001] normed_group.to_add_comm_monoid
+
+@[reducible] def nondiscrete_normed_field.to_semiring {E} [nondiscrete_normed_field E] :
+  semiring E :=
+by apply_instance
+local attribute [instance, priority 1001] nondiscrete_normed_field.to_semiring
 
 -- hack to speed up simp when dealing with complicated types
 local attribute [-instance] unique.subsingleton pi.subsingleton
@@ -372,6 +381,9 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext
     the operator norm. -/
 instance to_normed_group : normed_group (continuous_multilinear_map 𝕜 E G) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
+
+@[reducible] def to_semi_normed_group : semi_normed_group (continuous_multilinear_map 𝕜 E G) :=
+by apply_instance
 
 instance to_normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E G) :=
 ⟨λ c f, f.op_norm_smul_le c⟩
@@ -1388,6 +1400,8 @@ rfl
 
 variables (𝕜 ι ι' G G')
 
+local attribute [instance, priority 1001] to_semi_normed_group
+-- set_option trace.class_instances true
 /-- Linear isometric equivalence between the space of continuous multilinear maps with variables
 indexed by `ι ⊕ ι'` and the space of continuous multilinear maps with variables indexed by `ι`
 taking values in the space of continuous multilinear maps with variables indexed by `ι'`.

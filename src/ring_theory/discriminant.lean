@@ -181,7 +181,7 @@ begin
   simp only [prod_pow_eq_pow_sum, prod_const],
   congr,
   simp_rw [fin.card_filter_lt],
-  apply (@nat.cast_inj ℚ _ _ _ _ _).1,
+  rw ← @nat.cast_inj ℚ,
   rw [nat.cast_sum],
   have : ∀ (x : fin pb.dim), (↑x + 1) ≤ pb.dim := by simp [nat.succ_le_iff, fin.is_lt],
   simp_rw [nat.sub_sub],

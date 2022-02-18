@@ -113,7 +113,7 @@ ext $ λ _, cast_id _
 lemma nat_coe_apply [add_monoid_with_one R] {f : arithmetic_function ℕ} {x : ℕ} :
   (f : arithmetic_function R) x = f x := rfl
 
-instance int_coe [add_monoid_with_one R] [has_neg R] :
+instance int_coe [add_group_with_one R] :
   has_coe (arithmetic_function ℤ) (arithmetic_function R) :=
 ⟨λ f, ⟨↑(f : ℕ → ℤ), by { transitivity ↑(f 0), refl, simp }⟩⟩
 
@@ -123,12 +123,12 @@ lemma int_coe_int (f : arithmetic_function ℤ) :
 ext $ λ _, int.cast_id _
 
 @[simp]
-lemma int_coe_apply [add_monoid_with_one R] [has_neg R]
+lemma int_coe_apply [add_group_with_one R]
   {f : arithmetic_function ℤ} {x : ℕ} :
   (f : arithmetic_function R) x = f x := rfl
 
 @[simp]
-lemma coe_coe [add_monoid_with_one R] [has_neg R] {f : arithmetic_function ℕ} :
+lemma coe_coe [add_group_with_one R] {f : arithmetic_function ℕ} :
   ((f : arithmetic_function ℤ) : arithmetic_function R) = f :=
 by { ext, simp, }
 

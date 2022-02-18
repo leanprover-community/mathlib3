@@ -47,10 +47,12 @@ instance : normed_field ℂ :=
 { norm := abs,
   dist_eq := λ _ _, rfl,
   norm_mul' := abs_mul,
-  .. complex.field }
+  .. complex.field, .. complex.normed_group }
+
+@[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
 instance : nondiscrete_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
+{ non_trivial := ⟨2, by rw complex.norm_eq_abs; norm_num⟩, .. complex.normed_field }
 
 instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
 { norm_algebra_map_eq := λ x, (abs_of_real $ algebra_map R ℝ x).trans (norm_algebra_map_eq ℝ x),
@@ -61,8 +63,6 @@ instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R 
 instance _root_.normed_space.complex_to_real {E : Type*} [normed_group E] [normed_space ℂ E] :
   normed_space ℝ E :=
 normed_space.restrict_scalars ℝ ℂ E
-
-@[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 

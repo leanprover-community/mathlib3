@@ -73,7 +73,7 @@ tactic.pi_instance_derive_field
 instance ring [ring α] : ring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub := has_sub.sub,
   neg := has_neg.neg, nsmul := add_monoid.nsmul, npow := monoid.npow,
-  zsmul := sub_neg_monoid.zsmul, .. ulift.semiring };
+  zsmul := sub_neg_monoid.zsmul, .. ulift.semiring, .. ulift.add_group_with_one };
 tactic.pi_instance_derive_field
 
 instance comm_ring [comm_ring α] : comm_ring (ulift α) :=

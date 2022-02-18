@@ -380,7 +380,7 @@ lemma mul_bit1 [ring R] {n r : R} : r * bit1 n = (2 : ℤ) • (r * n) + r :=
 by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
 @[simp] theorem zsmul_eq_mul [ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
-| (n : ℕ) := by { rw [coe_nat_zsmul, nsmul_eq_mul], refl }
+| (n : ℕ) := by rw [coe_nat_zsmul, nsmul_eq_mul, int.cast_coe_nat]
 | -[1+ n] := by simp [nat.cast_succ, neg_add_rev, int.cast_neg_succ_of_nat, add_mul]
 
 theorem zsmul_eq_mul' [ring R] (a : R) (n : ℤ) : n • a = a * n :=

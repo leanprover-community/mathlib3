@@ -6,7 +6,7 @@ Neil Strickland
 -/
 import algebra.divisibility
 import algebra.regular.basic
-import data.nat.cast.defs
+import data.int.cast.defs
 
 /-!
 # Properties and homomorphisms of semirings and rings

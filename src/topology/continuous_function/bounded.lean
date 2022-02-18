@@ -26,6 +26,7 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 /-- The type of bounded continuous functions from a topological space to a metric space -/
+@[protect_proj]
 structure bounded_continuous_function
   (α : Type u) (β : Type v) [topological_space α] [metric_space β] extends continuous_map α β :
   Type (max u v) :=
@@ -94,7 +95,7 @@ and therefore gives rise to an element of the type of bounded continuous functio
 instance : has_dist (α →ᵇ β) :=
 ⟨λf g, Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C}⟩
 
-lemma dist_eq : dist f g = Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C} := rfl
+protected lemma dist_eq : dist f g = Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C} := rfl
 
 lemma dist_set_exists : ∃ C, 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C :=
 begin
@@ -143,7 +144,7 @@ begin
     { rintro -,
       convert C0,
       apply le_antisymm _ dist_nonneg',
-      rw [dist_eq],
+      rw bounded_continuous_function.dist_eq,
       exact cInf_le ⟨0, λ C, and.left⟩ ⟨le_rfl, λ x, false.elim (h (nonempty.intro x))⟩, }, },
 end
 
@@ -154,9 +155,10 @@ lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
 /-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
 instance : metric_space (α →ᵇ β) :=
 { dist_self := λ f, le_antisymm ((dist_le le_rfl).2 $ λ x, by simp) dist_nonneg',
+  dist := dist,
   eq_of_dist_eq_zero := λ f g hfg, by ext x; exact
     eq_of_dist_eq_zero (le_antisymm (hfg ▸ dist_coe_le_dist _) dist_nonneg),
-  dist_comm := λ f g, by simp [dist_eq, dist_comm],
+  dist_comm := λ f g, by simp [bounded_continuous_function.dist_eq, dist_comm],
   dist_triangle := λ f g h,
     (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
       le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
@@ -575,7 +577,7 @@ variables (α β)
 /-- The additive map forgetting that a bounded continuous function is bounded.
 -/
 @[simps] def to_continuous_map_add_hom : (α →ᵇ β) →+ C(α, β) :=
-{ to_fun := to_continuous_map,
+{ to_fun := bounded_continuous_function.to_continuous_map,
   map_zero' := by { ext, simp, },
   map_add' := by { intros, ext, simp, }, }
 
@@ -764,7 +766,10 @@ instance : add_comm_group (α →ᵇ β) :=
 lemma sub_apply : (f - g) x = f x - g x := rfl
 
 instance : normed_group (α →ᵇ β) :=
-{ dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
+{ dist_eq := λ f g, by simp only [norm_eq, bounded_continuous_function.dist_eq,
+    dist_eq_norm, sub_apply],
+  dist := dist, norm := norm,
+  .. bounded_continuous_function.add_comm_group, .. bounded_continuous_function.metric_space }
 
 lemma abs_diff_coe_le_dist : ∥f x - g x∥ ≤ dist f g :=
 by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }
@@ -851,7 +856,7 @@ variables (α β)
 /-- The linear map forgetting that a bounded continuous function is bounded. -/
 @[simps]
 def to_continuous_map_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
-{ to_fun := to_continuous_map,
+{ to_fun := bounded_continuous_function.to_continuous_map,
   map_smul' := by { intros, ext, simp, },
   map_add' := by { intros, ext, simp, }, }
 
@@ -918,7 +923,7 @@ instance : ring (α →ᵇ R) :=
 { one := const α 1,
   mul := λ f g, of_normed_group (f * g) (f.continuous.mul g.continuous) (∥f∥ * ∥g∥) $ λ x,
     le_trans (normed_ring.norm_mul (f x) (g x)) $
-      mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _),
+      mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg (g x)) (norm_nonneg _),
   one_mul := λ f, ext $ λ x, one_mul (f x),
   mul_one := λ f, ext $ λ x, mul_one (f x),
   mul_assoc := λ f₁ f₂ f₃, ext $ λ x, mul_assoc _ _ _,
@@ -931,7 +936,7 @@ lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 
 instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
-  .. bounded_continuous_function.normed_group }
+  .. bounded_continuous_function.normed_group, .. bounded_continuous_function.ring }
 
 end normed_ring
 
@@ -950,7 +955,7 @@ instance : comm_ring (α →ᵇ R) :=
   .. bounded_continuous_function.ring }
 
 instance : normed_comm_ring (α →ᵇ R) :=
-{ .. bounded_continuous_function.comm_ring, .. bounded_continuous_function.normed_group }
+{ .. bounded_continuous_function.comm_ring, .. bounded_continuous_function.normed_ring }
 
 end normed_comm_ring
 
@@ -1125,7 +1130,7 @@ instance : semilattice_inf (α →ᵇ β) :=
       cases f.bounded' with C₁ hf,
       cases g.bounded' with C₂ hg,
       refine ⟨C₁ + C₂, λ x y, _⟩,
-      simp_rw normed_group.dist_eq at hf hg ⊢,
+      simp_rw _root_.dist_eq at hf hg ⊢,
       exact (norm_inf_sub_inf_le_add_norm _ _ _ _).trans (add_le_add (hf _ _) (hg _ _)),
     end },
   inf_le_left := λ f g, continuous_map.le_def.mpr (λ _, inf_le_left),
@@ -1142,7 +1147,7 @@ instance : semilattice_sup (α →ᵇ β) :=
       cases f.bounded' with C₁ hf,
       cases g.bounded' with C₂ hg,
       refine ⟨C₁ + C₂, λ x y, _⟩,
-      simp_rw normed_group.dist_eq at hf hg ⊢,
+      simp_rw _root_.dist_eq at hf hg ⊢,
       exact (norm_sup_sub_sup_le_add_norm _ _ _ _).trans (add_le_add (hf _ _) (hg _ _)),
     end },
   le_sup_left := λ f g, continuous_map.le_def.mpr (λ _, le_sup_left),

@@ -162,7 +162,7 @@ section universal_property
 variables {n : ℕ} {R : Type*}
 
 section
-variables [add_monoid_with_one R] [has_neg R]
+variables [add_group_with_one R]
 
 /-- Cast an integer modulo `n` to another semiring.
 This function is a morphism if the characteristic of `R` divides `n`.
@@ -177,7 +177,7 @@ def cast : Π {n : ℕ}, zmod n → R
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
 by cases n; simp
 
-variables {S : Type*} [add_monoid_with_one S] [has_neg S]
+variables {S : Type*} [add_group_with_one S]
 
 @[simp] lemma _root_.prod.fst_zmod_cast (a : zmod n) : (a : R × S).fst = a :=
 by cases n; simp
@@ -409,10 +409,7 @@ zmod.int_coe_eq_int_coe_iff a b c
 
 lemma nat_coe_eq_nat_coe_iff (a b c : ℕ) :
   (a : zmod c) = (b : zmod c) ↔ a ≡ b [MOD c] :=
-begin
-  convert zmod.int_coe_eq_int_coe_iff a b c,
-  simp [nat.modeq_iff_dvd, int.modeq_iff_dvd],
-end
+by simpa [int.coe_nat_modeq_iff] using zmod.int_coe_eq_int_coe_iff a b c
 
 lemma nat_coe_eq_nat_coe_iff' (a b c : ℕ) :
   (a : zmod c) = (b : zmod c) ↔ a % c = b % c :=

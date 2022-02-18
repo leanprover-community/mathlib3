@@ -72,3 +72,5 @@ example {α} [field α] {x y : α}
   (h : 0 = (1 - x) ^ 2 * (x * (2 ^ 2 * y ^ 2 + 4 * (1 - x) ^ 2))) :
   0 = x * ((2 ^ 2 * y ^ 2 + 4 * (1 - x) ^ 2) * (1 - x) ^ 2) :=
 by transitivity; [exact h, ring]
+
+example {K} [field K] : -(1/2 : K) + 1/2 = (0 : K) := by ring -- ??

@@ -351,4 +351,11 @@ fundamental groupoid of that space. -/
 @[reducible]
 def from_path {X : Top} {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁) : (x₀ ⟶ x₁) := p
 
+section path_connected
+
+def morphism_of_path_conn {X : Top} [path_connected_space X] (x₀ x₁ : X) : (x₀ ⟶ x₁) :=
+from_path ⟦joined.some_path (path_connected_space.joined x₀ x₁)⟧
+
+end path_connected
+
 end fundamental_groupoid

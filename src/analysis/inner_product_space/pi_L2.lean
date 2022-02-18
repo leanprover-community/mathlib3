@@ -225,7 +225,7 @@ end
 
 /-- The `basis ι 𝕜 E` underlying the `orthonormal_basis` --/
 protected def to_basis (b : orthonormal_basis ι 𝕜 E) : basis ι 𝕜 E :=
-  basis.of_equiv_fun b.repr.to_linear_equiv
+basis.of_equiv_fun b.repr.to_linear_equiv
 
 @[simp] protected lemma coe_to_basis (b : orthonormal_basis ι 𝕜 E) :
   (⇑b.to_basis : ι → E) = ⇑b :=

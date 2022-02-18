@@ -176,27 +176,36 @@ section nat
 variable {β : Type*}
 variables (f g : ℕ → β) {m n : ℕ}
 
+section group
+
+-- The partial products (starting from `0`) of `f` and `g` respectively.
+local notation `F` n:80 := ∏ i in range n, f i
+local notation `G` n:80 := ∏ i in range n, g i
+
+variable [comm_group β]
+
+@[to_additive]
+lemma prod_range_succ_div_prod : F (n+1) / F n = f n :=
+div_eq_iff_eq_mul'.mpr $ prod_range_succ f n
+
+@[to_additive]
+lemma prod_range_succ_div_top : F (n+1) / f n = F n :=
+div_eq_iff_eq_mul.mpr $ prod_range_succ f n
+
+@[to_additive]
+lemma prod_Ico_div_bot (hmn : m < n) : (∏ i in Ico m n, f i) / f m = ∏ i in Ico (m+1) n, f i :=
+div_eq_iff_eq_mul'.mpr $ prod_eq_prod_Ico_succ_bot hmn _
+
+@[to_additive]
+lemma prod_Ico_succ_div_top (hmn : m ≤ n) :
+  (∏ i in Ico m (n+1), f i) / f n = ∏ i in Ico m n, f i :=
+div_eq_iff_eq_mul.mpr $ prod_Ico_succ_top hmn _
+
+end group
+
 -- The partial sums (starting from `0`) of `f` and `g` respectively.
 local notation `F` n:80 := ∑ i in range n, f i
 local notation `G` n:80 := ∑ i in range n, g i
-
-section group
-variable [add_comm_group β]
-
-lemma sum_range_succ_sub_sum : F (n+1) - F n = f n :=
-sub_eq_iff_eq_add'.mpr $ sum_range_succ f n
-
-lemma sum_range_succ_sub_top : F (n+1) - f n = F n :=
-sub_eq_iff_eq_add.mpr $ sum_range_succ f n
-
-lemma sum_Ico_sub_bot (hmn : m < n) : ∑ i in Ico m n, f i - f m = ∑ i in Ico (m+1) n, f i :=
-sub_eq_iff_eq_add'.mpr $ sum_eq_sum_Ico_succ_bot hmn _
-
-lemma sum_Ico_succ_sub_top (hmn : m ≤ n) :
-  ∑ i in Ico m (n+1), f i - f n = ∑ i in Ico m n, f i :=
-sub_eq_iff_eq_add.mpr $ sum_Ico_succ_top hmn _
-
-end group
 
 variable [comm_ring β]
 
@@ -205,12 +214,9 @@ theorem sum_Ico_by_parts (hmn : m < n) :
   ∑ i in Ico m n, f i * g i =
     f (n-1) * G n - f m * G m - ∑ i in Ico m (n-1), G (i+1) * (f (i+1) - f i) :=
 begin
-  have h₁ : ∑ i in Ico (m+1) n, (f i * G i) = ∑ i in Ico m (n-1), (f (i+1) * G (i+1)) :=
-  begin
-    conv in n { rw ←nat.sub_add_cancel (nat.one_le_of_lt hmn) },
-    rw ←sum_Ico_add',
-  end,
-
+  have h₁ : ∑ i in Ico (m+1) n, (f i * G i) = ∑ i in Ico m (n-1), (f (i+1) * G (i+1)),
+  { conv in n { rw ←nat.sub_add_cancel (nat.one_le_of_lt hmn) },
+    rw ←sum_Ico_add' },
   have h₂ : ∑ i in Ico (m+1) n, (f i * G (i+1))
           = ∑ i in Ico m (n-1), (f i * G (i+1)) + f (n-1) * G n - f m * G (m+1) :=
   by rw [←sum_Ico_sub_bot _ hmn, ←sum_Ico_succ_sub_top _ (nat.le_pred_of_lt hmn),

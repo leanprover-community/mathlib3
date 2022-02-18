@@ -30,8 +30,9 @@ structures.
   the interpretations of relations in both directions.
 * A `first_order.language.Lhom`, denoted `L →ᴸ L'`, is a map between languages, sending the symbols
   of one to symbols of the same kind and arity in the other.
-* `first_order.language.with_params` is defined so that if `M` is an `L.Structure` and `A : set M`,
-  then `L.with_params A` is a language which adds constant symbols for elements of `A` to `L`.
+* `first_order.language.with_constants` is defined so that if `M` is an `L.Structure` and
+  `A : set M`, `L.with_constants A`, denoted `L[[A]]`, is a language which adds constant symbols for
+  elements of `A` to `L`.
 
 ## References
 For the Flypitch project:
@@ -539,74 +540,76 @@ def Lhom.constants_on_map (f : α → β) : (constants_on α) →ᴸ (constants_
 
 end constants_on
 
-section with_params
+section with_constants
 
 variable (L)
 
 section
-variables {α : Type w} (A : set α)
+variables (α : Type w)
 
 /-- Extends a language with a constant for each element of a parameter set in `M`. -/
-def with_params : language.{(max u w) v} := L.sum (constants_on A)
+def with_constants : language.{(max u w) v} := L.sum (constants_on α)
 
-/-- The parameter symbol representing an element of the parameter set. -/
-@[reducible] def param_mk (a : A) : (L.with_params A).const := sum.inr a
+localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
 
-/-- The language map adding parameters.  -/
-def Lhom_with_params : L →ᴸ L.with_params A := Lhom.sum_inl
+/-- The language map adding constants.  -/
+def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
 
 variable {L}
 
-/-- Adds parameters to a language map.  -/
-def Lhom.add_params {L' : language} (φ : L →ᴸ L') :
-  L.with_params A →ᴸ L'.with_params A := φ.sum_map (Lhom.id _)
+/-- Adds constants to a language map.  -/
+def Lhom.add_constants {L' : language} (φ : L →ᴸ L') :
+  L[[α]] →ᴸ L'[[α]] := φ.sum_map (Lhom.id _)
 
-instance params_Structure : (constants_on A).Structure α := constants_on.Structure coe
+instance params_Structure (A : set α) : (constants_on A).Structure α := constants_on.Structure coe
 
 variables (L) (α)
 
-/-- The language map removing an empty parameter set.  -/
-def Lhom_trim_empty_params : L.with_params ∅ →ᴸ L :=
-Lhom.sum_elim (Lhom.id L) (Lhom.of_is_empty (constants_on (∅ : set α)) L)
+/-- The language map removing an empty constant set.  -/
+def Lhom_trim_empty_constants [is_empty α] : L[[α]] →ᴸ L :=
+Lhom.sum_elim (Lhom.id L) (Lhom.of_is_empty (constants_on α) L)
 
-variables {α A} {B : set α} (h : A ⊆ B)
+variables {α} {A B : set α} (h : A ⊆ B)
 
-/-- The language map extending the parameter set.  -/
-def Lhom_params_inclusion : (L.with_params A) →ᴸ (L.with_params B) :=
+/-- The language map extending the constant set.  -/
+def Lhom_constants_inclusion : L[[A]] →ᴸ L[[B]] :=
 Lhom.sum_map (Lhom.id L) (Lhom.constants_on_map (set.inclusion h))
 
-@[simp] lemma Lhom.params_inclusion_comp_with_params :
-  (L.Lhom_params_inclusion h).comp (L.Lhom_with_params A) = L.Lhom_with_params B :=
+@[simp] lemma Lhom.constants_inclusion_comp_with_constants :
+  (L.Lhom_constants_inclusion h).comp (L.Lhom_with_constants A) = L.Lhom_with_constants B :=
 by ext n f R; refl
 
 end
 
+open_locale first_order
 variables (A : set M)
 
-instance with_params_Structure : (L.with_params A).Structure M :=
+instance with_constants_Structure : L[[A]].Structure M :=
 language.sum_Structure _ _ _
 
-instance trim_empty_params_is_expansion_on : (L.Lhom_trim_empty_params M).is_expansion_on M :=
+instance trim_empty_constants_is_expansion_on :
+  (L.Lhom_trim_empty_constants (∅ : set M)).is_expansion_on M :=
 Lhom.sum_elim_is_expansion_on _ _ _
 
-instance with_params_expansion : (L.Lhom_with_params A).is_expansion_on M :=
+instance with_constants_expansion : (L.Lhom_with_constants A).is_expansion_on M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
 
-instance add_params_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ L')
+instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ L')
   [φ.is_expansion_on M] :
-  (φ.add_params A).is_expansion_on M :=
+  (φ.add_constants A).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ M
 
 variables {A} {B : set M} (h : A ⊆ B)
 
-instance params_inclusion_is_expansion_on_aux :
+instance constants_inclusion_is_expansion_on_aux :
   (Lhom.constants_on_map (set.inclusion h)).is_expansion_on M :=
 ⟨λ n, nat.cases_on n (λ _ _, rfl) (λ n f, pempty.elim f), λ n R, pempty.elim R⟩
 
-instance params_inclusion_is_expansion_on : (L.Lhom_params_inclusion h).is_expansion_on M :=
+instance constants_inclusion_is_expansion_on :
+  (L.Lhom_constants_inclusion h).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ _
 
-end with_params
+end with_constants
 
 end language
 end first_order

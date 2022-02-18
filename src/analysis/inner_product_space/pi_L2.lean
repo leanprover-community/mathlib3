@@ -226,34 +226,31 @@ begin
   simp only [mul_boole, map_one],
 end
 
+protected def to_basis (b : orthonormal_basis ι 𝕜 E) : basis ι 𝕜 E :=
+  basis.of_equiv_fun b.repr.to_linear_equiv
+
+@[simp] protected lemma coe_to_basis [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) :
+  (⇑b.to_basis : ι → E) = ⇑b :=
+begin
+  change ⇑(basis.of_equiv_fun b.repr.to_linear_equiv) = b,
+  ext j,
+  rw basis.coe_of_equiv_fun,
+  simp only [orthonormal_basis.repr_symm_single],
+  congr,
+end
+
+@[simp] protected lemma coe_to_basis_repr (b : orthonormal_basis ι 𝕜 E) :
+  b.to_basis.equiv_fun = b.repr.to_linear_equiv :=
+begin
+  change (basis.of_equiv_fun b.repr.to_linear_equiv).equiv_fun = b.repr.to_linear_equiv,
+  ext x j,
+  simp only [basis.of_equiv_fun_repr_apply, eq_self_iff_true,
+    linear_isometry_equiv.coe_to_linear_equiv, basis.equiv_fun_apply],
+end
+
 protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
   ∑ i , v i • b i = (b.repr.symm v) :=
-begin
-  classical,
-  have : b.repr (∑ i, v i • b i) = v :=
-  begin
-    have : ⇑(b.repr) = (b.repr.to_linear_isometry.to_linear_map) :=
-    begin
-      simp only [linear_isometry.coe_to_linear_map, fun_like.coe_fn_eq,
-      linear_isometry_equiv.coe_to_linear_isometry, eq_self_iff_true],
-    end,
-  rw this,
-  simp_rw [linear_map.map_sum, linear_map.map_smul, ← this],
-  ext i,
-  change (∑ (c : ι), (λ x, v x • (b.repr) (b x)) c) i = v i,
-  rw [@fintype.sum_apply _ _ ι _ _ i (λ x, v x • (b.repr) (b x))],
-  simp only [algebra.id.smul_eq_mul, orthonormal_basis.repr_self, pi.smul_apply,
-  finset.sum_congr],
-  simp_rw [euclidean_space.single_apply,mul_ite, mul_zero],
-  simp only [mul_one, finset.mem_univ, if_true, set.mem_singleton_iff, eq_self_iff_true,
-  finset.sum_congr, finset.sum_ite_eq],
-  end,
-  conv_rhs
-  begin
-  rw ← this,
-  end,
-  simp only [linear_isometry_equiv.symm_apply_apply, eq_self_iff_true],
-end
+  by {classical, simpa using (b.to_basis.equiv_fun_symm_apply v).symm}
 
 variable {v : ι → E}
 

@@ -237,10 +237,6 @@ begin
   congr,
 end
 
-@[simp] protected lemma to_basis_orthonormal (b : orthonormal_basis ι 𝕜 E) :
-  orthonormal 𝕜 (b.to_basis) :=
-  by {rw orthonormal_basis.coe_to_basis, exact b.orthonormal}
-
 @[simp] protected lemma coe_to_basis_repr (b : orthonormal_basis ι 𝕜 E) :
   b.to_basis.equiv_fun = b.repr.to_linear_equiv :=
 begin

@@ -180,7 +180,6 @@ namespace mul_hom
 section prod
 
 variables (M N) [has_mul M] [has_mul N] [has_mul P]
--- TODO: put in algebra.group.prod
 
 /-- Given magmas `M`, `N`, the natural projection homomorphism from `M × N` to `M`.-/
 @[to_additive "Given additive magmas `A`, `B`, the natural projection homomorphism

@@ -215,7 +215,7 @@ lemma inv_eq_of_aeval_div_X_ne_zero {x : L} {p : K[X]}
   (aeval_ne : aeval x (div_X p) ≠ 0) :
   x⁻¹ = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)) :=
 begin
-  rw [inv_eq_iff, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
+  rw [inv_eq_iff_inv_eq, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
   conv_lhs { rw ← div_X_mul_X_add p },
   rw [alg_hom.map_add, alg_hom.map_mul, aeval_X, aeval_C],
   exact aeval_ne
@@ -279,16 +279,24 @@ section pi
 
 variables (R' : Type u) (S' : Type v) (T' : Type w)
 
-instance polynomial.has_scalar_pi [semiring R'] [has_scalar R' S'] :
+/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+
+See the `instance_diamonds` test for details. -/
+def polynomial.has_scalar_pi [semiring R'] [has_scalar R' S'] :
   has_scalar (R'[X]) (R' → S') :=
 ⟨λ p f x, eval x p • f x⟩
 
-noncomputable instance polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
+/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+
+See the `instance_diamonds` test for details. -/
+noncomputable def polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
   [has_scalar S' T'] :
   has_scalar (R'[X]) (S' → T') :=
 ⟨λ p f x, aeval x p • f x⟩
 
 variables {R} {S}
+
+local attribute [instance] polynomial.has_scalar_pi polynomial.has_scalar_pi'
 
 @[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
   (p : R'[X]) (f : R' → S') (x : R') :
@@ -300,7 +308,8 @@ variables {R} {S}
 
 variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S'] [algebra S' T']
 
-noncomputable instance polynomial.algebra_pi :
+/-- This is not an instance for the same reasons as `polynomial.has_scalar_pi'`. -/
+noncomputable def polynomial.algebra_pi :
   algebra (R'[X]) (S' → T') :=
 { to_fun := λ p z, algebra_map S' T' (aeval z p),
   map_one' := funext $ λ z, by simp,
@@ -310,6 +319,8 @@ noncomputable instance polynomial.algebra_pi :
   commutes' := λ p f, funext $ λ z, mul_comm _ _,
   smul_def' := λ p f, funext $ λ z, by simp [algebra.algebra_map_eq_smul_one],
   ..polynomial.has_scalar_pi' R' S' T' }
+
+local attribute [instance] polynomial.algebra_pi
 
 @[simp] lemma polynomial.algebra_map_pi_eq_aeval :
   (algebra_map (R'[X]) (S' → T') : R'[X] → (S' → T')) =

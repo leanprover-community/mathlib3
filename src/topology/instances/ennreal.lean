@@ -425,11 +425,11 @@ infi_mul_right' h (λ _, ‹nonempty ι›)
 
 lemma inv_map_infi {ι : Sort*} {x : ι → ℝ≥0∞} :
   (infi x)⁻¹ = (⨆ i, (x i)⁻¹) :=
-inv_order_iso.map_infi x
+order_iso.inv_ennreal.map_infi x
 
 lemma inv_map_supr {ι : Sort*} {x : ι → ℝ≥0∞} :
   (supr x)⁻¹ = (⨅ i, (x i)⁻¹) :=
-inv_order_iso.map_supr x
+order_iso.inv_ennreal.map_supr x
 
 lemma inv_limsup {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
   (l.limsup x)⁻¹ = l.liminf (λ i, (x i)⁻¹) :=
@@ -454,7 +454,7 @@ end⟩
 
 @[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
   tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=
-⟨λ h, by simpa only [function.comp, ennreal.inv_inv]
+⟨λ h, by simpa only [function.comp, inv_inv]
   using (ennreal.continuous_inv.tendsto a⁻¹).comp h,
   (ennreal.continuous_inv.tendsto a).comp⟩
 

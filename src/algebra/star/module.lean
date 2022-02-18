@@ -5,6 +5,7 @@ Authors: Eric Wieser, Frédéric Dupuis
 -/
 import algebra.star.self_adjoint
 import data.equiv.module
+import linear_algebra.prod
 
 /-!
 # The star operation, bundled as a star-linear equiv
@@ -62,3 +63,27 @@ lemma star_module.eq_self_adjoint_part_add_skew_adjoint_part (x : A) :
   x = self_adjoint_part R x + skew_adjoint_part R x :=
 by simp only [smul_sub, self_adjoint_part_apply_coe, smul_add, skew_adjoint_part_apply_coe,
               add_add_sub_cancel, inv_of_two_smul_add_inv_of_two_smul]
+
+variables (A)
+
+/-- The self-adjoint elements of a star module, as a submodule. -/
+def self_adjoint.submodule : submodule R A :=
+{ smul_mem' := λ r x (hx : star x = x), by simp [self_adjoint.mem_iff, hx],
+  ..self_adjoint A }
+
+/-- The skew-adjoint elements of a star module, as a submodule. -/
+def skew_adjoint.submodule : submodule R A :=
+{ smul_mem' := λ r x (hx : star x = -x), by simp [skew_adjoint.mem_iff, hx],
+  ..skew_adjoint A }
+
+lemma star_module.decompose_prod_adjoint : A ≃ₗ[R] self_adjoint A × skew_adjoint A :=
+linear_equiv.of_linear
+(linear_map.prod (self_adjoint_part R) (skew_adjoint_part R))
+(linear_map.coprod (self_adjoint.submodule R A).subtype (skew_adjoint.submodule R A).subtype)
+(by ext; simp)
+begin
+  rw [linear_map.coprod_comp_prod],
+  ext,
+  have : (⅟2 : R) • (x + x) = x := by rw [smul_add, inv_of_two_smul_add_inv_of_two_smul],
+  simp [←smul_add, this],
+end

@@ -178,18 +178,14 @@ variables (f g : ℕ → β) {m n : ℕ}
 
 section group
 
--- The partial products (starting from `0`) of `f` and `g` respectively.
-local notation `F` n:80 := ∏ i in range n, f i
-local notation `G` n:80 := ∏ i in range n, g i
-
 variable [comm_group β]
 
 @[to_additive]
-lemma prod_range_succ_div_prod : F (n+1) / F n = f n :=
+lemma prod_range_succ_div_prod : (∏ i in range (n+1), f i) / ∏ i in range n, f i = f n :=
 div_eq_iff_eq_mul'.mpr $ prod_range_succ f n
 
 @[to_additive]
-lemma prod_range_succ_div_top : F (n+1) / f n = F n :=
+lemma prod_range_succ_div_top : (∏ i in range (n+1), f i) / f n = ∏ i in range n, f i :=
 div_eq_iff_eq_mul.mpr $ prod_range_succ f n
 
 @[to_additive]
@@ -197,14 +193,12 @@ lemma prod_Ico_div_bot (hmn : m < n) : (∏ i in Ico m n, f i) / f m = ∏ i in 
 div_eq_iff_eq_mul'.mpr $ prod_eq_prod_Ico_succ_bot hmn _
 
 @[to_additive]
-lemma prod_Ico_succ_div_top (hmn : m ≤ n) :
-  (∏ i in Ico m (n+1), f i) / f n = ∏ i in Ico m n, f i :=
+lemma prod_Ico_succ_div_top (hmn : m ≤ n) : (∏ i in Ico m (n+1), f i) / f n = ∏ i in Ico m n, f i :=
 div_eq_iff_eq_mul.mpr $ prod_Ico_succ_top hmn _
 
 end group
 
--- The partial sums (starting from `0`) of `f` and `g` respectively.
-local notation `F` n:80 := ∑ i in range n, f i
+-- The partial sum of `g`, starting from zero
 local notation `G` n:80 := ∑ i in range n, g i
 
 variable [comm_ring β]

@@ -277,6 +277,33 @@ lemma is_self_adjoint_iff_eq_adjoint (A : E →ₗ[𝕜] E) :
   is_self_adjoint A ↔ A = A.adjoint :=
 by rw [is_self_adjoint, ← linear_map.eq_adjoint_iff]
 
+section complex
+variables {V : Type*}
+[inner_product_space ℂ V]
+[finite_dimensional ℂ V]
+
+/-- A linear operator on a complex inner product space is self-adjoint precisely when
+`⟪T v, v⟫_ℂ` is real for all v.-/
+lemma is_self_adjoint_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
+  is_self_adjoint T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
+begin
+  split,
+  {
+    intros hT v,
+    apply is_self_adjoint.conj_inner_sym hT,
+  },
+  {
+    intro h,
+    rw [is_self_adjoint_iff_eq_adjoint, ← sub_eq_zero, ← inner_map_self_eq_zero],
+    intro x,
+    specialize h x,
+    rw [linear_map.sub_apply, inner_sub_left, linear_map.adjoint_inner_left, ← h, inner_conj_sym,
+      sub_self],
+  },
+end
+
+end complex
+
 /-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →ₗ[𝕜] E) := ⟨adjoint_adjoint⟩

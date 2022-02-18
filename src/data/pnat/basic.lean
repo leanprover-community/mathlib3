@@ -120,8 +120,14 @@ theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_e
 
 instance : has_mul ℕ+ := ⟨λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩⟩
 instance : has_one ℕ+ := ⟨succ_pnat 0⟩
+instance : has_pow ℕ+ ℕ := ⟨λ m n, ⟨m ^ n, begin
+  induction n with n ih,
+  { simp },
+  { rw pow_succ,
+    exact mul_pos m.prop ih}
+end⟩⟩
 
-instance : comm_monoid ℕ+ := coe_injective.comm_monoid coe rfl (λ _ _, rfl)
+instance : comm_monoid ℕ+ := coe_injective.comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 theorem lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
 λ a b, nat.lt_add_one_iff
@@ -180,8 +186,7 @@ lemma coe_eq_one_iff {m : ℕ+} :
 @[simp] lemma coe_bit1 (a : ℕ+) : ((bit1 a : ℕ+) : ℕ) = bit1 (a : ℕ) := rfl
 
 @[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
-by induction n with n ih;
- [refl, rw [pow_succ', pow_succ, mul_coe, mul_comm, ih]]
+rfl
 
 instance : ordered_cancel_comm_monoid ℕ+ :=
 { mul_le_mul_left := by { intros, apply nat.mul_le_mul_left, assumption },

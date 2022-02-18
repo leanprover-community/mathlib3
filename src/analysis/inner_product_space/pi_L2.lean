@@ -161,10 +161,7 @@ pi.single i a
 
 @[simp] theorem euclidean_space.single_apply [decidable_eq ι] (i : ι) (a : 𝕜) (j : ι) :
   (euclidean_space.single i a) j = ite (j = i) a 0 :=
-begin
-  rw [euclidean_space.single],
-  rw ← pi.single_apply i a j,
-end
+by { rw [euclidean_space.single, ← pi.single_apply i a j] }
 
 lemma euclidean_space.inner_single_left [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=

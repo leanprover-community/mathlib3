@@ -255,6 +255,9 @@ lemma continuous_zpow : ∀ z : ℤ, continuous (λ a : G, a ^ z)
 | (int.of_nat n) := by simpa using continuous_pow n
 | -[1+n] := by simpa using (continuous_pow (n + 1)).inv
 
+instance add_group.has_continuous_const_smul_int {A} [add_group A] [topological_space A]
+  [topological_add_group A] : has_continuous_const_smul ℤ A := ⟨continuous_zsmul⟩
+
 @[continuity, to_additive]
 lemma continuous.zpow {f : α → G} (h : continuous f) (z : ℤ) :
   continuous (λ b, (f b) ^ z) :=

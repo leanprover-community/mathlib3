@@ -82,12 +82,7 @@ variables (A)
 as a linear equivalence. -/
 def star_module.decompose_prod_adjoint : A ≃ₗ[R] self_adjoint A × skew_adjoint A :=
 linear_equiv.of_linear
-(linear_map.prod (self_adjoint_part R) (skew_adjoint_part R))
-(linear_map.coprod (self_adjoint.submodule R A).subtype (skew_adjoint.submodule R A).subtype)
-(by ext; simp)
-begin
-  rw [linear_map.coprod_comp_prod],
-  ext,
-  have : (⅟2 : R) • (x + x) = x := by rw [smul_add, inv_of_two_smul_add_inv_of_two_smul],
-  simp [←smul_add, this],
-end
+  ((self_adjoint_part R).prod (skew_adjoint_part R))
+  ((self_adjoint.submodule R A).subtype.coprod (skew_adjoint.submodule R A).subtype)
+  (by ext; simp)
+  (linear_map.ext $ star_module.self_adjoint_part_add_skew_adjoint_part R)

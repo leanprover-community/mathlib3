@@ -121,7 +121,7 @@ begin
   { simpa only [map_prod_mul_inv_eq μ μ, prod_prod, mul_eq_zero, or_self] using this },
   have hsm' : measurable_set (s⁻¹ ×ˢ s⁻¹) := hsm.inv.prod hsm.inv,
   simp_rw [map_apply hf hsm', prod_apply_symm (hf hsm'), preimage_preimage, mk_preimage_prod,
-    inv_preimage, set.inv_inv, measure_mono_null (inter_subset_right _ _) hμs, lintegral_zero]
+    inv_preimage, inv_inv, measure_mono_null (inter_subset_right _ _) hμs, lintegral_zero]
 end
 
 @[to_additive]
@@ -130,7 +130,7 @@ lemma measure_inv_null [is_mul_left_invariant μ] {E : set G} :
 begin
   refine ⟨λ hE, _, (quasi_measure_preserving_inv μ).preimage_null⟩,
   convert (quasi_measure_preserving_inv μ).preimage_null hE,
-  exact set.inv_inv.symm
+  exact (inv_inv _).symm
 end
 
 @[to_additive]

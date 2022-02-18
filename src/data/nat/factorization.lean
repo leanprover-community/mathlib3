@@ -79,6 +79,9 @@ prime_of_mem_factors ∘ (@factor_iff_mem_factorization n p).mp
 lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p :=
 prime.pos ∘ (@prime_of_mem_factorization n p)
 
+lemma le_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ≤ n :=
+le_of_mem_factors (factor_iff_mem_factorization.mp h)
+
 lemma factorization_eq_zero_of_non_prime (n p : ℕ) (hp : ¬p.prime) : n.factorization p = 0 :=
 not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
 
@@ -433,6 +436,35 @@ begin
     { rw factorization_eq_zero_of_non_prime d p pp, exact nat.zero_le _ },
     rw ←pp.pow_dvd_iff_le_factorization hn,
     exact h p _ pp (pow_factorization_dvd _ _) },
+end
+
+lemma prod_prime_factors_dvd (n : ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=
+begin
+  by_cases hn : n = 0, { subst hn, simp },
+  simpa [prod_factors hn] using multiset.to_finset_prod_dvd_prod (n.factors : multiset ℕ),
+end
+
+lemma factorization_gcd {a b : ℕ} (ha_pos : a ≠ 0) (hb_pos : b ≠ 0) :
+  (gcd a b).factorization = a.factorization ⊓ b.factorization :=
+begin
+  let dfac := a.factorization ⊓ b.factorization,
+  let d := dfac.prod pow,
+  have dfac_prime : ∀ (p : ℕ), p ∈ dfac.support → prime p,
+  { intros p hp,
+    have : p ∈ a.factors ∧ p ∈ b.factors := by simpa using hp,
+    exact prime_of_mem_factors this.1 },
+  have h1 : d.factorization = dfac := prod_pow_factorization_eq_self dfac_prime,
+  have hd_pos : d ≠ 0 := (factorization_equiv.inv_fun ⟨dfac, dfac_prime⟩).2.ne.symm,
+  suffices : d = (gcd a b), { rwa ←this },
+  apply gcd_greatest,
+  { rw [←factorization_le_iff_dvd hd_pos ha_pos, h1], exact inf_le_left },
+  { rw [←factorization_le_iff_dvd hd_pos hb_pos, h1], exact inf_le_right },
+  { intros e hea heb,
+    rcases decidable.eq_or_ne e 0 with rfl | he_pos,
+    { simp only [zero_dvd_iff] at hea, contradiction, },
+    have hea' := (factorization_le_iff_dvd he_pos ha_pos).mpr hea,
+    have heb' := (factorization_le_iff_dvd he_pos hb_pos).mpr heb,
+    simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
 end
 
 end nat

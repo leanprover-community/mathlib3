@@ -518,6 +518,22 @@ end units
 
 namespace equiv
 
+section has_involutive_neg
+
+variables (G) [has_involutive_inv G]
+
+/-- Inversion on a `group` or `group_with_zero` is a permutation of the underlying type. -/
+@[to_additive "Negation on an `add_group` is a permutation of the underlying type.",
+  simps apply {fully_applied := ff}]
+protected def inv : perm G := inv_involutive.to_equiv _
+
+variable {G}
+
+@[simp, to_additive]
+lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
+
+end has_involutive_neg
+
 section group
 variables [group G]
 
@@ -558,26 +574,6 @@ lemma mul_right_symm_apply (a : G) : ((equiv.mul_right a).symm : G → G) = λ x
 @[to_additive]
 lemma _root_.group.mul_right_bijective (a : G) : function.bijective (* a) :=
 (equiv.mul_right a).bijective
-
-variable (G)
-
-/-- Inversion on a `group` is a permutation of the underlying type. -/
-@[to_additive "Negation on an `add_group` is a permutation of the underlying type.",
-  simps apply {fully_applied := ff}]
-protected def inv : perm G :=
-function.involutive.to_equiv has_inv.inv inv_inv
-
-/-- Inversion on a `group_with_zero` is a permutation of the underlying type. -/
-@[simps apply {fully_applied := ff}]
-protected def inv₀ (G : Type*) [group_with_zero G] : perm G :=
-function.involutive.to_equiv has_inv.inv inv_inv₀
-
-variable {G}
-
-@[simp, to_additive]
-lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
-
-@[simp] lemma inv_symm₀ {G : Type*} [group_with_zero G] : (equiv.inv₀ G).symm = equiv.inv₀ G := rfl
 
 /-- A version of `equiv.mul_left a b⁻¹` that is defeq to `a / b`. -/
 @[to_additive /-" A version of `equiv.add_left a (-b)` that is defeq to `a - b`. "-/, simps]
@@ -647,7 +643,7 @@ def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
 { to_fun   := has_inv.inv,
   inv_fun  := has_inv.inv,
   map_mul' := λ x y, mul_inv₀,
-  ..equiv.inv₀ G }
+  ..equiv.inv G }
 
 @[simp] lemma mul_equiv.inv₀_symm (G : Type*) [comm_group_with_zero G] :
   (mul_equiv.inv₀ G).symm = mul_equiv.inv₀ G := rfl

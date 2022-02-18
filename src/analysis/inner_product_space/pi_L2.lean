@@ -223,7 +223,7 @@ begin
   simp only [mul_boole, map_one],
 end
 
-/- The `basis ι 𝕜 E` underlying the `orthonormal_basis` --/
+/-- The `basis ι 𝕜 E` underlying the `orthonormal_basis` --/
 protected def to_basis (b : orthonormal_basis ι 𝕜 E) : basis ι 𝕜 E :=
   basis.of_equiv_fun b.repr.to_linear_equiv
 

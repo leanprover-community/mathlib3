@@ -339,7 +339,9 @@ def is_free_group_free_product_of_is_free_group {ι : Type*} (G : ι → Type*)
     introsI X _ f,
     refine ⟨free_product.lift (λ i, is_free_group.lift (λ x, f ⟨i, x⟩)), _ ⟩,
     split,
-    { simp, },
+    { rintros ⟨i, x⟩,
+      unfold is_free_group_free_product_of_is_free_group._match_1,
+      simp, },
     { intros g hfg, ext i x, simpa using hfg ⟨i, x⟩, }
   end, }
 

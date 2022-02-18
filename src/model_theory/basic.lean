@@ -69,19 +69,19 @@ variable (L : language.{u v})
 
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
-(empty_functions : ∀ n, L.functions n → false)
+(empty_functions : ∀ n, is_empty (L.functions n))
 
 /-- A language is algebraic when it has no relation symbols. -/
 class is_algebraic : Prop :=
-(empty_relations : ∀ n, L.relations n → false)
+(empty_relations : ∀ n, is_empty (L.relations n))
 
 variable {L}
 
 instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational ⟨λ _, pempty, symb⟩ :=
-⟨by { intro n, apply pempty.elim }⟩
+⟨λ _, pempty.is_empty⟩
 
 instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
-⟨by { intro n, apply pempty.elim }⟩
+⟨λ _, pempty.is_empty⟩
 
 instance is_relational_empty : is_relational language.empty :=
 language.is_relational_of_empty_functions
@@ -237,7 +237,7 @@ lemma injective (f : M ↪[L] N) : function.injective f := f.to_embedding.inject
 /-- In an algebraic language, any injective homomorphism is an embedding. -/
 @[simps] def of_injective [L.is_algebraic] {f : M →[L] N} (hf : function.injective f) : M ↪[L] N :=
 { inj' := hf,
-  map_rel' := λ n r, (is_algebraic.empty_relations n r).elim,
+  map_rel' := λ n, (is_algebraic.empty_relations n).elim,
   .. f }
 
 @[simp] lemma coe_fn_of_injective [L.is_algebraic] {f : M →[L] N} (hf : function.injective f) :
@@ -372,6 +372,30 @@ lemma comp_assoc (f : M ≃[L] N) (g : N ≃[L] P) (h : P ≃[L] Q) :
 
 end equiv
 
+section sum_Structure
+variables (L₁ L₂ : language) (S : Type*) [L₁.Structure S] [L₂.Structure S]
+
+instance sum_Structure :
+  (L₁.sum L₂).Structure S :=
+{ fun_map := λ n, sum.elim fun_map fun_map,
+  rel_map := λ n, sum.elim rel_map rel_map, }
+
+variables {L₁ L₂ S}
+
+@[simp] lemma fun_map_sum_inl {n : ℕ} (f : L₁.functions n) :
+  @fun_map (L₁.sum L₂) S _ n (sum.inl f) = fun_map f := rfl
+
+@[simp] lemma fun_map_sum_inr {n : ℕ} (f : L₂.functions n) :
+  @fun_map (L₁.sum L₂) S _ n (sum.inr f) = fun_map f := rfl
+
+@[simp] lemma rel_map_sum_inl {n : ℕ} (R : L₁.relations n) :
+  @rel_map (L₁.sum L₂) S _ n (sum.inl R) = rel_map R := rfl
+
+@[simp] lemma rel_map_sum_inr {n : ℕ} (R : L₂.relations n) :
+  @rel_map (L₁.sum L₂) S _ n (sum.inr R) = rel_map R := rfl
+
+end sum_Structure
+
 structure Lhom (L L' : language) :=
 (on_function : ∀{n}, L.functions n → L'.functions n)
 (on_relation : ∀{n}, L.relations n → L'.relations n)
@@ -392,6 +416,13 @@ protected def sum_inl : L →ᴸ L.sum L' :=
 
 protected def sum_inr : L' →ᴸ L.sum L' :=
 ⟨λn, sum.inr, λ n, sum.inr⟩
+
+variables (L L')
+
+protected def of_is_empty [L.is_algebraic] [L.is_relational] : L →ᴸ L' :=
+⟨λ n, (is_relational.empty_functions n).elim, λ n, (is_algebraic.empty_relations n).elim⟩
+
+variables {L L'}
 
 @[reducible] def comp {L1} {L2} {L3} (g : L2 →ᴸ L3) (f : L1 →ᴸ L2) : L1 →ᴸ L3 :=
 begin
@@ -415,17 +446,45 @@ structure is_injective : Prop :=
 (on_function {n} : function.injective (on_function ϕ : L.functions n → L'.functions n))
 (on_relation {n} : function.injective (on_relation ϕ : L.relations n → L'.relations n))
 
+class is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M] : Prop :=
+(map_on_function : ∀ {n} (f : L.functions n) (x : fin n → M),
+  fun_map (ϕ.on_function f) x = fun_map f x)
+(map_on_relation : ∀ {n} (R : L.relations n) (x : fin n → M),
+  rel_map (ϕ.on_relation R) x = rel_map R x)
+
+attribute [simp] is_expansion_on.map_on_function is_expansion_on.map_on_relation
+
+instance id_is_expansion_on (M : Type*) [L.Structure M] : is_expansion_on (Lhom.id L) M :=
+⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
+
+instance of_is_empty_is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M]
+  [L.is_algebraic] [L.is_relational] :
+  is_expansion_on (Lhom.of_is_empty L L') M :=
+⟨λ n, (is_relational.empty_functions n).elim, λ n, (is_algebraic.empty_relations n).elim⟩
+
+/-- A language map defined on two factors of a sum. -/
+@[simp] def sum_elim {L'' : language} (ψ : L'' →ᴸ L') : L.sum L'' →ᴸ L' :=
+{ on_function := λ n, sum.elim (λ f, ϕ.on_function f) (λ f, ψ.on_function f),
+  on_relation := λ n, sum.elim (λ f, ϕ.on_relation f) (λ f, ψ.on_relation f) }
+
 /-- The map between two sum-languages induced by maps on the two factors. -/
-def sum_map {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) : L.sum L₁ →ᴸ L'.sum L₂ :=
+@[simp] def sum_map {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) : L.sum L₁ →ᴸ L'.sum L₂ :=
 { on_function := λ n, sum.map (λ f, ϕ.on_function f) (λ f, ψ.on_function f),
   on_relation := λ n, sum.map (λ f, ϕ.on_relation f) (λ f, ψ.on_relation f) }
 
-end Lhom
+instance sum_elim_is_expansion_on {L'' : language} (ψ : L'' →ᴸ L') (M : Type*)
+  [L.Structure M] [L'.Structure M] [L''.Structure M]
+  [ϕ.is_expansion_on M] [ψ.is_expansion_on M] :
+  (ϕ.sum_elim ψ).is_expansion_on M :=
+⟨λ _ f _, sum.cases_on f (by simp) (by simp), λ _ R _, sum.cases_on R (by simp) (by simp)⟩
 
-instance sum_Structure (L : language) (L' : language) (M : Type*) [L.Structure M] [L'.Structure M] :
-  (L.sum L').Structure M :=
-{ fun_map := λ n, sum.elim fun_map fun_map,
-  rel_map := λ n, sum.elim rel_map rel_map, }
+instance sum_map_is_expansion_on {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) (M : Type*)
+  [L.Structure M] [L'.Structure M] [L₁.Structure M] [L₂.Structure M]
+  [ϕ.is_expansion_on M] [ψ.is_expansion_on M] :
+  (ϕ.sum_map ψ).is_expansion_on M :=
+⟨λ _ f _, sum.cases_on f (by simp) (by simp), λ _ R _, sum.cases_on R (by simp) (by simp)⟩
+
+end Lhom
 
 section constants_on
 variables (α : Type u')
@@ -439,6 +498,9 @@ variables {α}
 
 instance is_algebraic_constants_on : is_algebraic (constants_on α) :=
 language.is_algebraic_of_empty_relations
+
+instance is_relational_constants_on [ie : is_empty α] : is_relational (constants_on α) :=
+⟨λ n, nat.cases_on n ie (λ _, pempty.is_empty)⟩
 
 /-- Gives a `constants_on α` structure to a type by assigning each constant a value. -/
 def constants_on.Structure (f : α → M) : (constants_on α).Structure M :=
@@ -455,32 +517,70 @@ end constants_on
 
 section with_params
 
-variables (A : set M)
+variable (L)
 
-instance params_Structure : (constants_on A).Structure M := constants_on.Structure coe
-
-variables (L)
+section
+variables {α : Type w} (A : set α)
 
 /-- Extends a language with a constant for each element of a parameter set in `M`. -/
 def with_params : language.{(max u w) v} := L.sum (constants_on A)
 
+/-- The language map adding parameters.  -/
+def Lhom_with_params : L →ᴸ L.with_params A := Lhom.sum_inl
+
+variable {L}
+
+/-- Adds parameters to a language map.  -/
+def Lhom.add_params {L' : language} (φ : L →ᴸ L') :
+  L.with_params A →ᴸ L'.with_params A := φ.sum_map (Lhom.id _)
+
+instance params_Structure : (constants_on A).Structure α := constants_on.Structure coe
+
+variables (L) (α)
+
+/-- The language map removing an empty parameter set.  -/
+def Lhom_trim_empty_params : L.with_params ∅ →ᴸ L :=
+Lhom.sum_elim (Lhom.id L) (Lhom.of_is_empty (constants_on (∅ : set α)) L)
+
+variables {α A} {B : set α} (h : A ⊆ B)
+
+/-- The language map extending the parameter set.  -/
+def Lhom_params_inclusion : (L.with_params A) →ᴸ (L.with_params B) :=
+Lhom.sum_map (Lhom.id L) (Lhom.constants_on_map (set.inclusion h))
+
+@[simp] lemma Lhom.params_inclusion_comp_with_params :
+  (L.Lhom_params_inclusion h).comp (L.Lhom_with_params A) = L.Lhom_with_params B :=
+by ext n f R; refl
+
+end
+
+variables (A : set M)
+
 instance with_params_Structure : (L.with_params A).Structure M :=
 language.sum_Structure _ _ _
 
-/-- The language map adding parameters.  -/
-def Lhom_add_params : L →ᴸ L.with_params A := Lhom.sum_inl
+instance trim_empty_params_is_expansion_on : (L.Lhom_trim_empty_params M).is_expansion_on M :=
+Lhom.sum_elim_is_expansion_on _ _ _
 
-variables {A} {B : set M}
+instance with_params_expansion : (L.Lhom_with_params A).is_expansion_on M :=
+⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
 
-/-- The language map extending the parameter set.  -/
-def Lhom_params_inclusion (h : A ⊆ B) : (L.with_params A) →ᴸ (L.with_params B) :=
-Lhom.sum_map (Lhom.id L) (Lhom.constants_on_map (set.inclusion h))
+instance add_params_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ L')
+  [φ.is_expansion_on M] :
+  (φ.add_params A).is_expansion_on M :=
+Lhom.sum_map_is_expansion_on _ _ M
 
-@[simp] lemma Lhom.params_inclusion_comp_with_params (h : A ⊆ B) :
-  (L.Lhom_params_inclusion h).comp (L.Lhom_add_params A) = L.Lhom_add_params B :=
-by ext n f R; refl
+variables {A} {B : set M} (h : A ⊆ B)
+
+instance params_inclusion_is_expansion_on_aux :
+  (Lhom.constants_on_map (set.inclusion h)).is_expansion_on M :=
+⟨λ n, nat.cases_on n (λ _ _, rfl) (λ n f, pempty.elim f), λ n R, pempty.elim R⟩
+
+instance params_inclusion_is_expansion_on : (L.Lhom_params_inclusion h).is_expansion_on M :=
+Lhom.sum_map_is_expansion_on _ _ _
 
 end with_params
 
 end language
 end first_order
+#lint

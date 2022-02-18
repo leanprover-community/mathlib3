@@ -12,11 +12,18 @@ import model_theory.terms_and_formulas
 This file defines what it means for a set over a first-order structure to be definable.
 
 ## Main Definitions
-* A `first_order.language.definable_set` is defined so that `L.definable_set M α` is the boolean
-  algebra of subsets of `α → M` defined by formulas.
+* `first_order.language.is_definable` is defined so that `L.is_definable A s` indicates that the
+set `s` of a finite cartesian power of `M` is definable with parameters in `A`.
+* `first_order.language.is_definable₁` is defined so that `L.is_definable₁ A s` indicates that
+`(s : set M)` is definable with parameters in `A`.
+* `first_order.language.is_definable₂` is defined so that `L.is_definable₁ A s` indicates that
+`(s : set (M × M))` is definable with parameters in `A`.
+* A `first_order.language.definable_set` is defined so that `L.definable_set α A` is the boolean
+  algebra of subsets of `α → M` defined by formulas with parameters in `A`.
 
 ## Main Results
 * `L.definable_set M α` forms a `boolean_algebra.
+* `is_definable.image_comp_sum` shows that definability is closed under projections.
 
 -/
 
@@ -33,7 +40,7 @@ open Structure
 
 section definability
 
-variables (L) {α : Type} [fintype α] (A)
+variables (L) {α : Type} [fintype α] {β : Type} [fintype β] (A)
 
 /-- A subset of a finite Cartesian product of a structure is definable over a set `A` when
   membership in the set is given by a first-order formula with parameters from `A`. -/
@@ -42,21 +49,46 @@ structure is_definable (s : set (α → M)) : Prop :=
 
 variables {L} {A} {B : set M} {s : set (α → M)}
 
+lemma is_definable.map_expansion {L' : language} [L'.Structure M] (h : L.is_definable A s)
+  (φ : L →ᴸ L') [φ.is_expansion_on M] :
+  L'.is_definable A s :=
+begin
+  obtain ⟨ψ, rfl⟩ := h,
+  refine ⟨⟨(φ.add_params A).on_formula ψ, _⟩⟩,
+  ext x,
+  simp only [set.mem_set_of_eq, Lhom.realize_on_formula],
+end
+
 lemma is_empty_definable_iff :
   L.is_definable ∅ s ↔ ∃ (φ : L.formula α), s = set_of (realize_formula M φ) :=
 begin
   split,
   { rintro ⟨φ, rfl⟩,
-    sorry, },
+    refine ⟨(L.Lhom_trim_empty_params M).on_formula φ, _⟩,
+    ext x,
+    simp only [set.mem_set_of_eq, Lhom.realize_on_formula], },
   { rintro ⟨φ, rfl⟩,
-    sorry }
+    refine ⟨⟨(L.Lhom_with_params ∅).on_formula φ, _⟩⟩,
+    ext x,
+    simp only [set.mem_set_of_eq, Lhom.realize_on_formula], }
+end
+
+lemma is_definable_iff_empty_definable_with_params :
+  L.is_definable A s ↔ (L.with_params A).is_definable ∅ s :=
+begin
+  rw is_empty_definable_iff,
+  split,
+  { rintro ⟨φ, rfl⟩,
+    refine ⟨φ, rfl⟩ },
+  { rintro ⟨φ, rfl⟩,
+    refine ⟨⟨φ, rfl⟩⟩ },
 end
 
 lemma is_definable.mono (hAs : L.is_definable A s) (hAB : A ⊆ B) :
   L.is_definable B s :=
 begin
-  obtain ⟨φ, rfl⟩ := hAs,
-  refine ⟨⟨_, _⟩⟩,
+  rw [is_definable_iff_empty_definable_with_params] at *,
+  exact hAs.map_expansion (L.Lhom_params_inclusion hAB),
 end
 
 @[simp]
@@ -90,6 +122,50 @@ lemma is_definable.union {f g : set (α → M)} (hf : L.is_definable A f) (hg : 
     set.mem_set_of_eq],
 end⟩
 
+lemma is_definable_finset_inf {ι : Type*} {f : Π (i : ι), set (α → M)}
+  (hf : ∀ i, L.is_definable A (f i)) (s : finset ι) :
+  L.is_definable A (s.inf f) :=
+begin
+  classical,
+  refine finset.induction is_definable_univ (λ i s is h, _) s,
+  rw finset.inf_insert,
+  exact (hf i).inter h,
+end
+
+lemma is_definable_finset_sup {ι : Type*} {f : Π (i : ι), set (α → M)}
+  (hf : ∀ i, L.is_definable A (f i)) (s : finset ι) :
+  L.is_definable A (s.sup f) :=
+begin
+  classical,
+  refine finset.induction is_definable_empty (λ i s is h, _) s,
+  rw finset.sup_insert,
+  exact (hf i).union h,
+end
+
+lemma is_definable_finset_bInter {ι : Type*} {f : Π (i : ι), set (α → M)}
+  (hf : ∀ i, L.is_definable A (f i)) (s : finset ι) :
+  L.is_definable A (⋂ i ∈ s, f i) :=
+begin
+  refine (congr rfl (le_antisymm _ _)).mp (is_definable_finset_inf hf s),
+  { rw [set.le_eq_subset, set.subset_Inter₂_iff],
+    simp_rw [← set.le_eq_subset],
+    exact λ _, finset.inf_le },
+  { rw finset.le_inf_iff,
+    exact λ i is, set.bInter_subset_of_mem is }
+end
+
+lemma is_definable_finset_bUnion {ι : Type*} {f : Π (i : ι), set (α → M)}
+  (hf : ∀ i, L.is_definable A (f i)) (s : finset ι) :
+  L.is_definable A (⋃ i ∈ s, f i) :=
+begin
+  refine (congr rfl (le_antisymm _ _)).mp (is_definable_finset_sup hf s),
+  { rw finset.sup_le_iff,
+    exact λ i is, set.subset_bUnion_of_mem is },
+  { rw [set.le_eq_subset, set.Union₂_subset_iff],
+    simp_rw [← set.le_eq_subset],
+    exact λ i is, finset.le_sup is }
+end
+
 @[simp]
 lemma is_definable.compl {s : set (α → M)} (hf : L.is_definable A s) :
   L.is_definable A sᶜ :=
@@ -106,7 +182,143 @@ lemma is_definable.sdiff {s t : set (α → M)} (hs : L.is_definable A s)
   L.is_definable A (s \ t) :=
 hs.inter ht.compl
 
-variables (L) (A) (α)
+lemma is_definable.preimage_comp (f : α → β) {s : set (α → M)}
+  (h : L.is_definable A s) :
+  L.is_definable A ((λ g : β → M, g ∘ f) ⁻¹' s) :=
+begin
+  obtain ⟨φ, rfl⟩ := h.exists_formula,
+  refine ⟨⟨(φ.relabel f), _⟩⟩,
+  ext,
+  simp only [set.preimage_set_of_eq, set.mem_set_of_eq, realize_formula_relabel],
+end
+
+lemma is_definable.image_comp_equiv {s : set (β → M)}
+  (h : L.is_definable A s) (f : α ≃ β) :
+  L.is_definable A ((λ g : β → M, g ∘ f) '' s) :=
+begin
+  refine (congr rfl _).mp (h.preimage_comp f.symm),
+  rw set.image_eq_preimage_of_inverse,
+  { intro i,
+    ext b,
+    simp },
+  { intro i,
+    ext a,
+    simp }
+end
+
+/-- This lemma is only intended as a helper for `is_definable.image_comp_sum_inl`. -/
+lemma is_definable.image_comp_sum_inl_fin (m : ℕ) {s : set ((α ⊕ (fin m)) → M)}
+  (h : L.is_definable A s) :
+  L.is_definable A ((λ g : (α ⊕ (fin m)) → M, g ∘ sum.inl) '' s) :=
+begin
+  obtain ⟨φ, rfl⟩ := h.exists_formula,
+  refine ⟨⟨close_with_exists (bounded_formula.relabel id φ), _⟩⟩,
+  ext x,
+  simp only [set.mem_image, set.mem_set_of_eq, realize_close_with_exists],
+  split,
+  { rintro ⟨y, hy, rfl⟩,
+    refine ⟨y ∘ sum.inr, _⟩,
+    rw bounded_formula.realize_relabel,
+    refine (congr (congr rfl _) (funext fin_zero_elim)).mp hy,
+    ext x,
+    cases x,
+    { simp },
+    { rw [function.comp.right_id, sum.elim_inr, function.comp_apply,
+        ← function.comp_apply y sum.inr],
+      refine congr rfl _,
+      ext,
+      rw fin.coe_cast_add, } },
+  { rintro ⟨y, hy⟩,
+    refine ⟨sum.elim x y, _, sum.elim_comp_inl _ _⟩,
+    rw bounded_formula.realize_relabel at hy,
+    rw realize_formula,
+    refine (congr (congr rfl (congr rfl _)) (funext fin_zero_elim)).mp hy,
+    ext x,
+    rw function.comp_apply,
+    refine congr rfl _,
+    ext,
+    rw fin.coe_cast_add },
+end
+
+lemma is_definable.image_comp_sum (m : ℕ) {s : set ((α ⊕ (fin m)) → M)}
+  (h : L.is_definable A s) :
+  L.is_definable A ((λ g : (α ⊕ (fin m)) → M, g ∘ sum.inl) '' s) :=
+begin
+  obtain ⟨φ, rfl⟩ := h.exists_formula,
+  refine ⟨⟨close_with_exists (bounded_formula.relabel id φ), _⟩⟩,
+  ext x,
+  simp only [set.mem_image, exists_exists_and_eq_and, set.mem_set_of_eq, realize_close_with_exists],
+  split,
+  { rintro ⟨y, hy, rfl⟩,
+    refine ⟨y ∘ sum.inr, _⟩,
+    rw bounded_formula.realize_relabel,
+    refine (congr (congr rfl _) (funext fin_zero_elim)).mp hy,
+    ext x,
+    cases x,
+    { simp },
+    { rw [function.comp.right_id, sum.elim_inr, function.comp_apply,
+        ← function.comp_apply y sum.inr],
+      refine congr rfl _,
+      ext,
+      rw fin.coe_cast_add, } },
+  { rintro ⟨y, hy⟩,
+    refine ⟨sum.elim x y, _, sum.elim_comp_inl _ _⟩,
+    rw bounded_formula.realize_relabel at hy,
+    rw realize_formula,
+    refine (congr (congr rfl (congr rfl _)) (funext fin_zero_elim)).mp hy,
+    ext x,
+    rw function.comp_apply,
+    refine congr rfl _,
+    ext,
+    rw fin.coe_cast_add },
+end
+
+/-- Shows that definability is closed under general projections. -/
+lemma is_definable.image_comp {s : set (β → M)} (h : L.is_definable A s)
+  (f : α → β) :
+  L.is_definable A ((λ g : β → M, g ∘ f) '' s) :=
+begin
+  classical,
+  have h := h.image_comp_equiv (equiv.trans (equiv.sum_congr (_root_.equiv.refl _)
+    (fintype.equiv_fin _).symm) (equiv.set.sum_compl (set.range f))),
+  have h := (h.image_comp_sum_inl_fin _).preimage_comp (set.range_splitting f),
+  have h' : L.is_definable A ({ x : α → M |
+    ∀ a, x a = x (set.range_splitting f (set.range_factorization f a))}),
+  { have h' : ∀ a, L.is_definable A {x : α → M | x a =
+      x (set.range_splitting f (set.range_factorization f a))},
+    { intro a,
+      refine ⟨⟨formula.equal (term.var a)
+        (term.var (set.range_splitting f (set.range_factorization f a))), set.ext _⟩⟩,
+      simp, },
+    refine (congr rfl (set.ext _)).mp (is_definable_finset_bInter h' finset.univ),
+    simp },
+  refine (congr rfl _).mp (h.inter h'),
+  ext x,
+  simp only [equiv.coe_trans, set.mem_inter_eq, set.mem_preimage, set.mem_image,
+    exists_exists_and_eq_and, set.mem_set_of_eq],
+  split,
+  { rintro ⟨⟨y, ys, hy⟩, hx⟩,
+    refine ⟨y, ys, _⟩,
+    ext a,
+    rw [hx a, ← function.comp_apply x, ← hy],
+    simp, },
+  { rintro ⟨y, ys, rfl⟩,
+    refine ⟨⟨y, ys, _⟩, λ a, _⟩,
+    { ext,
+      simp [set.apply_range_splitting f] },
+    { rw [function.comp_apply, function.comp_apply, set.apply_range_splitting f,
+        set.range_factorization_coe], }}
+end
+
+variables (L) {M} (A)
+
+/-- A 1-dimensional version of `is_definable`, for `set M`. -/
+def is_definable₁ (s : set M) : Prop := L.is_definable A { x : fin 1 → M | x 0 ∈ s }
+
+/-- A 2-dimensional version of `is_definable`, for `set (M × M)`. -/
+def is_definable₂ (s : set (M × M)) : Prop := L.is_definable A { x : fin 2 → M | (x 0, x 1) ∈ s }
+
+variables (α)
 
 /-- Definable sets are subsets of finite Cartesian products of a structure such that membership is
   given by a first-order formula. -/

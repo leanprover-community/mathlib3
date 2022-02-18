@@ -39,7 +39,7 @@ universes u v
 namespace first_order
 namespace language
 
-variables {L : language.{u v}} {M N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
+variables {L : language.{u v}} {L' : language} {M N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
 open_locale first_order
 open Structure
 
@@ -57,6 +57,11 @@ variable {L}
 @[simp] def term.relabel {α β : Type} (g : α → β) : L.term α → L.term β
 | (var i) := var (g i)
 | (func f ts) := func f (λ i, (ts i).relabel)
+
+/-- Maps a term's symbols along a language map. -/
+@[simp] def Lhom.on_term {α : Type} (φ : L →ᴸ L') : L.term α → L'.term α
+| (var i) := var i
+| (func f ts) := func (φ.on_function f) (λ i, Lhom.on_term (ts i))
 
 instance {α : Type} [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
@@ -76,6 +81,15 @@ begin
   induction t with _ n f ts ih,
   { refl, },
   { simp [ih] }
+end
+
+@[simp] lemma Lhom.realize_on_term [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  {α : Type} (t : L.term α) (v : α → M) :
+  realize_term v (φ.on_term t) = realize_term v t :=
+begin
+  induction t with _ n f ts ih,
+  { refl },
+  { simp only [realize_term, Lhom.on_term, Lhom.is_expansion_on.map_on_function, ih] }
 end
 
 @[simp] lemma hom.realize_term {α : Type} (v : α → M)
@@ -173,6 +187,15 @@ nat.rec_on n id (λ n f φ, (f φ.bd_exists))
 
 end bounded_formula
 
+/-- Maps a bounded formula's variables along a language map. -/
+def Lhom.on_bounded_formula {α : Type} (g : L →ᴸ L') :
+  ∀ {k : ℕ}, L.bounded_formula α k → L'.bounded_formula α k
+| k bd_falsum := bd_falsum
+| k (bd_equal t₁ t₂) := bd_equal (g.on_term t₁) (g.on_term t₂)
+| k (bd_rel R ts) := bd_rel (g.on_relation R) (g.on_term ∘ ts)
+| k (bd_imp f₁ f₂) := bd_imp (Lhom.on_bounded_formula f₁) (Lhom.on_bounded_formula f₂)
+| k (bd_all f) := bd_all (Lhom.on_bounded_formula f)
+
 namespace formula
 
 /-- Relabels a formula's variables along a particular function. -/
@@ -182,6 +205,10 @@ bounded_formula.relabel (sum.inl ∘ g)
 /-- The equality of two terms as a first-order formula. -/
 def equal (t₁ t₂ : L.term α) : (L.formula α) :=
 bd_equal (t₁.relabel sum.inl) (t₂.relabel sum.inl)
+
+/-- A formula consisting of a relation symbol applied to terms. -/
+def rel {n : ℕ} (R : L.relations n) (ts : fin n → L.term α) :
+  L.formula α := bd_rel R (λ i, (ts i).relabel sum.inl)
 
 /-- The graph of a function as a first-order formula. -/
 def graph (f : L.functions n) : L.formula (fin (n + 1)) :=
@@ -197,6 +224,11 @@ def imp : L.formula α → L.formula α → L.formula α := bd_imp
 def iff (φ ψ : L.formula α) : L.formula α := bd_iff φ ψ
 
 end formula
+
+/-- Maps a bounded formula's variables along a language map. -/
+def Lhom.on_formula {α : Type} (g : L →ᴸ L') : L.formula α → L'.formula α :=
+g.on_bounded_formula
+
 end formula
 
 variable {L}
@@ -245,6 +277,11 @@ by simp [has_inf.inf, realize_bounded_formula]
     (realize_bounded_formula M φ v xs → realize_bounded_formula M ψ v xs) :=
 by simp only [realize_bounded_formula]
 
+@[simp] lemma realize_bd_rel {k : ℕ} (R : L.relations k) (ts : fin k → L.term _) :
+  realize_bounded_formula M (bd_rel R ts) v xs =
+    rel_map R (λ i, realize_term (sum.elim v xs) (ts i)) :=
+rfl
+
 @[simp] lemma realize_sup : realize_bounded_formula M (φ ⊔ ψ) v xs =
     (realize_bounded_formula M φ v xs ∨ realize_bounded_formula M ψ v xs) :=
 begin
@@ -271,6 +308,19 @@ begin
 end
 
 end bounded_formula
+
+@[simp] lemma Lhom.realize_on_bounded_formula [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  {α : Type} {n : ℕ} (ψ : L.bounded_formula α n) (v : α → M) (xs : fin n → M) :
+  realize_bounded_formula M (φ.on_bounded_formula ψ) v xs = realize_bounded_formula M ψ v xs :=
+begin
+  induction ψ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3 a7 a8 a9,
+  { refl },
+  { simp only [Lhom.on_bounded_formula, bounded_formula.realize_bd_equal, Lhom.realize_on_term], },
+  { simp only [Lhom.on_bounded_formula, bounded_formula.realize_bd_rel, Lhom.realize_on_term,
+      Lhom.is_expansion_on.map_on_relation], },
+  { simp only [Lhom.on_bounded_formula, bounded_formula.realize_bd_imp, eq_iff_iff, ih1, ih2], },
+  { simp only [Lhom.on_bounded_formula, ih3, bounded_formula.realize_bd_all], },
+end
 
 /-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
 def realize_formula (f : L.formula α) (v : α → M) : Prop :=
@@ -304,11 +354,22 @@ bounded_formula.realize_bd_imp _ _ _ _
     (realize_formula M φ v ∨ realize_formula M ψ v) :=
 realize_sup _ _ _ _
 
-@[simp] lemma realize_bd_iff : realize_formula M (φ.iff ψ) v=
+@[simp] lemma realize_iff : realize_formula M (φ.iff ψ) v=
   (realize_formula M φ v ↔ realize_formula M ψ v) :=
 bounded_formula.realize_bd_iff _ _ _ _
 
+@[simp] lemma realize_rel {k : ℕ} {R : L.relations k} {ts : fin k → L.term α} :
+  realize_formula M (rel R ts) v =
+    rel_map R (λ i, realize_term v (ts i)) :=
+(realize_bd_rel v fin_zero_elim R (λ i, (ts i).relabel sum.inl)).trans
+    (congr rfl (funext (λ i, by simp only [realize_term_relabel, sum.elim_comp_inl])))
+
 end formula
+
+@[simp] lemma Lhom.realize_on_formula [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  {α : Type} (ψ : L.formula α) (v : α → M) :
+  realize_formula M (φ.on_formula ψ) v = realize_formula M ψ v :=
+φ.realize_on_bounded_formula M ψ v fin_zero_elim
 
 /-- A sentence can be evaluated as true or false in a structure. -/
 @[reducible] def realize_sentence (φ : L.sentence) : Prop :=

@@ -58,7 +58,7 @@ open_locale classical big_operators nnreal
 open finset metric
 
 local attribute [instance, priority 1001]
-add_comm_group.to_add_comm_monoid normed_space.to_module' module.to_has_scalar
+add_comm_group.to_add_comm_monoid normed_space.to_module'
 
 @[reducible] def normed_group.to_add_comm_monoid {E} [normed_group E] : add_comm_monoid E :=
 by apply_instance
@@ -1400,8 +1400,15 @@ rfl
 
 variables (𝕜 ι ι' G G')
 
-local attribute [instance, priority 1001] to_semi_normed_group
--- set_option trace.class_instances true
+lemma uncurry_sum_curry_sum (f : continuous_multilinear_map 𝕜 (λ x : ι ⊕ ι', G) G') :
+  uncurry_sum (curry_sum f) = f :=
+by ext m; simp
+
+lemma curry_sum_uncurry_sum (f : continuous_multilinear_map 𝕜 (λ x : ι, G)
+    (continuous_multilinear_map 𝕜 (λ x : ι', G) G')) :
+  curry_sum (uncurry_sum f) = f :=
+by ext m; simp
+
 /-- Linear isometric equivalence between the space of continuous multilinear maps with variables
 indexed by `ι ⊕ ι'` and the space of continuous multilinear maps with variables indexed by `ι`
 taking values in the space of continuous multilinear maps with variables indexed by `ι'`.
@@ -1416,9 +1423,8 @@ linear_isometry_equiv.of_bounds
     inv_fun := uncurry_sum,
     map_add' := λ f g, by { ext, refl },
     map_smul' := λ c f, by { ext, refl },
-    left_inv := λ f, by { ext m, exact congr_arg f (sum.elim_comp_inl_inr m) },
-    right_inv := λ f, by { ext m₁ m₂, change f _ _ = f _ _,
-      rw [sum.elim_comp_inl, sum.elim_comp_inr] } }
+    left_inv := by apply uncurry_sum_curry_sum,
+    right_inv := by apply curry_sum_uncurry_sum, }
   (λ f, multilinear_map.mk_continuous_multilinear_norm_le _ (norm_nonneg f) _)
   (λ f, multilinear_map.mk_continuous_norm_le _ (norm_nonneg f) _)
 

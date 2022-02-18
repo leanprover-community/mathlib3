@@ -63,8 +63,6 @@ instance module.to_mul_action_with_zero :
   zero_smul := module.zero_smul,
   ..(infer_instance : mul_action R M) }
 
-@[reducible] def module.to_has_scalar : has_scalar R M := by apply_instance
-
 instance add_comm_monoid.nat_module : module ℕ M :=
 { one_smul := one_nsmul,
   mul_smul := λ m n a, mul_nsmul a m n,

@@ -26,12 +26,8 @@ end
 ```
 
 # See also
-* `rename`
-* `rename_var`
-
-## Tags
-
-tactic
+* `tactic.interactive.rename`
+* `tactic.interactive.rename_var`
 
 -/
 

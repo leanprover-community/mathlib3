@@ -186,21 +186,20 @@ lemma mem_set_clopen {x : set X} : x ∈ (set_clopen ε f) ↔ ∃ (U : set X) (
     x ∈ classical.some (topological_space.is_topological_basis.open_eq_sUnion
     (@loc_compact_Haus_tot_disc_of_zero_dim X _ _ _ _) (opens ε f hU)) := iff.rfl
 
-
 /-- Elements of `set_clopen` are clopen. -/
 lemma set_clopen_sub_clopen_set : (set_clopen ε f) ⊆ {s : set X | is_clopen s} :=
 begin
   intros j hj,
   obtain ⟨W, hW, hj⟩ := (mem_set_clopen ε f).1 hj,
-  obtain ⟨H, H1⟩ := classical.some_spec (topological_space.is_topological_basis.open_eq_sUnion
+  obtain ⟨H, -⟩ := classical.some_spec (topological_space.is_topological_basis.open_eq_sUnion
     (@loc_compact_Haus_tot_disc_of_zero_dim X _ _ _ _) (opens ε f hW)),
-  apply H, apply hj,
+  exact H hj,
 end
 
 /-- `set_clopen` covers X. -/
 lemma univ_sub_sUnion_set_clopen : set.univ ⊆ ⋃₀ (set_clopen ε f) :=
 begin
-  intros x hx, rw set.mem_sUnion,
+  rintros x hx, rw set.mem_sUnion,
   have f' := @loc_compact_Haus_tot_disc_of_zero_dim X _ _ _ _,
   have sUnion_sub_of_finset_sub := sUnion_sub_of_finset_sub ε f,
 -- writing `f⁻¹' U` as a union of basis elements (clopen sets)
@@ -222,11 +221,10 @@ end
 lemma exists_B_of_mem_clopen {x : set X} (hx : x ∈ set_clopen ε f) :
   ∃ (U : set X) (H : U ∈ B ε f), x ⊆ U :=
 begin
-  rw mem_set_clopen at hx,
   rcases hx with ⟨U, hU, xU⟩, refine ⟨U, hU, _⟩,
   obtain ⟨H, H1⟩ := classical.some_spec
     (topological_space.is_topological_basis.open_eq_sUnion
-    (@loc_compact_Haus_tot_disc_of_zero_dim X _ _ _ _) (@opens _ _ _ _ _ ε f U hU)),
+    (@loc_compact_Haus_tot_disc_of_zero_dim X _ _ _ _) (opens ε f hU)),
   rw H1, intros u hu, simp only [exists_prop, set.mem_set_of_eq],
   refine ⟨x, _, hu⟩,
   convert xU,
@@ -366,7 +364,7 @@ begin
   have := (classical.some_spec (is_clopen.clopen_Union_disjoint
     (set.finite.to_finset (fin ε f)) (λ x hx, (is_clopen_x ε f hx)))).2.2.2 _ _ hV hU h,
   revert this,
-  change (V ∩ U) ≠ ∅,
+  --change (V ∩ U) ≠ ∅,
   refine set.nonempty.ne_empty ⟨y, set.mem_inter hVy hUy⟩,
 end
 
@@ -378,7 +376,7 @@ lemma mem_finset_clopen_unique {U V : set X} {x y : X}
 begin
   obtain ⟨W, hW⟩ := finset_clopen_prop ε f y,
   simp only [and_imp, exists_prop, exists_unique_iff_exists] at hW,
-  split, any_goals { intro h, },
+  split; intro h,
   { rw U_prop.2 V hV h, assumption, },
   { rw hW.2 V hV h, rw ←(hW.2 U U_prop.1.1 hy), apply U_prop.1.2, },
 end
@@ -445,12 +443,13 @@ end ⟩
 variable (X)
 /-- The locally constant functions from `X` to `A` (viewed as a subset of C(X, A)) are dense
   in C(X, A). -/
-theorem loc_const_dense [nonempty X] : @dense (C(X, A)) _ (set.range (inclusion X A)) :=
+theorem loc_const_dense [nonempty X] : dense (set.range (inclusion X A)) :=
   λ f, begin
   rw metric.mem_closure_iff,
   rintros ε hε,
+  haveI : fact (0 < ε) := fact.mk hε,
 -- we have all the ingredients from `loc_const_dense'`, only need `exists_finset_univ_sub_prop`
-  apply @loc_const_dense' _ _ _ _ _ ε f (fact_iff.2 hε) _,
+  apply loc_const_dense' ε f,
 end
 
 end locally_constant.density

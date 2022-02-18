@@ -68,12 +68,12 @@ variables (A)
 
 /-- The self-adjoint elements of a star module, as a submodule. -/
 def self_adjoint.submodule : submodule R A :=
-{ smul_mem' := λ r x (hx : star x = x), by simp [self_adjoint.mem_iff, hx],
+{ smul_mem' := self_adjoint.smul_mem,
   ..self_adjoint A }
 
 /-- The skew-adjoint elements of a star module, as a submodule. -/
 def skew_adjoint.submodule : submodule R A :=
-{ smul_mem' := λ r x (hx : star x = -x), by simp [skew_adjoint.mem_iff, hx],
+{ smul_mem' := skew_adjoint.smul_mem,
   ..skew_adjoint A }
 
 lemma star_module.decompose_prod_adjoint : A ≃ₗ[R] self_adjoint A × skew_adjoint A :=

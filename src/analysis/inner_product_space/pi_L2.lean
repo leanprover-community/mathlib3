@@ -24,8 +24,7 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 - `orthonormal_basis 𝕜 ι`: defined to be an isometry to Euclidean space from a given
   finite-dimensional innner product space, `E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`.
 
-- `basis.to_orthonormal_basis`: provides the isometry to Euclidean space (i.e. orthonormal basis)
-  from a given finite-dimensional inner product space, induced by a basis of the space.
+- `basis.to_orthonormal_basis`: constructs an `orthonormal_basis` for a finite-dimensional Euclidean space from a `basis` which is `orthonormal`.
 
 - `linear_isometry_equiv.of_inner_product_space`: provides an arbitrary isometry to Euclidean space
   from a given finite-dimensional inner product space, induced by choosing an arbitrary basis.
@@ -162,10 +161,7 @@ pi.single i a
 
 @[simp] theorem euclidean_space.single_apply [decidable_eq ι] (i : ι) (a : 𝕜) (j : ι) :
   (euclidean_space.single i a) j = ite (j = i) a 0 :=
-begin
-  rw [euclidean_space.single],
-  rw ← pi.single_apply i a j,
-end
+by { rw [euclidean_space.single, ← pi.single_apply i a j] }
 
 lemma euclidean_space.inner_single_left [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=
@@ -292,8 +288,7 @@ calc (v.to_orthonormal_basis hv : ι → E)
 /-- An orthonormal set that spans is an orthonormal basis -/
 protected def mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤):
   orthonormal_basis ι 𝕜 E :=
-basis.to_orthonormal_basis (basis.mk (orthonormal.linear_independent hon) hsp)
-  (by rwa basis.coe_mk)
+(basis.mk (orthonormal.linear_independent hon) hsp).to_orthonormal_basis (by rwa basis.coe_mk)
 
 @[simp]
 protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :

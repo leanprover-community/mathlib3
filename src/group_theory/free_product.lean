@@ -330,8 +330,8 @@ end word
 
 /-- The free product of free groups is itself a free group -/
 @[simps]
-def is_free_group_free_product_of_is_free_group {ι : Type*} (G : ι → Type*)
-  [∀ i, group (G i)] [hG : ∀ i, is_free_group (G i)] : is_free_group (free_product G) :=
+instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_free_group (G i)] :
+  is_free_group (free_product G) :=
 { generators := Σ i, is_free_group.generators (G i),
   of := λ ⟨i, x⟩, free_product.of (is_free_group.of x),
   unique_lift' :=
@@ -339,9 +339,7 @@ def is_free_group_free_product_of_is_free_group {ι : Type*} (G : ι → Type*)
     introsI X _ f,
     refine ⟨free_product.lift (λ i, is_free_group.lift (λ x, f ⟨i, x⟩)), _ ⟩,
     split,
-    { rintros ⟨i, x⟩,
-      unfold is_free_group_free_product_of_is_free_group._match_1,
-      simp, },
+    { rintros ⟨i, x⟩, unfold is_free_group._match_1, simp, },
     { intros g hfg, ext i x, simpa using hfg ⟨i, x⟩, }
   end, }
 

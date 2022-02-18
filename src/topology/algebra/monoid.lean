@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.continuous_on
 import topology.separation
+import topology.algebra.mul_action
 import group_theory.submonoid.operations
 import algebra.group.prod
 import algebra.pointwise
@@ -48,6 +49,11 @@ variables [topological_space M] [has_mul M] [has_continuous_mul M]
 @[to_additive]
 lemma continuous_mul : continuous (λp:M×M, p.1 * p.2) :=
 has_continuous_mul.continuous_mul
+
+@[to_additive]
+instance has_continuous_mul.has_continuous_smul :
+  has_continuous_smul M M :=
+⟨continuous_mul⟩
 
 @[continuity, to_additive]
 lemma continuous.mul {f g : X → M} (hf : continuous f) (hg : continuous g) :
@@ -381,20 +387,9 @@ end has_continuous_mul
 
 namespace mul_opposite
 
-/-- Put the same topological space structure on the opposite monoid as on the original space. -/
-@[to_additive] instance [_i : topological_space α] : topological_space αᵐᵒᵖ :=
-topological_space.induced (unop : αᵐᵒᵖ → α) _i
-
-variables [topological_space α]
-
-@[to_additive] lemma continuous_unop : continuous (unop : αᵐᵒᵖ → α) := continuous_induced_dom
-@[to_additive] lemma continuous_op : continuous (op : α → αᵐᵒᵖ) :=
-continuous_induced_rng continuous_id
-
-variables [monoid α] [has_continuous_mul α]
-
-/-- If multiplication is continuous in the monoid `α`, then it also is in the monoid `αᵐᵒᵖ`. -/
-@[to_additive] instance : has_continuous_mul αᵐᵒᵖ :=
+/-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
+@[to_additive] instance [topological_space α] [has_mul α] [has_continuous_mul α] :
+  has_continuous_mul αᵐᵒᵖ :=
 ⟨ let h₁ := @continuous_mul α _ _ _ in
   let h₂ : continuous (λ p : α × α, _) := continuous_snd.prod_mk continuous_fst in
   continuous_induced_rng $ (h₁.comp h₂).comp (continuous_unop.prod_map continuous_unop) ⟩
@@ -405,19 +400,7 @@ namespace units
 
 open mul_opposite
 
-variables [topological_space α] [monoid α]
-
-/-- The units of a monoid are equipped with a topology, via the embedding into `α × α`. -/
-@[to_additive] instance : topological_space αˣ :=
-topological_space.induced (embed_product α) (by apply_instance)
-
-@[to_additive] lemma continuous_embed_product : continuous (embed_product α) :=
-continuous_induced_dom
-
-@[to_additive] lemma continuous_coe : continuous (coe : αˣ → α) :=
-by convert continuous_fst.comp continuous_induced_dom
-
-variables [has_continuous_mul α]
+variables [topological_space α] [monoid α] [has_continuous_mul α]
 
 /-- If multiplication on a monoid is continuous, then multiplication on the units of the monoid,
 with respect to the induced topology, is continuous.

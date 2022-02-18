@@ -72,6 +72,11 @@ instance has_lipschitz_mul.has_continuous_mul : has_continuous_mul β :=
     convert lipschitz_with_lipschitz_const_mul_edist ⟨(x₁:β), x₂⟩ ⟨y₁, y₂⟩ using 1
   end⟩ }
 
+@[to_additive] instance mul_opposite.has_lipschitz_mul : has_lipschitz_mul βᵐᵒᵖ :=
+{ lipschitz_mul := ⟨has_lipschitz_mul.C β, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
+    (lipschitz_with_lipschitz_const_mul_edist ⟨x₂.unop, x₁.unop⟩ ⟨y₂.unop, y₁.unop⟩).trans_eq
+      (congr_arg _ $ max_comm _ _)⟩ }
+
 -- this instance could be deduced from `normed_group.has_lipschitz_add`, but we prove it separately
 -- here so that it is available earlier in the hierarchy
 instance real.has_lipschitz_add : has_lipschitz_add ℝ :=

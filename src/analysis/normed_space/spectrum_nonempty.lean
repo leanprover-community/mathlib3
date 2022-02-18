@@ -64,7 +64,6 @@ nondiscrete normed field that `map inv (𝓝[≠] 0) = cobounded 𝕜` and vice 
 be just be pretty straightforward to prove the asymptotics and turn this whole lemma into something
 the way a mathematician would argue it using `normed_ring.inverse_one_sub_norm` -/
 
-#check is_O
 lemma spectrum.norm_resolvent_le (a : A) :
   ∀ ε > 0, ∃ R > 0, ∀ z : 𝕜, R ≤ ∥z∥ → ∥resolvent a z∥ ≤ ε :=
 begin

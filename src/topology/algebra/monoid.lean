@@ -387,8 +387,8 @@ end has_continuous_mul
 
 namespace mul_opposite
 
-/-- If multiplication is continuous in the monoid `α`, then it also is in the monoid `αᵐᵒᵖ`. -/
-@[to_additive] instance [topological_space α] [monoid α] [has_continuous_mul α] :
+/-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
+@[to_additive] instance [topological_space α] [has_mul α] [has_continuous_mul α] :
   has_continuous_mul αᵐᵒᵖ :=
 ⟨ let h₁ := @continuous_mul α _ _ _ in
   let h₂ : continuous (λ p : α × α, _) := continuous_snd.prod_mk continuous_fst in

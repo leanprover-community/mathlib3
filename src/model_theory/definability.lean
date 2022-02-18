@@ -45,7 +45,7 @@ variables (L) {α : Type} [fintype α] {β : Type} [fintype β] (A)
 /-- A subset of a finite Cartesian product of a structure is definable over a set `A` when
   membership in the set is given by a first-order formula with parameters from `A`. -/
 structure is_definable (s : set (α → M)) : Prop :=
-(exists_formula : ∃ (φ : (L.with_params A).formula α), s = set_of (realize_formula M φ))
+(exists_formula : ∃ (φ : L[[A]].formula α), s = set_of (realize_formula M φ))
 
 variables {L} {A} {B : set M} {s : set (α → M)}
 
@@ -54,7 +54,7 @@ lemma is_definable.map_expansion {L' : language} [L'.Structure M] (h : L.is_defi
   L'.is_definable A s :=
 begin
   obtain ⟨ψ, rfl⟩ := h,
-  refine ⟨⟨(φ.add_params A).on_formula ψ, _⟩⟩,
+  refine ⟨⟨(φ.add_constants A).on_formula ψ, _⟩⟩,
   ext x,
   simp only [set.mem_set_of_eq, Lhom.realize_on_formula],
 end
@@ -64,17 +64,17 @@ lemma is_empty_definable_iff :
 begin
   split,
   { rintro ⟨φ, rfl⟩,
-    refine ⟨(L.Lhom_trim_empty_params M).on_formula φ, _⟩,
+    refine ⟨(L.Lhom_trim_empty_constants M).on_formula φ, _⟩,
     ext x,
     simp only [set.mem_set_of_eq, Lhom.realize_on_formula], },
   { rintro ⟨φ, rfl⟩,
-    refine ⟨⟨(L.Lhom_with_params ∅).on_formula φ, _⟩⟩,
+    refine ⟨⟨(L.Lhom_with_constants ∅).on_formula φ, _⟩⟩,
     ext x,
     simp only [set.mem_set_of_eq, Lhom.realize_on_formula], }
 end
 
 lemma is_definable_iff_empty_definable_with_params :
-  L.is_definable A s ↔ (L.with_params A).is_definable ∅ s :=
+  L.is_definable A s ↔ L[[A]].is_definable ∅ s :=
 begin
   rw is_empty_definable_iff,
   split,
@@ -88,7 +88,7 @@ lemma is_definable.mono (hAs : L.is_definable A s) (hAB : A ⊆ B) :
   L.is_definable B s :=
 begin
   rw [is_definable_iff_empty_definable_with_params] at *,
-  exact hAs.map_expansion (L.Lhom_params_inclusion hAB),
+  exact hAs.map_expansion (L.Lhom_constants_inclusion hAB),
 end
 
 @[simp]

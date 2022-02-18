@@ -662,7 +662,7 @@ begin
   dsimp only [quotient.lift_on'_mk', quotient.map'_mk', mul_action.quotient.smul_mk,
     dom_coprod.summand],
   rw [perm.sign_mul, perm.sign_swap hij],
-  simp only [one_mul, units.neg_mul, function.comp_app, units.neg_smul, perm.coe_mul,
+  simp only [one_mul, neg_mul, function.comp_app, units.neg_smul, perm.coe_mul,
     units.coe_neg, multilinear_map.smul_apply, multilinear_map.neg_apply,
     multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
   convert add_right_neg _;

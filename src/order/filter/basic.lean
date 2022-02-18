@@ -632,6 +632,15 @@ local attribute [instance]
 protected def unique [is_empty α] : unique (filter α) :=
 { default := ⊥, uniq := filter_eq_bot_of_is_empty }
 
+/-- There are only two filters on a `subsingleton`: `⊥` and `⊤`. If the type is empty, then they are
+equal. -/
+lemma eq_top_of_ne_bot [subsingleton α] (l : filter α) [ne_bot l] : l = ⊤ :=
+begin
+  refine top_unique (λ s hs, _),
+  obtain rfl : s = univ, from subsingleton.eq_univ_of_nonempty (nonempty_of_mem hs),
+  exact univ_mem
+end
+
 lemma forall_mem_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=
 ⟨λ h, ⟨λ hf, empty_not_nonempty (h ∅ $ hf.symm ▸ mem_bot)⟩, @nonempty_of_mem _ _⟩
@@ -1285,6 +1294,26 @@ lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
 by simpa only [sub_eq_add_neg] using h.add h'.neg
+
+@[to_additive] lemma eventually_eq.const_smul {𝕜} [has_scalar 𝕜 β] {l : filter α} {f g : α → β}
+  (h : f =ᶠ[l] g) (c : 𝕜) :
+  (λ x, c • f x) =ᶠ[l] (λ x, c • g x) :=
+h.fun_comp (λ x, c • x)
+
+@[to_additive] lemma eventually_eq.smul {𝕜} [has_scalar 𝕜 β] {l : filter α} {f f' : α → 𝕜}
+  {g g' : α → β} (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
+  (λ x, f x • g x) =ᶠ[l] λ x, f' x • g' x :=
+hf.comp₂ (•) hg
+
+lemma eventually_eq.sup [has_sup β] {l : filter α} {f f' g g' : α → β}
+  (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
+  (λ x, f x ⊔ g x) =ᶠ[l] λ x, f' x ⊔ g' x :=
+hf.comp₂ (⊔) hg
+
+lemma eventually_eq.inf [has_inf β] {l : filter α} {f f' g g' : α → β}
+  (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
+  (λ x, f x ⊓ g x) =ᶠ[l] λ x, f' x ⊓ g' x :=
+hf.comp₂ (⊓) hg
 
 lemma eventually_eq.inter {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
   (s ∩ s' : set α) =ᶠ[l] (t ∩ t' : set α) :=

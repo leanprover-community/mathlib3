@@ -319,7 +319,7 @@ section
 variables (C)
 
 /-- `has_images` represents a choice of image for every morphism -/
-class has_images :=
+class has_images : Prop :=
 (has_image : Π {X Y : C} (f : X ⟶ Y), has_image f)
 
 attribute [instance, priority 100] has_images.has_image

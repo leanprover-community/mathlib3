@@ -223,10 +223,11 @@ begin
   simp only [mul_boole, map_one],
 end
 
+/- The `basis ι 𝕜 E` underlying the `orthonormal_basis` --/
 protected def to_basis (b : orthonormal_basis ι 𝕜 E) : basis ι 𝕜 E :=
   basis.of_equiv_fun b.repr.to_linear_equiv
 
-@[simp] protected lemma coe_to_basis [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) :
+@[simp] protected lemma coe_to_basis (b : orthonormal_basis ι 𝕜 E) :
   (⇑b.to_basis : ι → E) = ⇑b :=
 begin
   change ⇑(basis.of_equiv_fun b.repr.to_linear_equiv) = b,
@@ -235,6 +236,10 @@ begin
   simp only [orthonormal_basis.repr_symm_single],
   congr,
 end
+
+@[simp] protected lemma to_basis_orthonormal (b : orthonormal_basis ι 𝕜 E) :
+  orthonormal 𝕜 (b.to_basis) :=
+  by {rw orthonormal_basis.coe_to_basis, exact b.orthonormal}
 
 @[simp] protected lemma coe_to_basis_repr (b : orthonormal_basis ι 𝕜 E) :
   b.to_basis.equiv_fun = b.repr.to_linear_equiv :=

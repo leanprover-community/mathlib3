@@ -43,14 +43,17 @@ elements of a star module. -/
   right_inv := λ x, by simp only [←mul_smul, I_mul_I, add_subgroup.coe_mk, neg_mul, neg_neg,
                                   one_smul, set_like.eta] }
 
-/-- The imaginary part of an element of a star module, as a real-linear map. Note: the real part
-is simply `self_adjoint_part`, defined in `algebra/star/module`. -/
+/-- The imaginary part of an element of a star module, as a real-linear map.  -/
 @[simps] noncomputable def im : E →ₗ[ℝ] self_adjoint E :=
   mul_neg_I_lin.to_linear_map.comp (skew_adjoint_part ℝ)
 
+/-- The real part of an element of a star module, as a real-linear map. This is simply an
+abbreviation for `self_adjoint_part ℝ`. -/
+@[simps] noncomputable abbreviation re : E →ₗ[ℝ] self_adjoint E := self_adjoint_part ℝ
+
 /-- An element of a complex star module can be decomposed into self-adjoint "real" and
 "imaginary" parts -/
-lemma eq_re_add_im (x : E) : x = self_adjoint_part ℝ x + I • im x :=
+lemma re_add_im (x : E) : (re x : E) + I • im x = x :=
 by simp [←mul_smul, I_mul_I, ←smul_add, ←two_smul ℝ]
 
 end star_module

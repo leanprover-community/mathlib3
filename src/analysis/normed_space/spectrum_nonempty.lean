@@ -1,5 +1,5 @@
 import analysis.normed_space.spectrum
-import analysis.complex.cauchy_integral
+import analysis.complex.liouville
 
 /-! This file shows that the spectrum in a (nontrivial) complex Banach algebra is nonempty. -/
 
@@ -116,23 +116,25 @@ begin
   have H₁ : differentiable ℂ (λ z : ℂ, resolvent a z), from λ z,
     (has_deriv_at_resolvent (H₀.symm ▸ set.mem_univ z : z ∈ resolvent_set ℂ a)).differentiable_at,
   /- The norm of the resolvent is small for all sufficently large `z`, and by compactness and
-  continuity it is bounded on the complement of a large ball, thus uniformly bounded on `ℂ`. -/
+  continuity it is bounded on the complement of a large ball, thus uniformly bounded on `ℂ`.
+  By Liouville's theorem `λ z, resolvent a z` is constant -/
   have H₂ := norm_resolvent_le a,
-  have H₃ : ∃ C : ℝ, ∀ z : ℂ, ∥resolvent a (z : ℂ)∥ ≤ C,
-  { rcases H₂ 1 zero_lt_one with ⟨R, R_pos, hR⟩,
+  have H₃ : ∀ z : ℂ, resolvent a z = resolvent a (0 : ℂ),
+  { refine λ z, complex.apply_eq_apply_of_differentiable_of_bounded H₁ _ z 0,
+    rw bounded_iff_exists_norm_le,
+    rcases H₂ 1 zero_lt_one with ⟨R, R_pos, hR⟩,
     rcases (proper_space.is_compact_closed_ball (0 : ℂ) R).exists_bound_of_continuous_on
       H₁.continuous.continuous_on with ⟨C, hC⟩,
-    refine ⟨max C 1, (λ z, or.elim (em (∥z∥ ≤ R)) (λ hz, _) (λ hz, _))⟩,
-    { exact (hC z (mem_closed_ball_zero_iff.mpr hz)).trans (le_max_left _ _) },
-    { exact (hR z (not_le.mp hz).le).trans (le_max_right _ _), }, },
-  /- By Liouville's theorem `λ z, resolvent a z` is constant, then show it's `0`, contradiction. -/
-  rcases H₃ with ⟨C, hC⟩,
-  have H₄ := H₁.const_of_bounded hC,
+    use max C 1,
+    rintros _ ⟨w, rfl⟩,
+    refine or.elim (em (∥w∥ ≤ R)) (λ hw, _) (λ hw, _),
+      { exact (hC w (mem_closed_ball_zero_iff.mpr hw)).trans (le_max_left _ _) },
+      { exact (hR w (not_le.mp hw).le).trans (le_max_right _ _), }, },
+  /- `resolvent a 0 = 0`, which is a contradition because it isn't a unit. -/
   have H₅ : resolvent a (0 : ℂ) = 0,
   { refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ ε hε, _)) (norm_nonneg _)),
     rcases H₂ ε hε with ⟨R, R_pos, hR⟩,
-    have res_eq : resolvent a (0 : ℂ) = resolvent a (R : ℂ) := (congr_fun H₄ (R : ℂ)).symm,
-    simpa only [res_eq] using (zero_add ε).symm.subst
+    simpa only [H₃ R] using (zero_add ε).symm.subst
       (hR R (by exact_mod_cast (real.norm_of_nonneg R_pos.lt.le).symm.le)), },
   /- `not_is_unit_zero` is where we need `nontrivial A`, it is unavoidable. -/
   exact not_is_unit_zero (H₅.subst (is_unit_resolvent

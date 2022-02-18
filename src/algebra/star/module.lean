@@ -71,15 +71,15 @@ variables {A} [invertible (2 : R)]
   map_smul' := λ r x, by { ext, simp [←mul_smul, ←smul_sub,
             show r * ⅟ 2 = ⅟ 2 * r, from commute.inv_of_right (commute.one_right r).bit0_right] } }
 
-lemma star_module.eq_self_adjoint_part_add_skew_adjoint_part (x : A) :
+lemma star_module.self_adjoint_part_add_skew_adjoint_part (x : A) :
   (self_adjoint_part R x : A) + skew_adjoint_part R x = x :=
 by simp only [smul_sub, self_adjoint_part_apply_coe, smul_add, skew_adjoint_part_apply_coe,
               add_add_sub_cancel, inv_of_two_smul_add_inv_of_two_smul]
 
 variables (A)
 
-/-- Linear equivalence between a star module and the product of the self-adjoint and
-skew-adjoint elements. -/
+/-- The decomposition of elements of a star module into their self- and skew-adjoint parts,
+as a linear equivalence. -/
 def star_module.decompose_prod_adjoint : A ≃ₗ[R] self_adjoint A × skew_adjoint A :=
 linear_equiv.of_linear
 (linear_map.prod (self_adjoint_part R) (skew_adjoint_part R))

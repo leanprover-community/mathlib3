@@ -60,7 +60,7 @@ variables (R : Type*) {A : Type*}
             show r * ⅟ 2 = ⅟ 2 * r, from commute.inv_of_right (commute.one_right r).bit0_right] } }
 
 lemma star_module.eq_self_adjoint_part_add_skew_adjoint_part (x : A) :
-  x = self_adjoint_part R x + skew_adjoint_part R x :=
+  (self_adjoint_part R x : A) + skew_adjoint_part R x = x :=
 by simp only [smul_sub, self_adjoint_part_apply_coe, smul_add, skew_adjoint_part_apply_coe,
               add_add_sub_cancel, inv_of_two_smul_add_inv_of_two_smul]
 

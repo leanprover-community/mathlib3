@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Paul Lezeau
 -/
 
+import algebra.is_prime_pow
 import algebra.squarefree
 import ring_theory.unique_factorization_domain
 
@@ -23,7 +24,7 @@ factorisations of `a` and `b` have the same shape.
 
 ## Main results
 - `prime_pow_has_chain` : existence of chain for prime powers
-- `eq_prime_pow_of_has_chain` : elements that have a chain are prime powers
+- `eq_pow_second_of_chain_of_has_chain` : elements that have a chain are prime powers
 - `multiplicity_le_of_monotone` : if there is a monotone bijection `d` between the set
   of factors of `a : associates M` and the set of factors of `b : associates N`, then,
   for any prime `p ∣ a`, `multiplicity p a ≤ multiplicity (d p) b`.
@@ -37,12 +38,10 @@ factorisations of `a` and `b` have the same shape.
 
 section factorisations_same_shape
 
-noncomputable theory
-open_locale classical
-
 open unique_factorization_monoid multiplicity irreducible
 
 variables {M : Type*} [cancel_comm_monoid_with_zero M]
+
 
 lemma pow_prime_has_chain {p : associates M} (n : ℕ) (hn : n ≠ 0) (hp : prime p) :
   ∃ c : fin (n + 1) → associates M,
@@ -62,7 +61,7 @@ begin
     exact ⟨p^(n - i : ℕ), (pow_mul_pow_sub p (nat.succ_le_succ_iff.mp i.2)).symm⟩ }
 end
 
-lemma second_of_chain_not_is_unit (n : ℕ) (i : fin (n + 1)) (i_pos : i ≠ 0)
+lemma upper_chain_not_is_unit (n : ℕ) (i : fin (n + 1)) (i_pos : i ≠ 0)
   (c : fin (n + 1) → associates M) (h₁ : strict_mono c) :
   ¬ is_unit (c i) :=
 dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
@@ -78,6 +77,7 @@ begin
   exact h₁.monotone (fin.zero_le i)
 end
 
+/-- The second element of a chain is irreducible -/
 lemma second_of_chain_is_irreducible {q : associates M} (n : ℕ) (hn : n ≠ 0)
   (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
   (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i)
@@ -122,9 +122,8 @@ begin
     simpa using fin.lt_succ },
 end
 
-lemma card_subset_divisors_le_length_of_chain {q : associates M} (n : ℕ)
-  (c : fin (n + 1) → associates M)
-  (h₂ : ∀ (r : associates M), r ≤ q ↔ ∃ i, r = c i)
+lemma card_subset_divisors_le_length_of_chain [decidable_eq (associates M)]{q : associates M}
+  (n : ℕ) (c : fin (n + 1) → associates M) (h₂ : ∀ (r : associates M), r ≤ q ↔ ∃ i, r = c i)
   (m : finset (associates M)) (hm : ∀ r, r ∈ m → r ≤ q) : m.card ≤ n + 1 :=
 begin
   have mem_image : ∀ (r : associates M), r ≤ q → r ∈ finset.univ.image c,
@@ -137,8 +136,8 @@ begin
   exact (finset.card_le_of_subset subset_image).trans (finset.card_image_le),
 end
 
-lemma multiplicity.finite_prime_left [wf_dvd_monoid M] {a b : M} (ha : prime a) (hb : b ≠ 0) :
-  multiplicity.finite a b :=
+lemma multiplicity.finite_prime_left [decidable_rel ((∣) : M → M → Prop)] [wf_dvd_monoid M]
+  {a b : M} (ha : prime a) (hb : b ≠ 0) : multiplicity.finite a b :=
 begin
   revert hb,
   refine wf_dvd_monoid.induction_on_irreducible b _ _ _,
@@ -155,29 +154,42 @@ begin
       .resolve_right ha.not_unit) }
 end
 
-lemma multiplicity_eq_multiplicity_associates_mk [wf_dvd_monoid M] {p q : M} (hp : prime p)
+variable [decidable_rel ((∣) : associates M → associates M → Prop)]
+
+lemma enat.le_iff_of_dom {a b : enat} (h : a.dom) : ↑(a.get h) ≤ b ↔ a ≤ b :=
+begin
+  split,
+  { intro H,
+    rw enat.coe_le_iff at H,
+    by_cases h' : b.dom,
+    { rw ← enat.get_le_get,
+      exact H h' },
+    { rw [← enat.ne_top_iff_dom, not_not] at h',
+      simp only [h', le_top] } },
+  { intro H,
+    rw enat.coe_le_iff,
+    exact (λ h', enat.get_le_get.2 H) },
+end
+
+lemma multiplicity_eq_multiplicity_associates_mk [decidable_rel ((∣) : M → M → Prop)] [wf_dvd_monoid M] {p q : M} (hp : prime p)
   (hq : q ≠ 0) : multiplicity p q = multiplicity (associates.mk p) (associates.mk q) :=
 begin
   have finite₁ := multiplicity.finite_prime_left hp hq,
   have finite₂ := multiplicity.finite_prime_left ((associates.prime_mk p).2 hp)
     (associates.mk_ne_zero.2 hq),
   apply le_antisymm,
-  suffices : ↑((multiplicity p q).get finite₁) ≤ multiplicity (associates.mk p) (associates.mk q),
-  { rw enat.coe_le_iff at this,
-    exact enat.get_le_get.1 (this finite₂) },
-  apply multiplicity.le_multiplicity_of_pow_dvd,
-  rw [← associates.mk_pow, associates.mk_dvd_mk],
-  exact multiplicity.pow_multiplicity_dvd finite₁,
+  { rw ← enat.le_iff_of_dom,
+    apply multiplicity.le_multiplicity_of_pow_dvd,
+    rw [← associates.mk_pow, associates.mk_dvd_mk],
+    exact multiplicity.pow_multiplicity_dvd finite₁ },
 
-  suffices : ↑((multiplicity (associates.mk p) (associates.mk q)).get finite₂) ≤ multiplicity p q,
-  { rw enat.coe_le_iff at this,
-    exact enat.get_le_get.1 (this finite₁) },
-  apply multiplicity.le_multiplicity_of_pow_dvd,
-  rw [← associates.mk_dvd_mk, associates.mk_pow],
-  exact multiplicity.pow_multiplicity_dvd finite₂,
+  { rw ← enat.le_iff_of_dom,
+    apply multiplicity.le_multiplicity_of_pow_dvd,
+    rw [← associates.mk_dvd_mk, associates.mk_pow],
+    exact multiplicity.pow_multiplicity_dvd finite₂ },
 end
 
-variable [unique_factorization_monoid M]
+variables [unique_factorization_monoid M] [decidable_eq (associates M)]
 
 lemma mem_chain_eq_pow_second_of_chain {q r : associates M} (n : ℕ) (hn : n ≠ 0)
   (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
@@ -201,7 +213,7 @@ begin
     cases n, { contradiction },
     rw finset.card_image_eq_iff_inj_on,
     refine set.inj_on_of_injective (λ m m' h, fin.ext _) _,
-    refine pow_injective_of_not_unit (second_of_chain_not_is_unit (n+1) 1 (by simp) c h₁) _ h,
+    refine pow_injective_of_not_unit (upper_chain_not_is_unit (n+1) 1 (by simp) c h₁) _ h,
     exact irreducible.ne_zero (second_of_chain_is_irreducible _ hn c h₁ (λ r, h₂) hq) },
 
   suffices H' : ∀ r ∈ (finset.univ.image (λ (m : fin (i + 1)), (c 1) ^ (m : ℕ))), r ≤ q,
@@ -218,7 +230,7 @@ begin
   { exact nat.succ_le_succ_iff.mp a.2 }
 end
 
-lemma eq_prime_pow_of_has_chain {q : associates M} (n : ℕ) (hn : n ≠ 0)
+lemma eq_pow_second_of_chain_of_has_chain {q : associates M} (n : ℕ) (hn : n ≠ 0)
   (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
   (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i)
   (hq : q ≠ 0) : q = (c 1)^n :=
@@ -245,13 +257,23 @@ begin
   { rw ← irreducible_iff_prime, exact second_of_chain_is_irreducible n hn c h₁ (λ r, h₂) hq, }
 end
 
+lemma is_prime_pow_of_has_chain {q : associates M} (n : ℕ) (hn : n ≠ 0)
+  (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
+  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i) (hq : q ≠ 0) : is_prime_pow q :=
+(is_prime_pow_def q).mpr (exists.intro (c 1) (exists.intro n
+  ⟨irreducible_iff_prime.mp (second_of_chain_is_irreducible n hn c h₁ (λ r,h₂) hq),
+  ⟨zero_lt_iff.mpr hn, (eq_pow_second_of_chain_of_has_chain n hn c h₁ (λ r, h₂) hq).symm⟩ ⟩ ) )
+
+
+
 variables {N : Type*} [cancel_comm_monoid_with_zero N] [unique_factorization_monoid N]
+variables [decidable_eq (associates N)] [ decidable_rel ((∣) : associates N → associates N → Prop)]
+ [decidable_rel ((∣) : N → N → Prop)]
 
 lemma image_prime_pow_dvd_of_monotone {m p : associates M} {n : associates N}
   (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
-  (d : {l : associates M // l ≤ m} ≃ {l : associates N // l ≤ n}) (hd : monotone d)
-  (hd' : monotone d.symm) {s : ℕ} (hs : s ≠ 0) (hs' : p^s ≤ m) :
-  (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s ≤ n :=
+  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) {s : ℕ} (hs : s ≠ 0)
+  (hs' : p^s ≤ m) : (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s ≤ n :=
 begin
   suffices : (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s = ↑(d ⟨p^s, hs'⟩),
   { rw this,
@@ -261,51 +283,39 @@ begin
   set c₂ : fin (s + 1) → associates N := λ t, d ⟨c₁ t, le_trans (hc₁''.2 ⟨t, by simp⟩) hs'⟩,
   have c₂.def : ∀ (t), c₂ t = d ⟨c₁ t, _⟩ := λ t, rfl,
   refine (congr_arg (^s) (c₂.def 1).symm).trans _,
-  refine (eq_prime_pow_of_has_chain s hs c₂ (λ t u h, _) (λ r, ⟨λ hr, _, _⟩) _).symm,
-  { rw c₂.def,
-    apply monotone.strict_mono_of_injective hd (equiv.injective d),
-    rw [subtype.mk_lt_mk, strict_mono.lt_iff_lt hc₁'],
+  refine (eq_pow_second_of_chain_of_has_chain s hs c₂ (λ t u h, _) (λ r, ⟨λ hr, _, _⟩) _).symm,
+  { rw [c₂.def, c₂.def, subtype.coe_lt_coe, d.lt_iff_lt, subtype.mk_lt_mk, (hc₁').lt_iff_lt],
     exact h },
   { have : r ≤ n := hr.trans (d ⟨c₁ 1 ^ s, _⟩).2,
     suffices : d.symm ⟨r, this⟩ ≤ ⟨c₁ 1 ^ s, hs'⟩,
     { obtain ⟨i, hi⟩ := hc₁''.1 this,
       use i,
-      simp only [c₂.def, ← hi, equiv.apply_symm_apply, subtype.coe_eta, subtype.coe_mk] },
+      simp only [c₂.def, ← hi, d.apply_symm_apply, subtype.coe_eta, subtype.coe_mk] },
     conv_rhs { rw ← d.symm_apply_apply ⟨c₁ 1 ^ s, hs'⟩ },
-    apply hd',
+    rw d.symm.le_iff_le,
     simpa only [← subtype.coe_le_coe, subtype.coe_mk] using hr },
   { rintros ⟨i, hr⟩,
-    rw [hr, c₂.def, subtype.coe_le_coe],
-    apply hd,
+    rw [hr, c₂.def, subtype.coe_le_coe, d.le_iff_le],
     simpa [subtype.mk_le_mk] using hc₁''.2 ⟨i, rfl⟩ },
   exact ne_zero_of_dvd_ne_zero hn (subtype.prop (d ⟨c₁ 1 ^ s, _⟩))
 end
 
 lemma multiplicity_le_of_monotone {m p : associates M} {n : associates N}
   (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
-  (d : {l : associates M // l ≤ m} ≃ {l : associates N // l ≤ n}) (hd : monotone d)
-  (hd' : monotone d.symm) :
+  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   multiplicity p m ≤ multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
 begin
   have H_finite := multiplicity.finite_prime_left (prime_of_normalized_factor p hp) hm,
   have temp : ↑((multiplicity p m).get H_finite) ≤
     (multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n),
   { rw ← multiplicity.pow_dvd_iff_le_multiplicity,
-    refine image_prime_pow_dvd_of_monotone hn hp d hd hd' _
-      (multiplicity.pow_multiplicity_dvd _),
+    refine image_prime_pow_dvd_of_monotone hn hp d _ (multiplicity.pow_multiplicity_dvd _),
     intro H,
     apply (multiplicity.dvd_iff_multiplicity_pos.2 (dvd_of_mem_normalized_factors hp)).ne',
     refine part.eq_some_iff.mpr _,
     rw ← H,
     exact part.get_mem H_finite },
-  by_cases hcases : ((multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n)).dom,
-  { rw ← enat.get_le_get,
-    apply (enat.coe_le_iff ((multiplicity p m).get H_finite)
-      (multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n)).1 temp,
-    rwa ← multiplicity.finite_iff_dom },
-  { rw [← enat.ne_top_iff_dom, not_not] at hcases,
-    rw hcases,
-    exact le_top },
+  exact (enat.le_iff_of_dom _).1 temp,
 end
 
 end factorisations_same_shape

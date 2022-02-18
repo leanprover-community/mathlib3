@@ -80,7 +80,7 @@ variables (A)
 
 /-- The decomposition of elements of a star module into their self- and skew-adjoint parts,
 as a linear equivalence. -/
-def star_module.decompose_prod_adjoint : A ≃ₗ[R] self_adjoint A × skew_adjoint A :=
+@[simps] def star_module.decompose_prod_adjoint : A ≃ₗ[R] self_adjoint A × skew_adjoint A :=
 linear_equiv.of_linear
   ((self_adjoint_part R).prod (skew_adjoint_part R))
   ((self_adjoint.submodule R A).subtype.coprod (skew_adjoint.submodule R A).subtype)

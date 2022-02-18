@@ -248,7 +248,7 @@ end
 
 protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
   ∑ i , v i • b i = (b.repr.symm v) :=
-  by {classical, simpa using (b.to_basis.equiv_fun_symm_apply v).symm}
+by { classical, simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
 
 variable {v : ι → E}
 

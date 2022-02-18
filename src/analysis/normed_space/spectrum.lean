@@ -142,6 +142,9 @@ begin
   simpa [resolvent, sq, hk.unit_spec, ← ring.inverse_unit hk.unit] using H₁.comp_has_deriv_at k H₂,
 end
 
+/- TODO: Once there is sufficient API for bornology, we should get a nice filter / asymptotics
+version of this, for example: `tendsto (resolvent a) (cobounded 𝕜) (𝓝 0)` or more specifically
+`is_O (resolvent a) (λ z, z⁻¹) (cobounded 𝕜)`. -/
 lemma norm_resolvent_le_forall (a : A) :
   ∀ ε > 0, ∃ R > 0, ∀ z : 𝕜, R ≤ ∥z∥ → ∥resolvent a z∥ ≤ ε :=
 begin

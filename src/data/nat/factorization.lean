@@ -183,7 +183,7 @@ begin
     simp [prod_insert hxT, sum_insert hxT, ←IH, factorization_mul (hS x hxS) hT] }
 end
 
-/-! ### Bijection between pnats and finsupps `ℕ →₀ ℕ` with support on the primes -/
+/-! ### Equivalence between `ℕ+` and `ℕ →₀ ℕ` with support in the primes. -/
 
 /-- Any finsupp `f : ℕ →₀ ℕ` whose support is in the primes is equal to the factorization of
 the product `∏ (a : ℕ) in f.support, a ^ f a`. -/

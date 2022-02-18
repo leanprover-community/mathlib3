@@ -158,11 +158,46 @@ begin
     using submodule.smul_mem_smul hy (show x ∈ ⊤, from submodule.mem_top)
 end
 
-lemma ideal.smul_top_le_map {R S : Type*} [comm_ring R] [comm_ring S] [algebra R S] (I : ideal R) :
-  I • (⊤ : submodule R S) ≤ (I.map (algebra_map R S)).restrict_scalars R :=
-submodule.smul_le.mpr (λ r hr y _,
-by { rw [submodule.mem_restrict_scalars, algebra.smul_def],
-     exact ideal.mul_mem_right _ _ (ideal.mem_map_of_mem _ hr) })
+lemma ideal.smul_top_eq_map {R S : Type*} [comm_ring R] [comm_ring S] [algebra R S] (I : ideal R) :
+  I • (⊤ : submodule R S) = (I.map (algebra_map R S)).restrict_scalars R :=
+begin
+  refine le_antisymm (submodule.smul_le.mpr (λ r hr y _, _) )
+      (λ x hx, submodule.span_induction hx _ _ _ _),
+  { rw [submodule.mem_restrict_scalars, algebra.smul_def],
+     exact ideal.mul_mem_right _ _ (ideal.mem_map_of_mem _ hr) },
+
+  { rintros _ ⟨x, hx, rfl⟩,
+    rw [← mul_one (algebra_map R S x), ← algebra.smul_def],
+    exact submodule.smul_mem_smul hx submodule.mem_top },
+  { exact submodule.zero_mem _ },
+  { intros x y, exact submodule.add_mem _ },
+  intros a x hx,
+  refine submodule.smul_induction_on hx _ _ _ _,
+  { intros r hr s hs,
+    rw smul_comm,
+    exact submodule.smul_mem_smul hr submodule.mem_top },
+  { rw smul_zero, exact submodule.zero_mem _ },
+  { intros x y hx hy,
+    rw smul_add, exact submodule.add_mem _ hx hy },
+  { intros c x hx,
+    rw smul_comm, exact submodule.smul_mem _ _ hx }
+end
+
+@[simp]
+lemma submodule.map_ideal_smul {R M N : Type*} [comm_ring R] [add_comm_group M] [add_comm_group N]
+  [module R M] [module R N] (I : ideal R) (S : submodule R M) (f : M →ₗ[R] N) :
+  submodule.map f (I • S) = I • submodule.map f S :=
+begin
+  refine le_antisymm _ _;
+    simp only [submodule.map_le_iff_le_comap, submodule.smul_le, submodule.mem_comap,
+               submodule.mem_map],
+  { intros r hr s hs,
+    rw f.map_smul,
+    exact submodule.smul_mem_smul hr (submodule.mem_map_of_mem hs) },
+  { rintros r hr _ ⟨s, hs, rfl⟩,
+    exact ⟨r • s, submodule.smul_mem_smul hr hs, f.map_smul r s⟩ },
+end
+
 
 open_locale pointwise
 
@@ -491,7 +526,7 @@ lemma finrank_quotient_map.span_eq_top {K L : Type*} [field K] [field L]
   [algebra R L] [is_scalar_tower R S L] [is_scalar_tower R K L]
   [is_integral_closure S R L]
   (hRL : function.injective (algebra_map R L)) (hp : p ≠ ⊤)
-  (b : set S) (hb' : submodule.span R b ⊔ submodule.map (algebra.linear_map R S) p = ⊤) :
+  (b : set S) (hb' : submodule.span R b ⊔ (p.map (algebra_map R S)).restrict_scalars R = ⊤) :
   submodule.span K (algebra_map S L '' b) = ⊤ :=
 begin
   -- Let `M` be the `R`-module spanned by the proposed basis elements.
@@ -501,6 +536,10 @@ begin
     module.finite.of_surjective (submodule.mkq _) (submodule.quotient.mk_surjective _),
   obtain ⟨n, a, ha⟩ := @@module.finite.exists_fin _ _ _ h,
   -- Because the image of `p` in `S / M` is `⊤`,
+  have smul_top_eq : p • (⊤ : submodule R (S ⧸ M)) = ⊤,
+  { calc p • ⊤ = submodule.map M.mkq (p • ⊤) :
+      by rw [submodule.map_ideal_smul, submodule.map_top, M.range_mkq]
+    ... = ⊤ : by rw [ideal.smul_top_eq_map, (submodule.map_mkq_eq_top M _).mpr hb'] },
   -- we can write the elements of `a` as `p`-linear combinations of other elements of `a`.
   have exists_sum : ∀ x : (S ⧸ M), ∃ a' : fin n → R, (∀ i, a' i ∈ p) ∧ ∑ i, a' i • a i = x,
   { intro x,
@@ -509,12 +548,8 @@ begin
     rwa [finsupp.sum_fintype, fintype.sum_equiv (equiv.set.univ (fin n))] at hx,
     { intros, simp only [eq_self_iff_true, subtype.coe_eta, equiv.set.univ_apply] },
     { intros, simp only [zero_smul] },
-    suffices : p • (⊤ : submodule R (S ⧸ M)) = ⊤,
-    { rw [set.image_univ, ha, this],
-      exact submodule.mem_top },
-    refine top_le_iff.mp ((top_le_iff.mpr _).trans $
-      ideal.map_le_smul_top p (submodule.mkq M ∘ₗ algebra.linear_map R S)),
-    rwa [submodule.map_comp, submodule.map_mkq_eq_top] },
+    rw [set.image_univ, ha, smul_top_eq],
+    exact submodule.mem_top },
   choose A' hA'p hA' using λ i, exists_sum (a i),
   -- This gives us a(n invertible) matrix `A` such that `det A ∈ M = span R b`,
   let A : matrix (fin n) (fin n) R := A' - 1,
@@ -598,11 +633,15 @@ begin
 end
 
 lemma algebra.coe_span_eq_span_of_surjective {R A M : Type*} [comm_semiring R] [semiring A]
-  [add_comm_monoid M]
-  [algebra R A] [module A M] [module R M] [is_scalar_tower R A M]
+  [add_comm_monoid M] [algebra R A] [module A M] [module R M] [is_scalar_tower R A M]
   (h : function.surjective (algebra_map R A)) (s : set M) :
   (submodule.span A s : set M) = submodule.span R s :=
 congr_arg coe (algebra.span_eq_span_of_surjective h s)
+
+@[simp] lemma submodule.mkq_restrict_scalars {R A M : Type*} [comm_ring R] [ring A]
+  [add_comm_group M] [algebra R A] [module A M] [module R M] [is_scalar_tower R A M]
+  (S : submodule A M) : (S.restrict_scalars R).mkq = S.mkq.restrict_scalars R :=
+by { ext, rw [submodule.mkq_apply, linear_map.restrict_scalars_apply, submodule.mkq_apply], refl }
 
 /-- If `p` is a maximal ideal of `R`, and `R` is contained in `S`,
 then the dimension `[S/pS : R/p]` is equal to `[Frac(S) : Frac(R)]`. -/
@@ -626,17 +665,16 @@ begin
   let c : basis ι K L := basis.mk b''_li b''_sp,
   rw [finrank_eq_card_basis b, finrank_eq_card_basis c],
   { rw set.range_comp,
-    refine finrank_quotient_map.span_eq_top p hRL hp.ne_top _ _,
-    suffices : submodule.span R (set.range b') ⊔ (p.map (algebra_map R S)).restrict_scalars R = ⊤,
-    { rw [← top_le_iff, ← this],
-      refine sup_le_sup_left _ _,
-      },
-    rw [← submodule.ker_mkq (submodule.map (algebra.linear_map R S) p), ← top_le_iff,
-        ← linear_map.map_le_map_iff, submodule.map_top, submodule.range_mkq, submodule.map_span,
-        top_le_iff, submodule.eq_top_iff'],
-    rintros ⟨x, hx⟩,
-    convert submodule.eq_top_iff'.mp b.span_eq x,
-    rw [b_eq_b', set.range_comp, linear_map.coe_restrict_scalars] at this },
+    refine finrank_quotient_map.span_eq_top p hRL hp.ne_top _ (top_le_iff.mp _),
+    rw [← submodule.ker_mkq (submodule.restrict_scalars R (map (algebra_map R S) p)),
+        ← linear_map.map_le_map_iff],
+    calc submodule.map (submodule.restrict_scalars R (map (algebra_map R S) p)).mkq ⊤ = ⊤
+      : by rw [submodule.map_top, submodule.range_mkq]
+    ... ≤ (submodule.span (R ⧸ p) (set.range ⇑b)).restrict_scalars R : b.span_eq.ge
+    ... = submodule.span R (set.range ⇑b)
+      : algebra.span_eq_span_of_surjective ideal.quotient.mk_surjective _
+    ... = submodule.map (submodule.restrict_scalars R _).mkq (submodule.span R (set.range b'))
+      : by rw [b_eq_b', set.range_comp, submodule.map_span, submodule.mkq_restrict_scalars] },
   { have := b.linear_independent, rw b_eq_b' at this,
     convert finrank_quotient_map.linear_independent_of_nontrivial _
       ((algebra.linear_map S L).restrict_scalars R) _

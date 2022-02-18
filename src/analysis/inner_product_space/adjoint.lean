@@ -288,18 +288,14 @@ lemma is_self_adjoint_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
   is_self_adjoint T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
 begin
   split,
-  {
-    intros hT v,
-    apply is_self_adjoint.conj_inner_sym hT,
-  },
-  {
-    intro h,
+  { intros hT v,
+    apply is_self_adjoint.conj_inner_sym hT },
+  { intro h,
     rw [is_self_adjoint_iff_eq_adjoint, ← sub_eq_zero, ← inner_map_self_eq_zero],
     intro x,
     specialize h x,
     rw [linear_map.sub_apply, inner_sub_left, linear_map.adjoint_inner_left, ← h, inner_conj_sym,
-      sub_self],
-  },
+      sub_self] },
 end
 
 end complex

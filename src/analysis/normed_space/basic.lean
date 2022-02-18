@@ -37,6 +37,18 @@ class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
 
+/-- A normed division ring is a division ring endowed with a seminorm which satisfies the inequality
+`∥x y∥ = ∥x∥ ∥y∥`. -/
+class normed_division_ring (α : Type*) extends has_norm α, division_ring α, metric_space α :=
+(dist_eq : ∀ x y, dist x y = norm (x - y))
+(norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
+
+/-- A normed division ring is a normed ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance normed_division_ring.to_normed_ring [β : normed_division_ring α] : normed_ring α :=
+{ norm_mul := λ a b, (normed_division_ring.norm_mul' a b).le,
+  ..β }
+
 /-- A normed ring is a seminormed ring. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_semi_normed_ring [β : normed_ring α] : semi_normed_ring α :=
@@ -79,6 +91,10 @@ instance semi_normed_comm_ring.to_comm_ring [β : semi_normed_comm_ring α] : co
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
+
+@[priority 100] -- see Note [lower instance priority]
+instance normed_division_algebra.to_normed_group [β : normed_division_ring α] : normed_group α :=
+{ ..β }
 
 @[priority 100] -- see Note [lower instance priority]
 instance semi_normed_ring.to_semi_normed_group [β : semi_normed_ring α] :
@@ -250,6 +266,53 @@ instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul 
 @[priority 100] -- see Note [lower instance priority]
 instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α := { }
 
+namespace normed_division_ring
+
+section normed_division_ring
+
+variables [normed_division_ring α]
+
+@[simp] lemma norm_mul (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
+normed_division_ring.norm_mul' a b
+
+@[priority 900]
+instance to_norm_one_class : norm_one_class α :=
+⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
+  by rw [← norm_mul, mul_one, mul_one]⟩
+
+@[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
+nnreal.eq $ norm_mul a b
+
+/-- `norm` as a `monoid_with_zero_hom`. -/
+@[simps] def norm_hom : α →*₀ ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
+
+/-- `nnnorm` as a `monoid_with_zero_hom`. -/
+@[simps] def nnnorm_hom : α →*₀ ℝ≥0 := ⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
+
+@[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
+(norm_hom.to_monoid_hom : α →* ℝ).map_pow a
+
+@[simp] lemma nnnorm_pow (a : α) (n : ℕ) : ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
+(nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_pow a n
+
+@[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ := (norm_hom : α →*₀ ℝ).map_div a b
+
+@[simp] lemma nnnorm_div (a b : α) : ∥a / b∥₊ = ∥a∥₊ / ∥b∥₊ := (nnnorm_hom : α →*₀ ℝ≥0).map_div a b
+
+@[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ := (norm_hom : α →*₀ ℝ).map_inv a
+
+@[simp] lemma nnnorm_inv (a : α) : ∥a⁻¹∥₊ = ∥a∥₊⁻¹ :=
+nnreal.eq $ by simp
+
+@[simp] lemma norm_zpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n := (norm_hom : α →*₀ ℝ).map_zpow
+
+@[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
+(nnnorm_hom : α →*₀ ℝ≥0).map_zpow
+
+end normed_division_ring
+
+end normed_division_ring
+
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
@@ -269,6 +332,10 @@ variables [normed_field α]
 
 @[simp] lemma norm_mul (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
 normed_field.norm_mul' a b
+
+@[priority 100] -- see Note [lower instance priority]
+instance to_normed_division_ring : normed_division_ring α :=
+{ norm_mul' := normed_field.norm_mul, ..‹normed_field α› }
 
 @[priority 100] -- see Note [lower instance priority]
 instance to_normed_comm_ring : normed_comm_ring α :=

@@ -249,38 +249,21 @@ begin
   exact IH _ fa'' ⟨ha _ fa'', this⟩ this,
 end
 
-lemma inheriting_predicates
+/--
+Another induction lemma for `b ∈ f.fix a` which allows one to prove a predicate `P` holds for
+`a` given that `f a` inherits `P` from `a` and `P` holds for preimages of `b`.
+-/
+lemma fix_induction'
   {f : α →. β ⊕ α} {b : β} {P : α → Prop} {a : α} (h : b ∈ f.fix a)
-  (hbase : (∀ a_final : α, sum.inl b ∈ f a_final -> P a_final))
-  (hind : (∀ a_0 a_1 : α, sum.inr a_1 ∈ f a_0 -> P a_1 -> P a_0)) : P a :=
+  (h_base : (∀ a_final : α, sum.inl b ∈ f a_final -> P a_final))
+  (h_ind : (∀ a_0 a_1 : α, sum.inr a_1 ∈ f a_0 -> P a_1 -> P a_0)) : P a :=
 begin
   apply fix_induction h,
   intros a' hba' H,
   rw mem_fix_iff at hba',
   rcases hba' with hba' | ⟨a'', f_a'_a'', f_fix_a_b⟩,
-  { exact hbase a' hba', },
-  { exact hind a' a'' f_a'_a'' (H a'' f_fix_a_b f_a'_a''), },
-end
-
-def adjoin_succ (f : α →. β ⊕ α) : α × ℕ →. β ⊕ (α × ℕ) :=
-λ ⟨a, n⟩, (f a >>= λ x, by { cases x, exact pure (sum.inl x), exact pure (sum.inr ⟨x, n.succ⟩), } )
-
-lemma fix_eq_adjoin_succ_fix (f : α →. β ⊕ α) (a : α) : f.fix a = f.adjoin_succ.fix ⟨a, 0⟩ :=
-begin
-  sorry,
-end
-
-lemma fix_dom_iff_trace (f : α →. β ⊕ α) (a : α) :
-  (f.fix a).dom
-  ↔
-  (∃ (b : β) (n : ℕ) (it : fin (n.succ) → α),
-    it 0 = a
-    ∧
-    (∀ i : fin n, f (it i.succ) = part.some (sum.inr (it (i : fin n.succ))))
-    ∧
-    f (it n) = part.some (sum.inl b)) :=
-begin
-  sorry,
+  { exact h_base a' hba', },
+  { exact h_ind a' a'' f_a'_a'' (H a'' f_fix_a_b f_a'_a''), },
 end
 
 variables (f : α →. β)

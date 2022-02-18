@@ -696,7 +696,7 @@ begin
 end
 
 lemma mem_factors {n p} (hn : n ≠ 0) : p ∈ factors n ↔ prime p ∧ p ∣ n :=
-⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
+⟨λ h, ⟨prime_of_mem_factors h, dvd_of_mem_factors h⟩,
  λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
 
 lemma le_of_mem_factors {n p : ℕ} (h : p ∈ n.factors) : p ≤ n :=

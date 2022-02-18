@@ -64,8 +64,7 @@ calc ∥deriv f c∥ = ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) 
   circle_integral.norm_two_pi_I_inv_smul_integral_le_of_norm_le_const hR.le this
 ... = C / R : by rw [mul_div_comm, div_self_mul_self', div_eq_mul_inv]
 
-/-- **Liouville's theorem**: a complex differentiable bounded function `f : ℂ → E` is a constant.
-Use a more general `differentiable.apply_eq_apply_of_bounded` instead. -/
+/-- An auxiliary lemma for Liouville's theorem `differentiable.apply_eq_apply_of_bounded`. -/
 lemma liouville_theorem_aux {f : ℂ → F} (hf : differentiable ℂ f)
   (hb : bounded (range f)) (z w : ℂ) : f z = f w :=
 begin

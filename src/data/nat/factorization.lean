@@ -73,11 +73,11 @@ by simpa [factorization, multiset.to_finsupp_support]
 lemma factor_iff_mem_factorization {n p : ℕ} : p ∈ n.factorization.support ↔ p ∈ n.factors :=
 by simp only [support_factorization, list.mem_to_finset]
 
-lemma prime_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → p.prime :=
-prime_of_mem_factors ∘ (@factor_iff_mem_factorization n p).mp
+lemma prime_of_mem_factorization {n p : ℕ} (hp : p ∈ n.factorization.support) : p.prime :=
+prime_of_mem_factors (factor_iff_mem_factorization.mp hp)
 
-lemma pos_of_mem_factorization {n p : ℕ} : p ∈ n.factorization.support → 0 < p :=
-prime.pos ∘ (@prime_of_mem_factorization n p)
+lemma pos_of_mem_factorization {n p : ℕ} (hp : p ∈ n.factorization.support) : 0 < p :=
+prime.pos (prime_of_mem_factorization hp)
 
 lemma le_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ≤ n :=
 le_of_mem_factors (factor_iff_mem_factorization.mp h)

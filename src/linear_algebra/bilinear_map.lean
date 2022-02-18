@@ -137,6 +137,16 @@ theorem map_sum₂ {ι : Type*} (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂]
   f (∑ i in t, x i) y = ∑ i in t, f (x i) y :=
 (flip f y).map_sum
 
+def dom_restrict₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) :
+  M →ₛₗ[ρ₁₂] q →ₛₗ[σ₁₂] P :=
+{ to_fun := λ m, (f m).dom_restrict q,
+  map_add' := λ m₁ m₂, linear_map.ext $ λ _, by simp only [map_add, dom_restrict_apply, add_apply],
+  map_smul' := λ c m, linear_map.ext $ λ _, by simp only [map_smulₛₗ, dom_restrict_apply,
+    smul_apply]}
+
+lemma dom_restrict₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) (x : M) (y : q) :
+  f.dom_restrict₂ q x y = f x y := rfl
+
 end semiring
 
 section comm_semiring
@@ -276,6 +286,7 @@ begin
   conv_rhs { rw [← b₁.total_repr x, ← b₂.total_repr y] },
   simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum, map_smulₛₗ₂, map_smulₛₗ],
 end
+
 
 end comm_ring
 

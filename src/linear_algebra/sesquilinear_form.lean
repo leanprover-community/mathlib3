@@ -303,4 +303,19 @@ lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
 
 end orthogonal
 
+section to_matrix
+
+variables [comm_ring R] [add_comm_group M] [module R M]
+variables [decidable_eq n] (b : basis n R M)
+
+#check b
+/-- This is an auxiliary definition for the equivalence `matrix.to_bilin_form'`. -/
+noncomputable def bilin_form_to_matrix_aux2 (b : basis n R M) : (M →ₗ[R] M →ₗ[R] R) →ₗ[R] matrix n n R :=
+{ to_fun := λ B i j, B (b i) (b j),
+  map_add' := λ f g, rfl,
+  map_smul' := λ f g, rfl }
+
+
+end to_matrix
+
 end linear_map

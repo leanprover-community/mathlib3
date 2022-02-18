@@ -353,8 +353,10 @@ def from_path {X : Top} {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁) 
 
 section path_connected
 
-def morphism_of_path_conn {X : Top} [path_connected_space X] (x₀ x₁ : X) : (x₀ ⟶ x₁) :=
-from_path ⟦joined.some_path (path_connected_space.joined x₀ x₁)⟧
+def iso_of_path_conn {X : Top} [path_connected_space X] (x₀ x₁ : X) : (x₀ ≅ x₁) :=
+  let α := from_path ⟦joined.some_path (path_connected_space.joined x₀ x₁)⟧ in
+  { hom := α,
+    inv := sorry, }
 
 end path_connected
 

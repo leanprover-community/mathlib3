@@ -253,17 +253,20 @@ end
 Another induction lemma for `b ∈ f.fix a` which allows one to prove a predicate `P` holds for
 `a` given that `f a` inherits `P` from `a` and `P` holds for preimages of `b`.
 -/
-lemma fix_induction'
-  {f : α →. β ⊕ α} {b : β} {P : α → Prop} {a : α} (h : b ∈ f.fix a)
-  (h_base : (∀ a_final : α, sum.inl b ∈ f a_final -> P a_final))
-  (h_ind : (∀ a_0 a_1 : α, sum.inr a_1 ∈ f a_0 -> P a_1 -> P a_0)) : P a :=
+@[elab_as_eliminator]
+def fix_induction'
+  (f : α →. β ⊕ α) (b : β) {C : α → Sort*} {a : α} (h : b ∈ f.fix a)
+  (hbase : (∀ a_final : α, sum.inl b ∈ f a_final → C a_final))
+  (hind : (∀ a_0 a_1 : α, b ∈ f.fix a_1 → sum.inr a_1 ∈ f a_0 → C a_1 → C a_0)) : C a :=
 begin
-  apply fix_induction h,
-  intros a' hba' H,
-  rw mem_fix_iff at hba',
-  rcases hba' with hba' | ⟨a'', f_a'_a'', f_fix_a_b⟩,
-  { exact h_base a' hba', },
-  { exact h_ind a' a'' f_a'_a'' (H a'' f_fix_a_b f_a'_a''), },
+  refine fix_induction h (λ a' h ih, _),
+  cases e : (f a').get (dom_of_mem_fix h) with b' a''; replace e : _ ∈ f a' := ⟨_, e⟩,
+  { have : b' = b,
+    { obtain h'' | ⟨a, h'', _⟩ := mem_fix_iff.1 h; cases part.mem_unique e h'', refl },
+    subst this, exact hbase _ e },
+  { have : b ∈ f.fix a'',
+    { obtain h'' | ⟨a, h'', e'⟩ := mem_fix_iff.1 h; cases part.mem_unique e h'', exact e' },
+    refine hind _ _ this e (ih _ this e) },
 end
 
 variables (f : α →. β)

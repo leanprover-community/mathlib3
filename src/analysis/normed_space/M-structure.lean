@@ -114,7 +114,7 @@ begin
   nth_rewrite_rhs 0 Lproj_QP_eq_QPQ P Q h₁ h₂,
 end
 
-lemma Lproj_prpduct (P: X →L[𝕜] X) (Q: X →L[𝕜] X) : is_Lprojection P → is_Lprojection Q → is_Lprojection (P*Q) :=
+lemma Lproj_product (P: X →L[𝕜] X) (Q: X →L[𝕜] X) : is_Lprojection P → is_Lprojection Q → is_Lprojection (P*Q) :=
 begin
   intros h₁ h₂,
   unfold is_Lprojection,
@@ -127,5 +127,11 @@ begin
     { calc ∥ x ∥ = ∥(P * Q) x + (x - (P * Q) x)∥ : by abel
       ... ≤ ∥(P * Q) x∥ + ∥ x - (P * Q) x ∥ : by apply norm_add_le
       ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : rfl },
-    { sorry, } }
+    { calc ∥x∥ = ∥Q x∥ + ∥(1-Q) x∥ : by rw h₂.right x
+      ... = ∥P(Q x)∥ + ∥(1-P)(Q x)∥ + ∥(1-Q) x∥ : by rw h₁.right (Q x)
+      ... = ∥P(Q x)∥ + ∥Q x - P (Q x)∥ + ∥x - Q x∥ : rfl
+      ... = ∥P(Q x)∥ + (∥Q x - P (Q x)∥ + ∥x - Q x∥) : by rw add_assoc
+      ... ≥ ∥P(Q x)∥ + ∥(Q x - P (Q x)) + (x - Q x)∥ : by apply (add_le_add_iff_left (∥P(Q x)∥)).mpr (norm_add_le (Q x - P (Q x)) (x - Q x))
+      ... = ∥P(Q x)∥ + ∥x - P (Q x)∥ : by rw sub_add_sub_cancel'
+      ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : rfl }, }
 end

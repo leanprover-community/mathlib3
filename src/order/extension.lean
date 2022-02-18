@@ -9,7 +9,8 @@ import tactic.by_contra
 import algebra.group_power.basic
 import algebra.smul_with_zero
 import algebra.module
-import tactic.group
+import algebra.order.pi
+import data.finsupp.order
 
 /-!
 # Extend a partial order to a linear order
@@ -112,12 +113,20 @@ def ordered_cancel_comm_monoid.is_finer {α : Type u} (r s : ordered_cancel_comm
     (@partial_order.to_preorder α
       (@ordered_cancel_comm_monoid.to_partial_order α s)))
 
+class ordered_add_comm_monoid.is_normal (α : Type*) [ordered_add_comm_monoid α] : Prop :=
+(normal : ∀ (x y : α), (∃ (n : ℕ) (hn : n ≠ 0), n • y ≤ n • x) → y ≤ x)
+@[to_additive]
+class ordered_comm_monoid.is_normal (α : Type*) [ordered_comm_monoid α] : Prop :=
+(normal : ∀ (x y : α), (∃ (n : ℕ) (hn : n ≠ 0), y ^ n ≤ x ^ n) → y ≤ x)
+section
+open ordered_comm_monoid
+-- TODO this would likely generalize to an ordered_cancel_comm_semigroup, if that existed
 /--
 Any ordered group can be extended to a linear ordered group.
 -/
 @[to_additive]
-theorem extend_ordered_group {α : Type u} [o : ordered_cancel_comm_monoid α]
-  (h_norm : ∀ (x y : α), (∃ (n : ℕ) (hn : n ≠ 0), y ^ n ≤ x ^ n) → y ≤ x) : -- fuchs calls this normal
+theorem exists_extend_ordered_group (α : Type u) [o : ordered_cancel_comm_monoid α] [is_normal α]
+   : -- fuchs calls this normal
   ∃ l : linear_ordered_cancel_comm_monoid α, ordered_cancel_comm_monoid.is_finer o
     (@linear_ordered_cancel_comm_monoid.to_ordered_cancel_comm_monoid α l) :=
 begin
@@ -153,7 +162,7 @@ begin
     { rintro x y ⟨n, hn, r, hr₁, hr₂⟩,
       use [r, hr₁, (hC₁ hr₁).2.2 _ _ ⟨n, hn, hr₂⟩], }, },
   obtain ⟨s, ⟨hs₁, hs₁a, hs₁b⟩, rs, hs₂⟩ := zorn.zorn_nonempty_partial_order₀ S hS (≤)
-    ⟨is_partial_order.mk, λ a b c, by rw mul_le_mul_iff_left, h_norm⟩,
+    ⟨is_partial_order.mk, λ a b c, by rw mul_le_mul_iff_left, is_normal.normal⟩,
   resetI,
   have inst_refl : is_refl α s := by apply_instance, -- probably dont need to be haveI's
   have inst_trans : is_trans α s := by apply_instance,
@@ -241,10 +250,8 @@ begin
       by_cases hqs : qab = 0 ∧ qba = 0,
       { simp only [hqs, pow_zero, one_mul, mul_one] at hab hba,
         apply antisymm (_ : s a b),
-        { refine hs₁b _ _ ⟨_, _, hba⟩,
-          tauto, },
-        { refine hs₁b _ _ ⟨_, _, hab⟩,
-          tauto, }, },
+        exact hs₁b a b ⟨pba, hqabn, hba⟩,
+        exact hs₁b b a ⟨pab, hpabn, hab⟩, },
       exfalso,
       have : s y x := hs₁b _ _ ⟨_, _, this⟩,
       tauto,
@@ -264,26 +271,146 @@ begin
         exact hp _ _ han ha, },
       simpa [pow_mul'] using ha, }, },
 end
+end
+.
+
+instance : ordered_comm_monoid.is_normal ℕ :=
+⟨λ (x y : ℕ) (h : ∃ {n : ℕ} (hn : n ≠ 0), y ^ n ≤ x ^ n),
+begin
+  contrapose! h,
+  simp_rw ← pos_iff_ne_zero,
+  intros n hn,
+  exact pow_lt_pow_of_lt_left h (zero_le x) hn,
+end⟩
+
+
+section
+variables {M : Type*} [monoid M] [preorder M] [covariant_class M M (*) (<)]
+
+@[to_additive nsmul_lt_nsmul_of_lt_right, mono]
+lemma pow_lt_pow_of_lt_left' [covariant_class M M (function.swap (*)) (<)]
+  {a b : M} (hab : a < b) {i : ℕ} (h : 0 < i) : a ^ i < b ^ i :=
+begin
+  induction i, -- had to give a tactic mode proof to avoid to_additive weirdness
+  { simpa using h, },
+  cases i_n,
+  { simpa, },
+  { rw [pow_succ, pow_succ b],
+    exact mul_lt_mul_of_lt_of_lt hab (i_ih (nat.succ_pos _)) }
+end
+
+-- this fails
+-- section
+-- variables {M : Type*} [monoid M] [preorder M] [covariant_class M M (*) (<)]
+
+-- @[to_additive nsmul_lt_nsmul_of_lt_right, mono]
+-- lemma pow_lt_pow_of_lt_left' [covariant_class M M (function.swap (*)) (<)]
+--   {a b : M} (hab : a < b) : ∀ {i : ℕ} (h : 0 < i), a ^ i < b ^ i
+-- | 0 h   := by simpa using h
+-- | 1 _   := by simpa
+-- | (k+2) hh := by { rw [pow_succ, pow_succ b],
+--     exact mul_lt_mul_of_lt_of_lt hab (pow_lt_pow_of_lt_left' (nat.succ_pos k)) }
+--     end
+
+    end
+
+attribute [mono] nsmul_lt_nsmul_of_lt_right
+
+-- TODO is cancel needed?
+theorem nsmul_le_nsmul_iff' {α : Type*} [linear_ordered_cancel_add_comm_monoid α ]
+  {n : ℕ} (hn : 0 < n) {a₁ a₂ : α} : n • a₁ ≤ n • a₂ ↔ a₁ ≤ a₂ :=
+begin
+  split; intro h,
+  { contrapose! h,
+    exact nsmul_lt_nsmul_of_lt_right h hn, },
+  exact nsmul_le_nsmul_of_le_right h _,
+end
+
+theorem nsmul_lt_nsmul_iff' {α : Type*} [linear_ordered_cancel_add_comm_monoid α ]
+  {n : ℕ} (hn : 0 < n) {a₁ a₂ : α} : n • a₁ < n • a₂ ↔ a₁ < a₂ :=
+begin
+  split; intro h,
+  { contrapose! h,
+    exact nsmul_le_nsmul_of_le_right h _, },
+  exact nsmul_lt_nsmul_of_lt_right h hn,
+end
+
+-- this should be true for linear ordered add monoid I guess?
+instance linear_ordered_semiring.is_normal {α : Type*} [linear_ordered_semiring α] :
+  ordered_add_comm_monoid.is_normal α :=
+⟨λ (x y : α) (h : ∃ {n : ℕ} (hn : n ≠ 0), n • y ≤ n • x),
+begin
+  contrapose! h,
+  simp_rw ← pos_iff_ne_zero,
+  intros n hn,
+  rwa [nsmul_eq_mul, nsmul_eq_mul, mul_lt_mul_left],
+  rwa [nat.cast_pos],
+end⟩
+
+-- this should be true for linear ordered add monoid I guess?
+instance linear_ordered_cancel_add_comm_monoid.is_normal
+  {α : Type*} [linear_ordered_cancel_add_comm_monoid α] :
+  ordered_add_comm_monoid.is_normal α :=
+⟨λ (x y : α) (h : ∃ {n : ℕ} (hn : n ≠ 0), n • y ≤ n • x),
+begin
+  contrapose! h,
+  simp_rw ← pos_iff_ne_zero,
+  intros n hn,
+  rwa nsmul_lt_nsmul_iff' hn,
+end⟩
+
+attribute [to_additive pi.nsmul_apply] pi.pow_apply -- PRed separately
+#print pi.pow_apply
+#print pi.smul_apply
+
+@[to_additive]
+instance {ι : Type*} {α : ι → Type*} [∀ i, ordered_comm_monoid (α i)]
+  [∀ i, ordered_comm_monoid.is_normal (α i)] :
+  ordered_comm_monoid.is_normal (Π i, α i) := ⟨begin
+    rintros x y ⟨n, hn, h⟩, -- TODO this is so boilerplate
+    rw pi.le_def at h ⊢,
+    refine λ i, is_normal.normal _ _ ⟨n, hn, by simpa only using h i⟩,
+  end⟩
+
+instance {ι : Type*} {α : Type*} [ordered_add_comm_monoid α] [ordered_add_comm_monoid.is_normal α] :
+  ordered_add_comm_monoid.is_normal (ι →₀ α) := ⟨begin
+    rintros x y ⟨n, hn, h⟩, -- TODO this is so boilerplate
+    rw finsupp.le_def at h ⊢,
+    refine λ i, is_normal.normal _ _ ⟨n, hn, by simpa using h i⟩,
+  end⟩
+
+@[to_additive]
+noncomputable def extend_ordered_group (α : Type u) [ordered_cancel_comm_monoid α]
+  [ordered_comm_monoid.is_normal α] :
+  linear_ordered_cancel_comm_monoid α := classical.some (exists_extend_ordered_group α)
+#check extend_ordered_group
 
 -- TODO this lemma missing for groups?
 -- have : (a / b) ^ n = a ^ n / b ^ n,
+-- there is div_zpow
 
-def linear_group_extension (α : Type u) : Type u := α
+@[to_additive]
+def linear_ordered_group_extension (α : Type u) [monoid α] [has_le α] : Type u := α
 
--- noncomputable instance {α : Type u} [partial_order α] : linear_order (linear_extension α) :=
--- { le := (extend_partial_order ((≤) : α → α → Prop)).some,
---   le_refl := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.1.1.1,
---   le_trans := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.1.2.1,
---   le_antisymm := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.1.2.1,
---   le_total := (extend_partial_order ((≤) : α → α → Prop)).some_spec.some.2.1,
---   decidable_le := classical.dec_rel _ }
-
+@[to_additive]
+noncomputable
+instance {α : Type u} [ordered_cancel_comm_monoid α] [ordered_comm_monoid.is_normal α] :
+  linear_ordered_cancel_comm_monoid (linear_ordered_group_extension α) :=
+{ --le := (extend_ordered_group h).le,
+  -- le_refl := (extend_ordered_group h).some_spec.1.,
+  -- le_trans := (extend_ordered_group h).some_spec.some.1.1.2.1,
+  -- le_antisymm := (extend_ordered_group h).some_spec.some.1.2.1,
+  -- le_total := (extend_ordered_group h).some_spec.some.2.1,
+  ..extend_ordered_group α
+  -- ..(@ordered_cancel_comm_monoid.to_cancel_comm_monoid α _)
+  }
 -- /-- The embedding of `α` into `linear_extension α` as a relation homomorphism. -/
 -- def to_linear_extension {α : Type u} [partial_order α] :
 --   ((≤) : α → α → Prop) →r ((≤) : linear_extension α → linear_extension α → Prop) :=
 -- { to_fun := λ x, x,
 --   map_rel' := λ a b, (extend_partial_order ((≤) : α → α → Prop)).some_spec.some_spec _ _ }
 
+
 -- instance {α : Type u} [inhabited α] : inhabited (linear_extension α) :=
 -- ⟨(default : α)⟩
---
+#lint

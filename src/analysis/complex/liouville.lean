@@ -66,7 +66,7 @@ calc ∥deriv f c∥ = ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) 
 
 /-- **Liouville's theorem**: a complex differentiable bounded function `f : ℂ → E` is a constant.
 Use a more general `complex.apply_eq_apply_of_differentiable_of_bounded` instead. -/
-lemma apply_eq_apply_of_differentiable_of_bounded_dim1 {f : ℂ → F} (hf : differentiable ℂ f)
+lemma liouville_theorem_aux {f : ℂ → F} (hf : differentiable ℂ f)
   (hb : bounded (range f)) (z w : ℂ) : f z = f w :=
 begin
   suffices : ∀ c, deriv f c = 0, from is_const_of_deriv_eq_zero hf this z w,
@@ -82,25 +82,31 @@ begin
   ... = ε : div_div_cancel' C₀.lt.ne'
 end
 
+end complex
+
+namespace differentiable
+
+open complex
+
 /-- **Liouville's theorem**: a complex differentiable bounded function `f : E → F` is a constant. -/
-lemma apply_eq_apply_of_differentiable_of_bounded {f : E → F} (hf : differentiable ℂ f)
-  (hb : bounded (range f)) (z w : E) : f z = f w :=
+lemma apply_eq_apply_of_bounded {f : E → F} (hf : differentiable ℂ f) (hb : bounded (range f))
+  (z w : E) : f z = f w :=
 begin
   set g : ℂ → F := f ∘ (λ t : ℂ, t • (w - z) + z),
   suffices : g 0 = g 1, by simpa [g],
-  apply apply_eq_apply_of_differentiable_of_bounded_dim1,
+  apply liouville_theorem_aux,
   exacts [hf.comp ((differentiable_id.smul_const (w - z)).add_const z),
     hb.mono (range_comp_subset_range _ _)]
 end
 
 /-- **Liouville's theorem**: a complex differentiable bounded function is a constant. -/
-lemma exists_const_forall_eq_of_differentiable_of_bounded {f : E → F} (hf : differentiable ℂ f)
+lemma exists_const_forall_eq_of_bounded {f : E → F} (hf : differentiable ℂ f)
   (hb : bounded (range f)) : ∃ c, ∀ z, f z = c :=
-⟨f 0, λ z, apply_eq_apply_of_differentiable_of_bounded hf hb _ _⟩
+⟨f 0, λ z, hf.apply_eq_apply_of_bounded hb _ _⟩
 
 /-- **Liouville's theorem**: a complex differentiable bounded function is a constant. -/
-lemma exists_eq_const_of_differentiable_of_bounded {f : E → F} (hf : differentiable ℂ f)
+lemma exists_eq_const_of_bounded {f : E → F} (hf : differentiable ℂ f)
   (hb : bounded (range f)) : ∃ c, f = const E c :=
-(exists_const_forall_eq_of_differentiable_of_bounded hf hb).imp $ λ c, funext
+(hf.exists_const_forall_eq_of_bounded hb).imp $ λ c, funext
 
-end complex
+end differentiable

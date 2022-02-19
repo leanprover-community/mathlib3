@@ -949,8 +949,8 @@ variables {M}
 
 section
 
-instance [subsingleton R] : subsingleton (localization M) :=
-⟨λ a b, by { induction a, induction b, congr, refl, refl }⟩
+instance [subsingleton R] : unique (localization M) :=
+⟨⟨1⟩, begin intro a, induction a, induction default, congr, refl, refl end⟩
 
 /-- Addition in a ring localization is defined as `⟨a, b⟩ + ⟨c, d⟩ = ⟨b * c + d * a, b * d⟩`.
 
@@ -1125,6 +1125,12 @@ variables (M S)
 @[simps]
 noncomputable def alg_equiv : localization M ≃ₐ[R] S :=
 is_localization.alg_equiv M _ _
+
+/-- The localization of a singleton is a singleton. Cannot be an instance due to metavariables. -/
+noncomputable def _root_.is_localization.unique (R Rₘ) [comm_ring R] [comm_ring Rₘ]
+  (M : submonoid R) [subsingleton R] [algebra R Rₘ] [is_localization M Rₘ] : unique Rₘ :=
+have inhabited Rₘ := ⟨1⟩,
+by exactI (alg_equiv M Rₘ).symm.injective.unique
 
 end
 
@@ -2064,18 +2070,32 @@ end localization
 
 open is_localization
 
+open_locale non_zero_divisors
+
+/-- If `R` is a field, then localizing at a submonoid smaller than the non-zero divisors
+    adds no new elements. -/
+lemma localization_map_bijective_of_field'
+  {R Rₘ : Type*} [comm_ring R] [comm_ring Rₘ]
+  {M : submonoid R} (hM : M ≤ R⁰) (hR : is_field R)
+  [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
+begin
+  casesI subsingleton_or_nontrivial R,
+  { haveI := is_localization.unique R Rₘ M,
+    haveI := unique_of_subsingleton (0 : R),
+    exact unique.bijective },
+  refine ⟨is_localization.injective _ hM, λ x, _⟩,
+  obtain ⟨r, ⟨m, hm⟩, rfl⟩ := mk'_surjective M x,
+  obtain ⟨n, hn⟩ := hR.mul_inv_cancel (non_zero_divisors.ne_zero $ hM hm),
+  exact ⟨r * n,
+    by erw [eq_mk'_iff_mul_eq, ← ring_hom.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
+end
+
 /-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
 lemma localization_map_bijective_of_field
   {R Rₘ : Type*} [comm_ring R] [is_domain R] [comm_ring Rₘ]
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
-begin
-  refine ⟨is_localization.injective _ (le_non_zero_divisors_of_no_zero_divisors hM), λ x, _⟩,
-  obtain ⟨r, ⟨m, hm⟩, rfl⟩ := mk'_surjective M x,
-  obtain ⟨n, hn⟩ := hR.mul_inv_cancel (λ hm0, hM (hm0 ▸ hm) : m ≠ 0),
-  exact ⟨r * n,
-    by erw [eq_mk'_iff_mul_eq, ← ring_hom.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
-end
+localization_map_bijective_of_field' (le_non_zero_divisors_of_no_zero_divisors hM) hR
 
 variables (R) {A : Type*} [comm_ring A] [is_domain A]
 variables (K : Type*)
@@ -2638,8 +2658,8 @@ commutative ring `R` is an integral domain only when this is needed for proving.
 
 namespace fraction_ring
 
-instance [subsingleton R] : subsingleton (fraction_ring R) :=
-localization.subsingleton
+instance unique [subsingleton R] : unique (fraction_ring R) :=
+localization.unique
 
 instance [nontrivial R] : nontrivial (fraction_ring R) :=
 ⟨⟨(algebra_map R _) 0, (algebra_map _ _) 1,

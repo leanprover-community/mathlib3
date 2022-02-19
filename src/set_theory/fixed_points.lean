@@ -241,9 +241,9 @@ theorem fp_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
 iff.trans ⟨λ h i, le_of_eq (h i), λ h i, (H i).le_iff_eq.1 (h i)⟩ (le_iff_deriv_family H)
 
 theorem deriv_family_eq_enum_ord (H : ∀ i, is_normal (f i)) :
-  deriv_family f = enum_ord _ (fp_family_unbounded H) :=
+  deriv_family f = enum_ord (⋂ i, function.fixed_points (f i)) :=
 begin
-  rw ←eq_enum_ord,
+  rw ←eq_enum_ord _ (fp_family_unbounded H),
   use (deriv_family_is_normal f).strict_mono,
   rw set.range_eq_iff,
   refine ⟨_, λ a ha, _⟩,
@@ -373,9 +373,9 @@ begin
 end
 
 theorem deriv_bfamily_eq_enum_ord (H : ∀ i hi, is_normal (f i hi)) :
-  deriv_bfamily o f = enum_ord _ (fp_bfamily_unbounded H) :=
+  deriv_bfamily o f = enum_ord (⋂ i hi, function.fixed_points (f i hi)) :=
 begin
-  rw ←eq_enum_ord,
+  rw ←eq_enum_ord _ (fp_bfamily_unbounded H),
   use (deriv_bfamily_is_normal f).strict_mono,
   rw set.range_eq_iff,
   refine ⟨λ a, set.mem_Inter₂.2 (deriv_bfamily_fp H a), λ a ha, _⟩,
@@ -487,7 +487,7 @@ end
 theorem is_normal.fp_iff_deriv {f} (H : is_normal f) {a} : f a = a ↔ ∃ o, deriv f o = a :=
 by rw [←H.le_iff_eq, H.le_iff_deriv]
 
-theorem deriv_eq_enum_ord (H : is_normal f) : deriv f = enum_ord _ (fp_unbounded H) :=
+theorem deriv_eq_enum_ord (H : is_normal f) : deriv f = enum_ord (function.fixed_points f) :=
 by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _).symm }
 
 /-! ### Fixed points of addition -/

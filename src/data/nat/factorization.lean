@@ -120,27 +120,6 @@ begin
   rw [pow_succ, factorization_mul hn (pow_ne_zero _ hn), ih, succ_eq_one_add, add_smul, one_smul],
 end
 
-lemma pow_factorization_dvd (n p : ℕ) : p ^ n.factorization p ∣ n :=
-begin
-  rw ←factors_count_eq,
-  by_cases hp : p.prime,
-  { apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
-    rw [hp.factors_pow, list.subperm_ext_iff],
-    intros q hq,
-    simp [list.eq_of_mem_repeat hq] },
-  { rw count_eq_zero_of_not_mem (mt prime_of_mem_factors hp),
-    simp },
-end
-
-lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
-  ¬ p ^ (n.factorization p + 1) ∣ n :=
-begin
-  intro h,
-  have := factors_sublist_of_dvd h hn,
-  rw [hp.factors_pow, ←le_count_iff_repeat_sublist, factors_count_eq] at this,
-  linarith
-end
-
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
 @[simp] lemma prime.factorization {p : ℕ} (hp : prime p) :
   p.factorization = single p 1 :=
@@ -208,9 +187,38 @@ by { cases n, refl }
 lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
   (factorization_equiv.symm ⟨f, hf⟩).1 = f.prod pow := rfl
 
-
-
 /-! ### Factorization and divisibility -/
+
+lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
+begin
+  rcases eq_or_ne p 0 with rfl | hp,
+  { rw [nat.support_factorization, list.mem_to_finset] at h,
+    exact absurd (nat.prime_of_mem_factors h) (nat.not_prime_zero) },
+  apply nat.dvd_of_factors_subperm hp,
+  rw [nat.factors_prime $ nat.prime_of_mem_factorization h, list.subperm_singleton_iff],
+  rwa ←nat.factor_iff_mem_factorization,
+end
+
+lemma pow_factorization_dvd (n p : ℕ) : p ^ n.factorization p ∣ n :=
+begin
+  rw ←factors_count_eq,
+  by_cases hp : p.prime,
+  { apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
+    rw [hp.factors_pow, list.subperm_ext_iff],
+    intros q hq,
+    simp [list.eq_of_mem_repeat hq] },
+  { rw count_eq_zero_of_not_mem (mt prime_of_mem_factors hp),
+    simp },
+end
+
+lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
+  ¬ p ^ (n.factorization p + 1) ∣ n :=
+begin
+  intro h,
+  have := factors_sublist_of_dvd h hn,
+  rw [hp.factors_pow, ←le_count_iff_repeat_sublist, factors_count_eq] at this,
+  linarith
+end
 
 lemma factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
   d.factorization ≤ n.factorization ↔ d ∣ n :=
@@ -222,16 +230,6 @@ begin
     rw [←factorization_prod_pow_eq_self hn, ←factorization_prod_pow_eq_self hd,
         ←finsupp.prod_add_index pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
-end
-
-lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
-begin
-  rcases eq_or_ne p 0 with rfl | hp,
-  { rw [nat.support_factorization, list.mem_to_finset] at h,
-    exact absurd (nat.prime_of_mem_factors h) (nat.not_prime_zero) },
-  apply nat.dvd_of_factors_subperm hp,
-  rw [nat.factors_prime $ nat.prime_of_mem_factorization h, list.subperm_singleton_iff],
-  rwa ←nat.factor_iff_mem_factorization,
 end
 
 lemma factorization_le_factorization_mul_left {a b : ℕ} (hb : b ≠ 0) :

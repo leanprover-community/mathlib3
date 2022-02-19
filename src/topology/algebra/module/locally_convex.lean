@@ -125,7 +125,7 @@ lemma locally_convex_space_Inf :
   @locally_convex_space 𝕜 E _ _ _ (Inf ts) :=
 begin
   rw Inf_eq_infi',
-  exact locally_convex_space_infi (λ t, h t.1 t.2)
+  exact locally_convex_space_infi' (λ t, h t.1 t.2)
 end
 
 omit h

@@ -120,26 +120,6 @@ begin
   rw [pow_succ, factorization_mul hn (pow_ne_zero _ hn), ih, succ_eq_one_add, add_smul, one_smul],
 end
 
-/-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-lemma factorization_mul_apply_of_coprime {p a b : ℕ} (hab : coprime a b)  :
-  (a * b).factorization p = a.factorization p + b.factorization p :=
-by simp only [←factors_count_eq, perm_iff_count.mp (perm_factors_mul_of_coprime hab), count_append]
-
-/-- If `p` is a prime factor of `a` then the power of `p` in `a` is the same that in `a * b`,
-for any `b` coprime to `a`. -/
-lemma factorization_eq_of_coprime_left {p a b : ℕ} (hab : coprime a b) (hpa : p ∈ a.factors) :
-  (a * b).factorization p = a.factorization p :=
-begin
-  rw [factorization_mul_apply_of_coprime hab, ←factors_count_eq, ←factors_count_eq],
-  simpa only [count_eq_zero_of_not_mem (coprime_factors_disjoint hab hpa)],
-end
-
-/-- If `p` is a prime factor of `b` then the power of `p` in `b` is the same that in `a * b`,
-for any `a` coprime to `b`. -/
-lemma factorization_eq_of_coprime_right {p a b : ℕ} (hab : coprime a b) (hpb : p ∈ b.factors) :
-  (a * b).factorization p = b.factorization p :=
-by { rw mul_comm, exact factorization_eq_of_coprime_left (coprime_comm.mp hab) hpb }
-
 lemma pow_factorization_dvd (n p : ℕ) : p ^ n.factorization p ∣ n :=
 begin
   rw ←factors_count_eq,
@@ -228,29 +208,7 @@ by { cases n, refl }
 lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
   (factorization_equiv.symm ⟨f, hf⟩).1 = f.prod pow := rfl
 
-/-! ### Factorization and coprimes -/
 
-/-- The prime factorizations of coprime `a` and `b` are disjoint -/
-lemma factorization_disjoint_of_coprime {a b : ℕ} (hab : coprime a b) :
-  disjoint a.factorization.support b.factorization.support :=
-by simpa only [support_factorization]
-  using disjoint_to_finset_iff_disjoint.mpr (coprime_factors_disjoint hab)
-
-/-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
-lemma factorization_mul_of_coprime {a b : ℕ} (hab : coprime a b) :
-  (a * b).factorization = a.factorization + b.factorization :=
-begin
-  ext q,
-  simp only [finsupp.coe_add, add_apply, ←factors_count_eq, factorization_mul_apply_of_coprime hab],
-end
-
-/-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
-lemma factorization_mul_support_of_coprime {a b : ℕ} (hab : coprime a b) :
-  (a * b).factorization.support = a.factorization.support ∪ b.factorization.support :=
-begin
-  rw factorization_mul_of_coprime hab,
-  exact support_add_eq (factorization_disjoint_of_coprime hab),
-end
 
 /-! ### Factorization and divisibility -/
 
@@ -378,6 +336,50 @@ begin
     have hea' := (factorization_le_iff_dvd he_pos ha_pos).mpr hea,
     have heb' := (factorization_le_iff_dvd he_pos hb_pos).mpr heb,
     simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
+end
+
+/-! ### Factorization and coprimes -/
+
+/-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma factorization_mul_apply_of_coprime {p a b : ℕ} (hab : coprime a b)  :
+  (a * b).factorization p = a.factorization p + b.factorization p :=
+by simp only [←factors_count_eq, perm_iff_count.mp (perm_factors_mul_of_coprime hab), count_append]
+
+/-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
+lemma factorization_mul_of_coprime {a b : ℕ} (hab : coprime a b) :
+  (a * b).factorization = a.factorization + b.factorization :=
+begin
+  ext q,
+  simp only [finsupp.coe_add, add_apply, ←factors_count_eq, factorization_mul_apply_of_coprime hab],
+end
+
+/-- If `p` is a prime factor of `a` then the power of `p` in `a` is the same that in `a * b`,
+for any `b` coprime to `a`. -/
+lemma factorization_eq_of_coprime_left {p a b : ℕ} (hab : coprime a b) (hpa : p ∈ a.factors) :
+  (a * b).factorization p = a.factorization p :=
+begin
+  rw [factorization_mul_apply_of_coprime hab, ←factors_count_eq, ←factors_count_eq],
+  simpa only [count_eq_zero_of_not_mem (coprime_factors_disjoint hab hpa)],
+end
+
+/-- If `p` is a prime factor of `b` then the power of `p` in `b` is the same that in `a * b`,
+for any `a` coprime to `b`. -/
+lemma factorization_eq_of_coprime_right {p a b : ℕ} (hab : coprime a b) (hpb : p ∈ b.factors) :
+  (a * b).factorization p = b.factorization p :=
+by { rw mul_comm, exact factorization_eq_of_coprime_left (coprime_comm.mp hab) hpb }
+
+/-- The prime factorizations of coprime `a` and `b` are disjoint -/
+lemma factorization_disjoint_of_coprime {a b : ℕ} (hab : coprime a b) :
+  disjoint a.factorization.support b.factorization.support :=
+by simpa only [support_factorization]
+  using disjoint_to_finset_iff_disjoint.mpr (coprime_factors_disjoint hab)
+
+/-- For coprime `a` and `b` the prime factorization `a * b` is the union of those of `a` and `b` -/
+lemma factorization_mul_support_of_coprime {a b : ℕ} (hab : coprime a b) :
+  (a * b).factorization.support = a.factorization.support ∪ b.factorization.support :=
+begin
+  rw factorization_mul_of_coprime hab,
+  exact support_add_eq (factorization_disjoint_of_coprime hab),
 end
 
 /-! ### Induction principles involving factorizations -/

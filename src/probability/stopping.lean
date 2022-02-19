@@ -105,7 +105,7 @@ end adapted
 
 variable (β)
 lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=
-λ i, @measurable_zero β α (f i) _ _
+λ i, @measurable_zero β α _ (f i) _
 
 variable {β}
 
@@ -124,9 +124,7 @@ begin
   intro i,
   have : u i = (λ p : set.Iic i × α, u p.1 p.2) ∘ (λ x, (⟨i, set.mem_Iic.mpr le_rfl⟩, x)) := rfl,
   rw this,
-  refine (h i).comp _,
-  exact @measurable.prod_mk _ _ _ _ (f i) (f i) _ _
-    (@measurable_const _ _ _ (f i) _) (@measurable_id _ (f i)),
+  refine (h i).comp ((@measurable_const _ _ _ (f i) _).prod_mk (@measurable_id _ (f i))),
 end
 
 protected lemma comp {t : ι → α → ι} (h : prog_measurable f u) (ht : prog_measurable f t)
@@ -139,9 +137,7 @@ begin
     = (λ p : ↥(set.Iic i) × α, u (p.fst : ι) p.snd) ∘ (λ p : ↥(set.Iic i) × α,
       (⟨t (p.fst : ι) p.snd, set.mem_Iic.mpr ((ht_le _ _).trans p.fst.prop)⟩, p.snd)) := rfl,
   rw this,
-  refine (h i).comp _,
-  exact @measurable.prod_mk (↥(set.Iic i) × α) ↥(set.Iic i) α _ (f i) _ _ _
-    (ht i).subtype_mk (@measurable_snd _ _ (f i) _),
+  exact (h i).comp ((ht i).subtype_mk.prod_mk (@measurable_snd _ _ _ (f i))),
 end
 
 end prog_measurable
@@ -424,12 +420,10 @@ begin
   let m_set : ∀ t : set (set.Iic i × α), measurable_space t :=
     λ _, @subtype.measurable_space (set.Iic i × α) _ m_prod,
   let s := {p : set.Iic i × α | τ p.2 ≤ i},
-  have hs : measurable_set[m_prod] s, from @measurable_snd (set.Iic i) α (f i) _ _ (hτ i),
+  have hs : measurable_set[m_prod] s, from @measurable_snd (set.Iic i) α _ (f i) _ (hτ i),
   have h_meas_fst : ∀ t : set (set.Iic i × α),
-    measurable[m_set t] (λ x : t, ((x : set.Iic i × α).fst : ι)),
-  { refine λ t, measurable.subtype_coe _,
-    refine @measurable.fst _ (set.Iic i) α _ (f i) (m_set t) _ _,
-    exact @measurable_subtype_coe (set.Iic i × α) m_prod _, },
+      measurable[m_set t] (λ x : t, ((x : set.Iic i × α).fst : ι)),
+    from λ t, (@measurable_subtype_coe (set.Iic i × α) m_prod _).fst.subtype_coe,
   refine measurable_of_restrict_of_restrict_compl hs _ _,
   { rw set.restrict,
     refine @measurable.min _ _ _ _ _ (m_set s) _ _ _ _ _ (h_meas_fst s) _,
@@ -446,7 +440,7 @@ begin
     rw this,
     have h_coe_meas : @measurable _ _ (m_set s) m_prod (λ x : s, (x : set.Iic i × α)),
       from @measurable_subtype_coe _ m_prod _,
-    exact (@measurable_snd _ _ (f i) _).comp h_coe_meas, },
+    exact (@measurable_snd _ _ _ (f i)).comp h_coe_meas, },
   { rw set.restrict,
     have h_min_eq_left : (λ x : sᶜ, min ↑((x : set.Iic i × α).fst) (τ (x : set.Iic i × α).snd))
       = λ x : sᶜ, ↑((x : set.Iic i × α).fst),
@@ -530,9 +524,9 @@ begin
   { suffices h_meas : measurable[prod.measurable_space' _ (f i)]
         (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
       from h_meas (measurable_set_singleton j),
-    exact (@measurable_fst _ α (f i) _).subtype_coe, },
+    exact (@measurable_fst _ α _ (f i)).subtype_coe, },
   { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
-    exact (measurable.le (f.mono h_le) (h j)).comp (@measurable_snd _ α (f i) _), },
+    exact (measurable.le (f.mono h_le) (h j)).comp (@measurable_snd _ α _ (f i)), },
   { exact @measurable_const _ (set.Iic i × α) _ (prod.measurable_space' _ (f i)) _, },
 end
 

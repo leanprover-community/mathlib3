@@ -82,15 +82,15 @@ is a subgroup of `G` (because it is the preimage in `G` of the centre of the
 quotient group `G/H`.)
 -/
 def upper_central_series_step : subgroup G :=
-{ carrier := {x : G | ∀ y : G, ⁅x, y⁆ ∈ H},
-  one_mem' := λ y, by simp [commutator_element_def, subgroup.one_mem],
+{ carrier := {x : G | ∀ y : G, x * y * x⁻¹ * y⁻¹ ∈ H},
+  one_mem' := λ y, by simp [subgroup.one_mem],
   mul_mem' := λ a b ha hb y, begin
     convert subgroup.mul_mem _ (ha (b * y * b⁻¹)) (hb y) using 1,
     group,
   end,
   inv_mem' := λ x hx y, begin
     specialize hx y⁻¹,
-    rw [commutator_element_def, mul_assoc, inv_inv] at ⊢ hx,
+    rw [mul_assoc, inv_inv] at ⊢ hx,
     exact subgroup.normal.mem_comm infer_instance hx,
   end }
 
@@ -108,8 +108,8 @@ begin
   rw [mem_comap, mem_center_iff, forall_coe],
   apply forall_congr,
   intro y,
-  rw [commutator_element_def, coe_mk', ←quotient_group.coe_mul, ←quotient_group.coe_mul, eq_comm,
-    eq_iff_div_mem, div_eq_mul_inv, mul_inv_rev, mul_assoc],
+  rw [coe_mk', ←quotient_group.coe_mul, ←quotient_group.coe_mul, eq_comm, eq_iff_div_mem,
+    div_eq_mul_inv, mul_inv_rev, mul_assoc],
 end
 
 instance : normal (upper_central_series_step H) :=
@@ -139,8 +139,7 @@ begin
   ext,
   simp only [upper_central_series, upper_central_series_aux, upper_central_series_step, center,
     set.center, mem_mk, mem_bot, set.mem_set_of_eq],
-  exact forall_congr (λ y, by rw [commutator_element_def,
-    mul_inv_eq_one, mul_inv_eq_iff_eq_mul, eq_comm]),
+  exact forall_congr (λ y, by rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul, eq_comm]),
 end
 
 /-- The `n+1`st term of the upper central series `H i` has underlying set equal to the `x` such
@@ -189,7 +188,7 @@ lemma upper_central_series_mono : monotone (upper_central_series G) :=
 begin
   refine monotone_nat_of_le_succ _,
   intros n x hx y,
-  rw [commutator_element_def, mul_assoc, mul_assoc, ← mul_assoc y x⁻¹ y⁻¹],
+  rw [mul_assoc, mul_assoc, ← mul_assoc y x⁻¹ y⁻¹],
   exact mul_mem (upper_central_series G n) hx
     (normal.conj_mem (upper_central_series.subgroup.normal G n) x⁻¹ (inv_mem _ hx) y),
 end
@@ -481,7 +480,7 @@ begin
   { simp },
   { rintros _ ⟨x, hx : x ∈ upper_central_series G d.succ, rfl⟩ y',
     rcases h y' with ⟨y, rfl⟩,
-    simpa [commutator_element_def] using hd (mem_map_of_mem f (hx y)) }
+    simpa using hd (mem_map_of_mem f (hx y)) }
 end
 
 lemma lower_central_series.map {H : Type*} [group H] (f : G →* H) (n : ℕ) :

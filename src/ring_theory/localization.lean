@@ -99,6 +99,8 @@ commutative ring, field of fractions
 variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
 variables [algebra R S] {P : Type*} [comm_ring P]
 
+universes u v
+
 open function
 open_locale big_operators polynomial
 
@@ -378,6 +380,14 @@ variables (M)
 
 lemma mk'_surjective (z : S) : ∃ x (y : M), mk' S x y = z :=
 let ⟨r, hr⟩ := is_localization.surj _ z in ⟨r.1, r.2, (eq_mk'_iff_mul_eq.2 hr).symm⟩
+
+/-- The localization of a `fintype` is a `fintype`. Cannot be an instance. -/
+noncomputable def fintype' {R : Type u} [comm_ring R] [fintype R] (S : submonoid R) (L : Type v)
+  [comm_ring L] [algebra R L] [is_localization S L] : fintype L :=
+have _ := classical.prop_decidable, by exactI
+fintype.of_surjective (function.uncurry (is_localization.mk' L) : R × S → L)
+                      (λ a, prod.exists'.mpr $ is_localization.mk'_surjective S a)
+
 
 variables {M}
 

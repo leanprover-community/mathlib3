@@ -197,6 +197,14 @@ group_filter_basis.is_topological_group (gal_group_basis K L)
 
 section krull_t2
 
+section a
+variables (F α : Sort*) (β : α → Sort*)
+variables {F α β} [i : fun_like F α β]
+include i
+
+lemma fun_like.exists_ne {f g : F} (h : f ≠ g) : ∃ x, f x ≠ g x :=
+not_forall.mp $ mt (fun_like.ext _ _) h
+end a
 
 /-- If `f,g : L → L` are distinct `K`-algebra equivalences, then there is some `x ∈ L` with
   `f(x) ≠ g(x)`. -/

@@ -8,7 +8,7 @@ import category_theory.fully_faithful
 import category_theory.bicategory.free
 import category_theory.bicategory.locally_discrete
 /-!
-## The coherence theorem for bicategories
+# The coherence theorem for bicategories
 
 In this file, we prove the coherence theorem for bicategories, stated in the following form: the
 free bicategory over any quiver is locally thin.
@@ -22,7 +22,7 @@ pseudofunctor from the free bicategory to the locally discrete bicategory on the
 It turns out that this pseudofunctor is locally an equivalence of categories, and the coherence
 theorem follows immediately from this fact.
 
-# Main statements
+## Main statements
 
 * `locally_thin` : the free bicategory is locally thin, that is, there is at most one
   2-morphism between two fixed 1-morphisms.

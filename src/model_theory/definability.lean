@@ -64,11 +64,11 @@ lemma is_empty_definable_iff :
 begin
   split,
   { rintro ⟨φ, rfl⟩,
-    refine ⟨(L.Lhom_trim_empty_constants M).on_formula φ, _⟩,
+    refine ⟨(L.Lhom_trim_empty_constants (∅ : set M)).on_formula φ, _⟩,
     ext x,
     simp only [set.mem_set_of_eq, Lhom.realize_on_formula], },
   { rintro ⟨φ, rfl⟩,
-    refine ⟨⟨(L.Lhom_with_constants ∅).on_formula φ, _⟩⟩,
+    refine ⟨⟨(L.Lhom_with_constants (∅ : set M)).on_formula φ, _⟩⟩,
     ext x,
     simp only [set.mem_set_of_eq, Lhom.realize_on_formula], }
 end

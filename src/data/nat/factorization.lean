@@ -191,12 +191,8 @@ lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.suppo
 
 lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
 begin
-  rcases eq_or_ne p 0 with rfl | hp,
-  { rw [nat.support_factorization, list.mem_to_finset] at h,
-    exact absurd (nat.prime_of_mem_factors h) (nat.not_prime_zero) },
-  apply nat.dvd_of_factors_subperm hp,
-  rw [nat.factors_prime $ nat.prime_of_mem_factorization h, list.subperm_singleton_iff],
-  rwa ←nat.factor_iff_mem_factorization,
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
+  simp [←mem_factors_iff_dvd hn (prime_of_mem_factorization h), factor_iff_mem_factorization.mp h],
 end
 
 lemma pow_factorization_dvd (n p : ℕ) : p ^ n.factorization p ∣ n :=

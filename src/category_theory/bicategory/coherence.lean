@@ -33,8 +33,7 @@ theorem follows from this fact.
    proof of normalization for monoids][beylin1996]
 -/
 
-open quiver (path)
-open quiver.path
+open quiver (path) quiver.path
 
 namespace category_theory
 
@@ -254,9 +253,8 @@ def normalize_unit_iso (a b : free_bicategory B) :
 nat_iso.of_components (λ f, (λ_ f).symm ≪≫ normalize_unit_iso_app_aux f)
 begin
   intros f g η,
-  dsimp,
-  rw [left_unitor_inv_naturality_assoc, assoc, iso.cancel_iso_inv_left],
-  apply congr_arg (λ η, nat_trans.app η nil) ((normalize_iso _ _ _).hom.naturality η)
+  erw [left_unitor_inv_naturality_assoc, assoc, iso.cancel_iso_inv_left],
+  apply congr_arg (λ β, nat_trans.app β nil) ((normalize_iso _ _ _).hom.naturality η)
 end
 
 /-- Auxiliary definition for `normalize_equiv`. -/

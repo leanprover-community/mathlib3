@@ -229,8 +229,7 @@ end
 lemma factorization_le_factorization_mul_left {a b : ℕ} (hb : b ≠ 0) :
   a.factorization ≤ (a * b).factorization :=
 begin
-  rcases eq_or_ne a 0 with rfl | ha,
-  { simp },
+  rcases eq_or_ne a 0 with rfl | ha, { simp },
   rw [factorization_le_iff_dvd ha $ mul_ne_zero ha hb],
   exact dvd.intro b rfl
 end
@@ -259,18 +258,13 @@ end
 @[simp] lemma factorization_div {d n : ℕ} (h : d ∣ n) :
   (n / d).factorization = n.factorization - d.factorization :=
 begin
-  rcases eq_or_ne d 0 with rfl | hd,
-  { rw zero_dvd_iff at h,
-    subst h,
-    simp },
-  rcases eq_or_ne n 0 with rfl | hn,
-  { simp },
+  rcases eq_or_ne d 0 with rfl | hd, { simp [zero_dvd_iff.mp h] },
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
   apply add_left_injective d.factorization,
   simp only,
-  symmetry,
-  rw [tsub_add_cancel_of_le $ (nat.factorization_le_iff_dvd hd hn).mpr h],
-  nth_rewrite 0 ←nat.div_mul_cancel h,
-  exact nat.factorization_mul (nat.div_pos (nat.le_of_dvd hn.bot_lt h) hd.bot_lt).ne' hd,
+  rw [tsub_add_cancel_of_le $ (nat.factorization_le_iff_dvd hd hn).mpr h,
+      ←nat.factorization_mul (nat.div_pos (nat.le_of_dvd hn.bot_lt h) hd.bot_lt).ne' hd,
+      nat.div_mul_cancel h],
 end
 
 lemma dvd_iff_div_factorization_eq_tsub (d n : ℕ) (hd : d ≠ 0) (hdn : d ≤ n) :

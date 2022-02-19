@@ -43,6 +43,8 @@ namespace nat
  mapping each prime factor of `n` to its multiplicity in `n`. -/
 noncomputable def factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
 
+/-! ### Basic facts about factorization -/
+
 @[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : n ≠ 0) : n.factorization.prod pow = n :=
 begin
   simp only [←prod_to_multiset, factorization, multiset.coe_prod, multiset.to_finsupp_to_multiset],
@@ -216,7 +218,7 @@ by { cases n, refl }
 lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
   (factorization_equiv.symm ⟨f, hf⟩).1 = f.prod pow := rfl
 
-/-! ### Factorizations of pairs of coprime numbers -/
+/-! ### Factorization and coprimes -/
 
 /-- The prime factorizations of coprime `a` and `b` are disjoint -/
 lemma factorization_disjoint_of_coprime {a b : ℕ} (hab : coprime a b) :

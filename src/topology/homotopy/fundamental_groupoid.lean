@@ -351,12 +351,26 @@ fundamental groupoid of that space. -/
 @[reducible]
 def from_path {X : Top} {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁) : (x₀ ⟶ x₁) := p
 
+lemma id_comp_symm {X : Top} (x₀ x₁ : X) (α : path x₀ x₁) : from_path ⟦α⟧ ≫ ⟦α.symm⟧ = 𝟙 x₀ :=
+begin
+  rw [from_path, comp_eq, ← path.homotopic.comp_lift, quotient.sound],
+  { refl },
+  { exact path.homotopic.symm ⟨path.homotopy.refl_trans_symm α⟩}
+end
+
+lemma id_symm_comp {X : Top} (x₀ x₁ : X) (α : path x₀ x₁) : from_path ⟦α.symm⟧ ≫ ⟦α⟧ = 𝟙 x₁ :=
+begin
+  rw [from_path, comp_eq, ← path.homotopic.comp_lift, quotient.sound],
+  { refl },
+  { exact path.homotopic.symm ⟨path.homotopy.refl_symm_trans α⟩  }
+end
+
 section path_connected
 
 def iso_of_path_conn {X : Top} [path_connected_space X] (x₀ x₁ : X) : (x₀ ≅ x₁) :=
-  let α := from_path ⟦joined.some_path (path_connected_space.joined x₀ x₁)⟧ in
-  { hom := α,
-    inv := sorry, }
+  let α := joined.some_path (path_connected_space.joined x₀ x₁) in
+  { hom := ⟦α⟧,
+    inv := ⟦α.symm⟧ }
 
 end path_connected
 

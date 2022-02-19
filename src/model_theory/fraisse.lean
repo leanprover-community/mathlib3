@@ -14,7 +14,7 @@ This file pertains to the ages of countable first-order structures. The age of a
 class of all finitely-generated structures that embed into it.
 
 Of particular interest are Fraïssé classes, which are exactly the ages of countable
-weakly-homogeneous structures. To each is associated a unique (up to nonunique isomorphism)
+ultrahomogeneous structures. To each is associated a unique (up to nonunique isomorphism)
 Fraïssé limit - the countable structure with that age.
 
 ## Main Definitions
@@ -53,11 +53,15 @@ is the form that predicates such as `Structure.fg L` take in the rest of the lib
 * Some results pertain to countable limit structures, others to countably-generated limit
 structures. In the case of a language with countably many function symbols, these are equivalent.
 
+## References
+- [W. Hodges, *A Shorter Model Theory*][Hodges97]
+- [K. Tent, M. Ziegler, *A Course in Model Theory*][Tent_Ziegler]
+
 ## TODO
-* Define weakly homogeneous structures
+* Define ultrahomogeneous structures
 * Show that any two Fraïssé limits of a Fraïssé class are isomorphic
-* Show that any Fraïssé limit is weakly homogeneous
-* Show that the age of any weakly homogeneous countable structure is Fraïssé
+* Show that any Fraïssé limit is ultrahomogeneous
+* Show that the age of any ultrahomogeneous countable structure is Fraïssé
 
 -/
 

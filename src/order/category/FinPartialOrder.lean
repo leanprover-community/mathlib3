@@ -13,6 +13,10 @@ This defines `FinPartialOrder`, the category of finite partial orders.
 
 Note: `FinPartialOrder` is NOT a subcategory of `BoundedOrder` because its morphisms do not
 preserve `⊥` and `⊤`.
+
+## TODO
+
+`FinPartialOrder` is equivalent to a small category.
 -/
 
 universes u v

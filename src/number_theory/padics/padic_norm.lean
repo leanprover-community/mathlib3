@@ -9,6 +9,7 @@ import ring_theory.int.basic
 import tactic.basic
 import tactic.ring_exp
 import number_theory.divisors
+import data.nat.factorization
 
 /-!
 # p-adic norm
@@ -472,30 +473,12 @@ protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
       { exact hc } },
   end
 
-lemma padic_val_nat_eq_factors_count (p : ℕ) [hp : fact p.prime] :
-  ∀ (n : ℕ), padic_val_nat p n = (factors n).count p
-| 0 := by simp
-| 1 := by simp
-| (m + 2) :=
-let n := m + 2 in
-let q := min_fac n in
-have hq : fact q.prime := ⟨min_fac_prime (show m + 2 ≠ 1, by linarith)⟩,
-have wf : n / q < n := nat.div_lt_self (nat.succ_pos _) hq.1.one_lt,
+lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
+  padic_val_nat p n = n.factorization p :=
 begin
-  rw factors_add_two,
-  show padic_val_nat p n = list.count p (q :: (factors (n / q))),
-  rw [list.count_cons', ← padic_val_nat_eq_factors_count],
-  split_ifs with h,
-  have p_dvd_n : p ∣ n,
-  { have: q ∣ n := nat.min_fac_dvd n,
-    cc },
-  { rw [←h, padic_val_nat.div],
-    { have: 1 ≤ padic_val_nat p n := one_le_padic_val_nat_of_dvd (by linarith) p_dvd_n,
-      exact (tsub_eq_iff_eq_add_of_le this).mp rfl, },
-    { exact p_dvd_n, }, },
-  { suffices : p.coprime q,
-    { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero], },
-    rwa nat.coprime_primes hp.1 hq.1, },
+  by_cases hn : n = 0, { subst hn, simp },
+  rw @padic_val_nat_def p _ n hn,
+  simp [@multiplicity_eq_factorization n p hp.elim hn],
 end
 
 open_locale big_operators
@@ -503,31 +486,20 @@ open_locale big_operators
 lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=
 begin
-  rw ← pos_iff_ne_zero at hn,
-  have H : (factors n : multiset ℕ).prod = n,
-  { rw [multiset.coe_prod, prod_factors hn], },
-  rw finset.prod_multiset_count at H,
-  conv_rhs { rw ← H, },
-  refine finset.prod_bij_ne_one (λ p hp hp', p) _ _ _ _,
-  { rintro p hp hpn,
-    rw [finset.mem_filter, finset.mem_range] at hp,
-    rw [multiset.mem_to_finset, multiset.mem_coe, mem_factors_iff_dvd hn hp.2],
-    contrapose! hpn,
-    haveI Hp : fact p.prime := ⟨hp.2⟩,
-    rw [padic_val_nat_of_not_dvd hpn, pow_zero], },
-  { intros, assumption },
-  { intros p hp hpn,
-    rw [multiset.mem_to_finset, multiset.mem_coe] at hp,
-    haveI Hp : fact p.prime := ⟨prime_of_mem_factors hp⟩,
-    simp only [exists_prop, ne.def, finset.mem_filter, finset.mem_range],
-    refine ⟨p, ⟨_, Hp.1⟩, ⟨_, rfl⟩⟩,
-    { rw mem_factors_iff_dvd hn Hp.1 at hp, exact lt_of_le_of_lt (le_of_dvd hn hp) pr },
-    { rw padic_val_nat_eq_factors_count,
-      simpa [ne.def, multiset.coe_count] using hpn } },
-  { intros p hp hpn,
-    rw [finset.mem_filter, finset.mem_range] at hp,
-    haveI Hp : fact p.prime := ⟨hp.2⟩,
-    rw [padic_val_nat_eq_factors_count, multiset.coe_count] }
+  nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self hn,
+  rw eq_comm,
+  apply finset.prod_subset_one_on_sdiff,
+  { exact λ p hp, finset.mem_filter.mpr
+      ⟨finset.mem_range.mpr (gt_of_gt_of_ge pr (le_of_mem_factorization hp)),
+       prime_of_mem_factorization hp⟩ },
+  { intros p hp,
+    cases finset.mem_sdiff.mp hp with hp1 hp2,
+    haveI := fact_iff.mpr (finset.mem_filter.mp hp1).2,
+    rw padic_val_nat_eq_factorization p n,
+    simp [finsupp.not_mem_support_iff.mp hp2] },
+  { intros p hp,
+    haveI := fact_iff.mpr (prime_of_mem_factorization hp),
+    simp [padic_val_nat_eq_factorization] }
 end
 
 lemma range_pow_padic_val_nat_subset_divisors {n : ℕ} (p : ℕ) [fact p.prime] (hn : n ≠ 0) :

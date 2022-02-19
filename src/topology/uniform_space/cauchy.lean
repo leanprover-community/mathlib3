@@ -311,6 +311,28 @@ begin
     λ htl, (ht l hl htl).imp $ λ x hx, ⟨or.inr hx.fst, hx.snd⟩⟩
 end
 
+lemma is_complete_Union_separated {ι : Sort*} {s : ι → set α} (hs : ∀ i, is_complete (s i))
+  {U : set (α × α)} (hU : U ∈ 𝓤 α) (hd : ∀ (i j : ι) (x ∈ s i) (y ∈ s j), (x, y) ∈ U → i = j) :
+  is_complete (⋃ i, s i) :=
+begin
+  set S := ⋃ i, s i,
+  intros l hl hls,
+  rw le_principal_iff at hls,
+  casesI cauchy_iff.1 hl with hl_ne hl',
+  obtain ⟨t, htS, htl, htU⟩ : ∃ t ⊆ S, t ∈ l ∧ t ×ˢ t ⊆ U,
+  { rcases hl' U hU with ⟨t, htl, htU⟩,
+    exact ⟨t ∩ S, inter_subset_right _ _, inter_mem htl hls,
+      (set.prod_mono (inter_subset_left _ _) (inter_subset_left _ _)).trans htU⟩ },
+  obtain ⟨i, hi⟩ : ∃ i, t ⊆ s i,
+  { rcases filter.nonempty_of_mem htl with ⟨x, hx⟩,
+    rcases mem_Union.1 (htS hx) with ⟨i, hi⟩,
+    refine ⟨i, λ y hy, _⟩,
+    rcases mem_Union.1 (htS hy) with ⟨j, hj⟩,
+    convert hj, exact hd i j x hi y hj (htU $ mk_mem_prod hx hy) },
+  rcases hs i l hl (le_principal_iff.2 $ mem_of_superset htl hi) with ⟨x, hxs, hlx⟩,
+  exact ⟨x, mem_Union.2 ⟨i, hxs⟩, hlx⟩
+end
+
 /-- A complete space is defined here using uniformities. A uniform space
   is complete if every Cauchy filter converges. -/
 class complete_space (α : Type u) [uniform_space α] : Prop :=

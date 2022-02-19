@@ -26,7 +26,7 @@ def Top : Type (u+1) := bundled topological_space
 namespace Top
 
 instance bundled_hom : bundled_hom @continuous_map :=
-⟨@continuous_map.to_fun, @continuous_map.id, @continuous_map.comp, @continuous_map.coe_inj⟩
+⟨@continuous_map.to_fun, @continuous_map.id, @continuous_map.comp, @continuous_map.coe_injective⟩
 
 attribute [derive [large_category, concrete_category]] Top
 

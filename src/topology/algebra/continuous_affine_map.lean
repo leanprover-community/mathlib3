@@ -154,8 +154,8 @@ omit W₂
 
 section module_valued_maps
 
-variables {S : Type*} [comm_ring S] [module S V] [module S W]
-variables [topological_space W] [topological_space S] [has_continuous_smul S W]
+variables {S : Type*}
+variables [topological_space W]
 
 instance : has_zero (P →A[R] W) := ⟨continuous_affine_map.const R P 0⟩
 
@@ -163,12 +163,24 @@ instance : has_zero (P →A[R] W) := ⟨continuous_affine_map.const R P 0⟩
 
 lemma zero_apply (x : P) : (0 : P →A[R] W) x = 0 := rfl
 
-instance : has_scalar S (P →A[S] W) :=
-{ smul := λ t f, { cont := f.continuous.const_smul t, .. (t • (f : P →ᵃ[S] W)) } }
+section mul_action
+variables [monoid S] [distrib_mul_action S W] [smul_comm_class R S W]
+variables [has_continuous_const_smul S W]
 
-@[norm_cast, simp] lemma coe_smul (t : S) (f : P →A[S] W) : ⇑(t • f) = t • f := rfl
+instance : has_scalar S (P →A[R] W) :=
+{ smul := λ t f, { cont := f.continuous.const_smul t, .. (t • (f : P →ᵃ[R] W)) } }
 
-lemma smul_apply (t : S) (f : P →A[S] W) (x : P) : (t • f) x = t • (f x) := rfl
+@[norm_cast, simp] lemma coe_smul (t : S) (f : P →A[R] W) : ⇑(t • f) = t • f := rfl
+
+lemma smul_apply (t : S) (f : P →A[R] W) (x : P) : (t • f) x = t • (f x) := rfl
+
+instance [distrib_mul_action Sᵐᵒᵖ W] [is_central_scalar S W] : is_central_scalar S (P →A[R] W) :=
+{ op_smul_eq_smul := λ t f, ext $ λ _, op_smul_eq_smul _ _ }
+
+instance : mul_action S (P →A[R] W) :=
+function.injective.mul_action _ coe_injective coe_smul
+
+end mul_action
 
 variables [topological_add_group W]
 
@@ -201,7 +213,14 @@ instance : add_comm_group (P →A[R] W) :=
   .. (coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub :
     add_comm_group (P →A[R] W)) }
 
-instance : module S (P →A[S] W) :=
+instance [monoid S] [distrib_mul_action S W] [smul_comm_class R S W]
+  [has_continuous_const_smul S W] :
+  distrib_mul_action S (P →A[R] W) :=
+function.injective.distrib_mul_action ⟨λ f, f.to_affine_map.to_fun, rfl, coe_add⟩
+  coe_injective coe_smul
+
+instance [semiring S] [module S W] [smul_comm_class R S W] [has_continuous_const_smul S W] :
+  module S (P →A[R] W) :=
 function.injective.module S ⟨λ f, f.to_affine_map.to_fun, rfl, coe_add⟩ coe_injective coe_smul
 
 end module_valued_maps

@@ -385,9 +385,8 @@ let ⟨r, hr⟩ := is_localization.surj _ z in ⟨r.1, r.2, (eq_mk'_iff_mul_eq.2
 noncomputable def fintype' {R : Type u} [comm_ring R] [fintype R] (S : submonoid R) (L : Type v)
   [comm_ring L] [algebra R L] [is_localization S L] : fintype L :=
 have _ := classical.prop_decidable, by exactI
-fintype.of_surjective (function.uncurry (is_localization.mk' L) : R × S → L)
+fintype.of_surjective (function.uncurry $ is_localization.mk' L)
                       (λ a, prod.exists'.mpr $ is_localization.mk'_surjective S a)
-
 
 variables {M}
 

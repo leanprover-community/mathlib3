@@ -23,7 +23,7 @@ begin
 end
 
 def strong_probable_prime (n : nat) (a : zmod n) : Prop :=
-a^(odd_part (n-1)) = 1 ∨ (∃ k i : ℕ, n = 2^i * k ∧ a^k = -1)
+a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r ≤ padic_val_nat 2 (n-1) -> a^(2^r * odd_part(n-1)) = -1)
 
 
 lemma square_roots_of_one (p : ℕ) [fact (p.prime)] (x : zmod p) (root : x^2 = 1) :
@@ -46,31 +46,39 @@ begin
   exact sub_eq_zero.mp zero2,
 end
 
-example (p q : Prop) : (¬ p -> q) -> p ∨ q :=
+lemma repeated_halving_of_exponent (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0)
+  (e : ℕ) (h : a ^ e = 1) :
+  a^(odd_part e) = 1 ∨ (∃ r : ℕ, r ≤ padic_val_nat 2 e -> a^(2^r * odd_part e) = -1) :=
 begin
-  exact or_iff_not_imp_left.mpr,
+  rw <-mul_two_power_part_odd_part e at h,
+  rw two_power_part at h,
+  revert h,
+  induction padic_val_nat 2 e with i hi,
+  { sorry, },
+  { intros h,
+    sorry, },
 end
 
-lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
-  strong_probable_prime p a :=
-begin
-  unfold strong_probable_prime,
-  -- unfold odd_part,
-  -- unfold two_power_part,
-  apply or_iff_not_imp_left.mpr,
-  intro base,
-  by_contra,
-  simp_rw not_exists at h,
-  have : (∀ i : ℕ, ¬ a ^ (2^i * odd_part (p - 1)) = 1),
-  { intro i,
-    induction i with i hi,
-    { sorry, },
-    { intro h2,
-      apply hi, clear hi,
-      have hsq : (a ^ (2 ^ i * odd_part (p - 1))) ^ 2 = 1,
-      { sorry, },
-      sorry, }, },
-  have foo := this ((padic_val_nat 2 (p-1))),
-  apply foo,
-  sorry,
-end
+-- lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
+--   strong_probable_prime p a :=
+-- begin
+--   unfold strong_probable_prime,
+--   -- unfold odd_part,
+--   -- unfold two_power_part,
+--   apply or_iff_not_imp_left.mpr,
+--   intro base,
+--   by_contra,
+--   simp_rw not_exists at h,
+--   have : (∀ i : ℕ, ¬ a ^ (2^i * odd_part (p - 1)) = 1),
+--   { intro i,
+--     induction i with i hi,
+--     { sorry, },
+--     { intro h2,
+--       apply hi, clear hi,
+--       have hsq : (a ^ (2 ^ i * odd_part (p - 1))) ^ 2 = 1,
+--       { sorry, },
+--       sorry, }, },
+--   have foo := this ((padic_val_nat 2 (p-1))),
+--   apply foo,
+--   sorry,
+-- end

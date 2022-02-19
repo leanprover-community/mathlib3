@@ -3,9 +3,8 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
-
-import probability_theory.stopping
-import probability_theory.notation
+import probability.notation
+import probability.stopping
 
 /-!
 # Martingales
@@ -18,7 +17,7 @@ and for all `i ≤ j`, `μ[f j | ℱ.le i] ≤ᵐ[μ] f i`. Finally, `f : ι →
 submartingale with respect to the filtration `ℱ` if `f i` is integrable, `f` is adapted with
 resepct to `ℱ` and for all `i ≤ j`, `f i ≤ᵐ[μ] μ[f j | ℱ.le i]`.
 
-The definitions of filtration and adapted can be found in `probability_theory.stopping`.
+The definitions of filtration and adapted can be found in `probability.stopping`.
 
 ### Definitions
 

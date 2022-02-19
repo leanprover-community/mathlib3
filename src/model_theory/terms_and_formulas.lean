@@ -184,7 +184,7 @@ def equal (t₁ t₂ : L.term α) : (L.formula α) :=
 bd_equal (t₁.relabel sum.inl) (t₂.relabel sum.inl)
 
 /-- A formula consisting of a relation symbol applied to terms. -/
-def rel {n : ℕ} (R : L.relations n) (ts : fin n → L.term α) :
+@[protected] def rel {n : ℕ} (R : L.relations n) (ts : fin n → L.term α) :
   L.formula α := bd_rel R (λ i, (ts i).relabel sum.inl)
 
 /-- The graph of a function as a first-order formula. -/
@@ -310,7 +310,7 @@ realize_inf _ _ _ _
 bounded_formula.realize_bd_imp _ _ _ _
 
 @[simp] lemma realize_rel {k : ℕ} {R : L.relations k} {ts : fin k → L.term α} :
-  realize_formula M (rel R ts) v =
+  realize_formula M (formula.rel R ts) v =
     rel_map R (λ i, realize_term v (ts i)) :=
 (realize_bd_rel v fin_zero_elim R (λ i, (ts i).relabel sum.inl)).trans
     (congr rfl (funext (λ i, by simp only [realize_term_relabel, sum.elim_comp_inl])))

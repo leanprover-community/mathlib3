@@ -11,6 +11,8 @@ namespace alg_hom
 variables {R A B : Type*}
 variables [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
 
+/- todo: feel like i shouldn't need this, but had trouble with some types in
+ annihilating_ideal_generator_aeval_0 below, and this helped -/
 lemma same_value (f: A →ₐ[R] B) (a: A) : f a = f.to_ring_hom a := rfl
 
 end alg_hom

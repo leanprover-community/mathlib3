@@ -367,7 +367,7 @@ end
 
 /-! ### Induction principles involving factorizations -/
 
-/-- Given `P 0, P 1` and a way to extend `P a` to `P (p ^ k * a)`,
+/-- Given `P 0, P 1` and a way to extend `P a` to `P (p ^ n * a)` for prime `p` not dividing `a`,
 you can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
 def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
@@ -386,8 +386,7 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
     have ht : t = (k+2).factorization p := factors_count_eq,
     have hpt : p ^ t ∣ k + 2 := by { rw ht, exact pow_factorization_dvd _ _ },
     have htp : 0 < t :=
-    by { rw ht,
-         exact hp.factorization_pos_of_dvd (nat.succ_ne_zero (k + 1)) (min_fac_dvd _) },
+    by { rw ht, exact hp.factorization_pos_of_dvd (nat.succ_ne_zero _) (min_fac_dvd _) },
 
     convert h ((k + 2) / p ^ t) p t hp _ _,
     { rw nat.mul_div_cancel' hpt },
@@ -395,8 +394,7 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
       exact pow_succ_factorization_not_dvd (k + 1).succ_ne_zero hp },
 
     apply hk _ (nat.div_lt_of_lt_mul _),
-    rw [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne],
-    exact hp.one_lt
+    simp [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne, hp.one_lt],
     end
   end
 

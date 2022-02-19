@@ -197,14 +197,12 @@ end
 
 lemma pow_factorization_dvd (n p : ℕ) : p ^ n.factorization p ∣ n :=
 begin
+  by_cases hp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n p hp] },
   rw ←factors_count_eq,
-  by_cases hp : p.prime,
-  { apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
-    rw [hp.factors_pow, list.subperm_ext_iff],
-    intros q hq,
-    simp [list.eq_of_mem_repeat hq] },
-  { rw count_eq_zero_of_not_mem (mt prime_of_mem_factors hp),
-    simp },
+  apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
+  rw [hp.factors_pow, list.subperm_ext_iff],
+  intros q hq,
+  simp [list.eq_of_mem_repeat hq],
 end
 
 lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :

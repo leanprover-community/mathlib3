@@ -157,7 +157,7 @@ end
 
 @[to_additive bot.is_add_cyclic]
 instance bot.is_cyclic {α : Type u} [group α] : is_cyclic (⊥ : subgroup α) :=
-⟨⟨1, λ x, ⟨0, subtype.eq $ eq.symm (subgroup.mem_bot.1 x.2)⟩⟩⟩
+⟨⟨1, λ x, ⟨0, subtype.eq $ (zpow_zero (1 : α)).trans $ eq.symm (subgroup.mem_bot.1 x.2)⟩⟩⟩
 
 @[to_additive add_subgroup.is_add_cyclic]
 instance subgroup.is_cyclic {α : Type u} [group α] [is_cyclic α] (H : subgroup α) : is_cyclic H :=

@@ -1376,9 +1376,18 @@ begin
       (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right le_rfl)⟩
 end
 
+theorem has_sum_lintegral_measure {ι} {m : measurable_space α} (f : α → ℝ≥0∞) (μ : ι → measure α) :
+  has_sum (λ i, ∫⁻ a, f a ∂(μ i)) (∫⁻ a, f a ∂(measure.sum μ)) :=
+(lintegral_sum_measure f μ).symm ▸ ennreal.summable.has_sum
+
 @[simp] lemma lintegral_add_measure {m : measurable_space α} (f : α → ℝ≥0∞) (μ ν : measure α) :
   ∫⁻ a, f a ∂ (μ + ν) = ∫⁻ a, f a ∂μ + ∫⁻ a, f a ∂ν :=
 by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
+
+@[simp] lemma lintegral_finset_sum_measure {ι} {m : measurable_space α} (s : finset ι)
+  (f : α → ℝ≥0∞) (μ : ι → measure α) :
+  ∫⁻ a, f a ∂(∑ i in s, μ i) = ∑ i in s, ∫⁻ a, f a ∂μ i :=
+by { rw [← measure.sum_coe_finset, lintegral_sum_measure, ← finset.tsum_subtype'], refl }
 
 @[simp] lemma lintegral_zero_measure {m : measurable_space α} (f : α → ℝ≥0∞) :
   ∫⁻ a, f a ∂(0 : measure α) = 0 :=

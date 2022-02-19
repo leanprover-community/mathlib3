@@ -197,24 +197,6 @@ group_filter_basis.is_topological_group (gal_group_basis K L)
 
 section krull_t2
 
-section a
-variables (F α : Sort*) (β : α → Sort*)
-variables {F α β} [i : fun_like F α β]
-include i
-
-lemma fun_like.exists_ne {f g : F} (h : f ≠ g) : ∃ x, f x ≠ g x :=
-not_forall.mp $ mt (fun_like.ext _ _) h
-end a
-
-/-- If `f,g : L → L` are distinct `K`-algebra equivalences, then there is some `x ∈ L` with
-  `f(x) ≠ g(x)`. -/
-lemma diff_equivs_have_diff_values {K L : Type*} [field K] [field L] [algebra K L]
-{f g : L ≃ₐ[K] L} (h : f ≠ g) :
-∃ (x : L), f x ≠ g x :=
-begin
-  contrapose! h,
-  exact alg_equiv.ext h,
-end
 
 open_locale topological_space filter
 
@@ -257,7 +239,7 @@ t2_space (L ≃ₐ[K] L)  :=
 begin
   intros f g hfg,
   let φ := f⁻¹ * g,
-  cases (diff_equivs_have_diff_values hfg) with x hx,
+  cases (fun_like.exists_ne hfg) with x hx,
   have hφx : φ x ≠ x,
   { change f⁻¹(g x) ≠ x,
     apply ne_of_apply_ne f,

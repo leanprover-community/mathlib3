@@ -1575,7 +1575,7 @@ begin
     exact ae_measurable'_condexp_L1_clm _, },
   { rw condexp_L1_undef hf,
     refine ae_measurable'.congr _ (coe_fn_zero _ _ _).symm,
-    exact measurable.ae_measurable' (@measurable_zero _ _ m _ _), },
+    exact measurable.ae_measurable' (@measurable_zero _ _ _ m _), },
 end
 
 lemma integrable_condexp_L1 (f : α → F') : integrable (condexp_L1 hm μ f) μ :=
@@ -1676,7 +1676,7 @@ begin
 end
 
 @[simp] lemma condexp_zero : μ[(0 : α → F')|m,hm] = 0 :=
-condexp_of_measurable (@measurable_zero _ _ m _ _) (integrable_zero _ _ _)
+condexp_of_measurable (@measurable_zero _ _ _ m _) (integrable_zero _ _ _)
 
 lemma measurable_condexp : measurable[m] (μ[f|m,hm]) :=
 begin

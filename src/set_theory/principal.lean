@@ -290,7 +290,7 @@ end
 
 theorem principal_mul_omega : principal (*) omega :=
 λ a b ha hb, match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_mul]; apply nat_lt_omega
+| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by { rw [← nat_cast_mul], apply nat_lt_omega }
 end
 
 theorem mul_omega {a : ordinal} (a0 : 0 < a) (ha : a < omega) : a * omega = omega :=
@@ -328,28 +328,6 @@ end
 theorem principal_mul_omega_opow_opow (o : ordinal) : principal (*) (omega ^ omega ^ o) :=
 principal_mul_iff_mul_left_eq.2 (λ a, mul_omega_opow_opow)
 
-theorem mul_omega_dvd {a : ordinal}
-  (a0 : 0 < a) (ha : a < omega) : ∀ {b}, omega ∣ b → a * b = b
-| _ ⟨b, rfl⟩ := by rw [← mul_assoc, mul_omega a0 ha]
-
-theorem mul_eq_opow_log_succ {a b : ordinal.{u}} (ha : 0 < a) (hb : principal (*) b) (hb₂ : 2 < b) :
-  a * b = b ^ (log b a).succ :=
-begin
-  apply le_antisymm,
-  { have hbl := principal_mul_is_limit hb₂ hb,
-    rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha) hbl, bsup_le],
-    intros c hcb,
-    have hb₁ : 1 < b := (lt_succ_self 1).trans hb₂,
-    have hbo₀ : b ^ b.log a ≠ 0 := ordinal.pos_iff_ne_zero.1 (opow_pos _ (zero_lt_one.trans hb₁)),
-    apply le_trans (mul_le_mul_right' (le_of_lt (lt_mul_succ_div a hbo₀)) c),
-    rw [mul_assoc, opow_succ],
-    refine mul_le_mul_left' (le_of_lt (hb (hbl.2 _ _) hcb)) _,
-    rw [div_lt hbo₀, ←opow_succ],
-    exact lt_opow_succ_log hb₁ _ },
-  { rw opow_succ,
-    exact mul_le_mul_right' (opow_log_le b ha) b }
-end
-
 theorem principal_add_of_principal_mul_opow {o b : ordinal} (hb : 1 < b)
   (ho : principal (*) (b ^ o)) : principal (+) o :=
 λ x y hx hy, begin
@@ -375,6 +353,28 @@ begin
   { rintro (ho₂ | ⟨a, rfl⟩),
     { exact principal_mul_of_le_two ho₂ },
     { exact principal_mul_omega_opow_opow a } }
+end
+
+theorem mul_omega_dvd {a : ordinal}
+  (a0 : 0 < a) (ha : a < omega) : ∀ {b}, omega ∣ b → a * b = b
+| _ ⟨b, rfl⟩ := by rw [← mul_assoc, mul_omega a0 ha]
+
+theorem mul_eq_opow_log_succ {a b : ordinal.{u}} (ha : 0 < a) (hb : principal (*) b) (hb₂ : 2 < b) :
+  a * b = b ^ (log b a).succ :=
+begin
+  apply le_antisymm,
+  { have hbl := principal_mul_is_limit hb₂ hb,
+    rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha) hbl, bsup_le],
+    intros c hcb,
+    have hb₁ : 1 < b := (lt_succ_self 1).trans hb₂,
+    have hbo₀ : b ^ b.log a ≠ 0 := ordinal.pos_iff_ne_zero.1 (opow_pos _ (zero_lt_one.trans hb₁)),
+    apply le_trans (mul_le_mul_right' (le_of_lt (lt_mul_succ_div a hbo₀)) c),
+    rw [mul_assoc, opow_succ],
+    refine mul_le_mul_left' (le_of_lt (hb (hbl.2 _ _) hcb)) _,
+    rw [div_lt hbo₀, ←opow_succ],
+    exact lt_opow_succ_log hb₁ _ },
+  { rw opow_succ,
+    exact mul_le_mul_right' (opow_log_le b ha) b }
 end
 
 /-! #### Exponential principal ordinals -/

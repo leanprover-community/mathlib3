@@ -233,9 +233,8 @@ begin
   refine not_solvable_of_mem_derived_series x_ne_one (λ n, _),
   induction n with n ih,
   { exact mem_top x },
-  { rw key,
-    exact (derived_series_normal _ _).conj_mem _
-      (commutator_mem_commutator ih ((derived_series_normal _ _).conj_mem _ ih _)) _ },
+  { rw [key, (derived_series_normal _ _).mem_comm_iff, inv_mul_cancel_left],
+    exact commutator_mem_commutator ih ((derived_series_normal _ _).conj_mem _ ih _) },
 end
 
 lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :

@@ -180,7 +180,7 @@ theorem principal_add_omega_opow (o : ordinal) : principal (+) (omega ^ o) :=
 principal_add_iff_add_left_eq_self.2 (λ a, add_omega_opow)
 
 /-- The main characterization theorem for additive principal ordinals. -/
-theorem principal_add_iff_zero_or_omega_power {o : ordinal} :
+theorem principal_add_iff_zero_or_omega_opow {o : ordinal} :
   principal (+) o ↔ o = 0 ∨ ∃ a, o = omega ^ a :=
 begin
   rcases eq_or_ne o 0 with rfl | ho,
@@ -224,16 +224,6 @@ begin
       assumption' } }
 end
 
-theorem opow_principal_add_is_principal_add {a} (ha : principal (+) a) (b : ordinal) :
-  principal (+) (a ^ b) :=
-begin
-  rcases principal_add_iff_zero_or_omega_power.1 ha with rfl | ⟨c, rfl⟩,
-  { rcases eq_or_ne b 0 with rfl | hb,
-    { rw opow_zero, exact principal_add_one },
-    { rwa zero_opow hb } },
-  { rw ←opow_mul, exact principal_add_omega_opow _ }
-end
-
 /-! #### Multiplicative principal ordinals -/
 
 theorem principal_mul_one : principal (*) 1 :=
@@ -248,7 +238,7 @@ begin
   exact (mul_one 1).symm
 end
 
-theorem le_two_mul_principal {o : ordinal} (ho : o ≤ 2) : principal (*) o :=
+theorem principal_mul_of_le_two {o : ordinal} (ho : o ≤ 2) : principal (*) o :=
 begin
   rcases lt_or_eq_of_le ho with ho | rfl,
   { have h₂ : (1 : ordinal).succ = 2 := rfl,
@@ -335,26 +325,6 @@ end
 theorem principal_mul_omega_opow_opow (o : ordinal) : principal (*) (omega ^ omega ^ o) :=
 principal_mul_iff_mul_left_eq.2 (λ a, mul_omega_opow_opow)
 
--- remove?
-theorem opow_omega_mul_principal (o : ordinal.{u}) : principal (*) (o ^ omega.{u}) :=
-begin
-  cases le_or_gt o 1 with ho ho,
-  { rcases le_one_iff.1 ho with rfl | rfl,
-    { rw zero_opow omega_ne_zero,
-      exact principal_zero },
-    rw one_opow,
-    exact principal_mul_one },
-  { intros a b hao hbo,
-    have ho₀ : o ≠ 0 := λ h, by { subst h, exact zero_lt_one.not_lt ho },
-    rw lt_opow_of_limit ho₀ omega_is_limit at hao,
-    rw lt_opow_of_limit ho₀ omega_is_limit at hbo,
-    rcases hao with ⟨m, hm, hm'⟩,
-    rcases hbo with ⟨n, hn, hn'⟩,
-    apply (mul_le_mul' (le_of_lt hm') (le_of_lt hn')).trans_lt,
-    rw [←opow_add, opow_lt_opow_iff_right ho],
-    exact principal_add_omega hm hn }
-end
-
 theorem mul_omega_dvd {a : ordinal}
   (a0 : 0 < a) (ha : a < omega) : ∀ {b}, omega ∣ b → a * b = b
 | _ ⟨b, rfl⟩ := by rw [← mul_assoc, mul_omega a0 ha]
@@ -377,14 +347,40 @@ begin
     exact mul_le_mul_right' (opow_log_le b ha) b }
 end
 
-/-! #### Exponential principal ordinals -/
-
-theorem principal_opow_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a ^ b < omega :=
-match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_opow]; apply nat_lt_omega
+theorem principal_add_of_principal_mul_opow {o b : ordinal} (hb : 1 < b)
+  (ho : principal (*) (b ^ o)) : principal (+) o :=
+λ x y hx hy, begin
+  have := ho ((opow_lt_opow_iff_right hb).2 hx) ((opow_lt_opow_iff_right hb).2 hy),
+  rwa [←opow_add, opow_lt_opow_iff_right hb] at this
 end
 
--- golf
+/-- The main characterization theorem for multiplicative principal ordinals. -/
+theorem principal_mul_iff_le_two_or_omega_opow_opow {o : ordinal} :
+  principal (*) o ↔ o ≤ 2 ∨ ∃ a, o = omega ^ omega ^ a :=
+begin
+  refine ⟨λ ho, _, _⟩,
+  { cases le_or_lt o 2 with ho₂ ho₂,
+    { exact or.inl ho₂ },
+    rcases principal_add_iff_zero_or_omega_opow.1 (principal_add_of_principal_mul ho ho₂.ne')
+      with rfl | ⟨a, rfl⟩,
+    { exact (ordinal.not_lt_zero 2 ho₂).elim },
+    rcases principal_add_iff_zero_or_omega_opow.1
+      (principal_add_of_principal_mul_opow one_lt_omega ho) with rfl | ⟨b, rfl⟩,
+    { rw opow_zero at ho₂,
+      exact ((lt_succ_self 1).not_le ho₂.le).elim },
+    exact or.inr ⟨b, rfl⟩ },
+  { rintro (ho₂ | ⟨a, rfl⟩),
+    { exact principal_mul_of_le_two ho₂ },
+    { exact principal_mul_omega_opow_opow a } }
+end
+
+/-! #### Exponential principal ordinals -/
+
+theorem principal_opow_omega : principal (^) omega :=
+λ a b ha hb, match a, b, lt_omega.1 ha, lt_omega.1 hb with
+| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by { simp_rw ←nat_cast_opow, apply nat_lt_omega }
+end
+
 theorem opow_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omega :=
 le_antisymm
   ((opow_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2

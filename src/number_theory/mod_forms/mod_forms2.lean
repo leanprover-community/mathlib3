@@ -254,6 +254,8 @@ begin
   rw pown,
   ring,
 end
+
+
 open_locale direct_sum
 
 /-
@@ -432,6 +434,25 @@ begin
  apply H,
  norm_cast,
  exact dec_trivial,
+end
+
+/-- The product of two bounded-at-infinity functions is bounded-at-infinty --/
+lemma prod_of_bound_is_bound (f: ℍ → ℂ) (g: ℍ → ℂ) :
+  (f ∈ is_bound_at_infinity) ∧ (g ∈ is_bound_at_infinity) → ((f * g) ∈ is_bound_at_infinity) :=
+begin
+  intro h,
+  cases h with hf hg,
+  simp [is_bound_at_infinity] at *,
+  obtain ⟨Mf, Af, hMAf⟩:= hf,
+  obtain ⟨Mg, Ag, hMAg⟩:= hg,
+  refine ⟨Mf * Mg, max Af Ag, _⟩,
+  intros z hz hAfg,
+  simp at *,
+  apply mul_le_mul,
+  apply hMAf z hz hAfg.1,
+  apply hMAg z hz hAfg.2,
+  apply complex.abs_nonneg,
+  apply le_trans (complex.abs_nonneg (f(⟨z, hz⟩))) (hMAf z hz hAfg.1),
 end
 
 /--The extension of a function from `ℍ` to `ℍ'`-/

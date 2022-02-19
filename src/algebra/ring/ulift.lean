@@ -82,4 +82,18 @@ by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub
   zsmul := sub_neg_monoid.zsmul };
 tactic.pi_instance_derive_field
 
+instance nontrivial [nontrivial α] : nontrivial (ulift α) :=
+let ⟨x, y, h⟩ := @nontrivial.exists_pair_ne α _ in
+⟨⟨ulift.up x, ulift.up y, by { rintro ⟨h⟩, contradiction }⟩⟩
+
+instance field [field α] : field (ulift α) :=
+begin refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub := has_sub.sub,
+  neg := has_neg.neg, nsmul := add_monoid.nsmul, npow := monoid.npow, zsmul := sub_neg_monoid.zsmul,
+  inv := has_inv.inv, div := has_div.div, zpow := λ n a, ulift.up (a.down ^ n),
+  exists_pair_ne := ulift.nontrivial.exists_pair_ne }; tactic.pi_instance_derive_field,
+  intro h,
+  cases a,
+  exact ᾰ (congr_arg up h)
+end
+
 end ulift

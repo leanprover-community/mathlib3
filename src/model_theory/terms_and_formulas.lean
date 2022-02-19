@@ -108,7 +108,7 @@ inductive bounded_formula (α : Type) : ℕ → Type (max u v)
 | bd_equal {n} (t₁ t₂ : L.term (α ⊕ fin n)) : bounded_formula n
 | bd_rel {n l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)) : bounded_formula n
 | bd_imp {n} (f₁ f₂ : bounded_formula n) : bounded_formula n
-| bd_all {n} (f : bounded_formula (n+1)) : bounded_formula n
+| bd_all {n} (f : bounded_formula (n + 1)) : bounded_formula n
 
 export bounded_formula
 

@@ -76,7 +76,7 @@ end defs
 
 
 lemma is_unit.smul_sub_iff_sub_inv_smul {R : Type u} {A : Type v}
-  [comm_ring R] [ring A] [algebra R A] {r : units R} {a : A} :
+  [comm_ring R] [ring A] [algebra R A] {r : Rˣ} {a : A} :
   is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
 begin
   have a_eq : a = r•r⁻¹•a, by simp,
@@ -85,6 +85,7 @@ begin
 end
 
 namespace spectrum
+open_locale polynomial
 
 section scalar_ring
 
@@ -125,7 +126,7 @@ begin
   rw h_eq,
 end
 
-lemma smul_mem_smul_iff {a : A} {s : R} {r : units R} :
+lemma smul_mem_smul_iff {a : A} {s : R} {r : Rˣ} :
   r • s ∈ σ (r • a) ↔ s ∈ σ a :=
 begin
   apply not_iff_not.mpr,
@@ -134,9 +135,9 @@ begin
   rw [h_eq, ←smul_sub, is_unit_smul_iff],
 end
 
-open_locale pointwise
+open_locale pointwise polynomial
 
-theorem unit_smul_eq_smul (a : A) (r : units R) :
+theorem unit_smul_eq_smul (a : A) (r : Rˣ) :
   σ (r • a) = r • σ a :=
 begin
   ext,
@@ -153,8 +154,8 @@ theorem left_add_coset_eq (a : A) (r : R) :
 by { ext, rw [mem_left_add_coset_iff, neg_add_eq_sub, add_mem_iff],
      nth_rewrite 1 ←sub_add_cancel x r, }
 
--- `r ∈ σ(a*b) ↔ r ∈ σ(b*a)` for any `r : units R`
-theorem unit_mem_mul_iff_mem_swap_mul {a b : A} {r : units R} :
+-- `r ∈ σ(a*b) ↔ r ∈ σ(b*a)` for any `r : Rˣ`
+theorem unit_mem_mul_iff_mem_swap_mul {a b : A} {r : Rˣ} :
   ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=
 begin
   apply not_iff_not.mpr,
@@ -182,7 +183,7 @@ begin
 end
 
 theorem preimage_units_mul_eq_swap_mul {a b : A} :
-  (coe : units R → R) ⁻¹' σ (a * b) = coe ⁻¹'  σ (b * a) :=
+  (coe : Rˣ → R) ⁻¹' σ (a * b) = coe ⁻¹'  σ (b * a) :=
 by { ext, exact unit_mem_mul_iff_mem_swap_mul, }
 
 end scalar_ring
@@ -247,7 +248,7 @@ open polynomial
 /-- Half of the spectral mapping theorem for polynomials. We prove it separately
 because it holds over any field, whereas `spectrum.map_polynomial_aeval_of_degree_pos` and
 `spectrum.map_polynomial_aeval_of_nonempty` need the field to be algebraically closed. -/
-theorem subset_polynomial_aeval (a : A) (p : polynomial 𝕜) :
+theorem subset_polynomial_aeval (a : A) (p : 𝕜[X]) :
   (λ k, eval k p) '' (σ a) ⊆ σ (aeval a p) :=
 begin
   rintros _ ⟨k, hk, rfl⟩,
@@ -262,7 +263,7 @@ begin
   simpa only [aeval_X, aeval_C, alg_hom.map_sub] using hk,
 end
 
-lemma exists_mem_of_not_is_unit_aeval_prod {p : polynomial 𝕜} {a : A} (hp : p ≠ 0)
+lemma exists_mem_of_not_is_unit_aeval_prod {p : 𝕜[X]} {a : A} (hp : p ≠ 0)
   (h : ¬is_unit (aeval a (multiset.map (λ (x : 𝕜), X - C x) p.roots).prod)) :
   ∃ k : 𝕜, k ∈ σ a ∧ eval k p = 0 :=
 begin
@@ -277,7 +278,7 @@ end
 /-- The *spectral mapping theorem* for polynomials.  Note: the assumption `degree p > 0`
 is necessary in case `σ a = ∅`, for then the left-hand side is `∅` and the right-hand side,
 assuming `[nontrivial A]`, is `{k}` where `p = polynomial.C k`. -/
-theorem map_polynomial_aeval_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : polynomial 𝕜)
+theorem map_polynomial_aeval_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : 𝕜[X])
   (hdeg : 0 < degree p) : σ (aeval a p) = (λ k, eval k p) '' (σ a) :=
 begin
   /- handle the easy direction via `spectrum.subset_polynomial_aeval` -/
@@ -302,7 +303,7 @@ end
 /-- In this version of the spectral mapping theorem, we assume the spectrum
 is nonempty instead of assuming the degree of the polynomial is positive. Note: the
 assumption `[nontrivial A]` is necessary for the same reason as in `spectrum.zero_eq`. -/
-theorem map_polynomial_aeval_of_nonempty [is_alg_closed 𝕜] [nontrivial A] (a : A) (p : polynomial 𝕜)
+theorem map_polynomial_aeval_of_nonempty [is_alg_closed 𝕜] [nontrivial A] (a : A) (p : 𝕜[X])
   (hnon : (σ a).nonempty) : σ (aeval a p) = (λ k, eval k p) '' (σ a) :=
 begin
   refine or.elim (le_or_gt (degree p) 0) (λ h, _) (map_polynomial_aeval_of_degree_pos a p),
@@ -310,6 +311,39 @@ begin
     simp only [set.image_congr, eval_C, aeval_C, scalar_eq, set.nonempty.image_const hnon] },
 end
 
+variable (𝕜)
+/--
+Every element `a` in a nontrivial finite-dimensional algebra `A`
+over an algebraically closed field `𝕜` has non-empty spectrum. -/
+-- We will use this both to show eigenvalues exist, and to prove Schur's lemma.
+lemma nonempty_of_is_alg_closed_of_finite_dimensional [is_alg_closed 𝕜]
+  [nontrivial A] [I : finite_dimensional 𝕜 A] (a : A) :
+  ∃ k : 𝕜, k ∈ σ a :=
+begin
+  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian (is_noetherian.iff_fg.2 I) a,
+  have nu : ¬ is_unit (aeval a p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simp, },
+  rw [eq_prod_roots_of_monic_of_splits_id h_mon (is_alg_closed.splits p)] at nu,
+  obtain ⟨k, hk, _⟩ := exists_mem_of_not_is_unit_aeval_prod (monic.ne_zero h_mon) nu,
+  exact ⟨k, hk⟩
+end
+
 end scalar_field
 
 end spectrum
+
+namespace alg_hom
+
+variables {R : Type*} {A : Type*} [comm_ring R] [ring A] [algebra R A]
+local notation `σ` := spectrum R
+local notation `↑ₐ` := algebra_map R A
+
+lemma apply_mem_spectrum [nontrivial R] (φ : A →ₐ[R] R) (a : A) : φ a ∈ σ a :=
+begin
+  have h : ↑ₐ(φ a) - a ∈ φ.to_ring_hom.ker,
+  { simp only [ring_hom.mem_ker, coe_to_ring_hom, commutes, algebra.id.map_eq_id,
+               to_ring_hom_eq_coe, ring_hom.id_apply, sub_self, map_sub] },
+  simp only [spectrum.mem_iff, ←mem_nonunits_iff,
+             coe_subset_nonunits (φ.to_ring_hom.ker_ne_top) h],
+end
+
+end alg_hom

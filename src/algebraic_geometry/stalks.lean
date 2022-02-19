@@ -36,7 +36,7 @@ namespace algebraic_geometry.PresheafedSpace
 /--
 The stalk at `x` of a `PresheafedSpace`.
 -/
-def stalk (X : PresheafedSpace C) (x : X) : C := X.presheaf.stalk x
+abbreviation stalk (X : PresheafedSpace C) (x : X) : C := X.presheaf.stalk x
 
 /--
 A morphism of presheafed spaces induces a morphism of stalks.

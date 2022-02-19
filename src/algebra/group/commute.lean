@@ -90,7 +90,7 @@ end mul_one_class
 
 section monoid
 
-variables {M : Type*} [monoid M] {a b : M} {u u₁ u₂ : units M}
+variables {M : Type*} [monoid M] {a b : M} {u u₁ u₂ : Mˣ}
 
 @[simp, to_additive]
 theorem pow_right (h : commute a b) (n : ℕ) : commute a (b ^ n) := h.pow_right n

@@ -34,14 +34,13 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 open real set filter is_R_or_C
 open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
 
-local attribute [instance] fact_one_le_two_real
-
-local attribute [instance] fact_one_le_two_real
-
 noncomputable theory
 
 variables {ι : Type*}
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E]
+variables {E' : Type*} [inner_product_space 𝕜 E']
+variables {F : Type*} [inner_product_space ℝ F]
+variables {F' : Type*} [inner_product_space ℝ F']
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 /-
@@ -71,7 +70,7 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   begin
     intros x y,
     unfold inner,
-    rw ring_equiv.map_sum,
+    rw ring_hom.map_sum,
     apply finset.sum_congr rfl,
     rintros z -,
     apply inner_conj_sym,
@@ -122,7 +121,7 @@ lemma finrank_euclidean_space_fin {n : ℕ} :
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/
 def direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family
   [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
-  (hV' : orthogonal_family 𝕜 V) :
+  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
   E ≃ₗᵢ[𝕜] pi_Lp 2 (λ i, V i) :=
 begin
   let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
@@ -133,14 +132,15 @@ begin
     convert this (e₁ (e₂.symm v₀)) (e₁ (e₂.symm w₀));
     simp only [linear_equiv.symm_apply_apply, linear_equiv.apply_symm_apply] },
   intros v w,
-  transitivity ⟪(∑ i, (v i : E)), ∑ i, (w i : E)⟫,
-  { simp [sum_inner, hV'.inner_right_fintype] },
+  transitivity ⟪(∑ i, (V i).subtypeₗᵢ (v i)), ∑ i, (V i).subtypeₗᵢ (w i)⟫,
+  { simp only [sum_inner, hV'.inner_right_fintype, pi_Lp.inner_apply] },
   { congr; simp }
 end
 
 @[simp] lemma direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
   [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
-  (hV' : orthogonal_family 𝕜 V) (w : pi_Lp 2 (λ i, V i)) :
+  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
+  (w : pi_Lp 2 (λ i, V i)) :
   (hV.isometry_L2_of_orthogonal_family hV').symm w = ∑ i, (w i : E) :=
 begin
   classical,
@@ -179,6 +179,16 @@ rfl
   ((v.isometry_euclidean_of_orthonormal hv).symm : euclidean_space 𝕜 ι → E) = v.equiv_fun.symm :=
 rfl
 
+/-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of inner product spaces then an orthonormal basis `v`
+of `E` determines a linear isometry `e : E' ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`. This result states that
+`e` may be obtained either by transporting `v` to `E'` or by composing with the linear isometry
+`E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι` provided by `v`. -/
+@[simp] lemma basis.map_isometry_euclidean_of_orthonormal (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v)
+  (f : E ≃ₗᵢ[𝕜] E') :
+  (v.map f.to_linear_equiv).isometry_euclidean_of_orthonormal (hv.map_linear_isometry_equiv f) =
+    f.symm.trans (v.isometry_euclidean_of_orthonormal hv) :=
+linear_isometry_equiv.to_linear_equiv_injective $ v.map_equiv_fun _
+
 end
 
 /-- `ℂ` is isometric to `ℝ²` with the Euclidean inner product. -/
@@ -211,6 +221,26 @@ by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
 @[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
   complex.isometry_euclidean z 1 = z.im :=
 by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+
+/-- The isometry between `ℂ` and a two-dimensional real inner product space given by a basis. -/
+def complex.isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) : ℂ ≃ₗᵢ[ℝ] F :=
+complex.isometry_euclidean.trans (v.isometry_euclidean_of_orthonormal hv).symm
+
+@[simp] lemma complex.map_isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v)
+  (f : F ≃ₗᵢ[ℝ] F') :
+  complex.isometry_of_orthonormal (hv.map_linear_isometry_equiv f) =
+    (complex.isometry_of_orthonormal hv).trans f :=
+by simp [complex.isometry_of_orthonormal, linear_isometry_equiv.trans_assoc]
+
+lemma complex.isometry_of_orthonormal_symm_apply
+  {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (f : F) :
+  (complex.isometry_of_orthonormal hv).symm f = (v.coord 0 f : ℂ) + (v.coord 1 f : ℂ) * I :=
+by simp [complex.isometry_of_orthonormal]
+
+lemma complex.isometry_of_orthonormal_apply
+  {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (z : ℂ) :
+  complex.isometry_of_orthonormal hv z = z.re • v 0 + z.im • v 1 :=
+by simp [complex.isometry_of_orthonormal, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1})]
 
 open finite_dimensional
 

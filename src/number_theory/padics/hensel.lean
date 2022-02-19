@@ -347,7 +347,7 @@ begin
   intros j hj,
   apply lt_of_le_of_lt,
   { apply newton_seq_dist _ _ hj, assumption },
-  { apply hN, apply le_refl }
+  { apply hN, exact le_rfl }
 end
 
 private def newton_cau_seq : cau_seq ℤ_[p] norm := ⟨_, newton_seq_is_cauchy⟩

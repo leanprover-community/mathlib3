@@ -70,7 +70,7 @@ begin
     { rw T.rayleigh_smul x this,
       exact hxT } },
   { rintros ⟨x, hx, hxT⟩,
-    exact ⟨x, nonzero_of_mem_sphere hr ⟨x, hx⟩, hxT⟩ },
+    exact ⟨x, ne_zero_of_mem_sphere hr.ne' ⟨x, hx⟩, hxT⟩ },
 end
 
 lemma supr_rayleigh_eq_supr_rayleigh_sphere {r : ℝ} (hr : 0 < r) :

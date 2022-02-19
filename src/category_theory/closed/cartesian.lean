@@ -283,7 +283,7 @@ limits.prod.braiding _ _ ≪≫ zero_mul t
 
 /-- If an initial object `0` exists in a CCC then `0^B ≅ 1` for any `B`. -/
 def pow_zero {I : C} (t : is_initial I) [cartesian_closed C] : I ⟹ B ≅ ⊤_ C :=
-{ hom := default _,
+{ hom := default,
   inv := cartesian_closed.curry ((mul_zero t).hom ≫ t.to _),
   hom_inv_id' :=
   begin

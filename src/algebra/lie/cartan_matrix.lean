@@ -96,7 +96,7 @@ inductive generators
 | E : B → generators
 | F : B → generators
 
-instance [inhabited B] : inhabited (generators B) := ⟨generators.H $ default B⟩
+instance [inhabited B] : inhabited (generators B) := ⟨generators.H default⟩
 
 variables {B}
 

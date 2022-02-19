@@ -33,11 +33,11 @@ variables {α : Type*} [linear_order α]
 `graph f` produces the finset of pairs `(f i, i)`
 equipped with the lexicographic order.
 -/
-def graph (f : fin n → α) : finset (lex α (fin n)) :=
+def graph (f : fin n → α) : finset (α ×ₗ (fin n)) :=
 finset.univ.image (λ i, (f i, i))
 
 /--
-Given `p : lex α (fin n) := (f i, i)` with `p ∈ graph f`,
+Given `p : α ×ₗ (fin n) := (f i, i)` with `p ∈ graph f`,
 `graph.proj p` is defined to be `f i`.
 -/
 def graph.proj {f : fin n → α} : graph f → α := λ p, p.1.1

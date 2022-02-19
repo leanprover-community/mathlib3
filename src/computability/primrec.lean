@@ -525,7 +525,7 @@ theorem option_map₁ {f : α → σ} (hf : primrec f) : primrec (option.map f) 
 option_map primrec.id (hf.comp snd).to₂
 
 theorem option_iget [inhabited α] : primrec (@option.iget α _) :=
-(option_cases primrec.id (const $ default α) primrec₂.right).of_eq $
+(option_cases primrec.id (const $ @default α _) primrec₂.right).of_eq $
 λ o, by cases o; refl
 
 theorem option_is_some : primrec (@option.is_some α) :=

@@ -37,7 +37,7 @@ def graded_object (β : Type w) (C : Type u) : Type (max w u) := β → C
 -- Satisfying the inhabited linter...
 instance inhabited_graded_object (β : Type w) (C : Type u) [inhabited C] :
   inhabited (graded_object β C) :=
-⟨λ b, inhabited.default C⟩
+⟨λ b, inhabited.default⟩
 
 /--
 A type synonym for `β → C`, used for `β`-graded objects in a category `C`

@@ -93,10 +93,6 @@ instance semi_normed_comm_ring.to_comm_ring [β : semi_normed_comm_ring α] : co
 instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_division_algebra.to_normed_group [β : normed_division_ring α] : normed_group α :=
-{ ..β }
-
-@[priority 100] -- see Note [lower instance priority]
 instance semi_normed_ring.to_semi_normed_group [β : semi_normed_ring α] :
   semi_normed_group α := { ..β }
 

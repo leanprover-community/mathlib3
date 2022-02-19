@@ -931,15 +931,6 @@ rfl
 
 instance : has_sub (M →SL[σ₁₂] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
 
-lemma continuous_zsmul : ∀ (n : ℤ), continuous (λ (x : M₂), n • x)
-| (n : ℕ) := by { simp only [coe_nat_zsmul], exact continuous_nsmul _ }
-| -[1+ n] := by { simp only [zsmul_neg_succ_of_nat], exact (continuous_nsmul _).neg }
-
-@[continuity]
-lemma continuous.zsmul {α : Type*} [topological_space α] {n : ℤ} {f : α → M₂} (hf : continuous f) :
-  continuous (λ (x : α), n • (f x)) :=
-(continuous_zsmul n).comp hf
-
 instance : add_comm_group (M →SL[σ₁₂] M₂) :=
 by refine
 { zero := 0,

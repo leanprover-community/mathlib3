@@ -250,6 +250,48 @@ hf.inv
 lemma is_compact.inv {s : set G} (hs : is_compact s) : is_compact (s⁻¹) :=
 by { rw [← image_inv], exact hs.image continuous_inv }
 
+section zpow
+
+@[continuity, to_additive]
+lemma continuous_zpow : ∀ z : ℤ, continuous (λ a : G, a ^ z)
+| (int.of_nat n) := by simpa using continuous_pow n
+| -[1+n] := by simpa using (continuous_pow (n + 1)).inv
+
+@[continuity, to_additive]
+lemma continuous.zpow {f : α → G} (h : continuous f) (z : ℤ) :
+  continuous (λ b, (f b) ^ z) :=
+(continuous_zpow z).comp h
+
+@[to_additive]
+lemma continuous_on_zpow {s : set G} (z : ℤ) : continuous_on (λ x, x ^ z) s :=
+(continuous_zpow z).continuous_on
+
+@[to_additive]
+lemma continuous_at_zpow (x : G) (z : ℤ) : continuous_at (λ x, x ^ z) x :=
+(continuous_zpow z).continuous_at
+
+@[to_additive]
+lemma filter.tendsto.zpow {α} {l : filter α} {f : α → G} {x : G} (hf : tendsto f l (𝓝 x)) (z : ℤ) :
+  tendsto (λ x, f x ^ z) l (𝓝 (x ^ z)) :=
+(continuous_at_zpow _ _).tendsto.comp hf
+
+@[to_additive]
+lemma continuous_within_at.zpow {f : α → G} {x : α} {s : set α} (hf : continuous_within_at f s x)
+  (z : ℤ) : continuous_within_at (λ x, f x ^ z) s x :=
+hf.zpow z
+
+@[to_additive]
+lemma continuous_at.zpow {f : α → G} {x : α} (hf : continuous_at f x) (z : ℤ) :
+  continuous_at (λ x, f x ^ z) x :=
+hf.zpow z
+
+@[to_additive continuous_on.zsmul]
+lemma continuous_on.zpow {f : α → G} {s : set α} (hf : continuous_on f s) (z : ℤ) :
+  continuous_on (λ x, f x ^ z) s :=
+λ x hx, (hf x hx).zpow z
+
+end zpow
+
 section ordered_comm_group
 
 variables [topological_space H] [ordered_comm_group H] [topological_group H]

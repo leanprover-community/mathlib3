@@ -110,12 +110,11 @@ end
 lemma general_commutator_prod_prod (K₁ K₂ : subgroup G') :
   ⁅H₁.prod K₁, H₂.prod K₂⁆ = ⁅H₁, H₂⁆.prod ⁅K₁, K₂⁆ :=
 begin
-  apply le_antisymm,
-  { rw commutator_le,
-    exact λ g₁ h₁ g₂ h₂, ⟨commutator_mem_commutator h₁.1 h₂.1, commutator_mem_commutator h₁.2 h₂.2⟩ },
-  { rw [prod_le_iff, map_commutator, map_commutator]; split; apply commutator_mono;
-    simp [le_prod_iff, map_map, monoid_hom.fst_comp_inl, monoid_hom.snd_comp_inl,
-        monoid_hom.fst_comp_inr, monoid_hom.snd_comp_inr] },
+  refine le_antisymm (commutator_le.mpr (λ g₁ h₁ g₂ h₂, ⟨commutator_mem_commutator h₁.1 h₂.1,
+    commutator_mem_commutator h₁.2 h₂.2⟩)) _,
+  rw [prod_le_iff, map_commutator, map_commutator]; split; apply commutator_mono;
+  simp [le_prod_iff, map_map, monoid_hom.fst_comp_inl, monoid_hom.snd_comp_inl,
+      monoid_hom.fst_comp_inr, monoid_hom.snd_comp_inr],
 end
 
 /-- The commutator of direct product is contained in the direct product of the commutators.
@@ -144,3 +143,5 @@ begin
 end
 
 end subgroup
+
+#lint

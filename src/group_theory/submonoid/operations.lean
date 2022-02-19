@@ -413,7 +413,8 @@ begin
   { simpa only [pow_succ] using S.mul_mem hx ih }
 end
 
-instance _root_.add_submonoid.has_nsmul {M : Type*} [add_monoid M] (S : add_submonoid M) : has_scalar ℕ S :=
+instance _root_.add_submonoid.has_nsmul {M : Type*} [add_monoid M] (S : add_submonoid M) :
+  has_scalar ℕ S :=
 ⟨λ n x, ⟨n • x, S.nsmul_mem x.prop _⟩⟩
 
 @[to_additive has_nsmul]

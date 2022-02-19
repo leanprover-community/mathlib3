@@ -398,12 +398,14 @@ instance grade_zero.ring : ring (A 0) :=
 function.injective.ring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
   (of A 0).map_neg (of A 0).map_sub
-  (λ x n, by {
+  (λ x n, begin
     letI : Π i, distrib_mul_action ℕ (A i) := λ i, infer_instance,
-    exact dfinsupp.single_smul n x })
-  (λ x n, by {
+    exact dfinsupp.single_smul n x
+  end)
+  (λ x n, begin
     letI : Π i, distrib_mul_action ℤ (A i) := λ i, infer_instance,
-    exact dfinsupp.single_smul n x }) (λ x n, of_zero_pow _ _ _)
+    exact dfinsupp.single_smul n x
+  end) (λ x n, of_zero_pow _ _ _)
 
 end ring
 
@@ -415,12 +417,14 @@ instance grade_zero.comm_ring : comm_ring (A 0) :=
 function.injective.comm_ring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
   (of A 0).map_neg (of A 0).map_sub
-  (λ x n, by {
+  (λ x n, begin
     letI : Π i, distrib_mul_action ℕ (A i) := λ i, infer_instance,
-    exact dfinsupp.single_smul n x })
-  (λ x n, by {
+    exact dfinsupp.single_smul n x
+  end)
+  (λ x n, begin
     letI : Π i, distrib_mul_action ℤ (A i) := λ i, infer_instance,
-    exact dfinsupp.single_smul n x }) (λ x n, of_zero_pow _ _ _)
+    exact dfinsupp.single_smul n x
+  end) (λ x n, of_zero_pow _ _ _)
 
 end comm_ring
 

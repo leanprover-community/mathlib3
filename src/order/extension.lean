@@ -85,10 +85,13 @@ noncomputable instance {α : Type u} [partial_order α] : linear_order (linear_e
   decidable_le := classical.dec_rel _ }
 
 /-- The embedding of `α` into `linear_extension α` as a relation homomorphism. -/
-def to_linear_extension {α : Type u} [partial_order α] :
+def to_linear_extension (α : Type u) [partial_order α] :
   ((≤) : α → α → Prop) →r ((≤) : linear_extension α → linear_extension α → Prop) :=
 { to_fun := λ x, x,
   map_rel' := λ a b, (extend_partial_order ((≤) : α → α → Prop)).some_spec.some_spec _ _ }
+
+lemma bijective_to_linear_extension {α : Type u} [partial_order α] :
+  function.bijective (to_linear_extension α) := function.bijective_id
 
 instance {α : Type u} [inhabited α] : inhabited (linear_extension α) :=
 ⟨(default : α)⟩
@@ -274,15 +277,6 @@ end
 end
 .
 
-instance : ordered_comm_monoid.is_normal ℕ :=
-⟨λ (x y : ℕ) (h : ∃ {n : ℕ} (hn : n ≠ 0), y ^ n ≤ x ^ n),
-begin
-  contrapose! h,
-  simp_rw ← pos_iff_ne_zero,
-  intros n hn,
-  exact pow_lt_pow_of_lt_left h (zero_le x) hn,
-end⟩
-
 
 section
 variables {M : Type*} [monoid M] [preorder M] [covariant_class M M (*) (<)]
@@ -317,25 +311,42 @@ end
 attribute [mono] nsmul_lt_nsmul_of_lt_right
 
 -- TODO is cancel needed?
-theorem nsmul_le_nsmul_iff' {α : Type*} [linear_ordered_cancel_add_comm_monoid α ]
-  {n : ℕ} (hn : 0 < n) {a₁ a₂ : α} : n • a₁ ≤ n • a₂ ↔ a₁ ≤ a₂ :=
+@[to_additive nsmul_le_nsmul_iff']
+theorem pow_le_pow_iff' {α : Type*} [linear_ordered_cancel_comm_monoid α ]
+  {n : ℕ} (hn : 0 < n) {a₁ a₂ : α} : a₁ ^ n ≤ a₂ ^ n ↔ a₁ ≤ a₂ :=
 begin
   split; intro h,
   { contrapose! h,
-    exact nsmul_lt_nsmul_of_lt_right h hn, },
-  exact nsmul_le_nsmul_of_le_right h _,
+    exact pow_lt_pow_of_lt_left' h hn, },
+  exact pow_le_pow_of_le_left' h _,
 end
 
-theorem nsmul_lt_nsmul_iff' {α : Type*} [linear_ordered_cancel_add_comm_monoid α ]
-  {n : ℕ} (hn : 0 < n) {a₁ a₂ : α} : n • a₁ < n • a₂ ↔ a₁ < a₂ :=
+@[to_additive nsmul_lt_nsmul_iff']
+theorem pow_lt_pow_iff' {α : Type*} [linear_ordered_cancel_comm_monoid α ]
+  {n : ℕ} (hn : 0 < n) {a₁ a₂ : α} : a₁ ^ n < a₂ ^ n ↔ a₁ < a₂ :=
 begin
   split; intro h,
   { contrapose! h,
-    exact nsmul_le_nsmul_of_le_right h _, },
-  exact nsmul_lt_nsmul_of_lt_right h hn,
+    exact pow_le_pow_of_le_left' h _, },
+  exact pow_lt_pow_of_lt_left' h hn,
 end
+
+-- this should be true for linear ordered monoid I guess?
+
+@[to_additive, priority 100]
+instance linear_ordered_cancel_comm_monoid.is_normal
+  {α : Type*} [linear_ordered_cancel_comm_monoid α] :
+  ordered_comm_monoid.is_normal α :=
+⟨λ (x y : α) (h : ∃ {n : ℕ} (hn : n ≠ 0), y ^ n ≤ x ^ n),
+begin
+  contrapose! h,
+  simp_rw ← pos_iff_ne_zero,
+  intros n hn,
+  rwa pow_lt_pow_iff' hn,
+end⟩
 
 -- this should be true for linear ordered add monoid I guess?
+@[priority 100]
 instance linear_ordered_semiring.is_normal {α : Type*} [linear_ordered_semiring α] :
   ordered_add_comm_monoid.is_normal α :=
 ⟨λ (x y : α) (h : ∃ {n : ℕ} (hn : n ≠ 0), n • y ≤ n • x),
@@ -347,21 +358,14 @@ begin
   rwa [nat.cast_pos],
 end⟩
 
--- this should be true for linear ordered add monoid I guess?
-instance linear_ordered_cancel_add_comm_monoid.is_normal
-  {α : Type*} [linear_ordered_cancel_add_comm_monoid α] :
-  ordered_add_comm_monoid.is_normal α :=
-⟨λ (x y : α) (h : ∃ {n : ℕ} (hn : n ≠ 0), n • y ≤ n • x),
+instance : ordered_comm_monoid.is_normal ℕ :=
+⟨λ (x y : ℕ) (h : ∃ {n : ℕ} (hn : n ≠ 0), y ^ n ≤ x ^ n),
 begin
   contrapose! h,
   simp_rw ← pos_iff_ne_zero,
   intros n hn,
-  rwa nsmul_lt_nsmul_iff' hn,
+  exact pow_lt_pow_of_lt_left h (zero_le x) hn,
 end⟩
-
-attribute [to_additive pi.nsmul_apply] pi.pow_apply -- PRed separately
-#print pi.pow_apply
-#print pi.smul_apply
 
 @[to_additive]
 instance {ι : Type*} {α : ι → Type*} [∀ i, ordered_comm_monoid (α i)]
@@ -379,11 +383,10 @@ instance {ι : Type*} {α : Type*} [ordered_add_comm_monoid α] [ordered_add_com
     refine λ i, is_normal.normal _ _ ⟨n, hn, by simpa using h i⟩,
   end⟩
 
-@[to_additive]
+@[reducible, to_additive]
 noncomputable def extend_ordered_group (α : Type u) [ordered_cancel_comm_monoid α]
-  [ordered_comm_monoid.is_normal α] :
-  linear_ordered_cancel_comm_monoid α := classical.some (exists_extend_ordered_group α)
-#check extend_ordered_group
+  [ordered_comm_monoid.is_normal α] : linear_ordered_cancel_comm_monoid α :=
+classical.some (exists_extend_ordered_group α)
 
 -- TODO this lemma missing for groups?
 -- have : (a / b) ^ n = a ^ n / b ^ n,
@@ -396,21 +399,21 @@ def linear_ordered_group_extension (α : Type u) [monoid α] [has_le α] : Type 
 noncomputable
 instance {α : Type u} [ordered_cancel_comm_monoid α] [ordered_comm_monoid.is_normal α] :
   linear_ordered_cancel_comm_monoid (linear_ordered_group_extension α) :=
-{ --le := (extend_ordered_group h).le,
-  -- le_refl := (extend_ordered_group h).some_spec.1.,
-  -- le_trans := (extend_ordered_group h).some_spec.some.1.1.2.1,
-  -- le_antisymm := (extend_ordered_group h).some_spec.some.1.2.1,
-  -- le_total := (extend_ordered_group h).some_spec.some.2.1,
-  ..extend_ordered_group α
-  -- ..(@ordered_cancel_comm_monoid.to_cancel_comm_monoid α _)
-  }
--- /-- The embedding of `α` into `linear_extension α` as a relation homomorphism. -/
--- def to_linear_extension {α : Type u} [partial_order α] :
---   ((≤) : α → α → Prop) →r ((≤) : linear_extension α → linear_extension α → Prop) :=
--- { to_fun := λ x, x,
---   map_rel' := λ a b, (extend_partial_order ((≤) : α → α → Prop)).some_spec.some_spec _ _ }
+{ ..extend_ordered_group α }
 
+/-- The embedding of `α` into `linear_ordered_group_extension α` as an order homomorphism. -/
+noncomputable
+def to_linear_ordered_group_extension (α : Type u) [ordered_cancel_comm_monoid α]
+  [ordered_comm_monoid.is_normal α] : α →o linear_ordered_group_extension α :=
+{ to_fun := λ x, x,
+  monotone' := λ a b, (exists_extend_ordered_group α).some_spec _ _ }
 
--- instance {α : Type u} [inhabited α] : inhabited (linear_extension α) :=
--- ⟨(default : α)⟩
+lemma bijective_to_linear_ordered_group_extension {α : Type u} [ordered_cancel_comm_monoid α]
+  [ordered_comm_monoid.is_normal α] : function.bijective (to_linear_ordered_group_extension α) :=
+function.bijective_id
+
+@[to_additive]
+instance {α : Type u} [monoid α] [has_le α] [inhabited α] :
+  inhabited (linear_ordered_group_extension α) :=
+⟨(default : α)⟩
 #lint

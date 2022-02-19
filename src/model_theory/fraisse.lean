@@ -249,7 +249,7 @@ begin
     rw [← hs, closure_le],
     intros x hx,
     refine ⟨f (out x).1 i (hi (out x).1 (finset.mem_image_of_mem _ hx)) (out x).2, _⟩,
-    simp only [directed_system.nat.coe_to_step_of_le, eq_mpr_eq_cast, cast_cast,
+    simp only [directed_system.coe_nat_le_rec, eq_mpr_eq_cast, cast_cast,
       embedding.coe_to_hom, direct_limit.of_apply],
     rw [quotient.mk_eq_iff_out, direct_limit.equiv_iff G f _
       (hi (out x).1 (finset.mem_image_of_mem _ hx)), directed_system.map_self];
@@ -297,7 +297,7 @@ begin
   { exact ⟨⟨classical.some (hj N n), classical.some (classical.some_spec (hj N n))⟩,
       (classical.some_spec (classical.some_spec (hj N n))).1⟩ },
   let f : Π (i j), i ≤ j → G i ↪[L] G j :=
-    directed_system.nat.to_step_of_le (λ n, _), swap,
+    directed_system.nat_le_rec (λ n, _), swap,
   { rw [hG, nat.rec_add_one, ← hG],
     exact (classical.some_spec (classical.some_spec (hj _ n))).2.1.some },
   refine ⟨⟨direct_limit (λ n, G n) f, infer_instance⟩,
@@ -318,7 +318,7 @@ end
 
 variable (K)
 
-/-- A Fraïssé limit of a Fraïssé class. -/
+/-- A Fraïssé limit of a Fraïssé class, constructed as a direct limit. -/
 noncomputable def fraisse_limit [h : is_fraisse_class K] : bundled L.Structure :=
 classical.some (exists_cg_is_age_of
   h.is_nonempty

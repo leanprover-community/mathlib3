@@ -311,8 +311,9 @@ instance : has_neg (ray_vector M) := ⟨λ v, ⟨-v, neg_ne_zero.2 v.prop⟩⟩
 @[simp, norm_cast] lemma coe_neg (v : ray_vector M) : ↑(-v) = -(v : M) := rfl
 
 /-- Negating a nonzero vector twice produces the original vector. -/
-@[simp] protected lemma neg_neg (v : ray_vector M) : -(-v) = v :=
-by rw [subtype.ext_iff, coe_neg, coe_neg, neg_neg]
+instance : has_involutive_neg (ray_vector M) :=
+{ neg := has_neg.neg,
+  neg_neg := λ v, by rw [subtype.ext_iff, coe_neg, coe_neg, neg_neg] }
 
 variables (R)
 
@@ -338,19 +339,11 @@ namespace module.ray
 variables {R}
 
 /-- Negating a ray twice produces the original ray. -/
-@[simp] protected lemma neg_neg [nontrivial R] (x : module.ray R M) : -(-x) = x :=
-quotient.ind (λ a, congr_arg quotient.mk $ ray_vector.neg_neg _) x
-
-variables (R M)
-
-/-- Negating a ray is involutive. -/
-lemma neg_involutive [nontrivial R] : function.involutive (λ x : module.ray R M, -x) :=
-λ x, module.ray.neg_neg x
+instance [nontrivial R] : has_involutive_neg (module.ray R M) :=
+{ neg := has_neg.neg,
+  neg_neg := λ x, quotient.ind (λ a, congr_arg quotient.mk $ neg_neg _) x }
 
 variables {R M}
-
-protected lemma eq_neg_iff_eq_neg [nontrivial R] (x y : module.ray R M) : x = -y ↔ y = -x :=
-by rw [←module.ray.neg_neg x, (neg_involutive R M).injective.eq_iff, module.ray.neg_neg x, eq_comm]
 
 /-- A ray does not equal its own negation. -/
 lemma ne_neg_self [nontrivial R] [no_zero_smul_divisors R M] (x : module.ray R M) : x ≠ -x :=
@@ -434,7 +427,7 @@ begin
   have : ∀ {u : Rˣ}, 0 < (u : R) → same_ray R (u⁻¹ • v) (u • v) :=
     λ u h, ((same_ray.refl v).pos_smul_left $ units.inv_pos.mpr h).pos_smul_right h,
   cases lt_or_lt_iff_ne.2 u.ne_zero,
-  { rw [←units.neg_neg u, units.neg_inv, (- u).neg_smul, units.neg_smul],
+  { rw [←neg_neg u, inv_neg', (- u).neg_smul, units.neg_smul],
     refine (this _).neg,
     exact neg_pos_of_neg h },
   { exact this h, },

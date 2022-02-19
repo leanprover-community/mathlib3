@@ -131,7 +131,7 @@ iff.rfl
 λ _, decidable_of_iff' _ mem_centralizer_iff
 
 @[to_additive]
-lemma centralizer_subset [has_mul M] (h : S ⊆ T) : centralizer T ≤ centralizer S :=
+lemma centralizer_subset (h : S ⊆ T) : centralizer T ≤ centralizer S :=
 λ t ht s hs, ht s (h hs)
 
 variables (M)

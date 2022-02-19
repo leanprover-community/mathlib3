@@ -15,11 +15,14 @@ We define principal or indecomposable ordinals, and we prove the standard proper
 * `principal`: A principal or indecomposable ordinal under some binary operation. We include 0 and
 any other typically excluded edge cases for simplicity.
 * `unbounded_principal`: Principal ordinals are unbounded.
-* `principal_add_iff_zero_or_omega_power`: The main characterization theorem for additive principal
-ordinals.
+* `principal_add_iff_zero_or_omega_opow`: The main characterization theorem for additive principal
+  ordinals.
+* `principal_mul_iff_le_two_or_omega_opow_opow`: The main characterization theorem for
+  multiplicative principal ordinals.
 
 ### Todo
-* Refactor any related theorems from `ordinal_arithmetic` into this file.
+* Prove that exponential principal ordinals are either less than 2 or epsilon numbers, i.e. fixed
+  points of `λ x, omega ^ x`.
 -/
 
 universe u

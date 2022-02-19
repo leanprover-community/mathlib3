@@ -473,8 +473,12 @@ end subtype
 
 section prod
 
-instance {α β} [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α × β) :=
+def prod.measurable_space' {α β} (m₁ : measurable_space α) (m₂ : measurable_space β) :
+  measurable_space (α × β) :=
 m₁.comap prod.fst ⊔ m₂.comap prod.snd
+
+instance {α β} [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α × β) :=
+prod.measurable_space' m₁ m₂
 
 @[measurability] lemma measurable_fst [measurable_space α] : measurable (prod.fst : α × β → α) :=
 measurable.of_comap_le le_sup_left

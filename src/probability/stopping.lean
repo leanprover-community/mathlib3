@@ -623,10 +623,7 @@ end
 lemma integrable_stopped_value [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
   (hu : ∀ n, integrable (u n) μ) {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
   integrable (stopped_value u τ) μ :=
-begin
-  simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
-  exact mem_ℒp_stopped_value hτ hu hbdd,
-end
+by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_value hτ hu hbdd, }
 
 end normed_group
 

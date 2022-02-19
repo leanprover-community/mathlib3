@@ -112,7 +112,8 @@ variable {β}
 /-- Progressively measurable process. The usual definition uses the interval `[0,i]`, which we
 replace by `set.Iic i`. We recover the usual definition for `ℝ≥0` or `ℕ`. -/
 def prog_measurable [measurable_space ι] (f : filtration ι m) (u : ι → α → β) : Prop :=
-∀ i, measurable[@prod.measurable_space (set.Iic i) α _ (f i)] (λ p : set.Iic i × α, u p.1 p.2)
+∀ i, measurable[prod.measurable_space' subtype.measurable_space (f i)]
+  (λ p : set.Iic i × α, u p.1 p.2)
 
 namespace prog_measurable
 
@@ -419,7 +420,7 @@ lemma prog_measurable_min_stopping_time (hτ : is_stopping_time f τ) :
 begin
   intro i,
   dsimp only,
-  let m_prod : measurable_space (set.Iic i × α) := @prod.measurable_space _ _ _ (f i),
+  let m_prod : measurable_space (set.Iic i × α) := prod.measurable_space' _ (f i),
   let m_set : ∀ t : set (set.Iic i × α), measurable_space t :=
     λ _, @subtype.measurable_space (set.Iic i × α) _ m_prod,
   let s := {p : set.Iic i × α | τ p.2 ≤ i},
@@ -526,13 +527,13 @@ begin
     simp only [hp_mem, if_true], },
   rw this,
   refine finset.measurable_sum _ (λ j hj, measurable.ite _ _ _),
-  { suffices h_meas : measurable[@prod.measurable_space _ _ _ (f i)]
+  { suffices h_meas : measurable[prod.measurable_space' _ (f i)]
         (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
       from h_meas (measurable_set_singleton j),
     exact (@measurable_fst _ α (f i) _).subtype_coe, },
   { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
     exact (measurable.le (f.mono h_le) (h j)).comp (@measurable_snd _ α (f i) _), },
-  { exact @measurable_const _ (set.Iic i × α) _ (@prod.measurable_space _ _ _ (f i)) _, },
+  { exact @measurable_const _ (set.Iic i × α) _ (prod.measurable_space' _ (f i)) _, },
 end
 
 /-- For filtrations indexed by `ℕ`, the stopped process obtained from an adapted process is

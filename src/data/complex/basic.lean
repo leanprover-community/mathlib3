@@ -226,7 +226,9 @@ lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 ⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
   λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
 
-lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
+-- `simp_nf` complains about this being provable by `is_R_or_C.star_def` even
+-- though it's not imported by this file.
+@[simp, nolint simp_nf] lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
 
 /-! ### Norm squared -/
 

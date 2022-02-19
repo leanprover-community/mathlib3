@@ -437,6 +437,9 @@ lemma prime_of_mem_factors : ∀ {n p}, p ∈ factors n → prime p
   or.cases_on h₁ (λ h₂, h₂.symm ▸ min_fac_prime dec_trivial)
     prime_of_mem_factors
 
+lemma pos_of_mem_factors {n p : ℕ} (h : p ∈ factors n) : 0 < p :=
+prime.pos (prime_of_mem_factors h)
+
 lemma prod_factors : ∀ {n}, n ≠ 0 → list.prod (factors n) = n
 | 0       := by simp
 | 1       := by simp
@@ -695,6 +698,13 @@ end
 lemma mem_factors {n p} (hn : n ≠ 0) : p ∈ factors n ↔ prime p ∧ p ∣ n :=
 ⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
  λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
+
+lemma le_of_mem_factors {n p : ℕ} (h : p ∈ n.factors) : p ≤ n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { rw factors_zero at h, cases h },
+  { exact le_of_dvd hn (dvd_of_mem_factors h) },
+end
 
 /-- **Fundamental theorem of arithmetic**-/
 lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) :

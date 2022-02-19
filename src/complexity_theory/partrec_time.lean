@@ -39,7 +39,7 @@ def time : turing.to_partrec.code → list ℕ →. ℕ
 /-- A code running on a list returns a value, then there is a time at which it returns -/
 lemma time_dom_of_eval_dom (c : code) (l : list ℕ) (h : ((c.eval l).dom)) : (time c l).dom  :=
 begin
-  induction c generalizing l,
+  induction c with f fs iHf iHfs f g iHf iHg f g iHf iHg generalizing l,
   { rw time, unfold pure, },
   { rw time, unfold pure, },
   { rw time, unfold pure, },
@@ -169,12 +169,16 @@ begin
   { tidy, },
   { tidy, },
   { tidy, rw add_assoc, exact le_self_add, },
-  { tidy,
-    simp_rw part.bind_some_eq_map,
-    simp_rw <-part.map_bind,
+  { rw dom_iff_mem at hdom,--simp_rw code.eval,
+    -- simp_rw part.pure_eq_some,
+    rw part.bind_some_eq_map,
+    -- rw <-part.dom.bind hdom,
+    simp_rw part.bind_get,
 
-    simp_rw <-part.pure_eq_some,
-     }
+    -- simp_rw part.bind,
+    -- simp,
+    -- simp,
+    rw <-part.bind_assoc, }
   sorry,
   sorry,
   sorry,
@@ -223,8 +227,6 @@ begin
   apply le_of_eq,
   exact part.get_eq_of_mem Hg (time_dom_of_eval_dom g l g_total),
   assumption,
-  -- simp,
-
 end
 
 
@@ -285,9 +287,10 @@ begin
   intros n a,
   simp,
   refine monotone.mul _ _ _ _,
-  work_on_goal 0 { intros a_1 b ᾰ, refl }, work_on_goal 0 { intros a_1 b ᾰ, dsimp at * }, work_on_goal 1 { intros x, exact dec_trivial }, work_on_goal 1 { intros x, exact dec_trivial },
-  apply pow_le_pow_of_le_left,
-  work_on_goal 0 { exact dec_trivial }, assumption,
+  { intros a_1 b h, refl },
+  { intros a_1 b h, dsimp at *, apply pow_le_pow_of_le_left, exact zero_le a_1, assumption, },
+  { intro n, exact zero_le a, },
+  { intro n_1, exact zero_le (n_1 ^ n), },
 end
 
 lemma poly_time_comp (f g : code) (hf : poly_time f) (hg : poly_time g) :

@@ -280,7 +280,6 @@ by rw [is_self_adjoint, ← linear_map.eq_adjoint_iff]
 section complex
 variables {V : Type*}
 [inner_product_space ℂ V]
-[finite_dimensional ℂ V]
 
 /-- A linear operator on a complex inner product space is self-adjoint precisely when
 `⟪T v, v⟫_ℂ` is real for all v.-/
@@ -291,12 +290,19 @@ begin
   { intros hT v,
     apply is_self_adjoint.conj_inner_sym hT },
   { intro h,
-    rw [is_self_adjoint_iff_eq_adjoint, ← sub_eq_zero, ← inner_map_self_eq_zero],
-    intro x,
-    specialize h x,
-    rw [linear_map.sub_apply, inner_sub_left, linear_map.adjoint_inner_left, ← h, inner_conj_sym,
-      sub_self] },
+    rw is_self_adjoint,
+    intros x y,
+    nth_rewrite 1 ← inner_conj_sym,
+    nth_rewrite 1 inner_map_polarization,
+    simp only [star_ring_end_apply, star_div', star_sub, star_add, star_mul],
+    simp only [← star_ring_end_apply],
+    rw [h (x + y), h (x - y), h (x + complex.I • y), h (x - complex.I • y)],
+    simp only [complex.conj_I],
+    rw inner_map_polarization',
+    norm_num,
+    ring},
 end
+
 
 end complex
 

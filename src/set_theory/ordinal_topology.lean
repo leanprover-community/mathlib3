@@ -226,21 +226,21 @@ begin
 end
 
 theorem enum_ord_is_normal_iff_is_closed {S : set ordinal.{u}} (hS : S.unbounded (<)) :
-  is_normal (enum_ord S hS) ↔ is_closed S :=
+  is_normal (enum_ord S) ↔ is_closed S :=
 begin
   refine ⟨λ h, is_closed_iff_sup.2 (λ ι hι f hf, _),
     λ h, is_normal_iff_strict_mono_and_limit_le.2 ⟨enum_ord.strict_mono hS, λ a ha o H, _⟩⟩,
   { let g : ι → ordinal.{u} := λ i, (enum_ord.order_iso hS).symm ⟨_, hf i⟩,
-    suffices : enum_ord S hS (sup.{u u} g) = sup.{u u} f,
+    suffices : enum_ord S (sup.{u u} g) = sup.{u u} f,
     { rw ←this, exact enum_ord_mem hS _ },
     rw is_normal.sup.{u u u} h g hι,
     congr, ext,
     change ((enum_ord.order_iso hS) _).val = f x,
     rw order_iso.apply_symm_apply },
   { rw is_closed_iff_bsup at h,
-    suffices : enum_ord.{u} S hS a ≤ bsup.{u u} a (λ b < a, enum_ord.{u} S hS b),
+    suffices : enum_ord.{u} S a ≤ bsup.{u u} a (λ b < a, enum_ord.{u} S b),
       from this.trans (bsup_le.2 H),
-    cases enum_ord.surjective hS _ (h ha.1 (λ b hb, enum_ord S hS b) (λ b hb, enum_ord_mem hS b))
+    cases enum_ord.surjective hS _ (h ha.1 (λ b hb, enum_ord S b) (λ b hb, enum_ord_mem hS b))
       with b hb,
     rw ←hb,
     apply (enum_ord.strict_mono hS).monotone,

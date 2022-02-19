@@ -657,8 +657,7 @@ integrable g (μ.with_density (λ x, f x))
     ↔ integrable g (μ.with_density (λ x, hf.mk f x)) :
 begin
   suffices : (λ x, (f x : ℝ≥0∞)) =ᵐ[μ] (λ x, hf.mk f x), by rw with_density_congr_ae this,
-  filter_upwards [hf.ae_eq_mk],
-  assume x hx,
+  filter_upwards [hf.ae_eq_mk] with x hx,
   simp [hx],
 end
 ... ↔ integrable (λ x, (hf.mk f x : ℝ) • g x) μ :
@@ -666,8 +665,7 @@ end
 ... ↔ integrable (λ x, (f x : ℝ) • g x) μ :
 begin
   apply integrable_congr,
-  filter_upwards [hf.ae_eq_mk],
-  assume x hx,
+  filter_upwards [hf.ae_eq_mk] with x hx,
   simp [hx],
 end
 
@@ -743,8 +741,7 @@ noncomputable def with_density_smul_li {f : α → ℝ≥0} (f_meas : measurable
       (filter.eventually_of_forall (λ x, ennreal.coe_lt_top)),
     congr' 1,
     apply lintegral_congr_ae,
-    filter_upwards [(mem_ℒ1_smul_of_L1_with_density f_meas u).coe_fn_to_Lp],
-    assume x hx,
+    filter_upwards [(mem_ℒ1_smul_of_L1_with_density f_meas u).coe_fn_to_Lp] with x hx,
     rw [hx, pi.mul_apply],
     change ↑∥(f x : ℝ) • u x∥₊ = ↑(f x) * ↑∥u x∥₊,
     simp only [nnnorm_smul, nnreal.nnnorm_eq, ennreal.coe_mul],

@@ -398,10 +398,10 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
     end
   end
 
-/-- Given `P 0`, `P 1`, and `P (p ^ k)` for positive prime powers, and a way to extend `P a` and
-`P b` to `P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
+/-- Given `P 0`, `P 1`, and `P (p ^ n)` for positive prime powers, and a way to extend `P a` and
+`P b` to `P (a * b)` when `a, b` are positive coprime, we can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
-def rec_on_pos_prime_coprime {P : ℕ → Sort*} (hp : ∀ p n : ℕ, prime p → 0 < n → P (p ^ n))
+def rec_on_pos_prime_pos_coprime {P : ℕ → Sort*} (hp : ∀ p n : ℕ, prime p → 0 < n → P (p ^ n))
   (h0 : P 0) (h1 : P 1) (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) :
   ∀ a, P a :=
 rec_on_prime_pow h0 h1 $ λ a p n hp' hpa ha,
@@ -414,7 +414,7 @@ rec_on_prime_pow h0 h1 $ λ a p n hp' hpa ha,
 @[elab_as_eliminator]
 def rec_on_prime_coprime {P : ℕ → Sort*} (h0 : P 0) (hp : ∀ p n : ℕ, prime p → P (p ^ n))
   (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
-rec_on_pos_prime_coprime (λ p n h _, hp p n h) h0 (hp 2 0 prime_two) h
+rec_on_pos_prime_pos_coprime (λ p n h _, hp p n h) h0 (hp 2 0 prime_two) h
 
 /-- Given `P 0`, `P 1`, `P p` for all primes, and a proof that you can extend
 `P a` and `P b` to `P (a * b)`, you can define `P` for all natural numbers. -/
@@ -434,7 +434,7 @@ lemma multiplicative_factorization {β : Type*} [comm_monoid β] (f : ℕ → β
   (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf : f 1 = 1) :
   ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
 begin
-  apply' nat.rec_on_pos_prime_coprime,
+  apply' nat.rec_on_pos_prime_pos_coprime,
   { intros p k hp hk hpk, simp [prime.factorization_pow hp, finsupp.prod_single_index _, hf] },
   { simp },
   { rintros -, rw [factorization_one, hf], simp },
@@ -450,7 +450,7 @@ lemma multiplicative_factorization' {β : Type*} [comm_monoid β] (f : ℕ → �
   (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf0 : f 0 = 1) (hf1 : f 1 = 1) :
   ∀ {n : ℕ}, f n = n.factorization.prod (λ p k, f (p ^ k)) :=
 begin
-  apply' nat.rec_on_pos_prime_coprime,
+  apply' nat.rec_on_pos_prime_pos_coprime,
   { intros p k hp hk, simp only [hp.factorization_pow], rw prod_single_index _, simp [hf1] },
   { simp [hf0] },
   { rw [factorization_one, hf1], simp },

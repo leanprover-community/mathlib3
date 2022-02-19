@@ -8,18 +8,24 @@ def is_projection : (X →L[𝕜] X) → Prop := λ P, P^2 = P
 
 lemma projection_def {P: X →L[𝕜] X} (h: is_projection P) : P^2 = P := by exact h
 
-lemma projection_complement (P: X →L[𝕜] X) : is_projection P ↔ is_projection (1-P) :=
+lemma is_projection.complement {P: X →L[𝕜] X} : is_projection P → is_projection (1-P) :=
 begin
-  split,
-  { unfold is_projection,
-    intro h,
-    rw sq at h,
-    rw [sq, mul_sub, mul_one, sub_mul, one_mul, h, sub_self, sub_zero ], },
-  { unfold is_projection,
-    intro h,
-    rw [sq, mul_sub, mul_one, sub_mul, one_mul, sub_eq_self, sub_eq_zero] at h,
-    rw [sq, ← h], }
+  unfold is_projection,
+  intro h,
+  rw sq at h,
+  rw [sq, mul_sub, mul_one, sub_mul, one_mul, h, sub_self, sub_zero ],
 end
+
+lemma is_projection.complement_iff {P: X →L[𝕜] X} : is_projection P ↔ is_projection (1-P) :=
+⟨ is_projection.complement ,
+begin
+  intros h,
+  rw ← sub_sub_cancel 1 P,
+  apply is_projection.complement h,
+end ⟩
+
+instance : has_compl (subtype (is_projection  : (X →L[𝕜] X) → Prop)) :=
+⟨λ P, ⟨1-P, P.prop.complement⟩⟩
 
 lemma commuting_projections (P: X →L[𝕜] X) (Q: X →L[𝕜] X) (h: commute P Q): is_projection P → is_projection Q →  is_projection (P*Q)  :=
 begin
@@ -36,33 +42,28 @@ def is_Lprojection : (X →L[𝕜] X) → Prop := λ P, is_projection P ∧ ∀ 
 
 def is_Mprojection : (X →L[𝕜] X) → Prop := λ P, is_projection P ∧ ∀ (x : X), ∥x∥ = (max ∥P x∥  ∥(1-P) x∥)
 
-lemma Lcomplement (P: X →L[𝕜] X) : is_Lprojection P ↔ is_Lprojection (1-P) :=
+lemma is_Lprojection.Lcomplement {P: X →L[𝕜] X} : is_Lprojection P → is_Lprojection (1-P) :=
 begin
+  intro h,
+  unfold is_Lprojection,
+  rw ← is_projection.complement_iff,
+  rw sub_sub_cancel,
   split,
-  {
-    intro h,
-    unfold is_Lprojection,
-    rw ← projection_complement,
-    rw sub_sub_cancel,
-    split,
-    { exact h.left, },
-    { intros,
-      rw add_comm,
-      apply h.right,
-    }
-  },
-  { intro h,
-    unfold is_Lprojection,
-    rw projection_complement,
-    split,
-    { exact h.left, },
-    { intros,
-      rw add_comm,
-      nth_rewrite_rhs 1 ← sub_sub_cancel 1 P,
-      apply h.right,
-    }
-   }
+  { exact h.left, },
+  { intros,
+    rw add_comm,
+    apply h.right,
+  }
 end
+
+lemma is_Lprojection.Lcomplement_iff (P: X →L[𝕜] X) : is_Lprojection P ↔ is_Lprojection (1-P) := ⟨
+  is_Lprojection.Lcomplement,
+  begin
+    intros h,
+    rw ← sub_sub_cancel 1 P,
+    apply is_Lprojection.Lcomplement h,
+  end ⟩
+
 
 lemma Lproj_PQ_eq_QPQ (P: X →L[𝕜] X) (Q: X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lprojection Q) :
   P * Q = Q * P * Q :=
@@ -97,7 +98,7 @@ end
 lemma Lproj_QP_eq_QPQ (P: X →L[𝕜] X) (Q: X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lprojection Q) : Q * P = Q * P * Q :=
 begin
   have e1: P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
-  calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw Lproj_PQ_eq_QPQ P (1 - Q) h₁ ((Lcomplement Q).mp h₂)
+  calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw Lproj_PQ_eq_QPQ P (1 - Q) h₁ ((is_Lprojection.Lcomplement Q).mp h₂)
   ... = 1 * (P * (1 - Q)) - Q * (P * (1 - Q)) : by {rw mul_assoc, rw sub_mul,}
   ... = P * (1 - Q) - Q * (P * (1 - Q)) : by rw one_mul
   ... = P * (1 - Q) - Q * (P - P * Q) : by rw [mul_sub, mul_one]
@@ -114,9 +115,8 @@ begin
   nth_rewrite_rhs 0 Lproj_QP_eq_QPQ P Q h₁ h₂,
 end
 
-lemma Lproj_product (P: X →L[𝕜] X) (Q: X →L[𝕜] X) : is_Lprojection P → is_Lprojection Q → is_Lprojection (P*Q) :=
+@[simp] lemma is_Lprojection.product {P Q: X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) : is_Lprojection (P*Q) :=
 begin
-  intros h₁ h₂,
   unfold is_Lprojection,
   split,
   { apply commuting_projections P Q (Lproj_commute P Q h₁ h₂) h₁.left h₂.left, },
@@ -135,3 +135,9 @@ begin
       ... = ∥P(Q x)∥ + ∥x - P (Q x)∥ : by rw sub_add_sub_cancel'
       ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : rfl }, }
 end
+
+instance Lprojections_compl: has_compl(subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
+⟨λ P, ⟨1-P, P.prop.Lcomplement⟩⟩
+
+instance : has_inf (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
+⟨λ P Q, ⟨P * Q, P.prop.product Q.prop⟩ ⟩

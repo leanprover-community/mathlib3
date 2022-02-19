@@ -257,15 +257,11 @@ begin
   apply congr_arg (λ β, nat_trans.app β nil) ((normalize_iso _ _ _).hom.naturality η)
 end
 
-/-- Auxiliary definition for `normalize_equiv`. -/
-def normalize_counit_iso (a b : locally_discrete (paths B)) :
-  (inclusion_path _ _ ⋙ (full_normalize _).map_functor _ _ : (a ⟶ b) ⥤ _) ≅ 𝟭 (a ⟶ b) :=
-nat_iso.of_components (λ f, eq_to_iso (by { induction f, tidy })) (by tidy)
-
 /-- The normalization as an equivalence of categories. -/
 def normalize_equiv (a b : B) : hom a b ≌ discrete (path.{v+1} a b) :=
 equivalence.mk ((full_normalize _).map_functor a b) (inclusion_path a b)
-  (normalize_unit_iso a b) (normalize_counit_iso a b)
+  (normalize_unit_iso a b)
+  (nat_iso.of_components (λ f, eq_to_iso (by { induction f, tidy })) (by tidy))
 
 /-- The coherence theorem for bicategories. -/
 instance locally_thin {a b : free_bicategory B} (f g : a ⟶ b) : subsingleton (f ⟶ g) :=

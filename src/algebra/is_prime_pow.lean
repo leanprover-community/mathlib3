@@ -81,7 +81,7 @@ lemma is_prime_pow_nat_iff (n : ℕ) :
 by simp only [is_prime_pow_def, nat.prime_iff]
 
 lemma nat.prime.is_prime_pow {p : ℕ} (hp : p.prime) : is_prime_pow p :=
-(is_prime_pow_nat_iff p).mpr ⟨p, 1, hp, one_pos, pow_one p⟩
+(nat.prime_iff.mp hp).is_prime_pow
 
 lemma is_prime_pow_nat_iff_bounded (n : ℕ) :
   is_prime_pow n ↔ ∃ (p : ℕ), p ≤ n ∧ ∃ (k : ℕ), k ≤ n ∧ p.prime ∧ 0 < k ∧ p ^ k = n :=

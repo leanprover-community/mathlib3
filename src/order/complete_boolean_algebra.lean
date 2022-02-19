@@ -264,12 +264,13 @@ protected def function.injective.complete_distrib_lattice [has_sup α] [has_inf 
 /-- Pullback a `complete_boolean_algebra` along an injection. -/
 @[reducible] -- See note [reducible non-instances]
 protected def function.injective.complete_boolean_algebra [has_sup α] [has_inf α] [has_Sup α]
-  [has_Inf α] [has_top α] [has_bot α] [complete_boolean_algebra β]
+  [has_Inf α] [has_top α] [has_bot α] [has_compl α] [has_sdiff α] [complete_boolean_algebra β]
   (f : α → β) (hf : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
   (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
-  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥)
+  (map_compl : ∀ a, f aᶜ = (f a)ᶜ) (map_sdiff : ∀ a b, f (a \ b) = f a \ f b) :
   complete_boolean_algebra α :=
 { ..hf.complete_distrib_lattice f map_sup map_inf map_Sup map_Inf map_top map_bot,
-  ..hf.boolean_algebra f map_sup map_inf map_Sup map_Inf map_top map_bot }
+  ..hf.boolean_algebra f map_sup map_inf map_top map_bot map_compl map_sdiff }
 
 end lift

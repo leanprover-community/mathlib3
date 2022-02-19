@@ -51,6 +51,8 @@ begin
   exact prod_factors hn,
 end
 
+/-- Since `factorization` is a finsupp it's noncomputable.  This theorem allows us to
+obtain values of `factorization n p` when required. -/
 @[simp] lemma factors_count_eq {n p : ℕ} : n.factors.count p = n.factorization p :=
 by simp [factorization]
 

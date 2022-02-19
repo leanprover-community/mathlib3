@@ -284,15 +284,12 @@ end
 lemma dvd_iff_prime_pow_dvd_dvd {n d : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
   d ∣ n ↔ ∀ p k : ℕ, prime p → p ^ k ∣ d → p ^ k ∣ n :=
 begin
-  split,
-  { exact λ h p k pp hpkd, dvd_trans hpkd h },
-  { intros h,
-    rw [←factorization_le_iff_dvd hd hn, finsupp.le_def],
-    intros p,
-    by_cases pp : prime p, swap,
-    { rw factorization_eq_zero_of_non_prime d p pp, exact nat.zero_le _ },
-    rw ←pp.pow_dvd_iff_le_factorization hn,
-    exact h p _ pp (pow_factorization_dvd _ _) },
+  refine ⟨λ h p k _ hpkd, dvd_trans hpkd h, _⟩,
+  rw [←factorization_le_iff_dvd hd hn, finsupp.le_def],
+  intros h p,
+  by_cases pp : prime p, swap, { simp [factorization_eq_zero_of_non_prime d p pp] },
+  rw ←pp.pow_dvd_iff_le_factorization hn,
+  exact h p _ pp (pow_factorization_dvd _ _)
 end
 
 lemma prod_prime_factors_dvd (n : ℕ) : (∏ (p : ℕ) in n.factors.to_finset, p) ∣ n :=

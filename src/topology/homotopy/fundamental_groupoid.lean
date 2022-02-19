@@ -351,6 +351,7 @@ fundamental groupoid of that space. -/
 @[reducible]
 def from_path {X : Top} {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁) : (x₀ ⟶ x₁) := p
 
+@[simp]
 lemma id_comp_symm {X : Top} (x₀ x₁ : X) (α : path x₀ x₁) : from_path ⟦α⟧ ≫ ⟦α.symm⟧ = 𝟙 x₀ :=
 begin
   rw [from_path, comp_eq, ← path.homotopic.comp_lift, quotient.sound],
@@ -358,6 +359,7 @@ begin
   { exact path.homotopic.symm ⟨path.homotopy.refl_trans_symm α⟩}
 end
 
+@[simp]
 lemma id_symm_comp {X : Top} (x₀ x₁ : X) (α : path x₀ x₁) : from_path ⟦α.symm⟧ ≫ ⟦α⟧ = 𝟙 x₁ :=
 begin
   rw [from_path, comp_eq, ← path.homotopic.comp_lift, quotient.sound],

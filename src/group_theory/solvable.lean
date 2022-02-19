@@ -57,7 +57,7 @@ section commutator_map
 
 lemma commutator_le_map_commutator {H₁ H₂ : subgroup G} {K₁ K₂ : subgroup G'} (h₁ : K₁ ≤ H₁.map f)
   (h₂ : K₂ ≤ H₂.map f) : ⁅K₁, K₂⁆ ≤ ⁅H₁, H₂⁆.map f :=
-by { rw map_commutator_eq_commutator_map, exact general_commutator_mono h₁ h₂ }
+by { rw map_commutator, exact commutator_mono h₁ h₂ }
 
 section derived_series_map
 
@@ -68,7 +68,7 @@ lemma map_derived_series_le_derived_series (n : ℕ) :
 begin
   induction n with n ih,
   { simp only [derived_series_zero, le_top], },
-  { simp only [derived_series_succ, map_commutator_eq_commutator_map, general_commutator_mono, *], }
+  { simp only [derived_series_succ, map_commutator, commutator_mono, *], }
 end
 
 variables {f}
@@ -194,8 +194,8 @@ begin
   { exact derived_series_one G },
   rw [derived_series_succ, ih],
   cases (commutator.normal G).eq_bot_or_eq_top with h h,
-  { rw [h, general_commutator_bot] },
-  { rwa [h, ←commutator_def] },
+  { rw [h, commutator_bot] },
+  { rwa [h, ←_root_.commutator_def] },
 end
 
 lemma is_simple_group.comm_iff_is_solvable :
@@ -228,14 +228,14 @@ begin
   let y : equiv.perm (fin 5) := ⟨![3, 4, 2, 0, 1], ![3, 4, 2, 0, 1], dec_trivial, dec_trivial⟩,
   let z : equiv.perm (fin 5) := ⟨![0, 3, 2, 1, 4], ![0, 3, 2, 1, 4], dec_trivial, dec_trivial⟩,
   have x_ne_one : x ≠ 1, { rw [ne.def, equiv.ext_iff], dec_trivial },
-  have key : x = z * (x * (y * x * y⁻¹) * x⁻¹ * (y * x * y⁻¹)⁻¹) * z⁻¹,
+  have key : x = z * ⁅x, y * x * y⁻¹⁆ * z⁻¹,
   { ext a, dec_trivial! },
   refine not_solvable_of_mem_derived_series x_ne_one (λ n, _),
   induction n with n ih,
   { exact mem_top x },
   { rw key,
     exact (derived_series_normal _ _).conj_mem _
-      (general_commutator_containment _ _ ih ((derived_series_normal _ _).conj_mem _ ih _)) _ },
+      (commutator_mem_commutator ih ((derived_series_normal _ _).conj_mem _ ih _)) _ },
 end
 
 lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :

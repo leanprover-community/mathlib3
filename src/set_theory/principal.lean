@@ -13,12 +13,12 @@ We define principal or indecomposable ordinals, and we prove the standard proper
 
 ### Main definitions and results
 * `principal`: A principal or indecomposable ordinal under some binary operation. We include 0 and
-any other typically excluded edge cases for simplicity.
-* `principal_add_iff_zero_or_omega_power`: the characterization theorem for additive principal
-ordinals.
+  any other typically excluded edge cases for simplicity.
+* `principal_add_iff_zero_or_omega_opow`: the characterization theorem for additive principal
+  ordinals.
 
 ### Todo
-* Prove the characterization of multiplicative principal ordinals.
+* Prove the characterization of multiplicative and exponential principal ordinals.
 * Refactor any related theorems from `ordinal_arithmetic` into this file.
 -/
 

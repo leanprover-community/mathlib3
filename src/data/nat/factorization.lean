@@ -89,6 +89,10 @@ le_of_mem_factors (factor_iff_mem_factorization.mp h)
 lemma factorization_eq_zero_of_non_prime (n p : ℕ) (hp : ¬p.prime) : n.factorization p = 0 :=
 not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
 
+lemma prime.factorization_pos_of_dvd {n p : ℕ} (hp : p.prime) (hn : n ≠ 0) (h : p ∣ n) :
+  0 < n.factorization p :=
+by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
+
 /-- The only numbers with empty prime factorization are `0` and `1` -/
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
@@ -98,6 +102,14 @@ by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
   (a * b).factorization = a.factorization + b.factorization :=
 by { ext p, simp only [add_apply, ←factors_count_eq,
                        perm_iff_count.mp (perm_factors_mul ha hb) p, count_append] }
+
+lemma factorization_mul_support {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
+  (a * b).factorization.support = a.factorization.support ∪ b.factorization.support :=
+begin
+  ext q,
+  simp only [finset.mem_union, factor_iff_mem_factorization],
+  exact mem_factors_mul ha hb
+end
 
 /-- For any `p`, the power of `p` in `n^k` is `k` times the power in `n` -/
 @[simp] lemma factorization_pow (n k : ℕ) :
@@ -148,10 +160,6 @@ begin
   rw [hp.factors_pow, ←le_count_iff_repeat_sublist, factors_count_eq] at this,
   linarith
 end
-
-lemma prime.factorization_pos_of_dvd {n p : ℕ} (hp : p.prime) (hn : n ≠ 0) (h : p ∣ n) :
-  0 < n.factorization p :=
-by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
 
 /-- The only prime factor of prime `p` is `p` itself, with multiplicity `1` -/
 @[simp] lemma prime.factorization {p : ℕ} (hp : prime p) :
@@ -242,14 +250,6 @@ lemma factorization_mul_support_of_coprime {a b : ℕ} (hab : coprime a b) :
 begin
   rw factorization_mul_of_coprime hab,
   exact support_add_eq (factorization_disjoint_of_coprime hab),
-end
-
-lemma factorization_mul_support {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
-  (a * b).factorization.support = a.factorization.support ∪ b.factorization.support :=
-begin
-  ext q,
-  simp only [finset.mem_union, factor_iff_mem_factorization],
-  exact mem_factors_mul ha hb
 end
 
 /-! ### Induction principles involving factorizations -/

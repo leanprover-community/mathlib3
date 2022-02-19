@@ -59,8 +59,8 @@ end
 @[simp] lemma map_fun (φ : M ↪ₑ[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) :=
 begin
-  have h := φ.map_formula (formula.graph f) (fin.snoc x (fun_map f x)),
-  rw [realize_graph, fin.comp_snoc, realize_graph] at h,
+  have h := φ.map_formula (formula.graph f) (fin.cons (fun_map f x) x),
+  rw [realize_graph, fin.comp_cons, realize_graph] at h,
   rw [eq_comm, h]
 end
 

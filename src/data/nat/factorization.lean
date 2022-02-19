@@ -252,102 +252,6 @@ begin
   exact support_add_eq (factorization_disjoint_of_coprime hab),
 end
 
-/-! ### Induction principles involving factorizations -/
-
-/-- Given `P 0, P 1` and a way to extend `P a` to `P (p ^ k * a)`,
-you can define `P` for all natural numbers. -/
-@[elab_as_eliminator]
-def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
-  (h : ∀ a p n : ℕ, p.prime → ¬ p ∣ a → P a → P (p ^ n * a)) : ∀ (a : ℕ), P a :=
-λ a, nat.strong_rec_on a $ λ n,
-  match n with
-  | 0     := λ _, h0
-  | 1     := λ _, h1
-  | (k+2) := λ hk, begin
-    let p := (k + 2).min_fac,
-    have hp : prime p := min_fac_prime (succ_succ_ne_one k),
-    -- the awkward `let` stuff here is because `factorization` is noncomputable (finsupp);
-    -- we get around this by using the computable `factors.count`, and rewriting when we want
-    -- to use the `factorization` API
-    let t := (k+2).factors.count p,
-    have ht : t = (k+2).factorization p := factors_count_eq,
-    have hpt : p ^ t ∣ k + 2 := by { rw ht, exact pow_factorization_dvd _ _ },
-    have htp : 0 < t :=
-    by { rw ht,
-         exact hp.factorization_pos_of_dvd (nat.succ_ne_zero (k + 1)) (min_fac_dvd _) },
-
-    convert h ((k + 2) / p ^ t) p t hp _ _,
-    { rw nat.mul_div_cancel' hpt },
-    { rw [nat.dvd_div_iff hpt, ←pow_succ', ht],
-      exact pow_succ_factorization_not_dvd (k + 1).succ_ne_zero hp },
-
-    apply hk _ (nat.div_lt_of_lt_mul _),
-    rw [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne],
-    exact hp.one_lt
-    end
-  end
-
-/-- Given `P 0`, `P 1`, and `P (p ^ k)` for positive prime powers, and a way to extend `P a` and
-`P b` to `P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
-@[elab_as_eliminator]
-def rec_on_pos_prime_coprime {P : ℕ → Sort*} (hp : ∀ p n : ℕ, prime p → 0 < n → P (p ^ n))
-  (h0 : P 0) (h1 : P 1) (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) :
-  ∀ a, P a :=
-rec_on_prime_pow h0 h1 $ λ a p n hp' hpa ha,
-  (h (p ^ n) a (pow_pos hp'.pos _) (nat.pos_of_ne_zero (λ t, by simpa [t] using hpa))
-  (prime.coprime_pow_of_not_dvd hp' hpa).symm
-  (if h : n = 0 then eq.rec h1 h.symm else hp p n hp' $ nat.pos_of_ne_zero h) ha)
-
-/-- Given `P 0`, `P (p ^ k)` for all prime powers, and a way to extend `P a` and `P b` to
-`P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
-@[elab_as_eliminator]
-def rec_on_prime_coprime {P : ℕ → Sort*} (h0 : P 0) (hp : ∀ p n : ℕ, prime p → P (p ^ n))
-  (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
-rec_on_pos_prime_coprime (λ p n h _, hp p n h) h0 (hp 2 0 prime_two) h
-
-/-- Given `P 0`, `P 1`, `P p` for all primes, and a proof that you can extend
-`P a` and `P b` to `P (a * b)`, you can define `P` for all natural numbers. -/
-@[elab_as_eliminator]
-def rec_on_mul {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
-  (hp : ∀ p, prime p → P p) (h : ∀ a b, P a → P b → P (a * b)) : ∀ a, P a :=
-let hp : ∀ p n : ℕ, prime p → P (p ^ n) :=
-  λ p n hp', match n with
-  | 0     := h1
-  | (n+1) := by exact h _ _ (hp p hp') (_match _)
-  end in
-rec_on_prime_coprime h0 hp $ λ a b _ _ _, h a b
-
-/-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`,
-we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
-lemma multiplicative_factorization {β : Type*} [comm_monoid β] (f : ℕ → β)
-  (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf : f 1 = 1) :
-  ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
-begin
-  apply' nat.rec_on_pos_prime_coprime,
-  { intros p k hp hk hpk, simp [prime.factorization_pow hp, finsupp.prod_single_index _, hf] },
-  { simp },
-  { rintros -, rw [factorization_one, hf], simp },
-  { intros a b _ _ hab ha hb hab_pos,
-    rw [h_mult a b hab, ha (left_ne_zero_of_mul hab_pos), hb (right_ne_zero_of_mul hab_pos),
-        factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
-    convert (factorization_disjoint_of_coprime hab) },
-end
-
-/-- For any multiplicative function `f` with `f 1 = 1` and `f 0 = 1`,
-we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
-lemma multiplicative_factorization' {β : Type*} [comm_monoid β] (f : ℕ → β)
-  (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf0 : f 0 = 1) (hf1 : f 1 = 1) :
-  ∀ {n : ℕ}, f n = n.factorization.prod (λ p k, f (p ^ k)) :=
-begin
-  apply' nat.rec_on_pos_prime_coprime,
-  { intros p k hp hk, simp only [hp.factorization_pow], rw prod_single_index _, simp [hf1] },
-  { simp [hf0] },
-  { rw [factorization_one, hf1], simp },
-  { intros a b _ _ hab ha hb,
-    rw [h_mult a b hab, ha, hb, factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
-    convert (factorization_disjoint_of_coprime hab) },
-end
-
 /-! ### Factorization and divisibility -/
 
 lemma factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
@@ -474,6 +378,102 @@ begin
     have hea' := (factorization_le_iff_dvd he_pos ha_pos).mpr hea,
     have heb' := (factorization_le_iff_dvd he_pos hb_pos).mpr heb,
     simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
+end
+
+/-! ### Induction principles involving factorizations -/
+
+/-- Given `P 0, P 1` and a way to extend `P a` to `P (p ^ k * a)`,
+you can define `P` for all natural numbers. -/
+@[elab_as_eliminator]
+def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
+  (h : ∀ a p n : ℕ, p.prime → ¬ p ∣ a → P a → P (p ^ n * a)) : ∀ (a : ℕ), P a :=
+λ a, nat.strong_rec_on a $ λ n,
+  match n with
+  | 0     := λ _, h0
+  | 1     := λ _, h1
+  | (k+2) := λ hk, begin
+    let p := (k + 2).min_fac,
+    have hp : prime p := min_fac_prime (succ_succ_ne_one k),
+    -- the awkward `let` stuff here is because `factorization` is noncomputable (finsupp);
+    -- we get around this by using the computable `factors.count`, and rewriting when we want
+    -- to use the `factorization` API
+    let t := (k+2).factors.count p,
+    have ht : t = (k+2).factorization p := factors_count_eq,
+    have hpt : p ^ t ∣ k + 2 := by { rw ht, exact pow_factorization_dvd _ _ },
+    have htp : 0 < t :=
+    by { rw ht,
+         exact hp.factorization_pos_of_dvd (nat.succ_ne_zero (k + 1)) (min_fac_dvd _) },
+
+    convert h ((k + 2) / p ^ t) p t hp _ _,
+    { rw nat.mul_div_cancel' hpt },
+    { rw [nat.dvd_div_iff hpt, ←pow_succ', ht],
+      exact pow_succ_factorization_not_dvd (k + 1).succ_ne_zero hp },
+
+    apply hk _ (nat.div_lt_of_lt_mul _),
+    rw [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne],
+    exact hp.one_lt
+    end
+  end
+
+/-- Given `P 0`, `P 1`, and `P (p ^ k)` for positive prime powers, and a way to extend `P a` and
+`P b` to `P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
+@[elab_as_eliminator]
+def rec_on_pos_prime_coprime {P : ℕ → Sort*} (hp : ∀ p n : ℕ, prime p → 0 < n → P (p ^ n))
+  (h0 : P 0) (h1 : P 1) (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) :
+  ∀ a, P a :=
+rec_on_prime_pow h0 h1 $ λ a p n hp' hpa ha,
+  (h (p ^ n) a (pow_pos hp'.pos _) (nat.pos_of_ne_zero (λ t, by simpa [t] using hpa))
+  (prime.coprime_pow_of_not_dvd hp' hpa).symm
+  (if h : n = 0 then eq.rec h1 h.symm else hp p n hp' $ nat.pos_of_ne_zero h) ha)
+
+/-- Given `P 0`, `P (p ^ k)` for all prime powers, and a way to extend `P a` and `P b` to
+`P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
+@[elab_as_eliminator]
+def rec_on_prime_coprime {P : ℕ → Sort*} (h0 : P 0) (hp : ∀ p n : ℕ, prime p → P (p ^ n))
+  (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
+rec_on_pos_prime_coprime (λ p n h _, hp p n h) h0 (hp 2 0 prime_two) h
+
+/-- Given `P 0`, `P 1`, `P p` for all primes, and a proof that you can extend
+`P a` and `P b` to `P (a * b)`, you can define `P` for all natural numbers. -/
+@[elab_as_eliminator]
+def rec_on_mul {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
+  (hp : ∀ p, prime p → P p) (h : ∀ a b, P a → P b → P (a * b)) : ∀ a, P a :=
+let hp : ∀ p n : ℕ, prime p → P (p ^ n) :=
+  λ p n hp', match n with
+  | 0     := h1
+  | (n+1) := by exact h _ _ (hp p hp') (_match _)
+  end in
+rec_on_prime_coprime h0 hp $ λ a b _ _ _, h a b
+
+/-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`,
+we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
+lemma multiplicative_factorization {β : Type*} [comm_monoid β] (f : ℕ → β)
+  (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf : f 1 = 1) :
+  ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+begin
+  apply' nat.rec_on_pos_prime_coprime,
+  { intros p k hp hk hpk, simp [prime.factorization_pow hp, finsupp.prod_single_index _, hf] },
+  { simp },
+  { rintros -, rw [factorization_one, hf], simp },
+  { intros a b _ _ hab ha hb hab_pos,
+    rw [h_mult a b hab, ha (left_ne_zero_of_mul hab_pos), hb (right_ne_zero_of_mul hab_pos),
+        factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
+    convert (factorization_disjoint_of_coprime hab) },
+end
+
+/-- For any multiplicative function `f` with `f 1 = 1` and `f 0 = 1`,
+we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
+lemma multiplicative_factorization' {β : Type*} [comm_monoid β] (f : ℕ → β)
+  (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf0 : f 0 = 1) (hf1 : f 1 = 1) :
+  ∀ {n : ℕ}, f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+begin
+  apply' nat.rec_on_pos_prime_coprime,
+  { intros p k hp hk, simp only [hp.factorization_pow], rw prod_single_index _, simp [hf1] },
+  { simp [hf0] },
+  { rw [factorization_one, hf1], simp },
+  { intros a b _ _ hab ha hb,
+    rw [h_mult a b hab, ha, hb, factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
+    convert (factorization_disjoint_of_coprime hab) },
 end
 
 end nat

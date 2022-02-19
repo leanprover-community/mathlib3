@@ -344,7 +344,7 @@ by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
 
 /-- The isometry between `ℂ` and a two-dimensional real inner product space given by a basis. -/
 def complex.isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) : ℂ ≃ₗᵢ[ℝ] F :=
-complex.isometry_euclidean.trans (v.isometry_euclidean_of_orthonormal hv).symm
+complex.isometry_euclidean.trans (v.to_orthonormal_basis hv).repr.symm
 
 @[simp] lemma complex.map_isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v)
   (f : F ≃ₗᵢ[ℝ] F') :

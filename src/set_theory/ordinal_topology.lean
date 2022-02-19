@@ -238,8 +238,7 @@ begin
     change ((enum_ord.order_iso hS) _).val = f x,
     rw order_iso.apply_symm_apply },
   { rw is_closed_iff_bsup at h,
-    suffices : enum_ord.{u} S a ≤ bsup.{u u} a (λ b < a, enum_ord.{u} S b),
-      from this.trans (bsup_le.2 H),
+    suffices : enum_ord S a ≤ bsup.{u u} a (λ b < a, enum_ord S b), from this.trans (bsup_le.2 H),
     cases enum_ord.surjective hS _ (h ha.1 (λ b hb, enum_ord S b) (λ b hb, enum_ord_mem hS b))
       with b hb,
     rw ←hb,

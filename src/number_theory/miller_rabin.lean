@@ -19,7 +19,9 @@ def odd_part (n : ℕ) := n / two_power_part n
 
 lemma mul_two_power_part_odd_part (n : ℕ) : (two_power_part n) * (odd_part n) = n :=
 begin
-  sorry,
+  have : two_power_part n ∣ n,
+  { sorry, },
+  sorry, -- try this one
 end
 
 def strong_probable_prime (n : nat) (a : zmod n) : Prop :=
@@ -54,8 +56,11 @@ begin
   rw two_power_part at h,
   revert h,
   induction padic_val_nat 2 e with i hi,
-  { sorry, },
+  { sorry, --try this one,
+    },
   { intros h,
+    simp [pow_succ, mul_assoc] at h,
+    rw pow_mul' at h,
     sorry, },
 end
 

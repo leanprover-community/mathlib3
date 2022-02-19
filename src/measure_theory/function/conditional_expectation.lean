@@ -215,7 +215,7 @@ variables (F)
 def Lp_meas_subgroup (m : measurable_space α) [measurable_space α] (p : ℝ≥0∞) (μ : measure α) :
   add_subgroup (Lp F p μ) :=
 { carrier   := {f : (Lp F p μ) | ae_measurable' m f μ} ,
-  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α m _ _, Lp.coe_fn_zero _ _ _⟩,
+  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α _ m _, Lp.coe_fn_zero _ _ _⟩,
   add_mem'  := λ f g hf hg, (hf.add hg).congr (Lp.coe_fn_add f g).symm,
   neg_mem' := λ f hf, ae_measurable'.congr hf.neg (Lp.coe_fn_neg f).symm, }
 
@@ -226,7 +226,7 @@ def Lp_meas [opens_measurable_space 𝕜] (m : measurable_space α) [measurable_
   (μ : measure α) :
   submodule 𝕜 (Lp F p μ) :=
 { carrier   := {f : (Lp F p μ) | ae_measurable' m f μ} ,
-  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α m _ _, Lp.coe_fn_zero _ _ _⟩,
+  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α _ m _, Lp.coe_fn_zero _ _ _⟩,
   add_mem'  := λ f g hf hg, (hf.add hg).congr (Lp.coe_fn_add f g).symm,
   smul_mem' := λ c f hf, (hf.const_smul c).congr (Lp.coe_fn_smul c f).symm, }
 variables {F 𝕜}

@@ -16,14 +16,12 @@ This file constructs the direct limit of a directed system of first-order embedd
   first-order embeddings between the structures indexed by `G`.
 -/
 
-
 universes v w u₁ u₂
 
 open_locale first_order
 namespace first_order
 namespace language
 open Structure
-open set
 
 variables {L : language} {ι : Type v} [preorder ι]
 variables {G : ι → Type w} [Π i, L.Structure (G i)]
@@ -43,28 +41,63 @@ lemma map_map [directed_system G (λ i j h, f i j h)] {i j k} (hij hjk x) :
   f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x :=
 directed_system.map_map (λ i j h, f i j h) hij hjk x
 
+namespace nat
+variables {G' : ℕ → Type w} [Π i, L.Structure (G' i)] (f' : Π (n : ℕ), G' n ↪[L] G' (n + 1))
+
+def to_step_of_le (m n : ℕ) (h : m ≤ n) : G' m ↪[L] G' n :=
+{ to_fun := nat.le_rec_on h (λ n, f' n),
+  inj' := nat.le_rec_on_injective h _ (λ n, (f' _).injective),
+  map_fun' := λ n f x, begin
+    simp only,
+    induction h with n h ih,
+    { rw [nat.le_rec_on_self],
+      refine congr rfl (funext (λ i, _)),
+      rw [function.comp_app, nat.le_rec_on_self] },
+    { rw [nat.le_rec_on_succ h, ih, embedding.map_fun],
+      refine congr rfl (funext (λ i, _)),
+      simp only [function.comp_app, nat.le_rec_on_succ h] }
+  end,
+  map_rel' := λ n r x, begin
+    simp only [iff_eq_eq],
+    induction h with n h ih,
+    { refine congr rfl (funext (λ i, _)),
+      rw [function.comp_app, nat.le_rec_on_self] },
+    { rw [← ih, ← (f' n).map_rel],
+      refine congr rfl (funext (λ i, _)),
+      simp only [function.comp_app, nat.le_rec_on_succ h] }
+  end }
+
+@[simp] lemma coe_to_step_of_le (m n : ℕ) (h : m ≤ n) :
+  (to_step_of_le f' m n h : G' m → G' n) = nat.le_rec_on h (λ n, f' n) :=
+rfl
+
+instance to_step_of_le.directed_system : directed_system G' (λ i j h, to_step_of_le f' i j h) :=
+⟨λ i x h, nat.le_rec_on_self x, λ i j k ij jk x, (nat.le_rec_on_trans ij jk x).symm⟩
+
+end nat
+
 end directed_system
 
 namespace direct_limit
 
 /-- Raises a family of elements in the `Σ`-type to the same level along the embeddings. -/
 def unify {α : Type*} (x : α → (Σ i, G i)) (i : ι)
-  (h : i ∈ upper_bounds (range (sigma.fst ∘ x))) (a : α) : G i :=
-f (x a).1 i (h (mem_range_self a)) (x a).2
+  (h : ∀ (a : α), (x a).1 ≤ i) (a : α) : G i :=
+f (x a).1 i (h a) (x a).2
 
 variable [directed_system G (λ i j h, f i j h)]
 
 @[simp] lemma unify_sigma_mk_self {α : Type*} {i : ι}
   {x : α → G i} :
-  unify f (sigma.mk i ∘ x) i (λ j ⟨a, hj⟩, trans (le_of_eq hj.symm) (refl _)) = x :=
+  unify f (sigma.mk i ∘ x) i (λ _, refl _) = x :=
 begin
   ext a,
   simp only [unify, directed_system.map_self],
 end
 
 lemma comp_unify {α : Type*} {x : α → (Σ i, G i)} {i j : ι}
-  (ij : i ≤ j) (h : i ∈ upper_bounds (range (sigma.fst ∘ x))) :
-  (f i j ij) ∘ (unify f x i h) = unify f x j (λ k hk, trans (mem_upper_bounds.1 h k hk) ij) :=
+  (ij : i ≤ j) (h : ∀ (a : α), (x a).1 ≤ i) :
+  (f i j ij) ∘ (unify f x i h) = unify f x j (λ a, le_trans (h a) ij) :=
 begin
   ext a,
   simp [unify, directed_system.map_map],
@@ -95,11 +128,11 @@ def setoid [directed_system G (λ i j h, f i j h)] [is_directed ι (≤)] :
  -/
 noncomputable def sigma_structure [is_directed ι (≤)] [nonempty ι] : L.Structure (Σ i, G i) :=
 { fun_map := λ n F x, ⟨_, fun_map F (unify f x
-  (classical.some (fintype.bdd_above_range (λ a, (x a).1)))
-  (classical.some_spec (fintype.bdd_above_range (λ a, (x a).1))))⟩,
+  (classical.some (fintype.exists_le (λ a, (x a).1)))
+  (classical.some_spec (fintype.exists_le (λ a, (x a).1))))⟩,
                     rel_map := λ n R x, rel_map R (unify f x
-  (classical.some (fintype.bdd_above_range (λ a, (x a).1)))
-  (classical.some_spec (fintype.bdd_above_range (λ a, (x a).1)))) }
+  (classical.some (fintype.exists_le (λ a, (x a).1)))
+  (classical.some_spec (fintype.exists_le (λ a, (x a).1)))) }
 
 end direct_limit
 
@@ -132,8 +165,8 @@ begin
 end
 
 lemma fun_map_unify_equiv {n : ℕ} (F : L.functions n) (x : (fin n) → (Σ i, G i)) (i j : ι)
-  (hi : i ∈ upper_bounds (range (sigma.fst ∘ x))) (hj : j ∈ upper_bounds (range (sigma.fst ∘ x))) :
-  (⟨i, fun_map F (unify f x i hi)⟩ : Σ i, G i) ≈ ⟨j, fun_map F (unify f x j hj)⟩ :=
+  (hi : ∀ (a : fin n), (x a).1 ≤ i) (hj : ∀ (a : fin n), (x a).1 ≤ j)  :
+  (⟨i, fun_map F (unify f x i hi)⟩ : Σ i, G i) ≈ ⟨_, fun_map F (unify f x j hj)⟩ :=
 begin
   obtain ⟨k, ik, jk⟩ := directed_of (≤) i j,
   refine ⟨k, ik, jk, _⟩,
@@ -141,7 +174,7 @@ begin
 end
 
 lemma rel_map_unify_equiv {n : ℕ} (R : L.relations n) (x : (fin n) → (Σ i, G i)) (i j : ι)
-  (hi : i ∈ upper_bounds (range (sigma.fst ∘ x))) (hj : j ∈ upper_bounds (range (sigma.fst ∘ x)))  :
+  (hi : ∀ (a : fin n), (x a).1 ≤ i) (hj : ∀ (a : fin n), (x a).1 ≤ j)  :
   rel_map R (unify f x i hi) = rel_map R (unify f x j hj) :=
 begin
   obtain ⟨k, ik, jk⟩ := directed_of (≤) i j,
@@ -151,25 +184,24 @@ end
 variable [nonempty ι]
 
 lemma exists_unify_eq {α : Type*} [fintype α] {x y : α → (Σ i, G i)} (xy : x ≈ y) :
-  ∃ (i : ι) (hx : i ∈ upper_bounds (range (sigma.fst ∘ x)))
-    (hy : i ∈ upper_bounds (range (sigma.fst ∘ y))),
+  ∃ (i : ι) (hx : ∀ a : α, (x a).1 ≤ i) (hy : ∀ a : α, (y a).1 ≤ i),
   unify f x i hx = unify f y i hy :=
 begin
-  obtain ⟨i, hi⟩ := fintype.bdd_above_range (sum.elim (λ a, (x a).1) (λ a, (y a).1)),
-  rw [sum.elim_range, upper_bounds_union] at hi,
-  simp_rw [← function.comp_apply sigma.fst _] at hi,
-  exact ⟨i, hi.1, hi.2, funext (λ a, (equiv_iff G f _ _).1 (xy a))⟩,
+  obtain ⟨i, hi⟩ := fintype.exists_le (sum.elim (λ a, (x a).1) (λ a, (y a).1)),
+  refine ⟨i, λ a, hi (sum.inl a), λ a, hi (sum.inr a), _⟩,
+  ext a,
+  exact (equiv_iff G f (hi (sum.inl a)) (hi (sum.inr a))).1 (xy a),
 end
 
 lemma fun_map_equiv_unify {n : ℕ} (F : L.functions n) (x : (fin n) → (Σ i, G i)) (i : ι)
-  (hi : i ∈ upper_bounds (range (sigma.fst ∘ x))) :
+  (hi : ∀ (a : fin n), (x a).1 ≤ i) :
   @fun_map _ _ (sigma_structure G f) _ F x ≈ ⟨_, fun_map F (unify f x i hi)⟩ :=
-fun_map_unify_equiv G f F x (classical.some (fintype.bdd_above_range (λ a, (x a).1))) i _ hi
+fun_map_unify_equiv G f F x (classical.some (fintype.exists_le (λ a, (x a).1))) i _ hi
 
 lemma rel_map_equiv_unify {n : ℕ} (R : L.relations n) (x : (fin n) → (Σ i, G i)) (i : ι)
-  (hi : i ∈ upper_bounds (range (sigma.fst ∘ x)))  :
+  (hi : ∀ (a : fin n), (x a).1 ≤ i)  :
   @rel_map _ _ (sigma_structure G f) _ R x = rel_map R (unify f x i hi) :=
-rel_map_unify_equiv G f R x (classical.some (fintype.bdd_above_range (λ a, (x a).1))) i _ hi
+rel_map_unify_equiv G f R x (classical.some (fintype.exists_le (λ a, (x a).1))) i _ hi
 
 /-- The direct limit `setoid` respects the structure `sigma_structure`, so quotienting by it
   gives rise to a valid structure. -/
@@ -195,8 +227,7 @@ noncomputable instance Structure : L.Structure (direct_limit G f) := language.qu
   fun_map F (λ a, (⟦⟨i, x a⟩⟧ : direct_limit G f)) = ⟦⟨i, fun_map F x⟩⟧ :=
 begin
   simp only [function.comp_app, fun_map_quotient_mk, quotient.eq],
-  obtain ⟨k, ik, jk⟩ := directed_of (≤) i (classical.some (fintype.bdd_above_range
-    (λ (a : fin n), i))),
+  obtain ⟨k, ik, jk⟩ := directed_of (≤) i (classical.some (fintype.exists_le (λ (a : fin n), i))),
   refine ⟨k, jk, ik, _⟩,
   simp only [embedding.map_fun, comp_unify],
   refl
@@ -206,18 +237,17 @@ end
   rel_map R (λ a, (⟦⟨i, x a⟩⟧ : direct_limit G f)) = rel_map R x :=
 begin
   rw [rel_map_quotient_mk],
-  obtain ⟨k, ik, jk⟩ := directed_of (≤) i (classical.some (fintype.bdd_above_range
-    (λ (a : fin n), i))),
+  obtain ⟨k, ik, jk⟩ := directed_of (≤) i (classical.some (fintype.exists_le (λ (a : fin n), i))),
   rw [rel_map_equiv_unify G f R (λ a, ⟨i, x a⟩) i, unify_sigma_mk_self],
 end
 
 lemma exists_quotient_mk_sigma_mk_eq {α : Type*} [fintype α] (x : α → direct_limit G f) :
   ∃ (i : ι) (y : α → G i), x = quotient.mk ∘ (sigma.mk i) ∘ y :=
 begin
-  obtain ⟨i, hi⟩ := fintype.bdd_above_range (λ a, (x a).out.1),
+  obtain ⟨i, hi⟩ := fintype.exists_le (λ a, (x a).out.1),
   refine ⟨i, unify f (quotient.out ∘ x) i hi, _⟩,
   ext a,
-  rw [quotient.eq_mk_iff_out, function.comp_app, unify, equiv_iff G f _],
+  rw [quotient.eq_mk_iff_out, function.comp_app, unify, equiv_iff G f (hi a)],
   { simp only [directed_system.map_self] },
   { refl }
 end
@@ -225,7 +255,7 @@ end
 variables (L ι)
 
 /-- The canonical map from a component to the direct limit. -/
-noncomputable def of (i : ι) : G i ↪[L] direct_limit G f :=
+noncomputable def of (i) : G i ↪[L] direct_limit G f :=
 { to_fun := quotient.mk ∘ sigma.mk i,
   inj' := λ x y h, begin
     simp only [quotient.eq] at h,
@@ -235,10 +265,9 @@ noncomputable def of (i : ι) : G i ↪[L] direct_limit G f :=
 
 variables {L ι G f}
 
-@[simp] lemma of_apply {i : ι} {x : G i} : of L ι G f i x = ⟦⟨i, x⟩⟧ := rfl
+@[simp] lemma of_apply {i x} : of L ι G f i x = ⟦⟨i, x⟩⟧ := rfl
 
-@[simp] lemma of_f {i j : ι} {hij : i ≤ j} {x : G i} :
-  (of L ι G f j (f i j hij x)) = of L ι G f i x :=
+@[simp] lemma of_f {i j hij x} : (of L ι G f j (f i j hij x)) = of L ι G f i x :=
 begin
   simp only [of_apply, quotient.eq],
   refine setoid.symm ⟨j, hij, refl j, _⟩,
@@ -301,7 +330,7 @@ begin
   simp only [lift, quotient.lift_mk],
 end
 
-lemma lift_of {i} (x : G i) : lift L ι G f g Hg (of L ι G f i x) = g i x :=
+lemma lift_of {i} (x) : lift L ι G f g Hg (of L ι G f i x) = g i x :=
 by simp
 
 theorem lift_unique (F : direct_limit G f ↪[L] P) (x) :

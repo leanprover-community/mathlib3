@@ -67,7 +67,7 @@ theorem fg_closure {s : set M} (hs : finite s) : fg (closure L s) :=
 theorem fg_closure_singleton (x : M) : fg (closure L ({x} : set M)) :=
 fg_closure (finite_singleton x)
 
-theorem fg_sup {N₁ N₂ : L.substructure M}
+theorem fg.sup {N₁ N₂ : L.substructure M}
   (hN₁ : N₁.fg) (hN₂ : N₂.fg) : (N₁ ⊔ N₂).fg :=
 let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in
 fg_def.2 ⟨t₁ ∪ t₂, ht₁.1.union ht₂.1, by rw [closure_union, ht₁.2, ht₂.2]⟩
@@ -133,7 +133,7 @@ theorem cg_closure {s : set M} (hs : countable s) : cg (closure L s) :=
 
 theorem cg_closure_singleton (x : M) : cg (closure L ({x} : set M)) := (fg_closure_singleton x).cg
 
-theorem cg_sup {N₁ N₂ : L.substructure M}
+theorem cg.sup {N₁ N₂ : L.substructure M}
   (hN₁ : N₁.cg) (hN₂ : N₂.cg) : (N₁ ⊔ N₂).cg :=
 let ⟨t₁, ht₁⟩ := cg_def.1 hN₁, ⟨t₂, ht₂⟩ := cg_def.1 hN₂ in
 cg_def.2 ⟨t₁ ∪ t₂, ht₁.1.union ht₂.1, by rw [closure_union, ht₁.2, ht₂.2]⟩
@@ -217,8 +217,10 @@ begin
   exact h.range f,
 end
 
-@[priority 100] instance cg_of_fg [h : fg L M] : cg L M :=
+lemma fg.cg (h : fg L M) : cg L M :=
 cg_def.2 (fg_def.1 h).cg
+
+@[priority 100] instance cg_of_fg [h : fg L M] : cg L M := h.cg
 
 end Structure
 

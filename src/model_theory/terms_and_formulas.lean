@@ -626,7 +626,6 @@ lemma inf_semantically_equivalent_not_sup_not {T : L.Theory} {φ ψ : L.formula 
 inf_semantically_equivalent_bd_not_sup_bd_not
 
 end formula
-
 end Theory
 
 end language

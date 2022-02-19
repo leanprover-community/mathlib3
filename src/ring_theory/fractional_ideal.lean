@@ -436,15 +436,9 @@ lemma coe_pow (I : fractional_ideal S P) (n : ℕ) : ↑(I ^ n) = (I ^ n : submo
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
 submodule.mul_induction_on hr hm ha
 
--- There is no `function.injective.comm_semiring_pow` so we need to do this in three parts to keep
--- our custom power operator.
 instance : comm_semiring (fractional_ideal S P) :=
-{ ..(function.injective.monoid_pow _ subtype.coe_injective
-      coe_one coe_mul coe_pow : monoid (fractional_ideal S P)),
-  ..(function.injective.comm_semigroup _ subtype.coe_injective
-      coe_mul : comm_semigroup (fractional_ideal S P)),
-  ..(function.injective.non_unital_non_assoc_semiring _ subtype.coe_injective
-      coe_zero coe_add coe_mul : non_unital_non_assoc_semiring (fractional_ideal S P)) }
+function.injective.comm_semiring _ subtype.coe_injective
+  coe_zero coe_one coe_add coe_mul coe_nsmul coe_pow
 
 section order
 

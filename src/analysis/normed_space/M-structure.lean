@@ -65,7 +65,7 @@ lemma is_Lprojection.Lcomplement_iff (P: X →L[𝕜] X) : is_Lprojection P ↔ 
   end ⟩
 
 
-lemma Lproj_PQ_eq_QPQ (P: X →L[𝕜] X) (Q: X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lprojection Q) :
+lemma Lproj_PQ_eq_QPQ (P Q : X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lprojection Q) :
   P * Q = Q * P * Q :=
 begin
   ext,
@@ -95,10 +95,10 @@ begin
   { apply norm_nonneg, }
 end
 
-lemma Lproj_QP_eq_QPQ (P: X →L[𝕜] X) (Q: X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lprojection Q) : Q * P = Q * P * Q :=
+lemma Lproj_QP_eq_QPQ (P Q : X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lprojection Q) : Q * P = Q * P * Q :=
 begin
   have e1: P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
-  calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw Lproj_PQ_eq_QPQ P (1 - Q) h₁ ((is_Lprojection.Lcomplement Q).mp h₂)
+  calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw Lproj_PQ_eq_QPQ P (1 - Q) h₁ h₂.Lcomplement
   ... = 1 * (P * (1 - Q)) - Q * (P * (1 - Q)) : by {rw mul_assoc, rw sub_mul,}
   ... = P * (1 - Q) - Q * (P * (1 - Q)) : by rw one_mul
   ... = P * (1 - Q) - Q * (P - P * Q) : by rw [mul_sub, mul_one]
@@ -107,7 +107,7 @@ begin
   exact e1,
 end
 
-lemma Lproj_commute (P: X →L[𝕜] X) (Q: X →L[𝕜] X) (h₁: is_Lprojection P) (h₂ : is_Lprojection Q) : commute P Q :=
+lemma Lproj_commute (P Q: X →L[𝕜] X) (h₁: is_Lprojection P) (h₂ : is_Lprojection Q) : commute P Q :=
 begin
   unfold commute,
   unfold semiconj_by,
@@ -136,8 +136,35 @@ begin
       ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : rfl }, }
 end
 
+lemma test  (a b c d: X →L[𝕜] X) : a - b*(c-d) = a - b*c + b*d :=
+begin
+  rw mul_sub,
+
+end
+
+lemma test2 (a b c d: X →L[𝕜] X) : a + (b - c) = a + b - c :=
+begin
+  library_search
+end
+
+lemma is_Lprojection.join {P Q: X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) : is_Lprojection (P + Q - P * Q) :=
+begin
+  have e1:  1 - (1 - P) * (1 - Q) = P + Q - P * Q :=
+  calc 1 - (1 - P) * (1 - Q) = 1 -(1 - Q - P * (1 - Q)) : by rw [sub_mul, one_mul]
+  ... = Q + P * (1 - Q) : by rw [sub_sub, sub_sub_self]
+  ... = P + Q - P * Q : by rw [mul_sub, mul_one, add_sub, add_comm],
+  rw ← e1,
+  rw ← is_Lprojection.Lcomplement_iff,
+  apply is_Lprojection.product,
+  apply is_Lprojection.Lcomplement h₁,
+  apply is_Lprojection.Lcomplement h₂,
+end
+
 instance Lprojections_compl: has_compl(subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
 ⟨λ P, ⟨1-P, P.prop.Lcomplement⟩⟩
 
 instance : has_inf (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
 ⟨λ P Q, ⟨P * Q, P.prop.product Q.prop⟩ ⟩
+
+instance : has_sup (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
+⟨λ P Q, ⟨P + Q - P * Q, P.prop.join Q.prop⟩ ⟩

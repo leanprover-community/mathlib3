@@ -750,6 +750,15 @@ def cone_left_op_of_cocone (c : cocone F) : cone (F.left_op) :=
 
 end
 
+section
+variables {F : Jᵒᵖ ⥤ Cᵒᵖ}
+
+def cone_of_cocone_unop (c : cocone F.unop) : cone F :=
+{ X := op c.X,
+  π := _ }
+
+end
+
 end category_theory.limits
 
 namespace category_theory.functor

@@ -33,6 +33,10 @@ structures that embed into structures in `K` are also in `K`.
 * A class `K` has the `first_order.language.amalgamation_property` when for any pair of embeddings
 of a structure `M` in `K` into other structures in `K`, those two structures can be embedded into a
 fourth structure in `K` such that the resulting square of embeddings commutes.
+* `first_order.language.is_fraisse_class` indicates that a class is nonempty, isomorphism-invariant,
+essentially countable, and satisfies the hereditary, joint embedding, and amalgamation properties.
+* `first_order.language.fraisse_limit` noncomputably constructs a Fraïssé limit for any Fraïssé
+class.
 
 ## Main Results
 * We show that the age of any structure is isomorphism-invariant and satisfies the hereditary and

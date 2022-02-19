@@ -524,10 +524,9 @@ def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
   map_mul' := λ f g, ae_eq_fun.mk_mul_mk f g f.continuous.measurable.ae_measurable
     g.continuous.measurable.ae_measurable }
 
-variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
-  [opens_measurable_space 𝕜]
+variables {𝕜 : Type*} [semiring 𝕜] [measurable_space 𝕜]
 variables [topological_space γ] [measurable_space γ] [borel_space γ] [add_comm_group γ]
-  [module 𝕜 γ] [topological_add_group γ] [has_continuous_smul 𝕜 γ]
+  [module 𝕜 γ] [topological_add_group γ] [has_measurable_smul 𝕜 γ] [has_continuous_const_smul 𝕜 γ]
   [second_countable_topology γ]
 
 /-- The linear map from the group of continuous maps from `α` to `β` to the group of equivalence

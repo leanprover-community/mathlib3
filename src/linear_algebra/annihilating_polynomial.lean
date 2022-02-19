@@ -25,6 +25,16 @@ variables [comm_ring A] [add_comm_group M] [module A M]
 noncomputable def annihilating_ideal (u: M →ₗ[A] M) : ideal (polynomial A) :=
   ring_hom.ker (polynomial.aeval u).to_ring_hom
 
+lemma mem_annihilating_ideal_iff_aeval_0 (u: M →ₗ[A] M) (p: polynomial A)
+ : (p ∈ annihilating_ideal u) ↔ (polynomial.aeval u) p = 0 :=
+begin
+  split,
+  intros hp,
+  exact (ring_hom.mem_ker (polynomial.aeval u).to_ring_hom).2 hp,
+  intros hup0,
+  exact (ring_hom.mem_ker (polynomial.aeval u).to_ring_hom).1 hup0,
+end
+
 variables {𝕜 V: Type*}
 variables [field 𝕜] [add_comm_group V] [module 𝕜 V]
 
@@ -62,9 +72,26 @@ lemma mem_iff_deg_ge_deg_generator (u: V →ₗ[𝕜] V) (p: polynomial 𝕜) (g
   p ∈ annihilating_ideal u → (p ≠ 0) → (g = annihilating_ideal_generator u) →
   polynomial.degree p ≥ polynomial.degree g :=
 begin
-  intros hp pnz hg,
-  
-  -- cases (mem_iff_generator_dvd u p).1 hp with q hpgq,
-  -- degree_le_of_dvd
-  -- sorry,
+  intros hp hpnz hg,
+  norm_num,
+  apply polynomial.degree_le_of_dvd hpnz,
+  cases (mem_iff_generator_dvd u p).1 hp with q hpgq,
+  rw ← hg at hpgq,
+  exact dvd.intro q (eq.symm hpgq),
+end
+
+lemma minpoly_eq_monic_annihilating_ideal_generator (u: V →ₗ[𝕜] V) (g: polynomial 𝕜) :
+  (g = annihilating_ideal_generator u) → (g.monic) →
+  g = minpoly 𝕜 u :=
+begin
+  intros hg hgm,
+  apply minpoly.unique,
+  { apply hgm, },
+  { rw hg,
+    apply annihilating_ideal_generator_aeval_0, },
+  { intros q hqm heval,
+    apply mem_iff_deg_ge_deg_generator u,
+    exact (mem_annihilating_ideal_iff_aeval_0 u q).2 heval,
+    exact polynomial.monic.ne_zero hqm,
+    apply hg, },
 end

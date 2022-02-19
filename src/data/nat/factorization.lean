@@ -368,7 +368,7 @@ end
 /-! ### Induction principles involving factorizations -/
 
 /-- Given `P 0, P 1` and a way to extend `P a` to `P (p ^ n * a)` for prime `p` not dividing `a`,
-you can define `P` for all natural numbers. -/
+we can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
 def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
   (h : ∀ a p n : ℕ, p.prime → ¬ p ∣ a → P a → P (p ^ n * a)) : ∀ (a : ℕ), P a :=
@@ -387,14 +387,12 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
     have hpt : p ^ t ∣ k + 2 := by { rw ht, exact pow_factorization_dvd _ _ },
     have htp : 0 < t :=
     by { rw ht, exact hp.factorization_pos_of_dvd (nat.succ_ne_zero _) (min_fac_dvd _) },
-
     convert h ((k + 2) / p ^ t) p t hp _ _,
     { rw nat.mul_div_cancel' hpt },
     { rw [nat.dvd_div_iff hpt, ←pow_succ', ht],
       exact pow_succ_factorization_not_dvd (k + 1).succ_ne_zero hp },
-
-    apply hk _ (nat.div_lt_of_lt_mul _),
-    simp [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne, hp.one_lt],
+    { apply hk _ (nat.div_lt_of_lt_mul _),
+      simp [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne, hp.one_lt] },
     end
   end
 
@@ -409,15 +407,15 @@ rec_on_prime_pow h0 h1 $ λ a p n hp' hpa ha,
   (prime.coprime_pow_of_not_dvd hp' hpa).symm
   (if h : n = 0 then eq.rec h1 h.symm else hp p n hp' $ nat.pos_of_ne_zero h) ha)
 
-/-- Given `P 0`, `P (p ^ k)` for all prime powers, and a way to extend `P a` and `P b` to
-`P (a * b)` when `a, b` are coprime, you can define `P` for all natural numbers. -/
+/-- Given `P 0`, `P (p ^ n)` for all prime powers, and a way to extend `P a` and `P b` to
+`P (a * b)` when `a, b` are positive coprime, we can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
 def rec_on_prime_coprime {P : ℕ → Sort*} (h0 : P 0) (hp : ∀ p n : ℕ, prime p → P (p ^ n))
   (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
 rec_on_pos_prime_pos_coprime (λ p n h _, hp p n h) h0 (hp 2 0 prime_two) h
 
-/-- Given `P 0`, `P 1`, `P p` for all primes, and a proof that you can extend
-`P a` and `P b` to `P (a * b)`, you can define `P` for all natural numbers. -/
+/-- Given `P 0`, `P 1`, `P p` for all primes, and a way to extend `P a` and `P b` to
+`P (a * b)`, we can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
 def rec_on_mul {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
   (hp : ∀ p, prime p → P p) (h : ∀ a b, P a → P b → P (a * b)) : ∀ a, P a :=
@@ -428,7 +426,7 @@ let hp : ∀ p n : ℕ, prime p → P (p ^ n) :=
   end in
 rec_on_prime_coprime h0 hp $ λ a b _ _ _, h a b
 
-/-- For any multiplicative function `f` with `f 1 = 1` and any `n > 0`,
+/-- For any multiplicative function `f` with `f 1 = 1` and any `n ≠ 0`,
 we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
 lemma multiplicative_factorization {β : Type*} [comm_monoid β] (f : ℕ → β)
   (h_mult : ∀ x y : ℕ, coprime x y → f (x * y) = f x * f y) (hf : f 1 = 1) :

@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import analysis.convex.basic
-import topology.algebra.mul_action
-import topology.algebra.ordered.basic
+import topology.algebra.order.basic
 
 /-!
 # Strictly convex sets
@@ -253,7 +252,7 @@ end continuous_add
 
 section continuous_smul
 variables [linear_ordered_field 𝕝] [topological_space 𝕝] [has_scalar 𝕜 𝕝] [module 𝕝 E]
-  [has_continuous_smul 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s : set E} {x : E}
+  [has_continuous_const_smul 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s : set E} {x : E}
 
 lemma strict_convex.smul (hs : strict_convex 𝕜 s) (c : 𝕝) : strict_convex 𝕜 (c • s) :=
 begin
@@ -271,11 +270,11 @@ end add_comm_group
 end ordered_semiring
 
 section ordered_comm_semiring
-variables [ordered_comm_semiring 𝕜] [topological_space 𝕜] [topological_space E]
+variables [ordered_comm_semiring 𝕜] [topological_space E]
 
 section add_comm_group
-variables [add_comm_group E] [module 𝕜 E] [no_zero_smul_divisors 𝕜 E] [has_continuous_smul 𝕜 E]
-  {s : set E}
+variables [add_comm_group E] [module 𝕜 E] [no_zero_smul_divisors 𝕜 E]
+  [has_continuous_const_smul 𝕜 E] {s : set E}
 
 lemma strict_convex.preimage_smul (hs : strict_convex 𝕜 s) (c : 𝕜) :
   strict_convex 𝕜 ((λ z, c • z) ⁻¹' s) :=
@@ -288,7 +287,7 @@ begin
     { exact strict_convex_empty } },
   refine hs.linear_preimage (linear_map.lsmul _ _ c) _ (smul_right_injective E hc),
   unfold linear_map.lsmul linear_map.mk₂ linear_map.mk₂' linear_map.mk₂'ₛₗ,
-  exact continuous_const.smul continuous_id,
+  exact continuous_const_smul _,
 end
 
 end add_comm_group

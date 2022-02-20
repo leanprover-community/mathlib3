@@ -43,6 +43,7 @@ universes u v
 namespace ideal
 variables {R : Type u} [comm_ring R] {I : ideal R}
 variables {S : Type v} [comm_ring S]
+open_locale polynomial
 
 section jacobson
 
@@ -99,8 +100,8 @@ theorem mem_jacobson_iff {x : R} : x ∈ jacobson I ↔ ∀ y, ∃ z, x * y * z 
 λ hx, mem_Inf.2 $ λ M ⟨him, hm⟩, classical.by_contradiction $ λ hxm,
   let ⟨y, hy⟩ := hm.exists_inv hxm, ⟨z, hz⟩ := hx (-y) in
   hm.1.1 $ (eq_top_iff_one _).2 $ sub_sub_cancel (x * -y * z + z) 1 ▸ M.sub_mem
-    (by { rw [← one_mul z, ← mul_assoc, ← add_mul, mul_one, mul_neg_eq_neg_mul_symm, neg_add_eq_sub,
-        ← neg_sub, neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y, mul_comm _ (- z)],
+    (by { rw [← one_mul z, ← mul_assoc, ← add_mul, mul_one, mul_neg, neg_add_eq_sub,
+        ← neg_sub, neg_mul, neg_mul_eq_mul_neg, mul_comm x y, mul_comm _ (- z)],
       rcases hy with ⟨i, hi, df⟩,
       rw [← (sub_eq_iff_eq_add.mpr df.symm), sub_sub, add_comm, ← sub_sub, sub_self, zero_sub],
       refine M.mul_mem_left (-z) ((neg_mem_iff _).mpr hi) }) (him hz)⟩
@@ -267,7 +268,7 @@ section polynomial
 open polynomial
 
 lemma jacobson_bot_polynomial_le_Inf_map_maximal :
-  jacobson (⊥ : ideal (polynomial R)) ≤ Inf (map C '' {J : ideal R | J.is_maximal}) :=
+  jacobson (⊥ : ideal R[X]) ≤ Inf (map C '' {J : ideal R | J.is_maximal}) :=
 begin
   refine le_Inf (λ J, exists_imp_distrib.2 (λ j hj, _)),
   haveI : j.is_maximal := hj.1,
@@ -279,12 +280,12 @@ begin
     rwa [map_jacobson_of_bijective _, map_bot] at this,
     exact (ring_equiv.bijective (polynomial_quotient_equiv_quotient_polynomial j)) },
   refine eq_bot_iff.2 (λ f hf, _),
-  simpa [(λ hX, by simpa using congr_arg (λ f, coeff f 1) hX : (X : polynomial (R ⧸ j)) ≠ 0)]
+  simpa [(λ hX, by simpa using congr_arg (λ f, coeff f 1) hX : (X : (R ⧸ j)[X]) ≠ 0)]
     using eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit ((mem_jacobson_bot.1 hf) X)),
 end
 
 lemma jacobson_bot_polynomial_of_jacobson_bot (h : jacobson (⊥ : ideal R) = ⊥) :
-  jacobson (⊥ : ideal (polynomial R)) = ⊥ :=
+  jacobson (⊥ : ideal R[X]) = ⊥ :=
 begin
   refine eq_bot_iff.2 (le_trans jacobson_bot_polynomial_le_Inf_map_maximal _),
   refine (λ f hf, ((submodule.mem_bot _).2 (polynomial.ext (λ n, trans _ (coeff_zero n).symm)))),

@@ -619,7 +619,7 @@ begin
   refine finset.induction_on s _ (λ i s hi ih, _),
   { simp },
   { simp only [finset.sum_insert hi],
-  exact (abv.add_le _ _).trans (add_le_add (le_refl _) ih) },
+  exact (abv.add_le _ _).trans (add_le_add le_rfl ih) },
 end
 
 lemma is_absolute_value.abv_sum [semiring R] [ordered_semiring S] (abv : R → S)

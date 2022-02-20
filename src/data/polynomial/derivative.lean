@@ -17,7 +17,7 @@ import data.polynomial.eval
 noncomputable theory
 
 open finset
-open_locale big_operators classical
+open_locale big_operators classical polynomial
 
 namespace polynomial
 universes u v w y z
@@ -29,7 +29,7 @@ section semiring
 variables [semiring R]
 
 /-- `derivative p` is the formal derivative of the polynomial `p` -/
-def derivative : polynomial R →ₗ[R] polynomial R :=
+def derivative : R[X] →ₗ[R] R[X] :=
 { to_fun := λ p, p.sum (λ n a, C (a * n) * X^(n-1)),
   map_add' := λ p q, by rw sum_add_index;
     simp only [add_mul, forall_const, ring_hom.map_add,
@@ -38,10 +38,10 @@ def derivative : polynomial R →ₗ[R] polynomial R :=
     simp only [mul_sum, ← C_mul', mul_assoc, coeff_C_mul, ring_hom.map_mul, forall_const,
       zero_mul, ring_hom.map_zero, sum] }
 
-lemma derivative_apply (p : polynomial R) :
+lemma derivative_apply (p : R[X]) :
   derivative p = p.sum (λn a, C (a * n) * X^(n - 1)) := rfl
 
-lemma coeff_derivative (p : polynomial R) (n : ℕ) :
+lemma coeff_derivative (p : R[X]) (n : ℕ) :
   coeff (derivative p) n = coeff p (n + 1) * (n + 1) :=
 begin
   rw [derivative_apply],
@@ -57,11 +57,11 @@ begin
 end
 
 @[simp]
-lemma derivative_zero : derivative (0 : polynomial R) = 0 :=
+lemma derivative_zero : derivative (0 : R[X]) = 0 :=
 derivative.map_zero
 
 @[simp]
-lemma iterate_derivative_zero {k : ℕ} : derivative^[k] (0 : polynomial R) = 0 :=
+lemma iterate_derivative_zero {k : ℕ} : derivative^[k] (0 : R[X]) = 0 :=
 begin
   induction k with k ih,
   { simp, },
@@ -76,45 +76,45 @@ lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
 @[simp] lemma derivative_X_pow (n : ℕ) :
-  derivative (X ^ n : polynomial R) = (n : polynomial R) * X ^ (n - 1) :=
+  derivative (X ^ n : R[X]) = (n : R[X]) * X ^ (n - 1) :=
 by convert derivative_C_mul_X_pow (1 : R) n; simp
 
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
 by simp [derivative_apply]
 
-@[simp] lemma derivative_X : derivative (X : polynomial R) = 1 :=
+@[simp] lemma derivative_X : derivative (X : R[X]) = 1 :=
 (derivative_monomial _ _).trans $ by simp
 
-@[simp] lemma derivative_one : derivative (1 : polynomial R) = 0 :=
+@[simp] lemma derivative_one : derivative (1 : R[X]) = 0 :=
 derivative_C
 
-@[simp] lemma derivative_bit0 {a : polynomial R} : derivative (bit0 a) = bit0 (derivative a) :=
+@[simp] lemma derivative_bit0 {a : R[X]} : derivative (bit0 a) = bit0 (derivative a) :=
 by simp [bit0]
 
-@[simp] lemma derivative_bit1 {a : polynomial R} : derivative (bit1 a) = bit0 (derivative a) :=
+@[simp] lemma derivative_bit1 {a : R[X]} : derivative (bit1 a) = bit0 (derivative a) :=
 by simp [bit1]
 
-@[simp] lemma derivative_add {f g : polynomial R} :
+@[simp] lemma derivative_add {f g : R[X]} :
   derivative (f + g) = derivative f + derivative g :=
 derivative.map_add f g
 
-@[simp] lemma iterate_derivative_add {f g : polynomial R} {k : ℕ} :
+@[simp] lemma iterate_derivative_add {f g : R[X]} {k : ℕ} :
   derivative^[k] (f + g) = (derivative^[k] f) + (derivative^[k] g) :=
 derivative.to_add_monoid_hom.iterate_map_add _ _ _
 
-@[simp] lemma derivative_neg {R : Type*} [ring R] (f : polynomial R) :
+@[simp] lemma derivative_neg {R : Type*} [ring R] (f : R[X]) :
   derivative (-f) = - derivative f :=
 linear_map.map_neg derivative f
 
-@[simp] lemma iterate_derivative_neg {R : Type*} [ring R] {f : polynomial R} {k : ℕ} :
+@[simp] lemma iterate_derivative_neg {R : Type*} [ring R] {f : R[X]} {k : ℕ} :
   derivative^[k] (-f) = - (derivative^[k] f) :=
 (@derivative R _).to_add_monoid_hom.iterate_map_neg _ _
 
-@[simp] lemma derivative_sub {R : Type*} [ring R] {f g : polynomial R} :
+@[simp] lemma derivative_sub {R : Type*} [ring R] {f g : R[X]} :
   derivative (f - g) = derivative f - derivative g :=
 linear_map.map_sub derivative f g
 
-@[simp] lemma iterate_derivative_sub {R : Type*} [ring R] {k : ℕ} {f g : polynomial R} :
+@[simp] lemma iterate_derivative_sub {R : Type*} [ring R] {k : ℕ} {f g : R[X]} :
   derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
 begin
   induction k with k ih generalizing f g,
@@ -122,14 +122,14 @@ begin
   { simp [nat.iterate, ih], }
 end
 
-@[simp] lemma derivative_sum {s : finset ι} {f : ι → polynomial R} :
+@[simp] lemma derivative_sum {s : finset ι} {f : ι → R[X]} :
   derivative (∑ b in s, f b) = ∑ b in s, derivative (f b) :=
 derivative.map_sum
 
-@[simp] lemma derivative_smul (r : R) (p : polynomial R) : derivative (r • p) = r • derivative p :=
+@[simp] lemma derivative_smul (r : R) (p : R[X]) : derivative (r • p) = r • derivative p :=
 derivative.map_smul _ _
 
-@[simp] lemma iterate_derivative_smul (r : R) (p : polynomial R) (k : ℕ) :
+@[simp] lemma iterate_derivative_smul (r : R) (p : R[X]) (k : ℕ) :
   derivative^[k] (r • p) = r • (derivative^[k] p) :=
 begin
   induction k with k ih generalizing p,
@@ -140,11 +140,11 @@ end
 /-- We can't use `derivative_mul` here because
 we want to prove this statement also for noncommutative rings.-/
 @[simp]
-lemma derivative_C_mul (a : R) (p : polynomial R) : derivative (C a * p) = C a * derivative p :=
+lemma derivative_C_mul (a : R) (p : R[X]) : derivative (C a * p) = C a * derivative p :=
 by convert derivative_smul a p; apply C_mul'
 
 @[simp]
-lemma iterate_derivative_C_mul (a : R) (p : polynomial R) (k : ℕ) :
+lemma iterate_derivative_C_mul (a : R) (p : R[X]) (k : ℕ) :
   derivative^[k] (C a * p) = C a * (derivative^[k] p) :=
 by convert iterate_derivative_smul a p k; apply C_mul'
 
@@ -153,11 +153,11 @@ end semiring
 section comm_semiring
 variables [comm_semiring R]
 
-lemma derivative_eval (p : polynomial R) (x : R) :
+lemma derivative_eval (p : R[X]) (x : R) :
   p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
 by simp only [derivative_apply, eval_sum, eval_pow, eval_C, eval_X, eval_nat_cast, eval_mul]
 
-@[simp] lemma derivative_mul {f g : polynomial R} :
+@[simp] lemma derivative_mul {f g : R[X]} :
   derivative (f * g) = derivative f * g + f * derivative g :=
 calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)) * X^((n + m) - 1))) :
   begin
@@ -184,18 +184,18 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
       simp only [sum, sum_add_distrib, finset.mul_sum, finset.sum_mul, derivative_apply]
     end
 
-theorem derivative_pow_succ (p : polynomial R) (n : ℕ) :
+theorem derivative_pow_succ (p : R[X]) (n : ℕ) :
   (p ^ (n + 1)).derivative = (n + 1) * (p ^ n) * p.derivative :=
 nat.rec_on n (by rw [pow_one, nat.cast_zero, zero_add, one_mul, pow_zero, one_mul]) $ λ n ih,
 by rw [pow_succ', derivative_mul, ih, mul_right_comm, ← add_mul,
-    add_mul (n.succ : polynomial R), one_mul, pow_succ', mul_assoc, n.cast_succ]
+    add_mul (n.succ : R[X]), one_mul, pow_succ', mul_assoc, n.cast_succ]
 
-theorem derivative_pow (p : polynomial R) (n : ℕ) :
+theorem derivative_pow (p : R[X]) (n : ℕ) :
   (p ^ n).derivative = n * (p ^ (n - 1)) * p.derivative :=
 nat.cases_on n (by rw [pow_zero, derivative_one, nat.cast_zero, zero_mul, zero_mul]) $ λ n,
 by rw [p.derivative_pow_succ n, n.succ_sub_one, n.cast_succ]
 
-lemma derivative_comp (p q : polynomial R) :
+lemma derivative_comp (p q : R[X]) :
   (p.comp q).derivative = q.derivative * p.derivative.comp q :=
 begin
   apply polynomial.induction_on' p,
@@ -209,7 +209,7 @@ begin
 end
 
 @[simp]
-theorem derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) :
+theorem derivative_map [comm_semiring S] (p : R[X]) (f : R →+* S) :
   (p.map f).derivative = p.derivative.map f :=
 polynomial.induction_on p
   (λ r, by rw [map_C, derivative_C, derivative_C, map_zero])
@@ -221,7 +221,7 @@ polynomial.induction_on p
                     polynomial.map_nat_cast, map_one, map_X])
 
 @[simp]
-theorem iterate_derivative_map [comm_semiring S] (p : polynomial R) (f : R →+* S) (k : ℕ):
+theorem iterate_derivative_map [comm_semiring S] (p : R[X]) (f : R →+* S) (k : ℕ):
   polynomial.derivative^[k] (p.map f) = (polynomial.derivative^[k] p).map f :=
 begin
   induction k with k ih generalizing p,
@@ -230,7 +230,7 @@ begin
 end
 
 /-- Chain rule for formal derivative of polynomials. -/
-theorem derivative_eval₂_C (p q : polynomial R) :
+theorem derivative_eval₂_C (p q : R[X]) :
   (p.eval₂ C q).derivative = p.derivative.eval₂ C q * q.derivative :=
 polynomial.induction_on p
   (λ r, by rw [eval₂_C, derivative_C, eval₂_zero, zero_mul])
@@ -239,7 +239,7 @@ polynomial.induction_on p
       @derivative_mul _ _ _ X, derivative_X, mul_one, eval₂_add, @eval₂_mul _ _ _ _ X, eval₂_X,
       add_mul, mul_right_comm])
 
-theorem derivative_prod {s : multiset ι} {f : ι → polynomial R} :
+theorem derivative_prod {s : multiset ι} {f : ι → R[X]} :
   (multiset.map f s).prod.derivative =
   (multiset.map (λ i, (multiset.map f (s.erase i)).prod * (f i).derivative) s).sum :=
 begin
@@ -257,16 +257,16 @@ begin
   { simp [hij] }
 end
 
-theorem of_mem_support_derivative {p : polynomial R} {n : ℕ} (h : n ∈ p.derivative.support) :
+theorem of_mem_support_derivative {p : R[X]} {n : ℕ} (h : n ∈ p.derivative.support) :
   n + 1 ∈ p.support :=
 mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), mem_support_iff.1 h $
 show p.derivative.coeff n = 0, by rw [coeff_derivative, h1, zero_mul]
 
-theorem degree_derivative_lt {p : polynomial R} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
+theorem degree_derivative_lt {p : R[X]} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
 (finset.sup_lt_iff $ bot_lt_iff_ne_bot.2 $ mt degree_eq_bot.1 hp).2 $ λ n hp, lt_of_lt_of_le
 (with_bot.some_lt_some.2 n.lt_succ_self) $ finset.le_sup $ of_mem_support_derivative hp
 
-theorem nat_degree_derivative_lt {p : polynomial R} (hp : p.derivative ≠ 0) :
+theorem nat_degree_derivative_lt {p : R[X]} (hp : p.derivative ≠ 0) :
   p.derivative.nat_degree < p.nat_degree :=
 have hp1 : p ≠ 0, from λ h, hp $ by rw [h, derivative_zero],
 with_bot.some_lt_some.1 $
@@ -276,26 +276,26 @@ begin
   exact degree_derivative_lt hp1
 end
 
-theorem degree_derivative_le {p : polynomial R} : p.derivative.degree ≤ p.degree :=
+theorem degree_derivative_le {p : R[X]} : p.derivative.degree ≤ p.degree :=
 if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else le_of_lt $ degree_derivative_lt H
 
 /-- The formal derivative of polynomials, as linear homomorphism. -/
-def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomial R :=
+def derivative_lhom (R : Type*) [comm_ring R] : R[X] →ₗ[R] R[X] :=
 { to_fun    := derivative,
   map_add'  := λ p q, derivative_add,
   map_smul' := λ r p, derivative_smul r p }
 
 @[simp] lemma derivative_lhom_coe {R : Type*} [comm_ring R] :
-  (polynomial.derivative_lhom R : polynomial R → polynomial R) = polynomial.derivative :=
+  (polynomial.derivative_lhom R : R[X] → R[X]) = polynomial.derivative :=
 rfl
 
-@[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : polynomial R) = 0 :=
+@[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : R[X]) = 0 :=
 begin
   rw ← map_nat_cast C n,
   exact derivative_C,
 end
 
-@[simp] lemma iterate_derivative_cast_nat_mul {n k : ℕ} {f : polynomial R} :
+@[simp] lemma iterate_derivative_cast_nat_mul {n k : ℕ} {f : R[X]} :
   derivative^[k] (n * f) = n * (derivative^[k] f) :=
 begin
   induction k with k ih generalizing f,
@@ -308,12 +308,12 @@ end comm_semiring
 section comm_ring
 variables [comm_ring R]
 
-lemma derivative_comp_one_sub_X (p : polynomial R) :
+lemma derivative_comp_one_sub_X (p : R[X]) :
   (p.comp (1-X)).derivative = -p.derivative.comp (1-X) :=
 by simp [derivative_comp]
 
 @[simp]
-lemma iterate_derivative_comp_one_sub_X (p : polynomial R) (k : ℕ) :
+lemma iterate_derivative_comp_one_sub_X (p : R[X]) (k : ℕ) :
   derivative^[k] (p.comp (1-X)) = (-1)^k * (derivative^[k] p).comp (1-X) :=
 begin
   induction k with k ih generalizing p,
@@ -334,13 +334,13 @@ end comm_ring
 section is_domain
 variables [ring R] [is_domain R]
 
-lemma mem_support_derivative [char_zero R] (p : polynomial R) (n : ℕ) :
+lemma mem_support_derivative [char_zero R] (p : R[X]) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
 suffices (¬(coeff p (n + 1) = 0 ∨ ((n + 1:ℕ) : R) = 0)) ↔ coeff p (n + 1) ≠ 0,
   by simpa only [mem_support_iff, coeff_derivative, ne.def, mul_eq_zero],
 by { rw [nat.cast_eq_zero], simp only [nat.succ_ne_zero, or_false] }
 
-@[simp] lemma degree_derivative_eq [char_zero R] (p : polynomial R) (hp : 0 < nat_degree p) :
+@[simp] lemma degree_derivative_eq [char_zero R] (p : R[X]) (hp : 0 < nat_degree p) :
   degree (derivative p) = (nat_degree p - 1 : ℕ) :=
 begin
   have h0 : p ≠ 0,
@@ -361,7 +361,7 @@ begin
 end
 
 theorem nat_degree_eq_zero_of_derivative_eq_zero
-  [char_zero R] {f : polynomial R} (h : f.derivative = 0) :
+  [char_zero R] {f : R[X]} (h : f.derivative = 0) :
   f.nat_degree = 0 :=
 begin
   by_cases hf : f = 0,

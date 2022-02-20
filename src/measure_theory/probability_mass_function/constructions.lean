@@ -55,6 +55,24 @@ by simp [map]
 lemma pure_map (a : α) : (pure a).map f = pure (f a) :=
 by simp [map]
 
+section measure
+
+variable (s : set β)
+
+@[simp] lemma to_outer_measure_map_apply :
+  (p.map f).to_outer_measure s = p.to_outer_measure (f ⁻¹' s) :=
+by simp [map, set.indicator, to_outer_measure_apply p (f ⁻¹' s)]
+
+@[simp] lemma to_measure_map_apply [measurable_space α] [measurable_space β] (hf : measurable f)
+  (hs : measurable_set s) : (p.map f).to_measure s = p.to_measure (f ⁻¹' s) :=
+begin
+  rw [to_measure_apply_eq_to_outer_measure_apply _ s hs,
+    to_measure_apply_eq_to_outer_measure_apply _ (f ⁻¹' s) (measurable_set_preimage hf hs)],
+  exact to_outer_measure_map_apply f p s,
+end
+
+end measure
+
 end map
 
 section seq
@@ -100,6 +118,21 @@ by simp
 lemma of_finset_apply_of_not_mem {a : α} (ha : a ∉ s) : of_finset f s h h' a = 0 :=
 h' a ha
 
+section measure
+
+variable (t : set α)
+
+@[simp] lemma to_outer_measure_of_finset_apply :
+  (of_finset f s h h').to_outer_measure t = ↑(∑' x, t.indicator f x) :=
+to_outer_measure_apply' (of_finset f s h h') t
+
+@[simp] lemma to_measure_of_finset_apply [measurable_space α] (ht : measurable_set t) :
+  (of_finset f s h h').to_measure t = ↑(∑' x, t.indicator f x) :=
+(to_measure_apply_eq_to_outer_measure_apply _ t ht).trans
+  (to_outer_measure_of_finset_apply h h' t)
+
+end measure
+
 end of_finset
 
 section of_fintype
@@ -115,6 +148,21 @@ variables [fintype α] {f : α → ℝ≥0} (h : ∑ a, f a = 1)
 @[simp] lemma support_of_fintype : (of_fintype f h).support = function.support f := rfl
 
 lemma mem_support_of_fintype_iff (a : α) : a ∈ (of_fintype f h).support ↔ f a ≠ 0 := iff.rfl
+
+section measure
+
+variable (s : set α)
+
+@[simp] lemma to_outer_measure_of_fintype_apply :
+  (of_fintype f h).to_outer_measure s = ↑(∑' x, s.indicator f x) :=
+to_outer_measure_apply' (of_fintype f h) s
+
+@[simp] lemma to_measure_of_fintype_apply [measurable_space α] (hs : measurable_set s) :
+  (of_fintype f h).to_measure s = ↑(∑' x, s.indicator f x) :=
+(to_measure_apply_eq_to_outer_measure_apply _ s hs).trans
+  (to_outer_measure_of_fintype_apply h s)
+
+end measure
 
 end of_fintype
 
@@ -146,6 +194,28 @@ by simp
 
 lemma of_multiset_apply_of_not_mem {a : α} (ha : a ∉ s) : of_multiset s hs a = 0 :=
 div_eq_zero_iff.2 (or.inl $ nat.cast_eq_zero.2 $ multiset.count_eq_zero_of_not_mem ha)
+
+section measure
+
+variable (t : set α)
+
+@[simp] lemma to_outer_measure_of_multiset_apply :
+  (of_multiset s hs).to_outer_measure t = (∑' x, (s.filter (∈ t)).count x) / s.card :=
+begin
+  rw [div_eq_mul_inv, ← ennreal.tsum_mul_right, to_outer_measure_apply],
+  refine tsum_congr (λ x, _),
+  by_cases hx : x ∈ t,
+  { have : (multiset.card s : ℝ≥0) ≠ 0 := by simp [hs],
+    simp [set.indicator, hx, div_eq_mul_inv, ennreal.coe_inv this] },
+  { simp [hx] }
+end
+
+@[simp] lemma to_measure_of_multiset_apply [measurable_space α] (ht : measurable_set t) :
+  (of_multiset s hs).to_measure t = (∑' x, (s.filter (∈ t)).count x) / s.card :=
+(to_measure_apply_eq_to_outer_measure_apply _ t ht).trans
+  (to_outer_measure_of_multiset_apply hs t)
+
+end measure
 
 end of_multiset
 
@@ -180,6 +250,43 @@ set.ext (let ⟨a, ha⟩ := hs in by simp [mem_support_iff, finset.ne_empty_of_m
 lemma mem_support_uniform_of_finset_iff (a : α) : a ∈ (uniform_of_finset s hs).support ↔ a ∈ s :=
 by simp
 
+section measure
+
+variable (t : set α)
+
+@[simp] lemma to_outer_measure_uniform_of_finset_apply :
+  (uniform_of_finset s hs).to_outer_measure t = (s.filter (∈ t)).card / s.card :=
+calc (uniform_of_finset s hs).to_outer_measure t
+  = ↑(∑' x, if x ∈ t then (uniform_of_finset s hs x) else 0) :
+    to_outer_measure_apply' (uniform_of_finset s hs) t
+  ... = ↑(∑' x, if x ∈ s ∧ x ∈ t then (s.card : ℝ≥0)⁻¹ else 0) :
+    begin
+      refine (ennreal.coe_eq_coe.2 $ tsum_congr (λ x, _)),
+      by_cases hxt : x ∈ t,
+      { by_cases hxs : x ∈ s; simp [hxt, hxs] },
+      { simp [hxt] }
+    end
+  ... = ↑(∑ x in (s.filter (∈ t)), if x ∈ s ∧ x ∈ t then (s.card : ℝ≥0)⁻¹ else 0) :
+    begin
+      refine ennreal.coe_eq_coe.2 (tsum_eq_sum (λ x hx, _)),
+      have : ¬ (x ∈ s ∧ x ∈ t) := λ h, hx (finset.mem_filter.2 h),
+      simp [this]
+    end
+  ... = ↑(∑ x in (s.filter (∈ t)), (s.card : ℝ≥0)⁻¹) :
+    ennreal.coe_eq_coe.2 (finset.sum_congr rfl $
+      λ x hx, let this : x ∈ s ∧ x ∈ t := by simpa using hx in by simp [this])
+  ... = (s.filter (∈ t)).card / s.card :
+    let this : (s.card : ℝ≥0) ≠ 0 := nat.cast_ne_zero.2
+      (hs.rec_on $ λ _, finset.card_ne_zero_of_mem) in
+    by simp [div_eq_mul_inv, ennreal.coe_inv this]
+
+@[simp] lemma to_measure_uniform_of_finset_apply [measurable_space α] (ht : measurable_set t) :
+  (uniform_of_finset s hs).to_measure t = (s.filter (∈ t)).card / s.card :=
+(to_measure_apply_eq_to_outer_measure_apply _ t ht).trans
+  (to_outer_measure_uniform_of_finset_apply hs t)
+
+end measure
+
 end uniform_of_finset
 
 section uniform_of_fintype
@@ -193,14 +300,25 @@ variables [fintype α] [nonempty α]
 @[simp] lemma uniform_of_fintype_apply (a : α) : uniform_of_fintype α a = (fintype.card α)⁻¹ :=
 by simpa only [uniform_of_fintype, finset.mem_univ, if_true, uniform_of_finset_apply]
 
-variable (α)
-
-@[simp] lemma support_uniform_of_fintype : (uniform_of_fintype α).support = ⊤ :=
+@[simp] lemma support_uniform_of_fintype (α : Type*) [fintype α] [nonempty α] :
+  (uniform_of_fintype α).support = ⊤ :=
 set.ext (λ x, by simpa [mem_support_iff] using fintype.card_ne_zero)
 
-variable {α}
+lemma mem_support_uniform_of_fintype (a : α) : a ∈ (uniform_of_fintype α).support := by simp
 
-lemma mem_support_uniform_of_fintype_iff (a : α) : a ∈ (uniform_of_fintype α).support := by simp
+section measure
+
+variable (s : set α)
+
+lemma to_outer_measure_uniform_of_fintype_apply :
+  (uniform_of_fintype α).to_outer_measure s = fintype.card s / fintype.card α :=
+by simpa [uniform_of_fintype]
+
+lemma to_measure_uniform_of_fintype_apply [measurable_space α] (hs : measurable_set s) :
+  (uniform_of_fintype α).to_measure s = fintype.card s / fintype.card α :=
+by simpa [uniform_of_fintype, hs]
+
+end measure
 
 end uniform_of_fintype
 

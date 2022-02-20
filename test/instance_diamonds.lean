@@ -9,11 +9,13 @@ import data.polynomial.basic
 import group_theory.group_action.prod
 import group_theory.group_action.units
 import data.complex.module
+import ring_theory.algebraic
 
 /-! # Tests that instances do not form diamonds -/
 
 /-! ## Scalar action instances -/
 section has_scalar
+open_locale polynomial
 
 example :
   (sub_neg_monoid.has_scalar_int : has_scalar ℤ ℂ) = (complex.has_scalar : has_scalar ℤ ℂ) :=
@@ -40,7 +42,7 @@ example (R α : Type*) (β : α → Type*) [monoid R] [Π i, mul_action R (β i)
   (units.mul_action : mul_action Rˣ (Π i, β i)) = pi.mul_action _ := rfl
 
 example (R α : Type*) (β : α → Type*) [monoid R] [semiring α] [distrib_mul_action R α] :
-  (units.distrib_mul_action : distrib_mul_action Rˣ (polynomial α)) =
+  (units.distrib_mul_action : distrib_mul_action Rˣ α[X]) =
     polynomial.distrib_mul_action :=
 rfl
 
@@ -96,3 +98,72 @@ begin
 end
 
 end multiplicative
+
+/-! ## `finsupp` instances-/
+
+section finsupp
+open finsupp
+
+/-- `finsupp.comap_has_scalar` can form a non-equal diamond with `finsupp.has_scalar` -/
+example {k : Type*} [semiring k] [nontrivial k] :
+  (finsupp.comap_has_scalar : has_scalar k (k →₀ k)) ≠ finsupp.has_scalar :=
+begin
+  obtain ⟨u : k, hu⟩ := exists_ne (1 : k),
+  intro h,
+  simp only [has_scalar.ext_iff, function.funext_iff, finsupp.ext_iff] at h,
+  replace h := h u (finsupp.single 1 1) u,
+  classical,
+  rw [comap_smul_single, smul_apply, smul_eq_mul, mul_one, single_eq_same,
+    smul_eq_mul, single_eq_of_ne hu.symm, mul_zero] at h,
+  exact one_ne_zero h,
+end
+
+/-- `finsupp.comap_has_scalar` can form a non-equal diamond with `finsupp.has_scalar` even when
+the domain is a group. -/
+example {k : Type*} [semiring k] [nontrivial kˣ] :
+  (finsupp.comap_has_scalar : has_scalar kˣ (kˣ →₀ k)) ≠ finsupp.has_scalar :=
+begin
+  obtain ⟨u : kˣ, hu⟩ := exists_ne (1 : kˣ),
+  haveI : nontrivial k := ⟨⟨u, 1, units.ext.ne hu⟩⟩,
+  intro h,
+  simp only [has_scalar.ext_iff, function.funext_iff, finsupp.ext_iff] at h,
+  replace h := h u (finsupp.single 1 1) u,
+  classical,
+  rw [comap_smul_single, smul_apply, units.smul_def, smul_eq_mul, mul_one, single_eq_same,
+    smul_eq_mul, single_eq_of_ne hu.symm, mul_zero] at h,
+  exact one_ne_zero h,
+end
+
+end finsupp
+
+/-! ## `polynomial` instances -/
+section polynomial
+
+variables (R A : Type*)
+open_locale polynomial
+open polynomial
+
+/-- `polynomial.has_scalar_pi` forms a diamond with `pi.has_scalar`. -/
+example [semiring R] [nontrivial R] :
+  polynomial.has_scalar_pi _ _ ≠ (pi.has_scalar : has_scalar R[X] (R → R[X])) :=
+begin
+  intro h,
+  simp_rw [has_scalar.ext_iff, function.funext_iff, polynomial.ext_iff] at h,
+  simpa using h X 1 1 0,
+end
+
+/-- `polynomial.has_scalar_pi'` forms a diamond with `pi.has_scalar`. -/
+example [comm_semiring R] [nontrivial R] :
+  polynomial.has_scalar_pi' _ _ _ ≠ (pi.has_scalar : has_scalar R[X] (R → R[X])) :=
+begin
+  intro h,
+  simp_rw [has_scalar.ext_iff, function.funext_iff, polynomial.ext_iff] at h,
+  simpa using h X 1 1 0,
+end
+
+/-- `polynomial.has_scalar_pi'` is consistent with `polynomial.has_scalar_pi`. -/
+example [comm_semiring R] [nontrivial R] :
+  polynomial.has_scalar_pi' _ _ _ = (polynomial.has_scalar_pi _ _ : has_scalar R[X] (R → R[X])) :=
+rfl
+
+end polynomial

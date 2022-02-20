@@ -614,7 +614,7 @@ end
 theorem exists_seq_norm_le_one_le_norm_sub (h : ¬ (finite_dimensional 𝕜 E)) :
   ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
 begin
-  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 1 < ∥c∥ := normed_field.exists_one_lt_norm 𝕜,
+  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 1 < ∥c∥ := exists_one_lt_norm 𝕜,
   have A : ∥c∥ < ∥c∥ + 1, by linarith,
   rcases exists_seq_norm_le_one_le_norm_sub' hc A h with ⟨f, hf⟩,
   exact ⟨∥c∥ + 1, f, hc.trans A, hf.1, hf.2⟩
@@ -631,7 +631,7 @@ begin
     ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
       exists_seq_norm_le_one_le_norm_sub hfin,
   have rRpos : 0 < r / R := div_pos rpos (zero_lt_one.trans Rgt),
-  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 0 < ∥c∥ ∧ ∥c∥ < (r / R) := normed_field.exists_norm_lt _ rRpos,
+  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 0 < ∥c∥ ∧ ∥c∥ < (r / R) := exists_norm_lt _ rRpos,
   let g := λ (n : ℕ), c • f n,
   have A : ∀ n, g n ∈ metric.closed_ball (0 : E) r,
   { assume n,

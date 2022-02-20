@@ -261,8 +261,6 @@ by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
 
-namespace normed_field
-
 section normed_field
 
 variables [normed_field α]
@@ -270,7 +268,6 @@ variables [normed_field α]
 @[simp] lemma norm_mul (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
 normed_field.norm_mul' a b
 
-@[priority 100] -- see Note [lower instance priority]
 instance to_normed_comm_ring : normed_comm_ring α :=
 { norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
 
@@ -278,6 +275,8 @@ instance to_normed_comm_ring : normed_comm_ring α :=
 instance to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
+
+export norm_one_class (norm_one)
 
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
@@ -317,7 +316,7 @@ nnreal.eq $ by simp
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
 
 @[priority 100] -- see Note [lower instance priority]
-instance : has_continuous_inv₀ α :=
+instance normed_field.has_continuous_inv₀ : has_continuous_inv₀ α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
@@ -334,6 +333,8 @@ begin
 end
 
 end normed_field
+
+section nondiscrete_normed_field
 
 variables (α) [nondiscrete_normed_field α]
 
@@ -368,7 +369,7 @@ lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[≠] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
-  rcases normed_field.exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
+  rcases exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
   refine ⟨x + b, mt (set.mem_singleton_iff.trans add_right_eq_self).1 $ norm_pos_iff.1 hb0, _⟩,
   rwa [dist_comm, dist_eq_norm, add_sub_cancel'],
 end
@@ -377,7 +378,7 @@ end
 lemma nhds_within_is_unit_ne_bot : ne_bot (𝓝[{x : α | is_unit x}] 0) :=
 by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
-end normed_field
+end nondiscrete_normed_field
 
 instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
@@ -554,7 +555,7 @@ instance normed_space.has_bounded_smul [normed_space α β] : has_bounded_smul �
     by simpa [dist_eq_norm, sub_smul] using normed_space.norm_smul_le (x₁ - x₂) y }
 
 instance normed_field.to_normed_space : normed_space α α :=
-{ norm_smul_le := λ a b, le_of_eq (normed_field.norm_mul a b) }
+{ norm_smul_le := λ a b, le_of_eq (norm_mul a b) }
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 begin
@@ -565,7 +566,7 @@ begin
                ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) :
       mul_le_mul_of_nonneg_left (normed_space.norm_smul_le _ _) (norm_nonneg _)
                ... = ∥s • x∥                 :
-      by rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
+      by rw [norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
 end
 
 @[simp] lemma abs_norm_eq_norm (z : β) : |∥z∥| = ∥z∥ :=
@@ -805,7 +806,7 @@ for any `c : ℝ`, there exists a vector `x : E` with norm strictly greater than
 lemma normed_space.exists_lt_norm (c : ℝ) : ∃ x : E, c < ∥x∥ :=
 begin
   rcases exists_ne (0 : E) with ⟨x, hx⟩,
-  rcases normed_field.exists_lt_norm 𝕜 (c / ∥x∥) with ⟨r, hr⟩,
+  rcases exists_lt_norm 𝕜 (c / ∥x∥) with ⟨r, hr⟩,
   use r • x,
   rwa [norm_smul, ← div_lt_iff],
   rwa norm_pos_iff

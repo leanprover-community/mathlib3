@@ -125,7 +125,7 @@ begin
   obtain ⟨ε : ℝ, ε0 : 0 < ε, hε : ∀ m : Π i, E i, ∥m - 0∥ < ε → ∥f m - f 0∥ < 1⟩ :=
     normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one,
   simp only [sub_zero, f.map_zero] at hε,
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   have : 0 < (∥c∥ / ε) ^ fintype.card ι, from pow_pos (div_pos (zero_lt_one.trans hc) ε0) _,
   refine ⟨_, this, _⟩,
   refine f.bound_of_shell (λ _, ε0) (λ _, hc) (λ m hcm hm, _),
@@ -779,7 +779,7 @@ variables (𝕜 ι)
 protected def mk_pi_field (z : G) : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) G :=
 multilinear_map.mk_continuous
   (multilinear_map.mk_pi_ring 𝕜 ι z) (∥z∥)
-  (λ m, by simp only [multilinear_map.mk_pi_ring_apply, norm_smul, normed_field.norm_prod,
+  (λ m, by simp only [multilinear_map.mk_pi_ring_apply, norm_smul, norm_prod,
     mul_comm])
 
 variables {𝕜 ι}

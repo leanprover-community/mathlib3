@@ -273,7 +273,7 @@ begin
   rw lt_min_iff at hr,
   have := ((p.is_o_one_of_lt_radius hr.1).add (q.is_o_one_of_lt_radius hr.2)).is_O,
   refine (p + q).le_radius_of_is_O ((is_O_of_le _ $ λ n, _).trans this),
-  rw [← add_mul, normed_field.norm_mul, normed_field.norm_mul, norm_norm],
+  rw [← add_mul, norm_mul, norm_mul, norm_norm],
   exact mul_le_mul_of_nonneg_right ((norm_add_le _ _).trans (le_abs_self _)) (norm_nonneg _)
 end
 
@@ -564,7 +564,7 @@ lemma has_fpower_series_on_ball.image_sub_sub_deriv_le
   (hf : has_fpower_series_on_ball f p x r) (hr : r' < r) :
   ∃ C, ∀ (y z ∈ emetric.ball x r'),
     ∥f y - f z - (p 1 (λ _, y - z))∥ ≤ C * (max ∥y - x∥ ∥z - x∥) * ∥y - z∥ :=
-by simpa only [is_O_principal, mul_assoc, normed_field.norm_mul, norm_norm, prod.forall,
+by simpa only [is_O_principal, mul_assoc, norm_mul, norm_norm, prod.forall,
   emetric.mem_ball, prod.edist_eq, max_lt_iff, and_imp, @forall_swap (_ < _) E]
   using hf.is_O_image_sub_image_sub_deriv_principal hr
 
@@ -711,7 +711,7 @@ begin
     replace hy := norm_pos_iff.mpr hy,
     refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ ε ε_pos, _)) (norm_nonneg _)),
     have h₀ := mul_pos c_pos (pow_pos hy (n.succ + 1)),
-    obtain ⟨k, k_pos, k_norm⟩ := normed_field.exists_norm_lt 𝕜
+    obtain ⟨k, k_pos, k_norm⟩ := exists_norm_lt 𝕜
       (lt_min (mul_pos δ_pos (inv_pos.mpr hy)) (mul_pos ε_pos (inv_pos.mpr h₀))),
     have h₁ : ∥k • y∥ < δ,
     { rw norm_smul,
@@ -719,7 +719,7 @@ begin
         (lt_of_lt_of_le k_norm (min_le_left _ _)) hy },
     have h₂ := calc
       ∥p (λ i, k • y)∥ ≤ c * ∥k • y∥ ^ (n.succ + 1)
-                       : by simpa only [normed_field.norm_pow, norm_norm]
+                       : by simpa only [norm_pow, norm_norm]
                            using ht (k • y) (δε (mem_ball_zero_iff.mpr h₁))
       ...              = ∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
                        : by { simp only [norm_smul, mul_pow], rw pow_succ, ring },
@@ -732,7 +732,7 @@ begin
     ...              ≤ ∥(k⁻¹) ^ n.succ∥ * (∥k∥ ^ n.succ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1))))
         : mul_le_mul_of_nonneg_left h₂ (norm_nonneg _)
     ...              = ∥(k⁻¹ * k) ^ n.succ∥ * (∥k∥ * (c * ∥y∥ ^ (n.succ + 1)))
-        : by { rw ←mul_assoc, simp [normed_field.norm_mul, mul_pow] }
+        : by { rw ←mul_assoc, simp [norm_mul, mul_pow] }
     ...              ≤ 0 + ε
         : by { rw inv_mul_cancel (norm_pos_iff.mp k_pos), simpa using h₃.le }, },
 end

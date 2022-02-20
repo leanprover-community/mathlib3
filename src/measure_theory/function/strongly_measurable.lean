@@ -214,14 +214,6 @@ protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_
 
 end arithmetic
 
-protected lemma induction {m : measurable_space α} [topological_space β] (p : (α → β) → Prop)
-  (h : ∀ f : α →ₛ β, p f)
-  (h_tendsto : ∀ (F : ℕ → α →ₛ β) (f : α → β),
-    (∀ n, p (F n)) → (∀ x, tendsto (λ n, F n x) at_top (𝓝 (f x))) → p f)
-  (f : α → β) (hf : strongly_measurable f) :
-  p f :=
-h_tendsto hf.approx f (λ n, h _) hf.tendsto_approx
-
 protected lemma mono {m m' : measurable_space α} [topological_space β]
   (hf : @strongly_measurable α β _ m' f) (h_mono : m' ≤ m) :
   @strongly_measurable α β _ m f :=

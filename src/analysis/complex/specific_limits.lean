@@ -17,7 +17,8 @@ open_locale nat topological_space big_operators
 
 section is_R_or_C
 
-variables {x : ℝ} {f : ℕ → ℝ} {z : ℕ → ℂ}
+variables {E : Type*} [is_R_or_C E]
+variables {x : ℝ} {f : ℕ → ℝ} {z : ℕ → E}
 
 /-- **Dirichlet's Test** for monotone sequences. -/
 theorem cauchy_seq_series_mul_of_monotone_tendsto_zero_of_series_bounded
@@ -28,8 +29,11 @@ begin
            nat.succ_sub_succ_eq_sub, tsub_zero],
   apply cauchy_seq.add _ _,
   { exact normed_uniform_group },
-  { exact tendsto.cauchy_seq (normed_field.tendsto_zero_smul_of_tendsto_zero_of_bounded hf0
-    ⟨x, eventually_map.mpr (eventually_of_forall (λ n, hgx (n+1)))⟩) },
+  { convert tendsto.cauchy_seq (normed_field.tendsto_zero_smul_of_tendsto_zero_of_bounded hf0
+    ⟨x, eventually_map.mpr (eventually_of_forall (λ n, hgx (n+1)))⟩),
+    funext,
+    simp_rw [←smul_eq_mul, pi.smul_apply', algebra.smul_def],
+    refl },
   apply cauchy_seq.neg (cauchy_seq_range_of_norm_bounded _ _ (_ : ∀ n, _ ≤ x * |f(n+1) - f(n)|)),
   { exact normed_uniform_group },
   { conv in (|_|) { rw abs_of_nonneg (sub_nonneg_of_le (hfa (nat.le_succ _))) },
@@ -57,19 +61,19 @@ begin
   simp only [sum_neg_distrib, neg_mul, pi.neg_apply, neg_neg, is_R_or_C.of_real_neg],
 end
 
-private lemma norm_sum_neg_one_pow_le (n : ℕ) : ∥∑ i in range n, (-1 : ℂ) ^ i∥ ≤ 1 :=
+private lemma norm_sum_neg_one_pow_le (n : ℕ) : ∥∑ i in range n, (-1 : ℝ) ^ i∥ ≤ 1 :=
 by { rw [←geom_sum_def, neg_one_geom_sum], split_ifs; norm_num }
 
 /-- The **alternating series test** for monotone sequences. -/
 theorem cauchy_seq_alternating_series_of_monotone_tendsto_zero
   (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) :
-  cauchy_seq (λ n, ∑ i in range (n+1), ↑(f i) * (-1 : ℂ) ^ i) :=
+  cauchy_seq (λ n, ∑ i in range (n+1), f i * (-1) ^ i) :=
 cauchy_seq_series_mul_of_monotone_tendsto_zero_of_series_bounded hfa hf0 norm_sum_neg_one_pow_le
 
 /-- The **alternating series test** for antitone sequences. -/
 theorem cauchy_seq_alternating_series_of_antitone_tendsto_zero
   (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) :
-  cauchy_seq (λ n, ∑ i in range (n+1), ↑(f i) * (-1 : ℂ) ^ i) :=
+  cauchy_seq (λ n, ∑ i in range (n+1), f i * (-1) ^ i) :=
 cauchy_seq_series_mul_of_antitone_tendsto_zero_of_series_bounded hfa hf0 norm_sum_neg_one_pow_le
 
 end is_R_or_C

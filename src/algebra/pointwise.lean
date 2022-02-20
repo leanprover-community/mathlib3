@@ -856,7 +856,8 @@ instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
   ..set.has_mul, ..set_semiring.add_comm_monoid }
 
 instance set_semiring.non_assoc_semiring [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
-{ ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class, ..set_semiring.add_monoid_with_one }
+{ ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class,
+  ..set_semiring.add_monoid_with_one }
 
 instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (set_semiring α) :=
 { ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }

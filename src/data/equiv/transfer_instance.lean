@@ -215,12 +215,12 @@ by resetI; apply e.injective.non_unital_non_assoc_ring _; intros; exact e.apply_
 
 /-- Transfer `ring` across an `equiv` -/
 protected def ring [ring β] : ring α :=
-let mul := e.has_mul, neg := e.has_neg, sub := e.has_sub, add_monoid_with_one := e.add_monoid_with_one in
+let mul := e.has_mul, add_group_with_one := e.add_group_with_one in
 by resetI; apply e.injective.ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_ring` across an `equiv` -/
 protected def comm_ring [comm_ring β] : comm_ring α :=
-let mul := e.has_mul, neg := e.has_neg, sub := e.has_sub, add_monoid_with_one := e.add_monoid_with_one in
+let mul := e.has_mul, add_group_with_one := e.add_group_with_one in
 by resetI; apply e.injective.comm_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `nontrivial` across an `equiv` -/

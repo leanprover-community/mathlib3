@@ -143,7 +143,7 @@ begin
       refine ⟨p, k, _, hk, rfl⟩,
       apply nat.prime_of_mem_factorization,
       rw hn,
-      simp [ne_of_gt hk] } }
+      simp [hk.ne'] } }
 end
 
 /-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime

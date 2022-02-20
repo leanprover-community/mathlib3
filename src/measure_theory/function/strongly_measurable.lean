@@ -64,7 +64,8 @@ variables {α β : Type*} [topological_space β]
 def strongly_measurable [measurable_space α] (f : α → β) : Prop :=
 ∃ fs : ℕ → α →ₛ β, ∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x))
 
-localized "notation `strongly_measurable[` m `]` := @strongly_measurable _ _ _ m" in measure_theory
+localized "notation `strongly_measurable[` m `]` := @measure_theory.strongly_measurable _ _ _ m"
+  in measure_theory
 
 /-- A function is `fin_strongly_measurable` with respect to a measure if it is the limit of simple
   functions with support with finite measure. -/

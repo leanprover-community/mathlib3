@@ -94,7 +94,7 @@ end
 
 lemma continuous_on_stereo_to_fun [complete_space E] :
   continuous_on (stereo_to_fun v) {x : E | innerSL v x ≠ (1:ℝ)} :=
-times_cont_diff_on_stereo_to_fun.continuous_on
+(@times_cont_diff_on_stereo_to_fun E _ v _).continuous_on
 
 variables (v)
 

@@ -241,8 +241,7 @@ begin
           ennreal.sum_eq_top_iff, edist_ne_top] },
   { have A : ∀ (i : ι), i ∈ (finset.univ : finset ι) → edist (f i) (g i) ^ p ≠ ⊤ :=
       λ i hi, by simp [lt_top_iff_ne_top, edist_ne_top, le_of_lt pos],
-    simp [dist, -one_div, pi_Lp.edist, ← ennreal.to_real_rpow,
-          ennreal.to_real_sum A, dist_edist] }
+    simp [pi_Lp.edist, ← ennreal.to_real_rpow, ennreal.to_real_sum A, dist_edist] }
 end
 
 /-- metric space instance on the product of finitely many metric spaces, using the `L^p` distance,
@@ -259,8 +258,7 @@ begin
           ennreal.sum_eq_top_iff, edist_ne_top] },
   { have A : ∀ (i : ι), i ∈ (finset.univ : finset ι) → edist (f i) (g i) ^ p ≠ ⊤ :=
       λ i hi, by simp [edist_ne_top, pos.le],
-    simp [dist, -one_div, pi_Lp.edist, ← ennreal.to_real_rpow,
-          ennreal.to_real_sum A, dist_edist] }
+    simp [pi_Lp.edist, ← ennreal.to_real_rpow, ennreal.to_real_sum A, dist_edist] }
 end
 
 omit fact_one_le_p
@@ -274,11 +272,11 @@ norm. -/
 instance semi_normed_group [∀i, semi_normed_group (β i)] : semi_normed_group (pi_Lp p β) :=
 { norm := λf, (∑ (i : ι), norm (f i) ^ p) ^ (1/p),
   dist_eq := λ x y, by { simp [pi_Lp.dist, dist_eq_norm, sub_eq_add_neg] },
-  .. pi.add_comm_group }
+  .. pi.add_comm_group, .. pi_Lp.pseudo_metric_space p β }
 
 /-- normed group instance on the product of finitely many normed groups, using the `L^p` norm. -/
 instance normed_group [∀i, normed_group (α i)] : normed_group (pi_Lp p α) :=
-{ ..pi_Lp.semi_normed_group p α }
+{ ..pi_Lp.semi_normed_group p α, .. pi_Lp.metric_space p α }
 
 omit fact_one_le_p
 lemma norm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}

@@ -59,7 +59,7 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
     have h₂ : 0 ≤ ∑ (i : ι), ∥x i∥ ^ (2 : ℝ),
     { rw [←h₁],
       exact finset.sum_nonneg (λ j (hj : j ∈ finset.univ), pow_nonneg (norm_nonneg (x j)) 2) },
-    simp [norm, add_monoid_hom.map_sum, ←norm_sq_eq_inner],
+    simp only [add_monoid_hom.map_sum, ←norm_sq_eq_inner, pi_Lp.norm_eq, one_div],
     rw [←rpow_nat_cast ((∑ (i : ι), ∥x i∥ ^ (2 : ℝ)) ^ (2 : ℝ)⁻¹) 2],
     rw [←rpow_mul h₂],
     norm_num [h₁],

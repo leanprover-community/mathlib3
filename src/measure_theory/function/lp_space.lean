@@ -1980,7 +1980,7 @@ namespace Lp
 section pos_part
 
 lemma lipschitz_with_pos_part : lipschitz_with 1 (λ (x : ℝ), max x 0) :=
-lipschitz_with.of_dist_le_mul $ λ x y, by simp [dist, abs_max_sub_max_le_abs]
+lipschitz_with.of_dist_le_mul $ λ x y, by simp [real.dist_eq, abs_max_sub_max_le_abs]
 
 /-- Positive part of a function in `L^p`. -/
 def pos_part (f : Lp ℝ p μ) : Lp ℝ p μ :=

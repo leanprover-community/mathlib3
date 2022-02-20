@@ -71,6 +71,9 @@ lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
 λ a h, hsq _ (h.trans hdvd)
 
 namespace multiplicity
+
+section comm_monoid
+
 variables [comm_monoid R] [decidable_rel (has_dvd.dvd : R → R → Prop)]
 
 lemma squarefree_iff_multiplicity_le_one (r : R) :
@@ -82,6 +85,50 @@ begin
   convert enat.add_one_le_iff_lt (enat.coe_ne_top 1),
   norm_cast,
 end
+
+end comm_monoid
+
+section cancel_comm_monoid_with_zero
+
+variables [cancel_comm_monoid_with_zero R] [decidable_rel (has_dvd.dvd : R → R → Prop)]
+  [wf_dvd_monoid R]
+
+lemma multiplicity.finite_prime_left {a b : R} (ha : prime a) (hb : b ≠ 0) : multiplicity.finite a b :=
+begin
+  revert hb,
+  refine wf_dvd_monoid.induction_on_irreducible b _ _ _,
+  { contradiction },
+  { intros u hu hu',
+    rw [multiplicity.finite_iff_dom, multiplicity.is_unit_right ha.not_unit hu],
+    exact enat.dom_coe 0, },
+  { intros b p hb hp ih hpb,
+    refine multiplicity.finite_mul ha
+      (multiplicity.finite_iff_dom.mpr (enat.dom_of_le_coe (show multiplicity a p ≤ ↑1, from _)))
+      (ih hb),
+    norm_cast,
+    exact (((multiplicity.squarefree_iff_multiplicity_le_one p).mp hp.squarefree a)
+      .resolve_right ha.not_unit) }
+end
+
+lemma multiplicity_eq_multiplicity_associates_mk {p q : R} (hp : prime p) (hq : q ≠ 0) :
+  multiplicity p q = multiplicity (associates.mk p) (associates.mk q) :=
+begin
+  have finite₁ := multiplicity.finite_prime_left hp hq,
+  have finite₂ := multiplicity.finite_prime_left ((associates.prime_mk p).2 hp)
+    (associates.mk_ne_zero.2 hq),
+  apply le_antisymm,
+  { rw ← enat.le_iff_of_dom,
+    apply multiplicity.le_multiplicity_of_pow_dvd,
+    rw [← associates.mk_pow, associates.mk_dvd_mk],
+    exact multiplicity.pow_multiplicity_dvd finite₁ },
+
+  { rw ← enat.le_iff_of_dom,
+    apply multiplicity.le_multiplicity_of_pow_dvd,
+    rw [← associates.mk_dvd_mk, associates.mk_pow],
+    exact multiplicity.pow_multiplicity_dvd finite₂ },
+end
+
+end cancel_comm_monoid_with_zero
 
 end multiplicity
 

@@ -152,7 +152,7 @@ end
 `∀ m ≥ seq_tendsto_ae_seq_aux n, μ {x | 2⁻¹ ^ n ≤ dist (f m x) (g x)} ≤ 2⁻¹ ^ n`. -/
 noncomputable
 def seq_tendsto_ae_seq_aux (hfg : tendsto_in_measure μ f g) (n : ℕ) :=
-  classical.some (exists_nat_measure_lt_two_inv hfg n)
+classical.some (exists_nat_measure_lt_two_inv hfg n)
 
 /-- Transformation of `seq_tendsto_ae_seq_aux` to makes sure it is strictly monotone. -/
 noncomputable
@@ -192,11 +192,6 @@ lemma tendsto_in_measure.exists_seq_tendsto_ae
   (hfg : tendsto_in_measure μ f g) :
   ∃ ns : ℕ → ℕ, strict_mono ns ∧ ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
 begin
-  have : ∀ k : ℕ, ∃ N, ∀ n ≥ N, μ {x | 2⁻¹ ^ k ≤ dist (f n x) (g x)} ≤ 2⁻¹ ^ k,
-  { intro k,
-    specialize hfg (2⁻¹ ^ k) (by simp only [zero_lt_bit0, pow_pos, zero_lt_one, inv_pos]),
-    rw ennreal.tendsto_at_top_zero at hfg,
-    exact hfg (2⁻¹ ^ k) (pos_iff_ne_zero.mpr (λ h_zero, by simpa using pow_eq_zero h_zero)), },
   have h_lt_ε_real : ∀ (ε : ℝ) (hε : 0 < ε), ∃ k : ℕ, 2⁻¹ ^ (k - 1 : ℝ) < ε,
   { intros ε hε,
     obtain ⟨k, h_k⟩ : ∃ (k : ℕ), 2⁻¹ ^ k < ε := exists_pow_lt_of_lt_one hε (by norm_num),
@@ -273,7 +268,9 @@ section tendsto_in_measure_of
 variables [measurable_space E] [normed_group E] [borel_space E] [has_measurable_sub₂ E] {p : ℝ≥0∞}
 variables {f : ℕ → α → E} {g : α → E}
 
-private lemma tendsto_in_measure_of_tendsto_snorm_of_measurable
+/-- This lemma is superceded by `measure_theory.tendsto_in_measure_of_tendsto_snorm` where we
+allow `p = ∞` and only require `ae_measurable`. -/
+lemma tendsto_in_measure_of_tendsto_snorm_of_measurable
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf : ∀ n, measurable (f n)) (hg : measurable g)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
@@ -298,7 +295,9 @@ begin
     exact or.inl (real.rpow_pos_of_pos hε _) },
 end
 
-private lemma tendsto_in_measure_of_tendsto_snorm_of_ne_top
+/-- This lemma is superceded by `measure_theory.tendsto_in_measure_of_tendsto_snorm` where we
+allow `p = ∞`. -/
+lemma tendsto_in_measure_of_tendsto_snorm_of_ne_top
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
@@ -315,7 +314,9 @@ begin
   exact hfg,
 end
 
-private lemma tendsto_in_measure_of_tendsto_snorm_top
+/-- See also `measure_theory.tendsto_in_measure_of_tendsto_snorm` which work for general
+Lp-convergence for all `p ≠ 0`. -/
+lemma tendsto_in_measure_of_tendsto_snorm_top
   (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ)
   (hfg : tendsto (λ n, snorm (f n - g) ∞ μ) at_top (𝓝 0)) :
   tendsto_in_measure μ f g :=

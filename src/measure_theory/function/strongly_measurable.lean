@@ -92,6 +92,11 @@ begin
     exact measurable_set.univ, },
 end
 
+lemma strongly_measurable_simple_func {α β} {m : measurable_space α} [topological_space β]
+  (f : α →ₛ β) :
+  strongly_measurable f :=
+⟨λ _, f, λ x, tendsto_const_nhds⟩
+
 namespace strongly_measurable
 
 variables {α β : Type*} {f g : α → β}
@@ -188,6 +193,26 @@ protected lemma sub [has_sub β] [has_continuous_sub β]
 
 end arithmetic
 
+protected lemma induction {m : measurable_space α} [topological_space β] (p : (α → β) → Prop)
+  (h : ∀ f : α →ₛ β, p f)
+  (h_tendsto : ∀ (F : ℕ → α →ₛ β) (f : α → β),
+    (∀ n, p (F n)) → (∀ x, tendsto (λ n, F n x) at_top (𝓝 (f x))) → p f)
+  (f : α → β) (hf : strongly_measurable f) :
+  p f :=
+h_tendsto hf.approx f (λ n, h _) hf.tendsto_approx
+
+protected lemma mono {m' m : measurable_space α} [topological_space β]
+  (hf : @strongly_measurable α β _ m' f) (h_mono : m' ≤ m) :
+  @strongly_measurable α β _ m f :=
+begin
+  let f_approx : ℕ → @simple_func α m β := λ n,
+  { to_fun := @strongly_measurable.approx _ _ f m' _ hf n,
+    measurable_set_fiber' := λ x, h_mono _ (@simple_func.measurable_set_fiber' _ m' _ _ x),
+    finite_range' := @simple_func.finite_range _ _ m'
+      (@strongly_measurable.approx _ _ f m' _ hf n) },
+  exact ⟨f_approx, @strongly_measurable.tendsto_approx _ _ f m' _ hf⟩,
+end
+
 end strongly_measurable
 
 section second_countable_strongly_measurable
@@ -204,6 +229,11 @@ begin
     exact ⟨simple_func.approx_on f hf set.univ default (set.mem_univ _),
       λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩, },
 end
+
+lemma strongly_measurable_id [emetric_space α] [opens_measurable_space α]
+  [second_countable_topology α] :
+  strongly_measurable (id : α → α) :=
+measurable_id.strongly_measurable
 
 /-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
 lemma strongly_measurable_iff_measurable [metric_space β] [borel_space β]

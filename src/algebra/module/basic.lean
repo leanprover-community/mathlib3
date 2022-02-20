@@ -3,11 +3,10 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.big_operators.intervals
+import algebra.big_operators.basic
 import algebra.smul_with_zero
 import group_theory.group_action.group
 import tactic.norm_num
-import tactic.abel
 
 /-!
 # Modules over a ring
@@ -361,47 +360,6 @@ should normally have exactly one `ℤ`-module structure by design. -/
 def add_comm_group.int_module.unique : unique (module ℤ M) :=
 { default := by apply_instance,
   uniq := λ P, module.ext' P _ $ λ n, int_smul_eq_zsmul P n }
-
-variables (f : ℕ → R) (g : ℕ → M) {m n : ℕ}
-open finset
--- The partial sum of `g`, starting from zero
-local notation `G` n:80 := ∑ i in range n, g i
-
-
-/- **Summation by parts**, also known as **Abel's lemma** or an **Abel transformation**
-This is the version for modules, see `finset.sum_Ico_by_parts`` for a version in a commutative ring.
--/
-theorem module.sum_Ico_by_parts (hmn : m < n) :
-  ∑ i in Ico m n, f i • g i =
-  f (n-1) • G n - f m • G m - ∑ i in Ico m (n-1), (f (i+1) - f i) • G (i+1) :=
-begin
-  have h₁ : ∑ i in Ico (m+1) n, (f i • G i) = ∑ i in Ico m (n-1), (f (i+1) • G (i+1)),
-  { conv in n { rw ←nat.sub_add_cancel (nat.one_le_of_lt hmn) },
-    rw ←sum_Ico_add' },
-  have h₂ : ∑ i in Ico (m+1) n, (f i • G (i+1))
-          = ∑ i in Ico m (n-1), (f i • G (i+1)) + f (n-1) • G n - f m • G (m+1) :=
-  by rw [←sum_Ico_sub_bot _ hmn, ←sum_Ico_succ_sub_top _ (nat.le_pred_of_lt hmn),
-         nat.sub_add_cancel (pos_of_gt hmn), sub_add_cancel],
-  rw sum_eq_sum_Ico_succ_bot hmn,
-  conv { for (f _ • g _) [2] { rw ← sum_range_succ_sub_sum g } },
-  simp_rw [smul_sub, sum_sub_distrib, h₂, h₁],
-  conv_lhs { congr, skip, rw [←add_sub, add_comm, ←add_sub, ←sum_sub_distrib] },
-  have : ∀ i, f i • G (i+1) - f (i+1) • G (i+1) = -((f (i+1) - f i) • G (i+1)),
-  { intro i,
-    rw sub_smul,
-    abel },
-  simp_rw [this, sum_neg_distrib, sum_range_succ, smul_add],
-  abel,
-end
-
-/-- **Summation by parts** for ranges
-This is the version for modules, see `finset.sum_Ico_by_parts`` for a version in a commutative ring.
--/
-lemma module.sum_range_by_parts (hn : 0 < n) :
-  ∑ i in range n, (f i • g i) = f (n-1) • G n - ∑ i in range (n-1), (f (i+1) - f i) • G (i+1) :=
-by rw [range_eq_Ico, module.sum_Ico_by_parts f g hn, sum_range_zero, smul_zero, sub_zero,
-       range_eq_Ico]
-
 
 end add_comm_group
 

@@ -1765,6 +1765,25 @@ lemma measurable_of_tendsto_nnreal {f : ℕ → α → ℝ≥0} {g : α → ℝ�
   (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) : measurable g :=
 measurable_of_tendsto_nnreal' at_top hf lim
 
+/-- A limit (over a general filter) of measurable `ℝ≥0∞` valued functions is measurable. -/
+lemma measurable_of_tendsto_ennreal' {ι} {f : ι → α → ℝ≥0∞} {g : α → ℝ≥0∞} (u : filter ι)
+  [ne_bot u] [is_countably_generated u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
+  measurable g :=
+begin
+  rcases u.exists_seq_tendsto with ⟨x, hx⟩,
+  rw [tendsto_pi_nhds] at lim,
+  have : (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))) = g :=
+    by { ext1 y, exact ((lim y).comp hx).liminf_eq, },
+  rw ← this,
+  show measurable (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))),
+  exact measurable_liminf (λ n, hf (x n)),
+end
+
+/-- A sequential limit of measurable `ℝ≥0∞` valued functions is measurable. -/
+lemma measurable_of_tendsto_ennreal {f : ℕ → α → ℝ≥0∞} {g : α → ℝ≥0∞}
+  (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) : measurable g :=
+measurable_of_tendsto_ennreal' at_top hf lim
+
 /-- A limit (over a general filter) of measurable functions valued in a metric space is measurable.
 The assumption `hs` can be dropped using `filter.is_countably_generated.has_antitone_basis`, but we
 don't need that case yet. -/

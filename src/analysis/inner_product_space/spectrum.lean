@@ -243,16 +243,21 @@ end
 end version2
 
 section nonneg
-variables {n : ℕ} (hn : finite_dimensional.finrank 𝕜 E = n)
 
-lemma nonneg_eigenvalues_of_nonneg (hpos : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪T x, x⟫) :
-  ∀ (i : (fin n)), 0 ≤ hT.eigenvalues hn i :=
+lemma eigenvalue_nonneg_of_nonneg {μ : 𝕜} (hμ : has_eigenvalue T μ)
+  (hnn : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪T x, x⟫) : 0 ≤ is_R_or_C.re μ :=
 begin
-  intro i,
-  have : is_R_or_C.re ⟪ T (hT.eigenvector_basis hn i), hT.eigenvector_basis hn i ⟫ 
-    = hT.eigenvalues hn i,
-  { simp [inner_smul_left, inner_self_eq_norm_sq_to_K, (hT.eigenvector_basis_orthonormal hn).1] },
-  exact this ▸ hpos (hT.eigenvector_basis hn i),
+  let v := (module.End.has_eigenvalue.exists_has_eigenvector hμ).some,
+  let hv := (module.End.has_eigenvalue.exists_has_eigenvector hμ).some_spec,
+  have : is_R_or_C.re ⟪T v, v⟫ = is_R_or_C.re μ * ∥v∥^2,
+  { simp only [module.End.has_eigenvector.apply_eq_smul hv,inner_smul_left, neg_mul,
+    inner_self_eq_norm_sq, is_R_or_C.mul_re, sub_zero, is_R_or_C.conj_re, mul_zero,
+      inner_self_nonneg_im ]},
+  specialize hnn v,
+  rw this at hnn,
+  have : 0 < ∥v∥^2, {rw sq_pos_iff (∥v∥), rw norm_ne_zero_iff, exact hv.2},
+  rw ← zero_le_mul_right this,
+  exact hnn,
 end
 
 end nonneg

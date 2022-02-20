@@ -26,13 +26,13 @@ algebra of L-projections is complete.
 Let `X` be a normed space with dual `X^*`. A closed subspace `M` of `X` is said to be an M-ideal if
 the topological annihilator `M^∘` is an L-summand of `X^*`.
 
-M-ideal, M-summands and L-summands were introduced by Alfsen and Schultz in ... to study the
-structure of general Banach spaces. When `A` is a JB*-triple, the M-ideals of `A` are exactly the
-norm-closed ideals of `A`. When `A` is a JBW*-triple with predual `X`, the M-summands of `A` are
-exactly the weak*-closed ideals, and their pre-duals can be identified with the L-summands of `X`.
-In the special case when `A` is a C*-algebra, the M-ideals are exactly the norm-closed two-sided
-ideals of `A`, when `A` is also a W*-algebra the M-summands are exactly the weak*-closed two-sided
-ideals of `A`.
+M-ideal, M-summands and L-summands were introduced by Alfsen and Effros in [alfseneffros1972] to
+study the structure of general Banach spaces. When `A` is a JB*-triple, the M-ideals of `A` are
+exactly the norm-closed ideals of `A`. When `A` is a JBW*-triple with predual `X`, the M-summands of
+`A` are exactly the weak*-closed ideals, and their pre-duals can be identified with the L-summands
+of `X`. In the special case when `A` is a C*-algebra, the M-ideals are exactly the norm-closed
+two-sided ideals of `A`, when `A` is also a W*-algebra the M-summands are exactly the weak*-closed
+two-sided ideals of `A`.
 
 ## Implementation notes
 
@@ -40,6 +40,9 @@ The approach to showing that the L-projections form a Boolean algebra is inspire
 `measure_theory.measurable_space`.
 
 ## References
+
+* [Behrends, M-structure and the Banach-Stone Theorem][behrends1979]
+* [Harmand, Werner, Werner, M-ideals in Banach spaces and Banach algebras][harmandwernerwerner1993]
 
 ## Tags
 

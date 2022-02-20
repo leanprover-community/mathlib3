@@ -249,17 +249,10 @@ lemma nonneg_eigenvalues_of_nonneg (hpos : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪T 
   ∀ (i : (fin n)), 0 ≤ hT.eigenvalues hn i :=
 begin
   intro i,
-  have : hT.eigenvalues hn i =
-    is_R_or_C.re ⟪ T (hT.eigenvector_basis hn i), hT.eigenvector_basis hn i ⟫ :=
-  begin
-    simp only [inner_smul_left, inner_product_space.is_self_adjoint.apply_eigenvector_basis,
-      is_R_or_C.conj_of_real, is_R_or_C.mul_re, is_R_or_C.of_real_re, sub_zero, mul_zero,
-      inner_self_nonneg_im, is_R_or_C.of_real_im, inner_self_eq_norm_sq_to_K],
-    rw (hT.eigenvector_basis_orthonormal hn).1,
-    norm_num,
-  end,
-  rw this,
-  exact (hpos (hT.eigenvector_basis hn i)),
+  have : is_R_or_C.re ⟪ T (hT.eigenvector_basis hn i), hT.eigenvector_basis hn i ⟫ 
+    = hT.eigenvalues hn i,
+  { simp [inner_smul_left, inner_self_eq_norm_sq_to_K, (hT.eigenvector_basis_orthonormal hn).1] },
+  exact this ▸ hpos (hT.eigenvector_basis hn i),
 end
 
 end nonneg

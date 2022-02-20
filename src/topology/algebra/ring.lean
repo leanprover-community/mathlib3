@@ -182,6 +182,35 @@ lemma subring.topological_closure_minimal
   (s : subring α) {t : subring α} (h : s ≤ t) (ht : is_closed (t : set α)) :
   s.topological_closure ≤ t := closure_minimal h ht
 
+-- If a subring of a topological ring is commutative, then so is its topological closure. -/
+def subring.comm_ring_topological_closure [t2_space α] {s : subring α}
+  (hs : ∀ (x y : s), x * y = y * x) : comm_ring s.topological_closure :=
+{ mul_comm :=
+  begin
+    intros a b,
+    have h₁ : (s.topological_closure : set α) = closure s := rfl,
+    let f₁ := λ (x : α × α), x.1 * x.2,
+    let f₂ := λ (x : α × α), x.2 * x.1,
+    have hf₁ : continuous f₁ := continuous_mul,
+    have hf₂ : continuous f₂,
+    { rw [show f₂ = f₁ ∘ prod.swap, from rfl], exact continuous_mul.comp continuous_swap },
+    let S : set (α × α) := (s : set α) ×ˢ (s : set α),
+    have h₃ : set.eq_on f₁ f₂ (closure S) := begin
+      refine set.eq_on.closure _ hf₁ hf₂,
+      intros x hx,
+      rw [set.mem_prod] at hx,
+      rcases hx with ⟨hx₁, hx₂⟩,
+      change ((⟨x.1, hx₁⟩ : s) : α) * (⟨x.2, hx₂⟩ : s) = (⟨x.2, hx₂⟩ : s) * (⟨x.1, hx₁⟩ : s),
+      exact_mod_cast hs _ _,
+    end,
+    ext,
+    change f₁ ⟨a, b⟩ = f₂ ⟨a, b⟩,
+    refine h₃ _,
+    rw [closure_prod_eq, set.mem_prod],
+    exact ⟨by simp [←h₁], by simp [←h₁]⟩
+  end,
+  ..show ring s.topological_closure, by apply_instance }
+
 end topological_ring
 
 section topological_comm_ring

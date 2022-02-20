@@ -54,6 +54,9 @@ variables {X : Type*} [normed_group X]
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 X]
 
+/--
+A continuous linear map `P` on a normed space `X` is said to be a projection if it is idempotent.
+-/
 def is_projection : (X →L[𝕜] X) → Prop := λ P, P^2 = P
 
 lemma projection_def {P: X →L[𝕜] X} (h: is_projection P) : P^2 = P := by exact h
@@ -89,8 +92,20 @@ begin
   rw [sq, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, ← sq, h₂, ← mul_assoc, ← sq, h₁],
 end
 
+/--
+A projection on a normed space `X` is said to be an L-projection if, for all `x` in `X`,
+$$
+∥x∥ = ∥P x∥ + ∥(1-P) x∥.
+$$
+-/
 def is_Lprojection : (X →L[𝕜] X) → Prop := λ P, is_projection P ∧ ∀ (x : X), ∥x∥ = ∥P x∥ + ∥(1-P) x∥
 
+/--
+A projection on a normed space `X` is said to be an M-projection if, for all `x` in `X`,
+$$
+∥x∥ = max(∥P x∥, ∥(1-P) x∥).
+$$
+-/
 def is_Mprojection : (X →L[𝕜] X) → Prop :=
   λ P, is_projection P ∧ ∀ (x : X), ∥x∥ = (max ∥P x∥  ∥(1-P) x∥)
 
@@ -288,9 +303,6 @@ end⟩⟩
 
 @[simp] lemma coe_one : ↑(1 : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) = (1 : X →L[𝕜] X) :=
 rfl
-
-@[simp] lemma coe_proj (P : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :
-  ↑(P : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) = (P : X →L[𝕜] X) := rfl
 
 instance : bounded_order (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
 { top := 1,

@@ -242,7 +242,7 @@ end
 
 end version2
 
-section positive
+section nonneg
 variables {n : ℕ} (hn : finite_dimensional.finrank 𝕜 E = n)
 
 lemma nonneg_eigenvalues_of_nonneg (hpos : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪T x, x⟫) :

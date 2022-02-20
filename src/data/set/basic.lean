@@ -921,7 +921,7 @@ forall_congr $ λ a, imp_not_comm
 theorem subset_compl_iff_disjoint {s t : set α} : s ⊆ tᶜ ↔ s ∩ t = ∅ :=
 iff.trans (forall_congr $ λ a, and_imp.symm) subset_empty_iff
 
-lemma subset_compl_singleton_iff {a : α} {s : set α} : s ⊆ {a}ᶜ ↔ a ∉ s :=
+@[simp] lemma subset_compl_singleton_iff {a : α} {s : set α} : s ⊆ {a}ᶜ ↔ a ∉ s :=
 subset_compl_comm.trans singleton_subset_iff
 
 theorem inter_subset (a b c : set α) : a ∩ b ⊆ c ↔ a ⊆ bᶜ ∪ c :=
@@ -1108,6 +1108,8 @@ diff_eq_self.2 $ by simp [singleton_inter_eq_empty.2 h]
 by simp [insert_eq, union_diff_self, -union_singleton, -singleton_union]
 
 @[simp] lemma diff_self {s : set α} : s \ s = ∅ := sdiff_self
+
+lemma diff_diff_right_self (s t : set α)  : s \ (s \ t) = s ∩ t := sdiff_sdiff_right_self
 
 lemma diff_diff_cancel_left {s t : set α} (h : s ⊆ t) : t \ (t \ s) = s :=
 sdiff_sdiff_eq_self h
@@ -1636,6 +1638,10 @@ lemma subsingleton_is_top (α : Type*) [partial_order α] : set.subsingleton {x 
 
 lemma subsingleton_is_bot (α : Type*) [partial_order α] : set.subsingleton {x : α | is_bot x} :=
 λ x hx y hy, hx.is_min.eq_of_ge (hy x)
+
+lemma exists_eq_singleton_iff_nonempty_subsingleton :
+  (∃ a : α, s = {a}) ↔ (s.nonempty ∧ s.subsingleton) :=
+exists_eq_singleton_iff_nonempty_unique_mem
 
 /-- `s`, coerced to a type, is a subsingleton type if and only if `s`
 is a subsingleton set. -/

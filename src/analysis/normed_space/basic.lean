@@ -268,6 +268,7 @@ variables [normed_field α]
 @[simp] lemma norm_mul (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
 normed_field.norm_mul' a b
 
+@[priority 100] -- see Note [lower instance priority]
 instance to_normed_comm_ring : normed_comm_ring α :=
 { norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
 

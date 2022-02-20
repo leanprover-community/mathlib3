@@ -117,6 +117,28 @@ def is_colimit_cocone_unop_of_cone (F : Jᵒᵖ ⥤ Cᵒᵖ) {c : cone F} (hc : 
     simpa only [quiver.hom.op_unop, is_limit.fac] using w (unop j)
   end }
 
+/-- Turn a colimit for `F.op : Jᵒᵖ ⥤ Cᵒᵖ` into a limit for `F : J ⥤ C`. -/
+def is_limit_cocone_unop (F : J ⥤ C) {c : cocone F.op} (hc : is_colimit c) :
+  is_limit c.unop :=
+{ lift := λ s, (hc.desc s.op).unop,
+  fac' := λ s j, quiver.hom.op_inj (by simpa),
+  uniq' := λ s m w,
+  begin
+    refine quiver.hom.op_inj (hc.hom_ext (λ j, quiver.hom.unop_inj _)),
+    simpa only [quiver.hom.op_unop, is_colimit.fac] using w (unop j)
+  end }
+
+/-- Turn a limit for `F.op : Jᵒᵖ ⥤ Cᵒᵖ` into a colimit for `F : J ⥤ C`. -/
+def is_colimit_cone_unop (F : J ⥤ C) {c : cone F.op} (hc : is_limit c) :
+  is_colimit c.unop :=
+{ desc := λ s, (hc.lift s.op).unop,
+  fac' := λ s j, quiver.hom.op_inj (by simpa),
+  uniq' := λ s m w,
+  begin
+    refine quiver.hom.op_inj (hc.hom_ext (λ j, quiver.hom.unop_inj _)),
+    simpa only [quiver.hom.op_unop, is_limit.fac] using w (unop j)
+  end }
+
 /-- Turn a colimit for `F.left_op : Jᵒᵖ ⥤ C` into a limit for `F : J ⥤ Cᵒᵖ`. -/
 def is_limit_cone_of_cocone_left_op (F : J ⥤ Cᵒᵖ) {c : cocone F.left_op} (hc : is_colimit c) :
   is_limit (cone_of_cocone_left_op c) :=
@@ -141,17 +163,49 @@ def is_colimit_cocone_of_cone_left_op (F : J ⥤ Cᵒᵖ) {c : cone (F.left_op)}
     simpa only [quiver.hom.unop_op, is_limit.fac, cocone_of_cone_left_op_ι_app] using w (unop j)
   end }
 
-/-- Turn a colimit for `F.op : Jᵒᵖ ⥤ Cᵒᵖ` into a limit for `F : J ⥤ C`. -/
-def is_limit_cocone_unop (F : J ⥤ C) {c : cocone F.op} (hc : is_colimit c) :
-  is_limit c.unop :=
-{ lift := λ s, (hc.desc s.op).unop,
+/-- Turn a colimit for `F.right_op : J ⥤ Cᵒᵖ` into a limit for `F : Jᵒᵖ ⥤ C`. -/
+def is_limit_cone_of_cocone_right_op (F : Jᵒᵖ ⥤ C) {c : cocone F.right_op} (hc : is_colimit c) :
+  is_limit (cone_of_cocone_right_op c) :=
+{ lift := λ s, (hc.desc (cocone_right_op_of_cone s)).unop,
   fac' := λ s j, quiver.hom.op_inj (by simpa),
   uniq' := λ s m w,
   begin
     refine quiver.hom.op_inj (hc.hom_ext (λ j, quiver.hom.unop_inj _)),
-    simpa only [quiver.hom.op_unop, is_colimit.fac] using w (unop j)
+    simpa only [quiver.hom.op_unop, is_colimit.fac] using w (op j)
   end }
 
+/-- Turn a limit for `F.right_op : J ⥤ Cᵒᵖ` into a limit for `F : Jᵒᵖ ⥤ C`. -/
+def is_colimit_cocone_of_cone_right_op (F : Jᵒᵖ ⥤ C) {c : cone F.right_op} (hc : is_limit c) :
+  is_colimit (cocone_of_cone_right_op c) :=
+{ desc := λ s, (hc.lift (cone_right_op_of_cocone s)).unop,
+  fac' := λ s j, quiver.hom.op_inj (by simpa),
+  uniq' := λ s m w,
+  begin
+    refine quiver.hom.op_inj (hc.hom_ext (λ j, quiver.hom.unop_inj _)),
+    simpa only [quiver.hom.op_unop, is_limit.fac] using w (op j)
+  end }
+
+/-- Turn a colimit for `F.unop : J ⥤ C` into a limit for `F : Jᵒᵖ ⥤ Cᵒᵖ`. -/
+def is_limit_cone_of_cocone_unop (F : Jᵒᵖ ⥤ Cᵒᵖ) {c : cocone F.unop} (hc : is_colimit c) :
+  is_limit (cone_of_cocone_unop c) :=
+{ lift := λ s, (hc.desc (cocone_unop_of_cone s)).op,
+  fac' := λ s j, quiver.hom.unop_inj (by simpa),
+  uniq' := λ s m w,
+  begin
+    refine quiver.hom.unop_inj (hc.hom_ext (λ j, quiver.hom.op_inj _)),
+    simpa only [quiver.hom.unop_op, is_colimit.fac] using w (op j)
+  end }
+
+/-- Turn a limit for `F.unop : J ⥤ C` into a colimit for `F : Jᵒᵖ ⥤ Cᵒᵖ`. -/
+def is_colimit_cone_of_cocone_unop (F : Jᵒᵖ ⥤ Cᵒᵖ) {c : cone F.unop} (hc : is_limit c) :
+  is_colimit (cocone_of_cone_unop c) :=
+{ desc := λ s, (hc.lift (cone_unop_of_cocone s)).op,
+  fac' := λ s j, quiver.hom.unop_inj (by simpa),
+  uniq' := λ s m w,
+  begin
+    refine quiver.hom.unop_inj (hc.hom_ext (λ j, quiver.hom.op_inj _)),
+    simpa only [quiver.hom.unop_op, is_limit.fac] using w (op j)
+  end }
 
 /--
 If `F.left_op : Jᵒᵖ ⥤ C` has a colimit, we can construct a limit for `F : J ⥤ Cᵒᵖ`.

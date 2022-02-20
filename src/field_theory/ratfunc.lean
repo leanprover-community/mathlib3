@@ -908,7 +908,7 @@ x.lift_on' (λ p q, if q = 0 then ⟨0, 1⟩ else let r := gcd p q in
         leading_coeff_div hdeg, leading_coeff_div hdeg', polynomial.leading_coeff_mul,
         polynomial.leading_coeff_C, div_C_mul, div_C_mul,
         ← mul_assoc, ← polynomial.C_mul, ← mul_assoc, ← polynomial.C_mul],
-    split; congr; rw [inv_div, mul_comm, mul_div_assoc, ← mul_assoc, inv_inv₀,
+    split; congr; rw [inv_div, mul_comm, mul_div_assoc, ← mul_assoc, inv_inv,
       _root_.mul_inv_cancel ha', one_mul, inv_div],
   end
 

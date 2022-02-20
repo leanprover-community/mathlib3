@@ -350,10 +350,10 @@ begin
   { refine op_norm_le_of_ball ε_pos hC (λ x hx, hf x _ _),
     { simp [h0] },
     { rwa ball_zero_eq at hx } },
-  { rw [← inv_inv₀ c, normed_field.norm_inv,
+  { rw [← inv_inv c, normed_field.norm_inv,
       inv_lt_one_iff_of_pos (norm_pos_iff.2 $ inv_ne_zero h0)] at hc,
     refine op_norm_le_of_shell ε_pos hC hc _,
-    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv₀] }
+    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv] }
 end
 
 /-- The operator norm satisfies the triangle inequality. -/
@@ -453,8 +453,8 @@ le_antisymm
     (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_right _ _).trans ((f.prod g).le_op_norm x))
 
 /-- `continuous_linear_map.prod` as a `linear_isometry_equiv`. -/
-def prodₗᵢ (R : Type*) [ring R] [topological_space R] [module R Fₗ] [module R Gₗ]
-  [has_continuous_smul R Fₗ] [has_continuous_smul R Gₗ]
+def prodₗᵢ (R : Type*) [semiring R] [module R Fₗ] [module R Gₗ]
+  [has_continuous_const_smul R Fₗ] [has_continuous_const_smul R Gₗ]
   [smul_comm_class 𝕜 R Fₗ] [smul_comm_class 𝕜 R Gₗ] :
   (E →L[𝕜] Fₗ) × (E →L[𝕜] Gₗ) ≃ₗᵢ[R] (E →L[𝕜] Fₗ × Gₗ) :=
 ⟨prodₗ R, λ ⟨f, g⟩, op_norm_prod f g⟩
@@ -802,8 +802,8 @@ variables [normed_space 𝕜' Fₗ] [is_scalar_tower 𝕜' 𝕜 Fₗ]
 le_antisymm (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
   (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
 
-variables (𝕜 E Fₗ 𝕜') (𝕜'' : Type*) [ring 𝕜''] [topological_space 𝕜''] [module 𝕜'' Fₗ]
-  [has_continuous_smul 𝕜'' Fₗ] [smul_comm_class 𝕜 𝕜'' Fₗ] [smul_comm_class 𝕜' 𝕜'' Fₗ]
+variables (𝕜 E Fₗ 𝕜') (𝕜'' : Type*) [ring 𝕜''] [module 𝕜'' Fₗ]
+  [has_continuous_const_smul 𝕜'' Fₗ] [smul_comm_class 𝕜 𝕜'' Fₗ] [smul_comm_class 𝕜' 𝕜'' Fₗ]
 
 /-- `continuous_linear_map.restrict_scalars` as a `linear_isometry`. -/
 def restrict_scalars_isometry : (E →L[𝕜] Fₗ) →ₗᵢ[𝕜''] (E →L[𝕜'] Fₗ) :=
@@ -1327,8 +1327,8 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
   map_smul' := λk,
   begin
     refine (λ b, h_dense.induction_on b _ _),
-    { exact is_closed_eq (cont.comp (continuous_const.smul continuous_id))
-        ((continuous_const.smul continuous_id).comp cont) },
+    { exact is_closed_eq (cont.comp (continuous_const_smul _))
+        ((continuous_const_smul _).comp cont) },
     { assume x, rw ← map_smul, simp only [eq], exact map_smulₛₗ _ _ _ },
   end,
   cont := cont }

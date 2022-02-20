@@ -231,6 +231,7 @@ le_trans (le_abs_self _) (abs_norm_sub_norm_le g h)
 lemma dist_norm_norm_le (g h : E) : dist ∥g∥ ∥h∥ ≤ ∥g - h∥ :=
 abs_norm_sub_norm_le g h
 
+/-- The direct path from `0` to `v` is shorter than the path with `u` inserted in between. -/
 lemma norm_le_insert (u v : E) : ∥v∥ ≤ ∥u∥ + ∥u - v∥ :=
 calc ∥v∥ = ∥u - (u - v)∥ : by abel
 ... ≤ ∥u∥ + ∥u - v∥ : norm_sub_le u _
@@ -637,6 +638,10 @@ lemma add_sub_lipschitz_with (hf : antilipschitz_with Kf f) (hg : lipschitz_with
   (hK : Kg < Kf⁻¹) : antilipschitz_with (Kf⁻¹ - Kg)⁻¹ g :=
 by simpa only [pi.sub_apply, add_sub_cancel'_right] using hf.add_lipschitz_with hg hK
 
+lemma le_mul_norm_sub {f : E → F} (hf : antilipschitz_with K f) (x y : E) :
+  ∥x - y∥ ≤ K * ∥f x - f y∥ :=
+by simp [← dist_eq_norm, hf.le_mul_dist x y]
+
 end antilipschitz_with
 
 /-- A group homomorphism from an `add_comm_group` to a `semi_normed_group` induces a
@@ -770,7 +775,7 @@ by { rw [tendsto_iff_norm_tendsto_zero], simp only [sub_zero] }
 /-- Special case of the sandwich theorem: if the norm of `f` is eventually bounded by a real
 function `g` which tends to `0`, then `f` tends to `0`.
 In this pair of lemmas (`squeeze_zero_norm'` and `squeeze_zero_norm`), following a convention of
-similar lemmas in `topology.metric_space.basic` and `topology.algebra.ordered`, the `'` version is
+similar lemmas in `topology.metric_space.basic` and `topology.algebra.order`, the `'` version is
 phrased using "eventually" and the non-`'` version is phrased absolutely. -/
 lemma squeeze_zero_norm' {f : α → E} {g : α → ℝ} {t₀ : filter α}
   (h : ∀ᶠ n in t₀, ∥f n∥ ≤ g n)

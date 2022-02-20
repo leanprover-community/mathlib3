@@ -3,18 +3,18 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import measure_theory.function.ae_measurable_sequence
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
+import measure_theory.function.ae_measurable_sequence
 import measure_theory.group.arithmetic
 import measure_theory.lattice
 import measure_theory.measure.open_pos
-import topology.algebra.ordered.liminf_limsup
+import topology.algebra.order.liminf_limsup
 import topology.continuous_function.basic
 import topology.instances.ereal
 import topology.G_delta
-import topology.semicontinuous
 import topology.order.lattice
+import topology.semicontinuous
 
 /-!
 # Borel (measurable) space
@@ -715,7 +715,7 @@ instance has_continuous_smul.has_measurable_smul {M α} [topological_space M]
   [topological_space α] [measurable_space M] [measurable_space α]
   [opens_measurable_space M] [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
   has_measurable_smul M α :=
-⟨λ c, (continuous_const.smul continuous_id).measurable,
+⟨λ c, (continuous_const_smul _).measurable,
   λ y, (continuous_id.smul continuous_const).measurable⟩
 
 section lattice

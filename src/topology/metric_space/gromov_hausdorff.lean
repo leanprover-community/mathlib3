@@ -964,9 +964,8 @@ begin
   let X2 := λ n, range (coeZ ∘ (Φ n) ∘ (Y n).embed),
   have isom : ∀ n, isometry (coeZ ∘ (Φ n) ∘ (Y n).embed),
   { assume n,
-    apply isometry.comp completion.coe_isometry _,
-    apply isometry.comp _ (Y n).isom,
-    apply to_inductive_limit_isometry },
+    refine uniform_space.completion.coe_isometry.comp _,
+    exact (to_inductive_limit_isometry _ _).comp (Y n).isom },
   -- The Hausdorff distance of `X2 n` and `X2 (n+1)` is by construction the distance between
   -- `u n` and `u (n+1)`, therefore bounded by `1/2^n`
   have D2 : ∀ n, Hausdorff_dist (X2 n) (X2 n.succ) < (1/2)^n,
@@ -988,9 +987,8 @@ begin
     rw range_comp at X2nsucc,
     rw [X2n, X2nsucc, Hausdorff_dist_image, Hausdorff_dist_optimal, ← dist_GH_dist],
     { exact hu n n n.succ (le_refl n) (le_succ n) },
-    { apply isometry.comp completion.coe_isometry _,
-      apply isometry.comp _ ((ic n).comp (to_glue_r_isometry _ _)),
-      apply to_inductive_limit_isometry } },
+    { apply uniform_space.completion.coe_isometry.comp _,
+      exact (to_inductive_limit_isometry _ _).comp ((ic n).comp (to_glue_r_isometry _ _)) } },
   -- consider `X2 n` as a member `X3 n` of the type of nonempty compact subsets of `Z`, which
   -- is a metric space
   let X3 : ℕ → nonempty_compacts Z := λ n, ⟨X2 n,

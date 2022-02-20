@@ -149,12 +149,8 @@ rfl
 open bounded_continuous_function
 
 instance : normed_group C(α, E) :=
-{ dist_eq := λ x y,
-  begin
-    rw [← norm_mk_of_compact, ← dist_mk_of_compact, dist_eq_norm],
-    congr' 1,
-    exact ((add_equiv_bounded_of_compact α E).map_sub _ _).symm
-  end,
+{ dist_eq := λ x y, by
+    rw [← norm_mk_of_compact, ← dist_mk_of_compact, dist_eq_norm, mk_of_compact_sub],
   dist := dist, norm := norm, .. continuous_map.metric_space _ _, .. continuous_map.add_comm_group }
 
 section

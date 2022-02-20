@@ -23,7 +23,9 @@ there exists `t : ℕ^β` with `p (v, t) = 0`.
 
 * `is_poly`: a predicate stating that a function is a multivariate integer polynomial.
 * `poly`: the type of multivariate integer polynomial functions.
-* `dioph`: a predicate stating that a set `S ⊆ ℕ^α` is Diophantine, i.e. that
+* `dioph`: a predicate stating that a set is Diophantine, i.e. a set `S ⊆ ℕ^α` is
+  Diophantine if there exists a polynomial on `α ⊕ β` such that `v ∈ S` iff there
+  exists `t : ℕ^β` with `p (v, t) = 0`.
 * `dioph_fn`: a predicate on a function stating that it is Diophantine in the sense that its graph
   is Diophantine as a set.
 

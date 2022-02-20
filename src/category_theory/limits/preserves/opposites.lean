@@ -18,6 +18,8 @@ noncomputable theory
 open category_theory
 
 namespace category_theory.limits
+
+section
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 variables {J : Type w} [category.{w'} J]
 
@@ -123,36 +125,45 @@ def preserves_colimits_right_op (F : Cᵒᵖ ⥤ D) [preserves_limits F] :
 def preserves_colimits_unop (F : Cᵒᵖ ⥤ Dᵒᵖ) [preserves_limits F] : preserves_colimits F.unop :=
 { preserves_colimits_of_shape := λ J _, by exactI preserves_colimits_of_shape_unop J F }
 
-def preserves_finite_limits_op (F : C ⥤ D) [preserves_finite_colimits.{w} F] :
-  preserves_finite_limits.{w} F.op :=
+end
+
+section
+-- Preservation of finite (colimits) is only defined when the morphisms of C and D live in the same
+-- universe.
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D]
+
+def preserves_finite_limits_op (F : C ⥤ D) [preserves_finite_colimits F] :
+  preserves_finite_limits F.op :=
 { preserves_finite_limits := λ J _ _, by exactI preserves_limits_of_shape_op J F }
 
-def preserves_finite_limits_left_op (F : C ⥤ Dᵒᵖ) [preserves_finite_colimits.{w} F] :
-  preserves_finite_limits.{w} F.left_op :=
+def preserves_finite_limits_left_op (F : C ⥤ Dᵒᵖ) [preserves_finite_colimits F] :
+  preserves_finite_limits F.left_op :=
 { preserves_finite_limits := λ J _ _, by exactI preserves_limits_of_shape_left_op J F }
 
-def preserves_finite_limits_right_op (F : Cᵒᵖ ⥤ D) [preserves_finite_colimits.{w} F] :
-  preserves_finite_limits.{w} F.right_op :=
+def preserves_finite_limits_right_op (F : Cᵒᵖ ⥤ D) [preserves_finite_colimits F] :
+  preserves_finite_limits F.right_op :=
 { preserves_finite_limits := λ J _ _, by exactI preserves_limits_of_shape_right_op J F }
 
-def preserves_finite_limits_unop (F : Cᵒᵖ ⥤ Dᵒᵖ) [preserves_finite_colimits.{w} F] :
-  preserves_finite_limits.{w} F.unop :=
+def preserves_finite_limits_unop (F : Cᵒᵖ ⥤ Dᵒᵖ) [preserves_finite_colimits F] :
+  preserves_finite_limits F.unop :=
 { preserves_finite_limits := λ J _ _, by exactI preserves_limits_of_shape_unop J F }
 
-def preserves_finite_colimits_op (F : C ⥤ D) [preserves_finite_limits.{w} F] :
-  preserves_finite_colimits.{w} F.op :=
+def preserves_finite_colimits_op (F : C ⥤ D) [preserves_finite_limits F] :
+  preserves_finite_colimits F.op :=
 { preserves_finite_colimits := λ J _ _, by exactI preserves_colimits_of_shape_op J F }
 
-def preserves_finite_colimits_left_op (F : C ⥤ Dᵒᵖ) [preserves_finite_limits.{w} F] :
-  preserves_finite_colimits.{w} F.left_op :=
+def preserves_finite_colimits_left_op (F : C ⥤ Dᵒᵖ) [preserves_finite_limits F] :
+  preserves_finite_colimits F.left_op :=
 { preserves_finite_colimits := λ J _ _, by exactI preserves_colimits_of_shape_left_op J F }
 
-def preserves_finite_colimits_right_op (F : Cᵒᵖ ⥤ D) [preserves_finite_limits.{w} F] :
-  preserves_finite_colimits.{w} F.right_op :=
+def preserves_finite_colimits_right_op (F : Cᵒᵖ ⥤ D) [preserves_finite_limits F] :
+  preserves_finite_colimits F.right_op :=
 { preserves_finite_colimits := λ J _ _, by exactI preserves_colimits_of_shape_right_op J F }
 
-def preserves_finite_colimits_unop (F : Cᵒᵖ ⥤ Dᵒᵖ) [preserves_finite_limits.{w} F] :
-  preserves_finite_colimits.{w} F.unop :=
+def preserves_finite_colimits_unop (F : Cᵒᵖ ⥤ Dᵒᵖ) [preserves_finite_limits F] :
+  preserves_finite_colimits F.unop :=
 { preserves_finite_colimits := λ J _ _, by exactI preserves_colimits_of_shape_unop J F }
+
+end
 
 end category_theory.limits

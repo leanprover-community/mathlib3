@@ -49,7 +49,8 @@ di.to_inducing.continuous
 lemma closure_range : closure (range i) = univ :=
 di.dense.closure_range
 
-lemma preconnected_space [preconnected_space α] (di : dense_inducing i) : preconnected_space β :=
+protected lemma preconnected_space [preconnected_space α] (di : dense_inducing i) :
+  preconnected_space β :=
 di.dense.preconnected_space di.continuous
 
 lemma closure_image_mem_nhds {s : set α} {a : α} (di : dense_inducing i) (hs : s ∈ 𝓝 a) :

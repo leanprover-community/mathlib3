@@ -6,12 +6,12 @@ setup_tactic_parser open tactic
 meta def guard_hyp_red (n : parse ident) (p : parse $ tk ":" *> texpr) : tactic unit := do
 h ← get_local n >>= infer_type >>= instantiate_mvars,
 e ← to_expr p,
-is_def_eq h e transparency.reducible
+is_def_eq h e transparency.none
 
 meta def guard_target_red (p : parse texpr) : tactic unit := do
 tgt ← target,
 e ← to_expr p,
-is_def_eq tgt e transparency.reducible
+is_def_eq tgt e transparency.none
 
 end tactic.interactive
 

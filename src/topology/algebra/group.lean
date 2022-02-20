@@ -446,8 +446,8 @@ end
 topological closure."]
 def subgroup.comm_group_topological_closure [t2_space G] (s : subgroup G)
   (hs : ∀ (x y : s), x * y = y * x) : comm_group s.topological_closure :=
-{ ..s.to_submonoid.comm_monoid_topological_closure hs,
-  ..s.topological_closure.to_group }
+{ ..s.topological_closure.to_group,
+  ..s.to_submonoid.comm_monoid_topological_closure hs }
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :

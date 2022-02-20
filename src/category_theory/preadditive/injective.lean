@@ -12,7 +12,7 @@ import category_theory.limits.shapes.biproducts
 /-!
 # Projective objects and categories with enough projectives
 
-An object `J` is injetive iff every morphism into `I` can be obtained by extending monomorphism.
+An object `J` is injective iff every morphism into `J` can be obtained by extending a monomorphism.
 -/
 
 noncomputable theory
@@ -26,15 +26,15 @@ namespace category_theory
 variables {C : Type u} [category.{v} C]
 
 /--
-An object `J` is said to be injetive iff every morphism into `I` can be obtained by extending
+An object `J` is injective iff every morphism into `J` can be obtained by extending a monomorphism.
 monomorphism.-/
 class injective (J : C) : Prop :=
 (factors : ∀ {X Y : C} (g : X ⟶ J) (f : X ⟶ Y) [mono f], ∃ h : Y ⟶ J, f ≫ h = g)
 
 section
 /--
-An injective presentation of an object `X` consists of an monomorphism `f : X ⟶ J`
-from some injective object `J`.
+An injective presentation of an object `X` consists of a monomorphism `f : X ⟶ J`
+to some injective object `J`.
 -/
 @[nolint has_inhabited_instance]
 structure injective_presentation (X : C) :=
@@ -45,8 +45,8 @@ structure injective_presentation (X : C) :=
 
 variables (C)
 
-/-- A category "has enough injectives" if for every object `X` there is an injective object `J` and
-    a monomorphism `X ↪ J`. -/
+/-- A category "has enough injectives" if every object has an injective presentation, 
+i.e. if for every object `X` there is an injective object `J` and a monomorphism `X ↪ J`. -/
 class enough_injectives : Prop :=
 (presentation : ∀ (X : C), nonempty (injective_presentation X))
 

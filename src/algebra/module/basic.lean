@@ -383,9 +383,7 @@ begin
   by rw [←sum_Ico_sub_bot _ hmn, ←sum_Ico_succ_sub_top _ (nat.le_pred_of_lt hmn),
          nat.sub_add_cancel (pos_of_gt hmn), sub_add_cancel],
   rw sum_eq_sum_Ico_succ_bot hmn,
-  conv { for (f _ • g _) [2] {
-    rw [←sum_range_succ_sub_sum g] ,
-    }},
+  conv { for (f _ • g _) [2] { rw ← sum_range_succ_sub_sum g } },
   simp_rw [smul_sub, sum_sub_distrib, h₂, h₁],
   conv_lhs { congr, skip, rw [←add_sub, add_comm, ←add_sub, ←sum_sub_distrib] },
   have : ∀ i, f i • G (i+1) - f (i+1) • G (i+1) = -((f (i+1) - f i) • G (i+1)),

@@ -423,11 +423,12 @@ end
 def inductive_premetric (I : ∀ n, isometry (f n)) :
   pseudo_metric_space (Σ n, X n) :=
 { dist          := inductive_limit_dist f,
-  dist_self     := λx, by simp [inductive_limit_dist],
+  dist_self     := λx, by simp [dist, inductive_limit_dist],
   dist_comm     := λx y, begin
     let m := max x.1 y.1,
     have hx : x.1 ≤ m := le_max_left _ _,
     have hy : y.1 ≤ m := le_max_right _ _,
+    unfold dist,
     rw [inductive_limit_dist_eq_dist I x y m hx hy, inductive_limit_dist_eq_dist I y x m hy hx,
         dist_comm]
   end,

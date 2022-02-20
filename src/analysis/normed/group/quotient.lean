@@ -110,14 +110,11 @@ begin
   apply norm_nonneg
 end
 
-lemma quotient_norm_def {S : add_subgroup M} (x : M ⧸ S) :
-  ∥x∥ = Inf (norm '' { m | mk' S m = x }) := rfl
-
 /-- The norm on the quotient satisfies `∥-x∥ = ∥x∥`. -/
 lemma quotient_norm_neg {S : add_subgroup M} (x : M ⧸ S) : ∥-x∥ = ∥x∥ :=
 begin
   suffices : norm '' {m | mk' S m = x} = norm '' {m | mk' S m = -x},
-    by simp only [this, quotient_norm_def],
+    by simp only [this, norm],
   ext r,
   split,
   { rintros ⟨m, hm : mk' S m = x, rfl⟩,
@@ -294,6 +291,7 @@ instance add_subgroup.semi_normed_group_quotient (S : add_subgroup M) :
   dist_comm          := quotient_norm_sub_rev,
   dist_triangle      := λ x y z,
   begin
+    unfold dist,
     have : x - z = (x - y) + (y - z) := by abel,
     rw this,
     exact quotient_norm_add_le S (x - y) (y - z)
@@ -318,8 +316,7 @@ instance add_subgroup.semi_normed_group_quotient (S : add_subgroup M) :
     { suffices : ∀ (a b : M ⧸ S), ∥a - b∥ < ε → ∥a - b∥ < η → ∥a - b∥ < ε, by simpa,
       exact λ a b h h', h },
     { simp }
-  end,
-  .. quotient_add_group.add_comm_group _, .. norm_on_quotient _ }
+  end }
 
 -- This is a sanity check left here on purpose to ensure that potential refactors won't destroy
 -- this important property.
@@ -343,7 +340,7 @@ instance add_subgroup.normed_group_quotient (S : add_subgroup M) [hS : is_closed
 -- This is a sanity check left here on purpose to ensure that potential refactors won't destroy
 -- this important property.
 example (S : add_subgroup M) [is_closed (S : set M)] :
-  S.semi_normed_group_quotient = normed_group.to_semi_normed_group _ := rfl
+  S.semi_normed_group_quotient = normed_group.to_semi_normed_group := rfl
 
 
 namespace add_subgroup

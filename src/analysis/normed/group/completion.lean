@@ -42,8 +42,6 @@ instance [semi_normed_group E] : normed_group (completion E) :=
     { intros x y,
       rw [← completion.coe_sub, norm_coe, metric.completion.dist_eq, dist_eq_norm] }
   end,
-  norm := norm,
-  dist := dist,
   .. uniform_space.completion.add_comm_group,
   .. metric.completion.metric_space }
 

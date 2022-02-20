@@ -164,7 +164,7 @@ local notation `∞` := (⊤ : with_top ℕ)
 universes u v w
 
 local attribute [instance, priority 1001]
-normed_space.to_module' add_comm_group.to_add_comm_monoid
+normed_group.to_add_comm_group normed_space.to_module' add_comm_group.to_add_comm_monoid
 
 open set fin filter
 open_locale topological_space
@@ -2022,9 +2022,6 @@ begin
     apply Itop n (hg n) (hf n) st }
 end
 
-local attribute [instance, priority 1001] normed_group.to_add_comm_monoid
-local attribute [instance, priority 1001] nondiscrete_normed_field.to_semiring
-
 /-- The composition of `C^n` functions on domains is `C^n`. -/
 lemma times_cont_diff_on.comp
   {n : with_top ℕ} {s : set E} {t : set F} {g : F → G} {f : E → F}
@@ -2570,29 +2567,28 @@ end algebra_inverse
 section map_inverse
 open continuous_linear_map
 
-private lemma aux1 [complete_space E] {n : with_top ℕ} (e : E ≃L[𝕜] F) :
-  times_cont_diff 𝕜 n (λ f : E →L[𝕜] E, f.comp (e.symm : F →L[𝕜] E)) :=
-is_bounded_bilinear_map_comp.times_cont_diff.comp (times_cont_diff_const.prod times_cont_diff_id)
-
-private lemma aux2 [complete_space E] {n : with_top ℕ} (e : E ≃L[𝕜] F) :
-  times_cont_diff 𝕜 n (λ f : E →L[𝕜] F, (e.symm : F →L[𝕜] E).comp f) :=
-is_bounded_bilinear_map_comp.times_cont_diff.comp (times_cont_diff_id.prod times_cont_diff_const)
-
 /-- At a continuous linear equivalence `e : E ≃L[𝕜] F` between Banach spaces, the operation of
 inversion is `C^n`, for all `n`. -/
 lemma times_cont_diff_at_map_inverse [complete_space E] {n : with_top ℕ} (e : E ≃L[𝕜] F) :
   times_cont_diff_at 𝕜 n inverse (e : E →L[𝕜] F) :=
 begin
+  nontriviality E,
   -- first, we use the lemma `to_ring_inverse` to rewrite in terms of `ring.inverse` in the ring
   -- `E →L[𝕜] E`
   let O₁ : (E →L[𝕜] E) → (F →L[𝕜] E) := λ f, f.comp (e.symm : (F →L[𝕜] E)),
   let O₂ : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : (F →L[𝕜] E)).comp f,
-  rw show continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂, from funext (to_ring_inverse e),
+  have : continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂ :=
+    funext (to_ring_inverse e),
+  rw this,
   -- `O₁` and `O₂` are `times_cont_diff`,
   -- so we reduce to proving that `ring.inverse` is `times_cont_diff`
-  refine (aux1 e).times_cont_diff_at.comp _
-    (times_cont_diff_at.comp _ _ (aux2 e).times_cont_diff_at),
-  nontriviality E,
+  have h₁ : times_cont_diff 𝕜 n O₁,
+    from is_bounded_bilinear_map_comp.times_cont_diff.comp
+      (times_cont_diff_const.prod times_cont_diff_id),
+  have h₂ : times_cont_diff 𝕜 n O₂,
+    from is_bounded_bilinear_map_comp.times_cont_diff.comp
+      (times_cont_diff_id.prod times_cont_diff_const),
+  refine h₁.times_cont_diff_at.comp _ (times_cont_diff_at.comp _ _ h₂.times_cont_diff_at),
   convert times_cont_diff_at_ring_inverse 𝕜 (1 : (E →L[𝕜] E)ˣ),
   simp [O₂, one_def]
 end

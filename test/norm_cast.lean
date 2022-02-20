@@ -133,3 +133,5 @@ begin
  assumption_mod_cast,
  assumption_mod_cast,
 end
+
+example (n : ℤ) (h : n = -1) : (n : ℝ) = -1 := by exact_mod_cast h

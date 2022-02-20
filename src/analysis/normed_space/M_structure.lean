@@ -333,7 +333,7 @@ lemma compl_orthog {P : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)} :
   (↑P: X →L[𝕜] X) * (↑ Pᶜ) = 0 :=
 by rw [coe_compl, mul_sub, ← sq, mul_one, projection_def P.prop.left, sub_self]
 
-lemma e2 {P Q R : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)} :
+lemma distrib_lattice_lemma {P Q R : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)} :
   ((↑P:X →L[𝕜] X) + ↑Pᶜ * R) * (↑P + ↑Q * ↑R * ↑Pᶜ) = (↑P + ↑Q * ↑R * ↑Pᶜ) :=
 begin
   rw add_mul,
@@ -451,28 +451,26 @@ instance : distrib_lattice (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop
       rw commute.eq (Lproj_commute Pᶜ.prop R.prop),
       rw ←mul_assoc,
     end,
-    have e₃: ↑((P ⊔ Q) ⊓ (P ⊔ R)) * ↑(P ⊔ Q ⊓ R) = ↑P + ↑Q * ↑R * ↑Pᶜ := begin
+    have e₂ : ↑((P ⊔ Q) ⊓ (P ⊔ R)) * ↑(P ⊔ Q ⊓ R) = ↑P + ↑Q * ↑R * ↑Pᶜ := begin
       rw coe_inf,
       rw coe_sup,
       rw coe_sup,
       rw coe_sup,
-      rw coe_inf,
       rw ← add_sub,
       rw ← add_sub,
       rw ← add_sub,
       rw compl_mul_left,
       rw compl_mul_left,
       rw compl_mul_left,
-      rw ← coe_inf Q,
       rw commute.eq (Lproj_commute Pᶜ.prop (Q⊓R).prop),
       rw coe_inf,
       rw mul_assoc,
-      rw e2,
+      rw distrib_lattice_lemma,
       rw commute.eq (Lproj_commute Q.prop R.prop),
-      rw e2,
+      rw distrib_lattice_lemma,
     end,
     have e: ↑((P ⊔ Q) ⊓ (P ⊔ R)) = ↑((P ⊔ Q) ⊓ (P ⊔ R)) * ↑(P ⊔ Q ⊓ R) := begin
-      rw e₃,
+      rw e₂,
       rw e₁,
     end,
     apply e,

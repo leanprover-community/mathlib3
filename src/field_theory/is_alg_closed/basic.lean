@@ -178,7 +178,7 @@ variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [algebra K 
 
 variables (K L M)
 include hL
-open zorn subalgebra alg_hom function
+open subalgebra alg_hom function
 
 /-- This structure is used to prove the existence of a homomorphism from any algebraic extension
 into an algebraic closure -/

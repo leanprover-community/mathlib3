@@ -26,7 +26,7 @@ We prove two versions of the lemma:
 normal space, shrinking lemma
 -/
 
-open set zorn function
+open set function
 open_locale classical
 noncomputable theory
 

@@ -87,7 +87,7 @@ def is_chain (s : set α) := s.pairwise (λ x y, x ≺ y ∨ y ≺ x)
 def super_chain (s t : set α) : Prop := is_chain r t ∧ s ⊂ t
 
 /-- A chain `s` is a maximal chain if there does not exists a chain strictly including `s`. -/
-def is_max_chain (s : set α) := is_chain r s ∧ ¬ ∃ t, super_chain r s t
+def is_max_chain (s : set α) := is_chain r s ∧ ∀ ⦃t⦄, is_chain r t → s ⊆ t → s = t
 
 variables {r} {c c₁ c₂ c₃ s t : set α} {a b x y : α}
 
@@ -145,6 +145,10 @@ lemma is_chain.directed {r} [is_refl β r] {f : α → β} {c : set α} (h : is_
     (λ h : r (f a) (f b), ⟨⟨b, hb⟩, h, refl _⟩)
     (λ h : r (f b) (f a), ⟨⟨a, ha⟩, refl _, h⟩))
 
+lemma is_max_chain.is_chain (h : is_max_chain r s) : is_chain r s := h.1
+lemma is_max_chain.not_super_chain (h : is_max_chain r s) : ¬super_chain r s t :=
+λ ht, ht.2.ne $ h.2 ht.1 ht.2.1
+
 open_locale classical
 
 /-- Given a set `s`, if there exists a chain `t` strictly including `s`, then `succ_chain s`
@@ -164,12 +168,12 @@ if h : ∃ t, is_chain r s ∧ super_chain r s t then
 else
   by simp [succ_chain, dif_neg, h]; exact hs
 
-lemma super_of_not_max (hs₁ : is_chain r s) (hs₂ : ¬ is_max_chain r s) :
+lemma is_chain.super_chain_succ_chain (hs₁ : is_chain r s) (hs₂ : ¬ is_max_chain r s) :
   super_chain r s (succ_chain r s) :=
 begin
   simp [is_max_chain, not_and_distrib, not_forall_not] at hs₂,
-  cases hs₂.neg_resolve_left hs₁ with t hc',
-  exact succ_spec ⟨t, hs₁, hc'⟩
+  obtain ⟨t, ht, hst⟩ := hs₂.neg_resolve_left hs₁,
+  exact succ_spec ⟨t, hs₁, ht, ssubset_iff_subset_ne.2 hst⟩,
 end
 
 lemma succ_increasing {s : set α} : s ⊆ succ_chain r s :=
@@ -280,11 +284,8 @@ There exists a maximal totally ordered subset of `α`.
 Note that we do not require `α` to be partially ordered by `r`. -/
 lemma max_chain_spec : is_max_chain r (max_chain r) :=
 classical.by_contradiction $ λ h,
-begin
-  obtain ⟨h₁, H⟩ := super_of_not_max (chain_closure_max_chain.is_chain) h,
-  obtain ⟨h₂, h₃⟩ := ssubset_iff_subset_ne.1 H,
-  exact h₃ (chain_closure_max_chain.succ_fixpoint_iff.mpr rfl).symm,
-end
+let ⟨h₁, H⟩ := chain_closure_max_chain.is_chain.super_chain_succ_chain h in
+  H.ne (chain_closure_max_chain.succ_fixpoint_iff.mpr rfl).symm
 
 end chain
 
@@ -307,7 +308,7 @@ let ⟨ub, (hub : ∀ a ∈ max_chain r, a ≺ ub)⟩ := this in
     from max_chain_spec.1.insert $ λ b hb _, or.inr $ trans (hub b hb) ha,
   have a ∈ max_chain r, from
     classical.by_contradiction $ λ h : a ∉ max_chain r,
-    max_chain_spec.right $ ⟨insert a (max_chain r), this, ssubset_insert h⟩,
+    (ssubset_insert h).ne $ max_chain_spec.right this $ subset_insert _ _,
   hub a this⟩
 
 /-- A variant of Zorn's lemma. If every nonempty chain of a nonempty type has an upper bound, then
@@ -391,9 +392,7 @@ lemma is_chain.exists_max_chain (hc : is_chain r c) : ∃ M, @is_max_chain _ r M
 begin
   obtain ⟨M, ⟨_, hM₀⟩, hM₁, hM₂⟩ :=
     zorn_subset_nonempty {s | c ⊆ s ∧ is_chain r s} _ c ⟨subset.rfl, hc⟩,
-  { refine ⟨M, ⟨hM₀, _⟩, hM₁⟩,
-    rintro ⟨d, hd, hMd, hdM⟩,
-    exact hdM (hM₂ _ ⟨hM₁.trans hMd, hd⟩ hMd).le },
+  { exact ⟨M, ⟨hM₀, λ d hd hMd, (hM₂ _ ⟨hM₁.trans hMd, hd⟩ hMd).symm⟩, hM₁⟩ },
   rintros cs hcs₀ hcs₁ ⟨s, hs⟩,
   refine ⟨⋃₀ cs, ⟨λ _ ha, set.mem_sUnion_of_mem ((hcs₀ hs).left ha) hs, _⟩,
     λ _, set.subset_sUnion_of_mem⟩,

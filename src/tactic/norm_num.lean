@@ -689,7 +689,7 @@ We may also add coercions to `ℤ` and `ℕ` as well in order to support `char_z
 rings and semirings. -/
 meta def prove_ne : instance_cache → expr → expr → ℚ → ℚ → tactic (instance_cache × expr)
 | ic a b na nb := prove_ne_rat ic a b na nb <|> do
-  cz_inst ← mk_mapp ``char_zero [ic.α, none, none] >>= mk_instance,
+  cz_inst ← mk_mapp ``char_zero [ic.α, none] >>= mk_instance,
   if na.denom = 1 ∧ nb.denom = 1 then
     if na ≥ 0 ∧ nb ≥ 0 then do
       guard (ic.α ≠ `(ℕ)),

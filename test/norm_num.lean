@@ -43,6 +43,7 @@ example : (-3 : real) ^ (2 : ℤ) = 9 := by norm_num
 example : (1:complex) ≠ 2 := by norm_num
 example : (1:complex) / 3 ≠ 2 / 7 := by norm_num
 
+example : (1:real) ≠ 2 := by norm_num
 example {α} [semiring α] [char_zero α] : (1:α) ≠ 2 := by norm_num
 example {α} [ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num
 example {α} [division_ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num

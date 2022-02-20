@@ -295,8 +295,8 @@ lemma abs_arg_mul_exp_neg_pi_div_four_mul_I_le_pi_div_four {z : ℂ} :
 begin
   have A : conj (exp (-(π / 4) * I)) = exp ((π / 4) * I),
   { norm_cast,
-    rw [← exp_conj, ring_equiv.map_mul, conj_I, conj_of_real, of_real_neg, neg_mul_neg] },
-  rw [← abs_arg_conj, ring_equiv.map_mul, A, abs_arg_mul_exp_pi_div_four_mul_I_le_pi_div_four,
+    rw [← exp_conj, map_mul, conj_I, conj_of_real, of_real_neg, neg_mul_neg] },
+  rw [← abs_arg_conj, map_mul, A, abs_arg_mul_exp_pi_div_four_mul_I_le_pi_div_four,
     conj_re, conj_im, neg_nonpos]
 end
 

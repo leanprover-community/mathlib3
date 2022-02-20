@@ -57,8 +57,10 @@ The discrete category on the paths includes into the category of 1-morphisms in 
 bicategory.
 -/
 def inclusion_path (a b : B) : discrete (path.{v+1} a b) ⥤ hom a b :=
-{ obj := inclusion_path_aux,
-  map := λ f g η, eq_to_hom (congr_arg inclusion_path_aux (discrete.eq_of_hom η)) }
+discrete.functor inclusion_path_aux
+/- should simply be `discrete.functor inclusion_path_aux`, but `discrete.functor` defines
+the `map` field using the `cases` tactic, which is bad. I think we should redefine
+`discrete.functor` to use `eq_to_hom`. -/
 
 variables (B)
 
@@ -75,32 +77,35 @@ def preinclusion : prelax_functor (locally_discrete (paths B)) (free_bicategory 
 
 variables {B}
 
-/--
-The normalization of the composition of `p : path a b` and `f : hom b c`. Defining this function
-is easier than defining the normalization of `f : hom a b` alone, which will defined as the
-normalization of the composition of `path.nil : path a a` and `f : hom a b`.
--/
 @[simp]
-def normalize_hom {a : B} : ∀ {b c : B}, hom b c → path a b → path a c
-| _ _ (hom.of f) p := p.cons f
-| _ _ (hom.id b) p := p
-| _ _ (hom.comp f g) p := normalize_hom g (normalize_hom f p)
+def normalize_map : ∀ {a b : B}, hom a b → path a b
+| _ _ (hom.of f) := f.to_path
+| _ _ (hom.id a) := nil
+| _ _ (hom.comp f g) := (normalize_map f).comp (normalize_map g)
 
-/--
-Given a 2-morphism between `f` and `g` in the free bicategory, we have the equality
-`normalize_hom f p = normalize_hom g p`.
--/
-lemma normalize_hom_congr {a b c : B} {f g : hom b c} (η : hom₂ f g) (p : path a b) :
-  normalize_hom f p = normalize_hom g p :=
+lemma normalize_map_congr {a b : B} {f g : hom a b} (η : hom₂ f g) :
+  normalize_map f = normalize_map g :=
 begin
-  refine congr _ rfl,
-  clear p,
   induction η,
   case vcomp { apply eq.trans; assumption },
-  case whisker_left  : _ _ _ _ _ _ _ ih { funext, apply congr_fun ih },
-  case whisker_right : _ _ _ _ _ _ _ ih { funext, apply congr_arg2 _ rfl (congr ih rfl) },
-  all_goals { funext, refl }
+  case whisker_left : _ _ _ _ _ _ _ ih { apply congr_arg _ ih },
+  case whisker_right : _ _ _ _ _ _ _ ih { exact congr_arg2 _ ih rfl },
+  all_goals { simp },
 end
+/-- the lemmas
+@[simp] lemma id_def : hom.id a = 𝟙 a := rfl
+@[simp] lemma comp_def : hom.comp f g = f ≫ g := rfl
+in bicategory.free works against `dsimp`, so I removed them. -/
+
+variable (B)
+
+/-- The normalization pseudofunctor for the free bicategory on a quiver `B`. -/
+def full_normalize : oplax_functor (free_bicategory B) (locally_discrete (paths B)) :=
+{ obj := id,
+  map := λ a b, normalize_map,
+  map₂ := λ a b f g η, ⟨⟨quot.ind normalize_map_congr η⟩⟩,
+  map_id := λ a, 𝟙 _,
+  map_comp := λ a b c f g, 𝟙 _ }
 
 /--
 Auxiliary definition for `normalize`. Given a 2-morphism between `f` and `g` in the free
@@ -112,6 +117,7 @@ def normalize_map_aux {a b c : B} {f g : hom b c} (η : hom₂ f g) :
   (discrete.functor (normalize_hom f) : _ ⥤ discrete (path.{v+1} a c)) ⟶
     discrete.functor (normalize_hom g) :=
 discrete.nat_trans (λ p, eq_to_hom (normalize_hom_congr η p))
+--⟨⟨normalize_hom_congr η p⟩⟩ also works
 
 /--
 The normalization of the composition of `p : path a b` and `f : hom b c` as a functor.
@@ -126,22 +132,6 @@ bicategory rather than a path.
 -/
 def normalize' (a b c : B) : hom b c ⥤ discrete (path.{v+1} a b) ⥤ hom a c :=
 normalize _ _ _ ⋙ (whiskering_right _ _ _).obj (inclusion_path _ _)
-
-variables (B)
-
-/-- The normalization pseudofunctor for the free bicategory on a quiver `B`. -/
-def full_normalize : pseudofunctor (free_bicategory B) (locally_discrete (paths B)) :=
-{ obj := id,
-  map := λ a b f, ((normalize _ _ _).obj f).obj nil,
-  map₂ := λ a b f g η, ((normalize _ _ _).map η).app nil,
-  map_id := λ a, iso.refl (𝟙 a),
-  map_comp := λ a b c f g, eq_to_iso
-  begin
-    induction g generalizing a,
-    case id { refl },
-    case of { refl },
-    case comp : _ _ _ g _ ihf ihg { erw [ihg _ (f.comp g), ihf _ f, ihg _ g, assoc] }
-  end }
 
 variables {B}
 
@@ -249,7 +239,7 @@ def normalize_unit_iso_app_aux {a b : free_bicategory B} (f : a ⟶ b) :
 
 /-- Auxiliary definition for `normalize_equiv`. -/
 def normalize_unit_iso (a b : free_bicategory B) :
-  𝟭 (a ⟶ b) ≅ (full_normalize B).map_functor _ _ ⋙ inclusion_path _ _  :=
+  𝟭 (a ⟶ b) ≅ (full_normalize B).map_functor _ _ ⋙ inclusion_path _ _ :=
 nat_iso.of_components (λ f, (λ_ f).symm ≪≫ normalize_unit_iso_app_aux f)
 begin
   intros f g η,

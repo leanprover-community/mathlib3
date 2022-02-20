@@ -5,7 +5,7 @@ Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 -/
 import category_theory.endomorphism
 import order.zorn
-import .graded
+import .grade
 
 /-!
 # Flags of polytopes
@@ -312,7 +312,8 @@ section
 
 /-- Any pair of incident elements is a chain. -/
 lemma pair (r : α → α → Prop) {a b : α} (h : r a b) : zorn.chain r {a, b} :=
-zorn.chain_insert (zorn.chain_singleton _ _) (λ _ hb _, by rwa ←list.mem_singleton.1 hb at h)
+zorn.chain_insert (zorn.chain_singleton _ _) (λ _ hb _, or.inl $
+  (set.eq_of_mem_singleton hb).symm.rec_on ‹_›)
 
 /-- Chains of intervals are chains. -/
 lemma chain_of_chain [preorder α] {x y : α} (c : set (set.Icc x y)) :
@@ -325,7 +326,7 @@ begin
     rw ←hz',
     exact subtype.mem z',
   end,
-  refine hc ⟨a, hz ha⟩ _ ⟨b, hz hb⟩ _ _,
+  refine @hc ⟨a, hz ha⟩ _ ⟨b, hz hb⟩ _ _,
   rcases ha with ⟨a', _, ha'⟩,
   suffices : a' = ⟨a, _⟩, by rwa ←this,
   swap,
@@ -340,15 +341,13 @@ lemma chain_of_chains [preorder α] {x y z : α} (c : set (set.Icc x y)) (d : se
   zorn.chain (<) c → zorn.chain (<) d → zorn.chain (<) (subtype.val '' c ∪ subtype.val '' d) :=
 begin
   intros hc hd a ha b hb hne,
-  obtain ⟨a', hac, ha⟩ | ha := ha,
-  { obtain ⟨b', hbc, hb⟩ | hb := hb,
-    { rw [←ha, ←hb],
-      refine λ hc hac hbc, h (hne _),
-      sorry,
-    },
-    sorry,
-  },
-  sorry,
+  obtain ⟨a', hac, ha⟩ | ⟨a', had, ha⟩ := ha,
+  all_goals { obtain ⟨b', hbc, hb⟩ | ⟨b', hbd, hb⟩ := hb },
+  all_goals { rw [←ha, ←hb] },
+  { exact or.imp id id (hc hac hbc (subtype.ne_of_val_ne $ by rwa [ha, hb])) },
+  { exact or.inl (lt_of_le_of_lt a'.prop.right b'.prop.left) },
+  { exact or.inr (lt_of_le_of_lt b'.prop.right a'.prop.left) },
+  { exact or.imp id id (hd had hbd (subtype.ne_of_val_ne $ by rwa [ha, hb])) },
 end
 
 end
@@ -378,21 +377,23 @@ begin
   { induction hsseq,
     apply (hcs₀ hsy).right,
     all_goals { assumption } },
-  cases hcs₁ _ hsy _ hsz hsseq with h h,
-  { exact (hcs₀ hsz).right _ (h hysy) _ hzsz hyz },
-  { exact (hcs₀ hsy).right _ hysy _ (h hzsz) hyz }
+  cases hcs₁ hsy hsz hsseq with h h,
+  { exact (hcs₀ hsz).right (h hysy) hzsz hyz },
+  { exact (hcs₀ hsy).right hysy (h hzsz) hyz }
 end
 
 /-- Every element belongs to some flag. -/
 theorem ex_flag_mem (x : α) : ∃ Φ : flag α, x ∈ Φ :=
-by { cases flag_of_chain _ (chain.singleton x) with Φ hΦ, exact ⟨Φ, hΦ (set.mem_insert x ∅)⟩ }
+let ⟨Φ, hΦ⟩ := flag_of_chain {x} $ set.subsingleton.chain $ set.subsingleton_singleton in
+⟨Φ, hΦ rfl⟩
 
 /-- Every pair of incident elements belongs to some flag. -/
 theorem ex_flag_both_mem (x y : α) (hxy : x < y ∨ y < x) :
   ∃ Φ : flag α, x ∈ Φ ∧ y ∈ Φ :=
 begin
-  cases flag_of_chain _ (chain.pair hxy) with Φ hΦ,
-  exact ⟨Φ, hΦ (set.mem_insert _ _), hΦ (set.mem_insert_of_mem _ (set.mem_insert _ _))⟩
+  wlog hxy := hxy using x y,
+  obtain ⟨Φ, hΦ⟩ := flag_of_chain _ (chain.pair _ hxy),
+  exact ⟨Φ, hΦ (set.mem_insert _ _), hΦ (set.mem_insert_of_mem _ rfl)⟩
 end
 
 end preorder

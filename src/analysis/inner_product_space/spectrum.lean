@@ -245,8 +245,8 @@ end version2
 section positive
 variables {n : ℕ} (hn : finite_dimensional.finrank 𝕜 E = n)
 
-lemma pos_nonneg_eigenvalues (hpos : ∀ (x : E), (is_R_or_C.re ⟪T x, x⟫ ≥ 0)) :
-  ∀ (i : (fin n)), hT.eigenvalues hn i ≥ 0 :=
+lemma pos_nonneg_eigenvalues (hpos : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪T x, x⟫) :
+  ∀ (i : (fin n)), 0 ≤ hT.eigenvalues hn i :=
 begin
   intro i,
   have : hT.eigenvalues hn i =

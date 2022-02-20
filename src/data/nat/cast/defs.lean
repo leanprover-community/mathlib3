@@ -79,6 +79,9 @@ namespace nat
 
 @[simp, norm_cast] theorem cast_zero : ((0 : ℕ) : α) = 0 := add_monoid_with_one.nat_cast_zero
 
+-- Lemmas about nat.succ need to get a low priority, so that they are tried last.
+-- This is because `nat.succ _` matches `1`, `3`, `x+1`, etc.
+-- Rewriting would then produce really wrong terms.
 @[simp, norm_cast, priority 500]
 theorem cast_succ (n : ℕ) : ((succ n : ℕ) : α) = n + 1 := add_monoid_with_one.nat_cast_succ _
 
@@ -125,6 +128,8 @@ by rw [bit1, cast_add_one, cast_bit0]; refl
 
 lemma cast_two [add_monoid_with_one α] : ((2 : ℕ) : α) = 2 :=
 by rw [cast_add_one, cast_one, bit0]
+
+attribute [simp, norm_cast] int.nat_abs_of_nat
 
 end nat
 

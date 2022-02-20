@@ -116,6 +116,6 @@ cast_add _ _
 @[simp, norm_cast] theorem cast_bit1 (n : ℤ) : ((bit1 n : ℤ) : α) = bit1 n :=
 by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
-lemma cast_two : ((2 : ℤ) : α) = 2 := by norm_cast
+lemma cast_two : ((2 : ℤ) : α) = 2 := by simp
 
 end int

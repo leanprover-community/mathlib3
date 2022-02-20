@@ -1321,9 +1321,9 @@ meta def eval_cast : expr → tactic (expr × expr)
       (ic, b) ← ic.of_int n,
       (_, _, _, p) ← prove_int_uncast ic zc b,
       pure (b, p)
-    else if inst.app_arg.is_app_of ``int.cast_coe then do
+    else if inst.app_arg.is_app_of ``rat.cast_coe then do
       n ← a.to_rat,
-      cz_inst ← mk_mapp ``char_zero [α, none, none] >>= mk_instance,
+      cz_inst ← mk_mapp ``char_zero [α, none] >>= mk_instance,
       ic ← mk_instance_cache α,
       qc ← mk_instance_cache `(ℚ),
         (ic, b) ← ic.of_rat n,

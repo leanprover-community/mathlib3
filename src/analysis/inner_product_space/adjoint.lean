@@ -305,7 +305,7 @@ begin
 end
 
 lemma gram_positive (T : E →ₗ[𝕜] E) :
-∀ (x : E), is_R_or_C.re ⟪ (T.adjoint * T) x, x ⟫ ≥ 0 ∧ is_R_or_C.im ⟪ (T.adjoint * T) x, x⟫ = 0 :=
+∀ (x : E), 0 ≤ is_R_or_C.re ⟪ (T.adjoint * T) x, x ⟫ ∧ is_R_or_C.im ⟪ (T.adjoint * T) x, x⟫ = 0 :=
 begin
   intro x,
   rw [linear_map.mul_apply, linear_map.adjoint_inner_left, inner_self_eq_norm_sq_to_K],

@@ -1,4 +1,51 @@
+/-
+Copyright (c) 2022 Christopher Hoskin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Christopher Hoskin
+-/
 import analysis.normed_space.basic
+
+/-!
+# M-structure
+
+A continuous projection P on a normed space X is said to be an L-projection if, for all `x` in `X`,
+$$
+∥x∥ = ∥P x∥ + ∥(1-P) x∥.
+$$
+The range of an L-projection is said to be an L-summand of X.
+
+A continuous projection P on a normed space X is said to be an M-projection if, for all `x` in `X`,
+$$
+∥x∥ = max(∥P x∥,∥(1-P) x∥).
+$$
+The range of an M-projection is said to be an M-summand of X.
+
+The L-projections and M-projections form Boolean algebras. When X is a Banach space, the Boolean
+algebra of L-projections is complete.
+
+Let `X` be a normed space with dual `X^*`. A closed subspace `M` of `X` is said to be an M-ideal if
+the topological annihilator `M^∘` is an L-summand of `X^*`.
+
+M-ideal, M-summands and L-summands were introduced by Alfsen and Schultz in ... to study the
+structure of general Banach spaces. When `A` is a JB*-triple, the M-ideals of `A` are exactly the
+norm-closed ideals of `A`. When `A` is a JBW*-triple with predual `X`, the M-summands of `A` are
+exactly the weak*-closed ideals, and their pre-duals can be identified with the L-summands of `X`.
+In the special case when `A` is a C*-algebra, the M-ideals are exactly the norm-closed two-sided
+ideals of `A`, when `A` is also a W*-algebra the M-summands are exactly the weak*-closed two-sided
+ideals of `A`.
+
+## Implementation notes
+
+The approach to showing that the L-projections form a Boolean algebra is inspired by
+`measure_theory.measurable_space`.
+
+## References
+
+## Tags
+
+M-summand, M-projection, L-summand, L-projection, M-ideal, M-structure
+
+-/
 
 variables {X : Type*} [normed_group X]
 

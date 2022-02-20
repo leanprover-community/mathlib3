@@ -133,7 +133,7 @@ iff.rfl
 
 @[to_additive]
 lemma centralizer_subset (h : S ⊆ T) : centralizer T ≤ centralizer S :=
-λ t ht s hs, ht s (h hs)
+set.centralizer_subset h
 
 variables (M)
 

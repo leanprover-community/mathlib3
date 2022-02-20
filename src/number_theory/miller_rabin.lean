@@ -11,7 +11,7 @@ import data.nat.totient
 import data.zmod.basic
 import number_theory.padics.padic_norm
 import field_theory.finite.basic
-
+import data.fintype.basic
 
 def two_power_part (n : ℕ) := 2 ^ (padic_val_nat 2 n)
 
@@ -87,3 +87,10 @@ end
 --   apply foo,
 --   sorry,
 -- end
+
+lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)]
+  [decidable_pred (strong_probable_prime n)] (hp : ¬ n.prime) :
+  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
+begin
+
+end

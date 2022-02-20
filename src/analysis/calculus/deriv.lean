@@ -1411,7 +1411,7 @@ theorem has_deriv_within_at_inv (x_ne_zero : x ≠ 0) (s : set 𝕜) :
 
 lemma differentiable_at_inv :
   differentiable_at 𝕜 (λx, x⁻¹) x ↔ x ≠ 0:=
-⟨λ H, continuous_at_inv.1 H.continuous_at,
+⟨λ H, normed_field.continuous_at_inv.1 H.continuous_at,
   λ H, (has_deriv_at_inv H).differentiable_at⟩
 
 lemma differentiable_within_at_inv (x_ne_zero : x ≠ 0) :

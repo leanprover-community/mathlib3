@@ -110,6 +110,41 @@ begin
   ring,
 end
 
+lemma slash_k_mul (k1 k2 : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
+  (f * g) ∣[k1+k2] A = (A.1.det) • (f ∣[k1] A) * (g ∣[k2] A) :=
+begin
+  simp only [subtype.val_eq_coe],
+  ext1,
+  have : ((A.1.det) • (f ∣[k1] A) * (g ∣[k2] A)) x =  (A.1.det) * ((f ∣[k1] A) x) * ((g ∣[k2] A) x),
+  by {refl},
+  simp only [matrix.general_linear_group.coe_det_apply, pi.smul_apply,subtype.val_eq_coe,
+  coe_coe] at this,
+  rw this,
+  simp only [slash_k, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe],
+  rw pi.mul_apply,
+  simp_rw ← mul_assoc,
+  have h1: ((A.1.det)^(k1+k2-1) : ℂ)= (A.1.det) * (A.1.det)^(k1-1) * (A.1.det)^(k2-1),
+  by {simp only [mul_assoc, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe],
+  rw [←zpow_add₀, ←zpow_one_add₀],
+  ring_exp,
+  all_goals{ have hd:= A.2,
+  simp only [matrix.mem_GL_pos,matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe] at hd,
+  norm_cast,
+  apply ne_of_gt hd,},},
+  simp only [matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe] at h1,
+  rw h1,
+  have h2 : (((A 1 0 : ℂ) * x + A 1 1)^(k1+k2))⁻¹ =
+  ((A 1 0 *x + A 1 1)^k1)⁻¹ * ((A 1 0 *x + A 1 1)^k2)⁻¹,
+  by {simp_rw ← mul_inv₀,
+  simp only [inv_inj₀],
+  apply zpow_add₀,
+  apply upper_half_plane.denom_ne_zero A x,},
+  rw h2,
+  ring,
+end
+
+
+
 /--The  space of functions that are modular-/
 def weakly_modular_submodule (k : ℤ)  (Γ : subgroup SL(2,ℤ)): submodule ℂ (ℍ  → ℂ) := {
   carrier := {f : (ℍ → ℂ) | ∀ (γ : Γ),  (f ∣[k] (γ : GL(2, ℝ)⁺)) = f },
@@ -148,6 +183,22 @@ begin
   rw ← coe_coe,
   rw ← coe_coe,
   apply matrix.special_linear_group.det_coe,
+end
+
+lemma slash_k_mul_subgroup (k1 k2 : ℤ) (Γ : subgroup SL(2,ℤ)) (A : Γ) (f g : ℍ → ℂ) :
+  (f * g) ∣[k1+k2] A = (f ∣[k1] A) * (g ∣[k2] A) :=
+  begin
+  have hd: ((A : GL(2,ℝ)⁺).1.det : ℂ) = (A : SL(2,ℤ)) .1.det, by {simp [det_coe_sl], norm_cast,
+  rw ← coe_coe,
+  rw ← coe_coe,
+  rw ← coe_coe, apply matrix.special_linear_group.det_coe,},
+  rw slash_k_mul,
+  ext1,
+  have : (((A : GL(2,ℝ)⁺).1.det) • (f ∣[k1] A) * (g ∣[k2] A)) x =
+  ((A : GL(2,ℝ)⁺).1.det) * ((f ∣[k1] A) x) * ((g ∣[k2] A) x),
+  by {refl,},
+  rw [this,hd, (A : SL(2,ℤ)).2],
+  simp only [one_mul, int.cast_one, pi.mul_apply],
 end
 
 lemma det_coe_g (Γ : subgroup SL(2,ℤ)) (γ : Γ): (((γ : SL(2,ℤ) ) : GL(2, ℝ)⁺) :
@@ -626,5 +677,28 @@ def space_of_cusp_forms_of_level_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ):
   apply this,},}
 
 localized "notation `Sₖ[`k`](`Γ`)`:= space_of_cusp_forms_of_level_and_weight Γ k" in modular_forms
+
+lemma mul_modform (k_1 k_2 : ℤ) (Γ : subgroup SL(2,ℤ)) (f g : ℍ → ℂ)
+  (hf : f ∈ space_of_mod_forms_of_level_and_weight Γ k_1)
+  (hg : g ∈ space_of_mod_forms_of_level_and_weight Γ k_2) :
+  f * g  ∈  space_of_mod_forms_of_level_and_weight Γ (k_1+k_2) :=
+begin
+  cases hf,
+  cases hg,
+  split,
+  rw mdiff_iff_holo,  -- Holomorphic
+  apply mul_hol,
+  apply (mdiff_to_holo _ hf_hol),
+  apply (mdiff_to_holo _ hg_hol),
+  apply mul_modular,   -- Weakly modular
+  exact hf_transf,
+  exact hg_transf,
+  intro A, -- Bounded at cusp
+  rw slash_k_mul_subgroup k_1 k_2 ⊤ A f g,
+  apply prod_of_bound_is_bound,
+  split,
+  exact (hf_infinity A),
+  exact (hg_infinity A),
+end
 
 end modular_forms

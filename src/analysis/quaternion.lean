@@ -65,7 +65,8 @@ by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, re
 
 noncomputable instance : normed_ring ℍ :=
 { dist_eq := λ _ _, rfl,
-  norm_mul := λ a b, (norm_mul a b).le }
+  norm_mul := λ a b, (norm_mul a b).le,
+  .. quaternion.inner_product_space, .. quaternion.ring }
 
 noncomputable instance : normed_algebra ℝ ℍ :=
 { norm_algebra_map_eq := norm_coe,

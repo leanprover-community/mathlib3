@@ -264,7 +264,11 @@ H.is_O.comp_tendsto le_top
 
 protected lemma is_bounded_bilinear_map.is_O' (h : is_bounded_bilinear_map 𝕜 f) :
   asymptotics.is_O f (λ p : E × F, ∥p∥ * ∥p∥) ⊤ :=
-h.is_O.trans (asymptotics.is_O_fst_prod'.norm_norm.mul asymptotics.is_O_snd_prod'.norm_norm)
+begin
+  refine h.is_O.trans (asymptotics.is_O.mul _ _);
+  rw [asymptotics.is_O_norm_norm];
+  [apply asymptotics.is_O_fst_prod', apply asymptotics.is_O_snd_prod']
+end
 
 lemma is_bounded_bilinear_map.map_sub_left (h : is_bounded_bilinear_map 𝕜 f) {x y : E} {z : F} :
   f (x - y, z) = f (x, z) - f(y, z) :=

@@ -164,7 +164,7 @@ local notation `∞` := (⊤ : with_top ℕ)
 universes u v w
 
 local attribute [instance, priority 1001]
-normed_group.to_add_comm_group normed_space.to_module' add_comm_group.to_add_comm_monoid
+normed_space.to_module' add_comm_group.to_add_comm_monoid
 
 open set fin filter
 open_locale topological_space
@@ -1190,8 +1190,8 @@ theorem has_ftaylor_series_up_to_succ_iff_right {n : ℕ} :
   ∧ (∀ x, has_fderiv_at (λ y, p y 0) (p x 1).curry_left x)
   ∧ has_ftaylor_series_up_to n
     (λ x, continuous_multilinear_curry_fin1 𝕜 E F (p x 1)) (λ x, (p x).shift) :=
-by simp [has_ftaylor_series_up_to_on_succ_iff_right, has_ftaylor_series_up_to_on_univ_iff.symm,
-         -add_comm, -with_zero.coe_add]
+by simp only [has_ftaylor_series_up_to_on_succ_iff_right, ← has_ftaylor_series_up_to_on_univ_iff,
+  mem_univ, forall_true_left, has_fderiv_within_at_univ]
 
 /-! ### Smooth functions at a point -/
 
@@ -1446,9 +1446,8 @@ it is differentiable there, and its derivative is `C^n`. -/
 theorem times_cont_diff_succ_iff_fderiv {n : ℕ} :
   times_cont_diff 𝕜 ((n + 1) : ℕ) f ↔
   differentiable 𝕜 f ∧ times_cont_diff 𝕜 n (λ y, fderiv 𝕜 f y) :=
-by simp [times_cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ.symm,
-         - fderiv_within_univ, times_cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ,
-         -with_zero.coe_add, -add_comm]
+by simp only [← times_cont_diff_on_univ, ← differentiable_on_univ, ← fderiv_within_univ,
+  times_cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ]
 
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^∞`. -/
@@ -2023,6 +2022,9 @@ begin
     apply Itop n (hg n) (hf n) st }
 end
 
+local attribute [instance, priority 1001] normed_group.to_add_comm_monoid
+local attribute [instance, priority 1001] nondiscrete_normed_field.to_semiring
+
 /-- The composition of `C^n` functions on domains is `C^n`. -/
 lemma times_cont_diff_on.comp
   {n : with_top ℕ} {s : set E} {t : set F} {g : F → G} {f : E → F}
@@ -2568,28 +2570,29 @@ end algebra_inverse
 section map_inverse
 open continuous_linear_map
 
+private lemma aux1 [complete_space E] {n : with_top ℕ} (e : E ≃L[𝕜] F) :
+  times_cont_diff 𝕜 n (λ f : E →L[𝕜] E, f.comp (e.symm : F →L[𝕜] E)) :=
+is_bounded_bilinear_map_comp.times_cont_diff.comp (times_cont_diff_const.prod times_cont_diff_id)
+
+private lemma aux2 [complete_space E] {n : with_top ℕ} (e : E ≃L[𝕜] F) :
+  times_cont_diff 𝕜 n (λ f : E →L[𝕜] F, (e.symm : F →L[𝕜] E).comp f) :=
+is_bounded_bilinear_map_comp.times_cont_diff.comp (times_cont_diff_id.prod times_cont_diff_const)
+
 /-- At a continuous linear equivalence `e : E ≃L[𝕜] F` between Banach spaces, the operation of
 inversion is `C^n`, for all `n`. -/
 lemma times_cont_diff_at_map_inverse [complete_space E] {n : with_top ℕ} (e : E ≃L[𝕜] F) :
   times_cont_diff_at 𝕜 n inverse (e : E →L[𝕜] F) :=
 begin
-  nontriviality E,
   -- first, we use the lemma `to_ring_inverse` to rewrite in terms of `ring.inverse` in the ring
   -- `E →L[𝕜] E`
   let O₁ : (E →L[𝕜] E) → (F →L[𝕜] E) := λ f, f.comp (e.symm : (F →L[𝕜] E)),
   let O₂ : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : (F →L[𝕜] E)).comp f,
-  have : continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂ :=
-    funext (to_ring_inverse e),
-  rw this,
+  rw show continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂, from funext (to_ring_inverse e),
   -- `O₁` and `O₂` are `times_cont_diff`,
   -- so we reduce to proving that `ring.inverse` is `times_cont_diff`
-  have h₁ : times_cont_diff 𝕜 n O₁,
-    from is_bounded_bilinear_map_comp.times_cont_diff.comp
-      (times_cont_diff_const.prod times_cont_diff_id),
-  have h₂ : times_cont_diff 𝕜 n O₂,
-    from is_bounded_bilinear_map_comp.times_cont_diff.comp
-      (times_cont_diff_id.prod times_cont_diff_const),
-  refine h₁.times_cont_diff_at.comp _ (times_cont_diff_at.comp _ _ h₂.times_cont_diff_at),
+  refine (aux1 e).times_cont_diff_at.comp _
+    (times_cont_diff_at.comp _ _ (aux2 e).times_cont_diff_at),
+  nontriviality E,
   convert times_cont_diff_at_ring_inverse 𝕜 (1 : (E →L[𝕜] E)ˣ),
   simp [O₂, one_def]
 end

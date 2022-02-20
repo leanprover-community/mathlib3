@@ -106,9 +106,9 @@ begin
     by simpa only [norm_to_nnreal, normed_field.nnnorm_pow k (n+1)]
       using coe_mono (real.to_nnreal_mono (norm_le_norm_of_mem pow_mem)),
   /- take (n + 1)ᵗʰ roots and clean up the left-hand side -/
-  have hn : 0 < ((n + 1) : ℝ), by exact_mod_cast nat.succ_pos',
+  have hn : 0 < ((n + 1 : ℕ) : ℝ), by exact_mod_cast nat.succ_pos',
   convert monotone_rpow_of_nonneg (one_div_pos.mpr hn).le nnnorm_pow_le,
-  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one],
+  erw [coe_pow, ←rpow_nat_cast, ←rpow_mul, mul_one_div_cancel hn.ne', rpow_one], rw nat.cast_succ,
 end
 
 end spectrum_compact

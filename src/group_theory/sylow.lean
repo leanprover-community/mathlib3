@@ -72,7 +72,7 @@ end sylow
   Every `p`-subgroup is contained in a Sylow `p`-subgroup. -/
 lemma is_p_group.exists_le_sylow {P : subgroup G} (hP : is_p_group p P) :
   ∃ Q : sylow p G, P ≤ Q :=
-exists.elim (zorn.zorn_nonempty_partial_order₀ {Q : subgroup G | is_p_group p Q} (λ c hc1 hc2 Q hQ,
+exists.elim (zorn_nonempty_partial_order₀ {Q : subgroup G | is_p_group p Q} (λ c hc1 hc2 Q hQ,
 ⟨ { carrier := ⋃ (R : c), R,
     one_mem' := ⟨Q, ⟨⟨Q, hQ⟩, rfl⟩, Q.one_mem⟩,
     inv_mem' := λ g ⟨_, ⟨R, rfl⟩, hg⟩, ⟨R, ⟨R, rfl⟩, R.1.inv_mem hg⟩,

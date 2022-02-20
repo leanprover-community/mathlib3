@@ -325,7 +325,7 @@ lemma exists_maximal_algebraic_independent
     ∀ x : set A, algebraic_independent R (coe : x → A) →
       u ⊆ x → x ⊆ t → x = u :=
 begin
-  rcases zorn.zorn_subset_nonempty
+  rcases zorn_subset_nonempty
       { u : set A | algebraic_independent R (coe : u → A) ∧ s ⊆ u ∧ u ⊆ t }
     (λ c hc chainc hcn, ⟨⋃₀ c, begin
       refine ⟨⟨algebraic_independent_sUnion_of_directed hcn

@@ -1,35 +1,32 @@
-import topology.algebra.monoid
+import topology.algebra.ring
 
-variables {M : Type*} [monoid M] [topological_space M] [has_continuous_mul M]
-  [t2_space M]
+variables {M : Type*} [ring M] [topological_space M] [topological_ring M] [t2_space M]
 
-local notation `𝓒` := submonoid.topological_closure
-
-lemma submonoid.inclusion_topological_closure_dense_range (s : submonoid M) :
-  dense_range (submonoid.inclusion s.submonoid_topological_closure) :=
-begin
-  intro x,
-   sorry
-end
-
-example {s : submonoid M} : topological_space s.topological_closure := by apply_instance
-example {s : submonoid M} : t2_space (𝓒 s × 𝓒 s) := by apply_instance
-
-def submonoid.comm_monoid_topological_closure {s : submonoid M} (hs : ∀ (x y : s), x * y = y * x) :
-  comm_monoid s.topological_closure :=
+/-- If a subring of a topological ring is commutative, then so is its topological closure. -/
+def subring.comm_ring_topological_closure {s : subring M} (hs : ∀ (x y : s), x * y = y * x) :
+  comm_ring s.topological_closure :=
 { mul_comm :=
   begin
     intros a b,
-    refine s.inclusion_topological_closure_dense_range.induction_on₂ _ _ a b,
-    { refine is_closed_eq continuous_mul _,
-      have : (λ (x : 𝓒 s × 𝓒 s), x.2 * x.1) = (λ (x : 𝓒 s × 𝓒 s), x.1 * x.2) ∘ prod.swap := rfl,
-      rw [this],
-      exact continuous_mul.comp continuous_swap },
-    { intros x y,
-      ext,
-      simp [submonoid.inclusion],
-      simp only [←submonoid.coe_mul, hs x y] }
+    have h₁ : (s.topological_closure : set M) = closure s := rfl,
+    let f₁ := λ (x : M × M), x.1 * x.2,
+    let f₂ := λ (x : M × M), x.2 * x.1,
+    have hf₁ : continuous f₁ := continuous_mul,
+    have hf₂ : continuous f₂,
+    { rw [show f₂ = f₁ ∘ prod.swap, from rfl], exact continuous_mul.comp continuous_swap },
+    let S : set (M × M) := (s : set M) ×ˢ (s : set M),
+    have h₃ : set.eq_on f₁ f₂ (closure S) := begin
+      refine set.eq_on.closure _ hf₁ hf₂,
+      intros x hx,
+      rw [set.mem_prod] at hx,
+      rcases hx with ⟨hx₁, hx₂⟩,
+      change ((⟨x.1, hx₁⟩ : s) : M) * (⟨x.2, hx₂⟩ : s) = (⟨x.2, hx₂⟩ : s) * (⟨x.1, hx₁⟩ : s),
+      exact_mod_cast hs _ _,
+    end,
+    ext,
+    change f₁ ⟨a, b⟩ = f₂ ⟨a, b⟩,
+    refine h₃ _,
+    rw [closure_prod_eq, set.mem_prod],
+    exact ⟨by simp [←h₁], by simp [←h₁]⟩
   end,
-  ..show monoid s.topological_closure, by apply_instance }
-
--- is_closed_property2
+  ..show ring s.topological_closure, by apply_instance }

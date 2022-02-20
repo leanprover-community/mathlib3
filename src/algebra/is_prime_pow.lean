@@ -129,11 +129,6 @@ begin
   simpa using hm₁,
 end
 
-/-- If the factorization of `n` contains just one prime `p` then `n` is a power of `p` -/
-lemma prime_pow_of_factorization_single {n p k : ℕ} (hn : n ≠ 0)
-  (h : n.factorization = finsupp.single p k) : n = p ^ k :=
-by { rw [←nat.factorization_prod_pow_eq_self hn, h], simp }
-
 lemma is_prime_pow_iff_factorization_single (n : ℕ):
   is_prime_pow n ↔ ∃ p k : ℕ, 0 < k ∧ n.factorization = finsupp.single p k :=
 begin
@@ -144,7 +139,7 @@ begin
   { rintros ⟨p, k, hk, hn⟩,
     rcases eq_or_ne n 0 with rfl | hn0,
     { apply absurd _ (@irrefl ℕ (<) _ 0), convert hk, simpa [eq_comm] using hn },
-    { rw prime_pow_of_factorization_single hn0 hn,
+    { rw nat.pow_of_factorization_single hn0 hn,
       refine ⟨p, k, _, hk, rfl⟩,
       apply nat.prime_of_mem_factorization,
       rw hn,

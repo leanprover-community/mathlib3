@@ -256,8 +256,8 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
     have wf : card (support (swap x (f x) * f)) < card (support f),
       from card_support_swap_mul hx.1,
     by { rw [sign_mul, sign_swap hx.1.symm, (hf.swap_mul hx.1 h1).sign, ← h],
-      simp only [pow_add, mul_one, units.neg_neg, one_mul, units.mul_neg, eq_self_iff_true,
-        pow_one, units.neg_mul_neg] }
+      simp only [pow_add, mul_one, neg_neg, one_mul, mul_neg, eq_self_iff_true,
+        pow_one, neg_mul_neg] }
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support.card)⟩]}
 
 lemma is_cycle_of_is_cycle_pow {σ : perm α} {n : ℕ}

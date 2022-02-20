@@ -144,7 +144,7 @@ begin
       convert C0,
       apply le_antisymm _ dist_nonneg',
       rw [dist_eq],
-      exact cInf_le ⟨0, λ C, and.left⟩ ⟨le_refl _, λ x, false.elim (h (nonempty.intro x))⟩, }, },
+      exact cInf_le ⟨0, λ C, and.left⟩ ⟨le_rfl, λ x, false.elim (h (nonempty.intro x))⟩, }, },
 end
 
 lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
@@ -153,7 +153,7 @@ lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
 
 /-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
 instance : metric_space (α →ᵇ β) :=
-{ dist_self := λ f, le_antisymm ((dist_le (le_refl _)).2 $ λ x, by simp) dist_nonneg',
+{ dist_self := λ f, le_antisymm ((dist_le le_rfl).2 $ λ x, by simp) dist_nonneg',
   eq_of_dist_eq_zero := λ f g hfg, by ext x; exact
     eq_of_dist_eq_zero (le_antisymm (hfg ▸ dist_coe_le_dist _) dist_nonneg),
   dist_comm := λ f g, by simp [dist_eq, dist_comm],
@@ -500,6 +500,25 @@ end
 
 end arzela_ascoli
 
+section has_one
+
+variables [topological_space α] [metric_space β] [has_one β]
+
+@[to_additive] instance : has_one (α →ᵇ β) := ⟨const α 1⟩
+
+@[simp, to_additive] lemma coe_one : ((1 : α →ᵇ β) : α → β) = 1 := rfl
+
+@[simp, to_additive]
+lemma mk_of_compact_one [compact_space α] : mk_of_compact (1 : C(α, β)) = 1 := rfl
+
+@[to_additive] lemma forall_coe_one_iff_one (f : α →ᵇ β) : (∀x, f x = 1) ↔ f = 1 :=
+(@ext_iff _ _ _ _ f 1).symm
+
+@[simp, to_additive] lemma one_comp_continuous [topological_space γ] (f : C(γ, α)) :
+  (1 : α →ᵇ β).comp_continuous f = 1 := rfl
+
+end has_one
+
 section has_lipschitz_add
 /- In this section, if `β` is an `add_monoid` whose addition operation is Lipschitz, then we show
 that the space of bounded continuous functions from `α` to `β` inherits a topological `add_monoid`
@@ -513,16 +532,6 @@ trivial inconvenience, but in any case there are no obvious applications of the 
 version. -/
 
 variables [topological_space α] [metric_space β] [add_monoid β]
-
-instance : has_zero (α →ᵇ β) := ⟨const α 0⟩
-
-@[simp] lemma coe_zero : ((0 : α →ᵇ β) : α → β) = 0 := rfl
-
-lemma forall_coe_zero_iff_zero (f : α →ᵇ β) : (∀x, f x = 0) ↔ f = 0 := (@ext_iff _ _ _ _ f 0).symm
-
-@[simp] lemma zero_comp_continuous [topological_space γ] (f : C(γ, α)) :
-  (0 : α →ᵇ β).comp_continuous f = 0 := rfl
-
 variables [has_lipschitz_add β]
 variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
@@ -544,15 +553,14 @@ instance : has_add (α →ᵇ β) :=
 @[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
 
+@[simp] lemma mk_of_compact_add [compact_space α] (f g : C(α, β)) :
+  mk_of_compact (f + g) = mk_of_compact f + mk_of_compact g := rfl
+
 lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
   (g + f).comp_continuous h = g.comp_continuous h + f.comp_continuous h := rfl
 
 instance : add_monoid (α →ᵇ β) :=
-{ add_assoc      := assume f g h, by ext; simp [add_assoc],
-  zero_add       := assume f, by ext; simp,
-  add_zero       := assume f, by ext; simp,
-  .. bounded_continuous_function.has_add,
-  .. bounded_continuous_function.has_zero }
+coe_injective.add_monoid _ coe_zero coe_add
 
 instance : has_lipschitz_add (α →ᵇ β) :=
 { lipschitz_add := ⟨has_lipschitz_add.C β, begin
@@ -680,7 +688,7 @@ variable (f)
 /-- Norm of `const α b` is less than or equal to `∥b∥`. If `α` is nonempty,
 then it is equal to `∥b∥`. -/
 lemma norm_const_le (b : β) : ∥const α b∥ ≤ ∥b∥ :=
-(norm_le (norm_nonneg b)).2 $ λ x, le_refl _
+(norm_le (norm_nonneg b)).2 $ λ x, le_rfl
 
 @[simp] lemma norm_const_eq [h : nonempty α] (b : β) : ∥const α b∥ = ∥b∥ :=
 le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x
@@ -752,16 +760,17 @@ instance : has_sub (α →ᵇ β) :=
 @[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl
 
-instance : add_comm_group (α →ᵇ β) :=
-{ add_left_neg   := assume f, by ext; simp,
-  add_comm       := assume f g, by ext; simp [add_comm],
-  sub_eq_add_neg := assume f g, by { ext, apply sub_eq_add_neg },
-  ..bounded_continuous_function.add_monoid,
-  ..bounded_continuous_function.has_neg,
-  ..bounded_continuous_function.has_sub }
-
 @[simp] lemma coe_sub : ⇑(f - g) = f - g := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
+
+@[simp] lemma mk_of_compact_neg [compact_space α] (f : C(α, β)) :
+  mk_of_compact (-f) = -mk_of_compact f := rfl
+
+@[simp] lemma mk_of_compact_sub [compact_space α] (f g : C(α, β)) :
+  mk_of_compact (f - g) = mk_of_compact f - mk_of_compact g := rfl
+
+instance : add_comm_group (α →ᵇ β) :=
+coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
 
 instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
@@ -914,20 +923,16 @@ pointwise operations and checking that they are compatible with the uniform dist
 
 variables [topological_space α] {R : Type*} [normed_ring R]
 
-instance : ring (α →ᵇ R) :=
-{ one := const α 1,
-  mul := λ f g, of_normed_group (f * g) (f.continuous.mul g.continuous) (∥f∥ * ∥g∥) $ λ x,
+instance : has_mul (α →ᵇ R) :=
+{ mul := λ f g, of_normed_group (f * g) (f.continuous.mul g.continuous) (∥f∥ * ∥g∥) $ λ x,
     le_trans (normed_ring.norm_mul (f x) (g x)) $
-      mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _),
-  one_mul := λ f, ext $ λ x, one_mul (f x),
-  mul_one := λ f, ext $ λ x, mul_one (f x),
-  mul_assoc := λ f₁ f₂ f₃, ext $ λ x, mul_assoc _ _ _,
-  left_distrib := λ f₁ f₂ f₃, ext $ λ x, left_distrib _ _ _,
-  right_distrib := λ f₁ f₂ f₃, ext $ λ x, right_distrib _ _ _,
-  .. bounded_continuous_function.add_comm_group }
+      mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _) }
 
 @[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
+
+instance : ring (α →ᵇ R) :=
+coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
 
 instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,

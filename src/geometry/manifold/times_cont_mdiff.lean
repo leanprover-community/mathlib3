@@ -562,7 +562,7 @@ begin
   refine ⟨λ h m hm, h.of_le hm, λ h, _⟩,
   cases n,
   { exact times_cont_mdiff_within_at_top.2 (λ n, h n le_top) },
-  { exact h n (le_refl _) }
+  { exact h n le_rfl }
 end
 
 /-! ### Restriction to a smaller set -/
@@ -641,7 +641,7 @@ begin
     simp only [times_cont_mdiff_within_at, lift_prop_within_at, times_cont_diff_within_at_prop]
       at h',
     -- let `u` be a good neighborhood in the chart where the function is smooth
-    rcases h.2.times_cont_diff_on (le_refl _) with ⟨u, u_nhds, u_subset, hu⟩,
+    rcases h.2.times_cont_diff_on le_rfl with ⟨u, u_nhds, u_subset, hu⟩,
     -- pull it back to the manifold, and intersect with a suitable neighborhood of `x`, to get the
     -- desired good neighborhood `v`.
     let v := ((insert x s) ∩ o) ∩ (ext_chart_at I x) ⁻¹' u,

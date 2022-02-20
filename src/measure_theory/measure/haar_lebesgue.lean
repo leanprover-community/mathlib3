@@ -59,10 +59,6 @@ open measure topological_space.positive_compacts finite_dimensional
 ### The Lebesgue measure is a Haar measure on `ℝ` and on `ℝ^ι`.
 -/
 
-instance is_add_left_invariant_real_volume :
-  is_add_left_invariant (volume : measure ℝ) :=
-⟨by simp [real.map_volume_add_left]⟩
-
 /-- The Haar measure equals the Lebesgue measure on `ℝ`. -/
 lemma add_haar_measure_eq_volume : add_haar_measure Icc01 = volume :=
 by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
@@ -72,7 +68,7 @@ by { rw ← add_haar_measure_eq_volume, apply_instance }
 
 instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
   is_add_left_invariant (volume : measure (ι → ℝ)) :=
-⟨by simp [real.map_volume_pi_add_left]⟩
+⟨by simp [map_add_left_eq_self]⟩
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ^ι`. -/
 lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
@@ -337,7 +333,7 @@ calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 begin
   rcases ne_or_eq r 0 with h|rfl,
-  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow₀, inv_inv₀] },
+  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow₀, inv_inv] },
   rcases eq_empty_or_nonempty s with rfl|hs,
   { simp only [measure_empty, mul_zero, smul_set_empty] },
   rw [zero_smul_set hs, ← singleton_zero],
@@ -372,16 +368,6 @@ begin
   have : closed_ball (0 : E) r = ((+) x) ⁻¹' (closed_ball x r), by simp [preimage_add_closed_ball],
   rw [this, measure_preimage_add]
 end
-
-lemma add_haar_ball_pos {E : Type*} [normed_group E] [measurable_space E]
-  (μ : measure E) [is_add_haar_measure μ] (x : E) {r : ℝ} (hr : 0 < r) :
-  0 < μ (ball x r) :=
-is_open_ball.add_haar_pos μ (nonempty_ball.2 hr)
-
-lemma add_haar_closed_ball_pos {E : Type*} [normed_group E] [measurable_space E]
-  (μ : measure E) [is_add_haar_measure μ] (x : E) {r : ℝ} (hr : 0 < r) :
-  0 < μ (closed_ball x r) :=
-lt_of_lt_of_le (add_haar_ball_pos μ x hr) (measure_mono ball_subset_closed_ball)
 
 lemma add_haar_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
   μ (ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 s) :=
@@ -560,7 +546,7 @@ begin
     = (μ (closed_ball x r) * (μ (closed_ball x r))⁻¹) * (μ (s ∩ ({x} + r • t)) / μ ({x} + r • u)) :
       by { simp only [div_eq_mul_inv], ring }
     ... = μ (s ∩ ({x} + r • t)) / μ ({x} + r • u) :
-      by rw [ennreal.mul_inv_cancel (add_haar_closed_ball_pos μ x rpos).ne'
+      by rw [ennreal.mul_inv_cancel (measure_closed_ball_pos μ x rpos).ne'
           measure_closed_ball_lt_top.ne, one_mul],
 end
 
@@ -673,7 +659,7 @@ begin
     { simp only [uzero, ennreal.inv_eq_top, implies_true_iff, ne.def, not_false_iff] },
     congr' 1,
     apply ennreal.sub_eq_of_add_eq
-      (lt_of_le_of_lt (measure_mono (inter_subset_right _ _)) utop.lt_top).ne,
+      (ne_top_of_le_ne_top utop (measure_mono (inter_subset_right _ _))),
     rw [inter_comm _ u, inter_comm _ u],
     exact measure_inter_add_diff u vmeas },
   have L : tendsto (λ r, μ (sᶜ ∩ closed_ball x r) / μ (closed_ball x r)) (𝓝[>] 0) (𝓝 0),
@@ -682,14 +668,14 @@ begin
       filter_upwards [self_mem_nhds_within],
       assume r hr,
       rw [div_eq_mul_inv, ennreal.mul_inv_cancel],
-      { apply (add_haar_closed_ball_pos μ _ hr).ne' },
+      { exact (measure_closed_ball_pos μ _ hr).ne' },
       { exact measure_closed_ball_lt_top.ne } },
     have B := ennreal.tendsto.sub A h (or.inl ennreal.one_ne_top),
     simp only [tsub_self] at B,
     apply B.congr' _,
     filter_upwards [self_mem_nhds_within],
     rintros r (rpos : 0 < r),
-    convert I (closed_ball x r) sᶜ (add_haar_closed_ball_pos μ _ rpos).ne'
+    convert I (closed_ball x r) sᶜ (measure_closed_ball_pos μ _ rpos).ne'
       (measure_closed_ball_lt_top).ne hs.compl,
     rw compl_compl },
   have L' : tendsto (λ (r : ℝ), μ (sᶜ ∩ ({x} + r • t)) / μ ({x} + r • t)) (𝓝[>] 0) (𝓝 0) :=

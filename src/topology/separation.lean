@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.subset_properties
 import topology.connected
+import topology.nhds_set
 
 /-!
 # Separation properties of topological spaces.
@@ -305,11 +306,11 @@ end
 protected lemma finset.is_closed [t1_space α] (s : finset α) : is_closed (s : set α) :=
 s.finite_to_set.is_closed
 
-lemma t1_space_tfae (α : Type u) [t : topological_space α] :
+lemma t1_space_tfae (α : Type u) [topological_space α] :
   tfae [t1_space α,
     ∀ x, is_closed ({x} : set α),
     ∀ x, is_open ({x}ᶜ : set α),
-    t ≤ cofinite_topology α,
+    continuous (@cofinite_topology.of α),
     ∀ ⦃x y : α⦄, x ≠ y → {y}ᶜ ∈ 𝓝 x,
     ∀ ⦃x y : α⦄, x ≠ y → ∃ s ∈ 𝓝 x, y ∉ s,
     ∀ ⦃x y : α⦄, x ≠ y → ∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U,
@@ -330,18 +331,20 @@ begin
     by simp only [← principal_singleton, disjoint_principal_right],
   tfae_have : 8 ↔ 9, from forall_swap.trans (by simp only [disjoint.comm, ne_comm]),
   tfae_have : 1 → 4,
-  { introsI H s hs,
-    simp only [cofinite_topology, ← ne_empty_iff_nonempty, ne.def, ← or_iff_not_imp_left] at hs,
-    rcases hs with rfl | hs,
-    exacts [is_open_empty, compl_compl s ▸ hs.is_closed.is_open_compl] },
-  tfae_have : 4 → 3,
-  { refine λ h x, h _ (λ _, _), simp },
+  { simp only [continuous_def, cofinite_topology.is_open_iff'],
+    rintro H s (rfl|hs),
+    exacts [is_open_empty, compl_compl s ▸ (@set.finite.is_closed _ _ H _ hs).is_open_compl] },
+  tfae_have : 4 → 2,
+    from λ h x, (cofinite_topology.is_closed_iff.2 $ or.inr (finite_singleton _)).preimage h,
   tfae_finish
 end
 
-lemma t1_space_iff_le_cofinite {α : Type*} [t : topological_space α] :
-  t1_space α ↔ t ≤ cofinite_topology α :=
+lemma t1_space_iff_continuous_cofinite_of {α : Type*} [topological_space α] :
+  t1_space α ↔ continuous (@cofinite_topology.of α) :=
 (t1_space_tfae α).out 0 3
+
+lemma cofinite_topology.continuous_of [t1_space α] : continuous (@cofinite_topology.of α) :=
+t1_space_iff_continuous_cofinite_of.mp ‹_›
 
 lemma t1_space_iff_exists_open : t1_space α ↔
   ∀ (x y), x ≠ y → (∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U) :=
@@ -359,13 +362,12 @@ t1_space_iff_disjoint_pure_nhds.mp ‹_› h
 lemma disjoint_nhds_pure [t1_space α] {x y : α} (h : x ≠ y) : disjoint (𝓝 x) (pure y) :=
 t1_space_iff_disjoint_nhds_pure.mp ‹_› h
 
-@[priority 100] -- see Note [lower instance priority]
-instance t1_space_cofinite {α : Type*} : @t1_space α (cofinite_topology α) :=
-(@t1_space_iff_le_cofinite α (cofinite_topology α)).mpr le_rfl
+instance {α : Type*} : t1_space (cofinite_topology α) :=
+t1_space_iff_continuous_cofinite_of.mpr continuous_id
 
 lemma t1_space_antitone {α : Type*} : antitone (@t1_space α) :=
 begin
-  simp only [antitone, t1_space_iff_le_cofinite],
+  simp only [antitone, t1_space_iff_continuous_cofinite_of, continuous_iff_le_induced],
   exact λ t₁ t₂ h, h.trans
 end
 
@@ -407,8 +409,11 @@ instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p 
 instance t1_space.t0_space [t1_space α] : t0_space α :=
 ⟨λ x y h, ⟨{z | z ≠ y}, is_open_ne, or.inl ⟨h, not_not_intro rfl⟩⟩⟩
 
+@[simp] lemma compl_singleton_mem_nhds_iff [t1_space α] {x y : α} : {x}ᶜ ∈ 𝓝 y ↔ y ≠ x :=
+is_open_compl_singleton.mem_nhds_iff
+
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : {x}ᶜ ∈ 𝓝 y :=
-is_open_compl_singleton.mem_nhds $ by rwa [mem_compl_eq, mem_singleton_iff]
+compl_singleton_mem_nhds_iff.mpr h
 
 @[simp] lemma closure_singleton [t1_space α] {a : α} :
   closure ({a} : set α) = {a} :=
@@ -448,6 +453,32 @@ end
 
 @[simp] lemma nhds_eq_nhds_iff [t1_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨λ h, nhds_le_nhds_iff.mp h.le, λ h, h ▸ rfl⟩
+
+@[simp] lemma compl_singleton_mem_nhds_set_iff [t1_space α] {x : α} {s : set α} :
+  {x}ᶜ ∈ 𝓝ˢ s ↔ x ∉ s :=
+by rwa [is_open_compl_singleton.mem_nhds_set, subset_compl_singleton_iff]
+
+@[simp] lemma nhds_set_le_iff [t1_space α] {s t : set α} : 𝓝ˢ s ≤ 𝓝ˢ t ↔ s ⊆ t :=
+begin
+  refine ⟨_, λ h, monotone_nhds_set h⟩,
+  simp_rw [filter.le_def], intros h x hx,
+  specialize h {x}ᶜ,
+  simp_rw [compl_singleton_mem_nhds_set_iff] at h,
+  by_contra hxt,
+  exact h hxt hx,
+end
+
+@[simp] lemma nhds_set_inj_iff [t1_space α] {s t : set α} : 𝓝ˢ s = 𝓝ˢ t ↔ s = t :=
+by { simp_rw [le_antisymm_iff], exact and_congr nhds_set_le_iff nhds_set_le_iff }
+
+lemma injective_nhds_set [t1_space α] : function.injective (𝓝ˢ : set α → filter α) :=
+λ s t hst, nhds_set_inj_iff.mp hst
+
+lemma strict_mono_nhds_set [t1_space α] : strict_mono (𝓝ˢ : set α → filter α) :=
+monotone_nhds_set.strict_mono_of_injective injective_nhds_set
+
+@[simp] lemma nhds_le_nhds_set [t1_space α] {s : set α} {x : α} : 𝓝 x ≤ 𝓝ˢ s ↔ x ∈ s :=
+by rw [← nhds_set_singleton, nhds_set_le_iff, singleton_subset_iff]
 
 /-- Removing a non-isolated point from a dense set, one still obtains a dense set. -/
 lemma dense.diff_singleton [t1_space α] {s : set α} (hs : dense s) (x : α) [ne_bot (𝓝[≠] x)] :
@@ -818,7 +849,7 @@ lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f
 (h.tendsto a).lim_eq
 
 @[simp] lemma Lim_nhds (a : α) : @Lim _ _ ⟨a⟩ (𝓝 a) = a :=
-Lim_eq (le_refl _)
+Lim_eq le_rfl
 
 @[simp] lemma lim_nhds_id (a : α) : @lim _ _ _ ⟨a⟩ (𝓝 a) id = a :=
 Lim_nhds a
@@ -925,7 +956,8 @@ lemma is_closed_eq [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
 
-/-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. -/
+/-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. See also
+`set.eq_on.of_subset_closure` for a more general version. -/
 lemma set.eq_on.closure [t2_space α] {s : set β} {f g : β → α} (h : eq_on f g s)
   (hf : continuous f) (hg : continuous g) :
   eq_on f g (closure s) :=
@@ -936,6 +968,18 @@ lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → 
   (hf : continuous f) (hg : continuous g) (h : eq_on f g s) :
   f = g :=
 funext $ λ x, h.closure hf hg (hs x)
+
+/-- If `f x = g x` for all `x ∈ s` and `f`, `g` are continuous on `t`, `s ⊆ t ⊆ closure s`, then
+`f x = g x` for all `x ∈ t`. See also `set.eq_on.closure`. -/
+lemma set.eq_on.of_subset_closure [t2_space α] {s t : set β} {f g : β → α} (h : eq_on f g s)
+  (hf : continuous_on f t) (hg : continuous_on g t) (hst : s ⊆ t) (hts : t ⊆ closure s) :
+  eq_on f g t :=
+begin
+  intros x hx,
+  haveI : (𝓝[s] x).ne_bot, from mem_closure_iff_cluster_pt.mp (hts hx),
+  exact tendsto_nhds_unique_of_eventually_eq ((hf x hx).mono_left $ nhds_within_mono _ hst)
+    ((hg x hx).mono_left $ nhds_within_mono _ hst) (h.eventually_eq_of_mem self_mem_nhds_within)
+end
 
 lemma function.left_inverse.closed_range [t2_space α] {f : α → β} {g : β → α}
   (h : function.left_inverse f g) (hf : continuous f) (hg : continuous g) :
@@ -1001,6 +1045,11 @@ hs.inter_right $ ht.is_closed
 lemma compact_closure_of_subset_compact [t2_space α] {s t : set α} (ht : is_compact t) (h : s ⊆ t) :
   is_compact (closure s) :=
 compact_of_is_closed_subset ht is_closed_closure (closure_minimal h ht.is_closed)
+
+@[simp]
+lemma exists_compact_superset_iff [t2_space α] {s : set α} :
+  (∃ K, is_compact K ∧ s ⊆ K) ↔ is_compact (closure s) :=
+⟨λ ⟨K, hK, hsK⟩, compact_closure_of_subset_compact hK hsK, λ h, ⟨closure s, h, subset_closure⟩⟩
 
 lemma image_closure_of_compact [t2_space β]
   {s : set α} (hs : is_compact (closure s)) {f : α → β} (hf : continuous_on f (closure s)) :

@@ -43,6 +43,19 @@ class number_field (K : Type*) [field K] : Prop :=
 open function
 open_locale classical big_operators
 
+/-- `ℤ` with its usual ring structure is not a field. -/
+lemma int.not_is_field : ¬ is_field ℤ :=
+begin
+  intro hf,
+  cases hf.mul_inv_cancel two_ne_zero with inv2 hinv2,
+  have not_even_2 : ¬ even (2 : ℤ),
+  { rw ← int.odd_iff_not_even,
+    apply int.odd.of_mul_left,
+    rw [hinv2, int.odd_iff_not_even],
+    exact int.not_even_one, },
+  exact not_even_2 (even_bit0 1),
+end
+
 namespace number_field
 
 variables (K L : Type*) [field K] [field L] [nf : number_field K]
@@ -52,7 +65,7 @@ include nf
 -- See note [lower instance priority]
 attribute [priority 100, instance] number_field.to_char_zero number_field.to_finite_dimensional
 
-protected lemma is_algebraic : algebra.is_algebraic ℚ K := algebra.is_algebraic_of_finite
+protected lemma is_algebraic : algebra.is_algebraic ℚ K := algebra.is_algebraic_of_finite _ _
 
 omit nf
 
@@ -96,6 +109,16 @@ variables (K)
 
 instance [number_field K] : char_zero (𝓞 K) := char_zero.of_module _ K
 
+/-- The ring of integers of a number field is not a field. -/
+lemma not_is_field [number_field K] : ¬ is_field (𝓞 K) :=
+begin
+  have h_inj : function.injective ⇑(algebra_map ℤ (𝓞 K)),
+  { exact ring_hom.injective_int (algebra_map ℤ (𝓞 K)) },
+  intro hf,
+  exact int.not_is_field ((is_integral.is_field_iff_is_field
+    (is_integral_closure.is_integral_algebra ℤ K) h_inj).mpr hf)
+end
+
 instance [number_field K] : is_dedekind_domain (𝓞 K) :=
 is_integral_closure.is_dedekind_domain ℤ ℚ K _
 
@@ -107,14 +130,16 @@ namespace rat
 
 open number_field
 
+local attribute [instance] subsingleton_rat_module
+
 instance rat.number_field : number_field ℚ :=
 { to_char_zero := infer_instance,
-  to_finite_dimensional := by { convert (infer_instance : finite_dimensional ℚ ℚ),
-             -- The vector space structure of `ℚ` over itself can arise in multiple ways:
-             -- all fields are vector spaces over themselves (used in `rat.finite_dimensional`)
-             -- all char 0 fields have a canonical embedding of `ℚ` (used in `number_field`).
-             -- Show that these coincide:
-             ext1, simp [algebra.smul_def] } }
+  to_finite_dimensional :=
+    -- The vector space structure of `ℚ` over itself can arise in multiple ways:
+    -- all fields are vector spaces over themselves (used in `rat.finite_dimensional`)
+    -- all char 0 fields have a canonical embedding of `ℚ` (used in `number_field`).
+    -- Show that these coincide:
+    by convert (infer_instance : finite_dimensional ℚ ℚ), }
 
 /-- The ring of integers of `ℚ` as a number field is just `ℤ`. -/
 noncomputable def ring_of_integers_equiv : ring_of_integers ℚ ≃+* ℤ :=

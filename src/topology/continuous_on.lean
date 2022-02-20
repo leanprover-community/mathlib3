@@ -696,6 +696,9 @@ lemma continuous_on.mono {f : α → β} {s t : set α} (hf : continuous_on f s)
   continuous_on f t :=
 λx hx, (hf x (h hx)).mono_left (nhds_within_mono _ h)
 
+lemma antitone_continuous_on {f : α → β} : antitone (continuous_on f) :=
+λ s t hst hf, hf.mono hst
+
 lemma continuous_on.comp' {g : β → γ} {f : α → β} {s : set α} {t : set β}
   (hg : continuous_on g t) (hf : continuous_on f s) :
   continuous_on (g ∘ f) (s ∩ f⁻¹' t) :=

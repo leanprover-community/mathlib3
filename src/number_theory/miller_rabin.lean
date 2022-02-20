@@ -20,8 +20,10 @@ def odd_part (n : ℕ) := n / two_power_part n
 lemma mul_two_power_part_odd_part (n : ℕ) : (two_power_part n) * (odd_part n) = n :=
 begin
   have : two_power_part n ∣ n,
-  { sorry, },
-  sorry, -- try this one
+  { rw two_power_part,
+  exact pow_padic_val_nat_dvd, },
+  rw odd_part,
+  exact nat.mul_div_cancel' this,
 end
 
 def strong_probable_prime (n : nat) (a : zmod n) : Prop :=

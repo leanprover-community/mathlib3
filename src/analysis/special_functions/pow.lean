@@ -1600,7 +1600,7 @@ lemma filter.tendsto.ennrpow_const {α : Type*} {f : filter α} {m : α → ℝ�
 
 -- the following lemma is placed here instead of `analysis.specific_limits` since
 -- we need `real.rpow`
-/-- The sum of `(2⁻¹) ^ i` for `i ≤ n` equals `2⁻¹ ^ (n - 1)`. -/
+/-- The sum of `(2⁻¹) ^ i` for `n ≤ i` equals `2⁻¹ ^ (n - 1)`. -/
 lemma tsum_geometric_inv_two_ge (n : ℕ) :
   ∑' i, ite (n ≤ i) ((2 : ℝ)⁻¹ ^ i) 0 = 2⁻¹ ^ (n - 1 : ℝ) :=
 begin

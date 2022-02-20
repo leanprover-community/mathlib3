@@ -10,7 +10,7 @@ import measure_theory.function.uniform_integrable
 # Convergence in measure
 
 We define convergence in measure which is one of the many notions of convergence in probability.
-In particular, a sequence of functions `f` is said to converge in measure to some function `g`
+A sequence of functions `f` is said to converge in measure to some function `g`
 if for all `ε > 0`, the measure of the set `{x | ε ≤ dist (f i x) (g x)}` tends to 0 as `i`
 tends to infinity. Convergence in measure is most notably used in the formulation of the weak
 law of large numbers and is also useful in theorems such as the Vitali convergence theorem.

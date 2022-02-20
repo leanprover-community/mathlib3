@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.normed_space.bounded_linear_maps
+import analysis.normed_space.star.basic
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 

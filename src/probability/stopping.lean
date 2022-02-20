@@ -31,7 +31,7 @@ filtration, stopping time, stochastic process
 
 -/
 
-noncomputable theory
+open topological_space
 open_locale classical measure_theory nnreal ennreal topological_space big_operators
 
 namespace measure_theory
@@ -39,27 +39,78 @@ namespace measure_theory
 /-- A `filtration` on measurable space `α` with σ-algebra `m` is a monotone
 sequence of of sub-σ-algebras of `m`. -/
 structure filtration {α : Type*} (ι : Type*) [preorder ι] (m : measurable_space α) :=
-(seq : ι → measurable_space α)
-(mono : monotone seq)
-(le : ∀ i : ι, seq i ≤ m)
+(seq   : ι → measurable_space α)
+(mono' : monotone seq)
+(le'   : ∀ i : ι, seq i ≤ m)
 
 variables {α β ι : Type*} {m : measurable_space α}
 
-open topological_space
+instance [preorder ι] : has_coe_to_fun (filtration ι m) (λ _, ι → measurable_space α) :=
+⟨λ f, f.seq⟩
 
-section preorder
-
+namespace filtration
 variables [preorder ι]
 
-instance : has_coe_to_fun (filtration ι m) (λ _, ι → measurable_space α) :=
-⟨λ f, f.seq⟩
+protected lemma mono {i j : ι} (f : filtration ι m) (hij : i ≤ j) : f i ≤ f j := f.mono' hij
+
+protected lemma le (f : filtration ι m) (i : ι) : f i ≤ m := f.le' i
+
+@[ext] protected lemma ext {f g : filtration ι m} (h : (f : ι → measurable_space α) = g) : f = g :=
+by { cases f, cases g, simp only, exact h, }
+
+end filtration
+
+section preorder
+variables [preorder ι]
 
 /-- The constant filtration which is equal to `m` for all `i : ι`. -/
 def const_filtration (m : measurable_space α) : filtration ι m :=
 ⟨λ _, m, monotone_const, λ _, le_rfl⟩
 
-instance : inhabited (filtration ι m) :=
-⟨const_filtration m⟩
+instance : inhabited (filtration ι m) := ⟨const_filtration m⟩
+
+instance : has_le (filtration ι m) := ⟨λ f g, ∀ i, f i ≤ g i⟩
+
+instance : has_bot (filtration ι m) :=
+⟨{seq   := λ _, ⊥,
+  mono' := λ i j hij, le_rfl,
+  le'   := λ i, bot_le }⟩
+
+instance : has_top (filtration ι m) := ⟨const_filtration m⟩
+
+instance : bounded_order (filtration ι m) :=
+{ top    := ⊤,
+  bot    := ⊥,
+  le_top := λ f i, f.le' i,
+  bot_le := λ f i, bot_le, }
+
+instance : has_sup (filtration ι m) := ⟨λ f g,
+{ seq   := λ i, f i ⊔ g i,
+  mono' := λ i j hij, sup_le ((f.mono hij).trans le_sup_left) ((g.mono hij).trans le_sup_right),
+  le'   := λ i, sup_le (f.le i) (g.le i) }⟩
+
+@[norm_cast] lemma coe_fn_sup {f g : filtration ι m} : ⇑(f ⊔ g) = f ⊔ g := rfl
+
+instance : has_inf (filtration ι m) := ⟨λ f g,
+{ seq   := λ i, f i ⊓ g i,
+  mono' := λ i j hij, le_inf (inf_le_left.trans (f.mono hij)) (inf_le_right.trans (g.mono hij)),
+  le'   := λ i, inf_le_left.trans (f.le i) }⟩
+
+@[norm_cast] lemma coe_fn_inf {f g : filtration ι m} : ⇑(f ⊓ g) = f ⊓ g := rfl
+
+instance : lattice (filtration ι m) :=
+{ le           := (≤),
+  le_refl      := λ f i, le_rfl,
+  le_trans     := λ f g h h_fg h_gh i, (h_fg i).trans (h_gh i),
+  le_antisymm  := λ f g h_fg h_gf, filtration.ext $ funext $ λ i, (h_fg i).antisymm (h_gf i),
+  sup          := (⊔),
+  le_sup_left  := λ f g i, le_sup_left,
+  le_sup_right := λ f g i, le_sup_right,
+  sup_le       := λ f g h h_fh h_gh i, sup_le (h_fh i) (h_gh _),
+  inf          := (⊓),
+  inf_le_left  := λ f g i, inf_le_left,
+  inf_le_right := λ f g i, inf_le_right,
+  le_inf       := λ f g h h_fg h_fh i, le_inf (h_fg i) (h_fh i), }
 
 lemma measurable_set_of_filtration {f : filtration ι m} {s : set α} {i : ι}
   (hs : measurable_set[f i] s) : measurable_set[m] s :=
@@ -111,9 +162,9 @@ namespace filtration
 of σ-algebras such that that sequence of functions is measurable with respect to
 the filtration. -/
 def natural (u : ι → α → β) (hum : ∀ i, measurable (u i)) : filtration ι m :=
-{ seq := λ i, ⨆ j ≤ i, measurable_space.comap (u j) infer_instance,
-  mono := λ i j hij, bsupr_le_bsupr' $ λ k hk, le_trans hk hij,
-  le := λ i, bsupr_le (λ j hj s hs, let ⟨t, ht, ht'⟩ := hs in ht' ▸ hum j ht) }
+{ seq   := λ i, ⨆ j ≤ i, measurable_space.comap (u j) infer_instance,
+  mono' := λ i j hij, bsupr_le_bsupr' $ λ k hk, le_trans hk hij,
+  le'   := λ i, bsupr_le (λ j hj s hs, let ⟨t, ht, ht'⟩ := hs in ht' ▸ hum j ht) }
 
 lemma adapted_natural {u : ι → α → β} (hum : ∀ i, measurable[m] (u i)) :
   adapted (natural u hum) u :=

@@ -137,18 +137,20 @@ by { rw [←nat.factorization_prod_pow_eq_self hn, h], simp }
 lemma is_prime_pow_iff_factorization_single (n : ℕ):
   is_prime_pow n ↔ ∃ p k : ℕ, 0 < k ∧ n.factorization = finsupp.single p k :=
 begin
-  rw is_prime_pow_def,
+  rw is_prime_pow_nat_iff,
   split,
   { rintros ⟨p, k, pp, hk, hn⟩, use [p, k, hk],
-    rw [←hn, nat.prime.factorization_pow (nat.prime_iff.mpr pp)] },
+    rw [←hn, nat.prime.factorization_pow pp] },
   { rintros ⟨p, k, hk, hn⟩,
-    by_cases hn0 : n = 0,
-    { rw [hn0, nat.factorization_zero, eq_comm, finsupp.single_eq_zero] at hn,
+    rcases eq_or_ne n 0 with rfl | hn0,
+    { rw [nat.factorization_zero, eq_comm, finsupp.single_eq_zero] at hn,
       subst hn,
       cases nat.lt_asymm hk hk },
     { rw prime_pow_of_factorization_single hn0 hn,
       refine ⟨p, k, _, hk, rfl⟩,
-      { rw ←nat.prime_iff, apply nat.prime_of_mem_factorization, rw hn, simp [ne_of_gt hk] } } }
+      apply nat.prime_of_mem_factorization,
+      rw hn,
+      simp [ne_of_gt hk] } }
 end
 
 /-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime

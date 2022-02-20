@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Anatole Dedecker, Sébastien Gouëzel, Johannes Hölzl, Yury G. Kudryashov,
+         Dylan MacKenzie, Patrick Massot
 -/
 import algebra.geom_sum
 import analysis.asymptotics.asymptotics
@@ -909,6 +910,83 @@ begin
   rw [div_pow, one_pow],
   refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (fi a));
   exact pow_pos (zero_lt_one.trans hm) _
+end
+
+section
+/-! ### Dirichlet and alternating series tests -/
+
+variables {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {b : ℝ} {f : ℕ → ℝ} {z : ℕ → E}
+
+/-- **Dirichlet's Test** for monotone sequences. -/
+theorem cauchy_seq_series_mul_of_monotone_tendsto_zero_of_series_bounded
+  (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) (hgb : ∀ n, ∥∑ i in range n, z i∥ ≤ b) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (f i) • z i) :=
+begin
+  simp_rw [module.sum_range_by_parts _ _ (nat.succ_pos _), sub_eq_add_neg,
+           nat.succ_sub_succ_eq_sub, tsub_zero],
+  apply (normed_field.tendsto_zero_smul_of_tendsto_zero_of_bounded hf0
+    ⟨b, eventually_map.mpr $ eventually_of_forall $ λ n, hgb $ n+1⟩).cauchy_seq.add,
+  apply (cauchy_seq_range_of_norm_bounded _ _ (_ : ∀ n, _ ≤ b * |f(n+1) - f(n)|)).neg,
+  { exact normed_uniform_group },
+  { simp_rw [abs_of_nonneg (sub_nonneg_of_le (hfa (nat.le_succ _))), ← mul_sum],
+    apply real.uniform_continuous_mul_const.comp_cauchy_seq,
+    simp_rw [sum_range_sub, sub_eq_add_neg],
+    exact (tendsto.cauchy_seq hf0).add_const },
+  { intro n,
+    rw [norm_smul, mul_comm],
+    exact mul_le_mul_of_nonneg_right (hgb _) (abs_nonneg _) },
+end
+
+/-- **Dirichlet's test** for antitone sequences. -/
+theorem cauchy_seq_series_mul_of_antitone_tendsto_zero_of_series_bounded
+  (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) (hzb : ∀ n, ∥∑ i in range n, z i∥ ≤ b) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (f i) • z i) :=
+begin
+  have hfa': monotone (λ n, -f n) := λ _ _ hab, neg_le_neg $ hfa hab,
+  have hf0': tendsto (λ n, -f n) at_top (𝓝 0) := by { convert hf0.neg, norm_num },
+  convert (cauchy_seq_series_mul_of_monotone_tendsto_zero_of_series_bounded hfa' hf0' hzb).neg,
+  funext,
+  simp
+end
+
+lemma norm_sum_neg_one_pow_le (n : ℕ) : ∥∑ i in range n, (-1 : ℝ) ^ i∥ ≤ 1 :=
+by { rw [←geom_sum_def, neg_one_geom_sum], split_ifs; norm_num }
+
+/-- The **alternating series test** for monotone sequences.
+See also `tendsto_alternating_series_of_monotone_tendsto_zero`. -/
+theorem cauchy_seq_alternating_series_of_monotone_tendsto_zero
+  (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (-1) ^ i * f i) :=
+begin
+  simp_rw [mul_comm],
+  exact cauchy_seq_series_mul_of_monotone_tendsto_zero_of_series_bounded hfa hf0
+    norm_sum_neg_one_pow_le
+end
+
+/-- The **alternating series test** for monotone sequences. -/
+theorem tendsto_alternating_series_of_monotone_tendsto_zero
+  (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  ∃ l, tendsto (λ n, ∑ i in range (n+1), (-1) ^ i * f i) at_top (𝓝 l) :=
+cauchy_seq_tendsto_of_complete $ cauchy_seq_alternating_series_of_monotone_tendsto_zero hfa hf0
+
+/-- The **alternating series test** for antitone sequences.
+See also `tendsto_alternating_series_of_antitone_tendsto_zero`. -/
+theorem cauchy_seq_alternating_series_of_antitone_tendsto_zero
+  (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (-1) ^ i * f i) :=
+begin
+  simp_rw [mul_comm],
+  exact
+    cauchy_seq_series_mul_of_antitone_tendsto_zero_of_series_bounded hfa hf0 norm_sum_neg_one_pow_le
+end
+
+/-- The **alternating series test** for antitone sequences. -/
+theorem tendsto_alternating_series_of_antitone_tendsto_zero
+  (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  ∃ l, tendsto (λ n, ∑ i in range (n+1), (-1) ^ i * f i) at_top (𝓝 l) :=
+cauchy_seq_tendsto_of_complete $ cauchy_seq_alternating_series_of_antitone_tendsto_zero hfa hf0
+
 end
 
 /-! ### Positive sequences with small sums on encodable types -/

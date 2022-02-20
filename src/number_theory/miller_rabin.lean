@@ -27,7 +27,7 @@ begin
 end
 
 def strong_probable_prime (n : nat) (a : zmod n) : Prop :=
-a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r ≤ padic_val_nat 2 (n-1) -> a^(2^r * odd_part(n-1)) = -1)
+a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 (n-1) ∧ a^(2^r * odd_part(n-1)) = -1)
 
 
 lemma square_roots_of_one {p : ℕ} [fact (p.prime)] {x : zmod p} (root : x^2 = 1) :
@@ -50,14 +50,13 @@ end
 
 lemma repeated_halving_of_exponent (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0)
   (e : ℕ) (h : a ^ e = 1) :
-  a^(odd_part e) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 e -> a^(2^r * odd_part e) = -1) :=
+  a^(odd_part e) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 e ∧ a^(2^r * odd_part e) = -1) :=
 begin
   rw <-mul_two_power_part_odd_part e at h,
   rw two_power_part at h,
   revert h,
   induction padic_val_nat 2 e with i hi,
-  { simp only [not_lt_zero', forall_false_left, exists_const, or_true, implies_true_iff],
-    },
+  { simp, },
   { intros h,
     simp [pow_succ, mul_assoc] at h,
     rw pow_mul' at h,
@@ -70,8 +69,8 @@ begin
     right,
     cases h4 with r' hoo,
     use r',
-    intro hr,
-    apply hoo, },
+    sorry,
+    sorry, },
 end
 
 lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
@@ -85,5 +84,6 @@ lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)]
   [decidable_pred (strong_probable_prime n)] (hp : ¬ n.prime) :
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
 begin
-
+  -- TODO(Bolton): This will be a harder proof. Find some sublemmas that will be needed and
+  -- extract them
 end

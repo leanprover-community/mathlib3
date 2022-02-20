@@ -262,7 +262,7 @@ begin
   exact (hpos (hT.eigenvector_basis hn i)),
 end
 
-end positive
+end nonneg
 
 end is_self_adjoint
 end inner_product_space

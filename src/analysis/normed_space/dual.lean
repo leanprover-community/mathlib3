@@ -151,9 +151,9 @@ begin
   refine eq_singleton_iff_unique_mem.2 ⟨zero_mem_polar _ _, λ x' hx', _⟩,
   ext x,
   refine norm_le_zero_iff.1 (le_of_forall_le_of_dense $ λ ε hε, _),
-  rcases normed_field.exists_norm_lt 𝕜 hε with ⟨c, hc, hcε⟩,
+  rcases exists_norm_lt 𝕜 hε with ⟨c, hc, hcε⟩,
   calc ∥x' x∥ = ∥c∥ * ∥x' (c⁻¹ • x)∥ :
-    by rw [x'.map_smul, norm_smul, normed_field.norm_inv,
+    by rw [x'.map_smul, norm_smul, norm_inv,
       mul_inv_cancel_left₀ hc.ne']
   ... ≤ ε * 1 : mul_le_mul hcε.le (hx' _ trivial) (norm_nonneg _) hε.le
   ... = ε : mul_one _
@@ -213,7 +213,7 @@ begin
     apply mul_le_mul (le_of_eq rfl) (hc z hzs) (norm_nonneg _) (norm_nonneg _), },
   have cancel : ∥ c⁻¹ ∥ * ∥ c ∥ = 1,
   by simp only [c_zero, norm_eq_zero, ne.def, not_false_iff,
-                inv_mul_cancel, normed_field.norm_inv],
+                inv_mul_cancel, norm_inv],
   rwa cancel at le,
 end
 
@@ -258,7 +258,7 @@ of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
 lemma bounded_polar_of_mem_nhds_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   bounded (polar 𝕜 s) :=
 begin
-  obtain ⟨a, ha⟩ : ∃ a : 𝕜, 1 < ∥a∥ := normed_field.exists_one_lt_norm 𝕜,
+  obtain ⟨a, ha⟩ : ∃ a : 𝕜, 1 < ∥a∥ := exists_one_lt_norm 𝕜,
   obtain ⟨r, r_pos, r_ball⟩ : ∃ (r : ℝ) (hr : 0 < r), ball 0 r ⊆ s :=
     metric.mem_nhds_iff.1 s_nhd,
   exact bounded_closed_ball.mono ((polar_antitone 𝕜 r_ball).trans $

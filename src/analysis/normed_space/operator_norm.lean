@@ -166,7 +166,7 @@ lemma linear_map.bound_of_continuous (f : E →ₛₗ[σ₁₂] F) (hf : continu
 begin
   rcases normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
   simp only [sub_zero, f.map_zero] at hε,
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
   refine ⟨∥c∥ / ε, this, λ x, _⟩,
   by_cases hx : ∥x∥ = 0,
@@ -333,7 +333,7 @@ end
 lemma op_norm_le_of_ball {f : E →SL[σ₁₂] F} {ε : ℝ} {C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
   (hf : ∀ x ∈ ball (0 : E) ε, ∥f x∥ ≤ C * ∥x∥) : ∥f∥ ≤ C :=
 begin
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine op_norm_le_of_shell ε_pos hC hc (λ x _ hx, hf x _),
   rwa ball_zero_eq
 end
@@ -350,10 +350,10 @@ begin
   { refine op_norm_le_of_ball ε_pos hC (λ x hx, hf x _ _),
     { simp [h0] },
     { rwa ball_zero_eq at hx } },
-  { rw [← inv_inv c, normed_field.norm_inv,
+  { rw [← inv_inv c, norm_inv,
       inv_lt_one_iff_of_pos (norm_pos_iff.2 $ inv_ne_zero h0)] at hc,
     refine op_norm_le_of_shell ε_pos hC hc _,
-    rwa [normed_field.norm_inv, div_eq_mul_inv, inv_inv] }
+    rwa [norm_inv, div_eq_mul_inv, inv_inv] }
 end
 
 /-- The operator norm satisfies the triangle inequality. -/
@@ -1072,7 +1072,7 @@ begin
           r * ∥x₀∥ ≤ ∥x₀ - y∥ : h₀ _ (linear_map.mem_ker.2 fy_zero)
           ... = ∥(f x₀ * (f x)⁻¹ ) • x∥ : by { dsimp [y], congr, abel }
           ... = ∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥ :
-            by rw [norm_smul, normed_field.norm_mul, normed_field.norm_inv],
+            by rw [norm_smul, norm_mul, norm_inv],
         calc
           ∥f x∥ = (r * ∥x₀∥)⁻¹ * (r * ∥x₀∥) * ∥f x∥ : by rwa [inv_mul_cancel, one_mul]
           ... ≤ (r * ∥x₀∥)⁻¹ * (∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥) * ∥f x∥ : begin
@@ -1200,7 +1200,7 @@ begin
       rw [f.map_zero, dist_zero_right],
       exact hx.trans_lt (half_lt_self εpos) },
     simpa using this },
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨⟨δ⁻¹, _⟩ * nnnorm c, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
   exact inv_nonneg.2 (le_of_lt δ_pos),
   by_cases hx : f x = 0,
@@ -1211,7 +1211,7 @@ begin
     rw [← f.map_smul d] at dxlt,
     have : ∥d • x∥ ≤ 1 := H dxlt.le,
     calc ∥x∥ = ∥d∥⁻¹ * ∥d • x∥ :
-      by rwa [← normed_field.norm_inv, ← norm_smul, ← mul_smul, inv_mul_cancel, one_smul]
+      by rwa [← norm_inv, ← norm_smul, ← mul_smul, inv_mul_cancel, one_smul]
     ... ≤ ∥d∥⁻¹ * 1 :
       mul_le_mul_of_nonneg_left this (inv_nonneg.2 (norm_nonneg _))
     ... ≤ δ⁻¹ * ∥c∥ * ∥f x∥ :

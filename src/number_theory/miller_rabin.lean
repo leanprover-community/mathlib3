@@ -64,29 +64,12 @@ begin
     sorry, },
 end
 
--- lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
---   strong_probable_prime p a :=
--- begin
---   unfold strong_probable_prime,
---   -- unfold odd_part,
---   -- unfold two_power_part,
---   apply or_iff_not_imp_left.mpr,
---   intro base,
---   by_contra,
---   simp_rw not_exists at h,
---   have : (∀ i : ℕ, ¬ a ^ (2^i * odd_part (p - 1)) = 1),
---   { intro i,
---     induction i with i hi,
---     { sorry, },
---     { intro h2,
---       apply hi, clear hi,
---       have hsq : (a ^ (2 ^ i * odd_part (p - 1))) ^ 2 = 1,
---       { sorry, },
---       sorry, }, },
---   have foo := this ((padic_val_nat 2 (p-1))),
---   apply foo,
---   sorry,
--- end
+lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
+  strong_probable_prime p a :=
+begin
+  have fermat := zmod.pow_card_sub_one_eq_one ha, -- you'll need this lemma for this
+  sorry,
+end
 
 lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)]
   [decidable_pred (strong_probable_prime n)] (hp : ¬ n.prime) :

@@ -108,15 +108,13 @@ lemma strict_convex_singleton (c : E) : strict_convex 𝕜 ({c} : set E) := pair
 lemma set.subsingleton.strict_convex (hs : s.subsingleton) : strict_convex 𝕜 s := hs.pairwise _
 
 lemma strict_convex.linear_image [semiring 𝕝] [has_scalar 𝕜 𝕝] [module 𝕝 E] [module 𝕝 F]
-  [is_scalar_tower 𝕜 𝕝 E] [is_scalar_tower 𝕜 𝕝 F] (hs : strict_convex 𝕜 s) (f : E →ₗ[𝕝] F)
+  [linear_map.compatible_smul E F 𝕜 𝕝] (hs : strict_convex 𝕜 s) (f : E →ₗ[𝕝] F)
   (hf : is_open_map f) :
   strict_convex 𝕜 (f '' s) :=
 begin
   rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
   refine hf.image_interior_subset _ ⟨_, hs hx hy (ne_of_apply_ne _ hxy) ha hb hab, _⟩,
-  nth_rewrite 0 ←one_smul 𝕝 x,
-  nth_rewrite 0 ←one_smul 𝕝 y,
-  simp_rw [←smul_assoc, f.map_add, f.map_smul, smul_assoc, one_smul],
+  rw [map_add, f.map_smul_of_tower a, f.map_smul_of_tower b]
 end
 
 lemma strict_convex.is_linear_image (hs : strict_convex 𝕜 s) {f : E → F} (h : is_linear_map 𝕜 f)

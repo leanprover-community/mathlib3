@@ -51,7 +51,7 @@ results for those functions as if the measure was sigma-finite.
 -/
 
 open measure_theory filter topological_space function
-open_locale nnreal ennreal topological_space measure_theory
+open_locale ennreal topological_space measure_theory
 
 namespace measure_theory
 
@@ -447,6 +447,8 @@ variables {α β : Type*} {m : measurable_space α} {μ : measure α} [topologic
 section mk
 variables [has_zero β]
 
+/-- A `fin_strongly_measurable` function such that `f =ᵐ[μ] hf.mk f`. See lemmas
+`fin_strongly_measurable_mk` and `ae_eq_mk`. -/
 protected noncomputable def mk (f : α → β) (hf : ae_fin_strongly_measurable f μ) : α → β := hf.some
 
 lemma fin_strongly_measurable_mk (hf : ae_fin_strongly_measurable f μ) :

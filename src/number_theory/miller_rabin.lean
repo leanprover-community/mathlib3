@@ -40,7 +40,7 @@ begin
   ring_nf,
   exact root2,
   have zeros : (x + 1 = 0) ∨ (x - 1 = 0),
-  -- rw ← zero_eq_mul,
+  -- rw ← zero_eq_mul, lol I'm writing this
   -- rw ← diffsquare,
   exact zero_eq_mul.mp (eq.symm diffsquare),
   cases zeros with zero1 zero2,

@@ -66,7 +66,8 @@ lemma add_mem_centralizer [distrib M] (ha : a ∈ centralizer S) (hb : b ∈ cen
 λ c hc, by rw [add_mul, mul_add, ha c hc, hb c hc]
 
 @[simp]
-lemma neg_mem_centralizer [ring M] (ha : a ∈ centralizer S) : -a ∈ centralizer S :=
+lemma neg_mem_centralizer [has_mul M] [has_distrib_neg M] (ha : a ∈ centralizer S) :
+  -a ∈ centralizer S :=
 λ c hc, by rw [mul_neg, ha c hc, neg_mul]
 
 @[simp]

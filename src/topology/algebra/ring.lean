@@ -182,7 +182,7 @@ lemma subring.topological_closure_minimal
   (s : subring α) {t : subring α} (h : s ≤ t) (ht : is_closed (t : set α)) :
   s.topological_closure ≤ t := closure_minimal h ht
 
--- If a subring of a topological ring is commutative, then so is its topological closure. -/
+/-- If a subring of a topological ring is commutative, then so is its topological closure. -/
 def subring.comm_ring_topological_closure [t2_space α] {s : subring α}
   (hs : ∀ (x y : s), x * y = y * x) : comm_ring s.topological_closure :=
 { mul_comm :=

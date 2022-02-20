@@ -773,16 +773,6 @@ subset.antisymm_iff.trans $ and.comm.trans $ and_congr_left' singleton_subset_if
 lemma eq_singleton_iff_nonempty_unique_mem : s = {a} ↔ s.nonempty ∧ ∀ x ∈ s, x = a :=
 eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩, λ ⟨x, h⟩, H x h ▸ h⟩
 
-lemma exists_eq_singleton_iff_nonempty_unique_mem :
-  (∃ a : α, s = {a}) ↔ (s.nonempty ∧ ∀ a b ∈ s, a = b) :=
-begin
-  refine ⟨_, λ h, _⟩,
-  { rintros ⟨a, rfl⟩,
-    refine ⟨set.singleton_nonempty a, λ b hb c hc, hb.trans hc.symm⟩ },
-  { obtain ⟨a, ha⟩ := h.1,
-    refine ⟨a, set.eq_singleton_iff_unique_mem.mpr ⟨ha, λ b hb, (h.2 b hb a ha)⟩⟩ },
-end
-
 -- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
 @[simp] lemma default_coe_singleton (x : α) : (default : ({x} : set α)) = ⟨x, rfl⟩ := rfl
 
@@ -1640,8 +1630,14 @@ lemma subsingleton_is_bot (α : Type*) [partial_order α] : set.subsingleton {x 
 λ x hx y hy, hx.is_min.eq_of_ge (hy x)
 
 lemma exists_eq_singleton_iff_nonempty_subsingleton :
-  (∃ a : α, s = {a}) ↔ (s.nonempty ∧ s.subsingleton) :=
-exists_eq_singleton_iff_nonempty_unique_mem
+  (∃ a : α, s = {a}) ↔ s.nonempty ∧ s.subsingleton :=
+begin
+  refine ⟨_, λ h, _⟩,
+  { rintros ⟨a, rfl⟩,
+    exact ⟨singleton_nonempty a, subsingleton_singleton⟩ },
+  { obtain ⟨a, ha⟩ := h.1,
+    exact ⟨a, eq_singleton_iff_unique_mem.mpr ⟨ha, λ b hb, h.2 hb ha⟩⟩ },
+end
 
 /-- `s`, coerced to a type, is a subsingleton type if and only if `s`
 is a subsingleton set. -/

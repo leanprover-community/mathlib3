@@ -1,25 +1,20 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Gabriel Ebner
 -/
 import data.nat.cast.defs
 
 /-!
 # Cast of integers
 
-This file defines the *canonical* homomorphism from the integers into a type `α` with `0`,
-`1`, `+` and `-` (typically a `ring`).
+This file defines the *canonical* homomorphism from the integers into an
+additive group with a one (typically a `ring`).
 
 ## Main declarations
 
-* `cast`: Canonical homomorphism `ℤ → α` where `α` has a `0`, `1`, `+` and `-`.
-* `cast_add_hom`: `cast` bundled as an `add_monoid_hom`.
-* `cast_ring_hom`: `cast` bundled as a `ring_hom`.
-
-## Implementation note
-
-Setting up the coercions priorities is tricky. See Note [coercion into rings].
+* `int.cast`: Canonical homomorphism `ℤ → α`.
+* `add_group_with_one`: Type class for `int.cast`.
 -/
 
 universes u

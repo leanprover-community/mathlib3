@@ -8,20 +8,15 @@ import data.nat.cast
 import tactic.pi_instances
 
 /-!
-# Cast of integers
+# Cast of integers (additional theorems)
 
-This file defines the *canonical* homomorphism from the integers into a type `α` with `0`,
-`1`, `+` and `-` (typically a `ring`).
+This file proves additional properties about the *canonical* homomorphism from
+the integers into an additive group with a one (`int.cast`).
 
 ## Main declarations
 
-* `cast`: Canonical homomorphism `ℤ → α` where `α` has a `0`, `1`, `+` and `-`.
 * `cast_add_hom`: `cast` bundled as an `add_monoid_hom`.
 * `cast_ring_hom`: `cast` bundled as a `ring_hom`.
-
-## Implementation note
-
-Setting up the coercions priorities is tricky. See Note [coercion into rings].
 -/
 
 open nat

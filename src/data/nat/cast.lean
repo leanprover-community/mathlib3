@@ -10,21 +10,15 @@ import algebra.group.pi
 import tactic.pi_instances
 
 /-!
-# Cast of naturals
+# Cast of natural numbers (additional theorems)
 
-This file defines the *canonical* homomorphism from the natural numbers into a type `α` with `0`,
-`1` and `+` (typically an `add_monoid` with one).
+This file proves additional properties about the *canonical* homomorphism from
+the natural numbers into an additive monoid with a one (`nat.cast`).
 
 ## Main declarations
 
-* `cast`: Canonical homomorphism `ℕ → α` where `α` has a `0`, `1` and `+`.
-* `bin_cast`: Binary representation version of `cast`.
 * `cast_add_monoid_hom`: `cast` bundled as an `add_monoid_hom`.
 * `cast_ring_hom`: `cast` bundled as a `ring_hom`.
-
-## Implementation note
-
-Setting up the coercions priorities is tricky. See Note [coercion into rings].
 -/
 
 namespace nat

@@ -7,21 +7,15 @@ import algebra.group.defs
 import algebra.group.basic
 
 /-!
-# Cast of naturals
+# Cast of natural numbers
 
-This file defines the *canonical* homomorphism from the natural numbers into a type `α` with `0`,
-`1` and `+` (typically an `add_monoid` with one).
+This file defines the *canonical* homomorphism from the natural numbers into an
+`add_monoid` with a one.
 
 ## Main declarations
 
-* `cast`: Canonical homomorphism `ℕ → α` where `α` has a `0`, `1` and `+`.
-* `bin_cast`: Binary representation version of `cast`.
-* `cast_add_monoid_hom`: `cast` bundled as an `add_monoid_hom`.
-* `cast_ring_hom`: `cast` bundled as a `ring_hom`.
-
-## Implementation note
-
-Setting up the coercions priorities is tricky. See Note [coercion into rings].
+* `add_monoid_with_one`: Type class for `nat.cast`.
+* `nat.cast`: Canonical homomorphism `ℕ → α`.
 -/
 
 universes u

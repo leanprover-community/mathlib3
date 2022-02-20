@@ -204,6 +204,11 @@ lemma support_smul [semiring R] [add_comm_monoid M] [module R M]
   support (f • g) = support f ∩ support g :=
 ext $ λ x, smul_ne_zero
 
+lemma support_const_smul_of_ne_zero [semiring R] [add_comm_monoid M] [module R M]
+  [no_zero_smul_divisors R M] (c : R) (g : α → M) (hc : c ≠ 0) :
+  support (c • g) = support g :=
+ext $ λ x, by simp only [hc, mem_support, pi.smul_apply, ne.def, smul_eq_zero, false_or]
+
 @[simp] lemma support_inv [group_with_zero G₀] (f : α → G₀) :
   support (λ x, (f x)⁻¹) = support f :=
 set.ext $ λ x, not_congr inv_eq_zero

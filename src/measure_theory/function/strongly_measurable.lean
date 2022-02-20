@@ -392,12 +392,6 @@ protected lemma sub [add_group β] [has_continuous_sub β]
     (ennreal.add_lt_top.mpr ⟨hf.fin_support_approx n, hg.fin_support_approx n⟩)),
   λ x, (hf.tendsto_approx x).sub (hg.tendsto_approx x)⟩
 
-/-- TODO: move this. -/
-lemma support_const_smul_of_ne_zero {R M} [semiring R] [add_comm_monoid M] [module R M]
-  [no_zero_smul_divisors R M] (c : R) (g : α → M) (hc : c ≠ 0) :
-  support (c • g) = support g :=
-by { ext, simp only [hc, mem_support, pi.smul_apply, ne.def, smul_eq_zero, false_or], }
-
 protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_comm_monoid β] [module 𝕜 β]
   [no_zero_smul_divisors 𝕜 β] [has_continuous_smul 𝕜 β]
   (hf : fin_strongly_measurable f μ) (c : 𝕜) :

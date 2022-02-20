@@ -63,8 +63,9 @@ begin
   intros a ha,
   obtain ⟨a,rfl⟩ := pseudoelement.pseudo_surjective_of_epi (cokernel.π (kernel.lift g f w)) a,
   apply_fun (kernel.ι (cokernel.desc f g w)) at ha,
-  simp [← pseudoelement.comp_apply] at ha,
-  simp [pseudoelement.comp_apply] at ha,
+  simp only [←pseudoelement.comp_apply, cokernel.π_desc,
+    kernel.lift_ι, pseudoelement.apply_zero] at ha,
+  simp only [pseudoelement.comp_apply] at ha,
   haveI : exact f (cokernel.π f) := exact_cokernel f,
   obtain ⟨b,hb⟩ : ∃ b, f b = _ := pseudoelement.pseudo_exact_of_exact.2 _ ha,
   suffices : ∃ c, kernel.lift g f w c = a,
@@ -83,7 +84,8 @@ begin
   intros a,
   let b := kernel.ι (cokernel.desc f g w) a,
   haveI : exact f (cokernel.π f) := exact_cokernel f,
-  obtain ⟨c,hc⟩ : ∃ c, cokernel.π f c = b, apply pseudoelement.pseudo_surjective_of_epi (cokernel.π f),
+  obtain ⟨c,hc⟩ : ∃ c, cokernel.π f c = b,
+    apply pseudoelement.pseudo_surjective_of_epi (cokernel.π f),
   have : g c = 0,
   { dsimp [b] at hc,
     rw [(show g = cokernel.π f ≫ cokernel.desc f g w, by simp), pseudoelement.comp_apply, hc],
@@ -94,8 +96,8 @@ begin
   use cokernel.π (kernel.lift g f w) d,
   apply_fun kernel.ι (cokernel.desc f g w),
   swap, { apply pseudoelement.pseudo_injective_of_mono },
-  simp [← pseudoelement.comp_apply],
-  simp [pseudoelement.comp_apply, hd, hc],
+  simp only [←pseudoelement.comp_apply, cokernel.π_desc, kernel.lift_ι],
+  simp only [pseudoelement.comp_apply, hd, hc],
 end
 
 instance (w : f ≫ g = 0) : is_iso (homology_c_to_k f g w) := is_iso_of_mono_of_epi _

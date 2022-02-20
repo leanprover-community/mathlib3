@@ -8,6 +8,7 @@ import analysis.normed.group.hom
 import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
 import algebra.star.unitary
+import data.complex.is_R_or_C
 
 /-!
 # Normed star rings and algebras
@@ -50,6 +51,10 @@ noncomputable instance : cstar_ring ℝ :=
 { norm_star_mul_self := λ x, by simp only [star, id.def, normed_field.norm_mul] }
 
 variables {𝕜 E α : Type*}
+
+@[priority 100] instance cstar_ring_R_or_C [is_R_or_C E] : cstar_ring E :=
+{ norm_star_mul_self :=
+  (λ x, (normed_field.norm_mul _ _).trans $ congr_arg (* ∥x∥) is_R_or_C.norm_conj) }
 
 section normed_star_monoid
 variables [normed_group E] [star_add_monoid E] [normed_star_monoid E]

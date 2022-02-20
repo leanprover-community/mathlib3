@@ -285,7 +285,7 @@ lemma submonoid.topological_closure_minimal
 closure_minimal h ht
 
 /-- If a submonoid of a topological monoid is commutative, then so is its topological closure. -/
-@[to_additive "If a submonoid of an additivie topological monoid is commutative, then so is its
+@[to_additive "If a submonoid of an additive topological monoid is commutative, then so is its
 topological closure."]
 def submonoid.comm_monoid_topological_closure [t2_space M] (s : submonoid M)
   (hs : ∀ (x y : s), x * y = y * x) : comm_monoid s.topological_closure :=

@@ -89,6 +89,10 @@ class mul_equiv_class (F A B : Type*) [has_mul A] [has_mul B]
 infix ` ≃* `:25 := mul_equiv
 infix ` ≃+ `:25 := add_equiv
 
+@[to_additive] instance [has_mul α] [has_mul β] [mul_equiv_class F α β] : has_coe_t F (α ≃* β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f, map_mul' := map_mul f }⟩
+
 section mul_equiv_class
 
 variables (F : Type*)

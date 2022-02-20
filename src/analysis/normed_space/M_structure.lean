@@ -124,8 +124,7 @@ begin
   { exact h.left, },
   { intros,
     rw add_comm,
-    apply h.right,
-  }
+    apply h.right, }
 end
 
 lemma Lcomplement_iff (P: X →L[𝕜] X) : is_Lprojection P ↔ is_Lprojection (1-P) := ⟨
@@ -154,10 +153,10 @@ begin
   ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥ + ∥(1-Q) ((1 - P) (Q x))∥) :
     by rw [← sq, projection_def h₂.left]
   ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥ + ∥(1-Q) (Q x - P (Q x))∥) : rfl
-  ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥ + ∥(1-Q) (Q x) - (1-Q) (P (Q x))∥) :
-    by rw map_sub
-  ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥ + ∥((1-Q) * Q) x - (1-Q) (P (Q x))∥)
-    : rfl
+  ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥ + ∥(1-Q) (Q x) - (1-Q) (P (Q x))∥)
+    : by rw map_sub
+  ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥
+    + ∥((1-Q) * Q) x - (1-Q) (P (Q x))∥) : rfl
   ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥ + ∥0 - (1-Q) (P (Q x))∥) :
     by {rw [sub_mul, ← sq, projection_def h₂.left, one_mul, sub_self ], exact rfl }
   ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥) :
@@ -257,8 +256,8 @@ instance : has_sdiff (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
 @[simp] lemma coe_sdiff (P Q : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :
   ↑(P \ Q) = (↑P:X →L[𝕜] X) * (1-↑Q) := rfl
 
-instance : partial_order (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) := {
-  le := λ P Q, (↑P:X →L[𝕜] X) = ↑(P ⊓ Q),
+instance : partial_order (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
+{ le := λ P Q, (↑P:X →L[𝕜] X) = ↑(P ⊓ Q),
   le_refl := λ P, begin
     simp only [coe_inf],
     rw [← sq, projection_def],
@@ -281,8 +280,7 @@ instance : partial_order (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop))
     have e₂: ↑Q = ↑Q * ↑P := h₂,
     have e₃: (↑P:X →L[𝕜] X) = ↑Q := by rw [e₁, commute.eq (Lproj_commute P.prop Q.prop), ← e₂],
     apply subtype.eq e₃,
-  end,
-}
+  end, }
 
 instance : has_zero (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop))  :=
 ⟨⟨0, begin
@@ -339,8 +337,8 @@ by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ)
     projection_def P.prop.left, projection_def R.prop.left, ← coe_inf Q, mul_assoc,
     commute.eq (Lproj_commute (Q⊓R).prop Pᶜ.prop), ← mul_assoc, ← sq, projection_def Pᶜ.prop.left]
 
-instance : distrib_lattice (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) := {
-  le_sup_left := λ P Q, begin
+instance : distrib_lattice (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
+{ le_sup_left := λ P Q, begin
     have e: ↑P = ↑P * ↑(P ⊔ Q) := by rw [coe_sup, ← add_sub, mul_add, mul_sub, ← mul_assoc, ← sq,
       projection_def P.prop.left, sub_self, add_zero],
     apply e,
@@ -398,11 +396,10 @@ instance : distrib_lattice (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop
   end,
   .. is_Lprojection.subtype.has_inf,
   .. is_Lprojection.subtype.has_sup,
-  .. is_Lprojection.subtype.partial_order
-}
+  .. is_Lprojection.subtype.partial_order }
 
-instance : boolean_algebra (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) := {
-  sup_inf_sdiff := λ P Q, begin
+instance : boolean_algebra (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
+{ sup_inf_sdiff := λ P Q, begin
     apply subtype.eq,
     simp only [subtype.val_eq_coe, coe_sup, coe_inf, coe_sdiff],
     rw [mul_assoc, ← mul_assoc ↑Q, commute.eq (Lproj_commute Q.prop P.prop), mul_assoc ↑P ↑Q,
@@ -434,7 +431,6 @@ instance : boolean_algebra (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop
   .. is_Lprojection.subtype.has_compl,
   .. is_Lprojection.subtype.has_sdiff,
   .. is_Lprojection.subtype.bounded_order,
-  .. is_Lprojection.subtype.distrib_lattice
-}
+  .. is_Lprojection.subtype.distrib_lattice }
 
 end is_Lprojection

@@ -333,11 +333,11 @@ section normed_field
 variables [normed_field α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance to_normed_division_ring : normed_division_ring α :=
+instance normed_field.to_normed_division_ring : normed_division_ring α :=
 { norm_mul' := normed_field.norm_mul', ..‹normed_field α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance to_normed_comm_ring : normed_comm_ring α :=
+instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
 { norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
 
 @[simp] lemma norm_prod (s : finset β) (f : β → α) :

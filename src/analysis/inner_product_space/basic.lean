@@ -7,7 +7,6 @@ import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.normed_space.bounded_linear_maps
 import linear_algebra.bilinear_form
-import linear_algebra.eigenspace
 import linear_algebra.sesquilinear_form
 
 /-!
@@ -2275,25 +2274,3 @@ lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_ad
 λ v w, hT v w
 
 end inner_product_space
-
-/-! ### Positive operators -/
-
-section nonneg
-
-lemma eigenvalue_nonneg_of_nonneg {μ : 𝕜} {T : E →ₗ[𝕜] E} (hμ : module.End.has_eigenvalue T μ)
-  (hnn : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪T x, x⟫) : 0 ≤ is_R_or_C.re μ :=
-begin
-  let v := (module.End.has_eigenvalue.exists_has_eigenvector hμ).some,
-  let hv := (module.End.has_eigenvalue.exists_has_eigenvector hμ).some_spec,
-  have : is_R_or_C.re ⟪T v, v⟫ = is_R_or_C.re μ * ∥v∥^2,
-  { simp only [module.End.has_eigenvector.apply_eq_smul hv,inner_smul_left, neg_mul,
-    inner_self_eq_norm_sq, is_R_or_C.mul_re, sub_zero, is_R_or_C.conj_re, mul_zero,
-      inner_self_nonneg_im ]},
-  specialize hnn v,
-  rw this at hnn,
-  have : 0 < ∥v∥^2, {rw sq_pos_iff (∥v∥), rw norm_ne_zero_iff, exact hv.2},
-  rw ← zero_le_mul_right this,
-  exact hnn,
-end
-
-end nonneg

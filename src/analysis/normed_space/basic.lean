@@ -473,7 +473,7 @@ nnreal.eq $ real.norm_of_nonneg x.2
 end nnreal
 
 @[simp] lemma norm_norm [semi_normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
-real.norm_of_nonneg (norm_nonneg x)
+real.norm_of_nonneg (norm_nonneg _)
 
 @[simp] lemma nnnorm_norm [semi_normed_group α] (a : α) : ∥∥a∥∥₊ = ∥a∥₊ :=
 by simpa [real.nnnorm_of_nonneg (norm_nonneg a)]

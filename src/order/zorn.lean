@@ -1,5 +1,5 @@
 /-
-Copyright (s) 2017 Johannes Hölzl. All rights reserved.
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
@@ -306,10 +306,7 @@ let ⟨ub, (hub : ∀ a ∈ max_chain r, a ≺ ub)⟩ := this in
 ⟨ub, λ a ha,
   have is_chain r (insert a $ max_chain r),
     from max_chain_spec.1.insert $ λ b hb _, or.inr $ trans (hub b hb) ha,
-  have a ∈ max_chain r, from
-    classical.by_contradiction $ λ h : a ∉ max_chain r,
-    (ssubset_insert h).ne $ max_chain_spec.right this $ subset_insert _ _,
-  hub a this⟩
+  hub a $ by { rw max_chain_spec.right this (subset_insert _ _), exact mem_insert _ _ }⟩
 
 /-- A variant of Zorn's lemma. If every nonempty chain of a nonempty type has an upper bound, then
 there is a maximal element.

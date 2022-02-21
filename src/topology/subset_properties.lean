@@ -1417,7 +1417,7 @@ let ⟨m, hm, hsm, hmm⟩ := zorn_subset_nonempty {t : set α | is_preirreducibl
     ⟨⋃₀ c, λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
       let ⟨p, hpc, hyp⟩ := mem_sUnion.1 hy,
           ⟨q, hqc, hzq⟩ := mem_sUnion.1 hz in
-      (hcc.total hpc hqc).cases_on
+      or.cases_on (hcc.total hpc hqc)
         (assume hpq : p ⊆ q, let ⟨x, hxp, hxuv⟩ := hc hqc u v hu hv
             ⟨y, hpq hyp, hyu⟩ ⟨z, hzq, hzv⟩ in
           ⟨x, mem_sUnion_of_mem hxp hqc, hxuv⟩)

@@ -37,18 +37,18 @@ namespace category_theory.abelian
 
 /-- The cokernel of `kernel.lift g f w`. This is isomorphic to `homology f g w`.
   See `homology_iso_cokernel_lift`. -/
-def homology_c : A :=
+abbreviation homology_c : A :=
 cokernel (kernel.lift g f w)
 
 /-- The kernel of `cokernel.desc f g w`. This is isomorphic to `homology f g w`.
   See `homology_iso_kernel_desc`. -/
-def homology_k : A :=
+abbreviation homology_k : A :=
 kernel (cokernel.desc f g w)
 
 /-- The canonical map from `homology_c` to `homology_k`.
   This is an isomorphism, and it is used in obtaining the API for `homology f g w`
   in the bottom of this file. -/
-def homology_c_to_k : homology_c f g w ⟶ homology_k f g w :=
+abbreviation homology_c_to_k : homology_c f g w ⟶ homology_k f g w :=
 cokernel.desc _ (kernel.lift _ (kernel.ι _ ≫ cokernel.π _) (by simp)) begin
   apply limits.equalizer.hom_ext,
   simp,
@@ -59,7 +59,6 @@ local attribute [instance] pseudoelement.hom_to_fun pseudoelement.has_zero
 instance : mono (homology_c_to_k f g w) :=
 begin
   apply pseudoelement.mono_of_zero_of_map_zero,
-  dsimp [homology_c, homology_c_to_k],
   intros a ha,
   obtain ⟨a,rfl⟩ := pseudoelement.pseudo_surjective_of_epi (cokernel.π (kernel.lift g f w)) a,
   apply_fun (kernel.ι (cokernel.desc f g w)) at ha,
@@ -80,7 +79,6 @@ end
 instance : epi (homology_c_to_k f g w) :=
 begin
   apply pseudoelement.epi_of_pseudo_surjective,
-  dsimp [homology_k, homology_c, homology_c_to_k],
   intros a,
   let b := kernel.ι (cokernel.desc f g w) a,
   haveI : exact f (cokernel.π f) := exact_cokernel f,
@@ -229,7 +227,7 @@ begin
   simp only [π'_map, desc'_π'],
   dsimp [π', lift],
   rw iso.eq_comp_inv,
-  dsimp [homology_iso_kernel_desc, category_theory.abelian.homology_c_to_k],
+  dsimp [homology_iso_kernel_desc],
   ext,
   simp [h],
 end
@@ -249,7 +247,7 @@ begin
   simp only [π'_map, desc'_π'],
   dsimp [π', lift],
   rw iso.eq_comp_inv,
-  dsimp [homology_iso_kernel_desc, category_theory.abelian.homology_c_to_k],
+  dsimp [homology_iso_kernel_desc],
   ext,
   simp,
 end

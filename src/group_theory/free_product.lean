@@ -252,6 +252,8 @@ lemma cons_last :
 
 end cons
 
+/-- An induction principle for non-empty reduced words, with cases for singleton and concatentation
+to the front -/
 lemma cons_induction_of_not_empty
   (P : ∀ w, w ≠ empty -> Prop)
   (hsingleton : ∀ {i} (x : M i) (hne_one : x ≠ 1),
@@ -264,7 +266,17 @@ lemma cons_induction_of_not_empty
   (w) (hnotempty : w ≠ empty) :
   P w hnotempty :=
 begin
-  sorry
+  cases w with l hne_one hne,
+  induction l with x l hi,
+  { exfalso, simpa [empty] using hnotempty, },
+  { cases x with i x,
+    rw list.forall_mem_cons at hne_one,
+    cases l with y' l,
+    { exact hsingleton x hne_one.1, },
+    { cases y' with j y,
+      rw list.chain'_cons at hne,
+      refine hcons x ⟨⟨j,y⟩::l,hne_one.2,hne.2⟩ _ hne_one.1 hne.1 (hi _ _ _) ,
+      rintro ⟨rfl⟩, } }
 end
 
 instance : inhabited (word M) := ⟨empty⟩

@@ -242,15 +242,7 @@ lemma map_eq_right (α β h) : map w w' α β h =
   homology.desc' _ _ _ (homology.lift _ _ _ (kernel.ι _ ≫ α.right ≫ cokernel.π _) (by simp [h]))
   (by { ext, simp only [category.assoc, zero_comp, ι_lift, kernel.lift_ι_assoc],
     erw ← reassoc_of α.w, simp } ) :=
-begin
-  apply homology.hom_from_ext,
-  simp only [π'_map, desc'_π'],
-  dsimp [π', lift],
-  rw iso.eq_comp_inv,
-  dsimp [homology_iso_kernel_desc],
-  ext,
-  simp,
-end
+by { rw map_eq_left, ext, simp [h] }
 
 lemma map_eq_right' (α β h) : map w w' α β h =
   homology.lift _ _ _ (homology.desc' _ _ _ (kernel.ι _ ≫ α.right ≫ cokernel.π _)

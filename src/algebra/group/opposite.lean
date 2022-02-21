@@ -7,7 +7,7 @@ import algebra.group.inj_surj
 import algebra.group.commute
 import algebra.opposites
 import data.equiv.mul_add
-import data.nat.cast.defs
+import data.int.cast.defs
 
 /-!
 # Group structures on the multiplicative and additive opposites
@@ -56,6 +56,13 @@ unop_injective.sub_neg_monoid_smul _ rfl (λ _ _, rfl) (λ _, rfl)
 instance [add_group α] : add_group αᵐᵒᵖ :=
 unop_injective.add_group_smul _ rfl (λ _ _, rfl) (λ _, rfl)
   (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+instance [add_group_with_one α] : add_group_with_one αᵐᵒᵖ :=
+{ int_cast := λ n, op n,
+  int_cast_of_nat := λ n, show op ((n : ℤ) : α) = op n, by rw int.cast_coe_nat,
+  int_cast_neg_succ_of_nat := λ n, show op _ = op (- unop (op ((n + 1 : ℕ) : α))),
+    by erw [unop_op, int.cast_neg_succ_of_nat]; refl,
+  .. mul_opposite.add_monoid_with_one α, .. mul_opposite.add_group α }
 
 instance [add_comm_group α] : add_comm_group αᵐᵒᵖ :=
 { .. mul_opposite.add_group α, .. mul_opposite.add_comm_monoid α }

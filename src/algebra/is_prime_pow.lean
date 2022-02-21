@@ -144,11 +144,11 @@ begin
     { rintro rfl,
       simp only [finsupp.single_eq_zero, eq_comm, nat.factorization_zero] at hn,
       exact hk.ne' hn },
-    { rw nat.pow_of_factorization_single hn0 hn,
-      refine ⟨p, k, _, hk, rfl⟩,
-      apply nat.prime_of_mem_factorization,
-      rw hn,
-      simp [hk.ne'] } }
+    rw nat.pow_of_factorization_single hn0 hn,
+    refine ⟨p, k, _, hk, rfl⟩,
+    apply nat.prime_of_mem_factorization,
+    rw hn,
+    simp [hk.ne'] }
 end
 
 /-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime

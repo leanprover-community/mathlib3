@@ -58,7 +58,7 @@ def skew_adjoint [add_comm_group R] [star_add_monoid R] : add_subgroup R :=
 variables {R}
 
 /-- An element of a star monoid is normal if it commutes with its adjoint. -/
-class is_star_normal [monoid R] [has_star R] (x : R) : Prop :=
+class is_star_normal [has_mul R] [has_star R] (x : R) : Prop :=
 (star_comm_self_aux : commute (star x) x)
 
 lemma star_comm_self [monoid R] [has_star R] (x : R) [is_star_normal x] : commute (star x) x :=

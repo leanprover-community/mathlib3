@@ -269,11 +269,11 @@ variables [normed_field α]
 normed_field.norm_mul' a b
 
 @[priority 100] -- see Note [lower instance priority]
-instance to_normed_comm_ring : normed_comm_ring α :=
+instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
 { norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
 
 @[priority 900]
-instance to_norm_one_class : norm_one_class α :=
+instance normed_field.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
@@ -335,7 +335,7 @@ end
 
 end normed_field
 
-section nondiscrete_normed_field
+namespace normed_field
 
 variables (α) [nondiscrete_normed_field α]
 
@@ -379,7 +379,7 @@ end
 lemma nhds_within_is_unit_ne_bot : ne_bot (𝓝[{x : α | is_unit x}] 0) :=
 by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
-end nondiscrete_normed_field
+end normed_field
 
 instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
@@ -807,7 +807,7 @@ for any `c : ℝ`, there exists a vector `x : E` with norm strictly greater than
 lemma normed_space.exists_lt_norm (c : ℝ) : ∃ x : E, c < ∥x∥ :=
 begin
   rcases exists_ne (0 : E) with ⟨x, hx⟩,
-  rcases exists_lt_norm 𝕜 (c / ∥x∥) with ⟨r, hr⟩,
+  rcases normed_field.exists_lt_norm 𝕜 (c / ∥x∥) with ⟨r, hr⟩,
   use r • x,
   rwa [norm_smul, ← div_lt_iff],
   rwa norm_pos_iff

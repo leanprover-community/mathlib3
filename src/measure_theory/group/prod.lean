@@ -34,7 +34,7 @@ The proof in [Halmos] seems to contain an omission in §60 Th. A, see
 
 noncomputable theory
 open set (hiding prod_eq) function measure_theory
-open_locale classical ennreal pointwise
+open_locale classical ennreal pointwise measure_theory
 
 variables (G : Type*) [measurable_space G]
 variables [group G] [has_measurable_mul₂ G]
@@ -175,6 +175,7 @@ lemma measure_mul_right_ne_zero [is_mul_left_invariant μ] {E : set G}
   (h2E : μ E ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' E) ≠ 0 :=
 (not_iff_not_of_iff (measure_mul_right_null μ y)).mpr h2E
 
+/-- This is the computation performed in the proof of [Halmos, §60 Th. A]. -/
 @[to_additive]
 lemma measure_mul_lintegral_eq [is_mul_left_invariant μ]
   [is_mul_left_invariant ν] {E : set G} (Em : measurable_set E) (f : G → ℝ≥0∞) (hf : measurable f) :
@@ -194,6 +195,18 @@ begin
     set_lintegral_one],
 end
 
+/-- Any two nonzero left-invariant measures are absolutely continuous w.r.t. each other. -/
+@[to_additive]
+lemma absolutely_continuous_of_is_mul_left_invariant
+  [is_mul_left_invariant μ] [is_mul_left_invariant ν] (hν : ν ≠ 0) : μ ≪ ν :=
+begin
+  refine absolutely_continuous.mk (λ E Em hνE, _),
+  have h1 := measure_mul_lintegral_eq μ ν Em 1 measurable_one,
+  simp_rw [pi.one_apply, lintegral_one, mul_one, (measure_mul_right_null ν _).mpr hνE,
+    lintegral_zero, mul_eq_zero, measure_univ_eq_zero.not.mpr hν, or_false] at h1,
+  exact h1
+end
+
 @[to_additive]
 lemma ae_measure_preimage_mul_right_lt_top [is_mul_left_invariant μ] [is_mul_left_invariant ν]
   {E : set G} (Em : measurable_set E) (hμE : μ E ≠ ∞) :
@@ -205,28 +218,35 @@ begin
   apply ae_lt_top (measurable_measure_mul_right ν Em),
   have h1 := measure_mul_lintegral_eq μ ν Em (A⁻¹.indicator 1) (measurable_one.indicator hA.inv),
   rw [lintegral_indicator _ hA.inv] at h1,
-  simp_rw [pi.one_apply, set_lintegral_one, ← image_inv, image_indicator inv_injective, image_inv,
+  simp_rw [pi.one_apply, set_lintegral_one, ← image_inv, indicator_image inv_injective, image_inv,
     ← indicator_mul_right _ (λ x, ν ((λ y, y * x) ⁻¹' E)), function.comp, pi.one_apply,
     mul_one] at h1,
   rw [← lintegral_indicator _ hA, ← h1],
   refine ennreal.mul_ne_top hμE h3A.ne,
 end
 
+@[to_additive]
+lemma ae_measure_preimage_mul_right_lt_top_of_ne_zero [is_mul_left_invariant μ]
+  [is_mul_left_invariant ν] {E : set G} (Em : measurable_set E) (h2E : ν E ≠ 0) (h3E : ν E ≠ ∞) :
+  ∀ᵐ x ∂μ, ν ((λ y, y * x) ⁻¹' E) < ∞ :=
+begin
+  refine (ae_measure_preimage_mul_right_lt_top ν ν Em h3E).filter_mono _,
+  refine (absolutely_continuous_of_is_mul_left_invariant μ ν _).ae_le,
+  refine mt _ h2E, intro hν, rw [hν, measure.coe_zero, pi.zero_apply]
+end
+
 /-- A technical lemma relating two different measures. This is basically [Halmos, §60 Th. A].
   Note that if `f` is the characteristic function of a measurable set `F` this states that
   `μ F = c * μ E` for a constant `c` that does not depend on `μ`.
 
-  Note: There seems to be a gap in the last step of the proof in [Halmos].
+  Note: There is a gap in the last step of the proof in [Halmos].
   In the last line, the equality `g(x⁻¹)ν(Ex⁻¹) = f(x)` holds if we can prove that
-  `0 < ν(Ex⁻¹) ≠ ∞`. The first inequality follows from §59, Th. D, but the second inequality is
-  injustified. We prove this inequality for almost all `x` in
-  `measure_theory.ae_measure_preimage_mul_right_lt_top`, using the computation done in the proof of
-  §60 Th. A (`measure_theory.measure_mul_lintegral_eq`) which is sufficient for our purposes.
-  This has the funny consequence that the hypothesis `ν E ≠ ∞` in §60 Th. A is not needed, and
-  instead we need `μ E ≠ ∞`. -/
+  `0 < ν(Ex⁻¹) < ∞`. The first inequality follows from §59, Th. D, but the second inequality is
+  not justified. We prove this inequality for almost all `x` in
+  `measure_theory.ae_measure_preimage_mul_right_lt_top_of_ne_zero`. -/
 @[to_additive]
 lemma measure_lintegral_div_measure [is_mul_left_invariant μ]
-  [is_mul_left_invariant ν] {E : set G} (Em : measurable_set E) (h2E : ν E ≠ 0) (h3E : μ E ≠ ∞)
+  [is_mul_left_invariant ν] {E : set G} (Em : measurable_set E) (h2E : ν E ≠ 0) (h3E : ν E ≠ ∞)
   (f : G → ℝ≥0∞) (hf : measurable f) :
   μ E * ∫⁻ y, f y⁻¹ / ν ((λ x, x * y⁻¹) ⁻¹' E) ∂ν = ∫⁻ x, f x ∂μ :=
 begin
@@ -235,19 +255,19 @@ begin
     ((measurable_measure_mul_right ν Em).comp measurable_inv),
   simp_rw [measure_mul_lintegral_eq μ ν Em g hg, g, inv_inv],
   refine lintegral_congr_ae _,
-  refine (ae_measure_preimage_mul_right_lt_top μ ν Em h3E).mono (λ x hx , _),
+  refine (ae_measure_preimage_mul_right_lt_top_of_ne_zero μ ν Em h2E h3E).mono (λ x hx , _),
   simp_rw [ennreal.mul_div_cancel' (measure_mul_right_ne_zero ν h2E _) hx.ne]
 end
 
 @[to_additive]
 lemma measure_mul_measure_eq [is_mul_left_invariant μ]
   [is_mul_left_invariant ν] {E F : set G}
-  (hE : measurable_set E) (hF : measurable_set F) (h2E : ν E ≠ 0) (h3E : ν E ≠ ∞) (hμE : μ E ≠ ∞) :
+  (hE : measurable_set E) (hF : measurable_set F) (h2E : ν E ≠ 0) (h3E : ν E ≠ ∞) :
     μ E * ν F = ν E * μ F :=
 begin
   have h1 := measure_lintegral_div_measure ν ν hE h2E h3E (F.indicator (λ x, 1))
     (measurable_const.indicator hF),
-  have h2 := measure_lintegral_div_measure μ ν hE h2E hμE (F.indicator (λ x, 1))
+  have h2 := measure_lintegral_div_measure μ ν hE h2E h3E (F.indicator (λ x, 1))
     (measurable_const.indicator hF),
   rw [lintegral_indicator _ hF, set_lintegral_one] at h1 h2,
   rw [← h1, mul_left_comm, h2],
@@ -257,13 +277,11 @@ end
 @[to_additive]
 lemma measure_eq_div_smul [is_mul_left_invariant μ]
   [is_mul_left_invariant ν] {E : set G}
-  (hE : measurable_set E) (h2E : ν E ≠ 0) (h3E : ν E ≠ ∞) (hμE : μ E ≠ ∞) :
-    μ = (μ E / ν E) • ν :=
+  (hE : measurable_set E) (h2E : ν E ≠ 0) (h3E : ν E ≠ ∞) : μ = (μ E / ν E) • ν :=
 begin
   ext1 F hF,
-  have := measure_mul_measure_eq μ ν hE hF h2E h3E hμE,
-  rw [smul_apply, mul_comm, ← mul_div_assoc, mul_comm, this, mul_div_assoc,
-    ennreal.mul_div_cancel' h2E h3E]
+  rw [smul_apply, mul_comm, ← mul_div_assoc, mul_comm, measure_mul_measure_eq μ ν hE hF h2E h3E,
+    mul_div_assoc, ennreal.mul_div_cancel' h2E h3E]
 end
 
 end measure_theory

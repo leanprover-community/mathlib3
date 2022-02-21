@@ -578,25 +578,18 @@ section second_countable
 
 variables [second_countable_topology G]
 
-/-- A variant on `haar_measure_unique` where we only require that `μ` is finite on `K₀`
-  (instead of all compact sets). -/
-@[to_additive]
-theorem haar_measure_unique' (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
-  (K₀ : positive_compacts G) (hμK₀ : μ K₀.1 ≠ ∞) : μ = μ K₀.1 • haar_measure K₀ :=
-begin
-  refine (measure_eq_div_smul μ (haar_measure K₀) K₀.2.1.measurable_set
-    (measure_pos_of_nonempty_interior _ K₀.2.2).ne' K₀.2.1.measure_lt_top.ne hμK₀).trans _,
-  rw [haar_measure_self, ennreal.div_one]
-end
-
 /-- The Haar measure is unique up to scaling. More precisely: every σ-finite left invariant measure
   finite on open compacts is a scalar multiple of the Haar measure.
   This is slightly weaker than assuming that `μ` is a Haar measure (in particular we don't require
   `μ ≠ 0`). -/
 @[to_additive]
 theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
-  [is_finite_measure_on_compacts μ] (K₀ : positive_compacts G) : μ = μ K₀.1 • haar_measure K₀ :=
-haar_measure_unique' μ K₀ K₀.2.1.measure_lt_top.ne
+  (K₀ : positive_compacts G) : μ = μ K₀.1 • haar_measure K₀ :=
+begin
+  refine (measure_eq_div_smul μ (haar_measure K₀) K₀.2.1.measurable_set
+    (measure_pos_of_nonempty_interior _ K₀.2.2).ne' K₀.2.1.measure_lt_top.ne).trans _,
+  rw [haar_measure_self, ennreal.div_one]
+end
 
 example [locally_compact_space G] (μ : measure G) [is_haar_measure μ] (K₀ : positive_compacts G) :
   μ = μ K₀.1 • haar_measure K₀ :=
@@ -608,7 +601,7 @@ haar_measure_unique μ K₀
 theorem regular_of_is_mul_left_invariant {μ : measure G} [sigma_finite μ] [is_mul_left_invariant μ]
   {K : set G} (hK : is_compact K) (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) :
   regular μ :=
-by { rw [haar_measure_unique' μ ⟨K, hK, h2K⟩ hμK], exact regular.smul hμK }
+by { rw [haar_measure_unique μ ⟨K, hK, h2K⟩], exact regular.smul hμK }
 
 @[to_additive is_add_haar_measure_eq_smul_is_add_haar_measure]
 theorem is_haar_measure_eq_smul_is_haar_measure

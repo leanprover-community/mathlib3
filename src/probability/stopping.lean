@@ -151,10 +151,12 @@ instance : complete_lattice (filtration ι m) :=
   le_inf       := λ f g h h_fg h_fh i, le_inf (h_fg i) (h_fh i),
   Sup          := Sup,
   le_Sup       := λ s f hf_mem i, le_Sup ⟨f, hf_mem, rfl⟩,
-  Sup_le       := λ s f h_forall i, Sup_le $ λ m' hm', by {
+  Sup_le       := λ s f h_forall i, Sup_le $ λ m' hm',
+  begin
     obtain ⟨g, hg_mem, hfm'⟩ := hm',
     rw ← hfm',
-    exact h_forall g hg_mem i, },
+    exact h_forall g hg_mem i,
+  end,
   Inf          := Inf,
   Inf_le       := λ s f hf_mem i,
   begin

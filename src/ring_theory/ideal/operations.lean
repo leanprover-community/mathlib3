@@ -1873,3 +1873,7 @@ lemma quot_quot_equiv_comm_symm :
 rfl
 
 end double_quot
+
+lemma associates.mk_ne_zero' {R : Type u} [comm_ring R] {x : R} :
+  (associates.mk (ideal.span{x} : ideal R)) ≠ 0 ↔ (x ≠ 0):=
+by rw [associates.mk_ne_zero, ideal.zero_eq_bot, ne.def, ideal.span_singleton_eq_bot]

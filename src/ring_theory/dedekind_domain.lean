@@ -740,6 +740,15 @@ begin
     exact h.dvd_or_dvd hxy }
 end
 
+lemma ideal.mem_pow_count [decidable_eq (ideal A)] [decidable_eq (associates (ideal A))]
+  [Π (p : associates (ideal A)), decidable (irreducible p)] {x : A} (hx : x ≠ 0) {I : ideal A}
+  (hI : irreducible I) : x ∈ I^((associates.mk I).count (associates.mk (ideal.span {x})).factors) :=
+begin
+  have hx' := associates.mk_ne_zero'.mpr hx,
+  rw [← associates.le_singleton_iff,
+    associates.prime_pow_dvd_iff_le hx' ((associates.irreducible_mk I).mpr hI)],
+end
+
 theorem ideal.prime_of_is_prime {P : ideal A} (hP : P ≠ ⊥) (h : is_prime P) : prime P :=
 begin
   refine ⟨hP, mt ideal.is_unit_iff.mp h.ne_top, λ I J hIJ, _⟩,
@@ -751,6 +760,10 @@ are exactly the prime ideals. -/
 theorem ideal.prime_iff_is_prime {P : ideal A} (hP : P ≠ ⊥) :
   prime P ↔ is_prime P :=
 ⟨ideal.is_prime_of_prime, ideal.prime_of_is_prime hP⟩
+
+lemma associates.le_singleton_iff (x : A) (n : ℕ) (I : ideal A) :
+  associates.mk I^n ≤ associates.mk (ideal.span {x}) ↔ x ∈ I^n :=
+by rw [← associates.dvd_eq_le, ← associates.mk_pow, associates.mk_dvd_mk, ideal.dvd_span_singleton]
 
 end is_dedekind_domain
 

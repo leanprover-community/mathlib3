@@ -10,7 +10,7 @@ import category_theory.preadditive.projective
 import category_theory.limits.shapes.biproducts
 
 /-!
-# Projective objects and categories with enough projectives
+# Injective objects and categories with enough injectives
 
 An object `J` is injective iff every morphism into `J` can be obtained by extending a monomorphism.
 -/

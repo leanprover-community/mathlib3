@@ -1343,6 +1343,7 @@ protected def function.injective.complete_lattice [has_sup α] [has_inf α] [has
   Inf := Inf,
   Inf_le := λ s a h, (map_Inf _).le.trans $ Inf_le $ mem_image_of_mem f h,
   le_Inf := λ s a h, (le_Inf $ set.ball_image_of_ball $ by exact h).trans (map_Inf _).ge,
+  -- we cannot use bounded_order.lift here as the `has_le` instance doesn't exist yet
   top := ⊤,
   le_top := λ a, (@le_top β _ _ _).trans map_top.ge,
   bot := ⊥,

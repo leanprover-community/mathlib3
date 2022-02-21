@@ -178,6 +178,14 @@ namespace word
 /-- The empty reduced word. -/
 def empty : word M := { to_list := [], ne_one := λ _, false.elim, chain_ne := list.chain'_nil }
 
+def singleton {i} (x : M i) (hne_one : x ≠ 1) : word M :=
+{ to_list := [⟨i, x⟩],
+  ne_one := λ _ , by { rintros (rfl|absurd), exact hne_one, exfalso, apply absurd, },
+  chain_ne := list.chain'_singleton _ }
+
+lemma singleton_ne_empty {i} (x : M i) (hne_one : x ≠ 1) :
+  singleton x hne_one ≠ (empty : word M) := by rintros ⟨rfl,_,_⟩
+
 def head (w : word M) (h : w ≠ empty) : Σ i, M i :=
 begin
   haveI : inhabited ι, begin
@@ -200,63 +208,38 @@ end
 def last (w : word M) (h : w ≠ empty) : Σ i, M i :=
 w.to_list.last (λ h', h (to_list_eq_nil_iff_word_eq_empty.mp h'))
 
-end word
+@[simp]
+lemma singleton_head {i} (x : M i) (hne_one : x ≠ 1) :
+  (singleton x hne_one).head (singleton_ne_empty x hne_one) = ⟨i, x⟩ := rfl
 
-
-variable (M)
-
-/-- The type of non-empty reduced words. The indices indicate from where the first and last element
-come from -/
-@[ext] structure neword (i j : ι) :=
-(to_word : word M)
-(ne_empty : to_word ≠ word.empty)
-(head : (to_word.head ne_empty).1 = i)
-(last : (to_word.last ne_empty).1 = j)
-
-variable {M}
-
-namespace neword
-
-def singleton {i} (x : M i) (hne_one : x ≠ 1) : neword M i i :=
-{ to_word :=
-  { to_list := [⟨i, x⟩],
-    ne_one := λ _ , by { rintros (rfl|absurd), exact hne_one, exfalso, apply absurd, },
-    chain_ne := list.chain'_singleton _ },
-  ne_empty := by rintros ⟨rfl⟩,
-  head := rfl,
-  last := rfl,
-}
+@[simp]
+lemma singleton_last {i} (x : M i) (hne_one : x ≠ 1) :
+  (singleton x hne_one).last (singleton_ne_empty x hne_one) = ⟨i, x⟩ := rfl
 
 section cons
 
-variables {i j k : ι} (x : M i) (w : neword M j k)
-variables (hne_one : x ≠ 1) (hne : i ≠ j)
-include hne_one hne
+variables {i : ι} (x : M i) (w : word M)
+variables (hnotempty : w ≠ empty) (hne_one : x ≠ 1) (hne : i ≠ (w.head hnotempty).1)
+include hnotempty hne_one hne
 
-def cons : neword M i k:=
-{ to_word :=
-  { to_list := ⟨i, x⟩ :: w.to_word.to_list,
-    ne_one := λ _ , by { rintros (rfl|hrest), exact hne_one, exact w.to_word.ne_one _ hrest, },
-    chain_ne := begin
-      apply list.chain'_cons'.mpr, split,
-      {
-        intros y hy,
-        rw w.head at hy,
-
-        subst w.head,
-        unfold word.head at hne,
-        rw list.head_eq_head' at hne,
-        cases w.to_list.head' with y', contradiction,
-        obtain rfl : y' = y := by { simp at hy, exact hy },
-        exact hne,
-      },
-      { exact w.chain_ne, }
-    end
-  },
-
+def cons : word M :=
+{ to_list := ⟨i, x⟩ :: w.to_list,
+  ne_one := λ _ , by { rintros (rfl|hrest), exact hne_one, exact w.ne_one _ hrest, },
+  chain_ne := begin
+    apply list.chain'_cons'.mpr, split,
+    {
+      intros y hy,
+      unfold word.head at hne,
+      rw list.head_eq_head' at hne,
+      cases w.to_list.head' with y', contradiction,
+      obtain rfl : y' = y := by { simp at hy, exact hy },
+      exact hne,
+    },
+    { exact w.chain_ne, }
+  end
 }
 
-lemma cons_ne_empty : cons x w hnotempty hne_one hne ≠ empty := by rintros ⟨rfl,_,_⟩
+lemma cons_ne_empty  : cons x w hnotempty hne_one hne ≠ empty := by rintros ⟨rfl,_,_⟩
 
 @[simp]
 lemma cons_head :

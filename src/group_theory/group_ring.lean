@@ -149,12 +149,12 @@ finsupp.comap_distrib_mul_action
 
 /-- If `k[H]` is a `k[G]`-module, then a `k`-linear map `f: k[H] →ₗ P` of `k[G]`-modules which
 satisfies `f(g • h) = g • f(h)` for all `g ∈ G, h ∈ H` is `k[G]`-linear. -/
-lemma map_smul_of_map_smul_of {H : Type*} [monoid H] [module (group_algebra k G) (group_algebra k H)]
-  {P : Type*} [add_comm_monoid P] [module k P] [module (group_algebra k G) P]
-  [is_scalar_tower k (group_algebra k G) (group_algebra k H)]
+lemma map_smul_of_map_smul_of {H : Type*} [monoid H]
+  [module (group_algebra k G) (group_algebra k H)] {P : Type*} [add_comm_monoid P] [module k P]
+  [module (group_algebra k G) P] [is_scalar_tower k (group_algebra k G) (group_algebra k H)]
   [is_scalar_tower k (group_algebra k G) P] (f : group_algebra k H →ₗ[k] P)
-  (h : ∀ (g : G) (x : H), f (of k G g • of k H x) = of k G g • f (of k H x)) (g : group_algebra k G)
-  (x : group_algebra k H) : f (g • x) = g • f x :=
+  (h : ∀ (g : G) (x : H), f (of k G g • of k H x) = of k G g • f (of k H x))
+  (g : group_algebra k G) (x : group_algebra k H) : f (g • x) = g • f x :=
 begin
   rw mk_linear_smul,
   intros a b,

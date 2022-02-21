@@ -58,16 +58,11 @@ protected lemma le (f : filtration ι m) (i : ι) : f i ≤ m := f.le' i
 @[ext] protected lemma ext {f g : filtration ι m} (h : (f : ι → measurable_space α) = g) : f = g :=
 by { cases f, cases g, simp only, exact h, }
 
-end filtration
-
-section preorder
-variables [preorder ι]
-
 /-- The constant filtration which is equal to `m` for all `i : ι`. -/
-def const_filtration (m : measurable_space α) : filtration ι m :=
-⟨λ _, m, monotone_const, λ _, le_rfl⟩
+def const (m' : measurable_space α) (hm' : m' ≤ m) : filtration ι m :=
+⟨λ _, m', monotone_const, λ _, hm'⟩
 
-instance : inhabited (filtration ι m) := ⟨const_filtration m⟩
+instance : inhabited (filtration ι m) := ⟨const m le_rfl⟩
 
 instance : has_le (filtration ι m) := ⟨λ f g, ∀ i, f i ≤ g i⟩
 
@@ -76,13 +71,7 @@ instance : has_bot (filtration ι m) :=
   mono' := λ i j hij, le_rfl,
   le'   := λ i, bot_le }⟩
 
-instance : has_top (filtration ι m) := ⟨const_filtration m⟩
-
-instance : bounded_order (filtration ι m) :=
-{ top    := ⊤,
-  bot    := ⊥,
-  le_top := λ f i, f.le' i,
-  bot_le := λ f i, bot_le, }
+instance : has_top (filtration ι m) := ⟨const m le_rfl⟩
 
 instance : has_sup (filtration ι m) := ⟨λ f g,
 { seq   := λ i, f i ⊔ g i,
@@ -98,7 +87,59 @@ instance : has_inf (filtration ι m) := ⟨λ f g,
 
 @[norm_cast] lemma coe_fn_inf {f g : filtration ι m} : ⇑(f ⊓ g) = f ⊓ g := rfl
 
-instance : lattice (filtration ι m) :=
+instance : has_Sup (filtration ι m) := ⟨λ s,
+{ seq   := λ i, Sup ((λ f : filtration ι m, f i) '' s),
+  mono' := λ i j hij,
+  begin
+    refine Sup_le (λ m' hm', _),
+    rw [set.mem_image] at hm',
+    obtain ⟨f, hf_mem, hfm'⟩ := hm',
+    rw ← hfm',
+    refine (f.mono hij).trans _,
+    have hfj_mem : f j ∈ ((λ g : filtration ι m, g j) '' s), from ⟨f, hf_mem, rfl⟩,
+    exact le_Sup hfj_mem,
+  end,
+  le'   := λ i,
+  begin
+    refine Sup_le (λ m' hm', _),
+    rw [set.mem_image] at hm',
+    obtain ⟨f, hf_mem, hfm'⟩ := hm',
+    rw ← hfm',
+    exact f.le i,
+  end, }⟩
+
+lemma Sup_def (s : set (filtration ι m)) (i : ι) :
+  Sup s i = Sup ((λ f : filtration ι m, f i) '' s) :=
+rfl
+
+noncomputable
+instance : has_Inf (filtration ι m) := ⟨λ s,
+{ seq   := λ i, if set.nonempty s then Inf ((λ f : filtration ι m, f i) '' s) else m,
+  mono' := λ i j hij,
+  begin
+    by_cases h_nonempty : set.nonempty s,
+    swap, { simp only [h_nonempty, set.nonempty_image_iff, if_false, le_refl], },
+    simp only [h_nonempty, if_true, le_Inf_iff, set.mem_image, forall_exists_index, and_imp,
+      forall_apply_eq_imp_iff₂],
+    refine λ f hf_mem, le_trans _ (f.mono hij),
+    have hfi_mem : f i ∈ ((λ g : filtration ι m, g i) '' s), from ⟨f, hf_mem, rfl⟩,
+    exact Inf_le hfi_mem,
+  end,
+  le'   := λ i,
+  begin
+    by_cases h_nonempty : set.nonempty s,
+    swap, { simp only [h_nonempty, if_false, le_refl], },
+    simp only [h_nonempty, if_true],
+    obtain ⟨f, hf_mem⟩ := h_nonempty,
+    exact le_trans (Inf_le ⟨f, hf_mem, rfl⟩) (f.le i),
+  end, }⟩
+
+lemma Inf_def (s : set (filtration ι m)) (i : ι) :
+  Inf s i = if set.nonempty s then Inf ((λ f : filtration ι m, f i) '' s) else m :=
+rfl
+
+noncomputable
+instance : complete_lattice (filtration ι m) :=
 { le           := (≤),
   le_refl      := λ f i, le_rfl,
   le_trans     := λ f g h h_fg h_gh i, (h_fg i).trans (h_gh i),
@@ -110,7 +151,37 @@ instance : lattice (filtration ι m) :=
   inf          := (⊓),
   inf_le_left  := λ f g i, inf_le_left,
   inf_le_right := λ f g i, inf_le_right,
-  le_inf       := λ f g h h_fg h_fh i, le_inf (h_fg i) (h_fh i), }
+  le_inf       := λ f g h h_fg h_fh i, le_inf (h_fg i) (h_fh i),
+  Sup          := Sup,
+  le_Sup       := λ s f hf_mem i, le_Sup ⟨f, hf_mem, rfl⟩,
+  Sup_le       := λ s f h_forall i, Sup_le $ λ m' hm', by {
+    obtain ⟨g, hg_mem, hfm'⟩ := hm',
+    rw ← hfm',
+    exact h_forall g hg_mem i, },
+  Inf          := Inf,
+  Inf_le       := λ s f hf_mem i,
+  begin
+    have hs : s.nonempty := ⟨f, hf_mem⟩,
+    simp only [Inf_def, hs, if_true],
+    exact Inf_le ⟨f, hf_mem, rfl⟩,
+  end,
+  le_Inf       := λ s f h_forall i,
+  begin
+    by_cases hs : s.nonempty,
+    swap, { simp only [Inf_def, hs, if_false], exact f.le i, },
+    simp only [Inf_def, hs, if_true, le_Inf_iff, set.mem_image, forall_exists_index, and_imp,
+      forall_apply_eq_imp_iff₂],
+    exact λ g hg_mem, h_forall g hg_mem i,
+  end,
+  top          := ⊤,
+  bot          := ⊥,
+  le_top       := λ f i, f.le' i,
+  bot_le       := λ f i, bot_le, }
+
+end filtration
+
+section preorder
+variables [preorder ι]
 
 lemma measurable_set_of_filtration {f : filtration ι m} {s : set α} {i : ι}
   (hs : measurable_set[f i] s) : measurable_set[m] s :=

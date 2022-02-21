@@ -54,6 +54,7 @@ variables {G V : Type*}
 
 section
 
+#check encodable
 variables [measurable_space V]
 
 open smul_invariant_measure
@@ -425,14 +426,12 @@ lemma exists_mul_inv_mem_lattice_of_volume_lt_volume' {X : Type*} [measure_space
   [is_mul_left_invariant (volume : measure X)] :
   ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), y * x⁻¹ ∈ L :=
 begin
-  haveI : smul_invariant_measure L X measure_space.volume :=
-  begin
-    apply smul_invariant_measure.to_subgroup_smul_invariant_measure L,
+  haveI : smul_invariant_measure L X measure_space.volume,
+  { apply smul_invariant_measure.to_subgroup_smul_invariant_measure L,
     apply_instance,
     constructor,
     intros c S hS,
-    exact measure_preimage_mul volume c S,
-  end,
+    exact measure_preimage_mul volume c S, },
   obtain ⟨x, y, hx, hy, hne, h⟩ := exists_mul_inv_mem_lattice_of_volume_lt_volume hS F fund hlt _,
   { refine ⟨x, y, hx, hy, hne, _⟩,
     simp only [image_univ, mem_range] at h,

@@ -39,7 +39,7 @@ variables {V : Type*} [inner_product_space ℝ V]
 variables {b : basis (fin 2) ℝ V} (hb : orthonormal ℝ b)
 include hb
 
-/-- The oriented angle from `x` to `y`, module `2 * π`. If either vector is 0, this is 0. -/
+/-- The oriented angle from `x` to `y`, modulo `2 * π`. If either vector is 0, this is 0. -/
 def oangle (x y : V) : real.angle :=
 complex.arg ((complex.isometry_of_orthonormal hb).symm y /
   (complex.isometry_of_orthonormal hb).symm x)

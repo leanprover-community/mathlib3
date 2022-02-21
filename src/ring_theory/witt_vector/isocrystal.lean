@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 
-import ring_theory.witt_vector.is_alg_closed
+import ring_theory.witt_vector.frobenius_fraction_field
 
 /-!
 

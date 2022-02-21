@@ -354,8 +354,8 @@ begin
     simp }
 end
 
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜' 𝕜]
-  [normed_space 𝕜' G] [is_scalar_tower 𝕜' 𝕜 G]
+section
+variables {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' G] [smul_comm_class 𝕜 𝕜' G]
 
 lemma op_norm_smul_le (c : 𝕜') : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 (c • f).op_norm_le_bound
@@ -459,8 +459,12 @@ def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', norme
 
 end
 
+end
+
 section restrict_scalars
 
+variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜' 𝕜]
+variables [normed_space 𝕜' G] [is_scalar_tower 𝕜' 𝕜 G]
 variables [Π i, normed_space 𝕜' (E i)] [∀ i, is_scalar_tower 𝕜' 𝕜 (E i)]
 
 @[simp] lemma norm_restrict_scalars : ∥f.restrict_scalars 𝕜'∥ = ∥f∥ :=

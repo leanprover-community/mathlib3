@@ -206,6 +206,11 @@ lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
 by simp [pi_norm_le_iff hr]
 
+lemma norm_matrix_lt_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 < r)
+  {A : matrix n m α} :
+  ∥A∥ < r ↔ ∀ i j, ∥A i j∥ < r :=
+by simp [pi_norm_lt_iff hr]
+
 end semi_normed_ring
 
 section normed_ring

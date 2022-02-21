@@ -174,11 +174,6 @@ protected def comm_group [comm_group β] : comm_group α :=
 let one := e.has_one, mul := e.has_mul, inv := e.has_inv, div := e.has_div in
 by resetI; apply e.injective.comm_group _; intros; exact e.apply_symm_apply _
 
-/-- Transfer `distrib` across an `equiv` -/
-protected def distrib [distrib β] : distrib α :=
-let add := e.has_add, mul := e.has_mul in
-by resetI; apply e.injective.distrib _; intros; exact e.apply_symm_apply _
-
 /-- Transfer `non_unital_non_assoc_semiring` across an `equiv` -/
 protected def non_unital_non_assoc_semiring [non_unital_non_assoc_semiring β] :
   non_unital_non_assoc_semiring α :=

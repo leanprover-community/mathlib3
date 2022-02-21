@@ -2072,30 +2072,19 @@ open is_localization
 
 open_locale non_zero_divisors
 
-/-- If `R` is a field, then localizing at a submonoid smaller than the non-zero divisors
-    adds no new elements. -/
-lemma localization_map_bijective_of_field'
+/-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
+lemma localization_map_bijective_of_field
   {R Rₘ : Type*} [comm_ring R] [comm_ring Rₘ]
-  {M : submonoid R} (hM : M ≤ R⁰) (hR : is_field R)
+  {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
 begin
-  casesI subsingleton_or_nontrivial R,
-  { haveI := is_localization.unique R Rₘ M,
-    haveI := unique_of_subsingleton (0 : R),
-    exact unique.bijective },
+  letI := hR.to_field R,
+  replace hM := le_non_zero_divisors_of_no_zero_divisors hM,
   refine ⟨is_localization.injective _ hM, λ x, _⟩,
   obtain ⟨r, ⟨m, hm⟩, rfl⟩ := mk'_surjective M x,
   obtain ⟨n, hn⟩ := hR.mul_inv_cancel (non_zero_divisors.ne_zero $ hM hm),
-  exact ⟨r * n,
-    by erw [eq_mk'_iff_mul_eq, ← ring_hom.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
+  exact ⟨r * n, by erw [eq_mk'_iff_mul_eq, ← ring_hom.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
 end
-
-/-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
-lemma localization_map_bijective_of_field
-  {R Rₘ : Type*} [comm_ring R] [is_domain R] [comm_ring Rₘ]
-  {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
-  [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
-localization_map_bijective_of_field' (le_non_zero_divisors_of_no_zero_divisors hM) hR
 
 variables (R) {A : Type*} [comm_ring A] [is_domain A]
 variables (K : Type*)

@@ -56,9 +56,8 @@ def inclusion_path_aux {a : B} : ∀ {b : B}, path a b → hom a b
 The discrete category on the paths includes into the category of 1-morphisms in the free
 bicategory.
 -/
-def inclusion_path (a b : B) : discrete (path.{v+1} a b) ⥤ hom a b :=
-{ obj := inclusion_path_aux,
-  map := λ f g η, eq_to_hom (congr_arg inclusion_path_aux (discrete.eq_of_hom η)) }
+@[simps] def inclusion_path (a b : B) : discrete (path.{v+1} a b) ⥤ hom a b :=
+discrete.functor inclusion_path_aux
 
 variables (B)
 
@@ -81,27 +80,36 @@ is easier than defining the normalization of `f : hom a b` alone, which will def
 normalization of the composition of `path.nil : path a a` and `f : hom a b`.
 -/
 @[simp]
-def normalize_hom {a : B} : ∀ {b c : B}, hom b c → path a b → path a c
-| _ _ (hom.of f) p := p.cons f
-| _ _ (hom.id b) p := p
-| _ _ (hom.comp f g) p := normalize_hom g (normalize_hom f p)
+def normalize_hom {a : B} : ∀ {b c : B}, path a b → hom b c → path a c
+| _ _ p (hom.of f) := p.cons f
+| _ _ p (hom.id b) := p
+| _ _ p (hom.comp f g) := normalize_hom (normalize_hom p f) g
+
+@[simp]
+def normalize_iso {a : B} : ∀ {b c : B} (p : path a b) (f : hom b c),
+  (preinclusion B).map p ≫ f ≅ (preinclusion B).map (normalize_hom p f)
+| b c p (hom.of f) := iso.refl _
+| _ _ p (hom.id b) := ρ_ _
+| b d p (hom.comp f g) := (α_ _ _ _).symm ≪≫
+    whisker_right_iso (normalize_iso p f) g ≪≫ normalize_iso _ g
 
 /--
 Given a 2-morphism between `f` and `g` in the free bicategory, we have the equality
 `normalize_hom f p = normalize_hom g p`.
 -/
-lemma normalize_hom_congr {a b c : B} {f g : hom b c} (η : hom₂ f g) (p : path a b) :
-  normalize_hom f p = normalize_hom g p :=
+lemma normalize_hom_congr {a b c : B} (p : path a b) {f g : hom b c} (η : hom₂ f g) :
+  normalize_hom p f = normalize_hom p g :=
 begin
-  refine congr _ rfl,
+  apply @congr_fun _ _ (λ p, normalize_hom p f),
   clear p,
   induction η,
   case vcomp { apply eq.trans; assumption },
   case whisker_left  : _ _ _ _ _ _ _ ih { funext, apply congr_fun ih },
-  case whisker_right : _ _ _ _ _ _ _ ih { funext, apply congr_arg2 _ rfl (congr ih rfl) },
+  case whisker_right : _ _ _ _ _ _ _ ih { funext, apply congr_arg2 _ (congr_fun ih p) rfl },
   all_goals { funext, refl }
 end
 
+/-
 /--
 Auxiliary definition for `normalize`. Given a 2-morphism between `f` and `g` in the free
 bicategory, we have a natural transformation between `normalize_hom f` and `normalize_hom g`
@@ -111,11 +119,12 @@ that are viewed as functors between discrete categories.
 def normalize_map_aux {a b c : B} {f g : hom b c} (η : hom₂ f g) :
   (discrete.functor (normalize_hom f) : _ ⥤ discrete (path.{v+1} a c)) ⟶
     discrete.functor (normalize_hom g) :=
-discrete.nat_trans (λ p, eq_to_hom (normalize_hom_congr η p))
+discrete.nat_trans (λ p, ⟨⟨normalize_hom_congr η p⟩⟩)
 
 /--
 The normalization of the composition of `p : path a b` and `f : hom b c` as a functor.
 -/
+@[simps]
 def normalize (a b c : B) : hom b c ⥤ discrete (path.{v+1} a b) ⥤ discrete (path.{v+1} a c) :=
 { obj := λ f, discrete.functor (normalize_hom f),
   map := λ f g, quot.lift normalize_map_aux (by tidy) }
@@ -125,37 +134,42 @@ A variant of the normalization functor where we consider the result as a 1-morph
 bicategory rather than a path.
 -/
 def normalize' (a b c : B) : hom b c ⥤ discrete (path.{v+1} a b) ⥤ hom a c :=
-normalize _ _ _ ⋙ (whiskering_right _ _ _).obj (inclusion_path _ _)
+normalize a b c ⋙ (whiskering_right _ _ _).obj (inclusion_path a c)
 
-variables (B)
+-/
+
+variable (B)
 
 /-- The normalization pseudofunctor for the free bicategory on a quiver `B`. -/
-def full_normalize : pseudofunctor (free_bicategory B) (locally_discrete (paths B)) :=
+def full_normalize : oplax_functor (free_bicategory B) (locally_discrete (paths B)) :=
 { obj := id,
-  map := λ a b f, ((normalize _ _ _).obj f).obj nil,
-  map₂ := λ a b f g η, ((normalize _ _ _).map η).app nil,
-  map_id := λ a, iso.refl (𝟙 a),
-  map_comp := λ a b c f g, eq_to_iso
-  begin
+  map := λ a b f, normalize_hom nil f, --((normalize a a b).obj f).obj nil,
+  map₂ := λ a b f g η, ⟨⟨quot.ind (normalize_hom_congr nil) η⟩⟩, --((normalize a a b).map η).app nil,
+  map_id := λ a, 𝟙 (𝟙 a),
+  map_comp := λ a b c f g,
+  ⟨⟨begin
     induction g generalizing a,
     case id { refl },
     case of { refl },
     case comp : _ _ _ g _ ihf ihg { erw [ihg _ (f.comp g), ihf _ f, ihg _ g, assoc] }
-  end }
+  end⟩⟩ }
 
-variables {B}
+variable {B}
+
+def normalize_unit_iso {a b : free_bicategory B} (f : a ⟶ b) :
+  f ≅ (preinclusion B).map (normalize_hom nil f) :=
 
 /--
 Given a 1-morphism `f : hom b c` in the free bicategory and a path `p : path a b`, taking the
 composition of `p` and `f` in the free bicategory is functorial in both `f` and `p`.
 -/
 def whisker_path (a b c : B) : hom b c ⥤ discrete (path.{v+1} a b) ⥤ hom a c :=
-{ obj := λ f, discrete.functor (λ p, (preinclusion _).map p ≫ f),
-  map := λ f g η, discrete.nat_trans (λ p, (preinclusion _).map p ◁ η) }
+{ obj := λ f, discrete.functor (λ p, (preinclusion B).map p ≫ f),
+  map := λ f g η, discrete.nat_trans (λ p, (preinclusion B).map p ◁ η) }
 
 lemma whisker_path_obj_map
   (a : B) {b c : B} (f : hom b c) {p p' : discrete (path.{v+1} a b)} (η : p ⟶ p') :
-  ((whisker_path _ _ _).obj f).map η = (inclusion_path _ _).map η ▷ f :=
+  ((whisker_path a b c).obj f).map η = (inclusion_path a b).map η ▷ f :=
 by tidy
 
 /--
@@ -166,10 +180,10 @@ Auxiliary definition for `normalize_iso`. Here we construct the isomorphism betw
 def normalize_iso_app {a : B} : Π {b c : B} (f : hom b c) (p : path a b),
   ((whisker_path a b c).obj f).obj p ≅ ((normalize' a b c).obj f).obj p
 | _ _ (hom.of f) p := iso.refl _
-| _ _ (hom.id a) p := ρ_ ((preinclusion _).map p)
+| _ _ (hom.id a) p := ρ_ ((preinclusion B).map p)
 | _ _ (hom.comp f g) p :=
     (α_ _ _ _).symm ≪≫ whisker_right_iso (normalize_iso_app f p) g ≪≫
-      normalize_iso_app g (((normalize _ _ _).obj f).obj p)
+      normalize_iso_app g (((normalize a _ _).obj f).obj p)
 
 /-- Auxiliary definition for `normalize_iso`. -/
 @[simp]

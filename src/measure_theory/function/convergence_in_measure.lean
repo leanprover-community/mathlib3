@@ -317,8 +317,7 @@ end
 
 /-- See also `measure_theory.tendsto_in_measure_of_tendsto_snorm` which work for general
 Lp-convergence for all `p ≠ 0`. -/
-lemma tendsto_in_measure_of_tendsto_snorm_top
-  (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ)
+lemma tendsto_in_measure_of_tendsto_snorm_top {E} [normed_group E] {f : ℕ → α → E} {g : α → E}
   (hfg : tendsto (λ n, snorm (f n - g) ∞ μ) at_top (𝓝 0)) :
   tendsto_in_measure at_top μ f g :=
 begin
@@ -353,7 +352,7 @@ lemma tendsto_in_measure_of_tendsto_snorm
 begin
   by_cases hp_ne_top : p = ∞,
   { subst hp_ne_top,
-    exact tendsto_in_measure_of_tendsto_snorm_top hf hg hfg },
+    exact tendsto_in_measure_of_tendsto_snorm_top hfg },
   { exact tendsto_in_measure_of_tendsto_snorm_of_ne_top hp_ne_zero hp_ne_top hf hg hfg }
 end
 

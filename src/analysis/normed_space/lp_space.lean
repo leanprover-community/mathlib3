@@ -568,6 +568,10 @@ section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 
 instance : module 𝕜 (pre_lp E) := pi.module α E 𝕜
+instance pre_lp.op_module : module 𝕜ᵐᵒᵖ (pre_lp E) :=
+@pi.module α E 𝕜ᵐᵒᵖ _ _ (λ _, normed_space.to_opposite_module)
+instance : is_central_scalar 𝕜 (pre_lp E) :=
+@pi.is_central_scalar α E 𝕜 _ _ (λ _, normed_space.to_is_central_scalar)
 
 lemma mem_lp_const_smul (c : 𝕜) (f : lp E p) : c • (f : pre_lp E) ∈ lp E p :=
 (lp.mem_ℓp f).const_smul c
@@ -584,8 +588,9 @@ variables {E p 𝕜}
 
 lemma coe_lp_submodule : (lp_submodule E p 𝕜).to_add_subgroup = lp E p := rfl
 
-instance : module 𝕜 (lp E p) :=
-{ .. (lp_submodule E p 𝕜).module }
+instance : module 𝕜 (lp E p) := (lp_submodule E p 𝕜).module
+instance op_module : module 𝕜ᵐᵒᵖ (lp E p) := (lp_submodule E p 𝕜).module'
+instance : is_central_scalar 𝕜 (lp E p) := (lp_submodule E p 𝕜).is_central_scalar
 
 @[simp] lemma coe_fn_smul (c : 𝕜) (f : lp E p) : ⇑(c • f) = c • f := rfl
 

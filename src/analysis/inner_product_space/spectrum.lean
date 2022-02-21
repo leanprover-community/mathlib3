@@ -248,7 +248,7 @@ end inner_product_space
 section nonneg
 
 lemma eigenvalue_nonneg_of_nonneg {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenvalue T μ)
-  (hnn : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪T x, x⟫) : 0 ≤ is_R_or_C.re μ :=
+  (hnn : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪x, T x⟫) : 0 ≤ μ :=
 begin
   obtain ⟨v, hv⟩ := hμ.exists_has_eigenvector,
   have hpos : 0 < ∥v∥ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,

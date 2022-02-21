@@ -270,8 +270,7 @@ variable {G}
 
 @[simp] lemma lower_central_series_zero : lower_central_series G 0 = ⊤ := rfl
 
-@[simp] lemma lower_central_series_one : lower_central_series G 1 = commutator G :=
-by simp [lower_central_series]
+@[simp] lemma lower_central_series_one : lower_central_series G 1 = commutator G := rfl
 
 lemma mem_lower_central_series_succ_iff (n : ℕ) (q : G) :
   q ∈ lower_central_series G (n + 1) ↔

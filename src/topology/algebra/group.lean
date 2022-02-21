@@ -6,9 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 import group_theory.quotient_group
 import order.filter.pointwise
 import topology.algebra.monoid
-import topology.homeomorph
 import topology.compacts
-import topology.algebra.mul_action
 import topology.compact_open
 
 /-!

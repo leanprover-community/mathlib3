@@ -340,7 +340,7 @@ begin
   exact ⟨λ x, ⟨{x}, ⟨λ x _, h x, Sup_singleton⟩⟩⟩,
 end
 
-/-- A compact element `k` has the property that any `b < `k lies below a "maximal element below
+/-- A compact element `k` has the property that any `b < k` lies below a "maximal element below
 `k`", which is to say `[⊥, k]` is coatomic. -/
 theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
   is_coatomic (set.Iic k) :=
@@ -348,7 +348,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
   by_cases htriv : b = k,
   { left, ext, simp only [htriv, set.Iic.coe_top, subtype.coe_mk], },
   right,
-  obtain ⟨a, a₀, ba, h⟩ := zorn_nonempty_partial_order₀ (set.Iio k) _ b (hbk.lt_of_ne htriv),
+  obtain ⟨a, a₀, ba, h⟩ := zorn_nonempty_partial_order₀ (set.Iio k) _ b (lt_of_le_of_ne hbk htriv),
   { refine ⟨⟨a, le_of_lt a₀⟩, ⟨ne_of_lt a₀, λ c hck, by_contradiction $ λ c₀, _⟩, ba⟩,
     cases h c.1 (lt_of_le_of_ne c.2 (λ con, c₀ (subtype.ext con))) hck.le,
     exact lt_irrefl _ hck, },

@@ -62,6 +62,7 @@ $$c((s*g_i)_i)=s\bub c((g_i)_i)$$.
 
 namespace cochain_succ
 
+variables {G M n}
 instance : has_coe_to_fun (cochain_succ G M n) (λ _, (fin n → G) → M) :=
 { coe := to_fun }
 
@@ -73,6 +74,11 @@ instance : has_coe_to_fun (cochain_succ G M n) (λ _, (fin n → G) → M) :=
 
 @[ext] theorem ext' (c₁ c₂ : cochain_succ G M n) (h : ∀ g : fin n → G, c₁ g = c₂ g) : c₁ = c₂ :=
 ext c₁ c₂ $ funext h
+
+theorem ext_iff' (c₁ c₂ : cochain_succ G M n) : c₁ = c₂ ↔ ∀ g : fin n → G, c₁ g = c₂ g :=
+⟨λ h x, h ▸ rfl, ext' _ _⟩
+
+variables (G M n)
 
 def zero : cochain_succ G M n :=
 { to_fun := 0,

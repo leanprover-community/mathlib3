@@ -234,24 +234,63 @@ def tautological (R : Type*) [ring R] (C : Type*) [category C] [abelian C] [line
   (((linear_yoneda R C).obj Y).right_op.left_derived n).left_op.obj (opposite.op X)
     ≅ ((Ext R C n).obj (opposite.op X)).obj Y := force_noncomputable sorry
 
-instance gg : @has_projective_resolutions (Module.{u} (group_ring G)) _ abelian.has_zero_object _ _ _ :=
-@ProjectiveResolution.category_theory.has_projective_resolutions (Module.{u} (group_ring G)) _ _
-Module.Module_enough_projectives.{u}
-#check Ext
-instance dsfdsf : @enough_projectives (Module.{u} (group_ring G)) _ :=
-Module.Module_enough_projectives.{u}
-
-
+instance gg : has_projective_resolutions (Module.{u} (group_ring G)) :=
+sorry
 
 def huhh (R : Type*) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
   [enough_projectives C] (n : ℕ) (X Y : C) :
   (((linear_yoneda R C).obj Y).right_op.left_derived n).left_op.obj (opposite.op X)
     ≅ ((Ext R C n).obj (opposite.op X)).obj Y := force_noncomputable sorry
+open group_ring
 
 
+section
+variables {C' : Type u} [category C'] [abelian C'] {D : Type u} [category D]
+  [abelian D] [has_projective_resolutions C']
+  /-[has_zero_object C'] [has_equalizers C'] [has_images C'] [has_projective_resolutions.{u} C']
+  [preadditive D] [has_zero_object D] [has_equalizers D] [has_cokernels D] [has_images D]
+  [has_image_maps D]
+  [has_zero_object Dᵒᵖ] [has_equalizers Dᵒᵖ] [has_cokernels Dᵒᵖ] [has_images Dᵒᵖ]
+  [has_image_maps Dᵒᵖ]
+  -/(F : C' ⥤ Dᵒᵖ) [h : F.additive] {x : C'} (P : ProjectiveResolution x)
+  --(F.left_derived n).obj X ≅ (homology_functor D (complex_shape.down ℕ) n).obj
+--  ((F.map_homological_complex (complex_shape.down ℕ)).obj P.complex)
 
-#check functor.left_derived_obj_iso (((linear_yoneda ℤ (Module.{u} (group_ring G))).obj
-  (group_ring.Module_of.{u} G M)).right_op) n (group_ring.std_resn.{u} G)
+variables {A : D} {B : Dᵒᵖ} (H : opposite.op A ≅ B)
+
+def huh [h : F.additive] : (F.left_derived n).left_op.obj (opposite.op x)
+  ≅ ((homology_functor _ _ n).obj ((F.map_homological_complex _ ).obj P.complex).unop_obj) :=
+(functor.left_derived_obj_iso F n P).symm.unop.trans
+  (chain_complex.homology_unop ((F.map_homological_complex _).obj P.complex) n).unop
+
+
+end
+#exit
+
+instance : enough_projectives (Module.{u} (group_ring G)) := sorry
+
+#check huh n (((linear_yoneda ℤ (Module.{u} (group_ring G))).obj (Module_of G M)).right_op)
+  (std_resn G)
+
+-- so this would be it:
+/- (huh n (((linear_yoneda ℤ (Module.{u} (group_ring G))).obj (Module_of G M)).right_op)
+  (std_resn G)).trans (cochain_succ_homology_iso stuff).symm
+  if there werent two fucking zero objects. -/
+#check ((homology_functor _ _ n).obj (map_std_resn G M).unop_obj)
+def hmmm : ((Ext ℤ (Module.{u} (group_ring G)) n).obj (opposite.op $ group_ring.trivial G)).obj
+  (Module_of G M) ≅ ((homology_functor _ _ n).obj (map_std_resn G M).unop_obj)
+  := force_noncomputable sorry
+
+  #exit
+(functor.left_derived_obj_iso _ n _).symm.unop.trans
+  (chain_complex.homology_unop ((functor.map_homological_complex _ _).obj (std_resn G).complex) n).unop
+
+--set_option pp.universes true
+#check functor.left_derived
+#check @functor.left_derived_obj_iso (Module.{u} (group_ring G)) _
+  (Module ℤ)ᵒᵖ _ _ _ _ _ _ _ _ _ _ _ _
+(((linear_yoneda ℤ (Module.{u} (group_ring G))).obj (group_ring.Module_of.{u} G M)).right_op)
+_ n (group_ring.trivial.{u} G) (group_ring.std_resn.{u} G)
 --  (group_ring.Module_of G M)).right_op n (group_ring.std_resn G)
 lemma Extish_obj_iso : ((Ext ℤ (Module.{u} (group_ring G)) n).obj (opposite.op $ group_ring.trivial G)).obj (group_ring.Module_of G M)
    ≅ (map_std_resn G M).unop_obj.homology n :=

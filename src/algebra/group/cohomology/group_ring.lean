@@ -154,6 +154,12 @@ lemma of_smul_of (g : G) (x : fin n → G) :
   of G g • of (fin n → G) x = of (fin n → G) (g • x) :=
 show finsupp.total _ _ _ _ _ = _, by simp
 
+lemma single_smul_single (g : G) (x : fin n → G) (i j : ℤ) :
+  ((•) : group_ring G → group_ring (fin n → G) → group_ring (fin n → G))
+  (finsupp.single g i) (finsupp.single x j) = finsupp.single (g • x) (i * j) :=
+show finsupp.total _ _ _ _ _ = _, by simp
+
+
 variables (G)
 
 /-- The natural `ℤ[G]`-linear isomorphism `ℤ[G¹] ≅ ℤ[G]` -/

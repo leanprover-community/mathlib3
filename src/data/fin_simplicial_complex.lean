@@ -40,4 +40,22 @@ theorem delta_comm_apply.symm {i j k : ℕ} (hj : j = i.succ) (hk : k = j.succ) 
   delta hk p.succ (delta hj q_succ t) = delta hk q_succ (delta hj p t) :=
 delta_comm_apply hj hk hpq t
 
+@[simp] lemma delta_zero_apply {i j : ℕ} (hj : j = i + 1) (t : fin i) :
+  delta hj 0 t = fin.cast hj.symm t.succ :=
+begin
+  unfold delta,
+  ext,
+  dsimp,
+  rw [if_neg (nat.not_lt_zero _), coe_succ],
+end
+
+@[simp] lemma delta_self_apply {i j : ℕ} (hj : j = i + 1) (t : fin i) :
+  delta hj i t = fin.cast hj.symm t.cast_succ :=
+begin
+  unfold delta,
+  ext,
+  dsimp,
+  erw if_pos t.2,
+end
+
 end fin

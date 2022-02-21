@@ -66,12 +66,21 @@ begin
   rw [if_neg (nat.not_lt_zero _), fin.coe_succ],
 end
 
+lemma fin.delta_zero_succ_apply {n : ℕ} (t : fin n) :
+  fin.delta rfl 0 t = t.succ :=
+congr_fun (fin.delta_zero_succ n) t
+
 lemma fin.cons_delta_zero {n : ℕ} {α : Type*} (x : fin n → α) (y : α) :
   (fin.cons y x ∘ fin.delta rfl 0 : fin n → α) = x :=
 begin
   ext j,
   rw [function.comp_app, fin.delta_zero_succ, fin.cons_succ],
 end
+
+lemma fin.cons_delta_zero_apply {n : ℕ} {α : Type*} (x : fin n → α)
+  (y : α) (t : fin n) :
+  (fin.cons y x : fin (n + 1) → α) (fin.delta rfl 0 t) = x t :=
+congr_fun (fin.cons_delta_zero x y) t
 
 lemma fin.cons_delta_succ {n : ℕ} {α : Type*} (x : fin (n + 1) → α) (y : α) (m : ℕ) :
   (fin.cons y x ∘ fin.delta rfl m.succ : fin (n + 1) → α) =
@@ -97,14 +106,24 @@ begin
         exact (λ hn, h $ by rw fin.coe_succ at hn; exact nat.succ_lt_succ_iff.1 hn) }}},
 end
 
-lemma cons_delta_two {M : Type*} [monoid M] (f : fin 1 → M) :
-  (fin.cons 1 f : fin 2 → M) ∘ (fin.delta rfl 1) = 1 :=
+lemma fin.cons_delta_succ_apply {n : ℕ} {α : Type*} (x : fin (n + 1) → α)
+  (y : α) (m : ℕ) (t : fin (n + 1)) :
+  (fin.cons y x : fin (n + 2) → α) (fin.delta rfl m.succ t) =
+  (fin.cons y (x ∘ fin.delta rfl m : fin n → α) : fin (n + 1) → α) t :=
+congr_fun (fin.cons_delta_succ x y m) t
+
+lemma cons_delta_two {M : Type*} [monoid M] (f : fin 1 → M) (g : M) :
+  (fin.cons g f : fin 2 → M) ∘ (fin.delta rfl 1) = λ i, g :=
 begin
   ext,
   rw [subsingleton.elim x 0, function.comp_app],
   dunfold fin.delta,
   convert @fin.cons_zero 1 (λ i, M) _ _,
 end
+
+lemma cons_delta_two_apply {M : Type*} [monoid M] (f : fin 1 → M) (g : M) (t : fin 2) :
+  (fin.cons g f : fin 2 → M) (fin.delta rfl 1 t) = g :=
+congr_fun (cons_delta_two f g) t
 
 @[to_additive] lemma mul_equiv.map_pow {M N : Type*} [monoid M] [monoid N]
   (f : M ≃* N) (x : M) (n : ℕ) :

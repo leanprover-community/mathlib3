@@ -134,7 +134,7 @@ local attribute [instance]
 def fraction_ring.module : module K(p, k) K(p, k) := semiring.to_module
 
 /--
-Type synonym for `K(p, k)` to carry the standard `m`-indexed 1-dimensional isocrystal structure.
+Type synonym for `K(p, k)` to carry the standard 1-dimensional isocrystal structure of slope `m : ℤ`.
 -/
 @[nolint unused_arguments has_inhabited_instance, derive [add_comm_group, module K(p, k)]]
 def standard_one_dim_isocrystal (m : ℤ) : Type* :=
@@ -143,7 +143,7 @@ K(p, k)
 section perfect_ring
 variables [is_domain k] [char_p k p] [perfect_ring k p]
 
-/-- The standard one-dimensional isocrystal is an isocrystal. -/
+/-- The standard one-dimensional isocrystal of slope `m : ℤ` is an isocrystal. -/
 instance (m : ℤ) : isocrystal p k (standard_one_dim_isocrystal p k m) :=
 { frob := (fraction_ring.frobenius p k).to_semilinear_equiv.trans
    (linear_equiv.smul_of_ne_zero _ _ _ (zpow_ne_zero m (witt_vector.fraction_ring.p_nonzero p k))) }

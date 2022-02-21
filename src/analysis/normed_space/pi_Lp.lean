@@ -317,4 +317,41 @@ variables {𝕜 p α}
 @[simp] lemma smul_apply : (c • x) i = c • x i := rfl
 @[simp] lemma neg_apply : (-x) i = - (x i) := rfl
 
+variables {ι' : Type*}
+variables [fintype ι] [fintype ι']
+
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+
+/-- An equivalence of finite domains induces a linearly isometric equivalence of finitely supported
+functions-/
+def _root_.finsupp.dom_licongr (e : ι ≃ ι') : pi_Lp p (λ i : ι, E) ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E) :=
+begin
+  apply linear_isometry_equiv.mk _ _,
+  exact (finsupp.linear_equiv_fun_on_fintype 𝕜 E ι).symm.trans ((finsupp.dom_lcongr e).trans (finsupp.linear_equiv_fun_on_fintype 𝕜 E ι')),
+  intro x,
+  simp only [norm],
+
+  have : ∀ i : ι', (finsupp.linear_equiv_fun_on_fintype 𝕜 E ι).symm.trans ((finsupp.dom_lcongr e).trans (finsupp.linear_equiv_fun_on_fintype 𝕜 E ι')) x i = x (e.symm i) :=
+  begin
+    intro i,
+    simp only [linear_equiv.trans_apply,
+  finsupp.linear_equiv_fun_on_fintype_apply,
+  finsupp.dom_congr_apply,
+  finsupp.equiv_map_domain_apply,
+  finsupp.dom_lcongr_apply],
+    have : ⇑(((finsupp.linear_equiv_fun_on_fintype 𝕜 E ι).symm) x) = x :=
+    begin
+      ext i,
+      rw ← finsupp.linear_equiv_fun_on_fintype_apply 𝕜 E ι ((finsupp.linear_equiv_fun_on_fintype 𝕜 E ι).symm x),
+      rw linear_equiv.apply_symm_apply,
+    end,
+    rw this,
+  end,
+  simp_rw this,
+  rw fintype.sum_equiv e,
+  intro i,
+  congr,
+  rw equiv.symm_apply_apply,
+end
+
 end pi_Lp

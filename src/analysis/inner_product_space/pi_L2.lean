@@ -5,6 +5,7 @@ Authors: Joseph Myers, Sébastien Gouëzel, Heather Macbeth
 -/
 import analysis.inner_product_space.projection
 import analysis.normed_space.pi_Lp
+import analysis.normed_space.lp_space
 
 /-!
 # `L²` inner product space structure on finite products of inner product spaces
@@ -327,6 +328,18 @@ end
   ⇑(orthonormal_basis.mk_of_orthogonal_eq_bot hon hsp) = v :=
 orthonormal_basis.coe_mk hon _
 
+variable {ι' : Type*}
+variables [fintype ι']
+
+def _root_.linear_equiv.to_linear_equiv_of_euclidean_space (e : (ι →₀ 𝕜) ≃ₗ[𝕜] (ι' →₀ 𝕜)) :
+  euclidean_space 𝕜 ι ≃ₗ[𝕜] euclidean_space 𝕜 ι' :=
+(finsupp.linear_equiv_fun_on_fintype 𝕜 𝕜 ι).symm.trans (e.trans (finsupp.linear_equiv_fun_on_fintype 𝕜 𝕜 ι'))
+
+
+/-- `b.reindex (e : ι ≃ ι')` is an `orthonormal_basis` indexed by `ι'` -/
+def reindex (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') : orthonormal_basis ι' 𝕜 E :=
+orthonormal_basis.of_repr (b.repr.trans (finsupp.dom_licongr e))
+
 end orthonormal_basis
 
 /-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of inner product spaces then an orthonormal basis `v`
@@ -470,34 +483,28 @@ variables {𝕜 E}
 
 /-- An `n`-dimensional `inner_product_space` has an orthonormal basis indexed by `fin n`. -/
 def fin_std_orthonormal_basis {n : ℕ} (hn : finrank 𝕜 E = n) :
-  basis (fin n) 𝕜 E :=
+  orthonormal_basis (fin n) 𝕜 E :=
 have h : fintype.card (orthonormal_basis_index 𝕜 E) = n,
-by rw [← finrank_eq_card_basis (std_orthonormal_basis 𝕜 E), hn],
+by rw [← finrank_eq_card_basis (std_orthonormal_basis 𝕜 E).to_basis, hn],
 (std_orthonormal_basis 𝕜 E).reindex (fintype.equiv_fin_of_card_eq h)
-
-lemma fin_std_orthonormal_basis_orthonormal {n : ℕ} (hn : finrank 𝕜 E = n) :
-  orthonormal 𝕜 (fin_std_orthonormal_basis hn) :=
-suffices orthonormal 𝕜 (std_orthonormal_basis _ _ ∘ equiv.symm _),
-by { simp only [fin_std_orthonormal_basis, basis.coe_reindex], assumption }, -- simpa doesn't work?
-(std_orthonormal_basis_orthonormal 𝕜 E).comp _ (equiv.injective _)
 
 section subordinate_orthonormal_basis
 open direct_sum
-variables {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι] [decidable_eq ι]
+variables {n : ℕ} (hn : finrank 𝕜 E = n) [decidable_eq ι]
   {V : ι → submodule 𝕜 E} (hV : submodule_is_internal V)
 
 /-- Exhibit a bijection between `fin n` and the index set of a certain basis of an `n`-dimensional
 inner product space `E`.  This should not be accessed directly, but only via the subsequent API. -/
 @[irreducible] def direct_sum.submodule_is_internal.sigma_orthonormal_basis_index_equiv :
   (Σ i, orthonormal_basis_index 𝕜 (V i)) ≃ fin n :=
-let b := hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i)) in
+let b := hV.collected_basis (λ i, (std_orthonormal_basis 𝕜 (V i)).to_basis) in
 fintype.equiv_fin_of_card_eq $ (finite_dimensional.finrank_eq_card_basis b).symm.trans hn
 
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. -/
 @[irreducible] def direct_sum.submodule_is_internal.subordinate_orthonormal_basis :
   basis (fin n) 𝕜 E :=
-(hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i))).reindex
+(hV.collected_basis (λ i, (std_orthonormal_basis 𝕜 (V i)).to_basis)).reindex
   (hV.sigma_orthonormal_basis_index_equiv hn)
 
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
@@ -512,8 +519,9 @@ lemma direct_sum.submodule_is_internal.subordinate_orthonormal_basis_orthonormal
   orthonormal 𝕜 (hV.subordinate_orthonormal_basis hn) :=
 begin
   simp only [direct_sum.submodule_is_internal.subordinate_orthonormal_basis, basis.coe_reindex],
-  have : orthonormal 𝕜 (hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i))) :=
-    hV.collected_basis_orthonormal hV' (λ i, std_orthonormal_basis_orthonormal 𝕜 (V i)),
+  have : orthonormal 𝕜 (hV.collected_basis (λ i, (std_orthonormal_basis 𝕜 (V i)).to_basis)) :=
+    hV.collected_basis_orthonormal hV' (λ i,
+      (by simpa using (std_orthonormal_basis 𝕜 (V i)).orthonormal)),
   exact this.comp _ (equiv.injective _),
 end
 
@@ -522,7 +530,7 @@ the `orthogonal_family` in question. -/
 lemma direct_sum.submodule_is_internal.subordinate_orthonormal_basis_subordinate (a : fin n) :
   hV.subordinate_orthonormal_basis hn a ∈ V (hV.subordinate_orthonormal_basis_index hn a) :=
 by simpa only [direct_sum.submodule_is_internal.subordinate_orthonormal_basis, basis.coe_reindex]
-  using hV.collected_basis_mem (λ i, std_orthonormal_basis 𝕜 (V i))
+  using hV.collected_basis_mem (λ i, (std_orthonormal_basis 𝕜 (V i)).to_basis)
     ((hV.sigma_orthonormal_basis_index_equiv hn).symm a)
 
 attribute [irreducible] direct_sum.submodule_is_internal.subordinate_orthonormal_basis_index
@@ -530,14 +538,6 @@ attribute [irreducible] direct_sum.submodule_is_internal.subordinate_orthonormal
 end subordinate_orthonormal_basis
 
 end finite_dimensional
-
-/-- Given a natural number `n` equal to the `finrank` of a finite-dimensional inner product space,
-there exists an isometry from the space to `euclidean_space 𝕜 (fin n)`. -/
-def linear_isometry_equiv.of_inner_product_space
-  [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
-  E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
-((fin_std_orthonormal_basis hn).to_orthonormal_basis
-  (fin_std_orthonormal_basis_orthonormal hn)).repr
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
@@ -547,4 +547,4 @@ space, there exists an isometry from the orthogonal complement of a nonzero sing
 def linear_isometry_equiv.from_orthogonal_span_singleton
   (n : ℕ) [fact (finrank 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
-linear_isometry_equiv.of_inner_product_space (finrank_orthogonal_span_singleton hv)
+(fin_std_orthonormal_basis (finrank_orthogonal_span_singleton hv)).repr

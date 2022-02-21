@@ -13,7 +13,7 @@ noncomputable theory
 
 open Top topological_space opposite category_theory
 open_locale tensor_product change_of_rings
-set_option profiler true
+
 namespace presheaf_of_module
 
 section defs

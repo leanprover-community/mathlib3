@@ -352,8 +352,7 @@ begin
 end
 
 /-- Convergence in Lp implies convergence in measure. -/
-lemma tendsto_in_measure_of_tendsto_Lp [second_countable_topology E]
-  [hp : fact (1 ≤ p)]
+lemma tendsto_in_measure_of_tendsto_Lp [second_countable_topology E] [hp : fact (1 ≤ p)]
   {f : ι → Lp E p μ} {g : Lp E p μ} {l : filter ι} (hfg : tendsto f l (𝓝 g)) :
   tendsto_in_measure μ (λ n, f n) l g :=
 tendsto_in_measure_of_tendsto_snorm (ennreal.zero_lt_one.trans_le hp.elim).ne.symm

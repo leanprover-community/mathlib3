@@ -9,6 +9,8 @@ import topology.sheaves.sheaf
 import algebra.category.CommRing.basic
 import algebra.module.restriction_of_scalars
 
+noncomputable theory
+
 open Top topological_space opposite category_theory
 open_locale tensor_product change_of_rings
 
@@ -213,16 +215,11 @@ include f
 variable (𝓕 : presheaf_of_module 𝓞1)
 include 𝓕
 
-/--
-For all opens `V ⊆ U`, there is a linear map `𝓕(U) ⊗[𝓞1(U)] 𝓞2(U) ⟶ 𝓕(V) ⊗[𝓞1(V)] 𝓞2(U)`
-given by `x ⊗ y ↦ ρₘ x ⊗ ρ₂ y` where `ρₘ` is restriction map of `𝓕` and `ρ₂` is restriction map
-of `𝓞2`.
--/
-def restrict (U V : opens X) (inc : op U ⟶ op V) :
-  linear_map (𝓞2.map inc) (extension_of_scalars.module (f.app (op U)) ⟨(𝓕.self.obj (op U))⟩)
-    (extension_of_scalars.module (f.app (op V)) ⟨(𝓕.self.obj (op V))⟩) :=
-{ to_fun := λ x, begin
-    refine @tensor_product.lift _ _ _ _
+private def restrict.to_fun (U V : opens X) (inc : op U ⟶ op V) :
+  (extension_of_scalars.module (f.app (op U)) ⟨(𝓕.self.obj (op U))⟩) →
+  (extension_of_scalars.module (f.app (op V)) ⟨(𝓕.self.obj (op V))⟩) :=
+λ x, begin
+  refine @tensor_product.lift _ _ _ _
       ((extension_of_scalars (f.app (op V))).obj ⟨𝓕.self.obj (op V)⟩) _ _ _ _ _ _ _ _,
     { exact 𝓞1.obj (op U) },
     { apply_instance },
@@ -270,7 +267,6 @@ def restrict (U V : opens X) (inc : op U ⟶ op V) :
         erw (extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor (f.app (op V))
           ⟨(𝓕.self.obj (op V))⟩ ((f.app (op V)) ((𝓞1.map inc) r)) ((𝓞2.map inc) z)
           ((𝓕.to_core.self.map inc) x)).symm,
-
         unfold has_scalar.smul,
         rw tensor_product.lift.tmul,
         dsimp,
@@ -281,16 +277,34 @@ def restrict (U V : opens X) (inc : op U ⟶ op V) :
         rw ← f.naturality,
         refl,
         }, },
-    { exact x, },
-  end,
-  map_add' := by simp,
+      { exact x },
+end
+
+
+/--
+For all opens `V ⊆ U`, there is a linear map `𝓕(U) ⊗[𝓞1(U)] 𝓞2(U) ⟶ 𝓕(V) ⊗[𝓞1(V)] 𝓞2(U)`
+given by `x ⊗ y ↦ ρₘ x ⊗ ρ₂ y` where `ρₘ` is restriction map of `𝓕` and `ρ₂` is restriction map
+of `𝓞2`.
+-/
+def restrict (U V : opens X) (inc : op U ⟶ op V) :
+  linear_map (𝓞2.map inc) (extension_of_scalars.module (f.app (op U)) ⟨(𝓕.self.obj (op U))⟩)
+    (extension_of_scalars.module (f.app (op V)) ⟨(𝓕.self.obj (op V))⟩) :=
+-- let m1 : module (𝓞1.obj (op U)) (𝓞2.obj (op U)) :=
+--   extension_of_scalars.is_R_mod_S (f.app (op U)),
+-- m2 : module (𝓞1.obj (op U)) (f.app (op V) _* Module.mk (𝓕.to_core.self.obj (op V))) :=
+--   restriction_of_scalars.is_module _ (f.app (op U) ≫ 𝓞2.map inc)
+-- in
+{ to_fun := restrict.to_fun f 𝓕 U V inc,
+  map_add' := by simp [restrict.to_fun],
   map_smul' := λ r m, begin
     induction m using tensor_product.induction_on with m s x y ih1 ih2,
-    { simp only [extension_of_scalars.distrib_mul_action_S_M_tensor_S.smul_zero, map_zero], },
-    { simp only [linear_map.coe_mk, tensor_product.lift.tmul,
+    { simp only [restrict.to_fun, extension_of_scalars.distrib_mul_action_S_M_tensor_S.smul_zero,
+        map_zero], },
+    { simp only [restrict.to_fun, linear_map.coe_mk, tensor_product.lift.tmul,
         extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor, map_mul],
       convert (extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor _ _ _ _ _).symm, },
-    { rw [smul_add, map_add, map_add, ih1, ih2],
+    { simp only [restrict.to_fun] at ih1 ih2 ⊢,
+      rw [smul_add, map_add, map_add, ih1, ih2],
       simp only [smul_add], }
   end, }.
 
@@ -299,7 +313,7 @@ begin
   induction m using tensor_product.induction_on with x y x y ih1 ih2,
   { simp only [map_zero], },
   { unfold restrict,
-    simp only [category_theory.functor.map_id, id_apply, linear_map.coe_mk,
+    simp only [restrict.to_fun, category_theory.functor.map_id, id_apply, linear_map.coe_mk,
       tensor_product.lift.tmul], },
   { rw [map_add, ih1, ih2], },
 end.
@@ -329,10 +343,9 @@ def extension_by.obj_presheaf_Ab : presheaf Ab X :=
     dsimp,
     induction m using tensor_product.induction_on with x y x y ih1 ih2,
     { simp only [map_zero], },
-    { unfold restrict,
+    { unfold restrict restrict.to_fun,
       simp only [functor.map_comp, comp_apply, linear_map.coe_mk, add_monoid_hom.coe_mk],
-      dsimp,
-      simp only [tensor_product.lift.tmul, linear_map.coe_mk], },
+      erw [tensor_product.lift.tmul], },
     { simp only [map_add, ih1, ih2], }
   end }.
 
@@ -448,6 +461,7 @@ private def extension_by.map {𝓕1 𝓕2 : presheaf_of_module 𝓞1} (φ : 𝓕
     { simp only [map_zero], },
     { rw [extension_by.obj_map', extension_by.obj_map', restrict, tensor_product.lift.tmul,
         restrict],
+      unfold restrict.to_fun,
       simp only [linear_map.coe_mk],
       erw [tensor_product.lift.tmul, tensor_product.lift.tmul],
       dsimp,
@@ -511,5 +525,3 @@ def extension_by : presheaf_of_module 𝓞1 ⥤ presheaf_of_module 𝓞2 :=
 end extension
 
 end presheaf_of_module
-
-#lint

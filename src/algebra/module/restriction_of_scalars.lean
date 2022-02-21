@@ -24,7 +24,6 @@ def has_scalar : has_scalar R N :=
 
 -- #check (restriction_of_scalars.has_scalar N f).smul
 localized "attribute [instance] restriction_of_scalars.has_scalar" in change_of_rings
-localized "notation r `•[` N `,` f `]` m := (restriction_of_scalars.has_scalar N f).smul" in change_of_rings
 
 @[simp] lemma smul_def (r : R) (n : N) :
   @has_scalar.smul R N (restriction_of_scalars.has_scalar N f) r n = f r • n := rfl

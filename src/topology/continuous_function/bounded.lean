@@ -800,10 +800,10 @@ functions from `α` to `β` inherits a so-called `has_bounded_smul` structure (i
 `has_continuous_mul` structure, which is the mathlib formulation of being a topological module), by
 using pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables {𝕜 : Type*} [metric_space 𝕜] [semiring 𝕜]
-variables [topological_space α] [metric_space β] [add_comm_monoid β]
-  [module 𝕜 β] [has_bounded_smul 𝕜 β]
-variables {f g : α →ᵇ β} {x : α} {C : ℝ}
+variables {𝕜 : Type*} [pseudo_metric_space 𝕜] [topological_space α] [metric_space β]
+
+section has_scalar
+variables [has_zero 𝕜] [has_zero β] [has_scalar 𝕜 β] [has_bounded_smul 𝕜 β]
 
 instance : has_scalar 𝕜 (α →ᵇ β) :=
 { smul := λ c f,
@@ -832,6 +832,29 @@ instance : has_bounded_smul 𝕜 (α →ᵇ β) :=
     simp
   end }
 
+end has_scalar
+
+section mul_action
+variables [monoid_with_zero 𝕜] [has_zero β] [mul_action 𝕜 β] [has_bounded_smul 𝕜 β]
+
+instance : mul_action 𝕜 (α →ᵇ β) :=
+function.injective.mul_action _ coe_injective coe_smul
+
+end mul_action
+
+section distrib_mul_action
+variables [monoid_with_zero 𝕜] [add_monoid β] [distrib_mul_action 𝕜 β] [has_bounded_smul 𝕜 β]
+variables [has_lipschitz_add β]
+
+instance : distrib_mul_action 𝕜 (α →ᵇ β) :=
+function.injective.distrib_mul_action ⟨_, coe_zero, coe_add⟩ coe_injective coe_smul
+
+end distrib_mul_action
+
+section module
+variables [semiring 𝕜] [add_comm_monoid β] [module 𝕜 β] [has_bounded_smul 𝕜 β]
+variables {f g : α →ᵇ β} {x : α} {C : ℝ}
+
 variables [has_lipschitz_add β]
 
 instance : module 𝕜 (α →ᵇ β) :=
@@ -853,8 +876,10 @@ variables (α β)
 @[simps]
 def to_continuous_map_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
 { to_fun := to_continuous_map,
-  map_smul' := by { intros, ext, simp, },
-  map_add' := by { intros, ext, simp, }, }
+  map_smul' := λ f g, rfl,
+  map_add' := λ c f, rfl }
+
+end module
 
 end has_bounded_smul
 

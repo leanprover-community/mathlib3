@@ -514,7 +514,7 @@ begin
   subst e,
   refine λ k0 ih, irreducible.squarefree (nat.prime_def_le_sqrt.2 ⟨bit1_lt_bit1.2 h, _⟩),
   intros m m2 hm md,
-  obtain ⟨p, pp, hp⟩ := nat.exists_prime_and_dvd m2,
+  obtain ⟨p, pp, hp⟩ := nat.exists_prime_and_dvd (ne_of_gt m2),
   have := (ih p pp (dvd_trans hp md)).trans
     (le_trans (nat.le_of_dvd (lt_of_lt_of_le dec_trivial m2) hp) hm),
   rw nat.le_sqrt at this,

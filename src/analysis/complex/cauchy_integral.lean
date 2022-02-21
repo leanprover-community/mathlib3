@@ -375,7 +375,7 @@ begin
       refine circle_integral.norm_integral_le_of_norm_le_const hr0.le (λ z hz, _),
       specialize hzne z hz,
       rw [mem_sphere, dist_eq_norm] at hz,
-      rw [norm_smul, normed_field.norm_inv, hz, ← dist_eq_norm],
+      rw [norm_smul, norm_inv, hz, ← dist_eq_norm],
       refine mul_le_mul_of_nonneg_left (hδ _ ⟨_, hzne⟩).le (inv_nonneg.2 hr0.le),
       rwa [mem_closed_ball_iff_norm, hz]
     end

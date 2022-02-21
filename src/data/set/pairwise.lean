@@ -19,7 +19,7 @@ This file defines pairwise relations and pairwise disjoint indexed sets.
   of `s` are either equal or `disjoint`.
 -/
 
-open set
+open order set
 
 variables {α ι ι' : Type*} {r p q : α → α → Prop}
 
@@ -325,6 +325,22 @@ begin
 end
 
 end complete_lattice
+
+section frame
+variables [frame α]
+
+lemma pairwise_disjoint_prod_iff {s : set ι} {t : set ι'}
+  {f : ι × ι' → α} :
+  (s ×ˢ t : set (ι × ι')).pairwise_disjoint f ↔ s.pairwise_disjoint (λ i, ⨆ i' ∈ t, f (i, i')) ∧
+    t.pairwise_disjoint (λ i', ⨆ i ∈ s, f (i, i')) :=
+begin
+  refine (⟨λ h, ⟨λ i hi j hj hij, _, λ i hi j hj hij, _⟩, λ h, h.1.prod h.2⟩);
+    simp_rw [function.on_fun, supr_disjoint_iff, disjoint_supr_iff]; intros i' hi' j' hj',
+  { exact h (mk_mem_prod hi hi') (mk_mem_prod hj hj') (ne_of_apply_ne prod.fst hij) },
+  { exact h (mk_mem_prod hi' hi) (mk_mem_prod hj' hj) (ne_of_apply_ne prod.snd hij) }
+end
+
+end frame
 
 /-! ### Pairwise disjoint set of sets -/
 

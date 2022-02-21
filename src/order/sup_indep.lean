@@ -188,6 +188,18 @@ begin
     { convert le_sup hj.2 } }
 end
 
+lemma sup_indep_product_iff {s : finset ι} {t : finset ι'} {f : ι × ι' → α} :
+  (s.product t).sup_indep f ↔
+    s.sup_indep (λ i, t.sup $ λ i', f (i, i')) ∧ t.sup_indep (λ i', s.sup $ λ i, f (i, i')) :=
+begin
+  refine ⟨_, λ h, h.1.product h.2⟩,
+  simp_rw sup_indep_iff_pairwise_disjoint,
+  refine (λ h, ⟨λ i hi j hj hij, _, λ i hi j hj hij, _⟩);
+    simp_rw [function.on_fun, disjoint_sup_left, disjoint_sup_right]; intros i' hi' j' hj',
+  { exact h (mk_mem_product hi hi') (mk_mem_product hj hj') (ne_of_apply_ne prod.fst hij) },
+  { exact h (mk_mem_product hi' hi) (mk_mem_product hj' hj) (ne_of_apply_ne prod.snd hij) }
+end
+
 end distrib_lattice
 end finset
 

@@ -388,7 +388,7 @@ add_tactic_doc
 { name := "linear_combination",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.linear_combination],
-  tags := [] }
+  tags := ["arithmetic"] }
 
 end interactive_mode
 end linear_combo

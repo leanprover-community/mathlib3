@@ -444,6 +444,14 @@ begin
   exact hf'.dense_image hf hs
 end
 
+/-- If a subgroup of a topological group is commutative, then so is its topological closure. -/
+@[to_additive "If a subgroup of an additive topological group is commutative, then so is its
+topological closure."]
+def subgroup.comm_group_topological_closure [t2_space G] (s : subgroup G)
+  (hs : ∀ (x y : s), x * y = y * x) : comm_group s.topological_closure :=
+{ ..s.topological_closure.to_group,
+  ..s.to_submonoid.comm_monoid_topological_closure hs }
+
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :
   ∃ V ∈ 𝓝 (1 : G), ∀ (v ∈ V) (w ∈ V), v / w ∈ s :=

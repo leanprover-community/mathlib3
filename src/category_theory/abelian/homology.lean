@@ -175,4 +175,91 @@ begin
   exact equalizer.hom_ext h,
 end
 
+@[simp, reassoc]
+lemma π'_eq_π : (kernel_subobject_iso _).hom ≫ π' f g w = π _ _ _ :=
+begin
+  dsimp [π', homology_iso_cokernel_lift],
+  simp only [← category.assoc],
+  rw iso.comp_inv_eq,
+  dsimp [π, homology_iso_cokernel_image_to_kernel'],
+  simp,
+end
+
+section
+
+variables {X' Y' Z' : A} (f' : X' ⟶ Y') (g' : Y' ⟶ Z') (w' : f' ≫ g' = 0)
+
+@[simp, reassoc]
+lemma π'_map (α β h) :
+  π' _ _ _ ≫ map w w' α β h = kernel.map _ _ α.right β.right (by simp [h,β.w.symm]) ≫ π' _ _ _ :=
+begin
+  apply_fun (λ e, (kernel_subobject_iso _).hom ≫ e),
+  swap,
+  { intros i j hh,
+    apply_fun (λ e, (kernel_subobject_iso _).inv ≫ e) at hh,
+    simpa using hh },
+  dsimp [map],
+  simp only [π'_eq_π_assoc],
+  dsimp [π],
+  simp only [cokernel.π_desc],
+  rw [← iso.inv_comp_eq, ← category.assoc],
+  have : (limits.kernel_subobject_iso g).inv ≫ limits.kernel_subobject_map β =
+    kernel.map _ _ β.left β.right β.w.symm ≫ (kernel_subobject_iso _).inv,
+  { rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv],
+    ext,
+    dsimp,
+    simp },
+  rw this,
+  simp only [category.assoc],
+  dsimp [π', homology_iso_cokernel_lift],
+  simp only [cokernel_iso_of_eq_inv_comp_desc, cokernel.π_desc_assoc],
+  congr' 1,
+  { congr, exact h.symm },
+  { rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv],
+    dsimp [homology_iso_cokernel_image_to_kernel'],
+    simp }
+end
+
+lemma map_eq_left (α β h) : map w w' α β h =
+  homology.desc' _ _ _ (homology.lift _ _ _ (kernel.ι _ ≫ β.left ≫ cokernel.π _) (by simp))
+  (by { ext, simp only [←h, category.assoc, zero_comp, ι_lift, kernel.lift_ι_assoc],
+    erw ← reassoc_of α.w, simp } ) :=
+begin
+  apply homology.hom_from_ext,
+  simp only [π'_map, desc'_π'],
+  dsimp [π', lift],
+  rw iso.eq_comp_inv,
+  dsimp [homology_iso_kernel_desc, category_theory.abelian.homology_c_to_k],
+  ext,
+  simp [h],
+end
+
+lemma map_eq_left' (α β h) : map w w' α β h =
+  homology.lift _ _ _ (homology.desc' _ _ _ (kernel.ι _ ≫ β.left ≫ cokernel.π _)
+  (by { simp only [kernel.lift_ι_assoc, ← h], erw ← reassoc_of α.w, simp }))
+  (by { ext, simp }) :=
+by { rw map_eq_left, ext, simp }
+
+lemma map_eq_right (α β h) : map w w' α β h =
+  homology.desc' _ _ _ (homology.lift _ _ _ (kernel.ι _ ≫ α.right ≫ cokernel.π _) (by simp [h]))
+  (by { ext, simp only [category.assoc, zero_comp, ι_lift, kernel.lift_ι_assoc],
+    erw ← reassoc_of α.w, simp } ) :=
+begin
+  apply homology.hom_from_ext,
+  simp only [π'_map, desc'_π'],
+  dsimp [π', lift],
+  rw iso.eq_comp_inv,
+  dsimp [homology_iso_kernel_desc, category_theory.abelian.homology_c_to_k],
+  ext,
+  simp,
+end
+
+lemma map_eq_right' (α β h) : map w w' α β h =
+  homology.lift _ _ _ (homology.desc' _ _ _ (kernel.ι _ ≫ α.right ≫ cokernel.π _)
+  (by { simp only [kernel.lift_ι_assoc], erw ← reassoc_of α.w, simp }))
+  (by { ext, simp [h] }) :=
+by { rw map_eq_right, ext, simp }
+
+end
+
 end homology

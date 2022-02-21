@@ -919,7 +919,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
 variables {b : ℝ} {f : ℕ → ℝ} {z : ℕ → E}
 
 /-- **Dirichlet's Test** for monotone sequences. -/
-theorem cauchy_seq_series_mul_of_monotone_tendsto_zero_of_series_bounded
+theorem monotone.cauchy_seq_series_mul_of_tendsto_zero_of_bounded
   (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) (hgb : ∀ n, ∥∑ i in range n, z i∥ ≤ b) :
   cauchy_seq (λ n, ∑ i in range (n+1), (f i) • z i) :=
 begin
@@ -939,13 +939,13 @@ begin
 end
 
 /-- **Dirichlet's test** for antitone sequences. -/
-theorem cauchy_seq_series_mul_of_antitone_tendsto_zero_of_series_bounded
+theorem antitone.cauchy_seq_series_mul_of_tendsto_zero_of_bounded
   (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) (hzb : ∀ n, ∥∑ i in range n, z i∥ ≤ b) :
   cauchy_seq (λ n, ∑ i in range (n+1), (f i) • z i) :=
 begin
   have hfa': monotone (λ n, -f n) := λ _ _ hab, neg_le_neg $ hfa hab,
   have hf0': tendsto (λ n, -f n) at_top (𝓝 0) := by { convert hf0.neg, norm_num },
-  convert (cauchy_seq_series_mul_of_monotone_tendsto_zero_of_series_bounded hfa' hf0' hzb).neg,
+  convert (hfa'.cauchy_seq_series_mul_of_tendsto_zero_of_bounded hf0' hzb).neg,
   funext,
   simp
 end
@@ -960,32 +960,31 @@ theorem monotone.cauchy_seq_alternating_series_of_tendsto_zero
   cauchy_seq (λ n, ∑ i in range (n+1), (-1) ^ i * f i) :=
 begin
   simp_rw [mul_comm],
-  exact cauchy_seq_series_mul_of_monotone_tendsto_zero_of_series_bounded hfa hf0
-    norm_sum_neg_one_pow_le
+  exact hfa.cauchy_seq_series_mul_of_tendsto_zero_of_bounded hf0 norm_sum_neg_one_pow_le
 end
 
 /-- The **alternating series test** for monotone sequences. -/
-theorem tendsto_alternating_series_of_monotone_tendsto_zero
+theorem monotone.tendsto_alternating_series_of_tendsto_zero
   (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) :
   ∃ l, tendsto (λ n, ∑ i in range (n+1), (-1) ^ i * f i) at_top (𝓝 l) :=
-cauchy_seq_tendsto_of_complete $ cauchy_seq_alternating_series_of_monotone_tendsto_zero hfa hf0
+cauchy_seq_tendsto_of_complete $ hfa.cauchy_seq_alternating_series_of_tendsto_zero hf0
 
 /-- The **alternating series test** for antitone sequences.
 See also `tendsto_alternating_series_of_antitone_tendsto_zero`. -/
-theorem cauchy_seq_alternating_series_of_antitone_tendsto_zero
+theorem antitone.cauchy_seq_alternating_series_of_tendsto_zero
   (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) :
   cauchy_seq (λ n, ∑ i in range (n+1), (-1) ^ i * f i) :=
 begin
   simp_rw [mul_comm],
   exact
-    cauchy_seq_series_mul_of_antitone_tendsto_zero_of_series_bounded hfa hf0 norm_sum_neg_one_pow_le
+    hfa.cauchy_seq_series_mul_of_tendsto_zero_of_bounded hf0 norm_sum_neg_one_pow_le
 end
 
 /-- The **alternating series test** for antitone sequences. -/
-theorem tendsto_alternating_series_of_antitone_tendsto_zero
+theorem antitone.tendsto_alternating_series_of_tendsto_zero
   (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) :
   ∃ l, tendsto (λ n, ∑ i in range (n+1), (-1) ^ i * f i) at_top (𝓝 l) :=
-cauchy_seq_tendsto_of_complete $ cauchy_seq_alternating_series_of_antitone_tendsto_zero hfa hf0
+cauchy_seq_tendsto_of_complete $ hfa.cauchy_seq_alternating_series_of_tendsto_zero hf0
 
 end
 

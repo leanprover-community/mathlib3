@@ -552,37 +552,6 @@ lemma topological_group.of_comm_of_nhds_one {G : Type u} [comm_group G] [topolog
   (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1)) : topological_group G :=
 topological_group.of_nhds_one hmul hinv hleft (by simpa using tendsto_id)
 
-/-- A homomorphism of topological groups is continuous if and only if it is continuous at 1. -/
-@[to_additive "A homomorphism of topological additive groups is continuous if and only if it is
-continuous at 0."]
-lemma topological_group.continuous_iff_continuous_at_one {F : Type*} [topological_space H]
-  [group H] [topological_group H] [monoid_hom_class F G H] {f : F} :
-  continuous f ↔ continuous_at f 1 :=
-begin
-  rw continuous_iff_continuous_at,
-  refine ⟨λ hf, hf 1, λ hf, _⟩,
-  { intros x U hUx,
-    rw [← map_mul_left_nhds_one, mem_map, mem_map],
-    rw [← map_mul_left_nhds_one, mem_map, ← map_one f] at hUx,
-    convert hf hUx,
-    ext y,
-    simp only [mem_preimage, map_mul] }
-end
-
-/-- A homomorphism from a topological group to a discrete topological group is continuous if and
-only if its kernel is open. -/
-@[to_additive "A homomorphism from a topological additive group to a
-discrete topological additive group is continuous if and only if its kernel is open."]
-lemma topological_group.continuous_iff_open_ker [topological_space H] [discrete_topology H]
-  [group H] [topological_group H] {f : G →* H} : continuous f ↔ is_open (f.ker : set G) :=
-begin
-  refine ⟨λ hf, _, λ hf, _⟩,
-  { apply (is_open_discrete ({1} : set H)).preimage hf },
-  { rw topological_group.continuous_iff_continuous_at_one,
-    rw [continuous_at, nhds_discrete H, map_one, tendsto_pure],
-    exact hf.mem_nhds (map_one f) }
-end
-
 end topological_group
 
 section quotient_topological_group

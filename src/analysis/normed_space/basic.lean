@@ -790,8 +790,9 @@ def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n]
 pi.normed_space
 
 lemma matrix.norm_entry_le_entrywise_sup_norm {α : Type*} [normed_field α] {n m : Type*} [fintype n]
-  [fintype m] (M : (matrix n m α)) {i : n} {j : m}:
-  ∥M i j∥ ≤ ∥M∥ := @le_trans _ _ _ _ _ (norm_le_pi_norm (M i) j) (norm_le_pi_norm M i)
+  [fintype m] (M : (matrix n m α)) {i : n} {j : m} :
+  ∥M i j∥ ≤ ∥M∥ :=
+(norm_le_pi_norm (M i) j).trans (norm_le_pi_norm M i)
 
 end
 

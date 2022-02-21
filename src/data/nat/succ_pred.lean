@@ -54,7 +54,7 @@ instance : is_pred_archimedean ℕ :=
 
 /-! ### Covering relation -/
 
-protected lemma nat.cov_by_iff_succ_eq {m n : ℕ} : m ⋖ n ↔ m + 1 = n := cov_by_iff_succ_eq
+protected lemma nat.covby_iff_succ_eq {m n : ℕ} : m ⋖ n ↔ m + 1 = n := covby_iff_succ_eq
 
-@[simp] lemma fin.coe_cov_by_iff {n : ℕ} (a b : fin n) : (a : ℕ) ⋖ b ↔ a ⋖ b :=
+@[simp] lemma fin.coe_covby_iff {n : ℕ} (a b : fin n) : (a : ℕ) ⋖ b ↔ a ⋖ b :=
 and_congr_right' ⟨λ h c hc, h hc, λ h c ha hb, @h ⟨c, hb.trans b.prop⟩ ha hb⟩

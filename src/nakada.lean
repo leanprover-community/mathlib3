@@ -35,7 +35,7 @@ lemma homogeneity [nakada_po S] {a b : S} (h : a ≤ b) (c : S) :
 mul_le_mul_left' h c
 
 @[to_additive]
-lemma nakada_po.of_fun {S S' : Type*} [has_mul S] [has_le S] [has_mul S'] [has_le S']
+lemma nakada_po.comap {S S' : Type*} [has_mul S] [has_le S] [has_mul S'] [has_le S']
   [nakada_po S] (f : S' → S) (hrel : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
   (hmul : ∀ x y, f (x * y) = f x * f y):
   nakada_po S' :=
@@ -53,6 +53,13 @@ variables {S}
 @[to_additive add_strong]
 lemma strong [nakada_strong S] {a b c : S} (h : a * b ≤ a * c) : b ≤ c :=
 le_of_mul_le_mul_left' h
+
+@[to_additive]
+lemma nakada_strong.comap {S S' : Type*} [has_mul S] [has_le S] [has_mul S'] [has_le S']
+  [nakada_strong S] (f : S' → S) (hrel : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
+  (hmul : ∀ x y, f (x * y) = f x * f y):
+  nakada_strong S' :=
+⟨λ a b c h, by { rw [←hrel] at h ⊢, rw [hmul, hmul] at h, exact strong h }⟩
 
 -- Theorem 1
 @[priority 10, to_additive add_group.add_nakada_strong]
@@ -354,6 +361,10 @@ lemma mul_pair_equiv_iff (p q : S × S) : p ≈ q ↔ p.1 * q.2 = q.1 * p.2 := i
 lemma mul_pair_left_eq (p : S × S) (x : S) : ⟦(x * p.1, x * p.2)⟧ = ⟦p⟧ :=
 by simp only [quotient.eq, mul_pair_equiv_iff, mul_assoc, mul_comm, mul_left_comm]
 
+@[simp, to_additive]
+lemma mul_pair_mk'_eq (p : S × S) :
+  @quotient.mk' _ (mul_pair_setoid S) p = ⟦p⟧ := rfl
+
 namespace pair_quotient
 
 local notation `G` := quotient (mul_pair_setoid S)
@@ -615,7 +626,9 @@ def negative {S : Type*} [has_mul S] [has_le S] (a : S) : Prop := a * a ≤ a
 
 section
 
-variables {S : Type*} [comm_semigroup S] [preorder S] [nakada_po S]
+variables {S S' M : Type*} [comm_semigroup S] [preorder S] [nakada_po S]
+  [comm_semigroup S'] [preorder S'] [nakada_po S']
+  [comm_monoid M] [preorder M] [nakada_po M]
 
 @[to_additive]
 lemma positive.mul {a b : S} (ha : positive a) (hb : positive b) : positive (a * b) :=
@@ -637,7 +650,21 @@ begin
   exact homogeneity ha _
 end
 
-variables (S)
+@[to_additive add_positive_zero]
+lemma positive_one : positive (1 : M) := by simp [positive]
+
+@[to_additive add_negative_zero]
+lemma negative_one : negative (1 : M) := by simp [negative]
+
+@[to_additive add_order_embedding.add_positive]
+lemma mul_order_embedding.positive (f : S ↪*o S') {a : S} (ha : positive a) : positive (f a) :=
+by rwa [positive, ←map_mul, f.map_le_iff]
+
+@[to_additive add_order_embedding.add_negative]
+lemma mul_order_embedding.negative (f : S ↪*o S') {a : S} (ha : negative a) : negative (f a) :=
+by rwa [negative, ←map_mul, f.map_le_iff]
+
+variables (S M)
 
 @[to_additive pos_add_subsemigroup]
 def pos_subsemigroup : subsemigroup S :=
@@ -649,23 +676,99 @@ def neg_subsemigroup : subsemigroup S :=
 { carrier := set_of negative,
   mul_mem' := λ _ _, negative.mul }
 
+@[to_additive]
+def pos_submonoid : submonoid M :=
+{ one_mem' := positive_one,
+  ..pos_subsemigroup M }
+
+@[to_additive]
+def neg_submonoid : submonoid M :=
+{ one_mem' := negative_one,
+  ..neg_subsemigroup M }
+
+variables {S S'}
+
+@[to_additive]
+def mul_order_embedding.restrict_pos (f : S ↪*o S') :
+  pos_subsemigroup S ↪*o pos_subsemigroup S' :=
+{ to_fun := λ x, ⟨f x, f.positive x.prop⟩,
+  map_mul' := λ _ _, subtype.ext $ by simp only [subsemigroup.coe_mul, map_mul, subtype.coe_mk],
+  inj' := λ _ _, by simp [f.injective.eq_iff] {contextual := tt},
+  map_rel_iff' := λ _ _,
+    by simp only [subtype.mk_le_mk, mul_order_embedding.map_le_iff, subtype.coe_le_coe] }
+
+@[to_additive]
+def mul_order_embedding.restrict_neg (f : S ↪*o S') :
+  neg_subsemigroup S ↪*o neg_subsemigroup S' :=
+{ to_fun := λ x, ⟨f x, f.negative x.prop⟩,
+  map_mul' := λ _ _, subtype.ext $ by simp only [subsemigroup.coe_mul, map_mul, subtype.coe_mk],
+  inj' := λ _ _, by simp [f.injective.eq_iff] {contextual := tt},
+  map_rel_iff' := λ _ _,
+    by simp only [subtype.mk_le_mk, mul_order_embedding.map_le_iff, subtype.coe_le_coe] }
+
+@[to_additive]
+lemma mul_order_embedding.restrict_pos_apply (f : S ↪*o S') (x : pos_subsemigroup S) :
+  f.restrict_pos x = ⟨f x, f.positive x.prop⟩ := rfl
+
+@[to_additive]
+lemma mul_order_embedding.restrict_neg_apply (f : S ↪*o S') (x : neg_subsemigroup S) :
+  f.restrict_neg x = ⟨f x, f.negative x.prop⟩ := rfl
+
+@[to_additive]
+lemma mul_order_embedding.apply_pos_subsemigroup (f : S ↪*o S') (x : pos_subsemigroup S) :
+  f x = f.restrict_pos x := rfl
+
+@[to_additive]
+lemma mul_order_embedding.apply_neg_subsemigroup (f : S ↪*o S') (x : neg_subsemigroup S) :
+  f x = f.restrict_neg x := rfl
+
+@[to_additive]
+def mul_order_iso.restrict_pos (f : S ≃*o S') :
+  pos_subsemigroup S ≃*o pos_subsemigroup S' :=
+mul_order_iso.of_mul_order_embedding
+  f.to_mul_order_embedding.restrict_pos f.symm.to_mul_order_embedding.restrict_pos $ λ _,
+  by simp [mul_order_embedding.restrict_pos_apply]
+
+@[to_additive]
+def mul_order_iso.restrict_neg (f : S ≃*o S') :
+  neg_subsemigroup S ≃*o neg_subsemigroup S' :=
+mul_order_iso.of_mul_order_embedding
+  f.to_mul_order_embedding.restrict_neg f.symm.to_mul_order_embedding.restrict_neg $ λ _,
+  by simp [mul_order_embedding.restrict_neg_apply]
+
+@[to_additive]
+lemma mul_order_iso.restrict_pos_apply (f : S ≃*o S') (x : pos_subsemigroup S) :
+  f.restrict_pos x = ⟨f x, f.to_mul_order_embedding.positive x.prop⟩ := rfl
+
+@[to_additive]
+lemma mul_order_iso.restrict_neg_apply (f : S ≃*o S') (x : neg_subsemigroup S) :
+  f.restrict_neg x = ⟨f x, f.to_mul_order_embedding.negative x.prop⟩ := rfl
+
+@[to_additive]
+lemma mul_order_iso.apply_pos_subsemigroup (f : S ≃*o S') (x : pos_subsemigroup S) :
+  f x = f.restrict_pos x := rfl
+
+@[to_additive]
+lemma mul_order_iso.apply_neg_subsemigroup (f : S ≃*o S') (x : neg_subsemigroup S) :
+  f x = f.restrict_neg x := rfl
+
 end
 
 section
 
-variables {S : Type*} [comm_semigroup S]
+variables {S S' M : Type*} [comm_semigroup S] [comm_semigroup S'] [comm_monoid M]
 
 @[to_additive]
 instance [preorder S] [nakada_po S] : preorder (pos_subsemigroup S) :=
 subtype.preorder _
 
--- TODO: define subtype.nakada_po
 @[to_additive]
 instance [preorder S] [nakada_po S] : nakada_po (pos_subsemigroup S) :=
-nakada_po.of_fun (coe : _ → S) (λ _ _, iff.rfl) (λ _ _, rfl)
+nakada_po.comap (coe : _ → S) (λ _ _, iff.rfl) (λ _ _, rfl)
 
 @[to_additive]
-instance [preorder S] [nakada_po S] [nakada_strong S] : nakada_strong (pos_subsemigroup S) := sorry
+instance [preorder S] [nakada_po S] [nakada_strong S] : nakada_strong (pos_subsemigroup S) :=
+nakada_strong.comap (coe : _ → S) (λ _ _, iff.rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance [partial_order S] [nakada_po S] : partial_order (pos_subsemigroup S) :=
@@ -681,10 +784,11 @@ subtype.preorder _
 
 @[to_additive]
 instance [preorder S] [nakada_po S] : nakada_po (neg_subsemigroup S) :=
-nakada_po.of_fun (coe : _ → S) (λ _ _, iff.rfl) (λ _ _, rfl)
+nakada_po.comap (coe : _ → S) (λ _ _, iff.rfl) (λ _ _, rfl)
 
 @[to_additive]
-instance [preorder S] [nakada_po S] [nakada_strong S] : nakada_strong (neg_subsemigroup S) := sorry
+instance [preorder S] [nakada_po S] [nakada_strong S] : nakada_strong (neg_subsemigroup S) :=
+nakada_strong.comap (coe : _ → S) (λ _ _, iff.rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance [partial_order S] [nakada_po S] : partial_order (neg_subsemigroup S) :=
@@ -694,11 +798,239 @@ subtype.partial_order _
 instance [linear_order S] [nakada_po S] : linear_order (neg_subsemigroup S) :=
 subtype.linear_order _
 
+@[to_additive]
+instance [preorder M] [nakada_po M] : inhabited (pos_subsemigroup M) :=
+⟨⟨1, positive_one⟩⟩
+
+@[to_additive]
+instance [preorder M] [nakada_po M] : inhabited (neg_subsemigroup M) :=
+⟨⟨1, negative_one⟩⟩
+
+@[to_additive]
+instance [preorder M] [nakada_po M] : preorder (pos_submonoid M) :=
+subtype.preorder _
+
+@[to_additive]
+instance [preorder M] [nakada_po M] : nakada_po (pos_submonoid M) :=
+nakada_po.comap (coe : _ → M) (λ _ _, iff.rfl) (λ _ _, rfl)
+
+@[to_additive]
+instance [preorder M] [nakada_po M] [nakada_strong M] : nakada_strong (pos_submonoid M) :=
+nakada_strong.comap (coe : _ → M) (λ _ _, iff.rfl) (λ _ _, rfl)
+
+@[to_additive]
+instance [partial_order M] [nakada_po M] : partial_order (pos_submonoid M) :=
+subtype.partial_order _
+
+@[to_additive]
+instance [linear_order M] [nakada_po M] : linear_order (pos_submonoid M) :=
+subtype.linear_order _
+
+@[to_additive]
+instance [preorder M] [nakada_po M] : preorder (neg_submonoid M) :=
+subtype.preorder _
+
+@[to_additive]
+instance [preorder M] [nakada_po M] : nakada_po (neg_submonoid M) :=
+nakada_po.comap (coe : _ → M) (λ _ _, iff.rfl) (λ _ _, rfl)
+
+@[to_additive]
+instance [preorder M] [nakada_po M] [nakada_strong M] : nakada_strong (neg_submonoid M) :=
+nakada_strong.comap (coe : _ → M) (λ _ _, iff.rfl) (λ _ _, rfl)
+
+@[to_additive]
+instance [partial_order M] [nakada_po M] : partial_order (neg_submonoid M) :=
+subtype.partial_order _
+
+@[to_additive]
+instance [linear_order M] [nakada_po M] : linear_order (neg_submonoid M) :=
+subtype.linear_order _
+
 end
+
+@[to_additive add_positive.zero_le]
+lemma positive.one_le {G : Type*} [comm_group G] [preorder G] [nakada_po G] {a : G}
+  (ha : positive a) : 1 ≤ a :=
+by simpa using homogeneity ha a⁻¹
+
+@[to_additive add_negative.le_zero]
+lemma negative.le_one {G : Type*} [comm_group G] [preorder G] [nakada_po G] {a : G}
+  (ha : negative a) : a ≤ 1 :=
+by simpa using homogeneity ha a⁻¹
+
+@[to_additive add_positive.add_negative_neg]
+lemma positive.negative_inv {G : Type*} [comm_group G] [preorder G] [nakada_po G] {a : G}
+  (ha : positive a) : negative a⁻¹ :=
+by simpa only [mul_left_inv, inv_mul_cancel_comm_assoc, mul_one] using
+  homogeneity (homogeneity (homogeneity ha a⁻¹) a⁻¹) a⁻¹
+
+@[to_additive add_negative.add_positive_neg]
+lemma negative.positive_inv {G : Type*} [comm_group G] [preorder G] [nakada_po G] {a : G}
+  (ha : negative a) : positive a⁻¹ :=
+by simpa only [mul_left_inv, inv_mul_cancel_comm_assoc, mul_one] using
+  homogeneity (homogeneity (homogeneity ha a⁻¹) a⁻¹) a⁻¹
+
+@[to_additive]
+instance neg_subsemigroup.is_directed {G : Type*} [comm_group G] [preorder G] [nakada_po G] :
+  is_directed (neg_subsemigroup G) (≤) :=
+⟨λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨⟨1, negative_one⟩, ha.le_one, hb.le_one⟩⟩
+
+@[to_additive]
+instance neg_submonoid.is_directed {G : Type*} [comm_group G] [preorder G] [nakada_po G] :
+  is_directed (neg_submonoid G) (≤) :=
+⟨λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨1, ha.le_one, hb.le_one⟩⟩
+
+def order_hom.is_directed {S S' : Type*} [nonempty S] [preorder S] [is_directed S (≤)]
+  [preorder S'] (f : S →o S') (hf : function.surjective f) : is_directed S' (≤) :=
+⟨λ x y, begin
+  obtain ⟨d, hdx, hdy⟩ := directed_of (≤) ((function.inv_fun f) x) ((function.inv_fun f) y),
+  exact ⟨_, (eq.ge (function.inv_fun_eq (hf _))).trans (f.monotone hdx),
+    (eq.ge (function.inv_fun_eq (hf _))).trans (f.monotone hdy)⟩
+end⟩
+
+-- @[to_additive]
+-- instance mul_pair_quotient.is_directed {S : Type*} [comm_group S] [partial_order S]
+--   [nakada_po S] [nakada_strong S]
+--   [is_directed S (≤)] : is_directed (quotient (mul_pair_setoid S)) (≤) :=
+-- ⟨λ x y, begin
+--   induction x using quotient.induction_on,
+--   induction y using quotient.induction_on,
+--   cases x with a b,
+--   cases y with c d,
+--   obtain ⟨e, he, he'⟩ := directed_of (≤) a c,
+--   obtain ⟨f, hf, hf'⟩ := directed_of (≤) b d,
+--   refine ⟨quotient.mk' (e, f⁻¹), _, _⟩,
+--   { simp only [mul_pair_mk'_eq, pair_quotient.mul_le_def],
+--     have := homogeneity he f,
+--     simp_rw [mul_comm f] at this,
+--     refine this.trans _,
+--   },
+-- end⟩
+
+-- #exit
+
+-- def pos_subsemigroup_equiv {G : Type*} [comm_group G] [partial_order G] [nakada_po G] :
+--   quotient (mul_pair_setoid (neg_subsemigroup G)) ≃*o neg_subsemigroup (quotient (mul_pair_setoid G)) :=
+-- -- { to_fun := λ p, ⟨quotient.map' (λ xy, (coe (prod.snd xy), coe (prod.fst xy))) begin
+-- { to_fun := λ p, ⟨quotient.map' (prod.map coe coe) begin
+-- -- { to_fun := λ p, ⟨quotient.map' (λ xy, (coe (prod.fst xy), (coe (prod.snd xy))) begin
+-- -- { to_fun := λ p, ⟨quotient.map' (λ xy, (coe (prod.fst xy) * (coe (prod.snd xy))⁻¹, 1)) begin
+--     rintro ⟨⟨a, ha⟩, ⟨a', ha'⟩⟩ ⟨⟨b, hb⟩, ⟨b', hb'⟩⟩,
+--     -- simp [←quotient.eq'],
+--     simp [←quotient.eq', mul_comm, mul_left_comm, eq_comm],
+--     -- sorry,
+--   --   simp only [←quotient.eq', eq_comm, mul_comm, mul_pair_mk'_eq, quotient.eq, mul_pair_equiv_iff, subsemigroup.mk_mul_mk,
+--   -- subtype.mk_eq_mk, prod.map_mk, set_like.coe_mk],
+--   end p, begin
+--     induction p using quotient.induction_on',
+--     rcases p with ⟨⟨a, ha⟩, ⟨b, hb⟩⟩,
+--     change (_ ≤ _),
+--     simp_rw [quotient.map'_mk', mul_pair_mk'_eq],
+--     simp only [prod.map_mk, set_like.coe_mk],
+--     have : quotient.mk' (a, b) = quotient.mk' (a * b⁻¹, 1),
+--     { simp [←quotient.eq'] },
+--     rw mul_pair_mk'_eq at this,
+--     rw mul_pair_mk'_eq at this,
+--     simp,
+--     have : a * (a * b) ≤ a * b,
+--     { rw mul_comm,
+--       refine (homogeneity (ha.le_one) _).trans _,
+--       simp },
+
+--     -- rw this,
+--     -- simp,
+--     -- rw mul_assoc,
+--     -- have := ha.mul hb,
+--     -- change (_ ≤ _) at this,
+--     -- simp at this,
+--     -- have := homogeneity hb a,
+--     -- refine homogeneity _ _,
+
+--   end⟩,
+--   inv_fun := _,
+--   left_inv := _,
+--   right_inv := _,
+--   map_mul' := _,
+--   map_rel_iff' := _ }
+
+-- #exit
+
+-- Theorem 8, mp
+lemma is_directed_of_mul_order_iso {G : Type*} [comm_group G] [partial_order G] [nakada_po G]
+  (f : G ≃*o quotient (mul_pair_setoid (neg_submonoid G)))
+  -- (hf : f =  mul_order_iso.of_mul_order_embedding _ _ _)
+  : is_directed G (≤) :=
+⟨λ x y, begin
+  induction hx : (f x) using quotient.induction_on with x',
+  cases x' with a c,
+  have hx' : x = f.symm (to_mul_pair_quotient 1 a * (to_mul_pair_quotient 1 c)⁻¹),
+  { simp [←hx] },
+  induction hy : (f y) using quotient.induction_on with y',
+  cases y' with b C,
+  obtain ⟨b', hb'⟩ : ∃ (b' : neg_submonoid G),
+    @quotient.mk' _ (mul_pair_setoid (neg_submonoid G)) (b, C) = quotient.mk' (b', c),
+  { simp [quotient.eq, subtype.ext_iff],
+    convert (mul_pair_equiv_iff (b, C) (1, c)).mpr _,
+    },
+
+  -- have hy' : y = f.symm ((to_mul_pair_quotient 1 (b * c) * (to_mul_pair_quotient 1 C)⁻¹) * (to_mul_pair_quotient 1 c)⁻¹),
+  -- { rw [←f.injective.eq_iff, mul_order_iso.apply_symm_apply],
+  --   simp [hy, mul_left_comm, mul_comm] },
+  -- -- rw map_inv at hy',
+  -- obtain ⟨d, had, hbd⟩ := directed_of (≤) a b,
+  -- refine ⟨f.symm (to_mul_pair_quotient 1 d * (to_mul_pair_quotient 1 c)⁻¹), _, _⟩,
+  -- { simpa [hx'] using had },
+  -- { simp [hy'], },
+
+
+    -- have ha : f a = to_mul_pair_quotient a ⟨1, negative_one⟩,
+    -- { cases a,
+    --   simp,
+    -- },
+    -- rw [←f.injective.eq_iff, hx, map_mul],
+    -- rw [←f.injective.eq_iff, map_mul, f.apply_neg_subsemigroup, map_inv, hx, ←f.symm.injective.eq_iff],
+    -- rw map_mul,
+    -- simp [mul_order_iso.restrict_neg_apply],
+    -- refine quotient.eq
+    -- have : f c⁻¹ = (f.restrict_neg c)⁻¹,
+    --   sorry,
+    --   exact quotient
+    -- },
+    -- -- rw hx,
+    -- -- rw [eq_comm, quotient.eq_mk_iff_out],
+    -- -- ext,
+    -- -- simp only [map_mul, subsemigroup.coe_mul],
+  -- },
+
+end⟩
+
+#exit
 
 -- Theorem 8, mpr
 example {G : Type*} [comm_group G] [partial_order G] [nakada_po G] [is_directed G (≤)] :
-  nonempty (G ≃*o quotient (mul_pair_setoid (neg_subsemigroup G))) := sorry
+  nonempty (G ≃*o quotient (mul_pair_setoid (neg_subsemigroup G))) :=
+⟨{ to_fun := λ x, begin
+    set a := (directed_of (≤) x 1).some with ha,
+    have hxa : x ≤ a,
+    { rw ha,
+      generalize_proofs ha',
+      exact ha'.some_spec.left },
+    have h1a : 1 ≤ a,
+    { rw ha,
+      generalize_proofs ha',
+      exact ha'.some_spec.right },
+    have hx : x = a * (a * x⁻¹)⁻¹,
+    { rw [mul_inv, inv_inv, mul_inv_cancel_left] },
+    have : 1 ≤ a * x⁻¹,
+    { rw [hx],
+      simpa using hxa },
+    refine quotient.mk' (_, _),
 
+  end,
+   inv_fun := _,
+   left_inv := _,
+   right_inv := _,
+   map_mul' := _,
+   map_rel_iff' := _ }⟩
 
 end page184

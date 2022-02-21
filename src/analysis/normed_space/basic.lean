@@ -262,25 +262,15 @@ instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul 
 @[priority 100] -- see Note [lower instance priority]
 instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α := { }
 
-/-- A nondiscrete normed field is a normed field in which there is an element of norm different from
-`0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by multiplication
-by the powers of any element, and thus to relate algebra and topology. -/
-class nondiscrete_normed_field (α : Type*) extends normed_field α :=
-(non_trivial : ∃x:α, 1<∥x∥)
+section normed_division_ring
 
-section normed_field
-
-variables [normed_field α]
+variables [normed_division_ring α]
 
 @[simp] lemma norm_mul (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
-normed_field.norm_mul' a b
-
-@[priority 100] -- see Note [lower instance priority]
-instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
-{ norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
+normed_division_ring.norm_mul' a b
 
 @[priority 900]
-instance normed_field.to_norm_one_class : norm_one_class α :=
+instance normed_division_ring.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
@@ -324,6 +314,8 @@ nnreal.eq $ by simp
 
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
+
+end normed_division_ring
 
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
@@ -375,7 +367,6 @@ end
 
 end normed_field
 
-section nondiscrete_normed_field
 namespace normed_field
 
 variables (α) [nondiscrete_normed_field α]
@@ -420,7 +411,7 @@ end
 lemma nhds_within_is_unit_ne_bot : ne_bot (𝓝[{x : α | is_unit x}] 0) :=
 by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
-end nondiscrete_normed_field
+end normed_field
 
 instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
@@ -848,7 +839,7 @@ for any `c : ℝ`, there exists a vector `x : E` with norm strictly greater than
 lemma normed_space.exists_lt_norm (c : ℝ) : ∃ x : E, c < ∥x∥ :=
 begin
   rcases exists_ne (0 : E) with ⟨x, hx⟩,
-  rcases exists_lt_norm 𝕜 (c / ∥x∥) with ⟨r, hr⟩,
+  rcases normed_field.exists_lt_norm 𝕜 (c / ∥x∥) with ⟨r, hr⟩,
   use r • x,
   rwa [norm_smul, ← div_lt_iff],
   rwa norm_pos_iff

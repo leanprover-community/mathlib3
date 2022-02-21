@@ -17,8 +17,6 @@ a corollary, is that the number of odd-degree vertices is even.
 
 ## Main definitions
 
-- A `dart` is a directed edge, consisting of an ordered pair of adjacent vertices,
-  thought of as being a directed edge.
 - `simple_graph.sum_degrees_eq_twice_card_edges` is the degree-sum formula.
 - `simple_graph.even_card_odd_degree_vertices` is the handshaking lemma.
 - `simple_graph.odd_card_odd_degree_vertices_ne` is that the number of odd-degree
@@ -44,70 +42,6 @@ namespace simple_graph
 universes u
 variables {V : Type u} (G : simple_graph V)
 
-/-- A dart is a directed edge, consisting of an ordered pair of adjacent vertices. -/
-@[ext, derive decidable_eq]
-structure dart :=
-(fst snd : V)
-(is_adj : G.adj fst snd)
-
-instance dart.fintype [fintype V] [decidable_rel G.adj] : fintype G.dart :=
-fintype.of_equiv (Σ v, G.neighbor_set v)
-{ to_fun := λ s, ⟨s.fst, s.snd, s.snd.property⟩,
-  inv_fun := λ d, ⟨d.fst, d.snd, d.is_adj⟩,
-  left_inv := λ s, by ext; simp,
-  right_inv := λ d, by ext; simp }
-
-variables {G}
-
-/-- The edge associated to the dart. -/
-def dart.edge (d : G.dart) : sym2 V := ⟦(d.fst, d.snd)⟧
-
-@[simp] lemma dart.edge_mem (d : G.dart) : d.edge ∈ G.edge_set :=
-d.is_adj
-
-/-- The dart with reversed orientation from a given dart. -/
-def dart.rev (d : G.dart) : G.dart :=
-⟨d.snd, d.fst, G.symm d.is_adj⟩
-
-@[simp] lemma dart.rev_edge (d : G.dart) : d.rev.edge = d.edge :=
-sym2.eq_swap
-
-@[simp] lemma dart.rev_rev (d : G.dart) : d.rev.rev = d :=
-dart.ext _ _ rfl rfl
-
-@[simp] lemma dart.rev_involutive : function.involutive (dart.rev : G.dart → G.dart) :=
-dart.rev_rev
-
-lemma dart.rev_ne (d : G.dart) : d.rev ≠ d :=
-begin
-  cases d with f s h,
-  simp only [dart.rev, not_and, ne.def],
-  rintro rfl,
-  exact false.elim (G.loopless _ h),
-end
-
-lemma dart_edge_eq_iff (d₁ d₂ : G.dart) :
-  d₁.edge = d₂.edge ↔ d₁ = d₂ ∨ d₁ = d₂.rev :=
-begin
-  cases d₁ with s₁ t₁ h₁,
-  cases d₂ with s₂ t₂ h₂,
-  simp only [dart.edge, dart.rev_edge, dart.rev],
-  rw sym2.eq_iff,
-end
-
-variables (G)
-
-/-- For a given vertex `v`, this is the bijective map from the neighbor set at `v`
-to the darts `d` with `d.fst = v`. --/
-def dart_of_neighbor_set (v : V) (w : G.neighbor_set v) : G.dart :=
-⟨v, w, w.property⟩
-
-lemma dart_of_neighbor_set_injective (v : V) : function.injective (G.dart_of_neighbor_set v) :=
-λ e₁ e₂ h, by { injection h with h₁ h₂, exact subtype.ext h₂ }
-
-instance dart.inhabited [inhabited V] [inhabited (G.neighbor_set default)] :
-  inhabited G.dart := ⟨G.dart_of_neighbor_set default default⟩
-
 section degree_sum
 variables [fintype V] [decidable_rel G.adj]
 
@@ -118,7 +52,7 @@ begin
   simp only [mem_image, true_and, mem_filter, set_coe.exists, mem_univ, exists_prop_of_true],
   split,
   { rintro rfl,
-    exact ⟨_, d.is_adj, dart.ext _ _ rfl rfl⟩, },
+    exact ⟨_, d.is_adj, by ext; refl⟩, },
   { rintro ⟨e, he, rfl⟩,
     refl, },
 end
@@ -151,7 +85,7 @@ lemma dart_edge_fiber_card (e : sym2 V) (h : e ∈ G.edge_set) :
 begin
   refine quotient.ind (λ p h, _) e h,
   cases p with v w,
-  let d : G.dart := ⟨v, w, h⟩,
+  let d : G.dart := ⟨(v, w), h⟩,
   convert congr_arg card d.edge_fiber,
   rw [card_insert_of_not_mem, card_singleton],
   rw [mem_singleton],

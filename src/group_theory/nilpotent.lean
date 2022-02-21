@@ -739,7 +739,6 @@ section bounded_pi
 
 variables {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
 
-@[simp]
 lemma lower_central_series_pi_le (n : ℕ):
   lower_central_series (Π i, Gs i) n ≤ subgroup.pi set.univ (λ i, lower_central_series (Gs i) n) :=
 begin
@@ -763,8 +762,7 @@ begin
   refine ⟨n, _⟩,
   rw eq_bot_iff,
   apply le_trans (lower_central_series_pi_le _),
-  rw ← eq_bot_iff,
-  rw pi_eq_bot_iff,
+  rw [← eq_bot_iff, pi_eq_bot_iff],
   intros i,
   apply lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (h i),
 end
@@ -777,7 +775,6 @@ section finite_pi
 
 variables {η : Type*} [fintype η] {Gs : η → Type*} [∀ i, group (Gs i)]
 
-@[simp]
 lemma lower_central_series_pi_of_fintype (n : ℕ):
   lower_central_series (Π i, Gs i) n = subgroup.pi set.univ (λ i, lower_central_series (Gs i) n) :=
 begin
@@ -798,8 +795,7 @@ instance is_nilpotent_pi [∀ i, is_nilpotent (Gs i)] :
 begin
   rw nilpotent_iff_lower_central_series,
   refine ⟨finset.univ.sup (λ i, group.nilpotency_class (Gs i)), _⟩,
-  rw lower_central_series_pi_of_fintype,
-  rw pi_eq_bot_iff,
+  rw [lower_central_series_pi_of_fintype, pi_eq_bot_iff],
   intros i,
   apply lower_central_series_eq_bot_iff_nilpotency_class_le.mpr,
   exact @finset.le_sup _ _ _ _ finset.univ (λ i, group.nilpotency_class (Gs i)) _
@@ -807,7 +803,7 @@ begin
 end
 
 /-- The nilpotency class of an n-ary product is the sup of the nilpotency classes of the factors -/
-lemma nilpotency_class_prod [∀ i, is_nilpotent (Gs i)] :
+lemma nilpotency_class_pi [∀ i, is_nilpotent (Gs i)] :
   group.nilpotency_class (Π i, Gs i) = finset.univ.sup (λ i, group.nilpotency_class (Gs i)) :=
 begin
   apply eq_of_forall_ge_iff,

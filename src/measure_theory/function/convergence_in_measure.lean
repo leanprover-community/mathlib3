@@ -269,22 +269,30 @@ section tendsto_in_measure_of
 variables [measurable_space E] [normed_group E] [borel_space E] [has_measurable_sub₂ E] {p : ℝ≥0∞}
 variables {f : ℕ → α → E} {g : α → E}
 
+/-- TODO: move this next to ennreal.tendsto_nhds -/
+lemma ennreal.tendsto_nhds_zero {f : filter α} {u : α → ℝ≥0∞} :
+  tendsto u f (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in f, u x ≤ ε :=
+begin
+  rw ennreal.tendsto_nhds ennreal.zero_ne_top,
+  simp only [true_and, zero_tsub, zero_le, zero_add, set.mem_Icc],
+end
+
 /-- This lemma is superceded by `measure_theory.tendsto_in_measure_of_tendsto_snorm` where we
 allow `p = ∞` and only require `ae_measurable`. -/
 lemma tendsto_in_measure_of_tendsto_snorm_of_measurable
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g)
-  (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
-  tendsto_in_measure μ f at_top g :=
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) {l : filter ℕ}
+  (hfg : tendsto (λ n, snorm (f n - g) p μ) l (𝓝 0)) :
+  tendsto_in_measure μ f l g :=
 begin
   intros ε hε,
   replace hfg := ennreal.tendsto.const_mul (tendsto.ennrpow_const p.to_real hfg)
     (or.inr $ @ennreal.of_real_ne_top (1 / ε ^ (p.to_real))),
   simp only [mul_zero, ennreal.zero_rpow_of_pos (ennreal.to_real_pos hp_ne_zero hp_ne_top)] at hfg,
-  rw ennreal.tendsto_at_top_zero at hfg ⊢,
+  rw ennreal.tendsto_nhds_zero at hfg ⊢,
   intros δ hδ,
-  obtain ⟨N, hN⟩ := hfg δ hδ,
-  refine ⟨N, λ n hn, le_trans _ (hN n hn)⟩,
+  refine (hfg δ hδ).mono (λ n hn, _),
+  refine le_trans _ hn,
   rw [ennreal.of_real_div_of_pos (real.rpow_pos_of_pos hε _), ennreal.of_real_one, mul_comm,
     mul_one_div, ennreal.le_div_iff_mul_le _ (or.inl (ennreal.of_real_ne_top)), mul_comm],
   { convert mul_meas_ge_le_pow_snorm' μ hp_ne_zero hp_ne_top ((hf n).sub hg) (ennreal.of_real ε),
@@ -300,9 +308,9 @@ end
 allow `p = ∞`. -/
 lemma tendsto_in_measure_of_tendsto_snorm_of_ne_top
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
-  (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ)
-  (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
-  tendsto_in_measure μ f at_top g :=
+  (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ) {l : filter ℕ}
+  (hfg : tendsto (λ n, snorm (f n - g) p μ) l (𝓝 0)) :
+  tendsto_in_measure μ f l g :=
 begin
   refine tendsto_in_measure.congr (λ i, (hf i).ae_eq_mk.symm) hg.ae_eq_mk.symm _,
   refine tendsto_in_measure_of_tendsto_snorm_of_measurable hp_ne_zero hp_ne_top
@@ -318,23 +326,20 @@ end
 /-- See also `measure_theory.tendsto_in_measure_of_tendsto_snorm` which work for general
 Lp-convergence for all `p ≠ 0`. -/
 lemma tendsto_in_measure_of_tendsto_snorm_top {E} [normed_group E] {f : ℕ → α → E} {g : α → E}
-  (hfg : tendsto (λ n, snorm (f n - g) ∞ μ) at_top (𝓝 0)) :
-  tendsto_in_measure μ f at_top g :=
+  {l : filter ℕ} (hfg : tendsto (λ n, snorm (f n - g) ∞ μ) l (𝓝 0)) :
+  tendsto_in_measure μ f l g :=
 begin
   intros δ hδ,
   simp only [snorm_exponent_top, snorm_ess_sup] at hfg,
-  rw ennreal.tendsto_at_top ennreal.zero_ne_top at hfg ⊢,
-  rotate,
-  { apply_instance },
-  { apply_instance },
+  rw ennreal.tendsto_nhds_zero at hfg ⊢,
   intros ε hε,
-  obtain ⟨N, hN⟩ := hfg ((ennreal.of_real δ) / 2) (ennreal.div_pos_iff.2
+  specialize hfg ((ennreal.of_real δ) / 2) (ennreal.div_pos_iff.2
     ⟨(ennreal.of_real_pos.2 hδ).ne.symm, ennreal.two_ne_top⟩),
-  refine ⟨N, λ n hn, _⟩,
+  refine hfg.mono (λ n hn, _),
   simp only [true_and, gt_iff_lt, ge_iff_le, zero_tsub, zero_le, zero_add, set.mem_Icc,
     pi.sub_apply] at *,
   have : ess_sup (λ (x : α), (∥f n x - g x∥₊ : ℝ≥0∞)) μ < ennreal.of_real δ :=
-    lt_of_le_of_lt (hN n hn) (ennreal.half_lt_self (ennreal.of_real_pos.2 hδ).ne.symm
+    lt_of_le_of_lt hn (ennreal.half_lt_self (ennreal.of_real_pos.2 hδ).ne.symm
       ennreal.of_real_lt_top.ne),
   refine ((le_of_eq _).trans (ae_lt_of_ess_sup_lt this).le).trans hε.le,
   congr' with x,
@@ -346,9 +351,9 @@ end
 
 /-- Convergence in Lp implies convergence in measure. -/
 lemma tendsto_in_measure_of_tendsto_snorm
-  (hp_ne_zero : p ≠ 0) (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ)
-  (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
-  tendsto_in_measure μ f at_top g :=
+  (hp_ne_zero : p ≠ 0) (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ) {l : filter ℕ}
+  (hfg : tendsto (λ n, snorm (f n - g) p μ) l (𝓝 0)) :
+  tendsto_in_measure μ f l g :=
 begin
   by_cases hp_ne_top : p = ∞,
   { subst hp_ne_top,
@@ -358,8 +363,8 @@ end
 
 /-- Convergence in Lp implies convergence in measure. -/
 lemma tendsto_in_measure_of_tendsto_Lp [second_countable_topology E] [hp : fact (1 ≤ p)]
-  {f : ℕ → Lp E p μ} {g : Lp E p μ} (hfg : tendsto f at_top (𝓝 g)) :
-  tendsto_in_measure μ (λ n, f n) at_top g :=
+  {f : ℕ → Lp E p μ} {g : Lp E p μ} {l : filter ℕ} (hfg : tendsto f l (𝓝 g)) :
+  tendsto_in_measure μ (λ n, f n) l g :=
 tendsto_in_measure_of_tendsto_snorm (ennreal.zero_lt_one.trans_le hp.elim).ne.symm
   (λ n, Lp.ae_measurable _) (Lp.ae_measurable _) ((Lp.tendsto_Lp_iff_tendsto_ℒp' _ _).mp hfg)
 

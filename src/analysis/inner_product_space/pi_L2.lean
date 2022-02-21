@@ -398,7 +398,6 @@ lemma inner_matrix_row_row (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin n)) :
 
 /-- The inner product of a column of A and a column of B is an entry of Aᴴ ⬝ B -/
 lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
-  ⟪Aᵀ i, Bᵀ j⟫ₙ = (Aᴴ ⬝ B) i j := by {simp only [inner, matrix.mul_apply, star_ring_end_apply,
-    matrix.conj_transpose_apply,matrix.transpose_apply,mul_comm]}
+  ⟪Aᵀ i, Bᵀ j⟫ₙ = (Aᴴ ⬝ B) i j := rfl
 
 end matrix

@@ -209,7 +209,7 @@ open finset
 -- The partial sum of `g`, starting from zero
 local notation `G` n:80 := ∑ i in range n, g i
 
-/- **Summation by parts**, also known as **Abel's lemma** or an **Abel transformation** -/
+/-- **Summation by parts**, also known as **Abel's lemma** or an **Abel transformation** -/
 theorem sum_Ico_by_parts (hmn : m < n) :
   ∑ i in Ico m n, f i • g i =
   f (n-1) • G n - f m • G m - ∑ i in Ico m (n-1), (f (i+1) - f i) • G (i+1) :=

@@ -955,7 +955,7 @@ by { rw [←geom_sum_def, neg_one_geom_sum], split_ifs; norm_num }
 
 /-- The **alternating series test** for monotone sequences.
 See also `tendsto_alternating_series_of_monotone_tendsto_zero`. -/
-theorem cauchy_seq_alternating_series_of_monotone_tendsto_zero
+theorem monotone.cauchy_seq_alternating_series_of_tendsto_zero
   (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) :
   cauchy_seq (λ n, ∑ i in range (n+1), (-1) ^ i * f i) :=
 begin

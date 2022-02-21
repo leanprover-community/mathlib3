@@ -441,10 +441,8 @@ noncomputable def linear_isometry.extend (L : S →ₗᵢ[ℂ] V): V →ₗᵢ[�
       simp only [linear_isometry.norm_map, p1, p2, continuous_linear_map.to_linear_map_eq_coe,
         add_left_inj, mul_eq_mul_left_iff, norm_eq_zero, true_or, eq_self_iff_true,
         continuous_linear_map.coe_coe, submodule.coe_norm, submodule.coe_eq_zero]},
-    exact {
-      to_linear_map := M,
-      norm_map' := M_norm_map,
-    },
+    exact {to_linear_map := M,
+      norm_map' := M_norm_map},
   end
 
 lemma linear_isometry.extend_apply (L : S →ₗᵢ[ℂ] V) (s : S):

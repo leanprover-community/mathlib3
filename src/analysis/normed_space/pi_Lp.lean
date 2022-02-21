@@ -305,7 +305,9 @@ instance normed_space [∀i, semi_normed_group (β i)] [∀i, normed_space 𝕜 
         this, rpow_one],
     exact finset.sum_nonneg (λ i hi, rpow_nonneg_of_nonneg (norm_nonneg _) _)
   end,
-  .. pi.module ι β 𝕜 }
+  to_module := pi.module ι β 𝕜,
+  to_opposite_module := pi.module ι β 𝕜ᵐᵒᵖ,
+  to_is_central_scalar := pi.is_central_scalar }
 
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/

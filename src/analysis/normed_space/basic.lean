@@ -285,17 +285,17 @@ nnreal.eq $ norm_mul a b
 /-- `nnnorm` as a `monoid_with_zero_hom`. -/
 @[simps] def nnnorm_hom : α →*₀ ℝ≥0 := ⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
 
-lemma list.norm_prod (l : list α) : ∥l.prod∥ = (l.map norm).prod :=
-(norm_hom.to_monoid_hom : α →* ℝ).map_list_prod _
-
-lemma list.nnnorm_prod (l : list α) : ∥l.prod∥₊ = (l.map nnnorm).prod :=
-(nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_list_prod _
-
 @[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
 (norm_hom.to_monoid_hom : α →* ℝ).map_pow a
 
 @[simp] lemma nnnorm_pow (a : α) (n : ℕ) : ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
 (nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_pow a n
+
+lemma list.norm_prod (l : list α) : ∥l.prod∥ = (l.map norm).prod :=
+(norm_hom.to_monoid_hom : α →* ℝ).map_list_prod _
+
+lemma list.nnnorm_prod (l : list α) : ∥l.prod∥₊ = (l.map nnnorm).prod :=
+(nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_list_prod _
 
 @[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ := (norm_hom : α →*₀ ℝ).map_div a b
 
@@ -310,6 +310,26 @@ nnreal.eq $ by simp
 
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
+
+@[priority 100] -- see Note [lower instance priority]
+instance normed_division_ring.has_continuous_inv₀ : has_continuous_inv₀ α :=
+begin
+  refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
+  have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
+  rcases exists_between r0' with ⟨ε, ε0, εr⟩,
+  have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / ∥r∥ / ε,
+  { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr] with e he,
+    have e0 : e ≠ 0 := norm_pos_iff.1 (ε0.trans he),
+    calc ∥e⁻¹ - r⁻¹∥ = ∥r∥⁻¹ * ∥r - e∥ * ∥e∥⁻¹ : by
+      { rw [←norm_inv, ←norm_inv, ←norm_mul, ←norm_mul, mul_sub, sub_mul, mul_assoc _ e,
+          inv_mul_cancel r0, mul_inv_cancel e0, one_mul, mul_one] }
+    ...              = ∥r - e∥ / ∥r∥ / ∥e∥ : by field_simp [mul_comm]
+    ... ≤ ∥r - e∥ / ∥r∥ / ε :
+      div_le_div_of_le_left (div_nonneg (norm_nonneg _) (norm_nonneg _)) ε0 he.le },
+  refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
+  refine (continuous_const.sub continuous_id).norm.div_const.div_const.tendsto' _ _ _,
+  simp,
+end
 
 end normed_division_ring
 
@@ -343,23 +363,6 @@ instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
 @[simp] lemma nnnorm_prod (s : finset β) (f : β → α) :
   ∥∏ b in s, f b∥₊ = ∏ b in s, ∥f b∥₊ :=
 (nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_prod f s
-
-@[priority 100] -- see Note [lower instance priority]
-instance normed_field.has_continuous_inv₀ : has_continuous_inv₀ α :=
-begin
-  refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
-  have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
-  rcases exists_between r0' with ⟨ε, ε0, εr⟩,
-  have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / ∥r∥ / ε,
-  { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr] with e he,
-    have e0 : e ≠ 0 := norm_pos_iff.1 (ε0.trans he),
-    calc ∥e⁻¹ - r⁻¹∥ = ∥r - e∥ / ∥r∥ / ∥e∥ : by field_simp [mul_comm]
-    ... ≤ ∥r - e∥ / ∥r∥ / ε :
-      div_le_div_of_le_left (div_nonneg (norm_nonneg _) (norm_nonneg _)) ε0 he.le },
-  refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
-  refine (continuous_const.sub continuous_id).norm.div_const.div_const.tendsto' _ _ _,
-  simp
-end
 
 end normed_field
 

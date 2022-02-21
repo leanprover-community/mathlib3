@@ -63,6 +63,12 @@ instance : can_lift ℂ ℝ :=
   coe := coe,
   prf := λ z hz, ⟨z.re, ext rfl hz.symm⟩ }
 
+/-- The product of a set on the real axis and a set on the imaginary axis of the complex plane,
+denoted by `s ×ℂ t`. -/
+def _root_.set.re_prod_im (s t : set ℝ) : set ℂ := re ⁻¹' s ∩ im ⁻¹' t
+
+infix ` ×ℂ `:72 := set.re_prod_im
+
 instance : has_zero ℂ := ⟨(0 : ℝ)⟩
 instance : inhabited ℂ := ⟨0⟩
 
@@ -220,7 +226,9 @@ lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 ⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
   λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
 
-@[simp] lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
+-- `simp_nf` complains about this being provable by `is_R_or_C.star_def` even
+-- though it's not imported by this file.
+@[simp, nolint simp_nf] lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
 
 /-! ### Norm squared -/
 
@@ -304,7 +312,7 @@ ext_iff.2 $ by simp [two_mul, sub_eq_add_neg]
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=
 by { rw [sub_eq_add_neg, norm_sq_add],
-     simp only [ring_hom.map_neg, mul_neg_eq_neg_mul_symm, neg_re,
+     simp only [ring_hom.map_neg, mul_neg, neg_re,
                 tactic.ring.add_neg_eq_sub, norm_sq_neg] }
 
 /-! ### Inversion -/
@@ -344,6 +352,8 @@ lemma div_re (z w : ℂ) : (z / w).re = z.re * w.re / norm_sq w + z.im * w.im / 
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg]
 lemma div_im (z w : ℂ) : (z / w).im = z.im * w.re / norm_sq w - z.re * w.im / norm_sq w :=
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
+
+lemma conj_inv (x : ℂ) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 
 @[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
 of_real.map_div r s

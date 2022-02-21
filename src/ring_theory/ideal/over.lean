@@ -29,12 +29,13 @@ variables {R : Type*} [comm_ring R]
 namespace ideal
 
 open polynomial
+open_locale polynomial
 open submodule
 
 section comm_ring
 variables {S : Type*} [comm_ring S] {f : R →+* S} {I J : ideal S}
 
-lemma coeff_zero_mem_comap_of_root_mem_of_eval_mem {r : S} (hr : r ∈ I) {p : polynomial R}
+lemma coeff_zero_mem_comap_of_root_mem_of_eval_mem {r : S} (hr : r ∈ I) {p : R[X]}
   (hp : p.eval₂ f r ∈ I) : p.coeff 0 ∈ I.comap f :=
 begin
   rw [←p.div_X_mul_X_add, eval₂_add, eval₂_C, eval₂_mul, eval₂_X] at hp,
@@ -42,13 +43,13 @@ begin
   exact I.mul_mem_left _ hr
 end
 
-lemma coeff_zero_mem_comap_of_root_mem {r : S} (hr : r ∈ I) {p : polynomial R}
+lemma coeff_zero_mem_comap_of_root_mem {r : S} (hr : r ∈ I) {p : R[X]}
   (hp : p.eval₂ f r = 0) : p.coeff 0 ∈ I.comap f :=
 coeff_zero_mem_comap_of_root_mem_of_eval_mem hr (hp.symm ▸ I.zero_mem)
 
 lemma exists_coeff_ne_zero_mem_comap_of_non_zero_divisor_root_mem {r : S}
   (r_non_zero_divisor : ∀ {x}, x * r = 0 → x = 0) (hr : r ∈ I)
-  {p : polynomial R} : ∀ (p_ne_zero : p ≠ 0) (hp : p.eval₂ f r = 0),
+  {p : R[X]} : ∀ (p_ne_zero : p ≠ 0) (hp : p.eval₂ f r = 0),
   ∃ i, p.coeff i ≠ 0 ∧ p.coeff i ∈ I.comap f :=
 begin
   refine p.rec_on_horner _ _ _,
@@ -66,7 +67,7 @@ end
 `R[x]/P → (R / (P ∩ R))[x] / (P / (P ∩ R))`
 is injective.
 -/
-lemma injective_quotient_le_comap_map (P : ideal (polynomial R)) :
+lemma injective_quotient_le_comap_map (P : ideal R[X]) :
   function.injective ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
     (map_ring_hom (quotient.mk (P.comap C))) le_comap_map) :=
 begin
@@ -88,7 +89,7 @@ R[x] / P → (R / (P ∩ R))[x] / (P / (P ∩ R))
 commutes.  It is used, for instance, in the proof of `quotient_mk_comp_C_is_integral_of_jacobson`,
 in the file `ring_theory/jacobson`.
 -/
-lemma quotient_mk_maps_eq (P : ideal (polynomial R)) :
+lemma quotient_mk_maps_eq (P : ideal R[X]) :
   ((quotient.mk (map (map_ring_hom (quotient.mk (P.comap C))) P)).comp C).comp
     (quotient.mk (P.comap C)) =
   ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
@@ -104,9 +105,9 @@ This technical lemma asserts the existence of a polynomial `p` in an ideal `P �
 that is non-zero in the quotient `R / (P ∩ R) [x]`.  The assumptions are equivalent to
 `P ≠ 0` and `P ∩ R = (0)`.
 -/
-lemma exists_nonzero_mem_of_ne_bot {P : ideal (polynomial R)}
+lemma exists_nonzero_mem_of_ne_bot {P : ideal R[X]}
   (Pb : P ≠ ⊥) (hP : ∀ (x : R), C x ∈ P → x = 0) :
-  ∃ p : polynomial R, p ∈ P ∧ (polynomial.map (quotient.mk (P.comap C)) p) ≠ 0 :=
+  ∃ p : R[X], p ∈ P ∧ (polynomial.map (quotient.mk (P.comap C)) p) ≠ 0 :=
 begin
   obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr Pb),
   refine ⟨m, submodule.coe_mem m, λ pp0, hm (submodule.coe_eq_zero.mp _)⟩,
@@ -171,14 +172,14 @@ variables {S : Type*} [comm_ring S] {f : R →+* S} {I J : ideal S}
 
 lemma exists_coeff_ne_zero_mem_comap_of_root_mem
   [is_domain S] {r : S} (r_ne_zero : r ≠ 0) (hr : r ∈ I)
-  {p : polynomial R} : ∀ (p_ne_zero : p ≠ 0) (hp : p.eval₂ f r = 0),
+  {p : R[X]} : ∀ (p_ne_zero : p ≠ 0) (hp : p.eval₂ f r = 0),
   ∃ i, p.coeff i ≠ 0 ∧ p.coeff i ∈ I.comap f :=
 exists_coeff_ne_zero_mem_comap_of_non_zero_divisor_root_mem
   (λ _ h, or.resolve_right (mul_eq_zero.mp h) r_ne_zero) hr
 
 lemma exists_coeff_mem_comap_sdiff_comap_of_root_mem_sdiff
   [is_prime I] (hIJ : I ≤ J) {r : S} (hr : r ∈ (J : set S) \ I)
-  {p : polynomial R} (p_ne_zero : p.map (quotient.mk (I.comap f)) ≠ 0) (hpI : p.eval₂ f r ∈ I) :
+  {p : R[X]} (p_ne_zero : p.map (quotient.mk (I.comap f)) ≠ 0) (hpI : p.eval₂ f r ∈ I) :
   ∃ i, p.coeff i ∈ (J.comap f : set R) \ (I.comap f) :=
 begin
   obtain ⟨hrJ, hrI⟩ := hr,
@@ -201,7 +202,7 @@ end
 
 lemma comap_lt_comap_of_root_mem_sdiff [I.is_prime] (hIJ : I ≤ J)
   {r : S} (hr : r ∈ (J : set S) \ I)
-  {p : polynomial R} (p_ne_zero : p.map (quotient.mk (I.comap f)) ≠ 0) (hp : p.eval₂ f r ∈ I) :
+  {p : R[X]} (p_ne_zero : p.map (quotient.mk (I.comap f)) ≠ 0) (hp : p.eval₂ f r ∈ I) :
   I.comap f < J.comap f :=
 let ⟨i, hJ, hI⟩ := exists_coeff_mem_comap_sdiff_comap_of_root_mem_sdiff hIJ hr p_ne_zero hp
 in set_like.lt_iff_le_and_exists.mpr ⟨comap_mono hIJ, p.coeff i, hJ, hI⟩
@@ -224,7 +225,7 @@ begin
 end
 
 lemma comap_ne_bot_of_root_mem [is_domain S] {r : S} (r_ne_zero : r ≠ 0) (hr : r ∈ I)
-  {p : polynomial R} (p_ne_zero : p ≠ 0) (hp : p.eval₂ f r = 0) :
+  {p : R[X]} (p_ne_zero : p ≠ 0) (hp : p.eval₂ f r = 0) :
   I.comap f ≠ ⊥ :=
 λ h, let ⟨i, hi, mem⟩ := exists_coeff_ne_zero_mem_comap_of_root_mem r_ne_zero hr p_ne_zero hp in
 absurd (mem_bot.mp (eq_bot_iff.mp h mem)) hi

@@ -268,8 +268,8 @@ begin
                   : inner_self_nonneg
       ... = re ⟪x, x⟫ - re ⟪T • y, x⟫ - re ⟪x, T • y⟫ + re ⟪T • y, T • y⟫
                   : by simp only [inner_sub_sub_self, inner_smul_left, inner_smul_right, h₁, h₂,
-                      neg_mul_eq_neg_mul_symm, add_monoid_hom.map_add, mul_re,
-                      conj_im, add_monoid_hom.map_sub, mul_neg_eq_neg_mul_symm, conj_re, neg_neg]
+                      neg_mul, add_monoid_hom.map_add, mul_re,
+                      conj_im, add_monoid_hom.map_sub, mul_neg, conj_re, neg_neg]
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
@@ -627,8 +627,8 @@ begin
                   : inner_self_nonneg
       ... = re ⟪x, x⟫ - re ⟪T • y, x⟫ - re ⟪x, T • y⟫ + re ⟪T • y, T • y⟫
                   : by simp only [inner_sub_sub_self, inner_smul_left, inner_smul_right, h₁, h₂,
-                      neg_mul_eq_neg_mul_symm, add_monoid_hom.map_add, conj_im,
-                      add_monoid_hom.map_sub, mul_neg_eq_neg_mul_symm, conj_re, neg_neg, mul_re]
+                      neg_mul, add_monoid_hom.map_add, conj_im,
+                      add_monoid_hom.map_sub, mul_neg, conj_re, neg_neg, mul_re]
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
@@ -1066,6 +1066,42 @@ begin
   simp only [sq, ← mul_div_right_comm, ← add_div]
 end
 
+section complex
+
+variables {V : Type*}
+[inner_product_space ℂ V]
+/--
+A complex polarization identity, with a linear map
+-/
+lemma inner_map_polarization (T : V →ₗ[ℂ] V) (x y : V):
+  ⟪ T y, x ⟫_ℂ = (⟪T (x + y) , x + y⟫_ℂ - ⟪T (x - y) , x - y⟫_ℂ +
+    complex.I * ⟪T (x + complex.I • y) , x + complex.I • y⟫_ℂ -
+    complex.I * ⟪T (x - complex.I • y), x - complex.I • y ⟫_ℂ) / 4 :=
+begin
+  simp only [map_add, map_sub, inner_add_left, inner_add_right, linear_map.map_smul,
+             inner_smul_left, inner_smul_right, complex.conj_I, ←pow_two, complex.I_sq,
+             inner_sub_left, inner_sub_right, mul_add, ←mul_assoc, mul_neg, neg_neg,
+             sub_neg_eq_add, one_mul, neg_one_mul, mul_sub, sub_sub],
+  ring,
+end
+
+/--
+If `⟪T x, x⟫_ℂ = 0` for all x, then T = 0.
+-/
+lemma inner_map_self_eq_zero (T : V →ₗ[ℂ] V) :
+  (∀ (x : V), ⟪T x, x⟫_ℂ = 0) ↔ T = 0 :=
+begin
+  split,
+  { intro hT,
+    ext x,
+    simp only [linear_map.zero_apply, ← inner_self_eq_zero, inner_map_polarization, hT],
+    norm_num },
+  { rintro rfl x,
+    simp only [linear_map.zero_apply, inner_zero_left] }
+end
+
+end complex
+
 section
 
 variables {ι : Type*} {ι' : Type*} {ι'' : Type*}
@@ -1337,7 +1373,7 @@ lemma real_inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul
   {x : F} {r : ℝ} (hx : x ≠ 0) (hr : r < 0) : ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = -1 :=
 begin
   rw [real_inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (absR r),
-      mul_assoc, abs_of_neg hr, ←neg_mul_eq_neg_mul, div_neg_eq_neg_div, div_self],
+      mul_assoc, abs_of_neg hr, neg_mul, div_neg_eq_neg_div, div_self],
   exact mul_ne_zero (ne_of_lt hr)
     (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
 end

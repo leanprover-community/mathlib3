@@ -43,7 +43,6 @@ image of different morphism commute, we obtain a canoncial morphism
 -/
 
 open_locale big_operators
-open_locale classical
 
 lemma coprime_prod_left
   {ι : Type*}
@@ -75,7 +74,7 @@ variables {M : Type*} [monoid M]
 
 -- We have a family of monoids
 -- The fintype assumption is not always used, but declared here, to keep things in order
-variables {ι : Type*} [hfin : fintype ι]
+variables {ι : Type*} [decidable_eq ι] [hfin : fintype ι]
 variables {N : ι → Type*} [∀ i, monoid (N i)]
 
 -- And morphisms ϕ into G
@@ -234,7 +233,7 @@ end family_of_monoids
 section family_of_groups
 
 variables {G : Type*} [group G]
-variables {ι : Type*} [hfin : fintype ι]
+variables {ι : Type*} [decidable_eq ι] [hfin : fintype ι]
 variables {H : ι → Type*} [∀ i, group (H i)]
 variables (ϕ : Π (i : ι), H i →* G)
 variables {hcomm : ∀ (i j : ι), i ≠ j → ∀ (x : H i) (y : H j), commute (ϕ i x) (ϕ j y)}
@@ -322,9 +321,8 @@ lemma independent_range_of_coprime_order [∀ i, fintype (H i)]
   complete_lattice.independent (λ i, (ϕ i).range) :=
 begin
   rintros i f ⟨hxi, hxp⟩, dsimp at hxi hxp,
-  rw [supr_subtype', ← @noncomm_pi_coprod_range _ _ _ _ _ _ _ _] at hxp,
-  rotate, apply_instance,
-  { intros _ _ hj, apply hcomm, exact hj ∘ subtype.ext },
+  rw [supr_subtype', ← noncomm_pi_coprod_range] at hxp,
+  rotate, { intros _ _ hj, apply hcomm, exact hj ∘ subtype.ext },
   cases hxp with g hgf, cases hxi with g' hg'f,
   have hxi : order_of f ∣ fintype.card (H i),
   { rw ← hg'f, exact (order_of_map_dvd _ _).trans order_of_dvd_card_univ },
@@ -343,7 +341,7 @@ namespace subgroup
 
 -- We have an family of subgroups
 variables {G : Type*} [group G]
-variables {ι : Type*} [hfin : fintype ι] [hdec : decidable_eq ι] {H : ι → subgroup G}
+variables {ι : Type*} [decidable_eq ι] [hfin : fintype ι] {H : ι → subgroup G}
 
 -- Elements of `Π (i : ι), H i` are called `f` and `g` here
 variables (f g : Π (i : ι), H i)

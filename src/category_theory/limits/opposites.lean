@@ -162,8 +162,6 @@ begin
   apply_instance
 end
 
-local attribute [instance] fin_category_opposite
-
 lemma has_finite_colimits_opposite [has_finite_limits C] :
   has_finite_colimits Cᵒᵖ :=
 { out := λ J 𝒟 𝒥, by { resetI, apply_instance, }, }

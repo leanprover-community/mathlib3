@@ -364,12 +364,12 @@ attribute [measurability] measurable.neg ae_measurable.neg
 @[simp] lemma measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} :
   measurable (λ x, (f x)⁻¹) ↔ measurable f :=
-⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
 @[simp] lemma ae_measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} :
   ae_measurable (λ x, (f x)⁻¹) μ ↔ ae_measurable f μ :=
-⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
 omit m
 

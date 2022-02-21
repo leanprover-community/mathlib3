@@ -443,6 +443,15 @@ noncomputable instance : has_sup (seminorm 𝕜 E) :=
       (mul_max_of_nonneg _ _ $ norm_nonneg x).symm } }
 
 @[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
+lemma sup_apply (p q : seminorm 𝕜 E) (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
+
+lemma smul_sup [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  (r : R) (p q : seminorm 𝕜 E) :
+  r • (p ⊔ q) = r • p ⊔ r • q :=
+have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
+from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul ℝ≥0 r (_ : ℝ)]
+                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).prop,
+ext $ λ x, real.smul_max _ _
 
 instance : partial_order (seminorm 𝕜 E) :=
   partial_order.lift _ fun_like.coe_injective
@@ -1008,7 +1017,7 @@ begin
     have := smul_pos (inv_pos.2 hr') hβ,
     refine ⟨r⁻¹ • β, ⟨this, _⟩, smul_inv_smul₀ hr'.ne' _⟩,
     rw ←mem_smul_set_iff_inv_smul_mem₀ at ⊢ hx,
-    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hr'.ne'), inv_inv₀],
+    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hr'.ne'), inv_inv],
     { exact this.ne' },
     { exact hβ.ne' } },
   { rintro ⟨β, ⟨hβ, hx⟩, rfl⟩,
@@ -1054,7 +1063,7 @@ begin
     rw mem_Ioi at ⊢ hr,
     have := smul_pos ha' hr,
     refine ⟨smul_pos (inv_pos.2 ha') hr, r⁻¹ • x, hx, _⟩,
-    rw [smul_inv₀, smul_assoc, inv_inv₀] }
+    rw [smul_inv₀, smul_assoc, inv_inv] }
 end
 
 lemma gauge_smul_left [module α E] [smul_comm_class α ℝ ℝ] [is_scalar_tower α ℝ ℝ]

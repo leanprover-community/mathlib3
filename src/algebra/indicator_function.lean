@@ -271,13 +271,21 @@ section distrib_mul_action
 
 variables {A : Type*} [add_monoid A] [monoid M] [distrib_mul_action M A]
 
-lemma indicator_smul_apply (s : set α) (r : M) (f : α → A) (x : α) :
-  indicator s (λ x, r • f x) x = r • indicator s f x :=
-by { dunfold indicator, split_ifs, exacts [rfl, (smul_zero r).symm] }
+lemma indicator_smul_apply (s : set α) (r : α → M) (f : α → A) (x : α) :
+  indicator s (λ x, r x • f x) x = r x • indicator s f x :=
+by { dunfold indicator, split_ifs, exacts [rfl, (smul_zero (r x)).symm] }
 
-lemma indicator_smul (s : set α) (r : M) (f : α → A) :
-  indicator s (λ (x : α), r • f x) = λ (x : α), r • indicator s f x :=
+lemma indicator_smul (s : set α) (r : α → M) (f : α → A) :
+  indicator s (λ (x : α), r x • f x) = λ (x : α), r x • indicator s f x :=
 funext $ indicator_smul_apply s r f
+
+lemma indicator_const_smul_apply (s : set α) (r : M) (f : α → A) (x : α) :
+  indicator s (λ x, r • f x) x = r • indicator s f x :=
+indicator_smul_apply s (λ x, r) f x
+
+lemma indicator_const_smul (s : set α) (r : M) (f : α → A) :
+  indicator s (λ (x : α), r • f x) = λ (x : α), r • indicator s f x :=
+funext $ indicator_const_smul_apply s r f
 
 end distrib_mul_action
 

@@ -999,19 +999,6 @@ by simp only [is_open_supr_iff, is_open_coinduced]
 lemma is_closed_sigma_iff {s : set (sigma σ)} : is_closed s ↔ ∀ i, is_closed (sigma.mk i ⁻¹' s) :=
 by simp only [← is_open_compl_iff, is_open_sigma_iff, preimage_compl]
 
-lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
-begin
-  rw is_open_sigma_iff,
-  intros a,
-  by_cases h : a ∈ s,
-  { convert is_open_univ,
-    ext x,
-    simp only [h, set.mem_preimage, set.mem_univ] },
-  { convert is_open_empty,
-    ext x,
-    simp only [h, set.mem_empty_eq, set.mem_preimage] }
-end
-
 lemma is_open_map_sigma_mk {i : ι} : is_open_map (@sigma.mk ι σ i) :=
 begin
   intros s hs,
@@ -1056,6 +1043,13 @@ closed_embedding_of_continuous_injective_closed
 
 lemma embedding_sigma_mk {i : ι} : embedding (@sigma.mk ι σ i) :=
 closed_embedding_sigma_mk.1
+
+lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
+begin
+  rw [← bUnion_of_singleton s, preimage_Union₂],
+  simp only [← range_sigma_mk],
+  exact is_open_bUnion (λ _ _, is_open_range_sigma_mk)
+end
 
 /-- A map out of a sum type is continuous if its restriction to each summand is. -/
 @[continuity]

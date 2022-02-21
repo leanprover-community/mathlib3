@@ -78,7 +78,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 
 infix ` ≃ `:25 := equiv
 
-instance [equiv_like F α β] : has_coe_t F (α ≃ β) :=
+instance {F} [equiv_like F α β] : has_coe_t F (α ≃ β) :=
 ⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
   right_inv := equiv_like.right_inv f }⟩
 

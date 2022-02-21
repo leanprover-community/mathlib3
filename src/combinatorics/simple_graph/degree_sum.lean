@@ -59,15 +59,12 @@ end
 
 lemma dart_fst_fiber_card_eq_degree [decidable_eq V] (v : V) :
   (univ.filter (λ d : G.dart, d.fst = v)).card = G.degree v :=
-begin
-  have hh := card_image_of_injective univ (G.dart_of_neighbor_set_injective v),
-  rw [finset.card_univ, card_neighbor_set_eq_degree] at hh,
-  rwa dart_fst_fiber,
-end
+by simpa only [dart_fst_fiber, finset.card_univ, card_neighbor_set_eq_degree]
+     using card_image_of_injective univ (G.dart_of_neighbor_set_injective v)
 
 lemma dart_card_eq_sum_degrees : fintype.card G.dart = ∑ v, G.degree v :=
 begin
-  haveI h : decidable_eq V, { classical, apply_instance },
+  haveI := classical.dec_eq V,
   simp only [←card_univ, ←dart_fst_fiber_card_eq_degree],
   exact card_eq_sum_card_fiberwise (by simp),
 end
@@ -83,8 +80,7 @@ variables (G)
 lemma dart_edge_fiber_card (e : sym2 V) (h : e ∈ G.edge_set) :
   (univ.filter (λ (d : G.dart), d.edge = e)).card = 2 :=
 begin
-  refine quotient.ind (λ p h, _) e h,
-  cases p with v w,
+  refine sym2.ind (λ v w h, _) e h,
   let d : G.dart := ⟨(v, w), h⟩,
   convert congr_arg card d.edge_fiber,
   rw [card_insert_of_not_mem, card_singleton],
@@ -159,7 +155,7 @@ lemma exists_ne_odd_degree_of_exists_odd_degree [fintype V] [decidable_rel G.adj
   (v : V) (h : odd (G.degree v)) :
   ∃ (w : V), w ≠ v ∧ odd (G.degree w) :=
 begin
-  haveI : decidable_eq V, { classical, apply_instance },
+  haveI := classical.dec_eq V,
   rcases G.odd_card_odd_degree_vertices_ne v h with ⟨k, hg⟩,
   have hg' : (filter (λ (w : V), w ≠ v ∧ odd (G.degree w)) univ).card > 0,
   { rw hg,

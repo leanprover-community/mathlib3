@@ -417,7 +417,7 @@ begin
     @polynomial.is_scalar_tower (mv_polynomial ι R) _ R _ _ _ _ _ _ _,
   rw [algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_apply, aeval_C,
     @is_scalar_tower.algebra_map_apply _ _ _ _ _ _ _ _ _ h, ← polynomial.C_eq_algebra_map,
-    polynomial.map_C, coe_coe, alg_hom.coe_to_ring_hom, alg_equiv.coe_alg_hom, alg_equiv.commutes]
+    polynomial.map_C, ring_hom.coe_coe, alg_equiv.commutes]
 end
 
 @[simp]
@@ -433,7 +433,7 @@ lemma algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_X_some
   hx.mv_polynomial_option_equiv_polynomial_adjoin (X (some i)) =
     polynomial.C (hx.aeval_equiv (X i)) :=
 by rw [algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_apply, aeval_X,
-      option.elim, polynomial.map_C, coe_coe, alg_hom.coe_to_ring_hom, alg_equiv.coe_alg_hom]
+      option.elim, polynomial.map_C, ring_hom.coe_coe]
 
 lemma algebraic_independent.aeval_comp_mv_polynomial_option_equiv_polynomial_adjoin
   (hx : algebraic_independent R x) (a : A) :

@@ -799,8 +799,8 @@ end smul
 
 section const_smul
 
-variables {R : Type*} [semiring R] [module R F] [topological_space R] [smul_comm_class 𝕜 R F]
-  [has_continuous_smul R F]
+variables {R : Type*} [semiring R] [module R F] [smul_comm_class 𝕜 R F]
+  [has_continuous_const_smul R F]
 
 theorem has_strict_deriv_at.const_smul
   (c : R) (hf : has_strict_deriv_at f f' x) :
@@ -1935,9 +1935,9 @@ begin
   { have hx : x ≠ 0, from h.resolve_right hm.not_le,
     have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
       [skip, exact zpow_ne_zero_of_ne_zero hx _],
-    simp only [(∘), zpow_neg₀, one_div, inv_inv₀, smul_eq_mul] at this,
+    simp only [(∘), zpow_neg₀, one_div, inv_inv, smul_eq_mul] at this,
     convert this using 1,
-    rw [sq, mul_inv₀, inv_inv₀, int.cast_neg, neg_mul, neg_mul_neg,
+    rw [sq, mul_inv₀, inv_inv, int.cast_neg, neg_mul, neg_mul_neg,
       ← zpow_add₀ hx, mul_assoc, ← zpow_add₀ hx], congr, abel },
   { simp only [hm, zpow_zero, int.cast_zero, zero_mul, has_strict_deriv_at_const] },
   { exact this m hm }

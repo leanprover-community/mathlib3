@@ -114,6 +114,14 @@ smul_mono h (le_refl N)
 
 theorem smul_mono_right (h : N ≤ P) : I • N ≤ I • P :=
 smul_mono (le_refl I) h
+.
+lemma map_le_smul_top (I : ideal R) (f : R →ₗ[R] M) :
+  submodule.map f I ≤ I • (⊤ : submodule R M) :=
+begin
+  rintros _ ⟨y, hy, rfl⟩,
+  rw [← mul_one y, ← smul_eq_mul, f.map_smul],
+  exact smul_mem_smul hy mem_top
+end
 
 @[simp] theorem annihilator_smul (N : submodule R M) : annihilator N • N = ⊥ :=
 eq_bot_iff.2 (smul_le.2 (λ r, mem_annihilator.1))
@@ -983,6 +991,31 @@ theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=
 
 theorem le_comap_sup : comap f K ⊔ comap f L ≤ comap f (K ⊔ L) :=
 (gc_map_comap f).monotone_u.le_map_sup _ _
+
+@[simp] lemma smul_top_eq_map {R S : Type*} [comm_semiring R] [comm_semiring S] [algebra R S]
+  (I : ideal R) : I • (⊤ : submodule R S) = (I.map (algebra_map R S)).restrict_scalars R :=
+begin
+  refine le_antisymm (submodule.smul_le.mpr (λ r hr y _, _) )
+      (λ x hx, submodule.span_induction hx _ _ _ _),
+  { rw algebra.smul_def,
+     exact mul_mem_right _ _ (mem_map_of_mem _ hr) },
+
+  { rintros _ ⟨x, hx, rfl⟩,
+    rw [← mul_one (algebra_map R S x), ← algebra.smul_def],
+    exact submodule.smul_mem_smul hx submodule.mem_top },
+  { exact submodule.zero_mem _ },
+  { intros x y, exact submodule.add_mem _ },
+  intros a x hx,
+  refine submodule.smul_induction_on hx _ _ _ _,
+  { intros r hr s hs,
+    rw smul_comm,
+    exact submodule.smul_mem_smul hr submodule.mem_top },
+  { rw smul_zero, exact submodule.zero_mem _ },
+  { intros x y hx hy,
+    rw smul_add, exact submodule.add_mem _ hx hy },
+  { intros c x hx,
+    rw smul_comm, exact submodule.smul_mem _ _ hx }
+end
 
 section surjective
 variables (hf : function.surjective f)

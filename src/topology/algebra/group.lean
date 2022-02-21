@@ -6,9 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 import group_theory.quotient_group
 import order.filter.pointwise
 import topology.algebra.monoid
-import topology.homeomorph
 import topology.compacts
-import topology.algebra.mul_action
 import topology.compact_open
 
 /-!
@@ -249,6 +247,48 @@ hf.inv
 @[to_additive]
 lemma is_compact.inv {s : set G} (hs : is_compact s) : is_compact (s⁻¹) :=
 by { rw [← image_inv], exact hs.image continuous_inv }
+
+section zpow
+
+@[continuity, to_additive]
+lemma continuous_zpow : ∀ z : ℤ, continuous (λ a : G, a ^ z)
+| (int.of_nat n) := by simpa using continuous_pow n
+| -[1+n] := by simpa using (continuous_pow (n + 1)).inv
+
+@[continuity, to_additive]
+lemma continuous.zpow {f : α → G} (h : continuous f) (z : ℤ) :
+  continuous (λ b, (f b) ^ z) :=
+(continuous_zpow z).comp h
+
+@[to_additive]
+lemma continuous_on_zpow {s : set G} (z : ℤ) : continuous_on (λ x, x ^ z) s :=
+(continuous_zpow z).continuous_on
+
+@[to_additive]
+lemma continuous_at_zpow (x : G) (z : ℤ) : continuous_at (λ x, x ^ z) x :=
+(continuous_zpow z).continuous_at
+
+@[to_additive]
+lemma filter.tendsto.zpow {α} {l : filter α} {f : α → G} {x : G} (hf : tendsto f l (𝓝 x)) (z : ℤ) :
+  tendsto (λ x, f x ^ z) l (𝓝 (x ^ z)) :=
+(continuous_at_zpow _ _).tendsto.comp hf
+
+@[to_additive]
+lemma continuous_within_at.zpow {f : α → G} {x : α} {s : set α} (hf : continuous_within_at f s x)
+  (z : ℤ) : continuous_within_at (λ x, f x ^ z) s x :=
+hf.zpow z
+
+@[to_additive]
+lemma continuous_at.zpow {f : α → G} {x : α} (hf : continuous_at f x) (z : ℤ) :
+  continuous_at (λ x, f x ^ z) x :=
+hf.zpow z
+
+@[to_additive continuous_on.zsmul]
+lemma continuous_on.zpow {f : α → G} {s : set α} (hf : continuous_on f s) (z : ℤ) :
+  continuous_on (λ x, f x ^ z) s :=
+λ x hx, (hf x hx).zpow z
+
+end zpow
 
 section ordered_comm_group
 
@@ -827,12 +867,14 @@ end quotient
 
 namespace units
 
+open mul_opposite (continuous_op continuous_unop)
+
 variables [monoid α] [topological_space α] [has_continuous_mul α] [monoid β] [topological_space β]
   [has_continuous_mul β]
 
-instance : topological_group αˣ :=
-{ continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
-    (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
+@[to_additive] instance : topological_group αˣ :=
+{ continuous_inv := continuous_induced_rng ((continuous_unop.comp
+    (@continuous_embed_product α _ _).snd).prod_mk (continuous_op.comp continuous_coe)) }
 
 /-- The topological group isomorphism between the units of a product of two monoids, and the product
     of the units of each monoid. -/
@@ -842,7 +884,7 @@ def homeomorph.prod_units : homeomorph (α × β)ˣ (αˣ × βˣ) :=
     show continuous (λ i : (α × β)ˣ, (map (monoid_hom.fst α β) i, map (monoid_hom.snd α β) i)),
     refine continuous.prod_mk _ _,
     { refine continuous_induced_rng ((continuous_fst.comp units.continuous_coe).prod_mk _),
-      refine continuous_op.comp (continuous_fst.comp _),
+      refine mul_opposite.continuous_op.comp (continuous_fst.comp _),
       simp_rw units.inv_eq_coe_inv,
       exact units.continuous_coe.comp continuous_inv, },
     { refine continuous_induced_rng ((continuous_snd.comp units.continuous_coe).prod_mk _),
@@ -867,7 +909,7 @@ end units
 
 section lattice_ops
 
-variables {ι : Type*} [group G] [group H] {ts : set (topological_space G)}
+variables {ι : Sort*} [group G] [group H] {ts : set (topological_space G)}
   (h : ∀ t ∈ ts, @topological_group G t _) {ts' : ι → topological_space G}
   (h' : ∀ i, @topological_group G (ts' i) _) {t₁ t₂ : topological_space G}
   (h₁ : @topological_group G t₁ _) (h₂ : @topological_group G t₂ _)

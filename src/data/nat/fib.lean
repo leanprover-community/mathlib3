@@ -5,6 +5,8 @@ Authors: Kevin Kappelmann
 -/
 import data.nat.gcd
 import logic.function.iterate
+import data.finset.nat_antidiagonal
+import algebra.big_operators.basic
 import tactic.ring
 
 /-!
@@ -16,12 +18,13 @@ Definition of the Fibonacci sequence `F₀ = 0, F₁ = 1, Fₙ₊₂ = Fₙ + F�
 
 ## Main Definitions
 
-- `fib` returns the stream of Fibonacci numbers.
+- `nat.fib` returns the stream of Fibonacci numbers.
 
 ## Main Statements
 
-- `fib_add_two` : shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.`.
-- `fib_gcd`     : `fib n` is a strong divisibility sequence.
+- `nat.fib_add_two`: shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.`.
+- `nat.fib_gcd`: `fib n` is a strong divisibility sequence.
+- `nat.fib_succ_eq_sum_choose`: `fib` is given by the sum of `nat.choose` along an antidiagonal.
 
 ## Implementation Notes
 
@@ -31,6 +34,8 @@ For efficiency purposes, the sequence is defined using `stream.iterate`.
 
 fib, fibonacci
 -/
+
+open_locale big_operators
 
 namespace nat
 
@@ -147,5 +152,11 @@ end
 
 lemma fib_dvd (m n : ℕ) (h : m ∣ n) : fib m ∣ fib n :=
 by rwa [gcd_eq_left_iff_dvd, ← fib_gcd, gcd_eq_left_iff_dvd.mp]
+
+lemma fib_succ_eq_sum_choose :
+  ∀ (n : ℕ), fib (n + 1) = ∑ p in finset.nat.antidiagonal n, choose p.1 p.2 :=
+two_step_induction rfl rfl (λ n h1 h2, by
+{ rw [fib_add_two, h1, h2, finset.nat.antidiagonal_succ_succ', finset.nat.antidiagonal_succ'],
+  simp [choose_succ_succ, finset.sum_add_distrib, add_left_comm] })
 
 end nat

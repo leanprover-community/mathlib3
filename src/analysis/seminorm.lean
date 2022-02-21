@@ -10,6 +10,7 @@ import analysis.normed_space.pointwise
 import data.real.pointwise
 import topology.algebra.filter_basis
 import topology.algebra.uniform_filter_basis
+import topology.algebra.module.locally_convex
 import data.real.sqrt
 
 /-!
@@ -442,6 +443,15 @@ noncomputable instance : has_sup (seminorm 𝕜 E) :=
       (mul_max_of_nonneg _ _ $ norm_nonneg x).symm } }
 
 @[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
+lemma sup_apply (p q : seminorm 𝕜 E) (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
+
+lemma smul_sup [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  (r : R) (p q : seminorm 𝕜 E) :
+  r • (p ⊔ q) = r • p ⊔ r • q :=
+have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
+from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul ℝ≥0 r (_ : ℝ)]
+                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).prop,
+ext $ λ x, real.smul_max _ _
 
 instance : partial_order (seminorm 𝕜 E) :=
   partial_order.lift _ fun_like.coe_injective
@@ -1007,7 +1017,7 @@ begin
     have := smul_pos (inv_pos.2 hr') hβ,
     refine ⟨r⁻¹ • β, ⟨this, _⟩, smul_inv_smul₀ hr'.ne' _⟩,
     rw ←mem_smul_set_iff_inv_smul_mem₀ at ⊢ hx,
-    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hr'.ne'), inv_inv₀],
+    rwa [smul_assoc, mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hr'.ne'), inv_inv],
     { exact this.ne' },
     { exact hβ.ne' } },
   { rintro ⟨β, ⟨hβ, hx⟩, rfl⟩,
@@ -1053,7 +1063,7 @@ begin
     rw mem_Ioi at ⊢ hr,
     have := smul_pos ha' hr,
     refine ⟨smul_pos (inv_pos.2 ha') hr, r⁻¹ • x, hx, _⟩,
-    rw [smul_inv₀, smul_assoc, inv_inv₀] }
+    rw [smul_inv₀, smul_assoc, inv_inv] }
 end
 
 lemma gauge_smul_left [module α E] [smul_comm_class α ℝ ℝ] [is_scalar_tower α ℝ ℝ]
@@ -1514,8 +1524,45 @@ end
 
 end topology
 
+section locally_convex_space
+
+open locally_convex_space
+
+variables [nonempty ι] [normed_linear_ordered_field 𝕜] [normed_space ℝ 𝕜]
+  [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
+  [topological_add_group E]
+
+lemma with_seminorms.to_locally_convex_space (p : ι → seminorm 𝕜 E) [with_seminorms p] :
+  locally_convex_space ℝ E :=
+begin
+  apply of_basis_zero ℝ E id (λ s, s ∈ seminorm_basis_zero p),
+  { rw [with_seminorms_eq p, add_group_filter_basis.nhds_eq _, add_group_filter_basis.N_zero],
+    exact filter_basis.has_basis _ },
+  { intros s hs,
+    change s ∈ set.Union _ at hs,
+    simp_rw [set.mem_Union, set.mem_singleton_iff] at hs,
+    rcases hs with ⟨I, r, hr, rfl⟩,
+    exact convex_ball _ _ _ }
+end
+
+end locally_convex_space
+
 end seminorm
 
+section normed_space
 
+variables (𝕜) [normed_linear_ordered_field 𝕜] [normed_space ℝ 𝕜] [semi_normed_group E]
 
--- TODO: local convexity.
+/-- Not an instance since `𝕜` can't be inferred. See `normed_space.to_locally_convex_space` for a
+slightly weaker instance version. -/
+lemma normed_space.to_locally_convex_space' [normed_space 𝕜 E] [module ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] : locally_convex_space ℝ E :=
+seminorm.with_seminorms.to_locally_convex_space (λ _ : fin 1, norm_seminorm 𝕜 E)
+
+/-- See `normed_space.to_locally_convex_space'` for a slightly stronger version which is not an
+instance. -/
+instance normed_space.to_locally_convex_space [normed_space ℝ E] :
+  locally_convex_space ℝ E :=
+normed_space.to_locally_convex_space' ℝ
+
+end normed_space

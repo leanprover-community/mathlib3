@@ -324,16 +324,8 @@ was given a `pexpr ` of ``(1) along with the identifier.
 * Output: a `lean.parser (name × pexpr)`
 -/
 meta def parse_name_pexpr_pair : lean.parser (name × pexpr) :=
-(do
-  tk "(",
-  id ← ident,
-  tk ",",
-  coeff ← parser.pexpr 0,
-  tk ")",
-  pure (id, coeff)) <|>
-(do
-  id ← ident,
-  pure (id, ``(1)))
+(tk "(" *> prod.mk <$> ident <*> (tk "," *> parser.pexpr 0 <* tk ")")) <|>
+((λ id, (id, ``(1))) <$> ident)
 
 /--
 `linear_combination` attempts to prove the target by creating and applying a
@@ -396,7 +388,7 @@ add_tactic_doc
 { name := "linear_combination",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.linear_combination],
-  tags := [] }
+  tags := ["arithmetic"] }
 
 end interactive_mode
 end linear_combo

@@ -263,9 +263,9 @@ begin
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
 
-lemma int.exists_prime_and_dvd {n : ℤ} (n2 : 2 ≤ n.nat_abs) : ∃ p, prime p ∧ p ∣ n :=
+lemma int.exists_prime_and_dvd {n : ℤ} (hn : n.nat_abs ≠ 1) : ∃ p, prime p ∧ p ∣ n :=
 begin
-  obtain ⟨p, pp, pd⟩ := nat.exists_prime_and_dvd n2,
+  obtain ⟨p, pp, pd⟩ := nat.exists_prime_and_dvd hn,
   exact ⟨p, nat.prime_iff_prime_int.mp pp, int.coe_nat_dvd_left.mpr pd⟩,
 end
 
@@ -276,7 +276,7 @@ begin
   cases n, { simp },
   rw [← multiset.rel_eq, ← associated_eq_eq],
   apply factors_unique (irreducible_of_normalized_factor) _,
-  { rw [multiset.coe_prod, nat.prod_factors (nat.succ_pos _)],
+  { rw [multiset.coe_prod, nat.prod_factors n.succ_ne_zero],
     apply normalized_factors_prod (nat.succ_ne_zero _) },
   { apply_instance },
   { intros x hx,

@@ -57,7 +57,7 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 X]
 /--
 A continuous linear map `P` on a normed space `X` is said to be a projection if it is idempotent.
 -/
-def is_projection : (X →L[𝕜] X) → Prop := λ P, P^2 = P
+def is_projection {M} [monoid M] (x : M) : Prop := x^2 = x
 
 lemma projection_def {P: X →L[𝕜] X} (h: is_projection P) : P^2 = P := by exact h
 

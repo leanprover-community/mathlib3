@@ -11,7 +11,7 @@ import algebra.module.restriction_of_scalars
 
 noncomputable theory
 
-open Top topological_space opposite category_theory
+open Top topological_space opposite category_theory change_of_rings
 open_locale tensor_product change_of_rings
 
 namespace presheaf_of_module
@@ -220,7 +220,7 @@ private def restrict.to_fun (U V : opens X) (inc : op U ⟶ op V) :
   (extension_of_scalars.module (f.app (op V)) ⟨(𝓕.self.obj (op V))⟩) :=
 λ x, begin
   refine @tensor_product.lift _ _ _ _
-      ((extension_of_scalars (f.app (op V))).obj ⟨𝓕.self.obj (op V)⟩) _ _ _ _ _ _ _ _,
+      ((extension_of_scalars.functor (f.app (op V))).obj ⟨𝓕.self.obj (op V)⟩) _ _ _ _ _ _ _ _,
     { exact 𝓞1.obj (op U) },
     { apply_instance },
     { exact 𝓕.self.obj (op U) },
@@ -315,7 +315,7 @@ presheaf of module `𝓕` over `𝓞1`, there is a presheaf of modules over `�
 -/
 def extension_by.obj_presheaf_Ab : presheaf Ab X :=
 { obj := λ U,
-    ⟨(extension_of_scalars (f.app U)).obj
+    ⟨(extension_of_scalars.functor (f.app U)).obj
       { carrier := (𝓕.self.obj U), is_module := 𝓕.is_module (unop U) }⟩,
   map := λ U V inc,
     { to_fun := restrict _ _ (unop U) (unop V) inc,
@@ -346,7 +346,7 @@ def extension_by.obj_presheaf_Ab : presheaf Ab X :=
 
 lemma extension_by.obj_presheaf_Ab_obj (U : (opens X)ᵒᵖ) :
   (extension_by.obj_presheaf_Ab f 𝓕).obj U =
-  ⟨(extension_of_scalars (f.app U)).obj
+  ⟨(extension_of_scalars.functor (f.app U)).obj
       { carrier := (𝓕.self.obj U), is_module := 𝓕.is_module (unop U) }⟩ := rfl
 
 /--
@@ -487,7 +487,7 @@ local notation f `_*→` φ := extension_by.map f φ
 The extension of presheaf of module is functorial given by
 `𝓕 ↦ 𝓕⊗[𝓞1] 𝓞2` and `φ : 𝓕1 ⟶ 𝓕2` to `(m ⊗ s) ↦ φ m ⊗ s`.
 -/
-def extension_by : presheaf_of_module 𝓞1 ⥤ presheaf_of_module 𝓞2 :=
+def extension_by.functor : presheaf_of_module 𝓞1 ⥤ presheaf_of_module 𝓞2 :=
 { obj := λ 𝓕, f _* 𝓕,
   map := λ _ _ φ, f _*→ φ,
   map_id' := λ 𝓕, begin
@@ -518,5 +518,18 @@ def extension_by : presheaf_of_module 𝓞1 ⥤ presheaf_of_module 𝓞2 :=
   end }.
 
 end extension
+
+section
+
+variables {X : Top} {𝓞1 𝓞2 : presheaf CommRing X} (f : 𝓞1 ⟶ 𝓞2)
+
+-- example : adjunction (restriction_by.functor f) (extension_by.functor f) :=
+-- { hom_equiv := _,
+--   unit := _,
+--   counit := _,
+--   hom_equiv_unit' := _,
+--   hom_equiv_counit' := _ }
+
+end
 
 end presheaf_of_module

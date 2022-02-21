@@ -527,6 +527,7 @@ begin
 end
 
 /-- When `F` and `G` are two isomorphic functors, then `F` is an equivalence iff `G` is. -/
+@[simps]
 def equiv_of_iso {F G : C ⥤ D} (e : F ≅ G) : is_equivalence F ≃ is_equivalence G :=
 { to_fun := of_iso e,
   inv_fun := of_iso e.symm,

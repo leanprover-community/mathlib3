@@ -75,7 +75,6 @@ def simps.apply (h : α →ᵇ β) : α → β := h
 initialize_simps_projections bounded_continuous_function (to_continuous_map_to_fun → apply)
 
 protected lemma bounded (f : α →ᵇ β) : ∃C, ∀ x y : α, dist (f x) (f y) ≤ C := f.map_bounded'
-@[continuity]
 protected lemma continuous (f : α →ᵇ β) : continuous f := f.to_continuous_map.continuous
 
 @[ext] lemma ext (h : ∀ x, f x = g x) : f = g := fun_like.ext _ _ h

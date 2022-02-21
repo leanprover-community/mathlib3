@@ -59,6 +59,16 @@ another answer, which is constructively more satisfying, could be obtained by sh
 
 -/
 
+-- TODO: Move
+theorem _root_.list.last_append' {α : Type*} (l₁ l₂ : list α) (h : l₂ ≠ list.nil) :
+  (l₁ ++ l₂).last (list.append_ne_nil_of_ne_nil_right _ _ h) = l₂.last h :=
+begin
+  induction l₁,
+  { refl, },
+  { exact eq.trans (list.last_cons _ _) l₁_ih, }
+end
+
+
 variables {ι : Type*} (M : Π i : ι, Type*) [Π i, monoid (M i)]
 
 /-- A relation on the free monoid on alphabet `Σ i, M i`, relating `⟨i, 1⟩` with `1` and
@@ -408,16 +418,10 @@ begin
   { subst h, reflexivity, }
 end
 
-def last (w : neword M) : Σ i, M i :=
-begin
-  haveI : inhabited (Σ i, M i),
-  { cases w with w h,
-    cases w with l,
-    cases l with x ,
-    { exfalso, apply h, refl, },
-    { exact ⟨x⟩, } },
-  exact w.val.to_list.ilast,
-end
+lemma to_list_ne_nil (w : neword M) : w.val.to_list ≠ list.nil :=
+λ h, w.property (to_list_eq_nil_iff_word_eq_empty.mp h)
+
+def last (w : neword M) : Σ i, M i := w.val.to_list.last w.to_list_ne_nil
 
 @[simp]
 lemma singleton_head {i} (x : M i) (hne_one : x ≠ 1) :
@@ -450,10 +454,9 @@ def append : neword M :=
       unfold neword.head at hne,
       unfold neword.last at hne,
       rw list.head_eq_head' at hne,
-      rw list.ilast_eq_last' at hne,
-      cases w₁.val.to_list.last', contradiction,
+      rw list.last'_eq_last_of_ne_nil w₁.to_list_ne_nil at hx,
+      obtain rfl : _ = x, by simpa using hx, clear hx,
       cases w₂.val.to_list.head', contradiction,
-      obtain rfl : _ = x, by simpa using hx,
       obtain rfl : _ = y, by simpa using hy,
       exact hne,
     end, },
@@ -461,7 +464,7 @@ def append : neword M :=
     intro h,
     rewrite ← to_list_eq_nil_iff_word_eq_empty at h,
     rw list.append_eq_nil at h,
-    exact w₁.property (to_list_eq_nil_iff_word_eq_empty.mp h.1),
+    exact w₁.to_list_ne_nil h.1,
   end,}
 
 @[simp]
@@ -469,25 +472,14 @@ lemma append_head : (append w₁ w₂ hne).head = w₁.head :=
 begin
   unfold neword.head,
   unfold neword.append,
-  resetI,
-  haveI : inhabited (Σ i, M i),
-  { cases w₁ with w h,
-    cases w with l,
-    cases l with x ,
-    { exfalso, apply h, refl, },
-    { exact ⟨x⟩, } },
   dsimp,
-  -- show list.head (_ ++ _ ) = _.head,
-  -- apply list.head_append w₂.val.to_list (λ h, w₁.property (to_list_eq_nil_iff_word_eq_empty.mp h)),
-  -- refine list.head_append _ _,
-  sorry,
+  have := w₁.to_list_ne_nil,
+  cases w₁.val.to_list with x l, contradiction,
+  simp,
 end
 
 @[simp]
-lemma append_last : (append w₁ w₂ hne).last = w₂.last :=
--- by { simp [cons,last], rw list.last_cons }
-sorry
-
+lemma append_last : (append w₁ w₂ hne).last = w₂.last := list.last_append' _ _ _
 
 end append
 

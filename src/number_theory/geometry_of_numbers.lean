@@ -54,7 +54,6 @@ variables {G V : Type*}
 
 section
 
-#check encodable
 variables [measurable_space V]
 
 open smul_invariant_measure
@@ -102,7 +101,7 @@ variables {X Y : Type*} [measure_space Y] [group_with_zero X] [mul_action X Y]
 lemma measurable_set_smul₀ {x : X} (hx : x ≠ 0) {S : set Y} (h : measurable_set S) :
   measurable_set (x • S) :=
 begin
-  rw [← inv_inv₀ x, ← preimage_smul₀ (inv_ne_zero hx)],
+  rw [← inv_inv x, ← preimage_smul₀ (inv_ne_zero hx)],
   exact has_measurable_smul.measurable_const_smul _ h,
 end
 end
@@ -465,7 +464,7 @@ begin
   { erw pi_pi,
     dsimp,
     { conv in (r • _)
-      { rw ← inv_inv₀ r, },
+      { rw ← inv_inv r, },
       conv in (volume (r⁻¹⁻¹ • _))
       { rw ← preimage_smul₀ (inv_ne_zero (ne_of_gt hr)), },
       simp only [algebra.id.smul_eq_mul],

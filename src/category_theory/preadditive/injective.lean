@@ -27,7 +27,6 @@ variables {C : Type u} [category.{v} C]
 
 /--
 An object `J` is injective iff every morphism into `J` can be obtained by extending a monomorphism.
-monomorphism.-/
 class injective (J : C) : Prop :=
 (factors : ∀ {X Y : C} (g : X ⟶ J) (f : X ⟶ Y) [mono f], ∃ h : Y ⟶ J, f ≫ h = g)
 

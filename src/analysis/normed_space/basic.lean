@@ -279,21 +279,17 @@ export norm_one_class (norm_one)
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
 
-lemma list.norm_prod : ∀ l : list α, ∥l.prod∥ = (l.map norm).prod
-| [] := by simp
-| (a :: l) :=
-  by rw [list.map_cons, list.prod_cons, @list.prod_cons _ _ _ ∥a∥, norm_mul, list.norm_prod]
-
-lemma list.nnnorm_prod : ∀ l : list α, ∥l.prod∥₊ = (l.map nnnorm).prod
-| [] := by simp
-| (a :: l) :=
-  by rw [list.map_cons, list.prod_cons, @list.prod_cons _ _ _ ∥a∥₊, nnnorm_mul, list.nnnorm_prod]
-
 /-- `norm` as a `monoid_with_zero_hom`. -/
 @[simps] def norm_hom : α →*₀ ℝ := ⟨norm, norm_zero, norm_one, norm_mul⟩
 
 /-- `nnnorm` as a `monoid_with_zero_hom`. -/
 @[simps] def nnnorm_hom : α →*₀ ℝ≥0 := ⟨nnnorm, nnnorm_zero, nnnorm_one, nnnorm_mul⟩
+
+lemma list.norm_prod (l : list α) : ∥l.prod∥ = (l.map norm).prod :=
+(norm_hom.to_monoid_hom : α →* ℝ).map_list_prod _
+
+lemma list.nnnorm_prod (l : list α) : ∥l.prod∥₊ = (l.map nnnorm).prod :=
+(nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_list_prod _
 
 @[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
 (norm_hom.to_monoid_hom : α →* ℝ).map_pow a

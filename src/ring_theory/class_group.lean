@@ -148,10 +148,10 @@ begin
   have fa_ne_zero : (algebra_map R K) a ≠ 0 :=
     is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors a_ne_zero',
   refine ⟨⟨{ carrier := { x | (algebra_map R K a)⁻¹ * algebra_map R K x ∈ I.1 }, .. }, _⟩, _⟩,
-  { simp only [ring_hom.map_zero, set.mem_set_of_eq, mul_zero, ring_hom.map_mul],
-    exact submodule.zero_mem I },
   { simp only [ring_hom.map_add, set.mem_set_of_eq, mul_zero, ring_hom.map_mul, mul_add],
     exact λ _ _ ha hb, submodule.add_mem I ha hb },
+  { simp only [ring_hom.map_zero, set.mem_set_of_eq, mul_zero, ring_hom.map_mul],
+    exact submodule.zero_mem I },
   { intros c _ hb,
     simp only [smul_eq_mul, set.mem_set_of_eq, mul_zero, ring_hom.map_mul, mul_add,
                mul_left_comm ((algebra_map R K) a)⁻¹],

@@ -107,7 +107,7 @@ variables (R)
 end
 
 @[simp] lemma restrict_scalars_eq_top_iff {p : submodule R M} :
-  restrict_scalars R p = ⊤ ↔ p = ⊤ :=
+  restrict_scalars S p = ⊤ ↔ p = ⊤ :=
 by simp [set_like.ext_iff]
 
 instance : order_top (submodule R M) :=

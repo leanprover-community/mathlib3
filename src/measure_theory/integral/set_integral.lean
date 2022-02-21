@@ -941,7 +941,7 @@ lemma integral_with_density_eq_integral_smul₀
 begin
   let f' := hf.mk _,
   calc ∫ a, g a ∂(μ.with_density (λ x, f x))
-  = ∫ a, g a ∂(μ.with_density (λ x, f' x)) :
+      = ∫ a, g a ∂(μ.with_density (λ x, f' x)) :
   begin
     congr' 1,
     apply with_density_congr_ae,

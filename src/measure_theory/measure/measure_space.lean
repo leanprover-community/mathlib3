@@ -696,6 +696,11 @@ instance [semiring R] [module R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥
 injective.module R ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
 
+@[simp] theorem coe_nnreal_smul_apply {m : measurable_space α} (c : ℝ≥0) (μ : measure α)
+  (s : set α) :
+  (c • μ) s = c * μ s :=
+rfl
+
 lemma measure_eq_left_of_subset_of_measure_add_eq {s t : set α}
   (h : (μ + ν) t ≠ ∞) (h' : s ⊆ t) (h'' : (μ + ν) s = (μ + ν) t) :
   μ s = μ t :=

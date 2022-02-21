@@ -110,23 +110,6 @@ begin
       .resolve_right ha.not_unit) }
 end
 
-lemma multiplicity_eq_multiplicity_associates_mk {p q : R} (hp : prime p) (hq : q ≠ 0) :
-  multiplicity p q = multiplicity (associates.mk p) (associates.mk q) :=
-begin
-  have finite₁ := multiplicity.finite_prime_left hp hq,
-  have finite₂ := multiplicity.finite_prime_left ((associates.prime_mk p).2 hp)
-    (associates.mk_ne_zero.2 hq),
-  apply le_antisymm,
-  { rw ← enat.le_iff_of_dom,
-    apply multiplicity.le_multiplicity_of_pow_dvd,
-    rw [← associates.mk_pow, associates.mk_dvd_mk],
-    exact multiplicity.pow_multiplicity_dvd finite₁ },
-
-  { rw ← enat.le_iff_of_dom,
-    apply multiplicity.le_multiplicity_of_pow_dvd,
-    rw [← associates.mk_dvd_mk, associates.mk_pow],
-    exact multiplicity.pow_multiplicity_dvd finite₂ },
-end
 
 end cancel_comm_monoid_with_zero
 

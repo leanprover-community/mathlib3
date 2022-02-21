@@ -344,8 +344,8 @@ d.is_adj
 def dart.rev (d : G.dart) : G.dart :=
 ⟨d.to_prod.swap, G.symm d.is_adj⟩
 
-@[simp] lemma dart.rev_edge (d : G.dart) : d.rev.edge = d.edge :=
-by { obtain ⟨⟨v,w⟩, _⟩ := d, exact sym2.eq_swap }
+@[simp] lemma dart.rev_edge : Π (d : G.dart), d.rev.edge = d.edge :=
+by { rintro ⟨⟨v,w⟩, _⟩, exact sym2.eq_swap }
 
 @[simp] lemma dart.rev_rev (d : G.dart) : d.rev.rev = d :=
 by ext; refl

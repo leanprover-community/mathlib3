@@ -284,6 +284,33 @@ lemma submonoid.topological_closure_minimal
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
+/-- If a submonoid of a topological monoid is commutative, then so is its topological closure. -/
+@[to_additive "If a submonoid of an additive topological monoid is commutative, then so is its
+topological closure."]
+def submonoid.comm_monoid_topological_closure [t2_space M] (s : submonoid M)
+  (hs : ∀ (x y : s), x * y = y * x) : comm_monoid s.topological_closure :=
+{ mul_comm :=
+  begin
+    intros a b,
+    have h₁ : (s.topological_closure : set M) = closure s := rfl,
+    let f₁ := λ (x : M × M), x.1 * x.2,
+    let f₂ := λ (x : M × M), x.2 * x.1,
+    let S : set (M × M) := (s : set M) ×ˢ (s : set M),
+    have h₃ : set.eq_on f₁ f₂ (closure S),
+    { refine set.eq_on.closure _ continuous_mul (by continuity),
+      intros x hx,
+      rw [set.mem_prod] at hx,
+      rcases hx with ⟨hx₁, hx₂⟩,
+      change ((⟨x.1, hx₁⟩ : s) : M) * (⟨x.2, hx₂⟩ : s) = (⟨x.2, hx₂⟩ : s) * (⟨x.1, hx₁⟩ : s),
+      exact_mod_cast hs _ _ },
+    ext,
+    change f₁ ⟨a, b⟩ = f₂ ⟨a, b⟩,
+    refine h₃ _,
+    rw [closure_prod_eq, set.mem_prod],
+    exact ⟨by simp [←h₁], by simp [←h₁]⟩
+  end,
+  ..s.topological_closure.to_monoid }
+
 @[to_additive exists_open_nhds_zero_half]
 lemma exists_open_nhds_one_split {s : set M} (hs : s ∈ 𝓝 (1 : M)) :
   ∃ V : set M, is_open V ∧ (1 : M) ∈ V ∧ ∀ (v ∈ V) (w ∈ V), v * w ∈ s :=
@@ -349,6 +376,9 @@ continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 | 0 := by simpa using continuous_const
 | (k+1) := by { simp only [pow_succ], exact continuous_id.mul (continuous_pow _) }
+
+instance add_monoid.has_continuous_const_smul_nat {A} [add_monoid A] [topological_space A]
+  [has_continuous_add A] : has_continuous_const_smul ℕ A := ⟨continuous_nsmul⟩
 
 @[continuity, to_additive continuous.nsmul]
 lemma continuous.pow {f : X → M} (h : continuous f) (n : ℕ) :

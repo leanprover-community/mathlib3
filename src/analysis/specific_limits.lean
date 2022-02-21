@@ -76,7 +76,7 @@ namespace normed_field
 
 lemma tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
   tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[≠] 0) at_top :=
-(tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
+(tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (norm_inv x).symm
 
 lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
   (hm : m < 0) :
@@ -84,14 +84,24 @@ lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] 
 begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
-  simp only [normed_field.norm_pow, zpow_neg₀, zpow_coe_nat, ← inv_pow₀],
+  simp only [norm_pow, zpow_neg₀, zpow_coe_nat, ← inv_pow₀],
   exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
+end
+
+/-- The (scalar) product of a sequence that tends to zero with a bounded one also tends to zero. -/
+lemma tendsto_zero_smul_of_tendsto_zero_of_bounded {ι 𝕜 𝔸 : Type*} [normed_field 𝕜]
+  [normed_group 𝔸] [normed_space 𝕜 𝔸] {l : filter ι} {ε : ι → 𝕜} {f : ι → 𝔸}
+  (hε : tendsto ε l (𝓝 0)) (hf : filter.is_bounded_under (≤) l (norm ∘ f)) :
+  tendsto (ε • f) l (𝓝 0) :=
+begin
+  rw ← is_o_one_iff 𝕜 at hε ⊢,
+  simpa using is_o.smul_is_O hε (hf.is_O_const (one_ne_zero : (1 : 𝕜) ≠ 0))
 end
 
 @[simp] lemma continuous_at_zpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
   continuous_at (λ x, x ^ m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
 begin
-  refine ⟨_, continuous_at_zpow _ _⟩,
+  refine ⟨_, continuous_at_zpow₀ _ _⟩,
   contrapose!, rintro ⟨rfl, hm⟩ hc,
   exact not_tendsto_at_top_of_tendsto_nhds (hc.tendsto.mono_left nhds_within_le_nhds).norm
       (tendsto_norm_zpow_nhds_within_0_at_top hm)
@@ -294,6 +304,24 @@ begin
   simpa [div_eq_mul_inv] using tendsto_pow_const_div_const_pow_of_one_lt k hr'
 end
 
+/-- If `0 ≤ r < 1`, then `n ^ k r ^ n` tends to zero for any natural `k`.
+This is a specialized version of `tendsto_pow_const_mul_const_pow_of_abs_lt_one`, singled out
+for ease of application. -/
+lemma tendsto_pow_const_mul_const_pow_of_lt_one (k : ℕ) {r : ℝ} (hr : 0 ≤ r) (h'r : r < 1) :
+  tendsto (λ n, n ^ k * r ^ n : ℕ → ℝ) at_top (𝓝 0) :=
+tendsto_pow_const_mul_const_pow_of_abs_lt_one k (abs_lt.2 ⟨neg_one_lt_zero.trans_le hr, h'r⟩)
+
+/-- If `|r| < 1`, then `n * r ^ n` tends to zero. -/
+lemma tendsto_self_mul_const_pow_of_abs_lt_one {r : ℝ} (hr : |r| < 1) :
+  tendsto (λ n, n * r ^ n : ℕ → ℝ) at_top (𝓝 0) :=
+by simpa only [pow_one] using tendsto_pow_const_mul_const_pow_of_abs_lt_one 1 hr
+
+/-- If `0 ≤ r < 1`, then `n * r ^ n` tends to zero. This is a specialized version of
+`tendsto_self_mul_const_pow_of_abs_lt_one`, singled out for ease of application. -/
+lemma tendsto_self_mul_const_pow_of_lt_one {r : ℝ} (hr : 0 ≤ r) (h'r : r < 1) :
+  tendsto (λ n, n * r ^ n : ℕ → ℝ) at_top (𝓝 0) :=
+by simpa only [pow_one] using tendsto_pow_const_mul_const_pow_of_lt_one 1 hr h'r
+
 /-- If a sequence `v` of real numbers satisfies `k * v n ≤ v (n+1)` with `1 < k`,
 then it goes to +∞. -/
 lemma tendsto_at_top_of_geom_le {v : ℕ → ℝ} {c : ℝ} (h₀ : 0 < v 0) (hc : 1 < c)
@@ -350,6 +378,10 @@ by convert has_sum_geometric_of_lt_1 _ _; norm_num
 
 lemma summable_geometric_two : summable (λn:ℕ, ((1:ℝ)/2) ^ n) :=
 ⟨_, has_sum_geometric_two⟩
+
+lemma summable_geometric_two_encode {ι : Type*} [encodable ι] :
+  summable (λ (i : ι), (1/2 : ℝ)^(encodable.encode i)) :=
+summable_geometric_two.comp_injective encodable.encode_injective
 
 lemma tsum_geometric_two : ∑'n:ℕ, ((1:ℝ)/2) ^ n = 2 :=
 has_sum_geometric_two.tsum_eq
@@ -418,7 +450,7 @@ begin
   have B : (λ n, (∑ i in range n, ξ ^ i)) = (λ n, geom_sum ξ n) := rfl,
   rw [has_sum_iff_tendsto_nat_of_summable_norm, B],
   { simpa [geom_sum_eq, xi_ne_one, neg_inv, div_eq_mul_inv] using A },
-  { simp [normed_field.norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
+  { simp [norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
 end
 
 lemma summable_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : summable (λn:ℕ, ξ ^ n) :=
@@ -443,7 +475,7 @@ begin
   refine ⟨λ h, _, summable_geometric_of_norm_lt_1⟩,
   obtain ⟨k : ℕ, hk : dist (ξ ^ k) 0 < 1⟩ :=
     (h.tendsto_cofinite_zero.eventually (ball_mem_nhds _ zero_lt_one)).exists,
-  simp only [normed_field.norm_pow, dist_zero_right] at hk,
+  simp only [norm_pow, dist_zero_right] at hk,
   rw [← one_pow k] at hk,
   exact lt_of_pow_lt_pow _ zero_le_one hk
 end
@@ -563,7 +595,7 @@ begin
   simp only [div_eq_mul_inv, ennreal.inv_pow] at *,
   rw [mul_assoc, mul_comm],
   convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
-  rw [ennreal.one_sub_inv_two, ennreal.inv_inv]
+  rw [ennreal.one_sub_inv_two, inv_inv]
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from
@@ -1003,7 +1035,7 @@ begin
   intros n hn,
   calc ∥x ^ (n + 1) / (n + 1)!∥ = (∥x∥ / (n + 1)) * ∥x ^ n / n!∥ :
     by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div,
-      normed_field.norm_mul, normed_field.norm_div, real.norm_coe_nat, nat.cast_succ]
+      norm_mul, norm_div, real.norm_coe_nat, nat.cast_succ]
   ... ≤ (∥x∥ / (⌊∥x∥⌋₊ + 1)) * ∥x ^ n / n!∥ :
     by mono* with [0 ≤ ∥x ^ n / n!∥, 0 ≤ ∥x∥]; apply norm_nonneg
 end

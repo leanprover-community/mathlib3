@@ -250,17 +250,11 @@ section nonneg
 lemma eigenvalue_nonneg_of_nonneg {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenvalue T μ)
   (hnn : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪T x, x⟫) : 0 ≤ is_R_or_C.re μ :=
 begin
-  let v := (module.End.has_eigenvalue.exists_has_eigenvector hμ).some,
-  let hv := (module.End.has_eigenvalue.exists_has_eigenvector hμ).some_spec,
-  have : is_R_or_C.re ⟪T v, v⟫ = is_R_or_C.re μ * ∥v∥^2,
-  { simp only [module.End.has_eigenvector.apply_eq_smul hv,inner_smul_left, neg_mul,
-    inner_self_eq_norm_sq, is_R_or_C.mul_re, sub_zero, is_R_or_C.conj_re, mul_zero,
-      inner_self_nonneg_im ]},
-  specialize hnn v,
-  rw this at hnn,
-  have : 0 < ∥v∥^2, {rw sq_pos_iff (∥v∥), rw norm_ne_zero_iff, exact hv.2},
-  rw ← zero_le_mul_right this,
-  exact hnn,
+  obtain ⟨v, hv⟩ := hμ.exists_has_eigenvector,
+  have hpos : 0 < ∥v∥ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,
+  have : is_R_or_C.re ⟪v, T v⟫ = μ * ∥v∥ ^ 2,
+  { exact_mod_cast congr_arg is_R_or_C.re (inner_product_apply_eigenvector hv.1) },
+  exact (zero_le_mul_right hpos).mp (this ▸ hnn v),
 end
 
 end nonneg

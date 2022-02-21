@@ -163,8 +163,8 @@ is_inv_invariant.inv_eq_self
 
 end inv
 
-section group
-variables [group G] [has_measurable_inv G]
+section has_involutive_inv
+variables [has_involutive_inv G] [has_measurable_inv G]
 
 @[simp, to_additive]
 lemma inv_apply (μ : measure G) (s : set G) : μ.inv s = μ s⁻¹ :=
@@ -178,28 +178,12 @@ protected lemma inv_inv (μ : measure G) : μ.inv.inv = μ :=
 lemma measure_inv (μ : measure G) [is_inv_invariant μ] (A : set G) : μ A⁻¹ = μ A :=
 by rw [← inv_apply, inv_eq_self]
 
-@[simp, to_additive]
+@[to_additive]
 lemma measure_preimage_inv (μ : measure G) [is_inv_invariant μ] (A : set G) :
   μ (has_inv.inv ⁻¹' A) = μ A :=
 μ.measure_inv A
 
-end group
-
-section group_with_zero
-
-variables {G₀ : Type*} [group_with_zero G₀] [measurable_space G₀] [has_measurable_inv G₀]
-
-lemma inv₀_apply (μ : measure G₀) (s : set G₀) : μ.inv s = μ s⁻¹ :=
-(measurable_equiv.inv₀ G₀).map_apply s
-
-lemma measure_inv₀ (μ : measure G₀) [is_inv_invariant μ] (A : set G₀) : μ A⁻¹ = μ A :=
-by rw [← inv₀_apply, inv_eq_self]
-
-lemma measure_preimage_inv₀ (μ : measure G₀) [is_inv_invariant μ] (A : set G₀) :
-  μ (has_inv.inv ⁻¹' A) = μ A :=
-μ.measure_inv₀ A
-
-end group_with_zero
+end has_involutive_inv
 
 section mul_inv
 variables [group G] [has_measurable_mul G] [has_measurable_inv G] {μ : measure G}

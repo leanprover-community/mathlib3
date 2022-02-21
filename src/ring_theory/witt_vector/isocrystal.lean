@@ -7,18 +7,45 @@ Authors: Heather Macbeth
 import ring_theory.witt_vector.is_alg_closed
 
 /-!
+
 ## F-isocrystals over a perfect field
 
-TODO: better docs!
+When `k` is an integral domain, so is `𝕎 k`, and we can consider its field of fractions `K(p, k)`.
+The endomorphism `witt_vector.frobenius` lifts to `φ : K(p, k) → K(p, k)`; if `k` is perfect, `φ` is
+an automorphism.
 
-https://www.math.ias.edu/~lurie/205notes/Lecture26-Isocrystals.pdf
+Let `k` be an algebraically closed field of characteristic `p`. It is thus a perfect integral
+domain. Let `V` be a vector space over `k`. An *isocrystal* is a bijective map `V → V` that is
+`φ`-semilinear. A theorem of Dieudonné and Manin classifies the isocrystals over finite-dimensional
+spaces. In the one-dimensional case, there are countably many isocrystal structures.
 
-This construction is described in Dupuis, Lewis, and Macbeth,
+This file proves the one-dimensional case of the classification theorem.
+The construction is described in Dupuis, Lewis, and Macbeth,
 [Formalized functional analysis via semilinear maps][dupuis-lewis-macbeth2022].
+
+## Main declarations
+
+* `witt_vector.isocrystal`: a vector space over the field `K(p, k)` additionally equipped with a
+  Frobenius-linear automorphism.
+* `witt_vector.isocrystal_classification`: a one-dimensional isocrystal admits an isomorphism to one
+  of the standard one-dimensional isocrystals.
 
 ## Notation
 
 This file introduces notation in the locale `isocrystal`.
+* `K(p, k)`: `fraction_ring (witt_vector p k)`
+* `φ(p, k)`: `witt_vector.fraction_ring.frobenius_ring_hom p k`
+* `M →ᶠˡ[p, k] M₂`: `linear_map (witt_vector.fraction_ring.frobenius_ring_hom p k) M M₂`
+* `M ≃ᶠˡ[p, k] M₂`: `linear_equiv (witt_vector.fraction_ring.frobenius_ring_hom p k) M M₂`
+* `Φ(p, k)`: `witt_vector.isocrystal.frobenius p k`
+* `M →ᶠⁱ[p, k] M₂`: `witt_vector.isocrystal_hom p k M M₂`
+* `M ≃ᶠⁱ[p, k] M₂`: `witt_vector.isocrystal_equiv p k M M₂`
+
+## References
+
+* [Formalized functional analysis via semilinear maps][dupuis-lewis-macbeth2022]
+* [Theory of commutative formal groups over fields of finite characteristic][manin1963]
+* <https://www.math.ias.edu/~lurie/205notes/Lecture26-Isocrystals.pdf>
 
 -/
 
@@ -49,7 +76,8 @@ def fraction_ring.frobenius : K(p, k) ≃+* K(p, k) := is_fraction_ring.field_eq
 /-- The Frobenius automorphism of `k` induces an endomorphism of `K`. For notation purposes. -/
 def fraction_ring.frobenius_ring_hom : K(p, k) →+* K(p, k) := fraction_ring.frobenius p k
 
-localized "notation `φ(` p`,` k`)` := witt_vector.fraction_ring.frobenius_ring_hom p k" in isocrystal
+localized "notation `φ(` p`,` k`)` := witt_vector.fraction_ring.frobenius_ring_hom p k"
+  in isocrystal
 
 instance inv_pair₁ : ring_hom_inv_pair (φ(p, k)) _ :=
 ring_hom_inv_pair.of_ring_equiv (fraction_ring.frobenius p k)
@@ -58,8 +86,10 @@ instance inv_pair₂ :
   ring_hom_inv_pair ((fraction_ring.frobenius p k).symm : K(p, k) →+* K(p, k)) _ :=
 ring_hom_inv_pair.of_ring_equiv (fraction_ring.frobenius p k).symm
 
-localized "notation M ` →ᶠˡ[`:50 p `,` k `] ` M₂ := linear_map (witt_vector.fraction_ring.frobenius_ring_hom p k) M M₂" in isocrystal
-localized "notation M ` ≃ᶠˡ[`:50 p `,` k `] ` M₂ := linear_equiv (witt_vector.fraction_ring.frobenius_ring_hom p k) M M₂" in isocrystal
+localized "notation M ` →ᶠˡ[`:50 p `,` k `] ` M₂ :=
+  linear_map (witt_vector.fraction_ring.frobenius_ring_hom p k) M M₂" in isocrystal
+localized "notation M ` ≃ᶠˡ[`:50 p `,` k `] ` M₂ :=
+  linear_equiv (witt_vector.fraction_ring.frobenius_ring_hom p k) M M₂" in isocrystal
 
 /-! ### Isocrystals -/
 
@@ -81,7 +111,7 @@ Project the Frobenius automorphism from an isocrystal. Denoted by `Φ(p, k)` whe
 def isocrystal.frobenius : V ≃ᶠˡ[p, k] V := @isocrystal.frob p _ k _ _ _ _ _ _ _
 variables (V)
 
-localized "notation `Φ(` p`,` k`)` := isocrystal.frobenius p k" in isocrystal
+localized "notation `Φ(` p`,` k`)` := witt_vector.isocrystal.frobenius p k" in isocrystal
 
 /-- A homomorphism between isocrystals respects the Frobenius map. -/
 @[nolint has_inhabited_instance]
@@ -93,8 +123,10 @@ structure isocrystal_hom extends V →ₗ[K(p, k)] V₂ :=
 structure isocrystal_equiv extends V ≃ₗ[K(p, k)] V₂ :=
 ( frob_equivariant : ∀ x : V, Φ(p, k) (to_linear_equiv x) = to_linear_equiv (Φ(p, k) x) )
 
-localized "notation M ` →ᶠⁱ[`:50 p `,` k `] ` M₂ := isocrystal_hom p k M M₂" in isocrystal
-localized "notation M ` ≃ᶠⁱ[`:50 p `,` k `] ` M₂ := isocrystal_equiv p k M M₂" in isocrystal
+localized "notation M ` →ᶠⁱ[`:50 p `,` k `] ` M₂ := witt_vector.isocrystal_hom p k M M₂"
+  in isocrystal
+localized "notation M ` ≃ᶠⁱ[`:50 p `,` k `] ` M₂ := witt_vector.isocrystal_equiv p k M M₂"
+  in isocrystal
 
 
 end perfect_ring

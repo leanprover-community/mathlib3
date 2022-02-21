@@ -1055,11 +1055,9 @@ noncomputable instance with_top.with_bot.complete_linear_order {α : Type*}
 
 end with_top_bot
 
-
-section comm_group
+section group
 
 variables [nonempty ι] [conditionally_complete_lattice α] [group α]
--- variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
 
 @[to_additive]
 lemma le_mul_cinfi [covariant_class α α (*) (≤)] {a : α} {g : α} {h : ι → α}
@@ -1078,7 +1076,7 @@ mul_inv_le_iff_le_mul.mp $ le_cinfi $ λ gi, mul_inv_le_iff_le_mul.mpr $ H _
 
 @[to_additive]
 lemma csupr_mul_le [covariant_class α α (function.swap (*)) (≤)] {a : α} {g : ι → α} {h : α}
-  (H : ∀ i, g i * h ≤ a) : supr g *h ≤ a :=
+  (H : ∀ i, g i * h ≤ a) : supr g * h ≤ a :=
 @le_cinfi_mul (order_dual α) _ _ _ _ _ _ _ _ H
 
 @[to_additive]
@@ -1091,4 +1089,4 @@ lemma csupr_mul_csupr_le [covariant_class α α (*) (≤)] [covariant_class α �
   {a : α} {g h : ι → α} (H : ∀ i j, g i * h j ≤ a) : supr g * supr h ≤ a :=
 csupr_mul_le $ λ i, mul_csupr_le $ H _
 
-end comm_group
+end group

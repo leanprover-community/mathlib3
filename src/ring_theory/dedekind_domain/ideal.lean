@@ -687,6 +687,52 @@ lemma ideal.exists_mem_pow_not_mem_pow_succ (I : ideal A) (hI0 : I ≠ ⊥) (hI1
   ∃ x ∈ I^e, x ∉ I^(e+1) :=
 set_like.exists_of_lt (I.strict_anti_pow hI0 hI1 e.lt_succ_self)
 
+open fractional_ideal
+variables {A K}
+
+/-- Strengthening of `is_localization.exist_integer_multiples`:
+Let `J ≠ ⊤` be an ideal in a Dedekind domain `A`, and `f ≠ 0` a finite collection
+of elements of `K = Frac(A)`, then we can multiply the elements of `f` by some `a : K`
+to find a collection of elements of `A` that is not completely contained in `J`. -/
+lemma ideal.exist_integer_multiples_not_mem [is_dedekind_domain A]
+  {J : ideal A} (hJ : J ≠ ⊤) {ι : Type*} (s : finset ι) (f : ι → K)
+  {j} (hjs : j ∈ s) (hjf : f j ≠ 0) :
+  ∃ a : K, (∀ i ∈ s, is_localization.is_integer A (a * f i)) ∧
+    ∃ i ∈ s, (a * f i) ∉ (J : fractional_ideal A⁰ K) :=
+begin
+  obtain ⟨a', ha'⟩ := is_localization.exist_integer_multiples A⁰ s f,
+  let I : fractional_ideal A⁰ K := ⟨submodule.span A (f '' s), a', a'.2, _⟩,
+  have hI0 : I ≠ 0,
+  { intro hI0,
+    rw eq_zero_iff at hI0,
+    specialize hI0 (f j) (submodule.subset_span (set.mem_image_of_mem f hjs)),
+    contradiction },
+  suffices : ↑J / I < I⁻¹,
+  { obtain ⟨_, a, hI, hpI⟩ := set_like.lt_iff_le_and_exists.mp this,
+    rw mem_inv_iff hI0 at hI,
+    refine ⟨a, λ i hi, _, _⟩,
+    { exact (mem_one_iff _).mp (hI (f i)
+        (submodule.subset_span (set.mem_image_of_mem f hi))) },
+    { contrapose! hpI,
+      refine (mem_div_iff_of_nonzero hI0).mpr (λ y hy, submodule.span_induction hy _ _ _ _),
+      { rintros _ ⟨i, hi, rfl⟩, exact hpI i hi },
+      { rw mul_zero, exact submodule.zero_mem _ },
+      { intros x y hx hy, rw mul_add, exact submodule.add_mem _ hx hy },
+      { intros b x hx, rw mul_smul_comm, exact submodule.smul_mem _ b hx } } },
+  calc ↑J / I = ↑J * I⁻¹ : div_eq_mul_inv ↑J I
+          ... < 1 * I⁻¹ : mul_right_strict_mono (inv_ne_zero hI0) _
+          ... = I⁻¹ : one_mul _,
+  { rw [← coe_ideal_top],
+    exact strict_mono_of_le_iff_le (λ _ _, (coe_ideal_le_coe_ideal K).symm)
+      (lt_top_iff_ne_top.mpr hJ) },
+  { intros x hx,
+    refine submodule.span_induction hx _ _ _ _,
+    { rintro _ ⟨i, hi, rfl⟩, exact ha' i hi },
+    { rw smul_zero, exact is_localization.is_integer_zero },
+    { intros x y hx hy, rw smul_add, exact is_localization.is_integer_add hx hy },
+    { intros c x hx, rw smul_comm, exact is_localization.is_integer_smul hx } }
+end
+
 end is_dedekind_domain
 
 section is_dedekind_domain

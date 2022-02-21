@@ -14,10 +14,10 @@ When `k` is an integral domain, so is `𝕎 k`, and we can consider its field of
 The endomorphism `witt_vector.frobenius` lifts to `φ : K(p, k) → K(p, k)`; if `k` is perfect, `φ` is
 an automorphism.
 
-Let `k` be an algebraically closed field of characteristic `p`. It is thus a perfect integral
-domain. Let `V` be a vector space over `k`. An *isocrystal* is a bijective map `V → V` that is
-`φ`-semilinear. A theorem of Dieudonné and Manin classifies the isocrystals over finite-dimensional
-spaces. In the one-dimensional case, there are countably many isocrystal structures.
+Let `k` be a perfect integral domain. Let `V` be a vector space over `K(p,k)`.
+An *isocrystal* is a bijective map `V → V` that is `φ`-semilinear.
+A theorem of Dieudonné and Manin classifies the isocrystals over finite-dimensional spaces.
+In the one-dimensional case, there are countably many isocrystal structures.
 
 This file proves the one-dimensional case of the classification theorem.
 The construction is described in Dupuis, Lewis, and Macbeth,

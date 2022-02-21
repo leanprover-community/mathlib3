@@ -68,7 +68,6 @@ cauchy_seq_finset_of_norm_bounded_eventually hg $ eventually_of_forall h
 
 /-- A version of the **direct comparison test** for conditionally convergent series.
 See `cauchy_seq_finset_of_norm_bounded` for the same statement about absolutely convergent ones. -/
--- FIXME: Unify this with version for absolute convergence somehow
 lemma cauchy_seq_range_of_norm_bounded {f : ℕ → E} (g : ℕ → ℝ)
   (hg : cauchy_seq (λ n, ∑ i in range n, g i)) (hf : ∀ i, ∥f i∥ ≤ g i) :
   cauchy_seq (λ n, ∑ i in range n, f i) :=

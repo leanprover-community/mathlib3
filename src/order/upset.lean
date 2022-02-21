@@ -13,13 +13,15 @@ This file defines upper and lower sets in an order.
 
 ## Main declarations
 
-* `is_upset`: Predicate for a set to be an upper set.
-* `is_downset`: Predicate for a set to be a lower set.
+* `is_upset`: Predicate for a set to be an upper set. This means every element greater than a member
+  of the set is in the set itself.
+* `is_downset`: Predicate for a set to be a lower set. This means every element less than a member
+  of the set is in the set itself.
 * `up_set`: The type of upper sets.
 * `down_set`: The type of lower sets.
 -/
 
-open set
+open order_dual set
 
 variables {ι : Sort*} {κ : ι → Sort*} {α : Type*}
 
@@ -29,12 +31,12 @@ section unbundled
 variables [has_le α] {s t : set α}
 
 /-- An upper set in an order `α` is a set such that any element greater than one of its members is
-also a member. -/
-def is_upset (s : set α) : Prop := ∀ ⦃a b⦄, a ≤ b → a ∈ s → b ∈ s
+also a member. Also called up-set, upward-closed set. -/
+def is_upset (s : set α) : Prop := ∀ ⦃a b : α⦄, a ≤ b → a ∈ s → b ∈ s
 
 /-- A lower set in an order `α` is a set such that any element less than one of its members is also
-a member. -/
-def is_downset (s : set α) : Prop := ∀ ⦃a b⦄, b ≤ a → a ∈ s → b ∈ s
+a member. Also called down-set, downward-closed set. -/
+def is_downset (s : set α) : Prop := ∀ ⦃a b : α⦄, b ≤ a → a ∈ s → b ∈ s
 
 lemma is_upset_empty : is_upset (∅ : set α) := λ _ _ _, id
 lemma is_downset_empty : is_downset (∅ : set α) := λ _ _ _, id
@@ -94,6 +96,9 @@ lemma is_upset_sInter {S : set (set α)} (hf : ∀ s ∈ S, is_upset s) : is_ups
 
 lemma is_downset_sInter {S : set (set α)} (hf : ∀ s ∈ S, is_downset s) : is_downset (⋂₀ S) :=
 λ a b h, forall₂_imp $ λ s hs, hf s hs h
+
+lemma is_upset.of_dual (hs : is_upset s) : is_downset (of_dual ⁻¹' s) := hs
+lemma is_downset.of_dual (hs : is_downset s) : is_upset (of_dual ⁻¹' s) := hs
 
 end unbundled
 

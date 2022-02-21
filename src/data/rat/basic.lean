@@ -518,10 +518,8 @@ ne_of_gt q.pos
 
 lemma eq_iff_mul_eq_mul {p q : ℚ} : p = q ↔ p.num * q.denom = q.num * p.denom :=
 begin
-  conv_lhs { rw [←(@num_denom p), ←(@num_denom q)] },
-  apply rat.mk_eq,
-  { exact_mod_cast p.denom_ne_zero },
-  { exact_mod_cast q.denom_ne_zero }
+  conv { to_lhs, rw [← @num_denom p, ← @num_denom q] },
+  apply rat.mk_eq; rw [← nat.cast_zero, ne, int.coe_nat_eq_coe_nat_iff]; apply denom_ne_zero,
 end
 
 lemma mk_num_ne_zero_of_ne_zero {q : ℚ} {n d : ℤ} (hq : q ≠ 0) (hqnd : q = n /. d) : n ≠ 0 :=
@@ -789,7 +787,10 @@ begin
 end
 
 lemma inv_coe_nat_denom {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.denom = a :=
-by exact_mod_cast inv_coe_int_denom (by exact_mod_cast ha0 : 0 < (a : ℤ))
+begin
+  rw [← int.coe_nat_eq_coe_nat_iff, ← int.cast_coe_nat a, inv_coe_int_denom],
+  rwa [← nat.cast_zero, nat.cast_lt]
+end
 
 protected lemma «forall» {p : ℚ → Prop} : (∀ r, p r) ↔ ∀ a b : ℤ, p (a / b) :=
 ⟨λ h _ _, h _,

@@ -279,10 +279,10 @@ def restrict_scalars (fₗ : M →ₗ[S] M₂) : M →ₗ[R] M₂ :=
   map_add' := fₗ.map_add,
   map_smul' := fₗ.map_smul_of_tower }
 
-@[simp] lemma linear_map.coe_restrict_scalars (fₗ : M →ₗ[S] M₂) : ⇑(restrict_scalars R fₗ) = fₗ :=
+@[simp] lemma coe_restrict_scalars (fₗ : M →ₗ[S] M₂) : ⇑(restrict_scalars R fₗ) = fₗ :=
 rfl
 
-lemma linear_map.restrict_scalars_apply (fₗ : M →ₗ[S] M₂) (x) : restrict_scalars R fₗ x = fₗ x :=
+lemma restrict_scalars_apply (fₗ : M →ₗ[S] M₂) (x) : restrict_scalars R fₗ x = fₗ x :=
 rfl
 
 lemma restrict_scalars_injective :

@@ -377,8 +377,8 @@ theorem exists_dvd_of_not_prime2 {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :
 ⟨min_fac n, min_fac_dvd _, (min_fac_prime (ne_of_gt n2)).two_le,
   (not_prime_iff_min_fac_lt n2).1 np⟩
 
-theorem exists_prime_and_dvd {n : ℕ} (n2 : 2 ≤ n) : ∃ p, prime p ∧ p ∣ n :=
-⟨min_fac n, min_fac_prime (ne_of_gt n2), min_fac_dvd _⟩
+theorem exists_prime_and_dvd {n : ℕ} (hn : n ≠ 1) : ∃ p, prime p ∧ p ∣ n :=
+⟨min_fac n, min_fac_prime hn, min_fac_dvd _⟩
 
 /-- Euclid's theorem on the **infinitude of primes**.
 Here given in the form: for every `n`, there exists a prime number `p ≥ n`. -/
@@ -398,13 +398,9 @@ p.mod_two_eq_zero_or_one.imp_left
 
 theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, prime k → k ∣ m → ¬ k ∣ n) : coprime m n :=
 begin
-  have g1 : 1 ≤ gcd m n,
-  { refine nat.succ_le_of_lt (pos_iff_ne_zero.mpr (λ g0, _)),
-    rw [eq_zero_of_gcd_eq_zero_left g0, eq_zero_of_gcd_eq_zero_right g0] at H,
-    exact H 2 prime_two (dvd_zero _) (dvd_zero _) },
-  rw [coprime_iff_gcd_eq_one, eq_comm],
-  refine g1.lt_or_eq.resolve_left (λ g2, _),
-  obtain ⟨p, hp, hpdvd⟩ := exists_prime_and_dvd (succ_le_of_lt g2),
+  rw [coprime_iff_gcd_eq_one],
+  by_contra g2,
+  obtain ⟨p, hp, hpdvd⟩ := exists_prime_and_dvd g2,
   apply H p hp; apply dvd_trans hpdvd,
   { exact gcd_dvd_left _ _ },
   { exact gcd_dvd_right _ _ }

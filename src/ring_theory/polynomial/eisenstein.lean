@@ -210,7 +210,8 @@ begin
   -- First define some abbreviations.
   letI := B.finite_dimensional,
   let P := minpoly R B.gen,
-  set n := B.dim,
+  set n := B.dim with hn,
+  obtain ⟨m , hm⟩ := nat.exists_eq_succ_of_ne_zero B.dim_pos.ne',
   have finrank_K_L : finite_dimensional.finrank K L = n := B.finrank,
   have deg_K_P : (minpoly K B.gen).nat_degree = n := B.nat_degree_minpoly,
   have deg_R_P : P.nat_degree = n,
@@ -222,25 +223,27 @@ begin
 
   -- The Eisenstein condition shows that `p` divides `Q.coeff 0`
   -- if `p^n` divides the following multiple of `Q^n`:
-  suffices : p ^ n ∣
-    (Q.coeff 0 ^ n * ((-1) ^ (n * (n - 1)) * (minpoly R B.gen).coeff 0 ^ (n - 1))),
+  suffices : p ^ m.succ ∣
+    (Q.coeff 0 ^ m.succ * ((-1) ^ (m.succ * m) * (minpoly R B.gen).coeff 0 ^ m)),
   { have hndiv : ¬ p ^ 2 ∣ ((minpoly R B.gen)).coeff 0 := λ h,
       hei.not_mem ((span_singleton_pow p 2).symm ▸ (ideal.mem_span_singleton.2 h)),
-    refine prime.dvd_of_pow_dvd_pow_mul_pow_of_square_not_dvd B.dim_pos hp _ hndiv,
-    convert (is_unit.dvd_mul_right ⟨(-1) ^ (n * (n - 1)), rfl⟩).mpr this using 1,
+    refine prime.dvd_of_pow_dvd_pow_mul_pow_of_square_not_dvd hp ((_ : _ ^ m.succ ∣ _)) hndiv,
+    convert (is_unit.dvd_mul_right ⟨(-1) ^ (m.succ * m), rfl⟩).mpr this using 1,
     push_cast,
     ring_nf, simp [pow_right_comm _ _ 2] },
 
   -- We claim the quotient of `Q^n * _` by `p^n` is the following `r`:
-  have aux : ∀ i ∈ (range (Q.nat_degree + 1)).erase 0, n ≤ i + (n - 1),
+  have aux : ∀ i ∈ (range (Q.nat_degree + 1)).erase 0, n ≤ i + m,
   { intros i hi,
     simp only [mem_range, mem_erase] at hi,
+    rw [hn, hm],
     exact le_add_pred_of_pos _ hi.1 },
-  have hintsum : is_integral R (z * B.gen ^ (n - 1) -
-    ∑ (x : ℕ) in (range (Q.nat_degree + 1)).erase 0, Q.coeff x • f (x + (n - 1))),
+  have hintsum : is_integral R (z * B.gen ^ m -
+    ∑ (x : ℕ) in (range (Q.nat_degree + 1)).erase 0, Q.coeff x • f (x + m)),
   { refine is_integral_sub (is_integral_mul hzint (is_integral.pow hBint _))
       (is_integral.sum _ (λ i hi, (is_integral_smul _ _))),
-    exact adjoin_le_integral_closure hBint (hf _ (aux i hi)).1 },
+    exact adjoin_le_integral_closure hBint (hf _ (aux i hi)).1,
+     },
   obtain ⟨r, hr⟩ := is_integral_iff.1 (is_integral_norm K hintsum),
   use r,
 
@@ -248,27 +251,27 @@ begin
   apply is_fraction_ring.injective R K,
   simp only [_root_.map_mul, _root_.map_pow, _root_.map_neg, _root_.map_one],
   -- Both sides are actually norms:
-  calc _ = norm K (Q.coeff 0 • B.gen ^ (n - 1)) : _
-  ... = norm K (p • (z * B.gen ^ (n - 1)) - ∑ (x : ℕ) in (range (Q.nat_degree + 1)).erase 0,
-          p • Q.coeff x • f (x + (n - 1)))
+  calc _ = norm K (Q.coeff 0 • B.gen ^ m) : _
+  ... = norm K (p • (z * B.gen ^ m) - ∑ (x : ℕ) in (range (Q.nat_degree + 1)).erase 0,
+          p • Q.coeff x • f (x + m))
     : congr_arg (norm K) (eq_sub_of_add_eq _)
   ... = _ : _,
   { simp only [algebra.smul_def, algebra_map_apply R K L, norm_algebra_map, _root_.map_mul,
       _root_.map_pow, finrank_K_L, power_basis.norm_gen_eq_coeff_zero_minpoly,
-      minpoly.gcd_domain_eq_field_fractions K hBint, coeff_map],
+      minpoly.gcd_domain_eq_field_fractions K hBint, coeff_map, ← hm],
     ring_exp },
   swap, { simp_rw [← smul_sum, ← smul_sub, algebra.smul_def p, algebra_map_apply R K L,
-      _root_.map_mul, norm_algebra_map, finrank_K_L, hr] },
+      _root_.map_mul, norm_algebra_map, finrank_K_L, hr, ← hm] },
 
   calc _ = (Q.coeff 0 • 1 + ∑ (x : ℕ) in (range (Q.nat_degree + 1)).erase 0,
-              Q.coeff x • B.gen ^ x) * B.gen ^ (n - 1) : _
+              Q.coeff x • B.gen ^ x) * B.gen ^ m : _
   ... = (Q.coeff 0 • B.gen ^ 0 + ∑ (x : ℕ) in (range (Q.nat_degree + 1)).erase 0,
-              Q.coeff x • B.gen ^ x) * B.gen ^ (n - 1) : by rw pow_zero
-  ... = (aeval B.gen Q) * B.gen ^ (n - 1) : _
+              Q.coeff x • B.gen ^ x) * B.gen ^ m : by rw pow_zero
+  ... = (aeval B.gen Q) * B.gen ^ m : _
   ... = _ : by rw [hQ, algebra.smul_mul_assoc],
   { have : ∀ i ∈ (range (Q.nat_degree + 1)).erase 0,
-      Q.coeff i • (B.gen ^ i * B.gen ^ (n - 1)) =
-      p • Q.coeff i • f (i + (n - 1)),
+      Q.coeff i • (B.gen ^ i * B.gen ^ m) =
+      p • Q.coeff i • f (i + m),
     { intros i hi,
       rw [← pow_add, ← (hf _ (aux i hi)).2, ← smul_def, smul_smul, mul_comm _ p, smul_smul] },
     simp only [add_mul, smul_mul_assoc, one_mul, sum_mul, sum_congr rfl this] },

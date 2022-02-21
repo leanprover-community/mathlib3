@@ -378,7 +378,7 @@ lemma exists_restrict_eq_forall_mem_of_closed {s : set Y} (f : C(s, ℝ)) {t : s
   ∃ g : C(Y, ℝ), (∀ y, g y ∈ t) ∧ g.restrict s = f :=
 let ⟨g, hgt, hgf⟩ := exists_extension_forall_mem_of_closed_embedding f ht hne
   (closed_embedding_subtype_coe hs)
-in ⟨g, hgt, coe_inj hgf⟩
+in ⟨g, hgt, coe_injective hgf⟩
 
 /-- **Tietze extension theorem** for real-valued continuous maps, a version for a closed set. Let
 `s` be a closed set in a normal topological space `Y`. Let `f` be a continuous real-valued function

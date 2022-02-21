@@ -1214,6 +1214,53 @@ end
   ∫ x, f x ∂(0 : measure α) = 0 :=
 set_to_fun_measure_zero (dominated_fin_meas_additive_weighted_smul _) rfl
 
+theorem integral_finset_sum_measure {ι} {m : measurable_space α} {f : α → E}
+  {μ : ι → measure α} {s : finset ι} (hf : ∀ i ∈ s, integrable f (μ i)) :
+  ∫ a, f a ∂(∑ i in s, μ i) = ∑ i in s, ∫ a, f a ∂μ i :=
+begin
+  classical,
+  refine finset.induction_on' s _ _, -- `induction s using finset.induction_on'` fails
+  { simp },
+  { intros i t hi ht hit iht,
+    simp only [finset.sum_insert hit, ← iht],
+    exact integral_add_measure (hf _ hi) (integrable_finset_sum_measure.2 $ λ j hj, hf j (ht hj)) }
+end
+
+lemma nndist_integral_add_measure_le_lintegral (h₁ : integrable f μ) (h₂ : integrable f ν) :
+  (nndist (∫ x, f x ∂μ) (∫ x, f x ∂(μ + ν)) : ℝ≥0∞) ≤ ∫⁻ x, ∥f x∥₊ ∂ν :=
+begin
+  rw [integral_add_measure h₁ h₂, nndist_comm, nndist_eq_nnnorm, add_sub_cancel'],
+  exact ennnorm_integral_le_lintegral_ennnorm _
+end
+
+theorem has_sum_integral_measure {ι} {m : measurable_space α} {f : α → E} {μ : ι → measure α}
+  (hf : integrable f (measure.sum μ)) :
+  has_sum (λ i, ∫ a, f a ∂μ i) (∫ a, f a ∂measure.sum μ) :=
+begin
+  have hfi : ∀ i, integrable f (μ i) := λ i, hf.mono_measure (measure.le_sum _ _),
+  simp only [has_sum, ← integral_finset_sum_measure (λ i _, hfi i)],
+  refine metric.nhds_basis_ball.tendsto_right_iff.mpr (λ ε ε0, _),
+  lift ε to ℝ≥0 using ε0.le,
+  have hf_lt : ∫⁻ x, ∥f x∥₊ ∂(measure.sum μ) < ∞ := hf.2,
+  have hmem : ∀ᶠ y in 𝓝 ∫⁻ x, ∥f x∥₊ ∂(measure.sum μ), ∫⁻ x, ∥f x∥₊ ∂(measure.sum μ) < y + ε,
+  { refine tendsto_id.add tendsto_const_nhds (lt_mem_nhds $ ennreal.lt_add_right _ _),
+    exacts [hf_lt.ne, ennreal.coe_ne_zero.2 (nnreal.coe_ne_zero.1 ε0.ne')] },
+  refine ((has_sum_lintegral_measure (λ x, ∥f x∥₊) μ).eventually hmem).mono (λ s hs, _),
+  obtain ⟨ν, hν⟩ : ∃ ν, (∑ i in s, μ i) + ν = measure.sum μ,
+  { refine ⟨measure.sum (λ i : ↥(sᶜ : set ι), μ i), _⟩,
+    simpa only [← measure.sum_coe_finset] using measure.sum_add_sum_compl (s : set ι) μ },
+  rw [metric.mem_ball, ← coe_nndist, nnreal.coe_lt_coe, ← ennreal.coe_lt_coe, ← hν],
+  rw [← hν, integrable_add_measure] at hf,
+  refine (nndist_integral_add_measure_le_lintegral hf.1 hf.2).trans_lt _,
+  rw [← hν, lintegral_add_measure, lintegral_finset_sum_measure] at hs,
+  exact lt_of_add_lt_add_left hs
+end
+
+theorem integral_sum_measure {ι} {m : measurable_space α} {f : α → E} {μ : ι → measure α}
+  (hf : integrable f (measure.sum μ)) :
+  ∫ a, f a ∂measure.sum μ = ∑' i, ∫ a, f a ∂μ i :=
+(has_sum_integral_measure hf).tsum_eq.symm
+
 @[simp] lemma integral_smul_measure (f : α → E) (c : ℝ≥0∞) :
   ∫ x, f x ∂(c • μ) = c.to_real • ∫ x, f x ∂μ :=
 begin

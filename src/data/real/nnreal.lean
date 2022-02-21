@@ -626,7 +626,7 @@ lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x �
 le_of_forall_ge_of_dense $ assume a ha,
   have hx : x ≠ 0 := pos_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) ha),
   have hx' : x⁻¹ ≠ 0, by rwa [(≠), inv_eq_zero],
-  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv₀],
+  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv],
   have (a * x⁻¹) * x ≤ y, from h _ this,
   by rwa [mul_assoc, inv_mul_cancel hx, mul_one] at this
 

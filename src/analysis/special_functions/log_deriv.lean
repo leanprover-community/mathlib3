@@ -186,7 +186,7 @@ begin
       (((has_deriv_at_id (0 : ℝ)).const_mul t).const_add 1).log (by simp) },
   have h₂ : tendsto (λ x : ℝ, x⁻¹) at_top (𝓝[≠] 0) :=
     tendsto_inv_at_top_zero'.mono_right (nhds_within_mono _ (λ x hx, (set.mem_Ioi.mp hx).ne')),
-  simpa only [(∘), inv_inv₀] using h₁.comp h₂
+  simpa only [(∘), inv_inv] using h₁.comp h₂
 end
 
 open_locale big_operators

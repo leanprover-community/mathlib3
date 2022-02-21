@@ -350,7 +350,7 @@ normed_group.of_core F
 local attribute [instance] to_normed_group
 
 /-- Normed space structure constructed from a `inner_product_space.core` structure -/
-def to_normed_space : normed_space 𝕜 F :=
+def to_normed_space [module 𝕜ᵐᵒᵖ F] [is_central_scalar 𝕜 F] : normed_space 𝕜 F :=
 { norm_smul_le := assume r x,
   begin
     rw [norm_eq_sqrt_inner, inner_smul_left, inner_smul_right, ←mul_assoc],
@@ -364,11 +364,12 @@ end inner_product_space.of_core
 
 /-- Given a `inner_product_space.core` structure on a space, one can use it to turn
 the space into an inner product space, constructing the norm out of the inner product -/
-def inner_product_space.of_core [add_comm_group F] [module 𝕜 F]
+def inner_product_space.of_core [add_comm_group F] [module 𝕜 F] [module 𝕜ᵐᵒᵖ F]
+  [is_central_scalar 𝕜 F]
   (c : inner_product_space.core 𝕜 F) : inner_product_space 𝕜 F :=
 begin
   letI : normed_group F := @inner_product_space.of_core.to_normed_group 𝕜 F _ _ _ c,
-  letI : normed_space 𝕜 F := @inner_product_space.of_core.to_normed_space 𝕜 F _ _ _ c,
+  letI : normed_space 𝕜 F := @inner_product_space.of_core.to_normed_space 𝕜 F _ _ _ c _ _,
   exact { norm_sq_eq_inner := λ x,
     begin
       have h₁ : ∥x∥^2 = (sqrt (re (c.inner x x))) ^ 2 := rfl,

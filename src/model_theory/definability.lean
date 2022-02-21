@@ -34,7 +34,7 @@ namespace language
 
 variables {L : language.{u v}} {M : Type w} [L.Structure M] {A : set M}
 open_locale first_order
-open Structure
+open Structure set
 
 /-! ### Definability -/
 
@@ -45,7 +45,7 @@ variables (L) {α : Type} [fintype α] {β : Type} [fintype β] (A)
 /-- A subset of a finite Cartesian product of a structure is definable over a set `A` when
   membership in the set is given by a first-order formula with parameters from `A`. -/
 structure is_definable (s : set (α → M)) : Prop :=
-(exists_formula : ∃ (φ : L[[A]].formula α), s = set_of (realize_formula M φ))
+(exists_formula : ∃ (φ : L[[A]].formula α), s = set_of φ.realize)
 
 variables {L} {A} {B : set M} {s : set (α → M)}
 
@@ -56,21 +56,21 @@ begin
   obtain ⟨ψ, rfl⟩ := h,
   refine ⟨⟨(φ.add_constants A).on_formula ψ, _⟩⟩,
   ext x,
-  simp only [set.mem_set_of_eq, Lhom.realize_on_formula],
+  simp only [mem_set_of_eq, Lhom.realize_on_formula],
 end
 
 lemma is_empty_definable_iff :
-  L.is_definable ∅ s ↔ ∃ (φ : L.formula α), s = set_of (realize_formula M φ) :=
+  L.is_definable ∅ s ↔ ∃ (φ : L.formula α), s = set_of φ.realize :=
 begin
   split,
   { rintro ⟨φ, rfl⟩,
     refine ⟨(L.Lhom_trim_empty_constants (∅ : set M)).on_formula φ, _⟩,
     ext x,
-    simp only [set.mem_set_of_eq, Lhom.realize_on_formula], },
+    simp only [mem_set_of_eq, Lhom.realize_on_formula], },
   { rintro ⟨φ, rfl⟩,
     refine ⟨⟨(L.Lhom_with_constants (∅ : set M)).on_formula φ, _⟩⟩,
     ext x,
-    simp only [set.mem_set_of_eq, Lhom.realize_on_formula], }
+    simp only [mem_set_of_eq, Lhom.realize_on_formula], }
 end
 
 lemma is_definable_iff_empty_definable_with_params :
@@ -96,7 +96,7 @@ lemma is_definable_empty : L.is_definable A (∅ : set (α → M)) :=
 ⟨⟨⊥, by {ext, simp} ⟩⟩
 
 @[simp]
-lemma is_definable_univ : L.is_definable A (set.univ : set (α → M)) :=
+lemma is_definable_univ : L.is_definable A (univ : set (α → M)) :=
 ⟨⟨⊤, by {ext, simp} ⟩⟩
 
 @[simp]
@@ -118,8 +118,8 @@ lemma is_definable.union {f g : set (α → M)} (hf : L.is_definable A f) (hg : 
   rcases hg.exists_formula with ⟨θ, hθ⟩,
   refine ⟨φ ⊔ θ, _⟩,
   ext,
-  rw [hφ, hθ, set.mem_set_of_eq, formula.realize_sup, set.mem_union_eq, set.mem_set_of_eq,
-    set.mem_set_of_eq],
+  rw [hφ, hθ, mem_set_of_eq, formula.realize_sup, mem_union_eq, mem_set_of_eq,
+    mem_set_of_eq],
 end⟩
 
 lemma is_definable_finset_inf {ι : Type*} {f : Π (i : ι), set (α → M)}
@@ -147,11 +147,11 @@ lemma is_definable_finset_bInter {ι : Type*} {f : Π (i : ι), set (α → M)}
   L.is_definable A (⋂ i ∈ s, f i) :=
 begin
   refine (congr rfl (le_antisymm _ _)).mp (is_definable_finset_inf hf s),
-  { rw [set.le_eq_subset, set.subset_Inter₂_iff],
-    simp_rw [← set.le_eq_subset],
+  { rw [le_eq_subset, subset_Inter₂_iff],
+    simp_rw [← le_eq_subset],
     exact λ _, finset.inf_le },
   { rw finset.le_inf_iff,
-    exact λ i is, set.bInter_subset_of_mem is }
+    exact λ i is, bInter_subset_of_mem is }
 end
 
 lemma is_definable_finset_bUnion {ι : Type*} {f : Π (i : ι), set (α → M)}
@@ -160,9 +160,9 @@ lemma is_definable_finset_bUnion {ι : Type*} {f : Π (i : ι), set (α → M)}
 begin
   refine (congr rfl (le_antisymm _ _)).mp (is_definable_finset_sup hf s),
   { rw finset.sup_le_iff,
-    exact λ i is, set.subset_bUnion_of_mem is },
-  { rw [set.le_eq_subset, set.Union₂_subset_iff],
-    simp_rw [← set.le_eq_subset],
+    exact λ i is, subset_bUnion_of_mem is },
+  { rw [set.le_eq_subset, Union₂_subset_iff],
+    simp_rw [← le_eq_subset],
     exact λ i is, finset.le_sup is }
 end
 
@@ -171,7 +171,7 @@ lemma is_definable.compl {s : set (α → M)} (hf : L.is_definable A s) :
   L.is_definable A sᶜ :=
 ⟨begin
   rcases hf.exists_formula with ⟨φ, hφ⟩,
-  refine ⟨bd_not φ, _⟩,
+  refine ⟨φ.not, _⟩,
   rw hφ,
   refl,
 end⟩
@@ -189,7 +189,7 @@ begin
   obtain ⟨φ, rfl⟩ := h.exists_formula,
   refine ⟨⟨(φ.relabel f), _⟩⟩,
   ext,
-  simp only [set.preimage_set_of_eq, set.mem_set_of_eq, realize_formula_relabel],
+  simp only [set.preimage_set_of_eq, mem_set_of_eq, formula.realize_relabel],
 end
 
 lemma is_definable.image_comp_equiv {s : set (β → M)}
@@ -197,7 +197,7 @@ lemma is_definable.image_comp_equiv {s : set (β → M)}
   L.is_definable A ((λ g : β → M, g ∘ f) '' s) :=
 begin
   refine (congr rfl _).mp (h.preimage_comp f.symm),
-  rw set.image_eq_preimage_of_inverse,
+  rw image_eq_preimage_of_inverse,
   { intro i,
     ext b,
     simp },
@@ -212,9 +212,9 @@ lemma is_definable.image_comp_sum_inl_fin (m : ℕ) {s : set ((α ⊕ (fin m)) �
   L.is_definable A ((λ g : (α ⊕ (fin m)) → M, g ∘ sum.inl) '' s) :=
 begin
   obtain ⟨φ, rfl⟩ := h.exists_formula,
-  refine ⟨⟨close_with_exists (bounded_formula.relabel id φ), _⟩⟩,
+  refine ⟨⟨(bounded_formula.relabel id φ).exs, _⟩⟩,
   ext x,
-  simp only [set.mem_image, set.mem_set_of_eq, realize_close_with_exists],
+  simp only [set.mem_image, mem_set_of_eq, bounded_formula.realize_exs],
   split,
   { rintro ⟨y, hy, rfl⟩,
     refine ⟨y ∘ sum.inr, _⟩,
@@ -231,40 +231,7 @@ begin
   { rintro ⟨y, hy⟩,
     refine ⟨sum.elim x y, _, sum.elim_comp_inl _ _⟩,
     rw bounded_formula.realize_relabel at hy,
-    rw realize_formula,
-    refine (congr (congr rfl (congr rfl _)) (funext fin_zero_elim)).mp hy,
-    ext x,
-    rw function.comp_apply,
-    refine congr rfl _,
-    ext,
-    rw fin.coe_cast_add },
-end
-
-lemma is_definable.image_comp_sum (m : ℕ) {s : set ((α ⊕ (fin m)) → M)}
-  (h : L.is_definable A s) :
-  L.is_definable A ((λ g : (α ⊕ (fin m)) → M, g ∘ sum.inl) '' s) :=
-begin
-  obtain ⟨φ, rfl⟩ := h.exists_formula,
-  refine ⟨⟨close_with_exists (bounded_formula.relabel id φ), _⟩⟩,
-  ext x,
-  simp only [set.mem_image, exists_exists_and_eq_and, set.mem_set_of_eq, realize_close_with_exists],
-  split,
-  { rintro ⟨y, hy, rfl⟩,
-    refine ⟨y ∘ sum.inr, _⟩,
-    rw bounded_formula.realize_relabel,
-    refine (congr (congr rfl _) (funext fin_zero_elim)).mp hy,
-    ext x,
-    cases x,
-    { simp },
-    { rw [function.comp.right_id, sum.elim_inr, function.comp_apply,
-        ← function.comp_apply y sum.inr],
-      refine congr rfl _,
-      ext,
-      rw fin.coe_cast_add, } },
-  { rintro ⟨y, hy⟩,
-    refine ⟨sum.elim x y, _, sum.elim_comp_inl _ _⟩,
-    rw bounded_formula.realize_relabel at hy,
-    rw realize_formula,
+    rw formula.realize,
     refine (congr (congr rfl (congr rfl _)) (funext fin_zero_elim)).mp hy,
     ext x,
     rw function.comp_apply,
@@ -280,22 +247,19 @@ lemma is_definable.image_comp {s : set (β → M)} (h : L.is_definable A s)
 begin
   classical,
   have h := h.image_comp_equiv (equiv.trans (equiv.sum_congr (_root_.equiv.refl _)
-    (fintype.equiv_fin _).symm) (equiv.set.sum_compl (set.range f))),
-  have h := (h.image_comp_sum_inl_fin _).preimage_comp (set.range_splitting f),
+    (fintype.equiv_fin _).symm) (equiv.set.sum_compl (range f))),
+  have h := (h.image_comp_sum_inl_fin _).preimage_comp (range_splitting f),
   have h' : L.is_definable A ({ x : α → M |
-    ∀ a, x a = x (set.range_splitting f (set.range_factorization f a))}),
+    ∀ a, x a = x (range_splitting f (range_factorization f a))}),
   { have h' : ∀ a, L.is_definable A {x : α → M | x a =
-      x (set.range_splitting f (set.range_factorization f a))},
-    { intro a,
-      refine ⟨⟨formula.equal (term.var a)
-        (term.var (set.range_splitting f (set.range_factorization f a))), set.ext _⟩⟩,
+      x (range_splitting f (range_factorization f a))},
+    { refine λ a, ⟨⟨(var a).equal (var (range_splitting f (range_factorization f a))), ext _⟩⟩,
       simp, },
-    refine (congr rfl (set.ext _)).mp (is_definable_finset_bInter h' finset.univ),
+    refine (congr rfl (ext _)).mp (is_definable_finset_bInter h' finset.univ),
     simp },
-  refine (congr rfl _).mp (h.inter h'),
-  ext x,
-  simp only [equiv.coe_trans, set.mem_inter_eq, set.mem_preimage, set.mem_image,
-    exists_exists_and_eq_and, set.mem_set_of_eq],
+  refine (congr rfl (ext (λ x, _))).mp (h.inter h'),
+  simp only [equiv.coe_trans, mem_inter_eq, mem_preimage, mem_image,
+    exists_exists_and_eq_and, mem_set_of_eq],
   split,
   { rintro ⟨⟨y, ys, hy⟩, hx⟩,
     refine ⟨y, ys, _⟩,
@@ -306,8 +270,8 @@ begin
     refine ⟨⟨y, ys, _⟩, λ a, _⟩,
     { ext,
       simp [set.apply_range_splitting f] },
-    { rw [function.comp_apply, function.comp_apply, set.apply_range_splitting f,
-        set.range_factorization_coe], }}
+    { rw [function.comp_apply, function.comp_apply, apply_range_splitting f,
+        range_factorization_coe], }}
 end
 
 variables (L) {M} (A)
@@ -338,13 +302,13 @@ instance : set_like (L.definable_set A α) (α → M) :=
   coe_injective' := subtype.val_injective }
 
 @[simp]
-lemma mem_top {x : α → M} : x ∈ (⊤ : L.definable_set A α) := set.mem_univ x
+lemma mem_top {x : α → M} : x ∈ (⊤ : L.definable_set A α) := mem_univ x
 
 @[simp]
 lemma coe_top : ((⊤ : L.definable_set A α) : set (α → M)) = ⊤ := rfl
 
 @[simp]
-lemma not_mem_bot {x : α → M} : ¬ x ∈ (⊥ : L.definable_set A α) := set.not_mem_empty x
+lemma not_mem_bot {x : α → M} : ¬ x ∈ (⊥ : L.definable_set A α) := not_mem_empty x
 
 @[simp]
 lemma coe_bot : ((⊥ : L.definable_set A α) : set (α → M)) = ⊥ := rfl
@@ -370,14 +334,14 @@ lemma mem_inf {s t : L.definable_set A α} {x : α → M} : x ∈ s ⊓ t ↔ x 
 
 instance : bounded_order (L.definable_set A α) :=
 { bot_le := λ s x hx, false.elim hx,
-  le_top := λ s x hx, set.mem_univ x,
+  le_top := λ s x hx, mem_univ x,
   .. definable_set.has_top L,
   .. definable_set.has_bot L }
 
 instance : distrib_lattice (L.definable_set A α) :=
 { le_sup_inf := begin
     intros s t u x,
-    simp only [and_imp, set.mem_inter_eq, set_like.mem_coe, coe_sup, coe_inf, set.mem_union_eq,
+    simp only [and_imp, mem_inter_eq, set_like.mem_coe, coe_sup, coe_inf, mem_union_eq,
       subtype.val_eq_coe],
     tauto,
   end,
@@ -412,9 +376,9 @@ instance : boolean_algebra (L.definable_set A α) :=
   inf_inf_sdiff := λ ⟨s, hs⟩ ⟨t, ht⟩, begin
     rw eq_bot_iff,
     simp only [coe_compl, le_iff, coe_bot, coe_inf, subtype.coe_mk,
-      set.le_eq_subset],
+      le_eq_subset],
     intros x hx,
-    simp only [set.mem_inter_eq, set.mem_compl_eq] at hx,
+    simp only [set.mem_inter_eq, mem_compl_eq] at hx,
     tauto,
   end,
   inf_compl_le_bot := λ ⟨s, hs⟩, by simp [le_iff],

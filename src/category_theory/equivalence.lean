@@ -543,6 +543,7 @@ of_iso ((functor.associator F G G.inv) ≪≫ nat_iso.hcomp (iso.refl F) hG.unit
   right_unitor F) (functor.is_equivalence_trans (F ⋙ G) (G.inv))
 
 /-- If `F` and `F ⋙ G` are equivalence of categories, then `G` is also an equivalence. -/
+@[simps]
 def cancel_comp_left {E : Type*} [category E]
   (F : C ⥤ D) (G : D ⥤ E) (hF : is_equivalence F) (hGF : is_equivalence (F ⋙ G)) :
   is_equivalence G :=

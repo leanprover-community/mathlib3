@@ -9,7 +9,7 @@ import category_theory.abelian.pseudoelements
 /-!
 
 The object `homology f g w`, where `w : f ≫ g = 0`, can be identified with either a
-cokernel or a kernel. The isomoprhism with a cokernel is `homology_iso_cokernel_lift`, which
+cokernel or a kernel. The isomorphism with a cokernel is `homology_iso_cokernel_lift`, which
 was obtained elsewhere. In the case of an abelian category, this file shows the isomorphism
 with a kernel as well.
 
@@ -46,7 +46,7 @@ def homology_k : A :=
 kernel (cokernel.desc f g w)
 
 /-- The canonical map from `homology_c` to `homology_k`.
-  This is an isomoprhism, and it is used in obtaining the API for `homology f g w`
+  This is an isomorphism, and it is used in obtaining the API for `homology f g w`
   in the bottom of this file. -/
 def homology_c_to_k : homology_c f g w ⟶ homology_k f g w :=
 cokernel.desc _ (kernel.lift _ (kernel.ι _ ≫ cokernel.π _) (by simp)) begin

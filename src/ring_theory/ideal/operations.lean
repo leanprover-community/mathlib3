@@ -114,7 +114,6 @@ smul_mono h (le_refl N)
 
 theorem smul_mono_right (h : N ≤ P) : I • N ≤ I • P :=
 smul_mono (le_refl I) h
-.
 lemma map_le_smul_top (I : ideal R) (f : R →ₗ[R] M) :
   submodule.map f I ≤ I • (⊤ : submodule R M) :=
 begin

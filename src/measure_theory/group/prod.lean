@@ -195,8 +195,8 @@ begin
 end
 
 @[to_additive]
-lemma ae_measure_preimage_mul_right_ne_top [is_mul_left_invariant μ] [is_mul_left_invariant ν]
-  {E : set G} (Em : measurable_set E) (hμE : μ E < ∞) :
+lemma ae_measure_preimage_mul_right_lt_top [is_mul_left_invariant μ] [is_mul_left_invariant ν]
+  {E : set G} (Em : measurable_set E) (hμE : μ E ≠ ∞) :
   ∀ᵐ x ∂μ, ν ((λ y, y * x) ⁻¹' E) < ∞ :=
 begin
   refine ae_of_forall_measure_lt_top_ae_restrict' ν.inv _ _,
@@ -209,7 +209,7 @@ begin
     ← indicator_mul_right _ (λ x, ν ((λ y, y * x) ⁻¹' E)), function.comp, pi.one_apply,
     mul_one] at h1,
   rw [← lintegral_indicator _ hA, ← h1],
-  refine ennreal.mul_ne_top hμE.ne h3A.ne,
+  refine ennreal.mul_ne_top hμE h3A.ne,
 end
 
 /-- A technical lemma relating two different measures. This is basically [Halmos, §60 Th. A].
@@ -218,15 +218,15 @@ end
 
   Note: There seems to be a gap in the last step of the proof in [Halmos].
   In the last line, the equality `g(x⁻¹)ν(Ex⁻¹) = f(x)` holds if we can prove that
-  `0 < ν(Ex⁻¹) < ∞`. The first inequality follows from §59, Th. D, but the second inequality is
+  `0 < ν(Ex⁻¹) ≠ ∞`. The first inequality follows from §59, Th. D, but the second inequality is
   injustified. We prove this inequality for almost all `x` in
-  `measure_theory.ae_measure_preimage_mul_right_ne_top`, using the computation done in the proof of
+  `measure_theory.ae_measure_preimage_mul_right_lt_top`, using the computation done in the proof of
   §60 Th. A (`measure_theory.measure_mul_lintegral_eq`) which is sufficient for our purposes.
-  This has the funny consequence that the hypothesis `ν E < ∞` in §60 Th. A is not needed, and
-  instead we need `μ E < ∞`. -/
+  This has the funny consequence that the hypothesis `ν E ≠ ∞` in §60 Th. A is not needed, and
+  instead we need `μ E ≠ ∞`. -/
 @[to_additive]
 lemma measure_lintegral_div_measure [is_mul_left_invariant μ]
-  [is_mul_left_invariant ν] {E : set G} (Em : measurable_set E) (h2E : ν E ≠ 0) (h3E : μ E < ∞)
+  [is_mul_left_invariant ν] {E : set G} (Em : measurable_set E) (h2E : ν E ≠ 0) (h3E : μ E ≠ ∞)
   (f : G → ℝ≥0∞) (hf : measurable f) :
   μ E * ∫⁻ y, f y⁻¹ / ν ((λ x, x * y⁻¹) ⁻¹' E) ∂ν = ∫⁻ x, f x ∂μ :=
 begin
@@ -235,14 +235,14 @@ begin
     ((measurable_measure_mul_right ν Em).comp measurable_inv),
   simp_rw [measure_mul_lintegral_eq μ ν Em g hg, g, inv_inv],
   refine lintegral_congr_ae _,
-  refine (ae_measure_preimage_mul_right_ne_top μ ν Em h3E).mono (λ x hx , _),
+  refine (ae_measure_preimage_mul_right_lt_top μ ν Em h3E).mono (λ x hx , _),
   simp_rw [ennreal.mul_div_cancel' (measure_mul_right_ne_zero ν h2E _) hx.ne]
 end
 
 @[to_additive]
 lemma measure_mul_measure_eq [is_mul_left_invariant μ]
   [is_mul_left_invariant ν] {E F : set G}
-  (hE : measurable_set E) (hF : measurable_set F) (h2E : ν E ≠ 0) (h3E : ν E < ∞) (hμE : μ E < ∞) :
+  (hE : measurable_set E) (hF : measurable_set F) (h2E : ν E ≠ 0) (h3E : ν E ≠ ∞) (hμE : μ E ≠ ∞) :
     μ E * ν F = ν E * μ F :=
 begin
   have h1 := measure_lintegral_div_measure ν ν hE h2E h3E (F.indicator (λ x, 1))
@@ -257,13 +257,13 @@ end
 @[to_additive]
 lemma measure_eq_div_smul [is_mul_left_invariant μ]
   [is_mul_left_invariant ν] {E : set G}
-  (hE : measurable_set E) (h2E : ν E ≠ 0) (h3E : ν E < ∞) (hμE : μ E < ∞) :
+  (hE : measurable_set E) (h2E : ν E ≠ 0) (h3E : ν E ≠ ∞) (hμE : μ E ≠ ∞) :
     μ = (μ E / ν E) • ν :=
 begin
   ext1 F hF,
   have := measure_mul_measure_eq μ ν hE hF h2E h3E hμE,
   rw [smul_apply, mul_comm, ← mul_div_assoc, mul_comm, this, mul_div_assoc,
-    ennreal.mul_div_cancel' h2E h3E.ne]
+    ennreal.mul_div_cancel' h2E h3E]
 end
 
 end measure_theory

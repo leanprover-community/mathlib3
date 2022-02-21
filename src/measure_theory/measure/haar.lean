@@ -582,10 +582,10 @@ variables [second_countable_topology G]
   (instead of all compact sets). -/
 @[to_additive]
 theorem haar_measure_unique' (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
-  (K₀ : positive_compacts G) (hμK₀ : μ K₀.1 < ∞) : μ = μ K₀.1 • haar_measure K₀ :=
+  (K₀ : positive_compacts G) (hμK₀ : μ K₀.1 ≠ ∞) : μ = μ K₀.1 • haar_measure K₀ :=
 begin
   refine (measure_eq_div_smul μ (haar_measure K₀) K₀.2.1.measurable_set
-    (measure_pos_of_nonempty_interior _ K₀.2.2).ne' K₀.2.1.measure_lt_top hμK₀).trans _,
+    (measure_pos_of_nonempty_interior _ K₀.2.2).ne' K₀.2.1.measure_lt_top.ne hμK₀).trans _,
   rw [haar_measure_self, ennreal.div_one]
 end
 
@@ -596,7 +596,7 @@ end
 @[to_additive]
 theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
   [is_finite_measure_on_compacts μ] (K₀ : positive_compacts G) : μ = μ K₀.1 • haar_measure K₀ :=
-haar_measure_unique' μ K₀ K₀.2.1.measure_lt_top
+haar_measure_unique' μ K₀ K₀.2.1.measure_lt_top.ne
 
 example [locally_compact_space G] (μ : measure G) [is_haar_measure μ] (K₀ : positive_compacts G) :
   μ = μ K₀.1 • haar_measure K₀ :=
@@ -606,9 +606,9 @@ haar_measure_unique μ K₀
   on some compact set with non-empty interior. -/
 @[to_additive]
 theorem regular_of_is_mul_left_invariant {μ : measure G} [sigma_finite μ] [is_mul_left_invariant μ]
-  {K : set G} (hK : is_compact K) (h2K : (interior K).nonempty) (hμK : μ K < ∞) :
+  {K : set G} (hK : is_compact K) (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) :
   regular μ :=
-by { rw [haar_measure_unique' μ ⟨K, hK, h2K⟩ hμK], exact regular.smul hμK.ne }
+by { rw [haar_measure_unique' μ ⟨K, hK, h2K⟩ hμK], exact regular.smul hμK }
 
 @[to_additive is_add_haar_measure_eq_smul_is_add_haar_measure]
 theorem is_haar_measure_eq_smul_is_haar_measure
@@ -617,16 +617,16 @@ theorem is_haar_measure_eq_smul_is_haar_measure
 begin
   have K : positive_compacts G := classical.choice (topological_space.nonempty_positive_compacts G),
   have νpos : 0 < ν K.1 := measure_pos_of_nonempty_interior _ K.2.2,
-  have νlt : ν K.1 < ∞ := K.2.1.measure_lt_top,
+  have νne : ν K.1 ≠ ∞ := K.2.1.measure_lt_top.ne,
   refine ⟨μ K.1 / ν K.1, _, _, _⟩,
-  { simp only [νlt.ne, (μ.measure_pos_of_nonempty_interior K.property.right).ne', ne.def,
+  { simp only [νne, (μ.measure_pos_of_nonempty_interior K.property.right).ne', ne.def,
       ennreal.div_zero_iff, not_false_iff, or_self] },
   { simp only [div_eq_mul_inv, νpos.ne', (K.2.1.measure_lt_top).ne, or_self,
       ennreal.inv_eq_top, with_top.mul_eq_top_iff, ne.def, not_false_iff, and_false, false_and] },
   { calc
     μ = μ K.1 • haar_measure K : haar_measure_unique μ K
     ... = (μ K.1 / ν K.1) • (ν K.1 • haar_measure K) :
-      by rw [smul_smul, div_eq_mul_inv, mul_assoc, ennreal.inv_mul_cancel νpos.ne' νlt.ne, mul_one]
+      by rw [smul_smul, div_eq_mul_inv, mul_assoc, ennreal.inv_mul_cancel νpos.ne' νne, mul_one]
     ... = (μ K.1 / ν K.1) • ν : by rw ← haar_measure_unique ν K }
 end
 
@@ -671,7 +671,7 @@ begin
          simp, },
   have : c^2 = 1^2 :=
     (ennreal.mul_eq_mul_right (measure_pos_of_nonempty_interior _ K.2.2).ne'
-      (is_compact.measure_lt_top K.2.1).ne).1 this,
+      K.2.1.measure_lt_top.ne).1 this,
   have : c = 1 := (ennreal.pow_strict_mono two_ne_zero).injective this,
   rw [hc, this, one_smul]
 end

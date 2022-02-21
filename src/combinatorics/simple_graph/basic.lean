@@ -321,7 +321,7 @@ instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
 
 /-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices. -/
 @[ext, derive decidable_eq]
-structure dart extends prod V V :=
+structure dart extends V × V :=
 (is_adj : G.adj fst snd)
 
 section darts

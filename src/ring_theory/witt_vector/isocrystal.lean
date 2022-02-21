@@ -134,7 +134,8 @@ local attribute [instance]
 def fraction_ring.module : module K(p, k) K(p, k) := semiring.to_module
 
 /--
-Type synonym for `K(p, k)` to carry the standard 1-dimensional isocrystal structure of slope `m : ℤ`.
+Type synonym for `K(p, k)` to carry the standard 1-dimensional isocrystal structure
+of slope `m : ℤ`.
 -/
 @[nolint unused_arguments has_inhabited_instance, derive [add_comm_group, module K(p, k)]]
 def standard_one_dim_isocrystal (m : ℤ) : Type* :=
@@ -153,8 +154,10 @@ instance (m : ℤ) : isocrystal p k (standard_one_dim_isocrystal p k m) :=
   Φ(p, k) x = (p:K(p, k)) ^ m • φ(p, k) x :=
 rfl
 
-/-- A one-dimensional isocrystal admits an isomorphism to one of the standard (indexed by `m : ℤ`)
-one-dimensional isocrystals. -/
+end perfect_ring
+
+/-- A one-dimensional isocrystal over an algebraically closed field
+admits an isomorphism to one of the standard (indexed by `m : ℤ`) one-dimensional isocrystals. -/
 theorem isocrystal_classification
   (k : Type*) [field k] [is_alg_closed k] [char_p k p]
   (V : Type*) [add_comm_group V] [isocrystal p k V]
@@ -195,7 +198,5 @@ begin
   { rw hmb,
     ring },
 end
-
-end perfect_ring
 
 end witt_vector

@@ -2229,17 +2229,22 @@ is_unit.mk0 (g y) $ show g.to_monoid_with_zero_hom y ≠ 0,
   from map_ne_zero_of_mem_non_zero_divisors g hg y.2
 
 lemma eq_zero_of_mk'_eq_zero [algebra R K] [is_fraction_ring R K] {x : R} {y : non_zero_divisors R}
- (hxy : mk' K x y = 0) : x = 0 :=
+  (hxy : mk' K x y = 0) : x = 0 :=
 begin
   simp_rw [mk'_eq_zero_iff, mul_right_coe_non_zero_divisors_eq_zero_iff] at hxy,
   exact (exists_const _).mp hxy
 end
 
+@[simp] lemma mk'_eq_zero_iff_eq_zero [algebra R K] [is_fraction_ring R K] {x : R}
+  {y : non_zero_divisors R} : mk' K x y = 0 ↔ x = 0 :=
+⟨eq_zero_of_mk'_eq_zero, λ h, by rw [h, mk'_zero]⟩
+
 lemma eq_of_mk'_eq_one {x : A} {y : non_zero_divisors A} (hxy : mk' K x y = 1) : x = y :=
 begin
-  rw [is_fraction_ring.mk'_eq_div, div_eq_one_iff_eq] at hxy,
+  have hy : (algebra_map A K) ↑y ≠ (0 : K) :=
+  is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors y.property,
+  rw [is_fraction_ring.mk'_eq_div, div_eq_one_iff_eq hy] at hxy,
   { exact is_fraction_ring.injective A K hxy },
-  { exact is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors y.property }
 end
 
 /-- Given an integral domain `A` with field of fractions `K`,

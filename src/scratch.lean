@@ -13,7 +13,7 @@ noncomputable theory
 
 open Top topological_space opposite category_theory
 open_locale tensor_product change_of_rings
-
+set_option profiler true
 namespace presheaf_of_module
 
 section defs
@@ -308,16 +308,6 @@ def restrict (U V : opens X) (inc : op U ⟶ op V) :
       simp only [smul_add], }
   end, }.
 
-lemma restrict.aux1 (U : opens X) (m) : restrict f 𝓕 U U (𝟙 _) m = m :=
-begin
-  induction m using tensor_product.induction_on with x y x y ih1 ih2,
-  { simp only [map_zero], },
-  { unfold restrict,
-    simp only [restrict.to_fun, category_theory.functor.map_id, id_apply, linear_map.coe_mk,
-      tensor_product.lift.tmul], },
-  { rw [map_add, ih1, ih2], },
-end.
-
 /--
 For two presheaves of ring `𝓞1` and `𝓞2`m a morphism of presheaf of ring `f : 𝓞1 ⟶ 𝓞2` and a
 presheaf of module `𝓕` over `𝓞1`, there is a presheaf of modules over `𝓞2` given by
@@ -333,19 +323,24 @@ def extension_by.obj_presheaf_Ab : presheaf Ab X :=
       map_add' := by simp },
   map_id' := λ U, begin
     ext,
-    dsimp,
-    simp only [id_apply],
-    convert restrict.aux1 _ _ _ _,
-    all_goals { refl },
+    simp only [id_apply, linear_map.coe_mk, restrict, restrict.to_fun],
+    induction x using tensor_product.induction_on with x y x y ih1 ih2,
+    { simp only [map_zero], },
+    { simp only [add_monoid_hom.coe_mk],
+      erw [tensor_product.lift.tmul, linear_map.coe_mk],
+      congr';
+      erw [category_theory.functor.map_id, id_apply], },
+    { rw [map_add, ih1, ih2], },
   end,
   map_comp' := λ U V W incUV incVW, begin
     ext m,
-    dsimp,
+    simp only [add_monoid_hom.coe_mk, functor.map_comp, comp_apply, linear_map.coe_mk],
+    unfold restrict restrict.to_fun,
+    simp only [linear_map.coe_mk],
     induction m using tensor_product.induction_on with x y x y ih1 ih2,
     { simp only [map_zero], },
-    { unfold restrict restrict.to_fun,
-      simp only [functor.map_comp, comp_apply, linear_map.coe_mk, add_monoid_hom.coe_mk],
-      erw [tensor_product.lift.tmul], },
+    { erw [tensor_product.lift.tmul, tensor_product.lift.tmul, linear_map.coe_mk],
+      simp only [functor.map_comp, comp_apply, linear_map.coe_mk], },
     { simp only [map_add, ih1, ih2], }
   end }.
 

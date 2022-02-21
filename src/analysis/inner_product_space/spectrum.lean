@@ -247,7 +247,7 @@ end inner_product_space
 
 section nonneg
 
-lemma eigenvalue_nonneg_of_nonneg {μ : 𝕜} {T : E →ₗ[𝕜] E} (hμ : module.End.has_eigenvalue T μ)
+lemma eigenvalue_nonneg_of_nonneg {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenvalue T μ)
   (hnn : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪T x, x⟫) : 0 ≤ is_R_or_C.re μ :=
 begin
   let v := (module.End.has_eigenvalue.exists_has_eigenvector hμ).some,

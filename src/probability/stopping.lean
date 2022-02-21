@@ -66,10 +66,7 @@ instance : inhabited (filtration ι m) := ⟨const m le_rfl⟩
 
 instance : has_le (filtration ι m) := ⟨λ f g, ∀ i, f i ≤ g i⟩
 
-instance : has_bot (filtration ι m) :=
-⟨{seq   := λ _, ⊥,
-  mono' := λ i j hij, le_rfl,
-  le'   := λ i, bot_le }⟩
+instance : has_bot (filtration ι m) := ⟨const ⊥ bot_le⟩
 
 instance : has_top (filtration ι m) := ⟨const m le_rfl⟩
 

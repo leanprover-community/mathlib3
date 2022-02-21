@@ -361,6 +361,10 @@ lemma mul_pair_equiv_iff (p q : S × S) : p ≈ q ↔ p.1 * q.2 = q.1 * p.2 := i
 lemma mul_pair_left_eq (p : S × S) (x : S) : ⟦(x * p.1, x * p.2)⟧ = ⟦p⟧ :=
 by simp only [quotient.eq, mul_pair_equiv_iff, mul_assoc, mul_comm, mul_left_comm]
 
+@[to_additive]
+lemma mul_pair_right_eq (p : S × S) (x : S) : ⟦(p.1 * x, p.2 * x)⟧ = ⟦p⟧ :=
+by simp only [quotient.eq, mul_pair_equiv_iff, mul_assoc, mul_comm, mul_left_comm]
+
 @[simp, to_additive]
 lemma mul_pair_mk'_eq (p : S × S) :
   @quotient.mk' _ (mul_pair_setoid S) p = ⟦p⟧ := rfl
@@ -849,23 +853,33 @@ subtype.linear_order _
 end
 
 @[to_additive add_positive.zero_le]
-lemma positive.one_le {G : Type*} [comm_group G] [preorder G] [nakada_po G] {a : G}
+lemma positive.one_le {G : Type*} [comm_group G] [has_le G] [nakada_po G] {a : G}
   (ha : positive a) : 1 ≤ a :=
 by simpa using homogeneity ha a⁻¹
 
 @[to_additive add_negative.le_zero]
-lemma negative.le_one {G : Type*} [comm_group G] [preorder G] [nakada_po G] {a : G}
+lemma negative.le_one {G : Type*} [comm_group G] [has_le G] [nakada_po G] {a : G}
   (ha : negative a) : a ≤ 1 :=
 by simpa using homogeneity ha a⁻¹
 
+@[to_additive add_positive_of_zero_le]
+lemma positive_of_one_le {G : Type*} [comm_monoid G] [has_le G] [nakada_po G] {a : G}
+  (ha : 1 ≤ a) : positive a :=
+by simpa [positive] using homogeneity ha a
+
+@[to_additive add_negative_of_le_zero]
+lemma negative_of_le_one {G : Type*} [comm_monoid G] [has_le G] [nakada_po G] {a : G}
+  (ha : a ≤ 1) : negative a :=
+by simpa [negative] using homogeneity ha a
+
 @[to_additive add_positive.add_negative_neg]
-lemma positive.negative_inv {G : Type*} [comm_group G] [preorder G] [nakada_po G] {a : G}
+lemma positive.negative_inv {G : Type*} [comm_group G] [has_le G] [nakada_po G] {a : G}
   (ha : positive a) : negative a⁻¹ :=
 by simpa only [mul_left_inv, inv_mul_cancel_comm_assoc, mul_one] using
   homogeneity (homogeneity (homogeneity ha a⁻¹) a⁻¹) a⁻¹
 
 @[to_additive add_negative.add_positive_neg]
-lemma negative.positive_inv {G : Type*} [comm_group G] [preorder G] [nakada_po G] {a : G}
+lemma negative.positive_inv {G : Type*} [comm_group G] [has_le G] [nakada_po G] {a : G}
   (ha : negative a) : positive a⁻¹ :=
 by simpa only [mul_left_inv, inv_mul_cancel_comm_assoc, mul_one] using
   homogeneity (homogeneity (homogeneity ha a⁻¹) a⁻¹) a⁻¹
@@ -888,123 +902,25 @@ def order_hom.is_directed {S S' : Type*} [nonempty S] [preorder S] [is_directed 
     (eq.ge (function.inv_fun_eq (hf _))).trans (f.monotone hdy)⟩
 end⟩
 
--- @[to_additive]
--- instance mul_pair_quotient.is_directed {S : Type*} [comm_group S] [partial_order S]
---   [nakada_po S] [nakada_strong S]
---   [is_directed S (≤)] : is_directed (quotient (mul_pair_setoid S)) (≤) :=
--- ⟨λ x y, begin
---   induction x using quotient.induction_on,
---   induction y using quotient.induction_on,
---   cases x with a b,
---   cases y with c d,
---   obtain ⟨e, he, he'⟩ := directed_of (≤) a c,
---   obtain ⟨f, hf, hf'⟩ := directed_of (≤) b d,
---   refine ⟨quotient.mk' (e, f⁻¹), _, _⟩,
---   { simp only [mul_pair_mk'_eq, pair_quotient.mul_le_def],
---     have := homogeneity he f,
---     simp_rw [mul_comm f] at this,
---     refine this.trans _,
---   },
--- end⟩
-
--- #exit
-
--- def pos_subsemigroup_equiv {G : Type*} [comm_group G] [partial_order G] [nakada_po G] :
---   quotient (mul_pair_setoid (neg_subsemigroup G)) ≃*o neg_subsemigroup (quotient (mul_pair_setoid G)) :=
--- -- { to_fun := λ p, ⟨quotient.map' (λ xy, (coe (prod.snd xy), coe (prod.fst xy))) begin
--- { to_fun := λ p, ⟨quotient.map' (prod.map coe coe) begin
--- -- { to_fun := λ p, ⟨quotient.map' (λ xy, (coe (prod.fst xy), (coe (prod.snd xy))) begin
--- -- { to_fun := λ p, ⟨quotient.map' (λ xy, (coe (prod.fst xy) * (coe (prod.snd xy))⁻¹, 1)) begin
---     rintro ⟨⟨a, ha⟩, ⟨a', ha'⟩⟩ ⟨⟨b, hb⟩, ⟨b', hb'⟩⟩,
---     -- simp [←quotient.eq'],
---     simp [←quotient.eq', mul_comm, mul_left_comm, eq_comm],
---     -- sorry,
---   --   simp only [←quotient.eq', eq_comm, mul_comm, mul_pair_mk'_eq, quotient.eq, mul_pair_equiv_iff, subsemigroup.mk_mul_mk,
---   -- subtype.mk_eq_mk, prod.map_mk, set_like.coe_mk],
---   end p, begin
---     induction p using quotient.induction_on',
---     rcases p with ⟨⟨a, ha⟩, ⟨b, hb⟩⟩,
---     change (_ ≤ _),
---     simp_rw [quotient.map'_mk', mul_pair_mk'_eq],
---     simp only [prod.map_mk, set_like.coe_mk],
---     have : quotient.mk' (a, b) = quotient.mk' (a * b⁻¹, 1),
---     { simp [←quotient.eq'] },
---     rw mul_pair_mk'_eq at this,
---     rw mul_pair_mk'_eq at this,
---     simp,
---     have : a * (a * b) ≤ a * b,
---     { rw mul_comm,
---       refine (homogeneity (ha.le_one) _).trans _,
---       simp },
-
---     -- rw this,
---     -- simp,
---     -- rw mul_assoc,
---     -- have := ha.mul hb,
---     -- change (_ ≤ _) at this,
---     -- simp at this,
---     -- have := homogeneity hb a,
---     -- refine homogeneity _ _,
-
---   end⟩,
---   inv_fun := _,
---   left_inv := _,
---   right_inv := _,
---   map_mul' := _,
---   map_rel_iff' := _ }
-
--- #exit
-
 -- Theorem 8, mp
 lemma is_directed_of_mul_order_iso {G : Type*} [comm_group G] [partial_order G] [nakada_po G]
-  (f : G ≃*o quotient (mul_pair_setoid (neg_submonoid G)))
-  -- (hf : f =  mul_order_iso.of_mul_order_embedding _ _ _)
-  : is_directed G (≤) :=
+  (f : G ≃*o quotient (mul_pair_setoid (neg_subsemigroup G))) : is_directed G (≤) :=
 ⟨λ x y, begin
   induction hx : (f x) using quotient.induction_on with x',
   cases x' with a c,
-  have hx' : x = f.symm (to_mul_pair_quotient 1 a * (to_mul_pair_quotient 1 c)⁻¹),
-  { simp [←hx] },
   induction hy : (f y) using quotient.induction_on with y',
-  cases y' with b C,
-  obtain ⟨b', hb'⟩ : ∃ (b' : neg_submonoid G),
-    @quotient.mk' _ (mul_pair_setoid (neg_submonoid G)) (b, C) = quotient.mk' (b', c),
-  { simp [quotient.eq, subtype.ext_iff],
-    convert (mul_pair_equiv_iff (b, C) (1, c)).mpr _,
-    },
-
-  -- have hy' : y = f.symm ((to_mul_pair_quotient 1 (b * c) * (to_mul_pair_quotient 1 C)⁻¹) * (to_mul_pair_quotient 1 c)⁻¹),
-  -- { rw [←f.injective.eq_iff, mul_order_iso.apply_symm_apply],
-  --   simp [hy, mul_left_comm, mul_comm] },
-  -- -- rw map_inv at hy',
-  -- obtain ⟨d, had, hbd⟩ := directed_of (≤) a b,
-  -- refine ⟨f.symm (to_mul_pair_quotient 1 d * (to_mul_pair_quotient 1 c)⁻¹), _, _⟩,
-  -- { simpa [hx'] using had },
-  -- { simp [hy'], },
-
-
-    -- have ha : f a = to_mul_pair_quotient a ⟨1, negative_one⟩,
-    -- { cases a,
-    --   simp,
-    -- },
-    -- rw [←f.injective.eq_iff, hx, map_mul],
-    -- rw [←f.injective.eq_iff, map_mul, f.apply_neg_subsemigroup, map_inv, hx, ←f.symm.injective.eq_iff],
-    -- rw map_mul,
-    -- simp [mul_order_iso.restrict_neg_apply],
-    -- refine quotient.eq
-    -- have : f c⁻¹ = (f.restrict_neg c)⁻¹,
-    --   sorry,
-    --   exact quotient
-    -- },
-    -- -- rw hx,
-    -- -- rw [eq_comm, quotient.eq_mk_iff_out],
-    -- -- ext,
-    -- -- simp only [map_mul, subsemigroup.coe_mul],
-  -- },
-
+  cases y' with b c',
+  have hx' : x = f.symm (to_mul_pair_quotient a (a * c') * (to_mul_pair_quotient a (c * c'))⁻¹),
+  { simp [mul_assoc, mul_comm, mul_left_comm, mul_pair_left_eq (a * (a * c'), a * (c * c')),
+          mul_pair_left_eq (a * c', c * c'), mul_pair_right_eq (a, c), ←hx] },
+  have hy' : y = f.symm (to_mul_pair_quotient a (b * c) * (to_mul_pair_quotient a (c * c'))⁻¹),
+  { simp [mul_assoc, mul_comm, mul_left_comm, mul_pair_left_eq (a * (c * b), a * (c * c')),
+          mul_pair_left_eq (c * b, c * c'), mul_pair_left_eq (b, c'), ←hy] },
+  obtain ⟨d, hd, hd'⟩ := directed_of (≤) (a * c') (b * c),
+  refine ⟨f.symm (to_mul_pair_quotient a d * (to_mul_pair_quotient a (c * c'))⁻¹), _, _⟩,
+  { simpa [hx'] using hd },
+  { simpa [hy'] using hd' }
 end⟩
-
-#exit
 
 -- Theorem 8, mpr
 example {G : Type*} [comm_group G] [partial_order G] [nakada_po G] [is_directed G (≤)] :
@@ -1021,11 +937,11 @@ example {G : Type*} [comm_group G] [partial_order G] [nakada_po G] [is_directed 
       exact ha'.some_spec.right },
     have hx : x = a * (a * x⁻¹)⁻¹,
     { rw [mul_inv, inv_inv, mul_inv_cancel_left] },
-    have : 1 ≤ a * x⁻¹,
+    have : 1 ≤ (a⁻¹ * x)⁻¹,
     { rw [hx],
       simpa using hxa },
-    refine quotient.mk' (_, _),
-
+    refine quotient.mk' (⟨a⁻¹ * x, _⟩, ⟨a⁻¹, (positive_of_one_le h1a).negative_inv⟩),
+    simpa using (positive_of_one_le this).negative_inv
   end,
    inv_fun := _,
    left_inv := _,

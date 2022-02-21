@@ -122,7 +122,7 @@ end
 lemma int.coe_nat_pow_pred (b p : ℕ) (w : 0 < b) : ((b^p - 1 : ℕ) : ℤ) = (b^p - 1 : ℤ) :=
 begin
   have : 1 ≤ b^p := nat.one_le_pow p b w,
-  push_cast [this],
+  norm_cast
 end
 
 lemma int.coe_nat_two_pow_pred (p : ℕ) : ((2^p - 1 : ℕ) : ℤ) = (2^p - 1 : ℤ) :=

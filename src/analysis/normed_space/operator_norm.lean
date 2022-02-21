@@ -166,7 +166,7 @@ lemma linear_map.bound_of_continuous (f : E →ₛₗ[σ₁₂] F) (hf : continu
 begin
   rcases normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
   simp only [sub_zero, f.map_zero] at hε,
-  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
   refine ⟨∥c∥ / ε, this, λ x, _⟩,
   by_cases hx : ∥x∥ = 0,
@@ -333,7 +333,7 @@ end
 lemma op_norm_le_of_ball {f : E →SL[σ₁₂] F} {ε : ℝ} {C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
   (hf : ∀ x ∈ ball (0 : E) ε, ∥f x∥ ≤ C * ∥x∥) : ∥f∥ ≤ C :=
 begin
-  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine op_norm_le_of_shell ε_pos hC hc (λ x _ hx, hf x _),
   rwa ball_zero_eq
 end
@@ -1200,7 +1200,7 @@ begin
       rw [f.map_zero, dist_zero_right],
       exact hx.trans_lt (half_lt_self εpos) },
     simpa using this },
-  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨⟨δ⁻¹, _⟩ * nnnorm c, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
   exact inv_nonneg.2 (le_of_lt δ_pos),
   by_cases hx : f x = 0,

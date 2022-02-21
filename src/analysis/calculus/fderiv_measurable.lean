@@ -215,7 +215,7 @@ lemma D_subset_differentiable_set {K : set (E →L[𝕜] F)} (hK : is_complete K
   D f K ⊆ {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
 begin
   have P : ∀ {n : ℕ}, (0 : ℝ) < (1/2) ^ n := pow_pos (by norm_num),
-  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   have cpos : 0 < ∥c∥ := lt_trans zero_lt_one hc,
   assume x hx,
   have : ∀ (e : ℕ), ∃ (n : ℕ), ∀ p q, n ≤ p → n ≤ q → ∃ L ∈ K,

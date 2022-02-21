@@ -86,7 +86,7 @@ begin
     nonempty_interior_of_Union_of_closed (λn, is_closed_closure) A,
   simp only [mem_interior_iff_mem_nhds, metric.mem_nhds_iff] at this,
   rcases this with ⟨n, a, ε, ⟨εpos, H⟩⟩,
-  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨(ε/2)⁻¹ * ∥c∥ * 2 * n, _, λy, _⟩,
   { refine mul_nonneg (mul_nonneg (mul_nonneg _ (norm_nonneg _)) (by norm_num)) _,
     exacts [inv_nonneg.2 (div_nonneg (le_of_lt εpos) (by norm_num)), n.cast_nonneg] },

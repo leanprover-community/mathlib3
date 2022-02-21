@@ -125,7 +125,7 @@ begin
   obtain ⟨ε : ℝ, ε0 : 0 < ε, hε : ∀ m : Π i, E i, ∥m - 0∥ < ε → ∥f m - f 0∥ < 1⟩ :=
     normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one,
   simp only [sub_zero, f.map_zero] at hε,
-  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   have : 0 < (∥c∥ / ε) ^ fintype.card ι, from pow_pos (div_pos (zero_lt_one.trans hc) ε0) _,
   refine ⟨_, this, _⟩,
   refine f.bound_of_shell (λ _, ε0) (λ _, hc) (λ m hcm hm, _),

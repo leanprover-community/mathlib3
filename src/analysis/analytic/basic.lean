@@ -711,7 +711,7 @@ begin
     replace hy := norm_pos_iff.mpr hy,
     refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ ε ε_pos, _)) (norm_nonneg _)),
     have h₀ := mul_pos c_pos (pow_pos hy (n.succ + 1)),
-    obtain ⟨k, k_pos, k_norm⟩ := exists_norm_lt 𝕜
+    obtain ⟨k, k_pos, k_norm⟩ := normed_field.exists_norm_lt 𝕜
       (lt_min (mul_pos δ_pos (inv_pos.mpr hy)) (mul_pos ε_pos (inv_pos.mpr h₀))),
     have h₁ : ∥k • y∥ < δ,
     { rw norm_smul,

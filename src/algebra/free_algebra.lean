@@ -65,21 +65,28 @@ instance : inhabited (pre R X) := ⟨of_scalar 0⟩
 
 -- Note: These instances are only used to simplify the notation.
 /-- Coercion from `X` to `pre R X`. Note: Used for notation only. -/
+@[reducible]
 def has_coe_generator : has_coe X (pre R X) := ⟨of⟩
 /-- Coercion from `R` to `pre R X`. Note: Used for notation only. -/
+@[reducible]
 def has_coe_semiring : has_coe R (pre R X) := ⟨of_scalar⟩
 /-- Multiplication in `pre R X` defined as `pre.mul`. Note: Used for notation only. -/
+@[reducible]
 def has_mul : has_mul (pre R X) := ⟨mul⟩
 /-- Addition in `pre R X` defined as `pre.add`. Note: Used for notation only. -/
+@[reducible]
 def has_add : has_add (pre R X) := ⟨add⟩
 /-- Zero in `pre R X` defined as the image of `0` from `R`. Note: Used for notation only. -/
+@[reducible]
 def has_zero : has_zero (pre R X) := ⟨of_scalar 0⟩
 /-- One in `pre R X` defined as the image of `1` from `R`. Note: Used for notation only. -/
+@[reducible]
 def has_one : has_one (pre R X) := ⟨of_scalar 1⟩
 /--
 Scalar multiplication defined as multiplication by the image of elements from `R`.
 Note: Used for notation only.
 -/
+@[reducible]
 def has_scalar : has_scalar R (pre R X) := ⟨λ r m, mul (of_scalar r) m⟩
 
 end pre

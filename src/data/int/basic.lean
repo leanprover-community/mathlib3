@@ -127,11 +127,8 @@ by simp only [not_lt, iff_false]
 @[simp] theorem neg_succ_mul_coe_nat (m n : ℕ) : -[1+ m] * n = -(succ m * n) := rfl
 @[simp] theorem neg_succ_mul_neg_succ (m n : ℕ) : -[1+ m] * -[1+ n] = succ m * succ n := rfl
 
-@[simp, norm_cast]
 theorem coe_nat_le {m n : ℕ} : (↑m : ℤ) ≤ ↑n ↔ m ≤ n := coe_nat_le_coe_nat_iff m n
-@[simp, norm_cast]
 theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe_nat_iff m n
-@[simp, norm_cast]
 theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
 
 @[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n :=
@@ -150,7 +147,7 @@ lemma le_coe_nat_sub (m n : ℕ) :
 begin
   by_cases h: m ≥ n,
   { exact le_of_eq (int.coe_nat_sub h).symm },
-  { simp [le_of_not_ge h] }
+  { simp [le_of_not_ge h, coe_nat_le] }
 end
 
 lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
@@ -311,7 +308,7 @@ lemma nat_abs_lt_nat_abs_of_nonneg_of_lt {a b : ℤ} (w₁ : 0 ≤ a) (w₂ : a 
 begin
   lift b to ℕ using le_trans w₁ (le_of_lt w₂),
   lift a to ℕ using w₁,
-  simpa using w₂,
+  simpa [coe_nat_lt] using w₂,
 end
 
 lemma nat_abs_eq_nat_abs_iff {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a = b ∨ a = -b :=
@@ -1216,7 +1213,7 @@ theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 
 lemma to_nat_of_nonpos : ∀ {z : ℤ}, z ≤ 0 → z.to_nat = 0
 | (0 : ℕ)     := λ _, rfl
-| (n + 1 : ℕ) := λ h, (h.not_lt (by { exact_mod_cast nat.succ_pos n })).elim
+| (n + 1 : ℕ) := λ h, (h.not_lt (by simp)).elim
 | (-[1+ n])  := λ _, rfl
 
 /-! ### units -/

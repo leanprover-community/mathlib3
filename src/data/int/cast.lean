@@ -229,7 +229,7 @@ end ring_hom
 namespace pi
 variables {α : Type*} {β : α → Type*} [∀ a, add_group_with_one (β a)]
 
-instance [∀ i, add_group_with_one (β i)] : add_group_with_one (∀ i, β i) :=
+instance : add_group_with_one (∀ a, β a) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
 lemma int_apply (n : ℤ) (a : α) : (n : ∀ a, β a) a = n := rfl

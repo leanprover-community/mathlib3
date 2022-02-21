@@ -284,7 +284,7 @@ end with_top
 namespace pi
 variables {α : Type*} {β : α → Type*} [∀ a, add_monoid_with_one (β a)]
 
-instance [∀ i, add_monoid_with_one (β i)] : add_monoid_with_one (∀ i, β i) :=
+instance : add_monoid_with_one (∀ a, β a) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
 lemma nat_apply (n : ℕ) (a : α) : (n : ∀ a, β a) a = n := rfl

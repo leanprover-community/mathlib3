@@ -137,12 +137,12 @@ attribute [simp, norm_cast] int.nat_abs_of_nat
 
 end nat
 
-/- `add_monoid_with_one` implementation using unary recursion. -/
+/-- `add_monoid_with_one` implementation using unary recursion. -/
 @[reducible] protected def add_monoid_with_one.unary {R : Type*} [add_monoid R] [has_one R] :
   add_monoid_with_one R :=
 { .. ‹has_one R›, .. ‹add_monoid R› }
 
-/- `add_monoid_with_one` implementation using binary recursion. -/
+/-- `add_monoid_with_one` implementation using binary recursion. -/
 @[reducible] protected def add_monoid_with_one.binary {R : Type*} [add_monoid R] [has_one R] :
   add_monoid_with_one R :=
 { nat_cast := nat.bin_cast,

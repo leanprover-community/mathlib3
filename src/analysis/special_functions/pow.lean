@@ -436,7 +436,7 @@ end
 
 lemma rpow_sum_of_pos {α : Type*} {a : ℝ} (ha : 0 ≤ a) {s : finset α} (hne : s.nonempty)
   (f : α → ℝ) (h' : ∀ x ∈ s, 0 < f x) :
-  ∏ x in s, a ^ f x = a ^ (∑ x in s, f x) :=
+  a ^ (∑ x in s, f x) = ∏ x in s, a ^ f x:=
 begin
   obtain rfl|gn := ha.eq_or_lt,
   { obtain ⟨y, hy⟩ := hne.bex,
@@ -444,14 +444,14 @@ begin
   refine finset.nonempty.cons_induction _ _ hne,
   { intros a, rw [finset.prod_singleton, finset.sum_singleton] },
   { intros a s h hne ih,
-    rw [finset.prod_cons, finset.sum_cons, ih, rpow_add gn], },
+    rw [finset.prod_cons, finset.sum_cons, ←ih, rpow_add gn], },
 end
 
 lemma rpow_sum_of_nonneg {α : Type*} {a : ℝ} (ha : 0 ≤ a) (s : finset α) (f : α → ℝ)
   (h : (∑ (x : α) in s, f x) ≠ 0) (h' : ∀ x ∈ s, 0 ≤ f x) :
-  ∏ x in s, a ^ f x = a ^ (∑ x in s, f x) :=
+  a ^ (∑ x in s, f x) = ∏ x in s, a ^ f x :=
 begin
-  rw [←finset.sum_filter_ne_zero, ←rpow_sum_of_pos ha, finset.prod_filter_of_ne],
+  rw [←finset.sum_filter_ne_zero, rpow_sum_of_pos ha, finset.prod_filter_of_ne],
   { refine λ x hx hne1 h0, hne1 _,
     rw [h0, rpow_zero] },
   { rw finset.filter_nonempty_iff,

@@ -125,14 +125,14 @@ begin
       { rw [exp_log hz] } } }
 end
 
-theorem geom_mean_eq_arith_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
+theorem geom_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
-  (∏ i in s, (z i) ^ (w i)) = ∑ i in s, w i * z i :=
+  (∏ i in s, (z i) ^ (w i)) = x :=
 begin
   suffices : ∀ (s : finset ι)
   (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 < w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, z i = x),
-  (∏ i in s, (z i) ^ (w i)) = ∑ i in s, w i * z i,
+  (∏ i in s, (z i) ^ (w i)) = x,
   { convert this (s.filter (λ i, w i ≠ 0)) w z x _ _ _ _ using 1,
     { apply (prod_filter_of_ne _).symm,
       intros i hi,
@@ -140,10 +140,6 @@ begin
       intro hw,
       rw hw,
       rw rpow_zero },
-    { rw sum_filter,
-      apply sum_congr rfl (λ i hi, _),
-      rw [eq_comm, ite_eq_left_iff, eq_comm, not_ne_iff],
-      exact λ h, mul_eq_zero_of_left h _ },
     { intros i hi, rw mem_filter at hi, apply lt_of_le_of_ne _ hi.2.symm, apply hw i hi.1 },
     { rw [sum_filter_ne_zero, hw'] },
     { intros i hi, rw mem_filter at hi, apply hz i hi.1 },
@@ -161,10 +157,28 @@ begin
 
   calc ∏ i in s, z i ^ w i
       = ∏ i in s, x ^ w i : prod_congr rfl (λ i hi, by rw hx i hi)
-  ... = x ^ (∑ i in s, w i) : rpow_sum_of_nonneg hxnonneg s _ hw'' (λ i hi, (hw i hi).le)
+  ... = x ^ (∑ i in s, w i) : (rpow_sum_of_nonneg hxnonneg s _ hw'' (λ i hi, (hw i hi).le)).symm
   ... = x : by rw [hw', rpow_one]
-  ... = ∑ i in s, w i * x : by rw [←sum_mul, hw', one_mul]
-  ... = ∑ i in s, w i * z i : sum_congr rfl (λ i hi, by rw hx i hi)
+end
+
+theorem arith_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ)
+  (hw' : ∑ i in s, w i = 1) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
+  ∑ i in s, w i * z i = x :=
+begin
+  calc ∑ i in s, w i * z i
+      = ∑ i in s, w i * x : sum_congr rfl (λ i hi, _)
+  ... = x : by rw [←sum_mul, hw', one_mul],
+  obtain hwi|hwi := eq_or_ne (w i) 0,
+  { rw [hwi, zero_mul, zero_mul] },
+  { rw hx i hi hwi },
+end
+
+theorem geom_mean_eq_arith_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
+  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
+  (∏ i in s, (z i) ^ (w i)) = ∑ i in s, w i * z i :=
+begin
+  rw [geom_mean_weighted_of_constant, arith_mean_weighted_of_constant],
+  assumption',
 end
 
 end real

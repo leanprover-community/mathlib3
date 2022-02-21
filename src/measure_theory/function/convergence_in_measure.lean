@@ -91,7 +91,7 @@ h_tendsto.congr (λ i, eventually_eq.rfl) h
 
 end tendsto_in_measure
 
-section
+section exists_seq_tendsto_ae
 
 variables [metric_space E]
 variables {f : ℕ → α → E} {g : α → E}
@@ -262,7 +262,7 @@ begin
   exact h_tendsto x,
 end
 
-end
+end exists_seq_tendsto_ae
 
 section tendsto_in_measure_of
 

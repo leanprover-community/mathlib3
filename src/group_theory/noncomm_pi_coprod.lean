@@ -74,7 +74,7 @@ variables {M : Type*} [monoid M]
 
 -- We have a family of monoids
 -- The fintype assumption is not always used, but declared here, to keep things in order
-variables {ι : Type*} [decidable_eq ι] [hfin : fintype ι]
+variables {ι : Type*} [hdec : decidable_eq ι] [hfin : fintype ι]
 variables {N : ι → Type*} [∀ i, monoid (N i)]
 
 -- And morphisms ϕ into G
@@ -102,14 +102,19 @@ variable {hcomm}
 @[simp, to_additive add_to_fun_empty]
 lemma to_fun_empty : to_fun ϕ hcomm f ∅ = 1 := finset.noncomm_prod_empty _ _
 
+include hdec
+
 @[simp, to_additive add_to_fun_insert_of_not_mem]
 lemma to_fun_insert_of_not_mem (S : finset ι) (i : ι) (h : i ∉ S) :
   to_fun ϕ hcomm f (insert i S) = ϕ i (f i) * to_fun ϕ hcomm f S :=
 finset.noncomm_prod_insert_of_not_mem _ _ _ _ h
 
+omit hdec
+
 @[simp, to_additive add_to_fun_zero]
 lemma to_fun_one : to_fun ϕ hcomm 1 S = 1 :=
 begin
+  classical,
   induction S using finset.cons_induction_on with i S hnmem ih,
   { simp }, { simp [ih, hnmem], }
 end
@@ -118,6 +123,7 @@ end
 lemma to_fun_commutes (i : ι) (hnmem : i ∉ S) :
   commute (ϕ i (g i)) (to_fun ϕ hcomm f S) :=
 begin
+  classical,
   induction S using finset.induction_on with j S hnmem' ih,
   { simp, },
   { simp only [to_fun_insert_of_not_mem _ _ _ _ hnmem'],
@@ -135,6 +141,7 @@ end
 lemma to_fun_mul (S : finset ι) :
   to_fun ϕ hcomm (f * g) S = to_fun ϕ hcomm f S * to_fun ϕ hcomm g S :=
 begin
+  classical,
   induction S using finset.induction_on with i S hnmem ih,
   { simp, },
   { simp only [to_fun_insert_of_not_mem _ _ _ _ hnmem],
@@ -149,6 +156,7 @@ end
 lemma to_fun_in_sup_mrange (S : finset ι) :
   to_fun ϕ hcomm f S ∈ ⨆ i ∈ S, (ϕ i).mrange :=
 begin
+  classical,
   induction S using finset.induction_on with i S hnmem ih,
   { simp, },
   { simp only [to_fun_insert_of_not_mem _ _ _ _ hnmem],
@@ -171,6 +179,8 @@ def hom : (Π (i : ι), N i) →* M :=
 
 variable {hcomm}
 
+include hdec
+
 @[to_additive add_to_fun_single]
 lemma to_fun_single (i : ι) (y : N i) (S : finset ι) :
   to_fun ϕ hcomm (monoid_hom.single _ i y) S = if i ∈ S then ϕ i y else 1 :=
@@ -188,9 +198,12 @@ end
 lemma hom_single (i : ι) (y : N i):
   hom ϕ hcomm S (monoid_hom.single _ i y) = if i ∈ S then ϕ i y else 1 := to_fun_single _ _ _ _
 
+omit hdec
+
 @[to_additive add_mrange]
 lemma mrange : (hom ϕ hcomm S).mrange = ⨆ i ∈ S, (ϕ i).mrange :=
 begin
+  classical,
   apply le_antisymm,
   { rintro x ⟨f, rfl⟩,
     exact (to_fun_in_sup_mrange ϕ f S), },
@@ -214,10 +227,14 @@ def noncomm_pi_coprod : (Π (i : ι), N i) →* M := noncomm_pi_coprod_on.hom ϕ
 
 variable {hcomm}
 
+include hdec
+
 @[simp, to_additive]
 lemma noncomm_pi_coprod_single (i : ι) (y : N i):
   noncomm_pi_coprod ϕ hcomm (monoid_hom.single _ i y) = ϕ i y :=
 by { show noncomm_pi_coprod_on.hom ϕ hcomm finset.univ (monoid_hom.single _ i y) = ϕ i y, simp }
+
+omit hdec
 
 @[to_additive]
 lemma noncomm_pi_coprod_mrange : (noncomm_pi_coprod ϕ hcomm).mrange = ⨆ i : ι, (ϕ i).mrange :=
@@ -233,7 +250,7 @@ end family_of_monoids
 section family_of_groups
 
 variables {G : Type*} [group G]
-variables {ι : Type*} [decidable_eq ι] [hfin : fintype ι]
+variables {ι : Type*} [hdec : decidable_eq ι] [hfin : fintype ι]
 variables {H : ι → Type*} [∀ i, group (H i)]
 variables (ϕ : Π (i : ι), H i →* G)
 variables {hcomm : ∀ (i j : ι), i ≠ j → ∀ (x : H i) (y : H j), commute (ϕ i x) (ϕ j y)}
@@ -247,6 +264,7 @@ variables (f g : Π (i : ι), H i)
 lemma noncomm_pi_coprod_on.to_fun_in_sup_range (S : finset ι) :
   noncomm_pi_coprod_on.to_fun ϕ hcomm f S ∈ ⨆ i ∈ S, (ϕ i).range :=
 begin
+  classical,
   induction S using finset.induction_on with i S hnmem ih,
   { simp, },
   { simp only [noncomm_pi_coprod_on.to_fun_insert_of_not_mem _ _ _ _ hnmem],
@@ -261,6 +279,7 @@ end
 lemma noncomm_pi_coprod_on.range (S : finset ι) :
   (noncomm_pi_coprod_on.hom ϕ hcomm S).range = ⨆ i ∈ S, (ϕ i).range :=
 begin
+  classical,
   apply le_antisymm,
   { rintro x ⟨f, rfl⟩,
     exact (noncomm_pi_coprod_on.to_fun_in_sup_range ϕ f S), },
@@ -288,6 +307,7 @@ lemma injective_noncomm_pi_coprod_of_independent
   (hinj : ∀ i, function.injective (ϕ i)) :
   function.injective (noncomm_pi_coprod ϕ hcomm):=
 begin
+  classical,
   apply (monoid_hom.ker_eq_bot_iff _).mp,
   apply eq_bot_iff.mpr,
   intro f,
@@ -315,11 +335,13 @@ end
 
 variable (hcomm)
 
+
 @[to_additive]
 lemma independent_range_of_coprime_order [∀ i, fintype (H i)]
   (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j))) :
   complete_lattice.independent (λ i, (ϕ i).range) :=
 begin
+  classical,
   rintros i f ⟨hxi, hxp⟩, dsimp at hxi hxp,
   rw [supr_subtype', ← noncomm_pi_coprod_range] at hxp,
   rotate, { intros _ _ hj, apply hcomm, exact hj ∘ subtype.ext },
@@ -341,7 +363,7 @@ namespace subgroup
 
 -- We have an family of subgroups
 variables {G : Type*} [group G]
-variables {ι : Type*} [decidable_eq ι] [hfin : fintype ι] {H : ι → subgroup G}
+variables {ι : Type*} [hdec : decidable_eq ι] [hfin : fintype ι] {H : ι → subgroup G}
 
 -- Elements of `Π (i : ι), H i` are called `f` and `g` here
 variables (f g : Π (i : ι), H i)
@@ -368,10 +390,14 @@ def noncomm_pi_coprod : (Π (i : ι), H i) →* G :=
 
 variable {hcomm}
 
+include hdec
+
 @[simp, to_additive]
 lemma noncomm_pi_coprod_single (i : ι) (y : H i) :
   noncomm_pi_coprod hcomm (monoid_hom.single _ i y) = y :=
 by apply monoid_hom.noncomm_pi_coprod_single
+
+omit hdec
 
 @[to_additive]
 lemma noncomm_pi_coprod_range : (noncomm_pi_coprod hcomm).range = ⨆ i : ι, H i :=

@@ -111,7 +111,6 @@ by rw [abs_eq_nat_abs, sign_mul_nat_abs]
 meta instance : has_to_format ℤ := ⟨λ z, to_string z⟩
 meta instance : has_reflect ℤ := by tactic.mk_has_reflect_instance
 
-attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_one int.coe_nat_succ
 attribute [simp] int.of_nat_eq_coe int.bodd
 
 @[simp] theorem add_def {a b : ℤ} : int.add a b = a + b := rfl

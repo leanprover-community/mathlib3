@@ -75,7 +75,7 @@ Absorbent and balanced sets in a vector space over a normed field.
 open normed_field set
 open_locale pointwise topological_space nnreal big_operators
 
-variables {R 𝕜 𝕝 E F G ι ι' : Type*}
+variables {R R' 𝕜 𝕝 E F G ι ι' : Type*}
 
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
@@ -381,9 +381,11 @@ instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 �
         (mul_add _ _ _),
     end } }
 
-instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
-  is_scalar_tower R ℝ≥0 (seminorm 𝕜 E) :=
-{ smul_assoc := λ r a p, begin ext x, exact smul_assoc r a (p x) end }
+instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  [has_scalar R' ℝ] [has_scalar R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ]
+  [has_scalar R R'] [is_scalar_tower R R' ℝ] :
+  is_scalar_tower R R' (seminorm 𝕜 E) :=
+{ smul_assoc := λ r a p, ext $ λ x, smul_assoc r a (p x) }
 
 lemma coe_smul [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : seminorm 𝕜 E) : ⇑(r • p) = r • p := rfl
@@ -624,19 +626,14 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
       { abel },
     end,
     smul' := λ a x, begin
-      obtain ha | ha := (norm_nonneg a).eq_or_lt,
-      { rw ← ha, ring_nf, apply le_antisymm,
-        { apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
-          simp only [seminorm.zero, sub_zero, zero_add, q.smul, ← ha, zero_mul] },
-        { exact le_cinfi (λ u, add_nonneg (p.nonneg _) (q.nonneg _)) } },
-      change _ = order_iso.mul_left₀ (∥a∥) ha _,
-      rw order_iso.map_cinfi _ (bdd_below_range_add x _ _),
-      dsimp,
-      simp_rw mul_add,
-      have : a ≠ 0 := ne_zero_of_norm_ne_zero (ne.symm $ ne_of_lt ha),
-      have h : function.right_inverse (λ x : E, a • x) (λ x : E, a⁻¹ • x) := inv_smul_smul₀ this,
-      apply infi_congr (λ x : E, a⁻¹ • x) h.surjective,
-      simp [←seminorm.smul, smul_sub, smul_inv_smul₀ this],
+      obtain rfl | ha := eq_or_ne a 0,
+      { simp_rw [norm_zero, zero_mul, zero_smul, zero_sub, seminorm.neg],
+        refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
+          (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
+          (λ x hx, ⟨0, by rwa [p.zero, q.zero, add_zero]⟩) },
+      simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
+      refine infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩) (λ u, _),
+      rw smul_inv_smul₀ ha,
     end } }
 
 @[simp] lemma inf_apply (p q : seminorm 𝕜 E) (x : E) : (p ⊓ q) x = ⨅ u : E, p u + q (x-u) := rfl
@@ -655,23 +652,13 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
     le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
   ..seminorm.semilattice_sup }
 
-lemma smul_inf' (r : ℝ≥0) (p q : seminorm 𝕜 E) : r • (p ⊓ q) = r • p ⊓ r • q :=
-begin
-  ext x, dsimp,
-  obtain hr | hr := r.coe_nonneg.eq_or_lt,
-  { have : r = 0 := r.coe_eq_zero.mp hr.symm,
-    simp only [this, zero_smul, add_zero, real.cinfi_const_zero] },
-  { change order_iso.smul_left ℝ hr _ = _,
-    rw order_iso.map_cinfi _ (bdd_below_range_add x _ _),
-    dsimp, simp_rw mul_add, refl }
-end
-
 lemma smul_inf [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p q : seminorm 𝕜 E) :
   r • (p ⊓ q) = r • p ⊓ r • q :=
 begin
-  have : ∀ p : seminorm 𝕜 E, r • p = (r • (1 : ℝ≥0)) • p := λ p, by rw [smul_assoc, one_smul],
-  repeat { rw this }, exact smul_inf' _ _ _
+  ext,
+  simp_rw [smul_apply, inf_apply, smul_apply, ←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def,
+    smul_eq_mul, real.mul_infi_of_nonneg (subtype.prop _), mul_add],
 end
 
 end normed_field

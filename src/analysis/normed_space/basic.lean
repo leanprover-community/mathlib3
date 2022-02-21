@@ -261,8 +261,6 @@ by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
 
-namespace normed_field
-
 section normed_field
 
 variables [normed_field α]
@@ -271,13 +269,15 @@ variables [normed_field α]
 normed_field.norm_mul' a b
 
 @[priority 100] -- see Note [lower instance priority]
-instance to_normed_comm_ring : normed_comm_ring α :=
+instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
 { norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
 
 @[priority 900]
-instance to_norm_one_class : norm_one_class α :=
+instance normed_field.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
+
+export norm_one_class (norm_one)
 
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
@@ -317,7 +317,7 @@ nnreal.eq $ by simp
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
 
 @[priority 100] -- see Note [lower instance priority]
-instance : has_continuous_inv₀ α :=
+instance normed_field.has_continuous_inv₀ : has_continuous_inv₀ α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
@@ -334,6 +334,8 @@ begin
 end
 
 end normed_field
+
+namespace normed_field
 
 variables (α) [nondiscrete_normed_field α]
 
@@ -368,7 +370,7 @@ lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[≠] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
-  rcases normed_field.exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
+  rcases exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
   refine ⟨x + b, mt (set.mem_singleton_iff.trans add_right_eq_self).1 $ norm_pos_iff.1 hb0, _⟩,
   rwa [dist_comm, dist_eq_norm, add_sub_cancel'],
 end
@@ -560,7 +562,7 @@ instance normed_space.has_bounded_smul [normed_space α β] : has_bounded_smul �
     by simpa [dist_eq_norm, sub_smul] using normed_space.norm_smul_le (x₁ - x₂) y }
 
 instance normed_field.to_normed_space : normed_space α α :=
-{ norm_smul_le := λ a b, le_of_eq (normed_field.norm_mul a b) }
+{ norm_smul_le := λ a b, le_of_eq (norm_mul a b) }
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 begin
@@ -571,7 +573,7 @@ begin
                ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) :
       mul_le_mul_of_nonneg_left (normed_space.norm_smul_le _ _) (norm_nonneg _)
                ... = ∥s • x∥                 :
-      by rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
+      by rw [norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
 end
 
 @[simp] lemma abs_norm_eq_norm (z : β) : |∥z∥| = ∥z∥ :=
@@ -596,7 +598,7 @@ variables {F : Type*} [semi_normed_group F] [normed_space α F]
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
 have tendsto (λ y, ∥c • (y - x)∥) (𝓝 x) (𝓝 0),
-  from (continuous_const.smul (continuous_id.sub continuous_const)).norm.tendsto' _ _ (by simp),
+  from ((continuous_id.sub continuous_const).const_smul _).norm.tendsto' _ _ (by simp),
 this.eventually (gt_mem_nhds h)
 
 theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :

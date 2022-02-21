@@ -205,7 +205,7 @@ begin
   { simp [h.symm] }
 end
 
-/-- The angle between two nonnegative multiple of the same vector is 0. -/
+/-- The angle between two nonnegative multiples of the same vector is 0. -/
 @[simp] lemma oangle_smul_smul_self_of_nonneg (x : V) {r₁ r₂ : ℝ} (hr₁ : 0 ≤ r₁) (hr₂ : 0 ≤ r₂) :
   hb.oangle (r₁ • x) (r₂ • x) = 0 :=
 begin

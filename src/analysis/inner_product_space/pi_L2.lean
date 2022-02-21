@@ -385,27 +385,31 @@ linear_isometry_equiv.of_inner_product_space (finrank_orthogonal_span_singleton 
 section complex
 
 variables {V : Type*}
-[inner_product_space ℂ V]
-[finite_dimensional ℂ V]
+[inner_product_space 𝕜 V]
+[finite_dimensional 𝕜 V]
 
-variables {S : submodule ℂ V} {L : S →ₗᵢ[ℂ] V}
+variables {S : submodule 𝕜 V} {L : S →ₗᵢ[𝕜] V}
+
+instance S_complete : complete_space S := finite_dimensional.complete 𝕜 S
+
+instance V_complete : complete_space V := finite_dimensional.complete 𝕜 V
 
 open finite_dimensional
 
 /-- Let `S` be a subspace of a finite-dimensional complex inner product space `V`.  A linear
 isometry mapping `S` into `V` can be extended to a full isometry of `V`. -/
-noncomputable def linear_isometry.extend (L : S →ₗᵢ[ℂ] V): V →ₗᵢ[ℂ] V :=
+noncomputable def linear_isometry.extend (L : S →ₗᵢ[𝕜] V): V →ₗᵢ[𝕜] V :=
 begin
   -- Build an isometry from Sᗮ to L(S)ᗮ through euclidean_space
-  let d := finrank ℂ Sᗮ,
-  have dim_S : finrank ℂ Sᗮ = d := rfl,
+  let d := finrank 𝕜 Sᗮ,
+  have dim_S : finrank 𝕜 Sᗮ = d := rfl,
   let LS := L.to_linear_map.range,
-  have dim_LS_perp : finrank ℂ LSᗮ = d,
-  calc  finrank ℂ LSᗮ = finrank ℂ V - finrank ℂ LS : by simp only
+  have dim_LS_perp : finrank 𝕜 LSᗮ = d,
+  calc  finrank 𝕜 LSᗮ = finrank 𝕜 V - finrank 𝕜 LS : by simp only
       [← LS.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
-    ...               = finrank ℂ V - finrank ℂ S : by simp only
+    ...               = finrank 𝕜 V - finrank 𝕜 S : by simp only
       [linear_map.finrank_range_of_inj L.injective]
-    ...               = finrank ℂ Sᗮ : by simp only
+    ...               = finrank 𝕜 Sᗮ : by simp only
       [← S.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
     ...               = d : dim_S,
   let L1 := ((fin_std_orthonormal_basis dim_S).to_orthonormal_basis
@@ -426,7 +430,7 @@ begin
     { simp only [linear_map.add_apply, linear_map.comp_apply, linear_map.comp_apply,
       linear_isometry.coe_to_linear_map]},
     -- Mx_decomp is the orthogonal decomposition of M x
-    have Mx_orth : ⟪ L (p1 x), L3 (p2 x) ⟫_ℂ = 0,
+    have Mx_orth : ⟪ L (p1 x), L3 (p2 x) ⟫ = 0,
     { have Lp1x : L (p1 x) ∈ L.to_linear_map.range := L.to_linear_map.mem_range_self (p1 x),
       have Lp2x : L3 (p2 x) ∈ (L.to_linear_map.range)ᗮ,
       { simp only [L3, linear_isometry.coe_comp, function.comp_app, submodule.coe_subtypeₗᵢ,
@@ -445,7 +449,7 @@ begin
     norm_map' := M_norm_map},
 end
 
-lemma linear_isometry.extend_apply (L : S →ₗᵢ[ℂ] V) (s : S):
+lemma linear_isometry.extend_apply (L : S →ₗᵢ[𝕜] V) (s : S):
   L.extend s = L s :=
 begin
   simp only [linear_isometry.extend, continuous_linear_map.to_linear_map_eq_coe,

@@ -390,12 +390,24 @@ def pseudo_emetric_space.induced {α β} (f : α → β)
   end }
 
 /-- Pseudoemetric space instance on subsets of pseudoemetric spaces -/
-instance {α : Type*} {p : α → Prop} [t : pseudo_emetric_space α] :
-  pseudo_emetric_space (subtype p) := t.induced coe
+instance {α : Type*} {p : α → Prop} [pseudo_emetric_space α] : pseudo_emetric_space (subtype p) :=
+pseudo_emetric_space.induced coe ‹_›
 
 /-- The extended psuedodistance on a subset of a pseudoemetric space is the restriction of
 the original pseudodistance, by definition -/
 theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist (x : α) y := rfl
+
+namespace mul_opposite
+
+/-- Pseudoemetric space instance on multiplicative opposites of pseudoemetric spaces -/
+@[to_additive]
+instance {α : Type*} [pseudo_emetric_space α] : pseudo_emetric_space αᵐᵒᵖ :=
+pseudo_emetric_space.induced unop ‹_›
+
+@[to_additive] theorem edist_unop (x y : αᵐᵒᵖ) : edist (unop x) (unop y) = edist x y := rfl
+@[to_additive] theorem edist_op (x y : α) : edist (op x) (op y) = edist x y := rfl
+
+end mul_opposite
 
 /-- The product of two pseudoemetric spaces, with the max distance, is an extended
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one

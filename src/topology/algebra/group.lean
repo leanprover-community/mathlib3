@@ -418,27 +418,35 @@ lemma subgroup.is_normal_topological_closure {G : Type*} [topological_space G] [
     exact subset_closure (subgroup.normal.conj_mem infer_instance m hm g),
   end }
 
+@[to_additive] lemma mul_mem_connected_component_one {G : Type*} [topological_space G]
+  [mul_one_class G] [has_continuous_mul G] {g h : G} (hg : g ∈ connected_component (1 : G))
+  (hh : h ∈ connected_component (1 : G)) : g * h ∈ connected_component (1 : G) :=
+begin
+  rw connected_component_eq hg,
+  have hmul: g ∈ connected_component (g*h),
+  { apply continuous.image_connected_component_subset (continuous_mul_left g),
+    rw ← connected_component_eq hh,
+    exact ⟨(1 : G), mem_connected_component, by simp only [mul_one]⟩ },
+  simpa [← connected_component_eq hmul] using (mem_connected_component)
+end
+
+@[to_additive] lemma inv_mem_connected_component_one {G : Type*} [topological_space G] [group G]
+  [topological_group G] {g : G} (hg : g ∈ connected_component (1 : G)) :
+  g⁻¹ ∈ connected_component (1 : G) :=
+begin
+  rw ← one_inv,
+  exact continuous.image_connected_component_subset continuous_inv _
+    ((set.mem_image _ _ _).mp ⟨g, hg, rfl⟩)
+end
+
 /-- The connected component of 1 is a subgroup of `G`. -/
 @[to_additive "The connected component of 0 is a subgroup of `G`."]
 def subgroup.connected_component_of_one (G : Type*) [topological_space G] [group G]
   [topological_group G] : subgroup G :=
 { carrier  := connected_component (1 : G),
   one_mem' := mem_connected_component,
-  mul_mem' := λ g h hg hh,
-  begin
-    rw connected_component_eq hg,
-    have hmul: g ∈ connected_component (g*h),
-    { apply continuous.image_connected_component_subset (continuous_mul_left g),
-      rw ← connected_component_eq hh,
-      exact ⟨(1 : G), mem_connected_component, by simp only [mul_one]⟩, },
-    simpa [← connected_component_eq hmul] using (mem_connected_component)
-  end,
-  inv_mem' := λ g hg,
-  begin
-    rw ← one_inv,
-    exact continuous.image_connected_component_subset continuous_inv _
-      ((set.mem_image _ _ _).mp ⟨g, hg, rfl⟩)
-  end }
+  mul_mem' := λ g h hg hh, mul_mem_connected_component_one hg hh,
+  inv_mem' := λ g hg, inv_mem_connected_component_one hg }
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :

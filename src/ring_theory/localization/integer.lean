@@ -30,7 +30,7 @@ localization, ring localization, commutative ring localization, characteristic p
 commutative ring, field of fractions
 -/
 
-variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
+variables {R : Type*} [comm_ring R] {M : submonoid R} {S : Type*} [comm_ring S]
 variables [algebra R S] {P : Type*} [comm_ring P]
 
 open function

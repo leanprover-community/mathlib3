@@ -120,7 +120,7 @@ The localization of an integral domain at the complement of a prime ideal is an 
 -/
 instance is_domain_of_local_at_prime {P : ideal A} (hp : P.is_prime) :
   is_domain (localization.at_prime P) :=
-is_domain_localization _ (le_non_zero_divisors_of_no_zero_divisors
+is_domain_localization (le_non_zero_divisors_of_no_zero_divisors
   (not_not_intro P.zero_mem))
 
 namespace at_prime

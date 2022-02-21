@@ -948,6 +948,8 @@ theorem is_domain_of_le_non_zero_divisors
   exists_pair_ne := ⟨(algebra_map A S) 0, (algebra_map A S) 1,
                      λ h, zero_ne_one (is_localization.injective S hM h)⟩, }
 
+variables {A}
+
 /-- The localization at of an integral domain to a set of non-zero elements is an integral domain.
 See note [reducible non-instances]. -/
 @[reducible]

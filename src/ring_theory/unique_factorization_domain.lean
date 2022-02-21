@@ -1196,11 +1196,7 @@ begin
 end
 
 theorem count_self [nontrivial α] {p : associates α} (hp : irreducible p) :
-  p.count p.factors = 1 :=
-begin
-  rw [factors_self hp, associates.count_some hp],
-  exact multiset.count_singleton_self _,
-end
+  p.count p.factors = 1 := by simp [factors_self hp, associates.count_some hp]
 
 theorem count_mul [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) :

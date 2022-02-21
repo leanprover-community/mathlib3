@@ -17,7 +17,7 @@ an automorphism.
 Let `k` be a perfect integral domain. Let `V` be a vector space over `K(p,k)`.
 An *isocrystal* is a bijective map `V → V` that is `φ`-semilinear.
 A theorem of Dieudonné and Manin classifies the isocrystals over finite-dimensional spaces.
-In the one-dimensional case, there are countably many isocrystal structures.
+In the one-dimensional case, the isocrystal structures are parametrized by their "slope" `m : ℤ`.
 
 This file proves the one-dimensional case of the classification theorem.
 The construction is described in Dupuis, Lewis, and Macbeth,

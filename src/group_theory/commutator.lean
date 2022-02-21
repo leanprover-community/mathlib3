@@ -107,7 +107,7 @@ begin
     refine mem_map_of_mem f (commutator_mem_commutator h₁ h₂) },
 end
 
-lemma general_commutator_prod_prod (K₁ K₂ : subgroup G') :
+lemma commutator_prod_prod (K₁ K₂ : subgroup G') :
   ⁅H₁.prod K₁, H₂.prod K₂⁆ = ⁅H₁, H₂⁆.prod ⁅K₁, K₂⁆ :=
 begin
   refine le_antisymm (commutator_le.mpr (λ g₁ h₁ g₂ h₂, ⟨commutator_mem_commutator h₁.1 h₂.1,

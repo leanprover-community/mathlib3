@@ -2070,8 +2070,6 @@ end localization
 
 open is_localization
 
-open_locale non_zero_divisors
-
 /-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
 lemma localization_map_bijective_of_field
   {R Rₘ : Type*} [comm_ring R] [comm_ring Rₘ]

@@ -331,15 +331,13 @@ begin
   obtain ⟨N, hN⟩ := hfg ((ennreal.of_real δ) / 2) (ennreal.div_pos_iff.2
     ⟨(ennreal.of_real_pos.2 hδ).ne.symm, ennreal.two_ne_top⟩),
   refine ⟨N, λ n hn, _⟩,
-  simp at *,
-  specialize hN n hn,
+  simp only [true_and, gt_iff_lt, ge_iff_le, zero_tsub, zero_le, zero_add, set.mem_Icc,
+    pi.sub_apply] at *,
   have : ess_sup (λ (x : α), (∥f n x - g x∥₊ : ℝ≥0∞)) μ < ennreal.of_real δ :=
-    lt_of_le_of_lt hN (ennreal.half_lt_self (ennreal.of_real_pos.2 hδ).ne.symm
+    lt_of_le_of_lt (hN n hn) (ennreal.half_lt_self (ennreal.of_real_pos.2 hδ).ne.symm
       ennreal.of_real_lt_top.ne),
-  have h' := ae_lt_of_ess_sup_lt this,
-  refine le_trans (le_trans (le_of_eq _) h'.le) hε.le,
-  congr,
-  ext x,
+  refine ((le_of_eq _).trans (ae_lt_of_ess_sup_lt this).le).trans hε.le,
+  congr' with x,
   simp only [ennreal.of_real_le_iff_le_to_real ennreal.coe_lt_top.ne, ennreal.coe_to_real,
     not_lt, coe_nnnorm, set.mem_set_of_eq, set.mem_compl_eq],
   rw ← dist_eq_norm (f n x) (g x),

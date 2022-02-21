@@ -269,14 +269,6 @@ section tendsto_in_measure_of
 variables [measurable_space E] [normed_group E] [borel_space E] [has_measurable_sub₂ E] {p : ℝ≥0∞}
 variables {f : ℕ → α → E} {g : α → E}
 
-/-- TODO: move this next to ennreal.tendsto_nhds -/
-lemma ennreal.tendsto_nhds_zero {f : filter α} {u : α → ℝ≥0∞} :
-  tendsto u f (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in f, u x ≤ ε :=
-begin
-  rw ennreal.tendsto_nhds ennreal.zero_ne_top,
-  simp only [true_and, zero_tsub, zero_le, zero_add, set.mem_Icc],
-end
-
 /-- This lemma is superceded by `measure_theory.tendsto_in_measure_of_tendsto_snorm` where we
 allow `p = ∞` and only require `ae_measurable`. -/
 lemma tendsto_in_measure_of_tendsto_snorm_of_measurable

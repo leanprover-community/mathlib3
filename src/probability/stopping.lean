@@ -37,7 +37,7 @@ open_locale classical measure_theory nnreal ennreal topological_space big_operat
 namespace measure_theory
 
 /-- A `filtration` on measurable space `α` with σ-algebra `m` is a monotone
-sequence of of sub-σ-algebras of `m`. -/
+sequence of sub-σ-algebras of `m`. -/
 structure filtration {α : Type*} (ι : Type*) [preorder ι] (m : measurable_space α) :=
 (seq   : ι → measurable_space α)
 (mono' : monotone seq)

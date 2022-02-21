@@ -241,8 +241,7 @@ begin
     ∑ (x : ℕ) in (range (Q.nat_degree + 1)).erase 0, Q.coeff x • f (x + n)),
   { refine is_integral_sub (is_integral_mul hzint (is_integral.pow hBint _))
       (is_integral.sum _ (λ i hi, (is_integral_smul _ _))),
-    exact adjoin_le_integral_closure hBint (hf _ (aux i hi)).1,
-     },
+    exact adjoin_le_integral_closure hBint (hf _ (aux i hi)).1 },
   obtain ⟨r, hr⟩ := is_integral_iff.1 (is_integral_norm K hintsum),
   use r,
 

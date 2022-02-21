@@ -73,8 +73,8 @@ instance has_pow [monoid β] [has_continuous_mul β] : has_pow C(α, β) ℕ :=
 @[norm_cast, to_additive coe_nsmul]
 lemma coe_pow [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ⇑(f ^ n) = f ^ n := rfl
-  
--- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul` 
+
+-- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul`
 attribute [simp] coe_pow
 
 @[to_additive nsmul_comp] lemma pow_comp [monoid γ] [has_continuous_mul γ]
@@ -82,7 +82,7 @@ attribute [simp] coe_pow
   (f^n).comp g = (f.comp g)^n :=
 rfl
 
--- don't make `nsmul_comp` simp as the linter complains it's redundant WRT `smul_comp` 
+-- don't make `nsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] pow_comp
 
 @[to_additive]
@@ -124,7 +124,7 @@ lemma coe_zpow [group β] [topological_group β] (f : C(α, β)) (z : ℤ) :
   ⇑(f ^ z) = f ^ z :=
 rfl
 
--- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul` 
+-- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul`
 attribute [simp] coe_zpow
 
 @[to_additive]
@@ -132,7 +132,7 @@ lemma zpow_comp [group γ] [topological_group γ] (f : C(β, γ)) (z : ℤ) (g :
   (f^z).comp g = (f.comp g)^z :=
 rfl
 
--- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp` 
+-- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] zpow_comp
 
 end continuous_map
@@ -194,7 +194,7 @@ coe_injective.monoid _ coe_one coe_mul coe_pow
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid_with_zero β] [has_continuous_mul β] : monoid_with_zero C(α, β) :=
-coe_injective.monoid_with_zero _ coe_one coe_mul coe_pow
+coe_injective.monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
@@ -203,7 +203,7 @@ coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [comm_monoid_with_zero β] [has_continuous_mul β] : comm_monoid_with_zero C(α, β) :=
-coe_injective.comm_monoid_with_zero _ coe_one coe_mul coe_pow
+coe_injective.comm_monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
 /-- Coercion to a function as an `monoid_hom`. Similar to `monoid_hom.coe_fn`. -/
 @[to_additive "Coercion to a function as an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn`.",

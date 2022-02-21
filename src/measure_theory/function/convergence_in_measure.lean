@@ -267,13 +267,13 @@ end exists_seq_tendsto_ae
 section tendsto_in_measure_of
 
 variables [measurable_space E] [normed_group E] [borel_space E] [has_measurable_sub₂ E] {p : ℝ≥0∞}
-variables {f : ℕ → α → E} {g : α → E}
+variables {f : ι → α → E} {g : α → E}
 
 /-- This lemma is superceded by `measure_theory.tendsto_in_measure_of_tendsto_snorm` where we
 allow `p = ∞` and only require `ae_measurable`. -/
 lemma tendsto_in_measure_of_tendsto_snorm_of_measurable
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g) {l : filter ℕ}
+  (hf : ∀ n, measurable (f n)) (hg : measurable g) {l : filter ι}
   (hfg : tendsto (λ n, snorm (f n - g) p μ) l (𝓝 0)) :
   tendsto_in_measure μ f l g :=
 begin
@@ -298,9 +298,9 @@ end
 
 /-- This lemma is superceded by `measure_theory.tendsto_in_measure_of_tendsto_snorm` where we
 allow `p = ∞`. -/
-lemma tendsto_in_measure_of_tendsto_snorm_of_ne_top
+lemma tendsto_in_measure_of_tendsto_snorm_of_ne_top [encodable ι]
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
-  (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ) {l : filter ℕ}
+  (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ) {l : filter ι}
   (hfg : tendsto (λ n, snorm (f n - g) p μ) l (𝓝 0)) :
   tendsto_in_measure μ f l g :=
 begin
@@ -317,8 +317,8 @@ end
 
 /-- See also `measure_theory.tendsto_in_measure_of_tendsto_snorm` which work for general
 Lp-convergence for all `p ≠ 0`. -/
-lemma tendsto_in_measure_of_tendsto_snorm_top {E} [normed_group E] {f : ℕ → α → E} {g : α → E}
-  {l : filter ℕ} (hfg : tendsto (λ n, snorm (f n - g) ∞ μ) l (𝓝 0)) :
+lemma tendsto_in_measure_of_tendsto_snorm_top {E} [normed_group E] {f : ι → α → E} {g : α → E}
+  {l : filter ι} (hfg : tendsto (λ n, snorm (f n - g) ∞ μ) l (𝓝 0)) :
   tendsto_in_measure μ f l g :=
 begin
   intros δ hδ,
@@ -342,8 +342,8 @@ begin
 end
 
 /-- Convergence in Lp implies convergence in measure. -/
-lemma tendsto_in_measure_of_tendsto_snorm
-  (hp_ne_zero : p ≠ 0) (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ) {l : filter ℕ}
+lemma tendsto_in_measure_of_tendsto_snorm [encodable ι]
+  (hp_ne_zero : p ≠ 0) (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ) {l : filter ι}
   (hfg : tendsto (λ n, snorm (f n - g) p μ) l (𝓝 0)) :
   tendsto_in_measure μ f l g :=
 begin
@@ -354,8 +354,9 @@ begin
 end
 
 /-- Convergence in Lp implies convergence in measure. -/
-lemma tendsto_in_measure_of_tendsto_Lp [second_countable_topology E] [hp : fact (1 ≤ p)]
-  {f : ℕ → Lp E p μ} {g : Lp E p μ} {l : filter ℕ} (hfg : tendsto f l (𝓝 g)) :
+lemma tendsto_in_measure_of_tendsto_Lp [encodable ι] [second_countable_topology E]
+  [hp : fact (1 ≤ p)]
+  {f : ι → Lp E p μ} {g : Lp E p μ} {l : filter ι} (hfg : tendsto f l (𝓝 g)) :
   tendsto_in_measure μ (λ n, f n) l g :=
 tendsto_in_measure_of_tendsto_snorm (ennreal.zero_lt_one.trans_le hp.elim).ne.symm
   (λ n, Lp.ae_measurable _) (Lp.ae_measurable _) ((Lp.tendsto_Lp_iff_tendsto_ℒp' _ _).mp hfg)

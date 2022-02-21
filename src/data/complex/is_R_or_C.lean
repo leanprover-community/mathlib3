@@ -414,7 +414,7 @@ by field_simp
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 
 @[priority 100] instance : cstar_ring K :=
-{ norm_star_mul_self := λ x, (normed_field.norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
+{ norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
 
 /-! ### Cast lemmas -/
 

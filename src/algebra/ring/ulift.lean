@@ -80,4 +80,14 @@ instance comm_ring [comm_ring α] : comm_ring (ulift α) :=
 by refine_struct { .. ulift.ring };
 tactic.pi_instance_derive_field
 
+instance field [field α] : field (ulift α) :=
+begin refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub := has_sub.sub,
+  neg := has_neg.neg, nsmul := add_monoid.nsmul, npow := monoid.npow, zsmul := sub_neg_monoid.zsmul,
+  inv := has_inv.inv, div := has_div.div, zpow := λ n a, ulift.up (a.down ^ n),
+  exists_pair_ne := ulift.nontrivial.1 }; tactic.pi_instance_derive_field,
+  -- `mul_inv_cancel` requires special attention: it leaves the goal `∀ {a}, a ≠ 0 → a * a⁻¹ = 1`.
+  cases a,
+  tauto
+end
+
 end ulift

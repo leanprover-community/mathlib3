@@ -50,39 +50,18 @@ M-summand, M-projection, L-summand, L-projection, M-ideal, M-structure
 
 -/
 
-variables {X : Type*} [normed_group X]
-
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 X]
+variables {M : Type*} [monoid M]
 
 /--
 A continuous linear map `P` on a normed space `X` is said to be a projection if it is idempotent.
 -/
-def is_projection {M} [monoid M] (x : M) : Prop := x^2 = x
+def is_projection (x : M) : Prop := x^2 = x
 
-lemma projection_def {P: X →L[𝕜] X} (h: is_projection P) : P^2 = P := by exact h
+lemma projection_def {P: M} (h: is_projection P) : P^2 = P := by exact h
 
 namespace is_projection
 
-lemma complement {P: X →L[𝕜] X} : is_projection P → is_projection (1-P) :=
-begin
-  unfold is_projection,
-  intro h,
-  rw sq at h,
-  rw [sq, mul_sub, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
-end
-
-lemma complement_iff {P: X →L[𝕜] X} : is_projection P ↔ is_projection (1-P) :=
-⟨ is_projection.complement ,
-begin
-  intros h,
-  rw ← sub_sub_cancel 1 P,
-  apply is_projection.complement h,
-end ⟩
-
-instance : has_compl (subtype (is_projection  : (X →L[𝕜] X) → Prop)) :=
-⟨λ P, ⟨1-P, P.prop.complement⟩⟩
-
-lemma commuting {P Q : X →L[𝕜] X} (h: commute P Q) :
+lemma commuting {P Q : M} (h: commute P Q) :
   is_projection P → is_projection Q →  is_projection (P*Q)  :=
 begin
   intros h₁ h₂,
@@ -94,7 +73,35 @@ begin
   rw [sq, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, ← sq, h₂, ← mul_assoc, ← sq, h₁],
 end
 
+variables {R : Type*} [ring R]
+
+lemma complement {P: R} : is_projection P → is_projection (1-P) :=
+begin
+  unfold is_projection,
+  intro h,
+  rw sq at h,
+  rw [sq, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
+end
+
+
+lemma complement_iff {P: R} : is_projection P ↔ is_projection (1-P) :=
+⟨ is_projection.complement ,
+begin
+  intros h,
+  rw ← sub_sub_cancel 1 P,
+  apply is_projection.complement h,
+end ⟩
+
+instance : has_compl (subtype (is_projection  : R → Prop)) :=
+⟨λ P, ⟨1-P, P.prop.complement⟩⟩
+
+
+
 end is_projection
+
+variables {X : Type*} [normed_group X]
+
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 X]
 
 /--
 A projection on a normed space `X` is said to be an L-projection if, for all `x` in `X`,

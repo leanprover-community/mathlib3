@@ -109,6 +109,15 @@ lemma coe_int_dvd [comm_ring α] (m n : ℤ) (h : m ∣ n) :
   (m : α) ∣ (n : α) :=
 ring_hom.map_dvd (int.cast_ring_hom α) h
 
+/--
+Auxiliary lemma for norm_cast to move the cast `-↑n` upwards to `↑-↑n`.
+
+(The restriction to `field` is necessary, otherwise this would also apply in the case where
+`R = ℤ` and cause nontermination.)
+-/
+@[norm_cast]
+lemma cast_neg_nat_cast {R} [field R] (n : ℕ) : ((-n : ℤ) : R) = -n := by simp
+
 end cast
 
 end int

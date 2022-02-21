@@ -931,6 +931,12 @@ instance : has_mul (α →ᵇ R) :=
 @[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 
+instance : add_group (α →ᵇ R) :=
+coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub
+
+instance : add_group_with_one (α →ᵇ R) :=
+{ one := 1, .. bounded_continuous_function.add_group }
+
 instance : ring (α →ᵇ R) :=
 coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
 

@@ -107,7 +107,7 @@ lemma strict_convex_singleton (c : E) : strict_convex 𝕜 ({c} : set E) := pair
 
 lemma set.subsingleton.strict_convex (hs : s.subsingleton) : strict_convex 𝕜 s := hs.pairwise _
 
-lemma strict_convex.linear_image [semiring 𝕝] [has_scalar 𝕜 𝕝] [module 𝕝 E] [module 𝕝 F]
+lemma strict_convex.linear_image [semiring 𝕝] [module 𝕝 E] [module 𝕝 F]
   [linear_map.compatible_smul E F 𝕜 𝕝] (hs : strict_convex 𝕜 s) (f : E →ₗ[𝕝] F)
   (hf : is_open_map f) :
   strict_convex 𝕜 (f '' s) :=
@@ -249,8 +249,8 @@ end
 end continuous_add
 
 section continuous_smul
-variables [linear_ordered_field 𝕝] [topological_space 𝕝] [has_scalar 𝕜 𝕝] [module 𝕝 E]
-  [has_continuous_const_smul 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s : set E} {x : E}
+variables [linear_ordered_field 𝕝] [module 𝕝 E] [has_continuous_const_smul 𝕝 E]
+  [linear_map.compatible_smul E E 𝕜 𝕝] {s : set E} {x : E}
 
 lemma strict_convex.smul (hs : strict_convex 𝕜 s) (c : 𝕝) : strict_convex 𝕜 (c • s) :=
 begin

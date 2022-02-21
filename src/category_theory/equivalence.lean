@@ -535,6 +535,7 @@ def equiv_of_iso {F G : C ⥤ D} (e : F ≅ G) : is_equivalence F ≃ is_equival
   right_inv := λ hF, by rw [of_iso_trans, iso.symm_self_id, of_iso_refl], }
 
 /-- If `G` and `F ⋙ G` are equivalence of categories, then `F` is also an equivalence. -/
+@[simps]
 def cancel_comp_right {E : Type*} [category E]
   (F : C ⥤ D) (G : D ⥤ E) (hG : is_equivalence G) (hGF : is_equivalence (F ⋙ G)) :
   is_equivalence F :=

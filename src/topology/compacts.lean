@@ -3,13 +3,12 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Yaël Dillies
 -/
-import data.set_like.basic
 import topology.homeomorph
 
 /-!
 # Compact sets
 
-We define a few type of sets in a topological space.
+We define a few types of sets in a topological space.
 
 ## Main Definitions
 
@@ -42,7 +41,7 @@ instance : set_like (closeds α) α :=
 
 lemma closed (s : closeds α) : is_closed (s : set α) := s.closed'
 
-@[ext] protected lemma ext {s t : closeds α} (h : s.1 = t.1) : s = t := set_like.ext' h
+@[ext] protected lemma ext {s t : closeds α} (h : (s : set α) = t) : s = t := set_like.ext' h
 
 @[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
 

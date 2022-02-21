@@ -22,7 +22,7 @@ set `s` of a finite cartesian power of `M` is definable with parameters in `A`.
   algebra of subsets of `α → M` defined by formulas with parameters in `A`.
 
 ## Main Results
-* `L.definable_set M α` forms a `boolean_algebra.
+* `L.definable_set M α` forms a `boolean_algebra`.
 * `is_definable.image_comp_sum` shows that definability is closed under projections.
 
 -/

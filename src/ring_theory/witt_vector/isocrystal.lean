@@ -52,12 +52,6 @@ This file introduces notation in the locale `isocrystal`.
 noncomputable theory
 open finite_dimensional
 
--- move to `linear_algebra.basic`
-@[simp] lemma linear_equiv.smul_of_ne_zero_apply (K : Type*) (M : Type*) [field K]
-  [add_comm_group M] [module K M] (a : K) (ha : a ≠ 0) (x : M) :
-  linear_equiv.smul_of_ne_zero K M a ha x = a • x :=
-rfl
-
 namespace witt_vector
 
 variables (p : ℕ) [fact p.prime]

@@ -1565,8 +1565,9 @@ variables {E p μ 𝕜}
 
 lemma coe_Lp_submodule : (Lp_submodule E p μ 𝕜).to_add_subgroup = Lp E p μ := rfl
 
-instance : module 𝕜 (Lp E p μ) :=
-{ .. (Lp_submodule E p μ 𝕜).module }
+instance : module 𝕜 (Lp E p μ) := (Lp_submodule E p μ 𝕜).module
+instance op_module : module 𝕜ᵐᵒᵖ (Lp E p μ) := (Lp_submodule E p μ 𝕜).module'
+instance : is_central_scalar 𝕜 (Lp E p μ) := (Lp_submodule E p μ 𝕜).is_central_scalar
 
 lemma coe_fn_smul (c : 𝕜) (f : Lp E p μ) : ⇑(c • f) =ᵐ[μ] c • f := ae_eq_fun.coe_fn_smul _ _
 

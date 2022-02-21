@@ -88,7 +88,7 @@ theorem smul_induction_on {p : M → Prop} {x} (H : x ∈ I • N)
   (Hb : ∀ (r ∈ I) (n ∈ N), p (r • n)) (H0 : p 0)
   (H1 : ∀ x y, p x → p y → p (x + y))
   (H2 : ∀ (c:R) n, p n → p (c • n)) : p x :=
-(@smul_le _ _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hb H
+(@smul_le _ _ _ _ _ _ _ ⟨p, H1, H0, H2⟩).2 Hb H
 
 theorem mem_smul_span_singleton {I : ideal R} {m : M} {x : M} :
   x ∈ I • span R ({m} : set M) ↔ ∃ y ∈ I, y • m = x :=

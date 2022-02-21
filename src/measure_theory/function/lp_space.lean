@@ -605,14 +605,21 @@ lemma mem_ℒp.smul_measure {f : α → E} {c : ℝ≥0∞} (hf : mem_ℒp f p �
   mem_ℒp f p (c • μ) :=
 hf.of_measure_le_smul c hc le_rfl
 
-lemma snorm_one_add_measure {f : α → F} : snorm f 1 (μ + ν) = snorm f 1 μ + snorm f 1 ν :=
+include m
+
+lemma snorm_one_add_measure (f : α → F) (μ ν : measure α) :
+  snorm f 1 (μ + ν) = snorm f 1 μ + snorm f 1 ν :=
 by { simp_rw snorm_one_eq_lintegral_nnnorm, rw lintegral_add_measure _ μ ν, }
 
-lemma snorm_le_add_measure_right {f : α → F} {p : ℝ≥0∞} : snorm f p μ ≤ snorm f p (μ + ν) :=
+lemma snorm_le_add_measure_right (f : α → F) (μ ν : measure α) {p : ℝ≥0∞} :
+  snorm f p μ ≤ snorm f p (μ + ν) :=
 snorm_mono_measure f $ measure.le_add_right $ le_refl _
 
-lemma snorm_le_add_measure_left {f : α → F} {p : ℝ≥0∞} : snorm f p ν ≤ snorm f p (μ + ν) :=
+lemma snorm_le_add_measure_left (f : α → F) (μ ν : measure α) {p : ℝ≥0∞} :
+  snorm f p ν ≤ snorm f p (μ + ν) :=
 snorm_mono_measure f $ measure.le_add_left $ le_refl _
+
+omit m
 
 lemma mem_ℒp.left_of_add_measure {f : α → E} (h : mem_ℒp f p (μ + ν)) : mem_ℒp f p μ :=
 h.mono_measure $ measure.le_add_right $ le_refl _

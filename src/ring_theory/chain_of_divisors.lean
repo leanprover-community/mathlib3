@@ -6,7 +6,6 @@ Authors: Anne Baanen, Paul Lezeau
 
 import algebra.is_prime_pow
 import algebra.squarefree
-import ring_theory.unique_factorization_domain
 
 /-!
 
@@ -138,9 +137,8 @@ begin
   exact (finset.card_le_of_subset subset_image).trans (finset.card_image_le),
 end
 
-variable [decidable_rel ((∣) : associates M → associates M → Prop)]
-
-variables [unique_factorization_monoid M] [decidable_eq (associates M)]
+variables [decidable_rel ((∣) : associates M → associates M → Prop)] [unique_factorization_monoid M]
+  [decidable_eq (associates M)]
 
 lemma mem_chain_eq_pow_second_of_chain {q r : associates M} (n : ℕ) (hn : n ≠ 0)
   (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
@@ -249,8 +247,8 @@ begin
   exact ne_zero_of_dvd_ne_zero hn (subtype.prop (d ⟨c₁ 1 ^ s, _⟩))
 end
 
-lemma multiplicity_prime_le_multiplicity_image_by_factor_order_iso {m p : associates M} {n : associates N}
-  (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+lemma multiplicity_prime_le_multiplicity_image_by_factor_order_iso {m p : associates M}
+  {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
   (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   multiplicity p m ≤ multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
 begin
@@ -258,10 +256,10 @@ begin
   have temp : ↑((multiplicity p m).get H_finite) ≤
     (multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n),
   { rw ← multiplicity.pow_dvd_iff_le_multiplicity,
-    refine pow_image_of_prime_by_factor_order_iso_dvd hn hp d _ (multiplicity.pow_multiplicity_dvd _),
-    intro H,
-    apply (multiplicity.dvd_iff_multiplicity_pos.2 (dvd_of_mem_normalized_factors hp)).ne',
-    refine part.eq_some_iff.mpr _,
+    refine pow_image_of_prime_by_factor_order_iso_dvd hn hp d (λ H, _)
+      (multiplicity.pow_multiplicity_dvd _),
+    refine (multiplicity.dvd_iff_multiplicity_pos.2 (dvd_of_mem_normalized_factors hp)).ne'
+      (part.eq_some_iff.mpr _),
     rw ← H,
     exact part.get_mem H_finite },
   exact (enat.le_iff_of_dom _).1 temp,

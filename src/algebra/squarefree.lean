@@ -93,7 +93,8 @@ section cancel_comm_monoid_with_zero
 variables [cancel_comm_monoid_with_zero R] [decidable_rel (has_dvd.dvd : R → R → Prop)]
   [wf_dvd_monoid R]
 
-lemma multiplicity.finite_prime_left {a b : R} (ha : prime a) (hb : b ≠ 0) : multiplicity.finite a b :=
+lemma finite_prime_left {a b : R} (ha : prime a) (hb : b ≠ 0) :
+  multiplicity.finite a b :=
 begin
   revert hb,
   refine wf_dvd_monoid.induction_on_irreducible b _ _ _,
@@ -109,7 +110,6 @@ begin
     exact (((multiplicity.squarefree_iff_multiplicity_le_one p).mp hp.squarefree a)
       .resolve_right ha.not_unit) }
 end
-
 
 end cancel_comm_monoid_with_zero
 

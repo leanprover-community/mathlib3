@@ -88,9 +88,7 @@ begin
   { rw [card_insert_of_not_mem h, if_neg h] }
 end
 
-@[simp]
-lemma card_erase_of_mem : a ∈ s → (s.erase a).card = pred s.card := card_erase_of_mem
-
+@[simp] lemma card_erase_of_mem : a ∈ s → (s.erase a).card = s.card - 1 := card_erase_of_mem
 @[simp] lemma card_erase_add_one : a ∈ s → (s.erase a).card + 1 = s.card := card_erase_add_one
 
 lemma card_erase_lt_of_mem : a ∈ s → (s.erase a).card < s.card := card_erase_lt_of_mem
@@ -106,7 +104,7 @@ begin
 end
 
 /-- If `a ∈ s` is known, see also `finset.card_erase_of_mem` and `finset.erase_eq_of_not_mem`. -/
-lemma card_erase_eq_ite : (s.erase a).card = if a ∈ s then pred s.card else s.card :=
+lemma card_erase_eq_ite : (s.erase a).card = if a ∈ s then s.card - 1 else s.card :=
 card_erase_eq_ite
 
 end insert_erase
@@ -335,9 +333,8 @@ begin
     apply nat.succ_pos },
   rcases this with ⟨a, ha⟩,
   have z : i + card B + k = card (erase A a),
-  { rw [card_erase_of_mem, ←h, nat.add_succ, nat.pred_succ],
-    rw mem_sdiff at ha,
-    exact ha.1 },
+  { rw [card_erase_of_mem (mem_sdiff.1 ha).1, ←h],
+    refl },
   rcases ih _ z with ⟨B', hB', B'subA', cards⟩,
   { exact ⟨B', hB', trans B'subA' (erase_subset _ _), cards⟩ },
   { rintro t th,
@@ -368,6 +365,21 @@ end
 
 lemma card_eq_one : s.card = 1 ↔ ∃ a, s = {a} :=
 by cases s; simp only [multiset.card_eq_one, finset.card, ←val_inj, singleton_val]
+
+lemma exists_eq_insert_iff [decidable_eq α] {s t : finset α} :
+  (∃ a ∉ s, insert a s = t) ↔ s ⊆ t ∧ s.card + 1 = t.card :=
+begin
+  split,
+  { rintro ⟨a, ha, rfl⟩,
+    exact ⟨subset_insert _ _, (card_insert_of_not_mem ha).symm⟩ },
+  { rintro ⟨hst, h⟩,
+    obtain ⟨a, ha⟩ : ∃ a, t \ s = {a},
+    { exact card_eq_one.1 (by rw [card_sdiff hst, ←h, add_tsub_cancel_left]) },
+    refine ⟨a, λ hs, (_ : a ∉ {a}) $ mem_singleton_self _,
+      by rw [insert_eq, ←ha, sdiff_union_of_subset hst]⟩,
+    rw ←ha,
+    exact not_mem_sdiff_of_mem_right hs }
+end
 
 lemma card_le_one : s.card ≤ 1 ↔ ∀ (a ∈ s) (b ∈ s), a = b :=
 begin
@@ -428,12 +440,11 @@ begin
   { exact ⟨y, hy, ha⟩ }
 end
 
-lemma card_eq_succ [decidable_eq α] :
-  s.card = n + 1 ↔ (∃ a t, a ∉ t ∧ insert a t = s ∧ t.card = n) :=
-⟨λ eq,
-  let ⟨a, has⟩ := card_pos.mp (eq.symm ▸ nat.zero_lt_succ _ : 0 < s.card) in
+lemma card_eq_succ [decidable_eq α] : s.card = n + 1 ↔ ∃ a t, a ∉ t ∧ insert a t = s ∧ t.card = n :=
+⟨λ h,
+  let ⟨a, has⟩ := card_pos.mp (h.symm ▸ nat.zero_lt_succ _ : 0 < s.card) in
     ⟨a, s.erase a, s.not_mem_erase a, insert_erase has,
-      by simp only [eq, card_erase_of_mem has, pred_succ]⟩,
+      by simp only [h, card_erase_of_mem has, add_tsub_cancel_right]⟩,
   λ ⟨a, t, hat, s_eq, n_eq⟩, s_eq ▸ n_eq ▸ card_insert_of_not_mem hat⟩
 
 lemma card_eq_two [decidable_eq α] : s.card = 2 ↔ ∃ x y, x ≠ y ∧ s = {x, y} :=

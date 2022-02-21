@@ -534,7 +534,7 @@ noncomputable def val : valuation (pre_tilt K v O hv p) ℝ≥0 :=
   map_one' := val_aux_one,
   map_mul' := val_aux_mul,
   map_zero' := val_aux_zero,
-  map_add' := val_aux_add }
+  map_add_le_max' := val_aux_add }
 
 variables {K v O hv p}
 lemma map_eq_zero {f : pre_tilt K v O hv p} : val K v O hv p f = 0 ↔ f = 0 :=

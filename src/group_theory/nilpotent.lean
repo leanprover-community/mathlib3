@@ -7,6 +7,7 @@ Authors: Kevin Buzzard, Ines Wright, Joachim Breitner
 import group_theory.general_commutator
 import group_theory.quotient_group
 import group_theory.solvable
+import group_theory.p_group
 
 /-!
 
@@ -54,6 +55,7 @@ subgroup `G` of `G`, and `⊥` denotes the trivial subgroup `{1}`.
   `least_descending_central_series_length_eq_nilpotency_class` and
   `lower_central_series_length_eq_nilpotency_class`.
 * If `G` is nilpotent, then so are its subgroups, images, quotients and preimages.
+  Binary products of nilpotent groups are nilpotent.
   Corresponding lemmas about the `nilpotency_class` are provided.
 * The `nilpotency_class` of `G ⧸ center G` is given explicitly, and an induction principle
   is derived from that.
@@ -267,8 +269,7 @@ variable {G}
 
 @[simp] lemma lower_central_series_zero : lower_central_series G 0 = ⊤ := rfl
 
-@[simp] lemma lower_central_series_one : lower_central_series G 1 = commutator G :=
-by simp [lower_central_series]
+@[simp] lemma lower_central_series_one : lower_central_series G 1 = commutator G := rfl
 
 lemma mem_lower_central_series_succ_iff (n : ℕ) (q : G) :
   q ∈ lower_central_series G (n + 1) ↔
@@ -518,10 +519,6 @@ begin
   exact eq_bot_iff.mpr (hn ▸ (lower_central_series.map f n)),
 end
 
-section classical
-
-open_locale classical
-
 lemma nilpotency_class_le_of_ker_le_center {H : Type*} [group H] (f : G →* H)
   (hf1 : f.ker ≤ center G) (hH : is_nilpotent H) :
   @group.nilpotency_class G _ (is_nilpotent_of_ker_le_center f hf1 hH) ≤
@@ -534,8 +531,6 @@ begin
   apply (le_trans (lower_central_series.map f _)),
   simp only [lower_central_series_nilpotency_class, le_bot_iff],
 end
-
-end classical
 
 /-- The range of a surejctive homomorphism from a nilpotent group is nilpotent -/
 lemma nilpotent_of_surjective {G' : Type*} [group G'] [h : is_nilpotent G]
@@ -602,10 +597,6 @@ lemma nilpotency_class_zero_iff_subsingleton [is_nilpotent G] :
   group.nilpotency_class G = 0 ↔ subsingleton G :=
 by simp [group.nilpotency_class, nat.find_eq_zero, subsingleton_iff_bot_eq_top]
 
-section classical
-
-open_locale classical
-
 /-- Quotienting the `center G` reduces the nilpotency class by 1 -/
 lemma nilpotency_class_quotient_center [hH : is_nilpotent G] :
   group.nilpotency_class (G ⧸ center G) = group.nilpotency_class G - 1 :=
@@ -628,7 +619,7 @@ begin
             : nilpotency_class_le_of_ker_le_center _ (le_of_eq (ker_mk _)) _, } }
 end
 
-/-- Quotienting the `center G` reduces the nilpotency class by 1 -/
+/-- The nilpotency class of a non-trivial group is one more than its quotient by the center -/
 lemma nilpotency_class_eq_quotient_center_plus_one [hH : is_nilpotent G] [nontrivial G] :
   group.nilpotency_class G = group.nilpotency_class (G ⧸ center G) + 1 :=
 begin
@@ -640,7 +631,13 @@ begin
   { simp }
 end
 
-end classical
+/-- If the quotient by `center G` is nilpotent, then so is G. -/
+lemma of_quotient_center_nilpotent (h : is_nilpotent (G ⧸ center G)) : is_nilpotent G :=
+begin
+  obtain ⟨n, hn⟩ := h.nilpotent,
+  use n.succ,
+  simp [← comap_upper_central_series_quotient_center, hn],
+end
 
 /-- A custom induction principle for nilpotent groups. The base case is a trivial group
 (`subsingleton G`), and in the induction step, one can assume the hypothesis for
@@ -693,6 +690,46 @@ begin
   exact upper_central_series_eq_top_iff_nilpotency_class_le.mpr h,
 end
 
+section prod
+
+variables {G₁ G₂ : Type*} [group G₁] [group G₂]
+
+lemma lower_central_series_prod (n : ℕ):
+  lower_central_series (G₁ × G₂) n = (lower_central_series G₁ n).prod (lower_central_series G₂ n) :=
+begin
+  induction n with n ih,
+  { simp, },
+  { calc lower_central_series (G₁ × G₂) n.succ
+        = ⁅lower_central_series (G₁ × G₂) n, ⊤⁆  : rfl
+    ... = ⁅(lower_central_series G₁ n).prod (lower_central_series G₂ n), ⊤⁆ : by rw ih
+    ... = ⁅(lower_central_series G₁ n).prod (lower_central_series G₂ n), (⊤ : subgroup G₁).prod ⊤⁆ :
+      by simp
+    ... = ⁅lower_central_series G₁ n, (⊤ : subgroup G₁)⁆.prod ⁅lower_central_series G₂ n, ⊤⁆ :
+      general_commutator_prod_prod _ _ _ _
+    ... = (lower_central_series G₁ n.succ).prod (lower_central_series G₂ n.succ) : rfl }
+end
+
+/-- Products of nilpotent groups are nilpotent -/
+instance is_nilpotent_prod [is_nilpotent G₁] [is_nilpotent G₂] :
+  is_nilpotent (G₁ × G₂) :=
+begin
+  rw nilpotent_iff_lower_central_series,
+  refine ⟨max (group.nilpotency_class G₁) (group.nilpotency_class G₂), _ ⟩,
+  rw [lower_central_series_prod,
+    lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (le_max_left _ _),
+    lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (le_max_right _ _), bot_prod_bot],
+end
+
+/-- The nilpotency class of a product is the max of the nilpotency classes of the factors -/
+lemma nilpotency_class_prod [is_nilpotent G₁] [is_nilpotent G₂] :
+  group.nilpotency_class (G₁ × G₂) = max (group.nilpotency_class G₁) (group.nilpotency_class G₂) :=
+begin
+  refine eq_of_forall_ge_iff (λ k, _),
+  simp only [max_le_iff, ← lower_central_series_eq_bot_iff_nilpotency_class_le,
+    lower_central_series_prod, prod_eq_bot_iff ],
+end
+
+end prod
 
 /-- A nilpotent subgroup is solvable -/
 @[priority 100]
@@ -702,4 +739,53 @@ begin
   use n,
   rw [eq_bot_iff, ←hn],
   exact derived_le_lower_central n,
+end
+
+section classical
+
+open_locale classical -- to get the fintype instance for quotient groups
+
+/-- A p-group is nilpotent -/
+lemma is_p_group.is_nilpotent {G : Type*} [hG : group G] [hf : fintype G]
+  {p : ℕ} (hp : fact (nat.prime p)) (h : is_p_group p G) :
+  is_nilpotent G :=
+begin
+  unfreezingI
+  { revert hG,
+    induction hf using fintype.induction_subsingleton_or_nontrivial with G hG hS G hG hN ih },
+  { apply_instance, },
+  { introI _, intro h,
+    have hc : center G > ⊥ := gt_iff_lt.mp h.bot_lt_center,
+    have hcq : fintype.card (G ⧸ center G) < fintype.card G,
+    { rw card_eq_card_quotient_mul_card_subgroup (center G),
+      apply lt_mul_of_one_lt_right,
+      exact (fintype.card_pos_iff.mpr has_one.nonempty),
+      exact ((subgroup.one_lt_card_iff_ne_bot _).mpr (ne_of_gt hc)), },
+    have hnq : is_nilpotent (G ⧸ center G) := ih _ hcq (h.to_quotient (center G)),
+    exact (of_quotient_center_nilpotent hnq), }
+end
+
+end classical
+
+lemma normalizer_condition_of_is_nilpotent [h : is_nilpotent G] : normalizer_condition G :=
+begin
+  -- roughly based on https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
+  rw normalizer_condition_iff_only_full_group_self_normalizing,
+  unfreezingI
+  { induction h using nilpotent_center_quotient_ind with G' _ _ G' _ _ ih;
+    clear _inst_1 G; rename G' → G, },
+  { rintros H -, apply subsingleton.elim, },
+  { intros H hH,
+
+    have hch : center G ≤ H := subgroup.center_le_normalizer.trans (le_of_eq hH),
+    have hkh : (mk' (center G)).ker ≤ H, by simpa using hch,
+    have hsur : function.surjective (mk' (center G)), by exact surjective_quot_mk _,
+
+    let H' := H.map (mk' (center G)),
+    have hH' : H'.normalizer = H',
+    { apply comap_injective hsur,
+      rw [comap_normalizer_eq_of_surjective _ hsur, comap_map_eq_self hkh],
+      exact hH, },
+    apply map_injective_of_ker_le (mk' (center G)) hkh le_top,
+    exact (ih H' hH').trans (symm (map_top_of_surjective _ hsur)), },
 end

@@ -160,7 +160,7 @@ lemma has_finite_integral_of_bounded [is_finite_measure μ] {f : α → β} {C :
 
 lemma has_finite_integral.mono_measure {f : α → β} (h : has_finite_integral f ν) (hμ : μ ≤ ν) :
   has_finite_integral f μ :=
-lt_of_le_of_lt (lintegral_mono' hμ (le_refl _)) h
+lt_of_le_of_lt (lintegral_mono' hμ le_rfl) h
 
 lemma has_finite_integral.add_measure {f : α → β} (hμ : has_finite_integral f μ)
   (hν : has_finite_integral f ν) : has_finite_integral f (μ + ν) :=
@@ -171,11 +171,11 @@ end
 
 lemma has_finite_integral.left_of_add_measure {f : α → β} (h : has_finite_integral f (μ + ν)) :
   has_finite_integral f μ :=
-h.mono_measure $ measure.le_add_right $ le_refl _
+h.mono_measure $ measure.le_add_right $ le_rfl
 
 lemma has_finite_integral.right_of_add_measure {f : α → β} (h : has_finite_integral f (μ + ν)) :
   has_finite_integral f ν :=
-h.mono_measure $ measure.le_add_left $ le_refl _
+h.mono_measure $ measure.le_add_left $ le_rfl
 
 @[simp] lemma has_finite_integral_add_measure {f : α → β} :
   has_finite_integral f (μ + ν) ↔ has_finite_integral f μ ∧ has_finite_integral f ν :=
@@ -443,36 +443,49 @@ by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_measure_le_smul c
 
 lemma integrable.add_measure {f : α → β} (hμ : integrable f μ) (hν : integrable f ν) :
   integrable f (μ + ν) :=
-⟨hμ.ae_measurable.add_measure hν.ae_measurable,
-  hμ.has_finite_integral.add_measure hν.has_finite_integral⟩
+begin
+  simp_rw ← mem_ℒp_one_iff_integrable at hμ hν ⊢,
+  refine ⟨hμ.ae_measurable.add_measure hν.ae_measurable, _⟩,
+  rw [snorm_one_add_measure, ennreal.add_lt_top],
+  exact ⟨hμ.snorm_lt_top, hν.snorm_lt_top⟩,
+end
 
 lemma integrable.left_of_add_measure {f : α → β} (h : integrable f (μ + ν)) : integrable f μ :=
-h.mono_measure $ measure.le_add_right $ le_refl _
+by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.left_of_add_measure, }
 
 lemma integrable.right_of_add_measure {f : α → β} (h : integrable f (μ + ν)) : integrable f ν :=
-h.mono_measure $ measure.le_add_left $ le_refl _
+by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.right_of_add_measure, }
 
 @[simp] lemma integrable_add_measure {f : α → β} :
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
 ⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
 
+@[simp] lemma integrable_zero_measure {m : measurable_space α} {f : α → β} :
+  integrable f (0 : measure α) :=
+⟨ae_measurable_zero_measure, has_finite_integral_zero_measure f⟩
+
+theorem integrable_finset_sum_measure {ι} {m : measurable_space α} {f : α → β}
+  {μ : ι → measure α} {s : finset ι} :
+  integrable f (∑ i in s, μ i) ↔ ∀ i ∈ s, integrable f (μ i) :=
+by induction s using finset.induction_on; simp [*]
+
 lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ℝ≥0∞} (hc : c ≠ ∞) :
   integrable f (c • μ) :=
-⟨h.ae_measurable.smul_measure c, h.has_finite_integral.smul_measure hc⟩
+by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.smul_measure hc, }
 
 lemma integrable_map_measure [opens_measurable_space β] {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
-by simp [integrable, hg, hg.comp_measurable hf, has_finite_integral, lintegral_map' hg.ennnorm hf]
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_map_measure_iff hg hf, }
 
 lemma _root_.measurable_embedding.integrable_map_iff {f : α → δ} (hf : measurable_embedding f)
   {g : δ → β} :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
-by simp only [integrable, hf.ae_measurable_map_iff, has_finite_integral, hf.lintegral_map]
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact hf.mem_ℒp_map_measure_iff, }
 
 lemma integrable_map_equiv (f : α ≃ᵐ δ) (g : δ → β) :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
-f.measurable_embedding.integrable_map_iff
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact f.mem_ℒp_map_measure_iff, }
 
 lemma measure_preserving.integrable_comp [opens_measurable_space β] {ν : measure δ} {g : δ → β}
   {f : α → δ} (hf : measure_preserving f μ ν) (hg : ae_measurable g ν) :
@@ -978,14 +991,6 @@ end integrable
 end measure_theory
 
 open measure_theory
-
-lemma integrable_zero_measure {m : measurable_space α} [measurable_space β] {f : α → β} :
-  integrable f (0 : measure α) :=
-begin
-  apply (integrable_zero _ _ _).congr,
-  change (0 : measure α) {x | 0 ≠ f x} = 0,
-  refl,
-end
 
 variables {E : Type*} [normed_group E] [measurable_space E] [borel_space E]
           {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]

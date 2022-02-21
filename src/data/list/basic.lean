@@ -9,7 +9,7 @@ import data.nat.basic
 # Basic properties of lists
 -/
 
-open function nat
+open function nat (hiding one_pos)
 
 namespace list
 universes u v w x
@@ -2923,6 +2923,9 @@ begin
     have := filter_sublist l, rw e at this,
     exact not_lt_of_ge (length_le_of_sublist this) (lt_succ_self _) }
 end
+
+theorem filter_length_eq_length {l} : (filter p l).length = l.length ↔ ∀ a ∈ l, p a :=
+iff.trans ⟨eq_of_sublist_of_length_eq l.filter_sublist, congr_arg list.length⟩ filter_eq_self
 
 theorem filter_eq_nil {l} : filter p l = [] ↔ ∀ a ∈ l, ¬p a :=
 by simp only [eq_nil_iff_forall_not_mem, mem_filter, not_and]

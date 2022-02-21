@@ -298,7 +298,7 @@ end
 
 /-- This lemma is superceded by `measure_theory.tendsto_in_measure_of_tendsto_snorm` where we
 allow `p = ∞`. -/
-lemma tendsto_in_measure_of_tendsto_snorm_of_ne_top [encodable ι]
+lemma tendsto_in_measure_of_tendsto_snorm_of_ne_top
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ) {l : filter ι}
   (hfg : tendsto (λ n, snorm (f n - g) p μ) l (𝓝 0)) :
@@ -307,8 +307,6 @@ begin
   refine tendsto_in_measure.congr (λ i, (hf i).ae_eq_mk.symm) hg.ae_eq_mk.symm _,
   refine tendsto_in_measure_of_tendsto_snorm_of_measurable hp_ne_zero hp_ne_top
     (λ i, (hf i).measurable_mk) hg.measurable_mk _,
-  have hf_eq_ae : ∀ᵐ x ∂μ, ∀ n, (hf n).mk (f n) x = f n x,
-    from ae_all_iff.mpr (λ n, (hf n).ae_eq_mk.symm),
   have : (λ n, snorm ((hf n).mk (f n) - ae_measurable.mk g hg) p μ) = (λ n, snorm (f n - g) p μ),
   { ext1 n, refine snorm_congr_ae (eventually_eq.sub (hf n).ae_eq_mk.symm hg.ae_eq_mk.symm), },
   rw this,
@@ -342,7 +340,7 @@ begin
 end
 
 /-- Convergence in Lp implies convergence in measure. -/
-lemma tendsto_in_measure_of_tendsto_snorm [encodable ι]
+lemma tendsto_in_measure_of_tendsto_snorm
   (hp_ne_zero : p ≠ 0) (hf : ∀ n, ae_measurable (f n) μ) (hg : ae_measurable g μ) {l : filter ι}
   (hfg : tendsto (λ n, snorm (f n - g) p μ) l (𝓝 0)) :
   tendsto_in_measure μ f l g :=
@@ -354,7 +352,7 @@ begin
 end
 
 /-- Convergence in Lp implies convergence in measure. -/
-lemma tendsto_in_measure_of_tendsto_Lp [encodable ι] [second_countable_topology E]
+lemma tendsto_in_measure_of_tendsto_Lp [second_countable_topology E]
   [hp : fact (1 ≤ p)]
   {f : ι → Lp E p μ} {g : Lp E p μ} {l : filter ι} (hfg : tendsto f l (𝓝 g)) :
   tendsto_in_measure μ (λ n, f n) l g :=

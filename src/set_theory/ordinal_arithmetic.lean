@@ -2446,7 +2446,7 @@ begin
   rwa [iterate_succ_apply, mul_zero]
 end
 
-theorem nfp_zero_mul : nfp ((*) 0) = id :=
+@[simp] theorem nfp_zero_mul : nfp ((*) 0) = id :=
 begin
   refine funext (λ a, (nfp_le.2 (λ n, _)).antisymm (le_sup (λ n, ((*) 0)^[n] a) 0)),
   induction n with n hn, { refl },

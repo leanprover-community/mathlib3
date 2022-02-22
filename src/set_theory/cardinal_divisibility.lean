@@ -14,7 +14,9 @@ We show basic results about divisibility in the cardinal numbers. This relation 
 in the following simple way: if `a` and `b` are both less than `ω`, then `a ∣ b` iff they are
 divisible as natural numbers. If `b` is greater than `ω`, then `a ∣ b` iff `a ≤ b`. This furthermore
 shows that all infinite cardinals are prime; recall that `a * b = max a b` if `ω ≤ a * b`; therefore
-`a ∣ b * c = a ∣ max b c` and therefore clearly either `a ∣ b` or `a ∣ c`.
+`a ∣ b * c = a ∣ max b c` and therefore clearly either `a ∣ b` or `a ∣ c`. Note furthermore that
+no infinite cardinal is irreducible (`cardinal.not_irreducible_of_omega_le`), showing that the
+cardinal numbers do not form a `comm_cancel_monoid_with_zero`.
 
 ## Main results
 
@@ -66,6 +68,13 @@ begin
   left,
   have habc := le_of_dvd hz hbc,
   rwa [mul_eq_max' $ ha.trans $ habc, max_def, if_pos h] at hbc
+end
+
+lemma not_irreducible_of_omega_le (ha : ω ≤ a) : ¬irreducible a :=
+begin
+  rw [irreducible_iff, not_and_distrib],
+  refine or.inr (λ h, _),
+  simpa [mul_omega_eq ha, is_unit_iff, (one_lt_omega.trans_le ha).ne', one_lt_omega.ne'] using h a ω
 end
 
 @[simp, norm_cast] lemma nat_coe_dvd_iff : (n : cardinal) ∣ m ↔ n ∣ m :=

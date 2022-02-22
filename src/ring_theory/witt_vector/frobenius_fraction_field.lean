@@ -8,7 +8,7 @@ import field_theory.is_alg_closed.basic
 import ring_theory.witt_vector.domain
 import ring_theory.witt_vector.truncated
 import data.mv_polynomial.supported
-
+import tactic.linear_combination
 
 /-!
 # Solving equations about the Frobenius map on the field of fractions of `𝕎 k`
@@ -42,7 +42,7 @@ namespace witt_vector
 variables (p : ℕ) [hp : fact p.prime]
 local notation `𝕎` := witt_vector p
 
-section comm_ring
+section perfect_ring
 include hp
 variables {k : Type*} [comm_ring k] [char_p k p] [perfect_ring k p]
 
@@ -66,9 +66,7 @@ begin
     rw [mul_comm, ← witt_vector.verschiebung_frobenius x] },
 end
 
-end comm_ring
-
-namespace recursion_main
+end perfect_ring
 
 /-!
 
@@ -390,7 +388,71 @@ lemma nth_remainder_spec (n : ℕ) (x y : 𝕎 k) :
     nth_remainder p n (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
 classical.some_spec (nth_mul_coeff p k n) _ _
 
+section units
+variables {p}
+
+/-- This is the `n+1`st coefficient of our inverse. -/
+def succ_nth_val_units (n : ℕ) {a : units k} {A : 𝕎 k} (hA : A.coeff 0 = a) (bs : fin (n+1) → k) :
+  k :=
+- ↑(a⁻¹ ^ (p^(n+1)))
+* (A.coeff (n + 1) * ↑(a⁻¹ ^ (p^(n+1))) + nth_remainder p n (truncate_fun (n+1) A) bs)
+
+/--
+Recursively defines the sequence of coefficients for the inverse to a Witt vector whose first entry
+is a unit.
+-/
+noncomputable def inverse_coeff {a : units k} {A : 𝕎 k} (hA : A.coeff 0 = a) : ℕ → k
+| 0       := ↑a⁻¹
+| (n + 1) := succ_nth_val_units n hA (λ i, inverse_coeff i.val)
+              using_well_founded { dec_tac := `[apply fin.is_lt] }
+
+/--
+Upgrade a Witt vector `A` whose first entry `A.coeff 0` is a unit to be, itself, a unit in `𝕎 k`.
+-/
+def mk_unit {a : units k} {A : 𝕎 k} (hA : A.coeff 0 = a) : units (𝕎 k) :=
+units.mk_of_mul_eq_one
+  A
+  (witt_vector.mk p (inverse_coeff hA))
+  begin
+    ext n,
+    induction n with n ih,
+    { simp [witt_vector.mul_coeff_zero, inverse_coeff, hA] },
+    let H_coeff := A.coeff (n + 1) * ↑(a⁻¹ ^ p ^ (n + 1))
+      + nth_remainder p n (truncate_fun (n + 1) A) (λ (i : fin (n + 1)), inverse_coeff hA i),
+    have H := units.mul_inv (a ^ p ^ (n + 1)),
+    linear_combination (H, -H_coeff) { normalize := ff },
+    have ha : (a:k) ^ (p ^ (n + 1)) = ↑(a ^ (p ^ (n + 1))) := by norm_cast,
+    have ha_inv : (↑(a⁻¹):k) ^ (p ^ (n + 1)) = ↑(a ^ (p ^ (n + 1)))⁻¹ :=
+      by exact_mod_cast inv_pow _ _,
+    simp only [nth_remainder_spec, inverse_coeff, succ_nth_val_units, hA, fin.val_eq_coe,
+      one_coeff_eq_of_pos, nat.succ_pos', H_coeff, ha_inv, ha, inv_pow],
+    ring!,
+  end
+
+@[simp] lemma coe_mk_unit {a : units k} {A : 𝕎 k} (hA : A.coeff 0 = a) : (mk_unit hA : 𝕎 k) = A :=
+rfl
+
+end units
+
 end comm_ring
+
+section perfect_field
+include hp
+variables {k : Type*} [field k] [char_p k p] [perfect_ring k p]
+
+/-- This is basically the same as `𝕎 k` being a DVR. -/
+lemma exists_eq_pow_p_mul' (a : 𝕎 k) (ha : a ≠ 0) :
+  ∃ (m : ℕ) (b : units (𝕎 k)), a = p ^ m * b :=
+begin
+  obtain ⟨m, b, h₁, h₂⟩ := exists_eq_pow_p_mul p a ha,
+  let b₀ := units.mk0 (b.coeff 0) h₁,
+  have hb₀ : b.coeff 0 = b₀ := rfl,
+  exact ⟨m, mk_unit hb₀, h₂⟩,
+end
+
+end perfect_field
+
+namespace recursion_main
 
 section is_domain
 include hp

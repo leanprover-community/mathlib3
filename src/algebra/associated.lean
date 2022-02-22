@@ -635,7 +635,7 @@ iff.intro dvd_of_mk_le_mk mk_le_mk_of_dvd
 
 instance [decidable_rel ((∣) : α → α → Prop)] :
   decidable_rel ((∣) : associates α → associates α → Prop) :=
-λ a b, quotient.rec_on_subsingleton₂ a b (λ a b, decidable_of_iff _ mk_dvd_mk.symm)
+λ a b, quotient.rec_on_subsingleton₂ a b (λ a b, decidable_of_iff' _ mk_dvd_mk)
 
 lemma prime.le_or_le {p : associates α} (hp : prime p) {a b : associates α} (h : p ≤ a * b) :
   p ≤ a ∨ p ≤ b :=

@@ -64,25 +64,10 @@ namespace list
 
 variable  {α : Type*}
 
-theorem last_append' (l₁ l₂ : list α) (h : l₂ ≠ list.nil) :
-  (l₁ ++ l₂).last (list.append_ne_nil_of_ne_nil_right _ _ h) = l₂.last h :=
-begin
-  induction l₁,
-  { refl, },
-  { exact eq.trans (list.last_cons _ _) l₁_ih, }
-end
+theorem last'_append {l₁ l₂ : list α} {x : α} (h : x ∈ l₂.last') :
+  x ∈ (l₁ ++ l₂).last' :=
+by {cases l₂, { contradiction, }, { rw list.last'_append_cons, exact h } }
 
-def headn : Π l : list α, l ≠ [] → α
-| []     h := absurd rfl h
-| (x::l) _ := x
-
-theorem headn_append' (l₁ l₂ : list α) (h : l₁ ≠ list.nil) :
-  (l₁ ++ l₂).headn (list.append_ne_nil_of_ne_nil_left _ _ h) = l₁.headn h :=
-by {cases l₁, contradiction, refl}
-
-theorem head'_eq_headn_of_ne_nil : ∀ {l : list α} (h : l ≠ []), l.head' = some (l.headn h)
-| [] h := (h rfl).elim
-| (a::_) _ := rfl
 
 end list
 
@@ -402,137 +387,195 @@ instance : decidable_eq (free_product M) := word.equiv.decidable_eq
 end word
 
 variable (M)
-def neword := { w : word M // w ≠ word.empty }
+inductive neword : ι → ι → Type (max u_1 u_2)
+| singleton : ∀ {i} (x : M i) (hne1 : x ≠ 1), neword i i
+| append : ∀ {i j k l} (w₁ : neword i j) (hne : j ≠ k) (w₂ : neword k l), neword i l
 variable {M}
 
 namespace neword
 
 open word
 
-lemma to_list_ne_nil (w : neword M) : w.val.to_list ≠ list.nil :=
-λ h, w.property (by {ext, rw h, reflexivity})
+@[simp]
+def to_list : Π {i j} (w : neword M i j), list (Σ i, M i)
+| i _ (singleton x hne1) := [⟨i, x⟩]
+| _ _ (append w₁ hne w₂) := w₁.to_list ++ w₂.to_list
 
-def singleton {i} (x : M i) (hne_one : x ≠ 1) : neword M :=
-{ val := {
-    to_list := [⟨i, x⟩],
-    ne_one := λ _ , by { rintros (rfl|absurd), exact hne_one, exfalso, apply absurd, },
-    chain_ne := list.chain'_singleton _, },
-  property := by rintros ⟨rfl, _, _ ⟩, }
+lemma to_list_ne_nil {i j} (w : neword M i j) : w.to_list ≠ list.nil :=
+by { induction w, { rintros ⟨rfl⟩ }, { apply list.append_ne_nil_of_ne_nil_left, assumption,} }
 
-def head (w : neword M) : Σ i, M i := w.val.to_list.headn w.to_list_ne_nil
+@[simp]
+def head : Π {i j} (w : neword M i j), M i
+| i _ (singleton x hne1) := x
+| _ _ (append w₁ hne w₂) := w₁.head
 
-def last (w : neword M) : Σ i, M i := w.val.to_list.last w.to_list_ne_nil
+@[simp]
+def last : Π {i j} (w : neword M i j), M j
+| i _ (singleton x hne1) := x
+| _ _ (append w₁ hne w₂) := w₂.last
 
-lemma to_list_eq_nil_iff_word_eq_empty {w : word M } :
-  w.to_list = list.nil ↔ w = empty :=
+@[simp]
+lemma to_list_head' {i j} (w : neword M i j) :
+  w.to_list.head' = option.some ⟨i, w.head⟩ :=
 begin
-  split; intro h,
-  { ext, rw h, reflexivity, },
-  { subst h, reflexivity, }
+  rw ← option.mem_def,
+  induction w,
+  { rw option.mem_def, reflexivity, },
+  { exact list.head'_append w_ih_w₁, },
 end
 
 @[simp]
-lemma singleton_head {i} (x : M i) (hne_one : x ≠ 1) :
-  (singleton x hne_one).head = ⟨i, x⟩ := rfl
-
-@[simp]
-lemma singleton_last {i} (x : M i) (hne_one : x ≠ 1) :
-  (singleton x hne_one).last = ⟨i, x⟩ := rfl
-
-section append
-
-variables (w₁ w₂ : neword M) (hne : w₁.last.1 ≠ w₂.head.1)
-include hne
-
-def append : neword M :=
-{ val :=
-  { to_list := w₁.val.to_list ++ w₂.val.to_list,
-    ne_one := λ x ,
-    begin
-      intro h,
-      rw list.mem_append at h,
-      cases h,
-      exact w₁.val.ne_one x h,
-      exact w₂.val.ne_one x h,
-    end,
-    chain_ne :=
-    begin
-      apply list.chain'.append w₁.val.chain_ne w₂.val.chain_ne,
-      intros x hx y hy,
-      unfold neword.head at hne,
-      unfold neword.last at hne,
-      rw list.last'_eq_last_of_ne_nil w₁.to_list_ne_nil at hx,
-      rw list.head'_eq_headn_of_ne_nil w₂.to_list_ne_nil at hy,
-      obtain rfl : _ = x, by simpa using hx, clear hx,
-      obtain rfl : _ = y, by simpa using hy, clear hy,
-      exact hne,
-    end, },
-  property := begin
-    intro h,
-    rewrite ← to_list_eq_nil_iff_word_eq_empty at h,
-    rw list.append_eq_nil at h,
-    exact w₁.to_list_ne_nil h.1,
-  end,}
-
-@[simp]
-lemma append_head : (append w₁ w₂ hne).head = w₁.head := list.headn_append' _ _ _
-
-@[simp]
-lemma append_last : (append w₁ w₂ hne).last = w₂.last := list.last_append' _ _ _
-
-end append
-
-/-- An induction principle for non-empty reduced words, with cases for `singleton` and `append`
-to the front -/
-@[elab_as_eliminator]
-lemma induction
-  (P : neword M -> Prop)
-  (hsingleton : ∀ {i} (x : M i) (hne_one : x ≠ 1),
-    P (singleton x hne_one))
-  (happend : ∀ (w₁ : neword M) (w₂ : neword M) (hne : w₁.last.1 ≠ w₂.head.1)
-   (h1 : P w₁) (h2 : P w₂), P (append w₁ w₂ hne))
-  (w : neword M) :
-  P w :=
+lemma to_list_last' {i j} (w : neword M i j) :
+  w.to_list.last' = option.some ⟨j, w.last⟩ :=
 begin
-  cases w with w hnotempty,
-  cases w with l hne_one hne,
+  rw ← option.mem_def,
+  induction w,
+  { rw option.mem_def, reflexivity, },
+  { exact list.last'_append w_ih_w₂, },
+end
+
+def to_word {i j} (w : neword M i j) : word M :=
+{ to_list := w.to_list,
+  ne_one :=
+  begin
+    induction w,
+    { rintros ⟨k,x⟩ ⟨rfl, rfl⟩,
+      exact w_hne1,
+      exfalso, apply H, },
+    { intros l h,
+      simp only [to_list, list.mem_append] at h,
+      cases h,
+      { exact w_ih_w₁ _ h, },
+      { exact w_ih_w₂ _ h, }, },
+  end,
+  chain_ne := begin
+    induction w,
+    { exact list.chain'_singleton _, },
+    { apply list.chain'.append w_ih_w₁ w_ih_w₂,
+      intros x hx y hy,
+      rw [w_w₁.to_list_last', option.mem_some_iff] at hx,
+      rw [w_w₂.to_list_head', option.mem_some_iff] at hy,
+      subst hx, subst hy,
+      exact w_hne, },
+  end,
+}
+
+lemma index_of_to_word_eq_cons {i j} (w : neword M i j)
+  {a} {l} (h : w.to_list = a :: l) :
+  i = a.1 :=
+begin
+  revert l,
+  induction w,
+  { intros l h,
+    simp [to_list] at h, rw ← h.1, },
+  { intros l h,
+    simp [to_list] at h,
+    rw  list.append_eq_cons_iff at h,
+    cases h,
+    { exfalso, exact w_w₁.to_list_ne_nil h.1, },
+    { cases h, exact w_ih_w₁ h_h.1, } }
+end
+
+lemma of_word (w : word M) (h : w ≠ empty) :
+  ∃ i j (w' : neword M i j), w'.to_word = w :=
+begin
+  suffices : ∃ i j (w' : neword M i j), w'.to_word.to_list = w.to_list,
+  { obtain ⟨i, j, w, h⟩ := this, refine ⟨i, j, w, _⟩, ext, rw h, },
+  cases w with l hnot1 hchain,
   induction l with x l hi,
-  { exfalso, apply hnotempty, refl, },
-  { cases x with i x,
-    rw list.forall_mem_cons at hne_one,
-    cases l with y' l,
-    { exact hsingleton x hne_one.1, },
-    { cases y' with j y,
-      rw list.chain'_cons at hne,
-      have hP1 := hsingleton x hne_one.1,
-      refine happend (singleton x hne_one.1) ⟨⟨⟨j,y⟩::l,hne_one.2,hne.2⟩, _⟩ hne.1
-        (hsingleton x hne_one.1)
-        (hi _ _ _),
-      { rintro ⟨rfl⟩, },
+  { contradiction, },
+  {
+    rw list.forall_mem_cons at hnot1,
+    cases l with y l,
+    { refine ⟨x.1, x.1, singleton x.2 hnot1.1, _ ⟩,
+      simp [to_word],
+    },
+    { rw list.chain'_cons at hchain,
+      specialize hi hnot1.2 hchain.2 (by rintros ⟨rfl⟩),
+      obtain ⟨i, j, w', hw'⟩ := hi,
+      obtain rfl : i = y.1 := index_of_to_word_eq_cons _ hw',
+      refine ⟨x.1, j, append (singleton x.2 hnot1.1) hchain.1 w', _⟩,
+      { simpa [to_word] using hw', }
     }
   }
 end
 
-def prod (w : neword M) := w.val.prod
+def prod {i j} (w : neword M i j) := w.to_word.prod
+
+@[simp]
+lemma singleton_head {i} (x : M i) (hne_one : x ≠ 1) :
+  (singleton x hne_one).head = x := rfl
+
+@[simp]
+lemma singleton_last {i} (x : M i) (hne_one : x ≠ 1) :
+  (singleton x hne_one).last = x := rfl
 
 @[simp] lemma prod_singleton {i} (x : M i) (hne_one : x ≠ 1) :
   (singleton x hne_one).prod = of x :=
-by simp [singleton, neword.prod, word.prod]
+by simp [to_word, prod, word.prod]
 
-@[simp] lemma prod_append (w₁ w₂ : neword M) (hne : w₁.last.1 ≠ w₂.head.1) :
-  (append w₁ w₂ hne).prod = w₁.prod * w₂.prod :=
-by simp [append, neword.prod, word.prod]
+
+@[simp]
+lemma append_head {i j k l} {w₁ : neword M i j} {hne : j ≠ k} {w₂ : neword M k l} :
+  (append w₁ hne w₂).head = w₁.head := rfl
+
+@[simp]
+lemma append_last {i j k l} {w₁ : neword M i j} {hne : j ≠ k} {w₂ : neword M k l} :
+  (append w₁ hne w₂).last = w₂.last := rfl
+
+@[simp]
+lemma append_prod {i j k l} {w₁ : neword M i j} {hne : j ≠ k} {w₂ : neword M k l} :
+  (append w₁ hne w₂).prod = w₁.prod * w₂.prod :=
+by simp [to_word, prod, word.prod]
+
+def replace_head : Π {i j : ι} (x : M i) (hnotone : x ≠ 1) (w : neword M i j), neword M i j
+| _ _ x h (singleton _ _) := singleton x h
+| _ _ x h (append w₁ hne w₂) := append (replace_head x h w₁) hne w₂
+
+@[simp]
+lemma replace_head_head {i j : ι} (x : M i) (hnotone : x ≠ 1) (w : neword M i j) :
+  (replace_head x hnotone w).head = x :=
+by { induction w, refl, exact w_ih_w₁ _ _, }
+
+def mul_head {i j : ι} (w : neword M i j) (x : M i) (hnotone : x * w.head ≠ 1) :
+  neword M i j := replace_head (x * w.head) hnotone w
+
+@[simp]
+lemma mul_head_head {i j : ι} (w : neword M i j) (x : M i) (hnotone : x * w.head ≠ 1) :
+   (mul_head w x hnotone).head = x * w.head :=
+by { induction w, refl, exact w_ih_w₁ _ _, }
+
+@[simp]
+lemma mul_head_prod {i j : ι} (w : neword M i j) (x : M i) (hnotone : x * w.head ≠ 1) :
+  (mul_head w x hnotone).prod = of x * w.prod :=
+begin
+  unfold mul_head,
+  induction w,
+  { simp [mul_head, replace_head], },
+  { specialize w_ih_w₁ _ hnotone, clear w_ih_w₂,
+    simp [replace_head, ← mul_assoc] at *,
+    congr' 1, }
+end
 
 section group
 
 variables {G : ι → Type*} [Π i, group (G i)]
 
-def inv (w : neword G) : neword G :=
-{ val := w.val.inv,
-  property := λ h, w.property (word.inv_eq_empty_iff.mp h), }
+def inv : Π {i j} (w : neword G i j), neword G j i
+| _ _ (singleton x h) := singleton x⁻¹ (mt inv_eq_one.mp h)
+| _ _ (append w₁ h w₂) := append w₂.inv h.symm w₁.inv
 
 @[simp]
-lemma prod_inv (w : word G) : w.inv.prod = w.prod⁻¹ := word.prod_inv _
+lemma inv_prod {i j} (w : neword G i j) : w.inv.prod = w.prod⁻¹ :=
+by induction w; simp [inv, *]
+
+@[simp]
+lemma inv_head {i j} (w : neword G i j) : w.inv.head = w.last⁻¹ :=
+by induction w; simp [inv, *]
+
+@[simp]
+lemma inv_last {i j} (w : neword G i j) : w.inv.last = w.head⁻¹ :=
+by induction w; simp [inv, *]
 
 end group
 
@@ -544,12 +587,29 @@ open_locale pointwise
 open_locale cardinal
 
 lemma cardinal.three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
-  ∃ (z : α), z ≠ x ∧ z ≠ y := sorry
+  ∃ (z : α), z ≠ x ∧ z ≠ y :=
+begin
+  classical,
+  cases h with f,
+  let l := [f (sum.inr ⟨⟩), f (sum.inl (sum.inl ⟨⟩)), f (sum.inl (sum.inr ⟨⟩))],
+  have hl : l.nodup, by simp,
+
+  let s₁ : finset α := l.to_finset,
+  have hcard : s₁.card = 3 := list.to_finset_card_of_nodup hl,
+  have := calc
+    0   < 1 : by simp
+    ... = (s₁.card - 1) - 1 : by simp [s₁, list.to_finset_card_of_nodup hl]
+    ... ≤ (s₁.erase y).card - 1 : nat.sub_le_sub_right finset.pred_card_le_card_erase 1
+    ... ≤ ((s₁.erase y).erase x).card : finset.pred_card_le_card_erase,
+  obtain ⟨z, hz⟩ := finset.card_pos.mp this,
+  simp only [finset.mem_erase] at hz,
+  exact ⟨z, hz.1, hz.2.1⟩,
+end
 
 variables [nontrivial ι]
 variables {G : Type*} [group G]
 variables {H : ι → Type*} [∀ i, inhabited (H i)] [∀ i, group (H i)]
-variables (f : Π i, H i →* G) -- (hinj : ∀ i, function.injective (f i))
+variables (f : Π i, H i →* G)
 
 -- We need many groups or one group with many elements
 variables (hcard : 3 ≤ # ι ∨ ∃ i, 3 ≤ # (H i))
@@ -563,95 +623,95 @@ variables (hpp : pairwise (λ i j, ∀ h : H i, h ≠ 1 → f i h • X j ⊆ X 
 
 include hpp
 
-lemma lift_word_ping_pong (i) {w : neword H}
-  (hi : w.last.1 ≠ i) :
-  lift f w.prod • X i ⊆ X w.head.1 :=
+lemma lift_word_ping_pong {i j k} (w : neword H i j) (hj : j ≠ k) :
+  lift f w.prod • X k ⊆ X i :=
 begin
-  revert i,
-  induction w using free_product.neword.induction
-    with j x hne_one w₁ w₂ hne hIw₁ hIw₂,
-  { intros i hi,
-    have hji : j ≠ i, by simpa using hi,
-    simpa using hpp _ _ hji _ hne_one, },
-  { intros i hi,
-    specialize hIw₁ w₂.head.1 hne,
-    specialize hIw₂ i (by simpa using hi), clear hi,
-    calc lift f (neword.append w₁ w₂ hne).prod • X i
-        = lift f w₁.prod • lift f w₂.prod • X i : by simp [mul_action.mul_smul]
-    ... ⊆ lift f w₁.prod • X w₂.head.1 : set_smul_subset_set_smul_iff.mpr hIw₂
-    ... ⊆ X w₁.head.1 : hIw₁
-    ... = X (neword.append w₁ w₂ hne).head.1 : by simp },
+  rename [i → i', j → j'],
+  revert k,
+  induction w
+    with i x hne_one i j k l w₁ hne w₂  hIw₁ hIw₂; clear i' j',
+  { intros k hk,
+    simpa using hpp _ _ hk _ hne_one, },
+  { intros m hm,
+    calc lift f (neword.append w₁ hne w₂).prod • X m
+        = lift f w₁.prod • lift f w₂.prod • X m : by simp [mul_action.mul_smul]
+    ... ⊆ lift f w₁.prod • X k : set_smul_subset_set_smul_iff.mpr (hIw₂ hm)
+    ... ⊆ X i : hIw₁ hne },
 end
 
 include X hXnonempty hXdisj
 
-lemma lift_word_prod_nontrivial_of_other_i (i) {w : neword H}
-  (hhead : i ≠ w.head.1)
-  (hlast : i ≠ w.last.1) :
+lemma lift_word_prod_nontrivial_of_other_i {i j k} (w : neword H i j)
+  (hhead : k ≠ i)
+  (hlast : k ≠ j) :
   lift f w.prod ≠ 1 :=
 begin
   intro heq1,
-  have : X i ⊆ X w.head.fst,
-    by simpa [heq1] using lift_word_ping_pong f X hpp i hlast.symm,
-  obtain ⟨x, hx⟩ := hXnonempty i,
-  exact hXdisj i w.head.fst hhead ⟨hx, this hx⟩,
+  have : X k ⊆ X i,
+    by simpa [heq1] using lift_word_ping_pong f X hpp w hlast.symm,
+  obtain ⟨x, hx⟩ := hXnonempty k,
+  exact hXdisj k i hhead ⟨hx, this hx⟩,
 end
 
-lemma lift_word_prod_nontrivial_of_head_last {w : neword H}
-  (hheadtail : w.head.1 = w.last.1) :
+lemma lift_word_prod_nontrivial_of_head_eq_last {i} (w : neword H i i) :
   lift f w.prod ≠ 1 :=
 begin
-  obtain ⟨k, hk⟩ := exists_ne w.last.1,
-  have hk' : k ≠ w.head.1, by simpa [hheadtail] using hk,
-  exact lift_word_prod_nontrivial_of_other_i f X hXnonempty hXdisj hpp k hk' hk,
+  obtain ⟨k, hk⟩ := exists_ne i,
+  exact lift_word_prod_nontrivial_of_other_i f X hXnonempty hXdisj hpp w hk hk,
+end
+
+lemma lift_word_prod_nontrivial_of_head_card {i j} (w : neword H i j)
+  (hcard : 3 ≤ # (H i))
+  (hheadtail : i ≠ j) :
+  lift f w.prod ≠ 1 :=
+begin
+  obtain ⟨h, hn1, hnh⟩ := cardinal.three_le hcard 1 (w.head⁻¹),
+  have hnot1 : h * w.head ≠ 1, by { rw ← div_inv_eq_mul, exact div_ne_one_of_ne hnh },
+  let w' : neword H i i := neword.append
+    (neword.mul_head w h hnot1) hheadtail.symm
+    (neword.singleton h⁻¹ (inv_ne_one.mpr hn1)),
+  have hw' : lift f w'.prod ≠ 1 :=
+    lift_word_prod_nontrivial_of_head_eq_last f X hXnonempty hXdisj hpp w',
+  intros heq1, apply hw', simp [w', heq1]
 end
 
 include hcard
-lemma lift_word_prod_nontrivial_of_not_empty (w : neword H) :
+lemma lift_word_prod_nontrivial_of_not_empty {i j} (w : neword H i j) :
   lift f w.prod ≠ 1 :=
 begin
   classical,
   cases hcard,
-  { obtain ⟨i, h1, h2⟩ := cardinal.three_le hcard w.head.1 w.last.1,
-    exact lift_word_prod_nontrivial_of_other_i f X hXnonempty hXdisj hpp i h1 h2, },
-  { cases hcard with i hcard,
-    by_cases hh : (w.head.1 = i); by_cases hl : (w.last.1 = i),
+  { obtain ⟨i, h1, h2⟩ := cardinal.three_le hcard i j,
+    exact lift_word_prod_nontrivial_of_other_i f X hXnonempty hXdisj hpp w h1 h2, },
+  { cases hcard with k hcard,
+    by_cases hh : i = k; by_cases hl : j = k,
+    { subst hh, subst hl,
+      exact lift_word_prod_nontrivial_of_head_eq_last f X hXnonempty hXdisj hpp w, },
+    { subst hh,
+      change j ≠ i at hl,
+      exact lift_word_prod_nontrivial_of_head_card f X hXnonempty hXdisj hpp w hcard hl.symm, },
     { subst hl,
-      exact lift_word_prod_nontrivial_of_head_last f X hXnonempty hXdisj hpp hh, },
-    sorry;{ subst hh,
-      change w.last.1 ≠ w.head.1 at hl,
-      obtain ⟨h, hn1, hnh⟩ := cardinal.three_le hcard 1 ((w.head.2)⁻¹),
-      let w' : word H := word.equiv (of h * w.prod * of h⁻¹),
-      have hneempty : w' ≠ word.empty, sorry,
-      let w'' : neword H := ⟨w', hneempty⟩,
-      have hh : w''.head.1 = w.head.1 , sorry,
-      have hh : w''.last.1 = w.head.1, sorry,
-      have heq : w''.head.1 = w''.last.1, sorry,
-      have := lift_word_prod_nontrivial_of_head_last f X hXnonempty hXdisj hpp heq,
-      change lift f (word.equiv.inv_fun (word.equiv.to_fun (of h * w.prod * of h⁻¹))) ≠ 1 at this,
-      rw word.equiv.left_inv at this,
-      intros heq1, apply this, simp [heq1],
-    },
-    { sorry, },
-    { change w.head.1 ≠ i at hh,
-      change w.last.1 ≠ i at hl,
+      change i ≠ j at hh,
+      have : lift f w.inv.prod ≠ 1 :=
+        lift_word_prod_nontrivial_of_head_card f X hXnonempty hXdisj hpp w.inv hcard hh.symm,
+      intros heq, apply this, simpa using heq, },
+    { change i ≠ k at hh,
+      change j ≠ k at hl,
       obtain ⟨h, hn1, -⟩ := cardinal.three_le hcard 1 1,
-      let w' : neword H := neword.append
-        (neword.append (neword.singleton h hn1) w (by simpa using hh.symm))
-        (neword.singleton h⁻¹ (inv_ne_one.mpr hn1)) (by simpa using hl),
-      have heq : w'.head.1 = w'.last.1, by simp,
+      let w' : neword H k k := neword.append
+        (neword.append (neword.singleton h hn1) hh.symm w)
+        hl (neword.singleton h⁻¹ (inv_ne_one.mpr hn1)) ,
       have hw' : lift f w'.prod ≠ 1 :=
-        lift_word_prod_nontrivial_of_head_last f X hXnonempty hXdisj hpp heq,
-      intros heq1, apply hw', simp [w', heq1],
-    },
-  }
+        lift_word_prod_nontrivial_of_head_eq_last f X hXnonempty hXdisj hpp w',
+      intros heq1, apply hw', simp [w', heq1], }, }
 end
 
 lemma empty_of_word_prod_eq_one {w : word H} (h : lift f w.prod = 1) :
   w = word.empty :=
 begin
   by_contradiction hnotempty,
-  exact lift_word_prod_nontrivial_of_not_empty f hcard X hXnonempty hXdisj hpp ⟨w, hnotempty⟩ h,
+  obtain ⟨i, j, w, rfl⟩ := neword.of_word _ hnotempty,
+  exact lift_word_prod_nontrivial_of_not_empty f hcard X hXnonempty hXdisj hpp w h,
 end
 
 lemma lift_subgroups_injective :

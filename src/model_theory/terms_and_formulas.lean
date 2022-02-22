@@ -169,6 +169,19 @@ def relabel_aux (g : α → (β ⊕ fin n)) (k : ℕ) :
   α ⊕ fin k → β ⊕ fin (n + k) :=
 (sum.map id fin_sum_fin_equiv) ∘ (equiv.sum_assoc _ _ _) ∘ (sum.map g id)
 
+@[simp] lemma sum_elim_comp_relabel_aux {m : ℕ} {g : α → (β ⊕ fin n)}
+  {v : β → M} {xs : fin (n + m) → M} :
+  sum.elim v xs ∘ relabel_aux g m =
+    sum.elim (sum.elim v (xs ∘ (fin.cast_add m)) ∘ g) (xs ∘ (fin.nat_add n)) :=
+begin
+  ext x,
+  cases x,
+  { simp only [bounded_formula.relabel_aux, function.comp_app, sum.map_inl, sum.elim_inl],
+    cases g x with l r;
+    simp },
+  { simp [bounded_formula.relabel_aux] }
+end
+
 /-- Relabels a bounded formula's variables along a particular function. -/
 def relabel (g : α → (β ⊕ fin n)) :
   ∀ {k : ℕ}, L.bounded_formula α k → L.bounded_formula β (n + k)
@@ -202,16 +215,16 @@ variables {v : α → M} {xs : fin l → M}
 
 @[simp] lemma realize_bot :
   (⊥ : L.bounded_formula α l).realize v xs ↔ false :=
-iff.refl _
+iff.rfl
 
 @[simp] lemma realize_not :
   φ.not.realize v xs ↔ ¬ φ.realize v xs :=
-iff.refl _
+iff.rfl
 
 @[simp] lemma realize_bd_equal (t₁ t₂ : L.term (α ⊕ fin l)) :
   (t₁.bd_equal t₂).realize v xs ↔
     (t₁.realize (sum.elim v xs) = t₂.realize (sum.elim v xs)) :=
-iff.refl _
+iff.rfl
 
 @[simp] lemma realize_top :
   (⊤ : L.bounded_formula α l).realize v xs ↔ true :=
@@ -225,7 +238,7 @@ by simp only [realize]
 
 @[simp] lemma realize_rel {k : ℕ} {R : L.relations k} {ts : fin k → L.term _} :
   (R.bounded_formula ts).realize v xs ↔ rel_map R (λ i, (ts i).realize (sum.elim v xs)) :=
-iff.refl _
+iff.rfl
 
 @[simp] lemma realize_sup : (φ ⊔ ψ).realize v xs ↔ (φ.realize v xs ∨ ψ.realize v xs) :=
 begin
@@ -234,7 +247,7 @@ begin
 end
 
 @[simp] lemma realize_all : (all θ).realize v xs ↔ ∀ (a : M), (θ.realize v (fin.snoc xs a)) :=
-iff.refl _
+iff.rfl
 
 @[simp] lemma realize_ex : θ.ex.realize v xs ↔ ∃ (a : M), (θ.realize v (fin.snoc xs a)) :=
 begin
@@ -250,21 +263,12 @@ lemma realize_relabel {m n : ℕ}
   (φ.relabel g).realize v xs ↔
     φ.realize (sum.elim v (xs ∘ (fin.cast_add n)) ∘ g) (xs ∘ (fin.nat_add m)) :=
 begin
-  have h : ∀ (n : ℕ) (xs : fin (m + n) → M), sum.elim v xs ∘ bounded_formula.relabel_aux g n =
-    sum.elim (sum.elim v (xs ∘ (fin.cast_add n)) ∘ g) (xs ∘ (fin.nat_add m)),
-  { intros m xs',
-    ext x,
-    cases x,
-    { simp only [bounded_formula.relabel_aux, function.comp_app, sum.map_inl, sum.elim_inl],
-      cases g x with l r;
-      simp },
-    { simp [bounded_formula.relabel_aux] } },
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 n' _ ih3,
   { refl },
-  { simp [bounded_formula.realize, bounded_formula.relabel, h _ xs] },
-  { simp [bounded_formula.realize, bounded_formula.relabel, h _ xs] },
-  { simp [bounded_formula.realize, bounded_formula.relabel, ih1, ih2] },
-  { simp only [ih3, bounded_formula.realize, bounded_formula.relabel],
+  { simp [realize, relabel] },
+  { simp [realize, relabel] },
+  { simp [realize, relabel, ih1, ih2] },
+  { simp only [ih3, realize, relabel],
     refine forall_congr (λ a, (iff_eq_eq.mpr (congr (congr rfl (congr (congr rfl (congr rfl
       (funext (λ i, (dif_pos _).trans rfl)))) rfl)) _))),
     { ext i,
@@ -305,11 +309,11 @@ variables {M} {φ ψ : L.formula α} {v : α → M}
 
 @[simp] lemma realize_not :
   (φ.not).realize v ↔ ¬ φ.realize v :=
-iff.refl _
+iff.rfl
 
 @[simp] lemma realize_bot :
   (⊥ : L.formula α).realize v ↔ false :=
-iff.refl _
+iff.rfl
 
 @[simp] lemma realize_top :
   (⊤ : L.formula α).realize v ↔ true :=
@@ -552,15 +556,15 @@ lemma semantically_equivalent_not_not :
   T.semantically_equivalent φ φ.not.not :=
 λ M ne str v xs hM, by simp
 
-lemma imp_semantically_equivalent_bd_not_sup :
+lemma imp_semantically_equivalent_not_sup :
   T.semantically_equivalent (φ.imp ψ) (φ.not ⊔ ψ) :=
 λ M ne str v xs hM, by simp [imp_iff_not_or]
 
-lemma sup_semantically_equivalent_bd_not_inf_bd_not :
+lemma sup_semantically_equivalent_not_inf_not :
   T.semantically_equivalent (φ ⊔ ψ) (φ.not ⊓ ψ.not).not :=
 λ M ne str v xs hM, by simp [imp_iff_not_or]
 
-lemma inf_semantically_equivalent_bd_not_sup_bd_not :
+lemma inf_semantically_equivalent_not_sup_not :
   T.semantically_equivalent (φ ⊓ ψ) (φ.not ⊔ ψ.not).not :=
 λ M ne str v xs hM, by simp [and_iff_not_or_not]
 
@@ -575,15 +579,15 @@ lemma semantically_equivalent_not_not :
 
 lemma imp_semantically_equivalent_not_sup :
   T.semantically_equivalent (φ.imp ψ) (φ.not ⊔ ψ) :=
-φ.imp_semantically_equivalent_bd_not_sup ψ
+φ.imp_semantically_equivalent_not_sup ψ
 
 lemma sup_semantically_equivalent_not_inf_not :
   T.semantically_equivalent (φ ⊔ ψ) (φ.not ⊓ ψ.not).not :=
-φ.sup_semantically_equivalent_bd_not_inf_bd_not ψ
+φ.sup_semantically_equivalent_not_inf_not ψ
 
 lemma inf_semantically_equivalent_not_sup_not :
   T.semantically_equivalent (φ ⊓ ψ) (φ.not ⊔ ψ.not).not :=
-φ.inf_semantically_equivalent_bd_not_sup_bd_not ψ
+φ.inf_semantically_equivalent_not_sup_not ψ
 end formula
 
 end language

@@ -876,6 +876,18 @@ begin
   exact nat.lt_succ_self _,
 end
 
+lemma div_eq_iff_eq_of_dvd_dvd {n x y : ℕ} (hn : n ≠ 0) (hx : x ∣ n) (hy : y ∣ n) :
+  n / x = n / y ↔ x = y :=
+begin
+  split,
+  { intros h,
+    rw ←mul_right_inj' hn,
+    apply nat.eq_mul_of_div_eq_left (dvd_mul_of_dvd_left hy x),
+    rw [eq_comm, mul_comm, nat.mul_div_assoc _ hy],
+    exact nat.eq_mul_of_div_eq_right hx h },
+  { intros h, rw h },
+end
+
 /-! ### `mod`, `dvd` -/
 
 lemma div_add_mod (m k : ℕ) : k * (m / k) + m % k = m :=

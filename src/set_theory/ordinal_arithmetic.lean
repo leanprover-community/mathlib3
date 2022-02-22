@@ -1477,15 +1477,6 @@ begin
     exact ⟨enum_ord.strict_mono hS, enum_ord_range hS⟩ }
 end
 
-theorem enum_ord_le_of_subset {S T : set ordinal} (hS : unbounded (<) S) (hT : unbounded (<) T)
-  (hST : S ⊆ T) (a) : enum_ord T a ≤ enum_ord S a :=
-begin
-  apply wf.induction a,
-  intros b H,
-  rw enum_ord_def,
-  exact cInf_le' ⟨hST (enum_ord_mem hS b), λ c h, (H c h).trans_lt (enum_ord.strict_mono hS h)⟩
-end
-
 end
 
 /-! ### Ordinal exponential -/

@@ -260,11 +260,39 @@ begin
 end
 
 theorem deriv_le_of_range_subset {f : ι → ordinal → ordinal}
-  {g : ι' → ordinal → ordinal.{max u v w}} (hfg : set.range f ⊆ set.range g) (a) :
-  deriv_family f a ≤ deriv_family.{w (max u v w)} g a :=
+  {g : ι' → ordinal → ordinal.{max u v w}} (hf : ∀ i, monotone (f i)) (hg : ∀ i, monotone (g i))
+  (hfg : set.range f ⊆ set.range g) (a) : deriv_family f a ≤ deriv_family.{w (max u v w)} g a :=
 begin
-  apply enum_ord_le_of_subset,
+  apply limit_rec_on a,
+  { simp only [deriv_family_zero],
+    exact nfp_family_le_of_range_subset.{u w v} hfg 0 },
+  { simp only [deriv_family_succ],
+    exact λ b H,(nfp_family_monotone hf (succ_le_succ.2 H)).trans
+      (nfp_family_le_of_range_subset.{u w v} hfg _) },
+  { intros b hb H,
+    rw [deriv_family_limit f hb, deriv_family_limit.{w (max u v w)} g hb, bsup_le],
+    exact λ c hc, (H c hc).trans (le_bsup _ c hc) }
 end
+
+theorem deriv_eq_of_range_eq {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal.{max u v w}} (hfg : set.range f = set.range g) :
+  deriv_family f = deriv_family.{w (max u v w)} g :=
+funext (λ a, begin
+  apply limit_rec_on a,
+  { simp only [deriv_family_zero],
+    rw nfp_family_eq_of_range_eq.{u w v} hfg,
+    refl },
+  { simp only [deriv_family_succ],
+    intros b H,
+    rw [H, nfp_family_eq_of_range_eq.{u w v} hfg],
+    refl },
+  { intros b hb H,
+    rw [deriv_family_limit f hb, deriv_family_limit.{w (max u v w)} g hb],
+    apply bsup_eq_of_brange_eq.{(max u v w) (max u v w) (max u v w)},
+    congr,
+    ext c hc,
+    exact H c hc }
+end)
 
 end
 

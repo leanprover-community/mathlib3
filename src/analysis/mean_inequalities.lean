@@ -128,58 +128,39 @@ end
 theorem geom_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
   (∏ i in s, (z i) ^ (w i)) = x :=
-begin
-  suffices : ∀ (s : finset ι)
-  (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 < w i)
-  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, z i = x),
-  (∏ i in s, (z i) ^ (w i)) = x,
-  { convert this (s.filter (λ i, w i ≠ 0)) w z x _ _ _ _ using 1,
-    { apply (prod_filter_of_ne _).symm,
-      intros i hi,
-      contrapose!,
-      intro hw,
-      rw hw,
-      rw rpow_zero },
-    { intros i hi, rw mem_filter at hi, apply lt_of_le_of_ne _ hi.2.symm, apply hw i hi.1 },
-    { rw [sum_filter_ne_zero, hw'] },
-    { intros i hi, rw mem_filter at hi, apply hz i hi.1 },
-    { intros i hi, rw mem_filter at hi, apply hx i hi.1 hi.2 } },
-
-  clear hw hw' hz hx s w z x,
-  intros s w z x hw hw' hz hx,
-
-  have hw'' : ∑ i in s, w i ≠ 0,
-  { rw hw', exact one_ne_zero },
-  have hxnonneg : 0 ≤ x,
-  { obtain ⟨i, himem⟩ := nonempty_of_sum_ne_zero hw'',
-    rw ←hx i himem,
-    exact hz i himem },
-
-  calc ∏ i in s, z i ^ w i
-      = ∏ i in s, x ^ w i : prod_congr rfl (λ i hi, by rw hx i hi)
-  ... = x ^ (∑ i in s, w i) : (rpow_sum_of_nonneg hxnonneg s _ hw'' (λ i hi, (hw i hi).le)).symm
-  ... = x : by rw [hw', rpow_one]
-end
+calc (∏ i in s, (z i) ^ (w i)) = ∏ i in s, x ^ w i :
+  begin
+    refine prod_congr rfl (λ i hi, _),
+    cases eq_or_ne (w i) 0 with h₀ h₀,
+    { rw [h₀, rpow_zero, rpow_zero] },
+    { rw hx i hi h₀ }
+  end
+... = x :
+  begin
+    have hw'' : (∑ i in s, w i) ≠ 0, by { rw hw', exact one_ne_zero },
+    have hx : 0 ≤ x,
+    { rcases exists_ne_zero_of_sum_ne_zero hw'' with ⟨i, his, hi⟩,
+      rw ← hx i his hi,
+      exact hz i his },
+    rw [← rpow_sum_of_nonneg hx _ _ hw'' hw, hw', rpow_one]
+  end
 
 theorem arith_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ)
   (hw' : ∑ i in s, w i = 1) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
   ∑ i in s, w i * z i = x :=
-begin
-  calc ∑ i in s, w i * z i
-      = ∑ i in s, w i * x : sum_congr rfl (λ i hi, _)
-  ... = x : by rw [←sum_mul, hw', one_mul],
-  obtain hwi|hwi := eq_or_ne (w i) 0,
-  { rw [hwi, zero_mul, zero_mul] },
-  { rw hx i hi hwi },
-end
+calc ∑ i in s, w i * z i = ∑ i in s, w i * x :
+  begin
+    refine sum_congr rfl (λ i hi, _),
+    cases eq_or_ne (w i) 0 with hwi hwi,
+    { rw [hwi, zero_mul, zero_mul] },
+    { rw hx i hi hwi },
+  end
+... = x : by rw [←sum_mul, hw', one_mul]
 
 theorem geom_mean_eq_arith_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
   (∏ i in s, (z i) ^ (w i)) = ∑ i in s, w i * z i :=
-begin
-  rw [geom_mean_weighted_of_constant, arith_mean_weighted_of_constant],
-  assumption',
-end
+by rw [geom_mean_weighted_of_constant, arith_mean_weighted_of_constant]; assumption
 
 end real
 

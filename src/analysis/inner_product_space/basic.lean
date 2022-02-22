@@ -2289,7 +2289,7 @@ lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_ad
 section complex
 
 variables {V : Type*}
-[inner_product_space ℂ V]
+  [inner_product_space ℂ V]
 
 /-- A linear operator on a complex inner product space is self-adjoint precisely when
 `⟪T v, v⟫_ℂ` is real for all v.-/

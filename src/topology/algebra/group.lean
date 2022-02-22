@@ -255,6 +255,9 @@ lemma continuous_zpow : ∀ z : ℤ, continuous (λ a : G, a ^ z)
 | (int.of_nat n) := by simpa using continuous_pow n
 | -[1+n] := by simpa using (continuous_pow (n + 1)).inv
 
+instance add_group.has_continuous_const_smul_int {A} [add_group A] [topological_space A]
+  [topological_add_group A] : has_continuous_const_smul ℤ A := ⟨continuous_zsmul⟩
+
 @[continuity, to_additive]
 lemma continuous.zpow {f : α → G} (h : continuous f) (z : ℤ) :
   continuous (λ b, (f b) ^ z) :=
@@ -440,6 +443,14 @@ begin
   simp only [subgroup.topological_closure_coe, subgroup.coe_top, ← dense_iff_closure_eq] at hs ⊢,
   exact hf'.dense_image hf hs
 end
+
+/-- If a subgroup of a topological group is commutative, then so is its topological closure. -/
+@[to_additive "If a subgroup of an additive topological group is commutative, then so is its
+topological closure."]
+def subgroup.comm_group_topological_closure [t2_space G] (s : subgroup G)
+  (hs : ∀ (x y : s), x * y = y * x) : comm_group s.topological_closure :=
+{ ..s.topological_closure.to_group,
+  ..s.to_submonoid.comm_monoid_topological_closure hs }
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :

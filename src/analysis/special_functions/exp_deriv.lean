@@ -31,7 +31,7 @@ begin
   have : (1 : ℕ) < 2 := by norm_num,
   refine (is_O.of_bound (∥exp x∥) _).trans_is_o (is_o_pow_id this),
   filter_upwards [metric.ball_mem_nhds (0 : ℂ) zero_lt_one],
-  simp only [metric.mem_ball, dist_zero_right, normed_field.norm_pow],
+  simp only [metric.mem_ball, dist_zero_right, norm_pow],
   exact λ z hz, exp_bound_sq x z hz.le,
 end
 

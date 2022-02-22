@@ -378,7 +378,8 @@ begin
 end
 
 /-- The orthogonal projection of a point `p` onto the hyperplane spanned by the simplex's points. -/
-def orthogonal_projection_span {n : ℕ} (s : simplex ℝ P n) :=
+def orthogonal_projection_span {n : ℕ} (s : simplex ℝ P n) :
+  P →ᵃ[ℝ] affine_span ℝ (set.range s.points) :=
 orthogonal_projection (affine_span ℝ (set.range s.points))
 
 /-- Adding a vector to a point in the given subspace, then taking the

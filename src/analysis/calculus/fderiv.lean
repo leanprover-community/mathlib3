@@ -625,7 +625,7 @@ has_fderiv_at_filter.tendsto_nhds inf_le_left h
 
 theorem has_fderiv_at.continuous_at (h : has_fderiv_at f f' x) :
   continuous_at f x :=
-has_fderiv_at_filter.tendsto_nhds (le_refl _) h
+has_fderiv_at_filter.tendsto_nhds le_rfl h
 
 lemma differentiable_within_at.continuous_within_at (h : differentiable_within_at 𝕜 f s x) :
   continuous_within_at f s x :=
@@ -1023,7 +1023,7 @@ example {g : F → G} {g' : F →L[𝕜] G}
 begin
   unfold has_fderiv_at_filter at hg,
   have : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', f x' - f x) L,
-    from hg.comp_tendsto (le_refl _),
+    from hg.comp_tendsto le_rfl,
   have eq₁ : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', x' - x) L,
     from this.trans_is_O hf.is_O_sub,
   have eq₂ : is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L,
@@ -1415,8 +1415,8 @@ end cartesian_product
 
 section const_smul
 
-variables {R : Type*} [semiring R] [module R F] [topological_space R] [smul_comm_class 𝕜 R F]
-  [has_continuous_smul R F]
+variables {R : Type*} [semiring R] [module R F] [smul_comm_class 𝕜 R F]
+  [has_continuous_const_smul R F]
 
 /-! ### Derivative of a function multiplied by a constant -/
 theorem has_strict_fderiv_at.const_smul (h : has_strict_fderiv_at f f' x) (c : R) :
@@ -2501,7 +2501,7 @@ begin
   have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
     (λ (t : R), t) (𝓝 0),
   { refine (inverse_add_norm_diff_second_order x).trans_is_o ((is_o_norm_norm).mp _),
-    simp only [normed_field.norm_pow, norm_norm],
+    simp only [norm_pow, norm_norm],
     have h12 : 1 < 2 := by norm_num,
     convert (asymptotics.is_o_pow_pow h12).comp_tendsto tendsto_norm_zero,
     ext, simp },

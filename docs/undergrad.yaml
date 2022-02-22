@@ -301,7 +301,7 @@ Single Variable Real Analysis:
     error estimation: 'https://en.wikipedia.org/wiki/Series_(mathematics)#Evaluation_of_truncation_errors'
     absolute convergence: 'https://en.wikipedia.org/wiki/Absolute_convergence'
     products of series: 'https://en.wikipedia.org/wiki/Cauchy_product'
-    alternating series: 'https://en.wikipedia.org/wiki/Alternating_series_test'
+    alternating series: 'antitone.tendsto_alternating_series_of_tendsto_zero'
   Real-valued functions defined on a subset of $\R$:
     continuity: 'continuous'
     limits: 'filter.tendsto'
@@ -648,8 +648,8 @@ Numerical Analysis:
     rate of convergence: ''
     application to the calculation of multiple integrals: ''
   Approximation of numerical functions:
-    Lagrange interpolation: ''
-    Lagrange polynomial of a function at (n + 1) points: ''
+    Lagrange interpolation: 'lagrange.interpolate'
+    Lagrange polynomial of a function at (n + 1) points: 'lagrange.interpolate'
     estimation of the error: ''
   Ordinary differential equations:
     numerical aspects of Cauchy's problem: ''

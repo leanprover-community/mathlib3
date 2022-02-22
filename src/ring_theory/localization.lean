@@ -100,7 +100,7 @@ variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
 variables [algebra R S] {P : Type*} [comm_ring P]
 
 open function
-open_locale big_operators
+open_locale big_operators polynomial
 
 /-- The typeclass `is_localization (M : submodule R) S` where `S` is an `R`-algebra
 expresses that `S` is isomorphic to the localization of `R` at `M`. -/
@@ -992,7 +992,7 @@ begin
   rw r_eq_r' at h ⊢,
   cases h with t ht,
   use t,
-  rw [neg_mul_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm, ht],
+  rw [neg_mul, neg_mul, ht],
   ring_nf,
 end
 
@@ -1280,7 +1280,7 @@ end
 
 theorem map_comap (J : ideal S) :
   ideal.map (algebra_map R S) (ideal.comap (algebra_map R S) J) = J :=
-le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x hJ,
+le_antisymm (ideal.map_le_iff_le_comap.2 le_rfl) $ λ x hJ,
 begin
   obtain ⟨r, s, hx⟩ := mk'_surjective M x,
   rw ←hx at ⊢ hJ,
@@ -1755,7 +1755,7 @@ variables (M) {S}
 
 /-- `coeff_integer_normalization p` gives the coefficients of the polynomial
 `integer_normalization p` -/
-noncomputable def coeff_integer_normalization (p : polynomial S) (i : ℕ) : R :=
+noncomputable def coeff_integer_normalization (p : S[X]) (i : ℕ) : R :=
 if hi : i ∈ p.support
 then classical.some (classical.some_spec
       (exist_integer_multiples_of_finset M (p.support.image p.coeff))
@@ -1763,12 +1763,12 @@ then classical.some (classical.some_spec
       (finset.mem_image.mpr ⟨i, hi, rfl⟩))
 else 0
 
-lemma coeff_integer_normalization_of_not_mem_support (p : polynomial S) (i : ℕ)
+lemma coeff_integer_normalization_of_not_mem_support (p : S[X]) (i : ℕ)
   (h : coeff p i = 0) : coeff_integer_normalization M p i = 0 :=
 by simp only [coeff_integer_normalization, h, mem_support_iff, eq_self_iff_true, not_true,
   ne.def, dif_neg, not_false_iff]
 
-lemma coeff_integer_normalization_mem_support (p : polynomial S) (i : ℕ)
+lemma coeff_integer_normalization_mem_support (p : S[X]) (i : ℕ)
   (h : coeff_integer_normalization M p i ≠ 0) : i ∈ p.support :=
 begin
   contrapose h,
@@ -1777,17 +1777,17 @@ end
 
 /-- `integer_normalization g` normalizes `g` to have integer coefficients
 by clearing the denominators -/
-noncomputable def integer_normalization (p : polynomial S) :
-  polynomial R :=
+noncomputable def integer_normalization (p : S[X]) :
+  R[X] :=
 ∑ i in p.support, monomial i (coeff_integer_normalization M p i)
 
 @[simp]
-lemma integer_normalization_coeff (p : polynomial S) (i : ℕ) :
+lemma integer_normalization_coeff (p : S[X]) (i : ℕ) :
   (integer_normalization M p).coeff i = coeff_integer_normalization M p i :=
 by simp [integer_normalization, coeff_monomial, coeff_integer_normalization_of_not_mem_support]
   {contextual := tt}
 
-lemma integer_normalization_spec (p : polynomial S) :
+lemma integer_normalization_spec (p : S[X]) :
   ∃ (b : M), ∀ i,
     algebra_map R S ((integer_normalization M p).coeff i) = (b : R) • p.coeff i :=
 begin
@@ -1804,14 +1804,14 @@ begin
     { exact not_mem_support_iff.mp hi } }
 end
 
-lemma integer_normalization_map_to_map (p : polynomial S) :
+lemma integer_normalization_map_to_map (p : S[X]) :
   ∃ (b : M), (integer_normalization M p).map (algebra_map R S) = (b : R) • p :=
 let ⟨b, hb⟩ := integer_normalization_spec M p in
 ⟨b, polynomial.ext (λ i, by { rw [coeff_map, coeff_smul], exact hb i })⟩
 
 variables {R' : Type*} [comm_ring R']
 
-lemma integer_normalization_eval₂_eq_zero (g : S →+* R') (p : polynomial S)
+lemma integer_normalization_eval₂_eq_zero (g : S →+* R') (p : S[X])
   {x : R'} (hx : eval₂ g x p = 0) :
   eval₂ (g.comp (algebra_map R S)) x (integer_normalization M p) = 0 :=
 let ⟨b, hb⟩ := integer_normalization_map_to_map M p in
@@ -1819,7 +1819,7 @@ trans (eval₂_map (algebra_map R S) g x).symm
   (by rw [hb, ← is_scalar_tower.algebra_map_smul S (b : R) p, eval₂_smul, hx, mul_zero])
 
 lemma integer_normalization_aeval_eq_zero [algebra R R'] [algebra S R'] [is_scalar_tower R S R']
-  (p : polynomial S) {x : R'} (hx : aeval x p = 0) :
+  (p : S[X]) {x : R'} (hx : aeval x p = 0) :
   aeval x (integer_normalization M p) = 0 :=
 by rw [aeval_def, is_scalar_tower.algebra_map_eq R S R',
        integer_normalization_eval₂_eq_zero _ _ _ hx]
@@ -1850,7 +1850,7 @@ end
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
   (hM : M ≤ non_zero_divisors R) {x : R} (hx : x ∈ non_zero_divisors R) : algebra_map R S x ≠ 0 :=
 show (algebra_map R S).to_monoid_with_zero_hom x ≠ 0,
-from (algebra_map R S).map_ne_zero_of_mem_non_zero_divisors (is_localization.injective S hM) hx
+from map_ne_zero_of_mem_non_zero_divisors (algebra_map R S) (is_localization.injective S hM) hx
 
 variables (S Q M)
 
@@ -2131,7 +2131,7 @@ variables {R K}
 @[simp, mono]
 lemma coe_submodule_le_coe_submodule
   {I J : ideal R} : coe_submodule K I ≤ coe_submodule K J ↔ I ≤ J :=
-is_localization.coe_submodule_le_coe_submodule (le_refl _)
+is_localization.coe_submodule_le_coe_submodule le_rfl
 
 @[mono]
 lemma coe_submodule_strict_mono :
@@ -2150,13 +2150,13 @@ injective_of_le_imp_le _ (λ _ _, (coe_submodule_le_coe_submodule).mp)
 @[simp]
 lemma coe_submodule_is_principal {I : ideal R} :
   (coe_submodule K I).is_principal ↔ I.is_principal :=
-is_localization.coe_submodule_is_principal _ (le_refl _)
+is_localization.coe_submodule_is_principal _ le_rfl
 
 variables {R K}
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
   {x : R} (hx : x ∈ non_zero_divisors R) : algebra_map R K x ≠ 0 :=
-is_localization.to_map_ne_zero_of_mem_non_zero_divisors _ (le_refl _) hx
+is_localization.to_map_ne_zero_of_mem_non_zero_divisors _ le_rfl hx
 
 variables (A)
 
@@ -2217,7 +2217,7 @@ in ⟨x, y, hy, by rwa mk'_eq_div at h⟩
 lemma is_unit_map_of_injective (hg : function.injective g)
   (y : non_zero_divisors A) : is_unit (g y) :=
 is_unit.mk0 (g y) $ show g.to_monoid_with_zero_hom y ≠ 0,
-  from g.map_ne_zero_of_mem_non_zero_divisors hg y.2
+  from map_ne_zero_of_mem_non_zero_divisors g hg y.2
 
 /-- Given an integral domain `A` with field of fractions `K`,
 and an injective ring hom `g : A →+* L` where `L` is a field, we get a
@@ -2246,10 +2246,12 @@ by simp only [mk'_eq_div, ring_hom.map_div, lift_algebra_map]
 and an injective ring hom `j : A →+* B`, we get a field hom
 sending `z : K` to `g (j x) * (g (j y))⁻¹`, where `(x, y) : A × (non_zero_divisors A)` are
 such that `z = f x * (f y)⁻¹`. -/
-noncomputable def map [algebra B L] [is_fraction_ring B L] {j : A →+* B} (hj : injective j) :
+noncomputable def map {A B K L : Type*} [comm_ring A] [comm_ring B] [is_domain B]
+  [comm_ring K] [algebra A K] [is_fraction_ring A K] [comm_ring L] [algebra B L]
+  [is_fraction_ring B L] {j : A →+* B} (hj : injective j) :
   K →+* L :=
 map L j (show non_zero_divisors A ≤ (non_zero_divisors B).comap j,
-         from λ y hy, j.map_mem_non_zero_divisors hj hy)
+         from non_zero_divisors_le_comap_non_zero_divisors_of_injective j hj)
 
 /-- Given integral domains `A, B` and localization maps to their fields of fractions
 `f : A →+* K, g : B →+* L`, an isomorphism `j : A ≃+* B` induces an isomorphism of
@@ -2265,7 +2267,7 @@ begin
   exact h.symm.map_ne_zero_iff
 end
 
-lemma integer_normalization_eq_zero_iff {p : polynomial K} :
+lemma integer_normalization_eq_zero_iff {p : K[X]} :
   integer_normalization (non_zero_divisors A) p = 0 ↔ p = 0 :=
 begin
   refine (polynomial.ext_iff.trans (polynomial.ext_iff.trans _).symm),
@@ -2502,7 +2504,7 @@ open polynomial
 
 lemma ring_hom.is_integral_elem_localization_at_leading_coeff
   {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
-  (x : S) (p : polynomial R) (hf : p.eval₂ f x = 0) (M : submonoid R)
+  (x : S) (p : R[X]) (hf : p.eval₂ f x = 0) (M : submonoid R)
   (hM : p.leading_coeff ∈ M) {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
   [algebra R Rₘ] [is_localization M Rₘ]
   [algebra S Sₘ] [is_localization (M.map f : submonoid S) Sₘ] :
@@ -2525,7 +2527,7 @@ end
 /-- Given a particular witness to an element being algebraic over an algebra `R → S`,
 We can localize to a submonoid containing the leading coefficient to make it integral.
 Explicitly, the map between the localizations will be an integral ring morphism -/
-theorem is_integral_localization_at_leading_coeff {x : S} (p : polynomial R)
+theorem is_integral_localization_at_leading_coeff {x : S} (p : R[X])
   (hp : aeval x p = 0) (hM : p.leading_coeff ∈ M) :
   (map Sₘ (algebra_map R S)
       (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map)
@@ -2593,7 +2595,7 @@ the integral closure `C` of `A` in `L` has fraction field `L`. -/
 lemma is_fraction_ring_of_finite_extension [algebra K L] [is_scalar_tower A K L]
   [finite_dimensional K L] : is_fraction_ring C L :=
 is_fraction_ring_of_algebraic A C
-  (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite : is_algebraic K L))
+  (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite K L))
   (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((algebra_map K L).map_eq_zero.mp $
     (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
 
@@ -2678,6 +2680,15 @@ type and `K`. -/
 noncomputable def alg_equiv (K : Type*) [field K] [algebra A K] [is_fraction_ring A K] :
   fraction_ring A ≃ₐ[A] K :=
 localization.alg_equiv (non_zero_divisors A) K
+
+instance [algebra R A] [no_zero_smul_divisors R A] : no_zero_smul_divisors R (fraction_ring A) :=
+no_zero_smul_divisors.of_algebra_map_injective
+  begin
+    rw [is_scalar_tower.algebra_map_eq R A],
+    exact function.injective.comp
+      (no_zero_smul_divisors.algebra_map_injective _ _)
+      (no_zero_smul_divisors.algebra_map_injective _ _)
+  end
 
 end fraction_ring
 

@@ -94,6 +94,10 @@ variables [semi_normed_ring α]
 lemma norm_mul_le (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 semi_normed_ring.norm_mul _ _
 
+lemma nnnorm_mul_le (a b : α) : ∥a * b∥₊ ≤ ∥a∥₊ * ∥b∥₊ :=
+by simpa only [←norm_to_nnreal, ←real.to_nnreal_mul (norm_nonneg _)]
+  using real.to_nnreal_mono (norm_mul_le _ _)
+
 /-- A subalgebra of a seminormed ring is also a seminormed ring, with the restriction of the norm.
 
 See note [implicit instance arguments]. -/
@@ -140,18 +144,25 @@ begin
   simpa using (l.map f).norm_prod_le
 end
 
-/-- If `α` is a seminormed ring, then `∥a^n∥≤ ∥a∥^n` for `n > 0`. See also `norm_pow_le`. -/
-lemma norm_pow_le' (a : α) : ∀ {n : ℕ}, 0 < n → ∥a^n∥ ≤ ∥a∥^n
-| 1 h := by simp
-| (n+2) h := by { rw [pow_succ _ (n+1),  pow_succ _ (n+1)],
-  exact le_trans (norm_mul_le a (a^(n+1)))
-           (mul_le_mul (le_refl _)
-                       (norm_pow_le' (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _)) }
+/-- If `α` is a seminormed ring, then `∥a ^ n∥₊ ≤ ∥a∥₊ ^ n` for `n > 0`.
+See also `nnnorm_pow_le`. -/
+lemma nnnorm_pow_le' (a : α) : ∀ {n : ℕ}, 0 < n → ∥a ^ n∥₊ ≤ ∥a∥₊ ^ n
+| 1 h := by simp only [pow_one]
+| (n + 2) h := by simpa only [pow_succ _ (n + 1)] using
+    le_trans (nnnorm_mul_le _ _) (mul_le_mul_left' (nnnorm_pow_le' n.succ_pos) _)
 
-/-- If `α` is a seminormed ring with `∥1∥=1`, then `∥a^n∥≤ ∥a∥^n`. See also `norm_pow_le'`. -/
-lemma norm_pow_le [norm_one_class α] (a : α) : ∀ (n : ℕ), ∥a^n∥ ≤ ∥a∥^n
-| 0 := by simp
-| (n+1) := norm_pow_le' a n.zero_lt_succ
+/-- If `α` is a seminormed ring with `∥1∥₊ = 1`, then `∥a ^ n∥₊ ≤ ∥a∥₊ ^ n`.
+See also `nnnorm_pow_le'`.-/
+lemma nnnorm_pow_le [norm_one_class α] (a : α) (n : ℕ) : ∥a ^ n∥₊ ≤ ∥a∥₊ ^ n :=
+nat.rec_on n (by simp only [pow_zero, nnnorm_one]) (λ k hk, nnnorm_pow_le' a k.succ_pos)
+
+/-- If `α` is a seminormed ring, then `∥a ^ n∥ ≤ ∥a∥ ^ n` for `n > 0`. See also `norm_pow_le`. -/
+lemma norm_pow_le' (a : α) {n : ℕ} (h : 0 < n) : ∥a ^ n∥ ≤ ∥a∥ ^ n :=
+by simpa only [nnreal.coe_pow, coe_nnnorm] using nnreal.coe_mono (nnnorm_pow_le' a h)
+
+/-- If `α` is a seminormed ring with `∥1∥ = 1`, then `∥a ^ n∥ ≤ ∥a∥ ^ n`. See also `norm_pow_le'`.-/
+lemma norm_pow_le [norm_one_class α] (a : α) (n : ℕ) : ∥a ^ n∥ ≤ ∥a∥ ^ n :=
+nat.rec_on n (by simp only [pow_zero, norm_one]) (λ n hn, norm_pow_le' a n.succ_pos)
 
 lemma eventually_norm_pow_le (a : α) : ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
 eventually_at_top.mpr ⟨1, λ b h, norm_pow_le' a (nat.succ_le_iff.mp h)⟩
@@ -194,6 +205,11 @@ lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0
   {A : matrix n m α} :
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
 by simp [pi_norm_le_iff hr]
+
+lemma norm_matrix_lt_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 < r)
+  {A : matrix n m α} :
+  ∥A∥ < r ↔ ∀ i j, ∥A i j∥ < r :=
+by simp [pi_norm_lt_iff hr]
 
 end semi_normed_ring
 
@@ -250,8 +266,6 @@ by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
 
-namespace normed_field
-
 section normed_field
 
 variables [normed_field α]
@@ -260,13 +274,15 @@ variables [normed_field α]
 normed_field.norm_mul' a b
 
 @[priority 100] -- see Note [lower instance priority]
-instance to_normed_comm_ring : normed_comm_ring α :=
+instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
 { norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
 
 @[priority 900]
-instance to_norm_one_class : norm_one_class α :=
+instance normed_field.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
+
+export norm_one_class (norm_one)
 
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
@@ -306,7 +322,7 @@ nnreal.eq $ by simp
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
 
 @[priority 100] -- see Note [lower instance priority]
-instance : has_continuous_inv₀ α :=
+instance normed_field.has_continuous_inv₀ : has_continuous_inv₀ α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
@@ -323,6 +339,8 @@ begin
 end
 
 end normed_field
+
+namespace normed_field
 
 variables (α) [nondiscrete_normed_field α]
 
@@ -357,7 +375,7 @@ lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[≠] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
-  rcases normed_field.exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
+  rcases exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
   refine ⟨x + b, mt (set.mem_singleton_iff.trans add_right_eq_self).1 $ norm_pos_iff.1 hb0, _⟩,
   rwa [dist_comm, dist_eq_norm, add_sub_cancel'],
 end
@@ -543,7 +561,7 @@ instance normed_space.has_bounded_smul [normed_space α β] : has_bounded_smul �
     by simpa [dist_eq_norm, sub_smul] using normed_space.norm_smul_le (x₁ - x₂) y }
 
 instance normed_field.to_normed_space : normed_space α α :=
-{ norm_smul_le := λ a b, le_of_eq (normed_field.norm_mul a b) }
+{ norm_smul_le := λ a b, le_of_eq (norm_mul a b) }
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 begin
@@ -554,7 +572,7 @@ begin
                ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) :
       mul_le_mul_of_nonneg_left (normed_space.norm_smul_le _ _) (norm_nonneg _)
                ... = ∥s • x∥                 :
-      by rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
+      by rw [norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
 end
 
 @[simp] lemma abs_norm_eq_norm (z : β) : |∥z∥| = ∥z∥ :=
@@ -579,7 +597,7 @@ variables {F : Type*} [semi_normed_group F] [normed_space α F]
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
 have tendsto (λ y, ∥c • (y - x)∥) (𝓝 x) (𝓝 0),
-  from (continuous_const.smul (continuous_id.sub continuous_const)).norm.tendsto' _ _ (by simp),
+  from ((continuous_id.sub continuous_const).const_smul _).norm.tendsto' _ _ (by simp),
 this.eventually (gt_mem_nhds h)
 
 theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
@@ -663,7 +681,7 @@ def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [normed_space ℝ E] 
 variables (α)
 
 lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : r ≠ 0) (x : sphere (0:E) r) : x ≠ - x :=
-λ h, ne_zero_of_mem_sphere hr x (eq_zero_of_eq_neg α (by { conv_lhs {rw h}, simp }))
+λ h, ne_zero_of_mem_sphere hr x ((self_eq_neg α _).mp (by { conv_lhs {rw h}, simp }))
 
 lemma ne_neg_of_mem_unit_sphere [char_zero α] (x : sphere (0:E) 1) : x ≠ - x :=
 ne_neg_of_mem_sphere α one_ne_zero x
@@ -716,7 +734,7 @@ begin
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
   { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv₀, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
+    rw [norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 
@@ -777,6 +795,11 @@ matrix. -/
 def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
   normed_space α (matrix n m α) :=
 pi.normed_space
+
+lemma matrix.norm_entry_le_entrywise_sup_norm {α : Type*} [normed_field α] {n m : Type*} [fintype n]
+  [fintype m] (M : (matrix n m α)) {i : n} {j : m} :
+  ∥M i j∥ ≤ ∥M∥ :=
+(norm_le_pi_norm (M i) j).trans (norm_le_pi_norm M i)
 
 end
 

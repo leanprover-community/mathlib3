@@ -206,16 +206,6 @@ def mkq : M →ₗ[R] M ⧸ p :=
 
 @[simp] theorem mkq_apply (x : M) : p.mkq x = quotient.mk x := rfl
 
-@[simp] lemma mk_restrict_scalars {S : Type*} [ring S] [has_scalar S R] [module S M]
-  [is_scalar_tower S R M] (P : submodule R M) :
-  (quotient.mk : M → M ⧸ P.restrict_scalars S) = (quotient.mk : M → M ⧸ P) :=
-rfl
-
-@[simp] lemma mkq_restrict_scalars {S : Type*} [ring S] [has_scalar S R] [module S M]
-  [is_scalar_tower S R M] (P : submodule R M) :
-  (P.restrict_scalars S).mkq = P.mkq.restrict_scalars S :=
-by { ext, simp only [submodule.mkq_apply, mk_restrict_scalars, linear_map.restrict_scalars_apply] }
-
 end
 
 variables {R₂ M₂ : Type*} [ring R₂] [add_comm_group M₂] [module R₂ M₂] {τ₁₂ : R →+* R₂}

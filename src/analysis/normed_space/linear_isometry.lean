@@ -398,7 +398,7 @@ include σ₁₃ σ₂₁
 rfl
 
 @[simp] lemma trans_apply (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) (c : E) :
-  (e₁.trans e₂ : E ≃ₛₗᵢ[σ₁₃] E₃) (c) = e₂ (e₁ (c)) :=
+  (e₁.trans e₂ : E ≃ₛₗᵢ[σ₁₃] E₃) c = e₂ (e₁ c) :=
 rfl
 
 @[simp] lemma symm_trans_apply (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) (c : E₃) :

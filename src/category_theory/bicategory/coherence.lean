@@ -160,8 +160,8 @@ variable (B)
 /-- The normalization pseudofunctor for the free bicategory on a quiver `B`. -/
 def full_normalize : oplax_functor (free_bicategory B) (locally_discrete (paths B)) :=
 { obj := id,
-  map := λ a b f, normalize_hom nil f, --((normalize a a b).obj f).obj nil,
-  map₂ := λ a b f g η, ⟨⟨quot.ind (normalize_hom_congr nil) η⟩⟩, --((normalize a a b).map η).app nil,
+  map := λ a b f, normalize_hom nil f,
+  map₂ := λ a b f g η, ⟨⟨quot.ind (normalize_hom_congr nil) η⟩⟩,
   map_id := λ a, 𝟙 (𝟙 a),
   map_comp := λ a b c f g,
   ⟨⟨begin
@@ -172,6 +172,10 @@ def full_normalize : oplax_functor (free_bicategory B) (locally_discrete (paths 
   end⟩⟩ }
 
 variable {B}
+
+def normalize_unit_iso_aux {a b : free_bicategory B} (f : a ⟶ b) :
+  f ≅ ((full_normalize B).map_functor a b ⋙ inclusion_path a b).obj f :=
+(λ_ _).symm ≪≫ normalize_iso nil f
 
 def normalize_unit_iso (a b : free_bicategory B) :
   𝟭 (a ⟶ b) ≅ (full_normalize B).map_functor a b ⋙ inclusion_path a b :=

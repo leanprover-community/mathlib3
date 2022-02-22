@@ -492,25 +492,6 @@ def to_bicone_is_colimit {X Y : C} (b : binary_bicone X Y) :
   is_colimit (b.to_bicone.to_cocone) ≃ is_colimit (b.to_cocone) :=
 is_colimit.equiv_iso_colimit $ cocones.ext (iso.refl _) (λ j, by { cases j, tidy })
 
-/-- Convert a `binary_bicone` into a `bicone` over a pair. -/
-@[simps]
-def to_bicone {X Y : C} (b : binary_bicone X Y) : bicone (pair X Y).obj :=
-{ X := b.X,
-  π := λ j, walking_pair.cases_on j b.fst b.snd,
-  ι := λ j, walking_pair.cases_on j b.inl b.inr,
-  ι_π := λ j j', by { cases j; cases j', tidy } }
-
-/-- A binary bicone is a limit cone if and only if the corresponding bicone is a limit cone. -/
-def to_bicone_is_limit {X Y : C} (b : binary_bicone X Y) :
-  is_limit (b.to_bicone.to_cone) ≃ is_limit (b.to_cone) :=
-is_limit.equiv_iso_limit $ cones.ext (iso.refl _) (λ j, by { cases j, tidy })
-
-/-- A binary bicone is a colimit cocone if and only if the corresponding bicone is a colimit
-    cocone. -/
-def to_bicone_is_colimit {X Y : C} (b : binary_bicone X Y) :
-  is_colimit (b.to_bicone.to_cocone) ≃ is_colimit (b.to_cocone) :=
-is_colimit.equiv_iso_colimit $ cocones.ext (iso.refl _) (λ j, by { cases j, tidy })
-
 end binary_bicone
 
 namespace bicone

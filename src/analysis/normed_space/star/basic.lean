@@ -193,3 +193,31 @@ variables {𝕜}
 lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
 
 end starₗᵢ
+
+section matrix
+
+local attribute [instance] matrix.normed_group
+
+open_locale matrix
+
+lemma matrix.entrywise_sup_norm_star_eq_norm {α : Type*} [normed_field α] [star_add_monoid α]
+  [normed_star_monoid α] {n : Type*} [fintype n] :
+  ∀ (M : (matrix n n α)), ∥star M∥ = ∥M∥ :=
+begin
+  intro M,
+  have star_le : ∥star M∥ ≤ ∥M∥,
+  { rw [matrix.star_eq_conj_transpose, norm_matrix_le_iff (norm_nonneg M)],
+    intros i j,
+    simp only [matrix.conj_transpose_apply, normed_star_monoid.norm_star,
+      matrix.norm_entry_le_entrywise_sup_norm]},
+  have no_star_le : ∥M∥ ≤ ∥star M∥,
+  { rw [matrix.star_eq_conj_transpose, norm_matrix_le_iff (norm_nonneg Mᴴ)],
+    intros i j,
+    have : ∥M i j∥ = ∥Mᴴ j i∥,
+      by simp only [matrix.conj_transpose_apply, normed_star_monoid.norm_star],
+    rw this,
+    apply matrix.norm_entry_le_entrywise_sup_norm},
+  exact ge_antisymm no_star_le star_le,
+end
+
+end matrix

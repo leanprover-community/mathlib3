@@ -347,7 +347,7 @@ begin
 end
 
 lemma homogeneous_hull_eq_supr :
-  (I.homogeneous_hull 𝒜).1 = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
+  ↑(I.homogeneous_hull 𝒜) = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
 begin
   rw ←ideal.span_Union,
   apply congr_arg ideal.span _,
@@ -359,7 +359,7 @@ end
 variables {𝒜 I}
 
 lemma ideal.is_homogeneous.homogeneous_hull_eq_self (h : I.is_homogeneous 𝒜) :
-  (ideal.homogeneous_hull 𝒜 I).1 = I :=
+  ↑(ideal.homogeneous_hull 𝒜 I)= I :=
 begin
   rw ideal.homogeneous_hull_eq_Inf,
   ext x,
@@ -397,7 +397,7 @@ lemma ideal.homgeneous_hull.gc :
 
 
 /--There is a galois insertion between homogeneous ideals and ideals via
-`ideal.homgeneous_hull A` and `(λ I, I.1)`-/
+`ideal.homgeneous_hull A` and `coe : homogeneous_ideal 𝒜 → ideal A`-/
 def ideal.homogeneous_hull.gi :
   galois_insertion
     (ideal.homogeneous_hull 𝒜 :

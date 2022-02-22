@@ -928,8 +928,7 @@ begin
   { assume u v huv u_int hu,
     rw [← integral_congr_ae huv, hu],
     apply integral_congr_ae,
-    filter_upwards [(ae_with_density_iff f_meas.coe_nnreal_ennreal).1 huv],
-    assume x hx,
+    filter_upwards [(ae_with_density_iff f_meas.coe_nnreal_ennreal).1 huv] with x hx,
     rcases eq_or_ne (f x) 0 with h'x|h'x,
     { simp only [h'x, zero_smul]},
     { rw [hx _],
@@ -942,20 +941,18 @@ lemma integral_with_density_eq_integral_smul₀
 begin
   let f' := hf.mk _,
   calc ∫ a, g a ∂(μ.with_density (λ x, f x))
-  = ∫ a, g a ∂(μ.with_density (λ x, f' x)) :
+      = ∫ a, g a ∂(μ.with_density (λ x, f' x)) :
   begin
     congr' 1,
     apply with_density_congr_ae,
-    filter_upwards [hf.ae_eq_mk],
-    assume x hx,
+    filter_upwards [hf.ae_eq_mk] with x hx,
     rw hx,
   end
   ... = ∫ a, f' a • g a ∂μ : integral_with_density_eq_integral_smul hf.measurable_mk _
   ... = ∫ a, f a • g a ∂μ :
   begin
     apply integral_congr_ae,
-    filter_upwards [hf.ae_eq_mk],
-    assume x hx,
+    filter_upwards [hf.ae_eq_mk] with x hx,
     rw hx,
   end
 end

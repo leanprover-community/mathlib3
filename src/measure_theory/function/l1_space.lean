@@ -443,14 +443,18 @@ by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.of_measure_le_smul c
 
 lemma integrable.add_measure {f : α → β} (hμ : integrable f μ) (hν : integrable f ν) :
   integrable f (μ + ν) :=
-⟨hμ.ae_measurable.add_measure hν.ae_measurable,
-  hμ.has_finite_integral.add_measure hν.has_finite_integral⟩
+begin
+  simp_rw ← mem_ℒp_one_iff_integrable at hμ hν ⊢,
+  refine ⟨hμ.ae_measurable.add_measure hν.ae_measurable, _⟩,
+  rw [snorm_one_add_measure, ennreal.add_lt_top],
+  exact ⟨hμ.snorm_lt_top, hν.snorm_lt_top⟩,
+end
 
 lemma integrable.left_of_add_measure {f : α → β} (h : integrable f (μ + ν)) : integrable f μ :=
-h.mono_measure $ measure.le_add_right $ le_rfl
+by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.left_of_add_measure, }
 
 lemma integrable.right_of_add_measure {f : α → β} (h : integrable f (μ + ν)) : integrable f ν :=
-h.mono_measure $ measure.le_add_left $ le_rfl
+by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.right_of_add_measure, }
 
 @[simp] lemma integrable_add_measure {f : α → β} :
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
@@ -467,21 +471,21 @@ by induction s using finset.induction_on; simp [*]
 
 lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ℝ≥0∞} (hc : c ≠ ∞) :
   integrable f (c • μ) :=
-⟨h.ae_measurable.smul_measure c, h.has_finite_integral.smul_measure hc⟩
+by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.smul_measure hc, }
 
 lemma integrable_map_measure [opens_measurable_space β] {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
-by simp [integrable, hg, hg.comp_measurable hf, has_finite_integral, lintegral_map' hg.ennnorm hf]
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_map_measure_iff hg hf, }
 
 lemma _root_.measurable_embedding.integrable_map_iff {f : α → δ} (hf : measurable_embedding f)
   {g : δ → β} :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
-by simp only [integrable, hf.ae_measurable_map_iff, has_finite_integral, hf.lintegral_map]
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact hf.mem_ℒp_map_measure_iff, }
 
 lemma integrable_map_equiv (f : α ≃ᵐ δ) (g : δ → β) :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
-f.measurable_embedding.integrable_map_iff
+by { simp_rw ← mem_ℒp_one_iff_integrable, exact f.mem_ℒp_map_measure_iff, }
 
 lemma measure_preserving.integrable_comp [opens_measurable_space β] {ν : measure δ} {g : δ → β}
   {f : α → δ} (hf : measure_preserving f μ ν) (hg : ae_measurable g ν) :
@@ -657,8 +661,7 @@ integrable g (μ.with_density (λ x, f x))
     ↔ integrable g (μ.with_density (λ x, hf.mk f x)) :
 begin
   suffices : (λ x, (f x : ℝ≥0∞)) =ᵐ[μ] (λ x, hf.mk f x), by rw with_density_congr_ae this,
-  filter_upwards [hf.ae_eq_mk],
-  assume x hx,
+  filter_upwards [hf.ae_eq_mk] with x hx,
   simp [hx],
 end
 ... ↔ integrable (λ x, (hf.mk f x : ℝ) • g x) μ :
@@ -666,8 +669,7 @@ end
 ... ↔ integrable (λ x, (f x : ℝ) • g x) μ :
 begin
   apply integrable_congr,
-  filter_upwards [hf.ae_eq_mk],
-  assume x hx,
+  filter_upwards [hf.ae_eq_mk] with x hx,
   simp [hx],
 end
 
@@ -743,8 +745,7 @@ noncomputable def with_density_smul_li {f : α → ℝ≥0} (f_meas : measurable
       (filter.eventually_of_forall (λ x, ennreal.coe_lt_top)),
     congr' 1,
     apply lintegral_congr_ae,
-    filter_upwards [(mem_ℒ1_smul_of_L1_with_density f_meas u).coe_fn_to_Lp],
-    assume x hx,
+    filter_upwards [(mem_ℒ1_smul_of_L1_with_density f_meas u).coe_fn_to_Lp] with x hx,
     rw [hx, pi.mul_apply],
     change ↑∥(f x : ℝ) • u x∥₊ = ↑(f x) * ↑∥u x∥₊,
     simp only [nnnorm_smul, nnreal.nnnorm_eq, ennreal.coe_mul],

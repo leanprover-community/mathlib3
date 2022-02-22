@@ -259,8 +259,8 @@ lemma ideal.homogeneous_core.gc :
   end,
   λ H, le_trans H (ideal.homogeneous_core'_le_ideal _ _)⟩
 
-/--There is a galois coinsertion between homogeneous ideals and ideals via
-`(coe : homogeneous_ideal 𝒜 → ideal A)` and `ideal.homogeneous_core`-/
+/--`coe : homogeneous_ideal 𝒜 → ideal A` and `ideal.homogeneous_core 𝒜` forms a galois
+coinsertion-/
 def ideal.homogeneous_core.gi :
   galois_coinsertion
     (coe : homogeneous_ideal 𝒜 → ideal A)
@@ -396,8 +396,7 @@ lemma ideal.homgeneous_hull.gc :
   end ⟩
 
 
-/--There is a galois insertion between homogeneous ideals and ideals via
-`ideal.homgeneous_hull A` and `coe : homogeneous_ideal 𝒜 → ideal A`-/
+/--`ideal.homgeneous_hull 𝒜` and `coe : homogeneous_ideal 𝒜 → ideal A` forms a galois insertion-/
 def ideal.homogeneous_hull.gi :
   galois_insertion
     (ideal.homogeneous_hull 𝒜 :

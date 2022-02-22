@@ -2280,7 +2280,8 @@ variables [monoid G] [mul_action G α] [add_comm_monoid M]
 
 /-- Scalar multiplication acting on the domain.
 
-This is not an instance as it would conflict with the action on the range. -/
+This is not an instance as it would conflict with the action on the range.
+See the `instance_diamonds` test for examples of such conflicts. -/
 def comap_has_scalar : has_scalar G (α →₀ M) :=
 { smul := λ g, map_domain ((•) g) }
 
@@ -2394,7 +2395,7 @@ variables {p : α → Prop}
 
 @[simp] lemma filter_smul {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
   {b : R} {v : α →₀ M} : (b • v).filter p = b • v.filter p :=
-coe_fn_injective $ set.indicator_smul {x | p x} b v
+coe_fn_injective $ set.indicator_const_smul {x | p x} b v
 
 end
 

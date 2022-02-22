@@ -16,8 +16,8 @@ Furthermore, we say that `f` has compact support if the topological support of `
 
 ## Main definitions
 
-* `function.mul_support`
-* `function.has_compact_mul_support`
+* `function.mul_tsupport` & `function.tsupport`
+* `function.has_compact_mul_support` & `function.has_compact_support`
 
 ## Implementation Notes
 
@@ -30,13 +30,11 @@ Furthermore, we say that `f` has compact support if the topological support of `
 open function set filter
 open_locale topological_space
 
-variables {X α α' β γ δ M E : Type*}
+variables {X α α' β γ δ M E R : Type*}
 
 section one
 variables [has_one α]
 variables [topological_space X]
-
--- todo: add mul_tsupport -> tsupport to to_additive dictionary
 
 /-- The topological support of a function is the closure of its support, i.e. the closure of the
   set of all elements where the function is not equal to 1. -/
@@ -79,7 +77,8 @@ of the multiplicative support of `f` is compact. In a T₂ space this is equival
 to `1` outside a compact set. -/
 @[to_additive
 /-" A function `f` *has compact support* or is *compactly supported* if the closure of the support
-of `f` is compact. In other words: `f` is equal to `0` outside a compact set. "-/]
+of `f` is compact. In a T₂ space this is equivalent to `f` being equal to `0` outside a compact
+set. "-/]
 def has_compact_mul_support (f : α → β) : Prop :=
 is_compact (mul_tsupport f)
 
@@ -105,6 +104,14 @@ lemma has_compact_mul_support.is_compact (hf : has_compact_mul_support f) :
 hf
 
 @[to_additive]
+lemma has_compact_mul_support_iff_eventually_eq :
+  has_compact_mul_support f ↔ f =ᶠ[coclosed_compact α] 1 :=
+⟨ λ h, mem_coclosed_compact.mpr ⟨mul_tsupport f, is_closed_mul_tsupport _, h,
+    λ x, not_imp_comm.mpr $ λ hx, subset_mul_tsupport f hx⟩,
+  λ h, let ⟨C, hC⟩ := mem_coclosed_compact'.mp h in
+    compact_of_is_closed_subset hC.2.1 (is_closed_mul_tsupport _) (closure_minimal hC.2.2 hC.1)⟩
+
+@[to_additive]
 lemma has_compact_mul_support.mono' {f' : α → γ} (hf : has_compact_mul_support f)
   (hff' : mul_support f' ⊆ mul_tsupport f) : has_compact_mul_support f' :=
 compact_of_is_closed_subset hf is_closed_closure $ closure_minimal hff' is_closed_closure
@@ -125,17 +132,22 @@ lemma has_compact_mul_support_comp_left (hg : ∀ {x}, g x = 1 ↔ x = 1) :
 by simp_rw [has_compact_mul_support_def, mul_support_comp_eq g @hg f]
 
 @[to_additive]
+lemma has_compact_mul_support.comp_closed_embedding (hf : has_compact_mul_support f)
+  {g : α' → α} (hg : closed_embedding g) : has_compact_mul_support (f ∘ g) :=
+begin
+  rw [has_compact_mul_support_def, function.mul_support_comp_eq_preimage],
+  refine compact_of_is_closed_subset (hg.is_compact_preimage hf) is_closed_closure _,
+  rw [hg.to_embedding.closure_eq_preimage_closure_image],
+  exact preimage_mono (closure_mono $ image_preimage_subset _ _)
+end
+
+@[to_additive]
 lemma has_compact_mul_support.comp₂_left (hf : has_compact_mul_support f)
   (hf₂ : has_compact_mul_support f₂) (hm : m 1 1 = 1) :
   has_compact_mul_support (λ x, m (f x) (f₂ x)) :=
 begin
-  refine compact_of_is_closed_subset (hf.union hf₂) is_closed_closure _,
-  refine closure_minimal (λ x h2x, _) (is_closed_closure.union is_closed_closure) ,
-  refine union_subset_union subset_closure subset_closure _,
-  by_contra hx,
-  simp_rw [mem_union, not_or_distrib, nmem_mul_support] at hx,
-  apply h2x,
-  simp_rw [hx.1, hx.2, hm]
+  rw [has_compact_mul_support_iff_eventually_eq] at hf hf₂ ⊢,
+  filter_upwards [hf, hf₂] using λ x hx hx₂, by simp_rw [hx, hx₂, pi.one_apply, hm]
 end
 
 end
@@ -145,7 +157,6 @@ section monoid
 variables [topological_space α] [monoid β]
 variables {f f' : α → β} {x : α}
 
-
 @[to_additive]
 lemma has_compact_mul_support.mul (hf : has_compact_mul_support f)
   (hf' : has_compact_mul_support f') : has_compact_mul_support (f * f') :=
@@ -153,26 +164,53 @@ by apply hf.comp₂_left hf' (mul_one 1) -- `by apply` speeds up elaboration
 
 end monoid
 
-section monoid
+section distrib_mul_action
 
-variables [topological_space α] [monoid_with_zero β] [add_monoid γ] [distrib_mul_action β γ]
-variables {f : α → β} {f' : α → γ} {x : α}
+variables [topological_space α] [monoid_with_zero R] [add_monoid M] [distrib_mul_action R M]
+variables {f : α → R} {f' : α → M} {x : α}
 
+lemma has_compact_support.smul_left (hf : has_compact_support f') : has_compact_support (f • f') :=
+begin
+  rw [has_compact_support_iff_eventually_eq] at hf ⊢,
+  refine hf.mono (λ x hx, by simp_rw [pi.smul_apply', hx, pi.zero_apply, smul_zero])
+end
 
-lemma has_compact_support.smul (hf : has_compact_support f)
-  (hf' : has_compact_support f') : has_compact_support (f • f') :=
-by apply hf.comp₂_left hf' (smul_zero 0) -- `by apply` speeds up elaboration
+end distrib_mul_action
 
-end monoid
+section smul_with_zero
 
-section monoid_with_zero
+variables [topological_space α] [has_zero R] [has_zero M] [smul_with_zero R M]
+variables {f : α → R} {f' : α → M} {x : α}
+
+lemma has_compact_support.smul_right (hf : has_compact_support f) : has_compact_support (f • f') :=
+begin
+  rw [has_compact_support_iff_eventually_eq] at hf ⊢,
+  refine hf.mono (λ x hx, by simp_rw [pi.smul_apply', hx, pi.zero_apply, zero_smul])
+end
+
+lemma has_compact_support.smul_left' (hf : has_compact_support f') : has_compact_support (f • f') :=
+begin
+  rw [has_compact_support_iff_eventually_eq] at hf ⊢,
+  refine hf.mono (λ x hx, by simp_rw [pi.smul_apply', hx, pi.zero_apply, smul_zero'])
+end
+
+end smul_with_zero
+
+section mul_zero_class
 
 variables [topological_space α] [mul_zero_class β]
 variables {f f' : α → β} {x : α}
 
-@[to_additive]
-lemma has_compact_support.mul (hf : has_compact_support f)
-  (hf' : has_compact_support f') : has_compact_support (f * f') :=
-by apply hf.comp₂_left hf' (mul_zero 0) -- `by apply` speeds up elaboration
+lemma has_compact_support.mul_right (hf : has_compact_support f) : has_compact_support (f * f') :=
+begin
+  rw [has_compact_support_iff_eventually_eq] at hf ⊢,
+  refine hf.mono (λ x hx, by simp_rw [pi.mul_apply, hx, pi.zero_apply, zero_mul])
+end
 
-end monoid_with_zero
+lemma has_compact_support.mul_left (hf : has_compact_support f') : has_compact_support (f * f') :=
+begin
+  rw [has_compact_support_iff_eventually_eq] at hf ⊢,
+  refine hf.mono (λ x hx, by simp_rw [pi.mul_apply, hx, pi.zero_apply, mul_zero])
+end
+
+end mul_zero_class

@@ -3,7 +3,6 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import measure_theory.integral.lebesgue
 import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
 import measure_theory.measure.open_pos
@@ -13,7 +12,7 @@ import measure_theory.measure.open_pos
 
 We develop some properties of measures on (topological) groups
 
-* We define properties on measures: left and right invariant measures.
+* We define properties on measures: measures that are left or right invariant w.r.t. multiplication.
 * We define the measure `μ.inv : A ↦ μ(A⁻¹)` and show that it is right invariant iff
   `μ` is left invariant.
 * We define a class `is_haar_measure μ`, requiring that the measure `μ` is left-invariant, finite
@@ -259,17 +258,6 @@ lemma measure_lt_top_of_is_compact_of_is_mul_left_invariant'
 measure_lt_top_of_is_compact_of_is_mul_left_invariant (interior U) is_open_interior hU
   ((measure_mono (interior_subset)).trans_lt (lt_top_iff_ne_top.2 h)).ne hK
 
-/-- For nonzero regular left invariant measures, the integral of a continuous nonnegative function
-  `f` is 0 iff `f` is 0. -/
-@[to_additive]
-lemma lintegral_eq_zero_of_is_mul_left_invariant [regular μ] (hμ : μ ≠ 0)
-  {f : G → ℝ≥0∞} (hf : continuous f) :
-  ∫⁻ x, f x ∂μ = 0 ↔ f = 0 :=
-begin
-  haveI := is_open_pos_measure_of_mul_left_invariant_of_regular hμ,
-  rw [lintegral_eq_zero_iff hf.measurable, hf.ae_eq_iff_eq μ continuous_zero]
-end
-
 end group
 
 section comm_group
@@ -287,32 +275,6 @@ instance is_mul_left_invariant.is_mul_right_invariant {μ : measure G} [is_mul_l
 
 end comm_group
 
-section integration
-
-variables [group G] [has_measurable_mul G] {μ : measure G}
-
-/-- Translating a function by left-multiplication does not change its `lintegral` with respect to
-a left-invariant measure. -/
-@[to_additive]
-lemma lintegral_mul_left_eq_self [is_mul_left_invariant μ] (f : G → ℝ≥0∞) (g : G) :
-  ∫⁻ x, f (g * x) ∂μ = ∫⁻ x, f x ∂μ :=
-begin
-  convert (lintegral_map_equiv f $ measurable_equiv.mul_left g).symm,
-  simp [map_mul_left_eq_self μ g]
-end
-
-/-- Translating a function by right-multiplication does not change its `lintegral` with respect to
-a right-invariant measure. -/
-@[to_additive]
-lemma lintegral_mul_right_eq_self [is_mul_right_invariant μ] (f : G → ℝ≥0∞) (g : G) :
-  ∫⁻ x, f (x * g) ∂μ = ∫⁻ x, f x ∂μ :=
-begin
-  convert (lintegral_map_equiv f $ measurable_equiv.mul_right g).symm,
-  simp [map_mul_right_eq_self μ g]
-end
-
-end integration
-
 section haar
 
 namespace measure
@@ -329,6 +291,16 @@ sets and positive mass to open sets. -/
 class is_haar_measure {G : Type*} [group G] [topological_space G] [measurable_space G]
   (μ : measure G)
   extends is_finite_measure_on_compacts μ, is_mul_left_invariant μ, is_open_pos_measure μ : Prop
+
+/- Record that a Haar measure on a locally compact space is locally finite. This is needed as the
+fact that a measure which is finite on compacts is locally finite is not registered as an instance,
+to avoid an instance loop. -/
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance is_locally_finite_measure_of_is_haar_measure {G : Type*}
+  [group G] [measurable_space G] [topological_space G] [locally_compact_space G]
+  (μ : measure G) [is_haar_measure μ] :
+  is_locally_finite_measure μ :=
+is_locally_finite_measure_of_is_finite_measure_on_compacts
 
 section
 

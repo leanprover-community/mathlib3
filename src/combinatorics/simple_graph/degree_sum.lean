@@ -72,7 +72,7 @@ end
 variables {G} [decidable_eq V]
 
 lemma dart.edge_fiber (d : G.dart) :
-  (univ.filter (λ (d' : G.dart), d'.edge = d.edge)) = {d, d.rev} :=
+  (univ.filter (λ (d' : G.dart), d'.edge = d.edge)) = {d, d.symm} :=
 finset.ext (λ d', by simpa using dart_edge_eq_iff d' d)
 
 variables (G)
@@ -85,7 +85,7 @@ begin
   convert congr_arg card d.edge_fiber,
   rw [card_insert_of_not_mem, card_singleton],
   rw [mem_singleton],
-  exact d.rev_ne.symm,
+  exact d.symm_ne.symm,
 end
 
 lemma dart_card_eq_twice_card_edges : fintype.card G.dart = 2 * G.edge_finset.card :=

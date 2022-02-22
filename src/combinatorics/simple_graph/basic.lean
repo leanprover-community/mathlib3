@@ -143,6 +143,8 @@ lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G
 
 @[symm] lemma adj_symm (h : G.adj u v) : G.adj v u := G.symm h
 
+lemma adj.symm {G : simple_graph V} {u v : V} (h : G.adj u v) : G.adj v u := G.symm h
+
 lemma ne_of_adj (h : G.adj a b) : a ≠ b := by { rintro rfl, exact G.irrefl h }
 
 protected lemma adj.ne {G : simple_graph V} {a b : V} (h : G.adj a b) : a ≠ b := G.ne_of_adj h
@@ -337,46 +339,44 @@ fintype.of_equiv (Σ v, G.neighbor_set v)
 /-- The edge associated to the dart. -/
 def dart.edge (d : G.dart) : sym2 V := ⟦d.to_prod⟧
 
+@[simp] lemma dart.edge_mk {p : V × V} (h : G.adj p.1 p.2) :
+  (dart.mk p h).edge = ⟦p⟧ := rfl
+
 @[simp] lemma dart.edge_mem (d : G.dart) : d.edge ∈ G.edge_set :=
 d.is_adj
 
 /-- The dart with reversed orientation from a given dart. -/
-def dart.rev (d : G.dart) : G.dart :=
+@[simps] def dart.symm (d : G.dart) : G.dart :=
 ⟨d.to_prod.swap, G.symm d.is_adj⟩
 
-@[simp] lemma dart.rev_edge : Π (d : G.dart), d.rev.edge = d.edge :=
-by { rintro ⟨⟨v,w⟩, _⟩, exact sym2.eq_swap }
+@[simp] lemma dart.symm_mk (p : V × V) (h : G.adj p.1 p.2) :
+  (dart.mk p h).symm = dart.mk p.swap h.symm := rfl
 
-@[simp] lemma dart.rev_rev (d : G.dart) : d.rev.rev = d :=
-by ext; refl
+@[simp] lemma dart.edge_symm (d : G.dart) : d.symm.edge = d.edge :=
+sym2.mk_prod_swap_eq
 
-@[simp] lemma dart.rev_involutive : function.involutive (dart.rev : G.dart → G.dart) :=
-dart.rev_rev
+@[simp] lemma dart.symm_symm (d : G.dart) : d.symm.symm = d :=
+dart.ext _ _ $ prod.swap_swap _
 
-lemma dart.rev_ne : Π (d : G.dart), d.rev ≠ d :=
-begin
-  rintro ⟨⟨v, w⟩, h⟩,
-  simp only [dart.rev, not_and, ne.def],
-  rintro ⟨rfl, rfl⟩,
-  exact false.elim (G.loopless _ h),
-end
+@[simp] lemma dart.symm_involutive : function.involutive (dart.symm : G.dart → G.dart) :=
+dart.symm_symm
+
+lemma dart.symm_ne (d : G.dart) : d.symm ≠ d :=
+ne_of_apply_ne (prod.snd ∘ dart.to_prod) d.is_adj.ne
 
 lemma dart_edge_eq_iff : Π (d₁ d₂ : G.dart),
-  d₁.edge = d₂.edge ↔ d₁ = d₂ ∨ d₁ = d₂.rev :=
-begin
-  rintros ⟨⟨s₁, t₁⟩, h₁⟩ ⟨⟨s₂, t₂⟩, h₂⟩,
-  simp only [dart.edge, dart.rev_edge, dart.rev, sym2.eq_iff, prod.mk.inj_iff, prod.swap_prod_mk],
-end
+  d₁.edge = d₂.edge ↔ d₁ = d₂ ∨ d₁ = d₂.symm :=
+by { rintros ⟨p, hp⟩ ⟨q, hq⟩, simp [sym2.mk_eq_mk_iff] }
 
 variables (G)
 
 /-- For a given vertex `v`, this is the bijective map from the neighbor set at `v`
 to the darts `d` with `d.fst = v`. --/
-def dart_of_neighbor_set (v : V) (w : G.neighbor_set v) : G.dart :=
+@[simps] def dart_of_neighbor_set (v : V) (w : G.neighbor_set v) : G.dart :=
 ⟨(v, w), w.property⟩
 
 lemma dart_of_neighbor_set_injective (v : V) : function.injective (G.dart_of_neighbor_set v) :=
-λ e₁ e₂ h, by { injection h with h', rw prod.mk.inj_iff at h', exact subtype.ext h'.2 }
+λ e₁ e₂ h, subtype.ext $ by { injection h with h', convert congr_arg prod.snd h' }
 
 instance dart.inhabited [inhabited V] [inhabited (G.neighbor_set default)] :
   inhabited G.dart := ⟨G.dart_of_neighbor_set default default⟩

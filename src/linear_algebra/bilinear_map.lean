@@ -154,6 +154,13 @@ def dom_restrict₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : sub
 lemma dom_restrict₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) (x : M) (y : q) :
   f.dom_restrict₂ q x y = f x y := rfl
 
+/-- Restricting a bilinear map in both components -/
+def dom_restrict₁₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (p : submodule R M) (q : submodule S N) :
+  p →ₛₗ[ρ₁₂] q →ₛₗ[σ₁₂] P := (f.dom_restrict p).dom_restrict₂ q
+
+lemma dom_restrict₁₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (p : submodule R M) (q : submodule S N)
+  (x : p) (y : q) : f.dom_restrict₁₂ p q x y = f x y := rfl
+
 end semiring
 
 section comm_semiring

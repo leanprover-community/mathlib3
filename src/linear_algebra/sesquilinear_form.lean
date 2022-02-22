@@ -156,11 +156,11 @@ end reflexive
 section symmetric
 
 variables [comm_semiring R] [add_comm_group M] [module R M]
-  {I : R →+* R} {B : M →ₛₗ[I] M →ₛₗ[I] R}
+  {I : R →+* R} {B : M →ₛₗ[I] M →ₗ[R] R}
 
 /-- The proposition that a sesquilinear form is symmetric -/
-def is_symm (B : M →ₛₗ[I] M →ₛₗ[I] R) : Prop := B = B.flip
-  --∀ (x y), I (B x y) = B y x
+def is_symm (B : M →ₛₗ[I] M →ₗ[R] R) : Prop :=
+  ∀ (x y), I (B x y) = B y x
 
 namespace is_symm
 
@@ -169,17 +169,24 @@ include H
 
 variables (x y : M)
 
-protected lemma eq (x y) : B x y = B y x :=
-begin
-  rw flip_apply B y x,
-  exact congr_fun₂ H x y,
-end
+protected lemma eq (x y) : I (B x y) = B y x := H x y
 
-lemma is_refl : B.is_refl := λ x y H1, by { rw [←H], simp [H1] }
+lemma is_refl : B.is_refl := λ x y H1, by { rw ←H.eq, simp [H1] }
 
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
 end is_symm
+
+lemma is_symm_iff_flip {B : M →ₗ[R] M →ₗ[R] R} : B.is_symm ↔ B = B.flip :=
+begin
+  split; intro h,
+  { ext,
+    rw [←h, flip_apply, ring_hom.id_apply] },
+  intros x y,
+  conv_lhs { rw h },
+  rw [flip_apply, ring_hom.id_apply],
+end
+
 end symmetric
 
 
@@ -188,7 +195,7 @@ end symmetric
 section alternating
 
 variables [comm_ring R] [comm_semiring R₁] [add_comm_monoid M₁] [module R₁ M₁]
-  {I₁ : R₁ →+* R} {I₂ : R₁ →+* R} {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R}
+  {I₁ : R₁ →+* R} {I₂ : R₁ →+* R} {I : R₁ →+* R} {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R}
 
 /-- The proposition that a sesquilinear form is alternating -/
 def is_alt (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R) : Prop := ∀ x, B x x = 0
@@ -218,6 +225,20 @@ end
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
 end is_alt
+
+lemma is_alt_iff_flip_neg  [no_zero_divisors R] [char_zero R] (B : M₁ →ₛₗ[I] M₁ →ₛₗ[I] R) :
+  B.is_alt ↔ -B = B.flip :=
+begin
+  split; intro h,
+  { ext,
+    rw [neg_apply, flip_apply],
+    exact h.neg _ _ },
+  intros x,
+  let h' := congr_fun₂ h x x,
+  simp only [neg_apply, flip_apply, ←add_eq_zero_iff_neg_eq] at h',
+  exact add_self_eq_zero.mp h',
+end
+
 end alternating
 
 end linear_map
@@ -346,13 +367,13 @@ def separating_right (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop :=
 /-- A bilinear form is called non-degenerate if it is left-separating and right-separating. -/
 def nondegenerate (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop := separating_left B ∧ separating_right B
 
-lemma separating_left_flip (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) :
+lemma separating_left_flip {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
   B.separating_left ↔ B.flip.separating_right := ⟨λ hB x hy, hB x hy, λ hB x hy, hB x hy⟩
 
-lemma separating_right_flip (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) :
-  separating_right B ↔ B.flip.separating_left := by rw [B.flip.separating_left_flip, flip_flip]
+lemma separating_right_flip {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+  separating_right B ↔ B.flip.separating_left := by rw [separating_left_flip, flip_flip]
 
-lemma separating_left_iff_neq_zero (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) :
+lemma separating_left_iff_neq_zero {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
   B.separating_left ↔ ∀ x : M₁, B x = 0 → x = 0 :=
 begin
   split; intros h x hB,
@@ -363,7 +384,7 @@ begin
   exact h x h',
 end
 
-lemma separating_right_iff_neq_zero_flip (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) :
+lemma separating_right_iff_neq_zero_flip {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
   B.separating_right ↔ ∀ y : M₂, B.flip y = 0 → y = 0 :=
 by rw [separating_right_flip, separating_left_iff_neq_zero]
 
@@ -391,21 +412,20 @@ section comm_ring
 variables [comm_ring R] [add_comm_group M] [module R M]
   {I : R →+* R}
 
-lemma nondegenerate_of_symm_separating_left {B : M →ₗ[R] M →ₛₗ[I] R}
+lemma nondegenerate_of_symm_separating_left {B : M →ₗ[R] M →ₗ[R] R}
   (hB : B.is_symm) (hB' : B.separating_left) : B.nondegenerate :=
 begin
   refine ⟨hB', _⟩,
-  sorry,
+  rw [is_symm_iff_flip.mp hB, ←separating_left_flip],
+  exact hB',
 end
-
-end comm_ring
 
 /-- The restriction of a nondegenerate bilinear form `B` onto a submodule `W` is
 nondegenerate if `disjoint W (B.orthogonal W)`. -/
 lemma nondegenerate_restrict_of_disjoint_orthogonal
-  (B : bilin_form R₁ M₁) (b : B.is_symm)
-  {W : submodule R₁ M₁} (hW : disjoint W (B.orthogonal W)) :
-  (B.restrict W).nondegenerate :=
+  {B : M →ₗ[R] M →ₗ[R] R} (b : B.is_symm)
+  {W : submodule R M} (hW : disjoint W (W.orthogonal_bilin B)) :
+  (B.dom_restrict₁₂ W W).nondegenerate :=
 begin
   rintro ⟨x, hx⟩ b₁,
   rw [submodule.mk_eq_zero, ← submodule.mem_bot R₁],
@@ -413,6 +433,9 @@ begin
   specialize b₁ ⟨y, hy⟩,
   rwa [restrict_apply, submodule.coe_mk, submodule.coe_mk, b] at b₁
 end
+
+end comm_ring
+
 
 
 end nondegenerate

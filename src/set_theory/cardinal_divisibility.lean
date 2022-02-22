@@ -21,9 +21,9 @@ cardinal numbers do not form a `comm_cancel_monoid_with_zero`.
 ## Main results
 
 * `cardinal.prime_of_omega_le`: a `cardinal` is prime if it is infinite.
-* `cardinal.is_prime_iff`: a `cardinal` is prime iff it infinite, or if it is a prime natural number
-* `cardinal.is_prime_pow_iff`: a `cardinal` is a prime power iff it infinite, or if it is the a
-  natural number which is itself a prime power.
+* `cardinal.is_prime_iff`: a `cardinal` is prime iff it is infinite or a prime natural number.
+* `cardinal.is_prime_pow_iff`: a `cardinal` is a prime power iff it is infinite or a natural number
+  which is itself a prime power.
 
 -/
 
@@ -43,9 +43,8 @@ begin
   cases h 1 with t ht,
   rw [eq_comm, mul_eq_one_iff'] at ht,
   { exact ht.1 },
-  { rwa one_le_iff_ne_zero },
-  { rw one_le_iff_ne_zero,
-    rintro rfl,
+  all_goals { rwa one_le_iff_ne_zero },
+  { rintro rfl,
     rw mul_zero at ht,
     exact zero_ne_one ht }
 end

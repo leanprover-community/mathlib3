@@ -68,6 +68,16 @@ variable {R}
 noncomputable def resolvent (a : A) (r : R) : A :=
 ring.inverse (algebra_map R A r - a)
 
+/-- The unit `1 - r⁻¹ • a` constructed from `r • 1 - a` when the latter is a unit. -/
+@[simps]
+def units.sub_inv_smul {r : Rˣ} {a : A}
+  {u : Aˣ} (h : (u : A) = r • 1 - a) : Aˣ :=
+{ val := 1 - r⁻¹ • a,
+  inv := r • ↑u⁻¹,
+  val_inv := by { rw [mul_smul_comm, ←smul_mul_assoc, smul_sub, smul_inv_smul, ←h],
+                  exact u.val_inv },
+  inv_val := by { rw [smul_mul_assoc, ←mul_smul_comm, smul_sub, smul_inv_smul, ←h],
+                  exact u.inv_val } }
 
 end defs
 
@@ -115,6 +125,26 @@ iff.rfl
 lemma resolvent_eq {a : A} {r : R} (h : r ∈ resolvent_set R a) :
   resolvent a r = ↑h.unit⁻¹ :=
 ring.inverse_unit h.unit
+
+lemma smul_resolvent_self {r : Rˣ} {a : A} :
+  r • resolvent a (r : R) = resolvent (r⁻¹ • a) (1 : R) :=
+begin
+  by_cases h : (r : R) ∈ spectrum R a,
+  { rw [mem_iff] at h,
+    simp only [resolvent, algebra.algebra_map_eq_smul_one, ←units.smul_def, one_smul] at *,
+    have h' := (not_iff_not.mpr is_unit.smul_sub_iff_sub_inv_smul).mp h,
+    simp only [ring.inverse_non_unit _ h, ring.inverse_non_unit _ h', smul_zero] },
+  { rw not_mem_iff at h,
+    simp only [resolvent, algebra.algebra_map_eq_smul_one, ←units.smul_def, one_smul] at *,
+    rcases h with ⟨u, hu⟩,
+    rw [←hu, ←units.coe_sub_inv_smul hu, ring.inverse_unit, ←units.coe_inv_sub_inv_smul hu,
+      ring.inverse_unit] },
+end
+
+/-- The resolvent is a unit when the argument is in the resolvent set. -/
+lemma is_unit_resolvent {r : R} {a : A} (h : r ∈ resolvent_set R a) :
+  is_unit (resolvent a r) :=
+(resolvent_eq h).symm ▸ ⟨⟨(h.unit⁻¹ : Aˣ), h.unit, _, _⟩, rfl⟩
 
 lemma add_mem_iff {a : A} {r s : R} :
   r ∈ σ a ↔ r + s ∈ σ (↑ₐs + a) :=

@@ -5,7 +5,8 @@ Authors: Anne Baanen
 -/
 
 import ring_theory.algebraic
-import ring_theory.localization
+import ring_theory.localization.at_prime
+import ring_theory.localization.integral
 
 /-!
 # Ideals over/under ideals

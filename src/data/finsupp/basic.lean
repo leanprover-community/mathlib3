@@ -1212,17 +1212,24 @@ lemma prod_inv [has_zero M] [comm_group G] {f : α →₀ M}
 finset.sum_sub_distrib
 
 @[to_additive]
-lemma prod_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
+lemma prod_add_index_new [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   {h : α → M → N} (h_zero : ∀ a ∈ f.support ∪ g.support, h a 0 = 1)
-  (h_add : ∀ a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
+  (h_add  : ∀ (a ∈ f.support ∪ g.support) b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
 begin
   rw [finsupp.prod_of_support_subset f (subset_union_left _ g.support) h h_zero,
       finsupp.prod_of_support_subset g (subset_union_right f.support _) h h_zero,
       ←finset.prod_mul_distrib,
       finsupp.prod_of_support_subset (f + g) finsupp.support_add h h_zero],
-  exact finset.prod_congr rfl (λ x hx, (by apply h_add)),
+  exact finset.prod_congr rfl (λ x hx, (by apply h_add x hx)),
 end
+
+@[to_additive]
+lemma prod_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
+  {h : α → M → N} (h_zero : ∀ a ∈ f.support ∪ g.support, h a 0 = 1)
+  (h_add : ∀ a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
+  (f + g).prod h = f.prod h * g.prod h :=
+prod_add_index_new h_zero (λ x hx, h_add x)
 
 @[to_additive]
 lemma prod_add_index' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
@@ -1241,7 +1248,6 @@ lemma prod_hom_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
 prod_add_index' (λ a, (h a).map_one) (λ a, (h a).map_mul)
-
 
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/

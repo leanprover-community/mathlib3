@@ -2996,7 +2996,7 @@ end restrict_scalars
 section support
 
 open function
-variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) {E F : Type*} [nondiscrete_normed_field 𝕜]
 variables [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F] {f : E → F}
 
 lemma support_fderiv_subset : support (fderiv 𝕜 f) ⊆ tsupport f :=

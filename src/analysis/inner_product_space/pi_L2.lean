@@ -111,6 +111,9 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
+def to_euclidean_space : (ι → 𝕜) ≃ euclidean_space 𝕜 ι := equiv.refl _
+def of_euclidean_space : euclidean_space 𝕜 ι ≃ (ι → 𝕜) := equiv.refl _
+
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
 pi_Lp.norm_eq_of_L2 x

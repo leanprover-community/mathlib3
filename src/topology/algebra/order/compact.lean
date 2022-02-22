@@ -104,8 +104,8 @@ instance {α β : Type*} [preorder α] [topological_space α] [compact_Icc_space
 ⟨λ a b, (Icc_prod_eq a b).symm ▸ is_compact_Icc.prod is_compact_Icc⟩
 
 /-- An unordered closed interval in a conditionally complete linear order is compact. -/
-lemma is_compact_interval {α : Type*} [conditionally_complete_linear_order α]
-  [topological_space α] [order_topology α]{a b : α} : is_compact (interval a b) :=
+lemma is_compact_interval {α : Type*} [linear_order α] [topological_space α] [compact_Icc_space α]
+  {a b : α} : is_compact (interval a b) :=
 is_compact_Icc
 
 /-- A complete linear order is a compact space.

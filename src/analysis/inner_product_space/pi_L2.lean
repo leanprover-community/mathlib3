@@ -402,21 +402,23 @@ noncomputable def linear_isometry.extend (L : S →ₗᵢ[𝕜] V): V →ₗᵢ[
 begin
   -- Build an isometry from Sᗮ to L(S)ᗮ through euclidean_space
   let d := finrank 𝕜 Sᗮ,
-  have dim_S : finrank 𝕜 Sᗮ = d := rfl,
+  have dim_S_perp : finrank 𝕜 Sᗮ = d := rfl,
   let LS := L.to_linear_map.range,
-  have dim_LS_perp : finrank 𝕜 LSᗮ = d,
-  calc  finrank 𝕜 LSᗮ = finrank 𝕜 V - finrank 𝕜 LS : by simp only
-      [← LS.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
-    ...               = finrank 𝕜 V - finrank 𝕜 S : by simp only
-      [linear_map.finrank_range_of_inj L.injective]
-    ...               = finrank 𝕜 Sᗮ : by simp only
-      [← S.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
-    ...               = d : dim_S,
-  let L1 := ((fin_std_orthonormal_basis dim_S).to_orthonormal_basis
-    (fin_std_orthonormal_basis_orthonormal dim_S)).repr.to_linear_isometry,
-  let L2 := ((fin_std_orthonormal_basis dim_LS_perp).to_orthonormal_basis
-    (fin_std_orthonormal_basis_orthonormal dim_LS_perp)).repr.symm.to_linear_isometry,
-  let L3 := (LS)ᗮ.subtypeₗᵢ.comp (L2.comp L1),
+  have E : Sᗮ ≃ₗᵢ[𝕜] LSᗮ,
+  { have dim_LS_perp : finrank 𝕜 LSᗮ = d,
+    calc  finrank 𝕜 LSᗮ = finrank 𝕜 V - finrank 𝕜 LS : by simp only
+        [← LS.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
+      ...               = finrank 𝕜 V - finrank 𝕜 S : by simp only
+        [linear_map.finrank_range_of_inj L.injective]
+      ...               = finrank 𝕜 Sᗮ : by simp only
+        [← S.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
+      ...               = d : dim_S,
+    let BS := ((fin_std_orthonormal_basis dim_S).to_orthonormal_basis
+      (fin_std_orthonormal_basis_orthonormal dim_S)),
+    let BLS := ((fin_std_orthonormal_basis dim_LS_perp).to_orthonormal_basis
+      (fin_std_orthonormal_basis_orthonormal dim_LS_perp)),
+    exact BS.repr.trans BLS.repr.symm },
+  let L3 := (LS)ᗮ.subtypeₗᵢ.comp E.to_linear_isometry,
   -- Project onto S and Sᗮ
   let p1 := (orthogonal_projection S).to_linear_map,
   let p2 := (orthogonal_projection Sᗮ).to_linear_map,

@@ -1236,12 +1236,10 @@ theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 
 theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
 begin
-  apply le_antisymm (lsub_le.{u u}.2 typein_lt_self),
+  apply (lsub_le.{u u}.2 typein_lt_self).antisymm,
   by_contra' h,
   nth_rewrite 0 ←type_out o at h,
-  have := lt_lsub.{u u} (typein o.out.r) (enum o.out.r _ h),
-  rw typein_enum at this,
-  exact this.false
+  simpa [typein_enum] using lt_lsub.{u u} (typein o.out.r) (enum o.out.r _ h)
 end
 
 theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
@@ -1343,14 +1341,8 @@ by rw [blsub_le, lsub_le]; exact
 theorem blsub_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : blsub.{u v} o (λ _ _, a) = a + 1 :=
 bsup_const.{u v} ho a.succ
 
-theorem blsub_id (o) : blsub.{u u} o (λ x _, x) = o :=
-begin
-  apply le_antisymm,
-  { rw blsub_le,
-    exact λ _, id },
-  by_contra' h,
-  exact (lt_blsub.{u u} (λ x _, x) _ h).false
-end
+theorem blsub_id : ∀ o, blsub.{u u} o (λ x _, x) = o :=
+lsub_typein
 
 theorem blsub_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
   (h : brange o f ⊆ brange o' g) : blsub.{u (max v w)} o f ≤ blsub.{v (max u w)} o' g :=

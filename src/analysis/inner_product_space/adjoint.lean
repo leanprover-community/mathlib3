@@ -299,7 +299,8 @@ lemma is_adjoint_pair (A : E' →ₗ[ℝ] F') :
 end real
 
 lemma is_self_adjoint_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_self_adjoint (T.adjoint * T) :=
-λ x y, by simp only [linear_map.mul_apply, linear_map.adjoint_inner_left, linear_map.adjoint_inner_right]
+λ x y, by simp only [linear_map.mul_apply, linear_map.adjoint_inner_left,
+  linear_map.adjoint_inner_right]
 
 lemma re_inner_adjoint_mul_self_nonneg (T : E →ₗ[𝕜] E) {x : E} :
   0 ≤ is_R_or_C.re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [linear_map.mul_apply,

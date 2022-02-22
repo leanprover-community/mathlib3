@@ -3,17 +3,9 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import data.equiv.ring
-import group_theory.monoid_localization
-import ring_theory.algebraic
-import ring_theory.ideal.local_ring
-import ring_theory.ideal.quotient
-import ring_theory.integral_closure
 import ring_theory.localization.fraction_ring
 import ring_theory.localization.integer
-import ring_theory.non_zero_divisors
-import group_theory.submonoid.inverses
-import tactic.ring_exp
+import ring_theory.unique_factorization_domain
 
 /-!
 # Numerator and denominator in a localization

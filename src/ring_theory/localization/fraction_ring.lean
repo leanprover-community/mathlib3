@@ -3,16 +3,8 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import data.equiv.ring
-import group_theory.monoid_localization
-import ring_theory.algebraic
-import ring_theory.ideal.local_ring
-import ring_theory.ideal.quotient
-import ring_theory.integral_closure
+import algebra.algebra.tower
 import ring_theory.localization.basic
-import ring_theory.non_zero_divisors
-import group_theory.submonoid.inverses
-import tactic.ring_exp
 
 /-!
 # Fraction ring / fraction field Frac(R) as localization

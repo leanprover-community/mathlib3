@@ -3,14 +3,11 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
+import algebra.algebra.basic
 import data.equiv.ring
 import group_theory.monoid_localization
-import ring_theory.algebraic
-import ring_theory.ideal.local_ring
-import ring_theory.ideal.quotient
-import ring_theory.integral_closure
+import ring_theory.ideal.basic
 import ring_theory.non_zero_divisors
-import group_theory.submonoid.inverses
 import tactic.ring_exp
 
 /-!
@@ -87,7 +84,7 @@ variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
 variables [algebra R S] {P : Type*} [comm_ring P]
 
 open function
-open_locale big_operators polynomial
+open_locale big_operators
 
 /-- The typeclass `is_localization (M : submodule R) S` where `S` is an `R`-algebra
 expresses that `S` is isomorphic to the localization of `R` at `M`. -/

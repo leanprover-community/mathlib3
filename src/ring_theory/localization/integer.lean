@@ -3,19 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import data.equiv.ring
-import group_theory.monoid_localization
-import ring_theory.algebraic
-import ring_theory.ideal.local_ring
-import ring_theory.ideal.quotient
-import ring_theory.integral_closure
 import ring_theory.localization.basic
-import ring_theory.non_zero_divisors
-import group_theory.submonoid.inverses
-import tactic.ring_exp
 
 /-!
-# Ideals in localizations of commutative rings
+# Integer elements of a localization
 
 ## Main definitions
 
@@ -34,7 +25,7 @@ variables {R : Type*} [comm_ring R] {M : submonoid R} {S : Type*} [comm_ring S]
 variables [algebra R S] {P : Type*} [comm_ring P]
 
 open function
-open_locale big_operators polynomial
+open_locale big_operators
 
 namespace is_localization
 

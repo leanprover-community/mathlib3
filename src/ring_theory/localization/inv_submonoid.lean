@@ -3,24 +3,18 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import data.equiv.ring
-import group_theory.monoid_localization
-import ring_theory.algebraic
-import ring_theory.ideal.local_ring
-import ring_theory.ideal.quotient
-import ring_theory.integral_closure
-import ring_theory.localization.basic
-import ring_theory.non_zero_divisors
 import group_theory.submonoid.inverses
+import ring_theory.finiteness
+import ring_theory.localization.basic
 import tactic.ring_exp
 
 /-!
-# Localizations away from an element
+# Submonoid of inverses
 
 ## Main definitions
 
- * `is_localization.away (x : R) S` expresses that `S` is a localization away from `x`, as an
-   abbreviation of `is_localization (submonoid.powers x) S`
+ * `is_localization.inv_submonoid M S` is the submonoid of `S = M⁻¹R` consisting of inverses of
+   each element `x ∈ M`
 
 ## Implementation notes
 
@@ -35,7 +29,7 @@ variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
 variables [algebra R S] {P : Type*} [comm_ring P]
 
 open function
-open_locale big_operators polynomial
+open_locale big_operators
 
 namespace is_localization
 

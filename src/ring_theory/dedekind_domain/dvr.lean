@@ -3,14 +3,8 @@ Copyright (c) 2020 Kenji Nakagawa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
+import ring_theory.localization.at_prime
 import ring_theory.discrete_valuation_ring
-import ring_theory.fractional_ideal
-import ring_theory.ideal.over
-import ring_theory.integrally_closed
-import ring_theory.polynomial.rational_root
-import ring_theory.trace
-import algebra.associated
-import algebraic_geometry.prime_spectrum.noetherian
 
 /-!
 # Dedekind domains

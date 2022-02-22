@@ -70,12 +70,10 @@ end perfect_ring
 
 /-!
 
-## The recursive case of the vector coefficients
+## Leading terms of Witt vector multiplication
 
-The first coefficient of our solution vector is easy to define below.
-In this section we focus on the recursive case.
-The goal is to turn `witt_poly_prod n` into a univariate polynomial
-whose variable represents the `n`th coefficient of `x` in `x * a`.
+The goal of this section is to determine the leading terms of the formula for the `n`th coefficient
+of a product of Witt vectors.
 
 For most of this section we work with terms of type `mv_polynomial (fin 2 × ℕ) ℤ`.
 We will eventually evaluate them in `k`, but first we must take care of a calculation
@@ -392,8 +390,7 @@ section units
 variables {p}
 
 /-- This is the `n+1`st coefficient of our inverse. -/
-def succ_nth_val_units (n : ℕ) {a : units k} {A : 𝕎 k} (hA : A.coeff 0 = a) (bs : fin (n+1) → k) :
-  k :=
+def succ_nth_val_units (n : ℕ) (a : units k) (A : 𝕎 k) (bs : fin (n+1) → k) : k :=
 - ↑(a⁻¹ ^ (p^(n+1)))
 * (A.coeff (n + 1) * ↑(a⁻¹ ^ (p^(n+1))) + nth_remainder p n (truncate_fun (n+1) A) bs)
 
@@ -401,9 +398,9 @@ def succ_nth_val_units (n : ℕ) {a : units k} {A : 𝕎 k} (hA : A.coeff 0 = a)
 Recursively defines the sequence of coefficients for the inverse to a Witt vector whose first entry
 is a unit.
 -/
-noncomputable def inverse_coeff {a : units k} {A : 𝕎 k} (hA : A.coeff 0 = a) : ℕ → k
+noncomputable def inverse_coeff (a : units k) (A : 𝕎 k) : ℕ → k
 | 0       := ↑a⁻¹
-| (n + 1) := succ_nth_val_units n hA (λ i, inverse_coeff i.val)
+| (n + 1) := succ_nth_val_units n a A (λ i, inverse_coeff i.val)
               using_well_founded { dec_tac := `[apply fin.is_lt] }
 
 /--
@@ -412,13 +409,13 @@ Upgrade a Witt vector `A` whose first entry `A.coeff 0` is a unit to be, itself,
 def mk_unit {a : units k} {A : 𝕎 k} (hA : A.coeff 0 = a) : units (𝕎 k) :=
 units.mk_of_mul_eq_one
   A
-  (witt_vector.mk p (inverse_coeff hA))
+  (witt_vector.mk p (inverse_coeff a A))
   begin
     ext n,
     induction n with n ih,
     { simp [witt_vector.mul_coeff_zero, inverse_coeff, hA] },
     let H_coeff := A.coeff (n + 1) * ↑(a⁻¹ ^ p ^ (n + 1))
-      + nth_remainder p n (truncate_fun (n + 1) A) (λ (i : fin (n + 1)), inverse_coeff hA i),
+      + nth_remainder p n (truncate_fun (n + 1) A) (λ (i : fin (n + 1)), inverse_coeff a A i),
     have H := units.mul_inv (a ^ p ^ (n + 1)),
     linear_combination (H, -H_coeff) { normalize := ff },
     have ha : (a:k) ^ (p ^ (n + 1)) = ↑(a ^ (p ^ (n + 1))) := by norm_cast,
@@ -454,9 +451,20 @@ end perfect_field
 
 namespace recursion_main
 
-section is_domain
+/-!
+
+## The recursive case of the vector coefficients
+
+The first coefficient of our solution vector is easy to define below.
+In this section we focus on the recursive case.
+The goal is to turn `witt_poly_prod n` into a univariate polynomial
+whose variable represents the `n`th coefficient of `x` in `x * a`.
+
+-/
+
+section comm_ring
 include hp
-variables {k : Type*} [comm_ring k] [is_domain k] [char_p k p]
+variables {k : Type*} [comm_ring k] [char_p k p]
 open polynomial
 
 /-- The root of this polynomial determines the `n+1`st coefficient of our solution. -/
@@ -466,7 +474,7 @@ X^p * C (a₁.coeff 0 ^ (p^(n+1))) - X * C (a₂.coeff 0 ^ (p^(n+1)))
       nth_remainder p n (λ v, (bs v)^p) (truncate_fun (n+1) a₁) -
       a₂.coeff (n+1) * (bs 0)^p^(n+1) - nth_remainder p n bs (truncate_fun (n+1) a₂))
 
-lemma succ_nth_defining_poly_degree (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
+lemma succ_nth_defining_poly_degree [is_domain k] (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
   (succ_nth_defining_poly p n a₁ a₂ bs).degree = p :=
 begin
@@ -485,7 +493,7 @@ begin
   exact_mod_cast hp.out.pos
 end
 
-end is_domain
+end comm_ring
 
 section is_alg_closed
 include hp

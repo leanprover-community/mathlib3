@@ -185,49 +185,6 @@ list.prod (w.to_list.map $ λ l, of l.snd)
 
 @[simp] lemma prod_empty : prod (empty : word M) = 1 := rfl
 
-section group
-
-variables {G : ι → Type*} [Π i, group (G i)]
-
-def inv (w : word G) : word G :=
-{ to_list := w.to_list.reverse.map (λ x, ⟨x.1, x.2⁻¹⟩),
-  ne_one :=
-  begin
-    intros x h,
-    obtain ⟨y, hy, rfl⟩ := list.mem_map.mp h,
-    simpa using w.ne_one _ (list.mem_reverse.mp hy),
-  end,
-  chain_ne :=
-  begin
-    apply (list.chain'_map _).mpr,
-    apply (list.chain'_reverse).mpr,
-    apply (list.chain'.iff _).mp w.chain_ne,
-    exact λ _ _, ⟨λ h1 h2, h1 h2.symm, λ h1 h2, h1 h2.symm⟩,
-  end }
-
-@[simp]
-lemma prod_inv (w : word G) : w.inv.prod = w.prod⁻¹ :=
-begin
-  unfold prod, unfold inv,
-  rw list.prod_inv_reverse,
-  simp,
-  reflexivity,
-end
-
-@[simp]
-lemma empty_inv : word.empty.inv = (word.empty : word G) := rfl
-
-@[simp]
-lemma inv_eq_empty_iff {w : word G} : w.inv = empty ↔ w = empty :=
-begin
-  split,
-  { intros heq, ext1, simpa [empty,inv] using heq, },
-  { rintros rfl, refl,}
-end
-
-end group
-
-
 /-- `fst_idx w` is `some i` if the first letter of `w` is `⟨i, m⟩` with `m : M i`. If `w` is empty
 then it's `none`. -/
 def fst_idx (w : word M) : option ι := w.to_list.head'.map sigma.fst

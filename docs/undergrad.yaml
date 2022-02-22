@@ -301,7 +301,7 @@ Single Variable Real Analysis:
     error estimation: 'https://en.wikipedia.org/wiki/Series_(mathematics)#Evaluation_of_truncation_errors'
     absolute convergence: 'https://en.wikipedia.org/wiki/Absolute_convergence'
     products of series: 'https://en.wikipedia.org/wiki/Cauchy_product'
-    alternating series: 'https://en.wikipedia.org/wiki/Alternating_series_test'
+    alternating series: 'antitone.tendsto_alternating_series_of_tendsto_zero'
   Real-valued functions defined on a subset of $\R$:
     continuity: 'continuous'
     limits: 'filter.tendsto'

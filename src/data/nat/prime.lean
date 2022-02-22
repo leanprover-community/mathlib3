@@ -377,8 +377,8 @@ theorem exists_dvd_of_not_prime2 {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :
 ⟨min_fac n, min_fac_dvd _, (min_fac_prime (ne_of_gt n2)).two_le,
   (not_prime_iff_min_fac_lt n2).1 np⟩
 
-theorem exists_prime_and_dvd {n : ℕ} (n2 : 2 ≤ n) : ∃ p, prime p ∧ p ∣ n :=
-⟨min_fac n, min_fac_prime (ne_of_gt n2), min_fac_dvd _⟩
+theorem exists_prime_and_dvd {n : ℕ} (hn : n ≠ 1) : ∃ p, prime p ∧ p ∣ n :=
+⟨min_fac n, min_fac_prime hn, min_fac_dvd _⟩
 
 /-- Euclid's theorem on the **infinitude of primes**.
 Here given in the form: for every `n`, there exists a prime number `p ≥ n`. -/
@@ -398,13 +398,9 @@ p.mod_two_eq_zero_or_one.imp_left
 
 theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, prime k → k ∣ m → ¬ k ∣ n) : coprime m n :=
 begin
-  have g1 : 1 ≤ gcd m n,
-  { refine nat.succ_le_of_lt (pos_iff_ne_zero.mpr (λ g0, _)),
-    rw [eq_zero_of_gcd_eq_zero_left g0, eq_zero_of_gcd_eq_zero_right g0] at H,
-    exact H 2 prime_two (dvd_zero _) (dvd_zero _) },
-  rw [coprime_iff_gcd_eq_one, eq_comm],
-  refine g1.lt_or_eq.resolve_left (λ g2, _),
-  obtain ⟨p, hp, hpdvd⟩ := exists_prime_and_dvd (succ_le_of_lt g2),
+  rw [coprime_iff_gcd_eq_one],
+  by_contra g2,
+  obtain ⟨p, hp, hpdvd⟩ := exists_prime_and_dvd g2,
   apply H p hp; apply dvd_trans hpdvd,
   { exact gcd_dvd_left _ _ },
   { exact gcd_dvd_right _ _ }
@@ -696,7 +692,7 @@ begin
 end
 
 lemma mem_factors {n p} (hn : n ≠ 0) : p ∈ factors n ↔ prime p ∧ p ∣ n :=
-⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
+⟨λ h, ⟨prime_of_mem_factors h, dvd_of_mem_factors h⟩,
  λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
 
 lemma le_of_mem_factors {n p : ℕ} (h : p ∈ n.factors) : p ≤ n :=
@@ -802,6 +798,14 @@ suffices p^k*p ∣ m ∨ p^l*p ∣ n, by rwa [pow_succ', pow_succ'],
   hpd5.elim
     (assume : p ∣ m / p ^ k, or.inl $ mul_dvd_of_dvd_div hpm this)
     (assume : p ∣ n / p ^ l, or.inr $ mul_dvd_of_dvd_div hpn this)
+
+lemma prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
+⟨λ hp, ⟨int.coe_nat_ne_zero_iff_pos.2 hp.pos, mt int.is_unit_iff_nat_abs_eq.1 hp.ne_one,
+  λ a b h, by rw [← int.dvd_nat_abs, int.coe_nat_dvd, int.nat_abs_mul, hp.dvd_mul] at h;
+    rwa [← int.dvd_nat_abs, int.coe_nat_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd]⟩,
+  λ hp, nat.prime_iff.2 ⟨int.coe_nat_ne_zero.1 hp.1,
+      mt nat.is_unit_iff.1 $ λ h, by simpa [h, not_prime_one] using hp,
+    λ a b, by simpa only [int.coe_nat_dvd, (int.coe_nat_mul _ _).symm] using hp.2.2 a b⟩⟩
 
 /-- The type of prime numbers -/
 def primes := {p : ℕ // p.prime}
@@ -1147,3 +1151,8 @@ lemma mem_factors_mul_right {p a b : ℕ} (hpb : p ∈ b.factors) (ha : a ≠ 0)
 by { rw mul_comm, exact mem_factors_mul_left hpb ha }
 
 end nat
+
+namespace int
+lemma prime_two : prime (2 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_two
+lemma prime_three : prime (3 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_three
+end int

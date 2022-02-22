@@ -1304,6 +1304,54 @@ lemma disjoint_Sup_right {a : set α} {b : α} (d : disjoint b (Sup a)) {i} (hi 
 
 end complete_lattice
 
+section lift
+
+/-- Pullback an `order_top`. -/
+@[reducible] -- See note [reducible non-instances]
+def order_top.lift [has_le α] [has_top α] [has_le β] [order_top β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_top : f ⊤ = ⊤) :
+  order_top α :=
+⟨⊤, λ a, map_le _ _ $ by { rw map_top, exact le_top }⟩
+
+/-- Pullback an `order_bot`. -/
+@[reducible] -- See note [reducible non-instances]
+def order_bot.lift [has_le α] [has_bot α] [has_le β] [order_bot β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_bot : f ⊥ = ⊥) :
+  order_bot α :=
+⟨⊥, λ a, map_le _ _ $ by { rw map_bot, exact bot_le }⟩
+
+/-- Pullback a `bounded_order`. -/
+@[reducible] -- See note [reducible non-instances]
+def bounded_order.lift [has_le α] [has_top α] [has_bot α] [has_le β] [bounded_order β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  bounded_order α :=
+{ ..order_top.lift f map_le map_top, ..order_bot.lift f map_le map_bot }
+
+end lift
+
+/-- Pullback a `complete_lattice` along an injection. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.injective.complete_lattice [has_sup α] [has_inf α] [has_Sup α]
+  [has_Inf α] [has_top α] [has_bot α] [complete_lattice β]
+  (f : α → β) (hf : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
+  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  complete_lattice α :=
+{ Sup := Sup,
+  le_Sup := λ s a h, (le_Sup $ mem_image_of_mem f h).trans (map_Sup _).ge,
+  Sup_le := λ s a h, (map_Sup _).le.trans $ Sup_le $ set.ball_image_of_ball $ by exact h,
+  Inf := Inf,
+  Inf_le := λ s a h, (map_Inf _).le.trans $ Inf_le $ mem_image_of_mem f h,
+  le_Inf := λ s a h, (le_Inf $ set.ball_image_of_ball $ by exact h).trans (map_Inf _).ge,
+  -- we cannot use bounded_order.lift here as the `has_le` instance doesn't exist yet
+  top := ⊤,
+  le_top := λ a, (@le_top β _ _ _).trans map_top.ge,
+  bot := ⊥,
+  bot_le := λ a, map_bot.le.trans bot_le,
+  ..hf.lattice f map_sup map_inf }
+
+/-! ### Supremum independence-/
+
 namespace complete_lattice
 variables [complete_lattice α]
 

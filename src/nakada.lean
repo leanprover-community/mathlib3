@@ -208,6 +208,31 @@ lemma map_lt_iff {M N : Type*} [has_mul M] [preorder M] [has_mul N] [preorder N]
   (e : M ↪*o N) {a b : M} : e a < e b ↔ a < b :=
 by simp [lt_iff_le_not_le]
 
+@[to_additive]
+protected def comp {M N P : Type*} [has_mul M] [has_le M] [has_mul N] [has_le N]
+  [has_mul P] [has_le P] (f : N ↪*o P) (g : M ↪*o N) : M ↪*o P :=
+{ inj' := f.injective.comp g.injective,
+  map_rel_iff' := by simp,
+  ..f.to_mul_hom.comp g.to_mul_hom, }
+
+@[simp, to_additive]
+lemma comp_apply {M N P : Type*} [has_mul M] [has_le M] [has_mul N] [has_le N]
+  [has_mul P] [has_le P] (f : N ↪*o P) (g : M ↪*o N) (x : M) :
+  f.comp g x = f (g x) := rfl
+
+@[to_additive]
+protected def coe (S : subsemigroup M) {hl : has_le S} (h : ∀ (x y : S), x ≤ y ↔ (x : M) ≤ y) :
+  S ↪*o M :=
+{ to_fun := coe,
+  map_mul' := subsemigroup.coe_mul _,
+  inj' := subtype.coe_injective,
+  map_rel_iff' := λ _ _, (h _ _).symm }
+
+@[simp, to_additive]
+lemma coe_apply {S : subsemigroup M} {hl : has_le S}
+  (h : ∀ (x y : S), x ≤ y ↔ (x : M) ≤ y) (x : S) :
+  mul_order_embedding.coe S h x = coe x := rfl
+
 end mul_order_embedding
 
 @[ext]
@@ -364,10 +389,6 @@ by simp only [quotient.eq, mul_pair_equiv_iff, mul_assoc, mul_comm, mul_left_com
 @[to_additive]
 lemma mul_pair_right_eq (p : S × S) (x : S) : ⟦(p.1 * x, p.2 * x)⟧ = ⟦p⟧ :=
 by simp only [quotient.eq, mul_pair_equiv_iff, mul_assoc, mul_comm, mul_left_comm]
-
-@[simp, to_additive]
-lemma mul_pair_mk'_eq (p : S × S) :
-  @quotient.mk' _ (mul_pair_setoid S) p = ⟦p⟧ := rfl
 
 namespace pair_quotient
 
@@ -559,6 +580,67 @@ by rw [of_mul_pair_quotient', of_mul_pair_quotient', to_mul_pair_quotient_eq]
 def of_mul_pair_quotient [nakada_po S] [inhabited S] :
   submonoid (quotient (mul_pair_setoid S)) :=
 submonoid.closure (set.range (to_mul_pair_quotient default))
+
+@[to_additive]
+def out_mul_pair_quotient (G : Type*) [comm_group G] [partial_order G] [nakada_po G] :
+  (quotient (mul_pair_setoid G)) ↪*o G :=
+{ to_fun := λ p, quotient.lift_on p (λ xy, prod.fst xy * (prod.snd xy)⁻¹) $ begin
+    rintro ⟨a, b⟩ ⟨c, d⟩ h,
+    rw [mul_inv_eq_iff_eq_mul, mul_right_comm, eq_comm, mul_inv_eq_iff_eq_mul, eq_comm],
+    simpa only [mul_pair_equiv_iff, subsemigroup.mk_mul_mk, subtype.mk_eq_mk] using h
+  end,
+  map_mul' := λ x y, quotient.induction_on₂ x y $ by simp [mul_comm, mul_left_comm],
+  inj' := λ x y, quotient.induction_on₂ x y $ λ _ _, begin
+    simp only [mul_pair_equiv_iff, quotient.lift_on_mk, quotient.eq],
+    rw [mul_inv_eq_iff_eq_mul, mul_right_comm, eq_comm, mul_inv_eq_iff_eq_mul, eq_comm],
+    exact id
+  end,
+  map_rel_iff' := λ x y, quotient.induction_on₂ x y $ λ a b, begin
+    simp only [quotient.lift_on_mk, mul_inv_le_iff_le_mul', pair_quotient.mul_le_def],
+    refine ⟨λ h, ((mul_comm _ _).le.trans (homogeneity h _)).trans (eq.le _),
+            λ h, ((eq.le _).trans (homogeneity h (b.snd)⁻¹)).trans _⟩;
+    simp [mul_left_comm]
+  end }
+
+@[simp, to_additive]
+def out_mul_pair_quotient_apply_mk {G : Type*} [comm_group G] [partial_order G] [nakada_po G]
+  (x : G × G) : out_mul_pair_quotient G ⟦x⟧ = x.fst * x.snd⁻¹ := rfl
+
+@[to_additive]
+def as_mul_pair_quotient (G : Type*) [comm_group G] [partial_order G] [nakada_po G] :
+  G ≃*o (quotient (mul_pair_setoid G)) :=
+mul_order_iso.of_mul_order_embedding (to_mul_pair_quotient 1) (out_mul_pair_quotient G) $
+  λ x, quotient.induction_on x $ by simp only [out_mul_pair_quotient_apply_mk,
+  to_mul_pair_quotient_apply, mul_one, quotient.eq, mul_pair_equiv_iff,
+  inv_mul_cancel_right, eq_self_iff_true, forall_const]
+
+@[simp, to_additive]
+lemma as_mul_pair_quotient_apply {G : Type*} [comm_group G] [partial_order G] [nakada_po G]
+  (x : G) :
+  as_mul_pair_quotient G x = ⟦(x, 1)⟧ :=
+by { nth_rewrite_rhs 0 ←mul_one x, refl }
+
+@[simp, to_additive]
+lemma as_mul_pair_quotient_symm_apply_mk {G : Type*} [comm_group G] [partial_order G] [nakada_po G]
+  (x : G × G) : (as_mul_pair_quotient G).symm ⟦x⟧ = x.fst * x.snd⁻¹ := rfl
+
+@[to_additive]
+def mul_order_embedding.lift_pair_quotient {S S' : Type*}
+  [comm_semigroup S] [partial_order S] [nakada_po S] [nakada_strong S]
+  [comm_semigroup S'] [partial_order S'] [nakada_po S'] [nakada_strong S']
+  (f : S ↪*o S') : quotient (mul_pair_setoid S) ↪*o quotient (mul_pair_setoid S') :=
+{ to_fun := quotient.map (prod.map f f) $ λ _ _, by simp [←map_mul] {contextual := tt},
+  map_mul' := λ x y, quotient.induction_on₂ x y $ by simp,
+  inj' := λ x y, quotient.induction_on₂ x y $ by simp [←map_mul, f.injective.eq_iff],
+  map_rel_iff' := λ x y, quotient.induction_on₂ x y $ by simp [←map_mul] }
+
+-- Same `map_mk` issue as with `mk_mul`
+@[simp, to_additive]
+lemma mul_order_embedding.lift_pair_quotient_apply_mk {S S' : Type*}
+  [comm_semigroup S] [partial_order S] [nakada_po S] [nakada_strong S]
+  [comm_semigroup S'] [partial_order S'] [nakada_po S'] [nakada_strong S']
+  (f : S ↪*o S') (x : S × S) : f.lift_pair_quotient ⟦x⟧ = ⟦x.map f f⟧ :=
+quotient.map_mk _ (λ _, by simp [←map_mul] {contextual := tt}) _
 
 -- how to prove minimality and uniqueness?
 
@@ -902,9 +984,10 @@ def order_hom.is_directed {S S' : Type*} [nonempty S] [preorder S] [is_directed 
     (eq.ge (function.inv_fun_eq (hf _))).trans (f.monotone hdy)⟩
 end⟩
 
--- Theorem 8, mp
-lemma is_directed_of_mul_order_iso {G : Type*} [comm_group G] [partial_order G] [nakada_po G]
-  (f : G ≃*o quotient (mul_pair_setoid (neg_subsemigroup G))) : is_directed G (≤) :=
+-- Theorem 8, mp, generalized
+lemma is_directed_of_mul_order_iso_subsemigroup {G : Type*} [comm_group G] [partial_order G]
+  [nakada_po G] {S : subsemigroup G} [is_directed S (≤)] [nakada_po S] [nakada_strong S]
+  (f : G ≃*o quotient (mul_pair_setoid S)) : is_directed G (≤) :=
 ⟨λ x y, begin
   induction hx : (f x) using quotient.induction_on with x',
   cases x' with a c,
@@ -922,31 +1005,53 @@ lemma is_directed_of_mul_order_iso {G : Type*} [comm_group G] [partial_order G] 
   { simpa [hy'] using hd' }
 end⟩
 
+-- Theorem 8, mp
+lemma is_directed_of_mul_order_iso {G : Type*} [comm_group G] [partial_order G] [nakada_po G]
+  (f : G ≃*o quotient (mul_pair_setoid (neg_subsemigroup G))) : is_directed G (≤) :=
+is_directed_of_mul_order_iso_subsemigroup f
+
+section
+
+variables {α β : Sort*} [setoid α]
+
+lemma quotient.mk_eq_mk' (x : α) : ⟦x⟧ = quotient.mk' x := rfl
+
+@[simp] lemma quotient.lift_on_mk' (x : α) (f : α → β) (h) : ⟦x⟧.lift_on' f h = f x := rfl
+
+end
+
 -- Theorem 8, mpr
-example {G : Type*} [comm_group G] [partial_order G] [nakada_po G] [is_directed G (≤)] :
-  nonempty (G ≃*o quotient (mul_pair_setoid (neg_subsemigroup G))) :=
-⟨{ to_fun := λ x, begin
+@[to_additive neg_add_subsemigroup_iso_of_is_directed]
+noncomputable def neg_subsemigroup_iso_of_is_directed (G : Type*) [comm_group G] [partial_order G]
+  [nakada_po G] [is_directed G (≤)] :
+  quotient (mul_pair_setoid (neg_subsemigroup G)) ≃*o G :=
+{ inv_fun := λ x, begin
     set a := (directed_of (≤) x 1).some with ha,
-    have hxa : x ≤ a,
-    { rw ha,
+    refine quotient.mk' (⟨a⁻¹ * x, _⟩, ⟨a⁻¹, positive.negative_inv _⟩),
+    { have hxa : x ≤ a,
+      { rw ha,
+        generalize_proofs ha',
+        exact ha'.some_spec.left },
+      have hx : x = a * (a * x⁻¹)⁻¹,
+      { rw [mul_inv, inv_inv, mul_inv_cancel_left] },
+      have : 1 ≤ (a⁻¹ * x)⁻¹,
+      { rw [hx],
+        simpa only [mul_inv_rev, inv_inv, mul_inv_cancel_comm_assoc,
+                    le_inv_mul_iff_mul_le, mul_one] using hxa},
+      simpa only [inv_inv] using (positive_of_one_le this).negative_inv },
+    { refine positive_of_one_le _,
+      rw ha,
       generalize_proofs ha',
-      exact ha'.some_spec.left },
-    have h1a : 1 ≤ a,
-    { rw ha,
-      generalize_proofs ha',
-      exact ha'.some_spec.right },
-    have hx : x = a * (a * x⁻¹)⁻¹,
-    { rw [mul_inv, inv_inv, mul_inv_cancel_left] },
-    have : 1 ≤ (a⁻¹ * x)⁻¹,
-    { rw [hx],
-      simpa using hxa },
-    refine quotient.mk' (⟨a⁻¹ * x, _⟩, ⟨a⁻¹, (positive_of_one_le h1a).negative_inv⟩),
-    simpa using (positive_of_one_le this).negative_inv
+      exact ha'.some_spec.right }
   end,
-   inv_fun := _,
-   left_inv := _,
-   right_inv := _,
-   map_mul' := _,
-   map_rel_iff' := _ }⟩
+  to_fun := (out_mul_pair_quotient _).comp
+    (mul_order_embedding.coe (neg_subsemigroup G) (λ _ _, iff.rfl)).lift_pair_quotient,
+  right_inv := λ _, by  simp [←quotient.mk_eq_mk'],
+  left_inv := λ x, begin
+    induction x using quotient.induction_on,
+    simp [←quotient.mk_eq_mk', subtype.ext_iff, mul_comm _ (Exists.some _)⁻¹, mul_assoc]
+  end,
+  map_mul' := map_mul _,
+  map_rel_iff' := λ _ _, mul_order_embedding.map_le_iff _ }
 
 end page184

@@ -45,7 +45,15 @@ class continuous_order_hom_class (F : Type*) (α β : out_param $ Type*) [preord
   extends rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop) :=
 (map_continuous (f : F) : continuous f)
 
---TODO@Yael: Add instance to `continuous_map_class` once we have it, add coercion to `α →Co β`
+instance continuous_order_hom_class.to_continuous_map_class [preorder α] [preorder β]
+  [topological_space α] [topological_space β] [continuous_order_hom_class F α β] :
+  continuous_map_class F α β :=
+{ ..‹continuous_order_hom_class F α β› }
+
+instance [preorder α] [preorder β] [topological_space α] [topological_space β]
+  [continuous_order_hom_class F α β] :
+  has_coe_t F (α →Co β) :=
+⟨λ f, { to_fun := f, monotone' := order_hom_class.mono f, continuous_to_fun := map_continuous f }⟩
 
 /-! ### Top homomorphisms -/
 
@@ -72,7 +80,10 @@ instance : has_coe_to_fun (α →Co β) (λ _, α → β) := fun_like.has_coe_to
 
 @[ext] lemma ext {f g : α →Co β} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
---TODO@Yael: Add `copy` once we have `continuous_map.copy`
+/-- Copy of a `continuous_order_hom` with a new `continuous_map` equal to the old one. Useful to fix
+definitional equalities. -/
+protected def copy (f : α →Co β) (f' : α → β) (h : f' = f) : α →Co β :=
+⟨f.to_order_hom.copy f' $ by exact h, h.symm.subst f.continuous_to_fun⟩
 
 variables (α)
 

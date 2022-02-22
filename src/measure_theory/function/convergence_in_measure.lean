@@ -192,6 +192,15 @@ lemma tendsto_in_measure.exists_seq_tendsto_ae
   (hfg : tendsto_in_measure μ f at_top g) :
   ∃ ns : ℕ → ℕ, strict_mono ns ∧ ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
 begin
+  /- Since `f` tends to `g` in measure, it has a subsequence `k ↦ f (ns k)` such that
+  `μ {|f (ns k) - g| ≥ 2⁻ᵏ} ≤ 2⁻ᵏ` for all `k`. Defining
+  `s := ⋂ k, ⋃ i ≥ k, {|f (ns k) - g| ≥ 2⁻ᵏ}`, we see that `μ s = 0` by observing
+  `μ s ≤ 2 * 2⁻ᵏ` for all `k`. Indeed, as `s ⊆ ⋃ i ≥ k, {|f (ns k) - g| ≥ 2⁻ᵏ}`,
+  `μ s ≤ μ (⋃ i ≥ k, {|f (ns k) - g| ≥ 2⁻ᵏ}) ≤ ∑ i ≥ k, μ {|f (ns k) - g| ≥ 2⁻ᵏ} ≤ ∑ i ≥ k, 2⁻ᵏ`
+  which by geometric series equals to `2 * 2⁻ᵏ` as required.
+
+  On the other hand, as `s` is precisely the set for which `f (ns k)`
+  doesn't converge to `g`, `f (ns k)` converges almost everywhere to `g` as required. -/
   have h_lt_ε_real : ∀ (ε : ℝ) (hε : 0 < ε), ∃ k : ℕ, 2 * 2⁻¹ ^ k < ε,
   { intros ε hε,
     obtain ⟨k, h_k⟩ : ∃ (k : ℕ), 2⁻¹ ^ k < ε := exists_pow_lt_of_lt_one hε (by norm_num),
@@ -236,7 +245,7 @@ begin
       { exact le_rfl } },
     { refine summable.summable_of_eq_zero_or_self summable_geometric_two (λ i, _),
       simp only [one_div, inv_eq_zero, not_le, inv_pow₀, zero_eq_inv],
-      exact (ite_eq_or_eq _ _ _).symm, }, },
+      exact (ite_eq_or_eq _ _ _).symm } },
   have h_tendsto : ∀ x ∈ sᶜ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)),
   { refine λ x hx, metric.tendsto_at_top.mpr (λ ε hε, _),
     simp_rw [s, set.compl_Inter, set.compl_Union, set.mem_Union, set.mem_Inter] at hx,

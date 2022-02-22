@@ -561,7 +561,7 @@ variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 instance : has_add (α →ᵇ β) :=
 { add := λ f g,
   { to_continuous_map := f.to_continuous_map + g.to_continuous_map,
-    bounded' := let ⟨fb, hfb⟩ := f.bounded, ⟨gb, hgb⟩ := g.bounded in
+    map_bounded' := let ⟨fb, hfb⟩ := f.bounded, ⟨gb, hgb⟩ := g.bounded in
       ⟨↑(has_lipschitz_add.C β) * max fb gb, λ x y, begin
         refine le_trans (lipschitz_with_lipschitz_const_add ⟨f x, g x⟩ ⟨f y, g y⟩) _,
         rw prod.dist_eq,
@@ -770,13 +770,13 @@ end
 instance : has_neg (α →ᵇ β) :=
 { neg := λ f,
   { to_continuous_map := -f.to_continuous_map,
-    bounded' := f.bounded.imp $ λ b hb _ _, (dist_neg_neg _ _).trans_le (hb _ _) } }
+    map_bounded' := f.bounded.imp $ λ b hb _ _, (dist_neg_neg _ _).trans_le (hb _ _) } }
 
 /-- The pointwise difference of two bounded continuous functions is again bounded continuous. -/
 instance : has_sub (α →ᵇ β) :=
 { sub := λ f g,
   { to_continuous_map := f.to_continuous_map - g.to_continuous_map,
-    bounded' := by { rw sub_eq_add_neg, exact bounded' (f + -g), }} }
+    map_bounded' := by { rw sub_eq_add_neg, exact (f + -g).bounded, }} }
 
 @[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl
@@ -876,7 +876,7 @@ variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 variables [has_lipschitz_add β]
 
 instance : module 𝕜 (α →ᵇ β) :=
-function.injective.module _ coe_fn_add_hom coe_injective coe_smul
+function.injective.module _ coe_fn_add_hom fun_like.coe_injective coe_smul
 
 variables (𝕜)
 /-- The evaluation at a point, as a continuous linear map from `α →ᵇ β` to `β`. -/

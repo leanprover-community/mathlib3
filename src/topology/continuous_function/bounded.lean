@@ -508,6 +508,9 @@ variables [topological_space α] [metric_space β] [has_one β]
 
 @[simp, to_additive] lemma coe_one : ((1 : α →ᵇ β) : α → β) = 1 := rfl
 
+@[simp, to_additive]
+lemma mk_of_compact_one [compact_space α] : mk_of_compact (1 : C(α, β)) = 1 := rfl
+
 @[to_additive] lemma forall_coe_one_iff_one (f : α →ᵇ β) : (∀x, f x = 1) ↔ f = 1 :=
 (@ext_iff _ _ _ _ f 1).symm
 
@@ -529,7 +532,6 @@ trivial inconvenience, but in any case there are no obvious applications of the 
 version. -/
 
 variables [topological_space α] [metric_space β] [add_monoid β]
-
 variables [has_lipschitz_add β]
 variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
@@ -550,6 +552,9 @@ instance : has_add (α →ᵇ β) :=
 
 @[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
+
+@[simp] lemma mk_of_compact_add [compact_space α] (f g : C(α, β)) :
+  mk_of_compact (f + g) = mk_of_compact f + mk_of_compact g := rfl
 
 lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
   (g + f).comp_continuous h = g.comp_continuous h + f.comp_continuous h := rfl
@@ -758,6 +763,12 @@ lemma neg_apply : (-f) x = -f x := rfl
 @[simp] lemma coe_sub : ⇑(f - g) = f - g := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
 
+@[simp] lemma mk_of_compact_neg [compact_space α] (f : C(α, β)) :
+  mk_of_compact (-f) = -mk_of_compact f := rfl
+
+@[simp] lemma mk_of_compact_sub [compact_space α] (f g : C(α, β)) :
+  mk_of_compact (f - g) = mk_of_compact f - mk_of_compact g := rfl
+
 instance : add_comm_group (α →ᵇ β) :=
 coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
 
@@ -787,22 +798,19 @@ functions from `α` to `β` inherits a so-called `has_bounded_smul` structure (i
 `has_continuous_mul` structure, which is the mathlib formulation of being a topological module), by
 using pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables {𝕜 : Type*} [metric_space 𝕜] [semiring 𝕜]
-variables [topological_space α] [metric_space β] [add_comm_monoid β]
-  [module 𝕜 β] [has_bounded_smul 𝕜 β]
-variables {f g : α →ᵇ β} {x : α} {C : ℝ}
+variables {𝕜 : Type*} [pseudo_metric_space 𝕜] [topological_space α] [metric_space β]
+
+section has_scalar
+variables [has_zero 𝕜] [has_zero β] [has_scalar 𝕜 β] [has_bounded_smul 𝕜 β]
 
 instance : has_scalar 𝕜 (α →ᵇ β) :=
-⟨λ c f,
-  bounded_continuous_function.mk_of_bound
-    (c • f.to_continuous_map)
-    (dist c 0 * (classical.some f.bounded))
-    begin
-      intros x y,
+{ smul := λ c f,
+  { to_continuous_map := c • f.to_continuous_map,
+    bounded' := let ⟨b, hb⟩ := f.bounded in ⟨dist c 0 * b, λ x y, begin
       refine (dist_smul_pair c (f x) (f y)).trans _,
       refine mul_le_mul_of_nonneg_left _ dist_nonneg,
-      exact classical.some_spec f.bounded x y
-    end ⟩
+      exact hb x y
+    end⟩ } }
 
 @[simp] lemma coe_smul (c : 𝕜) (f : α →ᵇ β) : ⇑(c • f) = λ x, c • (f x) := rfl
 lemma smul_apply (c : 𝕜) (f : α →ᵇ β) (x : α) : (c • f) x = c • f x := rfl
@@ -822,24 +830,40 @@ instance : has_bounded_smul 𝕜 (α →ᵇ β) :=
     simp
   end }
 
+end has_scalar
+
+section mul_action
+variables [monoid_with_zero 𝕜] [has_zero β] [mul_action 𝕜 β] [has_bounded_smul 𝕜 β]
+
+instance : mul_action 𝕜 (α →ᵇ β) :=
+function.injective.mul_action _ coe_injective coe_smul
+
+end mul_action
+
+section distrib_mul_action
+variables [monoid_with_zero 𝕜] [add_monoid β] [distrib_mul_action 𝕜 β] [has_bounded_smul 𝕜 β]
+variables [has_lipschitz_add β]
+
+instance : distrib_mul_action 𝕜 (α →ᵇ β) :=
+function.injective.distrib_mul_action ⟨_, coe_zero, coe_add⟩ coe_injective coe_smul
+
+end distrib_mul_action
+
+section module
+variables [semiring 𝕜] [add_comm_monoid β] [module 𝕜 β] [has_bounded_smul 𝕜 β]
+variables {f g : α →ᵇ β} {x : α} {C : ℝ}
+
 variables [has_lipschitz_add β]
 
 instance : module 𝕜 (α →ᵇ β) :=
-{ smul     := (•),
-  smul_add := λ c f g, ext $ λ x, smul_add c (f x) (g x),
-  add_smul := λ c₁ c₂ f, ext $ λ x, add_smul c₁ c₂ (f x),
-  mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
-  one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x),
-  smul_zero := λ c, ext $ λ x, smul_zero c,
-  zero_smul := λ f, ext $ λ x, zero_smul 𝕜 (f x),
-  .. bounded_continuous_function.add_comm_monoid }
+function.injective.module _ ⟨_, coe_zero, coe_add⟩ coe_injective coe_smul
 
 variables (𝕜)
 /-- The evaluation at a point, as a continuous linear map from `α →ᵇ β` to `β`. -/
 def eval_clm (x : α) : (α →ᵇ β) →L[𝕜] β :=
 { to_fun := λ f, f x,
-  map_add' := λ f g, by simp only [pi.add_apply, coe_add],
-  map_smul' := λ c f, by simp only [coe_smul, ring_hom.id_apply] }
+  map_add' := λ f g, add_apply _ _,
+  map_smul' := λ c f, smul_apply _ _ _ }
 
 @[simp] lemma eval_clm_apply (x : α) (f : α →ᵇ β) :
   eval_clm 𝕜 x f = f x := rfl
@@ -850,8 +874,10 @@ variables (α β)
 @[simps]
 def to_continuous_map_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
 { to_fun := to_continuous_map,
-  map_smul' := by { intros, ext, simp, },
-  map_add' := by { intros, ext, simp, }, }
+  map_smul' := λ f g, rfl,
+  map_add' := λ c f, rfl }
+
+end module
 
 end has_bounded_smul
 

@@ -6,6 +6,7 @@ Authors: Andreas Swerdlow
 import algebra.module.linear_map
 import linear_algebra.bilinear_map
 import linear_algebra.matrix.basis
+import linear_algebra.dual
 
 /-!
 # Sesquilinear form
@@ -155,7 +156,7 @@ end reflexive
 
 section symmetric
 
-variables [comm_semiring R] [add_comm_group M] [module R M]
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
   {I : R →+* R} {B : M →ₛₗ[I] M →ₗ[R] R}
 
 /-- The proposition that a sesquilinear form is symmetric -/
@@ -164,16 +165,18 @@ def is_symm (B : M →ₛₗ[I] M →ₗ[R] R) : Prop :=
 
 namespace is_symm
 
-variable (H : B.is_symm)
-include H
+protected lemma eq (H : B.is_symm) (x y) : I (B x y) = B y x := H x y
 
-variables (x y : M)
+lemma is_refl (H : B.is_symm) : B.is_refl := λ x y H1, by { rw ←H.eq, simp [H1] }
 
-protected lemma eq (x y) : I (B x y) = B y x := H x y
+lemma ortho_comm (H : B.is_symm) {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
-lemma is_refl : B.is_refl := λ x y H1, by { rw ←H.eq, simp [H1] }
-
-lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
+lemma dom_restrict_symm (H : B.is_symm) (p : submodule R M) : (B.dom_restrict₁₂ p p).is_symm :=
+begin
+  intros x y,
+  simp_rw dom_restrict₁₂_apply,
+  exact H x y,
+end
 
 end is_symm
 
@@ -367,6 +370,11 @@ def separating_right (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop :=
 /-- A bilinear form is called non-degenerate if it is left-separating and right-separating. -/
 def nondegenerate (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop := separating_left B ∧ separating_right B
 
+
+variables (v : module.dual R₁ M₁) (x : M₁)
+def dual_pairing : M₁ →ₗ[R₁] module.dual R₁ M₁ → R₁ :=
+#check M₁ →[R] module.dual R₁ M₁
+
 lemma separating_left_flip {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
   B.separating_left ↔ B.flip.separating_right := ⟨λ hB x hy, hB x hy, λ hB x hy, hB x hy⟩
 
@@ -420,18 +428,22 @@ begin
   exact hB',
 end
 
-/-- The restriction of a nondegenerate bilinear form `B` onto a submodule `W` is
-nondegenerate if `disjoint W (B.orthogonal W)`. -/
+/-- The restriction of a symmetric bilinear form `B` onto a submodule `W` is
+nondegenerate if `W` has trivial intersection with its orthogonal complement,
+that is `disjoint W (W.orthogonal_bilin B)`. -/
 lemma nondegenerate_restrict_of_disjoint_orthogonal
-  {B : M →ₗ[R] M →ₗ[R] R} (b : B.is_symm)
+  {B : M →ₗ[R] M →ₗ[R] R} (hB : B.is_symm)
   {W : submodule R M} (hW : disjoint W (W.orthogonal_bilin B)) :
   (B.dom_restrict₁₂ W W).nondegenerate :=
 begin
+  refine nondegenerate_of_symm_separating_left (hB.dom_restrict_symm W) _,
   rintro ⟨x, hx⟩ b₁,
-  rw [submodule.mk_eq_zero, ← submodule.mem_bot R₁],
+  rw [submodule.mk_eq_zero, ← submodule.mem_bot R],
   refine hW ⟨hx, λ y hy, _⟩,
   specialize b₁ ⟨y, hy⟩,
-  rwa [restrict_apply, submodule.coe_mk, submodule.coe_mk, b] at b₁
+  simp_rw [dom_restrict₁₂_apply, submodule.coe_mk] at b₁,
+  rw hB.ortho_comm,
+  exact b₁,
 end
 
 end comm_ring

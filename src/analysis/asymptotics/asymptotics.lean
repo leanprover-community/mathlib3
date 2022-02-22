@@ -972,7 +972,7 @@ begin
   apply le_trans (norm_mul_le _ _),
   convert mul_le_mul hx₁ hx₂ (norm_nonneg _) (le_trans (norm_nonneg _) hx₁) using 1,
   rw norm_mul,
-  ac_refl
+  ring,
 end
 
 theorem is_O.mul {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜}

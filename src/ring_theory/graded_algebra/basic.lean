@@ -42,7 +42,7 @@ open_locale direct_sum big_operators
 section graded_algebra
 
 variables {ι R A : Type*}
-variables [decidable_eq ι] [add_comm_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
+variables [decidable_eq ι] [add_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
 
 /-- An internally-graded `R`-algebra `A` is one that can be decomposed into a collection
@@ -127,7 +127,7 @@ by rw [graded_algebra.proj_apply, graded_algebra.decompose_symm_of, alg_equiv.ap
 by rw [←graded_algebra.decompose_symm_of, alg_equiv.apply_symm_apply]
 
 lemma graded_algebra.decompose_of_mem {x : A} {i : ι} (hx : x ∈ 𝒜 i) :
-  graded_algebra.decompose 𝒜 x = direct_sum.of (λ i, 𝒜 i) i (⟨x, hx⟩ : 𝒜 i) :=
+  graded_algebra.decompose 𝒜 x = direct_sum.of _ i (⟨x, hx⟩ : 𝒜 i) :=
 graded_algebra.decompose_coe _ ⟨x, hx⟩
 
 lemma graded_algebra.decompose_of_mem_same {x : A} {i : ι} (hx : x ∈ 𝒜 i) :

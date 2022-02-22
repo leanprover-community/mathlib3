@@ -47,7 +47,7 @@ variables (𝒜 : ι → submodule R A)
 variable (I : ideal A)
 
 /-- For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_core' 𝒜`
-is the largest homogeneous ideal of `R` contained in `I`. -/
+is the largest homogeneous ideal of `R` contained in `I`, as an ideal. -/
 def ideal.homogeneous_core' : ideal A :=
 ideal.span (coe '' ((coe : subtype (is_homogeneous 𝒜) → A) ⁻¹' I))
 
@@ -74,11 +74,6 @@ lemma ideal.is_homogeneous_iff_subset_Inter :
   I.is_homogeneous 𝒜 ↔ (I : set A) ⊆ ⋂ i, graded_algebra.proj 𝒜 i ⁻¹' ↑I :=
 subset_Inter_iff.symm
 
--- lemma ideal.is_homogeneous.exists_iff_eq_span :
---   (∃ (S : set (homogeneous_submonoid 𝒜)), I = ideal.span (coe '' S)) ↔
---     I = I.homogeneous_core' 𝒜 :=
--- (set.image_preimage.compose (submodule.gi _ _).gc).exists_eq_l _
-
 lemma mul_homogeneous_element_mem_of_mem
   {I : ideal A} (r x : A) (hx₁ : is_homogeneous 𝒜 x) (hx₂ : x ∈ I) (j : ι) :
   graded_algebra.proj 𝒜 j (r * x) ∈ I :=
@@ -90,17 +85,18 @@ begin
   obtain ⟨i, hi⟩ := hx₁,
   have mem₁ : (graded_algebra.decompose 𝒜 r k : A) * x ∈ 𝒜 (k + i) := graded_monoid.mul_mem
     (submodule.coe_mem _) hi,
-  rw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem 𝒜 mem₁,
+  erw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem 𝒜 mem₁,
     coe_of_submodule_apply 𝒜, submodule.coe_mk],
   split_ifs,
   { exact I.mul_mem_left _ hx₂ },
   { exact I.zero_mem },
 end
 
-lemma ideal.is_homogeneous.homogeneous_core : (I.homogeneous_core' 𝒜).is_homogeneous 𝒜 :=
+lemma ideal.is_homogeneous_span (s : set A) (h : ∀ x ∈ s, is_homogeneous 𝒜 x) :
+  (ideal.span s).is_homogeneous 𝒜 :=
 begin
   rintros i r hr,
-  rw [ideal.homogeneous_core', ideal.span, finsupp.span_eq_range_total] at hr,
+  rw [ideal.span, finsupp.span_eq_range_total] at hr,
   rw linear_map.mem_range at hr,
   obtain ⟨s, rfl⟩ := hr,
   rw [←graded_algebra.proj_apply, finsupp.total_apply, finsupp.sum, linear_map.map_sum],
@@ -109,15 +105,15 @@ begin
   rw [smul_eq_mul],
   refine mul_homogeneous_element_mem_of_mem 𝒜 (s z) z _ _ i,
   { rcases z with ⟨z, hz2⟩,
-    rw subtype.image_preimage_coe at hz2,
-    exact hz2.2, },
+    apply h _ hz2, },
   { exact ideal.subset_span z.2 },
 end
 
-/--Bundled version of `homogeneous_core`, i.e. given ideal `I`, the homogeneous ideal
-`homogeneous_core' 𝒜 I`-/
+/--For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_core' 𝒜`
+is the largest homogeneous ideal of `R` contained in `I`, as an ideal.-/
 abbreviation ideal.homogeneous_core : homogeneous_ideal 𝒜 :=
-⟨ideal.homogeneous_core' 𝒜 I, ideal.is_homogeneous.homogeneous_core 𝒜 I⟩
+⟨ideal.homogeneous_core' 𝒜 I,
+  ideal.is_homogeneous_span _ _ (λ x h, by { rw [subtype.image_preimage_coe] at h, exact h.2 })⟩
 
 variables {𝒜 I}
 
@@ -137,7 +133,7 @@ variables (𝒜 I)
 lemma ideal.is_homogeneous.iff_eq :
   I.is_homogeneous 𝒜 ↔ I.homogeneous_core' 𝒜 = I:=
 ⟨ λ hI, hI.homogeneous_core_eq_self,
-  λ hI, hI ▸ ideal.is_homogeneous.homogeneous_core 𝒜 I ⟩
+  λ hI, hI ▸ (ideal.homogeneous_core 𝒜 I).2 ⟩
 
 lemma ideal.is_homogeneous.iff_exists :
   I.is_homogeneous 𝒜 ↔ ∃ (S : set (homogeneous_submonoid 𝒜)), I = ideal.span (coe '' S) :=
@@ -274,7 +270,8 @@ def ideal.homogeneous_core.gi :
     have eq : I = I.homogeneous_core' 𝒜,
     refine le_antisymm HI _,
     apply (ideal.homogeneous_core'_le_ideal 𝒜 I),
-    rw eq, apply ideal.is_homogeneous.homogeneous_core,
+    rw eq,
+    apply (ideal.homogeneous_core _ _).2,
   end⟩,
   gc := ideal.homogeneous_core.gc 𝒜,
   u_l_le := λ I, by apply ideal.homogeneous_core'_le_ideal,

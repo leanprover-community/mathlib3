@@ -1149,7 +1149,7 @@ instance : no_max_order ordinal :=
 @[simp] theorem Inf_empty : Inf (∅ : set ordinal) = 0 :=
 begin
   change dite _ (wf.min ∅) (λ _, 0) = 0,
-  simp only [not_nonempty_empty, not_false_iff, dif_neg],
+  simp only [not_nonempty_empty, not_false_iff, dif_neg]
 end
 
 end ordinal

@@ -1600,7 +1600,7 @@ begin
   intros x,
   obtain ⟨c, _, hc⟩ :=
     (at_top_basis_Ioi.tendsto_iff at_top_basis_Ioi).mp (nnreal.tendsto_rpow_at_top hy) x trivial,
-  have hc' : Ioi (↑c) ∈ 𝓝 (⊤ : ℝ≥0∞) := Ioi_mem_nhds coe_lt_top,
+  have hc' : set.Ioi (↑c) ∈ 𝓝 (⊤ : ℝ≥0∞) := Ioi_mem_nhds coe_lt_top,
   refine eventually_of_mem hc' _,
   intros a ha,
   by_cases ha' : a = ⊤,

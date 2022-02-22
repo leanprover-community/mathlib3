@@ -73,14 +73,14 @@ lemma exponent_exists.is_torsion (h : exponent_exists G) : is_torsion G := begin
 end
 
 /--The group exponent exists for any bounded torsion group. -/
-@[to_additive exponent_exists.of_is_add_torsion]
+@[to_additive is_add_torsion.exponent_exists]
 lemma is_torsion.exponent_exists
-  (tG : is_torsion G)   (bounded : (set.range (λ g : G, order_of g)).finite) :
+  (tG : is_torsion G) (bounded : (set.range (λ g : G, order_of g)).finite) :
   exponent_exists G :=
 exponent_exists_iff_ne_zero.mpr $
   (exponent_ne_zero_iff_range_order_of_finite (λ g, order_of_pos' (tG g))).mpr bounded
 
 /--Finite groups are torsion groups.-/
-@[to_additive is_add_torsion_of_fintype]
-lemma is_torsion_of_fintype [fintype G] : is_torsion G :=
+@[to_additive is_add_torsion.fintype]
+lemma is_torsion.fintype [fintype G] : is_torsion G :=
 exponent_exists.is_torsion $ exponent_exists_iff_ne_zero.mpr exponent_ne_zero_of_fintype

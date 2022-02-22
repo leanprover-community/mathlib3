@@ -412,9 +412,9 @@ begin
         [linear_map.finrank_range_of_inj L.injective]
       ...               = finrank 𝕜 Sᗮ : by simp only
         [← S.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
-      ...               = d : dim_S,
-    let BS := ((fin_std_orthonormal_basis dim_S).to_orthonormal_basis
-      (fin_std_orthonormal_basis_orthonormal dim_S)),
+      ...               = d : dim_S_perp,
+    let BS := ((fin_std_orthonormal_basis dim_S_perp).to_orthonormal_basis
+      (fin_std_orthonormal_basis_orthonormal dim_S_perp)),
     let BLS := ((fin_std_orthonormal_basis dim_LS_perp).to_orthonormal_basis
       (fin_std_orthonormal_basis_orthonormal dim_LS_perp)),
     exact BS.repr.trans BLS.repr.symm },

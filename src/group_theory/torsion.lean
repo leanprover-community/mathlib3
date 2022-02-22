@@ -81,6 +81,6 @@ exponent_exists_iff_ne_zero.mpr $
   (exponent_ne_zero_iff_range_order_of_finite (λ g, order_of_pos' (tG g))).mpr bounded
 
 /--Finite groups are torsion groups.-/
-@[to_additive is_add_torsion.fintype]
-lemma is_torsion.fintype [fintype G] : is_torsion G :=
+@[to_additive is_add_torsion_of_fintype]
+lemma is_torsion_of_fintype [fintype G] : is_torsion G :=
 exponent_exists.is_torsion $ exponent_exists_iff_ne_zero.mpr exponent_ne_zero_of_fintype

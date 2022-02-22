@@ -7,6 +7,7 @@ Authors: Anne Baanen
 import ring_theory.euclidean_domain
 import ring_theory.laurent_series
 import ring_theory.localization.fraction_ring
+import ring_theory.polynomial.content
 
 /-!
 # The field of rational functions

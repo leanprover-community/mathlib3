@@ -161,11 +161,10 @@ cycle_induction_on
   ( -- base_one
     by rw [equiv.perm.cycle_type_one, sign_one, multiset.sum_zero, multiset.card_zero, pow_zero] )
   ( -- base_cycles
-    λ f hf, by
-    rw [equiv.perm.is_cycle.cycle_type hf,
-      multiset.coe_sum, list.sum_cons, list.sum_nil, add_zero,
-      multiset.coe_card, list.length_singleton, hf.sign,
-      add_comm, pow_add, pow_one, units.neg_mul, one_mul])
+    λ f hf,
+      by rw [equiv.perm.is_cycle.cycle_type hf, hf.sign,
+      coe_sum, list.sum_cons, sum_nil, add_zero, coe_card, length_singleton,
+      pow_add, pow_one, mul_comm, neg_mul, one_mul] )
   ( -- induction_disjoint
     λ f g hfg hf Pf Pg,
     by rw [equiv.perm.disjoint.cycle_type hfg,

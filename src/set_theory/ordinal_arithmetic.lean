@@ -2486,7 +2486,7 @@ begin
   exact (mul_is_normal ha).nfp_le_fp hb (le_of_eq hab)
 end
 
-theorem mul_eq_right_iff_dvd_opow_omega {a b : ordinal} : a * b = b ↔ (a ^ omega) ∣ b :=
+theorem mul_eq_right_iff_dvd_opow_omega {a b : ordinal} : a * b = b ↔ a ^ omega ∣ b :=
 begin
   cases eq_zero_or_pos a with ha ha,
   { rw [ha, zero_mul, zero_opow omega_ne_zero, zero_dvd],
@@ -2503,22 +2503,38 @@ begin
   rw [hc, ←mul_assoc, ←opow_one_add, one_add_omega]
 end
 
-theorem mul_le_right_iff_dvd_opow_omega {a b : ordinal} (ha : 0 < a) : a * b ≤ b ↔ (a ^ omega) ∣ b :=
+theorem mul_le_right_iff_dvd_opow_omega {a b : ordinal} (ha : 0 < a) : a * b ≤ b ↔ a ^ omega ∣ b :=
 by { rw ←mul_eq_right_iff_dvd_opow_omega, exact (mul_is_normal ha).le_iff_eq }
+
+theorem nfp_mul_opow_omega_add {a c : ordinal} (b) (ha : 0 < a) (hc : 0 < c) (hca : c ≤ a ^ omega) :
+  nfp ((*) a) (a ^ omega * b + c) = a ^ omega.{u} * b.succ :=
+begin
+  apply le_antisymm,
+  { apply is_normal.nfp_le_fp (mul_is_normal ha),
+    { rw mul_succ,
+      apply add_le_add_left hca },
+    { rw [←mul_assoc, ←opow_one_add, one_add_omega] } },
+  { cases mul_eq_right_iff_dvd_opow_omega.1 ((mul_is_normal ha).nfp_fp (a ^ omega * b + c))
+      with d hd,
+    rw hd,
+    apply mul_le_mul_left',
+    have := le_nfp_self (has_mul.mul a) (a ^ omega * b + c),
+    rw hd at this,
+    have := (add_lt_add_left hc (a ^ omega * b)).trans_le this,
+    rw [add_zero, mul_lt_mul_iff_left (opow_pos omega ha)] at this,
+    rwa succ_le }
+end
 
 theorem deriv_mul_eq_mul_opow_omega {a : ordinal.{u}} (ha : 0 < a) (b) :
   deriv ((*) a) b = a ^ omega * b :=
 begin
-  refine b.limit_rec_on _ (λ o h, _) (λ o ho h, _),
+  revert b,
+  rw [←funext_iff,
+    is_normal.eq_iff_zero_and_succ (deriv_is_normal _) (mul_is_normal (opow_pos omega ha))],
+  refine ⟨_, λ c h, _⟩,
   { rw [deriv_zero, nfp_mul_zero, mul_zero] },
-  {
-    rw [deriv_succ, h],sorry,
-  },
-  { rw [←is_normal.bsup_eq.{u u} (mul_is_normal.{u} (opow_pos omega ha)) ho,
-    ←is_normal.bsup_eq.{u u} (deriv_is_normal _) ho],
-    congr,
-    ext a hao,
-    exact h a hao }
+  { rw [deriv_succ, h],
+    exact nfp_mul_opow_omega_add c ha zero_lt_one (one_le_iff_pos.2 (opow_pos _ ha)) },
 end
 
 end ordinal

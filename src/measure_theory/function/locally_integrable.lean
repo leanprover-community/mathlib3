@@ -54,20 +54,10 @@ begin
     obtain ⟨K, hK, h2K⟩ := hf x, exact ⟨K, nhds_within_le_nhds hK, h2K⟩ }
 end
 
-end measure_theory
-open measure_theory
-
-/-- If a function is integrable at `𝓝[s] x` for each point `x` of a compact set `s`, then it is
-integrable on `s`. -/
-lemma is_compact.integrable_on_of_nhds_within {K : set X} (hK : is_compact K)
-  (hf : ∀ x ∈ K, integrable_at_filter f (𝓝[K] x) μ) : integrable_on f K μ :=
-is_compact.induction_on hK integrable_on_empty (λ s t hst ht, ht.mono_set hst)
-  (λ s t hs ht, hs.union ht) hf
-
 section real
 variables [opens_measurable_space X] {A K : set X} {g g' : X → ℝ}
 
-lemma measure_theory.integrable_on.mul_continuous_on_of_subset
+lemma integrable_on.mul_continuous_on_of_subset
   (hg : integrable_on g A μ) (hg' : continuous_on g' K)
   (hA : measurable_set A) (hK : is_compact K) (hAK : A ⊆ K) :
   integrable_on (λ x, g x * g' x) A μ :=
@@ -81,25 +71,35 @@ begin
   exact mem_ℒp.of_le_mul hg (hg.ae_measurable.mul ((hg'.mono hAK).ae_measurable hA)) this,
 end
 
-lemma measure_theory.integrable_on.mul_continuous_on [t2_space X]
+lemma integrable_on.mul_continuous_on [t2_space X]
   (hg : integrable_on g K μ) (hg' : continuous_on g' K) (hK : is_compact K) :
   integrable_on (λ x, g x * g' x) K μ :=
 hg.mul_continuous_on_of_subset hg' hK.measurable_set hK (subset.refl _)
 
-lemma measure_theory.integrable_on.continuous_on_mul_of_subset
+lemma integrable_on.continuous_on_mul_of_subset
   (hg : integrable_on g A μ) (hg' : continuous_on g' K)
   (hA : measurable_set A) (hK : is_compact K) (hAK : A ⊆ K) :
   integrable_on (λ x, g x * g' x) A μ :=
 by simpa [mul_comm] using hg.mul_continuous_on_of_subset hg' hA hK hAK
 
-lemma measure_theory.integrable_on.continuous_on_mul [t2_space X]
+lemma integrable_on.continuous_on_mul [t2_space X]
   (hg : integrable_on g K μ) (hg' : continuous_on g' K) (hK : is_compact K) :
   integrable_on (λ x, g x * g' x) K μ :=
 hg.continuous_on_mul_of_subset hg' hK.measurable_set hK subset.rfl
 
 end real
 
-section
+end measure_theory
+open measure_theory
+
+/-- If a function is integrable at `𝓝[s] x` for each point `x` of a compact set `s`, then it is
+integrable on `s`. -/
+lemma is_compact.integrable_on_of_nhds_within {K : set X} (hK : is_compact K)
+  (hf : ∀ x ∈ K, integrable_at_filter f (𝓝[K] x) μ) : integrable_on f K μ :=
+is_compact.induction_on hK integrable_on_empty (λ s t hst ht, ht.mono_set hst)
+  (λ s t hs ht, hs.union ht) hf
+
+section borel
 
 variables [opens_measurable_space X] [t2_space X] [borel_space E] [is_locally_finite_measure μ]
 variables {K : set X} {a b : X}
@@ -148,7 +148,7 @@ begin
   { apply_instance }
 end
 
-end
+end borel
 
 section monotone
 

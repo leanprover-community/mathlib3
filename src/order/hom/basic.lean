@@ -124,6 +124,10 @@ instance : has_coe_t F (α →o β) := ⟨λ f, { to_fun := f, monotone' := orde
 
 end order_hom_class
 
+lemma map_lt_map_iff [preorder α] [preorder β] [order_iso_class F α β] (f : F) {a b : α} :
+  f a < f b ↔ a < b :=
+lt_iff_lt_of_le_iff_le' (map_le_map_iff f) (map_le_map_iff f)
+
 namespace order_hom
 variables [preorder α] [preorder β] [preorder γ] [preorder δ]
 

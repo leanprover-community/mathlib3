@@ -14,8 +14,8 @@ Homomorphisms between ordered (semi)rings that respect the ordering.
 
 ## Main definitions
 
-* `order_ring_hom` : A monotone homomorphism `f` between two `ordered_semiring`s.
-* `order_ring_equiv` : A monotone equivalence `f` between two `ordered_semiring`s.
+* `order_ring_hom` : Monotone semiring homomorphisms.
+* `order_ring_iso` : Monotone semiring isomorphisms.
 
 ## Notation
 
@@ -50,15 +50,15 @@ infix ` →+*o `:25 := order_ring_hom
 /-- An equivalence between two (semi)rings that preserves the order. -/
 /-- `order_ring_hom α β` is the type of order-preserving semiring isomorphisms between `α` and `β`.
 
-When possible, instead of parametrizing results over `(f : order_ring_equiv α β)`,
-you should parametrize over `(F : Type*) [order_ring_equiv_class F α β] (f : F)`.
+When possible, instead of parametrizing results over `(f : order_ring_iso α β)`,
+you should parametrize over `(F : Type*) [order_ring_iso_class F α β] (f : F)`.
 
-When you extend this structure, make sure to extend `order_ring_equiv_class`. -/
-structure order_ring_equiv (α β : Type*) [has_mul α] [has_add α] [has_le α] [has_mul β] [has_add β]
+When you extend this structure, make sure to extend `order_ring_iso_class`. -/
+structure order_ring_iso (α β : Type*) [has_mul α] [has_add α] [has_le α] [has_mul β] [has_add β]
   [has_le β] extends α ≃+* β :=
 (map_le_map_iff' {a b : α} : to_fun a ≤ to_fun b ↔ a ≤ b)
 
-infix ` ≃+*o `:25 := order_ring_equiv
+infix ` ≃+*o `:25 := order_ring_iso
 
 /-- `order_ring_hom_class F α β` states that `F` is a type of ordered semiring homomorphisms.
 You should extend this typeclass when you extend `order_ring_hom`. -/
@@ -66,9 +66,9 @@ class order_ring_hom_class (F : Type*) (α β : out_param $ Type*) [non_assoc_se
   [non_assoc_semiring β] [preorder β] extends ring_hom_class F α β :=
 (monotone (f : F) : monotone f)
 
-/-- `order_ring_equiv_class F α β` states that `F` is a type of ordered semiring isomorphisms.
-You should extend this class when you extend `order_ring_equiv`. -/
-class order_ring_equiv_class (F : Type*) (α β : out_param Type*) [has_mul α] [has_add α] [has_le α]
+/-- `order_ring_iso_class F α β` states that `F` is a type of ordered semiring isomorphisms.
+You should extend this class when you extend `order_ring_iso`. -/
+class order_ring_iso_class (F : Type*) (α β : out_param Type*) [has_mul α] [has_add α] [has_le α]
   [has_mul β] [has_add β] [has_le β]
   extends ring_equiv_class F α β :=
 (map_le_map_iff (f : F) {a b : α} : f a ≤ f b ↔ a ≤ b)
@@ -86,16 +86,16 @@ instance order_ring_hom_class.to_order_monoid_with_zero_hom_class [non_assoc_sem
 { .. ‹order_ring_hom_class F α β› }
 
 @[priority 100] -- See note [lower instance priority]
-instance order_ring_equiv_class.to_order_iso_class [has_mul α] [has_add α] [has_le α] [has_mul β]
-  [has_add β] [has_le β] [order_ring_equiv_class F α β] :
+instance order_ring_iso_class.to_order_iso_class [has_mul α] [has_add α] [has_le α] [has_mul β]
+  [has_add β] [has_le β] [order_ring_iso_class F α β] :
   order_iso_class F α β :=
-{ ..‹order_ring_equiv_class F α β› }
+{ ..‹order_ring_iso_class F α β› }
 
 @[priority 100] -- See note [lower instance priority]
-instance order_ring_equiv_class.to_order_ring_hom_class [non_assoc_semiring α] [preorder α]
-  [non_assoc_semiring β] [preorder β] [order_ring_equiv_class F α β] :
+instance order_ring_iso_class.to_order_ring_hom_class [non_assoc_semiring α] [preorder α]
+  [non_assoc_semiring β] [preorder β] [order_ring_iso_class F α β] :
   order_ring_hom_class F α β :=
-{ monotone := λ f, order_hom_class.mono f, ..‹order_ring_equiv_class F α β› }
+{ monotone := λ f, order_hom_class.mono f, ..‹order_ring_iso_class F α β› }
 
 instance [non_assoc_semiring α] [preorder α] [non_assoc_semiring β] [preorder β]
   [order_ring_hom_class F α β] :
@@ -103,7 +103,7 @@ instance [non_assoc_semiring α] [preorder α] [non_assoc_semiring β] [preorder
 ⟨λ f, ⟨f, order_hom_class.mono f⟩⟩
 
 instance [has_mul α] [has_add α] [has_le α] [has_mul β] [has_add β] [has_le β]
-  [order_ring_equiv_class F α β] :
+  [order_ring_iso_class F α β] :
   has_coe_t F (α ≃+*o β) :=
 ⟨λ f, ⟨f, λ a b, (map_le_map_iff f).2⟩⟩
 
@@ -208,7 +208,7 @@ end order_ring_hom
 
 /-! ### Ordered ring isomorphisms -/
 
-namespace order_ring_equiv
+namespace order_ring_iso
 section has_le
 variables [has_mul α] [has_add α] [has_le α] [has_mul β] [has_add β] [has_le β] [has_mul γ]
   [has_add γ] [has_le γ] [has_mul δ] [has_add δ] [has_le δ]
@@ -216,7 +216,7 @@ variables [has_mul α] [has_add α] [has_le α] [has_mul β] [has_add β] [has_l
 /-- Reinterpret an ordered ring isomorphism as an order isomorphism. -/
 def to_order_iso (f : α ≃+*o β) : α ≃o β := ⟨f.to_ring_equiv.to_equiv, f.map_le_map_iff'⟩
 
-instance : order_ring_equiv_class (α ≃+*o β) α β :=
+instance : order_ring_iso_class (α ≃+*o β) α β :=
 { coe := λ f, f.to_fun,
   inv := λ f, f.inv_fun,
   coe_injective' := λ f g h₁ h₂, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
@@ -249,11 +249,11 @@ variable (α)
 /-- The identity map as a ring isomorphism. -/
 @[refl] protected def refl : α ≃+*o α := ⟨ring_equiv.refl α, λ _ _, iff.rfl⟩
 
-instance : inhabited (α ≃+*o α) := ⟨order_ring_equiv.refl α⟩
+instance : inhabited (α ≃+*o α) := ⟨order_ring_iso.refl α⟩
 
-@[simp] lemma refl_apply (x : α) : order_ring_equiv.refl α x = x := rfl
-@[simp] lemma coe_ring_equiv_refl : (order_ring_equiv.refl α : α ≃+* α) = ring_equiv.refl α := rfl
-@[simp] lemma coe_order_iso_refl : (order_ring_equiv.refl α : α ≃o α) = order_iso.refl α := rfl
+@[simp] lemma refl_apply (x : α) : order_ring_iso.refl α x = x := rfl
+@[simp] lemma coe_ring_equiv_refl : (order_ring_iso.refl α : α ≃+* α) = ring_equiv.refl α := rfl
+@[simp] lemma coe_order_iso_refl : (order_ring_iso.refl α : α ≃o α) = order_iso.refl α := rfl
 
 variables {α}
 
@@ -267,15 +267,15 @@ def simps.symm_apply (e : α ≃+*o β) : β → α := e.symm
 
 @[simp] lemma symm_symm (e : α ≃+*o β) : e.symm.symm = e := ext $ λ _, rfl
 
-/-- Composition of `order_ring_equiv`s as an `order_ring_equiv`. -/
+/-- Composition of `order_ring_iso`s as an `order_ring_iso`. -/
 @[trans, simps] protected def trans (f : α ≃+*o β) (g : β ≃+*o γ) : α ≃+*o γ :=
 ⟨f.to_ring_equiv.trans g.to_ring_equiv, λ a b, (map_le_map_iff g).trans (map_le_map_iff f)⟩
 
 @[simp] lemma trans_apply (f : α ≃+*o β) (g : β ≃+*o γ) (a : α) : f.trans g a = g (f a) := rfl
 
-@[simp] lemma self_trans_symm (e : α ≃+*o β) : e.trans e.symm = order_ring_equiv.refl α :=
+@[simp] lemma self_trans_symm (e : α ≃+*o β) : e.trans e.symm = order_ring_iso.refl α :=
 ext e.left_inv
-@[simp] lemma symm_trans_self (e : α ≃+*o β) : e.symm.trans e = order_ring_equiv.refl β :=
+@[simp] lemma symm_trans_self (e : α ≃+*o β) : e.symm.trans e = order_ring_iso.refl β :=
 ext e.right_inv
 
 end has_le
@@ -293,7 +293,7 @@ lemma to_order_ring_hom_eq_coe (f : α ≃+*o β) : f.to_order_ring_hom = f := r
 @[simp, norm_cast] lemma coe_to_order_ring_hom (f : α ≃+*o β) : ⇑(f : α →+*o β) = f := rfl
 
 @[simp]
-lemma coe_to_order_ring_hom_refl : (order_ring_equiv.refl α : α →+*o α) = order_ring_hom.id α := rfl
+lemma coe_to_order_ring_hom_refl : (order_ring_iso.refl α : α →+*o α) = order_ring_hom.id α := rfl
 
 end non_assoc_semiring
-end order_ring_equiv
+end order_ring_iso

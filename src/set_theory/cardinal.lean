@@ -1364,6 +1364,23 @@ begin
   apply exists_congr, intro t, rw [mk_image_eq], apply subtype.val_injective
 end
 
+lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
+  ∃ (z : α), z ≠ x ∧ z ≠ y :=
+begin
+  have : ((3:nat) : cardinal) ≤ # α, simpa using h,
+  obtain ⟨s', hs'⟩  := le_mk_iff_exists_set.mp this,
+  obtain ⟨s, rfl, hs⟩ := mk_eq_nat_iff_finset.mp hs',
+
+  have := calc
+    0   < 1 : by simp
+    ... = (s.card - 1) - 1 : by simp [ hs ]
+    ... ≤ (s.erase y).card - 1 : nat.sub_le_sub_right finset.pred_card_le_card_erase 1
+    ... ≤ ((s.erase y).erase x).card : finset.pred_card_le_card_erase,
+  obtain ⟨z, hz⟩ := finset.card_pos.mp this,
+  simp only [finset.mem_erase] at hz,
+  exact ⟨z, hz.1, hz.2.1⟩,
+end
+
 /-- The function α^{<β}, defined to be sup_{γ < β} α^γ.
   We index over {s : set β.out // #s < β } instead of {γ // γ < β}, because the latter lives in a
   higher universe -/

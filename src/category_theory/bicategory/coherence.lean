@@ -111,11 +111,6 @@ begin
   all_goals { funext, refl }
 end
 
-/- should be moved to eq_to_hom -/
-lemma family_congr {ι C : Type*} [category C] {o₁ o₂ : ι → C} (m : ∀ i, o₁ i ⟶ o₂ i)
-  {i j : ι} (h : i = j) : m i = eq_to_hom (by rw h) ≫ m j ≫ eq_to_hom (by rw h) :=
-by { subst h, apply eq_conj_eq_to_hom }
-
 lemma normalize_naturality {a b c : B} (p : path a b) {f g : hom b c} (η : f ⟶ g) :
   ((preinclusion B).map p ◁ η) ≫ (normalize_iso p g).hom =
   (normalize_iso p f).hom ≫ eq_to_hom (by {rcases η, rw normalize_hom_congr p η}) :=
@@ -132,7 +127,7 @@ begin
   case whisker_right : _ _ _ _ _ h η ih
   { dsimp, slice_lhs 1 2 { rw associator_inv_naturality_middle },
     slice_lhs 2 3 { erw [←bicategory.whisker_right_comp, ih, bicategory.whisker_right_comp] },
-    have := family_congr (λ x, (normalize_iso x h).hom) (normalize_hom_congr p η),
+    have := dcongr_arg (λ x, (normalize_iso x h).hom) (normalize_hom_congr p η),
     dsimp at this, simpa [this] },
   case associator
   { erw comp_id, dsimp,

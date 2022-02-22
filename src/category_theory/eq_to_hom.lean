@@ -163,8 +163,8 @@ lemma eq_conj_eq_to_hom {X Y : C} (f : X ⟶ Y) :
   f = eq_to_hom rfl ≫ f ≫ eq_to_hom rfl :=
 by simp only [category.id_comp, eq_to_hom_refl, category.comp_id]
 
-lemma dcongr_arg {ι C : Type*} [category C] {o₁ o₂ : ι → C} (m : ∀ i, o₁ i ⟶ o₂ i)
-  {i j : ι} (h : i = j) : m i = eq_to_hom (by rw h) ≫ m j ≫ eq_to_hom (by rw h) :=
+lemma dcongr_arg {ι : Type*} {o₁ o₂ : ι → C} (m : ∀ i, o₁ i ⟶ o₂ i) {i j : ι} (h : i = j) :
+  m i = eq_to_hom (by rw h) ≫ m j ≫ eq_to_hom (by rw h) :=
 by { subst h, apply eq_conj_eq_to_hom }
 
 lemma dcongr_fun {ι : Type*} {c₁ c₂ : ι → C} {d₁ d₂ : ι → D}

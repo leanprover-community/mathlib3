@@ -63,8 +63,8 @@ begin
   rw [eq_comm, h]
 end
 
-@[simp] lemma map_const (φ : M ↪ₑ[L] N) (c : L.const) : φ c = c :=
-(φ.map_fun c default).trans fun_map_eq_coe_const
+@[simp] lemma map_constants (φ : M ↪ₑ[L] N) (c : L.constants) : φ c = c :=
+(φ.map_fun c default).trans fun_map_eq_coe_constants
 
 @[simp] lemma map_rel (φ : M ↪ₑ[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
   rel_map r (φ ∘ x) ↔ rel_map r x :=

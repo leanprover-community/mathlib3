@@ -25,9 +25,9 @@ open_locale big_operators pointwise direct_sum
 
 section homogeneous_def
 
-variables {ι R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
+variables {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
-variables [decidable_eq ι] [add_comm_monoid ι]  [graded_algebra 𝒜]
+variables [decidable_eq ι] [add_monoid ι] [graded_algebra 𝒜]
 variable (I : ideal A)
 
 /--An `I : ideal R` is homogeneous if for every `r ∈ I`, all homogeneous components

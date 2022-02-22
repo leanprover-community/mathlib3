@@ -168,22 +168,29 @@ end
 
 /-- The vector given in euclidean space by being `1 : 𝕜` at coordinate `i : ι` and `0 : 𝕜` at
 all other coordinates. -/
-def euclidean_space.single [decidable_eq ι] (i : ι) (a : 𝕜) :
+def euclidean_space.single (i : ι) (a : 𝕜) :
   euclidean_space 𝕜 ι :=
-pi.single i a
+by classical; exact pi.single i a
 
 @[simp] theorem euclidean_space.single_apply [decidable_eq ι] (i : ι) (a : 𝕜) (j : ι) :
   (euclidean_space.single i a) j = ite (j = i) a 0 :=
-by { rw [euclidean_space.single, ← pi.single_apply i a j] }
+begin
+  classical,
+  simp_rw [euclidean_space.single, pi.single, function.update],
+  simp only [dite_eq_ite, eq_rec_constant, pi.zero_apply, dif_ctx_congr],
+  split_ifs,
+  exact rfl,
+  exact rfl
+end
 
-lemma euclidean_space.inner_single_left [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
+lemma euclidean_space.inner_single_left (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=
-by simp [apply_ite conj]
+by {classical, simp [apply_ite conj]}
 
-lemma euclidean_space.inner_single_right [decidable_eq ι] (i : ι) (a : 𝕜)
+lemma euclidean_space.inner_single_right (i : ι) (a : 𝕜)
   (v : euclidean_space 𝕜 ι) :
   ⟪v, euclidean_space.single i (a : 𝕜)⟫ =  a * conj (v i) :=
-by simp [apply_ite conj, mul_comm]
+by {classical, simp [apply_ite conj, mul_comm]}
 
 variables (ι 𝕜 E)
 
@@ -196,29 +203,30 @@ variables {ι 𝕜 E}
 namespace orthonormal_basis
 
 instance : inhabited (orthonormal_basis ι 𝕜 (euclidean_space 𝕜 ι)) :=
-⟨of_repr (linear_isometry_equiv.refl 𝕜 (euclidean_space 𝕜 ι))⟩
+⟨orthonormal_basis.of_repr (linear_isometry_equiv.refl 𝕜 (euclidean_space 𝕜 ι))⟩
 
 /-- `b i` is the `i`th basis vector. -/
 instance : has_coe_to_fun (orthonormal_basis ι 𝕜 E) (λ _, ι → E) :=
-{ coe := λ b i, by classical; exact b.repr.symm (euclidean_space.single i (1 : 𝕜)) }
+{ coe := λ (b : orthonormal_basis ι 𝕜 E) (i : ι),
+by classical; exact b.repr.symm (euclidean_space.single i (1 : 𝕜)) }
 
-@[simp] lemma coe_of_repr [decidable_eq ι] (e : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι) :
-  ⇑(of_repr e) = λ i, e.symm (euclidean_space.single i (1 : 𝕜)) :=
-begin
-  sorry,
-end
+@[simp] lemma coe_of_repr (e : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι) :
+  ⇑(orthonormal_basis.of_repr e) = λ i, e.symm (euclidean_space.single i (1 : 𝕜)) :=
+rfl
 
-@[simp] protected lemma repr_symm_single [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
+@[simp] protected lemma repr_symm_single (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr.symm (euclidean_space.single i (1:𝕜)) = b i :=
-by { classical, congr, simp, }
+by { classical, congr}
+
+@[simp] protected lemma repr_symm_single' [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
+  b.repr.symm (pi.single i (1:𝕜)) = b i :=
+by { classical, congr}
 
 @[simp] protected lemma repr_self [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr (b i) = euclidean_space.single i (1:𝕜) :=
 begin
   classical,
   rw [← b.repr_symm_single i, linear_isometry_equiv.apply_symm_apply],
-  congr,
-  simp,
 end
 
 protected lemma repr_apply_apply (b : orthonormal_basis ι 𝕜 E) (v : E) (i : ι) :
@@ -228,7 +236,6 @@ begin
   rw [← b.repr.inner_map_map (b i) v, b.repr_self i, euclidean_space.inner_single_left],
   simp only [one_mul, eq_self_iff_true, map_one],
 end
-
 
 @[simp]
 protected lemma orthonormal (b : orthonormal_basis ι 𝕜 E) : orthonormal 𝕜 b :=
@@ -350,16 +357,30 @@ orthonormal_basis.of_repr (b.repr.trans (linear_isometry_equiv.Pi_congr_left e))
   b.reindex e i' = b (e.symm i') :=
 begin
   classical,
-  simp only [reindex],
-  rw orthonormal_basis.coe_of_repr,
--- show (b.repr.trans (linear_isometry_equiv.Pi_congr_left e)).symm (euclidean_space.single i' 1) =
---   b.repr.symm (euclidean_space.single (e.symm i') 1),
-  rw linear_isometry_equiv.symm_trans_apply,
+  change (b.repr.trans (linear_isometry_equiv.Pi_congr_left e)).symm (euclidean_space.single i' 1) =
+  b.repr.symm (euclidean_space.single (e.symm i') 1),
+  rw [linear_isometry_equiv.symm_trans_apply, linear_isometry_equiv.Pi_congr_left_symm],
+  rw [euclidean_space.single],
+  simp only [orthonormal_basis.repr_symm_single, linear_isometry_equiv.Pi_congr_left_single],
+  rw b.repr_symm_single',
 end
 
 @[simp] protected lemma coe_reindex (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') :
   ⇑(b.reindex e) = ⇑b ∘ ⇑(e.symm) :=
+funext (b.reindex_apply e)
 
+@[simp] protected lemma reindex_repr
+  (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (x : E) (i' : ι') :
+  ((b.reindex e).repr x) i' = (b.repr x) (e.symm i') :=
+by rw [orthonormal_basis.repr_apply_apply, b.repr_apply_apply, orthonormal_basis.coe_reindex]
+
+protected lemma coe_reindex_repr
+  (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (x : E) (i' : ι') :
+  ((b.reindex e).repr x) = (id(b.repr x) : ι → 𝕜) ∘ (e.symm) :=
+begin
+  funext i,
+  rw [b.reindex_repr, function.comp_app, id.def],
+end
 
 end orthonormal_basis
 

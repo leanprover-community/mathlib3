@@ -44,16 +44,13 @@ initial segment (or, equivalently, in any way). This total order is well founded
   we only introduce it and prove its basic properties to deduce the fact that the order on ordinals
   is total (and well founded).
 * `succ o` is the successor of the ordinal `o`.
-
 * `ordinal.min`: the minimal element of a nonempty indexed family of ordinals
-* `ordinal.omin` : the minimal element of a nonempty set of ordinals
-
 * `cardinal.ord c`: when `c` is a cardinal, `ord c` is the smallest ordinal with this cardinality.
   It is the canonical way to represent a cardinal with an ordinal.
 
 A conditionally complete linear order with bot structure is registered on ordinals, where `⊥` is
-`0`, the ordinal corresponding to the empty type, and `Inf` is `ordinal.omin` for nonempty sets
-and `0` for the empty set by convention.
+`0`, the ordinal corresponding to the empty type, and `Inf` is the minimum for nonempty sets and `0`
+for the empty set by convention.
 
 ## Notations
 * `r ≼i s`: the type of initial segment embeddings of `r` into `s`.

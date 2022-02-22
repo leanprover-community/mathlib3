@@ -36,7 +36,7 @@ variables (L) {α : Type} [fintype α]
 /-- A subset of a finite Cartesian product of a structure is definable when membership in
   the set is given by a first-order formula. -/
 structure is_definable (s : set (α → M)) : Prop :=
-(exists_formula : ∃ (φ : L.formula α), s = set_of (realize_formula M φ))
+(exists_formula : ∃ (φ : L.formula α), s = set_of φ.realize)
 
 variables {L}
 
@@ -76,7 +76,7 @@ lemma is_definable.compl {s : set (α → M)} (hf : L.is_definable s) :
   L.is_definable sᶜ :=
 ⟨begin
   rcases hf.exists_formula with ⟨φ, hφ⟩,
-  refine ⟨bd_not φ, _⟩,
+  refine ⟨φ.not, _⟩,
   rw hφ,
   refl,
 end⟩

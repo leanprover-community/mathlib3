@@ -223,6 +223,14 @@ begin
   simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply] using hμs,
 end
 
+lemma integrable_on_iff_integable_of_support_subset {f : α → E} {s : set α}
+  (h1s : support f ⊆ s) (h2s : measurable_set s) :
+  integrable_on f s μ ↔ integrable f μ :=
+begin
+  refine ⟨λ h, _, λ h, h.integrable_on⟩,
+  rwa [← indicator_eq_self.2 h1s, integrable_indicator_iff h2s]
+end
+
 lemma integrable_on_Lp_of_measure_ne_top {E} [normed_group E] [measurable_space E] [borel_space E]
   [second_countable_topology E] {p : ℝ≥0∞} {s : set α} (f : Lp E p μ) (hp : 1 ≤ p) (hμs : μ s ≠ ∞) :
   integrable_on f s μ :=

@@ -119,17 +119,17 @@ begin
   simp [polynomial.C_eq_algebra_map],
 end
 
+-- these used to be about `algebra_map ℤ R`, but now the simp-normal form is `int.cast_ring_hom R`.
 @[simp]
-lemma ring_hom_eval₂_algebra_map_int {R S : Type*} [ring R] [ring S]
+lemma ring_hom_eval₂_cast_int_ring_hom {R S : Type*} [ring R] [ring S]
   (p : polynomial ℤ) (f : R →+* S) (r : R) :
-  f (eval₂ (algebra_map ℤ R) r p) = eval₂ (algebra_map ℤ S) (f r) p :=
+  f (eval₂ (int.cast_ring_hom R) r p) = eval₂ (int.cast_ring_hom S) (f r) p :=
 alg_hom_eval₂_algebra_map p f.to_int_alg_hom r
 
 @[simp]
-lemma eval₂_algebra_map_int_X {R : Type*} [ring R] (p : polynomial ℤ) (f : polynomial ℤ →+* R) :
-  eval₂ (algebra_map ℤ R) (f X) p = f p :=
--- Unfortunately `f.to_int_alg_hom` doesn't work here, as typeclasses don't match up correctly.
-eval₂_algebra_map_X p { commutes' := λ n, by simp, .. f }
+lemma eval₂_int_cast_ring_hom_X {R : Type*} [ring R] (p : polynomial ℤ) (f : polynomial ℤ →+* R) :
+  eval₂ (int.cast_ring_hom R) (f X) p = f p :=
+eval₂_algebra_map_X p f.to_int_alg_hom
 
 end comm_semiring
 
@@ -189,7 +189,7 @@ alg_hom.map_bit0 _ _
 alg_hom.map_bit1 _ _
 
 @[simp] lemma aeval_nat_cast (n : ℕ) : aeval x (n : polynomial R) = n :=
-alg_hom.map_nat_cast _ _
+map_nat_cast _ _
 
 lemma aeval_mul : aeval x (p * q) = aeval x p * aeval x q :=
 alg_hom.map_mul _ _ _

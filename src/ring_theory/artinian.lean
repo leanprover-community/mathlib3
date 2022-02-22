@@ -201,12 +201,12 @@ set_has_minimal_iff_artinian.mpr ‹_› a ha
 
 /-- A module is Artinian iff every decreasing chain of submodules stabilizes. -/
 theorem monotone_stabilizes_iff_artinian :
-  (∀ (f : ℕ →ₘ order_dual (submodule R M)), ∃ n, ∀ m, n ≤ m → f n = f m)
+  (∀ (f : ℕ →o order_dual (submodule R M)), ∃ n, ∀ m, n ≤ m → f n = f m)
     ↔ is_artinian R M :=
 by rw [is_artinian_iff_well_founded];
   exact (well_founded.monotone_chain_condition (order_dual (submodule R M))).symm
 
-theorem is_artinian.monotone_stabilizes [is_artinian R M] (f : ℕ →ₘ order_dual (submodule R M)) :
+theorem is_artinian.monotone_stabilizes [is_artinian R M] (f : ℕ →o order_dual (submodule R M)) :
   ∃ n, ∀ m, n ≤ m → f n = f m :=
 monotone_stabilizes_iff_artinian.mpr ‹_› f
 
@@ -399,7 +399,7 @@ variables {R : Type*} [comm_ring R] [is_artinian_ring R]
 lemma is_nilpotent_jacobson_bot : is_nilpotent (ideal.jacobson (⊥ : ideal R)) :=
 begin
   let Jac := ideal.jacobson (⊥ : ideal R),
-  let f : ℕ →ₘ order_dual (ideal R) := ⟨λ n, Jac ^ n, λ _ _ h, ideal.pow_le_pow h⟩,
+  let f : ℕ →o order_dual (ideal R) := ⟨λ n, Jac ^ n, λ _ _ h, ideal.pow_le_pow h⟩,
   obtain ⟨n, hn⟩ : ∃ n, ∀ m, n ≤ m → Jac ^ n = Jac ^ m := is_artinian.monotone_stabilizes f,
   refine ⟨n, _⟩,
   let J : ideal R := annihilator (Jac ^ n),

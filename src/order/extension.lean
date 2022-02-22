@@ -86,4 +86,4 @@ def to_linear_extension {α : Type u} [partial_order α] :
   map_rel' := λ a b, (extend_partial_order ((≤) : α → α → Prop)).some_spec.some_spec _ _ }
 
 instance {α : Type u} [inhabited α] : inhabited (linear_extension α) :=
-⟨(default _ : α)⟩
+⟨(default : α)⟩

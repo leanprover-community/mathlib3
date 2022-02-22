@@ -528,41 +528,42 @@ theorem eq_of_xn_modeq_lem3 {i n} (npos : 0 < n) :
       rw [nat.sub_succ],
       exact nat.pred_lt (ne_of_gt $ tsub_pos_of_lt j2n) })
 
-theorem eq_of_xn_modeq_le {i j n} (npos : 0 < n) (ij : i ≤ j) (j2n : j ≤ 2 * n)
+theorem eq_of_xn_modeq_le {i j n} (ij : i ≤ j) (j2n : j ≤ 2 * n)
   (h : xn i ≡ xn j [MOD xn n]) (ntriv : ¬(a = 2 ∧ n = 1 ∧ i = 0 ∧ j = 2)) : i = j :=
+if npos : n = 0 then by simp [*] at * else
 (lt_or_eq_of_le ij).resolve_left $ λij',
 if jn : j = n then by
 { refine ne_of_gt _ h,
   rw [jn, nat.mod_self],
-  have x0 : 0 < xn a1 0 % xn a1 n := by rw [nat.mod_eq_of_lt (strict_mono_x a1 npos)];
-    exact dec_trivial,
+  have x0 : 0 < xn a1 0 % xn a1 n :=
+    by rw [nat.mod_eq_of_lt (strict_mono_x a1 (nat.pos_of_ne_zero npos))]; exact dec_trivial,
   cases i with i, exact x0,
   rw jn at ij',
-  exact x0.trans (eq_of_xn_modeq_lem3 _ npos (nat.succ_pos _) (le_trans ij j2n) (ne_of_lt ij') $
+  exact x0.trans (eq_of_xn_modeq_lem3 _ (nat.pos_of_ne_zero npos) (nat.succ_pos _)
+    (le_trans ij j2n) (ne_of_lt ij') $
     λ⟨a1, n1, _, i2⟩, by rw [n1, i2] at ij'; exact absurd ij' dec_trivial) }
-else ne_of_lt (eq_of_xn_modeq_lem3 npos ij' j2n jn ntriv) h
+else ne_of_lt (eq_of_xn_modeq_lem3 (nat.pos_of_ne_zero npos) ij' j2n jn ntriv) h
 
-theorem eq_of_xn_modeq {i j n} (npos : 0 < n) (i2n : i ≤ 2 * n) (j2n : j ≤ 2 * n)
+theorem eq_of_xn_modeq {i j n} (i2n : i ≤ 2 * n) (j2n : j ≤ 2 * n)
   (h : xn i ≡ xn j [MOD xn n]) (ntriv : a = 2 → n = 1 → (i = 0 → j ≠ 2) ∧ (i = 2 → j ≠ 0)) :
   i = j :=
 (le_total i j).elim
-  (λij, eq_of_xn_modeq_le npos ij j2n h $ λ⟨a2, n1, i0, j2⟩, (ntriv a2 n1).left i0 j2)
-  (λij, (eq_of_xn_modeq_le npos ij i2n h.symm $ λ⟨a2, n1, j0, i2⟩,
+  (λij, eq_of_xn_modeq_le ij j2n h $ λ⟨a2, n1, i0, j2⟩, (ntriv a2 n1).left i0 j2)
+  (λij, (eq_of_xn_modeq_le ij i2n h.symm $ λ⟨a2, n1, j0, i2⟩,
     (ntriv a2 n1).right i2 j0).symm)
 
 theorem eq_of_xn_modeq' {i j n} (ipos : 0 < i) (hin : i ≤ n) (j4n : j ≤ 4 * n)
   (h : xn j ≡ xn i [MOD xn n]) : j = i ∨ j + i = 4 * n :=
 have i2n : i ≤ 2*n, by apply le_trans hin; rw two_mul; apply nat.le_add_left,
-have npos : 0 < n, from lt_of_lt_of_le ipos hin,
 (le_or_gt j (2 * n)).imp
-  (λj2n : j ≤ 2 * n, eq_of_xn_modeq npos j2n i2n h $
+  (λj2n : j ≤ 2 * n, eq_of_xn_modeq j2n i2n h $
     λa2 n1, ⟨λj0 i2, by rw [n1, i2] at hin; exact absurd hin dec_trivial,
               λj2 i0, ne_of_gt ipos i0⟩)
   (λj2n : 2 * n < j, suffices i = 4*n - j, by rw [this, add_tsub_cancel_of_le j4n],
     have j42n : 4*n - j ≤ 2*n, from @nat.le_of_add_le_add_right j _ _ $
     by rw [tsub_add_cancel_of_le j4n, show 4*n = 2*n + 2*n, from right_distrib 2 2 n];
       exact nat.add_le_add_left (le_of_lt j2n) _,
-    eq_of_xn_modeq npos i2n j42n
+    eq_of_xn_modeq i2n j42n
       (h.symm.trans $ let t := xn_modeq_x4n_sub j42n in by rwa [tsub_tsub_cancel_of_le j4n] at t)
       (λa2 n1, ⟨λi0, absurd i0 (ne_of_gt ipos), λi2, by { rw [n1, i2] at hin,
         exact absurd hin dec_trivial }⟩))

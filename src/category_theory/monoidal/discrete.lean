@@ -23,9 +23,11 @@ variables (M : Type u) [monoid M]
 
 namespace category_theory
 
+@[to_additive]
 instance monoid_discrete : monoid (discrete M) := by { dsimp [discrete], apply_instance }
 
-instance : monoidal_category (discrete M) :=
+@[to_additive discrete.add_monoidal]
+instance discrete.monoidal : monoidal_category (discrete M) :=
 { tensor_unit := 1,
   tensor_obj := λ X Y, X * Y,
   tensor_hom := λ W X Y Z f g, eq_to_hom (by rw [eq_of_hom f, eq_of_hom g]),
@@ -39,7 +41,8 @@ variables {M} {N : Type u} [monoid N]
 A multiplicative morphism between monoids gives a monoidal functor between the corresponding
 discrete monoidal categories.
 -/
-@[simps]
+@[to_additive dicrete.add_monoidal_functor "An additive morphism between add_monoids gives a
+  monoidal functor between the corresponding discrete monoidal categories.", simps]
 def discrete.monoidal_functor (F : M →* N) : monoidal_functor (discrete M) (discrete N) :=
 { obj := F,
   map := λ X Y f, eq_to_hom (F.congr_arg (eq_of_hom f)),
@@ -51,6 +54,8 @@ variables {K : Type u} [monoid K]
 /--
 The monoidal natural isomorphism corresponding to composing two multiplicative morphisms.
 -/
+@[to_additive dicrete.add_monoidal_functor_comp "The monoidal natural isomorphism corresponding to
+composing two additive morphisms."]
 def discrete.monoidal_functor_comp (F : M →* N) (G : N →* K) :
   discrete.monoidal_functor F ⊗⋙ discrete.monoidal_functor G ≅
   discrete.monoidal_functor (G.comp F) :=

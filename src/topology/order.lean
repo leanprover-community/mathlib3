@@ -112,6 +112,20 @@ begin
     exact (n a).sets_of_superset (ht _ hat) hts },
 end
 
+lemma nhds_mk_of_nhds_filter_basis (B : α → filter_basis α) (a : α) (h₀ : ∀ x (n ∈ B x), x ∈ n)
+  (h₁ : ∀ x (n ∈ B x), ∃ n₁ ∈ B x, n₁ ⊆ n ∧ ∀ x' ∈ n₁, ∃ n₂ ∈ B x', n₂ ⊆ n) :
+  @nhds α (topological_space.mk_of_nhds (λ x, (B x).filter)) a = (B a).filter :=
+begin
+  rw topological_space.nhds_mk_of_nhds;
+  intros x n hn;
+  obtain ⟨m, hm₁, hm₂⟩ := (B x).mem_filter_iff.mp hn,
+  { exact hm₂ (h₀ _ _ hm₁), },
+  { obtain ⟨n₁, hn₁, hn₂, hn₃⟩ := h₁ x m hm₁,
+    refine ⟨n₁, (B x).mem_filter_of_mem hn₁, hn₂.trans hm₂, λ x' hx', (B x').mem_filter_iff.mp _⟩,
+    obtain ⟨n₂, hn₄, hn₅⟩ := hn₃ x' hx',
+    exact ⟨n₂, hn₄, hn₅.trans hm₂⟩, },
+end
+
 end topological_space
 
 section lattice
@@ -465,7 +479,7 @@ end
 
 /-- This construction is left adjoint to the operation sending a topology on `α`
   to its neighborhood filter at a fixed point `a : α`. -/
-protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topological_space α :=
+def nhds_adjoint (a : α) (f : filter α) : topological_space α :=
 { is_open        := λs, a ∈ s → s ∈ f,
   is_open_univ   := assume s, univ_mem,
   is_open_inter  := assume s t hs ht ⟨has, hat⟩, inter_mem (hs has) (ht hat),
@@ -473,11 +487,74 @@ protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topologi
     (subset_sUnion_of_mem hu) }
 
 lemma gc_nhds (a : α) :
-  galois_connection  (topological_space.nhds_adjoint a) (λt, @nhds α t a) :=
+  galois_connection (nhds_adjoint a) (λt, @nhds α t a) :=
 assume f t, by { rw le_nhds_iff, exact ⟨λ H s hs has, H _ has hs, λ H s has hs, H _ hs has⟩ }
 
 lemma nhds_mono {t₁ t₂ : topological_space α} {a : α} (h : t₁ ≤ t₂) :
   @nhds α t₁ a ≤ @nhds α t₂ a := (gc_nhds a).monotone_u h
+
+lemma le_iff_nhds {α : Type*} (t t' : topological_space α) :
+  t ≤ t' ↔ ∀ x, @nhds α t x ≤ @nhds α t' x :=
+⟨λ h x, nhds_mono h, le_of_nhds_le_nhds⟩
+
+lemma nhds_adjoint_nhds {α : Type*} (a : α) (f : filter α) :
+  @nhds α (nhds_adjoint a f) a = pure a ⊔ f :=
+begin
+  ext U,
+  rw mem_nhds_iff,
+  split,
+  { rintros ⟨t, htU, ht, hat⟩,
+    exact ⟨htU hat, mem_of_superset (ht hat) htU⟩},
+  { rintros ⟨haU, hU⟩,
+    exact ⟨U, subset.rfl, λ h, hU, haU⟩ }
+end
+
+lemma nhds_adjoint_nhds_of_ne {α : Type*} (a : α) (f : filter α) {b : α} (h : b ≠ a) :
+  @nhds α (nhds_adjoint a f) b = pure b :=
+begin
+  apply le_antisymm,
+  { intros U hU,
+    rw mem_nhds_iff,
+    use {b},
+    simp only [and_true, singleton_subset_iff, mem_singleton],
+    refine ⟨hU, λ ha, (h.symm ha).elim⟩ },
+  { exact @pure_le_nhds α (nhds_adjoint a f) b },
+end
+
+lemma is_open_singleton_nhds_adjoint {α : Type*} {a b : α} (f : filter α) (hb : b ≠ a) :
+  @is_open α (nhds_adjoint a f) {b} :=
+begin
+  rw is_open_singleton_iff_nhds_eq_pure,
+  exact nhds_adjoint_nhds_of_ne a f hb
+end
+
+lemma le_nhds_adjoint_iff' {α : Type*} (a : α) (f : filter α) (t : topological_space α) :
+  t ≤ nhds_adjoint a f ↔ @nhds α t a ≤ pure a ⊔ f ∧ ∀ b ≠ a, @nhds α t b = pure b :=
+begin
+  rw le_iff_nhds,
+  split,
+  { intros h,
+    split,
+    { specialize h a,
+      rwa nhds_adjoint_nhds at h },
+    { intros b hb,
+      apply le_antisymm _ (pure_le_nhds b),
+      specialize h b,
+      rwa nhds_adjoint_nhds_of_ne a f hb at h } },
+  { rintros ⟨h, h'⟩ b,
+    by_cases hb : b = a,
+    { rwa [hb, nhds_adjoint_nhds] },
+    { simp [nhds_adjoint_nhds_of_ne a f hb, h' b hb] } }
+end
+
+lemma le_nhds_adjoint_iff {α : Type*} (a : α) (f : filter α) (t : topological_space α) :
+  t ≤ nhds_adjoint a f ↔ (@nhds α t a ≤ pure a ⊔ f ∧ ∀ b, b ≠ a → t.is_open {b}) :=
+begin
+  change _ ↔ _ ∧ ∀ (b : α), b ≠ a → is_open {b},
+  rw [le_nhds_adjoint_iff', and.congr_right_iff],
+  apply λ h, forall_congr (λ b,  _),
+  rw @is_open_singleton_iff_nhds_eq_pure α t b
+end
 
 lemma nhds_infi {ι : Sort*} {t : ι → topological_space α} {a : α} :
   @nhds α (infi t) a = (⨅i, @nhds α (t i) a) := (gc_nhds a).u_infi

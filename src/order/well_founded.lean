@@ -158,6 +158,14 @@ not_lt.mp $ not_lt_argmin f h a
   (hs : s.nonempty := set.nonempty_of_mem ha) : f (argmin_on f h s hs) ≤ f a :=
 not_lt.mp $ not_lt_argmin_on f h s ha hs
 
+include h
+theorem well_founded.self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
+begin
+  by_contra h',
+  push_neg at h',
+  exact h.not_lt_min _ h' (@hφ _ (h.min _ h') (h.min_mem _ h')) (h.min_mem _ h')
+end
+
 end linear_order
 
 end function

@@ -72,6 +72,12 @@ instance : has_zero ℚ := ⟨of_int 0⟩
 instance : has_one ℚ := ⟨of_int 1⟩
 instance : inhabited ℚ := ⟨0⟩
 
+lemma ext_iff {p q : ℚ} : p = q ↔ p.num = q.num ∧ p.denom = q.denom :=
+by { cases p, cases q, simp }
+
+@[ext] lemma ext {p q : ℚ} (hn : p.num = q.num) (hd : p.denom = q.denom) : p = q :=
+rat.ext_iff.mpr ⟨hn, hd⟩
+
 /-- Form the quotient `n / d` where `n:ℤ` and `d:ℕ+` (not necessarily coprime) -/
 def mk_pnat (n : ℤ) : ℕ+ → ℚ | ⟨d, dpos⟩ :=
 let n' := n.nat_abs, g := n'.gcd d in
@@ -302,6 +308,12 @@ begin
   have d0 := ne_of_gt (int.coe_nat_lt.2 h₁),
   apply (mk_eq d0 b0).2, have h₁ := (mk_eq b0 d0).1 ha,
   simp only [neg_mul_eq_neg_mul_symm, congr_arg has_neg.neg h₁]
+end
+
+@[simp] lemma mk_neg_denom (n d : ℤ) : n /. -d = -n /. d :=
+begin
+  by_cases hd : d = 0;
+  simp [rat.mk_eq, hd]
 end
 
 /-- Multiplication of rational numbers. Use `(*)` instead. -/
@@ -561,6 +573,28 @@ by cases d; refl
 theorem mk_pnat_denom (n : ℤ) (d : ℕ+) :
   (mk_pnat n d).denom = d / nat.gcd n.nat_abs d :=
 by cases d; refl
+
+lemma num_mk (n d : ℤ) :
+  (n /. d).num = d.sign * n / n.gcd d :=
+begin
+  rcases d with ((_ | _) | _),
+  { simp },
+  { simpa [←int.coe_nat_succ, int.sign_coe_nat_of_nonzero] },
+  { rw rat.mk,
+    simpa [rat.mk_pnat_num, int.neg_succ_of_nat_eq, ←int.coe_nat_succ,
+           int.sign_coe_nat_of_nonzero] }
+end
+
+lemma denom_mk (n d : ℤ) :
+  (n /. d).denom = if d = 0 then 1 else d.nat_abs / n.gcd d :=
+begin
+  rcases d with ((_ | _) | _),
+  { simp },
+  { simpa [←int.coe_nat_succ, int.sign_coe_nat_of_nonzero] },
+  { rw rat.mk,
+    simpa [rat.mk_pnat_denom, int.neg_succ_of_nat_eq, ←int.coe_nat_succ,
+           int.sign_coe_nat_of_nonzero] }
+end
 
 theorem mk_pnat_denom_dvd (n : ℤ) (d : ℕ+) :
   (mk_pnat n d).denom ∣ d.1 :=

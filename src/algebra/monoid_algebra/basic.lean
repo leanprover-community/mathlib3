@@ -218,12 +218,15 @@ section derived_instances
 instance [semiring k] [subsingleton k] : unique (monoid_algebra k G) :=
 finsupp.unique_of_right
 
-instance [ring k] : add_group (monoid_algebra k G) :=
-finsupp.add_group
+instance [ring k] : add_comm_group (monoid_algebra k G) :=
+finsupp.add_comm_group
+
+instance [ring k] [has_mul G] : non_unital_non_assoc_ring (monoid_algebra k G) :=
+{ .. monoid_algebra.add_comm_group,
+  .. monoid_algebra.non_unital_non_assoc_semiring }
 
 instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
-{ neg := has_neg.neg,
-  add_left_neg := add_left_neg,
+{ .. monoid_algebra.non_unital_non_assoc_ring,
   .. monoid_algebra.semiring }
 
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
@@ -358,8 +361,7 @@ have A : ∀ a₁ b₁, (single x r).sum (λ a₂ b₂, ite (a₁ * a₂ = z) (b
   ite (a₁ * x = z) (b₁ * r) 0,
 from λ a₁ b₁, sum_single_index $ by simp,
 calc (f * single x r) z = sum f (λ a b, if (a = y) then (b * r) else 0) :
-  -- different `decidable` instances make it not trivial
-  by { simp only [mul_apply, A, H], congr, funext, split_ifs; refl }
+  by simp only [mul_apply, A, H]
 ... = if y ∈ f.support then f y * r else 0 : f.support.sum_ite_eq' _ _
 ... = f y * r : by split_ifs with h; simp at h; simp [h]
 
@@ -386,8 +388,7 @@ lemma single_mul_apply_aux [has_mul G] (f : monoid_algebra k G) {r : k} {x y z :
 have f.sum (λ a b, ite (x * a = y) (0 * b) 0) = 0, by simp,
 calc (single x r * f) y = sum f (λ a b, ite (x * a = y) (r * b) 0) :
   (mul_apply _ _ _).trans $ sum_single_index this
-... = f.sum (λ a b, ite (a = z) (r * b) 0) :
-  by { simp only [H], congr' with g s, split_ifs; refl }
+... = f.sum (λ a b, ite (a = z) (r * b) 0) : by simp only [H]
 ... = if z ∈ f.support then (r * f z) else 0 : f.support.sum_ite_eq' _ _
 ... = _ : by split_ifs with h; simp at h; simp [h]
 
@@ -423,7 +424,7 @@ end misc_theorems
 /-! #### Non-unital, non-associative algebra structure -/
 section non_unital_non_assoc_algebra
 
-variables {R : Type*} (k) [semiring R] [semiring k] [distrib_mul_action R k] [has_mul G]
+variables {R : Type*} (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_mul G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (monoid_algebra k G) (monoid_algebra k G) :=
@@ -953,14 +954,15 @@ section derived_instances
 instance [semiring k] [subsingleton k] : unique (add_monoid_algebra k G) :=
 finsupp.unique_of_right
 
-instance [ring k] : add_group (add_monoid_algebra k G) :=
-finsupp.add_group
+instance [ring k] : add_comm_group (add_monoid_algebra k G) :=
+finsupp.add_comm_group
+
+instance [ring k] [has_add G] : non_unital_non_assoc_ring (add_monoid_algebra k G) :=
+{ .. add_monoid_algebra.add_comm_group,
+  .. add_monoid_algebra.non_unital_non_assoc_semiring }
 
 instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
-{ neg := has_neg.neg,
-  add_left_neg := add_left_neg,
-  sub := has_sub.sub,
-  sub_eq_add_neg := finsupp.add_group.sub_eq_add_neg,
+{ .. add_monoid_algebra.non_unital_non_assoc_ring,
   .. add_monoid_algebra.semiring }
 
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
@@ -1193,7 +1195,7 @@ variables {k G}
 
 section non_unital_non_assoc_algebra
 
-variables {R : Type*} (k) [semiring R] [semiring k] [distrib_mul_action R k] [has_add G]
+variables {R : Type*} (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_add G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (add_monoid_algebra k G) (add_monoid_algebra k G) :=

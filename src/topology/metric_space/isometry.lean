@@ -23,7 +23,7 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 open function set
-open_locale topological_space
+open_locale topological_space ennreal
 
 /-- An isometry (also known as isometric embedding) is a map preserving the edistance
 between pseudoemetric spaces, or equivalently the distance between pseudometric space.  -/
@@ -81,6 +81,11 @@ theorem isometry.uniform_inducing (hf : isometry f) :
   uniform_inducing f :=
 hf.antilipschitz.uniform_inducing hf.lipschitz.uniform_continuous
 
+lemma isometry.tendsto_nhds_iff {ι : Type*} {f : α → β}
+  {g : ι → α} {a : filter ι} {b : α} (hf : isometry f) :
+  filter.tendsto g a (𝓝 b) ↔ filter.tendsto (f ∘ g) a (𝓝 (f b)) :=
+hf.uniform_inducing.inducing.tendsto_nhds_iff
+
 /-- An isometry is continuous. -/
 lemma isometry.continuous (hf : isometry f) : continuous f :=
 hf.lipschitz.continuous
@@ -99,6 +104,14 @@ by simp only [emetric.diam_le_iff, ball_image_iff, hf.edist_eq]
 lemma isometry.ediam_range (hf : isometry f) :
   emetric.diam (range f) = emetric.diam (univ : set α) :=
 by { rw ← image_univ, exact hf.ediam_image univ }
+
+lemma isometry.maps_to_emetric_ball (hf : isometry f) (x : α) (r : ℝ≥0∞) :
+  maps_to f (emetric.ball x r) (emetric.ball (f x) r) :=
+λ y hy, by rwa [emetric.mem_ball, hf]
+
+lemma isometry.maps_to_emetric_closed_ball (hf : isometry f) (x : α) (r : ℝ≥0∞) :
+  maps_to f (emetric.closed_ball x r) (emetric.closed_ball (f x) r) :=
+λ y hy, by rwa [emetric.mem_closed_ball, hf]
 
 /-- The injection from a subtype is an isometry -/
 lemma isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
@@ -133,21 +146,32 @@ theorem isometry.closed_embedding [complete_space α] [emetric_space β]
   {f : α → β} (hf : isometry f) : closed_embedding f :=
 hf.antilipschitz.closed_embedding hf.lipschitz.uniform_continuous
 
-lemma isometry.tendsto_nhds_iff [emetric_space β] {ι : Type*} {f : α → β}
-  {g : ι → α} {a : filter ι} {b : α} (hf : isometry f) :
-  filter.tendsto g a (𝓝 b) ↔ filter.tendsto (f ∘ g) a (𝓝 (f b)) :=
-hf.embedding.tendsto_nhds_iff
-
 end emetric_isometry --section
 
+namespace isometry
+
+variables [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β}
+
 /-- An isometry preserves the diameter in pseudometric spaces. -/
-lemma isometry.diam_image [pseudo_metric_space α] [pseudo_metric_space β]
-  {f : α → β} (hf : isometry f) (s : set α) : metric.diam (f '' s) = metric.diam s :=
+lemma diam_image (hf : isometry f) (s : set α) : metric.diam (f '' s) = metric.diam s :=
 by rw [metric.diam, metric.diam, hf.ediam_image]
 
-lemma isometry.diam_range [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β}
-  (hf : isometry f) : metric.diam (range f) = metric.diam (univ : set α) :=
+lemma diam_range (hf : isometry f) : metric.diam (range f) = metric.diam (univ : set α) :=
 by { rw ← image_univ, exact hf.diam_image univ }
+
+lemma maps_to_ball (hf : isometry f) (x : α) (r : ℝ) :
+  maps_to f (metric.ball x r) (metric.ball (f x) r) :=
+λ y hy, by rwa [metric.mem_ball, hf.dist_eq]
+
+lemma maps_to_sphere (hf : isometry f) (x : α) (r : ℝ) :
+  maps_to f (metric.sphere x r) (metric.sphere (f x) r) :=
+λ y hy, by rwa [metric.mem_sphere, hf.dist_eq]
+
+lemma maps_to_closed_ball (hf : isometry f) (x : α) (r : ℝ) :
+  maps_to f (metric.closed_ball x r) (metric.closed_ball (f x) r) :=
+λ y hy, by rwa [metric.mem_closed_ball, hf.dist_eq]
+
+end isometry
 
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 @[nolint has_inhabited_instance] -- such a bijection need not exist
@@ -267,6 +291,22 @@ by rw [← h.range_eq_univ, h.isometry.ediam_range]
 @[simp] lemma ediam_preimage (h : α ≃ᵢ β) (s : set β) : emetric.diam (h ⁻¹' s) = emetric.diam s :=
 by rw [← image_symm, ediam_image]
 
+@[simp] lemma preimage_emetric_ball (h : α ≃ᵢ β) (x : β) (r : ℝ≥0∞) :
+  h ⁻¹' (emetric.ball x r) = emetric.ball (h.symm x) r :=
+by { ext y, simp [← h.edist_eq] }
+
+@[simp] lemma preimage_emetric_closed_ball (h : α ≃ᵢ β) (x : β) (r : ℝ≥0∞) :
+  h ⁻¹' (emetric.closed_ball x r) = emetric.closed_ball (h.symm x) r :=
+by { ext y, simp [← h.edist_eq] }
+
+@[simp] lemma image_emetric_ball (h : α ≃ᵢ β) (x : α) (r : ℝ≥0∞) :
+  h '' (emetric.ball x r) = emetric.ball (h x) r :=
+by rw [← h.preimage_symm, h.symm.preimage_emetric_ball, symm_symm]
+
+@[simp] lemma image_emetric_closed_ball (h : α ≃ᵢ β) (x : α) (r : ℝ≥0∞) :
+  h '' (emetric.closed_ball x r) = emetric.closed_ball (h x) r :=
+by rw [← h.preimage_symm, h.symm.preimage_emetric_closed_ball, symm_symm]
+
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
 @[simps to_equiv] protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 { continuous_to_fun  := h.continuous,
@@ -331,6 +371,30 @@ by rw [← image_symm, diam_image]
 
 lemma diam_univ : metric.diam (univ : set α) = metric.diam (univ : set β) :=
 congr_arg ennreal.to_real h.ediam_univ
+
+@[simp] lemma preimage_ball (h : α ≃ᵢ β) (x : β) (r : ℝ) :
+  h ⁻¹' (metric.ball x r) = metric.ball (h.symm x) r :=
+by { ext y, simp [← h.dist_eq] }
+
+@[simp] lemma preimage_sphere (h : α ≃ᵢ β) (x : β) (r : ℝ) :
+  h ⁻¹' (metric.sphere x r) = metric.sphere (h.symm x) r :=
+by { ext y, simp [← h.dist_eq] }
+
+@[simp] lemma preimage_closed_ball (h : α ≃ᵢ β) (x : β) (r : ℝ) :
+  h ⁻¹' (metric.closed_ball x r) = metric.closed_ball (h.symm x) r :=
+by { ext y, simp [← h.dist_eq] }
+
+@[simp] lemma image_ball (h : α ≃ᵢ β) (x : α) (r : ℝ) :
+  h '' (metric.ball x r) = metric.ball (h x) r :=
+by rw [← h.preimage_symm, h.symm.preimage_ball, symm_symm]
+
+@[simp] lemma image_sphere (h : α ≃ᵢ β) (x : α) (r : ℝ) :
+  h '' (metric.sphere x r) = metric.sphere (h x) r :=
+by rw [← h.preimage_symm, h.symm.preimage_sphere, symm_symm]
+
+@[simp] lemma image_closed_ball (h : α ≃ᵢ β) (x : α) (r : ℝ) :
+  h '' (metric.closed_ball x r) = metric.closed_ball (h x) r :=
+by rw [← h.preimage_symm, h.symm.preimage_closed_ball, symm_symm]
 
 end pseudo_metric_space
 

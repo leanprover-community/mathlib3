@@ -427,8 +427,7 @@ begin
          not_or_distrib, ← this] at hprodZ },
   -- By maximality of `P` and `M`, we have that `P ≤ M` implies `P = M`.
   have hPM' := (is_dedekind_domain.dimension_le_one _ hP0 P.is_prime).eq_of_le hM.ne_top hPM,
-  tactic.unfreeze_local_instances,
-  subst hPM',
+  substI hPM',
 
   -- By minimality of `Z`, erasing `P` from `Z` is exactly what we need.
   refine ⟨Z.erase P, _, _⟩,
@@ -827,7 +826,7 @@ begin
     rintros x ⟨⟩ },
   { rintros x s hx ⟨y, hy, hs⟩,
     obtain ⟨x', y', hy', hx'⟩ := exists_integral_multiple
-      ((is_fraction_ring.is_algebraic_iff A K).mpr (algebra.is_algebraic_of_finite x))
+      ((is_fraction_ring.is_algebraic_iff A K L).mpr (algebra.is_algebraic_of_finite x))
       ((algebra_map A L).injective_iff.mp _),
     refine ⟨y * y', mul_ne_zero hy hy', λ x'' hx'', _⟩,
     rcases finset.mem_insert.mp hx'' with (rfl | hx''),

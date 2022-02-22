@@ -333,7 +333,7 @@ lemma jacobson_bot_of_integral_localization
   (⊥ : ideal S).jacobson = (⊥ : ideal S) :=
 begin
   have hM : ((submonoid.powers x).map φ : submonoid S) ≤ non_zero_divisors S :=
-    φ.map_le_non_zero_divisors_of_injective hφ (powers_le_non_zero_divisors_of_no_zero_divisors hx),
+    map_le_non_zero_divisors_of_injective φ hφ (powers_le_non_zero_divisors_of_no_zero_divisors hx),
   letI : is_domain Sₘ := is_localization.is_domain_of_le_non_zero_divisors _ hM,
   let φ' : Rₘ →+* Sₘ := is_localization.map _ φ (submonoid.powers x).le_comap_map,
   suffices : ∀ I : ideal Sₘ, I.is_maximal → (I.comap (algebra_map S Sₘ)).is_maximal,

@@ -40,9 +40,10 @@ noncomputable def mirror := p.reverse * X ^ p.nat_trailing_degree
 
 lemma mirror_monomial (n : ℕ) (a : R) : (monomial n a).mirror = (monomial n a) :=
 begin
+  classical,
   by_cases ha : a = 0,
   { rw [ha, monomial_zero_right, mirror_zero] },
-  { rw [mirror, reverse, nat_degree_monomial n a ha, nat_trailing_degree_monomial ha,
+  { rw [mirror, reverse, nat_degree_monomial n a, if_neg ha, nat_trailing_degree_monomial ha,
         ←C_mul_X_pow_eq_monomial, reflect_C_mul_X_pow, rev_at_le (le_refl n),
         tsub_self, pow_zero, mul_one] },
 end

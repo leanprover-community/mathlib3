@@ -281,6 +281,21 @@ def whisker_equivalence {s : cone F} (P : is_limit s) (e : K ≌ J) :
 of_right_adjoint (cones.whiskering_equivalence e).functor P
 
 /--
+If `s : cone F` whiskered by an equivalence `e` is a limit cone, so is `s`.
+-/
+def of_whisker_equivalence {s : cone F} (e : K ≌ J) (P : is_limit (s.whisker e.functor)) :
+  is_limit s :=
+equiv_iso_limit ((cones.whiskering_equivalence e).unit_iso.app s).symm
+  (of_right_adjoint (cones.whiskering_equivalence e).inverse P : _)
+
+/--
+Given an equivalence of diagrams `e`, `s` is a limit cone iff `s.whisker e.functor` is.
+-/
+def whisker_equivalence_equiv {s : cone F} (e : K ≌ J) :
+  is_limit s ≃ is_limit (s.whisker e.functor) :=
+⟨λ h, h.whisker_equivalence e, of_whisker_equivalence e, by tidy, by tidy⟩
+
+/--
 We can prove two cone points `(s : cone F).X` and `(t.cone F).X` are isomorphic if
 * both cones are limit cones
 * their indexing categories are equivalent via some `e : J ≌ K`,
@@ -690,11 +705,26 @@ section equivalence
 open category_theory.equivalence
 
 /--
-If `s : cone F` is a limit cone, so is `s` whiskered by an equivalence `e`.
+If `s : cocone F` is a colimit cocone, so is `s` whiskered by an equivalence `e`.
 -/
 def whisker_equivalence {s : cocone F} (P : is_colimit s) (e : K ≌ J) :
   is_colimit (s.whisker e.functor) :=
 of_left_adjoint (cocones.whiskering_equivalence e).functor P
+
+/--
+If `s : cocone F` whiskered by an equivalence `e` is a colimit cocone, so is `s`.
+-/
+def of_whisker_equivalence {s : cocone F} (e : K ≌ J) (P : is_colimit (s.whisker e.functor)) :
+  is_colimit s :=
+equiv_iso_colimit ((cocones.whiskering_equivalence e).unit_iso.app s).symm
+  (of_left_adjoint (cocones.whiskering_equivalence e).inverse P : _)
+
+/--
+Given an equivalence of diagrams `e`, `s` is a colimit cocone iff `s.whisker e.functor` is.
+-/
+def whisker_equivalence_equiv {s : cocone F} (e : K ≌ J) :
+  is_colimit s ≃ is_colimit (s.whisker e.functor) :=
+⟨λ h, h.whisker_equivalence e, of_whisker_equivalence e, by tidy, by tidy⟩
 
 /--
 We can prove two cocone points `(s : cocone F).X` and `(t.cocone F).X` are isomorphic if

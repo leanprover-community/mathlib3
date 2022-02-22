@@ -335,8 +335,13 @@ by simpa using cof_sup_le_lift.{u u} f H
 theorem cof_bsup_le_lift {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup o f) →
   cof (bsup o f) ≤ o.card.lift :=
 induction_on o $ λ α r _ f H,
-by rw bsup_type; refine cof_sup_le_lift _ _;
-   rw ← bsup_type; intro a; apply H
+begin
+  resetI,
+  rw bsup_eq_sup' r rfl,
+  refine cof_sup_le_lift _ _,
+  rw ← bsup_eq_sup',
+  exact λ a, H _ _
+end
 
 theorem cof_bsup_le {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup.{u u} o f) →
   cof (bsup.{u u} o f) ≤ o.card :=

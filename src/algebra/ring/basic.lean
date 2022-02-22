@@ -327,12 +327,12 @@ end add_monoid_hom
 This extends from both `monoid_hom` and `monoid_with_zero_hom` in order to put the fields in a
 sensible order, even though `monoid_with_zero_hom` already extends `monoid_hom`. -/
 structure ring_hom (α : Type*) (β : Type*) [non_assoc_semiring α] [non_assoc_semiring β]
-  extends monoid_hom α β, add_monoid_hom α β, monoid_with_zero_hom α β
+  extends α →* β, α →+ β, α →*₀ β
 
 infixr ` →+* `:25 := ring_hom
 
-/-- Reinterpret a ring homomorphism `f : R →+* S` as a `monoid_with_zero_hom R S`.
-The `simp`-normal form is `(f : monoid_with_zero_hom R S)`. -/
+/-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid with zero homomorphism `R →*₀ S`.
+The `simp`-normal form is `(f : R →*₀ S)`. -/
 add_decl_doc ring_hom.to_monoid_with_zero_hom
 
 /-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid homomorphism `R →* S`.
@@ -625,6 +625,40 @@ end comm_semiring
 ### Rings
 -/
 
+/-- A not-necessarily-unital, not-necessarily-associative ring. -/
+@[protect_proj, ancestor add_comm_group non_unital_non_assoc_semiring]
+class non_unital_non_assoc_ring (α : Type u) extends
+  add_comm_group α, non_unital_non_assoc_semiring α
+
+section non_unital_non_assoc_ring
+variables [non_unital_non_assoc_ring α]
+
+
+/-- Pullback a `non_unital_non_assoc_ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.non_unital_non_assoc_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  non_unital_non_assoc_ring β :=
+{ .. hf.add_comm_group f zero add neg sub, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul }
+
+/-- Pushforward a `non_unital_non_assoc_ring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.non_unital_non_assoc_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : α → β) (hf : surjective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  non_unital_non_assoc_ring β :=
+{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
+  .. hf.distrib f add mul }
+
+end non_unital_non_assoc_ring
+
 /-- A ring is a type with the following structures: additive commutative group (`add_comm_group`),
 multiplicative monoid (`monoid`), and distributive laws (`distrib`).  Equivalently, a ring is a
 `semiring` with a negation operation making it an additive group.  -/
@@ -634,17 +668,23 @@ class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
 section ring
 variables [ring α] {a b c d e : α}
 
+/- A (unital, associative) ring is a not-necessarily-unital, not-necessarily-associative ring -/
+@[priority 100] -- see Note [lower instance priority]
+instance ring.to_non_unital_non_assoc_ring :
+  non_unital_non_assoc_ring α :=
+{ zero_mul := λ a, add_left_cancel $ show 0 * a + 0 * a = 0 * a + 0,
+    by rw [← add_mul, zero_add, add_zero],
+  mul_zero := λ a, add_left_cancel $ show a * 0 + a * 0 = a * 0 + 0,
+    by rw [← mul_add, add_zero, add_zero],
+  ..‹ring α› }
+
 /- The instance from `ring` to `semiring` happens often in linear algebra, for which all the basic
 definitions are given in terms of semirings, but many applications use rings or fields. We increase
 a little bit its priority above 100 to try it quickly, but remaining below the default 1000 so that
 more specific instances are tried first. -/
 @[priority 200]
 instance ring.to_semiring : semiring α :=
-{ zero_mul := λ a, add_left_cancel $ show 0 * a + 0 * a = 0 * a + 0,
-    by rw [← add_mul, zero_add, add_zero],
-  mul_zero := λ a, add_left_cancel $ show a * 0 + a * 0 = a * 0 + 0,
-    by rw [← mul_add, add_zero, add_zero],
-  ..‹ring α› }
+{ ..‹ring α›, .. ring.to_non_unital_non_assoc_ring }
 
 /-- Pullback a `ring` instance along an injective function.
 See note [reducible non-instances]. -/
@@ -732,39 +772,39 @@ namespace units
 variables [ring α] {a b : α}
 
 /-- Each element of the group of units of a ring has an additive inverse. -/
-instance : has_neg (units α) := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
+instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
 
 /-- Representing an element of a ring's unit group as an element of the ring commutes with
     mapping this element to its additive inverse. -/
-@[simp, norm_cast] protected theorem coe_neg (u : units α) : (↑-u : α) = -u := rfl
+@[simp, norm_cast] protected theorem coe_neg (u : αˣ) : (↑-u : α) = -u := rfl
 
-@[simp, norm_cast] protected theorem coe_neg_one : ((-1 : units α) : α) = -1 := rfl
+@[simp, norm_cast] protected theorem coe_neg_one : ((-1 : αˣ) : α) = -1 := rfl
 
 /-- Mapping an element of a ring's unit group to its inverse commutes with mapping this element
     to its additive inverse. -/
-@[simp] protected theorem neg_inv (u : units α) : (-u)⁻¹ = -u⁻¹ := rfl
+@[simp] protected theorem neg_inv (u : αˣ) : (-u)⁻¹ = -u⁻¹ := rfl
 
 /-- An element of a ring's unit group equals the additive inverse of its additive inverse. -/
-@[simp] protected theorem neg_neg (u : units α) : - -u = u :=
+@[simp] protected theorem neg_neg (u : αˣ) : - -u = u :=
 units.ext $ neg_neg _
 
 /-- Multiplication of elements of a ring's unit group commutes with mapping the first
     argument to its additive inverse. -/
-@[simp] protected theorem neg_mul (u₁ u₂ : units α) : -u₁ * u₂ = -(u₁ * u₂) :=
+@[simp] protected theorem neg_mul (u₁ u₂ : αˣ) : -u₁ * u₂ = -(u₁ * u₂) :=
 units.ext $ neg_mul_eq_neg_mul_symm _ _
 
 /-- Multiplication of elements of a ring's unit group commutes with mapping the second argument
     to its additive inverse. -/
-@[simp] protected theorem mul_neg (u₁ u₂ : units α) : u₁ * -u₂ = -(u₁ * u₂) :=
+@[simp] protected theorem mul_neg (u₁ u₂ : αˣ) : u₁ * -u₂ = -(u₁ * u₂) :=
 units.ext $ (neg_mul_eq_mul_neg _ _).symm
 
 /-- Multiplication of the additive inverses of two elements of a ring's unit group equals
     multiplication of the two original elements. -/
-@[simp] protected theorem neg_mul_neg (u₁ u₂ : units α) : -u₁ * -u₂ = u₁ * u₂ := by simp
+@[simp] protected theorem neg_mul_neg (u₁ u₂ : αˣ) : -u₁ * -u₂ = u₁ * u₂ := by simp
 
 /-- The additive inverse of an element of a ring's unit group equals the additive inverse of
     one times the original element. -/
-protected theorem neg_eq_neg_one_mul (u : units α) : -u = -1 * u := by simp
+protected theorem neg_eq_neg_one_mul (u : αˣ) : -u = -1 * u := by simp
 
 end units
 
@@ -773,6 +813,10 @@ lemma is_unit.neg [ring α] {a : α} : is_unit a → is_unit (-a)
 
 lemma is_unit.neg_iff [ring α] (a : α) : is_unit (-a) ↔ is_unit a :=
 ⟨λ h, neg_neg a ▸ h.neg, is_unit.neg⟩
+
+lemma is_unit.sub_iff [ring α] {x y : α} :
+  is_unit (x - y) ↔ is_unit (y - x) :=
+(is_unit.neg_iff _).symm.trans $ neg_sub x y ▸ iff.rfl
 
 namespace ring_hom
 
@@ -987,6 +1031,18 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
  is_right_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
 
+/-- A ring with no zero divisors is a cancel_monoid_with_zero.
+
+Note this is not an instance as it forms a typeclass loop. -/
+@[reducible]
+def no_zero_divisors.to_cancel_monoid_with_zero [ring α] [no_zero_divisors α] :
+  cancel_monoid_with_zero α :=
+{ mul_left_cancel_of_ne_zero := λ a b c ha,
+    @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
+  mul_right_cancel_of_ne_zero := λ a b c hb,
+    @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
+  .. (infer_instance : semiring α) }
+
 /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
 
@@ -1002,11 +1058,7 @@ variables [ring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
-{ mul_left_cancel_of_ne_zero := λ a b c ha,
-    @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
-  mul_right_cancel_of_ne_zero := λ a b c hb,
-    @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
-  .. (infer_instance : semiring α) }
+no_zero_divisors.to_cancel_monoid_with_zero
 
 /-- Pullback an `is_domain` instance along an injective function. -/
 protected theorem function.injective.is_domain [ring β] (f : β →+* α) (hf : injective f) :
@@ -1033,7 +1085,7 @@ by rw [← mul_self_eq_mul_self_iff, one_mul]
 
 /-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or
   one's additive inverse. -/
-lemma units.inv_eq_self_iff (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
+lemma units.inv_eq_self_iff (u : αˣ) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_self_eq_one_iff }
 
 /--

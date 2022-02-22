@@ -464,6 +464,15 @@ by simp only [sub_add_cancel, map_lie, lie_hom.lie_apply]
 @[simp] lemma map_zero (f : M →ₗ⁅R,L⁆ N) : f 0 = 0 :=
 linear_map.map_zero (f : M →ₗ[R] N)
 
+/-- The identity map is a morphism of Lie modules. -/
+def id : M →ₗ⁅R,L⁆ M :=
+{ map_lie' := λ x m, rfl,
+  .. (linear_map.id : M →ₗ[R] M) }
+
+@[simp] lemma coe_id : ((id : M →ₗ⁅R,L⁆ M) : M → M) = _root_.id := rfl
+
+lemma id_apply (x : M) : (id : M →ₗ⁅R,L⁆ M) x = x := rfl
+
 /-- The constant 0 map is a Lie module morphism. -/
 instance : has_zero (M →ₗ⁅R,L⁆ N) := ⟨{ map_lie' := by simp, ..(0 : M →ₗ[R] N) }⟩
 
@@ -472,7 +481,7 @@ instance : has_zero (M →ₗ⁅R,L⁆ N) := ⟨{ map_lie' := by simp, ..(0 : M 
 lemma zero_apply (m : M) : (0 : M →ₗ⁅R,L⁆ N) m = 0 := rfl
 
 /-- The identity map is a Lie module morphism. -/
-instance : has_one (M →ₗ⁅R,L⁆ M) := ⟨{ map_lie' := by simp, ..(1 : M →ₗ[R] M) }⟩
+instance : has_one (M →ₗ⁅R,L⁆ M) := ⟨id⟩
 
 instance : inhabited (M →ₗ⁅R,L⁆ N) := ⟨0⟩
 

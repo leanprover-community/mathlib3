@@ -264,13 +264,14 @@ variables {F} {K} (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_t
   an algebra homomorphism `ϕ : K →ₐ[F] K` to `ϕ.lift_normal E : E →ₐ[F] E`. -/
 noncomputable def alg_hom.lift_normal [h : normal F E] : E →ₐ[F] E :=
 @alg_hom.restrict_scalars F K E E _ _ _ _ _ _
-  ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _ _ _ _
-  (nonempty.some (@intermediate_field.alg_hom_mk_adjoin_splits' K E E _ _ _ _
-  ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra ⊤ rfl
+  ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _ _ _ _ $ nonempty.some $
+  @intermediate_field.alg_hom_mk_adjoin_splits' _ _ _ _ _ _ _
+  ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _
+  (intermediate_field.adjoin_univ _ _)
   (λ x hx, ⟨is_integral_of_is_scalar_tower x (h.out x).1,
-  splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero (h.out x).1))
-  (by { rw [splits_map_iff, ←is_scalar_tower.algebra_map_eq], exact (h.out x).2 })
-  (minpoly.dvd_map_of_is_scalar_tower F K x)⟩)))
+    splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero (h.out x).1))
+    (by { rw [splits_map_iff, ←is_scalar_tower.algebra_map_eq], exact (h.out x).2 })
+    (minpoly.dvd_map_of_is_scalar_tower F K x)⟩)
 
 @[simp] lemma alg_hom.lift_normal_commutes [normal F E] (x : K) :
   ϕ.lift_normal E (algebra_map K E x) = algebra_map K E (ϕ x) :=

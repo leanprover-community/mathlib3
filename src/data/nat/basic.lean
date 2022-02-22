@@ -111,7 +111,7 @@ instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonem
 instance nat.subtype.semilattice_sup (s : set ℕ) :
   semilattice_sup s :=
 { ..subtype.linear_order s,
-  ..lattice_of_linear_order }
+  ..linear_order.to_lattice }
 
 lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
   [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
@@ -187,7 +187,7 @@ end set
 
 /-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
 
-theorem units_eq_one (u : units ℕ) : u = 1 :=
+theorem units_eq_one (u : ℕˣ) : u = 1 :=
 units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
 
 theorem add_units_eq_zero (u : add_units ℕ) : u = 0 :=
@@ -198,7 +198,7 @@ iff.intro
   (λ ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (λ h, h.symm ▸ ⟨1, rfl⟩)
 
-instance unique_units : unique (units ℕ) :=
+instance unique_units : unique ℕˣ :=
 { default := 1, uniq := nat.units_eq_one }
 
 instance unique_add_units : unique (add_units ℕ) :=
@@ -1003,6 +1003,15 @@ lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) :
   (a + 1) / b = a / b :=
 by rw [succ_div, if_neg hba, add_zero]
 
+lemma dvd_iff_div_mul_eq (n d : ℕ) : d ∣ n ↔ n / d * d = n :=
+⟨λ h, nat.div_mul_cancel h, λ h, dvd.intro_left (n / d) h⟩
+
+lemma dvd_iff_le_div_mul (n d : ℕ) : d ∣ n ↔ n ≤ n / d * d :=
+((dvd_iff_div_mul_eq _ _).trans le_antisymm_iff).trans (and_iff_right (div_mul_le_self n d))
+
+lemma dvd_iff_dvd_dvd (n d : ℕ) : d ∣ n ↔ ∀ k : ℕ, k ∣ d → k ∣ n :=
+⟨λ h k hkd, dvd_trans hkd h, λ h, h _ dvd_rfl⟩
+
 @[simp] theorem mod_mod_of_dvd (n : nat) {m k : nat} (h : m ∣ k) : n % k % m = n % m :=
 begin
   conv { to_rhs, rw ←mod_add_div n k },
@@ -1511,5 +1520,9 @@ instance decidable_exists_lt {P : ℕ → Prop} [h : decidable_pred P] :
 | 0 := is_false (by simp)
 | (n + 1) := decidable_of_decidable_of_iff (@or.decidable _ _ (decidable_exists_lt n) (h n))
   (by simp only [lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_distrib, exists_eq_left])
+
+instance decidable_exists_le {P : ℕ → Prop} [h : decidable_pred P] :
+  decidable_pred (λ n, ∃ (m : ℕ), m ≤ n ∧ P m) :=
+λ n, decidable_of_iff (∃ m, m < n + 1 ∧ P m) (exists_congr (λ x, and_congr_left' lt_succ_iff))
 
 end nat

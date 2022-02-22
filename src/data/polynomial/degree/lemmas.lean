@@ -127,6 +127,65 @@ lemma nat_degree_lt_coeff_mul (h : p.nat_degree + q.nat_degree < m + n) :
   (p * q).coeff (m + n) = 0 :=
 coeff_eq_zero_of_nat_degree_lt (nat_degree_mul_le.trans_lt h)
 
+lemma degree_sum_eq_of_disjoint (f : S → polynomial R) (s : finset S)
+  (h : set.pairwise { i | i ∈ s ∧ f i ≠ 0 } (ne on (degree ∘ f))) :
+  degree (s.sum f) = s.sup (λ i, degree (f i)) :=
+begin
+  induction s using finset.induction_on with x s hx IH,
+  { simp },
+  { simp only [hx, finset.sum_insert, not_false_iff, finset.sup_insert],
+    specialize IH (h.mono (λ _, by simp {contextual := tt})),
+    rcases lt_trichotomy (degree (f x)) (degree (s.sum f)) with H|H|H,
+    { rw [←IH, sup_eq_right.mpr H.le, degree_add_eq_right_of_degree_lt H] },
+    { rcases s.eq_empty_or_nonempty with rfl|hs,
+      { simp },
+      obtain ⟨y, hy, hy'⟩ := finset.exists_mem_eq_sup s hs (λ i, degree (f i)),
+      rw [IH, hy'] at H,
+      by_cases hx0 : f x = 0,
+      { simp [hx0, IH] },
+      have hy0 : f y ≠ 0,
+      { contrapose! H,
+        simpa [H, degree_eq_bot] using hx0 },
+      refine absurd H (h _ _ (λ H, hx _)),
+      { simp [hx0] },
+      { simp [hy, hy0] },
+      { exact H.symm ▸ hy } },
+    { rw [←IH, sup_eq_left.mpr H.le, degree_add_eq_left_of_degree_lt H] } }
+end
+
+lemma nat_degree_sum_eq_of_disjoint (f : S → polynomial R) (s : finset S)
+  (h : set.pairwise { i | i ∈ s ∧ f i ≠ 0 } (ne on (nat_degree ∘ f))) :
+  nat_degree (s.sum f) = s.sup (λ i, nat_degree (f i)) :=
+begin
+  by_cases H : ∃ x ∈ s, f x ≠ 0,
+  { obtain ⟨x, hx, hx'⟩ := H,
+    have hs : s.nonempty := ⟨x, hx⟩,
+    refine nat_degree_eq_of_degree_eq_some _,
+    rw degree_sum_eq_of_disjoint,
+    { rw [←finset.sup'_eq_sup hs, ←finset.sup'_eq_sup hs, finset.coe_sup', ←finset.sup'_eq_sup hs],
+      refine le_antisymm _ _,
+      { rw finset.sup'_le_iff,
+        intros b hb,
+        by_cases hb' : f b = 0,
+        { simpa [hb'] using hs },
+        rw degree_eq_nat_degree hb',
+        exact finset.le_sup' _ hb },
+      { rw finset.sup'_le_iff,
+        intros b hb,
+        simp only [finset.le_sup'_iff, exists_prop, function.comp_app],
+        by_cases hb' : f b = 0,
+        { refine ⟨x, hx, _⟩,
+          contrapose! hx',
+          simpa [hb', degree_eq_bot] using hx' },
+        exact ⟨b, hb, (degree_eq_nat_degree hb').ge⟩ } },
+    { exact h.imp (λ x y hxy hxy', hxy (nat_degree_eq_of_degree_eq hxy')) } },
+  { push_neg at H,
+    rw [finset.sum_eq_zero H, nat_degree_zero, eq_comm, show 0 = ⊥, from rfl,
+        finset.sup_eq_bot_iff],
+    intros x hx,
+    simp [H x hx] }
+end
+
 variables [semiring S]
 
 lemma nat_degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)

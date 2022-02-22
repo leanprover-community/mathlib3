@@ -159,7 +159,7 @@ begin
   transitivity euclidean_domain.gcd (_ : polynomial E) (_ : polynomial E),
   { dsimp only [p],
     convert (gcd_map (algebra_map F⟮γ⟯ E)).symm },
-  { simpa [map_comp, map_map, ←is_scalar_tower.algebra_map_eq, h] },
+  { simpa [map_comp, polynomial.map_map, ←is_scalar_tower.algebra_map_eq, h] },
 end
 
 end primitive_element_inf

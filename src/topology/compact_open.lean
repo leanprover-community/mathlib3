@@ -50,7 +50,7 @@ instance compact_open : topological_space C(α, β) :=
 topological_space.generate_from
   {m | ∃ (s : set α) (hs : is_compact s) (u : set β) (hu : is_open u), m = compact_open.gen s u}
 
-private lemma is_open_gen {s : set α} (hs : is_compact s) {u : set β} (hu : is_open u) :
+protected lemma is_open_gen {s : set α} (hs : is_compact s) {u : set β} (hu : is_open u) :
   is_open (compact_open.gen s u) :=
 topological_space.generate_open.basic _ (by dsimp [mem_set_of_eq]; tauto)
 
@@ -69,7 +69,7 @@ end
 /-- C(α, -) is a functor. -/
 lemma continuous_comp : continuous (continuous_map.comp g : C(α, β) → C(α, γ)) :=
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
-  by rw [hm, preimage_gen g hs hu]; exact is_open_gen hs (hu.preimage g.2)
+  by rw [hm, preimage_gen g hs hu]; exact continuous_map.is_open_gen hs (hu.preimage g.2)
 
 end functorial
 
@@ -92,12 +92,12 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
       (f.continuous.tendsto x this) in
   let ⟨u, us, uo, xu⟩ := mem_nhds_iff.mp hs in
   show (ev α β) ⁻¹' n ∈ 𝓝 (f, x), from
-  let w := set.prod (compact_open.gen s v) u in
+  let w := compact_open.gen s v ×ˢ u in
   have w ⊆ ev α β ⁻¹' n, from assume ⟨f', x'⟩ ⟨hf', hx'⟩, calc
     f' x' ∈ f' '' s  : mem_image_of_mem f' (us hx')
     ...       ⊆ v            : hf'
     ...       ⊆ n            : vn,
-  have is_open w, from (is_open_gen sc vo).prod uo,
+  have is_open w, from (continuous_map.is_open_gen sc vo).prod uo,
   have (f, x) ∈ w, from ⟨image_subset_iff.mpr sv, xu⟩,
   mem_nhds_iff.mpr ⟨w, by assumption, by assumption, by assumption⟩
 
@@ -142,7 +142,7 @@ begin
   simp only [← generate_from_Union, induced_generate_from_eq, continuous_map.compact_open],
   apply generate_from_mono,
   rintros _ ⟨s, hs, u, hu, rfl⟩,
-  rw mem_bUnion_iff',
+  rw mem_Union₂,
   refine ⟨s, hs, _, ⟨univ, is_compact_iff_is_compact_univ.mp hs, u, hu, rfl⟩, _⟩,
   ext f,
   simp only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
@@ -215,7 +215,7 @@ on `α` sending `y` to `(x, y)`. -/
 def coev (b : β) : C(α, β × α) := ⟨λ a, (b, a), continuous.prod_mk continuous_const continuous_id⟩
 
 variables {α β}
-lemma image_coev {y : β} (s : set α) : (coev α β y) '' s = set.prod {y} s := by tidy
+lemma image_coev {y : β} (s : set α) : (coev α β y) '' s = ({y} : set β) ×ˢ s := by tidy
 
 -- The coevaluation map β → C(α, β × α) is continuous (always).
 lemma continuous_coev : continuous (coev α β) :=
@@ -320,7 +320,7 @@ def curry [locally_compact_space α] [locally_compact_space β] : C(α × β, γ
 /-- If `α` has a single element, then `β` is homeomorphic to `C(α, β)`. -/
 def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
 { to_fun := continuous_map.comp ⟨_, continuous_fst⟩ ∘ coev α β,
-  inv_fun := ev α β ∘ (λ f, (f, default α)),
+  inv_fun := ev α β ∘ (λ f, (f, default)),
   left_inv := λ a, rfl,
   right_inv := λ f, by { ext, rw unique.eq_default x, refl },
   continuous_to_fun := continuous.comp (continuous_comp _) continuous_coev,
@@ -332,7 +332,7 @@ def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
 rfl
 
 @[simp] lemma continuous_map_of_unique_symm_apply [unique α] (f : C(α, β)) :
-  continuous_map_of_unique.symm f = f (default α) :=
+  continuous_map_of_unique.symm f = f default :=
 rfl
 
 end homeomorph

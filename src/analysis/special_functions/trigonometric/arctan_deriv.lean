@@ -29,7 +29,7 @@ lemma has_deriv_at_tan {x : ℝ} (h : cos x ≠ 0) :
 by exact_mod_cast (complex.has_deriv_at_tan (by exact_mod_cast h)).real_of_complex
 
 lemma tendsto_abs_tan_of_cos_eq_zero {x : ℝ} (hx : cos x = 0) :
-  tendsto (λ x, abs (tan x)) (𝓝[{x}ᶜ] x) at_top :=
+  tendsto (λ x, abs (tan x)) (𝓝[≠] x) at_top :=
 begin
   have hx : complex.cos x = 0, by exact_mod_cast hx,
   simp only [← complex.abs_of_real, complex.of_real_tan],
@@ -39,7 +39,7 @@ begin
 end
 
 lemma tendsto_abs_tan_at_top (k : ℤ) :
-  tendsto (λ x, abs (tan x)) (𝓝[{(2 * k + 1) * π / 2}ᶜ] ((2 * k + 1) * π / 2)) at_top :=
+  tendsto (λ x, abs (tan x)) (𝓝[≠] ((2 * k + 1) * π / 2)) at_top :=
 tendsto_abs_tan_of_cos_eq_zero $ cos_eq_zero_iff.2 ⟨k, rfl⟩
 
 lemma continuous_at_tan {x : ℝ} : continuous_at tan x ↔ cos x ≠ 0 :=

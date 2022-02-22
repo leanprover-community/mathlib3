@@ -31,7 +31,7 @@ This file defines partial functions. Partial functions are like functions, excep
 ### Partial functions as relations
 
 Partial functions can be considered as relations, so we specialize some `rel` definitions to `pfun`:
-* `pfun.image`: Preimage of a set under a partial function.
+* `pfun.image`: Image of a set under a partial function.
 * `pfun.ran`: Range of a partial function.
 * `pfun.preimage`: Preimage of a set under a partial function.
 * `pfun.core`: Core of a set under a partial function.

@@ -12,7 +12,7 @@ import data.polynomial.eval
 We define and prove some basic relations about
 `pochhammer S n : polynomial S := X * (X + 1) * ... * (X + n - 1)`
 which is also known as the rising factorial. A version of this definition
-that is focused on `nat` can be found in `data.nat.factorial` as `asc_factorial`.
+that is focused on `nat` can be found in `data.nat.factorial` as `nat.asc_factorial`.
 
 ## Implementation
 
@@ -60,8 +60,8 @@ end
 @[simp, norm_cast] lemma pochhammer_eval_cast (n k : ℕ) :
   ((pochhammer ℕ n).eval k : S) = (pochhammer S n).eval k :=
 begin
-  rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←(algebra_map ℕ S).eq_nat_cast,
-    eval₂_at_nat_cast, nat.cast_id, ring_hom.eq_nat_cast],
+  rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←eq_nat_cast (algebra_map ℕ S),
+    eval₂_at_nat_cast, nat.cast_id, eq_nat_cast],
 end
 
 lemma pochhammer_eval_zero {n : ℕ} : (pochhammer S n).eval 0 = if n = 0 then 1 else 0 :=
@@ -81,8 +81,8 @@ lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X
 begin
   suffices h : pochhammer ℕ (n+1) = pochhammer ℕ n * (X + n),
   { apply_fun polynomial.map (algebra_map ℕ S) at h,
-    simpa only [pochhammer_map, polynomial.map_mul, polynomial.map_add, map_X, map_nat_cast]
-      using h },
+    simpa only [pochhammer_map, polynomial.map_mul, polynomial.map_add,
+                map_X, polynomial.map_nat_cast] using h },
   induction n with n ih,
   { simp, },
   { conv_lhs

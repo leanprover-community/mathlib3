@@ -191,7 +191,7 @@ begin
      ... ↔ ∀ ε > 0, (∃ x ∈ S, x ∈ metric.ball m ε) : by simp [dist_eq_norm, ← sub_eq_add_neg,
                                                               norm_sub_rev]
      ... ↔ m ∈ closure ↑S : by simp [metric.mem_closure_iff, dist_comm],
-    apply forall_congr, intro ε, apply forall_congr, intro  ε_pos,
+    refine forall₂_congr (λ ε ε_pos, _),
     rw [← S.exists_neg_mem_iff_exists_mem],
     simp },
   { use 0,

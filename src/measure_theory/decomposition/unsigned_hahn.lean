@@ -63,12 +63,12 @@ begin
     simp only [sub_eq_add_neg, neg_add],
     ac_refl },
 
-  have d_Union : ∀(s : ℕ → set α), (∀n, measurable_set (s n)) → monotone s →
+  have d_Union : ∀(s : ℕ → set α), monotone s →
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋃n, s n))),
-  { assume s hs hm,
+  { assume s hm,
     refine tendsto.sub _ _;
       refine (nnreal.tendsto_coe.2 $ (ennreal.tendsto_to_nnreal _).comp $
-        tendsto_measure_Union hs hm),
+        tendsto_measure_Union hm),
     exact hμ _,
     exact hν _ },
 
@@ -162,10 +162,9 @@ begin
         tendsto_pow_at_top_nhds_0_of_lt_1
           (le_of_lt $ half_pos $ zero_lt_one) (half_lt_self zero_lt_one)) },
     have hd : tendsto (λm, d (⋂n, f m n)) at_top (𝓝 (d (⋃ m, ⋂ n, f m n))),
-    { refine d_Union _ _ _,
-      { assume n, exact measurable_set.Inter (assume m, hf _ _) },
-      { exact assume n m hnm, subset_Inter
-          (assume i, subset.trans (Inter_subset (f n) i) $ f_subset_f hnm $ le_refl _) } },
+    { refine d_Union _ _,
+      exact assume n m hnm, subset_Inter
+        (assume i, subset.trans (Inter_subset (f n) i) $ f_subset_f hnm $ le_refl _) },
     refine le_of_tendsto_of_tendsto' hγ hd (assume m, _),
     have : tendsto (λn, d (f m n)) at_top (𝓝 (d (⋂ n, f m n))),
     { refine d_Inter _ _ _,

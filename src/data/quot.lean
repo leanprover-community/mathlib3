@@ -31,7 +31,10 @@ namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a
 
-instance [inhabited α] : inhabited (quot ra) := ⟨⟦default _⟧⟩
+instance [inhabited α] : inhabited (quot ra) := ⟨⟦default⟧⟩
+
+instance [subsingleton α] : subsingleton (quot ra) :=
+⟨λ x, quot.induction_on x (λ y, quot.ind (λ b, congr_arg _ (subsingleton.elim _ _)))⟩
 
 /-- Recursion on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
@@ -136,7 +139,10 @@ namespace quotient
 variables [sa : setoid α] [sb : setoid β]
 variables {φ : quotient sa → quotient sb → Sort*}
 
-instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default _⟧⟩
+instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default⟧⟩
+
+instance (s : setoid α) [subsingleton α] : subsingleton (quotient s) :=
+quot.subsingleton
 
 /-- Induction on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
@@ -249,6 +255,8 @@ by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
   x.out = y.out ↔ x = y :=
 ⟨λ h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _, λ h, h ▸ rfl⟩
 
+section pi
+
 instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
 { r := λ a b, ∀ i, a i ≈ b i,
   iseqv := ⟨
@@ -262,9 +270,20 @@ noncomputable def quotient.choice {ι : Type*} {α : ι → Type*} [S : Π i, se
   (f : Π i, quotient (S i)) : @quotient (Π i, α i) (by apply_instance) :=
 ⟦λ i, (f i).out⟧
 
-theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [Π i, setoid (α i)]
+@[simp] theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [Π i, setoid (α i)]
   (f : Π i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
 quotient.sound $ λ i, quotient.mk_out _
+
+@[elab_as_eliminator] lemma quotient.induction_on_pi
+   {ι : Type*} {α : ι → Sort*} [s : ∀ i, setoid (α i)]
+   {p : (Π i, quotient (s i)) → Prop} (f : Π i, quotient (s i))
+   (h : ∀ a : Π i, α i, p (λ i, ⟦a i⟧)) : p f :=
+begin
+  rw ← (funext (λ i, quotient.out_eq (f i)) : (λ i,  ⟦(f i).out⟧) = f),
+  apply h,
+end
+
+end pi
 
 lemma nonempty_quotient_iff (s : setoid α) : nonempty (quotient s) ↔ nonempty α :=
 ⟨assume ⟨a⟩, quotient.induction_on a nonempty.intro, assume ⟨a⟩, ⟨⟦a⟧⟩⟩
@@ -284,7 +303,7 @@ namespace trunc
 /-- Constructor for `trunc α` -/
 def mk (a : α) : trunc α := quot.mk _ a
 
-instance [inhabited α] : inhabited (trunc α) := ⟨mk (default _)⟩
+instance [inhabited α] : inhabited (trunc α) := ⟨mk default⟩
 
 /-- Any constant function lifts to a function out of the truncation -/
 def lift (f : α → β) (c : ∀ a b : α, f a = f b) : trunc α → β :=

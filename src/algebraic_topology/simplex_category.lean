@@ -63,20 +63,20 @@ def len (n : simplex_category.{u}) : ℕ := n.down
 /-- Morphisms in the simplex_category. -/
 @[irreducible, nolint has_inhabited_instance]
 protected def hom (a b : simplex_category.{u}) : Type u :=
-ulift (fin (a.len + 1) →ₘ fin (b.len + 1))
+ulift (fin (a.len + 1) →o fin (b.len + 1))
 
 namespace hom
 
 local attribute [semireducible] simplex_category.hom
 
 /-- Make a moprhism in `simplex_category` from a monotone map of fin's. -/
-def mk {a b : simplex_category.{u}} (f : fin (a.len + 1) →ₘ fin (b.len + 1)) :
+def mk {a b : simplex_category.{u}} (f : fin (a.len + 1) →o fin (b.len + 1)) :
   simplex_category.hom a b :=
 ulift.up f
 
 /-- Recover the monotone map from a morphism in the simplex category. -/
 def to_order_hom {a b : simplex_category.{u}} (f : simplex_category.hom a b) :
-  fin (a.len + 1) →ₘ fin (b.len + 1) :=
+  fin (a.len + 1) →o fin (b.len + 1) :=
 ulift.down f
 
 @[ext] lemma ext {a b : simplex_category.{u}} (f g : simplex_category.hom a b) :
@@ -87,11 +87,11 @@ ulift.down f
 by {cases f, refl}
 
 @[simp] lemma to_order_hom_mk {a b : simplex_category.{u}}
-  (f : fin (a.len + 1) →ₘ fin (b.len + 1)) : (mk f).to_order_hom = f :=
+  (f : fin (a.len + 1) →o fin (b.len + 1)) : (mk f).to_order_hom = f :=
 by simp [to_order_hom, mk]
 
 lemma mk_to_order_hom_apply {a b : simplex_category.{u}}
-  (f : fin (a.len + 1) →ₘ fin (b.len + 1)) (i : fin (a.len + 1)) :
+  (f : fin (a.len + 1) →o fin (b.len + 1)) (i : fin (a.len + 1)) :
   (mk f).to_order_hom i = f i := rfl
 
 /-- Identity morphisms of `simplex_category`. -/
@@ -128,7 +128,7 @@ This is useful for constructing morphisms beetween `[n]` directly
 without identifying `n` with `[n].len`.
 -/
 @[simp]
-def mk_hom {n m : ℕ} (f : (fin (n+1)) →ₘ (fin (m+1))) : [n] ⟶ [m] :=
+def mk_hom {n m : ℕ} (f : (fin (n+1)) →o (fin (m+1))) : [n] ⟶ [m] :=
 simplex_category.hom.mk f
 
 lemma hom_zero_zero (f : [0] ⟶ [0]) : f = 𝟙 _ :=

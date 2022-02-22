@@ -58,6 +58,10 @@ forall_congr $ λ x, not_imp_comm
   mul_support f = ∅ ↔ f = 1 :=
 by { simp_rw [← subset_empty_iff, mul_support_subset_iff', funext_iff], simp }
 
+@[simp, to_additive] lemma mul_support_nonempty_iff {f : α → M} :
+  (mul_support f).nonempty ↔ f ≠ 1 :=
+by rw [← ne_empty_iff_nonempty, ne.def, mul_support_eq_empty_iff]
+
 @[simp, to_additive] lemma mul_support_one' : mul_support (1 : α → M) = ∅ :=
 mul_support_eq_empty_iff.2 rfl
 
@@ -209,7 +213,7 @@ end
 
 lemma support_prod_subset [comm_monoid_with_zero A] (s : finset α) (f : α → β → A) :
   support (λ x, ∏ i in s, f i x) ⊆ ⋂ i ∈ s, support (f i) :=
-λ x hx, mem_bInter_iff.2 $ λ i hi H, hx $ finset.prod_eq_zero hi H
+λ x hx, mem_Inter₂.2 $ λ i hi H, hx $ finset.prod_eq_zero hi H
 
 lemma support_prod [comm_monoid_with_zero A] [no_zero_divisors A] [nontrivial A]
   (s : finset α) (f : α → β → A) :

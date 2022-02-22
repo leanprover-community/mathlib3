@@ -69,6 +69,10 @@ by apply_instance
 def forget_to_PresheafedSpace : (SheafedSpace C) ⥤ (PresheafedSpace C) :=
 induced_functor _
 
+instance is_PresheafedSpace_iso {X Y : SheafedSpace C} (f : X ⟶ Y) [is_iso f] :
+  @is_iso (PresheafedSpace C) _ _ _ f :=
+SheafedSpace.forget_to_PresheafedSpace.map_is_iso f
+
 variables {C}
 
 section
@@ -90,6 +94,14 @@ by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
 @[simp] lemma comp_c_app {X Y Z : SheafedSpace C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U)))
 := rfl
+
+lemma comp_c_app' {X Y Z : SheafedSpace C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
+  (α ≫ β).c.app (op U) = (β.c).app (op U) ≫ (α.c).app (op ((opens.map (β.base)).obj U))
+:= rfl
+
+lemma congr_app {X Y : SheafedSpace C} {α β : X ⟶ Y} (h : α = β) (U) :
+  α.c.app U = β.c.app U ≫ X.presheaf.map (eq_to_hom (by subst h)) :=
+PresheafedSpace.congr_app h U
 
 variables (C)
 
@@ -148,6 +160,9 @@ instance [has_limits C] : creates_colimits (forget_to_PresheafedSpace : SheafedS
 
 instance [has_limits C] : has_colimits (SheafedSpace C) :=
 has_colimits_of_has_colimits_creates_colimits forget_to_PresheafedSpace
+
+noncomputable instance [has_limits C] : preserves_colimits (forget C) :=
+limits.comp_preserves_colimits forget_to_PresheafedSpace (PresheafedSpace.forget C)
 
 end SheafedSpace
 

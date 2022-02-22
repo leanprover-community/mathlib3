@@ -3,7 +3,6 @@ Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yury G. Kudryashov
 -/
-import data.sum
 import order.basic
 
 /-!
@@ -20,6 +19,19 @@ universes u v
 variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β → Prop}
 
 open function
+
+/-- A version of `antisymm` with `r` explicit.
+
+This lemma matches the lemmas from lean core in `init.algebra.classes`, but is missing there.  -/
+@[elab_simple]
+lemma antisymm_of (r : α → α → Prop) [is_antisymm α r] {a b : α} : r a b → r b a → a = b := antisymm
+
+lemma comm [is_symm α r] {a b : α} : r a b ↔ r b a := ⟨symm, symm⟩
+
+/-- A version of `comm` with `r` explicit.
+
+This lemma matches the lemmas from lean core in `init.algebra.classes`, but is missing there.  -/
+lemma comm_of (r : α → α → Prop) [is_symm α r] {a b : α} : r a b ↔ r b a := comm
 
 theorem is_refl.swap (r) [is_refl α r] : is_refl α (swap r) := ⟨refl_of r⟩
 theorem is_irrefl.swap (r) [is_irrefl α r] : is_irrefl α (swap r) := ⟨irrefl_of r⟩
@@ -50,6 +62,10 @@ protected theorem is_asymm.is_irrefl [is_asymm α r] : is_irrefl α r :=
 ⟨λ a h, asymm h h⟩
 protected theorem is_total.is_trichotomous (r) [is_total α r] : is_trichotomous α r :=
 ⟨λ a b, or.left_comm.1 (or.inr $ total_of r a b)⟩
+
+@[priority 100]  -- see Note [lower instance priority]
+instance is_total.to_is_refl (r) [is_total α r] : is_refl α r :=
+⟨λ a, (or_self _).1 $ total_of r a a⟩
 
 /- Convert algebraic structure style to explicit relation style typeclasses -/
 instance [preorder α] : is_refl α (≤) := ⟨le_refl⟩
@@ -241,13 +257,6 @@ instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty
 
 instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
 
-instance sum.lex.is_well_order [is_well_order α r] [is_well_order β s] :
-  is_well_order (α ⊕ β) (sum.lex r s) :=
-{ trichotomous := λ a b, by cases a; cases b; simp; apply trichotomous,
-  irrefl       := λ a, by cases a; simp; apply irrefl,
-  trans        := λ a b c, by cases a; cases b; simp; cases c; simp; apply trans,
-  wf           := sum.lex_wf is_well_order.wf is_well_order.wf }
-
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=
 { trichotomous := λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
@@ -272,19 +281,20 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   end,
   wf := prod.lex_wf is_well_order.wf is_well_order.wf }
 
-/-- An unbounded or cofinal set -/
+namespace set
+
+/-- An unbounded or cofinal set. -/
 def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s, ¬ r b a
-/-- A bounded or final set -/
-def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
+/-- A bounded or final set. Not to be confused with `metric.bounded`. -/
+def bounded (r : α → α → Prop) (s : set α) : Prop := ∃ a, ∀ b ∈ s, r b a
 
 @[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
-begin
-  classical,
-  simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
-end
+by simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
-by { classical, rw [not_iff_comm, not_bounded_iff] }
+by rw [not_iff_comm, not_bounded_iff]
+
+end set
 
 namespace prod
 

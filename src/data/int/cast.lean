@@ -224,7 +224,7 @@ variables {A : Type*}
 /-- Two additive monoid homomorphisms `f`, `g` from `ℤ` to an additive monoid are equal
 if `f 1 = g 1`. -/
 @[ext] theorem ext_int [add_monoid A] {f g : ℤ →+ A} (h1 : f 1 = g 1) : f = g :=
-have f.comp (int.of_nat_hom : ℕ →+ ℤ) = g.comp (int.of_nat_hom : ℕ →+ ℤ) := ext_nat h1,
+have f.comp (int.of_nat_hom : ℕ →+ ℤ) = g.comp (int.of_nat_hom : ℕ →+ ℤ) := ext_nat' _ _ h1,
 have ∀ n : ℕ, f n = g n := ext_iff.1 this,
 ext $ λ n, int.cases_on n this $ λ n, eq_on_neg (this $ n + 1)
 
@@ -266,16 +266,15 @@ namespace monoid_with_zero_hom
 variables {M : Type*} [monoid_with_zero M]
 
 /-- If two `monoid_with_zero_hom`s agree on `-1` and the naturals then they are equal. -/
-@[ext] theorem ext_int {f g : monoid_with_zero_hom ℤ M}
-  (h_neg_one : f (-1) = g (-1))
+@[ext] lemma ext_int {f g : ℤ →*₀ M} (h_neg_one : f (-1) = g (-1))
   (h_nat : f.comp int.of_nat_hom.to_monoid_with_zero_hom =
            g.comp int.of_nat_hom.to_monoid_with_zero_hom) :
   f = g :=
 to_monoid_hom_injective $ monoid_hom.ext_int h_neg_one $ monoid_hom.ext (congr_fun h_nat : _)
 
 /-- If two `monoid_with_zero_hom`s agree on `-1` and the _positive_ naturals then they are equal. -/
-theorem ext_int' {φ₁ φ₂ : monoid_with_zero_hom ℤ M}
-  (h_neg_one : φ₁ (-1) = φ₂ (-1)) (h_pos : ∀ n : ℕ, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
+lemma ext_int' {φ₁ φ₂ : ℤ →*₀ M} (h_neg_one : φ₁ (-1) = φ₂ (-1))
+  (h_pos : ∀ n : ℕ, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
 ext_int h_neg_one $ ext_nat h_pos
 
 end monoid_with_zero_hom

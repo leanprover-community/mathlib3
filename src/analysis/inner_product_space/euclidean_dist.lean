@@ -65,7 +65,7 @@ by rw [to_euclidean.image_symm_eq_preimage, closed_ball_eq_preimage]
 lemma is_compact_closed_ball {x : E} {r : ℝ} : is_compact (closed_ball x r) :=
 begin
   rw closed_ball_eq_image,
-  exact (proper_space.is_compact_closed_ball _ _).image to_euclidean.symm.continuous
+  exact (is_compact_closed_ball _ _).image to_euclidean.symm.continuous
 end
 
 lemma is_closed_closed_ball {x : E} {r : ℝ} : is_closed (closed_ball x r) :=

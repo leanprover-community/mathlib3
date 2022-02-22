@@ -20,7 +20,7 @@ open_locale real
 namespace circle
 
 lemma injective_arg : injective (λ z : circle, arg z) :=
-λ z w h, subtype.ext $ ext_abs_arg ((abs_eq_of_mem_circle z).trans (abs_eq_of_mem_circle w).symm) h
+λ z w h, subtype.ext $ ext_abs_arg ((abs_coe_circle z).trans (abs_coe_circle w).symm) h
 
 @[simp] lemma arg_eq_arg {z w : circle} : arg z = arg w ↔ z = w := injective_arg.eq_iff
 
@@ -86,3 +86,11 @@ periodic_exp_map_circle.sub_eq x
 
 lemma exp_map_circle_add_two_pi (x : ℝ) : exp_map_circle (x + 2 * π) = exp_map_circle x :=
 periodic_exp_map_circle x
+
+/-- `exp_map_circle`, applied to a `real.angle`. -/
+noncomputable def real.angle.exp_map_circle (θ : real.angle) : circle :=
+periodic_exp_map_circle.lift θ
+
+@[simp] lemma real.angle.exp_map_circle_coe (x : ℝ) :
+  real.angle.exp_map_circle x = exp_map_circle x :=
+rfl

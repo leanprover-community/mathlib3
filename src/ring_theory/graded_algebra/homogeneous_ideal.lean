@@ -233,6 +233,24 @@ instance : has_sup (homogeneous_ideal 𝒜) :=
 instance : has_Sup (homogeneous_ideal 𝒜) :=
 { Sup := λ ℐ, ⟨Sup (coe '' ℐ), ideal.is_homogeneous.Sup $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
 
+lemma homogeneous_ideal.Sup_eq (ℐ : set (homogeneous_ideal 𝒜)) :
+  ((Sup ℐ : homogeneous_ideal 𝒜) : ideal A) = Sup ((coe : homogeneous_ideal 𝒜 → ideal A) '' ℐ) :=
+rfl
+
+lemma homogeneous_ideal.supr_eq (s : ι → homogeneous_ideal 𝒜) :
+  (((⨆ (i : ι), s i) : homogeneous_ideal 𝒜) : ideal A) = ⨆ i, (s i : ideal A) :=
+begin
+  unfold supr,
+  rw homogeneous_ideal.Sup_eq,
+  congr,
+  ext I,
+  split,
+  { rintro ⟨_, ⟨i, -, rfl⟩, rfl⟩,
+    exact ⟨i, rfl⟩, },
+  { rintro ⟨i, -, rfl⟩,
+    exact ⟨s i, ⟨⟨i, rfl⟩, rfl⟩⟩, }
+end
+
 instance : has_mul (homogeneous_ideal 𝒜) :=
 { mul := λ I J, ⟨I * J, I.prop.mul J.prop⟩ }
 
@@ -347,13 +365,26 @@ begin
 end
 
 lemma homogeneous_hull_eq_supr :
-  ↑(I.homogeneous_hull 𝒜) = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
+   ↑(I.homogeneous_hull 𝒜) = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
+ begin
+   rw ←ideal.span_Union,
+   apply congr_arg ideal.span _,
+   ext1,
+   simp only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_algebra.proj_apply,
+     set_like.exists, exists_prop, subtype.coe_mk, set_like.mem_coe],
+ end
+
+lemma homogeneous_hull_eq_supr' :
+  (I.homogeneous_hull 𝒜) =
+  ⨆ i, ⟨ideal.span (graded_algebra.proj 𝒜 i '' I), ideal.is_homogeneous_span 𝒜 _ (begin
+    rintros _ ⟨x, h, rfl⟩,
+    refine ⟨i, submodule.coe_mem _⟩,
+  end)⟩ :=
 begin
-  rw ←ideal.span_Union,
-  apply congr_arg ideal.span _,
   ext1,
-  simp only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_algebra.proj_apply,
-    set_like.exists, exists_prop, subtype.coe_mk, set_like.mem_coe],
+  rw homogeneous_hull_eq_supr,
+  rw homogeneous_ideal.supr_eq,
+  refl,
 end
 
 variables {𝒜 I}

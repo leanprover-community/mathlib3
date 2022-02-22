@@ -44,7 +44,7 @@ More fine grained instances for `first_countable_topology`, `separable_space`, `
 (see the comment below `subtype.second_countable_topology`.)
 -/
 
-open set filter classical
+open set filter function
 open_locale topological_space filter
 noncomputable theory
 
@@ -72,7 +72,7 @@ begin
     have : ⋂₀ (t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂ := sInter_union t₁ t₂,
     exact ⟨_, ⟨t₁ ∪ t₂, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b, this.symm ▸ ⟨x, h⟩⟩, this⟩, h,
       subset.rfl⟩ },
-  { rw [sUnion_image, bUnion_eq_univ_iff],
+  { rw [sUnion_image, Union₂_eq_univ_iff],
     intro x, have : x ∈ ⋂₀ ∅, { rw sInter_empty, exact mem_univ x },
     exact ⟨∅, ⟨finite_empty, empty_subset _, x, this⟩, this⟩ },
   { rw hs,
@@ -285,33 +285,25 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 
 variable {α}
 
+@[priority 100]
+instance encodable.separable_space [encodable α] : separable_space α :=
+{ exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
+
 /-- In a separable space, a family of nonempty disjoint open sets is countable. -/
 lemma _root_.set.pairwise_disjoint.countable_of_is_open [separable_space α] {ι : Type*}
   {s : ι → set α} {a : set ι} (h : a.pairwise_disjoint s) (ha : ∀ i ∈ a, is_open (s i))
   (h'a : ∀ i ∈ a, (s i).nonempty) :
   countable a :=
 begin
-  rcases eq_empty_or_nonempty a with rfl|H, { exact countable_empty },
-  haveI : inhabited α,
-  { choose i ia using H,
-    choose y hy using h'a i ia,
-    exact ⟨y⟩ },
-  rcases exists_countable_dense α with ⟨u, u_count, u_dense⟩,
-  have : ∀ i, i ∈ a → ∃ y, y ∈ s i ∩ u :=
-    λ i hi, dense_iff_inter_open.1 u_dense (s i) (ha i hi) (h'a i hi),
-  choose! f hf using this,
-  have f_inj : inj_on f a,
-  { assume i hi j hj hij,
-    have : ¬disjoint (s i) (s j),
-    { rw not_disjoint_iff_nonempty_inter,
-      refine ⟨f i, (hf i hi).1, _⟩,
-      rw hij,
-      exact (hf j hj).1 },
-    contrapose! this,
-    exact h hi hj this },
-  apply countable_of_injective_of_countable_image f_inj,
-  apply u_count.mono _,
-  exact image_subset_iff.2 (λ i hi, (hf i hi).2)
+  rcases exists_countable_dense α with ⟨u, ⟨u_encodable⟩, u_dense⟩,
+  have : ∀ i : a, ∃ y, y ∈ s i ∩ u :=
+    λ i, dense_iff_inter_open.1 u_dense (s i) (ha i i.2) (h'a i i.2),
+  choose f hfs hfu using this,
+  lift f to a → u using hfu,
+  have f_inj : injective f,
+  { refine injective_iff_pairwise_ne.mpr ((h.subtype _ _).mono $ λ i j hij hfij, hij ⟨hfs i, _⟩),
+    simp only [congr_arg coe hfij, hfs j] },
+  exact ⟨@encodable.of_inj _ _ u_encodable f f_inj⟩
 end
 
 /-- In a separable space, a family of disjoint sets with nonempty interiors is countable. -/
@@ -601,8 +593,7 @@ begin
   let B := {b ∈ countable_basis α | ∃ i, b ⊆ s i},
   choose f hf using λ b : B, b.2.2,
   haveI : encodable B := ((countable_countable_basis α).mono (sep_subset _ _)).to_encodable,
-  refine ⟨_, countable_range f,
-    subset.antisymm (bUnion_subset_Union _ _) (sUnion_subset _)⟩,
+  refine ⟨_, countable_range f, (Union₂_subset_Union _ _).antisymm (sUnion_subset _)⟩,
   rintro _ ⟨i, rfl⟩ x xs,
   rcases (is_basis_countable_basis α).exists_subset_of_mem_open xs (H _) with ⟨b, hb, xb, bs⟩,
   exact ⟨_, ⟨_, rfl⟩, _, ⟨⟨⟨_, hb, _, bs⟩, rfl⟩, rfl⟩, hf _ (by exact xb)⟩
@@ -624,7 +615,7 @@ lemma countable_cover_nhds [second_countable_topology α] {f : α → set α}
 begin
   rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open_interior) with ⟨s, hsc, hsU⟩,
   suffices : (⋃ x ∈ s, interior (f x)) = univ,
-    from ⟨s, hsc, flip eq_univ_of_subset this (bUnion_mono $ λ _ _, interior_subset)⟩,
+    from ⟨s, hsc, flip eq_univ_of_subset this $ Union₂_mono $ λ _ _, interior_subset⟩,
   simp only [hsU, eq_univ_iff_forall, mem_Union],
   exact λ x, ⟨x, mem_interior_iff_mem_nhds.2 (hf x)⟩
 end

@@ -110,8 +110,19 @@ theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
 nhds_induced coe a
 
 end topα
-/-- The topology whose open sets are the empty set and the sets with finite complements. -/
-def cofinite_topology (α : Type*) : topological_space α :=
+
+/-- A type synonym equiped with the topology whose open sets are the empty set and the sets with
+finite complements. -/
+def cofinite_topology (α : Type*) := α
+
+namespace cofinite_topology
+
+/-- The identity equivalence between `α` and `cofinite_topology α`. -/
+def of : α ≃ cofinite_topology α := equiv.refl α
+instance [inhabited α] : inhabited (cofinite_topology α) :=
+{ default := of default }
+
+instance : topological_space (cofinite_topology α) :=
 { is_open := λ s, s.nonempty → set.finite sᶜ,
   is_open_univ := by simp,
   is_open_inter := λ s t, begin
@@ -129,8 +140,18 @@ def cofinite_topology (α : Type*) : topological_space α :=
     simp [hts]
     end }
 
-lemma nhds_cofinite {α : Type*} (a : α) :
-  @nhds α (cofinite_topology α) a = pure a ⊔ cofinite :=
+lemma is_open_iff {s : set (cofinite_topology α)} :
+  is_open s ↔ (s.nonempty → (sᶜ).finite) := iff.rfl
+
+lemma is_open_iff' {s : set (cofinite_topology α)} :
+  is_open s ↔ (s = ∅ ∨ (sᶜ).finite) :=
+by simp only [is_open_iff, ← ne_empty_iff_nonempty, or_iff_not_imp_left]
+
+lemma is_closed_iff {s : set (cofinite_topology α)} :
+  is_closed s ↔ s = univ ∨ s.finite :=
+by simp [← is_open_compl_iff, is_open_iff']
+
+lemma nhds_eq (a : cofinite_topology α) : 𝓝 a = pure a ⊔ cofinite :=
 begin
   ext U,
   rw mem_nhds_iff,
@@ -141,12 +162,13 @@ begin
     exact ⟨U, subset.rfl, λ h, hU', hU⟩ }
 end
 
-lemma mem_nhds_cofinite {α : Type*} {a : α} {s : set α} :
-  s ∈ @nhds α (cofinite_topology α) a ↔ a ∈ s ∧ sᶜ.finite :=
-by simp [nhds_cofinite]
+lemma mem_nhds_iff {a : cofinite_topology α} {s : set (cofinite_topology α)} :
+  s ∈ 𝓝 a ↔ a ∈ s ∧ sᶜ.finite :=
+by simp [nhds_eq]
+
+end cofinite_topology
 
 end constructions
-
 
 section prod
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
@@ -278,6 +300,11 @@ begin
   { rintros ⟨u, v, u_open, au, v_open, bv, huv⟩,
     exact ⟨u, u_open.mem_nhds au, v, v_open.mem_nhds bv, huv⟩ }
 end
+
+lemma _root_.prod.tendsto_iff {α} (seq : α → β × γ) {f : filter α} (x : β × γ) :
+  tendsto seq f (𝓝 x)
+    ↔ tendsto (λ n, (seq n).fst) f (𝓝 x.fst) ∧ tendsto (λ n, (seq n).snd) f (𝓝 x.snd) :=
+by { cases x, rw [nhds_prod_eq, filter.tendsto_prod_iff'], }
 
 lemma filter.has_basis.prod_nhds {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb → Prop}
   {sa : ιa → set α} {sb : ιb → set β} {a : α} {b : β} (ha : (𝓝 a).has_basis pa sa)
@@ -641,6 +668,10 @@ continuous_induced_dom
 lemma continuous_subtype_coe : continuous (coe : subtype p → α) :=
 continuous_subtype_val
 
+lemma continuous.subtype_coe {f : β → subtype p} (hf : continuous f) :
+  continuous (λ x, (f x : α)) :=
+continuous_subtype_coe.comp hf
+
 lemma is_open.open_embedding_subtype_coe {s : set α} (hs : is_open s) :
   open_embedding (coe : s → α) :=
 { induced := rfl,
@@ -968,19 +999,6 @@ by simp only [is_open_supr_iff, is_open_coinduced]
 lemma is_closed_sigma_iff {s : set (sigma σ)} : is_closed s ↔ ∀ i, is_closed (sigma.mk i ⁻¹' s) :=
 by simp only [← is_open_compl_iff, is_open_sigma_iff, preimage_compl]
 
-lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
-begin
-  rw is_open_sigma_iff,
-  intros a,
-  by_cases h : a ∈ s,
-  { convert is_open_univ,
-    ext x,
-    simp only [h, set.mem_preimage, set.mem_univ] },
-  { convert is_open_empty,
-    ext x,
-    simp only [h, set.mem_empty_eq, set.mem_preimage] }
-end
-
 lemma is_open_map_sigma_mk {i : ι} : is_open_map (@sigma.mk ι σ i) :=
 begin
   intros s hs,
@@ -1025,6 +1043,13 @@ closed_embedding_of_continuous_injective_closed
 
 lemma embedding_sigma_mk {i : ι} : embedding (@sigma.mk ι σ i) :=
 closed_embedding_sigma_mk.1
+
+lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
+begin
+  rw [← bUnion_of_singleton s, preimage_Union₂],
+  simp only [← range_sigma_mk],
+  exact is_open_bUnion (λ _ _, is_open_range_sigma_mk)
+end
 
 /-- A map out of a sum type is continuous if its restriction to each summand is. -/
 @[continuity]

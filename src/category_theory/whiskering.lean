@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.isomorphism
 import category_theory.functor_category
+import category_theory.fully_faithful
 
 /-!
 # Whiskering
@@ -88,6 +89,11 @@ Right-composition gives a functor `(D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E))`.
     naturality' := λ X Y f, begin ext, dsimp, rw [←nat_trans.naturality] end } }
 
 variables {C} {D} {E}
+
+instance faithful_whiskering_right_obj {F : D ⥤ E} [faithful F] :
+  faithful ((whiskering_right C D E).obj F) :=
+{ map_injective' := λ G H α β hαβ, nat_trans.ext _ _ $ funext $ λ X,
+    functor.map_injective _ $ congr_fun (congr_arg nat_trans.app hαβ) X }
 
 @[simp] lemma whisker_left_id (F : C ⥤ D) {G : D ⥤ E} :
   whisker_left F (nat_trans.id G) = nat_trans.id (F.comp G) :=

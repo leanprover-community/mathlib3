@@ -76,8 +76,8 @@ theorem nfp_family_iterate_monotone {f : ι → ordinal → ordinal} (H : ∀ i,
 def nfp_family (f : ι → ordinal → ordinal) (a) : ordinal :=
 sup (nfp_family_iterate f a)
 
-theorem nfp_family_eq_sup (f : ι → ordinal → ordinal) :
-  nfp_family f = (λ a, sup (nfp_family_iterate f a)) :=
+theorem nfp_family_eq_sup (f : ι → ordinal → ordinal) (a) :
+  nfp_family f a = sup (nfp_family_iterate f a) :=
 rfl
 
 theorem iterate_le_nfp_family (f : ι → ordinal → ordinal) (a l) :
@@ -144,7 +144,7 @@ theorem nfp_family_eq_self {f : ι → ordinal → ordinal} {a} (h : ∀ i, f i 
 le_antisymm (sup_le.2 (λ l, (by rw nfp_family_iterate_fixed h))) (self_le_nfp_family f a)
 
 /-- A generalization of the fixed point lemma for normal functions: any family of normal functions
-has an unbounded set of common fixed points. -/
+    has an unbounded set of common fixed points. -/
 theorem fp_family_unbounded (H : ∀ i, is_normal (f i)) :
   (⋂ i, function.fixed_points (f i)).unbounded (<) :=
 λ a, ⟨_, λ s ⟨i, hi⟩, begin
@@ -234,7 +234,7 @@ variables {o : ordinal.{u}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u 
 def nfp_bfamily (o : ordinal) (f : Π b < o, ordinal → ordinal) : ordinal → ordinal :=
 nfp_family (family_of_bfamily o f)
 
-theorem nfp_bfamily_eq_nfp_family (o : ordinal) (f : Π b < o, ordinal → ordinal) :
+theorem nfp_bfamily_eq_nfp_family {o : ordinal} (f : Π b < o, ordinal → ordinal) :
   nfp_bfamily o f = nfp_family (family_of_bfamily o f) :=
 rfl
 
@@ -294,7 +294,7 @@ theorem nfp_bfamily_eq_self {a} (h : ∀ i hi, f i hi a = a) : nfp_bfamily o f a
 nfp_family_eq_self (λ _, h _ _)
 
 /-- A generalization of the fixed point lemma for normal functions: any family of normal functions
-has an unbounded set of common fixed points. -/
+    has an unbounded set of common fixed points. -/
 theorem fp_bfamily_unbounded (H : ∀ i hi, is_normal (f i hi)) :
   (⋂ i hi, function.fixed_points (f i hi)).unbounded (<) :=
 λ a, ⟨_, by { rw set.mem_Inter₂, exact λ _ _, nfp_bfamily_fp H _ _ _ },
@@ -362,10 +362,10 @@ nfp_family (λ _ : unit, f)
 theorem nfp_eq_nfp_family (f : ordinal → ordinal) : nfp f = nfp_family (λ _ : unit, f) :=
 rfl
 
-@[simp] theorem sup_iterate_eq_nfp (f : ordinal.{u} → ordinal.{u}) :
-  (λ a, sup (λ n : ℕ, f^[n] a)) = nfp f :=
+@[simp] theorem sup_iterate_eq_nfp (f : ordinal.{u} → ordinal.{u}) (a) :
+  sup (λ n : ℕ, f^[n] a) = nfp f a :=
 begin
-  refine funext (λ a, le_antisymm _ (sup_le.2 (λ l, _))),
+  refine le_antisymm _ (sup_le.2 (λ l, _)),
   { rw sup_le,
     intro n,
     rw [←list.length_repeat unit.star n, ←nfp_family_iterate_eq_iterate.{0 u} f a],
@@ -413,8 +413,8 @@ theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
 theorem nfp_eq_self {f : ordinal → ordinal} {a} (h : f a = a) : nfp f a = a :=
 nfp_family_eq_self (λ _, h)
 
-/-- The fixed point lemma for normal functions: any normal function has an unbounded set of
-fixed points. -/
+/-- The fixed point lemma for normal functions: any normal function has an unbounded set of fixed
+    points. -/
 theorem fp_unbounded (H : is_normal f) : (function.fixed_points f).unbounded (<) :=
 by { convert fp_family_unbounded (λ _ : unit, H), exact (set.Inter_const _).symm }
 
@@ -458,7 +458,7 @@ by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _
 @[simp] theorem nfp_add_zero (a) : nfp ((+) a) 0 = a * omega :=
 begin
   rw [←sup_iterate_eq_nfp, ←sup_mul_nat],
-  dsimp, congr, funext,
+  congr, funext,
   induction n with n hn,
   { rw [nat.cast_zero, mul_zero, iterate_zero_apply] },
   { nth_rewrite 1 nat.succ_eq_one_add,
@@ -476,7 +476,7 @@ end
 
 theorem add_eq_right_iff_mul_omega_le {a b : ordinal} : a + b = b ↔ a * omega ≤ b :=
 begin
-  refine ⟨λ h, _, λ h, _⟩,
+  split; intro h,
   { rw [←nfp_add_zero a, ←deriv_zero],
     cases (add_is_normal a).fp_iff_deriv.1 h with c hc,
     rw ←hc,

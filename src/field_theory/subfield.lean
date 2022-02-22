@@ -72,6 +72,11 @@ namespace subfield_class
 variables (S : Type*) [set_like S K] [h : subfield_class S K]
 include h
 
+/-- A subfield contains `1`, products and inverses.
+
+Be assured that we're not actually proving that subfields are subgroups:
+`subgroup_class` is really an abbreviation of `subgroup_with_or_without_zero_class`.
+ -/
 @[priority 100] -- See note [lower instance priority]
 instance subfield_class.to_subgroup_class : subgroup_class S K := { .. h }
 

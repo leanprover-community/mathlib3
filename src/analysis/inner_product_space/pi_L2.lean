@@ -382,17 +382,13 @@ def linear_isometry_equiv.from_orthogonal_span_singleton
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 linear_isometry_equiv.of_inner_product_space (finrank_orthogonal_span_singleton hv)
 
-section complex
+section linear_isometry
 
 variables {V : Type*}
 [inner_product_space 𝕜 V]
 [finite_dimensional 𝕜 V]
 
 variables {S : submodule 𝕜 V} {L : S →ₗᵢ[𝕜] V}
-
-instance S_complete : complete_space S := finite_dimensional.complete 𝕜 S
-
-instance V_complete : complete_space V := finite_dimensional.complete 𝕜 V
 
 open finite_dimensional
 
@@ -420,6 +416,8 @@ begin
     exact BS.repr.trans BLS.repr.symm },
   let L3 := (LS)ᗮ.subtypeₗᵢ.comp E.to_linear_isometry,
   -- Project onto S and Sᗮ
+  haveI : complete_space S := finite_dimensional.complete 𝕜 S,
+  haveI : complete_space V := finite_dimensional.complete 𝕜 V,
   let p1 := (orthogonal_projection S).to_linear_map,
   let p2 := (orthogonal_projection Sᗮ).to_linear_map,
   -- Build a linear map from the isometries on S and Sᗮ
@@ -454,6 +452,7 @@ end
 lemma linear_isometry.extend_apply (L : S →ₗᵢ[𝕜] V) (s : S):
   L.extend s = L s :=
 begin
+  haveI : complete_space S := finite_dimensional.complete 𝕜 S,
   simp only [linear_isometry.extend, continuous_linear_map.to_linear_map_eq_coe,
     ←linear_isometry.coe_to_linear_map],
   simp only [add_right_eq_self, linear_isometry.coe_to_linear_map,
@@ -465,4 +464,4 @@ begin
     submodule.orthogonal_orthogonal, submodule.coe_mem],
 end
 
-end complex
+end linear_isometry

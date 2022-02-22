@@ -298,17 +298,16 @@ lemma is_adjoint_pair (A : E' →ₗ[ℝ] F') :
 
 end real
 
-lemma is_self_adjoint_adjoint_mul_self (T : E →ₗ[𝕜] E): is_self_adjoint (T.adjoint * T) :=
+lemma is_self_adjoint_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_self_adjoint (T.adjoint * T) :=
 λ x y, by simp only [linear_map.mul_apply, linear_map.adjoint_inner_left, linear_map.adjoint_inner_right]
 
-lemma gram_positive (T : E →ₗ[𝕜] E) :
-∀ (x : E), 0 ≤ is_R_or_C.re ⟪ (T.adjoint * T) x, x ⟫ ∧ is_R_or_C.im ⟪ (T.adjoint * T) x, x⟫ = 0 :=
-begin
-  intro x,
-  rw [linear_map.mul_apply, linear_map.adjoint_inner_left, inner_self_eq_norm_sq_to_K],
-  norm_cast,
-  exact ⟨ sq_nonneg (∥ T x ∥), rfl ⟩,
-end
+lemma re_inner_adjoint_mul_self_nonneg (T : E →ₗ[𝕜] E) {x : E} :
+  0 ≤ is_R_or_C.re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [linear_map.mul_apply,
+  linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast, exact sq_nonneg _}
+
+lemma im_inner_adjoint_mul_self_eq_zero (T : E →ₗ[𝕜] E) {x : E} :
+  is_R_or_C.im ⟪ x, (T.adjoint * T) x ⟫ = 0 := by {simp only [linear_map.mul_apply,
+    linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast}
 
 end linear_map
 

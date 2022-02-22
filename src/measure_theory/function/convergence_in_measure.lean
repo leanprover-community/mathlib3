@@ -12,10 +12,12 @@ import measure_theory.function.uniform_integrable
 We define convergence in measure which is one of the many notions of convergence in probability.
 A sequence of functions `f` is said to converge in measure to some function `g`
 if for all `ε > 0`, the measure of the set `{x | ε ≤ dist (f i x) (g x)}` tends to 0 as `i`
-tends to infinity. Convergence in measure is most notably used in the formulation of the weak
-law of large numbers and is also useful in theorems such as the Vitali convergence theorem.
-This file provides some basic lemmas for working with convergence in measure and establishes
-some relations between convergence in measure and other notions of convergence.
+converges along some given filter `l`.
+
+Convergence in measure is most notably used in the formulation of the weak law of large numbers
+and is also useful in theorems such as the Vitali convergence theorem. This file provides some
+basic lemmas for working with convergence in measure and establishes some relations between
+convergence in measure and other notions of convergence.
 
 ## Main definitions
 
@@ -41,8 +43,8 @@ namespace measure_theory
 variables {α ι E : Type*} {m : measurable_space α} {μ : measure α}
 
 /-- A sequence of functions `f` is said to converge in measure to some function `g` if for all
-`ε > 0`, the measure of the set `{x | ε ≤ dist (f i x) (g x)}` tends to 0 as `i` tends to
-infinity. -/
+`ε > 0`, the measure of the set `{x | ε ≤ dist (f i x) (g x)}` tends to 0 as `i` converges along
+some given filter `l`. -/
 def tendsto_in_measure [has_dist E] {m : measurable_space α}
   (μ : measure α) (f : ι → α → E) (l : filter ι) (g : α → E) : Prop :=
 ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ dist (f i x) (g x)}) l (𝓝 0)

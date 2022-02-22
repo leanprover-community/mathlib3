@@ -127,13 +127,14 @@ end
 
 end field
 
-variables [comm_ring R] [add_comm_group M] [module R M]
-  [comm_ring R₁] [add_comm_group M₁] [module R₁ M₁]
-  {I : R →+* R} {I₁ : R₁ →+* R} {I₂ : R₁ →+* R}
-  {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R}
-  {B' : M →ₗ[R] M →ₛₗ[I] R}
 
 /-! ### Reflexive bilinear forms -/
+
+section reflexive
+
+variables [comm_semiring R] [comm_semiring R₁] [add_comm_monoid M₁] [module R₁ M₁]
+  {I₁ : R₁ →+* R} {I₂ : R₁ →+* R}
+  {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R}
 
 /-- The proposition that a sesquilinear form is reflexive -/
 def is_refl (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R) : Prop :=
@@ -148,27 +149,46 @@ lemma eq_zero : ∀ {x y}, B x y = 0 → B y x = 0 := λ x y, H x y
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
 end is_refl
+end reflexive
 
 /-! ### Symmetric bilinear forms -/
 
+section symmetric
+
+variables [comm_semiring R] [add_comm_group M] [module R M]
+  {I : R →+* R} {B : M →ₛₗ[I] M →ₛₗ[I] R}
+
 /-- The proposition that a sesquilinear form is symmetric -/
-def is_symm (B : M →ₗ[R] M →ₛₗ[I] R) : Prop :=
-  ∀ (x y), I (B x y) = B y x
+def is_symm (B : M →ₛₗ[I] M →ₛₗ[I] R) : Prop := B = B.flip
+  --∀ (x y), I (B x y) = B y x
 
 namespace is_symm
 
-variable (H : B'.is_symm)
+variable (H : B.is_symm)
 include H
 
-protected lemma eq (x y) : (I (B' x y)) = B' y x := H x y
+variables (x y : M)
 
-lemma is_refl : B'.is_refl := λ x y H1, by { rw [←H], simp [H1] }
+protected lemma eq (x y) : B x y = B y x :=
+begin
+  rw flip_apply B y x,
+  exact congr_fun₂ H x y,
+end
 
-lemma ortho_comm {x y} : is_ortho B' x y ↔ is_ortho B' y x := H.is_refl.ortho_comm
+lemma is_refl : B.is_refl := λ x y H1, by { rw [←H], simp [H1] }
+
+lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
 end is_symm
+end symmetric
+
 
 /-! ### Alternating bilinear forms -/
+
+section alternating
+
+variables [comm_ring R] [comm_semiring R₁] [add_comm_monoid M₁] [module R₁ M₁]
+  {I₁ : R₁ →+* R} {I₂ : R₁ →+* R} {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R}
 
 /-- The proposition that a sesquilinear form is alternating -/
 def is_alt (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R) : Prop := ∀ x, B x x = 0
@@ -198,6 +218,7 @@ end
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
 end is_alt
+end alternating
 
 end linear_map
 
@@ -304,46 +325,94 @@ lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
 end orthogonal
 
 section nondegenerate
+
+section comm_semiring
 variables [comm_semiring R] [comm_semiring R₁] [add_comm_monoid M₁] [module R₁ M₁]
   [comm_semiring R₂] [add_comm_monoid M₂] [module R₂ M₂]
   {I₁ : R₁ →+* R} {I₂ : R₂ →+* R} {I₁' : R₁ →+* R}
 
-/-- A nondegenerate bilinear form is a bilinear form such that the only element that is orthogonal
-to every other element is `0`; i.e., for all nonzero `m` in `M`, there exists `n` in `M` with
-`B m n ≠ 0`.
-
-Note that for general (neither symmetric nor antisymmetric) bilinear forms this definition has a
-chirality; in addition to this "left" nondegeneracy condition one could define a "right"
-nondegeneracy condition that in the situation described, `B n m ≠ 0`.  This variant definition is
-not currently provided in mathlib. In finite dimension either definition implies the other. -/
+/-- A bilinear form is called left-separating if
+the only element that is left-orthogonal to every other element is `0`; i.e.,
+for every nonzero `x` in `M₁`, there exists `y` in `M₂` with `B x y ≠ 0`.-/
 def separating_left (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop :=
 ∀ x : M₁, (∀ y : M₂, B x y = 0) → x = 0
 
+/-- A bilinear form is called right-separating if
+the only element that is right-orthogonal to every other element is `0`; i.e.,
+for every nonzero `y` in `M₂`, there exists `x` in `M₁` with `B x y ≠ 0`.-/
 def separating_right (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop :=
 ∀ y : M₂, (∀ x : M₁, B x y = 0) → y = 0
 
+/-- A bilinear form is called non-degenerate if it is left-separating and right-separating. -/
+def nondegenerate (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop := separating_left B ∧ separating_right B
+
 lemma separating_left_flip (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) :
-  separating_left B ↔ B.flip.separating_right :=
-begin
-  split,
-  { intro hB,
-    dunfold separating_right,
-    intros y hx,
-    exact hB y hx },
-  intro hB,
-  dunfold separating_left,
-  intros x hy,
-  exact hB x hy,
-end
+  B.separating_left ↔ B.flip.separating_right := ⟨λ hB x hy, hB x hy, λ hB x hy, hB x hy⟩
 
 lemma separating_right_flip (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) :
-  separating_right B ↔ B.flip.separating_right :=
+  separating_right B ↔ B.flip.separating_left := by rw [B.flip.separating_left_flip, flip_flip]
+
+lemma separating_left_iff_neq_zero (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) :
+  B.separating_left ↔ ∀ x : M₁, B x = 0 → x = 0 :=
 begin
+  split; intros h x hB,
+  { let h' := h x,
+    simp only [hB, zero_apply, eq_self_iff_true, forall_const] at h',
+    exact h' },
+  have h' : B x = 0 := by { ext, rw [zero_apply], exact hB _ },
+  exact h x h',
+end
+
+lemma separating_right_iff_neq_zero_flip (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) :
+  B.separating_right ↔ ∀ y : M₂, B.flip y = 0 → y = 0 :=
+by rw [separating_right_flip, separating_left_iff_neq_zero]
+
+/-- A bilinear form is left-separating if and only if it has a trivial kernel. -/
+theorem separating_left_iff_ker_eq_bot {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+  B.separating_left ↔ B.ker = ⊥ :=
+begin
+  rw linear_map.ker_eq_bot',
+  split; intro h,
+  { refine λ m hm, h _ (λ x, _),
+    rw hm, refl },
+  { intros m hm, apply h,
+    ext x, exact hm x }
+end
+
+/-- A bilinear form is right-separating if and only if its flip has a trivial kernel. -/
+theorem separating_right_iff_flip_ker_eq_bot {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+  B.separating_right ↔ B.flip.ker = ⊥ :=
+by rw [separating_right_flip, separating_left_iff_ker_eq_bot]
+
+end comm_semiring
+
+section comm_ring
+
+variables [comm_ring R] [add_comm_group M] [module R M]
+  {I : R →+* R}
+
+lemma nondegenerate_of_symm_separating_left {B : M →ₗ[R] M →ₛₗ[I] R}
+  (hB : B.is_symm) (hB' : B.separating_left) : B.nondegenerate :=
+begin
+  refine ⟨hB', _⟩,
   sorry,
 end
 
-def nondegenerate (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop := separating_left B ∧ separating_right B
+end comm_ring
 
+/-- The restriction of a nondegenerate bilinear form `B` onto a submodule `W` is
+nondegenerate if `disjoint W (B.orthogonal W)`. -/
+lemma nondegenerate_restrict_of_disjoint_orthogonal
+  (B : bilin_form R₁ M₁) (b : B.is_symm)
+  {W : submodule R₁ M₁} (hW : disjoint W (B.orthogonal W)) :
+  (B.restrict W).nondegenerate :=
+begin
+  rintro ⟨x, hx⟩ b₁,
+  rw [submodule.mk_eq_zero, ← submodule.mem_bot R₁],
+  refine hW ⟨hx, λ y hy, _⟩,
+  specialize b₁ ⟨y, hy⟩,
+  rwa [restrict_apply, submodule.coe_mk, submodule.coe_mk, b] at b₁
+end
 
 
 end nondegenerate

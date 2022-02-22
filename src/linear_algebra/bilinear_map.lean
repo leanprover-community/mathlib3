@@ -150,6 +150,9 @@ def dom_restrict₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : sub
 lemma dom_restrict₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) (x : M) (y : q) :
   f.dom_restrict₂ q x y = f x y := rfl
 
+lemma congr_fun₂ {B₁ B₂ : M →ₛₗ[I] M →ₛₗ[I] R} (hB : B₁ = B₂) (x : M) (y : M) : B₁ x y = B₂ x y :=
+linear_map.congr_fun (linear_map.congr_fun hB x) y
+
 end semiring
 
 section comm_semiring

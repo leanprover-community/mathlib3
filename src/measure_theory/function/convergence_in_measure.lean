@@ -195,11 +195,11 @@ lemma tendsto_in_measure.exists_seq_tendsto_ae
   (hfg : tendsto_in_measure μ f at_top g) :
   ∃ ns : ℕ → ℕ, strict_mono ns ∧ ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
 begin
-  have h_lt_ε_real : ∀ (ε : ℝ) (hε : 0 < ε), ∃ k : ℕ, 2⁻¹ ^ (k - 1 : ℝ) < ε,
+  have h_lt_ε_real : ∀ (ε : ℝ) (hε : 0 < ε), ∃ k : ℕ, 2 * 2⁻¹ ^ k < ε,
   { intros ε hε,
     obtain ⟨k, h_k⟩ : ∃ (k : ℕ), 2⁻¹ ^ k < ε := exists_pow_lt_of_lt_one hε (by norm_num),
-    refine ⟨k+1, (le_of_eq _).trans_lt h_k⟩,
-    rw [nat.cast_add, nat.cast_one, add_tsub_cancel_right, real.rpow_nat_cast] },
+    refine ⟨k + 1, (le_of_eq _).trans_lt h_k⟩,
+    rw pow_add, ring },
   set ns := exists_seq_tendsto_ae.seq_tendsto_ae_seq hfg,
   use ns,
   let S := λ k, {x | 2⁻¹ ^ k ≤ dist (f (ns k) x) (g x)},
@@ -207,7 +207,7 @@ begin
     λ k, exists_seq_tendsto_ae.seq_tendsto_ae_seq_spec hfg k (ns k) (le_rfl),
   let s := ⋂ k, ⋃ i (hik : k ≤ i), S i,
   have hμs : μ s = 0,
-  { suffices hμs_le : ∀ k : ℕ, μ s ≤ ennreal.of_real (2⁻¹ ^ ((k : ℝ) - 1)),
+  { suffices hμs_le : ∀ k : ℕ, μ s ≤ ennreal.of_real (2 * 2⁻¹ ^ k),
     { refine le_antisymm (ennreal.le_of_forall_pos_le_add (λ ε hε _, _)) (zero_le _),
       rw zero_add,
       obtain ⟨k, hk_lt_ε⟩ := h_lt_ε_real ε hε,
@@ -247,13 +247,13 @@ begin
     obtain ⟨k, hk_lt_ε⟩ := h_lt_ε_real ε hε,
     refine ⟨max N (k - 1), λ n hn_ge, lt_of_le_of_lt _ hk_lt_ε⟩,
     specialize hNx n ((le_max_left _ _).trans hn_ge),
-    have h_inv_n_le_k : (2 : ℝ)⁻¹ ^ n ≤ 2⁻¹ ^ ((k : ℝ) - 1),
-    { rw [← real.rpow_nat_cast],
-      refine real.rpow_le_rpow_of_exponent_ge ((one_div (2 : ℝ)) ▸ one_half_pos)
-        (inv_le_one one_le_two) _,
-      rw [sub_le_iff_le_add, ← nat.cast_add_one, nat.cast_le],
-      exact (le_tsub_add.trans (add_le_add_right (le_max_right _ _) 1)).trans
-        (add_le_add_right hn_ge 1) },
+    have h_inv_n_le_k : (2 : ℝ)⁻¹ ^ n ≤ 2 * 2⁻¹ ^ k,
+    { rw [mul_comm, ← inv_mul_le_iff' (@two_pos ℝ _ _)],
+      conv_lhs { congr, rw ← pow_one (2 : ℝ)⁻¹ },
+      rw [← pow_add, add_comm],
+      exact pow_le_pow_of_le_one ((one_div (2 : ℝ)) ▸ one_half_pos.le) (inv_le_one one_le_two)
+        ((le_tsub_add.trans (add_le_add_right (le_max_right _ _) 1)).trans
+        (add_le_add_right hn_ge 1)) },
     refine le_trans _ h_inv_n_le_k,
     rw [set.mem_compl_iff, set.nmem_set_of_eq, not_le] at hNx,
     exact hNx.le },

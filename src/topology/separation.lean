@@ -1169,7 +1169,7 @@ lemma is_irreducible_iff_singleton [t2_space α] (S : set α) :
 begin
   split,
   { intro h,
-    rw exists_eq_singleton_iff_nonempty_unique_mem,
+    rw exists_eq_singleton_iff_nonempty_subsingleton,
     use h.1,
     intros a ha b hb,
     injection @@subsingleton.elim ((is_preirreducible_iff_subsingleton _).mp h.2) ⟨_, ha⟩ ⟨_, hb⟩ },

@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Anatole Dedecker, Sébastien Gouëzel, Johannes Hölzl, Yury G. Kudryashov,
+         Dylan MacKenzie, Patrick Massot
 -/
 import algebra.geom_sum
 import analysis.asymptotics.asymptotics
@@ -76,7 +77,7 @@ namespace normed_field
 
 lemma tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
   tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[≠] 0) at_top :=
-(tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
+(tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (norm_inv x).symm
 
 lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
   (hm : m < 0) :
@@ -84,7 +85,7 @@ lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] 
 begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
-  simp only [normed_field.norm_pow, zpow_neg₀, zpow_coe_nat, ← inv_pow₀],
+  simp only [norm_pow, zpow_neg₀, zpow_coe_nat, ← inv_pow₀],
   exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
@@ -450,7 +451,7 @@ begin
   have B : (λ n, (∑ i in range n, ξ ^ i)) = (λ n, geom_sum ξ n) := rfl,
   rw [has_sum_iff_tendsto_nat_of_summable_norm, B],
   { simpa [geom_sum_eq, xi_ne_one, neg_inv, div_eq_mul_inv] using A },
-  { simp [normed_field.norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
+  { simp [norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
 end
 
 lemma summable_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : summable (λn:ℕ, ξ ^ n) :=
@@ -475,7 +476,7 @@ begin
   refine ⟨λ h, _, summable_geometric_of_norm_lt_1⟩,
   obtain ⟨k : ℕ, hk : dist (ξ ^ k) 0 < 1⟩ :=
     (h.tendsto_cofinite_zero.eventually (ball_mem_nhds _ zero_lt_one)).exists,
-  simp only [normed_field.norm_pow, dist_zero_right] at hk,
+  simp only [norm_pow, dist_zero_right] at hk,
   rw [← one_pow k] at hk,
   exact lt_of_pow_lt_pow _ zero_le_one hk
 end
@@ -911,6 +912,82 @@ begin
   exact pow_pos (zero_lt_one.trans hm) _
 end
 
+section
+/-! ### Dirichlet and alternating series tests -/
+
+variables {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {b : ℝ} {f : ℕ → ℝ} {z : ℕ → E}
+
+/-- **Dirichlet's Test** for monotone sequences. -/
+theorem monotone.cauchy_seq_series_mul_of_tendsto_zero_of_bounded
+  (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) (hgb : ∀ n, ∥∑ i in range n, z i∥ ≤ b) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (f i) • z i) :=
+begin
+  simp_rw [finset.sum_range_by_parts _ _ (nat.succ_pos _), sub_eq_add_neg,
+           nat.succ_sub_succ_eq_sub, tsub_zero],
+  apply (normed_field.tendsto_zero_smul_of_tendsto_zero_of_bounded hf0
+    ⟨b, eventually_map.mpr $ eventually_of_forall $ λ n, hgb $ n+1⟩).cauchy_seq.add,
+  apply (cauchy_seq_range_of_norm_bounded _ _ (_ : ∀ n, _ ≤ b * |f(n+1) - f(n)|)).neg,
+  { exact normed_uniform_group },
+  { simp_rw [abs_of_nonneg (sub_nonneg_of_le (hfa (nat.le_succ _))), ← mul_sum],
+    apply real.uniform_continuous_mul_const.comp_cauchy_seq,
+    simp_rw [sum_range_sub, sub_eq_add_neg],
+    exact (tendsto.cauchy_seq hf0).add_const },
+  { intro n,
+    rw [norm_smul, mul_comm],
+    exact mul_le_mul_of_nonneg_right (hgb _) (abs_nonneg _) },
+end
+
+/-- **Dirichlet's test** for antitone sequences. -/
+theorem antitone.cauchy_seq_series_mul_of_tendsto_zero_of_bounded
+  (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) (hzb : ∀ n, ∥∑ i in range n, z i∥ ≤ b) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (f i) • z i) :=
+begin
+  have hfa': monotone (λ n, -f n) := λ _ _ hab, neg_le_neg $ hfa hab,
+  have hf0': tendsto (λ n, -f n) at_top (𝓝 0) := by { convert hf0.neg, norm_num },
+  convert (hfa'.cauchy_seq_series_mul_of_tendsto_zero_of_bounded hf0' hzb).neg,
+  funext,
+  simp
+end
+
+lemma norm_sum_neg_one_pow_le (n : ℕ) : ∥∑ i in range n, (-1 : ℝ) ^ i∥ ≤ 1 :=
+by { rw [←geom_sum_def, neg_one_geom_sum], split_ifs; norm_num }
+
+/-- The **alternating series test** for monotone sequences.
+See also `tendsto_alternating_series_of_monotone_tendsto_zero`. -/
+theorem monotone.cauchy_seq_alternating_series_of_tendsto_zero
+  (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (-1) ^ i * f i) :=
+begin
+  simp_rw [mul_comm],
+  exact hfa.cauchy_seq_series_mul_of_tendsto_zero_of_bounded hf0 norm_sum_neg_one_pow_le
+end
+
+/-- The **alternating series test** for monotone sequences. -/
+theorem monotone.tendsto_alternating_series_of_tendsto_zero
+  (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  ∃ l, tendsto (λ n, ∑ i in range (n+1), (-1) ^ i * f i) at_top (𝓝 l) :=
+cauchy_seq_tendsto_of_complete $ hfa.cauchy_seq_alternating_series_of_tendsto_zero hf0
+
+/-- The **alternating series test** for antitone sequences.
+See also `tendsto_alternating_series_of_antitone_tendsto_zero`. -/
+theorem antitone.cauchy_seq_alternating_series_of_tendsto_zero
+  (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (-1) ^ i * f i) :=
+begin
+  simp_rw [mul_comm],
+  exact
+    hfa.cauchy_seq_series_mul_of_tendsto_zero_of_bounded hf0 norm_sum_neg_one_pow_le
+end
+
+/-- The **alternating series test** for antitone sequences. -/
+theorem antitone.tendsto_alternating_series_of_tendsto_zero
+  (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  ∃ l, tendsto (λ n, ∑ i in range (n+1), (-1) ^ i * f i) at_top (𝓝 l) :=
+cauchy_seq_tendsto_of_complete $ hfa.cauchy_seq_alternating_series_of_tendsto_zero hf0
+
+end
+
 /-! ### Positive sequences with small sums on encodable types -/
 
 /-- For any positive `ε`, define on an encodable type a positive sequence with sum less than `ε` -/
@@ -1035,7 +1112,7 @@ begin
   intros n hn,
   calc ∥x ^ (n + 1) / (n + 1)!∥ = (∥x∥ / (n + 1)) * ∥x ^ n / n!∥ :
     by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div,
-      normed_field.norm_mul, normed_field.norm_div, real.norm_coe_nat, nat.cast_succ]
+      norm_mul, norm_div, real.norm_coe_nat, nat.cast_succ]
   ... ≤ (∥x∥ / (⌊∥x∥⌋₊ + 1)) * ∥x ^ n / n!∥ :
     by mono* with [0 ≤ ∥x ^ n / n!∥, 0 ≤ ∥x∥]; apply norm_nonneg
 end

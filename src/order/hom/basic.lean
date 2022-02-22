@@ -449,8 +449,8 @@ instance : order_iso_class (α ≃o β) α β :=
 
 @[simp] lemma to_fun_eq_coe {f : α ≃o β} : f.to_fun = f := rfl
 
-@[ext] lemma ext [has_le α] [has_le β] {f g : α ≃o β} (h : ∀ a, f a = g a) : f = g :=
-fun_like.ext f g h
+@[ext] -- See note [partially-applied ext lemmas]
+lemma ext {f g : α ≃o β} (h : (f : α → β) = g) : f = g := fun_like.coe_injective h
 
 /-- Reinterpret an order isomorphism as an order embedding. -/
 def to_order_embedding (e : α ≃o β) : α ↪o β :=

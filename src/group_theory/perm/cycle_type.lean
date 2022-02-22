@@ -65,10 +65,10 @@ lemma cycle_type_eq {σ : perm α} (l : list (perm α)) (h0 : l.prod = σ)
 begin
   have hl : l.nodup := nodup_of_pairwise_disjoint_cycles h1 h2,
   rw cycle_type_eq' l.to_finset,
-  { simp [list.erase_dup_eq_self.mpr hl] },
+  { simp [list.dedup_eq_self.mpr hl] },
   { simpa using h1 },
   { simpa [hl] using h0 },
-  { simpa [list.erase_dup_eq_self.mpr hl] using list.forall_of_pairwise disjoint.symmetric h2 }
+  { simpa [list.dedup_eq_self.mpr hl] using list.forall_of_pairwise disjoint.symmetric h2 }
 end
 
 lemma cycle_type_one : (1 : perm α).cycle_type = 0 :=

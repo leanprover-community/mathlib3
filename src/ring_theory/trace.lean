@@ -376,6 +376,10 @@ def trace_matrix (b : κ → B) : matrix κ κ A
 
 lemma trace_matrix_def (b : κ → B) : trace_matrix A b = λ i j, trace_form A B (b i) (b j) := rfl
 
+lemma trace_matrix_reindex {κ' : Type*} (b : basis κ A B) (f : κ ≃ κ') :
+  trace_matrix A (b.reindex f) = reindex f f (trace_matrix A b) :=
+by {ext x y, simp}
+
 variables {A}
 
 lemma trace_matrix_of_matrix_vec_mul [fintype κ] (b : κ → B) (P : matrix κ κ A) :

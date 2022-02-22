@@ -1116,4 +1116,6 @@ lemma update_comp_eq_of_not_mem_range {α β γ : Sort*} [decidable_eq β]
   (function.update g i a) ∘ f = g ∘ f :=
 update_comp_eq_of_not_mem_range' g a h
 
+lemma insert_inj_on (s : set α) : sᶜ.inj_on (λ a, insert a s) := λ a ha b _, (insert_inj ha).1
+
 end function

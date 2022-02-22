@@ -35,7 +35,7 @@ local attribute [instance] is_cyclotomic_extension.finite_dimensional
 
 /-- If `p` is an odd prime and `is_cyclotomic_extension {p} K L`, then
 `discr K (hζ.power_basis K).basis = (-1) ^ ((p - 1) / 2) * p ^ (p - 2)`. -/
-lemma discr_prime [is_cyclotomic_extension {p} K L] [hp : fact (p : ℕ).prime]
+lemma discr_odd_prime [is_cyclotomic_extension {p} K L] [hp : fact (p : ℕ).prime]
   (hζ : is_primitive_root ζ p) (hirr : irreducible (cyclotomic p K)) (hodd : p ≠ 2) :
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p : ℕ) - 1) / 2) * p ^ ((p : ℕ) - 2) :=

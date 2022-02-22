@@ -529,26 +529,6 @@ section ping_pong_lemma
 open_locale pointwise
 open_locale cardinal
 
-lemma cardinal.three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
-  ∃ (z : α), z ≠ x ∧ z ≠ y :=
-begin
-  classical,
-  cases h with f,
-  let l := [f (sum.inr ⟨⟩), f (sum.inl (sum.inl ⟨⟩)), f (sum.inl (sum.inr ⟨⟩))],
-  have hl : l.nodup, by simp,
-
-  let s₁ : finset α := l.to_finset,
-  have hcard : s₁.card = 3 := list.to_finset_card_of_nodup hl,
-  have := calc
-    0   < 1 : by simp
-    ... = (s₁.card - 1) - 1 : by simp [s₁, list.to_finset_card_of_nodup hl]
-    ... ≤ (s₁.erase y).card - 1 : nat.sub_le_sub_right finset.pred_card_le_card_erase 1
-    ... ≤ ((s₁.erase y).erase x).card : finset.pred_card_le_card_erase,
-  obtain ⟨z, hz⟩ := finset.card_pos.mp this,
-  simp only [finset.mem_erase] at hz,
-  exact ⟨z, hz.1, hz.2.1⟩,
-end
-
 variables [nontrivial ι]
 variables {G : Type*} [group G]
 variables {H : ι → Type*} [∀ i, inhabited (H i)] [∀ i, group (H i)]

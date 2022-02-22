@@ -157,7 +157,7 @@ structure mul_order_embedding (S S' : Type*) [has_mul S] [has_le S] [has_mul S']
 
 namespace mul_order_embedding
 
-variables {M N : Type*} [has_mul M] [has_le M] [has_mul N] [has_le N]
+variables {M N F : Type*} [has_mul M] [has_le M] [has_mul N] [has_le N]
 
 infix ` ↪*o `:25 := mul_order_embedding
 infix ` ↪+o `:25 := mul_order_embedding
@@ -302,6 +302,10 @@ instance {M N : Type*} [has_mul M] [preorder M] [has_mul N] [preorder N] :
   map_rel := λ e a b, (@mul_order_iso.map_rel_iff' _ _ _ _ _ _ _ _ _).mpr }
 
 @[to_additive]
+instance : order_iso_class (M ≃*o N) M N :=
+{ map_le_map_iff := mul_order_iso.map_rel_iff' }
+
+@[to_additive]
 instance mul_order_iso.order_hom_class_rev {M N : Type*} [has_mul M] [preorder M]
   [has_mul N] [preorder N] :
   order_hom_class (M ≃*o N) N M :=
@@ -311,11 +315,6 @@ instance mul_order_iso.order_hom_class_rev {M N : Type*} [has_mul M] [preorder M
     simp_rw coe_to_mul_equiv at this ⊢,
     simp [this] },
   map_rel := λ e a b, (@mul_order_iso.map_rel_iff' _ _ _ _ _ _ _ _ _).mpr }
-
-@[simp, to_additive]
-lemma map_le_iff (e : M ≃*o N) {a b : M} :
-  e a ≤ e b ↔ a ≤ b :=
-@mul_order_iso.map_rel_iff' _ _ _ _ _ _ _ _ _
 
 @[simp, to_additive]
 lemma map_lt_iff {M N : Type*} [has_mul M] [preorder M] [has_mul N] [preorder N]

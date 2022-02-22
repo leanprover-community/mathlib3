@@ -393,15 +393,10 @@ lemma orthogonal_projection_vadd_smul_vsub_orthogonal_projection
     ⟨p1, hp⟩ :=
 orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ _
 
-lemma orthogonal_projection_span_eq {n : ℕ} {r₁ : ℝ} (s : simplex ℝ P n)
-  {p p₁ : P} {p₁o : P} (hp₁o : p₁o ∈ affine_span ℝ (set.range s.points))
-  (hp₁ : p₁ = r₁ • (p -ᵥ ↑(s.orthogonal_projection_span p)) +ᵥ p₁o) :
-  ↑(s.orthogonal_projection_span p₁) = p₁o :=
-begin
-  have := s.orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hp₁o,
-  rw ← hp₁ at this,
-  convert congr_arg coe this
-end
+lemma coe_orthogonal_projection_vadd_smul_vsub_orthogonal_projection {n : ℕ} {r₁ : ℝ}
+  (s : simplex ℝ P n) {p p₁o : P} (hp₁o : p₁o ∈ affine_span ℝ (set.range s.points)) :
+  ↑(s.orthogonal_projection_span (r₁ • (p -ᵥ ↑(s.orthogonal_projection_span p)) +ᵥ p₁o)) = p₁o :=
+congr_arg coe (orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ _ hp₁o)
 
 lemma dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq {n : ℕ}
   (s : simplex ℝ P n) {p1 : P}
@@ -872,11 +867,11 @@ begin
       mem_affine_span_insert_iff (orthogonal_projection_mem p)] at hp₁ hp₂,
   obtain ⟨r₁, p₁o, hp₁o, hp₁⟩ := hp₁,
   obtain ⟨r₂, p₂o, hp₂o, hp₂⟩ := hp₂,
-  obtain rfl : ↑(s.orthogonal_projection_span p₁) = p₁o :=
-    s.orthogonal_projection_span_eq hp₁o hp₁,
+  obtain rfl : ↑(s.orthogonal_projection_span p₁) = p₁o,
+  { subst hp₁, exact s.coe_orthogonal_projection_vadd_smul_vsub_orthogonal_projection hp₁o },
   rw h₁' at hp₁,
-  obtain rfl : ↑(s.orthogonal_projection_span p₂) = p₂o :=
-    s.orthogonal_projection_span_eq hp₂o hp₂,
+  obtain rfl : ↑(s.orthogonal_projection_span p₂) = p₂o,
+  { subst hp₂, exact s.coe_orthogonal_projection_vadd_smul_vsub_orthogonal_projection hp₂o },
   rw h₂' at hp₂,
   have h : s.points 0 ∈ span_s := mem_affine_span ℝ (set.mem_range_self _),
   have hd₁ : dist p₁ s.circumcenter * dist p₁ s.circumcenter =

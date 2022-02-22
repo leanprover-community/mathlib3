@@ -45,6 +45,7 @@ class continuous_order_hom_class (F : Type*) (α β : out_param $ Type*) [preord
   extends rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop) :=
 (map_continuous (f : F) : continuous f)
 
+@[priority 100] -- See note [lower instance priority]
 instance continuous_order_hom_class.to_continuous_map_class [preorder α] [preorder β]
   [topological_space α] [topological_space β] [continuous_order_hom_class F α β] :
   continuous_map_class F α β :=

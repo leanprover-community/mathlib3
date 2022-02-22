@@ -35,7 +35,7 @@ namespace ordinal
 /-! ### Fixed points of type-indexed families of ordinals -/
 
 section
-variables {ι : Type u} {f : ι → ordinal.{max u v} → ordinal.{max u v}}
+variables {ι : Type u} {ι' : Type w} {f : ι → ordinal.{max u v} → ordinal.{max u v}}
 
 /-- Applies the functions specified by the indices of a list, in order, to a specified value. -/
 def nfp_family_iterate (f : ι → ordinal → ordinal) (a : ordinal) : list ι → ordinal
@@ -112,13 +112,13 @@ lt_sup
 theorem nfp_family_le {a b} : nfp_family f a ≤ b ↔ ∀ l, nfp_family_iterate f a l ≤ b :=
 sup_le
 
-theorem nfp_family_empty [is_empty ι] (f : ι → ordinal → ordinal) (a) : nfp_family f a = a :=
-le_antisymm begin
+theorem nfp_family_empty [is_empty ι] (f : ι → ordinal → ordinal) : nfp_family f = id :=
+funext (λ a, le_antisymm begin
   rw nfp_family_le,
   rintro (_ | i),
-  { rw nfp_family_iterate_nil },
+  { refl },
   { exact is_empty_elim i }
-end (self_le_nfp_family f a)
+end (self_le_nfp_family f a))
 
 theorem nfp_family_monotone (hf : ∀ i, monotone (f i)) : monotone (nfp_family f) :=
 λ a b h, sup_le.2 $ λ l, (nfp_family_iterate_monotone hf l h).trans (le_sup _ l)
@@ -136,10 +136,15 @@ theorem nfp_family_le_apply [nonempty ι] (H : ∀ i, is_normal (f i)) {a b} :
   (∃ i, nfp_family f a ≤ f i b) ↔ nfp_family f a ≤ b :=
 by { rw ←not_iff_not, push_neg, exact apply_lt_nfp_family_iff H }
 
+theorem nfp_family_le_of_range_subset {ι : Type u} {ι' : Type v} {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal} (hfg : set.range f ⊆ set.range g) (a) :
+  nfp_family.{u (max v w)} f a ≤ nfp_family.{v (max u w)} g a :=
+sup_le_of_range_subset (nfp_family_iterate_range_subset_of_range_subset hfg a)
+
 theorem nfp_family_eq_of_range_eq {ι : Type u} {ι' : Type v} {f : ι → ordinal → ordinal}
   {g : ι' → ordinal → ordinal} (hfg : set.range f = set.range g) :
   nfp_family.{u (max v w)} f = nfp_family.{v (max u w)} g :=
-funext (λ a, sup_eq_of_range_eq (by rw nfp_family_iterate_range_eq_of_range_eq hfg))
+funext (λ a, sup_eq_of_range_eq (nfp_family_iterate_range_eq_of_range_eq hfg a))
 
 theorem nfp_family_le_fp (H : ∀ i, is_normal (f i)) {a b} (ab : a ≤ b) (h : ∀ i, f i b ≤ b) :
   nfp_family f a ≤ b :=
@@ -254,6 +259,13 @@ begin
   rwa ←fp_iff_deriv_family H
 end
 
+theorem deriv_le_of_range_subset {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal.{max u v w}} (hfg : set.range f ⊆ set.range g) (a) :
+  deriv_family f a ≤ deriv_family.{w (max u v w)} g a :=
+begin
+  apply enum_ord_le_of_subset,
+end
+
 end
 
 /-! ### Fixed points of ordinal-indexed families of ordinals -/
@@ -280,7 +292,7 @@ le_sup _ _
 
 theorem self_le_nfp_bfamily {o : ordinal} (f : Π b < o, ordinal → ordinal) (a) :
   a ≤ nfp_bfamily o f a :=
-self_le_nfp_family _ a
+le_sup _ []
 
 theorem lt_nfp_bfamily {a b} :
   a < nfp_bfamily o f b ↔ ∃ l, a < nfp_family_iterate (family_of_bfamily o f) b l :=
@@ -290,9 +302,9 @@ theorem nfp_bfamily_le {o : ordinal} {f : Π b < o, ordinal → ordinal} {a b} :
   nfp_bfamily o f a ≤ b ↔ ∀ l, nfp_family_iterate (family_of_bfamily o f) a l ≤ b :=
 sup_le
 
-theorem nfp_bfamily_zero {o : ordinal} (ho : o = 0) (f : Π b < o, ordinal → ordinal) (a) :
-  nfp_bfamily o f a = a :=
-@nfp_family_empty _ (out_empty_iff_eq_zero.2 ho) _ a
+theorem nfp_bfamily_zero {o : ordinal} (ho : o = 0) (f : Π b < o, ordinal → ordinal) :
+  nfp_bfamily o f = id :=
+@nfp_family_empty _ (out_empty_iff_eq_zero.2 ho) _
 
 theorem nfp_bfamily_monotone (hf : ∀ i hi, monotone (f i hi)) : monotone (nfp_bfamily o f) :=
 nfp_family_monotone (λ i, hf _ _)
@@ -461,6 +473,13 @@ by { convert fp_family_unbounded (λ _ : unit, H), exact (set.Inter_const _).sym
 /-- The derivative of a normal function `f` is the sequence of fixed points of `f`. -/
 def deriv (f : ordinal → ordinal) : ordinal → ordinal :=
 deriv_family (λ _ : unit, f)
+
+theorem deriv_eq_deriv_family (f : ordinal → ordinal) : deriv f = deriv_family (λ _ : unit, f) :=
+rfl
+
+theorem deriv_eq_deriv_family' (ι) [nonempty ι] (f : ordinal → ordinal) :
+  deriv f = deriv_family (λ _ : ι, f) :=
+sorry
 
 @[simp] theorem deriv_zero (f) : deriv f 0 = nfp f 0 :=
 deriv_family_zero _

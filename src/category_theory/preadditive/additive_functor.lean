@@ -3,7 +3,7 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Scott Morrison
 -/
-import category_theory.preadditive
+import category_theory.preadditive.functor_category
 import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.shapes.biproducts
 
@@ -148,6 +148,50 @@ instance inverse_additive (e : C ≌ D) [e.functor.additive] : e.inverse.additiv
 { map_add' := λ X Y f g, by { apply e.functor.map_injective, simp, }, }
 
 end equivalence
+
+section
+variables (C D : Type*) [category C] [category D] [preadditive C] [preadditive D]
+
+/-- Bundled additive functors. -/
+@[derive category]
+def AdditiveFunctor :=
+{ F : C ⥤ D // functor.additive F }
+
+infixr ` ⥤+ `:26 := AdditiveFunctor
+
+instance : preadditive (C ⥤+ D) :=
+preadditive.induced_category.category _
+
+variables {C D}
+
+instance (F : C ⥤+ D) : functor.additive F.1 :=
+F.2
+
+@[simp] lemma AdditiveFunctor.hom_eq_hom {F G : C ⥤+ D} : (F ⟶ G) = (F.1 ⟶ G.1) :=
+rfl
+
+variables (C D)
+
+@[simps]
+def AdditiveFunctor.evaluation : C ⥤ (C ⥤ D) ⥤+ D :=
+{ obj := λ X,
+  { val :=
+    { obj := λ F, F.obj X,
+      map := λ F F' α, α.app X,
+      map_id' := λ F, rfl,
+      map_comp' := λ F G H α β, rfl },
+    property :=
+    { map_add' := λ X Y f g, rfl } },
+  map := λ X X' f,
+  { app := λ F, F.map f,
+    naturality' := λ F G α, (α.naturality f).symm },
+  map_id' := λ X, by { simp only [functor.map_id], refl },
+  map_comp' := λ X Y Z f g, by { simp only [functor.map_comp], refl } }
+
+instance : functor.additive (AdditiveFunctor.evaluation C D) :=
+{ map_add' := λ X Y f g, by { ext, simp } }
+
+end
 
 end preadditive
 

@@ -349,7 +349,7 @@ d.is_adj
 @[simps] def dart.symm (d : G.dart) : G.dart :=
 ⟨d.to_prod.swap, G.symm d.is_adj⟩
 
-@[simp] lemma dart.symm_mk (p : V × V) (h : G.adj p.1 p.2) :
+@[simp] lemma dart.symm_mk {p : V × V} (h : G.adj p.1 p.2) :
   (dart.mk p h).symm = dart.mk p.swap h.symm := rfl
 
 @[simp] lemma dart.edge_symm (d : G.dart) : d.symm.edge = d.edge :=

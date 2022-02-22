@@ -175,7 +175,7 @@ lemma _root_.equiv.polish_space_induced [t : topological_space β] [polish_space
   @polish_space α (t.induced f) :=
 begin
   letI : topological_space α := t.induced f,
-  exact f.to_homeomorph.closed_embedding.polish_space,
+  exact (f.to_homeomorph_of_inducing ⟨rfl⟩).closed_embedding.polish_space,
 end
 
 /-- A closed subset of a Polish space is also Polish. -/
@@ -436,14 +436,14 @@ begin
   let f : α ≃ (s ⊕ t) := (equiv.set.sum_compl s).symm,
   letI T : topological_space (s ⊕ t) := by apply_instance,
   let t' : topological_space α := T.induced f,
-  let g := f.to_homeomorph,
+  let g := @equiv.to_homeomorph_of_inducing  _ _ t' T f { induced := rfl },
   have A : g ⁻¹' (range (sum.inl : s → s ⊕ t)) = s,
   { ext x,
     by_cases h : x ∈ s,
-    { simp only [equiv.set.sum_compl_symm_apply_of_mem, h, mem_preimage, equiv.to_homeomorph_apply,
-        equiv.to_fun_as_coe, mem_range_self]},
+    { simp only [equiv.set.sum_compl_symm_apply_of_mem, h, mem_preimage, equiv.to_fun_as_coe,
+        mem_range_self, equiv.to_homeomorph_of_inducing_apply]},
     { simp only [equiv.set.sum_compl_symm_apply_of_not_mem, h, not_false_iff, mem_preimage,
-        equiv.to_homeomorph_apply, equiv.to_fun_as_coe, mem_range, exists_false]} },
+        equiv.to_homeomorph_of_inducing_apply, equiv.to_fun_as_coe, mem_range, exists_false]} },
   refine ⟨t', _, f.polish_space_induced, _, _⟩,
   { assume u hu,
     change ∃ (s' : set (↥s ⊕ ↥t)), T.is_open s' ∧ f ⁻¹' s' = u,

@@ -1229,6 +1229,27 @@ theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
 
+theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
+(lsub_le.{u u}.2 typein_lt_self).antisymm begin
+  by_contra' h,
+  nth_rewrite 0 ←type_out o at h,
+  simpa [typein_enum] using lt_lsub.{u u} (typein o.out.r) (enum o.out.r _ h)
+end
+
+theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
+  sup.{u u} (typein o.out.r) = o :=
+by rw (sup_eq_lsub_iff_succ.{u u} (typein o.out.r)).2; rwa lsub_typein o
+
+theorem sup_typein_succ {o : ordinal} : sup.{u u} (typein o.succ.out.r) = o :=
+begin
+  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein o.succ.out.r) with h h,
+  { rw sup_eq_lsub_iff_succ at h,
+    simp only [lsub_typein] at h,
+    exact (h o (lt_succ_self o)).false.elim },
+  rw [←succ_inj, h],
+  apply lsub_typein
+end
+
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
@@ -1314,14 +1335,8 @@ by rw [blsub_le, lsub_le]; exact
 theorem blsub_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : blsub.{u v} o (λ _ _, a) = a + 1 :=
 bsup_const.{u v} ho a.succ
 
-theorem blsub_id (o) : blsub.{u u} o (λ x _, x) = o :=
-begin
-  apply le_antisymm,
-  { rw blsub_le,
-    exact λ _, id },
-  by_contra' h,
-  exact (lt_blsub.{u u} (λ x _, x) _ h).false
-end
+theorem blsub_id : ∀ o, blsub.{u u} o (λ x _, x) = o :=
+lsub_typein
 
 theorem blsub_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
   (h : brange o f ⊆ brange o' g) : blsub.{u (max v w)} o f ≤ blsub.{v (max u w)} o' g :=
@@ -1335,23 +1350,6 @@ theorem blsub_eq_of_brange_eq {o o'} {f : Π a < o, ordinal} {g : Π a < o', ord
   (h : {o | ∃ i hi, f i hi = o} = {o | ∃ i hi, g i hi = o}) :
   blsub.{u (max v w)} o f = blsub.{v (max u w)} o' g :=
 (blsub_le_of_brange_subset h.le).antisymm (blsub_le_of_brange_subset.{v u w} h.ge)
-
-theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
-by { have := blsub_id o, rwa blsub_eq_lsub at this }
-
-theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
-  sup.{u u} (typein o.out.r) = o :=
-by rw (sup_eq_lsub_iff_succ.{u u} (typein o.out.r)).2; rwa lsub_typein o
-
-theorem sup_typein_succ (o : ordinal) : sup.{u u} (typein o.succ.out.r) = o :=
-begin
-  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein o.succ.out.r) with h h,
-  { rw sup_eq_lsub_iff_succ at h,
-    simp only [lsub_typein] at h,
-    exact (h o (lt_succ_self o)).false.elim },
-  rw [←succ_inj, h],
-  exact lsub_typein _
-end
 
 end ordinal
 

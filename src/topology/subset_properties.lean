@@ -1405,7 +1405,7 @@ lemma is_preirreducible_of_subsingleton (s : set α) [hs : subsingleton s] : is_
 begin
   cases s.eq_empty_or_nonempty,
   { exact h.symm ▸ is_preirreducible_empty },
-  { obtain ⟨x, e⟩ := exists_eq_singleton_iff_nonempty_unique_mem.mpr
+  { obtain ⟨x, e⟩ := exists_eq_singleton_iff_nonempty_subsingleton.mpr
       ⟨h, λ _ ha _ hb, by injection @@subsingleton.elim hs ⟨_, ha⟩ ⟨_, hb⟩⟩,
     exact e.symm ▸ is_irreducible_singleton.2 }
 end

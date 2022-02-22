@@ -92,6 +92,9 @@ theorem ext₂ {f g : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P}
   (H : ∀ m n, f m n = g m n) : f = g :=
 linear_map.ext (λ m, linear_map.ext $ λ n, H m n)
 
+lemma congr_fun₂ {f g : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P} (h : f = g) (x y) : f x y = g x y :=
+linear_map.congr_fun (linear_map.congr_fun h x) y
+
 section
 
 local attribute [instance] smul_comm_class.symm
@@ -140,6 +143,7 @@ theorem map_sum₂ {ι : Type*} (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂]
   f (∑ i in t, x i) y = ∑ i in t, f (x i) y :=
 (flip f y).map_sum
 
+/-- Restricting a bilinear map in the second entry -/
 def dom_restrict₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) :
   M →ₛₗ[ρ₁₂] q →ₛₗ[σ₁₂] P :=
 { to_fun := λ m, (f m).dom_restrict q,
@@ -149,9 +153,6 @@ def dom_restrict₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : sub
 
 lemma dom_restrict₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) (x : M) (y : q) :
   f.dom_restrict₂ q x y = f x y := rfl
-
-lemma congr_fun₂ {B₁ B₂ : M →ₛₗ[I] M →ₛₗ[I] R} (hB : B₁ = B₂) (x : M) (y : M) : B₁ x y = B₂ x y :=
-linear_map.congr_fun (linear_map.congr_fun hB x) y
 
 end semiring
 

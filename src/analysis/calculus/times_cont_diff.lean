@@ -1451,7 +1451,7 @@ times_cont_diff_iff_continuous_differentiable.2
 it is differentiable there, and its derivative is `C^n`. -/
 theorem times_cont_diff_succ_iff_fderiv {n : ℕ} :
   times_cont_diff 𝕜 ((n + 1) : ℕ) f ↔
-  differentiable 𝕜 f ∧ times_cont_diff 𝕜 n  (λ y, fderiv 𝕜 f y) :=
+  differentiable 𝕜 f ∧ times_cont_diff 𝕜 n (λ y, fderiv 𝕜 f y) :=
 by simp [times_cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ.symm,
          - fderiv_within_univ, times_cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ,
          -with_zero.coe_add, -add_comm]
@@ -1464,7 +1464,7 @@ times_cont_diff_succ_iff_fderiv.trans $ iff.rfl.and times_cont_diff_zero
 there, and its derivative is `C^∞`. -/
 theorem times_cont_diff_top_iff_fderiv :
   times_cont_diff 𝕜 ∞ f ↔
-  differentiable 𝕜 f ∧ times_cont_diff 𝕜 ∞  (λ y, fderiv 𝕜 f y) :=
+  differentiable 𝕜 f ∧ times_cont_diff 𝕜 ∞ (λ y, fderiv 𝕜 f y) :=
 begin
   simp [times_cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ.symm,
         - fderiv_within_univ],

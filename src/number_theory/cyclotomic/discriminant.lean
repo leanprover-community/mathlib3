@@ -12,7 +12,7 @@ import ring_theory.discriminant
 We compute the discriminant of a `p`-th cyclotomic extension.
 
 ## Main results
-* `is_cyclotomic_extension.discr_prime` : if `p` is an odd prime and
+* `is_cyclotomic_extension.discr_odd_prime` : if `p` is an odd prime and
   `is_cyclotomic_extension {p} K L`, then
   `discr K (hζ.power_basis K).basis = (-1) ^ ((p - 1) / 2) * p ^ (p - 2)` for any primitive `n`-th
   root `ζ`.

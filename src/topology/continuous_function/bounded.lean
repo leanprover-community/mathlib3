@@ -825,7 +825,7 @@ variables [has_zero 𝕜] [has_zero β] [has_scalar 𝕜 β] [has_bounded_smul �
 instance : has_scalar 𝕜 (α →ᵇ β) :=
 { smul := λ c f,
   { to_continuous_map := c • f.to_continuous_map,
-    bounded' := let ⟨b, hb⟩ := f.bounded in ⟨dist c 0 * b, λ x y, begin
+    map_bounded' := let ⟨b, hb⟩ := f.bounded in ⟨dist c 0 * b, λ x y, begin
       refine (dist_smul_pair c (f x) (f y)).trans _,
       refine mul_le_mul_of_nonneg_left _ dist_nonneg,
       exact hb x y
@@ -854,8 +854,7 @@ end has_scalar
 section mul_action
 variables [monoid_with_zero 𝕜] [has_zero β] [mul_action 𝕜 β] [has_bounded_smul 𝕜 β]
 
-instance : mul_action 𝕜 (α →ᵇ β) :=
-function.injective.mul_action _ coe_injective coe_smul
+instance : mul_action 𝕜 (α →ᵇ β) := fun_like.coe_injective.mul_action _ coe_smul
 
 end mul_action
 
@@ -864,7 +863,7 @@ variables [monoid_with_zero 𝕜] [add_monoid β] [distrib_mul_action 𝕜 β] [
 variables [has_lipschitz_add β]
 
 instance : distrib_mul_action 𝕜 (α →ᵇ β) :=
-function.injective.distrib_mul_action ⟨_, coe_zero, coe_add⟩ coe_injective coe_smul
+function.injective.distrib_mul_action ⟨_, coe_zero, coe_add⟩ fun_like.coe_injective coe_smul
 
 end distrib_mul_action
 
@@ -875,7 +874,7 @@ variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 variables [has_lipschitz_add β]
 
 instance : module 𝕜 (α →ᵇ β) :=
-function.injective.module _ ⟨_, coe_zero, coe_add⟩ coe_injective coe_smul
+function.injective.module _ ⟨_, coe_zero, coe_add⟩ fun_like.coe_injective coe_smul
 
 variables (𝕜)
 /-- The evaluation at a point, as a continuous linear map from `α →ᵇ β` to `β`. -/

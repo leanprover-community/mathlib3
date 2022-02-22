@@ -68,7 +68,7 @@ protected def sum (L : language.{u v}) (L' : language.{u' v'}) : language :=
 variable (L : language.{u v})
 
 /-- The type of constants in a given language. -/
-@[nolint has_inhabited_instance] def const := L.functions 0
+@[nolint has_inhabited_instance] protected def «constants» := L.functions 0
 
 /-- The type of symbols in a given language. -/
 @[nolint has_inhabited_instance] def symbols := (Σl, L.functions l) ⊕ (Σl, L.relations l)
@@ -149,15 +149,15 @@ localized "notation A ` ≃[`:25 L `] ` B := L.equiv A B" in first_order
 
 variables {L M N} {P : Type*} [L.Structure P] {Q : Type*} [L.Structure Q]
 
-instance : has_coe_t L.const M :=
+instance : has_coe_t L.constants M :=
 ⟨λ c, fun_map c fin.elim0⟩
 
-lemma fun_map_eq_coe_const {c : L.const} {x : fin 0 → M} :
+lemma fun_map_eq_coe_constants {c : L.constants} {x : fin 0 → M} :
   fun_map c x = c := congr rfl (funext fin.elim0)
 
 /-- Given a language with a nonempty type of constants, any structure will be nonempty. This cannot
   be a global instance, because `L` becomes a metavariable. -/
-lemma nonempty_of_nonempty_constants [h : nonempty L.const] : nonempty M :=
+lemma nonempty_of_nonempty_constants [h : nonempty L.constants] : nonempty M :=
 h.map coe
 
 namespace hom
@@ -179,7 +179,7 @@ lemma ext_iff {f g : M →[L] N} : f = g ↔ ∀ x, f x = g x :=
 @[simp] lemma map_fun (φ : M →[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
 
-@[simp] lemma map_const (φ : M →[L] N) (c : L.const) : φ c = c :=
+@[simp] lemma map_constants (φ : M →[L] N) (c : L.constants) : φ c = c :=
 (φ.map_fun c fin.elim0).trans (congr rfl (funext fin.elim0))
 
 @[simp] lemma map_rel (φ : M →[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
@@ -218,7 +218,7 @@ instance has_coe_to_fun : has_coe_to_fun (M ↪[L] N) (λ _, M → N) := ⟨λ f
 @[simp] lemma map_fun (φ : M ↪[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
 
-@[simp] lemma map_const (φ : M ↪[L] N) (c : L.const) : φ c = c :=
+@[simp] lemma map_constants (φ : M ↪[L] N) (c : L.constants) : φ c = c :=
 (φ.map_fun c fin.elim0).trans (congr rfl (funext fin.elim0))
 
 @[simp] lemma map_rel (φ : M ↪[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
@@ -321,7 +321,7 @@ lemma symm_apply_apply (f : M ≃[L] N) (a : M) : f.symm (f a) = a := f.to_equiv
 @[simp] lemma map_fun (φ : M ≃[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
 
-@[simp] lemma map_const (φ : M ≃[L] N) (c : L.const) : φ c = c :=
+@[simp] lemma map_constants (φ : M ≃[L] N) (c : L.constants) : φ c = c :=
 (φ.map_fun c fin.elim0).trans (congr rfl (funext fin.elim0))
 
 @[simp] lemma map_rel (φ : M ≃[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
@@ -523,7 +523,7 @@ def constants_on : language.{u' 0} := ⟨constants_on_functions α, λ _, pempty
 
 variables {α}
 
-@[simp] lemma constants_on_const : (constants_on α).const = α := rfl
+@[simp] lemma constants_on_constants : (constants_on α).constants = α := rfl
 
 instance is_algebraic_constants_on : is_algebraic (constants_on α) :=
 language.is_algebraic_of_empty_relations

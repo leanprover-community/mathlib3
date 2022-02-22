@@ -111,7 +111,7 @@ by rw [abs_eq_nat_abs, sign_mul_nat_abs]
 meta instance : has_to_format ℤ := ⟨λ z, to_string z⟩
 meta instance : has_reflect ℤ := by tactic.mk_has_reflect_instance
 
-attribute [simp] int.of_nat_eq_coe int.bodd
+attribute [simp] int.bodd
 
 @[simp] theorem add_def {a b : ℤ} : int.add a b = a + b := rfl
 @[simp] theorem mul_def {a b : ℤ} : int.mul a b = a * b := rfl
@@ -131,16 +131,16 @@ theorem coe_nat_le {m n : ℕ} : (↑m : ℤ) ≤ ↑n ↔ m ≤ n := coe_nat_le
 theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe_nat_iff m n
 theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
 
-@[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n :=
+theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n :=
 by rw [← int.coe_nat_zero, coe_nat_lt]
 
-@[simp] theorem coe_nat_eq_zero {n : ℕ} : (n : ℤ) = 0 ↔ n = 0 :=
+theorem coe_nat_eq_zero {n : ℕ} : (n : ℤ) = 0 ↔ n = 0 :=
 by rw [← int.coe_nat_zero, coe_nat_inj']
 
 theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
 not_congr coe_nat_eq_zero
 
-@[simp] lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
+lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
 
 lemma le_coe_nat_sub (m n : ℕ) :
   (m - n : ℤ) ≤ ↑(m - n : ℕ) :=
@@ -156,7 +156,7 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
-@[simp, norm_cast] theorem coe_nat_abs (n : ℕ) : |(n : ℤ)| = n :=
+theorem coe_nat_abs (n : ℕ) : |(n : ℤ)| = n :=
 abs_of_nonneg (coe_nat_nonneg n)
 
 @[simp] lemma neg_of_nat_ne_zero (n : ℕ) : -[1+ n] ≠ 0 := λ h, int.no_confusion h

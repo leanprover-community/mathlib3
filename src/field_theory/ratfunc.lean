@@ -347,6 +347,7 @@ variables {R : Type*}
   R → ratfunc K → ratfunc K
 | r ⟨p⟩ := ⟨r • p⟩
 
+@[nolint fails_quickly] -- cannot reproduce
 instance [has_scalar R (fraction_ring K[X])] : has_scalar R (ratfunc K) :=
 ⟨ratfunc.smul⟩
 

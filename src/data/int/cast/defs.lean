@@ -24,6 +24,8 @@ Preferentially, the homomorphism is written as a coercion.
 universes u
 set_option old_structure_cmd true
 
+attribute [simp] int.of_nat_eq_coe
+
 /-- Default value for `add_group_with_one.int_cast`. -/
 protected def int.cast_def {R : Type u} [add_monoid_with_one R] [has_neg R] : ℤ → R
 | (n : ℕ) := n
@@ -66,7 +68,7 @@ protected def cast (i : ℤ) : R := add_group_with_one.int_cast i
 -- see Note [coercion into rings]
 @[priority 900] instance cast_coe : has_coe_t ℤ R := ⟨int.cast⟩
 
-@[simp] theorem cast_of_nat (n : ℕ) : (of_nat n : R) = n := add_group_with_one.int_cast_of_nat n
+theorem cast_of_nat (n : ℕ) : (of_nat n : R) = n := add_group_with_one.int_cast_of_nat n
 @[simp] theorem cast_neg_succ_of_nat (n : ℕ) : (-[1+ n] : R) = -(n + 1 : ℕ) :=
 add_group_with_one.int_cast_neg_succ_of_nat n
 

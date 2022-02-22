@@ -218,17 +218,6 @@ theorem succ_to_nat (n) : (succ n : ℕ) = n + 1 := succ'_to_nat n
 | 0       := nat.cast_zero
 | (pos p) := p.cast_to_nat
 
-theorem to_of_nat' : Π (n : ℕ), (num.of_nat' n : ℕ) = n
-| 0     := by rw [of_nat'_zero, cast_zero]
-| (n+1) := by rw [of_nat'_succ, add_one, succ_to_nat, to_of_nat']
-
-@[simp]
-theorem of_nat_cast' [add_monoid_with_one α] (n : ℕ) : ((num.of_nat' n : num) : α) = n :=
-by rw [← cast_to_nat, to_of_nat']
-
-@[simp] theorem of_nat_inj' {m n : ℕ} : num.of_nat' m = num.of_nat' n ↔ m = n :=
-⟨λ h, function.left_inverse.injective to_of_nat' h, congr_arg _⟩
-
 @[norm_cast]
 theorem add_to_nat : ∀ m n, ((m + n : num) : ℕ) = m + n
 | 0       0       := rfl
@@ -364,13 +353,16 @@ cast_to_nat _
 @[simp, norm_cast] theorem cast_to_int {α} [add_group_with_one α] (n : num) : ((n : ℤ) : α) = n :=
 by rw [← to_nat_to_int, int.cast_coe_nat, cast_to_nat]
 
-@[simp, norm_cast] theorem to_of_nat : Π (n : ℕ), ((n : num) : ℕ) = n := to_of_nat'
+theorem to_of_nat : Π (n : ℕ), ((n : num) : ℕ) = n
+| 0     := by rw [nat.cast_zero, cast_zero]
+| (n+1) := by rw [nat.cast_succ, add_one, succ_to_nat, to_of_nat]
 
 @[simp, norm_cast]
 theorem of_nat_cast {α} [add_monoid_with_one α] (n : ℕ) : ((n : num) : α) = n :=
 by rw [← cast_to_nat, to_of_nat]
 
-@[simp, norm_cast] theorem of_nat_inj {m n : ℕ} : (m : num) = n ↔ m = n := of_nat_inj'
+@[simp, norm_cast] theorem of_nat_inj {m n : ℕ} : (m : num) = n ↔ m = n :=
+⟨λ h, function.left_inverse.injective to_of_nat h, congr_arg _⟩
 
 @[simp, norm_cast] theorem of_to_nat : Π (n : num), ((n : ℕ) : num) = n := of_to_nat'
 
@@ -809,20 +801,6 @@ by cases n; try {refl}; rw [succ, num.zneg_to_znum_neg]; refl
 theorem zneg_pred (n : znum) : -n.pred = (-n).succ :=
 by rw [← zneg_zneg (succ (-n)), zneg_succ, zneg_zneg]
 
-@[simp] theorem neg_of_int' : ∀ n, znum.of_int' (-n) = - znum.of_int' n
-| (n + 1 : ℕ) := begin
-    show znum.of_int' -[1+ n] = _,
-    erw [znum.of_int', znum.of_int', num.of_nat'_succ, num.add_one, num.to_znum, num.to_znum_neg],
-    refl
-  end
-| 0 := show znum.of_int' (0 : ℕ) = - znum.of_int' (0 : ℕ),
-  by rw [znum.of_int', num.of_nat'_zero, num.to_znum, neg_zero]
-| -[1+ n] := begin
-    show znum.of_int' (n + 1 : ℕ) = _,
-    erw [znum.of_int', znum.of_int', num.of_nat'_succ, num.add_one, num.to_znum, num.to_znum_neg],
-    refl
-  end
-
 @[simp] theorem abs_to_nat : ∀ n, (abs n : ℕ) = int.nat_abs n
 | 0       := rfl
 | (pos p) := congr_arg int.nat_abs p.to_nat_to_int
@@ -961,14 +939,14 @@ theorem to_znum_neg_succ : ∀ n : num, n.succ.to_znum_neg = n.to_znum_neg.pred
 | (znum.neg p) := show to_znum_neg (pos p).succ'.pred' = _, by rw [pos_num.pred'_succ']; refl
 | (znum.pos p) := by rw [znum.pred, ← to_znum_succ, num.succ, pos_num.succ'_pred', to_znum]
 
-@[simp] theorem succ_of_int' : ∀ n, znum.of_int' (n + 1) = znum.of_int' n + 1
+theorem succ_of_int' : ∀ n, znum.of_int' (n + 1) = znum.of_int' n + 1
 | (n : ℕ) := by erw [znum.of_int', znum.of_int', num.of_nat'_succ,
   num.add_one, to_znum_succ, znum.add_one]
 | -[1+ 0] := by erw [znum.of_int', znum.of_int', of_nat'_succ, of_nat'_zero]; refl
 | -[1+ n+1] := by erw [znum.of_int', znum.of_int', @num.of_nat'_succ (n+1), num.add_one,
   to_znum_neg_succ, @of_nat'_succ n, num.add_one, znum.add_one, pred_succ]
 
-@[simp] theorem of_int'_to_znum : ∀ n : ℕ, to_znum n = znum.of_int' n
+theorem of_int'_to_znum : ∀ n : ℕ, to_znum n = znum.of_int' n
 | 0 := rfl
 | (n+1) := by rw [nat.cast_succ, num.add_one, to_znum_succ, of_int'_to_znum, nat.cast_succ,
   succ_of_int', znum.add_one]
@@ -1037,7 +1015,7 @@ theorem of_int'_neg : ∀ n : ℤ, of_int' (-n) = -of_int' n
 | 0 := show num.to_znum _ = -num.to_znum _, by rw [num.of_nat'_zero]; refl
 | (n+1 : ℕ) := show num.to_znum_neg _ = -num.to_znum _, by rw [num.zneg_to_znum]; refl
 
-@[simp, norm_cast] theorem of_to_int' : ∀ (n : znum), znum.of_int' n = n
+theorem of_to_int' : ∀ (n : znum), znum.of_int' n = n
 | 0       := by erw [of_int', num.of_nat'_zero, num.to_znum]
 | (pos a) := by rw [cast_pos, ← pos_num.cast_to_nat, ← num.of_int'_to_znum, pos_num.of_to_nat]; refl
 | (neg a) := by rw [cast_neg, of_int'_neg, ← pos_num.cast_to_nat, ← num.of_int'_to_znum,

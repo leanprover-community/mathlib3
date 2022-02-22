@@ -60,7 +60,11 @@ another answer, which is constructively more satisfying, could be obtained by sh
 -/
 
 -- TODO: Move
-theorem _root_.list.last_append' {α : Type*} (l₁ l₂ : list α) (h : l₂ ≠ list.nil) :
+namespace list
+
+variable  {α : Type*}
+
+theorem last_append' (l₁ l₂ : list α) (h : l₂ ≠ list.nil) :
   (l₁ ++ l₂).last (list.append_ne_nil_of_ne_nil_right _ _ h) = l₂.last h :=
 begin
   induction l₁,
@@ -68,6 +72,19 @@ begin
   { exact eq.trans (list.last_cons _ _) l₁_ih, }
 end
 
+def headn : Π l : list α, l ≠ [] → α
+| []     h := absurd rfl h
+| (x::l) _ := x
+
+theorem headn_append' (l₁ l₂ : list α) (h : l₁ ≠ list.nil) :
+  (l₁ ++ l₂).headn (list.append_ne_nil_of_ne_nil_left _ _ h) = l₁.headn h :=
+by {cases l₁, contradiction, refl}
+
+theorem head'_eq_headn_of_ne_nil : ∀ {l : list α} (h : l ≠ []), l.head' = some (l.headn h)
+| [] h := (h rfl).elim
+| (a::_) _ := rfl
+
+end list
 
 variables {ι : Type*} (M : Π i : ι, Type*) [Π i, monoid (M i)]
 
@@ -392,6 +409,9 @@ namespace neword
 
 open word
 
+lemma to_list_ne_nil (w : neword M) : w.val.to_list ≠ list.nil :=
+λ h, w.property (by {ext, rw h, reflexivity})
+
 def singleton {i} (x : M i) (hne_one : x ≠ 1) : neword M :=
 { val := {
     to_list := [⟨i, x⟩],
@@ -399,16 +419,9 @@ def singleton {i} (x : M i) (hne_one : x ≠ 1) : neword M :=
     chain_ne := list.chain'_singleton _, },
   property := by rintros ⟨rfl, _, _ ⟩, }
 
-def head (w : neword M) : Σ i, M i :=
-begin
-  haveI : inhabited (Σ i, M i),
-  { cases w with w h,
-    cases w with l,
-    cases l with x ,
-    { exfalso, apply h, refl, },
-    { exact ⟨x⟩, } },
-  exact w.val.to_list.head,
-end
+def head (w : neword M) : Σ i, M i := w.val.to_list.headn w.to_list_ne_nil
+
+def last (w : neword M) : Σ i, M i := w.val.to_list.last w.to_list_ne_nil
 
 lemma to_list_eq_nil_iff_word_eq_empty {w : word M } :
   w.to_list = list.nil ↔ w = empty :=
@@ -417,11 +430,6 @@ begin
   { ext, rw h, reflexivity, },
   { subst h, reflexivity, }
 end
-
-lemma to_list_ne_nil (w : neword M) : w.val.to_list ≠ list.nil :=
-λ h, w.property (to_list_eq_nil_iff_word_eq_empty.mp h)
-
-def last (w : neword M) : Σ i, M i := w.val.to_list.last w.to_list_ne_nil
 
 @[simp]
 lemma singleton_head {i} (x : M i) (hne_one : x ≠ 1) :
@@ -453,11 +461,10 @@ def append : neword M :=
       intros x hx y hy,
       unfold neword.head at hne,
       unfold neword.last at hne,
-      rw list.head_eq_head' at hne,
       rw list.last'_eq_last_of_ne_nil w₁.to_list_ne_nil at hx,
+      rw list.head'_eq_headn_of_ne_nil w₂.to_list_ne_nil at hy,
       obtain rfl : _ = x, by simpa using hx, clear hx,
-      cases w₂.val.to_list.head', contradiction,
-      obtain rfl : _ = y, by simpa using hy,
+      obtain rfl : _ = y, by simpa using hy, clear hy,
       exact hne,
     end, },
   property := begin
@@ -468,15 +475,7 @@ def append : neword M :=
   end,}
 
 @[simp]
-lemma append_head : (append w₁ w₂ hne).head = w₁.head :=
-begin
-  unfold neword.head,
-  unfold neword.append,
-  dsimp,
-  have := w₁.to_list_ne_nil,
-  cases w₁.val.to_list with x l, contradiction,
-  simp,
-end
+lemma append_head : (append w₁ w₂ hne).head = w₁.head := list.headn_append' _ _ _
 
 @[simp]
 lemma append_last : (append w₁ w₂ hne).last = w₂.last := list.last_append' _ _ _

@@ -16,7 +16,7 @@ This file defines what it means for a set over a first-order structure to be def
 set `s` of a finite cartesian power of `M` is definable with parameters in `A`.
 * `first_order.language.is_definable₁` is defined so that `L.is_definable₁ A s` indicates that
 `(s : set M)` is definable with parameters in `A`.
-* `first_order.language.is_definable₂` is defined so that `L.is_definable₁ A s` indicates that
+* `first_order.language.is_definable₂` is defined so that `L.is_definable₂ A s` indicates that
 `(s : set (M × M))` is definable with parameters in `A`.
 * A `first_order.language.definable_set` is defined so that `L.definable_set α A` is the boolean
   algebra of subsets of `α → M` defined by formulas with parameters in `A`.

@@ -64,7 +64,7 @@ namespace term
 instance [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
-instance : has_coe L.const (L.term α) :=
+instance {α} : has_coe L.constants (L.term α) :=
 ⟨λ c, func c fin_zero_elim⟩
 
 /-- A term `t` with variables indexed by `α` can be evaluated by giving a value to each variable. -/

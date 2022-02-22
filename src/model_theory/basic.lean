@@ -62,7 +62,7 @@ protected def empty : language := ⟨λ _, pempty, λ _, pempty⟩
 instance : inhabited language := ⟨language.empty⟩
 
 /-- The sum of two languages consists of the disjoint union of their symbols. -/
-protected def sum (L : language.{u v}) (L' : language.{u' v'}) : language.{(max u u') (max v v')} :=
+protected def sum (L : language.{u v}) (L' : language.{u' v'}) : language :=
 ⟨λn, L.functions n ⊕ L'.functions n, λ n, L.relations n ⊕ L'.relations n⟩
 
 variable (L : language.{u v})
@@ -447,25 +447,32 @@ variables {L L'}
 
 /-- The composition of two language homomorphisms. -/
 @[reducible] def comp {L1} {L2} {L3} (g : L2 →ᴸ L3) (f : L1 →ᴸ L2) : L1 →ᴸ L3 :=
-begin
-  rcases g with ⟨g1, g2⟩, rcases f with ⟨f1,f2⟩,
-  exact ⟨λn, g1 ∘ f1, λn, g2 ∘ f2⟩,
-end
+⟨λ n F, g.1 (f.1 F), λ _ R, g.2 (f.2 R)⟩
 
-@[ext] lemma Lhom_funext {L1} {L2} {F G : L1 →ᴸ L2} (h_fun : F.on_function = G.on_function )
+@[ext] protected lemma funext {L1} {L2} {F G : L1 →ᴸ L2} (h_fun : F.on_function = G.on_function )
   (h_rel : F.on_relation = G.on_relation ) : F = G :=
 by {cases F with Ff Fr, cases G with Gf Gr, simp only *, exact and.intro h_fun h_rel}
 
 local infix ` ∘ `:60 := Lhom.comp
 
-@[simp] lemma id_is_left_identity {L1 L2} {F : L1 →ᴸ L2} : (Lhom.id L2) ∘ F = F :=
+@[simp] lemma id_comp {L1 L2} {F : L1 →ᴸ L2} : (Lhom.id L2) ∘ F = F :=
 by {cases F, refl}
 
-@[simp] lemma id_is_right_identity {L1 L2} {F : L1 →ᴸ L2} : F ∘ (Lhom.id L1) = F :=
+@[simp] lemma comp_id {L1 L2} {F : L1 →ᴸ L2} : F ∘ (Lhom.id L1) = F :=
 by {cases F, refl}
+
+/-- A language map defined on two factors of a sum. -/
+@[simps] def sum_elim {L'' : language} (ψ : L'' →ᴸ L') : L.sum L'' →ᴸ L' :=
+{ on_function := λ n, sum.elim (λ f, ϕ.on_function f) (λ f, ψ.on_function f),
+  on_relation := λ n, sum.elim (λ f, ϕ.on_relation f) (λ f, ψ.on_relation f) }
+
+/-- The map between two sum-languages induced by maps on the two factors. -/
+@[simps] def sum_map {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) : L.sum L₁ →ᴸ L'.sum L₂ :=
+{ on_function := λ n, sum.map (λ f, ϕ.on_function f) (λ f, ψ.on_function f),
+  on_relation := λ n, sum.map (λ f, ϕ.on_relation f) (λ f, ψ.on_relation f) }
 
 /-- A language homomorphism is injective when all the maps between symbol types are. -/
-structure is_injective : Prop :=
+protected structure injective : Prop :=
 (on_function {n} : function.injective (on_function ϕ : L.functions n → L'.functions n))
 (on_relation {n} : function.injective (on_relation ϕ : L.relations n → L'.relations n))
 
@@ -487,16 +494,6 @@ instance of_is_empty_is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M
   is_expansion_on (Lhom.of_is_empty L L') M :=
 ⟨λ n, (is_relational.empty_functions n).elim, λ n, (is_algebraic.empty_relations n).elim⟩
 
-/-- A language map defined on two factors of a sum. -/
-@[simp] def sum_elim {L'' : language} (ψ : L'' →ᴸ L') : L.sum L'' →ᴸ L' :=
-{ on_function := λ n, sum.elim (λ f, ϕ.on_function f) (λ f, ψ.on_function f),
-  on_relation := λ n, sum.elim (λ f, ϕ.on_relation f) (λ f, ψ.on_relation f) }
-
-/-- The map between two sum-languages induced by maps on the two factors. -/
-@[simp] def sum_map {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) : L.sum L₁ →ᴸ L'.sum L₂ :=
-{ on_function := λ n, sum.map (λ f, ϕ.on_function f) (λ f, ψ.on_function f),
-  on_relation := λ n, sum.map (λ f, ϕ.on_relation f) (λ f, ψ.on_relation f) }
-
 instance sum_elim_is_expansion_on {L'' : language} (ψ : L'' →ᴸ L') (M : Type*)
   [L.Structure M] [L'.Structure M] [L''.Structure M]
   [ϕ.is_expansion_on M] [ψ.is_expansion_on M] :
@@ -514,8 +511,15 @@ end Lhom
 section constants_on
 variables (α : Type u')
 
+/-- The function symbols of a language with constants indexed by a type. -/
+def constants_on_functions : ℕ → Type u'
+| 0 := α
+| _ := pempty
+
+instance [h : inhabited α] : inhabited (constants_on_functions α 0) := h
+
 /-- A language with constants indexed by a type. -/
-def constants_on : language.{u' 0} := ⟨λ n, nat.cases_on n α (λ _, pempty), λ _, pempty⟩
+def constants_on : language.{u' 0} := ⟨constants_on_functions α, λ _, pempty⟩
 
 variables {α}
 
@@ -537,6 +541,17 @@ variables {β : Type v'}
 /-- A map between index types induces a map between constant languages. -/
 def Lhom.constants_on_map (f : α → β) : (constants_on α) →ᴸ (constants_on β) :=
 ⟨λ n, nat.cases_on n f (λ _, pempty.elim), λ n, pempty.elim⟩
+
+lemma constants_on_map_is_expansion_on {f : α → β} {fα : α → M} {fβ : β → M}
+  (h : fβ ∘ f = fα) :
+  @Lhom.is_expansion_on _ _ (Lhom.constants_on_map f) M
+    (constants_on.Structure fα) (constants_on.Structure fβ) :=
+begin
+  letI := constants_on.Structure fα,
+  letI := constants_on.Structure fβ,
+  exact ⟨λ n, nat.cases_on n (λ F x, (congr_fun h F : _)) (λ n F, pempty.elim F),
+    λ _ R, pempty.elim R⟩,
+end
 
 end constants_on
 
@@ -569,14 +584,14 @@ variables (L) (α)
 def Lhom_trim_empty_constants [is_empty α] : L[[α]] →ᴸ L :=
 Lhom.sum_elim (Lhom.id L) (Lhom.of_is_empty (constants_on α) L)
 
-variables {α} {A B : set α} (h : A ⊆ B)
+variables {α} {β : Type*}
 
 /-- The language map extending the constant set.  -/
-def Lhom_constants_inclusion : L[[A]] →ᴸ L[[B]] :=
-Lhom.sum_map (Lhom.id L) (Lhom.constants_on_map (set.inclusion h))
+def Lhom_with_constants_map (f : α → β) : L[[α]] →ᴸ L[[β]] :=
+Lhom.sum_map (Lhom.id L) (Lhom.constants_on_map f)
 
-@[simp] lemma Lhom.constants_inclusion_comp_with_constants :
-  (L.Lhom_constants_inclusion h).comp (L.Lhom_with_constants A) = L.Lhom_with_constants B :=
+@[simp] lemma Lhom.map_constants_comp_with_constants {f : α → β} :
+  (L.Lhom_with_constants_map f).comp (L.Lhom_with_constants α) = L.Lhom_with_constants β :=
 by ext n f R; refl
 
 end
@@ -601,12 +616,12 @@ Lhom.sum_map_is_expansion_on _ _ M
 
 variables {A} {B : set M} (h : A ⊆ B)
 
-instance constants_inclusion_is_expansion_on_aux :
+instance constants_on_map_inclusion_is_expansion_on :
   (Lhom.constants_on_map (set.inclusion h)).is_expansion_on M :=
-⟨λ n, nat.cases_on n (λ _ _, rfl) (λ n f, pempty.elim f), λ n R, pempty.elim R⟩
+constants_on_map_is_expansion_on rfl
 
-instance constants_inclusion_is_expansion_on :
-  (L.Lhom_constants_inclusion h).is_expansion_on M :=
+instance map_constants_inclusion_is_expansion_on :
+  (L.Lhom_with_constants_map (set.inclusion h)).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ _
 
 end with_constants

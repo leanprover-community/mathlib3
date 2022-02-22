@@ -358,7 +358,7 @@ begin
     exact ⟨ideal.homogeneous_hull _ _, ideal.ideal_le_homogeneous_hull _ _, rfl⟩, }
 end
 
-lemma homogeneous_hull_eq_supr :
+lemma coe_homogeneous_hull_eq_supr :
    ↑(I.homogeneous_hull 𝒜) = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
  begin
    rw ←ideal.span_Union,
@@ -368,18 +368,11 @@ lemma homogeneous_hull_eq_supr :
      set_like.exists, exists_prop, subtype.coe_mk, set_like.mem_coe],
  end
 
-lemma homogeneous_hull_eq_supr' :
+lemma homogeneous_hull_eq_supr :
   (I.homogeneous_hull 𝒜) =
-  ⨆ i, ⟨ideal.span (graded_algebra.proj 𝒜 i '' I), ideal.is_homogeneous_span 𝒜 _ (begin
-    rintros _ ⟨x, h, rfl⟩,
-    refine ⟨i, submodule.coe_mem _⟩,
-  end)⟩ :=
-begin
-  ext1,
-  rw homogeneous_hull_eq_supr,
-  rw homogeneous_ideal.coe_supr,
-  refl,
-end
+  ⨆ i, ⟨ideal.span (graded_algebra.proj 𝒜 i '' I), ideal.is_homogeneous_span 𝒜 _
+    (by {rintros _ ⟨x, h, rfl⟩, apply set_like.is_homogeneous_coe})⟩ :=
+by { ext1, rw [coe_homogeneous_hull_eq_supr, homogeneous_ideal.coe_supr], refl, }
 
 variables {𝒜 I}
 

@@ -173,10 +173,6 @@ def full_normalize : oplax_functor (free_bicategory B) (locally_discrete (paths 
 
 variable {B}
 
-def normalize_unit_iso_aux {a b : free_bicategory B} (f : a ⟶ b) :
-  f ≅ ((full_normalize B).map_functor a b ⋙ inclusion_path a b).obj f :=
-(λ_ _).symm ≪≫ normalize_iso nil f
-
 def normalize_unit_iso (a b : free_bicategory B) :
   𝟭 (a ⟶ b) ≅ (full_normalize B).map_functor a b ⋙ inclusion_path a b :=
 nat_iso.of_components (λ f, (λ_ _).symm ≪≫ normalize_iso nil f)
@@ -203,7 +199,7 @@ def inclusion_map_comp_aux {a b : B} : ∀ {c : B} (f : path a b) (g : path b c)
 
 variables (B)
 
- /--
+/--
 The inclusion pseudofunctor from the locally discrete bicategory on the path category into the
 free bicategory.
 -/

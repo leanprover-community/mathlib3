@@ -233,8 +233,8 @@ instance : has_sup (homogeneous_ideal 𝒜) :=
 instance : has_Sup (homogeneous_ideal 𝒜) :=
 { Sup := λ ℐ, ⟨Sup (coe '' ℐ), ideal.is_homogeneous.Sup $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
 
-lemma homogeneous_ideal.Sup_eq (ℐ : set (homogeneous_ideal 𝒜)) :
-  ((Sup ℐ : homogeneous_ideal 𝒜) : ideal A) = Sup ((coe : homogeneous_ideal 𝒜 → ideal A) '' ℐ) :=
+lemma homogeneous_ideal.coe_Sup (ℐ : set (homogeneous_ideal 𝒜)) :
+  ↑(Sup ℐ) = (Sup (coe '' ℐ) : ideal A) :=
 rfl
 
 lemma homogeneous_ideal.coe_supr (s : ι → homogeneous_ideal 𝒜) :

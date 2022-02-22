@@ -102,6 +102,8 @@ instance comm_ring : Π (n : ℕ), comm_ring (zmod n)
 
 instance inhabited (n : ℕ) : inhabited (zmod n) := ⟨0⟩
 
+instance : char_zero (zmod 0) := (by apply_instance : char_zero ℤ)
+
 /-- `val a` is a natural number defined as:
   - for `a : zmod 0` it is the absolute value of `a`
   - for `a : zmod n` with `0 < n` it is the least natural number in the equivalence class

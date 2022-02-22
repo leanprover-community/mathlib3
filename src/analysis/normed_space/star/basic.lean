@@ -200,7 +200,7 @@ local attribute [instance] matrix.normed_group
 
 open_locale matrix
 
-lemma matrix.entrywise_sup_norm_star_eq_norm {α : Type*} [normed_ring α] [star_add_monoid α]
+lemma matrix.entrywise_sup_norm_star_eq_norm {α : Type*} [normed_field α] [star_add_monoid α]
   [normed_star_monoid α] {n : Type*} [fintype n] :
   ∀ (M : (matrix n n α)), ∥star M∥ = ∥M∥ :=
 begin

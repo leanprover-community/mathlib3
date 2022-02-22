@@ -47,7 +47,7 @@ class cstar_ring (E : Type*) [normed_ring E] [star_ring E] :=
 (norm_star_mul_self : ∀ {x : E}, ∥x⋆ * x∥ = ∥x∥ * ∥x∥)
 
 noncomputable instance : cstar_ring ℝ :=
-{ norm_star_mul_self := λ x, by simp only [star, id.def, normed_field.norm_mul] }
+{ norm_star_mul_self := λ x, by simp only [star, id.def, norm_mul] }
 
 variables {𝕜 E α : Type*}
 

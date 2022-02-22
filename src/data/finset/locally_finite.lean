@@ -373,6 +373,10 @@ lemma Ico_union_Ico_eq_Ico {a b c : α} (hab : a ≤ b) (hbc : b ≤ c) :
   Ico a b ∪ Ico b c = Ico a c :=
 by rw [←coe_inj, coe_union, coe_Ico, coe_Ico, coe_Ico, set.Ico_union_Ico_eq_Ico hab hbc]
 
+lemma Ico_subset_Ico_union_Ico {a b c : α} :
+  Ico a c ⊆ Ico a b ∪ Ico b c :=
+by { rw [←coe_subset, coe_union, coe_Ico, coe_Ico, coe_Ico], exact set.Ico_subset_Ico_union_Ico }
+
 lemma Ico_union_Ico' {a b c d : α} (hcb : c ≤ b) (had : a ≤ d) :
   Ico a b ∪ Ico c d = Ico (min a c) (max b d) :=
 by rw [←coe_inj, coe_union, coe_Ico, coe_Ico, coe_Ico, set.Ico_union_Ico' hcb had]

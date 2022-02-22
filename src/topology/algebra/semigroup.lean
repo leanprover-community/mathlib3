@@ -60,7 +60,7 @@ that this holds for _all_ `m' ∈ N`. -/
     convert @is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ _ _
       (c.nonempty_coe_sort.mpr hcnemp) (coe : c → set M) _ _ _ _,
     { simp only [subtype.range_coe_subtype, set.set_of_mem_eq] } ,
-    { exact (hc.symm.directed_on _).directed_coe },
+    { refine directed_on.directed_coe (is_chain.directed_on hc.symm) },
     { intro i, exact (hcs i.property).2.1, },
     { intro i, exact (hcs i.property).1.is_compact, },
     { intro i, exact (hcs i.property).1, }, },

@@ -17,7 +17,8 @@ For a topological space `α`,
 - `compacts α`: The type of compact sets.
 - `nonempty_compacts α`: The type of non-empty compact sets.
 - `positive_compacts α`: The type of compact sets with non-empty interior.
-- `compact_opens α`: The type of compact open sets.
+- `compact_opens α`: The type of compact open sets. This is a central object of study in the
+  context of spectral spaces.
 -/
 
 open set

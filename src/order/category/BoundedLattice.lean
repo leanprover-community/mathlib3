@@ -298,18 +298,21 @@ adjunction.mk_of_hom_equiv
     (Lattice.dual ⋙ Lattice_to_BoundedLattice) :=
 nat_iso.of_components (λ X, BoundedLattice.iso.mk $
   { to_fun := λ a, a.elim ⊥ $ λ a, a.elim ⊤ $ some ∘ some,
-  inv_fun := λ a, a.elim ⊥ $ λ a, a.elim ⊤ $ some ∘ some,
+  inv_fun := λ a, a.elim ⊤ $ λ a, a.elim ⊥ $ some ∘ some,
   left_inv := λ a, match a with
-          | none := by simp
+          | none := rfl
           | some none := rfl
           | some (some a) := rfl
         end,
-  right_inv := λ a, rfl,
+  right_inv := λ a, match a with
+          | none := rfl
+          | some none := rfl
+          | some (some a) := rfl
+        end,
   map_rel_iff' := λ a b, match a, b with
     | none, none := by simp only [le_rfl]
-    | none, some b := by { simpa only [equiv.coe_fn_mk, id.def] using iff.rfl,
-
-      }
-    | some a, none := by { rw [with_top.none_eq_top, inf_top_eq], exact inf_top_eq.symm }
+    | none, some b := by { simp only [option.elim, equiv.coe_fn_mk, bot_le, true_iff], exact bot_le }
+    | some none, none := by { simp only [option.elim, equiv.coe_fn_mk, le_bot_iff],
+      refine iff_of_false (option.some_ne_none _).symm (_), rw [with_top.none_eq_top, inf_top_eq], exact inf_top_eq.symm }
     | some a, some b := f.map_inf' _ _
   end }) $ _

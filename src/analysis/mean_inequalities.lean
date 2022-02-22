@@ -138,8 +138,9 @@ calc (∏ i in s, (z i) ^ (w i)) = ∏ i in s, x ^ w i :
 ... = x :
   begin
     rw [← rpow_sum_of_nonneg _ hw, hw', rpow_one],
-    have : (∑ i in s, w i) ≠ 0, by { rw hw', exact one_ne_zero },
-    rcases exists_ne_zero_of_sum_ne_zero this with ⟨i, his, hi⟩,
+    have : (∑ i in s, w i) ≠ 0,
+    { rw hw', exact one_ne_zero },
+    obtain ⟨i, his, hi⟩ := exists_ne_zero_of_sum_ne_zero this,
     rw ← hx i his hi,
     exact hz i his
   end

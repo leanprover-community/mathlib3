@@ -300,12 +300,9 @@ variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 variable (I : ideal A)
 
 /--For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_hull' 𝒜` is
-the smallest homogeneous ideal containing `I`, as an ideal. -/
-def ideal.homogeneous_hull' : ideal A :=
-ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}
-
-lemma ideal.is_homogeneous.homogeneous_hull : (I.homogeneous_hull' 𝒜).is_homogeneous 𝒜 :=
-begin
+the smallest homogeneous ideal containing `I`.-/
+def ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
+⟨ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}, begin
   rw ideal.is_homogeneous.iff_exists,
   use {x : homogeneous_submonoid 𝒜 | ∃ (i : ι) (r : I), (graded_algebra.decompose 𝒜 r i : A) = x},
   rw [ideal.homogeneous_hull'], congr, ext r, split; intros h,
@@ -313,12 +310,7 @@ begin
     exact ⟨⟨_, is_homogeneous_coe _⟩, ⟨⟨i, ⟨⟨x, hx1⟩, rfl⟩⟩, hx2⟩⟩,},
   { obtain ⟨_, ⟨⟨i, ⟨⟨r, hr⟩, h⟩⟩, rfl⟩⟩ := h,
     use i, use ⟨r, hr⟩, exact h }
-end
-
-/--For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_hull' 𝒜` is
-the smallest homogeneous ideal containing `I`.-/
-abbreviation ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
-⟨I.homogeneous_hull' 𝒜, ideal.is_homogeneous.homogeneous_hull 𝒜 I⟩
+end⟩
 
 lemma ideal.ideal_le_homogeneous_hull :
   I ≤ ideal.homogeneous_hull 𝒜 I :=

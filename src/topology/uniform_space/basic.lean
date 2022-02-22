@@ -1191,6 +1191,25 @@ begin
   exact h.continuous
 end
 
+@[to_additive]
+instance [uniform_space α] : uniform_space (αᵐᵒᵖ) :=
+uniform_space.comap mul_opposite.unop ‹_›
+
+@[to_additive]
+lemma uniformity_mul_opposite [uniform_space α] :
+  𝓤 (αᵐᵒᵖ) = comap (λ q : αᵐᵒᵖ × αᵐᵒᵖ, (q.1.unop, q.2.unop)) (𝓤 α) :=
+rfl
+
+@[to_additive]
+lemma uniform_continuous_mul_unop [uniform_space α] :
+  uniform_continuous (mul_opposite.unop : _ → α) :=
+uniform_continuous_comap
+
+@[to_additive]
+lemma uniform_continuous_mul_op [uniform_space α] :
+  uniform_continuous (mul_opposite.op : α → αᵐᵒᵖ) :=
+uniform_continuous_comap' uniform_continuous_id
+
 section prod
 
 /- a similar product space is possible on the function space (uniformity of pointwise convergence),

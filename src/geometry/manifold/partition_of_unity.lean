@@ -32,7 +32,7 @@ functions `f i : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯`, `i : ι`, such that
 * for each `x`, the sum `∑ᶠ i, f i x` is less than or equal to one.
 
 We say that `f : smooth_bump_covering ι I M s` is *subordinate* to a map `U : M → set M` if for each
-index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
+index `i`, we have `tsupport (f i) ⊆ U (f i).c`. This notion is a bit more general than
 being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
 depends on `x`.
 
@@ -150,7 +150,7 @@ lemma sum_nonneg (x : M) : 0 ≤ ∑ᶠ i, f i x := f.to_partition_of_unity.sum_
 /-- A smooth partition of unity `f i` is subordinate to a family of sets `U i` indexed by the same
 type if for each `i` the closure of the support of `f i` is a subset of `U i`. -/
 def is_subordinate (f : smooth_partition_of_unity ι I M s) (U : ι → set M) :=
-∀ i, closure (support (f i)) ⊆ U i
+∀ i, tsupport (f i) ⊆ U i
 
 @[simp] lemma is_subordinate_to_partition_of_unity {f : smooth_partition_of_unity ι I M s}
   {U : ι → set M} :
@@ -218,12 +218,12 @@ rfl
 
 /--
 We say that `f : smooth_bump_covering ι I M s` is *subordinate* to a map `U : M → set M` if for each
-index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
+index `i`, we have `tsupport (f i) ⊆ U (f i).c`. This notion is a bit more general than
 being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
 depends on `x`.
 -/
 def is_subordinate {s : set M} (f : smooth_bump_covering ι I M s) (U : M → set M) :=
-∀ i, closure (support $ f i) ⊆ U (f.c i)
+∀ i, tsupport (f i) ⊆ U (f.c i)
 
 lemma is_subordinate.support_subset {fs : smooth_bump_covering ι I M s} {U : M → set M}
   (h : fs.is_subordinate U) (i : ι) :
@@ -257,7 +257,7 @@ begin
   { refine (mem_Union.1 $ hsV hx).imp (λ i hi, _),
     exact ((f i).update_r _ _).eventually_eq_one_of_dist_lt
       ((f i).support_subset_source $ hVf _ hi) (hr i hi).2 },
-  { simpa only [coe_mk, smooth_bump_function.support_update_r] using hfU i }
+  { simpa only [coe_mk, smooth_bump_function.support_update_r, tsupport] using hfU i }
 end
 
 variables {I M}

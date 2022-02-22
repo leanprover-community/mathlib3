@@ -880,7 +880,7 @@ begin
       (tendsto_div_pow_mul_exp_add_at_top b c 1 hb (by norm_num))))).comp (tendsto_log_at_top)),
   apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
   intros x hx,
-  simp only [mem_Ioi, function.comp_app] at hx ⊢,
+  simp only [set.mem_Ioi, function.comp_app] at hx ⊢,
   rw [exp_log hx, ← exp_log (rpow_pos_of_pos hx (a / (b * x + c))), log_rpow hx (a / (b * x + c))],
   field_simp,
 end

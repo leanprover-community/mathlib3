@@ -74,10 +74,10 @@ lemma ideal.is_homogeneous_iff_subset_Inter :
   I.is_homogeneous 𝒜 ↔ (I : set A) ⊆ ⋂ i, graded_algebra.proj 𝒜 i ⁻¹' ↑I :=
 subset_Inter_iff.symm
 
-lemma ideal.is_homogeneous.exists_iff_eq_span :
-  (∃ (S : set (homogeneous_submonoid 𝒜)), I = ideal.span (coe '' S)) ↔
-    I = I.homogeneous_core' 𝒜 :=
-(set.image_preimage.compose (submodule.gi _ _).gc).exists_eq_l _
+-- lemma ideal.is_homogeneous.exists_iff_eq_span :
+--   (∃ (S : set (homogeneous_submonoid 𝒜)), I = ideal.span (coe '' S)) ↔
+--     I = I.homogeneous_core' 𝒜 :=
+-- (set.image_preimage.compose (submodule.gi _ _).gc).exists_eq_l _
 
 lemma mul_homogeneous_element_mem_of_mem
   {I : ideal A} (r x : A) (hx₁ : is_homogeneous 𝒜 x) (hx₂ : x ∈ I) (j : ι) :
@@ -142,8 +142,8 @@ lemma ideal.is_homogeneous.iff_eq :
 lemma ideal.is_homogeneous.iff_exists :
   I.is_homogeneous 𝒜 ↔ ∃ (S : set (homogeneous_submonoid 𝒜)), I = ideal.span (coe '' S) :=
 begin
-  rw [ideal.is_homogeneous.exists_iff_eq_span, ideal.is_homogeneous.iff_eq],
-  exact ⟨λ h, h.symm, λ h, h.symm⟩
+  rw [ideal.is_homogeneous.iff_eq, eq_comm],
+  exact ((set.image_preimage.compose (submodule.gi _ _).gc).exists_eq_l _).symm,
 end
 
 end is_homogeneous_ideal_defs

@@ -10,11 +10,18 @@ import algebra.is_prime_pow
 /-!
 # Cardinal Divisibility
 
-We show basic results about divisibility in the cardinal numbers.
+We show basic results about divisibility in the cardinal numbers. This relation can be characterised
+in the following simple way: if `a` and `b` are both less than `ω`, then `a ∣ b` iff they are
+divisible as natural numbers. If `b` is greater than `ω`, then `a ∣ b` iff `a ≤ b`. This furthermore
+shows that all infinite cardinals are prime; recall that `a * b = max a b` if `ω ≤ a * b`; therefore
+`a ∣ b * c = a ∣ max b c` and therefore clearly either `a ∣ b` or `a ∣ c`.
 
 ## Main results
 
+* `cardinal.prime_of_omega_le`: a `cardinal` is prime if it is infinite.
 * `cardinal.is_prime_iff`: a `cardinal` is prime iff it infinite, or if it is a prime natural number
+* `cardinal.is_prime_pow_iff`: a `cardinal` is a prime power iff it infinite, or if it is the a
+  natural number which is itself a prime power.
 
 -/
 

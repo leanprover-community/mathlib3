@@ -2462,7 +2462,7 @@ variables (K) (M)
 open _root_.linear_map
 
 /-- Multiplying by a nonzero element `a` of the field `K` is a linear equivalence. -/
-@[simps] def smul_of_ne_zero (a : K) (ha : a ≠ 0) : M ≃ₗ[K] M :=
+def smul_of_ne_zero (a : K) (ha : a ≠ 0) : M ≃ₗ[K] M :=
 smul_of_unit $ units.mk0 a ha
 
 section

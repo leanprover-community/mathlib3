@@ -1196,7 +1196,8 @@ begin
 end
 
 theorem count_self [nontrivial α] {p : associates α} (hp : irreducible p) :
-  p.count p.factors = 1 := by simp [factors_self hp, associates.count_some hp]
+  p.count p.factors = 1 :=
+by simp [factors_self hp, associates.count_some hp]
 
 theorem count_mul [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) :

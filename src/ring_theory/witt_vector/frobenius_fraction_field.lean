@@ -40,11 +40,35 @@ noncomputable theory
 namespace witt_vector
 
 variables (p : ℕ) [hp : fact p.prime]
-variables {k : Type*} [field k]
-include hp
 local notation `𝕎` := witt_vector p
 
-namespace alg_closed_recursive
+section comm_ring
+include hp
+variables {k : Type*} [comm_ring k] [char_p k p] [perfect_ring k p]
+
+/-- This is basically the same as `𝕎 k` being a DVR. -/
+lemma exists_eq_pow_p_mul (a : 𝕎 k) (ha : a ≠ 0) :
+  ∃ (m : ℕ) (b : 𝕎 k), b.coeff 0 ≠ 0 ∧ a = p ^ m * b :=
+begin
+  obtain ⟨m, c, hc, hcm⟩ := witt_vector.verschiebung_nonzero ha,
+  obtain ⟨b, rfl⟩ := (frobenius_bijective p k).surjective.iterate m c,
+  rw witt_vector.iterate_frobenius_coeff at hc,
+  have := congr_fun (witt_vector.verschiebung_frobenius_comm.comp_iterate m) b,
+  simp only [function.comp_app] at this,
+  rw ← this at hcm,
+  refine ⟨m, b, _, _⟩,
+  { contrapose! hc,
+    have : 0 < p ^ m := pow_pos (nat.prime.pos (fact.out _)) _,
+    simp [hc, zero_pow this] },
+  { rw ← mul_left_iterate (p : 𝕎 k) m,
+    convert hcm,
+    ext1 x,
+    rw [mul_comm, ← witt_vector.verschiebung_frobenius x] },
+end
+
+end comm_ring
+
+namespace recursion_main
 
 /-!
 
@@ -63,10 +87,9 @@ that needs to happen in characteristic 0.
 open witt_vector finset
 open_locale big_operators
 
-section mv_poly
+section comm_ring
+variables {k : Type*} [comm_ring k]
 open mv_polynomial
-
-omit hp
 
 /--
 ```
@@ -367,9 +390,11 @@ lemma nth_remainder_spec (n : ℕ) (x y : 𝕎 k) :
     nth_remainder p n (truncate_fun (n+1) x) (truncate_fun (n+1) y) :=
 classical.some_spec (nth_mul_coeff p k n) _ _
 
-end mv_poly
+end comm_ring
 
-variable [char_p k p]
+section is_domain
+include hp
+variables {k : Type*} [comm_ring k] [is_domain k] [char_p k p]
 open polynomial
 
 /-- The root of this polynomial determines the `n+1`st coefficient of our solution. -/
@@ -398,7 +423,11 @@ begin
   exact_mod_cast hp.out.pos
 end
 
-variable [is_alg_closed k]
+end is_domain
+
+section is_alg_closed
+include hp
+variables {k : Type*} [field k] [char_p k p] [is_alg_closed k]
 
 lemma root_exists (n : ℕ) (a₁ a₂ : 𝕎 k) (bs : fin (n+1) → k)
   (ha₁ : a₁.coeff 0 ≠ 0) (ha₂ : a₂.coeff 0 ≠ 0) :
@@ -433,12 +462,12 @@ begin
   ring
 end
 
-end alg_closed_recursive
-open alg_closed_recursive
+end is_alg_closed
+end recursion_main
 
-namespace alg_closed_base
-
-variable [is_alg_closed k]
+namespace recursion_base
+include hp
+variables {k : Type*} [field k] [is_alg_closed k]
 
 lemma solution_pow (a₁ a₂ : 𝕎 k) :
   ∃ x : k, x^(p-1) = a₂.coeff 0 / a₁.coeff 0 :=
@@ -473,12 +502,15 @@ begin
   field_simp [ha₁, mul_comm],
 end
 
-end alg_closed_base
-open alg_closed_base
+end recursion_base
+
+open recursion_main recursion_base
 
 section frobenius_rotation
 
-variables [is_alg_closed k] [char_p k p]
+section is_alg_closed
+include hp
+variables {k : Type*} [field k] [char_p k p] [is_alg_closed k]
 
 /--
 Recursively defines the sequence of coefficients for `witt_vector.frobenius_rotation`.
@@ -524,28 +556,6 @@ begin
     refl }
 end
 
-local notation `K` := fraction_ring (𝕎 k)
-
-/-- This is basically the same as `𝕎 k` being a DVR. -/
-lemma exists_eq_pow_p_mul (a : 𝕎 k) (ha : a ≠ 0) :
-  ∃ (m : ℕ) (b : 𝕎 k), b.coeff 0 ≠ 0 ∧ a = p ^ m * b :=
-begin
-  obtain ⟨m, c, hc, hcm⟩ := witt_vector.verschiebung_nonzero ha,
-  obtain ⟨b, rfl⟩ := (frobenius_bijective p k).surjective.iterate m c,
-  rw witt_vector.iterate_frobenius_coeff at hc,
-  have := congr_fun (witt_vector.verschiebung_frobenius_comm.comp_iterate m) b,
-  simp only [function.comp_app] at this,
-  rw ← this at hcm,
-  refine ⟨m, b, _, _⟩,
-  { contrapose! hc,
-    have : 0 < p ^ m := pow_pos (nat.prime.pos (fact.out _)) _,
-    simp [hc, this] },
-  { rw ← mul_left_iterate (p : 𝕎 k) m,
-    convert hcm,
-    ext1 x,
-    rw [mul_comm, ← witt_vector.verschiebung_frobenius x] },
-end
-
 local notation `φ` := is_fraction_ring.field_equiv_of_ring_equiv
   (ring_equiv.of_bijective _ (frobenius_bijective p k))
 
@@ -581,6 +591,8 @@ begin
     ring },
   { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast] }
 end
+
+end is_alg_closed
 
 end frobenius_rotation
 

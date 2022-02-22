@@ -1231,12 +1231,12 @@ lemma prod_add_index' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
 prod_add_index (λ a ha, h_zero a) h_add
 
 @[simp]
-lemma sum_add_index2 [add_zero_class M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
+lemma sum_hom_add_index [add_zero_class M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
   (f + g).sum (λ x, h x) = f.sum (λ x, h x) + g.sum (λ x, h x) :=
 sum_add_index' (λ a, (h a).map_zero) (λ a, (h a).map_add)
 
 @[simp]
-lemma prod_add_index2 [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
+lemma prod_hom_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   (h : α → multiplicative M →* N) :
   (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=

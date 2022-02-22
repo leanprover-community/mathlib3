@@ -239,17 +239,11 @@ rfl
 
 lemma homogeneous_ideal.coe_supr (s : ι → homogeneous_ideal 𝒜) :
   ↑(⨆ i, s i) = ⨆ i, (s i : ideal A) :=
-begin
-  unfold supr,
-  rw homogeneous_ideal.Sup_eq,
-  congr,
-  ext I,
-  split,
-  { rintro ⟨_, ⟨i, -, rfl⟩, rfl⟩,
-    exact ⟨i, rfl⟩, },
-  { rintro ⟨i, -, rfl⟩,
-    exact ⟨s i, ⟨⟨i, rfl⟩, rfl⟩⟩, }
-end
+let h : ∀ (I : ideal A), I ∈ (coe : homogeneous_ideal 𝒜 → ideal A) '' range (λ (i : ι), s i) ↔
+  I ∈ range ((coe : homogeneous_ideal 𝒜 → ideal A) ∘ s) := λ I,
+    ⟨ by { rintro ⟨_, ⟨i, -, rfl⟩, rfl⟩, exact ⟨i, rfl⟩ },
+      by { rintro ⟨i, -, rfl⟩, exact ⟨s i, ⟨⟨i, rfl⟩, rfl⟩⟩ }⟩ in
+eq.trans (homogeneous_ideal.coe_Sup _ _) $ congr_arg _ (ext h)
 
 instance : has_mul (homogeneous_ideal 𝒜) :=
 { mul := λ I J, ⟨I * J, I.prop.mul J.prop⟩ }
@@ -383,7 +377,7 @@ lemma homogeneous_hull_eq_supr' :
 begin
   ext1,
   rw homogeneous_hull_eq_supr,
-  rw homogeneous_ideal.supr_eq,
+  rw homogeneous_ideal.coe_supr,
   refl,
 end
 

@@ -59,18 +59,6 @@ another answer, which is constructively more satisfying, could be obtained by sh
 
 -/
 
--- TODO: Move
-namespace list
-
-variable  {α : Type*}
-
-theorem last'_append {l₁ l₂ : list α} {x : α} (h : x ∈ l₂.last') :
-  x ∈ (l₁ ++ l₂).last' :=
-by {cases l₂, { contradiction, }, { rw list.last'_append_cons, exact h } }
-
-
-end list
-
 variables {ι : Type*} (M : Π i : ι, Type*) [Π i, monoid (M i)]
 
 /-- A relation on the free monoid on alphabet `Σ i, M i`, relating `⟨i, 1⟩` with `1` and

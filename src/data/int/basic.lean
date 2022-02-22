@@ -5,6 +5,7 @@ Authors: Jeremy Avigad
 -/
 import data.nat.pow
 import order.min_max
+import data.nat.cast
 
 /-!
 # Basic operations on the integers
@@ -131,14 +132,11 @@ theorem coe_nat_le {m n : ℕ} : (↑m : ℤ) ≤ ↑n ↔ m ≤ n := coe_nat_le
 theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe_nat_iff m n
 theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
 
-theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n :=
-by rw [← int.coe_nat_zero, coe_nat_lt]
+theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n := nat.cast_pos
 
-theorem coe_nat_eq_zero {n : ℕ} : (n : ℤ) = 0 ↔ n = 0 :=
-by rw [← int.coe_nat_zero, coe_nat_inj']
+theorem coe_nat_eq_zero {n : ℕ} : (n : ℤ) = 0 ↔ n = 0 := nat.cast_eq_zero
 
-theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
-not_congr coe_nat_eq_zero
+theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 := by simp
 
 lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
 

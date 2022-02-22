@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.order.group
 import algebra.order.sub
+import algebra.char_zero.defs
 import data.set.intervals.basic
 
 /-!
@@ -472,6 +473,14 @@ calc a * b ≤ b : decidable.mul_le_of_le_one_left hb0 ha
 lemma mul_lt_one_of_nonneg_of_lt_one_right : a ≤ 1 → 0 ≤ b → b < 1 → a * b < 1 :=
 by classical; exact decidable.mul_lt_one_of_nonneg_of_lt_one_right
 
+theorem nat.strict_mono_cast [nontrivial α] : strict_mono (coe : ℕ → α) :=
+strict_mono_nat_of_lt_succ $ λ n, by rw [nat.cast_succ]; apply lt_add_one
+
+/-- Note this is not an instance as `char_zero` implies `nontrivial`,
+and this would risk forming a loop. -/
+lemma ordered_semiring.to_char_zero [nontrivial α] : char_zero α :=
+⟨nat.strict_mono_cast.injective⟩
+
 end ordered_semiring
 
 section ordered_comm_semiring
@@ -757,6 +766,10 @@ have ∀ {u : αˣ}, (0 : α) < u → (0 : α) < ↑u⁻¹ := λ u h,
 have ∀ {u : αˣ}, ↑u < (0 : α) → ↑u⁻¹ < (0 : α) := λ u h,
   neg_of_mul_pos_left (by exact (u.mul_inv.symm ▸ zero_lt_one)) h.le,
 ⟨this, this⟩
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_semiring.to_char_zero : char_zero α :=
+ordered_semiring.to_char_zero
 
 end linear_ordered_semiring
 

@@ -77,9 +77,6 @@ monotone_nat_of_le_succ $ λ n, by rw [nat.cast_succ]; exact le_add_of_nonneg_ri
 
 variable [nontrivial α]
 
-theorem strict_mono_cast : strict_mono (coe : ℕ → α) :=
-strict_mono_nat_of_lt_succ $ λ n, by rw [nat.cast_succ]; apply lt_add_one
-
 @[simp, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=
 strict_mono_cast.le_iff_le

@@ -31,11 +31,9 @@ begin
   rcases eq_or_ne a 0 with rfl | ha,
   { exact (not_is_unit_zero h).elim },
   rw is_unit_iff_forall_dvd at h,
-  contrapose! h,
-  use 1,
-  rintro ⟨t, ht⟩,
+  cases h 1 with t ht,
   rw [eq_comm, mul_eq_one_iff'] at ht,
-  { exact h ht.1 },
+  { exact ht.1 },
   { rwa one_le_iff_ne_zero },
   { rw one_le_iff_ne_zero,
     rintro rfl,
@@ -52,11 +50,10 @@ lemma dvd_of_le_of_omega_le (ha : a ≠ 0) (hb : ω ≤ b) (h : a ≤ b) : a ∣
 
 @[simp] lemma prime_of_omega_le (ha : ω ≤ a) : prime a :=
 begin
-  refine ⟨(omega_pos.trans_le ha).ne', _, _⟩,
+  refine ⟨(omega_pos.trans_le ha).ne', _, λ b c hbc, _⟩,
   { rw is_unit_iff,
     exact (one_lt_omega.trans_le ha).ne' },
-  rintro b c hbc,
-  rcases eq_or_ne (b * c) 0 with hz | hz,
+  cases eq_or_ne (b * c) 0 with hz hz,
   { rcases mul_eq_zero.mp hz with rfl | rfl; simp },
   wlog h : c ≤ b,
   left,
@@ -71,8 +68,7 @@ begin
   have : ↑m < ω := nat_lt_omega m,
   rw [hk, mul_lt_omega_iff] at this,
   rcases this with h | h | ⟨-, hk'⟩,
-  { rw [h, zero_mul, nat.cast_eq_zero] at hk, simp [hk] },
-  { rw [h, mul_zero, nat.cast_eq_zero] at hk, simp [hk] },
+  iterate 2 { simp only [h, mul_zero,  zero_mul, nat.cast_eq_zero] at hk, simp [hk] },
   lift k to ℕ using hk',
   exact ⟨k, by exact_mod_cast hk⟩
 end
@@ -80,13 +76,10 @@ end
 @[simp] lemma nat_is_prime_iff : prime (n : cardinal) ↔ n.prime :=
 begin
   simp only [prime, nat.prime_iff],
-  apply and_congr _ (and_congr _ ⟨_, _⟩),
-  { simp },
+  refine and_congr (by simp) (and_congr _ ⟨λ h b c hbc, _, λ h b c hbc, _⟩),
   { simp only [is_unit_iff, nat.is_unit_iff],
-    refine ⟨λ h, _, λ h, _⟩; exact_mod_cast h },
-  { intros h b c hbc,
-    exact_mod_cast h b c (by exact_mod_cast hbc) },
-  rintros h b c hbc,
+    exact_mod_cast iff.rfl },
+  { exact_mod_cast h b c (by exact_mod_cast hbc) },
   cases lt_or_le (b * c) ω with h' h',
   { rcases mul_lt_omega_iff.mp h' with rfl | rfl | ⟨hb, hc⟩,
     { simp },
@@ -127,7 +120,7 @@ begin
     power_le_power_left hp.ne_zero (show (1 : cardinal) ≤ k, by exact_mod_cast hk),
   rw [power_one, hpk] at key,
   lift p to ℕ using key.trans_lt (nat_lt_omega a),
-  refine ⟨p, k, nat_is_prime_iff.mp hp, hk, by exact_mod_cast hpk⟩
+  exact ⟨p, k, nat_is_prime_iff.mp hp, hk, by exact_mod_cast hpk⟩
 end
 
 end cardinal

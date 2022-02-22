@@ -979,11 +979,11 @@ times_cont_mdiff_within_at_one
 end id
 
 lemma times_cont_mdiff_of_support {f : M → F}
-  (hf : ∀ x ∈ closure (support f), times_cont_mdiff_at I 𝓘(𝕜, F) n f x) :
+  (hf : ∀ x ∈ tsupport f, times_cont_mdiff_at I 𝓘(𝕜, F) n f x) :
   times_cont_mdiff I 𝓘(𝕜, F) n f :=
 begin
   intro x,
-  by_cases hx : x ∈ closure (support f),
+  by_cases hx : x ∈ tsupport f,
   { exact hf x hx },
   { refine times_cont_mdiff_at.congr_of_eventually_eq _ (eventually_eq_zero_nhds.2 hx),
     exact times_cont_mdiff_at_const }

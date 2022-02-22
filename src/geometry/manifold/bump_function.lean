@@ -166,7 +166,7 @@ by { rw [euclidean.dist, dist_self], exact f.r_pos }
 lemma support_mem_nhds : support f ∈ 𝓝 c :=
 f.eventually_eq_one.mono $ λ x hx, by { rw hx, exact one_ne_zero }
 
-lemma closure_support_mem_nhds : closure (support f) ∈ 𝓝 c :=
+lemma tsupport_mem_nhds : tsupport f ∈ 𝓝 c :=
 mem_of_superset f.support_mem_nhds subset_closure
 
 lemma c_mem_support : c ∈ support f := mem_of_mem_nhds f.support_mem_nhds
@@ -237,58 +237,57 @@ lemma closed_symm_image_closed_ball :
   is_closed ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
 f.compact_symm_image_closed_ball.is_closed
 
-lemma closure_support_subset_symm_image_closed_ball :
-  closure (support f) ⊆
-    (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I) :=
+lemma tsupport_subset_symm_image_closed_ball :
+  tsupport f ⊆ (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I) :=
 begin
-  rw support_eq_symm_image,
+  rw [tsupport, support_eq_symm_image],
   exact closure_minimal (image_subset _ $ inter_subset_inter_left _ ball_subset_closed_ball)
     f.closed_symm_image_closed_ball
 end
 
-lemma closure_support_subset_ext_chart_at_source :
-  closure (support f) ⊆ (ext_chart_at I c).source :=
-calc closure (support f)
+lemma tsupport_subset_ext_chart_at_source :
+  tsupport f ⊆ (ext_chart_at I c).source :=
+calc tsupport f
     ⊆ (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I) :
-  f.closure_support_subset_symm_image_closed_ball
+  f.tsupport_subset_symm_image_closed_ball
 ... ⊆ (ext_chart_at I c).symm '' (ext_chart_at I c).target :
   image_subset _ f.closed_ball_subset
 ... = (ext_chart_at I c).source :
   (ext_chart_at I c).symm_image_target_eq_source
 
-lemma closure_support_subset_chart_at_source :
-  closure (support f) ⊆ (chart_at H c).source :=
-by simpa only [ext_chart_at_source] using f.closure_support_subset_ext_chart_at_source
+lemma tsupport_subset_chart_at_source :
+  tsupport f ⊆ (chart_at H c).source :=
+by simpa only [ext_chart_at_source] using f.tsupport_subset_ext_chart_at_source
 
-lemma compact_closure_support : is_compact (closure $ support f) :=
+protected lemma has_compact_support : has_compact_support f :=
 compact_of_is_closed_subset f.compact_symm_image_closed_ball is_closed_closure
- f.closure_support_subset_symm_image_closed_ball
+ f.tsupport_subset_symm_image_closed_ball
 
 variables (I c)
 
 /-- The closures of supports of smooth bump functions centered at `c` form a basis of `𝓝 c`.
 In other words, each of these closures is a neighborhood of `c` and each neighborhood of `c`
-includes `closure (support f)` for some `f : smooth_bump_function I c`. -/
-lemma nhds_basis_closure_support :
-  (𝓝 c).has_basis (λ f : smooth_bump_function I c, true) (λ f, closure $ support f) :=
+includes `tsupport f` for some `f : smooth_bump_function I c`. -/
+lemma nhds_basis_tsupport :
+  (𝓝 c).has_basis (λ f : smooth_bump_function I c, true) (λ f, tsupport f) :=
 begin
   have : (𝓝 c).has_basis (λ f : smooth_bump_function I c, true)
     (λ f, (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)),
   { rw [← ext_chart_at_symm_map_nhds_within_range I c],
     exact nhds_within_range_basis.map _ },
-  refine this.to_has_basis' (λ f hf, ⟨f, trivial, f.closure_support_subset_symm_image_closed_ball⟩)
-    (λ f _, f.closure_support_mem_nhds),
+  refine this.to_has_basis' (λ f hf, ⟨f, trivial, f.tsupport_subset_symm_image_closed_ball⟩)
+    (λ f _, f.tsupport_mem_nhds),
 end
 
 variable {c}
 
 /-- Given `s ∈ 𝓝 c`, the supports of smooth bump functions `f : smooth_bump_function I c` such that
-`closure (support f) ⊆ s` form a basis of `𝓝 c`.  In other words, each of these supports is a
+`tsupport f ⊆ s` form a basis of `𝓝 c`.  In other words, each of these supports is a
 neighborhood of `c` and each neighborhood of `c` includes `support f` for some `f :
-smooth_bump_function I c` such that `closure (support f) ⊆ s`. -/
+smooth_bump_function I c` such that `tsupport f ⊆ s`. -/
 lemma nhds_basis_support {s : set M} (hs : s ∈ 𝓝 c) :
-  (𝓝 c).has_basis (λ f : smooth_bump_function I c, closure (support f) ⊆ s) (λ f, support f) :=
-((nhds_basis_closure_support I c).restrict_subset hs).to_has_basis'
+  (𝓝 c).has_basis (λ f : smooth_bump_function I c, tsupport f ⊆ s) (λ f, support f) :=
+((nhds_basis_tsupport I c).restrict_subset hs).to_has_basis'
   (λ f hf, ⟨f, hf.2, subset_closure⟩) (λ f hf, f.support_mem_nhds)
 
 variables [smooth_manifold_with_corners I M] {I}
@@ -297,7 +296,7 @@ variables [smooth_manifold_with_corners I M] {I}
 protected lemma smooth : smooth I 𝓘(ℝ) f :=
 begin
   refine times_cont_mdiff_of_support (λ x hx, _),
-  have : x ∈ (chart_at H c).source := f.closure_support_subset_chart_at_source hx,
+  have : x ∈ (chart_at H c).source := f.tsupport_subset_chart_at_source hx,
   refine times_cont_mdiff_at.congr_of_eventually_eq _
     (f.eq_on_source.eventually_eq_of_mem $ is_open.mem_nhds (chart_at _ _).open_source this),
   exact f.to_times_cont_diff_bump.times_cont_diff_at.times_cont_mdiff_at.comp _
@@ -316,9 +315,9 @@ lemma smooth_smul {G} [normed_group G] [normed_space ℝ G]
 begin
   apply times_cont_mdiff_of_support (λ x hx, _),
   have : x ∈ (chart_at H c).source,
-  calc x ∈ closure (support (λ x, f x • g x)) : hx
-     ... ⊆ closure (support f) : closure_mono (support_smul_subset_left _ _)
-     ... ⊆ (chart_at _ c).source : f.closure_support_subset_chart_at_source,
+  calc x ∈ tsupport (λ x, f x • g x) : hx
+     ... ⊆ tsupport f : closure_mono (support_smul_subset_left _ _)
+     ... ⊆ (chart_at _ c).source : f.tsupport_subset_chart_at_source,
   exact f.smooth_at.smul ((hg _ this).times_cont_mdiff_at $
     is_open.mem_nhds (chart_at _ _).open_source this)
 end

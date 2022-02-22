@@ -244,3 +244,32 @@ end version2
 
 end is_self_adjoint
 end inner_product_space
+
+section nonneg
+
+@[simp]
+lemma inner_product_apply_eigenvector {μ : 𝕜} {v : E} {T : E →ₗ[𝕜] E}
+  (h : v ∈ module.End.eigenspace T μ) : ⟪v, T v⟫ = μ * ∥v∥ ^ 2 :=
+by simp only [mem_eigenspace_iff.mp h, inner_smul_right, inner_self_eq_norm_sq_to_K]
+
+lemma eigenvalue_nonneg_of_nonneg {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenvalue T μ)
+  (hnn : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪x, T x⟫) : 0 ≤ μ :=
+begin
+  obtain ⟨v, hv⟩ := hμ.exists_has_eigenvector,
+  have hpos : 0 < ∥v∥ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,
+  have : is_R_or_C.re ⟪v, T v⟫ = μ * ∥v∥ ^ 2,
+  { exact_mod_cast congr_arg is_R_or_C.re (inner_product_apply_eigenvector hv.1) },
+  exact (zero_le_mul_right hpos).mp (this ▸ hnn v),
+end
+
+lemma eigenvalue_pos_of_pos {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenvalue T μ)
+  (hnn : ∀ (x : E), 0 < is_R_or_C.re ⟪x, T x⟫) : 0 < μ :=
+begin
+  obtain ⟨v, hv⟩ := hμ.exists_has_eigenvector,
+  have hpos : 0 < ∥v∥ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,
+  have : is_R_or_C.re ⟪v, T v⟫ = μ * ∥v∥ ^ 2,
+  { exact_mod_cast congr_arg is_R_or_C.re (inner_product_apply_eigenvector hv.1) },
+  exact (zero_lt_mul_right hpos).mp (this ▸ hnn v),
+end
+
+end nonneg

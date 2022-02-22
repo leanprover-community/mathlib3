@@ -2535,13 +2535,10 @@ begin
     exact nfp_mul_opow_omega_add c ha zero_lt_one (one_le_iff_pos.2 (opow_pos _ ha)) },
 end
 
+theorem deriv_id_of_nfp_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
+(is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simp [h, succ_inj])
+
 theorem deriv_mul_zero : deriv ((*) 0) = id :=
-begin
-  rw [is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl],
-  refine ⟨_, λ c h, _⟩,
-  { rw [deriv_zero, nfp_zero_mul] },
-  { rw [deriv_succ, h, nfp_zero_mul],
-    refl },
-end
+deriv_id_of_nfp_id nfp_zero_mul
 
 end ordinal

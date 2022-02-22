@@ -254,14 +254,14 @@ variables [has_mul M] [has_mul N] [comm_semigroup P] (f : mul_hom M P) (g : mul_
 
 /-- Coproduct of two `mul_hom`s with the same codomain:
 `f.coprod g (p : M × N) = f p.1 * g p.2`. -/
-@[to_additive "Coproduct of two `add__hom`s with the same codomain:
+@[to_additive "Coproduct of two `add_hom`s with the same codomain:
 `f.coprod g (p : M × N) = f p.1 + g p.2`."]
 def coprod : mul_hom (M × N) P := f.comp (fst M N) * g.comp (snd M N)
 
 @[simp, to_additive]
 lemma coprod_apply (p : M × N) : f.coprod g p = f p.1 * g p.2 := rfl
 
-@[to_additive] --TODO: add to_additive in group_theory.submonoid.operations
+@[to_additive]
 lemma comp_coprod {Q : Type*} [comm_semigroup Q]
   (h : mul_hom P Q) (f : mul_hom M P) (g : mul_hom N P) :
   h.comp (f.coprod g) = (h.comp f).coprod (h.comp g) :=
@@ -395,6 +395,7 @@ ext $ λ x, by simp [coprod_apply, inl_apply, inr_apply, ← map_mul]
   (inl M N).coprod (inr M N) = id (M × N) :=
 coprod_unique (id $ M × N)
 
+@[to_additive]
 lemma comp_coprod {Q : Type*} [comm_monoid Q] (h : P →* Q) (f : M →* P) (g : N →* P) :
   h.comp (f.coprod g) = (h.comp f).coprod (h.comp g) :=
 ext $ λ x, by simp

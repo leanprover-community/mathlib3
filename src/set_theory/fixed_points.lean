@@ -259,22 +259,22 @@ begin
   rwa ←fp_iff_deriv_family H
 end
 
-theorem deriv_le_of_range_subset {f : ι → ordinal → ordinal}
-  {g : ι' → ordinal → ordinal.{max u v w}} (hf : ∀ i, monotone (f i)) (hg : ∀ i, monotone (g i))
+theorem deriv_family_le_of_range_subset {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal.{max u v w}} (hf : ∀ i, monotone (f i))
   (hfg : set.range f ⊆ set.range g) (a) : deriv_family f a ≤ deriv_family.{w (max u v w)} g a :=
 begin
   apply limit_rec_on a,
   { simp only [deriv_family_zero],
     exact nfp_family_le_of_range_subset.{u w v} hfg 0 },
   { simp only [deriv_family_succ],
-    exact λ b H,(nfp_family_monotone hf (succ_le_succ.2 H)).trans
+    exact λ b H, (nfp_family_monotone hf (succ_le_succ.2 H)).trans
       (nfp_family_le_of_range_subset.{u w v} hfg _) },
   { intros b hb H,
     rw [deriv_family_limit f hb, deriv_family_limit.{w (max u v w)} g hb, bsup_le],
     exact λ c hc, (H c hc).trans (le_bsup _ c hc) }
 end
 
-theorem deriv_eq_of_range_eq {f : ι → ordinal → ordinal}
+theorem deriv_family_eq_of_range_eq {f : ι → ordinal → ordinal}
   {g : ι' → ordinal → ordinal.{max u v w}} (hfg : set.range f = set.range g) :
   deriv_family f = deriv_family.{w (max u v w)} g :=
 funext (λ a, begin
@@ -299,7 +299,7 @@ end
 /-! ### Fixed points of ordinal-indexed families of ordinals -/
 
 section
-variables {o : ordinal.{u}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u v}}
+variables {o : ordinal.{u}} {o' : ordinal.{w}} {f : Π b < o, ordinal.{max u v} → ordinal.{max u v}}
 
 /-- The next common fixed point, at least `a`, for a family of normal functions indexed by ordinals.
 -/
@@ -384,6 +384,10 @@ theorem fp_bfamily_unbounded (H : ∀ i hi, is_normal (f i hi)) :
 def deriv_bfamily (o : ordinal) (f : Π b < o, ordinal → ordinal) : ordinal → ordinal :=
 deriv_family (family_of_bfamily o f)
 
+theorem deriv_bfamily_eq_deriv_family {o : ordinal} (f : Π b < o, ordinal → ordinal) :
+  deriv_bfamily o f = deriv_family (family_of_bfamily o f) :=
+rfl
+
 theorem deriv_bfamily_is_normal {o : ordinal} (f : Π b < o, ordinal → ordinal) :
   is_normal (deriv_bfamily o f) :=
 deriv_family_is_normal _
@@ -422,6 +426,25 @@ begin
   rw set.mem_Inter₂ at ha,
   rwa ←fp_iff_deriv_bfamily H
 end
+
+theorem deriv_bfamily_le_of_range_subset {f : Π b < o, ordinal → ordinal}
+  {g : Π b < o', ordinal → ordinal.{max u v w}} (hf : ∀ i hi, monotone (f i hi))
+  (hfg : brange o f ⊆ brange o' g) (a) :
+  deriv_bfamily o f a ≤ deriv_bfamily.{w (max u v w)} o' g a :=
+begin
+  apply deriv_family_le_of_range_subset,
+  { exact (λ i, hf _ _) },
+  { simpa [range_family_of_bfamily] using hfg }
+end
+
+theorem deriv_bfamily_eq_of_range_eq {f : Π b < o, ordinal → ordinal}
+  {g : Π b < o', ordinal → ordinal.{max u v w}} (hf : ∀ i hi, monotone (f i hi))
+  (hfg : brange o f = brange o' g) : deriv_bfamily o f = deriv_bfamily.{w (max u v w)} o' g :=
+funext (λ a, begin
+  unfold deriv_bfamily,
+  rw deriv_family_eq_of_range_eq,
+  simpa [range_family_of_bfamily] using hfg
+end)
 
 end
 
@@ -505,9 +528,9 @@ deriv_family (λ _ : unit, f)
 theorem deriv_eq_deriv_family (f : ordinal → ordinal) : deriv f = deriv_family (λ _ : unit, f) :=
 rfl
 
-theorem deriv_eq_deriv_family' (ι) [nonempty ι] (f : ordinal → ordinal) :
-  deriv f = deriv_family (λ _ : ι, f) :=
-sorry
+theorem deriv_eq_deriv_family' (ι : Type u) [nonempty ι] (f : ordinal → ordinal) :
+  deriv f = deriv_family.{u (max u v)} (λ _ : ι, f) :=
+deriv_family_eq_of_range_eq.{0 v u} (by simp [set.range_const])
 
 @[simp] theorem deriv_zero (f) : deriv f 0 = nfp f 0 :=
 deriv_family_zero _

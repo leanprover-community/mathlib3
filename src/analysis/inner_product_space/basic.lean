@@ -2310,7 +2310,7 @@ begin
     simp only [complex.conj_I],
     rw inner_map_polarization',
     norm_num,
-    ring},
+    ring },
 end
 
 end complex

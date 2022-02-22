@@ -57,9 +57,7 @@ by { rw left_lim, exact f.mono.tendsto_nhds_within_Iio x }
 lemma left_lim_le {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f y :=
 begin
   apply le_of_tendsto (f.tendsto_left_lim x),
-  filter_upwards [self_mem_nhds_within],
-  assume z hz,
-  exact (f.mono (le_of_lt hz)).trans (f.mono h)
+  filter_upwards [self_mem_nhds_within] with _ hz using (f.mono (le_of_lt hz)).trans (f.mono h),
 end
 
 lemma le_left_lim {x y : ℝ} (h : x < y) : f x ≤ f.left_lim y :=
@@ -111,7 +109,7 @@ end
 
 lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
   f.length s₁ ≤ f.length s₂ :=
-infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans h h', le_refl _⟩
+infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans h h', le_rfl⟩
 
 open measure_theory
 
@@ -145,7 +143,7 @@ begin
   refine λ s, finset.strong_induction_on s (λ s IH b cv, _),
   cases le_total b a with ab ab,
   { rw ennreal.of_real_eq_zero.2 (sub_nonpos.2 (f.mono ab)), exact zero_le _, },
-  have := cv ⟨ab, le_refl _⟩, simp at this,
+  have := cv ⟨ab, le_rfl⟩, simp at this,
   rcases this with ⟨i, is, cb, bd⟩,
   rw [← finset.insert_erase is] at cv ⊢,
   rw [finset.coe_insert, bUnion_insert] at cv,
@@ -202,7 +200,7 @@ begin
   have I_subset : Icc a' b ⊆ ⋃ i, Ioo (g i).1 (g i).2 := calc
     Icc a' b ⊆ Ioc a b : λ x hx, ⟨aa'.trans_le hx.1, hx.2⟩
     ... ⊆ ⋃ i, s i : hs
-    ... ⊆ ⋃ i, Ioo (g i).1 (g i).2 : Union_subset_Union (λ i, (hg i).1),
+    ... ⊆ ⋃ i, Ioo (g i).1 (g i).2 : Union_mono (λ i, (hg i).1),
   calc of_real (f b - f a)
       = of_real ((f b - f a') + (f a' - f a)) : by rw sub_add_sub_cancel
   ... ≤ of_real (f b - f a') + of_real (f a' - f a) : ennreal.of_real_add_le
@@ -259,7 +257,7 @@ begin
     exact ⟨_, h₁, measurable_set_Ioc, le_of_lt $ by simpa using h₂⟩ },
   simp at hg,
   apply infi_le_of_le (Union g) _,
-  apply infi_le_of_le (subset.trans ht $ Union_subset_Union (λ i, (hg i).1)) _,
+  apply infi_le_of_le (ht.trans $ Union_mono (λ i, (hg i).1)) _,
   apply infi_le_of_le (measurable_set.Union (λ i, (hg i).2.1)) _,
   exact le_trans (f.outer.Union _) (ennreal.tsum_le_tsum $ λ i, (hg i).2.2)
 end

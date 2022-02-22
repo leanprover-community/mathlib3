@@ -543,6 +543,16 @@ begin
   rw exp_le_exp, exact mul_le_mul_of_nonneg_left hyz (log_nonneg hx),
 end
 
+@[simp] lemma rpow_le_rpow_left_iff (hx : 1 < x) : x ^ y ≤ x ^ z ↔ y ≤ z :=
+begin
+  have x_pos : 0 < x := lt_trans zero_lt_one hx,
+  rw [←log_le_log (rpow_pos_of_pos x_pos y) (rpow_pos_of_pos x_pos z),
+      log_rpow x_pos, log_rpow x_pos, mul_le_mul_right (log_pos hx)],
+end
+
+@[simp] lemma rpow_lt_rpow_left_iff (hx : 1 < x) : x ^ y < x ^ z ↔ y < z :=
+by rw [lt_iff_not_ge', rpow_le_rpow_left_iff hx, lt_iff_not_ge']
+
 lemma rpow_lt_rpow_of_exponent_gt (hx0 : 0 < x) (hx1 : x < 1) (hyz : z < y) :
   x^y < x^z :=
 begin
@@ -556,6 +566,17 @@ begin
   repeat {rw [rpow_def_of_pos hx0]},
   rw exp_le_exp, exact mul_le_mul_of_nonpos_left hyz (log_nonpos (le_of_lt hx0) hx1),
 end
+
+@[simp] lemma rpow_le_rpow_left_iff_of_base_lt_one (hx0 : 0 < x) (hx1 : x < 1) :
+  x ^ y ≤ x ^ z ↔ z ≤ y :=
+begin
+  rw [←log_le_log (rpow_pos_of_pos hx0 y) (rpow_pos_of_pos hx0 z),
+      log_rpow hx0, log_rpow hx0, mul_le_mul_right_of_neg (log_neg hx0 hx1)],
+end
+
+@[simp] lemma rpow_lt_rpow_left_iff_of_base_lt_one (hx0 : 0 < x) (hx1 : x < 1) :
+  x ^ y < x ^ z ↔ z < y :=
+by rw [lt_iff_not_ge', rpow_le_rpow_left_iff_of_base_lt_one hx0 hx1, lt_iff_not_ge']
 
 lemma rpow_lt_one {x z : ℝ} (hx1 : 0 ≤ x) (hx2 : x < 1) (hz : 0 < z) : x^z < 1 :=
 by { rw ← one_rpow z, exact rpow_lt_rpow hx1 hx2 hz }
@@ -962,6 +983,19 @@ real.rpow_lt_rpow_of_exponent_gt hx0 hx1 hyz
 lemma rpow_le_rpow_of_exponent_ge {x : ℝ≥0} {y z : ℝ} (hx0 : 0 < x) (hx1 : x ≤ 1) (hyz : z ≤ y) :
   x^y ≤ x^z :=
 real.rpow_le_rpow_of_exponent_ge hx0 hx1 hyz
+
+lemma rpow_pos {p : ℝ} {x : ℝ≥0} (hx_pos : 0 < x) : 0 < x^p :=
+begin
+  have rpow_pos_of_nonneg : ∀ {p : ℝ}, 0 < p → 0 < x^p,
+  { intros p hp_pos,
+    rw ←zero_rpow hp_pos.ne',
+    exact rpow_lt_rpow hx_pos hp_pos },
+  rcases lt_trichotomy 0 p with hp_pos|rfl|hp_neg,
+  { exact rpow_pos_of_nonneg hp_pos },
+  { simp only [zero_lt_one, rpow_zero] },
+  { rw [←neg_neg p, rpow_neg, inv_pos],
+    exact rpow_pos_of_nonneg (neg_pos.mpr hp_neg) },
+end
 
 lemma rpow_lt_one {x : ℝ≥0} {z : ℝ} (hx : 0 ≤ x) (hx1 : x < 1) (hz : 0 < z) : x^z < 1 :=
 real.rpow_lt_one hx hx1 hz

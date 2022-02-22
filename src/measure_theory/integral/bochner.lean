@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import measure_theory.integral.set_to_l1
-import measure_theory.group.basic
 import analysis.normed_space.bounded_linear_maps
 import topology.sequences
 
@@ -145,8 +144,6 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 noncomputable theory
 open_locale classical topological_space big_operators nnreal ennreal measure_theory
 open set filter topological_space ennreal emetric
-
-local attribute [instance] fact_one_le_one_ennreal
 
 namespace measure_theory
 
@@ -531,11 +528,10 @@ begin
   have eq : ∀ a, (to_simple_func f).pos_part a = max ((to_simple_func f) a) 0 := λa, rfl,
   have ae_eq : ∀ᵐ a ∂μ, to_simple_func (pos_part f) a = max ((to_simple_func f) a) 0,
   { filter_upwards [to_simple_func_eq_to_fun (pos_part f), Lp.coe_fn_pos_part (f : α →₁[μ] ℝ),
-      to_simple_func_eq_to_fun f],
-    assume a h₁ h₂ h₃,
-    convert h₂ },
+      to_simple_func_eq_to_fun f] with _ _ h₂ _,
+    convert h₂, },
   refine ae_eq.mono (assume a h, _),
-  rw [h, eq]
+  rw [h, eq],
 end
 
 lemma neg_part_to_simple_func (f : α →₁ₛ[μ] ℝ) :
@@ -555,32 +551,29 @@ lemma integral_eq_norm_pos_part_sub (f : α →₁ₛ[μ] ℝ) :
 begin
   -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq₁ : (to_simple_func f).pos_part =ᵐ[μ] (to_simple_func (pos_part f)).map norm,
-  { filter_upwards [pos_part_to_simple_func f],
-    assume a h,
+  { filter_upwards [pos_part_to_simple_func f] with _ h,
     rw [simple_func.map_apply, h],
     conv_lhs { rw [← simple_func.pos_part_map_norm, simple_func.map_apply] } },
   -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq₂ : (to_simple_func f).neg_part =ᵐ[μ] (to_simple_func (neg_part f)).map norm,
-  { filter_upwards [neg_part_to_simple_func f],
-    assume a h,
+  { filter_upwards [neg_part_to_simple_func f] with _ h,
     rw [simple_func.map_apply, h],
-    conv_lhs { rw [← simple_func.neg_part_map_norm, simple_func.map_apply] } },
+    conv_lhs { rw [← simple_func.neg_part_map_norm, simple_func.map_apply], }, },
   -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq : ∀ᵐ a ∂μ, (to_simple_func f).pos_part a - (to_simple_func f).neg_part a =
      (to_simple_func (pos_part f)).map norm a -  (to_simple_func (neg_part f)).map norm a,
-  { filter_upwards [ae_eq₁, ae_eq₂],
-    assume a h₁ h₂,
-    rw [h₁, h₂] },
+  { filter_upwards [ae_eq₁, ae_eq₂] with _ h₁ h₂,
+    rw [h₁, h₂], },
   rw [integral, norm_eq_integral, norm_eq_integral, ← simple_func.integral_sub],
   { show (to_simple_func f).integral μ =
       ((to_simple_func (pos_part f)).map norm - (to_simple_func (neg_part f)).map norm).integral μ,
     apply measure_theory.simple_func.integral_congr (simple_func.integrable f),
-    filter_upwards [ae_eq₁, ae_eq₂],
-    assume a h₁ h₂, show _ = _ - _,
+    filter_upwards [ae_eq₁, ae_eq₂] with _ h₁ h₂,
+    show _ = _ - _,
     rw [← h₁, ← h₂],
     have := (to_simple_func f).pos_part_sub_neg_part,
     conv_lhs {rw ← this},
-    refl },
+    refl, },
   { exact (simple_func.integrable f).max_zero.congr ae_eq₁ },
   { exact (simple_func.integrable f).neg.max_zero.congr ae_eq₂ }
 end
@@ -663,8 +656,6 @@ lemma continuous_integral : continuous (λ (f : α →₁[μ] E), integral f) :=
 L1.integral_clm.continuous
 
 section pos_part
-
-local attribute [instance] fact_one_le_one_ennreal
 
 lemma integral_eq_norm_pos_part_sub (f : α →₁[μ] ℝ) :
   integral f = ∥Lp.pos_part f∥ - ∥Lp.neg_part f∥ :=
@@ -891,8 +882,8 @@ begin
     eventually_countable_forall.2 (λ n, (h_bound n).mono $ λ a, (norm_nonneg _).trans),
   have hb_le_tsum : ∀ n, bound n ≤ᵐ[μ] (λ a, ∑' n, bound n a),
   { intro n,
-    filter_upwards [hb_nonneg, bound_summable], intros a ha0 ha_sum,
-    exact le_tsum ha_sum _ (λ i _, ha0 i) },
+    filter_upwards [hb_nonneg, bound_summable] with _ ha0 ha_sum
+      using le_tsum ha_sum _ (λ i _, ha0 i) },
   have hF_integrable : ∀ n, integrable (F n) μ,
   { refine λ n, bound_integrable.mono' (hF_meas n) _,
     exact eventually_le.trans (h_bound n) (hb_le_tsum n) },
@@ -901,8 +892,8 @@ begin
     bound_integrable h_lim,
   { exact eventually_of_forall (λ s, s.ae_measurable_sum $ λ n hn, hF_meas n) },
   { refine eventually_of_forall (λ s, _),
-    filter_upwards [eventually_countable_forall.2 h_bound, hb_nonneg, bound_summable],
-    intros a hFa ha0 has,
+    filter_upwards [eventually_countable_forall.2 h_bound, hb_nonneg, bound_summable]
+      with a hFa ha0 has,
     calc ∥∑ n in s, F n a∥ ≤ ∑ n in s, bound n a : norm_sum_le_of_le _ (λ n hn, hFa n)
                        ... ≤ ∑' n, bound n a     : sum_le_tsum _ (λ n hn, ha0 n) has },
 end
@@ -937,8 +928,7 @@ begin
   rw L1.norm_def,
   congr' 1,
   apply lintegral_congr_ae,
-  filter_upwards [Lp.coe_fn_pos_part f₁, hf.coe_fn_to_L1],
-  assume a h₁ h₂,
+  filter_upwards [Lp.coe_fn_pos_part f₁, hf.coe_fn_to_L1] with _ h₁ h₂,
   rw [h₁, h₂, ennreal.of_real],
   congr' 1,
   apply nnreal.eq,
@@ -951,8 +941,7 @@ begin
   rw L1.norm_def,
   congr' 1,
   apply lintegral_congr_ae,
-  filter_upwards [Lp.coe_fn_neg_part f₁, hf.coe_fn_to_L1],
-  assume a h₁ h₂,
+  filter_upwards [Lp.coe_fn_neg_part f₁, hf.coe_fn_to_L1] with _ h₁ h₂,
   rw [h₁, h₂, ennreal.of_real],
   congr' 1,
   apply nnreal.eq,
@@ -1219,6 +1208,53 @@ end
   ∫ x, f x ∂(0 : measure α) = 0 :=
 set_to_fun_measure_zero (dominated_fin_meas_additive_weighted_smul _) rfl
 
+theorem integral_finset_sum_measure {ι} {m : measurable_space α} {f : α → E}
+  {μ : ι → measure α} {s : finset ι} (hf : ∀ i ∈ s, integrable f (μ i)) :
+  ∫ a, f a ∂(∑ i in s, μ i) = ∑ i in s, ∫ a, f a ∂μ i :=
+begin
+  classical,
+  refine finset.induction_on' s _ _, -- `induction s using finset.induction_on'` fails
+  { simp },
+  { intros i t hi ht hit iht,
+    simp only [finset.sum_insert hit, ← iht],
+    exact integral_add_measure (hf _ hi) (integrable_finset_sum_measure.2 $ λ j hj, hf j (ht hj)) }
+end
+
+lemma nndist_integral_add_measure_le_lintegral (h₁ : integrable f μ) (h₂ : integrable f ν) :
+  (nndist (∫ x, f x ∂μ) (∫ x, f x ∂(μ + ν)) : ℝ≥0∞) ≤ ∫⁻ x, ∥f x∥₊ ∂ν :=
+begin
+  rw [integral_add_measure h₁ h₂, nndist_comm, nndist_eq_nnnorm, add_sub_cancel'],
+  exact ennnorm_integral_le_lintegral_ennnorm _
+end
+
+theorem has_sum_integral_measure {ι} {m : measurable_space α} {f : α → E} {μ : ι → measure α}
+  (hf : integrable f (measure.sum μ)) :
+  has_sum (λ i, ∫ a, f a ∂μ i) (∫ a, f a ∂measure.sum μ) :=
+begin
+  have hfi : ∀ i, integrable f (μ i) := λ i, hf.mono_measure (measure.le_sum _ _),
+  simp only [has_sum, ← integral_finset_sum_measure (λ i _, hfi i)],
+  refine metric.nhds_basis_ball.tendsto_right_iff.mpr (λ ε ε0, _),
+  lift ε to ℝ≥0 using ε0.le,
+  have hf_lt : ∫⁻ x, ∥f x∥₊ ∂(measure.sum μ) < ∞ := hf.2,
+  have hmem : ∀ᶠ y in 𝓝 ∫⁻ x, ∥f x∥₊ ∂(measure.sum μ), ∫⁻ x, ∥f x∥₊ ∂(measure.sum μ) < y + ε,
+  { refine tendsto_id.add tendsto_const_nhds (lt_mem_nhds $ ennreal.lt_add_right _ _),
+    exacts [hf_lt.ne, ennreal.coe_ne_zero.2 (nnreal.coe_ne_zero.1 ε0.ne')] },
+  refine ((has_sum_lintegral_measure (λ x, ∥f x∥₊) μ).eventually hmem).mono (λ s hs, _),
+  obtain ⟨ν, hν⟩ : ∃ ν, (∑ i in s, μ i) + ν = measure.sum μ,
+  { refine ⟨measure.sum (λ i : ↥(sᶜ : set ι), μ i), _⟩,
+    simpa only [← measure.sum_coe_finset] using measure.sum_add_sum_compl (s : set ι) μ },
+  rw [metric.mem_ball, ← coe_nndist, nnreal.coe_lt_coe, ← ennreal.coe_lt_coe, ← hν],
+  rw [← hν, integrable_add_measure] at hf,
+  refine (nndist_integral_add_measure_le_lintegral hf.1 hf.2).trans_lt _,
+  rw [← hν, lintegral_add_measure, lintegral_finset_sum_measure] at hs,
+  exact lt_of_add_lt_add_left hs
+end
+
+theorem integral_sum_measure {ι} {m : measurable_space α} {f : α → E} {μ : ι → measure α}
+  (hf : integrable f (measure.sum μ)) :
+  ∫ a, f a ∂measure.sum μ = ∑' i, ∫ a, f a ∂μ i :=
+(has_sum_integral_measure hf).tsum_eq.symm
+
 @[simp] lemma integral_smul_measure (f : α → E) (c : ℝ≥0∞) :
   ∫ x, f x ∂(c • μ) = c.to_real • ∫ x, f x ∂μ :=
 begin
@@ -1305,76 +1341,6 @@ calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
 end properties
-
-section group
-
-variables {G : Type*} [measurable_space G] [topological_space G] [group G] [has_continuous_mul G]
-  [borel_space G]
-variables {μ : measure G}
-
-open measure
-
-/-- Translating a function by left-multiplication does not change its integral with respect to a
-left-invariant measure. -/
-@[to_additive]
-lemma integral_mul_left_eq_self (hμ : is_mul_left_invariant μ) {f : G → E} (g : G) :
-  ∫ x, f (g * x) ∂μ = ∫ x, f x ∂μ :=
-begin
-  have hgμ : measure.map (has_mul.mul g) μ = μ,
-  { rw ← map_mul_left_eq_self at hμ,
-    exact hμ g },
-  have h_mul : closed_embedding (λ x, g * x) := (homeomorph.mul_left g).closed_embedding,
-  rw [← h_mul.integral_map, hgμ],
-  apply_instance,
-end
-
-/-- Translating a function by right-multiplication does not change its integral with respect to a
-right-invariant measure. -/
-@[to_additive]
-lemma integral_mul_right_eq_self (hμ : is_mul_right_invariant μ) {f : G → E} (g : G) :
-  ∫ x, f (x * g) ∂μ = ∫ x, f x ∂μ :=
-begin
-  have hgμ : measure.map (λ x, x * g) μ = μ,
-  { rw ← map_mul_right_eq_self at hμ,
-    exact hμ g },
-  have h_mul : closed_embedding (λ x, x * g) := (homeomorph.mul_right g).closed_embedding,
-  rw [← h_mul.integral_map, hgμ],
-  apply_instance,
-end
-
-/-- If some left-translate of a function negates it, then the integral of the function with respect
-to a left-invariant measure is 0. -/
-@[to_additive]
-lemma integral_zero_of_mul_left_eq_neg (hμ : is_mul_left_invariant μ) {f : G → E} {g : G}
-  (hf' : ∀ x, f (g * x) = - f x) :
-  ∫ x, f x ∂μ = 0 :=
-begin
-  refine eq_zero_of_eq_neg ℝ (eq.symm _),
-  have : ∫ x, f (g * x) ∂μ = ∫ x, - f x ∂μ,
-  { congr,
-    ext x,
-    exact hf' x },
-  convert integral_mul_left_eq_self hμ g using 1,
-  rw [this, integral_neg]
-end
-
-/-- If some right-translate of a function negates it, then the integral of the function with respect
-to a right-invariant measure is 0. -/
-@[to_additive]
-lemma integral_zero_of_mul_right_eq_neg (hμ : is_mul_right_invariant μ) {f : G → E} {g : G}
-  (hf' : ∀ x, f (x * g) = - f x) :
-  ∫ x, f x ∂μ = 0 :=
-begin
-  refine eq_zero_of_eq_neg ℝ (eq.symm _),
-  have : ∫ x, f (x * g) ∂μ = ∫ x, - f x ∂μ,
-  { congr,
-    ext x,
-    exact hf' x },
-  convert integral_mul_right_eq_self hμ g using 1,
-  rw [this, integral_neg]
-end
-
-end group
 
 mk_simp_attribute integral_simps "Simp set for integral rules."
 

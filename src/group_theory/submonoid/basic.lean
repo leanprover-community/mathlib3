@@ -275,6 +275,20 @@ lemma closure_induction {p : M → Prop} {x} (h : x ∈ closure s)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, H1, Hmul⟩).2 Hs h
 
+/-- A dependent version of `submonoid.closure_induction`.  -/
+@[elab_as_eliminator, to_additive "A dependent version of `add_submonoid.closure_induction`. "]
+lemma closure_induction' (s : set M) {p : Π x, x ∈ closure s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p x (subset_closure h))
+  (H1 : p 1 (one_mem _))
+  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem _ hx hy))
+  {x} (hx : x ∈ closure s) :
+  p x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ closure s) (hc : p x hx), hc),
+  exact closure_induction hx
+    (λ x hx, ⟨_, Hs x hx⟩) ⟨_, H1⟩ (λ x y ⟨hx', hx⟩ ⟨hy', hy⟩, ⟨_, Hmul _ _ _ _ hx hy⟩),
+end
+
 /-- If `s` is a dense set in a monoid `M`, `submonoid.closure s = ⊤`, then in order to prove that
 some predicate `p` holds for all `x : M` it suffices to verify `p x` for `x ∈ s`, verify `p 1`,
 and verify that `p x` and `p y` imply `p (x * y)`. -/

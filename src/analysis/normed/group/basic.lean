@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import order.liminf_limsup
 import topology.algebra.uniform_group
 import topology.metric_space.algebra
-import topology.metric_space.isometry
+import topology.metric_space.isometric_smul
 import topology.sequences
 
 /-!
@@ -137,20 +137,13 @@ by simpa only [dist_eq_norm] using dist_comm g h
 @[simp] lemma norm_neg (g : E) : ∥-g∥ = ∥g∥ :=
 by simpa using norm_sub_rev 0 g
 
-@[simp] lemma dist_add_left (g h₁ h₂ : E) : dist (g + h₁) (g + h₂) = dist h₁ h₂ :=
-by simp [dist_eq_norm]
+@[priority 900]
+instance semi_normed_group.has_isometric_vadd : has_isometric_vadd E E :=
+⟨λ c x y, by simp [edist_dist, dist_eq_norm]⟩
 
-@[simp] lemma dist_add_right (g₁ g₂ h : E) : dist (g₁ + h) (g₂ + h) = dist g₁ g₂ :=
-by simp [dist_eq_norm]
-
-@[simp] lemma dist_neg_neg (g h : E) : dist (-g) (-h) = dist g h :=
-by simp only [dist_eq_norm, neg_sub_neg, norm_sub_rev]
-
-@[simp] lemma dist_sub_left (g h₁ h₂ : E) : dist (g - h₁) (g - h₂) = dist h₁ h₂ :=
-by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
-
-@[simp] lemma dist_sub_right (g₁ g₂ h : E) : dist (g₁ - h) (g₂ - h) = dist g₁ g₂ :=
-by simpa only [sub_eq_add_neg] using dist_add_right _ _ _
+@[priority 900]
+instance semi_normed_group.has_isometric_vadd_op : has_isometric_vadd Eᵃᵒᵖ E :=
+⟨add_opposite.op_surjective.forall.2 $ λ c x y, by simp [edist_dist, dist_eq_norm]⟩
 
 /-- **Triangle inequality** for the norm. -/
 lemma norm_add_le (g h : E) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
@@ -327,14 +320,6 @@ by simp [dist_eq_norm]
 @[simp] lemma norm_eq_of_mem_sphere {r : ℝ} (x : sphere (0:E) r) : ∥(x:E)∥ = r :=
 mem_sphere_zero_iff_norm.mp x.2
 
-lemma preimage_add_sphere (x y : E) (r : ℝ) :
-  ((+) y) ⁻¹' (sphere x r) = sphere (x - y) r :=
-begin
-  ext z,
-  simp only [set.mem_preimage, mem_sphere_iff_norm],
-  abel
-end
-
 lemma ne_zero_of_mem_sphere {r : ℝ} (hr : r ≠ 0) (x : sphere (0 : E) r) : (x : E) ≠ 0 :=
 ne_zero_of_norm_ne_zero $ by rwa norm_eq_of_mem_sphere x
 
@@ -349,57 +334,6 @@ instance {r : ℝ} : has_neg (sphere (0:E) r) :=
 @[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:E) r) :
   (((-v) : sphere _ _) : E) = - (v:E) :=
 rfl
-
-namespace isometric
--- TODO This material is superseded by similar constructions such as
--- `affine_isometry_equiv.const_vadd`; deduplicate
-
-/-- Addition `y ↦ y + x` as an `isometry`. -/
-protected def add_right (x : E) : E ≃ᵢ E :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
-  .. equiv.add_right x }
-
-@[simp] lemma add_right_to_equiv (x : E) :
-  (isometric.add_right x).to_equiv = equiv.add_right x := rfl
-
-@[simp] lemma coe_add_right (x : E) : (isometric.add_right x : E → E) = λ y, y + x := rfl
-
-lemma add_right_apply (x y : E) : (isometric.add_right x : E → E) y = y + x := rfl
-
-@[simp] lemma add_right_symm (x : E) :
-  (isometric.add_right x).symm = isometric.add_right (-x) :=
-ext $ λ y, rfl
-
-/-- Addition `y ↦ x + y` as an `isometry`. -/
-protected def add_left (x : E) : E ≃ᵢ E :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
-  to_equiv := equiv.add_left x }
-
-@[simp] lemma add_left_to_equiv (x : E) :
-  (isometric.add_left x).to_equiv = equiv.add_left x := rfl
-
-@[simp] lemma coe_add_left (x : E) : ⇑(isometric.add_left x) = (+) x := rfl
-
-@[simp] lemma add_left_symm (x : E) :
-  (isometric.add_left x).symm = isometric.add_left (-x) :=
-ext $ λ y, rfl
-
-variable (E)
-
-/-- Negation `x ↦ -x` as an `isometry`. -/
-protected def neg : E ≃ᵢ E :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
-  to_equiv := equiv.neg E }
-
-variable {E}
-
-@[simp] lemma neg_symm : (isometric.neg E).symm = isometric.neg E := rfl
-
-@[simp] lemma neg_to_equiv : (isometric.neg E).to_equiv = equiv.neg E := rfl
-
-@[simp] lemma coe_neg : ⇑(isometric.neg E) = has_neg.neg := rfl
-
-end isometric
 
 theorem normed_group.tendsto_nhds_zero {f : α → E} {l : filter α} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=

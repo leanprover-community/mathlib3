@@ -41,11 +41,6 @@ theorem isometry.edist_eq [pseudo_emetric_space α] [pseudo_emetric_space β] {f
   (hf : isometry f) (x y : α) : edist (f x) (f y) = edist x y :=
 hf x y
 
-/-- An isometry preserves distances. -/
-theorem isometry.dist_eq [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β}
-  (hf : isometry f) (x y : α) : dist (f x) (f y) = dist x y :=
-by rw [dist_edist, dist_edist, hf]
-
 section pseudo_emetric_isometry
 
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
@@ -152,6 +147,14 @@ namespace isometry
 
 variables [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β}
 
+/-- An isometry preserves distances. -/
+theorem dist_eq (hf : isometry f) (x y : α) : dist (f x) (f y) = dist x y :=
+isometry_emetric_iff_metric.1 hf x y
+
+/-- An isometry preserves non-negative distances. -/
+theorem nndist_eq (hf : isometry f) (x y : α) : nndist (f x) (f y) = nndist x y :=
+by rw [nndist_edist, nndist_edist, hf]
+
 /-- An isometry preserves the diameter in pseudometric spaces. -/
 lemma diam_image (hf : isometry f) (s : set α) : metric.diam (f '' s) = metric.diam s :=
 by rw [metric.diam, metric.diam, hf.ediam_image]
@@ -204,6 +207,10 @@ h.isometry.edist_eq x y
 protected lemma dist_eq {α β : Type*} [pseudo_metric_space α] [pseudo_metric_space β] (h : α ≃ᵢ β)
   (x y : α) : dist (h x) (h y) = dist x y :=
 h.isometry.dist_eq x y
+
+protected lemma nndist_eq {α β : Type*} [pseudo_metric_space α] [pseudo_metric_space β] (h : α ≃ᵢ β)
+  (x y : α) : nndist (h x) (h y) = nndist x y :=
+h.isometry.nndist_eq x y
 
 protected lemma continuous (h : α ≃ᵢ β) : continuous h := h.isometry.continuous
 

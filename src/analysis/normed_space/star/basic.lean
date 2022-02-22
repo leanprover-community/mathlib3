@@ -189,10 +189,8 @@ begin
   { simp only [pow_zero, pow_one] },
   { rw [pow_succ, pow_mul', sq],
     nth_rewrite 0 ←(self_adjoint.mem_iff.mp hx),
-    rw [←star_pow, nnnorm_star_mul_self, ←sq, hk, pow_mul'] },
+    rw [←star_pow, cstar_ring.nnnorm_star_mul_self, ←sq, hk, pow_mul'] },
 end
-
-end self_adjoint
 
 section starₗᵢ
 

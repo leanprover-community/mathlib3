@@ -385,16 +385,13 @@ protected lemma sub [add_group β] [has_continuous_sub β]
   λ x, (hf.tendsto_approx x).sub (hg.tendsto_approx x)⟩
 
 protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_comm_monoid β] [module 𝕜 β]
-  [no_zero_smul_divisors 𝕜 β] [has_continuous_smul 𝕜 β]
+  [has_continuous_smul 𝕜 β]
   (hf : fin_strongly_measurable f μ) (c : 𝕜) :
   fin_strongly_measurable (c • f) μ :=
 begin
   refine ⟨λ n, c • (hf.approx n), λ n, _, λ x, (hf.tendsto_approx x).const_smul c⟩,
   rw simple_func.coe_smul,
-  by_cases hc : c = 0,
-  { simp only [hc, zero_smul, support_zero', measure_empty, with_top.zero_lt_top], },
-  { rw support_const_smul_of_ne_zero c (hf.approx n) hc,
-    exact hf.fin_support_approx n, },
+  refine (measure_mono (support_smul_subset_right c _)).trans_lt (hf.fin_support_approx n),
 end
 
 end arithmetic
@@ -494,7 +491,7 @@ protected lemma sub [add_group β] [has_continuous_sub β]
   hf.ae_eq_mk.sub hg.ae_eq_mk⟩
 
 protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_comm_monoid β] [module 𝕜 β]
-  [no_zero_smul_divisors 𝕜 β] [has_continuous_smul 𝕜 β]
+  [has_continuous_smul 𝕜 β]
   (hf : ae_fin_strongly_measurable f μ) (c : 𝕜) :
   ae_fin_strongly_measurable (c • f) μ :=
 ⟨c • hf.mk f, hf.fin_strongly_measurable_mk.const_smul c, hf.ae_eq_mk.const_smul c⟩

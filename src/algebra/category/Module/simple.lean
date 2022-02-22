@@ -20,12 +20,8 @@ variables {R M : Type*} [ring R] [add_comm_group M] [module R M]
 open category_theory
 open Module
 
-lemma subsingleton_of_epi_zero (N : Module R) [epi (0 : N ⟶ of R M)] : subsingleton M :=
-begin
-  apply subsingleton_of_surjective_zero N,
-  have : function.surjective (0 : N ⟶ of R M) := (Module.epi_iff_surjective _).mp ‹_›,
-  exact this,
-end
+lemma subsingleton_of_epi_zero (N : Module R) [h : epi (0 : N ⟶ of R M)] : subsingleton M :=
+subsingleton_of_surjective_zero N ((Module.epi_iff_surjective _).mp h)
 
 instance is_simple_module_of [_inst : is_simple_module R M] : is_simple_module R (of R M) :=
 _inst

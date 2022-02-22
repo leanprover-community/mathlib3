@@ -704,7 +704,7 @@ begin
     ... = ⁅(lower_central_series G₁ n).prod (lower_central_series G₂ n), (⊤ : subgroup G₁).prod ⊤⁆ :
       by simp
     ... = ⁅lower_central_series G₁ n, (⊤ : subgroup G₁)⁆.prod ⁅lower_central_series G₂ n, ⊤⁆ :
-      general_commutator_prod_prod _ _ _ _
+      commutator_prod_prod _ _ _ _
     ... = (lower_central_series G₁ n.succ).prod (lower_central_series G₂ n.succ) : rfl }
 end
 

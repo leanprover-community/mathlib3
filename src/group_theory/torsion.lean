@@ -47,7 +47,7 @@ variables [group G] {N : subgroup G}
 
 /--Subgroups of torsion groups are torsion groups. -/
 @[to_additive "Subgroups of additive torsion groups are additive torsion groups."]
-lemma subgroup.is_torsion {tG : is_torsion G} (H : subgroup G) : is_torsion H := begin
+lemma is_torsion.subgroup (tG : is_torsion G) (H : subgroup G) : is_torsion H := begin
   intro g,
   obtain ⟨n, ⟨npos, hn⟩⟩ := (is_of_fin_order_iff_pow_eq_one ↑g).mp (tG _),
   rw is_of_fin_order_iff_pow_eq_one,
@@ -57,7 +57,7 @@ end
 
 /--Quotient groups of torsion groups are torsion groups. -/
 @[to_additive "Quotient groups of additive torsion groups are additive torsion groups."]
-lemma quotient_group.is_torsion [nN : N.normal] (tG : is_torsion G) : is_torsion (G ⧸ N) :=
+lemma is_torsion.quotient_group [nN : N.normal] (tG : is_torsion G) : is_torsion (G ⧸ N) :=
 λ g, quotient.induction_on' g $ λ a, begin
   rw is_of_fin_order_iff_pow_eq_one,
   obtain ⟨n, ⟨npos, hn⟩⟩ := (is_of_fin_order_iff_pow_eq_one _).mp (tG a),
@@ -74,9 +74,9 @@ end
 
 /--The group exponent exists for any bounded torsion group. -/
 @[to_additive exponent_exists.of_is_add_torsion]
-lemma exponent_exists.of_is_torsion
-  (tG : is_torsion G)
-  (bounded : (set.range (λ g : G, order_of g)).finite) : exponent_exists G :=
+lemma is_torsion.exponent_exists
+  (tG : is_torsion G)   (bounded : (set.range (λ g : G, order_of g)).finite) :
+  exponent_exists G :=
 exponent_exists_iff_ne_zero.mpr $
   (exponent_ne_zero_iff_range_order_of_finite (λ g, order_of_pos' (tG g))).mpr bounded
 

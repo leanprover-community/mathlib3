@@ -1146,6 +1146,12 @@ eq_bot_or_bot_lt
 instance : no_max_order ordinal :=
 ⟨λ a, ⟨a.succ, lt_succ_self a⟩⟩
 
+theorem Inf_empty : Inf (∅ : set ordinal) = 0 :=
+begin
+  change dite _ (wf.min ∅) (λ _, 0) = 0,
+  simp only [not_nonempty_empty, not_false_iff, dif_neg],
+end
+
 end ordinal
 
 /-! ### Representing a cardinal with an ordinal -/

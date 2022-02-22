@@ -137,3 +137,32 @@ begin
       simp [le_prod_iff, map_map, monoid_hom.fst_comp_inl, monoid_hom.snd_comp_inl,
         monoid_hom.fst_comp_inr, monoid_hom.snd_comp_inr ], }, }
 end
+
+/-- The commutator of direct product is contained in the direct product of the commutators.
+
+See `general_commutator_pi_pi_of_fintype` for equality given `fintype η`.
+-/
+lemma general_commutator_pi_pi_le {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
+  (H K : Π i, subgroup (Gs i)) :
+  ⁅subgroup.pi set.univ H, subgroup.pi set.univ K⁆ ≤ subgroup.pi set.univ (λ i, ⁅H i, K i⁆) :=
+(general_commutator_le _ _ _).mpr $
+  λ p hp q hq i hi, general_commutator_containment _ _ (hp i hi) (hq i hi)
+
+/-- The commutator of a finite direct product is contained in the direct product of the commutators.
+-/
+lemma general_commutator_pi_pi_of_fintype {η : Type*} [fintype η] {Gs : η → Type*}
+  [∀ i, group (Gs i)] (H K : Π i, subgroup (Gs i)) :
+  ⁅subgroup.pi set.univ H, subgroup.pi set.univ K⁆ = subgroup.pi set.univ (λ i, ⁅H i, K i⁆) :=
+begin
+  classical,
+  apply le_antisymm (general_commutator_pi_pi_le H K),
+  { rw pi_le_iff, intros i hi,
+    rw map_general_commutator,
+    apply general_commutator_mono;
+    { rw le_pi_iff,
+      intros j hj,
+      rintros _ ⟨_, ⟨x, hx, rfl⟩, rfl⟩,
+      by_cases h : j = i,
+      { subst h, simpa using hx, },
+      { simp [h, one_mem] }, }, },
+end

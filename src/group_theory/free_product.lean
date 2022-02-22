@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import algebra.free_monoid
-import algebra.pointwise
 import group_theory.congruence
-import group_theory.subgroup.basic
 import group_theory.subgroup.pointwise
 import data.list.chain
 import set_theory.cardinal

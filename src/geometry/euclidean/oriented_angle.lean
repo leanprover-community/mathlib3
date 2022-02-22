@@ -635,7 +635,10 @@ rfl
 /-- Applying `conj_lie` to both vectors negates the angle between those vectors. -/
 @[simp] lemma oangle_conj_lie (x y : V) :
   hb.oangle (hb.conj_lie x) (hb.conj_lie y) = -hb.oangle x y :=
-by simp [conj_lie, oangle, ←(star_ring_end ℂ).map_div]
+by simp only [orthonormal.conj_lie, linear_isometry_equiv.symm_apply_apply, orthonormal.oangle,
+  eq_self_iff_true, function.comp_app, complex.arg_coe_angle_eq_iff,
+  linear_isometry_equiv.coe_trans, neg_inj, complex.conj_lie_apply, complex.arg_conj_coe_angle,
+  ←(star_ring_end ℂ).map_div]
 
 /-- Any linear isometric equivalence in `V` is `rotation` or `conj_lie` composed with
 `rotation`. -/

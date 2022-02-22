@@ -237,8 +237,8 @@ lemma homogeneous_ideal.Sup_eq (ℐ : set (homogeneous_ideal 𝒜)) :
   ((Sup ℐ : homogeneous_ideal 𝒜) : ideal A) = Sup ((coe : homogeneous_ideal 𝒜 → ideal A) '' ℐ) :=
 rfl
 
-lemma homogeneous_ideal.supr_eq (s : ι → homogeneous_ideal 𝒜) :
-  (((⨆ (i : ι), s i) : homogeneous_ideal 𝒜) : ideal A) = ⨆ i, (s i : ideal A) :=
+lemma homogeneous_ideal.coe_supr (s : ι → homogeneous_ideal 𝒜) :
+  ↑(⨆ i, s i) = ⨆ i, (s i : ideal A) :=
 begin
   unfold supr,
   rw homogeneous_ideal.Sup_eq,

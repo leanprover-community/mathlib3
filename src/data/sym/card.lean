@@ -38,13 +38,6 @@ open finset fintype function sum
 
 variables {α β : Type*}
 
-section to_move
-
-@[simp] lemma option.coe_get {o : option α} (h : o.is_some) : ((option.get h : α) : option α) = o :=
-option.some_get h
-
-end to_move
-
 section unused
 
 namespace multiset

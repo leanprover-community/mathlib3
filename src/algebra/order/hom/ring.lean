@@ -113,7 +113,8 @@ namespace order_ring_hom
 variables [non_assoc_semiring α] [preorder α]
 
 section preorder
-variables [non_assoc_semiring β] [preorder β] [non_assoc_semiring γ] [preorder γ] [non_assoc_semiring δ] [preorder δ]
+variables [non_assoc_semiring β] [preorder β] [non_assoc_semiring γ] [preorder γ]
+  [non_assoc_semiring δ] [preorder δ]
 
 /-- Reinterpret an ordered ring homomorphism as an ordered additive monoid homomorphism. -/
 def to_order_add_monoid_hom (f : α →+*o β) : α →+o β := { ..f }

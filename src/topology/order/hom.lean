@@ -100,7 +100,7 @@ variables {α}
 
 /-- Composition of `continuous_order_hom`s as a `continuous_order_hom`. -/
 def comp (f : β →Co γ) (g : α →Co β) : continuous_order_hom α γ :=
-{ ..f.to_order_hom.comp g.to_order_hom, ..f.to_continuous_map.comp g.to_continuous_map }
+⟨f.to_order_hom.comp g.to_order_hom, f.continuous_to_fun.comp g.continuous_to_fun⟩
 
 @[simp] lemma coe_comp (f : β →Co γ) (g : α →Co β) : (f.comp g : α → γ) = f ∘ g := rfl
 @[simp] lemma comp_apply (f : β →Co γ) (g : α →Co β) (a : α) : (f.comp g) a = f (g a) := rfl

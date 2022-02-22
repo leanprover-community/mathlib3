@@ -46,9 +46,8 @@ variables {ι R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
 variable (I : ideal A)
 
-/-- For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
-`I` spanned by all homogeneous elements in `I`. This construction is used when proving that the
-radical of a homogeneous ideal is homogeneous. -/
+/-- For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_core' 𝒜`
+is the largest homogeneous ideal of `R` contained in `I`. -/
 def ideal.homogeneous_core' : ideal A :=
 ideal.span (coe '' ((coe : subtype (is_homogeneous 𝒜) → A) ⁻¹' I))
 
@@ -130,10 +129,7 @@ begin
   intros x hx,
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
   rw ←graded_algebra.sum_support_decompose 𝒜 x,
-  refine ideal.sum_mem _ _,
-  intros j hj,
-  apply ideal.subset_span,
-  exact ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩,
+  exact ideal.sum_mem _ (λ j hj, ideal.subset_span ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩),
 end
 
 variables (𝒜 I)
@@ -147,7 +143,7 @@ lemma ideal.is_homogeneous.iff_exists :
   I.is_homogeneous 𝒜 ↔ ∃ (S : set (homogeneous_submonoid 𝒜)), I = ideal.span (coe '' S) :=
 begin
   rw [ideal.is_homogeneous.exists_iff_eq_span, ideal.is_homogeneous.iff_eq],
-  refine ⟨λ h, h.symm, λ h, h.symm⟩
+  exact ⟨λ h, h.symm, λ h, h.symm⟩
 end
 
 end is_homogeneous_ideal_defs
@@ -257,7 +253,7 @@ variable (I : ideal A)
 
 lemma ideal.homogeneous_core.gc :
   galois_connection
-    (subtype.val : homogeneous_ideal 𝒜 → ideal A)
+    (coe : homogeneous_ideal 𝒜 → ideal A)
     (ideal.homogeneous_core 𝒜 :
       ideal A → homogeneous_ideal 𝒜) :=
 λ I J, ⟨
@@ -271,7 +267,7 @@ lemma ideal.homogeneous_core.gc :
 `(λ I, I.1)` and `ideal.homogeneous_core`-/
 def ideal.homogeneous_core.gi :
   galois_coinsertion
-    (subtype.val : homogeneous_ideal 𝒜 → ideal A)
+    (coe : homogeneous_ideal 𝒜 → ideal A)
     (ideal.homogeneous_core 𝒜 :
       ideal A → homogeneous_ideal 𝒜) :=
 { choice := λ I HI, ⟨I, begin
@@ -303,8 +299,8 @@ variables [algebra R A] [decidable_eq ι] [add_comm_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 variable (I : ideal A)
 
-/--For any `I : ideal R`, not necessarily homogeneous, there is a homogeneous ideal associated with
-`I` spanned by all homogeneous components of elements in `I`. -/
+/--For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_hull' 𝒜` is
+the smallest homogeneous ideal containing `I`, as an ideal. -/
 def ideal.homogeneous_hull' : ideal A :=
 ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}
 
@@ -319,8 +315,8 @@ begin
     use i, use ⟨r, hr⟩, exact h }
 end
 
-/--Bundled version of `homogeneous_hull'`, i.e. given ideal `I`, the homogeneous ideal
-`homogeneous_hull' 𝒜 I`-/
+/--For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_hull' 𝒜` is
+the smallest homogeneous ideal containing `I`.-/
 abbreviation ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
 ⟨I.homogeneous_hull' 𝒜, ideal.is_homogeneous.homogeneous_hull 𝒜 I⟩
 
@@ -352,9 +348,7 @@ begin
     rw [ideal.homogeneous_hull', ideal.mem_span] at hx,
     apply hx K,
     rintros r ⟨i, ⟨⟨y, hy⟩, rfl⟩⟩,
-    apply HK1,
-    apply HK2,
-    exact hy, },
+    exact HK1 _ (HK2 hy) },
   { rw ideal.mem_Inf at hx,
     refine @hx (ideal.homogeneous_hull 𝒜 I) _,
     exact ⟨ideal.is_homogeneous.homogeneous_hull _ _, ideal.ideal_le_homogeneous_hull _ _⟩, }
@@ -380,12 +374,10 @@ begin
   split;
   intros hx,
   { rw ideal.mem_Inf at hx,
-    apply hx,
-    refine ⟨h, le_refl I⟩ },
+    exact hx ⟨h, le_refl I⟩ },
   { rw ideal.mem_Inf,
     rintros J ⟨HJ1, HJ2⟩,
-    apply HJ2,
-    exact hx, }
+    exact HJ2 hx },
 end
 
 variables (𝒜 I)
@@ -402,12 +394,9 @@ lemma ideal.homgeneous_hull.gc :
   galois_connection
     (ideal.homogeneous_hull 𝒜 :
       ideal A → homogeneous_ideal 𝒜)
-    (λ I, I.1 : homogeneous_ideal 𝒜 → ideal A) :=
+    (coe : homogeneous_ideal 𝒜 → ideal A) :=
 λ I J,
-⟨ λ H, begin
-    refine le_trans _ H,
-    apply ideal.ideal_le_homogeneous_hull,
-  end,
+⟨ le_trans (ideal.ideal_le_homogeneous_hull _ _),
   λ H, begin
     show ideal.homogeneous_hull' 𝒜 I ≤ J.val,
     rw ←J.2.homogeneous_hull_eq_self,
@@ -421,7 +410,7 @@ def ideal.homogeneous_hull.gi :
   galois_insertion
     (ideal.homogeneous_hull 𝒜 :
       ideal A → homogeneous_ideal 𝒜)
-    (subtype.val : homogeneous_ideal 𝒜 → ideal A) :=
+    (coe : homogeneous_ideal 𝒜 → ideal A) :=
 { choice := λ I H, ⟨I, begin
     have eq : I = ideal.homogeneous_hull 𝒜 I,
     have ineq1 : I ≤ ideal.homogeneous_hull 𝒜 I := ideal.ideal_le_homogeneous_hull 𝒜 I,

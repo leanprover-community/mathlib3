@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
+import category_theory.limits.shapes.kernels
 
 /-!
 # Biproducts and binary biproducts
@@ -315,6 +316,46 @@ def biproduct.map_iso [fintype J] {f g : J → C} [has_finite_biproducts C]
 { hom := biproduct.map (λ b, (p b).hom),
   inv := biproduct.map (λ b, (p b).inv), }
 
+section π_kernel
+
+variables [has_zero C] [has_finite_biproducts C]
+  [fintype J] (f : J → C) (i : J)
+
+def biproduct.π_kernel_fork : kernel_fork (biproduct.π f i) :=
+kernel_fork.of_ι 
+  (biproduct.map 
+     (λ j, if h : i = j then 0 else by { simp only [h, if_false], exact 𝟙 _ }) :
+       (⨁ λ j : J, if i = j then 0 else f j) ⟶ ⨁ f) 
+  (by tidy)
+
+variables {f i}
+
+lemma biproduct.is_limit_π_kernel_fork :
+  is_limit (biproduct.π_kernel_fork f i) :=
+fork.is_limit.mk' _ $ λ s,
+⟨ s.ι ≫ biproduct.map 
+    (λ j, if h : i = j then 0 else by { simp only [if_neg h], exact 𝟙 _ }),
+  begin
+    ext, by_cases h : i = j,
+    { subst h, simp },
+    { slice_lhs 3 4 { erw [biproduct.map_π] },
+      slice_lhs 2 3 { rw [biproduct.map_π] },
+      simp [h]  }
+  end,
+  begin
+    intros m hm,
+    sorry
+  end⟩
+
+variables (f i)
+
+instance biproduct.π_has_kernel :
+  has_kernel (biproduct.π f i) :=
+⟨⟨⟨biproduct.π_kernel_fork f i, biproduct.is_limit_π_kernel_fork⟩⟩⟩
+
+end π_kernel
+
+#exit
 section
 variables [fintype J] {K : Type v} [fintype K] [decidable_eq K] {f : J → C} {g : K → C}
   [has_finite_biproducts C]

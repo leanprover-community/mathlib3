@@ -367,12 +367,38 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 @[simp] lemma sub_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
   (f - g : normed_group_hom V₁ V₂) v = f v - g v := rfl
 
+#print add_monoid_hom.module
+
+instance {R} [monoid_with_zero R] [has_norm R] [distrib_mul_action R V₂] [pseudo_metric_space R]
+  [has_bounded_smul R V₂] :
+  has_scalar R (normed_group_hom V₁ V₂) :=
+{ smul := λ r f,
+  { to_fun := r • f,
+    map_add' := (r • f.to_add_monoid_hom).map_add',
+    bound' := let ⟨b, hb⟩ := f.bound' in  ⟨dist r 0 * b, λ x, begin
+      have := (dist_smul_pair r (f x) (f 0)),
+      rw [f.map_zero, smul_zero, dist_zero_right, dist_zero_right] at this,
+      rw mul_assoc,
+      refine this.trans _,
+      refine mul_le_mul_of_nonneg_left _ dist_nonneg,
+      exact hb x
+    end⟩ } }
+
+instance : has_bounded_smul R V₁
+
+#check dist_smul_pair
+
+instance : has_scalar ℤ (normed_group_hom V₁ V₂) := normed_group_hom.has_scalar
+
+instance : pseudo_metric_space ℕ := by apply_instance
+
 /-! ### Normed group structure on normed group homs -/
 
 /-- Homs between two given normed groups form a commutative additive group. -/
 instance : add_comm_group (normed_group_hom V₁ V₂) :=
-coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
+#exit
 /-- Normed group homomorphisms themselves form a seminormed group with respect to
     the operator norm. -/
 instance to_semi_normed_group : semi_normed_group (normed_group_hom V₁ V₂) :=

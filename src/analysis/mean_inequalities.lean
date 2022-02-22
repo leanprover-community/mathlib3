@@ -137,12 +137,11 @@ calc (∏ i in s, (z i) ^ (w i)) = ∏ i in s, x ^ w i :
   end
 ... = x :
   begin
-    have hw'' : (∑ i in s, w i) ≠ 0, by { rw hw', exact one_ne_zero },
-    have hx : 0 ≤ x,
-    { rcases exists_ne_zero_of_sum_ne_zero hw'' with ⟨i, his, hi⟩,
-      rw ← hx i his hi,
-      exact hz i his },
-    rw [← rpow_sum_of_nonneg hx _ _ hw'' hw, hw', rpow_one]
+    rw [← rpow_sum_of_nonneg _ hw, hw', rpow_one],
+    have : (∑ i in s, w i) ≠ 0, by { rw hw', exact one_ne_zero },
+    rcases exists_ne_zero_of_sum_ne_zero this with ⟨i, his, hi⟩,
+    rw ← hx i his hi,
+    exact hz i his
   end
 
 theorem arith_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ)

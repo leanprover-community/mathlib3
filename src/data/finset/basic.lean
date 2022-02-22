@@ -499,6 +499,10 @@ def cons (a : α) (s : finset α) (h : a ∉ s) : finset α := ⟨a ::ₘ s.1, n
 @[simp] lemma mem_cons_self (a : α) (s : finset α) {h} : a ∈ cons a s h := mem_cons_self _ _
 @[simp] lemma cons_val (h : a ∉ s) : (cons a s h).1 = a ::ₘ s.1 := rfl
 
+lemma forall_mem_cons (h : a ∉ s) (p : α → Prop) :
+  (∀ x, x ∈ cons a s h → p x) ↔ p a ∧ ∀ x, x ∈ s → p x :=
+by simp only [mem_cons, or_imp_distrib, forall_and_distrib, forall_eq]
+
 @[simp] lemma mk_cons {s : multiset α} (h : (a ::ₘ s).nodup) :
   (⟨a ::ₘ s, h⟩ : finset α) = cons a ⟨s, (nodup_cons.1 h).2⟩ (nodup_cons.1 h).1 := rfl
 

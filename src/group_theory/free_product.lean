@@ -549,7 +549,7 @@ lemma cardinal.three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
 variables [nontrivial ι]
 variables {G : Type*} [group G]
 variables {H : ι → Type*} [∀ i, inhabited (H i)] [∀ i, group (H i)]
-variables (f : Π i, H i →* G) (hinj : ∀ i, function.injective (f i))
+variables (f : Π i, H i →* G) -- (hinj : ∀ i, function.injective (f i))
 
 -- We need many groups or one group with many elements
 variables (hcard : 3 ≤ # ι ∨ ∃ i, 3 ≤ # (H i))
@@ -615,11 +615,11 @@ begin
   { obtain ⟨i, h1, h2⟩ := cardinal.three_le hcard w.head.1 w.last.1,
     exact lift_word_prod_nontrivial_of_other_i f X hXnonempty hXdisj hpp i h1 h2, },
   { cases hcard with i hcard,
-    by_cases hh : (w.head.1 = i); by_cases ht : (w.last.1 = i),
-    { subst ht,
+    by_cases hh : (w.head.1 = i); by_cases hl : (w.last.1 = i),
+    { subst hl,
       exact lift_word_prod_nontrivial_of_head_last f X hXnonempty hXdisj hpp hh, },
-    { subst hh,
-      change w.last.1 ≠ w.head.1 at ht,
+    sorry;{ subst hh,
+      change w.last.1 ≠ w.head.1 at hl,
       obtain ⟨h, hn1, hnh⟩ := cardinal.three_le hcard 1 ((w.head.2)⁻¹),
       let w' : word H := word.equiv (of h * w.prod * of h⁻¹),
       have hneempty : w' ≠ word.empty, sorry,
@@ -632,8 +632,18 @@ begin
       rw word.equiv.left_inv at this,
       intros heq1, apply this, simp [heq1],
     },
-    sorry,
-    sorry,
+    { sorry, },
+    { change w.head.1 ≠ i at hh,
+      change w.last.1 ≠ i at hl,
+      obtain ⟨h, hn1, -⟩ := cardinal.three_le hcard 1 1,
+      let w' : neword H := neword.append
+        (neword.append (neword.singleton h hn1) w (by simpa using hh.symm))
+        (neword.singleton h⁻¹ (inv_ne_one.mpr hn1)) (by simpa using hl),
+      have heq : w'.head.1 = w'.last.1, by simp,
+      have hw' : lift f w'.prod ≠ 1 :=
+        lift_word_prod_nontrivial_of_head_last f X hXnonempty hXdisj hpp heq,
+      intros heq1, apply hw', simp [w', heq1],
+    },
   }
 end
 

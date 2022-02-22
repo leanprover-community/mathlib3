@@ -5,7 +5,7 @@ Authors: Aaron Anderson
 -/
 
 import order.closure
-import model_theory.basic
+import model_theory.terms_and_formulas
 
 /-!
 # First-Order Substructures
@@ -34,11 +34,13 @@ restrict the domain and codomain respectively of first-order embeddings to subst
 
 -/
 
+universes u v w
+
 namespace first_order
 namespace language
 
-variables {L : language} {M N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
-open_locale first_order
+variables {L : language.{u v}} {M : Type w} {N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
+open_locale first_order cardinal
 open Structure
 
 section closed_under
@@ -81,7 +83,7 @@ variables (L) (M)
 /-- A substructure of a structure `M` is a set closed under application of function symbols. -/
 structure substructure :=
 (carrier : set M)
-(fun_mem : ∀{n}, ∀ (f : L.functions n), closed_under f carrier)
+(fun_mem' : ∀{n}, ∀ (f : L.functions n), closed_under f carrier)
 
 variables {L} {M}
 
@@ -105,9 +107,24 @@ theorem ext {S T : L.substructure M}
 /-- Copy a substructure replacing `carrier` with a set that is equal to it. -/
 protected def copy (S : L.substructure M) (s : set M) (hs : s = S) : L.substructure M :=
 { carrier := s,
-  fun_mem := λ n f, hs.symm ▸ (S.fun_mem f) }
+  fun_mem' := λ n f, hs.symm ▸ (S.fun_mem' f) }
 
 variable {S : L.substructure M}
+
+lemma fun_mem {n : ℕ} (f : L.functions n) (xs : fin n → M) (h : ∀ i, xs i ∈ S) :
+  fun_map f xs ∈ S :=
+S.fun_mem' f xs h
+
+lemma const_mem {c : L.const} : ↑c ∈ S :=
+fun_mem c _ fin.elim0
+
+lemma term_mem {α : Type*} (t : L.term α) (xs : α → M) (h : ∀ a, xs a ∈ S) :
+  realize_term xs t ∈ S :=
+begin
+  induction t with a n f ts ih,
+  { exact h a },
+  { exact fun_mem _ _ ih }
+end
 
 @[simp] lemma coe_copy {s : set M} (hs : s = S) :
   (S.copy s hs : set M) = s := rfl
@@ -115,13 +132,10 @@ variable {S : L.substructure M}
 lemma copy_eq {s : set M} (hs : s = S) : S.copy s hs = S :=
 set_like.coe_injective hs
 
-lemma const_mem {c : L.const} : ↑c ∈ S :=
-mem_carrier.2 (S.fun_mem c _ fin.elim0)
-
 /-- The substructure `M` of the structure `M`. -/
 instance : has_top (L.substructure M) :=
 ⟨{ carrier := set.univ,
-   fun_mem := λ n f x h, set.mem_univ _ }⟩
+   fun_mem' := λ n f x h, set.mem_univ _ }⟩
 
 instance : inhabited (L.substructure M) := ⟨⊤⟩
 
@@ -133,7 +147,7 @@ instance : inhabited (L.substructure M) := ⟨⊤⟩
 instance : has_inf (L.substructure M) :=
 ⟨λ S₁ S₂,
   { carrier := S₁ ∩ S₂,
-    fun_mem := λ n f, (S₁.fun_mem f).inf (S₂.fun_mem f) }⟩
+    fun_mem' := λ n f, (S₁.fun_mem' f).inf (S₂.fun_mem' f) }⟩
 
 @[simp]
 lemma coe_inf (p p' : L.substructure M) : ((p ⊓ p' : L.substructure M) : set M) = p ∩ p' := rfl
@@ -143,10 +157,10 @@ lemma mem_inf {p p' : L.substructure M} {x : M} : x ∈ p ⊓ p' ↔ x ∈ p ∧
 
 instance : has_Inf (L.substructure M) :=
 ⟨λ s, { carrier := ⋂ t ∈ s, ↑t,
-        fun_mem := λ n f, closed_under.Inf begin
+        fun_mem' := λ n f, closed_under.Inf begin
           rintro _ ⟨t, rfl⟩,
           by_cases h : t ∈ s,
-          { simpa [h] using t.fun_mem f },
+          { simpa [h] using t.fun_mem' f },
           { simp [h] }
         end }⟩
 
@@ -214,6 +228,29 @@ lemma closure_mono ⦃s t : set M⦄ (h : s ⊆ t) : closure L s ≤ closure L t
 lemma closure_eq_of_le (h₁ : s ⊆ S) (h₂ : S ≤ closure L s) : closure L s = S :=
 (closure L).eq_of_le h₁ h₂
 
+lemma coe_closure_eq_range_realize_term :
+  (closure L s : set M) = range (@realize_term L _ _ _ (coe : s → M)) :=
+begin
+  let S : L.substructure M := ⟨range (realize_term coe), λ n f x hx, _⟩,
+  { change _ = (S : set M),
+    rw ← set_like.ext'_iff,
+    refine closure_eq_of_le (λ x hx, ⟨var ⟨x, hx⟩, rfl⟩) (le_Inf (λ S' hS', _)),
+    { rintro _ ⟨t, rfl⟩,
+      exact term_mem t _ (λ i, hS' i.2) } },
+  { simp only [mem_range] at *,
+    refine ⟨func f (λ i, (classical.some (hx i))), _⟩,
+    simp only [realize_term, λ i, classical.some_spec (hx i)] }
+end
+
+lemma lift_card_closure_le :
+  cardinal.lift.{(max u w)} (# (closure L s)) ≤ # ((Σ i, L.functions i) ⊕ s) + ω :=
+begin
+  rw [← set_like.coe_sort_coe, coe_closure_eq_range_realize_term],
+  refine trans _ card_term_le,
+  rw [← cardinal.lift_id'.{w (max u w)} (# (L.term s))],
+  exact cardinal.mk_range_le_lift,
+end
+
 variable (S)
 
 /-- An induction principle for closure membership. If `p` holds for all elements of `s`, and
@@ -265,9 +302,9 @@ lemma closure_Union {ι} (s : ι → set M) : closure L (⋃ i, s i) = ⨆ i, cl
 /-- The preimage of a substructure along a homomorphism is a substructure. -/
 @[simps] def comap (φ : M →[L] N) (S : L.substructure N) : L.substructure M :=
 { carrier := (φ ⁻¹' S),
-  fun_mem := λ n f x hx, begin
+  fun_mem' := λ n f x hx, begin
     rw [mem_preimage, φ.map_fun],
-    exact S.fun_mem f (φ ∘ x) hx,
+    exact S.fun_mem' f (φ ∘ x) hx,
   end }
 
 @[simp]
@@ -284,9 +321,9 @@ ext (by simp)
 /-- The image of a substructure along a homomorphism is a substructure. -/
 @[simps] def map (φ : M →[L] N) (S : L.substructure M) : L.substructure N :=
 { carrier := (φ '' S),
-  fun_mem := λ n f x hx, (mem_image _ _ _).1
+  fun_mem' := λ n f x hx, (mem_image _ _ _).1
     ⟨fun_map f (λ i, classical.some (hx i)),
-     S.fun_mem f _ (λ i, (classical.some_spec (hx i)).1),
+     S.fun_mem' f _ (λ i, (classical.some_spec (hx i)).1),
      begin
        simp only [hom.map_fun, set_like.mem_coe],
        exact congr rfl (funext (λ i, (classical.some_spec (hx i)).2)),
@@ -460,7 +497,7 @@ lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=
 end galois_insertion
 
 instance induced_Structure {S : L.substructure M} : L.Structure S :=
-{ fun_map := λ n f x, ⟨fun_map f (λ i, x i), S.fun_mem f (λ i, x i) (λ i, (x i).2)⟩,
+{ fun_map := λ n f x, ⟨fun_map f (λ i, x i), fun_mem f (λ i, x i) (λ i, (x i).2)⟩,
   rel_map := λ n r x, rel_map r (λ i, (x i : M)) }
 
 /-- The natural embedding of an `L.substructure` of `M` into `M`. -/
@@ -560,7 +597,7 @@ set_like.coe_mono (set.image_subset_range f p)
 /-- The substructure of elements `x : M` such that `f x = g x` -/
 def eq_locus (f g : M →[L] N) : substructure L M :=
 { carrier := {x : M | f x = g x},
-  fun_mem := λ n fn x hx, by
+  fun_mem' := λ n fn x hx, by
   { have h : f ∘ x = g ∘ x := by { ext, repeat {rw function.comp_apply}, apply hx, },
     simp [h], } }
 

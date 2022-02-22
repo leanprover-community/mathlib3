@@ -6,6 +6,7 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 import data.equiv.fin
 import data.finset.basic
 import model_theory.basic
+import set_theory.cardinal_ordinal
 
 /-!
 # Basics on First-Order Structures
@@ -34,43 +35,83 @@ the continuum hypothesis*][flypitch_itp]
 
 -/
 
-universes u v
+universes u v w w'
 
 namespace first_order
 namespace language
 
 variables {L : language.{u v}} {M N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
-open_locale first_order
+variables {α : Type w} {β : Type w'}
+open_locale first_order cardinal
 open Structure
 
-variable (L)
+variables (L) (α)
 /-- A term on `α` is either a variable indexed by an element of `α`
   or a function symbol applied to simpler terms. -/
-inductive term (α : Type) : Type u
+inductive term : Type (max u w)
 | var {} : ∀ (a : α), term
 | func {} : ∀ {l : ℕ} (f : L.functions l) (ts : fin l → term), term
 export term
 
-variable {L}
+variables {L} {α}
 
 /-- Relabels a term's variables along a particular function. -/
-@[simp] def term.relabel {α β : Type} (g : α → β) : L.term α → L.term β
+@[simp] def term.relabel (g : α → β) : L.term α → L.term β
 | (var i) := var (g i)
 | (func f ts) := func f (λ i, (ts i).relabel)
 
-instance {α : Type} [inhabited α] : inhabited (L.term α) :=
+@[simp] def term.to_list : L.term α → list (((Σ i, L.functions i) ⊕ α) ⊕ ℕ)
+| (var i) := [sum.inl (sum.inr i)]
+| (func f ts) := (sum.inl (sum.inl (⟨_, f⟩ : Σ i, L.functions i))) ::
+    (((list.fin_range _).map (λ i, sum.inr (ts i).to_list.length)) ++
+      ((list.fin_range _).map (λ i, (ts i).to_list)).join)
+
+lemma term.to_list_injective :
+  function.injective (term.to_list : L.term α → list (((Σ i, L.functions i) ⊕ α) ⊕ ℕ)) :=
+begin
+  intro t₁,
+  induction t₁ with a n f ts ih; intros t₂ h,
+  { cases t₂,
+    { rw sum.inr_injective (sum.inl_injective (list.head_eq_of_cons_eq h)) },
+    { exact (sum.inr_ne_inl (sum.inl_injective (list.head_eq_of_cons_eq h))).elim } },
+  { cases t₂ with a' n' f' ts',
+    { exact (sum.inl_ne_inr (sum.inl_injective (list.head_eq_of_cons_eq h))).elim},
+    { obtain ⟨rfl, rfl⟩ := sum.inl_injective (list.head_eq_of_cons_eq h),
+      refine congr rfl (funext (λ i, ih i _)),
+      simp only [term.to_list] at h,
+      have h' := list.append_inj_left h.2 (by simp only [list.length_map]),
+      have h'' := (list.eq_iff_join_eq ((list.fin_range n).map (λ i, (ts i).to_list))
+          ((list.fin_range n).map (λ i, (ts' i).to_list))).2 ⟨_, _⟩,
+      { rw list.map_eq_map_iff at h'',
+        rw h'' i (list.mem_fin_range i), },
+      { rw h' at h,
+        exact list.append_left_cancel h.2 },
+      { rw list.map_eq_map_iff at h',
+          rw [list.map_map, list.map_map, list.map_eq_map_iff],
+          intros x hx,
+          simp only [sum.inr.inj (h' x hx), function.comp_app] } } }
+end
+
+lemma card_term_le : # (L.term α) ≤ # ((Σ i, L.functions i) ⊕ α) + ω :=
+begin
+  refine (function.embedding.cardinal_le ⟨term.to_list, term.to_list_injective⟩).trans _,
+  rw cardinal.mk_list_eq_mk,
+  simp,
+end
+
+instance [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
-instance {α} : has_coe L.const (L.term α) :=
+instance : has_coe L.const (L.term α) :=
 ⟨λ c, func c fin_zero_elim⟩
 
 /-- A term `t` with variables indexed by `α` can be evaluated by giving a value to each variable. -/
-@[simp] def realize_term {α : Type} (v : α → M) :
+@[simp] def realize_term (v : α → M) :
   ∀ (t : L.term α), M
 | (var k)         := v k
 | (func f ts)     := fun_map f (λ i, realize_term (ts i))
 
-@[simp] lemma realize_term_relabel {α β : Type} (g : α → β) (v : β → M) (t : L.term α) :
+@[simp] lemma realize_term_relabel (g : α → β) (v : β → M) (t : L.term α) :
   realize_term v (t.relabel g) = realize_term (v ∘ g) t :=
 begin
   induction t with _ n f ts ih,
@@ -78,7 +119,7 @@ begin
   { simp [ih] }
 end
 
-@[simp] lemma hom.realize_term {α : Type} (v : α → M)
+@[simp] lemma hom.realize_term (v : α → M)
   (t : L.term α) (g : M →[L] N) :
   realize_term (g ∘ v) t = g (realize_term v t) :=
 begin
@@ -90,20 +131,21 @@ begin
     simp [t_ih x], },
 end
 
-@[simp] lemma embedding.realize_term {α : Type}  (v : α → M)
+@[simp] lemma embedding.realize_term (v : α → M)
   (t : L.term α) (g : M ↪[L] N) :
   realize_term (g ∘ v) t = g (realize_term v t) :=
 g.to_hom.realize_term v t
 
-@[simp] lemma equiv.realize_term {α : Type}  (v : α → M)
+@[simp] lemma equiv.realize_term (v : α → M)
   (t : L.term α) (g : M ≃[L] N) :
   realize_term (g ∘ v) t = g (realize_term v t) :=
 g.to_hom.realize_term v t
 
-variable (L)
+variables (L) (α)
+
 /-- `bounded_formula α n` is the type of formulas with free variables indexed by `α` and up to `n`
   additional free variables. -/
-inductive bounded_formula (α : Type) : ℕ → Type (max u v)
+inductive bounded_formula : ℕ → Type (max u v w)
 | bd_falsum {} {n} : bounded_formula n
 | bd_equal {n} (t₁ t₂ : L.term (α ⊕ fin n)) : bounded_formula n
 | bd_rel {n l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)) : bounded_formula n
@@ -112,24 +154,96 @@ inductive bounded_formula (α : Type) : ℕ → Type (max u v)
 
 export bounded_formula
 
-instance {α : Type} {n : ℕ} : inhabited (L.bounded_formula α n) :=
+instance {α : Type*} {n : ℕ} : inhabited (L.bounded_formula α n) :=
 ⟨bd_falsum⟩
 
 /-- `formula α` is the type of formulas with all free variables indexed by `α`. -/
-@[reducible] def formula (α : Type) := L.bounded_formula α 0
+@[reducible] def formula := L.bounded_formula α 0
+
+variable {α}
 
 /-- A sentence is a formula with no free variables. -/
-@[reducible] def sentence           := L.formula pempty
+@[reducible] def sentence           := L.formula empty
 
 /-- A theory is a set of sentences. -/
 @[reducible] def Theory := set L.sentence
 
-variables {L} {α : Type}
+variables {L}
 
 section formula
 variable {n : ℕ}
 
 namespace bounded_formula
+
+@[simp] def to_list : ∀ {k : ℕ}, L.bounded_formula α k →
+  list ((((Σ i, L.term (α ⊕ fin i)) ⊕ (Σ i, (L.relations i))) ⊕ ℕ) ⊕ ℕ)
+| k bd_falsum := [sum.inl (sum.inr 0)]
+| k (bd_equal t₁ t₂) := [sum.inl (sum.inr 1), (sum.inl (sum.inl (sum.inl ⟨_, t₁⟩))),
+    (sum.inl (sum.inl (sum.inl ⟨_, t₂⟩)))]
+| k (bd_rel R ts) := sum.inl (sum.inl (sum.inr ⟨_, R⟩)) ::
+    ((list.fin_range _).map (sum.inl ∘ sum.inl ∘ sum.inl ∘ sigma.mk _ ∘ ts))
+| k (bd_imp f₁ f₂) := (sum.inl (sum.inr 2)) :: (sum.inr f₁.to_list.length) ::
+    (f₁.to_list ++ f₂.to_list)
+| k (bd_all f) := sum.inl (sum.inr 3) :: f.to_list
+
+lemma to_list_injective {k : ℕ} :
+  function.injective (to_list : L.bounded_formula α k → list _) :=
+begin
+  intro f₁,
+  induction f₁ with _ _ _ _ _ _ _ _ _ _ _ i1 i2 _ _ i3; intros f₂ h,
+  { cases f₂,
+    { refl },
+    { exact (nat.zero_ne_one (sum.inr_injective (sum.inl_injective
+        (list.head_eq_of_cons_eq h)))).elim },
+    { exact (sum.inr_ne_inl (sum.inl_injective (list.head_eq_of_cons_eq h))).elim },
+    { exact (ne_of_lt dec_trivial (sum.inr_injective (sum.inl_injective
+        (list.head_eq_of_cons_eq h)))).elim },
+    { exact (ne_of_lt dec_trivial (sum.inr_injective (sum.inl_injective
+        (list.head_eq_of_cons_eq h)))).elim } },
+  { cases f₂,
+    { exact (nat.zero_ne_one (sum.inr_injective (sum.inl_injective
+        (list.head_eq_of_cons_eq h).symm))).elim },
+    { simp only [to_list, eq_self_iff_true, heq_iff_eq, true_and, and_true] at h,
+      rw [h.1, h.2] },
+    { exact (sum.inr_ne_inl (sum.inl_injective (list.head_eq_of_cons_eq h))).elim },
+    { exact (ne_of_lt dec_trivial (sum.inr_injective (sum.inl_injective
+        (list.head_eq_of_cons_eq h)))).elim },
+    { exact (ne_of_lt dec_trivial (sum.inr_injective (sum.inl_injective
+        (list.head_eq_of_cons_eq h)))).elim } },
+  { cases f₂,
+    { exact (sum.inl_ne_inr (sum.inl_injective (list.head_eq_of_cons_eq h))).elim },
+    { exact (sum.inl_ne_inr (sum.inl_injective (list.head_eq_of_cons_eq h))).elim },
+    { simp only [to_list] at h,
+      obtain ⟨⟨rfl, rfl⟩, h⟩ := h,
+      rw list.map_eq_map_iff at h,
+      refine congr rfl (funext (λ i, _)),
+      have h := sum.inl_injective (sum.inl_injective (sum.inl_injective
+        (h i (list.mem_fin_range i)))),
+      have h := sigma_mk_injective h,
+      exact h, },
+    { exact (sum.inl_ne_inr (sum.inl_injective (list.head_eq_of_cons_eq h))).elim },
+    { exact (sum.inl_ne_inr (sum.inl_injective (list.head_eq_of_cons_eq h))).elim } },
+  { cases f₂,
+    { exact (ne_of_gt dec_trivial (sum.inr_injective (sum.inl_injective
+        (list.head_eq_of_cons_eq h)))).elim },
+    { exact (ne_of_gt dec_trivial (sum.inr_injective (sum.inl_injective
+        (list.head_eq_of_cons_eq h)))).elim },
+    { exact (sum.inr_ne_inl (sum.inl_injective (list.head_eq_of_cons_eq h))).elim },
+    { simp only [to_list, list.cons_append, list.singleton_append, eq_self_iff_true,
+        true_and] at h,
+      rw [i2 (list.append_inj_right h.2 h.1), i1 (list.append_inj_left h.2 h.1)], },
+    { exact (ne_of_lt dec_trivial (sum.inr_injective (sum.inl_injective
+        (list.head_eq_of_cons_eq h)))).elim } },
+  { cases f₂,
+    { exact (ne_of_gt dec_trivial (sum.inr_injective (sum.inl_injective
+      (list.head_eq_of_cons_eq h)))).elim },
+    { exact (ne_of_gt dec_trivial (sum.inr_injective (sum.inl_injective
+        (list.head_eq_of_cons_eq h)))).elim },
+    { exact (sum.inr_ne_inl (sum.inl_injective (list.head_eq_of_cons_eq h))).elim },
+    { exact (ne_of_gt dec_trivial (sum.inr_injective (sum.inl_injective
+        (list.head_eq_of_cons_eq h)))).elim },
+    { rw i3 (list.tail_eq_of_cons_eq h) } },
+end
 
 instance : has_bot (L.bounded_formula α n) := ⟨bd_falsum⟩
 
@@ -150,12 +264,12 @@ instance : has_sup (L.bounded_formula α n) := ⟨λ f g, bd_imp (bd_not f) g⟩
 def bd_iff (φ ψ : L.bounded_formula α n) := φ.bd_imp ψ ⊓ ψ.bd_imp φ
 
 /-- A function to help relabel the variables in bounded formulas. -/
-def relabel_aux {n : ℕ} {α β : Type} (g : α → (β ⊕ fin n)) (k : ℕ) :
+def relabel_aux {n : ℕ} (g : α → (β ⊕ fin n)) (k : ℕ) :
   α ⊕ fin k → β ⊕ fin (n + k) :=
 (sum.map id fin_sum_fin_equiv) ∘ (equiv.sum_assoc _ _ _) ∘ (sum.map g id)
 
 /-- Relabels a bounded formula's variables along a particular function. -/
-def relabel {α β : Type} (g : α → (β ⊕ fin n)) :
+def relabel (g : α → (β ⊕ fin n)) :
   ∀ {k : ℕ}, L.bounded_formula α k → L.bounded_formula β (n + k)
 | k bd_falsum := bd_falsum
 | k (bd_equal t₁ t₂) := bd_equal (t₁.relabel (relabel_aux g k)) (t₂.relabel (relabel_aux g k))
@@ -176,7 +290,7 @@ end bounded_formula
 namespace formula
 
 /-- Relabels a formula's variables along a particular function. -/
-def relabel {α β : Type} (g : α → β) : L.formula α → L.formula β :=
+def relabel (g : α → β) : L.formula α → L.formula β :=
 bounded_formula.relabel (sum.inl ∘ g)
 
 /-- The equality of two terms as a first-order formula. -/
@@ -201,7 +315,7 @@ end formula
 
 variable {L}
 
-instance nonempty_bounded_formula {α : Type} (n : ℕ) : nonempty $ L.bounded_formula α n :=
+instance nonempty_bounded_formula (n : ℕ) : nonempty $ L.bounded_formula α n :=
 nonempty.intro (by constructor)
 
 variables (M)
@@ -312,7 +426,7 @@ end formula
 
 /-- A sentence can be evaluated as true or false in a structure. -/
 @[reducible] def realize_sentence (φ : L.sentence) : Prop :=
-realize_formula M φ pempty.elim
+realize_formula M φ empty.elim
 
 infix ` ⊨ `:51 := realize_sentence -- input using \|= or \vDash, but not using \models
 
@@ -363,7 +477,7 @@ begin
       exact ⟨_, _, h⟩ } }
 end
 
-lemma realize_relabel {α β : Type} {m n : ℕ}
+lemma realize_relabel {m n : ℕ}
   (g : α → (β ⊕ fin m)) (v : β → M) (xs : fin (m + n) → M) (φ : L.bounded_formula α n) :
   realize_bounded_formula M (φ.relabel g) v xs ↔
     realize_bounded_formula M φ (sum.elim v (xs ∘ (fin.cast_add n)) ∘ g) (xs ∘ (fin.nat_add m)) :=
@@ -393,7 +507,7 @@ end
 
 end bounded_formula
 
-@[simp] lemma equiv.realize_bounded_formula {α : Type} {n : ℕ}  (v : α → M)
+@[simp] lemma equiv.realize_bounded_formula {n : ℕ}  (v : α → M)
   (xs : fin n → M) (φ : L.bounded_formula α n) (g : M ≃[L] N) :
   realize_bounded_formula N φ (g ∘ v) (g ∘ xs) ↔ realize_bounded_formula M φ v xs :=
 begin
@@ -414,7 +528,7 @@ begin
       exact h' }}
 end
 
-@[simp] lemma realize_formula_relabel {α β : Type}
+@[simp] lemma realize_formula_relabel
   (g : α → β) (v : β → M) (φ : L.formula α) :
   realize_formula M (φ.relabel g) v ↔ realize_formula M φ (v ∘ g) :=
 begin
@@ -425,7 +539,7 @@ begin
   simp,
 end
 
-@[simp] lemma realize_formula_equiv {α : Type}  (v : α → M) (φ : L.formula α)
+@[simp] lemma realize_formula_equiv (v : α → M) (φ : L.formula α)
   (g : M ≃[L] N) :
   realize_formula N φ (g ∘ v) ↔ realize_formula M φ v :=
 begin
@@ -490,13 +604,13 @@ lemma is_satisfiable.is_finitely_satisfiable {T : L.Theory} (h : T.is_satisfiabl
 
 /-- A theory models a (bounded) formula when any of its nonempty models realizes that formula on all
   inputs.-/
-def models_bounded_formula {n : ℕ} {α : Type} (T : L.Theory) (φ : L.bounded_formula α n) : Prop :=
+def models_bounded_formula {n : ℕ} (T : L.Theory) (φ : L.bounded_formula α n) : Prop :=
   ∀ (M : Type (max u v)) [nonempty M] [str : L.Structure M] (v : α → M) (xs : fin n → M),
     @Theory.model L M str T → @realize_bounded_formula L M str α n φ v xs
 
 infix ` ⊨ `:51 := models_bounded_formula -- input using \|= or \vDash, but not using \models
 
-lemma models_formula_iff {α : Type} (T : L.Theory) (φ : L.formula α) :
+lemma models_formula_iff (T : L.Theory) (φ : L.formula α) :
   T ⊨ φ ↔ ∀ (M : Type (max u v)) [nonempty M] [str : L.Structure M] (v : α → M),
     @Theory.model L M str T → @realize_formula L M str α φ v :=
 begin
@@ -512,8 +626,8 @@ lemma models_sentence_iff (T : L.Theory) (φ : L.sentence) :
 begin
   rw [models_formula_iff],
   refine forall_congr (λ M, forall_congr (λ ne, forall_congr (λ str, _))),
-  refine ⟨λ h, h pempty.elim, λ h v, _⟩,
-  rw subsingleton.elim v pempty.elim,
+  refine ⟨λ h, h empty.elim, λ h v, _⟩,
+  rw subsingleton.elim v empty.elim,
   exact h,
 end
 

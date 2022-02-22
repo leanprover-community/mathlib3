@@ -305,7 +305,10 @@ def ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
 ⟨ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}, begin
   rw ideal.is_homogeneous.iff_exists,
   use {x : homogeneous_submonoid 𝒜 | ∃ (i : ι) (r : I), (graded_algebra.decompose 𝒜 r i : A) = x},
-  rw [ideal.homogeneous_hull'], congr, ext r, split; intros h,
+  congr,
+  ext r,
+  split;
+  intros h,
   { obtain ⟨i, ⟨x, hx1⟩, hx2⟩ := h,
     exact ⟨⟨_, is_homogeneous_coe _⟩, ⟨⟨i, ⟨⟨x, hx1⟩, rfl⟩⟩, hx2⟩⟩,},
   { obtain ⟨_, ⟨⟨i, ⟨⟨r, hr⟩, h⟩⟩, rfl⟩⟩ := h,
@@ -330,24 +333,24 @@ begin
 end
 
 lemma ideal.homogeneous_hull_eq_Inf :
-  ideal.homogeneous_hull' 𝒜 I = Inf { J : ideal A | J.is_homogeneous 𝒜 ∧ I ≤ J } :=
+  ideal.homogeneous_hull 𝒜 I = Inf { J : homogeneous_ideal 𝒜 | I ≤ J } :=
 begin
   ext,
   split;
   intros hx,
-  { rw ideal.mem_Inf,
-    rintros K ⟨HK1, HK2⟩,
-    rw [ideal.homogeneous_hull', ideal.mem_span] at hx,
+  { erw ideal.mem_Inf,
+    rintros _ ⟨K, HK1, rfl⟩,
+    erw [ideal.mem_span] at hx,
     apply hx K,
     rintros r ⟨i, ⟨⟨y, hy⟩, rfl⟩⟩,
-    exact HK1 _ (HK2 hy) },
-  { rw ideal.mem_Inf at hx,
+    exact K.2 _ (HK1 hy), },
+  { erw ideal.mem_Inf at hx,
     refine @hx (ideal.homogeneous_hull 𝒜 I) _,
-    exact ⟨ideal.is_homogeneous.homogeneous_hull _ _, ideal.ideal_le_homogeneous_hull _ _⟩, }
+    exact ⟨ideal.homogeneous_hull _ _, ideal.ideal_le_homogeneous_hull _ _, rfl⟩, }
 end
 
 lemma homogeneous_hull_eq_supr :
-  I.homogeneous_hull' 𝒜 = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
+  (I.homogeneous_hull 𝒜).1 = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
 begin
   rw ←ideal.span_Union,
   apply congr_arg ideal.span _,
@@ -359,17 +362,17 @@ end
 variables {𝒜 I}
 
 lemma ideal.is_homogeneous.homogeneous_hull_eq_self (h : I.is_homogeneous 𝒜) :
-  ideal.homogeneous_hull' 𝒜 I = I :=
+  (ideal.homogeneous_hull 𝒜 I).1 = I :=
 begin
   rw ideal.homogeneous_hull_eq_Inf,
   ext x,
   split;
   intros hx,
-  { rw ideal.mem_Inf at hx,
-    exact hx ⟨h, le_refl I⟩ },
-  { rw ideal.mem_Inf,
-    rintros J ⟨HJ1, HJ2⟩,
-    exact HJ2 hx },
+  { erw ideal.mem_Inf at hx,
+    exact @hx I ⟨⟨I, h⟩, le_refl _, rfl⟩, },
+  { erw ideal.mem_Inf,
+    rintros _ ⟨J, HJ1, rfl⟩,
+    exact HJ1 hx },
 end
 
 variables (𝒜 I)
@@ -390,7 +393,7 @@ lemma ideal.homgeneous_hull.gc :
 λ I J,
 ⟨ le_trans (ideal.ideal_le_homogeneous_hull _ _),
   λ H, begin
-    show ideal.homogeneous_hull' 𝒜 I ≤ J.val,
+    show (ideal.homogeneous_hull 𝒜 I).1 ≤ J.1,
     rw ←J.2.homogeneous_hull_eq_self,
     exact ideal.homogeneous_hull_is_mono 𝒜 H,
   end ⟩
@@ -408,7 +411,7 @@ def ideal.homogeneous_hull.gi :
     have ineq1 : I ≤ ideal.homogeneous_hull 𝒜 I := ideal.ideal_le_homogeneous_hull 𝒜 I,
     exact le_antisymm ineq1 H,
     rw eq,
-    apply ideal.is_homogeneous.homogeneous_hull,
+    apply (I.homogeneous_hull _).2,
   end⟩,
   gc := ideal.homgeneous_hull.gc 𝒜,
   le_l_u := λ ⟨I, HI⟩, by { apply ideal.ideal_le_homogeneous_hull },

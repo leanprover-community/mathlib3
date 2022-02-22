@@ -222,9 +222,8 @@ def algebra_equiv_of_iso_monads {T₁ T₂ : monad C} (h : T₁ ≅ T₂) :
     algebra_functor_of_monad_hom_eq (by simp) ≪≫
     algebra_functor_of_monad_hom_id }
 
-@[simp] lemma algebra_equiv_of_iso_monads_comp_forget {T₁ T₂ : monad C} (h : T₁ ⟶ T₂) :
-  algebra_functor_of_monad_hom h ⋙ forget _ = forget _ :=
-rfl
+@[simp] lemma equiv_of_iso_nat_trans_forget {T₁ T₂ : monad C} (h : T₁ ⟶ T₂) :
+  algebra_functor_of_monad_hom h ⋙ forget _ = forget _ := rfl
 
 end monad
 

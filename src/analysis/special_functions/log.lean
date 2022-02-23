@@ -268,7 +268,7 @@ lemma is_o_pow_log_id_at_top {n : ℕ} :
   asymptotics.is_o (λ x, log x ^ n) id at_top :=
 begin
   rw asymptotics.is_o_iff_tendsto',
-  { simpa using tendsto_log_div_mul_add_at_top 1 0 n one_ne_zero },
+  { simpa using tendsto_pow_log_div_mul_add_at_top 1 0 n one_ne_zero },
   filter_upwards [eventually_ne_at_top (0 : ℝ)] with x h₁ h₂ using (h₁ h₂).elim,
 end
 

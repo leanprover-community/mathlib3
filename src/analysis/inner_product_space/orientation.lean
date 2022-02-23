@@ -3,7 +3,7 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import analysis.inner_product_space.projection
+import analysis.inner_product_space.pi_L2
 import linear_algebra.orientation
 
 /-!

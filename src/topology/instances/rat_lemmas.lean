@@ -7,10 +7,11 @@ import topology.instances.irrational
 import topology.alexandroff
 
 /-!
-# Topology on rational numbers
+# Additional lemmas about the topology on rational numbers
 
-The structure of a metric space on `ℚ` is introduced elsewhere, induced from `ℝ`. In this file we
-prove some properties of this topological space and its one-point compactification.
+The structure of a metric space on `ℚ` (`rat.metric_space`) is introduced elsewhere, induced from
+`ℝ`. In this file we prove some properties of this topological space and its one-point
+compactification.
 
 ## Main statements
 

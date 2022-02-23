@@ -26,7 +26,7 @@ begin
   { simpa only [cstar_ring.norm_coe_unitary u] using norm_le_norm_of_mem hk },
   { have hcoe : (u : E) = (unitary.to_units u : E), from rfl,
     rw hcoe at hk,
-    have hnk := not_eq_zero_of_mem_of_unit hk,
+    have hnk := ne_zero_of_mem_of_unit hk,
     rw [←inv_inv (unitary.to_units u), ←spectrum.map_inv, set.mem_inv] at hk,
     have : ∥k∥⁻¹ ≤ ∥↑((unitary.to_units u)⁻¹)∥, simpa only [norm_inv] using norm_le_norm_of_mem hk,
     simpa using inv_le_of_inv_le (norm_pos_iff.mpr hnk) this }

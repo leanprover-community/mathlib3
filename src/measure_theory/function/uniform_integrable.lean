@@ -35,8 +35,8 @@ section
 
 namespace egorov
 
-/-- Given a sequence of functions `f` and a function `g`, `not_convergent_seq f g i j` is the
-set of elements such that `f k x` and `g x` are separated by at least `1 / (i + 1)` for some
+/-- Given a sequence of functions `f` and a function `g`, `not_convergent_seq f g n j` is the
+set of elements such that `f k x` and `g x` are separated by at least `1 / (n + 1)` for some
 `k ≥ j`.
 
 This definition is useful for Egorov's theorem. -/
@@ -110,7 +110,7 @@ end
 
 /-- Given some `ε > 0`, `not_convergent_seq_lt_index` provides the index such that
 `not_convergent_seq` (intersected with a set of finite measure) has measure less than
-`ε * 2⁻¹ ^ i`.
+`ε * 2⁻¹ ^ n`.
 
 This definition is useful for Egorov's theorem. -/
 def not_convergent_seq_lt_index (hε : 0 < ε)
@@ -192,9 +192,10 @@ variables [semilattice_sup ι] [nonempty ι] [encodable ι]
   [second_countable_topology β] [measurable_space β] [borel_space β]
   {f : ι → α → β} {g : α → β} {s : set α}
 
-/-- **Egorov's theorem**: If `f : ℕ → α → β` is a sequence of measurable functions that converges
+/-- **Egorov's theorem**: If `f : ι → α → β` is a sequence of measurable functions that converges
 to `g : α → β` almost everywhere on a measurable set `s` of finite measure, then for all `ε > 0`,
 there exists a subset `t ⊆ s` such that `μ t ≤ ε` and `f` converges to `g` uniformly on `s \ t`.
+We require the index type `ι` to be encodable, and usually `ι = ℕ`.
 
 In other words, a sequence of almost everywhere convergent functions converges uniformly except on
 an arbitrarily small set. -/

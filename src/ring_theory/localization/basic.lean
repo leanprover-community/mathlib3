@@ -245,7 +245,19 @@ variables (M)
 lemma mk'_surjective (z : S) : ∃ x (y : M), mk' S x y = z :=
 let ⟨r, hr⟩ := is_localization.surj _ z in ⟨r.1, r.2, (eq_mk'_iff_mul_eq.2 hr).symm⟩
 
-variables {M}
+variables (S)
+
+include M
+
+/-- The localization of a `fintype` is a `fintype`. Cannot be an instance. -/
+noncomputable def fintype' [fintype R] : fintype S :=
+have _ := classical.prop_decidable, by exactI
+fintype.of_surjective (function.uncurry $ is_localization.mk' S)
+                      (λ a, prod.exists'.mpr $ is_localization.mk'_surjective M a)
+
+omit M
+
+variables {M S}
 
 lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :
   mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (x₁ * y₂) = algebra_map R S (x₂ * y₁) :=
@@ -270,6 +282,15 @@ protected lemma eq {a₁ b₁} {a₂ b₂ : M} :
 lemma mk'_eq_zero_iff (x : R) (s : M) :
   mk' S x s = 0 ↔ ∃ (m : M), x * m = 0 :=
 by rw [← (map_units S s).mul_left_inj, mk'_spec, zero_mul, map_eq_zero_iff M]
+
+@[simp] lemma mk'_zero (s : M) : is_localization.mk' S 0 s = 0 :=
+by rw [eq_comm, is_localization.eq_mk'_iff_mul_eq, zero_mul, map_zero]
+
+lemma ne_zero_of_mk'_ne_zero {x : R} {y : M} (hxy : is_localization.mk' S x y ≠ 0) : x ≠ 0 :=
+begin
+  rintro rfl,
+  exact hxy (is_localization.mk'_zero _)
+end
 
 section ext
 

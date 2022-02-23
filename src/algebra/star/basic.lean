@@ -78,7 +78,7 @@ star_involutive.injective
 /--
 Typeclass for a trivial star operation. This is mostly meant for `ℝ`.
 -/
-class has_trivial_star (R : Type u) [has_star R] :=
+class has_trivial_star (R : Type u) [has_star R] : Prop :=
 (star_trivial : ∀ (r : R), star r = r)
 
 export has_trivial_star (star_trivial)
@@ -337,7 +337,7 @@ the statement only requires `[has_star R] [has_star A] [has_scalar R A]`.
 If used as `[comm_ring R] [star_ring R] [semiring A] [star_ring A] [algebra R A]`, this represents a
 star algebra.
 -/
-class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_scalar R A] :=
+class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_scalar R A] : Prop :=
 (star_smul : ∀ (r : R) (a : A), star (r • a) = star r • star a)
 
 export star_module (star_smul)

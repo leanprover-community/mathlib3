@@ -680,23 +680,23 @@ end
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/
 def card_distinct_factors : arithmetic_function ℕ :=
-⟨λ n, n.factors.erase_dup.length, by simp⟩
+⟨λ n, n.factors.dedup.length, by simp⟩
 
 localized "notation `ω` := nat.arithmetic_function.card_distinct_factors" in arithmetic_function
 
 lemma card_distinct_factors_zero : ω 0 = 0 := by simp
 
 lemma card_distinct_factors_apply {n : ℕ} :
-  ω n = n.factors.erase_dup.length := rfl
+  ω n = n.factors.dedup.length := rfl
 
 lemma card_distinct_factors_eq_card_factors_iff_squarefree {n : ℕ} (h0 : n ≠ 0) :
   ω n = Ω n ↔ squarefree n :=
 begin
   rw [squarefree_iff_nodup_factors h0, card_distinct_factors_apply],
   split; intro h,
-  { rw ← list.eq_of_sublist_of_length_eq n.factors.erase_dup_sublist h,
-    apply list.nodup_erase_dup },
-  { rw h.erase_dup,
+  { rw ← list.eq_of_sublist_of_length_eq n.factors.dedup_sublist h,
+    apply list.nodup_dedup },
+  { rw h.dedup,
     refl }
 end
 
@@ -762,7 +762,7 @@ begin
     { apply factors_multiset_prod_of_irreducible,
       intros z hz,
       apply irreducible_of_normalized_factor _ (multiset.subset_of_le
-        (le_trans hy (multiset.erase_dup_le _)) hz) },
+        (le_trans hy (multiset.dedup_le _)) hz) },
     rw [if_pos],
     { rw [card_factors_apply, ← multiset.coe_card, ← factors_eq, h, finset.card] },
     rw [unique_factorization_monoid.squarefree_iff_nodup_normalized_factors, h],

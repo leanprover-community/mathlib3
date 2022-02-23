@@ -207,7 +207,7 @@ protected lemma sub [has_sub β] [has_continuous_sub β]
   strongly_measurable (f - g) :=
 ⟨λ n, hf.approx n - hg.approx n, λ x, (hf.tendsto_approx x).sub (hg.tendsto_approx x)⟩
 
-protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_comm_monoid β] [module 𝕜 β]
+protected lemma const_smul {𝕜} [topological_space 𝕜] [add_comm_monoid β] [has_scalar 𝕜 β]
   [has_continuous_smul 𝕜 β] (hf : strongly_measurable f) (c : 𝕜) :
   strongly_measurable (c • f) :=
 ⟨λ n, c • (hf.approx n), λ x, (hf.tendsto_approx x).const_smul c⟩

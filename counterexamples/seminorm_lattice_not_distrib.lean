@@ -35,11 +35,10 @@ by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
 (4 : ℝ≥0) • (norm_seminorm ℝ ℝ).comp (linear_map.snd _ _ _)
 
 lemma eq_one : (p ⊔ (q1 ⊓ q2)) (1, 1) = 1 := begin
-  change |1| ⊔ |1| ⊔ (q1 ⊓ q2) (1, 1) = 1,
-  rw [sup_idem, abs_one, sup_eq_left],
-  apply cinfi_le_of_le (bdd_below_range_add _ _ _) ((0, 1) : ℝ×ℝ),
-  simp only [prod.mk_sub_mk, sub_zero, sub_self], change (4 * |(0:ℝ)| + 4 * |(0:ℝ)| ≤ 1),
-  simp only [abs_zero, mul_zero, add_zero, zero_le_one]
+  dsimp [-seminorm.inf_apply],
+  rw [sup_idem, norm_one, sup_eq_left],
+  apply cinfi_le_of_le (bdd_below_range_add _ _ _) ((0, 1) : ℝ×ℝ), dsimp,
+  simp only [norm_zero, smul_zero, sub_self, add_zero, zero_le_one]
 end
 
 /-- This is a counterexample to the distributivity of the lattice (seminorm ℝ (ℝ×ℝ)). -/

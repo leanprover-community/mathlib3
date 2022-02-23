@@ -3009,6 +3009,6 @@ begin
 end
 
 lemma has_compact_support.fderiv (hf : has_compact_support f) : has_compact_support (fderiv 𝕜 f) :=
-hf.mono' support_fderiv_subset
+hf.mono' $ support_fderiv_subset 𝕜
 
 end support

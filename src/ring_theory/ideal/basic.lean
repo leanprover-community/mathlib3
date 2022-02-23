@@ -100,7 +100,7 @@ lemma span_Union {ι} (s : ι → set α) : span (⋃ i, s i) = ⨆ i, span (s i
 submodule.span_Union _
 
 lemma mem_span {s : set α} (x) : x ∈ span s ↔ ∀ p : ideal α, s ⊆ p → x ∈ p :=
-mem_bInter_iff
+mem_Inter₂
 
 lemma subset_span {s : set α} : s ⊆ span s := submodule.subset_span
 

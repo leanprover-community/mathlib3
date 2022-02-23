@@ -244,7 +244,6 @@ end
 end version2
 
 end is_self_adjoint
-end inner_product_space
 
 section nonneg
 
@@ -274,3 +273,47 @@ begin
 end
 
 end nonneg
+
+section psd
+
+/-- An operator is positive semidefinite if it is self adjoint and has nonnegative inner product
+with its input. -/
+def is_psd (T : E →ₗ[𝕜] E) : Prop := (∀ x : E,
+  0 ≤ is_R_or_C.re ⟪x, T x⟫ ∧ is_R_or_C.im ⟪x, T x⟫ = 0) ∧ is_self_adjoint T
+
+section square_root
+
+variables {E} [finite_dimensional 𝕜 E] {n : ℕ} (hn : finite_dimensional.finrank 𝕜 E = n)
+
+variables {T : E →ₗ[𝕜] E}
+open_locale classical
+noncomputable def psd.sqrt (T_psd : is_psd T) (hn : finite_dimensional.finrank 𝕜 E = n) : E →ₗ[𝕜] E :=
+begin
+  let ew_basis := (T_psd.2.eigenvector_basis hn).to_basis,
+  let sqrt_ew := λ i, (real.sqrt((T_psd.2.eigenvalues hn) i) : 𝕜) • (ew_basis i),
+  exact basis.constr ew_basis 𝕜 sqrt_ew,
+end
+
+variable (T_psd : is_psd T)
+variable (i : (fin n))
+
+#check psd.sqrt (T_psd)
+#check psd.sqrt (T_psd) hn ((T_psd.2.eigenvector_basis hn) i)
+#check ((T_psd.2.eigenvector_basis hn) i)
+#check (real.sqrt((T_psd.2.eigenvalues hn) i) : 𝕜) • (T_psd.2.eigenvector_basis hn i)
+
+lemma sqrt_app : psd.sqrt (T_psd) = psd.sqrt (T_psd) := sorry
+
+protected lemma sqrt_apply :
+  sqrt (T_psd) ((T_psd.2.eigenvector_basis hn) i)
+    = (real.sqrt((T_psd.2.eigenvalues hn) i) : 𝕜) • (T_psd.2.eigenvector_basis hn i) :=
+begin
+
+end
+
+
+end square_root
+
+end psd
+
+end inner_product_space

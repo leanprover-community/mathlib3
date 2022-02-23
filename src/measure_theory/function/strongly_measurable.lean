@@ -202,6 +202,11 @@ protected lemma inv [group β] [topological_group β] (hf : strongly_measurable 
   strongly_measurable f⁻¹ :=
 ⟨λ n, (hf.approx n)⁻¹, λ x, (hf.tendsto_approx x).inv⟩
 
+protected lemma div [group β] [has_continuous_div β]
+  (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (f / g) :=
+⟨λ n, hf.approx n / hg.approx n, λ x, (hf.tendsto_approx x).div' (hg.tendsto_approx x)⟩
+
 protected lemma sub [has_sub β] [has_continuous_sub β]
   (hf : strongly_measurable f) (hg : strongly_measurable g) :
   strongly_measurable (f - g) :=

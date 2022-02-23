@@ -201,7 +201,7 @@ section krull_t2
 open_locale topological_space filter
 
 /-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
-lemma open_subgroup_of_nonempty_interior {G : Type*} [group G] [topological_space G]
+lemma subgroup.is_open_of_one_mem_interior {G : Type*} [group G] [topological_space G]
 [topological_group G] {H : subgroup G} (h_1_int : (1 : G) ∈ interior (H : set G)) :
 is_open (H : set G) :=
 begin
@@ -228,7 +228,7 @@ begin
   have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
   rw mem_nhds_iff at h_nhd,
   rcases h_nhd with ⟨U, hU_le, hU_open, h1U⟩,
-  exact open_subgroup_of_nonempty_interior ⟨U, ⟨hU_open, hU_le⟩, h1U⟩,
+  exact subgroup.is_open_of_one_mem_interior ⟨U, ⟨hU_open, hU_le⟩, h1U⟩,
 end
 
 /-- If `L/K` is an algebraic extension, then the Krull topology on `L ≃ₐ[K] L` is Hausdorff. -/
@@ -246,14 +246,14 @@ t2_space (L ≃ₐ[K] L)  :=
       exact hx },
     let E : intermediate_field K L := intermediate_field.adjoin K {x},
     let h_findim : finite_dimensional K E :=
-    intermediate_field.adjoin.finite_dimensional (h_int x),
+      intermediate_field.adjoin.finite_dimensional (h_int x),
     let H := E.fixing_subgroup,
     have h_basis : H.carrier ∈ gal_group_basis K L := ⟨H, ⟨E, ⟨h_findim, rfl⟩⟩, rfl⟩,
     have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
     rw mem_nhds_iff at h_nhd,
     rcases h_nhd with ⟨W, hWH, hW_open, hW_1⟩,
     refine ⟨left_coset f W, left_coset g W, ⟨is_open.left_coset hW_open f,
-    is_open.left_coset hW_open g, ⟨1, hW_1, by apply mul_one⟩, ⟨1, hW_1, by apply mul_one⟩, _⟩⟩,
+      is_open.left_coset hW_open g, ⟨1, hW_1, by apply mul_one⟩, ⟨1, hW_1, by apply mul_one⟩, _⟩⟩,
     by_contra h_nonempty,
     change left_coset f W ∩ left_coset g W ≠ ∅ at h_nonempty,
     rw set.ne_empty_iff_nonempty at h_nonempty,
@@ -270,6 +270,6 @@ t2_space (L ≃ₐ[K] L)  :=
     { apply intermediate_field.subset_adjoin,
       apply set.mem_singleton },
     exact hφx (h_in_H hxE),
-  end}
+  end }
 
 end krull_t2

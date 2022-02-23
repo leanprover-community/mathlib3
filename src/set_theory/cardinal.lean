@@ -1364,21 +1364,27 @@ begin
   { rintro ⟨y, h⟩, exact ⟨x, y, h⟩ }
 end
 
+lemma exists_not_mem_of_length_le {α : Type*} (l : list α) (h : ↑l.length.succ ≤ # α) :
+  ∃ (z : α), z ∉ l :=
+begin
+  obtain ⟨s', hs'⟩ := le_mk_iff_exists_set.mp h,
+  obtain ⟨s, rfl, hs⟩ := mk_eq_nat_iff_finset.mp hs',
+  have := calc
+    0   < 1 : by simp
+    ... = s.card - l.length : by {rw hs, exact (norm_num.sub_nat_pos _ _ 1 rfl).symm}
+    ... ≤ s.card - l.to_finset.card : tsub_le_tsub_left (list.to_finset_card_le _) _
+    ... ≤ (s \ l.to_finset).card : (finset.card_sdiff_ge _ _).le,
+  obtain ⟨z, hz⟩ := finset.card_pos.mp this,
+  simp only [finset.mem_sdiff, list.mem_to_finset] at hz,
+  exact ⟨z, hz.2⟩,
+end
+
 lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
   ∃ (z : α), z ≠ x ∧ z ≠ y :=
 begin
   have : ((3:nat) : cardinal) ≤ # α, simpa using h,
-  obtain ⟨s', hs'⟩  := le_mk_iff_exists_set.mp this,
-  obtain ⟨s, rfl, hs⟩ := mk_eq_nat_iff_finset.mp hs',
-
-  have := calc
-    0   < 1 : by simp
-    ... = (s.card - 1) - 1 : by simp [ hs ]
-    ... ≤ (s.erase y).card - 1 : nat.sub_le_sub_right finset.pred_card_le_card_erase 1
-    ... ≤ ((s.erase y).erase x).card : finset.pred_card_le_card_erase,
-  obtain ⟨z, hz⟩ := finset.card_pos.mp this,
-  simp only [finset.mem_erase] at hz,
-  exact ⟨z, hz.1, hz.2.1⟩,
+  obtain ⟨z, hz⟩ := exists_not_mem_of_length_le [x, y] this,
+  use z, simpa [not_or_distrib] using hz,
 end
 
 /-- The function α^{<β}, defined to be sup_{γ < β} α^γ.

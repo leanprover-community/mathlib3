@@ -7,6 +7,7 @@ import algebra.module.linear_map
 import linear_algebra.bilinear_map
 import linear_algebra.matrix.basis
 import linear_algebra.dual
+import linear_algebra.linear_pmap
 
 /-!
 # Sesquilinear form
@@ -422,23 +423,11 @@ theorem separating_right_iff_flip_ker_eq_bot {B : M₁ →ₛₗ[I₁] M₂ →�
   B.separating_right ↔ B.flip.ker = ⊥ :=
 by rw [separating_right_flip, separating_left_iff_ker_eq_bot]
 
-
+/-- The canonical pairing of a vector space and its algebraic dual. -/
 def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :
   module.dual R M →ₗ[R] M →ₗ[R] R := linear_map.id
 
-variables (x : M₁)
-#check λ _ : fin 1, x
-#check basis.constr
-
-lemma dual_pairing_nondegenerate : (dual_pairing R₁ M₁).nondegenerate :=
-begin
-  split,
-  { rw separating_left_iff_ker_eq_bot,
-    exact rfl,
-  },
-  intros x hx,
-  sorry,
-end
+@[simp] lemma dual_pairing_apply (v x) : dual_pairing R₁ M₁ v x = v x := rfl
 
 end comm_semiring
 
@@ -558,9 +547,90 @@ begin
   exact ⟨(is_Ortho.separating_left_iff_not_is_ortho_basis_self v hO).mpr h,
     (is_Ortho.separating_right_iff_not_is_ortho_basis_self v hO).mpr h⟩,
 end
-#exit
+
 end comm_ring
 
+section field
+
+variables [field R] [add_comm_group M] [module R M]
+
+variables (x : M) (hx : x ≠ 0)
+
+#check (basis.extend (linear_independent_singleton hx)).constr R (λ _, (1 : R))
+#check basis.extend_apply_self (linear_independent_singleton hx)
+#check (linear_pmap.mk_span_singleton x (1 : R) hx).to_fun.exists_extend
+
+def singleton_map (x : M) (hx : x ≠ 0) (p : submodule R M) (hp : p = submodule.span R {x}) :
+  p →ₗ[R] R :=
+begin
+  sorry,
+end
+
+#check submodule.mem_span_singleton_self x
+#check linear_independent_singleton hx
+
+#check linear_pmap.mk_span_singleton x (1 : R) hx
+
+lemma dual_pairing_nondegenerate2 : (dual_pairing R M).nondegenerate :=
+begin
+  split,
+  { rw separating_left_iff_ker_eq_bot,
+    exact rfl },
+  intros x,
+  contrapose,
+  rintros hx : x ≠ 0,
+  rw [not_forall],
+  let f' : linear_pmap R M R := linear_pmap.mk_span_singleton x (1 : R) hx,
+  have hf' : f' ⟨x, submodule.mem_span_singleton_self x⟩ = 1 :=
+  begin
+    dsimp [submodule.mk_span_singleton'],
+    sorry,
+  end,
+  let f : M →ₗ[R] R := classical.some f'.to_fun.exists_extend,
+  have hf := classical.some_spec
+  use [f],
+  have hf : f x = 1 :=
+  begin
+    sorry,
+  end,
+  exact ne_zero_of_eq_one hf,
+end
+
+lemma dual_pairing_nondegenerate : (dual_pairing R M).nondegenerate :=
+begin
+  split,
+  { rw separating_left_iff_ker_eq_bot,
+    exact rfl },
+  intros x,
+  contrapose,
+  rintros hx : x ≠ 0,
+  rw [not_forall],
+  let f : M →ₗ[R] R := (basis.extend (linear_independent_singleton hx)).constr R (λ _, (1 : R)),
+  use [f],
+  have hf : f x = 1 :=
+  begin
+    sorry,
+  end,
+  exact ne_zero_of_eq_one hf,
+  /-have h := li.subset_extend (set.subset_univ _),
+  have h' : x ∈ li.extend :=
+  begin
+    refine set.mem_of_subset_of_mem h _,
+    sorry,
+  end,
+  have hbi := b.linear_independent,
+  have hbt := b.span_eq,
+  rw basis.coe_extend at hbi hbt,
+  let f : M →ₗ[R] R := b.constr R (λ _, (1 : R)),
+  use [f],
+  have hf : f x = 1 :=
+  begin
+    sorry,
+  end,
+  exact ne_zero_of_eq_one hf,-/
+end
+
+end field
 
 
 end nondegenerate

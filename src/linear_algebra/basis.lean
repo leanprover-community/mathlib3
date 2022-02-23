@@ -497,6 +497,10 @@ by { simp only [constr_def, linear_map.comp_apply, finsupp.lmap_domain_apply, fi
   (b.constr S f : M → M') (b i) = f i :=
 by simp [basis.constr_apply, b.repr_self]
 
+@[simp] lemma constr_basis_const (x : M') (i : ι) :
+  (b.constr S (λ _ : ι, x) : M → M') (b i) = x :=
+by simp [basis.constr_apply, b.repr_self]
+
 lemma constr_eq {g : ι → M'} {f : M →ₗ[R] M'}
   (h : ∀i, g i = f (b i)) : b.constr S g = f :=
 b.ext $ λ i, (b.constr_basis S g i).trans (h i)

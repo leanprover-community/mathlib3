@@ -38,16 +38,6 @@ open finset fintype function sum
 
 variables {α β : Type*}
 
-section unused
-
-namespace finset
-
-lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).injective
-
-end finset
-
-end unused
-
 namespace sym
 section attach
 variables {n : ℕ}

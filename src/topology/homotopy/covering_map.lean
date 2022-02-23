@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Shing Tak Lam. All rights reserved.
+Copyright (c) 2022 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
@@ -86,7 +86,7 @@ begin
   exact ⟨_, h₂, h₁⟩,
 end
 
-def line (y₀ : Y) : set (I × Y) := (set.univ : set I).prod {y₀}
+def line (y₀ : Y) : set (I × Y) := (set.univ : set I) ×ˢ ({y₀} : set Y)
 
 def line_map (y₀ : Y) : I → line y₀ := λ t, ⟨(t, y₀), trivial, set.mem_singleton _⟩
 

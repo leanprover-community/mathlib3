@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Jeremy Avigad, Simon Hudon
 -/
 import data.part
 import data.rel
-import data.fin.basic
 
 /-!
 # Partial functions

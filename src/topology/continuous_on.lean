@@ -501,6 +501,29 @@ have ∀ t, is_open (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ 
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous_def]; simp only [this]
 
+/-- If a function is continuous on a set for some topologies, then it is
+continuous on the same set with respect to any finer topology on the source space. -/
+lemma continuous_on.mono_dom {α β : Type*} {t₁ t₂ : topological_space α} {t₃ : topological_space β}
+  (h₁ : t₂ ≤ t₁) {s : set α} {f : α → β} (h₂ : @continuous_on α β t₁ t₃ f s) :
+  @continuous_on α β t₂ t₃ f s :=
+begin
+  rw continuous_on_iff' at h₂ ⊢,
+  assume t ht,
+  rcases h₂ t ht with ⟨u, hu, h'u⟩,
+  exact ⟨u, h₁ u hu, h'u⟩
+end
+
+/-- If a function is continuous on a set for some topologies, then it is
+continuous on the same set with respect to any coarser topology on the target space. -/
+lemma continuous_on.mono_rng {α β : Type*} {t₁ : topological_space α} {t₂ t₃ : topological_space β}
+  (h₁ : t₂ ≤ t₃) {s : set α} {f : α → β} (h₂ : @continuous_on α β t₁ t₂ f s) :
+  @continuous_on α β t₁ t₃ f s :=
+begin
+  rw continuous_on_iff' at h₂ ⊢,
+  assume t ht,
+  exact h₂ t (h₁ t ht)
+end
+
 theorem continuous_on_iff_is_closed {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ t : set β, is_closed t → ∃ u, is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s :=
 have ∀ t, is_closed (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s,

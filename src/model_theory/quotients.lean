@@ -62,12 +62,12 @@ begin
   rw [quotient.fin_choice_eq, quotient.lift_mk],
 end
 
-lemma realize_term_quotient_mk {β : Type*} (x : β → M) (t : L.term β) :
-  realize_term (λ i, ⟦x i⟧) t = ⟦@realize_term _ _ ps.to_structure _ x t⟧ :=
+lemma term.realize_quotient_mk {β : Type*} (t : L.term β) (x : β → M)  :
+  t.realize (λ i, ⟦x i⟧) = ⟦@term.realize _ _ ps.to_structure _ x t⟧ :=
 begin
-  induction t with a1 a2 a3 a4 ih a6 a7 a8 a9 a0,
+  induction t with _ _ _ _ ih,
   { refl },
-  simp only [ih, fun_map_quotient_mk, realize_term],
+  { simp only [ih, fun_map_quotient_mk, term.realize] },
 end
 
 end language

@@ -73,7 +73,7 @@ variables [invertible (2:𝕜)]
 
 @[simp] lemma dist_left_midpoint (p₁ p₂ : P) :
   dist p₁ (midpoint 𝕜 p₁ p₂) = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
-by rw [midpoint, dist_comm, dist_line_map_left, inv_of_eq_inv, ← normed_field.norm_inv]
+by rw [midpoint, dist_comm, dist_line_map_left, inv_of_eq_inv, ← norm_inv]
 
 @[simp] lemma dist_midpoint_left (p₁ p₂ : P) :
   dist (midpoint 𝕜 p₁ p₂) p₁ = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
@@ -92,7 +92,7 @@ lemma dist_midpoint_midpoint_le' (p₁ p₂ p₃ p₄ : P) :
 begin
   rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, midpoint_vsub_midpoint];
     try { apply_instance },
-  rw [midpoint_eq_smul_add, norm_smul, inv_of_eq_inv, normed_field.norm_inv, ← div_eq_inv_mul],
+  rw [midpoint_eq_smul_add, norm_smul, inv_of_eq_inv, norm_inv, ← div_eq_inv_mul],
   exact div_le_div_of_le_of_nonneg (norm_add_le _ _) (norm_nonneg _),
 end
 

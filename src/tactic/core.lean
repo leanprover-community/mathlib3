@@ -241,7 +241,7 @@ private meta def add_local_consts_as_local_hyps_aux
 meta def add_local_consts_as_local_hyps (vars : list expr) : tactic (list (expr × expr)) :=
 /- The `list.reverse` below is a performance optimisation since the list of available variables
    reported by the system is often mostly the reverse of the order in which they are dependent. -/
-add_local_consts_as_local_hyps_aux [] vars.reverse.erase_dup
+add_local_consts_as_local_hyps_aux [] vars.reverse.dedup
 
 private meta def get_expl_pi_arity_aux : expr → tactic nat
 | (expr.pi n bi d b) :=

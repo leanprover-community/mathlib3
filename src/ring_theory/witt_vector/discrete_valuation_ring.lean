@@ -13,7 +13,7 @@ import tactic.linear_combination
 
 # Witt vectors over a perfect ring
 
-This file establishes that Witt vectors over a perfect ring are a dicrete valuation ring.
+This file establishes that Witt vectors over a perfect field are a dicrete valuation ring.
 When `k` is a perfect ring, a nonzero `a : 𝕎 k` can be written as `p^m * b` for some `m : ℕ` and
 `b : 𝕎 k` with nonzero 0th coefficient.
 When `k` is also a field, this `b` can be chosen to be a unit of `𝕎 k`.

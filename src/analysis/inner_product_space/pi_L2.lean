@@ -461,8 +461,6 @@ variables [finite_dimensional 𝕜 E]
 
 variables {v : set E}
 
-open submodule
-
 variables {A : ι → submodule 𝕜 E}
 
 /-- Given an internal direct sum decomposition of a module `M`, and an orthonormal basis for each

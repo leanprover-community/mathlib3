@@ -256,8 +256,8 @@ Another induction lemma for `b ∈ f.fix a` which allows one to prove a predicat
 @[elab_as_eliminator]
 def fix_induction'
   (f : α →. β ⊕ α) (b : β) {C : α → Sort*} {a : α} (h : b ∈ f.fix a)
-  (hbase : (∀ a_final : α, sum.inl b ∈ f a_final → C a_final))
-  (hind : (∀ a₀ a₁ : α, b ∈ f.fix a₁ → sum.inr a₁ ∈ f a₀ → C a₁ → C a₀)) : C a :=
+  (hbase : ∀ a_final : α, sum.inl b ∈ f a_final → C a_final)
+  (hind : ∀ a₀ a₁ : α, b ∈ f.fix a₁ → sum.inr a₁ ∈ f a₀ → C a₁ → C a₀) : C a :=
 begin
   refine fix_induction h (λ a' h ih, _),
   cases e : (f a').get (dom_of_mem_fix h) with b' a''; replace e : _ ∈ f a' := ⟨_, e⟩,

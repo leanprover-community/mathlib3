@@ -323,6 +323,11 @@ begin
     cases H }
 end
 
+@[simp]
+lemma prod_map_pow {s : finset α} {f : α → ℕ} {b : β} :
+  finset.prod s (λ (a : α), b ^ (f a)) = b ^ (finset.sum s f) :=
+  by { delta finset.prod, delta finset.sum, rw multiset.prod_map_pow }
+
 @[to_additive]
 lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α}
   (hs : set.pairwise_disjoint ↑s t) :
@@ -1317,6 +1322,11 @@ lemma prod_sdiff_div_prod_sdiff [decidable_eq α] :
   = (∏ (x : α) in s₂, f x) / (∏ (x : α) in s₁, f x) :=
 by simp [← finset.prod_sdiff (@inf_le_left _ _ s₁ s₂),
   ← finset.prod_sdiff (@inf_le_right _ _ s₁ s₂)]
+
+@[simp]
+lemma prod_map_zpow {s : finset α} {f : α → ℤ} {b : β} :
+  finset.prod s (λ (a : α), b ^ (f a)) = b ^ (finset.sum s f) :=
+  by { delta finset.prod, delta finset.sum, rw multiset.prod_map_zpow }
 
 end comm_group
 

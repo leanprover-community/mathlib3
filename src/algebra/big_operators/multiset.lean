@@ -6,6 +6,8 @@ Authors: Mario Carneiro
 import algebra.group_with_zero.power
 import data.list.prod_monoid
 import data.multiset.basic
+import data.int.basic
+import algebra.group_power.lemmas
 
 /-!
 # Sums and products over multisets
@@ -107,6 +109,11 @@ m.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 @[to_additive sum_map_nsmul]
 lemma prod_map_pow {n : ℕ} : (m.map $ λ i, f i ^ n).prod = (m.map f).prod ^ n :=
 m.prod_hom' (pow_monoid_hom n) _
+
+@[simp]
+lemma prod_map_pow {m : multiset ι} {f : ι → ℕ} {a : α} :
+  (multiset.map (λ i, a ^ (f i)) m).prod = a ^ ((multiset.map f m).sum) :=
+multiset.induction_on m (by simp) (λ n m ih, by simp [ih, pow_add])
 
 @[to_additive]
 lemma prod_map_prod_map (m : multiset β) (n : multiset γ) {f : β → γ → α} :
@@ -213,6 +220,11 @@ by { convert (m.map f).prod_hom (zpow_group_hom _), rw map_map, refl }
 @[simp, to_additive]
 lemma prod_map_inv (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
 m.prod_hom comm_group.inv_monoid_hom
+
+@[simp]
+lemma prod_map_zpow {m : multiset ι} {f : ι → ℤ} {a : α} :
+  (multiset.map (λ i, a ^ (f i)) m).prod = a ^ ((multiset.map f m).sum) :=
+multiset.induction_on m (by simp) (λ n m ih, by simp [ih, zpow_add] )
 
 end comm_group
 

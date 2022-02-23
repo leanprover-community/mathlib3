@@ -5,6 +5,7 @@ Authors: Thomas Browning
 -/
 
 import algebra.gcd_monoid.multiset
+import algebra.big_operators.multiset
 import combinatorics.partition
 import group_theory.perm.cycles
 import ring_theory.int.basic
@@ -26,6 +27,8 @@ In this file we define the cycle type of a permutation.
 - `lcm_cycle_type` : The lcm of `σ.cycle_type` equals `order_of σ`
 - `is_conj_iff_cycle_type_eq` : Two permutations are conjugate if and only if they have the same
   cycle type.
+- `sign_of_cycle_type` : Computes the signature of a permutation from its cycle type
+
 * `exists_prime_order_of_dvd_card`: For every prime `p` dividing the order of a finite group `G`
   there exists an element of order `p` in `G`. This is known as Cauchy`s theorem.
 -/
@@ -145,6 +148,7 @@ cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card) σ
   (λ σ hσ, by rw [hσ.cycle_type, coe_sum, list.sum_singleton])
   (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, sum_add, hσ, hτ, hστ.card_support_mul])
 
+/-- Expresses signature from cycle type -/
 lemma sign_of_cycle_type (σ : perm α) :
   sign σ = (σ.cycle_type.map (λ n, -(-1 : ℤˣ) ^ n)).prod :=
 cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : ℤˣ) ^ n)).prod) σ
@@ -152,6 +156,16 @@ cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : 
   (λ σ hσ, by rw [hσ.sign, hσ.cycle_type, coe_map, coe_prod,
     list.map_singleton, list.prod_singleton])
   (λ σ τ hστ hc hσ hτ, by rw [sign_mul, hσ, hτ, hστ.cycle_type, multiset.map_add, prod_add])
+
+lemma sign_of_cycle_type' (σ : perm α) :
+  σ.sign = (-1)^(σ.cycle_type.sum + σ.cycle_type.card) :=
+begin
+  have aux : ∀ n : ℕ, n ∈ σ.cycle_type → -(-1 : units ℤ) ^ n = (-1) * (-1) ^ n :=
+    λ n h, units.neg_eq_neg_one_mul _,
+  rw [sign_of_cycle_type, multiset.map_congr aux, multiset.prod_map_mul,
+    add_comm, pow_add, multiset.map_const, multiset.prod_repeat, mul_right_inj,
+    multiset.prod_map_pow, multiset.map_id'],
+end
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
@@ -560,7 +574,7 @@ by rw [←card_cycle_type_eq_one, h.cycle_type, card_singleton]
 
 lemma sign (h : is_three_cycle σ) : sign σ = 1 :=
 begin
-  rw [sign_of_cycle_type, h.cycle_type],
+  rw [sign_of_cycle_type', h.cycle_type],
   refl,
 end
 

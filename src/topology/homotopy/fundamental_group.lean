@@ -44,7 +44,7 @@ local attribute [instance] path.homotopic.setoid
 /-- The fundamental group of a path connected space is independent of the choice
 of basepoint.
 -/
-theorem iso_fundamental_group_of_path_connected [path_connected_space X] :
+def iso_fundamental_group_of_path_connected [path_connected_space X] :
   (fundamental_group X x₀) ≅ (fundamental_group X x₁) :=
 let α := fundamental_groupoid.iso_of_path_conn x₀ x₁ in
 { hom := λγ, ⟨α.inv ≫ γ.hom ≫ α.hom, α.inv ≫ γ.inv ≫ α.hom⟩,

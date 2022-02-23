@@ -36,7 +36,8 @@ namespace fundamental_group
 instance group (x : X) : group (fundamental_group X x) :=
 category_theory.Aut.group x
 
-instance category : category_theory.category X :=
+@[instance, priority 100]
+private def category : category_theory.category X :=
 fundamental_groupoid.category_theory.groupoid.to_category
 
 local attribute [instance] path.homotopic.setoid

@@ -28,8 +28,7 @@ A basic smooth bundle is thus a smooth bundle over a smooth manifold whose fiber
 and which is trivial in the coordinate charts of the base. (We recall that in our notion of manifold
 there is a distinguished atlas, which does not need to be maximal: we require the triviality above
 this specific atlas). It can be constructed from a basic smooth bundled core, defined below,
-specifying the changes in the fiber when one goes from one coordinate chart to another one. We do
-not require that this changes in fiber are linear, but only diffeomorphisms.
+specifying the changes in the fiber when one goes from one coordinate chart to another one.
 
 ## Main definitions
 
@@ -56,17 +55,10 @@ Then we use this machinery to construct the tangent bundle of a smooth manifold.
 
 ## Implementation notes
 
-In the definition of a basic smooth bundle core, we do not require that the coordinate changes of
-the fibers are linear map, only that they are diffeomorphisms. Therefore, the fibers of the
-resulting fiber bundle do not inherit a vector space structure (as an algebraic object) in general.
-As the fiber, as a type, is just `F`, one can still always register the vector space structure, but
-it does not make sense to do so (i.e., it will not lead to any useful theorem) unless this structure
-is canonical, i.e., the coordinate changes are linear maps.
-
-For instance, we register the vector space structure on the fibers of the tangent bundle. However,
-we do not register the normed space structure coming from that of `F` (as it is not canonical, and
-we also want to keep the possibility to add a Riemannian structure on the manifold later on without
-having two competing normed space instances on the tangent spaces).
+We register the vector space structure on the fibers of the tangent bundle, but we do not register
+the normed space structure coming from that of `F` (as it is not canonical, and we also want to
+keep the possibility to add a Riemannian structure on the manifold later on without having two
+competing normed space instances on the tangent spaces).
 
 We require `F` to be a normed space, and not just a topological vector space, as we want to talk
 about smooth functions on `F`. The notion of derivative requires a norm to be defined.
@@ -88,11 +80,8 @@ open_locale manifold topological_space
 /-- Core structure used to create a smooth bundle above `M` (a manifold over the model with
 corner `I`) with fiber the normed vector space `F` over `𝕜`, which is trivial in the chart domains
 of `M`. This structure registers the changes in the fibers when one changes coordinate charts in the
-base. We do not require the change of coordinates of the fibers to be linear, only smooth.
-Therefore, the fibers of the resulting bundle will not inherit a canonical vector space structure
-in general.
-
-TODO: UPDATE! -/
+base. We require the change of coordinates of the fibers to be linear, so that the resulting bundle
+is a vector bundle. -/
 structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
@@ -108,9 +97,7 @@ structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_fie
   ((I '' (i.1.symm.trans j.1).source) ×ˢ (univ : set F)))
 
 /-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
-identity.
-
-TODO: Update -/
+identity. -/
 def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
@@ -133,7 +120,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 instance : inhabited (basic_smooth_vector_bundle_core I M F) :=
 ⟨trivial_basic_smooth_vector_bundle_core I M F⟩
 
-/-- Fiber bundle core associated to a basic smooth bundle core -/
+/-- Vector bundle core associated to a basic smooth bundle core -/
 def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F (atlas H M) :=
 { base_set := λ i, i.1.source,
   is_open_base_set := λ i, i.1.open_source,

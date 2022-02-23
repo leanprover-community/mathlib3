@@ -222,7 +222,7 @@ begin
     ← indicator_mul_right _ (λ x, ν ((λ y, y * x) ⁻¹' E)), function.comp, pi.one_apply,
     mul_one] at h1,
   rw [← lintegral_indicator _ hA, ← h1],
-  refine ennreal.mul_ne_top hμE h3A.ne,
+  exact ennreal.mul_ne_top hμE h3A.ne,
 end
 
 @[to_additive]
@@ -232,7 +232,9 @@ lemma ae_measure_preimage_mul_right_lt_top_of_ne_zero [is_mul_left_invariant μ]
 begin
   refine (ae_measure_preimage_mul_right_lt_top ν ν Em h3E).filter_mono _,
   refine (absolutely_continuous_of_is_mul_left_invariant μ ν _).ae_le,
-  refine mt _ h2E, intro hν, rw [hν, measure.coe_zero, pi.zero_apply]
+  refine mt _ h2E,
+  intro hν,
+  rw [hν, measure.coe_zero, pi.zero_apply]
 end
 
 /-- A technical lemma relating two different measures. This is basically [Halmos, §60 Th. A].

@@ -583,7 +583,7 @@ section second_countable
 variables [second_countable_topology G]
 
 /-- The Haar measure is unique up to scaling. More precisely: every σ-finite left invariant measure
-  finite on open compacts is a scalar multiple of the Haar measure.
+  is a scalar multiple of the Haar measure.
   This is slightly weaker than assuming that `μ` is a Haar measure (in particular we don't require
   `μ ≠ 0`). -/
 @[to_additive]
@@ -613,19 +613,19 @@ theorem is_haar_measure_eq_smul_is_haar_measure
   [locally_compact_space G] (μ ν : measure G) [is_haar_measure μ] [is_haar_measure ν] :
   ∃ (c : ℝ≥0∞), c ≠ 0 ∧ c ≠ ∞ ∧ μ = c • ν :=
 begin
-  have K : positive_compacts G := classical.choice (topological_space.nonempty_positive_compacts G),
+  have K : positive_compacts G := classical.arbitrary _,
   have νpos : 0 < ν K := measure_pos_of_nonempty_interior _ K.interior_nonempty,
-  have νne : ν K.1 ≠ ∞ := K.compact.measure_lt_top.ne,
-  refine ⟨μ K.1 / ν K.1, _, _, _⟩,
-  { simp only [νne, (μ.measure_pos_of_nonempty_interior K.property.right).ne', ne.def,
+  have νne : ν K ≠ ∞ := K.compact.measure_lt_top.ne,
+  refine ⟨μ K / ν K, _, _, _⟩,
+  { simp only [νne, (μ.measure_pos_of_nonempty_interior K.interior_nonempty).ne', ne.def,
       ennreal.div_zero_iff, not_false_iff, or_self] },
   { simp only [div_eq_mul_inv, νpos.ne', (K.compact.measure_lt_top).ne, or_self,
       ennreal.inv_eq_top, with_top.mul_eq_top_iff, ne.def, not_false_iff, and_false, false_and] },
   { calc
-    μ = μ K.1 • haar_measure K : haar_measure_unique μ K
-    ... = (μ K.1 / ν K.1) • (ν K.1 • haar_measure K) :
+    μ = μ K • haar_measure K : haar_measure_unique μ K
+    ... = (μ K / ν K) • (ν K • haar_measure K) :
       by rw [smul_smul, div_eq_mul_inv, mul_assoc, ennreal.inv_mul_cancel νpos.ne' νne, mul_one]
-    ... = (μ K.1 / ν K.1) • ν : by rw ← haar_measure_unique ν K }
+    ... = (μ K / ν K) • ν : by rw ← haar_measure_unique ν K }
 end
 
 @[priority 90, to_additive] -- see Note [lower instance priority]

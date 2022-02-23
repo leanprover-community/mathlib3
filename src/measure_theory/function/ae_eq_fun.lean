@@ -430,8 +430,10 @@ instance [comm_group γ] [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [
 
 section module
 
-variables {𝕜 : Type*} [semiring 𝕜] [measurable_space 𝕜]
-variables [add_comm_monoid γ] [module 𝕜 γ] [has_measurable_smul 𝕜 γ]
+variables {𝕜 𝕜' : Type*}
+variables [semiring 𝕜] [measurable_space 𝕜] [semiring 𝕜'] [measurable_space 𝕜']
+variables [add_comm_monoid γ]
+variables [module 𝕜 γ] [has_measurable_smul 𝕜 γ] [module 𝕜' γ] [has_measurable_smul 𝕜' γ]
 
 instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
 ⟨λ c f, comp ((•) c) (measurable_id.const_smul c) f⟩
@@ -444,6 +446,15 @@ lemma coe_fn_smul (c : 𝕜) (f : α →ₘ[μ] γ) : ⇑(c • f) =ᵐ[μ] c �
 
 lemma smul_to_germ (c : 𝕜) (f : α →ₘ[μ] γ) : (c • f).to_germ = c • f.to_germ :=
 comp_to_germ _ _ _
+
+instance [smul_comm_class 𝕜 𝕜' γ] : smul_comm_class 𝕜 𝕜' (α →ₘ[μ] γ) :=
+⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_comm]⟩
+
+instance [has_scalar 𝕜 𝕜'] [is_scalar_tower 𝕜 𝕜' γ] : is_scalar_tower 𝕜 𝕜' (α →ₘ[μ] γ) :=
+⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_assoc]⟩
+
+instance [module 𝕜ᵐᵒᵖ γ] [is_central_scalar 𝕜 γ] : is_central_scalar 𝕜 (α →ₘ[μ] γ) :=
+⟨λ a f, induction_on f $ λ f hf, by simp_rw [smul_mk, op_smul_eq_smul]⟩
 
 variables [has_measurable_add₂ γ]
 

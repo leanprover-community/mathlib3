@@ -352,7 +352,7 @@ fundamental groupoid of that space. -/
 def from_path {X : Top} {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁) : (x₀ ⟶ x₁) := p
 
 @[simp]
-lemma id_comp_symm {X : Top} (x₀ x₁ : X) (α : path x₀ x₁) : from_path ⟦α⟧ ≫ ⟦α.symm⟧ = 𝟙 x₀ :=
+lemma id_comp_symm (x₀ x₁ : X) (α : path x₀ x₁) : @from_path (Top.of X) _ _ ⟦α⟧ ≫ ⟦α.symm⟧ = 𝟙 x₀ :=
 begin
   rw [from_path, comp_eq, ← path.homotopic.comp_lift, quotient.sound],
   { refl },
@@ -360,7 +360,7 @@ begin
 end
 
 @[simp]
-lemma id_symm_comp {X : Top} (x₀ x₁ : X) (α : path x₀ x₁) : from_path ⟦α.symm⟧ ≫ ⟦α⟧ = 𝟙 x₁ :=
+lemma id_symm_comp (x₀ x₁ : X) (α : path x₀ x₁) : @from_path (Top.of X) _ _ ⟦α.symm⟧ ≫ ⟦α⟧ = 𝟙 x₁ :=
 begin
   rw [from_path, comp_eq, ← path.homotopic.comp_lift, quotient.sound],
   { refl },
@@ -369,7 +369,7 @@ end
 
 section path_connected
 
-def iso_of_path_conn {X : Top} [path_connected_space X] (x₀ x₁ : X) : (x₀ ≅ x₁) :=
+def iso_of_path_conn [path_connected_space X] (x₀ x₁ : X) : (x₀ ≅ x₁) :=
   let α := joined.some_path (path_connected_space.joined x₀ x₁) in
   { hom := ⟦α⟧,
     inv := ⟦α.symm⟧ }

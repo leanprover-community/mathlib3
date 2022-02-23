@@ -17,6 +17,9 @@ of `x` i.e. the group with elements being loops based at `x` (quotiented by homo
 -/
 universes u v
 
+variables {X : Type u} {Y : Type v} [topological_space X] [topological_space Y]
+variables {x₀ x₁ : X}
+
 noncomputable theory
 
 
@@ -28,12 +31,23 @@ def fundamental_group (X : Type u) [topological_space X] (x : X) :=
 
 namespace fundamental_group
 
-variables {X : Top} {Y : Top}
+instance group (x : X) : group (fundamental_group X x) :=
+category_theory.Aut.group x
 
-theorem iso_fundamental_group_of_path_connected [path_connected_space X] (x₀ x₁ : X) :
+instance category : category_theory.category X :=
+fundamental_groupoid.category_theory.groupoid.to_category
+
+local attribute [instance] path.homotopic.setoid
+
+-- lemma test [category_theory.category_struct X] (a : X) : true :=
+-- let α := ⟦path.refl a⟧ in
+-- trivial
+
+
+theorem iso_fundamental_group_of_path_connected [path_connected_space X] :
   (fundamental_group X x₀) ≅ (fundamental_group X x₁) :=
 let α := fundamental_groupoid.iso_of_path_conn x₀ x₁ in
-{ hom := λγ, ⟨sorry, sorry, sorry, sorry⟩,
-  inv := λγ, ⟨sorry, sorry, sorry, sorry⟩, }
+{ hom := λγ, ⟨α.inv ≫ γ.hom ≫ α.hom, α.inv ≫ γ.inv ≫ α.hom⟩,
+  inv := λγ, ⟨α.hom ≫ γ.hom ≫ α.inv, α.hom ≫ γ.inv ≫ α.inv⟩}
 
 end fundamental_group

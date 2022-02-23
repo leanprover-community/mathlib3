@@ -351,6 +351,9 @@ fundamental groupoid of that space. -/
 @[reducible]
 def from_path {X : Top} {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁) : (x₀ ⟶ x₁) := p
 
+/-- A path lifted to the fundamental groupoid composed with the `.symm` of the path is
+equivalent to the identity morphism. Essentially lifts `refl_trans_symm` to fundamental groupoid.
+-/
 @[simp]
 lemma id_comp_symm (x₀ x₁ : X) (α : path x₀ x₁) : @from_path (Top.of X) _ _ ⟦α⟧ ≫ ⟦α.symm⟧ = 𝟙 x₀ :=
 begin
@@ -359,6 +362,9 @@ begin
   { exact path.homotopic.symm ⟨path.homotopy.refl_trans_symm α⟩}
 end
 
+/-- A path's symm lifted to the fundamental groupoid composed with the path is equivalent
+to the identity morphism. Essentially lifts `refl_symm_trans` to fundamental groupoid.
+-/
 @[simp]
 lemma id_symm_comp (x₀ x₁ : X) (α : path x₀ x₁) : @from_path (Top.of X) _ _ ⟦α.symm⟧ ≫ ⟦α⟧ = 𝟙 x₁ :=
 begin
@@ -369,6 +375,9 @@ end
 
 section path_connected
 
+/-- Given two points in a path connected space, returns an isomorphism in the groupoid
+as the lift of some path connecting the two points (and its `.symm`).
+-/
 def iso_of_path_conn [path_connected_space X] (x₀ x₁ : X) : (x₀ ≅ x₁) :=
   let α := joined.some_path (path_connected_space.joined x₀ x₁) in
   { hom := ⟦α⟧,

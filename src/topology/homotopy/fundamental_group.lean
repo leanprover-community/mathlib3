@@ -22,7 +22,9 @@ variables {x₀ x₁ : X}
 
 noncomputable theory
 
-
+/-- The fundamental group is the automorphism group (vertex group) of the basepoint
+in the fundamental groupoid.
+-/
 def fundamental_group (X : Type u) [topological_space X] (x : X) :=
 @category_theory.Aut
   X
@@ -39,11 +41,9 @@ fundamental_groupoid.category_theory.groupoid.to_category
 
 local attribute [instance] path.homotopic.setoid
 
--- lemma test [category_theory.category_struct X] (a : X) : true :=
--- let α := ⟦path.refl a⟧ in
--- trivial
-
-
+/-- The fundamental group of a path connected space is independent of the choice
+of basepoint.
+-/
 theorem iso_fundamental_group_of_path_connected [path_connected_space X] :
   (fundamental_group X x₀) ≅ (fundamental_group X x₁) :=
 let α := fundamental_groupoid.iso_of_path_conn x₀ x₁ in

@@ -938,6 +938,35 @@ instance [mul_one_class M] [mul_one_class N] : inhabited (M →* N) := ⟨1⟩
 -- unlike the other homs, `monoid_with_zero_hom` does not have a `1` or `0`
 instance [mul_zero_one_class M] : inhabited (M →*₀ M) := ⟨monoid_with_zero_hom.id M⟩
 
+namespace mul_hom
+
+/-- Given two mul morphisms `f`, `g` to a commutative semigroup, `f * g` is the mul morphism
+sending `x` to `f x * g x`. -/
+@[to_additive]
+instance [has_mul M] [comm_semigroup N] : has_mul (mul_hom M N) :=
+⟨λ f g,
+  { to_fun := λ m, f m * g m,
+    map_mul' := begin intros, show f (x * y) * g (x * y) = f x * g x * (f y * g y),
+      rw [f.map_mul, g.map_mul, ←mul_assoc, ←mul_assoc, mul_right_comm (f x)], end }⟩
+
+/-- Given two additive morphisms `f`, `g` to an additive commutative semigroup, `f + g` is the
+additive morphism sending `x` to `f x + g x`. -/
+add_decl_doc add_hom.has_add
+
+@[simp, to_additive] lemma mul_apply {M N} {mM : has_mul M} {mN : comm_semigroup N}
+  (f g : mul_hom M N) (x : M) :
+  (f * g) x = f x * g x := rfl
+
+@[to_additive] lemma mul_comp [has_mul M] [comm_semigroup N] [comm_semigroup P]
+  (g₁ g₂ : mul_hom N P) (f : mul_hom M N) :
+  (g₁ * g₂).comp f = g₁.comp f * g₂.comp f := rfl
+@[to_additive] lemma comp_mul [has_mul M] [comm_semigroup N] [comm_semigroup P]
+  (g : mul_hom N P) (f₁ f₂ : mul_hom M N) :
+  g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
+by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
+
+end mul_hom
+
 namespace monoid_hom
 variables [mM : mul_one_class M] [mN : mul_one_class N] [mP : mul_one_class P]
 variables [group G] [comm_group H]

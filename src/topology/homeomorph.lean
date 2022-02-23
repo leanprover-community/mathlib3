@@ -441,6 +441,14 @@ def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
 
 end homeomorph
 
+/-- An inducing equiv between topological spaces is a homeomorphism. -/
+@[simps] def equiv.to_homeomorph_of_inducing [topological_space α] [topological_space β] (f : α ≃ β)
+  (hf : inducing f) :
+  α ≃ₜ β :=
+{ continuous_to_fun := hf.continuous,
+  continuous_inv_fun := hf.continuous_iff.2 $ by simpa using continuous_id,
+  .. f }
+
 namespace continuous
 variables [topological_space α] [topological_space β]
 

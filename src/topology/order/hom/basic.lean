@@ -89,9 +89,9 @@ protected def copy (f : α →Co β) (f' : α → β) (h : f' = f) : α →Co β
 variables (α)
 
 /-- `id` as a `continuous_order_hom`. -/
-protected def id : continuous_order_hom α α := ⟨order_hom.id, continuous_id⟩
+protected def id : α →Co α := ⟨order_hom.id, continuous_id⟩
 
-instance : inhabited (continuous_order_hom α α) := ⟨continuous_order_hom.id _⟩
+instance : inhabited (α →Co α) := ⟨continuous_order_hom.id _⟩
 
 @[simp] lemma coe_id : ⇑(continuous_order_hom.id α) = id := rfl
 

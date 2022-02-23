@@ -1,8 +1,16 @@
-/- copyright -/
-import analysis.normed_space.spectrum
+/-
+Copyright (c) 2022 Jireh Loreaux. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jireh Loreaux
+-/
 import analysis.normed_space.star.basic
+import analysis.normed_space.spectrum
 
-/-! Info -/
+/-! # Spectral properties in C⋆-algebras
+In this file, we establish various propreties related to the spectrum of elements in C⋆-algebras.
+-/
+
+section unitary_spectrum
 
 variables
 {𝕜 : Type*} [normed_field 𝕜]
@@ -22,3 +30,5 @@ begin
     have : ∥k∥⁻¹ ≤ ∥↑(u'⁻¹)∥, by simpa only [norm_inv] using spectrum.norm_le_norm_of_mem hk,
     simpa using inv_le_of_inv_le (norm_pos_iff.mpr hnk) this }
 end
+
+end unitary_spectrum

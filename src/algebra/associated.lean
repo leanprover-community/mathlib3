@@ -324,7 +324,7 @@ theorem dvd_dvd_iff_associated [cancel_monoid_with_zero α] {a b : α} : a ∣ b
 
 instance [cancel_monoid_with_zero α] [decidable_rel ((∣) : α → α → Prop)] :
   decidable_rel ((~ᵤ) : α → α → Prop) :=
-λ a b, decidable_of_iff _ (dvd_dvd_iff_associated)
+λ a b, decidable_of_iff _ dvd_dvd_iff_associated
 
 lemma associated.dvd_iff_dvd_left [monoid α] {a b c : α} (h : a ~ᵤ b) : a ∣ c ↔ b ∣ c :=
 let ⟨u, hu⟩ := h in hu ▸ units.mul_right_dvd.symm
@@ -445,9 +445,6 @@ open associated
 /-- The canonical quotient map from a monoid `α` into the `associates` of `α` -/
 protected def mk {α : Type*} [monoid α] (a : α) : associates α :=
 ⟦ a ⟧
-
-instance [cancel_monoid_with_zero α] [decidable_rel ((∣) : α → α → Prop)] :
-  decidable_eq (associates α) := quotient.decidable_eq
 
 instance [monoid α] : inhabited (associates α) := ⟨⟦1⟧⟩
 

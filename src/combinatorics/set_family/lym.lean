@@ -16,12 +16,12 @@ This file proves the local LYM and LYM inequalities as well as Sperner's theorem
 
 ## Main declarations
 
-* `local_lym`: Local Lubell-Yamamoto-Meshalkin inequality. The shadow of a set `𝒜` in a layer takes
-  a greater proportion of its layer than `𝒜` does.
-* `lubell_yamamoto_meshalkin`: Lubell-Yamamoto-Meshalkin inequality. The sum of densities of `𝒜`
-  in each layer is at most `1` for any antichain `𝒜`.
-* `is_antichain.sperner`: Sperner's theorem. The size of any antichain in `finset α` is at most
-  the size of the maximal layer of `finset α`. It is a corollary of `lubell_yamamoto_meshalkin`.
+* `finset.card_div_choose_le_card_shadow_div_choose`: Local Lubell-Yamamoto-Meshalkin inequality.
+  The shadow of a set `𝒜` in a layer takes a greater proportion of its layer than `𝒜` does.
+* `finset.sum_card_slice_div_choose_le_one`: Lubell-Yamamoto-Meshalkin inequality. The sum of
+  densities of `𝒜` in each layer is at most `1` for any antichain `𝒜`.
+* `is_antichain.sperner`: Sperner's theorem. The size of any antichain in `finset α` is at most the
+  size of the maximal layer of `finset α`. It is a corollary of `sum_card_slice_div_choose_le_one`.
 
 ## TODO
 
@@ -56,7 +56,7 @@ variables [decidable_eq α] [fintype α] {𝒜 : finset (finset α)} {r : ℕ}
 
 /-- The downward **local LYM inequality**, with cancelled denominators. `𝒜` takes up less of `α^(r)`
 (the finsets of card `r`) than `∂𝒜` takes up of `α^(r - 1)`. -/
-lemma local_lym' (h𝒜 : (𝒜 : set (finset α)).sized r) :
+lemma card_mul_le_card_shadow_mul (h𝒜 : (𝒜 : set (finset α)).sized r) :
   𝒜.card * r ≤ (∂𝒜).card * (fintype.card α - r + 1) :=
 begin
   refine card_mul_le_card_mul' (⊆) (λ s hs, _) (λ s hs, _),
@@ -80,13 +80,13 @@ end
 
 /-- The downward **local LYM inequality**. `𝒜` takes up less of `α^(r)` (the finsets of card `r`)
 than `∂𝒜` takes up of `α^(r - 1)`. -/
-lemma local_lym (hr : r ≠ 0) (h𝒜 : (𝒜 : set (finset α)).sized r) :
+lemma card_div_choose_le_card_shadow_div_choose (hr : r ≠ 0) (h𝒜 : (𝒜 : set (finset α)).sized r) :
   (𝒜.card : 𝕜) / (fintype.card α).choose r ≤ (∂𝒜).card / (fintype.card α).choose (r - 1) :=
 begin
   obtain hr' | hr' := lt_or_le (fintype.card α) r,
   { rw [choose_eq_zero_of_lt hr', cast_zero, div_zero],
     exact div_nonneg (cast_nonneg _) (cast_nonneg _) },
-  replace h𝒜 := local_lym' h𝒜,
+  replace h𝒜 := card_mul_le_card_shadow_mul h𝒜,
   rw div_le_div_iff; norm_cast,
   { cases r,
     { exact (hr rfl).elim },
@@ -164,7 +164,7 @@ begin
 end
 
 /-- A bound on any top part of the sum in LYM in terms of the size of `falling k 𝒜`. -/
-lemma le_card_falling [fintype α] (hk : k ≤ fintype.card α)
+lemma le_card_falling_div_choose [fintype α] (hk : k ≤ fintype.card α)
   (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α))) :
   ∑ r in range (k + 1),
     ((𝒜 # (fintype.card α - r)).card : 𝕜) / (fintype.card α).choose (fintype.card α - r)
@@ -177,8 +177,8 @@ begin
   rw [sum_range_succ, ←slice_union_shadow_falling_succ,
     card_disjoint_union h𝒜.disjoint_slice_shadow_falling, cast_add, _root_.add_div, add_comm],
   rw [←tsub_tsub, tsub_add_cancel_of_le (le_tsub_of_add_le_left hk)],
-  exact add_le_add_left ((ih $ le_of_succ_le hk).trans $
-    local_lym (tsub_pos_iff_lt.2 $ nat.succ_le_iff.1 hk).ne' $ sized_falling _ _) _,
+  exact add_le_add_left ((ih $ le_of_succ_le hk).trans $ card_div_choose_le_card_shadow_div_choose
+    (tsub_pos_iff_lt.2 $ nat.succ_le_iff.1 hk).ne' $ sized_falling _ _) _,
 end
 
 end falling
@@ -187,12 +187,12 @@ variables {𝒜 : finset (finset α)} {s : finset α} {k : ℕ}
 
 /-- The **Lubell-Yamamoto-Meshalkin inequality**. If `𝒜` is an antichain, then the sum of the
 proportion of elements it takes from each layer is less than `1`. -/
-lemma lubell_yamamoto_meshalkin [fintype α] (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α))) :
+lemma sum_card_slice_div_choose_le_one [fintype α] (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α))) :
   ∑ r in range (fintype.card α + 1), ((𝒜 # r).card : 𝕜) / (fintype.card α).choose r ≤ 1 :=
 begin
   classical,
   rw ←sum_flip,
-  refine (le_card_falling le_rfl h𝒜).trans _,
+  refine (le_card_falling_div_choose le_rfl h𝒜).trans _,
   rw div_le_iff; norm_cast,
   { simpa only [nat.sub_self, one_mul, nat.choose_zero_right, falling]
       using (sized_falling 0 𝒜).card_le },
@@ -217,7 +217,7 @@ begin
     norm_cast,
     exact choose_pos (nat.div_le_self _ _) },
   rw [Iic, ←Ico_succ_right, bot_eq_zero, Ico_zero_eq_range],
-  refine (sum_le_sum $ λ r hr, _).trans (lubell_yamamoto_meshalkin h𝒜),
+  refine (sum_le_sum $ λ r hr, _).trans (sum_card_slice_div_choose_le_one h𝒜),
   rw mem_range at hr,
   refine div_le_div_of_le_left _ _ _; norm_cast,
   { exact nat.zero_le _ },

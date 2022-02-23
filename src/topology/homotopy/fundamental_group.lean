@@ -6,6 +6,7 @@ Authors: Mark Lavrentyev
 import category_theory.category.Groupoid
 import category_theory.groupoid
 import topology.category.Top.basic
+import topology.path_connected
 import topology.homotopy.path
 import topology.homotopy.fundamental_groupoid
 
@@ -33,14 +34,17 @@ def fundamental_group (X : Type u) [topological_space X] (x : X) :=
 
 namespace fundamental_group
 
+local attribute [instance] path.homotopic.setoid
+
 instance group (x : X) : group (fundamental_group X x) :=
 category_theory.Aut.group x
+
+instance inhabited : inhabited (fundamental_group X x₀) :=
+category_theory.Aut.inhabited x₀
 
 @[instance, priority 100]
 private def category : category_theory.category X :=
 fundamental_groupoid.category_theory.groupoid.to_category
-
-local attribute [instance] path.homotopic.setoid
 
 /-- The fundamental group of a path connected space is independent of the choice
 of basepoint.

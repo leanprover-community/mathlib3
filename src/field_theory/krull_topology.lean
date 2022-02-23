@@ -233,45 +233,43 @@ end
 
 /-- If `L/K` is an algebraic extension, then the Krull topology on `L ≃ₐ[K] L` is Hausdorff. -/
 lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L] (h_int :
-∀ (x : L), is_integral K x):
+algebra.is_integral K L):
 t2_space (L ≃ₐ[K] L)  :=
-{ t2 :=
-begin
-  intros f g hfg,
-  let φ := f⁻¹ * g,
-  cases (fun_like.exists_ne hfg) with x hx,
-  have hφx : φ x ≠ x,
-  { change f⁻¹(g x) ≠ x,
-    apply ne_of_apply_ne f,
-    change f (f.symm (g x)) ≠ f x,
-    rw [alg_equiv.apply_symm_apply f (g x), ne_comm],
-    exact hx },
-  let E : intermediate_field K L := intermediate_field.adjoin K {x},
-  let h_findim : finite_dimensional K E :=
-  intermediate_field.adjoin.finite_dimensional (h_int x),
-  let H := E.fixing_subgroup,
-  have h_basis : H.carrier ∈ gal_group_basis K L := ⟨H, ⟨E, ⟨h_findim, rfl⟩⟩, rfl⟩,
-  have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
-  rw mem_nhds_iff at h_nhd,
-  rcases h_nhd with ⟨W, hWH, hW_open, hW_1⟩,
-  refine ⟨left_coset f W, left_coset g W, ⟨is_open.left_coset hW_open f,
-  is_open.left_coset hW_open g, ⟨1, hW_1, by apply mul_one⟩, ⟨1, hW_1, by apply mul_one⟩, _⟩⟩,
-  by_contra h_nonempty,
-  change left_coset f W ∩ left_coset g W ≠ ∅ at h_nonempty,
-  rw set.ne_empty_iff_nonempty at h_nonempty,
-  rcases h_nonempty with ⟨σ, ⟨⟨w1, hw1, hfw1⟩, ⟨w2, hw2, hgw2⟩⟩⟩,
-  rw ← hgw2 at hfw1,
-  rename hfw1 h,
-  rw [eq_inv_mul_iff_mul_eq.symm, ← mul_assoc, mul_inv_eq_iff_eq_mul.symm] at h,
-  have h_in_H : w1 * w2⁻¹ ∈ H := H.mul_mem' (hWH hw1) (H.inv_mem' (hWH hw2)),
-  rw h at h_in_H,
-  change φ ∈ E.fixing_subgroup at h_in_H,
-  rw mem_fixing_subgroup_iff at h_in_H,
-  specialize h_in_H x,
-  have hxE : x ∈ E,
-  { apply intermediate_field.subset_adjoin,
-    apply set.mem_singleton },
-  exact hφx (h_in_H hxE),
-end}
+{ t2 := λ f g hfg,
+  begin
+    let φ := f⁻¹ * g,
+    cases (fun_like.exists_ne hfg) with x hx,
+    have hφx : φ x ≠ x,
+    { apply ne_of_apply_ne f,
+      change f (f.symm (g x)) ≠ f x,
+      rw [alg_equiv.apply_symm_apply f (g x), ne_comm],
+      exact hx },
+    let E : intermediate_field K L := intermediate_field.adjoin K {x},
+    let h_findim : finite_dimensional K E :=
+    intermediate_field.adjoin.finite_dimensional (h_int x),
+    let H := E.fixing_subgroup,
+    have h_basis : H.carrier ∈ gal_group_basis K L := ⟨H, ⟨E, ⟨h_findim, rfl⟩⟩, rfl⟩,
+    have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
+    rw mem_nhds_iff at h_nhd,
+    rcases h_nhd with ⟨W, hWH, hW_open, hW_1⟩,
+    refine ⟨left_coset f W, left_coset g W, ⟨is_open.left_coset hW_open f,
+    is_open.left_coset hW_open g, ⟨1, hW_1, by apply mul_one⟩, ⟨1, hW_1, by apply mul_one⟩, _⟩⟩,
+    by_contra h_nonempty,
+    change left_coset f W ∩ left_coset g W ≠ ∅ at h_nonempty,
+    rw set.ne_empty_iff_nonempty at h_nonempty,
+    rcases h_nonempty with ⟨σ, ⟨⟨w1, hw1, hfw1⟩, ⟨w2, hw2, hgw2⟩⟩⟩,
+    rw ← hgw2 at hfw1,
+    rename hfw1 h,
+    rw [eq_inv_mul_iff_mul_eq.symm, ← mul_assoc, mul_inv_eq_iff_eq_mul.symm] at h,
+    have h_in_H : w1 * w2⁻¹ ∈ H := H.mul_mem' (hWH hw1) (H.inv_mem' (hWH hw2)),
+    rw h at h_in_H,
+    change φ ∈ E.fixing_subgroup at h_in_H,
+    rw mem_fixing_subgroup_iff at h_in_H,
+    specialize h_in_H x,
+    have hxE : x ∈ E,
+    { apply intermediate_field.subset_adjoin,
+      apply set.mem_singleton },
+    exact hφx (h_in_H hxE),
+  end}
 
 end krull_t2

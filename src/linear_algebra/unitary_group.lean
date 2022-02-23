@@ -177,19 +177,16 @@ begin
       funext,
       rw [is_R_or_C.mul_conj, is_R_or_C.norm_sq_eq_def'],
     end,
-    norm_cast,
-  },
+    norm_cast },
   -- The L2 norm of a row is a diagonal entry of U ⬝ Uᴴ, real part
   have re_diag_eq_norm_sum : is_R_or_C.re ((U ⬝ Uᴴ) i i) = ∑ (x : n), ∥ U i x ∥^2,
-  {
-    rw is_R_or_C.ext_iff at diag_eq_norm_sum,
+  { rw is_R_or_C.ext_iff at diag_eq_norm_sum,
     rw diag_eq_norm_sum.1,
-    norm_cast,
-  },
+    norm_cast },
   -- Since U is unitary, the diagonal entries of U ⬝ Uᴴ are all 1
   have mul_eq_one : (U ⬝ Uᴴ) = 1, from unitary.mul_star_self_of_mem hU,
   have diag_eq_one : is_R_or_C.re ((U ⬝ Uᴴ) i i) = 1,
-  {simp only [mul_eq_one, eq_self_iff_true, matrix.one_apply_eq, is_R_or_C.one_re]},
+  { simp only [mul_eq_one, eq_self_iff_true, matrix.one_apply_eq, is_R_or_C.one_re] },
   -- Putting it all together
   rw ← sq_le_one_iff (norm_nonneg (U i j)),
   rw ← diag_eq_one,

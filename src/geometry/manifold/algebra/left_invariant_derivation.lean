@@ -119,10 +119,20 @@ instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
 { smul := λ r X, ⟨r • X, λ g, by simp only [derivation.smul_apply, smul_eq_mul,
             mul_eq_mul_left_iff, linear_map.map_smul, left_invariant']⟩ }
 
+-- TODO: generalize this if `smooth_map.has_scalar` is generalized.
+instance has_op_scalar : has_scalar 𝕜ᵐᵒᵖ (left_invariant_derivation I G) :=
+{ smul := λ r X, ⟨r • X, λ g, begin
+    induction r using mul_opposite.rec,
+    rw op_smul_eq_smul,
+    exact (r • X).left_invariant'' _,
+  end⟩ }
+
 variables (r X)
 
 @[simp] lemma coe_smul : ⇑(r • X) = r • X := rfl
 @[simp] lemma lift_smul (k : 𝕜) : (↑(k • X) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = k • X := rfl
+
+@[simp] lemma coe_op_smul (r : 𝕜ᵐᵒᵖ) (X : left_invariant_derivation I G) : ⇑(r • X) = r • X := rfl
 
 variables (I G)
 
@@ -135,6 +145,12 @@ variables {I G}
 
 instance : module 𝕜 (left_invariant_derivation I G) :=
 coe_injective.module _ (coe_fn_add_monoid_hom I G) coe_smul
+
+instance op_module : module 𝕜ᵐᵒᵖ (left_invariant_derivation I G) :=
+coe_injective.module _ (coe_fn_add_monoid_hom I G) coe_op_smul
+
+instance : is_central_scalar 𝕜 (left_invariant_derivation I G) :=
+{ op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _ }
 
 /-- Evaluation at a point for left invariant derivation. Same thing as for generic global
 derivations (`derivation.eval_at`). -/

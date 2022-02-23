@@ -30,7 +30,8 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 - `linear_isometry_equiv.of_inner_product_space`: provides an arbitrary isometry to Euclidean space
   from a given finite-dimensional inner product space, induced by choosing an arbitrary basis.
 
-- `complex.isometry_euclidean`: standard isometry from `ℂ` to `euclidean_space ℝ (fin 2)`
+- `complex.orthonormal_basis_one_I`: standard orthonormal basis `![1, I]` for `ℂ` considered as a
+two-dimensional real inner product space.`
 
 -/
 
@@ -299,68 +300,103 @@ protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set
   ⇑(orthonormal_basis.mk hon hsp) = v :=
 by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
 
+section map
+
+/-- Apply the linear equivalence `f` to the basis vectors. -/
+protected def map (b : orthonormal_basis ι 𝕜 E) (f : E ≃ₗᵢ[𝕜] E') :
+  orthonormal_basis ι 𝕜 E' :=
+of_repr (f.symm.trans b.repr)
+
+@[simp] lemma map_repr (b : orthonormal_basis ι 𝕜 E) (f : E ≃ₗᵢ[𝕜] E') :
+  (b.map f).repr = f.symm.trans b.repr :=
+rfl
+
+@[simp] lemma map_apply (b : orthonormal_basis ι 𝕜 E) (f : E ≃ₗᵢ[𝕜] E') (i : ι) :
+  b.map f i = f (b i) :=
+rfl
+
+end map
+
 end orthonormal_basis
 
-/-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of inner product spaces then an orthonormal basis `v`
-of `E` determines a linear isometry `e : E' ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`. This result states that
-`e` may be obtained either by transporting `v` to `E'` or by composing with the linear isometry
-`E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι` provided by `v`. -/
-@[simp] lemma basis.map_isometry_euclidean_of_orthonormal (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v)
-  (f : E ≃ₗᵢ[𝕜] E') :
-  ((v.map f.to_linear_equiv).to_orthonormal_basis (hv.map_linear_isometry_equiv f)).repr =
-    f.symm.trans (v.to_orthonormal_basis hv).repr :=
-linear_isometry_equiv.to_linear_equiv_injective $ v.map_equiv_fun _
+-- /-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of inner product spaces then an orthonormal basis `v`
+-- of `E` determines a linear isometry `e : E' ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`. This result states that
+-- `e` may be obtained either by transporting `v` to `E'` or by composing with the linear isometry
+-- `E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι` provided by `v`. -/
+-- @[simp] lemma orthonormal_basis.map_isometry_euclidean_of_orthonormal (v : orthonormal_basis ι 𝕜 E)
+--   (f : E ≃ₗᵢ[𝕜] E') :
+--   (v.map f).repr = f.symm.trans v.repr :=
+-- rfl
+
+-- /-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of inner product spaces then an orthonormal basis `v`
+-- of `E` determines a linear isometry `e : E' ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`. This result states that
+-- `e` may be obtained either by transporting `v` to `E'` or by composing with the linear isometry
+-- `E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι` provided by `v`. -/
+-- @[simp] lemma basis.map_isometry_euclidean_of_orthonormal (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v)
+--   (f : E ≃ₗᵢ[𝕜] E') :
+--   ((v.map f.to_linear_equiv).to_orthonormal_basis (hv.map_linear_isometry_equiv f)).repr =
+--     f.symm.trans (v.to_orthonormal_basis hv).repr :=
+-- linear_isometry_equiv.to_linear_equiv_injective $ v.map_equiv_fun _
+
+namespace complex
 
 /-- `ℂ` is isometric to `ℝ²` with the Euclidean inner product. -/
-def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
-(complex.basis_one_I.to_orthonormal_basis
+def orthonormal_basis_one_I : orthonormal_basis (fin 2) ℝ ℂ :=
+complex.basis_one_I.to_orthonormal_basis
 begin
   rw orthonormal_iff_ite,
   intros i, fin_cases i;
   intros j; fin_cases j;
   simp [real_inner_eq_re_inner]
-end).repr
+end
 
-@[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
-  complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
+@[simp] lemma coe_orthonormal_basis_one_I_repr (z : ℂ) :
+  (orthonormal_basis_one_I.repr z : euclidean_space ℝ (fin 2)) = ![z.re, z.im] :=
+rfl
+
+@[simp] lemma coe_orthonormal_basis_one_I : ⇑basis_one_I = ![1, I] := coe_basis_one_I
+
+@[simp] lemma to_basis_orthonormal_basis_one_I : orthonormal_basis_one_I.to_basis = basis_one_I :=
+basis_one_I.to_basis_to_orthonormal_basis  _
+
+-- @[simp] lemma isometry_euclidean_apply_zero (z : ℂ) :
+--   orthonormal_basis_one_I.repr z 0 = z.re :=
+-- by simp
+
+-- @[simp] lemma isometry_euclidean_apply_one (z : ℂ) :
+--   orthonormal_basis_one_I.repr z 1 = z.im :=
+-- by simp
+
+@[simp] lemma isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
+  complex.orthonormal_basis_one_I.repr.symm x = (x 0) + (x 1) * I :=
 begin
   convert complex.basis_one_I.equiv_fun_symm_apply x,
   { simpa },
   { simp },
 end
 
-lemma complex.isometry_euclidean_proj_eq_self (z : ℂ) :
-  ↑(complex.isometry_euclidean z 0) + ↑(complex.isometry_euclidean z 1) * (I : ℂ) = z :=
-by rw [← complex.isometry_euclidean_symm_apply (complex.isometry_euclidean z),
-  complex.isometry_euclidean.symm_apply_apply z]
-
-@[simp] lemma complex.isometry_euclidean_apply_zero (z : ℂ) :
-  complex.isometry_euclidean z 0 = z.re :=
-by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
-
-@[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
-  complex.isometry_euclidean z 1 = z.im :=
-by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
+lemma isometry_euclidean_proj_eq_self (z : ℂ) :
+  ↑(orthonormal_basis_one_I.repr z 0) + ↑(orthonormal_basis_one_I.repr z 1) * (I : ℂ) = z :=
+by rw [← isometry_euclidean_symm_apply (orthonormal_basis_one_I.repr z),
+  orthonormal_basis_one_I.repr.symm_apply_apply z]
 
 /-- The isometry between `ℂ` and a two-dimensional real inner product space given by a basis. -/
-def complex.isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) : ℂ ≃ₗᵢ[ℝ] F :=
-complex.isometry_euclidean.trans (v.to_orthonormal_basis hv).repr.symm
+def isometry_of_orthonormal (v : orthonormal_basis (fin 2) ℝ F) : ℂ ≃ₗᵢ[ℝ] F :=
+orthonormal_basis_one_I.repr.trans v.repr.symm
 
-@[simp] lemma complex.map_isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v)
-  (f : F ≃ₗᵢ[ℝ] F') :
-  complex.isometry_of_orthonormal (hv.map_linear_isometry_equiv f) =
-    (complex.isometry_of_orthonormal hv).trans f :=
-by simp [complex.isometry_of_orthonormal, linear_isometry_equiv.trans_assoc]
+@[simp] lemma map_isometry_of_orthonormal (v : orthonormal_basis (fin 2) ℝ F) (f : F ≃ₗᵢ[ℝ] F') :
+  isometry_of_orthonormal (v.map f) = (isometry_of_orthonormal v).trans f :=
+by simp [isometry_of_orthonormal, linear_isometry_equiv.trans_assoc]
 
-lemma complex.isometry_of_orthonormal_symm_apply
-  {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (f : F) :
-  (complex.isometry_of_orthonormal hv).symm f = (v.coord 0 f : ℂ) + (v.coord 1 f : ℂ) * I :=
-by simp [complex.isometry_of_orthonormal]
+lemma isometry_of_orthonormal_symm_apply (v : orthonormal_basis (fin 2) ℝ F) (f : F) :
+  (isometry_of_orthonormal v).symm f = (v.repr f 0 : ℂ) + (v.repr f 1 : ℂ) * I :=
+by simp [isometry_of_orthonormal]
 
-lemma complex.isometry_of_orthonormal_apply
-  {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (z : ℂ) :
-  complex.isometry_of_orthonormal hv z = z.re • v 0 + z.im • v 1 :=
-by simp [complex.isometry_of_orthonormal, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1})]
+lemma isometry_of_orthonormal_apply (v : orthonormal_basis (fin 2) ℝ F) (z : ℂ) :
+  isometry_of_orthonormal v z = z.re • v 0 + z.im • v 1 :=
+by simp [isometry_of_orthonormal, ← v.sum_repr_symm, fin.sum_univ_succ]
+
+end complex
 
 open finite_dimensional
 

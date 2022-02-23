@@ -121,7 +121,7 @@ lemma measure_smul_set_average (f : α → E) {s : set α} (h : μ s ≠ ∞) :
 by { haveI := fact.mk h.lt_top, rw [← measure_smul_average, restrict_apply_univ] }
 
 lemma average_union {f : α → E} {s t : set α} (hd : ae_disjoint μ s t)
-  (ht : null_measurable_set t μ) (hsμ : μ s ≠ ⊤) (htμ : μ t ≠ ⊤)
+  (ht : null_measurable_set t μ) (hsμ : μ s ≠ ∞) (htμ : μ t ≠ ∞)
   (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ⨍ x in s ∪ t, f x ∂μ =
     ((μ s).to_real / ((μ s).to_real + (μ t).to_real)) • ⨍ x in s, f x ∂μ +
@@ -132,7 +132,7 @@ begin
 end
 
 lemma average_union_mem_open_segment {f : α → E} {s t : set α} (hd : ae_disjoint μ s t)
-  (ht : null_measurable_set t μ) (hs₀ : μ s ≠ 0) (ht₀ : μ t ≠ 0) (hsμ : μ s ≠ ⊤) (htμ : μ t ≠ ⊤)
+  (ht : null_measurable_set t μ) (hs₀ : μ s ≠ 0) (ht₀ : μ t ≠ 0) (hsμ : μ s ≠ ∞) (htμ : μ t ≠ ∞)
   (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ⨍ x in s ∪ t, f x ∂μ ∈ open_segment ℝ (⨍ x in s, f x ∂μ) (⨍ x in t, f x ∂μ) :=
 begin
@@ -143,7 +143,7 @@ begin
 end
 
 lemma average_union_mem_segment {f : α → E} {s t : set α} (hd : ae_disjoint μ s t)
-  (ht : null_measurable_set t μ) (hsμ : μ s ≠ ⊤) (htμ : μ t ≠ ⊤)
+  (ht : null_measurable_set t μ) (hsμ : μ s ≠ ∞) (htμ : μ t ≠ ∞)
   (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ⨍ x in s ∪ t, f x ∂μ ∈ [⨍ x in s, f x ∂μ -[ℝ] ⨍ x in t, f x ∂μ] :=
 begin

@@ -183,9 +183,23 @@ instance has_scalar {V : Type*} [normed_group V] [normed_space 𝕜 V] :
   has_scalar 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ r f, ⟨r • f, smooth_const.smul f.smooth⟩⟩
 
+/-- TODO: generalize `smooth_map.has_scalar` to include this case-/
+instance has_op_scalar {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+  has_scalar 𝕜ᵐᵒᵖ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+⟨λ r f, ⟨r • f, begin
+  induction r using mul_opposite.rec,
+  rw op_smul_eq_smul,
+  exact smooth_const.smul f.smooth,
+end⟩⟩
+
 @[simp]
 lemma coe_smul {V : Type*} [normed_group V] [normed_space 𝕜 V]
   (r : 𝕜) (f : C^∞⟮I, N; 𝓘(𝕜, V), V⟯) :
+  ⇑(r • f) = r • f := rfl
+
+@[simp]
+lemma coe_op_smul {V : Type*} [normed_group V] [normed_space 𝕜 V]
+  (r : 𝕜ᵐᵒᵖ) (f : C^∞⟮I, N; 𝓘(𝕜, V), V⟯) :
   ⇑(r • f) = r • f := rfl
 
 @[simp] lemma smul_comp {V : Type*} [normed_group V] [normed_space 𝕜 V]
@@ -194,12 +208,17 @@ lemma coe_smul {V : Type*} [normed_group V] [normed_space 𝕜 V]
 
 instance module {V : Type*} [normed_group V] [normed_space 𝕜 V] :
   module 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
-module.of_core $
-{ smul     := (•),
-  smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
-  add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
-  mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
-  one_smul := λ f, by ext x; exact one_smul 𝕜 (f x), }
+function.injective.module 𝕜 coe_fn_add_monoid_hom times_cont_mdiff_map.coe_inj coe_smul
+
+/-- A special case of `pi.module` for non-dependent types. Lean get stuck on the definition
+below without this. -/
+instance _root_.function.module (I : Type*) {R : Type*} (A : Type*) {r : semiring R}
+  [add_comm_monoid A] [module R A] : module R (I → A) :=
+pi.module _ _ _
+
+instance op_module {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+  module 𝕜ᵐᵒᵖ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+function.injective.module 𝕜ᵐᵒᵖ coe_fn_add_monoid_hom times_cont_mdiff_map.coe_inj coe_op_smul
 
 /-- Coercion to a function as a `linear_map`. -/
 @[simps]
@@ -236,6 +255,7 @@ instance algebra : algebra 𝕜 C^∞⟮I, N; 𝓘(𝕜, A), A⟯ :=
   to_ring_hom := smooth_map.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
+  op_smul_def' := λ c f, by ext x; exact algebra.op_smul_def' _ _,
   ..smooth_map.semiring }
 
 /-- A special case of `pi.algebra` for non-dependent types. Lean get stuck on the definition

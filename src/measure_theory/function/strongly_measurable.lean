@@ -208,8 +208,8 @@ protected lemma div [has_div β] [has_continuous_div β]
   strongly_measurable (f / g) :=
 ⟨λ n, hf.approx n / hg.approx n, λ x, (hf.tendsto_approx x).div' (hg.tendsto_approx x)⟩
 
-protected lemma const_smul {𝕜} [topological_space 𝕜] [add_comm_monoid β] [has_scalar 𝕜 β]
-  [has_continuous_smul 𝕜 β] (hf : strongly_measurable f) (c : 𝕜) :
+protected lemma const_smul {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+  (hf : strongly_measurable f) (c : 𝕜) :
   strongly_measurable (c • f) :=
 ⟨λ n, c • (hf.approx n), λ x, (hf.tendsto_approx x).const_smul c⟩
 
@@ -385,8 +385,8 @@ protected lemma sub [add_group β] [has_continuous_sub β]
     (ennreal.add_lt_top.mpr ⟨hf.fin_support_approx n, hg.fin_support_approx n⟩)),
   λ x, (hf.tendsto_approx x).sub (hg.tendsto_approx x)⟩
 
-protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_comm_monoid β] [module 𝕜 β]
-  [has_continuous_smul 𝕜 β]
+protected lemma const_smul {𝕜} [topological_space 𝕜] [add_monoid β] [monoid 𝕜]
+  [distrib_mul_action 𝕜 β] [has_continuous_smul 𝕜 β]
   (hf : fin_strongly_measurable f μ) (c : 𝕜) :
   fin_strongly_measurable (c • f) μ :=
 begin
@@ -491,8 +491,8 @@ protected lemma sub [add_group β] [has_continuous_sub β]
 ⟨hf.mk f - hg.mk g, hf.fin_strongly_measurable_mk.sub hg.fin_strongly_measurable_mk,
   hf.ae_eq_mk.sub hg.ae_eq_mk⟩
 
-protected lemma const_smul {𝕜} [semiring 𝕜] [topological_space 𝕜] [add_comm_monoid β] [module 𝕜 β]
-  [has_continuous_smul 𝕜 β]
+protected lemma const_smul {𝕜} [topological_space 𝕜] [add_monoid β] [monoid 𝕜]
+  [distrib_mul_action 𝕜 β] [has_continuous_smul 𝕜 β]
   (hf : ae_fin_strongly_measurable f μ) (c : 𝕜) :
   ae_fin_strongly_measurable (c • f) μ :=
 ⟨c • hf.mk f, hf.fin_strongly_measurable_mk.const_smul c, hf.ae_eq_mk.const_smul c⟩

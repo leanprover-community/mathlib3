@@ -319,25 +319,6 @@ end map
 
 end orthonormal_basis
 
--- /-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of inner product spaces then an orthonormal basis `v`
--- of `E` determines a linear isometry `e : E' ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`. This result states that
--- `e` may be obtained either by transporting `v` to `E'` or by composing with the linear isometry
--- `E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι` provided by `v`. -/
--- @[simp] lemma orthonormal_basis.map_isometry_euclidean_of_orthonormal (v : orthonormal_basis ι 𝕜 E)
---   (f : E ≃ₗᵢ[𝕜] E') :
---   (v.map f).repr = f.symm.trans v.repr :=
--- rfl
-
--- /-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of inner product spaces then an orthonormal basis `v`
--- of `E` determines a linear isometry `e : E' ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`. This result states that
--- `e` may be obtained either by transporting `v` to `E'` or by composing with the linear isometry
--- `E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι` provided by `v`. -/
--- @[simp] lemma basis.map_isometry_euclidean_of_orthonormal (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v)
---   (f : E ≃ₗᵢ[𝕜] E') :
---   ((v.map f.to_linear_equiv).to_orthonormal_basis (hv.map_linear_isometry_equiv f)).repr =
---     f.symm.trans (v.to_orthonormal_basis hv).repr :=
--- linear_isometry_equiv.to_linear_equiv_injective $ v.map_equiv_fun _
-
 namespace complex
 
 /-- `ℂ` is isometric to `ℝ²` with the Euclidean inner product. -/
@@ -354,26 +335,16 @@ end
   (orthonormal_basis_one_I.repr z : euclidean_space ℝ (fin 2)) = ![z.re, z.im] :=
 rfl
 
-@[simp] lemma coe_orthonormal_basis_one_I : ⇑basis_one_I = ![1, I] := coe_basis_one_I
-
 @[simp] lemma to_basis_orthonormal_basis_one_I : orthonormal_basis_one_I.to_basis = basis_one_I :=
 basis_one_I.to_basis_to_orthonormal_basis  _
 
--- @[simp] lemma isometry_euclidean_apply_zero (z : ℂ) :
---   orthonormal_basis_one_I.repr z 0 = z.re :=
--- by simp
-
--- @[simp] lemma isometry_euclidean_apply_one (z : ℂ) :
---   orthonormal_basis_one_I.repr z 1 = z.im :=
--- by simp
+@[simp] lemma coe_orthonormal_basis_one_I : ⇑orthonormal_basis_one_I = ![1, I] :=
+by simp [orthonormal_basis_one_I]
 
 @[simp] lemma isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
   complex.orthonormal_basis_one_I.repr.symm x = (x 0) + (x 1) * I :=
-begin
-  convert complex.basis_one_I.equiv_fun_symm_apply x,
-  { simpa },
-  { simp },
-end
+have x (fin.succ 0) = x 1 := rfl,
+by simp [← orthonormal_basis.sum_repr_symm, fin.sum_univ_succ, - mul_eq_mul_right_iff, this]
 
 lemma isometry_euclidean_proj_eq_self (z : ℂ) :
   ↑(orthonormal_basis_one_I.repr z 0) + ↑(orthonormal_basis_one_I.repr z 1) * (I : ℂ) = z :=

@@ -282,8 +282,8 @@ lemma measure_eq_div_smul [is_mul_left_invariant μ]
   (hE : measurable_set E) (h2E : ν E ≠ 0) (h3E : ν E ≠ ∞) : μ = (μ E / ν E) • ν :=
 begin
   ext1 F hF,
-  rw [smul_apply, mul_comm, ← mul_div_assoc, mul_comm, measure_mul_measure_eq μ ν hE hF h2E h3E,
-    mul_div_assoc, ennreal.mul_div_cancel' h2E h3E]
+  rw [smul_apply, smul_eq_mul, mul_comm, ← mul_div_assoc, mul_comm,
+    measure_mul_measure_eq μ ν hE hF h2E h3E, mul_div_assoc, ennreal.mul_div_cancel' h2E h3E]
 end
 
 end measure_theory

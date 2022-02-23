@@ -96,7 +96,7 @@ h.mono_measure $ measure.restrict_mono hs hμ
 
 lemma integrable_on.mono_set (h : integrable_on f t μ) (hst : s ⊆ t) :
   integrable_on f s μ :=
-h.mono hst (le_refl _)
+h.mono hst le_rfl
 
 lemma integrable_on.mono_measure (h : integrable_on f s ν) (hμ : μ ≤ ν) :
   integrable_on f s μ :=
@@ -175,8 +175,8 @@ by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas
 
 @[simp] lemma integrable_on_add_measure :
   integrable_on f s (μ + ν) ↔ integrable_on f s μ ∧ integrable_on f s ν :=
-⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
-  h.mono_measure (measure.le_add_left (le_refl _))⟩,
+⟨λ h, ⟨h.mono_measure (measure.le_add_right le_rfl),
+  h.mono_measure (measure.le_add_left le_rfl)⟩,
   λ h, h.1.add_measure h.2⟩
 
 lemma _root_.measurable_embedding.integrable_on_map_iff [measurable_space β] {e : α → β}
@@ -421,11 +421,10 @@ lemma continuous.integrable_on_interval_oc [borel_space E]
 hf.integrable_on_Ioc
 
 /-- A continuous function with compact closure of the support is integrable on the whole space. -/
-lemma continuous.integrable_of_compact_closure_support
+lemma continuous.integrable_of_has_compact_support
   [topological_space α] [opens_measurable_space α] [t2_space α] [borel_space E]
   {μ : measure α} [is_locally_finite_measure μ] {f : α → E} (hf : continuous f)
-  (hfc : is_compact (closure $ support f)) :
-  integrable f μ :=
+  (hfc : has_compact_support f) : integrable f μ :=
 begin
   rw [← indicator_eq_self.2 (@subset_closure _ _ (support f)),
     integrable_indicator_iff is_closed_closure.measurable_set],

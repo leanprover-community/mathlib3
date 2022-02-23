@@ -85,20 +85,22 @@ theorem smul_le {P : submodule R M} : I • N ≤ P ↔ ∀ (r ∈ I) (n ∈ N),
 
 @[elab_as_eliminator]
 theorem smul_induction_on {p : M → Prop} {x} (H : x ∈ I • N)
-  (Hb : ∀ (r ∈ I) (n ∈ N), p (r • n)) (H0 : p 0)
-  (H1 : ∀ x y, p x → p y → p (x + y))
-  (H2 : ∀ (c:R) n, p n → p (c • n)) : p x :=
-(@smul_le _ _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hb H
+  (Hb : ∀ (r ∈ I) (n ∈ N), p (r • n))
+  (H1 : ∀ x y, p x → p y → p (x + y)) : p x :=
+begin
+  have H0 : p 0 := by simpa only [zero_smul] using Hb 0 I.zero_mem 0 N.zero_mem,
+  refine submodule.supr_induction _ H _ H0 H1,
+  rintros ⟨i, hi⟩ m ⟨j, hj, (rfl : i • _ = m) ⟩,
+  exact Hb _ hi _ hj,
+end
 
 theorem mem_smul_span_singleton {I : ideal R} {m : M} {x : M} :
   x ∈ I • span R ({m} : set M) ↔ ∃ y ∈ I, y • m = x :=
 ⟨λ hx, smul_induction_on hx
   (λ r hri n hnm,
     let ⟨s, hs⟩ := mem_span_singleton.1 hnm in ⟨r * s, I.mul_mem_right _ hri, hs ▸ mul_smul r s m⟩)
-  ⟨0, I.zero_mem, by rw [zero_smul]⟩
   (λ m1 m2 ⟨y1, hyi1, hy1⟩ ⟨y2, hyi2, hy2⟩,
-    ⟨y1 + y2, I.add_mem hyi1 hyi2, by rw [add_smul, hy1, hy2]⟩)
-  (λ c r ⟨y, hyi, hy⟩, ⟨c * y, I.mul_mem_left _ hyi, by rw [mul_smul, hy]⟩),
+    ⟨y1 + y2, I.add_mem hyi1 hyi2, by rw [add_smul, hy1, hy2]⟩),
 λ ⟨y, hyi, hy⟩, hy ▸ smul_mem_smul hyi (subset_span $ set.mem_singleton m)⟩
 
 theorem smul_le_right : I • N ≤ N :=
@@ -151,9 +153,7 @@ le_antisymm (smul_le.2 $ λ rs hrsij t htn,
   smul_induction_on hrsij
   (λ r hr s hs,
     (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ smul_mem_smul hr (smul_mem_smul hs htn))
-  ((zero_smul R t).symm ▸ submodule.zero_mem _)
-  (λ x y, (add_smul x y t).symm ▸ submodule.add_mem _)
-  (λ r s h, (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ submodule.smul_mem _ _ h))
+  (λ x y, (add_smul x y t).symm ▸ submodule.add_mem _))
 (smul_le.2 $ λ r hr sn hsn, suffices J • N ≤ submodule.comap (r • linear_map.id) ((I • J) • N),
   from this hsn,
 smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N,
@@ -412,7 +412,7 @@ begin
   { rw [multiset.inf_zero], exact le_top },
   intros a s ih,
   rw [multiset.prod_cons, multiset.inf_cons],
-  exact le_trans mul_le_inf (inf_le_inf (le_refl _) ih)
+  exact le_trans mul_le_inf (inf_le_inf le_rfl ih)
 end
 
 theorem prod_le_inf {s : finset ι} {f : ι → ideal R} : s.prod f ≤ s.inf f :=
@@ -988,7 +988,7 @@ open function
 
 theorem map_comap_of_surjective (I : ideal S) :
   map f (comap f I) = I :=
-le_antisymm (map_le_iff_le_comap.2 (le_refl _))
+le_antisymm (map_le_iff_le_comap.2 le_rfl)
 (λ s hsi, let ⟨r, hfrs⟩ := hf s in
   hfrs ▸ (mem_map_of_mem f $ show f r ∈ I, from hfrs.symm ▸ hsi))
 
@@ -1063,7 +1063,7 @@ theorem comap_map_of_surjective (I : ideal R) : comap f (map f I) = I ⊔ comap 
 le_antisymm (assume r h, let ⟨s, hsi, hfsr⟩ := mem_image_of_mem_map_of_surjective f hf h in
   submodule.mem_sup.2 ⟨s, hsi, r - s, (submodule.mem_bot S).2 $ by rw [f.map_sub, hfsr, sub_self],
   add_sub_cancel'_right s r⟩)
-(sup_le (map_le_iff_le_comap.1 (le_refl _)) (comap_mono bot_le))
+(sup_le (map_le_iff_le_comap.1 le_rfl) (comap_mono bot_le))
 
 
 /-- Correspondence theorem -/
@@ -1073,7 +1073,7 @@ def rel_iso_of_surjective : ideal S ≃o { p : ideal R // comap f ⊥ ≤ p } :=
   left_inv := λ J, map_comap_of_surjective f hf J,
   right_inv := λ I, subtype.eq $ show comap f (map f I.1) = I.1,
     from (comap_map_of_surjective f hf I).symm ▸ le_antisymm
-      (sup_le (le_refl _) I.2) le_sup_left,
+      (sup_le le_rfl I.2) le_sup_left,
   map_rel_iff' := λ I1 I2, ⟨λ H, map_comap_of_surjective f hf I1 ▸
     map_comap_of_surjective f hf I2 ▸ map_mono H, comap_mono⟩ }
 
@@ -1203,7 +1203,7 @@ map_le_iff_le_comap.2 $ λ r ⟨n, hrni⟩, ⟨n, f.map_pow r n ▸ mem_map_of_m
 
 theorem le_comap_mul : comap f K * comap f L ≤ comap f (K * L) :=
 map_le_iff_le_comap.1 $ (map_mul f (comap f K) (comap f L)).symm ▸
-mul_mono (map_le_iff_le_comap.2 $ le_refl _) (map_le_iff_le_comap.2 $ le_refl _)
+mul_mono (map_le_iff_le_comap.2 $ le_rfl) (map_le_iff_le_comap.2 $ le_rfl)
 
 end comm_ring
 

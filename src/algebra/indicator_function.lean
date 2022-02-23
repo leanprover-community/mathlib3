@@ -267,13 +267,21 @@ section distrib_mul_action
 
 variables {A : Type*} [add_monoid A] [monoid M] [distrib_mul_action M A]
 
-lemma indicator_smul_apply (s : set α) (r : M) (f : α → A) (x : α) :
-  indicator s (λ x, r • f x) x = r • indicator s f x :=
-by { dunfold indicator, split_ifs, exacts [rfl, (smul_zero r).symm] }
+lemma indicator_smul_apply (s : set α) (r : α → M) (f : α → A) (x : α) :
+  indicator s (λ x, r x • f x) x = r x • indicator s f x :=
+by { dunfold indicator, split_ifs, exacts [rfl, (smul_zero (r x)).symm] }
 
-lemma indicator_smul (s : set α) (r : M) (f : α → A) :
-  indicator s (λ (x : α), r • f x) = λ (x : α), r • indicator s f x :=
+lemma indicator_smul (s : set α) (r : α → M) (f : α → A) :
+  indicator s (λ (x : α), r x • f x) = λ (x : α), r x • indicator s f x :=
 funext $ indicator_smul_apply s r f
+
+lemma indicator_const_smul_apply (s : set α) (r : M) (f : α → A) (x : α) :
+  indicator s (λ x, r • f x) x = r • indicator s f x :=
+indicator_smul_apply s (λ x, r) f x
+
+lemma indicator_const_smul (s : set α) (r : M) (f : α → A) :
+  indicator s (λ (x : α), r • f x) = λ (x : α), r • indicator s f x :=
+funext $ indicator_const_smul_apply s r f
 
 end distrib_mul_action
 
@@ -460,7 +468,7 @@ mul_indicator_apply_le_one (h a)
 
 @[to_additive] lemma mul_indicator_le_mul_indicator (h : f a ≤ g a) :
   mul_indicator s f a ≤ mul_indicator s g a :=
-mul_indicator_rel_mul_indicator (le_refl _) (λ _, h)
+mul_indicator_rel_mul_indicator le_rfl (λ _, h)
 
 attribute [mono] mul_indicator_le_mul_indicator indicator_le_indicator
 
@@ -471,7 +479,7 @@ mul_indicator_apply_le' (λ ha, le_mul_indicator_apply (λ _, le_rfl) (λ hat, (
   (λ ha, one_le_mul_indicator_apply (λ _, hf _))
 
 @[to_additive] lemma mul_indicator_le_self' (hf : ∀ x ∉ s, 1 ≤ f x) : mul_indicator s f ≤ f :=
-mul_indicator_le' (λ _ _, le_refl _) hf
+mul_indicator_le' (λ _ _, le_rfl) hf
 
 @[to_additive] lemma mul_indicator_Union_apply {ι M} [complete_lattice M] [has_one M]
   (h1 : (⊥:M) = 1) (s : ι → set α) (f : α → M) (x : α) :

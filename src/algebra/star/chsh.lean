@@ -131,7 +131,7 @@ begin
       simp only [mul_comm _ (2 : R), mul_comm _ (4 : R),
         mul_left_comm _ (2 : R), mul_left_comm _ (4 : R)],
       abel,
-      simp only [neg_mul_eq_neg_mul_symm, mul_one, int.cast_bit0, one_mul, int.cast_one,
+      simp only [neg_mul, mul_one, int.cast_bit0, one_mul, int.cast_one,
         zsmul_eq_mul, int.cast_neg],
       simp only [←mul_assoc, ←add_assoc],
       norm_num, },
@@ -217,7 +217,7 @@ begin
     abel,
     -- all terms coincide, but the last one. Simplify all other terms
     simp only [M],
-    simp only [neg_mul_eq_neg_mul_symm, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
+    simp only [neg_mul, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
       int.cast_one, one_smul, int.cast_neg, add_right_inj, neg_smul, ← add_smul],
     -- just look at the coefficients now:
     congr,

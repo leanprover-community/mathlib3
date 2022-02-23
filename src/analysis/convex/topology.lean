@@ -29,7 +29,7 @@ We prove the following facts:
 variables {ι : Type*} {E : Type*}
 
 open set
-open_locale pointwise
+open_locale pointwise convex
 
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex ℝ s ↔ is_preconnected s :=
 convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm
@@ -282,5 +282,14 @@ by simp only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
 instance normed_space.loc_path_connected : loc_path_connected_space E :=
 loc_path_connected_of_bases (λ x, metric.nhds_basis_ball)
   (λ x r r_pos, (convex_ball x r).is_path_connected $ by simp [r_pos])
+
+lemma dist_add_dist_of_mem_segment {x y z : E} (h : y ∈ [x -[ℝ] z]) :
+  dist x y + dist y z = dist x z :=
+begin
+  rw [segment_eq_image_line_map] at h,
+  rcases h with ⟨t, ⟨ht₀, ht₁⟩, rfl⟩,
+  rw [dist_left_line_map, dist_line_map_right, real.norm_of_nonneg ht₀,
+    real.norm_of_nonneg (sub_nonneg.2 ht₁), ← add_mul, add_sub_cancel'_right, one_mul]
+end
 
 end normed_space

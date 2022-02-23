@@ -202,20 +202,20 @@ begin
 end
 
 /-- A convience constructor for the power series whose coefficients indicate a subset. -/
-def indicator_series (α : Type*) [semiring α] (f : set ℕ) : power_series α :=
-power_series.mk (λ n, if f n then 1 else 0)
+def indicator_series (α : Type*) [semiring α] (s : set ℕ) : power_series α :=
+power_series.mk (λ n, if n ∈ s then 1 else 0)
 
-lemma coeff_indicator (f : set ℕ) [semiring α] (n : ℕ) :
-  coeff α n (indicator_series _ f) = if f n then 1 else 0 :=
+lemma coeff_indicator (s : set ℕ) [semiring α] (n : ℕ) :
+  coeff α n (indicator_series _ s) = if n ∈ s then 1 else 0 :=
 coeff_mk _ _
-lemma coeff_indicator_pos (f : set ℕ) [semiring α] (n : ℕ) (h : f n):
-  coeff α n (indicator_series _ f) = 1 :=
+lemma coeff_indicator_pos (s : set ℕ) [semiring α] (n : ℕ) (h : n ∈ s):
+  coeff α n (indicator_series _ s) = 1 :=
 by rw [coeff_indicator, if_pos h]
-lemma coeff_indicator_neg (f : set ℕ) [semiring α] (n : ℕ) (h : ¬f n):
-  coeff α n (indicator_series _ f) = 0 :=
+lemma coeff_indicator_neg (s : set ℕ) [semiring α] (n : ℕ) (h : n ∉ s):
+  coeff α n (indicator_series _ s) = 0 :=
 by rw [coeff_indicator, if_neg h]
-lemma constant_coeff_indicator (f : set ℕ) [semiring α] :
-  constant_coeff α (indicator_series _ f) = if f 0 then 1 else 0 :=
+lemma constant_coeff_indicator (s : set ℕ) [semiring α] :
+  constant_coeff α (indicator_series _ s) = if 0 ∈ s then 1 else 0 :=
 rfl
 
 lemma two_series (i : ℕ) [semiring α] :
@@ -230,7 +230,7 @@ begin
 end
 
 lemma num_series' [field α] (i : ℕ) :
-  (1 - (X : power_series α)^(i+1))⁻¹ = indicator_series α (λ k, i + 1 ∣ k) :=
+  (1 - (X : power_series α)^(i+1))⁻¹ = indicator_series α { k | i + 1 ∣ k } :=
 begin
   rw power_series.inv_eq_iff_mul_eq_one,
   { ext,
@@ -245,7 +245,7 @@ begin
       split_ifs,
       { suffices :
         ((nat.antidiagonal n.succ).filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1)).card = 1,
-        { rw this, norm_cast },
+        { simp only [set.mem_set_of_eq], rw this, norm_cast },
         rw card_eq_one,
         cases h with p hp,
         refine ⟨((i+1) * (p-1), i+1), _⟩,
@@ -262,7 +262,7 @@ begin
           simp [nat.succ_eq_add_one, mul_add] } },
       { suffices :
         (filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1) (nat.antidiagonal n.succ)).card = 0,
-        { rw this, norm_cast },
+        { simp only [set.mem_set_of_eq], rw this, norm_cast },
         rw card_eq_zero,
         apply eq_empty_of_forall_not_mem,
         simp only [prod.forall, mem_filter, not_and, nat.mem_antidiagonal],
@@ -505,7 +505,7 @@ begin
   exact_mod_cast nat.lt_succ_of_le (le_add_right h),
 end
 
-theorem freek (n : ℕ) : (nat.partition.odds n).card = (nat.partition.distincts n).card :=
+theorem partition_theorem (n : ℕ) : (nat.partition.odds n).card = (nat.partition.distincts n).card :=
 begin
   -- We need the counts to live in some field (which contains ℕ), so let's just use ℚ
   suffices : ((nat.partition.odds n).card : ℚ) = (nat.partition.distincts n).card,

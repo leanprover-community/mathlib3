@@ -281,8 +281,8 @@ begin
           union_diff_left],
       rw [nat.succ_eq_add_one, this, f.additive],
       swap, { rw disjoint.comm, apply disjoint_diff },
-      calc ((n + 1) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by ring
-      ... ≤ f ((s (n + 1)) \ (s n)) + f (s n) : add_le_add (I1 n) IH } },
+      calc ((n + 1 : ℕ) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by simp only [nat.cast_succ]; ring
+      ... ≤ f ((s (n + 1 : ℕ)) \ (s n)) + f (s n) : add_le_add (I1 n) IH } },
   rcases exists_nat_gt (f.C / (ε / 2)) with ⟨n, hn⟩,
   have : (n : ℝ) ≤ f.C / (ε / 2),
     by { rw le_div_iff (half_pos ε_pos), exact (I2 n).trans (f.le_bound _) },

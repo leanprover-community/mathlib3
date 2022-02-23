@@ -197,6 +197,9 @@ instance has_add_L : has_add L :=
 instance : has_mul L :=
 { mul := λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨a * b, mul_L ha hb⟩ }
 
+instance : add_monoid_with_one L :=
+function.injective.add_monoid_with_one _ subtype.coe_injective rfl (by rintros ⟨⟩ ⟨⟩; refl)
+
 instance : ordered_comm_semiring L :=
 begin
   refine function.injective.ordered_comm_semiring _ subtype.coe_injective rfl rfl _ _;

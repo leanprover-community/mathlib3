@@ -159,12 +159,6 @@ def {u} sigma_equiv_option_of_nonempty (α : Type u) [inhabited α] [decidable_e
         { simp, } }
     end }⟩
 
-/-- A type is a `fintype` if its successor (using `option`) is a `fintype`. -/
-noncomputable
-def fintype_of_equiv_option [fintype α] (f : option β ≃ α) : fintype β :=
-fintype.of_injective (embedding.coe_option.trans f.to_embedding) $
-injective.comp (equiv.to_embedding f).injective embedding.coe_option.injective
-
 lemma multichoose_eq (α : Type*) [hα : fintype α] (k : ℕ) [fintype (sym α k)] :
   multichoose (card α) k = card (sym α k) :=
 begin

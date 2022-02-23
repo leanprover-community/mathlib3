@@ -31,4 +31,8 @@ begin
     simpa using inv_le_of_inv_le (norm_pos_iff.mpr hnk) this }
 end
 
+lemma spectrum.subset_circle_of_unitary {u : E} (h : u ∈ unitary E) :
+  spectrum 𝕜 u ⊆ { k : 𝕜 | ∥k∥ = 1 } :=
+unitary.spectrum_subset_circle ⟨u, h⟩
+
 end unitary_spectrum

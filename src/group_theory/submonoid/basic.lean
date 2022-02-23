@@ -63,10 +63,17 @@ set_option old_structure_cmd true
 structure submonoid (M : Type*) [mul_one_class M] extends subsemigroup M :=
 (one_mem' : (1 : M) ∈ carrier)
 
+/-- A submonoid of a monoid `M` can be considered as a subsemigroup of that monoid. -/
+add_decl_doc submonoid.to_subsemigroup
+
 /-- An additive submonoid of an additive monoid `M` is a subset containing 0 and
   closed under addition. -/
 structure add_submonoid (M : Type*) [add_zero_class M] extends add_subsemigroup M :=
 (zero_mem' : (0 : M) ∈ carrier)
+
+/-- An additive submonoid of an additive monoid `M` can be considered as an
+additive subsemigroup of that additive monoid. -/
+add_decl_doc add_submonoid.to_add_subsemigroup
 
 attribute [to_additive] submonoid
 

@@ -37,7 +37,7 @@ protected def orientation.fin_orthonormal_basis {n : ℕ} (hn : 0 < n) (h : finr
 begin
   haveI := fin.pos_iff_nonempty.1 hn,
   haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
-  exact (fin_orthonormal_basis h).adjust_to_orientation x
+  exact (fin_std_orthonormal_basis h).adjust_to_orientation x
 end
 
 /-- `orientation.fin_orthonormal_basis` is orthonormal. -/
@@ -47,7 +47,7 @@ protected lemma orientation.fin_orthonormal_basis_orthonormal {n : ℕ} (hn : 0 
 begin
   haveI := fin.pos_iff_nonempty.1 hn,
   haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
-  exact (fin_orthonormal_basis_orthonormal h).orthonormal_adjust_to_orientation _
+  exact (fin_std_orthonormal_basis_orthonormal h).orthonormal_adjust_to_orientation _
 end
 
 /-- `orientation.fin_orthonormal_basis` gives a basis with the required orientation. -/

@@ -204,6 +204,7 @@ meta def tr : bool → list string → list string
 | is_comm ("lt" :: "one" :: s)        := add_comm_prefix is_comm "neg"       :: tr ff s
 | is_comm ("mul" :: "single" :: s)    := add_comm_prefix is_comm "single"    :: tr ff s
 | is_comm ("mul" :: "support" :: s)   := add_comm_prefix is_comm "support"   :: tr ff s
+| is_comm ("mul" :: "tsupport" :: s)  := add_comm_prefix is_comm "tsupport"  :: tr ff s
 | is_comm ("mul" :: "indicator" :: s) := add_comm_prefix is_comm "indicator" :: tr ff s
 | is_comm ("mul" :: s)                := add_comm_prefix is_comm "add"       :: tr ff s
 | is_comm ("smul" :: s)               := add_comm_prefix is_comm "vadd"      :: tr ff s

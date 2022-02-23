@@ -1416,6 +1416,15 @@ ext $ λ x, ⟨λ h, (mem_filter.1 h).1, λ hx, mem_filter.2 ⟨hx, h x hx⟩⟩
 lemma filter_false_of_mem {s : finset α} (h : ∀ x ∈ s, ¬ p x) : s.filter p = ∅ :=
 eq_empty_of_forall_not_mem (by simpa)
 
+lemma filter_eq_empty_iff (s : finset α) (p : α → Prop) [decidable_pred p] :
+  (s.filter p = ∅) ↔ ∀ x ∈ s, ¬ p x :=
+begin
+  refine ⟨_, filter_false_of_mem⟩,
+  intros hs,
+  injection hs with hs',
+  rwa filter_eq_nil at hs'
+end
+
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H
 

@@ -1758,20 +1758,19 @@ lemma _root_.submodule.comap_map_eq_self {f : M →ₛₗ[τ₁₂] M₂} {p : s
   comap f (map f p) = p :=
 by rw [submodule.comap_map_eq, sup_of_le_left h]
 
-theorem map_le_map_iff (f : M →ₛₗ[τ₁₂] M₂) {p p'} :
-  map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
+protected lemma map_le_map_iff (f : M →ₛₗ[τ₁₂] M₂) {p p'} : map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
 by rw [map_le_iff_le_comap, submodule.comap_map_eq]
 
 theorem map_le_map_iff' {f : M →ₛₗ[τ₁₂] M₂} (hf : ker f = ⊥) {p p'} :
   map f p ≤ map f p' ↔ p ≤ p' :=
-by rw [map_le_map_iff, hf, sup_bot_eq]
+by rw [linear_map.map_le_map_iff, hf, sup_bot_eq]
 
 theorem map_injective {f : M →ₛₗ[τ₁₂] M₂} (hf : ker f = ⊥) : injective (map f) :=
 λ p p' h, le_antisymm ((map_le_map_iff' hf).1 (le_of_eq h)) ((map_le_map_iff' hf).1 (ge_of_eq h))
 
 theorem map_eq_top_iff {f : M →ₛₗ[τ₁₂] M₂} (hf : range f = ⊤) {p : submodule R M} :
   p.map f = ⊤ ↔ p ⊔ f.ker = ⊤ :=
-by simp_rw [← top_le_iff, ← hf, range_eq_map, map_le_map_iff]
+by simp_rw [← top_le_iff, ← hf, range_eq_map, linear_map.map_le_map_iff]
 
 end add_comm_group
 

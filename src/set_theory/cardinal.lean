@@ -1384,8 +1384,8 @@ lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
   ∃ (z : α), z ≠ x ∧ z ≠ y :=
 begin
   have : ((3:nat) : cardinal) ≤ # α, simpa using h,
-  obtain ⟨z, hz⟩ := exists_not_mem_of_length_le [x, y] this,
-  use z, simpa [not_or_distrib] using hz,
+  have := exists_not_mem_of_length_le [x, y] this,
+  simpa [not_or_distrib] using this,
 end
 
 /-- The function α^{<β}, defined to be sup_{γ < β} α^γ.

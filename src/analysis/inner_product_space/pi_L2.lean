@@ -111,8 +111,12 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
+/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`,
+backwards direction. -/
 def to_euclidean_space [fintype ι] : (ι → 𝕜) ≃ euclidean_space 𝕜 ι := equiv.refl _
 
+/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`,
+forwards direction. -/
 def of_euclidean_space [fintype ι]: euclidean_space 𝕜 ι ≃ (ι → 𝕜) := equiv.refl _
 
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
@@ -226,7 +230,7 @@ by { classical, congr}
   b.repr.symm (pi.single i (1:𝕜)) = b i :=
 by { classical, congr}
 
-@[simp] protected lemma repr_self [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
+@[simp] protected lemma repr_self (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr (b i) = euclidean_space.single i (1:𝕜) :=
 begin
   classical,
@@ -349,6 +353,7 @@ orthonormal_basis.coe_mk hon _
 variable {ι' : Type*}
 variables [fintype ι']
 
+/-- If the underlying vector spaces are equivalent, the euclidean spaces built on top are too. -/
 def _root_.linear_equiv.to_linear_equiv_of_euclidean_space (e : (ι →₀ 𝕜) ≃ₗ[𝕜] (ι' →₀ 𝕜)) :
   euclidean_space 𝕜 ι ≃ₗ[𝕜] euclidean_space 𝕜 ι' :=
 (finsupp.linear_equiv_fun_on_fintype 𝕜 𝕜 ι).symm.trans $
@@ -380,7 +385,7 @@ funext (b.reindex_apply e)
 by rw [orthonormal_basis.repr_apply_apply, b.repr_apply_apply, orthonormal_basis.coe_reindex]
 
 protected lemma coe_reindex_repr
-  (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (x : E) (i' : ι') :
+  (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (x : E) :
   ((b.reindex e).repr x) = of_euclidean_space (b.repr x) ∘ (e.symm) :=
 begin
   funext i,
@@ -457,8 +462,6 @@ open finite_dimensional
 
 section finite_dimensional
 
-variables [finite_dimensional 𝕜 E]
-
 variables {v : set E}
 
 variables {A : ι → submodule 𝕜 E}
@@ -484,6 +487,8 @@ lemma direct_sum.submodule_is_internal.collected_orthonormal_basis_mem [decidabl
   (v : Π i, orthonormal_basis (α i) 𝕜 (A i)) (a : Σ i, α i) :
   h.collected_orthonormal_basis hV v a ∈ A a.1 :=
 by simp [direct_sum.submodule_is_internal.collected_orthonormal_basis]
+
+variables [finite_dimensional 𝕜 E]
 
 -- move this
 lemma _root_.linear_independent.finite {K : Type*} {V : Type*} [division_ring K] [add_comm_group V]
@@ -594,3 +599,5 @@ def linear_isometry_equiv.from_orthogonal_span_singleton
   (n : ℕ) [fact (finrank 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 (fin_std_orthonormal_basis (finrank_orthogonal_span_singleton hv)).repr
+
+#lint

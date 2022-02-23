@@ -8,14 +8,16 @@ import ring_theory.ideal.basic
 import ring_theory.ideal.operations
 import linear_algebra.finsupp
 import ring_theory.graded_algebra.basic
+
 /-!
 # Homogeneous ideals of a graded algebra
 
-This file defines homogeneous ideals of `graded_algebra A` where `A : ι → ideal R` and operations on
-them.
+This file defines homogeneous ideals of `graded_algebra 𝒜` where `𝒜 : ι → submodule R A` and
+operations on them.
 
 ## Main definitions
 
+For any `I : ideal A`:
 * `ideal.is_homogeneous 𝒜 I`: The property that an ideal is closed under `graded_algebra.proj`.
 * `homogeneous_ideal 𝒜`: The subtype of ideals which satisfy `ideal.is_homogeneous`
 * `ideal.homogeneous_core I 𝒜`: The largest homogeneous ideal smaller than `I`.

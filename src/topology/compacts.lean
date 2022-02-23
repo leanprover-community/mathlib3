@@ -263,23 +263,18 @@ lemma clopen (s : clopens α) : is_clopen (s : set α) := s.clopen'
 @[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
 
 instance : has_sup (clopens α) := ⟨λ s t, ⟨s ∪ t, s.clopen.union t.clopen⟩⟩
-instance [t2_space α] : has_inf (clopens α) := ⟨λ s t, ⟨s ∩ t, s.clopen.inter t.clopen⟩⟩
-instance [compact_space α] : has_top (clopens α) := ⟨⟨⊤, is_clopen_univ⟩⟩
+instance : has_inf (clopens α) := ⟨λ s t, ⟨s ∩ t, s.clopen.inter t.clopen⟩⟩
+instance : has_top (clopens α) := ⟨⟨⊤, is_clopen_univ⟩⟩
 instance : has_bot (clopens α) := ⟨⟨⊥, is_clopen_empty⟩⟩
 
-instance : semilattice_sup (clopens α) := set_like.coe_injective.semilattice_sup _ (λ _ _, rfl)
-
-instance [t2_space α] : distrib_lattice (clopens α) :=
+instance : distrib_lattice (clopens α) :=
 set_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
 
-instance : order_bot (clopens α) := order_bot.lift (coe : _ → set α) (λ _ _, id) rfl
-
-instance [compact_space α] : bounded_order (clopens α) :=
-bounded_order.lift (coe : _ → set α) (λ _ _, id) rfl rfl
+instance : bounded_order (clopens α) := bounded_order.lift (coe : _ → set α) (λ _ _, id) rfl rfl
 
 @[simp] lemma coe_sup (s t : clopens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
-@[simp] lemma coe_inf [t2_space α] (s t : clopens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
-@[simp] lemma coe_top [compact_space α] : (↑(⊤ : clopens α) : set α) = univ := rfl
+@[simp] lemma coe_inf (s t : clopens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simp] lemma coe_top : (↑(⊤ : clopens α) : set α) = univ := rfl
 @[simp] lemma coe_bot : (↑(⊥ : clopens α) : set α) = ∅ := rfl
 
 instance : inhabited (clopens α) := ⟨⊥⟩
@@ -303,6 +298,10 @@ lemma «open» (s : compact_opens α) : is_open (s : set α) := s.open'
 
 /-- Reinterpret a compact open as an open. -/
 @[simps] def to_opens (s : compact_opens α) : opens α := ⟨s, s.open⟩
+
+/-- Reinterpret a compact open as a clopen. -/
+@[simps] def to_clopens [t2_space α] (s : compact_opens α) : clopens α :=
+⟨s, s.open, s.compact.is_closed⟩
 
 @[ext] protected lemma ext {s t : compact_opens α} (h : (s : set α) = t) : s = t := set_like.ext' h
 

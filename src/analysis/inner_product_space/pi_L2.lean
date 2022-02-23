@@ -600,8 +600,6 @@ def linear_isometry_equiv.from_orthogonal_span_singleton
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 (fin_std_orthonormal_basis (finrank_orthogonal_span_singleton hv)).repr
 
-linear_isometry_equiv.of_inner_product_space (finrank_orthogonal_span_singleton hv)
-
 section matrix
 
 open_locale matrix

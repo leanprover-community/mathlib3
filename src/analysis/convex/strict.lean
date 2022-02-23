@@ -113,7 +113,7 @@ lemma strict_convex.linear_image [semiring 𝕝] [module 𝕝 E] [module 𝕝 F]
   strict_convex 𝕜 (f '' s) :=
 begin
   rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
-  refine hf.image_interior_subset _ ⟨_, hs hx hy (ne_of_apply_ne _ hxy) ha hb hab, _⟩,
+  refine hf.image_interior_subset _ ⟨a • x + b • y, hs hx hy (ne_of_apply_ne _ hxy) ha hb hab, _⟩,
   rw [map_add, f.map_smul_of_tower a, f.map_smul_of_tower b]
 end
 
@@ -207,23 +207,6 @@ variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
 section continuous_add
 variables [has_continuous_add E] {s t : set E}
 
-lemma strict_convex.add_left (hs : strict_convex 𝕜 s) (z : E) :
-  strict_convex 𝕜 ((λ x, z + x) '' s) :=
-begin
-  rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
-  refine (is_open_map_add_left _).image_interior_subset _ _,
-  refine ⟨a • x + b • y, hs hx hy (ne_of_apply_ne _ hxy) ha hb hab, _⟩,
-  rw [smul_add, smul_add, add_add_add_comm, ←add_smul, hab, one_smul],
-end
-
-lemma strict_convex.add_right (hs : strict_convex 𝕜 s) (z : E) :
-  strict_convex 𝕜 ((λ x, x + z) '' s) :=
-by simpa only [add_comm] using hs.add_left z
-
-/-- The translation of a strictly convex set is also strictly convex. -/
-lemma strict_convex.vadd (hs : strict_convex 𝕜 s) (x : E) : strict_convex 𝕜 (x +ᵥ s) :=
-hs.add_left x
-
 lemma strict_convex.add (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
   strict_convex 𝕜 (s + t) :=
 begin
@@ -232,19 +215,25 @@ begin
   obtain rfl | hvx := eq_or_ne v x,
   { rw convex.combo_self hab,
     suffices : v + (a • w + b • y) ∈ interior ({v} + t),
-    { exact interior_mono (add_subset_add (singleton_subset_iff.2 hv) (subset.refl _)) this },
+      from interior_mono (add_subset_add (singleton_subset_iff.2 hv) subset.rfl) this,
     rw singleton_add,
     exact (is_open_map_add_left _).image_interior_subset _
       (mem_image_of_mem _ $ ht hw hy (ne_of_apply_ne _ h) ha hb hab) },
-  obtain rfl | hwy := eq_or_ne w y,
-  { rw convex.combo_self hab,
-    suffices : a • v + b • x + w ∈ interior (s + {w}),
-    { exact interior_mono (add_subset_add (subset.refl _) (singleton_subset_iff.2 hw)) this },
-    rw add_singleton,
-    exact (is_open_map_add_right _).image_interior_subset _
-      (mem_image_of_mem _ $ hs hv hx hvx ha hb hab) },
-  exact subset_interior_add (add_mem_add (hs hv hx hvx ha hb hab) $ ht hw hy hwy ha hb hab),
+  exact subset_interior_add_left (add_mem_add (hs hv hx hvx ha hb hab) $
+    ht.convex hw hy ha.le hb.le hab)
 end
+
+lemma strict_convex.add_left (hs : strict_convex 𝕜 s) (z : E) :
+  strict_convex 𝕜 ((λ x, z + x) '' s) :=
+by simpa only [singleton_add] using (strict_convex_singleton z).add hs
+
+lemma strict_convex.add_right (hs : strict_convex 𝕜 s) (z : E) :
+  strict_convex 𝕜 ((λ x, x + z) '' s) :=
+by simpa only [add_comm] using hs.add_left z
+
+/-- The translation of a strictly convex set is also strictly convex. -/
+lemma strict_convex.vadd (hs : strict_convex 𝕜 s) (x : E) : strict_convex 𝕜 (x +ᵥ s) :=
+hs.add_left x
 
 end continuous_add
 

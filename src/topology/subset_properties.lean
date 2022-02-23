@@ -1384,10 +1384,12 @@ lemma is_irreducible.is_preirreducible {s : set α} (h : is_irreducible s) :
 theorem is_preirreducible_empty : is_preirreducible (∅ : set α) :=
 λ _ _ _ _ _ ⟨x, h1, h2⟩, h1.elim
 
+lemma set.subsingleton.is_preirreducible {s : set α} (hs : s.subsingleton) :
+  is_preirreducible s :=
+λ u v hu hv ⟨x, hxs, hxu⟩ ⟨y, hys, hyv⟩, ⟨y, hys, hs hxs hys ▸ hxu, hyv⟩
+
 theorem is_irreducible_singleton {x} : is_irreducible ({x} : set α) :=
-⟨singleton_nonempty x,
- λ u v _ _ ⟨y, h1, h2⟩ ⟨z, h3, h4⟩, by rw mem_singleton_iff at h1 h3;
- substs y z; exact ⟨x, rfl, h2, h4⟩⟩
+⟨singleton_nonempty x, subsingleton_singleton.is_preirreducible⟩
 
 theorem is_preirreducible.closure {s : set α} (H : is_preirreducible s) :
   is_preirreducible (closure s) :=
@@ -1400,15 +1402,6 @@ let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
   is_irreducible (closure s) :=
 ⟨h.nonempty.closure, h.is_preirreducible.closure⟩
-
-lemma is_preirreducible_of_subsingleton (s : set α) [hs : subsingleton s] : is_preirreducible s :=
-begin
-  cases s.eq_empty_or_nonempty,
-  { exact h.symm ▸ is_preirreducible_empty },
-  { obtain ⟨x, e⟩ := exists_eq_singleton_iff_nonempty_subsingleton.mpr
-      ⟨h, λ _ ha _ hb, by injection @@subsingleton.elim hs ⟨_, ha⟩ ⟨_, hb⟩⟩,
-    exact e.symm ▸ is_irreducible_singleton.2 }
-end
 
 theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
   ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=

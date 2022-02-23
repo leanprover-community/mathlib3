@@ -53,10 +53,10 @@ is the largest homogeneous ideal of `R` contained in `I`, as an ideal. -/
 def ideal.homogeneous_core' : ideal A :=
 ideal.span (coe '' ((coe : subtype (is_homogeneous 𝒜) → A) ⁻¹' I))
 
-lemma ideal.homogeneous_core'_is_mono : monotone (ideal.homogeneous_core' 𝒜) :=
+lemma ideal.homogeneous_core'_mono : monotone (ideal.homogeneous_core' 𝒜) :=
 λ I J I_le_J, ideal.span_mono $ set.image_subset _ $ λ x, @I_le_J _
 
-lemma ideal.homogeneous_core'_le_ideal : I.homogeneous_core' 𝒜 ≤ I :=
+lemma ideal.homogeneous_core'_le : I.homogeneous_core' 𝒜 ≤ I :=
 ideal.span_le.2 $ image_preimage_subset _ _
 
 end homogeneous_core
@@ -113,28 +113,38 @@ end
 
 /--For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_core' 𝒜`
 is the largest homogeneous ideal of `R` contained in `I`, as an ideal.-/
-abbreviation ideal.homogeneous_core : homogeneous_ideal 𝒜 :=
+def ideal.homogeneous_core : homogeneous_ideal 𝒜 :=
 ⟨ideal.homogeneous_core' 𝒜 I,
   ideal.is_homogeneous_span _ _ (λ x h, by { rw [subtype.image_preimage_coe] at h, exact h.2 })⟩
 
+lemma ideal.homogeneous_core_mono : monotone (ideal.homogeneous_core 𝒜) :=
+ideal.homogeneous_core'_mono 𝒜
+
+lemma ideal.coe_homogeneous_core_le : ↑(I.homogeneous_core 𝒜) ≤ I :=
+ideal.homogeneous_core'_le 𝒜 I
+
 variables {𝒜 I}
 
-lemma ideal.is_homogeneous.homogeneous_core_eq_self (h : I.is_homogeneous 𝒜) :
-  I.homogeneous_core' 𝒜 = I :=
+lemma ideal.is_homogeneous.coe_homogeneous_core_eq_self (h : I.is_homogeneous 𝒜) :
+  ↑(I.homogeneous_core 𝒜) = I :=
 begin
   symmetry,
-  apply le_antisymm _ (I.homogeneous_core'_le_ideal 𝒜),
+  apply le_antisymm _ (I.homogeneous_core'_le 𝒜),
   intros x hx,
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
   rw ←graded_algebra.sum_support_decompose 𝒜 x,
   exact ideal.sum_mem _ (λ j hj, ideal.subset_span ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩),
 end
 
+@[simp] lemma homogeneous_ideal.homogeneous_core_coe_eq_self (I : homogeneous_ideal 𝒜) :
+  (I : ideal A).homogeneous_core 𝒜 = I :=
+subtype.coe_injective $ ideal.is_homogeneous.coe_homogeneous_core_eq_self I.prop
+
 variables (𝒜 I)
 
 lemma ideal.is_homogeneous.iff_eq :
-  I.is_homogeneous 𝒜 ↔ I.homogeneous_core' 𝒜 = I:=
-⟨ λ hI, hI.homogeneous_core_eq_self,
+  I.is_homogeneous 𝒜 ↔ ↑(I.homogeneous_core 𝒜) = I:=
+⟨ λ hI, hI.coe_homogeneous_core_eq_self,
   λ hI, hI ▸ (ideal.homogeneous_core 𝒜 I).2 ⟩
 
 lemma ideal.is_homogeneous.iff_exists :
@@ -293,27 +303,18 @@ variable (I : ideal A)
 
 lemma ideal.homogeneous_core.gc : galois_connection coe (ideal.homogeneous_core 𝒜) :=
 λ I J, ⟨
-  λ H, show I.1 ≤ ideal.homogeneous_core' 𝒜 J, begin
-    rw ←I.2.homogeneous_core_eq_self,
-    exact ideal.homogeneous_core'_is_mono 𝒜 H,
-  end,
-  λ H, le_trans H (ideal.homogeneous_core'_le_ideal _ _)⟩
+  λ H, I.homogeneous_core_coe_eq_self ▸ ideal.homogeneous_core_mono 𝒜 H,
+  λ H, le_trans H (ideal.homogeneous_core'_le _ _)⟩
 
 /--`coe : homogeneous_ideal 𝒜 → ideal A` and `ideal.homogeneous_core 𝒜` forms a galois
 coinsertion-/
 def ideal.homogeneous_core.gi : galois_coinsertion coe (ideal.homogeneous_core 𝒜) :=
-{ choice := λ I HI, ⟨I, begin
-    have eq : I = I.homogeneous_core' 𝒜,
-    refine le_antisymm HI _,
-    apply (ideal.homogeneous_core'_le_ideal 𝒜 I),
-    rw eq,
-    apply (ideal.homogeneous_core _ _).2,
-  end⟩,
+{ choice := λ I HI, ⟨I, le_antisymm (I.coe_homogeneous_core_le 𝒜) HI ▸ subtype.prop _⟩,
   gc := ideal.homogeneous_core.gc 𝒜,
-  u_l_le := λ I, by apply ideal.homogeneous_core'_le_ideal,
-  choice_eq := λ I H, le_antisymm H (I.homogeneous_core'_le_ideal _) }
+  u_l_le := λ I, ideal.homogeneous_core'_le _ _,
+  choice_eq := λ I H, le_antisymm H (I.coe_homogeneous_core_le _) }
 
-lemma ideal.homogeneous_core_eq_Sup :
+lemma ideal.homogeneous_core'_eq_Sup :
   I.homogeneous_core' 𝒜 = Sup {J : ideal A | J.is_homogeneous 𝒜 ∧ J ≤ I} :=
 begin
   refine (is_lub.Sup_eq _).symm,
@@ -332,8 +333,8 @@ variables [algebra R A] [decidable_eq ι] [add_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 variable (I : ideal A)
 
-/--For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_hull' 𝒜` is
-the smallest homogeneous ideal containing `I`.-/
+/--For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_hull 𝒜` is
+the smallest homogeneous ideal containing `I`. -/
 def ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
 ⟨ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}, begin
   refine ideal.is_homogeneous_span _ _ (λ x hx, _),
@@ -341,7 +342,7 @@ def ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
   apply set_like.is_homogeneous_coe
 end⟩
 
-lemma ideal.ideal_le_homogeneous_hull :
+lemma ideal.le_coe_homogeneous_hull :
   I ≤ ideal.homogeneous_hull 𝒜 I :=
 begin
   intros r hr,
@@ -351,7 +352,7 @@ begin
   apply ideal.subset_span, use j, use ⟨r, hr⟩, refl,
 end
 
-lemma ideal.homogeneous_hull_is_mono : monotone (ideal.homogeneous_hull 𝒜) := λ I J I_le_J,
+lemma ideal.homogeneous_hull_mono : monotone (ideal.homogeneous_hull 𝒜) := λ I J I_le_J,
 begin
   apply ideal.span_mono,
   rintros r ⟨hr1, ⟨x, hx⟩, rfl⟩,
@@ -372,7 +373,7 @@ begin
     exact K.2 _ (HK1 hy), },
   { erw ideal.mem_Inf at hx,
     refine @hx (ideal.homogeneous_hull 𝒜 I) _,
-    exact ⟨ideal.homogeneous_hull _ _, ideal.ideal_le_homogeneous_hull _ _, rfl⟩, }
+    exact ⟨ideal.homogeneous_hull _ _, ideal.le_coe_homogeneous_hull _ _, rfl⟩, }
 end
 
 lemma coe_homogeneous_hull_eq_supr :
@@ -407,6 +408,10 @@ begin
     exact HJ1 hx },
 end
 
+@[simp] lemma homogeneous_ideal.homogeneous_hull_coe_eq_self (I : homogeneous_ideal 𝒜) :
+  (I : ideal A).homogeneous_hull 𝒜 = I :=
+subtype.coe_injective $ ideal.is_homogeneous.homogeneous_hull_eq_self I.prop
+
 variables (𝒜 I)
 
 end homogeneous_hull
@@ -418,32 +423,15 @@ variables [algebra R A] [decidable_eq ι] [add_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 
 lemma ideal.homogeneous_hull.gc : galois_connection (ideal.homogeneous_hull 𝒜) coe :=
-λ I J,
-⟨ le_trans (ideal.ideal_le_homogeneous_hull _ _),
-  λ H, begin
-    show (ideal.homogeneous_hull 𝒜 I).1 ≤ J.1,
-    rw ←J.2.homogeneous_hull_eq_self,
-    exact ideal.homogeneous_hull_is_mono 𝒜 H,
-  end ⟩
+λ I J, ⟨
+  le_trans (ideal.le_coe_homogeneous_hull _ _),
+  λ H, J.homogeneous_hull_coe_eq_self ▸ ideal.homogeneous_hull_mono 𝒜 H⟩
 
-
-/--`ideal.homogeneous_hull 𝒜` and `coe : homogeneous_ideal 𝒜 → ideal A` forms a galois insertion-/
-def ideal.homogeneous_hull.gi :
-  galois_insertion
-    (ideal.homogeneous_hull 𝒜 :
-      ideal A → homogeneous_ideal 𝒜)
-    (coe : homogeneous_ideal 𝒜 → ideal A) :=
-{ choice := λ I H, ⟨I, begin
-    have eq : I = ideal.homogeneous_hull 𝒜 I,
-    have ineq1 : I ≤ ideal.homogeneous_hull 𝒜 I := ideal.ideal_le_homogeneous_hull 𝒜 I,
-    exact le_antisymm ineq1 H,
-    rw eq,
-    apply (I.homogeneous_hull _).2,
-  end⟩,
+/-- `ideal.homogeneous_hull 𝒜` and `coe : homogeneous_ideal 𝒜 → ideal A` forms a galois insertion-/
+def ideal.homogeneous_hull.gi : galois_insertion (ideal.homogeneous_hull 𝒜) coe :=
+{ choice := λ I H, ⟨I, le_antisymm H (I.le_coe_homogeneous_hull 𝒜) ▸ subtype.prop _⟩,
   gc := ideal.homogeneous_hull.gc 𝒜,
-  le_l_u := λ ⟨I, HI⟩, by { apply ideal.ideal_le_homogeneous_hull },
-  choice_eq := λ I H, begin
-    refine le_antisymm _ H, apply ideal.ideal_le_homogeneous_hull,
-  end }
+  le_l_u := λ I, ideal.le_coe_homogeneous_hull _ _,
+  choice_eq := λ I H, le_antisymm (I.le_coe_homogeneous_hull 𝒜) H}
 
 end galois_connection

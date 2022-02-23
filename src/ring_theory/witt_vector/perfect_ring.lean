@@ -6,6 +6,7 @@ Authors: Robert Y. Lewis, Heather Macbeth
 
 import ring_theory.witt_vector.domain
 import ring_theory.witt_vector.mul_coeff
+import ring_theory.discrete_valuation_ring
 import tactic.linear_combination
 
 /-!
@@ -106,6 +107,13 @@ end comm_ring
 section perfect_field
 variables {k : Type*} [field k] [char_p k p] [perfect_ring k p]
 
+lemma is_unit_of_coeff_zero_ne_zero (x : 𝕎 k) (hx : x.coeff 0 ≠ 0) : is_unit x :=
+begin
+  let y : kˣ := units.mk0 (x.coeff 0) hx,
+  have hy : x.coeff 0 = y := rfl,
+  exact (mk_unit hy).is_unit
+end
+
 /-- This is basically the same as `𝕎 k` being a DVR. -/
 lemma exists_eq_pow_p_mul' (a : 𝕎 k) (ha : a ≠ 0) :
   ∃ (m : ℕ) (b : units (𝕎 k)), a = p ^ m * b :=
@@ -114,6 +122,34 @@ begin
   let b₀ := units.mk0 (b.coeff 0) h₁,
   have hb₀ : b.coeff 0 = b₀ := rfl,
   exact ⟨m, mk_unit hb₀, h₂⟩,
+end
+
+lemma irreducible : irreducible (p : 𝕎 k) :=
+begin
+  have hp : ¬ is_unit (p : 𝕎 k),
+  { intro hp,
+    simpa only [constant_coeff_apply, coeff_p_zero, not_is_unit_zero]
+      using constant_coeff.is_unit_map hp, },
+  refine ⟨hp, λ a b hab, _⟩,
+  obtain ⟨ha0, hb0⟩ : a ≠ 0 ∧ b ≠ 0,
+  { rw ← mul_ne_zero_iff, intro h, rw h at hab, exact p_nonzero p k hab },
+  obtain ⟨m, a, ha, rfl⟩ := verschiebung_nonzero ha0,
+  obtain ⟨n, b, hb, rfl⟩ := verschiebung_nonzero hb0,
+  cases m, { exact or.inl (is_unit_of_coeff_zero_ne_zero p a ha) },
+  cases n, { exact or.inr (is_unit_of_coeff_zero_ne_zero p b hb) },
+  rw iterate_verschiebung_mul at hab,
+  apply_fun (λ x, coeff x 1) at hab,
+  simp only [coeff_p_one, nat.add_succ, add_comm _ n, function.iterate_succ', function.comp_app,
+    verschiebung_coeff_add_one, verschiebung_coeff_zero] at hab,
+  exact (one_ne_zero hab).elim
+end
+
+instance : discrete_valuation_ring (𝕎 k) :=
+discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization
+begin
+  refine ⟨p, irreducible p, λ x hx, _⟩,
+  obtain ⟨n, b, hb⟩ := exists_eq_pow_p_mul' p x hx,
+  refine ⟨n, b, hb.symm⟩,
 end
 
 end perfect_field

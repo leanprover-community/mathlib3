@@ -1371,7 +1371,8 @@ begin
   obtain ⟨s, rfl, hs⟩ := mk_eq_nat_iff_finset.mp hs',
   have := calc
     0   < 1 : by simp
-    ... = s.card - l.length : by {rw hs, exact (norm_num.sub_nat_pos _ _ 1 rfl).symm}
+    ... = l.length.succ - l.length : (norm_num.sub_nat_pos _ _ 1 rfl).symm
+    ... = s.card - l.length : by rw hs
     ... ≤ s.card - l.to_finset.card : tsub_le_tsub_left (list.to_finset_card_le _) _
     ... ≤ (s \ l.to_finset).card : (finset.card_sdiff_ge _ _).le,
   obtain ⟨z, hz⟩ := finset.card_pos.mp this,

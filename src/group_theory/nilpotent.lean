@@ -567,7 +567,7 @@ begin
     ... ≤ upper_central_series G' n : upper_central_series.map hf n,
 end
 
-/-- Nilpotency respects homomorphisms -/
+/-- Nilpotency respects isomorphisms -/
 lemma nilpotent_of_mul_equiv {G' : Type*} [group G'] [h : is_nilpotent G] (f : G ≃* G') :
   is_nilpotent G' :=
 nilpotent_of_surjective f.to_monoid_hom (mul_equiv.surjective f)

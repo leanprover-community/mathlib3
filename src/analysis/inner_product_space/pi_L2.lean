@@ -477,31 +477,12 @@ begin
     (show (∀ i, orthonormal 𝕜 (v_family i).to_basis), by simp),
 end
 
-
 lemma direct_sum.submodule_is_internal.collected_orthonormal_basis_mem [decidable_eq ι]
   (h : direct_sum.submodule_is_internal A) {α : ι → Type*} [Π i, fintype (α i)]
   (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, A i) _ (λ i, (A i).subtypeₗᵢ))
   (v : Π i, orthonormal_basis (α i) 𝕜 (A i)) (a : Σ i, α i) :
   h.collected_orthonormal_basis hV v a ∈ A a.1 :=
 by simp [direct_sum.submodule_is_internal.collected_orthonormal_basis]
-
--- /-- An orthonormal set in a finite-dimensional `inner_product_space` is maximal, if and only if it
--- is a basis. -/
--- lemma maximal_orthonormal_iff_basis_of_finite_dimensional
---   (hv : orthonormal 𝕜 (coe : v → E)) :
---   (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ ∃ b : basis v 𝕜 E, ⇑b = coe :=
--- begin
---   haveI := proper_is_R_or_C 𝕜 (span 𝕜 v),
---   rw maximal_orthonormal_iff_orthogonal_complement_eq_bot hv,
---   have hv_compl : is_complete (span 𝕜 v : set E) := (span 𝕜 v).complete_of_finite_dimensional,
---   rw submodule.orthogonal_eq_bot_iff,
---   have hv_coe : range (coe : v → E) = v := by simp,
---   split,
---   { refine λ h, ⟨basis.mk hv.linear_independent _, basis.coe_mk _ _⟩,
---     convert h },
---   { rintros ⟨h, coe_h⟩,
---     rw [← h.span_eq, coe_h, hv_coe] }
--- end
 
 -- move this
 lemma _root_.linear_independent.finite {K : Type*} {V : Type*} [division_ring K] [add_comm_group V]

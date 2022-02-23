@@ -21,8 +21,11 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
   from functions to `n` to `𝕜` with the `L²` norm. We register several instances on it (notably
   that it is a finite-dimensional inner product space).
 
-- `basis.isometry_euclidean_of_orthonormal`: provides the isometry to Euclidean space
-  from a given finite-dimensional inner product space, induced by a basis of the space.
+- `orthonormal_basis 𝕜 ι`: defined to be an isometry to Euclidean space from a given
+  finite-dimensional innner product space, `E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`.
+
+- `basis.to_orthonormal_basis`: constructs an `orthonormal_basis` for a finite-dimensional
+  Euclidean space from a `basis` which is `orthonormal`.
 
 - `linear_isometry_equiv.of_inner_product_space`: provides an arbitrary isometry to Euclidean space
   from a given finite-dimensional inner product space, induced by choosing an arbitrary basis.
@@ -39,6 +42,8 @@ noncomputable theory
 variables {ι : Type*}
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E]
 variables {E' : Type*} [inner_product_space 𝕜 E']
+variables {F : Type*} [inner_product_space ℝ F]
+variables {F' : Type*} [inner_product_space ℝ F']
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 /-
@@ -90,7 +95,6 @@ lemma pi_Lp.norm_eq_of_L2 {ι : Type*} [fintype ι] {f : ι → Type*}
   ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
 by { rw [pi_Lp.norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
 
-
 /-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional
 space use `euclidean_space 𝕜 (fin n)`. -/
 @[reducible, nolint unused_arguments]
@@ -101,10 +105,10 @@ lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [finty
   (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
 pi_Lp.norm_eq_of_L2 x
 
+variables [fintype ι]
+
 section
 local attribute [reducible] pi_Lp
-
-variables [fintype ι]
 
 instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
 instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
@@ -150,12 +154,111 @@ begin
   simp [e₂, direct_sum.submodule_coe, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
 end
 
-/-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with
+end
+
+/-- The vector given in euclidean space by being `1 : 𝕜` at coordinate `i : ι` and `0 : 𝕜` at
+all other coordinates. -/
+def euclidean_space.single [decidable_eq ι] (i : ι) (a : 𝕜) :
+  euclidean_space 𝕜 ι :=
+pi.single i a
+
+@[simp] theorem euclidean_space.single_apply [decidable_eq ι] (i : ι) (a : 𝕜) (j : ι) :
+  (euclidean_space.single i a) j = ite (j = i) a 0 :=
+by { rw [euclidean_space.single, ← pi.single_apply i a j] }
+
+lemma euclidean_space.inner_single_left [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
+  ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=
+by simp [apply_ite conj]
+
+lemma euclidean_space.inner_single_right [decidable_eq ι] (i : ι) (a : 𝕜)
+  (v : euclidean_space 𝕜 ι) :
+  ⟪v, euclidean_space.single i (a : 𝕜)⟫ =  a * conj (v i) :=
+by simp [apply_ite conj, mul_comm]
+
+variables (ι 𝕜 E)
+
+/-- An orthonormal basis on E is an identification of `E` with its dimensional-matching
 `euclidean_space 𝕜 ι`. -/
-def basis.isometry_euclidean_of_orthonormal
-  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
-  E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι :=
-v.equiv_fun.isometry_of_inner
+structure orthonormal_basis := of_repr :: (repr : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι)
+
+variables {ι 𝕜 E}
+
+namespace orthonormal_basis
+
+instance : inhabited (orthonormal_basis ι 𝕜 (euclidean_space 𝕜 ι)) :=
+⟨of_repr (linear_isometry_equiv.refl 𝕜 (euclidean_space 𝕜 ι))⟩
+
+/-- `b i` is the `i`th basis vector. -/
+instance : has_coe_to_fun (orthonormal_basis ι 𝕜 E) (λ _, ι → E) :=
+{ coe := λ b i, by classical; exact b.repr.symm (euclidean_space.single i (1 : 𝕜)) }
+
+@[simp] protected lemma repr_symm_single [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
+  b.repr.symm (euclidean_space.single i (1:𝕜)) = b i :=
+by { classical, congr, simp, }
+
+@[simp] protected lemma repr_self [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
+  b.repr (b i) = euclidean_space.single i (1:𝕜) :=
+begin
+  classical,
+  rw [← b.repr_symm_single i, linear_isometry_equiv.apply_symm_apply],
+  congr,
+  simp,
+end
+
+protected lemma repr_apply_apply (b : orthonormal_basis ι 𝕜 E) (v : E) (i : ι) :
+  b.repr v i = ⟪b i, v⟫ :=
+begin
+  classical,
+  rw [← b.repr.inner_map_map (b i) v, b.repr_self i, euclidean_space.inner_single_left],
+  simp only [one_mul, eq_self_iff_true, map_one],
+end
+
+@[simp]
+protected lemma orthonormal (b : orthonormal_basis ι 𝕜 E) : orthonormal 𝕜 b :=
+begin
+  classical,
+  rw orthonormal_iff_ite,
+  intros i j,
+  rw [← b.repr.inner_map_map (b i) (b j), b.repr_self i, b.repr_self j],
+  rw euclidean_space.inner_single_left,
+  rw euclidean_space.single_apply,
+  simp only [mul_boole, map_one],
+end
+
+/-- The `basis ι 𝕜 E` underlying the `orthonormal_basis` --/
+protected def to_basis (b : orthonormal_basis ι 𝕜 E) : basis ι 𝕜 E :=
+basis.of_equiv_fun b.repr.to_linear_equiv
+
+@[simp] protected lemma coe_to_basis (b : orthonormal_basis ι 𝕜 E) :
+  (⇑b.to_basis : ι → E) = ⇑b :=
+begin
+  change ⇑(basis.of_equiv_fun b.repr.to_linear_equiv) = b,
+  ext j,
+  rw basis.coe_of_equiv_fun,
+  simp only [orthonormal_basis.repr_symm_single],
+  congr,
+end
+
+@[simp] protected lemma coe_to_basis_repr (b : orthonormal_basis ι 𝕜 E) :
+  b.to_basis.equiv_fun = b.repr.to_linear_equiv :=
+begin
+  change (basis.of_equiv_fun b.repr.to_linear_equiv).equiv_fun = b.repr.to_linear_equiv,
+  ext x j,
+  simp only [basis.of_equiv_fun_repr_apply, eq_self_iff_true,
+    linear_isometry_equiv.coe_to_linear_equiv, basis.equiv_fun_apply],
+end
+
+protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
+  ∑ i , v i • b i = (b.repr.symm v) :=
+by { classical, simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
+
+variable {v : ι → E}
+
+/-- A basis that is orthonormal is an orthonormal basis. -/
+def _root_.basis.to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+  orthonormal_basis ι 𝕜 E :=
+orthonormal_basis.of_repr $
+linear_equiv.isometry_of_inner v.equiv_fun
 begin
   intros x y,
   let p : euclidean_space 𝕜 ι := v.equiv_fun x,
@@ -167,15 +270,36 @@ begin
   { rw [← v.equiv_fun.symm_apply_apply y, v.equiv_fun_symm_apply] }
 end
 
-@[simp] lemma basis.coe_isometry_euclidean_of_orthonormal
-  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
-  (v.isometry_euclidean_of_orthonormal hv : E → euclidean_space 𝕜 ι) = v.equiv_fun :=
+@[simp] lemma _root_.basis.coe_to_orthonormal_basis_repr (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+  ((v.to_orthonormal_basis hv).repr : E → euclidean_space 𝕜 ι) = v.equiv_fun :=
 rfl
 
-@[simp] lemma basis.coe_isometry_euclidean_of_orthonormal_symm
+@[simp] lemma _root_.basis.coe_to_orthonormal_basis_repr_symm
   (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
-  ((v.isometry_euclidean_of_orthonormal hv).symm : euclidean_space 𝕜 ι → E) = v.equiv_fun.symm :=
+  ((v.to_orthonormal_basis hv).repr.symm : euclidean_space 𝕜 ι → E) = v.equiv_fun.symm :=
 rfl
+
+@[simp] lemma _root_.basis.to_basis_to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+  (v.to_orthonormal_basis hv).to_basis = v :=
+by simp [basis.to_orthonormal_basis, orthonormal_basis.to_basis]
+
+@[simp] lemma _root_.basis.coe_to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+  (v.to_orthonormal_basis hv : ι → E) = (v : ι → E) :=
+calc (v.to_orthonormal_basis hv : ι → E) = ((v.to_orthonormal_basis hv).to_basis : ι → E) :
+  by { classical, rw orthonormal_basis.coe_to_basis }
+... = (v : ι → E) : by simp
+
+/-- An orthonormal set that spans is an orthonormal basis -/
+protected def mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤):
+  orthonormal_basis ι 𝕜 E :=
+(basis.mk (orthonormal.linear_independent hon) hsp).to_orthonormal_basis (by rwa basis.coe_mk)
+
+@[simp]
+protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :
+  ⇑(orthonormal_basis.mk hon hsp) = v :=
+by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
+
+end orthonormal_basis
 
 /-- If `f : E ≃ₗᵢ[𝕜] E'` is a linear isometry of inner product spaces then an orthonormal basis `v`
 of `E` determines a linear isometry `e : E' ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι`. This result states that
@@ -183,21 +307,19 @@ of `E` determines a linear isometry `e : E' ≃ₗᵢ[𝕜] euclidean_space 𝕜
 `E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι` provided by `v`. -/
 @[simp] lemma basis.map_isometry_euclidean_of_orthonormal (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v)
   (f : E ≃ₗᵢ[𝕜] E') :
-  (v.map f.to_linear_equiv).isometry_euclidean_of_orthonormal (hv.map_linear_isometry_equiv f) =
-    f.symm.trans (v.isometry_euclidean_of_orthonormal hv) :=
+  ((v.map f.to_linear_equiv).to_orthonormal_basis (hv.map_linear_isometry_equiv f)).repr =
+    f.symm.trans (v.to_orthonormal_basis hv).repr :=
 linear_isometry_equiv.to_linear_equiv_injective $ v.map_equiv_fun _
-
-end
 
 /-- `ℂ` is isometric to `ℝ²` with the Euclidean inner product. -/
 def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
-complex.basis_one_I.isometry_euclidean_of_orthonormal
+(complex.basis_one_I.to_orthonormal_basis
 begin
   rw orthonormal_iff_ite,
   intros i, fin_cases i;
   intros j; fin_cases j;
   simp [real_inner_eq_re_inner]
-end
+end).repr
 
 @[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
   complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
@@ -220,6 +342,26 @@ by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
   complex.isometry_euclidean z 1 = z.im :=
 by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
 
+/-- The isometry between `ℂ` and a two-dimensional real inner product space given by a basis. -/
+def complex.isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) : ℂ ≃ₗᵢ[ℝ] F :=
+complex.isometry_euclidean.trans (v.to_orthonormal_basis hv).repr.symm
+
+@[simp] lemma complex.map_isometry_of_orthonormal {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v)
+  (f : F ≃ₗᵢ[ℝ] F') :
+  complex.isometry_of_orthonormal (hv.map_linear_isometry_equiv f) =
+    (complex.isometry_of_orthonormal hv).trans f :=
+by simp [complex.isometry_of_orthonormal, linear_isometry_equiv.trans_assoc]
+
+lemma complex.isometry_of_orthonormal_symm_apply
+  {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (f : F) :
+  (complex.isometry_of_orthonormal hv).symm f = (v.coord 0 f : ℂ) + (v.coord 1 f : ℂ) * I :=
+by simp [complex.isometry_of_orthonormal]
+
+lemma complex.isometry_of_orthonormal_apply
+  {v : basis (fin 2) ℝ F} (hv : orthonormal ℝ v) (z : ℂ) :
+  complex.isometry_of_orthonormal hv z = z.re • v 0 + z.im • v 1 :=
+by simp [complex.isometry_of_orthonormal, (dec_trivial : (finset.univ : finset (fin 2)) = {0, 1})]
+
 open finite_dimensional
 
 /-- Given a natural number `n` equal to the `finrank` of a finite-dimensional inner product space,
@@ -227,7 +369,8 @@ there exists an isometry from the space to `euclidean_space 𝕜 (fin n)`. -/
 def linear_isometry_equiv.of_inner_product_space
   [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
   E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
-(fin_orthonormal_basis hn).isometry_euclidean_of_orthonormal (fin_orthonormal_basis_orthonormal hn)
+((fin_std_orthonormal_basis hn).to_orthonormal_basis
+  (fin_std_orthonormal_basis_orthonormal hn)).repr
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
@@ -238,3 +381,23 @@ def linear_isometry_equiv.from_orthogonal_span_singleton
   (n : ℕ) [fact (finrank 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
 linear_isometry_equiv.of_inner_product_space (finrank_orthogonal_span_singleton hv)
+
+section matrix
+
+open_locale matrix
+
+variables {n m : ℕ}
+
+local notation `⟪`x`, `y`⟫ₘ` := @inner 𝕜 (euclidean_space 𝕜 (fin m)) _ x y
+local notation `⟪`x`, `y`⟫ₙ` := @inner 𝕜 (euclidean_space 𝕜 (fin n)) _ x y
+
+/-- The inner product of a row of A and a row of B is an entry of B ⬝ Aᴴ. -/
+lemma inner_matrix_row_row (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin n)) :
+  ⟪A i, B j⟫ₘ = (B ⬝ Aᴴ) j i := by {simp only [inner, matrix.mul_apply, star_ring_end_apply,
+    matrix.conj_transpose_apply,mul_comm]}
+
+/-- The inner product of a column of A and a column of B is an entry of Aᴴ ⬝ B -/
+lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
+  ⟪Aᵀ i, Bᵀ j⟫ₙ = (Aᴴ ⬝ B) i j := rfl
+
+end matrix

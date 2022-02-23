@@ -31,6 +31,8 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 - `linear_isometry_equiv.of_inner_product_space`: provides an arbitrary isometry to Euclidean space
   from a given finite-dimensional inner product space, induced by choosing an arbitrary basis.
 
+- `std_orthonormal_basis`: the canonical `orthonormal_basis` on `euclidean_space 𝕜 ι`
+
 - `complex.isometry_euclidean`: standard isometry from `ℂ` to `euclidean_space ℝ (fin 2)`
 
 The last section covers orthonormal bases, etc. The lemma

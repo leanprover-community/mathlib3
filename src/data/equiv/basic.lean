@@ -78,6 +78,10 @@ structure equiv (α : Sort*) (β : Sort*) :=
 
 infix ` ≃ `:25 := equiv
 
+instance {F} [equiv_like F α β] : has_coe_t F (α ≃ β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f }⟩
+
 /-- Convert an involutive function `f` to an equivalence with `to_fun = inv_fun = f`. -/
 def function.involutive.to_equiv (f : α → α) (h : involutive f) : α ≃ α :=
 ⟨f, f, h.left_inverse, h.right_inverse⟩
@@ -512,13 +516,18 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
 ⟨λ f, punit.star, λ u f, punit.star,
   λ f, by { funext x, cases f x, refl }, λ u, by { cases u, reflexivity }⟩
 
+/-- If `α` is `subsingleton` and `a : α`, then the type of dependent functions `Π (i : α), β
+i` is equivalent to `β i`. -/
+@[simps]
+def Pi_subsingleton {α} (β : α → Sort*) [subsingleton α] (a : α) : (Π a', β a') ≃ β a :=
+{ to_fun := eval a,
+  inv_fun := λ x b, cast (congr_arg β $ subsingleton.elim a b) x,
+  left_inv := λ f, funext $ λ b, by { rw subsingleton.elim b a, reflexivity },
+  right_inv := λ b, rfl }
 
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
 @[simps { fully_applied := ff }] def fun_unique (α β) [unique α] : (α → β) ≃ β :=
-{ to_fun := eval default,
-  inv_fun := const α,
-  left_inv := λ f, funext $ λ a, congr_arg f $ subsingleton.elim _ _,
-  right_inv := λ b, rfl }
+Pi_subsingleton _ default
 
 /-- The sort of maps from `punit` is equivalent to the codomain. -/
 def punit_arrow_equiv (α : Sort*) : (punit.{u} → α) ≃ α :=

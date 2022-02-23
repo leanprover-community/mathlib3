@@ -40,27 +40,150 @@ open_locale classical measure_theory nnreal ennreal topological_space big_operat
 namespace measure_theory
 
 /-- A `filtration` on measurable space `α` with σ-algebra `m` is a monotone
-sequence of of sub-σ-algebras of `m`. -/
+sequence of sub-σ-algebras of `m`. -/
 structure filtration {α : Type*} (ι : Type*) [preorder ι] (m : measurable_space α) :=
-(seq : ι → measurable_space α)
-(mono : monotone seq)
-(le : ∀ i : ι, seq i ≤ m)
+(seq   : ι → measurable_space α)
+(mono' : monotone seq)
+(le'   : ∀ i : ι, seq i ≤ m)
 
 variables {α β ι : Type*} {m : measurable_space α}
 
-section preorder
-
-variables [preorder ι]
-
-instance : has_coe_to_fun (filtration ι m) (λ _, ι → measurable_space α) :=
+instance [preorder ι] : has_coe_to_fun (filtration ι m) (λ _, ι → measurable_space α) :=
 ⟨λ f, f.seq⟩
 
-/-- The constant filtration which is equal to `m` for all `i : ι`. -/
-def const_filtration (m : measurable_space α) : filtration ι m :=
-⟨λ _, m, monotone_const, λ _, le_rfl⟩
+namespace filtration
+variables [preorder ι]
 
-instance : inhabited (filtration ι m) :=
-⟨const_filtration m⟩
+protected lemma mono {i j : ι} (f : filtration ι m) (hij : i ≤ j) : f i ≤ f j := f.mono' hij
+
+protected lemma le (f : filtration ι m) (i : ι) : f i ≤ m := f.le' i
+
+@[ext] protected lemma ext {f g : filtration ι m} (h : (f : ι → measurable_space α) = g) : f = g :=
+by { cases f, cases g, simp only, exact h, }
+
+/-- The constant filtration which is equal to `m` for all `i : ι`. -/
+def const (m' : measurable_space α) (hm' : m' ≤ m) : filtration ι m :=
+⟨λ _, m', monotone_const, λ _, hm'⟩
+
+instance : inhabited (filtration ι m) := ⟨const m le_rfl⟩
+
+instance : has_le (filtration ι m) := ⟨λ f g, ∀ i, f i ≤ g i⟩
+
+instance : has_bot (filtration ι m) := ⟨const ⊥ bot_le⟩
+
+instance : has_top (filtration ι m) := ⟨const m le_rfl⟩
+
+instance : has_sup (filtration ι m) := ⟨λ f g,
+{ seq   := λ i, f i ⊔ g i,
+  mono' := λ i j hij, sup_le ((f.mono hij).trans le_sup_left) ((g.mono hij).trans le_sup_right),
+  le'   := λ i, sup_le (f.le i) (g.le i) }⟩
+
+@[norm_cast] lemma coe_fn_sup {f g : filtration ι m} : ⇑(f ⊔ g) = f ⊔ g := rfl
+
+instance : has_inf (filtration ι m) := ⟨λ f g,
+{ seq   := λ i, f i ⊓ g i,
+  mono' := λ i j hij, le_inf (inf_le_left.trans (f.mono hij)) (inf_le_right.trans (g.mono hij)),
+  le'   := λ i, inf_le_left.trans (f.le i) }⟩
+
+@[norm_cast] lemma coe_fn_inf {f g : filtration ι m} : ⇑(f ⊓ g) = f ⊓ g := rfl
+
+instance : has_Sup (filtration ι m) := ⟨λ s,
+{ seq   := λ i, Sup ((λ f : filtration ι m, f i) '' s),
+  mono' := λ i j hij,
+  begin
+    refine Sup_le (λ m' hm', _),
+    rw [set.mem_image] at hm',
+    obtain ⟨f, hf_mem, hfm'⟩ := hm',
+    rw ← hfm',
+    refine (f.mono hij).trans _,
+    have hfj_mem : f j ∈ ((λ g : filtration ι m, g j) '' s), from ⟨f, hf_mem, rfl⟩,
+    exact le_Sup hfj_mem,
+  end,
+  le'   := λ i,
+  begin
+    refine Sup_le (λ m' hm', _),
+    rw [set.mem_image] at hm',
+    obtain ⟨f, hf_mem, hfm'⟩ := hm',
+    rw ← hfm',
+    exact f.le i,
+  end, }⟩
+
+lemma Sup_def (s : set (filtration ι m)) (i : ι) :
+  Sup s i = Sup ((λ f : filtration ι m, f i) '' s) :=
+rfl
+
+noncomputable
+instance : has_Inf (filtration ι m) := ⟨λ s,
+{ seq   := λ i, if set.nonempty s then Inf ((λ f : filtration ι m, f i) '' s) else m,
+  mono' := λ i j hij,
+  begin
+    by_cases h_nonempty : set.nonempty s,
+    swap, { simp only [h_nonempty, set.nonempty_image_iff, if_false, le_refl], },
+    simp only [h_nonempty, if_true, le_Inf_iff, set.mem_image, forall_exists_index, and_imp,
+      forall_apply_eq_imp_iff₂],
+    refine λ f hf_mem, le_trans _ (f.mono hij),
+    have hfi_mem : f i ∈ ((λ g : filtration ι m, g i) '' s), from ⟨f, hf_mem, rfl⟩,
+    exact Inf_le hfi_mem,
+  end,
+  le'   := λ i,
+  begin
+    by_cases h_nonempty : set.nonempty s,
+    swap, { simp only [h_nonempty, if_false, le_refl], },
+    simp only [h_nonempty, if_true],
+    obtain ⟨f, hf_mem⟩ := h_nonempty,
+    exact le_trans (Inf_le ⟨f, hf_mem, rfl⟩) (f.le i),
+  end, }⟩
+
+lemma Inf_def (s : set (filtration ι m)) (i : ι) :
+  Inf s i = if set.nonempty s then Inf ((λ f : filtration ι m, f i) '' s) else m :=
+rfl
+
+noncomputable
+instance : complete_lattice (filtration ι m) :=
+{ le           := (≤),
+  le_refl      := λ f i, le_rfl,
+  le_trans     := λ f g h h_fg h_gh i, (h_fg i).trans (h_gh i),
+  le_antisymm  := λ f g h_fg h_gf, filtration.ext $ funext $ λ i, (h_fg i).antisymm (h_gf i),
+  sup          := (⊔),
+  le_sup_left  := λ f g i, le_sup_left,
+  le_sup_right := λ f g i, le_sup_right,
+  sup_le       := λ f g h h_fh h_gh i, sup_le (h_fh i) (h_gh _),
+  inf          := (⊓),
+  inf_le_left  := λ f g i, inf_le_left,
+  inf_le_right := λ f g i, inf_le_right,
+  le_inf       := λ f g h h_fg h_fh i, le_inf (h_fg i) (h_fh i),
+  Sup          := Sup,
+  le_Sup       := λ s f hf_mem i, le_Sup ⟨f, hf_mem, rfl⟩,
+  Sup_le       := λ s f h_forall i, Sup_le $ λ m' hm',
+  begin
+    obtain ⟨g, hg_mem, hfm'⟩ := hm',
+    rw ← hfm',
+    exact h_forall g hg_mem i,
+  end,
+  Inf          := Inf,
+  Inf_le       := λ s f hf_mem i,
+  begin
+    have hs : s.nonempty := ⟨f, hf_mem⟩,
+    simp only [Inf_def, hs, if_true],
+    exact Inf_le ⟨f, hf_mem, rfl⟩,
+  end,
+  le_Inf       := λ s f h_forall i,
+  begin
+    by_cases hs : s.nonempty,
+    swap, { simp only [Inf_def, hs, if_false], exact f.le i, },
+    simp only [Inf_def, hs, if_true, le_Inf_iff, set.mem_image, forall_exists_index, and_imp,
+      forall_apply_eq_imp_iff₂],
+    exact λ g hg_mem, h_forall g hg_mem i,
+  end,
+  top          := ⊤,
+  bot          := ⊥,
+  le_top       := λ f i, f.le' i,
+  bot_le       := λ f i, bot_le, }
+
+end filtration
+
+section preorder
+variables [preorder ι]
 
 lemma measurable_set_of_filtration {f : filtration ι m} {s : set α} {i : ι}
   (hs : measurable_set[f i] s) : measurable_set[m] s :=
@@ -246,9 +369,9 @@ namespace filtration
 of σ-algebras such that that sequence of functions is measurable with respect to
 the filtration. -/
 def natural (u : ι → α → β) (hum : ∀ i, measurable (u i)) : filtration ι m :=
-{ seq := λ i, ⨆ j ≤ i, measurable_space.comap (u j) infer_instance,
-  mono := λ i j hij, bsupr_le_bsupr' $ λ k hk, le_trans hk hij,
-  le := λ i, bsupr_le (λ j hj s hs, let ⟨t, ht, ht'⟩ := hs in ht' ▸ hum j ht) }
+{ seq   := λ i, ⨆ j ≤ i, measurable_space.comap (u j) infer_instance,
+  mono' := λ i j hij, bsupr_le_bsupr' $ λ k hk, le_trans hk hij,
+  le'   := λ i, bsupr_le (λ j hj s hs, let ⟨t, ht, ht'⟩ := hs in ht' ▸ hum j ht) }
 
 lemma adapted_natural {u : ι → α → β} (hum : ∀ i, measurable[m] (u i)) :
   adapted (natural u hum) u :=

@@ -26,7 +26,11 @@ begin
   convert (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A)).comp
       (nat.tendsto_pow_at_top_at_top_of_one_lt (by linarith : 1 < 2)),
   refine funext (λ n, _),
-  rw [function.comp_app, self_adjoint.nnnorm_pow_two_pow ha, ennreal.coe_pow, ←rpow_nat_cast,
+  rw [function.comp_app, nnnorm_pow_two_pow_of_self_adjoint ha, ennreal.coe_pow, ←rpow_nat_cast,
     ←rpow_mul],
   simp,
 end
+
+lemma self_adjoint.coe_spectral_radius_eq_nnnorm (a : self_adjoint A) :
+  spectral_radius ℂ (a : A) = ∥(a : A)∥₊ :=
+spectral_radius_eq_nnnorm_of_self_adjoint a.property

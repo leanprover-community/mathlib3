@@ -399,11 +399,11 @@ lemma support_eq : support (f : E → ℝ) = euclidean.ball c f.R :=
 by rw [euclidean.ball_eq_preimage, ← f.to_times_cont_diff_bump_of_inner.support_eq,
   ← support_comp_eq_preimage, coe_eq_comp]
 
-lemma closure_support_eq : closure (support f) = euclidean.closed_ball c f.R :=
-by rw [f.support_eq, euclidean.closure_ball _ f.R_pos]
+lemma tsupport_eq : tsupport f = euclidean.closed_ball c f.R :=
+by rw [tsupport, f.support_eq, euclidean.closure_ball _ f.R_pos]
 
-lemma compact_closure_support : is_compact (closure (support f)) :=
-by { rw f.closure_support_eq, exact euclidean.is_compact_closed_ball }
+protected lemma has_compact_support : has_compact_support f :=
+by simp_rw [has_compact_support, f.tsupport_eq, euclidean.is_compact_closed_ball]
 
 lemma eventually_eq_one_of_mem_ball (h : x ∈ euclidean.ball c f.r) :
   f =ᶠ[𝓝 x] 1 :=
@@ -424,10 +424,10 @@ protected lemma times_cont_diff_within_at {s n} :
   times_cont_diff_within_at ℝ n f s x :=
 f.times_cont_diff_at.times_cont_diff_within_at
 
-lemma exists_closure_support_subset {s : set E} (hs : s ∈ 𝓝 c) :
-  ∃ f : times_cont_diff_bump c, closure (support f) ⊆ s :=
+lemma exists_tsupport_subset {s : set E} (hs : s ∈ 𝓝 c) :
+  ∃ f : times_cont_diff_bump c, tsupport f ⊆ s :=
 let ⟨R, h0, hR⟩ := euclidean.nhds_basis_closed_ball.mem_iff.1 hs
-in ⟨⟨⟨R / 2, R, half_pos h0, half_lt_self h0⟩⟩, by rwa closure_support_eq⟩
+in ⟨⟨⟨R / 2, R, half_pos h0, half_lt_self h0⟩⟩, by rwa tsupport_eq⟩
 
 lemma exists_closure_subset {R : ℝ} (hR : 0 < R)
   {s : set E} (hs : is_closed s) (hsR : s ⊆ euclidean.ball c R) :
@@ -446,7 +446,7 @@ neighborhood `s` there exists an infinitely smooth function with the following p
 
 * `f y = 1` in a neighborhood of `x`;
 * `f y = 0` outside of `s`;
-*  moreover, `closure (support f) ⊆ s` and `closure (support f)` is a compact set;
+*  moreover, `tsupport f ⊆ s` and `f` has compact support;
 * `f y ∈ [0, 1]` for all `y`.
 
 This lemma is a simple wrapper around lemmas about bundled smooth bump functions, see
@@ -454,7 +454,7 @@ This lemma is a simple wrapper around lemmas about bundled smooth bump functions
 lemma exists_times_cont_diff_bump_function_of_mem_nhds [normed_group E] [normed_space ℝ E]
   [finite_dimensional ℝ E] {x : E} {s : set E} (hs : s ∈ 𝓝 x) :
   ∃ f : E → ℝ, f =ᶠ[𝓝 x] 1 ∧ (∀ y, f y ∈ Icc (0 : ℝ) 1) ∧ times_cont_diff ℝ ⊤ f ∧
-    is_compact (closure $ support f) ∧ closure (support f) ⊆ s :=
-let ⟨f, hf⟩ := times_cont_diff_bump.exists_closure_support_subset hs in
+    has_compact_support f ∧ tsupport f ⊆ s :=
+let ⟨f, hf⟩ := times_cont_diff_bump.exists_tsupport_subset hs in
 ⟨f, f.eventually_eq_one, λ y, ⟨f.nonneg, f.le_one⟩, f.times_cont_diff,
-  f.compact_closure_support, hf⟩
+  f.has_compact_support, hf⟩

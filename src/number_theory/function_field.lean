@@ -5,7 +5,7 @@ Authors: Anne Baanen, Ashvni Narayanan
 -/
 import field_theory.ratfunc
 import ring_theory.algebraic
-import ring_theory.dedekind_domain
+import ring_theory.dedekind_domain.integral_closure
 import ring_theory.integrally_closed
 
 /-!

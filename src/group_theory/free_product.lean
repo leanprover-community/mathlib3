@@ -405,24 +405,7 @@ def to_word {i j} (w : neword M i j) : word M :=
       rw [w_w₂.to_list_head', option.mem_some_iff] at hy,
       subst hx, subst hy,
       exact w_hne, },
-  end,
-}
-
-lemma index_of_to_word_eq_cons {i j} (w : neword M i j)
-  {a} {l} (h : w.to_list = a :: l) :
-  i = a.1 :=
-begin
-  revert l,
-  induction w,
-  { intros l h,
-    simp [to_list] at h, rw ← h.1, },
-  { intros l h,
-    simp [to_list] at h,
-    rw  list.append_eq_cons_iff at h,
-    cases h,
-    { exfalso, exact w_w₁.to_list_ne_nil h.1, },
-    { cases h, exact w_ih_w₁ h_h.1, } }
-end
+  end, }
 
 lemma of_word (w : word M) (h : w ≠ empty) :
   ∃ i j (w' : neword M i j), w'.to_word = w :=
@@ -432,20 +415,17 @@ begin
   cases w with l hnot1 hchain,
   induction l with x l hi,
   { contradiction, },
-  {
-    rw list.forall_mem_cons at hnot1,
+  { rw list.forall_mem_cons at hnot1,
     cases l with y l,
     { refine ⟨x.1, x.1, singleton x.2 hnot1.1, _ ⟩,
       simp [to_word],
     },
     { rw list.chain'_cons at hchain,
       specialize hi hnot1.2 hchain.2 (by rintros ⟨rfl⟩),
-      obtain ⟨i, j, w', hw'⟩ := hi,
-      obtain rfl : i = y.1 := index_of_to_word_eq_cons _ hw',
+      obtain ⟨i, j, w', hw' : w'.to_list = y :: l⟩ := hi,
+      obtain rfl : y = ⟨i, w'.head⟩, by simpa [hw'] using w'.to_list_head',
       refine ⟨x.1, j, append (singleton x.2 hnot1.1) hchain.1 w', _⟩,
-      { simpa [to_word] using hw', }
-    }
-  }
+      { simpa [to_word] using hw', } } }
 end
 
 def prod {i j} (w : neword M i j) := w.to_word.prod

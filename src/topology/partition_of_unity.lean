@@ -60,7 +60,7 @@ partition of unity.
 ## Implementation notes
 
 Most (if not all) books only define a partition of unity of the whole space. However, quite a few
-proofs only deal with `f i` such that `closure (support (f i))` meets a specific closed subset, and
+proofs only deal with `f i` such that `tsupport (f i)` meets a specific closed subset, and
 it is easier to formalize these proofs if we don't have other functions right away.
 
 We use `well_ordering_rel j i` instead of `j < i` in the definition of
@@ -146,7 +146,7 @@ lemma le_one (i : ι) (x : X) : f i x ≤ 1 :=
 /-- A partition of unity `f i` is subordinate to a family of sets `U i` indexed by the same type if
 for each `i` the closure of the support of `f i` is a subset of `U i`. -/
 def is_subordinate (f : partition_of_unity ι X s) (U : ι → set X) : Prop :=
-∀ i, closure (support (f i)) ⊆ U i
+∀ i, tsupport (f i) ⊆ U i
 
 end partition_of_unity
 
@@ -190,7 +190,7 @@ instance [inhabited ι] : inhabited (bump_covering ι X s) :=
 /-- A collection of bump functions `f i` is subordinate to a family of sets `U i` indexed by the
 same type if for each `i` the closure of the support of `f i` is a subset of `U i`. -/
 def is_subordinate (f : bump_covering ι X s) (U : ι → set X) : Prop :=
-∀ i, closure (support (f i)) ⊆ U i
+∀ i, tsupport (f i) ⊆ U i
 
 lemma is_subordinate.mono {f : bump_covering ι X s} {U V : ι → set X} (hU : f.is_subordinate U)
   (hV : ∀ i, U i ⊆ V i) :

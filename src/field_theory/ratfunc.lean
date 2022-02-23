@@ -6,7 +6,8 @@ Authors: Anne Baanen
 
 import ring_theory.euclidean_domain
 import ring_theory.laurent_series
-import ring_theory.localization
+import ring_theory.localization.fraction_ring
+import ring_theory.polynomial.content
 
 /-!
 # The field of rational functions
@@ -422,14 +423,14 @@ meta def frac_tac : tactic unit :=
     ← of_fraction_ring_inv,
     add_assoc, zero_add, add_zero, mul_assoc, mul_zero, mul_one, mul_add, inv_zero,
     add_comm, add_left_comm, mul_comm, mul_left_comm, sub_eq_add_neg, div_eq_mul_inv,
-    add_mul, zero_mul, one_mul, ← neg_mul_eq_neg_mul, ← neg_mul_eq_mul_neg, add_right_neg]]
+    add_mul, zero_mul, one_mul, neg_mul, mul_neg, add_right_neg]]
 
 /-- Solve equations for `ratfunc K` by applying `ratfunc.induction_on`. -/
 meta def smul_tac : tactic unit :=
 `[repeat { rintro (⟨⟩ : ratfunc _) <|> intro },
   simp_rw [←of_fraction_ring_smul],
   simp only [add_comm, mul_comm, zero_smul, succ_nsmul, zsmul_eq_mul, mul_add, mul_one, mul_zero,
-    neg_add, ← neg_mul_eq_mul_neg,
+    neg_add, mul_neg,
     int.of_nat_eq_coe, int.coe_nat_succ, int.cast_zero, int.cast_add, int.cast_one,
     int.cast_neg_succ_of_nat, int.cast_coe_nat,
     localization.mk_zero, localization.add_mk_self, localization.neg_mk,
@@ -908,7 +909,7 @@ x.lift_on' (λ p q, if q = 0 then ⟨0, 1⟩ else let r := gcd p q in
         leading_coeff_div hdeg, leading_coeff_div hdeg', polynomial.leading_coeff_mul,
         polynomial.leading_coeff_C, div_C_mul, div_C_mul,
         ← mul_assoc, ← polynomial.C_mul, ← mul_assoc, ← polynomial.C_mul],
-    split; congr; rw [inv_div, mul_comm, mul_div_assoc, ← mul_assoc, inv_inv₀,
+    split; congr; rw [inv_div, mul_comm, mul_div_assoc, ← mul_assoc, inv_inv,
       _root_.mul_inv_cancel ha', one_mul, inv_div],
   end
 

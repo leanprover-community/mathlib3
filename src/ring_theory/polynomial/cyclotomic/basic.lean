@@ -685,6 +685,11 @@ begin
   rw [mul_comm _ (geom_sum _ _), n_ih, geom_sum_mul, sub_left_inj, ← pow_mul, pow_add, pow_one],
 end
 
+lemma cyclotomic_prime_pow_mul_X_pow_sub_one (R : Type*) [comm_ring R] (p k : ℕ)
+  [hn : fact (nat.prime p)] :
+  (cyclotomic (p ^ (k + 1)) R) * (X ^ (p ^ k) - 1) = X ^ (p ^ (k + 1)) - 1 :=
+by rw [cyclotomic_prime_pow_eq_geom_sum hn.out, geom_sum_mul, ← pow_mul, pow_succ, mul_comm]
+
 /-- The constant term of `cyclotomic n R` is `1` if `2 ≤ n`. -/
 lemma cyclotomic_coeff_zero (R : Type*) [comm_ring R] {n : ℕ} (hn : 2 ≤ n) :
   (cyclotomic n R).coeff 0 = 1 :=
@@ -710,7 +715,7 @@ begin
   { rw [←prod_cyclotomic_eq_X_pow_sub_one (lt_of_lt_of_le zero_lt_two hn),
         nat.divisors_eq_proper_divisors_insert_self_of_pos (lt_of_lt_of_le zero_lt_two hn),
         finset.prod_insert nat.proper_divisors.not_self_mem, mul_coeff_zero, coeff_zero_prod, hprod,
-        mul_neg_eq_neg_mul_symm, mul_one] },
+        mul_neg, mul_one] },
   have hzero : (X ^ n - 1).coeff 0 = (-1 : R),
   { rw coeff_zero_eq_eval_zero _,
     simp only [zero_pow (lt_of_lt_of_le zero_lt_two hn), eval_X, eval_one, zero_sub, eval_pow,

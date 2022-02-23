@@ -30,7 +30,7 @@ lemma exp_bound_sq (x z : ℂ) (hz : ∥z∥ ≤ 1) :
   ∥exp (x + z) - exp x - z • exp x∥ ≤ ∥exp x∥ * ∥z∥ ^ 2 :=
 calc ∥exp (x + z) - exp x - z * exp x∥
     = ∥exp x * (exp z - 1 - z)∥ : by { congr, rw [exp_add], ring }
-... = ∥exp x∥ * ∥exp z - 1 - z∥ : normed_field.norm_mul _ _
+... = ∥exp x∥ * ∥exp z - 1 - z∥ : norm_mul _ _
 ... ≤ ∥exp x∥ * ∥z∥^2 : mul_le_mul_of_nonneg_left (abs_exp_sub_one_sub_id_le hz) (norm_nonneg _)
 
 lemma locally_lipschitz_exp {r : ℝ} (hr_nonneg : 0 ≤ r) (hr_le : r ≤ 1) (x y : ℂ)

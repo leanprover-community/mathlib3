@@ -238,7 +238,7 @@ begin
       { refine ⟨insert x t, _, mem_insert_self _ _⟩,
         rw [←insert_erase hx, powerset_len_succ_insert (not_mem_erase _ _)],
         exact mem_union_right _ (mem_image_of_mem _ ht) },
-      { rwa [card_erase_of_mem hx, nat.lt_pred_iff] } } }
+      { rwa [card_erase_of_mem hx, lt_tsub_iff_right] } } }
 end
 
 @[simp]

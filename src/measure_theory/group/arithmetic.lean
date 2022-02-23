@@ -131,6 +131,13 @@ measurable_mul.comp_ae_measurable (hf.prod_mk hg)
 
 omit m
 
+@[to_additive]
+instance pi.has_measurable_mul {ι : Type*} {α : ι → Type*} [∀ i, has_mul (α i)]
+  [∀ i, measurable_space (α i)] [∀ i, has_measurable_mul (α i)] :
+  has_measurable_mul (Π i, α i) :=
+⟨λ g, measurable_pi_iff.mpr $ λ i, (measurable_const_mul (g i)).comp $ measurable_pi_apply i,
+ λ g, measurable_pi_iff.mpr $ λ i, (measurable_mul_const (g i)).comp $ measurable_pi_apply i⟩
+
 @[priority 100, to_additive]
 instance has_measurable_mul₂.to_has_measurable_mul [has_measurable_mul₂ M] :
   has_measurable_mul M :=
@@ -357,12 +364,12 @@ attribute [measurability] measurable.neg ae_measurable.neg
 @[simp] lemma measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} :
   measurable (λ x, (f x)⁻¹) ↔ measurable f :=
-⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
 @[simp] lemma ae_measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} :
   ae_measurable (λ x, (f x)⁻¹) μ ↔ ae_measurable f μ :=
-⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
 omit m
 
@@ -577,29 +584,54 @@ end mul_action
 section opposite
 open mul_opposite
 
+@[to_additive]
 instance {α : Type*} [h : measurable_space α] : measurable_space αᵐᵒᵖ := measurable_space.map op h
 
-lemma measurable_op {α : Type*} [measurable_space α] : measurable (op : α → αᵐᵒᵖ) := λ s, id
+@[to_additive]
+lemma measurable_mul_op {α : Type*} [measurable_space α] : measurable (op : α → αᵐᵒᵖ) := λ s, id
 
-lemma measurable_unop {α : Type*} [measurable_space α] : measurable (unop : αᵐᵒᵖ → α) := λ s, id
+@[to_additive]
+lemma measurable_mul_unop {α : Type*} [measurable_space α] : measurable (unop : αᵐᵒᵖ → α) := λ s, id
 
+@[to_additive]
 instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul M] :
   has_measurable_mul Mᵐᵒᵖ :=
-⟨λ c, measurable_op.comp (measurable_unop.mul_const _),
-  λ c, measurable_op.comp (measurable_unop.const_mul _)⟩
+⟨λ c, measurable_mul_op.comp (measurable_mul_unop.mul_const _),
+  λ c, measurable_mul_op.comp (measurable_mul_unop.const_mul _)⟩
 
+@[to_additive]
 instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul₂ M] :
   has_measurable_mul₂ Mᵐᵒᵖ :=
-⟨measurable_op.comp ((measurable_unop.comp measurable_snd).mul
-  (measurable_unop.comp measurable_fst))⟩
+⟨measurable_mul_op.comp ((measurable_mul_unop.comp measurable_snd).mul
+  (measurable_mul_unop.comp measurable_fst))⟩
 
+/-- If a scalar is central, then its right action is measurable when its left action is. -/
+instance has_measurable_smul.op {M α} [measurable_space M]
+  [measurable_space α] [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [has_measurable_smul M α] : has_measurable_smul Mᵐᵒᵖ α :=
+⟨ mul_opposite.rec $ λ c, show measurable (λ x, op c • x),
+                          by simpa only [op_smul_eq_smul] using measurable_const_smul c,
+  λ x, show measurable (λ c, op (unop c) • x),
+       by simpa only [op_smul_eq_smul] using (measurable_smul_const x).comp measurable_mul_unop⟩
+
+/-- If a scalar is central, then its right action is measurable when its left action is. -/
+instance has_measurable_smul₂.op {M α} [measurable_space M]
+  [measurable_space α] [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [has_measurable_smul₂ M α] : has_measurable_smul₂ Mᵐᵒᵖ α :=
+⟨show measurable (λ x : Mᵐᵒᵖ × α, op (unop x.1) • x.2), begin
+  simp_rw op_smul_eq_smul,
+  refine (measurable_mul_unop.comp measurable_fst).smul measurable_snd,
+end⟩
+
+@[to_additive]
 instance has_measurable_smul_opposite_of_mul {M : Type*} [has_mul M] [measurable_space M]
   [has_measurable_mul M] : has_measurable_smul Mᵐᵒᵖ M :=
-⟨λ c, measurable_mul_const (unop c), λ x, measurable_unop.const_mul x⟩
+⟨λ c, measurable_mul_const (unop c), λ x, measurable_mul_unop.const_mul x⟩
 
+@[to_additive]
 instance has_measurable_smul₂_opposite_of_mul {M : Type*} [has_mul M] [measurable_space M]
   [has_measurable_mul₂ M] : has_measurable_smul₂ Mᵐᵒᵖ M :=
-⟨measurable_snd.mul (measurable_unop.comp measurable_fst)⟩
+⟨measurable_snd.mul (measurable_mul_unop.comp measurable_fst)⟩
 
 end opposite
 

@@ -663,7 +663,7 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
             measure.sub_apply (hA.inter hE₁) hle,
             ennreal.to_real_sub_of_le _ (ne_of_lt (measure_lt_top _ _)), sub_nonneg,
             le_sub_iff_add_le, ← ennreal.to_real_add, ennreal.to_real_le_to_real,
-            measure.coe_nnreal_smul, pi.smul_apply, with_density_apply _ (hA.inter hE₁),
+            measure.coe_smul, pi.smul_apply, with_density_apply _ (hA.inter hE₁),
             show ε • ν (A ∩ E) = (ε : ℝ≥0∞) * ν (A ∩ E), by refl,
             ← set_lintegral_const, ← lintegral_add measurable_const hξm] at this,
       { rw [ne.def, ennreal.add_eq_top, not_or_distrib],

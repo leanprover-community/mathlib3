@@ -69,16 +69,14 @@ monotone map, bundled morphism
 
 open order_dual
 
+variables {F α β γ δ : Type*}
+
 /-- Bundled monotone (aka, increasing) function -/
 structure order_hom (α β : Type*) [preorder α] [preorder β] :=
 (to_fun   : α → β)
 (monotone' : monotone to_fun)
 
 infixr ` →o `:25 := order_hom
-
-/-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
-abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [preorder α] [preorder β] :=
-rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop)
 
 /-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`.
 This definition is an abbreviation of `rel_embedding (≤) (≤)`. -/
@@ -93,11 +91,31 @@ abbreviation order_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β
 
 infix ` ≃o `:25 := order_iso
 
-variables {α β γ δ : Type*}
+/-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
+abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [preorder α] [preorder β] :=
+rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop)
+
+/-- `order_iso_class F α β` states that `F` is a type of order isomorphisms.
+
+You should extend this class when you extend `order_iso`. -/
+class order_iso_class (F : Type*) (α β : out_param Type*) [has_le α] [has_le β]
+  extends equiv_like F α β :=
+(map_le_map_iff (f : F) {a b : α} : f a ≤ f b ↔ a ≤ b)
+
+export order_iso_class (map_le_map_iff)
+
+attribute [simp] map_le_map_iff
+
+instance [has_le α] [has_le β] [order_iso_class F α β] : has_coe_t F (α ≃o β) :=
+⟨λ f, ⟨f, λ _ _, map_le_map_iff f⟩⟩
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso_class.to_order_hom_class [preorder α] [preorder β] [order_iso_class F α β] :
+  order_hom_class F α β :=
+{ map_rel := λ f a b, (map_le_map_iff f).2, ..equiv_like.to_embedding_like }
 
 namespace order_hom_class
-
-variables {F : Type*} [preorder α] [preorder β] [order_hom_class F α β]
+variables [preorder α] [preorder β] [order_hom_class F α β]
 
 protected lemma monotone (f : F) : monotone (f : α → β) := λ _ _, map_rel f
 protected lemma mono (f : F) : monotone (f : α → β) := λ _ _, map_rel f
@@ -420,6 +438,19 @@ namespace order_iso
 section has_le
 
 variables [has_le α] [has_le β] [has_le γ]
+
+instance : order_iso_class (α ≃o β) α β :=
+{ coe := λ f, f.to_fun,
+  inv := λ f, f.inv_fun,
+  left_inv := λ f, f.left_inv,
+  right_inv := λ f, f.right_inv,
+  coe_injective' := λ f g h₁ h₂, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
+  map_le_map_iff := λ f, f.map_rel_iff' }
+
+@[simp] lemma to_fun_eq_coe {f : α ≃o β} : f.to_fun = f := rfl
+
+@[ext] -- See library note [partially-applied ext lemmas]
+lemma ext {f g : α ≃o β} (h : (f : α → β) = g) : f = g := fun_like.coe_injective h
 
 /-- Reinterpret an order isomorphism as an order embedding. -/
 def to_order_embedding (e : α ≃o β) : α ↪o β :=

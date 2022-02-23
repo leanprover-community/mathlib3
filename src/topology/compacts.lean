@@ -17,6 +17,7 @@ For a topological space `α`,
 - `compacts α`: The type of compact sets.
 - `nonempty_compacts α`: The type of non-empty compact sets.
 - `positive_compacts α`: The type of compact sets with non-empty interior.
+- `clopens α`: The type of clopen sets.
 - `compact_opens α`: The type of compact open sets. This is a central object of study in the
   context of spectral spaces.
 -/
@@ -238,6 +239,52 @@ let ⟨s, hs⟩ := exists_compact_subset is_open_univ $ mem_univ (classical.arbi
   ⟨{ carrier := s, compact' := hs.1, interior_nonempty' := ⟨_, hs.2.1⟩ }⟩
 
 end positive_compacts
+
+/-! ### Clopen sets -/
+
+/-- The type of clopen sets of a topological space. -/
+structure clopens (α : Type*) [topological_space α] :=
+(carrier : set α)
+(clopen' : is_clopen carrier)
+
+namespace clopens
+
+instance : set_like (clopens α) α :=
+{ coe := λ s, s.carrier,
+  coe_injective' := λ s t h, by { cases s, cases t, congr' } }
+
+lemma clopen (s : clopens α) : is_clopen (s : set α) := s.clopen'
+
+/-- Reinterpret a compact open as an open. -/
+@[simps] def to_opens (s : clopens α) : opens α := ⟨s, s.clopen.is_open⟩
+
+@[ext] protected lemma ext {s t : clopens α} (h : (s : set α) = t) : s = t := set_like.ext' h
+
+@[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
+
+instance : has_sup (clopens α) := ⟨λ s t, ⟨s ∪ t, s.clopen.union t.clopen⟩⟩
+instance [t2_space α] : has_inf (clopens α) := ⟨λ s t, ⟨s ∩ t, s.clopen.inter t.clopen⟩⟩
+instance [compact_space α] : has_top (clopens α) := ⟨⟨⊤, is_clopen_univ⟩⟩
+instance : has_bot (clopens α) := ⟨⟨⊥, is_clopen_empty⟩⟩
+
+instance : semilattice_sup (clopens α) := set_like.coe_injective.semilattice_sup _ (λ _ _, rfl)
+
+instance [t2_space α] : distrib_lattice (clopens α) :=
+set_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
+
+instance : order_bot (clopens α) := order_bot.lift (coe : _ → set α) (λ _ _, id) rfl
+
+instance [compact_space α] : bounded_order (clopens α) :=
+bounded_order.lift (coe : _ → set α) (λ _ _, id) rfl rfl
+
+@[simp] lemma coe_sup (s t : clopens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
+@[simp] lemma coe_inf [t2_space α] (s t : clopens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simp] lemma coe_top [compact_space α] : (↑(⊤ : clopens α) : set α) = univ := rfl
+@[simp] lemma coe_bot : (↑(⊥ : clopens α) : set α) = ∅ := rfl
+
+instance : inhabited (clopens α) := ⟨⊥⟩
+
+end clopens
 
 /-! ### Compact open sets -/
 

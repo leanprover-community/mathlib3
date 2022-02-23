@@ -180,7 +180,7 @@ lemma ext_iff {f g : M →[L] N} : f = g ↔ ∀ x, f x = g x :=
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
 
 @[simp] lemma map_constants (φ : M →[L] N) (c : L.constants) : φ c = c :=
-(φ.map_fun c default).trans (subsingleton.elim _ _)
+(φ.map_fun c default).trans (congr rfl (funext default))
 
 @[simp] lemma map_rel (φ : M →[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
   rel_map r x → rel_map r (φ ∘ x) := φ.map_rel' r x
@@ -219,7 +219,7 @@ instance has_coe_to_fun : has_coe_to_fun (M ↪[L] N) (λ _, M → N) := ⟨λ f
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
 
 @[simp] lemma map_constants (φ : M ↪[L] N) (c : L.constants) : φ c = c :=
-(φ.map_fun c default).trans (subsingleton.elim _ _)
+(φ.map_fun c default).trans (congr rfl (funext default))
 
 @[simp] lemma map_rel (φ : M ↪[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
   rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x
@@ -322,7 +322,7 @@ lemma symm_apply_apply (f : M ≃[L] N) (a : M) : f.symm (f a) = a := f.to_equiv
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
 
 @[simp] lemma map_constants (φ : M ≃[L] N) (c : L.constants) : φ c = c :=
-(φ.map_fun c default).trans (subsingleton.elim _ _)
+(φ.map_fun c default).trans (congr rfl (funext default))
 
 @[simp] lemma map_rel (φ : M ≃[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
   rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x

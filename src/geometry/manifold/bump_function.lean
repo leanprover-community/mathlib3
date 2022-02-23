@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.specific_functions
-import geometry.manifold.times_cont_mdiff
+import geometry.manifold.cont_mdiff
 
 /-!
 # Smooth bump functions on a smooth manifold
@@ -55,7 +55,7 @@ The structure contains data required to construct a function with these properti
 available as `⇑f` or `f x`. Formal statements of the properties listed above involve some
 (pre)images under `ext_chart_at I f.c` and are given as lemmas in the `smooth_bump_function`
 namespace. -/
-structure smooth_bump_function (c : M) extends times_cont_diff_bump (ext_chart_at I c c) :=
+structure smooth_bump_function (c : M) extends cont_diff_bump (ext_chart_at I c c) :=
 (closed_ball_subset :
   (euclidean.closed_ball (ext_chart_at I c c) R) ∩ range I ⊆ (ext_chart_at I c).target)
 
@@ -70,39 +70,39 @@ variables {c : M} (f : smooth_bump_function I c) {x : M} {I}
 /-- The function defined by `f : smooth_bump_function c`. Use automatic coercion to function
 instead. -/
 def to_fun : M → ℝ :=
-indicator (chart_at H c).source (f.to_times_cont_diff_bump ∘ ext_chart_at I c)
+indicator (chart_at H c).source (f.to_cont_diff_bump ∘ ext_chart_at I c)
 
 instance : has_coe_to_fun (smooth_bump_function I c) (λ _, M → ℝ) := ⟨to_fun⟩
 
 lemma coe_def :
-  ⇑f = indicator (chart_at H c).source (f.to_times_cont_diff_bump ∘ ext_chart_at I c) :=
+  ⇑f = indicator (chart_at H c).source (f.to_cont_diff_bump ∘ ext_chart_at I c) :=
 rfl
 
-lemma R_pos : 0 < f.R := f.to_times_cont_diff_bump.R_pos
+lemma R_pos : 0 < f.R := f.to_cont_diff_bump.R_pos
 
 lemma ball_subset :
   ball (ext_chart_at I c c) f.R ∩ range I ⊆ (ext_chart_at I c).target :=
 subset.trans (inter_subset_inter_left _ ball_subset_closed_ball) f.closed_ball_subset
 
 lemma eq_on_source :
-  eq_on f (f.to_times_cont_diff_bump ∘ ext_chart_at I c) (chart_at H c).source :=
+  eq_on f (f.to_cont_diff_bump ∘ ext_chart_at I c) (chart_at H c).source :=
 eq_on_indicator
 
 lemma eventually_eq_of_mem_source (hx : x ∈ (chart_at H c).source) :
-  f =ᶠ[𝓝 x] f.to_times_cont_diff_bump ∘ ext_chart_at I c :=
+  f =ᶠ[𝓝 x] f.to_cont_diff_bump ∘ ext_chart_at I c :=
 f.eq_on_source.eventually_eq_of_mem $ is_open.mem_nhds (chart_at H c).open_source hx
 
 lemma one_of_dist_le (hs : x ∈ (chart_at H c).source)
   (hd : eudist (ext_chart_at I c x) (ext_chart_at I c c) ≤ f.r) :
   f x = 1 :=
-by simp only [f.eq_on_source hs, (∘), f.to_times_cont_diff_bump.one_of_mem_closed_ball hd]
+by simp only [f.eq_on_source hs, (∘), f.to_cont_diff_bump.one_of_mem_closed_ball hd]
 
 lemma support_eq_inter_preimage :
   support f =
     (chart_at H c).source ∩ (ext_chart_at I c ⁻¹' ball (ext_chart_at I c c) f.R) :=
 by rw [coe_def, support_indicator, (∘), support_comp_eq_preimage, ← ext_chart_at_source I,
   ← (ext_chart_at I c).symm_image_target_inter_eq',
-  ← (ext_chart_at I c).symm_image_target_inter_eq', f.to_times_cont_diff_bump.support_eq]
+  ← (ext_chart_at I c).symm_image_target_inter_eq', f.to_cont_diff_bump.support_eq]
 
 lemma open_support : is_open (support f) :=
 by { rw support_eq_inter_preimage, exact ext_chart_preimage_open_of_open I c is_open_ball }
@@ -141,7 +141,7 @@ begin
   have : f x = 0 ∨ f x = _, from indicator_eq_zero_or_self _ _ _,
   cases this; rw this,
   exacts [left_mem_Icc.2 zero_le_one,
-    ⟨f.to_times_cont_diff_bump.nonneg, f.to_times_cont_diff_bump.le_one⟩]
+    ⟨f.to_cont_diff_bump.nonneg, f.to_cont_diff_bump.le_one⟩]
 end
 
 lemma nonneg : 0 ≤ f x := f.mem_Icc.1
@@ -295,12 +295,12 @@ variables [smooth_manifold_with_corners I M] {I}
 /-- A smooth bump function is infinitely smooth. -/
 protected lemma smooth : smooth I 𝓘(ℝ) f :=
 begin
-  refine times_cont_mdiff_of_support (λ x hx, _),
+  refine cont_mdiff_of_support (λ x hx, _),
   have : x ∈ (chart_at H c).source := f.tsupport_subset_chart_at_source hx,
-  refine times_cont_mdiff_at.congr_of_eventually_eq _
+  refine cont_mdiff_at.congr_of_eventually_eq _
     (f.eq_on_source.eventually_eq_of_mem $ is_open.mem_nhds (chart_at _ _).open_source this),
-  exact f.to_times_cont_diff_bump.times_cont_diff_at.times_cont_mdiff_at.comp _
-    (times_cont_mdiff_at_ext_chart_at' this)
+  exact f.to_cont_diff_bump.cont_diff_at.cont_mdiff_at.comp _
+    (cont_mdiff_at_ext_chart_at' this)
 end
 
 protected lemma smooth_at {x} : smooth_at I 𝓘(ℝ) f x := f.smooth.smooth_at
@@ -313,12 +313,12 @@ lemma smooth_smul {G} [normed_group G] [normed_space ℝ G]
   {g : M → G} (hg : smooth_on I 𝓘(ℝ, G) g (chart_at H c).source) :
   smooth I 𝓘(ℝ, G) (λ x, f x • g x) :=
 begin
-  apply times_cont_mdiff_of_support (λ x hx, _),
+  apply cont_mdiff_of_support (λ x hx, _),
   have : x ∈ (chart_at H c).source,
   calc x ∈ tsupport (λ x, f x • g x) : hx
      ... ⊆ tsupport f : closure_mono (support_smul_subset_left _ _)
      ... ⊆ (chart_at _ c).source : f.tsupport_subset_chart_at_source,
-  exact f.smooth_at.smul ((hg _ this).times_cont_mdiff_at $
+  exact f.smooth_at.smul ((hg _ this).cont_mdiff_at $
     is_open.mem_nhds (chart_at _ _).open_source this)
 end
 

@@ -29,6 +29,9 @@ end
 def strong_probable_prime (n : nat) (a : zmod n) : Prop :=
 a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 (n-1) ∧ a^(2^r * odd_part(n-1)) = -1)
 
+def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
+a^(n-1) = 1
+
 lemma square_roots_of_one {p : ℕ} [fact (p.prime)] {x : zmod p} (root : x^2 = 1) :
   x = 1 ∨ x = -1 :=
 begin
@@ -89,29 +92,68 @@ begin
   exact fermat,
 end
 
-lemma relatively_prime_of_strong_probable_prime (n : ℕ) [fact (0 < n)] (a : zmod n)
-  (h : strong_probable_prime n a) : nat.coprime n a.val :=
+lemma fermat_pseudoprime_of_strong_probable_prime (n : ℕ) (a : zmod n)
+  (h : strong_probable_prime n a) : fermat_pseudoprime n a :=
 begin
-  rw nat.coprime,
-  rw zmod.nat_cast_val a,
+  unfold strong_probable_prime at h,
+  unfold fermat_pseudoprime,
+  cases h,
+  {
+    -- you'll have to use mul_two_power_part_odd_part somehow here
+    sorry,
+  },
+  {
+    rcases h with ⟨r, hrlt, hpow⟩,
+    have h := congr_arg (^(2^(padic_val_nat 2 (n - 1) - r))) hpow,
+    simp at h,
+    sorry, -- this one seems hard, I would skip it unless you're feeling very confident
+  },
+
 end
 
 lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
 begin
+  have one_lt_n : 1 < p^α,
+  {
+    clear a,
+    -- if p is prime and α ≥ 1, then p^α should always be greater than 1, because p will be at
+    -- least two. See if library search finds facts to tell you that p is at least two or that if
+    -- you raise a ℕ to a power at least one, it gives a number at least as big.
+    sorry,
+  },
+  have zero_lt_n : 0 < p^α,
+  {
+    clear a,
+    -- try to prove this using 0 < 1 and 1 < p^α
+    sorry,
+  },
   haveI : fact (0 < p ^ α),
-  { sorry, },
+  { exact {out := zero_lt_n}, },
   split,
   { intro hspp,
     have euler : a ^ nat.totient (p^α) = 1,
     { have a_unit : is_unit a,
-      { sorry, },
+      { apply is_unit_of_pow_eq_one _ (p^α - 1),
+        apply fermat_pseudoprime_of_strong_probable_prime,
+        assumption,
+        simp only [tsub_pos_iff_lt],
+        assumption, },
       have := zmod.pow_totient (is_unit.unit a_unit),
-
-
-       },
-     }
-  sorry,
+      have coe_this := congr_arg coe this,
+      rw units.coe_one at coe_this,
+      rw <-coe_this,
+      rw units.coe_pow,
+      congr, },
+    rw nat.totient_prime_pow at euler,
+    sorry,
+    sorry,
+    sorry,
+  },
+  {
+    -- This is till not ready to prove, it should probably be extracted as a lemma
+    sorry,
+  },
 end
 
 lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)]
@@ -119,5 +161,5 @@ lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)]
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
 begin
   -- TODO(Bolton): This will be a harder proof. Find some sublemmas that will be needed and
-  -- extract them
+  -- extract them. F
 end

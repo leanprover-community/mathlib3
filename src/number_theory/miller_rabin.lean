@@ -81,26 +81,13 @@ begin
      },
 end
 
-lemma factor_exp (p : ℕ) (a : zmod p) (i : ℕ) :
-  a ^ ((p - 1) / (2 * 2 ^ i)) = (a ^ ((p - 1) / (2 ^ i))) ^ (1/2)
-
 lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
   strong_probable_prime p a :=
 begin
   have fermat := zmod.pow_card_sub_one_eq_one ha, -- you'll need this lemma for this
   rw strong_probable_prime,
-  left,
-  rw odd_part,
-  rw two_power_part,
-  induction padic_val_nat 2 (p - 1) with i hi,
-  simp,
-  rw fermat,
-  rw nat.succ_eq_add_one,
-  rw pow_succ,
-  have fexp := factor_exp,
-  rw fexp,
-  rw hi,
-  simp,
+  apply repeated_halving_of_exponent,
+  exact fermat,
 end
 
 lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)]

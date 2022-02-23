@@ -7,7 +7,7 @@ import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
 
 /-!
-In this file, we establish various propreties related to the spectrum of elements in a
+In this file, we establish various properties related to the spectrum of elements in a
 C⋆-algebra over ℂ.
 -/
 

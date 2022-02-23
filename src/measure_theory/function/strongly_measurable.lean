@@ -92,7 +92,7 @@ begin
     exact measurable_set.univ, },
 end
 
-lemma strongly_measurable_simple_func {α β} {m : measurable_space α} [topological_space β]
+lemma simple_func.strongly_measurable {α β} {m : measurable_space α} [topological_space β]
   (f : α →ₛ β) :
   strongly_measurable f :=
 ⟨λ _, f, λ x, tendsto_const_nhds⟩

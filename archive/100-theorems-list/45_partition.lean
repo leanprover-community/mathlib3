@@ -505,7 +505,8 @@ begin
   exact_mod_cast nat.lt_succ_of_le (le_add_right h),
 end
 
-theorem partition_theorem (n : ℕ) : (nat.partition.odds n).card = (nat.partition.distincts n).card :=
+theorem partition_theorem (n : ℕ) : 
+  (nat.partition.odds n).card = (nat.partition.distincts n).card :=
 begin
   -- We need the counts to live in some field (which contains ℕ), so let's just use ℚ
   suffices : ((nat.partition.odds n).card : ℚ) = (nat.partition.distincts n).card,

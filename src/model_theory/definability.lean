@@ -88,7 +88,7 @@ lemma is_definable.mono (hAs : L.is_definable A s) (hAB : A ⊆ B) :
   L.is_definable B s :=
 begin
   rw [is_definable_iff_empty_definable_with_params] at *,
-  exact hAs.map_expansion (L.Lhom_constants_inclusion hAB),
+  exact hAs.map_expansion (L.Lhom_with_constants_map (set.inclusion hAB)),
 end
 
 @[simp]

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
 import data.equiv.fin
-import data.finset.preimage
+import data.finset.basic
 import model_theory.basic
 
 /-!
@@ -64,8 +64,8 @@ namespace term
 instance [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
-instance {α} : has_coe L.constants (L.term α) :=
-⟨λ c, func c fin_zero_elim⟩
+instance : has_coe L.constants (L.term α) :=
+⟨λ c, func c default⟩
 
 /-- A term `t` with variables indexed by `α` can be evaluated by giving a value to each variable. -/
 @[simp] def realize (v : α → M) :
@@ -395,6 +395,7 @@ lemma realize_equal {t₁ t₂ : L.term α} {x : α → M} :
   (t₁.equal t₂).realize x ↔ t₁.realize x = t₂.realize x :=
 by simp [term.equal, realize]
 
+@[simp]
 lemma realize_graph {f : L.functions n} {x : fin n → M} {y : M} :
   (formula.graph f).realize (fin.cons y x : _ → M) ↔ fun_map f x = y :=
 begin

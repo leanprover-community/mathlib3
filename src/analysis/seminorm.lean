@@ -75,7 +75,7 @@ Absorbent and balanced sets in a vector space over a normed field.
 open normed_field set
 open_locale pointwise topological_space nnreal big_operators
 
-variables {R 𝕜 𝕝 E F G ι ι' : Type*}
+variables {R R' 𝕜 𝕝 E F G ι ι' : Type*}
 
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
@@ -381,6 +381,12 @@ instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 �
         (mul_add _ _ _),
     end } }
 
+instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  [has_scalar R' ℝ] [has_scalar R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ]
+  [has_scalar R R'] [is_scalar_tower R R' ℝ] :
+  is_scalar_tower R R' (seminorm 𝕜 E) :=
+{ smul_assoc := λ r a p, ext $ λ x, smul_assoc r a (p x) }
+
 lemma coe_smul [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   (r : R) (p : seminorm 𝕜 E) : ⇑(r • p) = r • p := rfl
 
@@ -443,6 +449,15 @@ noncomputable instance : has_sup (seminorm 𝕜 E) :=
       (mul_max_of_nonneg _ _ $ norm_nonneg x).symm } }
 
 @[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
+lemma sup_apply (p q : seminorm 𝕜 E) (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
+
+lemma smul_sup [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  (r : R) (p q : seminorm 𝕜 E) :
+  r • (p ⊔ q) = r • p ⊔ r • q :=
+have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
+from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul ℝ≥0 r (_ : ℝ)]
+                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).prop,
+ext $ λ x, real.smul_max _ _
 
 instance : partial_order (seminorm 𝕜 E) :=
   partial_order.lift _ fun_like.coe_injective
@@ -534,6 +549,14 @@ nonneg_of_mul_nonneg_left h zero_lt_two
 
 lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
+/-- The direct path from 0 to y is shorter than the path with x "inserted" in between. -/
+lemma le_insert : p y ≤ p x + p (x - y) :=
+calc p y = p (x - (x - y)) : by rw sub_sub_cancel
+... ≤ p x + p (x - y) : p.sub_le _ _
+
+/-- The direct path from 0 to x is shorter than the path with y "inserted" in between. -/
+lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
+
 instance : order_bot (seminorm 𝕜 E) := ⟨0, nonneg⟩
 
 @[simp] lemma coe_bot : ⇑(⊥ : seminorm 𝕜 E) = 0 := rfl
@@ -584,6 +607,61 @@ lemma comp_smul_apply (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : 𝕜) (x
   p.comp (c • f) x = ∥c∥ * p (f x) := p.smul _ _
 
 end semi_normed_comm_ring
+
+section normed_field
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+
+private lemma bdd_below_range_add (x : E) (p q : seminorm 𝕜 E) :
+  bdd_below (range (λ (u : E), p u + q (x - u))) :=
+by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
+
+noncomputable instance : has_inf (seminorm 𝕜 E) :=
+{ inf := λ p q,
+  { to_fun := λ x, ⨅ u : E, p u + q (x-u),
+    triangle' := λ x y, begin
+      refine le_cinfi_add_cinfi (λ u v, _),
+      apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v+u), dsimp only,
+      convert add_le_add (p.triangle v u) (q.triangle (y-v) (x-u)) using 1,
+      { rw show x + y - (v + u) = y - v + (x - u), by abel },
+      { abel },
+    end,
+    smul' := λ a x, begin
+      obtain rfl | ha := eq_or_ne a 0,
+      { simp_rw [norm_zero, zero_mul, zero_smul, zero_sub, seminorm.neg],
+        refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
+          (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
+          (λ x hx, ⟨0, by rwa [p.zero, q.zero, add_zero]⟩) },
+      simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
+      refine infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩) (λ u, _),
+      rw smul_inv_smul₀ ha,
+    end } }
+
+@[simp] lemma inf_apply (p q : seminorm 𝕜 E) (x : E) : (p ⊓ q) x = ⨅ u : E, p u + q (x-u) := rfl
+
+noncomputable instance : lattice (seminorm 𝕜 E) :=
+{ inf := (⊓),
+  inf_le_left := λ p q x, begin
+    apply cinfi_le_of_le (bdd_below_range_add _ _ _) x,
+    simp only [sub_self, seminorm.zero, add_zero],
+  end,
+  inf_le_right := λ p q x, begin
+    apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
+    simp only [sub_self, seminorm.zero, zero_add, sub_zero],
+  end,
+  le_inf := λ a b c hab hac x,
+    le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
+  ..seminorm.semilattice_sup }
+
+lemma smul_inf [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+  (r : R) (p q : seminorm 𝕜 E) :
+  r • (p ⊓ q) = r • p ⊓ r • q :=
+begin
+  ext,
+  simp_rw [smul_apply, inf_apply, smul_apply, ←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def,
+    smul_eq_mul, real.mul_infi_of_nonneg (subtype.prop _), mul_add],
+end
+
+end normed_field
 
 /-! ### Seminorm ball -/
 

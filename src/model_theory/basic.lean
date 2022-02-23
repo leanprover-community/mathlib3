@@ -150,7 +150,7 @@ localized "notation A ` ≃[`:25 L `] ` B := L.equiv A B" in first_order
 variables {L M N} {P : Type*} [L.Structure P] {Q : Type*} [L.Structure Q]
 
 instance : has_coe_t L.constants M :=
-⟨λ c, fun_map c fin.elim0⟩
+⟨λ c, fun_map c default⟩
 
 lemma fun_map_eq_coe_constants {c : L.constants} {x : fin 0 → M} :
   fun_map c x = c := congr rfl (funext fin.elim0)
@@ -180,7 +180,7 @@ lemma ext_iff {f g : M →[L] N} : f = g ↔ ∀ x, f x = g x :=
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
 
 @[simp] lemma map_constants (φ : M →[L] N) (c : L.constants) : φ c = c :=
-(φ.map_fun c fin.elim0).trans (congr rfl (funext fin.elim0))
+(φ.map_fun c default).trans (congr rfl (funext default))
 
 @[simp] lemma map_rel (φ : M →[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
   rel_map r x → rel_map r (φ ∘ x) := φ.map_rel' r x
@@ -219,7 +219,7 @@ instance has_coe_to_fun : has_coe_to_fun (M ↪[L] N) (λ _, M → N) := ⟨λ f
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
 
 @[simp] lemma map_constants (φ : M ↪[L] N) (c : L.constants) : φ c = c :=
-(φ.map_fun c fin.elim0).trans (congr rfl (funext fin.elim0))
+(φ.map_fun c default).trans (congr rfl (funext default))
 
 @[simp] lemma map_rel (φ : M ↪[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
   rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x
@@ -322,7 +322,7 @@ lemma symm_apply_apply (f : M ≃[L] N) (a : M) : f.symm (f a) = a := f.to_equiv
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
 
 @[simp] lemma map_constants (φ : M ≃[L] N) (c : L.constants) : φ c = c :=
-(φ.map_fun c fin.elim0).trans (congr rfl (funext fin.elim0))
+(φ.map_fun c default).trans (congr rfl (funext default))
 
 @[simp] lemma map_rel (φ : M ≃[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
   rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x

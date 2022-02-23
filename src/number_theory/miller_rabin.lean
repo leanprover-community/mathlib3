@@ -69,8 +69,18 @@ begin
     right,
     cases h4 with r' hoo,
     use r',
-    sorry,
-    sorry, },
+    cases hoo with rr' a2,
+    split,
+    exact nat.lt.step rr',
+    exact a2,
+    right,
+
+
+    have i : nat,
+    exact p,
+    use i,
+    split,
+     },
 end
 
 lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :

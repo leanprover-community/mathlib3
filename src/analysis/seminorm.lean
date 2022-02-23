@@ -1223,7 +1223,7 @@ end
 
 lemma gauge_ball (hr : 0 < r) (x : E) : gauge (metric.ball (0 : E) r) x = ∥x∥ / r :=
 begin
-  rw [ball_zero_eq_smul_unit_ball hr, gauge_smul_left, pi.smul_apply, gauge_unit_ball, smul_eq_mul,
+  rw [← smul_unit_ball_of_pos hr, gauge_smul_left, pi.smul_apply, gauge_unit_ball, smul_eq_mul,
     abs_of_nonneg hr.le, div_eq_inv_mul],
   simp_rw [mem_ball_zero_iff, norm_neg],
   exact λ _, id,

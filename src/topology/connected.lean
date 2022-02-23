@@ -3,6 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
+import data.int.succ_pred
+import data.nat.succ_pred
+import order.partial_sups
+import order.succ_pred.relation
 import topology.subset_properties
 
 /-!
@@ -36,7 +40,7 @@ and in particular
 https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_definitions.
 -/
 
-open set function topological_space
+open set function topological_space relation
 open_locale classical topological_space
 
 universes u v
@@ -124,6 +128,10 @@ sUnion_pair s t ▸ is_preconnected_sUnion x {s, t}
   (by rintro r (rfl | rfl | h); assumption)
   (by rintro r (rfl | rfl | h); assumption)
 
+theorem is_preconnected.union' {s t : set α} (H : (s ∩ t).nonempty)
+  (hs : is_preconnected s) (ht : is_preconnected t) : is_preconnected (s ∪ t) :=
+by { rcases H with ⟨x, hxs, hxt⟩, exact hs.union x hxs hxt ht }
+
 theorem is_connected.union {s t : set α} (H : (s ∩ t).nonempty)
   (Hs : is_connected s) (Ht : is_connected t) : is_connected (s ∪ t) :=
 begin
@@ -132,6 +140,134 @@ begin
   exact is_preconnected.union x (mem_of_mem_inter_left hx) (mem_of_mem_inter_right hx)
     Hs.is_preconnected Ht.is_preconnected
 end
+
+/-- The directed sUnion of a set S of preconnected subsets is preconnected. -/
+theorem is_preconnected.sUnion_directed {S : set (set α)}
+  (K : directed_on (⊆) S)
+  (H : ∀ s ∈ S, is_preconnected s) : is_preconnected (⋃₀ S) :=
+begin
+  rintros u v hu hv Huv ⟨a, ⟨s, hsS, has⟩, hau⟩ ⟨b, ⟨t, htS, hbt⟩, hbv⟩,
+  obtain ⟨r, hrS, hsr, htr⟩ : ∃ r ∈ S, s ⊆ r ∧ t ⊆ r := K s hsS t htS,
+  have Hnuv : (r ∩ (u ∩ v)).nonempty,
+  from H _ hrS u v hu hv ((subset_sUnion_of_mem hrS).trans Huv)
+    ⟨a, hsr has, hau⟩ ⟨b, htr hbt, hbv⟩,
+  have Kruv : r ∩ (u ∩ v) ⊆ ⋃₀ S ∩ (u ∩ v),
+  from inter_subset_inter_left _ (subset_sUnion_of_mem hrS),
+  exact Hnuv.mono Kruv
+end
+
+/-- The bUnion of a family of preconnected sets is preconnected if the graph determined by
+whether two sets intersect is preconnected. -/
+theorem is_preconnected.bUnion_of_refl_trans_gen {ι : Type*} {t : set ι} {s : ι → set α}
+  (H : ∀ i ∈ t, is_preconnected (s i))
+  (K : ∀ i j ∈ t, refl_trans_gen (λ i j : ι, (s i ∩ s j).nonempty ∧ i ∈ t) i j) :
+  is_preconnected (⋃ n ∈ t, s n) :=
+begin
+  let R := λ i j : ι, (s i ∩ s j).nonempty ∧ i ∈ t,
+  have P : ∀ (i j ∈ t), refl_trans_gen R i j →
+    ∃ (p ⊆ t), i ∈ p ∧ j ∈ p ∧ is_preconnected (⋃ j ∈ p, s j),
+  { intros i hi j hj h,
+    induction h,
+    case refl
+    { refine ⟨{i}, singleton_subset_iff.mpr hi, mem_singleton i, mem_singleton i, _⟩,
+      rw [bUnion_singleton],
+      exact H i hi },
+    case tail : j k hij hjk ih
+    { obtain ⟨p, hpt, hip, hjp, hp⟩ := ih hjk.2,
+      refine ⟨insert k p, insert_subset.mpr ⟨hj, hpt⟩, mem_insert_of_mem k hip, mem_insert k p, _⟩,
+      rw [bUnion_insert],
+      refine (H k hj).union' _ hp,
+      refine hjk.1.mono _,
+      rw [inter_comm],
+      refine inter_subset_inter subset.rfl (subset_bUnion_of_mem hjp) } },
+  refine is_preconnected_of_forall_pair _,
+  intros x hx y hy,
+  obtain ⟨i: ι, hi : i ∈ t, hxi : x ∈ s i⟩ := mem_Union₂.1 hx,
+  obtain ⟨j: ι, hj : j ∈ t, hyj : y ∈ s j⟩ := mem_Union₂.1 hy,
+  obtain ⟨p, hpt, hip, hjp, hp⟩ := P i hi j hj (K i hi j hj),
+  exact ⟨⋃ j ∈ p, s j, bUnion_subset_bUnion_left hpt, mem_bUnion hip hxi, mem_bUnion hjp hyj, hp⟩
+end
+
+/-- The bUnion of a family of preconnected sets is preconnected if the graph determined by
+whether two sets intersect is preconnected. -/
+theorem is_connected.bUnion_of_refl_trans_gen {ι : Type*} {t : set ι} {s : ι → set α}
+  (ht : t.nonempty)
+  (H : ∀ i ∈ t, is_connected (s i))
+  (K : ∀ i j ∈ t, refl_trans_gen (λ i j : ι, (s i ∩ s j).nonempty ∧ i ∈ t) i j) :
+  is_connected (⋃ n ∈ t, s n) :=
+⟨nonempty_bUnion.2 $ ⟨ht.some, ht.some_mem, (H _ ht.some_mem).nonempty⟩,
+  is_preconnected.bUnion_of_refl_trans_gen (λ i hi, (H i hi).is_preconnected) K⟩
+
+/-- Preconnectedness of the Union of a family of preconnected sets
+indexed by the vertices of a preconnected graph,
+where two vertices are joined when the corresponding sets intersect. -/
+theorem is_preconnected.Union_of_refl_trans_gen {ι : Type*} {s : ι → set α}
+  (H : ∀ i, is_preconnected (s i))
+  (K : ∀ i j, refl_trans_gen (λ i j : ι, (s i ∩ s j).nonempty) i j) :
+  is_preconnected (⋃ n, s n) :=
+by { rw [← bUnion_univ], exact is_preconnected.bUnion_of_refl_trans_gen (λ i _, H i)
+  (λ i _ j _, by simpa [mem_univ] using K i j) }
+
+theorem is_connected.Union_of_refl_trans_gen {ι : Type*} [nonempty ι] {s : ι → set α}
+  (H : ∀ i, is_connected (s i))
+  (K : ∀ i j, refl_trans_gen (λ i j : ι, (s i ∩ s j).nonempty) i j) :
+  is_connected (⋃ n, s n) :=
+⟨nonempty_Union.2 $ nonempty.elim ‹_› $ λ i : ι, ⟨i, (H _).nonempty⟩,
+  is_preconnected.Union_of_refl_trans_gen (λ i, (H i).is_preconnected) K⟩
+
+section succ_order
+open succ_order
+
+variables [linear_order β] [succ_order β] [is_succ_archimedean β]
+
+/-- The Union of connected sets indexed by a type with an archimedean successor (like `ℕ` or `ℤ`)
+  such that any two neighboring sets meet is preconnected. -/
+theorem is_preconnected.Union_of_chain {s : β → set α}
+  (H : ∀ n, is_preconnected (s n))
+  (K : ∀ n, (s n ∩ s (succ n)).nonempty) :
+  is_preconnected (⋃ n, s n) :=
+is_preconnected.Union_of_refl_trans_gen H $
+  λ i j, refl_trans_gen_of_succ _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
+
+/-- The Union of connected sets indexed by a type with an archimedean successor (like `ℕ` or `ℤ`)
+  such that any two neighboring sets meet is connected. -/
+theorem is_connected.Union_of_chain [nonempty β] {s : β → set α}
+  (H : ∀ n, is_connected (s n))
+  (K : ∀ n, (s n ∩ s (succ n)).nonempty) :
+  is_connected (⋃ n, s n) :=
+is_connected.Union_of_refl_trans_gen H $
+  λ i j, refl_trans_gen_of_succ _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
+
+/-- The Union of preconnected sets indexed by a subset of a type with an archimedean successor
+  (like `ℕ` or `ℤ`) such that any two neighboring sets meet is preconnected. -/
+theorem is_preconnected.bUnion_of_chain
+  {s : β → set α} {t : set β} (ht : ord_connected t)
+  (H : ∀ n ∈ t, is_preconnected (s n))
+  (K : ∀ n : β, n ∈ t → succ n ∈ t → (s n ∩ s (succ n)).nonempty) :
+  is_preconnected (⋃ n ∈ t, s n) :=
+begin
+  have h1 : ∀ {i j k : β}, i ∈ t → j ∈ t → k ∈ Ico i j → k ∈ t :=
+    λ i j k hi hj hk, ht.out hi hj (Ico_subset_Icc_self hk),
+  have h2 : ∀ {i j k : β}, i ∈ t → j ∈ t → k ∈ Ico i j → succ k ∈ t := λ i j k hi hj hk,
+    ht.out hi hj ⟨hk.1.trans $ le_succ k, succ_le_of_lt hk.2⟩,
+  have h3 : ∀ {i j k : β}, i ∈ t → j ∈ t → k ∈ Ico i j → (s k ∩ s (succ k)).nonempty :=
+    λ i j k hi hj hk, K _ (h1 hi hj hk) (h2 hi hj hk),
+  refine is_preconnected.bUnion_of_refl_trans_gen H (λ i hi j hj, _),
+  exact refl_trans_gen_of_succ _ (λ k hk, ⟨h3 hi hj hk, h1 hi hj hk⟩)
+    (λ k hk, ⟨by { rw [inter_comm], exact h3 hj hi hk }, h2 hj hi hk⟩),
+end
+
+/-- The Union of connected sets indexed by a subset of a type with an archimedean successor
+  (like `ℕ` or `ℤ`) such that any two neighboring sets meet is preconnected. -/
+theorem is_connected.bUnion_of_chain
+  {s : β → set α} {t : set β} (hnt : t.nonempty) (ht : ord_connected t)
+  (H : ∀ n ∈ t, is_connected (s n))
+  (K : ∀ n : β, n ∈ t → succ n ∈ t → (s n ∩ s (succ n)).nonempty) :
+  is_connected (⋃ n ∈ t, s n) :=
+⟨nonempty_bUnion.2 $ ⟨hnt.some, hnt.some_mem, (H _ hnt.some_mem).nonempty⟩,
+  is_preconnected.bUnion_of_chain ht (λ i hi, (H i hi).is_preconnected) K⟩
+
+end succ_order
 
 /-- Theorem of bark and tree :
 if a set is within a (pre)connected set and its closure,
@@ -145,7 +281,7 @@ let ⟨p, hpu, hps⟩ := mem_closure_iff.1 (Ktcs hyt) u hu hyu,
     ⟨r, hrs, hruv⟩ := H u v hu hv (subset.trans Kst htuv) ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
   ⟨r, Kst hrs, hruv⟩
 
-theorem is_connected.subset_closure {s : set α}  {t : set α}
+theorem is_connected.subset_closure {s : set α} {t : set α}
   (H : is_connected s) (Kst : s ⊆ t) (Ktcs : t ⊆ closure s): is_connected t :=
 let hsne := H.left,
     ht := Kst,
@@ -233,7 +369,7 @@ end
 
 lemma is_preconnected.preimage_of_open_map [topological_space β] {s : set β}
   (hs : is_preconnected s) {f : α → β} (hinj : function.injective f) (hf : is_open_map f)
-  (hsf : s ⊆ set.range f) :
+  (hsf : s ⊆ range f) :
   is_preconnected (f ⁻¹' s) :=
 λ u v hu hv hsuv hsu hsv,
 begin
@@ -241,8 +377,8 @@ begin
   obtain ⟨a, rfl⟩ := hsf hbs,
   rw hinj.mem_set_image at hbu hbv,
   exact ⟨a, hbs, hbu, hbv⟩,
-  { have := set.image_subset f hsuv,
-    rwa [set.image_preimage_eq_of_subset hsf, set.image_union] at this },
+  { have := image_subset f hsuv,
+    rwa [set.image_preimage_eq_of_subset hsf, image_union] at this },
   { obtain ⟨x, hx1, hx2⟩ := hsu,
     exact ⟨f x, hx1, x, hx2, rfl⟩ },
   { obtain ⟨y, hy1, hy2⟩ := hsv,
@@ -251,7 +387,7 @@ end
 
 lemma is_preconnected.preimage_of_closed_map [topological_space β] {s : set β}
   (hs : is_preconnected s) {f : α → β} (hinj : function.injective f) (hf : is_closed_map f)
-  (hsf : s ⊆ set.range f) :
+  (hsf : s ⊆ range f) :
   is_preconnected (f ⁻¹' s) :=
 is_preconnected_closed_iff.2 $ λ u v hu hv hsuv hsu hsv,
 begin
@@ -260,8 +396,8 @@ begin
   obtain ⟨a, rfl⟩ := hsf hbs,
   rw hinj.mem_set_image at hbu hbv,
   exact ⟨a, hbs, hbu, hbv⟩,
-  { have := set.image_subset f hsuv,
-    rwa [set.image_preimage_eq_of_subset hsf, set.image_union] at this },
+  { have := image_subset f hsuv,
+    rwa [set.image_preimage_eq_of_subset hsf, image_union] at this },
   { obtain ⟨x, hx1, hx2⟩ := hsu,
     exact ⟨f x, hx1, x, hx2, rfl⟩ },
   { obtain ⟨y, hy1, hy2⟩ := hsv,
@@ -269,12 +405,12 @@ begin
 end
 
 lemma is_connected.preimage_of_open_map [topological_space β] {s : set β} (hs : is_connected s)
-  {f : α → β} (hinj : function.injective f) (hf : is_open_map f) (hsf : s ⊆ set.range f) :
+  {f : α → β} (hinj : function.injective f) (hf : is_open_map f) (hsf : s ⊆ range f) :
   is_connected (f ⁻¹' s) :=
 ⟨hs.nonempty.preimage' hsf, hs.is_preconnected.preimage_of_open_map hinj hf hsf⟩
 
 lemma is_connected.preimage_of_closed_map [topological_space β] {s : set β} (hs : is_connected s)
-  {f : α → β} (hinj : function.injective f) (hf : is_closed_map f) (hsf : s ⊆ set.range f) :
+  {f : α → β} (hinj : function.injective f) (hf : is_closed_map f) (hsf : s ⊆ range f) :
   is_connected (f ⁻¹' s) :=
 ⟨hs.nonempty.preimage' hsf, hs.is_preconnected.preimage_of_closed_map hinj hf hsf⟩
 
@@ -287,7 +423,7 @@ begin
   { exact or.inr ((set.disjoint_iff_inter_eq_empty.2 hsu).subset_right_of_subset_union hsuv) },
   { replace hs := mt (hs hsu),
     simp_rw [set.not_nonempty_iff_eq_empty, ←set.disjoint_iff_inter_eq_empty,
-      set.disjoint_iff_inter_eq_empty.1 huv] at hs,
+      disjoint_iff_inter_eq_empty.1 huv] at hs,
     exact or.inl ((hs s.disjoint_empty).subset_left_of_subset_union hsuv) }
 end
 
@@ -297,7 +433,7 @@ lemma is_preconnected.subset_left_of_subset_union (hu : is_open u) (hv : is_open
 disjoint.subset_left_of_subset_union hsuv
 begin
   by_contra hsv,
-  rw set.not_disjoint_iff_nonempty_inter at hsv,
+  rw not_disjoint_iff_nonempty_inter at hsv,
   obtain ⟨x, _, hx⟩ := hs u v hu hv hsuv hsu hsv,
   exact set.disjoint_iff.1 huv hx,
 end
@@ -365,8 +501,8 @@ lemma sigma.is_connected_iff [Π i, topological_space (π i)] {s : set (Σ i, π
 begin
   refine ⟨λ hs, _, _⟩,
   { obtain ⟨⟨i, x⟩, hx⟩ := hs.nonempty,
-    have : s ⊆ set.range (sigma.mk i),
-    { have h : set.range (sigma.mk i) = sigma.fst ⁻¹' {i}, by { ext, simp },
+    have : s ⊆ range (sigma.mk i),
+    { have h : range (sigma.mk i) = sigma.fst ⁻¹' {i}, by { ext, simp },
       rw h,
       exact is_preconnected.subset_left_of_subset_union
         (is_open_sigma_fst_preimage _) (is_open_sigma_fst_preimage {x | x ≠ i})
@@ -397,19 +533,19 @@ lemma sum.is_connected_iff [topological_space β] {s : set (α ⊕ β)} :
     (∃ t, is_connected t ∧ s = sum.inl '' t) ∨ ∃ t, is_connected t ∧ s = sum.inr '' t :=
 begin
   refine ⟨λ hs, _, _⟩,
-  { let u : set (α ⊕ β):= set.range sum.inl,
-    let v : set (α ⊕ β) := set.range sum.inr,
+  { let u : set (α ⊕ β):= range sum.inl,
+    let v : set (α ⊕ β) := range sum.inr,
     have hu : is_open u, exact is_open_range_inl,
     obtain ⟨x | x, hx⟩ := hs.nonempty,
     { have h := is_preconnected.subset_left_of_subset_union
-        is_open_range_inl is_open_range_inr set.is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ set.range sum.inl ∪ set.range sum.inr, by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
+        is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
+        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
       refine or.inl ⟨sum.inl ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inl_injective open_embedding_inl.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } },
     { have h := is_preconnected.subset_right_of_subset_union
-        is_open_range_inl is_open_range_inr set.is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ set.range sum.inl ∪ set.range sum.inr, by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
+        is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
+        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
       refine or.inr ⟨sum.inr ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inr_injective open_embedding_inr.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } } },
@@ -960,7 +1096,7 @@ instance [Π i, topological_space (π i)] [∀ i, totally_disconnected_space (π
 begin
   refine ⟨λ s _ hs, _⟩,
   obtain rfl | h := s.eq_empty_or_nonempty,
-  { exact set.subsingleton_empty },
+  { exact subsingleton_empty },
   { obtain ⟨a, t, ht, rfl⟩ := sigma.is_connected_iff.1 ⟨h, hs⟩,
     exact ht.is_preconnected.subsingleton.image _ }
 end
@@ -987,7 +1123,7 @@ lemma totally_disconnected_space_iff_connected_component_singleton :
 begin
   rw totally_disconnected_space_iff_connected_component_subsingleton,
   apply forall_congr (λ x, _),
-  rw set.subsingleton_iff_singleton,
+  rw subsingleton_iff_singleton,
   exact mem_connected_component
 end
 
@@ -1071,8 +1207,8 @@ begin
   obtain ⟨U, V, hU, hV, Ux, Vy, f, disj⟩ :=
     totally_separated_space.is_totally_separated_univ α x (set.mem_univ x) y (set.mem_univ y) hxy,
   have clopen_U := is_clopen_inter_of_disjoint_cover_clopen (is_clopen_univ) f hU hV disj,
-  rw set.univ_inter _ at clopen_U,
-  rw [←set.subset_compl_iff_disjoint, set.subset_compl_comm] at disj,
+  rw univ_inter _ at clopen_U,
+  rw [←set.subset_compl_iff_disjoint, subset_compl_comm] at disj,
   exact ⟨U, clopen_U, Ux, disj Vy⟩,
 end
 

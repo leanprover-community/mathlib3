@@ -185,7 +185,7 @@ by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _) a
 not_lt_of_le zero_le'
 
 @[simp] lemma le_zero_iff : a ≤ 0 ↔ a = 0 :=
-⟨λ h, le_antisymm h zero_le', λ h, h ▸ le_refl _⟩
+⟨λ h, le_antisymm h zero_le', λ h, h ▸ le_rfl⟩
 
 lemma zero_lt_iff : 0 < a ↔ a ≠ 0 :=
 ⟨ne_of_gt, λ h, lt_of_le_of_ne zero_le' h.symm⟩
@@ -220,10 +220,10 @@ lemma mul_inv_le_of_le_mul (h : c ≠ 0) (hab : a ≤ b * c) : a * c⁻¹ ≤ b 
 le_of_le_mul_right h (by simpa [h] using hab)
 
 lemma le_mul_inv_iff₀ (hc : c ≠ 0) : a ≤ b * c⁻¹ ↔ a * c ≤ b :=
-⟨λ h, inv_inv₀ c ▸ mul_inv_le_of_le_mul (inv_ne_zero hc) h, le_mul_inv_of_mul_le hc⟩
+⟨λ h, inv_inv c ▸ mul_inv_le_of_le_mul (inv_ne_zero hc) h, le_mul_inv_of_mul_le hc⟩
 
 lemma mul_inv_le_iff₀ (hc : c ≠ 0) : a * c⁻¹ ≤ b ↔ a ≤ b * c :=
-⟨λ h, inv_inv₀ c ▸ le_mul_inv_of_mul_le (inv_ne_zero hc) h, mul_inv_le_of_le_mul hc⟩
+⟨λ h, inv_inv c ▸ le_mul_inv_of_mul_le (inv_ne_zero hc) h, mul_inv_le_of_le_mul hc⟩
 
 lemma div_le_div₀ (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
@@ -248,7 +248,7 @@ mul_lt_mul_of_lt_of_le₀ hab.le (ne_zero_of_lt hab) hcd
 
 lemma mul_inv_lt_of_lt_mul₀ (h : x < y * z) : x * z⁻¹ < y :=
 have hz : z ≠ 0 := (mul_ne_zero_iff.1 $ ne_zero_of_lt h).2,
-by { contrapose! h, simpa only [inv_inv₀] using mul_inv_le_of_le_mul (inv_ne_zero hz) h }
+by { contrapose! h, simpa only [inv_inv] using mul_inv_le_of_le_mul (inv_ne_zero hz) h }
 
 lemma inv_mul_lt_of_lt_mul₀ (h : x < y * z) : y⁻¹ * x < z :=
 by { rw mul_comm at *, exact mul_inv_lt_of_lt_mul₀ h }

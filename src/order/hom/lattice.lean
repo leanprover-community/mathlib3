@@ -102,7 +102,7 @@ class inf_top_hom_class (F : Type*) (α β : out_param $ Type*) [has_inf α]
 
 /-- `lattice_hom_class F α β` states that `F` is a type of lattice morphisms.
 
-You should extend this class when you extend `sup_hom`. -/
+You should extend this class when you extend `lattice_hom`. -/
 class lattice_hom_class (F : Type*) (α β : out_param $ Type*) [lattice α] [lattice β]
   extends sup_hom_class F α β :=
 (map_inf (f : F) (a b : α) : f (a ⊓ b) = f a ⊓ f b)

@@ -38,7 +38,7 @@ equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 
 open_locale big_operators
 
-variables {R : Type*} {S : Type*} {S' : Type*}
+variables {α β R S S' : Type*}
 
 set_option old_structure_cmd true
 
@@ -84,6 +84,11 @@ instance to_ring_hom_class (F R S : Type*)
   .. h }
 
 end ring_equiv_class
+
+instance [has_mul α] [has_add α] [has_mul β] [has_add β] [ring_equiv_class F α β] :
+  has_coe_t F (α ≃+* β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f, map_mul' := map_mul f, map_add' := map_add f }⟩
 
 namespace ring_equiv
 

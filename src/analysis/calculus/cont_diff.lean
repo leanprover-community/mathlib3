@@ -1446,8 +1446,8 @@ it is differentiable there, and its derivative is `C^n`. -/
 theorem cont_diff_succ_iff_fderiv {n : ℕ} :
   cont_diff 𝕜 ((n + 1) : ℕ) f ↔
   differentiable 𝕜 f ∧ cont_diff 𝕜 n (λ y, fderiv 𝕜 f y) :=
-by simp only [← times_cont_diff_on_univ, ← differentiable_on_univ, ← fderiv_within_univ,
-  times_cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ]
+by simp only [← cont_diff_on_univ, ← differentiable_on_univ, ← fderiv_within_univ,
+  cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ]
 
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^∞`. -/

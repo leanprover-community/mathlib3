@@ -248,7 +248,7 @@ because for `y=x` the slope equals zero due to the convention `0⁻¹=0`. -/
 lemma has_deriv_at_filter_iff_tendsto_slope {x : 𝕜} {L : filter 𝕜} :
   has_deriv_at_filter f f' x L ↔ tendsto (slope f x) (L ⊓ 𝓟 {x}ᶜ) (𝓝 f') :=
 begin
-  conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (normed_field.norm_inv _).symm,
+  conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (norm_inv _).symm,
     (norm_smul _ _).symm, tendsto_zero_iff_norm_tendsto_zero.symm] },
   conv_rhs { rw [← nhds_translation_sub f', tendsto_comap_iff] },
   refine (tendsto_inf_principal_nhds_iff_of_forall_eq $ by simp).symm.trans (tendsto_congr' _),
@@ -2065,7 +2065,7 @@ begin
   have C := mem_sup.2 ⟨A, B⟩,
   rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup] at C,
   filter_upwards [C.1],
-  simp only [norm_smul, mem_Iio, normed_field.norm_inv],
+  simp only [norm_smul, mem_Iio, norm_inv],
   exact λ _, id
 end
 

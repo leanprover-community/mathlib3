@@ -875,7 +875,7 @@ theorem is_O_with_self_const_mul' (u : Rˣ) (f : α → R) (l : filter α) :
 theorem is_O_with_self_const_mul (c : 𝕜) (hc : c ≠ 0) (f : α → 𝕜) (l : filter α) :
   is_O_with ∥c∥⁻¹ f (λ x, c * f x) l :=
 (is_O_with_self_const_mul' (units.mk0 c hc) f l).congr_const $
-  normed_field.norm_inv c
+  norm_inv c
 
 theorem is_O_self_const_mul' {c : R} (hc : is_unit c) (f : α → R) (l : filter α) :
   is_O f (λ x, c * f x) l :=
@@ -971,7 +971,7 @@ begin
   filter_upwards [h₁, h₂] with _ hx₁ hx₂,
   apply le_trans (norm_mul_le _ _),
   convert mul_le_mul hx₁ hx₂ (norm_nonneg _) (le_trans (norm_nonneg _) hx₁) using 1,
-  rw normed_field.norm_mul,
+  rw norm_mul,
   ac_refl
 end
 
@@ -1037,7 +1037,7 @@ begin
   { refine (h₀ $ norm_le_zero_iff.1 _).elim,
     exact hle.trans (mul_nonpos_of_nonpos_of_nonneg hc $ norm_nonneg _) },
   { replace hle := inv_le_inv_of_le (norm_pos_iff.2 h₀) hle,
-    simpa only [normed_field.norm_inv, mul_inv₀, ← div_eq_inv_mul, div_le_iff hc] using hle }
+    simpa only [norm_inv, mul_inv₀, ← div_eq_inv_mul, div_le_iff hc] using hle }
 end
 
 theorem is_O.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_O f g l)
@@ -1177,7 +1177,7 @@ have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : 𝕜)) l,
 
 theorem is_o.tendsto_inv_smul_nhds_zero [normed_space 𝕜 E'] {f : α → E'} {g : α → 𝕜} {l : filter α}
   (h : is_o f g l) : tendsto (λ x, (g x)⁻¹ • f x) l (𝓝 0) :=
-by simpa only [div_eq_inv_mul, ← normed_field.norm_inv, ← norm_smul,
+by simpa only [div_eq_inv_mul, ← norm_inv, ← norm_smul,
   ← tendsto_zero_iff_norm_tendsto_zero] using h.norm_norm.tendsto_div_nhds_zero
 
 theorem is_o_iff_tendsto' {f g : α → 𝕜} {l : filter α}
@@ -1257,7 +1257,7 @@ lemma is_O_with_of_eq_mul (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ �
 begin
   unfold is_O_with,
   refine h.symm.rw (λ x a, ∥a∥ ≤ c * ∥v x∥) (hφ.mono $ λ x hx, _),
-  simp only [normed_field.norm_mul, pi.mul_apply],
+  simp only [norm_mul, pi.mul_apply],
   exact mul_le_mul_of_nonneg_right hx (norm_nonneg _)
 end
 
@@ -1313,7 +1313,7 @@ theorem div_is_bounded_under_of_is_O {α : Type*} {l : filter α}
 begin
   obtain ⟨c, hc⟩ := is_O_iff.mp h,
   refine ⟨max c 0, eventually_map.2 (filter.mem_of_superset hc (λ x hx, _))⟩,
-  simp only [mem_set_of_eq, normed_field.norm_div] at ⊢ hx,
+  simp only [mem_set_of_eq, norm_div] at ⊢ hx,
   by_cases hgx : g x = 0,
   { rw [hgx, norm_zero, div_zero, le_max_iff],
     exact or.inr le_rfl },
@@ -1327,7 +1327,7 @@ begin
   refine ⟨div_is_bounded_under_of_is_O, λ h, _⟩,
   obtain ⟨c, hc⟩ := h,
   rw filter.eventually_iff at hgf hc,
-  simp only [mem_set_of_eq, mem_map, normed_field.norm_div] at hc,
+  simp only [mem_set_of_eq, mem_map, norm_div] at hc,
   refine is_O_iff.2 ⟨c, filter.eventually_of_mem (inter_mem hgf hc) (λ x hx, _)⟩,
   by_cases hgx : g x = 0,
   { simp [hx.1 hgx, hgx] },

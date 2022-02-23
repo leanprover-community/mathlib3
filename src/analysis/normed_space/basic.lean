@@ -206,6 +206,11 @@ lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
 by simp [pi_norm_le_iff hr]
 
+lemma norm_matrix_lt_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 < r)
+  {A : matrix n m α} :
+  ∥A∥ < r ↔ ∀ i j, ∥A i j∥ < r :=
+by simp [pi_norm_lt_iff hr]
+
 end semi_normed_ring
 
 section normed_ring
@@ -790,6 +795,11 @@ matrix. -/
 def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
   normed_space α (matrix n m α) :=
 pi.normed_space
+
+lemma matrix.norm_entry_le_entrywise_sup_norm {α : Type*} [normed_field α] {n m : Type*} [fintype n]
+  [fintype m] (M : (matrix n m α)) {i : n} {j : m} :
+  ∥M i j∥ ≤ ∥M∥ :=
+(norm_le_pi_norm (M i) j).trans (norm_le_pi_norm M i)
 
 end
 

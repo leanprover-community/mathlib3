@@ -642,12 +642,26 @@ is_open_sum_iff.2 $ by simp
 lemma is_open_range_inr : is_open (range (inr : β → α ⊕ β)) :=
 is_open_sum_iff.2 $ by simp
 
+lemma is_closed_range_inl : is_closed (range (inl : α → α ⊕ β)) :=
+by { rw [← is_open_compl_iff, compl_range_inl], exact is_open_range_inr }
+
+lemma is_closed_range_inr : is_closed (range (inr : β → α ⊕ β)) :=
+by { rw [← is_open_compl_iff, compl_range_inr], exact is_open_range_inl }
+
 lemma open_embedding_inl : open_embedding (inl : α → α ⊕ β) :=
 { open_range := is_open_range_inl,
   .. embedding_inl }
 
 lemma open_embedding_inr : open_embedding (inr : β → α ⊕ β) :=
 { open_range := is_open_range_inr,
+  .. embedding_inr }
+
+lemma closed_embedding_inl : closed_embedding (inl : α → α ⊕ β) :=
+{ closed_range := is_closed_range_inl,
+  .. embedding_inl }
+
+lemma closed_embedding_inr : closed_embedding (inr : β → α ⊕ β) :=
+{ closed_range := is_closed_range_inr,
   .. embedding_inr }
 
 end sum

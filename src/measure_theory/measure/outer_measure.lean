@@ -68,7 +68,7 @@ namespace outer_measure
 
 section basic
 
-variables {α β R : Type*} {ms : set (outer_measure α)} {m : outer_measure α}
+variables {α β R R' : Type*} {ms : set (outer_measure α)} {m : outer_measure α}
 
 instance : has_coe_to_fun (outer_measure α) (λ _, set α → ℝ≥0∞) := ⟨λ m, m.measure_of⟩
 
@@ -229,8 +229,9 @@ instance : has_add (outer_measure α) :=
 
 theorem add_apply (m₁ m₂ : outer_measure α) (s : set α) : (m₁ + m₂) s = m₁ s + m₂ s := rfl
 
-section
+section has_scalar
 variables [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+variables [has_scalar R' ℝ≥0∞] [is_scalar_tower R' ℝ≥0∞ ℝ≥0∞]
 
 instance : has_scalar R (outer_measure α) :=
 ⟨λ c m,
@@ -249,15 +250,36 @@ instance : has_scalar R (outer_measure α) :=
 
 lemma smul_apply (c : R) (m : outer_measure α) (s : set α) : (c • m) s = c • m s := rfl
 
-end
+instance [smul_comm_class R R' ℝ≥0∞] : smul_comm_class R R' (outer_measure α) :=
+⟨λ _ _ _, ext $ λ _, smul_comm _ _ _⟩
+
+instance [has_scalar R R'] [is_scalar_tower R R' ℝ≥0∞] : is_scalar_tower R R' (outer_measure α) :=
+⟨λ _ _ _, ext $ λ _, smul_assoc _ _ _⟩
+
+instance [has_scalar Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] :
+  is_central_scalar R (outer_measure α) :=
+⟨λ _ _, ext $ λ _, op_smul_eq_smul _ _⟩
+
+end has_scalar
+
+instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] :
+  mul_action R (outer_measure α) :=
+injective.mul_action _ coe_fn_injective coe_smul
 
 instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
 injective.add_comm_monoid (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
     coe_fn_injective rfl (λ _ _, rfl) (λ _ _, rfl)
 
+/-- `coe_fn` as an `add_monoid_hom`. -/
+@[simps] def coe_fn_add_monoid_hom : outer_measure α →+ (set α → ℝ≥0∞) :=
+⟨coe_fn, coe_zero, coe_add⟩
+
+instance [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] :
+  distrib_mul_action R (outer_measure α) :=
+injective.distrib_mul_action coe_fn_add_monoid_hom coe_fn_injective coe_smul
+
 instance [semiring R] [module R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] : module R (outer_measure α) :=
-injective.module R ⟨show outer_measure α → set α → ℝ≥0∞, from coe_fn, coe_zero,
-    coe_add⟩ coe_fn_injective coe_smul
+injective.module R coe_fn_add_monoid_hom coe_fn_injective coe_smul
 
 instance : has_bot (outer_measure α) := ⟨0⟩
 
@@ -1373,7 +1395,8 @@ theorem trim_add (m₁ m₂ : outer_measure α) : (m₁ + m₂).trim = m₁.trim
 ext $ trim_binop (add_apply m₁ m₂)
 
 /-- `trim` respects scalar multiplication. -/
-theorem trim_smul (c : ℝ≥0∞) (m : outer_measure α) :
+theorem trim_smul {R : Type*} [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  (c : R) (m : outer_measure α) :
   (c • m).trim = c • m.trim :=
 ext $ trim_op (smul_apply c m)
 

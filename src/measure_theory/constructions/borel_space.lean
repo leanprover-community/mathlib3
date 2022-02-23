@@ -44,7 +44,7 @@ import topology.semicontinuous
 noncomputable theory
 
 open classical set filter measure_theory
-open_locale classical big_operators topological_space nnreal ennreal interval
+open_locale classical big_operators topological_space nnreal ennreal interval measure_theory
 
 universes u v w x y
 variables {α β γ γ₂ δ : Type*} {ι : Sort y} {s t u : set α}
@@ -691,6 +691,24 @@ begin
   refine ⟨λ U hUo hUne, _⟩,
   rw [measure.map_apply hf.measurable hUo.measurable_set],
   exact (hUo.preimage hf).measure_ne_zero μ (hf_surj.nonempty_preimage.mpr hUne)
+end
+
+/-- If a function is defined piecewise in terms of functions which are continuous on their
+respective pieces, then it is measurable. -/
+lemma continuous_on.measurable_piecewise
+  {f g : α → γ} {s : set α} [Π (j : α), decidable (j ∈ s)]
+  (hf : continuous_on f s) (hg : continuous_on g sᶜ) (hs : measurable_set s) :
+  measurable (s.piecewise f g) :=
+begin
+  refine measurable_of_is_open (λ t ht, _),
+  rw [piecewise_preimage, set.ite],
+  apply measurable_set.union,
+  { rcases _root_.continuous_on_iff'.1 hf t ht with ⟨u, u_open, hu⟩,
+    rw hu,
+    exact u_open.measurable_set.inter hs },
+  { rcases _root_.continuous_on_iff'.1 hg t ht with ⟨u, u_open, hu⟩,
+    rw [diff_eq_compl_inter, inter_comm, hu],
+    exact u_open.measurable_set.inter hs.compl }
 end
 
 @[priority 100, to_additive]

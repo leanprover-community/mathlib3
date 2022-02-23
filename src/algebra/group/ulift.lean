@@ -116,6 +116,9 @@ instance cancel_comm_monoid [cancel_comm_monoid α] :
   cancel_comm_monoid (ulift α) :=
 equiv.ulift.injective.cancel_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
+instance nontrivial [nontrivial α] : nontrivial (ulift α) :=
+equiv.ulift.symm.injective.nontrivial
+
 -- TODO we don't do `ordered_cancel_comm_monoid` or `ordered_comm_group`
 -- We'd need to add instances for `ulift` in `order.basic`.
 

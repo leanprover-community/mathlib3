@@ -3,7 +3,10 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Filippo A. E. Nuccio
 -/
-import ring_theory.localization
+import algebra.big_operators.finprod
+import ring_theory.integral_closure
+import ring_theory.localization.integer
+import ring_theory.localization.submodule
 import ring_theory.noetherian
 import ring_theory.principal_ideal_domain
 import tactic.field_simp

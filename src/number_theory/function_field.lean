@@ -119,7 +119,7 @@ variable [decidable_eq (ratfunc Fq)]
 Explicitly, if `f/g ∈ Fq(t)` is a nonzero quotient of polynomials, its valuation at infinity is
 `multiplicative.of_add(degree(f) - degree(g))`. -/
 def infty_valuation_def (r : ratfunc Fq) : with_zero (multiplicative ℤ) :=
-ite (r = 0) 0 (multiplicative.of_add ((r.num.nat_degree : ℤ) - r.denom.nat_degree))
+if r = 0 then 0 else (multiplicative.of_add ((r.num.nat_degree : ℤ) - r.denom.nat_degree))
 
 lemma infty_valuation.map_zero' : infty_valuation_def Fq 0 = 0 :=
 by { rw [infty_valuation_def, if_pos], refl, }

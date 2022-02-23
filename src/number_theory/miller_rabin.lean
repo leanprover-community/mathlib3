@@ -29,6 +29,8 @@ end
 def strong_probable_prime (n : nat) (a : zmod n) : Prop :=
 a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 (n-1) ∧ a^(2^r * odd_part(n-1)) = -1)
 
+def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
+a^(odd_part (n-1)) = 1
 
 lemma square_roots_of_one {p : ℕ} [fact (p.prime)] {x : zmod p} (root : x^2 = 1) :
   x = 1 ∨ x = -1 :=
@@ -89,6 +91,9 @@ begin
   have fermat := zmod.pow_card_sub_one_eq_one ha, -- you'll need this lemma for this
   sorry,
 end
+
+lemma strong_probable_prime_iff_fermat_pseudoprime_of_prime_power (p α : ℕ) (hp : prime p)
+  (a : zmod p^α) : strong_probable_primep^α a ↔ fermat_pseudoprime p^α a
 
 lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)]
   [decidable_pred (strong_probable_prime n)] (hp : ¬ n.prime) :

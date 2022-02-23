@@ -325,6 +325,10 @@ def ideal.homogeneous_core.gi : galois_coinsertion coe (ideal.homogeneous_core �
   u_l_le := λ I, ideal.homogeneous_core'_le _ _,
   choice_eq := λ I H, le_antisymm H (I.coe_homogeneous_core_le _) }
 
+lemma ideal.homogeneous_core_eq_Sup :
+  I.homogeneous_core 𝒜 = Sup {J : homogeneous_ideal 𝒜 | ↑J ≤ I} :=
+eq.symm $ is_lub.Sup_eq $ (ideal.homogeneous_core.gc 𝒜).is_greatest_u.is_lub
+
 lemma ideal.homogeneous_core'_eq_Sup :
   I.homogeneous_core' 𝒜 = Sup {J : ideal A | J.is_homogeneous 𝒜 ∧ J ≤ I} :=
 begin
@@ -370,60 +374,38 @@ begin
   refine ⟨hr1, ⟨⟨x, I_le_J hx⟩, rfl⟩⟩,
 end
 
-lemma ideal.homogeneous_hull_eq_Inf :
-  ideal.homogeneous_hull 𝒜 I = Inf { J : homogeneous_ideal 𝒜 | I ≤ J } :=
-begin
-  ext,
-  split;
-  intros hx,
-  { erw ideal.mem_Inf,
-    rintros _ ⟨K, HK1, rfl⟩,
-    erw [ideal.mem_span] at hx,
-    apply hx K,
-    rintros r ⟨i, ⟨⟨y, hy⟩, rfl⟩⟩,
-    exact K.2 _ (HK1 hy), },
-  { erw ideal.mem_Inf at hx,
-    refine @hx (ideal.homogeneous_hull 𝒜 I) _,
-    exact ⟨ideal.homogeneous_hull _ _, ideal.le_coe_homogeneous_hull _ _, rfl⟩, }
-end
-
-lemma coe_homogeneous_hull_eq_supr :
-   ↑(I.homogeneous_hull 𝒜) = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
- begin
-   rw ←ideal.span_Union,
-   apply congr_arg ideal.span _,
-   ext1,
-   simp only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_algebra.proj_apply,
-     set_like.exists, exists_prop, subtype.coe_mk, set_like.mem_coe],
- end
-
-lemma homogeneous_hull_eq_supr :
-  (I.homogeneous_hull 𝒜) =
-  ⨆ i, ⟨ideal.span (graded_algebra.proj 𝒜 i '' I), ideal.is_homogeneous_span 𝒜 _
-    (by {rintros _ ⟨x, h, rfl⟩, apply set_like.is_homogeneous_coe})⟩ :=
-by { ext1, rw [coe_homogeneous_hull_eq_supr, homogeneous_ideal.coe_supr], refl, }
-
-variables {𝒜 I}
+variables {I 𝒜}
 
 lemma ideal.is_homogeneous.homogeneous_hull_eq_self (h : I.is_homogeneous 𝒜) :
-  ↑(ideal.homogeneous_hull 𝒜 I)= I :=
+  ↑(ideal.homogeneous_hull 𝒜 I) = I :=
 begin
-  rw ideal.homogeneous_hull_eq_Inf,
-  ext x,
-  split;
-  intros hx,
-  { erw ideal.mem_Inf at hx,
-    exact @hx I ⟨⟨I, h⟩, le_refl _, rfl⟩, },
-  { erw ideal.mem_Inf,
-    rintros _ ⟨J, HJ1, rfl⟩,
-    exact HJ1 hx },
+  apply le_antisymm _ (ideal.le_coe_homogeneous_hull _ _),
+  apply (ideal.span_le).2,
+  rintros _ ⟨i, x, rfl⟩,
+  exact h _ x.prop,
 end
 
 @[simp] lemma homogeneous_ideal.homogeneous_hull_coe_eq_self (I : homogeneous_ideal 𝒜) :
   (I : ideal A).homogeneous_hull 𝒜 = I :=
 subtype.coe_injective $ ideal.is_homogeneous.homogeneous_hull_eq_self I.prop
 
-variables (𝒜 I)
+variables (I 𝒜)
+
+lemma ideal.coe_homogeneous_hull_eq_supr :
+  ↑(I.homogeneous_hull 𝒜) = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
+begin
+  rw ←ideal.span_Union,
+  apply congr_arg ideal.span _,
+  ext1,
+  simp only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_algebra.proj_apply,
+    set_like.exists, exists_prop, subtype.coe_mk, set_like.mem_coe],
+end
+
+lemma ideal.homogeneous_hull_eq_supr :
+  (I.homogeneous_hull 𝒜) =
+  ⨆ i, ⟨ideal.span (graded_algebra.proj 𝒜 i '' I), ideal.is_homogeneous_span 𝒜 _
+    (by {rintros _ ⟨x, -, rfl⟩, apply set_like.is_homogeneous_coe})⟩ :=
+by { ext1, rw [ideal.coe_homogeneous_hull_eq_supr, homogeneous_ideal.coe_supr], refl, }
 
 end homogeneous_hull
 
@@ -444,5 +426,9 @@ def ideal.homogeneous_hull.gi : galois_insertion (ideal.homogeneous_hull 𝒜) c
   gc := ideal.homogeneous_hull.gc 𝒜,
   le_l_u := λ I, ideal.le_coe_homogeneous_hull _ _,
   choice_eq := λ I H, le_antisymm (I.le_coe_homogeneous_hull 𝒜) H}
+
+lemma ideal.homogeneous_hull_eq_Inf (I : ideal A) :
+  ideal.homogeneous_hull 𝒜 I = Inf { J : homogeneous_ideal 𝒜 | I ≤ J } :=
+eq.symm $ is_glb.Inf_eq $ (ideal.homogeneous_hull.gc 𝒜).is_least_l.is_glb
 
 end galois_connection

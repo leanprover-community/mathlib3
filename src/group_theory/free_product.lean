@@ -335,6 +335,8 @@ instance : decidable_eq (free_product M) := word.equiv.decidable_eq
 end word
 
 variable (M)
+
+@[nolint has_inhabited_instance]
 inductive neword : ι → ι → Type (max u_1 u_2)
 | singleton : ∀ {i} (x : M i) (hne1 : x ≠ 1), neword i i
 | append : ∀ {i j k l} (w₁ : neword i j) (hne : j ≠ k) (w₂ : neword k l), neword i l
@@ -515,7 +517,7 @@ open_locale cardinal
 
 variables [hnontriv : nontrivial ι]
 variables {G : Type*} [group G]
-variables {H : ι → Type*} [hinh : ∀ i, inhabited (H i)] [∀ i, group (H i)]
+variables {H : ι → Type*} [∀ i, group (H i)]
 variables (f : Π i, H i →* G)
 
 -- We need many groups or one group with many elements
@@ -546,7 +548,7 @@ begin
     ... ⊆ X i : hIw₁ hne },
 end
 
-include hnontriv hinh X hXnonempty hXdisj
+include X hXnonempty hXdisj
 
 lemma lift_word_prod_nontrivial_of_other_i {i j k} (w : neword H i j)
   (hhead : k ≠ i)
@@ -559,6 +561,8 @@ begin
   obtain ⟨x, hx⟩ := hXnonempty k,
   exact hXdisj k i hhead ⟨hx, this hx⟩,
 end
+
+include hnontriv
 
 lemma lift_word_prod_nontrivial_of_head_eq_last {i} (w : neword H i i) :
   lift f w.prod ≠ 1 :=

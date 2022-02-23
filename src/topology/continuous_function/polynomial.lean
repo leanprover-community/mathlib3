@@ -143,7 +143,7 @@ begin
   ext f,
   fsplit,
   { rintro ⟨p, ⟨-,w⟩⟩,
-    rw continuous_map.ext_iff at w,
+    rw fun_like.ext_iff at w,
     dsimp at w,
     let q := p.comp ((b - a)⁻¹ • polynomial.X + polynomial.C (-a * (b-a)⁻¹)),
     refine ⟨q, ⟨_, _⟩⟩,

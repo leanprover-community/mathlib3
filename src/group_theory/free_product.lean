@@ -5,6 +5,7 @@ Authors: David Wärn
 -/
 import algebra.free_monoid
 import group_theory.congruence
+import group_theory.is_free_group
 import group_theory.subgroup.pointwise
 import data.list.chain
 import set_theory.cardinal
@@ -654,5 +655,20 @@ begin
 end
 
 end ping_pong_lemma
+
+/-- The free product of free groups is itself a free group -/
+@[simps]
+instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_free_group (G i)] :
+  is_free_group (free_product G) :=
+{ generators := Σ i, is_free_group.generators (G i),
+  of := λ x, free_product.of (is_free_group.of x.2),
+  unique_lift' :=
+  begin
+    introsI X _ f,
+    refine ⟨free_product.lift (λ i, is_free_group.lift (λ x, f ⟨i, x⟩)), _ ⟩,
+    split,
+    { simp, },
+    { intros g hfg, ext i x, simpa using hfg ⟨i, x⟩, }
+  end, }
 
 end free_product

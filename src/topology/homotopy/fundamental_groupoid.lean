@@ -83,8 +83,8 @@ end
 def refl_trans_symm (p : path x₀ x₁) : homotopy (path.refl x₀) (p.trans p.symm) :=
 { to_fun := λ x, p ⟨refl_trans_symm_aux x, refl_trans_symm_aux_mem_I x⟩,
   continuous_to_fun := by continuity,
-  to_fun_zero := by norm_num [refl_trans_symm_aux],
-  to_fun_one := λ x, begin
+  map_zero_left' := by norm_num [refl_trans_symm_aux],
+  map_one_left' := λ x, begin
     dsimp only [refl_trans_symm_aux, path.coe_to_continuous_map, path.trans],
     change _ = ite _ _ _,
     split_ifs,

@@ -630,7 +630,7 @@ variables [topological_space α] [topological_space β] [topological_space γ] {
 
 lemma inducing_coe {b : set β} : inducing (coe : b → β) := ⟨rfl⟩
 
-lemma inducing_of_inducing_cod_restrict {f : α → β} {b : set β} (hb : ∀ a, f a ∈ b)
+lemma inducing.of_cod_restrict {f : α → β} {b : set β} (hb : ∀ a, f a ∈ b)
   (h : inducing (b.cod_restrict f hb)) : inducing f := inducing_coe.comp h
 
 lemma embedding_subtype_coe : embedding (coe : subtype p → α) :=

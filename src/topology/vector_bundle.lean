@@ -445,7 +445,7 @@ def total_space_topology (a : topological_vector_prebundle R F E) :
 a.to_topological_fiber_prebundle.total_space_topology
 
 /-- Promotion from a `topologial_vector_prebundle.trivialization` to a
-  `topologial_vector_bundle.trivialization`. -/
+  `topological_vector_bundle.trivialization`. -/
 def trivialization_at (a : topological_vector_prebundle R F E) (x : B) :
   @topological_vector_bundle.trivialization R _ F E _ _ _ _ _ _ _ a.total_space_topology  :=
 begin
@@ -488,7 +488,7 @@ lemma inducing_total_space_mk_of_inducing_comp (b : B)
 begin
   letI := a.total_space_topology,
   rw ←restrict_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
-  apply inducing_of_inducing_cod_restrict (a.mem_trivialization_at_source b),
+  apply inducing.of_cod_restrict (a.mem_trivialization_at_source b),
   refine inducing_of_inducing_compose _ (continuous_on_iff_continuous_restrict.mp
     (a.trivialization_at b).continuous_to_fun) h,
   exact (a.continuous_total_space_mk b).cod_restrict (a.mem_trivialization_at_source b),

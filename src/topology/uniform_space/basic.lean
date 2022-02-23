@@ -1200,15 +1200,17 @@ lemma uniformity_mul_opposite [uniform_space α] :
   𝓤 (αᵐᵒᵖ) = comap (λ q : αᵐᵒᵖ × αᵐᵒᵖ, (q.1.unop, q.2.unop)) (𝓤 α) :=
 rfl
 
+namespace mul_opposite
+
 @[to_additive]
-lemma uniform_continuous_mul_unop [uniform_space α] :
-  uniform_continuous (mul_opposite.unop : _ → α) :=
+lemma uniform_continuous_unop [uniform_space α] : uniform_continuous (unop : αᵐᵒᵖ → α) :=
 uniform_continuous_comap
 
 @[to_additive]
-lemma uniform_continuous_mul_op [uniform_space α] :
-  uniform_continuous (mul_opposite.op : α → αᵐᵒᵖ) :=
+lemma uniform_continuous_op [uniform_space α] : uniform_continuous (op : α → αᵐᵒᵖ) :=
 uniform_continuous_comap' uniform_continuous_id
+
+end mul_opposite
 
 section prod
 

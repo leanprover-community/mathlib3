@@ -111,24 +111,6 @@ lemma multichoose_rec (n k : ℕ) :
   multichoose n.succ k.succ = multichoose n k.succ + multichoose n.succ k :=
 by simp [multichoose, nat.choose_succ_succ, nat.add_comm, nat.add_succ]
 
-/--
-Inhabited types are equivalent to `option β` for some `β` by identifying `default α` with `none`.
--/
-def {u} sigma_equiv_option_of_nonempty (α : Type u) [inhabited α] [decidable_eq α] :
-  Σ (β : Type u), α ≃ option β :=
-⟨{x : α // x ≠ default},
-  { to_fun := λ (x : α), if h : x = default then none else some ⟨x, h⟩,
-    inv_fun := λ o, option.elim o (default) coe,
-    left_inv := λ x, by { dsimp only, split_ifs; simp [*] },
-    right_inv := begin
-      rintro (_|⟨x,h⟩),
-      { simp, },
-      { dsimp only,
-        split_ifs with hi,
-        { simpa [h] using hi, },
-        { simp, } }
-    end }⟩
-
 lemma multichoose_eq (α : Type*) [hα : fintype α] (k : ℕ) [fintype (sym α k)] :
   multichoose (card α) k = card (sym α k) :=
 begin

@@ -52,7 +52,6 @@ variables {a}
 @[ext] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
 submodule.ext h
 
-
 lemma sum_mem (I : ideal α) {ι : Type*} {t : finset ι} {f : ι → α} :
   (∀c∈t, f c ∈ I) → (∑ i in t, f i) ∈ I := submodule.sum_mem I
 

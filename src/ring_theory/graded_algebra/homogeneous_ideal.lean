@@ -183,7 +183,8 @@ lemma ideal.is_homogeneous.inf {I J : ideal A}
 lemma ideal.is_homogeneous.Inf {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
   (Inf ℐ).is_homogeneous 𝒜 :=
 begin
-  intros i x Hx, simp only [ideal.mem_Inf] at Hx ⊢,
+  intros i x Hx,
+  simp only [ideal.mem_Inf] at Hx ⊢,
   intros J HJ,
   exact h _ HJ _ (Hx HJ),
 end

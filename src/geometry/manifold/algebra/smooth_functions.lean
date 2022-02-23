@@ -194,12 +194,7 @@ lemma coe_smul {V : Type*} [normed_group V] [normed_space 𝕜 V]
 
 instance module {V : Type*} [normed_group V] [normed_space 𝕜 V] :
   module 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
-module.of_core $
-{ smul     := (•),
-  smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
-  add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
-  mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
-  one_smul := λ f, by ext x; exact one_smul 𝕜 (f x), }
+function.injective.module 𝕜 coe_fn_add_monoid_hom times_cont_mdiff_map.coe_inj coe_smul
 
 /-- Coercion to a function as a `linear_map`. -/
 @[simps]

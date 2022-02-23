@@ -159,8 +159,7 @@ subtype.coe_injective $ ideal.is_homogeneous.coe_homogeneous_core_eq_self I.prop
 
 variables (𝒜 I)
 
-lemma ideal.is_homogeneous.iff_eq :
-  I.is_homogeneous 𝒜 ↔ ↑(I.homogeneous_core 𝒜) = I:=
+lemma ideal.is_homogeneous.iff_eq : I.is_homogeneous 𝒜 ↔ ↑(I.homogeneous_core 𝒜) = I :=
 ⟨ λ hI, hI.coe_homogeneous_core_eq_self,
   λ hI, hI ▸ (ideal.homogeneous_core 𝒜 I).2 ⟩
 
@@ -320,7 +319,7 @@ begin
   exact (set.image_mul (submonoid.subtype _).to_mul_hom).symm,
 end
 
-variables (𝒜)
+variables {𝒜}
 
 instance : has_mul (homogeneous_ideal 𝒜) :=
 { mul := λ I J, ⟨I * J, I.prop.mul J.prop⟩ }

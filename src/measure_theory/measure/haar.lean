@@ -591,7 +591,7 @@ begin
   ext1 s hs,
   have := measure_mul_measure_eq μ (haar_measure K₀) K₀.compact hs,
   rw [haar_measure_self, one_mul] at this,
-  rw [← this (by norm_num), smul_apply],
+  rw [← this (by norm_num), smul_apply, smul_eq_mul],
 end
 
 @[to_additive]

@@ -3,6 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import category_theory.adjunction.opposites
 import order.category.BoundedOrder
 import order.category.Lattice
 
@@ -11,7 +12,7 @@ import order.category.Lattice
 
 This file defines `BoundedLattice`, the category of bounded lattices.
 
-In literature, this is usually called `Lat`, the category of lattices, because being a lattice is
+In literature, this is sometimes called `Lat`, the category of lattices, because being a lattice is
 understood to entail having a bottom and a top element.
 -/
 
@@ -296,23 +297,6 @@ adjunction.mk_of_hom_equiv
 @[simps] def Lattice_to_BoundedLattice_comp_dual_iso_dual_comp_Lattice_to_BoundedLattice :
  (Lattice_to_BoundedLattice.{u} ⋙ BoundedLattice.dual) ≅
     (Lattice.dual ⋙ Lattice_to_BoundedLattice) :=
-nat_iso.of_components (λ X, BoundedLattice.iso.mk $
-  { to_fun := λ a, a.elim ⊥ $ λ a, a.elim ⊤ $ some ∘ some,
-  inv_fun := λ a, a.elim ⊤ $ λ a, a.elim ⊥ $ some ∘ some,
-  left_inv := λ a, match a with
-          | none := rfl
-          | some none := rfl
-          | some (some a) := rfl
-        end,
-  right_inv := λ a, match a with
-          | none := rfl
-          | some none := rfl
-          | some (some a) := rfl
-        end,
-  map_rel_iff' := λ a b, match a, b with
-    | none, none := by simp only [le_rfl]
-    | none, some b := by { simp only [option.elim, equiv.coe_fn_mk, bot_le, true_iff], exact bot_le }
-    | some none, none := by { simp only [option.elim, equiv.coe_fn_mk, le_bot_iff],
-      refine iff_of_false (option.some_ne_none _).symm (_), rw [with_top.none_eq_top, inf_top_eq], exact inf_top_eq.symm }
-    | some a, some b := f.map_inf' _ _
-  end }) $ _
+adjunction.left_adjoint_uniq
+    (Lattice_to_BoundedLattice_forget_adjunction.comp _ _ BoundedLattice.dual_equiv.to_adjunction)
+    (Lattice.dual_equiv.to_adjunction.comp _ _ Lattice_to_BoundedLattice_forget_adjunction)

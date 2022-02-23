@@ -20,7 +20,7 @@ adjunction, opposite, uniqueness
 -/
 
 
-open category_theory
+namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
@@ -266,3 +266,4 @@ def nat_iso_of_right_adjoint_nat_iso {F F' : C ⥤ D} {G G' : D ⥤ C}
 left_adjoint_uniq adj1 (adj2.of_nat_iso_right r.symm)
 
 end adjunction
+end category_theory

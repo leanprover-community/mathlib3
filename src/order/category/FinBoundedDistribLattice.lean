@@ -8,7 +8,7 @@ import order.category.BoundedDistribLattice
 import order.category.FinPartialOrder
 
 /-!
-# The category of finite distributive lattices
+# The category of finite bounded distributive lattices
 
 This file defines `FinBoundedDistribLattice`, the category of finite distributive lattices with
 bounded lattice homomorphisms.

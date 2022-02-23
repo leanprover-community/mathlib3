@@ -7,7 +7,7 @@ Authors: Ashvni Narayanan, Anne Baanen
 import algebra.field.basic
 import data.rat.basic
 import ring_theory.algebraic
-import ring_theory.dedekind_domain
+import ring_theory.dedekind_domain.integral_closure
 import ring_theory.integral_closure
 import ring_theory.polynomial.rational_root
 

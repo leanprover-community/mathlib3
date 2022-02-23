@@ -48,7 +48,7 @@ Coercions from `ℚ` to `ℚ_p` are set up to work with the `norm_cast` tactic.
 
 ## References
 
-* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [F. Q. Gouvêa, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
 * <https://en.wikipedia.org/wiki/P-adic_number>
 

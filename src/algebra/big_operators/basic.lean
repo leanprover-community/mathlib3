@@ -1565,7 +1565,7 @@ lemma to_finset_prod_dvd_prod [comm_monoid α] (S : multiset α) : S.to_finset.p
 begin
   rw finset.prod_eq_multiset_prod,
   refine multiset.prod_dvd_prod_of_le _,
-  simp [multiset.erase_dup_le S],
+  simp [multiset.dedup_le S],
 end
 
 @[to_additive]

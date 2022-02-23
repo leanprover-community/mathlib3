@@ -725,27 +725,7 @@ cauchy_seq_of_le_geometric r C hr (by simp [h])
 
 lemma normed_group.cauchy_series_of_le_geometric' {C : ℝ} {u : ℕ → α} {r : ℝ} (hr : r < 1)
   (h : ∀ n, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
-begin
-  by_cases hC : C = 0,
-  { subst hC,
-    simp at h,
-    exact cauchy_seq_of_le_geometric 0 0 zero_lt_one (by simp [h]) },
-  have : 0 ≤ C,
-  { simpa using (norm_nonneg _).trans (h 0) },
-  replace hC : 0 < C,
-    from (ne.symm hC).le_iff_lt.mp this,
-  have : 0 ≤ r,
-  { have := (norm_nonneg _).trans (h 1),
-    rw pow_one at this,
-    exact (zero_le_mul_left hC).mp this },
-  simp_rw finset.sum_range_succ_comm,
-  have : cauchy_seq u,
-  { apply tendsto.cauchy_seq,
-    apply squeeze_zero_norm h,
-    rw show 0 = C*0, by simp,
-    exact tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 this hr) },
-  exact this.add (cauchy_series_of_le_geometric hr h),
-end
+(cauchy_series_of_le_geometric hr h).comp_tendsto $ tendsto_add_at_top_nat 1
 
 lemma normed_group.cauchy_series_of_le_geometric'' {C : ℝ} {u : ℕ → α} {N : ℕ} {r : ℝ}
   (hr₀ : 0 < r) (hr₁ : r < 1)

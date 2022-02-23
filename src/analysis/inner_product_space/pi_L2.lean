@@ -371,8 +371,8 @@ begin
   classical,
   change (b.repr.trans (linear_isometry_equiv.Pi_congr_left e)).symm (euclidean_space.single i' 1)
   = b.repr.symm (euclidean_space.single (e.symm i') 1),
-  rw [linear_isometry_equiv.symm_trans_apply, linear_isometry_equiv.Pi_congr_left_symm],
-  rw [euclidean_space.single],
+  rw [linear_isometry_equiv.symm_trans, linear_isometry_equiv.trans_apply,
+    linear_isometry_equiv.Pi_congr_left_symm, euclidean_space.single],
   simp only [orthonormal_basis.repr_symm_single, linear_isometry_equiv.Pi_congr_left_single],
   rw b.repr_symm_single',
 end

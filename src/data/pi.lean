@@ -8,6 +8,7 @@ import tactic.simpa
 import tactic.congr
 import algebra.group.to_additive
 import data.prod
+import logic.unique
 /-!
 # Instances and theorems on pi types
 
@@ -213,9 +214,9 @@ lemma bijective_pi_map {F : Π i, f i → g i} (hF : ∀ i, bijective (F i)) :
 end function
 
 @[to_additive]
-lemma subsingleton_of_surjective_one (α : Type*) {β : Type*} [has_one β]
-  (h : function.surjective (1 : α → β)) : subsingleton β :=
-function.subsingleton_of_surjective_const α (1 : β) h
+lemma unique_of_surjective_one (α : Type*) {β : Type*} [has_one β]
+  (h : function.surjective (1 : α → β)) : unique β :=
+h.unique_of_surjective_const α (1 : β)
 
 @[to_additive subsingleton.pi_single_eq]
 lemma subsingleton.pi_mul_single_eq {α : Type*} [decidable_eq I] [subsingleton I] [has_one α]

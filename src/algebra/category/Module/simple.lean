@@ -20,8 +20,8 @@ variables {R M : Type*} [ring R] [add_comm_group M] [module R M]
 open category_theory
 open Module
 
-lemma subsingleton_of_epi_zero (N : Module R) [h : epi (0 : N ⟶ of R M)] : subsingleton M :=
-subsingleton_of_surjective_zero N ((Module.epi_iff_surjective _).mp h)
+lemma unique_of_epi_zero (N : Module R) [h : epi (0 : N ⟶ of R M)] : unique M :=
+unique_of_surjective_zero N ((Module.epi_iff_surjective _).mp h)
 
 instance is_simple_module_of [_inst : is_simple_module R M] : is_simple_module R (of R M) :=
 _inst
@@ -31,7 +31,7 @@ instance simple_of_is_simple_module [is_simple_module R M] : simple (of R M) :=
 { mono_is_iso_iff_nonzero := λ N f inj, begin
     split,
     { unfreezingI { rintro h rfl },
-      haveI : subsingleton M := subsingleton_of_epi_zero N,
+      haveI : unique M := unique_of_epi_zero N,
       haveI : nontrivial M := is_simple_module.nontrivial R M,
       exact false_of_nontrivial_of_subsingleton M },
     { intro h,

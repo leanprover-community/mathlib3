@@ -155,10 +155,6 @@ protected theorem surjective.exists₃ (hf : surjective f) {p : β → β → β
   (∃ y₁ y₂ y₃, p y₁ y₂ y₃) ↔ ∃ x₁ x₂ x₃, p (f x₁) (f x₂) (f x₃) :=
 hf.exists.trans $ exists_congr $ λ x, hf.exists₂
 
-lemma subsingleton_of_surjective_const (α : Type*) {β : Type*} (b : β)
-  (h : function.surjective (function.const α b)) : subsingleton β :=
-subsingleton_of_forall_eq b $ h.forall.mpr (λ _, rfl)
-
 lemma surjective.injective_comp_right (hf : surjective f) :
   injective (λ g : β → γ, g ∘ f) :=
 λ g₁ g₂ h, funext $ hf.forall.2 $ congr_fun h

@@ -372,13 +372,11 @@ begin
   exact (hτ.measurable_set_le i).inter (hτ.measurable_set_ge i),
 end
 
-lemma is_stopping_time.measurable_set_eq_le
-  {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) {i j : ℕ} (hle : i ≤ j) :
+lemma is_stopping_time.measurable_set_eq_le (hτ : is_stopping_time f τ) {i j : ι} (hle : i ≤ j) :
   measurable_set[f j] {x | τ x = i} :=
 f.mono hle _ $ hτ.measurable_set_eq i
 
-lemma is_stopping_time.measurable_set_lt_le
-  (hτ : is_stopping_time f τ) {i j : ι} (hle : i ≤ j) :
+lemma is_stopping_time.measurable_set_lt_le (hτ : is_stopping_time f τ) {i j : ι} (hle : i ≤ j) :
   measurable_set[f j] {x | τ x < i} :=
 f.mono hle _ $ hτ.measurable_set_lt i
 

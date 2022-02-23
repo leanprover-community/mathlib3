@@ -8,16 +8,34 @@ import ring_theory.ideal.basic
 import ring_theory.ideal.operations
 import linear_algebra.finsupp
 import ring_theory.graded_algebra.basic
-
 /-!
+# Homogeneous ideals of a graded algebra
 
-# Homogeneous ideal of a graded algebra
+This file defines homogeneous ideals of `graded_algebra A` where `A : ι → ideal R` and operations on
+them.
 
-This file defines homogeneous ideals of `graded_algebra A` where `A : ι → ideal R`and operations on
-them:
-* `mul`, `inf`, `Inf` of homogeneous ideals are homogeneous;
-* `⊤`, `⊥`, i.e. the trivial ring and `R` are homogeneous;
-* `radical` of a homogeneous ideal is homogeneous.
+## Main definitions
+
+* `ideal.is_homogeneous 𝒜 I`: The property that an ideal is closed under `graded_algebra.proj`.
+* `homogeneous_ideal 𝒜`: The subtype of ideals which satisfy `ideal.is_homogeneous`
+* `ideal.homogeneous_core I 𝒜`: The largest homogeneous ideal smaller than `I`.
+* `ideal.homogeneous_hull I 𝒜`: The smallest homogeneous ideal larger than `I`.
+
+## Main statements
+
+* `homogeneous_ideal.complete_lattice`: `ideal.is_homogeneous` is preserved by `⊥`, `⊤`, `⊔`, `⊓`,
+  `⨆`, `⨅`, and so the subtype of homogeneous ideals inherits a complete lattice structure.
+* `ideal.homogeneous_core.gi`: `ideal.homogeneous_core` forms a galois insertion with coercion.
+* `ideal.homogeneous_hull.gi`: `ideal.homogeneous_hull` forms a galois insertion with coercion.
+
+## Implementation notes
+
+We introduce `ideal.homogeneous_core'` earlier than might be expected so that we can get access
+to `ideal.is_homogeneous.iff_exists` as quickly as possible.
+
+## Tags
+
+graded algebra, homogeneous
 -/
 
 open set_like direct_sum set
@@ -155,6 +173,11 @@ end
 
 end is_homogeneous_ideal_defs
 
+/-! ### Operations
+
+In this section, we show that `ideal.is_homogeneous` is preserved by various notations, then use
+these results to provide these notation typeclasses for `homogeneous_ideal`. -/
+
 section operations
 
 section semiring
@@ -162,25 +185,26 @@ section semiring
 variables [comm_semiring R] [semiring A] [algebra R A]
 variables [decidable_eq ι] [add_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
-variable (I : ideal A)
 
-lemma ideal.is_homogeneous.bot : ideal.is_homogeneous 𝒜 ⊥ := λ i r hr,
+namespace ideal.is_homogeneous
+
+lemma bot : ideal.is_homogeneous 𝒜 ⊥ := λ i r hr,
 begin
   simp only [ideal.mem_bot] at hr,
   rw [hr, alg_equiv.map_zero, zero_apply],
   apply ideal.zero_mem
 end
 
-lemma ideal.is_homogeneous.top : ideal.is_homogeneous 𝒜 ⊤ :=
+lemma top : ideal.is_homogeneous 𝒜 ⊤ :=
 λ i r hr, by simp only [submodule.mem_top]
 
 variables {𝒜}
 
-lemma ideal.is_homogeneous.inf {I J : ideal A}
-  (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous 𝒜) : (I ⊓ J).is_homogeneous 𝒜 :=
+lemma inf {I J : ideal A} (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous 𝒜) :
+  (I ⊓ J).is_homogeneous 𝒜 :=
 λ i r hr, ⟨HI _ hr.1, HJ _ hr.2⟩
 
-lemma ideal.is_homogeneous.Inf {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
+lemma Inf {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
   (Inf ℐ).is_homogeneous 𝒜 :=
 begin
   intros i x Hx,
@@ -189,26 +213,29 @@ begin
   exact h _ HJ _ (Hx HJ),
 end
 
-lemma ideal.is_homogeneous.sup {I J : ideal A}
-  (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous 𝒜) : (I ⊔ J).is_homogeneous 𝒜 :=
+lemma sup {I J : ideal A} (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous 𝒜) :
+  (I ⊔ J).is_homogeneous 𝒜 :=
 begin
-  rw ideal.is_homogeneous.iff_exists at HI HJ ⊢,
+  rw iff_exists at HI HJ ⊢,
   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
   refine ⟨s₁ ∪ s₂, _⟩,
   rw [set.image_union],
   exact (submodule.span_union _ _).symm,
 end
 
-lemma ideal.is_homogeneous.Sup
-  {ℐ : set (ideal A)} (Hℐ : ∀ (I ∈ ℐ), ideal.is_homogeneous 𝒜 I) :
+lemma Sup {ℐ : set (ideal A)} (Hℐ : ∀ (I ∈ ℐ), ideal.is_homogeneous 𝒜 I) :
   (Sup ℐ).is_homogeneous 𝒜 :=
 begin
-  simp_rw ideal.is_homogeneous.iff_exists at Hℐ ⊢,
+  simp_rw iff_exists at Hℐ ⊢,
   choose 𝓈 h𝓈 using Hℐ,
   refine ⟨⋃ I hI, 𝓈 I hI, _⟩,
   simp_rw [set.image_Union, ideal.span_Union, Sup_eq_supr],
   conv in (ideal.span _) { rw ←h𝓈 i x },
 end
+
+end ideal.is_homogeneous
+
+variables {𝒜}
 
 namespace homogeneous_ideal
 
@@ -305,6 +332,11 @@ end comm_semiring
 
 end operations
 
+/-! ### Homogeneous core
+
+Note that many results about the homogeneous core came earlier in this file, as they are helpful
+for building the lattice structure. -/
+
 section homogeneous_core
 
 variables [comm_semiring R] [semiring A]
@@ -340,6 +372,8 @@ begin
 end
 
 end homogeneous_core
+
+/-! ### Homogeneous hulls -/
 
 section homogeneous_hull
 

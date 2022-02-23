@@ -745,7 +745,6 @@ end
 end is_dedekind_domain
 
 section height_one_spectrum
-variables [is_domain R] [is_dedekind_domain R]
 
 /-!
 ### Height one spectrum of a Dedekind domain
@@ -761,7 +760,7 @@ namespace is_dedekind_domain
 @[nolint has_inhabited_instance]
 def height_one_spectrum := {v : prime_spectrum R // v.val ≠ 0 }
 
-variables (v : height_one_spectrum R) {R}
+variables (v : height_one_spectrum R) {R} [is_domain R] [is_dedekind_domain R]
 
 lemma ideal.prime_of_height_one (v : height_one_spectrum R) : prime v.val.val :=
 ideal.prime_of_is_prime v.property v.val.property

@@ -40,7 +40,8 @@ universes u v w
 namespace first_order
 namespace language
 
-variables {L : language.{u v}} {M : Type w} {N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
+variables {L : language.{u v}} {M : Type w} {N P : Type*}
+variables [L.Structure M] [L.Structure N] [L.Structure P]
 open_locale first_order cardinal
 open Structure cardinal
 

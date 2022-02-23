@@ -350,7 +350,8 @@ variables [fintype ι']
 
 def _root_.linear_equiv.to_linear_equiv_of_euclidean_space (e : (ι →₀ 𝕜) ≃ₗ[𝕜] (ι' →₀ 𝕜)) :
   euclidean_space 𝕜 ι ≃ₗ[𝕜] euclidean_space 𝕜 ι' :=
-(finsupp.linear_equiv_fun_on_fintype 𝕜 𝕜 ι).symm.trans (e.trans (finsupp.linear_equiv_fun_on_fintype 𝕜 𝕜 ι'))
+(finsupp.linear_equiv_fun_on_fintype 𝕜 𝕜 ι).symm.trans $
+  e.trans (finsupp.linear_equiv_fun_on_fintype 𝕜 𝕜 ι')
 
 /-- `b.reindex (e : ι ≃ ι')` is an `orthonormal_basis` indexed by `ι'` -/
 def reindex (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') : orthonormal_basis ι' 𝕜 E :=
@@ -360,8 +361,8 @@ orthonormal_basis.of_repr (b.repr.trans (linear_isometry_equiv.Pi_congr_left e))
   b.reindex e i' = b (e.symm i') :=
 begin
   classical,
-  change (b.repr.trans (linear_isometry_equiv.Pi_congr_left e)).symm (euclidean_space.single i' 1) =
-  b.repr.symm (euclidean_space.single (e.symm i') 1),
+  change (b.repr.trans (linear_isometry_equiv.Pi_congr_left e)).symm (euclidean_space.single i' 1)
+  = b.repr.symm (euclidean_space.single (e.symm i') 1),
   rw [linear_isometry_equiv.symm_trans_apply, linear_isometry_equiv.Pi_congr_left_symm],
   rw [euclidean_space.single],
   simp only [orthonormal_basis.repr_symm_single, linear_isometry_equiv.Pi_congr_left_single],
@@ -379,10 +380,11 @@ by rw [orthonormal_basis.repr_apply_apply, b.repr_apply_apply, orthonormal_basis
 
 protected lemma coe_reindex_repr
   (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (x : E) (i' : ι') :
-  ((b.reindex e).repr x) = (id(b.repr x) : ι → 𝕜) ∘ (e.symm) :=
+  ((b.reindex e).repr x) = of_euclidean_space (b.repr x) ∘ (e.symm) :=
 begin
   funext i,
-  rw [b.reindex_repr, function.comp_app, id.def],
+  rw [b.reindex_repr, function.comp_app],
+  congr,
 end
 
 end orthonormal_basis
@@ -571,8 +573,10 @@ def direct_sum.submodule_is_internal.subordinate_orthonormal_basis_index (a : fi
 the `orthogonal_family` in question. -/
 lemma direct_sum.submodule_is_internal.subordinate_orthonormal_basis_subordinate (a : fin n)
   (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
-  (hV.subordinate_orthonormal_basis hn hV' a) ∈ V (hV.subordinate_orthonormal_basis_index hn a hV') :=
-by simpa only [direct_sum.submodule_is_internal.subordinate_orthonormal_basis, orthonormal_basis.coe_reindex]
+  (hV.subordinate_orthonormal_basis hn hV' a) ∈
+  V (hV.subordinate_orthonormal_basis_index hn a hV') :=
+by simpa only [direct_sum.submodule_is_internal.subordinate_orthonormal_basis,
+  orthonormal_basis.coe_reindex]
   using hV.collected_orthonormal_basis_mem hV' (λ i, (std_orthonormal_basis 𝕜 (V i)))
     ((hV.sigma_orthonormal_basis_index_equiv hn hV').symm a)
 

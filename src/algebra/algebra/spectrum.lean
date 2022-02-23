@@ -129,18 +129,18 @@ begin
   exact (hcomm.is_unit_mul_iff.mp (h₁.symm ▸ h)).2,
 end
 
-lemma inv_mem_spectrum_iff {r : Rˣ} {a : Aˣ} :
+lemma inv_mem_iff {r : Rˣ} {a : Aˣ} :
   (r : R) ∈ σ (a : A) ↔ (↑r⁻¹ : R) ∈ σ (↑a⁻¹ : A) :=
 begin
   simp only [mem_iff, not_iff_not, ←mem_resolvent_set_iff],
   exact ⟨λ h, inv_mem_resolvent_set h, λ h, by simpa using inv_mem_resolvent_set h⟩,
 end
 
-lemma zero_not_mem_resolvent_set_of_unit (a : Aˣ) : 0 ∈ resolvent_set R (a : A) :=
+lemma zero_mem_resolvent_set_of_unit (a : Aˣ) : 0 ∈ resolvent_set R (a : A) :=
 by { rw [mem_resolvent_set_iff, is_unit.sub_iff], simp }
 
-lemma not_eq_zero_of_mem_of_unit {a : Aˣ} {r : R} (hr : r ∈ σ (a : A)) : r ≠ 0 :=
-λ hn, (hn ▸ hr) (zero_not_mem_resolvent_set_of_unit a)
+lemma ne_zero_of_mem_of_unit {a : Aˣ} {r : R} (hr : r ∈ σ (a : A)) : r ≠ 0 :=
+λ hn, (hn ▸ hr) (zero_mem_resolvent_set_of_unit a)
 
 lemma add_mem_iff {a : A} {r s : R} :
   r ∈ σ a ↔ r + s ∈ σ (↑ₐs + a) :=
@@ -270,17 +270,17 @@ begin
     exact ⟨unit_mem_mul_iff_mem_swap_mul.mp k_mem, k_neq⟩ },
 end
 
-lemma map_inv (a : Aˣ) : (σ (a : A))⁻¹ = σ (↑a⁻¹ : A) :=
+protected lemma map_inv (a : Aˣ) : (σ (a : A))⁻¹ = σ (↑a⁻¹ : A) :=
 begin
   refine set.eq_of_subset_of_subset (λ k hk, _) (λ k hk, _),
   { rw set.mem_inv at hk,
     have : k ≠ 0,
-    { simpa only [inv_inv] using inv_ne_zero (not_eq_zero_of_mem_of_unit hk), },
+    { simpa only [inv_inv] using inv_ne_zero (ne_zero_of_mem_of_unit hk), },
     lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr this,
     rw ←units.coe_inv' k at hk,
-    exact inv_mem_spectrum_iff.mp hk },
-  { lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr (not_eq_zero_of_mem_of_unit hk),
-    simpa only [units.coe_inv'] using inv_mem_spectrum_iff.mp hk, }
+    exact inv_mem_iff.mp hk },
+  { lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr (ne_zero_of_mem_of_unit hk),
+    simpa only [units.coe_inv'] using inv_mem_iff.mp hk, }
 end
 
 open polynomial

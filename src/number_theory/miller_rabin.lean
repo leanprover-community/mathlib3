@@ -146,6 +146,7 @@ begin
       rw units.coe_pow,
       congr, },
     rw nat.totient_prime_pow at euler,
+    -- this is probably approachable if you can prove a^(b * c) = (a^c)^b,
     sorry,
     sorry,
     sorry,

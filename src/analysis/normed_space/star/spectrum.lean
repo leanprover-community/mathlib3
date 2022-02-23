@@ -24,8 +24,7 @@ lemma unitary.spectrum_subset_circle (u : unitary E) :
 begin
   refine λ k hk, le_antisymm _ _,
   { simpa only [cstar_ring.norm_coe_unitary u] using norm_le_norm_of_mem hk },
-  { have hcoe : (u : E) = (unitary.to_units u : E), from rfl,
-    rw hcoe at hk,
+  { rw ←unitary.coe_to_units_apply u at hk,
     have hnk := ne_zero_of_mem_of_unit hk,
     rw [←inv_inv (unitary.to_units u), ←spectrum.map_inv, set.mem_inv] at hk,
     have : ∥k∥⁻¹ ≤ ∥↑((unitary.to_units u)⁻¹)∥, simpa only [norm_inv] using norm_le_norm_of_mem hk,

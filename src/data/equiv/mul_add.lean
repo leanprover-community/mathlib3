@@ -31,8 +31,7 @@ these are deprecated.
 equiv, mul_equiv, add_equiv
 -/
 
-variables {A : Type*} {B : Type*} {M : Type*} {N : Type*}
-  {P : Type*} {Q : Type*} {G : Type*} {H : Type*}
+variables {α β A B M N P Q G H : Type*}
 
 /-- Makes a multiplicative inverse from a bijection which preserves multiplication. -/
 @[to_additive "Makes an additive inverse from a bijection which preserves addition."]

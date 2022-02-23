@@ -289,7 +289,7 @@ variables [non_assoc_semiring α] [preorder α] [non_assoc_semiring β] [preorde
 def to_order_ring_hom (f : α ≃+*o β) : α →+*o β :=
 ⟨f.to_ring_equiv.to_ring_hom, λ a b, (map_le_map_iff f).2⟩
 
-lemma to_order_ring_hom_eq_coe (f : α ≃+*o β) : f.to_order_ring_hom = f := rfl
+@[simp] lemma to_order_ring_hom_eq_coe (f : α ≃+*o β) : f.to_order_ring_hom = f := rfl
 
 @[simp, norm_cast] lemma coe_to_order_ring_hom (f : α ≃+*o β) : ⇑(f : α →+*o β) = f := rfl
 

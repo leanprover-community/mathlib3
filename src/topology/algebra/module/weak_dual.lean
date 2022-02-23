@@ -129,23 +129,27 @@ instance [has_continuous_add 𝕜] : has_continuous_add (weak_dual 𝕜 E) :=
 /-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
 multiplication on `𝕜`, then it acts on `weak_dual 𝕜 E`. -/
 instance (M : Type*) [monoid M] [distrib_mul_action M 𝕜] [smul_comm_class 𝕜 M 𝕜]
-  [topological_space M] [has_continuous_smul M 𝕜] :
+  [has_continuous_const_smul M 𝕜] :
   mul_action M (weak_dual 𝕜 E) :=
 continuous_linear_map.mul_action
 
 /-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
 multiplication on `𝕜`, then it acts distributively on `weak_dual 𝕜 E`. -/
 instance (M : Type*) [monoid M] [distrib_mul_action M 𝕜] [smul_comm_class 𝕜 M 𝕜]
-  [topological_space M] [has_continuous_smul M 𝕜] [has_continuous_add 𝕜] :
+  [has_continuous_const_smul M 𝕜] [has_continuous_add 𝕜] :
   distrib_mul_action M (weak_dual 𝕜 E) :=
 continuous_linear_map.distrib_mul_action
 
 /-- If `𝕜` is a topological module over a semiring `R` and scalar multiplication commutes with the
 multiplication on `𝕜`, then `weak_dual 𝕜 E` is a module over `R`. -/
 instance (R : Type*) [semiring R] [module R 𝕜] [smul_comm_class 𝕜 R 𝕜]
-  [topological_space R] [has_continuous_smul R 𝕜] [has_continuous_add 𝕜] :
+  [has_continuous_const_smul R 𝕜] [has_continuous_add 𝕜] :
   module R (weak_dual 𝕜 E) :=
 continuous_linear_map.module
+
+instance (M : Type*) [monoid M] [distrib_mul_action M 𝕜] [smul_comm_class 𝕜 M 𝕜]
+  [has_continuous_const_smul M 𝕜] : has_continuous_const_smul M (weak_dual 𝕜 E) :=
+⟨λ m, continuous_induced_rng $ (coe_fn_continuous 𝕜 E).const_smul m⟩
 
 /-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
 multiplication on `𝕜`, then it continuously acts on `weak_dual 𝕜 E`. -/

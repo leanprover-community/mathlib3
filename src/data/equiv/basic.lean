@@ -78,6 +78,10 @@ structure equiv (α : Sort*) (β : Sort*) :=
 
 infix ` ≃ `:25 := equiv
 
+instance {F} [equiv_like F α β] : has_coe_t F (α ≃ β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f }⟩
+
 /-- Convert an involutive function `f` to an equivalence with `to_fun = inv_fun = f`. -/
 def function.involutive.to_equiv (f : α → α) (h : involutive f) : α ≃ α :=
 ⟨f, f, h.left_inverse, h.right_inverse⟩

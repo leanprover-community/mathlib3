@@ -50,7 +50,7 @@ variables (𝒜 : ι → submodule R A)
 variables [decidable_eq ι] [add_monoid ι] [graded_algebra 𝒜]
 variable (I : ideal A)
 
-/--An `I : ideal R` is homogeneous if for every `r ∈ I`, all homogeneous components
+/--An `I : ideal A` is homogeneous if for every `r ∈ I`, all homogeneous components
   of `r` are in `I`.-/
 def ideal.is_homogeneous : Prop :=
 ∀ (i : ι) ⦃r : A⦄, r ∈ I → (graded_algebra.decompose 𝒜 r i : A) ∈ I
@@ -66,8 +66,8 @@ variables [comm_semiring R] [semiring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
 variable (I : ideal A)
 
-/-- For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_core' 𝒜`
-is the largest homogeneous ideal of `R` contained in `I`, as an ideal. -/
+/-- For any `I : ideal A`, not necessarily homogeneous, `I.homogeneous_core' 𝒜`
+is the largest homogeneous ideal of `A` contained in `I`, as an ideal. -/
 def ideal.homogeneous_core' : ideal A :=
 ideal.span (coe '' ((coe : subtype (is_homogeneous 𝒜) → A) ⁻¹' I))
 
@@ -129,8 +129,8 @@ begin
   { exact ideal.subset_span z.2 },
 end
 
-/--For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_core' 𝒜`
-is the largest homogeneous ideal of `R` contained in `I`, as an ideal.-/
+/--For any `I : ideal A`, not necessarily homogeneous, `I.homogeneous_core' 𝒜`
+is the largest homogeneous ideal of `A` contained in `I`.-/
 def ideal.homogeneous_core : homogeneous_ideal 𝒜 :=
 ⟨ideal.homogeneous_core' 𝒜 I,
   ideal.is_homogeneous_span _ _ (λ x h, by { rw [subtype.image_preimage_coe] at h, exact h.2 })⟩
@@ -381,7 +381,7 @@ variables [algebra R A] [decidable_eq ι] [add_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 variable (I : ideal A)
 
-/--For any `I : ideal R`, not necessarily homogeneous, `I.homogeneous_hull 𝒜` is
+/--For any `I : ideal A`, not necessarily homogeneous, `I.homogeneous_hull 𝒜` is
 the smallest homogeneous ideal containing `I`. -/
 def ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
 ⟨ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}, begin

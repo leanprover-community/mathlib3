@@ -55,7 +55,7 @@ variable (I : ideal A)
 def ideal.is_homogeneous : Prop :=
 ∀ (i : ι) ⦃r : A⦄, r ∈ I → (graded_algebra.decompose 𝒜 r i : A) ∈ I
 
-/--For any `comm_ring R`, we collect the homogeneous ideals of `R` into a type.-/
+/-- For any `semiring A`, we collect the homogeneous ideals of `A` into a type. -/
 abbreviation homogeneous_ideal : Type* := { I : ideal A // I.is_homogeneous 𝒜 }
 
 end homogeneous_def

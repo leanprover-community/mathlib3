@@ -95,6 +95,8 @@ by refl
   (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open.inter hU hV⟩ := rfl
 @[simp,norm_cast] lemma coe_inf {U V : opens α} :
   ((U ⊓ V : opens α) : set α) = (U : set α) ⊓ (V : set α) := rfl
+@[simp] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
+@[simp] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
 
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
@@ -134,6 +136,12 @@ lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
     exact U.property.preimage continuous_subtype_val
   end, }
 
+lemma not_nonempty_iff_eq_bot (U : opens α) : ¬ set.nonempty (U : set α) ↔ U = ⊥ :=
+by rw [← subtype.coe_injective.eq_iff, opens.coe_bot, ← set.not_nonempty_iff_eq_empty]
+
+lemma ne_bot_iff_nonempty (U : opens α) : U ≠ ⊥ ↔ set.nonempty (U : set α) :=
+by rw [ne.def, ← opens.not_nonempty_iff_eq_bot, not_not]
+
 /-- A set of `opens α` is a basis if the set of corresponding sets is a topological basis. -/
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 
@@ -172,12 +180,11 @@ begin
 end
 
 /-- The preimage of an open set, as an open set. -/
-def comap (f : C(α, β)) : opens β →ₘ opens α :=
+def comap (f : C(α, β)) : opens β →o opens α :=
 { to_fun := λ V, ⟨f ⁻¹' V, V.2.preimage f.continuous⟩,
   monotone' := λ V₁ V₂ hle, monotone_preimage hle }
 
-@[simp] lemma comap_id : comap (continuous_map.id : C(α, α)) = preorder_hom.id :=
-by { ext, refl }
+@[simp] lemma comap_id : comap (continuous_map.id α) = order_hom.id := by { ext, refl }
 
 lemma comap_mono (f : C(α, β)) {V W : opens β} (hVW : V ⊆ W) :
   comap f V ⊆ comap f W :=

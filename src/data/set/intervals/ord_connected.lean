@@ -19,7 +19,7 @@ that all standard intervals are `ord_connected`.
 -/
 
 namespace set
-
+section preorder
 variables {α : Type*} [preorder α] {s t : set α}
 
 /--
@@ -140,19 +140,36 @@ instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
     exact (hs.out a₁.2 a₂.2) (Ioo_subset_Icc_self ⟨ha₁x, hxa₂⟩),
   end ⟩
 
-variables {β : Type*} [linear_order β]
+end preorder
 
-@[instance] lemma ord_connected_interval {a b : β} : ord_connected (interval a b) :=
+section linear_order
+variables {α : Type*} [linear_order α] {s : set α} {x : α}
+
+@[instance] lemma ord_connected_interval {a b : α} : ord_connected (interval a b) :=
 ord_connected_Icc
 
-lemma ord_connected.interval_subset {s : set β} (hs : ord_connected s)
-  ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
+lemma ord_connected.interval_subset (hs : ord_connected s) ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s) :
   interval x y ⊆ s :=
 by cases le_total x y; simp only [interval_of_le, interval_of_ge, *]; apply hs.out; assumption
 
-lemma ord_connected_iff_interval_subset {s : set β} :
+lemma ord_connected_iff_interval_subset :
   ord_connected s ↔ ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), interval x y ⊆ s :=
 ⟨λ h, h.interval_subset,
   λ h, ord_connected_iff.2 $ λ x hx y hy hxy, by simpa only [interval_of_le hxy] using h hx hy⟩
 
+lemma ord_connected_iff_interval_subset_left (hx : x ∈ s) :
+  ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → interval x y ⊆ s :=
+begin
+  refine ⟨λ hs, hs.interval_subset hx, λ hs, ord_connected_iff_interval_subset.2 $ λ y hy z hz, _⟩,
+  suffices h : interval y x ∪ interval x z ⊆ s,
+  { exact interval_subset_interval_union_interval.trans h },
+  rw [interval_swap, union_subset_iff],
+  exact ⟨hs hy, hs hz⟩,
+end
+
+lemma ord_connected_iff_interval_subset_right (hx : x ∈ s) :
+  ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → interval y x ⊆ s :=
+by simp_rw [ord_connected_iff_interval_subset_left hx, interval_swap]
+
+end linear_order
 end set

@@ -195,16 +195,7 @@ begin
 end
 
 lemma lt_one_iff_num_lt_denom {q : ℚ} : q < 1 ↔ q.num < q.denom :=
-begin
-  cases decidable.em (0 < q) with q_pos q_nonpos,
-  { simp [rat.lt_def] },
-  { replace q_nonpos : q ≤ 0, from not_lt.elim_left q_nonpos,
-    have : q.num < q.denom, by
-    { have : ¬0 < q.num ↔ ¬0 < q, from not_iff_not.elim_right num_pos_iff_pos,
-      simp only [not_lt] at this,
-      exact lt_of_le_of_lt (this.elim_right q_nonpos) (by exact_mod_cast q.pos) },
-    simp only [this, (lt_of_le_of_lt q_nonpos zero_lt_one)] }
-end
+by simp [rat.lt_def]
 
 theorem abs_def (q : ℚ) : |q| = q.num.nat_abs /. q.denom :=
 begin

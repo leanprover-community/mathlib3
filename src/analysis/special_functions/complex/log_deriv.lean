@@ -56,10 +56,10 @@ lemma has_strict_fderiv_at_log_real {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) :
   has_strict_fderiv_at log (x⁻¹ • (1 : ℂ →L[ℝ] ℂ)) x :=
 (has_strict_deriv_at_log h).complex_to_real_fderiv
 
-lemma times_cont_diff_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) {n : with_top ℕ} :
-  times_cont_diff_at ℂ n log x :=
-exp_local_homeomorph.times_cont_diff_at_symm_deriv (exp_ne_zero $ log x) h
-  (has_deriv_at_exp _) times_cont_diff_exp.times_cont_diff_at
+lemma cont_diff_at_log {x : ℂ} (h : 0 < x.re ∨ x.im ≠ 0) {n : with_top ℕ} :
+  cont_diff_at ℂ n log x :=
+exp_local_homeomorph.cont_diff_at_symm_deriv (exp_ne_zero $ log x) h
+  (has_deriv_at_exp _) cont_diff_exp.cont_diff_at
 
 end complex
 

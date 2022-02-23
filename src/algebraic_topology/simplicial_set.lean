@@ -56,15 +56,15 @@ section
 
 /-- The `m`-simplices of the `n`-th standard simplex are
 the monotone maps from `fin (m+1)` to `fin (n+1)`. -/
-def as_preorder_hom {n} {m} (α : Δ[n].obj m) :
-  preorder_hom (fin (m.unop.len+1)) (fin (n+1)) := α.to_preorder_hom
+def as_order_hom {n} {m} (α : Δ[n].obj m) :
+  order_hom (fin (m.unop.len+1)) (fin (n+1)) := α.to_order_hom
 end
 
 /-- The boundary `∂Δ[n]` of the `n`-th standard simplex consists of
 all `m`-simplices of `standard_simplex n` that are not surjective
 (when viewed as monotone function `m → n`). -/
 def boundary (n : ℕ) : sSet :=
-{ obj := λ m, {α : Δ[n].obj m // ¬ function.surjective (as_preorder_hom α)},
+{ obj := λ m, {α : Δ[n].obj m // ¬ function.surjective (as_order_hom α)},
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : Δ[n].obj m₁),
   by { intro h, apply α.property, exact function.surjective.of_comp h }⟩ }
 
@@ -81,7 +81,7 @@ for which the union of `{i}` and the range of `α` is not all of `n`
 (when viewing `α` as monotone function `m → n`). -/
 def horn (n : ℕ) (i : fin (n+1)) : sSet :=
 { obj := λ m,
-  { α : Δ[n].obj m // set.range (as_preorder_hom α) ∪ {i} ≠ set.univ },
+  { α : Δ[n].obj m // set.range (as_order_hom α) ∪ {i} ≠ set.univ },
   map := λ m₁ m₂ f α, ⟨f.unop ≫ (α : Δ[n].obj m₁),
   begin
     intro h, apply α.property,

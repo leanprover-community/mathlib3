@@ -277,12 +277,66 @@ lift_rel_iff_coe_fn.symm
 instance [partial_order β] : partial_order (α →ₘ[μ] β) :=
 partial_order.lift to_germ to_germ_injective
 
-/- TODO: Prove `L⁰` space is a lattice if β is linear order.
-         What if β is only a lattice? -/
+section lattice
 
--- instance [linear_order β] : semilattice_sup (α →ₘ β) :=
--- { sup := comp₂ (⊔) (_),
---    .. ae_eq_fun.partial_order }
+section sup
+variables [semilattice_sup β] [has_measurable_sup₂ β]
+
+instance : has_sup (α →ₘ[μ] β) := { sup := λ f g, ae_eq_fun.comp₂ (⊔) measurable_sup f g }
+
+lemma coe_fn_sup (f g : α →ₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x := coe_fn_comp₂ _ _ _ _
+
+protected lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g] with _ ha, rw ha, exact le_sup_left, }
+
+protected lemma le_sup_right (f g : α →ₘ[μ] β) : g ≤ f ⊔ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g] with _ ha, rw ha, exact le_sup_right, }
+
+protected lemma sup_le (f g f' : α →ₘ[μ] β) (hf : f ≤ f') (hg : g ≤ f') : f ⊔ g ≤ f' :=
+begin
+  rw ← coe_fn_le at hf hg ⊢,
+  filter_upwards [hf, hg, coe_fn_sup f g] with _ haf hag ha_sup,
+  rw ha_sup,
+  exact sup_le haf hag,
+end
+
+end sup
+
+section inf
+variables [semilattice_inf β] [has_measurable_inf₂ β]
+
+instance : has_inf (α →ₘ[μ] β) := { inf := λ f g, ae_eq_fun.comp₂ (⊓) measurable_inf f g }
+
+lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_comp₂ _ _ _ _
+
+protected lemma inf_le_left (f g : α →ₘ[μ] β) : f ⊓ g ≤ f :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g] with _ ha, rw ha, exact inf_le_left, }
+
+protected lemma inf_le_right (f g : α →ₘ[μ] β) : f ⊓ g ≤ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g] with _ ha, rw ha, exact inf_le_right, }
+
+protected lemma le_inf (f' f g : α →ₘ[μ] β) (hf : f' ≤ f) (hg : f' ≤ g) : f' ≤ f ⊓ g :=
+begin
+  rw ← coe_fn_le at hf hg ⊢,
+  filter_upwards [hf, hg, coe_fn_inf f g] with _ haf hag ha_inf,
+  rw ha_inf,
+  exact le_inf haf hag,
+end
+
+end inf
+
+instance [lattice β] [has_measurable_sup₂ β] [has_measurable_inf₂ β] : lattice (α →ₘ[μ] β) :=
+{ sup           := has_sup.sup,
+  le_sup_left   := ae_eq_fun.le_sup_left,
+  le_sup_right  := ae_eq_fun.le_sup_right,
+  sup_le        := ae_eq_fun.sup_le,
+  inf           := has_inf.inf,
+  inf_le_left   := ae_eq_fun.inf_le_left,
+  inf_le_right  := ae_eq_fun.inf_le_right,
+  le_inf        := ae_eq_fun.le_inf,
+  ..ae_eq_fun.partial_order}
+
+end lattice
 
 end order
 
@@ -296,7 +350,7 @@ coe_fn_mk _ _
 
 variable {α}
 
-instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α (default β)⟩
+instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α default⟩
 
 @[to_additive] instance [has_one β] : has_one (α →ₘ[μ] β) := ⟨const α 1⟩
 @[to_additive] lemma one_def [has_one β] :
@@ -305,9 +359,7 @@ instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α (default �
 @[simp, to_additive] lemma one_to_germ [has_one β] : (1 : α →ₘ[μ] β).to_germ = 1 := rfl
 
 section monoid
-variables
-  [topological_space γ] [second_countable_topology γ] [borel_space γ]
-  [monoid γ] [has_continuous_mul γ]
+variables [monoid γ] [has_measurable_mul₂ γ]
 
 @[to_additive]
 instance : has_mul (α →ₘ[μ] γ) := ⟨comp₂ (*) measurable_mul⟩
@@ -329,13 +381,14 @@ to_germ_injective.monoid to_germ one_to_germ mul_to_germ
 end monoid
 
 @[to_additive]
-instance comm_monoid [topological_space γ] [second_countable_topology γ] [borel_space γ]
-  [comm_monoid γ] [has_continuous_mul γ] : comm_monoid (α →ₘ[μ] γ) :=
+instance comm_monoid [comm_monoid γ] [has_measurable_mul₂ γ] : comm_monoid (α →ₘ[μ] γ) :=
 to_germ_injective.comm_monoid to_germ one_to_germ mul_to_germ
 
 section group
+variables [group γ]
 
-variables [topological_space γ] [borel_space γ] [group γ] [topological_group γ]
+section inv
+variables [has_measurable_inv γ]
 
 @[to_additive] instance : has_inv (α →ₘ[μ] γ) := ⟨comp has_inv.inv measurable_inv⟩
 
@@ -345,7 +398,10 @@ variables [topological_space γ] [borel_space γ] [group γ] [topological_group 
 
 @[to_additive] lemma inv_to_germ (f : α →ₘ[μ] γ) : (f⁻¹).to_germ = f.to_germ⁻¹ := comp_to_germ _ _ _
 
-variables [second_countable_topology γ]
+end inv
+
+section div
+variables [has_measurable_div₂ γ]
 
 @[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div measurable_div⟩
 
@@ -358,23 +414,24 @@ rfl
 @[to_additive] lemma div_to_germ (f g : α →ₘ[μ] γ) : (f / g).to_germ = f.to_germ / g.to_germ :=
 comp₂_to_germ _ _ _ _
 
+end div
+
 @[to_additive]
-instance : group (α →ₘ[μ] γ) :=
+instance [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
+  group (α →ₘ[μ] γ) :=
 to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ
 
 end group
 
 @[to_additive]
-instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_group γ]
-  [second_countable_topology γ] : comm_group (α →ₘ[μ] γ) :=
+instance [comm_group γ] [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
+  comm_group (α →ₘ[μ] γ) :=
 { .. ae_eq_fun.group, .. ae_eq_fun.comm_monoid }
 
 section module
 
-variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
-  [opens_measurable_space 𝕜]
-variables [topological_space γ] [borel_space γ] [add_comm_monoid γ] [module 𝕜 γ]
-  [has_continuous_smul 𝕜 γ]
+variables {𝕜 : Type*} [semiring 𝕜] [measurable_space 𝕜]
+variables [add_comm_monoid γ] [module 𝕜 γ] [has_measurable_smul 𝕜 γ]
 
 instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
 ⟨λ c f, comp ((•) c) (measurable_id.const_smul c) f⟩
@@ -388,7 +445,7 @@ lemma coe_fn_smul (c : 𝕜) (f : α →ₘ[μ] γ) : ⇑(c • f) =ᵐ[μ] c �
 lemma smul_to_germ (c : 𝕜) (f : α →ₘ[μ] γ) : (c • f).to_germ = c • f.to_germ :=
 comp_to_germ _ _ _
 
-variables [second_countable_topology γ] [has_continuous_add γ]
+variables [has_measurable_add₂ γ]
 
 instance : module 𝕜 (α →ₘ[μ] γ) :=
 to_germ_injective.module 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to_germ⟩ smul_to_germ
@@ -467,10 +524,9 @@ def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
   map_mul' := λ f g, ae_eq_fun.mk_mul_mk f g f.continuous.measurable.ae_measurable
     g.continuous.measurable.ae_measurable }
 
-variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
-  [opens_measurable_space 𝕜]
+variables {𝕜 : Type*} [semiring 𝕜] [measurable_space 𝕜]
 variables [topological_space γ] [measurable_space γ] [borel_space γ] [add_comm_group γ]
-  [module 𝕜 γ] [topological_add_group γ] [has_continuous_smul 𝕜 γ]
+  [module 𝕜 γ] [topological_add_group γ] [has_measurable_smul 𝕜 γ] [has_continuous_const_smul 𝕜 γ]
   [second_countable_topology γ]
 
 /-- The linear map from the group of continuous maps from `α` to `β` to the group of equivalence

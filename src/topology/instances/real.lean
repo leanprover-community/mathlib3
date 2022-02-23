@@ -9,6 +9,7 @@ import topology.algebra.ring
 import ring_theory.subring.basic
 import group_theory.archimedean
 import algebra.periodic
+import order.filter.archimedean
 
 /-!
 # Topological properties of ℝ
@@ -85,28 +86,93 @@ theorem preimage_ball (x : ℤ) (r : ℝ) : coe ⁻¹' (ball (x : ℝ) r) = ball
 theorem preimage_closed_ball (x : ℤ) (r : ℝ) :
   coe ⁻¹' (closed_ball (x : ℝ) r) = closed_ball x r := rfl
 
-theorem ball_eq (x : ℤ) (r : ℝ) : ball x r = Ioo ⌊↑x - r⌋ ⌈↑x + r⌉ :=
-by rw [← preimage_ball, real.ball_eq, preimage_Ioo]
+theorem ball_eq_Ioo (x : ℤ) (r : ℝ) : ball x r = Ioo ⌊↑x - r⌋ ⌈↑x + r⌉ :=
+by rw [← preimage_ball, real.ball_eq_Ioo, preimage_Ioo]
 
-theorem closed_ball_eq (x : ℤ) (r : ℝ) : closed_ball x r = Icc ⌈↑x - r⌉ ⌊↑x + r⌋ :=
-by rw [← preimage_closed_ball, real.closed_ball_eq, preimage_Icc]
+theorem closed_ball_eq_Icc (x : ℤ) (r : ℝ) : closed_ball x r = Icc ⌈↑x - r⌉ ⌊↑x + r⌋ :=
+by rw [← preimage_closed_ball, real.closed_ball_eq_Icc, preimage_Icc]
 
 instance : proper_space ℤ :=
 ⟨ begin
     intros x r,
-    rw closed_ball_eq,
+    rw closed_ball_eq_Icc,
     exact (set.finite_Icc _ _).is_compact,
   end ⟩
 
-instance : noncompact_space ℤ :=
-begin
-  rw [← not_compact_space_iff, metric.compact_space_iff_bounded_univ],
-  rintro ⟨r, hr⟩,
-  refine (hr (⌊r⌋ + 1) 0 trivial trivial).not_lt _,
-  simpa [dist_eq] using (lt_floor_add_one r).trans_le (le_abs_self _)
-end
+@[simp] lemma cocompact_eq : cocompact ℤ = at_bot ⊔ at_top :=
+by simp only [← comap_dist_right_at_top_eq_cocompact (0 : ℤ), dist_eq, sub_zero, cast_zero,
+  ← cast_abs, ← @comap_comap _ _ _ _ abs, int.comap_coe_at_top, comap_abs_at_top]
+
+@[simp] lemma cofinite_eq : (cofinite : filter ℤ) = at_bot ⊔ at_top :=
+by rw [← cocompact_eq_cofinite, cocompact_eq]
 
 end int
+
+
+namespace nat
+
+instance : has_dist ℕ := ⟨λ x y, dist (x : ℝ) y⟩
+
+theorem dist_eq (x y : ℕ) : dist x y = |x - y| := rfl
+
+lemma dist_coe_int (x y : ℕ) : dist (x : ℤ) (y : ℤ) = dist x y := rfl
+
+@[norm_cast, simp] theorem dist_cast_real (x y : ℕ) : dist (x : ℝ) y = dist x y := rfl
+
+@[norm_cast, simp] theorem dist_cast_rat (x y : ℕ) : dist (x : ℚ) y = dist x y :=
+by rw [← nat.dist_cast_real, ← rat.dist_cast]; congr' 1; norm_cast
+
+lemma pairwise_one_le_dist : pairwise (λ m n : ℕ, 1 ≤ dist m n) :=
+begin
+  intros m n hne,
+  rw ← dist_coe_int,
+  apply int.pairwise_one_le_dist,
+  exact_mod_cast hne
+end
+
+lemma uniform_embedding_coe_rat : uniform_embedding (coe : ℕ → ℚ) :=
+uniform_embedding_bot_of_pairwise_le_dist zero_lt_one $ by simpa using pairwise_one_le_dist
+
+lemma closed_embedding_coe_rat : closed_embedding (coe : ℕ → ℚ) :=
+closed_embedding_of_pairwise_le_dist zero_lt_one $ by simpa using pairwise_one_le_dist
+
+lemma uniform_embedding_coe_real : uniform_embedding (coe : ℕ → ℝ) :=
+uniform_embedding_bot_of_pairwise_le_dist zero_lt_one pairwise_one_le_dist
+
+lemma closed_embedding_coe_real : closed_embedding (coe : ℕ → ℝ) :=
+closed_embedding_of_pairwise_le_dist zero_lt_one pairwise_one_le_dist
+
+instance : metric_space ℕ := nat.uniform_embedding_coe_real.comap_metric_space _
+
+theorem preimage_ball (x : ℕ) (r : ℝ) : coe ⁻¹' (ball (x : ℝ) r) = ball x r := rfl
+
+theorem preimage_closed_ball (x : ℕ) (r : ℝ) :
+  coe ⁻¹' (closed_ball (x : ℝ) r) = closed_ball x r := rfl
+
+theorem closed_ball_eq_Icc (x : ℕ) (r : ℝ) :
+  closed_ball x r = Icc ⌈↑x - r⌉₊ ⌊↑x + r⌋₊ :=
+begin
+  rcases le_or_lt 0 r with hr|hr,
+  { rw [← preimage_closed_ball, real.closed_ball_eq_Icc, preimage_Icc],
+    exact add_nonneg (cast_nonneg x) hr },
+  { rw closed_ball_eq_empty.2 hr,
+    apply (Icc_eq_empty _).symm,
+    rw not_le,
+    calc ⌊(x : ℝ) + r⌋₊ ≤ ⌊(x : ℝ)⌋₊ : by { apply floor_mono, linarith }
+    ... < ⌈↑x - r⌉₊ : by { rw [floor_coe, nat.lt_ceil], linarith } }
+end
+
+instance : proper_space ℕ :=
+⟨ begin
+    intros x r,
+    rw closed_ball_eq_Icc,
+    exact (set.finite_Icc _ _).is_compact,
+  end ⟩
+
+instance : noncompact_space ℕ :=
+noncompact_space_of_ne_bot $ by simp [at_top_ne_bot]
+
+end nat
 
 instance : noncompact_space ℚ := int.closed_embedding_coe_rat.noncompact_space
 instance : noncompact_space ℝ := int.closed_embedding_coe_real.noncompact_space
@@ -144,7 +210,7 @@ instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
 instance : proper_space ℝ :=
-{ is_compact_closed_ball := λx r, by { rw real.closed_ball_eq, apply is_compact_Icc } }
+{ is_compact_closed_ball := λx r, by { rw real.closed_ball_eq_Icc, apply is_compact_Icc } }
 
 instance : second_countable_topology ℝ := second_countable_of_proper
 
@@ -159,6 +225,10 @@ is_topological_basis_of_open_of_nhds
     ⟨Ioo q p,
       by { simp only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
       ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h ⟨hlq.trans hqa', ha'p.trans hpu⟩⟩)
+
+@[simp] lemma real.cocompact_eq : cocompact ℝ = at_bot ⊔ at_top :=
+by simp only [← comap_dist_right_at_top_eq_cocompact (0 : ℝ), real.dist_eq, sub_zero,
+  comap_abs_at_top]
 
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
@@ -203,7 +273,7 @@ show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f
 
 lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
-  cases no_top (|x|) with y xy,
+  cases exists_gt (|x|) with y xy,
   have y0 := lt_of_le_of_lt (abs_nonneg _) xy,
   refine ⟨_, div_pos ε0 y0, λ a b h, _⟩,
   rw [real.dist_eq, ← mul_sub, abs_mul, ← mul_div_cancel' ε (ne_of_gt y0)],
@@ -222,7 +292,7 @@ protected lemma real.continuous_mul : continuous (λp : ℝ × ℝ, p.1 * p.2) :
 continuous_iff_continuous_at.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_mul
-    ({x | |x| < |a₁| + 1}.prod {x | |x| < |a₂| + 1})
+    ({x | |x| < |a₁| + 1} ×ˢ {x | |x| < |a₂| + 1})
     (λ x, id))
   (is_open.mem_nhds
     (((is_open_gt' (|a₁| + 1)).preimage continuous_abs).prod
@@ -238,15 +308,6 @@ real.continuous_mul.comp ((rat.continuous_coe_real.prod_map rat.continuous_coe_r
 
 instance : topological_ring ℚ :=
 { continuous_mul := rat.continuous_mul, ..rat.topological_add_group }
-
-theorem real.ball_eq_Ioo (x ε : ℝ) : ball x ε = Ioo (x - ε) (x + ε) :=
-set.ext $ λ y, by rw [mem_ball, real.dist_eq,
-  abs_sub_lt_iff, sub_lt_iff_lt_add', and_comm, sub_lt]; refl
-
-theorem real.Ioo_eq_ball (x y : ℝ) : Ioo x y = ball ((x + y) / 2) ((y - x) / 2) :=
-by rw [real.ball_eq_Ioo, ← sub_div, add_comm, ← sub_add,
-  add_sub_cancel', add_self_div_two, ← add_div,
-  add_assoc, add_sub_cancel'_right, add_self_div_two]
 
 instance : complete_space ℝ :=
 begin
@@ -294,14 +355,10 @@ lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_bel
 ⟨begin
   assume bdd,
   rcases (bounded_iff_subset_ball 0).1 bdd with ⟨r, hr⟩, -- hr : s ⊆ closed_ball 0 r
-  rw real.closed_ball_eq at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
+  rw real.closed_ball_eq_Icc at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
   exact ⟨bdd_below_Icc.mono hr, bdd_above_Icc.mono hr⟩
 end,
-begin
-  intro h,
-  rcases bdd_below_bdd_above_iff_subset_Icc.1 h with ⟨m, M, I : s ⊆ Icc m M⟩,
-  exact (bounded_Icc m M).mono I
-end⟩
+λ h, bounded_of_bdd_above_of_bdd_below h.2 h.1⟩
 
 lemma real.subset_Icc_Inf_Sup_of_bounded {s : set ℝ} (h : bounded s) :
   s ⊆ Icc (Inf s) (Sup s) :=

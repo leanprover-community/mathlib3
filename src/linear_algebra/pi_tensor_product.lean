@@ -481,7 +481,8 @@ def subsingleton_equiv [subsingleton ι] (i₀ : ι) : ⨂[R] i : ι, M ≃ₗ[R
       simp only [linear_map.map_smul, lift.tprod, of_subsingleton_apply, function.eval,
                  this f, map_smul, update_eq_self], },
     { intros x y hx hy,
-      simp only [linear_map.map_add, this 0 (_ + _), map_add, ←this 0 (lift _ _), hx, hy], } },
+      simp only [multilinear_map.map_add, this 0 (_ + _), linear_map.map_add, ←this 0 (lift _ _),
+        hx, hy] } },
   right_inv := λ t, by simp only [of_subsingleton_apply, lift.tprod, function.eval_apply],
   map_add' := linear_map.map_add _,
   map_smul' := linear_map.map_smul _, }

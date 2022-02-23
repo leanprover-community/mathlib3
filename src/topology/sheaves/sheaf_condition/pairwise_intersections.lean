@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 
-import topology.sheaves.sheaf
+import topology.sheaves.sheaf_condition.sites
 import category_theory.limits.preserves.basic
 import category_theory.category.pairwise
+import category_theory.limits.constructions.binary_products
 
 /-!
 # Equivalent formulations of the sheaf condition
@@ -388,3 +389,118 @@ begin
 end
 
 end Top.presheaf
+
+namespace Top.sheaf
+
+variables {X : Top.{v}} {C : Type u} [category.{v} C] [has_products C]
+variables (F : X.sheaf C) (U V : opens X)
+open category_theory.limits
+
+/-- For a sheaf `F`, `F(U ∪ V)` is the pullback of `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)`.
+This is the pullback cone. -/
+def inter_union_pullback_cone : pullback_cone
+  (F.1.map (hom_of_le inf_le_left : U ∩ V ⟶ _).op) (F.1.map (hom_of_le inf_le_right).op) :=
+pullback_cone.mk (F.1.map (hom_of_le le_sup_left).op) (F.1.map (hom_of_le le_sup_right).op)
+  (by { rw [← F.1.map_comp, ← F.1.map_comp], congr })
+
+@[simp] lemma inter_union_pullback_cone_X :
+  (inter_union_pullback_cone F U V).X = F.1.obj (op $ U ∪ V) := rfl
+@[simp] lemma inter_union_pullback_cone_fst :
+  (inter_union_pullback_cone F U V).fst = F.1.map (hom_of_le le_sup_left).op := rfl
+@[simp] lemma inter_union_pullback_cone_snd :
+  (inter_union_pullback_cone F U V).snd = F.1.map (hom_of_le le_sup_right).op := rfl
+
+variable (s : pullback_cone
+  (F.1.map (hom_of_le inf_le_left : U ∩ V ⟶ _).op) (F.1.map (hom_of_le inf_le_right).op))
+
+/-- (Implementation).
+Every cone over `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)` factors through `F(U ∪ V)`. -/
+def inter_union_pullback_cone_lift : s.X ⟶ F.1.obj (op (U ∪ V)) :=
+begin
+  let ι : walking_pair → opens X := λ j, walking_pair.cases_on j U V,
+  have hι : U ∪ V = supr ι,
+  { ext, split,
+    { rintros (h|h),
+    exacts [⟨_,⟨_,⟨walking_pair.left,rfl⟩,rfl⟩,h⟩, ⟨_,⟨_,⟨walking_pair.right,rfl⟩,rfl⟩,h⟩] },
+    { rintros ⟨_,⟨_,⟨⟨⟩,⟨⟩⟩,⟨⟩⟩,z⟩, exacts [or.inl z, or.inr z] } },
+  refine (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.lift
+    ⟨s.X, { app := _, naturality' := _ }⟩ ≫ F.1.map (eq_to_hom hι).op,
+  { apply opposite.rec,
+    rintro ((_|_)|(_|_)),
+    exacts [s.fst, s.snd, s.fst ≫ F.1.map (hom_of_le inf_le_left).op,
+      s.snd ≫ F.1.map (hom_of_le inf_le_left).op] },
+  rintros i j f,
+  induction i using opposite.rec,
+  induction j using opposite.rec,
+  let g : j ⟶ i := f.unop, have : f = g.op := rfl, clear_value g, subst this,
+  rcases i with ((_|_)|(_|_)); rcases j with ((_|_)|(_|_)); rcases g; dsimp;
+    simp only [category.id_comp, s.condition, category_theory.functor.map_id, category.comp_id],
+  { rw [← cancel_mono (F.1.map (eq_to_hom $ inf_comm : U ∩ V ⟶ _).op), category.assoc,
+      category.assoc],
+    erw [← F.1.map_comp, ← F.1.map_comp],
+    convert s.condition.symm },
+  { convert s.condition }
+end
+
+lemma inter_union_pullback_cone_lift_left :
+  inter_union_pullback_cone_lift F U V s ≫ F.1.map (hom_of_le le_sup_left).op = s.fst :=
+begin
+  erw [category.assoc, ←F.1.map_comp],
+  exact (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
+    (op $ pairwise.single walking_pair.left)
+end
+
+lemma inter_union_pullback_cone_lift_right :
+  inter_union_pullback_cone_lift F U V s ≫ F.1.map (hom_of_le le_sup_right).op = s.snd :=
+begin
+  erw [category.assoc, ←F.1.map_comp],
+  exact (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
+    (op $ pairwise.single walking_pair.right)
+end
+
+/-- For a sheaf `F`, `F(U ∪ V)` is the pullback of `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)`. -/
+def is_limit_pullback_cone : is_limit (inter_union_pullback_cone F U V) :=
+begin
+  let ι : walking_pair → opens X := λ j, walking_pair.cases_on j U V,
+  have hι : U ∪ V = supr ι,
+  { ext, split,
+    { rintros (h|h),
+    exacts [⟨_,⟨_,⟨walking_pair.left,rfl⟩,rfl⟩,h⟩, ⟨_,⟨_,⟨walking_pair.right,rfl⟩,rfl⟩,h⟩] },
+    { rintros ⟨_,⟨_,⟨⟨⟩,⟨⟩⟩,⟨⟩⟩,z⟩, exacts [or.inl z, or.inr z] } },
+  apply pullback_cone.is_limit_aux',
+  intro s,
+  use inter_union_pullback_cone_lift F U V s,
+  refine ⟨_,_,_⟩,
+  { apply inter_union_pullback_cone_lift_left },
+  { apply inter_union_pullback_cone_lift_right },
+  { intros m h₁ h₂,
+    rw ← cancel_mono (F.1.map (eq_to_hom hι.symm).op),
+    apply (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.hom_ext,
+    apply opposite.rec,
+    rintro ((_|_)|(_|_)); rw [category.assoc, category.assoc],
+    { erw ← F.1.map_comp,
+      convert h₁,
+      apply inter_union_pullback_cone_lift_left },
+    { erw ← F.1.map_comp,
+      convert h₂,
+      apply inter_union_pullback_cone_lift_right },
+    all_goals
+    { dsimp only [functor.op, pairwise.cocone_ι_app, functor.map_cone_π_app,
+        cocone.op, pairwise.cocone_ι_app_2, unop_op, op_comp],
+      simp_rw [F.1.map_comp, ← category.assoc],
+      congr' 1,
+      simp_rw [category.assoc, ← F.1.map_comp] },
+    { convert h₁,
+      apply inter_union_pullback_cone_lift_left },
+    { convert h₂,
+      apply inter_union_pullback_cone_lift_right } }
+end
+
+/-- If `U, V` are disjoint, then `F(U ∪ V) = F(U) × F(V)`. -/
+def is_product_of_disjoint (h : U ∩ V = ⊥) : is_limit
+    (binary_fan.mk (F.1.map (hom_of_le le_sup_left : _ ⟶ U ⊔ V).op)
+      (F.1.map (hom_of_le le_sup_right : _ ⟶ U ⊔ V).op)) :=
+is_product_of_is_terminal_is_pullback _ _ _ _
+  (F.is_terminal_of_eq_empty h) (is_limit_pullback_cone F U V)
+
+end Top.sheaf

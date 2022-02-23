@@ -110,10 +110,12 @@ def to_algebra
 
 See note [partially-applied ext lemmas]. -/
 @[ext]
-lemma alg_hom_ext ⦃f g : (⨁ i, A i) →ₐ[R] B⦄
+lemma alg_hom_ext' ⦃f g : (⨁ i, A i) →ₐ[R] B⦄
   (h : ∀ i, f.to_linear_map.comp (lof _ _ A i) = g.to_linear_map.comp (lof _ _ A i)) : f = g :=
-alg_hom.coe_ring_hom_injective $
-  direct_sum.ring_hom_ext $ λ i, add_monoid_hom.ext $ linear_map.congr_fun (h i)
+alg_hom.to_linear_map_injective $ direct_sum.linear_map_ext _ h
+
+lemma alg_hom_ext ⦃f g : (⨁ i, A i) →ₐ[R] B⦄ (h : ∀ i x, f (of A i x) = g (of A i x)) : f = g :=
+alg_hom_ext' R A $ λ i, linear_map.ext $ h i
 
 end direct_sum
 

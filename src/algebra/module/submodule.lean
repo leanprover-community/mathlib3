@@ -91,6 +91,8 @@ to_add_submonoid_injective.eq_iff
 @[mono] lemma to_add_submonoid_strict_mono :
   strict_mono (to_add_submonoid : submodule R M → add_submonoid M) := λ _ _, id
 
+lemma to_add_submonoid_le : p.to_add_submonoid ≤ q.to_add_submonoid ↔ p ≤ q := iff.rfl
+
 @[mono]
 lemma to_add_submonoid_mono : monotone (to_add_submonoid : submodule R M → add_submonoid M) :=
 to_add_submonoid_strict_mono.monotone
@@ -161,6 +163,12 @@ instance [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] :
 instance [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] : is_scalar_tower S R p :=
 p.to_sub_mul_action.is_scalar_tower
 
+instance
+  [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
+  [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [is_central_scalar S M] : is_central_scalar S p :=
+p.to_sub_mul_action.is_central_scalar
+
 protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
@@ -196,9 +204,11 @@ instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_diviso
 protected def subtype : p →ₗ[R] M :=
 by refine {to_fun := coe, ..}; simp [coe_smul]
 
-@[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
+theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
-lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
+@[simp] lemma coe_subtype : ((submodule.subtype p) : p → M) = coe := rfl
+
+lemma injective_subtype : injective p.subtype := subtype.coe_injective
 
 /-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
@@ -292,6 +302,8 @@ to_add_subgroup_injective.eq_iff
 
 @[mono] lemma to_add_subgroup_strict_mono :
   strict_mono (to_add_subgroup : submodule R M → add_subgroup M) := λ _ _, id
+
+lemma to_add_subgroup_le : p.to_add_subgroup ≤ p'.to_add_subgroup ↔ p ≤ p' := iff.rfl
 
 @[mono] lemma to_add_subgroup_mono : monotone (to_add_subgroup : submodule R M → add_subgroup M) :=
 to_add_subgroup_strict_mono.monotone

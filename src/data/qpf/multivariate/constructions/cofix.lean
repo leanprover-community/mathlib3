@@ -35,7 +35,8 @@ We define the relation `Mcongr` and take its quotient as the definition of `cofi
 
 ## Reference
 
- * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
+ * Jeremy Avigad, Mario M. Carneiro and Simon Hudon.
+   [*Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 
 universe u
@@ -79,7 +80,7 @@ def cofix (F : typevec (n + 1) → Type u) [mvfunctor F] [q : mvqpf F] (α : typ
 quot (@Mcongr _ F _ q α)
 
 instance {α : typevec n} [inhabited q.P.A] [Π (i : fin2 n), inhabited (α i)] :
-  inhabited (cofix F α) := ⟨ quot.mk _ (default _) ⟩
+  inhabited (cofix F α) := ⟨ quot.mk _ default ⟩
 
 /-- maps every element of the W type to a canonical representative -/
 def Mrepr {α : typevec n} : q.P.M α → q.P.M α := corecF (abs ∘ M.dest q.P)

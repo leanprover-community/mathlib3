@@ -67,7 +67,7 @@ local attribute [instance] has_limits_of_shape_op_of_has_colimits_of_shape
 /--
 If `C` has colimits, we can construct limits for `Cᵒᵖ`.
 -/
-lemma has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ := {}
+lemma has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ := ⟨infer_instance⟩
 
 /--
 If `F.left_op : Jᵒᵖ ⥤ C` has a limit, we can construct a colimit for `F : J ⥤ Cᵒᵖ`.
@@ -105,7 +105,7 @@ local attribute [instance] has_colimits_of_shape_op_of_has_limits_of_shape
 /--
 If `C` has limits, we can construct colimits for `Cᵒᵖ`.
 -/
-lemma has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ := {}
+lemma has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ := ⟨infer_instance⟩
 
 variables (X : Type v)
 /--
@@ -148,7 +148,19 @@ lemma has_finite_products_opposite [has_finite_coproducts C] :
     apply_instance,
   end }
 
-local attribute [instance] fin_category_opposite
+lemma has_equalizers_opposite [has_coequalizers C] : has_equalizers Cᵒᵖ :=
+begin
+  haveI : has_colimits_of_shape walking_parallel_pair.{v}ᵒᵖ C :=
+    has_colimits_of_shape_of_equivalence walking_parallel_pair_op_equiv.{v},
+  apply_instance
+end
+
+lemma has_coequalizers_opposite [has_equalizers C] : has_coequalizers Cᵒᵖ :=
+begin
+  haveI : has_limits_of_shape walking_parallel_pair.{v}ᵒᵖ C :=
+    has_limits_of_shape_of_equivalence walking_parallel_pair_op_equiv.{v},
+  apply_instance
+end
 
 lemma has_finite_colimits_opposite [has_finite_limits C] :
   has_finite_colimits Cᵒᵖ :=

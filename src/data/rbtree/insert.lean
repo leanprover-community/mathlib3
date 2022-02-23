@@ -447,10 +447,11 @@ end
 lemma weak_trichotomous (x y) {p : Prop} (is_lt : ∀ h : lt x y, p)
   (is_eqv : ∀ h : ¬ lt x y ∧ ¬ lt y x, p) (is_gt : ∀ h : lt y x, p) : p :=
 begin
-  by_cases lt x y; by_cases lt y x,
-  any_goals { apply is_lt; assumption },
-  any_goals { apply is_gt; assumption },
-  any_goals { apply is_eqv, constructor; assumption }
+  by_cases lt x y,
+  { apply is_lt, assumption },
+  by_cases lt y x,
+  { apply is_gt, assumption },
+  { apply is_eqv, constructor; assumption }
 end
 
 section find_ins_of_not_eqv
@@ -656,9 +657,7 @@ begin
     { have := lt_of_lt_of_incomp hn hc,
       simp_fi } },
   { have := ih hs_hs₂ hc hlt₂,
-    cases hn,
-    { have := trans hc hn, simp_fi },
-    { simp_fi } },
+    simp_fi },
   { have ih := ih hs_hs₁ hlt₁ hc,
     cases hn,
     { cases hc' : cmp_using lt y y_1; simp at hc',
@@ -698,12 +697,8 @@ begin
       { have hsi := is_searchable_ins lt hs_hs₂ hc hlt₂,
         have := find_balance2_node_gt lt hc' hsi hs_hs₁,
         simp_fi } } },
-  { cases hn,
-    { have := trans hc hn,
-      have := ih hs_hs₂ hc hlt₂,
-      simp_fi },
-    { have ih := ih hs_hs₂ hc hlt₂,
-      simp_fi } }
+  { have ih := ih hs_hs₂ hc hlt₂,
+    simp_fi }
 end
 
 end find_ins_of_not_eqv

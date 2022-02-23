@@ -3,7 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
-import data.bool
+import data.bool.basic
 import meta.rb_map
 import tactic.lint.basic
 
@@ -257,7 +257,7 @@ Some instances take quite some time to fail, and we seem to run against the cach
 https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/odd.20repeated.20type.20class.20search
 -/
 @[linter] meta def linter.fails_quickly : linter :=
-{ test := fails_quickly 10000,
+{ test := fails_quickly 15000,
   auto_decls := tt,
   no_errors_found := "No type-class searches timed out.",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.

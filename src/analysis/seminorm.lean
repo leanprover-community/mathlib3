@@ -5,6 +5,7 @@ Authors: Jean Lo, Bhavik Mehta, Yaël Dillies, Moritz Doll
 -/
 import analysis.convex.function
 import analysis.normed_space.ordered
+import data.real.pointwise
 import data.real.sqrt
 import topology.algebra.filter_basis
 import topology.algebra.module.locally_convex

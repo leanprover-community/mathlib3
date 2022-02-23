@@ -6,7 +6,6 @@ Authors: Yaël Dillies, Bhavik Mehta
 import analysis.convex.star
 import analysis.normed_space.pointwise
 import analysis.seminorm
-import data.real.pointwise
 
 /-!
 # The Minkowksi functional

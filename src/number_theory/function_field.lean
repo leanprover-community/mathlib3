@@ -127,8 +127,8 @@ by { rw [infty_valuation_def, if_pos], refl, }
 lemma infty_valuation.map_one' : infty_valuation_def Fq 1 = 1 :=
 begin
   rw [infty_valuation_def, if_neg (zero_ne_one.symm : (1 : ratfunc Fq) ≠ 0)],
-  simp only [polynomial.nat_degree_one, ratfunc.num_one, int.coe_nat_zero, sub_zero, ratfunc.denom_one, of_add_zero,
-  with_zero.coe_one],
+  simp only [polynomial.nat_degree_one, ratfunc.num_one, int.coe_nat_zero, sub_zero,
+  ratfunc.denom_one, of_add_zero, with_zero.coe_one],
 end
 
 lemma infty_valuation.map_mul' (x y : ratfunc Fq) :

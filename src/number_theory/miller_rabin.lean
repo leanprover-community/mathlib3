@@ -29,9 +29,6 @@ end
 def strong_probable_prime (n : nat) (a : zmod n) : Prop :=
 a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 (n-1) ∧ a^(2^r * odd_part(n-1)) = -1)
 
-def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
-a^(odd_part (n-1)) = 1
-
 lemma square_roots_of_one {p : ℕ} [fact (p.prime)] {x : zmod p} (root : x^2 = 1) :
   x = 1 ∨ x = -1 :=
 begin
@@ -92,8 +89,30 @@ begin
   sorry,
 end
 
-lemma strong_probable_prime_iff_fermat_pseudoprime_of_prime_power (p α : ℕ) (hp : prime p)
-  (a : zmod p^α) : strong_probable_primep^α a ↔ fermat_pseudoprime p^α a
+lemma relatively_prime_of_strong_probable_prime (n : ℕ) [fact (0 < n)] (a : zmod n)
+  (h : strong_probable_prime n a) : nat.coprime n a.val :=
+begin
+  rw nat.coprime,
+  rw zmod.nat_cast_val a,
+end
+
+lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : prime p)
+  (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
+begin
+  haveI : fact (0 < p ^ α),
+  { sorry, },
+  split,
+  { intro hspp,
+    have euler : a ^ nat.totient (p^α) = 1,
+    { have a_unit : is_unit a,
+      { sorry, },
+      have := zmod.pow_totient (is_unit.unit a_unit),
+
+
+       },
+     }
+  sorry,
+end
 
 lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)]
   [decidable_pred (strong_probable_prime n)] (hp : ¬ n.prime) :

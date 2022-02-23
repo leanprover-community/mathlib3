@@ -39,10 +39,6 @@ open finset fintype function sum
 variables {α β : Type*}
 
 namespace sym
-section attach
-variables {n : ℕ}
-
-end attach
 
 section
 variables (α) (n : ℕ)

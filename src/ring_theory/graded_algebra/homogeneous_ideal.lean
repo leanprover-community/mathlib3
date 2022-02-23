@@ -128,8 +128,7 @@ variables {𝒜 I}
 lemma ideal.is_homogeneous.coe_homogeneous_core_eq_self (h : I.is_homogeneous 𝒜) :
   ↑(I.homogeneous_core 𝒜) = I :=
 begin
-  symmetry,
-  apply le_antisymm _ (I.homogeneous_core'_le 𝒜),
+  apply le_antisymm (I.homogeneous_core'_le 𝒜) _,
   intros x hx,
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
   rw ←graded_algebra.sum_support_decompose 𝒜 x,

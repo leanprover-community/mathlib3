@@ -10,6 +10,8 @@ import analysis.normed_space.spectrum
 In this file, we establish various propreties related to the spectrum of elements in C⋆-algebras.
 -/
 
+open spectrum
+
 section unitary_spectrum
 
 variables
@@ -21,13 +23,12 @@ lemma unitary.spectrum_subset_circle (u : unitary E) :
   spectrum 𝕜 (u : E) ⊆ { k : 𝕜 | ∥k∥ = 1 } :=
 begin
   refine λ k hk, le_antisymm _ _,
-  { simpa only [cstar_ring.norm_coe_unitary u] using spectrum.norm_le_norm_of_mem hk },
-  { let u' := unitary.to_units u,
-    have hcoe : (u : E) = (u' : E), from rfl,
+  { simpa only [cstar_ring.norm_coe_unitary u] using norm_le_norm_of_mem hk },
+  { have hcoe : (u : E) = (unitary.to_units u : E), from rfl,
     rw hcoe at hk,
-    have hnk := spectrum.not_eq_zero_of_mem_of_unit hk,
-    rw [←inv_inv u', ←spectrum.map_inv, set.mem_inv] at hk,
-    have : ∥k∥⁻¹ ≤ ∥↑(u'⁻¹)∥, by simpa only [norm_inv] using spectrum.norm_le_norm_of_mem hk,
+    have hnk := not_eq_zero_of_mem_of_unit hk,
+    rw [←inv_inv (unitary.to_units u), ←spectrum.map_inv, set.mem_inv] at hk,
+    have : ∥k∥⁻¹ ≤ ∥↑((unitary.to_units u)⁻¹)∥, simpa only [norm_inv] using norm_le_norm_of_mem hk,
     simpa using inv_le_of_inv_le (norm_pos_iff.mpr hnk) this }
 end
 

@@ -514,9 +514,9 @@ section ping_pong_lemma
 open_locale pointwise
 open_locale cardinal
 
-variables [nontrivial ι]
+variables [hnontriv : nontrivial ι]
 variables {G : Type*} [group G]
-variables {H : ι → Type*} [∀ i, inhabited (H i)] [∀ i, group (H i)]
+variables {H : ι → Type*} [hinh : ∀ i, inhabited (H i)] [∀ i, group (H i)]
 variables (f : Π i, H i →* G)
 
 -- We need many groups or one group with many elements
@@ -547,7 +547,7 @@ begin
     ... ⊆ X i : hIw₁ hne },
 end
 
-include X hXnonempty hXdisj
+include hnontriv hinh X hXnonempty hXdisj
 
 lemma lift_word_prod_nontrivial_of_other_i {i j k} (w : neword H i j)
   (hhead : k ≠ i)

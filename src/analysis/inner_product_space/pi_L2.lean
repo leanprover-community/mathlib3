@@ -365,7 +365,7 @@ def _root_.linear_equiv.to_linear_equiv_of_euclidean_space (e : (ι →₀ 𝕜)
 def reindex (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') : orthonormal_basis ι' 𝕜 E :=
 orthonormal_basis.of_repr (b.repr.trans (linear_isometry_equiv.Pi_congr_left e))
 
-@[simp] protected lemma reindex_apply (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (i' : ι') :
+protected lemma reindex_apply (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (i' : ι') :
   b.reindex e i' = b (e.symm i') :=
 begin
   classical,

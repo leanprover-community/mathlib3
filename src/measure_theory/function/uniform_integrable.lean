@@ -132,8 +132,7 @@ This definition is useful for Egorov's theorem. -/
 def Union_not_convergent_seq (hε : 0 < ε)
   (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) : set α :=
-⋃ n, s ∩ not_convergent_seq f g n
-  (not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg n)
+⋃ n, s ∩ not_convergent_seq f g n (not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg n)
 
 lemma Union_not_convergent_seq_measurable_set (hε : 0 < ε)
   (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)

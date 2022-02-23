@@ -126,7 +126,7 @@ begin
     { obtain (hi|hi) := is_empty_or_nonempty α; haveI := hi,
       { simp [multichoose, fintype.card_eq_zero], },
       { haveI : inhabited α := classical.inhabited_of_nonempty (by assumption),
-        obtain ⟨β, βeqv⟩ := sigma_equiv_option_of_nonempty α,
+        obtain ⟨β, βeqv⟩ := equiv.sigma_equiv_option_of_nonempty α,
         haveI : fintype β := fintype_of_equiv_option βeqv.symm,
         have βc : card β + k + 1 = n,
         { simpa [fintype.card_congr βeqv,

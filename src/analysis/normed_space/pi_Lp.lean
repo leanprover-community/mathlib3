@@ -318,13 +318,14 @@ variables {𝕜 p α}
 @[simp] lemma neg_apply : (-x) i = - (x i) := rfl
 
 variables {ι' : Type*}
-variables [fintype ι] [fintype ι']
+variables [fintype ι']
 
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 /-- An equivalence of finite domains induces a linearly isometric equivalence of finitely supported
 functions-/
-def _root_.linear_isometry_equiv.Pi_congr_left (e : ι ≃ ι') : pi_Lp p (λ i : ι, E) ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E) :=
+def _root_.linear_isometry_equiv.Pi_congr_left (e : ι ≃ ι') :
+  pi_Lp p (λ i : ι, E) ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E) :=
 begin
   apply linear_isometry_equiv.mk _ _,
   exact linear_equiv.Pi_congr_left' 𝕜 (λ i : ι, E) e,
@@ -343,7 +344,8 @@ end
 begin
   funext i,
   rw equiv.Pi_congr_left'_apply,
-  simp only [linear_isometry_equiv.Pi_congr_left, linear_isometry_equiv.coe_mk, linear_equiv.Pi_congr_left'_apply],
+  simp only [linear_isometry_equiv.Pi_congr_left, linear_isometry_equiv.coe_mk,
+    linear_equiv.Pi_congr_left'_apply],
 end
 
 @[simp] lemma _root_.linear_isometry_equiv.Pi_congr_left_symm (e : ι ≃ ι') :
@@ -353,8 +355,8 @@ linear_isometry_equiv.ext $ λ x, rfl
 
 @[simp] lemma _root_.linear_isometry_equiv.Pi_congr_left_single
   [decidable_eq ι] [decidable_eq ι'] (e : ι ≃ ι') (i : ι) (v : E) :
-  (linear_isometry_equiv.Pi_congr_left e : pi_Lp p (λ i : ι, E) ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E)) (pi.single i v) =
-    pi.single (e i) v :=
+  (linear_isometry_equiv.Pi_congr_left e : pi_Lp p (λ i : ι, E)
+    ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E)) (pi.single i v) = pi.single (e i) v :=
 begin
   funext x,
   simp [linear_isometry_equiv.Pi_congr_left, linear_equiv.Pi_congr_left', equiv.Pi_congr_left',

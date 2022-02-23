@@ -240,11 +240,12 @@ end
 end oplax_functor
 
 /--
-The auxiliary definition that claims that pseudofunctors preserve the associators
-modulo some adjustments of domains and codomains of 2-morphisms. -/
+This auxiliary definition states that pseudofunctors preserve the associators
+modulo some adjustments of domains and codomains of 2-morphisms.
+-/
 /-
-The reason for using this auxiliary definition instead of writing it directly in the definition
-of pseudofunctors is that doing so will cause a timeout.
+We use this auxiliary definition instead of writing it directly in the definition
+of pseudofunctors because doing so will cause a timeout.
 -/
 @[simp]
 def pseudofunctor.map₂_associator_aux

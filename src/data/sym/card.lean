@@ -40,22 +40,6 @@ variables {α β : Type*}
 
 section unused
 
-namespace multiset
-
-@[simp] lemma map_le_map_iff {f : α ↪ β} {s t : multiset α} : s.map f ≤ t.map f ↔ s ≤ t :=
-⟨λ h, begin
-  classical,
-  exact le_iff_count.mpr (λ a, by simpa [count_map_eq_count' f _ f.injective] using le_iff_count.mp
-  h (f a)),
-end, map_le_map⟩
-
-/-- Associate to an embedding `f` from `α` to `β` the order embedding that maps a multiset to its
-image under `f`. -/
-def map_embedding (f : α ↪ β) : multiset α ↪o multiset β :=
-order_embedding.of_map_le_iff (map f) (λ _ _, map_le_map_iff)
-
-end multiset
-
 namespace finset
 
 lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).injective

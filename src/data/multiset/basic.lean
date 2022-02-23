@@ -1757,6 +1757,20 @@ begin
     contradiction }
 end
 
+lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=
+begin
+  ext a,
+  rw [count_repeat, count_filter],
+  exact if_ctx_congr iff.rfl (λ h, congr_arg _ h) (λ h, rfl),
+end
+
+lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
+by simp_rw [←filter_eq', eq_comm]
+
+end
+
+section embedding
+
 @[simp] lemma map_le_map_iff {f : α ↪ β} {s t : multiset α} : s.map f ≤ t.map f ↔ s ≤ t :=
 ⟨λ h, begin
   classical,
@@ -1769,17 +1783,7 @@ image under `f`. -/
 def map_embedding (f : α ↪ β) : multiset α ↪o multiset β :=
 order_embedding.of_map_le_iff (map f) (λ _ _, map_le_map_iff)
 
-lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=
-begin
-  ext a,
-  rw [count_repeat, count_filter],
-  exact if_ctx_congr iff.rfl (λ h, congr_arg _ h) (λ h, rfl),
-end
-
-lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
-by simp_rw [←filter_eq', eq_comm]
-
-end
+end embedding
 
 lemma count_eq_card_filter_eq [decidable_eq α] (s : multiset α) (a : α) :
   s.count a = (s.filter (eq a)).card :=

@@ -245,7 +245,19 @@ variables (M)
 lemma mk'_surjective (z : S) : ∃ x (y : M), mk' S x y = z :=
 let ⟨r, hr⟩ := is_localization.surj _ z in ⟨r.1, r.2, (eq_mk'_iff_mul_eq.2 hr).symm⟩
 
-variables {M}
+variables (S)
+
+include M
+
+/-- The localization of a `fintype` is a `fintype`. Cannot be an instance. -/
+noncomputable def fintype' [fintype R] : fintype S :=
+have _ := classical.prop_decidable, by exactI
+fintype.of_surjective (function.uncurry $ is_localization.mk' S)
+                      (λ a, prod.exists'.mpr $ is_localization.mk'_surjective M a)
+
+omit M
+
+variables {M S}
 
 lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :
   mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (x₁ * y₂) = algebra_map R S (x₂ * y₁) :=

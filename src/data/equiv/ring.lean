@@ -38,7 +38,7 @@ equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 
 open_locale big_operators
 
-variables {α β R S S' : Type*}
+variables {F α β R S S' : Type*}
 
 set_option old_structure_cmd true
 

@@ -146,8 +146,8 @@ begin
     exact (to_fun_commutes _ _ _ S i hnmem), }
 end
 
-@[to_additive add_to_fun_in_sup_mrange]
-lemma to_fun_in_sup_mrange (S : finset ι) :
+@[to_additive add_to_fun_mem_bsupr_mrange]
+lemma to_fun_mem_bsupr_mrange (S : finset ι) :
   to_fun ϕ hcomm f S ∈ ⨆ i ∈ S, (ϕ i).mrange :=
 begin
   classical,
@@ -200,7 +200,7 @@ begin
   classical,
   apply le_antisymm,
   { rintro x ⟨f, rfl⟩,
-    exact (to_fun_in_sup_mrange ϕ f S), },
+    exact (to_fun_mem_bsupr_mrange ϕ f S), },
   { refine (bsupr_le _),
     rintro i hmem x ⟨y, rfl⟩,
     use (monoid_hom.single _ i y),
@@ -253,9 +253,9 @@ include hcomm
 -- We use `f` and `g` to denote elements of `Π (i : ι), H i`
 variables (f g : Π (i : ι), H i)
 
--- The subgroup version of `noncomm_pi_coprod_on.to_fun_in_sup_mrange`
-@[to_additive noncomm_pi_coprod_on.add_to_fun_in_sup_range]
-lemma noncomm_pi_coprod_on.to_fun_in_sup_range (S : finset ι) :
+-- The subgroup version of `noncomm_pi_coprod_on.to_fun_mem_bsupr_mrange`
+@[to_additive noncomm_pi_coprod_on.add_to_fun_mem_bsupr_range]
+lemma noncomm_pi_coprod_on.to_fun_mem_bsupr_range (S : finset ι) :
   noncomm_pi_coprod_on.to_fun ϕ hcomm f S ∈ ⨆ i ∈ S, (ϕ i).range :=
 begin
   classical,
@@ -276,7 +276,7 @@ begin
   classical,
   apply le_antisymm,
   { rintro x ⟨f, rfl⟩,
-    exact (noncomm_pi_coprod_on.to_fun_in_sup_range ϕ f S), },
+    exact (noncomm_pi_coprod_on.to_fun_mem_bsupr_range ϕ f S), },
   { refine (bsupr_le _),
     rintro i hmem x ⟨y, rfl⟩,
     use (monoid_hom.single _ i y),
@@ -317,7 +317,7 @@ begin
     have heq1' : ϕ i (f i) = 1 ∧ noncomm_pi_coprod_on.to_fun ϕ hcomm f S = 1,
     { apply mul_eq_one_iff_disjoint.mp (hind.disjoint_bsupr hnmem') _ _ heq1,
       { simp, },
-      { apply noncomm_pi_coprod_on.to_fun_in_sup_range, }, },
+      { apply noncomm_pi_coprod_on.to_fun_mem_bsupr_range, }, },
     rcases heq1' with ⟨ heq1i, heq1S ⟩,
     specialize ih heq1S,
     intros i h,

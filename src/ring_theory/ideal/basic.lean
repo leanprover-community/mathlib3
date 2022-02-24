@@ -52,7 +52,6 @@ variables {a}
 @[ext] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
 submodule.ext h
 
-
 lemma sum_mem (I : ideal α) {ι : Type*} {t : finset ι} {f : ι → α} :
   (∀c∈t, f c ∈ I) → (∑ i in t, f i) ∈ I := submodule.sum_mem I
 
@@ -91,8 +90,16 @@ rfl
 
 @[simp] lemma span_empty : span (∅ : set α) = ⊥ := submodule.span_empty
 
+@[simp] lemma span_univ : span (set.univ : set α) = ⊤ := submodule.span_univ
+
+lemma span_union (s t : set α) : span (s ∪ t) = span s ⊔ span t :=
+submodule.span_union _ _
+
+lemma span_Union {ι} (s : ι → set α) : span (⋃ i, s i) = ⨆ i, span (s i) :=
+submodule.span_Union _
+
 lemma mem_span {s : set α} (x) : x ∈ span s ↔ ∀ p : ideal α, s ⊆ p → x ∈ p :=
-mem_bInter_iff
+mem_Inter₂
 
 lemma subset_span {s : set α} : s ⊆ span s := submodule.subset_span
 

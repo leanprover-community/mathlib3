@@ -71,6 +71,11 @@ variables {M : Type*} [monoid M]
 variables {ι : Type*} [hdec : decidable_eq ι] [hfin : fintype ι]
 variables {N : ι → Type*} [∀ i, monoid (N i)]
 
+@[to_additive]
+lemma _root_.monoid_hom.pi_ext [decidable_eq ι] [fintype ι] {f g : (Π i, N i) →* M} :
+  f = g ↔ (∀ i x, f (monoid_hom.single N i x) = g (monoid_hom.single N i x)) :=
+sorry
+
 -- And morphisms ϕ into G
 variables (ϕ : Π (i : ι), N i →* M)
 
@@ -229,6 +234,18 @@ include hdec
 lemma noncomm_pi_coprod_single (i : ι) (y : N i):
   noncomm_pi_coprod ϕ hcomm (monoid_hom.single _ i y) = ϕ i y :=
 by { show noncomm_pi_coprod_on.hom ϕ hcomm finset.univ (monoid_hom.single _ i y) = ϕ i y, simp }
+
+/-- The universal property of `noncomm_pi_coprod` -/
+@[to_additive "The universal property of `noncomm_pi_coprod`"]
+def noncomm_pi_coprod_equiv :
+  {ϕ : Π i, N i →* M // pairwise (λ i j, ∀ x y, commute (ϕ i x) (ϕ j y)) }
+    ≃ ((Π i, N i) →* M) :=
+{ to_fun := λ ϕ, noncomm_pi_coprod ϕ.1 ϕ.2,
+  inv_fun := λ f,
+  ⟨ λ i, f.comp (monoid_hom.single N i),
+    λ i j hij x y, commute.map (monoid_hom.single_commute i j hij x y) f ⟩,
+  left_inv := λ ϕ, by {ext ι x, simp },
+  right_inv := λ f, monoid_hom.pi_ext.mpr (λ i x, by simp), }
 
 omit hdec
 

@@ -86,7 +86,7 @@ instance [has_neg α] : has_neg αˢʸᵐ :=
 { neg := λ a, sym (-unsym a) }
 
 /- Introduce the symmetrized multiplication-/
-instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul(αˢʸᵐ) :=
+instance [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] : has_mul (αˢʸᵐ) :=
 { mul := λ a b, sym (⅟2 * (unsym a * unsym b + unsym b * unsym a)) }
 
 @[to_additive] instance [has_inv α] : has_inv αˢʸᵐ :=
@@ -101,14 +101,24 @@ instance (R : Type*) [has_scalar R α] : has_scalar R αˢʸᵐ :=
 @[simp] lemma sym_add [has_add α] (a b : α) : sym (a + b) = sym a + sym b := rfl
 @[simp] lemma unsym_add [has_add α] (a b : αˢʸᵐ) : unsym (a + b) = unsym a + unsym b := rfl
 
+@[simp] lemma sym_sub [has_sub α] (a b : α) : sym (a - b) = sym a - sym b := rfl
+@[simp] lemma unsym_sub [has_sub α] (a b : αˢʸᵐ) : unsym (a - b) = unsym a - unsym b := rfl
+
 @[simp] lemma sym_neg [has_neg α] (a : α) : sym (-a) = -sym a := rfl
 @[simp] lemma unsym_neg [has_neg α] (a : αˢʸᵐ) : unsym (-a) = -unsym a := rfl
 
+lemma mul_def [has_add α] [has_mul α] [has_one α] [invertible (2 : α)] (a b : αˢʸᵐ) :
+  a * b = sym (⅟2*(unsym a * unsym b + unsym b * unsym a)) := by refl
+
+lemma unsym_mul [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a b : αˢʸᵐ) :
+  unsym (a * b) = ⅟2*(unsym a * unsym b + unsym b * unsym a) := by refl
+
+lemma sym_mul_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a b : α) :
+  sym a * sym b = sym (⅟2*(a * b + b * a)) :=
+rfl
+
 @[simp, to_additive] lemma sym_inv [has_inv α] (a : α) : sym (a⁻¹) = (sym a)⁻¹ := rfl
 @[simp, to_additive] lemma unsym_inv [has_inv α] (a : αˢʸᵐ) : unsym (a⁻¹) = (unsym a)⁻¹ := rfl
-
-@[simp] lemma sym_sub [has_sub α] (a b : α) : sym (a - b) = sym a - sym b := rfl
-@[simp] lemma unsym_sub [has_sub α] (a b : αˢʸᵐ) : unsym (a - b) = unsym a - unsym b := rfl
 
 @[simp] lemma sym_smul {R : Type*} [has_scalar R α] (c : R) (a : α) : sym (c • a) = c • sym a := rfl
 @[simp] lemma unsym_smul {R : Type*} [has_scalar R α] (c : R) (a : αˢʸᵐ) :
@@ -144,16 +154,6 @@ instance [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
 
 instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R αˢʸᵐ :=
 function.injective.module R ⟨unsym, unsym_zero, unsym_add⟩ unsym_injective unsym_smul
-
-lemma mul_def [semiring α] [invertible (2 : α)] (a b : αˢʸᵐ) :
-  a * b = sym (⅟2*(unsym a * unsym b + unsym b * unsym a)) := by refl
-
-lemma unsym_mul [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a b : αˢʸᵐ) :
-  unsym (a * b) = ⅟2*(unsym a * unsym b + unsym b * unsym a) := by refl
-
-lemma sym_mul_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a b : α) :
-  sym a * sym b = sym (⅟2*(a * b + b * a)) :=
-rfl
 
 instance [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a : α) [invertible a] :
   invertible (sym a) :=

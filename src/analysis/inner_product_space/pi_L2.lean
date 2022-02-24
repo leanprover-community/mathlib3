@@ -393,7 +393,9 @@ variables {S : submodule 𝕜 V} {L : S →ₗᵢ[𝕜] V}
 open finite_dimensional
 
 /-- Let `S` be a subspace of a finite-dimensional complex inner product space `V`.  A linear
-isometry mapping `S` into `V` can be extended to a full isometry of `V`. -/
+isometry mapping `S` into `V` can be extended to a full isometry of `V`.
+
+TODO:  The case when `S` is a finite-dimensional subspace of an infinite-dimensional `V`.-/
 noncomputable def linear_isometry.extend (L : S →ₗᵢ[𝕜] V): V →ₗᵢ[𝕜] V :=
 begin
   -- Build an isometry from Sᗮ to L(S)ᗮ through euclidean_space
@@ -438,15 +440,13 @@ begin
         apply linear_map.mem_range_self},
       apply submodule.inner_right_of_mem_orthogonal Lp1x Lp2x},
     -- Apply the Pythagorean theorem and simplify
-    rw ← sq_eq_sq (norm_nonneg _) (norm_nonneg _),
-    rw norm_sq_eq_add_norm_sq_projection x S,
+    rw [← sq_eq_sq (norm_nonneg _) (norm_nonneg _), norm_sq_eq_add_norm_sq_projection x S],
     simp only [sq, Mx_decomp],
     rw norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero (L (p1 x)) (L3 (p2 x)) Mx_orth,
     simp only [linear_isometry.norm_map, p1, p2, continuous_linear_map.to_linear_map_eq_coe,
       add_left_inj, mul_eq_mul_left_iff, norm_eq_zero, true_or, eq_self_iff_true,
-      continuous_linear_map.coe_coe, submodule.coe_norm, submodule.coe_eq_zero]},
-  exact {to_linear_map := M,
-    norm_map' := M_norm_map},
+      continuous_linear_map.coe_coe, submodule.coe_norm, submodule.coe_eq_zero] },
+  exact { to_linear_map := M, norm_map' := M_norm_map },
 end
 
 lemma linear_isometry.extend_apply (L : S →ₗᵢ[𝕜] V) (s : S):

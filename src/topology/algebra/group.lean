@@ -707,14 +707,16 @@ section div_in_topological_group
 variables [group G] [topological_space G] [topological_group G]
 
 /-- A version of `homeomorph.mul_left a b⁻¹` that is defeq to `a / b`. -/
-@[to_additive /-" A version of `homeomorph.add_left a (-b)` that is defeq to `a - b`. "-/]
+@[to_additive /-" A version of `homeomorph.add_left a (-b)` that is defeq to `a - b`. "-/,
+  simps {simp_rhs := tt}]
 def homeomorph.div_left (x : G) : G ≃ₜ G :=
 { continuous_to_fun := continuous_const.div' continuous_id,
   continuous_inv_fun := continuous_inv.mul continuous_const,
   .. equiv.div_left x }
 
 /-- A version of `homeomorph.mul_right a⁻¹ b` that is defeq to `b / a`. -/
-@[to_additive /-" A version of `homeomorph.add_right (-a) b` that is defeq to `b - a`. "-/]
+@[to_additive /-" A version of `homeomorph.add_right (-a) b` that is defeq to `b - a`. "-/,
+  simps {simp_rhs := tt}]
 def homeomorph.div_right (x : G) : G ≃ₜ G :=
 { continuous_to_fun := continuous_id.div' continuous_const,
   continuous_inv_fun := continuous_id.mul continuous_const,

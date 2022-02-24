@@ -1606,7 +1606,7 @@ else by simp only [map_of_not_measurable hf]
 
 protected lemma smul [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
   (h : μ ≪ ν) (c : R) : c • μ ≪ ν :=
-mk (λ s hs hνs, by simp only [h hνs, smul_eq_mul, smul_apply, smul_zero])
+λ s hνs, by simp only [h hνs, smul_eq_mul, smul_apply, smul_zero]
 
 end absolutely_continuous
 
@@ -2066,6 +2066,10 @@ instance is_probability_measure.to_is_finite_measure (μ : measure α) [is_proba
 lemma is_probability_measure.ne_zero (μ : measure α) [is_probability_measure μ] : μ ≠ 0 :=
 mt measure_univ_eq_zero.2 $ by simp [measure_univ]
 
+@[priority 200]
+instance is_probability_measure.ae_ne_bot [is_probability_measure μ] : ne_bot μ.ae :=
+ae_ne_bot.2 (is_probability_measure.ne_zero μ)
+
 omit m0
 
 instance measure.dirac.is_probability_measure [measurable_space α] {x : α} :
@@ -2078,6 +2082,15 @@ lemma prob_add_prob_compl [is_probability_measure μ]
 
 lemma prob_le_one [is_probability_measure μ] : μ s ≤ 1 :=
 (measure_mono $ set.subset_univ _).trans_eq measure_univ
+
+lemma is_probability_measure_smul [is_finite_measure μ] (h : μ ≠ 0) :
+  is_probability_measure ((μ univ)⁻¹ • μ) :=
+begin
+  constructor,
+  rw [smul_apply, smul_eq_mul, ennreal.inv_mul_cancel],
+  { rwa [ne, measure_univ_eq_zero] },
+  { exact measure_ne_top _ _ }
+end
 
 end is_probability_measure
 

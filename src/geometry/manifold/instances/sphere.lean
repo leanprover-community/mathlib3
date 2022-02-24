@@ -290,7 +290,7 @@ def stereographic' (n : ℕ) [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1)
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
 (linear_isometry_equiv.from_orthogonal_span_singleton n
-  (ne_zero_of_mem_unit_sphere v)).to_homeomorph.to_local_homeomorph
+  (ne_zero_of_mem_unit_sphere v)).repr.to_homeomorph.to_local_homeomorph
 
 @[simp] lemma stereographic'_source {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   (stereographic' n v).source = {v}ᶜ :=
@@ -371,7 +371,7 @@ begin
   refine ⟨continuous_induced_rng hf.continuous, _⟩,
   intros v,
   let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))),
+    (linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))).repr,
   have h : cont_diff_on ℝ ⊤ U set.univ :=
     U.cont_diff.cont_diff_on,
   have H₁ := (h.comp' cont_diff_on_stereo_to_fun).cont_mdiff_on,

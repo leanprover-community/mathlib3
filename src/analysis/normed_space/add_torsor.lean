@@ -45,6 +45,11 @@ begin
     vsub_eq_sub],
 end
 
+lemma lipschitz_with_line_map (p₁ p₂ : P) :
+  lipschitz_with (nndist p₁ p₂) (line_map p₁ p₂ : 𝕜 → P) :=
+lipschitz_with.of_dist_le_mul $ λ c₁ c₂,
+  ((dist_line_map_line_map p₁ p₂ c₁ c₂).trans (mul_comm _ _)).le
+
 lemma dist_line_map_left (p₁ p₂ : P) (c : 𝕜) :
   dist (line_map p₁ p₂ c) p₁ = ∥c∥ * dist p₁ p₂ :=
 by simpa only [line_map_apply_zero, dist_zero_right] using dist_line_map_line_map p₁ p₂ c 0

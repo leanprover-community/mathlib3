@@ -323,11 +323,11 @@ smooth_manifold_with_corners_of_cont_diff_on (𝓡 n) (sphere (0:E) 1)
 begin
   rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
   let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    linear_isometry_equiv.from_orthogonal_span_singleton n
-      (ne_zero_of_mem_unit_sphere v),
+    (linear_isometry_equiv.from_orthogonal_span_singleton n
+      (ne_zero_of_mem_unit_sphere v)).repr,
   let U' : (ℝ ∙ (v':E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    linear_isometry_equiv.from_orthogonal_span_singleton n
-      (ne_zero_of_mem_unit_sphere v'),
+    (linear_isometry_equiv.from_orthogonal_span_singleton n
+      (ne_zero_of_mem_unit_sphere v')).repr,
   have hUv : stereographic' n v = (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
     U.to_homeomorph.to_local_homeomorph := rfl,
   have hU'v' : stereographic' n v' = (stereographic (norm_eq_of_mem_sphere v')).trans
@@ -351,7 +351,8 @@ begin
   { exact continuous_subtype_coe },
   { intros v _,
     let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-      linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v)),
+      (linear_isometry_equiv.from_orthogonal_span_singleton n
+        (ne_zero_of_mem_unit_sphere (-v))).repr,
     exact ((cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ ((-v):E))ᗮ.subtypeL.cont_diff).comp U.symm.cont_diff).cont_diff_on }
 end

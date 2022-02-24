@@ -449,7 +449,7 @@ lemma ideal.homogeneous_core.gc :
     apply ideal.homogeneous_core_le_ideal,
   end⟩
 
-/--There is a galois insertion between homogeneous ideals and ideals via 
+/--There is a galois insertion between homogeneous ideals and ideals via
 `ideal.homgeneous_hull A` and `(λ I, I.1)`-/
 def ideal.homogeneous_hull.gi :
   galois_insertion
@@ -468,7 +468,7 @@ def ideal.homogeneous_hull.gi :
     refine le_antisymm _ H, apply ideal.ideal_le_homogeneous_hull,
   end }
 
-/--There is a galois coinsertion between homogeneous ideals and ideals via 
+/--There is a galois coinsertion between homogeneous ideals and ideals via
 `(λ I, I.1)` and `ideal.homogeneous_core`-/
 def ideal.homogeneous_core.gi :
   galois_coinsertion

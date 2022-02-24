@@ -21,7 +21,7 @@ that needs to happen in characteristic 0.
 
 ## Main declarations
 
-* `witt_vector.nth_mul_coeff`
+* `witt_vector.nth_mul_coeff`: expresses the coefficient of a product of Witt vectors in terms of the previous coefficients of the multiplicands. 
 
 -/
 
@@ -76,7 +76,7 @@ begin
   { simp only [map_mul, bind₁_X_right] }
 end
 
-/-- The "remainder term" of `witt_poly_prod`. See `sum_ident_2`. -/
+/-- The "remainder term" of `witt_vector.witt_poly_prod`. See `sum_ident_2`. -/
 def witt_poly_prod_remainder (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 ∑ i in range n, p^i * (witt_mul p i)^(p^(n-i))
 

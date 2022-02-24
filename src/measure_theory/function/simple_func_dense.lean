@@ -551,6 +551,7 @@ end ⟩⟩
 
 local attribute [instance] simple_func.has_scalar
 
+/-- The right action, defined for simplicity to be equal to the left action. -/
 protected def has_op_scalar : has_scalar 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
 ⟨λk f, ⟨k • f, begin
   induction k using mul_opposite.rec,
@@ -573,6 +574,7 @@ protected def module : module 𝕜 (Lp.simple_func E p μ) :=
   add_smul  := λx y f, by { ext1, exact add_smul _ _ _ },
   zero_smul := λf, by { ext1, exact zero_smul _ _ } }
 
+/-- The right module, defined for simplicity to be equal to the left module. -/
 protected def op_module : module 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
 { one_smul  := λf, by { ext1, exact one_smul _ _ },
   mul_smul  := λx y f, by { ext1, exact mul_smul _ _ _ },
@@ -581,7 +583,7 @@ protected def op_module : module 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
   add_smul  := λx y f, by { ext1, exact add_smul _ _ _ },
   zero_smul := λf, by { ext1, exact zero_smul _ _ } }
 
-protected def is_central_scalar : is_central_scalar 𝕜 (Lp.simple_func E p μ) :=
+protected lemma is_central_scalar : is_central_scalar 𝕜 (Lp.simple_func E p μ) :=
 ⟨λ x f, subtype.ext $ op_smul_eq_smul x f⟩
 
 local attribute [instance] simple_func.module simple_func.op_module simple_func.is_central_scalar

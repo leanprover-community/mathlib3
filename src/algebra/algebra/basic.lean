@@ -516,8 +516,7 @@ lemma algebra_map_End_eq_smul_id (a : R) :
   (algebra_map R (End R M)) a m = a • m := rfl
 
 @[simp] lemma ker_algebra_map_End (K : Type u) (V : Type v)
-  [field K] [add_comm_group V]
-  [module K V] [module Kᵐᵒᵖ V] [smul_comm_class K Kᵐᵒᵖ V] [is_central_scalar K V]
+  [field K] [add_comm_group V] [module K V] [module Kᵐᵒᵖ V] [is_central_scalar K V]
   (a : K) (ha : a ≠ 0) :
   ((algebra_map K (End K V)) a).ker = ⊥ :=
 linear_map.ker_smul _ _ ha

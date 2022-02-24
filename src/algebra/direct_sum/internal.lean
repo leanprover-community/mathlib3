@@ -45,6 +45,13 @@ open_locale direct_sum big_operators
 variables {ι : Type*} {S R : Type*}
 
 section direct_sum
+
+/-- Lean cannot find this instance in the statement of `submodule.galgebra` unless we copy it here.
+-/
+instance galgebra_op_module_instance [add_monoid ι] [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) (i : ι) : module Sᵐᵒᵖ ↥(A i) :=
+submodule.module' _
+
 variables [decidable_eq ι]
 
 /-! #### From `add_submonoid`s -/
@@ -154,12 +161,6 @@ instance gcomm_semiring [add_comm_monoid ι]
   direct_sum.gcomm_semiring (λ i, A i) :=
 have i' : set_like.graded_monoid (λ i, (A i).to_add_submonoid) := {..h},
 by exactI add_submonoid.gcomm_semiring (λ i, (A i).to_add_submonoid)
-
-/-- Lean cannot find this instance in the statement of `submodule.galgebra` unless we copy it here.
--/
-instance galgebra_op_module_instance [add_monoid ι] [comm_semiring S] [semiring R] [algebra S R]
-  (A : ι → submodule S R) (i : ι) : module Sᵐᵒᵖ ↥(A i) :=
-submodule.module' _
 
 /-- Build a `galgebra` instance for a collection of `submodule`s. -/
 instance galgebra [add_monoid ι]

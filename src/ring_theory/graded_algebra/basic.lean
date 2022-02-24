@@ -42,7 +42,7 @@ open_locale direct_sum big_operators
 section graded_algebra
 
 variables {ι R A : Type*}
-variables [decidable_eq ι] [add_comm_monoid ι] [comm_semiring R] [ring A] [algebra R A]
+variables [decidable_eq ι] [add_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
 
 /-- An internally-graded `R`-algebra `A` is one that can be decomposed into a collection
@@ -63,6 +63,25 @@ class graded_algebra extends set_like.graded_monoid 𝒜 :=
 lemma graded_algebra.is_internal [graded_algebra 𝒜] :
   direct_sum.submodule_is_internal 𝒜 :=
 ⟨graded_algebra.left_inv.injective, graded_algebra.right_inv.surjective⟩
+
+/-- A helper to construct a `graded_algebra` when the `set_like.graded_monoid` structure is already
+available. This makes the `left_inv` condition easier to prove, and phrases the `right_inv`
+condition in a way that allows custom `@[ext]` lemmas to apply.
+
+See note [reducible non-instances]. -/
+@[reducible]
+def graded_algebra.of_alg_hom [set_like.graded_monoid 𝒜] (decompose : A →ₐ[R] ⨁ i, 𝒜 i)
+  (right_inv : (direct_sum.submodule_coe_alg_hom 𝒜).comp decompose = alg_hom.id R A)
+  (left_inv : ∀ i (x : 𝒜 i), decompose (x : A) = direct_sum.of (λ i, ↥(𝒜 i)) i x) :
+  graded_algebra 𝒜 :=
+{ decompose' := decompose,
+  right_inv := alg_hom.congr_fun right_inv,
+  left_inv := begin
+    suffices : decompose.comp (direct_sum.submodule_coe_alg_hom 𝒜) = alg_hom.id _ _,
+    from alg_hom.congr_fun this,
+    ext i x : 2,
+    exact (decompose.congr_arg $ direct_sum.submodule_coe_alg_hom_of _ _ _).trans (left_inv i x),
+  end}
 
 variable [graded_algebra 𝒜]
 

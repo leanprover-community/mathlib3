@@ -10,6 +10,7 @@ import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
 import linear_algebra.pi
+import linear_algebra.determinant
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -125,6 +126,24 @@ begin
 end
 
 end
+
+section lattice_ops
+
+variables {ι R M₁ M₂ : Type*} [semiring R] [add_comm_monoid M₁] [add_comm_monoid M₂]
+  [module R M₁] [module R M₂] [u : topological_space R] {t : topological_space M₂}
+  [has_continuous_smul R M₂] (f : M₁ →ₗ[R] M₂)
+
+lemma has_continuous_smul_induced :
+  @has_continuous_smul R M₁ _ u (t.induced f) :=
+{ continuous_smul :=
+    begin
+      letI : topological_space M₁ := t.induced f,
+      refine continuous_induced_rng _,
+      simp_rw [function.comp, f.map_smul],
+      refine continuous_fst.smul (continuous_induced_dom.comp continuous_snd)
+    end }
+
+end lattice_ops
 
 namespace submodule
 
@@ -257,7 +276,7 @@ variables
 {M₁ M₂ α R S : Type*}
 [topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
 [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
-[topological_space S] [has_continuous_smul S M₂]
+[has_continuous_const_smul S M₂]
 
 section
 
@@ -267,7 +286,7 @@ lemma is_closed_set_of_map_smul : is_closed {f : M₁ → M₂ | ∀ c x, f (c �
 begin
   simp only [set.set_of_forall],
   exact is_closed_Inter (λ c, is_closed_Inter (λ x, is_closed_eq (continuous_apply _)
-    (continuous_const.smul (continuous_apply _))))
+    ((continuous_apply _).const_smul _)))
 end
 
 end
@@ -474,18 +493,6 @@ variables [has_continuous_add M₂]
 
 instance : has_add (M₁ →SL[σ₁₂] M₂) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
-
-lemma continuous_nsmul (n : ℕ) : continuous (λ (x : M₂), n • x) :=
-begin
-  induction n with n ih,
-  { simp [continuous_const] },
-  { simp [nat.succ_eq_add_one, add_smul], exact ih.add continuous_id }
-end
-
-@[continuity]
-lemma continuous.nsmul {α : Type*} [topological_space α] {n : ℕ} {f : α → M₂} (hf : continuous f) :
-  continuous (λ (x : α), n • (f x)) :=
-(continuous_nsmul n).comp hf
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp, norm_cast] lemma coe_add : (((f + g) : M₁ →SL[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂) = f + g := rfl
@@ -924,15 +931,6 @@ rfl
 
 instance : has_sub (M →SL[σ₁₂] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
 
-lemma continuous_zsmul : ∀ (n : ℤ), continuous (λ (x : M₂), n • x)
-| (n : ℕ) := by { simp only [coe_nat_zsmul], exact continuous_nsmul _ }
-| -[1+ n] := by { simp only [zsmul_neg_succ_of_nat], exact (continuous_nsmul _).neg }
-
-@[continuity]
-lemma continuous.zsmul {α : Type*} [topological_space α] {n : ℤ} {f : α → M₂} (hf : continuous f) :
-  continuous (λ (x : α), n • (f x)) :=
-(continuous_zsmul n).comp hf
-
 instance : add_comm_group (M →SL[σ₁₂] M₂) :=
 by refine
 { zero := 0,
@@ -1011,18 +1009,18 @@ section smul_monoid
 
 -- The M's are used for semilinear maps, and the N's for plain linear maps
 variables {R R₂ R₃ S S₃ : Type*} [semiring R] [semiring R₂] [semiring R₃]
-  [monoid S] [monoid S₃] [topological_space S] [topological_space S₃]
+  [monoid S] [monoid S₃]
   {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
   {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R₂ M₂]
   {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R₃ M₃]
   {N₂ : Type*} [topological_space N₂] [add_comm_monoid N₂] [module R N₂]
   {N₃ : Type*} [topological_space N₃] [add_comm_monoid N₃] [module R N₃]
-  [distrib_mul_action S₃ M₃] [smul_comm_class R₃ S₃ M₃] [has_continuous_smul S₃ M₃]
-  [distrib_mul_action S N₃] [smul_comm_class R S N₃] [has_continuous_smul S N₃]
+  [distrib_mul_action S₃ M₃] [smul_comm_class R₃ S₃ M₃] [has_continuous_const_smul S₃ M₃]
+  [distrib_mul_action S N₃] [smul_comm_class R S N₃] [has_continuous_const_smul S N₃]
   {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
 instance : mul_action S₃ (M →SL[σ₁₃] M₃) :=
-{ smul := λ c f, ⟨c • f, (continuous_const.smul f.2 : continuous (λ x, c • f x))⟩,
+{ smul := λ c f, ⟨c • f, (f.2.const_smul _ : continuous (λ x, c • f x))⟩,
   one_smul := λ f, ext $ λ x, one_smul _ _,
   mul_smul := λ a b f, ext $ λ x, mul_smul _ _ _ }
 
@@ -1033,8 +1031,8 @@ include σ₁₃
 @[simp] lemma smul_comp : (c • h).comp f = c • (h.comp f) := rfl
 omit σ₁₃
 
-variables [distrib_mul_action S₃ M₂] [has_continuous_smul S₃ M₂] [smul_comm_class R₂ S₃ M₂]
-variables [distrib_mul_action S N₂] [has_continuous_smul S N₂] [smul_comm_class R S N₂]
+variables [distrib_mul_action S₃ M₂] [has_continuous_const_smul S₃ M₂] [smul_comm_class R₂ S₃ M₂]
+variables [distrib_mul_action S N₂] [has_continuous_const_smul S N₂] [smul_comm_class R S N₂]
 
 lemma smul_apply : (c • f) x = c • (f x) := rfl
 @[simp, norm_cast] lemma coe_smul : (((c • f) : M →SL[σ₁₂] M₂) : M →ₛₗ[σ₁₂] M₂) = c • f := rfl
@@ -1046,19 +1044,18 @@ by { ext x, exact hₗ.map_smul_of_tower c (fₗ x) }
 
 include σ₁₃
 @[simp] lemma comp_smulₛₗ (c : R₂) [smul_comm_class R₂ R₂ M₂] [smul_comm_class R₃ R₃ M₃]
-  [topological_space R₂] [has_continuous_smul R₂ M₂] [topological_space R₃]
-  [has_continuous_smul R₃ M₃] :
+  [has_continuous_const_smul R₂ M₂] [has_continuous_const_smul R₃ M₃] :
   h.comp (c • f) = (σ₂₃ c) • (h.comp f) :=
 by { ext x, simp only [coe_smul', coe_comp', function.comp_app, pi.smul_apply, map_smulₛₗ] }
 omit σ₁₃
 
-instance {T : Type*} [monoid T] [topological_space T] [distrib_mul_action T M₂]
-  [has_continuous_smul T M₂] [smul_comm_class R₂ T M₂] [has_scalar S₃ T]
+instance {T : Type*} [monoid T] [distrib_mul_action T M₂]
+  [has_continuous_const_smul T M₂] [smul_comm_class R₂ T M₂] [has_scalar S₃ T]
   [is_scalar_tower S₃ T M₂] : is_scalar_tower S₃ T (M →SL[σ₁₂] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
 
-instance {T : Type*} [monoid T] [topological_space T] [distrib_mul_action T M₂]
-  [has_continuous_smul T M₂] [smul_comm_class R₂ T M₂] [smul_comm_class S₃ T M₂] :
+instance {T : Type*} [monoid T] [distrib_mul_action T M₂]
+  [has_continuous_const_smul T M₂] [smul_comm_class R₂ T M₂] [smul_comm_class S₃ T M₂] :
   smul_comm_class S₃ T (M →SL[σ₁₂] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_comm a b (f x)⟩
 
@@ -1072,15 +1069,15 @@ section smul
 
 -- The M's are used for semilinear maps, and the N's for plain linear maps
 variables {R R₂ R₃ S S₃ : Type*} [semiring R] [semiring R₂] [semiring R₃]
-  [semiring S] [semiring S₃] [topological_space S] [topological_space S₃]
+  [semiring S] [semiring S₃]
   {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
   {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R₂ M₂]
   {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R₃ M₃]
   {N₂ : Type*} [topological_space N₂] [add_comm_monoid N₂] [module R N₂]
   {N₃ : Type*} [topological_space N₃] [add_comm_monoid N₃] [module R N₃]
-  [module S₃ M₃] [smul_comm_class R₃ S₃ M₃] [has_continuous_smul S₃ M₃]
-  [module S N₂] [has_continuous_smul S N₂] [smul_comm_class R S N₂]
-  [module S N₃] [smul_comm_class R S N₃] [has_continuous_smul S N₃]
+  [module S₃ M₃] [smul_comm_class R₃ S₃ M₃] [has_continuous_const_smul S₃ M₃]
+  [module S N₂] [has_continuous_const_smul S N₂] [smul_comm_class R S N₂]
+  [module S N₃] [smul_comm_class R S N₃] [has_continuous_const_smul S N₃]
   {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
   (c : S) (h : M₂ →SL[σ₂₃] M₃) (f g : M →SL[σ₁₂] M₂) (x y z : M)
 
@@ -1142,7 +1139,7 @@ variables {R S T M M₂ : Type*} [ring R] [ring S] [ring T] [module R S]
   [add_comm_group M₂] [module R M₂] [module S M₂] [is_scalar_tower R S M₂]
   [topological_space S] [topological_space M₂] [has_continuous_smul S M₂]
   [topological_space M] [add_comm_group M] [module R M] [topological_add_group M₂]
-  [topological_space T] [module T M₂] [has_continuous_smul T M₂]
+  [module T M₂] [has_continuous_const_smul T M₂]
   [smul_comm_class R T M₂] [smul_comm_class S T M₂]
 
 /-- Given `c : E →L[𝕜] 𝕜`, `c.smul_rightₗ` is the linear map from `F` to `E →L[𝕜] F`
@@ -1159,14 +1156,20 @@ end smul_rightₗ
 
 section comm_ring
 
+/-- The determinant of a continuous linear map, mainly as a convenience device to be able to
+write `A.det` instead of `(A : M →ₗ[R] M).det`. -/
+@[reducible] noncomputable def det {R : Type*} [comm_ring R] [is_domain R]
+  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M →L[R] M) : R :=
+linear_map.det (A : M →ₗ[R] M)
+
 variables
-{R : Type*} [comm_ring R] [topological_space R]
+{R : Type*} [comm_ring R]
 {M : Type*} [topological_space M] [add_comm_group M]
 {M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
-[module R M] [module R M₂] [module R M₃] [has_continuous_smul R M₃]
+[module R M] [module R M₂] [module R M₃] [has_continuous_const_smul R M₃]
 
-variables [topological_add_group M₂] [has_continuous_smul R M₂]
+variables [topological_add_group M₂] [has_continuous_const_smul R M₂]
 
 instance : algebra R (M₂ →L[R] M₂) :=
 algebra.of_module smul_comp (λ _ _ _, comp_smul _ _ _)
@@ -1204,7 +1207,7 @@ variable [topological_add_group M₂]
   (-f).restrict_scalars R = -f.restrict_scalars R := rfl
 end
 
-variables {S : Type*} [ring S] [topological_space S] [module S M₂] [has_continuous_smul S M₂]
+variables {S : Type*} [ring S] [module S M₂] [has_continuous_const_smul S M₂]
   [smul_comm_class A S M₂] [smul_comm_class R S M₂]
 
 @[simp] lemma restrict_scalars_smul (c : S) (f : M →L[A] M₂) :

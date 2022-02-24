@@ -183,7 +183,7 @@ begin
     and_imp, prod.forall],
   refine forall_congr (λ K, _),
   rw forall_swap,
-  exact forall_congr (λ hK, forall_congr (λ V, forall_congr (λ hV, iff.rfl))),
+  exact forall₃_congr (λ hK V hV, iff.rfl),
 end
 
 /-- Any point of `compact_open.gen K U` is also an interior point wrt the topology of compact
@@ -224,9 +224,9 @@ begin
   let C : t → set α := λ i, K ∩ closure (U ((i : K) : α)),
   have hC : K ⊆ ⋃ i, C i,
   { rw [← K.inter_Union, subset_inter_iff],
-    refine ⟨rfl.subset, ht.trans _⟩,
+    refine ⟨subset.rfl, ht.trans _⟩,
     simp only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
-    exact λ x hx₁ hx₂, subset_subset_Union (⟨_, hx₂⟩ : t) (by simp [subset_closure]), },
+    exact λ x hx₁ hx₂, subset_Union_of_subset (⟨_, hx₂⟩ : t) (by simp [subset_closure]) },
   have hfC : ∀ (i : t), C i ⊆ f ⁻¹' ball (f ((i : K) : α)) W,
   { simp only [← image_subset_iff, ← mem_preimage],
     rintros ⟨⟨x, hx₁⟩, hx₂⟩,
@@ -285,7 +285,7 @@ begin
   rw [compact_convergence_uniformity,
     (filter.has_basis_binfi_principal _ compact_conv_nhd_compact_entourage_nonempty).mem_iff],
   { simp only [exists_prop, prod.forall, set_of_subset_set_of, mem_set_of_eq, prod.exists],
-    exact exists_congr (λ K, exists_congr (λ V, by tauto)), },
+    exact exists₂_congr (λ K V, by tauto) },
   { rintros ⟨K₁, V₁⟩ ⟨hK₁, hV₁⟩ ⟨K₂, V₂⟩ ⟨hK₂, hV₂⟩,
     refine ⟨⟨K₁ ∪ K₂, V₁ ∩ V₂⟩, ⟨hK₁.union hK₂, filter.inter_mem hV₁ hV₂⟩, _⟩,
     simp only [le_eq_subset, prod.forall, set_of_subset_set_of, ge_iff_le, order.preimage,
@@ -330,11 +330,10 @@ instance compact_convergence_uniform_space : uniform_space C(α, β) :=
   is_open_uniformity :=
     begin
       rw compact_open_eq_compact_convergence,
-      refine λ Y, forall_congr (λ f, forall_congr (λ hf, _)),
+      refine λ Y, forall₂_congr (λ f hf, _),
       simp only [mem_compact_convergence_nhd_filter, mem_compact_convergence_uniformity,
         prod.forall, set_of_subset_set_of, compact_conv_nhd],
-      refine exists_congr (λ K, exists_congr (λ V, exists_congr (λ hK, exists_congr (λ hV, _)))),
-      refine ⟨_, λ hY g hg, hY f g hg rfl⟩,
+      refine exists₄_congr (λ K V hK hV, ⟨_, λ hY g hg, hY f g hg rfl⟩),
       rintros hY g₁ g₂ hg₁ rfl,
       exact hY hg₁,
     end }

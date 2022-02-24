@@ -82,7 +82,7 @@ calc map prod.swap ((𝓤 α).lift' gen) =
       begin
         have h := λ(p:Cauchy α×Cauchy α), @filter.prod_comm _ _ (p.2.val) (p.1.val),
         simp [function.comp, h, -subtype.val_eq_coe, mem_map'],
-        exact le_refl _,
+        exact le_rfl,
       end
 
 private lemma comp_rel_gen_gen_subset_gen_comp_rel {s t : set (α×α)} : comp_rel (gen s) (gen t) ⊆
@@ -120,7 +120,7 @@ calc ((𝓤 α).lift' gen).lift' (λs, comp_rel s s) =
     exact (monotone_comp_rel monotone_id monotone_id),
     exact monotone_gen
   end
-  ... ≤ (𝓤 α).lift' gen : lift'_mono comp_le_uniformity (le_refl _)
+  ... ≤ (𝓤 α).lift' gen : lift'_mono comp_le_uniformity le_rfl
 
 instance : uniform_space (Cauchy α) :=
 uniform_space.of_core
@@ -444,8 +444,8 @@ have ∀x : completion α × completion β × completion γ, p x.1 x.2.1 x.2.2, 
   is_closed_property dense_range_coe₃ hp $ assume ⟨a, b, c⟩, ih a b c,
 this (a, b, c)
 
-lemma ext [t2_space β] {f g : completion α → β} (hf : continuous f) (hg : continuous g)
-  (h : ∀a:α, f a = g a) : f = g :=
+lemma ext {Y : Type*} [topological_space Y] [t2_space Y] {f g : completion α → Y}
+  (hf : continuous f) (hg : continuous g) (h : ∀a:α, f a = g a) : f = g :=
 cpkg.funext hf hg h
 
 section extension

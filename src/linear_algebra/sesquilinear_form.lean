@@ -363,6 +363,8 @@ lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
 
 end orthogonal
 
+/-! ### Nondegenerate bilinear forms -/
+
 section nondegenerate
 
 section comm_semiring
@@ -548,7 +550,7 @@ section comm_semiring
 
 variables [comm_semiring R] [add_comm_monoid M] [module R M]
 
-@[simp] lemma dual_pairing_apply (v x) : dual_pairing R₁ M₁ v x = v x := rfl
+@[simp] lemma dual_pairing_apply (v x) : dual_pairing R M v x = v x := rfl
 
 end comm_semiring
 
@@ -574,5 +576,7 @@ begin
 end
 
 end field
+
+end dual_pairing
 
 end linear_map

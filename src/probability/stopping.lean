@@ -329,7 +329,8 @@ begin
   { have h_str_meas : strongly_measurable (id : set.Iic i → set.Iic i),
       from @strongly_measurable_id (set.Iic i) subtype.measurable_space _ _ _,
     refine ⟨h_str_meas.approx, λ j x, _⟩,
-    have h_tendsto := h_str_meas.tendsto_approx j,
+    have h_tendsto : tendsto (λ n, h_str_meas.approx n j) at_top (𝓝 (id j)),
+      from h_str_meas.tendsto_approx j,
     exact ((hu_cont x).tendsto j).comp ((continuous_induced_dom.tendsto j).comp h_tendsto), },
   let U := λ (n : ℕ) (p : set.Iic i × α), u (t_sf n p.fst) p.snd,
   have h_tendsto : tendsto U at_top (𝓝 (λ p, u p.fst p.snd)),
@@ -337,8 +338,6 @@ begin
     exact λ p, ht_sf p.fst p.snd, },
   refine @measurable_of_tendsto_metric (set.Iic i × α) β
     (prod.measurable_space' subtype.measurable_space (f i)) _ _ _ _ _ (λ n, _) h_tendsto,
-  change measurable[prod.measurable_space' subtype.measurable_space (f i)]
-    (λ p : set.Iic i × α, u (t_sf n p.fst) p.snd),
   have h_meas : measurable[prod.measurable_space' subtype.measurable_space (f i)]
     (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)
@@ -351,7 +350,7 @@ begin
     = (λ p : ↥(t_sf n).range × α, u p.fst p.snd)
       ∘ (λ p : set.Iic i × α, (⟨t_sf n p.fst, simple_func.mem_range_self _ _⟩, p.snd)),
   { refl, },
-  rw this,
+  simp_rw [U, this],
   refine h_meas.comp (measurable.prod_mk _ (@measurable_snd _ _ _ (f i))),
   exact ((t_sf n).measurable.comp (@measurable_fst _ _ _ (f i))).subtype_mk,
 end

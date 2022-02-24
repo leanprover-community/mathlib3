@@ -208,4 +208,8 @@ by rw [mul_def, unsym_sym, ←two_mul, inv_of_mul_self_assoc]
 lemma sym_mul_self [semiring α] [invertible (2 : α)] (a : α) : sym (a*a) = sym a * sym a :=
 by rw [sym_mul_sym, ←two_mul, inv_of_mul_self_assoc]
 
+lemma mul_comm [has_mul α] [add_comm_semigroup α] [has_one α] [invertible (2 : α)] (a b : αˢʸᵐ) :
+  a * b = b * a :=
+by rw [mul_def, mul_def, add_comm]
+
 end sym_alg

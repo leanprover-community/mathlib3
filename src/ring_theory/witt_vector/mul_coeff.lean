@@ -149,6 +149,7 @@ begin
   refl
 end
 
+omit hp
 lemma mul_poly_of_interest_aux3 (n : ℕ) :
   witt_poly_prod p (n+1) =
   - (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
@@ -179,6 +180,7 @@ begin
     pow_zero],
   ring,
 end
+include hp
 
 lemma mul_poly_of_interest_aux4 (n : ℕ) :
   (p ^ (n + 1) * witt_mul p (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) =

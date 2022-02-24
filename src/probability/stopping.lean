@@ -250,7 +250,7 @@ begin
   intro i,
   have : u i = (λ p : set.Iic i × α, u p.1 p.2) ∘ (λ x, (⟨i, set.mem_Iic.mpr le_rfl⟩, x)) := rfl,
   rw this,
-  refine (h i).comp ((@measurable_const _ _ _ (f i) _).prod_mk (@measurable_id _ (f i))),
+  exact (h i).comp ((@measurable_const _ _ _ (f i) _).prod_mk (@measurable_id _ (f i))),
 end
 
 protected lemma comp {t : ι → α → ι} (h : prog_measurable f u) (ht : prog_measurable f t)
@@ -273,20 +273,16 @@ section arithmetic
   prog_measurable f (λ i x, u i x * v i x) :=
 λ i, (hu i).mul (hv i)
 
+@[to_additive] protected lemma finset_prod' {γ} [comm_monoid β] [has_measurable_mul₂ β]
+  {U : γ → ι → α → β} {s : finset γ} (h : ∀ c ∈ s, prog_measurable f (U c)) :
+  prog_measurable f (∏ c in s, U c) :=
+finset.prod_induction U (prog_measurable f) (λ _ _, prog_measurable.mul)
+  (prog_measurable_const _ 1) h
+
 @[to_additive] protected lemma finset_prod {γ} [comm_monoid β] [has_measurable_mul₂ β]
   {U : γ → ι → α → β} {s : finset γ} (h : ∀ c ∈ s, prog_measurable f (U c)) :
   prog_measurable f (λ i a, ∏ c in s, U c i a) :=
-begin
-  revert h,
-  refine finset.induction _ _ s,
-  { simp only [finset.prod_empty], exact λ _, prog_measurable_const _ _, },
-  { intros c t hct h_ind h_pm,
-    have : (λ i a, ∏ c' in insert c t, U c' i a) = (λ i a, (U c i a) * ∏ c' in t, U c' i a),
-    { ext i a, rw finset.prod_insert hct, },
-    rw this,
-    exact prog_measurable.mul (h_pm c (finset.mem_insert_self _ _))
-      (h_ind (λ c' hc', h_pm c' (finset.mem_insert_of_mem hc'))), },
-end
+by { convert prog_measurable.finset_prod' h, ext i a, simp only [finset.prod_apply], }
 
 @[to_additive] protected lemma inv [has_inv β] [has_measurable_inv β] (hu : prog_measurable f u) :
   prog_measurable f (λ i x, (u i x)⁻¹) :=
@@ -312,8 +308,7 @@ begin
   intro x,
   specialize h_tendsto x.fst,
   rw tendsto_nhds at h_tendsto ⊢,
-  exact λ s hs h_mem, h_tendsto {g : α → β | g x.snd ∈ s}
-    (hs.preimage (continuous_apply x.snd)) h_mem,
+  exact λ s hs h_mem, h_tendsto {g | g x.snd ∈ s} (hs.preimage (continuous_apply x.snd)) h_mem,
 end
 
 lemma prog_measurable_of_tendsto [measurable_space ι] [metric_space β] [borel_space β]

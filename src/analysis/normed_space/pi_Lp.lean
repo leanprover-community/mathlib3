@@ -324,44 +324,46 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 /-- An equivalence of finite domains induces a linearly isometric equivalence of finitely supported
 functions-/
-def _root_.linear_isometry_equiv.Pi_congr_left (e : ι ≃ ι') :
+def _root_.linear_isometry_equiv.pi_Lp_congr_left (e : ι ≃ ι') :
   pi_Lp p (λ i : ι, E) ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E) :=
-begin
-  apply linear_isometry_equiv.mk _ _,
-  exact linear_equiv.Pi_congr_left' 𝕜 (λ i : ι, E) e,
-  intro x,
-  simp only [norm],
-  simp_rw linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _,
-  congr,
-  rw fintype.sum_equiv (e.symm),
-  intro i,
-  exact rfl,
-end
+{
+  to_linear_equiv := linear_equiv.Pi_congr_left' 𝕜 (λ i : ι, E) e,
+  norm_map' :=
+  begin
+    intro x,
+    simp only [norm],
+    simp_rw linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _,
+    congr,
+    rw fintype.sum_equiv (e.symm),
+    exact λ i, rfl,
+  end,
+}
 
-@[simp] lemma _root_.linear_isometry_equiv.Pi_congr_left_apply
+@[simp] lemma _root_.linear_isometry_equiv.pi_Lp_congr_left_apply
   (e : ι ≃ ι') (v : pi_Lp p (λ i : ι, E)) :
-  (linear_isometry_equiv.Pi_congr_left e : _ ≃ₗᵢ[𝕜] _) v = equiv.Pi_congr_left' (λ i : ι, E) e v :=
+  (linear_isometry_equiv.pi_Lp_congr_left e : _ ≃ₗᵢ[𝕜] _) v
+    = equiv.Pi_congr_left' (λ i : ι, E) e v :=
 begin
   funext i,
   rw equiv.Pi_congr_left'_apply,
-  simp only [linear_isometry_equiv.Pi_congr_left, linear_isometry_equiv.coe_mk,
+  simp only [linear_isometry_equiv.pi_Lp_congr_left, linear_isometry_equiv.coe_mk,
     linear_equiv.Pi_congr_left'_apply],
 end
 
-@[simp] lemma _root_.linear_isometry_equiv.Pi_congr_left_symm (e : ι ≃ ι') :
-  (linear_isometry_equiv.Pi_congr_left e : pi_Lp p (λ i : ι, E) ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E)).symm
-    = (linear_isometry_equiv.Pi_congr_left e.symm) :=
+@[simp] lemma _root_.linear_isometry_equiv.pi_Lp_congr_left_symm (e : ι ≃ ι') :
+  (linear_isometry_equiv.pi_Lp_congr_left e :
+    pi_Lp p (λ i : ι, E) ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E)).symm
+    = (linear_isometry_equiv.pi_Lp_congr_left e.symm) :=
 linear_isometry_equiv.ext $ λ x, rfl
 
-@[simp] lemma _root_.linear_isometry_equiv.Pi_congr_left_single
+@[simp] lemma _root_.linear_isometry_equiv.pi_Lp_congr_left_single
   [decidable_eq ι] [decidable_eq ι'] (e : ι ≃ ι') (i : ι) (v : E) :
-  (linear_isometry_equiv.Pi_congr_left e : pi_Lp p (λ i : ι, E)
+  (linear_isometry_equiv.pi_Lp_congr_left e : pi_Lp p (λ i : ι, E)
     ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E)) (pi.single i v) = pi.single (e i) v :=
 begin
   funext x,
-  simp [linear_isometry_equiv.Pi_congr_left, linear_equiv.Pi_congr_left', equiv.Pi_congr_left',
+  simp [linear_isometry_equiv.pi_Lp_congr_left, linear_equiv.Pi_congr_left', equiv.Pi_congr_left',
   pi.single, function.update, equiv.symm_apply_eq],
 end
-
 
 end pi_Lp

@@ -46,8 +46,7 @@ instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 ⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous : _)⟩⟩
 
 @[simp, norm_cast, to_additive]
-lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) :
-  ((f * g : C(α, β)) : α → β) = (f : α → β) * (g : α → β) := rfl
+lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) : ⇑(f * g) = f * g := rfl
 
 @[simp, to_additive] lemma mul_comp [has_mul γ] [has_continuous_mul γ]
   (f₁ f₂ : C(β, γ)) (g : C(α, β)) :
@@ -55,14 +54,13 @@ lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) :
 rfl
 
 @[to_additive]
-instance [has_one β] : has_one C(α, β) := ⟨const (1 : β)⟩
+instance [has_one β] : has_one C(α, β) := ⟨const α 1⟩
 
 @[simp, norm_cast, to_additive]
-lemma coe_one [has_one β] : ((1 : C(α, β)) : α → β) = (1 : α → β) := rfl
+lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
 
-@[simp, to_additive] lemma one_comp [has_one γ] (g : C(α, β)) :
-  (1 : C(β, γ)).comp g = 1 :=
-rfl
+@[simp, to_additive] lemma one_comp [has_one γ] (g : C(α, β)) : (1 : C(β, γ)).comp g = 1 := rfl
+
 instance has_nsmul [add_monoid β] [has_continuous_add β] : has_scalar ℕ C(α, β) :=
 ⟨λ n f, ⟨n • f, f.continuous.nsmul n⟩⟩
 

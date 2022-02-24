@@ -85,20 +85,22 @@ theorem smul_le {P : submodule R M} : I • N ≤ P ↔ ∀ (r ∈ I) (n ∈ N),
 
 @[elab_as_eliminator]
 theorem smul_induction_on {p : M → Prop} {x} (H : x ∈ I • N)
-  (Hb : ∀ (r ∈ I) (n ∈ N), p (r • n)) (H0 : p 0)
-  (H1 : ∀ x y, p x → p y → p (x + y))
-  (H2 : ∀ (c:R) n, p n → p (c • n)) : p x :=
-(@smul_le _ _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hb H
+  (Hb : ∀ (r ∈ I) (n ∈ N), p (r • n))
+  (H1 : ∀ x y, p x → p y → p (x + y)) : p x :=
+begin
+  have H0 : p 0 := by simpa only [zero_smul] using Hb 0 I.zero_mem 0 N.zero_mem,
+  refine submodule.supr_induction _ H _ H0 H1,
+  rintros ⟨i, hi⟩ m ⟨j, hj, (rfl : i • _ = m) ⟩,
+  exact Hb _ hi _ hj,
+end
 
 theorem mem_smul_span_singleton {I : ideal R} {m : M} {x : M} :
   x ∈ I • span R ({m} : set M) ↔ ∃ y ∈ I, y • m = x :=
 ⟨λ hx, smul_induction_on hx
   (λ r hri n hnm,
     let ⟨s, hs⟩ := mem_span_singleton.1 hnm in ⟨r * s, I.mul_mem_right _ hri, hs ▸ mul_smul r s m⟩)
-  ⟨0, I.zero_mem, by rw [zero_smul]⟩
   (λ m1 m2 ⟨y1, hyi1, hy1⟩ ⟨y2, hyi2, hy2⟩,
-    ⟨y1 + y2, I.add_mem hyi1 hyi2, by rw [add_smul, hy1, hy2]⟩)
-  (λ c r ⟨y, hyi, hy⟩, ⟨c * y, I.mul_mem_left _ hyi, by rw [mul_smul, hy]⟩),
+    ⟨y1 + y2, I.add_mem hyi1 hyi2, by rw [add_smul, hy1, hy2]⟩),
 λ ⟨y, hyi, hy⟩, hy ▸ smul_mem_smul hyi (subset_span $ set.mem_singleton m)⟩
 
 theorem smul_le_right : I • N ≤ N :=
@@ -151,9 +153,7 @@ le_antisymm (smul_le.2 $ λ rs hrsij t htn,
   smul_induction_on hrsij
   (λ r hr s hs,
     (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ smul_mem_smul hr (smul_mem_smul hs htn))
-  ((zero_smul R t).symm ▸ submodule.zero_mem _)
-  (λ x y, (add_smul x y t).symm ▸ submodule.add_mem _)
-  (λ r s h, (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ submodule.smul_mem _ _ h))
+  (λ x y, (add_smul x y t).symm ▸ submodule.add_mem _))
 (smul_le.2 $ λ r hr sn hsn, suffices J • N ≤ submodule.comap (r • linear_map.id) ((I • J) • N),
   from this hsn,
 smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N,

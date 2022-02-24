@@ -259,6 +259,7 @@ begin
       exact submodule.quotient.nontrivial_of_lt_top _ hK₂.lt_top, },
     haveI : lie_module.is_nilpotent R K (L' ⧸ K.to_lie_submodule),
     { refine hK₁ _ (λ x, _),
+      -- TODO: did I need to change this?
       convert module.End.is_nilpotent.mapq _
         (lie_algebra.is_nilpotent_ad_of_is_nilpotent (h x)) using 1 },
     exact nontrivial_max_triv_of_is_nilpotent R K (L' ⧸ K.to_lie_submodule), },

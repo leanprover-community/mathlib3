@@ -755,12 +755,14 @@ one are prime and irreducible. -/
 
 namespace is_dedekind_domain
 
+variables [is_domain R] [is_dedekind_domain R]
+
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
-@[nolint has_inhabited_instance]
+@[nolint has_inhabited_instance unused_arguments]
 def height_one_spectrum := {v : prime_spectrum R // v.val ≠ 0 }
 
-variables (v : height_one_spectrum R) {R} [is_domain R] [is_dedekind_domain R]
+variables (v : height_one_spectrum R) {R}
 
 lemma ideal.prime_of_height_one (v : height_one_spectrum R) : prime v.val.val :=
 ideal.prime_of_is_prime v.property v.val.property

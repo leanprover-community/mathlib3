@@ -1364,26 +1364,20 @@ begin
   { rintro ⟨y, h⟩, exact ⟨x, y, h⟩ }
 end
 
-lemma exists_not_mem_of_length_le {α : Type*} (l : list α) (h : ↑l.length.succ ≤ # α) :
+lemma exists_not_mem_of_length_le {α : Type*} (l : list α) (h : ↑l.length < # α) :
   ∃ (z : α), z ∉ l :=
 begin
-  obtain ⟨s', hs'⟩ := le_mk_iff_exists_set.mp h,
-  obtain ⟨s, rfl, hs⟩ := mk_eq_nat_iff_finset.mp hs',
-  have := calc
-    0   < 1 : by simp
-    ... = l.length.succ - l.length : (norm_num.sub_nat_pos _ _ 1 rfl).symm
-    ... = s.card - l.length : by rw hs
-    ... ≤ s.card - l.to_finset.card : tsub_le_tsub_left (list.to_finset_card_le _) _
-    ... ≤ (s \ l.to_finset).card : (finset.card_sdiff_ge _ _).le,
-  obtain ⟨z, hz⟩ := finset.card_pos.mp this,
-  simp only [finset.mem_sdiff, list.mem_to_finset] at hz,
-  exact ⟨z, hz.2⟩,
+  contrapose! h,
+  calc # α = # (set.univ : set α) : mk_univ.symm
+    ... ≤ # (l.to_finset : set α) : mk_le_mk_of_subset (λ x _, list.mem_to_finset.mpr (h x))
+    ... ≤ l.length : by simp [ list.to_finset_card_le ],
 end
 
 lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
   ∃ (z : α), z ≠ x ∧ z ≠ y :=
 begin
   have : ((3:nat) : cardinal) ≤ # α, simpa using h,
+  have : ((2:nat) : cardinal) < # α, rwa [← cardinal.succ_le, ← cardinal.nat_succ],
   have := exists_not_mem_of_length_le [x, y] this,
   simpa [not_or_distrib] using this,
 end

@@ -444,16 +444,6 @@ begin
   exact hB',
 end
 
-lemma nondegenerate_of_alt_separating_left [char_zero R] [no_zero_divisors R]
-  {B : M →ₗ[R] M →ₗ[R] R} (hB : B.is_alt) (hB' : B.separating_left) : B.nondegenerate :=
-begin
-  refine ⟨hB', _⟩,
-  rw [is_alt_iff_flip_neg.mp hB],
-  rw ←separating_left_flip,
-  exact hB',
-  sorry,
-end
-
 /-- The restriction of a symmetric bilinear form `B` onto a submodule `W` is
 nondegenerate if `W` has trivial intersection with its orthogonal complement,
 that is `disjoint W (W.orthogonal_bilin B)`. -/
@@ -553,100 +543,55 @@ end comm_ring
 section field
 
 variables [field R] [add_comm_group M] [module R M]
+variables (k : Type*) [field k] {W : Type*} [add_comm_group V] [module k V]
+  [add_comm_group W] [module k W] {v : V} (hv : v ≠ 0) (w : W)
 
-variables (x : M) (hx : x ≠ 0)
+-- seems to be missing; this should be in mathlib.
 
-#check (basis.extend (linear_independent_singleton hx)).constr R (λ _, (1 : R))
-#check basis.extend_apply_self (linear_independent_singleton hx)
-#check (linear_pmap.mk_span_singleton x (1 : R) hx).to_fun.exists_extend
-
-def singleton_map (x : M) (hx : x ≠ 0) (p : submodule R M) (hp : p = submodule.span R {x}) :
-  p →ₗ[R] R :=
+lemma linear_pmap.mk_span_singleton_apply' :
+  (linear_pmap.mk_span_singleton v w hv).to_fun ⟨v, (submodule.mem_span_singleton_self v : v ∈ submodule.span k {v})⟩ = w :=
 begin
-  sorry,
+  convert linear_pmap.mk_span_singleton_apply v w _ (1 : k) _;
+  simp [submodule.mem_span_singleton_self],
 end
 
-#check submodule.mem_span_singleton_self x
-#check linear_independent_singleton hx
+-- your function
+noncomputable def f  : V →ₗ[k] W :=
+classical.some (linear_pmap.mk_span_singleton v w hv).to_fun.exists_extend
 
-#check linear_pmap.mk_span_singleton x (1 : R) hx
+-- immediately make the proof
+lemma f_spec : (f k hv w).comp (k ∙ v).subtype = (linear_pmap.mk_span_singleton v w hv).to_fun :=
+classical.some_spec (linear_pmap.mk_span_singleton v w hv).to_fun.exists_extend
 
-lemma dual_pairing_nondegenerate2 : (dual_pairing R M).nondegenerate :=
+-- now it's not so bad
+example : (f k hv w) v = w :=
 begin
-  split,
-  { rw separating_left_iff_ker_eq_bot,
-    exact rfl },
-  intros x,
-  contrapose,
-  rintros hx : x ≠ 0,
-  rw [not_forall],
-  let f' : linear_pmap R M R := linear_pmap.mk_span_singleton x (1 : R) hx,
-  have hf' : f' ⟨x, submodule.mem_span_singleton_self x⟩ = 1 :=
-  begin
-    dsimp [submodule.mk_span_singleton'],
-    sorry,
-  end,
-  let f : M →ₗ[R] R := classical.some f'.to_fun.exists_extend,
-  have hf := classical.some_spec
-  use [f],
-  have hf : f x = 1 :=
-  begin
-    sorry,
-  end,
-  exact ne_zero_of_eq_one hf,
+  have h := f_spec k hv w,
+  rw linear_map.ext_iff at h,
+  convert h ⟨v, submodule.mem_span_singleton_self v⟩,
+  exact (linear_pmap.mk_span_singleton_apply' k hv w).symm,
 end
 
 lemma dual_pairing_nondegenerate : (dual_pairing R M).nondegenerate :=
 begin
-  split,
-  { rw separating_left_iff_ker_eq_bot,
-    exact rfl },
+  refine ⟨separating_left_iff_ker_eq_bot.mpr ker_id, _⟩,
   intros x,
   contrapose,
   rintros hx : x ≠ 0,
   rw [not_forall],
-  let f : M →ₗ[R] R := (basis.extend (linear_independent_singleton hx)).constr R (λ _, (1 : R)),
+  let f : M →ₗ[R] R := classical.some (linear_pmap.mk_span_singleton x 1 hx).to_fun.exists_extend,
   use [f],
-  have hf : f x = 1 :=
-  begin
-    sorry,
-  end,
-  exact ne_zero_of_eq_one hf,
-  /-have h := li.subset_extend (set.subset_univ _),
-  have h' : x ∈ li.extend :=
-  begin
-    refine set.mem_of_subset_of_mem h _,
-    sorry,
-  end,
-  have hbi := b.linear_independent,
-  have hbt := b.span_eq,
-  rw basis.coe_extend at hbi hbt,
-  let f : M →ₗ[R] R := b.constr R (λ _, (1 : R)),
-  use [f],
-  have hf : f x = 1 :=
-  begin
-    sorry,
-  end,
-  exact ne_zero_of_eq_one hf,-/
+  refine ne_zero_of_eq_one _,
+  have h : f.comp (R ∙ x).subtype = (linear_pmap.mk_span_singleton x 1 hx).to_fun :=
+    classical.some_spec (linear_pmap.mk_span_singleton x (1 : R) hx).to_fun.exists_extend,
+  rw linear_map.ext_iff at h,
+  convert h ⟨x, submodule.mem_span_singleton_self x⟩,
+  exact (linear_pmap.mk_span_singleton_apply' R hx 1).symm,
 end
 
 end field
 
 
 end nondegenerate
-
-section to_matrix
-
-variables [comm_ring R] [add_comm_group M] [module R M]
-variables [decidable_eq n] (b : basis n R M)
-
-/-- This is an auxiliary definition for the equivalence `matrix.to_bilin_form'`. -/
-noncomputable def bilin_form_to_matrix_aux2 (b : basis n R M) : (M →ₗ[R] M →ₗ[R] R) →ₗ[R] matrix n n R :=
-{ to_fun := λ B i j, B (b i) (b j),
-  map_add' := λ f g, rfl,
-  map_smul' := λ f g, rfl }
-
-
-end to_matrix
 
 end linear_map

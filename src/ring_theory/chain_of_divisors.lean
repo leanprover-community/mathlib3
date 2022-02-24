@@ -23,15 +23,16 @@ factorisations of `a` and `b` have the same shape.
 
 ## Main results
 - `prime_pow_has_chain` : existence of chain for prime powers
-- `eq_pow_second_of_chain_of_has_chain` : elements that have a chain are prime powers
-- `multiplicity_le_of_monotone` : if there is a monotone bijection `d` between the set
-  of factors of `a : associates M` and the set of factors of `b : associates N`, then,
-  for any prime `p ∣ a`, `multiplicity p a ≤ multiplicity (d p) b`.
+- `is_prime_pow_of_has_chain` : elements that have a chain are prime powers
+- `multiplicity_prime_le_multiplicity_image_by_factor_order_iso` : if there is a monotone bijection
+  `d` between the set of factors of `a : associates M` and the set of factors of `b : associates N`,
+  then, for any prime `p ∣ a`, `multiplicity p a ≤ multiplicity (d p) b`.
 
 ## Todo
-- show that under the assumptions of `multiplicity_le_of_monotone`, `d p` is prime. Applying
-  `multiplicity_le_of_monotone` on `d.symm` then gives us `multiplicity p a = multiplicity (d p) b`
-- move some lemmas up file hierarchy
+- show that under the assumptions of `multiplicity_prime_le_multiplicity_image_by_factor_order_iso`,
+  `d p` is prime. Applying `multiplicity_prime_le_multiplicity_image_by_factor_order_iso` on
+  `d.symm` then gives us `multiplicity p a = multiplicity (d p) b`
+- Maybe create a structure for chains of divisors?
 -/
 
 
@@ -123,10 +124,11 @@ begin
     simpa using fin.lt_succ },
 end
 
-lemma card_subset_divisors_le_length_of_chain [decidable_eq (associates M)]{q : associates M}
+lemma card_subset_divisors_le_length_of_chain {q : associates M}
   (n : ℕ) (c : fin (n + 1) → associates M) (h₂ : ∀ (r : associates M), r ≤ q ↔ ∃ i, r = c i)
   (m : finset (associates M)) (hm : ∀ r, r ∈ m → r ≤ q) : m.card ≤ n + 1 :=
 begin
+  classical,
   have mem_image : ∀ (r : associates M), r ≤ q → r ∈ finset.univ.image c,
   { intros r hr,
     rw finset.mem_image,
@@ -137,14 +139,14 @@ begin
   exact (finset.card_le_of_subset subset_image).trans (finset.card_image_le),
 end
 
-variables [decidable_rel ((∣) : associates M → associates M → Prop)] [unique_factorization_monoid M]
-  [decidable_eq (associates M)]
+variables [unique_factorization_monoid M]
 
 lemma mem_chain_eq_pow_second_of_chain {q r : associates M} (n : ℕ) (hn : n ≠ 0)
   (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
   (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i) (hr : r ∣ q)
   (hq : q ≠ 0) : ∃ (i : fin (n + 1)), r = (c 1) ^ (i : ℕ) :=
 begin
+  classical,
   let i := (normalized_factors r).card,
   have hi : normalized_factors r = multiset.repeat (c 1) i,
   { apply multiset.eq_repeat_of_mem,
@@ -184,6 +186,7 @@ lemma eq_pow_second_of_chain_of_has_chain {q : associates M} (n : ℕ) (hn : n �
   (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i)
   (hq : q ≠ 0) : q = (c 1)^n :=
 begin
+  classical,
   obtain ⟨i, hi'⟩ := mem_chain_eq_pow_second_of_chain n hn c h₁ (λ r, h₂) (dvd_refl q) hq,
   suffices : n ≤ i,
   { rwa le_antisymm (nat.succ_le_succ_iff.mp i.prop) this at hi' },
@@ -214,8 +217,7 @@ lemma is_prime_pow_of_has_chain {q : associates M} (n : ℕ) (hn : n ≠ 0)
   zero_lt_iff.mpr hn, (eq_pow_second_of_chain_of_has_chain n hn c h₁ (λ r, h₂) hq).symm⟩  ) )
 
 variables {N : Type*} [cancel_comm_monoid_with_zero N] [unique_factorization_monoid N]
-variables [decidable_eq (associates N)] [ decidable_rel ((∣) : associates N → associates N → Prop)]
- [decidable_rel ((∣) : N → N → Prop)]
+  [decidable_eq (associates M)]
 
 lemma pow_image_of_prime_by_factor_order_iso_dvd {m p : associates M} {n : associates N}
   (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
@@ -246,6 +248,9 @@ begin
     simpa [subtype.mk_le_mk] using hc₁''.2 ⟨i, rfl⟩ },
   exact ne_zero_of_dvd_ne_zero hn (subtype.prop (d ⟨c₁ 1 ^ s, _⟩))
 end
+
+variable [decidable_rel ((∣) : associates M → associates M → Prop)]
+variable [ decidable_rel ((∣) : associates N → associates N → Prop)]
 
 lemma multiplicity_prime_le_multiplicity_image_by_factor_order_iso {m p : associates M}
   {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)

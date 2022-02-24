@@ -97,13 +97,11 @@ lemma finite_prime_left {a b : R} (ha : prime a) (hb : b ≠ 0) :
   multiplicity.finite a b :=
 begin
   revert hb,
-  refine wf_dvd_monoid.induction_on_irreducible b _ _ _,
-  { contradiction },
-  { intros u hu hu',
-    rw [multiplicity.finite_iff_dom, multiplicity.is_unit_right ha.not_unit hu],
+  refine wf_dvd_monoid.induction_on_irreducible b (by contradiction) (λ u hu hu', _)
+    (λ b p hb hp ih hpb, _),
+  { rw [multiplicity.finite_iff_dom, multiplicity.is_unit_right ha.not_unit hu],
     exact enat.dom_coe 0, },
-  { intros b p hb hp ih hpb,
-    refine multiplicity.finite_mul ha
+  { refine multiplicity.finite_mul ha
       (multiplicity.finite_iff_dom.mpr (enat.dom_of_le_coe (show multiplicity a p ≤ ↑1, from _)))
       (ih hb),
     norm_cast,

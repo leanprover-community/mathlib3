@@ -355,12 +355,6 @@ orthonormal_basis.coe_mk hon _
 variable {ι' : Type*}
 variables [fintype ι']
 
-/-- If the underlying vector spaces are equivalent, the euclidean spaces built on top are too. -/
-def _root_.linear_equiv.to_linear_equiv_of_euclidean_space (e : (ι →₀ 𝕜) ≃ₗ[𝕜] (ι' →₀ 𝕜)) :
-  euclidean_space 𝕜 ι ≃ₗ[𝕜] euclidean_space 𝕜 ι' :=
-(finsupp.linear_equiv_fun_on_fintype 𝕜 𝕜 ι).symm.trans $
-  e.trans (finsupp.linear_equiv_fun_on_fintype 𝕜 𝕜 ι')
-
 /-- `b.reindex (e : ι ≃ ι')` is an `orthonormal_basis` indexed by `ι'` -/
 def reindex (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') : orthonormal_basis ι' 𝕜 E :=
 orthonormal_basis.of_repr (b.repr.trans (linear_isometry_equiv.Pi_congr_left e))
@@ -477,11 +471,9 @@ noncomputable def direct_sum.submodule_is_internal.collected_orthonormal_basis
   [Π i, fintype (α i)]
   (v_family : Π i, orthonormal_basis (α i) 𝕜 (A i)) :
   orthonormal_basis (Σ i, α i) 𝕜 E :=
-begin
-  apply (hV_sum.collected_basis (λ i, (v_family i).to_basis)).to_orthonormal_basis _,
-  simpa using hV.orthonormal_sigma_orthonormal
-    (show (∀ i, orthonormal 𝕜 (v_family i).to_basis), by simp),
-end
+(hV_sum.collected_basis (λ i, (v_family i).to_basis)).to_orthonormal_basis $
+  by simpa using hV.orthonormal_sigma_orthonormal
+    (show (∀ i, orthonormal 𝕜 (v_family i).to_basis), by simp)
 
 lemma direct_sum.submodule_is_internal.collected_orthonormal_basis_mem [decidable_eq ι]
   (h : direct_sum.submodule_is_internal A) {α : ι → Type*} [Π i, fintype (α i)]
@@ -599,8 +591,8 @@ space, there exists an isometry from the orthogonal complement of a nonzero sing
 `euclidean_space 𝕜 (fin n)`. -/
 def linear_isometry_equiv.from_orthogonal_span_singleton
   (n : ℕ) [fact (finrank 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
-  (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
-(fin_std_orthonormal_basis (finrank_orthogonal_span_singleton hv)).repr
+  orthonormal_basis (fin n) 𝕜 (𝕜 ∙ v)ᗮ :=
+(fin_std_orthonormal_basis (finrank_orthogonal_span_singleton hv))
 
 section matrix
 

@@ -272,6 +272,46 @@ end
 
 end exists_seq_tendsto_ae
 
+section ae_measurable_of
+
+variables [measurable_space E] [normed_group E] [borel_space E]
+
+-- move
+lemma ae_measurable_of_tendsto_metric_ae [hι : nonempty ι] [encodable ι]
+  {f : ι → α → E} {g : α → E} (hf : ∀ n, ae_measurable (f n) μ)
+  (u : filter ι) [ne_bot u] [is_countably_generated u]
+  (h_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
+  ae_measurable g μ :=
+begin
+  classical,
+  set p : α → (ι → E) → Prop := λ x f', tendsto (λ n, f' n) u (𝓝 (g x)),
+  have hp : ∀ᵐ x ∂μ, p x (λ n, f n x) := h_tendsto,
+  set ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨f hι.some x⟩ : nonempty E).some with hs,
+  refine ⟨ae_seq_lim, measurable_of_tendsto_metric' u (@ae_seq.measurable α E _ _ _ f μ hf p)
+    (tendsto_pi_nhds.mpr (λ x, _)), _⟩,
+  { simp_rw [ae_seq, ae_seq_lim],
+    split_ifs with hx,
+    { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
+      exact @ae_seq.fun_prop_of_mem_ae_seq_set α E _ _ _ _ _ _ hf x hx, },
+    { exact tendsto_const_nhds } },
+  { convert (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f hι.some x⟩ : nonempty E).some)
+      (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm,
+    rw hs, ext x, congr },
+end
+
+-- can this be generalized?
+lemma ae_measurable_of_tendsto_in_measure
+  {f : ℕ → α → E} {g : α → E} (hf : ∀ n, ae_measurable (f n) μ)
+  (h_tendsto : tendsto_in_measure μ f at_top g) :
+  ae_measurable g μ :=
+begin
+  obtain ⟨ns, hns, ht⟩ := h_tendsto.exists_seq_tendsto_ae,
+  refine ae_measurable_of_tendsto_metric_ae _ _ ht,
+  exact λ n, hf _,
+end
+
+end ae_measurable_of
+
 section tendsto_in_measure_of
 
 variables [measurable_space E] [normed_group E] [borel_space E] [has_measurable_sub₂ E] {p : ℝ≥0∞}

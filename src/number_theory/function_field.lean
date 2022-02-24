@@ -121,15 +121,12 @@ Explicitly, if `f/g ∈ Fq(t)` is a nonzero quotient of polynomials, its valuati
 def infty_valuation_def (r : ratfunc Fq) : with_zero (multiplicative ℤ) :=
 if r = 0 then 0 else (multiplicative.of_add ((r.num.nat_degree : ℤ) - r.denom.nat_degree))
 
-lemma infty_valuation.map_zero' : infty_valuation_def Fq 0 = 0 :=
-by { rw [infty_valuation_def, if_pos], refl, }
+lemma infty_valuation.map_zero' : infty_valuation_def Fq 0 = 0 := if_pos rfl
 
 lemma infty_valuation.map_one' : infty_valuation_def Fq 1 = 1 :=
-begin
-  rw [infty_valuation_def, if_neg (zero_ne_one.symm : (1 : ratfunc Fq) ≠ 0)],
-  simp only [polynomial.nat_degree_one, ratfunc.num_one, int.coe_nat_zero, sub_zero,
-  ratfunc.denom_one, of_add_zero, with_zero.coe_one],
-end
+(if_neg one_ne_zero).trans $
+  by simp only [polynomial.nat_degree_one, ratfunc.num_one, int.coe_nat_zero, sub_zero,
+    ratfunc.denom_one, of_add_zero, with_zero.coe_one]
 
 lemma infty_valuation.map_mul' (x y : ratfunc Fq) :
   infty_valuation_def Fq (x * y) = infty_valuation_def Fq x * infty_valuation_def Fq y :=
@@ -149,7 +146,7 @@ begin
           (mul_ne_zero x.denom_ne_zero y.denom_ne_zero),
         ← polynomial.nat_degree_mul (ratfunc.num_ne_zero hx) (ratfunc.num_ne_zero hy),
         ← polynomial.nat_degree_mul (mul_ne_zero (ratfunc.num_ne_zero hx) (ratfunc.num_ne_zero hy))
-          (x * y).denom_ne_zero, ratfunc.num_denom_mul],}}
+          (x * y).denom_ne_zero, ratfunc.num_denom_mul]} }
 end
 
 omit dec
@@ -162,7 +159,7 @@ lemma infty_valuation_well_defined {r₁ r₂ s₁ s₂ : polynomial Fq} (hr₁ 
 begin
   rw sub_eq_sub_iff_add_eq_add,
   norm_cast,
-  rw [← polynomial.nat_degree_mul hr₁ hs₂, ← polynomial.nat_degree_mul hr₂ hs₁, h_eq],
+  rw [← polynomial.nat_degree_mul hr₁ hs₂, ← polynomial.nat_degree_mul hr₂ hs₁, h_eq]
 end
 
 lemma ratfunc.num_add_ne_zero {x y : ratfunc Fq} (hxy : x + y ≠ 0) :
@@ -171,7 +168,7 @@ begin
   intro h_zero,
   have h := ratfunc.num_denom_add x y,
   rw [h_zero, zero_mul] at h,
-  exact (mul_ne_zero (ratfunc.num_ne_zero hxy) (mul_ne_zero x.denom_ne_zero y.denom_ne_zero)) h,
+  exact (mul_ne_zero (ratfunc.num_ne_zero hxy) (mul_ne_zero x.denom_ne_zero y.denom_ne_zero)) h
 end
 
 lemma infty_valuation_add_rw {x y : ratfunc Fq} (hxy : x + y ≠ 0) :
@@ -187,7 +184,7 @@ lemma infty_valuation_rw {x : ratfunc Fq} (hx : x ≠ 0) {s : polynomial Fq} (hs
 begin
   apply infty_valuation_well_defined (ratfunc.num_ne_zero hx) x.denom_ne_zero
     (mul_ne_zero (ratfunc.num_ne_zero hx) hs) (mul_ne_zero hs x.denom_ne_zero),
-  rw mul_assoc,
+  rw mul_assoc
 end
 
 include dec
@@ -197,34 +194,33 @@ lemma infty_valuation.map_add_le_max' (x y : ratfunc Fq) :
   infty_valuation_def Fq (x + y) ≤ max (infty_valuation_def Fq x) (infty_valuation_def Fq y) :=
 begin
   by_cases hx : x = 0,
-    { rw [hx, zero_add],
-      conv_rhs {rw [infty_valuation_def, if_pos (eq.refl _)]},
-      rw max_eq_right (with_zero.zero_le (infty_valuation_def Fq y)),
-      exact le_refl _, },
-    { by_cases hy : y = 0,
-        { rw [hy, add_zero],
-          conv_rhs {rw [max_comm, infty_valuation_def, if_pos (eq.refl _)]},
-          rw max_eq_right (with_zero.zero_le (infty_valuation_def Fq x)),
-          exact le_refl _ },
-        { by_cases hxy : x + y = 0,
-          { rw [infty_valuation_def, if_pos hxy], exact zero_le',},
-          { rw [infty_valuation_def, infty_valuation_def, infty_valuation_def, if_neg hx,
-              if_neg hy, if_neg hxy, infty_valuation_add_rw hxy,
-              infty_valuation_rw hx y.denom_ne_zero, mul_comm y.denom,
-              infty_valuation_rw hy x.denom_ne_zero, le_max_iff, with_zero.coe_le_coe,
-              multiplicative.of_add_le, with_zero.coe_le_coe, multiplicative.of_add_le,
-              sub_le_sub_iff_right, int.coe_nat_le, sub_le_sub_iff_right, int.coe_nat_le,
-              ← le_max_iff, mul_comm y.num],
-            exact polynomial.nat_degree_add_le _ _, }}},
+  { rw [hx, zero_add],
+    conv_rhs { rw [infty_valuation_def, if_pos (eq.refl _)] },
+    rw max_eq_right (with_zero.zero_le (infty_valuation_def Fq y)),
+    exact le_refl _ },
+  { by_cases hy : y = 0,
+    { rw [hy, add_zero],
+      conv_rhs { rw [max_comm, infty_valuation_def, if_pos (eq.refl _)] },
+      rw max_eq_right (with_zero.zero_le (infty_valuation_def Fq x)),
+      exact le_refl _ },
+    { by_cases hxy : x + y = 0,
+      { rw [infty_valuation_def, if_pos hxy], exact zero_le',},
+      { rw [infty_valuation_def, infty_valuation_def, infty_valuation_def, if_neg hx, if_neg hy,
+        if_neg hxy, infty_valuation_add_rw hxy, infty_valuation_rw hx y.denom_ne_zero,
+        mul_comm y.denom, infty_valuation_rw hy x.denom_ne_zero, le_max_iff, with_zero.coe_le_coe,
+        multiplicative.of_add_le, with_zero.coe_le_coe, multiplicative.of_add_le,
+        sub_le_sub_iff_right, int.coe_nat_le, sub_le_sub_iff_right, int.coe_nat_le, ← le_max_iff,
+        mul_comm y.num],
+        exact polynomial.nat_degree_add_le _ _ }}}
 end
 
 /-- The valuation at infinity on `Fq(t)`. -/
 def infty_valuation  : valuation (ratfunc Fq) (with_zero (multiplicative ℤ)) :=
-{ to_fun    := infty_valuation_def Fq,
-  map_zero' := infty_valuation.map_zero' Fq,
-  map_one'  := infty_valuation.map_one' Fq,
-  map_mul'  := infty_valuation.map_mul' Fq,
-  map_add_le_max'  := infty_valuation.map_add_le_max' Fq }
+{ to_fun          := infty_valuation_def Fq,
+  map_zero'       := infty_valuation.map_zero' Fq,
+  map_one'        := infty_valuation.map_one' Fq,
+  map_mul'        := infty_valuation.map_mul' Fq,
+  map_add_le_max' := infty_valuation.map_add_le_max' Fq }
 
 end infty_valuation
 

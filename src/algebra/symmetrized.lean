@@ -144,7 +144,7 @@ instance [add_comm_group α] : add_comm_group (αˢʸᵐ) :=
 instance {R : Type*} [semiring R] [add_comm_monoid α] [module R α] : module R αˢʸᵐ :=
 function.injective.module R ⟨unsym, unsym_zero, unsym_add⟩ unsym_injective unsym_smul
 
-lemma mul_def [ring α] [invertible (2 : α)] (a b : αˢʸᵐ) :
+lemma mul_def [semiring α] [invertible (2 : α)] (a b : αˢʸᵐ) :
   a * b = sym (⅟2*(unsym a * unsym b + unsym b * unsym a)) := by refl
 
 lemma unsym_mul [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a b : αˢʸᵐ) :
@@ -167,12 +167,16 @@ instance [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a : α) [
 @[simp] lemma inv_of_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a : α)
   [invertible a] : ⅟(sym a) = sym (⅟a) := rfl
 
-/-- The symmetrization of a real (unital, associative) algebra is a non-associative ring -/
-instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=
-{ mul := (*),
+instance [semiring α] [invertible (2 : α)] : non_assoc_semiring (αˢʸᵐ) :=
+{ one := 1,
+  mul := (*),
   zero := (0),
   zero_mul := λ _, by rw [mul_def, unsym_zero, zero_mul, mul_zero, add_zero, mul_zero, sym_zero],
   mul_zero := λ _, by rw [mul_def, unsym_zero, zero_mul, mul_zero, add_zero, mul_zero, sym_zero],
+  mul_one := λ _, by rw [mul_def, unsym_one, mul_one, one_mul, ←two_mul, inv_of_mul_self_assoc,
+                         sym_unsym],
+  one_mul := λ _, by rw [mul_def, unsym_one, mul_one, one_mul, ←two_mul, inv_of_mul_self_assoc,
+                         sym_unsym],
   left_distrib := λ a b c, match a, b, c with
     | sym a, sym b, sym c := begin
       rw [sym_mul_sym, sym_mul_sym, ←sym_add, sym_mul_sym, ←sym_add, mul_add a, add_mul _ _ a,
@@ -185,21 +189,22 @@ instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ)
         add_add_add_comm, mul_add],
     end
   end,
+  ..sym_alg.add_comm_monoid, }
+
+/-- The symmetrization of a real (unital, associative) algebra is a non-associative ring.
+
+Note there is currently no typeclass for a `non_assoc_ring`, so we discard the `unit` here. -/
+instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=
+{ ..sym_alg.non_assoc_semiring,
   ..sym_alg.add_comm_group, }
 
-/-- The squaring operation coincides for both multiplications -/
-lemma unsym_mul_self [ring α] [invertible (2 : α)] (a : αˢʸᵐ) : unsym (a*a) = unsym a * unsym a :=
-begin
-  rw [mul_def, unsym_sym],
-  abel,
-  simp only [int.cast_bit0, int.cast_one, inv_of_mul_self_assoc, zsmul_eq_mul],
-end
+/-! The squaring operation coincides for both multiplications -/
 
-lemma sym_mul_self [ring α] [invertible (2 : α)] (a : α) : sym (a*a) = sym a * sym a :=
-begin
-  rw sym_mul_sym,
-  abel,
-  simp only [int.cast_bit0, int.cast_one, inv_of_mul_self_assoc, zsmul_eq_mul],
-end
+lemma unsym_mul_self [semiring α] [invertible (2 : α)] (a : αˢʸᵐ) :
+  unsym (a*a) = unsym a * unsym a :=
+by rw [mul_def, unsym_sym, ←two_mul, inv_of_mul_self_assoc]
+
+lemma sym_mul_self [semiring α] [invertible (2 : α)] (a : α) : sym (a*a) = sym a * sym a :=
+by rw [sym_mul_sym, ←two_mul, inv_of_mul_self_assoc]
 
 end sym_alg

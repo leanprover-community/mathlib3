@@ -34,8 +34,9 @@ specifying the changes in the fiber when one goes from one coordinate chart to a
 
 * `basic_smooth_vector_bundle_core I M F`: assuming that `M` is a smooth manifold over the model
   with corners `I` on `(𝕜, E, H)`, and `F` is a normed vector space over `𝕜`, this structure
-  registers, for each pair of charts of `M`, a linear change of coordinates on `F` depending smoothly on the base point. This is the core
-  structure from which one will build a smooth vector bundle with fiber `F` over `M`.
+  registers, for each pair of charts of `M`, a linear change of coordinates on `F` depending
+  smoothly on the base point. This is the core structure from which one will build a smooth vector
+  bundle with fiber `F` over `M`.
 
 Let `Z` be a basic smooth bundle core over `M` with fiber `F`. We define
 `Z.to_topological_vector_bundle_core`, the (topological) vector bundle core associated to `Z`. From

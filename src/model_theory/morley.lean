@@ -45,6 +45,15 @@ class pregeometry {α : Type u} (X : set α) (cl : 𝒫 X → 𝒫 X) :=
   (finite_character : ∀ {A}, ∀ a ∈ cl A, ∃ F ⊆ A, set.finite F.1 ∧ a ∈ cl F)
   (exchange_principle : ∀ {a b C}, b ∈ cl (C ∪ {a}) \ cl C → a ∈ cl (C ∪ {b}))
 
+namespace pregeometry
+
+lemma reflexive {α : Type} (X : set α) (cl : 𝒫 X → 𝒫 X) [pregeometry X cl] :
+  ∀ A, A ⊆ cl A :=
+  begin
+    assume A,
+    exact (pregeometry.monotone_dominating (subset_refl A)).1
+  end
+
 lemma exchange_principle_extended {α : Type} (X : set α) (cl : 𝒫 X → 𝒫 X) [pregeometry X cl] :
   ∀ a b C, b ∈ cl (C ∪ {a}) \ cl C → a ∈ cl (C ∪ {b}) \ cl C :=
   begin
@@ -64,6 +73,8 @@ lemma exchange_principle_extended {α : Type} (X : set α) (cl : 𝒫 X → 𝒫
     have haC : {a} ⊆ cl C := (@set.singleton_subset_iff _ a.1 (cl C).1).2 haC,
     exact set.union_subset hCcl haC,
   end
+
+end pregeometry
 
 end pregeometry
 
@@ -111,10 +122,39 @@ section flypitch
 
 end flypitch
 
-structure first_order.language.minimal {α : Type u} (L : language) (M : set α) [L.Structure M] :=
-  (infinite : M.infinite)
-  (definable_sets : ∀ {β} [fintype β] (φ : L.definable_set M β),
-    set.finite φ.1 ∨ set.finite φ.1ᶜ)
+-- This is a bit of an issue
+variables (β : Type) [fintype β]
+
+-- Maybe definable sets not ok because we need bounded_formula's instead of formula's.
+-- For now, we're working with formulas without parameters.
+def first_order.language.minimal {α : Type u} (L : language) (M : set α) [L.Structure M] : Prop :=
+  M.infinite ∧
+    (∀ (φ : L.definable_set M β), set.finite φ.1 ∨ set.finite φ.1ᶜ)
+
+def realize {α : Type} {L : language} (M : set α) [L.Structure M] (φ : L.formula α)
+  : set (α → M) :=
+  (set_of (language.realize_formula M φ))
+
+notation φ `[`:35 M:34 `]` := realize M φ
+
+def minimal_formula {α : Type} (L : language) (M : set α) [L.Structure M] (φ : L.formula α)
+  : Prop :=
+  (φ[M]).infinite ∧ ∀ (ψ : L.formula α), ((ψ[M]) ∩ (φ[M])).finite ∨ (((ψ[M]) ∩ (φ[M]))ᶜ).finite
+
+def x (α : Type) [inhabited α] (L : language) : L.term α := @language.term.var L α default
+
+lemma minimal_iff_minimal_eq {α : Type} [inhabited α] {L : language} (M : set α) [L.Structure M]
+  : (L.minimal β M) ↔ (minimal_formula L M (language.formula.equal (x α L) (x α L))) :=
+  begin
+    -- split,
+    -- { rintros ⟨hinf, hdef⟩, split,
+    --   { suffices hsuff : (language.formula.equal (x α L) (x α L))[M] = (⊤[M]),
+    --     { sorry, },
+    --     sorry; sorry, },
+    --   { sorry, }, },
+    -- {}
+    sorry
+  end
 
 class minimal_theory {α : Type u} {L : language} (T : L.theory) :=
   -- (consistent : ¬(provable T (⊥ : L.sentence)))

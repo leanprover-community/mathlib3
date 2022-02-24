@@ -397,6 +397,10 @@ include σ₁₃ σ₂₁
 @[simp] lemma coe_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ :=
 rfl
 
+@[simp] lemma trans_apply (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) (c : E) :
+  (e₁.trans e₂ : E ≃ₛₗᵢ[σ₁₃] E₃) c = e₂ (e₁ c) :=
+rfl
+
 @[simp] lemma to_linear_equiv_trans (e' : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
   (e.trans e').to_linear_equiv = e.to_linear_equiv.trans e'.to_linear_equiv :=
 rfl
@@ -411,7 +415,11 @@ omit σ₁₃ σ₂₁ σ₃₁ σ₃₂
 @[simp] lemma self_comp_symm : e ∘ e.symm = id := e.symm.symm_comp_self
 
 include σ₁₃ σ₂₁ σ₃₂ σ₃₁
-@[simp] lemma coe_symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
+@[simp] lemma symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
+  (e₁.trans e₂).symm = e₂.symm.trans e₁.symm :=
+rfl
+
+lemma coe_symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
   ⇑(e₁.trans e₂).symm = e₁.symm ∘ e₂.symm :=
 rfl
 
@@ -437,6 +445,19 @@ instance : group (E ≃ₗᵢ[R] E) :=
 lemma one_def : (1 : E ≃ₗᵢ[R] E) = refl _ _ := rfl
 lemma mul_def (e e' : E ≃ₗᵢ[R] E) : (e * e' : E ≃ₗᵢ[R] E) = e'.trans e := rfl
 lemma inv_def (e : E ≃ₗᵢ[R] E) : (e⁻¹ : E ≃ₗᵢ[R] E) = e.symm := rfl
+
+/-! Lemmas about mixing the group structure with definitions. Because we have multiple ways to
+express `linear_isometry_equiv.refl`, `linear_isometry_equiv.symm`, and
+`linear_isometry_equiv.trans`, we want simp lemmas for every combination.
+The assumption made here is that if you're using the group structure, you want to preserve it
+after simp.
+
+This copies the approach used by the lemmas near `equiv.perm.trans_one`. -/
+
+@[simp] lemma trans_one : e.trans (1 : E₂ ≃ₗᵢ[R₂] E₂) = e := trans_refl _
+@[simp] lemma one_trans : (1 : E ≃ₗᵢ[R] E).trans e = e := refl_trans _
+@[simp] lemma refl_mul (e : E ≃ₗᵢ[R] E) : (refl _ _) * e = e := trans_refl _
+@[simp] lemma mul_refl (e : E ≃ₗᵢ[R] E) : e * (refl _ _) = e := refl_trans _
 
 include σ₂₁
 

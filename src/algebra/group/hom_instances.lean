@@ -228,4 +228,11 @@ lemma add_monoid_hom.map_mul_iff (f : R →+ S) :
     (add_monoid_hom.mul : R →+ R →+ R).compr₂ f = (add_monoid_hom.mul.comp f).compl₂ f :=
 iff.symm add_monoid_hom.ext_iff₂
 
+/-- The left multiplication map: `(a, b) ↦ a * b`. See also `add_monoid_hom.mul_left`. -/
+@[simps] def add_monoid.End.mul_left : R →+ add_monoid.End R := add_monoid_hom.mul
+
+/-- The right multiplication map: `(a, b) ↦ b * a`. See also `add_monoid_hom.mul_right`. -/
+@[simps] def add_monoid.End.mul_right : R →+ add_monoid.End R :=
+(add_monoid_hom.mul : R →+ add_monoid.End R).flip
+
 end semiring

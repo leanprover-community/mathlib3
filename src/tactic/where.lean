@@ -55,7 +55,7 @@ private meta def collect_by_aux {α β γ : Type} (p : α → β × γ) [decidab
 `β` component, deleting duplicates. -/
 meta def collect_by {α β γ : Type} (l : list α) (p : α → β × γ) [decidable_eq β] :
   list (β × list γ) :=
-collect_by_aux p (l.map $ prod.fst ∘ p).erase_dup l
+collect_by_aux p (l.map $ prod.fst ∘ p).dedup l
 
 /-- Sort the variables by their priority as defined by `where.binder_priority`. -/
 meta def sort_variable_list (l : list (name × binder_info × expr)) :
@@ -93,7 +93,7 @@ n.replace_prefix ns name.anonymous
 /-- `get_open_namespaces ns` returns a list of the open namespaces, given that we are currently in
 the namespace `ns` (which we do not include). -/
 meta def get_open_namespaces (ns : name) : tactic (list name) :=
-do opens ← list.erase_dup <$> tactic.open_namespaces,
+do opens ← list.dedup <$> tactic.open_namespaces,
    return $ (opens.erase ns).map $ strip_namespace ns
 
 /-- Give a slightly friendlier name for `name.anonymous` in the context of your current namespace.

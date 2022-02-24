@@ -551,6 +551,15 @@ end ⟩⟩
 
 local attribute [instance] simple_func.has_scalar
 
+protected def has_op_scalar : has_scalar 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
+⟨λk f, ⟨k • f, begin
+  induction k using mul_opposite.rec,
+  rw op_smul_eq_smul,
+  exact (k • f).prop,
+end⟩⟩
+
+local attribute [instance] simple_func.has_op_scalar
+
 @[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : Lp.simple_func E p μ) :
   ((c • f : Lp.simple_func E p μ) : Lp E p μ) = c • (f : Lp E p μ) := rfl
 
@@ -564,12 +573,26 @@ protected def module : module 𝕜 (Lp.simple_func E p μ) :=
   add_smul  := λx y f, by { ext1, exact add_smul _ _ _ },
   zero_smul := λf, by { ext1, exact zero_smul _ _ } }
 
-local attribute [instance] simple_func.module
+protected def op_module : module 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
+{ one_smul  := λf, by { ext1, exact one_smul _ _ },
+  mul_smul  := λx y f, by { ext1, exact mul_smul _ _ _ },
+  smul_add  := λx f g, by { ext1, exact smul_add _ _ _ },
+  smul_zero := λx, by { ext1, exact smul_zero _ },
+  add_smul  := λx y f, by { ext1, exact add_smul _ _ _ },
+  zero_smul := λf, by { ext1, exact zero_smul _ _ } }
+
+protected def is_central_scalar : is_central_scalar 𝕜 (Lp.simple_func E p μ) :=
+⟨λ x f, subtype.ext $ op_smul_eq_smul x f⟩
+
+local attribute [instance] simple_func.module simple_func.op_module simple_func.is_central_scalar
 
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a normed space. Not declared as an
 instance as it is (as of writing) used only in the construction of the Bochner integral. -/
 protected def normed_space [fact (1 ≤ p)] : normed_space 𝕜 (Lp.simple_func E p μ) :=
-⟨ λc f, by { rw [add_subgroup.coe_norm, add_subgroup.coe_norm, coe_smul, norm_smul] } ⟩
+{ to_opposite_module := simple_func.op_module,
+  to_is_central_scalar := simple_func.is_central_scalar,
+  to_module := simple_func.module,
+  norm_smul_le := λc f, by rw [add_subgroup.coe_norm, add_subgroup.coe_norm, coe_smul, norm_smul] }
 
 end instances
 

@@ -40,7 +40,7 @@ restriction map of ring.
 -/
 def is_module_UV (𝓜 : presheaf_of_module.core 𝓞) {U V : opens X} (inc : op U ⟶ op V) :
   module (𝓞.obj (op U)) (𝓜.self.obj (op V)) :=
-@restriction_of_scalars.is_module (𝓞.obj (op U)) (𝓞.obj (op V)) ⟨𝓜.self.obj (op V)⟩ (𝓞.map inc)
+restriction_of_scalars.is_module (𝓞.map inc) ⟨𝓜.self.obj (op V)⟩
 local attribute [instance] is_module_UV
 
 /--
@@ -50,7 +50,8 @@ the restriction map `𝓞(U) ⟶ 𝓞(V)`
 -/
 def has_scalar_UV (𝓜 : presheaf_of_module.core 𝓞) {U V : opens X} (inc : op U ⟶ op V) :
   has_scalar (𝓞.obj (op U)) (𝓜.self.obj (op V)) :=
-@restriction_of_scalars.has_scalar (𝓞.obj (op U)) (𝓞.obj (op V)) ⟨𝓜.self.obj (op V)⟩ (𝓞.map inc)
+let m1 := is_module_UV 𝓞 𝓜 inc in by { resetI, apply_instance }
+-- @restriction_of_scalars.has_scalar (𝓞.obj (op U)) (𝓞.obj (op V)) ⟨𝓜.self.obj (op V)⟩ (𝓞.map inc)
 local attribute [instance] has_scalar_UV
 
 /--
@@ -216,21 +217,21 @@ variable (𝓕 : presheaf_of_module 𝓞1)
 include 𝓕
 
 private def restrict.to_fun (U V : opens X) (inc : op U ⟶ op V) :
-  (extension_of_scalars.module (f.app (op U)) ⟨(𝓕.self.obj (op U))⟩) →
-  (extension_of_scalars.module (f.app (op V)) ⟨(𝓕.self.obj (op V))⟩) :=
-λ x, begin
-  refine @tensor_product.lift _ _ _ _
-      ((extension_of_scalars.functor (f.app (op V))).obj ⟨𝓕.self.obj (op V)⟩) _ _ _ _ _ _ _ _,
-    { exact 𝓞1.obj (op U) },
-    { apply_instance },
-    { exact 𝓕.self.obj (op U) },
-    { exact 𝓞2.obj (op U) },
-    { apply_instance },
-    { apply_instance },
-    { apply_instance },
-    { refine restriction_of_scalars.is_module ⟨_⟩ (f.app (op U)), },
-    { refine restriction_of_scalars.is_module _ _,
-      refine (f.app (op U)) ≫ (𝓞2.map inc), },
+  ((f.app (op U)) _* ⟨(𝓕.self.obj (op U))⟩) →
+  ((f.app (op V)) _* ⟨(𝓕.self.obj (op V))⟩) :=
+let im1 : module (𝓞1.obj (op U)) (𝓕.self.obj (op U)) := 𝓕.is_module _,
+    im2 : module (𝓞1.obj (op U)) (𝓞2.obj (op U)) := restriction_of_scalars.is_module
+      (f.app (op U)) ⟨𝓞2.obj (op U)⟩,
+    im3 := restriction_of_scalars.is_module (f.app (op U) ≫ 𝓞2.map inc)
+      (f.app (op V)_* ⟨𝓕.to_core.self.obj (op V)⟩) in
+begin
+  resetI,
+  refine tensor_product.lift _,
+  refine
+    { to_fun := λ m, { to_fun := λ s, _, map_add' := _, map_smul' := _ },
+      map_add' := _,
+      map_smul' := _ },
+    { exact (𝓕.self.map inc m) ⊗ₜ[𝓞1.obj (op V), f.app (op V)] (𝓞2.map inc s), },
     { fconstructor,
       { intros m,
         fconstructor,
@@ -521,14 +522,56 @@ end extension
 
 section
 
-variables {X : Top} {𝓞1 𝓞2 : presheaf CommRing X} (f : 𝓞1 ⟶ 𝓞2)
+variables {T : Top} {𝓞1 𝓞2 : presheaf CommRing T} (f : 𝓞1 ⟶ 𝓞2)
+variables (X : presheaf_of_module 𝓞1) (Y : presheaf_of_module 𝓞2)
 
--- example : adjunction (restriction_by.functor f) (extension_by.functor f) :=
--- { hom_equiv := _,
---   unit := _,
---   counit := _,
---   hom_equiv_unit' := _,
---   hom_equiv_counit' := _ }
+def forward.to_fun (g  : ((extension_by.functor f).obj X ⟶ Y)) :
+  X.self ⟶ ((restriction_by.functor f).obj Y).self :=
+{ app := λ U, { to_fun := λ x, begin
+    refine ((change_of_rings.adjunction (f.app U)).hom_equiv
+      { carrier := (X.self.obj U),
+        is_module := X.is_module (unop U) }
+      { carrier := (Y.self.obj U),
+        is_module := Y.is_module (unop U) }).to_fun
+      { to_fun := λ z, g.1.app U z,
+        map_add' := _,
+        map_smul' := _, } x,
+      { intros x x',
+        rw map_add, },
+      { intros r2 z,
+        induction z using tensor_product.induction_on with x' r2' _ _ ih1 ih2,
+        { simp only [smul_zero, map_zero], },
+        { simp only [ring_hom.id_apply],
+          erw @morphism.compatible _ _ _ _ g (unop U) r2,
+          refl, },
+        { simp [smul_add, ih1, ih2], }, },
+  end,
+  map_zero' := by simp only [map_zero],
+  map_add' := λ x x', by simp only [map_add], },
+  naturality' := λ U V inc, begin
+    ext x,
+    simp only [equiv.to_fun_as_coe, adjunction.hom_equiv_unit, comp_apply, add_monoid_hom.coe_mk],
+    unfold change_of_rings.adjunction,
+    dsimp only,
+    unfold change_of_rings.unit,
+    dsimp only,
+    unfold unit.map,
+    simp only [linear_map.coe_mk],
+    sorry,
+  end }.
+
+#exit
+def forward (g  :((extension_by.functor f).obj X ⟶ Y)) : (X ⟶ (restriction_by.functor f).obj Y) :=
+{ to_fun := _,
+  compatible := _ }
+
+-- ((extension_by.functor f).obj X ⟶ Y) ≃ (X ⟶ (restriction_by.functor f).obj Y)
+example : adjunction (extension_by.functor f) (restriction_by.functor f) :=
+{ hom_equiv := _,
+  unit := _,
+  counit := _,
+  hom_equiv_unit' := _,
+  hom_equiv_counit' := _ }
 
 end
 

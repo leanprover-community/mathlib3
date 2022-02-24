@@ -169,15 +169,8 @@ begin
       simp only [eq_self_iff_true, finset.mem_univ_val, and_self, sq_eq_sq] } },
   -- The L2 norm of a row is a diagonal entry of U ⬝ Uᴴ
   have diag_eq_norm_sum : (U ⬝ Uᴴ) i i = ∑ (x : n), ∥ U i x ∥^2,
-  { simp only [matrix.mul_apply, matrix.conj_transpose_apply, ← star_ring_end_apply],
-    conv_lhs
-    begin
-      congr,
-      skip,
-      funext,
-      rw [is_R_or_C.mul_conj, is_R_or_C.norm_sq_eq_def'],
-    end,
-    norm_cast },
+  { simp only [matrix.mul_apply, matrix.conj_transpose_apply, ←star_ring_end_apply,
+               is_R_or_C.mul_conj, is_R_or_C.norm_sq_eq_def', is_R_or_C.of_real_pow] },
   -- The L2 norm of a row is a diagonal entry of U ⬝ Uᴴ, real part
   have re_diag_eq_norm_sum : is_R_or_C.re ((U ⬝ Uᴴ) i i) = ∑ (x : n), ∥ U i x ∥^2,
   { rw is_R_or_C.ext_iff at diag_eq_norm_sum,

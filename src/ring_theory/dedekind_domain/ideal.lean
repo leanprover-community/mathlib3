@@ -760,22 +760,25 @@ variables [is_domain R] [is_dedekind_domain R]
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
 @[nolint has_inhabited_instance unused_arguments]
-def height_one_spectrum := {v : prime_spectrum R // v.val ≠ 0 }
+structure height_one_spectrum :=
+(as_ideal : ideal R)
+(is_prime : as_ideal.is_prime)
+(ne_bot   : as_ideal ≠ ⊥)
 
 variables (v : height_one_spectrum R) {R}
 
-lemma ideal.prime_of_height_one (v : height_one_spectrum R) : prime v.val.val :=
-ideal.prime_of_is_prime v.property v.val.property
+lemma ideal.prime_of_height_one (v : height_one_spectrum R) : prime v.as_ideal :=
+ideal.prime_of_is_prime v.ne_bot v.is_prime
 
 lemma ideal.irreducible_of_height_one (v : height_one_spectrum R) :
-  irreducible v.val.val :=
+  irreducible v.as_ideal :=
 begin
   rw [unique_factorization_monoid.irreducible_iff_prime],
   apply ideal.prime_of_height_one v,
 end
 
 lemma associates.irreducible_of_height_one (v : height_one_spectrum R) :
-  irreducible (associates.mk v.val.val) :=
+  irreducible (associates.mk v.as_ideal) :=
 begin
   rw [associates.irreducible_mk _],
   apply ideal.irreducible_of_height_one v,

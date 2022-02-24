@@ -760,7 +760,7 @@ rel_iso.to_equiv_injective $ e₁.to_equiv.option_congr_trans e₂.to_equiv
 
 /-- A version of `equiv.option_congr` for `with_bot`. -/
 @[simps]
-def with_bot_congr [partial_order α] [partial_order β] (e : α ≃o β) :
+def with_bot_congr (e : α ≃o β) :
   with_bot α ≃o with_bot β :=
 { to_equiv := e.to_equiv.option_congr,
   map_rel_iff' := λ x y,

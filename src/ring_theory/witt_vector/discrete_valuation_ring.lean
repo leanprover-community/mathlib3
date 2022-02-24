@@ -35,7 +35,7 @@ include hp
 local notation `𝕎` := witt_vector p
 
 section comm_ring
-variables {k :Type*} [comm_ring k] [char_p k p]
+variables {k : Type*} [comm_ring k] [char_p k p]
 
 /-- This is the `n+1`st coefficient of our inverse. -/
 def succ_nth_val_units (n : ℕ) (a : units k) (A : 𝕎 k) (bs : fin (n+1) → k) : k :=

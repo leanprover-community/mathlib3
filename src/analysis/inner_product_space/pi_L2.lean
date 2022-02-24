@@ -365,7 +365,8 @@ protected lemma reindex_apply (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι')
   b.reindex e i' = b (e.symm i') :=
 begin
   classical,
-  change (b.repr.trans (linear_isometry_equiv.pi_Lp_congr_left e)).symm (euclidean_space.single i' 1)
+  change (b.repr.trans (linear_isometry_equiv.pi_Lp_congr_left e)).symm
+    (euclidean_space.single i' 1)
   = b.repr.symm (euclidean_space.single (e.symm i') 1),
   rw [linear_isometry_equiv.symm_trans, linear_isometry_equiv.trans_apply,
     linear_isometry_equiv.pi_Lp_congr_left_symm, euclidean_space.single],

@@ -469,7 +469,7 @@ variables (R) (Γ₀) [ring R]
 
 /-- A valuation is coerced to the underlying function `R → Γ₀`. -/
 instance : has_coe_to_fun (add_valuation R Γ₀) (λ _, R → Γ₀) :=
-{ coe := λ v, v.to_monoid_with_zero_hom.to_fun }
+{ coe := λ v x, (v.to_monoid_with_zero_hom x).to_add.of_dual }
 
 variables {R} {Γ₀} (v : add_valuation R Γ₀) {x y z : R}
 
@@ -481,7 +481,7 @@ variables (hadd : ∀ x y, min (f x) (f y) ≤ f (x + y)) (hmul : ∀ x y, f (x 
 /-- An alternate constructor of `add_valuation`, that doesn't reference
   `multiplicative (order_dual Γ₀)` -/
 def of : add_valuation R Γ₀ :=
-{ to_fun := f,
+{ to_fun := λ r, multiplicative.of_add (order_dual.to_dual (f r)),
   map_one' := h1,
   map_zero' := h0,
   map_add_le_max' := hadd,
@@ -551,7 +551,7 @@ v.comap_comp f g
 def map (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : monotone f) (v : add_valuation R Γ₀) :
   add_valuation R Γ'₀ :=
 v.map
-{ to_fun := f,
+{ to_fun := λ x, multiplicative.of_add (order_dual.to_dual $ f x.to_add.of_dual),
   map_mul' := f.map_add,
   map_one' := f.map_zero,
   map_zero' := ht } (λ x y h, hf h)

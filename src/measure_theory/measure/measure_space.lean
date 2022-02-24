@@ -2087,7 +2087,7 @@ lemma is_probability_measure_smul [is_finite_measure μ] (h : μ ≠ 0) :
   is_probability_measure ((μ univ)⁻¹ • μ) :=
 begin
   constructor,
-  rw [smul_apply, ennreal.inv_mul_cancel],
+  rw [smul_apply, smul_eq_mul, ennreal.inv_mul_cancel],
   { rwa [ne, measure_univ_eq_zero] },
   { exact measure_ne_top _ _ }
 end

@@ -121,12 +121,12 @@ begin
 end
 
 @[simp]
-lemma remove_none_map_equiv (e : α ≃ β) : remove_none (e.option_congr) = e :=
+lemma remove_none_option_congr (e : α ≃ β) : remove_none e.option_congr = e :=
 equiv.ext $ λ x, option.some_injective _ $ remove_none_some _ ⟨e x, by simp [equiv_functor.map]⟩
 
 end remove_none
 
 lemma option_congr_injective : function.injective (option_congr : α ≃ β → option α ≃ option β) :=
-function.left_inverse.injective remove_none_map_equiv
+function.left_inverse.injective remove_none_option_congr
 
 end equiv

@@ -24,6 +24,8 @@ variables {α β γ : Type*}
 section mul_one_class
 variables [mul_one_class α] [mul_one_class β] [mul_one_class γ]
 
+/-- Turn a `monoid_hom` into a `monoid_with_zero_hom` by adjoining a `0` to the domain and codomain.
+-/
 protected def with_zero (f : α →* β) : with_zero α →*₀ with_zero β :=
 { to_fun := option.map f,
   map_zero' := rfl,
@@ -43,15 +45,18 @@ end mul_one_class
 
 variables [monoid α] [monoid β] [monoid γ]
 
-@[simps] protected def units (f : α →* β) : αˣ →* βˣ :=
+/-- Restrict a morphism between monoids to a morphism between their units -/
+@[to_additive, simps] protected def units (f : α →* β) : αˣ →* βˣ :=
 { to_fun := λ a, ⟨f a, f (a⁻¹ : αˣ),
     by rw [←map_mul, ←units.coe_mul, mul_inv_self, units.coe_one, map_one],
     by rw [←map_mul, ←units.coe_mul, inv_mul_self, units.coe_one, map_one]⟩,
   map_one' := units.ext f.map_one',
   map_mul' := λ a b, units.ext $ f.map_mul' _ _ }
 
+@[to_additive]
 protected lemma units_id : (monoid_hom.id α).units = monoid_hom.id _ := ext $ λ a, units.ext $ rfl
 
+@[to_additive]
 protected lemma units_comp (f : β →* γ) (g : α →* β) : (f.comp g).units = f.units.comp g.units :=
 ext $ λ a, units.ext $ rfl
 
@@ -65,7 +70,7 @@ section
 local attribute [reducible] with_zero
 
 /-- Any group is isomorphic to the units of itself adjoined with `0`. -/
-def units_with_zero_equiv (α : Type*) [group α] : (with_zero α)ˣ ≃* α :=
+@[simps] def units_with_zero_equiv (α : Type*) [group α] : (with_zero α)ˣ ≃* α :=
 { to_fun    := λ a, option.get (option.ne_none_iff_is_some.1 a.ne_zero),
   inv_fun   := λ a, ⟨a, a⁻¹, mul_inv_cancel $ option.some_ne_none _,
     inv_mul_cancel $ option.some_ne_none _⟩,
@@ -77,7 +82,8 @@ def units_with_zero_equiv (α : Type*) [group α] : (with_zero α)ˣ ≃* α :=
 @[nolint check_type] lemma with_zero.none_eq_zero {α : Type*} : (none : with_zero α) = 0 := rfl
 
 /-- Any group with zero is isomorphic to its units adjoined with `0`. -/
-def with_zero_units_equiv (α : Type*) [group_with_zero α] [decidable_eq α] : with_zero αˣ ≃* α :=
+@[simps] def with_zero_units_equiv (α : Type*) [group_with_zero α] [decidable_eq α] :
+  with_zero αˣ ≃* α :=
 { to_fun    := λ a, option.elim a 0 coe,
   inv_fun   := λ a, if h : a = 0 then 0 else units.mk0 a h,
   left_inv  := λ a, begin
@@ -98,10 +104,11 @@ def with_zero_units_equiv (α : Type*) [group_with_zero α] [decidable_eq α] : 
 
 end
 
-/-- Monoid homomorphisms from a group to a monoid are just monoid homomorphisms from a group to the
-units of the monoid. -/
-@[simps] def monoid_hom_equiv_monoid_hom_units {α β : Type*} [group α] [monoid β] :
-  (α →* β) ≃ (α →* βˣ) :=
+/-- Monoid homomorphisms from a group `α` to a monoid `β` are just monoid homomorphisms from `α` to
+the units of `β`. -/
+@[to_additive "Additive monoid homomorphisms from an additive group `α` to an additive monoid `β`
+are just additive monoid homomorphisms from `α` to the units of `β`.", simps]
+def monoid_hom_equiv_monoid_hom_units {α β : Type*} [group α] [monoid β] : (α →* β) ≃ (α →* βˣ) :=
 { to_fun := monoid_hom.to_hom_units,
   inv_fun := (units.coe_hom _).comp,
   left_inv := λ f, monoid_hom.ext $ λ a, rfl,
@@ -161,7 +168,7 @@ def Group_to_GroupWithZero : Group.{u} ⥤ GroupWithZero :=
     by { simp only [fun_like.coe_fn_eq], exact monoid_hom.with_zero_comp _ _ } }
 
 /-- `units` as a functor. -/
-def Mon_to_Group : Mon.{u} ⥤ Group :=
+@[to_additive AddMon_to_AddGroup "`add_units` as a functor."] def Mon_to_Group : Mon.{u} ⥤ Group :=
 { obj := λ X, Group.of Xˣ,
   map := λ X Y, monoid_hom.units,
   map_id' := λ X, fun_like.coe_injective $
@@ -187,17 +194,27 @@ def forget_CommMon_to_CommGroup_adjunction : forget₂ CommGroup CommMon ⊣ Com
 adjunction.mk_of_hom_equiv
   { hom_equiv := λ X Y, (monoid_hom_equiv_monoid_hom_units : (X →* Y) ≃ (X →* Yˣ)) }
 
+local attribute [reducible] with_zero
+
 /-- The equivalence between `GroupWithZero` and `Group` induced by adding and removing `0`. -/
-@[simps] def GroupWithZero_equiv_Group : GroupWithZero ≌ Group :=
+@[simps] noncomputable def GroupWithZero_equiv_Group : GroupWithZero ≌ Group :=
 by classical; exact equivalence.mk
   (forget₂ GroupWithZero Mon ⋙ Mon_to_Group) Group_to_GroupWithZero
   (nat_iso.of_components (λ X, GroupWithZero.iso.mk (with_zero_units_equiv X).symm) $ λ X Y f,
-  monoid_with_zero_hom.ext $ λ a, begin
-    unfold_projs,
-    dsimp,
-    sorry,
-  end)
-  (nat_iso.of_components (λ X, begin
-    have := (units_with_zero_equiv X).to_Group_iso,
-    convert this,
-  end) _)
+    monoid_with_zero_hom.ext $ λ a, begin
+      change dite (f a = 0) _ _ = monoid_hom.with_zero (monoid_hom.units _) (dite (a = 0) _ _),
+      obtain rfl | h := eq_or_ne a 0,
+      { rw [dif_pos (map_zero f), dif_pos rfl],
+        refl },
+      { rw [dif_neg (f.map_ne_zero.2 h), dif_neg h],
+        congr,
+        exact units.ext rfl }
+    end)
+  (nat_iso.of_components
+    (λ X, mul_equiv.to_Group_iso (units_with_zero_equiv X)) $ λ X Y f, monoid_hom.ext $ λ a,
+      begin
+        have := (option.ne_none_iff_is_some.1 a.ne_zero),
+        obtain ⟨(_ | a), _, _, _⟩ := a,
+        { exact (option.ne_none_iff_is_some.2 this rfl).elim },
+        { refl }
+      end)

@@ -459,7 +459,7 @@ include I
 `(tangent_bundle_core I M).to_topological_vector_bundle_core.fiber x`, but we use `E` to help the
 kernel.
 -/
-@[nolint unused_arguments]
+@[nolint unused_arguments, reducible]
 def tangent_space (x : M) : Type* :=
 (tangent_bundle_core I M).to_topological_vector_bundle_core.fiber x
 
@@ -500,8 +500,6 @@ instance : charted_space (model_prod H E) (tangent_bundle I M) :=
 
 instance : smooth_manifold_with_corners I.tangent (tangent_bundle I M) :=
 (tangent_bundle_core I M).to_smooth_manifold
-
-local attribute [reducible] tangent_space
 
 variables {M} (x : M)
 

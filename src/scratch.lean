@@ -355,50 +355,39 @@ lemma extension_by.obj_map' {U V : (opens X)ᵒᵖ} (inc : U ⟶ V) (x : (f _* �
 omit 𝓕
 
 private def extension_by.map_app.to_fun {𝓕1 𝓕2 : presheaf_of_module 𝓞1} (φ : 𝓕1 ⟶ 𝓕2)
-  (U : (opens X)ᵒᵖ) : (f _* 𝓕1).self.obj U → (f _*𝓕2).self.obj U := λ x,
+  (U : (opens X)ᵒᵖ) : (f _* 𝓕1).self.obj U → (f _*𝓕2).self.obj U := -- λ x,
+let im1 : module (𝓞1.obj U) (𝓞2.obj U) := restriction_of_scalars.is_module (f.app U) ⟨_⟩,
+    im2 : module (𝓞1.obj U) ((f _* 𝓕2).to_core.self.obj U) :=
+      restriction_of_scalars.is_module (f.app U) _,
+    im3 : module (𝓞1.obj U) (𝓕2.self.obj U) := 𝓕2.is_module (unop U) in
 begin
-  refine @tensor_product.lift (𝓞1.obj U) _ (𝓕1.self.obj U) (𝓞2.obj U)
-    ((f _* 𝓕2).to_core.self.obj U) _ _ _ (𝓕1.is_module (unop U))
-    (restriction_of_scalars.is_module (f.app U) ⟨_⟩)
-    (restriction_of_scalars.is_module (f.app U) _) _ x,
-  fconstructor,
-  { intro m,
-    fconstructor,
-    { intro s,
-      exact @tensor_product.tmul (𝓞1.obj U) _ (𝓕2.self.obj U) (𝓞2.obj U) _ _
-        (𝓕2.is_module (unop U))
-        (restriction_of_scalars.is_module (f.app U) ⟨_⟩) (φ.1.app U m) s },
-    { intros x y,
-      rw tensor_product.tmul_add, },
-    { intros r x,
-      rw ring_hom.id_apply,
-      rw @restriction_of_scalars.smul_def (𝓞1.obj U) (𝓞2.obj U) _ ⟨𝓞2.obj U⟩,
-      rw @restriction_of_scalars.smul_def (𝓞1.obj U) (𝓞2.obj U) (f.app U)
-        { carrier := ((f _* 𝓕2).self.obj U), is_module := _ } r,
-      erw extension_of_scalars.smul_pure_tensor,
-      refl, }, },
+  resetI,
+  refine tensor_product.lift _,
+  refine
+    { to_fun := λ m, { to_fun := λ s, _, map_add' := _, map_smul' := _ },
+      map_add' := _,
+      map_smul' := _ },
+    { exact (φ.1.app U m) ⊗ₜ[𝓞1.obj U, (f.app U)] s },
+  { intros x y,
+    rw tensor_product.tmul_add, },
+  { intros r x,
+    rw ring_hom.id_apply,
+    rw @restriction_of_scalars.smul_def (𝓞1.obj U) (𝓞2.obj U) _ ⟨𝓞2.obj U⟩,
+    rw @restriction_of_scalars.smul_def (𝓞1.obj U) (𝓞2.obj U) (f.app U)
+      { carrier := ((f _* 𝓕2).self.obj U), is_module := _ } r,
+    erw extension_of_scalars.smul_pure_tensor,
+    refl, },
   { intros, ext, simp [map_add, tensor_product.add_tmul], },
   { intros r y,
     ext s,
     simp only [ring_hom.id_apply, linear_map.coe_mk, linear_map.smul_apply],
-    have eq1 : (φ.1.app U _) = _ • φ.1.app U _ := @morphism.compatible _ _ _ _ φ (unop U) r y,
-    rw eq1,
-    rw @restriction_of_scalars.smul_def (𝓞1.obj U) (𝓞2.obj U)
-      (f.app U)
+    erw @morphism.compatible _ _ _ _ φ (unop U) r y,
+    rw @restriction_of_scalars.smul_def (𝓞1.obj U) (𝓞2.obj U) (f.app U)
       { carrier := (f _* 𝓕2).self.obj U, is_module := (f _* 𝓕2).is_module (unop U) },
     erw extension_of_scalars.smul_pure_tensor,
-    rw @tensor_product.smul_tmul (𝓞1.obj U) _ (𝓞1.obj U) _ (𝓕2.self.obj U) (𝓞2.obj U)
-      _ _ (𝓕2.is_module (unop U)) (restriction_of_scalars.is_module (f.app U) ⟨_⟩) begin
-        haveI := 𝓕2.is_module (unop U),
-        rw op_unop at _inst,
-        resetI,
-        apply_instance,
-      end begin
-        haveI := restriction_of_scalars.is_module (f.app U) ⟨𝓞2.obj U⟩,
-        apply_instance,
-      end _ r (φ.1.app U y) s,
-    refl,
-    },
+    erw @tensor_product.smul_tmul (𝓞1.obj U) _ (𝓞1.obj U) _ (𝓕2.self.obj U) (𝓞2.obj U)
+      _ _ _ _ _ _ _ r (φ.1.app U y) s,
+    refl, },
 end.
 
 private def extension_by.map_app.to_fun.map_zero' {𝓕1 𝓕2 : presheaf_of_module 𝓞1}
@@ -449,7 +438,7 @@ def extension_by.map {𝓕1 𝓕2 : presheaf_of_module 𝓞1} (φ : 𝓕1 ⟶ �
         tensor_product.lift.tmul],
       simp only [linear_map.coe_mk],
       erw extension_of_scalars.smul_pure_tensor, },
-    { simp only [smul_add, ih1, ih2, map_add], }
+    { rw [smul_add, map_add, ih1, ih2, map_add, smul_add] }
   end }.
 
 local notation f `_*→` φ := extension_by.map f φ
@@ -471,7 +460,7 @@ def extension_by.functor : presheaf_of_module 𝓞1 ⥤ presheaf_of_module 𝓞2
     { rw [tensor_product.lift.tmul],
       simp only [linear_map.coe_mk],
       refl, },
-    { simp only [map_add, ih1, ih2], },
+    { rw [map_add, ih1, ih2, map_add], },
   end,
   map_comp' := λ 𝓕1 𝓕2 𝓕3 φ12 φ23, begin
     ext U,
@@ -484,7 +473,7 @@ def extension_by.functor : presheaf_of_module 𝓞1 ⥤ presheaf_of_module 𝓞2
     { simp only [tensor_product.lift.tmul, linear_map.coe_mk],
       erw [comp_apply, comp_apply, tensor_product.lift.tmul],
       simp only [linear_map.coe_mk], },
-    { simp only [map_add, ih1, ih2], },
+    { rw [map_add, ih1, ih2, map_add], },
   end }.
 
 end extension
@@ -526,7 +515,23 @@ def forward.to_fun (g  : ((extension_by.functor f).obj X ⟶ Y)) :
     dsimp only,
     unfold unit.map,
     simp only [linear_map.coe_mk],
-    sorry,
+    change linear_map.restrict_scalars _ _ _ = _,
+    rw linear_map.restrict_scalars_apply,
+    simp only [linear_map.coe_mk],
+    have eq1 : (((extension_by.functor f).obj X).self.map inc) (x ⊗ₜ[𝓞1.obj U, f.app U] 1) =
+      (X.to_core.self.map inc) x ⊗ₜ[𝓞1.obj V, f.app V] 1,
+    { erw extension_by.obj_map' f X inc (x ⊗ₜ[𝓞1.obj U, f.app U] 1),
+      unfold restrict,
+      simp only [linear_map.coe_mk],
+      unfold restrict.to_fun,
+      simp only,
+      erw tensor_product.lift.tmul,
+      simp only [linear_map.coe_mk, map_one],
+      congr' 1, },
+    rw ← eq1,
+    change (((extension_by.functor f).obj X).self.map inc ≫ g.to_fun.app V) _ = _,
+    rw (g.1.naturality inc),
+    refl,
   end }.
 
 #exit

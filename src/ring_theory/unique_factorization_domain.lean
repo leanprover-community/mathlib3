@@ -553,10 +553,8 @@ lemma associated_prime_pow_of_unique_normalized_factor {p r : α}
   (h : ∀ {m}, m ∈ normalized_factors r → m = p) (hr : r ≠ 0) : ∃ (i : ℕ), associated (p^i) r :=
 begin
   use (normalized_factors r).card,
-  have hi : normalized_factors r = multiset.repeat p (normalized_factors r).card,
-  { exact multiset.eq_repeat_of_mem (λ b hb, h hb) },
   have := unique_factorization_monoid.normalized_factors_prod hr,
-  rwa [hi, multiset.prod_repeat] at this
+  rwa [multiset.eq_repeat_of_mem (λ b, h), multiset.prod_repeat] at this
 end
 
 end unique_factorization_monoid

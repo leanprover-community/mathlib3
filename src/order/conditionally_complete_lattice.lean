@@ -465,8 +465,7 @@ end
 
 lemma le_csupr_set {f : β → α} {s : set β}
   (H : bdd_above (f '' s)) {c : β} (hc : c ∈ s) : f c ≤ ⨆ i : s, f i :=
-le_csupr (by simp_rw [range_comp f, subtype.range_coe, H] : bdd_above $ range (λ i : s, f i))
-  ⟨c, hc⟩
+(le_cSup H $ mem_image_of_mem f hc).trans_eq Sup_image'
 
 /--The indexed infimum of two functions are comparable if the functions are pointwise comparable-/
 lemma cinfi_le_cinfi {f g : ι → α} (B : bdd_below (range f)) (H : ∀x, f x ≤ g x) :

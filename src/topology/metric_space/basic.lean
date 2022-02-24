@@ -1304,11 +1304,23 @@ def uniform_inducing.comap_pseudo_metric_space {α β} [uniform_space α] [pseud
   (f : α → β) (h : uniform_inducing f) : pseudo_metric_space α :=
 (pseudo_metric_space.induced f ‹_›).replace_uniformity h.comap_uniformity.symm
 
-instance subtype.psudo_metric_space {α : Type*} {p : α → Prop} [t : pseudo_metric_space α] :
-  pseudo_metric_space (subtype p) :=
-pseudo_metric_space.induced coe t
+instance subtype.pseudo_metric_space {p : α → Prop} : pseudo_metric_space (subtype p) :=
+pseudo_metric_space.induced coe ‹_›
 
-theorem subtype.pseudo_dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
+theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
+theorem subtype.nndist_eq {p : α → Prop} (x y : subtype p) : nndist x y = nndist (x : α) y := rfl
+
+namespace mul_opposite
+
+@[to_additive]
+instance : pseudo_metric_space (αᵐᵒᵖ) := pseudo_metric_space.induced mul_opposite.unop ‹_›
+
+@[simp, to_additive] theorem dist_unop (x y : αᵐᵒᵖ) : dist (unop x) (unop y) = dist x y := rfl
+@[simp, to_additive] theorem dist_op (x y : α) : dist (op x) (op y) = dist x y := rfl
+@[simp, to_additive] theorem nndist_unop (x y : αᵐᵒᵖ) : nndist (unop x) (unop y) = nndist x y := rfl
+@[simp, to_additive] theorem nndist_op (x y : α) : nndist (op x) (op y) = nndist x y := rfl
+
+end mul_opposite
 
 section nnreal
 
@@ -2413,11 +2425,12 @@ begin
   exact uniform_embedding.comap_metric_space f (h.to_uniform_embedding f),
 end
 
-instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
+instance subtype.metric_space {α : Type*} {p : α → Prop} [metric_space α] :
   metric_space (subtype p) :=
-metric_space.induced coe (λ x y, subtype.ext) t
+metric_space.induced coe subtype.coe_injective ‹_›
 
-theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
+@[to_additive] instance {α : Type*} [metric_space α] : metric_space (αᵐᵒᵖ) :=
+metric_space.induced mul_opposite.unop mul_opposite.unop_injective ‹_›
 
 local attribute [instance] filter.unique
 

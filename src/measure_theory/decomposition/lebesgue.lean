@@ -1274,24 +1274,29 @@ begin
          mem_ℒp_one_iff_integrable.2 (signed_measure.integrable_rn_deriv _ _)⟩
 end
 
+-- TODO: fix this diamond
+local attribute [-instance] normed_space.complex_to_real inner_product_space.complex_to_real
+
+example : normed_algebra ℝ ℂ := complex.normed_algebra
+
 theorem singular_part_add_with_density_rn_deriv_eq [c.have_lebesgue_decomposition μ] :
   c.singular_part μ + μ.with_densityᵥ (c.rn_deriv μ) = c :=
 begin
   conv_rhs { rw [← c.to_complex_measure_to_signed_measure] },
+  have hint := c.integrable_rn_deriv μ,
   ext i hi,
-  { rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply,
-        complex.add_re, re_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
-        ← set_integral_re_add_im (c.integrable_rn_deriv μ).integrable_on],
-    suffices : (c.singular_part μ i).re + ∫ x in i, (c.rn_deriv μ x).re ∂μ = (c i).re,
-    { simpa },
+  { have re_eq : ⇑(is_R_or_C.re : ℂ →+ ℝ) = complex.re := rfl,
+    rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply,
+        complex.add_re, re_apply, with_densityᵥ_apply hint hi,
+        ←re_eq, ←integral_re hint.integrable_on],
     rw [← with_densityᵥ_apply _ hi],
     { change (c.re.singular_part μ + μ.with_densityᵥ (c.re.rn_deriv μ)) i = _,
       rw @signed_measure.singular_part_add_with_density_rn_deriv_eq _ _ μ c.re _,
       refl },
     { exact (signed_measure.integrable_rn_deriv _ _) } },
   { rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply,
-        complex.add_im, im_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
-        ← set_integral_re_add_im (c.integrable_rn_deriv μ).integrable_on],
+        complex.add_im, im_apply, with_densityᵥ_apply hint hi,
+        ← set_integral_re_add_im hint.integrable_on],
     suffices : (c.singular_part μ i).im + ∫ x in i, (c.rn_deriv μ x).im ∂μ = (c i).im,
     { simpa },
     rw [← with_densityᵥ_apply _ hi],

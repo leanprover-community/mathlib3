@@ -72,9 +72,48 @@ variables {ι : Type*} [hdec : decidable_eq ι] [hfin : fintype ι]
 variables {N : ι → Type*} [∀ i, monoid (N i)]
 
 @[to_additive]
-lemma _root_.monoid_hom.pi_ext [decidable_eq ι] [fintype ι] {f g : (Π i, N i) →* M} :
-  f = g ↔ (∀ i x, f (monoid_hom.single N i x) = g (monoid_hom.single N i x)) :=
+lemma _root_.finset.noncomm_prod_map {α : Type*} {β : Type*} [monoid β] (s : finset α) (f : α → β)
+  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
+  {M : Type*} [monoid M] (g : β →* M) :
+  g (s.noncomm_prod f comm) = s.noncomm_prod (λ i, g (f i))
+  (λ x hx y hy, commute.map (comm x hx y hy) g)  :=
 sorry
+
+@[to_additive]
+lemma _root_.finset.noncomm_prod_eq_one {α : Type*} {β : Type*} [monoid β] (s : finset α)
+  (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
+  (h : ∀ (x : α), x ∈ s → f x = 1) : s.noncomm_prod f comm = 1 :=
+sorry
+
+@[to_additive]
+lemma _root_.finset.noncomm_prod_single [decidable_eq ι] [fintype ι] (x : Π i, N i) :
+  finset.univ.noncomm_prod (λ i, monoid_hom.single N i (x i))
+  (λ i _ j _, by { by_cases h : i = j, { subst h, }, { exact pi.mul_single_commute i j h _ _ } })
+  = x :=
+begin
+  ext i,
+  apply (finset.univ.noncomm_prod_map (λ i, monoid_hom.single N i (x i)) _
+    (pi.eval_monoid_hom _ i)).trans,
+  rw (finset.insert_erase (finset.mem_univ i)).symm,
+  rw finset.noncomm_prod_insert_of_not_mem',
+  rw finset.noncomm_prod_eq_one,
+  { simp, },
+  { intros i h,  simp at h, simp [h], },
+  { simp, },
+end
+
+@[to_additive]
+lemma _root_.monoid_hom.pi_ext [decidable_eq ι] [fintype ι] {f g : (Π i, N i) →* M}
+  (h : ∀ i x, f (monoid_hom.single N i x) = g (monoid_hom.single N i x)) :
+  f = g :=
+begin
+  ext x,
+  rw ← finset.noncomm_prod_single x,
+  rw finset.univ.noncomm_prod_map _ _ f,
+  rw finset.univ.noncomm_prod_map _ _ g,
+  congr' 1, ext i, exact h i (x i),
+end
+
 
 -- And morphisms ϕ into G
 variables (ϕ : Π (i : ι), N i →* M)

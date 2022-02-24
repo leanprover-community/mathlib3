@@ -137,7 +137,7 @@ instance [monoid R] : mul_distrib_mul_action R punit :=
 by refine { ..punit.mul_action, .. };
 intros; exact subsingleton.elim _ _
 
-instance [ring R] : mul_semiring_action R punit :=
+instance [semiring R] : mul_semiring_action R punit :=
 by refine { ..punit.distrib_mul_action, .. };
 intros; exact subsingleton.elim _ _
 

@@ -166,7 +166,7 @@ instance [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a : α) [
 @[simp] lemma inv_of_sym [has_mul α] [has_add α] [has_one α] [invertible (2 : α)] (a : α)
   [invertible a] : ⅟(sym a) = sym (⅟a) := rfl
 
-/- The symmetrization of a real (unital, associative) algebra is a non-associative ring -/
+/-- The symmetrization of a real (unital, associative) algebra is a non-associative ring -/
 instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=
 { mul := (*),
   zero := (0),

@@ -115,6 +115,18 @@ lemma Ico_filter_le_left {a b : α} [decidable_pred (≤ a)] (hab : a < b) :
   (Ico a b).filter (λ x, x ≤ a) = {a} :=
 by { rw [Ico, ←finset.filter_val, finset.Ico_filter_le_left hab], refl }
 
+lemma card_Ico_eq_card_Icc_sub_one (a b : α) : (Ico a b).card = (Icc a b).card - 1 :=
+finset.card_Ico_eq_card_Icc_sub_one _ _
+
+lemma card_Ioc_eq_card_Icc_sub_one (a b : α) : (Ioc a b).card = (Icc a b).card - 1 :=
+finset.card_Ioc_eq_card_Icc_sub_one _ _
+
+lemma card_Ioo_eq_card_Ico_sub_one (a b : α) : (Ioo a b).card = (Ico a b).card - 1 :=
+finset.card_Ioo_eq_card_Ico_sub_one _ _
+
+lemma card_Ioo_eq_card_Icc_sub_two (a b : α) : (Ioo a b).card = (Icc a b).card - 2 :=
+finset.card_Ioo_eq_card_Icc_sub_two _ _
+
 end partial_order
 
 section linear_order

@@ -317,8 +317,8 @@ def subtype (s : subring R) : s →+* R :=
  .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
-@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
-s.subtype.map_nat_cast n
+@[simp, norm_cast] lemma coe_nat_cast : ∀ (n : ℕ), ((n : s) : R) = n :=
+map_nat_cast s.subtype
 @[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
 s.subtype.map_int_cast n
 
@@ -474,7 +474,7 @@ instance : has_Inf (subring R) :=
 @[simp, norm_cast] lemma coe_Inf (S : set (subring R)) :
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
-lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 @[simp] lemma Inf_to_submonoid (s : set (subring R)) :
   (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t := mk'_to_submonoid _ _
@@ -678,15 +678,15 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subring S) :
 @[simp] lemma comap_top (f : R →+* S) : (⊤ : subring S).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
-/-- Given `subring`s `s`, `t` of rings `R`, `S` respectively, `s.prod t` is `s × t`
+/-- Given `subring`s `s`, `t` of rings `R`, `S` respectively, `s.prod t` is `s ×̂ t`
 as a subring of `R × S`. -/
 def prod (s : subring R) (t : subring S) : subring (R × S) :=
-{ carrier := (s : set R).prod t,
+{ carrier := (s : set R) ×ˢ (t : set S),
   .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_subgroup.prod t.to_add_subgroup}
 
 @[norm_cast]
 lemma coe_prod (s : subring R) (t : subring S) :
-  (s.prod t : set (R × S)) = (s : set R).prod (t : set S) :=
+  (s.prod t : set (R × S)) = (s : set R) ×ˢ (t : set S) :=
 rfl
 
 lemma mem_prod {s : subring R} {t : subring S} {p : R × S} :
@@ -886,6 +886,12 @@ def of_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g f
   {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.range) :
   (of_left_inverse h).symm x = g x := rfl
 
+/-- Given an equivalence `e : R ≃+* S` of rings and a subring `s` of `R`,
+`subring_equiv_map e s` is the induced equivalence between `s` and `s.map e` -/
+@[simps] def subring_map (e : R ≃+* S) :
+  s ≃+* s.map e.to_ring_hom :=
+e.subsemiring_map s.to_subsemiring
+
 end ring_equiv
 
 namespace subring
@@ -1001,10 +1007,10 @@ end actions
 
 /-- The subgroup of positive units of a linear ordered semiring. -/
 def units.pos_subgroup (R : Type*) [linear_ordered_semiring R] :
-  subgroup (units R) :=
+  subgroup Rˣ :=
 { carrier := {x | (0 : R) < x},
-  inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
+  inv_mem' := λ x, units.inv_pos.mpr,
   ..(pos_submonoid R).comap (units.coe_hom R)}
 
 @[simp] lemma units.mem_pos_subgroup {R : Type*} [linear_ordered_semiring R]
-  (u : units R) : u ∈ units.pos_subgroup R ↔ (0 : R) < u := iff.rfl
+  (u : Rˣ) : u ∈ units.pos_subgroup R ↔ (0 : R) < u := iff.rfl

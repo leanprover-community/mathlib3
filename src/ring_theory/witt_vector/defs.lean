@@ -311,6 +311,12 @@ lemma neg_coeff (x : 𝕎 R) (n : ℕ) :
   (-x).coeff n = peval (witt_neg p n) ![x.coeff] :=
 by simp [has_neg.neg, eval, matrix.cons_fin_one]
 
+lemma add_coeff_zero (x y : 𝕎 R) : (x + y).coeff 0 = x.coeff 0 + y.coeff 0 :=
+by simp [add_coeff, peval]
+
+lemma mul_coeff_zero (x y : 𝕎 R) : (x * y).coeff 0 = x.coeff 0 * y.coeff 0 :=
+by simp [mul_coeff, peval]
+
 end coeff
 
 lemma witt_add_vars (n : ℕ) :

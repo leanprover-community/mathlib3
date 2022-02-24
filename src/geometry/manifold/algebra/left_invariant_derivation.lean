@@ -78,8 +78,8 @@ lemma coe_derivation_injective : function.injective
 
 /-- Premature version of the lemma. Prefer using `left_invariant` instead. -/
 lemma left_invariant' :
-  𝒅ₕ(smooth_left_mul_one I g) (derivation.eval_at (1 : G) ↑X) = derivation.eval_at g ↑X :=
-by rw [←to_derivation_eq_coe]; exact left_invariant'' X g
+  𝒅ₕ (smooth_left_mul_one I g) (derivation.eval_at (1 : G) ↑X) = derivation.eval_at g ↑X :=
+left_invariant'' X g
 
 @[simp] lemma map_add : X (f + f') = X f + X f' := derivation.map_add X f f'
 @[simp] lemma map_zero : X 0 = 0 := derivation.map_zero X
@@ -98,12 +98,10 @@ instance : has_add (left_invariant_derivation I G) :=
     left_invariant', pi.add_apply]⟩ }
 
 instance : has_neg (left_invariant_derivation I G) :=
-{ neg := λ X, ⟨-X, λ g, by simp only [linear_map.map_neg, derivation.coe_neg, left_invariant',
-    pi.neg_apply]⟩ }
+{ neg := λ X, ⟨-X, λ g, by simp [left_invariant']⟩ }
 
 instance : has_sub (left_invariant_derivation I G) :=
-{ sub := λ X Y, ⟨X - Y, λ g, by simp only [linear_map.map_sub, derivation.coe_sub,
-    left_invariant', pi.sub_apply]⟩ }
+{ sub := λ X Y, ⟨X - Y, λ g, by simp [left_invariant']⟩ }
 
 @[simp] lemma coe_add : ⇑(X + Y) = X + Y := rfl
 @[simp] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl
@@ -118,7 +116,7 @@ instance : add_comm_group (left_invariant_derivation I G) :=
 coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
 
 instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
-{ smul := λ r X, ⟨r • X, λ g, by simp only [derivation.Rsmul_apply, algebra.id.smul_eq_mul,
+{ smul := λ r X, ⟨r • X, λ g, by simp only [derivation.smul_apply, smul_eq_mul,
             mul_eq_mul_left_iff, linear_map.map_smul, left_invariant']⟩ }
 
 variables (r X)

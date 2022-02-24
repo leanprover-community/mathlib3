@@ -354,16 +354,16 @@ begin
     rcases hr with ⟨U, hUo, hAU, hr⟩,
     rw [← μ.outer_measure_of_is_open U hUo, ← μ.measure_apply hUo.measurable_set] at hr,
     exact ⟨U, hAU, hUo, hr⟩ },
-  split,
-  { intros K hK,
+  haveI : is_finite_measure_on_compacts μ.measure,
+  { refine ⟨λ K hK, _⟩,
     rw [measure_apply _ hK.measurable_set],
     exact μ.outer_measure_lt_top_of_is_compact hK },
-  { intros U hU r hr,
-    rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU] at hr,
-    simp only [inner_content, lt_supr_iff] at hr,
-    rcases hr with ⟨K, hKU, hr⟩,
-    refine ⟨K.1, hKU, K.2, hr.trans_le _⟩,
-    exact (μ.le_outer_measure_compacts K).trans (le_to_measure_apply _ _ _) },
+  refine ⟨λ U hU r hr, _⟩,
+  rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU] at hr,
+  simp only [inner_content, lt_supr_iff] at hr,
+  rcases hr with ⟨K, hKU, hr⟩,
+  refine ⟨K.1, hKU, K.2, hr.trans_le _⟩,
+  exact (μ.le_outer_measure_compacts K).trans (le_to_measure_apply _ _ _)
 end
 
 end content

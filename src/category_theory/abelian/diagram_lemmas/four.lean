@@ -55,7 +55,6 @@ universes v u
 variables {V : Type u} [category.{v} V] [abelian V]
 
 local attribute [instance] preadditive.has_equalizers_of_has_kernels
-local attribute [instance] object_to_sort hom_to_fun
 
 open_locale pseudoelement
 

@@ -62,7 +62,7 @@ def special_linear_group := { A : matrix n n R // A.det = 1 }
 
 end
 
-localized "notation `SL(` n `,` R `)`:= special_linear_group (fin n) R" in matrix_groups
+localized "notation `SL(` n `,` R `)`:= matrix.special_linear_group (fin n) R" in matrix_groups
 
 namespace special_linear_group
 
@@ -196,6 +196,12 @@ instance : has_neg (special_linear_group n R) :=
 @[simp] lemma coe_neg (g : special_linear_group n R) :
   ↑(- g) = - (↑g : matrix n n R) :=
 rfl
+
+instance : has_distrib_neg (special_linear_group n R) :=
+{ neg := has_neg.neg,
+  neg_neg := λ x, subtype.ext $ neg_neg _,
+  neg_mul := λ x y, subtype.ext $ neg_mul _ _,
+  mul_neg := λ x y, subtype.ext $ mul_neg _ _ }
 
 @[simp] lemma coe_int_neg (g : (special_linear_group n ℤ)) :
   ↑(-g) = (-↑g : special_linear_group n R) :=

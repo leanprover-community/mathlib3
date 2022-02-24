@@ -308,14 +308,14 @@ namespace units
 variables {M : Type*} {N : Type*} [monoid M] [monoid N]
 
 /-- The group homomorphism on units induced by a multiplicative morphism. -/
-@[reducible] def map' {f : M → N} (hf : is_monoid_hom f) : units M →* units N :=
+@[reducible] def map' {f : M → N} (hf : is_monoid_hom f) : Mˣ →* Nˣ :=
   map (monoid_hom.of hf)
 
-@[simp] lemma coe_map' {f : M → N} (hf : is_monoid_hom f) (x : units M) :
-  ↑((map' hf : units M → units N) x) = f x :=
+@[simp] lemma coe_map' {f : M → N} (hf : is_monoid_hom f) (x : Mˣ) :
+  ↑((map' hf : Mˣ → Nˣ) x) = f x :=
 rfl
 
-lemma coe_is_monoid_hom : is_monoid_hom (coe : units M → M) := (coe_hom M).is_monoid_hom_coe
+lemma coe_is_monoid_hom : is_monoid_hom (coe : Mˣ → M) := (coe_hom M).is_monoid_hom_coe
 
 end units
 

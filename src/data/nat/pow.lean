@@ -115,9 +115,12 @@ alias nat.sq_sub_sq ← nat.pow_two_sub_pow_two
 
 /-! ### `pow` and `mod` / `dvd` -/
 
-theorem mod_pow_succ {b : ℕ} (b_pos : 0 < b) (w m : ℕ) :
+theorem mod_pow_succ {b : ℕ} (w m : ℕ) :
   m % (b^succ w) = b * (m/b % b^w) + m % b :=
 begin
+  by_cases b_h : b = 0,
+  { simp [b_h, pow_succ], },
+  have b_pos := nat.pos_of_ne_zero b_h,
   apply nat.strong_induction_on m,
   clear m,
   intros p IH,
@@ -304,7 +307,7 @@ by have := @size_pos n; simp [pos_iff_ne_zero] at this;
 theorem size_pow {n : ℕ} : size (2^n) = n+1 :=
 le_antisymm
   (size_le.2 $ pow_lt_pow_of_lt_right dec_trivial (lt_succ_self _))
-  (lt_size.2 $ le_refl _)
+  (lt_size.2 $ le_rfl)
 
 theorem size_le_size {m n : ℕ} (h : m ≤ n) : size m ≤ size n :=
 size_le.2 $ lt_of_le_of_lt h (lt_size_self _)

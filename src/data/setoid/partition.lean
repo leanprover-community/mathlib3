@@ -20,6 +20,14 @@ There are two implementations of partitions here:
 
 Of course both implementations are related to `quotient` and `setoid`.
 
+## TODO
+
+Link `setoid.is_partition` and `finpartition`.
+
+Could the design of `finpartition` inform the one of `setoid.is_partition`? Maybe bundling it and
+changing it from `set (set α)` to `set α` where `[lattice α] [order_bot α]` would make it more
+usable.
+
 ## Tags
 
 setoid, equivalence, iseqv, relation, equivalence relation, partition, equivalence class
@@ -172,7 +180,7 @@ eqv_classes_disjoint hc.2
 lemma is_partition.sUnion_eq_univ {c : set (set α)} (hc : is_partition c) :
   ⋃₀ c = set.univ :=
 set.eq_univ_of_forall $ λ x, set.mem_sUnion.2 $
-  let ⟨t, ht⟩ := hc.2 x in ⟨t, by clear_aux_decl; finish⟩
+  let ⟨t, ht⟩ := hc.2 x in ⟨t, by { simp only [exists_unique_iff_exists] at ht, tauto }⟩
 
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
 lemma exists_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (hs : s ∈ c) :
@@ -266,9 +274,9 @@ variables {ι α : Type*} {s : ι → set α} (hs : indexed_partition s)
 instance [unique ι] [inhabited α] :
   inhabited (indexed_partition (λ i : ι, (set.univ : set α))) :=
 ⟨{ eq_of_mem := λ x i j hi hj, subsingleton.elim _ _,
-   some := λ i, default α,
+   some := λ i, default,
    some_mem := set.mem_univ,
-   index := λ a, default ι,
+   index := λ a, default,
    mem_index := set.mem_univ }⟩
 
 attribute [simp] some_mem mem_index
@@ -306,7 +314,7 @@ protected def quotient := quotient hs.setoid
 /-- The projection onto the quotient associated to an indexed partition. -/
 def proj : α → hs.quotient := quotient.mk'
 
-instance [inhabited α] : inhabited (hs.quotient) := ⟨hs.proj (default α)⟩
+instance [inhabited α] : inhabited (hs.quotient) := ⟨hs.proj default⟩
 
 lemma proj_eq_iff {x y : α} : hs.proj x = hs.proj y ↔ hs.index x = hs.index y :=
 quotient.eq_rel

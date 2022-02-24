@@ -33,35 +33,30 @@ open_locale big_operators
 
 section linear_ordered_cancel_add_comm_monoid
 
-variables {ι : Type*} [linear_ordered_cancel_add_comm_monoid ι] [decidable_eq ι]
-variables {R : Type*} [comm_ring R]
-variables (A : ι → ideal R) [graded_algebra A]
-variable [Π (I : homogeneous_ideal A) (x : R),
-  decidable_pred (λ (i : ι), graded_algebra.proj A i x ∉ I)]
-variable [Π (i : ι) (x : A i), decidable (x ≠ 0)]
+variables {ι R A : Type*}
+variables [comm_semiring R] [comm_ring A] [algebra R A]
+variables [linear_ordered_cancel_add_comm_monoid ι] [decidable_eq ι]
+variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+variable [Π (I : homogeneous_ideal 𝒜) (x : A),
+  decidable_pred (λ (i : ι), graded_algebra.proj 𝒜 i x ∉ I)]
+variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
 
-lemma homogeneous_ideal.is_prime_iff
-  (I : homogeneous_ideal A)
+lemma homogeneous_ideal.is_prime_of_homogeneous_mem_or_mem
+  (I : homogeneous_ideal 𝒜)
   (I_ne_top : I ≠ ⊤)
-  (homogeneous_mem_or_mem : ∀ {x y : R},
-    set_like.is_homogeneous A x → set_like.is_homogeneous A y
+  (homogeneous_mem_or_mem : ∀ {x y : A},
+    set_like.is_homogeneous 𝒜 x → set_like.is_homogeneous 𝒜 y
     → (x * y ∈ I.1 → x ∈ I.1 ∨ y ∈ I.1)) : ideal.is_prime I.1 :=
-⟨λ rid, begin
-  have rid' : I.val = (⊤ : homogeneous_ideal A).val,
-  { simp only [rid],
-    refl },
-  apply I_ne_top,
-  exact subtype.val_injective rid',
-end, begin
+⟨subtype.coe_injective.ne I_ne_top, begin
   intros x y hxy, by_contradiction rid,
   obtain ⟨rid₁, rid₂⟩ := not_or_distrib.mp rid,
-  set set₁ := (graded_algebra.support A x).filter (λ i, graded_algebra.proj A i x ∉ I) with set₁_eq,
-  set set₂ := (graded_algebra.support A y).filter (λ i, graded_algebra.proj A i y ∉ I) with set₂_eq,
+  set set₁ := (graded_algebra.support 𝒜 x).filter (λ i, graded_algebra.proj 𝒜 i x ∉ I) with set₁_eq,
+  set set₂ := (graded_algebra.support 𝒜 y).filter (λ i, graded_algebra.proj 𝒜 i y ∉ I) with set₂_eq,
   have set₁_nonempty : set₁.nonempty,
-  { replace rid₁ : ¬(∀ (i : ι), (graded_algebra.decompose A x i : R) ∈ I.val),
+  { replace rid₁ : ¬(∀ (i : ι), (graded_algebra.decompose 𝒜 x i : A) ∈ I.val),
     { intros rid,
       apply rid₁,
-      rw ←graded_algebra.sum_support_decompose A x,
+      rw ←graded_algebra.sum_support_decompose 𝒜 x,
       apply ideal.sum_mem,
       intros,
       apply rid, },
@@ -77,10 +72,10 @@ end, begin
     rw rid₃ at h,
     simpa only [not_true, submodule.zero_mem, add_monoid_hom.map_zero] using h, },
   have set₂_nonempty : set₂.nonempty,
-  { replace rid₂ : ¬(∀ (i : ι), (graded_algebra.decompose A y i : R) ∈ I.val),
+  { replace rid₂ : ¬(∀ (i : ι), (graded_algebra.decompose 𝒜 y i : A) ∈ I.val),
     { intros rid,
       apply rid₂,
-      rw ←graded_algebra.sum_support_decompose A y,
+      rw ←graded_algebra.sum_support_decompose 𝒜 y,
       apply ideal.sum_mem,
       intros,
       apply rid, },
@@ -101,45 +96,45 @@ end, begin
   rw [←max₁_eq, set₁_eq] at mem_max₁,
   have mem_max₂ := finset.max'_mem set₂ set₂_nonempty,
   rw [←max₂_eq, set₂_eq] at mem_max₂,
-  replace hxy : ∀ (i : ι), (graded_algebra.decompose A (x * y) i : R) ∈ I.val := λ i, I.2 i hxy,
+  replace hxy : ∀ (i : ι), (graded_algebra.decompose 𝒜 (x * y) i : A) ∈ I.val := λ i, I.2 i hxy,
   specialize hxy (max₁ + max₂),
   have eq :=
-    calc  graded_algebra.proj A (max₁ + max₂) (x * y)
-        = ∑ ij in ((graded_algebra.support A x).product (graded_algebra.support A y)).filter
+    calc  graded_algebra.proj 𝒜 (max₁ + max₂) (x * y)
+        = ∑ ij in ((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)).filter
             (λ (z : ι × ι), z.1 + z.2 = max₁ + max₂),
-            (graded_algebra.proj A ij.1 x) * (graded_algebra.proj A ij.2 y)
+            (graded_algebra.proj 𝒜 ij.1 x) * (graded_algebra.proj 𝒜 ij.2 y)
         : _ --(0)
-    ... = ∑ ij in ((graded_algebra.support A x).product (graded_algebra.support A y)).filter
+    ... = ∑ ij in ((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)).filter
             (λ (z : ι × ι), z.1 + z.2 = max₁ + max₂)
                     \ {(max₁, max₂)} ∪ {(max₁, max₂)},
-            (graded_algebra.proj A ij.1 x) * (graded_algebra.proj A ij.2 y)
+            (graded_algebra.proj 𝒜 ij.1 x) * (graded_algebra.proj 𝒜 ij.2 y)
         : _ -- (1),
-    ... = ∑ (ij : ι × ι) in ((graded_algebra.support A x).product
-            (graded_algebra.support A y)).filter
+    ... = ∑ (ij : ι × ι) in ((graded_algebra.support 𝒜 x).product
+            (graded_algebra.support 𝒜 y)).filter
             (λ (z : ι × ι), prod.fst z + z.snd = max₁ + max₂)
                     \ {(max₁, max₂)},
-            (graded_algebra.proj A (prod.fst ij) x) * (graded_algebra.proj A ij.snd y)
-        + ∑ ij in {(max₁, max₂)}, (graded_algebra.proj A (prod.fst ij) x)
-            * (graded_algebra.proj A ij.snd y)
+            (graded_algebra.proj 𝒜 (prod.fst ij) x) * (graded_algebra.proj 𝒜 ij.snd y)
+        + ∑ ij in {(max₁, max₂)}, (graded_algebra.proj 𝒜 (prod.fst ij) x)
+            * (graded_algebra.proj 𝒜 ij.snd y)
         : _ -- (2)
-    ... = ∑ ij in ((graded_algebra.support A x).product (graded_algebra.support A y)).filter
+    ... = ∑ ij in ((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)).filter
             (λ (z : ι × ι), z.1 + z.2 = max₁ + max₂)
                     \ {(max₁, max₂)},
-            (graded_algebra.proj A ij.1 x) * (graded_algebra.proj A ij.2 y)
+            (graded_algebra.proj 𝒜 ij.1 x) * (graded_algebra.proj 𝒜 ij.2 y)
         + _
         : by rw finset.sum_singleton,
 
   have eq₂ :
-    (graded_algebra.proj A max₁) x * (graded_algebra.proj A max₂) y
-          = graded_algebra.proj A (max₁ + max₂) (x * y)
+    (graded_algebra.proj 𝒜 max₁) x * (graded_algebra.proj 𝒜 max₂) y
+          = graded_algebra.proj 𝒜 (max₁ + max₂) (x * y)
           - ∑ (ij : ι × ι) in finset.filter (λ (z : ι × ι), z.fst + z.snd = max₁ + max₂)
-              ((graded_algebra.support A x).product (graded_algebra.support A y)) \ {(max₁, max₂)},
-              (graded_algebra.proj A ij.fst) x * (graded_algebra.proj A ij.snd) y,
-  { rw eq, ring },
+              ((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)) \ {(max₁, max₂)},
+              (graded_algebra.proj 𝒜 ij.fst) x * (graded_algebra.proj 𝒜 ij.snd) y,
+  { rw [eq, eq_sub_iff_add_eq, add_comm], },
 
   have mem_I₂ : ∑ (ij : ι × ι) in finset.filter (λ (z : ι × ι), z.fst + z.snd = max₁ + max₂)
-              ((graded_algebra.support A x).product (graded_algebra.support A y)) \ {(max₁, max₂)},
-              (graded_algebra.proj A ij.fst) x * (graded_algebra.proj A ij.snd) y ∈ I,
+              ((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)) \ {(max₁, max₂)},
+              (graded_algebra.proj 𝒜 ij.fst) x * (graded_algebra.proj 𝒜 ij.snd) y ∈ I,
   { apply ideal.sum_mem,
     rintros ⟨i, j⟩ H,
     simp only [not_and, prod.mk.inj_iff, finset.mem_sdiff, ne.def, dfinsupp.mem_support_to_fun,
@@ -186,10 +181,10 @@ end, begin
         simp only [not_and, not_not, ne.def, dfinsupp.mem_support_to_fun,
           finset.mem_filter] at not_mem_i,
         specialize not_mem_i H₁,
-        apply ideal.mul_mem_right,
+        apply ideal.mul_mem_right _ I.1,
         convert not_mem_i, }, } },
   have mem_I₃ :
-    (graded_algebra.proj A (max₁, max₂).fst) x * (graded_algebra.proj A (max₁, max₂).snd) y ∈ I,
+    (graded_algebra.proj 𝒜 (max₁, max₂).fst) x * (graded_algebra.proj 𝒜 (max₁, max₂).snd) y ∈ I,
   { rw eq₂, apply ideal.sub_mem,
     have HI := I.2,
     specialize HI (max₁ + max₂) hxy, exact hxy, exact mem_I₂, },
@@ -235,21 +230,37 @@ end, begin
     exact Hij.1.2 Hij.2.1 Hij.2.2, },
 end⟩
 
-lemma homogeneous_ideal.rad_eq (I : homogeneous_ideal A) :
-  I.1.radical = Inf {J | I.1 ≤ J ∧ ideal.is_homogeneous A J ∧ J.is_prime} :=
+lemma homogeneous_ideal.is_prime_iff (I : homogeneous_ideal 𝒜) :
+  I.1.is_prime ↔
+  (I ≠ ⊤) ∧
+    ∀ {x y : A}, set_like.is_homogeneous 𝒜 x → set_like.is_homogeneous 𝒜 y
+      → (x * y ∈ I.1 → x ∈ I.1 ∨ y ∈ I.1) :=
+⟨λ HI, ⟨λ rid, begin
+    rw homogeneous_ideal.eq_top_iff at rid,
+    apply HI.1,
+    exact rid,
+  end, λ x y hx hy hxy, ideal.is_prime.mem_or_mem HI hxy⟩, λ HI, begin
+  obtain ⟨I_ne_top, homogeneous_mem_or_mem⟩ := HI,
+  apply homogeneous_ideal.is_prime_of_homogeneous_mem_or_mem 𝒜 I I_ne_top,
+  intros x y,
+  apply homogeneous_mem_or_mem,
+end⟩
+
+lemma homogeneous_ideal.rad_eq (I : homogeneous_ideal 𝒜) :
+  I.1.radical = Inf {J | I.1 ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime} :=
 begin
-  have subset₁ : I.1.radical ≤ Inf {J | I.1 ≤ J ∧ ideal.is_homogeneous A J ∧ J.is_prime},
+  have subset₁ : I.1.radical ≤ Inf {J | I.1 ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime},
   { rw ideal.radical_eq_Inf, intros x hx,
     rw [submodule.mem_Inf] at hx ⊢, intros J HJ, apply hx,
     obtain ⟨HJ₁, _, HJ₂⟩ := HJ,
     refine ⟨HJ₁, HJ₂⟩, },
-  have subset₂ : Inf {J | I.1 ≤ J ∧ ideal.is_homogeneous A J ∧ J.is_prime} ≤ I.1.radical,
+  have subset₂ : Inf {J | I.1 ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime} ≤ I.1.radical,
   { intros x hx,
     rw ideal.radical_eq_Inf,
     rw [submodule.mem_Inf] at hx ⊢,
     rintros J ⟨HJ₁, HJ₂⟩,
-    specialize hx (ideal.homogeneous_core A J) _,
-    refine ⟨_, (ideal.homogeneous_core A _).2, _⟩,
+    specialize hx (ideal.homogeneous_core 𝒜 J) _,
+    refine ⟨_, (ideal.homogeneous_core 𝒜 _).2, _⟩,
     { have HI := I.2,
       rw [ideal.is_homogeneous.iff_eq] at HI,
       rw ← HI,
@@ -259,12 +270,12 @@ begin
       specialize HJ₁ hz₁,
       refine ⟨z, _, rfl⟩,
       simpa [set.mem_preimage] using HJ₁, },
-    { set J' := ideal.homogeneous_core A J with eq_J',
-      have homogeneity₀ := (ideal.homogeneous_core A J).2,
-      apply homogeneous_ideal.is_prime_iff A ⟨J', homogeneity₀⟩,
+    { set J' := ideal.homogeneous_core 𝒜 J with eq_J',
+      have homogeneity₀ := (ideal.homogeneous_core 𝒜 J).2,
+      apply homogeneous_ideal.is_prime_of_homogeneous_mem_or_mem 𝒜 ⟨J', homogeneity₀⟩,
       intro rid,
       have rid' : J = ⊤,
-      { have : J'.1 ≤ J := ideal.coe_homogeneous_core_le A J,
+      { have : J'.1 ≤ J := ideal.coe_homogeneous_core_le 𝒜 J,
         simp only [homogeneous_ideal.eq_top_iff] at rid,
         erw ← subtype.val_eq_coe at rid,
         erw rid at this,
@@ -272,28 +283,29 @@ begin
         exact this, },
       apply HJ₂.1, exact rid',
       rintros x y hx hy hxy,
-      have H := HJ₂.mem_or_mem (ideal.coe_homogeneous_core_le A J hxy),
+      have H := HJ₂.mem_or_mem (ideal.coe_homogeneous_core_le 𝒜 J hxy),
       cases H,
       { left,
-        have : ∀ i : ι, (graded_algebra.decompose A x i : R) ∈
-          (⟨J', homogeneity₀⟩ : homogeneous_ideal A),
+        have : ∀ i : ι, (graded_algebra.decompose 𝒜 x i : A) ∈
+          (⟨J', homogeneity₀⟩ : homogeneous_ideal 𝒜),
         { intros i, apply homogeneity₀, apply ideal.subset_span,
           simp only [set.mem_inter_eq, set_like.mem_coe, set.mem_set_of_eq],
           refine ⟨⟨x, hx⟩, H, rfl⟩, },
-        rw ←graded_algebra.sum_support_decompose A x,
+        rw ←graded_algebra.sum_support_decompose 𝒜 x,
         apply ideal.sum_mem J'.1,
         intros j hj,
         apply this, },
       { right,
-        have : ∀ i : ι, (graded_algebra.decompose A y i : R) ∈
-          (⟨J', homogeneity₀⟩ : homogeneous_ideal A),
+        have : ∀ i : ι, (graded_algebra.decompose 𝒜 y i : A) ∈
+          (⟨J', homogeneity₀⟩ : homogeneous_ideal 𝒜),
         { intros i, apply homogeneity₀, apply ideal.subset_span,
           simp only [set.mem_inter_eq, set_like.mem_coe, set.mem_set_of_eq],
           refine ⟨⟨y, hy⟩, H, rfl⟩, },
-        rw ←graded_algebra.sum_support_decompose A y,
+        rw ←graded_algebra.sum_support_decompose 𝒜 y,
         apply ideal.sum_mem J'.1,
-        intros j hj, apply this, }, },
-      refine (ideal.coe_homogeneous_core_le A J) hx, },
+        intros j hj,
+        apply this, }, },
+      refine (ideal.coe_homogeneous_core_le 𝒜 J) hx, },
 
   ext x, split;
   intro hx,
@@ -301,13 +313,13 @@ begin
   { exact subset₂ hx },
 end
 
-lemma homogeneous_ideal.rad (I : homogeneous_ideal A)  :
-  ideal.is_homogeneous A I.1.radical :=
+lemma homogeneous_ideal.radical (I : homogeneous_ideal 𝒜)  :
+  ideal.is_homogeneous 𝒜 I.1.radical :=
 begin
-  have radI_eq := homogeneous_ideal.rad_eq A I,
+  have radI_eq := homogeneous_ideal.rad_eq 𝒜 I,
   rw radI_eq,
-  have : Inf {J : ideal R | I.val ≤ J ∧ ideal.is_homogeneous A J ∧ J.is_prime} =
-    (Inf {J : homogeneous_ideal A | I.1 ≤ J.1 ∧ J.1.is_prime }).1,
+  have : Inf {J : ideal A | I.val ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime} =
+    (Inf {J : homogeneous_ideal 𝒜 | I.1 ≤ J.1 ∧ J.1.is_prime }).1,
   { simp only [subtype.coe_le_coe, subtype.val_eq_coe],
     rw homogeneous_ideal.coe_Inf,
     congr' 1,
@@ -321,7 +333,7 @@ begin
     { obtain ⟨⟨HJ1, HJ2⟩, HJ3⟩ := H,
       exact ⟨HJ2, HJ1, HJ3⟩, } },
   rw this,
-  exact (Inf {J : homogeneous_ideal A | I.val ≤ J.val ∧ J.val.is_prime}).2,
+  exact (Inf {J : homogeneous_ideal 𝒜 | I.val ≤ J.val ∧ J.val.is_prime}).2,
 end
 
 end linear_ordered_cancel_add_comm_monoid

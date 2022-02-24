@@ -21,7 +21,8 @@ that needs to happen in characteristic 0.
 
 ## Main declarations
 
-* `witt_vector.nth_mul_coeff`: expresses the coefficient of a product of Witt vectors in terms of the previous coefficients of the multiplicands. 
+* `witt_vector.nth_mul_coeff`: expresses the coefficient of a product of Witt vectors 
+  in terms of the previous coefficients of the multiplicands. 
 
 -/
 

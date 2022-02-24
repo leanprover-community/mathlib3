@@ -214,7 +214,7 @@ lemma bijective_pi_map {F : Π i, f i → g i} (hF : ∀ i, bijective (F i)) :
 end function
 
 @[to_additive]
-lemma unique_of_surjective_one (α : Type*) {β : Type*} [has_one β]
+def unique_of_surjective_one (α : Type*) {β : Type*} [has_one β]
   (h : function.surjective (1 : α → β)) : unique β :=
 h.unique_of_surjective_const α (1 : β)
 

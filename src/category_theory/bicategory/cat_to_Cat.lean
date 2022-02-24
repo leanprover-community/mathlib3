@@ -38,4 +38,13 @@ structure dfunctor :=
 (map_comp : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) =
   (F.map_comp f g).app (obj X) ≫ (F.map g).map (map f) ≫ map g)
 
+/- TODO: define category structure
+   Show category of O-modules is isomorphic to such a category
+   (need to use composition of oplax functors).
+   Notion of sheaves when `Cᵒᵖ` has a grothendieck topology
+   Construct oplax functor from `F : oplax_functor C Cat` to `dfunctor F`.
+   Show the grothendieck construction associated to this oplax functor is isomorphic
+   to the category of functors from `C` to grothendieck applied to `𝟭 _ : Cat ⥤ Cat`...!
+-/
+
 end category_theory

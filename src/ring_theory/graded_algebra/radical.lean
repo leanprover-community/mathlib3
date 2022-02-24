@@ -7,7 +7,6 @@ Authors: Jujian Zhang
 import ring_theory.graded_algebra.homogeneous_ideal
 
 /-!
-# Radical
 
 This file contains a proof that the radical of any homogeneous ideal is a homogeneous ideal
 
@@ -204,8 +203,8 @@ end, begin
   refine mem_max₂.2 homogeneous_mem_or_mem,
 
   -- (0)
-  { rw [graded_algebra.proj_apply, alg_equiv.map_mul, graded_algebra.support, graded_algebra.support,
-       direct_sum.coe_mul_apply_submodule], refl },
+  { rw [graded_algebra.proj_apply, alg_equiv.map_mul, graded_algebra.support,
+      graded_algebra.support, direct_sum.coe_mul_apply_submodule], refl },
 
   -- (1)
   { congr, ext, split; intros H,

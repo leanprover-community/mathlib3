@@ -49,8 +49,10 @@ lemma homogeneous_ideal.is_prime_iff
     → (x * y ∈ I.1 → x ∈ I.1 ∨ y ∈ I.1)) : ideal.is_prime I.1 :=
 ⟨λ rid, begin
   have rid' : I.val = (⊤ : homogeneous_ideal A).val,
-  unfold has_top.top, simp only [rid], refl,
-  apply I_ne_top, exact subtype.val_injective rid',
+  { simp only [rid],
+    refl },
+  apply I_ne_top,
+  exact subtype.val_injective rid',
 end, begin
   intros x y hxy, by_contradiction rid,
   obtain ⟨rid₁, rid₂⟩ := not_or_distrib.mp rid,
@@ -69,7 +71,8 @@ end, begin
     refine ⟨i, _⟩,
     rw set₁_eq,
     simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter],
-    refine ⟨_, h⟩, rw graded_algebra.mem_support_iff,
+    refine ⟨_, h⟩,
+    rw graded_algebra.mem_support_iff,
     intro rid₃,
     rw graded_algebra.proj_apply at rid₃,
     rw rid₃ at h,
@@ -128,7 +131,7 @@ end, begin
         : by rw finset.sum_singleton,
 
   have eq₂ :
-    (graded_algebra.proj A (max₁, max₂).fst) x * (graded_algebra.proj A (max₁, max₂).snd) y
+    (graded_algebra.proj A max₁) x * (graded_algebra.proj A max₂) y
           = graded_algebra.proj A (max₁ + max₂) (x * y)
           - ∑ (ij : ι × ι) in finset.filter (λ (z : ι × ι), z.fst + z.snd = max₁ + max₂)
               ((graded_algebra.support A x).product (graded_algebra.support A y)) \ {(max₁, max₂)},
@@ -201,36 +204,36 @@ end, begin
   refine mem_max₂.2 homogeneous_mem_or_mem,
 
   -- (0)
-  rw [graded_algebra.proj_apply, alg_equiv.map_mul, graded_algebra.support, graded_algebra.support,
-       direct_sum.coe_mul_apply_submodule], refl,
+  { rw [graded_algebra.proj_apply, alg_equiv.map_mul, graded_algebra.support, graded_algebra.support,
+       direct_sum.coe_mul_apply_submodule], refl },
 
   -- (1)
-  congr, ext, split; intros H,
-  { simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product] at H,
-    rw finset.mem_union,
-    by_cases a = (max₁, max₂),
-    right, rw h, exact finset.mem_singleton_self (max₁, max₂),
-    left, rw finset.mem_sdiff, split,
-    simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product],
-    exact H, intro rid, simp only [finset.mem_singleton] at rid, exact h rid, },
-  { rw finset.mem_union at H, cases H,
-    rw finset.mem_sdiff at H, exact H.1,
-    simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product],
-    simp only [finset.mem_singleton] at H, rw H,
-    refine ⟨⟨_, _⟩, rfl⟩,
-    simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₁,
-    exact mem_max₁.1,
-    simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₂,
-    exact mem_max₂.1, },
+  { congr, ext, split; intros H,
+    { simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product] at H,
+      rw finset.mem_union,
+      by_cases a = (max₁, max₂),
+      right, rw h, exact finset.mem_singleton_self (max₁, max₂),
+      left, rw finset.mem_sdiff, split,
+      simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product],
+      exact H, intro rid, simp only [finset.mem_singleton] at rid, exact h rid, },
+    { rw finset.mem_union at H, cases H,
+      rw finset.mem_sdiff at H, exact H.1,
+      simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product],
+      simp only [finset.mem_singleton] at H, rw H,
+      refine ⟨⟨_, _⟩, rfl⟩,
+      simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₁,
+      exact mem_max₁.1,
+      simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₂,
+      exact mem_max₂.1, }, },
 
   -- (2)
-  rw [finset.sum_union],
-  apply finset.disjoint_iff_inter_eq_empty.mpr,
-  rw finset.eq_empty_iff_forall_not_mem, rintros ⟨i, j⟩ Hij,
-  rw [finset.mem_inter, finset.mem_sdiff, finset.mem_filter] at Hij,
-  simp only [not_and, prod.mk.inj_iff, ne.def, dfinsupp.mem_support_to_fun, finset.mem_singleton,
-    finset.mem_product] at Hij,
-  exact Hij.1.2 Hij.2.1 Hij.2.2,
+  { rw [finset.sum_union],
+    apply finset.disjoint_iff_inter_eq_empty.mpr,
+    rw finset.eq_empty_iff_forall_not_mem, rintros ⟨i, j⟩ Hij,
+    rw [finset.mem_inter, finset.mem_sdiff, finset.mem_filter] at Hij,
+    simp only [not_and, prod.mk.inj_iff, ne.def, dfinsupp.mem_support_to_fun, finset.mem_singleton,
+      finset.mem_product] at Hij,
+    exact Hij.1.2 Hij.2.1 Hij.2.2, },
 end⟩
 
 lemma homogeneous_ideal.rad_eq (I : homogeneous_ideal A) :
@@ -293,8 +296,10 @@ begin
         intros j hj, apply this, }, },
       refine (ideal.coe_homogeneous_core_le A J) hx, },
 
-  ext x, split; intro hx,
-  exact subset₁ hx, exact subset₂ hx,
+  ext x, split;
+  intro hx,
+  { exact subset₁ hx },
+  { exact subset₂ hx },
 end
 
 lemma homogeneous_ideal.rad (I : homogeneous_ideal A)  :
@@ -303,12 +308,23 @@ begin
   have radI_eq := homogeneous_ideal.rad_eq A I,
   rw radI_eq,
   have : Inf {J : ideal R | I.val ≤ J ∧ ideal.is_homogeneous A J ∧ J.is_prime} =
-  (Inf {J : homogeneous_ideal A | I.1 ≤ J.1 ∧ J.1.is_prime }).1,
-  simp only [subtype.coe_le_coe, subtype.val_eq_coe], congr, ext J, split; intro H,
-  { use ⟨J, H.2.1⟩, split, refine ⟨H.1, H.2.2⟩, refl, },
-  { obtain ⟨K, ⟨⟨HK₁, HK₂⟩, HK₃⟩⟩ := H,
-    split, convert HK₁, rw ←HK₃, split,
-    rw ←HK₃, exact K.2, rw ←HK₃, exact HK₂, },
+    (Inf {J : homogeneous_ideal A | I.1 ≤ J.1 ∧ J.1.is_prime }).1,
+  { simp only [subtype.coe_le_coe, subtype.val_eq_coe],
+    congr,
+    ext J,
+    split;
+    intro H,
+    { use ⟨J, H.2.1⟩,
+      split,
+      refine ⟨H.1, H.2.2⟩,
+      refl, },
+    { obtain ⟨K, ⟨⟨HK₁, HK₂⟩, HK₃⟩⟩ := H,
+      split,
+      convert HK₁,
+      rw ←HK₃,
+      split,
+      { rw ←HK₃, exact K.2 },
+      { rw ←HK₃, exact HK₂ }, } },
   rw this,
   refine (Inf {J : homogeneous_ideal A | I.val ≤ J.val ∧ J.val.is_prime}).2,
 end

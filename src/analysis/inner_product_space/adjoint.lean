@@ -273,6 +273,10 @@ begin
   refine ext_inner_right_basis b (λ i, by simp only [h i, adjoint_inner_left]),
 end
 
+lemma is_self_adjoint_iff_eq_adjoint (A : E →ₗ[𝕜] E) :
+  is_self_adjoint A ↔ A = A.adjoint :=
+by rw [is_self_adjoint, ← linear_map.eq_adjoint_iff]
+
 /-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →ₗ[𝕜] E) := ⟨adjoint_adjoint⟩

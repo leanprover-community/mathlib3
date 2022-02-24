@@ -22,7 +22,8 @@ When `k` is also a field, this `b` can be chosen to be a unit of `𝕎 k`.
 
 * `witt_vector.exists_eq_pow_p_mul`: the existence of this element `b` over a perfect ring
 * `witt_vector.exists_eq_pow_p_mul'`: the existence of this unit `b` over a perfect field
-* `witt_vector.discrete_valuation_ring`
+* `witt_vector.discrete_valuation_ring`: `𝕎 k` is a discrete valuation ring if `k` is a perfect
+    field
 
 -/
 
@@ -55,9 +56,7 @@ noncomputable def inverse_coeff (a : units k) (A : 𝕎 k) : ℕ → k
 Upgrade a Witt vector `A` whose first entry `A.coeff 0` is a unit to be, itself, a unit in `𝕎 k`.
 -/
 def mk_unit {a : units k} {A : 𝕎 k} (hA : A.coeff 0 = a) : units (𝕎 k) :=
-units.mk_of_mul_eq_one
-  A
-  (witt_vector.mk p (inverse_coeff a A))
+units.mk_of_mul_eq_one A (witt_vector.mk p (inverse_coeff a A))
   begin
     ext n,
     induction n with n ih,

@@ -90,12 +90,12 @@ end comm_monoid
 
 section cancel_comm_monoid_with_zero
 
-variables [cancel_comm_monoid_with_zero R] [decidable_rel (has_dvd.dvd : R → R → Prop)]
-  [wf_dvd_monoid R]
+variables [cancel_comm_monoid_with_zero R] [wf_dvd_monoid R]
 
 lemma finite_prime_left {a b : R} (ha : prime a) (hb : b ≠ 0) :
   multiplicity.finite a b :=
 begin
+  classical,
   revert hb,
   refine wf_dvd_monoid.induction_on_irreducible b (by contradiction) (λ u hu hu', _)
     (λ b p hb hp ih hpb, _),

@@ -423,12 +423,6 @@ theorem separating_right_iff_flip_ker_eq_bot {B : M₁ →ₛₗ[I₁] M₂ →�
   B.separating_right ↔ B.flip.ker = ⊥ :=
 by rw [separating_right_flip, separating_left_iff_ker_eq_bot]
 
-/-- The canonical pairing of a vector space and its algebraic dual. -/
-def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :
-  module.dual R M →ₗ[R] M →ₗ[R] R := linear_map.id
-
-@[simp] lemma dual_pairing_apply (v x) : dual_pairing R₁ M₁ v x = v x := rfl
-
 end comm_semiring
 
 section comm_ring
@@ -540,37 +534,27 @@ end
 
 end comm_ring
 
+end nondegenerate
+
+/-! ### Algebraic dual pairing -/
+
+section dual_pairing
+
+/-- The canonical pairing of a vector space and its algebraic dual. -/
+def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :
+  module.dual R M →ₗ[R] M →ₗ[R] R := linear_map.id
+
+section comm_semiring
+
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
+
+@[simp] lemma dual_pairing_apply (v x) : dual_pairing R₁ M₁ v x = v x := rfl
+
+end comm_semiring
+
 section field
 
 variables [field R] [add_comm_group M] [module R M]
-variables (k : Type*) [field k] {W : Type*} [add_comm_group V] [module k V]
-  [add_comm_group W] [module k W] {v : V} (hv : v ≠ 0) (w : W)
-
--- seems to be missing; this should be in mathlib.
-
-lemma linear_pmap.mk_span_singleton_apply' :
-  (linear_pmap.mk_span_singleton v w hv).to_fun ⟨v, (submodule.mem_span_singleton_self v : v ∈ submodule.span k {v})⟩ = w :=
-begin
-  convert linear_pmap.mk_span_singleton_apply v w _ (1 : k) _;
-  simp [submodule.mem_span_singleton_self],
-end
-
--- your function
-noncomputable def f  : V →ₗ[k] W :=
-classical.some (linear_pmap.mk_span_singleton v w hv).to_fun.exists_extend
-
--- immediately make the proof
-lemma f_spec : (f k hv w).comp (k ∙ v).subtype = (linear_pmap.mk_span_singleton v w hv).to_fun :=
-classical.some_spec (linear_pmap.mk_span_singleton v w hv).to_fun.exists_extend
-
--- now it's not so bad
-example : (f k hv w) v = w :=
-begin
-  have h := f_spec k hv w,
-  rw linear_map.ext_iff at h,
-  convert h ⟨v, submodule.mem_span_singleton_self v⟩,
-  exact (linear_pmap.mk_span_singleton_apply' k hv w).symm,
-end
 
 lemma dual_pairing_nondegenerate : (dual_pairing R M).nondegenerate :=
 begin
@@ -590,8 +574,5 @@ begin
 end
 
 end field
-
-
-end nondegenerate
 
 end linear_map

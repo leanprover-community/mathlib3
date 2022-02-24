@@ -11,7 +11,7 @@ import topology.homotopy.path
 import topology.homotopy.fundamental_groupoid
 
 /-!
-# Fundamental groupoid of a space
+# Fundamental group of a space
 
 Given a topological space `X` and a basepoint `x`, the fundamental group is the automorphism group
 of `x` i.e. the group with elements being loops based at `x` (quotiented by homotopy equivalence).

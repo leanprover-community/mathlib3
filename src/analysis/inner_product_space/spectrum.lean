@@ -217,28 +217,24 @@ attribute [irreducible] eigenvector_basis eigenvalues
   T (hT.eigenvector_basis hn i) = (hT.eigenvalues hn i : 𝕜) • hT.eigenvector_basis hn i :=
 mem_eigenspace_iff.mp (hT.has_eigenvector_eigenvector_basis hn i).1
 
-/-- An isometry from an inner product space `E` to Euclidean space, induced by a choice of
-orthonormal basis of eigenvectors for a self-adjoint operator `T` on `E`. -/
-noncomputable def diagonalization_basis : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 (fin n) :=
-(hT.eigenvector_basis hn).repr
-
-@[simp] lemma diagonalization_basis_symm_apply (w : euclidean_space 𝕜 (fin n)) :
-  (hT.diagonalization_basis hn).symm w = ∑ i, w i • hT.eigenvector_basis hn i :=
-by simp [diagonalization_basis, orthonormal_basis.sum_repr_symm]
-
 /-- *Diagonalization theorem*, *spectral theorem*; version 2: A self-adjoint operator `T` on a
 finite-dimensional inner product space `E` acts diagonally on the identification of `E` with
 Euclidean space induced by an orthonormal basis of eigenvectors of `T`. -/
 lemma diagonalization_basis_apply_self_apply (v : E) (i : fin n) :
-  hT.diagonalization_basis hn (T v) i = hT.eigenvalues hn i * hT.diagonalization_basis hn v i :=
+  (hT.eigenvector_basis hn).repr (T v) i = hT.eigenvalues hn i * (hT.eigenvector_basis hn).repr v i :=
 begin
   suffices : ∀ w : euclidean_space 𝕜 (fin n),
-    T ((hT.diagonalization_basis hn).symm w)
-    = (hT.diagonalization_basis hn).symm (λ i, hT.eigenvalues hn i * w i),
-  { simpa [-diagonalization_basis_symm_apply] using
-      congr_arg (λ v, hT.diagonalization_basis hn v i) (this (hT.diagonalization_basis hn v)) },
+    T ((hT.eigenvector_basis hn).repr.symm w)
+    = (hT.eigenvector_basis hn).repr.symm (λ i, hT.eigenvalues hn i * w i),
+  { simpa [orthonormal_basis.sum_repr_symm] using
+      congr_arg (λ v, (hT.eigenvector_basis hn).repr v i)
+        (this ((hT.eigenvector_basis hn).repr v)) },
   intros w,
-  simp [mul_comm, mul_smul],
+  simp_rw [← orthonormal_basis.sum_repr_symm, linear_map.map_sum,
+    linear_map.map_smul, apply_eigenvector_basis],
+  apply fintype.sum_congr,
+  intros a,
+  rw [smul_smul, mul_comm],
 end
 
 end version2

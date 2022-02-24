@@ -93,10 +93,19 @@ def with_zero_units_equiv (α : Type*) [group_with_zero α] [decidable_eq α] : 
     { exact h.symm },
     { refl }
   end,
-  map_mul'  := λ a b, with_zero.coe_inj.1 $
-    by simp only [units.coe_mul, option.coe_get, with_zero.coe_mul] }
+  map_mul' := λ a b, with_zero.cases_on a (by { rw zero_mul, exact (zero_mul _).symm }) $ λ a,
+    with_zero.cases_on b (by { rw mul_zero, exact (mul_zero _).symm }) $ λ b, rfl }
 
 end
+
+/-- Monoid homomorphisms from a group to a monoid are just monoid homomorphisms from a group to the
+units of the monoid. -/
+@[simps] def monoid_hom_equiv_monoid_hom_units {α β : Type*} [group α] [monoid β] :
+  (α →* β) ≃ (α →* βˣ) :=
+{ to_fun := monoid_hom.to_hom_units,
+  inv_fun := (units.coe_hom _).comp,
+  left_inv := λ f, monoid_hom.ext $ λ a, rfl,
+  right_inv := λ f, monoid_hom.ext $ λ a, units.ext rfl }
 
 universes u
 
@@ -140,42 +149,46 @@ instance has_forget_to_Mon : has_forget₂ GroupWithZero Mon :=
   hom_inv_id' := by { ext, exact e.symm_apply_apply _ },
   inv_hom_id' := by { ext, exact e.apply_symm_apply _ } }
 
--- /-- `op` as a functor. -/
--- @[simps] def op : GroupWithZero ⥤ GroupWithZero :=
--- { obj := λ X, of Xᵐᵒᵖ, map := λ X Y, _ }
-
--- /-- The equivalence between `Preorder` and itself induced by `order_dual` both ways. -/
--- @[simps functor inverse] def dual_equiv : Preorder ≌ Preorder :=
--- equivalence.mk to_dual to_dual
---   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
---   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
-
 end GroupWithZero
 
 /-- `with_zero` as a functor. -/
 def Group_to_GroupWithZero : Group.{u} ⥤ GroupWithZero :=
 { obj := λ X, GroupWithZero.of (with_zero X),
   map := λ X Y, monoid_hom.with_zero,
-  map_id' := λ X, fun_like.coe_injective $ begin
-    simp only [fun_like.coe_fn_eq],
-    exact monoid_hom.with_zero_id,
-  end,
-  map_comp' := λ X Y Z f g, fun_like.coe_injective $ begin
-    simp only [fun_like.coe_fn_eq],
-    exact monoid_hom.with_zero_comp _ _,
-  end }
+  map_id' := λ X, fun_like.coe_injective $
+    by { simp only [fun_like.coe_fn_eq], exact monoid_hom.with_zero_id },
+  map_comp' := λ X Y Z f g, fun_like.coe_injective $
+    by { simp only [fun_like.coe_fn_eq], exact monoid_hom.with_zero_comp _ _ } }
 
 /-- `units` as a functor. -/
 def Mon_to_Group : Mon.{u} ⥤ Group :=
 { obj := λ X, Group.of Xˣ,
-  map := λ X Y f, monoid_hom.units f,
+  map := λ X Y, monoid_hom.units,
   map_id' := λ X, fun_like.coe_injective $
     by { simp only [fun_like.coe_fn_eq], exact monoid_hom.units_id },
   map_comp' := λ X Y Z f g, fun_like.coe_injective $
     by { simp only [fun_like.coe_fn_eq], exact monoid_hom.units_comp _ _ } }
 
+/-- `units` as a functor. -/
+def CommMon_to_CommGroup : CommMon.{u} ⥤ CommGroup :=
+{ obj := λ X, CommGroup.of Xˣ,
+  map := λ X Y, monoid_hom.units,
+  map_id' := λ X, fun_like.coe_injective $
+    by { simp only [fun_like.coe_fn_eq], exact monoid_hom.units_id },
+  map_comp' := λ X Y Z f g, fun_like.coe_injective $
+    by { simp only [fun_like.coe_fn_eq], exact monoid_hom.units_comp _ _ } }
 
-def GroupWithZero_equiv_Group : GroupWithZero ≌ Group :=
+/-- `Mon_to_Group` is right adjoint to the forgetful functor. -/
+def forget_Mon_to_Group_adjunction : forget₂ Group Mon ⊣ Mon_to_Group.{u} :=
+adjunction.mk_of_hom_equiv { hom_equiv := λ X Y, monoid_hom_equiv_monoid_hom_units }
+
+/-- `CommMon_to_CommGroup` is right adjoint to the forgetful functor. -/
+def forget_CommMon_to_CommGroup_adjunction : forget₂ CommGroup CommMon ⊣ CommMon_to_CommGroup.{u} :=
+adjunction.mk_of_hom_equiv
+  { hom_equiv := λ X Y, (monoid_hom_equiv_monoid_hom_units : (X →* Y) ≃ (X →* Yˣ)) }
+
+/-- The equivalence between `GroupWithZero` and `Group` induced by adding and removing `0`. -/
+@[simps] def GroupWithZero_equiv_Group : GroupWithZero ≌ Group :=
 by classical; exact equivalence.mk
   (forget₂ GroupWithZero Mon ⋙ Mon_to_Group) Group_to_GroupWithZero
   (nat_iso.of_components (λ X, GroupWithZero.iso.mk (with_zero_units_equiv X).symm) $ λ X Y f,

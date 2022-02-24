@@ -44,12 +44,6 @@ image of different morphism commute, we obtain a canoncial morphism
 
 open_locale big_operators
 
-lemma coprime_prod_left
-  {ι : Type*}
-  {x : ℕ} {s : ι → ℕ} {t : finset ι} :
-  (∀ (i : ι), i ∈ t → nat.coprime (s i) x) → nat.coprime (∏ (i : ι) in t, s i) x :=
-finset.prod_induction s (λ y, y.coprime x) (λ a b, nat.coprime.mul) (by simp)
-
 -- I think it's worth keeping it and moving to appropriate file
 @[to_additive]
 lemma mul_eq_one_iff_disjoint {G : Type*} [group G] {H₁ H₂ : subgroup G} :

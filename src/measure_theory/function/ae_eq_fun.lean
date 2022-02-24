@@ -287,16 +287,15 @@ instance : has_sup (α →ₘ[μ] β) := { sup := λ f g, ae_eq_fun.comp₂ (⊔
 lemma coe_fn_sup (f g : α →ₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x := coe_fn_comp₂ _ _ _ _
 
 protected lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
-by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_left, }
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g] with _ ha, rw ha, exact le_sup_left, }
 
 protected lemma le_sup_right (f g : α →ₘ[μ] β) : g ≤ f ⊔ g :=
-by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_right, }
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g] with _ ha, rw ha, exact le_sup_right, }
 
 protected lemma sup_le (f g f' : α →ₘ[μ] β) (hf : f ≤ f') (hg : g ≤ f') : f ⊔ g ≤ f' :=
 begin
   rw ← coe_fn_le at hf hg ⊢,
-  filter_upwards [hf, hg, coe_fn_sup f g],
-  intros a haf hag ha_sup,
+  filter_upwards [hf, hg, coe_fn_sup f g] with _ haf hag ha_sup,
   rw ha_sup,
   exact sup_le haf hag,
 end
@@ -311,16 +310,15 @@ instance : has_inf (α →ₘ[μ] β) := { inf := λ f g, ae_eq_fun.comp₂ (⊓
 lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_comp₂ _ _ _ _
 
 protected lemma inf_le_left (f g : α →ₘ[μ] β) : f ⊓ g ≤ f :=
-by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_left, }
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g] with _ ha, rw ha, exact inf_le_left, }
 
 protected lemma inf_le_right (f g : α →ₘ[μ] β) : f ⊓ g ≤ g :=
-by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_right, }
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g] with _ ha, rw ha, exact inf_le_right, }
 
 protected lemma le_inf (f' f g : α →ₘ[μ] β) (hf : f' ≤ f) (hg : f' ≤ g) : f' ≤ f ⊓ g :=
 begin
   rw ← coe_fn_le at hf hg ⊢,
-  filter_upwards [hf, hg, coe_fn_inf f g],
-  intros a haf hag ha_inf,
+  filter_upwards [hf, hg, coe_fn_inf f g] with _ haf hag ha_inf,
   rw ha_inf,
   exact le_inf haf hag,
 end
@@ -360,10 +358,40 @@ instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α default⟩
 @[to_additive] lemma coe_fn_one [has_one β] : ⇑(1 : α →ₘ[μ] β) =ᵐ[μ] 1 := coe_fn_const _ _
 @[simp, to_additive] lemma one_to_germ [has_one β] : (1 : α →ₘ[μ] β).to_germ = 1 := rfl
 
+-- Note we set up the scalar actions before the `monoid` structures in case we want to
+-- try to override the `nsmul` or `zsmul` fields in future.
+section has_scalar
+
+variables {𝕜 𝕜' : Type*}
+variables [measurable_space 𝕜] [measurable_space 𝕜']
+variables [has_scalar 𝕜 γ] [has_measurable_smul 𝕜 γ]
+variables [has_scalar 𝕜' γ] [has_measurable_smul 𝕜' γ]
+
+instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
+⟨λ c f, comp ((•) c) (measurable_id.const_smul c) f⟩
+
+@[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf) :
+  c • (mk f hf : α →ₘ[μ] γ) = mk (c • f) (hf.const_smul _) :=
+rfl
+
+lemma coe_fn_smul (c : 𝕜) (f : α →ₘ[μ] γ) : ⇑(c • f) =ᵐ[μ] c • f := coe_fn_comp _ _ _
+
+lemma smul_to_germ (c : 𝕜) (f : α →ₘ[μ] γ) : (c • f).to_germ = c • f.to_germ :=
+comp_to_germ _ _ _
+
+instance [smul_comm_class 𝕜 𝕜' γ] : smul_comm_class 𝕜 𝕜' (α →ₘ[μ] γ) :=
+⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_comm]⟩
+
+instance [has_scalar 𝕜 𝕜'] [is_scalar_tower 𝕜 𝕜' γ] : is_scalar_tower 𝕜 𝕜' (α →ₘ[μ] γ) :=
+⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_assoc]⟩
+
+instance [has_scalar 𝕜ᵐᵒᵖ γ] [is_central_scalar 𝕜 γ] : is_central_scalar 𝕜 (α →ₘ[μ] γ) :=
+⟨λ a f, induction_on f $ λ f hf, by simp_rw [smul_mk, op_smul_eq_smul]⟩
+
+end has_scalar
+
 section monoid
-variables
-  [topological_space γ] [second_countable_topology γ] [borel_space γ]
-  [monoid γ] [has_continuous_mul γ]
+variables [monoid γ] [has_measurable_mul₂ γ]
 
 @[to_additive]
 instance : has_mul (α →ₘ[μ] γ) := ⟨comp₂ (*) measurable_mul⟩
@@ -382,16 +410,24 @@ comp₂_to_germ _ _ _ _
 instance : monoid (α →ₘ[μ] γ) :=
 to_germ_injective.monoid to_germ one_to_germ mul_to_germ
 
+/-- `ae_eq_fun.to_germ` as a `monoid_hom`. -/
+@[to_additive "`ae_eq_fun.to_germ` as an `add_monoid_hom`.", simps]
+def to_germ_monoid_hom : (α →ₘ[μ] γ) →* μ.ae.germ γ :=
+{ to_fun := to_germ,
+  map_one' := one_to_germ,
+  map_mul' := mul_to_germ }
+
 end monoid
 
 @[to_additive]
-instance comm_monoid [topological_space γ] [second_countable_topology γ] [borel_space γ]
-  [comm_monoid γ] [has_continuous_mul γ] : comm_monoid (α →ₘ[μ] γ) :=
+instance comm_monoid [comm_monoid γ] [has_measurable_mul₂ γ] : comm_monoid (α →ₘ[μ] γ) :=
 to_germ_injective.comm_monoid to_germ one_to_germ mul_to_germ
 
 section group
+variables [group γ]
 
-variables [topological_space γ] [borel_space γ] [group γ] [topological_group γ]
+section inv
+variables [has_measurable_inv γ]
 
 @[to_additive] instance : has_inv (α →ₘ[μ] γ) := ⟨comp has_inv.inv measurable_inv⟩
 
@@ -401,7 +437,10 @@ variables [topological_space γ] [borel_space γ] [group γ] [topological_group 
 
 @[to_additive] lemma inv_to_germ (f : α →ₘ[μ] γ) : (f⁻¹).to_germ = f.to_germ⁻¹ := comp_to_germ _ _ _
 
-variables [second_countable_topology γ]
+end inv
+
+section div
+variables [has_measurable_div₂ γ]
 
 @[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div measurable_div⟩
 
@@ -414,40 +453,38 @@ rfl
 @[to_additive] lemma div_to_germ (f g : α →ₘ[μ] γ) : (f / g).to_germ = f.to_germ / g.to_germ :=
 comp₂_to_germ _ _ _ _
 
+end div
+
 @[to_additive]
-instance : group (α →ₘ[μ] γ) :=
+instance [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
+  group (α →ₘ[μ] γ) :=
 to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ
 
 end group
 
 @[to_additive]
-instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_group γ]
-  [second_countable_topology γ] : comm_group (α →ₘ[μ] γ) :=
+instance [comm_group γ] [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
+  comm_group (α →ₘ[μ] γ) :=
 { .. ae_eq_fun.group, .. ae_eq_fun.comm_monoid }
 
 section module
 
-variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
-  [opens_measurable_space 𝕜]
-variables [topological_space γ] [borel_space γ] [add_comm_monoid γ] [module 𝕜 γ]
-  [has_continuous_smul 𝕜 γ]
+variables {𝕜 : Type*}
 
-instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
-⟨λ c f, comp ((•) c) (measurable_id.const_smul c) f⟩
+instance [measurable_space 𝕜] [monoid 𝕜] [mul_action 𝕜 γ] [has_measurable_smul 𝕜 γ] :
+  mul_action 𝕜 (α →ₘ[μ] γ) :=
+to_germ_injective.mul_action to_germ smul_to_germ
 
-@[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf) :
-  c • (mk f hf : α →ₘ[μ] γ) = mk (c • f) (hf.const_smul _) :=
-rfl
+instance [measurable_space 𝕜] [monoid 𝕜] [add_monoid γ] [has_measurable_add₂ γ]
+  [distrib_mul_action 𝕜 γ] [has_measurable_smul 𝕜 γ] :
+  distrib_mul_action 𝕜 (α →ₘ[μ] γ) :=
+to_germ_injective.distrib_mul_action (to_germ_add_monoid_hom : (α →ₘ[μ] γ) →+ _)
+  (λ c : 𝕜, smul_to_germ c)
 
-lemma coe_fn_smul (c : 𝕜) (f : α →ₘ[μ] γ) : ⇑(c • f) =ᵐ[μ] c • f := coe_fn_comp _ _ _
-
-lemma smul_to_germ (c : 𝕜) (f : α →ₘ[μ] γ) : (c • f).to_germ = c • f.to_germ :=
-comp_to_germ _ _ _
-
-variables [second_countable_topology γ] [has_continuous_add γ]
-
-instance : module 𝕜 (α →ₘ[μ] γ) :=
-to_germ_injective.module 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to_germ⟩ smul_to_germ
+instance [measurable_space 𝕜] [semiring 𝕜] [add_comm_monoid γ] [has_measurable_add₂ γ] [module 𝕜 γ]
+  [has_measurable_smul 𝕜 γ] :
+  module 𝕜 (α →ₘ[μ] γ) :=
+to_germ_injective.module 𝕜 (to_germ_add_monoid_hom : (α →ₘ[μ] γ) →+ _) smul_to_germ
 
 end module
 
@@ -523,10 +560,9 @@ def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
   map_mul' := λ f g, ae_eq_fun.mk_mul_mk f g f.continuous.measurable.ae_measurable
     g.continuous.measurable.ae_measurable }
 
-variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
-  [opens_measurable_space 𝕜]
+variables {𝕜 : Type*} [semiring 𝕜] [measurable_space 𝕜]
 variables [topological_space γ] [measurable_space γ] [borel_space γ] [add_comm_group γ]
-  [module 𝕜 γ] [topological_add_group γ] [has_continuous_smul 𝕜 γ]
+  [module 𝕜 γ] [topological_add_group γ] [has_measurable_smul 𝕜 γ] [has_continuous_const_smul 𝕜 γ]
   [second_countable_topology γ]
 
 /-- The linear map from the group of continuous maps from `α` to `β` to the group of equivalence

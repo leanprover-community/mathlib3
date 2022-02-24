@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import analysis.convex.basic
-import topology.algebra.mul_action
-import topology.algebra.ordered.basic
+import topology.algebra.order.basic
 
 /-!
 # Strictly convex sets
@@ -45,13 +44,7 @@ variables {𝕜 s} {x y : E}
 
 lemma strict_convex_iff_open_segment_subset :
   strict_convex 𝕜 s ↔ s.pairwise (λ x y, open_segment 𝕜 x y ⊆ interior s) :=
-begin
-  split,
-  { rintro h x hx y hy hxy z ⟨a, b, ha, hb, hab, rfl⟩,
-    exact h hx hy hxy ha hb hab },
-  { rintro h x hx y hy hxy a b ha hb hab,
-    exact h hx hy hxy ⟨a, b, ha, hb, hab, rfl⟩ }
-end
+forall₅_congr $ λ x hx y hy hxy, (open_segment_subset_iff 𝕜).symm
 
 lemma strict_convex.open_segment_subset (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s)
   (h : x ≠ y) :
@@ -103,6 +96,7 @@ variables [module 𝕜 E] [module 𝕜 F] {s : set E}
 protected lemma strict_convex.convex (hs : strict_convex 𝕜 s) : convex 𝕜 s :=
 convex_iff_pairwise_pos.2 $ λ x hx y hy hxy a b ha hb hab, interior_subset $ hs hx hy hxy ha hb hab
 
+/-- An open convex set is strictly convex. -/
 protected lemma convex.strict_convex (h : is_open s) (hs : convex 𝕜 s) : strict_convex 𝕜 s :=
 λ x hx y hy _ a b ha hb hab, h.interior_eq.symm ▸ hs hx hy ha.le hb.le hab
 
@@ -249,11 +243,11 @@ end add_comm_group
 end ordered_semiring
 
 section ordered_comm_semiring
-variables [ordered_comm_semiring 𝕜] [topological_space 𝕜] [topological_space E]
+variables [ordered_comm_semiring 𝕜] [topological_space E]
 
 section add_comm_group
-variables [add_comm_group E] [module 𝕜 E] [no_zero_smul_divisors 𝕜 E] [has_continuous_smul 𝕜 E]
-  {s : set E}
+variables [add_comm_group E] [module 𝕜 E] [no_zero_smul_divisors 𝕜 E]
+  [has_continuous_const_smul 𝕜 E] {s : set E}
 
 lemma strict_convex.preimage_smul (hs : strict_convex 𝕜 s) (c : 𝕜) :
   strict_convex 𝕜 ((λ z, c • z) ⁻¹' s) :=
@@ -266,7 +260,7 @@ begin
     { exact strict_convex_empty } },
   refine hs.linear_preimage (linear_map.lsmul _ _ c) _ (smul_right_injective E hc),
   unfold linear_map.lsmul linear_map.mk₂ linear_map.mk₂' linear_map.mk₂'ₛₗ,
-  exact continuous_const.smul continuous_id,
+  exact continuous_const_smul _,
 end
 
 end add_comm_group
@@ -351,7 +345,7 @@ variables [linear_ordered_field 𝕜] [topological_space E]
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E} {x : E}
 
-lemma strict_convex.smul [topological_space 𝕜] [has_continuous_smul 𝕜 E] (hs : strict_convex 𝕜 s)
+lemma strict_convex.smul [has_continuous_const_smul 𝕜 E] (hs : strict_convex 𝕜 s)
   (c : 𝕜) :
   strict_convex 𝕜 (c • s) :=
 begin
@@ -360,7 +354,7 @@ begin
   { exact hs.linear_image (linear_map.lsmul _ _ c) (is_open_map_smul₀ hc) }
 end
 
-lemma strict_convex.affinity [topological_space 𝕜] [has_continuous_add E] [has_continuous_smul 𝕜 E]
+lemma strict_convex.affinity [has_continuous_add E] [has_continuous_const_smul 𝕜 E]
   (hs : strict_convex 𝕜 s) (z : E) (c : 𝕜) :
   strict_convex 𝕜 ((λ x, z + c • x) '' s) :=
 begin
@@ -398,6 +392,7 @@ Relates `convex` and `set.ord_connected`.
 section
 variables [topological_space E]
 
+/-- A set in a linear ordered field is strictly convex if and only if it is convex. -/
 @[simp] lemma strict_convex_iff_convex [linear_ordered_field 𝕜] [topological_space 𝕜]
   [order_topology 𝕜] {s : set 𝕜} :
   strict_convex 𝕜 s ↔ convex 𝕜 s :=

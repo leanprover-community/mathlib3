@@ -205,7 +205,7 @@ lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
 monoid_hom.coe_inj ((types.colimit_cocone (F ⋙ forget Mon)).ι.naturality f)
 
 /-- The cocone over the proposed colimit monoid. -/
-@[to_additive "/-- The cocone over the proposed colimit additive monoid. -/"]
+@[to_additive "The cocone over the proposed colimit additive monoid."]
 def colimit_cocone : cocone F :=
 { X := colimit,
   ι := { app := cocone_morphism } }.

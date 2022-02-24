@@ -228,6 +228,7 @@ section subset
 protected def subset (s t : multiset α) : Prop := ∀ ⦃a : α⦄, a ∈ s → a ∈ t
 
 instance : has_subset (multiset α) := ⟨multiset.subset⟩
+instance : has_ssubset (multiset α) := ⟨λ s t, s ⊆ t ∧ ¬ t ⊆ s⟩
 
 @[simp] theorem coe_subset {l₁ l₂ : list α} : (l₁ : multiset α) ⊆ l₂ ↔ l₁ ⊆ l₂ := iff.rfl
 
@@ -243,8 +244,16 @@ theorem mem_of_subset {s t : multiset α} {a : α} (h : s ⊆ t) : a ∈ s → a
 @[simp] theorem zero_subset (s : multiset α) : 0 ⊆ s :=
 λ a, (not_mem_nil a).elim
 
+lemma subset_cons (s : multiset α) (a : α) : s ⊆ a ::ₘ s := λ _, mem_cons_of_mem
+
+lemma ssubset_cons {s : multiset α} {a : α} (ha : a ∉ s) : s ⊂ a ::ₘ s :=
+⟨subset_cons _ _, λ h, ha $ h $ mem_cons_self _ _⟩
+
 @[simp] theorem cons_subset {a : α} {s t : multiset α} : (a ::ₘ s) ⊆ t ↔ a ∈ t ∧ s ⊆ t :=
 by simp [subset_iff, or_imp_distrib, forall_and_distrib]
+
+lemma cons_subset_cons {a : α} {s t : multiset α} : s ⊆ t → a ::ₘ s ⊆ a ::ₘ t :=
+quotient.induction_on₂ s t $ λ _ _, cons_subset_cons _
 
 theorem eq_zero_of_subset_zero {s : multiset α} (h : s ⊆ 0) : s = 0 :=
 eq_zero_of_forall_not_mem h
@@ -1596,7 +1605,7 @@ theorem count_cons (a b : α) (s : multiset α) :
   count a (b ::ₘ s) = count a s + (if a = b then 1 else 0) :=
 by by_cases h : a = b; simp [h]
 
-theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
+@[simp] theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
 by simp only [count_cons_self, singleton_eq_cons, eq_self_iff_true, count_zero]
 
 theorem count_singleton (a b : α) : count a ({b} : multiset α) = if a = b then 1 else 0 :=
@@ -1868,8 +1877,7 @@ lemma rel_cons_right {as b bs} :
   rel r as (b ::ₘ bs) ↔ (∃a as', r a b ∧ rel r as' bs ∧ as = a ::ₘ as') :=
 begin
   rw [← rel_flip, rel_cons_left],
-  apply exists_congr, assume a,
-  apply exists_congr, assume as',
+  refine exists₂_congr (λ a as', _),
   rw [rel_flip, flip]
 end
 

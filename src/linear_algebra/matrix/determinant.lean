@@ -156,7 +156,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
   sum_congr rfl (λ σ _, fintype.sum_equiv (equiv.mul_right σ⁻¹) _ _
     (λ τ,
       have ∏ j, M (τ j) (σ j) = ∏ j, M ((τ * σ⁻¹) j) j,
-        by { rw ← σ⁻¹.prod_comp, simp only [equiv.perm.coe_mul, apply_inv_self] },
+        by { rw ← (σ⁻¹ : _ ≃ _).prod_comp, simp only [equiv.perm.coe_mul, apply_inv_self] },
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
           by { rw [mul_comm, sign_mul (τ * σ⁻¹)], simp only [int.cast_mul, units.coe_mul] }
@@ -646,7 +646,7 @@ begin
       equiv.perm.decompose_fin_symm_apply_zero, equiv.perm.decompose_fin_symm_apply_succ]
   ... = (-1) * (A (fin.succ i) 0 * (σ.sign : ℤ) •
         ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) :
-    by simp only [mul_assoc, mul_comm, neg_mul_eq_neg_mul_symm, one_mul, zsmul_eq_mul, neg_inj,
+    by simp only [mul_assoc, mul_comm, _root_.neg_mul, one_mul, zsmul_eq_mul, neg_inj,
       neg_smul, fin.succ_above_cycle_range],
 end
 

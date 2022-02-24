@@ -326,8 +326,7 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 functions-/
 def _root_.linear_isometry_equiv.pi_Lp_congr_left (e : ι ≃ ι') :
   pi_Lp p (λ i : ι, E) ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E) :=
-{
-  to_linear_equiv := linear_equiv.Pi_congr_left' 𝕜 (λ i : ι, E) e,
+{ to_linear_equiv := linear_equiv.Pi_congr_left' 𝕜 (λ i : ι, E) e,
   norm_map' :=
   begin
     intro x,
@@ -336,8 +335,7 @@ def _root_.linear_isometry_equiv.pi_Lp_congr_left (e : ι ≃ ι') :
     congr,
     rw fintype.sum_equiv (e.symm),
     exact λ i, rfl,
-  end,
-}
+  end, }
 
 @[simp] lemma _root_.linear_isometry_equiv.pi_Lp_congr_left_apply
   (e : ι ≃ ι') (v : pi_Lp p (λ i : ι, E)) :

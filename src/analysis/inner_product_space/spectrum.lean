@@ -221,7 +221,8 @@ mem_eigenspace_iff.mp (hT.has_eigenvector_eigenvector_basis hn i).1
 finite-dimensional inner product space `E` acts diagonally on the identification of `E` with
 Euclidean space induced by an orthonormal basis of eigenvectors of `T`. -/
 lemma diagonalization_basis_apply_self_apply (v : E) (i : fin n) :
-  (hT.eigenvector_basis hn).repr (T v) i = hT.eigenvalues hn i * (hT.eigenvector_basis hn).repr v i :=
+  (hT.eigenvector_basis hn).repr (T v) i =
+    hT.eigenvalues hn i * (hT.eigenvector_basis hn).repr v i :=
 begin
   suffices : ∀ w : euclidean_space 𝕜 (fin n),
     T ((hT.eigenvector_basis hn).repr.symm w)

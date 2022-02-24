@@ -35,15 +35,17 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 
 - `complex.isometry_euclidean`: standard isometry from `ℂ` to `euclidean_space ℝ (fin 2)`
 
-The last section covers orthonormal bases, etc. The lemma
-`maximal_orthonormal_iff_orthogonal_complement_eq_bot` states that an orthonormal set in an inner
-product space is maximal, if and only the orthogonal complement of its span is trivial.
-Various consequences are stated for finite-dimensional `E`, including that a maximal orthonormal
-set is a basis (`maximal_orthonormal_iff_basis_of_finite_dimensional`); these consequences require
-the theory on the orthogonal complement developed earlier in this file.  For consequences in
-infinite dimension (Hilbert bases, etc.), see the file `analysis.inner_product_space.l2_space`.
+This file develops the notion of a finite dimensional Hilbert space over `𝕜 = ℂ, ℝ`, referred to as
+`euclidean_space 𝕜 ι`. We define an `orthonormal_basis 𝕜 ι E` as a linear isometric equivalence
+between `E` and `euclidean_space 𝕜 ι`. Then `std_orthonormal_basis` shows that such an equivalence
+always exists if `E` is finite dimensional. We provide language for converting between a basis
+that is orthonormal and an orthonormal basis (e.g. `basis.to_orthonormal_basis`). We show that
+orthonormal bases for each summand in a direct sum of spaces can be combined into an orthonormal
+basis for the the whole sum in `direct_sum.submodule_is_internal.subordinate_orthonormal_basis`. In
+the last section, various properties of matrices are explored.
 
-
+For consequences in infinite dimension (Hilbert bases, etc.), see the file
+`analysis.inner_product_space.l2_space`.
 -/
 
 open real set filter is_R_or_C
@@ -113,11 +115,11 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
-/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`,
+/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`:
 backwards direction. -/
 def to_euclidean_space [fintype ι] : (ι → 𝕜) ≃ euclidean_space 𝕜 ι := equiv.refl _
 
-/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`,
+/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`:
 forwards direction. -/
 def of_euclidean_space [fintype ι]: euclidean_space 𝕜 ι ≃ (ι → 𝕜) := equiv.refl _
 
@@ -357,17 +359,17 @@ variables [fintype ι']
 
 /-- `b.reindex (e : ι ≃ ι')` is an `orthonormal_basis` indexed by `ι'` -/
 def reindex (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') : orthonormal_basis ι' 𝕜 E :=
-orthonormal_basis.of_repr (b.repr.trans (linear_isometry_equiv.Pi_congr_left e))
+orthonormal_basis.of_repr (b.repr.trans (linear_isometry_equiv.pi_Lp_congr_left e))
 
 protected lemma reindex_apply (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (i' : ι') :
   b.reindex e i' = b (e.symm i') :=
 begin
   classical,
-  change (b.repr.trans (linear_isometry_equiv.Pi_congr_left e)).symm (euclidean_space.single i' 1)
+  change (b.repr.trans (linear_isometry_equiv.pi_Lp_congr_left e)).symm (euclidean_space.single i' 1)
   = b.repr.symm (euclidean_space.single (e.symm i') 1),
   rw [linear_isometry_equiv.symm_trans, linear_isometry_equiv.trans_apply,
-    linear_isometry_equiv.Pi_congr_left_symm, euclidean_space.single],
-  simp only [orthonormal_basis.repr_symm_single, linear_isometry_equiv.Pi_congr_left_single],
+    linear_isometry_equiv.pi_Lp_congr_left_symm, euclidean_space.single],
+  simp only [orthonormal_basis.repr_symm_single, linear_isometry_equiv.pi_Lp_congr_left_single],
   rw b.repr_symm_single',
 end
 

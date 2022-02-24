@@ -378,7 +378,7 @@ section path_connected
 /-- Given two points with a path between them, return an isomorphism in the groupoid
 as the lift of the given path connecting the points.
 -/
-def iso_of_path (x₀ x₁ : X) (α : path x₀ x₁) : (x₀ ≅ x₁) :=
+def to_iso {x₀ x₁ : X} (α : path x₀ x₁) : (x₀ ≅ x₁) :=
 { hom := ⟦α⟧,
   inv := ⟦α.symm⟧ }
 
@@ -386,7 +386,7 @@ def iso_of_path (x₀ x₁ : X) (α : path x₀ x₁) : (x₀ ≅ x₁) :=
 as the lift of some path connecting the two points (and its `.symm`).
 -/
 def iso_of_path_conn [path_connected_space X] (x₀ x₁ : X) : (x₀ ≅ x₁) :=
-iso_of_path x₀ x₁ (joined.some_path (path_connected_space.joined x₀ x₁))
+to_iso (joined.some_path (path_connected_space.joined x₀ x₁))
 
 end path_connected
 

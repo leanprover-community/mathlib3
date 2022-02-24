@@ -181,9 +181,7 @@ begin
   have diag_eq_one : is_R_or_C.re ((U ⬝ Uᴴ) i i) = 1,
   { simp only [mul_eq_one, eq_self_iff_true, matrix.one_apply_eq, is_R_or_C.one_re] },
   -- Putting it all together
-  rw ← sq_le_one_iff (norm_nonneg (U i j)),
-  rw ← diag_eq_one,
-  rw re_diag_eq_norm_sum,
+  rw [← sq_le_one_iff (norm_nonneg (U i j)), ← diag_eq_one, re_diag_eq_norm_sum],
   exact norm_sum,
 end
 

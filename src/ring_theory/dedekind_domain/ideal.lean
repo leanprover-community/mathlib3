@@ -694,7 +694,7 @@ variables {A K}
 Let `J ≠ ⊤` be an ideal in a Dedekind domain `A`, and `f ≠ 0` a finite collection
 of elements of `K = Frac(A)`, then we can multiply the elements of `f` by some `a : K`
 to find a collection of elements of `A` that is not completely contained in `J`. -/
-lemma ideal.exist_integer_multiples_not_mem [is_dedekind_domain A]
+lemma ideal.exist_integer_multiples_not_mem
   {J : ideal A} (hJ : J ≠ ⊤) {ι : Type*} (s : finset ι) (f : ι → K)
   {j} (hjs : j ∈ s) (hjf : f j ≠ 0) :
   ∃ a : K, (∀ i ∈ s, is_localization.is_integer A (a * f i)) ∧

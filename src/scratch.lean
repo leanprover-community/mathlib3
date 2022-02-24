@@ -176,8 +176,7 @@ as `f ^* 𝓕`.
 -/
 def restriction_by.obj (𝓕 : presheaf_of_module 𝓞2) : presheaf_of_module 𝓞1 :=
 { self := 𝓕.self,
-  is_module := λ U, @restriction_of_scalars.is_module (𝓞1.obj (op U)) (𝓞2.obj (op U))
-      ⟨𝓕.self.obj (op U)⟩ (f.app (op U)),
+  is_module := λ U, restriction_of_scalars.is_module (f.app (op U)) ⟨𝓕.self.obj (op U)⟩,
   compatible := λ U V inc r m, begin
     erw [𝓕.compatible inc, (ring_hom.congr_fun (f.naturality inc) r).symm],
     refl,
@@ -222,8 +221,16 @@ private def restrict.to_fun (U V : opens X) (inc : op U ⟶ op V) :
 let im1 : module (𝓞1.obj (op U)) (𝓕.self.obj (op U)) := 𝓕.is_module _,
     im2 : module (𝓞1.obj (op U)) (𝓞2.obj (op U)) := restriction_of_scalars.is_module
       (f.app (op U)) ⟨𝓞2.obj (op U)⟩,
+    im4 : module (𝓞1.obj (op U)) (𝓕.self.obj (op V)) := is_module_UV _ _ inc,
     im3 := restriction_of_scalars.is_module (f.app (op U) ≫ 𝓞2.map inc)
-      (f.app (op V)_* ⟨𝓕.to_core.self.obj (op V)⟩) in
+      (f.app (op V)_* ⟨𝓕.to_core.self.obj (op V)⟩),
+    im4 : module (𝓞1.obj (op V)) (𝓞2.obj (op V)) := restriction_of_scalars.is_module
+      (f.app (op V)) ⟨𝓞2.obj (op V)⟩,
+    im5 : module (𝓞1.obj (op U))
+      ((𝓕.self.obj (op V)) ⊗[𝓞1.obj (op V), f.app (op V)] (𝓞2.obj (op V))) :=
+      restriction_of_scalars.is_module (𝓞1.map inc)
+      { carrier := ((𝓕.self.obj (op V)) ⊗[𝓞1.obj (op V), f.app (op V)] (𝓞2.obj (op V))),
+        is_module := extension_of_scalars.is_module' (f.app (op V)) ⟨(𝓕.self.obj (op V))⟩ } in
 begin
   resetI,
   refine tensor_product.lift _,
@@ -232,53 +239,23 @@ begin
       map_add' := _,
       map_smul' := _ },
     { exact (𝓕.self.map inc m) ⊗ₜ[𝓞1.obj (op V), f.app (op V)] (𝓞2.map inc s), },
-    { fconstructor,
-      { intros m,
-        fconstructor,
-        { intros s,
-          refine @tensor_product.tmul (𝓞1.obj (op V)) _ (𝓕.self.obj (op V)) (𝓞2.obj (op V)) _ _ _
-            (restriction_of_scalars.is_module ⟨_⟩ (f.app (op V)))
-            (𝓕.self.map inc m) (𝓞2.map inc s),
-          },
-        { intros s1 s2,
-          rw [map_add, tensor_product.tmul_add], },
-        { intros r s,
-          rw [restriction_of_scalars.smul_def ⟨𝓞2.obj (op U)⟩ (f.app (op U)) r s, ring_hom.id_apply,
-            smul_eq_mul, ring_hom.map_mul, ←smul_eq_mul],
-          convert extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor
-            (f.app (op V)) _ _ _ _, }, },
-      { intros m1 m2,
+    { intros s1 s2,
+      rw [map_add, tensor_product.tmul_add], },
+    { intros r s,
+      rw [restriction_of_scalars.smul_def (f.app (op U)) ⟨𝓞2.obj (op U)⟩ r s, ring_hom.id_apply,
+        smul_eq_mul, ring_hom.map_mul, ←smul_eq_mul],
+      convert extension_of_scalars.smul_pure_tensor (f.app (op V)) _ _ _ _, },
+    { intros m1 m2,
         ext z,
         simp only [map_add, tensor_product.add_tmul, linear_map.coe_mk, linear_map.add_apply], },
-      { intros r x,
-        ext z,
-        simp only [𝓕.compatible, ring_hom.id_apply, linear_map.coe_mk, linear_map.smul_apply],
-        rw @tensor_product.smul_tmul (𝓞1.obj (op V)) _ (𝓞1.obj (op V)) _
-          (𝓕.self.obj (op V)) (𝓞2.obj (op V)) _ _ _
-          (restriction_of_scalars.is_module ⟨_⟩ (f.app (op V)))
-          begin
-            haveI := 𝓕.is_module V,
-            apply_instance,
-          end begin
-            haveI := restriction_of_scalars.is_module ⟨𝓞2.obj (op V)⟩ (f.app (op V)),
-            apply_instance,
-          end _ (𝓞1.map inc r) (𝓕.self.map inc x) (𝓞2.map inc z),
-        rw [restriction_of_scalars.smul_def ⟨𝓞2.obj (op V)⟩ (f.app (op V)) (𝓞1.map inc r),
-          smul_eq_mul],
-        erw (extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor (f.app (op V))
-          ⟨(𝓕.self.obj (op V))⟩ ((f.app (op V)) ((𝓞1.map inc) r)) ((𝓞2.map inc) z)
-          ((𝓕.to_core.self.map inc) x)).symm,
-        unfold has_scalar.smul,
-        rw tensor_product.lift.tmul,
-        dsimp,
-        erw [mul_comm, ← extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor (f.app (op V))
-          ⟨(𝓕.self.obj (op V))⟩ ((f.app (op V)) ((𝓞1.map inc) r)) ((𝓞2.map inc) z)
-          ((𝓕.to_core.self.map inc) x)],
-        congr' 1,
-        rw ← f.naturality,
-        refl,
-        }, },
-      { exact x },
+    { intros r x,
+      ext z,
+      simp only [𝓕.compatible, ring_hom.id_apply, linear_map.coe_mk, linear_map.smul_apply],
+      rw tensor_product.smul_tmul,
+      erw extension_of_scalars.smul_pure_tensor,
+      congr' 1,
+      rwa ← f.naturality,
+      refl },
 end
 
 
@@ -290,20 +267,15 @@ of `𝓞2`.
 def restrict (U V : opens X) (inc : op U ⟶ op V) :
   linear_map (𝓞2.map inc) (extension_of_scalars.module (f.app (op U)) ⟨(𝓕.self.obj (op U))⟩)
     (extension_of_scalars.module (f.app (op V)) ⟨(𝓕.self.obj (op V))⟩) :=
--- let m1 : module (𝓞1.obj (op U)) (𝓞2.obj (op U)) :=
---   extension_of_scalars.is_R_mod_S (f.app (op U)),
--- m2 : module (𝓞1.obj (op U)) (f.app (op V) _* Module.mk (𝓕.to_core.self.obj (op V))) :=
---   restriction_of_scalars.is_module _ (f.app (op U) ≫ 𝓞2.map inc)
--- in
 { to_fun := restrict.to_fun f 𝓕 U V inc,
   map_add' := by simp [restrict.to_fun],
   map_smul' := λ r m, begin
     induction m using tensor_product.induction_on with m s x y ih1 ih2,
-    { simp only [restrict.to_fun, extension_of_scalars.distrib_mul_action_S_M_tensor_S.smul_zero,
+    { simp only [restrict.to_fun, extension_of_scalars.smul_zero,
         map_zero], },
     { simp only [restrict.to_fun, linear_map.coe_mk, tensor_product.lift.tmul,
-        extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor, map_mul],
-      convert (extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor _ _ _ _ _).symm, },
+        extension_of_scalars.smul_pure_tensor, map_mul],
+      convert (extension_of_scalars.smul_pure_tensor _ _ _ _ _).symm, },
     { simp only [restrict.to_fun] at ih1 ih2 ⊢,
       rw [smul_add, map_add, map_add, ih1, ih2],
       simp only [smul_add], }
@@ -361,12 +333,12 @@ def extension_by.obj : presheaf_of_module 𝓞2 :=
   compatible := λ U V inc r m, begin
     induction m using tensor_product.induction_on with x y x y ih1 ih2,
     { simp only [map_zero, smul_zero], },
-    { rw [extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor],
+    { rw [extension_of_scalars.smul_pure_tensor],
       erw [tensor_product.lift.tmul],
       change tensor_product.tmul _ _ _ = _,
       erw [tensor_product.lift.tmul],
       change _ = _ • tensor_product.tmul _ _ _,
-      erw extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor,
+      erw extension_of_scalars.smul_pure_tensor,
       rw map_mul,
       refl, },
     { rw [smul_add, map_add, ih1, ih2, map_add, smul_add], }
@@ -387,45 +359,42 @@ private def extension_by.map_app.to_fun {𝓕1 𝓕2 : presheaf_of_module 𝓞1}
 begin
   refine @tensor_product.lift (𝓞1.obj U) _ (𝓕1.self.obj U) (𝓞2.obj U)
     ((f _* 𝓕2).to_core.self.obj U) _ _ _ (𝓕1.is_module (unop U))
-    (restriction_of_scalars.is_module ⟨_⟩ (f.app U))
-    (restriction_of_scalars.is_module _ (f.app U)) _ x,
+    (restriction_of_scalars.is_module (f.app U) ⟨_⟩)
+    (restriction_of_scalars.is_module (f.app U) _) _ x,
   fconstructor,
   { intro m,
     fconstructor,
     { intro s,
       exact @tensor_product.tmul (𝓞1.obj U) _ (𝓕2.self.obj U) (𝓞2.obj U) _ _
         (𝓕2.is_module (unop U))
-        (restriction_of_scalars.is_module ⟨_⟩ (f.app U)) (φ.1.app U m) s },
+        (restriction_of_scalars.is_module (f.app U) ⟨_⟩) (φ.1.app U m) s },
     { intros x y,
       rw tensor_product.tmul_add, },
     { intros r x,
       rw ring_hom.id_apply,
-      rw @restriction_of_scalars.smul_def (𝓞1.obj U) (𝓞2.obj U) ⟨𝓞2.obj U⟩,
-      rw @restriction_of_scalars.smul_def (𝓞1.obj U) (𝓞2.obj U)
-        { carrier := ((f _* 𝓕2).self.obj U), is_module := _ } (f.app U) r,
-      erw extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor,
+      rw @restriction_of_scalars.smul_def (𝓞1.obj U) (𝓞2.obj U) _ ⟨𝓞2.obj U⟩,
+      rw @restriction_of_scalars.smul_def (𝓞1.obj U) (𝓞2.obj U) (f.app U)
+        { carrier := ((f _* 𝓕2).self.obj U), is_module := _ } r,
+      erw extension_of_scalars.smul_pure_tensor,
       refl, }, },
-  { -- sorry,
-    intros, ext, simp [map_add, tensor_product.add_tmul],
-    },
-  { -- sorry,
-    intros r y,
+  { intros, ext, simp [map_add, tensor_product.add_tmul], },
+  { intros r y,
     ext s,
     simp only [ring_hom.id_apply, linear_map.coe_mk, linear_map.smul_apply],
     have eq1 : (φ.1.app U _) = _ • φ.1.app U _ := @morphism.compatible _ _ _ _ φ (unop U) r y,
     rw eq1,
     rw @restriction_of_scalars.smul_def (𝓞1.obj U) (𝓞2.obj U)
-      { carrier := (f _* 𝓕2).self.obj U, is_module := (f _* 𝓕2).is_module (unop U) }
-      (f.app U),
-    erw extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor,
+      (f.app U)
+      { carrier := (f _* 𝓕2).self.obj U, is_module := (f _* 𝓕2).is_module (unop U) },
+    erw extension_of_scalars.smul_pure_tensor,
     rw @tensor_product.smul_tmul (𝓞1.obj U) _ (𝓞1.obj U) _ (𝓕2.self.obj U) (𝓞2.obj U)
-      _ _ (𝓕2.is_module (unop U)) (restriction_of_scalars.is_module ⟨_⟩ (f.app U)) begin
+      _ _ (𝓕2.is_module (unop U)) (restriction_of_scalars.is_module (f.app U) ⟨_⟩) begin
         haveI := 𝓕2.is_module (unop U),
         rw op_unop at _inst,
         resetI,
         apply_instance,
       end begin
-        haveI := restriction_of_scalars.is_module ⟨𝓞2.obj U⟩ (f.app U),
+        haveI := restriction_of_scalars.is_module (f.app U) ⟨𝓞2.obj U⟩,
         apply_instance,
       end _ r (φ.1.app U y) s,
     refl,
@@ -476,10 +445,10 @@ def extension_by.map {𝓕1 𝓕2 : presheaf_of_module 𝓞1} (φ : 𝓕1 ⟶ �
     change tensor_product.lift _ _ = r • tensor_product.lift _ _,
     induction m using tensor_product.induction_on with x y x y ih1 ih2,
     { simp only [map_zero, smul_zero], },
-    { rw [extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor, tensor_product.lift.tmul,
+    { rw [extension_of_scalars.smul_pure_tensor, tensor_product.lift.tmul,
         tensor_product.lift.tmul],
       simp only [linear_map.coe_mk],
-      erw extension_of_scalars.has_scalar_S_M_tensor_S.smul_pure_tensor, },
+      erw extension_of_scalars.smul_pure_tensor, },
     { simp only [smul_add, ih1, ih2, map_add], }
   end }.
 

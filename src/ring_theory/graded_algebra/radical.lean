@@ -310,23 +310,19 @@ begin
   have : Inf {J : ideal R | I.val ≤ J ∧ ideal.is_homogeneous A J ∧ J.is_prime} =
     (Inf {J : homogeneous_ideal A | I.1 ≤ J.1 ∧ J.1.is_prime }).1,
   { simp only [subtype.coe_le_coe, subtype.val_eq_coe],
-    congr,
+    rw homogeneous_ideal.coe_Inf,
+    congr' 1,
     ext J,
+    rw set.mem_image,
+    simp only [set.mem_set_of_eq, subtype.exists, subtype.coe_mk, exists_and_distrib_right,
+      exists_eq_right],
     split;
     intro H,
-    { use ⟨J, H.2.1⟩,
-      split,
-      refine ⟨H.1, H.2.2⟩,
-      refl, },
-    { obtain ⟨K, ⟨⟨HK₁, HK₂⟩, HK₃⟩⟩ := H,
-      split,
-      convert HK₁,
-      rw ←HK₃,
-      split,
-      { rw ←HK₃, exact K.2 },
-      { rw ←HK₃, exact HK₂ }, } },
+    { exact ⟨⟨H.2.1, H.1⟩, H.2.2⟩, },
+    { obtain ⟨⟨HJ1, HJ2⟩, HJ3⟩ := H,
+      exact ⟨HJ2, HJ1, HJ3⟩, } },
   rw this,
-  refine (Inf {J : homogeneous_ideal A | I.val ≤ J.val ∧ J.val.is_prime}).2,
+  exact (Inf {J : homogeneous_ideal A | I.val ≤ J.val ∧ J.val.is_prime}).2,
 end
 
 end linear_ordered_cancel_add_comm_monoid

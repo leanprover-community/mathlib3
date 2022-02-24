@@ -91,7 +91,7 @@ noncomputable theory
 open set filter (hiding map) function measurable_space topological_space (second_countable_topology)
 open_locale classical topological_space big_operators filter ennreal nnreal
 
-variables {α β γ δ ι : Type*}
+variables {α β γ δ ι R R' : Type*}
 
 namespace measure_theory
 
@@ -622,9 +622,56 @@ instance [measurable_space α] : has_add (measure α) :=
 theorem add_apply {m : measurable_space α} (μ₁ μ₂ : measure α) (s : set α) :
   (μ₁ + μ₂) s = μ₁ s + μ₂ s := rfl
 
+section has_scalar
+variables [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+variables [has_scalar R' ℝ≥0∞] [is_scalar_tower R' ℝ≥0∞ ℝ≥0∞]
+
+instance [measurable_space α] : has_scalar R (measure α) :=
+⟨λ c μ,
+  { to_outer_measure := c • μ.to_outer_measure,
+    m_Union := λ s hs hd, begin
+      rw ←smul_one_smul ℝ≥0∞ c (_ : outer_measure α),
+      dsimp,
+      simp_rw [measure_Union hd hs, ennreal.tsum_mul_left],
+    end,
+    trimmed := by rw [outer_measure.trim_smul, μ.trimmed] }⟩
+
+@[simp] theorem smul_to_outer_measure {m : measurable_space α} (c : R) (μ : measure α) :
+  (c • μ).to_outer_measure = c • μ.to_outer_measure :=
+rfl
+
+@[simp, norm_cast] theorem coe_smul {m : measurable_space α} (c : R) (μ : measure α) :
+  ⇑(c • μ) = c • μ :=
+rfl
+
+@[simp] theorem smul_apply {m : measurable_space α} (c : R) (μ : measure α) (s : set α) :
+  (c • μ) s = c • μ s :=
+rfl
+
+instance [smul_comm_class R R' ℝ≥0∞] [measurable_space α] :
+  smul_comm_class R R' (measure α) :=
+⟨λ _ _ _, ext $ λ _ _, smul_comm _ _ _⟩
+
+instance [has_scalar R R'] [is_scalar_tower R R' ℝ≥0∞] [measurable_space α] :
+  is_scalar_tower R R' (measure α) :=
+⟨λ _ _ _, ext $ λ _ _, smul_assoc _ _ _⟩
+
+instance [has_scalar Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] [measurable_space α] :
+  is_central_scalar R (measure α) :=
+⟨λ _ _, ext $ λ _ _, op_smul_eq_smul _ _⟩
+
+end has_scalar
+
+instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] [measurable_space α] :
+  mul_action R (measure α) :=
+injective.mul_action _ to_outer_measure_injective smul_to_outer_measure
+
+-- there is no `function.injective.add_comm_monoid_smul` so we do this in two steps
 instance add_comm_monoid [measurable_space α] : add_comm_monoid (measure α) :=
-to_outer_measure_injective.add_comm_monoid to_outer_measure zero_to_outer_measure
-  add_to_outer_measure
+{ ..(to_outer_measure_injective.add_monoid_smul to_outer_measure zero_to_outer_measure
+      add_to_outer_measure (λ _ _, smul_to_outer_measure _ _) : add_monoid (measure α)),
+  ..(to_outer_measure_injective.add_comm_semigroup to_outer_measure add_to_outer_measure :
+      add_comm_semigroup (measure α)) }
 
 /-- Coercion to function as an additive monoid homomorphism. -/
 def coe_add_hom {m : measurable_space α} : measure α →+ (set α → ℝ≥0∞) :=
@@ -638,31 +685,16 @@ theorem finset_sum_apply {m : measurable_space α} (I : finset ι) (μ : ι → 
   (∑ i in I, μ i) s = ∑ i in I, μ i s :=
 by rw [coe_finset_sum, finset.sum_apply]
 
-instance [measurable_space α] : has_scalar ℝ≥0∞ (measure α) :=
-⟨λ c μ,
-  { to_outer_measure := c • μ.to_outer_measure,
-    m_Union := λ s hs hd, by simp [measure_Union, *, ennreal.tsum_mul_left],
-    trimmed := by rw [outer_measure.trim_smul, μ.trimmed] }⟩
-
-@[simp] theorem smul_to_outer_measure {m : measurable_space α} (c : ℝ≥0∞) (μ : measure α) :
-  (c • μ).to_outer_measure = c • μ.to_outer_measure :=
-rfl
-
-@[simp, norm_cast] theorem coe_smul {m : measurable_space α} (c : ℝ≥0∞) (μ : measure α) :
-  ⇑(c • μ) = c • μ :=
-rfl
-
-@[simp] theorem smul_apply {m : measurable_space α} (c : ℝ≥0∞) (μ : measure α) (s : set α) :
-  (c • μ) s = c * μ s :=
-rfl
-
-instance [measurable_space α] : module ℝ≥0∞ (measure α) :=
-injective.module ℝ≥0∞ ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
+instance [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  [measurable_space α] :
+  distrib_mul_action R (measure α) :=
+injective.distrib_mul_action ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
 
-@[simp, norm_cast] theorem coe_nnreal_smul {m : measurable_space α} (c : ℝ≥0) (μ : measure α) :
-  ⇑(c • μ) = c • μ :=
-rfl
+instance [semiring R] [module R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] [measurable_space α] :
+  module R (measure α) :=
+injective.module R ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
+  to_outer_measure_injective smul_to_outer_measure
 
 @[simp] theorem coe_nnreal_smul_apply {m : measurable_space α} (c : ℝ≥0) (μ : measure α)
   (s : set α) :
@@ -1572,11 +1604,9 @@ instance [measurable_space α] : is_refl (measure α) (≪) := ⟨λ μ, absolut
 if hf : measurable f then absolutely_continuous.mk $ λ s hs, by simpa [hf, hs] using @h _
 else by simp only [map_of_not_measurable hf]
 
-protected lemma smul (h : μ ≪ ν) (c : ℝ≥0∞) : c • μ ≪ ν :=
-mk (λ s hs hνs, by simp only [h hνs, algebra.id.smul_eq_mul, coe_smul, pi.smul_apply, mul_zero])
-
-protected lemma coe_nnreal_smul (h : μ ≪ ν) (c : ℝ≥0) : c • μ ≪ ν :=
-h.smul c
+protected lemma smul [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  (h : μ ≪ ν) (c : R) : c • μ ≪ ν :=
+mk (λ s hs hνs, by simp only [h hνs, smul_eq_mul, smul_apply, smul_zero])
 
 end absolutely_continuous
 
@@ -1779,8 +1809,10 @@ lemma mem_map_restrict_ae_iff {β} {s : set α} {t : set β} {f : α → β} (hs
   t ∈ filter.map f (μ.restrict s).ae ↔ μ ((f ⁻¹' t)ᶜ ∩ s) = 0 :=
 by rw [mem_map, mem_ae_iff, measure.restrict_apply' hs]
 
-lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ℝ≥0∞) : ∀ᵐ x ∂(c • μ), p x :=
-ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, mul_zero]
+lemma ae_smul_measure {p : α → Prop} [monoid R] [distrib_mul_action R ℝ≥0∞]
+  [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] (h : ∀ᵐ x ∂μ, p x) (c : R) :
+  ∀ᵐ x ∂(c • μ), p x :=
+ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, smul_zero]
 
 lemma ae_smul_measure_iff {p : α → Prop} {c : ℝ≥0∞} (hc : c ≠ 0) :
   (∀ᵐ x ∂(c • μ), p x) ↔ ∀ᵐ x ∂μ, p x :=
@@ -1964,6 +1996,16 @@ instance is_finite_measure_add [is_finite_measure μ] [is_finite_measure ν] :
 instance is_finite_measure_smul_nnreal [is_finite_measure μ] {r : ℝ≥0} :
   is_finite_measure (r • μ) :=
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_ne_top (measure_ne_top _ _) }
+
+instance is_finite_measure_smul_of_nnreal_tower
+  {R} [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
+  [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  [is_finite_measure μ] {r : R} :
+  is_finite_measure (r • μ) :=
+begin
+  rw ←smul_one_smul ℝ≥0 r μ,
+  apply_instance,
+end
 
 lemma is_finite_measure_of_le (μ : measure α) [is_finite_measure μ] (h : ν ≤ μ) :
   is_finite_measure ν :=
@@ -2490,7 +2532,8 @@ begin
   rcases μ.exists_is_open_measure_lt_top x with ⟨o, xo, o_open, μo⟩,
   refine ⟨o, o_open.mem_nhds xo, _⟩,
   apply ennreal.mul_lt_top _ μo.ne,
-  simp only [ennreal.coe_ne_top, ennreal.coe_of_nnreal_hom, ne.def, not_false_iff],
+  simp only [ring_hom.to_monoid_hom_eq_coe, ring_hom.coe_monoid_hom, ennreal.coe_ne_top,
+    ennreal.coe_of_nnreal_hom, ne.def, not_false_iff],
 end
 
 /-- A measure `μ` is finite on compacts if any compact set `K` satisfies `μ K < ∞`. -/
@@ -3124,7 +3167,8 @@ protected lemma Union [encodable ι] {s : ι → set α} (h : ∀ i, ae_measurab
 ⟨λ h i, h.mono_measure $ restrict_mono (subset_Union _ _) le_rfl, ae_measurable.Union⟩
 
 @[measurability]
-lemma smul_measure (h : ae_measurable f μ) (c : ℝ≥0∞) :
+lemma smul_measure [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+  (h : ae_measurable f μ) (c : R) :
   ae_measurable f (c • μ) :=
 ⟨h.mk f, h.measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 

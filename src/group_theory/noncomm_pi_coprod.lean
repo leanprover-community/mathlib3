@@ -216,7 +216,9 @@ include hfin
 variable (hcomm)
 
 /-- The canonical homomorphism from a family of monoids. -/
-@[to_additive "The canonical homomorphism from a family of additive monoids."]
+@[to_additive "The canonical homomorphism from a family of additive monoids.
+
+See also `linear_map.lsum` for a linear version without the commutativity assumption."]
 def noncomm_pi_coprod : (Π (i : ι), N i) →* M := noncomm_pi_coprod_on.hom ϕ hcomm finset.univ
 
 variable {hcomm}
@@ -287,7 +289,7 @@ include hfin
 
 namespace monoid_hom
 
--- The subgroup version of `noncomm_pi_coprod_on_mrange`
+-- The subgroup version of `noncomm_pi_coprod_mrange`
 @[to_additive]
 lemma noncomm_pi_coprod_range : (noncomm_pi_coprod ϕ hcomm).range = ⨆ i : ι, (ϕ i).range :=
 begin
@@ -346,7 +348,7 @@ begin
   { rw [← hgf, ← fintype.card_pi], exact (order_of_map_dvd _ _).trans order_of_dvd_card_univ },
   change f = 1, rw [← pow_one f, ← order_of_dvd_iff_pow_eq_one],
   convert ← nat.dvd_gcd hxp hxi, rw ← nat.coprime_iff_gcd_eq_one,
-  apply coprime_prod_left, intros j _, apply hcoprime, exact j.2,
+  apply nat.coprime_prod_left, intros j _, apply hcoprime, exact j.2,
 end
 
 end monoid_hom

@@ -901,7 +901,7 @@ begin
     hx_nonneg_Lp n⟩, λ n, mem_range_self _, _⟩,
   suffices : tendsto (λ (n : ℕ), ↑(to_Lp (x n) (hx_mem_ℒp n))) at_top (𝓝 (g : Lp G p μ)),
   { rw tendsto_iff_dist_tendsto_zero at this ⊢,
-    simp_rw subtype.pseudo_dist_eq,
+    simp_rw subtype.dist_eq,
     convert this, },
   rw Lp.tendsto_Lp_iff_tendsto_ℒp',
   convert hx_tendsto,

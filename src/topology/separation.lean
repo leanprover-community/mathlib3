@@ -306,11 +306,11 @@ end
 protected lemma finset.is_closed [t1_space α] (s : finset α) : is_closed (s : set α) :=
 s.finite_to_set.is_closed
 
-lemma t1_space_tfae (α : Type u) [t : topological_space α] :
+lemma t1_space_tfae (α : Type u) [topological_space α] :
   tfae [t1_space α,
     ∀ x, is_closed ({x} : set α),
     ∀ x, is_open ({x}ᶜ : set α),
-    t ≤ cofinite_topology α,
+    continuous (@cofinite_topology.of α),
     ∀ ⦃x y : α⦄, x ≠ y → {y}ᶜ ∈ 𝓝 x,
     ∀ ⦃x y : α⦄, x ≠ y → ∃ s ∈ 𝓝 x, y ∉ s,
     ∀ ⦃x y : α⦄, x ≠ y → ∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U,
@@ -331,18 +331,20 @@ begin
     by simp only [← principal_singleton, disjoint_principal_right],
   tfae_have : 8 ↔ 9, from forall_swap.trans (by simp only [disjoint.comm, ne_comm]),
   tfae_have : 1 → 4,
-  { introsI H s hs,
-    simp only [cofinite_topology, ← ne_empty_iff_nonempty, ne.def, ← or_iff_not_imp_left] at hs,
-    rcases hs with rfl | hs,
-    exacts [is_open_empty, compl_compl s ▸ hs.is_closed.is_open_compl] },
-  tfae_have : 4 → 3,
-  { refine λ h x, h _ (λ _, _), simp },
+  { simp only [continuous_def, cofinite_topology.is_open_iff'],
+    rintro H s (rfl|hs),
+    exacts [is_open_empty, compl_compl s ▸ (@set.finite.is_closed _ _ H _ hs).is_open_compl] },
+  tfae_have : 4 → 2,
+    from λ h x, (cofinite_topology.is_closed_iff.2 $ or.inr (finite_singleton _)).preimage h,
   tfae_finish
 end
 
-lemma t1_space_iff_le_cofinite {α : Type*} [t : topological_space α] :
-  t1_space α ↔ t ≤ cofinite_topology α :=
+lemma t1_space_iff_continuous_cofinite_of {α : Type*} [topological_space α] :
+  t1_space α ↔ continuous (@cofinite_topology.of α) :=
 (t1_space_tfae α).out 0 3
+
+lemma cofinite_topology.continuous_of [t1_space α] : continuous (@cofinite_topology.of α) :=
+t1_space_iff_continuous_cofinite_of.mp ‹_›
 
 lemma t1_space_iff_exists_open : t1_space α ↔
   ∀ (x y), x ≠ y → (∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U) :=
@@ -360,13 +362,12 @@ t1_space_iff_disjoint_pure_nhds.mp ‹_› h
 lemma disjoint_nhds_pure [t1_space α] {x y : α} (h : x ≠ y) : disjoint (𝓝 x) (pure y) :=
 t1_space_iff_disjoint_nhds_pure.mp ‹_› h
 
-@[priority 100] -- see Note [lower instance priority]
-instance t1_space_cofinite {α : Type*} : @t1_space α (cofinite_topology α) :=
-(@t1_space_iff_le_cofinite α (cofinite_topology α)).mpr le_rfl
+instance {α : Type*} : t1_space (cofinite_topology α) :=
+t1_space_iff_continuous_cofinite_of.mpr continuous_id
 
 lemma t1_space_antitone {α : Type*} : antitone (@t1_space α) :=
 begin
-  simp only [antitone, t1_space_iff_le_cofinite],
+  simp only [antitone, t1_space_iff_continuous_cofinite_of, continuous_iff_le_induced],
   exact λ t₁ t₂ h, h.trans
 end
 
@@ -1148,32 +1149,22 @@ begin
 end
 
 lemma is_preirreducible_iff_subsingleton [t2_space α] (S : set α) :
-  is_preirreducible S ↔ subsingleton S :=
+  is_preirreducible S ↔ set.subsingleton S :=
 begin
   split,
-  { intro h,
-    constructor,
-    intros x y,
-    ext,
+  { intros h x hx y hy,
     by_contradiction e,
     obtain ⟨U, V, hU, hV, hxU, hyV, h'⟩ := t2_separation e,
-    have := h U V hU hV ⟨x, x.prop, hxU⟩ ⟨y, y.prop, hyV⟩,
+    have := h U V hU hV ⟨x, hx, hxU⟩ ⟨y, hy, hyV⟩,
     rw [h', inter_empty] at this,
     exact this.some_spec },
-  { exact @@is_preirreducible_of_subsingleton _ _ }
+  { exact set.subsingleton.is_preirreducible }
 end
 
 lemma is_irreducible_iff_singleton [t2_space α] (S : set α) :
   is_irreducible S ↔ ∃ x, S = {x} :=
-begin
-  split,
-  { intro h,
-    rw exists_eq_singleton_iff_nonempty_unique_mem,
-    use h.1,
-    intros a ha b hb,
-    injection @@subsingleton.elim ((is_preirreducible_iff_subsingleton _).mp h.2) ⟨_, ha⟩ ⟨_, hb⟩ },
-  { rintro ⟨x, rfl⟩, exact is_irreducible_singleton }
-end
+by rw [is_irreducible, is_preirreducible_iff_subsingleton,
+  exists_eq_singleton_iff_nonempty_subsingleton]
 
 end separation
 

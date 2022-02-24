@@ -75,8 +75,8 @@ instance : has_coe_to_fun (C(α, β)) (λ _, α → β) := fun_like.has_coe_to_f
 
 @[ext] lemma ext {f g : C(α, β)} (h : ∀ a, f a = g a) : f = g := fun_like.ext _ _ h
 
-/-- Copy of a `continuous_map` with a new `continuous_map` equal to the old one. Useful to fix
-definitional equalities. -/
+/-- Copy of a `continuous_map` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
 protected def copy (f : C(α, β)) (f' : α → β) (h : f' = f) : C(α, β) :=
 { to_fun := f',
   continuous_to_fun := h.symm ▸ f.continuous_to_fun }

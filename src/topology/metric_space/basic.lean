@@ -388,13 +388,12 @@ def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 
 @[simp] theorem mem_sphere : y ∈ sphere x ε ↔ dist y x = ε := iff.rfl
 
+theorem ne_of_mem_sphere (h : y ∈ sphere x ε) (hε : ε ≠ 0) : y ≠ x :=
+by { contrapose! hε, symmetry, simpa [hε] using h  }
+
 theorem sphere_eq_empty_of_subsingleton [subsingleton α] (hε : ε ≠ 0) :
   sphere x ε = ∅ :=
-begin
-  refine set.eq_empty_iff_forall_not_mem.mpr (λ y hy, _),
-  rw [mem_sphere, ←subsingleton.elim x y, dist_self x] at hy,
-  exact hε.symm hy,
-end
+set.eq_empty_iff_forall_not_mem.mpr $ λ y hy, ne_of_mem_sphere hy hε (subsingleton.elim _ _)
 
 theorem sphere_is_empty_of_subsingleton [subsingleton α] (hε : ε ≠ 0) :
   is_empty (sphere x ε) :=
@@ -2283,6 +2282,16 @@ set.ext $ λ y, dist_le_zero
 
 @[simp] lemma sphere_zero : sphere x 0 = {x} :=
 set.ext $ λ y, dist_eq_zero
+
+lemma subsingleton_closed_ball (x : γ) {r : ℝ} (hr : r ≤ 0) : (closed_ball x r).subsingleton :=
+begin
+  rcases hr.lt_or_eq with hr|rfl,
+  { rw closed_ball_eq_empty.2 hr, exact subsingleton_empty },
+  { rw closed_ball_zero, exact subsingleton_singleton }
+end
+
+lemma subsingleton_sphere (x : γ) {r : ℝ} (hr : r ≤ 0) : (sphere x r).subsingleton :=
+(subsingleton_closed_ball x hr).mono sphere_subset_closed_ball
 
 /-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/

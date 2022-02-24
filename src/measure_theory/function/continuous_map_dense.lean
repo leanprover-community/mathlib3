@@ -171,7 +171,7 @@ namespace bounded_continuous_function
 lemma to_Lp_dense_range [μ.weakly_regular] [is_finite_measure μ] :
   dense_range ⇑(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] Lp E p μ) :=
 begin
-  haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,
+  haveI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
   rw dense_range_iff_closure_range,
   suffices : (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
   { exact congr_arg coe this },
@@ -185,7 +185,7 @@ namespace continuous_map
 lemma to_Lp_dense_range [compact_space α] [μ.weakly_regular] [is_finite_measure μ] :
   dense_range ⇑(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] Lp E p μ) :=
 begin
-  haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,
+  haveI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
   rw dense_range_iff_closure_range,
   suffices : (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
   { exact congr_arg coe this },

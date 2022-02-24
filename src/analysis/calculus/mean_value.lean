@@ -483,7 +483,7 @@ theorem norm_image_sub_le_of_norm_has_fderiv_within_le
   (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C)
   (hs : convex ℝ s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 begin
-  letI : normed_space ℝ G := restrict_scalars.normed_space ℝ 𝕜 G,
+  letI : normed_space ℝ G := normed_space.restrict_scalars ℝ 𝕜 G,
   /- By composition with `t ↦ x + t • (y-x)`, we reduce to a statement for functions defined
   on `[0,1]`, for which it is proved in `norm_image_sub_le_of_norm_deriv_le_segment`.
   We just have to check the differentiability of the composition and bounds on its derivative,
@@ -1290,7 +1290,7 @@ begin
   have hf' : ∀ x' ∈ ball x ε, ∥f' x' - f' x∥ ≤ c,
   { intros x' H', rw ← dist_eq_norm, exact le_of_lt (hε H').2 },
 -- apply mean value theorem
-  letI : normed_space ℝ G := restrict_scalars.normed_space ℝ 𝕜 G,
+  letI : normed_space ℝ G := normed_space.restrict_scalars ℝ 𝕜 G,
   refine (convex_ball _ _).norm_image_sub_le_of_norm_has_fderiv_within_le' _ hf' h.2 h.1,
   exact λ y hy, (hε hy).1.has_fderiv_within_at
 end

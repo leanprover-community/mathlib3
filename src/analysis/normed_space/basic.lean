@@ -920,8 +920,25 @@ end normed_algebra
 
 section restrict_scalars
 
-variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-(E : Type*) [semi_normed_group E] [normed_space 𝕜' E]
+variables {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
+
+instance [I : semi_normed_group E] : semi_normed_group (restrict_scalars 𝕜 𝕜' E) := I
+
+instance [I : normed_group E] : normed_group (restrict_scalars 𝕜 𝕜' E) := I
+
+instance restrict_scalars.normed_space_orig
+  [normed_field 𝕜'] [semi_normed_group E] [I : normed_space 𝕜' E] :
+  normed_space 𝕜' (restrict_scalars 𝕜 𝕜' E) := I
+
+instance [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  [semi_normed_group E] [normed_space 𝕜' E] : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=
+{ norm_smul_le := λc x, le_of_eq $ begin
+    change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
+    simp [norm_smul, -algebra_map_smul]
+  end,
+  ..restrict_scalars.module 𝕜 𝕜' E }
+
+variables (𝕜 𝕜' E)
 
 /-- Warning: This declaration should be used judiciously.
 Please consider using `is_scalar_tower` instead.
@@ -929,27 +946,11 @@ Please consider using `is_scalar_tower` instead.
 `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
-The type synonym `restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+The type synonym `restrict_scalars 𝕜 𝕜' E` is endowed with this instance by default.
 -/
-def normed_space.restrict_scalars : normed_space 𝕜 E :=
-{ norm_smul_le := λc x, le_of_eq $ begin
-    change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
-    simp [norm_smul]
-  end,
-  ..restrict_scalars.module 𝕜 𝕜' E }
-
-instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : semi_normed_group E] :
-  semi_normed_group (restrict_scalars 𝕜 𝕜' E) := I
-
-instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
-  normed_group (restrict_scalars 𝕜 𝕜' E) := I
-
-instance module.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
-  [normed_field 𝕜'] [semi_normed_group E] [I : normed_space 𝕜' E] :
-  normed_space 𝕜' (restrict_scalars 𝕜 𝕜' E) := I
-
-instance : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=
-(normed_space.restrict_scalars 𝕜 𝕜' E : normed_space 𝕜 E)
+def normed_space.restrict_scalars [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  [semi_normed_group E] [normed_space 𝕜' E] : normed_space 𝕜 E :=
+(restrict_scalars.normed_space : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E))
 
 end restrict_scalars
 

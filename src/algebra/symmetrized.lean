@@ -15,6 +15,7 @@ $$
 a \circ b = \frac{1}{2}(ab + ba)
 $$
 
+We provide the symmetrized version of a type `α` as `sym_alg α`, with notation `αˢʸᵐ`.
 ## Implementation notes
 
 The approach taken here is inspired by algebra.opposites. We use Oxford Spellings

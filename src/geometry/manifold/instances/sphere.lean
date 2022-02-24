@@ -322,10 +322,10 @@ instance {n : ℕ} [fact (finrank ℝ E = n + 1)] :
 smooth_manifold_with_corners_of_cont_diff_on (𝓡 n) (sphere (0:E) 1)
 begin
   rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
-  let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
+  let U := -- Removed type ascription, and this helped for some reason with timeout issues?
     (linear_isometry_equiv.from_orthogonal_span_singleton n
       (ne_zero_of_mem_unit_sphere v)).repr,
-  let U' : (ℝ ∙ (v':E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
+  let U' :=-- Removed type ascription, and this helped for some reason with timeout issues?
     (linear_isometry_equiv.from_orthogonal_span_singleton n
       (ne_zero_of_mem_unit_sphere v')).repr,
   have hUv : stereographic' n v = (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
@@ -350,7 +350,7 @@ begin
   split,
   { exact continuous_subtype_coe },
   { intros v _,
-    let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
+    let U := -- Again, removing type ascription...
       (linear_isometry_equiv.from_orthogonal_span_singleton n
         (ne_zero_of_mem_unit_sphere (-v))).repr,
     exact ((cont_diff_stereo_inv_fun_aux.comp
@@ -371,7 +371,7 @@ begin
   rw cont_mdiff_iff_target,
   refine ⟨continuous_induced_rng hf.continuous, _⟩,
   intros v,
-  let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
+  let U := -- Again, removing type ascription
     (linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))).repr,
   have h : cont_diff_on ℝ ⊤ U set.univ :=
     U.cont_diff.cont_diff_on,

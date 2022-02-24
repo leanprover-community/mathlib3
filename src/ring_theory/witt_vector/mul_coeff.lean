@@ -15,7 +15,7 @@ of a product of Witt vectors `x` and `y` over a ring of characteristic `p`.
 We aim to isolate the `n+1`st coefficients of `x` and `y`, and express the rest of the product
 in terms of a function of the lower coefficients.
 
-For most of this section we work with terms of type `mv_polynomial (fin 2 × ℕ) ℤ`.
+For most of this file we work with terms of type `mv_polynomial (fin 2 × ℕ) ℤ`.
 We will eventually evaluate them in `k`, but first we must take care of a calculation
 that needs to happen in characteristic 0.
 

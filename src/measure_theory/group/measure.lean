@@ -161,11 +161,6 @@ is_inv_invariant.inv_eq_self
 lemma map_inv_eq_self (μ : measure G) [is_inv_invariant μ] : map has_inv.inv μ = μ :=
 is_inv_invariant.inv_eq_self
 
-@[to_additive]
-instance [has_measurable_inv G] [sigma_finite μ] : sigma_finite μ.inv :=
-(measurable_equiv.inv G).sigma_finite_map ‹_›
-
-
 end inv
 
 section has_involutive_inv
@@ -188,6 +183,10 @@ by rw [← inv_apply, inv_eq_self]
 lemma measure_preimage_inv (μ : measure G) [is_inv_invariant μ] (A : set G) :
   μ (has_inv.inv ⁻¹' A) = μ A :=
 μ.measure_inv A
+
+@[to_additive]
+instance (μ : measure G) [sigma_finite μ] : sigma_finite μ.inv :=
+(measurable_equiv.inv G).sigma_finite_map ‹_›
 
 end has_involutive_inv
 

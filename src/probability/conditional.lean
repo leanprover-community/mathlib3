@@ -128,7 +128,7 @@ by rw [cond_measure_apply μ hms t, mul_comm, ←mul_assoc,
 theorem bayes (s : set α) (hms : measurable_set s)
   (t : set α) (hmb : measurable_set t) (hcb : μ t ≠ 0) :
   μ[t|s] = (μ s)⁻¹ * μ[s|t] * (μ t) :=
-by { rw [mul_assoc, cond_mul_eq_inter μ hmb hcb s, set.inter_comm, cond_measure_apply _ hms] }
+by rw [mul_assoc, cond_mul_eq_inter μ hmb hcb s, set.inter_comm, cond_measure_apply _ hms]
 
 end bayes
 

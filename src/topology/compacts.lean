@@ -266,16 +266,18 @@ instance : has_sup (clopens α) := ⟨λ s t, ⟨s ∪ t, s.clopen.union t.clope
 instance : has_inf (clopens α) := ⟨λ s t, ⟨s ∩ t, s.clopen.inter t.clopen⟩⟩
 instance : has_top (clopens α) := ⟨⟨⊤, is_clopen_univ⟩⟩
 instance : has_bot (clopens α) := ⟨⟨⊥, is_clopen_empty⟩⟩
+instance : has_sdiff (clopens α) := ⟨λ s t, ⟨s \ t, s.clopen.diff t.clopen⟩⟩
+instance : has_compl (clopens α) := ⟨λ s, ⟨sᶜ, s.clopen.compl⟩⟩
 
-instance : distrib_lattice (clopens α) :=
-set_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
-
-instance : bounded_order (clopens α) := bounded_order.lift (coe : _ → set α) (λ _ _, id) rfl rfl
+instance : boolean_algebra (clopens α) :=
+set_like.coe_injective.boolean_algebra _ (λ _ _, rfl) (λ _ _, rfl) rfl rfl (λ _, rfl) (λ _ _, rfl)
 
 @[simp] lemma coe_sup (s t : clopens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
 @[simp] lemma coe_inf (s t : clopens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
 @[simp] lemma coe_top : (↑(⊤ : clopens α) : set α) = univ := rfl
 @[simp] lemma coe_bot : (↑(⊥ : clopens α) : set α) = ∅ := rfl
+@[simp] lemma coe_sdiff (s t : clopens α) : (↑(s \ t) : set α) = s \ t := rfl
+@[simp] lemma coe_compl (s : clopens α) : (↑sᶜ : set α) = sᶜ := rfl
 
 instance : inhabited (clopens α) := ⟨⊥⟩
 
@@ -313,22 +315,32 @@ instance [t2_space α] : has_inf (compact_opens α) :=
 ⟨λ s t, ⟨s.to_compacts ⊓ t.to_compacts, s.open.inter t.open⟩⟩
 instance [compact_space α] : has_top (compact_opens α) := ⟨⟨⊤, is_open_univ⟩⟩
 instance : has_bot (compact_opens α) := ⟨⟨⊥, is_open_empty⟩⟩
+instance [t2_space α] : has_sdiff (compact_opens α) :=
+⟨λ s t, ⟨⟨s \ t, s.compact.diff t.open⟩, s.open.sdiff t.compact.is_closed⟩⟩
+instance [t2_space α] [compact_space α] : has_compl (compact_opens α) :=
+⟨λ s, ⟨⟨sᶜ, s.open.is_closed_compl.is_compact⟩, s.compact.is_closed.is_open_compl⟩⟩
 
 instance : semilattice_sup (compact_opens α) :=
 set_like.coe_injective.semilattice_sup _ (λ _ _, rfl)
 
-instance [t2_space α] : distrib_lattice (compact_opens α) :=
-set_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
-
 instance : order_bot (compact_opens α) := order_bot.lift (coe : _ → set α) (λ _ _, id) rfl
+
+instance [t2_space α] : generalized_boolean_algebra (compact_opens α) :=
+set_like.coe_injective.generalized_boolean_algebra _ (λ _ _, rfl) (λ _ _, rfl) rfl (λ _ _, rfl)
 
 instance [compact_space α] : bounded_order (compact_opens α) :=
 bounded_order.lift (coe : _ → set α) (λ _ _, id) rfl rfl
+
+instance [t2_space α] [compact_space α] : boolean_algebra (compact_opens α) :=
+set_like.coe_injective.boolean_algebra _ (λ _ _, rfl) (λ _ _, rfl) rfl rfl (λ _, rfl) (λ _ _, rfl)
 
 @[simp] lemma coe_sup (s t : compact_opens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
 @[simp] lemma coe_inf [t2_space α] (s t : compact_opens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
 @[simp] lemma coe_top [compact_space α] : (↑(⊤ : compact_opens α) : set α) = univ := rfl
 @[simp] lemma coe_bot : (↑(⊥ : compact_opens α) : set α) = ∅ := rfl
+@[simp] lemma coe_sdiff [t2_space α] (s t : compact_opens α) : (↑(s \ t) : set α) = s \ t := rfl
+@[simp] lemma coe_compl [t2_space α] [compact_space α] (s : compact_opens α) : (↑sᶜ : set α) = sᶜ :=
+rfl
 
 instance : inhabited (compact_opens α) := ⟨⊥⟩
 

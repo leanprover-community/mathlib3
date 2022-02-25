@@ -295,6 +295,21 @@ def Pi_congr_right {ι : Type*} {R S : ι → Type*}
 { .. @mul_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_mul_equiv),
   .. @add_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_add_equiv) }
 
+@[simp]
+lemma Pi_congr_right_refl {ι : Type*} {R : ι → Type*} [Π i, semiring (R i)] :
+  Pi_congr_right (λ i, ring_equiv.refl (R i)) = ring_equiv.refl _ := rfl
+
+@[simp]
+lemma Pi_congr_right_symm {ι : Type*} {R S : ι → Type*}
+  [Π i, semiring (R i)] [Π i, semiring (S i)]
+  (e : ∀ i, R i ≃+* S i) : (Pi_congr_right e).symm = (Pi_congr_right $ λ i, (e i).symm) := rfl
+
+@[simp]
+lemma Pi_congr_right_trans {ι : Type*} {R S T : ι → Type*}
+  [Π i, semiring (R i)] [Π i, semiring (S i)] [Π i, semiring (T i)]
+  (e : ∀ i, R i ≃+* S i) (f : ∀ i, S i ≃+* T i) :
+  (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) := rfl
+
 end semiring
 
 section

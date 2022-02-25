@@ -1,4 +1,19 @@
+/-
+Copyright (c) 2015 Joseph Hua. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Joseph Hua.
+-/
 import data.W.basic
+
+/-!
+# Instances of W types
+
+We take the view of W types as inductive types.
+Given `α : Type` and `β : α → Type`, the W type determined by this data, `W_type β`, is the
+inductively with constructors from `α` and arities of each constructor `a : α` given by `β a`.
+
+This file contains `nat` and `list` as examples of W types.
+-/
 
 universe u
 

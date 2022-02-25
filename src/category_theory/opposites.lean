@@ -106,8 +106,20 @@ lemma is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
 ⟨⟨(inv (f.op)).unop,
   ⟨quiver.hom.op_inj (by simp), quiver.hom.op_inj (by simp)⟩⟩⟩
 
-@[simp] lemma op_inv {X Y : C} (f : X ⟶ Y) [f_iso : is_iso f] : (inv f).op = inv f.op :=
+lemma is_iso_op_iff {X Y : C} (f : X ⟶ Y) : is_iso f.op ↔ is_iso f :=
+⟨λ hf, by exactI is_iso_of_op _, λ hf, by exactI infer_instance⟩
+
+lemma is_iso_unop_iff {X Y : Cᵒᵖ} (f : X ⟶ Y) : is_iso f.unop ↔ is_iso f :=
+by rw [← is_iso_op_iff f.unop, quiver.hom.op_unop]
+
+instance is_iso_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso f] : is_iso f.unop :=
+(is_iso_unop_iff _).2 infer_instance
+
+@[simp] lemma op_inv {X Y : C} (f : X ⟶ Y) [is_iso f] : (inv f).op = inv f.op :=
 by { ext, rw [← op_comp, is_iso.inv_hom_id, op_id] }
+
+@[simp] lemma unop_inv {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso f] : (inv f).unop = inv f.unop :=
+by { ext, rw [← unop_comp, is_iso.inv_hom_id, unop_id] }
 
 namespace functor
 

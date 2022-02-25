@@ -27,12 +27,12 @@ universe u
 namespace ratfunc
 noncomputable theory
 open polynomial
-open_locale classical non_zero_divisors
+open_locale classical non_zero_divisors polynomial
 
 variables {R : Type u} [comm_ring R] [hdomain : is_domain R]
-  (r s : R) (p q : polynomial R) (f : ratfunc R)
+  (r s : R) (p q : R[X]) (f : ratfunc R)
 
-lemma taylor_mem_non_zero_divisors (hp : p ∈ (polynomial R)⁰) : taylor r p ∈ (polynomial R)⁰ :=
+lemma taylor_mem_non_zero_divisors (hp : p ∈ R[X]⁰) : taylor r p ∈ R[X]⁰ :=
 begin
   rw mem_non_zero_divisors_iff,
   intros x hx,
@@ -51,7 +51,7 @@ def laurent_aux : ratfunc R →+* ratfunc R :=
 ratfunc.map_ring_hom (ring_hom.mk (taylor r) (taylor_one _) (taylor_mul _)
   (linear_map.map_zero _) (linear_map.map_add _)) (taylor_mem_non_zero_divisors _)
 
-lemma laurent_aux_of_fraction_ring_mk (q : (polynomial R)⁰) :
+lemma laurent_aux_of_fraction_ring_mk (q : R[X]⁰) :
   laurent_aux r (of_fraction_ring (localization.mk p q)) =
     of_fraction_ring (localization.mk (taylor r p)
       ⟨taylor r q, taylor_mem_non_zero_divisors r q q.prop⟩) :=

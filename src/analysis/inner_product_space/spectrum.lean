@@ -219,7 +219,7 @@ mem_eigenspace_iff.mp (hT.has_eigenvector_eigenvector_basis hn i).1
 /-- An isometry from an inner product space `E` to Euclidean space, induced by a choice of
 orthonormal basis of eigenvectors for a self-adjoint operator `T` on `E`. -/
 noncomputable def diagonalization_basis : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 (fin n) :=
-(hT.eigenvector_basis hn).isometry_euclidean_of_orthonormal (hT.eigenvector_basis_orthonormal hn)
+((hT.eigenvector_basis hn).to_orthonormal_basis (hT.eigenvector_basis_orthonormal hn)).repr
 
 @[simp] lemma diagonalization_basis_symm_apply (w : euclidean_space 𝕜 (fin n)) :
   (hT.diagonalization_basis hn).symm w = ∑ i, w i • hT.eigenvector_basis hn i :=

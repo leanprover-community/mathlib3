@@ -30,12 +30,20 @@ namespace finset
 section lattice
 variables [lattice α] [order_bot α]
 
-/-- Supremum independence of finite sets. We avoid the "obvious" definition using`s.erase i` because
-`erase` would require decidable equality on `ι`. -/
+/-- Supremum independence of finite sets. We avoid the "obvious" definition using `s.erase i`
+because `erase` would require decidable equality on `ι`. -/
 def sup_indep (s : finset ι) (f : ι → α) : Prop :=
 ∀ ⦃t⦄, t ⊆ s → ∀ ⦃i⦄, i ∈ s → i ∉ t → disjoint (f i) (t.sup f)
 
 variables {s t : finset ι} {f : ι → α} {i : ι}
+
+instance [decidable_eq ι] [decidable_eq α] : decidable (sup_indep s f) :=
+begin
+  apply @finset.decidable_forall_of_decidable_subsets _ _ _ _,
+  intros t ht,
+  apply @finset.decidable_dforall_finset _ _ _ _,
+  exact λ i hi, @implies.decidable _ _ _ (decidable_of_iff' (_ = ⊥) disjoint_iff),
+end
 
 lemma sup_indep.subset (ht : t.sup_indep f) (h : s ⊆ t) : s.sup_indep f :=
 λ u hu i hi, ht (hu.trans h) (h hi)

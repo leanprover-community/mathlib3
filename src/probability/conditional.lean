@@ -6,7 +6,7 @@ Authors: Rishikesh Vaishnav
 import probability.independence
 
 /-!
-# Conditional Probablity
+# Conditional Probability
 
 This file defines conditional probability and includes basic results relating to it.
 

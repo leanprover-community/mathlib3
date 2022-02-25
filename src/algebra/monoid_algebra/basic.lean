@@ -364,8 +364,10 @@ lemma of_injective [mul_one_class G] [nontrivial k] : function.injective (of k G
 λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
 
 /--
-Homomorphism from the product of a `semiring k` and a `mul_one_class G` into the
-`add_monoid_algebra k G`
+`finsupp.single` as a `monoid_hom` from the product type into the monoid algebra.
+
+Note the order of the elements of the product are reversed compared to the arguments of
+`finsupp.single`.
 -/
 @[simps] def single_hom [mul_one_class G] : k × G →* monoid_algebra k G :=
 { to_fun := λ a, single a.2 a.1,
@@ -1104,8 +1106,10 @@ lemma of_injective [nontrivial k] [add_zero_class G] : function.injective (of k 
 λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
 
 /--
-Homomorphism from the product of a `semiring k` and a `add_zero_class G` into the
-`add_monoid_algebra k G`
+`finsupp.single` as a `monoid_hom` from the product type into the additive monoid algebra.
+
+Note the order of the elements of the product are reversed compared to the arguments of
+`finsupp.single`.
 -/
 @[simps] def single_hom [add_zero_class G] : k × multiplicative G →* add_monoid_algebra k G :=
 { to_fun := λ a, single a.2.to_add a.1,

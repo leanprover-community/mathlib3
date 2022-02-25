@@ -5,6 +5,7 @@ Authors: Simon Hudon, Patrick Massot
 -/
 import data.pi
 import data.set.function
+import data.set.pairwise
 import tactic.pi_instances
 import algebra.group.hom_instances
 
@@ -234,6 +235,21 @@ lemma pi.single_div [Π i, group $ f i] (i : I) (x y : f i) :
 lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
+
+@[to_additive]
+lemma pi.mul_single_commute [Π i, mul_one_class $ f i] :
+  pairwise (λ i j, ∀ (x : f i) (y : f j), commute (mul_single i x) (mul_single j y)) :=
+begin
+  intros i j hij x y, ext k,
+  by_cases h1 : i = k, { subst h1, simp [hij], },
+  by_cases h2 : j = k, { subst h2, simp [hij], },
+  simp [h1,  h2],
+end
+
+@[to_additive]
+lemma monoid_hom.single_commute [Π i, mul_one_class $ f i] :
+  pairwise (λ i j, ∀ x y, commute (monoid_hom.single f i x) (monoid_hom.single f j y)) :=
+pi.mul_single_commute
 
 @[to_additive update_eq_sub_add_single]
 lemma pi.update_eq_div_mul_single [Π i, group $ f i] (g : Π (i : I), f i) (x : f i) :

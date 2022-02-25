@@ -116,6 +116,32 @@ lemma resolvent_eq {a : A} {r : R} (h : r ∈ resolvent_set R a) :
   resolvent a r = ↑h.unit⁻¹ :=
 ring.inverse_unit h.unit
 
+lemma inv_mem_resolvent_set {r : Rˣ} {a : Aˣ} (h : (r : R) ∈ resolvent_set R (a : A)) :
+  (↑r⁻¹ : R) ∈ resolvent_set R (↑a⁻¹ : A) :=
+begin
+  rw [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one, ←units.smul_def] at h ⊢,
+  rw [is_unit.smul_sub_iff_sub_inv_smul, inv_inv, is_unit.sub_iff],
+  have h₁ : (a : A) * (r • (↑a⁻¹ : A) - 1) = r • 1 - a,
+  { rw [mul_sub, mul_smul_comm, a.mul_inv, mul_one], },
+  have h₂ : (r • (↑a⁻¹ : A) - 1) * a = r • 1 - a,
+  { rw [sub_mul, smul_mul_assoc, a.inv_mul, one_mul], },
+  have hcomm : commute (a : A) (r • (↑a⁻¹ : A) - 1), { rwa ←h₂ at h₁ },
+  exact (hcomm.is_unit_mul_iff.mp (h₁.symm ▸ h)).2,
+end
+
+lemma inv_mem_iff {r : Rˣ} {a : Aˣ} :
+  (r : R) ∈ σ (a : A) ↔ (↑r⁻¹ : R) ∈ σ (↑a⁻¹ : A) :=
+begin
+  simp only [mem_iff, not_iff_not, ←mem_resolvent_set_iff],
+  exact ⟨λ h, inv_mem_resolvent_set h, λ h, by simpa using inv_mem_resolvent_set h⟩,
+end
+
+lemma zero_mem_resolvent_set_of_unit (a : Aˣ) : 0 ∈ resolvent_set R (a : A) :=
+by { rw [mem_resolvent_set_iff, is_unit.sub_iff], simp }
+
+lemma ne_zero_of_mem_of_unit {a : Aˣ} {r : R} (hr : r ∈ σ (a : A)) : r ≠ 0 :=
+λ hn, (hn ▸ hr) (zero_mem_resolvent_set_of_unit a)
+
 lemma add_mem_iff {a : A} {r s : R} :
   r ∈ σ a ↔ r + s ∈ σ (↑ₐs + a) :=
 begin
@@ -242,6 +268,19 @@ begin
   { rintros _ _ k ⟨k_mem, k_neq⟩,
     change k with ↑(units.mk0 k k_neq) at k_mem,
     exact ⟨unit_mem_mul_iff_mem_swap_mul.mp k_mem, k_neq⟩ },
+end
+
+protected lemma map_inv (a : Aˣ) : (σ (a : A))⁻¹ = σ (↑a⁻¹ : A) :=
+begin
+  refine set.eq_of_subset_of_subset (λ k hk, _) (λ k hk, _),
+  { rw set.mem_inv at hk,
+    have : k ≠ 0,
+    { simpa only [inv_inv] using inv_ne_zero (ne_zero_of_mem_of_unit hk), },
+    lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr this,
+    rw ←units.coe_inv' k at hk,
+    exact inv_mem_iff.mp hk },
+  { lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr (ne_zero_of_mem_of_unit hk),
+    simpa only [units.coe_inv'] using inv_mem_iff.mp hk, }
 end
 
 open polynomial

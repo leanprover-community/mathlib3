@@ -140,6 +140,8 @@ begin
       or.intro_left _ (λ n, (nat.find_spec (h (g' n))).2)⟩ }
 end
 
+/-- This is the infinitary Erdős–Szekeres theorem, and an important lemma in the usual proof of
+    Bolzano-Weierstrass for `ℝ`. -/
 theorem exists_increasing_or_nonincreasing_subseq
   {α : Type*} (r : α → α → Prop) [is_trans α r] (f : ℕ → α) :
   ∃ (g : ℕ ↪o ℕ), (∀ m n : ℕ, m < n → r (f (g m)) (f (g n))) ∨

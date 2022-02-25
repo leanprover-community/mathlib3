@@ -17,7 +17,7 @@ The proof is almost the same as the proof of the coherence theorem for monoidal 
 has been previously formalized in mathlib, which is based on the proof described by Ilya Beylin
 and Peter Dybjer. The idea is to view a path on a quiver as a normal form of a 1-morphism in the
 free bicategory on the same quiver. A normalization procedure is then described by
-`full_normalize : pseudofunctor (free_bicategory B) (locally_discrete (paths B))`, which is a
+`normalize : pseudofunctor (free_bicategory B) (locally_discrete (paths B))`, which is a
 pseudofunctor from the free bicategory to the locally discrete bicategory on the path category.
 It turns out that this pseudofunctor is locally an equivalence of categories, and the coherence
 theorem follows immediately from this fact.
@@ -77,28 +77,28 @@ def preinclusion (B : Type u) [quiver.{v+1} B] :
 The normalization of the composition of `p : path a b` and `f : hom b c`.
 `p` will eventually be taken to be `nil` and we then get the normalization
 of `f` alone, but the auxiliary `p` is necessary for Lean to accept the definition of
-`normalize_iso` and the `whisker_left` case of `normalize_hom_congr` and `normalize_naturality`.
+`normalize_iso` and the `whisker_left` case of `normalize_aux_congr` and `normalize_naturality`.
 -/
 @[simp]
-def normalize_hom {a : B} : ∀ {b c : B}, path a b → hom b c → path a c
+def normalize_aux {a : B} : ∀ {b c : B}, path a b → hom b c → path a c
 | _ _ p (hom.of f)      := p.cons f
 | _ _ p (hom.id b)      := p
-| _ _ p (hom.comp f g)  := normalize_hom (normalize_hom p f) g
+| _ _ p (hom.comp f g)  := normalize_aux (normalize_aux p f) g
 
 /-
 We may define
-def normalize_hom_aux : ∀ {a b : B}, hom a b → path a b
+def normalize_aux' : ∀ {a b : B}, hom a b → path a b
 | _ _ (hom.of f) := f.to_path
 | _ _ (hom.id b) := nil
-| _ _ (hom.comp f g) := (normalize_hom_aux f).comp (normalize_hom_aux g)
-and define `normalize_hom p f` to be `p.comp (normalize_hom_aux f)` and this will be
+| _ _ (hom.comp f g) := (normalize_aux' f).comp (normalize_aux' g)
+and define `normalize_aux p f` to be `p.comp (normalize_aux' f)` and this will be
 equal to the above definition, but the equality proof requires `comp_assoc`, and it
 thus lacks the correct definitional property to make the definition of `normalize_iso`
 typecheck.
 example {a b c : B} (p : path a b) (f : hom b c) :
-  normalize_hom p f = p.comp (normalize_hom_aux f) :=
+  normalize_aux p f = p.comp (normalize_aux' f) :=
 by { induction f, refl, refl,
-  case comp : _ _ _ _ _ ihf ihg { rw [normalize_hom, ihf, ihg], apply comp_assoc } }
+  case comp : _ _ _ _ _ ihf ihg { rw [normalize_aux, ihf, ihg], apply comp_assoc } }
 -/
 
 /--
@@ -107,25 +107,25 @@ fully-normalized hom.
 -/
 @[simp]
 def normalize_iso {a : B} : ∀ {b c : B} (p : path a b) (f : hom b c),
-  (preinclusion B).map p ≫ f ≅ (preinclusion B).map (normalize_hom p f)
+  (preinclusion B).map p ≫ f ≅ (preinclusion B).map (normalize_aux p f)
 | _ _ p (hom.of f)      := iso.refl _
 | _ _ p (hom.id b)      := ρ_ _
 | _ _ p (hom.comp f g)  := (α_ _ _ _).symm ≪≫
-    whisker_right_iso (normalize_iso p f) g ≪≫ normalize_iso (normalize_hom p f) g
+    whisker_right_iso (normalize_iso p f) g ≪≫ normalize_iso (normalize_aux p f) g
 
 /--
 Given a 2-morphism between `f` and `g` in the free bicategory, we have the equality
-`normalize_hom f p = normalize_hom g p`.
+`normalize_aux f p = normalize_aux g p`.
 -/
-lemma normalize_hom_congr {a b c : B} (p : path a b) {f g : hom b c} (η : f ⟶ g) :
-  normalize_hom p f = normalize_hom p g :=
+lemma normalize_aux_congr {a b c : B} (p : path a b) {f g : hom b c} (η : f ⟶ g) :
+  normalize_aux p f = normalize_aux p g :=
 begin
   rcases η,
-  apply @congr_fun _ _ (λ p, normalize_hom p f),
+  apply @congr_fun _ _ (λ p, normalize_aux p f),
   clear p,
   induction η,
   case vcomp { apply eq.trans; assumption },
-  /- p ≠ nil required! See the docstring of `normalize_hom`. -/
+  /- p ≠ nil required! See the docstring of `normalize_aux`. -/
   case whisker_left  : _ _ _ _ _ _ _ ih { funext, apply congr_fun ih },
   case whisker_right : _ _ _ _ _ _ _ ih { funext, apply congr_arg2 _ (congr_fun ih p) rfl },
   all_goals { funext, refl }
@@ -134,7 +134,7 @@ end
 /-- The 2-isomorphism `normalize_iso p f` is natural in `f`. -/
 lemma normalize_naturality {a b c : B} (p : path a b) {f g : hom b c} (η : f ⟶ g) :
   ((preinclusion B).map p ◁ η) ≫ (normalize_iso p g).hom =
-    (normalize_iso p f).hom ≫ eq_to_hom (congr_arg _ (normalize_hom_congr p η)) :=
+    (normalize_iso p f).hom ≫ eq_to_hom (congr_arg _ (normalize_aux_congr p η)) :=
 begin
   rcases η, induction η,
   case id : { simp },
@@ -147,13 +147,13 @@ begin
   { dsimp,
     slice_lhs 1 2 { rw associator_inv_naturality_right },
     slice_lhs 2 3 { rw whisker_exchange },
-    slice_lhs 3 4 { erw ih }, /- p ≠ nil required! See the docstring of `normalize_hom`. -/
+    slice_lhs 3 4 { erw ih }, /- p ≠ nil required! See the docstring of `normalize_aux`. -/
     simp only [assoc] },
   case whisker_right : _ _ _ _ _ h η ih
   { dsimp,
     slice_lhs 1 2 { rw associator_inv_naturality_middle },
     slice_lhs 2 3 { erw [←bicategory.whisker_right_comp, ih, bicategory.whisker_right_comp] },
-    have := dcongr_arg (λ x, (normalize_iso x h).hom) (normalize_hom_congr p (quot.mk _ η)),
+    have := dcongr_arg (λ x, (normalize_iso x h).hom) (normalize_aux_congr p (quot.mk _ η)),
     dsimp at this, simp [this] },
   case associator
   { dsimp,
@@ -178,8 +178,8 @@ begin
 end
 
 @[simp]
-lemma normalize_hom_nil_comp {a b c : B} (f : hom a b) (g : hom b c) :
-  normalize_hom nil (f.comp g) = (normalize_hom nil f).comp (normalize_hom nil g) :=
+lemma normalize_aux_nil_comp {a b c : B} (f : hom a b) (g : hom b c) :
+  normalize_aux nil (f.comp g) = (normalize_aux nil f).comp (normalize_aux nil g) :=
 begin
   induction g generalizing a,
   case id { refl },
@@ -188,18 +188,18 @@ begin
 end
 
 /-- The normalization pseudofunctor for the free bicategory on a quiver `B`. -/
-def full_normalize (B : Type u) [quiver.{v+1} B] :
+def normalize (B : Type u) [quiver.{v+1} B] :
   pseudofunctor (free_bicategory B) (locally_discrete (paths B)) :=
 { obj       := id,
-  map       := λ a b, normalize_hom nil,
-  map₂      := λ a b f g η, eq_to_hom (normalize_hom_congr nil η),
+  map       := λ a b, normalize_aux nil,
+  map₂      := λ a b f g η, eq_to_hom (normalize_aux_congr nil η),
   map_id    := λ a, iso.refl nil,
-  map_comp  := λ a b c f g, eq_to_iso (normalize_hom_nil_comp f g) }
+  map_comp  := λ a b c f g, eq_to_iso (normalize_aux_nil_comp f g) }
 
 
 /-- Auxiliary definition for `normalize_equiv`. -/
 def normalize_unit_iso (a b : free_bicategory B) :
-  𝟭 (a ⟶ b) ≅ (full_normalize B).map_functor a b ⋙ inclusion_path a b :=
+  𝟭 (a ⟶ b) ≅ (normalize B).map_functor a b ⋙ inclusion_path a b :=
 nat_iso.of_components (λ f, (λ_ f).symm ≪≫ normalize_iso nil f)
 begin
   intros f g η,
@@ -210,7 +210,7 @@ end
 
 /-- Normalization as an equivalence of categories. -/
 def normalize_equiv (a b : B) : hom a b ≌ discrete (path.{v+1} a b) :=
-equivalence.mk ((full_normalize _).map_functor a b) (inclusion_path a b)
+equivalence.mk ((normalize _).map_functor a b) (inclusion_path a b)
   (normalize_unit_iso a b)
   (discrete.nat_iso (λ f, eq_to_iso (by { induction f; tidy })))
 

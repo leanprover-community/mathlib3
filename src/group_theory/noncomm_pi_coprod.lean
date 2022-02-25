@@ -90,8 +90,7 @@ lemma list.prod_const {α : Type*} [monoid α] (l : list α)
   (m : α) (h : ∀ (x : α), x ∈ l → x = m) : l.prod = m ^ l.length :=
 begin
   convert list.prod_repeat m l.length,
-  rw list.eq_repeat,
-  exact ⟨rfl, h⟩,
+  exact list.eq_repeat.mpr ⟨rfl, h⟩,
 end
 
 @[to_additive]

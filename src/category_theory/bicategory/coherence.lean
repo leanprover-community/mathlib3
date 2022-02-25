@@ -102,8 +102,8 @@ by { induction f, refl, refl,
 -/
 
 /--
-A 2-isomorphism between a partially-normalized hom in the free bicategory to the
-fully-normalized hom.
+A 2-isomorphism between a partially-normalized 1-morphism in the free bicategory to the
+fully-normalized 1-morphism.
 -/
 @[simp]
 def normalize_iso {a : B} : ∀ {b c : B} (p : path a b) (f : hom b c),

@@ -188,6 +188,8 @@ lemma continuous_at_symm {x} : continuous_at I.symm x := I.continuous_symm.conti
 lemma continuous_within_at_symm {s x} : continuous_within_at I.symm s x :=
 I.continuous_symm.continuous_within_at
 
+lemma continuous_on_symm {s} : continuous_on I.symm s := I.continuous_symm.continuous_on
+
 @[simp, mfld_simps] lemma target_eq : I.target = range (I : H → E) :=
 by { rw [← image_univ, ← I.source_eq], exact (I.to_local_equiv.image_source_eq_target).symm }
 
@@ -457,14 +459,10 @@ begin
   rw [cont_diff_groupoid, mem_groupoid_of_pregroupoid],
   simp only [cont_diff_on_zero],
   split,
-  { apply continuous_on.comp (@continuous.continuous_on _ _ _ _ _ univ I.continuous)
-      _ (subset_univ _),
-    apply continuous_on.comp u.continuous_to_fun I.continuous_symm.continuous_on
-      (inter_subset_left _ _) },
-  { apply continuous_on.comp (@continuous.continuous_on _ _ _ _ _ univ I.continuous)
-      _ (subset_univ _),
-    apply continuous_on.comp u.continuous_inv_fun I.continuous_inv_fun.continuous_on
-      (inter_subset_left _ _) },
+  { refine I.continuous.comp_continuous_on (u.continuous_on.comp I.continuous_on_symm _),
+    exact (maps_to_preimage _ _).mono_left (inter_subset_left _ _) },
+  { refine I.continuous.comp_continuous_on (u.symm.continuous_on.comp I.continuous_on_symm _),
+    exact (maps_to_preimage _ _).mono_left (inter_subset_left _ _) },
 end
 
 variable (n)

@@ -9,6 +9,7 @@ import analysis.normed.group.infinite_sum
 import data.matrix.basic
 import topology.algebra.module.basic
 import topology.instances.ennreal
+import topology.instances.rat
 import topology.sequences
 
 /-!
@@ -623,12 +624,14 @@ begin
   ext x, exact (@eq_iff_le_not_lt ℝ _ _ _).symm
 end
 
-theorem interior_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+theorem interior_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
   interior (closed_ball x r) = ball x r :=
 begin
+  cases hr.lt_or_lt with hr hr,
+  { rw [closed_ball_eq_empty.2 hr, ball_eq_empty.2 hr.le, interior_empty] },
   refine set.subset.antisymm _ ball_subset_interior_closed_ball,
   intros y hy,
-  rcases le_iff_lt_or_eq.1 (mem_closed_ball.1 $ interior_subset hy) with hr|rfl, { exact hr },
+  rcases (mem_closed_ball.1 $ interior_subset hy).lt_or_eq with hr|rfl, { exact hr },
   set f : ℝ → E := λ c : ℝ, c • (y - x) + x,
   suffices : f ⁻¹' closed_ball x (dist y x) ⊆ set.Icc (-1) 1,
   { have hfc : continuous f := (continuous_id.smul continuous_const).add continuous_const,
@@ -642,7 +645,7 @@ begin
   simpa [f, dist_eq_norm, norm_smul] using hc
 end
 
-theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
@@ -767,8 +770,7 @@ instance normed_space.to_module' : module α F := normed_space.to_module
 theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   interior (closed_ball x r) = ball x r :=
 begin
-  rcases lt_trichotomy r 0 with hr|rfl|hr,
-  { simp [closed_ball_eq_empty.2 hr, ball_eq_empty.2 hr.le] },
+  rcases eq_or_ne r 0 with rfl|hr,
   { rw [closed_ball_zero, ball_zero, interior_singleton] },
   { exact interior_closed_ball x hr }
 end

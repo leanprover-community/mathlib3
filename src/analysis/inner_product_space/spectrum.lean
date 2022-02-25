@@ -274,41 +274,48 @@ end
 
 end nonneg
 
-section psd
-
-/-- An operator is positive semidefinite if it is self adjoint and has nonnegative inner product
-with its input. -/
-def is_psd (T : E →ₗ[𝕜] E) : Prop := (∀ x : E,
-  0 ≤ is_R_or_C.re ⟪x, T x⟫ ∧ is_R_or_C.im ⟪x, T x⟫ = 0) ∧ is_self_adjoint T
-
 section square_root
+variables {T : E →ₗ[𝕜] E} [finite_dimensional 𝕜 E] {n : ℕ}
 
-variables {E} [finite_dimensional 𝕜 E] {n : ℕ} (hn : finite_dimensional.finrank 𝕜 E = n)
-
-variables {T : E →ₗ[𝕜] E}
-open_locale classical
-noncomputable def psd.sqrt (T_psd : is_psd T) (hn : finite_dimensional.finrank 𝕜 E = n) : E →ₗ[𝕜] E :=
+lemma inner_map_inner_real_of_self_adjoint (T_sa : is_self_adjoint T) :
+  ∀ x : E, (is_R_or_C.re ⟪x , T x⟫ : 𝕜) = ⟪x , T x⟫ :=
 begin
-  let ew_basis := (T_psd.2.eigenvector_basis hn).to_basis,
-  let sqrt_ew := λ i, (real.sqrt((T_psd.2.eigenvalues hn) i) : 𝕜) • (ew_basis i),
-  exact basis.constr ew_basis 𝕜 sqrt_ew,
+  intro x,
+  suffices h : conj ⟪x, T x⟫ = ⟪x, T x⟫,
+  { exact is_R_or_C.eq_conj_iff_re.1 h },
+  { rw [← T_sa x x, inner_conj_sym, T_sa x x] }
 end
 
-variable (T_psd : is_psd T)
-variable (i : (fin n))
+def is_positive (T_sa : is_self_adjoint T) : Prop :=
+  ∀ x : E, 0 ≤ is_R_or_C.re ⟪x , T x⟫
 
-#check psd.sqrt (T_psd)
-#check psd.sqrt (T_psd) hn ((T_psd.2.eigenvector_basis hn) i)
-#check ((T_psd.2.eigenvector_basis hn) i)
-#check (real.sqrt((T_psd.2.eigenvalues hn) i) : 𝕜) • (T_psd.2.eigenvector_basis hn i)
+lemma inner_map_inner_real_of_positive {T_sa : is_self_adjoint T} (T_pos : is_positive T_sa) :
+  ∀ x : E, (is_R_or_C.re ⟪x , T x⟫ : 𝕜) = ⟪x , T x⟫ :=
+inner_map_inner_real_of_self_adjoint T_sa
 
-lemma sqrt_app : psd.sqrt (T_psd) = psd.sqrt (T_psd) := sorry
+/-- The square root of a positive, self-adjoint operator, `T`. This is the unique linear map such
+that `√T ⬝ √T = T`. -/
+noncomputable def sqrt {n : ℕ}
+  {T_sa : is_self_adjoint T} (T_pos : is_positive T_sa) (hn : finite_dimensional.finrank 𝕜 E = n) :
+    E →ₗ[𝕜] E :=
+by { classical, exact basis.constr
+  (T_sa.eigenvector_basis hn).to_basis 𝕜
+    (λ i, (real.sqrt((T_sa.eigenvalues hn) i) : 𝕜) • ((T_sa.eigenvector_basis hn).to_basis i)) }
 
-protected lemma sqrt_apply :
-  sqrt (T_psd) ((T_psd.2.eigenvector_basis hn) i)
-    = (real.sqrt((T_psd.2.eigenvalues hn) i) : 𝕜) • (T_psd.2.eigenvector_basis hn i) :=
+@[simp] protected lemma sqrt_apply {n : ℕ} {T_sa : is_self_adjoint T} [decidable_eq 𝕜]
+  (T_pos : is_positive T_sa) (hn : finite_dimensional.finrank 𝕜 E = n) (i : fin n) :
+  (sqrt T_pos hn) (T_sa.eigenvector_basis hn i) = (real.sqrt(T_sa.eigenvalues hn i) : 𝕜) • (T_sa.eigenvector_basis hn i) :=
 begin
-
+  rw sqrt,
+  rw basis.constr_apply_fintype,
+  rw orthonormal_basis.coe_to_basis_repr,
+  rw linear_isometry_equiv.coe_to_linear_equiv,
+  have := orthonormal_basis.repr_self (T_sa.eigenvector_basis hn) i,
+  conv_lhs { congr, skip, funext,}
+--   simp only [orthonormal_basis.coe_to_basis_repr,
+--  basis.constr_apply_fintype,
+--  linear_isometry_equiv.coe_to_linear_equiv,
+--  finset.sum_congr],
 end
 
 

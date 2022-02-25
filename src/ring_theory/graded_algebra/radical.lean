@@ -37,23 +37,24 @@ variables {ι R A : Type*}
 variables [comm_semiring R] [comm_ring A] [algebra R A]
 variables [linear_ordered_cancel_add_comm_monoid ι] [decidable_eq ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
-variable [Π (I : homogeneous_ideal 𝒜) (x : A),
-  decidable_pred (λ (i : ι), graded_algebra.proj 𝒜 i x ∉ I)]
-variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
 
-lemma homogeneous_ideal.is_prime_of_homogeneous_mem_or_mem
-  (I : homogeneous_ideal 𝒜)
-  (I_ne_top : I ≠ ⊤)
+variables {𝒜}
+
+lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
+  {I : ideal A} (hI : I.is_homogeneous 𝒜) (I_ne_top : I ≠ ⊤)
   (homogeneous_mem_or_mem : ∀ {x y : A},
     set_like.is_homogeneous 𝒜 x → set_like.is_homogeneous 𝒜 y
-    → (x * y ∈ I.1 → x ∈ I.1 ∨ y ∈ I.1)) : ideal.is_prime I.1 :=
-⟨subtype.coe_injective.ne I_ne_top, begin
+    → (x * y ∈ I → x ∈ I ∨ y ∈ I)) : ideal.is_prime I :=
+⟨I_ne_top, begin
   intros x y hxy, by_contradiction rid,
   obtain ⟨rid₁, rid₂⟩ := not_or_distrib.mp rid,
+  letI : Π (x : A),
+    decidable_pred (λ (i : ι), graded_algebra.proj 𝒜 i x ∉ I) := λ x, classical.dec_pred _,
+  letI : Π i (x : 𝒜 i), decidable (x ≠ 0) := λ i x, classical.dec _,
   set set₁ := (graded_algebra.support 𝒜 x).filter (λ i, graded_algebra.proj 𝒜 i x ∉ I) with set₁_eq,
   set set₂ := (graded_algebra.support 𝒜 y).filter (λ i, graded_algebra.proj 𝒜 i y ∉ I) with set₂_eq,
   have set₁_nonempty : set₁.nonempty,
-  { replace rid₁ : ¬(∀ (i : ι), (graded_algebra.decompose 𝒜 x i : A) ∈ I.val),
+  { replace rid₁ : ¬(∀ (i : ι), (graded_algebra.decompose 𝒜 x i : A) ∈ I),
     { intros rid,
       apply rid₁,
       rw ←graded_algebra.sum_support_decompose 𝒜 x,
@@ -72,7 +73,7 @@ lemma homogeneous_ideal.is_prime_of_homogeneous_mem_or_mem
     rw rid₃ at h,
     simpa only [not_true, submodule.zero_mem, add_monoid_hom.map_zero] using h, },
   have set₂_nonempty : set₂.nonempty,
-  { replace rid₂ : ¬(∀ (i : ι), (graded_algebra.decompose 𝒜 y i : A) ∈ I.val),
+  { replace rid₂ : ¬(∀ (i : ι), (graded_algebra.decompose 𝒜 y i : A) ∈ I),
     { intros rid,
       apply rid₂,
       rw ←graded_algebra.sum_support_decompose 𝒜 y,
@@ -96,7 +97,7 @@ lemma homogeneous_ideal.is_prime_of_homogeneous_mem_or_mem
   rw [←max₁_eq, set₁_eq] at mem_max₁,
   have mem_max₂ := finset.max'_mem set₂ set₂_nonempty,
   rw [←max₂_eq, set₂_eq] at mem_max₂,
-  replace hxy : ∀ (i : ι), (graded_algebra.decompose 𝒜 (x * y) i : A) ∈ I.val := λ i, I.2 i hxy,
+  replace hxy : ∀ (i : ι), (graded_algebra.decompose 𝒜 (x * y) i : A) ∈ I := λ i, hI i hxy,
   specialize hxy (max₁ + max₂),
   have eq :=
     calc  graded_algebra.proj 𝒜 (max₁ + max₂) (x * y)
@@ -181,13 +182,12 @@ lemma homogeneous_ideal.is_prime_of_homogeneous_mem_or_mem
         simp only [not_and, not_not, ne.def, dfinsupp.mem_support_to_fun,
           finset.mem_filter] at not_mem_i,
         specialize not_mem_i H₁,
-        apply ideal.mul_mem_right _ I.1,
+        apply ideal.mul_mem_right _ I,
         convert not_mem_i, }, } },
   have mem_I₃ :
     (graded_algebra.proj 𝒜 (max₁, max₂).fst) x * (graded_algebra.proj 𝒜 (max₁, max₂).snd) y ∈ I,
   { rw eq₂, apply ideal.sub_mem,
-    have HI := I.2,
-    specialize HI (max₁ + max₂) hxy, exact hxy, exact mem_I₂, },
+    specialize hI (max₁ + max₂) hxy, exact hxy, exact mem_I₂, },
   specialize homogeneous_mem_or_mem ⟨max₁, _⟩ ⟨max₂, _⟩ mem_I₃,
   rw [graded_algebra.proj_apply], exact submodule.coe_mem _,
   rw [graded_algebra.proj_apply], exact submodule.coe_mem _,
@@ -235,20 +235,16 @@ lemma homogeneous_ideal.is_prime_iff (I : homogeneous_ideal 𝒜) :
   (I ≠ ⊤) ∧
     ∀ {x y : A}, set_like.is_homogeneous 𝒜 x → set_like.is_homogeneous 𝒜 y
       → (x * y ∈ I.1 → x ∈ I.1 ∨ y ∈ I.1) :=
-⟨λ HI, ⟨λ rid, begin
-    rw homogeneous_ideal.eq_top_iff at rid,
-    apply HI.1,
-    exact rid,
-  end, λ x y hx hy hxy, ideal.is_prime.mem_or_mem HI hxy⟩, λ HI, begin
-  obtain ⟨I_ne_top, homogeneous_mem_or_mem⟩ := HI,
-  apply homogeneous_ideal.is_prime_of_homogeneous_mem_or_mem 𝒜 I I_ne_top,
-  intros x y,
-  apply homogeneous_mem_or_mem,
-end⟩
+⟨λ HI,
+  ⟨ne_of_apply_ne _ HI.ne_top, λ x y hx hy hxy, ideal.is_prime.mem_or_mem HI hxy⟩,
+  λ ⟨I_ne_top, homogeneous_mem_or_mem⟩,
+    I.prop.is_prime_of_homogeneous_mem_or_mem (subtype.coe_injective.ne I_ne_top)
+      @homogeneous_mem_or_mem ⟩
 
 lemma homogeneous_ideal.rad_eq (I : homogeneous_ideal 𝒜) :
   I.1.radical = Inf {J | I.1 ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime} :=
 begin
+  letI : Π i (x : 𝒜 i), decidable (x ≠ 0) := λ i x, classical.dec _,
   have subset₁ : I.1.radical ≤ Inf {J | I.1 ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime},
   { rw ideal.radical_eq_Inf, intros x hx,
     rw [submodule.mem_Inf] at hx ⊢, intros J HJ, apply hx,
@@ -271,23 +267,19 @@ begin
       refine ⟨z, _, rfl⟩,
       simpa [set.mem_preimage] using HJ₁, },
     { set J' := ideal.homogeneous_core 𝒜 J with eq_J',
-      have homogeneity₀ := (ideal.homogeneous_core 𝒜 J).2,
-      apply homogeneous_ideal.is_prime_of_homogeneous_mem_or_mem 𝒜 ⟨J', homogeneity₀⟩,
-      intro rid,
-      have rid' : J = ⊤,
-      { have : J'.1 ≤ J := ideal.coe_homogeneous_core_le 𝒜 J,
-        simp only [homogeneous_ideal.eq_top_iff] at rid,
-        erw ← subtype.val_eq_coe at rid,
+      have homogeneity₀ := (ideal.homogeneous_core 𝒜 J).prop,
+      apply homogeneity₀.is_prime_of_homogeneous_mem_or_mem,
+      { refine (mt _ HJ₂.ne_top),
+        intro rid,
+        have : ↑J' ≤ J := ideal.coe_homogeneous_core_le 𝒜 J,
         erw rid at this,
         rw top_le_iff at this,
         exact this, },
-      apply HJ₂.1, exact rid',
       rintros x y hx hy hxy,
       have H := HJ₂.mem_or_mem (ideal.coe_homogeneous_core_le 𝒜 J hxy),
       cases H,
       { left,
-        have : ∀ i : ι, (graded_algebra.decompose 𝒜 x i : A) ∈
-          (⟨J', homogeneity₀⟩ : homogeneous_ideal 𝒜),
+        have : ∀ i : ι, (graded_algebra.decompose 𝒜 x i : A) ∈ J',
         { intros i, apply homogeneity₀, apply ideal.subset_span,
           simp only [set.mem_inter_eq, set_like.mem_coe, set.mem_set_of_eq],
           refine ⟨⟨x, hx⟩, H, rfl⟩, },
@@ -316,7 +308,7 @@ end
 lemma ideal.is_homogeneous_ideal.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
   I.radical.is_homogeneous 𝒜 :=
 begin
-  have radI_eq := homogeneous_ideal.rad_eq 𝒜 ⟨I, h⟩,
+  have radI_eq := homogeneous_ideal.rad_eq ⟨I, h⟩,
   rw radI_eq,
   have : Inf {J : ideal A | I ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime} =
     (Inf {J : homogeneous_ideal 𝒜 | I.1 ≤ J.1 ∧ J.1.is_prime }).1,

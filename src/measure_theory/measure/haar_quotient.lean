@@ -32,16 +32,106 @@ Note that a group `G` with Haar measure that is both left and right invariant is
 -/
 
 
-
 theorem measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_space α}
   {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_group E] [normed_space ℝ E]
   [measurable_space E] [borel_space E] [complete_space E]
   [topological_space.second_countable_topology E] {f : β → α → E}
   (hf : ∀ (i : β), measurable (f i)) :
 ∫ (a : α), (∑' (i : β), f i a) ∂μ = ∑' (i : β), ∫ (a : α), f i a ∂μ :=
-sorry
+begin
+  sorry,
+end
 
+open_locale ennreal
 
+open measure_theory
+
+lemma integrable.mul_ℒ_infinity  {G : Type*} {E : Type*} [normed_ring E] [normed_algebra ℝ E]
+  [measurable_space E] [measurable_space G] {μ : measure G}
+  (f : G → E)
+  (f_measurable : measurable f)
+  (g : G → E)
+  (g_measurable : measurable g)
+  (g_ℒ_infinity : mem_ℒp g ⊤ μ)
+  (f_ℒ_1 : integrable f μ)
+:
+  integrable (λ (x : G), f x * g x) μ :=
+begin
+
+  have ess_sup_bdd_by_bigger : ∀ (a:ennreal), ess_sup (λ x, ↑∥g x∥₊) μ < a →
+    (λ x, ↑∥g x∥₊) ≤ᵐ[μ] (λ x, a),
+  {
+    intros a ha,
+    sorry,
+
+  },
+
+  have : ess_sup (λ x, ↑∥g x∥₊) μ < ∞,
+  {
+    sorry,
+  },
+  obtain ⟨B, hB⟩ : ∃ B : nnreal, ess_sup (λ x, (∥g x∥₊:ennreal)) μ = B,
+  {
+    sorry,
+  },
+
+  have := ess_sup_bdd_by_bigger (B+1) _,
+
+  rw integrable at f_ℒ_1 ⊢,
+
+  rw measure_theory.has_finite_integral_iff_norm at f_ℒ_1 ⊢,
+
+  split,
+  {
+    -- product of measurables is measurable
+    sorry,
+  },
+  {
+    calc ∫⁻ (x : G), ennreal.of_real (∥f x * g x∥) ∂μ ≤
+      ∫⁻ (x : G), ennreal.of_real (∥f x∥ * ∥g x∥) ∂μ : _
+      ... ≤  ∫⁻ (x : G), ennreal.of_real (∥f x∥ * (B+1)) ∂μ : _
+      ... =  ∫⁻ (x : G), (ennreal.of_real (∥f x∥) * (B+1)) ∂μ : _
+      ... = ∫⁻ (x : G), ennreal.of_real (∥f x∥) ∂μ * (B+1) : _
+      ... < ⊤ : _ ,
+
+    { mono,
+      { exact rfl.le, },
+      { intros x,
+        apply ennreal.of_real_le_of_real,
+        exact norm_mul_le _ _, }, },
+    { apply measure_theory.lintegral_mono_ae,
+      filter_upwards [this],
+      intros x hx,
+      apply ennreal.of_real_le_of_real,
+      norm_cast at hx,
+      refine mul_le_mul _ hx  _ _,
+      refl,
+      exact norm_nonneg _,
+      exact norm_nonneg _, },
+    {
+      congr,
+      ext1 x,
+      rw ennreal.of_real_mul,
+      repeat {sorry}, -- ALEX HOMEWORK
+    },
+    {
+      refine measure_theory.lintegral_mul_const _ _,
+      sorry, -- ∥ f ∥ is measurable
+    },
+    { apply ennreal.mul_lt_top f_ℒ_1.2.ne,
+      simp, },
+
+  },
+  {
+    norm_cast,
+    rw hB,
+    norm_cast,
+    sorry, --ALEX HOMEWORK
+--    have := ennreal.add_lt_add,
+  --  linarith,
+  }
+
+end
 
 open set measure_theory topological_space
 
@@ -235,12 +325,39 @@ by simp [subgroup.opposite]
 
 
 
+
+lemma ess_sup_of_g [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
+  (g : G ⧸ Γ → ℂ) (g_measurable : measurable g)
+--  (g_ℒ_infinity : mem_ℒp g ∞ μ_𝓕)
+   :
+  ess_sup (λ (x : G ⧸ Γ), (∥g x∥₊:ennreal)) μ_𝓕 = ess_sup (λ (x : G), ↑∥g x∥₊) μ
+:=
+begin
+
+
+
+
+
+  suffices : ess_sup (λ (x : G), ↑∥g ↑x∥₊) μ < ∞,
+  {
+    sorry,
+  },
+  have : ess_sup (λ (x : G ⧸ Γ), ↑∥g x∥₊) μ_𝓕 < ∞,
+  {
+
+    sorry,
+  },
+
+
+end
+
+
 /-- This is the "unfolding" trick -/
 lemma unfolding_trick [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
   (f : G → ℂ) (f_measurable : measurable f)
   (f_summable: ∀ x : G, summable (λ (γ : Γ.opposite), f (γ⁻¹ • x))) -- NEEDED??
   (g : G ⧸ Γ → ℂ) (g_measurable : measurable g)
-  (g_ℒ_infinity : mem_ℒp g ∞ (measure.map (@quotient_group.mk G _ Γ) (μ.restrict 𝓕)) )
+  (g_ℒ_infinity : mem_ℒp g ∞ μ_𝓕)
   (f_ℒ_1 : integrable f μ)
   (F : G ⧸ Γ → ℂ)
   (F_measurable : measurable F)
@@ -276,10 +393,17 @@ begin
       simpa using hγ_0, },
     rw this, },
   {
-    sorry, -- some version of Holder
-
-    --- simpa using hfg,
+    apply integrable.mul_ℒ_infinity,
+    { exact f_measurable, },
+    {
+      sorry, -- g is measurable on G
     },
+    {
+      --extract_goal,
+      sorry, -- g_ℒ_infinity from G/Γ to G
+    },
+    { convert f_ℒ_1,
+      simp, }, },
   { intros γ,
     exact (f_measurable.comp (measurable_const_smul _)).mul
       (g_measurable.comp continuous_coinduced_rng.measurable), },

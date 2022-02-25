@@ -246,36 +246,12 @@ end
 
 ------------------ADDING STUFF HERE -------------------
 
--- theorem measure_theory.simple_func.integral_sum {α : Type*} {m : measurable_space α} {ι : Type*}
---   (f : measure_theory.simple_func α E) (μ : ι → measure_theory.measure α) :
--- f.integral (measure_theory.measure.sum μ) = ∑' (i : ι), f.integral (μ i) :=
--- begin
-
---   sorry,
---   simp only [integral, measure.sum_apply, f.measurable_set_preimage, ← finset.tsum_subtype,
---     ← ennreal.tsum_mul_left],
---   apply ennreal.tsum_comm
--- end
-
 theorem _root_.measure_theory.integral_sum_measure {α : Type*} {m : measurable_space α} {ι : Type*}
   (f : α → E) (μ : ι → measure_theory.measure α)
   (hf : integrable f (measure_theory.measure.sum μ)) :
 ∫ (a : α), f a ∂measure_theory.measure.sum μ = ∑' (i : ι), ∫ (a : α), f a ∂μ i :=
 begin
-  refine integrable.induction _ _ _ _ _ hf,
-
-  repeat {sorry},
-
-  -- simp only [integral, supr_subtype', simple_func.integral_sum, ennreal.tsum_eq_supr_sum],
-  -- rw [supr_comm],
-  -- congr, funext s,
-  -- induction s using finset.induction_on with i s hi hs, { apply bot_unique, simp },
-  -- simp only [finset.sum_insert hi, ← hs],
-  -- refine (ennreal.supr_add_supr _).symm,
-  -- intros φ ψ,
-  -- exact ⟨⟨φ ⊔ ψ, λ x, sup_le (φ.2 x) (ψ.2 x)⟩,
-  --   add_le_add (simple_func.lintegral_mono le_sup_left le_rfl)
-  --     (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right le_rfl)⟩
+  sorry,
 end
 
 @[to_additive] lemma integral_eq_tsum_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ)

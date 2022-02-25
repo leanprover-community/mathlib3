@@ -27,10 +27,7 @@ noncomputable theory
 in the fundamental groupoid.
 -/
 def fundamental_group (X : Type u) [topological_space X] (x : X) :=
-@category_theory.Aut
-  X
-  (@category_theory.groupoid.to_category (fundamental_groupoid X) _)
-  x
+category_theory.Aut (@fundamental_groupoid.from_top (Top.of X) x)
 
 namespace fundamental_group
 

@@ -313,12 +313,12 @@ begin
   { exact subset₂ hx },
 end
 
-lemma homogeneous_ideal.radical (I : homogeneous_ideal 𝒜)  :
-  ideal.is_homogeneous 𝒜 I.1.radical :=
+lemma ideal.is_homogeneous_ideal.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
+  I.radical.is_homogeneous 𝒜 :=
 begin
-  have radI_eq := homogeneous_ideal.rad_eq 𝒜 I,
+  have radI_eq := homogeneous_ideal.rad_eq 𝒜 ⟨I, h⟩,
   rw radI_eq,
-  have : Inf {J : ideal A | I.val ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime} =
+  have : Inf {J : ideal A | I ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime} =
     (Inf {J : homogeneous_ideal 𝒜 | I.1 ≤ J.1 ∧ J.1.is_prime }).1,
   { simp only [subtype.coe_le_coe, subtype.val_eq_coe],
     rw homogeneous_ideal.coe_Inf,
@@ -333,7 +333,7 @@ begin
     { obtain ⟨⟨HJ1, HJ2⟩, HJ3⟩ := H,
       exact ⟨HJ2, HJ1, HJ3⟩, } },
   rw this,
-  exact (Inf {J : homogeneous_ideal 𝒜 | I.val ≤ J.val ∧ J.val.is_prime}).2,
+  exact (Inf {J : homogeneous_ideal 𝒜 | I ≤ J.val ∧ J.val.is_prime}).2,
 end
 
 end linear_ordered_cancel_add_comm_monoid

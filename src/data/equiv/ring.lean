@@ -288,11 +288,13 @@ ring isomorphisms between `Π j, R j` and `Π j, S j`.
 This is the `ring_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
 `ring_equiv.arrow_congr`.
 -/
-@[simps]
+@[simps apply]
 def Pi_congr_right {ι : Type*} {R S : ι → Type*}
   [Π i, semiring (R i)] [Π i, semiring (S i)]
   (e : ∀ i, R i ≃+* S i) : (Π i, R i) ≃+* Π i, S i :=
-{ .. @mul_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_mul_equiv),
+{ to_fun := λ x j, es j (x j),
+  inv_fun := λ x j, (es j).symm (x j),
+  .. @mul_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_mul_equiv),
   .. @add_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_add_equiv) }
 
 @[simp]

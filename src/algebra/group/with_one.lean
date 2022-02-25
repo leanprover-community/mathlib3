@@ -146,6 +146,8 @@ theorem lift_unique (f : with_one α →* β) : f = lift (f.to_mul_hom.comp coe_
 
 end lift
 
+attribute [irreducible] with_one
+
 section map
 
 variables [has_mul α] [has_mul β] [has_mul γ]
@@ -157,17 +159,17 @@ variables [has_mul α] [has_mul β] [has_mul γ]
 def map (f : mul_hom α β) : with_one α →* with_one β :=
 lift (coe_mul_hom.comp f)
 
-@[simp] lemma map_coe (f : mul_hom α β) (a : α) : map f (a : with_one α) = f a :=
+@[simp, to_additive] lemma map_coe (f : mul_hom α β) (a : α) : map f (a : with_one α) = f a :=
 lift_coe _ _
 
 @[simp, to_additive]
 lemma map_id : map (mul_hom.id α) = monoid_hom.id (with_one α) :=
-by { ext, cases x; refl }
+by { ext, induction x using with_one.cases_on; refl }
 
 @[to_additive]
 lemma map_map (f : mul_hom α β) (g : mul_hom β γ) (x) :
   map g (map f x) = map (g.comp f) x :=
-by { cases x; refl }
+by { induction x using with_one.cases_on; refl }
 
 @[simp, to_additive]
 lemma map_comp (f : mul_hom α β) (g : mul_hom β γ) :
@@ -179,8 +181,8 @@ monoid_hom.ext $ λ x, (map_map f g x).symm
 def _root_.mul_equiv.with_one_congr (e : α ≃* β) : with_one α ≃* with_one β :=
 { to_fun := map e.to_mul_hom,
   inv_fun := map e.symm.to_mul_hom,
-  left_inv := λ x, (map_map _ _ _).trans $ by cases x; { simp [map, lift], refl },
-  right_inv := λ x, (map_map _ _ _).trans $ by cases x; { simp [map, lift], refl },
+  left_inv := λ x, (map_map _ _ _).trans $ by induction x using with_one.cases_on; { simp },
+  right_inv := λ x, (map_map _ _ _).trans $ by induction x using with_one.cases_on; { simp },
   .. map e.to_mul_hom }
 
 @[simp]
@@ -197,8 +199,6 @@ lemma _root_.mul_equiv.with_one_congr_trans (e₁ : α ≃* β) (e₂ : β ≃* 
 mul_equiv.to_monoid_hom_injective (map_comp _ _).symm
 
 end map
-
-attribute [irreducible] with_one
 
 @[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := rfl

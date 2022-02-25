@@ -217,6 +217,43 @@ by simp [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
     (λ x hx y hy, by rw [mem_singleton.mp hx, mem_singleton.mp hy]) = f a :=
 by simp [noncomm_prod, multiset.singleton_eq_cons]
 
+
+@[to_additive]
+lemma noncomm_prod_map {α : Type*} {β : Type*} [monoid β]
+  (s : finset α) (f : α → β)
+  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
+  {M : Type*} [monoid M] (g : β →* M) :
+  g (s.noncomm_prod f comm) = s.noncomm_prod (λ i, g (f i))
+  (λ x hx y hy, commute.map (comm x hx y hy) g)  :=
+begin
+  classical,
+  revert comm, rw ← s.to_list_to_finset, intro,
+  iterate 2 { rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list },
+  convert g.map_list_prod _, rw list.comp_map,
+end
+
+@[to_additive]
+lemma noncomm_prod_eq_pow_of_forall_eq {α : Type*} {β : Type*} [monoid β] (s : finset α)
+  (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
+  (m : β) (h : ∀ (x : α), x ∈ s → f x = m) : s.noncomm_prod f comm = m ^ s.card :=
+begin
+  classical,
+  revert comm, rw ← s.to_list_to_finset, intro,
+  rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list,
+  rw list.prod_eq_pow_of_forall_eq _ m,
+  { simp },
+  { intro _, rw list.mem_map, rintros ⟨x, hx, rfl⟩, apply h x (s.mem_to_list.mp hx) },
+end
+
+@[to_additive]
+lemma noncomm_prod_eq_one_of_forall_eq_one {α : Type*} {β : Type*} [monoid β] (s : finset α)
+  (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
+  (h : ∀ (x : α), x ∈ s → f x = 1) : s.noncomm_prod f comm = 1 :=
+begin
+  rw finset.noncomm_prod_eq_pow_of_forall_eq s f comm 1 h,
+  exact one_pow _,
+end
+
 @[to_additive] lemma noncomm_prod_eq_prod {β : Type*} [comm_monoid β] (s : finset α) (f : α → β) :
   noncomm_prod s f (λ _ _ _ _, commute.all _ _) = s.prod f :=
 begin
@@ -243,5 +280,40 @@ begin
   simp [sl', tl', noncomm_prod_to_finset, ←list.prod_append, ←list.to_finset_append,
         list.nodup_append_of_nodup sl' tl' h]
 end
+
+section finite_pi
+
+@[to_additive]
+lemma noncomm_prod_single {ι : Type*} [fintype ι] [decidable_eq ι]
+  {M : ι → Type*} [∀ i, monoid (M i)] (x : Π i, M i) :
+  finset.univ.noncomm_prod (λ i, monoid_hom.single M i (x i))
+  (λ i _ j _, by { by_cases h : i = j, { rw h }, { apply pi.mul_single_commute i j h } })
+  = x :=
+begin
+  ext i,
+  apply (finset.univ.noncomm_prod_map (λ i, monoid_hom.single M i (x i)) _
+    (pi.eval_monoid_hom _ i)).trans,
+  rw (finset.insert_erase (finset.mem_univ i)).symm,
+  rw finset.noncomm_prod_insert_of_not_mem',
+  rw finset.noncomm_prod_eq_one_of_forall_eq_one,
+  { simp, },
+  { intros i h, simp at h, simp [h], },
+  { simp, },
+end
+
+@[to_additive]
+lemma _root_.monoid_hom.pi_ext {ι : Type*} [fintype ι] [decidable_eq ι]
+  {M : ι → Type*} [∀ i, monoid (M i)] {N : Type*} [monoid N] {f g : (Π i, M i) →* N}
+  (h : ∀ i x, f (monoid_hom.single M i x) = g (monoid_hom.single M i x)) :
+  f = g :=
+begin
+  ext x,
+  rw ← finset.noncomm_prod_single x,
+  rw finset.univ.noncomm_prod_map _ _ f,
+  rw finset.univ.noncomm_prod_map _ _ g,
+  congr' 1, ext i, exact h i (x i),
+end
+
+end finite_pi
 
 end finset

@@ -75,6 +75,18 @@ star_involutive _
 lemma star_injective [has_involutive_star R] : function.injective (star : R → R) :=
 star_involutive.injective
 
+protected def equiv.star [has_involutive_star R] : equiv.perm R :=
+star_involutive.to_equiv _
+
+lemma eq_star_of_eq_star [has_involutive_star R] {r s : R} (h : r = star s) : s = star r :=
+by simp [h]
+
+lemma eq_star_iff_eq_star [has_involutive_star R] {r s : R} : r = star s ↔ s = star r :=
+⟨eq_star_of_eq_star, eq_star_of_eq_star⟩
+
+lemma star_eq_iff_star_eq [has_involutive_star R] {r s : R} : star r = s ↔ star s = r :=
+eq_comm.trans $ eq_star_iff_eq_star.trans eq_comm
+
 /--
 Typeclass for a trivial star operation. This is mostly meant for `ℝ`.
 -/

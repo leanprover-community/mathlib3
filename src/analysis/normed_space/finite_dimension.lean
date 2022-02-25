@@ -622,8 +622,8 @@ end
 
 variable (𝕜)
 
-/-- Riesz's theorem: if a closed ball of positive radius is compact in a vector space, then the
-space is finite-dimensional. -/
+/-- **Riesz's theorem**: if a closed ball with center zero of positive radius is compact in a vector
+space, then the space is finite-dimensional. -/
 theorem finite_dimensional_of_is_compact_closed_ball₀ {r : ℝ} (rpos : 0 < r)
   (h : is_compact (metric.closed_ball (0 : E) r)) : finite_dimensional 𝕜 E :=
 begin
@@ -654,7 +654,7 @@ begin
   ... < ∥c∥ : hN (N+1) (nat.le_succ N)
 end
 
-/-- Riesz's theorem: if a closed ball of positive radius is compact in a vector space, then the
+/-- **Riesz's theorem**: if a closed ball of positive radius is compact in a vector space, then the
 space is finite-dimensional. -/
 theorem finite_dimensional_of_is_compact_closed_ball {r : ℝ} (rpos : 0 < r) {c : E}
   (h : is_compact (metric.closed_ball c r)) : finite_dimensional 𝕜 E :=

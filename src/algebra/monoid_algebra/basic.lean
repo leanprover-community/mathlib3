@@ -363,6 +363,11 @@ end
 lemma of_injective [mul_one_class G] [nontrivial k] : function.injective (of k G) :=
 λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
 
+def monomial_hom [mul_one_class G] : k × G →* monoid_algebra k G :=
+{ to_fun := λ a , single a.2 a.1,
+  map_one' := rfl,
+  map_mul' := λ a b, single_mul_single.symm }
+
 lemma mul_single_apply_aux [has_mul G] (f : monoid_algebra k G) {r : k}
   {x y z : G} (H : ∀ a, a * x = z ↔ a = y) :
   (f * single x r) z = f y * r :=

@@ -32,7 +32,7 @@ open_locale cardinal non_zero_divisors
 universe u
 
 /-- A finite field has prime power cardinality. -/
-lemma is_prime_pow_card_finite_field {α} [fintype α] [field α] : is_prime_pow (‖α‖) :=
+lemma fintype.is_prime_pow_card_of_field {α} [fintype α] [field α] : is_prime_pow (‖α‖) :=
 begin
   casesI char_p.exists α with p _,
   haveI hp := fact.mk (char_p.char_is_prime α p),
@@ -46,7 +46,7 @@ end
 /-- A `fintype` can be given a field structure iff its cardinality is a prime power. -/
 lemma fintype.nonempty_field_iff {α} [fintype α] : nonempty (field α) ↔ is_prime_pow (‖α‖) :=
 begin
-  refine ⟨λ ⟨h⟩, by exactI is_prime_pow_card_finite_field, _⟩,
+  refine ⟨λ ⟨h⟩, by exactI fintype.is_prime_pow_card_of_field, _⟩,
   rintros ⟨p, n, hp, hn, hα⟩,
   haveI := fact.mk (nat.prime_iff.mpr hp),
   exact ⟨(fintype.equiv_of_card_eq ((galois_field.card p n hn.ne').trans hα)).symm.field⟩,

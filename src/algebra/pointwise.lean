@@ -1397,7 +1397,7 @@ namespace set
 variables {s t : set α} {a : α}
 
 /-- The set `(star s : set α)` is defined as `{x | star x ∈ s}` in locale `pointwise`.
-It is equal to `{star s | x ∈ s}`, see `set.image_star`. -/
+In the usual case where `star` is involutive, it is equal to `{star s | x ∈ s}`, see `set.image_star`. -/
 protected def has_star [has_star α] : has_star (set α) :=
 ⟨preimage has_star.star⟩
 

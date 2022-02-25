@@ -77,7 +77,7 @@ def preinclusion (B : Type u) [quiver.{v+1} B] :
 The normalization of the composition of `p : path a b` and `f : hom b c`.
 `p` will eventually be taken to be `nil` and we then get the normalization
 of `f` alone, but the auxiliary `p` is necessary for Lean to accept the definition of
-`normalize_iso` and the `whisker_right` case of `normalize_naturality`.
+`normalize_iso` and the `whisker_left` case of `normalize_hom_congr` and `normalize_naturality`.
 -/
 @[simp]
 def normalize_hom {a : B} : ∀ {b c : B}, path a b → hom b c → path a c
@@ -124,6 +124,7 @@ begin
   clear p,
   induction η,
   case vcomp { apply eq.trans; assumption },
+  /- p ≠ nil required! See the docstring of `normalize_hom`. -/
   case whisker_left  : _ _ _ _ _ _ _ ih { funext, apply congr_fun ih },
   case whisker_right : _ _ _ _ _ _ _ ih { funext, apply congr_arg2 _ (congr_fun ih p) rfl },
   all_goals { funext, refl }
@@ -145,7 +146,7 @@ begin
   { dsimp,
     slice_lhs 1 2 { rw associator_inv_naturality_right },
     slice_lhs 2 3 { rw whisker_exchange },
-    slice_lhs 3 4 { erw ih }, /- p ≠ nil required! -/
+    slice_lhs 3 4 { erw ih }, /- p ≠ nil required! See the docstring of `normalize_hom`. -/
     simp only [assoc] },
   case whisker_right : _ _ _ _ _ h η ih
   { dsimp,

@@ -86,19 +86,36 @@ begin
 end
 
 @[to_additive]
-lemma finset.noncomm_prod_eq_one {α : Type*} {β : Type*} [monoid β] (s : finset α)
+lemma list.prod_const {α : Type*} [monoid α] (l : list α)
+  (m : α) (h : ∀ (x : α), x ∈ l → x = m) : l.prod = m ^ l.length :=
+begin
+  convert list.prod_repeat m l.length,
+  rw list.eq_repeat,
+  exact ⟨rfl, h⟩,
+end
+
+@[to_additive]
+lemma finset.noncomm_prod_const {α : Type*} {β : Type*} [monoid β] (s : finset α)
   (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
-  (h : ∀ (x : α), x ∈ s → f x = 1) : s.noncomm_prod f comm = 1 :=
+  (m : β) (h : ∀ (x : α), x ∈ s → f x = m) : s.noncomm_prod f comm = m ^ s.card :=
 begin
   classical,
   revert comm, rw ← s.to_list_to_finset, intro,
   rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list,
-  revert h, simp_rw ← s.mem_to_list,
-  induction s.to_list, simp,
-  intro h, simp [ih (λ x hx, h x (or.inr hx)), h hd (or.inl rfl)],
+  revert h, simp_rw ← s.mem_to_list, intro,
+  rw list.prod_const _ m,
+  { simp, },
+  { intro _, rw list.mem_map, rintros ⟨x, hx, rfl⟩, apply h x hx },
 end
-/- may generalize to any element instead of `1`, where we get `pow` with exponent `card`.
-   maybe also provide a list version. -/
+
+@[to_additive]
+lemma finset.noncomm_prod_eq_one {α : Type*} {β : Type*} [monoid β] (s : finset α)
+  (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
+  (h : ∀ (x : α), x ∈ s → f x = 1) : s.noncomm_prod f comm = 1 :=
+begin
+  rw finset.noncomm_prod_const s f comm 1 h,
+  exact one_pow _,
+end
 
 @[to_additive]
 lemma finset.noncomm_prod_single [decidable_eq ι] [fintype ι] (x : Π i, N i) :

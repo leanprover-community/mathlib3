@@ -291,7 +291,7 @@ This is the `ring_equiv` version of `equiv.Pi_congr_right`, and the dependent ve
 @[simps apply]
 def Pi_congr_right {ι : Type*} {R S : ι → Type*}
   [Π i, semiring (R i)] [Π i, semiring (S i)]
-  (e : ∀ i, R i ≃+* S i) : (Π i, R i) ≃+* Π i, S i :=
+  (e : Π i, R i ≃+* S i) : (Π i, R i) ≃+* Π i, S i :=
 { to_fun := λ x j, es j (x j),
   inv_fun := λ x j, (es j).symm (x j),
   .. @mul_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_mul_equiv),
@@ -304,12 +304,12 @@ lemma Pi_congr_right_refl {ι : Type*} {R : ι → Type*} [Π i, semiring (R i)]
 @[simp]
 lemma Pi_congr_right_symm {ι : Type*} {R S : ι → Type*}
   [Π i, semiring (R i)] [Π i, semiring (S i)]
-  (e : ∀ i, R i ≃+* S i) : (Pi_congr_right e).symm = (Pi_congr_right $ λ i, (e i).symm) := rfl
+  (e : Π i, R i ≃+* S i) : (Pi_congr_right e).symm = (Pi_congr_right $ λ i, (e i).symm) := rfl
 
 @[simp]
 lemma Pi_congr_right_trans {ι : Type*} {R S T : ι → Type*}
   [Π i, semiring (R i)] [Π i, semiring (S i)] [Π i, semiring (T i)]
-  (e : ∀ i, R i ≃+* S i) (f : ∀ i, S i ≃+* T i) :
+  (e : Π i, R i ≃+* S i) (f : Π i, S i ≃+* T i) :
   (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) := rfl
 
 end semiring

@@ -279,6 +279,7 @@ by rw [mul_assoc, commutes, ←mul_assoc]
 instance _root_.is_scalar_tower.right : is_scalar_tower R A A :=
 ⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, smul_def, smul_def, mul_assoc]⟩
 
+@[priority 100] -- see note [lower instance priority]
 instance to_is_central_scalar : is_central_scalar R A :=
 ⟨λ r a, by rw [op_smul_def, smul_def, commutes]⟩
 

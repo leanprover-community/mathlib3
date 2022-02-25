@@ -282,6 +282,12 @@ noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R �
 lemma of_bijective_apply (f : R →+* S) (hf : function.bijective f) (x : R) :
   of_bijective f hf x = f x := rfl
 
+/-- A family of ring isomorphisms `Π j, (R j ≃+* S j)` generates a
+ring isomorphisms between `Π j, R j` and `Π j, S j`.
+
+This is the `ring_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
+`ring_equiv.arrow_congr`.
+-/
 @[simps]
 def Pi_congr_right {ι : Type*} {R S : ι → Type*}
   [Π i, semiring (R i)] [Π i, semiring (S i)]

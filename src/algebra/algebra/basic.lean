@@ -1362,6 +1362,12 @@ rfl
 @[simp] lemma const_alg_hom_eq_algebra_of_id : const_alg_hom R A R = algebra.of_id R (A → R) :=
 rfl
 
+/-- A family of algebra equivalences `Π j, (A₁ j ≃ₐ A₂ j)` generates a
+multiplicative equivalence between `Π j, A₁ j` and `Π j, A₂ j`.
+
+This is the `alg_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
+`alg_equiv.arrow_congr`.
+-/
 @[simps]
 def Pi_congr_right {R ι : Type*} {A₁ A₂ : ι → Type*} [comm_semiring R]
   [Π i, semiring (A₁ i)] [Π i, semiring (A₂ i)] [Π i, algebra R (A₁ i)] [Π i, algebra R (A₂ i)]

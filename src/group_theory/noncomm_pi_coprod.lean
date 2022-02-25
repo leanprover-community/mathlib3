@@ -72,23 +72,36 @@ variables {ι : Type*} [hdec : decidable_eq ι] [hfin : fintype ι]
 variables {N : ι → Type*} [∀ i, monoid (N i)]
 
 @[to_additive]
-lemma _root_.finset.noncomm_prod_map {α : Type*} {β : Type*} [monoid β] (s : finset α) (f : α → β)
+lemma finset.noncomm_prod_map {α : Type*} {β : Type*} [monoid β]
+  [decidable_eq α] (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   {M : Type*} [monoid M] (g : β →* M) :
   g (s.noncomm_prod f comm) = s.noncomm_prod (λ i, g (f i))
   (λ x hx y hy, commute.map (comm x hx y hy) g)  :=
-sorry
+begin
+  revert comm, rw ← s.to_list_to_finset, intro,
+  iterate 2 { rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list },
+  convert g.map_list_prod _, rw list.comp_map,
+end
 
 @[to_additive]
-lemma _root_.finset.noncomm_prod_eq_one {α : Type*} {β : Type*} [monoid β] (s : finset α)
+lemma finset.noncomm_prod_eq_one {α : Type*} {β : Type*} [monoid β] [decidable_eq α] (s : finset α)
   (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (h : ∀ (x : α), x ∈ s → f x = 1) : s.noncomm_prod f comm = 1 :=
-sorry
+begin
+  revert comm, rw ← s.to_list_to_finset, intro,
+  rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list,
+  revert h, simp_rw ← s.mem_to_list,
+  induction s.to_list, simp,
+  intro h, simp [ih (λ x hx, h x (or.inr hx)), h hd (or.inl rfl)],
+end
+/- may generalize to any element instead of `1`, where we get `pow` with exponent `card`.
+   maybe also provide a list version. -/
 
 @[to_additive]
-lemma _root_.finset.noncomm_prod_single [decidable_eq ι] [fintype ι] (x : Π i, N i) :
+lemma finset.noncomm_prod_single [decidable_eq ι] [fintype ι] (x : Π i, N i) :
   finset.univ.noncomm_prod (λ i, monoid_hom.single N i (x i))
-  (λ i _ j _, by { by_cases h : i = j, { subst h, }, { exact pi.mul_single_commute i j h _ _ } })
+  (λ i _ j _, by { by_cases h : i = j, { rw h }, { apply pi.mul_single_commute i j h } })
   = x :=
 begin
   ext i,
@@ -98,12 +111,12 @@ begin
   rw finset.noncomm_prod_insert_of_not_mem',
   rw finset.noncomm_prod_eq_one,
   { simp, },
-  { intros i h,  simp at h, simp [h], },
+  { intros i h, simp at h, simp [h], },
   { simp, },
 end
 
 @[to_additive]
-lemma _root_.monoid_hom.pi_ext [decidable_eq ι] [fintype ι] {f g : (Π i, N i) →* M}
+lemma monoid_hom.pi_ext [decidable_eq ι] [fintype ι] {f g : (Π i, N i) →* M}
   (h : ∀ i x, f (monoid_hom.single N i x) = g (monoid_hom.single N i x)) :
   f = g :=
 begin
@@ -112,6 +125,7 @@ begin
   rw finset.univ.noncomm_prod_map _ _ f,
   rw finset.univ.noncomm_prod_map _ _ g,
   congr' 1, ext i, exact h i (x i),
+  iterate 2 { by apply_instance },
 end
 
 
@@ -283,8 +297,8 @@ def noncomm_pi_coprod_equiv :
   inv_fun := λ f,
   ⟨ λ i, f.comp (monoid_hom.single N i),
     λ i j hij x y, commute.map (monoid_hom.single_commute i j hij x y) f ⟩,
-  left_inv := λ ϕ, by {ext ι x, simp },
-  right_inv := λ f, monoid_hom.pi_ext.mpr (λ i x, by simp), }
+  left_inv := λ ϕ, by { ext, simp },
+  right_inv := λ f, pi_ext (λ i x, by simp) }
 
 omit hdec
 

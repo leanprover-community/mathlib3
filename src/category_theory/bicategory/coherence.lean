@@ -49,8 +49,8 @@ variables {B : Type u} [quiver.{v+1} B]
 /-- Auxiliary definition for `inclusion_path`. -/
 @[simp]
 def inclusion_path_aux {a : B} : ∀ {b : B}, path a b → hom a b
-| _ nil := hom.id a
-| _ (cons p f) := (inclusion_path_aux p).comp (hom.of f)
+| _ nil         := hom.id a
+| _ (cons p f)  := (inclusion_path_aux p).comp (hom.of f)
 
 /--
 The discrete category on the paths includes into the category of 1-morphisms in the free
@@ -61,20 +61,17 @@ def inclusion_path (a b : B) : discrete (path.{v+1} a b) ⥤ hom a b :=
 { obj := inclusion_path_aux,
   map := λ f g η, eq_to_hom (congr_arg inclusion_path_aux (discrete.eq_of_hom η)) }
 
-variables (B)
-
 /--
 The inclusion from the locally discrete bicategory on the path category into the free bicategory
 as a prelax functor. This will be promoted to a pseudofunctor after proving the coherence theorem.
 See `inclusion`.
 -/
 @[simps]
-def preinclusion : prelax_functor (locally_discrete (paths B)) (free_bicategory B) :=
-{ obj := id,
-  map := λ a b, (inclusion_path a b).obj,
-  map₂ := λ a b, (inclusion_path a b).map }
-
-variables {B}
+def preinclusion (B : Type u) [quiver.{v+1} B] :
+  prelax_functor (locally_discrete (paths B)) (free_bicategory B) :=
+{ obj   := id,
+  map   := λ a b, (inclusion_path a b).obj,
+  map₂  := λ a b, (inclusion_path a b).map }
 
 /--
 The normalization of the composition of `p : path a b` and `f : hom b c`.
@@ -84,11 +81,12 @@ of `f` alone, but the auxiliary `p` is necessary for Lean to accept the definiti
 -/
 @[simp]
 def normalize_hom {a : B} : ∀ {b c : B}, path a b → hom b c → path a c
-| _ _ p (hom.of f) := p.cons f
-| _ _ p (hom.id b) := p
-| _ _ p (hom.comp f g) := normalize_hom (normalize_hom p f) g
+| _ _ p (hom.of f)      := p.cons f
+| _ _ p (hom.id b)      := p
+| _ _ p (hom.comp f g)  := normalize_hom (normalize_hom p f) g
 
-/- We may define
+/-
+We may define
 def normalize_hom_aux : ∀ {a b : B}, hom a b → path a b
 | _ _ (hom.of f) := f.to_path
 | _ _ (hom.id b) := nil
@@ -100,17 +98,20 @@ typecheck.
 example {a b c : B} (p : path a b) (f : hom b c) :
   normalize_hom p f = p.comp (normalize_hom_aux f) :=
 by { induction f, refl, refl,
-  case comp : _ _ _ _ _ ihf ihg { rw [normalize_hom, ihf, ihg], apply comp_assoc } } -/
+  case comp : _ _ _ _ _ ihf ihg { rw [normalize_hom, ihf, ihg], apply comp_assoc } }
+-/
 
-/-- A 2-isomorphism between a partially-normalized hom in the free bicategory to the
-  fully-normalized hom. -/
+/--
+A 2-isomorphism between a partially-normalized hom in the free bicategory to the
+fully-normalized hom.
+-/
 @[simp]
 def normalize_iso {a : B} : ∀ {b c : B} (p : path a b) (f : hom b c),
   (preinclusion B).map p ≫ f ≅ (preinclusion B).map (normalize_hom p f)
-| b c p (hom.of f) := iso.refl _
-| _ _ p (hom.id b) := ρ_ _
-| b d p (hom.comp f g) := (α_ _ _ _).symm ≪≫
-    whisker_right_iso (normalize_iso p f) g ≪≫ normalize_iso _ g
+| _ _ p (hom.of f)      := iso.refl _
+| _ _ p (hom.id b)      := ρ_ _
+| _ _ p (hom.comp f g)  := (α_ _ _ _).symm ≪≫
+    whisker_right_iso (normalize_iso p f) g ≪≫ normalize_iso (normalize_hom p f) g
 
 /--
 Given a 2-morphism between `f` and `g` in the free bicategory, we have the equality
@@ -140,33 +141,38 @@ begin
     slice_lhs 2 3 { rw ihg },
     slice_lhs 1 2 { rw ihf },
     simp },
-  case whisker_left : _ _ _ _ _ _ _ ih { dsimp,
+  case whisker_left : _ _ _ _ _ _ _ ih
+  { dsimp,
     slice_lhs 1 2 { rw associator_inv_naturality_right },
     slice_lhs 2 3 { rw whisker_exchange },
     slice_lhs 3 4 { erw ih }, /- p ≠ nil required! -/
-    simpa only [assoc] },
-  case whisker_right : _ _ _ _ _ h η ih { dsimp,
+    simp only [assoc] },
+  case whisker_right : _ _ _ _ _ h η ih
+  { dsimp,
     slice_lhs 1 2 { rw associator_inv_naturality_middle },
     slice_lhs 2 3 { erw [←bicategory.whisker_right_comp, ih, bicategory.whisker_right_comp] },
     have := dcongr_arg (λ x, (normalize_iso x h).hom) (normalize_hom_congr p η),
     dsimp at this, simpa [this] },
-  case associator { erw comp_id, dsimp,
+  case associator
+  { dsimp,
     slice_lhs 3 4 { erw associator_inv_naturality_left },
     slice_lhs 1 3 { erw pentagon_hom_inv_inv_inv_inv },
     simpa only [assoc, bicategory.whisker_right_comp] },
-  case associator_inv { erw comp_id, dsimp,
+  case associator_inv
+  { dsimp,
     slice_rhs 2 3 { erw associator_inv_naturality_left },
     slice_rhs 1 2 { erw ←pentagon_inv },
     simpa only [assoc, bicategory.whisker_right_comp] },
   case left_unitor { erw comp_id, symmetry, apply triangle_assoc_comp_right_assoc },
-  case left_unitor_inv { dsimp,
+  case left_unitor_inv
+  { dsimp,
     slice_lhs 1 2 { erw triangle_assoc_comp_left_inv },
     rw [inv_hom_whisker_right, id_comp, comp_id] },
   case right_unitor
   { erw [comp_id, whisker_left_right_unitor, assoc, ←right_unitor_naturality], refl },
   case right_unitor_inv
   { erw [comp_id, whisker_left_right_unitor_inv, assoc, iso.hom_inv_id_assoc,
-      right_unitor_conjugation] },
+      right_unitor_conjugation] }
 end
 
 variable (B)
@@ -190,7 +196,7 @@ variable {B}
 /-- Auxiliary definition for `normalize_equiv`. -/
 def normalize_unit_iso (a b : free_bicategory B) :
   𝟭 (a ⟶ b) ≅ (full_normalize B).map_functor a b ⋙ inclusion_path a b :=
-nat_iso.of_components (λ f, (λ_ _).symm ≪≫ normalize_iso nil f)
+nat_iso.of_components (λ f, (λ_ f).symm ≪≫ normalize_iso nil f)
 begin
   rintros f g η, erw left_unitor_inv_naturality_assoc,
   simp only [iso.trans_hom, assoc], congr' 1, apply normalize_naturality nil,
@@ -219,9 +225,10 @@ The inclusion pseudofunctor from the locally discrete bicategory on the path cat
 free bicategory.
 -/
 @[simps]
-def inclusion : pseudofunctor (locally_discrete (paths B)) (free_bicategory B) :=
-{ map_id := λ a, iso.refl (𝟙 a),
-  map_comp := λ a b c f g, inclusion_map_comp_aux f g,
+def inclusion (B : Type u) [quiver.{v+1} B] :
+  pseudofunctor (locally_discrete (paths B)) (free_bicategory B) :=
+{ map_id    := λ a, iso.refl (𝟙 a),
+  map_comp  := λ a b c f g, inclusion_map_comp_aux f g,
   -- All the conditions for 2-morphisms are trivial thanks to the coherence theorem!
   .. preinclusion B }
 

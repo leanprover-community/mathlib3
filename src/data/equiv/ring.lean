@@ -282,6 +282,13 @@ noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R �
 lemma of_bijective_apply (f : R →+* S) (hf : function.bijective f) (x : R) :
   of_bijective f hf x = f x := rfl
 
+@[simps]
+def Pi_congr_right {ι : Type*} {R S : ι → Type*}
+  [Π i, semiring (R i)] [Π i, semiring (S i)]
+  (e : ∀ i, R i ≃+* S i) : (Π i, R i) ≃+* Π i, S i :=
+{ .. @mul_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_mul_equiv),
+  .. @add_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_add_equiv) }
+
 end semiring
 
 section

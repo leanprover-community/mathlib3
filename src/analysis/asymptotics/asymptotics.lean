@@ -753,27 +753,9 @@ begin
   { simp [hc', is_O_const_const _ hc'] }
 end
 
-@[simp] theorem is_o_const_const_iff [ne_bot l] {d : E'} {c : F'} :
-  is_o (λ x, d) (λ x, c) l ↔ d = 0 :=
-begin
-  simp only [is_o_iff, eventually_const],
-  split,
-  { intro H, by_contra hd,
-    rcases exists_pos_mul_lt (norm_pos_iff.2 hd) (∥c∥) with ⟨a, ha₀, ha⟩,
-    rw mul_comm at ha,
-    exact (H ha₀).not_lt ha },
-  { rintro rfl a ha,
-    rw norm_zero,
-    exact mul_nonneg ha.le (norm_nonneg _) }
-end
-
 @[simp] lemma is_O_pure {x} : is_O f' g' (pure x) ↔ (g' x = 0 → f' x = 0) :=
 calc is_O f' g' (pure x) ↔ is_O (λ y : α, f' x) (λ _, g' x) (pure x) : is_O_congr rfl rfl
                      ... ↔ g' x = 0 → f' x = 0                       : is_O_const_const_iff _
-
-@[simp] lemma is_o_pure {x} : is_o f' g' (pure x) ↔ f' x = 0 :=
-calc is_o f' g' (pure x) ↔ is_o (λ y : α, f' x) (λ _, g' x) (pure x) : is_o_congr rfl rfl
-                     ... ↔ f' x = 0                                  : is_o_const_const_iff
 
 end zero_const
 
@@ -1240,6 +1222,16 @@ begin
   { simp only [is_o_zero, eq_self_iff_true, true_or] },
   { simp only [hc, false_or, is_o_const_left_of_ne hc] }
 end
+
+@[simp] theorem is_o_const_const_iff [ne_bot l] {d : E'} {c : F'} :
+  is_o (λ x, d) (λ x, c) l ↔ d = 0 :=
+have ¬tendsto (function.const α ∥c∥) l at_top,
+  from not_tendsto_at_top_of_tendsto_nhds tendsto_const_nhds,
+by simp [function.const, this]
+
+@[simp] lemma is_o_pure {x} : is_o f' g' (pure x) ↔ f' x = 0 :=
+calc is_o f' g' (pure x) ↔ is_o (λ y : α, f' x) (λ _, g' x) (pure x) : is_o_congr rfl rfl
+                     ... ↔ f' x = 0                                  : is_o_const_const_iff
 
 /-!
 ### Eventually (u / v) * v = u

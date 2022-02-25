@@ -73,22 +73,24 @@ variables {N : ι → Type*} [∀ i, monoid (N i)]
 
 @[to_additive]
 lemma finset.noncomm_prod_map {α : Type*} {β : Type*} [monoid β]
-  [decidable_eq α] (s : finset α) (f : α → β)
+  (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   {M : Type*} [monoid M] (g : β →* M) :
   g (s.noncomm_prod f comm) = s.noncomm_prod (λ i, g (f i))
   (λ x hx y hy, commute.map (comm x hx y hy) g)  :=
 begin
+  classical,
   revert comm, rw ← s.to_list_to_finset, intro,
   iterate 2 { rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list },
   convert g.map_list_prod _, rw list.comp_map,
 end
 
 @[to_additive]
-lemma finset.noncomm_prod_eq_one {α : Type*} {β : Type*} [monoid β] [decidable_eq α] (s : finset α)
+lemma finset.noncomm_prod_eq_one {α : Type*} {β : Type*} [monoid β] (s : finset α)
   (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (h : ∀ (x : α), x ∈ s → f x = 1) : s.noncomm_prod f comm = 1 :=
 begin
+  classical,
   revert comm, rw ← s.to_list_to_finset, intro,
   rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list,
   revert h, simp_rw ← s.mem_to_list,
@@ -125,7 +127,6 @@ begin
   rw finset.univ.noncomm_prod_map _ _ f,
   rw finset.univ.noncomm_prod_map _ _ g,
   congr' 1, ext i, exact h i (x i),
-  iterate 2 { by apply_instance },
 end
 
 

@@ -11,7 +11,7 @@ In this file, we establish various propreties related to the spectrum of element
 -/
 
 open_locale topological_space ennreal
-open filter ennreal
+open filter ennreal spectrum
 
 section unitary_spectrum
 

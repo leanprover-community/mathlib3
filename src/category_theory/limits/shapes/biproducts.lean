@@ -323,9 +323,12 @@ variables [has_zero_object C] [has_finite_biproducts C]
 
 open_locale zero_object
 
+/-- The kernel of the `i`-th projection of a biproduct is the component-wise morphism
+on the biproduct where the `i`-th component is set to `0`. -/
 def biproduct.π_kernel_ι : ⨁ (λ j : J, if i = j then 0 else f j) ⟶ ⨁ f :=
 biproduct.map $ λ j, if h : i = j then 0 else eq_to_hom (by simp [h])
 
+/-- The cone for the projection's kernel morphism. -/
 def biproduct.π_kernel_fork : kernel_fork (biproduct.π f i) :=
 kernel_fork.of_ι (biproduct.π_kernel_ι f i) (by simp[biproduct.π_kernel_ι])
 

@@ -50,6 +50,9 @@ begin
   exact finite_dimensional.finrank_pos.ne'
 end
 
+lemma is_prime_pow_card_finite_field {α} [fintype α] [field α] : is_prime_pow (‖α‖) :=
+fintype.nonempty_field_iff.mp ⟨‹field α›⟩
+
 /-- Any infinite type can be endowed a field structure. -/
 lemma infinite.nonempty_field {α : Type u} [infinite α] : nonempty (field α) :=
 begin

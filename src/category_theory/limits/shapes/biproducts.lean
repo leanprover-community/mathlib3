@@ -814,6 +814,46 @@ def biprod.map_iso {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduc
 { hom := biprod.map f.hom g.hom,
   inv := biprod.map f.inv g.inv }
 
+section biprod_kernel
+
+variables (X Y : C) [has_binary_biproduct X Y]
+
+/-- A kernel fork for the kernel of `biprod.fst`. It consists of the
+morphism `biprod.inr`. -/
+def biprod.fst_kernel_fork : kernel_fork (biprod.fst : X ⊞ Y ⟶ X) :=
+kernel_fork.of_ι biprod.inr (by simp)
+
+/-- The fork `biprod.fst_kernel_fork` is indeed a limit.  -/
+def biprod.is_kernel_fst_kernel_fork : is_limit (biprod.fst_kernel_fork X Y) :=
+fork.is_limit.mk' _ $ λ s,
+⟨s.ι ≫ biprod.snd, 
+  by { ext,
+        { simp },
+        { slice_lhs 3 4 { erw [biprod.inr_snd] }, simp } },
+  by { intros m hm,
+       rw [←hm, category.assoc],
+       change _ = m ≫ biprod.inr ≫ biprod.snd,
+       rw [biprod.inr_snd, category.comp_id] }⟩
+
+/-- A kernel fork for the kernel of `biprod.snd`. It consists of the
+morphism `biprod.inl`. -/
+def biprod.snd_kernel_fork : kernel_fork (biprod.snd : X ⊞ Y ⟶ Y) :=
+kernel_fork.of_ι biprod.inl (by simp)
+
+/-- The fork `biprod.snd_kernel_fork` is indeed a limit.  -/
+def biprod.is_kernel_snd_kernel_fork : is_limit (biprod.snd_kernel_fork X Y) :=
+fork.is_limit.mk' _ $ λ s,
+⟨s.ι ≫ biprod.fst, 
+  by { ext,
+        { slice_lhs 3 4 { erw [biprod.inl_fst] }, simp },
+        { simp } },
+  by { intros m hm,
+       rw [←hm, category.assoc],
+       change _ = m ≫ biprod.inl ≫ biprod.fst,
+       rw [biprod.inl_fst, category.comp_id] }⟩
+
+end biprod_kernel
+
 section
 variables [has_binary_biproducts C]
 

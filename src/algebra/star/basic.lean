@@ -75,6 +75,7 @@ star_involutive _
 lemma star_injective [has_involutive_star R] : function.injective (star : R → R) :=
 star_involutive.injective
 
+/-- `star` as an equivalence when it is involutive. -/
 protected def equiv.star [has_involutive_star R] : equiv.perm R :=
 star_involutive.to_equiv _
 

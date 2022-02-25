@@ -29,6 +29,10 @@ end
 def strong_probable_prime (n : nat) (a : zmod n) : Prop :=
 a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 (n-1) ∧ a^(2^r * odd_part(n-1)) = -1)
 
+instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.decidable
+
+#eval to_bool (strong_probable_prime 1000007 4)
+
 def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
 a^(n-1) = 1
 

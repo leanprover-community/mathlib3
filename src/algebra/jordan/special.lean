@@ -45,13 +45,7 @@ lemma half_commute {α : Type*} [ring α] [invertible (2 : α)] (a : α) : commu
 /- The symmetrisation of a real (unital, associative) algebra multiplication is a commutative
 Jordan non-associative ring -/
 instance (α : Type*) [ring α] [invertible (2 : α)] : is_comm_jordan (αˢʸᵐ) :=
-{ mul_comm := λ a,
-  begin
-    intro,
-    change ⅟2 * (unsym a * unsym b + unsym b * unsym a) =
-      ⅟2 * (unsym b * unsym a + unsym a * unsym b),
-    rw add_comm,
-  end,
+{ mul_comm := sym_alg.mul_comm,
   jordan := λ a,
   begin
     intro,

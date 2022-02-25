@@ -1455,7 +1455,7 @@ instance [has_involutive_star α] : has_involutive_star (set α) :=
 
 @[simp]
 lemma star_subset_star [has_involutive_star α] {s t : set α} : star s ⊆ star t ↔ s ⊆ t :=
-(equiv.star α).surjective.preimage_subset_preimage_iff
+equiv.star.surjective.preimage_subset_preimage_iff
 
 lemma star_subset [has_involutive_star α] {s t : set α} : star s ⊆ t ↔ s ⊆ star t :=
 by { rw [← star_subset_star, star_star] }

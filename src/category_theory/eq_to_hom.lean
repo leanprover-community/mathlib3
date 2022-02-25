@@ -165,12 +165,12 @@ by simp only [category.id_comp, eq_to_hom_refl, category.comp_id]
 
 lemma dcongr_arg {ι : Type*} {o₁ o₂ : ι → C} (m : ∀ i, o₁ i ⟶ o₂ i) {i j : ι} (h : i = j) :
   m i = eq_to_hom (by rw h) ≫ m j ≫ eq_to_hom (by rw h) :=
-by { subst h, apply eq_conj_eq_to_hom }
+by { subst h, simp }
 
 lemma dcongr_arg_app {ι : Type*} {c₁ c₂ : ι → C} {d₁ d₂ : ι → D}
   (f : ∀ i, (c₁ i ⟶ c₂ i) → (d₁ i ⟶ d₂ i)) {i j : ι} (m : c₁ i ⟶ c₂ i) (h : i = j) :
   f i m = eq_to_hom (by rw h) ≫
     f j (eq_to_hom (by rw h) ≫ m ≫ eq_to_hom (by rw h)) ≫ eq_to_hom (by rw h) :=
-by { subst h, rw ← eq_conj_eq_to_hom m, apply eq_conj_eq_to_hom }
+by { subst h, simp }
 
 end category_theory

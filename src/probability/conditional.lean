@@ -39,6 +39,12 @@ measurability of the restricted and restricting sets, respectively,
 many of the theorems here will have corresponding alternatives as well.
 For the sake of brevity, we've chosen to only go with `measure.restrict_apply'`
 for now, but the alternative theorems can be added if needed.
+
+Simplification generally follows the rule of removing conditions on a measure
+when possible.
+
+## Tags
+conditional, conditioned, bayes
 -/
 
 noncomputable theory
@@ -105,7 +111,7 @@ on `s ∩ t`. -/
 begin
   apply measure.ext, intros,
   haveI := probability_theory.cond_is_probability_measure μ
-    (μ.to_outer_measure.subset_pos_of_pos (set.inter_subset_left _ _) hci),
+    (μ.to_outer_measure.pos_of_subset_pos (set.inter_subset_left _ _) hci),
   simp [*, measure_ne_top, ennreal.mul_inv],
   conv { to_lhs, rw mul_assoc, congr, skip, rw mul_comm },
   simp_rw ← mul_assoc,

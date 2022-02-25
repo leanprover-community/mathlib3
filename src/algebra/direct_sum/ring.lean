@@ -250,7 +250,7 @@ begin
   change direct_sum.mul_hom _ a a' = _,
   dsimp [direct_sum.mul_hom, direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply],
   simp only [dfinsupp.sum_add_hom_apply, dfinsupp.sum, dfinsupp.finset_sum_apply,
-    add_monoid_hom.coe_sum, finset.sum_apply, add_monoid_hom.flip_apply,
+    add_monoid_hom.coe_finset_sum, finset.sum_apply, add_monoid_hom.flip_apply,
     add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply,
     direct_sum.gmul_hom_apply_apply],
   rw finset.sum_product,

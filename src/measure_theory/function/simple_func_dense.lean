@@ -569,7 +569,7 @@ local attribute [instance] simple_func.module
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a normed space. Not declared as an
 instance as it is (as of writing) used only in the construction of the Bochner integral. -/
 protected def normed_space [fact (1 ≤ p)] : normed_space 𝕜 (Lp.simple_func E p μ) :=
-⟨ λc f, by { rw [coe_norm_subgroup, coe_norm_subgroup, coe_smul, norm_smul] } ⟩
+⟨ λc f, by { rw [add_subgroup.coe_norm, add_subgroup.coe_norm, coe_smul, norm_smul] } ⟩
 
 end instances
 
@@ -901,7 +901,7 @@ begin
     hx_nonneg_Lp n⟩, λ n, mem_range_self _, _⟩,
   suffices : tendsto (λ (n : ℕ), ↑(to_Lp (x n) (hx_mem_ℒp n))) at_top (𝓝 (g : Lp G p μ)),
   { rw tendsto_iff_dist_tendsto_zero at this ⊢,
-    simp_rw subtype.pseudo_dist_eq,
+    simp_rw subtype.dist_eq,
     convert this, },
   rw Lp.tendsto_Lp_iff_tendsto_ℒp',
   convert hx_tendsto,

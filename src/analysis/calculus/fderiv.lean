@@ -1415,8 +1415,8 @@ end cartesian_product
 
 section const_smul
 
-variables {R : Type*} [semiring R] [module R F] [topological_space R] [smul_comm_class 𝕜 R F]
-  [has_continuous_smul R F]
+variables {R : Type*} [semiring R] [module R F] [smul_comm_class 𝕜 R F]
+  [has_continuous_const_smul R F]
 
 /-! ### Derivative of a function multiplied by a constant -/
 theorem has_strict_fderiv_at.const_smul (h : has_strict_fderiv_at f f' x) (c : R) :
@@ -2501,7 +2501,7 @@ begin
   have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
     (λ (t : R), t) (𝓝 0),
   { refine (inverse_add_norm_diff_second_order x).trans_is_o ((is_o_norm_norm).mp _),
-    simp only [normed_field.norm_pow, norm_norm],
+    simp only [norm_pow, norm_norm],
     have h12 : 1 < 2 := by norm_num,
     convert (asymptotics.is_o_pow_pow h12).comp_tendsto tendsto_norm_zero,
     ext, simp },

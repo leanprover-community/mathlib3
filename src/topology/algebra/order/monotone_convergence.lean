@@ -3,7 +3,7 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Yury Kudryashov
 -/
-import topology.algebra.ordered.basic
+import topology.algebra.order.basic
 
 /-!
 # Bounded monotone sequences converge
@@ -310,7 +310,7 @@ lemma supr_eq_supr_subseq_of_monotone {ι₁ ι₂ α : Type*} [preorder ι₂] 
 le_antisymm
   (supr_le_supr2 $ λ i, exists_imp_exists (λ j (hj : i ≤ φ j), hf hj)
     (hφ.eventually $ eventually_ge_at_top i).exists)
-  (supr_le_supr2 $ λ i, ⟨φ i, le_refl _⟩)
+  (supr_le_supr2 $ λ i, ⟨φ i, le_rfl⟩)
 
 lemma infi_eq_infi_subseq_of_monotone {ι₁ ι₂ α : Type*} [preorder ι₂] [complete_lattice α]
   {l : filter ι₁} [l.ne_bot] {f : ι₂ → α} {φ : ι₁ → ι₂} (hf : monotone f)

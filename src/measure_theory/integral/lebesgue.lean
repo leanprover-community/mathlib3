@@ -399,7 +399,7 @@ function.injective.module K ⟨λ f, show α → β, from f, coe_zero, coe_add�
 lemma smul_eq_map [has_scalar K β] (k : K) (f : α →ₛ β) : k • f = f.map ((•) k) := rfl
 
 instance [preorder β] : preorder (α →ₛ β) :=
-{ le_refl := λf a, le_refl _,
+{ le_refl := λf a, le_rfl,
   le_trans := λf g h hfg hgh a, le_trans (hfg _) (hgh a),
   .. simple_func.has_le }
 
@@ -607,7 +607,7 @@ begin
   { refine le_supr_of_le (encodable.encode q) _,
     rw [ennreal_rat_embed_encode q],
     refine le_supr_of_le (le_of_lt q_lt) _,
-    exact le_refl _ },
+    exact le_rfl },
   exact lt_irrefl _ (lt_of_le_of_lt this lt_q)
 end
 
@@ -979,8 +979,8 @@ theorem simple_func.lintegral_eq_lintegral {m : measurable_space α} (f : α →
 begin
   rw lintegral,
   exact le_antisymm
-    (bsupr_le $ λ g hg, lintegral_mono hg $ le_refl _)
-    (le_supr_of_le f $ le_supr_of_le (le_refl _) (le_refl _))
+    (bsupr_le $ λ g hg, lintegral_mono hg $ le_rfl)
+    (le_supr_of_le f $ le_supr_of_le le_rfl le_rfl)
 end
 
 @[mono] lemma lintegral_mono' {m : measurable_space α} ⦃μ ν : measure α⦄ (hμν : μ ≤ ν)
@@ -1049,7 +1049,7 @@ begin
   rw lintegral,
   refine le_antisymm
     (bsupr_le $ assume φ hφ, _)
-    (supr_le_supr2 $ λ φ, ⟨φ.map (coe : ℝ≥0 → ℝ≥0∞), le_refl _⟩),
+    (supr_le_supr2 $ λ φ, ⟨φ.map (coe : ℝ≥0 → ℝ≥0∞), le_rfl⟩),
   by_cases h : ∀ᵐ a ∂μ, φ a ≠ ∞,
   { let ψ := φ.map ennreal.to_nnreal,
     replace h : ψ.map (coe : ℝ≥0 → ℝ≥0∞) =ᵐ[μ] φ :=
@@ -1238,7 +1238,7 @@ begin
     by_cases hx : x ∈ ae_seq_set hf p,
     { exact ae_seq.prop_of_mem_ae_seq_set hf hx hnm, },
     { simp only [ae_seq, hx, if_false],
-      exact le_refl _, }, },
+      exact le_rfl, }, },
   rw lintegral_congr_ae (ae_seq.supr hf hp).symm,
   simp_rw supr_apply,
   rw @lintegral_supr _ _ μ _ (ae_seq.measurable hf p) h_ae_seq_mono,
@@ -1380,8 +1380,8 @@ begin
   refine (ennreal.supr_add_supr _).symm,
   intros φ ψ,
   exact ⟨⟨φ ⊔ ψ, λ x, sup_le (φ.2 x) (ψ.2 x)⟩,
-    add_le_add (simple_func.lintegral_mono le_sup_left (le_refl _))
-      (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right (le_refl _))⟩
+    add_le_add (simple_func.lintegral_mono le_sup_left le_rfl)
+      (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right le_rfl)⟩
 end
 
 @[simp] lemma lintegral_add_measure {m : measurable_space α} (f : α → ℝ≥0∞) (μ ν : measure α) :
@@ -1447,7 +1447,7 @@ begin
   simp only [supr_le_iff, ge_iff_le],
   assume hs,
   rw [← simple_func.const_mul_lintegral, lintegral],
-  refine le_supr_of_le (const α r * s) (le_supr_of_le (λx, _) (le_refl _)),
+  refine le_supr_of_le (const α r * s) (le_supr_of_le (λx, _) le_rfl),
   exact mul_le_mul_left' (hs x) _
 end
 
@@ -1505,12 +1505,12 @@ begin
   simp only [lintegral, ← restrict_lintegral_eq_lintegral_restrict _ hs, supr_subtype'],
   apply le_antisymm; refine supr_le_supr2 (subtype.forall.2 $ λ φ hφ, _),
   { refine ⟨⟨φ, le_trans hφ (indicator_le_self _ _)⟩, _⟩,
-    refine simple_func.lintegral_mono (λ x, _) (le_refl _),
+    refine simple_func.lintegral_mono (λ x, _) le_rfl,
     by_cases hx : x ∈ s,
     { simp [hx, hs, le_refl] },
     { apply le_trans (hφ x),
       simp [hx, hs, le_refl] } },
-  { refine ⟨⟨φ.restrict s, λ x, _⟩, le_refl _⟩,
+  { refine ⟨⟨φ.restrict s, λ x, _⟩, le_rfl⟩,
     simp [hφ x, hs, indicator_le_indicator] }
 end
 
@@ -1668,8 +1668,8 @@ lemma lintegral_infi_ae
   (h_mono : ∀n:ℕ, f n.succ ≤ᵐ[μ] f n) (h_fin : ∫⁻ a, f 0 a ∂μ ≠ ∞) :
   ∫⁻ a, ⨅n, f n a ∂μ = ⨅n, ∫⁻ a, f n a ∂μ :=
 have fn_le_f0 : ∫⁻ a, ⨅n, f n a ∂μ ≤ ∫⁻ a, f 0 a ∂μ, from
-  lintegral_mono (assume a, infi_le_of_le 0 (le_refl _)),
-have fn_le_f0' : (⨅n, ∫⁻ a, f n a ∂μ) ≤ ∫⁻ a, f 0 a ∂μ, from infi_le_of_le 0 (le_refl _),
+  lintegral_mono (assume a, infi_le_of_le 0 le_rfl),
+have fn_le_f0' : (⨅n, ∫⁻ a, f n a ∂μ) ≤ ∫⁻ a, f 0 a ∂μ, from infi_le_of_le 0 le_rfl,
 (ennreal.sub_right_inj h_fin fn_le_f0 fn_le_f0').1 $
 show ∫⁻ a, f 0 a ∂μ - ∫⁻ a, ⨅n, f n a ∂μ = ∫⁻ a, f 0 a ∂μ - (⨅n, ∫⁻ a, f n a ∂μ), from
 calc
@@ -1681,13 +1681,13 @@ calc
   ... = ⨆n, ∫⁻ a, f 0 a - f n a ∂μ :
     lintegral_supr_ae
       (assume n, (h_meas 0).sub (h_meas n))
-      (assume n, (h_mono n).mono $ assume a ha, tsub_le_tsub (le_refl _) ha)
+      (assume n, (h_mono n).mono $ assume a ha, tsub_le_tsub le_rfl ha)
   ... = ⨆n, ∫⁻ a, f 0 a ∂μ - ∫⁻ a, f n a ∂μ :
     have h_mono : ∀ᵐ a ∂μ, ∀n:ℕ, f n.succ a ≤ f n a := ae_all_iff.2 h_mono,
     have h_mono : ∀n, ∀ᵐ a ∂μ, f n a ≤ f 0 a := assume n, h_mono.mono $ assume a h,
     begin
       induction n with n ih,
-      {exact le_refl _}, {exact le_trans (h n) ih}
+      {exact le_rfl}, {exact le_trans (h n) ih}
     end,
     congr_arg supr $ funext $ assume n, lintegral_sub (h_meas _) (h_meas _)
       (ne_top_of_le_ne_top h_fin $ lintegral_mono_ae $ h_mono n) (h_mono n)
@@ -1861,7 +1861,7 @@ lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ℝ≥0�
   ∫⁻ a in ⋃ i, s i, f a ∂μ ≤ ∑' i, ∫⁻ a in s i, f a ∂μ :=
 begin
   rw [← lintegral_sum_measure],
-  exact lintegral_mono' restrict_Union_le (le_refl _)
+  exact lintegral_mono' restrict_Union_le le_rfl
 end
 
 lemma lintegral_union {f : α → ℝ≥0∞} {A B : set α}

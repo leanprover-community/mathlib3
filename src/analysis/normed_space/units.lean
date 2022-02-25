@@ -105,7 +105,7 @@ begin
     cancel_denoms },
   have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
   have hleft := inverse_unit (x.add t ht),
-  simp only [← neg_mul_eq_neg_mul, sub_neg_eq_add] at hright,
+  simp only [neg_mul, sub_neg_eq_add] at hright,
   simp only [units.coe_add] at hleft,
   simp [hleft, hright, units.add]
 end
@@ -143,7 +143,7 @@ begin
   { convert ((mul_left_continuous (- (↑x⁻¹ : R))).tendsto 0).comp tendsto_id,
     simp },
   refine (hzero.eventually (inverse_one_sub_nth_order n)).mp (eventually_of_forall _),
-  simp only [neg_mul_eq_neg_mul_symm, sub_neg_eq_add],
+  simp only [neg_mul, sub_neg_eq_add],
   intros t h1 h2,
   have h := congr_arg (λ (a : R), a * ↑x⁻¹) h1,
   dsimp at h,
@@ -211,7 +211,7 @@ begin
     simp },
   refine h.mp (hC.mp (eventually_of_forall _)),
   intros t _ hLHS,
-  simp only [neg_mul_eq_neg_mul_symm] at hLHS,
+  simp only [neg_mul] at hLHS,
   rw hLHS,
   refine le_trans (norm_mul_le _ _ ) _,
   have h' : ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n,
@@ -240,7 +240,7 @@ begin
   convert inverse_add_norm_diff_nth_order x 2,
   ext t,
   simp only [range_succ, range_one, sum_insert, mem_singleton, sum_singleton, not_false_iff,
-    one_ne_zero, pow_zero, add_mul, pow_one, one_mul, neg_mul_eq_neg_mul_symm,
+    one_ne_zero, pow_zero, add_mul, pow_one, one_mul, neg_mul,
     sub_add_eq_sub_sub_swap, sub_neg_eq_add],
 end
 

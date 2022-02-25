@@ -39,6 +39,14 @@ lemma cauchy_iff {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, t ×ˢ t ⊆ s)) :=
 cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
 
+lemma cauchy.ultrafilter_of {l : filter α} (h : cauchy l) :
+  cauchy (@ultrafilter.of _ l h.1 : filter α) :=
+begin
+  haveI := h.1,
+  have := ultrafilter.of_le l,
+  exact ⟨ultrafilter.ne_bot _, (filter.prod_mono this this).trans h.2⟩
+end
+
 lemma cauchy_map_iff {l : filter β} {f : β → α} :
   cauchy (l.map f) ↔ (ne_bot l ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l ×ᶠ l) (𝓤 α)) :=
 by rw [cauchy, map_ne_bot_iff, prod_map_map_eq, tendsto]
@@ -156,7 +164,7 @@ lemma filter.tendsto.cauchy_seq [semilattice_sup β] [nonempty β] {f : β → �
   cauchy_seq f :=
 hx.cauchy_map
 
-lemma cauchy_seq_const (x : α) : cauchy_seq (λ n : ℕ, x) :=
+lemma cauchy_seq_const [semilattice_sup β] [nonempty β] (x : α) : cauchy_seq (λ n : β, x) :=
 tendsto_const_nhds.cauchy_seq
 
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
@@ -277,6 +285,32 @@ begin
   exact hN (hf hmn.1 hmn.2)
 end
 
+lemma is_complete_iff_cluster_pt {s : set α} :
+  is_complete s ↔ ∀ l, cauchy l → l ≤ 𝓟 s → ∃ x ∈ s, cluster_pt x l :=
+forall₃_congr $ λ l hl hls, exists₂_congr $ λ x hx, le_nhds_iff_adhp_of_cauchy hl
+
+lemma is_complete_iff_ultrafilter {s : set α} :
+  is_complete s ↔ ∀ l : ultrafilter α, cauchy (l : filter α) → ↑l ≤ 𝓟 s → ∃ x ∈ s, ↑l ≤ 𝓝 x :=
+begin
+  refine ⟨λ h l, h l, λ H, is_complete_iff_cluster_pt.2 $ λ l hl hls, _⟩,
+  haveI := hl.1,
+  rcases H (ultrafilter.of l) hl.ultrafilter_of ((ultrafilter.of_le l).trans hls)
+    with ⟨x, hxs, hxl⟩,
+  exact ⟨x, hxs, (cluster_pt.of_le_nhds hxl).mono (ultrafilter.of_le l)⟩
+end
+
+lemma is_complete_iff_ultrafilter' {s : set α} :
+  is_complete s ↔ ∀ l : ultrafilter α, cauchy (l : filter α) → s ∈ l → ∃ x ∈ s, ↑l ≤ 𝓝 x :=
+is_complete_iff_ultrafilter.trans $ by simp only [le_principal_iff, ultrafilter.mem_coe]
+
+protected lemma is_complete.union {s t : set α} (hs : is_complete s) (ht : is_complete t) :
+  is_complete (s ∪ t) :=
+begin
+  simp only [is_complete_iff_ultrafilter', ultrafilter.union_mem_iff, or_imp_distrib] at *,
+  exact λ l hl, ⟨λ hsl, (hs l hl hsl).imp $ λ x hx, ⟨or.inl hx.fst, hx.snd⟩,
+    λ htl, (ht l hl htl).imp $ λ x hx, ⟨or.inr hx.fst, hx.snd⟩⟩
+end
+
 /-- A complete space is defined here using uniformities. A uniform space
   is complete if every Cauchy filter converges. -/
 class complete_space (α : Type u) [uniform_space α] : Prop :=
@@ -308,6 +342,10 @@ lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : com
 lemma complete_space_iff_is_complete_univ :
   complete_space α ↔ is_complete (univ : set α) :=
 ⟨@complete_univ α _, complete_space_of_is_complete_univ⟩
+
+lemma complete_space_iff_ultrafilter :
+  complete_space α ↔ ∀ l : ultrafilter α, cauchy (l : filter α) → ∃ x : α, ↑l ≤ 𝓝 x :=
+by simp [complete_space_iff_is_complete_univ, is_complete_iff_ultrafilter]
 
 lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} [ne_bot l] :
   cauchy l ↔ (∃x, l ≤ 𝓝 x) :=
@@ -478,7 +516,7 @@ lemma compact_iff_totally_bounded_complete {s : set α} :
 lemma is_compact.totally_bounded {s : set α} (h : is_compact s) : totally_bounded s :=
 (compact_iff_totally_bounded_complete.1 h).1
 
-lemma is_compact.is_complete {s : set α} (h : is_compact s) : is_complete s :=
+protected lemma is_compact.is_complete {s : set α} (h : is_compact s) : is_complete s :=
 (compact_iff_totally_bounded_complete.1 h).2
 
 @[priority 100] -- see Note [lower instance priority]

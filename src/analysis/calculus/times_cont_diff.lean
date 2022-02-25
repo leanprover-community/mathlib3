@@ -251,7 +251,7 @@ begin
     { assume m hm,
       apply (H m.succ).fderiv_within m (with_top.coe_lt_coe.2 (lt_add_one m)) },
     { assume m hm,
-      apply (H m).cont m (le_refl _) } }
+      apply (H m).cont m le_rfl } }
 end
 
 /-- If a function has a Taylor series at order at least `1`, then the term of order `1` of this
@@ -315,7 +315,7 @@ begin
   { assume h,
     exact ⟨h.of_le (with_top.coe_le_coe.2 (nat.le_succ n)),
            h.fderiv_within _ (with_top.coe_lt_coe.2 (lt_add_one n)),
-           h.cont (n + 1) (le_refl _)⟩ },
+           h.cont (n + 1) le_rfl⟩ },
   { assume h,
     split,
     { exact h.1.zero_eq },
@@ -420,7 +420,7 @@ lemma times_cont_diff_within_at_nat {n : ℕ} :
   times_cont_diff_within_at 𝕜 n f s x ↔
   ∃ u ∈ 𝓝[insert x s] x, ∃ p : E → formal_multilinear_series 𝕜 E F,
   has_ftaylor_series_up_to_on n f p u :=
-⟨λ H, H n (le_refl _), λ ⟨u, hu, p, hp⟩ m hm, ⟨u, hu, p, hp.of_le hm⟩⟩
+⟨λ H, H n le_rfl, λ ⟨u, hu, p, hp⟩ m hm, ⟨u, hu, p, hp.of_le hm⟩⟩
 
 lemma times_cont_diff_within_at.of_le {m n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (hmn : m ≤ n) :
@@ -511,7 +511,7 @@ begin
   rcases h 1 hn with ⟨u, hu, p, H⟩,
   rcases mem_nhds_within.1 hu with ⟨t, t_open, xt, tu⟩,
   rw inter_comm at tu,
-  have := ((H.mono tu).differentiable_on (le_refl _)) x ⟨mem_insert x s, xt⟩,
+  have := ((H.mono tu).differentiable_on le_rfl) x ⟨mem_insert x s, xt⟩,
   exact (differentiable_within_at_inter (is_open.mem_nhds t_open xt)).1 this,
 end
 
@@ -528,7 +528,7 @@ theorem times_cont_diff_within_at_succ_iff_has_fderiv_within_at {n : ℕ} :
 begin
   split,
   { assume h,
-    rcases h n.succ (le_refl _) with ⟨u, hu, p, Hp⟩,
+    rcases h n.succ le_rfl with ⟨u, hu, p, Hp⟩,
     refine ⟨u, hu, λ y, (continuous_multilinear_curry_fin1 𝕜 E F) (p y 1),
       λ y hy, Hp.has_fderiv_within_at (with_top.coe_le_coe.2 (nat.le_add_left 1 n)) hy, _⟩,
     assume m hm,
@@ -540,7 +540,7 @@ begin
       exact Hp.2.2.of_le hm } },
   { rintros ⟨u, hu, f', f'_eq_deriv, Hf'⟩,
     rw times_cont_diff_within_at_nat,
-    rcases Hf' n (le_refl _) with ⟨v, hv, p', Hp'⟩,
+    rcases Hf' n le_rfl with ⟨v, hv, p', Hp'⟩,
     refine ⟨v ∩ u, _, λ x, (p' x).unshift (f x), _⟩,
     { apply filter.inter_mem _ hu,
       apply nhds_within_le_of_mem hu,
@@ -679,7 +679,7 @@ theorem times_cont_diff_on_succ_iff_has_fderiv_within_at {n : ℕ} :
 begin
   split,
   { assume h x hx,
-    rcases (h x hx) n.succ (le_refl _) with ⟨u, hu, p, Hp⟩,
+    rcases (h x hx) n.succ le_rfl with ⟨u, hu, p, Hp⟩,
     refine ⟨u, hu, λ y, (continuous_multilinear_curry_fin1 𝕜 E F) (p y 1),
       λ y hy, Hp.has_fderiv_within_at (with_top.coe_le_coe.2 (nat.le_add_left 1 n)) hy, _⟩,
     rw has_ftaylor_series_up_to_on_succ_iff_right at Hp,
@@ -903,7 +903,7 @@ begin
     have : p x m.succ = ftaylor_series_within 𝕜 f s x m.succ,
     { change p x m.succ = iterated_fderiv_within 𝕜 m.succ f s x,
       rw ← iterated_fderiv_within_inter (is_open.mem_nhds o_open xo) hs hx,
-      exact (Hp.mono ho).eq_ftaylor_series_of_unique_diff_on (le_refl _)
+      exact (Hp.mono ho).eq_ftaylor_series_of_unique_diff_on le_rfl
         (hs.inter o_open) ⟨hx, xo⟩ },
     rw [← this, ← has_fderiv_within_at_inter (is_open.mem_nhds o_open xo)],
     have A : ∀ y ∈ s ∩ o, p y m = ftaylor_series_within 𝕜 f s y m,
@@ -926,9 +926,9 @@ begin
     { rintros y ⟨hy, yo⟩,
       change p y m = iterated_fderiv_within 𝕜 m f s y,
       rw ← iterated_fderiv_within_inter (is_open.mem_nhds o_open yo) hs hy,
-      exact (Hp.mono ho).eq_ftaylor_series_of_unique_diff_on (le_refl _)
+      exact (Hp.mono ho).eq_ftaylor_series_of_unique_diff_on le_rfl
         (hs.inter o_open) ⟨hy, yo⟩ },
-    exact ((Hp.mono ho).cont m (le_refl _)).congr (λ y hy, (A y hy).symm) }
+    exact ((Hp.mono ho).cont m le_rfl).congr (λ y hy, (A y hy).symm) }
 end
 
 lemma times_cont_diff_on_of_continuous_on_differentiable_on {n : with_top ℕ}
@@ -1900,9 +1900,6 @@ begin
     exact (h i).zero_eq x hx },
   { intros m hm x hx,
     have := has_fderiv_within_at_pi.2 (λ i, (h i).fderiv_within m hm x hx),
-    -- TODO: lean can't find the instance without this: If we remove this `letI`, we have to add
-    -- `local attribute [-instance] punit.mul_action` instead!
-    letI : normed_space 𝕜 (E [×m]→L[𝕜] (Π i, F' i)) := infer_instance,
     convert (L m).has_fderiv_at.comp_has_fderiv_within_at x this },
   { intros m hm,
     have := continuous_on_pi.2 (λ i, (h i).cont m hm),
@@ -2105,7 +2102,7 @@ begin
     rw image_insert_eq,
     exact insert_subset_insert (image_subset_iff.mpr st) },
   have Z := ((hu.comp (hv.mono (inter_subset_right (f ⁻¹' u) v)) (inter_subset_left _ _))
-    .times_cont_diff_within_at) xmem m (le_refl _),
+    .times_cont_diff_within_at) xmem m le_rfl,
   have : 𝓝[f ⁻¹' u ∩ v] x = 𝓝[insert x s] x,
   { have A : f ⁻¹' u ∩ v = (insert x s) ∩ (f ⁻¹' u ∩ v),
     { apply subset.antisymm _ (inter_subset_right _ _),

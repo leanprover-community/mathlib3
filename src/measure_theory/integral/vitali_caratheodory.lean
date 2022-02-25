@@ -125,7 +125,7 @@ begin
           lintegral_const, ennreal.coe_indicator, set.univ_inter, measurable_set.univ,
           simple_func.const_zero, lintegral_indicator, simple_func.coe_zero,
           set.piecewise_eq_indicator, simple_func.coe_piecewise, restrict_apply],
-      calc (c : ℝ≥0∞) * μ u ≤ c * (μ s + ε / c) : ennreal.mul_le_mul (le_refl _) μu.le
+      calc (c : ℝ≥0∞) * μ u ≤ c * (μ s + ε / c) : ennreal.mul_le_mul le_rfl μu.le
       ... = c * μ s + ε :
         begin
           simp_rw [mul_add],
@@ -336,7 +336,7 @@ begin
           lintegral_const, ennreal.coe_indicator, set.univ_inter, measurable_set.univ,
           simple_func.const_zero, lintegral_indicator, simple_func.coe_zero,
           set.piecewise_eq_indicator, simple_func.coe_piecewise, restrict_apply],
-      calc (c : ℝ≥0∞) * μ s ≤ c * (μ F + ε / c) : ennreal.mul_le_mul (le_refl _) μF.le
+      calc (c : ℝ≥0∞) * μ s ≤ c * (μ F + ε / c) : ennreal.mul_le_mul le_rfl μF.le
       ... = c * μ F + ε :
         begin
           simp_rw [mul_add],
@@ -387,7 +387,7 @@ begin
   fs.exists_upper_semicontinuous_le_lintegral_le int_fs_lt_top (ennreal.half_pos ε0).ne',
   refine ⟨g, λ x, (g_le_fs x).trans (fs_le_f x), gcont, _⟩,
   calc ∫⁻ x, f x ∂μ ≤ ∫⁻ x, fs x ∂μ + ε / 2 : int_fs
-  ... ≤ (∫⁻ x, g x ∂μ + ε / 2) + ε / 2 : add_le_add gint (le_refl _)
+  ... ≤ (∫⁻ x, g x ∂μ + ε / 2) + ε / 2 : add_le_add gint le_rfl
   ... = ∫⁻ x, g x ∂μ + ε : by rw [add_assoc, ennreal.add_halves]
 end
 

@@ -3,9 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.local_homeomorph
-import topology.algebra.ordered.basic
 import data.bundle
+import topology.algebra.order.basic
+import topology.local_homeomorph
 
 /-!
 # Fiber bundles
@@ -1048,6 +1048,7 @@ by { rw [local_triv_at, ←base_set_at], exact Z.mem_base_set_at b, }
 open bundle
 
 /-- The inclusion of a fiber into the total space is a continuous map. -/
+@[continuity]
 lemma continuous_total_space_mk (b : B) : continuous (λ a, total_space_mk Z.fiber b a) :=
 begin
   rw [continuous_iff_le_induced, topological_fiber_bundle_core.to_topological_space],

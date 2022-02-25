@@ -3,10 +3,10 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.normed.group.pointwise
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
-import topology.algebra.ordered.liminf_limsup
+import analysis.normed.group.pointwise
+import topology.algebra.order.liminf_limsup
 
 /-!
 # ℓp space
@@ -37,6 +37,7 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
   `p`
 * `lp.mem_ℓp_of_tendsto`, `lp.norm_le_of_tendsto`: A pointwise limit of functions in `lp`, all with
   `lp` norm `≤ C`, is itself in `lp` and has `lp` norm `≤ C`.
+* `lp.tsum_mul_le_mul_norm`: basic form of Hölder's inequality
 
 ## Implementation
 
@@ -45,7 +46,9 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 
 ## TODO
 
-* Hölder's inequality
+* More versions of Hölder's inequality (for example: the case `p = 1`, `q = ∞`; a version for normed
+  rings which has `∥∑' i, f i * g i∥` rather than `∑' i, ∥f i∥ * g i∥` on the RHS; a version for
+  three exponents satisfying `1 / r = 1 / p + 1 / q`)
 * Equivalence with `pi_Lp`, for `α` finite
 * Equivalence with `measure_theory.Lp`, for `f : α → E` (i.e., functions rather than pi-types) and
   the counting measure on `α`
@@ -456,8 +459,7 @@ instance [hp : fact (1 ≤ p)] : normed_group (lp E p) :=
 normed_group.of_core _
 { norm_eq_zero_iff := norm_eq_zero_iff,
   triangle := λ f g, begin
-    tactic.unfreeze_local_instances,
-    rcases p.dichotomy with rfl | hp',
+    unfreezingI { rcases p.dichotomy with rfl | hp' },
     { cases is_empty_or_nonempty α; resetI,
       { simp [lp.eq_zero' f] },
       refine (lp.is_lub_norm (f + g)).2 _,
@@ -480,6 +482,33 @@ normed_group.of_core _
       exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
   end,
   norm_neg := norm_neg }
+
+-- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
+-- in a better version which also covers the case `p = 1, q = ∞`.
+/-- Hölder inequality -/
+protected lemma tsum_mul_le_mul_norm {p q : ℝ≥0∞}
+  (hpq : p.to_real.is_conjugate_exponent q.to_real) (f : lp E p) (g : lp E q) :
+  summable (λ i, ∥f i∥ * ∥g i∥) ∧ ∑' i, ∥f i∥ * ∥g i∥ ≤ ∥f∥ * ∥g∥ :=
+begin
+  have hf₁ : ∀ i, 0 ≤ ∥f i∥ := λ i, norm_nonneg _,
+  have hg₁ : ∀ i, 0 ≤ ∥g i∥ := λ i, norm_nonneg _,
+  have hf₂ := lp.has_sum_norm hpq.pos f,
+  have hg₂ := lp.has_sum_norm hpq.symm.pos g,
+  obtain ⟨C, -, hC', hC⟩ :=
+    real.inner_le_Lp_mul_Lq_has_sum_of_nonneg hpq (norm_nonneg' _) (norm_nonneg' _) hf₁ hg₁ hf₂ hg₂,
+  rw ← hC.tsum_eq at hC',
+  exact ⟨hC.summable, hC'⟩
+end
+
+protected lemma summable_mul {p q : ℝ≥0∞}
+  (hpq : p.to_real.is_conjugate_exponent q.to_real) (f : lp E p) (g : lp E q) :
+  summable (λ i, ∥f i∥ * ∥g i∥) :=
+(lp.tsum_mul_le_mul_norm hpq f g).1
+
+protected lemma tsum_mul_le_mul_norm' {p q : ℝ≥0∞}
+  (hpq : p.to_real.is_conjugate_exponent q.to_real) (f : lp E p) (g : lp E q) :
+  ∑' i, ∥f i∥ * ∥g i∥ ≤ ∥f∥ * ∥g∥ :=
+(lp.tsum_mul_le_mul_norm hpq f g).2
 
 section compare_pointwise
 
@@ -781,8 +810,7 @@ lemma norm_le_of_tendsto {C : ℝ} {F : ι → lp E p} (hCF : ∀ᶠ k in l, ∥
 begin
   obtain ⟨i, hi⟩ := hCF.exists,
   have hC : 0 ≤ C := (norm_nonneg _).trans hi,
-  tactic.unfreeze_local_instances,
-  rcases eq_top_or_lt_top p with rfl | hp,
+  unfreezingI { rcases eq_top_or_lt_top p with rfl | hp },
   { apply norm_le_of_forall_le hC,
     exact norm_apply_le_of_tendsto hCF hf, },
   { have : 0 < p := ennreal.zero_lt_one.trans_le _i.elim,
@@ -798,8 +826,7 @@ lemma mem_ℓp_of_tendsto {F : ι → lp E p} (hF : metric.bounded (set.range F)
 begin
   obtain ⟨C, hC, hCF'⟩ := hF.exists_pos_norm_le,
   have hCF : ∀ k, ∥F k∥ ≤ C := λ k, hCF' _ ⟨k, rfl⟩,
-  tactic.unfreeze_local_instances,
-  rcases eq_top_or_lt_top p with rfl | hp,
+  unfreezingI { rcases eq_top_or_lt_top p with rfl | hp },
   { apply mem_ℓp_infty,
     use C,
     rintros _ ⟨a, rfl⟩,

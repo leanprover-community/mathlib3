@@ -57,6 +57,10 @@ instance : has_coe_t X (alexandroff X) := ⟨option.some⟩
 
 instance : inhabited (alexandroff X) := ⟨∞⟩
 
+instance [fintype X] : fintype (alexandroff X) := option.fintype
+
+instance infinite [infinite X] : infinite (alexandroff X) := option.infinite
+
 lemma coe_injective : function.injective (coe : X → alexandroff X) :=
 option.some_injective X
 
@@ -332,17 +336,11 @@ Finally, if the original space `X` is *not* compact and is a preconnected space,
 instance : compact_space (alexandroff X) :=
 { compact_univ :=
   begin
-    refine is_compact_iff_ultrafilter_le_nhds.2 (λ f hf, _), clear hf,
-    by_cases hf : (f : filter (alexandroff X)) ≤ 𝓝 ∞,
-    { exact ⟨∞, mem_univ _, hf⟩ },
-    { simp only [ultrafilter_le_nhds_infty, not_forall, not_not] at hf,
-      rcases hf with ⟨s, h₁, h₂, hsf⟩,
-      have hf : range (coe : X → alexandroff X) ∈ f,
-        from mem_of_superset hsf (image_subset_range _ _),
-      have hsf' : s ∈ f.comap coe_injective hf, from (f.mem_comap _ _).2 hsf,
-      rcases h₂.ultrafilter_le_nhds _ (le_principal_iff.2 hsf') with ⟨a, has, hle⟩,
-      rw [ultrafilter.coe_comap, ← comap_coe_nhds, comap_le_comap_iff hf] at hle,
-      exact ⟨a, mem_univ _, hle⟩ }
+    have : tendsto (coe : X → alexandroff X) (cocompact X) (𝓝 ∞),
+    { rw [nhds_infty_eq],
+      exact (tendsto_map.mono_left cocompact_le_coclosed_compact).mono_right le_sup_left },
+    convert ← this.is_compact_insert_range_of_cocompact continuous_coe,
+    exact insert_none_range_some X
   end }
 
 /-- The one point compactification of a `t0_space` space is a `t0_space`. -/
@@ -395,4 +393,31 @@ instance [preconnected_space X] [noncompact_space X] : connected_space (alexandr
 { to_preconnected_space := dense_embedding_coe.to_dense_inducing.preconnected_space,
   to_nonempty := infer_instance }
 
+/-- If `X` is an infinite type with discrete topology (e.g., `ℕ`), then the identity map from
+`cofinite_topology (alexandroff X)` to `alexandroff X` is not continuous. -/
+lemma not_continuous_cofinite_topology_of_symm [infinite X] [discrete_topology X] :
+  ¬(continuous (@cofinite_topology.of (alexandroff X)).symm) :=
+begin
+  inhabit X,
+  simp only [continuous_iff_continuous_at, continuous_at, not_forall],
+  use [cofinite_topology.of ↑(default : X)],
+  simpa [nhds_coe_eq, nhds_discrete, cofinite_topology.nhds_eq]
+    using (finite_singleton ((default : X) : alexandroff X)).infinite_compl
+end
+
 end alexandroff
+
+/--
+A concrete counterexample shows that  `continuous.homeo_of_equiv_compact_to_t2`
+cannot be generalized from `t2_space` to `t1_space`.
+
+Let `α = alexandroff ℕ` be the one-point compactification of `ℕ`, and let `β` be the same space
+`alexandroff ℕ` with the cofinite topology.  Then `α` is compact, `β` is T1, and the identity map
+`id : α → β` is a continuous equivalence that is not a homeomorphism.
+-/
+lemma continuous.homeo_of_equiv_compact_to_t2.t1_counterexample :
+  ∃ (α β : Type) (Iα : topological_space α) (Iβ : topological_space β), by exactI
+  compact_space α ∧ t1_space β ∧ ∃ f : α ≃ β, continuous f ∧ ¬ continuous f.symm :=
+⟨alexandroff ℕ, cofinite_topology (alexandroff ℕ), infer_instance, infer_instance,
+  infer_instance, infer_instance, cofinite_topology.of, cofinite_topology.continuous_of,
+  alexandroff.not_continuous_cofinite_topology_of_symm⟩

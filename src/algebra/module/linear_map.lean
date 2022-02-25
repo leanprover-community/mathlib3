@@ -94,7 +94,7 @@ add_decl_doc linear_map.to_add_hom
 
 notation M ` →ₛₗ[`:25 σ:25 `] `:0 M₂:0 := linear_map σ M M₂
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map (ring_hom.id R) M M₂
-notation M ` →ₗ⋆[`:25 R:25 `] `:0 M₂:0 := linear_map (@star_ring_aut R _ _ : R →+* R) M M₂
+notation M ` →ₗ⋆[`:25 R:25 `] `:0 M₂:0 := linear_map (star_ring_end R) M M₂
 
 namespace linear_map
 
@@ -274,11 +274,16 @@ are defined by an action of `R` on `S` (formally, we have two scalar towers), th
 map from `M` to `M₂` is `R`-linear.
 
 See also `linear_map.map_smul_of_tower`. -/
-@[simps]
 def restrict_scalars (fₗ : M →ₗ[S] M₂) : M →ₗ[R] M₂ :=
 { to_fun := fₗ,
   map_add' := fₗ.map_add,
   map_smul' := fₗ.map_smul_of_tower }
+
+@[simp] lemma coe_restrict_scalars (fₗ : M →ₗ[S] M₂) : ⇑(restrict_scalars R fₗ) = fₗ :=
+rfl
+
+lemma restrict_scalars_apply (fₗ : M →ₗ[S] M₂) (x) : restrict_scalars R fₗ x = fₗ x :=
+rfl
 
 lemma restrict_scalars_injective :
   function.injective (restrict_scalars R : (M →ₗ[S] M₂) → (M →ₗ[R] M₂)) :=
@@ -793,6 +798,10 @@ instance apply_smul_comm_class : smul_comm_class R (module.End R M) M :=
 
 instance apply_smul_comm_class' : smul_comm_class (module.End R M) R M :=
 { smul_comm := linear_map.map_smul }
+
+instance apply_is_scalar_tower {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
+  is_scalar_tower R (module.End R M) M :=
+⟨λ t f m, rfl⟩
 
 end endomorphisms
 

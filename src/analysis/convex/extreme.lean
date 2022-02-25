@@ -118,7 +118,7 @@ lemma is_extreme_bInter {F : set (set E)} (hF : F.nonempty)
 begin
   obtain ⟨B, hB⟩ := hF,
   refine ⟨(bInter_subset_of_mem hB).trans (hAF B hB).1, λ x₁ x₂ hx₁A hx₂A x hxF hx, _⟩,
-  simp_rw mem_bInter_iff at ⊢ hxF,
+  simp_rw mem_Inter₂ at ⊢ hxF,
   have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx,
   exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
 end

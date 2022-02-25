@@ -49,25 +49,8 @@ begin
   { exactI general_commutator_normal (derived_series G n) (derived_series G n) }
 end
 
-@[simp] lemma general_commutator_eq_commutator :
-  ⁅(⊤ : subgroup G), (⊤ : subgroup G)⁆ = commutator G :=
-begin
-  rw [commutator, general_commutator_def'],
-  apply le_antisymm; apply normal_closure_mono,
-  { exact λ x ⟨p, _, q, _, h⟩, ⟨p, q, h⟩, },
-  { exact λ x ⟨p, q, h⟩, ⟨p, mem_top p, q, mem_top q, h⟩, }
-end
-
-lemma commutator_def' : commutator G = subgroup.closure {x : G | ∃ p q, p * q * p⁻¹ * q⁻¹ = x} :=
-begin
-  rw [← general_commutator_eq_commutator, general_commutator],
-  apply le_antisymm; apply closure_mono,
-  { exact λ x ⟨p, _, q, _, h⟩, ⟨p, q, h⟩ },
-  { exact λ x ⟨p, q, h⟩, ⟨p, mem_top p, q, mem_top q, h⟩ }
-end
-
 @[simp] lemma derived_series_one : derived_series G 1 = commutator G :=
-general_commutator_eq_commutator G
+rfl
 
 end derived_series
 
@@ -143,8 +126,7 @@ lemma is_solvable_of_comm {G : Type*} [hG : group G]
   (h : ∀ a b : G, a * b = b * a) : is_solvable G :=
 begin
   letI hG' : comm_group G := { mul_comm := h .. hG },
-  tactic.unfreeze_local_instances,
-  cases hG,
+  casesI hG,
   exact comm_group.is_solvable,
 end
 
@@ -191,10 +173,9 @@ lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' �
   (g : G →* G'') (hfg : g.ker ≤ f.range) [hG' : is_solvable G'] [hG'' : is_solvable G''] :
   is_solvable G :=
 begin
-  tactic.unfreeze_local_instances,
-  obtain ⟨n, hn⟩ := hG'',
+  obtain ⟨n, hn⟩ := id hG'',
   suffices : ∀ k : ℕ, derived_series G (n + k) ≤ (derived_series G' k).map f,
-  { obtain ⟨m, hm⟩ := hG',
+  { obtain ⟨m, hm⟩ := id hG',
     use n + m,
     specialize this m,
     rwa [hm, map_bot, le_bot_iff] at this },
@@ -222,9 +203,11 @@ variable [is_simple_group G]
 lemma is_simple_group.derived_series_succ {n : ℕ} : derived_series G n.succ = commutator G :=
 begin
   induction n with n ih,
-  { exact derived_series_one _ },
+  { exact derived_series_one G },
   rw [derived_series_succ, ih],
-  cases (commutator.normal G).eq_bot_or_eq_top with h h; simp [h]
+  cases (commutator.normal G).eq_bot_or_eq_top with h h,
+  { rw [h, general_commutator_bot] },
+  { rwa [h, ←commutator_def] },
 end
 
 lemma is_simple_group.comm_iff_is_solvable :
@@ -238,8 +221,8 @@ lemma is_simple_group.comm_iff_is_solvable :
       exact mem_top _ } },
   { rw is_simple_group.derived_series_succ at hn,
     intros a b,
-    rw [← mul_inv_eq_one, mul_inv_rev, ← mul_assoc, ← mem_bot, ← hn],
-    exact subset_normal_closure ⟨a, b, rfl⟩ }
+    rw [← mul_inv_eq_one, mul_inv_rev, ← mul_assoc, ← mem_bot, ← hn, commutator_eq_closure],
+    exact subset_closure ⟨a, b, rfl⟩ }
 end⟩
 
 end is_simple_group

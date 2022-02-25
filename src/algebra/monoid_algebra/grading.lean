@@ -114,12 +114,6 @@ by apply grade_by.graded_monoid (add_monoid_hom.id _)
 
 variables {R} [add_monoid M] [decidable_eq ι] [add_monoid ι] [comm_semiring R] (f : M →+ ι)
 
--- Lean can't find these instances when it needs them later without these lines
-instance grade_by.module (i : ι) : module Rᵐᵒᵖ ↥(grade_by R f i) := by apply_instance
-instance grade_by.is_central_scalar (i : ι) : is_central_scalar R ↥(grade_by R f i) :=
-by apply_instance
-instance grade_by.algebra : algebra R (⨁ i, ↥(grade_by R f i)) := direct_sum.algebra _ _
-
 /-- The canonical grade decomposition. -/
 def to_grades_by : add_monoid_algebra R M →ₐ[R] ⨁ i : ι, grade_by R f i :=
 add_monoid_algebra.lift R M _

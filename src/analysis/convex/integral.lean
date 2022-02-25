@@ -4,93 +4,32 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.convex.function
-import measure_theory.integral.set_integral
+import measure_theory.integral.average
 
 /-!
 # Jensen's inequality for integrals
 
-In this file we prove four theorems:
+In this file we prove several forms of Jensen's inequality for integrals.
 
-* `convex.smul_integral_mem`: if `μ` is a non-zero finite measure on `α`, `s` is a convex closed set
-  in `E`, and `f` is an integrable function sending `μ`-a.e. points to `s`, then the average value
-  of `f` belongs to `s`: `(μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s`. See also `convex.center_mass_mem`
-  for a finite sum version of this lemma.
+- for convex sets: `convex.average_mem`, `convex.set_average_mem`, `convex.integral_mem`;
 
-* `convex.integral_mem`: if `μ` is a probability measure on `α`, `s` is a convex closed set in `E`,
-  and `f` is an integrable function sending `μ`-a.e. points to `s`, then the expected value of `f`
-  belongs to `s`: `∫ x, f x ∂μ ∈ s`. See also `convex.sum_mem` for a finite sum version of this
-  lemma.
-
-* `convex_on.map_smul_integral_le`: Convex Jensen's inequality: If a function `g : E → ℝ` is convex
-  and continuous on a convex closed set `s`, `μ` is a finite non-zero measure on `α`, and
-  `f : α → E` is a function sending `μ`-a.e. points to `s`, then the value of `g` at the average
-  value of `f` is less than or equal to the average value of `g ∘ f` provided that both `f` and
-  `g ∘ f` are integrable. See also `convex_on.map_sum_le` for a finite sum version of this lemma.
-
-* `convex_on.map_integral_le`: Convex Jensen's inequality: If a function `g : E → ℝ` is convex and
-  continuous on a convex closed set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a
-  function sending `μ`-a.e. points to `s`, then the value of `g` at the expected value of `f` is
-  less than or equal to the expected value of `g ∘ f` provided that both `f` and `g ∘ f` are
-  integrable. See also `convex_on.map_sum_le` for a finite sum version of this lemma.
+- for convex functions: `convex.on.average_mem_epigraph`, `convex_on.map_average_le`,
+  `convex_on.set_average_mem_epigraph`, `convex_on.map_set_average_le`, `convex_on.map_integral_le`;
 
 ## Tags
 
-convex, integral, center mass, Jensen's inequality
+convex, integral, center mass, average value, Jensen's inequality
 -/
 
-open measure_theory set filter
-open_locale topological_space big_operators
+open measure_theory measure_theory.measure metric set filter topological_space function
+open_locale topological_space big_operators ennreal convex
 
-variables {α E : Type*} [measurable_space α] {μ : measure α}
+variables {α E F : Type*} {m0 : measurable_space α}
   [normed_group E] [normed_space ℝ E] [complete_space E]
   [topological_space.second_countable_topology E] [measurable_space E] [borel_space E]
-
-private lemma convex.smul_integral_mem_of_measurable
-  [is_finite_measure μ] {s : set E} (hs : convex ℝ s) (hsc : is_closed s)
-  (hμ : μ ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hfm : measurable f) :
-  (μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s :=
-begin
-  unfreezingI { rcases eq_empty_or_nonempty s with rfl|⟨y₀, h₀⟩ },
-  { refine (hμ _).elim, simpa using hfs },
-  rw ← hsc.closure_eq at hfs,
-  have hc : integrable (λ _, y₀) μ := integrable_const _,
-  set F : ℕ → simple_func α E := simple_func.approx_on f hfm s y₀ h₀,
-  have : tendsto (λ n, (F n).integral μ) at_top (𝓝 $ ∫ x, f x ∂μ),
-  { simp only [simple_func.integral_eq_integral _
-      (simple_func.integrable_approx_on hfm hfi h₀ hc _)],
-    exact tendsto_integral_of_L1 _ hfi
-      (eventually_of_forall $ simple_func.integrable_approx_on hfm hfi h₀ hc)
-      (simple_func.tendsto_approx_on_L1_nnnorm hfm h₀ hfs (hfi.sub hc).2) },
-  refine hsc.mem_of_tendsto (tendsto_const_nhds.smul this) (eventually_of_forall $ λ n, _),
-  have : ∑ y in (F n).range, (μ ((F n) ⁻¹' {y})).to_real = (μ univ).to_real,
-    by rw [← (F n).sum_range_measure_preimage_singleton, @ennreal.to_real_sum _ _
-      (λ y, μ ((F n) ⁻¹' {y})) (λ _ _, (measure_ne_top _ _))],
-  rw [← this, simple_func.integral],
-  refine hs.center_mass_mem (λ _ _, ennreal.to_real_nonneg) _ _,
-  { rw this,
-    exact ennreal.to_real_pos (mt measure.measure_univ_eq_zero.mp hμ) (measure_ne_top _ _) },
-  { simp only [simple_func.mem_range],
-    rintros _ ⟨x, rfl⟩,
-    exact simple_func.approx_on_mem hfm h₀ n x }
-end
-
-/-- If `μ` is a non-zero finite measure on `α`, `s` is a convex closed set in `E`, and `f` is an
-integrable function sending `μ`-a.e. points to `s`, then the average value of `f` belongs to `s`:
-`(μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s`. See also `convex.center_mass_mem` for a finite sum version
-of this lemma. -/
-lemma convex.smul_integral_mem
-  [is_finite_measure μ] {s : set E} (hs : convex ℝ s) (hsc : is_closed s)
-  (hμ : μ ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
-  (μ univ).to_real⁻¹ • ∫ x, f x ∂μ ∈ s :=
-begin
-  have : ∀ᵐ (x : α) ∂μ, hfi.ae_measurable.mk f x ∈ s,
-  { filter_upwards [hfs, hfi.ae_measurable.ae_eq_mk] with _ _ h,
-    rwa ← h, },
-  convert convex.smul_integral_mem_of_measurable hs hsc hμ this
-    (hfi.congr hfi.ae_measurable.ae_eq_mk) (hfi.ae_measurable.measurable_mk) using 2,
-  apply integral_congr_ae,
-  exact hfi.ae_measurable.ae_eq_mk
-end
+  [normed_group F] [normed_space ℝ F] [complete_space F]
+  [topological_space.second_countable_topology F] [measurable_space F] [borel_space F]
+  {μ : measure α} {s : set E}
 
 /-- If `μ` is a probability measure on `α`, `s` is a convex closed set in `E`, and `f` is an
 integrable function sending `μ`-a.e. points to `s`, then the expected value of `f` belongs to `s`:
@@ -98,36 +37,161 @@ integrable function sending `μ`-a.e. points to `s`, then the expected value of 
 lemma convex.integral_mem [is_probability_measure μ] {s : set E} (hs : convex ℝ s)
   (hsc : is_closed s) {f : α → E} (hf : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
   ∫ x, f x ∂μ ∈ s :=
-by simpa [measure_univ] using hs.smul_integral_mem hsc (is_probability_measure.ne_zero μ) hf hfi
-
-/-- Jensen's inequality: if a function `g : E → ℝ` is convex and continuous on a convex closed set
-`s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a function sending `μ`-a.e. points
-to `s`, then the value of `g` at the average value of `f` is less than or equal to the average value
-of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also `convex.map_center_mass_le`
-for a finite sum version of this lemma. -/
-lemma convex_on.map_smul_integral_le [is_finite_measure μ] {s : set E} {g : E → ℝ}
-  (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) (hμ : μ ≠ 0) {f : α → E}
-  (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
-  g ((μ univ).to_real⁻¹ • ∫ x, f x ∂μ) ≤ (μ univ).to_real⁻¹ • ∫ x, g (f x) ∂μ :=
 begin
-  set t := {p : E × ℝ | p.1 ∈ s ∧ g p.1 ≤ p.2},
-  have ht_conv : convex ℝ t := hg.convex_epigraph,
-  have ht_closed : is_closed t :=
-    (hsc.preimage continuous_fst).is_closed_le (hgc.comp continuous_on_fst (subset.refl _))
-      continuous_on_snd,
-  have ht_mem : ∀ᵐ x ∂μ, (f x, g (f x)) ∈ t := hfs.mono (λ x hx, ⟨hx, le_rfl⟩),
-  simpa [integral_pair hfi hgi]
-    using (ht_conv.smul_integral_mem ht_closed hμ ht_mem (hfi.prod_mk hgi)).2
+  obtain ⟨y₀, h₀⟩ : s.nonempty,
+  { rcases hf.exists with ⟨x₀, h₀⟩, exact ⟨f x₀, h₀⟩ },
+  rcases hfi.ae_measurable with ⟨g, hgm, hfg⟩,
+  rw [integral_congr_ae hfg], rw [integrable_congr hfg] at hfi,
+  have hg : ∀ᵐ x ∂μ, g x ∈ closure s,
+    from (hfg.rw (λ x y, y ∈ s) hf).mono (λ x hx, subset_closure hx),
+  set G : ℕ → simple_func α E := simple_func.approx_on _ hgm s y₀ h₀,
+  have : tendsto (λ n, (G n).integral μ) at_top (𝓝 $ ∫ x, g x ∂μ),
+    from tendsto_integral_approx_on_of_measurable hfi _ hg _ (integrable_const _),
+  refine hsc.mem_of_tendsto this (eventually_of_forall $ λ n, hs.sum_mem _ _ _),
+  { exact λ _ _, ennreal.to_real_nonneg },
+  { rw [← ennreal.to_real_sum, (G n).sum_range_measure_preimage_singleton, measure_univ,
+      ennreal.one_to_real],
+    exact λ _ _, measure_ne_top _ _ },
+  { simp only [simple_func.mem_range, forall_range_iff],
+    exact λ x, simple_func.approx_on_mem hgm _ _ _ },
 end
 
-/-- Convex **Jensen's inequality**: if a function `g : E → ℝ` is convex and continuous on a convex
-closed set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a function sending `μ`-a.e.
-points to `s`, then the value of `g` at the expected value of `f` is less than or equal to the
-expected value of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also
+/-- If `μ` is a non-zero finite measure on `α`, `s` is a convex closed set in `E`, and `f` is an
+integrable function sending `μ`-a.e. points to `s`, then the average value of `f` belongs to `s`:
+`⨍ x, f x ∂μ ∈ s`. See also `convex.center_mass_mem` for a finite sum version of this lemma. -/
+lemma convex.average_mem [is_finite_measure μ] {s : set E} (hs : convex ℝ s) (hsc : is_closed s)
+  (hμ : μ ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
+  ⨍ x, f x ∂μ ∈ s :=
+begin
+  haveI : is_probability_measure ((μ univ)⁻¹ • μ),
+    from is_probability_measure_smul hμ,
+  refine hs.integral_mem hsc (ae_mono' _ hfs) hfi.to_average,
+  exact absolutely_continuous.smul (refl _) _
+end
+
+/-- If `μ` is a non-zero finite measure on `α`, `s` is a convex closed set in `E`, and `f` is an
+integrable function sending `μ`-a.e. points to `s`, then the average value of `f` belongs to `s`:
+`⨍ x, f x ∂μ ∈ s`. See also `convex.center_mass_mem` for a finite sum version of this lemma. -/
+lemma convex.set_average_mem {t : set α} {s : set E} (hs : convex ℝ s) (hsc : is_closed s)
+  (h0 : μ t ≠ 0) (ht : μ t ≠ ∞) {f : α → E} (hfs : ∀ᵐ x ∂μ.restrict t, f x ∈ s)
+  (hfi : integrable_on f t μ) :
+  ⨍ x in t, f x ∂μ ∈ s :=
+begin
+  haveI : fact (μ t < ∞) := ⟨ht.lt_top⟩,
+  refine hs.average_mem hsc _ hfs hfi,
+  rwa [ne.def, restrict_eq_zero]
+end
+
+lemma convex_on.average_mem_epigraph [is_finite_measure μ] {s : set E} {g : E → ℝ}
+  (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) (hμ : μ ≠ 0) {f : α → E}
+  (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
+  (⨍ x, f x ∂μ, ⨍ x, g (f x) ∂μ) ∈ {p : E × ℝ | p.1 ∈ s ∧ g p.1 ≤ p.2} :=
+have ht_mem : ∀ᵐ x ∂μ, (f x, g (f x)) ∈ {p : E × ℝ | p.1 ∈ s ∧ g p.1 ≤ p.2},
+  from hfs.mono (λ x hx, ⟨hx, le_rfl⟩),
+by simpa only [average_pair hfi hgi]
+  using hg.convex_epigraph.average_mem (hsc.epigraph hgc) hμ ht_mem (hfi.prod_mk hgi)
+
+lemma concave_on.average_mem_hypograph [is_finite_measure μ] {s : set E} {g : E → ℝ}
+  (hg : concave_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) (hμ : μ ≠ 0) {f : α → E}
+  (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
+  (⨍ x, f x ∂μ, ⨍ x, g (f x) ∂μ) ∈ {p : E × ℝ | p.1 ∈ s ∧ p.2 ≤ g p.1} :=
+by simpa only [mem_set_of_eq, pi.neg_apply, average_neg, neg_le_neg_iff]
+  using hg.neg.average_mem_epigraph hgc.neg hsc hμ hfs hfi hgi.neg
+
+/-- **Jensen's inequality**: if a function `g : E → ℝ` is convex and continuous on a convex closed
+set `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a function sending
+`μ`-a.e. points to `s`, then the value of `g` at the average value of `f` is less than or equal to
+the average value of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also
+`convex_on.map_center_mass_le` for a finite sum version of this lemma. -/
+lemma convex_on.map_average_le [is_finite_measure μ] {s : set E} {g : E → ℝ}
+  (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) (hμ : μ ≠ 0) {f : α → E}
+  (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
+  g (⨍ x, f x ∂μ) ≤ ⨍ x, g (f x) ∂μ :=
+(hg.average_mem_epigraph hgc hsc hμ hfs hfi hgi).2
+
+/-- **Jensen's inequality**: if a function `g : E → ℝ` is concave and continuous on a convex closed
+set `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a function sending
+`μ`-a.e. points to `s`, then the average value of `g ∘ f` is less than or equal to the value of `g`
+at the average value of `f` provided that both `f` and `g ∘ f` are integrable. See also
+`concave_on.le_map_center_mass` for a finite sum version of this lemma. -/
+lemma concave_on.le_map_average [is_finite_measure μ] {s : set E} {g : E → ℝ}
+  (hg : concave_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) (hμ : μ ≠ 0) {f : α → E}
+  (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
+  ⨍ x, g (f x) ∂μ ≤ g (⨍ x, f x ∂μ) :=
+(hg.average_mem_hypograph hgc hsc hμ hfs hfi hgi).2
+
+/-- **Jensen's inequality**: if a function `g : E → ℝ` is convex and continuous on a convex closed
+set `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a function sending
+`μ`-a.e. points of a set `t` to `s`, then the value of `g` at the average value of `f` over `t` is
+less than or equal to the average value of `g ∘ f` over `t` provided that both `f` and `g ∘ f` are
+integrable. -/
+lemma convex_on.set_average_mem_epigraph {s : set E} {g : E → ℝ} (hg : convex_on ℝ s g)
+  (hgc : continuous_on g s) (hsc : is_closed s) {t : set α} (h0 : μ t ≠ 0)
+  (ht : μ t ≠ ∞) {f : α → E} (hfs : ∀ᵐ x ∂μ.restrict t, f x ∈ s) (hfi : integrable_on f t μ)
+  (hgi : integrable_on (g ∘ f) t μ) :
+  (⨍ x in t, f x ∂μ, ⨍ x in t, g (f x) ∂μ) ∈ {p : E × ℝ | p.1 ∈ s ∧ g p.1 ≤ p.2} :=
+begin
+  haveI : fact (μ t < ∞) := ⟨ht.lt_top⟩,
+  refine hg.average_mem_epigraph hgc hsc _ hfs hfi hgi,
+  rwa [ne.def, restrict_eq_zero]
+end
+
+/-- **Jensen's inequality**: if a function `g : E → ℝ` is concave and continuous on a convex closed
+set `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a function sending
+`μ`-a.e. points of a set `t` to `s`, then the average value of `g ∘ f` over `t` is less than or
+equal to the value of `g` at the average value of `f` over `t` provided that both `f` and `g ∘ f`
+are integrable. -/
+lemma concave_on.set_average_mem_hypograph {s : set E} {g : E → ℝ} (hg : concave_on ℝ s g)
+  (hgc : continuous_on g s) (hsc : is_closed s) {t : set α} (h0 : μ t ≠ 0)
+  (ht : μ t ≠ ∞) {f : α → E} (hfs : ∀ᵐ x ∂μ.restrict t, f x ∈ s) (hfi : integrable_on f t μ)
+  (hgi : integrable_on (g ∘ f) t μ) :
+  (⨍ x in t, f x ∂μ, ⨍ x in t, g (f x) ∂μ) ∈ {p : E × ℝ | p.1 ∈ s ∧ p.2 ≤ g p.1} :=
+by simpa only [mem_set_of_eq, pi.neg_apply, average_neg, neg_le_neg_iff]
+  using hg.neg.set_average_mem_epigraph hgc.neg hsc h0 ht hfs hfi hgi.neg
+
+/-- **Jensen's inequality**: if a function `g : E → ℝ` is convex and continuous on a convex closed
+set `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a function sending
+`μ`-a.e. points of a set `t` to `s`, then the value of `g` at the average value of `f` over `t` is
+less than or equal to the average value of `g ∘ f` over `t` provided that both `f` and `g ∘ f` are
+integrable. -/
+lemma convex_on.map_set_average_le {s : set E} {g : E → ℝ} (hg : convex_on ℝ s g)
+  (hgc : continuous_on g s) (hsc : is_closed s) {t : set α} (h0 : μ t ≠ 0)
+  (ht : μ t ≠ ∞) {f : α → E} (hfs : ∀ᵐ x ∂μ.restrict t, f x ∈ s) (hfi : integrable_on f t μ)
+  (hgi : integrable_on (g ∘ f) t μ) :
+  g (⨍ x in t, f x ∂μ) ≤ ⨍ x in t, g (f x) ∂μ :=
+(hg.set_average_mem_epigraph hgc hsc h0 ht hfs hfi hgi).2
+
+/-- **Jensen's inequality**: if a function `g : E → ℝ` is concave and continuous on a convex closed
+set `s`, `μ` is a finite non-zero measure on `α`, and `f : α → E` is a function sending
+`μ`-a.e. points of a set `t` to `s`, then the average value of `g ∘ f` over `t` is less than or
+equal to the value of `g` at the average value of `f` over `t` provided that both `f` and `g ∘ f`
+are integrable. -/
+lemma concave_on.le_map_set_average {s : set E} {g : E → ℝ} (hg : concave_on ℝ s g)
+  (hgc : continuous_on g s) (hsc : is_closed s) {t : set α} (h0 : μ t ≠ 0)
+  (ht : μ t ≠ ∞) {f : α → E} (hfs : ∀ᵐ x ∂μ.restrict t, f x ∈ s) (hfi : integrable_on f t μ)
+  (hgi : integrable_on (g ∘ f) t μ) :
+  ⨍ x in t, g (f x) ∂μ ≤ g (⨍ x in t, f x ∂μ) :=
+(hg.set_average_mem_hypograph hgc hsc h0 ht hfs hfi hgi).2
+
+/-- **Jensen's inequality**: if a function `g : E → ℝ` is convex and continuous on a convex closed
+set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a function sending `μ`-a.e.  points
+to `s`, then the value of `g` at the expected value of `f` is less than or equal to the expected
+value of `g ∘ f` provided that both `f` and `g ∘ f` are integrable. See also
 `convex_on.map_center_mass_le` for a finite sum version of this lemma. -/
 lemma convex_on.map_integral_le [is_probability_measure μ] {s : set E} {g : E → ℝ}
   (hg : convex_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) {f : α → E}
   (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
   g (∫ x, f x ∂μ) ≤ ∫ x, g (f x) ∂μ :=
-by simpa [measure_univ]
-  using hg.map_smul_integral_le hgc hsc (is_probability_measure.ne_zero μ) hfs hfi hgi
+by simpa only [average_eq_integral]
+  using hg.map_average_le hgc hsc (is_probability_measure.ne_zero μ) hfs hfi hgi
+
+/-- **Jensen's inequality**: if a function `g : E → ℝ` is concave and continuous on a convex closed
+set `s`, `μ` is a probability measure on `α`, and `f : α → E` is a function sending `μ`-a.e.  points
+to `s`, then the expected value of `g ∘ f` is less than or equal to the value of `g` at the expected
+value of `f` provided that both `f` and `g ∘ f` are integrable. -/
+lemma concave_on.le_map_integral [is_probability_measure μ] {s : set E} {g : E → ℝ}
+  (hg : concave_on ℝ s g) (hgc : continuous_on g s) (hsc : is_closed s) {f : α → E}
+  (hfs : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) (hgi : integrable (g ∘ f) μ) :
+  ∫ x, g (f x) ∂μ ≤ g (∫ x, f x ∂μ) :=
+by simpa only [average_eq_integral]
+  using hg.le_map_average hgc hsc (is_probability_measure.ne_zero μ) hfs hfi hgi

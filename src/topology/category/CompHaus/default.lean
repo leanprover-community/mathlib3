@@ -11,7 +11,6 @@ import category_theory.monad.limits
 import topology.urysohns_lemma
 
 /-!
-
 # The category of Compact Hausdorff Spaces
 
 We construct the category of compact Hausdorff spaces.
@@ -134,7 +133,7 @@ noncomputable def stone_cech_equivalence (X : Top.{u}) (Y : CompHaus.{u}) :
   begin
     rintro ⟨f : (X : Type*) ⟶ Y, hf : continuous f⟩,
     ext,
-    exact congr_fun (stone_cech_extend_extends hf) x,
+    exact congr_fun (stone_cech_extend_extends hf) _,
   end }
 
 /--

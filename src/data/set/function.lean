@@ -113,6 +113,9 @@ def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s 
   (cod_restrict f s h x : β) = f x :=
 rfl
 
+@[simp] lemma restrict_comp_cod_restrict {f : α → β} {g : β → γ} {b : set β}
+  (h : ∀ x, f x ∈ b) : (b.restrict g) ∘ (b.cod_restrict f h) = g ∘ f := rfl
+
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g g₁ g₂ : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}
 
@@ -1115,5 +1118,7 @@ lemma update_comp_eq_of_not_mem_range {α β γ : Sort*} [decidable_eq β]
   (g : β → γ) {f : α → β} {i : β} (a : γ) (h : i ∉ set.range f) :
   (function.update g i a) ∘ f = g ∘ f :=
 update_comp_eq_of_not_mem_range' g a h
+
+lemma insert_inj_on (s : set α) : sᶜ.inj_on (λ a, insert a s) := λ a ha b _, (insert_inj ha).1
 
 end function

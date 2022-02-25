@@ -31,16 +31,9 @@ open_locale cardinal non_zero_divisors
 
 universe u
 
-/-- A `fintype` can be given a field structure iff its cardinality is a prime power. -/
-lemma fintype.nonempty_field_iff {α} [fintype α] :
-  nonempty (field α) ↔ is_prime_pow (‖α‖) :=
+/-- A finite field has prime power cardinality. -/
+lemma is_prime_pow_card_finite_field {α} [fintype α] [field α] : is_prime_pow (‖α‖) :=
 begin
-  split,
-  swap,
-  { rintros ⟨p, n, hp, hn, hα⟩,
-    haveI := fact.mk (nat.prime_iff.mpr hp),
-    exact ⟨(fintype.equiv_of_card_eq ((galois_field.card p n hn.ne').trans hα)).symm.field⟩ },
-  rintro ⟨h⟩,
   casesI char_p.exists α with p _,
   haveI hp := fact.mk (char_p.char_is_prime α p),
   let b := is_noetherian.finset_basis (zmod p) α,
@@ -50,8 +43,14 @@ begin
   exact finite_dimensional.finrank_pos.ne'
 end
 
-lemma is_prime_pow_card_finite_field {α} [fintype α] [field α] : is_prime_pow (‖α‖) :=
-fintype.nonempty_field_iff.mp ⟨‹field α›⟩
+/-- A `fintype` can be given a field structure iff its cardinality is a prime power. -/
+lemma fintype.nonempty_field_iff {α} [fintype α] : nonempty (field α) ↔ is_prime_pow (‖α‖) :=
+begin
+  refine ⟨λ ⟨h⟩, by exactI is_prime_pow_card_finite_field, _⟩,
+  rintros ⟨p, n, hp, hn, hα⟩,
+  haveI := fact.mk (nat.prime_iff.mpr hp),
+  exact ⟨(fintype.equiv_of_card_eq ((galois_field.card p n hn.ne').trans hα)).symm.field⟩,
+end
 
 /-- Any infinite type can be endowed a field structure. -/
 lemma infinite.nonempty_field {α : Type u} [infinite α] : nonempty (field α) :=

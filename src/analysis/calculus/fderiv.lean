@@ -1093,7 +1093,7 @@ lemma fderiv.comp_fderiv_within {g : F → G}
 (hg.has_fderiv_at.comp_has_fderiv_within_at x hf.has_fderiv_within_at).fderiv_within hxs
 
 lemma differentiable_on.comp {g : F → G} {t : set F}
-  (hg : differentiable_on 𝕜 g t) (hf : differentiable_on 𝕜 f s) (st : s ⊆ f ⁻¹' t) :
+  (hg : differentiable_on 𝕜 g t) (hf : differentiable_on 𝕜 f s) (st : maps_to f s t) :
   differentiable_on 𝕜 (g ∘ f) s :=
 λx hx, differentiable_within_at.comp x (hg (f x) (st hx)) (hf x hx) st
 
@@ -1104,7 +1104,7 @@ lemma differentiable.comp {g : F → G} (hg : differentiable 𝕜 g) (hf : diffe
 lemma differentiable.comp_differentiable_on {g : F → G} (hg : differentiable 𝕜 g)
   (hf : differentiable_on 𝕜 f s) :
   differentiable_on 𝕜 (g ∘ f) s :=
-(differentiable_on_univ.2 hg).comp hf (by simp)
+hg.differentiable_on.comp hf (maps_to_univ _ _)
 
 /-- The chain rule for derivatives in the sense of strict differentiability. -/
 protected lemma has_strict_fderiv_at.comp {g : F → G} {g' : F →L[𝕜] G}

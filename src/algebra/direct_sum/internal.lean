@@ -158,7 +158,7 @@ by exactI add_submonoid.gcomm_semiring (λ i, (A i).to_add_submonoid)
 
 /-- Lean cannot find this instance in the statement of `submodule.galgebra` unless we copy it here.
 -/
-instance galgebra_op_module_instance {ι} [add_monoid ι] [comm_semiring S] [semiring R] [algebra S R]
+instance galgebra_op_module_instance {ι} [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) (i : ι) : module Sᵐᵒᵖ ↥(A i) :=
 submodule.module' _
 

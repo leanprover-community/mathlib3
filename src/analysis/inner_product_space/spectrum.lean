@@ -277,7 +277,7 @@ end nonneg
 section square_root
 variables {T : E →ₗ[𝕜] E} [finite_dimensional 𝕜 E] {n : ℕ}
 
-lemma inner_map_inner_real_of_self_adjoint (T_sa : is_self_adjoint T) :
+lemma inner_map_self_real_of_self_adjoint (T_sa : is_self_adjoint T) :
   ∀ x : E, (is_R_or_C.re ⟪x , T x⟫ : 𝕜) = ⟪x , T x⟫ :=
 begin
   intro x,
@@ -289,9 +289,9 @@ end
 def is_positive (T_sa : is_self_adjoint T) : Prop :=
   ∀ x : E, 0 ≤ is_R_or_C.re ⟪x , T x⟫
 
-lemma inner_map_inner_real_of_positive {T_sa : is_self_adjoint T} (T_pos : is_positive T_sa) :
+lemma inner_map_self_real_of_positive {T_sa : is_self_adjoint T} (T_pos : is_positive T_sa) :
   ∀ x : E, (is_R_or_C.re ⟪x , T x⟫ : 𝕜) = ⟪x , T x⟫ :=
-inner_map_inner_real_of_self_adjoint T_sa
+inner_map_self_real_of_self_adjoint T_sa
 
 /-- The square root of a positive, self-adjoint operator, `T`. This is the unique linear map such
 that `√T ⬝ √T = T`. -/

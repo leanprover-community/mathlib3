@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
+import algebra.covariant_and_contravariant
 import topology.bases
 import topology.uniform_space.basic
 /-!
@@ -717,3 +718,35 @@ begin
 end
 
 end uniform_space
+
+section covariant
+
+/-- Proves things like `cauchy_seq f → cauchy_seq (λ (n : ℕ), f (1+n))` by `library_search`. -/
+lemma cauchy_seq.covariant_of_const_left_nat {f : ℕ → α} {μ : ℕ → ℕ → ℕ}
+  [covariant_class ℕ ℕ μ (≤)] (hf : cauchy_seq f) {m : ℕ} : cauchy_seq (λ n, f (μ m n)) :=
+begin
+  obtain h | ⟨N, hN⟩ := monotone.tendsto_at_top_at_top_or_eventually_const_nat
+    (covariant.monotone_of_const μ),
+  { exact hf.comp_tendsto h },
+  { exact cauchy_seq_of_eventually_const _ (hN.fun_comp f) },
+end
+
+lemma cauchy_seq.covariant_of_const_right_nat {f : ℕ → α} {μ : ℕ → ℕ → ℕ}
+  [covariant_class ℕ ℕ (swap μ) (≤)] (hf : cauchy_seq f) {m : ℕ} : cauchy_seq (λ n, f (μ n m)) :=
+@cauchy_seq.covariant_of_const_left_nat _ _ f (swap μ) _ hf m
+
+/-- Proves things like `cauchy_seq f → cauchy_seq (λ (n : ℤ), f (1+n))` by `library_search`. -/
+lemma cauchy_seq.covariant_of_const_left_int {f : ℤ → α} {μ : ℤ → ℤ → ℤ}
+  [covariant_class ℤ ℤ μ (≤)] (hf : cauchy_seq f) {m} : cauchy_seq (λ n, f (μ m n)) :=
+begin
+  obtain h | ⟨N, hN⟩ := monotone.tendsto_at_top_at_top_or_eventually_const_int
+    (covariant.monotone_of_const μ),
+  { exact hf.comp_tendsto h },
+  { exact cauchy_seq_of_eventually_const _ (hN.fun_comp f) },
+end
+
+lemma cauchy_seq.covariant_of_const_right_int {f : ℤ → α} {μ : ℤ → ℤ → ℤ}
+  [covariant_class ℤ ℤ (swap μ) (≤)] (hf : cauchy_seq f) {m} : cauchy_seq (λ n, f (μ n m)) :=
+@cauchy_seq.covariant_of_const_left_int _ _ f (swap μ) _ hf m
+
+end covariant

@@ -144,7 +144,7 @@ end has_continuous_const_smul
 section has_continuous_smul
 
 variables [add_comm_group E] [module ℝ E] [topological_space E]
-  [topological_add_group E] [has_continuous_smul ℝ E]
+  [has_continuous_smul ℝ E] [topological_add_group E]
 
 /-- Convex hull of a finite set is compact. -/
 lemma set.finite.compact_convex_hull {s : set E} (hs : finite s) :

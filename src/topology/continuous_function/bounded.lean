@@ -834,7 +834,7 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
 @[simp] lemma coe_smul (c : 𝕜) (f : α →ᵇ β) : ⇑(c • f) = λ x, c • (f x) := rfl
 lemma smul_apply (c : 𝕜) (f : α →ᵇ β) (x : α) : (c • f) x = c • f x := rfl
 
-instance [has_scalar 𝕜ᵐᵒᵖ β] [is_central_scalar 𝕜 β]: is_central_scalar 𝕜 (α →ᵇ β) :=
+instance [has_scalar 𝕜ᵐᵒᵖ β] [is_central_scalar 𝕜 β] : is_central_scalar 𝕜 (α →ᵇ β) :=
 { op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _ }
 
 instance : has_bounded_smul 𝕜 (α →ᵇ β) :=

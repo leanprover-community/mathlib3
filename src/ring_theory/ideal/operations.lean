@@ -463,6 +463,10 @@ begin
   exact le_trans (mul_le_inf) (inf_le_left)
 end
 
+lemma pow_le_self {n : ℕ} (hn : n ≠ 0) : I^n ≤ I :=
+calc I^n ≤ I ^ 1 : pow_le_pow (nat.pos_of_ne_zero hn)
+     ... = I : pow_one _
+
 lemma mul_eq_bot {R : Type*} [comm_ring R] [is_domain R] {I J : ideal R} :
   I * J = ⊥ ↔ I = ⊥ ∨ J = ⊥ :=
 ⟨λ hij, or_iff_not_imp_left.mpr (λ I_ne_bot, J.eq_bot_iff.mpr (λ j hj,

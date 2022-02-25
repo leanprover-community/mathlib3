@@ -31,7 +31,7 @@ end free
 
 section exterior
 
-variables [comm_ring S] [add_comm_monoid M] [module S M]
+variables [comm_ring S] [add_comm_monoid M] [module S M] [module Sᵐᵒᵖ M] [is_central_scalar S M]
 
 example : (1 : exterior_algebra S M) - (1 : exterior_algebra S M) = 0 := by rw sub_self
 
@@ -40,7 +40,8 @@ end exterior
 
 section clifford
 
-variables [comm_ring S] [add_comm_group M] [module S M] (Q : quadratic_form S M)
+variables [comm_ring S] [add_comm_group M] [module S M] [module Sᵐᵒᵖ M] [is_central_scalar S M]
+variables (Q : quadratic_form S M)
 
 example : (1 : clifford_algebra Q) - (1 : clifford_algebra Q) = 0 := by rw sub_self
 

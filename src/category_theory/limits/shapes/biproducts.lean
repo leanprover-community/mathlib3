@@ -318,44 +318,42 @@ def biproduct.map_iso [fintype J] {f g : J → C} [has_finite_biproducts C]
 
 section π_kernel
 
-variables [has_zero C] [has_finite_biproducts C]
+variables [has_zero_object C] [has_finite_biproducts C]
   [fintype J] (f : J → C) (i : J)
 
+open_locale zero_object
+
+def biproduct.π_kernel_ι : ⨁ (λ j : J, if i = j then 0 else f j) ⟶ ⨁ f :=
+biproduct.map $ λ j, if h : i = j then 0 else eq_to_hom (by simp [h])
+
 def biproduct.π_kernel_fork : kernel_fork (biproduct.π f i) :=
-kernel_fork.of_ι 
-  (biproduct.map 
-     (λ j, if h : i = j then 0 else by { simp only [h, if_false], exact 𝟙 _ }) :
-       (⨁ λ j : J, if i = j then 0 else f j) ⟶ ⨁ f) 
-  (by tidy)
+kernel_fork.of_ι (biproduct.π_kernel_ι f i) (by simp[biproduct.π_kernel_ι])
+
+private def biproduct.π_kernel_lift (s : kernel_fork (biproduct.π f i)) :
+  s.X ⟶ ⨁ (λ j : J, if i = j then 0 else f j) :=
+s.ι ≫ biproduct.map 
+  (λ j, if h : i = j then 0 else eq_to_hom (by simp [h]))
 
 variables {f i}
 
-lemma biproduct.is_limit_π_kernel_fork :
-  is_limit (biproduct.π_kernel_fork f i) :=
+lemma biproduct.is_limit_π_kernel_fork : is_limit (biproduct.π_kernel_fork f i) :=
 fork.is_limit.mk' _ $ λ s,
-⟨ s.ι ≫ biproduct.map 
-    (λ j, if h : i = j then 0 else by { simp only [if_neg h], exact 𝟙 _ }),
-  begin
-    ext, by_cases h : i = j,
+⟨biproduct.π_kernel_lift f i s,
+  by { ext, simp [biproduct.π_kernel_lift], by_cases h : i = j,
     { subst h, simp },
-    { slice_lhs 3 4 { erw [biproduct.map_π] },
-      slice_lhs 2 3 { rw [biproduct.map_π] },
-      simp [h]  }
-  end,
-  begin
-    intros m hm,
-    sorry
-  end⟩
-
-variables (f i)
-
-instance biproduct.π_has_kernel :
-  has_kernel (biproduct.π f i) :=
-⟨⟨⟨biproduct.π_kernel_fork f i, biproduct.is_limit_π_kernel_fork⟩⟩⟩
+    { slice_lhs 3 4 { erw biproduct.map_π },
+      slice_lhs 2 3 { rw biproduct.map_π },
+      simp [h] } },
+  by { intros m hm, ext, split_ifs with h,
+    { have g : ite (i = i) 0 (f i) ≅ 0, { simp [eq_to_iso] },
+      tidy, rw [←iso.cancel_iso_hom_right _ _ g],
+      apply has_zero_object.to_zero_ext },
+    { simp only [biproduct.π_kernel_lift, category.assoc, biproduct.map_π, ←hm],
+      slice_rhs 2 3 { erw [biproduct.map_π] },
+      simp [h] } }⟩
 
 end π_kernel
 
-#exit
 section
 variables [fintype J] {K : Type v} [fintype K] [decidable_eq K] {f : J → C} {g : K → C}
   [has_finite_biproducts C]

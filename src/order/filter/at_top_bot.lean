@@ -1169,13 +1169,13 @@ map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
       ... ≤ (b * k + (k - 1)) / k : nat.div_le_div_right $ nat.le_add_right _ _)
 
 /-- A monotone sequence of natural numbers either tends to infinity *or* is eventually constant. -/
-lemma monotone.tendsto_at_top_at_top_or_eventually_const_nat
-  {f : ℕ → ℕ} (hf : monotone f) : tendsto f at_top at_top ∨ ∃ x, f =ᶠ[at_top] (λ _, x) :=
+lemma monotone.tendsto_at_top_at_top_or_eventually_const_nat [semilattice_sup ι] [nonempty ι]
+  {f : ι → ℕ} (hf : monotone f) : tendsto f at_top at_top ∨ ∃ x, f =ᶠ[at_top] (λ _, x) :=
 begin
   by_cases h : ∃ x, f =ᶠ[at_top] λ _, x,
   { right, assumption },
   left,
-  simp_rw [eventually_eq, eventually_at_top, not_exists, not_forall, exists_prop] at h,
+  simp_rw [eventually_eq, (@eventually_at_top ι), not_exists, not_forall, exists_prop] at h,
   apply tendsto_at_top_at_top_of_monotone hf,
   intro x,
   induction x with x hx,
@@ -1186,17 +1186,18 @@ begin
 end
 
 /-- A monotone sequence of integers either tends to infinity *or* is eventually constant. -/
-lemma monotone.tendsto_at_top_at_top_or_eventually_const_int
-  {f : ℤ → ℤ} (hf : monotone f) : tendsto f at_top at_top ∨ ∃ x, f =ᶠ[at_top] (λ _, x) :=
+lemma monotone.tendsto_at_top_at_top_or_eventually_const_int [semilattice_sup ι] [hne : nonempty ι]
+  {f : ι → ℤ} (hf : monotone f) : tendsto f at_top at_top ∨ ∃ x, f =ᶠ[at_top] (λ _, x) :=
 begin
   by_cases h : ∃ x, f =ᶠ[at_top] λ _, x,
   { right, assumption },
   left,
-  simp_rw [eventually_eq, eventually_at_top, not_exists, not_forall, exists_prop] at h,
+  simp_rw [eventually_eq, @eventually_at_top ι, not_exists, not_forall, exists_prop] at h,
   apply tendsto_at_top_at_top_of_monotone hf,
   intro x,
-  induction x using int.induction_on' with x _ hx x _ hx, use (f 37),
-  { use 37 },
+  let c := hne.some,
+  induction x using int.induction_on' with x _ hx x _ hx, use (f c),
+  { use c },
   { cases hx with a ha,
     rcases h x a with ⟨b, hb1, hb2⟩,
     exact ⟨b, (int.add_one_le_iff.mpr $ (ne.symm hb2).le_iff_lt.mp $ le_trans ha $ hf hb1)⟩ },

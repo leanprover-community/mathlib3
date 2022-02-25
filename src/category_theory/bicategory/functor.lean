@@ -219,6 +219,18 @@ def comp (F : oplax_functor B C) (G : oplax_functor C D) : oplax_functor B D :=
       whisker_left_comp, assoc] },
   .. (F : prelax_functor B C).comp ↑G }
 
+instance
+  (F : oplax_functor B C) [∀ {a b c : B} (f : a ⟶ b) (g : b ⟶ c), is_iso (F.map_comp f g)]
+  (G : oplax_functor C D) [∀ {a b c : C} (f : a ⟶ b) (g : b ⟶ c), is_iso (G.map_comp f g)]
+  {a b c : B} (f : a ⟶ b) (g : b ⟶ c) :
+  is_iso ((F.comp G).map_comp f g) := is_iso.comp_is_iso
+
+instance
+  (F : oplax_functor B C) [∀ a, is_iso (F.map_id a)]
+  (G : oplax_functor C D) [∀ a, is_iso (G.map_id a)]
+  (a : B) :
+  is_iso ((F.comp G).map_id a) := is_iso.comp_is_iso
+
 /--
 A structure on an oplax functor that promotes an oplax functors to a pseudofunctor.
 See `pseudofunctor.mk_of_oplax`.
@@ -402,6 +414,23 @@ def mk_of_oplax' (F : oplax_functor B C)
     rw [is_iso.eq_comp_inv, ←inv_whisker_left, is_iso.eq_comp_inv],
     simp only [assoc, F.map₂_associator] },
   .. (F : prelax_functor B C) }
+
+/-- Composition of pseudofunctors. -/
+@[simps]
+def comp' (F : pseudofunctor B C) (G : pseudofunctor C D) : pseudofunctor B D :=
+mk_of_oplax ((F : oplax_functor B C).comp G)
+{ map_id_iso := λ a, (G.map_functor _ _).map_iso (F.map_id a) ≪≫ G.map_id (F.obj a),
+  map_comp_iso := λ a b c f g,
+    (G.map_functor _ _).map_iso (F.map_comp f g) ≪≫ G.map_comp (F.map f) (F.map g) }
+
+instance (a : B) : is_iso ((F : oplax_functor B C).map_id a) := is_iso.of_iso (F.map_id a)
+instance {a b c : B} (f : a ⟶ b) (g : b ⟶ c) :
+  is_iso ((F : oplax_functor B C).map_comp f g) := is_iso.of_iso (F.map_comp f g)
+
+/-- Composition of pseudofunctors. -/
+@[simps] noncomputable
+def comp'' (F : pseudofunctor B C) (G : pseudofunctor C D) : pseudofunctor B D :=
+mk_of_oplax' ((F : oplax_functor B C).comp ↑G)
 
 end
 

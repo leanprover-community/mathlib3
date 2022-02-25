@@ -3,7 +3,6 @@ Copyright (c) 2022 Rishikesh Vaishnav. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rishikesh Vaishnav
 -/
-
 import probability.independence
 
 /-!
@@ -29,7 +28,7 @@ based on application: for any `s t : set α`, we have `μ[t|s] = (μ s)⁻¹ * �
 
 This file uses the local notation `μ[|s]` the measure of `μ` conditioned on `s`,
 and `μ[t|s]` for the probability of `t` given `s` under `μ` (equivalent to the
-application `μ[|s] t`.
+application `μ[|s] t`).
 
 ## Implementation notes
 
@@ -106,7 +105,7 @@ end
 /-- Conditioning first on `s` and then on `t` results in the same measure as conditioning
 on `s ∩ t`. -/
 @[simp] lemma cond_cond_eq_cond_inter {s : set α} {t : set α}
-  (hms : measurable_set s) (hmb : measurable_set t) (hcs : μ s ≠ 0) (hci : μ (s ∩ t) ≠ 0) :
+  (hms : measurable_set s) (hmt : measurable_set t) (hcs : μ s ≠ 0) (hci : μ (s ∩ t) ≠ 0) :
   μ[|s][|t] = (μ[|(s ∩ t)]) :=
 begin
   apply measure.ext, intros,
@@ -126,9 +125,9 @@ by rw [cond_measure_apply μ hms t, mul_comm, ←mul_assoc,
 
 /-- Bayes' Theorem. -/
 theorem bayes (s : set α) (hms : measurable_set s)
-  (t : set α) (hmb : measurable_set t) (hcb : μ t ≠ 0) :
+  (t : set α) (hmt : measurable_set t) (hct : μ t ≠ 0) :
   μ[t|s] = (μ s)⁻¹ * μ[s|t] * (μ t) :=
-by rw [mul_assoc, cond_mul_eq_inter μ hmb hcb s, set.inter_comm, cond_measure_apply _ hms]
+by rw [mul_assoc, cond_mul_eq_inter μ hmt hct s, set.inter_comm, cond_measure_apply _ hms]
 
 end bayes
 

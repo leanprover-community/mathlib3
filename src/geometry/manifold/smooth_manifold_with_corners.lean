@@ -727,10 +727,8 @@ ext_chart_at_continuous_at' _ _ (mem_ext_chart_source I x)
 
 lemma ext_chart_at_continuous_on_symm :
   continuous_on (ext_chart_at I x).symm (ext_chart_at I x).target :=
-begin
-  apply continuous_on.comp (chart_at H x).continuous_on_symm I.continuous_symm.continuous_on,
-  simp [ext_chart_at, local_equiv.trans_target]
-end
+(chart_at H x).continuous_on_symm.comp I.continuous_on_symm $
+  (maps_to_preimage _ _).mono_left (inter_subset_right _ _)
 
 lemma ext_chart_at_map_nhds' {x y : M} (hy : y ∈ (ext_chart_at I x).source) :
   map (ext_chart_at I x) (𝓝 y) = 𝓝[range I] (ext_chart_at I x y) :=

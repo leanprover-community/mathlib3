@@ -339,7 +339,8 @@ s.ι ≫ biproduct.map
 
 variables {f i}
 
-lemma biproduct.is_limit_π_kernel_fork : is_limit (biproduct.π_kernel_fork f i) :=
+/-- The cone `biproduct.π_kernel_fork` is indeed a kernel. -/
+def biproduct.is_limit_π_kernel_fork : is_limit (biproduct.π_kernel_fork f i) :=
 fork.is_limit.mk' _ $ λ s,
 ⟨biproduct.π_kernel_lift f i s,
   by { ext, simp [biproduct.π_kernel_lift], by_cases h : i = j,

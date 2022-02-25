@@ -68,9 +68,7 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
   set max₁ := set₁.max' set₁_nonempty with max₁_eq,
   set max₂ := set₂.max' set₂_nonempty with max₂_eq,
   have mem_max₁ := finset.max'_mem set₁ set₁_nonempty,
-  rw [←max₁_eq, set₁_eq] at mem_max₁,
   have mem_max₂ := finset.max'_mem set₂ set₂_nonempty,
-  rw [←max₂_eq, set₂_eq] at mem_max₂,
   replace hxy : ∀ (i : ι), (graded_algebra.decompose 𝒜 (x * y) i : A) ∈ I := λ i, hI i hxy,
   specialize hxy (max₁ + max₂),
   have eq :=
@@ -78,29 +76,39 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
         = ∑ ij in ((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)).filter
             (λ (z : ι × ι), z.1 + z.2 = max₁ + max₂),
             (graded_algebra.proj 𝒜 ij.1 x) * (graded_algebra.proj 𝒜 ij.2 y)
-        : _ --(0)
+        : begin
+          rw [graded_algebra.proj_apply, alg_equiv.map_mul, graded_algebra.support,
+            graded_algebra.support, direct_sum.coe_mul_apply_submodule],
+          refl,
+        end
     ... = ∑ ij in ((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)).filter
-            (λ (z : ι × ι), z.1 + z.2 = max₁ + max₂)
-                    \ {(max₁, max₂)} ∪ {(max₁, max₂)},
+            (λ (z : ι × ι), z.1 + z.2 = max₁ + max₂) \ {(max₁, max₂)} ∪ {(max₁, max₂)},
             (graded_algebra.proj 𝒜 ij.1 x) * (graded_algebra.proj 𝒜 ij.2 y)
-        : _ -- (1),
+        : begin
+            congr,
+            rw [finset.sdiff_union_self_eq_union],
+            refine le_antisymm (finset.subset_union_left _ _) _,
+            rintros z H,
+            rw finset.mem_union at H,
+            cases H,
+            { exact H },
+            { rw finset.mem_singleton at H,
+              simp only [finset.mem_filter, H, finset.mem_product, eq_self_iff_true, and_true],
+              exact ⟨(finset.filter_subset _ _) mem_max₁, (finset.filter_subset _ _) mem_max₂⟩, },
+        end
     ... = ∑ (ij : ι × ι) in ((graded_algebra.support 𝒜 x).product
             (graded_algebra.support 𝒜 y)).filter
-            (λ (z : ι × ι), prod.fst z + z.snd = max₁ + max₂)
-                    \ {(max₁, max₂)},
+            (λ (z : ι × ι), prod.fst z + z.snd = max₁ + max₂) \ {(max₁, max₂)},
             (graded_algebra.proj 𝒜 (prod.fst ij) x) * (graded_algebra.proj 𝒜 ij.snd y)
         + ∑ ij in {(max₁, max₂)}, (graded_algebra.proj 𝒜 (prod.fst ij) x)
             * (graded_algebra.proj 𝒜 ij.snd y)
-        : _ -- (2)
+        : by { rw [finset.sum_union], apply finset.sdiff_disjoint }
     ... = ∑ ij in ((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)).filter
-            (λ (z : ι × ι), z.1 + z.2 = max₁ + max₂)
-                    \ {(max₁, max₂)},
+            (λ (z : ι × ι), z.1 + z.2 = max₁ + max₂) \ {(max₁, max₂)},
             (graded_algebra.proj 𝒜 ij.1 x) * (graded_algebra.proj 𝒜 ij.2 y)
-        + _
-        : by rw finset.sum_singleton,
+        + _ : by rw finset.sum_singleton,
 
-  have eq₂ :
-    (graded_algebra.proj 𝒜 max₁) x * (graded_algebra.proj 𝒜 max₂) y
+  have eq₂ : (graded_algebra.proj 𝒜 max₁) x * (graded_algebra.proj 𝒜 max₂) y
           = graded_algebra.proj 𝒜 (max₁ + max₂) (x * y)
           - ∑ (ij : ι × ι) in finset.filter (λ (z : ι × ι), z.fst + z.snd = max₁ + max₂)
               ((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)) \ {(max₁, max₂)},
@@ -162,46 +170,11 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
     (graded_algebra.proj 𝒜 (max₁, max₂).fst) x * (graded_algebra.proj 𝒜 (max₁, max₂).snd) y ∈ I,
   { rw eq₂, apply ideal.sub_mem,
     specialize hI (max₁ + max₂) hxy, exact hxy, exact mem_I₂, },
-  specialize homogeneous_mem_or_mem ⟨max₁, _⟩ ⟨max₂, _⟩ mem_I₃,
-  rw [graded_algebra.proj_apply], exact submodule.coe_mem _,
-  rw [graded_algebra.proj_apply], exact submodule.coe_mem _,
-  cases homogeneous_mem_or_mem,
-  simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₁,
+  specialize homogeneous_mem_or_mem ⟨max₁, submodule.coe_mem _⟩ ⟨max₂, submodule.coe_mem _⟩ mem_I₃,
+  cases homogeneous_mem_or_mem;
+  simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₁ mem_max₂,
   refine mem_max₁.2 homogeneous_mem_or_mem,
-  simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₂,
   refine mem_max₂.2 homogeneous_mem_or_mem,
-
-  -- (0)
-  { rw [graded_algebra.proj_apply, alg_equiv.map_mul, graded_algebra.support,
-      graded_algebra.support, direct_sum.coe_mul_apply_submodule], refl },
-
-  -- (1)
-  { congr, ext, split; intros H,
-    { simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product] at H,
-      rw finset.mem_union,
-      by_cases a = (max₁, max₂),
-      right, rw h, exact finset.mem_singleton_self (max₁, max₂),
-      left, rw finset.mem_sdiff, split,
-      simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product],
-      exact H, intro rid, simp only [finset.mem_singleton] at rid, exact h rid, },
-    { rw finset.mem_union at H, cases H,
-      rw finset.mem_sdiff at H, exact H.1,
-      simp only [finset.mem_filter, ne.def, dfinsupp.mem_support_to_fun, finset.mem_product],
-      simp only [finset.mem_singleton] at H, rw H,
-      refine ⟨⟨_, _⟩, rfl⟩,
-      simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₁,
-      exact mem_max₁.1,
-      simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₂,
-      exact mem_max₂.1, }, },
-
-  -- (2)
-  { rw [finset.sum_union],
-    apply finset.disjoint_iff_inter_eq_empty.mpr,
-    rw finset.eq_empty_iff_forall_not_mem, rintros ⟨i, j⟩ Hij,
-    rw [finset.mem_inter, finset.mem_sdiff, finset.mem_filter] at Hij,
-    simp only [not_and, prod.mk.inj_iff, ne.def, dfinsupp.mem_support_to_fun, finset.mem_singleton,
-      finset.mem_product] at Hij,
-    exact Hij.1.2 Hij.2.1 Hij.2.2, },
 end⟩
 
 lemma homogeneous_ideal.is_prime_iff (I : homogeneous_ideal 𝒜) :

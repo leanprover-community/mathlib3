@@ -36,9 +36,7 @@ section linear_ordered_cancel_add_comm_monoid
 variables {ι R A : Type*}
 variables [comm_semiring R] [comm_ring A] [algebra R A]
 variables [linear_ordered_cancel_add_comm_monoid ι] [decidable_eq ι]
-variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
-
-variables {𝒜}
+variables {𝒜 : ι → submodule R A} [graded_algebra 𝒜]
 
 lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
   {I : ideal A} (hI : I.is_homogeneous 𝒜) (I_ne_top : I ≠ ⊤)
@@ -72,7 +70,7 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
   have eq :=
     calc  graded_algebra.proj 𝒜 (max₁ + max₂) (x * y)
         = ∑ ij in ((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)).filter
-            (λ (z : ι × ι), z.1 + z.2 = max₁ + max₂),
+            (λ z, z.1 + z.2 = max₁ + max₂),
             (graded_algebra.proj 𝒜 ij.1 x) * (graded_algebra.proj 𝒜 ij.2 y)
         : begin
           rw [graded_algebra.proj_apply, alg_equiv.map_mul, graded_algebra.support,
@@ -97,12 +95,11 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
               (graded_algebra.proj 𝒜 ij.fst) x * (graded_algebra.proj 𝒜 ij.snd) y,
   { rw [eq, eq_sub_iff_add_eq, add_comm], },
 
-  have mem_I₂ : ∑ (ij : ι × ι) in (((graded_algebra.support 𝒜 x).product
-            (graded_algebra.support 𝒜 y)).filter
-            (λ (z : ι × ι), z.fst + z.snd = max₁ + max₂)).erase (max₁, max₂),
-              (graded_algebra.proj 𝒜 ij.fst) x * (graded_algebra.proj 𝒜 ij.snd) y ∈ I,
-  { apply ideal.sum_mem,
-    rintros ⟨i, j⟩ H,
+  have mem_I :
+    (graded_algebra.proj 𝒜 (max₁, max₂).fst) x * (graded_algebra.proj 𝒜 (max₁, max₂).snd) y ∈ I,
+  { rw eq₂,
+    refine ideal.sub_mem _ hxy (ideal.sum_mem _ (λ z H, _)),
+    rcases z with ⟨i, j⟩,
     rw finset.mem_erase at H,
     simp only [not_and, prod.mk.inj_iff, ne.def, finset.mem_filter, finset.mem_product] at H,
     rcases H with ⟨H₁, ⟨H₂, H₃⟩, H₄⟩,
@@ -142,10 +139,7 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
       simp only [not_and, not_not, ne.def, dfinsupp.mem_support_to_fun,
         finset.mem_filter] at not_mem,
       exact ideal.mul_mem_right _ I (not_mem H₂), }, },
-  have mem_I₃ :
-    (graded_algebra.proj 𝒜 (max₁, max₂).fst) x * (graded_algebra.proj 𝒜 (max₁, max₂).snd) y ∈ I,
-  { rw eq₂, exact ideal.sub_mem _ hxy mem_I₂, },
-  specialize homogeneous_mem_or_mem ⟨max₁, submodule.coe_mem _⟩ ⟨max₂, submodule.coe_mem _⟩ mem_I₃,
+  specialize homogeneous_mem_or_mem ⟨max₁, submodule.coe_mem _⟩ ⟨max₂, submodule.coe_mem _⟩ mem_I,
   cases homogeneous_mem_or_mem;
   simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₁ mem_max₂,
   exact mem_max₁.2 homogeneous_mem_or_mem,

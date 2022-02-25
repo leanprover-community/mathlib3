@@ -167,6 +167,11 @@ hx.cauchy_map
 lemma cauchy_seq_const [semilattice_sup β] [nonempty β] (x : α) : cauchy_seq (λ n : β, x) :=
 tendsto_const_nhds.cauchy_seq
 
+lemma cauchy_seq_of_eventually_const [semilattice_sup β] [nonempty β]
+  {f : β → α} (x : α) (h : f =ᶠ[at_top] λ _, x) : cauchy_seq f :=
+let ⟨_, hN⟩ := eventually_at_top.mp h.eventually in
+  (tendsto_at_top_of_eventually_const hN).cauchy_seq
+
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (prod.map u u) at_top (𝓤 α) :=
 cauchy_map_iff'.trans $ by simp only [prod_at_top_at_top_eq, prod.map_def]

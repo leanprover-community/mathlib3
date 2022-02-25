@@ -6,6 +6,10 @@ Authors: Kalle Kytölä, Moritz Doll
 import topology.algebra.module.basic
 import linear_algebra.bilinear_map
 
+/-!
+# Weak space topology
+-/
+
 noncomputable theory
 open filter
 open_locale topological_space

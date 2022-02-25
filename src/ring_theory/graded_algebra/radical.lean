@@ -86,15 +86,11 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
             (graded_algebra.proj 𝒜 ij.1 x) * (graded_algebra.proj 𝒜 ij.2 y)
         : begin
             congr,
-            rw [finset.sdiff_union_self_eq_union],
-            refine le_antisymm (finset.subset_union_left _ _) _,
+            rw finset.sdiff_union_of_subset,
             rintros z H,
-            rw finset.mem_union at H,
-            cases H,
-            { exact H },
-            { rw finset.mem_singleton at H,
-              simp only [finset.mem_filter, H, finset.mem_product, eq_self_iff_true, and_true],
-              exact ⟨(finset.filter_subset _ _) mem_max₁, (finset.filter_subset _ _) mem_max₂⟩, },
+            rw finset.mem_singleton at H,
+            simp only [finset.mem_filter, H, finset.mem_product, eq_self_iff_true, and_true],
+            exact ⟨(finset.filter_subset _ _) mem_max₁, (finset.filter_subset _ _) mem_max₂⟩,
         end
     ... = ∑ (ij : ι × ι) in ((graded_algebra.support 𝒜 x).product
             (graded_algebra.support 𝒜 y)).filter

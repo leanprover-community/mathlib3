@@ -386,6 +386,8 @@ variables (c f g)
 
 end bot
 
+@[simp] theorem is_O_with_pure {x} : is_O_with c f g (pure x) ↔ ∥f x∥ ≤ c * ∥g x∥ := is_O_with_iff
+
 theorem is_O_with.join (h : is_O_with c f g l) (h' : is_O_with c f g l') :
   is_O_with c f g (l ⊔ l') :=
 is_O_with.of_bound $ mem_sup.2 ⟨h.bound, h'.bound⟩
@@ -743,6 +745,36 @@ theorem is_O_const_const (c : E) {c' : F'} (hc' : c' ≠ 0) (l : filter α) :
   is_O (λ x : α, c) (λ x, c') l :=
 (is_O_with_const_const c hc' l).is_O
 
+@[simp] theorem is_O_const_const_iff {c : E'} {c' : F'} (l : filter α) [l.ne_bot] :
+  is_O (λ x : α, c) (λ x, c') l ↔ (c' = 0 → c = 0) :=
+begin
+  rcases eq_or_ne c' 0 with rfl|hc',
+  { simp },
+  { simp [hc', is_O_const_const _ hc'] }
+end
+
+@[simp] theorem is_o_const_const_iff [ne_bot l] {d : E'} {c : F'} :
+  is_o (λ x, d) (λ x, c) l ↔ d = 0 :=
+begin
+  simp only [is_o_iff, eventually_const],
+  split,
+  { intro H, by_contra hd,
+    rcases exists_pos_mul_lt (norm_pos_iff.2 hd) (∥c∥) with ⟨a, ha₀, ha⟩,
+    rw mul_comm at ha,
+    exact (H ha₀).not_lt ha },
+  { rintro rfl a ha,
+    rw norm_zero,
+    exact mul_nonneg ha.le (norm_nonneg _) }
+end
+
+@[simp] lemma is_O_pure {x} : is_O f' g' (pure x) ↔ (g' x = 0 → f' x = 0) :=
+calc is_O f' g' (pure x) ↔ is_O (λ y : α, f' x) (λ _, g' x) (pure x) : is_O_congr rfl rfl
+                     ... ↔ g' x = 0 → f' x = 0                       : is_O_const_const_iff _
+
+@[simp] lemma is_o_pure {x} : is_o f' g' (pure x) ↔ f' x = 0 :=
+calc is_o f' g' (pure x) ↔ is_o (λ y : α, f' x) (λ _, g' x) (pure x) : is_o_congr rfl rfl
+                     ... ↔ f' x = 0                                  : is_o_const_const_iff
+
 end zero_const
 
 @[simp] lemma is_O_with_top : is_O_with c f g ⊤ ↔ ∀ x, ∥f x∥ ≤ c * ∥g x∥ := by rw is_O_with; refl
@@ -795,15 +827,6 @@ begin
   clear hc c,
   simp only [is_o, is_O_with, norm_one, mul_one, metric.nhds_basis_closed_ball.tendsto_right_iff,
     metric.mem_closed_ball, dist_zero_right]
-end
-
-theorem is_o_const_const_iff [ne_bot l] {d : E'} {c : F'} (hc : c ≠ 0) :
-  is_o (λ x, d) (λ x, c) l ↔ d = 0 :=
-begin
-  rw is_o_const_iff hc,
-  refine ⟨λ h, tendsto_nhds_unique tendsto_const_nhds h, _⟩,
-  rintros rfl,
-  exact tendsto_const_nhds,
 end
 
 lemma is_o_id_const {c : F'} (hc : c ≠ 0) :

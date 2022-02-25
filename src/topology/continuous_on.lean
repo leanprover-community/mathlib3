@@ -542,6 +542,14 @@ lemma continuous_on.prod_map {f : α → γ} {g : β → δ} {s : set α} {t : s
 lemma continuous_on_empty (f : α → β) : continuous_on f ∅ :=
 λ x, false.elim
 
+lemma continuous_on_singleton (f : α → β) (a : α) : continuous_on f {a} :=
+forall_eq.2 $ by simpa only [continuous_within_at, nhds_within_singleton, tendsto_pure_left]
+  using λ s, mem_of_mem_nhds
+
+lemma set.subsingleton.continuous_on {s : set α} (hs : s.subsingleton) (f : α → β) :
+  continuous_on f s :=
+hs.induction_on (continuous_on_empty f) (continuous_on_singleton f)
+
 theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_within_at f s x) :
   𝓝[s] x ≤ comap f (𝓝[f '' s] (f x)) :=
 map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image

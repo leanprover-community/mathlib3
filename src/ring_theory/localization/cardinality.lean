@@ -18,7 +18,7 @@ zero-divisors.
 
 * `is_localization.cardinal_mk`: All infinite localizations of rings at submonoids smaller than the
   non-zero divisors have the same cardinality as the base ring.
-* `is_localization.card`: All finite localizations of integral domains at submonoids not containing
+* `is_localization.card`: All localizations of finite integral domains at submonoids not containing
   zero have the same cardinality as the base domain.
 
 ## Implementation details

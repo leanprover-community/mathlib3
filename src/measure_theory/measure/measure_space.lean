@@ -626,6 +626,18 @@ section has_scalar
 variables [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
 variables [has_scalar R' ℝ≥0∞] [is_scalar_tower R' ℝ≥0∞ ℝ≥0∞]
 
+/-- Coercion to function as an additive monoid homomorphism. -/
+def coe_add_hom {m : measurable_space α} : measure α →+ (set α → ℝ≥0∞) :=
+⟨coe_fn, coe_zero, coe_add⟩
+
+@[simp] lemma coe_finset_sum {m : measurable_space α} (I : finset ι) (μ : ι → measure α) :
+  ⇑(∑ i in I, μ i) = ∑ i in I, μ i :=
+(@coe_add_hom α m).map_sum _ _
+
+theorem finset_sum_apply {m : measurable_space α} (I : finset ι) (μ : ι → measure α) (s : set α) :
+  (∑ i in I, μ i) s = ∑ i in I, μ i s :=
+by rw [coe_finset_sum, finset.sum_apply]
+
 instance [measurable_space α] : has_scalar R (measure α) :=
 ⟨λ c μ,
   { to_outer_measure := c • μ.to_outer_measure,

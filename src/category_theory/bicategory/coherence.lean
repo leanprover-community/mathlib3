@@ -117,7 +117,7 @@ def normalize_iso {a : B} : ∀ {b c : B} (p : path a b) (f : hom b c),
 
 /--
 Given a 2-morphism between `f` and `g` in the free bicategory, we have the equality
-`normalize_aux f p = normalize_aux g p`.
+`normalize_aux p f = normalize_aux p g`.
 -/
 lemma normalize_aux_congr {a b c : B} (p : path a b) {f g : hom b c} (η : f ⟶ g) :
   normalize_aux p f = normalize_aux p g :=

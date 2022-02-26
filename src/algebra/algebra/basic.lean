@@ -1362,13 +1362,17 @@ rfl
 @[simp] lemma const_alg_hom_eq_algebra_of_id : const_alg_hom R A R = algebra.of_id R (A → R) :=
 rfl
 
+end pi
+
+namespace alg_equiv
+
 /-- A family of algebra equivalences `Π j, (A₁ j ≃ₐ A₂ j)` generates a
 multiplicative equivalence between `Π j, A₁ j` and `Π j, A₂ j`.
 
 This is the `alg_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
 `alg_equiv.arrow_congr`.
 -/
-@[simps]
+@[simps apply]
 def Pi_congr_right {R ι : Type*} {A₁ A₂ : ι → Type*} [comm_semiring R]
   [Π i, semiring (A₁ i)] [Π i, semiring (A₂ i)] [Π i, algebra R (A₁ i)] [Π i, algebra R (A₂ i)]
   (e : Π i, A₁ i ≃ₐ[R] A₂ i) : (Π i, A₁ i) ≃ₐ[R] Π i, A₂ i :=
@@ -1395,7 +1399,7 @@ lemma Pi_congr_right_trans {R ι : Type*} {A₁ A₂ A₃ : ι → Type*} [comm_
   (Pi_congr_right e₁).trans (Pi_congr_right e₂) = (Pi_congr_right $ λ i, (e₁ i).trans (e₂ i)) :=
 rfl
 
-end pi
+end alg_equiv
 
 section is_scalar_tower
 

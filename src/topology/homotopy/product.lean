@@ -313,14 +313,14 @@ Shows `pi_to_pi_Top` is an isomorphism, whose inverse is precisely the pi produc
 of the induced projections. This shows that `fundamental_groupoid_functor` preserves products.
 -/
 @[simps]
-def pi_iso : category_theory.Groupoid.of (Π i : I, πₓ (X i)) ≅ (πₓ (Top.of (Π i, X i))) :=
+def pi_iso : category_theory.Groupoid.of (Π i : I, πₓ (X i)) ≅ πₓ (Top.of (Π i, X i)) :=
 { hom := pi_to_pi_Top X,
   inv := category_theory.functor.pi' (proj X),
   hom_inv_id' :=
   begin
     rw [← category_theory.Groupoid.id_to_functor, category_theory.Groupoid.hom_to_functor],
     apply category_theory.functor.ext; intros,
-    { ext, simp, }, { refl, },
+    { ext, simp, refl, }, { refl, },
   end,
   inv_hom_id' :=
   begin
@@ -425,6 +425,7 @@ def prod_iso : category_theory.Groupoid.of (πₓ A × πₓ B) ≅ πₓ (Top.o
     apply category_theory.functor.hext, { intros, ext; simp; refl, },
     rintros ⟨x₀, x₁⟩ ⟨y₀, y₁⟩ ⟨f₀, f₁⟩,
     have := and.intro (path.homotopic.proj_left_prod f₀ f₁) (path.homotopic.proj_right_prod f₀ f₁),
+    rw @category_theory.functor.id_map (category_theory.Groupoid.of (πₓ A × πₓ B)) _,
     simpa,
   end,
   inv_hom_id' :=

@@ -145,9 +145,8 @@ theorem cof_def_nonempty (o) :
 theorem cof_eq_Inf_lsub (o : ordinal.{u}) :
   cof o = Inf {a : cardinal | ∃ {ι : Type u} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
 begin
-  apply le_antisymm,
-  { apply le_cInf (cof_def_nonempty o),
-    rintros a ⟨ι, f, hf, rfl⟩,
+  refine le_antisymm (le_cInf (cof_def_nonempty o) _) (cInf_le' _),
+  { rintros a ⟨ι, f, hf, rfl⟩,
     rw ←type_out o,
     let S := {a : o.out.α | typein o.out.r a ∈ set.range f},
     have h : ∀ a, ∃ b ∈ S, ¬ o.out.r b a := λ a, begin
@@ -167,9 +166,13 @@ begin
     have := congr_arg f hst,
     rwa [classical.some_spec s.prop, classical.some_spec t.prop, typein_inj,
       subtype.coe_inj] at this },
-  {
-    
-  }
+  { rcases cof_eq o.out.r with ⟨S, hS, hS'⟩,dsimp,
+    refine ⟨S, λ s, typein o.out.r s.val, le_antisymm (lsub_le.2 (λ i, typein_lt_self i))
+      (le_of_forall_lt (λ a ha, _)), by rwa type_out o at hS'⟩,
+    { rw ←type_out o at ha,
+      rcases hS (enum o.out.r a ha) with ⟨b, hb, hb'⟩,
+      rw [←typein_le_typein, typein_enum] at hb',
+      exact hb'.trans_lt (lt_lsub.{u u} (λ s : S, typein o.out.r s.val) ⟨b, hb⟩) } }
 end
 
 theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :

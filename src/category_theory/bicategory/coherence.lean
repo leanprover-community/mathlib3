@@ -85,18 +85,22 @@ def normalize_aux {a : B} : ∀ {b c : B}, path a b → hom b c → path a c
 
 /-
 We may define
+```
 def normalize_aux' : ∀ {a b : B}, hom a b → path a b
 | _ _ (hom.of f) := f.to_path
 | _ _ (hom.id b) := nil
 | _ _ (hom.comp f g) := (normalize_aux' f).comp (normalize_aux' g)
+```
 and define `normalize_aux p f` to be `p.comp (normalize_aux' f)` and this will be
 equal to the above definition, but the equality proof requires `comp_assoc`, and it
 thus lacks the correct definitional property to make the definition of `normalize_iso`
 typecheck.
+```
 example {a b c : B} (p : path a b) (f : hom b c) :
   normalize_aux p f = p.comp (normalize_aux' f) :=
 by { induction f, refl, refl,
   case comp : _ _ _ _ _ ihf ihg { rw [normalize_aux, ihf, ihg], apply comp_assoc } }
+```
 -/
 
 /--

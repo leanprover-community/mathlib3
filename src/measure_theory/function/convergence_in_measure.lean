@@ -270,6 +270,25 @@ begin
   exact h_tendsto x,
 end
 
+lemma tendsto_in_measure.exists_seq_tendsto_in_measure_at_top
+  {u : filter ℕ} [ne_bot u] [is_countably_generated u]
+  (hfg : tendsto_in_measure μ f u g) :
+  ∃ ns : ℕ → ℕ, tendsto_in_measure μ (λ n, f (ns n)) at_top g :=
+begin
+  obtain ⟨ns, h_tendsto_ns⟩ : ∃ (ns : ℕ → ℕ), tendsto ns at_top u := exists_seq_tendsto u,
+  exact ⟨ns, λ ε hε, (hfg ε hε).comp h_tendsto_ns⟩,
+end
+
+lemma tendsto_in_measure.exists_seq_tendsto_ae'
+  {u : filter ℕ} [ne_bot u] [is_countably_generated u]
+  (hfg : tendsto_in_measure μ f u g) :
+  ∃ ns : ℕ → ℕ, ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
+begin
+  obtain ⟨ms, hms⟩ := hfg.exists_seq_tendsto_in_measure_at_top,
+  obtain ⟨ns, -, hns⟩ := hms.exists_seq_tendsto_ae,
+  exact ⟨ms ∘ ns, hns⟩,
+end
+
 end exists_seq_tendsto_ae
 
 section ae_measurable_of
@@ -299,15 +318,14 @@ begin
     rw hs, ext x, congr },
 end
 
--- can this be generalized?
-lemma ae_measurable_of_tendsto_in_measure
+lemma tendsto_in_measure.ae_measurable
+  {u : filter ℕ} [ne_bot u] [is_countably_generated u]
   {f : ℕ → α → E} {g : α → E} (hf : ∀ n, ae_measurable (f n) μ)
-  (h_tendsto : tendsto_in_measure μ f at_top g) :
+  (h_tendsto : tendsto_in_measure μ f u g) :
   ae_measurable g μ :=
 begin
-  obtain ⟨ns, hns, ht⟩ := h_tendsto.exists_seq_tendsto_ae,
-  refine ae_measurable_of_tendsto_metric_ae _ _ ht,
-  exact λ n, hf _,
+  obtain ⟨ns, hns⟩ := h_tendsto.exists_seq_tendsto_ae',
+  exact ae_measurable_of_tendsto_metric_ae (λ n, hf (ns n)) _ hns,
 end
 
 end ae_measurable_of

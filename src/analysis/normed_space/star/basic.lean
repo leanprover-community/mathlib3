@@ -200,7 +200,7 @@ local attribute [instance] matrix.normed_group
 
 open_locale matrix
 
-lemma matrix.entrywise_sup_norm_star_eq_norm {n : Type*} [normed_ring E] [star_add_monoid E]
+@[simp] lemma matrix.entrywise_sup_norm_star_eq_norm {n : Type*} [normed_ring E] [star_add_monoid E]
   [normed_star_monoid E] [fintype n] (M : (matrix n n E)) : ∥star M∥ = ∥M∥ :=
 begin
   have star_le : ∥star M∥ ≤ ∥M∥,

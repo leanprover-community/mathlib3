@@ -133,6 +133,33 @@ begin
   exact let ⟨⟨S, hl⟩, e⟩ := this in ⟨S, hl, e.symm⟩,
 end
 
+theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
+  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ type (subrel r S) = (cof (type r)).ord :=
+let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
+    T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
+begin
+  resetI, suffices,
+  { refine ⟨T, this,
+      le_antisymm _ (cardinal.ord_le.2 $ cof_type_le T this)⟩,
+    rw [← e, e'],
+    refine type_le'.2 ⟨rel_embedding.of_monotone
+      (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
+    rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
+    change s ⟨a, _⟩ ⟨b, _⟩,
+    refine ((trichotomous_of s _ _).resolve_left (λ hn, _)).resolve_left _,
+    { exact asymm h (ha _ hn) },
+    { intro e, injection e with e, subst b,
+      exact irrefl _ h } },
+  { intro a,
+    have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
+    let b := (is_well_order.wf).min _ this,
+    have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
+    refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
+    rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
+    exact (is_well_order.wf).not_lt_min _ this
+      (is_order_connected.neg_trans h ba) }
+end
+
 private theorem card_mem_cof (o : ordinal) :
   o.card ∈ {a : cardinal.{u} | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
 ⟨_, typein o.out.r, lsub_typein o, mk_ordinal_out o⟩
@@ -173,33 +200,6 @@ begin
       rcases hS (enum o.out.r a ha) with ⟨b, hb, hb'⟩,
       rw [←typein_le_typein, typein_enum] at hb',
       exact hb'.trans_lt (lt_lsub.{u u} (λ s : S, typein o.out.r s.val) ⟨b, hb⟩) } }
-end
-
-theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
-  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ type (subrel r S) = (cof (type r)).ord :=
-let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
-    T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
-begin
-  resetI, suffices,
-  { refine ⟨T, this,
-      le_antisymm _ (cardinal.ord_le.2 $ cof_type_le T this)⟩,
-    rw [← e, e'],
-    refine type_le'.2 ⟨rel_embedding.of_monotone
-      (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
-    rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
-    change s ⟨a, _⟩ ⟨b, _⟩,
-    refine ((trichotomous_of s _ _).resolve_left (λ hn, _)).resolve_left _,
-    { exact asymm h (ha _ hn) },
-    { intro e, injection e with e, subst b,
-      exact irrefl _ h } },
-  { intro a,
-    have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
-    let b := (is_well_order.wf).min _ this,
-    have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
-    refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
-    rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
-    exact (is_well_order.wf).not_lt_min _ this
-      (is_order_connected.neg_trans h ba) }
 end
 
 theorem lift_cof (o) : (cof o).lift = cof o.lift :=

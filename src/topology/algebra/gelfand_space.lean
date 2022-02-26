@@ -18,29 +18,31 @@ variables {𝕜 : Type*} {A : Type*}
 
 variables (𝕜) (A)
 
-def gelfand_space : set (weak_dual 𝕜 A) :=
-  {φ | (φ 1 = 1) ∧ (∀ (x y : A), φ (x * y) = (φ x) * (φ y))}
+def gelfand_space :=
+  {φ : weak_dual 𝕜 A | (φ 1 = 1) ∧ (∀ (x y : A), φ (x * y) = (φ x) * (φ y))}
 
-def gelfand_space' :=
-  {φ : A →L[𝕜] 𝕜 // (φ 1 = 1) ∧ (∀ (x y : A), φ (x * y) = (φ x) * (φ y))}
+def foo := {n : ℕ | n = 0}
+
+example : has_coe foo ℕ := by apply_instance
 
 namespace gelfand_space
 
---example : fun_like (gelfand_space 𝕜 A) A (λ _, 𝕜) :=
---  continuous_linear_map.add_monoid_hom_class.to_zero_hom_class.to_fun_like
-
---example : fun_like (gelfand_space' 𝕜 A) A (λ _, 𝕜) := by apply_instance
-example : fun_like (weak_dual 𝕜 A) A (λ _, 𝕜) := by apply_instance
-example : zero_hom_class (weak_dual 𝕜 A) A 𝕜 := by apply_instance
-example : add_monoid_hom_class (weak_dual 𝕜 A) A 𝕜 := by apply_instance
-example : fun_like (A →L[𝕜] 𝕜) A (λ _, 𝕜) := by apply_instance
-
 instance : ring_hom_class (gelfand_space 𝕜 A) A 𝕜 :=
-{ coe := λ f, f.val.to_fun,
-  coe_injective' := λ f g h, by { simp at h, refine subtype.coe_inj.mp h },
-  map_one := sorry,
-  map_mul := sorry,
-  map_add := sorry,
-  map_zero := sorry }
+{ map_one := λ φ, φ.prop.1,
+  map_mul := λ φ, φ.prop.2,
+  ..subtype.add_monoid_hom_class (weak_dual 𝕜 A) A 𝕜 _ }
+
+def to_alg_hom (φ : gelfand_space 𝕜 A) : A →ₐ[𝕜] 𝕜 :=
+{ to_fun := (φ : A → 𝕜),
+  map_one' := ring_hom_class.map_one _,
+  map_mul' := ring_hom_class.map_mul _,
+  map_zero' := ring_hom_class.map_zero _,
+  map_add' := ring_hom_class.map_add _,
+  commutes' := λ r, by
+  { simp only [algebra.algebra_map_eq_smul_one, algebra.id.map_eq_id, ring_hom.id_apply],
+    rw [@coe_fn_coe_base' _ (weak_dual 𝕜 A) _ _ _ φ],
+    simp only [continuous_linear_map.map_smul, algebra.id.smul_eq_mul],
+    change r * (φ 1) = r,
+    simp only [map_one, mul_one] } }
 
 end gelfand_space

@@ -85,7 +85,7 @@ variables (E : Type*) [topological_space E] [add_comm_monoid E] [module 𝕜 E]
 /-- The weak dual of a topological module `E` over a topological semiring `𝕜` consists of
 continuous linear functionals from `E` to scalars `𝕜`. It is a type synonym with the usual dual
 (when the latter is defined), but will be equipped with a different topology. -/
-@[derive [inhabited, λ α, has_coe_to_fun α (λ _, E → 𝕜)]]
+@[derive [inhabited, λ α, has_coe_to_fun α (λ _, E → 𝕜), λ α, add_monoid_hom_class α E 𝕜]]
 def weak_dual := E →L[𝕜] 𝕜
 
 instance [has_continuous_add 𝕜] : add_comm_monoid (weak_dual 𝕜 E) :=

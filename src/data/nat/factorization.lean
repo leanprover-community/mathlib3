@@ -59,8 +59,8 @@ begin
   have hdom : (multiplicity p n).dom,
   { rw multiplicity.nat.multiplicity_dom_iff, split, exact hn, sorry, },
   simp [factorization, pp],
-  rw part.get_or_else_of_dom,
-  -- simp
+  rw part.get_or_else_of_dom (multiplicity p n) hdom,
+  simp,
 end
 
 /-! ### Basic facts about factorization -/

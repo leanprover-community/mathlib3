@@ -44,10 +44,10 @@ to forget the definitions of the inverses. On the other hand, the latter constru
 
 ## Main definitions
 
-* `oplax_functor B C` : an oplax functor between bicategories `B` and `C`
-* `oplax_functor.comp F G` : the composition of oplax functors
-* `pseudofunctor B C` : a pseudofunctor between bicategories `B` and `C`
-* `pseudofunctor.comp F G` : the composition of pseudofunctors
+* `category_theory.oplax_functor B C` : an oplax functor between bicategories `B` and `C`
+* `category_theory.oplax_functor.comp F G` : the composition of oplax functors
+* `category_theory.pseudofunctor B C` : a pseudofunctor between bicategories `B` and `C`
+* `category_theory.pseudofunctor.comp F G` : the composition of pseudofunctors
 
 ## Future work
 

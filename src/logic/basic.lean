@@ -509,6 +509,18 @@ or.comm.trans decidable.or_iff_not_imp_left
 theorem or_iff_not_imp_right : a ∨ b ↔ (¬ b → a) := decidable.or_iff_not_imp_right
 
 -- See Note [decidable namespace]
+protected lemma decidable.not_or_iff_imp [decidable a] : ¬ a ∨ b ↔ (a → b) :=
+⟨or.neg_resolve_left, λ h, dite _ (or.inr ∘ h) or.inl⟩
+
+lemma not_or_iff_imp : ¬ a ∨ b ↔ (a → b) := decidable.not_or_iff_imp
+
+-- See Note [decidable namespace]
+protected lemma decidable.or_not_iff_imp [decidable b] : a ∨ ¬ b ↔ (b → a) :=
+or.comm.trans decidable.not_or_iff_imp
+
+lemma or_not_iff_imp : a ∨ ¬ b ↔ (b → a) := decidable.or_not_iff_imp
+
+-- See Note [decidable namespace]
 protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b → a) :=
 ⟨assume h hb, decidable.by_contradiction $ assume na, h na hb, mt⟩
 

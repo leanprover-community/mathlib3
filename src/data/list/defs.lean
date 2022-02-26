@@ -633,12 +633,16 @@ list.decidable_pairwise
      erase_dup [1, 0, 2, 2, 1] = [0, 2, 1] -/
 def erase_dup [decidable_eq α] : list α → list α := pw_filter (≠)
 
-/-- Create a list based on `a :: l` that is greedily such that `chain R`. -/
+/-- Greedily create a sublist of `a :: l` such that, for every two adjacent elements `a, b`,
+`R a b` holds. Mostly used with ≠, For example, `destutter' (≠) 1 [2, 2, 1, 1] = [1, 2, 1]`,
+`destutter' (≠) 1, [2, 3, 3] = [1, 2, 3]`, `destutter' (<) 1 [2, 5, 2, 3, 4, 9] = [1, 2, 5, 9]` -/
 def destutter' (R : α → α → Prop) [decidable_rel R] : α → list α → list α
 | a [] := [a]
 | a (h :: l) := if R a h then a :: destutter' h l else destutter' a l
 
-/-- Create a list based on `l` that is greedily such that `chain' R`. -/
+/-- Greedily create a sublist of `l` such that, for every two adjacent elements `a, b ∈ l`,
+`R a b` holds. Mostly used with ≠, For example, `destutter (≠) [1, 2, 2, 1, 1] = [1, 2, 1]`,
+`destutter (≠) [1, 2, 3, 3] = [1, 2, 3]`, `destutter (<) [1, 2, 5, 2, 3, 4, 9] = [1, 2, 5, 9]`. -/
 def destutter (R : α → α → Prop) [decidable_rel R] : list α → list α
 | (h :: l) := destutter' R h l
 | [] := []

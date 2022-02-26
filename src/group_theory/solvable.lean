@@ -69,7 +69,7 @@ end
 
 lemma commutator_le_map_commutator {H₁ H₂ : subgroup G} {K₁ K₂ : subgroup G'} (h₁ : K₁ ≤ H₁.map f)
   (h₂ : K₂ ≤ H₂.map f) : ⁅K₁, K₂⁆ ≤ ⁅H₁, H₂⁆.map f :=
-by { rw map_commutator_eq_commutator_map, exact subgroup.commutator_mono h₁ h₂ }
+by { rw map_commutator_eq_commutator_map, exact commutator_mono h₁ h₂ }
 
 section derived_series_map
 

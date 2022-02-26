@@ -6,6 +6,7 @@ Authors: Stuart Presnell
 import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
+import ring_theory.multiplicity
 
 /-!
 # Prime factorizations
@@ -41,7 +42,15 @@ namespace nat
 
 /-- `n.factorization` is the finitely supported function `ℕ →₀ ℕ`
  mapping each prime factor of `n` to its multiplicity in `n`. -/
-noncomputable def factorization (n : ℕ) : ℕ →₀ ℕ := (n.factors : multiset ℕ).to_finsupp
+def factorization (n : ℕ) : ℕ →₀ ℕ :=
+{ support := n.factors.to_finset,
+  to_fun := λ p, if p.prime then ((multiplicity p n).get_or_else 0) else 0,
+  mem_support_to_fun := sorry }
+
+
+lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
+  multiplicity p n = n.factorization p :=
+multiplicity.eq_coe_iff.mpr ⟨pow_factorization_dvd n p, pow_succ_factorization_not_dvd hn pp⟩
 
 /-! ### Basic facts about factorization -/
 

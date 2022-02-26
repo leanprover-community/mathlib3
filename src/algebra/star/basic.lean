@@ -345,7 +345,7 @@ export star_module (star_smul)
 attribute [simp] star_smul
 
 /-- A commutative star monoid is a star module over itself via `monoid.to_mul_action`. -/
-instance star_monoid.to_star_module [comm_monoid R] [star_semigroup R] : star_module R R :=
+instance star_semigroup.to_star_module [comm_monoid R] [star_semigroup R] : star_module R R :=
 ⟨star_mul'⟩
 
 namespace ring_hom_inv_pair
@@ -432,6 +432,6 @@ end mul_opposite
 
 /-- A commutative star monoid is a star module over its opposite via
 `monoid.to_opposite_mul_action`. -/
-instance star_monoid.to_opposite_star_module [comm_monoid R] [star_semigroup R] :
+instance star_semigroup.to_opposite_star_module [comm_monoid R] [star_semigroup R] :
   star_module Rᵐᵒᵖ R :=
 ⟨λ r s, star_mul' s r.unop⟩

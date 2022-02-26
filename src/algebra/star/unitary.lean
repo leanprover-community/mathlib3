@@ -21,7 +21,7 @@ unitary
 -/
 
 /--
-In a `star_monoid R`, `unitary R` is the submonoid consisting of all the elements `U` of
+In a *-monoid, `unitary R` is the submonoid consisting of all the elements `U` of
 `R` such that `star U * U = 1` and `U * star U = 1`.
 -/
 def unitary (R : Type*) [monoid R] [star_semigroup R] : submonoid R :=

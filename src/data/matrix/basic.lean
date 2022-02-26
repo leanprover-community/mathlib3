@@ -1220,7 +1220,7 @@ by simp [conj_transpose]
 @[simp] lemma conj_transpose_sub [add_group α] [star_add_monoid α] (M N : matrix m n α) :
   (M - N)ᴴ = Mᴴ - Nᴴ  := by ext i j; simp
 
-@[simp] lemma conj_transpose_smul [comm_monoid α] [star_monoid α] (c : α) (M : matrix m n α) :
+@[simp] lemma conj_transpose_smul [comm_monoid α] [star_semigroup α] (c : α) (M : matrix m n α) :
   (c • M)ᴴ = (star c) • Mᴴ :=
 by ext i j; simp [mul_comm]
 

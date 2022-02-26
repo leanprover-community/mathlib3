@@ -2133,6 +2133,23 @@ theorem add_absorp_iff {o : ordinal} (o0 : 0 < o) : (∀ a < o, a + o = o) ↔ �
 end⟩,
 λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_opow⟩
 
+theorem add_le_of_forall_add_lt {a b c : ordinal} (hb : b ≠ 0) (h : ∀ d < b, a + d < c) :
+  a + b ≤ c :=
+begin
+  have hac : a ≤ c := begin
+    rw ←ordinal.pos_iff_ne_zero at hb,
+    convert (h _ hb).le,
+    rw add_zero,
+  end,
+  have haca : a + (c - a) = c := by rwa ordinal.add_sub_cancel_of_le,
+  rw ←haca,
+  refine add_le_add_left _ a,
+  by_contra' hb,
+  have := h _ hb,
+  rwa haca at this,
+  exact this.false
+end
+
 theorem add_mul_limit_aux {a b c : ordinal} (ba : b + a = a)
   (l : is_limit c)
   (IH : ∀ c' < c, (a + b) * succ c' = a * succ c' + b) :

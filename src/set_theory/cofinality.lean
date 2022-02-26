@@ -137,15 +137,15 @@ private theorem card_mem_cof (o : ordinal) :
   o.card ∈ {a : cardinal.{u} | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
 ⟨_, typein o.out.r, lsub_typein o, mk_ordinal_out o⟩
 
-/-- The set in the definition of `cof` is nonempty. -/
-theorem cof_def_nonempty (o) :
+/-- The set in the `lsub` characterization of `cof` is nonempty. -/
+theorem cof_lsub_def_nonempty (o) :
   {a : cardinal | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a}.nonempty :=
 ⟨_, card_mem_cof o⟩
 
 theorem cof_eq_Inf_lsub (o : ordinal.{u}) :
   cof o = Inf {a : cardinal | ∃ {ι : Type u} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
 begin
-  refine le_antisymm (le_cInf (cof_def_nonempty o) _) (cInf_le' _),
+  refine le_antisymm (le_cInf (cof_lsub_def_nonempty o) _) (cInf_le' _),
   { rintros a ⟨ι, f, hf, rfl⟩,
     rw ←type_out o,
     let S := {a : o.out.α | typein o.out.r a ∈ set.range f},

@@ -145,23 +145,31 @@ theorem cof_def_nonempty (o) :
 theorem cof_eq_Inf_lsub (o : ordinal.{u}) :
   cof o = Inf {a : cardinal | ∃ {ι : Type u} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
 begin
-  apply le_antisymm, {
-    apply le_cInf (cof_def_nonempty o),
+  apply le_antisymm,
+  { apply le_cInf (cof_def_nonempty o),
     rintros a ⟨ι, f, hf, rfl⟩,
     rw ←type_out o,
     let S := {a : o.out.α | typein o.out.r a ∈ set.range f},
     have h : ∀ a, ∃ b ∈ S, ¬ o.out.r b a := λ a, begin
       have := typein_lt_self a,
-      simp_rw ←hf at this,
+      simp_rw [←hf, lt_lsub_iff] at this,
+      cases this with i hi,
+      refine ⟨enum o.out.r (f i) _, _, _⟩,
+      { rw [type_out, ←hf], apply lt_lsub },
+      { simp [S] },
+      { rwa [←typein_le_typein, typein_enum] }
     end,
     suffices : #S ≤ #ι,
     { exact (cof_type_le S h).trans this },
     suffices : function.injective (λ s : S, classical.some s.prop),
-    { apply mk_le_of_injective this },
+    { exact mk_le_of_injective this },
     intros s t hst,
     have := congr_arg f hst,
     rwa [classical.some_spec s.prop, classical.some_spec t.prop, typein_inj,
-      subtype.coe_inj] at this }
+      subtype.coe_inj] at this },
+  {
+    
+  }
 end
 
 theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :

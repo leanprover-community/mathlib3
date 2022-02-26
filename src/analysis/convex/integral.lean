@@ -213,6 +213,10 @@ lemma concave_on.le_map_integral [is_probability_measure μ] {s : set E} {g : E 
 by simpa only [average_eq_integral]
   using hg.le_map_average hgc hsc (is_probability_measure.ne_zero μ) hfs hfi hgi
 
+/-!
+### Strict Jensen's inequality
+-/
+
 /-- If `f : α → E` is an integrable function, then either it is a.e. equal to the constant
 `⨍ x, f x ∂μ` or there exists a measurable set such that `μ s ≠ 0`, `μ sᶜ ≠ 0`, and the average
 values of `f` over `s` and `sᶜ` are different. -/
@@ -234,10 +238,9 @@ begin
   rw [this, measure_smul_set_average _ (measure_ne_top μ _)]
 end
 
-/-- **Jensen's inequality**, strict version: if an integrable function `f : α → E` takes values in a
-convex closed set `s` and for some set `t` of positive measure, the average value of `f` over `t`
-belongs to the interior of `s`, then the average of `f` over the whole space belongs to the interior
-of `s`. -/
+/-- If an integrable function `f : α → E` takes values in a convex closed set `s` and for some set
+`t` of positive measure, the average value of `f` over `t` belongs to the interior of `s`, then the
+average of `f` over the whole space belongs to the interior of `s`. -/
 lemma convex.average_mem_interior_of_set [is_finite_measure μ] {t : set α} {s : set E}
   (hs : convex ℝ s) (hsc : is_closed s) (h0 : μ t ≠ 0) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s)
   (hfi : integrable f μ) (ht : ⨍ x in t, f x ∂μ ∈ interior s) :
@@ -253,9 +256,9 @@ begin
       h0 h0' hfi)
 end
 
-/-- **Jensen's inequality**, strict version: if an integrable function `f : α → E` takes values in a
-strictly convex closed set `s`, then either it is a.e. equal to its average value, or its average
-value belongs to the interior of `s`. -/
+/-- If an integrable function `f : α → E` takes values in a strictly convex closed set `s`, then
+either it is a.e. equal to its average value, or its average value belongs to the interior of
+`s`. -/
 lemma strict_convex.ae_eq_const_or_average_mem_interior [is_finite_measure μ] {s : set E}
   (hs : strict_convex ℝ s) (hsc : is_closed s) {f : α → E} (hfs : ∀ᵐ x ∂μ, f x ∈ s)
   (hfi : integrable f μ) :

@@ -58,15 +58,16 @@ begin
     { simp *, },
     { by_cases ha0 : a = 0,
       { simp *, },
-      { squeeze_simp *,
+      { simp only [*, ne.def, not_false_iff, and_self, iff_true],
         -- Note: I import log here, since I think naively using b potentially makes decidability
         -- for multiplicity slow.
         use (nat.log a b),
         apply not_dvd_of_pos_of_lt,
         exact zero_lt_iff.mpr hb0,
         apply lt_pow_succ_log_self,
-        sorry,
-        sorry, }, },
+        refine lt_of_le_of_ne _ (ne.symm ha1),
+        exact one_le_iff_ne_zero.mpr ha0,
+        exact zero_lt_iff.mpr hb0, }, }, },
 end
 
 /-- Whether mulitplicity exists is decidable for ℕ -/

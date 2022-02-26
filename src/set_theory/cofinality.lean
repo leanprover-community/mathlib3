@@ -75,7 +75,10 @@ theorem cof_def_nonempty {o} :
 theorem cof_le_card (o : ordinal.{u}) : cof o ≤ o.card :=
 cInf_le' (card_mem_cof o)
 
-theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
+theorem ord_cof_le (o : ordinal.{u}) : o.cof.ord ≤ o :=
+(ord_le_ord.2 (cof_le_card o)).trans (ord_card_le o)
+
+theorem cof_ord_le (c : cardinal) : c.ord.cof ≤ c :=
 by simpa using cof_le_card c.ord
 
 theorem exists_lsub_cof (o : ordinal) : ∃ {ι} (f : ι → ordinal), (lsub.{u u} f = o) ∧ #ι = cof o :=
@@ -219,74 +222,87 @@ begin
       apply lt_lsub } }
 end
 
-/-- A fundamental sequence for `o`, or FS for short, is an increasing sequence of length
-    `o' = cof o` that converges at `o`. We provide `o'` explicitly in order to avoid type rewrites.
+/-- A fundamental sequence for `a`, or FS for short, is an increasing sequence of length
+    `o = cof a` that converges at `a`. We provide `o` explicitly in order to avoid type rewrites.
 -/
-def is_fs (o o' : ordinal.{u}) (f : Π a < o', ordinal.{u}) : Prop :=
-o' ≤ o.cof.ord ∧ (∀ {i j} (hi hj), i < j → f i hi < f j hj) ∧ blsub.{u u} o' f = o
+def is_fs (a o : ordinal.{u}) (f : Π b < o, ordinal.{u}) : Prop :=
+o ≤ a.cof.ord ∧ (∀ {i j} (hi hj), i < j → f i hi < f j hj) ∧ blsub.{u u} o f = a
 
-theorem eq_cof_of_is_fs {o o' : ordinal.{u}} {f : Π a < o', ordinal.{u}} (hf : is_fs o o' f) :
-  o' = o.cof.ord :=
+theorem is_fs.monotone {a o : ordinal} {f : Π b < o, ordinal} (hf : is_fs a o f) {i j : ordinal}
+  (hi : i < o) (hj : j < o) (hij : i ≤ j) : f i hi ≤ f j hj :=
+begin
+  rcases lt_or_eq_of_le hij with hij | rfl,
+  { exact le_of_lt (hf.2.1 hi hj hij) },
+  { refl }
+end
+
+theorem eq_cof_of_is_fs {a o : ordinal} {f : Π b < o, ordinal} (hf : is_fs a o f) :
+  o = a.cof.ord :=
 le_antisymm hf.1 begin
   rw ←hf.2.2,
-  exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o')
+  exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o)
+end
+
+theorem is_fs.trans {a o o' : ordinal.{u}} {f : Π b < o, ordinal.{u}} (hf : is_fs a o f)
+  {g : Π b < o', ordinal.{u}} (hg : is_fs o o' g) :
+  is_fs a o' (λ i hi, f (g i hi) (by { rw ←hg.2.2, apply lt_blsub })) :=
+begin
+  refine ⟨_, λ i j _ _ h, _, (blsub_le.2 (λ i hi, _)).antisymm _⟩,
+  { rw ←eq_cof_of_is_fs hf,
+    exact hg.1.trans (ord_cof_le o) },
+  { exact hf.2.1 _ _ (hg.2.1 _ _ h) },
+  { rw ←hf.2.2,
+    apply lt_blsub },
+  { rw [←hf.2.2, blsub_le],
+    intros i hi,
+    rw [←hg.2.2, lt_blsub_iff] at hi,
+    rcases hi with ⟨j, hj, hg⟩,
+    exact (hf.monotone hi _ hg).trans_lt (lt_blsub _ j hj) }
 end
 
 /-- Every ordinal has a fundamental sequence. -/
-theorem exists_fs' (o : ordinal.{u}) : ∃ o' f, is_fs o o' f :=
+theorem exists_fs (a : ordinal.{u}) : ∃ f, is_fs a a.cof.ord f :=
 begin
-  cases exists_blsub_cof o with f hf,
-  rcases small_brange f with ⟨ι, ⟨hι⟩⟩,
-  let r : ι → ι → Prop := λ i j, hι.symm i < hι.symm j,
-  haveI : is_well_order ι r := ((rel_embedding.preimage e.to_embedding _).trans (subrel.rel_embedding _ _)).is_well_order,
-  use type r,
-  use λ a ha, (hι.symm (enum r a ha)).val,
-  sorry
-end
-
-/-- Every ordinal has a fundamental sequence. -/
-theorem exists_fs (o : ordinal.{u}) : ∃ f, is_fs o o.cof.ord f :=
-begin
-  rcases exists_fs' o with ⟨o', f, hf⟩,
-  convert exists.intro f hf;
-  rw eq_cof_of_is_fs hf
+  suffices : ∃ o f, is_fs a o f,
+  { rcases this with ⟨o, f, hf⟩,
+    convert exists.intro f hf;
+    rw eq_cof_of_is_fs hf },
+  rcases exists_lsub_cof a with ⟨ι, f, hf, hι⟩,
+  rcases ord_eq ι with ⟨r, wo, hr⟩,
+  haveI := wo,
+  let r' := subrel r {i | ∀ j, r j i → f j < f i},
+  let hrr' : r' ↪r r := subrel.rel_embedding _ _,
+  haveI := hrr'.is_well_order,
+  have H : ∀ i, ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi' := λ i, begin
+    by_cases h : ∀ j, r j i → f j < f i,
+    { refine ⟨typein r' ⟨i, h⟩, typein_lt_type _ _, _⟩,
+      rw bfamily_of_family'_typein,
+      refl },
+    { push_neg at h,
+      let j := wo.wf.min _ h,
+      have hij : f i ≤ f j := (wo.wf.min_mem _ h).2,
+      refine ⟨typein r' ⟨j, λ k hkj, lt_of_lt_of_le _ hij⟩, typein_lt_type _ _, _⟩,
+      { by_contra',
+        exact (wo.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj (wo.wf.min_mem _ h).1, this⟩) hkj },
+      { rw bfamily_of_family'_typein,
+        exact hij } }
+  end,
+  refine ⟨_, _, (type_le'.2 ⟨hrr'⟩).trans _, λ i j _ h _, (enum r' j h).prop _ _,
+    le_antisymm (blsub_le.2 (λ i hi, lsub_le.1 hf.le _)) _⟩,
+  { rw [←hι, hr] },
+  { change r (hrr'.to_embedding _ ) (hrr'.to_embedding _ ),
+    rwa [hrr'.2, @enum_lt _ r'] },
+  { rw [←hf, lsub_le],
+    intro i,
+    rcases H i with ⟨i', hi', hfg⟩,
+    exact hfg.trans_lt (lt_blsub _ _ _) }
 end
 
 @[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=
-le_antisymm ((cof_le_card _).trans (by simp)) $
 begin
-  rw le_cof_iff_blsub,
-  intros o f hf,
-  cases exists_blsub_cof a with g hg,
-  suffices : blsub.{u u} o (λ b hb, g (f b hb) (by { rw ←hf, apply lt_blsub })) = a,
-  { rw ←this,
-    exact cof_blsub_le _ },
-  {
-    apply le_antisymm, {
-      rw blsub_le,
-      intros b hb,
-      simp_rw ←hg,
-      apply lt_blsub,
-    },{
-      apply le_of_forall_lt,
-      intros b hb,
-      rw ←hg at hb,
-      apply hb.trans_le,
-      rw blsub_le,
-      intros c hc,
-      have hg' : ∀ a ha b hb, a ≤ b → g a ha ≤ g b hb := sorry,
-      suffices : ∃ i hi, c ≤ f i hi, {
-        rcases this with ⟨i, hi, hc'⟩,
-        apply (hg' c hc (f i hi) (by { rw ←hf, apply lt_blsub }) hc').trans_lt,
-        apply lt_blsub.{u u},
-      },
-      by_contra h,
-      simp at h,
-      rw ←blsub_le.{u u} at h,
-      rw ←hf at hc,
-      exact h.not_lt hc,
-    }
-  }
+  cases exists_fs a with f hf,
+  cases exists_fs a.cof.ord with g hg,
+  exact ord_injective (eq_cof_of_is_fs (hf.trans hg))
 end
 
 theorem omega_le_cof {o} : ω ≤ cof o ↔ is_limit o :=

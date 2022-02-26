@@ -6,6 +6,7 @@ Authors: Bhavik Mehta
 import analysis.special_functions.pow
 import tactic.by_contra
 import combinatorics.double_counting
+import .prereq
 
 /-!
 # The sum-product problem
@@ -13,60 +14,15 @@ import combinatorics.double_counting
 This file proves Elekes' bound on the sum-product problem following Solymosi's proof.
 -/
 
-open_locale pointwise big_operators
-
-section
-variables {α β : Type*} {A B : finset α}
-
-lemma erase_eq_empty_iff [decidable_eq α] (a : α) : A.erase a = ∅ ↔ A = ∅ ∨ A = {a} :=
-begin
-  rw [←finset.sdiff_singleton_eq_erase, finset.sdiff_eq_empty_iff_subset],
-  simp,
-end
-
-@[to_additive] lemma finset.left_le_card_mul [decidable_eq α] [right_cancel_semigroup α]
-  {A B : finset α} (hB : B.nonempty) : A.card ≤ (A * B).card :=
-let ⟨x, xB⟩ := hB
-  in finset.card_le_card_of_inj_on (λ a, a * x) (λ a ha, finset.mul_mem_mul ha xB) (by simp)
-
-lemma finset.left_le_card_mul' [decidable_eq α] [cancel_monoid_with_zero α]
-  (A : finset α) {B : finset α} (hB : ∃ x ∈ B, x ≠ (0:α)) :
-  A.card ≤ (A * B).card :=
-let ⟨x, xB, xn⟩ := hB
-in finset.card_le_card_of_inj_on (λ a, a * x) (λ a ha, finset.mul_mem_mul ha xB)
-    (λ _ _ _ _, (mul_left_inj' xn).1)
-
-@[to_additive] lemma finset.right_le_card_mul [decidable_eq α] [left_cancel_semigroup α]
-  {A B : finset α} (hA : A.nonempty) :
-  B.card ≤ (A * B).card :=
-let ⟨x, xB⟩ := hA
-  in finset.card_le_card_of_inj_on (λ a, x * a) (λ a ha, finset.mul_mem_mul xB ha) (by simp)
-
-lemma finset.right_le_card_mul' [decidable_eq α] [cancel_monoid_with_zero α]
-  (A : finset α) {B : finset α} (hB : ∃ x ∈ B, x ≠ (0:α)) :
-  A.card ≤ (A * B).card :=
-let ⟨x, xB, xn⟩ := hB
-in finset.card_le_card_of_inj_on (λ a, a * x) (λ a ha, finset.mul_mem_mul ha xB)
-    (λ _ _ _ _, (mul_left_inj' xn).1)
-
-lemma sum_card_inter_le {α β : Type*} {s : finset α} {B : finset β}
-  (g : β → α → Prop) [∀ b a, decidable (g b a)]
-  {n : ℕ} (h : ∀ a ∈ s, (B.filter (λ b, g b a)).card ≤ n) :
-  ∑ b in B, (s.filter (g b)).card ≤ s.card * n :=
-(finset.sum_card_bipartite_above_eq_sum_card_bipartite_below _).le.trans (finset.sum_le_of_forall_le _ _ _ h)
-
-end
-
-lemma pow_left_monotone (n : ℕ) : monotone (λ (i:ℕ), i^n) := λ _ _ h, pow_le_pow_of_le_left' h _
+open_locale big_operators classical pointwise
 
 noncomputable theory
-open_locale classical
 
 open finset
 
 lemma real_covering₀_pos {ι : Type*} (s : finset ι) (x r : ι → ℝ)
-  (disj : (s : set ι).pairwise (λ i j, r i ≤ abs (x i - x j))) :
-  (s.filter (λ i, abs (x i) ≤ r i ∧ 0 < x i)).card ≤ 1 :=
+  (disj : (s : set ι).pairwise (λ i j, r i ≤ |x i - x j|)) :
+  (s.filter (λ i, |x i| ≤ r i ∧ 0 < x i)).card ≤ 1 :=
 begin
   rw card_le_one,
   simp only [and_imp, mem_filter],
@@ -77,12 +33,12 @@ begin
   by_contra,
   have := disj hj₁ hi₁ (ne.symm h),
   rw abs_of_nonneg (sub_nonneg_of_le case) at this,
-  apply not_le_of_lt hi₃ ((le_sub_self_iff _).1 (hj₂.trans this)),
+  exact hi₃.not_le ((le_sub_self_iff _).1 (hj₂.trans this)), -- linarith works too
 end
 
 lemma real_covering₀_neg {ι : Type*} (s : finset ι) (x r : ι → ℝ)
-  (disj : (s : set ι).pairwise (λ i j, r i ≤ abs (x i - x j))) :
-  (s.filter (λ i, abs (x i) ≤ r i ∧ x i < 0)).card ≤ 1 :=
+  (disj : (s : set ι).pairwise (λ i j, r i ≤ |x i - x j|)) :
+  (s.filter (λ i, |x i| ≤ r i ∧ x i < 0)).card ≤ 1 :=
 begin
   convert real_covering₀_pos s (λ i, - x i) r _,
   { simp },
@@ -91,8 +47,8 @@ begin
 end
 
 lemma real_covering₀_zero {ι : Type*} (s : finset ι) {x r : ι → ℝ} (hr : ∀ i ∈ s, 0 < r i)
-  (disj : (s : set ι).pairwise (λ i j, r i ≤ abs (x i - x j))) :
-  (s.filter (λ i, abs (x i) ≤ r i ∧ x i = 0)).card ≤ 1 :=
+  (disj : (s : set ι).pairwise (λ i j, r i ≤ |x i - x j|)) :
+  (s.filter (λ i, |x i| ≤ r i ∧ x i = 0)).card ≤ 1 :=
 begin
   rw card_le_one,
   simp only [and_imp, mem_filter],
@@ -103,33 +59,32 @@ begin
 end
 
 lemma real_covering₀ {ι : Type*} (s : finset ι) (x r : ι → ℝ) (hr : ∀ i ∈ s, 0 < r i)
-  (disj : (s : set ι).pairwise (λ i j, r i ≤ abs (x i - x j))) :
-  (s.filter (λ i, abs (x i) ≤ r i)).card ≤ 3 :=
+  (disj : (s : set ι).pairwise (λ i j, r i ≤ |x i - x j|)) :
+  (s.filter (λ i, |x i| ≤ r i)).card ≤ 3 :=
 begin
   apply le_trans _ (add_le_add_three (real_covering₀_neg s x r disj) (real_covering₀_pos s x r disj)
     (real_covering₀_zero s hr disj)),
   refine le_trans _ (add_le_add_right (card_union_le _ _) _),
   refine (card_le_of_subset _).trans (card_union_le _ _),
   intros i hi,
-  rw [←filter_filter, ←filter_filter, ←filter_filter, filter_union_right, filter_union_right],
-  rw mem_filter,
-  refine ⟨hi, _⟩,
-  simp only [lt_or_lt_iff_ne, em'],
+  rw [←filter_filter, ←filter_filter, ←filter_filter, filter_union_right, filter_union_right,
+    mem_filter],
+  exact ⟨hi, by simp only [lt_or_lt_iff_ne, em']⟩
 end
 
 lemma real_covering {ι : Type*} (s : finset ι) (x r : ι → ℝ) (hr : ∀ i ∈ s, 0 < r i)
-  (disj : (s : set ι).pairwise (λ i j, r i ≤ abs (x i - x j))) (z : ℝ) :
-  (s.filter (λ i, abs (x i - z) ≤ r i)).card ≤ 3 :=
+  (disj : (s : set ι).pairwise (λ i j, r i ≤ |x i - x j|)) (z : ℝ) :
+  (s.filter (λ i, |x i - z| ≤ r i)).card ≤ 3 :=
 begin
   apply real_covering₀ s (λ i, x i - z) r hr,
   simpa,
 end
 
 def finset.is_neighbouring (A : finset ℝ) (a a' : ℝ) : Prop :=
-  a' ≠ a ∧ ∀ a'' ∈ A, abs (a'' - a) < abs (a' - a) → a = a''
+  a' ≠ a ∧ ∀ a'' ∈ A, |a'' - a| < |a' - a| → a = a''
 
 lemma finset.is_neighbouring.le_of_ne {A : finset ℝ} {a a' a'' : ℝ} (hA : A.is_neighbouring a a') :
-  a'' ∈ A → a ≠ a'' → abs (a' - a) ≤ abs (a'' - a) :=
+  a'' ∈ A → a ≠ a'' → |a' - a| ≤ |a'' - a| :=
 begin
   intros ha'' i,
   rw ←not_lt,
@@ -140,7 +95,7 @@ end
 lemma finset.exists_is_neighbouring (A : finset ℝ) {a : ℝ} (hA : (A.erase a).nonempty):
   ∃ a' ∈ A, A.is_neighbouring a a' :=
 begin
-  obtain ⟨a', ha', ha''⟩ := (A.erase a).exists_min_image (λ a'', abs (a'' - a)) hA,
+  obtain ⟨a', ha', ha''⟩ := (A.erase a).exists_min_image (λ a'', |a'' - a|) hA,
   simp only [ne.def, mem_erase] at ha',
   refine ⟨a', ha'.2, ha'.1, λ i hi hi', _⟩,
   by_contra,
@@ -264,7 +219,7 @@ def add_good_triple (A B : finset ℝ) (a b : ℝ) : Prop :=
   (12 * (A + B).card / A.card : ℝ)
 
 def mul_good_triple (A Q : finset ℝ) (a q : ℝ) : Prop :=
-(((A * Q).filter (λ v, abs (a * q - v) ≤ abs (A.neighbour a * q - a * q))).card : ℝ) ≤
+(((A * Q).filter (λ v, |a * q - v| ≤ |A.neighbour a * q - a * q|)).card : ℝ) ≤
   (12 * (A * Q).card / A.card : ℝ)
 
 lemma add_good_triple_set_subset_nearest_neighbours {a b : ℝ}
@@ -343,7 +298,7 @@ def good_triple (A B Q : finset ℝ) (a b q : ℝ) : Prop :=
 add_good_triple A B a b ∧ mul_good_triple A Q a q
 
 lemma add_sum_le (A B : finset ℝ) (b : ℝ) :
-  ∑ a in A, ((A + B).filter (λ u, abs (a + b - u) ≤ |A.neighbour a - a|)).card
+  ∑ a in A, ((A + B).filter (λ u, |a + b - u| ≤ |A.neighbour a - a|)).card
     ≤ 3 * (A + B).card := -- should be 7 *
 begin
   rw mul_comm,
@@ -361,8 +316,8 @@ end
 
 -- if Q = {0} and q = 0 and A is big this breaks
 lemma mul_sum_le (A : finset ℝ) (q : ℝ) (hQ : Q ≠ {0}) :
-  ∑ a in A, ((A * Q).filter (λ v, abs (a * q - v) ≤ abs (A.neighbour a * q - a * q))).card
-    ≤ 3 * (A * Q).card := -- should be 7 *
+  ∑ a in A, ((A * Q).filter (λ v, |a * q - v| ≤ |A.neighbour a * q - a * q|)).card
+    ≤ 3 * (A * Q).card :=
 begin
   rcases eq_or_ne q 0 with rfl | hq,
   { simp only [abs_nonpos_iff, algebra.id.smul_eq_mul, zero_sub, sum_const, abs_neg,
@@ -657,7 +612,7 @@ begin
   apply nat.mul_div_le_mul_div_assoc,
 end
 
-lemma few_good_quad (A B Q : finset ℝ) (hA : 2 ≤ A.card) (hQ : (0:ℝ) ∉ Q) :
+lemma few_good_triples (A B Q : finset ℝ) (hA : 2 ≤ A.card) (hQ : (0:ℝ) ∉ Q) :
   (good_triples A B Q).card ≤
     12 * 12 * (A + B).card^2 * (A * Q).card^2 / A.card^2 :=
 begin
@@ -681,7 +636,7 @@ begin
   rw [mul_comm _ 2, mul_assoc],
   apply nat.mul_le_mul_left,
   rw ←nat.le_div_iff_mul_le _ _ (sq_pos_of_pos hA'),
-  apply few_good_quad A B Q hA hQ,
+  apply few_good_triples A B Q hA hQ,
 end
 
 -- This fails when A = {0}, B = {1}, |Q| > 288
@@ -779,8 +734,8 @@ end
 
 -- We cannot have both A + A and A * A linear in A. Note that it is possible for either of them
 -- linear, by taking an arithmetic or geometric progression respectively, but not simultaneously
-lemma max_bound :
-  1 / 5 * (A.card : ℝ)^(5 / 4 : ℝ) ≤ max (A + A).card (A * A).card :=
+lemma max_bound (A : finset ℝ) :
+  1 / 5 * (A.card : ℝ) ^ (5 / 4 : ℝ) ≤ max (A + A).card (A * A).card :=
 begin
   rw [←not_lt, mul_comm (1 / 5 : ℝ), mul_one_div, lt_div_iff'],
   intro h,
@@ -797,12 +752,3 @@ begin
   apply not_le_of_lt this (specific_max_bound A),
   norm_num
 end
-
--- lemma real_specific_bound_nat_card (A : set ℝ) :
---   (nat.card A)^5 ≤ 576 * (nat.card (A + A : set ℝ))^2 * (nat.card (A * A : set ℝ))^2 :=
--- begin
---   casesI fintype_or_infinite A,
---   { simp,
---     have := set.fintype_mul,
---   }
--- end

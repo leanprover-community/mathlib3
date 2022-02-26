@@ -133,6 +133,33 @@ begin
   exact let ⟨⟨S, hl⟩, e⟩ := this in ⟨S, hl, e.symm⟩,
 end
 
+theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
+  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ type (subrel r S) = (cof (type r)).ord :=
+let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
+    T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
+begin
+  resetI, suffices,
+  { refine ⟨T, this,
+      le_antisymm _ (cardinal.ord_le.2 $ cof_type_le T this)⟩,
+    rw [← e, e'],
+    refine type_le'.2 ⟨rel_embedding.of_monotone
+      (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
+    rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
+    change s ⟨a, _⟩ ⟨b, _⟩,
+    refine ((trichotomous_of s _ _).resolve_left (λ hn, _)).resolve_left _,
+    { exact asymm h (ha _ hn) },
+    { intro e, injection e with e, subst b,
+      exact irrefl _ h } },
+  { intro a,
+    have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
+    let b := (is_well_order.wf).min _ this,
+    have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
+    refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
+    rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
+    exact (is_well_order.wf).not_lt_min _ this
+      (is_order_connected.neg_trans h ba) }
+end
+
 private theorem card_mem_cof (o : ordinal) :
   o.card ∈ {a : cardinal.{u} | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
 ⟨_, typein o.out.r, lsub_typein o, mk_ordinal_out o⟩
@@ -175,33 +202,6 @@ begin
       exact hb'.trans_lt (lt_lsub.{u u} (λ s : S, typein o.out.r s.val) ⟨b, hb⟩) } }
 end
 
-theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
-  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ type (subrel r S) = (cof (type r)).ord :=
-let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
-    T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
-begin
-  resetI, suffices,
-  { refine ⟨T, this,
-      le_antisymm _ (cardinal.ord_le.2 $ cof_type_le T this)⟩,
-    rw [← e, e'],
-    refine type_le'.2 ⟨rel_embedding.of_monotone
-      (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
-    rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
-    change s ⟨a, _⟩ ⟨b, _⟩,
-    refine ((trichotomous_of s _ _).resolve_left (λ hn, _)).resolve_left _,
-    { exact asymm h (ha _ hn) },
-    { intro e, injection e with e, subst b,
-      exact irrefl _ h } },
-  { intro a,
-    have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
-    let b := (is_well_order.wf).min _ this,
-    have ba : ¬r b a := (is_well_order.wf).min_mem _ this,
-    refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
-    rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
-    exact (is_well_order.wf).not_lt_min _ this
-      (is_order_connected.neg_trans h ba) }
-end
-
 theorem lift_cof (o) : (cof o).lift = cof o.lift :=
 induction_on o $ begin introsI α r _,
   cases lift_type r with _ e, rw e,
@@ -226,6 +226,52 @@ by { rw cof_eq_Inf_lsub, exact cInf_le' (card_mem_cof o) }
 
 theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
 by simpa using cof_le_card c.ord
+
+theorem ord_cof_le (o : ordinal.{u}) : o.cof.ord ≤ o :=
+(ord_le_ord.2 (cof_le_card o)).trans (ord_card_le o)
+
+theorem exists_lsub_cof (o : ordinal) : ∃ {ι} (f : ι → ordinal), (lsub.{u u} f = o) ∧ #ι = cof o :=
+by { rw cof_eq_Inf_lsub, exact Inf_mem (cof_lsub_def_nonempty o) }
+
+theorem cof_lsub_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
+by { rw cof_eq_Inf_lsub, exact cInf_le' ⟨ι, f, rfl, rfl⟩ }
+
+theorem le_cof_iff_lsub {o : ordinal} {a : cardinal} :
+  a ≤ cof o ↔ ∀ {ι} (f : ι → ordinal), lsub.{u u} f = o → a ≤ #ι :=
+begin
+  rw cof_eq_Inf_lsub,
+  exact (le_cInf_iff'' (cof_lsub_def_nonempty o)).trans ⟨λ H ι f hf, H _ ⟨ι, f, hf, rfl⟩,
+    λ H b ⟨ι, f, hf, hb⟩, ( by { rw ←hb, exact H _ hf} )⟩
+end
+
+theorem exists_blsub_cof (o : ordinal) : ∃ (f : Π a < (cof o).ord, ordinal), blsub.{u u} _ f = o :=
+begin
+  rcases exists_lsub_cof o with ⟨ι, f, hf, hι⟩,
+  rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
+  rw @lsub_eq_blsub' ι r hr at hf,
+  rw [←hι, hι'],
+  exact ⟨_, hf⟩
+end
+
+theorem cof_blsub_le {o} (f : Π a < o, ordinal) : cof (blsub.{u u} o f) ≤ o.card :=
+begin
+  rw blsub_eq_lsub,
+  convert cof_lsub_le _,
+  exact (mk_ordinal_out o).symm
+end
+
+theorem le_cof_iff_blsub {b : ordinal} {a : cardinal} :
+  a ≤ cof b ↔ ∀ {o} (f : Π a < o, ordinal), blsub.{u u} o f = b → a ≤ o.card :=
+begin
+  refine le_cof_iff_lsub.trans ⟨λ H o f hf, _, λ H ι f hf, _⟩,
+   { rw blsub_eq_lsub at hf,
+    convert H _ hf,
+    exact (mk_ordinal_out o).symm },
+  { rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
+    rw @lsub_eq_blsub' ι r hr at hf,
+    have := H _ hf,
+    rwa [←hι', card_ord] at this }
+end
 
 @[simp] theorem cof_zero : cof 0 = 0 :=
 le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)

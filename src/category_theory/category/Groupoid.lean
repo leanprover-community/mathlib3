@@ -38,6 +38,8 @@ instance : inhabited Groupoid := ⟨bundled.of (single_obj punit)⟩
 
 instance str (C : Groupoid.{v u}) : groupoid.{v u} C.α := C.str
 
+instance : has_coe_to_sort Groupoid Type* := bundled.has_coe_to_sort
+
 /-- Construct a bundled `Groupoid` from the underlying type and the typeclass. -/
 def of (C : Type u) [groupoid.{v} C] : Groupoid.{v u} := bundled.of C
 

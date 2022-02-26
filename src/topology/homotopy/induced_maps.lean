@@ -169,11 +169,11 @@ instance : is_iso (homotopic_maps_nat_iso H) := by apply nat_iso.is_iso_of_is_is
 open_locale continuous_map
 
 /-- Homotopy equivalent topological spaces have equivalent fundamental groupoids. -/
-def equiv_of_homotopy_equiv (hequiv : X ≃ₕ Y) : (πₓ X).α ≌ (πₓ Y).α :=
+def equiv_of_homotopy_equiv (hequiv : X ≃ₕ Y) : πₓ X ≌ πₓ Y :=
 begin
   apply equivalence.mk
-    (πₘ hequiv.to_fun : (πₓ X).α ⥤ (πₓ Y).α)
-    (πₘ hequiv.inv_fun : (πₓ Y).α ⥤ (πₓ X).α);
+    (πₘ hequiv.to_fun : πₓ X ⥤ πₓ Y)
+    (πₘ hequiv.inv_fun : πₓ Y ⥤ πₓ X);
   simp only [Groupoid.hom_to_functor, Groupoid.id_to_functor],
   { convert (as_iso (homotopic_maps_nat_iso hequiv.left_inv.some)).symm,
     exacts [((π).map_id X).symm, ((π).map_comp _ _).symm] },

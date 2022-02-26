@@ -364,12 +364,12 @@ attribute [measurability] measurable.neg ae_measurable.neg
 @[simp] lemma measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} :
   measurable (λ x, (f x)⁻¹) ↔ measurable f :=
-⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
 @[simp] lemma ae_measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} :
   ae_measurable (λ x, (f x)⁻¹) μ ↔ ae_measurable f μ :=
-⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
 omit m
 
@@ -604,6 +604,24 @@ instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul₂ M] 
   has_measurable_mul₂ Mᵐᵒᵖ :=
 ⟨measurable_mul_op.comp ((measurable_mul_unop.comp measurable_snd).mul
   (measurable_mul_unop.comp measurable_fst))⟩
+
+/-- If a scalar is central, then its right action is measurable when its left action is. -/
+instance has_measurable_smul.op {M α} [measurable_space M]
+  [measurable_space α] [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [has_measurable_smul M α] : has_measurable_smul Mᵐᵒᵖ α :=
+⟨ mul_opposite.rec $ λ c, show measurable (λ x, op c • x),
+                          by simpa only [op_smul_eq_smul] using measurable_const_smul c,
+  λ x, show measurable (λ c, op (unop c) • x),
+       by simpa only [op_smul_eq_smul] using (measurable_smul_const x).comp measurable_mul_unop⟩
+
+/-- If a scalar is central, then its right action is measurable when its left action is. -/
+instance has_measurable_smul₂.op {M α} [measurable_space M]
+  [measurable_space α] [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [has_measurable_smul₂ M α] : has_measurable_smul₂ Mᵐᵒᵖ α :=
+⟨show measurable (λ x : Mᵐᵒᵖ × α, op (unop x.1) • x.2), begin
+  simp_rw op_smul_eq_smul,
+  refine (measurable_mul_unop.comp measurable_fst).smul measurable_snd,
+end⟩
 
 @[to_additive]
 instance has_measurable_smul_opposite_of_mul {M : Type*} [has_mul M] [measurable_space M]

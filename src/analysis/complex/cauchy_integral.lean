@@ -66,6 +66,10 @@ differentiability at all but countably many points of the set mentioned below.
   on a neighborhood of a point, then it is analytic at this point. In particular, if `f : ℂ → E`
   is differentiable on the whole `ℂ`, then it is analytic at every point `z : ℂ`.
 
+* `differentiable.has_power_series_on_ball`: If `f : ℂ → E` is differentiable everywhere then the
+  `cauchy_power_series f z R` is a formal power series representing `f` at `z` with infinite
+  radius of convergence (this holds for any choice of `0 < R`).
+
 ## Implementation details
 
 The proof of the Cauchy integral formula in this file is based on a very general version of the
@@ -184,7 +188,7 @@ begin
     ← interval_integral.integral_neg, ← hF'],
   refine (integral2_divergence_prod_of_has_fderiv_within_at_off_countable
       (λ p, -(I • F p)) F (λ p, - (I • F' p)) F' z.re w.im w.re z.im t (hs.preimage e.injective)
-      (continuous_on_const.smul htc).neg htc (λ p hp, ((htd p hp).const_smul I).neg) htd _).symm,
+      (htc.const_smul _).neg htc (λ p hp, ((htd p hp).const_smul I).neg) htd _).symm,
   rw [← volume_preserving_equiv_real_prod.symm.integrable_on_comp_preimage
     (measurable_equiv.measurable_embedding _)] at Hi,
   simpa only [hF'] using Hi.neg
@@ -371,7 +375,7 @@ begin
       refine circle_integral.norm_integral_le_of_norm_le_const hr0.le (λ z hz, _),
       specialize hzne z hz,
       rw [mem_sphere, dist_eq_norm] at hz,
-      rw [norm_smul, normed_field.norm_inv, hz, ← dist_eq_norm],
+      rw [norm_smul, norm_inv, hz, ← dist_eq_norm],
       refine mul_le_mul_of_nonneg_left (hδ _ ⟨_, hzne⟩).le (inv_nonneg.2 hr0.le),
       rwa [mem_closed_ball_iff_norm, hz]
     end
@@ -573,5 +577,13 @@ end
 protected lemma _root_.differentiable.analytic_at {f : ℂ → E} (hf : differentiable ℂ f) (z : ℂ) :
   analytic_at ℂ f z :=
 hf.differentiable_on.analytic_at univ_mem
+
+/-- When `f : ℂ → E` is differentiable, the `cauchy_power_series f z R` represents `f` as a power
+series centered at `z` in the entirety of `ℂ`, regardless of `R : ℝ≥0`, with  `0 < R`. -/
+protected lemma _root_.differentiable.has_fpower_series_on_ball {f : ℂ → E}
+  (h : differentiable ℂ f) (z : ℂ) {R : ℝ≥0} (hR : 0 < R) :
+  has_fpower_series_on_ball f (cauchy_power_series f z R) z ∞ :=
+(h.differentiable_on.has_fpower_series_on_ball hR).r_eq_top_of_exists $ λ r hr,
+  ⟨_, h.differentiable_on.has_fpower_series_on_ball hr⟩
 
 end complex

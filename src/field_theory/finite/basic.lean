@@ -104,7 +104,7 @@ begin
   have : (∏ x in (@univ Kˣ _).erase (-1), x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
+    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm])
     (by simp),
   rw [← insert_erase (mem_univ (-1 : Kˣ)), prod_insert (not_mem_erase _ _),
       this, mul_one]
@@ -263,7 +263,7 @@ begin
     intro x,
     rw [multiset.mem_to_finset, mem_roots aux, is_root.def, eval_sub, eval_pow, eval_X, sub_eq_zero,
       pow_card] },
-  rw [←this, multiset.to_finset_val, eq_comm, multiset.erase_dup_eq_self],
+  rw [←this, multiset.to_finset_val, eq_comm, multiset.dedup_eq_self],
   apply nodup_roots,
   rw separable_def,
   convert is_coprime_one_right.neg_right,

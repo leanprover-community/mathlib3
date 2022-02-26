@@ -329,8 +329,7 @@ calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : 
       ((he_ord _ _).2 hle) (λ i x, f i (eL.symm x))
       (λ i x, f' i (eL.symm x) ∘L (eL.symm : ℝⁿ⁺¹ →L[ℝ] F))
       (eL.symm ⁻¹' s) (hs.preimage eL.symm.injective) _ _ _,
-    { refine λ i, (Hc i).comp eL.symm.continuous_on _,
-      rw hIcc' },
+    { exact λ i, (Hc i).comp eL.symm.continuous_on hIcc'.subset },
     { refine λ x hx i, (Hd (eL.symm x) ⟨_, hx.2⟩ i).comp x eL.symm.has_fderiv_at,
       rw ← hIcc,
       refine preimage_interior_subset_interior_preimage eL.continuous _,

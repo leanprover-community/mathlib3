@@ -7,7 +7,7 @@ import data.list.alist
 import data.list.basic
 import data.list.chain
 import data.list.defs
-import data.list.erase_dup
+import data.list.dedup
 import data.list.forall2
 import data.list.func
 import data.list.intervals

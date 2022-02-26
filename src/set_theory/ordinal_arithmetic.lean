@@ -2143,7 +2143,7 @@ begin
   end,
   have haca : a + (c - a) = c := by rwa ordinal.add_sub_cancel_of_le,
   rw ←haca,
-  refine add_le_add_left _ a,
+  apply add_le_add_left _ a,
   by_contra' hb,
   have := h _ hb,
   rwa haca at this,

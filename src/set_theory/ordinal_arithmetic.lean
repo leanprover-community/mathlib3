@@ -1169,7 +1169,6 @@ by { convert sup_le, simp [succ_le] }
 theorem lt_lsub {ι} (f : ι → ordinal) (i) : f i < lsub f :=
 succ_le.1 (le_sup _ i)
 
--- Separate PR
 theorem lt_lsub_iff {ι} {f : ι → ordinal} {a} : a < lsub f ↔ ∃ i, a ≤ f i :=
 by simpa only [not_forall, not_lt, not_le] using not_congr (@lsub_le _ f a)
 
@@ -1278,7 +1277,6 @@ by { convert bsup_le, apply propext, simp [succ_le] }
 theorem lt_blsub {o} (f : Π a < o, ordinal) (i h) : f i h < blsub o f :=
 blsub_le.1 le_rfl _ _
 
--- Separate PR
 theorem lt_blsub_iff {o f a} : a < blsub o f ↔ ∃ i hi, a ≤ f i hi :=
 by simpa only [not_forall, not_lt, not_le] using not_congr (@blsub_le _ f a)
 

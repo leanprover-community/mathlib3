@@ -92,7 +92,7 @@ def obj (P : karoubi (J ⥤ C)) : J ⥤ karoubi C :=
     rw [assoc],
   end }
 
-/-- Action of maps on `obj`. -/
+/-- Tautological action on maps of the functor `karoubi (J ⥤ C) ⥤ (J ⥤ karoubi C)`. -/
 @[simps]
 def map {P Q : karoubi (J ⥤ C)} (f : P ⟶ Q) : obj P ⟶ obj Q :=
 { app := λ j, ⟨f.f.app j, congr_app f.comm j⟩,

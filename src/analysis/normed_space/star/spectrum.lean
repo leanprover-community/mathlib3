@@ -21,9 +21,9 @@ variables
 [normed_algebra 𝕜 E] [complete_space E] [nontrivial E]
 
 lemma unitary.spectrum_subset_circle (u : unitary E) :
-  spectrum 𝕜 (u : E) ⊆ { k : 𝕜 | ∥k∥ = 1 } :=
+  spectrum 𝕜 (u : E) ⊆ metric.sphere 0 1 :=
 begin
-  refine λ k hk, le_antisymm _ _,
+  refine λ k hk, mem_sphere_zero_iff_norm.mpr (le_antisymm _ _),
   { simpa only [cstar_ring.norm_coe_unitary u] using norm_le_norm_of_mem hk },
   { rw ←unitary.coe_to_units_apply u at hk,
     have hnk := ne_zero_of_mem_of_unit hk,
@@ -33,7 +33,7 @@ begin
 end
 
 lemma spectrum.subset_circle_of_unitary {u : E} (h : u ∈ unitary E) :
-  spectrum 𝕜 u ⊆ { k : 𝕜 | ∥k∥ = 1 } :=
+  spectrum 𝕜 u ⊆ metric.sphere 0 1 :=
 unitary.spectrum_subset_circle ⟨u, h⟩
 
 end unitary_spectrum

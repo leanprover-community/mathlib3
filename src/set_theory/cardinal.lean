@@ -1369,8 +1369,9 @@ lemma exists_not_mem_of_length_le {α : Type*} (l : list α) (h : ↑l.length < 
 begin
   contrapose! h,
   calc # α = # (set.univ : set α) : mk_univ.symm
-    ... ≤ # (l.to_finset : set α) : mk_le_mk_of_subset (λ x _, list.mem_to_finset.mpr (h x))
-    ... ≤ l.length : by simp [ list.to_finset_card_le ],
+    ... ≤ # l.to_finset           : mk_le_mk_of_subset (λ x _, list.mem_to_finset.mpr (h x))
+    ... = l.to_finset.card        : cardinal.mk_finset
+    ... ≤ l.length                : cardinal.nat_cast_le.mpr (list.to_finset_card_le l),
 end
 
 lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :

@@ -19,6 +19,10 @@ This file defines upper and lower sets in an order.
   of the set is in the set itself.
 * `upper_set`: The type of upper sets.
 * `lower_set`: The type of lower sets.
+
+## TODO
+
+Lattice structure on antichains. Order equivalence between upper/lower sets and antichains.
 -/
 
 open order_dual set
@@ -110,12 +114,12 @@ variables [has_le α]
 /-- The type of upper sets of an order. -/
 structure upper_set (α : Type*) [has_le α] :=
 (carrier : set α)
-(upset' : is_upper_set carrier)
+(upper' : is_upper_set carrier)
 
 /-- The type of lower sets of an order. -/
 structure lower_set (α : Type*) [has_le α] :=
 (carrier : set α)
-(downset' : is_lower_set carrier)
+(lower' : is_lower_set carrier)
 
 namespace upper_set
 
@@ -125,7 +129,7 @@ instance upper_set.set_like : set_like (upper_set α) α :=
 
 @[ext] lemma ext {s t : upper_set α} : (s : set α) = t → s = t := set_like.ext'
 
-lemma upset (s : upper_set α) : is_upper_set (s : set α) := s.upset'
+protected lemma upper (s : upper_set α) : is_upper_set (s : set α) := s.upper'
 
 end upper_set
 
@@ -137,7 +141,7 @@ instance : set_like (lower_set α) α :=
 
 @[ext] lemma ext {s t : lower_set α} : (s : set α) = t → s = t := set_like.ext'
 
-lemma downset (s : lower_set α) : is_lower_set (s : set α) := s.downset'
+protected lemma lower (s : lower_set α) : is_lower_set (s : set α) := s.lower'
 
 end lower_set
 
@@ -145,14 +149,14 @@ end lower_set
 
 namespace upper_set
 
-instance : has_sup (upper_set α) := ⟨λ s t, ⟨s ∪ t, s.upset.union t.upset⟩⟩
-instance : has_inf (upper_set α) := ⟨λ s t, ⟨s ∩ t, s.upset.inter t.upset⟩⟩
+instance : has_sup (upper_set α) := ⟨λ s t, ⟨s ∪ t, s.upper.union t.upper⟩⟩
+instance : has_inf (upper_set α) := ⟨λ s t, ⟨s ∩ t, s.upper.inter t.upper⟩⟩
 instance : has_top (upper_set α) := ⟨⟨univ, is_upper_set_univ⟩⟩
 instance : has_bot (upper_set α) := ⟨⟨∅, is_upper_set_empty⟩⟩
 instance : has_Sup (upper_set α) :=
-⟨λ S, ⟨Sup (coe '' S), is_upper_set_sUnion $ ball_image_iff.2 $ λ s _, s.upset⟩⟩
+⟨λ S, ⟨Sup (coe '' S), is_upper_set_sUnion $ ball_image_iff.2 $ λ s _, s.upper⟩⟩
 instance : has_Inf (upper_set α) :=
-⟨λ S, ⟨Inf (coe '' S), is_upper_set_sInter $ ball_image_iff.2 $ λ s _, s.upset⟩⟩
+⟨λ S, ⟨Inf (coe '' S), is_upper_set_sInter $ ball_image_iff.2 $ λ s _, s.upper⟩⟩
 
 instance : complete_distrib_lattice (upper_set α) :=
 set_like.coe_injective.complete_distrib_lattice _
@@ -179,14 +183,14 @@ end upper_set
 
 namespace lower_set
 
-instance : has_sup (lower_set α) := ⟨λ s t, ⟨s ∪ t, λ a b h, or.imp (s.downset h) (t.downset h)⟩⟩
-instance : has_inf (lower_set α) := ⟨λ s t, ⟨s ∩ t, λ a b h, and.imp (s.downset h) (t.downset h)⟩⟩
+instance : has_sup (lower_set α) := ⟨λ s t, ⟨s ∪ t, λ a b h, or.imp (s.lower h) (t.lower h)⟩⟩
+instance : has_inf (lower_set α) := ⟨λ s t, ⟨s ∩ t, λ a b h, and.imp (s.lower h) (t.lower h)⟩⟩
 instance : has_top (lower_set α) := ⟨⟨univ, λ a b h, id⟩⟩
 instance : has_bot (lower_set α) := ⟨⟨∅, λ a b h, id⟩⟩
 instance : has_Sup (lower_set α) :=
-⟨λ S, ⟨Sup (coe '' S), is_lower_set_sUnion $ ball_image_iff.2 $ λ s _, s.downset⟩⟩
+⟨λ S, ⟨Sup (coe '' S), is_lower_set_sUnion $ ball_image_iff.2 $ λ s _, s.lower⟩⟩
 instance : has_Inf (lower_set α) :=
-⟨λ S, ⟨Inf (coe '' S), is_lower_set_sInter $ ball_image_iff.2 $ λ s _, s.downset⟩⟩
+⟨λ S, ⟨Inf (coe '' S), is_lower_set_sInter $ ball_image_iff.2 $ λ s _, s.lower⟩⟩
 
 instance : complete_distrib_lattice (lower_set α) :=
 set_like.coe_injective.complete_distrib_lattice _
@@ -214,10 +218,10 @@ end lower_set
 /-! #### Complement -/
 
 /-- The complement of a lower set as an upper set. -/
-def upper_set.compl (s : upper_set α) : lower_set α := ⟨sᶜ, s.upset.compl⟩
+def upper_set.compl (s : upper_set α) : lower_set α := ⟨sᶜ, s.upper.compl⟩
 
 /-- The complement of a lower set as an upper set. -/
-def lower_set.compl (s : lower_set α) : upper_set α := ⟨sᶜ, s.downset.compl⟩
+def lower_set.compl (s : lower_set α) : upper_set α := ⟨sᶜ, s.lower.compl⟩
 
 namespace upper_set
 

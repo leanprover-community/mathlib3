@@ -899,15 +899,25 @@ end
 lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 (differentiable_const _).differentiable_on
 
-lemma has_fderiv_at_of_subsingleton {R X Y : Type*} [nondiscrete_normed_field R]
-  [normed_group X] [normed_group Y] [normed_space R X] [normed_space R Y] [h : subsingleton X]
-  (f : X → Y) (x : X) :
-  has_fderiv_at f (0 : X →L[R] Y) x :=
+lemma has_fderiv_within_at_singleton (f : E → F) (x : E) :
+  has_fderiv_within_at f (0 : E →L[𝕜] F) {x} x :=
+by simp only [has_fderiv_within_at, nhds_within_singleton, has_fderiv_at_filter, is_o_pure,
+  continuous_linear_map.zero_apply, sub_self]
+
+lemma has_fderiv_at_of_subsingleton [h : subsingleton E] (f : E → F) (x : E) :
+  has_fderiv_at f (0 : E →L[𝕜] F) x :=
 begin
-  rw subsingleton_iff at h,
-  have key : function.const X (f 0) = f := by ext x'; rw h x' 0,
-  exact key ▸ (has_fderiv_at_const (f 0) _),
+  rw [← has_fderiv_within_at_univ, subsingleton_univ.eq_singleton_of_mem (mem_univ x)],
+  exact has_fderiv_within_at_singleton f x
 end
+
+lemma differentiable_on_empty : differentiable_on 𝕜 f ∅ := λ x, false.elim
+
+lemma differentiable_on_singleton : differentiable_on 𝕜 f {x} :=
+forall_eq.2 (has_fderiv_within_at_singleton f x).differentiable_within_at
+
+lemma set.subsingleton.differentiable_on (hs : s.subsingleton) : differentiable_on 𝕜 f s :=
+hs.induction_on differentiable_on_empty (λ x, differentiable_on_singleton)
 
 end const
 

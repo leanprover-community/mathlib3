@@ -61,7 +61,7 @@ instance [non_unital_ring R] [non_unital_ring S] :
   non_unital_ring (R × S) :=
 { .. prod.add_comm_group, .. prod.non_unital_semiring }
 
-instance [non_assoc_ring R] [_non_assoc_ring S] :
+instance [non_assoc_ring R] [non_assoc_ring S] :
   non_assoc_ring (R × S) :=
 { .. prod.add_comm_group, .. prod.non_assoc_semiring }
 

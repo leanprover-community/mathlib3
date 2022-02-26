@@ -388,6 +388,18 @@ let ⟨S, H, e⟩ := cof_eq r in
     (by rw typein_enum; apply ordinal.lt_succ_self)).resolve_right ab⟩,
 e⟩
 
+set_option pp.universes true
+
+theorem cof_lsub_le_lift {ι : Type u} (f : ι → ordinal) : cof (lsub f) ≤ cardinal.lift.{v u} (#ι) :=
+begin
+  rw ←mk_ulift,
+  let f' : ulift.{v u} ι → ordinal := λ i, f i.down,
+  suffices : lsub f = lsub.{(max u v) (max u v)} f',
+  { rw this,
+    apply cof_lsub_le },
+  apply lsub_eq_of_range_eq.{u u u},
+end
+
 theorem cof_sup_le_lift {ι} (f : ι → ordinal) (H : ∀ i, f i < sup f) :
   cof (sup f) ≤ (#ι).lift :=
 begin
@@ -449,7 +461,7 @@ theorem sup_lt_ord {ι} (f : ι → ordinal) {c : ordinal} (H1 : #ι < c.cof)
   (H2 : ∀ i, f i < c) : sup.{u u} f < c :=
 begin
   apply lt_of_le_of_ne,
-  { rw [sup_le], exact λ i, le_of_lt (H2 i) },
+  { rw sup_le, exact λ i, le_of_lt (H2 i) },
   rintro h, apply not_le_of_lt H1,
   simpa [sup_ord, H2, h] using cof_sup_le.{u} f
 end

@@ -238,7 +238,7 @@ def noncomm_pi_coprod_equiv :
 { to_fun := λ ϕ, noncomm_pi_coprod ϕ.1 ϕ.2,
   inv_fun := λ f,
   ⟨ λ i, f.comp (monoid_hom.single N i),
-    λ i j hij x y, commute.map (monoid_hom.single_commute i j hij x y) f ⟩,
+    λ i j hij x y, commute.map (pi.mul_single_commute i j hij x y) f ⟩,
   left_inv := λ ϕ, by { ext, simp },
   right_inv := λ f, pi_ext (λ i x, by simp) }
 

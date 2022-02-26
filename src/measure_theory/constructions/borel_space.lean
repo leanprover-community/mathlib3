@@ -3,18 +3,18 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import measure_theory.function.ae_measurable_sequence
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
+import measure_theory.function.ae_measurable_sequence
 import measure_theory.group.arithmetic
 import measure_theory.lattice
 import measure_theory.measure.open_pos
-import topology.algebra.ordered.liminf_limsup
+import topology.algebra.order.liminf_limsup
 import topology.continuous_function.basic
 import topology.instances.ereal
 import topology.G_delta
-import topology.semicontinuous
 import topology.order.lattice
+import topology.semicontinuous
 
 /-!
 # Borel (measurable) space
@@ -44,7 +44,7 @@ import topology.order.lattice
 noncomputable theory
 
 open classical set filter measure_theory
-open_locale classical big_operators topological_space nnreal ennreal interval
+open_locale classical big_operators topological_space nnreal ennreal interval measure_theory
 
 universes u v w x y
 variables {α β γ γ₂ δ : Type*} {ι : Sort y} {s t u : set α}
@@ -693,6 +693,24 @@ begin
   exact (hUo.preimage hf).measure_ne_zero μ (hf_surj.nonempty_preimage.mpr hUne)
 end
 
+/-- If a function is defined piecewise in terms of functions which are continuous on their
+respective pieces, then it is measurable. -/
+lemma continuous_on.measurable_piecewise
+  {f g : α → γ} {s : set α} [Π (j : α), decidable (j ∈ s)]
+  (hf : continuous_on f s) (hg : continuous_on g sᶜ) (hs : measurable_set s) :
+  measurable (s.piecewise f g) :=
+begin
+  refine measurable_of_is_open (λ t ht, _),
+  rw [piecewise_preimage, set.ite],
+  apply measurable_set.union,
+  { rcases _root_.continuous_on_iff'.1 hf t ht with ⟨u, u_open, hu⟩,
+    rw hu,
+    exact u_open.measurable_set.inter hs },
+  { rcases _root_.continuous_on_iff'.1 hg t ht with ⟨u, u_open, hu⟩,
+    rw [diff_eq_compl_inter, inter_comm, hu],
+    exact u_open.measurable_set.inter hs.compl }
+end
+
 @[priority 100, to_additive]
 instance has_continuous_mul.has_measurable_mul [has_mul γ] [has_continuous_mul γ] :
   has_measurable_mul γ :=
@@ -715,7 +733,7 @@ instance has_continuous_smul.has_measurable_smul {M α} [topological_space M]
   [topological_space α] [measurable_space M] [measurable_space α]
   [opens_measurable_space M] [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
   has_measurable_smul M α :=
-⟨λ c, (continuous_const.smul continuous_id).measurable,
+⟨λ c, (continuous_const_smul _).measurable,
   λ y, (continuous_id.smul continuous_const).measurable⟩
 
 section lattice
@@ -1746,18 +1764,34 @@ variables [measurable_space β] [metric_space β] [borel_space β]
 
 open metric
 
+/-- A limit (over a general filter) of measurable `ℝ≥0∞` valued functions is measurable. -/
+lemma measurable_of_tendsto_ennreal' {ι} {f : ι → α → ℝ≥0∞} {g : α → ℝ≥0∞} (u : filter ι)
+  [ne_bot u] [is_countably_generated u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
+  measurable g :=
+begin
+  rcases u.exists_seq_tendsto with ⟨x, hx⟩,
+  rw [tendsto_pi_nhds] at lim,
+  have : (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))) = g :=
+    by { ext1 y, exact ((lim y).comp hx).liminf_eq, },
+  rw ← this,
+  show measurable (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))),
+  exact measurable_liminf (λ n, hf (x n)),
+end
+
+/-- A sequential limit of measurable `ℝ≥0∞` valued functions is measurable. -/
+lemma measurable_of_tendsto_ennreal {f : ℕ → α → ℝ≥0∞} {g : α → ℝ≥0∞}
+  (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) : measurable g :=
+measurable_of_tendsto_ennreal' at_top hf lim
+
 /-- A limit (over a general filter) of measurable `ℝ≥0` valued functions is measurable. -/
 lemma measurable_of_tendsto_nnreal' {ι} {f : ι → α → ℝ≥0} {g : α → ℝ≥0} (u : filter ι)
   [ne_bot u] [is_countably_generated u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
   measurable g :=
 begin
-  rcases u.exists_seq_tendsto with ⟨x, hx⟩,
-  rw [tendsto_pi_nhds] at lim, rw [← measurable_coe_nnreal_ennreal_iff],
-  have : ∀ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞)) = (g y : ℝ≥0∞) :=
-    λ y, ((ennreal.continuous_coe.tendsto (g y)).comp $ (lim y).comp hx).liminf_eq,
-  simp only [← this],
-  show measurable (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))),
-  exact measurable_liminf (λ n, (hf (x n)).coe_nnreal_ennreal),
+  simp_rw [← measurable_coe_nnreal_ennreal_iff] at hf ⊢,
+  refine measurable_of_tendsto_ennreal' u hf _,
+  rw tendsto_pi_nhds at lim ⊢,
+  exact λ x, (ennreal.continuous_coe.tendsto (g x)).comp (lim x),
 end
 
 /-- A sequential limit of measurable `ℝ≥0` valued functions is measurable. -/

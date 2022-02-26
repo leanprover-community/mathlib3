@@ -421,11 +421,10 @@ lemma continuous.integrable_on_interval_oc [borel_space E]
 hf.integrable_on_Ioc
 
 /-- A continuous function with compact closure of the support is integrable on the whole space. -/
-lemma continuous.integrable_of_compact_closure_support
+lemma continuous.integrable_of_has_compact_support
   [topological_space α] [opens_measurable_space α] [t2_space α] [borel_space E]
   {μ : measure α} [is_locally_finite_measure μ] {f : α → E} (hf : continuous f)
-  (hfc : is_compact (closure $ support f)) :
-  integrable f μ :=
+  (hfc : has_compact_support f) : integrable f μ :=
 begin
   rw [← indicator_eq_self.2 (@subset_closure _ _ (support f)),
     integrable_indicator_iff is_closed_closure.measurable_set],

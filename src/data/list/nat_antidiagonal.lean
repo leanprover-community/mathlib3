@@ -59,5 +59,29 @@ begin
   ext; simp,
 end
 
+lemma antidiagonal_succ' {n : ℕ} :
+  antidiagonal (n + 1) = ((antidiagonal n).map (prod.map id nat.succ)) ++ [(n + 1, 0)] :=
+begin
+  simp only [antidiagonal, range_succ, add_tsub_cancel_left, map_append,
+    append_assoc, tsub_self, singleton_append, map_map, map],
+  congr' 1,
+  apply map_congr,
+  simp [le_of_lt, nat.succ_eq_add_one, nat.sub_add_comm] { contextual := tt },
+end
+
+lemma antidiagonal_succ_succ' {n : ℕ} :
+  antidiagonal (n + 2) =
+  (0, n + 2) :: ((antidiagonal n).map (prod.map nat.succ nat.succ)) ++ [(n + 2, 0)] :=
+by { rw antidiagonal_succ', simpa }
+
+lemma map_swap_antidiagonal {n : ℕ} :
+  (antidiagonal n).map prod.swap = (antidiagonal n).reverse :=
+begin
+  rw [antidiagonal, map_map, prod.swap, ← list.map_reverse,
+    range_eq_range', reverse_range', ← range_eq_range', map_map],
+  apply map_congr,
+  simp [nat.sub_sub_self, lt_succ_iff] { contextual := tt },
+end
+
 end nat
 end list

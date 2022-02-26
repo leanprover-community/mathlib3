@@ -7,7 +7,7 @@ import algebra.big_operators.intervals
 import algebra.big_operators.nat_antidiagonal
 import data.equiv.encodable.lattice
 import topology.algebra.mul_action
-import topology.algebra.ordered.monotone_convergence
+import topology.algebra.order.monotone_convergence
 import topology.instances.real
 
 /-!
@@ -766,13 +766,13 @@ end topological_ring
 
 section const_smul
 variables {R : Type*}
-[monoid R] [topological_space R]
+[monoid R]
 [topological_space α] [add_comm_monoid α]
-[distrib_mul_action R α] [has_continuous_smul R α]
+[distrib_mul_action R α] [has_continuous_const_smul R α]
 {f : β → α}
 
 lemma has_sum.const_smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
-hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const.smul continuous_id)
+hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const_smul r)
 
 lemma summable.const_smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
 hf.has_sum.const_smul.summable
@@ -1022,6 +1022,7 @@ section uniform_group
 
 variables [add_comm_group α] [uniform_space α]
 
+/-- The **Cauchy criterion** for infinite sums, also known as the **Cauchy convergence test** -/
 lemma summable_iff_cauchy_seq_finset [complete_space α] {f : β → α} :
   summable f ↔ cauchy_seq (λ (s : finset β), ∑ b in s, f b) :=
 cauchy_map_iff_exists_tendsto.symm

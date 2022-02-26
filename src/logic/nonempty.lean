@@ -114,3 +114,7 @@ h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 
 lemma subsingleton_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : subsingleton α :=
 ⟨λ x, false.elim $ not_nonempty_iff_imp_false.mp h x⟩
+
+lemma function.surjective.nonempty [h : nonempty β] {f : α → β} (hf : function.surjective f) :
+  nonempty α :=
+let ⟨y⟩ := h, ⟨x, hx⟩ := hf y in ⟨x⟩

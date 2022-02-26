@@ -509,10 +509,9 @@ induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_congr_right 
 end order_properties
 
 /-- The minimum cardinal in a family of cardinals (the existence
-  of which is provided by `injective_min`). -/
+  of which is provided by `min_injective`). -/
 def min {ι} (I : nonempty ι) (f : ι → cardinal) : cardinal :=
-f $ classical.some $
-@embedding.min_injective _ (λ i, (f i).out) I
+f $ classical.some $ @embedding.min_injective _ (λ i, (f i).out) I
 
 theorem min_eq {ι} (I) (f : ι → cardinal) : ∃ i, min I f = f i :=
 ⟨_, rfl⟩

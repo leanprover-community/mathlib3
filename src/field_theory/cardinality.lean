@@ -52,6 +52,10 @@ begin
   exact ⟨(fintype.equiv_of_card_eq ((galois_field.card p n hn.ne').trans hα)).symm.field⟩,
 end
 
+lemma fintype.not_is_field_of_card_not_prime_pow {α} [fintype α] [ring α] :
+  ¬ is_prime_pow (‖α‖) → ¬ is_field α :=
+mt $ λ h, fintype.nonempty_field_iff.mp ⟨h.to_field α⟩
+
 /-- Any infinite type can be endowed a field structure. -/
 lemma infinite.nonempty_field {α : Type u} [infinite α] : nonempty (field α) :=
 begin

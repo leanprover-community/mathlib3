@@ -382,14 +382,14 @@ Construct a pseudofunctor from an oplax functor whose `map_id` and `map_comp` ar
 def mk_of_oplax (F : oplax_functor B C) (F' : F.pseudo_core) : pseudofunctor B C :=
 { map_id := F'.map_id_iso,
   map_comp := F'.map_comp_iso,
-  map₂_whisker_right' := λ a b c f g η h, by
-  { dsimp,
-    rw [F'.map_comp_iso_hom f h, ←F.map_comp_naturality_left_assoc,
-      ←F'.map_comp_iso_hom g h, hom_inv_id, comp_id] },
   map₂_whisker_left' := λ a b c f g h η, by
   { dsimp,
     rw [F'.map_comp_iso_hom f g, ←F.map_comp_naturality_right_assoc,
       ←F'.map_comp_iso_hom f h, hom_inv_id, comp_id] },
+  map₂_whisker_right' := λ a b c f g η h, by
+  { dsimp,
+    rw [F'.map_comp_iso_hom f h, ←F.map_comp_naturality_left_assoc,
+      ←F'.map_comp_iso_hom g h, hom_inv_id, comp_id] },
   map₂_associator' := λ a b c d f g h, by
   { dsimp,
     rw [F'.map_comp_iso_hom (f ≫ g) h, F'.map_comp_iso_hom f g, ←F.map₂_associator_assoc,
@@ -407,12 +407,12 @@ def mk_of_oplax' (F : oplax_functor B C)
   pseudofunctor B C :=
 { map_id := λ a, as_iso (F.map_id a),
   map_comp := λ a b c f g, as_iso (F.map_comp f g),
-  map₂_whisker_right' := λ a b c f g η h, by
-  { dsimp,
-    rw [←assoc, is_iso.eq_comp_inv, F.map_comp_naturality_left] },
   map₂_whisker_left' := λ a b c f g h η, by
   { dsimp,
     rw [←assoc, is_iso.eq_comp_inv, F.map_comp_naturality_right] },
+  map₂_whisker_right' := λ a b c f g η h, by
+  { dsimp,
+    rw [←assoc, is_iso.eq_comp_inv, F.map_comp_naturality_left] },
   map₂_associator' := λ a b c d f g h, by
   { dsimp,
     simp only [←assoc],

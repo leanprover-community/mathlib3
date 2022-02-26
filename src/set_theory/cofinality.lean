@@ -219,8 +219,38 @@ begin
       apply lt_lsub } }
 end
 
-def bsort_aux {o : ordinal.{u}} (f : Π a < o, ordinal) : ordinal → ordinal :=
-enum_ord (brange f)
+/-- A fundamental sequence for `o`, or FS for short, is an increasing sequence of length
+    `o' = cof o` that converges at `o`. We provide `o'` explicitly in order to avoid type rewrites.
+-/
+def is_fs (o o' : ordinal.{u}) (f : Π a < o', ordinal.{u}) : Prop :=
+o' ≤ o.cof.ord ∧ (∀ {i j} (hi hj), i < j → f i hi < f j hj) ∧ blsub.{u u} o' f = o
+
+theorem eq_cof_of_is_fs {o o' : ordinal.{u}} {f : Π a < o', ordinal.{u}} (hf : is_fs o o' f) :
+  o' = o.cof.ord :=
+le_antisymm hf.1 begin
+  rw ←hf.2.2,
+  exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o')
+end
+
+/-- Every ordinal has a fundamental sequence. -/
+theorem exists_fs' (o : ordinal.{u}) : ∃ o' f, is_fs o o' f :=
+begin
+  cases exists_blsub_cof o with f hf,
+  rcases small_brange f with ⟨ι, ⟨hι⟩⟩,
+  let r : ι → ι → Prop := λ i j, hι.symm i < hι.symm j,
+  haveI : is_well_order ι r := ((rel_embedding.preimage e.to_embedding _).trans (subrel.rel_embedding _ _)).is_well_order,
+  use type r,
+  use λ a ha, (hι.symm (enum r a ha)).val,
+  sorry
+end
+
+/-- Every ordinal has a fundamental sequence. -/
+theorem exists_fs (o : ordinal.{u}) : ∃ f, is_fs o o.cof.ord f :=
+begin
+  rcases exists_fs' o with ⟨o', f, hf⟩,
+  convert exists.intro f hf;
+  rw eq_cof_of_is_fs hf
+end
 
 @[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=
 le_antisymm ((cof_le_card _).trans (by simp)) $

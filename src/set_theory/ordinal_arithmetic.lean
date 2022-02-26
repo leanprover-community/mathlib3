@@ -954,6 +954,9 @@ end
   range (family_of_bfamily o f) = brange o f :=
 range_family_of_bfamily' _ _ f
 
+theorem small_brange {o : ordinal.{u}} (f : Π a < o, α) : small.{u} (brange o f) :=
+by { rw ←range_family_of_bfamily, apply small_range }
+
 @[simp] theorem brange_bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r]
   (f : ι → α) : brange _ (bfamily_of_family' r f) = range f :=
 begin

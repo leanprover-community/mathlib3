@@ -254,18 +254,13 @@ begin
 end
 
 theorem cof_blsub_le {o} (f : Π a < o, ordinal) : cof (blsub.{u u} o f) ≤ o.card :=
-begin
-  rw blsub_eq_lsub,
-  convert cof_lsub_le _,
-  exact (mk_ordinal_out o).symm
-end
+by { convert cof_lsub_le _, exact (mk_ordinal_out o).symm }
 
 theorem le_cof_iff_blsub {b : ordinal} {a : cardinal} :
   a ≤ cof b ↔ ∀ {o} (f : Π a < o, ordinal), blsub.{u u} o f = b → a ≤ o.card :=
 begin
   refine le_cof_iff_lsub.trans ⟨λ H o f hf, _, λ H ι f hf, _⟩,
-   { rw blsub_eq_lsub at hf,
-    convert H _ hf,
+  { convert H _ hf,
     exact (mk_ordinal_out o).symm },
   { rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
     rw @lsub_eq_blsub' ι r hr at hf,

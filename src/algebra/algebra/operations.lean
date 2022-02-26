@@ -255,7 +255,7 @@ begin
   induction n with n ih,
   { erw [pow_zero, pow_zero, set.singleton_subset_iff],
     rw [set_like.mem_coe, ← one_le],
-    exact le_refl _ },
+    exact le_rfl },
   { rw [pow_succ, pow_succ],
     refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
     apply mul_subset_mul }
@@ -277,6 +277,7 @@ begin
     (λ m hm x ih, hmul _ hm _ _ _ (n_ih ih))
     (λ x hx y hy Cx Cy, hadd _ _ _ _ _ Cx Cy) hx,
 end
+
 /-- To show a property on elements of `M ^ n` holds, it suffices to show that it holds for scalars,
 is closed under addition, and holds for `m * x` where `m ∈ M` and it holds for `x` -/
 protected theorem pow_induction_on

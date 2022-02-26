@@ -27,7 +27,6 @@ open filter set
 variables {α : Type*} {β : Type*}
 
 /-- A uniform group is a group in which multiplication and inversion are uniformly continuous. -/
-
 class uniform_group (α : Type*) [uniform_space α] [group α] : Prop :=
 (uniform_continuous_div : uniform_continuous (λp:α×α, p.1 / p.2))
 
@@ -154,6 +153,18 @@ uniform_continuous_of_tendsto_one $
 @[to_additive] lemma cauchy_seq.mul {ι : Type*} [semilattice_sup ι] {u v : ι → α}
   (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (u * v) :=
 uniform_continuous_mul.comp_cauchy_seq (hu.prod hv)
+
+@[to_additive] lemma cauchy_seq.mul_const {ι : Type*} [semilattice_sup ι]
+  {u : ι → α} {x : α} (hu : cauchy_seq u) : cauchy_seq (λ n, u n * x) :=
+(uniform_continuous_id.mul uniform_continuous_const).comp_cauchy_seq hu
+
+@[to_additive] lemma cauchy_seq.const_mul {ι : Type*} [semilattice_sup ι]
+  {u : ι → α} {x : α} (hu : cauchy_seq u) : cauchy_seq (λ n, x * u n) :=
+(uniform_continuous_const.mul uniform_continuous_id).comp_cauchy_seq hu
+
+@[to_additive] lemma cauchy_seq.inv {ι : Type*} [semilattice_sup ι]
+  {u : ι → α} (h : cauchy_seq u) : cauchy_seq (u⁻¹) :=
+uniform_continuous_inv.comp_cauchy_seq h
 
 end uniform_group
 

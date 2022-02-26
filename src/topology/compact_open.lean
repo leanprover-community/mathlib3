@@ -7,6 +7,7 @@ import tactic.tidy
 import topology.continuous_function.basic
 import topology.homeomorph
 import topology.subset_properties
+import topology.maps
 
 /-!
 # The compact-open topology
@@ -276,7 +277,7 @@ lemma curry_apply (f : C(α × β, γ)) (a : α) (b : β) : f.curry a b = f (a, 
 lemma continuous_uncurry_of_continuous [locally_compact_space β] (f : C(α, C(β, γ))) :
   continuous (function.uncurry (λ x y, f x y)) :=
 have hf : function.uncurry (λ x y, f x y) = ev β γ ∘ prod.map f id, by { ext, refl },
-hf ▸ continuous.comp continuous_ev $ continuous.prod_map f.2 id.2
+hf ▸ continuous.comp continuous_ev $ continuous.prod_map f.2 continuous_id
 
 /-- The uncurried form of a continuous map `α → C(β, γ)` as a continuous map `α × β → γ` (if `β` is
     locally compact). If `α` is also locally compact, then this is a homeomorphism between the two
@@ -290,16 +291,16 @@ lemma continuous_uncurry [locally_compact_space α] [locally_compact_space β] :
 begin
   apply continuous_of_continuous_uncurry,
   rw ←homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _),
-  apply continuous.comp continuous_ev (continuous.prod_map continuous_ev id.2);
+  apply continuous.comp continuous_ev (continuous.prod_map continuous_ev continuous_id);
   apply_instance
 end
 
 /-- The family of constant maps: `β → C(α, β)` as a continuous map. -/
 def const' : C(β, C(α, β)) := curry ⟨prod.fst, continuous_fst⟩
 
-@[simp] lemma coe_const' : (const' : β → C(α, β)) = const := rfl
+@[simp] lemma coe_const' : (const' : β → C(α, β)) = const α := rfl
 
-lemma continuous_const' : continuous (const : β → C(α, β)) := const'.continuous
+lemma continuous_const' : continuous (const α : β → C(α, β)) := const'.continuous
 
 end curry
 
@@ -322,7 +323,7 @@ def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
 { to_fun := continuous_map.comp ⟨_, continuous_fst⟩ ∘ coev α β,
   inv_fun := ev α β ∘ (λ f, (f, default)),
   left_inv := λ a, rfl,
-  right_inv := λ f, by { ext, rw unique.eq_default x, refl },
+  right_inv := λ f, by { ext, rw unique.eq_default a, refl },
   continuous_to_fun := continuous.comp (continuous_comp _) continuous_coev,
   continuous_inv_fun :=
     continuous.comp continuous_ev (continuous.prod_mk continuous_id continuous_const) }
@@ -336,3 +337,39 @@ rfl
 rfl
 
 end homeomorph
+
+section quotient_map
+
+variables {X₀ X Y Z : Type*} [topological_space X₀] [topological_space X]
+  [topological_space Y] [topological_space Z] [locally_compact_space Y] {f : X₀ → X}
+
+lemma quotient_map.continuous_lift_prod_left (hf : quotient_map f) {g : X × Y → Z}
+  (hg : continuous (λ p : X₀ × Y, g (f p.1, p.2))) : continuous g :=
+begin
+  let Gf : C(X₀, C(Y, Z)) := continuous_map.curry ⟨_, hg⟩,
+  have h : ∀ x : X, continuous (λ y, g (x, y)),
+  { intros x,
+    obtain ⟨x₀, rfl⟩ := hf.surjective x,
+    exact (Gf x₀).continuous },
+  let G : X → C(Y, Z) := λ x, ⟨_, h x⟩,
+  have : continuous G,
+  { rw hf.continuous_iff,
+    exact Gf.continuous },
+  convert continuous_map.continuous_uncurry_of_continuous ⟨G, this⟩,
+  ext x,
+  cases x,
+  refl,
+end
+
+lemma quotient_map.continuous_lift_prod_right (hf : quotient_map f) {g : Y × X → Z}
+  (hg : continuous (λ p : Y × X₀, g (p.1, f p.2))) : continuous g :=
+begin
+  have : continuous (λ p : X₀ × Y, g ((prod.swap p).1, f (prod.swap p).2)),
+  { exact hg.comp continuous_swap },
+  have : continuous (λ p : X₀ × Y, (g ∘ prod.swap) (f p.1, p.2)) := this,
+  convert (hf.continuous_lift_prod_left this).comp continuous_swap,
+  ext x,
+  simp,
+end
+
+end quotient_map

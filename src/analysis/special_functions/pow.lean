@@ -543,6 +543,16 @@ begin
   rw exp_le_exp, exact mul_le_mul_of_nonneg_left hyz (log_nonneg hx),
 end
 
+@[simp] lemma rpow_le_rpow_left_iff (hx : 1 < x) : x ^ y ≤ x ^ z ↔ y ≤ z :=
+begin
+  have x_pos : 0 < x := lt_trans zero_lt_one hx,
+  rw [←log_le_log (rpow_pos_of_pos x_pos y) (rpow_pos_of_pos x_pos z),
+      log_rpow x_pos, log_rpow x_pos, mul_le_mul_right (log_pos hx)],
+end
+
+@[simp] lemma rpow_lt_rpow_left_iff (hx : 1 < x) : x ^ y < x ^ z ↔ y < z :=
+by rw [lt_iff_not_ge', rpow_le_rpow_left_iff hx, lt_iff_not_ge']
+
 lemma rpow_lt_rpow_of_exponent_gt (hx0 : 0 < x) (hx1 : x < 1) (hyz : z < y) :
   x^y < x^z :=
 begin
@@ -556,6 +566,17 @@ begin
   repeat {rw [rpow_def_of_pos hx0]},
   rw exp_le_exp, exact mul_le_mul_of_nonpos_left hyz (log_nonpos (le_of_lt hx0) hx1),
 end
+
+@[simp] lemma rpow_le_rpow_left_iff_of_base_lt_one (hx0 : 0 < x) (hx1 : x < 1) :
+  x ^ y ≤ x ^ z ↔ z ≤ y :=
+begin
+  rw [←log_le_log (rpow_pos_of_pos hx0 y) (rpow_pos_of_pos hx0 z),
+      log_rpow hx0, log_rpow hx0, mul_le_mul_right_of_neg (log_neg hx0 hx1)],
+end
+
+@[simp] lemma rpow_lt_rpow_left_iff_of_base_lt_one (hx0 : 0 < x) (hx1 : x < 1) :
+  x ^ y < x ^ z ↔ z < y :=
+by rw [lt_iff_not_ge', rpow_le_rpow_left_iff_of_base_lt_one hx0 hx1, lt_iff_not_ge']
 
 lemma rpow_lt_one {x z : ℝ} (hx1 : 0 ≤ x) (hx2 : x < 1) (hz : 0 < z) : x^z < 1 :=
 by { rw ← one_rpow z, exact rpow_lt_rpow hx1 hx2 hz }
@@ -1610,40 +1631,6 @@ lemma filter.tendsto.ennrpow_const {α : Type*} {f : filter α} {m : α → ℝ�
   (hm : tendsto m f (𝓝 a)) :
   tendsto (λ x, (m x) ^ r) f (𝓝 (a ^ r)) :=
 (ennreal.continuous_rpow_const.tendsto a).comp hm
-
--- the following lemma is placed here instead of `analysis.specific_limits` since
--- we need `real.rpow`
-/-- The sum of `(2⁻¹) ^ i` for `i ≤ n` equals `2⁻¹ ^ (n - 1)`. -/
-lemma tsum_geometric_inv_two_ge (n : ℕ) :
-  ∑' i, ite (n ≤ i) ((2 : ℝ)⁻¹ ^ i) 0 = 2⁻¹ ^ (n - 1 : ℝ) :=
-begin
-  have tsum_ite_eq_sub : ∑' i : ℕ, ite (n ≤ i) ((2 : ℝ)⁻¹ ^ i) 0 =
-    ∑' i : ℕ, 2⁻¹ ^ i - ∑' i : ℕ, ite (i < n) (2⁻¹ ^ i) 0,
-  { rw ← tsum_sub,
-    { refine tsum_congr (λ i, _),
-      by_cases hi : n ≤ i,
-      { rw [if_pos hi, if_neg (not_lt.2 hi), sub_zero] },
-      { rw [if_neg hi, if_pos (not_le.1 hi), sub_self] } },
-    { exact (inv_eq_one_div (2 : ℝ)).symm ▸ summable_geometric_two },
-    { refine @summable_of_ne_finset_zero _ _ _ _ _ (finset.Ico 0 n) (λ i hi, _),
-      rw [finset.mem_Ico, not_and] at hi,
-      exact if_neg (hi $ zero_le i) } },
-  rw [tsum_ite_eq_sub, tsum_geometric_inv_two,
-    @tsum_eq_sum _ _ _ _ _ _ (finset.Ico 0 n), finset.sum_ite_of_true],
-  { rw geom_sum_Ico,
-    suffices rnf : (2 : ℝ) * 2⁻¹ ^ n = (1 / 2) ^ (n - 1 : ℝ),
-    { ring_nf, exact rnf },
-    rw [real.rpow_sub, real.rpow_one, one_div, div_eq_mul_one_div, ← inv_eq_one_div, inv_inv₀,
-      mul_comm, real.rpow_nat_cast],
-    all_goals { norm_num } },
-  { intros i hi,
-    rw finset.mem_Ico at hi,
-    exact hi.2 },
-  { intros i hi,
-    rw [finset.mem_Ico, not_and] at hi,
-    exact if_neg (hi $ zero_le i) },
-  { apply_instance }
-end
 
 namespace norm_num
 open tactic

@@ -109,7 +109,26 @@ namespace finsupp
 section basic
 variable [has_zero M]
 
-instance : has_coe_to_fun (α →₀ M) (λ _, α → M) := ⟨to_fun⟩
+instance fun_like : fun_like (α →₀ M) α (λ _, M) := ⟨to_fun, begin
+  rintro ⟨s, f, hf⟩ ⟨t, g, hg⟩ (rfl : f = g),
+  congr',
+  ext a,
+  exact (hf _).trans (hg _).symm,
+end⟩
+
+/-- Helper instance for when there are too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (α →₀ M) (λ _, α → M) := fun_like.has_coe_to_fun
+
+@[ext] lemma ext {f g : α →₀ M} (h : ∀ a, f a = g a) : f = g := fun_like.ext _ _ h
+/-- Deprecated. Use `fun_like.ext_iff` instead. -/
+lemma ext_iff {f g : α →₀ M} : f = g ↔ ∀ a, f a = g a := fun_like.ext_iff
+/-- Deprecated. Use `fun_like.coe_fn_eq` instead. -/
+lemma coe_fn_inj {f g : α →₀ M} : (f : α → M) = g ↔ f = g := fun_like.coe_fn_eq
+/-- Deprecated. Use `fun_like.coe_injective` instead. -/
+lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn := fun_like.coe_injective
+/-- Deprecated. Use `fun_like.congr_fun` instead. -/
+lemma congr_fun {f g : α →₀ M} (h : f = g) (a : α) : f a = g a := fun_like.congr_fun h _
 
 @[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
   ⇑(⟨s, f, h⟩ : α →₀ M) = f := rfl
@@ -131,24 +150,8 @@ set.ext $ λ x, mem_support_iff.symm
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
-lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn
-| ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
-  begin
-    change f = g at h, subst h,
-    have : s = t, { ext a, exact (hf a).trans (hg a).symm },
-    subst this
-  end
-
-@[simp, norm_cast] lemma coe_fn_inj {f g : α →₀ M} : (f : α → M) = g ↔ f = g :=
-coe_fn_injective.eq_iff
-
 @[simp, norm_cast] lemma coe_eq_zero {f : α →₀ M} : (f : α → M) = 0 ↔ f = 0 :=
 by rw [← coe_zero, coe_fn_inj]
-
-@[ext] lemma ext {f g : α →₀ M} (h : ∀a, f a = g a) : f = g := coe_fn_injective (funext h)
-
-lemma ext_iff {f g : α →₀ M} : f = g ↔ (∀a:α, f a = g a) :=
-⟨by rintros rfl a; refl, ext⟩
 
 lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x ∈ f.support, f x = g x :=
 ⟨λ h, h ▸ ⟨rfl, λ _ _, rfl⟩, λ ⟨h₁, h₂⟩, ext $ λ a,
@@ -156,9 +159,6 @@ lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x �
     have hf : f a = 0, from not_mem_support_iff.1 h,
     have hg : g a = 0, by rwa [h₁, not_mem_support_iff] at h,
     by rw [hf, hg]⟩
-
-lemma congr_fun {f g : α →₀ M} (h : f = g) (a : α) : f a = g a :=
-congr_fun (congr_arg finsupp.to_fun h) a
 
 @[simp] lemma support_eq_empty {f : α →₀ M} : f.support = ∅ ↔ f = 0 :=
 by exact_mod_cast @function.support_eq_empty_iff _ _ _ f
@@ -1068,7 +1068,7 @@ h.map_prod _ _
 lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
   (f : α →₀ β) (g : α → β → N →* P) :
   ⇑(f.prod g) = f.prod (λ i fi, g i fi) :=
-monoid_hom.coe_prod _ _
+monoid_hom.coe_finset_prod _ _
 
 @[simp, to_additive]
 lemma monoid_hom.finsupp_prod_apply [has_zero β] [monoid N] [comm_monoid P]
@@ -2276,61 +2276,52 @@ rfl
 end sum
 
 section
-variables [group G] [mul_action G α] [add_comm_monoid M]
+variables [monoid G] [mul_action G α] [add_comm_monoid M]
 
-/--
-Scalar multiplication by a group element g,
-given by precomposition with the action of g⁻¹ on the domain.
--/
+/-- Scalar multiplication acting on the domain.
+
+This is not an instance as it would conflict with the action on the range.
+See the `instance_diamonds` test for examples of such conflicts. -/
 def comap_has_scalar : has_scalar G (α →₀ M) :=
-{ smul := λ g f, f.comap_domain (λ a, g⁻¹ • a)
-  (λ a a' m m' h, by simpa [←mul_smul] using (congr_arg (λ a, g • a) h)) }
+{ smul := λ g, map_domain ((•) g) }
 
 local attribute [instance] comap_has_scalar
 
-/--
-Scalar multiplication by a group element,
-given by precomposition with the action of g⁻¹ on the domain,
-is multiplicative in g.
--/
+lemma comap_smul_def (g : G) (f : α →₀ M) : g • f = map_domain ((•) g) f := rfl
+
+@[simp] lemma comap_smul_single (g : G) (a : α) (b : M) :
+  g • single a b = single (g • a) b :=
+map_domain_single
+
+/-- `finsupp.comap_has_scalar` is multiplicative -/
 def comap_mul_action : mul_action G (α →₀ M) :=
-{ one_smul := λ f, by { ext, dsimp [(•)], simp, },
-  mul_smul := λ g g' f, by { ext, dsimp [(•)], simp [mul_smul], }, }
+{ one_smul := λ f, by  rw [comap_smul_def, one_smul_eq_id, map_domain_id],
+  mul_smul := λ g g' f, by rw [comap_smul_def, comap_smul_def, comap_smul_def, ←comp_smul_left,
+    map_domain_comp], }
 
 local attribute [instance] comap_mul_action
 
-/--
-Scalar multiplication by a group element,
-given by precomposition with the action of g⁻¹ on the domain,
-is additive in the second argument.
--/
+/-- `finsupp.comap_has_scalar` is distributive -/
 def comap_distrib_mul_action :
   distrib_mul_action G (α →₀ M) :=
 { smul_zero := λ g, by { ext, dsimp [(•)], simp, },
-  smul_add := λ g f f', by { ext, dsimp [(•)], simp, }, }
+  smul_add := λ g f f', by { ext, dsimp [(•)], simp [map_domain_add], }, }
 
-/--
-Scalar multiplication by a group element on finitely supported functions on a group,
-given by precomposition with the action of g⁻¹. -/
-def comap_distrib_mul_action_self :
-  distrib_mul_action G (G →₀ M) :=
-@finsupp.comap_distrib_mul_action G M G _ (monoid.to_mul_action G) _
-
-@[simp]
-lemma comap_smul_single (g : G) (a : α) (b : M) :
-  g • single a b = single (g • a) b :=
-begin
-  ext a',
-  dsimp [(•)],
-  by_cases h : g • a = a',
-  { subst h, simp [←mul_smul], },
-  { simp [single_eq_of_ne h], rw [single_eq_of_ne],
-    rintro rfl, simpa [←mul_smul] using h, }
 end
 
-@[simp]
-lemma comap_smul_apply (g : G) (f : α →₀ M) (a : α) :
-  (g • f) a = f (g⁻¹ • a) := rfl
+section
+variables [group G] [mul_action G α] [add_comm_monoid M]
+
+local attribute [instance] comap_has_scalar comap_mul_action comap_distrib_mul_action
+
+/-- When `G` is a group, `finsupp.comap_has_scalar` acts by precomposition with the action of `g⁻¹`.
+-/
+@[simp] lemma comap_smul_apply (g : G) (f : α →₀ M) (a : α) :
+  (g • f) a = f (g⁻¹ • a) :=
+begin
+  conv_lhs { rw ←smul_inv_smul g a },
+  exact map_domain_apply (mul_action.injective g) _ (g⁻¹ • a),
+end
 
 end
 
@@ -2404,7 +2395,7 @@ variables {p : α → Prop}
 
 @[simp] lemma filter_smul {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
   {b : R} {v : α →₀ M} : (b • v).filter p = b • v.filter p :=
-coe_fn_injective $ set.indicator_smul {x | p x} b v
+coe_fn_injective $ set.indicator_const_smul {x | p x} b v
 
 end
 

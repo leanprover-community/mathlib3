@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 
 import set_theory.ordinal_arithmetic
 import tactic.linarith
-import logic.small
+import order.bounded
 
 /-!
 # Cardinals and ordinals
@@ -190,7 +190,7 @@ end
 def aleph (o : ordinal) : cardinal := aleph' (ordinal.omega + o)
 
 @[simp] theorem aleph_lt {o₁ o₂ : ordinal.{u}} : aleph o₁ < aleph o₂ ↔ o₁ < o₂ :=
-aleph'_lt.trans (ordinal.add_lt_add_iff_left _)
+aleph'_lt.trans (add_lt_add_iff_left _)
 
 @[simp] theorem aleph_le {o₁ o₂ : ordinal.{u}} : aleph o₁ ≤ aleph o₂ ↔ o₁ ≤ o₂ :=
 le_iff_le_iff_lt_iff_lt.2 aleph_lt
@@ -234,6 +234,48 @@ by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
 
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
 by rw [← succ_omega, lt_succ, mk_set_le_omega]
+
+/-- Ordinals that are cardinals are unbounded. -/
+theorem ord_card_unbounded : unbounded (<) {b : ordinal | b.card.ord = b} :=
+unbounded_lt_iff.2 $ λ a, ⟨_, ⟨(by { dsimp, rw card_ord }), (lt_ord_succ_card a).le⟩⟩
+
+theorem eq_aleph'_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) : ∃ a, (aleph' a).ord = o :=
+⟨cardinal.aleph_idx.rel_iso o.card, by simpa using ho⟩
+
+/-- `ord ∘ aleph'` enumerates the ordinals that are cardinals. -/
+theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord {b : ordinal | b.card.ord = b} :=
+begin
+  rw [←eq_enum_ord _ ord_card_unbounded, range_eq_iff],
+  exact ⟨aleph'_is_normal.strict_mono, ⟨(λ a, (by { dsimp, rw card_ord })),
+    λ b hb, eq_aleph'_of_eq_card_ord hb⟩⟩
+end
+
+/-- Infinite ordinals that are cardinals are unbounded. -/
+theorem ord_card_unbounded' : unbounded (<) {b : ordinal | b.card.ord = b ∧ ordinal.omega ≤ b} :=
+(unbounded_lt_inter_le ordinal.omega).2 ord_card_unbounded
+
+theorem eq_aleph_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) (ho' : ordinal.omega ≤ o) :
+  ∃ a, (aleph a).ord = o :=
+begin
+  cases eq_aleph'_of_eq_card_ord ho with a ha,
+  use a - ordinal.omega,
+  unfold aleph,
+  rwa ordinal.add_sub_cancel_of_le,
+  rwa [←omega_le_aleph', ←ord_le_ord, ha, ord_omega]
+end
+
+/-- `ord ∘ aleph` enumerates the infinite ordinals that are cardinals. -/
+theorem ord_aleph_eq_enum_card :
+  ord ∘ aleph = enum_ord {b : ordinal | b.card.ord = b ∧ ordinal.omega ≤ b} :=
+begin
+  rw ←eq_enum_ord _ ord_card_unbounded',
+  use aleph_is_normal.strict_mono,
+  rw range_eq_iff,
+  refine ⟨(λ a, ⟨_, _⟩), λ b hb, eq_aleph_of_eq_card_ord hb.1 hb.2⟩,
+  { rw card_ord },
+  { rw [←ord_omega, ord_le_ord],
+    exact omega_le_aleph _ }
+end
 
 /-! ### Properties of `mul` -/
 
@@ -865,30 +907,8 @@ by simp [← bit1_zero]
 by simp [← bit1_zero]
 
 @[simp] lemma one_le_one : (1 : cardinal) ≤ 1 :=
-le_refl _
+le_rfl
 
 end bit
 
 end cardinal
-
-lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) :
-  ¬ function.injective f :=
-begin
-  let g : ordinal.{u} → ulift.{u+1} α := λ o, ulift.up (f o),
-  suffices : ¬ function.injective g,
-  { intro hf, exact this (equiv.ulift.symm.injective.comp hf) },
-  intro hg,
-  replace hg := cardinal.mk_le_of_injective hg,
-  rw cardinal.mk_ulift at hg,
-  have := hg.trans_lt (cardinal.lift_lt_univ _),
-  rw cardinal.univ_id at this,
-  exact lt_irrefl _ this
-end
-
-lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
-  ¬ function.injective f :=
-begin
-  intro hf,
-  apply not_injective_of_ordinal (equiv_shrink α ∘ f),
-  exact (equiv_shrink _).injective.comp hf,
-end

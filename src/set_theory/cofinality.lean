@@ -101,7 +101,7 @@ namespace ordinal
   `cof 0 = 0` and `cof (succ o) = 1`, so it is only really
   interesting on limit ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
-quot.lift_on o (λ ⟨α, r, _⟩, by exactI strict_order.cof r)
+quot.lift_on o (λ a, by exactI strict_order.cof a.r)
 begin
   rintros ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨⟨f, hf⟩⟩,
   rw ← cardinal.lift_inj,
@@ -131,6 +131,37 @@ begin
   { dsimp [cof, order.cof, type, quotient.mk, quot.lift_on],
     apply cardinal.min_eq },
   exact let ⟨⟨S, hl⟩, e⟩ := this in ⟨S, hl, e.symm⟩,
+end
+
+private theorem card_mem_cof (o : ordinal) :
+  o.card ∈ {a : cardinal.{u} | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
+⟨_, typein o.out.r, lsub_typein o, mk_ordinal_out o⟩
+
+/-- The set in the definition of `cof` is nonempty. -/
+theorem cof_def_nonempty (o) :
+  {a : cardinal | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a}.nonempty :=
+⟨_, card_mem_cof o⟩
+
+theorem cof_eq_Inf_lsub (o : ordinal.{u}) :
+  cof o = Inf {a : cardinal | ∃ {ι : Type u} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
+begin
+  apply le_antisymm, {
+    apply le_cInf (cof_def_nonempty o),
+    rintros a ⟨ι, f, hf, rfl⟩,
+    rw ←type_out o,
+    let S := {a : o.out.α | typein o.out.r a ∈ set.range f},
+    have h : ∀ a, ∃ b ∈ S, ¬ o.out.r b a := λ a, begin
+      have := typein_lt_self a,
+      simp_rw ←hf at this,
+    end,
+    suffices : #S ≤ #ι,
+    { exact (cof_type_le S h).trans this },
+    suffices : function.injective (λ s : S, classical.some s.prop),
+    { apply mk_le_of_injective this },
+    intros s t hst,
+    have := congr_arg f hst,
+    rwa [classical.some_spec s.prop, classical.some_spec t.prop, typein_inj,
+      subtype.coe_inj] at this }
 end
 
 theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
@@ -180,12 +211,7 @@ induction_on o $ begin introsI α r _,
 end
 
 theorem cof_le_card (o) : cof o ≤ card o :=
-induction_on o $ λ α r _, begin
-  resetI,
-  have : #(@set.univ α) = card (type r) :=
-    quotient.sound ⟨equiv.set.univ _⟩,
-  rw ← this, exact cof_type_le set.univ (λ a, ⟨a, ⟨⟩, irrefl a⟩)
-end
+by { rw cof_eq_Inf_lsub, exact cInf_le' (card_mem_cof o) }
 
 theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
 by simpa using cof_le_card c.ord

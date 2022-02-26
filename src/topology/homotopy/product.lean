@@ -411,7 +411,6 @@ lemma prod_to_prod_Top_map {x₀ x₁ : πₓ A} {y₀ y₁ : πₓ B}
   @category_theory.functor.map _ _ _ _
   (prod_to_prod_Top A B) (x₀, y₀) (x₁, y₁) (p₀, p₁) = path.homotopic.prod p₀ p₁ := rfl
 
--- set_option pp.implicit true
 /--
 Shows `prod_to_prod_Top` is an isomorphism, whose inverse is precisely the product
 of the induced left and right projections.

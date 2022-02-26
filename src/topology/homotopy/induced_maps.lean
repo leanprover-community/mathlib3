@@ -171,9 +171,7 @@ open_locale continuous_map
 /-- Homotopy equivalent topological spaces have equivalent fundamental groupoids. -/
 def equiv_of_homotopy_equiv (hequiv : X ≃ₕ Y) : πₓ X ≌ πₓ Y :=
 begin
-  apply equivalence.mk
-    (πₘ hequiv.to_fun : πₓ X ⥤ πₓ Y)
-    (πₘ hequiv.inv_fun : πₓ Y ⥤ πₓ X);
+  refine equivalence.mk (πₘ hequiv.to_fun : πₓ X ⥤ πₓ Y) (πₘ hequiv.inv_fun : πₓ Y ⥤ πₓ X) _ _,
   simp only [Groupoid.hom_to_functor, Groupoid.id_to_functor],
   { convert (as_iso (homotopic_maps_nat_iso hequiv.left_inv.some)).symm,
     exacts [((π).map_id X).symm, ((π).map_comp _ _).symm] },

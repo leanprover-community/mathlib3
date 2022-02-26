@@ -250,11 +250,6 @@ begin
   simp [h1,  h2],
 end
 
-@[to_additive]
-lemma monoid_hom.single_commute [Π i, mul_one_class $ f i] :
-  pairwise (λ i j, ∀ x y, commute (monoid_hom.single f i x) (monoid_hom.single f j y)) :=
-pi.mul_single_commute
-
 @[to_additive update_eq_sub_add_single]
 lemma pi.update_eq_div_mul_single [Π i, group $ f i] (g : Π (i : I), f i) (x : f i) :
   function.update g i x = g / mul_single i (g i) * mul_single i x :=

@@ -93,7 +93,7 @@ restrict_restrict₀ ((h.null_measurable_set_smul g).mono restrict_le_self)
   pairwise (λ g₁ g₂ : G, ae_disjoint μ (g₁ • s) (g₂ • s)) :=
 λ g₁ g₂ hne,
 calc μ (g₁ • s ∩ g₂ • s) = μ (g₂ • ((g₂⁻¹ * g₁) • s ∩ s)) :
-  by rw [smul_set_inter, ← mul_smul, mul_inv_cancel_left]
+  by rw [smul_set_inter, smul_smul, mul_inv_cancel_left]
 ... = μ ((g₂⁻¹ * g₁) • s ∩ s) : measure_smul_set _ _ _
 ... = 0 : h.ae_disjoint _ $ mt inv_mul_eq_one.1 hne.symm
 
@@ -271,7 +271,7 @@ begin
       by rw [restrict_congr_set (hac ht.Union_smul_ae_eq), restrict_univ]
     ... = ∑' g : G, ∫ x in g • t, f x ∂(μ.restrict s) :
       integral_Union_ae (λ g, (ht.null_measurable_set_smul g).mono_ac hac)
-        (ht.pairwise_ae_disjoint.mono $ λ i j h, hac h) hfs.integrable.integrable_on
+        (ht.pairwise_ae_disjoint_of_ac hac) hfs.integrable.integrable_on
     ... = ∑' g : G, ∫ x in s ∩ g • t, f x ∂μ :
       by simp only [ht.restrict_restrict, inter_comm]
     ... = ∑' g : G, ∫ x in s ∩ g⁻¹ • t, f x ∂μ : ((equiv.inv G).tsum_eq _).symm

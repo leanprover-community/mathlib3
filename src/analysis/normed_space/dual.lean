@@ -153,7 +153,7 @@ begin
   refine norm_le_zero_iff.1 (le_of_forall_le_of_dense $ λ ε hε, _),
   rcases normed_field.exists_norm_lt 𝕜 hε with ⟨c, hc, hcε⟩,
   calc ∥x' x∥ = ∥c∥ * ∥x' (c⁻¹ • x)∥ :
-    by rw [x'.map_smul, norm_smul, normed_field.norm_inv,
+    by rw [x'.map_smul, norm_smul, norm_inv,
       mul_inv_cancel_left₀ hc.ne']
   ... ≤ ε * 1 : mul_le_mul hcε.le (hx' _ trivial) (norm_nonneg _) hε.le
   ... = ε : mul_one _
@@ -213,7 +213,7 @@ begin
     apply mul_le_mul (le_of_eq rfl) (hc z hzs) (norm_nonneg _) (norm_nonneg _), },
   have cancel : ∥ c⁻¹ ∥ * ∥ c ∥ = 1,
   by simp only [c_zero, norm_eq_zero, ne.def, not_false_iff,
-                inv_mul_cancel, normed_field.norm_inv],
+                inv_mul_cancel, norm_inv],
   rwa cancel at le,
 end
 

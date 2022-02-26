@@ -404,7 +404,35 @@ instance biproduct.π_epi (f : J → C) [has_biproduct f]
 { section_ := biproduct.lift $
     λ b', if h : b = b' then eq_to_hom (congr_arg f h) else biproduct.ι f b ≫ biproduct.π f b' }
 
-variables {C}
+/-- Auxiliary lemma for `biproduct.unique_up_to_iso`. -/
+lemma biproduct.cone_point_unique_up_to_iso_hom (f : J → C) [has_biproduct f] {b : bicone f}
+  (hb : b.is_bilimit) :
+  (hb.is_limit.cone_point_unique_up_to_iso (biproduct.is_limit _)).hom = biproduct.lift b.π :=
+rfl
+
+/-- Auxiliary lemma for `biproduct.unique_up_to_iso`. -/
+lemma biproduct.cone_point_unique_up_to_iso_inv (f : J → C) [has_biproduct f] {b : bicone f}
+  (hb : b.is_bilimit) :
+  (hb.is_limit.cone_point_unique_up_to_iso (biproduct.is_limit _)).inv = biproduct.desc b.ι :=
+begin
+  refine biproduct.hom_ext' _ _ (λ j, hb.is_limit.hom_ext (λ j', _)),
+  rw [category.assoc, is_limit.cone_point_unique_up_to_iso_inv_comp, bicone.to_cone_π_app,
+    biproduct.bicone_π, biproduct.ι_desc, biproduct.ι_π, b.to_cone_π_app, b.ι_π]
+end
+
+/-- Biproducts are unique up to isomorphism. This already follows because bilimits are limits,
+    but in the case of biproducts we can give an isomorphism with particularly nice definitional
+    properties, namely that `biproduct.lift b.π` and `biproduct.desc b.ι` are inverses of each
+    other. -/
+@[simps]
+def biproduct.unique_up_to_iso (f : J → C) [has_biproduct f] {b : bicone f} (hb : b.is_bilimit) :
+  b.X ≅ ⨁ f :=
+{ hom := biproduct.lift b.π,
+  inv := biproduct.desc b.ι,
+  hom_inv_id' := by rw [← biproduct.cone_point_unique_up_to_iso_hom f hb,
+    ← biproduct.cone_point_unique_up_to_iso_inv f hb, iso.hom_inv_id],
+  inv_hom_id' := by rw [← biproduct.cone_point_unique_up_to_iso_hom f hb,
+    ← biproduct.cone_point_unique_up_to_iso_inv f hb, iso.inv_hom_id] }
 
 /--
 A binary bicone for a pair of objects `P Q : C` consists of the cone point `X`,
@@ -830,6 +858,39 @@ def biprod.map_iso {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduc
   (f : W ≅ Y) (g : X ≅ Z) : W ⊞ X ≅ Y ⊞ Z :=
 { hom := biprod.map f.hom g.hom,
   inv := biprod.map f.inv g.inv }
+
+/-- Auxiliary lemma for `biprod.unique_up_to_iso`. -/
+lemma biprod.cone_point_unique_up_to_iso_hom (X Y : C) [has_binary_biproduct X Y]
+  {b : binary_bicone X Y} (hb : b.is_bilimit) :
+  (hb.is_limit.cone_point_unique_up_to_iso (binary_biproduct.is_limit _ _)).hom
+    = biprod.lift b.fst b.snd :=
+rfl
+
+/-- Auxiliary lemma for `biprod.unique_up_to_iso`. -/
+lemma biprod.cone_point_unique_up_to_iso_inv (X Y : C) [has_binary_biproduct X Y]
+  {b : binary_bicone X Y} (hb : b.is_bilimit) :
+  (hb.is_limit.cone_point_unique_up_to_iso (binary_biproduct.is_limit _ _)).inv
+    = biprod.desc b.inl b.inr :=
+begin
+  refine biprod.hom_ext' _ _ (hb.is_limit.hom_ext (λ j, _)) (hb.is_limit.hom_ext (λ j, _)),
+  all_goals { simp only [category.assoc, is_limit.cone_point_unique_up_to_iso_inv_comp],
+    cases j },
+  all_goals { simp }
+end
+
+/-- Binary biproducts are unique up to isomorphism. This already follows because bilimits are
+    limits, but in the case of biproducts we can give an isomorphism with particularly nice
+    definitional properties, namely that `biprod.lift b.fst b.snd` and `biprod.desc b.inl b.inr`
+    are inverses of each other. -/
+@[simps]
+def biprod.unique_up_to_iso (X Y : C) [has_binary_biproduct X Y] {b : binary_bicone X Y}
+  (hb : b.is_bilimit) : b.X ≅ X ⊞ Y :=
+{ hom := biprod.lift b.fst b.snd,
+  inv := biprod.desc b.inl b.inr,
+  hom_inv_id' := by rw [← biprod.cone_point_unique_up_to_iso_hom X Y hb,
+    ← biprod.cone_point_unique_up_to_iso_inv X Y hb, iso.hom_inv_id],
+  inv_hom_id' := by rw [← biprod.cone_point_unique_up_to_iso_hom X Y hb,
+    ← biprod.cone_point_unique_up_to_iso_inv X Y hb, iso.inv_hom_id] }
 
 section
 variables [has_binary_biproducts C]

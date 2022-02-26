@@ -6,8 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 import analysis.special_functions.log
 import combinatorics.simple_graph.degree_sum
 import combinatorics.pigeonhole
-import data.set.equitable
-import order.partition.finpartition
+import order.partition.equipartition
 
 /-! # Things that belong to mathlib -/
 
@@ -45,8 +44,7 @@ lemma from_digits_succ' {n d : ℕ} (a : fin (n+1) → ℕ) :
   from_digits d a = a 0 + (from_digits d (a ∘ fin.succ)) * d :=
 from_digits_succ _
 
-lemma from_digits_monotone {n : ℕ} (d : ℕ) :
-  monotone (from_digits d : (fin n → ℕ) → ℕ) :=
+lemma from_digits_monotone {n : ℕ} (d : ℕ) : monotone (from_digits d : (fin n → ℕ) → ℕ) :=
 begin
   intros x₁ x₂ h,
   induction n with n ih,
@@ -55,8 +53,7 @@ begin
   exact add_le_add (h 0) (nat.mul_le_mul_right d (ih (λ i, h i.succ))),
 end
 
-lemma from_digits_two_add {n d : ℕ} {x y : fin n → ℕ}
-  (hx : ∀ i, x i < d) (hy : ∀ i, y i < d) :
+lemma from_digits_two_add {n d : ℕ} {x y : fin n → ℕ} (hx : ∀ i, x i < d) (hy : ∀ i, y i < d) :
   from_digits (2 * d - 1) (x + y) = from_digits (2 * d - 1) x + from_digits (2 * d - 1) y :=
 begin
   induction n with n ih,
@@ -101,8 +98,6 @@ end
 
 end nat
 
-section
-
 -- Should *replace* the existing lemma with a similar name.
 lemma exists_le_card_fiber_of_mul_le_card_of_maps_to'
   {α : Type*} {β : Type*} {M : Type*} [linear_ordered_comm_ring M] [decidable_eq β]
@@ -115,54 +110,6 @@ begin
   simpa using hn,
 end
 
-end
-
-namespace set
-variables {s : set ι} {t : set ι'} {f : ι → set α} {g : ι' → set β}
-
-lemma pairwise_disjoint.prod (hs : s.pairwise_disjoint f) (ht : t.pairwise_disjoint g) :
-  (s ×ˢ t : set (ι × ι')).pairwise_disjoint (λ i, (f i.1) ×ˢ (g i.2)) :=
-λ ⟨i, i'⟩ ⟨hi, hi'⟩ ⟨j, j'⟩ ⟨hj, hj'⟩ hij ⟨a, b⟩ ⟨⟨hai, hbi⟩, haj, hbj⟩,
-  hij $ prod.ext (hs.elim_set hi hj _ hai haj) $ ht.elim_set hi' hj' _ hbi hbj
-
-lemma pairwise_disjoint.product [decidable_eq α] [decidable_eq β] {f : ι → finset α}
-  {g : ι' → finset β} (hs : s.pairwise_disjoint f) (ht : t.pairwise_disjoint g) :
-  (s ×ˢ t : set (ι × ι')).pairwise_disjoint (λ i, (f i.1).product (g i.2)) :=
-begin
-  rintro ⟨i, i'⟩ ⟨hi, hi'⟩ ⟨j, j'⟩ ⟨hj, hj'⟩ hij ⟨a, b⟩ hab,
-  simp_rw [finset.inf_eq_inter, finset.mem_inter, finset.mem_product] at hab,
-  exact hij (prod.ext (hs.elim_finset hi hj _ hab.1.1 hab.2.1) $
-    ht.elim_finset hi' hj' _ hab.1.2 hab.2.2),
-end
-
--- lemma pairwise_disjoint.product' [decidable_eq α] [decidable_eq β] {s : finset ι} {t : finset ι'}
---   {f : ι → finset α} {g : ι' → finset β} (hs : s.pairwise_disjoint f)
---   (ht : t.pairwise_disjoint g) :
---   (s.product t).pairwise_disjoint (λ i, (f i.1).product (g i.2)) :=
--- begin
---   rintro ⟨i, i'⟩ ⟨hi, hi'⟩ ⟨j, j'⟩ ⟨hj, hj'⟩ hij ⟨a, b⟩ hab,
---   simp_rw [finset.inf_eq_inter, finset.mem_inter, finset.mem_product] at hab,
---   exact hij (prod.ext (hs.elim_finset hi hj _ hab.1.1 hab.2.1) $
---     ht.elim_finset hi' hj' _ hab.1.2 hab.2.2),
--- end
-
-lemma pairwise_disjoint_pi {α : ι' → Type*} {ι : ι' → Type*} {s : Π i, set (ι i)}
-  {f : Π i, ι i → set (α i)}
-  (hs : ∀ i, (s i).pairwise_disjoint (f i)) :
-  ((univ : set ι').pi s).pairwise_disjoint (λ I, (univ : set ι').pi (λ i, f _ (I i))) :=
-λ I hI J hJ hIJ a ⟨haI, haJ⟩, hIJ $ funext $ λ i,
-  (hs i).elim_set (hI i trivial) (hJ i trivial) (a i) (haI i trivial) (haJ i trivial)
-
-lemma pairwise_disjoint.attach [semilattice_inf α] [order_bot α] {s : finset ι} {f : ι → α}
-  (hs : (s : set ι).pairwise_disjoint f) :
-  (s.attach : set {x // x ∈ s}).pairwise_disjoint (f ∘ subtype.val) :=
-λ i _ j _ hij, hs i.2 j.2 $ mt subtype.ext_val hij
-
-lemma subsingleton_of_subset_singleton {s : set α} {a : α} (h : s ⊆ {a}) : s.subsingleton :=
-subsingleton_singleton.mono h
-
-end set
-
 namespace finset
 
 lemma sum_mod (s : finset α) {m : ℕ} (f : α → ℕ) :
@@ -174,9 +121,6 @@ begin
   rw [sum_insert hi, sum_insert hi, nat.add_mod, ih, nat.add_mod],
   simp,
 end
-
--- lemma nonempty_diff [decidable_eq α] {s t : finset α} : (s \ t).nonempty ↔ ¬ s ⊆ t :=
--- sorry
 
 lemma dumb_thing {α : Type*} [decidable_eq α]
   {X Y Z : finset α} (hXY : disjoint X Y) (hXZ : disjoint X Z) (hYZ : disjoint Y Z)
@@ -214,17 +158,15 @@ by { fin_cases i; fin_cases j; finish }
 lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ a ≤ b) : b < a := lt_of_not_ge' h
 
 section linear_ordered_field
-variables [linear_ordered_field α]
+variables [linear_ordered_field α] {x y z : α}
 
 lemma one_div_le_one_of_one_le {a : α} (ha : 1 ≤ a) : 1 / a ≤ 1 :=
 (div_le_one $ zero_lt_one.trans_le ha).2 ha
 
-lemma le_div_self {x y : α} (hx : 0 ≤ x) (hy₀ : 0 < y) (hy₁ : y ≤ 1) :
-  x ≤ x / y :=
+lemma le_div_self (hx : 0 ≤ x) (hy₀ : 0 < y) (hy₁ : y ≤ 1) : x ≤ x / y :=
 by simpa using div_le_div_of_le_left hx hy₀ hy₁
 
-lemma mul_le_of_nonneg_of_le_div {x y z : α} (hy : 0 ≤ y) (hz : 0 ≤ z) (h : x ≤ y / z) :
-  x * z ≤ y :=
+lemma mul_le_of_nonneg_of_le_div (hy : 0 ≤ y) (hz : 0 ≤ z) (h : x ≤ y / z) : x * z ≤ y :=
 begin
   rcases hz.eq_or_lt with rfl | hz,
   { simpa using hy },
@@ -306,7 +248,7 @@ begin
     exact ⟨⟨a, b⟩, ⟨⟨hsa, hsb⟩, hGab⟩, h.symm⟩ }
 end
 
-@[simp] lemma dart.adj (d : G.dart) : G.adj d.fst d.snd := d.3
+@[simp] lemma dart.adj (d : G.dart) : G.adj d.fst d.snd := d.is_adj
 
 variables [fintype α]
 
@@ -314,9 +256,8 @@ lemma double_edge_finset_card_eq [decidable_eq α] [decidable_rel G.adj] :
   2 * G.edge_finset.card = (univ.filter (λ (xy : α × α), G.adj xy.1 xy.2)).card :=
 begin
   rw [←dart_card_eq_twice_card_edges, ←card_univ],
-  refine card_congr (λ i _, (i.1, i.2)) (by simp) (by simp [dart.ext_iff, ←and_imp]) _,
-  rintro ⟨x, y⟩ h,
-  exact ⟨⟨x, y, (mem_filter.1 h).2⟩, mem_univ _, rfl⟩,
+  refine card_congr (λ i _, (i.fst, i.snd)) (by simp) (by simp [dart.ext_iff, ←and_imp]) _,
+  exact λ xy h, ⟨⟨xy, (mem_filter.1 h).2⟩, mem_univ _, prod.mk.eta⟩,
 end
 
 end simple_graph
@@ -491,7 +432,7 @@ open relation
 def edge_count (U V : finset α) : ℝ := (pairs_finset G.adj U V).card
 
 /- Remnants of what's now under `relation`. The only point for keeping it is to sometimes avoid
-writing `G.adj` and `G.sym` sometimes. -/
+writing `G.adj` and `G.symm` sometimes. -/
 /-- Edge density between two finsets of vertices -/
 noncomputable def edge_density : finset α → finset α → ℝ := pairs_density G.adj
 
@@ -517,10 +458,10 @@ variables (G : simple_graph α) (ε : ℝ) [decidable_rel G.adj]
 big enough pair of subsets. Intuitively, the edges between them are random-like. -/
 def is_uniform (U V : finset α) : Prop :=
 ∀ U', U' ⊆ U → ∀ V', V' ⊆ V → (U.card : ℝ) * ε ≤ U'.card → (V.card : ℝ) * ε ≤ V'.card →
-  abs (edge_density G U' V' - edge_density G U V) < ε
+  |edge_density G U' V' - edge_density G U V| < ε
 
 /-- If the pair `(U, V)` is `ε`-uniform and `ε ≤ ε'`, then it is `ε'`-uniform. -/
-lemma is_uniform_mono {ε ε' : ℝ} {U V : finset α} (h : ε ≤ ε') (hε : is_uniform G ε U V) :
+lemma is_uniform.mono {ε ε' : ℝ} {U V : finset α} (hε : is_uniform G ε U V) (h : ε ≤ ε') :
   is_uniform G ε' U V :=
 λ U' hU' V' hV' hU hV,
 begin
@@ -544,12 +485,12 @@ begin
   rintro U' hU' V' hV' hU hV,
   rw [card_singleton, nat.cast_one, one_mul] at hU hV,
   obtain rfl | rfl := finset.subset_singleton_iff.1 hU',
-  { rw [finset.card_empty] at hU,
+  { rw finset.card_empty at hU,
     exact (hε.not_le hU).elim },
   obtain rfl | rfl := finset.subset_singleton_iff.1 hV',
-  { rw [finset.card_empty] at hV,
+  { rw finset.card_empty at hV,
     exact (hε.not_le hV).elim },
-  rwa [sub_self, abs_zero],
+  { rwa [sub_self, abs_zero] }
 end
 
 lemma not_is_uniform_zero {U V : finset α} : ¬ G.is_uniform 0 U V :=
@@ -595,70 +536,11 @@ by simp_rw [pairs_count_finpartition_left P, pairs_count_finpartition_right _ Q,
 
 end relation
 
-/-! ## is_equipartition -/
-
 namespace finpartition
-variables [decidable_eq α] {s : finset α} (P : finpartition s)
+variables [decidable_eq α] {s t : finset α} {P : finpartition s}
 
-/-- An equipartition is a partition whose parts are all the same size, up to a difference of `1`. -/
-def is_equipartition : Prop := (P.parts : set (finset α)).equitable_on card
-
-lemma is_equipartition_iff_card_parts_eq_average : P.is_equipartition ↔
-  ∀ a : finset α, a ∈ P.parts → a.card = s.card/P.parts.card ∨ a.card = s.card/P.parts.card + 1 :=
-by simp_rw [is_equipartition, finset.equitable_on_iff, P.sum_card_parts]
-
-variables {P}
-
-lemma _root_.set.subsingleton.is_equipartition (h : (P.parts : set (finset α)).subsingleton) :
-  P.is_equipartition :=
-h.equitable_on _
-
-end finpartition
-
-lemma finpartition.is_equipartition_iff_card_parts_eq_average' [decidable_eq α] [fintype α]
-  {P : finpartition (univ : finset α)} :
-  P.is_equipartition ↔
-    ∀ a : finset α, a ∈ P.parts → a.card = card α/P.parts.card ∨ a.card = card α/P.parts.card + 1 :=
-by rw [P.is_equipartition_iff_card_parts_eq_average, card_univ]
-
-lemma finpartition.is_equipartition.average_le_card_part [decidable_eq α] [fintype α]
-  {P : finpartition (univ : finset α)} (hP : P.is_equipartition) {a : finset α} (ha : a ∈ P.parts) :
-  card α/P.parts.card ≤ a.card :=
-(finpartition.is_equipartition_iff_card_parts_eq_average'.1 hP a ha).elim ge_of_eq
-  (λ h, (nat.le_succ _).trans h.ge)
-
-lemma finpartition.is_equipartition.card_part_le_average_add_one [decidable_eq α] [fintype α]
-  {P : finpartition (univ : finset α)} (hP : P.is_equipartition) {a : finset α} (ha : a ∈ P.parts) :
-  a.card ≤ card α/P.parts.card + 1 :=
-(finpartition.is_equipartition_iff_card_parts_eq_average'.1 hP a ha).elim
-  (λ i, by simp [i]) le_of_eq
-
-/-! ### Discrete and indiscrete finpartition -/
-
-namespace finpartition
-variables [decidable_eq α] (s : finset α)
-
-lemma bot_is_equipartition : (⊥ : finpartition s).is_equipartition :=
-set.equitable_on_iff_exists_eq_eq_add_one.2 ⟨1, by simp⟩
-
-lemma indiscrete_is_equipartition {hs : s ≠ ∅} : (indiscrete hs).is_equipartition :=
-by { rw [is_equipartition, indiscrete_parts, coe_singleton], exact set.equitable_on_singleton s _ }
-
-lemma parts_top_subset [lattice α] [order_bot α] (a : α) : (⊤ : finpartition a).parts ⊆ {a} :=
-begin
-  rintro b hb,
-  change b ∈ finpartition.parts (dite _ _ _) at hb,
-  split_ifs at hb,
-  { simp only [copy_parts, empty_parts, not_mem_empty] at hb,
-    exact hb.elim },
-  { exact hb }
-end
-
-lemma parts_top_subsingleton [lattice α] [order_bot α] (a : α) :
-  ((⊤ : finpartition a).parts : set α).subsingleton :=
-set.subsingleton_of_subset_singleton $ λ b hb, mem_singleton.1 $ parts_top_subset _ hb
-
-lemma top_is_equipartition : (⊤ : finpartition s).is_equipartition :=
-(parts_top_subsingleton _).is_equipartition
+lemma is_equipartition.card_parts_eq_average (hP : P.is_equipartition) (ht : t ∈ P.parts) :
+  t.card = s.card/P.parts.card ∨ t.card = s.card/P.parts.card + 1 :=
+P.is_equipartition_iff_card_parts_eq_average.1 hP _ ht
 
 end finpartition

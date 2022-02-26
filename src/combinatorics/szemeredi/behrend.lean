@@ -13,173 +13,17 @@ import data.nat.digits
 /-!
 # Behrend bound on Roth numbers
 
-This file proves Behrend's bound on Roth numbers.
+This file proves Behrend's lower bound on Roth numbers.
 -/
 
 open finset nat
+open_locale big_operators
 
 variables {α β : Type*}
 
-/-!
-### Explicit values
-
-Some lemmas and calculations of the Roth number for (very) small naturals.
--/
-
-section explicit_values
-
-/-- A simpler `decidable` instance for Salem-Spencer sets of naturals. We use it to prove small
-values of the Roth number by `rfl`/`dec_trivial`. -/
-def add_salem_spencer.decidable_nat {s : finset ℕ} : decidable (add_salem_spencer (s : set ℕ)) :=
-decidable_of_iff (∀ (a ∈ s) (b ∈ s), a < b → b + (b - a) ∉ s) begin
-  rw add_salem_spencer_iff_eq_right,
-  refine ⟨λ hs a b c ha hb hc habc, _, λ hs a ha b hb hab h, _⟩,
-  { by_contra h,
-    obtain hac | hac := lt_or_gt_of_ne h,
-    { refine hs _ ha _ hc hac _,
-      rwa [←add_tsub_assoc_of_le hac.le, ←habc, add_tsub_cancel_left] },
-    { have hbc : b < c,
-      {
-        sorry
-      },
-      refine hs _ hb _ hc hbc _,
-      rwa [←add_tsub_assoc_of_le hbc.le, ←habc, add_tsub_cancel_right] } },
-  { refine hab.ne (hs ha h hb _),
-    rw [←add_tsub_assoc_of_le hab.le, add_tsub_cancel_of_le (le_add_left hab.le)] }
-end
-
-local attribute [instance] add_salem_spencer.decidable_nat
-
-@[simp] lemma roth_number_nat_one : roth_number_nat 1 = 1 := rfl
-@[simp] lemma roth_number_nat_two : roth_number_nat 2 = 2 := rfl
-@[simp] lemma roth_number_nat_three : roth_number_nat 3 = 2 := rfl
-@[simp] lemma roth_number_nat_four : roth_number_nat 4 = 3 := rfl
-@[simp] lemma roth_number_nat_five : roth_number_nat 5 = 4 := rfl
-@[simp] lemma roth_number_nat_six : roth_number_nat 6 = 4 := rfl
-@[simp] lemma roth_number_nat_seven : roth_number_nat 7 = 4 := rfl
-@[simp] lemma roth_number_nat_eight : roth_number_nat 8 = 4 := rfl
-@[simp] lemma roth_number_nat_nine : roth_number_nat 9 = 5 := rfl
-@[simp] lemma roth_number_nat_ten : roth_number_nat 10 = 5 := dec_trivial
-@[simp] lemma roth_number_nat_eleven : roth_number_nat 11 = 6 :=
-begin
-  apply le_antisymm,
-  { simpa using roth_number_nat_add_le 3 8 },
-  apply add_salem_spencer.le_roth_number_nat {0, 1, 3, 7, 8, 10},
-  { dec_trivial },
-  { simp },
-  { simp }
-end
-
-@[simp] lemma mul_roth_number_twelve : roth_number_nat 12 = 6 :=
-begin
-  apply le_antisymm,
-  { rw ←nat.lt_succ_iff,
-    apply add_roth_number_lt_of_forall_not_add_salem_spencer,
-    dec_trivial },
-  simpa using roth_number_nat.mono (show 11 ≤ 12, by norm_num),
-end
-
-@[simp] lemma mul_roth_number_thirteen : roth_number_nat 13 = 7 :=
-begin
-  apply le_antisymm,
-  { simpa using roth_number_nat_add_le 12 1 },
-  apply add_salem_spencer.le_roth_number_nat {0, 1, 3, 4, 9, 10, 12},
-  { dec_trivial },
-  { simp },
-  { simp }
-end
-
-@[simp] lemma mul_roth_number_fourteen : roth_number_nat 14 = 8 :=
-begin
-  apply le_antisymm,
-  { simpa using roth_number_nat_add_le 12 2 },
-  apply add_salem_spencer.le_roth_number_nat {0, 1, 3, 4, 9, 10, 12, 13}, -- unique example
-  { dec_trivial },
-  { simp },
-  { simp }
-end
-
-lemma mul_roth_number_dec_upper_bound {N M : ℕ}
-  (h₂ : roth_number_nat N ≤ M)
-  (h : ∀ s ∈ (powerset_len M (range N)).filter (λ (s : finset ℕ), add_salem_spencer (s : set ℕ)),
-          ∃ z ∈ s, N ≤ z + z ∧ z + z - N ∈ s) :
-  roth_number_nat (N+1) ≤ M :=
-begin
-  apply nat.le_of_lt_succ,
-  change roth_number_nat (N+1) < M.succ,
-  apply add_roth_number_lt_of_forall_not_add_salem_spencer,
-  simp only [range_succ, powerset_len_succ_insert not_mem_range_self, mem_union, mem_image,
-    or_imp_distrib, forall_and_distrib, and_imp, coe_insert, forall_exists_index,
-    forall_apply_eq_imp_iff₂],
-  refine ⟨_, λ s hs hsN, _⟩,
-  { simp only [mem_powerset_len, and_imp],
-    rw ←not_lt at h₂,
-    exact λ x hx₁ hx₂ h, h₂ (h.le_roth_number_nat _ (λ x hx, mem_range.1 (hx₁ hx)) hx₂) },
-  simp only [and_imp, exists_prop, mem_filter, exists_and_distrib_left] at h,
-  obtain ⟨a, hNa, ha, haN⟩ := h s hs (hsN.mono $ set.subset_insert _ _),
-  rw [mem_powerset_len] at hs,
-  replace hs := hs.1 haN,
-  rw hsN (set.mem_insert_of_mem _ haN) (set.mem_insert _ _) (set.mem_insert_of_mem _ ha) _ at hs,
-  exact not_mem_range_self hs,
-  { rw [tsub_add_cancel_of_le hNa] }
-end
-
--- lemma mul_roth_number_sixty_four : 20 ≤ mul_roth_number 64 :=
--- begin
---   apply le_mul_roth_number_of_not_has_three_ap
-    -- {1,3,8,9,11,16,20,22,25,26,38,40,45,46,48,53,57,59,62,63},
---   { simp only [subset_iff, mem_range, mem_insert, mem_singleton, forall_eq_or_imp],
---     simp },
---   { dec_trivial },
---   { rw [card_insert_of_not_mem, card_insert_of_not_mem],
-
---   }
--- end
-
--- @[simp] lemma mul_roth_number_fifteen : mul_roth_number 15 = 8 :=
--- begin
---   apply le_antisymm,
---   { refine mul_roth_number_dec_upper_bound (by simp) _,
---     dec_trivial },
---   simpa using mul_roth_number_monotone (show 14 ≤ 15, by norm_num),
---   -- dec_trivial,
--- end
--- @[simp] lemma mul_roth_number_sixteen : mul_roth_number 16 = 8 := sorry
--- @[simp] lemma mul_roth_number_seventeen : mul_roth_number 17 = 8 := sorry
--- @[simp] lemma mul_roth_number_eighteen : mul_roth_number 18 = 8 :=
--- begin
---   apply le_antisymm,
---   { refine mul_roth_number_dec_upper_bound (by simp) _,
---     dec_trivial
---     },
---   simpa using mul_roth_number_monotone (show 14 ≤ 18, by norm_num),
---   -- dec_trivial,
--- end
-
--- lemma mul_roth_number_nineteen_le : mul_roth_number 19 ≤ 8 :=
--- begin
-
--- end
-
--- @[simp] lemma mul_roth_number_nineteen : mul_roth_number 19 = 8 :=
--- begin
---   apply le_antisymm,
---   { rw ←nat.lt_succ_iff,
---     apply mul_roth_number_lt_of_forall_not_salem_spencer,
-
---   },
---   simpa using mul_roth_number_monotone (show 14 ≤ 19, by norm_num)
--- end
-
-end explicit_values
-
-/-! The Behrend construction giving lower bounds on the Roth number. -/
 namespace behrend
 
-open_locale big_operators
-
-def sphere (n d : ℕ) : finset (fin n → ℕ) :=
-fintype.pi_finset (λ _, range d)
+def sphere (n d : ℕ) : finset (fin n → ℕ) := fintype.pi_finset (λ _, range d)
 
 lemma mem_sphere {n d : ℕ} (x : fin n → ℕ) : x ∈ sphere n d ↔ ∀ i, x i < d := by simp [sphere]
 
@@ -200,8 +44,8 @@ end
 lemma sphere_to_nat_mod {n d : ℕ} (a : fin n.succ → ℕ) : from_digits d a % d = a 0 % d :=
 by rw [from_digits_succ, nat.add_mul_mod_self_right]
 
-lemma sphere_to_nat_eq_iff {n d : ℕ} {x₁ x₂ : fin n.succ → ℕ}
-  (hx₁ : ∀ i, x₁ i < d) (hx₂ : ∀ i, x₂ i < d) :
+lemma sphere_to_nat_eq_iff {n d : ℕ} {x₁ x₂ : fin n.succ → ℕ} (hx₁ : ∀ i, x₁ i < d)
+  (hx₂ : ∀ i, x₂ i < d) :
   from_digits d x₁ = from_digits d x₂ ↔
     x₁ 0 = x₂ 0 ∧ from_digits d (x₁ ∘ fin.succ) = from_digits d (x₂ ∘ fin.succ) :=
 begin
@@ -218,8 +62,7 @@ begin
   rw [from_digits_succ', from_digits_succ', h₁, h₂],
 end
 
-lemma sphere_to_nat_inj_on {n d : ℕ} :
-  set.inj_on (from_digits d) {x : fin n → ℕ | ∀ i, x i < d} :=
+lemma sphere_to_nat_inj_on {n d : ℕ} : set.inj_on (from_digits d) {x : fin n → ℕ | ∀ i, x i < d} :=
 begin
   simp only [set.inj_on, set.mem_set_of_eq],
   intros x₁ hx₁ x₂ hx₂ h,
@@ -243,8 +86,8 @@ end
 -- theorem inner_eq_norm_mul_iff_real {F : Type u_3} [inner_product_space ℝ F] {x y : F} :
 -- inner x y = ∥x∥ * ∥y∥ ↔ ∥y∥ • x = ∥x∥ • y
 
-lemma sphere_strictly_convex {F : Type*} [inner_product_space ℝ F] {x y : F}
-  (h : ∥x∥ = ∥y∥) (hx : x ≠ 0) (hxy : x ≠ y) : ∥(1/2 : ℝ) • (x + y)∥ < ∥x∥ :=
+lemma sphere_strictly_convex {F : Type*} [inner_product_space ℝ F] {x y : F} (h : ∥x∥ = ∥y∥)
+  (hx : x ≠ 0) (hxy : x ≠ y) : ∥(1/2 : ℝ) • (x + y)∥ < ∥x∥ :=
 begin
   have := @inner_eq_norm_mul_iff_real _ _ x y,
   apply lt_of_pow_lt_pow 2 (norm_nonneg _) _,
@@ -263,8 +106,7 @@ begin
 end
 
 lemma slice_norm {n d k : ℕ} {x : fin n → ℕ} (hx : x ∈ sphere_slice n d k) :
-  @has_norm.norm (euclidean_space ℝ (fin n)) _ (coe ∘ x : fin n → ℝ) =
-  real.sqrt k :=
+  @has_norm.norm (euclidean_space ℝ (fin n)) _ (coe ∘ x : fin n → ℝ) = real.sqrt k :=
 begin
   rw pi_Lp.norm_eq_of_L2,
   simp only [real.norm_coe_nat, function.comp_app, ←nat.cast_pow, ←nat.cast_sum],
@@ -394,7 +236,6 @@ begin
   norm_num,
   exact le_mul_of_one_le_right zero_le_two (nat.one_le_cast.2 hd),
 end
--- d ^ n / (n * d^2) ≤ (sphere_slice n d k).card
 
 lemma behrend_bound_aux2 {n d N : ℕ} (hd : 0 < d) (hn : 0 < n) (hN : (2 * d - 1)^n ≤ N):
   (d ^ n / ↑(n * d^2) : ℝ) ≤ roth_number_nat N :=
@@ -568,13 +409,13 @@ begin
     rw [sub_pos, div_lt_one (exp_pos _)],
     exact lt_of_le_of_lt (by norm_num1) exp_one_gt_d9 },
   { norm_num1 },
-  have l8 : log 8 = ((3:ℕ):ℝ) * log 2,
+  have l8 : real.log 8 = (3 : ℕ) * log 2,
   { rw [←log_rpow zero_lt_two, rpow_nat_cast],
     norm_num },
   rw [l8, nat.cast_bit1, nat.cast_one],
   apply le_sqrt_of_sq_le (le_trans _ this),
   simp only [nat.cast_bit0, nat.cast_bit1, nat.cast_one],
-  rw [mul_right_comm, mul_pow, sq (log 2), ←mul_assoc],
+  rw [mul_right_comm, mul_pow, sq (real.log 2), ←mul_assoc],
   apply mul_le_mul_of_nonneg_right _ (log_nonneg one_le_two),
   rw ←le_div_iff',
   { apply log_two_lt_d9.le.trans,
@@ -583,8 +424,7 @@ begin
   norm_num1,
 end
 
-lemma bound (hN : 4096 ≤ N) :
-  (N:ℝ)^(1/n_value N:ℝ) / exp 1 < d_value N :=
+lemma bound (hN : 4096 ≤ N) : (N:ℝ)^(1/n_value N:ℝ) / exp 1 < d_value N :=
 begin
   apply floor_lt_mul _,
   rw [←log_le_log, log_rpow, mul_comm, ←div_eq_mul_one_div],
@@ -597,7 +437,7 @@ begin
       rw nat.one_le_cast,
       exact le_trans (by norm_num1) hN },
     { rw [nat.cast_pos, nat.lt_ceil, nat.cast_zero, real.sqrt_pos],
-      apply log_pos,
+      apply real.log_pos,
       rw nat.one_lt_cast,
       exact lt_of_lt_of_le (by norm_num1) hN },
     apply le_sqrt_of_sq_le,
@@ -609,7 +449,7 @@ begin
       rw nat.cast_pos,
       apply lt_of_lt_of_le _ hN,
       norm_num1 },
-    apply le_trans _ this,
+    refine le_trans _ this,
     simp only [nat.cast_bit0, nat.cast_bit1, nat.cast_one],
     rw ←div_le_iff',
     { refine le_trans (by norm_num1) log_two_gt_d9.le },
@@ -638,17 +478,14 @@ end
 lemma lower_bound_increasing (c : ℝ) :
   monotone_on (λ N, N * exp (-c * sqrt (log N))) (set.Ici $ exp $ (c/2)^2) :=
 begin
-  have pos : set.Ici (exp ((c/2)^2)) ⊆ set.Ioi 0,
-  { rintro x hx,
-    exact lt_of_lt_of_le (exp_pos _) hx },
+  have pos : set.Ici (exp ((c/2)^2)) ⊆ set.Ioi 0 := λ x hx, (exp_pos _).trans_le hx,
   have : set.eq_on (λ N, N * exp (-c * sqrt (log N))) (λ N, exp (sqrt (log N) * (sqrt (log N) - c)))
     (set.Ici (exp ((c/2)^2))),
   { intros x hx,
     dsimp,
     rw set.mem_Ici at hx,
-    rw [mul_sub, mul_self_sqrt, sub_eq_add_neg, exp_add, neg_mul_eq_neg_mul_symm, exp_log,
-      mul_comm c],
-    { apply pos hx },
+    rw [mul_sub, mul_self_sqrt, sub_eq_add_neg, exp_add, neg_mul, exp_log, mul_comm c],
+    { exact pos hx },
     refine log_nonneg _,
     apply le_trans _ hx,
     apply one_le_exp_iff.2 (sq_nonneg _) },
@@ -663,15 +500,13 @@ begin
     assumption },
 end
 
-lemma lower_bound_increasing' :
-  monotone_on (λ N, N * exp (-4 * sqrt (log N))) (set.Ici (exp 4)) :=
+lemma lower_bound_increasing' : monotone_on (λ N, N * exp (-4 * sqrt (log N))) (set.Ici (exp 4)) :=
 begin
   convert lower_bound_increasing 4,
   norm_num1
 end
 
-lemma exp_thing {x : ℝ} (hx : 0 < x) :
-  exp (- 2 * x) < exp (2 - ⌈x⌉₊) / ⌈x⌉₊ :=
+lemma exp_thing {x : ℝ} (hx : 0 < x) : exp (- 2 * x) < exp (2 - ⌈x⌉₊) / ⌈x⌉₊ :=
 begin
   have i := nat.ceil_lt_add_one hx.le,
   have h₁ : 0 < ⌈x⌉₊, by rwa [nat.lt_ceil, nat.cast_zero],
@@ -685,11 +520,11 @@ begin
     refine one_div_le_one_div_of_le (add_pos hx zero_lt_one) _,
     apply le_trans _ (add_one_le_exp_of_nonneg (add_nonneg hx.le zero_le_one)),
     exact le_add_of_nonneg_right zero_le_one },
-  refine lt_of_le_of_lt _ (div_lt_div_of_lt_left (nat.cast_pos.2 h₁) i (exp_pos _)),
+  refine lt_of_le_of_lt _ (div_lt_div_of_lt_left (exp_pos _) (nat.cast_pos.2 h₁) i),
   refine le_trans _ (div_le_div_of_le_of_nonneg (exp_le_exp.2 h₂) (add_nonneg hx.le zero_le_one)),
-  rw [le_div_iff (add_pos hx zero_lt_one), ←le_div_iff' (exp_pos _), ←exp_sub,
-    neg_mul_eq_neg_mul_symm, sub_neg_eq_add, two_mul, sub_add_add_cancel, add_comm _ x],
-  apply le_trans _ (add_one_le_exp_of_nonneg (add_nonneg hx.le zero_le_one)),
+  rw [le_div_iff (add_pos hx zero_lt_one), ←le_div_iff' (exp_pos _), ←exp_sub, neg_mul,
+    sub_neg_eq_add, two_mul, sub_add_add_cancel, add_comm _ x],
+  refine le_trans _ (add_one_le_exp_of_nonneg (add_nonneg hx.le zero_le_one)),
   exact le_add_of_nonneg_right zero_le_one
 end
 
@@ -718,14 +553,14 @@ begin
       rw this,
       apply (mul_le_mul _ (exp_thing (real.sqrt_pos.2 _)).le _ _),
       { rw [←le_log_iff_exp_le (rpow_pos_of_pos hN₀ _), log_rpow hN₀, ←le_div_iff, mul_div_assoc,
-          div_sqrt, neg_mul_eq_neg_mul_symm, neg_le_neg_iff, div_mul_eq_mul_div, div_le_iff],
+          div_sqrt, neg_mul, neg_le_neg_iff, div_mul_eq_mul_div, div_le_iff],
         { exact mul_le_mul_of_nonneg_left (nat.le_ceil _) zero_le_two },
         { rwa nat.cast_pos },
         rw real.sqrt_pos,
-        apply log_pos,
+        refine real.log_pos _,
         rw nat.one_lt_cast,
         exact lt_of_lt_of_le (by norm_num1) hN },
-      { apply log_pos,
+      { refine real.log_pos _,
         rw nat.one_lt_cast,
         exact lt_of_lt_of_le (by norm_num1) hN },
       { apply (exp_pos _).le },
@@ -763,13 +598,12 @@ begin
   linarith [log_two_lt_d9]
 end
 
-lemma lower_bound_le_one' (hN : 2 ≤ N) (hN' : N ≤ 4096) :
-  (N : ℝ) * exp (-4 * sqrt (log N)) ≤ 1 :=
+lemma lower_bound_le_one' (hN : 2 ≤ N) (hN' : N ≤ 4096) : (N : ℝ) * exp (-4 * sqrt (log N)) ≤ 1 :=
 begin
   rw [←log_le_log (mul_pos (nat.cast_pos.2 (zero_lt_two.trans_le hN)) (exp_pos _)) zero_lt_one,
     log_one, log_mul (nat.cast_pos.2 (zero_lt_two.trans_le hN)).ne' (exp_pos _).ne', log_exp,
-    neg_mul_eq_neg_mul_symm, ←sub_eq_add_neg, sub_nonpos,
-    ←div_le_iff (real.sqrt_pos.2 (log_pos (nat.one_lt_cast.2 (one_lt_two.trans_le hN)))), div_sqrt,
+    neg_mul, ←sub_eq_add_neg, sub_nonpos, ←div_le_iff (real.sqrt_pos.2 $ log_pos $
+    nat.one_lt_cast.2 $ one_lt_two.trans_le hN), div_sqrt,
     sqrt_le_left (zero_le_bit0.2 zero_le_two),
     log_le_iff_le_exp (nat.cast_pos.2 (zero_lt_two.trans_le hN))],
   norm_num1,
@@ -777,16 +611,14 @@ begin
   exact_mod_cast hN'
 end
 
-lemma lower_bound_le_one (hN : 1 ≤ N) (hN' : N ≤ 4096) :
-  (N : ℝ) * exp (-4 * sqrt (log N)) ≤ 1 :=
+lemma lower_bound_le_one (hN : 1 ≤ N) (hN' : N ≤ 4096) : (N : ℝ) * exp (-4 * sqrt (log N)) ≤ 1 :=
 begin
   rcases nat.eq_or_lt_of_le hN with rfl | hN,
   { simp },
   apply lower_bound_le_one' hN hN',
 end
 
-lemma roth_lower_bound :
-  (N : ℝ) * exp (-4 * sqrt (log N)) ≤ roth_number_nat N :=
+lemma roth_lower_bound : (N : ℝ) * exp (-4 * sqrt (log N)) ≤ roth_number_nat N :=
 begin
   rcases nat.eq_zero_or_pos N with rfl | hN,
   { simp },
@@ -834,7 +666,7 @@ end
 --   have hN' : 0 < (N : ℝ) ^ -δ := rpow_pos_of_pos (nat.cast_pos.2 hN) _,
 --   rw [real.norm_rpow_of_nonneg (nat.cast_nonneg _), norm_coe_nat, real.norm_eq_abs, abs_exp,
 --     ←div_le_iff' hc, ←log_le_iff_le_exp (div_pos hN' hc), log_div hN'.ne' hc.ne'],
---   -- simp only [neg_mul_eq_neg_mul_symm, ge_iff_le, eventually_at_top, real.norm_eq_abs],
+--   -- simp only [neg_mul, ge_iff_le, eventually_at_top, real.norm_eq_abs],
 
 --   -- have : is_O (λ (N:ℕ), (N : ℝ) * exp (-4 * sqrt (log N)))
       -- (λ N, (mul_roth_number N : ℝ)) at_top,

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .mathlib
-import combinatorics.choose.bounds
+import data.nat.choose.bounds
 import data.sym.card
 
 /-!

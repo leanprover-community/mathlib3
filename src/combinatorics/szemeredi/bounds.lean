@@ -93,10 +93,10 @@ begin
   have : m * 4 ^ P.parts.card ≤ card α / P.parts.card,
   { rw [exp_bound, ←nat.div_div_eq_div_mul],
     apply nat.div_mul_le_self },
-  rw (nat.add_sub_of_le this) at hUcard,
-  rw finpartition.is_equipartition_iff_card_parts_eq_average' at hP,
-  rw [(hP U hU).resolve_left hUcard, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
-    a_add_one_le_four_pow_parts_card, ←add_assoc, mul_comm, nat.add_sub_of_le this],
+  rw nat.add_sub_of_le this at hUcard,
+  rw [(hP.card_parts_eq_average hU).resolve_left hUcard, mul_add, mul_one, ←add_assoc, ←add_mul,
+    nat.sub_add_cancel a_add_one_le_four_pow_parts_card, ←add_assoc, mul_comm,
+    nat.add_sub_of_le this, card_univ],
 end
 
 lemma pow_mul_m_le_card_part (hP : P.is_equipartition) {U : finset α} (hU : U ∈ P.parts) :

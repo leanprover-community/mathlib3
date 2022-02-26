@@ -45,8 +45,7 @@ fintype.of_equiv (fin N ⊕ fin N ⊕ fin (2 * N))
   left_inv := λ i, by { rcases i with (_ | _ | _); refl },
   right_inv := λ i, by { rcases i with (_ | _ | _); refl } }
 
-@[simp]
-lemma card_corners_vertices : fintype.card (corners_vertices N) = 4 * N :=
+@[simp] lemma card_corners_vertices : fintype.card (corners_vertices N) = 4 * N :=
 by { simp only [fintype.of_equiv_card, fintype.card_fin, fintype.card_sum], ring }
 
 /-- The edges of the corners graph. -/

@@ -82,7 +82,7 @@ begin
       apply card_image_le.trans (card_le_of_subset (filter_subset _ _)) },
     { intros,
       refl } },
-  apply le_trans _ this,
+  refine le_trans _ this,
   have : ∀ B ∈ (atomise U (P.witnesses G ε U)).parts,
           (B \ ((hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ B)).bUnion id).card ≤ m,
   { intros B hB,
@@ -90,7 +90,7 @@ begin
     split_ifs with h₁,
     { convert almost_in_atoms_of_mem_parts_equitabilise (card_aux₂ h₁) hB },
     convert almost_in_atoms_of_mem_parts_equitabilise (card_aux₃ hP hU h₁) hB },
-  apply sum_le_sum (λ B hB, this B (filter_subset _ _ hB)),
+  exact sum_le_sum (λ B hB, this B $ filter_subset _ _ hB),
 end
 
 lemma one_sub_eps_mul_card_witness_le_card_star (hV : V ∈ P.parts) (hUV : U ≠ V)

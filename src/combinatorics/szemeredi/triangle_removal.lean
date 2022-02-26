@@ -7,7 +7,7 @@ import .regularity_lemma
 import .triangle_counting
 
 /-!
-# Triangle counting lemma
+# Triangle removal lemma
 -/
 
 open finset fintype

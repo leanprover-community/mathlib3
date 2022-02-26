@@ -280,9 +280,8 @@ end
 
 open_locale classical
 
-lemma union_of_atoms' {s : finset α} {Q : finset (finset α)} (A : finset α)
-  (hx : A ∈ Q) (hs : A ⊆ s) :
-  ((atomise s Q).parts.filter (λ B, B ⊆ A ∧ B.nonempty)).bUnion id = A :=
+lemma union_of_atoms' {Q : finset (finset α)} (A : finset α) (hx : A ∈ Q) (hs : A ⊆ s) :
+  ((atomise s Q).parts.filter $ λ B, B ⊆ A ∧ B.nonempty).bUnion id = A :=
 begin
   ext x,
   simp only [mem_bUnion, exists_prop, mem_filter, id.def, and_assoc],
@@ -291,14 +290,14 @@ begin
   tauto,
 end
 
-lemma partial_atomise {s : finset α} {Q : finset (finset α)} (A : finset α) (hA : A ∈ Q) :
+lemma partial_atomise {Q : finset (finset α)} (A : finset α) (hA : A ∈ Q) :
   ((atomise s Q).parts.filter (λ B, B ⊆ A ∧ B.nonempty)).card ≤ 2^(Q.card - 1) :=
 begin
   suffices h :
     (atomise s Q).parts.filter (λ B, B ⊆ A ∧ B.nonempty) ⊆
       (Q.erase A).powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ insert A P ↔ i ∈ x)),
-  { apply (card_le_of_subset h).trans (card_image_le.trans _),
-    rw [card_powerset, card_erase_of_mem hA, nat.pred_eq_sub_one] },
+  { refine (card_le_of_subset h).trans (card_image_le.trans _),
+    rw [card_powerset, card_erase_of_mem hA] },
   rw subset_iff,
   simp only [mem_erase, mem_sdiff, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc,
     finset.nonempty, exists_imp_distrib, and_imp, mem_atomise, forall_apply_eq_imp_iff₂],
@@ -307,7 +306,7 @@ begin
   have : A ∈ P,
   { rw mem_filter at hi,
     rw hi.2 _ hA,
-    apply hy₂ (mem_filter.2 hi) },
+    exact hy₂ (mem_filter.2 hi) },
   simp only [insert_erase this, filter_congr_decidable],
 end
 

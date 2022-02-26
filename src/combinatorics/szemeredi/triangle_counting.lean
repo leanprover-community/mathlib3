@@ -335,8 +335,7 @@ def reduced_graph (ε : ℝ) (P : finpartition (univ : finset α)) : simple_grap
 
 variables {G}
 
-lemma reduced_graph_le {ε : ℝ} {P : finpartition (univ : finset α)} : reduced_graph G ε P ≤ G :=
-λ x y ⟨h, _⟩, h
+lemma reduced_graph_le {ε : ℝ} {P : finpartition univ} : reduced_graph G ε P ≤ G := λ x y, and.left
 
 lemma triangle_free_far_of_disjoint_triangles_aux
   (tris : finset (finset α)) (htris : tris ⊆ G.triangle_finset)
@@ -388,7 +387,7 @@ begin
     (nat.cast_le.2 (triangle_free_far_of_disjoint_triangles_aux tris htris pd G' hG hG')),
 end
 
-lemma reduced_double_edges {ε : ℝ} {P : finpartition (univ : finset α)} :
+lemma reduced_double_edges {ε : ℝ} {P : finpartition univ} :
   univ.filter (λ (xy : α × α), G.adj xy.1 xy.2) \
     univ.filter (λ (xy : α × α), (reduced_graph G ε P).adj xy.1 xy.2) ⊆
       (P.non_uniform_pairs G (ε/8)).bUnion (λ UV, UV.1.product UV.2) ∪
@@ -412,7 +411,7 @@ begin
 end
 
 -- We will break up the sum more later
-lemma non_uniform_killed_card {ε : ℝ} {P : finpartition (univ : finset α)} :
+lemma non_uniform_killed_card {ε : ℝ} {P : finpartition univ} :
   (((P.non_uniform_pairs G ε).bUnion (λ UV, UV.1.product UV.2)).card : ℝ) ≤
     (∑ i in P.non_uniform_pairs G ε, i.1.card * i.2.card : ℝ) :=
 begin
@@ -421,37 +420,33 @@ begin
   exact card_bUnion_le,
 end
 
-lemma internal_killed_card [nonempty α]
-  {P : finpartition (univ : finset α)} (hP : P.is_equipartition) :
+lemma internal_killed_card [nonempty α] {P : finpartition (univ : finset α)}
+  (hP : P.is_equipartition) :
   ((P.parts.bUnion (λ U, U.off_diag)).card : ℝ) ≤ card α * (card α + P.parts.card) / P.parts.card :=
 begin
   have : (P.parts.bUnion (λ U, U.off_diag)).card ≤
     P.parts.card * (card α / P.parts.card) * (card α / P.parts.card + 1),
   { rw mul_assoc,
-    apply card_bUnion_le_card_mul,
-    intros U hU,
+    refine card_bUnion_le_card_mul _ _ _ (λ U hU, _),
     suffices : (U.card - 1) * U.card ≤ card α / P.parts.card * (card α / P.parts.card + 1),
     { rwa [nat.mul_sub_right_distrib, one_mul, ←off_diag_card] at this },
     have := hP.card_part_le_average_add_one hU,
-    apply nat.mul_le_mul ((nat.sub_le_sub_right this 1).trans _) this,
-    simp only [nat.add_succ_sub_one, add_zero] },
+    refine nat.mul_le_mul ((nat.sub_le_sub_right this 1).trans _) this,
+    simp only [nat.add_succ_sub_one, add_zero, card_univ] },
   refine (nat.cast_le.2 this).trans _,
   have i : (_ : ℝ) ≠ 0 := nat.cast_ne_zero.2 (P.parts_nonempty $
     univ_nonempty.ne_empty).card_pos.ne',
   rw [mul_div_assoc, div_add_same i, nat.cast_mul, nat.cast_add_one],
   refine mul_le_mul _ _ (nat.cast_add_one_pos _).le (nat.cast_nonneg _),
   { rw [nat.cast_le, mul_comm],
-    apply nat.div_mul_le_self },
-  apply add_le_add_right,
-  apply nat.cast_div_le,
+    exact nat.div_mul_le_self _ _ },
+  exact add_le_add_right nat.cast_div_le _,
 end
 
--- this is stated with ε but might need to be applied with ε/2 or something
-lemma sparse_card {P : finpartition (univ : finset α)} (hP : P.is_equipartition) {ε : ℝ}
-  (hε : 0 ≤ ε) :
-  (((P.parts.off_diag.filter (λ (UV : _ × _), G.edge_density UV.1 UV.2 < ε)).bUnion
-            (λ UV, (UV.1.product UV.2).filter (λ xy, G.adj xy.1 xy.2))).card : ℝ) ≤
-  ε * (card α + P.parts.card)^2 :=
+lemma sparse_card {P : finpartition univ} (hP : P.is_equipartition) {ε : ℝ} (hε : 0 ≤ ε) :
+  (((P.parts.off_diag.filter $ λ (UV : _ × _), G.edge_density UV.1 UV.2 < ε).bUnion $
+      λ UV, (UV.1.product UV.2).filter $ λ xy, G.adj xy.1 xy.2).card : ℝ) ≤
+    ε * (card α + P.parts.card)^2 :=
 begin
   refine (nat.cast_le.2 card_bUnion_le).trans _,
   rw nat.cast_sum,
@@ -463,11 +458,11 @@ begin
       simple_graph.edge_density_eq_edge_count_div_card],
     intros hU hV hUV e,
     apply le_of_lt,
-    rwa [←div_lt_iff],
+    rwa ←div_lt_iff,
     exact mul_pos (nat.cast_pos.2 (P.nonempty_of_mem_parts hU).card_pos)
       (nat.cast_pos.2 (P.nonempty_of_mem_parts hV).card_pos) },
   apply (sum_le_sum this).trans,
-  refine (sum_le_sum_of_subset_of_nonneg (filter_subset _ _) (λ i hi _, _)).trans _,
+  refine (sum_le_sum_of_subset_of_nonneg (filter_subset _ _) $ λ i hi _, _).trans _,
   { exact mul_nonneg hε (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) },
   rw ←mul_sum,
   apply mul_le_mul_of_nonneg_left _ hε,
@@ -484,8 +479,7 @@ begin
   rw [←sq, ←mul_pow],
   apply nat.pow_le_pow_of_le_left,
   rw [mul_add, mul_one],
-  apply add_le_add_right,
-  apply nat.mul_div_le,
+  exact add_le_add_right (nat.mul_div_le _ _) _,
 end
 
 lemma triangle_free_far.not_no_triangles [nonempty α] {ε : ℝ} (hG : G.triangle_free_far ε)
@@ -499,8 +493,8 @@ begin
   apply hG.not_no_triangles hε,
 end
 
-lemma sum_irreg_pairs_le_of_uniform [nonempty α] {ε : ℝ} (hε : 0 < ε)
-  (P : finpartition univ) (hP : P.is_equipartition) (hG : P.is_uniform G ε) :
+lemma sum_irreg_pairs_le_of_uniform [nonempty α] {ε : ℝ} (hε : 0 < ε) (P : finpartition univ)
+  (hP : P.is_equipartition) (hG : P.is_uniform G ε) :
   (∑ i in P.non_uniform_pairs G ε, i.1.card * i.2.card : ℝ) < ε * (card α + P.parts.card)^2 :=
 begin
   refine (sum_le_of_forall_le (P.non_uniform_pairs G ε) (λ i, (i.1.card * i.2.card : ℝ))
@@ -519,8 +513,8 @@ begin
   exact (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos,
 end
 
-lemma sum_irreg_pairs_le_of_uniform' [nonempty α] {ε : ℝ} (hε : 0 < ε)
-  (P : finpartition univ) (hP : P.is_equipartition) (hG : P.is_uniform G ε) :
+lemma sum_irreg_pairs_le_of_uniform' [nonempty α] {ε : ℝ} (hε : 0 < ε) (P : finpartition univ)
+  (hP : P.is_equipartition) (hG : P.is_uniform G ε) :
   (((P.non_uniform_pairs G ε).bUnion (λ UV, UV.1.product UV.2)).card : ℝ) < 4 * ε * (card α)^2 :=
 begin
   apply non_uniform_killed_card.trans_lt,
@@ -532,8 +526,7 @@ begin
   exact add_le_add_left (nat.cast_le.2 P.card_parts_le_card) _,
 end
 
-lemma sum_sparse {ε : ℝ} (hε : 0 ≤ ε)
-  (P : finpartition univ) (hP : P.is_equipartition) :
+lemma sum_sparse {ε : ℝ} (hε : 0 ≤ ε) (P : finpartition univ) (hP : P.is_equipartition) :
   (((P.parts.off_diag.filter (λ (UV : _ × _), G.edge_density UV.1 UV.2 < ε)).bUnion
             (λ UV, (UV.1.product UV.2).filter (λ xy, G.adj xy.1 xy.2))).card : ℝ) ≤
               4 * ε * (card α)^2 :=
@@ -607,8 +600,8 @@ begin
 end
 
 lemma card_bound [nonempty α] {ε : ℝ} {X : finset α} {P : finpartition (univ : finset α)}
-  (hP₁ : P.is_equipartition)
-  (hP₃ : P.parts.card ≤ szemeredi_bound (ε / 8) ⌈4/ε⌉₊) (hX : X ∈ P.parts) :
+  (hP₁ : P.is_equipartition) (hP₃ : P.parts.card ≤ szemeredi_bound (ε / 8) ⌈4/ε⌉₊)
+  (hX : X ∈ P.parts) :
   (card α : ℝ) / (2 * szemeredi_bound (ε / 8) ⌈4/ε⌉₊) ≤ X.card :=
 begin
   refine le_trans _ (nat.cast_le.2 (hP₁.average_le_card_part hX)),

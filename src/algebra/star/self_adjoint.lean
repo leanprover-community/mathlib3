@@ -59,14 +59,13 @@ variables {R}
 
 /-- An element of a star monoid is normal if it commutes with its adjoint. -/
 class is_star_normal [has_mul R] [has_star R] (x : R) : Prop :=
-(star_comm_self_aux : commute (star x) x)
+(star_comm_self : commute (star x) x)
 
-lemma star_comm_self [monoid R] [has_star R] (x : R) [is_star_normal x] : commute (star x) x :=
-is_star_normal.star_comm_self_aux
+export is_star_normal (star_comm_self)
 
-lemma star_comm_self' [monoid R] [has_star R] (x : R) [is_star_normal x] :
+lemma star_comm_self' [has_mul R] [has_star R] (x : R) [is_star_normal x] :
   (star x) * x = x * star x :=
-is_star_normal.star_comm_self_aux
+is_star_normal.star_comm_self
 
 namespace self_adjoint
 

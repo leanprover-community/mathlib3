@@ -31,6 +31,9 @@ variables {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
 local notation `evec` := hT.eigenvector_basis hn
 local notation `eval` := hT.eigenvalues hn
 
+/-- The square root of a self-adjoint operator `T`.  This definition is only meaningful when `T` has
+nonnegative eigenvalues. -/
+
 noncomputable def sqrt : E →ₗ[𝕜] E :=
   basis.constr evec 𝕜 (λ (i : (fin n)), (real.sqrt(eval i) : 𝕜) • (evec i))
 
@@ -38,7 +41,7 @@ lemma sqrt_apply {i : (fin n)} :
   (hT.sqrt hn) (evec i) = (real.sqrt (eval i) : 𝕜) • (evec i) :=
     by simp only [is_self_adjoint.sqrt, (evec).constr_basis]
 
-lemma sqrt_mul_self_eq (hnn : ∀ (i : (fin n)), eval i ≥ 0) :
+lemma sqrt_mul_self_eq (hnn : ∀ (i : (fin n)), 0 ≤ eval i) :
   (hT.sqrt hn) * (hT.sqrt hn) = T :=
 begin
   apply basis.ext evec,

@@ -266,8 +266,8 @@ commutative ring `R` is an integral domain only when this is needed for proving.
 
 namespace fraction_ring
 
-instance [subsingleton R] : subsingleton (fraction_ring R) :=
-localization.subsingleton
+instance unique [subsingleton R] : unique (fraction_ring R) :=
+localization.unique
 
 instance [nontrivial R] : nontrivial (fraction_ring R) :=
 ⟨⟨(algebra_map R _) 0, (algebra_map _ _) 1,

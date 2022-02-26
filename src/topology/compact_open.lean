@@ -46,6 +46,20 @@ variables [topological_space α] [topological_space β] [topological_space γ]
 /-- A generating set for the compact-open topology (when `s` is compact and `u` is open). -/
 def compact_open.gen (s : set α) (u : set β) : set C(α,β) := {f | f '' s ⊆ u}
 
+@[simp] lemma gen_empty (u : set β) : compact_open.gen (∅ : set α) u = set.univ :=
+set.ext (λ f, iff_true_intro ((congr_arg (⊆ u) (image_empty f)).mpr u.empty_subset))
+
+@[simp] lemma gen_univ (s : set α) : compact_open.gen s (set.univ : set β) = set.univ :=
+set.ext (λ f, iff_true_intro (f '' s).subset_univ)
+
+@[simp] lemma gen_inter (s : set α) (u v : set β) :
+  compact_open.gen s (u ∩ v) = compact_open.gen s u ∩ compact_open.gen s v :=
+set.ext (λ f, subset_inter_iff)
+
+@[simp] lemma gen_union (s t : set α) (u : set β) :
+  compact_open.gen (s ∪ t) u = compact_open.gen s u ∩ compact_open.gen t u :=
+set.ext (λ f, (iff_of_eq (congr_arg (⊆ u) (image_union f s t))).trans union_subset_iff)
+
 -- The compact-open topology on the space of continuous maps α → β.
 instance compact_open : topological_space C(α, β) :=
 topological_space.generate_from

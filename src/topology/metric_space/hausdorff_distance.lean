@@ -475,6 +475,11 @@ variable {s}
 lemma inf_dist_eq_closure : inf_dist x (closure s) = inf_dist x s :=
 by simp [inf_dist, inf_edist_closure]
 
+/-- If a point belongs to the closure of `s`, then its infimum distance to `s` equals zero.
+The converse is true provided that `s` is nonempty, see `mem_closure_iff_inf_dist_zero`. -/
+lemma inf_dist_zero_of_mem_closure (hx : x ∈ closure s) : inf_dist x s = 0 :=
+by { rw ← inf_dist_eq_closure, exact inf_dist_zero_of_mem hx }
+
 /-- A point belongs to the closure of `s` iff its infimum distance to this set vanishes -/
 lemma mem_closure_iff_inf_dist_zero (h : s.nonempty) : x ∈ closure s ↔ inf_dist x s = 0 :=
 by simp [mem_closure_iff_inf_edist_zero, inf_dist, ennreal.to_real_eq_zero_iff, inf_edist_ne_top h]

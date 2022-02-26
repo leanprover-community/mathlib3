@@ -193,12 +193,22 @@ otherwise. -/
 def get_or_else (a : part α) [decidable a.dom] (d : α) :=
 if ha : a.dom then a.get ha else d
 
+
+
 @[simp] lemma get_or_else_none (d : α) [decidable (none : part α).dom] : get_or_else none d = d :=
 dif_neg id
 
 @[simp] lemma get_or_else_some (a : α) (d : α) [decidable (some a).dom] :
   get_or_else (some a) d = a :=
 dif_pos trivial
+
+lemma get_or_else_of_dom (a : part α) (h : a.dom) [decidable a.dom] (d : α) :
+  get_or_else a d = a.get h :=
+begin
+  rw ←get_or_else_some (a.get h) d,
+  congr,
+  simp,
+end
 
 @[simp] theorem mem_to_option {o : part α} [decidable o.dom] {a : α} :
   a ∈ to_option o ↔ a ∈ o :=

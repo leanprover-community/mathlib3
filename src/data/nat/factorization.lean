@@ -45,12 +45,23 @@ namespace nat
 def factorization (n : ℕ) : ℕ →₀ ℕ :=
 { support := n.factors.to_finset,
   to_fun := λ p, if p.prime then ((multiplicity p n).get_or_else 0) else 0,
-  mem_support_to_fun := sorry }
+  mem_support_to_fun :=
+    begin
+      intro a,
+      simp,
+      sorry,
+    end }
 
 
 lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   multiplicity p n = n.factorization p :=
-multiplicity.eq_coe_iff.mpr ⟨pow_factorization_dvd n p, pow_succ_factorization_not_dvd hn pp⟩
+begin
+  have hdom : (multiplicity p n).dom,
+  { rw multiplicity.nat.multiplicity_dom_iff, split, exact hn, sorry, },
+  simp [factorization, pp],
+  rw part.get_or_else_of_dom,
+  -- simp
+end
 
 /-! ### Basic facts about factorization -/
 

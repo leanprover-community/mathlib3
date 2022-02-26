@@ -47,6 +47,7 @@ lemma finite_iff_dom [decidable_rel ((∣) : α → α → Prop)] {a b : α} :
 
 lemma finite_def {a b : α} : finite a b ↔ ∃ n : ℕ, ¬a ^ (n + 1) ∣ b := iff.rfl
 
+@[simp]
 lemma nat.multiplicity_dom_iff (a b : ℕ) : (multiplicity a b).dom ↔ (b ≠ 0 ∧ a ≠ 1) :=
 begin
   unfold multiplicity,

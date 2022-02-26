@@ -1,17 +1,4 @@
-/-
-Copyright (c) 2022 Kexing Ying. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kexing Ying
--/
 import measure_theory.function.convergence_in_measure
-
-/-!
-# Uniform integrability
-
-
-## Main results
-
--/
 
 noncomputable theory
 open_locale classical measure_theory nnreal ennreal topological_space
@@ -101,15 +88,6 @@ begin
   rw [ennreal.rpow_mul, ← one_div, ennreal.rpow_le_rpow_iff (one_div_pos.2 ha)],
 end
 
--- lemma ennreal.pow_one_div_lt_iff_lt_pow
---   {a b c : ℝ} (ha : 0 < a) (hb : 0 ≤ b) : b ^ (1 / a) < c ↔ b < c ^ a :=
--- begin
---   refine ⟨lt_pow_of_pow_one_div_lt ha hb, λ h, _⟩,
---   convert real.rpow_lt_rpow hb h (one_div_pos.2 ha),
---   rw [← real.rpow_mul, mul_one_div_cancel ha.ne.symm, real.rpow_one],
---   sorry
--- end
-
 lemma mem_ℒp.snorm_ess_sup_indicator_ge_eq_zero
   {f : α → β} (hf : mem_ℒp f ∞ μ) (hmeas : measurable f) :
   ∃ M : ℝ, snorm_ess_sup ({x | M ≤ ∥f x∥₊}.indicator f) μ = 0 :=
@@ -136,8 +114,6 @@ begin
   rw [this, snorm_ess_sup_measure_zero],
   exact measurable_set_le measurable_const hmeas.nnnorm.subtype_coe,
 end
-
--- example {f : α → β} (hf : mem_ℒp f p μ) : integrable (λ x, ∥f x∥₊ ^ p.to_real) μ :=
 
 /-- This lemma implies that a single function is uniformly integrable (in the probability sense). -/
 lemma mem_ℒp.snorm_indicator_ge_le'
@@ -238,7 +214,6 @@ begin
   { simpa only [ennreal.of_real_eq_zero, not_le, ne.def] },
 end
 
--- move
 lemma snorm_le_snorm_of_measure_le {m : measurable_space α} {f : α → β} {μ ν : measure α}
   (hμν : μ ≤ ν) : snorm f p μ ≤ snorm f p ν :=
 begin
@@ -322,8 +297,8 @@ begin
   refine snorm_congr_ae (restrict_ae_eq_of_ae_eq heq),
 end
 
-lemma unif_integrable_subsingleton [subsingleton ι] (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
-  {f : ι → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
+lemma unif_integrable_subsingleton [subsingleton ι]
+  (hp_one : 1 ≤ p) (hp_top : p ≠ ∞) {f : ι → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
   unif_integrable f p μ :=
 begin
   intros ε hε,
@@ -400,13 +375,6 @@ begin
       { exact hμs h'.1 },
       { exact (measure_lt_top μ s).ne h'.1 } } }
 end
-
--- We can remove the measurability assumption so this lemma should be private once we have
--- generalized it
-
--- To generalize the below to convergence in measure we need that convergence in measure implies
--- existence of convergent a.e. subsequence
--- We have this now: `tendsto_in_measure.exists_seq_tendsto_ae`
 
 /-- A sequence of uniformly integrable functions which converges μ-a.e. converges in Lp. -/
 lemma tendsto_Lp_of_tendsto_ae (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
@@ -486,41 +454,95 @@ section
 open filter
 
 -- a sequence is convergent if and only if every subsequence has a convergent subsequence
-lemma tendsto_at_top_of_seq_tendsto_at_top {α : Type*} [topological_space α] (x : ℕ → α) (y : α)
-  (hxy : ∀ ns : ℕ → ℕ, strict_mono ns → ∃ ms : ℕ → ℕ, strict_mono ms ∧
-    tendsto (λ n, x (ns $ ms n)) at_top (nhds y)) :
-  tendsto (λ n, x n) at_top (nhds y) :=
+lemma tendsto_at_top_of_seq_tendsto_at_top
+  {α : Type*} [topological_space α] {x : ℕ → α} {y : α}
+  (hxy : ∀ ns : ℕ → ℕ, tendsto ns at_top at_top →
+    ∃ ms : ℕ → ℕ, tendsto (λ n, x (ns $ ms n)) at_top (𝓝 y)) :
+  tendsto (λ n, x n) at_top (𝓝 y) :=
 begin
-  sorry
+  by_contra h,
+  obtain ⟨s, hs, hfreq⟩ : ∃ s ∈ 𝓝 y, ∃ᶠ n in at_top, x n ∉ s,
+  { by_contra h', push_neg at h',
+    simp_rw frequently_at_top at h',
+    refine h (λ s hs, _),
+    specialize h' s hs,
+    push_neg at h',
+    exact mem_at_top_sets.2 h' },
+  choose ns hge hns using frequently_at_top.1 hfreq,
+  obtain ⟨ms, hns'⟩ := hxy ns (tendsto_at_top_mono hge tendsto_id),
+  obtain ⟨a, ha⟩ := (tendsto_at_top'.1 hns') s hs,
+  exact hns (ms a) (ha a le_rfl),
+end
+
+lemma tendsto_at_top_of_seq_tendsto_at_top'
+  {α : Type*} [topological_space α] {x : ℕ → α} {y : α}
+  (hxy : ∀ ns : ℕ → ℕ, strict_mono ns →
+    ∃ ms : ℕ → ℕ, tendsto (λ n, x (ns $ ms n)) at_top (𝓝 y)) :
+  tendsto (λ n, x n) at_top (𝓝 y) :=
+begin
+  refine tendsto_at_top_of_seq_tendsto_at_top (λ ns hns, _),
+  obtain ⟨ms, hms⟩ := strict_mono_subseq_of_tendsto_at_top hns,
+  obtain ⟨os, hos⟩ := hxy _ hms.2,
+  exact ⟨ms ∘ os, hos⟩,
 end
 
 end
 
-lemma tendsto_Lp_of_tendsto_in_measure (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
+variables {f : ℕ → α → β} {g : α → β}
+
+/-- Forward direction of Vitali's convergence theorem: if `f` is a sequence of uniformly integrable
+functions that converge in measure to some function `g` in a finite measure space, then `f`
+converge in Lp to `g`. -/
+lemma tendsto_Lp_of_tendsto_in_measure (hp : 1 ≤ p) (hp' : p ≠ ∞)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g)
   (hg' : mem_ℒp g p μ) (hui : unif_integrable f p μ)
-  (hfg : tendsto_in_measure μ f g) :
+  (hfg : tendsto_in_measure μ f at_top g) :
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
 begin
-  refine tendsto_at_top_of_seq_tendsto_at_top _ _ (λ ns hns, _),
-  -- obtain ⟨ms, hms, hms'⟩ := hfg.exists_seq_tendsto_ae,
-  -- refine ⟨ms, hms, _⟩,
-  sorry
+  refine tendsto_at_top_of_seq_tendsto_at_top' (λ ns hns, _),
+  obtain ⟨ms, hms, hms'⟩ := tendsto_in_measure.exists_seq_tendsto_ae
+    (λ ε hε, (hfg ε hε).comp hns.tendsto_at_top),
+  exact ⟨ms, tendsto_Lp_of_tendsto_ae μ hp hp' (λ _, hf _) hg hg'
+    (λ ε hε, let ⟨δ, hδ, hδ'⟩ := hui hε in ⟨δ, hδ, λ i s hs hμs, hδ' _ s hs hμs⟩) hms'⟩,
 end
 
-lemma unif_integrable_of_tendsto_Lp {f : ℕ → α → β} {g : α → β}
+lemma unif_integrable_of_tendsto_Lp (hp : 1 ≤ p) (hp' : p ≠ ∞)
   (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
   unif_integrable f p μ :=
 begin
-  sorry
+  intros ε hε,
+  rw ennreal.tendsto_at_top ennreal.zero_ne_top at hfg,
+  swap, apply_instance,
+  obtain ⟨N, hN⟩ := hfg (ennreal.of_real ε / 2) (by simpa),
+  set F : fin N → α → β := λ n, f n,
+  have hF : ∀ n, mem_ℒp (F n) p μ := λ n, hf n,
+  set G : punit → α → β := λ t, g,
+  have hG : ∀ t, mem_ℒp (G t) p μ := λ t, hg,
+  obtain ⟨δ₁, hδpos₁, hδ₁⟩ := unif_integrable_fin μ hp hp' hF (half_pos hε),
+  obtain ⟨δ₂, hδpos₂, hδ₂⟩ :=
+    unif_integrable_subsingleton μ hp hp' hG (half_pos hε),
+  refine ⟨min δ₁ δ₂, lt_min hδpos₁ hδpos₂, λ n s hs hμs, _⟩,
+  by_cases hn : n < N,
+  { specialize hδ₁ ⟨n, hn⟩,
+    sorry
+
+  },
+  { calc snorm (indicator s (f n)) p μ = snorm (indicator s ((f n) - g + g)) p μ : sorry
+    ... ≤ ennreal.of_real ε : sorry },
 end
 
-lemma ae_tendsto_of_tendsto_Lp {f : ℕ → α → β} {g : α → β}
-  (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ)
-  (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
-  tendsto_in_measure μ f g :=
-sorry
+-- /-- **Vitali's convergence theorem**: A sequence of functions `f` converges to `g` in Lp if and
+-- only if it is uniformly integrable and converges to `g` in measure. -/
+-- lemma tendsto_in_measure_iff_tendsto_Lp (hp : 1 ≤ p) (hp' : p ≠ ∞)
+--   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hg' : mem_ℒp g p μ) :
+--   tendsto_in_measure μ f at_top g ∧ unif_integrable f p μ ↔
+--   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
+-- ⟨λ h, tendsto_Lp_of_tendsto_in_measure μ hp hp' hf hg hg' h.2 h.1,
+--   λ h, ⟨tendsto_in_measure_of_tendsto_snorm
+--     (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm
+--     (λ n, (hf n).ae_measurable)
+--     hg.ae_measurable h, unif_integrable_of_tendsto_Lp μ h⟩⟩
 
 end unif_integrable
 

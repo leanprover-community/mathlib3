@@ -507,7 +507,8 @@ begin
 end
 
 lemma unif_integrable_of_tendsto_Lp (hp : 1 ≤ p) (hp' : p ≠ ∞)
-  (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g)
+  (hf' : ∀ n, mem_ℒp (f n) p μ) (hg' : mem_ℒp g p μ)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
   unif_integrable f p μ :=
 begin
@@ -516,34 +517,45 @@ begin
   swap, apply_instance,
   obtain ⟨N, hN⟩ := hfg (ennreal.of_real ε / 2) (by simpa),
   set F : fin N → α → β := λ n, f n,
-  have hF : ∀ n, mem_ℒp (F n) p μ := λ n, hf n,
+  have hF : ∀ n, mem_ℒp (F n) p μ := λ n, hf' n,
   set G : punit → α → β := λ t, g,
-  have hG : ∀ t, mem_ℒp (G t) p μ := λ t, hg,
-  obtain ⟨δ₁, hδpos₁, hδ₁⟩ := unif_integrable_fin μ hp hp' hF (half_pos hε),
+  have hG : ∀ t, mem_ℒp (G t) p μ := λ t, hg',
+  obtain ⟨δ₁, hδpos₁, hδ₁⟩ := unif_integrable_fin μ hp hp' hF hε,
   obtain ⟨δ₂, hδpos₂, hδ₂⟩ :=
     unif_integrable_subsingleton μ hp hp' hG (half_pos hε),
   refine ⟨min δ₁ δ₂, lt_min hδpos₁ hδpos₂, λ n s hs hμs, _⟩,
   by_cases hn : n < N,
-  { specialize hδ₁ ⟨n, hn⟩,
-    sorry
-
-  },
-  { calc snorm (indicator s (f n)) p μ = snorm (indicator s ((f n) - g + g)) p μ : sorry
-    ... ≤ ennreal.of_real ε : sorry },
+  { exact hδ₁ ⟨n, hn⟩ s hs (le_trans hμs (ennreal.of_real_le_of_real $ min_le_left _ _)) },
+  { calc snorm (s.indicator (f n)) p μ = snorm (s.indicator (f n - g + g)) p μ : by simp
+    ... ≤ snorm (s.indicator (f n - g)) p μ + snorm (s.indicator g) p μ :
+      begin
+        convert (snorm_add_le (((hf _).sub hg).indicator hs).ae_measurable
+          (hg.indicator hs).ae_measurable hp),
+        exact indicator_add s (f n - g) g,
+      end
+    ... ≤ ennreal.of_real ε / 2 + ennreal.of_real (ε / 2) :
+      begin
+        refine add_le_add _ (hδ₂ punit.star s hs
+            (le_trans hμs (ennreal.of_real_le_of_real $ min_le_right _ _))),
+        specialize hN n (not_lt.1 hn),
+        simp only [zero_tsub, zero_add, mem_Icc, zero_le, true_and] at hN,
+        exact le_trans (snorm_indicator_le _) hN
+      end
+    ... ≤ ennreal.of_real ε : by simp [ennreal.of_real_div_of_pos (by norm_num : (0 : ℝ) < 2)] },
 end
 
--- /-- **Vitali's convergence theorem**: A sequence of functions `f` converges to `g` in Lp if and
--- only if it is uniformly integrable and converges to `g` in measure. -/
--- lemma tendsto_in_measure_iff_tendsto_Lp (hp : 1 ≤ p) (hp' : p ≠ ∞)
---   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) (hg' : mem_ℒp g p μ) :
---   tendsto_in_measure μ f at_top g ∧ unif_integrable f p μ ↔
---   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
--- ⟨λ h, tendsto_Lp_of_tendsto_in_measure μ hp hp' hf hg hg' h.2 h.1,
---   λ h, ⟨tendsto_in_measure_of_tendsto_snorm
---     (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm
---     (λ n, (hf n).ae_measurable)
---     hg.ae_measurable h, unif_integrable_of_tendsto_Lp μ h⟩⟩
-
+/-- **Vitali's convergence theorem**: A sequence of functions `f` converges to `g` in Lp if and
+only if it is uniformly integrable and converges to `g` in measure. -/
+lemma tendsto_in_measure_iff_tendsto_Lp (hp : 1 ≤ p) (hp' : p ≠ ∞)
+  (hf : ∀ n, measurable (f n)) (hg : measurable g)
+  (hf' : ∀ n, mem_ℒp (f n) p μ) (hg' : mem_ℒp g p μ) :
+  tendsto_in_measure μ f at_top g ∧ unif_integrable f p μ ↔
+  tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
+⟨λ h, tendsto_Lp_of_tendsto_in_measure μ hp hp' hf hg hg' h.2 h.1,
+  λ h, ⟨tendsto_in_measure_of_tendsto_snorm
+    (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm
+    (λ n, (hf n).ae_measurable)
+    hg.ae_measurable h, unif_integrable_of_tendsto_Lp μ hp hp' hf hg hf' hg' h⟩⟩
 end unif_integrable
 
 variables {f : ι → α → β} {p : ℝ≥0∞}

@@ -194,22 +194,6 @@ def normalize (B : Type u) [quiver.{v+1} B] :
   map_id    := λ a, iso.refl nil,
   map_comp  := λ a b c f g, eq_to_iso (normalize_aux_nil_comp f g) }
 
-@[simp] lemma normalize_obj : (normalize B).obj = id := rfl
-@[simp] lemma normalize_map_hom_of {a b : B} (f : a ⟶ b) :
-  (normalize B).map (hom.of f) = nil.cons f := rfl
-@[simp] lemma normalize_map_hom_id (a : B) :
-  (normalize B).map (hom.id a) = nil := rfl
-@[simp] lemma normalize_map_hom_comp {a b c : B} (f : hom a b) (g : hom b c) :
-  (normalize B).map (f.comp g) =
-    ((normalize B).map f).comp ((normalize B).map g) := normalize_aux_nil_comp f g
-@[simp] lemma normalize_map₂ {a b : B} {f g : hom a b} (η : f ⟶ g) :
-  (normalize B).map₂ η = eq_to_hom (normalize_aux_congr nil η) := rfl
-@[simp] lemma normalize_map₂' {a b : free_bicategory B} {f g : a ⟶ b} (η : f ⟶ g) :
-  (normalize B).map₂ η = eq_to_hom (normalize_aux_congr nil η) := rfl
-@[simp] lemma normalize_map_id (a : B) : (normalize B).map_id a = iso.refl nil := rfl
-@[simp] lemma normalize_map_comp {a b c : B} (f : hom a b) (g : hom b c) :
-  (normalize B).map_comp f g = eq_to_iso (normalize_aux_nil_comp f g) := rfl
-
 /-- Auxiliary definition for `normalize_equiv`. -/
 def normalize_unit_iso (a b : free_bicategory B) :
   𝟭 (a ⟶ b) ≅ (normalize B).map_functor a b ⋙ inclusion_path a b :=
@@ -247,19 +231,6 @@ def inclusion (B : Type u) [quiver.{v+1} B] :
   map_comp  := λ a b c f g, inclusion_map_comp_aux f g,
   -- All the conditions for 2-morphisms are trivial thanks to the coherence theorem!
   .. preinclusion B }
-
-@[simp] lemma inclusion_obj : (inclusion B).obj = id := rfl
-@[simp] lemma inclusion_map_nil (a : B) : (inclusion B).map nil = hom.id a := rfl
-@[simp] lemma inclusion_map_cons {a b c : B} (p : path a b) (q : b ⟶ c) :
-  (inclusion B).map (p.cons q) = ((inclusion B).map p).comp (hom.of q) := rfl
-@[simp] lemma inclusion_map₂ {a b : B} (p q : discrete (path.{v+1} a b)) (h : p ⟶ q) :
-  (inclusion B).map₂ h = eq_to_hom (congr_arg _ (discrete.eq_of_hom h)) := rfl
-@[simp] lemma inclusion_map_id (a : B) : (inclusion B).map_id a = iso.refl (𝟙 a) := rfl
-@[simp] lemma inclusion_map_comp_nil {a b : B} (f : path a b) :
-  (inclusion B).map_comp f nil = (ρ_ ((inclusion B).map (f.comp nil))).symm := rfl
-@[simp] lemma inclusion_map_comp_cons {a b c d : B} (p : path a b) (q : path b c) (f : c ⟶ d) :
-  (inclusion B).map_comp p (q.cons f) =
-    whisker_right_iso ((inclusion B).map_comp p q) (hom.of f) ≪≫ α_ _ _ _ := rfl
 
 end free_bicategory
 

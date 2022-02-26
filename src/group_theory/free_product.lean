@@ -337,6 +337,9 @@ end word
 
 variable (M)
 
+/-- A `neword M i j` is a representation of a non-empty reduced words where the first letter comes
+from `M i` and the last letter comes from `M j`. It can be constructed from singletons and via
+concatentation, and thus provides a useful induction principle. -/
 @[nolint has_inhabited_instance]
 inductive neword : ι → ι → Type (max u_1 u_2)
 | singleton : ∀ {i} (x : M i) (hne1 : x ≠ 1), neword i i
@@ -347,6 +350,7 @@ namespace neword
 
 open word
 
+/-- The list represented by a given `neword` -/
 @[simp]
 def to_list : Π {i j} (w : neword M i j), list (Σ i, M i)
 | i _ (singleton x hne1) := [⟨i, x⟩]
@@ -355,11 +359,13 @@ def to_list : Π {i j} (w : neword M i j), list (Σ i, M i)
 lemma to_list_ne_nil {i j} (w : neword M i j) : w.to_list ≠ list.nil :=
 by { induction w, { rintros ⟨rfl⟩ }, { apply list.append_ne_nil_of_ne_nil_left, assumption,} }
 
+/--  The first letter of a `neword` -/
 @[simp]
 def head : Π {i j} (w : neword M i j), M i
 | i _ (singleton x hne1) := x
 | _ _ (append w₁ hne w₂) := w₁.head
 
+/--  The last letter of a `neword` -/
 @[simp]
 def last : Π {i j} (w : neword M i j), M j
 | i _ (singleton x hne1) := x
@@ -385,6 +391,7 @@ begin
   { exact list.last'_append w_ih_w₂, },
 end
 
+/-- The `word M` represented by a `neword M i j` -/
 def to_word {i j} (w : neword M i j) : word M :=
 { to_list := w.to_list,
   ne_one :=
@@ -410,6 +417,7 @@ def to_word {i j} (w : neword M i j) : word M :=
       exact w_hne, },
   end, }
 
+/-- Every nonempty `word M` can be constructed as a `neword M i j` -/
 lemma of_word (w : word M) (h : w ≠ empty) :
   ∃ i j (w' : neword M i j), w'.to_word = w :=
 begin
@@ -430,6 +438,7 @@ begin
       { simpa [to_word] using hw', } } }
 end
 
+/-- A non-empty reduced word determines an element of the free product, given by multiplication. -/
 def prod {i j} (w : neword M i j) := w.to_word.prod
 
 @[simp]
@@ -444,7 +453,6 @@ lemma singleton_last {i} (x : M i) (hne_one : x ≠ 1) :
   (singleton x hne_one).prod = of x :=
 by simp [to_word, prod, word.prod]
 
-
 @[simp]
 lemma append_head {i j k l} {w₁ : neword M i j} {hne : j ≠ k} {w₂ : neword M k l} :
   (append w₁ hne w₂).head = w₁.head := rfl
@@ -458,6 +466,8 @@ lemma append_prod {i j k l} {w₁ : neword M i j} {hne : j ≠ k} {w₂ : neword
   (append w₁ hne w₂).prod = w₁.prod * w₂.prod :=
 by simp [to_word, prod, word.prod]
 
+/-- One can replace the first letter in a non-empty reduced word by an element of the same
+group -/
 def replace_head : Π {i j : ι} (x : M i) (hnotone : x ≠ 1) (w : neword M i j), neword M i j
 | _ _ x h (singleton _ _) := singleton x h
 | _ _ x h (append w₁ hne w₂) := append (replace_head x h w₁) hne w₂
@@ -467,6 +477,8 @@ lemma replace_head_head {i j : ι} (x : M i) (hnotone : x ≠ 1) (w : neword M i
   (replace_head x hnotone w).head = x :=
 by { induction w, refl, exact w_ih_w₁ _ _, }
 
+/-- One can multiply an element from the left to a non-empty reduced word if it does not cancel
+with the first element in the word. -/
 def mul_head {i j : ι} (w : neword M i j) (x : M i) (hnotone : x * w.head ≠ 1) :
   neword M i j := replace_head (x * w.head) hnotone w
 
@@ -491,6 +503,7 @@ section group
 
 variables {G : ι → Type*} [Π i, group (G i)]
 
+/-- The inverse of a non-empty reduced word -/
 def inv : Π {i j} (w : neword G i j), neword G j i
 | _ _ (singleton x h) := singleton x⁻¹ (mt inv_eq_one.mp h)
 | _ _ (append w₁ h w₂) := append w₂.inv h.symm w₁.inv
@@ -629,7 +642,7 @@ end
 /--
 The Ping-Pong-Lemma.
 
-If a group action of `G` on `X` so that the `H i` acts in a specific way on disjoint subsets
+Given a group action of `G` on `X` so that the `H i` acts in a specific way on disjoint subsets
 `X i` we can prove that `lift f` is injective, and thus the image of `lift f` is isomorphic to the
 direct product of the `H i`.
 

@@ -119,12 +119,12 @@ g.to_monoid_hom.map_prod f s
 
 lemma ring_hom.map_list_prod [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
   f l.prod = (l.map f).prod :=
-f.to_monoid_hom.map_list_prod l
+monoid_hom.map_list_prod f l
 
 lemma ring_hom.map_list_sum [non_assoc_semiring β] [non_assoc_semiring γ]
   (f : β →+* γ) (l : list β) :
   f l.sum = (l.map f).sum :=
-f.to_add_monoid_hom.map_list_sum l
+add_monoid_hom.map_list_sum f l
 
 /-- A morphism into the opposite ring acts on the product by acting on the reversed elements -/
 lemma ring_hom.unop_map_list_prod [semiring β] [semiring γ] (f : β →+* γᵐᵒᵖ) (l : list β) :

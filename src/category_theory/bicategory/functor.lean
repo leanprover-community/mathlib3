@@ -25,6 +25,23 @@ several constructors for pseudofunctors:
 * `pseudofunctor.mk_of_oplax'` : similar to `mk_of_oplax`, but uses `is_iso` to describe
   isomorphisms.
 
+The additional constructors are useful when constructing a pseudofunctor where the construction
+of the oplax functor associated with it is already done. For example, the composition of
+pseudofunctors can be defined by using the composition of oplax functors as follows:
+```lean
+def pseudofunctor.comp (F : pseudofunctor B C) (G : pseudofunctor C D) : pseudofunctor B D :=
+mk_of_oplax ((F : oplax_functor B C).comp G)
+{ map_id_iso := λ a, (G.map_functor _ _).map_iso (F.map_id a) ≪≫ G.map_id (F.obj a),
+  map_comp_iso := λ a b c f g,
+    (G.map_functor _ _).map_iso (F.map_comp f g) ≪≫ G.map_comp (F.map f) (F.map g) }
+```
+although the composition of pseudofunctors in this file is defined by using the default constructor
+because `obviously` is smart enough. Similarly, the composition is also defined by using
+`mk_of_oplax'` after giving appropriate instances for `is_iso`. The former constructor
+`mk_of_oplax` requires isomorphisms as data type `iso`, and so it is useful if you don't want
+to forget the definitions of the inverses. On the other hand, the latter constructor
+`mk_of_oplax'` is useful if you want to use propositional type class `is_iso`.
+
 ## Main definitions
 
 * `oplax_functor B C` : an oplax functor between bicategories `B` and `C`

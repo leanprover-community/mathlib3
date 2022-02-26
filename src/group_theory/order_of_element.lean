@@ -8,6 +8,7 @@ import algebra.iterate_hom
 import algebra.pointwise
 import dynamics.periodic_pts
 import group_theory.coset
+import group_theory.quotient_group
 
 /-!
 # Order of an element
@@ -67,6 +68,23 @@ lemma is_of_fin_order_of_add_iff :
 lemma is_of_fin_order_iff_pow_eq_one (x : G) :
   is_of_fin_order x ↔ ∃ n, 0 < n ∧ x ^ n = 1 :=
 by { convert iff.rfl, simp [is_periodic_pt_mul_iff_pow_eq_one] }
+
+/-- Elements of finite order are of finite order in subgroups.-/
+@[to_additive is_of_fin_add_order_iff_coe]
+lemma is_of_fin_order_iff_coe {G : Type u} [group G] (H : subgroup G) (x : H) :
+  is_of_fin_order x ↔ is_of_fin_order (x : G) :=
+by { rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one], norm_cast }
+
+variables 
+
+/-- Elements of finite order are of finite order in quotient groups.-/
+@[to_additive is_of_fin_add_order_iff_quotient]
+lemma is_of_fin_order.quotient {G : Type u} [group G] (N : subgroup G) [N.normal] (x : G) :
+  is_of_fin_order x → is_of_fin_order (x : G ⧸ N) := begin
+  rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one],
+  rintros ⟨n, ⟨npos, hn⟩⟩,
+  exact ⟨n, ⟨npos, (quotient_group.con N).eq.mpr $ hn ▸ (quotient_group.con N).eq.mp rfl⟩⟩,
+end
 
 end is_of_fin_order
 

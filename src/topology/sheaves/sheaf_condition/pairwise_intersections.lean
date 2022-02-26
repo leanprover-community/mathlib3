@@ -486,7 +486,7 @@ begin
       apply inter_union_pullback_cone_lift_right },
     all_goals
     { dsimp only [functor.op, pairwise.cocone_ι_app, functor.map_cone_π_app,
-        cocone.op, pairwise.cocone_ι_app_2, unop_op, op_comp],
+        cocone.op, pairwise.cocone_ι_app_2, unop_op, op_comp, nat_trans.op],
       simp_rw [F.1.map_comp, ← category.assoc],
       congr' 1,
       simp_rw [category.assoc, ← F.1.map_comp] },

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Yuma Mizuno. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yuma Mizuno
+Authors: Yuma Mizuno, Junyan Xu
 -/
 import category_theory.path_category
 import category_theory.fully_faithful

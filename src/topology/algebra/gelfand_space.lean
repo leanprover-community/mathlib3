@@ -21,10 +21,6 @@ variables (𝕜) (A)
 def gelfand_space :=
   {φ : weak_dual 𝕜 A | (φ 1 = 1) ∧ (∀ (x y : A), φ (x * y) = (φ x) * (φ y))}
 
-def foo := {n : ℕ | n = 0}
-
-example : has_coe foo ℕ := by apply_instance
-
 namespace gelfand_space
 
 instance : ring_hom_class (gelfand_space 𝕜 A) A 𝕜 :=

@@ -130,7 +130,7 @@ class fun_like (F : Sort*) (α : out_param Sort*) (β : out_param $ α → Sort*
 (coe_injective' : function.injective coe)
 
 instance subtype.fun_like (F : Sort*) (α : out_param Sort*) (β : out_param $ α → Sort*)
-  (p : F → Prop) [fun_like F α β] : fun_like (subtype p) α β :=
+  [fun_like F α β] (p : F → Prop) : fun_like (subtype p) α β :=
 { coe := fun_like.coe ∘ coe_subtype.coe,
   coe_injective' := function.injective.comp fun_like.coe_injective' subtype.coe_injective }
 

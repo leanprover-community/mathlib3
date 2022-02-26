@@ -266,10 +266,10 @@ begin
   rw [←this, multiset.to_finset_val, eq_comm, multiset.dedup_eq_self],
   apply nodup_roots,
   rw separable_def,
-  convert is_coprime_one_right.neg_right,
-  rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
-    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub],
-end
+  convert is_coprime_one_right.neg_right using 1,
+  { rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
+    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub], },
+  end
 
 instance : is_splitting_field (zmod p) K (X^q - X) :=
 { splits :=

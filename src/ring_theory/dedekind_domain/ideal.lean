@@ -675,6 +675,18 @@ theorem ideal.prime_iff_is_prime {P : ideal A} (hP : P ≠ ⊥) :
   prime P ↔ is_prime P :=
 ⟨ideal.is_prime_of_prime, ideal.prime_of_is_prime hP⟩
 
+lemma ideal.strict_anti_pow (I : ideal A) (hI0 : I ≠ ⊥) (hI1 : I ≠ ⊤) :
+  strict_anti ((^) I : ℕ → ideal A) :=
+strict_anti_nat_of_succ_lt $ λ e, ideal.dvd_not_unit_iff_lt.mp
+  ⟨pow_ne_zero _ hI0, I, mt is_unit_iff.mp hI1, pow_succ' I e⟩
+
+lemma ideal.pow_lt_self (I : ideal A) (hI0 : I ≠ ⊥) (hI1 : I ≠ ⊤) (e : ℕ) (he : 2 ≤ e) : I^e < I :=
+by convert I.strict_anti_pow hI0 hI1 he; rw pow_one
+
+lemma ideal.exists_mem_pow_not_mem_pow_succ (I : ideal A) (hI0 : I ≠ ⊥) (hI1 : I ≠ ⊤) (e : ℕ) :
+  ∃ x ∈ I^e, x ∉ I^(e+1) :=
+set_like.exists_of_lt (I.strict_anti_pow hI0 hI1 e.lt_succ_self)
+
 end is_dedekind_domain
 
 section is_dedekind_domain

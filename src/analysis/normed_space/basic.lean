@@ -9,6 +9,7 @@ import analysis.normed.group.infinite_sum
 import data.matrix.basic
 import topology.algebra.module.basic
 import topology.instances.ennreal
+import topology.instances.rat
 import topology.sequences
 
 /-!

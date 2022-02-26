@@ -21,23 +21,24 @@ generalize to bounded self-adjoint operators.
 
 variables {𝕜 E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [finite_dimensional 𝕜 E]
   [decidable_eq 𝕜]
+variables {n : ℕ} (hn : finite_dimensional.finrank 𝕜 E = n)
 
 namespace inner_product_space
+namespace is_self_adjoint
 
 variables {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
-variables {n : ℕ} (hn : finite_dimensional.finrank 𝕜 E = n)
 
 local notation `evec` := hT.eigenvector_basis hn
 local notation `eval` := hT.eigenvalues hn
 
-noncomputable def is_self_adjoint.sqrt : E →ₗ[𝕜] E :=
+noncomputable def sqrt : E →ₗ[𝕜] E :=
   basis.constr evec 𝕜 (λ (i : (fin n)), (real.sqrt(eval i) : 𝕜) • (evec i))
 
-lemma is_self_adjoint.sqrt_apply {i : (fin n)} :
+lemma sqrt_apply {i : (fin n)} :
   (hT.sqrt hn) (evec i) = (real.sqrt (eval i) : 𝕜) • (evec i) :=
     by simp only [is_self_adjoint.sqrt, (evec).constr_basis]
 
-lemma is_self_adjoint.sqrt_mul_self_eq (hnn : ∀ (i : (fin n)), eval i ≥ 0) :
+lemma sqrt_mul_self_eq (hnn : ∀ (i : (fin n)), eval i ≥ 0) :
   (hT.sqrt hn) * (hT.sqrt hn) = T :=
 begin
   apply basis.ext evec,
@@ -48,7 +49,7 @@ begin
   rw real.mul_self_sqrt (hnn i),
 end
 
-lemma is_self_adjoint.sqrt_self_adjoint : is_self_adjoint (hT.sqrt hn) :=
+lemma sqrt_self_adjoint : is_self_adjoint (hT.sqrt hn) :=
 begin
   rw [linear_map.is_self_adjoint_iff_eq_adjoint, linear_map.eq_adjoint_iff_basis (evec) (evec)],
   intros i j,
@@ -63,4 +64,5 @@ begin
   tauto,
 end
 
+end is_self_adjoint
 end inner_product_space

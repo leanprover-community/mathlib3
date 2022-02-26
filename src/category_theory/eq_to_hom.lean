@@ -24,7 +24,8 @@ This file introduces various `simp` lemmas which in favourable circumstances
 result in the various `eq_to_hom` morphisms to drop out at the appropriate moment!
 -/
 
-universes v₁ v₂ v₃ u₁ u₂ u₃-- morphism levels before object levels. See note [category_theory universes].
+universes v₁ v₂ v₃ u₁ u₂ u₃
+-- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
 open opposite

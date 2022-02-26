@@ -133,7 +133,8 @@ op_injective $
   ((star_mul_equiv : R ≃* Rᵐᵒᵖ).to_monoid_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
-@[simp] lemma star_div [comm_group R] [star_semigroup R] (x y : R) : star (x / y) = star x / star y :=
+@[simp] lemma star_div [comm_group R] [star_semigroup R] (x y : R) : 
+  star (x / y) = star x / star y :=
 (star_mul_aut : R ≃* R).to_monoid_hom.map_div _ _
 
 section

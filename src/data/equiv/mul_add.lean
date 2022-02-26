@@ -31,8 +31,7 @@ these are deprecated.
 equiv, mul_equiv, add_equiv
 -/
 
-variables {A : Type*} {B : Type*} {M : Type*} {N : Type*}
-  {P : Type*} {Q : Type*} {G : Type*} {H : Type*}
+variables {α β A B M N P Q G H : Type*}
 
 /-- Makes a multiplicative inverse from a bijection which preserves multiplication. -/
 @[to_additive "Makes an additive inverse from a bijection which preserves addition."]
@@ -113,6 +112,13 @@ instance [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N] :
        ... = e (inv e (1 : N)) : by rw [← map_mul, one_mul]
        ... = 1 : right_inv e 1,
   .. mul_equiv_class.mul_hom_class F }
+
+@[priority 100] -- See note [lower instance priority]
+instance to_monoid_with_zero_hom_class {α β : Type*} [mul_zero_one_class α]
+  [mul_zero_one_class β] [mul_equiv_class F α β] : monoid_with_zero_hom_class F α β :=
+{ map_zero := λ e, calc e 0 = e 0 * e (equiv_like.inv e 0) : by rw [←map_mul, zero_mul]
+                        ... = 0 : by { convert mul_zero _, exact equiv_like.right_inv e _ }
+  ..mul_equiv_class.monoid_hom_class _ }
 
 variables {F}
 

@@ -411,7 +411,6 @@ lemma prod_to_prod_Top_map {x₀ x₁ : πₓ A} {y₀ y₁ : πₓ B}
   @category_theory.functor.map _ _ _ _
   (prod_to_prod_Top A B) (x₀, y₀) (x₁, y₁) (p₀, p₁) = path.homotopic.prod p₀ p₁ := rfl
 
--- set_option pp.implicit true
 /--
 Shows `prod_to_prod_Top` is an isomorphism, whose inverse is precisely the product
 of the induced left and right projections.
@@ -426,7 +425,7 @@ def prod_iso : category_theory.Groupoid.of (πₓ A × πₓ B) ≅ πₓ (Top.o
     apply category_theory.functor.hext, { intros, ext; simp; refl, },
     rintros ⟨x₀, x₁⟩ ⟨y₀, y₁⟩ ⟨f₀, f₁⟩,
     have := and.intro (path.homotopic.proj_left_prod f₀ f₁) (path.homotopic.proj_right_prod f₀ f₁),
-    dsimp only [category_theory.Groupoid.bundled_of, category_theory.Groupoid.coe_of],
+    rw @category_theory.functor.id_map (category_theory.Groupoid.of (πₓ A × πₓ B)) _,
     simpa,
   end,
   inv_hom_id' :=

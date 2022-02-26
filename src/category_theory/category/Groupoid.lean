@@ -40,12 +40,8 @@ instance str (C : Groupoid.{v u}) : groupoid.{v u} C.α := C.str
 
 instance : has_coe_to_sort Groupoid Type* := bundled.has_coe_to_sort
 
-@[simp] lemma bundled_of (X : Groupoid) : X.α = X := rfl
-
 /-- Construct a bundled `Groupoid` from the underlying type and the typeclass. -/
 def of (C : Type u) [groupoid.{v} C] : Groupoid.{v u} := bundled.of C
-
-@[simp] lemma coe_of (X : Type u) [groupoid X] : (of X : Type u) = X := rfl
 
 /-- Category structure on `Groupoid` -/
 instance category : large_category.{max v u} Groupoid.{v u} :=

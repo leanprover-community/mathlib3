@@ -59,7 +59,7 @@ local attribute [instance] path.homotopic.setoid
 
 /- We let `X` and `Y` be spaces, and `f` and `g` be homotopic maps between them -/
 variables {X Y : Top.{u}} {f g : C(X, Y)} (H : continuous_map.homotopy f g)
-  {x₀ x₁ : X} (p : from_top x₀ ⟶ x₁)
+  {x₀ x₁ : X} (p : from_top x₀ ⟶ from_top x₁)
 
 /-!
 These definitions set up the following diagram, for each path `p`:
@@ -72,7 +72,7 @@ These definitions set up the following diagram, for each path `p`:
       *--------*
           g(p)
 
-Here, `H₀ = H.to_path x₀` is the path from `f(x₀)` to `g(x₀)`,
+Here, `H₀ = H.eval_at x₀` is the path from `f(x₀)` to `g(x₀)`,
 and similarly for `H₁`. Similarly, `f(p)` denotes the
 path in Y that the induced map `f` takes `p`, and similarly for `g(p)`.
 
@@ -106,9 +106,9 @@ def diagonal_path' : from_top (f x₀) ⟶ g x₁ :=
 hcast (H.apply_zero x₀).symm ≫ (H.diagonal_path p) ≫ hcast (H.apply_one x₁)
 
 /-- Proof that `f(p) = H(0 ⟶ 0, p)`, with the appropriate casts -/
-lemma apply_zero_path : (πₘ f).map p = hcast (H.apply_zero x₀).symm
-  ≫ (πₘ H.ulift_map).map (prod_to_prod_Top_I (𝟙 (ulift.up 0)) p)
-  ≫ hcast (H.apply_zero x₁) :=
+lemma apply_zero_path : (πₘ f).map p = hcast (H.apply_zero x₀).symm ≫
+(πₘ H.ulift_map).map (prod_to_prod_Top_I (𝟙 (ulift.up 0)) p) ≫
+hcast (H.apply_zero x₁) :=
 begin
   apply quotient.induction_on p,
   intro p',
@@ -117,9 +117,9 @@ begin
 end
 
 /-- Proof that `g(p) = H(1 ⟶ 1, p)`, with the appropriate casts -/
-lemma apply_one_path : (πₘ g).map p = hcast (H.apply_one x₀).symm
-  ≫ ((πₘ H.ulift_map).map (prod_to_prod_Top_I (𝟙 (ulift.up 1)) p))
-  ≫ hcast (H.apply_one x₁) :=
+lemma apply_one_path : (πₘ g).map p = hcast (H.apply_one x₀).symm ≫
+((πₘ H.ulift_map).map (prod_to_prod_Top_I (𝟙 (ulift.up 1)) p)) ≫
+hcast (H.apply_one x₁) :=
 begin
   apply quotient.induction_on p,
   intro p',
@@ -127,11 +127,11 @@ begin
   simp,
 end
 
-/-- Proof that `H.to_path x = H(0 ⟶ 1, x ⟶ x)`, with the appropriate casts -/
-lemma to_path_eq (x : X) : ⟦H.to_path x⟧ =
+/-- Proof that `H.eval_at x = H(0 ⟶ 1, x ⟶ x)`, with the appropriate casts -/
+lemma eval_at_eq (x : X) : ⟦H.eval_at x⟧ =
   hcast (H.apply_zero x).symm ≫
-  (πₘ H.ulift_map).map (prod_to_prod_Top_I uhpath01 (𝟙 x)) ≫
-  hcast (H.apply_one x) :=
+(πₘ H.ulift_map).map (prod_to_prod_Top_I uhpath01 (𝟙 x)) ≫
+hcast (H.apply_one x) :=
 begin
   dunfold prod_to_prod_Top_I uhpath01,
   simp only [id_eq_path_refl, prod_to_prod_Top_map, path.homotopic.prod_lift, map_eq,
@@ -141,10 +141,10 @@ end
 
 /- Finally, we show `d = f(p) ≫ H₁ = H₀ ≫ g(p)` -/
 lemma eq_diag_path :
-  (πₘ f).map p ≫ ⟦H.to_path x₁⟧ = H.diagonal_path' p ∧
-  (⟦H.to_path x₀⟧ ≫ (πₘ g).map p : from_top (f x₀) ⟶ g x₁) = H.diagonal_path' p :=
+  (πₘ f).map p ≫ ⟦H.eval_at x₁⟧ = H.diagonal_path' p ∧
+  (⟦H.eval_at x₀⟧ ≫ (πₘ g).map p : from_top (f x₀) ⟶ g x₁) = H.diagonal_path' p :=
 begin
-  rw [H.apply_zero_path, H.apply_one_path, H.to_path_eq, H.to_path_eq],
+  rw [H.apply_zero_path, H.apply_one_path, H.eval_at_eq, H.eval_at_eq],
   dunfold prod_to_prod_Top_I,
   split; { slice_lhs 2 5 { simp [← category_theory.functor.map_comp], }, refl, },
 end
@@ -161,7 +161,7 @@ variables {X Y : Top.{u}} {f g : C(X, Y)} (H : continuous_map.homotopy f g)
 /-- Given a homotopy H : f ∼ g, we have an associated natural isomorphism between the induced
 functors `f` and `g` -/
 def homotopic_maps_nat_iso : πₘ f ⟶ πₘ g :=
-{ app := λ x, ⟦H.to_path x⟧,
+{ app := λ x, ⟦H.eval_at x⟧,
   naturality' := λ x y p, by rw [(H.eq_diag_path p).1, (H.eq_diag_path p).2] }
 
 instance : is_iso (homotopic_maps_nat_iso H) := by apply nat_iso.is_iso_of_is_iso_app

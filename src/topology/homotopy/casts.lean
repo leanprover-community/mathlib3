@@ -29,7 +29,7 @@ section
 variables {X : Top} {x₀ x₁ x₀' x₁' : X} (p : path x₀ x₁)
 
 /-- Abbreviation for `eq_to_hom` that accepts points in a topological space -/
-abbreviation hcast (hx : x₀ = x₁) : from_top x₀ ⟶ x₁ := category_theory.eq_to_hom hx
+abbreviation hcast (hx : x₀ = x₁) : from_top x₀ ⟶ from_top x₁ := category_theory.eq_to_hom hx
 
 @[simp] lemma hcast_eq (hx₀ : x₀ = x₁) : hcast hx₀ = category_theory.eq_to_hom hx₀ := rfl
 

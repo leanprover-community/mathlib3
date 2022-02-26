@@ -27,11 +27,36 @@ open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
 section semi_normed_ring
 
+/-- A non-unital seminormed ring is a not-necessarily-unital ring
+endowed with a seminorm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
+class non_unital_semi_normed_ring (α : Type*)
+  extends has_norm α, non_unital_ring α, pseudo_metric_space α :=
+(dist_eq : ∀ x y, dist x y = norm (x - y))
+(norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
+
 /-- A seminormed ring is a ring endowed with a seminorm which satisfies the inequality
 `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
 class semi_normed_ring (α : Type*) extends has_norm α, ring α, pseudo_metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
+
+/-- A seminormed ring is a non-unital seminormed ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance semi_normed_ring.to_non_unital_semi_normed_ring [β : semi_normed_ring α] :
+  non_unital_semi_normed_ring α :=
+{ ..β }
+
+/-- A non-unital normed ring is a not-necessarily-unital ring
+endowed with a norm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
+class non_unital_normed_ring (α : Type*) extends has_norm α, non_unital_ring α, metric_space α :=
+(dist_eq : ∀ x y, dist x y = norm (x - y))
+(norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
+
+/-- A non-unital normed ring is a non-unital seminormed ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance non_unital_normed_ring.to_non_unital_semi_normed_ring [β : non_unital_normed_ring α] :
+  non_unital_semi_normed_ring α :=
+{ ..β }
 
 /-- A normed ring is a ring endowed with a norm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
 class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
@@ -41,6 +66,11 @@ class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 /-- A normed ring is a seminormed ring. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_semi_normed_ring [β : normed_ring α] : semi_normed_ring α :=
+{ ..β }
+
+/-- A normed ring is a non-unital normed ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance normed_ring.to_non_unital_normed_ring [β : normed_ring α] : non_unital_normed_ring α :=
 { ..β }
 
 /-- A seminormed commutative ring is a commutative ring endowed with a seminorm which satisfies
@@ -79,10 +109,10 @@ nnreal.eq norm_one
 instance semi_normed_comm_ring.to_comm_ring [β : semi_normed_comm_ring α] : comm_ring α := { ..β }
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
+instance normed_ring.to_normed_group [β : non_unital_normed_ring α] : normed_group α := { ..β }
 
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_ring.to_semi_normed_group [β : semi_normed_ring α] :
+instance semi_normed_ring.to_semi_normed_group [β : non_unital_semi_normed_ring α] :
   semi_normed_group α := { ..β }
 
 instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class α]
@@ -90,7 +120,8 @@ instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class
   norm_one_class (α × β) :=
 ⟨by simp [prod.norm_def]⟩
 
-variables [semi_normed_ring α]
+section
+variables [non_unital_semi_normed_ring α]
 
 lemma norm_mul_le (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 semi_normed_ring.norm_mul _ _
@@ -98,6 +129,8 @@ semi_normed_ring.norm_mul _ _
 lemma nnnorm_mul_le (a b : α) : ∥a * b∥₊ ≤ ∥a∥₊ * ∥b∥₊ :=
 by simpa only [←norm_to_nnreal, ←real.to_nnreal_mul (norm_nonneg _)]
   using real.to_nnreal_mono (norm_mul_le _ _)
+
+end
 
 /-- A subalgebra of a seminormed ring is also a seminormed ring, with the restriction of the norm.
 
@@ -113,6 +146,8 @@ See note [implicit instance arguments]. -/
 instance subalgebra.normed_ring {𝕜 : Type*} {_ : comm_ring 𝕜}
   {E : Type*} [normed_ring E] {_ : algebra 𝕜 E} (s : subalgebra 𝕜 E) : normed_ring s :=
 { ..s.semi_normed_ring }
+
+variables [semi_normed_ring α]
 
 lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.map norm).prod
 | [] h := (h rfl).elim

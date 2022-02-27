@@ -46,7 +46,7 @@ S.subtype.map_pow x n
 
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list S) :
   (l.prod : M) = (l.map coe).prod :=
-S.subtype.map_list_prod l
+monoid_hom.map_list_prod S.subtype l
 
 @[simp, norm_cast, to_additive] theorem coe_multiset_prod {M} [comm_monoid M] (S : submonoid M)
   (m : multiset S) : (m.prod : M) = (m.map coe).prod :=

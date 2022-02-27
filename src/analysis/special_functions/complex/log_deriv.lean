@@ -31,7 +31,7 @@ local_homeomorph.of_continuous_open
   map_source' :=
     begin
       rintro ⟨x, y⟩ ⟨h₁ : -π < y, h₂ : y < π⟩,
-      refine (not_or_of_imp $ λ hz, _).symm,
+      refine (imp.not_or $ λ hz, _).symm,
       obtain rfl : y = 0,
       { rw exp_im at hz,
         simpa [(real.exp_pos _).ne', real.sin_eq_zero_iff_of_lt_of_lt h₁ h₂] using hz },

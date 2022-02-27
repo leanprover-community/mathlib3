@@ -839,7 +839,7 @@ lemma not_have_lebesgue_decomposition_iff (s : signed_measure α)
   ¬ s.have_lebesgue_decomposition μ ↔
   ¬ s.to_jordan_decomposition.pos_part.have_lebesgue_decomposition μ ∨
   ¬ s.to_jordan_decomposition.neg_part.have_lebesgue_decomposition μ :=
-⟨λ h, not_or_of_imp (λ hp hn, h ⟨hp, hn⟩), λ h hl, (not_and_distrib.2 h) ⟨hl.1, hl.2⟩⟩
+⟨λ h, imp.not_or (λ hp hn, h ⟨hp, hn⟩), λ h hl, (not_and_distrib.2 h) ⟨hl.1, hl.2⟩⟩
 
 -- `infer_instance` directly does not work
 @[priority 100] -- see Note [lower instance priority]

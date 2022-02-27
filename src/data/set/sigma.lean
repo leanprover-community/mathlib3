@@ -40,7 +40,7 @@ lemma exists_sigma_iff {p : (Σ i, α i) → Prop} :
 
 @[simp] lemma sigma_empty : s.sigma (λ _, (∅ : set (α i))) = ∅ := ext $ λ _, and_false _
 @[simp] lemma empty_sigma : (∅ : set ι).sigma t = ∅ := ext $ λ _, false_and _
-@[simp] lemma univ_sigma_univ : (@univ ι).sigma (λ _, @univ (α i)) = univ := ext $ λ _, true_and _
+lemma univ_sigma_univ : (@univ ι).sigma (λ _, @univ (α i)) = univ := ext $ λ _, true_and _
 @[simp] lemma sigma_univ : s.sigma (λ _, univ : Π i, set (α i)) = sigma.fst ⁻¹' s :=
 ext $ λ _, and_true _
 
@@ -142,6 +142,6 @@ lemma fst_image_sigma (s : set ι) (ht : ∀ i, (t i).nonempty) : sigma.fst '' s
 (fst_image_sigma_subset _ _).antisymm $ λ i hi, let ⟨a, ha⟩ := ht i in ⟨⟨i, a⟩, ⟨hi, ha⟩, rfl⟩
 
 lemma sigma_diff_sigma : s₁.sigma t₁ \ s₂.sigma t₂ = s₁.sigma (t₁ \ t₂) ∪ (s₁ \ s₂).sigma t₁ :=
-ext $ λ x, by by_cases h₁ : x.1 ∈ s₁; by_cases h₂ : x.2 ∈ t₁ x.1; simp [*, or_not_iff_imp]
+ext $ λ x, by by_cases h₁ : x.1 ∈ s₁; by_cases h₂ : x.2 ∈ t₁ x.1; simp [*, ←imp_iff_or_not]
 
 end set

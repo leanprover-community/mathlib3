@@ -589,6 +589,9 @@ lemma nndist_smul [normed_space α β] (s : α) (x y : β) :
   nndist (s • x) (s • y) = ∥s∥₊ * nndist x y :=
 nnreal.eq $ dist_smul s x y
 
+lemma lipschitz_with_smul [normed_space α β] (s : α) : lipschitz_with ∥s∥₊ ((•) s : β → β) :=
+lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul, coe_nnnorm]
+
 lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) :
   ∥t • x∥ = t * ∥x∥ := by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
 

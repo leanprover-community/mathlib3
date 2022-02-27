@@ -131,7 +131,9 @@ begin
   by_cases hs₃ : sᶜ.card = 0,
   { rw [hs₃, nat.le_zero_iff],
     rw [finset.card_compl, tsub_eq_zero_iff_le, has_le.le.le_iff_eq (finset.card_le_univ _),
-        eq_comm, finset.card_eq_iff_eq_univ, hs₃, finset.eq_univ_iff_forall] at hs₃ ⊢,
+        eq_comm, finset.card_eq_iff_eq_univ] at hs₃ ⊢,
+    rw hs₃,
+    rw finset.eq_univ_iff_forall at hs₃ ⊢,
     exact λ p, exists.elim (exists_line p) -- If `s = univ`, then show `s.bUnion t = univ`
       (λ l hl, finset.mem_bUnion.mpr ⟨l, finset.mem_univ l, set.mem_to_finset.mpr hl⟩) },
   { exact hs₂.trans (nat.one_le_iff_ne_zero.mpr hs₃) }, -- If `s < univ`, then consequence of `hs₂`

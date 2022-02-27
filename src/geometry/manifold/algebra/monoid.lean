@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import geometry.manifold.times_cont_mdiff_map
+import geometry.manifold.cont_mdiff_map
 
 /-!
 # Smooth monoid
@@ -133,11 +133,11 @@ open_locale lie_group
 
 @[simp] lemma L_mul {G : Type*} [semigroup G] [topological_space G] [charted_space H G]
   [has_smooth_mul I G] (g h : G) : 𝑳 I (g * h) = (𝑳 I g).comp (𝑳 I h) :=
-by { ext, simp only [times_cont_mdiff_map.comp_apply, L_apply, mul_assoc] }
+by { ext, simp only [cont_mdiff_map.comp_apply, L_apply, mul_assoc] }
 
 @[simp] lemma R_mul {G : Type*} [semigroup G] [topological_space G] [charted_space H G]
   [has_smooth_mul I G] (g h : G) : 𝑹 I (g * h) = (𝑹 I h).comp (𝑹 I g) :=
-by { ext, simp only [times_cont_mdiff_map.comp_apply, R_apply, mul_assoc] }
+by { ext, simp only [cont_mdiff_map.comp_apply, R_apply, mul_assoc] }
 
 section
 

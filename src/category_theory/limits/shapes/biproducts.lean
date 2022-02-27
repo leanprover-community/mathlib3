@@ -435,8 +435,6 @@ def biproduct.unique_up_to_iso (f : J → C) [has_biproduct f] {b : bicone f} (h
   inv_hom_id' := by rw [← biproduct.cone_point_unique_up_to_iso_hom f hb,
     ← biproduct.cone_point_unique_up_to_iso_inv f hb, iso.inv_hom_id] }
 
-variables {C}
-
 /--
 A binary bicone for a pair of objects `P Q : C` consists of the cone point `X`,
 maps from `X` to both `P` and `Q`, and maps from both `P` and `Q` to `X`,
@@ -905,7 +903,10 @@ def biprod.unique_up_to_iso (X Y : C) [has_binary_biproduct X Y] {b : binary_bic
   inv_hom_id' := by rw [← biprod.cone_point_unique_up_to_iso_hom X Y hb,
     ← biprod.cone_point_unique_up_to_iso_inv X Y hb, iso.inv_hom_id] }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
 section
 variables [has_binary_biproducts C]
 
@@ -1152,9 +1153,12 @@ def is_binary_bilimit_of_total {X Y : C} (b : binary_bicone X Y)
 In a preadditive category, we can construct a binary biproduct for `X Y : C` from
 any binary bicone `b` satisfying `total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X`.
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> generalize_biproduct_of_product
+=======
+>>>>>>> origin/master
 (That is, such a bicone is a limit cone and a colimit cocone.)
 -/
 lemma has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)

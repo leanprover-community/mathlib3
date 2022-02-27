@@ -27,8 +27,8 @@ index subset `mv`.
 
 * `marginalization`: the marginal distribution is the marginalized joint distribution.
 * `marginalization_apply`: the marginal distribution's measure of a set `s : Π (i : mv), β i`
-is the joint distribution's measure of that same set, extended to allow the unmarginalized variables
-to take any value.
+is the joint distribution's measure of that same set, extended to allow the
+unmarginalized variables to take any value.
 
 ## Tags
 random variable, joint, marginal, marginalization
@@ -78,7 +78,8 @@ the unmarginalized variables to take any value. -/
 theorem marginal_apply (hm : ∀ i : ι, measurable (f i)) (mv : set ι)
   {s : set (Π i : mv, β i)} (hms : measurable_set s) :
   marginal μ f mv s = joint μ f (>[] s) :=
-by { rw [marginal_eq_marginalize_joint _ _ hm, marginalize, map_apply _ hms], apply measurable_pi_restrict }
+by { rw [marginal_eq_marginalize_joint _ _ hm, marginalize, map_apply _ hms],
+  apply measurable_pi_restrict }
 
 end marginal
 

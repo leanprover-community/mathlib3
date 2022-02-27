@@ -259,8 +259,8 @@ local attribute [simp]
   associator_naturality_left associator_naturality_middle associator_naturality_right
   left_unitor_naturality right_unitor_naturality pentagon
 
-lemma lift_hom₂_congr {a b : B} {f g : hom a b} {η η' : hom₂ f g} (H : rel η η') :
-  lift_hom₂ F η = lift_hom₂ F η' :=
+lemma lift_hom₂_congr {a b : B} {f g : hom a b} {η θ : hom₂ f g} (H : rel η θ) :
+  lift_hom₂ F η = lift_hom₂ F θ :=
 by induction H; tidy
 
 /--

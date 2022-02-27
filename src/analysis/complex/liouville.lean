@@ -5,6 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import analysis.complex.cauchy_integral
 import analysis.calculus.fderiv_analytic
+import analysis.normed_space.completion
 
 /-!
 # Liouville's theorem
@@ -24,8 +25,9 @@ open_locale topological_space filter nnreal real
 
 universes u v
 variables {E : Type u} [normed_group E] [normed_space ℂ E]
-  {F : Type v} [normed_group F] [normed_space ℂ F] [measurable_space F] [borel_space F]
-    [second_countable_topology F] [complete_space F]
+  {F : Type v} [normed_group F] [normed_space ℂ F] [second_countable_topology F]
+
+local postfix `̂`:100 := uniform_space.completion
 
 namespace complex
 
@@ -35,7 +37,8 @@ namespace complex
 TODO: add a version for `w ∈ metric.ball c R`.
 
 TODO: add a version for higher derivatives. -/
-lemma deriv_eq_smul_circle_integral {R : ℝ} {c : ℂ} {f : ℂ → F} (hR : 0 < R)
+lemma deriv_eq_smul_circle_integral [measurable_space F] [borel_space F] [complete_space F]
+  {R : ℝ} {c : ℂ} {f : ℂ → F} (hR : 0 < R)
   (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R)) :
   deriv f c = (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z :=
 begin
@@ -46,23 +49,43 @@ begin
     zpow_two, mul_inv₀]
 end
 
+lemma norm_deriv_le_aux [complete_space F] {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)
+  (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R))
+  (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
+  ∥deriv f c∥ ≤ C / R :=
+begin
+  letI : measurable_space F := borel F, haveI : borel_space F := ⟨rfl⟩,
+  have : ∀ z ∈ sphere c R, ∥(z - c) ^ (-2 : ℤ) • f z∥ ≤ C / (R * R),
+    from λ z (hz : abs (z - c) = R), by simpa [norm_smul, hz, zpow_two, ← div_eq_inv_mul]
+      using (div_le_div_right (mul_pos hR hR)).2 (hC z hz),
+  calc ∥deriv f c∥ = ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z∥ :
+    congr_arg norm (deriv_eq_smul_circle_integral hR hc hd)
+  ... ≤ R * (C / (R * R)) :
+    circle_integral.norm_two_pi_I_inv_smul_integral_le_of_norm_le_const hR.le this
+  ... = C / R : by rw [mul_div_comm, div_self_mul_self', div_eq_mul_inv]
+end
+
 /-- If `f` is continuous on a closed disc of radius `R`, is complex differentiable on its interior,
 and its values on the boundary circle of this disc are bounded from above by `C`, then the norm of
 its derivative at the center is at most `C / R`.
 
-TODO: drop unneeded assumptions `[complete_space F] [second_countable_topology F]`.  -/
+TODO: drop unneeded assumption `[second_countable_topology F]`.  -/
 lemma norm_deriv_le_of_forall_mem_sphere_norm_le {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)
   (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R))
   (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥deriv f c∥ ≤ C / R :=
-have ∀ z ∈ sphere c R, ∥(z - c) ^ (-2 : ℤ) • f z∥ ≤ C / (R * R),
-  from λ z (hz : abs (z - c) = R), by simpa [norm_smul, hz, zpow_two, ← div_eq_inv_mul]
-    using (div_le_div_right (mul_pos hR hR)).2 (hC z hz),
-calc ∥deriv f c∥ = ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z∥ :
-  congr_arg norm (deriv_eq_smul_circle_integral hR hc hd)
-... ≤ R * (C / (R * R)) :
-  circle_integral.norm_two_pi_I_inv_smul_integral_le_of_norm_le_const hR.le this
-... = C / R : by rw [mul_div_comm, div_self_mul_self', div_eq_mul_inv]
+begin
+  haveI : second_countable_topology (F̂) := uniform_space.second_countable_of_separable _,
+  set e : F →L[ℂ] F̂ := uniform_space.completion.to_complL,
+  have : has_deriv_at (e ∘ f) (e (deriv f c)) c,
+    from e.has_fderiv_at.comp_has_deriv_at c (hd.has_deriv_at $ ball_mem_nhds _ hR),
+  calc ∥deriv f c∥ = ∥deriv (e ∘ f) c∥ :
+    by { rw this.deriv, exact (uniform_space.completion.norm_coe _).symm }
+  ... ≤ C / R :
+    norm_deriv_le_aux hR (e.continuous.comp_continuous_on hc)
+      (e.differentiable.comp_differentiable_on hd)
+      (λ z hz, (uniform_space.completion.norm_coe _).trans_le (hC z hz))
+end
 
 /-- An auxiliary lemma for Liouville's theorem `differentiable.apply_eq_apply_of_bounded`. -/
 lemma liouville_theorem_aux {f : ℂ → F} (hf : differentiable ℂ f)

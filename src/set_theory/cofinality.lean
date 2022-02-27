@@ -186,8 +186,8 @@ begin
       { rwa [←typein_le_typein, typein_enum] } },
     apply @mk_le_of_injective S _ (λ s, classical.some s.prop) (λ s t hst, _),
     have := congr_arg f hst,
-    rwa [classical.some_spec s.prop, classical.some_spec t.prop, typein_inj,
-      subtype.coe_inj] at this },
+    rwa [classical.some_spec s.prop, classical.some_spec t.prop, typein_inj, subtype.coe_inj]
+      at this },
   { rcases cof_eq o.out.r with ⟨S, hS, hS'⟩,
     let f : S → ordinal := λ s, typein o.out.r s,
     refine ⟨S, f, le_antisymm (lsub_le.2 (λ i, typein_lt_self i)) (le_of_forall_lt (λ a ha, _)),

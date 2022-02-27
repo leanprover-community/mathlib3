@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
 import data.sum.order
-import order.conditionally_complete_lattice
 import order.succ_pred.basic
 import set_theory.cardinal
 
@@ -45,16 +44,13 @@ initial segment (or, equivalently, in any way). This total order is well founded
   we only introduce it and prove its basic properties to deduce the fact that the order on ordinals
   is total (and well founded).
 * `succ o` is the successor of the ordinal `o`.
-
 * `ordinal.min`: the minimal element of a nonempty indexed family of ordinals
-* `ordinal.omin` : the minimal element of a nonempty set of ordinals
-
 * `cardinal.ord c`: when `c` is a cardinal, `ord c` is the smallest ordinal with this cardinality.
   It is the canonical way to represent a cardinal with an ordinal.
 
 A conditionally complete linear order with bot structure is registered on ordinals, where `⊥` is
-`0`, the ordinal corresponding to the empty type, and `Inf` is `ordinal.omin` for nonempty sets
-and `0` for the empty set by convention.
+`0`, the ordinal corresponding to the empty type, and `Inf` is the minimum for nonempty sets and `0`
+for the empty set by convention.
 
 ## Notations
 * `r ≼i s`: the type of initial segment embeddings of `r` into `s`.
@@ -776,6 +772,9 @@ begin
   exact not_lt_of_le (ordinal.zero_le _) this
 end
 
+@[simp] theorem out_nonempty_iff_ne_zero {o : ordinal} : nonempty o.out.α ↔ o ≠ 0 :=
+by rw [←not_iff_not, ←not_is_empty_iff, not_not, not_not, out_empty_iff_eq_zero]
+
 instance : has_one ordinal :=
 ⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
 
@@ -1126,23 +1125,6 @@ theorem le_min {ι I} {f : ι → ordinal} {a} : a ≤ min I f ↔ ∀ i, a ≤ 
 ⟨λ h i, le_trans h (min_le _ _),
  λ h, let ⟨i, e⟩ := min_eq I f in e.symm ▸ h i⟩
 
-/-- The minimal element of a nonempty set of ordinals -/
-def omin (S : set ordinal.{u}) (H : ∃ x, x ∈ S) : ordinal.{u} :=
-@min.{(u+2) u} S (let ⟨x, px⟩ := H in ⟨⟨x, px⟩⟩) subtype.val
-
-theorem omin_mem (S H) : omin S H ∈ S :=
-let ⟨⟨i, h⟩, e⟩ := @min_eq S _ _ in
-(show omin S H = i, from e).symm ▸ h
-
-theorem le_omin {S H a} : a ≤ omin S H ↔ ∀ i ∈ S, a ≤ i :=
-le_min.trans set_coe.forall
-
-theorem omin_le {S H i} (h : i ∈ S) : omin S H ≤ i :=
-le_omin.1 (le_refl _) _ h
-
-theorem not_lt_omin {S H i} (h : i ∈ S) : ¬ i < omin S H :=
-not_lt_of_le (omin_le h)
-
 @[simp] theorem lift_min {ι} (I) (f : ι → ordinal) : lift (min I f) = min I (lift ∘ f) :=
 le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
 let ⟨i, e⟩ := min_eq I (lift ∘ f) in
@@ -1161,21 +1143,14 @@ not_lt_bot
 theorem eq_zero_or_pos : ∀ a : ordinal, a = 0 ∨ 0 < a :=
 eq_bot_or_bot_lt
 
-lemma Inf_eq_omin {s : set ordinal} (hs : s.nonempty) :
-  Inf s = omin s hs :=
-begin
-  simp only [Inf, conditionally_complete_lattice.Inf, omin, conditionally_complete_linear_order.Inf,
-    conditionally_complete_linear_order_bot.Inf, hs, dif_pos],
-  congr,
-  rw subtype.range_val,
-end
-
-lemma Inf_mem {s : set ordinal} (hs : s.nonempty) :
-  Inf s ∈ s :=
-by { rw Inf_eq_omin hs, exact omin_mem _ hs }
-
 instance : no_max_order ordinal :=
 ⟨λ a, ⟨a.succ, lt_succ_self a⟩⟩
+
+@[simp] theorem Inf_empty : Inf (∅ : set ordinal) = 0 :=
+begin
+  change dite _ (wf.min ∅) (λ _, 0) = 0,
+  simp only [not_nonempty_empty, not_false_iff, dif_neg]
+end
 
 end ordinal
 
@@ -1237,7 +1212,7 @@ quotient.induction_on c $ λ α,
 let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
 
 theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
-ord_le.2 (le_refl _)
+ord_le.2 le_rfl
 
 lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.ord :=
 by { rw [lt_ord], apply cardinal.lt_succ_self }

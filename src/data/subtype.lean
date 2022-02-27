@@ -91,11 +91,18 @@ ext_iff
 theorem coe_eq_iff {a : {a // p a}} {b : α} : ↑a = b ↔ ∃ h, a = ⟨b, h⟩ :=
 ⟨λ h, h ▸ ⟨a.2, (coe_eta _ _).symm⟩, λ ⟨hb, ha⟩, ha.symm ▸ rfl⟩
 
-theorem coe_injective : injective (coe : subtype p → α) :=
-λ a b, subtype.ext
+lemma coe_injective : injective (coe : subtype p → α) := λ a b, subtype.ext
+lemma val_injective : injective (@val _ p) := coe_injective
+lemma coe_inj {a b : subtype p} : (a : α) = b ↔ a = b := coe_injective.eq_iff
+lemma val_inj {a b : subtype p} : a.val = b.val ↔ a = b := coe_inj
 
-theorem val_injective : injective (@val _ p) :=
-coe_injective
+@[simp] lemma _root_.exists_eq_subtype_mk_iff {a : subtype p} {b : α} :
+  (∃ h : p b, a = subtype.mk b h) ↔ ↑a = b :=
+coe_eq_iff.symm
+
+@[simp] lemma _root_.exists_subtype_mk_eq_iff {a : subtype p} {b : α} :
+  (∃ h : p b, subtype.mk b h = a) ↔ b = a :=
+by simp only [@eq_comm _ b, exists_eq_subtype_mk_iff, @eq_comm _ _ a]
 
 /-- Restrict a (dependent) function to a subtype -/
 def restrict {α} {β : α → Type*} (f : Π x, β x) (p : α → Prop) (x : subtype p) : β x.1 :=

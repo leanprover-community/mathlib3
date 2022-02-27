@@ -127,4 +127,20 @@ end
 
 end group_with_zero
 
+section ring
+variables [ring R] [star_ring R]
+
+instance : has_neg (unitary R) :=
+{ neg := λ U, ⟨-U, by { simp_rw [mem_iff, star_neg, neg_mul_neg], exact U.prop }⟩ }
+
+@[norm_cast] lemma coe_neg (U : unitary R) : ↑(-U) = (-U : R) := rfl
+
+instance : has_distrib_neg (unitary R) :=
+{ neg := has_neg.neg,
+  neg_neg := λ U, subtype.ext $ neg_neg _,
+  neg_mul := λ U₁ U₂, subtype.ext $ neg_mul _ _,
+  mul_neg := λ U₁ U₂, subtype.ext $ mul_neg _ _ }
+
+end ring
+
 end unitary

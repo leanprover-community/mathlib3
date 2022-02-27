@@ -418,6 +418,15 @@ lemma Pi_congr_right_trans {η : Type*}
   (es : ∀ j, Ms j ≃* Ns j) (fs : ∀ j, Ns j ≃* Ps j) :
   (Pi_congr_right es).trans (Pi_congr_right fs) = (Pi_congr_right $ λ i, (es i).trans (fs i)) := rfl
 
+/-- A family indexed by a nonempty subsingleton type is equivalent to the element at the single
+index. -/
+@[to_additive add_equiv.Pi_subsingleton "A family indexed by a nonempty subsingleton type is
+equivalent to the element at the single index.", simps]
+def Pi_subsingleton
+  {ι : Type*} (M : ι → Type*) [Π j, has_mul (M j)] [subsingleton ι] (i : ι) :
+  (Π j, M j) ≃* M i :=
+{ map_mul' := λ f1 f2, pi.mul_apply _ _ _, ..equiv.Pi_subsingleton M i }
+
 /-!
 # Groups
 -/

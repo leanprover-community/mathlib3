@@ -56,17 +56,6 @@ end derived_series
 
 section commutator_map
 
-lemma map_commutator_eq_commutator_map (H₁ H₂ : subgroup G) :
-  ⁅H₁, H₂⁆.map f = ⁅H₁.map f, H₂.map f⁆ :=
-begin
-  rw [subgroup.commutator, subgroup.commutator, monoid_hom.map_closure],
-  apply le_antisymm; apply closure_mono,
-  { rintros _ ⟨x, ⟨p, hp, q, hq, rfl⟩, rfl⟩,
-    refine ⟨f p, mem_map.mpr ⟨p, hp, rfl⟩, f q, mem_map.mpr ⟨q, hq, rfl⟩, by simp *⟩, },
-  { rintros x ⟨_, ⟨p, hp, rfl⟩, _, ⟨q, hq, rfl⟩, rfl⟩,
-    refine ⟨p * q * p⁻¹ * q⁻¹, ⟨p, hp, q, hq, rfl⟩, by simp *⟩, },
-end
-
 lemma commutator_le_map_commutator {H₁ H₂ : subgroup G} {K₁ K₂ : subgroup G'} (h₁ : K₁ ≤ H₁.map f)
   (h₂ : K₂ ≤ H₂.map f) : ⁅K₁, K₂⁆ ≤ ⁅H₁, H₂⁆.map f :=
 by { rw map_commutator_eq_commutator_map, exact commutator_mono h₁ h₂ }

@@ -83,8 +83,8 @@ end
 def refl_trans_symm (p : path x₀ x₁) : homotopy (path.refl x₀) (p.trans p.symm) :=
 { to_fun := λ x, p ⟨refl_trans_symm_aux x, refl_trans_symm_aux_mem_I x⟩,
   continuous_to_fun := by continuity,
-  to_fun_zero := by norm_num [refl_trans_symm_aux],
-  to_fun_one := λ x, begin
+  map_zero_left' := by norm_num [refl_trans_symm_aux],
+  map_one_left' := λ x, begin
     dsimp only [refl_trans_symm_aux, path.coe_to_continuous_map, path.trans],
     change _ = ite _ _ _,
     split_ifs,
@@ -333,17 +333,17 @@ localized "notation `πₘ` := fundamental_groupoid.fundamental_groupoid_functor
 /-- Help the typechecker by converting a point in a groupoid back to a point in
 the underlying topological space. -/
 @[reducible]
-def to_top {X : Top} (x : (πₓ X).α) : X := x
+def to_top {X : Top} (x : πₓ X) : X := x
 
 /-- Help the typechecker by converting a point in a topological space to a
 point in the fundamental groupoid of that space -/
 @[reducible]
-def from_top {X : Top} (x : X) : (πₓ X).α := x
+def from_top {X : Top} (x : X) : πₓ X := x
 
 /-- Help the typechecker by converting an arrow in the fundamental groupoid of
 a topological space back to a path in that space (i.e., `path.homotopic.quotient`). -/
 @[reducible]
-def to_path {X : Top} {x₀ x₁ : (πₓ X).α} (p : x₀ ⟶ x₁) :
+def to_path {X : Top} {x₀ x₁ : πₓ X} (p : x₀ ⟶ x₁) :
   path.homotopic.quotient x₀ x₁ := p
 
 /-- Help the typechecker by convering a path in a topological space to an arrow in the

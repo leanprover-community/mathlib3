@@ -274,11 +274,16 @@ are defined by an action of `R` on `S` (formally, we have two scalar towers), th
 map from `M` to `M₂` is `R`-linear.
 
 See also `linear_map.map_smul_of_tower`. -/
-@[simps]
 def restrict_scalars (fₗ : M →ₗ[S] M₂) : M →ₗ[R] M₂ :=
 { to_fun := fₗ,
   map_add' := fₗ.map_add,
   map_smul' := fₗ.map_smul_of_tower }
+
+@[simp] lemma coe_restrict_scalars (fₗ : M →ₗ[S] M₂) : ⇑(restrict_scalars R fₗ) = fₗ :=
+rfl
+
+lemma restrict_scalars_apply (fₗ : M →ₗ[S] M₂) (x) : restrict_scalars R fₗ x = fₗ x :=
+rfl
 
 lemma restrict_scalars_injective :
   function.injective (restrict_scalars R : (M →ₗ[S] M₂) → (M →ₗ[R] M₂)) :=

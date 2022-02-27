@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Mario Carneiro
 -/
 import analysis.special_functions.trigonometric.basic
+import analysis.special_functions.trigonometric.bounds
 
 /-!
 # Pi

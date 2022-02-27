@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Scott Morrison
 -/
 import category_theory.preadditive
+import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.shapes.biproducts
 
 /-!
@@ -54,9 +55,9 @@ add_monoid_hom.mk' (λ f, F.map f) (λ f g, F.map_add)
 
 lemma coe_map_add_hom {X Y : C} : ⇑(F.map_add_hom : (X ⟶ Y) →+ _) = @map C _ D _ F X Y := rfl
 
-@[simp]
-lemma map_zero {X Y : C} : F.map (0 : X ⟶ Y) = 0 :=
-F.map_add_hom.map_zero
+@[priority 100]
+instance preserves_zero_morphisms_of_additive : preserves_zero_morphisms F :=
+{ map_zero' := λ X Y, F.map_add_hom.map_zero }
 
 instance : additive (𝟭 C) :=
 {}
@@ -83,16 +84,6 @@ open_locale big_operators
 lemma map_sum {X Y : C} {α : Type*} (f : α → (X ⟶ Y)) (s : finset α) :
   F.map (∑ a in s, f a) = ∑ a in s, F.map (f a) :=
 (F.map_add_hom : (X ⟶ Y) →+ _).map_sum f s
-
-open category_theory.limits
-open_locale zero_object
-
-/-- An additive functor takes the zero object to the zero object (up to isomorphism). -/
-@[simps]
-def map_zero_object [has_zero_object C] [has_zero_object D] : F.obj 0 ≅ 0 :=
-{ hom := 0,
-  inv := 0,
-  hom_inv_id' := by { rw ←F.map_id, simp, } }
 
 end
 

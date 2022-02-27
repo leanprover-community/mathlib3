@@ -744,7 +744,7 @@ end
 begin
   refine le_antisymm ((subgroup.closure_le _).2 _) ((subgroup.closure_le _).2 _),
   { exact inv_subset_closure S },
-  { simpa only [set.inv_inv] using inv_subset_closure S⁻¹ },
+  { simpa only [inv_inv] using inv_subset_closure S⁻¹ },
 end
 
 @[to_additive]
@@ -756,7 +756,7 @@ begin
     refine closure_induction hx (λ x hx, submonoid.closure_mono (subset_union_left S S⁻¹)
       (submonoid.subset_closure hx)) (submonoid.one_mem _) (λ x y hx hy, submonoid.mul_mem _ hx hy)
       (λ x hx, _),
-    rwa [←submonoid.mem_closure_inv, set.union_inv, set.inv_inv, set.union_comm] },
+    rwa [←submonoid.mem_closure_inv, set.union_inv, inv_inv, set.union_comm] },
   { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure, inv_subset_closure] }
 end
 
@@ -1160,7 +1160,7 @@ lemma le_pi_iff {I : set η} {H : Π i, subgroup (f i)} {J : subgroup (Π i, f i
 begin
   split,
   { intros h i hi, rintros _ ⟨x, hx, rfl⟩, exact (h hx) _ hi, },
-  { intros h x hx i hi, refine h i hi  ⟨_, hx, rfl⟩, }
+  { intros h x hx i hi, refine h i hi ⟨_, hx, rfl⟩, }
 end
 
 @[simp]
@@ -1220,7 +1220,7 @@ lemma pi_eq_bot_iff (H : Π i, subgroup (f i)) :
   pi set.univ H = ⊥ ↔ ∀ i, H i = ⊥ :=
 begin
   classical,
-  simp only [ eq_bot_iff_forall ],
+  simp only [eq_bot_iff_forall],
   split,
   { intros h i x hx,
     have : monoid_hom.single f i x = 1 :=

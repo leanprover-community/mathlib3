@@ -58,6 +58,8 @@ subgroup `G` of `G`, and `⊥` denotes the trivial subgroup `{1}`.
   `least_descending_central_series_length_eq_nilpotency_class` and
   `lower_central_series_length_eq_nilpotency_class`.
 * If `G` is nilpotent, then so are its subgroups, images, quotients and preimages.
+  Binary and finite products of nilpotent groups are nilpotent.
+  Infinite products are nilpotent if their nilpotent class is bounded.
   Corresponding lemmas about the `nilpotency_class` are provided.
 * The `nilpotency_class` of `G ⧸ center G` is given explicitly, and an induction principle
   is derived from that.
@@ -273,8 +275,7 @@ variable {G}
 
 @[simp] lemma lower_central_series_zero : lower_central_series G 0 = ⊤ := rfl
 
-@[simp] lemma lower_central_series_one : lower_central_series G 1 = commutator G :=
-by simp [lower_central_series]
+@[simp] lemma lower_central_series_one : lower_central_series G 1 = commutator G := rfl
 
 lemma mem_lower_central_series_succ_iff (n : ℕ) (q : G) :
   q ∈ lower_central_series G (n + 1) ↔
@@ -700,13 +701,53 @@ begin
   exact upper_central_series_eq_top_iff_nilpotency_class_le.mpr h,
 end
 
+section prod
+
+variables {G₁ G₂ : Type*} [group G₁] [group G₂]
+
+lemma lower_central_series_prod (n : ℕ):
+  lower_central_series (G₁ × G₂) n = (lower_central_series G₁ n).prod (lower_central_series G₂ n) :=
+begin
+  induction n with n ih,
+  { simp, },
+  { calc lower_central_series (G₁ × G₂) n.succ
+        = ⁅lower_central_series (G₁ × G₂) n, ⊤⁆  : rfl
+    ... = ⁅(lower_central_series G₁ n).prod (lower_central_series G₂ n), ⊤⁆ : by rw ih
+    ... = ⁅(lower_central_series G₁ n).prod (lower_central_series G₂ n), (⊤ : subgroup G₁).prod ⊤⁆ :
+      by simp
+    ... = ⁅lower_central_series G₁ n, (⊤ : subgroup G₁)⁆.prod ⁅lower_central_series G₂ n, ⊤⁆ :
+      general_commutator_prod_prod _ _ _ _
+    ... = (lower_central_series G₁ n.succ).prod (lower_central_series G₂ n.succ) : rfl }
+end
+
+/-- Products of nilpotent groups are nilpotent -/
+instance is_nilpotent_prod [is_nilpotent G₁] [is_nilpotent G₂] :
+  is_nilpotent (G₁ × G₂) :=
+begin
+  rw nilpotent_iff_lower_central_series,
+  refine ⟨max (group.nilpotency_class G₁) (group.nilpotency_class G₂), _ ⟩,
+  rw [lower_central_series_prod,
+    lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (le_max_left _ _),
+    lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (le_max_right _ _), bot_prod_bot],
+end
+
+/-- The nilpotency class of a product is the max of the nilpotency classes of the factors -/
+lemma nilpotency_class_prod [is_nilpotent G₁] [is_nilpotent G₂] :
+  group.nilpotency_class (G₁ × G₂) = max (group.nilpotency_class G₁) (group.nilpotency_class G₂) :=
+begin
+  refine eq_of_forall_ge_iff (λ k, _),
+  simp only [max_le_iff, ← lower_central_series_eq_bot_iff_nilpotency_class_le,
+    lower_central_series_prod, prod_eq_bot_iff ],
+end
+
+end prod
+
 section bounded_pi
 
 -- First the case of infinite products with bounded nilpotency class
 
 variables {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
 
-@[simp]
 lemma lower_central_series_pi_le (n : ℕ):
   lower_central_series (Π i, Gs i) n ≤ subgroup.pi set.univ (λ i, lower_central_series (Gs i) n) :=
 begin
@@ -730,8 +771,7 @@ begin
   refine ⟨n, _⟩,
   rw eq_bot_iff,
   apply le_trans (lower_central_series_pi_le _),
-  rw ← eq_bot_iff,
-  rw pi_eq_bot_iff,
+  rw [← eq_bot_iff, pi_eq_bot_iff],
   intros i,
   apply lower_central_series_eq_bot_iff_nilpotency_class_le.mpr (h i),
 end
@@ -744,7 +784,6 @@ section finite_pi
 
 variables {η : Type*} [fintype η] {Gs : η → Type*} [∀ i, group (Gs i)]
 
-@[simp]
 lemma lower_central_series_pi_of_fintype (n : ℕ):
   lower_central_series (Π i, Gs i) n = subgroup.pi set.univ (λ i, lower_central_series (Gs i) n) :=
 begin
@@ -765,8 +804,7 @@ instance is_nilpotent_pi [∀ i, is_nilpotent (Gs i)] :
 begin
   rw nilpotent_iff_lower_central_series,
   refine ⟨finset.univ.sup (λ i, group.nilpotency_class (Gs i)), _⟩,
-  rw lower_central_series_pi_of_fintype,
-  rw pi_eq_bot_iff,
+  rw [lower_central_series_pi_of_fintype, pi_eq_bot_iff],
   intros i,
   apply lower_central_series_eq_bot_iff_nilpotency_class_le.mpr,
   exact @finset.le_sup _ _ _ _ finset.univ (λ i, group.nilpotency_class (Gs i)) _
@@ -774,7 +812,7 @@ begin
 end
 
 /-- The nilpotency class of an n-ary product is the sup of the nilpotency classes of the factors -/
-lemma nilpotency_class_prod [∀ i, is_nilpotent (Gs i)] :
+lemma nilpotency_class_pi [∀ i, is_nilpotent (Gs i)] :
   group.nilpotency_class (Π i, Gs i) = finset.univ.sup (λ i, group.nilpotency_class (Gs i)) :=
 begin
   apply eq_of_forall_ge_iff,

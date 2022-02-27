@@ -22,15 +22,24 @@ import category_theory.equivalence
 
 ## Implementation notes
   - In order to be more universe polymorphic, we define `continuous_map.homotopy.ulift_map`
-  which lifts a homotopy from `I × X → Y` to `(Top.of ((ulift I) × X)) → Y`
+  which lifts a homotopy from `I × X → Y` to `(Top.of ((ulift I) × X)) → Y`. This is because
+  this construction uses `fundamental_groupoid_functor.prod_to_prod_Top` to convert between
+  pairs of paths in I and X and the corresponding path after passing through a homotopy `H`.
+  But `fundamental_groupoid_functor.prod_to_prod_Top` requires two spaces in the same universe.
 -/
 
 noncomputable theory
 
 universe u
 
-namespace unit_interval
+open fundamental_groupoid
+open category_theory
+open fundamental_groupoid_functor
+
+open_locale fundamental_groupoid
 open_locale unit_interval
+
+namespace unit_interval
 
 /-- The path 0 ⟶ 1 in I -/
 def path01 : path (0 : I) 1 := { to_fun := id, source' := rfl, target' := rfl }
@@ -46,13 +55,7 @@ def uhpath01 := @fundamental_groupoid.from_path (Top.of $ ulift.{u} I) _ _ ⟦up
 end unit_interval
 
 namespace continuous_map.homotopy
-open fundamental_groupoid
-open category_theory
 open unit_interval (uhpath01)
-open fundamental_groupoid_functor
-
-open_locale fundamental_groupoid
-open_locale unit_interval
 
 local attribute [instance] path.homotopic.setoid
 

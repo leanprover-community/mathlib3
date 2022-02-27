@@ -2000,6 +2000,14 @@ le_antisymm
   (λ b (hb : preimage m b ∈ f),
     ⟨preimage m b, hb, show preimage (m ∘ n) b ⊆ b, by simp only [h₁]; apply subset.refl⟩)
 
+lemma map_equiv_symm (e : α ≃ β) (f : filter β) :
+  map e.symm f = comap e f :=
+map_eq_comap_of_inverse e.symm_comp_self e.self_comp_symm
+
+lemma comap_equiv_symm (e : α ≃ β) (f : filter α) :
+  comap e.symm f = map e f :=
+(map_eq_comap_of_inverse e.self_comp_symm e.symm_comp_self).symm
+
 lemma map_swap_eq_comap_swap {f : filter (α × β)} : prod.swap <$> f = comap prod.swap f :=
 map_eq_comap_of_inverse prod.swap_swap_eq prod.swap_swap_eq
 

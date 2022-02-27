@@ -227,7 +227,7 @@ theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
 by simpa using cof_le_card c.ord
 
 @[simp] theorem cof_zero : cof 0 = 0 :=
-le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
+(cof_le_card 0).antisymm (cardinal.zero_le _)
 
 @[simp] theorem cof_eq_zero {o} : cof o = 0 ↔ o = 0 :=
 ⟨induction_on o $ λ α r _ z, by exactI

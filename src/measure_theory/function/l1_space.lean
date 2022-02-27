@@ -473,6 +473,14 @@ lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ℝ≥0
   integrable f (c • μ) :=
 by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.smul_measure hc, }
 
+lemma integrable.to_average {f : α → β} (h : integrable f μ) :
+  integrable f ((μ univ)⁻¹ • μ) :=
+begin
+  rcases eq_or_ne μ 0 with rfl|hne,
+  { rwa smul_zero },
+  { apply h.smul_measure, simpa }
+end
+
 lemma integrable_map_measure [opens_measurable_space β] {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=

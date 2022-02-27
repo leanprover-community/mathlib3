@@ -1112,24 +1112,6 @@ lemma mk_int : #ℤ = ω := mk_denumerable ℤ
 
 lemma mk_pnat : #ℕ+ = ω := mk_denumerable ℕ+
 
-lemma two_le_iff : (2 : cardinal) ≤ #α ↔ ∃x y : α, x ≠ y :=
-begin
-  split,
-  { rintro ⟨f⟩, refine ⟨f $ sum.inl ⟨⟩, f $ sum.inr ⟨⟩, _⟩, intro h, cases f.2 h },
-  { rintro ⟨x, y, h⟩, by_contra h',
-    rw [not_le, ←nat.cast_two, nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
-    apply h, exactI subsingleton.elim _ _ }
-end
-
-lemma two_le_iff' (x : α) : (2 : cardinal) ≤ #α ↔ ∃y : α, x ≠ y :=
-begin
-  rw [two_le_iff],
-  split,
-  { rintro ⟨y, z, h⟩, refine classical.by_cases (λ(h' : x = y), _) (λ h', ⟨y, h'⟩),
-    rw [←h'] at h, exact ⟨z, h⟩ },
-  { rintro ⟨y, h⟩, exact ⟨x, y, h⟩ }
-end
-
 /-- **König's theorem** -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
@@ -1362,6 +1344,43 @@ theorem le_mk_iff_exists_subset {c : cardinal} {α : Type u} {s : set α} :
 begin
   rw [le_mk_iff_exists_set, ←subtype.exists_set_subtype],
   apply exists_congr, intro t, rw [mk_image_eq], apply subtype.val_injective
+end
+
+lemma two_le_iff : (2 : cardinal) ≤ #α ↔ ∃x y : α, x ≠ y :=
+begin
+  split,
+  { rintro ⟨f⟩, refine ⟨f $ sum.inl ⟨⟩, f $ sum.inr ⟨⟩, _⟩, intro h, cases f.2 h },
+  { rintro ⟨x, y, h⟩, by_contra h',
+    rw [not_le, ←nat.cast_two, nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
+    apply h, exactI subsingleton.elim _ _ }
+end
+
+lemma two_le_iff' (x : α) : (2 : cardinal) ≤ #α ↔ ∃y : α, x ≠ y :=
+begin
+  rw [two_le_iff],
+  split,
+  { rintro ⟨y, z, h⟩, refine classical.by_cases (λ(h' : x = y), _) (λ h', ⟨y, h'⟩),
+    rw [←h'] at h, exact ⟨z, h⟩ },
+  { rintro ⟨y, h⟩, exact ⟨x, y, h⟩ }
+end
+
+lemma exists_not_mem_of_length_le {α : Type*} (l : list α) (h : ↑l.length < # α) :
+  ∃ (z : α), z ∉ l :=
+begin
+  contrapose! h,
+  calc # α = # (set.univ : set α) : mk_univ.symm
+    ... ≤ # l.to_finset           : mk_le_mk_of_subset (λ x _, list.mem_to_finset.mpr (h x))
+    ... = l.to_finset.card        : cardinal.mk_finset
+    ... ≤ l.length                : cardinal.nat_cast_le.mpr (list.to_finset_card_le l),
+end
+
+lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
+  ∃ (z : α), z ≠ x ∧ z ≠ y :=
+begin
+  have : ((3:nat) : cardinal) ≤ # α, simpa using h,
+  have : ((2:nat) : cardinal) < # α, rwa [← cardinal.succ_le, ← cardinal.nat_succ],
+  have := exists_not_mem_of_length_le [x, y] this,
+  simpa [not_or_distrib] using this,
 end
 
 /-- The function α^{<β}, defined to be sup_{γ < β} α^γ.

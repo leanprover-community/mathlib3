@@ -65,7 +65,7 @@ def cond (s : set α) : measure α :=
 end definitions
 
 local notation  μ `[` s `|` t `]` := cond μ t s
-local notation  μ `[|` t`]` := cond μ t
+local notation  μ `[|`:60 t`]` := cond μ t
 
 /-- The conditional probability measure of any finite measure on any set of positive measure
 is a probability measure. -/
@@ -85,10 +85,10 @@ by simp [cond, measure_univ, measure.restrict_univ]
 by { rw [cond, measure.smul_apply, measure.restrict_apply' hms, set.inter_comm], refl }
 
 lemma inter_pos_of_cond_pos {s t : set α} (hms : measurable_set s)
-  (hctcs : (μ[|s]) t ≠ 0) : μ (s ∩ t) ≠ 0 :=
+  (hcst : μ[t|s] ≠ 0) : μ (s ∩ t) ≠ 0 :=
 begin
   refine right_ne_zero_of_mul _, exact (μ s)⁻¹,
-  convert hctcs,
+  convert hcst,
   simp [hms, set.inter_comm]
 end
 
@@ -106,7 +106,7 @@ end
 on `s ∩ t`. -/
 @[simp] lemma cond_cond_eq_cond_inter {s : set α} {t : set α}
   (hms : measurable_set s) (hmt : measurable_set t) (hcs : μ s ≠ 0) (hci : μ (s ∩ t) ≠ 0) :
-  μ[|s][|t] = (μ[|(s ∩ t)]) :=
+  μ[|s][|t] = μ[|s ∩ t] :=
 begin
   apply measure.ext, intros,
   haveI := probability_theory.cond_is_probability_measure μ
@@ -125,9 +125,9 @@ by rw [cond_measure_apply μ hms t, mul_comm, ←mul_assoc,
 
 /-- Bayes' Theorem. -/
 theorem bayes (s : set α) (hms : measurable_set s)
-  (t : set α) (hmt : measurable_set t) (hct : μ t ≠ 0) :
+  (t : set α) (hmt : measurable_set t) (ht : μ t ≠ 0) :
   μ[t|s] = (μ s)⁻¹ * μ[s|t] * (μ t) :=
-by rw [mul_assoc, cond_mul_eq_inter μ hmt hct s, set.inter_comm, cond_measure_apply _ hms]
+by rw [mul_assoc, cond_mul_eq_inter μ hmt ht s, set.inter_comm, cond_measure_apply _ hms]
 
 end bayes
 

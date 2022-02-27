@@ -1095,7 +1095,7 @@ completeness is guaranteed when `β` is complete (see
 section normed_group
 
 variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
-variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_monoid β]
+variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_group β]
 variables [normed_space 𝕜 β] [star_module 𝕜 β]
 
 instance : star_add_monoid (α →ᵇ β) :=
@@ -1109,7 +1109,7 @@ instance `pi.has_star`. Upon inspecting the goal, one sees `⊢ ⇑(star f) = st
 
 @[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
 
-instance : normed_star_monoid (α →ᵇ β) :=
+instance : normed_star_group (α →ᵇ β) :=
 { norm_star := λ f, by
   { simp only [norm_eq], congr, ext, conv_lhs { find (∥_∥) { erw (@norm_star β _ _ _ (f x)) } } } }
 
@@ -1123,7 +1123,7 @@ section cstar_ring
 variables [topological_space α]
 variables [normed_ring β] [star_ring β]
 
-instance [normed_star_monoid β] : star_ring (α →ᵇ β) :=
+instance [normed_star_group β] : star_ring (α →ᵇ β) :=
 { star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
   ..bounded_continuous_function.star_add_monoid }
 

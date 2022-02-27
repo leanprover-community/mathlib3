@@ -114,7 +114,7 @@ section
 variables {M} [monoid M] (S)
 
 /-- The centralizer of a subset of a monoid `M`. -/
-@[to_additive "The centralizer of a subset of a monoid."]
+@[to_additive "The centralizer of a subset of an additive monoid."]
 def centralizer : submonoid M :=
 { carrier := S.centralizer,
   one_mem' := S.one_mem_centralizer,

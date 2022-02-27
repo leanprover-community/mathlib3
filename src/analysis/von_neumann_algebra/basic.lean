@@ -43,8 +43,8 @@ open_locale inner_product
 /-- The commutant of a subsemiring. -/
 def subsemiring.commutant {A : Type u} [semiring A] (B : subsemiring A) : subsemiring A :=
 { carrier := { x : A | ∀ y ∈ B, x * y = y * x },
-  zero_mem' := by tidy,
-  one_mem' := by tidy,
+  zero_mem' := by { intros y h, simp, },
+  one_mem' := by { intros y h, simp, },
   mul_mem' := λ a b ha hb c mc, by rw [mul_assoc, hb _ mc, ←mul_assoc, ha _ mc, mul_assoc],
   add_mem' := λ a b ha hb c mc, by rw [add_mul, mul_add, ha _ mc, hb _ mc], }
 
@@ -54,14 +54,26 @@ def subalgebra.commutant {𝕜 : Type v} [comm_semiring 𝕜] {A : Type u} [semi
 { algebra_map_mem' := λ r x mx, by rw [algebra.commutes],
   .. B.to_subsemiring.commutant, }
 
-/-- A *-subalgebra is a subalgebra of a *-algebra which is closed under *. -/
+set_option old_structure_cmd true
+
+/-- A *-subalgebra is a sub
+algebra of a *-algebra which is closed under *. -/
 structure star_subalgebra (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
   [semiring A] [star_ring A] [algebra R A] [star_module R A] extends subalgebra R A : Type v :=
 (star_mem' {a} : a ∈ carrier → star a ∈ carrier)
 
+namespace star_subalgebra
+variables (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
+  [semiring A] [star_ring A] [algebra R A] [star_module R A]
+
+instance : set_like (star_subalgebra R A) A :=
+⟨star_subalgebra.carrier, λ p q h, by cases p; cases q; congr'⟩
+
 instance (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
   [semiring A] [star_ring A] [algebra R A] [star_module R A] : inhabited (star_subalgebra R A) :=
 ⟨{ star_mem' := by tidy, ..(⊤ : subalgebra R A) }⟩
+
+end star_subalgebra
 
 /-- The commutant of a *-subalgebra. -/
 def star_subalgebra.commutant {R : Type u} {A : Type v} [comm_semiring R] [star_ring R]

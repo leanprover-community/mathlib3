@@ -903,10 +903,6 @@ def biprod.unique_up_to_iso (X Y : C) [has_binary_biproduct X Y] {b : binary_bic
   inv_hom_id' := by rw [← biprod.cone_point_unique_up_to_iso_hom X Y hb,
     ← biprod.cone_point_unique_up_to_iso_inv X Y hb, iso.inv_hom_id] }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/master
 section
 variables [has_binary_biproducts C]
 
@@ -1152,13 +1148,7 @@ def is_binary_bilimit_of_total {X Y : C} (b : binary_bicone X Y)
 /--
 In a preadditive category, we can construct a binary biproduct for `X Y : C` from
 any binary bicone `b` satisfying `total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X`.
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-=======
->>>>>>> generalize_biproduct_of_product
-=======
->>>>>>> origin/master
 (That is, such a bicone is a limit cone and a colimit cocone.)
 -/
 lemma has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)

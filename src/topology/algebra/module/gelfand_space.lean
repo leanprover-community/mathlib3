@@ -32,8 +32,6 @@ def to_alg_hom (φ : gelfand_space 𝕜 A) : A →ₐ[𝕜] 𝕜 :=
         ring_hom.id_apply, @coe_fn_coe_base' _ (weak_dual 𝕜 A), continuous_linear_map.map_smul,
         algebra.id.smul_eq_mul, ←@coe_fn_coe_base', map_one, mul_one] }
 
-#check @to_alg_hom
-
 end semiring
 
 section ring

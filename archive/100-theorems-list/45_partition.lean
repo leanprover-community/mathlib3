@@ -37,25 +37,25 @@ open_locale classical
 
 /--
 The partial product for the generating function for odd partitions.
-TODO: As `n` tends to infinity, this converges (in the `X`-adic topology).
+TODO: As `m` tends to infinity, this converges (in the `X`-adic topology).
 
-If `n` is sufficiently large, the `i`th coefficient gives the number of odd partitions of the
+If `m` is sufficiently large, the `i`th coefficient gives the number of odd partitions of the
 natural number `i`: proved in `odd_gf_prop`.
 It is stated for an arbitrary field `α`, though it usually suffices to use `ℚ` or `ℝ`.
 -/
-def partial_odd_gf (n : ℕ) [field α] := ∏ i in range n, (1 - (X : power_series α)^(2*i+1))⁻¹
+def partial_odd_gf (m : ℕ) [field α] := ∏ i in range m, (1 - (X : power_series α)^(2*i+1))⁻¹
 
 /--
 The partial product for the generating function for distinct partitions.
-TODO: As `n` tends to infinity, this converges (in the `X`-adic topology).
+TODO: As `m` tends to infinity, this converges (in the `X`-adic topology).
 
-If `n` is sufficiently large, the `i`th coefficient gives the number of distinct partitions of the
+If `m` is sufficiently large, the `i`th coefficient gives the number of distinct partitions of the
 natural number `i`: proved in `distinct_gf_prop`.
 It is stated for an arbitrary commutative semiring `α`, though it usually suffices to use `ℕ`, `ℚ`
 or `ℝ`.
 -/
-def partial_distinct_gf (n : ℕ) [comm_semiring α] :=
-∏ i in range n, (1 + (X : power_series α)^(i+1))
+def partial_distinct_gf (m : ℕ) [comm_semiring α] :=
+∏ i in range m, (1 + (X : power_series α)^(i+1))
 
 /--
 Functions defined only on `s`, which sum to `n`. In other words, a partition of `n` indexed by `s`.
@@ -201,7 +201,7 @@ begin
     exact (t rfl).elim }
 end
 
-/-- A convience constructor for the power series whose coefficients indicate a subset. -/
+/-- A convenience constructor for the power series whose coefficients indicate a subset. -/
 def indicator_series (α : Type*) [semiring α] (s : set ℕ) : power_series α :=
 power_series.mk (λ n, if n ∈ s then 1 else 0)
 
@@ -222,10 +222,9 @@ lemma two_series (i : ℕ) [semiring α] :
   (1 + (X : power_series α)^i.succ) = indicator_series α {0, i.succ} :=
 begin
   ext,
-  simp [coeff_indicator, coeff_one, add_monoid_hom.map_add, coeff_X_pow,
-        ← @set.mem_def _ _ {0, i.succ}, set.mem_insert_iff, set.mem_singleton_iff],
-  cases n with d hd,
-  { simp [(nat.succ_ne_zero i).symm, zero_pow] },
+  simp only [coeff_indicator, coeff_one, coeff_X_pow, set.mem_insert_iff, set.mem_singleton_iff, map_add],
+  cases n with d,
+  { simp [(nat.succ_ne_zero i).symm] },
   { simp [nat.succ_ne_zero d], },
 end
 
@@ -449,50 +448,50 @@ end
 
 /--
 The key proof idea for the partition theorem, showing that the generating functions for both
-sequences are ultimately the same (since the factor converges to 0 as n tends to infinity).
-It's enough to not take the limit though, and just consider large enough `n`.
+sequences are ultimately the same (since the factor converges to 0 as m tends to infinity).
+It's enough to not take the limit though, and just consider large enough `m`.
 -/
-lemma same_gf [field α] (n : ℕ) :
-  partial_odd_gf n * (range n).prod (λ i, (1 - (X : power_series α)^(n+i+1))) =
-  partial_distinct_gf n :=
+lemma same_gf [field α] (m : ℕ) :
+  partial_odd_gf m * (range m).prod (λ i, (1 - (X : power_series α)^(m+i+1))) =
+  partial_distinct_gf m :=
 begin
   rw [partial_odd_gf, partial_distinct_gf],
-  induction n with n ih,
+  induction m with m ih,
   { simp },
 
   rw nat.succ_eq_add_one,
 
-  set π₀ : power_series α := ∏ i in range n, (1 - X ^ (n + 1 + i + 1)) with hπ₀,
-  set π₁ : power_series α := ∏ i in range n, (1 - X ^ (2 * i + 1))⁻¹ with hπ₁,
-  set π₂ : power_series α := ∏ i in range n, (1 - X ^ (n + i + 1)) with hπ₂,
-  set π₃ : power_series α := ∏ i in range n, (1 + X ^ (i + 1)) with hπ₃,
+  set π₀ : power_series α := ∏ i in range m, (1 - X ^ (m + 1 + i + 1)) with hπ₀,
+  set π₁ : power_series α := ∏ i in range m, (1 - X ^ (2 * i + 1))⁻¹ with hπ₁,
+  set π₂ : power_series α := ∏ i in range m, (1 - X ^ (m + i + 1)) with hπ₂,
+  set π₃ : power_series α := ∏ i in range m, (1 + X ^ (i + 1)) with hπ₃,
   rw ←hπ₃ at ih,
 
-  have h : constant_coeff α (1 - X ^ (2 * n + 1)) ≠ 0,
+  have h : constant_coeff α (1 - X ^ (2 * m + 1)) ≠ 0,
   { rw [ring_hom.map_sub, ring_hom.map_pow, constant_coeff_one, constant_coeff_X,
-      zero_pow (2 * n).succ_pos, sub_zero],
+      zero_pow (2 * m).succ_pos, sub_zero],
     exact one_ne_zero },
 
-  calc (∏ i in range (n + 1), (1 - X ^ (2 * i + 1))⁻¹) *
-          ∏ i in range (n + 1), (1 - X ^ (n + 1 + i + 1))
-      = π₁ * (1 - X ^ (2 * n + 1))⁻¹ * (π₀ * (1 - X ^ (n + 1 + n + 1))) :
-          by rw [prod_range_succ _ n, ←hπ₁, prod_range_succ _ n, ←hπ₀]
-  ... = π₁ * (1 - X ^ (2 * n + 1))⁻¹ * (π₀ * ((1 + X ^ (n + 1)) * (1 - X ^ (n + 1)))) :
-          by rw [←sq_sub_sq, one_pow, add_assoc _ n 1, ←two_mul (n + 1), pow_mul']
-  ... = π₀ * (1 - X ^ (n + 1)) * (1 - X ^ (2 * n + 1))⁻¹ * (π₁ * (1 + X ^ (n + 1))) :
+  calc (∏ i in range (m + 1), (1 - X ^ (2 * i + 1))⁻¹) *
+          ∏ i in range (m + 1), (1 - X ^ (m + 1 + i + 1))
+      = π₁ * (1 - X ^ (2 * m + 1))⁻¹ * (π₀ * (1 - X ^ (m + 1 + m + 1))) :
+          by rw [prod_range_succ _ m, ←hπ₁, prod_range_succ _ m, ←hπ₀]
+  ... = π₁ * (1 - X ^ (2 * m + 1))⁻¹ * (π₀ * ((1 + X ^ (m + 1)) * (1 - X ^ (m + 1)))) :
+          by rw [←sq_sub_sq, one_pow, add_assoc _ m 1, ←two_mul (m + 1), pow_mul']
+  ... = π₀ * (1 - X ^ (m + 1)) * (1 - X ^ (2 * m + 1))⁻¹ * (π₁ * (1 + X ^ (m + 1))) :
           by ring
-  ... = (∏ i in range (n + 1), (1 - X ^ (n + 1 + i))) * (1 - X ^ (2 * n + 1))⁻¹ *
-          (π₁ * (1 + X ^ (n + 1))) :
+  ... = (∏ i in range (m + 1), (1 - X ^ (m + 1 + i))) * (1 - X ^ (2 * m + 1))⁻¹ *
+          (π₁ * (1 + X ^ (m + 1))) :
           by { rw [prod_range_succ', add_zero, hπ₀], simp_rw ←add_assoc }
-  ... = π₂ * (1 - X ^ (n + 1 + n)) * (1 - X ^ (2 * n + 1))⁻¹ * (π₁ * (1 + X ^ (n + 1))) :
+  ... = π₂ * (1 - X ^ (m + 1 + m)) * (1 - X ^ (2 * m + 1))⁻¹ * (π₁ * (1 + X ^ (m + 1))) :
           by { rw [add_right_comm, hπ₂, ←prod_range_succ], simp_rw [add_right_comm] }
-  ... = π₂ * (1 - X ^ (2 * n + 1)) * (1 - X ^ (2 * n + 1))⁻¹ * (π₁ * (1 + X ^ (n + 1))) :
-          by rw [two_mul, add_right_comm _ n 1]
-  ... = (1 - X ^ (2 * n + 1)) * (1 - X ^ (2 * n + 1))⁻¹ * π₂ * (π₁ * (1 + X ^ (n + 1))) :
+  ... = π₂ * (1 - X ^ (2 * m + 1)) * (1 - X ^ (2 * m + 1))⁻¹ * (π₁ * (1 + X ^ (m + 1))) :
+          by rw [two_mul, add_right_comm _ m 1]
+  ... = (1 - X ^ (2 * m + 1)) * (1 - X ^ (2 * m + 1))⁻¹ * π₂ * (π₁ * (1 + X ^ (m + 1))) :
           by ring
-  ... = π₂ * (π₁ * (1 + X ^ (n + 1))) : by rw [power_series.mul_inv_cancel _ h, one_mul]
-  ... = π₁ * π₂ * (1 + X ^ (n + 1)) : by ring
-  ... = π₃ * (1 + X ^ (n + 1)) : by rw ih
+  ... = π₂ * (π₁ * (1 + X ^ (m + 1))) : by rw [power_series.mul_inv_cancel _ h, one_mul]
+  ... = π₁ * π₂ * (1 + X ^ (m + 1)) : by ring
+  ... = π₃ * (1 + X ^ (m + 1)) : by rw ih
   ... = _ : by rw prod_range_succ,
 end
 
@@ -505,7 +504,7 @@ begin
   exact_mod_cast nat.lt_succ_of_le (le_add_right h),
 end
 
-theorem partition_theorem (n : ℕ) : 
+theorem partition_theorem (n : ℕ) :
   (nat.partition.odds n).card = (nat.partition.distincts n).card :=
 begin
   -- We need the counts to live in some field (which contains ℕ), so let's just use ℚ

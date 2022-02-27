@@ -181,9 +181,6 @@ instance SL_ON_GL_pos : has_scalar SL(2,ℤ) (GL_pos (fin 2) ℝ) :=⟨λ s g, s
 lemma sl_on_gl_pos_smul_apply (s : SL(2,ℤ)) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
   (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := by {simp, refl}
 
-def mon_hom :  SL(2,ℤ) →* (GL_pos (fin 2) ℝ) :=
-monoid_hom.comp to_GL_pos (special_linear_group.map (int.cast_ring_hom ℝ ))
-
 instance sl_to_gl_tower : is_scalar_tower SL(2,ℤ) (GL_pos (fin 2) ℝ) ℍ :={
   smul_assoc := by {intros s g z, rw sl_on_gl_pos_smul_apply, simp, apply mul_smul',},
 }
@@ -228,5 +225,6 @@ begin
    mul_neg_eq_neg_mul_symm, coe_coe,  complex.of_real_neg],
   ring,
   end
+
 
 end upper_half_plane

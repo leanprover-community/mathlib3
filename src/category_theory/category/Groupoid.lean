@@ -75,7 +75,7 @@ which sometimes helps in applying simp lemmas -/
 lemma hom_to_functor {C D E : Groupoid.{v u}} (f : C ⟶ D) (g : D ⟶ E) : f ≫ g = f ⋙ g := rfl
 
 /-- Converts identity in the category of groupoids to the functor identity -/
-lemma id_to_functor {C : Groupoid.{v u}} : 𝟭 C.α = 𝟙 C := rfl
+lemma id_to_functor {C : Groupoid.{v u}} : 𝟭 C = 𝟙 C := rfl
 
 section products
 

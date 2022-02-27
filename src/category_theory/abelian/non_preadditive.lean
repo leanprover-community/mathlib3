@@ -36,10 +36,10 @@ categories, and will be used there.
    is bilinear.
 
 The construction is non-trivial and it is quite remarkable that this abelian group structure can
-be constructed purely from the existence of a few limits and colimits. What's even more impressive
-is that all additive structures on a category are in some sense isomorphic, so for abelian
-categories with a natural preadditive structure, this construction manages to "almost" reconstruct
-this natural structure. However, we have not formalized this isomorphism.
+be constructed purely from the existence of a few limits and colimits. Even more remarkably,
+since abelian categories admit exactly one preadditive structure (see
+`subsingleton_preadditive_of_has_binary_biproducts`), the construction manages to exactly
+reconstruct any natural preadditive structure the category may have.
 
 ## References
 

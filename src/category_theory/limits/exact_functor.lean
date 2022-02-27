@@ -5,6 +5,21 @@ Authors: Markus Himmel
 -/
 import category_theory.limits.preserves.finite
 
+/-!
+# Bundled exact functors
+
+We say that a functor `F` is left exact if it preserves finite limits, it is right exact if it
+preserves finite colimits, and it is exact if it is both left exact and right exact.
+
+In this file, we define the categories of bundled left exact, right exact and exact functors.#check
+
+## Implementation notes
+
+Due to the way preservation of finite limits is defined, we currently only define these categories
+when the morphisms of the source and target category live in the same unvierse.
+
+-/
+
 universes v u₁ u₂
 
 open category_theory.limits

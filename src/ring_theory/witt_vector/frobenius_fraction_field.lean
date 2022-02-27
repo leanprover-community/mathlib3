@@ -5,7 +5,7 @@ Authors: Robert Y. Lewis, Heather Macbeth
 -/
 
 import field_theory.is_alg_closed.basic
-import ring_theory.witt_vector.perfect_ring
+import ring_theory.witt_vector.discrete_valuation_ring
 
 /-!
 # Solving equations about the Frobenius map on the field of fractions of `𝕎 k`
@@ -230,8 +230,8 @@ begin
   rintros ⟨r, q, hq⟩ hrq,
   rw mem_non_zero_divisors_iff_ne_zero at hq,
   have : r ≠ 0 := λ h, hrq (by simp [h]),
-  obtain ⟨m, r', hr', rfl⟩ := exists_eq_pow_p_mul p r this,
-  obtain ⟨n, q', hq', rfl⟩ := exists_eq_pow_p_mul p q hq,
+  obtain ⟨m, r', hr', rfl⟩ := exists_eq_pow_p_mul r this,
+  obtain ⟨n, q', hq', rfl⟩ := exists_eq_pow_p_mul q hq,
   let b := frobenius_rotation p hr' hq',
   refine ⟨algebra_map (𝕎 k) _ b, _, m - n, _⟩,
   { simpa only [map_zero] using

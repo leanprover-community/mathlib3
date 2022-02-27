@@ -167,14 +167,14 @@ theorem isocrystal_classification
 begin
   haveI : nontrivial V := finite_dimensional.nontrivial_of_finrank_eq_succ h_dim,
   obtain ⟨x, hx⟩ : ∃ x : V, x ≠ 0 := exists_ne 0,
-  have : Φ(p, k) x ≠ 0 := by simpa using Φ(p, k).injective.ne hx,
+  have : Φ(p, k) x ≠ 0 := by simpa only [map_zero] using Φ(p,k).injective.ne hx,
   obtain ⟨a, ha, hax⟩ : ∃ a : K(p, k), a ≠ 0 ∧ Φ(p, k) x = a • x,
   { rw finrank_eq_one_iff_of_nonzero' x hx at h_dim,
     obtain ⟨a, ha⟩ := h_dim (Φ(p, k) x),
     refine ⟨a, _, ha.symm⟩,
     intros ha',
     apply this,
-    simp [← ha, ha'] },
+    simp only [←ha, ha', zero_smul] },
   obtain ⟨b, hb, m, (hmb : φ(p, k) b * a = p ^ m * b)⟩ :=
     witt_vector.exists_frobenius_solution_fraction_ring p ha,
   use m,

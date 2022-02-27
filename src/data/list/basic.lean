@@ -774,7 +774,7 @@ theorem last'_append_of_ne_nil (l₁ : list α) : ∀ {l₂ : list α} (hl₂ : 
 
 theorem last'_append {l₁ l₂ : list α} {x : α} (h : x ∈ l₂.last') :
   x ∈ (l₁ ++ l₂).last' :=
-by {cases l₂, { contradiction, }, { rw list.last'_append_cons, exact h } }
+by { cases l₂, { contradiction, }, { rw list.last'_append_cons, exact h } }
 
 /-! ### head(') and tail -/
 

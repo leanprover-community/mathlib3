@@ -2357,8 +2357,8 @@ begin
   have h_cont : continuous_on (λ u, ∫ t in f a..f u, g t) [a, b],
   { rw [hf.image_interval] at hg,
     refine (continuous_on_primitive_interval' hg.interval_integrable _).comp hf _,
-    { rw [← hf.image_interval], exact mem_image_of_mem f left_mem_interval },
-    { rw [← image_subset_iff], exact hf.image_interval.subset } },
+    { rw ← hf.image_interval, exact mem_image_of_mem f left_mem_interval },
+    { rw ← hf.image_interval, exact maps_to_image _ _ } },
   have h_der : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at
     (λ u, ∫ t in f a..f u, g t) (f' x • ((g ∘ f) x)) (Ioi x) x,
   { intros x hx,

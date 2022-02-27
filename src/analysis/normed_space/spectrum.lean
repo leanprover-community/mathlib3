@@ -113,7 +113,7 @@ begin
       eval_monomial] using subset_polynomial_aeval a (monomial (n + 1) (1 : 𝕜)) ⟨k, hk, rfl⟩,
   /- power of the norm is bounded by norm of the power -/
   have nnnorm_pow_le : (↑(∥k∥₊ ^ (n + 1)) : ℝ≥0∞) ≤ ↑∥a ^ (n + 1)∥₊,
-    by simpa only [norm_to_nnreal, normed_field.nnnorm_pow k (n+1)]
+    by simpa only [norm_to_nnreal, nnnorm_pow k (n+1)]
       using coe_mono (real.to_nnreal_mono (norm_le_norm_of_mem pow_mem)),
   /- take (n + 1)ᵗʰ roots and clean up the left-hand side -/
   have hn : 0 < ((n + 1) : ℝ), by exact_mod_cast nat.succ_pos',
@@ -194,7 +194,7 @@ begin
     { rwa [is_unit.smul_sub_iff_sub_inv_smul, inv_inv u] at hu },
     { rw [units.smul_def, ←algebra.algebra_map_eq_smul_one, ←mem_resolvent_set_iff],
       refine mem_resolvent_set_of_spectral_radius_lt _,
-      rwa [units.coe_inv', normed_field.nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
+      rwa [units.coe_inv', nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
         (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
 end
 

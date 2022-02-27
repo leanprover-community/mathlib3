@@ -10,7 +10,7 @@ import analysis.normed_space.multilinear
 
 In this file we define `formal_multilinear_series 𝕜 E F` to be a family of `n`-multilinear maps for
 all `n`, designed to model the sequence of derivatives of a function. In other files we use this
-notion to define `C^n` functions (called `times_cont_diff` in `mathlib`) and analytic functions.
+notion to define `C^n` functions (called `cont_diff` in `mathlib`) and analytic functions.
 
 ## Notations
 

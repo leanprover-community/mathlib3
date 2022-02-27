@@ -143,8 +143,13 @@ lemma inv_apply (μ : measure G) (s : set G) : μ.inv s = μ s⁻¹ :=
 end measure
 
 section inv
-variables [group G] [has_measurable_mul G] [has_measurable_inv G]
-  {μ : measure G}
+variables [group G] [has_measurable_inv G] {μ : measure G}
+
+@[to_additive]
+instance [sigma_finite μ] : sigma_finite μ.inv :=
+(measurable_equiv.inv G).sigma_finite_map ‹_›
+
+variables [has_measurable_mul G]
 
 @[to_additive]
 instance [is_mul_left_invariant μ] : is_mul_right_invariant μ.inv :=
@@ -291,6 +296,16 @@ sets and positive mass to open sets. -/
 class is_haar_measure {G : Type*} [group G] [topological_space G] [measurable_space G]
   (μ : measure G)
   extends is_finite_measure_on_compacts μ, is_mul_left_invariant μ, is_open_pos_measure μ : Prop
+
+/- Record that a Haar measure on a locally compact space is locally finite. This is needed as the
+fact that a measure which is finite on compacts is locally finite is not registered as an instance,
+to avoid an instance loop. -/
+@[priority 100, to_additive] -- see Note [lower instance priority]
+instance is_locally_finite_measure_of_is_haar_measure {G : Type*}
+  [group G] [measurable_space G] [topological_space G] [locally_compact_space G]
+  (μ : measure G) [is_haar_measure μ] :
+  is_locally_finite_measure μ :=
+is_locally_finite_measure_of_is_finite_measure_on_compacts
 
 section
 

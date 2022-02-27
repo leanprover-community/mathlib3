@@ -15,13 +15,14 @@ of a product of Witt vectors `x` and `y` over a ring of characteristic `p`.
 We aim to isolate the `n+1`st coefficients of `x` and `y`, and express the rest of the product
 in terms of a function of the lower coefficients.
 
-For most of this section we work with terms of type `mv_polynomial (fin 2 × ℕ) ℤ`.
+For most of this file we work with terms of type `mv_polynomial (fin 2 × ℕ) ℤ`.
 We will eventually evaluate them in `k`, but first we must take care of a calculation
 that needs to happen in characteristic 0.
 
 ## Main declarations
 
-* `witt_vector.nth_mul_coeff`
+* `witt_vector.nth_mul_coeff`: expresses the coefficient of a product of Witt vectors
+  in terms of the previous coefficients of the multiplicands.
 
 -/
 
@@ -57,26 +58,7 @@ begin
     simp [witt_polynomial_vars,image_subset_iff] }
 end
 
-private lemma sum_ident_1 (n : ℕ) :
-  (∑ i in range (n+1), p^i * (witt_mul p i)^(p^(n-i)) : mv_polynomial (fin 2 × ℕ) ℤ) =
-    witt_poly_prod p n :=
-begin
-  simp only [witt_poly_prod],
-  convert witt_structure_int_prop p (X (0 : fin 2) * X 1) n using 1,
-  { simp only [witt_polynomial, witt_mul, int.nat_cast_eq_coe_nat],
-    rw alg_hom.map_sum,
-    congr' 1 with i,
-    congr' 1,
-    have hsupp : (finsupp.single i (p ^ (n - i))).support = {i},
-    { rw finsupp.support_eq_singleton,
-      simp only [and_true, finsupp.single_eq_same, eq_self_iff_true, ne.def],
-      exact pow_ne_zero _ hp.out.ne_zero, },
-    simp only [bind₁_monomial, hsupp, int.cast_coe_nat, prod_singleton, ring_hom.eq_int_cast,
-      finsupp.single_eq_same, C_pow, mul_eq_mul_left_iff, true_or, eq_self_iff_true], },
-  { simp only [map_mul, bind₁_X_right] }
-end
-
-/-- The "remainder term" of `witt_poly_prod`. See `sum_ident_2`. -/
+/-- The "remainder term" of `witt_vector.witt_poly_prod`. See `mul_poly_of_interest_aux2`. -/
 def witt_poly_prod_remainder (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
 ∑ i in range n, p^i * (witt_mul p i)^(p^(n-i))
 
@@ -101,19 +83,10 @@ begin
     exact hx }
 end
 
-private lemma sum_ident_2 (n : ℕ) :
-  (p ^ n * witt_mul p n : mv_polynomial (fin 2 × ℕ) ℤ) + witt_poly_prod_remainder p n =
-    witt_poly_prod p n :=
-begin
-  convert sum_ident_1 p n,
-  rw [sum_range_succ, add_comm, nat.sub_self, pow_zero, pow_one],
-  refl
-end
-
 omit hp
 
 /--
-`remainder p n` represents the remainder term from `sum_ident_3`.
+`remainder p n` represents the remainder term from `mul_poly_of_interest_aux3`.
 `witt_poly_prod p (n+1)` will have variables up to `n+1`,
 but `remainder` will only have variables up to `n`.
 -/
@@ -125,7 +98,59 @@ def remainder (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
     range (n + 1),
     (rename (prod.mk 1)) ((monomial (finsupp.single x (p ^ (n + 1 - x)))) (↑p ^ x))
 
-private lemma sum_ident_3 (n : ℕ) :
+include hp
+
+lemma remainder_vars (n : ℕ) : (remainder p n).vars ⊆ univ.product (range (n+1)) :=
+begin
+  rw [remainder],
+  apply subset.trans (vars_mul _ _),
+  apply union_subset;
+  { apply subset.trans (vars_sum_subset _ _),
+    rw bUnion_subset,
+    intros x hx,
+    rw [rename_monomial, vars_monomial, finsupp.map_domain_single],
+    { apply subset.trans (finsupp.support_single_subset),
+      simp [hx], },
+    { apply pow_ne_zero,
+      exact_mod_cast hp.out.ne_zero } }
+end
+
+/-- This is the polynomial whose degree we want to get a handle on. -/
+def poly_of_interest (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
+witt_mul p (n + 1) + p^(n+1) * X (0, n+1) * X (1, n+1) -
+  (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) -
+  (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1))
+
+lemma mul_poly_of_interest_aux1 (n : ℕ) :
+  (∑ i in range (n+1), p^i * (witt_mul p i)^(p^(n-i)) : mv_polynomial (fin 2 × ℕ) ℤ) =
+    witt_poly_prod p n :=
+begin
+  simp only [witt_poly_prod],
+  convert witt_structure_int_prop p (X (0 : fin 2) * X 1) n using 1,
+  { simp only [witt_polynomial, witt_mul, int.nat_cast_eq_coe_nat],
+    rw alg_hom.map_sum,
+    congr' 1 with i,
+    congr' 1,
+    have hsupp : (finsupp.single i (p ^ (n - i))).support = {i},
+    { rw finsupp.support_eq_singleton,
+      simp only [and_true, finsupp.single_eq_same, eq_self_iff_true, ne.def],
+      exact pow_ne_zero _ hp.out.ne_zero, },
+    simp only [bind₁_monomial, hsupp, int.cast_coe_nat, prod_singleton, ring_hom.eq_int_cast,
+      finsupp.single_eq_same, C_pow, mul_eq_mul_left_iff, true_or, eq_self_iff_true], },
+  { simp only [map_mul, bind₁_X_right] }
+end
+
+lemma mul_poly_of_interest_aux2 (n : ℕ) :
+  (p ^ n * witt_mul p n : mv_polynomial (fin 2 × ℕ) ℤ) + witt_poly_prod_remainder p n =
+    witt_poly_prod p n :=
+begin
+  convert mul_poly_of_interest_aux1 p n,
+  rw [sum_range_succ, add_comm, nat.sub_self, pow_zero, pow_one],
+  refl
+end
+
+omit hp
+lemma mul_poly_of_interest_aux3 (n : ℕ) :
   witt_poly_prod p (n+1) =
   - (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
   (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
@@ -155,48 +180,26 @@ begin
     pow_zero],
   ring,
 end
-
 include hp
 
-lemma remainder_vars (n : ℕ) : (remainder p n).vars ⊆ univ.product (range (n+1)) :=
-begin
-  rw [remainder],
-  apply subset.trans (vars_mul _ _),
-  apply union_subset;
-  { apply subset.trans (vars_sum_subset _ _),
-    rw bUnion_subset,
-    intros x hx,
-    rw [rename_monomial, vars_monomial, finsupp.map_domain_single],
-    { apply subset.trans (finsupp.support_single_subset),
-      simp [hx], },
-    { apply pow_ne_zero,
-      exact_mod_cast hp.out.ne_zero } }
-end
-
-private lemma sum_ident_4 (n : ℕ) :
+lemma mul_poly_of_interest_aux4 (n : ℕ) :
   (p ^ (n + 1) * witt_mul p (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) =
   - (p^(n+1) * X (0, n+1)) * (p^(n+1) * X (1, n+1)) +
   (p^(n+1) * X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
   (p^(n+1) * X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1)) +
   (remainder p n - witt_poly_prod_remainder p (n + 1)) :=
 begin
-  rw [← add_sub_assoc, eq_sub_iff_add_eq, sum_ident_2],
-  exact sum_ident_3 _ _
+  rw [← add_sub_assoc, eq_sub_iff_add_eq, mul_poly_of_interest_aux2],
+  exact mul_poly_of_interest_aux3 _ _
 end
 
-/-- This is the polynomial whose degree we want to get a handle on. Appears in `sum_ident_4`. -/
-def poly_of_interest (n : ℕ) : mv_polynomial (fin 2 × ℕ) ℤ :=
-witt_mul p (n + 1) + p^(n+1) * X (0, n+1) * X (1, n+1) -
-  (X (0, n+1)) * rename (prod.mk (1 : fin 2)) (witt_polynomial p ℤ (n + 1)) -
-  (X (1, n+1)) * rename (prod.mk (0 : fin 2)) (witt_polynomial p ℤ (n + 1))
-
-private lemma sum_ident_5 (n : ℕ) :
+lemma mul_poly_of_interest_aux5 (n : ℕ) :
   (p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) *
     poly_of_interest p n =
   (remainder p n - witt_poly_prod_remainder p (n + 1)) :=
 begin
   simp only [poly_of_interest, mul_sub, mul_add, sub_eq_iff_eq_add'],
-  rw sum_ident_4 p n,
+  rw mul_poly_of_interest_aux4 p n,
   ring,
 end
 
@@ -204,7 +207,7 @@ lemma mul_poly_of_interest_vars (n : ℕ) :
   ((p ^ (n + 1) : mv_polynomial (fin 2 × ℕ) ℤ) * poly_of_interest p n).vars ⊆
   univ.product (range (n+1)) :=
 begin
-  rw sum_ident_5,
+  rw mul_poly_of_interest_aux5,
   apply subset.trans (vars_sub_subset _ _),
   apply union_subset,
   { apply remainder_vars },

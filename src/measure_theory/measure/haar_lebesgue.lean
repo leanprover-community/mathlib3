@@ -39,17 +39,20 @@ open topological_space set filter metric
 open_locale ennreal pointwise topological_space
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
-def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
-⟨Icc 0 1, is_compact_Icc, by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one]⟩
+noncomputable def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
+{ carrier := Icc 0 1,
+  compact' := is_compact_Icc,
+  interior_nonempty' := by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one] }
 
 universe u
 
 /-- The set `[0,1]^ι` as a compact set with non-empty interior. -/
-def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
+noncomputable def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
-⟨set.pi set.univ (λ i, Icc 0 1), is_compact_univ_pi (λ i, is_compact_Icc),
-by simp only [interior_pi_set, finite.of_fintype, interior_Icc, univ_pi_nonempty_iff, nonempty_Ioo,
-  implies_true_iff, zero_lt_one]⟩
+{ carrier := pi univ (λ i, Icc 0 1),
+  compact' := is_compact_univ_pi (λ i, is_compact_Icc),
+  interior_nonempty' := by simp only [interior_pi_set, finite.of_fintype, interior_Icc,
+    univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one] }
 
 namespace measure_theory
 
@@ -75,8 +78,9 @@ lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
   add_haar_measure (pi_Icc01 ι) = volume :=
 begin
   convert (add_haar_measure_unique volume (pi_Icc01 ι)).symm,
-  simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1),
-    finset.prod_const_one, ennreal.of_real_one, real.volume_Icc, one_smul, sub_zero]
+  simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1), positive_compacts.coe_mk,
+    compacts.coe_mk, finset.prod_const_one, ennreal.of_real_one, real.volume_Icc, one_smul,
+    sub_zero],
 end
 
 instance is_add_haar_measure_volume_pi (ι : Type*) [fintype ι] :

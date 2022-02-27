@@ -565,9 +565,7 @@ end
 include X hXnonempty hXdisj
 
 lemma lift_word_prod_nontrivial_of_other_i {i j k} (w : neword H i j)
-  (hhead : k ≠ i)
-  (hlast : k ≠ j) :
-  lift f w.prod ≠ 1 :=
+  (hhead : k ≠ i) (hlast : k ≠ j) : lift f w.prod ≠ 1 :=
 begin
   intro heq1,
   have : X k ⊆ X i,
@@ -586,9 +584,7 @@ begin
 end
 
 lemma lift_word_prod_nontrivial_of_head_card {i j} (w : neword H i j)
-  (hcard : 3 ≤ # (H i))
-  (hheadtail : i ≠ j) :
-  lift f w.prod ≠ 1 :=
+  (hcard : 3 ≤ # (H i)) (hheadtail : i ≠ j) : lift f w.prod ≠ 1 :=
 begin
   obtain ⟨h, hn1, hnh⟩ := cardinal.three_le hcard 1 (w.head⁻¹),
   have hnot1 : h * w.head ≠ 1, by { rw ← div_inv_eq_mul, exact div_ne_one_of_ne hnh },

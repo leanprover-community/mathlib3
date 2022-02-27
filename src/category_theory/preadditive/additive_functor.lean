@@ -16,6 +16,8 @@ groups.
 
 An additive functor between preadditive categories creates and preserves biproducts.
 
+We also define the category of bundled additive functors.
+
 # Implementation details
 
 `functor.additive` is a `Prop`-valued class, defined by saying that
@@ -162,34 +164,38 @@ infixr ` ⥤+ `:26 := AdditiveFunctor
 instance : preadditive (C ⥤+ D) :=
 preadditive.induced_category.category _
 
+/-- An additive functor is in particular a functor. -/
+def AdditiveFunctor.forget : (C ⥤+ D) ⥤ (C ⥤ D) :=
+full_subcategory_inclusion _
+
 variables {C D}
+
+/-- Turn an additive functor into an object of the catgory `AdditiveFunctor C D`. -/
+def AdditiveFunctor.of (F : C ⥤ D) [F.additive] : C ⥤+ D :=
+⟨F, infer_instance⟩
+
+@[simp]
+lemma AdditiveFunctor.of_fst (F : C ⥤ D) [F.additive] : (AdditiveFunctor.of F).1 = F :=
+rfl
+
+@[simp]
+lemma AdditiveFunctor.forget_obj (F : C ⥤+ D) : (AdditiveFunctor.forget C D).obj F = F.1 :=
+rfl
+
+lemma AdditiveFunctor.forget_obj_of (F : C ⥤ D) [F.additive] :
+  (AdditiveFunctor.forget C D).obj (AdditiveFunctor.of F) = F :=
+rfl
+
+@[simp]
+lemma AdditiveFunctor.forget_map (F G : C ⥤+ D) (α : F ⟶ G) :
+  (AdditiveFunctor.forget C D).map α = α :=
+rfl
+
+instance : functor.additive (AdditiveFunctor.forget C D) :=
+{ map_add' := λ F G α β, rfl }
 
 instance (F : C ⥤+ D) : functor.additive F.1 :=
 F.2
-
-@[simp] lemma AdditiveFunctor.hom_eq_hom {F G : C ⥤+ D} : (F ⟶ G) = (F.1 ⟶ G.1) :=
-rfl
-
-variables (C D)
-
-@[simps]
-def AdditiveFunctor.evaluation : C ⥤ (C ⥤ D) ⥤+ D :=
-{ obj := λ X,
-  { val :=
-    { obj := λ F, F.obj X,
-      map := λ F F' α, α.app X,
-      map_id' := λ F, rfl,
-      map_comp' := λ F G H α β, rfl },
-    property :=
-    { map_add' := λ X Y f g, rfl } },
-  map := λ X X' f,
-  { app := λ F, F.map f,
-    naturality' := λ F G α, (α.naturality f).symm },
-  map_id' := λ X, by { simp only [functor.map_id], refl },
-  map_comp' := λ X Y Z f g, by { simp only [functor.map_comp], refl } }
-
-instance : functor.additive (AdditiveFunctor.evaluation C D) :=
-{ map_add' := λ X Y f g, by { ext, simp } }
 
 end
 

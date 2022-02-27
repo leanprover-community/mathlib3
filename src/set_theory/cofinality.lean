@@ -413,10 +413,10 @@ begin
       rw bfamily_of_family'_typein,
       refl },
     { push_neg at h,
-      have hij : f i ≤ f (wo.wf.min _ h) := (wo.wf.min_mem _ h).2,
+      cases wo.wf.min_mem _ h with hji hij,
       refine ⟨typein r' ⟨_, λ k hkj, lt_of_lt_of_le _ hij⟩, typein_lt_type _ _, _⟩,
       { by_contra' H,
-        exact (wo.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj (wo.wf.min_mem _ h).1, H⟩) hkj },
+        exact (wo.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj hji, H⟩) hkj },
       { rwa bfamily_of_family'_typein } } }
 end
 

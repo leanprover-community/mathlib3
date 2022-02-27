@@ -206,8 +206,8 @@ by apply hf.sigma_finite -- can't exact here
 
 section adapted_process
 
-variables {u v : ι → α → β} {f : filtration ι m}
 variables [measurable_space β] [preorder ι]
+  {u v : ι → α → β} {f : filtration ι m}
 
 /-- A sequence of functions `u` is adapted to a filtration `f` if for all `i`,
 `u i` is `f i`-measurable. -/
@@ -232,8 +232,7 @@ end adapted
 variable (β)
 lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=
 λ i, @measurable_zero β α _ (f i) _
-
-end adapted
+variable {β}
 
 /-- Progressively measurable process. The usual definition uses the interval `[0,i]`, which we
 replace by `set.Iic i`. We recover the usual definition for `ℝ≥0` or `ℕ`. -/

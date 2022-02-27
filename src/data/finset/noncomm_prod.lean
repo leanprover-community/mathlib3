@@ -217,19 +217,18 @@ by simp [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
     (λ x hx y hy, by rw [mem_singleton.mp hx, mem_singleton.mp hy]) = f a :=
 by simp [noncomm_prod, multiset.singleton_eq_cons]
 
-
 @[to_additive]
 lemma noncomm_prod_map {α : Type*} {β : Type*} [monoid β]
   (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
-  {M : Type*} [monoid M] (g : β →* M) :
+  {M : Type*} [monoid M] {F : Type*} [monoid_hom_class F β M] (g : F) :
   g (s.noncomm_prod f comm) = s.noncomm_prod (λ i, g (f i))
   (λ x hx y hy, commute.map (comm x hx y hy) g)  :=
 begin
   classical,
   revert comm, rw ← s.to_list_to_finset, intro,
   iterate 2 { rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list },
-  convert g.map_list_prod _, rw list.comp_map,
+  convert monoid_hom.map_list_prod g _, rw list.comp_map,
 end
 
 @[to_additive]
@@ -291,13 +290,14 @@ lemma noncomm_prod_single {ι : Type*} [fintype ι] [decidable_eq ι]
   = x :=
 begin
   ext i,
-  apply (finset.univ.noncomm_prod_map (λ i, monoid_hom.single M i (x i)) _
-    (pi.eval_monoid_hom _ i)).trans,
+  change pi.eval_monoid_hom _ i (finset.univ.noncomm_prod (λ i, monoid_hom.single M i (x i)) _)
+    = pi.eval_monoid_hom _ i x,
+  rw (finset.univ.noncomm_prod_map (λ i, monoid_hom.single M i (x i)) _ (pi.eval_monoid_hom _ i)),
   rw (finset.insert_erase (finset.mem_univ i)).symm,
   rw finset.noncomm_prod_insert_of_not_mem',
-  rw finset.noncomm_prod_eq_one_of_forall_eq_one,
-  { simp, },
-  { intros i h, simp at h, simp [h], },
+  { rw finset.noncomm_prod_eq_one_of_forall_eq_one,
+    { simp, },
+    { intros i h, simp at h, simp [h], } },
   { simp, },
 end
 

@@ -7,6 +7,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import algebra.indicator_function
 import data.equiv.fin
 import data.tprod
+import data.set.pi
 import group_theory.coset
 import measure_theory.measurable_space_def
 import measure_theory.tactic
@@ -640,6 +641,12 @@ by simp_rw [measurable_iff_comap_le, measurable_space.pi, measurable_space.comap
 @[measurability]
 lemma measurable_pi_apply (a : δ) : measurable (λ f : Π a, π a, f a) :=
 measurable.of_comap_le $ le_supr _ a
+
+@[measurability]
+lemma measurable_pi_restrict {δ : Type*} {π : δ → Type*}
+  [hmp : Π a, measurable_space (π a)] (s : set δ) :
+  measurable (@set.pi_restrict δ π s) :=
+measurable_pi_iff.mpr $ λ _, measurable_pi_apply _
 
 @[measurability]
 lemma measurable.eval {a : δ} {g : α → Π a, π a}

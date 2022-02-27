@@ -10,6 +10,8 @@ import topology.algebra.algebra
 # Von Neumann's double commutant theorem
 -/
 
+noncomputable theory
+
 /--
 `strong_operator_topology 𝕜 X Y` is a type synonym for `X →L[𝕜] Y`,
 equipped with the strong operator topology.
@@ -31,31 +33,47 @@ X →L[𝕜] Y
 
 section
 variables (𝕜 : Type*) [normed_field 𝕜]
-variable (X Y : Type*) [normed_group X] [normed_space 𝕜 X] [normed_group Y] [normed_space 𝕜 Y]
+variables (X Y : Type*) [normed_group X] [normed_space 𝕜 X] [normed_group Y] [normed_space 𝕜 Y]
 
-instance : topological_space (strong_operator_topology 𝕜 X Y) :=
-⨅ (x : X), induced (λ T, ∥T x∥) _
+instance : has_coe_to_fun (strong_operator_topology 𝕜 X Y) (λ f, X → Y) :=
+{ coe := λ f, by { dsimp [strong_operator_topology] at f, exact f, } }
 
-instance : topological_space (weak_operator_topology 𝕜 X Y) :=
-⨅ (x : X) (φ : normed_space.dual Y), induced (λ T, φ (T x)) _
+instance : has_coe_to_fun (weak_operator_topology 𝕜 X Y) (λ f, X → Y) :=
+{ coe := λ f, by { dsimp [weak_operator_topology] at f, exact f, } }
 
 instance : ring (strong_operator_topology 𝕜 X X) :=
 by { dsimp [strong_operator_topology], apply_instance, }
 
 instance : ring (weak_operator_topology 𝕜 X X) :=
-by { dsimp [strong_operator_topology], apply_instance, }
-
-instance : topological_ring (strong_operator_topology 𝕜 X X) :=
-sorry
-
-instance : topological_ring (weak_operator_topology 𝕜 X X) :=
-sorry
+by { dsimp [weak_operator_topology], apply_instance, }
 
 instance : algebra 𝕜 (strong_operator_topology 𝕜 X X) :=
 by { dsimp [strong_operator_topology], apply_instance, }
 
 instance : algebra 𝕜 (weak_operator_topology 𝕜 X X) :=
-by { dsimp [strong_operator_topology], apply_instance, }
+by { dsimp [weak_operator_topology], apply_instance, }
+
+open topological_space
+
+instance : topological_space (strong_operator_topology 𝕜 X Y) :=
+⨅ (x : X), induced (λ T, ∥T x∥) infer_instance
+
+instance : topological_ring (strong_operator_topology 𝕜 X X) :=
+sorry
+
+end
+
+section
+variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+variables (X Y : Type*) [normed_group X] [normed_space 𝕜 X] [normed_group Y] [normed_space 𝕜 Y]
+
+open topological_space
+
+instance : topological_space (weak_operator_topology 𝕜 X Y) :=
+⨅ (x : X) (φ : normed_space.dual 𝕜 Y), induced (λ T, φ (T x)) infer_instance
+
+instance : topological_ring (weak_operator_topology 𝕜 X X) :=
+sorry
 
 end
 
@@ -66,19 +84,19 @@ instance : star_ring (strong_operator_topology 𝕜 H H) :=
 by { dsimp [strong_operator_topology], apply_instance, }
 
 instance : star_ring (weak_operator_topology 𝕜 H H) :=
-by { dsimp [strong_operator_topology], apply_instance, }
+by { dsimp [weak_operator_topology], apply_instance, }
 
 instance : star_module 𝕜 (strong_operator_topology 𝕜 H H) :=
 by { dsimp [strong_operator_topology], apply_instance, }
 
 instance : star_module 𝕜 (weak_operator_topology 𝕜 H H) :=
-by { dsimp [strong_operator_topology], apply_instance, }
+by { dsimp [weak_operator_topology], apply_instance, }
 
 end
 
 namespace subalgebra
 variables {𝕜 : Type*} [normed_field 𝕜]
-variable {X : Type*} [normed_group X] [normed_space 𝕜 X]
+variables {X : Type*} [normed_group X] [normed_space 𝕜 X]
 
 def strong_closure (O : subalgebra 𝕜 (X →L[𝕜] X)) : subalgebra 𝕜 (strong_operator_topology 𝕜 X X) :=
 subalgebra.topological_closure O

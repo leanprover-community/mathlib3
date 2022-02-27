@@ -225,6 +225,7 @@ variables {B : Type u₁} [quiver.{v₁+1} B] {C : Type u₂} [category_struct.{
 variables (F : prefunctor B C)
 
 /-- Auxiliary definition for `lift`. -/
+@[simp]
 def lift_hom : ∀ {a b : B}, hom a b → (F.obj a ⟶ F.obj b)
 | _ _ (hom.of f)      := F.map f
 | _ _ (hom.id a)      := 𝟙 (F.obj a)
@@ -241,6 +242,7 @@ variables {B : Type u₁} [quiver.{v₁+1} B] {C : Type u₂} [bicategory.{w₂ 
 variables (F : prefunctor B C)
 
 /-- Auxiliary definition for `lift`. -/
+@[simp]
 def lift_hom₂ : ∀ {a b : B} {f g : hom a b}, hom₂ f g → (lift_hom F f ⟶ lift_hom F g)
 | _ _ _ _ (hom₂.id _)                   := 𝟙 _
 | _ _ _ _ (hom₂.associator _ _ _)       := (α_ _ _ _).hom
@@ -253,36 +255,13 @@ def lift_hom₂ : ∀ {a b : B} {f g : hom a b}, hom₂ f g → (lift_hom F f �
 | _ _ _ _ (hom₂.whisker_left f η)       := lift_hom F f ◁ lift_hom₂ η
 | _ _ _ _ (hom₂.whisker_right h η)      := lift_hom₂ η ▷ lift_hom F h
 
+local attribute [simp]
+  associator_naturality_left associator_naturality_middle associator_naturality_right
+  left_unitor_naturality right_unitor_naturality pentagon
+
 lemma lift_hom₂_congr {a b : B} {f g : hom a b} {η η' : hom₂ f g} (H : rel η η') :
   lift_hom₂ F η = lift_hom₂ F η' :=
-begin
-  induction H,
-  case vcomp_right { change _ ≫ _ = _ ≫ _, congr' 2 },
-  case vcomp_left  { change _ ≫ _ = _ ≫ _, congr' 2 },
-  case id_comp     { apply id_comp },
-  case comp_id     { apply comp_id },
-  case assoc       { apply assoc },
-  case whisker_left       { change _ ◁ _ = _ ◁ _, congr' 2 },
-  case whisker_left_id    { apply whisker_left_id },
-  case whisker_left_comp  { apply whisker_left_comp },
-  case whisker_right      { change _ ▷ _ = _ ▷ _, congr' 2 },
-  case whisker_right_id   { apply whisker_right_id },
-  case whisker_right_comp { apply whisker_right_comp },
-  case whisker_exchange   { apply whisker_exchange },
-  case associator_naturality_left   { apply associator_naturality_left },
-  case associator_naturality_middle { apply associator_naturality_middle },
-  case associator_naturality_right  { apply associator_naturality_right },
-  case associator_hom_inv { apply iso.hom_inv_id },
-  case associator_inv_hom { apply iso.inv_hom_id },
-  case left_unitor_naturality { apply left_unitor_naturality },
-  case left_unitor_hom_inv { apply iso.hom_inv_id },
-  case left_unitor_inv_hom { apply iso.inv_hom_id },
-  case right_unitor_naturality { apply right_unitor_naturality },
-  case right_unitor_hom_inv { apply iso.hom_inv_id },
-  case right_unitor_inv_hom { apply iso.inv_hom_id },
-  case pentagon { apply pentagon },
-  case triangle { apply triangle }
-end
+by induction H; tidy
 
 /--
 A prefunctor from a quiver `B` to a bicategory `C` can be lifted to a pseudofunctor from

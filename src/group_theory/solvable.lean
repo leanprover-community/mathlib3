@@ -58,7 +58,7 @@ section commutator_map
 
 lemma commutator_le_map_commutator {H₁ H₂ : subgroup G} {K₁ K₂ : subgroup G'} (h₁ : K₁ ≤ H₁.map f)
   (h₂ : K₂ ≤ H₂.map f) : ⁅K₁, K₂⁆ ≤ ⁅H₁, H₂⁆.map f :=
-by { rw map_commutator_eq_commutator_map, exact commutator_mono h₁ h₂ }
+by { rw map_commutator, exact commutator_mono h₁ h₂ }
 
 section derived_series_map
 
@@ -69,7 +69,7 @@ lemma map_derived_series_le_derived_series (n : ℕ) :
 begin
   induction n with n ih,
   { simp only [derived_series_zero, le_top], },
-  { simp only [derived_series_succ, map_commutator_eq_commutator_map, commutator_mono, ih] }
+  { simp only [derived_series_succ, map_commutator, commutator_mono, ih] }
 end
 
 variables {f}

@@ -196,8 +196,8 @@ lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
 @subsingleton.elim _ (subsingleton_of_zero_eq_one h) a b
 
 /-- In a monoid with zero, either zero and one are nonequal, or zero is the only element. -/
-lemma zero_ne_one_or_forall_eq_0 : (0 : M₀) ≠ 1 ∨ ∀ a : M₀, a = 0 := eq_zero_of_zero_eq_one.not_or
-
+lemma zero_ne_one_or_forall_eq_0 : (0 : M₀) ≠ 1 ∨ (∀a:M₀, a = 0) :=
+not_or_of_imp eq_zero_of_zero_eq_one
 end
 
 section

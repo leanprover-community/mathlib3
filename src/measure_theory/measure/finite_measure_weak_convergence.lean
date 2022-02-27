@@ -6,7 +6,7 @@ Authors: Kalle Kytölä
 import measure_theory.measure.measure_space
 import measure_theory.integral.bochner
 import topology.continuous_function.bounded
-import topology.algebra.module.weak_dual2
+import topology.algebra.module.weak_dual
 
 /-!
 # Weak convergence of (finite) measures

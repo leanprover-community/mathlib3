@@ -916,6 +916,32 @@ rfl
 def biprod.is_kernel_snd_kernel_fork : is_limit (biprod.snd_kernel_fork X Y) :=
 fork.is_limit.mk' _ $ λ s, ⟨s.ι ≫ biprod.fst, by ext; simp, λ m hm, by simp [← hm]⟩
 
+/-- A cokernel cofork for the cokernel of `biprod.inl`. It consists of the
+morphism `biprod.snd`. -/
+def biprod.inl_cokernel_fork : cokernel_cofork (biprod.inl : X ⟶ X ⊞ Y) :=
+cokernel_cofork.of_π biprod.snd biprod.inl_snd
+
+@[simp]
+lemma biprod.inl_cokernel_fork_π : cofork.π (biprod.inl_cokernel_fork X Y) = biprod.snd :=
+rfl
+
+/-- The cofork `biprod.inl_cokernel_fork` is indeed a colimit.  -/
+def biprod.is_cokernel_inl_cokernel_fork : is_colimit (biprod.inl_cokernel_fork X Y) :=
+cofork.is_colimit.mk' _ $ λ s, ⟨biprod.inr ≫ s.π, by ext; simp, λ m hm, by simp [← hm]⟩
+
+/-- A cokernel cofork for the cokernel of `biprod.inr`. It consists of the
+morphism `biprod.fst`. -/
+def biprod.inr_cokernel_fork : cokernel_cofork (biprod.inr : Y ⟶ X ⊞ Y) :=
+cokernel_cofork.of_π biprod.fst biprod.inr_fst
+
+@[simp]
+lemma biprod.inr_cokernel_fork_π : cofork.π (biprod.inr_cokernel_fork X Y) = biprod.fst :=
+rfl
+
+/-- The cofork `biprod.inr_cokernel_fork` is indeed a colimit.  -/
+def biprod.is_cokernel_inr_cokernel_fork : is_colimit (biprod.inr_cokernel_fork X Y) :=
+cofork.is_colimit.mk' _ $ λ s, ⟨biprod.inl ≫ s.π, by ext; simp, λ m hm, by simp [← hm]⟩
+
 end biprod_kernel
 
 section

@@ -478,12 +478,12 @@ def extension_by.functor : presheaf_of_module 𝓞1 ⥤ presheaf_of_module 𝓞2
 
 end extension
 
-section
+namespace change_of_presheaf_rings
 
 variables {T : Top} {𝓞1 𝓞2 : presheaf CommRing T} (f : 𝓞1 ⟶ 𝓞2)
 variables (X : presheaf_of_module 𝓞1) (Y : presheaf_of_module 𝓞2)
 
-def forward.to_fun (g  : ((extension_by.functor f).obj X ⟶ Y)) :
+private def forward.to_fun (g  : ((extension_by.functor f).obj X ⟶ Y)) :
   X.self ⟶ ((restriction_by.functor f).obj Y).self :=
 { app := λ U, { to_fun := λ x, begin
     refine ((change_of_rings.adjunction (f.app U)).hom_equiv
@@ -534,19 +534,339 @@ def forward.to_fun (g  : ((extension_by.functor f).obj X ⟶ Y)) :
     refl,
   end }.
 
-#exit
-def forward (g  :((extension_by.functor f).obj X ⟶ Y)) : (X ⟶ (restriction_by.functor f).obj Y) :=
-{ to_fun := _,
-  compatible := _ }
+/--
+Given `g : ((extension_by.functor f).obj X ⟶ Y)`, we obtain an
+`X ⟶ (restriction_by.functor f).obj Y` via `change_of_rings.adjunction`
+-/
+def forward (g : ((extension_by.functor f).obj X ⟶ Y)) : (X ⟶ (restriction_by.functor f).obj Y) :=
+{ to_fun := forward.to_fun f X Y g,
+  compatible := λ U r m,
+  let im1 : module (𝓞1.obj (op U)) (𝓞2.obj (op U)) := restriction_of_scalars.is_module
+    (f.app (op U)) ⟨_⟩ in
+  begin
+    resetI,
+    unfold forward.to_fun,
+    dsimp only,
+    simp only [add_monoid_hom.coe_mk],
+    unfold change_of_rings.adjunction,
+    dsimp only,
+    unfold change_of_rings.equiv,
+    dsimp only,
+    unfold change_of_rings.forward,
+    dsimp only,
+    simp only [linear_map.coe_mk],
+    erw restriction_of_scalars.smul_def (f.app (op U)) ⟨Y.self.obj (op U)⟩ r,
+    erw ← g.compatible (f.app (op U) r),
+    congr' 1,
+    erw tensor_product.smul_tmul,
+    erw [extension_of_scalars.smul_pure_tensor, mul_one],
+    congr' 1,
+    erw restriction_of_scalars.smul_def (f.app (op U)),
+    rw [smul_eq_mul, mul_one],
+  end }.
 
--- ((extension_by.functor f).obj X ⟶ Y) ≃ (X ⟶ (restriction_by.functor f).obj Y)
-example : adjunction (extension_by.functor f) (restriction_by.functor f) :=
-{ hom_equiv := _,
-  unit := _,
-  counit := _,
-  hom_equiv_unit' := _,
-  hom_equiv_counit' := _ }
+private def backward.to_fun (g : (X ⟶ (restriction_by.functor f).obj Y)) :
+  ((extension_by.functor f).obj X).self ⟶ Y.self :=
+{ app := λ U,
+    { to_fun := λ z, begin
+      refine ((change_of_rings.adjunction (f.app U)).hom_equiv
+        { carrier := (X.self.obj U),
+          is_module := X.is_module (unop U) }
+        { carrier := (Y.self.obj U),
+          is_module := Y.is_module (unop U) }).inv_fun
+        { to_fun := λ x, g.1.app U x,
+          map_add' := _,
+          map_smul' := _ } z,
+      { intros x x',
+        rw map_add, },
+      { intros r x,
+        erw [@morphism.compatible _ _ _ _ g (unop U) r x],
+        rw ring_hom.id_apply,
+        refl, },
+    end,
+      map_add' := λ z z', by rw map_add,
+      map_zero' := by rw map_zero },
+  naturality' := λ U V inc,
+  let im1 : module (𝓞1.obj U) (𝓞2.obj U) := restriction_of_scalars.is_module (f.app U) ⟨_⟩,
+      im2 : module (𝓞1.obj U) (Y.self.obj U) := restriction_of_scalars.is_module (f.app U)
+        { carrier := Y.self.obj U, is_module := Y.is_module (unop U) } in
+  begin
+    resetI,
+    ext z,
+    simp only [equiv.inv_fun_as_coe, adjunction.hom_equiv_counit, comp_apply,
+      add_monoid_hom.coe_mk],
+    unfold change_of_rings.adjunction,
+    dsimp only,
+    unfold change_of_rings.counit,
+    dsimp only,
+    unfold counit.map,
+    simp only [linear_map.coe_mk],
+    rw show (extension_of_scalars.functor (f.app V)).map _ = extension_of_scalars.map _ _, from rfl,
+    unfold extension_of_scalars.map,
+    simp only [linear_map.coe_mk],
+    change _ = (Y.self.map inc) (tensor_product.lift _ (tensor_product.lift _ z)),
+    induction z using tensor_product.induction_on with x r _ _ ih1 ih2,
+    { simp [map_zero], },
+    { erw [tensor_product.lift.tmul, tensor_product.lift.tmul],
+      simp only [linear_map.coe_mk],
+      erw @presheaf_of_module.compatible _ _ Y (unop U) (unop V) inc r (g.1.app U x),
+      congr' 1,
+      convert add_monoid_hom.congr_fun (g.to_fun.naturality inc) x, },
+    { simp only [map_add, ih1, ih2], },
+  end }.
 
-end
+/--
+Given `g : X ⟶ (restriction_by.functor f).obj Y`, we obtain an
+`X ⟶ (restriction_by.functor f).obj Y` via `change_of_rings.adjunction`
+-/
+def backward (g : (X ⟶ (restriction_by.functor f).obj Y)) : (extension_by.functor f).obj X ⟶ Y :=
+{ to_fun := backward.to_fun f X Y g,
+  compatible := λ U r z,
+  let im1 : module (𝓞1.obj (op U)) (𝓞2.obj (op U)) := restriction_of_scalars.is_module
+    (f.app (op U)) ⟨_⟩ in
+  begin
+    resetI,
+    unfold backward.to_fun,
+    dsimp only,
+    simp only [add_monoid_hom.coe_mk],
+    unfold change_of_rings.adjunction,
+    dsimp only,
+    unfold change_of_rings.equiv,
+    dsimp only,
+    unfold change_of_rings.backward,
+    simp only [linear_map.coe_mk],
+    induction z using tensor_product.induction_on with _ _ _ _ ih1 ih2,
+    { rw [smul_zero, map_zero, smul_zero], },
+    { simp only [extension_of_scalars.smul_pure_tensor, tensor_product.lift.tmul, linear_map.coe_mk],
+      rw mul_smul, },
+    { simp only [map_add, ih1, ih2, smul_add], }
+  end }.
+
+/--
+We have `((extension_by.functor f).obj X ⟶ Y) ≃ (X ⟶ (restriction_by.functor f).obj Y)`, where
+the forward direction is given by `presheaf_of_modules.change_of_presheaf_ring.forward` and
+the backward direction is given by `presheaf_of_modules.change_of_presheaf_ring.backward`.
+-/
+def equiv : ((extension_by.functor f).obj X ⟶ Y) ≃ (X ⟶ (restriction_by.functor f).obj Y) :=
+{ to_fun := forward f X Y,
+  inv_fun := backward f X Y,
+  left_inv := λ g, begin
+    ext U z,
+    induction z using tensor_product.induction_on with x r _ _ ih1 ih2,
+    { simp only [map_zero], },
+    { unfold backward,
+      dsimp only,
+      unfold backward.to_fun,
+      simp only [add_monoid_hom.coe_mk],
+      unfold change_of_rings.adjunction,
+      dsimp only,
+      unfold change_of_rings.equiv,
+      dsimp only,
+      unfold change_of_rings.backward,
+      simp only [linear_map.coe_mk],
+      erw tensor_product.lift.tmul,
+      simp only [linear_map.coe_mk],
+      unfold forward,
+      simp only [add_monoid_hom.coe_mk],
+      unfold forward.to_fun,
+      simp only [add_monoid_hom.coe_mk],
+      unfold change_of_rings.adjunction,
+      dsimp only,
+      unfold change_of_rings.equiv,
+      dsimp only,
+      unfold change_of_rings.forward,
+      simp only [linear_map.coe_mk],
+      have eq1 := @morphism.compatible _ _ _ _ g (unop U) r (x ⊗ₜ[_, f.app U] 1),
+      convert eq1.symm,
+      rw mul_one, },
+    { simp only [map_add, ih1, ih2], },
+  end,
+  right_inv := λ g, begin
+    ext U x,
+    unfold forward,
+    dsimp only,
+    unfold forward.to_fun,
+    simp only [add_monoid_hom.coe_mk],
+    unfold change_of_rings.adjunction,
+    dsimp only,
+    unfold change_of_rings.equiv,
+    dsimp only,
+    unfold change_of_rings.forward,
+    simp only [linear_map.coe_mk],
+    unfold backward,
+    dsimp only,
+    unfold backward.to_fun,
+    simp only [add_monoid_hom.coe_mk],
+    unfold change_of_rings.adjunction,
+    dsimp only,
+    unfold change_of_rings.equiv,
+    dsimp only,
+    unfold change_of_rings.backward,
+    simp only [linear_map.coe_mk],
+    erw tensor_product.lift.tmul,
+    simp only [linear_map.coe_mk],
+    rw one_smul
+  end }.
+
+/--
+lint
+-/
+def unit.map :
+  X.self ⟶ ((extension_by.functor f ⋙ restriction_by.functor f).obj X).self :=
+{ app := λ U,
+    { to_fun := λ x, (change_of_rings.unit (f.app U)).app
+      { carrier := X.self.obj U, is_module := X.is_module (unop U) } x,
+      map_zero' := by rw map_zero,
+      map_add' := λ x y, by rw map_add },
+  naturality' := λ U V inc, begin
+    ext x,
+    simp only [comp_apply, add_monoid_hom.coe_mk],
+    unfold change_of_rings.unit,
+    dsimp only,
+    unfold change_of_rings.unit.map,
+    simp only [linear_map.coe_mk],
+    dsimp only [category_theory.functor.comp_obj, restriction_by.functor, extension_by.functor,
+      restriction_by.obj, extension_by.obj, extension_by.obj_presheaf_Ab],
+    simp only [add_monoid_hom.coe_mk],
+    unfold restrict restrict.to_fun,
+    erw tensor_product.lift.tmul,
+    simp only [linear_map.coe_mk],
+    congr' 1,
+    rw map_one,
+  end }.
+
+/--
+The natural transformation from the identity functor to
+`extension_by.functor f ⋙ restriction_by.functor f`-/
+def unit : 𝟭 _ ⟶  extension_by.functor f ⋙ restriction_by.functor f :=
+{ app := λ X,
+    { to_fun := unit.map f X,
+      compatible := λ U r x,
+      let im1 : module (𝓞1.obj (op U)) (𝓞2.obj (op U)) :=
+        restriction_of_scalars.is_module (f.app (op U)) ⟨_⟩ in
+      begin
+        resetI,
+        unfold unit.map,
+        simp only [add_monoid_hom.coe_mk],
+        unfold change_of_rings.unit,
+        dsimp only,
+        unfold change_of_rings.unit.map,
+        simp only [linear_map.coe_mk],
+        erw extension_of_scalars.smul_pure_tensor,
+        rw [mul_one, tensor_product.smul_tmul],
+        congr' 1,
+        rw [restriction_of_scalars.smul_def, smul_eq_mul, mul_one],
+      end },
+  naturality' := λ X X' g, begin
+    ext U x,
+    simp only [functor.id_map, functor.comp_map],
+    change (g.1 ≫ unit.map f X').app U _ = (unit.map _ _ ≫ _).app _ _,
+    simp only [nat_trans.comp_app, comp_apply],
+    unfold unit.map,
+    simp only [add_monoid_hom.coe_mk],
+    unfold change_of_rings.unit,
+    dsimp only,
+    unfold change_of_rings.unit.map,
+    simp only [linear_map.coe_mk],
+    erw tensor_product.lift.tmul,
+    simp only [linear_map.coe_mk],
+  end }.
+
+/--
+lint
+-/
+def counit.map :
+  ((restriction_by.functor f ⋙ extension_by.functor f).obj Y).self ⟶ Y.self :=
+{ app := λ U,
+    { to_fun := λ x, (change_of_rings.counit (f.app U)).app
+          { carrier := Y.self.obj U, is_module := Y.is_module (unop U) } x,
+      map_zero' := by rw map_zero,
+      map_add' := λ x x', by rw map_add },
+  naturality' := λ U V inc, begin
+    ext,
+    simp only [comp_apply, add_monoid_hom.coe_mk],
+    unfold counit,
+    dsimp only,
+    unfold counit.map,
+    simp only [linear_map.coe_mk],
+    induction x using tensor_product.induction_on with x s _ _ ih1 ih2,
+    { simp [map_zero] },
+    { erw [tensor_product.lift.tmul, tensor_product.lift.tmul],
+      simp only [linear_map.coe_mk],
+      rw @presheaf_of_module.compatible _ _ Y (unop U) (unop V) inc s x,
+      congr' 1, },
+    { simp only [map_add, ih1, ih2], },
+  end }
+
+/--
+lint
+-/
+def counit : restriction_by.functor f ⋙ extension_by.functor f ⟶ 𝟭 _ :=
+{ app := λ Y,
+    { to_fun := counit.map f Y,
+      compatible := λ U r z, begin
+        unfold counit.map,
+        simp only [add_monoid_hom.coe_mk],
+        unfold counit,
+        dsimp only,
+        unfold change_of_rings.counit.map,
+        simp only [linear_map.coe_mk],
+        induction z using tensor_product.induction_on with x s _ _ ih1 ih2,
+        { simp only [map_zero, smul_zero] },
+        { erw [extension_of_scalars.smul_pure_tensor, tensor_product.lift.tmul,
+            tensor_product.lift.tmul],
+          simp only [linear_map.coe_mk],
+          rw mul_smul, },
+        { simp only [smul_add, map_add, ih1, ih2], },
+      end },
+  naturality' := λ Y Y' g, begin
+    ext U z,
+    simp only [functor.comp_map, functor.id_map],
+    change (_ ≫ counit.map f Y').app U z = (counit.map f Y ≫ _).app _ _,
+    simp only [nat_trans.comp_app, comp_apply],
+    induction z using tensor_product.induction_on with x s _ _ ih1 ih2,
+    { simp only [map_zero], },
+    { erw [tensor_product.lift.tmul, tensor_product.lift.tmul],
+      simp only [linear_map.coe_mk],
+      erw @morphism.compatible _ _ _ _ g (unop U) s x,
+      congr' 1, },
+    { simp only [map_add, ih1, ih2], }
+  end }.
+
+/--
+restriction functor is right adjoint to extension functor
+-/
+def adjunction : adjunction (extension_by.functor f) (restriction_by.functor f) :=
+{ hom_equiv := λ X Y, equiv f X Y,
+  unit := unit f,
+  counit := counit f,
+  hom_equiv_unit' := λ X Y g, begin
+    ext U x,
+    simp only [equiv, equiv.coe_fn_mk, unit, forward, unit.map],
+    change _ = (_ ≫ ((restriction_by.functor f).map g).1).app U _,
+    simp only [nat_trans.comp_app, comp_apply, add_monoid_hom.coe_mk],
+    unfold forward.to_fun,
+    simp only [add_monoid_hom.coe_mk],
+    unfold change_of_rings.adjunction,
+    dsimp only,
+    unfold change_of_rings.equiv,
+    simp only [linear_map.coe_mk],
+    unfold change_of_rings.forward,
+    simp only [linear_map.coe_mk],
+    unfold change_of_rings.unit,
+    dsimp only,
+    unfold change_of_rings.unit.map,
+    simp only [linear_map.coe_mk],
+    congr' 1,
+  end,
+  hom_equiv_counit' := λ X Y g, begin
+    ext U z,
+    induction z using tensor_product.induction_on with _ _ _ _ ih1 ih2,
+    { simp only [map_zero], },
+    { erw tensor_product.lift.tmul, },
+    { simp only [map_add, ih1, ih2], },
+  end }.
+
+end change_of_presheaf_rings
 
 end presheaf_of_module

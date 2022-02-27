@@ -230,6 +230,8 @@ lemma noncomm_pi_coprod_single (i : ι) (y : N i):
   noncomm_pi_coprod ϕ hcomm (monoid_hom.single _ i y) = ϕ i y :=
 by { show noncomm_pi_coprod_on.hom ϕ hcomm finset.univ (monoid_hom.single _ i y) = ϕ i y, simp }
 
+omit hcomm
+
 /-- The universal property of `noncomm_pi_coprod` -/
 @[to_additive "The universal property of `noncomm_pi_coprod`"]
 def noncomm_pi_coprod_equiv :
@@ -243,6 +245,8 @@ def noncomm_pi_coprod_equiv :
   right_inv := λ f, pi_ext (λ i x, by simp) }
 
 omit hdec
+
+include hcomm
 
 @[to_additive]
 lemma noncomm_pi_coprod_mrange : (noncomm_pi_coprod ϕ hcomm).mrange = ⨆ i : ι, (ϕ i).mrange :=

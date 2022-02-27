@@ -3,6 +3,8 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Scott Morrison
 -/
+import category_theory.limits.exact_functor
+import category_theory.limits.preserves.finite
 import category_theory.limits.preserves.shapes.biproducts
 import category_theory.preadditive.functor_category
 
@@ -25,6 +27,8 @@ We also define the category of bundled additive functors.
 `Y`, the map `F.map : (X ⟶ Y) → (F.obj X ⟶ F.obj Y)` is a morphism of abelian groups.
 
 -/
+
+universes v₁ v₂ u₁ u₂
 
 namespace category_theory
 
@@ -98,8 +102,6 @@ section
 -- To talk about preservation of biproducts we need to specify universes explicitly.
 
 noncomputable theory
-universes v₁ v₂ u₁ u₂
-
 
 variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D]
   [preadditive C] [preadditive D] (F : C ⥤ D)
@@ -127,6 +129,24 @@ lemma additive_of_preserves_binary_biproducts [has_binary_biproducts C] [preserv
 { map_add' := λ X Y f g, by rw [biprod.add_eq_lift_id_desc, F.map_comp, ← biprod.lift_map_biprod,
     ← biprod.map_biprod_hom_desc, category.assoc, iso.inv_hom_id_assoc, F.map_id,
     biprod.add_eq_lift_id_desc] }
+
+section
+local attribute [instance] preserves_binary_biproducts_of_preserves_binary_products
+
+lemma additive_of_preserves_finite_limits [has_zero_object C] [has_zero_object D]
+  [has_binary_biproducts C] [preserves_finite_limits F] : additive F :=
+additive_of_preserves_binary_biproducts F
+
+end
+
+section
+local attribute [instance] preserves_binary_biproducts_of_preserves_binary_coproducts
+
+lemma additive_of_preserves_finite_colimits [has_zero_object C] [has_zero_object D]
+  [has_binary_biproducts C] [preserves_finite_colimits F] : additive F :=
+additive_of_preserves_binary_biproducts F
+
+end
 
 end
 
@@ -189,6 +209,48 @@ instance (F : C ⥤+ D) : functor.additive F.1 :=
 F.2
 
 end
+
+section exact
+open category_theory.limits
+
+variables (C : Type u₁) (D : Type u₂) [category.{v₁} C] [category.{v₂} D] [preadditive C]
+variables [preadditive D] [has_zero_object C] [has_zero_object D] [has_binary_biproducts C]
+
+/-- Turn a left exact functor into an additive functor. -/
+@[derive full, derive faithful]
+def AdditiveFunctor.of_left_exact : (C ⥤ₗ D) ⥤ (C ⥤+ D) :=
+full_subcategory.map
+  (λ F h, let hF := classical.choice h in by exactI functor.additive_of_preserves_finite_limits F)
+
+/-- Turn a right exact functor into an additive functor. -/
+@[derive full, derive faithful]
+def AdditiveFunctor.of_right_exact : (C ⥤ᵣ D) ⥤ (C ⥤+ D) :=
+full_subcategory.map
+  (λ F h, let hF := classical.choice h in by exactI functor.additive_of_preserves_finite_colimits F)
+
+/-- Turn an exact functor into an additive functor. -/
+@[derive full, derive faithful]
+def AdditiveFunctor.of_exact : (C ⥤ₑ D) ⥤ (C ⥤+ D) :=
+full_subcategory.map (λ F h,
+  let hF := classical.choice h.1 in by exactI functor.additive_of_preserves_finite_limits F)
+
+variables {C D}
+
+@[simp] lemma AdditiveFunctor.of_left_exact_obj_fst (F : C ⥤ₗ D) :
+  ((AdditiveFunctor.of_left_exact C D).obj F).obj = F.obj := rfl
+@[simp] lemma AdditiveFunctor.of_right_exact_obj_fst (F : C ⥤ᵣ D) :
+  ((AdditiveFunctor.of_right_exact C D).obj F).obj = F.obj := rfl
+@[simp] lemma AdditiveFunctor.of_exact_obj_fst (F : C ⥤ₑ D) :
+  ((AdditiveFunctor.of_exact C D).obj F).obj = F.obj := rfl
+
+@[simp] lemma Additive_Functor.of_left_exact_map {F G : C ⥤ₗ D} (α : F ⟶ G) :
+  (AdditiveFunctor.of_left_exact C D).map α = α := rfl
+@[simp] lemma Additive_Functor.of_right_exact_map {F G : C ⥤ᵣ D} (α : F ⟶ G) :
+  (AdditiveFunctor.of_right_exact C D).map α = α := rfl
+@[simp] lemma Additive_Functor.of_exact_map {F G : C ⥤ₑ D} (α : F ⟶ G) :
+  (AdditiveFunctor.of_exact C D).map α = α := rfl
+
+end exact
 
 end preadditive
 

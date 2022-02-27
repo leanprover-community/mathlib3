@@ -12,7 +12,7 @@ import group_theory.submonoid.center
 
 * `set.centralizer`: the center of a magma
 * `submonoid.centralizer`: the center of a monoid
-* `set.centralizer`: the center of an additive magma
+* `set.add_centralizer`: the center of an additive magma
 * `add_submonoid.centralizer`: the center of an additive monoid
 
 We provide `subgroup.centralizer`, `add_subgroup.centralizer` in other files.

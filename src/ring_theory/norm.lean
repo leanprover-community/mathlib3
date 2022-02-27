@@ -231,7 +231,7 @@ begin
   letI := classical.dec_eq E,
   rw [power_basis.norm_gen_eq_prod_roots pb hE, fintype.prod_equiv pb.lift_equiv',
     finset.prod_mem_multiset, finset.prod_eq_multiset_prod, multiset.to_finset_val,
-    multiset.erase_dup_eq_self.mpr, multiset.map_id],
+    multiset.dedup_eq_self.mpr, multiset.map_id],
   { exact nodup_roots ((separable_map _).mpr hfx) },
   { intro x, refl },
   { intro σ, rw [power_basis.lift_equiv'_apply_coe, id.def] }

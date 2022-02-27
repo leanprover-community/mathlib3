@@ -6,7 +6,8 @@ Authors: Anne Baanen
 
 import ring_theory.euclidean_domain
 import ring_theory.laurent_series
-import ring_theory.localization
+import ring_theory.localization.fraction_ring
+import ring_theory.polynomial.content
 
 /-!
 # The field of rational functions
@@ -538,8 +539,8 @@ def map_ring_hom [ring_hom_class F R[X] S[X]] (φ : F)
 { map_zero' := begin
     simp_rw [monoid_hom.to_fun_eq_coe, ←of_fraction_ring_zero,
              ←localization.mk_zero (1 : R[X]⁰),
-             ←localization.mk_zero (1 : S[X]⁰), map_apply_of_fraction_ring_mk],
-    simpa
+             ←localization.mk_zero (1 : S[X]⁰), map_apply_of_fraction_ring_mk, map_zero,
+             localization.mk_eq_mk', is_localization.mk'_zero],
   end,
   map_add' := begin
     rintro ⟨x⟩ ⟨y⟩, induction x, induction y,

@@ -160,14 +160,13 @@ begin
       (is_order_connected.neg_trans h ba) }
 end
 
-private theorem card_mem_cof (o : ordinal) :
-  o.card ∈ {a : cardinal.{u} | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
-⟨_, typein o.out.r, lsub_typein o, mk_ordinal_out o⟩
+private theorem card_mem_cof {o} : ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = o.card :=
+⟨_, _, lsub_typein o, mk_ordinal_out o⟩
 
 /-- The set in the `lsub` characterization of `cof` is nonempty. -/
 theorem cof_lsub_def_nonempty (o) :
   {a : cardinal | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a}.nonempty :=
-⟨_, card_mem_cof o⟩
+⟨_, card_mem_cof⟩
 
 theorem cof_eq_Inf_lsub (o : ordinal.{u}) :
   cof o = Inf {a : cardinal | ∃ {ι : Type u} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
@@ -222,7 +221,7 @@ induction_on o $ begin introsI α r _,
 end
 
 theorem cof_le_card (o) : cof o ≤ card o :=
-by { rw cof_eq_Inf_lsub, exact cInf_le' (card_mem_cof o) }
+by { rw cof_eq_Inf_lsub, exact cInf_le' card_mem_cof }
 
 theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
 by simpa using cof_le_card c.ord

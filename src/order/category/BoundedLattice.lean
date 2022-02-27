@@ -56,6 +56,10 @@ instance has_forget_to_BoundedOrder : has_forget₂ BoundedLattice BoundedOrder 
 { forget₂ := { obj := λ X, BoundedOrder.of X,
                map := λ X Y, bounded_lattice_hom.to_bounded_order_hom } }
 
+lemma forget_Lattice_PartialOrder_eq_forget_BoundedOrder_PartialOrder :
+  forget₂ BoundedLattice Lattice ⋙ forget₂ Lattice PartialOrder =
+    forget₂ BoundedLattice BoundedOrder ⋙ forget₂ BoundedOrder PartialOrder := rfl
+
 /-- Constructs an equivalence between bounded lattices from an order isomorphism
 between them. -/
 @[simps] def iso.mk {α β : BoundedLattice.{u}} (e : α ≃o β) : α ≅ β :=

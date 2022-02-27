@@ -93,16 +93,16 @@ def ulift_map : C(Top.of (ulift.{u} I × X), Y) :=
 /-- An abbreviation for `prod_to_prod_Top`, with some types already in place to help the
  typechecker. In particular, the first path should be on the ulifted unit interval. -/
 abbreviation prod_to_prod_Top_I {a₁ a₂ : Top.of (ulift I)} {b₁ b₂ : X}
-  (p₁ : from_top a₁ ⟶ a₂) (p₂ : from_top b₁ ⟶ b₂) :=
+  (p₁ : from_top a₁ ⟶ from_top a₂) (p₂ : from_top b₁ ⟶ from_top b₂) :=
 @category_theory.functor.map _ _ _ _ (prod_to_prod_Top (Top.of $ ulift I) X)
   (a₁, b₁) (a₂, b₂) (p₁, p₂)
 
 /-- The diagonal path `d` of a homotopy `H` on a path `p` -/
-def diagonal_path : from_top (H (0, x₀)) ⟶ H (1, x₁) :=
+def diagonal_path : from_top (H (0, x₀)) ⟶ from_top (H (1, x₁)) :=
 (πₘ H.ulift_map).map (prod_to_prod_Top_I uhpath01 p)
 
 /-- The diagonal path, but starting from `f x₀` and going to `g x₁` -/
-def diagonal_path' : from_top (f x₀) ⟶ g x₁ :=
+def diagonal_path' : from_top (f x₀) ⟶ from_top (g x₁) :=
 hcast (H.apply_zero x₀).symm ≫ (H.diagonal_path p) ≫ hcast (H.apply_one x₁)
 
 /-- Proof that `f(p) = H(0 ⟶ 0, p)`, with the appropriate casts -/
@@ -142,7 +142,7 @@ end
 /- Finally, we show `d = f(p) ≫ H₁ = H₀ ≫ g(p)` -/
 lemma eq_diag_path :
   (πₘ f).map p ≫ ⟦H.eval_at x₁⟧ = H.diagonal_path' p ∧
-  (⟦H.eval_at x₀⟧ ≫ (πₘ g).map p : from_top (f x₀) ⟶ g x₁) = H.diagonal_path' p :=
+  (⟦H.eval_at x₀⟧ ≫ (πₘ g).map p : from_top (f x₀) ⟶ from_top (g x₁)) = H.diagonal_path' p :=
 begin
   rw [H.apply_zero_path, H.apply_one_path, H.eval_at_eq, H.eval_at_eq],
   dunfold prod_to_prod_Top_I,
@@ -169,11 +169,11 @@ instance : is_iso (homotopic_maps_nat_iso H) := by apply nat_iso.is_iso_of_is_is
 open_locale continuous_map
 
 /-- Homotopy equivalent topological spaces have equivalent fundamental groupoids. -/
-def equiv_of_homotopy_equiv (hequiv : X ≃ₕ Y) : (πₓ X).α ≌ (πₓ Y).α :=
+def equiv_of_homotopy_equiv (hequiv : X ≃ₕ Y) : πₓ X ≌ πₓ Y :=
 begin
   apply equivalence.mk
-    (πₘ hequiv.to_fun : (πₓ X).α ⥤ (πₓ Y).α)
-    (πₘ hequiv.inv_fun : (πₓ Y).α ⥤ (πₓ X).α);
+    (πₘ hequiv.to_fun : πₓ X ⥤ πₓ Y)
+    (πₘ hequiv.inv_fun : πₓ Y ⥤ πₓ X);
   simp only [Groupoid.hom_to_functor, Groupoid.id_to_functor],
   { convert (as_iso (homotopic_maps_nat_iso hequiv.left_inv.some)).symm,
     exacts [((π).map_id X).symm, ((π).map_comp _ _).symm] },

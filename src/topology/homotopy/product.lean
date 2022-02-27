@@ -404,7 +404,7 @@ def prod_to_prod_Top : (πₓ A) × (πₓ B) ⥤ πₓ (Top.of (A × B)) :=
     (path.homotopic.comp_prod_eq_prod_comp f₀ f₁ g₀ g₁).symm
   end }
 
-lemma prod_to_prod_Top_map {x₀ x₁ : (πₓ A).α} {y₀ y₁ : (πₓ B).α}
+lemma prod_to_prod_Top_map {x₀ x₁ : πₓ A} {y₀ y₁ : πₓ B}
   (p₀ : x₀ ⟶ x₁) (p₁ : y₀ ⟶ y₁) :
   @category_theory.functor.map _ _ _ _
   (prod_to_prod_Top A B) (x₀, y₀) (x₁, y₁) (p₀, p₁) = path.homotopic.prod p₀ p₁ := rfl

@@ -791,7 +791,8 @@ include hd2 o
 
 local notation `ob` := o.fin_orthonormal_basis_orthonormal dec_trivial hd2.out
 
-/-- The oriented angle from `x` to `y`, modulo `2 * π`. If either vector is 0, this is 0. -/
+/-- The oriented angle from `x` to `y`, modulo `2 * π`. If either vector is 0, this is 0.
+See `inner_product_geometry.angle` for the corresponding unoriented angle definition. -/
 def oangle (x y : V) : real.angle :=
 (ob).oangle x y
 

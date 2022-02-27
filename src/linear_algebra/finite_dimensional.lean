@@ -596,7 +596,8 @@ b.map (linear_equiv.smul_of_unit (units.mk0
   basis_singleton ι h v hv i = v :=
 calc basis_singleton ι h v hv i
     = (((basis_unique ι h).repr) v) default • (basis_unique ι h) default :
-      by simp [subsingleton.elim i default, basis_singleton, linear_equiv.smul_of_unit]
+      by simp [subsingleton.elim i default, basis_singleton, linear_equiv.smul_of_unit,
+               units.smul_def]
 ... = v : by rw [← finsupp.total_unique K (basis.repr _ v), basis.total_repr]
 
 @[simp] lemma range_basis_singleton (ι : Type*) [unique ι]

@@ -5,7 +5,7 @@ Authors: Anne Baanen
 -/
 
 import group_theory.quotient_group
-import ring_theory.dedekind_domain
+import ring_theory.dedekind_domain.ideal
 
 /-!
 # The ideal class group

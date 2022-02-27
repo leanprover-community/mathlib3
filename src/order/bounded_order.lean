@@ -430,6 +430,31 @@ lemma subsingleton_iff_bot_eq_top :
 
 end subsingleton
 
+section lift
+
+/-- Pullback an `order_top`. -/
+@[reducible] -- See note [reducible non-instances]
+def order_top.lift [has_le α] [has_top α] [has_le β] [order_top β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_top : f ⊤ = ⊤) :
+  order_top α :=
+⟨⊤, λ a, map_le _ _ $ by { rw map_top, exact le_top }⟩
+
+/-- Pullback an `order_bot`. -/
+@[reducible] -- See note [reducible non-instances]
+def order_bot.lift [has_le α] [has_bot α] [has_le β] [order_bot β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_bot : f ⊥ = ⊥) :
+  order_bot α :=
+⟨⊥, λ a, map_le _ _ $ by { rw map_bot, exact bot_le }⟩
+
+/-- Pullback a `bounded_order`. -/
+@[reducible] -- See note [reducible non-instances]
+def bounded_order.lift [has_le α] [has_top α] [has_bot α] [has_le β] [bounded_order β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  bounded_order α :=
+{ ..order_top.lift f map_le map_top, ..order_bot.lift f map_le map_bot }
+
+end lift
+
 /-! ### `with_bot`, `with_top` -/
 
 /-- Attach `⊥` to a type. -/

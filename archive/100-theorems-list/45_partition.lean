@@ -22,6 +22,30 @@ Specifically, Euler proved that the number of integer partitions of `n`
 into *distinct* parts equals the number of partitions of `n` into *odd*
 parts.
 
+## Proof outline
+
+The proof is based on the generating functions for odd and distinct partitions, which turn out to be
+equal:
+
+$$\prod_{i=0}^\infty \frac {1}{1-X^{2i+1}} = \prod_{i=0}^\infty (1+X^{i+1})$$
+
+In fact, we do not take a limit: it turns out that comparing the `n`'th coefficients of the partial
+products up to `m := n + 1` is sufficient.
+
+In particular, we
+
+1. define the partial product for the generating function for odd partitions `partial_odd_gf m` :=
+  $$\prod_{i=0}^m \frac {1}{1-X^{2i+1}}$$;
+2. prove `odd_gf_prop`: if `m` is big enough (`m * 2 > n`), the partial product's coefficient counts
+  the number of odd partitions;
+3. define the partial product for the generating function for distinct partitions
+  `partial_distinct_gf m` := $$\prod_{i=0}^m (1+X^{i+1})$$;
+4. prove `distinct_gf_prop`: if `m` is big enough (`m + 1 > n`), the `n`th coefficient of the
+  partial product counts the number of distinct partitions of `n`;
+5. prove `same_coeffs`: if m is big enough (`m ≥ n`), the `n`th coefficient of the partial products
+  are equal;
+6. combine the above in `partition_theorem`.
+
 ## References
 https://en.wikipedia.org/wiki/Partition_(number_theory)#Odd_parts_and_distinct_parts
 -/
@@ -222,7 +246,8 @@ lemma two_series (i : ℕ) [semiring α] :
   (1 + (X : power_series α)^i.succ) = indicator_series α {0, i.succ} :=
 begin
   ext,
-  simp only [coeff_indicator, coeff_one, coeff_X_pow, set.mem_insert_iff, set.mem_singleton_iff, map_add],
+  simp only [coeff_indicator, coeff_one, coeff_X_pow, set.mem_insert_iff, set.mem_singleton_iff,
+    map_add],
   cases n with d,
   { simp [(nat.succ_ne_zero i).symm] },
   { simp [nat.succ_ne_zero d], },
@@ -495,8 +520,8 @@ begin
   ... = _ : by rw prod_range_succ,
 end
 
-lemma same_coeffs [field α] (n m : ℕ) (h : m ≤ n) :
-  coeff α m (partial_odd_gf n) = coeff α m (partial_distinct_gf n) :=
+lemma same_coeffs [field α] (m n : ℕ) (h : n ≤ m) :
+  coeff α n (partial_odd_gf m) = coeff α n (partial_distinct_gf m) :=
 begin
   rw [← same_gf, coeff_mul_prod_one_sub_of_lt_order],
   rintros i -,

@@ -171,7 +171,7 @@ full_subcategory_inclusion _
 
 variables {C D}
 
-/-- Turn an additive functor into an object of the catgory `AdditiveFunctor C D`. -/
+/-- Turn an additive functor into an object of the category `AdditiveFunctor C D`. -/
 def AdditiveFunctor.of (F : C ⥤ D) [F.additive] : C ⥤+ D :=
 ⟨F, infer_instance⟩
 

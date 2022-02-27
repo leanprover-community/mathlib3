@@ -594,8 +594,8 @@ begin
     solve_by_elim
       [subalgebra.add_mem, subalgebra.smul_mem, subalgebra.sub_mem, subalgebra.algebra_map_mem]
       { max_depth := 6 }, },
-  { simp [f', coe_fn_coe_base'], },
-  { simp [f', coe_fn_coe_base', inv_mul_cancel_right₀ w], },
+  { simp [f', @coe_fn_coe_base' _ C(α, 𝕜)], },
+  { simp [f', @coe_fn_coe_base' _ C(α, 𝕜), inv_mul_cancel_right₀ w], },
 end
 
 end continuous_map

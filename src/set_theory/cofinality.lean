@@ -346,23 +346,34 @@ end
 def is_fs (a o : ordinal.{u}) (f : Π b < o, ordinal.{u}) : Prop :=
 o ≤ a.cof.ord ∧ (∀ {i j} (hi hj), i < j → f i hi < f j hj) ∧ blsub.{u u} o f = a
 
-theorem is_fs.monotone {a o : ordinal} {f : Π b < o, ordinal} (hf : is_fs a o f) {i j : ordinal}
-  (hi : i < o) (hj : j < o) (hij : i ≤ j) : f i hi ≤ f j hj :=
+section fs
+variables {a o : ordinal.{u}} {f : Π b < o, ordinal.{u}} (hf : is_fs a o f)
+
+theorem is_fs.cof_eq : a.cof.ord = o :=
+hf.1.antisymm' (by { rw ←hf.2.2, exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o) })
+
+theorem is_fs.strict_mono : ∀ {i j : ordinal} (hi : i < o) (hj : j < o), i < j → f i hi < f j hj :=
+hf.2.1
+
+theorem is_fs.blsub_eq : blsub.{u u} o f = a :=
+hf.2.2
+
+include hf
+theorem is_fs.monotone {i j : ordinal} (hi : i < o) (hj : j < o) (hij : i ≤ j) : f i hi ≤ f j hj :=
 begin
   rcases lt_or_eq_of_le hij with hij | rfl,
   { exact le_of_lt (hf.2.1 hi hj hij) },
   { refl }
 end
 
-theorem eq_cof_of_is_fs {a o : ordinal} {f : Π b < o, ordinal} (hf : is_fs a o f) : o = a.cof.ord :=
-hf.1.antisymm (by { rw ←hf.2.2, exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o) })
+end fs
 
 theorem is_fs.trans {a o o' : ordinal.{u}} {f : Π b < o, ordinal.{u}} (hf : is_fs a o f)
   {g : Π b < o', ordinal.{u}} (hg : is_fs o o' g) :
   is_fs a o' (λ i hi, f (g i hi) (by { rw ←hg.2.2, apply lt_blsub })) :=
 begin
   refine ⟨_, λ i j _ _ h, _, (blsub_le.2 (λ i hi, _)).antisymm _⟩,
-  { rw ←eq_cof_of_is_fs hf,
+  { rw hf.cof_eq,
     exact hg.1.trans (ord_cof_le o) },
   { exact hf.2.1 _ _ (hg.2.1 _ _ h) },
   { rw ←hf.2.2,
@@ -380,26 +391,13 @@ begin
   suffices : ∃ o f, is_fs a o f,
   { rcases this with ⟨o, f, hf⟩,
     convert exists.intro f hf;
-    rw eq_cof_of_is_fs hf },
+    rw hf.cof_eq },
   rcases exists_lsub_cof a with ⟨ι, f, hf, hι⟩,
   rcases ord_eq ι with ⟨r, wo, hr⟩,
   haveI := wo,
   let r' := subrel r {i | ∀ j, r j i → f j < f i},
   let hrr' : r' ↪r r := subrel.rel_embedding _ _,
   haveI := hrr'.is_well_order,
-  have H : ∀ i, ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi' := λ i, begin
-    by_cases h : ∀ j, r j i → f j < f i,
-    { refine ⟨typein r' ⟨i, h⟩, typein_lt_type _ _, _⟩,
-      rw bfamily_of_family'_typein,
-      refl },
-    { push_neg at h,
-      have hij : f i ≤ f (wo.wf.min _ h) := (wo.wf.min_mem _ h).2,
-      refine ⟨typein r' ⟨_, λ k hkj, lt_of_lt_of_le _ hij⟩, typein_lt_type _ _, _⟩,
-      { by_contra',
-        exact (wo.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj (wo.wf.min_mem _ h).1, this⟩) hkj },
-      { rw bfamily_of_family'_typein,
-        exact hij } }
-  end,
   refine ⟨_, _, (type_le'.2 ⟨hrr'⟩).trans _, λ i j _ h _, (enum r' j h).prop _ _,
     le_antisymm (blsub_le.2 (λ i hi, lsub_le.1 hf.le _)) _⟩,
   { rw [←hι, hr] },
@@ -407,15 +405,26 @@ begin
     rwa [hrr'.2, @enum_lt _ r'] },
   { rw [←hf, lsub_le],
     intro i,
-    rcases H i with ⟨i', hi', hfg⟩,
-    exact hfg.trans_lt (lt_blsub _ _ _) }
+    suffices : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
+    { rcases this with ⟨i', hi', hfg⟩,
+      exact hfg.trans_lt (lt_blsub _ _ _) },
+    by_cases h : ∀ j, r j i → f j < f i,
+    { refine ⟨typein r' ⟨i, h⟩, typein_lt_type _ _, _⟩,
+      rw bfamily_of_family'_typein,
+      refl },
+    { push_neg at h,
+      have hij : f i ≤ f (wo.wf.min _ h) := (wo.wf.min_mem _ h).2,
+      refine ⟨typein r' ⟨_, λ k hkj, lt_of_lt_of_le _ hij⟩, typein_lt_type _ _, _⟩,
+      { by_contra' H,
+        exact (wo.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj (wo.wf.min_mem _ h).1, H⟩) hkj },
+      { rwa bfamily_of_family'_typein } } }
 end
 
 @[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=
 begin
   cases exists_fs a with f hf,
   cases exists_fs a.cof.ord with g hg,
-  exact ord_injective (eq_cof_of_is_fs (hf.trans hg))
+  exact ord_injective ((hf.trans hg).cof_eq.symm)
 end
 
 theorem omega_le_cof {o} : ω ≤ cof o ↔ is_limit o :=

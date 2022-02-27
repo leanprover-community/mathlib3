@@ -56,10 +56,10 @@ inductive hom₂ : Π {a b : B}, hom a b → hom a b → Type (max u v)
     hom₂ ((f.comp g).comp h) (f.comp (g.comp h))
 | associator_inv {a b c d} (f : hom a b) (g : hom b c) (h : hom c d) :
     hom₂ (f.comp (g.comp h)) ((f.comp g).comp h)
-| right_unitor {a b} (f : hom a b) : hom₂ (f.comp (hom.id b)) f
+| right_unitor     {a b} (f : hom a b) : hom₂ (f.comp (hom.id b)) f
 | right_unitor_inv {a b} (f : hom a b) : hom₂ f (f.comp (hom.id b))
-| left_unitor {a b} (f : hom a b) : hom₂ ((hom.id a).comp f) f
-| left_unitor_inv {a b} (f : hom a b) : hom₂ f ((hom.id a).comp f)
+| left_unitor      {a b} (f : hom a b) : hom₂ ((hom.id a).comp f) f
+| left_unitor_inv  {a b} (f : hom a b) : hom₂ f ((hom.id a).comp f)
 
 section
 variables {B}
@@ -138,18 +138,18 @@ end
 variables {B}
 
 instance hom_category (a b : B) : category (hom a b) :=
-{ hom := λ f g, quot (@rel _ _ _ _ f g),
-  id := λ f, quot.mk rel (hom₂.id f),
-  comp := λ f g h, quot.map₂ hom₂.vcomp rel.vcomp_right rel.vcomp_left,
-  id_comp' := by { rintros f g ⟨η⟩, apply quot.sound (rel.id_comp η) },
-  comp_id' := by { rintros f g ⟨η⟩, apply quot.sound (rel.comp_id η) },
-  assoc' := by { rintros f g h i ⟨η⟩ ⟨θ⟩ ⟨ι⟩, apply quot.sound (rel.assoc η θ ι) } }
+{ hom       := λ f g, quot (@rel _ _ _ _ f g),
+  id        := λ f, quot.mk rel (hom₂.id f),
+  comp      := λ f g h, quot.map₂ hom₂.vcomp rel.vcomp_right rel.vcomp_left,
+  id_comp'  := by { rintros f g ⟨η⟩, exact quot.sound (rel.id_comp η) },
+  comp_id'  := by { rintros f g ⟨η⟩, exact quot.sound (rel.comp_id η) },
+  assoc'    := by { rintros f g h i ⟨η⟩ ⟨θ⟩ ⟨ι⟩, exact quot.sound (rel.assoc η θ ι) } }
 
 /-- Bicategory structure on the free bicategory. -/
 instance bicategory : bicategory (free_bicategory B) :=
-{ hom := λ a b : B, hom a b,
-  id := hom.id,
-  comp := λ a b c, hom.comp,
+{ hom   := λ a b : B, hom a b,
+  id    := hom.id,
+  comp  := λ a b c, hom.comp,
   hom_category := free_bicategory.hom_category,
   whisker_left := λ a b c f g h η,
     quot.map (hom₂.whisker_left f) (rel.whisker_left f g h) η,
@@ -269,11 +269,11 @@ A prefunctor from a quiver `B` to a bicategory `C` can be lifted to a pseudofunc
 -/
 @[simps]
 def lift : pseudofunctor (free_bicategory B) C :=
-{ obj := F.obj,
-  map := λ a b, lift_hom F,
-  map₂ := λ a b f g, quot.lift (lift_hom₂ F) (λ η θ H, lift_hom₂_congr F H),
-  map_id := λ a, iso.refl _,
-  map_comp := λ a b c f g, iso.refl _ }
+{ obj       := F.obj,
+  map       := λ a b, lift_hom F,
+  map₂      := λ a b f g, quot.lift (lift_hom₂ F) (λ η θ H, lift_hom₂_congr F H),
+  map_id    := λ a, iso.refl _,
+  map_comp  := λ a b c f g, iso.refl _ }
 
 end
 

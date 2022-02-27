@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.isomorphism
 import category_theory.functor.category
-import category_theory.fully_faithful
+import category_theory.functor.fully_faithful
 
 /-!
 # Whiskering

@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.monoidal.braided
 import category_theory.functor.category
-import category_theory.const
+import category_theory.functor.const
 
 /-!
 # Monoidal structure on `C ⥤ D` when `D` is monoidal.

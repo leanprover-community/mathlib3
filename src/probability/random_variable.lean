@@ -25,8 +25,8 @@ index subset `mv`.
 
 ## Main statements
 
-* `marginalization`: the marginal distribution is the marginalized joint distribution.
-* `marginalization_apply`: the marginal distribution's measure of a set `s : Π (i : mv), β i`
+* `marginal_eq_marginalize_joint`: the marginal distribution is the marginalized joint distribution.
+* `marginal_apply`: the marginal distribution's measure of a set `s : Π (i : mv), β i`
 is the joint distribution's measure of that same set, extended to allow the
 unmarginalized variables to take any value.
 

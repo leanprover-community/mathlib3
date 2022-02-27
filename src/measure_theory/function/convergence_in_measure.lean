@@ -126,7 +126,7 @@ lemma tendsto_in_measure_of_tendsto_ae
   (hf : ∀ n, ae_measurable (f n) μ) (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto_in_measure μ f at_top g :=
 begin
-  have hg : ae_measurable g μ, from ae_measurable_of_tendsto_metric_ae hf hfg,
+  have hg : ae_measurable g μ, from ae_measurable_of_tendsto_metric_ae' hf hfg,
   refine tendsto_in_measure.congr (λ i, (hf i).ae_eq_mk.symm) hg.ae_eq_mk.symm _,
   refine tendsto_in_measure_of_tendsto_ae_of_measurable (λ i, (hf i).measurable_mk)
     hg.measurable_mk _,
@@ -302,7 +302,7 @@ lemma tendsto_in_measure.ae_measurable
   ae_measurable g μ :=
 begin
   obtain ⟨ns, hns⟩ := h_tendsto.exists_seq_tendsto_ae',
-  exact ae_measurable_of_tendsto_metric_ae (λ n, hf (ns n)) _ hns,
+  exact ae_measurable_of_tendsto_metric_ae at_top (λ n, hf (ns n)) hns,
 end
 
 end ae_measurable_of

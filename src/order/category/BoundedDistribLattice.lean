@@ -10,9 +10,12 @@ import order.category.DistribLattice
 # The category of bounded distributive lattices
 
 This defines `BoundedDistribLattice`, the category of bounded distributive lattices.
+
+Note that this category is sometimes called [`DistLat`][https://ncatlab.org/nlab/show/DistLat] when
+being a lattice is understood to entail having a bottom and a top element.
 -/
 
-universes u v
+universes u
 
 open category_theory
 

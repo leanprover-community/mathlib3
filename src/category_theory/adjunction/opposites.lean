@@ -20,7 +20,7 @@ adjunction, opposite, uniqueness
 -/
 
 
-namespace category_theory
+open category_theory
 
 universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 

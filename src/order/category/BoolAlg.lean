@@ -95,45 +95,21 @@ lemma BoolAlg_dual_comp_forget_to_BoundedDistribLattice :
   BoolAlg.dual ⋙ forget₂ BoolAlg BoundedDistribLattice =
     forget₂ BoolAlg BoundedDistribLattice ⋙ BoundedDistribLattice.dual := rfl
 
-/-! ### Clopen sets -/
+/-! ### Atoms -/
 
-/-- The type of clopen sets of a topological space. -/
-structure atom (α : Type*) [preorder α] [order_bot α] :=
-(carrier : α)
-(atom' : is_atom carrier)
+/-- The type of atoms of an order. -/
+@[nolint inhabited_instance] def atom (α : Type*) [preorder α] [order_bot α] := {a : α // is_atom a}
 
 namespace atom
+variables {α β : Type*} [preorder α] [order_bot α] [preorder β] [order_bot β]
 
-lemma clopen (s : atom α) : is_clopen (s : set α) := s.clopen'
+instance : has_coe (atom α) α := coe_subtype
 
-/-- Reinterpret a compact open as an open. -/
-@[simps] def to_opens (s : atom α) : opens α := ⟨s, s.clopen.is_open⟩
+@[nolint duplicated_namespace] protected lemma atom (a : atom α) : is_atom (a : α) := a.2
 
-@[ext] protected lemma ext {s t : atom α} (h : (s : set α) = t) : s = t := set_like.ext' h
+@[ext] protected lemma ext {a b : atom α} (h : (a : α) = b) : a = b := subtype.ext h
 
-@[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
-
-instance : has_sup (atom α) := ⟨λ s t, ⟨s ∪ t, s.clopen.union t.clopen⟩⟩
-instance [t2_space α] : has_inf (atom α) := ⟨λ s t, ⟨s ∩ t, s.clopen.inter t.clopen⟩⟩
-instance [compact_space α] : has_top (atom α) := ⟨⟨⊤, is_clopen_univ⟩⟩
-instance : has_bot (atom α) := ⟨⟨⊥, is_clopen_empty⟩⟩
-
-instance : semilattice_sup (atom α) := set_like.coe_injective.semilattice_sup _ (λ _ _, rfl)
-
-instance [t2_space α] : distrib_lattice (atom α) :=
-set_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
-
-instance : order_bot (atom α) := order_bot.lift (coe : _ → set α) (λ _ _, id) rfl
-
-instance [compact_space α] : bounded_order (atom α) :=
-bounded_order.lift (coe : _ → set α) (λ _ _, id) rfl rfl
-
-@[simp] lemma coe_sup (s t : atom α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
-@[simp] lemma coe_inf [t2_space α] (s t : atom α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
-@[simp] lemma coe_top [compact_space α] : (↑(⊤ : atom α) : set α) = univ := rfl
-@[simp] lemma coe_bot : (↑(⊥ : atom α) : set α) = ∅ := rfl
-
-instance : inhabited (atom α) := ⟨⊥⟩
+def comap (f : lattice_hom α β) (b : atom β) : atom α := sorry
 
 end atom
 
@@ -143,6 +119,6 @@ def Type_to_BoolAlg : Type* ⥤ BoolAlgᵒᵖ :=
   map := λ X Y f, quiver.hom.op $ bounded_lattice_hom.set_preimage f }
 
 /-- The atoms functor. `atom` as a functor. -/
-def BoolAlg_to_Type : Type* ⥤ BoolAlgᵒᵖ :=
-{ obj := λ X, op $ BoolAlg.of (set X),
+def BoolAlg_to_Type : BoolAlgᵒᵖ ⥤ Type* :=
+{ obj := λ X, atom (unop X : BoolAlg),
   map := λ X Y f, quiver.hom.op $ bounded_lattice_hom.set_preimage f }

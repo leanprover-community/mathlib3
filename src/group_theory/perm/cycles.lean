@@ -128,7 +128,8 @@ noncomputable def is_cycle.zpowers_equiv_support {σ : perm α} (hσ : is_cycle 
 equiv.of_bijective (λ τ, ⟨τ (classical.some hσ),
 begin
   obtain ⟨τ, n, rfl⟩ := τ,
-  rw [finset.mem_coe, coe_fn_coe_base', subtype.coe_mk, zpow_apply_mem_support, mem_support],
+  rw [finset.mem_coe, @coe_fn_coe_base' _ (perm α) _ _ _ _ , subtype.coe_mk,
+    zpow_apply_mem_support, mem_support],
   exact (classical.some_spec hσ).1,
 end⟩)
 begin

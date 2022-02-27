@@ -85,6 +85,11 @@ class zero_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_zero M] [has_zero N] extends fun_like F M (λ _, N) :=
 (map_zero : ∀ (f : F), f 0 = 0)
 
+instance subtype.zero_hom_class (F : Type*) (M N : out_param $ Type*) [has_zero M] [has_zero N]
+  [zero_hom_class F M N] (p : F → Prop) : zero_hom_class (subtype p) M N :=
+{ map_zero := λ f, zero_hom_class.map_zero _,
+  ..subtype.fun_like F M (λ _, N) p }
+
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
 end zero
@@ -109,6 +114,11 @@ You should declare an instance of this typeclass when you extend `add_hom`.
 class add_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_add M] [has_add N] extends fun_like F M (λ _, N) :=
 (map_add : ∀ (f : F) (x y : M), f (x + y) = f x + f y)
+
+instance subtype.add_hom_class (F : Type*) (M N : out_param $ Type*)
+  [has_add M] [has_add N] [add_hom_class F M N] (p : F → Prop) : add_hom_class (subtype p) M N :=
+{ map_add := λ _ _ _, add_hom_class.map_add _ _ _,
+  ..subtype.fun_like F M (λ _, N) p }
 
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
@@ -143,6 +153,13 @@ You should also extend this typeclass when you extend `add_monoid_hom`.
 class add_monoid_hom_class (F : Type*) (M N : out_param $ Type*)
   [add_zero_class M] [add_zero_class N]
   extends add_hom_class F M N, zero_hom_class F M N
+
+instance subtype.add_monoid_hom_class (F : Type*) (M N : out_param $ Type*)
+  [add_zero_class M] [add_zero_class N] [add_monoid_hom_class F M N] (p : F → Prop) :
+  add_monoid_hom_class (subtype p) M N :=
+{ ..subtype.zero_hom_class F M N p,
+  ..subtype.add_hom_class F M N p }
+
 
 -- Instances and lemmas are defined below through `@[to_additive]`.
 

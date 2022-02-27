@@ -165,6 +165,7 @@ instance : preadditive (C ⥤+ D) :=
 preadditive.induced_category.category _
 
 /-- An additive functor is in particular a functor. -/
+@[derive full, derive faithful]
 def AdditiveFunctor.forget : (C ⥤+ D) ⥤ (C ⥤ D) :=
 full_subcategory_inclusion _
 

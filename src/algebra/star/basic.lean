@@ -75,10 +75,23 @@ star_involutive _
 lemma star_injective [has_involutive_star R] : function.injective (star : R → R) :=
 star_involutive.injective
 
+/-- `star` as an equivalence when it is involutive. -/
+protected def equiv.star [has_involutive_star R] : equiv.perm R :=
+star_involutive.to_equiv _
+
+lemma eq_star_of_eq_star [has_involutive_star R] {r s : R} (h : r = star s) : s = star r :=
+by simp [h]
+
+lemma eq_star_iff_eq_star [has_involutive_star R] {r s : R} : r = star s ↔ s = star r :=
+⟨eq_star_of_eq_star, eq_star_of_eq_star⟩
+
+lemma star_eq_iff_star_eq [has_involutive_star R] {r s : R} : star r = s ↔ star s = r :=
+eq_comm.trans $ eq_star_iff_eq_star.trans eq_comm
+
 /--
 Typeclass for a trivial star operation. This is mostly meant for `ℝ`.
 -/
-class has_trivial_star (R : Type u) [has_star R] :=
+class has_trivial_star (R : Type u) [has_star R] : Prop :=
 (star_trivial : ∀ (r : R), star r = r)
 
 export has_trivial_star (star_trivial)
@@ -337,7 +350,7 @@ the statement only requires `[has_star R] [has_star A] [has_scalar R A]`.
 If used as `[comm_ring R] [star_ring R] [semiring A] [star_ring A] [algebra R A]`, this represents a
 star algebra.
 -/
-class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_scalar R A] :=
+class star_module (R : Type u) (A : Type v) [has_star R] [has_star A] [has_scalar R A] : Prop :=
 (star_smul : ∀ (r : R) (a : A), star (r • a) = star r • star a)
 
 export star_module (star_smul)

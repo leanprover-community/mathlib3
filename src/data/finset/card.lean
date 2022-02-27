@@ -118,14 +118,14 @@ end finset
 section to_list_multiset
 variables [decidable_eq α] (m : multiset α) (l : list α)
 
-lemma multiset.card_to_finset : m.to_finset.card = m.erase_dup.card := rfl
+lemma multiset.card_to_finset : m.to_finset.card = m.dedup.card := rfl
 
-lemma multiset.to_finset_card_le : m.to_finset.card ≤ m.card := card_le_of_le $ erase_dup_le _
+lemma multiset.to_finset_card_le : m.to_finset.card ≤ m.card := card_le_of_le $ dedup_le _
 
 lemma multiset.to_finset_card_of_nodup {m : multiset α} (h : m.nodup) : m.to_finset.card = m.card :=
-congr_arg card $ multiset.erase_dup_eq_self.mpr h
+congr_arg card $ multiset.dedup_eq_self.mpr h
 
-lemma list.card_to_finset : l.to_finset.card = l.erase_dup.length := rfl
+lemma list.card_to_finset : l.to_finset.card = l.dedup.length := rfl
 
 lemma list.to_finset_card_le : l.to_finset.card ≤ l.length := multiset.to_finset_card_le ⟦l⟧
 
@@ -148,12 +148,12 @@ by simp only [card, image_val_of_inj_on H, card_map]
 
 lemma inj_on_of_card_image_eq [decidable_eq β] (H : (s.image f).card = s.card) : set.inj_on f s :=
 begin
-  change (s.1.map f).erase_dup.card = s.1.card at H,
-  have : (s.1.map f).erase_dup = s.1.map f,
-  { refine multiset.eq_of_le_of_card_le (multiset.erase_dup_le _) _,
+  change (s.1.map f).dedup.card = s.1.card at H,
+  have : (s.1.map f).dedup = s.1.map f,
+  { refine multiset.eq_of_le_of_card_le (multiset.dedup_le _) _,
     rw H,
     simp only [multiset.card_map] },
-  rw multiset.erase_dup_eq_self at this,
+  rw multiset.dedup_eq_self at this,
   exact inj_on_of_nodup_map this,
 end
 

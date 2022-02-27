@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Anatole Dedecker, Sébastien Gouëzel, Johannes Hölzl, Yury G. Kudryashov,
+         Dylan MacKenzie, Patrick Massot
 -/
 import algebra.geom_sum
 import analysis.asymptotics.asymptotics
@@ -724,27 +725,7 @@ cauchy_seq_of_le_geometric r C hr (by simp [h])
 
 lemma normed_group.cauchy_series_of_le_geometric' {C : ℝ} {u : ℕ → α} {r : ℝ} (hr : r < 1)
   (h : ∀ n, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
-begin
-  by_cases hC : C = 0,
-  { subst hC,
-    simp at h,
-    exact cauchy_seq_of_le_geometric 0 0 zero_lt_one (by simp [h]) },
-  have : 0 ≤ C,
-  { simpa using (norm_nonneg _).trans (h 0) },
-  replace hC : 0 < C,
-    from (ne.symm hC).le_iff_lt.mp this,
-  have : 0 ≤ r,
-  { have := (norm_nonneg _).trans (h 1),
-    rw pow_one at this,
-    exact (zero_le_mul_left hC).mp this },
-  simp_rw finset.sum_range_succ_comm,
-  have : cauchy_seq u,
-  { apply tendsto.cauchy_seq,
-    apply squeeze_zero_norm h,
-    rw show 0 = C*0, by simp,
-    exact tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 this hr) },
-  exact this.add (cauchy_series_of_le_geometric hr h),
-end
+(cauchy_series_of_le_geometric hr h).comp_tendsto $ tendsto_add_at_top_nat 1
 
 lemma normed_group.cauchy_series_of_le_geometric'' {C : ℝ} {u : ℕ → α} {N : ℕ} {r : ℝ}
   (hr₀ : 0 < r) (hr₁ : r < 1)
@@ -909,6 +890,82 @@ begin
   rw [div_pow, one_pow],
   refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (fi a));
   exact pow_pos (zero_lt_one.trans hm) _
+end
+
+section
+/-! ### Dirichlet and alternating series tests -/
+
+variables {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {b : ℝ} {f : ℕ → ℝ} {z : ℕ → E}
+
+/-- **Dirichlet's Test** for monotone sequences. -/
+theorem monotone.cauchy_seq_series_mul_of_tendsto_zero_of_bounded
+  (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) (hgb : ∀ n, ∥∑ i in range n, z i∥ ≤ b) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (f i) • z i) :=
+begin
+  simp_rw [finset.sum_range_by_parts _ _ (nat.succ_pos _), sub_eq_add_neg,
+           nat.succ_sub_succ_eq_sub, tsub_zero],
+  apply (normed_field.tendsto_zero_smul_of_tendsto_zero_of_bounded hf0
+    ⟨b, eventually_map.mpr $ eventually_of_forall $ λ n, hgb $ n+1⟩).cauchy_seq.add,
+  apply (cauchy_seq_range_of_norm_bounded _ _ (_ : ∀ n, _ ≤ b * |f(n+1) - f(n)|)).neg,
+  { exact normed_uniform_group },
+  { simp_rw [abs_of_nonneg (sub_nonneg_of_le (hfa (nat.le_succ _))), ← mul_sum],
+    apply real.uniform_continuous_mul_const.comp_cauchy_seq,
+    simp_rw [sum_range_sub, sub_eq_add_neg],
+    exact (tendsto.cauchy_seq hf0).add_const },
+  { intro n,
+    rw [norm_smul, mul_comm],
+    exact mul_le_mul_of_nonneg_right (hgb _) (abs_nonneg _) },
+end
+
+/-- **Dirichlet's test** for antitone sequences. -/
+theorem antitone.cauchy_seq_series_mul_of_tendsto_zero_of_bounded
+  (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) (hzb : ∀ n, ∥∑ i in range n, z i∥ ≤ b) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (f i) • z i) :=
+begin
+  have hfa': monotone (λ n, -f n) := λ _ _ hab, neg_le_neg $ hfa hab,
+  have hf0': tendsto (λ n, -f n) at_top (𝓝 0) := by { convert hf0.neg, norm_num },
+  convert (hfa'.cauchy_seq_series_mul_of_tendsto_zero_of_bounded hf0' hzb).neg,
+  funext,
+  simp
+end
+
+lemma norm_sum_neg_one_pow_le (n : ℕ) : ∥∑ i in range n, (-1 : ℝ) ^ i∥ ≤ 1 :=
+by { rw [←geom_sum_def, neg_one_geom_sum], split_ifs; norm_num }
+
+/-- The **alternating series test** for monotone sequences.
+See also `tendsto_alternating_series_of_monotone_tendsto_zero`. -/
+theorem monotone.cauchy_seq_alternating_series_of_tendsto_zero
+  (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (-1) ^ i * f i) :=
+begin
+  simp_rw [mul_comm],
+  exact hfa.cauchy_seq_series_mul_of_tendsto_zero_of_bounded hf0 norm_sum_neg_one_pow_le
+end
+
+/-- The **alternating series test** for monotone sequences. -/
+theorem monotone.tendsto_alternating_series_of_tendsto_zero
+  (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  ∃ l, tendsto (λ n, ∑ i in range (n+1), (-1) ^ i * f i) at_top (𝓝 l) :=
+cauchy_seq_tendsto_of_complete $ hfa.cauchy_seq_alternating_series_of_tendsto_zero hf0
+
+/-- The **alternating series test** for antitone sequences.
+See also `tendsto_alternating_series_of_antitone_tendsto_zero`. -/
+theorem antitone.cauchy_seq_alternating_series_of_tendsto_zero
+  (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  cauchy_seq (λ n, ∑ i in range (n+1), (-1) ^ i * f i) :=
+begin
+  simp_rw [mul_comm],
+  exact
+    hfa.cauchy_seq_series_mul_of_tendsto_zero_of_bounded hf0 norm_sum_neg_one_pow_le
+end
+
+/-- The **alternating series test** for antitone sequences. -/
+theorem antitone.tendsto_alternating_series_of_tendsto_zero
+  (hfa : antitone f) (hf0 : tendsto f at_top (𝓝 0)) :
+  ∃ l, tendsto (λ n, ∑ i in range (n+1), (-1) ^ i * f i) at_top (𝓝 l) :=
+cauchy_seq_tendsto_of_complete $ hfa.cauchy_seq_alternating_series_of_tendsto_zero hf0
+
 end
 
 /-! ### Positive sequences with small sums on encodable types -/

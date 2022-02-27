@@ -69,7 +69,7 @@ local notation  μ `[|`:60 t`]` := cond μ t
 
 /-- The conditional probability measure of any finite measure on any set of positive measure
 is a probability measure. -/
-instance cond_is_probability_measure [is_finite_measure μ] {s : set α} (hcs : μ s ≠ 0) :
+lemma cond_is_probability_measure [is_finite_measure μ] {s : set α} (hcs : μ s ≠ 0) :
   is_probability_measure $ μ[|s] :=
 ⟨by { rw [cond, measure.smul_apply, measure.restrict_apply measurable_set.univ,
   set.univ_inter], exact ennreal.inv_mul_cancel hcs (measure_ne_top _ s) }⟩
@@ -109,7 +109,7 @@ on `s ∩ t`. -/
   μ[|s][|t] = μ[|s ∩ t] :=
 begin
   apply measure.ext, intros,
-  haveI := probability_theory.cond_is_probability_measure μ
+  haveI := cond_is_probability_measure μ
     (μ.to_outer_measure.pos_of_subset_pos (set.inter_subset_left _ _) hci),
   simp [*, measure_ne_top, ennreal.mul_inv],
   conv { to_lhs, rw mul_assoc, congr, skip, rw mul_comm },

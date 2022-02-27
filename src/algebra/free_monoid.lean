@@ -121,7 +121,7 @@ hom_eq $ λ x, rfl
 lemma map_comp (g : β → γ) (f : α → β) : map (g ∘ f) = (map g).comp (map f) :=
 hom_eq $ λ x, rfl
 
-instance : star_monoid (free_monoid α) :=
+instance : star_semigroup (free_monoid α) :=
 { star := list.reverse,
   star_involutive := list.reverse_reverse,
   star_mul := list.reverse_append, }

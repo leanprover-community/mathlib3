@@ -428,6 +428,25 @@ fork.is_limit.mk' _ $ λ s,
    exact (category.comp_id _).symm
  end⟩
 
+def biproduct.is_colimit_to_subtype : is_colimit
+  (cokernel_cofork.of_π (biproduct.to_subtype f (λ j, i ≠ j))
+    (by simp) : cokernel_cofork (biproduct.ι f i)) :=
+cofork.is_colimit.mk' _ $ λ s,
+⟨biproduct.from_subtype _ _ ≫ s.π,
+ begin
+   ext j,
+   rw [cokernel_cofork.π_of_π, biproduct.to_subtype_from_subtype_assoc,
+     biproduct.ι_map_assoc],
+   rcases em (i = j) with (rfl|h),
+   { rw [if_neg (not_not.2 rfl), zero_comp, cokernel_cofork.condition] },
+   { rw [if_pos h, category.id_comp] }
+ end,
+ begin
+   intros m hm,
+   rw [← hm, cokernel_cofork.π_of_π, ← category.assoc, biproduct.from_subtype_to_subtype],
+   exact (category.id_comp _).symm
+ end⟩
+
 end π_kernel
 
 section

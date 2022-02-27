@@ -67,9 +67,10 @@ variables {α 𝕜 R E F M : Type*}
 section weak_topology
 
 /-- The space `E` equipped with the weak topology induced by the bilinear form `B`. -/
-@[derive [add_comm_monoid, module 𝕜]]
-def weak_bilin [comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] [add_comm_monoid F] [module 𝕜 F]
-  (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) := E
+@[derive [add_comm_monoid, module 𝕜],
+nolint has_inhabited_instance unused_arguments]
+def weak_bilin [comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] [add_comm_monoid F]
+  [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) := E
 
 section semiring
 
@@ -128,13 +129,13 @@ section weak_star_topology
 
 /-- The canonical pairing of a vector space and its topological dual. -/
 def top_dual_pairing (𝕜 E) [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
-  [add_comm_monoid E] [module 𝕜 E] [topological_space E] [has_continuous_add E]
+  [add_comm_monoid E] [module 𝕜 E] [topological_space E]
   [has_continuous_const_smul 𝕜 𝕜] :
   (E →L[𝕜] 𝕜) →ₗ[𝕜] E →ₗ[𝕜] 𝕜 := continuous_linear_map.coe_lm 𝕜
 
 variables [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
 variables [has_continuous_const_smul 𝕜 𝕜]
-variables [add_comm_monoid E] [module 𝕜 E] [topological_space E] [has_continuous_add E]
+variables [add_comm_monoid E] [module 𝕜 E] [topological_space E]
 
 lemma dual_pairing_apply (v : (E →L[𝕜] 𝕜)) (x : E) : top_dual_pairing 𝕜 E v x = v x := rfl
 
@@ -142,9 +143,11 @@ lemma dual_pairing_apply (v : (E →L[𝕜] 𝕜)) (x : E) : top_dual_pairing �
 functionals `λ v, top_dual_pairing 𝕜 E v x` are continuous. -/
 @[derive [add_comm_monoid, module 𝕜, topological_space, has_continuous_add]]
 def weak_dual (𝕜 E) [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
-  [has_continuous_const_smul 𝕜 𝕜]
-  [add_comm_monoid E] [module 𝕜 E] [topological_space E] [has_continuous_add E] :=
+  [has_continuous_const_smul 𝕜 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E] :=
 weak_bilin (top_dual_pairing 𝕜 E)
+
+instance : inhabited (weak_dual 𝕜 E) :=
+by {dunfold weak_dual, dunfold weak_bilin, apply_instance}
 
 instance fun_like_weak_dual : fun_like (weak_dual 𝕜 E) E (λ _, 𝕜) :=
 by {dunfold weak_dual, dunfold weak_bilin, apply_instance}
@@ -159,14 +162,14 @@ continuous_linear_map.mul_action
 /-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
 multiplication on `𝕜`, then it acts distributively on `weak_dual 𝕜 E`. -/
 instance (M) [monoid M] [distrib_mul_action M 𝕜] [smul_comm_class 𝕜 M 𝕜]
-  [has_continuous_const_smul M 𝕜] [has_continuous_add 𝕜] :
+  [has_continuous_const_smul M 𝕜] :
   distrib_mul_action M (weak_dual 𝕜 E) :=
 continuous_linear_map.distrib_mul_action
 
 /-- If `𝕜` is a topological module over a semiring `R` and scalar multiplication commutes with the
 multiplication on `𝕜`, then `weak_dual 𝕜 E` is a module over `R`. -/
 instance R_module (R) [semiring R] [module R 𝕜] [smul_comm_class 𝕜 R 𝕜]
-  [has_continuous_const_smul R 𝕜] [has_continuous_add 𝕜] :
+  [has_continuous_const_smul R 𝕜] :
   module R (weak_dual 𝕜 E) :=
 continuous_linear_map.module
 
@@ -184,10 +187,10 @@ instance (M) [monoid M] [distrib_mul_action M 𝕜] [smul_comm_class 𝕜 M 𝕜
 
 /-- The weak topology is the topology coarsest topology on `E` such that all
 functionals `λ x, top_dual_pairing 𝕜 E v x` are continuous. -/
-@[derive [add_comm_monoid, module 𝕜, topological_space, has_continuous_add]]
+@[derive [add_comm_monoid, module 𝕜, topological_space, has_continuous_add],
+nolint has_inhabited_instance]
 def weak_space (𝕜 E) [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
-  [has_continuous_const_smul 𝕜 𝕜]
-  [add_comm_monoid E] [module 𝕜 E] [topological_space E] [has_continuous_add E] :=
+  [has_continuous_const_smul 𝕜 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E] :=
 weak_bilin (top_dual_pairing 𝕜 E).flip
 
 end weak_star_topology

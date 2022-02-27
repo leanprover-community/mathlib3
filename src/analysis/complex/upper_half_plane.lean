@@ -86,7 +86,6 @@ simp [fin.sum_univ_succ],
 ring,
 end
 
-
 lemma denom_ne_zero (g : GL_pos (fin 2) ℝ) (z : ℍ) : denom g z ≠ 0 :=
 begin
   intro H,
@@ -167,6 +166,45 @@ instance : mul_action  (GL_pos (fin 2) ℝ) ℍ :=
   one_smul := λ z, by { ext1, change _ / _ = _,
    simp [coe_fn_coe_base']  },
   mul_smul := mul_smul' }
+
+variable (Γ : subgroup (special_linear_group (fin 2) ℤ))
+
+instance SlR_action {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
+ mul_action.comp_hom ℍ  (monoid_hom.comp (special_linear_group.to_GL_pos)
+ (map (algebra_map R ℝ)) )
+
+instance : has_coe SL(2,ℤ) (GL_pos (fin 2) ℝ) :=
+⟨λ g , ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ))⟩
+
+instance SL_ON_GL_pos : has_scalar SL(2,ℤ) (GL_pos (fin 2) ℝ) :=⟨λ s g, s * g⟩
+
+lemma sl_on_gl_pos_smul_apply (s : SL(2,ℤ)) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
+  (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := by {simp, refl}
+
+def mon_hom :  SL(2,ℤ) →* (GL_pos (fin 2) ℝ) :=
+monoid_hom.comp to_GL_pos (special_linear_group.map (int.cast_ring_hom ℝ ))
+
+instance sl_to_gl_tower : is_scalar_tower SL(2,ℤ) (GL_pos (fin 2) ℝ) ℍ :={
+  smul_assoc := by {intros s g z, rw sl_on_gl_pos_smul_apply, simp, apply mul_smul',},
+}
+
+instance subgroup_GL_pos : has_scalar Γ (GL_pos (fin 2) ℝ) :=⟨λ s g, s * g⟩
+
+lemma subgroup_on_gl_pos_smul_apply (s : Γ) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
+  (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := by {simp, refl}
+
+instance subgroup_on_GL_pos : is_scalar_tower Γ (GL_pos (fin 2) ℝ) ℍ :={
+  smul_assoc := by {intros s g z, rw subgroup_on_gl_pos_smul_apply, simp, apply mul_smul',},
+}
+
+instance subgroup_SL : has_scalar Γ SL(2,ℤ) :=⟨λ s g, s * g⟩
+
+lemma subgroup_on_SL_apply (s : Γ) (g : SL(2,ℤ) ) (z : ℍ) :
+  (s • g) • z = ( (s : SL(2, ℤ)) * g) • z := by {refl}
+
+instance subgroup_to_sl_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :={
+  smul_assoc := by {intros s g z, rw subgroup_on_SL_apply, apply upper_half_plane.SlR_action.3,},
+}
 
 @[simp] lemma coe_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
 @[simp] lemma re_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl

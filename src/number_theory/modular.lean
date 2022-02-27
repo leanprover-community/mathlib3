@@ -54,20 +54,8 @@ section upper_half_plane_action
 /-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
 the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
 
-instance {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
- mul_action.comp_hom ℍ  (monoid_hom.comp (special_linear_group.to_GL_pos)
- (map (algebra_map R ℝ)) )
-
-instance : has_coe SL(2,ℤ) (GL_pos (fin 2) ℝ) :=
-⟨λ g , ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ))⟩
-
-def mon_hom :  SL(2,ℤ) →* (GL_pos (fin 2) ℝ) :=
-monoid_hom.comp to_GL_pos (special_linear_group.map (int.cast_ring_hom ℝ ))
-
-
 @[simp]
 lemma smul_eq_smul (g : SL(2,ℤ)) (z : ℍ) : g • z = ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ)) • z :=rfl
-
 
 lemma coetest {R : Type*} [linear_ordered_comm_ring R] (g : SL(2, R)) : ∀ i j, g i j =
 (g : (GL_pos (fin 2) R)) i j :=

@@ -11,7 +11,7 @@ import topology.algebra.order.extr_closure
 /-!
 # Maximum modulus principle
 
-In this file we prove several versions of the maximum modulus principle and Liouville's Theorem.
+In this file we prove several versions of the maximum modulus principle.
 
 There are several statements that can be called "the maximum modulus principle" for maps between
 normed complex spaces.

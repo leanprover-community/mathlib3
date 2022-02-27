@@ -19,14 +19,4 @@ takes the restricting set before the pi type. Generalization of `set.restrict` t
 def pi_restrict {α : Type*} {β : α → Type*} (s : set α) (g : Π i, β i) :
   Π i : s, β i := λ (i : s), g i
 
-/-- Take the image of a set of pi types on restriction to a subtype of inputs. -/
-@[reducible]
-def pi_restrict_image {α : Type*} {β : α → Type*} (s : set α) (g : set (Π i, β i)) :
-  set (Π i : s, β i) := pi_restrict s '' g
-
-/-- Take the pre-image of a set of pi types restricted to a subtype of inputs. -/
-@[reducible]
-def pi_restrict_preimage {α : Type*} {β : α → Type*} (s : set α) (g : set (Π i : s, β i)) :
-  set (Π i : α, β i) := pi_restrict s ⁻¹' g
-
 end set

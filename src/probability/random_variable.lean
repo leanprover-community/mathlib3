@@ -39,11 +39,11 @@ noncomputable theory
 
 namespace probability_theory
 
-localized "notation  `<[`S`]` := S.pi_restrict_image" in probability_theory
-localized "notation  `>[`S`]` := S.pi_restrict_preimage" in probability_theory
+localized "notation  `<[`S`]` := set.image (set.pi_restrict S)" in probability_theory
+localized "notation  `>[`S`]` := set.preimage (set.pi_restrict S)" in probability_theory
 
-localized "notation  `<[]` := set.pi_restrict_image _" in probability_theory
-localized "notation  `>[]` := set.pi_restrict_preimage _" in probability_theory
+localized "notation  `<[]` := set.image (set.pi_restrict _)" in probability_theory
+localized "notation  `>[]` := set.preimage (set.pi_restrict _)" in probability_theory
 
 variables {α : Type*} [m : measurable_space α] (μ : measure α) {ι : Type*}
   {β : ι → Type*} (f : Π i : ι, α → (β i)) [Π i : ι, measurable_space (β i)]

@@ -1234,12 +1234,12 @@ theorem lsub_const {ι} [hι : nonempty ι] (o : ordinal) : lsub (λ _ : ι, o) 
 sup_const o.succ
 
 theorem lsub_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f ⊆ set.range g) : lsub f ≤ lsub g :=
+  (h : set.range f ⊆ set.range g) : lsub.{u (max v w)} f ≤ lsub.{v (max u w)} g :=
 sup_le_of_range_subset (by convert set.image_subset _ h; apply set.range_comp)
 
 theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f = set.range g) : lsub f = lsub g :=
-(lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset h.ge)
+  (h : set.range f = set.range g) : lsub.{u (max v w)} f = lsub.{v (max u w)} g :=
+(lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset.{v u w} h.ge)
 
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)

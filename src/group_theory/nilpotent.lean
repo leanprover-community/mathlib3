@@ -767,3 +767,26 @@ begin
 end
 
 end classical
+
+lemma normalizer_condition_of_is_nilpotent [h : is_nilpotent G] : normalizer_condition G :=
+begin
+  -- roughly based on https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
+  rw normalizer_condition_iff_only_full_group_self_normalizing,
+  unfreezingI
+  { induction h using nilpotent_center_quotient_ind with G' _ _ G' _ _ ih;
+    clear _inst_1 G; rename G' → G, },
+  { rintros H -, apply subsingleton.elim, },
+  { intros H hH,
+
+    have hch : center G ≤ H := subgroup.center_le_normalizer.trans (le_of_eq hH),
+    have hkh : (mk' (center G)).ker ≤ H, by simpa using hch,
+    have hsur : function.surjective (mk' (center G)), by exact surjective_quot_mk _,
+
+    let H' := H.map (mk' (center G)),
+    have hH' : H'.normalizer = H',
+    { apply comap_injective hsur,
+      rw [comap_normalizer_eq_of_surjective _ hsur, comap_map_eq_self hkh],
+      exact hH, },
+    apply map_injective_of_ker_le (mk' (center G)) hkh le_top,
+    exact (ih H' hH').trans (symm (map_top_of_surjective _ hsur)), },
+end

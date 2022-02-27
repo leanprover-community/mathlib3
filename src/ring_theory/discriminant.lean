@@ -163,7 +163,7 @@ begin
 end
 
 /-- A variation of `of_power_basis_eq_prod`. -/
-lemma of_power_basis_eq_prod' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_power_basis_eq_prod' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
   -((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
@@ -176,12 +176,12 @@ end
 local notation `n` := finrank K L
 
 /-- A variation of `of_power_basis_eq_prod`. -/
-lemma of_power_basis_eq_prod'' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_power_basis_eq_prod'' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   (-1) ^ (n * (n - 1) / 2) * ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
   ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
 begin
-  rw [of_power_basis_eq_prod' _ _ _ e],
+  rw [discr_power_basis_eq_prod' _ _ _ e],
   simp_rw [λ i j, neg_eq_neg_one_mul ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))),
     prod_mul_distrib],
   congr,
@@ -209,7 +209,7 @@ begin
 end
 
 /-- Formula for the discriminant of a power basis using the norm of the field extension. -/
-lemma of_power_basis_eq_norm [is_separable K L] : discr K pb.basis =
+lemma discr_power_basis_eq_norm [is_separable K L] : discr K pb.basis =
   (-1) ^ (n * (n - 1) / 2) * (norm K (aeval pb.gen (minpoly K pb.gen).derivative)) :=
 begin
   let E := algebraic_closure L,
@@ -228,7 +228,7 @@ begin
 
   apply (algebra_map K E).injective,
   rw [ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
-    of_power_basis_eq_prod'' _ _ _ e],
+    discr_power_basis_eq_prod'' _ _ _ e],
   congr,
   rw [norm_eq_prod_embeddings, fin.prod_filter_lt_mul_neg_eq_prod_off_diag],
   conv_rhs { congr, skip, funext,

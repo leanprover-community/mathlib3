@@ -108,12 +108,12 @@ end euclidean
 
 variables {F : Type*} [normed_group F] [normed_space ℝ F] {f g : F → E} {n : with_top ℕ}
 
-lemma times_cont_diff.euclidean_dist (hf : times_cont_diff ℝ n f) (hg : times_cont_diff ℝ n g)
+lemma cont_diff.euclidean_dist (hf : cont_diff ℝ n f) (hg : cont_diff ℝ n g)
   (h : ∀ x, f x ≠ g x) :
-  times_cont_diff ℝ n (λ x, euclidean.dist (f x) (g x)) :=
+  cont_diff ℝ n (λ x, euclidean.dist (f x) (g x)) :=
 begin
   simp only [euclidean.dist],
-  apply @times_cont_diff.dist ℝ,
-  exacts [(@to_euclidean E _ _ _).times_cont_diff.comp hf,
-    (@to_euclidean E _ _ _).times_cont_diff.comp hg, λ x, to_euclidean.injective.ne (h x)]
+  apply @cont_diff.dist ℝ,
+  exacts [(@to_euclidean E _ _ _).cont_diff.comp hf,
+    (@to_euclidean E _ _ _).cont_diff.comp hg, λ x, to_euclidean.injective.ne (h x)]
 end

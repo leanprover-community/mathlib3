@@ -322,6 +322,10 @@ end
 theorem dvd_dvd_iff_associated [cancel_monoid_with_zero α] {a b : α} : a ∣ b ∧ b ∣ a ↔ a ~ᵤ b :=
 ⟨λ ⟨h1, h2⟩, associated_of_dvd_dvd h1 h2, associated.dvd_dvd⟩
 
+instance [cancel_monoid_with_zero α] [decidable_rel ((∣) : α → α → Prop)] :
+  decidable_rel ((~ᵤ) : α → α → Prop) :=
+λ a b, decidable_of_iff _ dvd_dvd_iff_associated
+
 lemma associated.dvd_iff_dvd_left [monoid α] {a b c : α} (h : a ~ᵤ b) : a ∣ c ↔ b ∣ c :=
 let ⟨u, hu⟩ := h in hu ▸ units.mul_right_dvd.symm
 
@@ -625,6 +629,10 @@ iff.intro dvd_of_mk_le_mk mk_le_mk_of_dvd
 
 theorem mk_dvd_mk {a b : α} : associates.mk a ∣ associates.mk b ↔ a ∣ b :=
 iff.intro dvd_of_mk_le_mk mk_le_mk_of_dvd
+
+instance [decidable_rel ((∣) : α → α → Prop)] :
+  decidable_rel ((∣) : associates α → associates α → Prop) :=
+λ a b, quotient.rec_on_subsingleton₂ a b (λ a b, decidable_of_iff' _ mk_dvd_mk)
 
 lemma prime.le_or_le {p : associates α} (hp : prime p) {a b : associates α} (h : p ≤ a * b) :
   p ≤ a ∨ p ≤ b :=

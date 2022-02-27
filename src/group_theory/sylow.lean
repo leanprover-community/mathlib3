@@ -8,7 +8,7 @@ import data.nat.factorization
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
-import group_theory.pi_hom
+import group_theory.noncomm_pi_coprod
 
 /-!
 # Sylow theorems
@@ -604,10 +604,8 @@ begin
     rintro ⟨p, hp⟩,
     haveI hp' := fact.mk (nat.prime_of_mem_factorization hp),
     haveI := subsingleton_of_normal _ (hn (P p)),
-    haveI : unique (sylow p G) := unique_of_subsingleton (P p),
     change (Π (P : sylow p G), ↥P) ≃* (↑(P p) : subgroup G),
-    -- oddly exact doesn’t work here, but convert does
-    convert (mul_equiv.Pi_singleton (λ (P : sylow p G), ((↑P : subgroup G) : Type u))),
+    exact (mul_equiv.Pi_subsingleton _ _),
   end,
 
   have hcomm : ∀ (p₁ p₂ : ps), p₁ ≠ p₂ →
@@ -621,12 +619,12 @@ begin
 
 
   apply mul_equiv.trans this,
-  apply mul_equiv.of_bijective (subgroup_pi_hom.hom hcomm),
+  apply mul_equiv.of_bijective (subgroup.noncomm_pi_coprod hcomm),
   apply (bijective_iff_injective_and_card _).mpr,
   split,
 
   show injective _,
-  { apply subgroup_pi_hom.injective_of_independent,
+  { apply subgroup.injective_noncomm_pi_coprod_of_independent,
     apply independent_of_coprime_order hcomm,
     rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
     haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),

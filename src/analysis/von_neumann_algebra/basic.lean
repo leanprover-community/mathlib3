@@ -54,10 +54,14 @@ def subalgebra.commutant {𝕜 : Type v} [comm_semiring 𝕜] {A : Type u} [semi
 { algebra_map_mem' := λ r x mx, by rw [algebra.commutes],
   .. B.to_subsemiring.commutant, }
 
-/-- A *-subalgebra is a subalgebra of *-algebra which is closed under *. -/
+/-- A *-subalgebra is a subalgebra of a *-algebra which is closed under *. -/
 structure star_subalgebra (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
   [semiring A] [star_ring A] [algebra R A] [star_module R A] extends subalgebra R A : Type v :=
 (star_mem' {a} : a ∈ carrier → star a ∈ carrier)
+
+instance (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
+  [semiring A] [star_ring A] [algebra R A] [star_module R A] : inhabited (star_subalgebra R A) :=
+⟨{ star_mem' := by tidy, ..(⊤ : subalgebra R A) }⟩
 
 /-- The commutant of a *-subalgebra. -/
 def star_subalgebra.commutant {R : Type u} {A : Type v} [comm_semiring R] [star_ring R]
@@ -74,6 +78,7 @@ which is equal to its double commutant.
 Note that this definition is parameterised by the Hilbert space
 on which the algebra faithfully acts.
 -/
+@[nolint has_inhabited_instance]
 structure von_neumann_algebra (H : Type u) [inner_product_space ℂ H] [complete_space H] extends
   M : star_subalgebra ℂ (H →L[ℂ] H) :=
 (double_commutant : M.commutant.commutant = M)

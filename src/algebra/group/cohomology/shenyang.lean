@@ -6,12 +6,10 @@ import group_theory.quotient_group
 import linear_algebra.finsupp
 import algebra.homology.homotopy_category
 import category_theory.abelian.projective
+import algebra.category.Group.abelian
+
 universes v u
 variables (G : Type u) [monoid G] (M : Type v) [add_comm_group M] [distrib_mul_action G M] (n : ℕ)
-
-def cochain := (fin n → G) → M
-instance : has_zero (cochain G M n) :=
-by unfold cochain; apply_instance
 
 variables {G M n}
 
@@ -77,7 +75,7 @@ theorem neg_one_power (n : ℕ) (m : M) : ((-1:ℤ)^n  + (-1:ℤ)^(n+1)) • m =
 by simp [pow_succ]
 
 theorem neg_degenerate (j : ℕ) (k : ℕ) (g : fin (n + 2) → G)
-  (h : j ≤ k) (v : cochain G M n) :
+  (h : j ≤ k) (v : (fin n → G) → M) :
   (-1 : ℤ) ^ (j + k + 1) • (v (F j (F (k + 1) g)))
     + (-1 : ℤ) ^ (j + k) • (v (F k (F j g))) = 0 :=
 begin
@@ -86,11 +84,11 @@ end
 
 open finset
 
-def F_comp (g : fin (n + 2) → G) (v : cochain G M n) : ℕ × ℕ → M :=
+def F_comp (g : fin (n + 2) → G) (v : (fin n → G) → M) : ℕ × ℕ → M :=
 λ j, (-1 : ℤ) ^ (j.1 + j.2) • v (F j.2 (F j.1 g))
 
 theorem F_comp_degenerate {j : ℕ} {k : ℕ} (h : j ≤ k) (g : fin (n + 2) → G)
-  (v : cochain G M n) :
+  (v : (fin n → G) → M) :
   F_comp g v (k + 1, j) + F_comp g v (j, k) = 0 :=
 begin
   have := neg_degenerate j k g h v,
@@ -112,7 +110,7 @@ begin
   exact nat.pred_le_pred (not_le.1 h),
 end
 
-theorem double_sum_zero1 (n : ℕ) (g : fin (n + 3) → G) (v : cochain G M (n + 1)) :
+theorem double_sum_zero1 (n : ℕ) (g : fin (n + 3) → G) (v : (fin (n + 1) → G) → M) :
 (range (n + 3)).sum (λ i, (range (n + 2)).sum (λ j, (F_comp g v (i, j)))) = 0 :=
 begin
   rw ←sum_product,
@@ -146,11 +144,11 @@ begin
     exact invo_invo j }
 end
 
-def d_to_fun (φ: cochain G M n): cochain G M (n + 1) :=
+def d_to_fun (φ: (fin n → G) → M): (fin (n + 1) → G) → M :=
 λ g, g 0 • φ (λ i, g (fin.add_nat 1 i))
   + (range (n + 1)).sum (λ j, (-1 : ℤ) ^ (j + 1) • φ (F j g))
 
-lemma cochain_zero_eq (φ : cochain G M 0) (x y : fin 0 → G) :
+lemma cochain_zero_eq (φ : (fin 0 → G) → M) (x y : fin 0 → G) :
   φ x = φ y :=
 congr_arg _ $ subsingleton.elim _ _
 
@@ -179,7 +177,7 @@ begin
       { show ¬(k : ℕ) + 1 = _, by omega }}}
 end
 
-theorem d_to_fun_square_zero (φ : cochain G M n) :
+theorem d_to_fun_square_zero (φ : (fin n → G) → M) :
   d_to_fun (d_to_fun φ) = 0 :=
 begin
   unfold d_to_fun,
@@ -267,40 +265,25 @@ begin
   }
 end-/
 
-instance : add_comm_group (cochain G M n) :=
-by unfold cochain; apply_instance
-
-
-#exit
-instance : distrib_mul_action G (cochain G M n) :=
-by dunfold cochain; apply_instance
-
 variables (G M n)
-def d : (cochain G M n) →+ (cochain G M (n + 1)) :=
+
+def cochain.d : ((fin n → G) → M) →+ ((fin (n + 1) → G) → M) :=
 { to_fun := d_to_fun,
   map_zero' := funext $ λ x, by simp only [d_to_fun, add_zero, pi.zero_apply,
     sum_const_zero, smul_zero],
   map_add' := λ x y, funext $ λ g, by simp only [d_to_fun, smul_add, sum_add_distrib,
     pi.add_apply]; abel }
 
--- not sure what to call it
-def distrib_d (A : Type u) [comm_monoid A] (M : Type v) [add_comm_group M]
+/-def distrib_d (A : Type u) [comm_monoid A] (M : Type v) [add_comm_group M]
   [distrib_mul_action A M] (n : ℕ) : cochain A M n →+[A] cochain A M (n + 1) :=
 { map_smul' := λ c m, funext $ λ g, show d_to_fun _ _ = c • d_to_fun _ _, by
     simp only [d_to_fun, ←mul_smul, distrib_mul_action.gsmul_comm, mul_comm,
       smul_sum, smul_add, pi.smul_apply],
-  ..d A M n }
+  ..d A M n }-/
 
-theorem d_square_zero : (d G M (n + 1)).comp (d G M n) = 0 :=
+theorem cochain.d_square_zero : (cochain.d G M (n + 1)).comp (cochain.d G M n) = 0 :=
 by ext1; exact d_to_fun_square_zero _
 
-theorem range_d_le_ker_d : (d G M n).range ≤ (d G M (n + 1)).ker :=
-by rintros _ ⟨a, ha, hda⟩; exact add_monoid_hom.ext_iff.1 (d_square_zero G M n) a
-
-def distrib_cx (A : Type u) [comm_monoid A] (M : Type v) [add_comm_group M]
-  [distrib_mul_action A M] : cochain_complex (GroupRingModule A) ℕ :=
-cochain_complex.of (λ n, GroupRingModule.of A (cochain A M n)) (distrib_d A M)
-  (λ n, by ext1; exact add_monoid_hom.ext_iff.1 (d_square_zero A M n) x)
-
-def cx : cochain_complex AddCommGroup ℕ :=
-cochain_complex.of (λ n, AddCommGroup.of (cochain G M n)) (d G M) (d_square_zero G M)
+def cochain_cx : cochain_complex Ab ℕ :=
+cochain_complex.of (λ n, AddCommGroup.of $ (fin n → G) → M) (λ n, cochain.d G M n)
+  (cochain.d_square_zero G M)

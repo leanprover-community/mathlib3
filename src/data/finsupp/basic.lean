@@ -1047,22 +1047,32 @@ end add_monoid
 end finsupp
 
 @[to_additive]
-lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+lemma map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P] {H : Type*}
+  [monoid_hom_class H N P] (h : H) (f : α →₀ M) (g : α → M → N) :
+  h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_prod h _ _
+
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
+protected lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
   (h : N ≃* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
+map_finsupp_prod h f g
 
-@[to_additive]
-lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
+protected lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
   (h : N →* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
+map_finsupp_prod h f g
 
-lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
+/-- Deprecated, use `_root_.map_finsupp_sum` instead. -/
+protected lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
   (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
-h.map_sum _ _
+map_finsupp_sum h f g
 
-lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+protected lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
   (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
+map_finsupp_prod h f g
 
 @[to_additive]
 lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
@@ -1204,7 +1214,7 @@ finset.prod_mul_distrib
 @[simp, to_additive]
 lemma prod_inv [has_zero M] [comm_group G] {f : α →₀ M}
   {h : α → M → G} : f.prod (λa b, (h a b)⁻¹) = (f.prod h)⁻¹ :=
-(((monoid_hom.id G)⁻¹).map_prod _ _).symm
+(map_prod ((monoid_hom.id G)⁻¹) _ _).symm
 
 @[simp] lemma sum_sub [has_zero M] [add_comm_group G] {f : α →₀ M}
   {h₁ h₂ : α → M → G} :

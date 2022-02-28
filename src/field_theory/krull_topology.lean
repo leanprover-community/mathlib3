@@ -221,7 +221,7 @@ end
   `L ≃ₐ[K] L`. -/
 lemma fixing_subgroup_is_open {K L : Type*} [field K] [field L] [algebra K L]
 {E : intermediate_field K L} (h_findim : finite_dimensional K E) :
-is_open (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
+  is_open (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
 begin
   have h_basis : E.fixing_subgroup.carrier ∈ (gal_group_basis K L) :=
    ⟨E.fixing_subgroup, ⟨E, h_findim, rfl⟩, rfl⟩,

@@ -232,8 +232,8 @@ begin
 end
 
 /-- If `L/K` is an algebraic extension, then the Krull topology on `L ≃ₐ[K] L` is Hausdorff. -/
-lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L] (h_int :
-algebra.is_integral K L):
+lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
+  (h_int : algebra.is_integral K L) :
 t2_space (L ≃ₐ[K] L)  :=
 { t2 := λ f g hfg,
   begin

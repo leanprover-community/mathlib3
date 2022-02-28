@@ -222,12 +222,12 @@ lemma star_mem_resolvent_set_star {r : R} {a : A} (h : r ∈ resolvent_set R a) 
 by simpa only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one, star_sub, star_smul,
   star_one] using is_unit.star h
 
-protected lemma map_star (a : A) : star (σ a) = σ (star a) :=
+protected lemma map_star (a : A) : σ (star a) = star (σ a) :=
 begin
   ext,
   simp only [set.mem_star, mem_iff, not_iff_not],
-  exact ⟨λ h, star_star x ▸ star_mem_resolvent_set_star h,
-         λ h, star_star a ▸ star_mem_resolvent_set_star h⟩,
+  exact ⟨ λ h, star_star a ▸ star_mem_resolvent_set_star h,
+          λ h, star_star x ▸ star_mem_resolvent_set_star h⟩,
 end
 
 end star

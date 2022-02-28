@@ -166,8 +166,8 @@ variables {K} [field K] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
 /-- If `finrank K L = 1`, then the norm of a `2`-th primitive root of unity is `-1`. This
 mathematically trivial result is complementary to `norm_eq_one` below. -/
-lemma norm_eq_neg_one [field K] [algebra K L] [is_cyclotomic_extension {2} K L]
-  (h : finrank K L = 1) (hζ : is_primitive_root ζ 2) : norm K ζ = -1 :=
+lemma norm_eq_neg_one [field K] [algebra K L] (h : finrank K L = 1) (hζ : is_primitive_root ζ 2) :
+  norm K ζ = -1 :=
 by rw [is_primitive_root.eq_neg_one_of_two_right hζ, show -1 = algebra_map K L (-1), by simp,
       norm_algebra_map, h, pow_one]
 
@@ -175,8 +175,8 @@ include hζ
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), the norm of a primitive root is
 `1` if `n ≠ 2`. -/
-lemma norm_eq_one [field K] [ne_zero ((n : ℕ) : K)] [algebra K L] [is_cyclotomic_extension {n} K L]
-  (hn : n ≠ 2) (hirr : irreducible (cyclotomic n K)) : norm K ζ = 1 :=
+lemma norm_eq_one [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
+  (hirr : irreducible (cyclotomic n K)) : norm K ζ = 1 :=
 begin
   by_cases h1 : n = 1,
   { rw [h1, one_coe, one_right_iff] at hζ,

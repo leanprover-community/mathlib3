@@ -700,6 +700,7 @@ lemma ideal.exist_integer_multiples_not_mem
   ∃ a : K, (∀ i ∈ s, is_localization.is_integer A (a * f i)) ∧
     ∃ i ∈ s, (a * f i) ∉ (J : fractional_ideal A⁰ K) :=
 begin
+  -- Consider the fractional ideal `I` spanned by the `f`s.
   obtain ⟨a', ha'⟩ := is_localization.exist_integer_multiples A⁰ s f,
   let I : fractional_ideal A⁰ K := ⟨submodule.span A (f '' s), a', a'.2, _⟩,
   have hI0 : I ≠ 0,
@@ -707,24 +708,32 @@ begin
     rw eq_zero_iff at hI0,
     specialize hI0 (f j) (submodule.subset_span (set.mem_image_of_mem f hjs)),
     contradiction },
+  -- We claim the multiplier `a` we're looking for is in `I⁻¹ \ (J / I)`.
   suffices : ↑J / I < I⁻¹,
   { obtain ⟨_, a, hI, hpI⟩ := set_like.lt_iff_le_and_exists.mp this,
     rw mem_inv_iff hI0 at hI,
     refine ⟨a, λ i hi, _, _⟩,
+    -- By definition, `a ∈ I⁻¹` multiplies elements of `I` into elements of `1`,
+    -- in other words, `a * f i` is an integer.
     { exact (mem_one_iff _).mp (hI (f i)
         (submodule.subset_span (set.mem_image_of_mem f hi))) },
     { contrapose! hpI,
+      -- And if all `a`-multiples of `I` are an element of `J`,
+      -- then `a` is actually an element of `J / I`, contradiction.
       refine (mem_div_iff_of_nonzero hI0).mpr (λ y hy, submodule.span_induction hy _ _ _ _),
       { rintros _ ⟨i, hi, rfl⟩, exact hpI i hi },
       { rw mul_zero, exact submodule.zero_mem _ },
       { intros x y hx hy, rw mul_add, exact submodule.add_mem _ hx hy },
       { intros b x hx, rw mul_smul_comm, exact submodule.smul_mem _ b hx } } },
+  -- To show the inclusion of `J / I` into `I⁻¹ = 1 / I`, note that `J < I`.
   calc ↑J / I = ↑J * I⁻¹ : div_eq_mul_inv ↑J I
           ... < 1 * I⁻¹ : mul_right_strict_mono (inv_ne_zero hI0) _
           ... = I⁻¹ : one_mul _,
   { rw [← coe_ideal_top],
+    -- And multiplying by `I⁻¹` is indeed strictly monotone.
     exact strict_mono_of_le_iff_le (λ _ _, (coe_ideal_le_coe_ideal K).symm)
       (lt_top_iff_ne_top.mpr hJ) },
+  -- We finish by showing `I` is a well-defined fractional ideal.
   { intros x hx,
     refine submodule.span_induction hx _ _ _ _,
     { rintro _ ⟨i, hi, rfl⟩, exact ha' i hi },

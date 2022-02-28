@@ -28,8 +28,7 @@ class valued (R : Type u) [ring R] (Γ₀ : out_param (Type v))
 (v : valuation R Γ₀)
 
 namespace valued
-variables {R : Type u} [ring R] (Γ₀ : out_param (Type v)) [linear_ordered_comm_group_with_zero Γ₀]
-  [valued R Γ₀]
+variables {R : Type u} [ring R] (Γ₀ : Type v) [linear_ordered_comm_group_with_zero Γ₀] [valued R Γ₀]
 
 /-- The basis of open subgroups for the topology on a valued ring.-/
 lemma subgroups_basis :
@@ -83,6 +82,8 @@ lemma subgroups_basis :
 @[priority 100]
 instance : topological_space R := (subgroups_basis Γ₀).topology
 
+variable {Γ₀}
+
 lemma mem_nhds {s : set R} {x : R} :
   (s ∈ 𝓝 x) ↔ ∃ (γ : Γ₀ˣ), {y | (v (y - x) : Γ₀) < γ } ⊆ s :=
 by simpa [((subgroups_basis Γ₀).has_basis_nhds x).mem_iff]
@@ -101,25 +102,23 @@ begin
   exact valuation.map_eq_of_sub_lt _ y_in
 end
 
--- These instances are not inferred anymore
-
 /-- The uniform structure on a valued ring.-/
 @[priority 100]
-instance uniform_space : uniform_space R := topological_add_group.to_uniform_space R
+instance uniform_space [valued R Γ₀] : uniform_space R := topological_add_group.to_uniform_space R
 
 /-- A valued ring is a uniform additive group.-/
 @[priority 100]
-instance uniform_add_group : uniform_add_group R := topological_add_group_is_uniform
+instance uniform_add_group [valued R Γ₀] : uniform_add_group R := topological_add_group_is_uniform
 
 lemma cauchy_iff {F : filter R} :
   cauchy F ↔ F.ne_bot ∧ ∀ γ : Γ₀ˣ, ∃ M ∈ F, ∀ x y ∈ M, (v (y - x) : Γ₀) < γ :=
 begin
   rw add_group_filter_basis.cauchy_iff,
   apply and_congr iff.rfl,
-  simp_rw subgroups_basis.mem_add_group_filter_basis_iff,
+  simp_rw (subgroups_basis Γ₀).mem_add_group_filter_basis_iff,
   split,
   { intros h γ,
-    exact h _ (subgroups_basis.mem_add_group_filter_basis _) },
+    exact h _ ((subgroups_basis Γ₀).mem_add_group_filter_basis _) },
   { rintros h - ⟨γ, rfl⟩,
     exact h γ }
 end

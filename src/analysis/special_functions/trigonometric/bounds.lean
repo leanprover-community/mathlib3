@@ -127,8 +127,7 @@ begin
         using (sin_pos y hy.left hy.right).ne' },
     rwa [lt_inv, inv_one],
     { exact zero_lt_one },
-    { rwa [sq,mul_self_pos] },
-  },
+    { rwa [sq,mul_self_pos] }, },
 
   have mon:= convex.strict_mono_on_of_deriv_pos
     (convex_Ico 0 (π/2)) tan_minus_id_cts deriv_pos,

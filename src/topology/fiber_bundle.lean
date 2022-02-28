@@ -217,6 +217,9 @@ lemma apply_symm_apply' {b : B} {x : F} (hx : b ∈ e.base_set) :
   e (e.to_local_equiv.symm (b, x)) = (b, x) :=
 e.apply_symm_apply (e.mem_target.2 hx)
 
+lemma symm_apply_apply {x : Z} (hx : x ∈ e.source) : e.to_local_equiv.symm (e x) = x :=
+e.to_local_equiv.left_inv hx
+
 @[simp, mfld_simps] lemma symm_apply_mk_proj {x : Z} (ex : x ∈ e.source) :
   e.to_local_equiv.symm (proj x, (e x).2) = x :=
 by rw [← e.coe_fst ex, prod.mk.eta, ← e.coe_coe, e.to_local_equiv.left_inv ex]

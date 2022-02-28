@@ -503,3 +503,155 @@ lemma to_topological_vector_bundle :
 end topological_vector_prebundle
 
 end
+
+/-! ### Direct sum of two vector bundles over the same base -/
+
+namespace topological_vector_bundle
+
+variables (F₁ : Type*) (E₁ : B → Type*)
+  [∀ x, add_comm_monoid (E₁ x)] [∀ x, module R (E₁ x)]
+  [topological_space F₁] [add_comm_monoid F₁] [module R F₁]
+  [topological_space (total_space E₁)] [Π x : B, topological_space (E₁ x)]
+  [topological_vector_bundle R F₁ E₁]
+
+variables (F₂ : Type*) (E₂ : B → Type*)
+  [∀ x, add_comm_monoid (E₂ x)] [∀ x, module R (E₂ x)]
+  [topological_space F₂] [add_comm_monoid F₂] [module R F₂]
+  [topological_space (total_space E₂)] [Π x : B, topological_space (E₂ x)]
+  [topological_vector_bundle R F₂ E₂]
+
+namespace pretrivialization
+variables (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂)
+include e₁ e₂
+variables {R F₁ E₁ F₂ E₂}
+
+/-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the forward
+function for the construction `topological_vector_bundle.pretrivialization.prod`, the induced
+pretrivialization for the direct sum of `E₁` and `E₂`. -/
+def prod.to_fun' : total_space (λ x, E₁ x × E₂ x) → B × (F₁ × F₂) :=
+λ ⟨x, v₁, v₂⟩, ⟨x, (e₁ ⟨x, v₁⟩).2, (e₂ ⟨x, v₂⟩).2⟩
+
+/-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the inverse
+function for the construction `topological_vector_bundle.pretrivialization.prod`, the induced
+pretrivialization for the direct sum of `E₁` and `E₂`. -/
+def prod.inv_fun' (p : B × (F₁ × F₂)) : total_space (λ x, E₁ x × E₂ x) :=
+begin
+  obtain ⟨x, w₁, w₂⟩ := p,
+  refine ⟨x, _, _⟩,
+  { by_cases h : x ∈ e₁.base_set,
+    { exact (e₁.continuous_linear_equiv_at x h).symm w₁ },
+    { exact 0 } },
+  { by_cases h : x ∈ e₂.base_set,
+    { exact (e₂.continuous_linear_equiv_at x h).symm w₂ },
+    { exact 0 } },
+end
+
+/-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the induced
+pretrivialization for the direct sum of `E₁` and `E₂`.  That is, the map which will later become
+a trivialization, after this direct sum is equipped with the right topological vector bundle
+structure. -/
+def prod : pretrivialization R (F₁ × F₂) (λ x, E₁ x × E₂ x) :=
+{ to_fun := prod.to_fun' e₁ e₂,
+  inv_fun := prod.inv_fun' e₁ e₂,
+  source := (proj (λ x, E₁ x × E₂ x)) ⁻¹' (e₁.base_set.inter e₂.base_set),
+  target := (e₁.base_set.inter e₂.base_set) ×ˢ (set.univ : set (F₁ × F₂)),
+  map_source' := λ ⟨x, v₁, v₂⟩ h, ⟨h, set.mem_univ _⟩,
+  map_target' := λ ⟨x, w₁, w₂⟩ h, h.1,
+  left_inv' := λ ⟨x, v₁, v₂⟩ h,
+  begin
+    simp only [prod.to_fun', prod.inv_fun', sigma.mk.inj_iff, true_and, eq_self_iff_true,
+      prod.mk.inj_iff, heq_iff_eq],
+    split,
+    { rw [dif_pos, ← e₁.continuous_linear_equiv_at_apply x h.1,
+        continuous_linear_equiv.symm_apply_apply] },
+    { rw [dif_pos, ← e₂.continuous_linear_equiv_at_apply x h.2,
+        continuous_linear_equiv.symm_apply_apply] },
+  end,
+  right_inv' := λ ⟨x, w₁, w₂⟩ ⟨h, _⟩,
+  begin
+    dsimp [prod.to_fun', prod.inv_fun'],
+    simp only [prod.mk.inj_iff, eq_self_iff_true, true_and],
+    split,
+    { rw [dif_pos, ← e₁.continuous_linear_equiv_at_apply x h.1,
+        continuous_linear_equiv.apply_symm_apply] },
+    { rw [dif_pos, ← e₂.continuous_linear_equiv_at_apply x h.2,
+        continuous_linear_equiv.apply_symm_apply] },
+  end,
+  open_target := (e₁.open_base_set.inter e₂.open_base_set).prod is_open_univ,
+  base_set := e₁.base_set.inter e₂.base_set,
+  open_base_set := e₁.open_base_set.inter e₂.open_base_set,
+  source_eq := rfl,
+  target_eq := rfl,
+  proj_to_fun := λ ⟨x, v₁, v₂⟩ h, rfl,
+  linear := λ x ⟨h₁, h₂⟩,
+  { map_add := λ ⟨v₁, v₂⟩ ⟨v₁', v₂'⟩,
+      congr_arg2 prod.mk ((e₁.linear x h₁).map_add v₁ v₁') ((e₂.linear x h₂).map_add v₂ v₂'),
+    map_smul := λ c ⟨v₁, v₂⟩,
+      congr_arg2 prod.mk ((e₁.linear x h₁).map_smul c v₁) ((e₂.linear x h₂).map_smul c v₂), } }
+
+end pretrivialization
+
+open pretrivialization
+
+/-- Auxiliary construction (`vector_prebundle`) for the direct sum of topological vector bundles. -/
+def _root_.topological_vector_prebundle.prod :
+  topological_vector_prebundle R (F₁ × F₂) (λ x, E₁ x × E₂ x) :=
+{ pretrivialization_at := λ x,
+    pretrivialization.prod (trivialization_at R F₁ E₁ x) (trivialization_at R F₂ E₂ x),
+  mem_base_pretrivialization_at := λ x,
+    ⟨mem_base_set_trivialization_at R F₁ E₁ x, mem_base_set_trivialization_at R F₂ E₂ x⟩,
+  continuous_triv_change := λ p q,
+  begin
+    have := (trivialization_at R F₁ E₁ p).to_local_homeomorph,
+    sorry,
+  end,
+  total_space_mk_inducing := _ }
+
+/-- The natural topology on the total space of the product of two vector bundles. -/
+instance prod.topological_space :
+  topological_space (total_space (λ (x : B), E₁ x × E₂ x)) :=
+(topological_vector_prebundle.prod R F₁ E₁ F₂ E₂).total_space_topology
+
+/-- The product of two vector bundles is a vector bundle. -/
+instance prod.topological_vector_bundle :
+  topological_vector_bundle R (F₁ × F₂) (λ x, E₁ x × E₂ x) :=
+(topological_vector_prebundle.prod R F₁ E₁ F₂ E₂).to_topological_vector_bundle
+
+variables {R F₁ E₁ F₂ E₂}
+
+/-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the induced
+trivialization for the direct sum of `E₁` and `E₂`, whose base set is `e₁.base_set ∩ e₂.base_set`.
+-/
+def trivialization.prod (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂) :
+  trivialization R (F₁ × F₂) (λ x, E₁ x × E₂ x) :=
+{ open_source := _,
+  continuous_to_fun := _,
+  continuous_inv_fun := _,
+  .. pretrivialization.prod e₁ e₂ }
+
+@[simp] lemma trivialization.base_set_prod (e₁ : trivialization R F₁ E₁)
+  (e₂ : trivialization R F₂ E₂) :
+  (e₁.prod e₂).base_set = e₁.base_set ∩ e₂.base_set :=
+rfl
+
+@[simp] lemma trivialization.continuous_linear_equiv_at_prod {e₁ : trivialization R F₁ E₁}
+  {e₂ : trivialization R F₂ E₂} {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) :
+  (e₁.prod e₂).continuous_linear_equiv_at x ⟨hx₁, hx₂⟩
+  = (e₁.continuous_linear_equiv_at x hx₁).prod (e₂.continuous_linear_equiv_at x hx₂) :=
+begin
+  sorry
+end
+
+@[simp] lemma trivialization_at_prod (x : B) :
+  trivialization_at R (F₁ × F₂) (λ x, E₁ x × E₂ x) x
+  = (trivialization_at R F₁ E₁ x).prod (trivialization_at R F₂ E₂ x) :=
+begin
+  sorry
+end
+
+-- lemma trivialization.prod_apply (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂)
+--   {p : total_space (λ (x : B), E₁ x × E₂ x)} (hp₁ : p.1 ∈ e₁.base_set) (hp₂ : p.1 ∈ e₂.base_set) :
+--   (λ q : B × (F₁ × F₂), (q.1, q.2.1)) (e₁.prod e₂ p) = e₁ ⟨p.1, p.2.1⟩ :=
+-- sorry
+
+end topological_vector_bundle

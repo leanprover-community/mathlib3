@@ -46,11 +46,11 @@ Torsion, submodule, module, quotient
 -/
 
 namespace dfinsupp /- to move to linear_algebra.basic -/
-open_locale classical
 
 variables {α : Type*} {β : α → Type*} {R : Type*} {M : Type*}
   [∀ i : α, has_zero (β i)] [monoid R] [add_comm_monoid M] [distrib_mul_action R M]
   {v : Π₀ (i : α), β i} {c : R} {h : Π (i : α), β i → M}
+variables [decidable_eq α] [Π (i : α) (x : β i), decidable (x ≠ 0)]
 
 lemma smul_sum : c • (v.sum h) = v.sum (λa b, c • h a b) := finset.smul_sum
 
@@ -101,7 +101,7 @@ begin
 end
 
 section coprime
-open_locale big_operators classical
+open_locale big_operators
 open submodule dfinsupp
 variables {ι : Type*} [fintype ι] {p : ι → R} (hp : pairwise (is_coprime on p))
 include hp
@@ -111,7 +111,7 @@ begin
   apply le_antisymm,
   { apply supr_le _, intro i,
     apply torsion_le_torsion_of_dvd, apply finset.dvd_prod_of_mem, apply finset.mem_univ },
-  { intros x hx, rw mem_supr_iff_exists_dfinsupp',
+  { intros x hx, classical, rw mem_supr_iff_exists_dfinsupp',
     cases exists_sum_eq_one_iff_pairwise_coprime.mpr hp with f hf,
     use equiv_fun_on_fintype.inv_fun (λ i, ⟨(f i * ∏ j in {i}ᶜ, p j) • x, begin
       change _ • _ = _, change _ • _ = _ at hx,
@@ -125,6 +125,7 @@ end
 
 lemma torsion_independent : complete_lattice.independent (λ i, torsion R M (p i)) := λ i,
 begin
+  classical,
   dsimp, rw [disjoint_iff, eq_bot_iff], intros x hx,
   rw submodule.mem_inf at hx, obtain ⟨hxi, hxj⟩ := hx,
   have hxi : p i • x = 0 := hxi,

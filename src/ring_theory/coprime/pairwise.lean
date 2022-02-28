@@ -1,7 +1,7 @@
 import ring_theory.coprime.lemmas
-open_locale big_operators classical
+open_locale big_operators
 
-variables {R : Type*} {I : Type*} [comm_semiring R] [fintype I] {p : I → R}
+variables {R : Type*} {I : Type*} [comm_semiring R] [fintype I] {p : I → R} [decidable_eq I]
 
 lemma exists_sum_eq_one_iff_pairwise_coprime :
   (∃ μ : I → R, ∑ (i : I), μ i * ∏ j in {i}ᶜ, p j = 1) ↔ pairwise (is_coprime on p) := sorry

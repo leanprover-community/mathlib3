@@ -458,7 +458,7 @@ begin
   have hcoeff : p.leading_coeff ≠ 0,
   { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
   apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
-  rw [map_mul, map_multiset_prod],
+  rw [map_mul, polynomial.map_multiset_prod],
   simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
   have h : p.roots.map (algebra_map K (fraction_ring K)) =
     (map (algebra_map K (fraction_ring K)) p).roots :=

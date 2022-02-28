@@ -724,8 +724,7 @@ def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order �
 /-- The cardinal of an ordinal is the cardinal of any
   set with that order type. -/
 def card (o : ordinal) : cardinal :=
-quot.lift_on o (λ ⟨α, r, _⟩, #α) $
-λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
+quot.lift_on o (λ a, #a.α) $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
 
 @[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] :
   card (type r) = #α := rfl

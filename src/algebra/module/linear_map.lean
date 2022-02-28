@@ -145,8 +145,7 @@ def id : M →ₗ[R] M :=
 lemma id_apply (x : M) :
   @id R M _ _ _ x = x := rfl
 
-@[simp, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id :=
-by { ext x, refl }
+@[simp, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id := rfl
 
 end
 

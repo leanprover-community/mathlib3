@@ -395,6 +395,23 @@ begin
   exact tsum_geometric_two.symm
 end
 
+lemma tsum_geometric_inv_two : ∑' n : ℕ, (2 : ℝ)⁻¹ ^ n = 2 :=
+(inv_eq_one_div (2 : ℝ)).symm ▸ tsum_geometric_two
+
+/-- The sum of `2⁻¹ ^ i` for `n ≤ i` equals `2 * 2⁻¹ ^ n`. -/
+lemma tsum_geometric_inv_two_ge (n : ℕ) :
+  ∑' i, ite (n ≤ i) ((2 : ℝ)⁻¹ ^ i) 0 = 2 * 2⁻¹ ^ n :=
+begin
+  have A : summable (λ (i : ℕ), ite (n ≤ i) ((2⁻¹ : ℝ) ^ i) 0),
+  { apply summable_of_nonneg_of_le _ _ summable_geometric_two;
+    { intro i, by_cases hi : n ≤ i; simp [hi] } },
+  have B : (finset.range n).sum (λ (i : ℕ), ite (n ≤ i) ((2⁻¹ : ℝ)^i) 0) = 0 :=
+    finset.sum_eq_zero (λ i hi, ite_eq_right_iff.2 $ λ h,
+      (lt_irrefl _ ((finset.mem_range.1 hi).trans_le h)).elim),
+  simp only [← sum_add_tsum_nat_add n A, B, if_true, zero_add, zero_le',
+    le_add_iff_nonneg_left, pow_add, tsum_mul_right, tsum_geometric_inv_two],
+end
+
 lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
   convert has_sum.mul_left (a / 2) (has_sum_geometric_of_lt_1

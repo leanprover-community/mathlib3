@@ -539,13 +539,21 @@ end
   [∀ i, is_mul_left_invariant (μ i)] : is_mul_left_invariant (measure.pi μ) :=
 begin
   refine ⟨λ x, (measure.pi_eq (λ s hs, _)).symm⟩,
-  have A : has_mul.mul x ⁻¹' (set.pi univ (λ (i : ι), s i))
-    = set.pi univ (λ (i : ι), ((*) (x i)) ⁻¹' (s i)), by { ext, simp },
-  rw [measure.map_apply (measurable_const_mul x) (measurable_set.univ_pi_fintype hs), A,
-      pi_pi],
-  simp only [measure_preimage_mul]
+  have h : has_mul.mul x ⁻¹' (pi univ s) = set.pi univ (λ i, (λ y, x i * y) ⁻¹' s i),
+  { ext, simp },
+  simp_rw [measure.map_apply (measurable_const_mul x) (measurable_set.univ_pi_fintype hs), h,
+    pi_pi, measure_preimage_mul]
 end
 
+@[to_additive] instance pi.is_inv_invariant [∀ i, group (α i)] [∀ i, has_measurable_inv (α i)]
+  [∀ i, is_inv_invariant (μ i)] : is_inv_invariant (measure.pi μ) :=
+begin
+  refine ⟨(measure.pi_eq (λ s hs, _)).symm⟩,
+  have A : has_inv.inv ⁻¹' (pi univ s) = set.pi univ (λ i, has_inv.inv ⁻¹' s i),
+  { ext, simp },
+  simp_rw [measure.inv, measure.map_apply measurable_inv (measurable_set.univ_pi_fintype hs), A,
+    pi_pi, measure_preimage_inv]
+end
 
 end measure
 instance measure_space.pi [Π i, measure_space (α i)] : measure_space (Π i, α i) :=
@@ -571,12 +579,23 @@ lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (v
 measure.pi_closed_ball _ _ hr
 
 open measure
+/-- We intentionally restrict this only to the nondependent function space, since type-class
+inference cannot find an instance for `ι → ℝ` when this is stated for dependent function spaces. -/
 @[to_additive]
-instance pi.is_mul_left_invariant_volume [∀ i, group (α i)] [Π i, measure_space (α i)]
-  [∀ i, sigma_finite (volume : measure (α i))]
-  [∀ i, has_measurable_mul (α i)] [∀ i, is_mul_left_invariant (volume : measure (α i))] :
-  is_mul_left_invariant (volume : measure (Π i, α i)) :=
+instance pi.is_mul_left_invariant_volume {α} [group α] [measure_space α]
+  [sigma_finite (volume : measure α)]
+  [has_measurable_mul α] [is_mul_left_invariant (volume : measure α)] :
+  is_mul_left_invariant (volume : measure (ι → α)) :=
 pi.is_mul_left_invariant _
+
+/-- We intentionally restrict this only to the nondependent function space, since type-class
+inference cannot find an instance for `ι → ℝ` when this is stated for dependent function spaces. -/
+@[to_additive]
+instance pi.is_inv_invariant_volume {α} [group α] [measure_space α]
+  [sigma_finite (volume : measure α)]
+  [has_measurable_inv α] [is_inv_invariant (volume : measure α)] :
+  is_inv_invariant (volume : measure (ι → α)) :=
+pi.is_inv_invariant _
 
 /-!
 ### Measure preserving equivalences

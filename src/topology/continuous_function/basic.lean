@@ -41,6 +41,12 @@ class continuous_map_class (F : Type*) (α β : out_param $ Type*) [topological_
 
 export continuous_map_class (map_continuous)
 
+instance subtype.continuous_map_class (F : Type*) (α β : out_param $ Type*) [topological_space α]
+  [topological_space β] [continuous_map_class F α β] (p : F → Prop) :
+  continuous_map_class (subtype p) α β :=
+{ map_continuous := λ f, map_continuous f,
+  ..subtype.fun_like F α (λ _, β) p}
+
 attribute [continuity] map_continuous
 
 section continuous_map_class

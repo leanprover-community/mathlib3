@@ -68,6 +68,12 @@ export spectral_map_class (map_spectral)
 
 attribute [simp] map_spectral
 
+instance subtype.spectral_map_class (F : Type*) (α β : out_param $ Type*) [topological_space α]
+  [topological_space β] [spectral_map_class F α β] (p : F → Prop) :
+  spectral_map_class (subtype p) α β :=
+{ map_spectral := λ f, spectral_map_class.map_spectral f,
+  ..subtype.fun_like F α (λ _, β) p }
+
 @[priority 100] -- See note [lower instance priority]
 instance spectral_map_class.to_continuous_map_class [topological_space α] [topological_space β]
   [spectral_map_class F α β] :

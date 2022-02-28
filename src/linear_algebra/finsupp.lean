@@ -958,7 +958,6 @@ begin
   ext x y,
   dsimp [splitting_of_fun_on_fintype_surjective],
   rw [linear_equiv_fun_on_fintype_symm_single, finsupp.sum_single_index, one_smul,
-    linear_map.id_coe, id_def,
     (s (finsupp.single x 1)).some_spec, finsupp.single_eq_pi_single],
   rw [zero_smul],
 end

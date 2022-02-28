@@ -271,18 +271,18 @@ begin
 end
 
 lemma tendsto_in_measure.exists_seq_tendsto_in_measure_at_top
-  {u : filter ℕ} [ne_bot u] [is_countably_generated u]
+  {u : filter ι} [ne_bot u] [is_countably_generated u] {f : ι → α → E} {g : α → E}
   (hfg : tendsto_in_measure μ f u g) :
-  ∃ ns : ℕ → ℕ, tendsto_in_measure μ (λ n, f (ns n)) at_top g :=
+  ∃ ns : ℕ → ι, tendsto_in_measure μ (λ n, f (ns n)) at_top g :=
 begin
-  obtain ⟨ns, h_tendsto_ns⟩ : ∃ (ns : ℕ → ℕ), tendsto ns at_top u := exists_seq_tendsto u,
+  obtain ⟨ns, h_tendsto_ns⟩ : ∃ (ns : ℕ → ι), tendsto ns at_top u := exists_seq_tendsto u,
   exact ⟨ns, λ ε hε, (hfg ε hε).comp h_tendsto_ns⟩,
 end
 
 lemma tendsto_in_measure.exists_seq_tendsto_ae'
-  {u : filter ℕ} [ne_bot u] [is_countably_generated u]
+  {u : filter ι} [ne_bot u] [is_countably_generated u] {f : ι → α → E} {g : α → E}
   (hfg : tendsto_in_measure μ f u g) :
-  ∃ ns : ℕ → ℕ, ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
+  ∃ ns : ℕ → ι, ∀ᵐ x ∂μ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)) :=
 begin
   obtain ⟨ms, hms⟩ := hfg.exists_seq_tendsto_in_measure_at_top,
   obtain ⟨ns, -, hns⟩ := hms.exists_seq_tendsto_ae,
@@ -296,8 +296,8 @@ section ae_measurable_of
 variables [measurable_space E] [normed_group E] [borel_space E]
 
 lemma tendsto_in_measure.ae_measurable
-  {u : filter ℕ} [ne_bot u] [is_countably_generated u]
-  {f : ℕ → α → E} {g : α → E} (hf : ∀ n, ae_measurable (f n) μ)
+  {u : filter ι} [ne_bot u] [is_countably_generated u]
+  {f : ι → α → E} {g : α → E} (hf : ∀ n, ae_measurable (f n) μ)
   (h_tendsto : tendsto_in_measure μ f u g) :
   ae_measurable g μ :=
 begin

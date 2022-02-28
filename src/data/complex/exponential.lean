@@ -355,15 +355,6 @@ the complex exponential function -/
 /-- The complex tangent function, defined as `sin z / cos z` -/
 @[pp_nodot] def tan (z : ℂ) : ℂ := sin z / cos z
 
-/-- The complex secant function, defined as `1 / cos z` -/
-@[pp_nodot] def sec (z : ℂ) : ℂ := 1 / cos z
-
-/-- The complex cosecant function, defined as `1 / sin z` -/
-@[pp_nodot] def csc (z : ℂ) : ℂ := 1 / sin z
-
-/-- The complex cotangent function, defined as `cos z / sin z` -/
-@[pp_nodot] def cot (z : ℂ) : ℂ := cos z / sin z
-
 /-- The complex hyperbolic sine function, defined via `exp` -/
 @[pp_nodot] def sinh (z : ℂ) : ℂ := (exp z - exp (-z)) / 2
 
@@ -391,23 +382,13 @@ open complex
 /-- The real tangent function, defined as the real part of the complex tangent -/
 @[pp_nodot] def tan (x : ℝ) : ℝ := (tan x).re
 
-/-- The real secant function, defined as the real part of the complex secant -/
-@[pp_nodot] def sec (x : ℝ) : ℝ := (sec x).re
-
-/-- The real cosecant function, defined as the real part of the complex cosecant -/
-@[pp_nodot] def csc (x : ℝ) : ℝ := (csc x).re
-
-/-- The real cotangent function, defined as the real part of the complex cotangent -/
-@[pp_nodot] def cot (x : ℝ) : ℝ := (cot x).re
-
-/-- The real hyperbolic sine function, defined as the real part of the complex hyperbolic sine -/
+/-- The real hypebolic sine function, defined as the real part of the complex hyperbolic sine -/
 @[pp_nodot] def sinh (x : ℝ) : ℝ := (sinh x).re
 
-/-- The real hyperbolic cosine function, defined as the real part of the complex hyperbolic 
-cosine -/
+/-- The real hypebolic cosine function, defined as the real part of the complex hyperbolic cosine -/
 @[pp_nodot] def cosh (x : ℝ) : ℝ := (cosh x).re
 
-/-- The real hyperbolic tangent function, defined as the real part of
+/-- The real hypebolic tangent function, defined as the real part of
 the complex hyperbolic tangent -/
 @[pp_nodot] def tanh (x : ℝ) : ℝ := (tanh x).re
 

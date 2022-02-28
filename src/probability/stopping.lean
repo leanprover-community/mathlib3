@@ -6,7 +6,6 @@ Authors: Kexing Ying
 import measure_theory.constructions.borel_space
 import measure_theory.function.l1_space
 import measure_theory.function.strongly_measurable
-import data.nat.succ_pred
 import topology.instances.discrete
 
 /-!

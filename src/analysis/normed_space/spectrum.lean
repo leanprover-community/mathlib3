@@ -168,7 +168,7 @@ begin
         : by { conv { rw mul_assoc, to_rhs, rw (mul_one δ).symm },
                exact mul_lt_mul_of_pos_left
                  ((inv_mul_lt_iff ha₁).mpr ((mul_one (∥a∥ + 1)).symm ▸ (lt_add_one _))) δ_pos } },
-  rw [←inv_smul_smul z (resolvent a (z : 𝕜)), smul_resolvent_self, resolvent,
+  rw [←inv_smul_smul z (resolvent a (z : 𝕜)), units_smul_resolvent_self, resolvent,
     algebra.algebra_map_eq_smul_one, one_smul, units.smul_def, norm_smul, units.coe_inv', norm_inv],
   calc _ ≤ ε * c⁻¹ * c : mul_le_mul (hz.trans (min_le_right _ _)) (hδ (mem_ball_zero_iff.mpr lt_δ))
                            (norm_nonneg _) (mul_pos hε (inv_pos.mpr c_pos)).le

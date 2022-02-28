@@ -582,11 +582,7 @@ begin
 end
 
 lemma monic.comp_X_sub_C (hp : p.monic) (r : R) : (p.comp (X - C r)).monic :=
-begin
-  refine hp.comp (monic_X_sub_C _) (λ ha, _),
-  rw [nat_degree_X_sub_C] at ha,
-  exact one_ne_zero ha
-end
+by simpa using hp.comp_X_add_C (-r)
 
 lemma units_coeff_zero_smul (c : R[X]ˣ) (p : R[X]) :
   (c : R[X]).coeff 0 • p = c * p :=

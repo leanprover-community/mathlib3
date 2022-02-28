@@ -248,7 +248,7 @@ t2_space (L ≃ₐ[K] L)  :=
     let h_findim : finite_dimensional K E :=
       intermediate_field.adjoin.finite_dimensional (h_int x),
     let H := E.fixing_subgroup,
-    have h_basis : H.carrier ∈ gal_group_basis K L := ⟨H, ⟨E, ⟨h_findim, rfl⟩⟩, rfl⟩,
+    have h_basis : (H : set (L ≃ₐ[K] L)) ∈ gal_group_basis K L := ⟨H, ⟨E, ⟨h_findim, rfl⟩⟩, rfl⟩,
     have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
     rw mem_nhds_iff at h_nhd,
     rcases h_nhd with ⟨W, hWH, hW_open, hW_1⟩,

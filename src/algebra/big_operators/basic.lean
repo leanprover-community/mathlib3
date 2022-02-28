@@ -1354,6 +1354,15 @@ card_eq_sum_card_fiberwise (λ _, mem_image_of_mem _)
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
 by simpa only [sub_eq_add_neg] using sum_add_distrib.trans (congr_arg _ sum_neg_distrib)
 
+lemma mem_sum {f : α → multiset β} (s : finset α) (b : β) :
+  b ∈ ∑ x in s, f x ↔ ∃ a ∈ s, b ∈ f a :=
+begin
+  classical,
+  refine s.induction_on (by simp) _,
+  { intros a t hi ih,
+    simp [sum_insert hi, ih, or_and_distrib_right, exists_or_distrib] }
+end
+
 section prod_eq_zero
 variables [comm_monoid_with_zero β]
 

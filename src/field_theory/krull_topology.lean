@@ -202,7 +202,7 @@ open_locale topological_space filter
 
 /-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
 lemma subgroup.is_open_of_one_mem_interior {G : Type*} [group G] [topological_space G]
-[topological_group G] {H : subgroup G} (h_1_int : (1 : G) ∈ interior (H : set G)) :
+  [topological_group G] {H : subgroup G} (h_1_int : (1 : G) ∈ interior (H : set G)) :
   is_open (H : set G) :=
 begin
   have h : 𝓝 1 ≤ 𝓟 (H : set G) :=

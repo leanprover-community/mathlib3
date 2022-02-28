@@ -109,6 +109,22 @@ power_basis.map (algebra.adjoin.power_basis $ integral {n} K L ζ) $
 (subalgebra.equiv_of_eq _ _ (is_cyclotomic_extension.adjoin_primitive_root_eq_top n _ hζ)).trans
 top_equiv
 
+lemma power_basis_gen_mem_adjoin_zeta_sub_one :
+  (power_basis K hζ).gen ∈ adjoin K ({ζ - 1} : set L) :=
+begin
+  rw [power_basis_gen, adjoin_singleton_eq_range_aeval, alg_hom.mem_range],
+  exact ⟨X + 1, by simp⟩
+end
+
+local attribute [instance] is_cyclotomic_extension.finite_dimensional
+
+/-- The `power_basis` given by `ζ - 1`. -/
+@[simps] noncomputable def sub_one_power_basis (hζ : is_primitive_root ζ n) :
+  _root_.power_basis K L :=
+  (hζ.power_basis K).of_gen_mem_adjoin
+    (is_integral_sub (is_integral_of_finite _ _ ζ) is_integral_one)
+    (hζ.power_basis_gen_mem_adjoin_zeta_sub_one _)
+
 variables {K}
 
 /-- The equivalence between `L →ₐ[K] A` and `primitive_roots n A` given by a primitive root `ζ`. -/

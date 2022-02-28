@@ -362,7 +362,7 @@ d.is_adj
 sym2.mk_prod_swap_eq
 
 @[simp] lemma dart.edge_comp_symm : dart.edge ∘ dart.symm = (dart.edge : G.dart → sym2 V) :=
-by { ext1 d, apply dart.edge_symm }
+funext dart.edge_symm
 
 @[simp] lemma dart.symm_symm (d : G.dart) : d.symm.symm = d :=
 dart.ext _ _ $ prod.swap_swap _

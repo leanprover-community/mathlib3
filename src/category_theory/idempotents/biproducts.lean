@@ -15,8 +15,8 @@ In this file, we define an instance expressing that if `C` is an additive catego
 then `karoubi C` is also an additive category.
 
 We also obtain that for all `P : karoubi C` where `C` is a preadditive category `C`, there
-is a canonical isomorphism `P ⊞ P.supplement ≅ (to_karoubi C).obj P.X` in the category
-`karoubi C` where `P.supplement` is the formal direct factor of `P.X` corresponding to
+is a canonical isomorphism `P ⊞ P.complement ≅ (to_karoubi C).obj P.X` in the category
+`karoubi C` where `P.complement` is the formal direct factor of `P.X` corresponding to
 the idempotent endomorphism `𝟙 P.X - P.p`.
 
 -/
@@ -40,7 +40,7 @@ variables {C : Type*} [category.{v} C] [preadditive C]
 namespace biproducts
 
 /-- The `bicone` used in order to obtain the existence of
-the biproduct of a functor `J ⥤ karoubi C` when `C`. -/
+the biproduct of a functor `J ⥤ karoubi C` when the category `C` is additive. -/
 @[simps]
 def bicone [has_finite_biproducts C] {J : Type v} [decidable_eq J] [fintype J]
   (F : J → karoubi C) : bicone F :=
@@ -102,56 +102,56 @@ instance {D : Type*} [category D] [additive_category D] : additive_category (kar
 { to_preadditive := infer_instance,
   to_has_finite_biproducts := karoubi_has_finite_biproducts }
 
-/-- `P.supplement` is the formal direct factor of `P.X` given by the idempotent
+/-- `P.complement` is the formal direct factor of `P.X` given by the idempotent
 endomorphism `𝟙 P.X - P.p` -/
 @[simps]
-def supplement (P : karoubi C) : karoubi C :=
+def complement (P : karoubi C) : karoubi C :=
 { X := P.X,
   p := 𝟙 _ - P.p,
   idempotence := idempotence_of_id_sub_idempotent P.p P.idempotence, }
 
-instance (P : karoubi C) : has_binary_biproduct P P.supplement :=
+instance (P : karoubi C) : has_binary_biproduct P P.complement :=
 has_binary_biproduct_of_total
 { X := P.X,
   fst := P.decomp_id_p,
-  snd := P.supplement.decomp_id_p,
+  snd := P.complement.decomp_id_p,
   inl := P.decomp_id_i,
-  inr := P.supplement.decomp_id_i,
+  inr := P.complement.decomp_id_i,
   inl_fst' := P.decomp_id.symm,
   inl_snd' := begin
-    simp only [decomp_id_i_f, decomp_id_p_f, supplement_p, comp_sub, comp,
+    simp only [decomp_id_i_f, decomp_id_p_f, complement_p, comp_sub, comp,
       hom_ext, quiver.hom.add_comm_group_zero_f, P.idempotence],
     erw [comp_id, sub_self],
   end,
   inr_fst' := begin
-    simp only [decomp_id_i_f, supplement_p, decomp_id_p_f, sub_comp, comp,
+    simp only [decomp_id_i_f, complement_p, decomp_id_p_f, sub_comp, comp,
       hom_ext, quiver.hom.add_comm_group_zero_f, P.idempotence],
     erw [id_comp, sub_self],
   end,
-  inr_snd' := P.supplement.decomp_id.symm, }
+  inr_snd' := P.complement.decomp_id.symm, }
 (by simp only [hom_ext, ← decomp_p, quiver.hom.add_comm_group_add_f,
-  to_karoubi_map_f, id_eq, coe_p, supplement_p, add_sub_cancel'_right])
+  to_karoubi_map_f, id_eq, coe_p, complement_p, add_sub_cancel'_right])
 
 /-- A formal direct factor `P : karoubi C` of an object `P.X : C` in a
 preadditive category is actually a direct factor of the image `(to_karoubi C).obj P.X`
 of `P.X` in the category `karoubi C` -/
-def decomposition (P : karoubi C) : P ⊞ P.supplement ≅ (to_karoubi _).obj P.X :=
-{ hom := biprod.desc P.decomp_id_i P.supplement.decomp_id_i,
-  inv := biprod.lift P.decomp_id_p P.supplement.decomp_id_p,
+def decomposition (P : karoubi C) : P ⊞ P.complement ≅ (to_karoubi _).obj P.X :=
+{ hom := biprod.desc P.decomp_id_i P.complement.decomp_id_i,
+  inv := biprod.lift P.decomp_id_p P.complement.decomp_id_p,
   hom_inv_id' := begin
     ext1,
     { simp only [← assoc, biprod.inl_desc, comp_id, biprod.lift_eq, comp_add,
         ← decomp_id, id_comp, add_right_eq_self],
       convert zero_comp,
       ext,
-      simp only [decomp_id_i_f, decomp_id_p_f, supplement_p, comp_sub, comp,
+      simp only [decomp_id_i_f, decomp_id_p_f, complement_p, comp_sub, comp,
         quiver.hom.add_comm_group_zero_f, P.idempotence],
       erw [comp_id, sub_self], },
     { simp only [← assoc, biprod.inr_desc, biprod.lift_eq, comp_add,
         ← decomp_id, comp_id, id_comp, add_left_eq_self],
       convert zero_comp,
       ext,
-      simp only [decomp_id_i_f, decomp_id_p_f, supplement_p, sub_comp, comp,
+      simp only [decomp_id_i_f, decomp_id_p_f, complement_p, sub_comp, comp,
         quiver.hom.add_comm_group_zero_f, P.idempotence],
       erw [id_comp, sub_self], }
   end,
@@ -159,7 +159,7 @@ def decomposition (P : karoubi C) : P ⊞ P.supplement ≅ (to_karoubi _).obj P.
     rw biprod.lift_desc,
     simp only [← decomp_p],
     ext,
-    dsimp only [supplement, to_karoubi],
+    dsimp only [complement, to_karoubi],
     simp only [quiver.hom.add_comm_group_add_f, add_sub_cancel'_right, id_eq],
   end, }
 

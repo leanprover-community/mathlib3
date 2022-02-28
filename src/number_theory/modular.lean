@@ -54,9 +54,6 @@ section upper_half_plane_action
 /-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
 the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
 
-@[simp]
-lemma smul_eq_smul (g : SL(2,ℤ)) (z : ℍ) : g • z = ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ)) • z :=rfl
-
 lemma coetest {R : Type*} [linear_ordered_comm_ring R] (g : SL(2, R)) : ∀ i j, g i j =
 (g : (GL_pos (fin 2) R)) i j :=
 begin
@@ -65,25 +62,6 @@ rw coe,
 rw lift_t,
 dsimp,
 refl,
-end
-
-@[simp]
-lemma coetest2 {R : Type*} [linear_ordered_comm_ring R] (g : SL(2, R)) : ∀ i j, -g i j =
-(-g : (GL_pos (fin 2) R)) i j :=
-begin
-simp,
-intros i j,
-rw coe,
-rw lift_t,
-dsimp,
-refl,
-end
-
-lemma coetest2' {R : Type*} [linear_ordered_comm_ring R] (g : SL(2, R)) : -(g : GL_pos (fin 2) R) =
-((-g : SL(2, R ) ) : (GL_pos (fin 2) R))  :=
-begin
-ext i j,
-apply coetest2,
 end
 
 @[simp]
@@ -118,36 +96,14 @@ simp only [int.coe_cast_ring_hom,
  matrix.special_linear_group.coe_matrix_coe],
 end
 
-lemma coe_smul (g : SL(2, ℤ)) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
-lemma re_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
-@[simp] lemma smul_coe (g : SL(2, ℤ)) (z : ℍ) : (g : SL(2,ℝ)) • z = g • z := rfl
-
-@[simp] lemma neg_smul (g : SL(2, ℤ)) (z : ℍ) : -g • z = g • z :=
-begin
-have := neg_smul g z,
-dsimp at *,
-rw ← this,
-congr,
-simp [coetest2'],
-end
-
-lemma im_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
-
 lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
-begin
-have := im_smul_eq_div_norm_sq g z,
-have de: det ( g : GL_pos (fin 2) ℝ) = 1, by {have := g.2, simp [coedet'],},
-simp_rw de at this,
-dsimp at *,
-simp at *,
-apply this,
-end
+by {simp only [im_smul_eq_div_norm_sq, coedet', one_mul, sl_moeb, coe_coe]}
 
 @[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
 begin
 rw denom,
-simp,
+simp only [of_real_int_cast, coe_coe, coe2],
 end
 
 end upper_half_plane_action

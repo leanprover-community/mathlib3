@@ -164,6 +164,7 @@ begin
   simp [coe_fn_coe_base'],
 end
 
+
 end has_neg
 
 namespace special_linear_group
@@ -184,6 +185,12 @@ lemma to_GL_pos_injective :
   function.injective (to_GL_pos : special_linear_group n R → GL_pos n R) :=
 (show function.injective ((coe : GL_pos n R → matrix n n R) ∘ to_GL_pos),
  from subtype.coe_injective).of_comp
+
+variable [fact (even (fintype.card n))]
+
+@[simp] lemma coe_GL_pos_neg (g : special_linear_group n R) :
+  ↑(- g) = - (↑g : GL_pos n R) :=by {ext, refl}
+
 
 end special_linear_group
 

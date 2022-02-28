@@ -226,5 +226,10 @@ begin
   ring,
   end
 
+@[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := by {refl}
+@[simp]lemma subgruop_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := by {refl}
+@[simp]lemma subgruop_to_sl_moeb (A: Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := by {refl}
+
+
 
 end upper_half_plane

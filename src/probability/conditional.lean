@@ -50,7 +50,7 @@ noncomputable theory
 
 open measure_theory measurable_space
 
-variables {α : Type*} [m : measurable_space α] (μ : measure α) {s t : set α}
+variables {α : Type*} {m : measurable_space α} (μ : measure α) {s t : set α}
 
 namespace probability_theory
 

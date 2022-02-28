@@ -241,7 +241,7 @@ variables [comm_ring R]
 open monic
 -- Eventually this can be generalized with Vieta's formulas
 -- plus the connection between roots and factorization.
-lemma multiset_prod_X_sub_C_next_coeff [nontrivial R] (t : multiset R) :
+lemma multiset_prod_X_sub_C_next_coeff (t : multiset R) :
   next_coeff (t.map (λ x, X - C x)).prod = -t.sum :=
 begin
   rw next_coeff_multiset_prod,
@@ -250,7 +250,7 @@ begin
   { intros, apply monic_X_sub_C }
 end
 
-lemma prod_X_sub_C_next_coeff [nontrivial R] {s : finset ι} (f : ι → R) :
+lemma prod_X_sub_C_next_coeff {s : finset ι} (f : ι → R) :
   next_coeff ∏ i in s, (X - C (f i)) = -∑ i in s, f i :=
 by simpa using multiset_prod_X_sub_C_next_coeff (s.1.map f)
 

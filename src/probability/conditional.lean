@@ -42,6 +42,11 @@ for now, but the alternative theorems can be added if needed.
 Use of `@[simp]` generally follows the rule of removing conditions on a measure
 when possible.
 
+Hypotheses that are used to "define" a conditional distribution by requiring that
+the conditioning set has non-zero measure should be named using the abbreviation
+"c" (which stands for "conditionable") rather than "nz". For example `(hci : μ (s ∩ t) ≠ 0)`
+(rather than `hnzi`) should be used for a hypothesis ensuring that `μ[|s ∩ t]` is defined.
+
 ## Tags
 conditional, conditioned, bayes
 -/
@@ -116,8 +121,7 @@ begin
     (μ.to_outer_measure.pos_of_subset_ne_zero (set.inter_subset_left _ _) hci).ne',
   simp [*, measure_ne_top, ennreal.mul_inv],
   conv { to_lhs, rw mul_assoc, congr, skip, rw mul_comm },
-  simp_rw ← mul_assoc,
-  rw [ennreal.mul_inv_cancel hcs (measure_ne_top _ s), one_mul,
+  simp_rw [← mul_assoc, ennreal.mul_inv_cancel hcs (measure_ne_top _ s), one_mul,
     ← set.inter_assoc, mul_comm]
 end
 

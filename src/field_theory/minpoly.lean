@@ -363,8 +363,7 @@ lemma minpoly_add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   (hx : is_integral A x) (a : A) :
   minpoly A (x + (algebra_map A B a)) = (minpoly A x).comp (X - C a) :=
 begin
-  symmetry,
-  refine minpoly.unique _ _ ((minpoly.monic hx).comp_X_sub_C _) _ (λ q qmo hq, _),
+  refine (minpoly.unique _ _ ((minpoly.monic hx).comp_X_sub_C _) _ (λ q qmo hq, _)).symm,
   { simp [aeval_comp] },
   { have : (polynomial.aeval x) (q.comp (X + C a)) = 0 := by simpa [aeval_comp] using hq,
     have H := minpoly.min A x (qmo.comp_X_add_C _) this,
@@ -380,8 +379,7 @@ lemma minpoly_sub_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   (hx : is_integral A x) (a : A) :
   minpoly A (x - (algebra_map A B a)) = (minpoly A x).comp (X + C a) :=
 begin
-  symmetry,
-  refine minpoly.unique _ _ ((minpoly.monic hx).comp_X_add_C _) _ (λ q qmo hq, _),
+  refine (minpoly.unique _ _ ((minpoly.monic hx).comp_X_add_C _) _ (λ q qmo hq, _)).symm,
   { simp [aeval_comp] },
   { have : (polynomial.aeval x) (q.comp (X - C a)) = 0 := by simpa [aeval_comp] using hq,
     have H := minpoly.min A x (qmo.comp_X_sub_C _) this,

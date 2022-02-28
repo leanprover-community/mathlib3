@@ -1211,10 +1211,15 @@ lemma prod_inv [has_zero M] [comm_group G] {f : α →₀ M}
   f.sum (λa b, h₁ a b - h₂ a b) = f.sum h₁ - f.sum h₂ :=
 finset.sum_sub_distrib
 
-@[to_additive]
+/-- Taking the product under `h` is an additive-to-multiplicative homomorphism of finsupps,
+if `h` is an additive-to-multiplicative homomorphism on the support.
+This is a more general version of `finsupp.prod_add_index'`; the latter has simpler hypotheses. -/
+@[to_additive "Taking the product under `h` is an additive homomorphism of finsupps,
+if `h` is an additive homomorphism on the support.
+This is a more general version of `finsupp.sum_add_index'`; the latter has simpler hypotheses."]
 lemma prod_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   {h : α → M → N} (h_zero : ∀ a ∈ f.support ∪ g.support, h a 0 = 1)
-  (h_add  : ∀ (a ∈ f.support ∪ g.support) b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
+  (h_add : ∀ (a ∈ f.support ∪ g.support) b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
 begin
   rw [finsupp.prod_of_support_subset f (subset_union_left _ g.support) h h_zero,
@@ -1224,7 +1229,12 @@ begin
   exact finset.prod_congr rfl (λ x hx, (by apply h_add x hx)),
 end
 
-@[to_additive]
+/-- Taking the product under `h` is an additive-to-multiplicative homomorphism of finsupps,
+if `h` is an additive-to-multiplicative homomorphism.
+This is a more specialized version of `finsupp.prod_add_index` with simpler hypotheses. -/
+@[to_additive "Taking the product under `h` is an additive homomorphism of finsupps,
+if `h` is an additive homomorphism.
+This is a more specific version of `finsupp.sum_add_index` with simpler hypotheses."]
 lemma prod_add_index' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=

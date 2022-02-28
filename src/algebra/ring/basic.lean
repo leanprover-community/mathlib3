@@ -394,7 +394,8 @@ instance : ring_hom_class (α →+* β) α β :=
   map_mul := ring_hom.map_mul',
   map_one := ring_hom.map_one' }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly.
 -/
 instance : has_coe_to_fun (α →+* β) (λ _, α → β) := ⟨ring_hom.to_fun⟩
 

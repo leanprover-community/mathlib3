@@ -79,11 +79,11 @@ instance : has_coe_to_fun (outer_measure α) (λ _, set α → ℝ≥0∞) := �
 theorem mono' (m : outer_measure α) {s₁ s₂}
   (h : s₁ ⊆ s₂) : m s₁ ≤ m s₂ := m.mono h
 
-lemma pos_of_subset_pos (m : outer_measure α) {a b : set α} (hs : a ⊆ b) (hnz : m a ≠ 0) :
-  m b ≠ 0 := (lt_of_lt_of_le (pos_iff_ne_zero.mpr hnz) (m.mono hs)).ne.symm
-
 theorem mono_null (m : outer_measure α) {s t} (h : s ⊆ t) (ht : m t = 0) : m s = 0 :=
 nonpos_iff_eq_zero.mp $ ht ▸ m.mono' h
+
+lemma pos_of_subset_ne_zero (m : outer_measure α) {a b : set α} (hs : a ⊆ b) (hnz : m a ≠ 0) :
+  0 < m b := (lt_of_lt_of_le (pos_iff_ne_zero.mpr hnz) (m.mono hs))
 
 protected theorem Union (m : outer_measure α)
   {β} [encodable β] (s : β → set α) :

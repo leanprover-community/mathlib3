@@ -39,7 +39,7 @@ many of the theorems here will have corresponding alternatives as well.
 For the sake of brevity, we've chosen to only go with `measure.restrict_apply'`
 for now, but the alternative theorems can be added if needed.
 
-Simplification generally follows the rule of removing conditions on a measure
+Use of `@[simp]` generally follows the rule of removing conditions on a measure
 when possible.
 
 ## Tags
@@ -84,21 +84,22 @@ by simp [cond, measure_univ, measure.restrict_univ]
   μ[t|s] = (μ s)⁻¹ * μ (s ∩ t) :=
 by { rw [cond, measure.smul_apply, measure.restrict_apply' hms, set.inter_comm], refl }
 
-lemma inter_pos_of_cond_pos {s t : set α} (hms : measurable_set s)
-  (hcst : μ[t|s] ≠ 0) : μ (s ∩ t) ≠ 0 :=
+lemma inter_pos_of_cond_ne_zero {s t : set α} (hms : measurable_set s)
+  (hcst : μ[t|s] ≠ 0) : 0 < μ (s ∩ t) :=
 begin
-  refine right_ne_zero_of_mul _, exact (μ s)⁻¹,
+  refine pos_iff_ne_zero.mpr (right_ne_zero_of_mul _),
+  { exact (μ s)⁻¹ },
   convert hcst,
   simp [hms, set.inter_comm]
 end
 
 variable [is_finite_measure μ]
 
-lemma cond_pos_of_inter_pos {s t : set α} (hms : measurable_set s)
-  (hci : μ (s ∩ t) ≠ 0) : μ[|s] t ≠ 0 :=
+lemma cond_pos_of_inter_ne_zero {s t : set α} (hms : measurable_set s)
+  (hci : μ (s ∩ t) ≠ 0) : 0 < μ[|s] t :=
 begin
   rw cond_measure_apply _ hms,
-  refine mul_ne_zero _ hci,
+  refine ennreal.mul_pos _ hci,
   exact ennreal.inv_ne_zero.mpr (measure_ne_top _ _),
 end
 
@@ -110,7 +111,7 @@ on `s ∩ t`. -/
 begin
   apply measure.ext, intros,
   haveI := cond_is_probability_measure μ
-    (μ.to_outer_measure.pos_of_subset_pos (set.inter_subset_left _ _) hci),
+    (μ.to_outer_measure.pos_of_subset_ne_zero (set.inter_subset_left _ _) hci).ne',
   simp [*, measure_ne_top, ennreal.mul_inv],
   conv { to_lhs, rw mul_assoc, congr, skip, rw mul_comm },
   simp_rw ← mul_assoc,

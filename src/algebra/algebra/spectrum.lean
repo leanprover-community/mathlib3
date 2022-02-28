@@ -5,6 +5,7 @@ Authors: Jireh Loreaux
 -/
 import tactic.noncomm_ring
 import field_theory.is_alg_closed.basic
+import algebra.star.pointwise
 /-!
 # Spectrum of an element in an algebra
 This file develops the basic theory of the spectrum of an element of an algebra.

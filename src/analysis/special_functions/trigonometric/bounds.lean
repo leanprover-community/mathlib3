@@ -72,90 +72,73 @@ begin
 end
 
 
-/- The next lemmas are building up to proving tan(x) > x for x ∈ (0,π/2). -/
-
-private def tan_minus_id (x : ℝ) : ℝ := tan x - x
-
-private def tansq (x : ℝ) (h : cos x ≠ 0) : ℝ := 1/(cos x)^2 - 1
-
+/-- The derivative of `tan x - x` is `1/(cos x)^2 - 1` away from the zeroes of cos. -/
 lemma deriv_tan_sub_id (x : ℝ) (h: cos x ≠ 0) :
-    deriv tan_minus_id x = (tansq x h) :=
+    deriv (λ y : ℝ, tan y - y) x = 1 / cos x ^ 2 - 1 :=
 begin
   apply has_deriv_at.deriv,
-  simpa [tansq] using (has_deriv_at_tan h).add (has_deriv_at_id x).neg
+  simpa using (has_deriv_at_tan h).add (has_deriv_at_id x).neg
 end
 
-/- tansq is positive away from the obvious bad points -/
-private lemma tansq_pos (x : ℝ) (h : cos x ≠ 0) (h2: sin x ≠ 0):
-  tansq x h > 0 :=
-begin
-  simp only [tansq, one_div, gt_iff_lt, sub_pos],
-  have bd2 : cos x ^ 2 < 1,
-  { apply lt_of_le_of_ne x.cos_sq_le_one,
-    simpa only [cos_sq', ne.def, sub_eq_self, pow_eq_zero_iff, nat.succ_pos'] using h2 },
-  rwa [lt_inv, inv_one],
-  { exact zero_lt_one },
-  { rwa [sq,mul_self_pos] }
-end
-
-/- cos is nonzero on the Ico interval -/
-private lemma cos_pos (x : ℝ) (h1: 0 ≤ x) (h2: x < π/2): 0 < cos x :=
-begin
-  apply cos_pos_of_mem_Ioo,
-  split; linarith
-end
-
-/- sin is nonzero on the Ioo interval -/
-private lemma sin_nz (x: ℝ) (h1: 0 < x) (h2: x < π/2) : sin x ≠ 0 :=
-begin
-  apply ne_of_gt,
-  apply sin_pos_of_pos_of_lt_pi h1,
-  apply lt_trans h2,
-  rw ← lt_add_neg_iff_lt,
-  have : π + -(π / 2) = π/2 := by ring,
-  rw this, exact pi_div_two_pos,
-end
-
-private def U := Ico 0 (π/2 : ℝ)
+private def U := Ico 0 (π/2)
 
 /-- For all `0 ≤ x < π/2` we have `x < tan x`.
 
 This is proved by checking that the function `tan x - x` vanishes
 at zero and has non-negative derivative. -/
-theorem lt_tan (x : ℝ) (h1: (0:ℝ) < x) (h2: x < π/2): x < tan x :=
+theorem lt_tan (x : ℝ) (h1 : 0 < x) (h2 : x < π/2): x < tan x :=
 begin
-  have intU : interior U = Ioo (0:ℝ) (π/2) := interior_Ico,
-  have tan_cts_U : (continuous_on tan U),
+  have intU : interior U = Ioo 0 (π/2) := interior_Ico,
+
+  have cos_pos : ∀ y : ℝ, (0 ≤ y) → (y < π/2) → (0 < cos y) := by
+  { intros y y1 y2,
+    apply cos_pos_of_mem_Ioo,
+    split; linarith, },
+
+  have sin_pos : ∀ y : ℝ, (0 < y) → (y < π/2) → (0 < sin y) := by
+  { intros y hy1 hy2,
+    apply sin_pos_of_pos_of_lt_pi hy1,
+    apply lt_trans hy2,
+    rw ← lt_add_neg_iff_lt,
+    have : π + -(π / 2) = π/2 := by ring,
+    rw this, exact pi_div_two_pos },
+
+  have tan_cts_U : continuous_on tan U,
   { apply continuous_on.mono continuous_on_tan,
     intros z hz,
     rw [U, Ico] at hz,
     simp only [ne.def, mem_set_of_eq] at *,
-    cases hz with zlo zhi,
-    exact cos_nz z zlo zhi },
+    exact (cos_pos z hz.1 hz.2).ne' },
 
-  have tan_minus_id_cts : continuous_on tan_minus_id U := tan_cts_U.sub continuous_on_id
+  have tan_minus_id_cts : continuous_on (λ y : ℝ, tan y - y) U :=
+    tan_cts_U.sub continuous_on_id,
 
-  have deriv_pos : (∀ (y : ℝ), y ∈ interior U → 0 < deriv tan_minus_id y),
+  have deriv_pos : (∀ y : ℝ, y ∈ interior U
+    → 0 < deriv (λ y' : ℝ, tan y' - y') y),
   { intros y hy,
-    have t := interior_subset hy,
     rw [intU, Ioo] at hy,
-    cases hy with ylo yhi,
-    rw tan_minus_id_deriv,
-    apply tansq_pos,
-    apply sin_nz y ylo yhi,
-    apply cos_nz y (le_of_lt ylo) yhi },
+    have := (cos_pos y (le_of_lt hy.1) hy.2).ne',
+    rw (deriv_tan_sub_id y this),
+    simp only [one_div, gt_iff_lt, sub_pos],
+    have bd2 : cos y ^ 2 < 1,
+    { apply lt_of_le_of_ne y.cos_sq_le_one,
+      rw cos_sq',
+      simpa only [ne.def, sub_eq_self, pow_eq_zero_iff, nat.succ_pos']
+        using (sin_pos y hy.left hy.right).ne' },
+    rwa [lt_inv, inv_one],
+    { exact zero_lt_one },
+    { rwa [sq,mul_self_pos] },
+  },
 
-  have mon:= (convex.strict_mono_on_of_deriv_pos
-    (convex_Ico 0 (π/2 : ℝ)) tan_minus_id_cts deriv_pos),
+  have mon:= convex.strict_mono_on_of_deriv_pos
+    (convex_Ico 0 (π/2)) tan_minus_id_cts deriv_pos,
 
   have zero_in_U: (0:ℝ) ∈ U,
   { split; linarith },
   have x_in_U : (x ∈ U),
   { split; linarith },
   have w := mon zero_in_U x_in_U h1,
-  rwa [tan_minus_id,tan_zero,
-    sub_zero,tan_minus_id,
-    lt_sub,sub_zero, ←gt_iff_lt] at w,
+  simpa only [tan_zero, sub_zero, sub_pos] using w,
 end
 
 end real

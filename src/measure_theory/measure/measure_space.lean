@@ -876,7 +876,7 @@ else 0
 def map [measurable_space α] (f : α → β) (μ : measure α) : measure β := mapₗ f μ
 
 @[simp] lemma mapₗ_apply [measurable_space α] (f : α → β) (μ : measure α) :
-  μ.map f = mapₗ f μ :=
+  mapₗ f μ = map f μ :=
 rfl
 
 @[simp] lemma map_add {m0 : measurable_space α} (μ ν : measure α) (f : α → β) :
@@ -895,7 +895,7 @@ rfl
   `measure_theory.measure.le_map_apply` and `measurable_equiv.map_apply`. -/
 @[simp] theorem map_apply {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   μ.map f s = μ (f ⁻¹' s) :=
-by simp [mapₗ, dif_pos hf, hs]
+by {rw [map, mapₗ], simp [dif_pos hf, hs]}
 
 lemma map_to_outer_measure {f : α → β} (hf : measurable f) :
   (μ.map f).to_outer_measure = (outer_measure.map f μ.to_outer_measure).trim :=

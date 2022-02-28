@@ -863,13 +863,15 @@ lemma le_lift_linear_apply {f : outer_measure α →ₗ[ℝ≥0∞] outer_measur
   f μ.to_outer_measure s ≤ lift_linear f hf μ s :=
 le_to_measure_apply _ _ s
 
-/-- The pushforward of a measure. It is defined to be `0` if `f` is not a measurable function. -/
+/-- The pushforward of a measure as a linear map. It is defined to be `0` if `f` is not
+a measurable function. -/
 def mapₗ [measurable_space α] (f : α → β) : measure α →ₗ[ℝ≥0∞] measure β :=
 if hf : measurable f then
   lift_linear (outer_measure.map f) $ λ μ s hs t,
     le_to_outer_measure_caratheodory μ _ (hf hs) (f ⁻¹' t)
 else 0
 
+/-- The pushforward of a measure. It is defined to be `0` if `f` is not a measurable function. -/
 @[reducible]
 def map [measurable_space α] (f : α → β) (μ : measure α) : measure β := mapₗ f μ
 

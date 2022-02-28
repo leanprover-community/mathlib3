@@ -339,23 +339,19 @@ lemma measurable_prod_of_continuous_of_measurable (ι) [emetric_space ι] [mι :
   [second_countable_topology ι] [opens_measurable_space ι] [metric_space β] [borel_space β]
   {m : measurable_space α} {u : ι → α → β}
   (hu_cont : ∀ x, continuous (λ i, u i x)) (h : ∀ i, measurable[m] (u i)) :
-  measurable[prod.measurable_space' mι m] (λ (p : ι × α), u p.fst p.snd) :=
+  measurable (λ (p : ι × α), u p.fst p.snd) :=
 begin
-  obtain ⟨t_sf, ht_sf⟩ : ∃ t : ℕ → @simple_func ι _ ι, ∀ j x,
+  obtain ⟨t_sf, ht_sf⟩ : ∃ t : ℕ → simple_func ι ι, ∀ j x,
     tendsto (λ n, u (t n j) x) at_top (𝓝 $ u j x),
   { have h_str_meas : strongly_measurable (id : ι → ι), from strongly_measurable_id,
     refine ⟨h_str_meas.approx, λ j x, _⟩,
-    have h_tendsto : tendsto (λ n, h_str_meas.approx n j) at_top (𝓝 (id j)),
-      from h_str_meas.tendsto_approx j,
-    exact ((hu_cont x).tendsto j).comp h_tendsto, },
+    exact ((hu_cont x).tendsto j).comp (h_str_meas.tendsto_approx j), },
   let U := λ (n : ℕ) (p : ι × α), u (t_sf n p.fst) p.snd,
   have h_tendsto : tendsto U at_top (𝓝 (λ p, u p.fst p.snd)),
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
-  refine @measurable_of_tendsto_metric (ι × α) β
-    (prod.measurable_space' mι m) _ _ _ _ _ (λ n, _) h_tendsto,
-  have h_meas : measurable[prod.measurable_space' subtype.measurable_space m]
-    (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
+  refine measurable_of_tendsto_metric (λ n, _) h_tendsto,
+  have h_meas : measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)
         = (λ (p : α × ((t_sf n).range)), u ↑(p.snd) p.fst) ∘ prod.swap,
       by refl,
@@ -367,8 +363,8 @@ begin
       ∘ (λ p : ι × α, (⟨t_sf n p.fst, simple_func.mem_range_self _ _⟩, p.snd)),
   { refl, },
   simp_rw [U, this],
-  refine h_meas.comp (measurable.prod_mk _ (@measurable_snd _ _ _ m)),
-  exact ((t_sf n).measurable.comp (@measurable_fst _ _ _ m)).subtype_mk,
+  refine h_meas.comp (measurable.prod_mk _ measurable_snd),
+  exact ((t_sf n).measurable.comp measurable_fst).subtype_mk,
 end
 
 /-- A continuous and adapted process is progressively measurable. -/

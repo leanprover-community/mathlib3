@@ -136,19 +136,17 @@ lemma is_prime_pow_iff_factorization_single (n : ℕ) :
   is_prime_pow n ↔ ∃ p k : ℕ, 0 < k ∧ n.factorization = finsupp.single p k :=
 begin
   rw is_prime_pow_nat_iff,
+  refine exists₂_congr (λ p k, _),
   split,
-  { rintros ⟨p, k, pp, hk, hn⟩, use [p, k, hk],
-    rw [←hn, nat.prime.factorization_pow pp] },
-  { rintros ⟨p, k, hk, hn⟩,
+  { rintros ⟨hp, hk, hn⟩,
+    exact ⟨hk, by rw [←hn, nat.prime.factorization_pow hp]⟩ },
+  { rintros ⟨hk, hn⟩,
     have hn0 : n ≠ 0,
     { rintro rfl,
-      simp only [finsupp.single_eq_zero, eq_comm, nat.factorization_zero] at hn,
-      exact hk.ne' hn },
+      simpa only [finsupp.single_eq_zero, eq_comm, nat.factorization_zero, hk.ne'] using hn },
     rw nat.pow_of_factorization_single hn0 hn,
-    refine ⟨p, k, _, hk, rfl⟩,
-    apply nat.prime_of_mem_factorization,
-    rw hn,
-    simp [hk.ne'] }
+    exact ⟨nat.prime_of_mem_factorization
+      (by simp [hn, hk.ne'] : p ∈ n.factorization.support), hk, rfl⟩ }
 end
 
 /-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime

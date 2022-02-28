@@ -35,17 +35,19 @@ notation `π` := real.pi
 /-- For 0 < x, we have sin x < x. -/
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
-  cases le_or_gt x 1 with h' h',
-  { have hx : |x| = x := abs_of_nonneg (le_of_lt h),
-    have : |x| ≤ 1, rwa [hx],
-    have := sin_bound this, rw [abs_le] at this,
-    have := this.2, rw [sub_le_iff_le_add', hx] at this,
-    apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
-    apply sub_lt_sub_left, rw [sub_pos, div_eq_mul_inv (x ^ 3)], apply mul_lt_mul',
-    { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
-      rw mul_le_mul_right, exact h', apply pow_pos h },
-    norm_num, norm_num, apply pow_pos h },
-  exact lt_of_le_of_lt (sin_le_one x) h'
+  cases lt_or_ge 1 x with h' h',
+  { exact (sin_le_one x).trans_lt h' },
+  have hx : |x| = x := abs_of_nonneg h.le,
+  have := le_of_abs_le (sin_bound $ show |x| ≤ 1, by rwa [hx]),
+  rw [sub_le_iff_le_add', hx] at this,
+  apply this.trans_lt,
+  rw [sub_add],
+  apply lt_of_lt_of_le _ (sub_zero x).le,
+  apply sub_lt_sub_left,
+  rw [sub_pos, div_eq_mul_inv (x ^ 3)],
+  refine mul_lt_mul' _ (by norm_num) (by norm_num) (pow_pos h 3),
+  apply pow_le_pow_of_le_one h.le h',
+  norm_num
 end
 
 /-- For 0 < x ≤ 1 we have sin x ≥ x - x^3 / 4.

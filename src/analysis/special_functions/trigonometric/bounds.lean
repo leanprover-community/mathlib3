@@ -19,7 +19,7 @@ Here we prove the following:
 
 * `sin_lt`: for `x > 0` we have `sin x < x`.
 * `sin_gt_sub_cube`: For `0 < x ≤ 1` we have `sin x > x  - x^3 / 4`.
-* `tan_gt`: for `0 < x < π/2` we have `tan x > x`.
+* `lt_tan`: for `0 < x < π/2` we have `x < tan x`.
 
 ## Tags
 
@@ -71,7 +71,7 @@ begin
 end
 
 
-/- The next lemmas are building up to proving tan(x) ≥ x for x ∈ [0,π/2). -/
+/- The next lemmas are building up to proving tan(x) > x for x ∈ (0,π/2). -/
 
 private def tan_minus_id (x : ℝ) : ℝ := tan x - x
 
@@ -135,11 +135,11 @@ end
 
 private def U := Ico 0 (π/2 : ℝ)
 
-/-- For all `0 ≤ x < π/2` we have `tan x > x`.
+/-- For all `0 ≤ x < π/2` we have `x < tan x`.
 
 This is proved by checking that the function `tan x - x` vanishes
 at zero and has non-negative derivative. -/
-theorem tan_gt (x : ℝ) (h1: (0:ℝ) < x) (h2: x < π/2): tan x > x :=
+theorem lt_tan (x : ℝ) (h1: (0:ℝ) < x) (h2: x < π/2): x < tan x :=
 begin
   have intU : (interior U) = (Ioo (0:ℝ) (π/2:ℝ)) := by apply interior_Ico,
   have tan_cts_U : (continuous_on tan U),

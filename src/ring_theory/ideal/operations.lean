@@ -1006,15 +1006,12 @@ begin
   { exact submodule.zero_mem _ },
   { intros x y, exact submodule.add_mem _ },
   intros a x hx,
-  refine submodule.smul_induction_on hx _ _ _ _,
+  refine submodule.smul_induction_on hx _ _,
   { intros r hr s hs,
     rw smul_comm,
     exact submodule.smul_mem_smul hr submodule.mem_top },
-  { rw smul_zero, exact submodule.zero_mem _ },
   { intros x y hx hy,
     rw smul_add, exact submodule.add_mem _ hx hy },
-  { intros c x hx,
-    rw smul_comm, exact submodule.smul_mem _ _ hx }
 end
 
 section surjective

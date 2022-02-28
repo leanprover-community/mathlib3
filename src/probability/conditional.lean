@@ -50,7 +50,7 @@ noncomputable theory
 
 open measure_theory measurable_space
 
-variables {α : Type*} [m : measurable_space α] (μ : measure α)
+variables {α : Type*} [m : measurable_space α] (μ : measure α) {s t : set α}
 
 namespace probability_theory
 
@@ -69,23 +69,24 @@ local notation  μ `[|`:60 t`]` := cond μ t
 
 /-- The conditional probability measure of any finite measure on any set of positive measure
 is a probability measure. -/
-lemma cond_is_probability_measure [is_finite_measure μ] {s : set α} (hcs : μ s ≠ 0) :
+lemma cond_is_probability_measure [is_finite_measure μ] (hcs : μ s ≠ 0) :
   is_probability_measure $ μ[|s] :=
 ⟨by { rw [cond, measure.smul_apply, measure.restrict_apply measurable_set.univ,
   set.univ_inter], exact ennreal.inv_mul_cancel hcs (measure_ne_top _ s) }⟩
 
 section bayes
 
-@[simp] lemma cond_univ [is_probability_measure μ] : μ[|set.univ] = μ :=
+@[simp] lemma cond_univ [is_probability_measure μ] :
+  μ[|set.univ] = μ :=
 by simp [cond, measure_univ, measure.restrict_univ]
 
 /-- The axiomatic definition of conditional probability derived from a measure-theoretic one. -/
-@[simp] lemma cond_measure_apply {s : set α} (hms : measurable_set s) (t : set α) :
+@[simp] lemma cond_measure_apply (hms : measurable_set s) (t : set α) :
   μ[t|s] = (μ s)⁻¹ * μ (s ∩ t) :=
 by { rw [cond, measure.smul_apply, measure.restrict_apply' hms, set.inter_comm], refl }
 
-lemma inter_pos_of_cond_ne_zero {s t : set α} (hms : measurable_set s)
-  (hcst : μ[t|s] ≠ 0) : 0 < μ (s ∩ t) :=
+lemma inter_pos_of_cond_ne_zero (hms : measurable_set s) (hcst : μ[t|s] ≠ 0) :
+  0 < μ (s ∩ t) :=
 begin
   refine pos_iff_ne_zero.mpr (right_ne_zero_of_mul _),
   { exact (μ s)⁻¹ },
@@ -95,8 +96,8 @@ end
 
 variable [is_finite_measure μ]
 
-lemma cond_pos_of_inter_ne_zero {s t : set α} (hms : measurable_set s)
-  (hci : μ (s ∩ t) ≠ 0) : 0 < μ[|s] t :=
+lemma cond_pos_of_inter_ne_zero (hms : measurable_set s) (hci : μ (s ∩ t) ≠ 0) :
+  0 < μ[|s] t :=
 begin
   rw cond_measure_apply _ hms,
   refine ennreal.mul_pos _ hci,
@@ -105,11 +106,12 @@ end
 
 /-- Conditioning first on `s` and then on `t` results in the same measure as conditioning
 on `s ∩ t`. -/
-@[simp] lemma cond_cond_eq_cond_inter {s : set α} {t : set α}
+@[simp] lemma cond_cond_eq_cond_inter
   (hms : measurable_set s) (hmt : measurable_set t) (hcs : μ s ≠ 0) (hci : μ (s ∩ t) ≠ 0) :
   μ[|s][|t] = μ[|s ∩ t] :=
 begin
-  apply measure.ext, intros,
+  apply measure.ext, 
+  intros,
   haveI := cond_is_probability_measure μ
     (μ.to_outer_measure.pos_of_subset_ne_zero (set.inter_subset_left _ _) hci).ne',
   simp [*, measure_ne_top, ennreal.mul_inv],
@@ -119,14 +121,13 @@ begin
     ← set.inter_assoc, mul_comm]
 end
 
-@[simp] lemma cond_mul_eq_inter {s : set α} (hms : measurable_set s) (hcs : μ s ≠ 0) (t : set α) :
+@[simp] lemma cond_mul_eq_inter (hms : measurable_set s) (hcs : μ s ≠ 0) (t : set α) :
   μ[t|s] * μ s = μ (s ∩ t) :=
 by rw [cond_measure_apply μ hms t, mul_comm, ←mul_assoc,
   ennreal.mul_inv_cancel hcs (measure_ne_top _ s), one_mul]
 
 /-- Bayes' Theorem. -/
-theorem bayes (s : set α) (hms : measurable_set s)
-  (t : set α) (hmt : measurable_set t) (ht : μ t ≠ 0) :
+theorem bayes (hms : measurable_set s) (hmt : measurable_set t) (ht : μ t ≠ 0) :
   μ[t|s] = (μ s)⁻¹ * μ[s|t] * (μ t) :=
 by rw [mul_assoc, cond_mul_eq_inter μ hmt ht s, set.inter_comm, cond_measure_apply _ hms]
 

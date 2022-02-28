@@ -168,13 +168,9 @@ begin
   { intros x hx,
     rw [submodule.mem_Inf] at hx ⊢,
     rintros J ⟨HJ₁, HJ₂⟩,
-    specialize hx (ideal.homogeneous_core 𝒜 J) _,
-    refine ⟨_, (ideal.homogeneous_core 𝒜 _).prop, HJ₂.homogeneous_core⟩,
-    { refine eq.trans_le _ (ideal.homogeneous_core_mono _ HJ₁),
-      have HI := I.prop,
-      rw [ideal.is_homogeneous.iff_eq] at HI,
-      rw HI },
-    refine (ideal.coe_homogeneous_core_le 𝒜 J) hx, },
+    refine (ideal.coe_homogeneous_core_le 𝒜 J) (hx _ _),
+    refine ⟨_, subtype.prop _, HJ₂.homogeneous_core⟩,
+    refine I.homogeneous_core_coe_eq_self.symm.trans_le (ideal.homogeneous_core_mono _ HJ₁), }
 end
 
 lemma ideal.is_homogeneous_ideal.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :

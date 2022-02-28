@@ -55,19 +55,18 @@ tight; the tighter inequality is sin x > x - x ^ 3 / 6, but this inequality has 
 proof. -/
 lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
 begin
-  have hx : |x| = x := abs_of_nonneg (le_of_lt h),
-  have : |x| ≤ 1, rwa [hx],
-  have := sin_bound this, rw [abs_le] at this,
-  have := this.1, rw [le_sub_iff_add_le, hx] at this,
+  have hx : |x| = x := abs_of_nonneg h.le,
+  have := neg_le_of_abs_le (sin_bound $ show |x| ≤ 1, by rwa [hx]),
+  rw [le_sub_iff_add_le, hx] at this,
   refine lt_of_lt_of_le _ this,
-  rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
+  rw [add_comm, sub_add, sub_neg_eq_add],
+  apply sub_lt_sub_left,
   apply add_lt_of_lt_sub_left,
-  rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 * 12⁻¹,
-    by simp [div_eq_mul_inv, ← mul_sub]; norm_num),
-  apply mul_lt_mul',
-  { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
-    rw mul_le_mul_right, exact h', apply pow_pos h },
-  norm_num, norm_num, apply pow_pos h
+  have : x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 * 12⁻¹ := by norm_num [div_eq_mul_inv, ← mul_sub],
+  rw this,
+  refine mul_lt_mul' _ (by norm_num) (by norm_num) (pow_pos h 3),
+  apply pow_le_pow_of_le_one h.le h',
+  norm_num
 end
 
 

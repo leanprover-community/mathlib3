@@ -217,18 +217,17 @@ section star
 
 variables [star_add_monoid R] [star_ring A] [star_module R A]
 
-local postfix `⋆`:std.prec.max_plus := star
-
-lemma star_mem_resolvent_set {r : R} {a : A} (h : r ∈ resolvent_set R a) :
-  r⋆ ∈ resolvent_set R a⋆ :=
+lemma star_mem_resolvent_set_star {r : R} {a : A} (h : r ∈ resolvent_set R a) :
+  star r ∈ resolvent_set R (star a) :=
 by simpa only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one, star_sub, star_smul,
   star_one] using is_unit.star h
 
-protected lemma map_star (a : A) : (σ a)⋆ = σ a⋆ :=
+protected lemma map_star (a : A) : star (σ a) = σ (star a) :=
 begin
   ext,
   simp only [set.mem_star, mem_iff, not_iff_not],
-  exact ⟨λ h, star_star x ▸ star_mem_resolvent_set h, λ h, star_star a ▸ star_mem_resolvent_set h⟩,
+  exact ⟨λ h, star_star x ▸ star_mem_resolvent_set_star h,
+         λ h, star_star a ▸ star_mem_resolvent_set_star h⟩,
 end
 
 end star

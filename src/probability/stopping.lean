@@ -20,12 +20,24 @@ at a specific time and is the first step in formalizing stochastic processes.
 * `measure_theory.filtration`: a filtration on a measurable space
 * `measure_theory.adapted`: a sequence of functions `u` is said to be adapted to a
   filtration `f` if at each point in time `i`, `u i` is `f i`-measurable
+* `measure_theory.prog_measurable`: a sequence of functions `u` is said to be progressively
+  measurable with respect to a filtration `f` if at each point in time `i`, `u` restricted to
+  `set.Iic i × α` is measurable with respect to the product `measurable_space` structure where the
+  σ-algebra used for `α` is `f i`.
 * `measure_theory.filtration.natural`: the natural filtration with respect to a sequence of
   measurable functions is the smallest filtration to which it is adapted to
 * `measure_theory.is_stopping_time`: a stopping time with respect to some filtration `f` is a
   function `τ` such that for all `i`, the preimage of `{j | j ≤ i}` along `τ` is
   `f i`-measurable
 * `measure_theory.is_stopping_time.measurable_space`: the σ-algebra associated with a stopping time
+
+## Main results
+
+* `adapted.prog_measurable_of_continuous`: a continuous adapted process is progressively measurable.
+* `prog_measurable.stopped_process`: the stopped process of a progressively measurable process is
+  progressively measurable.
+* `mem_ℒp_stopped_process`: if a process belongs to `ℒp` at every time in `ℕ`, then its stopped
+  process belongs to `ℒp` as well.
 
 ## Tags
 
@@ -233,8 +245,12 @@ lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → �
 λ i, @measurable_zero β α _ (f i) _
 variable {β}
 
-/-- Progressively measurable process. The usual definition uses the interval `[0,i]`, which we
-replace by `set.Iic i`. We recover the usual definition for `ℝ≥0` or `ℕ`. -/
+/-- Progressively measurable process. A sequence of functions `u` is said to be progressively
+measurable with respect to a filtration `f` if at each point in time `i`, `u` restricted to
+`set.Iic i × α` is measurable with respect to the product `measurable_space` structure where the
+σ-algebra used for `α` is `f i`.
+The usual definition uses the interval `[0,i]`, which we replace by `set.Iic i`. We recover the
+usual definition for index types `ℝ≥0` or `ℕ`. -/
 def prog_measurable [measurable_space ι] (f : filtration ι m) (u : ι → α → β) : Prop :=
 ∀ i, measurable[prod.measurable_space' subtype.measurable_space (f i)]
   (λ p : set.Iic i × α, u p.1 p.2)

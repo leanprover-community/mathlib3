@@ -48,7 +48,7 @@ begin
   exact lt_of_le_of_lt (sin_le_one x) h'
 end
 
-/-- For 0 < x ≤ 1 we have sin x ≥ x  - x^3 / 4.
+/-- For 0 < x ≤ 1 we have sin x ≥ x - x^3 / 4.
 
 This is also true for x > 1, but it's nontrivial for x just above 1. This inequality is not
 tight; the tighter inequality is sin x > x - x ^ 3 / 6, but this inequality has a simpler

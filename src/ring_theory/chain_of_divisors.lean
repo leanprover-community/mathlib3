@@ -36,14 +36,11 @@ factorisations of `a` and `b` have the same shape.
 -/
 
 
-
-
-namespace divisor_chain
+variables {M : Type*} [cancel_comm_monoid_with_zero M]
 
 open unique_factorization_monoid multiplicity irreducible
 
-variables {M : Type*} [cancel_comm_monoid_with_zero M]
-
+namespace divisor_chain
 
 lemma pow_prime_has_chain {p : associates M} (n : ℕ) (hn : n ≠ 0) (hp : prime p) :
   ∃ c : fin (n + 1) → associates M,
@@ -216,8 +213,12 @@ lemma is_prime_pow_of_has_chain {q : associates M} (n : ℕ) (hn : n ≠ 0)
   ⟨irreducible_iff_prime.mp (second_of_chain_is_irreducible n hn c h₁ (λ r,h₂) hq),
   zero_lt_iff.mpr hn, (eq_pow_second_of_chain_of_has_chain n hn c h₁ (λ r, h₂) hq).symm⟩  ) )
 
+end divisor_chain
+
 variables {N : Type*} [cancel_comm_monoid_with_zero N] [unique_factorization_monoid N]
-  [decidable_eq (associates M)]
+  [decidable_eq (associates M)] [unique_factorization_monoid M]
+
+open divisor_chain
 
 lemma pow_image_of_prime_by_factor_order_iso_dvd {m p : associates M} {n : associates N}
   (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
@@ -250,7 +251,7 @@ begin
 end
 
 variable [decidable_rel ((∣) : associates M → associates M → Prop)]
-variable [ decidable_rel ((∣) : associates N → associates N → Prop)]
+variable [decidable_rel ((∣) : associates N → associates N → Prop)]
 
 lemma multiplicity_prime_le_multiplicity_image_by_factor_order_iso {m p : associates M}
   {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
@@ -269,5 +270,3 @@ begin
     exact part.get_mem H_finite },
   exact (enat.le_iff_of_dom _).1 temp,
 end
-
-end divisor_chain

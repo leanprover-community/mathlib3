@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2022 . All rights reserved.
+Copyright (c) 2022 David Loeffler. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
@@ -18,7 +18,7 @@ the ranges of these functions, and their monotonicity in suitable intervals.
 Here we prove the following:
 
 * `sin_lt`: for `x > 0` we have `sin x < x`.
-* `sin_gt_sub_cube`: For `0 < x ≤ 1` we have `sin x > x  - x^3 / 4`.
+* `sin_gt_sub_cube`: For `0 < x ≤ 1` we have `x - x ^ 3 / 4 < sin x`.
 * `lt_tan`: for `0 < x < π/2` we have `x < tan x`.
 
 ## Tags
@@ -30,7 +30,7 @@ noncomputable theory
 open set
 
 namespace real
-notation `π` := real.pi
+open_locale real
 
 /-- For 0 < x, we have sin x < x. -/
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
@@ -50,11 +50,11 @@ begin
   norm_num
 end
 
-/-- For 0 < x ≤ 1 we have sin x ≥ x - x^3 / 4.
+/-- For 0 < x ≤ 1 we have x - x ^ 3 / 4 < sin x.
 
 This is also true for x > 1, but it's nontrivial for x just above 1. This inequality is not
-tight; the tighter inequality is sin x > x - x ^ 3 / 6, but this inequality has a simpler
-proof. -/
+tight; the tighter inequality is sin x > x - x ^ 3 / 6 for all x > 0, but this inequality has
+a simpler proof. -/
 lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
 begin
   have hx : |x| = x := abs_of_nonneg h.le,
@@ -92,16 +92,12 @@ end
 private lemma tansq_pos (x : ℝ) (h : cos x ≠ 0) (h2: sin x ≠ 0):
   tansq x h > 0 :=
 begin
-  rw tansq,
-  simp,
-  have bd : cos x ^2 ≤ 1,
-  { rw [sq_le,sqrt_one],
-    split, apply neg_one_le_cos,apply cos_le_one,
-    apply zero_le_one,},
+  simp only [tansq, one_div, gt_iff_lt, sub_pos],
   have bd2 : cos x ^2 < 1,
-  { apply lt_of_le_of_ne bd,
+  { apply lt_of_le_of_ne x.cos_sq_le_one,
     rw cos_sq',
-    simp,exact h2,},
+    simp only [ne.def, sub_eq_self, pow_eq_zero_iff, nat.succ_pos'],
+    exact h2 },
   rw [lt_inv,inv_one],
   exact bd2,
   apply zero_lt_one,
@@ -118,7 +114,7 @@ begin
     rw [neg_lt,neg_zero],
     exact pi_div_two_pos,
     exact h2 },
-  have s : (cos x > 0) := cos_pos_of_mem_Ioo(this),
+  have s : (cos x > 0) := cos_pos_of_mem_Ioo this,
   rw coszero at s,
   exact (gt_irrefl (0:ℝ)) s,
 end
@@ -147,7 +143,7 @@ begin
   { apply continuous_on.mono continuous_on_tan,
     intros z hz,
     rw [U, Ico] at hz,
-    simp at *,
+    simp only [ne.def, mem_set_of_eq] at *,
     cases hz with zlo zhi,
     exact cos_nz z zlo zhi },
 
@@ -170,11 +166,11 @@ begin
 
   have zero_in_U: (0:ℝ) ∈ U,
   { rw [U, Ico],
-    simp,
+    simp only [mem_set_of_eq, le_refl, true_and],
     exact pi_div_two_pos },
   have x_in_U : (x ∈ U),
   { rw [U,Ico],
-    simp,
+    simp only [mem_set_of_eq],
     split,
     exact le_of_lt h1, exact h2 },
   have w := mon zero_in_U x_in_U h1,

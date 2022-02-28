@@ -27,11 +27,9 @@ by simp_rw [commutator_element_def, mul_inv_rev, inv_inv, mul_assoc]
 
 lemma map_commutator_element : f ⁅g₁, g₂⁆ = ⁅f g₁, f g₂⁆ :=
 by simp_rw [commutator_element_def, f.map_mul, f.map_inv]
-* `⁅H₁, H₂⁆` : the commutator of the subgroups `H₁` and `H₂`.
 
 lemma conjugate_commutator_element : g₃ * ⁅g₁, g₂⁆ * g₃⁻¹ = ⁅g₃ * g₁ * g₃⁻¹, g₃ * g₂ * g₃⁻¹⁆ :=
 map_commutator_element (mul_aut.conj g₃).to_monoid_hom g₁ g₂
--/
 
 namespace subgroup
 

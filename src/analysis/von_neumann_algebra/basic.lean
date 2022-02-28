@@ -63,6 +63,12 @@ structure star_subalgebra (R : Type u) (A : Type v) [comm_semiring R] [star_ring
 (star_mem' {a} : a ∈ carrier → star a ∈ carrier)
 
 namespace star_subalgebra
+
+/--
+Forgetting that a *-subalgebra is closed under *.
+-/
+add_decl_doc star_subalgebra.to_subalgebra
+
 variables (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
   [semiring A] [star_ring A] [algebra R A] [star_module R A]
 
@@ -94,3 +100,9 @@ on which the algebra faithfully acts.
 structure von_neumann_algebra (H : Type u) [inner_product_space ℂ H] [complete_space H] extends
   M : star_subalgebra ℂ (H →L[ℂ] H) :=
 (double_commutant : M.commutant.commutant = M)
+/--
+Forgetting that a von Neumann algebra is equal to its double commutant
+(equivalent, is closed in the weak and strong operator topologies),
+and just remembering the underlying *-subalgebra.
+-/
+add_decl_doc von_neumann_algebra.to_star_subalgebra

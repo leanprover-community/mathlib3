@@ -767,21 +767,21 @@ structure height_one_spectrum :=
 
 variables (v : height_one_spectrum R) {R}
 
-lemma ideal.prime_of_height_one (v : height_one_spectrum R) : prime v.as_ideal :=
+lemma height_one_spectrum.prime (v : height_one_spectrum R) : prime v.as_ideal :=
 ideal.prime_of_is_prime v.ne_bot v.is_prime
 
-lemma ideal.irreducible_of_height_one (v : height_one_spectrum R) :
+lemma height_one_spectrum.irreducible (v : height_one_spectrum R) :
   irreducible v.as_ideal :=
 begin
   rw [unique_factorization_monoid.irreducible_iff_prime],
-  apply ideal.prime_of_height_one v,
+  apply v.prime,
 end
 
-lemma associates.irreducible_of_height_one (v : height_one_spectrum R) :
+lemma height_one_spectrum.associates.irreducible (v : height_one_spectrum R) :
   irreducible (associates.mk v.as_ideal) :=
 begin
   rw [associates.irreducible_mk _],
-  apply ideal.irreducible_of_height_one v,
+  apply v.irreducible,
 end
 
 end is_dedekind_domain

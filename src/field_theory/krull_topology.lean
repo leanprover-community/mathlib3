@@ -261,7 +261,7 @@ t2_space (L ≃ₐ[K] L)  :=
     rw ← hgw2 at hfw1,
     rename hfw1 h,
     rw [eq_inv_mul_iff_mul_eq.symm, ← mul_assoc, mul_inv_eq_iff_eq_mul.symm] at h,
-    have h_in_H : w1 * w2⁻¹ ∈ H := H.mul_mem' (hWH hw1) (H.inv_mem' (hWH hw2)),
+    have h_in_H : w1 * w2⁻¹ ∈ H := H.mul_mem (hWH hw1) (H.inv_mem (hWH hw2)),
     rw h at h_in_H,
     change φ ∈ E.fixing_subgroup at h_in_H,
     rw mem_fixing_subgroup_iff at h_in_H,

@@ -219,7 +219,7 @@ end
 
 /-- Let `L/E/K` be a tower of fields with `E/K` finite. Then `Gal(L/E)` is an open subgroup of
   `L ≃ₐ[K] L`. -/
-lemma fixing_subgroup_is_open {K L : Type*} [field K] [field L] [algebra K L]
+lemma intermediate_field.fixing_subgroup_is_open {K L : Type*} [field K] [field L] [algebra K L]
 {E : intermediate_field K L} [finite_dimensional K E] :
 is_open (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
 begin

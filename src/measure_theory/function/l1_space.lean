@@ -486,6 +486,10 @@ lemma integrable_map_measure [opens_measurable_space β] {f : α → δ} {g : δ
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
 by { simp_rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_map_measure_iff hg hf, }
 
+lemma integrable.comp_measurable [opens_measurable_space β] {f : α → δ} {g : δ → β}
+  (hg : integrable g (measure.map f μ)) (hf : measurable f) : integrable (g ∘ f) μ :=
+(integrable_map_measure hg.ae_measurable hf).mp hg
+
 lemma _root_.measurable_embedding.integrable_map_iff {f : α → δ} (hf : measurable_embedding f)
   {g : δ → β} :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=

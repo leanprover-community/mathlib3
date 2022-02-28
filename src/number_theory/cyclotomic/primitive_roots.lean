@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Best, Riccardo Brasca, Eric Rodriguez
 -/
 
+import data.pnat.prime
 import algebra.is_prime_pow
 import number_theory.cyclotomic.basic
 import ring_theory.adjoin.power_basis
@@ -161,20 +162,33 @@ section norm
 namespace is_primitive_root
 
 variables [field L] {ζ : L} (hζ : is_primitive_root ζ n)
+variables {K} [field K] [algebra K L] [ne_zero ((n : ℕ) : K)]
+
+/-- If `finrank K L = 1`, then the norm of a `2`-th primitive root of unity is `-1`. This
+mathematically trivial result is complementary to `norm_eq_one` below. -/
+lemma norm_eq_neg_one [field K] [algebra K L] [is_cyclotomic_extension {2} K L]
+  (h : finrank K L = 1) (hζ : is_primitive_root ζ 2) : norm K ζ = -1 :=
+by rw [is_primitive_root.eq_neg_one_of_two_right hζ, show -1 = algebra_map K L (-1), by simp,
+      norm_algebra_map, h, pow_one]
 
 include hζ
 
-/-- If `K` is linearly ordered (in particular for `K = ℚ`), the norm of a primitive root is `1`
-if `n` is odd. -/
-lemma norm_eq_one [linear_ordered_field K] [algebra K L] (hodd : odd (n : ℕ)) : norm K ζ = 1 :=
+/-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), the norm of a primitive root is
+`1` if `n ≠ 2`. -/
+lemma norm_eq_one [field K] [ne_zero ((n : ℕ) : K)] [algebra K L] [is_cyclotomic_extension {n} K L]
+  (hn : n ≠ 2) (hirr : irreducible (cyclotomic n K)) : norm K ζ = 1 :=
 begin
-  haveI := ne_zero.of_no_zero_smul_divisors K L n,
-  have hz := congr_arg (norm K) ((is_primitive_root.iff_def _ n).1 hζ).1,
-  rw [←(algebra_map K L).map_one , norm_algebra_map, one_pow, map_pow, ←one_pow ↑n] at hz,
-  exact strict_mono.injective hodd.strict_mono_pow hz
+  by_cases h1 : n = 1,
+  { rw [h1, one_coe, one_right_iff] at hζ,
+    rw [hζ, show 1 = algebra_map K L 1, by simp, norm_algebra_map, one_pow] },
+  { replace h1 : 2 ≤ n,
+    { by_contra' h,
+      exact h1 (pnat.eq_one_of_lt_two h) },
+    rw [← hζ.power_basis_gen K, power_basis.norm_gen_eq_coeff_zero_minpoly, hζ.power_basis_gen K,
+      ← hζ.minpoly_eq_cyclotomic_of_irreducible hirr, cyclotomic_coeff_zero _ h1, mul_one,
+      hζ.power_basis_dim K, ← hζ.minpoly_eq_cyclotomic_of_irreducible hirr, nat_degree_cyclotomic],
+    exact neg_one_pow_of_even (totient_even (lt_of_le_of_ne h1 (λ h, hn (pnat.coe_inj.1 h.symm)))) }
 end
-
-variables {K} [field K] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the norm of
 `ζ - 1` is `eval 1 (cyclotomic n ℤ)`. -/
@@ -284,16 +298,16 @@ namespace is_cyclotomic_extension
 
 open is_primitive_root
 
-/-- If `K` is linearly ordered (in particular for `K = ℚ`), the norm of `zeta n K L` is `1`
+variables {K} (L) [field K] [field L] [algebra K L] [ne_zero ((n : ℕ) : K)]
+
+/-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), the norm of `zeta n K L` is `1`
 if `n` is odd. -/
-lemma norm_zeta_eq_one (K : Type u) [linear_ordered_field K] (L : Type v) [field L] [algebra K L]
-  [is_cyclotomic_extension {n} K L] (hodd : odd (n : ℕ)) : norm K (zeta n K L) = 1 :=
+lemma norm_zeta_eq_one [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
+  (hirr : irreducible (cyclotomic n K)) : norm K (zeta n K L) = 1 :=
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L n,
-  exact norm_eq_one K (zeta_primitive_root n K L) hodd,
+  exact norm_eq_one (zeta_primitive_root n K L) hn hirr,
 end
-
-variables {K} (L) [field K] [field L] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
 /-- If `is_prime_pow (n : ℕ)`, `n ≠ 2` and `irreducible (cyclotomic n K)` (in particular for
 `K = ℚ`), then the norm of `zeta n K L - 1` is `(n : ℕ).min_fac`. -/

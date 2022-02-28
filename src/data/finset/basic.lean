@@ -2435,8 +2435,8 @@ lemma disjoint_bUnion_right {ι : Type*} (s : finset α) (t : finset ι) (f : ι
   disjoint s (t.bUnion f) ↔ ∀ i ∈ t, disjoint s (f i) :=
 by simpa only [disjoint.comm] using disjoint_bUnion_left t f s
 
-lemma disjoint_filter {s : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
-    disjoint (s.filter p) (s.filter q) ↔ (∀ x ∈ s, p x → ¬ q x) :=
+lemma disjoint_filter {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
+  disjoint (s.filter p) (s.filter q) ↔ ∀ x ∈ s, p x → ¬ q x :=
 by split; simp [disjoint_left] {contextual := tt}
 
 lemma disjoint_filter_filter {p q : α → Prop} [decidable_pred p] [decidable_pred q] :

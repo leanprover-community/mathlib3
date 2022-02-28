@@ -701,13 +701,8 @@ lemma ideal.exist_integer_multiples_not_mem
     ∃ i ∈ s, (a * f i) ∉ (J : fractional_ideal A⁰ K) :=
 begin
   -- Consider the fractional ideal `I` spanned by the `f`s.
-  obtain ⟨a', ha'⟩ := is_localization.exist_integer_multiples A⁰ s f,
-  let I : fractional_ideal A⁰ K := ⟨submodule.span A (f '' s), a', a'.2, _⟩,
-  have hI0 : I ≠ 0,
-  { intro hI0,
-    rw eq_zero_iff at hI0,
-    specialize hI0 (f j) (submodule.subset_span (set.mem_image_of_mem f hjs)),
-    contradiction },
+  let I : fractional_ideal A⁰ K := fractional_ideal.span_finset A s f,
+  have hI0 : I ≠ 0 := fractional_ideal.span_finset_ne_zero.mpr ⟨j, hjs, hjf⟩,
   -- We claim the multiplier `a` we're looking for is in `I⁻¹ \ (J / I)`.
   suffices : ↑J / I < I⁻¹,
   { obtain ⟨_, a, hI, hpI⟩ := set_like.lt_iff_le_and_exists.mp this,
@@ -733,13 +728,6 @@ begin
     -- And multiplying by `I⁻¹` is indeed strictly monotone.
     exact strict_mono_of_le_iff_le (λ _ _, (coe_ideal_le_coe_ideal K).symm)
       (lt_top_iff_ne_top.mpr hJ) },
-  -- We finish by showing `I` is a well-defined fractional ideal.
-  { intros x hx,
-    refine submodule.span_induction hx _ _ _ _,
-    { rintro _ ⟨i, hi, rfl⟩, exact ha' i hi },
-    { rw smul_zero, exact is_localization.is_integer_zero },
-    { intros x y hx hy, rw smul_add, exact is_localization.is_integer_add hx hy },
-    { intros c x hx, rw smul_comm, exact is_localization.is_integer_smul hx } }
 end
 
 end is_dedekind_domain

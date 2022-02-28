@@ -6,6 +6,7 @@ Authors: Stuart Presnell
 import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
+import tactic.linarith
 
 /-!
 # Prime factorizations

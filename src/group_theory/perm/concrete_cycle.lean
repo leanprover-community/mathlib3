@@ -104,7 +104,7 @@ begin
   rw ←nodup_attach at hl,
   rw cycle_type_eq [l.attach.form_perm],
   { simp only [map, function.comp_app],
-    rw [support_form_perm_of_nodup _ hl, card_to_finset, erase_dup_eq_self.mpr hl],
+    rw [support_form_perm_of_nodup _ hl, card_to_finset, dedup_eq_self.mpr hl],
     { simpa },
     { intros x h,
       simpa [h, nat.succ_le_succ_iff] using hn } },
@@ -359,7 +359,7 @@ begin
   { refine support_form_perm_of_nodup _ hn _,
     rintro _ rfl,
     simpa [nat.succ_le_succ_iff] using hl },
-  rw [to_list, hc.cycle_of_eq (mem_support.mp _), hs, card_to_finset, erase_dup_eq_self.mpr hn],
+  rw [to_list, hc.cycle_of_eq (mem_support.mp _), hs, card_to_finset, dedup_eq_self.mpr hn],
   { refine list.ext_le (by simp) (λ k hk hk', _),
     simp [form_perm_pow_apply_nth_le _ hn, nat.mod_eq_of_lt hk'] },
   { simpa [hs] using nth_le_mem _ _ _ }

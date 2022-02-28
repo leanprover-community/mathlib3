@@ -1147,6 +1147,18 @@ theorem is_normal.bsup_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
   bsup.{u} o (λ x _, f x) = f o :=
 by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id_limit h.2] }
 
+theorem is_normal.eq_iff_zero_and_succ {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {g}
+  (hg : is_normal g) : f = g ↔ (f 0 = g 0 ∧ ∀ a : ordinal, f a = g a → f a.succ = g a.succ) :=
+⟨λ h, by simp [h], λ ⟨h₁, h₂⟩, funext (λ a, begin
+  apply a.limit_rec_on,
+  assumption',
+  intros o ho H,
+  rw [←is_normal.bsup_eq.{u u} hf ho, ←is_normal.bsup_eq.{u u} hg ho],
+  congr,
+  ext b hb,
+  exact H b hb
+end)⟩
+
 /-- The least strict upper bound of a family of ordinals. -/
 def lsub {ι} (f : ι → ordinal) : ordinal :=
 sup (ordinal.succ ∘ f)
@@ -1156,6 +1168,9 @@ by { convert sup_le, simp [succ_le] }
 
 theorem lt_lsub {ι} (f : ι → ordinal) (i) : f i < lsub f :=
 succ_le.1 (le_sup _ i)
+
+theorem lt_lsub_iff {ι} {f : ι → ordinal} {a} : a < lsub f ↔ ∃ i, a ≤ f i :=
+by simpa only [not_forall, not_lt, not_le] using not_congr (@lsub_le _ f a)
 
 theorem sup_le_lsub {ι} (f : ι → ordinal) : sup f ≤ lsub f :=
 sup_le.2 $ λ i, le_of_lt (lt_lsub f i)
@@ -1219,12 +1234,12 @@ theorem lsub_const {ι} [hι : nonempty ι] (o : ordinal) : lsub (λ _ : ι, o) 
 sup_const o.succ
 
 theorem lsub_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f ⊆ set.range g) : lsub f ≤ lsub g :=
+  (h : set.range f ⊆ set.range g) : lsub.{u (max v w)} f ≤ lsub.{v (max u w)} g :=
 sup_le_of_range_subset (by convert set.image_subset _ h; apply set.range_comp)
 
 theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f = set.range g) : lsub f = lsub g :=
-(lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset h.ge)
+  (h : set.range f = set.range g) : lsub.{u (max v w)} f = lsub.{v (max u w)} g :=
+(lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset.{v u w} h.ge)
 
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
@@ -1261,6 +1276,9 @@ by { convert bsup_le, apply propext, simp [succ_le] }
 
 theorem lt_blsub {o} (f : Π a < o, ordinal) (i h) : f i h < blsub o f :=
 blsub_le.1 le_rfl _ _
+
+theorem lt_blsub_iff {o f a} : a < blsub o f ↔ ∃ i hi, a ≤ f i hi :=
+by simpa only [not_forall, not_lt, not_le] using not_congr (@blsub_le _ f a)
 
 theorem bsup_le_blsub {o} (f : Π a < o, ordinal) : bsup o f ≤ blsub o f :=
 bsup_le.2 (λ i h, le_of_lt (lt_blsub f i h))

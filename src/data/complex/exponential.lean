@@ -403,7 +403,8 @@ open complex
 /-- The real hyperbolic sine function, defined as the real part of the complex hyperbolic sine -/
 @[pp_nodot] def sinh (x : ℝ) : ℝ := (sinh x).re
 
-/-- The real hyperbolic cosine function, defined as the real part of the complex hyperbolic cosine -/
+/-- The real hyperbolic cosine function, defined as the real part of the complex hyperbolic 
+cosine -/
 @[pp_nodot] def cosh (x : ℝ) : ℝ := (cosh x).re
 
 /-- The real hyperbolic tangent function, defined as the real part of

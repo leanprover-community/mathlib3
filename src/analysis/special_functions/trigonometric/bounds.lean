@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2022 . All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: David Loeffler (also includes code by Chris Hughes and others
-relocated from basic.lean)
+Authors: David Loeffler
 -/
 import analysis.special_functions.trigonometric.basic
 import analysis.special_functions.trigonometric.deriv
@@ -94,18 +93,14 @@ private lemma tansq_pos (x : ℝ) (h : cos x ≠ 0) (h2: sin x ≠ 0):
 begin
   rw tansq,
   simp,
-  have bd : cos x ^2 ≤ 1 := by
-  {
-    rw [sq_le,sqrt_one],
+  have bd : cos x ^2 ≤ 1,
+  { rw [sq_le,sqrt_one],
     split, apply neg_one_le_cos,apply cos_le_one,
-    apply zero_le_one,
-  },
-  have bd2 : cos x ^2 < 1 := by
-  {
-    apply lt_of_le_of_ne bd,
+    apply zero_le_one,},
+  have bd2 : cos x ^2 < 1,
+  { apply lt_of_le_of_ne bd,
     rw cos_sq',
-    simp,exact h2,
-  },
+    simp,exact h2,},
   rw [lt_inv,inv_one],
   exact bd2,
   apply zero_lt_one,
@@ -116,14 +111,12 @@ end
 private lemma cos_nz (x : ℝ) (h1: 0 ≤ x) (h2: x < π/2): cos x ≠ 0 :=
 begin
   intro coszero,
-  have : (x ∈ (Ioo (-(π / 2 : ℝ)) (π / 2 : ℝ))) := by
-  {
-    split,
+  have : (x ∈ (Ioo (-(π / 2 : ℝ)) (π / 2 : ℝ))),
+  { split,
     apply (lt_of_lt_of_le _ h1),
     rw [neg_lt,neg_zero],
     exact pi_div_two_pos,
-    exact h2
-  },
+    exact h2 },
   have s : (cos x > 0) := cos_pos_of_mem_Ioo(this),
   rw coszero at s,
   exact (gt_irrefl (0:ℝ)) s,
@@ -149,49 +142,40 @@ at zero and has non-negative derivative. -/
 theorem tan_gt (x : ℝ) (h1: (0:ℝ) < x) (h2: x < π/2): tan x > x :=
 begin
   have intU : (interior U) = (Ioo (0:ℝ) (π/2:ℝ)) := by apply interior_Ico,
-  have tan_cts_U : (continuous_on tan U) := by
-  {
-    apply continuous_on.mono continuous_on_tan,
+  have tan_cts_U : (continuous_on tan U),
+  { apply continuous_on.mono continuous_on_tan,
     intros z hz,
     rw [U, Ico] at hz,
     simp at *,
     cases hz with zlo zhi,
-    exact cos_nz z zlo zhi,
-  },
-  have tan_minus_id_cts : (continuous_on tan_minus_id U) := by
-  {
-    have : continuous_on (id: ℝ → ℝ) U := continuous_on_id,
-    exact continuous_on.sub tan_cts_U this,
-  },
+    exact cos_nz z zlo zhi },
+
+  have tan_minus_id_cts : (continuous_on tan_minus_id U),
+  { have : continuous_on (id: ℝ → ℝ) U := continuous_on_id,
+    exact continuous_on.sub tan_cts_U this},
 
   have deriv_pos : (∀ (y : ℝ), y ∈ interior U → 0 < deriv tan_minus_id y),
-  by {
-    intros y hy,
+  { intros y hy,
     have t := interior_subset hy,
     rw [intU,Ioo] at hy,
     cases hy with ylo yhi,
     rw tan_minus_id_deriv,
     apply tansq_pos,
     apply sin_nz y ylo yhi,
-    apply cos_nz y (le_of_lt ylo) yhi,
-  },
+    apply cos_nz y (le_of_lt ylo) yhi },
 
   have mon:= (convex.strict_mono_on_of_deriv_pos
     (convex_Ico 0 (π/2 : ℝ)) tan_minus_id_cts deriv_pos),
 
-  have zero_in_U: (0:ℝ) ∈ U := by
-  {
-    rw [U, Ico],
+  have zero_in_U: (0:ℝ) ∈ U,
+  { rw [U, Ico],
     simp,
-    exact pi_div_two_pos,
-  },
-  have x_in_U : (x ∈ U) := by
-  {
-    rw [U,Ico],
+    exact pi_div_two_pos },
+  have x_in_U : (x ∈ U),
+  { rw [U,Ico],
     simp,
     split,
-    exact le_of_lt h1, exact h2,
-  },
+    exact le_of_lt h1, exact h2 },
   have w := mon zero_in_U x_in_U h1,
   rwa [tan_minus_id,tan_zero,
     sub_zero,tan_minus_id,

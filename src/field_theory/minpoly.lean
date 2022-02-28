@@ -378,18 +378,7 @@ end
 lemma minpoly_sub_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   (hx : is_integral A x) (a : A) :
   minpoly A (x - (algebra_map A B a)) = (minpoly A x).comp (X + C a) :=
-begin
-  refine (minpoly.unique _ _ ((minpoly.monic hx).comp_X_add_C _) _ (λ q qmo hq, _)).symm,
-  { simp [aeval_comp] },
-  { have : (polynomial.aeval x) (q.comp (X - C a)) = 0 := by simpa [aeval_comp] using hq,
-    have H := minpoly.min A x (qmo.comp_X_sub_C _) this,
-    rw [degree_eq_nat_degree qmo.ne_zero, degree_eq_nat_degree
-      ((minpoly.monic hx).comp_X_add_C _).ne_zero, with_bot.coe_le_coe, nat_degree_comp,
-      nat_degree_X_add_C, mul_one],
-    rwa [degree_eq_nat_degree (minpoly.ne_zero hx), degree_eq_nat_degree
-      (qmo.comp_X_sub_C _).ne_zero, with_bot.coe_le_coe, nat_degree_comp,
-      nat_degree_X_sub_C, mul_one] at H }
-end
+by simpa [sub_eq_add_neg] using minpoly_add_algebra_map hx (-a)
 
 section gcd_domain
 

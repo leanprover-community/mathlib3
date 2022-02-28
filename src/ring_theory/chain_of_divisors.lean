@@ -250,7 +250,7 @@ begin
 end
 
 variable [decidable_rel ((∣) : associates M → associates M → Prop)]
-variable [ decidable_rel ((∣) : associates N → associates N → Prop)]
+variable [decidable_rel ((∣) : associates N → associates N → Prop)]
 
 lemma multiplicity_prime_le_multiplicity_image_by_factor_order_iso {m p : associates M}
   {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)

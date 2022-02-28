@@ -34,6 +34,8 @@ instance : order_topology ℝ≥0∞ := ⟨rfl⟩
 
 instance : t2_space ℝ≥0∞ := by apply_instance -- short-circuit type class inference
 
+instance : normal_space ℝ≥0∞ := normal_of_compact_t2
+
 instance : second_countable_topology ℝ≥0∞ :=
 ⟨⟨⋃q ≥ (0:ℚ), {{a : ℝ≥0∞ | a < real.to_nnreal q}, {a : ℝ≥0∞ | ↑(real.to_nnreal q) < a}},
   (countable_encodable _).bUnion $ assume a ha, (countable_singleton _).insert _,

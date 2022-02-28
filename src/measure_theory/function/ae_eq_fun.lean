@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Zhouhang Zhou
 import measure_theory.integral.lebesgue
 import order.filter.germ
 import topology.continuous_function.algebra
+import measure_theory.function.strongly_measurable
 
 /-!
 
@@ -70,12 +71,12 @@ variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}
 namespace measure_theory
 
 section measurable_space
-variables [measurable_space β]
+variables [topological_space β]
 
 variable (β)
 
 /-- The equivalence relation of being almost everywhere equal -/
-def measure.ae_eq_setoid (μ : measure α) : setoid { f : α → β // ae_measurable f μ } :=
+def measure.ae_eq_setoid (μ : measure α) : setoid { f : α → β // ae_strongly_measurable f μ } :=
 ⟨λf g, (f : α → β) =ᵐ[μ] g, λ f, ae_eq_refl f, λ f g, ae_eq_symm, λ f g h, ae_eq_trans⟩
 
 variable (α)
@@ -91,18 +92,18 @@ notation α ` →ₘ[`:25 μ `] ` β := ae_eq_fun α β μ
 end measurable_space
 
 namespace ae_eq_fun
-variables [measurable_space β] [measurable_space γ] [measurable_space δ]
+variables [topological_space β] [measurable_space γ] [measurable_space δ]
 
 /-- Construct the equivalence class `[f]` of an almost everywhere measurable function `f`, based
     on the equivalence relation of being almost everywhere equal. -/
-def mk (f : α → β) (hf : ae_measurable f μ) : α →ₘ[μ] β := quotient.mk' ⟨f, hf⟩
+def mk (f : α → β) (hf : ae_strongly_measurable f μ) : α →ₘ[μ] β := quotient.mk' ⟨f, hf⟩
 
 /-- A measurable representative of an `ae_eq_fun` [f] -/
 instance : has_coe_to_fun (α →ₘ[μ] β) (λ _, α → β) :=
-⟨λf, ae_measurable.mk _ (quotient.out' f : {f : α → β // ae_measurable f μ}).2⟩
+⟨λf, ae_strongly_measurable.mk _ (quotient.out' f : {f : α → β // ae_strongly_measurable f μ}).2⟩
 
 protected lemma measurable (f : α →ₘ[μ] β) : measurable f :=
-ae_measurable.measurable_mk _
+ae_strongly_measurable.measurable_mk _
 
 protected lemma ae_measurable (f : α →ₘ[μ] β) : ae_measurable f μ :=
 f.measurable.ae_measurable

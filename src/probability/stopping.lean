@@ -377,8 +377,7 @@ theorem adapted.prog_measurable_of_continuous [emetric_space ι] [measurable_spa
   (h : adapted f u) (hu_cont : ∀ x, continuous (λ i, u i x)) :
   prog_measurable f u :=
 λ i, measurable_prod_of_continuous_of_measurable (set.Iic i)
-  (λ x, (hu_cont x).comp continuous_induced_dom)
-  (λ j, (h j).mono (f.mono (j : set.Iic i).prop) le_rfl)
+  (λ x, (hu_cont x).comp continuous_induced_dom) (λ j, (h j).mono (f.mono j.prop) le_rfl)
 
 end adapted_process
 

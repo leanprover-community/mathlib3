@@ -21,21 +21,9 @@ This file introduces the commuting probability of finite groups.
 
 section for_mathlib
 
-/-- The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`. -/
-@[to_additive "The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`."]
-def subgroup.centralizer {G : Type*} [group G] (H : subgroup G) : subgroup G :=
-{ carrier := {g : G | ∀ h ∈ H, h * g = g * h},
-  one_mem' := λ h hh, (mul_one h).trans (one_mul h).symm,
-  mul_mem' := λ g g' hg hg' h hh, by rw [←mul_assoc, hg h hh, mul_assoc, hg' h hh, mul_assoc],
-  inv_mem' := λ g hg h hh, by rw [←inv_inv h, ←mul_inv_rev, ←mul_inv_rev, hg h⁻¹ (H.inv_mem hh)] }
-
-lemma mem_centralizer_iff_commutator_eq_one {G : Type*} [group G] {H : subgroup G} {g : G} :
+/-lemma subgroup.mem_centralizer_iff_commutator_eq_one {G : Type*} [group G] {H : subgroup G} {g : G} :
   g ∈ H.centralizer ↔ ∀ h ∈ H, g * h * g⁻¹ * h⁻¹ = 1 :=
-begin
-  simp_rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul],
-  conv in (_ = _) begin rw eq_comm end, -- find better way
-  refl,
-end
+by simp_rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul, subgroup.mem_centralizer_iff, eq_comm]-/
 
 @[to_additive] instance subgroup.centralizer.characteristic
   {G : Type*} [group G] (H : subgroup G) [H.characteristic] :
@@ -60,18 +48,22 @@ end
 lemma centralizer_mono {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
   K.centralizer ≤ H.centralizer := sorry
 
+instance commutator_element {G : Type*} [group G] : has_bracket G G :=
+⟨λ g₁ g₂, g₁ * g₂ * g₁⁻¹ * g₂⁻¹⟩
+
 lemma three_subgroups_lemma {G : Type*} [group G] {X Y Z : subgroup G}
   (h1 : ⁅⁅X, Y⁆, Z⁆ = ⊥) (h2 : ⁅⁅Y, Z⁆, X⁆ = ⊥) : ⁅⁅Z, X⁆, Y⁆ = ⊥ :=
 begin
   rw [general_commutator_eq_bot_iff_le_centralizer, general_commutator_le] at h1 h2 ⊢,
-  simp_rw [mem_centralizer_iff_commutator_eq_one] at h1 h2 ⊢,
+  simp_rw [subgroup.mem_centralizer_iff_commutator_eq_one] at h1 h2 ⊢,
   intros z hz x hx y hy,
-  have key : z * x * z⁻¹ * x⁻¹ * y * (z * x * z⁻¹ * x⁻¹)⁻¹ * y⁻¹ =
-    z * x * (x⁻¹ * y * x⁻¹⁻¹ * y⁻¹ * z⁻¹ * (x⁻¹ * y * x⁻¹⁻¹ * y⁻¹)⁻¹ * z⁻¹⁻¹)⁻¹ * x⁻¹
-    * y * (y⁻¹ * z⁻¹ * y⁻¹⁻¹ * z⁻¹⁻¹ * x * (y⁻¹ * z⁻¹ * y⁻¹⁻¹ * z⁻¹⁻¹)⁻¹ * x⁻¹)⁻¹ * y⁻¹ * z⁻¹ :=
-  by group,
-  rw [key, h1 _ (X.inv_mem hx) y hy _ (Z.inv_mem hz), h2 _ (Y.inv_mem hy) _ (Z.inv_mem hz) x hx,
-    one_inv, mul_one, mul_one, mul_inv_cancel_right, mul_inv_cancel_right, mul_inv_self],
+  change ⁅y, ⁅z, x⁆⁆ = _,
+  change ∀ (x ∈ X) (y ∈ Y) (z ∈ Z), ⁅z, ⁅x, y⁆⁆ = (1 : G) at h1,
+  change ∀ (y ∈ Y) (z ∈ Z) (x ∈ X), ⁅x, ⁅y, z⁆⁆ = (1 : G) at h2,
+  have key : ⁅y, ⁅z, x⁆⁆ = z * y * ⁅x, ⁅y⁻¹, z⁻¹⁆⁆⁻¹ * y⁻¹ * x * ⁅z⁻¹, ⁅x⁻¹, y⁆⁆⁻¹ * x⁻¹ * z⁻¹ :=
+  by { dsimp only [commutator_element], group, },
+  rw [key, h2 _ (Y.inv_mem hy) _ (Z.inv_mem hz) x hx, h1 _ (X.inv_mem hx) y hy _ (Z.inv_mem hz),
+      one_inv, mul_one, mul_one, mul_inv_cancel_right, mul_inv_cancel_right, mul_inv_self],
 end
 
 lemma commutator_centralizer_commutator_le_center (G : Type*) [group G] :

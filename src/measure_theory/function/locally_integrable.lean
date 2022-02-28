@@ -51,7 +51,8 @@ begin
   { obtain ⟨K, hK, h2K⟩ := exists_compact_mem_nhds x, exact ⟨K, h2K, hf hK⟩ },
   { refine is_compact.induction_on hK integrable_on_empty (λ s t hst h, h.mono_set hst)
       (λ s t hs ht, integrable_on_union.mpr ⟨hs, ht⟩) (λ x hx, _),
-    obtain ⟨K, hK, h2K⟩ := hf x, exact ⟨K, nhds_within_le_nhds hK, h2K⟩ }
+    obtain ⟨K, hK, h2K⟩ := hf x,
+    exact ⟨K, nhds_within_le_nhds hK, h2K⟩ }
 end
 
 section real
@@ -77,15 +78,15 @@ lemma integrable_on.mul_continuous_on [t2_space X]
 hg.mul_continuous_on_of_subset hg' hK.measurable_set hK (subset.refl _)
 
 lemma integrable_on.continuous_on_mul_of_subset
-  (hg : integrable_on g A μ) (hg' : continuous_on g' K)
-  (hA : measurable_set A) (hK : is_compact K) (hAK : A ⊆ K) :
+  (hg : continuous_on g K) (hg' : integrable_on g' A μ)
+  (hK : is_compact K) (hA : measurable_set A) (hAK : A ⊆ K) :
   integrable_on (λ x, g x * g' x) A μ :=
-by simpa [mul_comm] using hg.mul_continuous_on_of_subset hg' hA hK hAK
+by simpa [mul_comm] using hg'.mul_continuous_on_of_subset hg hA hK hAK
 
 lemma integrable_on.continuous_on_mul [t2_space X]
-  (hg : integrable_on g K μ) (hg' : continuous_on g' K) (hK : is_compact K) :
+  (hg : continuous_on g K) (hg' : integrable_on g' K μ) (hK : is_compact K) :
   integrable_on (λ x, g x * g' x) K μ :=
-hg.continuous_on_mul_of_subset hg' hK.measurable_set hK subset.rfl
+integrable_on.continuous_on_mul_of_subset hg hg' hK hK.measurable_set subset.rfl
 
 end real
 

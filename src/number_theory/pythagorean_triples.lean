@@ -3,12 +3,13 @@ Copyright (c) 2020 Paul van Wamelen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul van Wamelen
 -/
-import algebra.field
+import algebra.field.basic
 import ring_theory.int.basic
 import algebra.group_with_zero.power
 import tactic.ring
 import tactic.ring_exp
 import tactic.field_simp
+import data.zmod.basic
 
 /-!
 # Pythagorean Triples
@@ -23,6 +24,19 @@ that these are coprime. This is easy except for the prime 2. In order to deal wi
 analyze the parity of `x`, `y`, `m` and `n` and eliminate all the impossible cases. This takes up
 the bulk of the proof below.
 -/
+
+lemma sq_ne_two_fin_zmod_four (z : zmod 4) : z * z ≠ 2 :=
+begin
+  change fin 4 at z,
+  fin_cases z; norm_num [fin.ext_iff, fin.coe_bit0, fin.coe_bit1]
+end
+
+lemma int.sq_ne_two_mod_four (z : ℤ) : (z * z) % 4 ≠ 2 :=
+suffices ¬ (z * z) % (4 : ℕ) = 2 % (4 : ℕ), by norm_num at this,
+begin
+  rw ← zmod.int_coe_eq_int_coe_iff',
+  simpa using sq_ne_two_fin_zmod_four _
+end
 
 noncomputable theory
 open_locale classical
@@ -56,14 +70,10 @@ by rwa [pythagorean_triple_comm]
 /-- A triple is still a triple if you multiply `x`, `y` and `z`
 by a constant `k`. -/
 lemma mul (k : ℤ) : pythagorean_triple (k * x) (k * y) (k * z) :=
-begin
-  by_cases hk : k = 0,
-  { simp only [pythagorean_triple, hk, zero_mul, zero_add], },
-  { calc (k * x) * (k * x) + (k * y) * (k * y)
-        = k ^ 2 * (x * x + y * y) : by ring
-    ... = k ^ 2 * (z * z)         : by rw h.eq
-    ... = (k * z) * (k * z)       : by ring }
-end
+calc (k * x) * (k * x) + (k * y) * (k * y)
+      = k ^ 2 * (x * x + y * y) : by ring
+  ... = k ^ 2 * (z * z)         : by rw h.eq
+  ... = (k * z) * (k * z)       : by ring
 
 omit h
 
@@ -126,13 +136,9 @@ begin
     { cases exists_eq_mul_left_of_dvd (int.dvd_sub_of_mod_eq hx) with x0 hx2,
       cases exists_eq_mul_left_of_dvd (int.dvd_sub_of_mod_eq hy) with y0 hy2,
       rw sub_eq_iff_eq_add at hx2 hy2, exact ⟨x0, y0, hx2, hy2⟩ },
-    have hz : (z * z) % 4 = 2,
-    { rw show z * z = 4 * (x0 * x0 + x0 + y0 * y0 + y0) + 2, by { rw ← h.eq, ring },
-      simp only [int.add_mod, int.mul_mod_right, int.mod_mod, zero_add], refl },
-    have : ∀ (k : ℤ), 0 ≤ k → k < 4 → k * k % 4 ≠ 2 := dec_trivial,
-    have h4 : (4 : ℤ) ≠ 0 := dec_trivial,
-    apply this (z % 4) (int.mod_nonneg z h4) (int.mod_lt z h4),
-    rwa [← int.mul_mod] },
+    apply int.sq_ne_two_mod_four z,
+    rw show z * z = 4 * (x0 * x0 + x0 + y0 * y0 + y0) + 2, by { rw ← h.eq, ring },
+    norm_num [int.add_mod] }
 end
 
 lemma gcd_dvd : (int.gcd x y : ℤ) ∣ z :=
@@ -175,8 +181,9 @@ lemma is_classified_of_is_primitive_classified (hp : h.is_primitive_classified) 
 begin
   obtain ⟨m, n, H⟩ := hp,
   use [1, m, n],
-  rcases H with ⟨⟨rfl, rfl⟩ | ⟨rfl, rfl⟩, co, pp⟩;
-  { apply and.intro _ co, rw one_mul, rw one_mul, tauto }
+  rcases H with ⟨t, co, pp⟩,
+  rw [one_mul, one_mul],
+  exact ⟨t, co⟩,
 end
 
 lemma is_classified_of_normalize_is_primitive_classified
@@ -220,7 +227,7 @@ begin
   apply nat.dvd_gcd (int.prime.dvd_nat_abs_of_coe_dvd_sq hp _ _) hpy,
   rw [sq, eq_sub_of_add_eq h],
   rw [← int.coe_nat_dvd_left] at hpy hpz,
-  exact dvd_sub (dvd_mul_of_dvd_left (hpz) _) (dvd_mul_of_dvd_left (hpy) _),
+  exact dvd_sub ((hpz).mul_right _) ((hpy).mul_right _),
 end
 
 end pythagorean_triple
@@ -241,7 +248,7 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
 { to_fun := λ x, ⟨⟨2 * x / (1 + x^2), (1 - x^2) / (1 + x^2)⟩,
     by { field_simp [hk x, div_pow], ring },
     begin
-      simp only [ne.def, div_eq_iff (hk x), ←neg_mul_eq_neg_mul, one_mul, neg_add,
+      simp only [ne.def, div_eq_iff (hk x), neg_mul, one_mul, neg_add,
         sub_eq_add_neg, add_left_inj],
       simpa only [eq_neg_iff_add_eq_zero, one_pow] using hk 1,
     end⟩,
@@ -320,20 +327,18 @@ begin
     { have hp2' : p = 2 := (nat.le_of_dvd zero_lt_two hp2).antisymm hp.two_le,
       revert hp1, rw hp2',
       apply mt int.mod_eq_zero_of_dvd,
-      norm_num [sq, int.sub_mod, int.mul_mod, hm, hn],
-    },
+      norm_num [sq, int.sub_mod, int.mul_mod, hm, hn] },
     apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpm)) hnp,
     apply (or_self _).mp, apply int.prime.dvd_mul' hp,
     rw (by ring : n * n = - (m ^ 2 - n ^ 2) + m * m),
     apply dvd_add (dvd_neg_of_dvd hp1),
-    exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpm) m
-  },
+    exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpm) m },
   rw int.gcd_comm at hnp,
   apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpn)) hnp,
   apply (or_self _).mp, apply int.prime.dvd_mul' hp,
   rw (by ring : m * m = (m ^ 2 - n ^ 2) + n * n),
   apply dvd_add hp1,
-  exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpn) n
+  exact (int.coe_nat_dvd_left.mpr hpn).mul_right n
 end
 
 private lemma coprime_sq_sub_mul_of_odd_even {m n : ℤ} (h : int.gcd m n = 1)
@@ -402,7 +407,7 @@ lemma is_primitive_classified_aux (hc : x.gcd y = 1) (hzpos : 0 < z)
 begin
   have hz : z ≠ 0, apply ne_of_gt hzpos,
   have h2 : y = m ^ 2 - n ^ 2 ∧ z = m ^ 2 + n ^ 2,
-    { apply rat.div_int_inj hzpos hm2n2 (h.coprime_of_coprime hc) H, rw [hw2], norm_cast },
+  { apply rat.div_int_inj hzpos hm2n2 (h.coprime_of_coprime hc) H, rw [hw2], norm_cast },
   use [m, n], apply and.intro _ (and.intro co pp), right,
   refine ⟨_, h2.left⟩,
   rw [← rat.coe_int_inj _ _, ← div_left_inj' ((mt (rat.coe_int_inj z 0).mp) hz), hv2, h2.right],
@@ -591,6 +596,7 @@ begin
     exact zero_ne_one h_parity }
 end
 
+/-- **Formula for Pythagorean Triples** -/
 theorem classification :
   pythagorean_triple x y z ↔
   ∃ k m n, ((x = k * (m ^ 2 - n ^ 2) ∧ y = k * (2 * m * n)) ∨

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul van Wamelen
 -/
 import number_theory.pythagorean_triples
-import ring_theory.coprime
+import ring_theory.coprime.lemmas
 
 /-!
 # Fermat's Last Theorem for the case n = 4
@@ -126,7 +126,7 @@ begin
       have h1 : 2 ∣ (int.gcd a0 b0 : ℤ),
       { exact int.dvd_gcd (int.dvd_of_mod_eq_zero hap) (int.dvd_of_mod_eq_zero hbp) },
         rw int.gcd_eq_one_iff_coprime.mpr (coprime_of_minimal hf) at h1, revert h1, norm_num },
-      { exact ⟨b0, ⟨a0, ⟨c0, minimal_comm hf, hbp⟩⟩⟩ }},
+    { exact ⟨b0, ⟨a0, ⟨c0, minimal_comm hf, hbp⟩⟩⟩ } },
   exact ⟨a0, ⟨b0, ⟨c0 , hf, hap⟩⟩⟩,
 end
 
@@ -222,7 +222,7 @@ begin
                     ... = 4 * (m * (r * s)) : by ring },
   have hrsz : r * s ≠ 0, -- because b ^ 2 is not zero and (b / 2) ^ 2 = m * (r * s)
   { by_contradiction hrsz,
-    revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, (not_not.mp hrsz)],
+    revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, hrsz],
     simp },
   have h2b0 : b' ≠ 0,
   { apply ne_zero_pow (dec_trivial : 2 ≠ 0),
@@ -244,8 +244,8 @@ begin
   { by_contradiction h1,
     rw h1 at hs,
     have h2 : b' ^ 2 ≤ 0,
-    { rw [hs, (by ring : - d ^ 2 * m = - (d ^ 2 * m))], apply neg_nonpos.mpr,
-      apply (zero_le_mul_right h4).mpr (sq_nonneg d) },
+    { rw [hs, (by ring : - d ^ 2 * m = - (d ^ 2 * m))],
+      exact neg_nonpos.mpr ((zero_le_mul_right h4).mpr (sq_nonneg d)) },
     have h2' : 0 ≤ b' ^ 2, { apply sq_nonneg b' },
     exact absurd (lt_of_le_of_ne h2' (ne.symm (pow_ne_zero _ h2b0))) (not_lt.mpr h2) },
   replace hd : r * s = d ^ 2, { apply or.resolve_right hd hd' },

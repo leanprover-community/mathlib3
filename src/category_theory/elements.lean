@@ -121,5 +121,122 @@ equivalence.mk (to_structured_arrow F) (from_structured_arrow F)
     (λ X, { hom := { right := 𝟙 _ }, inv := { right := 𝟙 _ } })
     (by tidy))
 
+open opposite
+
+/--
+The forward direction of the equivalence `F.elementsᵒᵖ ≅ (yoneda, F)`,
+given by `category_theory.yoneda_sections`.
+-/
+@[simps]
+def to_costructured_arrow (F : Cᵒᵖ ⥤ Type v) : (F.elements)ᵒᵖ ⥤ costructured_arrow yoneda F :=
+{ obj := λ X, costructured_arrow.mk
+    ((yoneda_sections (unop (unop X).fst) F).inv (ulift.up (unop X).2)),
+  map := λ X Y f,
+  begin
+    fapply costructured_arrow.hom_mk,
+    exact f.unop.val.unop,
+    ext y,
+    simp only [costructured_arrow.mk_hom_eq_self, yoneda_map_app, functor_to_types.comp, op_comp,
+      yoneda_sections_inv_app, functor_to_types.map_comp_apply, quiver.hom.op_unop,
+      subtype.val_eq_coe],
+    congr,
+    exact f.unop.2,
+  end }
+
+/--
+The reverse direction of the equivalence `F.elementsᵒᵖ ≅ (yoneda, F)`,
+given by `category_theory.yoneda_equiv`.
+-/
+@[simps]
+def from_costructured_arrow (F : Cᵒᵖ ⥤ Type v) : (costructured_arrow yoneda F)ᵒᵖ ⥤ F.elements :=
+{ obj := λ X, ⟨op (unop X).1, yoneda_equiv.1 (unop X).3⟩,
+  map := λ X Y f, ⟨f.unop.1.op,
+  begin
+    convert (congr_fun ((unop X).hom.naturality f.unop.left.op) (𝟙 _)).symm,
+    simp only [equiv.to_fun_as_coe, quiver.hom.unop_op, yoneda_equiv_apply,
+      types_comp_apply, category.comp_id, yoneda_obj_map],
+    have : yoneda.map f.unop.left ≫ (unop X).hom = (unop Y).hom,
+    { convert f.unop.3, erw category.comp_id },
+    erw ← this,
+    simp only [yoneda_map_app, functor_to_types.comp],
+    erw category.id_comp
+  end ⟩}
+
+@[simp]
+lemma from_costructured_arrow_obj_mk (F : Cᵒᵖ ⥤ Type v) {X : C} (f : yoneda.obj X ⟶ F) :
+  (from_costructured_arrow F).obj (op (costructured_arrow.mk f)) = ⟨op X, yoneda_equiv.1 f⟩ := rfl
+
+/-- The unit of the equivalence `F.elementsᵒᵖ ≅ (yoneda, F)` is indeed iso. -/
+lemma from_to_costructured_arrow_eq (F : Cᵒᵖ ⥤ Type v) :
+ (to_costructured_arrow F).right_op ⋙ from_costructured_arrow F = 𝟭 _ :=
+begin
+  apply functor.ext,
+  intros X Y f,
+  have : ∀ {a b : F.elements} (H : a = b),
+    ↑(eq_to_hom H) = eq_to_hom (show a.fst = b.fst, by { cases H, refl }) :=
+    λ _ _ H, by { cases H, refl },
+  ext, simp[this],
+  tidy
+end
+
+/-- The counit of the equivalence `F.elementsᵒᵖ ≅ (yoneda, F)` is indeed iso. -/
+lemma to_from_costructured_arrow_eq (F : Cᵒᵖ ⥤ Type v) :
+  (from_costructured_arrow F).right_op ⋙ to_costructured_arrow F = 𝟭 _ :=
+begin
+  apply functor.hext,
+  { intro X, cases X, cases X_right,
+    simp only [functor.id_obj, functor.right_op_obj,
+      to_costructured_arrow_obj, functor.comp_obj, costructured_arrow.mk],
+    congr,
+    ext x f,
+    convert congr_fun (X_hom.naturality f.op).symm (𝟙 X_left),
+    simp only [quiver.hom.unop_op, yoneda_obj_map],
+    erw category.comp_id },
+  intros X Y f,
+  cases X, cases Y, cases f, cases X_right, cases Y_right,
+  simp[costructured_arrow.hom_mk],
+  delta costructured_arrow.mk,
+  congr,
+  { ext x f,
+    convert congr_fun (X_hom.naturality f.op).symm (𝟙 X_left),
+    simp only [quiver.hom.unop_op, category_theory.yoneda_obj_map],
+    erw category.comp_id },
+  { ext x f,
+    convert congr_fun (Y_hom.naturality f.op).symm (𝟙 Y_left),
+    simp only [quiver.hom.unop_op, category_theory.yoneda_obj_map],
+    erw category.comp_id },
+  simp,
+  exact proof_irrel_heq _ _,
+end
+
+
+/-- The equivalence `F.elementsᵒᵖ ≅ (yoneda, F)` given by yoneda lemma. -/
+@[simps] def costructured_arrow_yoneda_equivalence (F : Cᵒᵖ ⥤ Type v) :
+  (F.elements)ᵒᵖ ≌ costructured_arrow yoneda F :=
+equivalence.mk (to_costructured_arrow F) (from_costructured_arrow F).right_op
+  (nat_iso.op (eq_to_iso (from_to_costructured_arrow_eq F)))
+  (eq_to_iso $ to_from_costructured_arrow_eq F)
+
+/--
+The equivalence `(-.elements)ᵒᵖ ≅ (yoneda, -)` of is actually a natural isomorphism of functors.
+-/
+lemma costructured_arrow_yoneda_equivalence_naturality {F₁ F₂ : Cᵒᵖ ⥤ Type v}
+  (α : F₁ ⟶ F₂) : (map α).op ⋙ to_costructured_arrow F₂ =
+    to_costructured_arrow F₁ ⋙ costructured_arrow.map α :=
+begin
+  fapply functor.ext,
+  { intro X,
+    simp only [costructured_arrow.map_mk, to_costructured_arrow_obj,
+      functor.op_obj, functor.comp_obj],
+    congr,
+    ext x f,
+    simpa using congr_fun (α.naturality f.op).symm (unop X).snd },
+  { intros X Y f, ext,
+    have : ∀ {F : Cᵒᵖ ⥤ Type v} {a b : costructured_arrow yoneda F} (H : a = b),
+      comma_morphism.left (eq_to_hom H) = eq_to_hom (show a.left = b.left, by { cases H, refl }) :=
+      λ _ _ _ H, by { cases H, refl },
+    simp [this] }
+end
+
 end category_of_elements
 end category_theory

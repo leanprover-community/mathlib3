@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau
 -/
+import data.list.lattice
 import data.list.pairwise
 import data.list.forall2
 
@@ -64,7 +65,7 @@ theorem nodup_iff_sublist {l : list α} : nodup l ↔ ∀ a, ¬ [a, a] <+ l :=
 ⟨λ d a h, not_nodup_pair a (nodup_of_sublist h d), begin
   induction l with a l IH; intro h, {exact nodup_nil},
   exact nodup_cons_of_nodup
-    (λ al, h a $ cons_sublist_cons _ $ singleton_sublist.2 al)
+    (λ al, h a $ (singleton_sublist.2 al).cons_cons _)
     (IH $ λ a s, h a $ sublist_cons_of_sublist _ s)
 end⟩
 
@@ -75,6 +76,11 @@ pairwise_iff_nth_le.trans
   .resolve_left (λ h', H _ _ h₂ h' h))
   .resolve_right (λ h', H _ _ h₁ h' h.symm),
  λ H i j h₁ h₂ h, ne_of_lt h₂ (H _ _ _ _ h)⟩
+
+theorem nodup.nth_le_inj_iff {α : Type*} {l : list α} (h : nodup l)
+  {i j : ℕ} (hi : i < l.length) (hj : j < l.length) :
+  l.nth_le i hi = l.nth_le j hj ↔ i = j :=
+⟨nodup_iff_nth_le_inj.mp h _ _ _ _, by simp {contextual := tt}⟩
 
 lemma nodup.ne_singleton_iff {l : list α} (h : nodup l) (x : α) :
   l ≠ [x] ↔ l = [] ∨ ∃ y ∈ l, y ≠ x :=
@@ -89,7 +95,7 @@ begin
       { simp },
       { have : tl ≠ [] := ne_nil_of_mem hy,
         suffices : ∃ (y : α) (H : y ∈ hd :: tl), y ≠ x,
-          { simpa [ne_nil_of_mem hy] },
+        { simpa [ne_nil_of_mem hy] },
         exact ⟨y, mem_cons_of_mem _ hy, hx⟩ } } }
 end
 
@@ -116,8 +122,8 @@ theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
 | 0 := by simp [nat.zero_le]
 | 1 := by simp
 | (n+2) := iff_of_false
-  (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (le_add_left 2 n)))
-  (not_le_of_lt $ le_add_left 2 n)
+  (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (nat.le_add_left 2 n)))
+  (not_le_of_lt $ nat.le_add_left 2 n)
 
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {l : list α}
   (d : nodup l) (h : a ∈ l) : count a l = 1 :=
@@ -291,8 +297,7 @@ lemma diff_eq_filter_of_nodup [decidable_eq α] :
 begin
   rw [diff_cons, diff_eq_filter_of_nodup (nodup_erase_of_nodup _ hl₁),
     nodup_erase_eq_filter _ hl₁, filter_filter],
-  simp only [mem_cons_iff, not_or_distrib, and.comm],
-  congr
+  simp only [mem_cons_iff, not_or_distrib, and.comm]
 end
 
 lemma mem_diff_iff_of_nodup [decidable_eq α] {l₁ l₂ : list α} (hl₁ : l₁.nodup) {a : α} :
@@ -321,6 +326,20 @@ begin
     simp [update_nth, hl.1] },
   { simp [ne.symm H, H, update_nth, ← apply_ite (cons (f hd))] }
 end
+
+lemma nodup.pairwise_of_forall_ne {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : ∀ (a ∈ l) (b ∈ l), a ≠ b → r a b) : l.pairwise r :=
+begin
+  classical,
+  refine pairwise_of_reflexive_on_dupl_of_forall_ne _ h,
+  intros x hx,
+  rw nodup_iff_count_le_one at hl,
+  exact absurd (hl x) hx.not_le
+end
+
+lemma nodup.pairwise_of_set_pairwise {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : {x | x ∈ l}.pairwise r) : l.pairwise r :=
+hl.pairwise_of_forall_ne h
 
 end list
 

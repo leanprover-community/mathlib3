@@ -6,7 +6,30 @@ Authors: Sean Leather, Mario Carneiro
 import data.list.sigma
 
 /-!
-# Association lists
+# Association Lists
+
+This file defines association lists. An association list is a list where every element consists of
+a key and a value, and no two entries have the same key. The type of the value is allowed to be
+dependent on the type of the key.
+
+This type dependence is implemented using `sigma`: The elements of the list are of type `sigma β`,
+for some type index `β`.
+
+## Main definitions
+
+Association lists are represented by the `alist` structure. This file defines this structure and
+provides ways to access, modify, and combine `alist`s.
+
+* `alist.keys` returns a list of keys of the alist.
+* `alist.mem` returns membership in the set of keys.
+* `alist.erase` removes a certain key.
+* `alist.insert` adds a key-value mapping to the list.
+* `alist.union` combines two association lists.
+
+## References
+
+* <https://en.wikipedia.org/wiki/Association_list>
+
 -/
 
 universes u v w
@@ -24,7 +47,7 @@ structure alist (β : α → Type v) : Type (max u v) :=
 entries with duplicate keys. -/
 def list.to_alist [decidable_eq α] {β : α → Type v} (l : list (sigma β)) : alist β :=
 { entries := _,
-  nodupkeys := nodupkeys_erase_dupkeys l }
+  nodupkeys := nodupkeys_dedupkeys l }
 
 namespace alist
 
@@ -198,7 +221,7 @@ by simp only [lookup, insert, lookup_kinsert]
 lookup_kinsert_ne h
 
 @[simp] theorem lookup_to_alist {a} (s : list (sigma β)) : lookup a s.to_alist = s.lookup a :=
-by rw [list.to_alist,lookup,lookup_erase_dupkeys]
+by rw [list.to_alist,lookup,lookup_dedupkeys]
 
 @[simp] theorem insert_insert {a} {b b' : β a} (s : alist β) :
   (s.insert a b).insert a b' = s.insert a b' :=
@@ -216,7 +239,7 @@ ext $ by simp only [alist.insert_entries, list.kerase_cons_eq, and_self, alist.s
   heq_iff_eq, eq_self_iff_true]
 
 @[simp] theorem entries_to_alist (xs : list (sigma β)) :
-  (list.to_alist xs).entries = erase_dupkeys xs := rfl
+  (list.to_alist xs).entries = dedupkeys xs := rfl
 
 theorem to_alist_cons (a : α) (b : β a) (xs : list (sigma β)) :
   list.to_alist (⟨a,b⟩ :: xs) = insert a b xs.to_alist := rfl

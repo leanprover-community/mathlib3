@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Scott Morrison
 -/
 import category_theory.preadditive
+import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.shapes.biproducts
 
 /-!
@@ -33,7 +34,6 @@ namespace category_theory
 /-- A functor `F` is additive provided `F.map` is an additive homomorphism. -/
 class functor.additive {C D : Type*} [category C] [category D]
   [preadditive C] [preadditive D] (F : C ⥤ D) : Prop :=
-(map_zero' : Π {X Y : C}, F.map (0 : X ⟶ Y) = 0 . obviously)
 (map_add' : Π {X Y : C} {f g : X ⟶ Y}, F.map (f + g) = F.map f + F.map g . obviously)
 
 section preadditive
@@ -45,12 +45,19 @@ variables {C D : Type*} [category C] [category D] [preadditive C]
   [preadditive D] (F : C ⥤ D) [functor.additive F]
 
 @[simp]
-lemma map_zero {X Y : C} : F.map (0 : X ⟶ Y) = 0 :=
-functor.additive.map_zero'
-
-@[simp]
 lemma map_add {X Y : C} {f g : X ⟶ Y} : F.map (f + g) = F.map f + F.map g :=
 functor.additive.map_add'
+
+/-- `F.map_add_hom` is an additive homomorphism whose underlying function is `F.map`. -/
+@[simps {fully_applied := ff}]
+def map_add_hom {X Y : C} : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y) :=
+add_monoid_hom.mk' (λ f, F.map f) (λ f g, F.map_add)
+
+lemma coe_map_add_hom {X Y : C} : ⇑(F.map_add_hom : (X ⟶ Y) →+ _) = @map C _ D _ F X Y := rfl
+
+@[priority 100]
+instance preserves_zero_morphisms_of_additive : preserves_zero_morphisms F :=
+{ map_zero' := λ X Y, F.map_add_hom.map_zero }
 
 instance : additive (𝟭 C) :=
 {}
@@ -59,15 +66,6 @@ instance {E : Type*} [category E] [preadditive E] (G : D ⥤ E) [functor.additiv
   additive (F ⋙ G) :=
 {}
 
-/-- `F.map_add_hom` is an additive homomorphism whose underlying function is `F.map`. -/
-@[simps]
-def map_add_hom {X Y : C} : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y) :=
-{ to_fun := λ f, F.map f,
-  map_zero' := F.map_zero,
-  map_add' := λ _ _, F.map_add }
-
-lemma coe_map_add_hom {X Y : C} : ⇑(F.map_add_hom : (X ⟶ Y) →+ _) = @map C _ D _ F X Y := rfl
-
 @[simp]
 lemma map_neg {X Y : C} {f : X ⟶ Y} : F.map (-f) = - F.map f :=
 F.map_add_hom.map_neg _
@@ -75,6 +73,10 @@ F.map_add_hom.map_neg _
 @[simp]
 lemma map_sub {X Y : C} {f g : X ⟶ Y} : F.map (f - g) = F.map f - F.map g :=
 F.map_add_hom.map_sub _ _
+
+-- You can alternatively just use `functor.map_smul` here, with an explicit `(r : ℤ)` argument.
+lemma map_zsmul {X Y : C} {f : X ⟶ Y} {r : ℤ} : F.map (r • f) = r • F.map f :=
+F.map_add_hom.map_zsmul _ _
 
 open_locale big_operators
 
@@ -143,8 +145,7 @@ namespace equivalence
 variables {C D : Type*} [category C] [category D] [preadditive C] [preadditive D]
 
 instance inverse_additive (e : C ≌ D) [e.functor.additive] : e.inverse.additive :=
-{ map_zero' := λ X Y, by { apply e.functor.map_injective, simp, },
-  map_add' := λ X Y f g, by { apply e.functor.map_injective, simp, }, }
+{ map_add' := λ X Y f g, by { apply e.functor.map_injective, simp, }, }
 
 end equivalence
 

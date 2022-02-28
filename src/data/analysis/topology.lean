@@ -28,7 +28,7 @@ namespace ctop
 section
 variables (F : ctop α σ)
 
-instance : has_coe_to_fun (ctop α σ) := ⟨_, ctop.f⟩
+instance : has_coe_to_fun (ctop α σ) (λ _, σ → set α) := ⟨ctop.f⟩
 
 @[simp] theorem coe_mk (f T h₁ I h₂ h₃ a) : (@ctop.mk α σ f T h₁ I h₂ h₃) a = f a := rfl
 
@@ -118,7 +118,7 @@ theorem ext [T : topological_space α] {σ : Type*} {F : ctop α σ}
   (H₁ : ∀ a, is_open (F a))
   (H₂ : ∀ a s, s ∈ 𝓝 a → ∃ b, a ∈ F b ∧ F b ⊆ s) :
   F.to_topsp = T :=
-ext' $ λ a s, ⟨H₂ a s, λ ⟨b, h₁, h₂⟩, mem_nhds_sets_iff.2 ⟨_, h₂, H₁ _, h₁⟩⟩
+ext' $ λ a s, ⟨H₂ a s, λ ⟨b, h₁, h₂⟩, mem_nhds_iff.2 ⟨_, h₂, H₁ _, h₁⟩⟩
 
 variable [topological_space α]
 
@@ -126,11 +126,11 @@ protected def id : realizer α := ⟨{x:set α // is_open x},
 { f            := subtype.val,
   top          := λ _, ⟨univ, is_open_univ⟩,
   top_mem      := mem_univ,
-  inter        := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a h₃, ⟨_, is_open_inter h₁ h₂⟩,
+  inter        := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a h₃, ⟨_, h₁.inter h₂⟩,
   inter_mem    := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a, id,
   inter_sub    := λ ⟨x, h₁⟩ ⟨y, h₂⟩ a h₃, subset.refl _ },
 ext subtype.property $ λ x s h,
-  let ⟨t, h, o, m⟩ := mem_nhds_sets_iff.1 h in ⟨⟨t, o⟩, m, h⟩⟩
+  let ⟨t, h, o, m⟩ := mem_nhds_iff.1 h in ⟨⟨t, o⟩, m, h⟩⟩
 
 def of_equiv (F : realizer α) (E : F.σ ≃ τ) : realizer α :=
 ⟨τ, F.F.of_equiv E, ext' (λ a s, F.mem_nhds.trans $
@@ -148,7 +148,7 @@ protected def nhds (F : realizer α) (a : α) : (𝓝 a).realizer :=
   inf_le_left  := λ ⟨x, h₁⟩ ⟨y, h₂⟩ z h, (F.F.inter_sub x y a ⟨h₁, h₂⟩ h).1,
   inf_le_right := λ ⟨x, h₁⟩ ⟨y, h₂⟩ z h, (F.F.inter_sub x y a ⟨h₁, h₂⟩ h).2 },
 filter_eq $ set.ext $ λ x,
-⟨λ ⟨⟨s, as⟩, h⟩, mem_nhds_sets_iff.2 ⟨_, h, F.is_open _, as⟩,
+⟨λ ⟨⟨s, as⟩, h⟩, mem_nhds_iff.2 ⟨_, h, F.is_open _, as⟩,
  λ h, let ⟨s, h, as⟩ := F.mem_nhds.1 h in ⟨⟨s, h⟩, as⟩⟩⟩
 
 @[simp] theorem nhds_σ (m : α → β) (F : realizer α) (a : α) :

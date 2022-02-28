@@ -48,6 +48,6 @@ variables {σ : Type u} {K : Type u} [field K]
 open_locale classical
 
 lemma dim_mv_polynomial : module.rank K (mv_polynomial σ K) = cardinal.mk (σ →₀ ℕ) :=
-by rw [← cardinal.lift_inj, ← (is_basis_monomials σ K).mk_eq_dim]
+by rw [← cardinal.lift_inj, ← (basis_monomials σ K).mk_eq_dim]
 
 end mv_polynomial

@@ -3,7 +3,8 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.category
+import category_theory.eq_to_hom
+import combinatorics.quiver.path
 
 /-!
 # The category paths on a quiver.
@@ -20,7 +21,7 @@ A type synonym for the category of paths in a quiver.
 -/
 def paths (V : Type u₁) : Type u₁ := V
 
-instance (V : Type u₁) [inhabited V] : inhabited (paths V) := ⟨(default V : V)⟩
+instance (V : Type u₁) [inhabited V] : inhabited (paths V) := ⟨(default : V)⟩
 
 variables (V : Type u₁) [quiver.{v₁+1} V]
 
@@ -40,6 +41,25 @@ The inclusion of a quiver `V` into its path category, as a prefunctor.
 def of : prefunctor V (paths V) :=
 { obj := λ X, X,
   map := λ X Y f, f.to_path, }
+
+local attribute [ext] functor.ext
+
+/-- Two functors out of a path category are equal when they agree on singleton paths. -/
+@[ext]
+lemma ext_functor {C} [category C]
+  {F G : paths V ⥤ C}
+  (h_obj : F.obj = G.obj)
+  (h : ∀ (a b : V) (e : a ⟶ b), F.map e.to_path =
+  eq_to_hom (congr_fun h_obj a) ≫ G.map e.to_path ≫ eq_to_hom (congr_fun h_obj.symm b)) :
+  F = G :=
+begin
+  ext X Y f,
+  { induction f with Y' Z' g e ih,
+    { erw [F.map_id, G.map_id, category.id_comp, eq_to_hom_trans, eq_to_hom_refl], },
+    { erw [F.map_comp g e.to_path, G.map_comp g e.to_path, ih, h],
+      simp only [category.id_comp, eq_to_hom_refl, eq_to_hom_trans_assoc, category.assoc], }, },
+  { intro X, rw h_obj, }
+end
 
 end paths
 

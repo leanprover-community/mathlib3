@@ -3,8 +3,9 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.path_category
+import category_theory.adjunction.basic
 import category_theory.category.Cat
+import category_theory.path_category
 
 /-!
 # The category of quivers
@@ -18,13 +19,13 @@ universes v u
 namespace category_theory
 
 /-- Category of quivers. -/
+@[nolint check_univs] -- intended to be used with explicit universe parameters
 def Quiv := bundled quiver.{(v+1) u}
 
 namespace Quiv
 
-instance : has_coe_to_sort Quiv :=
-{ S := Type u,
-  coe := bundled.α }
+instance : has_coe_to_sort Quiv (Type u) :=
+{ coe := bundled.α }
 
 instance str (C : Quiv.{v u}) : quiver.{(v+1) u} C := C.str
 
@@ -52,8 +53,6 @@ end Quiv
 
 namespace Cat
 
-local attribute [ext] functor.ext
-
 /-- The functor sending each quiver to its path category. -/
 @[simps]
 def free : Quiv.{v u} ⥤ Cat.{(max u v) u} :=
@@ -62,31 +61,13 @@ def free : Quiv.{v u} ⥤ Cat.{(max u v) u} :=
   { obj := λ X, F.obj X,
     map := λ X Y f, F.map_path f,
     map_comp' := λ X Y Z f g, F.map_path_comp f g, },
-  map_id' := λ V, begin
-    ext; dsimp,
-    { induction f with b c p e ih,
-      { refl, },
-      { dsimp,
-        erw [ih, functor.id_map, functor.id_map, prefunctor.id_map],
-        simp, }, },
-    { intros X, erw [functor.id_obj, prefunctor.id_obj], refl, },
-  end,
+  map_id' := λ V, by { change (show paths V ⥤ _, from _) = _, ext, apply eq_conj_eq_to_hom, refl },
   map_comp' := λ U V W F G,
-  begin
-    ext; dsimp,
-    { induction f with b c p e ih,
-      { refl, },
-      { dsimp,
-        erw [ih, functor.id_map, functor.id_map, prefunctor.id_map],
-        simp, }, },
-    { intros X, erw [functor.id_obj, prefunctor.id_obj], refl, },
-  end }
+    by { change (show paths U ⥤ _, from _) = _, ext, apply eq_conj_eq_to_hom, refl } }
 
 end Cat
 
 namespace Quiv
-
-local attribute [ext] functor.ext
 
 /-- Any prefunctor into a category lifts to a functor from the path category. -/
 @[simps]
@@ -105,38 +86,18 @@ The adjunction between forming the free category on a quiver, and forgetting a c
 def adj : Cat.free ⊣ Quiv.forget :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ V C,
-  { to_fun := λ F,
-    -- This would be better as a composition `V ⥤ paths V ⥤ C ⥤ forget.obj C`
-    { obj := λ X, F.obj X,
-      map := λ X Y f, F.map f.to_path, },
+  { to_fun := λ F, paths.of.comp F.to_prefunctor,
     inv_fun := λ F, lift F,
-    left_inv := λ F, begin
-      ext,
-      { dsimp, simp,
-        induction f with Y' Z' f g ih,
-        { exact (F.map_id X).symm, },
-        { dsimp, simp only [ih],
-          exact (F.map_comp _ _).symm, }, },
-      { dsimp, simp, },
-    end,
+    left_inv := λ F, by { ext, { erw (eq_conj_eq_to_hom _).symm, apply category.id_comp }, refl },
     right_inv := begin
       rintro ⟨obj,map⟩,
-      dsimp,
+      dsimp only [prefunctor.comp],
       congr,
       ext X Y f,
       exact category.id_comp _,
     end, },
   hom_equiv_naturality_left_symm' := λ V W C f g,
-  begin
-    ext X Y h,
-    { dsimp,
-      erw [functor.comp_map],
-      simp only [category.comp_id, category.id_comp, Cat.free_map_map, Quiv.lift_map],
-      induction h with Y' Z h e ih,
-      { refl, },
-      { simp [ih], refl, }, },
-    { intro X, refl, },
-  end, }
+    by { change (show paths V ⥤ _, from _) = _, ext, apply eq_conj_eq_to_hom, refl } }
 
 end Quiv
 

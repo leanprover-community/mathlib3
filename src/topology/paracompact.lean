@@ -38,9 +38,7 @@ We also prove the following facts.
 
 ## TODO
 
-* Define partition of unity.
-
-* Prove (some of) [Michael's theorems](https://ncatlab.org/nlab/show/Michael%27s+theorem).
+Prove (some of) [Michael's theorems](https://ncatlab.org/nlab/show/Michael%27s+theorem).
 
 ## Tags
 
@@ -115,7 +113,7 @@ begin
   have := hT, simp only [subset_def, mem_Union] at this,
   choose i hiT hi using λ x, this x (mem_univ x),
   refine ⟨(T : set ι), λ t, s t, λ t, ho _, _, locally_finite_of_fintype _, λ t, ⟨t, subset.rfl⟩⟩,
-  rwa [Union_subtype, finset.set_bUnion_coe, ← univ_subset_iff],
+  simpa only [Union_coe_set, ← univ_subset_iff]
 end
 
 /-- Let `X` be a locally compact sigma compact Hausdorff topological space, let `s` be a closed set
@@ -156,11 +154,11 @@ begin
     simpa only [K'.find_shiftr]
       using diff_subset_diff_right interior_subset (K'.shiftr.mem_diff_shiftr_find x) },
   have Kdiffc : ∀ n, is_compact (Kdiff n ∩ s),
-    from λ n, (compact_diff (K.is_compact _) is_open_interior).inter_right hs,
+    from λ n, ((K.is_compact _).diff is_open_interior).inter_right hs,
   -- Next we choose a finite covering `B (c n i) (r n i)` of each
   -- `Kdiff (n + 1) ∩ s` such that `B (c n i) (r n i) ∩ s` is disjoint with `K n`
   have : ∀ n (x : Kdiff (n + 1) ∩ s), (K n)ᶜ ∈ 𝓝 (x : X),
-    from λ n x, mem_nhds_sets (K.is_closed n).is_open_compl
+    from λ n x, is_open.mem_nhds (K.is_closed n).is_open_compl
       (λ hx', x.2.1.2 $ K.subset_interior_succ _ hx'),
   haveI : ∀ n (x : Kdiff n ∩ s), nonempty (ι x) := λ n x, (hB x x.2.2).nonempty,
   choose! r hrp hr using (λ n (x : Kdiff (n + 1) ∩ s), (hB x x.2.2).mem_iff.1 (this n x)),
@@ -172,11 +170,11 @@ begin
   refine ⟨Σ n, T' n, λ a, a.2, λ a, r a.1 a.2, _, _, _⟩,
   { rintro ⟨n, x, hx⟩, exact ⟨x.2.2, hrp _ _⟩ },
   { refine (λ x hx, mem_Union.2 _),
-    rcases mem_bUnion_iff.1 (hT _ ⟨hKcov x, hx⟩) with ⟨⟨c, hc⟩, hcT, hcx⟩,
+    rcases mem_Union₂.1 (hT _ ⟨hKcov x, hx⟩) with ⟨⟨c, hc⟩, hcT, hcx⟩,
     exact ⟨⟨_, ⟨c, hc⟩, hcT⟩, hcx⟩ },
   { intro x,
     refine ⟨interior (K (K'.find x + 3)),
-      mem_nhds_sets is_open_interior (K.subset_interior_succ _ (hKcov x).1), _⟩,
+      is_open.mem_nhds is_open_interior (K.subset_interior_succ _ (hKcov x).1), _⟩,
     have : (⋃ k ≤ K'.find x + 2, (range $ sigma.mk k) : set (Σ n, T' n)).finite,
       from (finite_le_nat _).bUnion (λ k hk, finite_range _),
     apply this.subset, rintro ⟨k, c, hc⟩,
@@ -226,7 +224,7 @@ begin
   refine ⟨λ α s ho hc, _⟩,
   choose i hi using Union_eq_univ_iff.1 hc,
   have : ∀ x : X, (𝓝 x).has_basis (λ t : set X, (x ∈ t ∧ is_open t) ∧ t ⊆ s (i x)) id,
-    from λ x : X, (nhds_basis_opens x).restrict_subset (mem_nhds_sets (ho (i x)) (hi x)),
+    from λ x : X, (nhds_basis_opens x).restrict_subset (is_open.mem_nhds (ho (i x)) (hi x)),
   rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis this
     with ⟨β, c, t, hto, htc, htf⟩,
   exact ⟨β, t, λ x, (hto x).1.2, htc, htf, λ b, ⟨i $ c b, (hto b).2⟩⟩

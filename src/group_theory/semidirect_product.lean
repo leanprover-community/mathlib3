@@ -5,14 +5,14 @@ Authors: Chris Hughes
 -/
 import data.equiv.mul_add_aut
 import logic.function.basic
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Semidirect product
 
 This file defines semidirect products of groups, and the canonical maps in and out of the
 semidirect product. The semidirect product of `N` and `G` given a hom `φ` from
-`φ` from `G` to the automorphism group of `N` is the product of sets with the group
+`G` to the automorphism group of `N` is the product of sets with the group
 `⟨n₁, g₁⟩ * ⟨n₂, g₂⟩ = ⟨n₁ * φ g₁ n₂, g₁ * g₂⟩`
 
 ## Key definitions
@@ -200,7 +200,7 @@ def map (f₁ : N →* N₁) (f₂ : G →* G₁)
   map_mul' := λ x y, begin
     replace h := monoid_hom.ext_iff.1 (h x.right) y.left,
     ext; simp * at *,
-  end  }
+  end }
 
 variables (f₁ : N →* N₁) (f₂ : G →* G₁)
   (h : ∀ g : G, f₁.comp (φ g).to_monoid_hom = (φ₁ (f₂ g)).to_monoid_hom.comp f₁)

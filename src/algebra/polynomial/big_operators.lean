@@ -246,7 +246,7 @@ lemma multiset_prod_X_sub_C_next_coeff [nontrivial R] (t : multiset R) :
 begin
   rw next_coeff_multiset_prod,
   { simp only [next_coeff_X_sub_C],
-    refine t.sum_hom ⟨has_neg.neg, _, _⟩; simp [add_comm] },
+    exact t.sum_hom (-add_monoid_hom.id R) },
   { intros, apply monic_X_sub_C }
 end
 

@@ -37,11 +37,11 @@ def commutator : subgroup G :=
 lemma commutator_def : commutator G = ⁅(⊤ : subgroup G), ⊤⁆ := rfl
 
 lemma commutator_eq_closure : commutator G = subgroup.closure {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
-by simp_rw [commutator, general_commutator_def, subgroup.mem_top, exists_true_left]
+by simp_rw [commutator, subgroup.commutator_def, subgroup.mem_top, exists_true_left]
 
 lemma commutator_eq_normal_closure :
   commutator G = subgroup.normal_closure {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
-by simp_rw [commutator, general_commutator_def', subgroup.mem_top, exists_true_left]
+by simp_rw [commutator, subgroup.commutator_def', subgroup.mem_top, exists_true_left]
 
 /-- The abelianization of G is the quotient of G by its commutator subgroup. -/
 def abelianization : Type u :=

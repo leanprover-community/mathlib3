@@ -127,6 +127,11 @@ class embedding_like (F : Sort*) (α β : out_param Sort*)
   extends fun_like F α (λ _, β) :=
 (injective' : ∀ (f : F), @function.injective α β (coe f))
 
+instance subtype.embedding_like (F : Sort*) (α β : out_param Sort*) [embedding_like F α β]
+  (p : F → Prop) : embedding_like (subtype p) α β :=
+{ injective' := λ f, embedding_like.injective' f,
+  ..subtype.fun_like F α (λ _, β) p }
+
 namespace embedding_like
 
 variables {F α β γ : Sort*} [i : embedding_like F α β]

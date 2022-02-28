@@ -190,6 +190,11 @@ class one_hom_class (F : Type*) (M N : out_param $ Type*)
   extends fun_like F M (λ _, N) :=
 (map_one : ∀ (f : F), f 1 = 1)
 
+instance subtype.one_hom_class (F : Type*) (M N : out_param $ Type*) [has_one M] [has_one N]
+  [one_hom_class F M N] (p : F → Prop) : one_hom_class (subtype p) M N :=
+{ map_one := λ f, one_hom_class.map_one _,
+  ..subtype.fun_like F M (λ _, N) p }
+
 @[to_additive]
 instance one_hom.one_hom_class : one_hom_class (one_hom M N) M N :=
 { coe := one_hom.to_fun,
@@ -232,6 +237,11 @@ You should declare an instance of this typeclass when you extend `mul_hom`.
 class mul_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_mul M] [has_mul N] extends fun_like F M (λ _, N) :=
 (map_mul : ∀ (f : F) (x y : M), f (x * y) = f x * f y)
+
+instance subtype.mul_hom_class (F : Type*) (M N : out_param $ Type*)
+  [has_mul M] [has_mul N] [mul_hom_class F M N] (p : F → Prop) : mul_hom_class (subtype p) M N :=
+{ map_mul := λ _ _ _, mul_hom_class.map_mul _ _ _,
+  ..subtype.fun_like F M (λ _, N) p }
 
 @[to_additive]
 instance mul_hom.mul_hom_class : mul_hom_class (mul_hom M N) M N :=
@@ -277,6 +287,12 @@ You should also extend this typeclass when you extend `monoid_hom`.
 class monoid_hom_class (F : Type*) (M N : out_param $ Type*)
   [mul_one_class M] [mul_one_class N]
   extends mul_hom_class F M N, one_hom_class F M N
+
+instance subtype.monoid_hom_class (F : Type*) (M N : out_param $ Type*)
+  [mul_one_class M] [mul_one_class N] [monoid_hom_class F M N] (p : F → Prop) :
+  monoid_hom_class (subtype p) M N :=
+{ ..subtype.one_hom_class F M N p,
+  ..subtype.mul_hom_class F M N p }
 
 @[to_additive]
 instance monoid_hom.monoid_hom_class : monoid_hom_class (M →* N) M N :=
@@ -363,6 +379,12 @@ You should also extend this typeclass when you extend `monoid_with_zero_hom`.
 class monoid_with_zero_hom_class (F : Type*) (M N : out_param $ Type*)
   [mul_zero_one_class M] [mul_zero_one_class N]
   extends monoid_hom_class F M N, zero_hom_class F M N
+
+instance subtype.monoid_with_zero_hom_class (F : Type*) (M N : out_param $ Type*)
+  [mul_zero_one_class M] [mul_zero_one_class N] [monoid_with_zero_hom_class F M N] (p : F → Prop) :
+  monoid_with_zero_hom_class (subtype p) M N :=
+{ ..subtype.monoid_hom_class F M N p,
+  ..subtype.zero_hom_class F M N p }
 
 instance monoid_with_zero_hom.monoid_with_zero_hom_class :
   monoid_with_zero_hom_class (M →*₀ N) M N :=

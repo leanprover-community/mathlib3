@@ -82,10 +82,7 @@ private lemma tan_minus_id_deriv (x : ℝ) (h: cos x ≠ 0) :
     deriv tan_minus_id x = (tansq x h) :=
 begin
   apply has_deriv_at.deriv,
-  simp only [tansq],
-  have uv := has_deriv_at.add (has_deriv_at_tan h) (has_deriv_at.neg (has_deriv_at_id x)),
-  simp at *,
-  exact uv,
+  simpa [tansq] using (has_deriv_at_tan h).add (has_deriv_at_id x).neg
 end
 
 /- tansq is positive away from the obvious bad points -/

@@ -32,8 +32,8 @@ in the implementation details section.
   `zeta n A B` is a primitive `n`-th root of unity.
 * `is_cyclotomic_extension.finrank`: if `irreducible (cyclotomic n K)` (in particular for
   `K = ℚ`), then the `finrank` of a cyclotomic extension is `n.totient`.
-* `is_primitive_root.norm_eq_one`: If `K` is linearly ordered (in particular for `K = ℚ`), the norm
-  of a primitive root is `1` if `n` is odd.
+* `is_primitive_root.norm_eq_one`: if `irreducible (cyclotomic n K)` (in particular for `K = ℚ`),
+  the norm of a primitive root is `1` if `n ≠ 2`.
 * `is_primitive_root.sub_one_norm_eq_eval_cyclotomic`: if `irreducible (cyclotomic n K)`
   (in particular for `K = ℚ`), then the norm of `ζ - 1` is `eval 1 (cyclotomic n ℤ)`, for a
   primitive root ζ. We also prove the analogous of this result for `zeta`.

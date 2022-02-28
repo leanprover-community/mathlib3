@@ -116,13 +116,11 @@ begin
   exact ⟨X + 1, by simp⟩
 end
 
-local attribute [instance] is_cyclotomic_extension.finite_dimensional
-
 /-- The `power_basis` given by `ζ - 1`. -/
 @[simps] noncomputable def sub_one_power_basis (hζ : is_primitive_root ζ n) :
   _root_.power_basis K L :=
   (hζ.power_basis K).of_gen_mem_adjoin
-    (is_integral_sub (is_integral_of_finite _ _ ζ) is_integral_one)
+    (is_integral_sub (is_cyclotomic_extension.integral {n} K L ζ) is_integral_one)
     (hζ.power_basis_gen_mem_adjoin_zeta_sub_one _)
 
 variables {K}

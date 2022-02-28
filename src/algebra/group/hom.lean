@@ -190,6 +190,7 @@ class one_hom_class (F : Type*) (M N : out_param $ Type*)
   extends fun_like F M (λ _, N) :=
 (map_one : ∀ (f : F), f 1 = 1)
 
+@[to_additive]
 instance subtype.one_hom_class (F : Type*) (M N : out_param $ Type*) [has_one M] [has_one N]
   [one_hom_class F M N] (p : F → Prop) : one_hom_class (subtype p) M N :=
 { map_one := λ f, one_hom_class.map_one _,
@@ -238,6 +239,7 @@ class mul_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_mul M] [has_mul N] extends fun_like F M (λ _, N) :=
 (map_mul : ∀ (f : F) (x y : M), f (x * y) = f x * f y)
 
+@[to_additive]
 instance subtype.mul_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_mul M] [has_mul N] [mul_hom_class F M N] (p : F → Prop) : mul_hom_class (subtype p) M N :=
 { map_mul := λ _ _ _, mul_hom_class.map_mul _ _ _,
@@ -288,6 +290,7 @@ class monoid_hom_class (F : Type*) (M N : out_param $ Type*)
   [mul_one_class M] [mul_one_class N]
   extends mul_hom_class F M N, one_hom_class F M N
 
+@[to_additive]
 instance subtype.monoid_hom_class (F : Type*) (M N : out_param $ Type*)
   [mul_one_class M] [mul_one_class N] [monoid_hom_class F M N] (p : F → Prop) :
   monoid_hom_class (subtype p) M N :=

@@ -19,6 +19,7 @@ An *isocrystal* is a bijective map `V → V` that is `φ`-semilinear.
 A theorem of Dieudonné and Manin classifies the finite-dimensional isocrystals over algebraically
 closed fields. In the one-dimensional case, this classification states that the isocrystal
 structures are parametrized by their "slope" `m : ℤ`.
+Any one-dimensional isocrystal is isomorphic to `φ(p^m • x) : K(p,k) → K(p,k)` for some `m`.
 
 This file proves this one-dimensional case of the classification theorem.
 The construction is described in Dupuis, Lewis, and Macbeth,

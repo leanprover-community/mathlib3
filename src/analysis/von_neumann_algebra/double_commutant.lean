@@ -11,11 +11,6 @@ import analysis.seminorm
 # Von Neumann's double commutant theorem
 -/
 
-theorem finset.sup_mul_left
-  {ι : Type*} (s : finset ι) (f : ι → nnreal) (a : nnreal) :
-  s.sup (λ i, a * f i) = a * s.sup f :=
-sorry
-
 noncomputable theory
 
 /--
@@ -149,6 +144,9 @@ end star_subalgebra
 
 namespace star_subalgebra
 variables (𝕜 : Type*) [is_R_or_C 𝕜] (H : Type*) --[inner_product_space 𝕜 H] [complete_space H]
+
+example [inner_product_space 𝕜 H] (ι : Type*) [fintype ι] :
+  inner_product_space 𝕜 (ι → H) := by apply_instance
 
 example [inner_product_space 𝕜 H] (ι : Type*) [fintype ι] :
   inner_product_space 𝕜 (pi_Lp 2 (λ i : ι, H)) := by apply_instance

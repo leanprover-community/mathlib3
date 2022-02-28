@@ -70,14 +70,12 @@ ring.inverse (algebra_map R A r - a)
 
 /-- The unit `1 - r⁻¹ • a` constructed from `r • 1 - a` when the latter is a unit. -/
 @[simps]
-def units.sub_inv_smul {r : Rˣ} {a : A}
-  {u : Aˣ} (h : (u : A) = r • 1 - a) : Aˣ :=
+noncomputable def is_unit.sub_inv_smul {r : Rˣ} {a : A}
+  (h : is_unit $ r • 1 - a) : Aˣ :=
 { val := 1 - r⁻¹ • a,
-  inv := r • ↑u⁻¹,
-  val_inv := by { rw [mul_smul_comm, ←smul_mul_assoc, smul_sub, smul_inv_smul, ←h],
-                  exact u.val_inv },
-  inv_val := by { rw [smul_mul_assoc, ←mul_smul_comm, smul_sub, smul_inv_smul, ←h],
-                  exact u.inv_val } }
+  inv := r • ↑h.unit⁻¹,
+  val_inv := by rw [mul_smul_comm, ←smul_mul_assoc, smul_sub, smul_inv_smul, h.mul_coe_inv],
+  inv_val := by rw [smul_mul_assoc, ←mul_smul_comm, smul_sub, smul_inv_smul, h.coe_inv_mul], }
 
 end defs
 
@@ -136,9 +134,8 @@ begin
     simp only [ring.inverse_non_unit _ h, ring.inverse_non_unit _ h', smul_zero] },
   { rw not_mem_iff at h,
     simp only [resolvent, algebra.algebra_map_eq_smul_one, ←units.smul_def, one_smul] at *,
-    rcases h with ⟨u, hu⟩,
-    rw [←hu, ←units.coe_sub_inv_smul hu, ring.inverse_unit, ←units.coe_inv_sub_inv_smul hu,
-      ring.inverse_unit] },
+    rw [←h.unit_spec, ←h.coe_sub_inv_smul, ring.inverse_unit, ring.inverse_unit,
+      ←h.coe_inv_sub_inv_smul], },
 end
 
 /-- The resolvent is a unit when the argument is in the resolvent set. -/

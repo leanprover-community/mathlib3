@@ -642,7 +642,7 @@ end
 lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
 eval₂_map f (ring_hom.id _) x
 
-lemma map_sum {ι : Type*} (g : ι → R[X]) (s : finset ι) :
+protected lemma map_sum {ι : Type*} (g : ι → R[X]) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
 (map_ring_hom f).map_sum _ _
 

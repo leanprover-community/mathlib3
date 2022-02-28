@@ -158,7 +158,7 @@ classical.some (exists_nat_measure_lt_two_inv hfg n)
 noncomputable
 def seq_tendsto_ae_seq (hfg : tendsto_in_measure μ f at_top g) : ℕ → ℕ
 | 0 := seq_tendsto_ae_seq_aux hfg 0
-| (n + 1) :=  max (seq_tendsto_ae_seq_aux hfg (n + 1))
+| (n + 1) := max (seq_tendsto_ae_seq_aux hfg (n + 1))
   (seq_tendsto_ae_seq n + 1)
 
 lemma seq_tendsto_ae_seq_succ (hfg : tendsto_in_measure μ f at_top g) {n : ℕ} :

@@ -190,6 +190,17 @@ begin
     exact neg_one_pow_of_even (totient_even (lt_of_le_of_ne h1 (λ h, hn (pnat.coe_inj.1 h.symm)))) }
 end
 
+lemma norm_of_cyclotomic_irreducible [is_cyclotomic_extension {n} K L]
+  (hirr : irreducible (cyclotomic n K)) : norm K ζ = ite (n = 2) (-1) 1 :=
+begin
+  by_cases hn : n = 2,
+  { simp only [hn, eq_self_iff_true, if_true],
+    refine norm_eq_neg_one _ (by simpa [hn] using hζ),
+    rw [is_cyclotomic_extension.finrank _ hirr, hn, pnat.coe_bit0, one_coe, totient_two],
+    apply_instance },
+  { simp only [hn, if_false, hζ.norm_eq_one hn hirr] }
+end
+
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the norm of
 `ζ - 1` is `eval 1 (cyclotomic n ℤ)`. -/
 lemma sub_one_norm_eq_eval_cyclotomic [is_cyclotomic_extension {n} K L]

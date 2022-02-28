@@ -29,9 +29,10 @@ also `G`-linear, when the `k` and `G` actions are compatible.
 Although `group_algebra k G` is just `monoid_algebra k G`, we make the definition `group_algebra`
 so we can separate material relevant to group cohomology into the namespace `group_algebra`.
 
-We don't want the group cohomology relevant instances defined here to apply to `monoid_algebra`, so
-we make `group_algebra` a definition instead of an abbreviation. This leads to some code
-duplication as we must copy over some instances from `monoid_algebra`.
+Some of the instances defined here create diamonds. We limit their scope by making `group_algebra`
+a definition instead of an abbreviation, meaning no diamonds pollute the `monoid_algebra`
+namespace. This leads to some code duplication as we must copy over some instances from
+`monoid_algebra`.
 
 Some of this file is done in terms of monoids for the sake of generality, but after future
 additions, the bulk of the file will be about groups.

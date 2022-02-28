@@ -448,6 +448,11 @@ lemma ext {Y : Type*} [topological_space Y] [t2_space Y] {f g : completion α �
   (hf : continuous f) (hg : continuous g) (h : ∀a:α, f a = g a) : f = g :=
 cpkg.funext hf hg h
 
+lemma ext' {Y : Type*} [topological_space Y] [t2_space Y] {f g : completion α → Y}
+  (hf : continuous f) (hg : continuous g) (h : ∀a:α, f a = g a) (a : completion α) :
+  f a = g a :=
+congr_fun (ext hf hg h) a
+
 section extension
 variables {f : α → β}
 

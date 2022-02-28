@@ -335,11 +335,11 @@ lemma prog_measurable_of_tendsto [measurable_space ι] [metric_space β] [borel_
   prog_measurable f u :=
 prog_measurable_of_tendsto' at_top h h_tendsto
 
-lemma measurable_prod_of_continuous_of_measurable (ι) [emetric_space ι] [mι : measurable_space ι]
+lemma measurable_uncurry_of_continuous_of_measurable (ι) [emetric_space ι] [mι : measurable_space ι]
   [second_countable_topology ι] [opens_measurable_space ι] [metric_space β] [borel_space β]
   {m : measurable_space α} {u : ι → α → β}
   (hu_cont : ∀ x, continuous (λ i, u i x)) (h : ∀ i, measurable[m] (u i)) :
-  measurable (λ (p : ι × α), u p.fst p.snd) :=
+  measurable (function.uncurry u) :=
 begin
   obtain ⟨t_sf, ht_sf⟩ : ∃ t : ℕ → simple_func ι ι, ∀ j x,
     tendsto (λ n, u (t n j) x) at_top (𝓝 $ u j x),
@@ -372,7 +372,7 @@ theorem adapted.prog_measurable_of_continuous [emetric_space ι] [measurable_spa
   [second_countable_topology ι] [opens_measurable_space ι] [metric_space β] [borel_space β]
   (h : adapted f u) (hu_cont : ∀ x, continuous (λ i, u i x)) :
   prog_measurable f u :=
-λ i, measurable_prod_of_continuous_of_measurable (set.Iic i)
+λ i, measurable_uncurry_of_continuous_of_measurable (set.Iic i)
   (λ x, (hu_cont x).comp continuous_induced_dom) (λ j, (h j).mono (f.mono j.prop) le_rfl)
 
 end adapted_process

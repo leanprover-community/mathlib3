@@ -116,4 +116,80 @@ open category_theory.limits
 instance : preserves_colimits (tensor_left A) :=
 (ihom.adjunction A).left_adjoint_preserves_colimits
 
+variables {A}
+
+-- Wrap these in a namespace so we don't clash with the core versions.
+namespace monoidal_closed
+
+/-- Currying in a monoidal closed category. -/
+def curry : (A ⊗ Y ⟶ X) → (Y ⟶ A ⟶[C] X) :=
+(ihom.adjunction A).hom_equiv _ _
+/-- Uncurrying in a monoidal closed category. -/
+def uncurry : (Y ⟶ A ⟶[C] X) → (A ⊗ Y ⟶ X) :=
+((ihom.adjunction A).hom_equiv _ _).symm
+
+@[simp] lemma hom_equiv_apply_eq (f : A ⊗ Y ⟶ X) :
+  (ihom.adjunction A).hom_equiv _ _ f = curry f := rfl
+@[simp] lemma hom_equiv_symm_apply_eq (f : Y ⟶ A ⟶[C] X) :
+  ((ihom.adjunction A).hom_equiv _ _).symm f = uncurry f := rfl
+
+@[reassoc]
+lemma curry_natural_left (f : X ⟶ X') (g : A ⊗ X' ⟶ Y) :
+  curry (((𝟙 _) ⊗ f) ≫ g) = f ≫ curry g :=
+adjunction.hom_equiv_naturality_left _ _ _
+
+@[reassoc]
+lemma curry_natural_right (f : A ⊗ X ⟶ Y) (g : Y ⟶ Y') :
+  curry (f ≫ g) = curry f ≫ (ihom _).map g :=
+adjunction.hom_equiv_naturality_right _ _ _
+
+@[reassoc]
+lemma uncurry_natural_right  (f : X ⟶ A ⟶[C] Y) (g : Y ⟶ Y') :
+  uncurry (f ≫ (ihom _).map g) = uncurry f ≫ g :=
+adjunction.hom_equiv_naturality_right_symm _ _ _
+
+@[reassoc]
+lemma uncurry_natural_left  (f : X ⟶ X') (g : X' ⟶ A ⟶[C] Y) :
+  uncurry (f ≫ g) = ((𝟙 _) ⊗ f) ≫ uncurry g :=
+adjunction.hom_equiv_naturality_left_symm _ _ _
+
+@[simp]
+lemma uncurry_curry (f : A ⊗ X ⟶ Y) : uncurry (curry f) = f :=
+(closed.is_adj.adj.hom_equiv _ _).left_inv f
+
+@[simp]
+lemma curry_uncurry (f : X ⟶ A ⟶[C] Y) : curry (uncurry f) = f :=
+(closed.is_adj.adj.hom_equiv _ _).right_inv f
+
+lemma curry_eq_iff (f : A ⊗ Y ⟶ X) (g : Y ⟶ A ⟶[C] X) :
+  curry f = g ↔ f = uncurry g :=
+adjunction.hom_equiv_apply_eq _ f g
+
+lemma eq_curry_iff (f : A ⊗ Y ⟶ X) (g : Y ⟶ A ⟶[C] X) :
+  g = curry f ↔ uncurry g = f :=
+adjunction.eq_hom_equiv_apply _ f g
+
+-- I don't think these two should be simp.
+lemma uncurry_eq (g : Y ⟶ A ⟶[C] X) : uncurry g = ((𝟙 A) ⊗ g) ≫ (ihom.ev A).app X :=
+adjunction.hom_equiv_counit _
+
+lemma curry_eq (g : A ⊗ Y ⟶ X) : curry g = (ihom.coev A).app Y ≫ (ihom A).map g :=
+adjunction.hom_equiv_unit _
+
+lemma curry_injective : function.injective (curry : (A ⊗ Y ⟶ X) → (Y ⟶ A ⟶[C] X)) :=
+(closed.is_adj.adj.hom_equiv _ _).injective
+
+lemma uncurry_injective : function.injective (uncurry : (Y ⟶ A ⟶[C] X) → (A ⊗ Y ⟶ X)) :=
+(closed.is_adj.adj.hom_equiv _ _).symm.injective
+
+variables (A X)
+
+lemma uncurry_id_eq_ev : uncurry (𝟙 (A ⟶[C] X)) = (ihom.ev A).app X :=
+by rw [uncurry_eq, tensor_id, id_comp]
+
+lemma curry_id_eq_coev : curry (𝟙 _) = (ihom.coev A).app X :=
+by { rw [curry_eq, (ihom A).map_id (A ⊗ _)], apply comp_id }
+
+end monoidal_closed
+
 end category_theory

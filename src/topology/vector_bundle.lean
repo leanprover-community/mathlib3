@@ -99,6 +99,15 @@ variables {R F E}
 def trivialization.to_pretrivialization (e : trivialization R F E) :
   topological_vector_bundle.pretrivialization R F E := { ..e }
 
+-- lemma trivialization.to_pretrivialization_injective {e₁ e₂ : trivialization R F E}
+--   (h : e₁.to_pretrivialization = e₂.to_pretrivialization) :
+--   e₁ = e₂ :=
+-- begin
+--   rcases e₁ with ⟨⟨⟨e₁_pre_pre, _⟩, s₁, _⟩, _⟩,
+--   rcases e₂ with ⟨⟨⟨e₂_pre_pre, _⟩, s₂, _⟩, _⟩,
+--   simpa [trivialization.to_pretrivialization] using h,
+-- end
+
 lemma trivialization.mem_source (e : trivialization R F E)
   {x : total_space E} : x ∈ e.source ↔ proj E x ∈ e.base_set :=
 topological_fiber_bundle.trivialization.mem_source e
@@ -765,19 +774,11 @@ rfl
   (e₁.prod e₂).continuous_linear_equiv_at x ⟨hx₁, hx₂⟩
   = (e₁.continuous_linear_equiv_at x hx₁).prod (e₂.continuous_linear_equiv_at x hx₂) :=
 begin
-  sorry
+  ext1,
+  funext v,
+  obtain ⟨v₁, v₂⟩ := v,
+  rw [(e₁.prod e₂).continuous_linear_equiv_at_apply, trivialization.prod],
+  exact congr_arg prod.snd (prod_apply hx₁ hx₂ v₁ v₂),
 end
-
-@[simp] lemma trivialization_at_prod (x : B) :
-  trivialization_at R (F₁ × F₂) (λ x, E₁ x × E₂ x) x
-  = (trivialization_at R F₁ E₁ x).prod (trivialization_at R F₂ E₂ x) :=
-begin
-  sorry
-end
-
--- lemma trivialization.prod_apply (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂)
---   {p : total_space (λ (x : B), E₁ x × E₂ x)} (hp₁ : p.1 ∈ e₁.base_set) (hp₂ : p.1 ∈ e₂.base_set) :
---   (λ q : B × (F₁ × F₂), (q.1, q.2.1)) (e₁.prod e₂ p) = e₁ ⟨p.1, p.2.1⟩ :=
--- sorry
 
 end topological_vector_bundle

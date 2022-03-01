@@ -8,6 +8,10 @@ import ring_theory.polynomial.cyclotomic.basic
 import ring_theory.centralizer
 import tactic.by_contra
 
+/-!
+# Little Wedderburn TODO
+-/
+
 noncomputable theory
 open_locale classical nnreal big_operators
 

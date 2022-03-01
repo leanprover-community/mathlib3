@@ -80,7 +80,7 @@ lemma prod_hom [comm_monoid β] (s : multiset α) {F : Type*} [monoid_hom_class 
 quotient.induction_on s $ λ l, by simp only [l.prod_hom f, quot_mk_to_coe, coe_map, coe_prod]
 
 @[to_additive]
-lemma prod_hom' [comm_monoid β] (s : multiset ι){F : Type*} [monoid_hom_class F α β] (f : F)
+lemma prod_hom' [comm_monoid β] (s : multiset ι) {F : Type*} [monoid_hom_class F α β] (f : F)
   (g : ι → α) : (s.map $ λ i, f $ g i).prod = f (s.map g).prod :=
 by { convert (s.map g).prod_hom f, exact (map_map _ _ _).symm }
 

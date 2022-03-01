@@ -94,8 +94,6 @@ end ⟩
 instance : has_compl (subtype (is_projection  : R → Prop)) :=
 ⟨λ P, ⟨1-P, P.prop.complement⟩⟩
 
-
-
 end is_projection
 
 variables {X : Type*} [normed_group X]
@@ -116,8 +114,8 @@ $$
 ∥x∥ = max(∥P x∥, ∥(1-P) x∥).
 $$
 -/
-def is_Mprojection : (X →L[𝕜] X) → Prop :=
-  λ P, is_projection P ∧ ∀ (x : X), ∥x∥ = (max ∥P x∥  ∥(1-P) x∥)
+def is_Mprojection (P: X →L[𝕜] X) : Prop :=
+  is_projection P ∧ ∀ (x : X), ∥x∥ = (max ∥P x∥  ∥(1-P) x∥)
 
 namespace is_Lprojection
 

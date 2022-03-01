@@ -13,21 +13,29 @@ import tactic.by_contra
 -/
 
 --noncomputable theory
-open_locale classical nnreal big_operators
+open_locale nnreal big_operators
 
-lemma int.dvd_div_of_mul_dvd {a b c : ℤ} (h : a * b ∣ c) : b ∣ c / a :=
+namespace int
+
+-- #12382
+lemma dvd_div_of_mul_dvd {a b c : ℤ} (h : a * b ∣ c) : b ∣ c / a :=
 begin
-  by_cases ha : a = 0, { simp only [ha, euclidean_domain.div_zero, dvd_zero] },
+  rcases eq_or_ne a 0 with rfl | ha,
+  { simp only [int.div_zero, dvd_zero] },
   rcases h with ⟨d, rfl⟩,
   refine ⟨d, _⟩,
-  rw [mul_assoc, mul_comm a, int.mul_div_cancel _ ha],
+  rw [mul_assoc, int.mul_div_cancel_left _ ha],
 end
 
+end int
+
+-- #12383
 lemma finset.prod_dvd_prod_of_subset {ι M : Type*} [comm_monoid M] (s t : finset ι) (f : ι → M)
   (h : s ⊆ t) : ∏ i in s, f i ∣ ∏ i in t, f i :=
-by { rw [← finset.prod_sdiff h], exact dvd_mul_left _ _ }
+multiset.prod_dvd_prod_of_le $ multiset.map_le_map $ by simpa
 
 -- move this
+/-- todo: tempo docstring -/
 @[simps] noncomputable def complex.abs_hom : ℂ →*₀ ℝ :=
 { to_fun := complex.abs,
   map_zero' := complex.abs_zero,
@@ -66,7 +74,7 @@ lemma complex.norm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (h
   ∥ζ∥ = 1 :=
 congr_arg coe (complex.nnnorm_eq_one_of_pow_eq_one h hn)
 
-lemma is_primitive_root.norm_eq_one {ζ : ℂ} {n : ℕ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
+lemma is_primitive_root.nnnorm_eq_one {ζ : ℂ} {n : ℕ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
   ∥ζ∥ = 1 :=
 complex.norm_eq_one_of_pow_eq_one h.pow_eq_one hn
 
@@ -77,32 +85,22 @@ rfl
 def subring.inclusion' {R : Type*} [ring R] {S T : subring R} (h : S ≤ T) : S →+* T :=
 S.subtype.cod_restrict' _ (λ x, h x.2)
 
-namespace polynomial
+namespace nat
 
-lemma cyclotomic_dvd_X_pow_sub_one (n : ℕ) (hn : n ≠ 0) (R : Type*) [comm_ring R] :
-  cyclotomic n R ∣ X ^ n - 1 :=
-begin
-  rw ← prod_cyclotomic_eq_X_pow_sub_one hn.bot_lt R,
-  apply finset.dvd_prod_of_mem,
-  rw nat.mem_divisors,
-  exact ⟨dvd_rfl, hn⟩
-end
+@[simp, norm_cast] theorem cast_eq_one {R : Type*} [add_monoid R] [has_one R] [char_zero R]
+  {n : ℕ} : (n : R) = 1 ↔ n = 1 := by rw [←cast_one, cast_inj]
 
-end polynomial
+-- seems unused but probably useful
+@[simp] lemma cast_pow_eq_one (R : Type*) [semiring R] [char_zero R]
+  (q : ℕ) (n : ℕ) (hn : n ≠ 0) : (q : R) ^ n = 1 ↔ q = 1 :=
+by { rw [←cast_pow, cast_eq_one], exact pow_eq_one_iff hn }
+
+end nat
 
 namespace little_wedderburn
 
 section cyclotomic
 open polynomial
-
-lemma nat_cast_pow_eq_one (R : Type*) [comm_semiring R] [char_zero R]
-  (q : ℕ) (n : ℕ) (hn : n ≠ 0) :
-  (q : R) ^ n = 1 ↔ q = 1 :=
-begin
-  split, swap, { rintro rfl, rw [nat.cast_one, one_pow], },
-  intro H, have : q ^ n = 1 ^ n, { rw one_pow, exact_mod_cast H },
-  rwa pow_left_inj (nat.zero_le _) (nat.zero_le _) hn.bot_lt at this,
-end
 
 lemma sub_one_lt_nat_abs_cyclotomic_eval (n : ℕ) (q : ℕ) (hn : 1 < n) (hq : 2 ≤ q) :
   q - 1 < int.nat_abs ((cyclotomic n ℤ).eval ↑q) :=
@@ -118,7 +116,7 @@ begin
   let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn'.ne',
   have hζ' : ζ ∈ primitive_roots n ℂ, { rwa mem_primitive_roots hn', },
-  have norm_ζ : ∥ζ∥ = 1 := hζ.norm_eq_one hn'.ne',
+  have norm_ζ : ∥ζ∥ = 1 := hζ.nnnorm_eq_one hn'.ne',
   rw [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, nnnorm_prod],
   simp only [eval_C, eval_X, ring_hom.eq_int_cast, eval_sub],
   rw [← finset.prod_sdiff (finset.singleton_subset_iff.mpr hζ'), finset.prod_singleton],
@@ -129,7 +127,7 @@ begin
     rw ← nnreal.coe_le_coe,
     refine le_trans _ (norm_sub_norm_le _ _),
     simp only [finset.mem_sdiff, finset.mem_singleton, mem_primitive_roots hn'] at hx,
-    simp only [nonneg.coe_one, complex.norm_nat, hx.1.norm_eq_one hn'.ne', le_sub_iff_add_le],
+    simp only [nonneg.coe_one, complex.norm_nat, hx.1.nnnorm_eq_one hn'.ne', le_sub_iff_add_le],
     exact_mod_cast hq, },
   refine mul_lt_mul' aux _ zero_le' (lt_of_lt_of_le zero_lt_one aux),
   rw [← nnreal.coe_lt_coe, coe_nnnorm, nnreal.coe_nat_cast, complex.norm_eq_abs],
@@ -217,7 +215,8 @@ lemma mem_center_units_of_coe_mem_center (x : units R) (h : (x : R) ∈ subring.
 def center_units_to_center (u : subgroup.center (units D)) : subring.center D :=
 ⟨u, λ r,
 begin
-  by_cases hr : r = 0, { subst r, rw [mul_zero, zero_mul] },
+  rcases eq_or_ne r 0 with rfl | hr,
+  { rw [mul_zero, zero_mul] },
   exact congr_arg coe (u.2 (units.mk0 r hr)),
 end⟩
 
@@ -242,7 +241,6 @@ def center_units_equiv_units_center :
   left_inv := λ u, by { ext, refl },
   right_inv := λ u, by { ext, refl },
   map_mul' := λ x y, by { ext, refl } }
-.
 
 def induction_hyp : Prop :=
 ∀ R : subring D, R < ⊤ → ∀ ⦃x y⦄, x ∈ R → y ∈ R → x * y = y * x
@@ -251,6 +249,8 @@ namespace induction_hyp
 open finite_dimensional polynomial
 
 variables {D}
+
+open_locale classical
 
 protected noncomputable def field (hD : induction_hyp D) (R : subring D) (hR : R < ⊤) : field R :=
 { mul_comm := λ x y, subtype.ext $ hD R hR x.2 y.2,
@@ -336,6 +336,7 @@ end induction_hyp
 
 lemma center_eq_top : subring.center D = ⊤ :=
 begin
+  classical,
   suffices : ∀ (n : ℕ) (D : Type*) [division_ring D] [fintype D],
     by exactI fintype.card D ≤ n → subring.center D = ⊤,
   { exact this _ D le_rfl },
@@ -360,6 +361,7 @@ end little_wedderburn
 
 def little_wedderburn (D : Type*) [hD : division_ring D] [fintype D] :
   field D :=
-{ mul_comm := λ x y, suffices y ∈ subring.center D, from this x,
+{ mul_comm := λ x y,
+  suffices y ∈ subring.center D, from this x,
   by { rw little_wedderburn.center_eq_top, trivial },
   .. hD }

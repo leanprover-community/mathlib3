@@ -60,13 +60,9 @@ begin
   casesI subsingleton_or_nontrivial R,
   { haveI := unique R L S,
     haveI := unique_of_subsingleton (0 : R),
-    simp },
+    simp only [fintype.card_unique] },
   letI := fintype' S L,
-  refine fintype.card_of_bijective
-         (localization_map_bijective_of_field hS ⟨nontrivial.exists_pair_ne, mul_comm, λ a ha, _⟩),
-  classical,
-  letI hG := group_with_zero_of_fintype R,
-  exact ⟨a⁻¹, mul_inv_cancel ha⟩
+  exact fintype.card_of_bijective ((fintype.is_field_of_domain R).localization_map_bijective hS),
 end
 
 end is_localization

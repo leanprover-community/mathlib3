@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
-import category_theory.limits.bicones
 import category_theory.limits.shapes.kernels
 
 /-!
@@ -577,8 +576,6 @@ def biproduct.unique_up_to_iso (f : J → C) [has_biproduct f] {b : bicone f} (h
   inv_hom_id' := by rw [← biproduct.cone_point_unique_up_to_iso_hom f hb,
     ← biproduct.cone_point_unique_up_to_iso_inv f hb, iso.inv_hom_id] }
 
-variables {C}
-
 /--
 A binary bicone for a pair of objects `P Q : C` consists of the cone point `X`,
 maps from `X` to both `P` and `Q`, and maps from both `P` and `Q` to `X`,
@@ -695,7 +692,6 @@ def to_binary_bicone_is_colimit {X Y : C} (b : bicone (pair X Y).obj) :
 is_colimit.equiv_iso_colimit $ cocones.ext (iso.refl _) (λ j, by { cases j, tidy })
 
 end bicone
-
 
 /-- Structure witnessing that a binary bicone is a limit cone and a limit cocone. -/
 @[nolint has_inhabited_instance]

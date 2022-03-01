@@ -314,16 +314,13 @@ protected theorem pow_induction_on
 submodule.pow_induction_on' M
   (by exact hr) (λ x y i hx hy, hadd x y) (λ m hm i x hx, hmul _ hm _) hx
 
-lemma map_pow {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
-  ∀ n : ℕ, map f.to_linear_map (M ^ n) = map f.to_linear_map M ^ n
-| 0 := by rw [pow_zero, pow_zero, map_one]
-| (n + 1) := by rw [pow_succ, pow_succ, map_mul, map_pow]
-
-lemma map_op_pow :
-  ∀ n : ℕ, map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (M ^ n) =
-    map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) M ^ n
-| 0 := by rw [pow_zero, pow_zero, map_op_one]
-| (n + 1) := by rw [pow_succ, pow_succ', map_op_mul, map_op_pow]
+/-- `submonoid.map` as a `monoid_hom`, when applied to `alg_hom`s. -/
+@[simps]
+def map_monoid_hom {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
+  submodule R A →* submodule R A' :=
+{ to_fun := map f.to_linear_map,
+  map_one' := submodule.map_one _,
+  map_mul' := λ _ _, submodule.map_mul _ _ _}
 
 /-- The ring of submodules of the opposite algebra is isomorphic to the opposite ring of
 submodules. -/
@@ -336,6 +333,18 @@ ring_equiv.symm
   right_inv := λ p, set_like.coe_injective $ rfl,
   map_add' := λ p q, by simp [comap_equiv_eq_map_symm],
   map_mul' := λ p q, by simp [comap_equiv_eq_map_symm, map_op_mul] }
+
+lemma map_pow {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') (n : ℕ) :
+  map f.to_linear_map (M ^ n) = map f.to_linear_map M ^ n :=
+(map_monoid_hom f).map_pow M n
+
+lemma map_op_pow (n : ℕ) :
+  map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (M ^ n) =
+    map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) M ^ n :=
+begin
+  rw [map_equiv_eq_comap_symm, map_equiv_eq_comap_symm],
+  exact (equiv_opposite : submodule R Aᵐᵒᵖ ≃+* _).symm.map_pow (op M) n,
+end
 
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
 on either side). -/

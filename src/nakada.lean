@@ -7,6 +7,7 @@ Authors: Yakov Pechersky
 import algebra.order.group
 import algebra.order.with_zero
 import group_theory.subsemigroup.operations
+import group_theory.order_of_element
 import tactic.tfae
 
 /-!
@@ -1020,37 +1021,207 @@ lemma quotient.mk_eq_mk' (x : α) : ⟦x⟧ = quotient.mk' x := rfl
 end
 
 -- Theorem 8, mpr
-@[to_additive neg_add_subsemigroup_iso_of_is_directed]
-noncomputable def neg_subsemigroup_iso_of_is_directed (G : Type*) [comm_group G] [partial_order G]
-  [nakada_po G] [is_directed G (≤)] :
-  quotient (mul_pair_setoid (neg_subsemigroup G)) ≃*o G :=
-{ inv_fun := λ x, begin
-    set a := (directed_of (≤) x 1).some with ha,
-    refine quotient.mk' (⟨a⁻¹ * x, _⟩, ⟨a⁻¹, positive.negative_inv _⟩),
-    { have hxa : x ≤ a,
-      { rw ha,
-        generalize_proofs ha',
-        exact ha'.some_spec.left },
-      have hx : x = a * (a * x⁻¹)⁻¹,
-      { rw [mul_inv, inv_inv, mul_inv_cancel_left] },
-      have : 1 ≤ (a⁻¹ * x)⁻¹,
-      { rw [hx],
-        simpa only [mul_inv_rev, inv_inv, mul_inv_cancel_comm_assoc,
-                    le_inv_mul_iff_mul_le, mul_one] using hxa},
-      simpa only [inv_inv] using (positive_of_one_le this).negative_inv },
-    { refine positive_of_one_le _,
-      rw ha,
-      generalize_proofs ha',
-      exact ha'.some_spec.right }
-  end,
-  to_fun := (out_mul_pair_quotient _).comp
-    (mul_order_embedding.coe (neg_subsemigroup G) (λ _ _, iff.rfl)).lift_pair_quotient,
-  right_inv := λ _, by  simp [←quotient.mk_eq_mk'],
-  left_inv := λ x, begin
-    induction x using quotient.induction_on,
-    simp [←quotient.mk_eq_mk', subtype.ext_iff, mul_comm _ (Exists.some _)⁻¹, mul_assoc]
-  end,
-  map_mul' := map_mul _,
-  map_rel_iff' := λ _ _, mul_order_embedding.map_le_iff _ }
+-- @[to_additive neg_add_subsemigroup_iso_of_is_directed]
+-- noncomputable def neg_subsemigroup_iso_of_is_directed (G : Type*) [comm_group G] [partial_order G]
+--   [nakada_po G] [is_directed G (≤)] :
+--   quotient (mul_pair_setoid (neg_subsemigroup G)) ≃*o G :=
+-- { inv_fun := λ x, begin
+--     set a := (directed_of (≤) x 1).some with ha,
+--     refine quotient.mk' (⟨a⁻¹ * x, _⟩, ⟨a⁻¹, positive.negative_inv _⟩),
+--     { have hxa : x ≤ a,
+--       { rw ha,
+--         generalize_proofs ha',
+--         exact ha'.some_spec.left },
+--       have hx : x = a * (a * x⁻¹)⁻¹,
+--       { rw [mul_inv, inv_inv, mul_inv_cancel_left] },
+--       have : 1 ≤ (a⁻¹ * x)⁻¹,
+--       { rw [hx],
+--         simpa only [mul_inv_rev, inv_inv, mul_inv_cancel_comm_assoc,
+--                     le_inv_mul_iff_mul_le, mul_one] using hxa},
+--       simpa only [inv_inv] using (positive_of_one_le this).negative_inv },
+--     { refine positive_of_one_le _,
+--       rw ha,
+--       generalize_proofs ha',
+--       exact ha'.some_spec.right }
+--   end,
+--   to_fun := (out_mul_pair_quotient _).comp
+--     (mul_order_embedding.coe (neg_subsemigroup G) (λ _ _, iff.rfl)).lift_pair_quotient,
+--   right_inv := λ _, by  simp [←quotient.mk_eq_mk'],
+--   left_inv := λ x, begin
+--     induction x using quotient.induction_on,
+--     simp [←quotient.mk_eq_mk', subtype.ext_iff, mul_comm _ (Exists.some _)⁻¹, mul_assoc]
+--   end,
+--   map_mul' := map_mul _,
+--   map_rel_iff' := λ _ _, mul_order_embedding.map_le_iff _ }
+
+section pnpow
+
+variables {S : Type*} [has_mul S] (x : S) (p : ℕ+) (n : ℕ)
+
+-- use `x * pnpow_rec n x` and not `pnpow_rec n x * x` in the definition to make sure that
+-- definitional unfolding of `pnpow_rec` is blocked, to avoid deep recursion issues.
+/-- The fundamental power operation in a monoid. `pnpow_rec n a = a*a*...*a` n times.
+Use instead `a ^ n`,  which has better definitional behavior. -/
+def pnpow_rec {S : Type*} [has_mul S] : ℕ+ → S → S :=
+λ n, pnat.rec_on n id (λ _ f x, x * f x)
+
+/-- The fundamental scalar multiplication in an additive monoid. `pnsmul_rec n a = a+a+...+a` n
+times. Use instead `n • a`, which has better definitional behavior. -/
+def pnsmul_rec {S : Type*} [has_add S] : ℕ+ → S → S :=
+λ n, pnat.rec_on n id (λ _ f x, x + f x)
+
+attribute [to_additive pnsmul_rec] pnpow_rec
+
+instance has_mul.has_pow {M : Type*} [has_mul M] : has_pow M ℕ+ := ⟨λ x n, pnpow_rec n x⟩
+
+instance has_add.has_scalar_pnat {M : Type*} [has_add M] : has_scalar ℕ+ M :=
+⟨pnsmul_rec⟩
+
+attribute [to_additive has_add.has_scalar_pnat] has_mul.has_pow
+
+@[simp, to_additive zero_pnsmul] lemma pnpow_one : x ^ (1 : ℕ+) = x := rfl
+@[simp, to_additive add_one_pnsmul] lemma pnpow_add_one : x ^ (p + 1) = x * x ^ p :=
+begin
+  change (pnpow_rec (p + 1) x) = x * (pnpow_rec p x),
+  simp [pnpow_rec]
+end
+@[simp, to_additive add_one_pnsmul']
+lemma pnpow_add_one' {S : Type*} [semigroup S] (x : S) (p : ℕ+) : x ^ (p + 1) = x ^ p * x :=
+begin
+  refine pnat.rec_on p _ _,
+  { simp },
+  { intros n h,
+    rw [pnpow_add_one, pnpow_add_one, mul_assoc, ←h, ←pnpow_add_one] }
+end
+
+@[simp, to_additive pnsmul_eq_nsmul] lemma pnpow_eq_npow_coe {M : Type*} [monoid M] (x : M)
+  (p : ℕ+) : x ^ p = x ^ (p : ℕ) :=
+begin
+  refine pnat.rec_on p _ _;
+  simp [pow_succ'] {contextual := tt}
+end
+
+end pnpow
+
+@[simp] lemma nat.succ_pnat_zero : nat.succ_pnat 0 = 1 := rfl
+@[simp] lemma nat.succ_pnat_succ (n : ℕ) : n.succ.succ_pnat = (n.succ_pnat + 1) := rfl
+
+section quasiidempotent
+
+variables {M : Type*} [has_mul M]
+
+@[to_additive is_infinite_add_order]
+def is_infinite_order (x : M) : Prop :=
+∀ (i j : ℕ+) (h : i ≠ j), x ^ i ≠ x ^ j
+
+@[to_additive is_infinite_add_order_iff_not_is_of_fin_add_order]
+lemma is_infinite_order_iff_not_is_of_fin_order {M : Type*} [monoid M] {x : M} :
+  is_infinite_order x ↔ ¬ is_of_fin_order x :=
+begin
+  rw [is_infinite_order, is_of_fin_order],
+  split,
+  { rintros h ⟨n, hn, H⟩,
+    refine h 1 n.succ_pnat _ _,
+    { simpa [subtype.ext_iff, nat.succ_inj'] using hn.lt.ne },
+    { obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero (hn.lt.ne'),
+      have : k.succ.iterate ((*) x) 1 = 1 := H,
+      simp only [mul_one, mul_left_iterate] at this,
+      simp [pow_succ', this] } },
+  { contrapose!,
+    intro h,
+    have h' : ∃ (i j : ℕ), 0 < i ∧ 0 < j ∧ i ≠ j ∧ x ^ i = x ^ j,
+    { obtain ⟨⟨i, hi⟩, ⟨j, hj⟩, hne, h⟩ := h,
+      refine ⟨i, j, hi, hj, _, _⟩,
+      { simpa using hne },
+      { simpa using h } },
+    classical,
+    set i : ℕ := nat.find h' with hi,
+    have h'' := nat.find_spec h',
+    set j : ℕ := nat.find (nat.find_spec h') with hj,
+    have ipos : 0 < i := (nat.find_spec h'').left,
+    have jpos : 0 < j := (nat.find_spec h'').right.left,
+    have hne : i ≠ j := (nat.find_spec h'').right.right.left,
+    have hx : x ^ i = x ^ j := (nat.find_spec h'').right.right.right,
+    clear_value i j,
+    cases hne.lt_or_lt with hij hij,
+    { sorry },
+    { sorry } },
+end
+
+@[to_additive add_idempotent]
+def idempotent (x : M) : Prop := x * x = x
+
+@[to_additive quasi_add_idempotent]
+def quasi_idempotent (x : M) : Prop :=
+∃ (n' : ℕ) (n : ℕ+), n' = n ∧ set.inj_on (λ k : ℕ+, x ^ k) (set.Iic n) ∧
+  ∀ (k : ℕ+), n ≤ k → x ^ k = x ^ n
+
+namespace quasi_idempotent
+
+variables {x : M} (h : quasi_idempotent x) [hx : decidable_pred (λ (n' : ℕ), ∃ (n : ℕ+), (n' = n ∧
+  set.inj_on (λ k : ℕ+, x ^ k) (set.Iic n) ∧ ∀ (k : ℕ+), n ≤ k → x ^ k = x ^ n))]
+include h hx
+
+@[to_additive add_length_aux]
+def length_aux : ℕ :=
+nat.find h
+
+@[to_additive add_length_aux_spec]
+lemma length_aux_spec  : ∃ (n : ℕ+), (length_aux h = n ∧
+  (set.inj_on (λ k : ℕ+, x ^ k) (set.Iic n)) ∧ ∀ (k : ℕ+), n ≤ k → x ^ k = x ^ n) :=
+nat.find_spec h
+
+@[to_additive add_length]
+def length : ℕ+ :=
+⟨length_aux h, begin
+  obtain ⟨⟨n, hn⟩, h', -⟩ := length_aux_spec h,
+  rw h',
+  exact hn
+end⟩
+
+@[to_additive add_length_spec]
+lemma length_spec : ∃ (n : ℕ+), length h = n ∧
+  set.inj_on (λ k : ℕ+, x ^ k) (set.Iic n) ∧ ∀ (k : ℕ+), n ≤ k → x ^ k = x ^ n :=
+by simpa [length, subtype.ext_iff] using length_aux_spec h
+
+@[to_additive inj_on_pnsmul_le_length]
+lemma inj_on_pnpow_le_length : set.inj_on (pow x) (set.Iic (length h)) :=
+begin
+  obtain ⟨_, rfl, hl, -⟩ := length_spec h,
+  exact hl
+end
+
+@[to_additive pnsmul_eq_on_length_le]
+lemma pnpow_eq_on_length_le (k : ℕ+) (hk : length h ≤ k) : x ^ k = x ^ length h :=
+begin
+  obtain ⟨_, rfl, -, hl⟩ := length_spec h,
+  exact hl _ hk
+end
+
+lemma idempotent_of_length_eq_one (hl : length h = 1) :
+  idempotent x :=
+begin
+  convert h.pnpow_eq_on_length_le 2 _,
+  { simp [idempotent, hl, show (2 : ℕ+) = 1 + 1, from rfl] },
+  { simp [hl, ←pnat.coe_le_coe] }
+end
+
+end quasi_idempotent
+
+lemma quasi_add_idempotent.add_idempotent_of_add_length_eq_one {A : Type*} [has_add A] {x : A}
+  (h : quasi_add_idempotent x) [decidable_pred (λ (n' : ℕ), ∃ (n : ℕ+),
+    n' = ↑n ∧ set.inj_on (λ (k : ℕ+), k • x) (set.Iic n) ∧ ∀ (k : ℕ+), n ≤ k → k • x = n • x)]
+    (hl : h.add_length = 1) :
+  add_idempotent x :=
+begin
+  convert h.pnsmul_eq_on_length_le 2 _,
+  { simp [add_idempotent, hl, show (2 : ℕ+) = 1 + 1, from rfl] },
+  { simp [hl, ←pnat.coe_le_coe] }
+end
+
+attribute [to_additive quasi_add_idempotent.add_idempotent_of_add_length_eq_one]
+  quasi_idempotent.idempotent_of_length_eq_one
+
+end quasiidempotent
 
 end page184

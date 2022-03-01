@@ -1234,12 +1234,12 @@ theorem lsub_const {ι} [hι : nonempty ι] (o : ordinal) : lsub (λ _ : ι, o) 
 sup_const o.succ
 
 theorem lsub_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f ⊆ set.range g) : lsub f ≤ lsub g :=
+  (h : set.range f ⊆ set.range g) : lsub.{u (max v w)} f ≤ lsub.{v (max u w)} g :=
 sup_le_of_range_subset (by convert set.image_subset _ h; apply set.range_comp)
 
 theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f = set.range g) : lsub f = lsub g :=
-(lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset h.ge)
+  (h : set.range f = set.range g) : lsub.{u (max v w)} f = lsub.{v (max u w)} g :=
+(lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset.{v u w} h.ge)
 
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
@@ -1370,6 +1370,23 @@ begin
   rw [←succ_inj, h],
   exact lsub_typein _
 end
+
+theorem bsup_comp {o o' : ordinal} {f : Π a < o, ordinal}
+  (hf : ∀ {i j} (hi) (hj), i ≤ j → f i hi ≤ f j hj) {g : Π a < o', ordinal} (hg : blsub o' g = o) :
+  bsup o' (λ a ha, f (g a ha) (by { rw ←hg, apply lt_blsub })) = bsup o f :=
+begin
+  apply le_antisymm;
+  refine bsup_le.2 (λ i hi, _),
+  { apply le_bsup },
+  { rw [←hg, lt_blsub_iff] at hi,
+    rcases hi with ⟨j, hj, hj'⟩,
+    exact (hf _ _ hj').trans (le_bsup _ _ _) }
+end
+
+theorem blsub_comp {o o' : ordinal} {f : Π a < o, ordinal}
+  (hf : ∀ {i j} (hi) (hj), i ≤ j → f i hi ≤ f j hj) {g : Π a < o', ordinal} (hg : blsub o' g = o) :
+  blsub o' (λ a ha, f (g a ha) (by { rw ←hg, apply lt_blsub })) = blsub o f :=
+@bsup_comp o _ (λ a ha, (f a ha).succ) (λ i j _ _ h, succ_le_succ.2 (hf _ _ h)) g hg
 
 end ordinal
 

@@ -561,7 +561,7 @@ Probability Theory:
     probability generating functions: ''
     applications of probability generating functions to sums of independent random variables: ''
   Convergence of series of random variables:
-    convergence in probability: ''
+    convergence in probability: 'measure_theory.tendsto_in_measure'
     $\mathrm{L}^p$ convergence: ''
     almost surely convergence: 'measure_theory.measure.ae'
     Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'

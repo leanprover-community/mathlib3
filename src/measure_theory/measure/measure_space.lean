@@ -891,6 +891,8 @@ by rw [map, dif_neg hf, linear_map.zero_apply]
 @[simp] lemma map_id : map id μ = μ :=
 ext $ λ s, map_apply measurable_id
 
+@[simp] lemma map_id' : map (λ x, x) μ = μ := map_id
+
 lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
   map g (map f μ) = map (g ∘ f) μ :=
 ext $ λ s hs,

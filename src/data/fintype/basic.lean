@@ -169,6 +169,9 @@ by simp [eq_univ_iff_forall, finset.nonempty]
 lemma compl_singleton (a : α) : ({a} : finset α)ᶜ = univ.erase a :=
 by rw [compl_eq_univ_sdiff, sdiff_singleton_eq_erase]
 
+lemma insert_inj_on' (s : finset α) : set.inj_on (λ a, insert a s) (sᶜ : finset α) :=
+by { rw coe_compl, exact s.insert_inj_on }
+
 end boolean_algebra
 
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :

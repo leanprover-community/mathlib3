@@ -41,10 +41,7 @@ begin
   have := le_of_abs_le (sin_bound $ show |x| ≤ 1, by rwa [hx]),
   rw [sub_le_iff_le_add', hx] at this,
   apply this.trans_lt,
-  rw [sub_add],
-  apply lt_of_lt_of_le _ (sub_zero x).le,
-  apply sub_lt_sub_left,
-  rw [sub_pos, div_eq_mul_inv (x ^ 3)],
+  rw [sub_add, sub_lt_self_iff, sub_pos, div_eq_mul_inv (x ^ 3)],
   refine mul_lt_mul' _ (by norm_num) (by norm_num) (pow_pos h 3),
   apply pow_le_pow_of_le_one h.le h',
   norm_num
@@ -61,11 +58,8 @@ begin
   have := neg_le_of_abs_le (sin_bound $ show |x| ≤ 1, by rwa [hx]),
   rw [le_sub_iff_add_le, hx] at this,
   refine lt_of_lt_of_le _ this,
-  rw [add_comm, sub_add, sub_neg_eq_add],
-  apply sub_lt_sub_left,
-  apply add_lt_of_lt_sub_left,
   have : x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 * 12⁻¹ := by norm_num [div_eq_mul_inv, ← mul_sub],
-  rw this,
+  rw [add_comm, sub_add, sub_neg_eq_add, sub_lt_sub_iff_left, ←lt_sub_iff_add_lt', this],
   refine mul_lt_mul' _ (by norm_num) (by norm_num) (pow_pos h 3),
   apply pow_le_pow_of_le_one h.le h',
   norm_num
@@ -75,10 +69,7 @@ end
 /-- The derivative of `tan x - x` is `1/(cos x)^2 - 1` away from the zeroes of cos. -/
 lemma deriv_tan_sub_id (x : ℝ) (h: cos x ≠ 0) :
     deriv (λ y : ℝ, tan y - y) x = 1 / cos x ^ 2 - 1 :=
-begin
-  apply has_deriv_at.deriv,
-  simpa using (has_deriv_at_tan h).add (has_deriv_at_id x).neg
-end
+has_deriv_at.deriv $ by simpa using (has_deriv_at_tan h).add (has_deriv_at_id x).neg
 
 private def U := Ico 0 (π/2)
 
@@ -86,16 +77,16 @@ private def U := Ico 0 (π/2)
 
 This is proved by checking that the function `tan x - x` vanishes
 at zero and has non-negative derivative. -/
-theorem lt_tan (x : ℝ) (h1 : 0 < x) (h2 : x < π/2): x < tan x :=
+theorem lt_tan (x : ℝ) (h1 : 0 < x) (h2 : x < π / 2): x < tan x :=
 begin
   have intU : interior U = Ioo 0 (π/2) := interior_Ico,
 
-  have cos_pos : ∀ y : ℝ, (0 ≤ y) → (y < π/2) → (0 < cos y) := by
+  have cos_pos : ∀ y : ℝ, (0 ≤ y) → (y < π/2) → (0 < cos y),
   { intros y y1 y2,
     apply cos_pos_of_mem_Ioo,
     split; linarith, },
 
-  have sin_pos : ∀ y : ℝ, (0 < y) → (y < π/2) → (0 < sin y) := by
+  have sin_pos : ∀ y : ℝ, 0 < y → y < π / 2 → 0 < sin y,
   { intros y hy1 hy2,
     apply sin_pos_of_pos_of_lt_pi hy1,
     apply lt_trans hy2,
@@ -113,13 +104,11 @@ begin
   have tan_minus_id_cts : continuous_on (λ y : ℝ, tan y - y) U :=
     tan_cts_U.sub continuous_on_id,
 
-  have deriv_pos : (∀ y : ℝ, y ∈ interior U
-    → 0 < deriv (λ y' : ℝ, tan y' - y') y),
+  have deriv_pos : ∀ y : ℝ, y ∈ interior U → 0 < deriv (λ y' : ℝ, tan y' - y') y,
   { intros y hy,
     rw [intU, Ioo] at hy,
     have := (cos_pos y (le_of_lt hy.1) hy.2).ne',
-    rw (deriv_tan_sub_id y this),
-    simp only [one_div, gt_iff_lt, sub_pos],
+    simp only [deriv_tan_sub_id y this, one_div, gt_iff_lt, sub_pos],
     have bd2 : cos y ^ 2 < 1,
     { apply lt_of_le_of_ne y.cos_sq_le_one,
       rw cos_sq',
@@ -127,17 +116,13 @@ begin
         using (sin_pos y hy.left hy.right).ne' },
     rwa [lt_inv, inv_one],
     { exact zero_lt_one },
-    { rwa [sq,mul_self_pos] }, },
-
-  have mon:= convex.strict_mono_on_of_deriv_pos
-    (convex_Ico 0 (π/2)) tan_minus_id_cts deriv_pos,
-
-  have zero_in_U: (0:ℝ) ∈ U,
+    { rwa [sq, mul_self_pos] } },
+  have mono := convex.strict_mono_on_of_deriv_pos (convex_Ico 0 (π / 2)) tan_minus_id_cts deriv_pos,
+  have zero_in_U : (0 : ℝ) ∈ U,
   { split; linarith },
-  have x_in_U : (x ∈ U),
+  have x_in_U : x ∈ U,
   { split; linarith },
-  have w := mon zero_in_U x_in_U h1,
-  simpa only [tan_zero, sub_zero, sub_pos] using w,
+  simpa only [tan_zero, sub_zero, sub_pos] using mono zero_in_U x_in_U h1,
 end
 
 end real

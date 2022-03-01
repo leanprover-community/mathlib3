@@ -187,6 +187,17 @@ begin
     exact neg_one_pow_of_even (totient_even (lt_of_le_of_ne h1 (λ h, hn (pnat.coe_inj.1 h.symm)))) }
 end
 
+/-- If `K` is linearly ordered, the norm of a primitive root is `1`
+if `n` is odd. -/
+lemma norm_eq_one_of_linearly_ordered {K : Type*} [linear_ordered_field K] [algebra K L]
+  (hodd : odd (n : ℕ)) : norm K ζ = 1 :=
+begin
+  haveI := ne_zero.of_no_zero_smul_divisors K L n,
+  have hz := congr_arg (norm K) ((is_primitive_root.iff_def _ n).1 hζ).1,
+  rw [←(algebra_map K L).map_one , norm_algebra_map, one_pow, map_pow, ←one_pow ↑n] at hz,
+  exact strict_mono.injective hodd.strict_mono_pow hz
+end
+
 lemma norm_of_cyclotomic_irreducible [is_cyclotomic_extension {n} K L]
   (hirr : irreducible (cyclotomic n K)) : norm K ζ = ite (n = 2) (-1) 1 :=
 begin

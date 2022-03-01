@@ -35,12 +35,10 @@ begin
   exact congr_arg C hp
 end
 
-lemma ne_zero_of_monic_of_zero_ne_one (hp : monic p) (h : (0 : R) ≠ 1) :
-  p ≠ 0 := mt (congr_arg leading_coeff) $ by rw [monic.def.1 hp, leading_coeff_zero]; cc
-
 lemma ne_zero_of_ne_zero_of_monic (hp : p ≠ 0) (hq : monic q) : q ≠ 0 :=
 begin
-  intro h, rw [h, monic.def, leading_coeff_zero] at hq,
+  rintro rfl,
+  rw [monic.def, leading_coeff_zero] at hq,
   rw [← mul_one p, ← C_1, ← hq, C_0, mul_zero] at hp,
   exact hp rfl
 end

@@ -385,10 +385,9 @@ end
 theorem is_normal.is_fs {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {a o} (ha : is_limit a)
   {g} (hg : is_fs a o g) : is_fs (f a) o (λ b hb, f (g b hb)) :=
 begin
-  refine ⟨_, λ i j _ _ h, hf.strict_mono (hg.2.1 _ _ h), _⟩, {
-    rw [←hg.cof_eq, ord_le_ord],
-    rcases exists_lsub_cof (f a) with ⟨ι, f', hf', hι⟩,
-    rw ←hι,
+  refine ⟨_, λ i j _ _ h, hf.strict_mono (hg.2.1 _ _ h), _⟩,
+  { rcases exists_lsub_cof (f a) with ⟨ι, f', hf', hι⟩,
+    rw [←hg.cof_eq, ord_le_ord, ←hι],
     suffices : lsub.{u u} (λ i, (Inf {b : ordinal | f' i ≤ f b})) = a,
     { rw ←this,
       apply cof_lsub_le },
@@ -402,11 +401,9 @@ begin
     { have := hf.strict_mono hb,
       rw [←hf', lt_lsub_iff] at this,
       cases this with i hi,
-      refine lt_of_le_of_lt _ (lt_lsub _ i),
-      rw le_cInf_iff'',
-      { exact λ c hc, hf.strict_mono.le_iff_le.1 (hi.trans hc) },
-      { rcases H i with ⟨b, _, hb⟩,
-        exact ⟨b, hb⟩ } } },
+      rcases H i with ⟨b, _, hb⟩,
+      exact lt_of_le_of_lt ((le_cInf_iff'' ⟨b, hb⟩).2
+        (λ c hc, hf.strict_mono.le_iff_le.1 (hi.trans hc))) (lt_lsub _ i) } },
   { rw @blsub_comp.{u u u} a _ (λ b _, f b) (λ i j hi hj h, hf.strict_mono.monotone h) g hg.2.2,
     exact is_normal.blsub_eq.{u u} hf ha }
 end

@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import linear_algebra.dimension
 import ring_theory.noetherian
-import ring_theory.algebra_tower
 
 /-!
 # Flat modules
@@ -46,7 +44,7 @@ This result is not yet formalised.
 
 -/
 
-universe variables u v
+universes u v
 
 namespace module
 open function (injective)
@@ -61,7 +59,7 @@ class flat (R : Type u) (M : Type v) [comm_ring R] [add_comm_group M] [module R 
 
 namespace flat
 
-open tensor_product linear_map submodule
+open tensor_product linear_map _root_.submodule
 
 instance self (R : Type u) [comm_ring R] : flat R R :=
 ⟨begin

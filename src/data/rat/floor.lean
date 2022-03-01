@@ -3,7 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Kappelmann
 -/
-import algebra.floor
+import algebra.order.floor
 import tactic.field_simp
 
 /-!
@@ -38,7 +38,7 @@ protected theorem le_floor {z : ℤ} : ∀ {r : ℚ}, z ≤ rat.floor r ↔ (z :
 end
 
 instance : floor_ring ℚ :=
-{ floor := rat.floor, le_floor := @rat.le_floor }
+floor_ring.of_floor ℚ rat.floor $ λ a z, rat.le_floor.symm
 
 protected lemma floor_def {q : ℚ} : ⌊q⌋ = q.num / q.denom := by { cases q, refl }
 

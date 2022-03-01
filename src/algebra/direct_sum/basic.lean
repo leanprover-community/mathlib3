@@ -3,7 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.dfinsupp
+import data.dfinsupp.basic
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
 
@@ -31,8 +31,11 @@ variables (ι : Type v) [dec_ι : decidable_eq ι] (β : ι → Type w)
 /-- `direct_sum β` is the direct sum of a family of additive commutative monoids `β i`.
 
 Note: `open_locale direct_sum` will enable the notation `⨁ i, β i` for `direct_sum β`. -/
-@[derive [has_coe_to_fun, add_comm_monoid, inhabited]]
+@[derive [add_comm_monoid, inhabited]]
 def direct_sum [Π i, add_comm_monoid (β i)] : Type* := Π₀ i, β i
+
+instance [Π i, add_comm_monoid (β i)] : has_coe_to_fun (direct_sum ι β) (λ _, Π i : ι, β i) :=
+dfinsupp.has_coe_to_fun
 
 localized "notation `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
 
@@ -73,6 +76,25 @@ def mk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →+ ⨁ i, β i :=
 /-- `of i` is the natural inclusion map from `β i` to `⨁ i, β i`. -/
 def of (i : ι) : β i →+ ⨁ i, β i :=
 dfinsupp.single_add_hom β i
+
+@[simp] lemma of_eq_same (i : ι) (x : β i) : (of _ i x) i = x :=
+dfinsupp.single_eq_same
+
+lemma of_eq_of_ne (i j : ι) (x : β i) (h : i ≠ j) : (of _ i x) j = 0 :=
+dfinsupp.single_eq_of_ne h
+
+@[simp] lemma support_zero [Π (i : ι) (x : β i), decidable (x ≠ 0)] :
+  (0 : ⨁ i, β i).support = ∅ := dfinsupp.support_zero
+
+@[simp] lemma support_of [Π (i : ι) (x : β i), decidable (x ≠ 0)]
+  (i : ι) (x : β i) (h : x ≠ 0) :
+  (of _ i x).support = {i} := dfinsupp.support_single_ne_zero h
+
+lemma support_of_subset [Π (i : ι) (x : β i), decidable (x ≠ 0)] {i : ι} {b : β i} :
+  (of _ i b).support ⊆ {i} := dfinsupp.support_single_subset
+
+lemma sum_support_of [Π (i : ι) (x : β i), decidable (x ≠ 0)] (x : ⨁ i, β i) :
+  ∑ i in x.support, of β i (x i) = x := dfinsupp.sum_single
 
 variables {β}
 
@@ -161,7 +183,7 @@ omit dec_ι
 protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique ι] :
   (⨁ (_ : ι), M) ≃+ M :=
 { to_fun := direct_sum.to_add_monoid (λ _, add_monoid_hom.id M),
-  inv_fun := of (λ _, M) (default ι),
+  inv_fun := of (λ _, M) default,
   left_inv := λ x, direct_sum.induction_on x
     (by rw [add_monoid_hom.map_zero, add_monoid_hom.map_zero])
     (λ p x, by rw [unique.default_eq p, to_add_monoid_of]; refl)
@@ -169,13 +191,33 @@ protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique 
   right_inv := λ x, to_add_monoid_of _ _ _,
   ..direct_sum.to_add_monoid (λ _, add_monoid_hom.id M) }
 
+/-- The canonical embedding from `⨁ i, A i` to `M` where `A` is a collection of `add_submonoid M`
+indexed by `ι`-/
+def add_submonoid_coe {M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  (A : ι → add_submonoid M) : (⨁ i, A i) →+ M :=
+to_add_monoid (λ i, (A i).subtype)
+
+@[simp] lemma add_submonoid_coe_of {M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  (A : ι → add_submonoid M) (i : ι) (x : A i) :
+  add_submonoid_coe A (of (λ i, A i) i x) = x :=
+to_add_monoid_of _ _ _
+
+lemma coe_of_add_submonoid_apply {M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  {A : ι → add_submonoid M} (i j : ι) (x : A i) :
+  (of _ i x j : M) = if i = j then x else 0 :=
+begin
+  obtain rfl | h := decidable.eq_or_ne i j,
+  { rw [direct_sum.of_eq_same, if_pos rfl], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_submonoid.coe_zero], },
+end
+
 /-- The `direct_sum` formed by a collection of `add_submonoid`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →+ M` is bijective.
 
 See `direct_sum.add_subgroup_is_internal` for the same statement about `add_subgroup`s. -/
 def add_submonoid_is_internal {M : Type*} [decidable_eq ι] [add_comm_monoid M]
   (A : ι → add_submonoid M) : Prop :=
-function.bijective (direct_sum.to_add_monoid (λ i, (A i).subtype) : (⨁ i, A i) →+ M)
+function.bijective (add_submonoid_coe A)
 
 lemma add_submonoid_is_internal.supr_eq_top {M : Type*} [decidable_eq ι] [add_comm_monoid M]
   (A : ι → add_submonoid M)
@@ -185,13 +227,33 @@ begin
   exact function.bijective.surjective h,
 end
 
+/-- The canonical embedding from `⨁ i, A i` to `M`  where `A` is a collection of `add_subgroup M`
+indexed by `ι`-/
+def add_subgroup_coe {M : Type*} [decidable_eq ι] [add_comm_group M]
+  (A : ι → add_subgroup M) : (⨁ i, A i) →+ M :=
+to_add_monoid (λ i, (A i).subtype)
+
+@[simp] lemma add_subgroup_coe_of {M : Type*} [decidable_eq ι] [add_comm_group M]
+  (A : ι → add_subgroup M) (i : ι) (x : A i) :
+  add_subgroup_coe A (of (λ i, A i) i x) = x :=
+to_add_monoid_of _ _ _
+
+lemma coe_of_add_subgroup_apply {M : Type*} [decidable_eq ι] [add_comm_group M]
+  {A : ι → add_subgroup M} (i j : ι) (x : A i) :
+  (of _ i x j : M) = if i = j then x else 0 :=
+begin
+  obtain rfl | h := decidable.eq_or_ne i j,
+  { rw [direct_sum.of_eq_same, if_pos rfl], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, add_subgroup.coe_zero], },
+end
+
 /-- The `direct_sum` formed by a collection of `add_subgroup`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →+ M` is bijective.
 
 See `direct_sum.submodule_is_internal` for the same statement about `submodules`s. -/
 def add_subgroup_is_internal {M : Type*} [decidable_eq ι] [add_comm_group M]
   (A : ι → add_subgroup M) : Prop :=
-function.bijective (direct_sum.to_add_monoid (λ i, (A i).subtype) : (⨁ i, A i) →+ M)
+function.bijective (add_subgroup_coe A)
 
 lemma add_subgroup_is_internal.to_add_submonoid
   {M : Type*} [decidable_eq ι] [add_comm_group M] (A : ι → add_subgroup M) :

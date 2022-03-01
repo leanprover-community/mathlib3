@@ -43,7 +43,7 @@ Instances of these typeclasses mostly involving `ring_hom.id` are also provided:
 variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
 variables [semiring R₁] [semiring R₂] [semiring R₃]
 
-/-- Class that expresses the fact that three ring equivs form a composition triple. This is
+/-- Class that expresses the fact that three ring homomorphisms form a composition triple. This is
 used to handle composition of semilinear maps. -/
 class ring_hom_comp_triple (σ₁₂ : R₁ →+* R₂) (σ₂₃ : R₂ →+* R₃)
   (σ₁₃ : out_param (R₁ →+* R₃)) : Prop :=
@@ -61,8 +61,8 @@ ring_hom.congr_fun comp_eq x
 
 end ring_hom_comp_triple
 
-/-- Class that expresses the fact that two ring equivs are inverses of each other. This is used
-to handle `symm` for semilinear equivalences. -/
+/-- Class that expresses the fact that two ring homomorphisms are inverses of each other. This is
+used to handle `symm` for semilinear equivalences. -/
 class ring_hom_inv_pair (σ : R₁ →+* R₂) (σ' : out_param (R₂ →+* R₁)) : Prop :=
 (comp_eq : σ'.comp σ = ring_hom.id R₁)
 (comp_eq₂ : σ.comp σ' = ring_hom.id R₂)

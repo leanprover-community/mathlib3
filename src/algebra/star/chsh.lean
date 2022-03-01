@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.star.basic
-import algebra.algebra.ordered
 import analysis.special_functions.pow
 
 /-!
@@ -132,8 +131,8 @@ begin
       simp only [mul_comm _ (2 : R), mul_comm _ (4 : R),
         mul_left_comm _ (2 : R), mul_left_comm _ (4 : R)],
       abel,
-      simp only [neg_mul_eq_neg_mul_symm, mul_one, int.cast_bit0, one_mul, int.cast_one,
-        gsmul_eq_mul, int.cast_neg],
+      simp only [neg_mul, mul_one, int.cast_bit0, one_mul, int.cast_one,
+        zsmul_eq_mul, int.cast_neg],
       simp only [←mul_assoc, ←add_assoc],
       norm_num, },
     have idem' : P = (1 / 4 : ℝ) • (P * P),
@@ -172,13 +171,9 @@ we prepare some easy lemmas about √2.
 -- defeated me. Thanks for the rescue from Shing Tak Lam!
 lemma tsirelson_inequality_aux : √2 * √2 ^ 3 = √2 * (2 * √2⁻¹ + 4 * (√2⁻¹ * 2⁻¹)) :=
 begin
-  ring_nf,
-  rw [mul_assoc, inv_mul_cancel, real.sqrt_eq_rpow, ←real.rpow_nat_cast, ←real.rpow_mul],
-  { norm_num,
-    rw show (2 : ℝ) ^ (2 : ℝ) = (2 : ℝ) ^ (2 : ℕ), by { rw ←real.rpow_nat_cast, norm_num },
-    norm_num },
-  { norm_num, },
-  { norm_num, },
+  ring_nf, field_simp [(@real.sqrt_pos 2).2 (by norm_num)],
+  convert congr_arg (^2) (@real.sq_sqrt 2 (by norm_num)) using 1;
+    simp only [← pow_mul]; norm_num,
 end
 
 lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
@@ -205,7 +200,7 @@ lemma tsirelson_inequality
 begin
   -- abel will create `ℤ` multiplication. We will `simp` them away to `ℝ` multiplication.
   have M : ∀ (m : ℤ) (a : ℝ) (x : R), m • a • x = ((m : ℝ) * a) • x :=
-    λ m a x, by rw [gsmul_eq_smul_cast ℝ, ← mul_smul],
+    λ m a x, by rw [zsmul_eq_smul_cast ℝ, ← mul_smul],
   let P := √2⁻¹ • (A₁ + A₀) - B₀,
   let Q := √2⁻¹ • (A₁ - A₀) + B₁,
   have w : √2^3 • 1 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁ = √2⁻¹ • (P^2 + Q^2),
@@ -222,13 +217,13 @@ begin
     abel,
     -- all terms coincide, but the last one. Simplify all other terms
     simp only [M],
-    simp only [neg_mul_eq_neg_mul_symm, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
+    simp only [neg_mul, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,
       int.cast_one, one_smul, int.cast_neg, add_right_inj, neg_smul, ← add_smul],
     -- just look at the coefficients now:
     congr,
     exact mul_left_cancel₀ (by norm_num) tsirelson_inequality_aux, },
-  have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2), {
-    have P_sa : star P = P,
+  have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2),
+  { have P_sa : star P = P,
     { dsimp [P],
       simp only [star_smul, star_add, star_sub, star_id_of_comm,
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa], },

@@ -44,12 +44,11 @@ val_between v as 0 as.length
 lemma val_between_eq_of_le {as : list int} {l : nat} :
   ∀ m, as.length ≤ l + m →
   val_between v as l m = val_between v as l (as.length - l)
-| 0 h1 :=
-  begin rw (nat.sub_eq_zero_iff_le.elim_right _), apply h1 end
+| 0 h1 := by { rw add_zero at h1, rw tsub_eq_zero_iff_le.mpr h1 }
 | (m+1) h1 :=
   begin
     rw le_iff_eq_or_lt at h1, cases h1,
-    { rw [h1, add_comm l, nat.add_sub_cancel] },
+    { rw [h1, add_comm l, add_tsub_cancel_right] },
     have h2 :  list.length as ≤ l + m,
     { rw ← nat.lt_succ_iff, apply h1 },
     simpa [ get_eq_default_of_le _ h2, zero_mul, add_zero,
@@ -201,8 +200,8 @@ begin
       apply ne_of_lt;
       rw nat.lt_iff_add_one_le;
       exact h3 },
-    { refine le_trans (le_max_right _ _) le_add_sub },
-    { refine le_trans (le_max_left _ _) le_add_sub } }
+    { refine le_trans (le_max_right _ _) le_add_tsub },
+    { refine le_trans (le_max_left _ _) le_add_tsub } }
 end
 
 open_locale omega
@@ -229,19 +228,17 @@ lemma val_except_add_eq (n : nat) {as : list int} :
   (val_except n v as) + ((get n as) * (v n)) = val v as :=
 begin
   unfold val_except, unfold val,
-  by_cases h1 : n + 1 ≤ as.length,
+  cases le_total (n + 1) as.length with h1 h1,
   { have h4 := @val_between_add_val_between v as 0 (n+1) (as.length - (n+1)),
     have h5 : n + 1 + (as.length - (n + 1)) = as.length,
-    { rw [add_comm, nat.sub_add_cancel h1] },
+    { rw [add_comm, tsub_add_cancel_of_le h1] },
     rw h5 at h4, apply eq.trans _ h4,
      simp only [val_between, zero_add], ring },
-  have h2 : (list.length as - (n + 1)) = 0,
-  { apply nat.sub_eq_zero_of_le
-    (le_trans (not_lt.1 h1) (nat.le_add_right _ _)) },
+  have h2 : list.length as - (n + 1) = 0,
+  { exact tsub_eq_zero_iff_le.mpr h1 },
   have h3 : val_between v as 0 (list.length as) =
             val_between v as 0 (n + 1),
-  { simpa only [val] using @val_eq_of_le v as (n+1)
-      (le_trans (not_lt.1 h1) (nat.le_add_right _ _)) },
+  { simpa only [val] using @val_eq_of_le v as (n+1) h1 },
   simp only [add_zero, val_between, zero_add, h2, h3]
 end
 

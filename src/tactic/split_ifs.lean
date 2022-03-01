@@ -10,7 +10,7 @@ import tactic.hint
 open expr tactic
 
 namespace tactic
-open interactive
+setup_tactic_parser
 
 meta def find_if_cond : expr → option expr | e :=
 e.fold none $ λ e _ acc, acc <|> do
@@ -25,12 +25,12 @@ find_if_cond c <|> return c
 meta def find_if_cond_at (at_ : loc) : tactic (option expr) := do
 lctx ← at_.get_locals, lctx ← lctx.mmap infer_type, tgt ← target,
 let es := if at_.include_goal then tgt::lctx else lctx,
-return $ find_if_cond $ es.foldr app (default expr)
+return $ find_if_cond $ es.foldr app default
 
 run_cmd mk_simp_attr `split_if_reduction
 run_cmd add_doc_string `simp_attr.split_if_reduction "Simp set for if-then-else statements"
 
-attribute [split_if_reduction] if_pos if_neg dif_pos dif_neg
+attribute [split_if_reduction] if_pos if_neg dif_pos dif_neg if_congr
 
 meta def reduce_ifs_at (at_ : loc) : tactic unit := do
 sls ← get_user_simp_lemmas `split_if_reduction,

@@ -132,12 +132,12 @@ do old ← ident,
     fail ("declaration " ++ to_string old ++ " not found"),
   let doc := λ al : name, meta_info.doc_string.get_or_else $
     "**Alias** of `" ++ to_string old ++ "`.",
-  do {
-    tk "←" <|> tk "<-",
+  do
+  { tk "←" <|> tk "<-",
     aliases ← many ident,
     ↑(aliases.mmap' $ λ al, alias_direct d (doc al) al) } <|>
-  do {
-    tk "↔" <|> tk "<->",
+  do
+  { tk "↔" <|> tk "<->",
     (left, right) ←
       mcond ((tk "." *> tk "." >> pure tt) <|> pure ff)
         (make_left_right old <|> fail "invalid name for automatic name generation")

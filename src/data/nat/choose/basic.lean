@@ -61,7 +61,7 @@ by induction n; simp [*, choose, add_comm]
 /- The `n+1`-st triangle number is `n` more than the `n`-th triangle number -/
 lemma triangle_succ (n : ℕ) : (n + 1) * ((n + 1) - 1) / 2 = n * (n - 1) / 2 + n :=
 begin
-  rw [← add_mul_div_left, mul_comm 2 n, ← mul_add, nat.add_sub_cancel, mul_comm],
+  rw [← add_mul_div_left, mul_comm 2 n, ← mul_add, add_tsub_cancel_right, mul_comm],
   cases n; refl, apply zero_lt_succ
 end
 
@@ -78,6 +78,9 @@ lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | (n + 1)       0 hk := by simp; exact dec_trivial
 | (n + 1) (k + 1) hk := by rw choose_succ_succ;
     exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (nat.zero_le _)
+
+lemma choose_eq_zero_iff {n k : ℕ} : n.choose k = 0 ↔ n < k :=
+⟨λ h, lt_of_not_ge (mt nat.choose_pos h.symm.not_lt), nat.choose_eq_zero_of_lt⟩
 
 lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ k) * succ k
 | 0             0 := dec_trivial
@@ -103,9 +106,9 @@ begin
       simp [factorial_succ, mul_comm, mul_left_comm, mul_assoc],
     have h₃ : k * n! ≤ n * n! := nat.mul_le_mul_right _ (le_of_succ_le_succ hk),
     rw [choose_succ_succ, add_mul, add_mul, succ_sub_succ, h, h₁, h₂, add_mul,
-      nat.mul_sub_right_distrib, factorial_succ, ← nat.add_sub_assoc h₃, add_assoc, ← add_mul,
-      nat.add_sub_cancel_left, add_comm] },
-  { simp [hk₁, mul_comm, choose, nat.sub_self] }
+      tsub_mul, factorial_succ, ← add_tsub_assoc_of_le h₃, add_assoc, ← add_mul,
+      add_tsub_cancel_left, add_comm] },
+  { simp [hk₁, mul_comm, choose, tsub_self] }
 end
 
 lemma choose_mul {n k s : ℕ} (hkn : k ≤ n) (hsk : s ≤ k) :
@@ -122,10 +125,10 @@ begin
     ... = n!
         : by rw [choose_mul_factorial_mul_factorial hsk, choose_mul_factorial_mul_factorial hkn]
     ... = n.choose s * s! * ((n - s).choose (k - s) * (k - s)! * (n - s - (k - s))!)
-        : by rw [choose_mul_factorial_mul_factorial (nat.sub_le_sub_right hkn _),
+        : by rw [choose_mul_factorial_mul_factorial (tsub_le_tsub_right hkn _),
               choose_mul_factorial_mul_factorial (hsk.trans hkn)]
     ... = n.choose s * (n - s).choose (k - s) * ((n - k)! * (k - s)! * s!)
-        : by rw [sub_sub_sub_cancel_right' hsk, mul_assoc, mul_left_comm s!, mul_assoc,
+        : by rw [tsub_tsub_tsub_cancel_right hsk, mul_assoc, mul_left_comm s!, mul_assoc,
               mul_comm (k - s)!, mul_comm s!, mul_right_comm, ←mul_assoc]
 end
 
@@ -137,11 +140,11 @@ begin
 end
 
 lemma add_choose (i j : ℕ) : (i + j).choose j = (i + j)! / (i! * j!) :=
-by rw [choose_eq_factorial_div_factorial (nat.le_add_left j i), nat.add_sub_cancel, mul_comm]
+by rw [choose_eq_factorial_div_factorial (nat.le_add_left j i), add_tsub_cancel_right, mul_comm]
 
 lemma add_choose_mul_factorial_mul_factorial (i j : ℕ) : (i + j).choose j * i! * j! = (i + j)! :=
 by rw [← choose_mul_factorial_mul_factorial (nat.le_add_left _ _),
-  nat.add_sub_cancel, mul_right_comm]
+  add_tsub_cancel_right, mul_right_comm]
 
 theorem factorial_mul_factorial_dvd_factorial {n k : ℕ} (hk : k ≤ n) : k! * (n - k)! ∣ n! :=
 by rw [←choose_mul_factorial_mul_factorial hk, mul_assoc]; exact dvd_mul_left _ _
@@ -150,15 +153,15 @@ lemma factorial_mul_factorial_dvd_factorial_add (i j : ℕ) :
   i! * j! ∣ (i + j)! :=
 begin
   convert factorial_mul_factorial_dvd_factorial (le.intro rfl),
-  rw nat.add_sub_cancel_left
+  rw add_tsub_cancel_left
 end
 
 @[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
 by rw [choose_eq_factorial_div_factorial hk, choose_eq_factorial_div_factorial (nat.sub_le _ _),
-  nat.sub_sub_self hk, mul_comm]
+  tsub_tsub_cancel_of_le hk, mul_comm]
 
 lemma choose_symm_of_eq_add {n a b : ℕ} (h : n = a + b) : nat.choose n a = nat.choose n b :=
-by { convert nat.choose_symm (nat.le_add_left _ _), rw nat.add_sub_cancel}
+by { convert nat.choose_symm (nat.le_add_left _ _), rw add_tsub_cancel_right}
 
 lemma choose_symm_add {a b : ℕ} : choose (a+b) a = choose (a+b) b :=
 choose_symm_of_eq_add rfl
@@ -171,7 +174,7 @@ lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k
 begin
   have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
     rw [← right_distrib, ← choose_succ_succ, succ_mul_choose_eq],
-  rw [← sub_eq_of_eq_add_rev e, mul_comm, ← nat.mul_sub_left_distrib, add_sub_add_right_eq_sub']
+  rw [← tsub_eq_of_eq_add_rev e, mul_comm, ← mul_tsub, add_tsub_add_eq_tsub_right]
 end
 
 @[simp] lemma choose_succ_self_right : ∀ (n:ℕ), (n+1).choose n = n+1
@@ -184,7 +187,7 @@ begin
   induction k with k ih, { simp },
   obtain hk | hk := le_or_lt (k + 1) (n + 1),
   { rw [choose_succ_succ, add_mul, succ_sub_succ, ←choose_succ_right_eq, ←succ_sub_succ,
-      nat.mul_sub_left_distrib, add_sub_cancel_of_le (nat.mul_le_mul_left _ hk)] },
+      mul_tsub, add_tsub_cancel_of_le (nat.mul_le_mul_left _ hk)] },
   rw [choose_eq_zero_of_lt hk, choose_eq_zero_of_lt (n.lt_succ_self.trans hk), zero_mul, zero_mul],
 end
 
@@ -193,7 +196,7 @@ lemma asc_factorial_eq_factorial_mul_choose (n k : ℕ) :
 begin
   rw mul_comm,
   apply mul_right_cancel₀ (factorial_ne_zero (n + k - k)),
-  rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←factorial_mul_asc_factorial,
+  rw [choose_mul_factorial_mul_factorial, add_tsub_cancel_right, ←factorial_mul_asc_factorial,
     mul_comm],
   exact nat.le_add_left k n,
 end
@@ -234,10 +237,10 @@ end
 lemma choose_le_succ_of_lt_half_left {r n : ℕ} (h : r < n/2) :
   choose n r ≤ choose n (r+1) :=
 begin
-  refine le_of_mul_le_mul_right _ (lt_sub_iff_left.mpr (lt_of_lt_of_le h (n.div_le_self 2))),
+  refine le_of_mul_le_mul_right _ (lt_tsub_iff_left.mpr (lt_of_lt_of_le h (n.div_le_self 2))),
   rw ← choose_succ_right_eq,
   apply nat.mul_le_mul_left,
-  rw [← nat.lt_iff_add_one_le, lt_sub_iff_left, ← mul_two],
+  rw [← nat.lt_iff_add_one_le, lt_tsub_iff_left, ← mul_two],
   exact lt_of_lt_of_le (mul_lt_mul_of_pos_right h zero_lt_two) (n.div_mul_le_self 2),
 end
 
@@ -247,7 +250,7 @@ private lemma choose_le_middle_of_le_half_left {n r : ℕ} (hr : r ≤ n/2) :
 decreasing_induction
   (λ _ k a,
       (eq_or_lt_of_le a).elim
-        (λ t, t.symm ▸ le_refl _)
+        (λ t, t.symm ▸ le_rfl)
         (λ h, (choose_le_succ_of_lt_half_left h).trans (k h)))
   hr (λ _, le_rfl) hr
 
@@ -260,11 +263,28 @@ begin
     { rw ← choose_symm b,
       apply choose_le_middle_of_le_half_left,
       rw [div_lt_iff_lt_mul' zero_lt_two] at h,
-      rw [le_div_iff_mul_le' zero_lt_two, nat.mul_sub_right_distrib, sub_le_iff_sub_le,
-          mul_two, nat.add_sub_cancel],
+      rw [le_div_iff_mul_le' zero_lt_two, tsub_mul, tsub_le_iff_tsub_le,
+          mul_two, add_tsub_cancel_right],
       exact le_of_lt h } },
   { rw choose_eq_zero_of_lt b,
     apply zero_le }
 end
+
+/-! #### Inequalities about increasing the first argument -/
+
+lemma choose_le_succ (a c : ℕ) : choose a c ≤ choose a.succ c :=
+by cases c; simp [nat.choose_succ_succ]
+
+lemma choose_le_add (a b c : ℕ) : choose a c ≤ choose (a + b) c :=
+begin
+  induction b with b_n b_ih,
+  { simp, },
+  exact le_trans b_ih (choose_le_succ (a + b_n) c),
+end
+
+lemma choose_le_choose {a b : ℕ} (c : ℕ) (h : a ≤ b) : choose a c ≤ choose b c :=
+(add_tsub_cancel_of_le h) ▸ choose_le_add a (b - a) c
+
+lemma choose_mono (b : ℕ) : monotone (λ a, choose a b) := λ _ _, choose_le_choose b
 
 end nat

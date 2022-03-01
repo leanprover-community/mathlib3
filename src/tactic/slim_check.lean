@@ -5,7 +5,6 @@ Authors: Simon Hudon
 -/
 
 import testing.slim_check.testable
-import testing.slim_check.functions
 import data.list.sort
 
 /-!

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.int.basic
-import data.nat.interval
+import algebra.char_zero
+import order.locally_finite
+import data.finset.locally_finite
 
 /-!
 # Finite intervals of integers
@@ -136,5 +138,33 @@ by rw [card_fintype_Ioc, to_nat_sub_of_le h]
 
 lemma card_fintype_Ioo_of_lt (h : a < b) : (fintype.card (set.Ioo a b) : ℤ) = b - a - 1 :=
 by rw [card_fintype_Ioo, sub_sub, to_nat_sub_of_le h]
+
+lemma image_Ico_mod (n a : ℤ) (h : 0 ≤ a) :
+  (Ico n (n+a)).image (% a) = Ico 0 a :=
+begin
+  obtain rfl | ha := eq_or_lt_of_le h,
+  { simp, },
+  ext i,
+  simp only [mem_image, exists_prop, mem_range, mem_Ico],
+  split,
+  { rintro ⟨i, h, rfl⟩, exact ⟨mod_nonneg i (ne_of_gt ha), mod_lt_of_pos i ha⟩, },
+  intro hia,
+  have hn := int.mod_add_div n a,
+  obtain hi | hi := lt_or_le i (n % a),
+  { refine ⟨i + a * (n/a + 1), ⟨_, _⟩, _⟩,
+    { rw [add_comm (n/a), mul_add, mul_one, ← add_assoc],
+      refine hn.symm.le.trans (add_le_add_right _ _),
+      simpa only [zero_add] using add_le_add (hia.left) (int.mod_lt_of_pos n ha).le, },
+    { refine lt_of_lt_of_le (add_lt_add_right hi (a * (n/a + 1))) _,
+      rw [mul_add, mul_one, ← add_assoc, hn], },
+    { rw [int.add_mul_mod_self_left, int.mod_eq_of_lt hia.left hia.right], } },
+  { refine ⟨i + a * (n/a), ⟨_, _⟩, _⟩,
+    { exact hn.symm.le.trans (add_le_add_right hi _), },
+    { rw [add_comm n a],
+      refine add_lt_add_of_lt_of_le hia.right (le_trans _ hn.le),
+      simp only [zero_le, le_add_iff_nonneg_left],
+      exact int.mod_nonneg n (ne_of_gt ha), },
+    { rw [int.add_mul_mod_self_left, int.mod_eq_of_lt hia.left hia.right], } },
+end
 
 end int

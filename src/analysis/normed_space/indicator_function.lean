@@ -3,8 +3,8 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov
 -/
+import analysis.normed.group.basic
 import algebra.indicator_function
-import analysis.normed_space.basic
 
 /-!
 # Indicator function and norm

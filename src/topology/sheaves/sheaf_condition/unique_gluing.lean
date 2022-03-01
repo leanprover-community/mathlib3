@@ -3,10 +3,9 @@ Copyright (c) 2021 Justus Springer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer
 -/
-import algebra.category.CommRing.limits
 import topology.sheaves.forget
-import topology.sheaves.sheaf
 import category_theory.limits.shapes.types
+import topology.sheaves.sheaf
 import category_theory.types
 
 /-!
@@ -80,7 +79,7 @@ condition if and only if, for every compatible family of sections `sf : Π i : �
 there exists a unique gluing `s : F.obj (op (supr U))`.
 
 We prove this to be equivalent to the usual one below in
-`sheaf_condition_equiv_sheaf_condition_unique_gluing`
+`is_sheaf_iff_is_sheaf_unique_gluing`
 -/
 def is_sheaf_unique_gluing : Prop :=
 ∀ ⦃ι : Type v⦄ (U : ι → opens X) (sf : Π i : ι, F.obj (op (U i))),

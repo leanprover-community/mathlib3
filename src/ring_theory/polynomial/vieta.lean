@@ -3,6 +3,7 @@ Copyright (c) 2020 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hanting Zhang
 -/
+import ring_theory.polynomial.basic
 import ring_theory.polynomial.symmetric
 
 /-!
@@ -21,7 +22,7 @@ valuation from each `X i` to `r i`.
 -/
 
 universes u
-open_locale big_operators
+open_locale big_operators polynomial
 
 open finset polynomial fintype
 
@@ -61,13 +62,13 @@ begin
   apply_fun (polynomial.map (eval r)) at h,
   rw [map_prod, map_sum] at h,
   convert h,
-  simp only [eval_X, map_add, polynomial.map_C, polynomial.map_X, eq_self_iff_true],
+  simp only [eval_X, polynomial.map_add, polynomial.map_C, polynomial.map_X, eq_self_iff_true],
   funext,
   simp only [function.funext_iff, esymm, polynomial.map_C, map_sum, polynomial.C.map_sum,
-    polynomial.map_C, map_pow, polynomial.map_X, map_mul],
+    polynomial.map_C, polynomial.map_pow, polynomial.map_X, polynomial.map_mul],
   congr,
   funext,
-  simp only [eval_prod, eval_X, (polynomial.C : R →+* polynomial R).map_prod],
+  simp only [eval_prod, eval_X, (polynomial.C : R →+* R[X]).map_prod],
 end
 
 lemma esymm_to_sum (r : σ → R) (j : ℕ) : polynomial.C (eval r (esymm σ R j)) =
@@ -86,19 +87,19 @@ begin
   begin
     refine finset.ext (λ a, ⟨λ ha, _, λ ha, _ ⟩),
     rw mem_singleton,
-    have hσ := (nat.sub_eq_iff_eq_add (mem_range_succ_iff.mp
+    have hσ := (tsub_eq_iff_eq_add_of_le (mem_range_succ_iff.mp
       (mem_filter.mp ha).1)).mp ((mem_filter.mp ha).2).symm,
     symmetry,
-    rwa [(nat.sub_eq_iff_eq_add h), add_comm],
+    rwa [(tsub_eq_iff_eq_add_of_le h), add_comm],
     rw mem_filter,
     have haσ : a ∈ range (card σ + 1) :=
-    by { rw mem_singleton.mp ha, exact mem_range_succ_iff.mpr (@sub_le_self' _ _ _ _ _ k) },
+    by { rw mem_singleton.mp ha, exact mem_range_succ_iff.mpr (@tsub_le_self _ _ _ _ _ k) },
     refine ⟨haσ, eq.symm _⟩,
-    rw nat.sub_eq_iff_eq_add (mem_range_succ_iff.mp haσ),
-    have hσ := (nat.sub_eq_iff_eq_add h).mp (mem_singleton.mp ha).symm,
+    rw tsub_eq_iff_eq_add_of_le (mem_range_succ_iff.mp haσ),
+    have hσ := (tsub_eq_iff_eq_add_of_le h).mp (mem_singleton.mp ha).symm,
     rwa add_comm,
   end,
-  simp only [prod_X_add_C_eval, ← esymm_to_sum, finset_sum_coeff, coeff_C_mul_X, sum_ite, hk,
+  simp only [prod_X_add_C_eval, ← esymm_to_sum, finset_sum_coeff, coeff_C_mul_X_pow, sum_ite, hk,
     sum_singleton, esymm, eval_sum, eval_prod, eval_X, add_zero, sum_const_zero],
 end
 

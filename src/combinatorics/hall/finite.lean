@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alena Gusakov, Bhavik Mehta, Kyle Miller
 -/
 import data.fintype.basic
-import data.rel
 import data.set.finite
 
 /-!
@@ -146,14 +145,14 @@ lemma hall_cond_of_compl {ι : Type u} {t : ι → finset α} {s : finset ι}
 begin
   haveI := classical.dec_eq ι,
   have : s'.card = (s ∪ s'.image coe).card - s.card,
-  { rw [card_disjoint_union, nat.add_sub_cancel_left,
+  { rw [card_disjoint_union, add_tsub_cancel_left,
         card_image_of_injective _ subtype.coe_injective],
     simp only [disjoint_left, not_exists, mem_image, exists_prop, set_coe.exists,
                exists_and_distrib_right, exists_eq_right, subtype.coe_mk],
     intros x hx hc h,
     exact (hc hx).elim },
   rw [this, hus],
-  apply (nat.sub_le_sub_right (ht _) _).trans _,
+  apply (tsub_le_tsub_right (ht _) _).trans _,
   rw ← card_sdiff,
   { have : (s ∪ s'.image subtype.val).bUnion t \ s.bUnion t ⊆ s'.bUnion (λ x', t x' \ s.bUnion t),
     { intros t,
@@ -199,11 +198,9 @@ begin
   set ι'' := (s : set ι)ᶜ with ι''_def,
   let t'' : ι'' → finset α := λ a'', t a'' \ s.bUnion t,
   have card_ι''_le : fintype.card ι'' ≤ n,
-  { apply nat.le_of_lt_succ,
-    rw ←hn,
-    convert (card_compl_lt_iff_nonempty _).mpr hs,
-    convert fintype.card_coe (sᶜ),
-    exact (finset.coe_compl s).symm },
+  { simp_rw [← nat.lt_succ_iff, ← hn, ι'', ← finset.coe_compl, coe_sort_coe],
+    rw [fintype.card_congr' rfl, fintype.card_coe],
+    rwa card_compl_lt_iff_nonempty },
   rcases ih t'' card_ι''_le (hall_cond_of_compl hus ht) with ⟨f'', hf'', hsf''⟩,
   /- Put them together -/
   have f'_mem_bUnion : ∀ {x'} (hx' : x' ∈ s), f' ⟨x', hx'⟩ ∈ s.bUnion t,
@@ -257,13 +254,12 @@ theorem hall_hard_inductive {n : ℕ} (hn : fintype.card ι = n)
   (ht : ∀ (s : finset ι), s.card ≤ (s.bUnion t).card) :
   ∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x :=
 begin
-  tactic.unfreeze_local_instances,
-  revert ι,
+  unfreezingI { revert ι },
   refine nat.strong_induction_on n (λ n' ih, _),
   intros _ _ t hn ht,
   rcases n' with (_|_),
-  { exact hall_hard_inductive_zero t hn },
-  { apply hall_hard_inductive_step hn ht,
+  { exactI hall_hard_inductive_zero t hn },
+  { resetI, apply hall_hard_inductive_step hn ht,
     introsI ι' _ _ hι',
     exact ih (fintype.card ι') (nat.lt_succ_of_le hι') rfl, },
 end

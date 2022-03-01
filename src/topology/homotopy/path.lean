@@ -6,6 +6,7 @@ Authors: Shing Tak Lam
 
 import topology.homotopy.basic
 import topology.path_connected
+import analysis.convex.basic
 
 /-!
 # Homotopy between paths
@@ -27,15 +28,12 @@ In this file, we define a `homotopy` between two `path`s. In addition, we define
 * `path.homotopic.setoid x₀ x₁` is the setoid on `path`s from `path.homotopic`
 * `path.homotopic.quotient x₀ x₁` is the quotient type from `path x₀ x₀` by `path.homotopic.setoid`
 
-## Todos
-
-Define the fundamental group(oid).
 -/
 
 universes u v
 
 variables {X : Type u} {Y : Type v} [topological_space X] [topological_space Y]
-variables {x₀ x₁ : X}
+variables {x₀ x₁ x₂ : X}
 
 noncomputable theory
 
@@ -55,7 +53,7 @@ section
 
 variables {p₀ p₁ : path x₀ x₁}
 
-instance : has_coe_to_fun (homotopy p₀ p₁) := ⟨_, λ F, F.to_fun⟩
+instance : has_coe_to_fun (homotopy p₀ p₁) (λ _, I × I → X) := ⟨λ F, F.to_fun⟩
 
 lemma coe_fn_injective : @function.injective (homotopy p₀ p₁) (I × I → X) coe_fn :=
 continuous_map.homotopy_with.coe_fn_injective
@@ -141,11 +139,19 @@ lemma symm_trans (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) :
   (F.trans G).symm = G.symm.trans F.symm :=
 continuous_map.homotopy_rel.symm_trans _ _
 
+/--
+Casting a `homotopy p₀ p₁` to a `homotopy q₀ q₁` where `p₀ = q₀` and `p₁ = q₁`.
+-/
+@[simps]
+def cast {p₀ p₁ q₀ q₁ : path x₀ x₁} (F : homotopy p₀ p₁) (h₀ : p₀ = q₀) (h₁ : p₁ = q₁) :
+  homotopy q₀ q₁ :=
+continuous_map.homotopy_rel.cast F (congr_arg _ h₀) (congr_arg _ h₁)
+
 end
 
 section
 
-variables {x₂ : X} {p₀ q₀ : path x₀ x₁} {p₁ q₁ : path x₁ x₂}
+variables {p₀ q₀ : path x₀ x₁} {p₁ q₁ : path x₁ x₂}
 
 /--
 Suppose `p₀` and `q₀` are paths from `x₀` to `x₁`, `p₁` and `q₁` are paths from `x₁` to `x₂`.
@@ -166,8 +172,8 @@ def hcomp (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) :
     intros x hx,
     norm_num [hx]
   end,
-  to_fun_zero := λ x, by norm_num [path.trans],
-  to_fun_one := λ x, by norm_num [path.trans],
+  map_zero_left' := λ x, by norm_num [path.trans],
+  map_one_left' := λ x, by norm_num [path.trans],
   prop' := begin
     rintros x t ht,
     cases ht,
@@ -192,6 +198,59 @@ show ite _ _ _ = _, by norm_num
 
 end
 
+/--
+Suppose `p` is a path, then we have a homotopy from `p` to `p.reparam f` by the convexity of `I`.
+-/
+def reparam (p  : path x₀ x₁) (f : I → I) (hf : continuous f) (hf₀ : f 0 = 0) (hf₁ : f 1 = 1) :
+  homotopy p (p.reparam f hf hf₀ hf₁) :=
+{ to_fun := λ x, p ⟨σ x.1 * x.2 + x.1 * f x.2,
+    show (σ x.1 : ℝ) • (x.2 : ℝ) + (x.1 : ℝ) • (f x.2 : ℝ) ∈ I, from convex_Icc _ _ x.2.2 (f x.2).2
+    (by unit_interval) (by unit_interval) (by simp)⟩,
+  map_zero_left' := λ x, by norm_num,
+  map_one_left' := λ x, by norm_num,
+  prop' := λ t x hx,
+  begin
+    cases hx,
+    { rw hx, norm_num [hf₀] },
+    { rw set.mem_singleton_iff at hx,
+      rw hx,
+      norm_num [hf₁] }
+  end }
+
+/--
+Suppose `F : homotopy p q`. Then we have a `homotopy p.symm q.symm` by reversing the second
+argument.
+-/
+@[simps]
+def symm₂ {p q : path x₀ x₁} (F : p.homotopy q) : p.symm.homotopy q.symm :=
+{ to_fun := λ x, F ⟨x.1, σ x.2⟩,
+  map_zero_left' := by simp [path.symm],
+  map_one_left' := by simp [path.symm],
+  prop' := λ t x hx, begin
+    cases hx,
+    { rw hx, simp },
+    { rw set.mem_singleton_iff at hx,
+      rw hx,
+      simp }
+  end }
+
+/--
+Given `F : homotopy p q`, and `f : C(X, Y)`, we can define a homotopy from `p.map f.continuous` to
+`q.map f.continuous`.
+-/
+@[simps]
+def map {p q : path x₀ x₁} (F : p.homotopy q) (f : C(X, Y)) :
+  homotopy (p.map f.continuous) (q.map f.continuous) :=
+{ to_fun := f ∘ F,
+  map_zero_left' := by simp,
+  map_one_left' := by simp,
+  prop' := λ t x hx, begin
+    cases hx,
+    { simp [hx] },
+    { rw set.mem_singleton_iff at hx,
+      simp [hx] }
+  end }
+
 end homotopy
 
 /--
@@ -205,13 +264,19 @@ namespace homotopic
 lemma refl (p : path x₀ x₁) : p.homotopic p := ⟨homotopy.refl p⟩
 
 @[symm]
-lemma symm ⦃p₀ p₁ : path x₀ x₁⦄ (h : p₀.homotopic p₁) : p₁.homotopic p₀ := ⟨h.some.symm⟩
+lemma symm ⦃p₀ p₁ : path x₀ x₁⦄ (h : p₀.homotopic p₁) : p₁.homotopic p₀ := h.map homotopy.symm
 
 @[trans]
 lemma trans ⦃p₀ p₁ p₂ : path x₀ x₁⦄ (h₀ : p₀.homotopic p₁) (h₁ : p₁.homotopic p₂) :
-  p₀.homotopic p₂ := ⟨h₀.some.trans h₁.some⟩
+  p₀.homotopic p₂ := h₀.map2 homotopy.trans h₁
 
 lemma equivalence : equivalence (@homotopic X _ x₀ x₁) := ⟨refl, symm, trans⟩
+
+lemma map {p q : path x₀ x₁} (h : p.homotopic q) (f : C(X, Y)) :
+  homotopic (p.map f.continuous) (q.map f.continuous) := h.map (λ F, F.map f)
+
+lemma hcomp {p₀ p₁ : path x₀ x₁} {q₀ q₁ : path x₁ x₂} (hp : p₀.homotopic p₁)
+  (hq : q₀.homotopic q₁) : (p₀.trans q₀).homotopic (p₁.trans q₁) := hp.map2 homotopy.hcomp hq
 
 /--
 The setoid on `path`s defined by the equivalence relation `path.homotopic`. That is, two paths are
@@ -224,8 +289,25 @@ The quotient on `path x₀ x₁` by the equivalence relation `path.homotopic`.
 -/
 protected def quotient (x₀ x₁ : X) := quotient (homotopic.setoid x₀ x₁)
 
-instance : inhabited (homotopic.quotient () ()) :=
-⟨@quotient.mk _ (homotopic.setoid _ _) $ path.refl ()⟩
+local attribute [instance] homotopic.setoid
+
+instance : inhabited (homotopic.quotient () ()) := ⟨quotient.mk $ path.refl ()⟩
+
+/-- The composition of path homotopy classes. This is `path.trans` descended to the quotient. -/
+def quotient.comp (P₀ : path.homotopic.quotient x₀ x₁) (P₁ : path.homotopic.quotient x₁ x₂) :
+  path.homotopic.quotient x₀ x₂ :=
+quotient.map₂ path.trans (λ (p₀ : path x₀ x₁) p₁ hp (q₀ : path x₁ x₂) q₁ hq, (hcomp hp hq)) P₀ P₁
+
+lemma comp_lift (P₀ : path x₀ x₁) (P₁ : path x₁ x₂) : ⟦P₀.trans P₁⟧ = quotient.comp ⟦P₀⟧ ⟦P₁⟧ := rfl
+
+/-- The image of a path homotopy class `P₀` under a map `f`.
+    This is `path.map` descended to the quotient -/
+def quotient.map_fn (P₀ : path.homotopic.quotient x₀ x₁) (f : C(X, Y)) :
+  path.homotopic.quotient (f x₀) (f x₁) :=
+quotient.map (λ (q : path x₀ x₁), q.map f.continuous) (λ p₀ p₁ h, path.homotopic.map h f) P₀
+
+lemma map_lift (P₀ : path x₀ x₁) (f : C(X, Y)) :
+  ⟦P₀.map f.continuous⟧ = quotient.map_fn ⟦P₀⟧ f := rfl
 
 end homotopic
 

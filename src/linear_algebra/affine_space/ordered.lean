@@ -3,19 +3,18 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import algebra.order.invertible
+import algebra.order.module
 import linear_algebra.affine_space.midpoint
-import algebra.module.ordered
+import linear_algebra.affine_space.slope
 import tactic.field_simp
 
 /-!
 # Ordered modules as affine spaces
 
-In this file we define the slope of a function `f : k → PE` taking values in an affine space over
-`k` and prove some theorems about `slope` and `line_map` in the case when `PE` is an ordered
-module over `k`. The `slope` function naturally appears in the Mean Value Theorem, and in the
-proof of the fact that a function with nonnegative second derivative on an interval is convex on
-this interval. In the third part of this file we prove inequalities that will be used in
-`analysis.convex.function` to link convexity of a function on an interval to monotonicity of the
+In this file we prove some theorems about `slope` and `line_map` in the case when the module `E`
+acting on the codomain `PE` of a function is an ordered module over its domain `k`. We also prove
+inequalities that can be used to link convexity of a function on an interval to monotonicity of the
 slope, see section docstring below for details.
 
 ## Implementation notes
@@ -31,81 +30,6 @@ affine space, ordered module, slope
 open affine_map
 
 variables {k E PE : Type*}
-
-/-!
-### Definition of `slope` and basic properties
-
-In this section we define `slope f a b` and prove some properties that do not require order on the
-codomain.  -/
-
-section no_order
-
-variables [field k] [add_comm_group E] [module k E] [add_torsor E PE]
-
-include E
-
-/-- `slope f a b = (b - a)⁻¹ • (f b -ᵥ f a)` is the slope of a function `f` on the interval
-`[a, b]`. Note that `slope f a a = 0`, not the derivative of `f` at `a`. -/
-def slope (f : k → PE) (a b : k) : E := (b - a)⁻¹ • (f b -ᵥ f a)
-
-omit E
-
-lemma slope_def_field (f : k → k) (a b : k) : slope f a b = (f b - f a) / (b - a) :=
-div_eq_inv_mul.symm
-
-@[simp] lemma slope_same (f : k → PE) (a : k) : (slope f a a : E) = 0 :=
-by rw [slope, sub_self, inv_zero, zero_smul]
-
-include E
-
-lemma eq_of_slope_eq_zero {f : k → PE} {a b : k} (h : slope f a b = (0:E)) : f a = f b :=
-begin
-  rw [slope, smul_eq_zero, inv_eq_zero, sub_eq_zero, vsub_eq_zero_iff_eq] at h,
-  exact h.elim (λ h, h ▸ rfl) eq.symm
-end
-
-lemma slope_comm (f : k → PE) (a b : k) : slope f a b = slope f b a :=
-by rw [slope, slope, ← neg_vsub_eq_vsub_rev, smul_neg, ← neg_smul, neg_inv, neg_sub]
-
-/-- `slope f a c` is a linear combination of `slope f a b` and `slope f b c`. This version
-explicitly provides coefficients. If `a ≠ c`, then the sum of the coefficients is `1`, so it is
-actually an affine combination, see `line_map_slope_slope_sub_div_sub`. -/
-lemma sub_div_sub_smul_slope_add_sub_div_sub_smul_slope (f : k → PE) (a b c : k) :
-  ((b - a) / (c - a)) • slope f a b + ((c - b) / (c - a)) • slope f b c = slope f a c :=
-begin
-  by_cases hab : a = b,
-  { subst hab,
-    rw [sub_self, zero_div, zero_smul, zero_add],
-    by_cases hac : a = c,
-    { simp [hac] },
-    { rw [div_self (sub_ne_zero.2 $ ne.symm hac), one_smul] } },
-  by_cases hbc : b = c, { subst hbc, simp [sub_ne_zero.2 (ne.symm hab)] },
-  rw [add_comm],
-  simp_rw [slope, div_eq_inv_mul, mul_smul, ← smul_add,
-    smul_inv_smul₀ (sub_ne_zero.2 $ ne.symm hab), smul_inv_smul₀ (sub_ne_zero.2 $ ne.symm hbc),
-    vsub_add_vsub_cancel],
-end
-
-/-- `slope f a c` is an affine combination of `slope f a b` and `slope f b c`. This version uses
-`line_map` to express this property. -/
-lemma line_map_slope_slope_sub_div_sub (f : k → PE) (a b c : k) (h : a ≠ c) :
-  line_map (slope f a b) (slope f b c) ((c - b) / (c - a)) = slope f a c :=
-by  field_simp [sub_ne_zero.2 h.symm, ← sub_div_sub_smul_slope_add_sub_div_sub_smul_slope f a b c,
-  line_map_apply_module]
-
-/-- `slope f a b` is an affine combination of `slope f a (line_map a b r)` and
-`slope f (line_map a b r) b`. We use `line_map` to express this property. -/
-lemma line_map_slope_line_map_slope_line_map (f : k → PE) (a b r : k) :
-  line_map (slope f (line_map a b r) b) (slope f a (line_map a b r)) r = slope f a b :=
-begin
-  obtain (rfl|hab) : a = b ∨ a ≠ b := classical.em _, { simp },
-  rw [slope_comm _ a, slope_comm _ a, slope_comm _ _ b],
-  convert line_map_slope_slope_sub_div_sub f b (line_map a b r) a hab.symm using 2,
-  rw [line_map_apply_ring, eq_div_iff (sub_ne_zero.2 hab), sub_mul, one_mul, mul_sub, ← sub_sub,
-    sub_sub_cancel]
-end
-
-end no_order
 
 /-!
 ### Monotonicity of `line_map`
@@ -263,8 +187,7 @@ For each inequality between `f c` and `line_map (f a) (f b) r` we provide 3 lemm
 * `*_right` relates it to an inequality on `slope f a b` and `slope f c b`;
 * no-suffix version relates it to an inequality on `slope f a c` and `slope f c b`.
 
-Later these inequalities will be used in to restate `convex_on` in terms of monotonicity of the
-slope.
+These inequalities can by used in to restate `convex_on` in terms of monotonicity of the slope.
 -/
 
 variables {f : k → E} {a b r : k}
@@ -280,7 +203,7 @@ begin
   vsub_eq_sub, vsub_eq_sub, vsub_eq_sub, vadd_eq_add, vadd_eq_add,
   smul_eq_mul, add_sub_cancel, smul_sub, smul_sub, smul_sub,
   sub_le_iff_le_add, mul_inv_rev₀, mul_smul, mul_smul, ←smul_sub, ←smul_sub, ←smul_add, smul_smul,
-  ← mul_inv_rev₀, smul_le_iff_of_pos (inv_pos.2 h), inv_inv₀, smul_smul,
+  ← mul_inv_rev₀, smul_le_iff_of_pos (inv_pos.2 h), inv_inv, smul_smul,
   mul_inv_cancel_right₀ (right_ne_zero_of_mul h.ne'), smul_add,
   smul_inv_smul₀ (left_ne_zero_of_mul h.ne')],
   apply_instance
@@ -313,7 +236,7 @@ begin
   rw [← line_map_apply_one_sub, ← line_map_apply_one_sub _ _ r],
   revert h, generalize : 1 - r = r', clear r, intro h,
   simp_rw [line_map_apply, slope, vsub_eq_sub, vadd_eq_add, smul_eq_mul],
-  rw [sub_add_eq_sub_sub_swap, sub_self, zero_sub, le_smul_iff_of_pos, inv_inv₀, smul_smul,
+  rw [sub_add_eq_sub_sub_swap, sub_self, zero_sub, le_smul_iff_of_pos, inv_inv, smul_smul,
     neg_mul_eq_mul_neg, neg_sub, mul_inv_cancel_right₀, le_sub, ← neg_sub (f b), smul_neg,
     neg_add_eq_sub],
   { exact right_ne_zero_of_mul h.ne' },

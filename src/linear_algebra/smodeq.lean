@@ -4,14 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import ring_theory.ideal.basic
 import data.polynomial.eval
+import ring_theory.ideal.quotient
 
 /-!
 # modular equivalence for submodule
 -/
 
 open submodule
+open_locale polynomial
 
 variables {R : Type*} [ring R]
 variables {M : Type*} [add_comm_group M] [module R M] (U U₁ U₂ : submodule R M)
@@ -20,14 +21,14 @@ variables {N : Type*} [add_comm_group N] [module R N] (V V₁ V₂ : submodule R
 
 /-- A predicate saying two elements of a module are equivalent modulo a submodule. -/
 def smodeq (x y : M) : Prop :=
-(submodule.quotient.mk x : U.quotient) = submodule.quotient.mk y
+(submodule.quotient.mk x : M ⧸ U) = submodule.quotient.mk y
 
 notation x ` ≡ `:50 y ` [SMOD `:50 N `]`:0 := smodeq N x y
 
 variables {U U₁ U₂}
 
 protected lemma smodeq.def : x ≡ y [SMOD U] ↔
-  (submodule.quotient.mk x : U.quotient) = submodule.quotient.mk y := iff.rfl
+  (submodule.quotient.mk x : M ⧸ U) = submodule.quotient.mk y := iff.rfl
 
 namespace smodeq
 
@@ -67,7 +68,7 @@ theorem comap {f : M →ₗ[R] N} (hxy : f x ≡ f y [SMOD V]) : x ≡ y [SMOD V
 from (f.map_sub x y).symm ▸ (submodule.quotient.eq _).1 hxy
 
 lemma eval {R : Type*} [comm_ring R] {I : ideal R} {x y : R} (h : x ≡ y [SMOD I])
-  (f : polynomial R) : f.eval x ≡ f.eval y [SMOD I] :=
+  (f : R[X]) : f.eval x ≡ f.eval y [SMOD I] :=
 begin
   rw [smodeq.def] at h ⊢,
   show ideal.quotient.mk I (f.eval x) = ideal.quotient.mk I (f.eval y),

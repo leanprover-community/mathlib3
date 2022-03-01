@@ -148,8 +148,8 @@ E.g. `prod.group` returns 1, and `pi.has_one` returns 2.
 meta def first_multiplicative_arg (nm : name) : tactic ℕ := do
   d ← get_decl nm,
   let (es, _) := d.type.pi_binders,
-  l ← es.mmap_with_index $ λ n bi, do {
-    let tgt := bi.type.pi_codomain,
+  l ← es.mmap_with_index $ λ n bi, do
+  { let tgt := bi.type.pi_codomain,
     let n_bi := bi.type.pi_binders.fst.length,
     tt ← has_attribute' `to_additive tgt.get_app_fn.const_name | return none,
     let n2 := tgt.get_app_args.head.get_app_fn.match_var.map $ λ m, n + n_bi - m,
@@ -202,7 +202,9 @@ meta def tr : bool → list string → list string
 | is_comm ("one" :: "lt" :: s)        := add_comm_prefix is_comm "pos"       :: tr ff s
 | is_comm ("le" :: "one" :: s)        := add_comm_prefix is_comm "nonpos"    :: tr ff s
 | is_comm ("lt" :: "one" :: s)        := add_comm_prefix is_comm "neg"       :: tr ff s
+| is_comm ("mul" :: "single" :: s)    := add_comm_prefix is_comm "single"    :: tr ff s
 | is_comm ("mul" :: "support" :: s)   := add_comm_prefix is_comm "support"   :: tr ff s
+| is_comm ("mul" :: "tsupport" :: s)  := add_comm_prefix is_comm "tsupport"  :: tr ff s
 | is_comm ("mul" :: "indicator" :: s) := add_comm_prefix is_comm "indicator" :: tr ff s
 | is_comm ("mul" :: s)                := add_comm_prefix is_comm "add"       :: tr ff s
 | is_comm ("smul" :: s)               := add_comm_prefix is_comm "vadd"      :: tr ff s
@@ -212,7 +214,7 @@ meta def tr : bool → list string → list string
 | is_comm ("prod" :: s)               := add_comm_prefix is_comm "sum"       :: tr ff s
 | is_comm ("finprod" :: s)            := add_comm_prefix is_comm "finsum"    :: tr ff s
 | is_comm ("npow" :: s)               := add_comm_prefix is_comm "nsmul"     :: tr ff s
-| is_comm ("gpow" :: s)               := add_comm_prefix is_comm "gsmul"     :: tr ff s
+| is_comm ("zpow" :: s)               := add_comm_prefix is_comm "zsmul"     :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
@@ -326,12 +328,22 @@ copied to the additive version, then `to_additive` should come last:
 @[simp, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
 ```
 
+The following attributes are supported and should be applied correctly by `to_additive` to
+the new additivized declaration, if they were present on the original one:
+```
+reducible, _refl_lemma, simp, norm_cast, instance, refl, symm, trans, elab_as_eliminator, no_rsimp,
+continuity, ext, ematch, measurability, alias, _ext_core, _ext_lemma_core, nolint
+```
+
 The exception to this rule is the `simps` attribute, which should come after `to_additive`:
 
 ```
 @[to_additive, simps]
 instance {M N} [has_mul M] [has_mul N] : has_mul (M × N) := ⟨λ p q, ⟨p.1 * q.1, p.2 * q.2⟩⟩
 ```
+
+Additionally the `mono` attribute is not handled by `to_additive` and should be applied afterwards
+to both the original and additivized lemma.
 
 ## Implementation notes
 
@@ -375,7 +387,7 @@ There are some exceptions to this heuristic:
   declaration when the first argument has no multiplicative type-class, but argument `n` does.
 * If an identifier has attribute `@[to_additive_ignore_args n1 n2 ...]` then all the arguments in
   positions `n1`, `n2`, ... will not be checked for unapplied identifiers (start counting from 1).
-  For example, `times_cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means
+  For example, `cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means
   that its 21st argument `(n : with_top ℕ)` can contain `ℕ`
   (usually in the form `has_top.top ℕ ...`) and still be additivized.
   So `@has_mul.mul (C^∞⟮I, N; I', G⟯) _ f g` will be additivized.
@@ -442,8 +454,10 @@ scans its type and value for names starting with `src`, and transports
 them. This includes auxiliary definitions like `src._match_1`,
 `src._proof_1`.
 
-After transporting the “main” declaration, `to_additive` transports
-its equational lemmas.
+In addition to transporting the “main” declaration, `to_additive` transports
+its equational lemmas and tags them as equational lemmas for the new declaration,
+attributes present on the original equational lemmas are also transferred first (notably
+`_refl_lemma`).
 
 ### Structure fields and constructors
 
@@ -509,10 +523,14 @@ protected meta def attr : user_attribute unit value_type :=
     then proceed_fields env src tgt prio
     else do
       transform_decl_with_prefix_dict dict val.replace_all val.trace relevant ignore reorder src tgt
-        [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
-         `no_rsimp, `measurability],
+        [`reducible, `_refl_lemma, `simp, `norm_cast, `instance, `refl, `symm, `trans,
+          `elab_as_eliminator, `no_rsimp, `continuity, `ext, `ematch, `measurability, `alias,
+          `_ext_core, `_ext_lemma_core, `nolint],
       mwhen (has_attribute' `simps src)
         (trace "Apply the simps attribute after the to_additive attribute"),
+      mwhen (has_attribute' `mono src)
+        (trace $ "to_additive does not work with mono, apply the mono attribute to both" ++
+          "versions after"),
       match val.doc with
       | some doc := add_doc_string tgt doc
       | none := skip
@@ -533,12 +551,3 @@ attribute [to_additive empty] empty
 attribute [to_additive pempty] pempty
 attribute [to_additive punit] punit
 attribute [to_additive unit] unit
-/-
-We ignore the third argument of `has_coe_to_fun.F` when deciding whether the operation
-needs to be additivized. The reason is that this argument is the element to be coerced,
-which usually does not actually show up in the type after reduction.
-Hypothetically, this could be ignoring too much, in that case, we can remove this,
-but in that case we have to add the `to_additive_ignore_args` attribute more systematically
-to a lot of other definitions (like `times_cont_mdiff_map.comp`).
--/
-attribute [to_additive_ignore_args 3] has_coe_to_fun.F

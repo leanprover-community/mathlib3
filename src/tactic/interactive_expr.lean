@@ -355,8 +355,8 @@ meta def to_local_collection (l : expr) : tactic local_collection :=
 tactic.unsafe.type_context.run $ do
 lctx ← tactic.unsafe.type_context.get_local_context,
 some ldecl ← pure $ lctx.get_local_decl l.local_uniq_name,
-pure {
-  key := l.local_uniq_name.repr,
+pure
+{ key := l.local_uniq_name.repr,
   locals := [l],
   type := ldecl.type,
   value := ldecl.value }

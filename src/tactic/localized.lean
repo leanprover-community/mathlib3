@@ -3,6 +3,7 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+import meta.rb_map
 import tactic.core
 
 /-!
@@ -20,8 +21,8 @@ The code is inspired by code from Gabriel Ebner from the
 open lean lean.parser interactive tactic native
 
 @[user_attribute]
-meta def localized_attr : user_attribute (rb_lmap name string) unit := {
-  name := "_localized",
+meta def localized_attr : user_attribute (rb_lmap name string) unit :=
+{ name := "_localized",
   descr := "(interal) attribute that flags localized commands",
   parser := failed,
   cache_cfg := ⟨λ ns, (do dcls ← ns.mmap (λ n, mk_const n >>= eval_expr (name × string)),

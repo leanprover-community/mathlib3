@@ -338,11 +338,11 @@ theorem lt_of_mk_le {x : pgame} {yl yr yL yR i} :
 by { cases x, rw mk_le_mk, tauto }
 
 theorem mk_lt_of_le {xl xr xL xR y i} :
-  (by exact xR i ≤ y) → (⟨xl, xr, xL, xR⟩ : pgame) < y :=
+  ((xR : xr → pgame) i ≤ y) → (⟨xl, xr, xL, xR⟩ : pgame) < y :=
 by { cases y, rw mk_lt_mk, tauto }
 
-theorem lt_mk_of_le {x : pgame} {yl yr yL yR i} :
-  (by exact x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
+theorem lt_mk_of_le {x : pgame} {yl yr : Type*} {yL : yl → pgame} {yR i} :
+  (x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
 by { cases x, rw mk_lt_mk, exact λ h, or.inl ⟨_, h⟩ }
 
 theorem not_le_lt {x y : pgame} :

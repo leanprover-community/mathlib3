@@ -332,6 +332,26 @@ instance : order_top (Inf_hom α β) := ⟨⊤, λ f a, le_top⟩
 
 end Inf_hom
 
+/-- Reinterpret a `⨆`-homomorphism as an `⨅`-homomorphism between the dual orders. -/
+@[simps] protected def Sup_hom.dual [has_Sup α] [has_Sup β] :
+  Sup_hom α β ≃ Inf_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, { to_fun := to_dual ∘ f ∘ of_dual,
+                   map_Inf' := λ _, congr_arg to_dual (map_Sup f _) },
+  inv_fun := λ f, { to_fun := of_dual ∘ f ∘ to_dual,
+                   map_Sup' := λ _, congr_arg of_dual (map_Inf f _) },
+  left_inv := λ f, Sup_hom.ext $ λ a, rfl,
+  right_inv := λ f, Inf_hom.ext $ λ a, rfl }
+
+/-- Reinterpret an `⨅`-homomorphism as a `⨆`-homomorphism between the dual orders. -/
+@[simps] protected def Inf_hom.dual [has_Inf α] [has_Inf β] :
+  Inf_hom α β ≃ Sup_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, { to_fun := to_dual ∘ f ∘ of_dual,
+                   map_Sup' := λ _, congr_arg to_dual (map_Inf f _) },
+  inv_fun := λ f, { to_fun := of_dual ∘ f ∘ to_dual,
+                   map_Inf' := λ _, congr_arg of_dual (map_Sup f _) },
+  left_inv := λ f, Inf_hom.ext $ λ a, rfl,
+  right_inv := λ f, Sup_hom.ext $ λ a, rfl }
+
 /-! ### Frame homomorphisms -/
 
 namespace frame_hom
@@ -479,12 +499,10 @@ lemma cancel_left {g : complete_lattice_hom β γ} {f₁ f₂ : complete_lattice
 /-- Reinterpret a lattice homomorphism as a lattice homomorphism between the dual lattices. -/
 @[simps] protected def dual :
    complete_lattice_hom α β ≃ complete_lattice_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, { to_fun := to_dual ∘ f ∘ of_dual,
-                   map_Sup' := λ _, congr_arg to_dual (map_Inf f _),
+{ to_fun := λ f, { to_Sup_hom := f.to_Inf_hom.dual,
                    map_Inf' := λ _, congr_arg to_dual (map_Sup f _) },
-  inv_fun := λ f, { to_fun := of_dual ∘ f ∘ to_dual,
-                   map_Sup' := λ _, congr_arg of_dual (map_Inf f _),
-                   map_Inf' := λ _, congr_arg of_dual (map_Sup f _) },
+  inv_fun := λ f, { to_Sup_hom := f.to_Inf_hom.dual,
+                    map_Inf' := λ _, congr_arg of_dual (map_Sup f _) },
   left_inv := λ f, ext $ λ a, rfl,
   right_inv := λ f, ext $ λ a, rfl }
 

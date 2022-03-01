@@ -435,8 +435,7 @@ lemma epi_iff_surjective {n m : simplex_category.{u}} {f: n ⟶ m} :
 begin
   split,
   { introsI hyp_f_epi x,
-    by_contradiction h_ab,
-    rw not_exists at h_ab,
+    by_contra' h_ab,
     -- The proof is by contradiction: assume f is not surjective,
     -- then introduce two non-equal auxiliary functions equalizing f, and get a contradiction.
     -- First we define the two auxiliary functions.
@@ -444,7 +443,7 @@ begin
       intros a b h,
       dsimp only [],
       split_ifs with h1 h2 h3,
-      any_goals { exact le_refl _ },
+      any_goals { exact le_rfl },
       { exact bot_le },
       { exact false.elim (h1 (le_trans h h3)) }
     end ⟩,
@@ -452,7 +451,7 @@ begin
       intros a b h,
       dsimp only [],
       split_ifs with h1 h2 h3,
-      any_goals { exact le_refl _ },
+      any_goals { exact le_rfl },
       { exact bot_le },
       { exact false.elim (h1 (lt_of_le_of_lt h h3)) }
     end ⟩,

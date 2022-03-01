@@ -3,12 +3,13 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import topology.opens
+import algebra.punit_instances
+import linear_algebra.finsupp
+import ring_theory.nilpotent
+import ring_theory.localization.away
 import ring_theory.ideal.prod
 import ring_theory.ideal.over
-import linear_algebra.finsupp
-import algebra.punit_instances
-import ring_theory.nilpotent
+import topology.opens
 import topology.sober
 
 /-!
@@ -349,7 +350,7 @@ topological_space.of_closed (set.range prime_spectrum.zero_locus)
     simp only [hf],
     exact ⟨_, zero_locus_Union _⟩
   end
-  (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
+  (by { rintro _ ⟨s, rfl⟩ _ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
 
 lemma is_open_iff (U : set (prime_spectrum R)) :
   is_open U ↔ ∃ s, Uᶜ = zero_locus s :=
@@ -502,7 +503,7 @@ variables (f : R →+* S)
   (comap f y).as_ideal = ideal.comap f y.as_ideal :=
 rfl
 
-@[simp] lemma comap_id : comap (ring_hom.id R) = continuous_map.id := by { ext, refl }
+@[simp] lemma comap_id : comap (ring_hom.id R) = continuous_map.id _ := by { ext, refl }
 
 @[simp] lemma comap_comp (f : R →+* S) (g : S →+* S') :
   comap (g.comp f) = (comap f).comp (comap g) :=

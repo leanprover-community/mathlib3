@@ -26,7 +26,7 @@ open linear_map
 /-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant.
 Defined as a subtype of matrices-/
 abbreviation general_linear_group (n : Type u) (R : Type v)
-  [decidable_eq n] [fintype n] [comm_ring R] : Type* := units (matrix n n R)
+  [decidable_eq n] [fintype n] [comm_ring R] : Type* := (matrix n n R)ˣ
 
 notation `GL` := general_linear_group
 
@@ -36,7 +36,7 @@ variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 
 /-- The determinant of a unit matrix is itself a unit. -/
 @[simps]
-def det : GL n R →* units R :=
+def det : GL n R →* Rˣ :=
 { to_fun := λ A,
   { val := (↑A : matrix n n R).det,
     inv := (↑(A⁻¹) : matrix n n R).det,
@@ -156,6 +156,12 @@ instance : has_neg (GL_pos n R) :=
     exact gdet,
   end⟩⟩
 
+instance : has_distrib_neg (GL_pos n R) :=
+{ neg := has_neg.neg,
+  neg_neg := λ x, subtype.ext $ neg_neg _,
+  neg_mul := λ x y, subtype.ext $ neg_mul _ _,
+  mul_neg := λ x y, subtype.ext $ mul_neg _ _ }
+
 @[simp] lemma GL_pos_coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
 rfl
 
@@ -194,7 +200,7 @@ $GL_2(R)$ if `a ^ 2 + b ^ 2` is nonzero. -/
 @[simps coe {fully_applied := ff}]
 def plane_conformal_matrix {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
   matrix.general_linear_group (fin 2) R :=
-general_linear_group.mk_of_det_ne_zero ![![a, b], ![-b, a]]
+general_linear_group.mk_of_det_ne_zero ![![a, -b], ![b, a]]
   (by simpa [det_fin_two, sq] using hab)
 
 /- TODO: Add Iwasawa matrices `n_x=![![1,x],![0,1]]`, `a_t=![![exp(t/2),0],![0,exp(-t/2)]]` and

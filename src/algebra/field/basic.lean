@@ -79,7 +79,7 @@ calc
   1 / (- a) = 1 / ((-1) * a)        : by rw neg_eq_neg_one_mul
         ... = (1 / a) * (1 / (- 1)) : by rw one_div_mul_one_div_rev
         ... = (1 / a) * (-1)        : by rw one_div_neg_one_eq_neg_one
-        ... = - (1 / a)             : by rw [mul_neg_eq_neg_mul_symm, mul_one]
+        ... = - (1 / a)             : by rw [mul_neg, mul_one]
 
 lemma div_neg_eq_neg_div (a b : K) : b / (- a) = - (b / a) :=
 calc
@@ -96,6 +96,12 @@ by simp [neg_div]
 
 lemma neg_div_neg_eq (a b : K) : (-a) / (-b) = a / b :=
 by rw [div_neg_eq_neg_div, neg_div, neg_neg]
+
+@[simp] lemma div_neg_self {a : K} (h : a ≠ 0) : a / -a = -1 :=
+by rw [div_neg_eq_neg_div, div_self h]
+
+@[simp] lemma neg_div_self {a : K} (h : a ≠ 0) : (-a) / a = -1 :=
+by rw [neg_div, div_self h]
 
 @[field_simps] lemma div_add_div_same (a b c : K) : a / c + b / c = (a + b) / c :=
 by simpa only [div_eq_mul_inv] using (right_distrib a b (c⁻¹)).symm
@@ -274,7 +280,7 @@ section
 
 variables {R : Type*} [semiring R] [division_ring K] (f : R →+* K)
 
-@[simp] lemma map_units_inv (u : units R) :
+@[simp] lemma map_units_inv (u : Rˣ) :
   f ↑u⁻¹ = (f ↑u)⁻¹ :=
 (f : R →* K).map_units_inv u
 

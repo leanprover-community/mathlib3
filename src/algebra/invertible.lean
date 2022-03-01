@@ -113,7 +113,7 @@ def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = 
 
 /-- An `invertible` element is a unit. -/
 @[simps]
-def unit_of_invertible [monoid α] (a : α) [invertible a] : units α :=
+def unit_of_invertible [monoid α] (a : α) [invertible a] : αˣ :=
 { val     := a,
   inv     := ⅟a,
   val_inv := by simp,
@@ -123,10 +123,10 @@ lemma is_unit_of_invertible [monoid α] (a : α) [invertible a] : is_unit a :=
 ⟨unit_of_invertible a, rfl⟩
 
 /-- Units are invertible in their associated monoid. -/
-def units.invertible [monoid α] (u : units α) : invertible (u : α) :=
+def units.invertible [monoid α] (u : αˣ) : invertible (u : α) :=
 { inv_of := ↑(u⁻¹), inv_of_mul_self := u.inv_mul, mul_inv_of_self := u.mul_inv }
 
-@[simp] lemma inv_of_units [monoid α] (u : units α) [invertible (u : α)] : ⅟(u : α) = ↑(u⁻¹) :=
+@[simp] lemma inv_of_units [monoid α] (u : αˣ) [invertible (u : α)] : ⅟(u : α) = ↑(u⁻¹) :=
 inv_of_eq_right_inv u.mul_inv
 
 lemma is_unit.nonempty_invertible [monoid α] {a : α} (h : is_unit a) : nonempty (invertible a) :=
@@ -167,6 +167,10 @@ inv_of_eq_right_inv (by simp)
 @[simp] lemma one_sub_inv_of_two [ring α] [invertible (2:α)] : 1 - (⅟2:α) = ⅟2 :=
 (is_unit_of_invertible (2:α)).mul_right_inj.1 $
   by rw [mul_sub, mul_inv_of_self, mul_one, bit0, add_sub_cancel]
+
+@[simp] lemma inv_of_two_add_inv_of_two [semiring α] [invertible (2 : α)] :
+  (⅟2 : α) + (⅟2 : α) = 1 :=
+by simp only [←two_mul, mul_inv_of_self]
 
 /-- `a` is the inverse of `⅟a`. -/
 instance invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=

@@ -84,7 +84,7 @@ begin
 end
 
 /-- The basis constructed by `units_smul` has vectors given by a diagonal matrix. -/
-@[simp] lemma to_matrix_units_smul [decidable_eq ι] (w : ι → units R) :
+@[simp] lemma to_matrix_units_smul [decidable_eq ι] (w : ι → Rˣ) :
   e.to_matrix (e.units_smul w) = diagonal (coe ∘ w) :=
 begin
   ext i j,
@@ -100,6 +100,15 @@ e.to_matrix_units_smul _
 
 @[simp] lemma sum_to_matrix_smul_self [fintype ι] : ∑ (i : ι), e.to_matrix v i j • e i = v j :=
 by simp_rw [e.to_matrix_apply, e.sum_repr]
+
+lemma to_matrix_map_vec_mul {S : Type*} [ring S] [algebra R S] [fintype ι]
+  (b : basis ι R S) (v : ι' → S) :
+  ((b.to_matrix v).map $ algebra_map R S).vec_mul b = v :=
+begin
+  ext i,
+  simp_rw [vec_mul, dot_product, matrix.map_apply, ← algebra.commutes, ← algebra.smul_def,
+    sum_to_matrix_smul_self],
+end
 
 @[simp] lemma to_lin_to_matrix [fintype ι] [fintype ι'] [decidable_eq ι'] (v : basis ι' R M) :
   matrix.to_lin v e (e.to_matrix v) = id :=

@@ -3,11 +3,11 @@ Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
-
-import ring_theory.polynomial.chebyshev
-import ring_theory.localization
-import data.zmod.basic
 import algebra.char_p.invertible
+import data.zmod.basic
+import field_theory.finite.basic
+import ring_theory.localization.fraction_ring
+import ring_theory.polynomial.chebyshev
 
 
 /-!
@@ -49,12 +49,13 @@ When `a=0` they are just the family of monomials `X ^ n`.
 noncomputable theory
 
 namespace polynomial
+open_locale polynomial
 
 variables {R S : Type*} [comm_ring R] [comm_ring S] (k : ℕ) (a : R)
 
 /-- `dickson` is the `n`the (generalised) Dickson polynomial of the `k`-th kind associated to the
 element `a ∈ R`. -/
-noncomputable def dickson : ℕ → polynomial R
+noncomputable def dickson : ℕ → R[X]
 | 0       := 3 - k
 | 1       := X
 | (n + 2) := X * dickson (n + 1) - (C a) * dickson n
@@ -79,7 +80,8 @@ variables {R S k a}
 
 lemma map_dickson (f : R →+* S) :
   ∀ (n : ℕ), map f (dickson k a n) = dickson k (f a) n
-| 0       := by simp only [dickson_zero, map_sub, map_nat_cast, bit1, bit0, map_add, map_one]
+| 0       := by simp only [dickson_zero, map_sub, polynomial.map_nat_cast,
+                            bit1, bit0, map_add, map_one]
 | 1       := by simp only [dickson_one, map_X]
 | (n + 2) :=
 begin
@@ -214,7 +216,7 @@ begin
     { rw this, clear this,
       refine h.bUnion (λ x hx, _),
       -- The following quadratic polynomial has as solutions the `y` for which `x = y + y⁻¹`.
-      let φ : polynomial K := X ^ 2 - C x * X + 1,
+      let φ : K[X] := X ^ 2 - C x * X + 1,
       have hφ : φ ≠ 0,
       { intro H,
         have : φ.eval 0 = 0, by rw [H, eval_zero],

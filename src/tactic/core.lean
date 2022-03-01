@@ -241,7 +241,7 @@ private meta def add_local_consts_as_local_hyps_aux
 meta def add_local_consts_as_local_hyps (vars : list expr) : tactic (list (expr × expr)) :=
 /- The `list.reverse` below is a performance optimisation since the list of available variables
    reported by the system is often mostly the reverse of the order in which they are dependent. -/
-add_local_consts_as_local_hyps_aux [] vars.reverse.erase_dup
+add_local_consts_as_local_hyps_aux [] vars.reverse.dedup
 
 private meta def get_expl_pi_arity_aux : expr → tactic nat
 | (expr.pi n bi d b) :=
@@ -1489,7 +1489,7 @@ instance : monad id :=
      fs ← expanded_field_list cl,
      let fs := fs.map prod.snd,
      let fs := format.intercalate (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
-     let out := format.to_string format!"{{ {fs} }",
+     let out := format.to_string format!"{{ {fs} }}",
      return [(out,"")] }
 
 add_tactic_doc
@@ -1708,7 +1708,7 @@ sum.inr : ℕ → ℤ ⊕ ℕ
             c ← strip_prefix c,
             pure format!"\n{c} : {t}\n" },
      fs ← format.intercalate ", " <$> cs.mmap (strip_prefix >=> pure ∘ to_fmt),
-     let out := format.to_string format!"{{! {fs} !}",
+     let out := format.to_string format!"{{! {fs} !}}",
      trace (format.join ts).to_string,
      return [(out,"")] }
 
@@ -2404,7 +2404,7 @@ then do
   user_attr_nm ← get_user_attribute_name attr_name,
   user_attr_const ← mk_const user_attr_nm,
   tac ← eval_pexpr (tactic unit)
-    ``(user_attribute.set %%user_attr_const %%c_name (default _) %%persistent) <|>
+    ``(user_attribute.set %%user_attr_const %%c_name default %%persistent) <|>
     fail! ("Cannot set attribute @[{attr_name}].\n" ++
       "The corresponding user attribute {user_attr_nm} " ++
       "has a parameter without a default value.\n" ++

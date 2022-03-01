@@ -18,7 +18,7 @@ version `normed_space.inclusion_in_double_dual_li` of the map which is of type a
 isometric embedding, `E →ₗᵢ[𝕜] (dual 𝕜 (dual 𝕜 E))`.
 
 Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
-theory for `semi_normed_space` and we specialize to `normed_space` when needed.
+theory for `semi_normed_group` and we specialize to `normed_group` when needed.
 
 ## Main definitions
 
@@ -40,19 +40,17 @@ namespace normed_space
 
 section general
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables (E : Type*) [semi_normed_group E] [semi_normed_space 𝕜 E]
+variables (E : Type*) [semi_normed_group E] [normed_space 𝕜 E]
 variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
 
 /-- The topological dual of a seminormed space `E`. -/
-@[derive [inhabited, semi_normed_group, semi_normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
+@[derive [inhabited, semi_normed_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
 
 instance : add_monoid_hom_class (dual 𝕜 E) E 𝕜 := continuous_linear_map.add_monoid_hom_class
 
 instance : has_coe_to_fun (dual 𝕜 E) (λ _, E → 𝕜) := continuous_linear_map.to_fun
 
 instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
-
-instance : normed_space 𝕜 (dual 𝕜 F) := continuous_linear_map.to_normed_space
 
 instance [finite_dimensional 𝕜 E] : finite_dimensional 𝕜 (dual 𝕜 E) :=
 continuous_linear_map.finite_dimensional
@@ -148,14 +146,14 @@ lemma polar_eq_Inter (s : set E) :
   polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥x' z∥ ≤ 1} :=
 by simp only [polar, set_of_forall]
 
-@[simp] lemma polar_univ : polar 𝕜 (univ : set E) = {0} :=
+@[simp] lemma polar_univ : polar 𝕜 (univ : set E) = {(0 : dual 𝕜 E)} :=
 begin
   refine eq_singleton_iff_unique_mem.2 ⟨zero_mem_polar _ _, λ x' hx', _⟩,
   ext x,
   refine norm_le_zero_iff.1 (le_of_forall_le_of_dense $ λ ε hε, _),
   rcases normed_field.exists_norm_lt 𝕜 hε with ⟨c, hc, hcε⟩,
   calc ∥x' x∥ = ∥c∥ * ∥x' (c⁻¹ • x)∥ :
-    by rw [x'.map_smul, norm_smul, normed_field.norm_inv,
+    by rw [x'.map_smul, norm_smul, norm_inv,
       mul_inv_cancel_left₀ hc.ne']
   ... ≤ ε * 1 : mul_le_mul hcε.le (hx' _ trivial) (norm_nonneg _) hε.le
   ... = ε : mul_one _
@@ -215,7 +213,7 @@ begin
     apply mul_le_mul (le_of_eq rfl) (hc z hzs) (norm_nonneg _) (norm_nonneg _), },
   have cancel : ∥ c⁻¹ ∥ * ∥ c ∥ = 1,
   by simp only [c_zero, norm_eq_zero, ne.def, not_false_iff,
-                inv_mul_cancel, normed_field.norm_inv],
+                inv_mul_cancel, norm_inv],
   rwa cancel at le,
 end
 

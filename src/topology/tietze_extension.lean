@@ -3,10 +3,9 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import topology.urysohns_bounded
-import topology.algebra.ordered.monotone_continuity
-import data.set.intervals.disjoint
 import data.set.intervals.monotone
+import topology.algebra.order.monotone_continuity
+import topology.urysohns_bounded
 
 /-!
 # Tietze extension theorem
@@ -151,7 +150,7 @@ topological space, then it can be extended to a bounded continuous function of t
 on the whole space. -/
 lemma exists_norm_eq_restrict_eq_of_closed {s : set Y} (f : s →ᵇ ℝ) (hs : is_closed s) :
   ∃ g : Y →ᵇ ℝ, ∥g∥ = ∥f∥ ∧ g.restrict s = f :=
-exists_extension_norm_eq_of_closed_embedding' f (continuous_map.id.restrict s)
+exists_extension_norm_eq_of_closed_embedding' f ((continuous_map.id _).restrict s)
   (closed_embedding_subtype_coe hs)
 
 /-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed
@@ -197,7 +196,7 @@ begin
   -- Then `f x ∈ [a, b]` for all `x`
   have hmem : ∀ x, f x ∈ Icc a b, from λ x, ⟨ha.1 ⟨x, rfl⟩, hb.1 ⟨x, rfl⟩⟩,
   -- Rule out the trivial case `a = b`
-  have hle : a ≤ b := (hmem (default X)).1.trans (hmem (default X)).2,
+  have hle : a ≤ b := (hmem default).1.trans (hmem default).2,
   rcases hle.eq_or_lt with (rfl|hlt),
   { have : ∀ x, f x = a, by simpa using hmem,
     use const Y a, simp [this, function.funext_iff] },
@@ -314,7 +313,7 @@ lemma exists_forall_mem_restrict_eq_of_closed {s : set Y} (f : s →ᵇ ℝ) (hs
 begin
   rcases exists_extension_forall_mem_of_closed_embedding f hf hne (closed_embedding_subtype_coe hs)
     with ⟨g, hg, hgf⟩,
-  exact ⟨g, hg, coe_injective hgf⟩
+  exact ⟨g, hg, fun_like.coe_injective hgf⟩
 end
 
 end bounded_continuous_function
@@ -335,7 +334,7 @@ begin
   set F : X →ᵇ ℝ :=
   { to_fun := coe ∘ (h ∘ f),
     continuous_to_fun := continuous_subtype_coe.comp (h.continuous.comp f.continuous),
-    bounded' := bounded_range_iff.1 ((bounded_Ioo (-1 : ℝ) 1).mono $
+    map_bounded' := bounded_range_iff.1 ((bounded_Ioo (-1 : ℝ) 1).mono $
       forall_range_iff.2 $ λ x, (h (f x)).2) },
   set t' : set ℝ := (coe ∘ h) '' t,
   have ht_sub : t' ⊆ Ioo (-1 : ℝ) 1 := image_subset_iff.2 (λ x hx, (h x).2),
@@ -379,8 +378,8 @@ lemma exists_restrict_eq_forall_mem_of_closed {s : set Y} (f : C(s, ℝ)) {t : s
   ∃ g : C(Y, ℝ), (∀ y, g y ∈ t) ∧ g.restrict s = f :=
 let ⟨g, hgt, hgf⟩ := exists_extension_forall_mem_of_closed_embedding f ht hne
   (closed_embedding_subtype_coe hs)
-in ⟨g, hgt, coe_inj hgf⟩
-  
+in ⟨g, hgt, coe_injective hgf⟩
+
 /-- **Tietze extension theorem** for real-valued continuous maps, a version for a closed set. Let
 `s` be a closed set in a normal topological space `Y`. Let `f` be a continuous real-valued function
 on `s`. Then there exists a continuous real-valued function `g : C(Y, ℝ)` such that

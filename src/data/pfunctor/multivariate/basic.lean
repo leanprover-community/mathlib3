@@ -37,11 +37,11 @@ def map {α β : typevec n} (f : α ⟹ β) : P.obj α → P.obj β :=
 λ ⟨a, g⟩, ⟨a, typevec.comp f g⟩
 
 instance : inhabited (mvpfunctor n) :=
-⟨ ⟨default _, λ _, default _⟩ ⟩
+⟨ ⟨default, λ _, default⟩ ⟩
 
 instance obj.inhabited {α : typevec n} [inhabited P.A] [Π i, inhabited (α i)] :
   inhabited (P.obj α) :=
-⟨ ⟨default _, λ _ _, default _⟩ ⟩
+⟨ ⟨default, λ _ _, default⟩ ⟩
 
 instance : mvfunctor P.obj :=
 ⟨@mvpfunctor.map n P⟩

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.finset.sort
+import data.set.functor
 
 /-!
 # Finite sets
@@ -305,15 +306,12 @@ by rw ← inter_eq_self_of_subset_right h; apply_instance
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
 | ⟨hs⟩ t h := ⟨@set.fintype_subset _ _ _ hs (classical.dec_pred t) h⟩
 
-lemma finite.union_iff {s t : set α} : finite (s ∪ t) ↔ finite s ∧ finite t :=
+@[simp] lemma finite_union {s t : set α} : finite (s ∪ t) ↔ finite s ∧ finite t :=
 ⟨λ h, ⟨h.subset (subset_union_left _ _), h.subset (subset_union_right _ _)⟩,
  λ ⟨hs, ht⟩, hs.union ht⟩
 
-lemma finite.diff {s t u : set α} (hs : s.finite) (ht : t.finite) (h : u \ t ≤ s) : u.finite :=
-begin
-  refine finite.subset (ht.union hs) _,
-  exact diff_subset_iff.mp h
-end
+lemma finite.of_diff {s t : set α} (hd : finite (s \ t)) (ht : finite t) : finite s :=
+(hd.union ht).subset $ subset_diff_union _ _
 
 theorem finite.inter_of_left {s : set α} (h : finite s) (t : set α) : finite (s ∩ t) :=
 h.subset (inter_subset_left _ _)
@@ -336,7 +334,10 @@ mt (λ ht, ht.subset h)
 
 lemma infinite.diff {s t : set α} (hs : s.infinite) (ht : t.finite) :
   (s \ t).infinite :=
-λ h, hs ((h.union ht).subset (s.subset_diff_union t))
+λ h, hs $ h.of_diff ht
+
+@[simp] lemma infinite_union {s t : set α} : infinite (s ∪ t) ↔ infinite s ∨ infinite t :=
+by simp only [infinite, finite_union, not_and_distrib]
 
 instance fintype_image [decidable_eq β] (s : set α) (f : α → β) [fintype s] : fintype (f '' s) :=
 fintype.of_finset (s.to_finset.image f) $ by simp
@@ -419,6 +420,15 @@ theorem infinite.exists_lt_map_eq_of_maps_to [linear_order α] {s : set α} {t :
 let ⟨x, hx, y, hy, hxy, hf⟩ := hs.exists_ne_map_eq_of_maps_to hf ht
 in hxy.lt_or_lt.elim (λ hxy, ⟨x, hx, y, hy, hxy, hf⟩) (λ hyx, ⟨y, hy, x, hx, hyx, hf.symm⟩)
 
+lemma finite.exists_lt_map_eq_of_range_subset [linear_order α] [_root_.infinite α] {t : set β}
+  {f : α → β} (hf : range f ⊆ t) (ht : finite t) :
+  ∃ a b, a < b ∧ f a = f b :=
+begin
+  rw [range_subset_iff, ←maps_univ_to] at hf,
+  obtain ⟨a, -, b, -, h⟩ := (@infinite_univ α _).exists_lt_map_eq_of_maps_to hf ht,
+  exact ⟨a, b, h⟩,
+end
+
 theorem infinite_range_of_injective [_root_.infinite α] {f : α → β} (hi : injective f) :
   infinite (range f) :=
 by { rw [←image_univ, infinite_image_iff (inj_on_of_injective hi _)], exact infinite_univ }
@@ -479,10 +489,10 @@ lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := ⟨set.fintype_lt_nat _⟩
 lemma infinite.exists_nat_lt {s : set ℕ} (hs : infinite s) (n : ℕ) : ∃ m ∈ s, n < m :=
 let ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty in ⟨m, by simpa using hm⟩
 
-instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (set.prod s t) :=
+instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (s ×ˢ t : set _) :=
 fintype.of_finset (s.to_finset.product t.to_finset) $ by simp
 
-lemma finite.prod {s : set α} {t : set β} : finite s → finite t → finite (set.prod s t)
+lemma finite.prod {s : set α} {t : set β} : finite s → finite t → finite (s ×ˢ t)
 | ⟨hs⟩ ⟨ht⟩ := by exactI ⟨set.fintype_prod s t⟩
 
 /-- `image2 f s t` is finitype if `s` and `t` are. -/
@@ -565,9 +575,6 @@ variables {s : finset α}
 
 lemma finite_to_set (s : finset α) : set.finite (↑s : set α) :=
 set.finite_mem_finset s
-
-@[simp] lemma coe_bUnion {f : α → finset β} : ↑(s.bUnion f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
-by simp [set.ext_iff]
 
 @[simp] lemma finite_to_set_to_finset {α : Type*} (s : finset α) :
   (finite_to_set s).to_finset = s :=
@@ -758,8 +765,12 @@ end
 
 lemma finite.card_to_finset {s : set α} [fintype s] (h : s.finite) :
   h.to_finset.card = fintype.card s :=
-by { rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card], congr' 2, funext,
-     rw set.finite.mem_to_finset }
+begin
+  rw [← finset.card_attach, finset.attach_eq_univ, ← fintype.card],
+  refine fintype.card_congr (equiv.set_congr _),
+  ext x, show x ∈ h.to_finset ↔ x ∈ s,
+  simp,
+end
 
 lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
   ∃ a ∈ s, a ∉ f :=
@@ -797,7 +808,7 @@ lemma card_ne_eq [fintype α] (a : α) [fintype {x : α | x ≠ a}] :
 begin
   haveI := classical.dec_eq α,
   rw [←to_finset_card, to_finset_ne_eq_erase, finset.card_erase_of_mem (finset.mem_univ _),
-      finset.card_univ, nat.pred_eq_sub_one],
+      finset.card_univ],
 end
 
 end decidable_eq

@@ -170,6 +170,51 @@ def orbit_rel : setoid β :=
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
 
+local attribute [instance] orbit_rel
+
+variables {α} {β}
+/-- When you take a set `U` in `β`, push it down to the quotient, and pull back, you get the union
+of the orbit of `U` under `α`.
+-/
+@[to_additive] lemma quotient_preimage_image_eq_union_mul (U : set β) :
+  quotient.mk ⁻¹' (quotient.mk '' U) = ⋃ a : α, ((•) a) '' U :=
+begin
+  set f : β → quotient (mul_action.orbit_rel α β) := quotient.mk,
+  ext,
+  split,
+  { rintros ⟨y , hy, hxy⟩,
+    obtain ⟨a, rfl⟩ := quotient.exact hxy,
+    rw set.mem_Union,
+    exact ⟨a⁻¹, a • x, hy, inv_smul_smul a x⟩ },
+  { intros hx,
+    rw set.mem_Union at hx,
+    obtain ⟨a, u, hu₁, hu₂⟩ := hx,
+    rw [set.mem_preimage, set.mem_image_iff_bex],
+    refine ⟨a⁻¹ • x, _, by simp only [quotient.eq]; use a⁻¹⟩,
+    rw ← hu₂,
+    convert hu₁,
+    simp only [inv_smul_smul], },
+end
+
+@[to_additive]
+lemma image_inter_image_iff (U V : set β) :
+  (quotient.mk '' U) ∩ (quotient.mk '' V) = ∅ ↔ ∀ x ∈ U, ∀ a : α, a • x ∉ V :=
+begin
+  set f : β → quotient (mul_action.orbit_rel α β) := quotient.mk,
+  rw set.eq_empty_iff_forall_not_mem,
+  split,
+  { intros h x x_in_U a a_in_V,
+    refine h (f (a • x)) ⟨⟨x, x_in_U, _⟩, ⟨a • x, a_in_V, rfl⟩⟩,
+    rw quotient.eq,
+    use a⁻¹,
+    simp, },
+  { rintros h x ⟨⟨y, hy₁, hy₂⟩, ⟨z, hz₁, hz₂⟩⟩,
+    obtain ⟨a, ha⟩ := quotient.exact (hz₂.trans hy₂.symm),
+    apply h y hy₁ a,
+    convert hz₁, },
+end
+
+variables (α) (β)
 local notation `Ω` := (quotient $ orbit_rel α β)
 
 /-- Decomposition of a type `X` as a disjoint union of its orbits under a group action.
@@ -212,7 +257,7 @@ let g : α := classical.some h in
 have hg : g • y = x := classical.some_spec h,
 have this : stabilizer α x = (stabilizer α y).map (mul_aut.conj g).to_monoid_hom,
   by rw [← hg, stabilizer_smul_eq_stabilizer_map_conj],
-(mul_equiv.subgroup_congr this).trans ((mul_aut.conj g).subgroup_equiv_map $ stabilizer α y).symm
+(mul_equiv.subgroup_congr this).trans ((mul_aut.conj g).subgroup_map $ stabilizer α y).symm
 
 end mul_action
 
@@ -239,7 +284,7 @@ have hg : g +ᵥ y = x := classical.some_spec h,
 have this : stabilizer α x = (stabilizer α y).map (add_aut.conj g).to_add_monoid_hom,
   by rw [← hg, stabilizer_vadd_eq_stabilizer_map_conj],
 (add_equiv.add_subgroup_congr this).trans
-  ((add_aut.conj g).add_subgroup_equiv_map $ stabilizer α y).symm
+  ((add_aut.conj g).add_subgroup_map $ stabilizer α y).symm
 
 end add_action
 

@@ -211,10 +211,29 @@ def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (x : total_space E) (hx : x ∈ e.source) :
   e.continuous_linear_equiv_at (proj E x) (e.mem_source.1 hx) x.2 = (e x).2 := by { cases x, refl }
 
+lemma apply_eq_prod_continuous_linear_equiv_at (e : trivialization R F E) (b : B)
+  (hb : b ∈ e.base_set) (z : E b) :
+  e.to_local_homeomorph ⟨b, z⟩ = ⟨b, e.continuous_linear_equiv_at b hb z⟩ :=
+begin
+  ext,
+  { convert e.coe_fst _,
+    rw e.source_eq,
+    exact hb },
+  { simp }
+end
+
 lemma symm_apply_eq_prod_continuous_linear_equiv_at_symm (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) (z : F) :
   e.to_local_homeomorph.symm ⟨b, z⟩ = ⟨b, (e.continuous_linear_equiv_at b hb).symm z⟩ :=
-sorry
+begin
+  have h : (b, z) ∈ e.to_local_homeomorph.target,
+  { rw e.target_eq,
+    exact ⟨hb, mem_univ _⟩ },
+  apply e.to_local_homeomorph.inj_on (e.to_local_homeomorph.map_target h),
+  { simp [e.source_eq, hb] },
+  simp [-continuous_linear_equiv_at_apply, e.apply_eq_prod_continuous_linear_equiv_at b hb,
+    e.to_local_homeomorph.right_inv h],
+end
 
 end trivialization
 
@@ -606,14 +625,12 @@ def prod : pretrivialization R (F₁ × F₂) (λ x, E₁ x × E₂ x) :=
   (prod e₁ e₂).base_set = e₁.base_set ∩ e₂.base_set :=
 rfl
 
-lemma prod_apply {e₁ : trivialization R F₁ E₁}
+@[simp] lemma prod_apply {e₁ : trivialization R F₁ E₁}
   {e₂ : trivialization R F₂ E₂} {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set)
   (v₁ : E₁ x) (v₂ : E₂ x) :
   prod e₁ e₂ ⟨x, (v₁, v₂)⟩
   = ⟨x, e₁.continuous_linear_equiv_at x hx₁ v₁, e₂.continuous_linear_equiv_at x hx₂ v₂⟩ :=
-begin
-  sorry
-end
+rfl
 
 lemma prod_symm_apply {e₁ : trivialization R F₁ E₁}
   {e₂ : trivialization R F₂ E₂} {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set)
@@ -622,7 +639,8 @@ lemma prod_symm_apply {e₁ : trivialization R F₁ E₁}
   = ⟨x, ((e₁.continuous_linear_equiv_at x hx₁).symm w₁,
       (e₂.continuous_linear_equiv_at x hx₂).symm w₂)⟩ :=
 begin
-  sorry
+  dsimp [prod, prod.inv_fun'],
+  rw [dif_pos, dif_pos]
 end
 
 lemma continuous_triv_change_prod
@@ -638,10 +656,8 @@ begin
   rw [(prod e₁ e₂).source_eq, (prod f₁ f₂).target_eq, inter_comm,
     topological_fiber_bundle.pretrivialization.preimage_symm_proj_inter,
     pretrivialization.base_set_prod, pretrivialization.base_set_prod],
-  let ψ₁ : local_homeomorph (B × F₁) (B × F₁) :=
-    f₁.to_local_homeomorph.symm.trans e₁.to_local_homeomorph,
-  let ψ₂ : local_homeomorph (B × F₂) (B × F₂) :=
-    f₂.to_local_homeomorph.symm.trans e₂.to_local_homeomorph,
+  let ψ₁ := f₁.to_local_homeomorph.symm.trans e₁.to_local_homeomorph,
+  let ψ₂ := f₂.to_local_homeomorph.symm.trans e₂.to_local_homeomorph,
   have hψ₁ : ψ₁.source = (e₁.base_set ∩ f₁.base_set) ×ˢ (univ : set F₁),
   { dsimp [ψ₁],
     rw [e₁.source_eq, f₁.target_eq, inter_comm],

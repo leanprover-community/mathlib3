@@ -2140,9 +2140,7 @@ begin
   rw ←H,
   apply add_le_add_left _ a,
   by_contra' hb,
-  have := h _ hb,
-  rw H at this,
-  exact this.false
+  exact (h _ hb).ne H
 end
 
 theorem add_mul_limit_aux {a b c : ordinal} (ba : b + a = a)

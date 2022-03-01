@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import algebra.algebra.bilinear
 import algebra.module.submodule_pointwise
+import algebra.module.opposites
 
 /-!
 # Multiplication and division of submodules of an algebra.
@@ -30,7 +31,7 @@ multiplication of submodules, division of subodules, submodule semiring
 
 universes uι u v
 
-open algebra set
+open algebra set mul_opposite
 open_locale big_operators
 open_locale pointwise
 
@@ -66,6 +67,14 @@ end
 
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
 by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
+
+lemma map_one {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
+  map f.to_linear_map (1 : submodule R A) = 1 :=
+by { ext, simp }
+
+lemma map_op_one :
+  map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (1 : submodule R A) = 1 :=
+by { ext, induction x using mul_opposite.rec, simp }
 
 /-- Multiplication of sub-R-modules of an R-algebra A. The submodule `M * N` is the
 smallest R-submodule of `A` containing the elements `m * n` for `m ∈ M` and `n ∈ N`. -/
@@ -193,6 +202,22 @@ calc map f.to_linear_map (M * N)
       simp [fy_eq] }
 end
 
+lemma map_op_mul :
+  map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (M * N) =
+    map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) N *
+      map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) M :=
+begin
+  apply le_antisymm,
+  { simp_rw map_le_iff_le_comap,
+    refine mul_le.2 (λ m hm n hn, _),
+    rw [mem_comap, map_equiv_eq_comap_symm, map_equiv_eq_comap_symm],
+    show op n * op m ∈ _,
+    exact mul_mem_mul hn hm },
+  { refine mul_le.2 (mul_opposite.rec $ λ m hm, mul_opposite.rec $ λ n hn, _),
+    rw submodule.mem_map_equiv at ⊢ hm hn,
+    exact mul_mem_mul hn hm, }
+end
+
 section decidable_eq
 
 open_locale classical
@@ -288,6 +313,17 @@ protected theorem pow_induction_on
   {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C x :=
 submodule.pow_induction_on' M
   (by exact hr) (λ x y i hx hy, hadd x y) (λ m hm i x hx, hmul _ hm _) hx
+
+lemma map_pow {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
+  ∀ n : ℕ, map f.to_linear_map (M ^ n) = map f.to_linear_map M ^ n
+| 0 := by rw [pow_zero, pow_zero, map_one]
+| (n + 1) := by rw [pow_succ, pow_succ, map_mul, map_pow]
+
+lemma map_op_pow :
+  ∀ n : ℕ, map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (M ^ n) =
+    map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) M ^ n
+| 0 := by rw [pow_zero, pow_zero, map_op_one]
+| (n + 1) := by rw [pow_succ, pow_succ', map_op_mul, map_op_pow]
 
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
 on either side). -/

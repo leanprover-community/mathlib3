@@ -274,7 +274,7 @@ lemma chain'_dart_adj_darts : Π {u v : V} (p : G.walk u v), list.chain' G.dart_
 
 /-- Every edge in a walk's edge list is an edge of the graph.
 It is written in this form (rather than using `⊆`) to avoid unsightly coercions. -/
-lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) {e : sym2 V}
+lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) ⦃e : sym2 V⦄
   (h : e ∈ p.edges), e ∈ G.edge_set
 | _ _ (cons h' p') e h := by rcases h with ⟨rfl, h⟩; solve_by_elim
 
@@ -329,23 +329,21 @@ by induction p; simp *
 by simp [edges]
 
 lemma dart_fst_mem_support_of_mem_darts :
-  Π {d : G.dart} {u v : V} (p : G.walk u v) (he : d ∈ p.darts),
-  d.fst ∈ p.support
-| d u v (cons h p') he := begin
-  simp only [support_cons, darts_cons, list.mem_cons_iff] at he ⊢,
-  rcases he with (rfl|he),
+  Π {u v : V} (p : G.walk u v) {d : G.dart}, d ∈ p.darts → d.fst ∈ p.support
+| u v (cons h p') d hd := begin
+  simp only [support_cons, darts_cons, list.mem_cons_iff] at hd ⊢,
+  rcases hd with (rfl|hd),
   { exact or.inl rfl, },
-  { exact or.inr (dart_fst_mem_support_of_mem_darts _ he), },
+  { exact or.inr (dart_fst_mem_support_of_mem_darts _ hd), },
 end
 
 lemma dart_snd_mem_support_of_mem_darts :
-  Π {d : G.dart} {u v : V} (p : G.walk u v) (he : d ∈ p.darts),
-  d.snd ∈ p.support
-| d u v (cons h p') he := begin
-  simp only [support_cons, darts_cons, list.mem_cons_iff] at he ⊢,
-  rcases he with (rfl|he),
+  Π {u v : V} (p : G.walk u v) {d : G.dart}, d ∈ p.darts → d.snd ∈ p.support
+| u v (cons h p') d hd := begin
+  simp only [support_cons, darts_cons, list.mem_cons_iff] at hd ⊢,
+  rcases hd with (rfl|hd),
   { simp },
-  { exact or.inr (dart_snd_mem_support_of_mem_darts _ he), },
+  { exact or.inr (dart_snd_mem_support_of_mem_darts _ hd), },
 end
 
 lemma mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
@@ -631,7 +629,7 @@ end
 
 lemma rotate_edges {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
   (c.rotate h).edges ~r c.edges :=
-list.is_rotated.map (rotate_darts c h) _
+(rotate_darts c h).map _
 
 protected
 lemma is_trail.rotate {u v : V} {c : G.walk v v} (hc : c.is_trail) (h : u ∈ c.support) :

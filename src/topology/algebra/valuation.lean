@@ -87,7 +87,11 @@ lemma subgroups_basis :
       simpa using mul_inv_lt_of_lt_mul₀ vy_lt }
   end }
 
-@[priority 100]
+/-- The topological space structure on a valued ring.
+
+NOTE: The `dangerous_instance` linter does not check whether the metavariables only occur in
+arguments marked with `out_param`, so in this instance it gives a false positive. -/
+@[nolint dangerous_instance, priority 100]
 instance : topological_space R := (subgroups_basis Γ₀).topology
 
 variable {Γ₀}
@@ -110,8 +114,11 @@ begin
   exact valuation.map_eq_of_sub_lt _ y_in
 end
 
-/-- The uniform structure on a valued ring.-/
-@[priority 100]
+/-- The uniform structure on a valued ring.
+
+NOTE: The `dangerous_instance` linter does not check whether the metavariables only occur in
+arguments marked with `out_param`, so in this instance it gives a false positive.-/
+@[nolint dangerous_instance, priority 100]
 instance uniform_space : uniform_space R := topological_add_group.to_uniform_space R
 
 /-- A valued ring is a uniform additive group.-/

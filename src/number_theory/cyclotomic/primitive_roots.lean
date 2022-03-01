@@ -290,8 +290,8 @@ end
 
 /-- If `irreducible (cyclotomic (2 ^ k) K)` (in particular for `K = ℚ`) and `k` is at least `2`,
 then the norm of `ζ - 1` is `2`. -/
-lemma sub_one_norm_of_pow_two [ne_zero (2 : K)] {k : ℕ} (hζ : is_primitive_root ζ (2 ^ k)) (hk : 2 ≤ k)
-  [is_cyclotomic_extension {2 ^ k} K L] (hirr : irreducible (cyclotomic (2 ^ k) K)) :
+lemma sub_one_norm_of_pow_two [ne_zero (2 : K)] {k : ℕ} (hζ : is_primitive_root ζ (2 ^ k))
+  (hk : 2 ≤ k) [is_cyclotomic_extension {2 ^ k} K L] (hirr : irreducible (cyclotomic (2 ^ k) K)) :
   norm K (ζ - 1) = 2 :=
 begin
   haveI : ne_zero (((2 ^ k : ℕ+) : ℕ) : K),

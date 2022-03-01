@@ -325,6 +325,18 @@ lemma map_op_pow :
 | 0 := by rw [pow_zero, pow_zero, map_op_one]
 | (n + 1) := by rw [pow_succ, pow_succ', map_op_mul, map_op_pow]
 
+/-- The ring of submodules of the opposite algebra is isomorphic to the opposite ring of
+submodules. -/
+@[simps]
+def equiv_opposite : submodule R Aᵐᵒᵖ ≃+* (submodule R A)ᵐᵒᵖ :=
+ring_equiv.symm
+{ to_fun := λ p, p.unop.comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A),
+  inv_fun := λ p, op $ p.comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ),
+  left_inv := λ p, unop_injective $ set_like.coe_injective rfl,
+  right_inv := λ p, set_like.coe_injective $ rfl,
+  map_add' := λ p q, by simp [comap_equiv_eq_map_symm],
+  map_mul' := λ p q, by simp [comap_equiv_eq_map_symm, map_op_mul] }
+
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
 on either side). -/
 def span.ring_hom : set_semiring A →+* submodule R A :=

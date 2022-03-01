@@ -23,7 +23,7 @@ constructive.
 ## References
 
 * [nLab, *The category of sets and partial functions]
-[http://nlab-pages.s3.us-east-2.amazonaws.com/nlab/show/partial+function]
+  (https://ncatlab.org/nlab/show/partial+function)
 -/
 
 open category_theory option

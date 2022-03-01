@@ -557,10 +557,7 @@ def eval : code → ℕ →. ℕ
 
 /-- Helper lemma for the evaluation of `prec` in the base case. -/
 lemma eval_prec_zero (cf cg : code) (a : ℕ) : eval (prec cf cg) (nat.mkpair a 0) = eval cf a :=
-begin
-  rw eval,
-  simp only [nat.unpaired, nat.unpair_mkpair, nat.elim_zero],
-end
+by simp only [eval, nat.unpaired, nat.unpair_mkpair, nat.elim_zero]
 
 /-- Helper lemma for the evaluation of `prec` in the recursive case. -/
 lemma eval_prec_succ (cf cg : code) (a k : ℕ) :
@@ -571,9 +568,8 @@ lemma eval_prec_succ (cf cg : code) (a k : ℕ) :
 begin
   rw eval,
   simp only [nat.unpaired, part.bind_eq_bind, nat.unpair_mkpair, nat.elim_succ],
-  rw map_pure,
-  rw pure_seq_eq_map,
-  simp only [-part.pure_eq_some, part.map_eq_map, part.bind_map],
+  rw [map_pure, pure_seq_eq_map],
+  simp only [part.map_eq_map, part.bind_map],
   rw seq_eq_bind_map,
   simp,
 end

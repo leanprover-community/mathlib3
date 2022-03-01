@@ -34,6 +34,26 @@ begin
   { exact hf.open_range.mem_nhds (set.mem_range_self a) }
 end
 
+lemma set.range_subtype_map {α β : Type*} (f : α → β) {p : set α} {q : set β} (H : ∀ x, p x → q (f x)) :
+  set.range (subtype.map f H) = coe ⁻¹' (f '' p) :=
+begin
+  ext ⟨x, hx⟩,
+  simp only [set.mem_preimage, set.mem_range, set.mem_image, subtype.exists, subtype.map,
+    subtype.coe_mk],
+  congr' 2,
+  ext y,
+  simp only [exists_prop, and.congr_left_iff],
+  exact λ _, iff.rfl,
+end
+
+lemma set.range_res {α β : Type*} (s : set β) (f : α → β) :
+  set.range (s.res f) = coe ⁻¹' (set.range f) :=
+begin
+  delta set.res set.maps_to.restrict,
+  rw [@set.range_subtype_map _ _ _ (f ⁻¹' s) s, set.image_preimage_eq_inter_range,
+    set.preimage_inter, subtype.coe_preimage_self, set.univ_inter],
+end
+
 include hU
 
 -- this hold in arbitrary sets
@@ -70,7 +90,7 @@ begin
     surjective_iff_surjective_res_of_supr_eq_top f U hU]
 end
 
--- This is probably incorrect
+-- This is incorrect. This (should) still holds if `f ⁻¹' U i` are open though. Do we need this?
 lemma continuous_iff_continuous_res_of_supr_eq_top :
   continuous f ↔ ∀ i, continuous ((U i).1.res f) := sorry
 
@@ -98,7 +118,67 @@ begin
     exact ⟨U i, (U i).2.mem_nhds hi, hS⟩ }
 end
 
--- lemma bijective_iff_bijective_res_of_supr_eq_top :
---   function.bijective f ↔ ∀ i, function.bijective ((U i).1.res f) := sorry
--- lemma bijective_iff_bijective_res_of_supr_eq_top :
---   function.bijective f ↔ ∀ i, function.bijective ((U i).1.res f) := sorry
+attribute [mk_iff] embedding open_embedding closed_embedding
+
+lemma embedding_iff_embedding_res_of_supr_eq_top (h : continuous f) :
+  embedding f ↔ ∀ i, embedding ((U i).1.res f) :=
+begin
+  simp_rw embedding_iff,
+  rw forall_and_distrib,
+  apply and_congr,
+  { apply inducing_iff_inducing_res_of_supr_eq_top; assumption },
+  { apply injective_iff_injective_res_of_supr_eq_top; assumption }
+end
+
+lemma Union_inter_eq_of_supr_eq_top (s : set β) :
+  (⋃ (i : ι), s ∩ U i) = s :=
+begin
+  rw ← set.inter_Union,
+  convert s.inter_univ,
+  convert congr_arg coe hU,
+  simp,
+end
+
+lemma open_iff_inter_of_supr_eq_top (s : set β) :
+  is_open s ↔ ∀ i, is_open (s ∩ U i) :=
+begin
+  split,
+  { exact λ H i, H.inter (U i).2 },
+  { intro H, rw ← Union_inter_eq_of_supr_eq_top U hU s, exact is_open_Union H }
+end
+
+lemma open_iff_coe_preimage_of_supr_eq_top (s : set β) :
+  is_open s ↔ ∀ i, is_open (coe ⁻¹' s : set (U i)) :=
+begin
+  simp_rw [(U _).2.open_embedding_subtype_coe.open_iff_image_open,
+    set.image_preimage_eq_inter_range, subtype.range_coe],
+  apply open_iff_inter_of_supr_eq_top,
+  assumption
+end
+
+lemma closed_iff_coe_preimage_of_supr_eq_top (s : set β) :
+  is_closed s ↔ ∀ i, is_closed (coe ⁻¹' s : set (U i)) :=
+begin
+  let t := sᶜ, have : s = tᶜ := by simp[t], clear_value t, subst this,
+  simpa using open_iff_coe_preimage_of_supr_eq_top _ hU t,
+end
+
+lemma open_embedding_iff_open_embedding_res_of_supr_eq_top (h : continuous f) :
+  open_embedding f ↔ ∀ i, open_embedding ((U i).1.res f) :=
+begin
+  simp_rw open_embedding_iff,
+  rw forall_and_distrib,
+  apply and_congr,
+  { apply embedding_iff_embedding_res_of_supr_eq_top; assumption },
+  { simp_rw set.range_res, apply open_iff_coe_preimage_of_supr_eq_top U hU }
+end
+
+lemma closed_embedding_iff_closed_embedding_res_of_supr_eq_top (h : continuous f) :
+  closed_embedding f ↔ ∀ i, closed_embedding ((U i).1.res f) :=
+begin
+  simp_rw closed_embedding_iff,
+  rw forall_and_distrib,
+  apply and_congr,
+  { apply embedding_iff_embedding_res_of_supr_eq_top; assumption },
+  { simp_rw set.range_res, apply closed_iff_coe_preimage_of_supr_eq_top U hU }
+end

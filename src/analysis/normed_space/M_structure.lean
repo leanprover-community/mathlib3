@@ -61,10 +61,9 @@ lemma projection_def {P: M} (h: is_projection P) : P^2 = P := by exact h
 
 namespace is_projection
 
-lemma commuting {P Q : M} (h: commute P Q) :
-  is_projection P → is_projection Q →  is_projection (P*Q)  :=
+lemma mul_of_commute {P Q : M} (h : commute P Q) (h₁ : is_projection P) (h₂ : is_projection Q) :
+  is_projection (P*Q)  :=
 begin
-  intros h₁ h₂,
   unfold is_projection,
   unfold is_projection at h₁,
   unfold is_projection at h₂,

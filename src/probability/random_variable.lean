@@ -23,6 +23,16 @@ the restriction of `f` to `mv`.
 We also define a generic marginalization on a measure on `Π (i : ι), β i` to an
 index subset `mv`.
 
+## Notations
+
+Because we expect to frequently use `set.pi_restrict` in this context, we define special notation
+for it. For a `S : set ι`,
+* the notation `<[S]` stands for `set.image (set.pi_restrict S)`,
+  i.e. the restrictor of `set (Π (i : ι), β i)` to `set (Π (i : S), β i)`, and
+* the notation `>[S]` stands for `set.image (set.pi_restrict S)`,
+  i.e. the extender of `set (Π (i : S), β i)` to `set (Π (i : ι), β i)`.
+In both cases `S` can be omitted from the brackets to be inferred.
+
 ## Main statements
 
 * `marginal_eq_marginalize_joint`: the marginal distribution is the marginalized joint distribution.
@@ -31,6 +41,7 @@ is the joint distribution's measure of that same set, extended to allow the
 unmarginalized variables to take any value.
 
 ## Tags
+
 random variable, joint, marginal, marginalization
 -/
 open measure_theory measure_theory.measure measurable_space

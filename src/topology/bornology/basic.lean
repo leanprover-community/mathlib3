@@ -19,7 +19,6 @@ open set filter
 
 variables {α β : Type*}
 
-
 /-- A **bornology** on a type `α` is a filter of cobounded sets which contains the cofinite filter.
 Such spaces are equivalently specified by their bounded sets, see `bornology.of_bounded`
 and `bornology.ext_iff_is_bounded`-/
@@ -28,7 +27,6 @@ class bornology (α : Type*) :=
 (cobounded [] : filter α)
 (le_cofinite [] : cobounded ≤ cofinite)
 
-attribute [class] bornology
 
 /-- A constructor for bornologies by specifying the bounded sets,
 and showing that they satisfy the appropriate conditions. -/
@@ -39,7 +37,7 @@ def bornology.of_bounded {α : Type*} (B : set (set α))
   bornology α :=
 { cobounded :=
   { sets := {s : set α | sᶜ ∈ B},
-    univ_sets := by { rwa ←compl_univ at empty_mem },
+    univ_sets := by rwa ←compl_univ at empty_mem,
     sets_of_superset := λ x y hx hy, subset_mem xᶜ hx yᶜ (compl_subset_compl.mpr hy),
     inter_sets := λ x y hx hy, by simpa [compl_inter] using union_mem xᶜ hx yᶜ hy, },
   le_cofinite :=

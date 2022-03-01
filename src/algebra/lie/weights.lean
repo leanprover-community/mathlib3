@@ -263,7 +263,7 @@ begin
     simp only [mem_weight_space, mem_pre_weight_space,
       lie_subalgebra.coe_incl', lie_submodule.mem_comap, this], },
   have hfg : ∀ (y : H), (f y).comp (H.incl : H →ₗ[R] L) = (H.incl : H →ₗ[R] L).comp (g y),
-  { rintros ⟨y, hz⟩, ext ⟨z, hz⟩,
+  { rintros ⟨y, hy⟩, ext ⟨z, hz⟩,
     simp only [submodule.coe_sub, to_endomorphism_apply_apply, lie_hom.coe_to_linear_map,
       linear_map.one_apply, lie_subalgebra.coe_incl, lie_subalgebra.coe_bracket_of_module,
       lie_subalgebra.coe_bracket, linear_map.smul_apply, function.comp_app,

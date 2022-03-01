@@ -4,8 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Floris van Doorn
 -/
 import category_theory.limits.shapes.finite_products
-import category_theory.limits.shapes.kernels
 import category_theory.discrete_category
+
+/-!
+# Limits in `C` give colimits in `Cᵒᵖ`.
+
+We also give special cases for (co)products,
+but not yet for pullbacks / pushouts or for (co)equalizers.
+
+-/
 
 universes v u
 
@@ -36,16 +43,8 @@ has_limit.mk
       refl, end,
     uniq' := λ s m w,
     begin
-      -- It's a pity we can't do this automatically.
-      -- Usually something like this would work by limit.hom_ext,
-      -- but the opposites get in the way of this firing.
-      have u := (colimit.is_colimit F.left_op).uniq (cocone_left_op_of_cone s) (m.unop),
-      convert congr_arg (λ f : _ ⟶ _, f.op) (u _), clear u,
-      intro j,
-      rw [cocone_left_op_of_cone_ι_app, colimit.cocone_ι],
-      convert congr_arg (λ f : _ ⟶ _, f.unop) (w (unop j)), clear w,
-      rw [cone_of_cocone_left_op_π_app, colimit.cocone_ι, quiver.hom.unop_op],
-      refl,
+      refine quiver.hom.unop_inj (colimit.hom_ext (λ j, quiver.hom.op_inj _)),
+      simpa only [quiver.hom.unop_op, colimit.ι_desc] using w (unop j)
     end } }
 
 /--
@@ -60,7 +59,7 @@ local attribute [instance] has_limits_of_shape_op_of_has_colimits_of_shape
 /--
 If `C` has colimits, we can construct limits for `Cᵒᵖ`.
 -/
-lemma has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ := {}
+lemma has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ := ⟨infer_instance⟩
 
 /--
 If `F.left_op : Jᵒᵖ ⥤ C` has a limit, we can construct a colimit for `F : J ⥤ Cᵒᵖ`.
@@ -77,13 +76,8 @@ has_colimit.mk
       refl, end,
     uniq' := λ s m w,
     begin
-      have u := (limit.is_limit F.left_op).uniq (cone_left_op_of_cocone s) (m.unop),
-      convert congr_arg (λ f : _ ⟶ _, f.op) (u _), clear u,
-      intro j,
-      rw [cone_left_op_of_cocone_π_app, limit.cone_π],
-      convert congr_arg (λ f : _ ⟶ _, f.unop) (w (unop j)), clear w,
-      rw [cocone_of_cone_left_op_ι_app, limit.cone_π, quiver.hom.unop_op],
-      refl,
+      refine quiver.hom.unop_inj (limit.hom_ext (λ j, quiver.hom.op_inj _)),
+      simpa only [quiver.hom.unop_op, limit.lift_π] using w (unop j),
     end } }
 
 /--
@@ -98,7 +92,7 @@ local attribute [instance] has_colimits_of_shape_op_of_has_limits_of_shape
 /--
 If `C` has limits, we can construct colimits for `Cᵒᵖ`.
 -/
-lemma has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ := {}
+lemma has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ := ⟨infer_instance⟩
 
 variables (X : Type v)
 /--
@@ -141,7 +135,19 @@ lemma has_finite_products_opposite [has_finite_coproducts C] :
     apply_instance,
   end }
 
-local attribute [instance] fin_category_opposite
+lemma has_equalizers_opposite [has_coequalizers C] : has_equalizers Cᵒᵖ :=
+begin
+  haveI : has_colimits_of_shape walking_parallel_pair.{v}ᵒᵖ C :=
+    has_colimits_of_shape_of_equivalence walking_parallel_pair_op_equiv.{v},
+  apply_instance
+end
+
+lemma has_coequalizers_opposite [has_equalizers C] : has_coequalizers Cᵒᵖ :=
+begin
+  haveI : has_limits_of_shape walking_parallel_pair.{v}ᵒᵖ C :=
+    has_limits_of_shape_of_equivalence walking_parallel_pair_op_equiv.{v},
+  apply_instance
+end
 
 lemma has_finite_colimits_opposite [has_finite_limits C] :
   has_finite_colimits Cᵒᵖ :=

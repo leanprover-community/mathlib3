@@ -82,8 +82,7 @@ begin
 
   have h₃ : ∀ x > 0, f(x) = x ∨ f(x) = 1 / x, { simpa [sub_eq_zero] using h₂ },
 
-  by_contradiction,
-  push_neg at h,
+  by_contra' h,
   rcases h with ⟨⟨b, hb, hfb₁⟩, ⟨a, ha, hfa₁⟩⟩,
   obtain hfa₂ := or.resolve_right (h₃ a ha) hfa₁, -- f(a) ≠ 1/a, f(a) = a
   obtain hfb₂ := or.resolve_left (h₃ b hb) hfb₁,  -- f(b) ≠ b, f(b) = 1/b
@@ -101,7 +100,10 @@ begin
   cases h₃ with hab₁ hab₂,
 
   -- f(ab) = ab → b^4 = 1 → b = 1 → f(b) = b → false
-  { rw hab₁ at H₂, field_simp at H₂,
+  { have H₃ : (a ^ 2 + (1 / b) ^ 2) / (2 * (a * b)) = (a ^ 2 + b ^ 2) / (2 * (a * b)) ↔
+              1 / b ^ 2 = b ^ 2 ∨ 2 * (a * b) = 0,
+    { field_simp [h2ab_ne_0], },
+    rw [hab₁, H₃] at H₂,
     obtain hb₁ := or.resolve_right H₂ h2ab_ne_0,
     field_simp [ne_of_gt hb] at hb₁,
     rw (show b ^ 2 * b ^ 2 = b ^ 4, by ring) at hb₁,

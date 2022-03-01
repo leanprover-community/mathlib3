@@ -5,6 +5,7 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 import topology.sheaves.sheaf_of_functions
 import topology.sheaves.stalks
+import topology.local_homeomorph
 import topology.sheaves.sheaf_condition.unique_gluing
 
 /-!

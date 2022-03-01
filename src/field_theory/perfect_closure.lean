@@ -329,8 +329,8 @@ begin
   { apply this },
   intro p, induction p with p ih,
   case nat.zero { apply r.sound, rw [(frobenius _ _).iterate_map_one, pow_zero] },
-  case nat.succ {
-    rw [pow_succ, ih],
+  case nat.succ
+  { rw [pow_succ, ih],
     symmetry,
     apply r.sound,
     simp only [pow_succ, (frobenius _ _).iterate_map_mul] }
@@ -426,3 +426,11 @@ end
 end field
 
 end perfect_closure
+
+/-- A reduced ring with prime characteristic and surjective frobenius map is perfect. -/
+noncomputable def perfect_ring.of_surjective (k : Type*) [comm_ring k] [is_reduced k] (p : ℕ)
+  [fact p.prime] [char_p k p] (h : function.surjective $ frobenius k p) :
+  perfect_ring k p :=
+{ pth_root' := function.surj_inv h,
+  frobenius_pth_root' := function.surj_inv_eq h,
+  pth_root_frobenius' := λ x, frobenius_inj _ _ $ function.surj_inv_eq h _ }

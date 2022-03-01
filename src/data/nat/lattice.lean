@@ -35,6 +35,9 @@ lemma Sup_def {s : set ℕ} (h : ∃n, ∀a∈s, a ≤ n) :
   Sup s = @nat.find (λn, ∀a∈s, a ≤ n) _ h :=
 dif_pos _
 
+lemma _root_.set.infinite.nat.Sup_eq_zero {s : set ℕ} (h : s.infinite) : Sup s = 0 :=
+dif_neg $ λ ⟨n, hn⟩, let ⟨k, hks, hk⟩ := h.exists_nat_lt n in (hn k hks).not_lt hk
+
 @[simp] lemma Inf_eq_zero {s : set ℕ} : Inf s = 0 ↔ 0 ∈ s ∨ s = ∅ :=
 begin
   cases eq_empty_or_nonempty s,
@@ -43,6 +46,9 @@ begin
   { have := ne_empty_iff_nonempty.mpr h,
     simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
 end
+
+@[simp] lemma Inf_empty : Inf ∅ = 0 :=
+by { rw Inf_eq_zero, right, refl }
 
 lemma Inf_mem {s : set ℕ} (h : s.nonempty) : Inf s ∈ s :=
 by { rw [nat.Inf_def h], exact nat.find_spec h }
@@ -78,7 +84,7 @@ begin
   split,
   { intro H,
     rw [eq_Ici_of_nonempty_of_upward_closed (nonempty_of_Inf_eq_succ H) hs, H, mem_Ici, mem_Ici],
-    exact ⟨le_refl _, k.not_succ_le_self⟩, },
+    exact ⟨le_rfl, k.not_succ_le_self⟩, },
   { rintro ⟨H, H'⟩,
     rw [Inf_def (⟨_, H⟩ : s.nonempty), find_eq_iff],
     exact ⟨H, λ n hnk hns, H' $ hs n k (lt_succ_iff.mp hnk) hns⟩, },
@@ -86,7 +92,7 @@ end
 
 /-- This instance is necessary, otherwise the lattice operations would be derived via
 conditionally_complete_linear_order_bot and marked as noncomputable. -/
-instance : lattice ℕ := lattice_of_linear_order
+instance : lattice ℕ := linear_order.to_lattice
 
 noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
 { Sup := Sup, Inf := Inf,
@@ -102,8 +108,38 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
     apply bot_unique (nat.find_min' _ _),
     trivial
   end,
-  .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
+  .. (infer_instance : order_bot ℕ), .. (linear_order.to_lattice : lattice ℕ),
   .. (infer_instance : linear_order ℕ) }
+
+lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :
+  Inf {m | p (m + n)} + n = Inf {m | p m} :=
+begin
+  obtain h | ⟨m, hm⟩ := {m | p (m + n)}.eq_empty_or_nonempty,
+  { rw [h, nat.Inf_empty, zero_add],
+    obtain hnp | hnp := hn.eq_or_lt,
+    { exact hnp },
+    suffices hp : p (Inf {m | p m} - n + n),
+    { exact (h.subset hp).elim },
+    rw tsub_add_cancel_of_le hn,
+    exact Inf_mem (nonempty_of_pos_Inf $ n.zero_le.trans_lt hnp) },
+  { have hp : ∃ n, n ∈ {m | p m} := ⟨_, hm⟩,
+    rw [nat.Inf_def ⟨m, hm⟩, nat.Inf_def hp],
+    rw [nat.Inf_def hp] at hn,
+    exact find_add hn }
+end
+
+lemma Inf_add' {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m | p m}) :
+  Inf {m | p m} + n = Inf {m | p (m - n)} :=
+begin
+  convert Inf_add _,
+  { simp_rw add_tsub_cancel_right },
+  obtain ⟨m, hm⟩ := nonempty_of_pos_Inf h,
+  refine le_cInf ⟨m + n, _⟩ (λ b hb, le_of_not_lt $ λ hbn,
+    ne_of_mem_of_not_mem _ (not_mem_of_lt_Inf h) (tsub_eq_zero_of_le hbn.le)),
+  { dsimp,
+    rwa add_tsub_cancel_right },
+  { exact hb }
+end
 
 section
 
@@ -147,7 +183,14 @@ namespace enat
 open_locale classical
 
 noncomputable instance : complete_linear_order enat :=
-{ .. enat.linear_order,
-  .. with_top_order_iso.symm.to_galois_insertion.lift_complete_lattice }
+{ inf := (⊓),
+  sup := (⊔),
+  top := ⊤,
+  bot := ⊥,
+  le := (≤),
+  lt := (<),
+  .. enat.lattice,
+  .. with_top_order_iso.symm.to_galois_insertion.lift_complete_lattice,
+  .. enat.linear_order, }
 
 end enat

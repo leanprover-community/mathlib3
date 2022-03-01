@@ -3,18 +3,16 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.fintype.basic
-import data.finset.sort
-import data.nat.parity
 import group_theory.perm.support
+import data.fintype.basic
 import group_theory.order_of_element
 import tactic.norm_swap
-import group_theory.quotient_group
+import data.finset.sort
 
 /-!
 # Sign of a permutation
 
-The main definition of this file is `equiv.perm.sign`, associating a `units ℤ` sign with a
+The main definition of this file is `equiv.perm.sign`, associating a `ℤˣ` sign with a
 permutation.
 
 This file also contains miscellaneous lemmas about `equiv.perm` and `equiv.swap`, building on top
@@ -39,7 +37,7 @@ def mod_swap [decidable_eq α] (i j : α) : setoid (perm α) :=
 ⟨λ σ τ, σ = τ ∨ σ = swap i j * τ,
  λ σ, or.inl (refl σ),
  λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
- λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
+ λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; simp [hστ, hτυ] ⟩
 
 instance {α : Type*} [fintype α] [decidable_eq α] (i j : α) : decidable_rel (mod_swap i j).r :=
 λ σ τ, or.decidable
@@ -93,8 +91,8 @@ lemma perm_maps_to_inl_iff_maps_to_inr {m n : Type*} [fintype m] [fintype n]
   set.maps_to σ (set.range sum.inl) (set.range sum.inl) ↔
   set.maps_to σ (set.range sum.inr) (set.range sum.inr) :=
 begin
-  split; id {
-    intros h,
+  split; id
+  { intros h,
     classical,
     rw ←perm_inv_maps_to_iff_maps_to at h,
     intro x,
@@ -124,19 +122,19 @@ begin
     rw ← hb, exact ⟨b, rfl⟩ },
   let σ₁' := subtype_perm_of_fintype σ h1,
   let σ₂' := subtype_perm_of_fintype σ h3,
-  let σ₁ := perm_congr (equiv.of_injective (@sum.inl m n) sum.inl_injective).symm σ₁',
-  let σ₂ := perm_congr (equiv.of_injective (@sum.inr m n) sum.inr_injective).symm σ₂',
+  let σ₁ := perm_congr (equiv.of_injective _ sum.inl_injective).symm σ₁',
+  let σ₂ := perm_congr (equiv.of_injective _ sum.inr_injective).symm σ₂',
   rw [monoid_hom.mem_range, prod.exists],
   use [σ₁, σ₂],
   rw [perm.sum_congr_hom_apply],
   ext,
   cases x with a b,
   { rw [equiv.sum_congr_apply, sum.map_inl, perm_congr_apply, equiv.symm_symm,
-        apply_of_injective_symm (@sum.inl m n)],
+        apply_of_injective_symm sum.inl_injective],
     erw subtype_perm_apply,
     rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] },
   { rw [equiv.sum_congr_apply, sum.map_inr, perm_congr_apply, equiv.symm_symm,
-        apply_of_injective_symm (@sum.inr m n)],
+        apply_of_injective_symm sum.inr_injective],
     erw subtype_perm_apply,
     rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] }
 end
@@ -266,13 +264,13 @@ by simp only [fin_pairs_lt, fin.lt_iff_coe_lt_coe, true_and, mem_attach_fin, mem
 
 /-- `sign_aux σ` is the sign of a permutation on `fin n`, defined as the parity of the number of
   pairs `(x₁, x₂)` such that `x₂ < x₁` but `σ x₁ ≤ σ x₂` -/
-def sign_aux {n : ℕ} (a : perm (fin n)) : units ℤ :=
+def sign_aux {n : ℕ} (a : perm (fin n)) : ℤˣ :=
 ∏ x in fin_pairs_lt n, if a x.1 ≤ a x.2 then -1 else 1
 
 @[simp] lemma sign_aux_one (n : ℕ) : sign_aux (1 : perm (fin n)) = 1 :=
 begin
   unfold sign_aux,
-  conv { to_rhs, rw ← @finset.prod_const_one (units ℤ) _
+  conv { to_rhs, rw ← @finset.prod_const_one ℤˣ _
     (fin_pairs_lt n) },
   exact finset.prod_congr rfl (λ a ha, if_neg (mem_fin_pairs_lt.1 ha).not_le)
 end
@@ -353,7 +351,7 @@ end
 private lemma sign_aux_swap_zero_one' (n : ℕ) :
   sign_aux (swap (0 : fin (n + 2)) 1) = -1 :=
 show _ = ∏ x : Σ a : fin (n + 2), fin (n + 2) in {(⟨1, 0⟩ : Σ a : fin (n + 2), fin (n + 2))},
-  if (equiv.swap 0 1) x.1 ≤ swap 0 1 x.2 then (-1 : units ℤ) else 1,
+  if (equiv.swap 0 1) x.1 ≤ swap 0 1 x.2 then (-1 : ℤˣ) else 1,
 begin
   refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩,
     by simp [mem_fin_pairs_lt, fin.one_pos] {contextual := tt}) (λ a ha₁ ha₂, _)),
@@ -397,7 +395,7 @@ by { rw [← is_conj_iff_eq, ← sign_aux_swap_zero_one h2n],
 
 /-- When the list `l : list α` contains all nonfixed points of the permutation `f : perm α`,
   `sign_aux2 l f` recursively calculates the sign of `f`. -/
-def sign_aux2 : list α → perm α → units ℤ
+def sign_aux2 : list α → perm α → ℤˣ
 | []     f := 1
 | (x::l) f := if x = f x then sign_aux2 l f else -sign_aux2 l (swap x (f x) * f)
 
@@ -405,7 +403,7 @@ lemma sign_aux_eq_sign_aux2 {n : ℕ} : ∀ (l : list α) (f : perm α) (e : α 
   (h : ∀ x, f x ≠ x → x ∈ l), sign_aux ((e.symm.trans f).trans e) = sign_aux2 l f
 | []     f e h := have f = 1, from equiv.ext $
   λ y, not_not.1 (mt (h y) (list.not_mem_nil _)),
-by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
+by rw [this, one_def, equiv.trans_refl, equiv.symm_trans_self, ← one_def,
   sign_aux_one, sign_aux2]
 | (x::l) f e h := begin
   rw sign_aux2,
@@ -421,12 +419,12 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
       by ext; simp [← equiv.symm_trans_swap_trans, mul_def],
     have hefx : e x ≠ e (f x), from mt e.injective.eq_iff.1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
-    simp only [units.neg_neg, one_mul, units.neg_mul]}
+    simp only [neg_neg, one_mul, neg_mul]}
 end
 
 /-- When the multiset `s : multiset α` contains all nonfixed points of the permutation `f : perm α`,
   `sign_aux2 f _` recursively calculates the sign of `f`. -/
-def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) → units ℤ :=
+def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) → ℤˣ :=
 quotient.hrec_on s (λ l h, sign_aux2 l f)
   (trunc.induction_on (fintype.trunc_equiv_fin α)
     (λ e l₁ l₂ h, function.hfunext
@@ -457,7 +455,7 @@ end
 /-- `sign` of a permutation returns the signature or parity of a permutation, `1` for even
 permutations, `-1` for odd permutations. It is the unique surjective group homomorphism from
 `perm α` to the group with two elements.-/
-def sign [fintype α] : perm α →* units ℤ := monoid_hom.mk'
+def sign [fintype α] : perm α →* ℤˣ := monoid_hom.mk'
 (λ f, sign_aux3 f mem_univ) (λ f g, (sign_aux3_mul_and_swap f g _ mem_univ).1)
 
 section sign
@@ -523,7 +521,7 @@ by rw [← list.prod_repeat, ← h₁, list.prod_hom _ (@sign α _ _)]
 
 variable (α)
 
-lemma sign_surjective [nontrivial α] : function.surjective (sign : perm α → units ℤ) :=
+lemma sign_surjective [nontrivial α] : function.surjective (sign : perm α → ℤˣ) :=
 λ a, (int.units_eq_one_or a).elim
   (λ h, ⟨1, by simp [h]⟩)
   (λ h, let ⟨x, y, hxy⟩ := exists_pair_ne α in
@@ -531,7 +529,7 @@ lemma sign_surjective [nontrivial α] : function.surjective (sign : perm α → 
 
 variable {α}
 
-lemma eq_sign_of_surjective_hom {s : perm α →* units ℤ} (hs : surjective s) : s = sign :=
+lemma eq_sign_of_surjective_hom {s : perm α →* ℤˣ} (hs : surjective s) : s = sign :=
 have ∀ {f}, is_swap f → s f = -1 :=
   λ f ⟨x, y, hxy, hxy'⟩, hxy'.symm ▸ by_contradiction (λ h,
     have ∀ f, is_swap f → s f = 1 := λ f ⟨a, b, hab, hab'⟩,
@@ -539,7 +537,7 @@ have ∀ {f}, is_swap f → s f = -1 :=
         exact s.map_is_conj (is_conj_swap hab hxy) },
   let ⟨g, hg⟩ := hs (-1) in
   let ⟨l, hl⟩ := (trunc_swap_factors g).out in
-  have ∀ a ∈ l.map s, a = (1 : units ℤ) := λ a ha,
+  have ∀ a ∈ l.map s, a = (1 : ℤˣ) := λ a ha,
     let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸ this _ (hl.2 _ hg.1),
   have s l.prod = 1,
     by rw [← l.prod_hom s, list.eq_repeat'.2 this, list.prod_repeat, one_pow],
@@ -547,7 +545,7 @@ have ∀ {f}, is_swap f → s f = -1 :=
     exact absurd this dec_trivial }),
 monoid_hom.ext $ λ f,
 let ⟨l, hl₁, hl₂⟩ := (trunc_swap_factors f).out in
-have hsl : ∀ a ∈ l.map s, a = (-1 : units ℤ) := λ a ha,
+have hsl : ∀ a ∈ l.map s, a = (-1 : ℤˣ) := λ a ha,
   let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸  this (hl₂ _ hg.1),
 by rw [← hl₁, ← l.prod_hom s, list.eq_repeat'.2 hsl, list.length_map,
      list.prod_repeat, sign_prod_list_swap hl₂]

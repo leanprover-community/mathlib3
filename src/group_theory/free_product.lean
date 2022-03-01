@@ -5,6 +5,7 @@ Authors: David Wärn
 -/
 import algebra.free_monoid
 import group_theory.congruence
+import group_theory.is_free_group
 import data.list.chain
 /-!
 # The free product of groups or monoids
@@ -148,9 +149,10 @@ section group
 variables (G : ι → Type*) [Π i, group (G i)]
 
 instance : has_inv (free_product G) :=
-{ inv := opposite.unop ∘ lift (λ i, (of : G i →* _).op.comp (mul_equiv.inv' (G i)).to_monoid_hom) }
+{ inv := mul_opposite.unop ∘
+    lift (λ i, (of : G i →* _).op.comp (mul_equiv.inv' (G i)).to_monoid_hom) }
 
-lemma inv_def (x : free_product G) : x⁻¹ = opposite.unop
+lemma inv_def (x : free_product G) : x⁻¹ = mul_opposite.unop
   (lift (λ i, (of : G i →* _).op.comp (mul_equiv.inv' (G i)).to_monoid_hom) x) := rfl
 
 instance : group (free_product G) :=
@@ -158,10 +160,11 @@ instance : group (free_product G) :=
     intro m,
     rw inv_def,
     apply m.induction_on,
-    { rw [monoid_hom.map_one, opposite.unop_one, one_mul], },
+    { rw [monoid_hom.map_one, mul_opposite.unop_one, one_mul], },
     { intros i m, change of m⁻¹ * of m = 1, rw [←of.map_mul, mul_left_inv, of.map_one], },
     { intros x y hx hy,
-      rw [monoid_hom.map_mul, opposite.unop_mul, mul_assoc, ←mul_assoc _ x y, hx, one_mul, hy], },
+      rw [monoid_hom.map_mul, mul_opposite.unop_mul, mul_assoc, ← mul_assoc _ x y, hx,
+        one_mul, hy], },
   end,
   ..free_product.has_inv G,
   ..free_product.monoid G }
@@ -324,5 +327,20 @@ instance : decidable_eq (word M) := function.injective.decidable_eq word.ext
 instance : decidable_eq (free_product M) := word.equiv.decidable_eq
 
 end word
+
+/-- The free product of free groups is itself a free group -/
+@[simps]
+instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_free_group (G i)] :
+  is_free_group (free_product G) :=
+{ generators := Σ i, is_free_group.generators (G i),
+  of := λ x, free_product.of (is_free_group.of x.2),
+  unique_lift' :=
+  begin
+    introsI X _ f,
+    refine ⟨free_product.lift (λ i, is_free_group.lift (λ x, f ⟨i, x⟩)), _ ⟩,
+    split,
+    { simp, },
+    { intros g hfg, ext i x, simpa using hfg ⟨i, x⟩, }
+  end, }
 
 end free_product

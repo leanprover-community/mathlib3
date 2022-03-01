@@ -26,7 +26,7 @@ In this file we define several notions of finiteness that are common in commutat
 -/
 
 open function (surjective)
-open_locale big_operators
+open_locale big_operators polynomial
 
 section module_and_algebra
 
@@ -78,7 +78,7 @@ lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   finite R N :=
 ⟨begin
   rw [← linear_map.range_eq_top.2 hf, ← submodule.map_top],
-  exact submodule.fg_map hM.1
+  exact hM.1.map f
 end⟩
 
 lemma of_injective [is_noetherian R N] (f : M →ₗ[R] N)
@@ -99,7 +99,7 @@ begin
   rw [finite_def, fg_def] at hM ⊢,
   obtain ⟨S, hSfin, hSgen⟩ := hM,
   refine ⟨S, hSfin, eq_top_iff.2 _⟩,
-  have := submodule.span_le_restrict_scalars R A M S,
+  have := submodule.span_le_restrict_scalars R A S,
   rw hSgen at this,
   exact this
 end
@@ -110,6 +110,13 @@ instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
 ⟨begin
   rw ← submodule.prod_top,
   exact submodule.fg_prod hM.1 hN.1
+end⟩
+
+instance pi {ι : Type*} {M : ι → Type*} [fintype ι] [Π i, add_comm_monoid (M i)]
+  [Π i, module R (M i)] [h : ∀ i, finite R (M i)] : finite R (Π i, M i) :=
+⟨begin
+  rw ← submodule.pi_top,
+  exact submodule.fg_pi (λ i, (h i).1),
 end⟩
 
 lemma equiv [hM : finite R M] (e : M ≃ₗ[R] N) : finite R N :=
@@ -289,7 +296,8 @@ end
 variable (R)
 
 /-- The ring of polynomials in finitely many variables is finitely presented. -/
-lemma mv_polynomial (ι : Type u_2) [fintype ι] : finite_presentation R (mv_polynomial ι R) :=
+protected lemma mv_polynomial (ι : Type u_2) [fintype ι] :
+  finite_presentation R (mv_polynomial ι R) :=
 begin
   obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) _,
   replace equiv := mv_polynomial.rename_equiv R equiv,
@@ -304,19 +312,19 @@ end
 
 /-- `R` is finitely presented as `R`-algebra. -/
 lemma self : finite_presentation R R :=
-equiv (mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
+equiv (finite_presentation.mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
 
 variable {R}
 
 /-- The quotient of a finitely presented algebra by a finitely generated ideal is finitely
 presented. -/
-lemma quotient {I : ideal A} (h : submodule.fg I) (hfp : finite_presentation R A) :
-  finite_presentation R I.quotient :=
+protected lemma quotient {I : ideal A} (h : I.fg) (hfp : finite_presentation R A) :
+  finite_presentation R (A ⧸ I) :=
 begin
   obtain ⟨n, f, hf⟩ := hfp,
   refine ⟨n, (ideal.quotient.mkₐ R I).comp f, _, _⟩,
   { exact (ideal.quotient.mkₐ_surjective R I).comp hf.1 },
-  { refine submodule.fg_ker_ring_hom_comp _ _ hf.2 _ hf.1,
+  { refine ideal.fg_ker_comp _ _ hf.2 _ hf.1,
     simp [h] }
 end
 
@@ -324,29 +332,29 @@ end
 then so is `B`. -/
 lemma of_surjective {f : A →ₐ[R] B} (hf : function.surjective f) (hker : f.to_ring_hom.ker.fg)
   (hfp : finite_presentation R A) : finite_presentation R B :=
-equiv (quotient hker hfp) (ideal.quotient_ker_alg_equiv_of_surjective hf)
+equiv (hfp.quotient hker) (ideal.quotient_ker_alg_equiv_of_surjective hf)
 
 lemma iff : finite_presentation R A ↔
-  ∃ n (I : ideal (_root_.mv_polynomial (fin n) R)) (e : I.quotient ≃ₐ[R] A), I.fg :=
+  ∃ n (I : ideal (mv_polynomial (fin n) R)) (e : (_ ⧸ I) ≃ₐ[R] A), I.fg :=
 begin
   split,
   { rintros ⟨n, f, hf⟩,
     exact ⟨n, f.to_ring_hom.ker, ideal.quotient_ker_alg_equiv_of_surjective hf.1, hf.2⟩ },
   { rintros ⟨n, I, e, hfg⟩,
-    exact equiv (quotient hfg (mv_polynomial R _)) e }
+    exact equiv ((finite_presentation.mv_polynomial R _).quotient hfg) e }
 end
 
 /-- An algebra is finitely presented if and only if it is a quotient of a polynomial ring whose
 variables are indexed by a fintype by a finitely generated ideal. -/
 lemma iff_quotient_mv_polynomial' : finite_presentation R A ↔ ∃ (ι : Type u_2) (_ : fintype ι)
-  (f : (_root_.mv_polynomial ι R) →ₐ[R] A), (surjective f) ∧ f.to_ring_hom.ker.fg :=
+  (f : mv_polynomial ι R →ₐ[R] A), surjective f ∧ f.to_ring_hom.ker.fg :=
 begin
   split,
   { rintro ⟨n, f, hfs, hfk⟩,
     set ulift_var := mv_polynomial.rename_equiv R equiv.ulift,
     refine ⟨ulift (fin n), infer_instance, f.comp ulift_var.to_alg_hom,
       hfs.comp ulift_var.surjective,
-      submodule.fg_ker_ring_hom_comp _ _ _ hfk ulift_var.surjective⟩,
+      ideal.fg_ker_comp _ _ _ hfk ulift_var.surjective⟩,
     convert submodule.fg_bot,
     exact ring_hom.ker_coe_equiv ulift_var.to_ring_equiv, },
   { rintro ⟨ι, hfintype, f, hf⟩,
@@ -355,7 +363,7 @@ begin
     replace equiv := mv_polynomial.rename_equiv R equiv,
     refine ⟨fintype.card ι, f.comp equiv.symm,
       hf.1.comp (alg_equiv.symm equiv).surjective,
-      submodule.fg_ker_ring_hom_comp _ f _ hf.2 equiv.symm.surjective⟩,
+      ideal.fg_ker_comp _ f _ hf.2 equiv.symm.surjective⟩,
     convert submodule.fg_bot,
     exact ring_hom.ker_coe_equiv (equiv.symm.to_ring_equiv), }
 end
@@ -363,32 +371,21 @@ end
 /-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented
 as `R`-algebra. -/
 lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι : Type*)
-  [fintype ι] : finite_presentation R (_root_.mv_polynomial ι A) :=
+  [fintype ι] : finite_presentation R (mv_polynomial ι A) :=
 begin
+  rw iff_quotient_mv_polynomial' at hfp ⊢,
   classical,
-  let n := fintype.card ι,
-  obtain ⟨e⟩ := fintype.trunc_equiv_fin ι,
-  replace e := (mv_polynomial.rename_equiv A e).restrict_scalars R,
-  refine equiv _ e.symm,
-  obtain ⟨m, I, e, hfg⟩ := iff.1 hfp,
-  refine equiv _ (mv_polynomial.map_alg_equiv (fin n) e),
-  -- typeclass inference seems to struggle to find this path
-  letI : is_scalar_tower R
-    (_root_.mv_polynomial (fin m) R) (_root_.mv_polynomial (fin m) R) :=
-      is_scalar_tower.right,
-  letI : is_scalar_tower R
-    (_root_.mv_polynomial (fin m) R)
-    (_root_.mv_polynomial (fin n) (_root_.mv_polynomial (fin m) R)) :=
-      mv_polynomial.is_scalar_tower,
-
-  refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
-    _ (fin n) _ I).restrict_scalars R).symm,
-  refine quotient (submodule.map_fg_of_fg I hfg _) _,
-  let := mv_polynomial.sum_alg_equiv R (fin n) (fin m),
-  refine equiv _ this,
-  exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R fin_sum_fin_equiv).symm
+  obtain ⟨ι', _, f, hf_surj, hf_ker⟩ := hfp,
+  resetI,
+  let g := (mv_polynomial.map_alg_hom f).comp (mv_polynomial.sum_alg_equiv R ι ι').to_alg_hom,
+  refine ⟨ι ⊕ ι', by apply_instance, g,
+    (mv_polynomial.map_surjective f.to_ring_hom hf_surj).comp (alg_equiv.surjective _),
+    ideal.fg_ker_comp _ _ _ _ (alg_equiv.surjective _)⟩,
+  { convert submodule.fg_bot,
+    exact ring_hom.ker_coe_equiv (mv_polynomial.sum_alg_equiv R ι ι').to_ring_equiv },
+  { rw [alg_hom.to_ring_hom_eq_coe, mv_polynomial.map_alg_hom_coe_ring_hom, mv_polynomial.ker_map],
+    exact hf_ker.map mv_polynomial.C, }
 end
-
 
 /-- If `A` is an `R`-algebra and `S` is an `A`-algebra, both finitely presented, then `S` is
   finitely presented as `R`-algebra. -/
@@ -396,7 +393,7 @@ lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R 
   (hfpB : finite_presentation A B) : finite_presentation R B :=
 begin
   obtain ⟨n, I, e, hfg⟩ := iff.1 hfpB,
-  exact equiv (quotient hfg (mv_polynomial_of_finite_presentation hfpA _)) (e.restrict_scalars R)
+  exact equiv ((mv_polynomial_of_finite_presentation hfpA _).quotient hfg) (e.restrict_scalars R)
 end
 
 end finite_presentation
@@ -663,7 +660,7 @@ begin
   have hincl : of' R M '' f.support ⊆
     ⋃ (g : add_monoid_algebra R M) (H : g ∈ S), of' R M '' g.support,
   { intros s hs,
-    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+    exact set.mem_Union₂.2 ⟨f, ⟨hf, hs⟩⟩ },
   exact adjoin_mono hincl (mem_adjoin_support f)
 end
 
@@ -819,7 +816,7 @@ begin
   have hincl : (of R M) '' f.support ⊆
     ⋃ (g : monoid_algebra R M) (H : g ∈ S), of R M '' g.support,
   { intros s hs,
-    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+    exact set.mem_Union₂.2 ⟨f, ⟨hf, hs⟩⟩ },
   exact adjoin_mono hincl (mem_adjoint_support f)
 end
 
@@ -924,3 +921,60 @@ by simpa [group.fg_iff_monoid.fg] using finite_type_iff_fg
 end monoid_algebra
 
 end monoid_algebra
+
+section vasconcelos
+variables {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M] (f : M →ₗ[R] M)
+
+noncomputable theory
+
+/-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a
+choice of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
+@[simps]
+def module_polynomial_of_endo : module R[X] M :=
+module.comp_hom M (polynomial.aeval f).to_ring_hom
+
+include f
+lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R R[X] M _
+  (by { letI := module_polynomial_of_endo f, apply_instance }) _ :=
+begin
+  letI := module_polynomial_of_endo f,
+  constructor,
+  intros x y z,
+  simp,
+end
+
+open polynomial module
+
+/-- A theorem/proof by Vasconcelos, given a finite module `M` over a commutative ring, any
+surjective endomorphism of `M` is also injective. Based on,
+https://math.stackexchange.com/a/239419/31917,
+https://www.ams.org/journals/tran/1969-138-00/S0002-9947-1969-0238839-5/.
+This is similar to `is_noetherian.injective_of_surjective_endomorphism` but only applies in the
+commutative case, but does not use a Noetherian hypothesis. -/
+theorem module.finite.injective_of_surjective_endomorphism [hfg : finite R M]
+  (f_surj : function.surjective f) : function.injective f :=
+begin
+  letI := module_polynomial_of_endo f,
+  haveI : is_scalar_tower R R[X] M := module_polynomial_of_endo.is_scalar_tower f,
+  have hfgpoly : finite R[X] M, from finite.of_restrict_scalars_finite R _ _,
+  have X_mul : ∀ o, (X : R[X]) • o = f o,
+  { intro,
+    simp, },
+  have : (⊤ : submodule R[X] M) ≤ ideal.span {X} • ⊤,
+  { intros a ha,
+    obtain ⟨y, rfl⟩ := f_surj a,
+    rw [← X_mul y],
+    exact submodule.smul_mem_smul (ideal.mem_span_singleton.mpr (dvd_refl _)) trivial, },
+  obtain ⟨F, hFa, hFb⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul _
+    (⊤ : submodule R[X] M) (finite_def.mp hfgpoly) this,
+  rw [← linear_map.ker_eq_bot, linear_map.ker_eq_bot'],
+  intros m hm,
+  rw ideal.mem_span_singleton' at hFa,
+  obtain ⟨G, hG⟩ := hFa,
+  suffices : (F - 1) • m = 0,
+  { have Fmzero := hFb m (by simp),
+    rwa [← sub_add_cancel F 1, add_smul, one_smul, this, zero_add] at Fmzero, },
+  rw [← hG, mul_smul, X_mul m, hm, smul_zero],
+end
+
+end vasconcelos

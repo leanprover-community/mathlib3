@@ -259,7 +259,6 @@ end is_subgroup
 -- Homomorphism subgroups
 namespace is_group_hom
 open is_submonoid is_subgroup
-open is_mul_hom (map_mul)
 
 /-- `ker f : set G` is the underlying subset of the kernel of a map `G → H`. -/
 @[to_additive "`ker f : set A` is the underlying subset of the kernel of a map `A → B`"]
@@ -539,7 +538,7 @@ end
 
 theorem conjugates_of_set_subset' {s t : set G} (ht : is_normal_subgroup t) (h : s ⊆ t) :
   conjugates_of_set s ⊆ t :=
-set.bUnion_subset (λ x H, conjugates_of_subset ht (h H))
+set.Union₂_subset (λ x H, conjugates_of_subset ht (h H))
 
 /-- The normal closure of a set s is the subgroup closure of all the conjugates of
 elements of s. It is the smallest normal subgroup containing s. -/

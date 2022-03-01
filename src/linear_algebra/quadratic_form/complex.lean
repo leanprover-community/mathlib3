@@ -80,4 +80,10 @@ theorem equivalent_sum_squares {M : Type*} [add_comm_group M] [module ℂ M]
 let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_units_of_nondegenerate' hQ in
   ⟨hw₁.trans (isometry_sum_squares_units w)⟩
 
+/-- All nondegenerate quadratic forms on the complex numbers are equivalent. -/
+theorem complex_equivalent {M : Type*} [add_comm_group M] [module ℂ M]
+  [finite_dimensional ℂ M] (Q₁ Q₂ : quadratic_form ℂ M) (hQ₁ : (associated Q₁).nondegenerate)
+  (hQ₂ : (associated Q₂).nondegenerate) : equivalent Q₁ Q₂ :=
+(Q₁.equivalent_sum_squares hQ₁).trans (Q₂.equivalent_sum_squares hQ₂).symm
+
 end quadratic_form

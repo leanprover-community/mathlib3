@@ -73,6 +73,7 @@ if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
 begin
   let q := (not_is_empty_iff.mp hι).some,
   rw affine_independent_iff_linear_independent_vsub k p q at hi,
+  letI : is_noetherian k V := is_noetherian.iff_fg.2 infer_instance,
   exact fintype_of_fintype_ne _ (fintype_of_is_noetherian_linear_independent hi)
 end
 
@@ -203,7 +204,7 @@ begin
   rw [vector_span_eq_span_vsub_finset_right_ne k hp₁],
   refine le_trans (finrank_span_finset_le_card (((s.image p).erase p₁).image (λ p, p -ᵥ p₁))) _,
   rw [finset.card_image_of_injective _ (vsub_left_injective p₁), finset.card_erase_of_mem hp₁,
-      nat.pred_le_iff, nat.succ_eq_add_one, ← hc],
+      tsub_le_iff_right, ← hc],
   apply finset.card_image_le
 end
 

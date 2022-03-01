@@ -116,8 +116,8 @@ begin
   cases hm.lt_or_lt with hm hm,
   { rw [nat.div_eq_zero, bodd_zero],
     exact nat.pow_lt_pow_of_lt_right one_lt_two hm },
-  { rw [pow_div hm.le zero_lt_two, ←nat.sub_add_cancel (nat.sub_pos_of_lt hm), pow_succ],
-    simp }
+  { rw [pow_div hm.le zero_lt_two, ← tsub_add_cancel_of_le (succ_le_of_lt $ tsub_pos_of_lt hm)],
+    simp [pow_succ] }
 end
 
 lemma test_bit_two_pow (n m : ℕ) : test_bit (2 ^ n) m = (n = m) :=

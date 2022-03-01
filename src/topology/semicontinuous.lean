@@ -3,10 +3,9 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.continuous_on
 import algebra.indicator_function
 import topology.algebra.group
-import topology.algebra.ordered.liminf_limsup
+import topology.continuous_on
 import topology.instances.ennreal
 
 /-!
@@ -270,8 +269,7 @@ begin
   by_cases h : ∃ l, l < f x,
   { obtain ⟨z, zlt, hz⟩ : ∃ z < f x, Ioc z (f x) ⊆ g ⁻¹' (Ioi y) :=
       exists_Ioc_subset_of_mem_nhds (hg (Ioi_mem_nhds hy)) h,
-    filter_upwards [hf z zlt],
-    assume a ha,
+    filter_upwards [hf z zlt] with a ha,
     calc y < g (min (f x) (f a)) : hz (by simp [zlt, ha, le_refl])
     ... ≤ g (f a) : gmon (min_le_right _ _) },
   { simp only [not_exists, not_lt] at h,
@@ -335,7 +333,7 @@ lemma lower_semicontinuous_within_at.add' {f g : α → γ}
 begin
   assume y hy,
   obtain ⟨u, v, u_open, xu, v_open, xv, h⟩ : ∃ (u v : set γ), is_open u ∧ f x ∈ u ∧ is_open v ∧
-    g x ∈ v ∧ u.prod v ⊆ {p : γ × γ | y < p.fst + p.snd} :=
+    g x ∈ v ∧ u ×ˢ v ⊆ {p : γ × γ | y < p.fst + p.snd} :=
   mem_nhds_prod_iff'.1 (hcont (is_open_Ioi.mem_nhds hy)),
   by_cases hx₁ : ∃ l, l < f x,
   { obtain ⟨z₁, z₁lt, h₁⟩ : ∃ z₁ < f x, Ioc z₁ (f x) ⊆ u :=
@@ -343,46 +341,43 @@ begin
     by_cases hx₂ : ∃ l, l < g x,
     { obtain ⟨z₂, z₂lt, h₂⟩ : ∃ z₂ < g x, Ioc z₂ (g x) ⊆ v :=
         exists_Ioc_subset_of_mem_nhds (v_open.mem_nhds xv) hx₂,
-      filter_upwards [hf z₁ z₁lt, hg z₂ z₂lt],
-      assume z h₁z h₂z,
+      filter_upwards [hf z₁ z₁lt, hg z₂ z₂lt] with z h₁z h₂z,
       have A1 : min (f z) (f x) ∈ u,
       { by_cases H : f z ≤ f x,
         { simp [H], exact h₁ ⟨h₁z, H⟩ },
-        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_refl _⟩, } },
+        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_rfl⟩, } },
       have A2 : min (g z) (g x) ∈ v,
       { by_cases H : g z ≤ g x,
         { simp [H], exact h₂ ⟨h₂z, H⟩ },
-        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_refl _⟩, } },
-      have : (min (f z) (f x), min (g z) (g x)) ∈ u.prod v := ⟨A1, A2⟩,
+        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_rfl⟩, } },
+      have : (min (f z) (f x), min (g z) (g x)) ∈ u ×ˢ v := ⟨A1, A2⟩,
       calc y < min (f z) (f x) + min (g z) (g x) : h this
       ... ≤ f z + g z : add_le_add (min_le_left _ _) (min_le_left _ _) },
     { simp only [not_exists, not_lt] at hx₂,
-      filter_upwards [hf z₁ z₁lt],
-      assume z h₁z,
+      filter_upwards [hf z₁ z₁lt] with z h₁z,
       have A1 : min (f z) (f x) ∈ u,
       { by_cases H : f z ≤ f x,
         { simp [H], exact h₁ ⟨h₁z, H⟩ },
-        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_refl _⟩, } },
-      have : (min (f z) (f x), g x) ∈ u.prod v := ⟨A1, xv⟩,
+        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_rfl⟩, } },
+      have : (min (f z) (f x), g x) ∈ u ×ˢ v := ⟨A1, xv⟩,
       calc y < min (f z) (f x) + g x : h this
       ... ≤ f z + g z : add_le_add (min_le_left _ _) (hx₂ (g z)) } },
   { simp only [not_exists, not_lt] at hx₁,
     by_cases hx₂ : ∃ l, l < g x,
     { obtain ⟨z₂, z₂lt, h₂⟩ : ∃ z₂ < g x, Ioc z₂ (g x) ⊆ v :=
         exists_Ioc_subset_of_mem_nhds (v_open.mem_nhds xv) hx₂,
-      filter_upwards [hg z₂ z₂lt],
-      assume z h₂z,
+      filter_upwards [hg z₂ z₂lt] with z h₂z,
       have A2 : min (g z) (g x) ∈ v,
       { by_cases H : g z ≤ g x,
         { simp [H], exact h₂ ⟨h₂z, H⟩ },
-        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_refl _⟩, } },
-      have : (f x, min (g z) (g x)) ∈ u.prod v := ⟨xu, A2⟩,
+        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_rfl⟩, } },
+      have : (f x, min (g z) (g x)) ∈ u ×ˢ v := ⟨xu, A2⟩,
       calc y < f x + min (g z) (g x) : h this
       ... ≤ f z + g z : add_le_add (hx₁ (f z)) (min_le_left _ _) },
     { simp only [not_exists, not_lt] at hx₁ hx₂,
       apply filter.eventually_of_forall,
       assume z,
-      have : (f x, g x) ∈ u.prod v := ⟨xu, xv⟩,
+      have : (f x, g x) ∈ u ×ˢ v := ⟨xu, xv⟩,
       calc y < f x + g x : h this
       ... ≤ f z + g z : add_le_add (hx₁ (f z)) (hx₂ (g z)) } },
 end
@@ -491,9 +486,7 @@ lemma lower_semicontinuous_within_at_supr {f : ι → α → δ}
 begin
   assume y hy,
   rcases lt_supr_iff.1 hy with ⟨i, hi⟩,
-  filter_upwards [h i y hi],
-  assume x' hx',
-  exact lt_supr_iff.2 ⟨i, hx'⟩,
+  filter_upwards [h i y hi] with _ hx' using lt_supr_iff.2 ⟨i, hx'⟩,
 end
 
 lemma lower_semicontinuous_within_at_bsupr {p : ι → Prop} {f : Π i (h : p i), α → δ}
@@ -916,20 +909,16 @@ begin
   { rcases exists_Ioc_subset_of_mem_nhds hv Hl with ⟨l, lfx, hl⟩,
     by_cases Hu : ∃ u, f x < u,
     { rcases exists_Ico_subset_of_mem_nhds hv Hu with ⟨u, fxu, hu⟩,
-      filter_upwards [h₁ l lfx, h₂ u fxu],
-      assume a lfa fau,
+      filter_upwards [h₁ l lfx, h₂ u fxu] with a lfa fau,
       cases le_or_gt (f a) (f x) with h h,
       { exact hl ⟨lfa, h⟩ },
       { exact hu ⟨le_of_lt h, fau⟩ } },
     { simp only [not_exists, not_lt] at Hu,
-      filter_upwards [h₁ l lfx],
-      assume a lfa,
-      exact hl ⟨lfa, Hu (f a)⟩ } },
+      filter_upwards [h₁ l lfx] with a lfa using hl ⟨lfa, Hu (f a)⟩, }, },
   { simp only [not_exists, not_lt] at Hl,
     by_cases Hu : ∃ u, f x < u,
     { rcases exists_Ico_subset_of_mem_nhds hv Hu with ⟨u, fxu, hu⟩,
-      filter_upwards [h₂ u fxu],
-      assume a lfa,
+      filter_upwards [h₂ u fxu] with a lfa,
       apply hu,
       exact ⟨Hl (f a), lfa⟩ },
     { simp only [not_exists, not_lt] at Hu,

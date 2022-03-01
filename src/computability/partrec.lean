@@ -174,14 +174,14 @@ begin
   case nat.primrec.succ { exact succ },
   case nat.primrec.left { exact left },
   case nat.primrec.right { exact right },
-  case nat.primrec.pair : f g hf hg pf pg {
-    refine (pf.pair pg).of_eq_tot (λ n, _),
+  case nat.primrec.pair : f g hf hg pf pg
+  { refine (pf.pair pg).of_eq_tot (λ n, _),
     simp [has_seq.seq] },
-  case nat.primrec.comp : f g hf hg pf pg {
-    refine (pf.comp pg).of_eq_tot (λ n, _),
+  case nat.primrec.comp : f g hf hg pf pg
+  { refine (pf.comp pg).of_eq_tot (λ n, _),
     simp },
-  case nat.primrec.prec : f g hf hg pf pg {
-    refine (pf.prec pg).of_eq_tot (λ n, _),
+  case nat.primrec.prec : f g hf hg pf pg
+  { refine (pf.prec pg).of_eq_tot (λ n, _),
     simp,
     induction n.unpair.2 with m IH, {simp},
     simp, exact ⟨_, IH, rfl⟩ },

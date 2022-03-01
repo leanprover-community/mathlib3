@@ -180,7 +180,7 @@ begin
 end
 
 @[simp] lemma size_up_to_length : c.size_up_to c.length = n :=
-c.size_up_to_of_length_le c.length (le_refl _)
+c.size_up_to_of_length_le c.length le_rfl
 
 lemma size_up_to_le (i : ℕ) : c.size_up_to i ≤ n :=
 begin
@@ -286,8 +286,7 @@ begin
   set i := c.index j with hi,
   push_neg at H,
   have i_pos : (0 : ℕ) < i,
-  { by_contradiction i_pos,
-    push_neg at i_pos,
+  { by_contra' i_pos,
     revert H, simp [nonpos_iff_eq_zero.1 i_pos, c.size_up_to_zero] },
   let i₁ := (i : ℕ).pred,
   have i₁_lt_i : i₁ < i := nat.pred_lt (ne_of_gt i_pos),
@@ -387,7 +386,7 @@ end
 
 lemma inv_embedding_comp (i : fin c.length) (j : fin (c.blocks_fun i)) :
   (c.inv_embedding (c.embedding i j) : ℕ) = j :=
-by simp_rw [coe_inv_embedding, index_embedding, coe_embedding, nat.add_sub_cancel_left]
+by simp_rw [coe_inv_embedding, index_embedding, coe_embedding, add_tsub_cancel_left]
 
 /-- Equivalence between the disjoint union of the blocks (each of them seen as
 `fin (c.blocks_fun i)`) with `fin n`. -/
@@ -645,7 +644,7 @@ begin
   induction ns with n ns IH; intros l h; simp at h ⊢,
   { exact (length_eq_zero.1 h.symm).symm },
   rw IH, {simp},
-  rwa [length_drop, ← h, nat.add_sub_cancel_left]
+  rwa [length_drop, ← h, add_tsub_cancel_left]
 end
 
 /-- If one splits a list along a composition, and then joins the sublists, one gets back the
@@ -749,7 +748,7 @@ finset.card_pos.mpr c.boundaries_nonempty
 def length : ℕ := finset.card c.boundaries - 1
 
 lemma card_boundaries_eq_succ_length : c.boundaries.card = c.length + 1 :=
-(nat.sub_eq_iff_eq_add c.card_boundaries_pos).mp rfl
+(tsub_eq_iff_eq_add_of_le (nat.succ_le_of_lt c.card_boundaries_pos)).mp rfl
 
 lemma length_lt_card_boundaries : c.length < c.boundaries.card :=
 by { rw c.card_boundaries_eq_succ_length, exact lt_add_one _ }

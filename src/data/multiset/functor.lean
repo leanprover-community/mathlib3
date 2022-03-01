@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Simon Hudon, Kenny Lau
 -/
-import data.multiset.basic
+import data.multiset.bind
 import control.traversable.lemmas
 import control.traversable.instances
 
@@ -36,13 +36,13 @@ begin
   introv p, unfold function.comp,
   induction p,
   case perm.nil { refl },
-  case perm.cons {
-    have : multiset.cons <$> f p_x <*> (coe <$> traverse f p_l₁) =
+  case perm.cons
+  { have : multiset.cons <$> f p_x <*> (coe <$> traverse f p_l₁) =
       multiset.cons <$> f p_x <*> (coe <$> traverse f p_l₂),
     { rw [p_ih] },
     simpa with functor_norm },
-  case perm.swap {
-    have : (λa b (l:list β'), (↑(a :: b :: l) : multiset β')) <$> f p_y <*> f p_x =
+  case perm.swap
+  { have : (λa b (l:list β'), (↑(a :: b :: l) : multiset β')) <$> f p_y <*> f p_x =
       (λa b l, ↑(a :: b :: l)) <$> f p_x <*> f p_y,
     { rw [is_comm_applicative.commutative_map],
       congr, funext a b l, simpa [flip] using perm.swap b a l },

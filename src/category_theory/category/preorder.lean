@@ -83,6 +83,9 @@ def op_hom_of_le {x y : Xᵒᵖ} (h : unop x ≤ unop y) : y ⟶ x := h.hom.op
 
 lemma le_of_op_hom {x y : Xᵒᵖ} (h : x ⟶ y) : unop y ≤ unop x := h.unop.le
 
+instance unique_to_top [order_top X] {x : X} : unique (x ⟶ ⊤) := by tidy
+instance unique_from_bot [order_bot X] {x : X} : unique (⊥ ⟶ x) := by tidy
+
 end category_theory
 
 section

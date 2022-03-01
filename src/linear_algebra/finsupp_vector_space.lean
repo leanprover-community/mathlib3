@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import data.mv_polynomial
 import linear_algebra.dimension
-import linear_algebra.direct_sum.finsupp
 import linear_algebra.finite_dimensional
 import linear_algebra.std_basis
 
@@ -129,10 +127,8 @@ variables [field K] [add_comm_group V] [module K V]
 lemma dim_eq : module.rank K (ι →₀ V) = #ι * module.rank K V :=
 begin
   let bs := basis.of_vector_space K V,
-  rw [← cardinal.lift_inj, cardinal.lift_mul, ← bs.mk_eq_dim,
-      ← (finsupp.basis (λa:ι, bs)).mk_eq_dim, ← cardinal.sum_mk,
-      ← cardinal.lift_mul, cardinal.lift_inj],
-  { simp only [cardinal.mk_image_eq (single_injective.{u u} _), cardinal.sum_const] }
+  rw [← bs.mk_eq_dim'', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim'',
+    cardinal.mk_sigma, cardinal.sum_const']
 end
 
 end dim
@@ -148,7 +144,6 @@ variables [add_comm_group V₂] [module K V₂]
 variables [add_comm_group V'] [module K V']
 
 open module
-
 
 lemma equiv_of_dim_eq_lift_dim
   (h : cardinal.lift.{w} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
@@ -204,6 +199,7 @@ end
 lemma cardinal_lt_omega_of_finite_dimensional [fintype K] [finite_dimensional K V] :
   #V < ω :=
 begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
   exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩)
     (is_noetherian.dim_lt_omega K V),

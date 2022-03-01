@@ -5,7 +5,8 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.approximations
 import algebra.continued_fractions.computation.correctness_terminating
-import data.rat
+import algebra.order.archimedean
+import data.rat.floor
 /-!
 # Termination of Continued Fraction Computations (`gcf.of`)
 
@@ -166,7 +167,7 @@ namespace int_fract_pair
 
 lemma coe_of_rat_eq :
   ((int_fract_pair.of q).mapFr coe : int_fract_pair K) = int_fract_pair.of v :=
-by simp [int_fract_pair.of, v_eq_q, int.fract]
+by simp [int_fract_pair.of, v_eq_q]
 
 lemma coe_stream_nth_rat_eq :
     ((int_fract_pair.stream q n).map (mapFr coe) : option $ int_fract_pair K)
@@ -224,10 +225,9 @@ by { ext n, rw ←(coe_of_s_nth_rat_eq v_eq_q), refl }
 lemma coe_of_rat_eq :
   (⟨(of q).h, (of q).s.map (pair.map coe)⟩ : generalized_continued_fraction K) = of v :=
 begin
-  cases gcf_v_eq : (of v) with h s,
-  have : ↑⌊↑q⌋ = h, by { rw v_eq_q at gcf_v_eq, injection gcf_v_eq },
-  simp [(coe_of_h_rat_eq v_eq_q), (coe_of_s_rat_eq v_eq_q), gcf_v_eq],
-  rwa [←(@rat.cast_floor K _ _ q), floor_ring_unique]
+  cases gcf_v_eq : (of v) with h s, subst v,
+  obtain rfl : ↑⌊↑q⌋ = h, by { injection gcf_v_eq },
+  simp [coe_of_h_rat_eq rfl, coe_of_s_rat_eq rfl, gcf_v_eq]
 end
 
 lemma of_terminates_iff_of_rat_terminates {v : K} {q : ℚ} (v_eq_q : v = (q : K)) :

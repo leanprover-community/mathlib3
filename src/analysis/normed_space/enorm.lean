@@ -68,8 +68,8 @@ begin
   calc (nnnorm c : ℝ≥0∞) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul₀ hc]
   ... ≤ nnnorm c * (nnnorm (c⁻¹) * e (c • x)) : _
   ... = e (c • x) : _,
-  { exact ennreal.mul_le_mul (le_refl _) (e.map_smul_le' _ _) },
-  { rw [← mul_assoc, normed_field.nnnorm_inv, ennreal.coe_inv,
+  { exact ennreal.mul_le_mul le_rfl (e.map_smul_le' _ _) },
+  { rw [← mul_assoc, nnnorm_inv, ennreal.coe_inv,
      ennreal.mul_inv_cancel _ ennreal.coe_ne_top, one_mul]; simp [hc] }
 end
 
@@ -95,7 +95,7 @@ calc e (x - y) = e (x + -y)   : by rw sub_eq_add_neg
 
 instance : partial_order (enorm 𝕜 V) :=
 { le := λ e₁ e₂, ∀ x, e₁ x ≤ e₂ x,
-  le_refl := λ e x, le_refl _,
+  le_refl := λ e x, le_rfl,
   le_trans := λ e₁ e₂ e₃ h₁₂ h₂₃ x, le_trans (h₁₂ x) (h₂₃ x),
   le_antisymm := λ e₁ e₂ h₁₂ h₂₁, ext $ λ x, le_antisymm (h₁₂ x) (h₂₁ x) }
 
@@ -122,11 +122,13 @@ noncomputable instance : inhabited (enorm 𝕜 V) := ⟨⊤⟩
 
 lemma top_map {x : V} (hx : x ≠ 0) : (⊤ : enorm 𝕜 V) x = ⊤ := if_neg hx
 
-noncomputable instance : semilattice_sup_top (enorm 𝕜 V) :=
+noncomputable instance : order_top (enorm 𝕜 V) :=
+{ top := ⊤,
+  le_top := λ e x, if h : x = 0 then by simp [h] else by simp [top_map h] }
+
+noncomputable instance : semilattice_sup (enorm 𝕜 V) :=
 { le := (≤),
   lt := (<),
-  top := ⊤,
-  le_top := λ e x, if h : x = 0 then by simp [h] else by simp [top_map h],
   sup := λ e₁ e₂,
   { to_fun := λ x, max (e₁ x) (e₂ x),
     eq_zero' := λ x h, e₁.eq_zero_iff.1 (ennreal.max_eq_zero_iff.1 h).1,

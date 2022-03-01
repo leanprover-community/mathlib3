@@ -91,6 +91,8 @@ to_add_submonoid_injective.eq_iff
 @[mono] lemma to_add_submonoid_strict_mono :
   strict_mono (to_add_submonoid : submodule R M → add_submonoid M) := λ _ _, id
 
+lemma to_add_submonoid_le : p.to_add_submonoid ≤ q.to_add_submonoid ↔ p ≤ q := iff.rfl
+
 @[mono]
 lemma to_add_submonoid_mono : monotone (to_add_submonoid : submodule R M → add_submonoid M) :=
 to_add_submonoid_strict_mono.monotone
@@ -161,6 +163,12 @@ instance [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] :
 instance [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] : is_scalar_tower S R p :=
 p.to_sub_mul_action.is_scalar_tower
 
+instance
+  [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
+  [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [is_central_scalar S M] : is_central_scalar S p :=
+p.to_sub_mul_action.is_central_scalar
+
 protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
@@ -196,9 +204,11 @@ instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_diviso
 protected def subtype : p →ₗ[R] M :=
 by refine {to_fun := coe, ..}; simp [coe_smul]
 
-@[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
+theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
-lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
+@[simp] lemma coe_subtype : ((submodule.subtype p) : p → M) = coe := rfl
+
+lemma injective_subtype : injective p.subtype := subtype.coe_injective
 
 /-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
@@ -211,23 +221,29 @@ variables (S) [semiring S] [module S M] [module R M] [has_scalar S R] [is_scalar
 `V.restrict_scalars S` is the `S`-submodule of the `S`-module given by restriction of scalars,
 corresponding to `V`, an `R`-submodule of the original `R`-module.
 -/
-@[simps]
 def restrict_scalars (V : submodule R M) : submodule S M :=
-{ carrier := V.carrier,
+{ carrier := V,
   zero_mem' := V.zero_mem,
   smul_mem' := λ c m h, V.smul_of_tower_mem c h,
   add_mem' := λ x y hx hy, V.add_mem hx hy }
 
 @[simp]
-lemma restrict_scalars_mem (V : submodule R M) (m : M) :
-  m ∈ V.restrict_scalars S ↔ m ∈ V :=
+lemma coe_restrict_scalars (V : submodule R M) : (V.restrict_scalars S : set M) = V :=
+rfl
+
+@[simp]
+lemma restrict_scalars_mem (V : submodule R M) (m : M) : m ∈ V.restrict_scalars S ↔ m ∈ V :=
 iff.refl _
+
+@[simp]
+lemma restrict_scalars_self (V : submodule R M) : V.restrict_scalars R = V :=
+set_like.coe_injective rfl
 
 variables (R S M)
 
 lemma restrict_scalars_injective :
   function.injective (restrict_scalars S : submodule R M → submodule S M) :=
-λ V₁ V₂ h, ext $ by convert set.ext_iff.1 (set_like.ext'_iff.1 h); refl
+λ V₁ V₂ h, ext $ set.ext_iff.1 (set_like.ext'_iff.1 h : _)
 
 @[simp] lemma restrict_scalars_inj {V₁ V₂ : submodule R M} :
   restrict_scalars S V₁ = restrict_scalars S V₂ ↔ V₁ = V₂ :=
@@ -287,6 +303,8 @@ to_add_subgroup_injective.eq_iff
 @[mono] lemma to_add_subgroup_strict_mono :
   strict_mono (to_add_subgroup : submodule R M → add_subgroup M) := λ _ _, id
 
+lemma to_add_subgroup_le : p.to_add_subgroup ≤ p'.to_add_subgroup ↔ p ≤ p' := iff.rfl
+
 @[mono] lemma to_add_subgroup_mono : monotone (to_add_subgroup : submodule R M → add_subgroup M) :=
 to_add_subgroup_strict_mono.monotone
 
@@ -310,6 +328,23 @@ instance : add_comm_group p :=
 @[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
 
 end add_comm_group
+
+section is_domain
+
+variables [ring R] [is_domain R]
+variables [add_comm_group M] [module R M] {b : ι → M}
+
+lemma not_mem_of_ortho {x : M} {N : submodule R M}
+  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
+  x ∉ N :=
+by { intro hx, simpa using ortho (-1) x hx }
+
+lemma ne_zero_of_ortho {x : M} {N : submodule R M}
+  (ortho : ∀ (c : R) (y ∈ N), c • x + y = (0 : M) → c = 0) :
+  x ≠ 0 :=
+mt (λ h, show x ∈ N, from h.symm ▸ N.zero_mem) (not_mem_of_ortho ortho)
+
+end is_domain
 
 section ordered_monoid
 

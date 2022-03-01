@@ -342,7 +342,7 @@ begin
     simpa only [H₃ R] using (zero_add ε).symm.subst
       (hR R (by exact_mod_cast (real.norm_of_nonneg R_pos.lt.le).symm.le)), },
   /- `not_is_unit_zero` is where we need `nontrivial A`, it is unavoidable. -/
-  exact not_is_unit_zero (H₅.subst (is_unit_resolvent
+  exact not_is_unit_zero (H₅.subst (is_unit_resolvent.mp
     (mem_resolvent_set_iff.mp (H₀.symm ▸ set.mem_univ 0)))),
 end
 

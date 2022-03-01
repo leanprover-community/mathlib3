@@ -263,7 +263,8 @@ end fin
 section subsingleton
 variables (α) [subsingleton α] [preorder α]
 
-/-- An order with a single element is trivially graded. Considered a as polytope, this is called a *nullitope*. -/
+/-- An order with a single element is trivially graded. Considered a as polytope, this is called a
+*nullitope*. -/
 @[reducible] -- See note [reducible non-instances]
 def subsingleton.to_grade_order : grade_order α :=
 { grade := λ _, 0,

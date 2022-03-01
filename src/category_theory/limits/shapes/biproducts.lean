@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
+import category_theory.limits.bicones
 import category_theory.limits.shapes.kernels
 
 /-!
@@ -694,6 +695,32 @@ def to_binary_bicone_is_colimit {X Y : C} (b : bicone (pair X Y).obj) :
 is_colimit.equiv_iso_colimit $ cocones.ext (iso.refl _) (λ j, by { cases j, tidy })
 
 end bicone
+
+
+/-- Structure witnessing that a binary bicone is a limit cone and a limit cocone. -/
+@[nolint has_inhabited_instance]
+structure binary_bicone.is_bilimit {P Q : C} (b : binary_bicone P Q) :=
+(is_limit : is_limit b.to_cone)
+(is_colimit : is_colimit b.to_cocone)
+
+/-- A binary bicone is a bilimit bicone if and only if the corresponding bicone is a bilimit. -/
+def binary_bicone.to_bicone_is_bilimit {X Y : C} (b : binary_bicone X Y) :
+  b.to_bicone.is_bilimit ≃ b.is_bilimit :=
+{ to_fun := λ h, ⟨b.to_bicone_is_limit h.is_limit, b.to_bicone_is_colimit h.is_colimit⟩,
+  inv_fun := λ h, ⟨b.to_bicone_is_limit.symm h.is_limit, b.to_bicone_is_colimit.symm h.is_colimit⟩,
+  left_inv := λ ⟨h, h'⟩, by { dsimp only, simp },
+  right_inv := λ ⟨h, h'⟩, by { dsimp only, simp } }
+
+/-- A bicone over a pair is a bilimit bicone if and only if the corresponding binary bicone is a
+    bilimit. -/
+def bicone.to_binary_bicone_is_bilimit {X Y : C} (b : bicone (pair X Y).obj) :
+  b.to_binary_bicone.is_bilimit ≃ b.is_bilimit :=
+{ to_fun := λ h, ⟨b.to_binary_bicone_is_limit h.is_limit,
+    b.to_binary_bicone_is_colimit h.is_colimit⟩,
+  inv_fun := λ h, ⟨b.to_binary_bicone_is_limit.symm h.is_limit,
+    b.to_binary_bicone_is_colimit.symm h.is_colimit⟩,
+  left_inv := λ ⟨h, h'⟩, by { dsimp only, simp },
+  right_inv := λ ⟨h, h'⟩, by { dsimp only, simp } }
 
 /--
 A bicone over `P Q : C`, which is both a limit cone and a colimit cocone.

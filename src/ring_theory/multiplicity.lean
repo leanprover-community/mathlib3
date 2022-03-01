@@ -47,35 +47,6 @@ lemma finite_iff_dom [decidable_rel ((∣) : α → α → Prop)] {a b : α} :
 
 lemma finite_def {a b : α} : finite a b ↔ ∃ n : ℕ, ¬a ^ (n + 1) ∣ b := iff.rfl
 
-@[simp]
-lemma nat.multiplicity_dom_iff (a b : ℕ) : (multiplicity a b).dom ↔ (b ≠ 0 ∧ a ≠ 1) :=
-begin
-  unfold multiplicity,
-  unfold enat.find,
-  simp only [],
-  by_cases ha1 : a = 1,
-  { simp *, },
-  { by_cases hb0 : b = 0,
-    { simp *, },
-    { by_cases ha0 : a = 0,
-      { simp *, },
-      { simp only [*, ne.def, not_false_iff, and_self, iff_true],
-        use (nat.log a b),
-        apply not_dvd_of_pos_of_lt,
-        exact zero_lt_iff.mpr hb0,
-        apply lt_pow_succ_log_self,
-        refine lt_of_le_of_ne _ (ne.symm ha1),
-        exact one_le_iff_ne_zero.mpr ha0,
-        exact zero_lt_iff.mpr hb0, }, }, },
-end
-
-/-- Whether mulitplicity exists is decidable for ℕ -/
-instance (a b : ℕ) : decidable ((multiplicity a b).dom) :=
-begin
-  rw nat.multiplicity_dom_iff,
-  apply and.decidable,
-end
-
 @[norm_cast]
 theorem int.coe_nat_multiplicity (a b : ℕ) :
     multiplicity (a : ℤ) (b : ℤ) = multiplicity a b :=

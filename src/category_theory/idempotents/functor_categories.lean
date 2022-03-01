@@ -73,19 +73,19 @@ functor `F : J ⥤ C` to the functor `J ⥤ karoubi C` which sends `(j : J)` to
 the corresponding direct factor of `F.obj j`. -/
 @[simps]
 def obj (P : karoubi (J ⥤ C)) : J ⥤ karoubi C :=
-{ obj := λ j, ⟨P.X.obj j, P.p.app j, congr_app P.idempotence j⟩,
+{ obj := λ j, ⟨P.X.obj j, P.p.app j, congr_app P.idem j⟩,
   map := λ j j' φ,
   { f := P.p.app j ≫ P.X.map φ,
     comm := begin
       simp only [nat_trans.naturality, assoc],
-      have h := congr_app P.idempotence j,
+      have h := congr_app P.idem j,
       rw [nat_trans.comp_app] at h,
       slice_rhs 1 3 { erw [h, h], },
     end },
   map_id' := λ j, by { ext, simp only [functor.map_id, comp_id, id_eq], },
   map_comp' := λ j j' j'' φ φ', begin
     ext,
-    have h := congr_app P.idempotence j,
+    have h := congr_app P.idem j,
     rw [nat_trans.comp_app] at h,
     simp only [assoc, nat_trans.naturality_assoc, functor.map_comp, comp],
     slice_rhs 1 2 { rw h, },

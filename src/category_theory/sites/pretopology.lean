@@ -24,7 +24,7 @@ coverage, pretopology, site
 
 ## References
 
-* [nLab, *Grothendieck+pretopology*](https://ncatlab.org/nlab/show/Grothendieck+pretopology)
+* [nLab, *Grothendieck pretopology*](https://ncatlab.org/nlab/show/Grothendieck+pretopology)
 * [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
 * [Stacks, *00VG*](https://stacks.math.columbia.edu/tag/00VG)
 -/

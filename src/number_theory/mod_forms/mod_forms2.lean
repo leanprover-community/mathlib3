@@ -216,7 +216,7 @@ lemma coe_aux (Γ : subgroup SL(2,ℤ)) (γ : Γ) :
  ∀ i j, ((γ : matrix.GL_pos (fin 2) ℝ) i j : ℂ) = ((γ i j : ℤ) : ℝ) :=
 begin
   intros i j,
-  simp only [int.cast_inj, modular_group.coe2, of_real_int_cast, coe_coe],
+  simp only [int.cast_inj, matrix.special_linear_group.coe_coe_matrix, of_real_int_cast, coe_coe],
   refl,
 end
 

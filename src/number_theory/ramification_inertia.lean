@@ -1261,7 +1261,7 @@ begin
   exact (dim_quotient_add_dim (linear_map.range (pow_quot_succ_inclusion f p P e i))).symm,
 end
 
-lemma dim_pow_quot [is_dedekind_domain S] [p.is_maximal] [P.is_prime] (hP0 : P ≠ ⊥) (i : ℕ)
+lemma dim_pow_quot [is_domain S] [is_dedekind_domain S] [p.is_maximal] [P.is_prime] (hP0 : P ≠ ⊥) (i : ℕ)
   [fact (e ≠ 0)] (hi : i ≤ e) :
   module.rank (R ⧸ p) (ideal.map (P^e)^.quotient.mk (P ^ i)) =
   (e - i) • module.rank (R ⧸ p) (S ⧸ P) :=
@@ -1277,7 +1277,7 @@ omit hfPe
 
 /-- If `p` is a maximal ideal of `R`, `S` extends `R` and `P^e` lies over `p`,
 then the dimension `[S/(P^e) : R/p]` is equal to `e * [S/P : R/p]`. -/
-lemma dim_prime_pow [is_dedekind_domain S] [p.is_maximal] [P.is_prime] (hP0 : P ≠ ⊥)
+lemma dim_prime_pow [is_domain S] [is_dedekind_domain S] [p.is_maximal] [P.is_prime] (hP0 : P ≠ ⊥)
   {e : ℕ} (he : e ≠ 0) (hp : p ≤ comap f (P ^ e)) :
   @module.rank (R ⧸ p) (S ⧸ P^e) _ _ (@algebra.to_module _ _ _ _ $
     quotient.algebra_quotient_of_le_comap hp) =
@@ -1293,7 +1293,7 @@ end
 
 /-- If `p` is a maximal ideal of `R`, `S` extends `R` and `P^e` lies over `p`,
 then the dimension `[S/(P^e) : R/p]`, as a natural number, is equal to `e * [S/P : R/p]`. -/
-lemma finrank_prime_pow [is_dedekind_domain S]
+lemma finrank_prime_pow [is_domain S] [is_dedekind_domain S]
   (hP0 : P ≠ ⊥) [p.is_maximal] [P.is_prime]
   {e : ℕ} (he : e ≠ 0) (hp : p ≤ comap f (P ^ e)) :
   @finrank (R ⧸ p) (S ⧸ P^e) _ _ (@algebra.to_module _ _ _ _ $

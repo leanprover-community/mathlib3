@@ -14,6 +14,12 @@ bornology as a filter of cobounded sets which contains the cofinite filter.  Thi
 use of the extensive library for filters, but we also provide the relevant connecting results for
 bounded sets.
 
+The specification of a bornology in terms of the cobounded filter is equivalent to the standard
+one (e.g., see [Bourbaki, *Topological Vector Spaces*][bourbaki1987], **covering bornology**, now
+often called simply **bornology**) in terms of bounded sets (see `bornology.of_bounded`,
+`is_bounded.union`, `is_bounded.subset`), except that we do not allow the empty bornology (that is,
+we require that *some* set must be bounded; equivalently, `∅` is bounded).
+
 ## Main definitions
 
 - `bornology α`: a class consisting of `cobounded : filter α` and a proof that this filter

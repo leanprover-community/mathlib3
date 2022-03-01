@@ -322,9 +322,13 @@ section
 variables (f : J → C) [has_biproduct f]
 variables (p : J → Prop) [has_biproduct (subtype.restrict f p)]
 
+/-- The canonical morphism from the biproduct over a restricted index type to the biproduct of
+the full index type. -/
 def biproduct.from_subtype : ⨁ subtype.restrict f p ⟶ ⨁ f :=
 biproduct.desc $ λ j, biproduct.ι _ _
 
+/-- The canonical morophism from a biproduct to the biproduct over a restriction of its index
+type. -/
 def biproduct.to_subtype : ⨁ f ⟶ ⨁ subtype.restrict f p :=
 biproduct.lift $ λ j, biproduct.π _ _
 
@@ -409,6 +413,8 @@ end
 
 variables (f : J → C) (i : J) [has_biproduct f] [has_biproduct (subtype.restrict f (λ j, i ≠ j))]
 
+/-- The kernel of `biproduct.π f i` is the inclusion from the biproduct which omits `i`
+from the index set `J` into the biproduct over `J`. -/
 def biproduct.is_limit_from_subtype : is_limit
   (kernel_fork.of_ι (biproduct.from_subtype f (λ j, i ≠ j))
     (by simp) : kernel_fork (biproduct.π f i)) :=
@@ -428,6 +434,8 @@ fork.is_limit.mk' _ $ λ s,
    exact (category.comp_id _).symm
  end⟩
 
+/-- The kernel of `biproduct.ι f i` is the projection from the biproduct over the index set `J`
+onto the biproduct omitting `i`. -/
 def biproduct.is_colimit_to_subtype : is_colimit
   (cokernel_cofork.of_π (biproduct.to_subtype f (λ j, i ≠ j))
     (by simp) : cokernel_cofork (biproduct.ι f i)) :=

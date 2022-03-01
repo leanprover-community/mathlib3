@@ -109,7 +109,7 @@ $$
 ∥x∥ = ∥P x∥ + ∥(1-P) x∥.
 $$
 -/
-def is_Lprojection : (X →L[𝕜] X) → Prop := λ P, is_projection P ∧ ∀ (x : X), ∥x∥ = ∥P x∥ + ∥(1-P) x∥
+def is_Lprojection (P : X →L[𝕜] X) : Prop := is_projection P ∧ ∀ (x : X), ∥x∥ = ∥P x∥ + ∥(1-P) x∥
 
 /--
 A projection on a normed space `X` is said to be an M-projection if, for all `x` in `X`,

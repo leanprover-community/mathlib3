@@ -578,17 +578,6 @@ begin
   simp,
 end
 
-/-- Helper lemma for the evaluation of `prec` in the recursive case. -/
-lemma eval_rfind' (cf : code) (a m : ℕ) :
-  eval (rfind' cf) m = pure a
-  ↔
-  eval cf (nat.mkpair a m) = pure 0 ∧ (∀ b < a, ∃ v : ℕ, eval cf (nat.mkpair b m) = pure v)
-  :=
-begin
-  induction a with a ha,
-  TODO
-end
-
 instance : has_mem (ℕ →. ℕ) code := ⟨λ f c, eval c = f⟩
 
 @[simp] theorem eval_const : ∀ n m, eval (code.const n) m = part.some n

@@ -71,58 +71,57 @@ lemma deriv_tan_sub_id (x : ℝ) (h: cos x ≠ 0) :
     deriv (λ y : ℝ, tan y - y) x = 1 / cos x ^ 2 - 1 :=
 has_deriv_at.deriv $ by simpa using (has_deriv_at_tan h).add (has_deriv_at_id x).neg
 
-private def U := Ico 0 (π/2)
-
 /-- For all `0 ≤ x < π/2` we have `x < tan x`.
 
 This is proved by checking that the function `tan x - x` vanishes
 at zero and has non-negative derivative. -/
 theorem lt_tan (x : ℝ) (h1 : 0 < x) (h2 : x < π / 2): x < tan x :=
 begin
-  have intU : interior U = Ioo 0 (π/2) := interior_Ico,
+  let U := Ico 0 (π / 2),
 
-  have cos_pos : ∀ y : ℝ, (0 ≤ y) → (y < π/2) → (0 < cos y),
-  { intros y y1 y2,
+  have intU : interior U = Ioo 0 (π / 2) := interior_Ico,
+
+  have cos_pos : ∀ {y : ℝ}, y ∈ U → 0 < cos y,
+  { intros y hy,
     apply cos_pos_of_mem_Ioo,
-    split; linarith, },
+    cases hy,
+    split; linarith },
 
-  have sin_pos : ∀ y : ℝ, 0 < y → y < π / 2 → 0 < sin y,
-  { intros y hy1 hy2,
-    apply sin_pos_of_pos_of_lt_pi hy1,
-    apply lt_trans hy2,
-    rw ← lt_add_neg_iff_lt,
-    have : π + -(π / 2) = π/2 := by ring,
-    rw this, exact pi_div_two_pos },
+  have sin_pos : ∀ {y : ℝ}, y ∈ interior U → 0 < sin y,
+  { intros y hy,
+    rw intU at hy,
+    apply sin_pos_of_mem_Ioo,
+    cases hy,
+    split; linarith },
 
   have tan_cts_U : continuous_on tan U,
   { apply continuous_on.mono continuous_on_tan,
     intros z hz,
-    rw [U, Ico] at hz,
-    simp only [ne.def, mem_set_of_eq] at *,
-    exact (cos_pos z hz.1 hz.2).ne' },
+    simp only [mem_set_of_eq],
+    exact (cos_pos hz).ne' },
 
   have tan_minus_id_cts : continuous_on (λ y : ℝ, tan y - y) U :=
     tan_cts_U.sub continuous_on_id,
 
   have deriv_pos : ∀ y : ℝ, y ∈ interior U → 0 < deriv (λ y' : ℝ, tan y' - y') y,
   { intros y hy,
-    rw [intU, Ioo] at hy,
-    have := (cos_pos y (le_of_lt hy.1) hy.2).ne',
-    simp only [deriv_tan_sub_id y this, one_div, gt_iff_lt, sub_pos],
+    have := cos_pos (interior_subset hy),
+    simp only [deriv_tan_sub_id y this.ne', one_div, gt_iff_lt, sub_pos],
     have bd2 : cos y ^ 2 < 1,
     { apply lt_of_le_of_ne y.cos_sq_le_one,
       rw cos_sq',
       simpa only [ne.def, sub_eq_self, pow_eq_zero_iff, nat.succ_pos']
-        using (sin_pos y hy.left hy.right).ne' },
+        using (sin_pos hy).ne' },
     rwa [lt_inv, inv_one],
     { exact zero_lt_one },
-    { rwa [sq, mul_self_pos] } },
+    simpa only [sq, mul_self_pos] using this.ne' },
+
   have mono := convex.strict_mono_on_of_deriv_pos (convex_Ico 0 (π / 2)) tan_minus_id_cts deriv_pos,
   have zero_in_U : (0 : ℝ) ∈ U,
   { split; linarith },
   have x_in_U : x ∈ U,
   { split; linarith },
-  simpa only [tan_zero, sub_zero, sub_pos] using mono zero_in_U x_in_U h1,
+  simpa only [tan_zero, sub_zero, sub_pos] using mono zero_in_U x_in_U h1
 end
 
 end real

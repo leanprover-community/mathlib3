@@ -223,7 +223,8 @@ begin
 end
 
 lemma coev_app_comp_pre_app (f : B ⟶ A) [exponentiable B] :
-  (exp.coev A).app X ≫ (pre f).app (A ⨯ X) = (exp.coev B).app X ≫ (exp B).map (limits.prod.map f (𝟙 _)) :=
+  (exp.coev A).app X ≫ (pre f).app (A ⨯ X) =
+    (exp.coev B).app X ≫ (exp B).map (limits.prod.map f (𝟙 _)) :=
 unit_transfer_nat_trans_self _ _ (prod.functor.map f) X
 
 @[simp]

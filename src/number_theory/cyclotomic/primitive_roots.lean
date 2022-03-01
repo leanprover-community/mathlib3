@@ -37,10 +37,9 @@ in the implementation details section.
 * `is_primitive_root.sub_one_norm_eq_eval_cyclotomic`: if `irreducible (cyclotomic n K)`
   (in particular for `K = ℚ`), then the norm of `ζ - 1` is `eval 1 (cyclotomic n ℤ)`, for a
   primitive root ζ. We also prove the analogous of this result for `zeta`.
-* `is_primitive_root.prime_ne_two_pow_sub_one_norm` : if `irreducible (cyclotomic (p ^ (k + 1)) K)`
+* `is_primitive_root.sub_one_norm_of_prime_ne_two` : if `irreducible (cyclotomic (p ^ (k + 1)) K)`
   (in particular for `K = ℚ`) and `p` is an odd prime, then the norm of `ζ - 1` is `p`. We also
   prove the analogous of this result for `zeta`.
-  gives a K-power basis for L given a primitive root `ζ`.
 * `is_primitive_root.embeddings_equiv_primitive_roots`: the equivalence between `L →ₐ[K] A`
   and `primitive_roots n A` given by the choice of `ζ`.
 
@@ -237,7 +236,7 @@ end
 
 /-- If `is_prime_pow (n : ℕ)`, `n ≠ 2` and `irreducible (cyclotomic n K)` (in particular for
 `K = ℚ`), then the norm of `ζ - 1` is `(n : ℕ).min_fac`. -/
-lemma sub_one_norm_is_prime_pow (hn : is_prime_pow (n : ℕ)) [is_cyclotomic_extension {n} K L]
+lemma sub_one_norm_of_is_prime_pow (hn : is_prime_pow (n : ℕ)) [is_cyclotomic_extension {n} K L]
   (hirr : irreducible (cyclotomic (n : ℕ) K)) (h : n ≠ 2) :
   norm K (ζ - 1) = (n : ℕ).min_fac :=
 begin
@@ -257,7 +256,7 @@ omit hζ
 
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is an odd
 prime, then the norm of `ζ - 1` is `p`. -/
-lemma prime_ne_two_pow_sub_one_norm {p : ℕ+} [ne_zero ((p : ℕ) : K)] {k : ℕ}
+lemma sub_one_norm_of_prime_ne_two {p : ℕ+} [ne_zero ((p : ℕ) : K)] {k : ℕ}
   (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
   [is_cyclotomic_extension {p ^ (k + 1)} K L]
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (h : p ≠ 2) :
@@ -277,7 +276,7 @@ end
 
 /-- If `irreducible (cyclotomic p K)` (in particular for `K = ℚ`) and `p` is an odd prime,
 then the norm of `ζ - 1` is `p`. -/
-lemma sub_one_norm_prime {p : ℕ+} [ne_zero ((p : ℕ) : K)] [hpri : fact (p : ℕ).prime]
+lemma sub_one_norm_of_prime {p : ℕ+} [ne_zero ((p : ℕ) : K)] [hpri : fact (p : ℕ).prime]
   [hcyc : is_cyclotomic_extension {p} K L] (hζ: is_primitive_root ζ p)
   (hirr : irreducible (cyclotomic p K)) (h : p ≠ 2) :
   norm K (ζ - 1) = p :=
@@ -286,12 +285,12 @@ begin
   replace hζ : is_primitive_root ζ (↑(p ^ (0 + 1)) : ℕ) := by simp [hζ],
   haveI : ne_zero ((↑(p ^ (0 + 1)) : ℕ) : K) := ⟨by simp [ne_zero.ne ((p : ℕ) : K)]⟩,
   haveI : is_cyclotomic_extension {p ^ (0 + 1)} K L := by simp [hcyc],
-  simpa using prime_ne_two_pow_sub_one_norm hζ hirr h
+  simpa using sub_one_norm_of_prime_ne_two hζ hirr h
 end
 
 /-- If `irreducible (cyclotomic (2 ^ k) K)` (in particular for `K = ℚ`) and `k` is at least `2`,
 then the norm of `ζ - 1` is `2`. -/
-lemma sub_one_norm_pow_two [ne_zero (2 : K)] {k : ℕ} (hζ : is_primitive_root ζ (2 ^ k)) (hk : 2 ≤ k)
+lemma sub_one_norm_of_pow_two [ne_zero (2 : K)] {k : ℕ} (hζ : is_primitive_root ζ (2 ^ k)) (hk : 2 ≤ k)
   [is_cyclotomic_extension {2 ^ k} K L] (hirr : irreducible (cyclotomic (2 ^ k) K)) :
   norm K (ζ - 1) = 2 :=
 begin
@@ -336,7 +335,7 @@ lemma is_prime_pow_norm_zeta_sub_one (hn : is_prime_pow (n : ℕ))
   norm K (zeta n K L - 1) = (n : ℕ).min_fac :=
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L n,
-  exact sub_one_norm_is_prime_pow (zeta_primitive_root n K L) hn hirr h,
+  exact sub_one_norm_of_is_prime_pow (zeta_primitive_root n K L) hn hirr h,
 end
 
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is an odd
@@ -352,7 +351,7 @@ begin
   { refine ⟨λ hzero, _⟩,
     rw [pow_coe] at hzero,
     simpa [ne_zero.ne ((p : ℕ) : L)] using hzero },
-  exact prime_ne_two_pow_sub_one_norm (zeta_primitive_root _ K L) hirr h,
+  exact sub_one_norm_of_prime_ne_two (zeta_primitive_root _ K L) hirr h,
 end
 
 /-- If `irreducible (cyclotomic p K)` (in particular for `K = ℚ`) and `p` is an odd prime,
@@ -362,7 +361,7 @@ lemma prime_ne_two_norm_zeta_sub_one {p : ℕ+} [ne_zero ((p : ℕ) : K)] [hpri 
   norm K (zeta p K L - 1) = p :=
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L p,
-  exact sub_one_norm_prime (zeta_primitive_root _ K L) hirr h,
+  exact sub_one_norm_of_prime (zeta_primitive_root _ K L) hirr h,
 end
 
 /-- If `irreducible (cyclotomic (2 ^ k) K)` (in particular for `K = ℚ`) and `k` is at least `2`,
@@ -378,7 +377,7 @@ begin
       show (0 : L) = algebra_map K L 0, by simp] at hzero,
     exact (ne_zero.ne (2 : K)) ((algebra_map K L).injective hzero),
     apply_instance },
-  refine sub_one_norm_pow_two _ hk hirr,
+  refine sub_one_norm_of_pow_two _ hk hirr,
   simpa using zeta_primitive_root (2 ^ k) K L,
 end
 

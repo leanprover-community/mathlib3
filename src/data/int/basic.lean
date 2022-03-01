@@ -1153,7 +1153,8 @@ by rw [←int.coe_nat_le_coe_nat_iff, int.to_nat_of_nonneg h]
 
 @[simp]
 lemma coe_nat_nonpos_iff {n : ℕ} : (n : ℤ) ≤ 0 ↔ n = 0 :=
-by exact_mod_cast nat.le_zero_iff
+⟨ λ h, le_antisymm (int.coe_nat_le.mp (h.trans int.coe_nat_zero.le)) n.zero_le,
+  λ h, (coe_nat_eq_zero.mpr h).le⟩
 
 theorem to_nat_le_to_nat {a b : ℤ} (h : a ≤ b) : to_nat a ≤ to_nat b :=
 by rw to_nat_le; exact le_trans h (le_to_nat b)
@@ -1210,17 +1211,21 @@ theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 | -[1+ m] n := by split; intro h; cases h
 
 lemma to_nat_of_nonpos : ∀ {z : ℤ}, z ≤ 0 → z.to_nat = 0
-| (0 : ℕ)     := λ _, rfl
-| (n + 1 : ℕ) := λ h, (h.not_lt (by { exact_mod_cast nat.succ_pos n })).elim
-| (-[1+ n])  := λ _, rfl
+| (0 : ℕ)     _ := rfl
+| (n + 1 : ℕ) h := (h.not_lt (by { exact_mod_cast nat.succ_pos n })).elim
+| (-[1+ n])   _ := rfl
+
+lemma to_nat_neg_nat : ∀ {n : ℕ},  (-(n : ℤ)).to_nat = 0
+| 0       := rfl
+| (n + 1) := rfl
 
 @[simp]
-lemma to_nat_eq_zero {n : ℤ} : n.to_nat = 0 ↔ n ≤ 0 :=
-begin
-  induction n,
-  { simp only [of_nat_eq_coe, to_nat_coe_nat, coe_nat_nonpos_iff] },
-  { simp [int.neg_succ_of_nat_coe'] }
-end
+lemma to_nat_eq_zero : ∀ {n : ℤ}, n.to_nat = 0 ↔ n ≤ 0
+| (n : ℕ) := calc _ ↔ (n = 0) : ⟨(to_nat_coe_nat n).symm.trans, (to_nat_coe_nat n).trans⟩
+                ... ↔ _       : int.coe_nat_nonpos_iff.symm
+| -[1+ n] := show ((-((n : ℤ) + 1)).to_nat = 0) ↔ (-(n + 1) : ℤ) ≤ 0, from
+calc _ ↔ true : ⟨λ _, trivial, λ h, to_nat_neg_nat⟩
+   ... ↔ _    : ⟨λ h, int.neg_nonpos_of_nonneg (int.coe_zero_le (n + 1)), λ _, trivial⟩
 
 /-! ### units -/
 

@@ -13,7 +13,7 @@ This file defines `Frame`, the category of frames.
 
 ## References
 
-* [nLab, *Frm*][http://nlab-pages.s3.us-east-2.amazonaws.com/nlab/show/Frm]
+* [nLab, *Frm*][https://ncatlab.org/nlab/show/Frm]
 -/
 
 universes u

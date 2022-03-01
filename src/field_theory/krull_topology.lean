@@ -197,7 +197,6 @@ group_filter_basis.is_topological_group (gal_group_basis K L)
 
 section krull_t2
 
-
 open_locale topological_space filter
 
 /-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
@@ -220,8 +219,8 @@ end
 /-- Let `L/E/K` be a tower of fields with `E/K` finite. Then `Gal(L/E)` is an open subgroup of
   `L ≃ₐ[K] L`. -/
 lemma intermediate_field.fixing_subgroup_is_open {K L : Type*} [field K] [field L] [algebra K L]
-{E : intermediate_field K L} [finite_dimensional K E] :
-is_open (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
+  (E : intermediate_field K L) [finite_dimensional K E] :
+  is_open (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
 begin
   have h_basis : E.fixing_subgroup.carrier ∈ (gal_group_basis K L) :=
    ⟨E.fixing_subgroup, ⟨E, _inst_4, rfl⟩, rfl⟩,
@@ -233,8 +232,7 @@ end
 
 /-- If `L/K` is an algebraic extension, then the Krull topology on `L ≃ₐ[K] L` is Hausdorff. -/
 lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
-  (h_int : algebra.is_integral K L) :
-t2_space (L ≃ₐ[K] L)  :=
+  (h_int : algebra.is_integral K L) : t2_space (L ≃ₐ[K] L) :=
 { t2 := λ f g hfg,
   begin
     let φ := f⁻¹ * g,

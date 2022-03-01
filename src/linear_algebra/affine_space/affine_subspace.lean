@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.affine_space.basic
+import linear_algebra.affine_space.affine_equiv
 import linear_algebra.tensor_product
 import data.set.intervals.unordered_interval
 
@@ -178,6 +178,7 @@ variables (k : Type*) {V : Type*} (P : Type*) [ring k] [add_comm_group V] [modul
           [affine_space V P]
 include V
 
+-- TODO Refactor to use `instance : set_like (affine_subspace k P) P :=` instead
 instance : has_coe (affine_subspace k P) (set P) := ⟨carrier⟩
 instance : has_mem P (affine_subspace k P) := ⟨λ p s, p ∈ (s : set P)⟩
 
@@ -1175,3 +1176,77 @@ begin
 end
 
 end affine_subspace
+
+section maps
+
+variables {k V₁ P₁ V₂ P₂ : Type*} [ring k]
+variables [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
+variables [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
+include V₁ V₂
+
+variables (f : P₁ →ᵃ[k] P₂)
+
+@[simp] lemma affine_map.vector_span_image_eq_submodule_map {s : set P₁} :
+  submodule.map f.linear (vector_span k s) = vector_span k (f '' s) :=
+by simp [f.image_vsub_image, vector_span_def]
+
+namespace affine_subspace
+
+/-- The image of an affine subspace under an affine map as an affine subspace. -/
+def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
+{ carrier := f '' s,
+  smul_vsub_vadd_mem :=
+    begin
+      rintros t - - - ⟨p₁, h₁, rfl⟩ ⟨p₂, h₂, rfl⟩ ⟨p₃, h₃, rfl⟩,
+      use t • (p₁ -ᵥ p₂) +ᵥ p₃,
+      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { by simp [this], },
+      exact s.smul_vsub_vadd_mem t h₁ h₂ h₃,
+    end }
+
+@[simp] lemma map_coe (s : affine_subspace k P₁) : (s.map f : set P₂) = f '' s := rfl
+
+@[simp] lemma map_bot : (⊥ : affine_subspace k P₁).map f = ⊥ :=
+by { rw ← ext_iff, exact image_empty f, }
+
+@[simp] lemma map_direction (s : affine_subspace k P₁) :
+  (s.map f).direction = s.direction.map f.linear :=
+by simp [direction_eq_vector_span]
+
+lemma map_span (s : set P₁) :
+  (affine_span k s).map f = affine_span k (f '' s) :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl | ⟨p, hp⟩, { simp, },
+  apply ext_of_direction_eq,
+  { simp [direction_affine_span], },
+  { exact ⟨f p, mem_image_of_mem f (subset_affine_span k _ hp),
+                subset_affine_span k _ (mem_image_of_mem f hp)⟩, },
+end
+
+end affine_subspace
+
+namespace affine_map
+
+@[simp] lemma map_top_of_surjective (hf : function.surjective f) : affine_subspace.map f ⊤ = ⊤ :=
+begin
+  rw ← affine_subspace.ext_iff,
+  exact image_univ_of_surjective hf,
+end
+
+lemma span_eq_top_of_surjective {s : set P₁}
+  (hf : function.surjective f) (h : affine_span k s = ⊤) :
+  affine_span k (f '' s) = ⊤ :=
+by rw [← affine_subspace.map_span, h, map_top_of_surjective f hf]
+
+end affine_map
+
+lemma affine_equiv.span_eq_top_iff {s : set P₁} (e : P₁ ≃ᵃ[k] P₂) :
+  affine_span k s = ⊤ ↔ affine_span k (e '' s) = ⊤ :=
+begin
+  refine ⟨(e : P₁ →ᵃ[k] P₂).span_eq_top_of_surjective e.surjective, _⟩,
+  intros h,
+  have : s = e.symm '' (e '' s), { simp [← image_comp], },
+  rw this,
+  exact (e.symm : P₂ →ᵃ[k] P₁).span_eq_top_of_surjective e.symm.surjective h,
+end
+
+end maps

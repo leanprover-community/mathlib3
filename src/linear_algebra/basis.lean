@@ -281,6 +281,8 @@ variables {R' : Type*} [semiring R'] [module R' M] (f : R ≃+* R') (h : ∀ c (
 
 include f h b
 
+local attribute [instance] has_scalar.comp.is_scalar_tower
+
 /-- If `R` and `R'` are isomorphic rings that act identically on a module `M`,
 then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module.
 

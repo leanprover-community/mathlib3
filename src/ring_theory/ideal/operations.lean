@@ -1756,4 +1756,34 @@ def quot_quot_equiv_quot_sup : (J.map (ideal.quotient.mk I)).quotient ≃+* (I �
 ring_equiv.of_hom_inv (quot_quot_to_quot_sup I J) (lift_sup_quot_quot_mk I J)
   (by { ext z, refl }) (by { ext z, refl })
 
+@[simp]
+lemma quot_quot_equiv_quot_sup_quot_quot_mk (x : R) :
+  quot_quot_equiv_quot_sup I J (quot_quot_mk I J x) = ideal.quotient.mk (I ⊔ J) x :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_quot_sup_symm_quot_quot_mk (x : R) :
+  (quot_quot_equiv_quot_sup I J).symm (ideal.quotient.mk (I ⊔ J) x) = quot_quot_mk I J x :=
+rfl
+
+/-- The obvious isomorphism `(R/I)/J' → (R/J)/I' `   -/
+def quot_quot_equiv_comm : (J.map I^.quotient.mk).quotient ≃+* (I.map J^.quotient.mk).quotient :=
+((quot_quot_equiv_quot_sup I J).trans (quot_equiv_of_eq sup_comm)).trans
+  (quot_quot_equiv_quot_sup J I).symm
+
+@[simp]
+lemma quot_quot_equiv_comm_quot_quot_mk (x : R) :
+  quot_quot_equiv_comm I J (quot_quot_mk I J x) = quot_quot_mk J I x :=
+rfl
+
+@[simp]
+lemma quot_quot_equiv_comm_comp_quot_quot_mk :
+  ring_hom.comp ↑(quot_quot_equiv_comm I J) (quot_quot_mk I J) = quot_quot_mk J I :=
+ring_hom.ext $ quot_quot_equiv_comm_quot_quot_mk I J
+
+@[simp]
+lemma quot_quot_equiv_comm_symm :
+  (quot_quot_equiv_comm I J).symm = quot_quot_equiv_comm J I :=
+rfl
+
 end double_quot

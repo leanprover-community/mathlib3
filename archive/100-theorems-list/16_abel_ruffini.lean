@@ -74,7 +74,11 @@ begin
     rw mem_span_singleton,
     rw [degree_Phi, with_bot.coe_lt_coe] at hn,
     interval_cases n with hn;
-    simp [Φ, coeff_X_pow, coeff_C, int.coe_nat_dvd.mpr, hpb, hpa, -ring_hom.eq_int_cast] },
+    simp only [Φ, coeff_X_pow, coeff_C, int.coe_nat_dvd.mpr, hpb, if_true, coeff_C_mul, if_false,
+      nat.zero_ne_bit1, eq_self_iff_true, coeff_X_zero, hpa, coeff_add, zero_add, mul_zero,
+      int.nat_cast_eq_coe_nat, coeff_sub, sub_self, nat.one_ne_zero, add_zero, coeff_X_one, mul_one,
+      zero_sub, dvd_neg, nat.one_eq_bit1, bit0_eq_zero, neg_zero, nat.bit0_ne_bit1,
+      dvd_mul_of_dvd_left, nat.bit1_eq_bit1, nat.one_ne_bit0, nat.bit1_ne_zero], },
   { simp only [degree_Phi, ←with_bot.coe_zero, with_bot.coe_lt_coe, nat.succ_pos'] },
   { rw [coeff_zero_Phi, span_singleton_pow, mem_span_singleton, int.nat_cast_eq_coe_nat],
     exact mt int.coe_nat_dvd.mp hp2b },

@@ -44,7 +44,7 @@ open_locale classical topological_space
 universes u v w
 
 open classical set function topological_space filter metric quotient
-open bounded_continuous_function nat Kuratowski_embedding
+open bounded_continuous_function nat int Kuratowski_embedding
 open sum (inl inr)
 
 local attribute [instance] metric_space_sum
@@ -764,11 +764,11 @@ begin
   choose s N hN E hs using this,
   -- Define a function `F` taking values in a finite type and associating to `p` enough data
   -- to reconstruct it up to `ε`, namely the (discretized) distances between elements of `s p`.
-  let M := (floor (ε⁻¹ * max C 0)).to_nat,
+  let M := ⌊(ε⁻¹ * max C 0)⌋₊,
   let F : GH_space → (Σk:fin ((K n).succ), (fin k → fin k → fin (M.succ))) :=
     λ p, ⟨⟨N p, lt_of_le_of_lt (hN p) (nat.lt_succ_self _)⟩,
-         λ a b, ⟨min M (floor (ε⁻¹ * dist ((E p).symm a) ((E p).symm b))).to_nat,
-                lt_of_le_of_lt ( min_le_left _ _) (nat.lt_succ_self _) ⟩ ⟩,
+         λ a b, ⟨min M ⌊(ε⁻¹ * dist ((E p).symm a) ((E p).symm b))⌋₊,
+                ( min_le_left _ _).trans_lt (nat.lt_succ_self _) ⟩ ⟩,
   refine ⟨_, by apply_instance, (λ p, F p), _⟩,
   -- It remains to show that if `F p = F q`, then `p` and `q` are `ε`-close
   rintros ⟨p, pt⟩ ⟨q, qt⟩ hpq,
@@ -824,28 +824,28 @@ begin
       have hjq : j < N q, by rwa Npq at hjp,
       have j' : j = ((E q) (Ψ y)), by { simp [Ψ] },
       -- Express `dist x y` in terms of `F p`
-      have Ap : ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = (floor (ε⁻¹ * dist x y)).to_nat := calc
+      have Ap : ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ⌊ε⁻¹ * dist x y⌋₊ := calc
         ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ((F p).2 ((E p) x) ((E p) y)).1 :
           by { congr; apply (fin.ext_iff _ _).2; refl }
-        ... = min M (floor (ε⁻¹ * dist x y)).to_nat :
+        ... = min M ⌊ε⁻¹ * dist x y⌋₊ :
           by simp only [F, (E p).symm_apply_apply]
-        ... = (floor (ε⁻¹ * dist x y)).to_nat :
+        ... = ⌊ε⁻¹ * dist x y⌋₊ :
         begin
-          refine min_eq_right (int.to_nat_le_to_nat (floor_mono _)),
+          refine min_eq_right (nat.floor_mono _),
           refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) ((inv_pos.2 εpos).le),
           change dist (x : p.rep) y ≤ C,
           refine le_trans (dist_le_diam_of_mem compact_univ.bounded (mem_univ _) (mem_univ _)) _,
           exact hdiam p pt
         end,
       -- Express `dist (Φ x) (Φ y)` in terms of `F q`
-      have Aq : ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = (floor (ε⁻¹ * dist (Ψ x) (Ψ y))).to_nat := calc
+      have Aq : ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ⌊(ε⁻¹ * dist (Ψ x) (Ψ y))⌋₊ := calc
         ((F q).2 ⟨i, hiq⟩ ⟨j, hjq⟩).1 = ((F q).2 ((E q) (Ψ x)) ((E q) (Ψ y))).1 :
           by { congr; apply (fin.ext_iff _ _).2; [exact i', exact j'] }
-        ... = min M (floor (ε⁻¹ * dist (Ψ x) (Ψ y))).to_nat :
+        ... = min M ⌊(ε⁻¹ * dist (Ψ x) (Ψ y))⌋₊ :
           by simp only [F, (E q).symm_apply_apply]
-        ... = (floor (ε⁻¹ * dist (Ψ x) (Ψ y))).to_nat :
+        ... = ⌊(ε⁻¹ * dist (Ψ x) (Ψ y))⌋₊ :
         begin
-          refine min_eq_right (int.to_nat_le_to_nat (floor_mono _)),
+          refine min_eq_right (nat.floor_mono _),
           refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) ((inv_pos.2 εpos).le),
           change dist (Ψ x : q.rep) (Ψ y) ≤ C,
           refine le_trans (dist_le_diam_of_mem compact_univ.bounded (mem_univ _) (mem_univ _)) _,
@@ -863,13 +863,13 @@ begin
         subst hpq,
         intros,
         refl },
-      have : floor (ε⁻¹ * dist x y) = floor (ε⁻¹ * dist (Ψ x) (Ψ y)),
+      have : ⌊ε⁻¹ * dist x y⌋ = ⌊(ε⁻¹ * dist (Ψ x) (Ψ y))⌋,
       { rw [Ap, Aq] at this,
-        have D : 0 ≤ floor (ε⁻¹ * dist x y) :=
+        have D : 0 ≤ ⌊ε⁻¹ * dist x y⌋ :=
           floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos.2 εpos)) dist_nonneg),
-        have D' : floor (ε⁻¹ * dist (Ψ x) (Ψ y)) ≥ 0 :=
+        have D' : 0 ≤ ⌊(ε⁻¹ * dist (Ψ x) (Ψ y))⌋ :=
           floor_nonneg.2 (mul_nonneg (le_of_lt (inv_pos.2 εpos)) dist_nonneg),
-        rw [← int.to_nat_of_nonneg D, ← int.to_nat_of_nonneg D', this] },
+        rw [← int.to_nat_of_nonneg D, ← int.to_nat_of_nonneg D', ←nat.floor, ←nat.floor, this] },
       -- deduce that the distances coincide up to `ε`, by a straightforward computation
       -- that should be automated
       have I := calc

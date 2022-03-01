@@ -518,6 +518,10 @@ begin
   rw [pow_succ, succ_nsmul, normalized_factors_mul h0 (pow_ne_zero _ h0), ih],
 end
 
+theorem normalized_factors_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
+  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
+by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
+
 lemma dvd_iff_normalized_factors_le_normalized_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
   x ∣ y ↔ normalized_factors x ≤ normalized_factors y :=
 begin
@@ -528,10 +532,6 @@ begin
       ← (normalized_factors_prod hy).dvd_iff_dvd_right],
     apply multiset.prod_dvd_prod }
 end
-
-theorem normalized_factors_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
-  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
-by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
 
 lemma zero_not_mem_normalized_factors (x : α) : (0 : α) ∉ normalized_factors x :=
 λ h, prime.ne_zero (prime_of_normalized_factor _ h) rfl

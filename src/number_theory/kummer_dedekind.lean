@@ -191,8 +191,31 @@ end
 end
 
 /-- The factorization of the minimal polynomial of `S` over `R` mod `p` into coprime divisors
-determines how `S / pS` decomposes as a product of quotients. -/
+determines how `S / pS` decomposes as a quotient of products.
+
+See also `ideal.is_prime.quotient_equiv_Pi_span_coprime_factor_minpoly`, which additionally applies
+the Chinese remainder theorem. -/
 noncomputable def ideal.is_prime.quotient_equiv_prod_span_coprime_factor_minpoly
+  (pb : power_basis R S) {p : ideal R} (hp : p.is_prime)
+  {ι : Type*} [fintype ι] (g : ι → (polynomial R)) (e : ι → ℕ)
+  (prod_eq : ∏ i, ((g i).map (ideal.quotient.mk p) ^ e i) =
+    (minpoly R pb.gen).map (ideal.quotient.mk p)) :
+  (p.map (algebra_map R S)).quotient ≃+* ideal.quotient
+    ∏ (i : ι), (ideal.span ({(g i).map (ideal.quotient.mk p)} : set (polynomial p.quotient)) ^ e i) :=
+let q := λ i, ideal.span ({(g i).map (ideal.quotient.mk p)} : set (polynomial p.quotient)) ^ e i in
+have q_def : ∀ i, q i = ideal.span ({(g i).map (ideal.quotient.mk p)} : set (polynomial p.quotient)) ^ e i := λ i, rfl,
+have prod_q_eq : (∏ i, q i) = ideal.span {(minpoly R pb.gen).map (ideal.quotient.mk p)},
+begin
+  simp_rw [q_def, ← prod_eq, ideal.span_singleton_pow],
+  refine ideal.prod_span_singleton _ _,
+end,
+(power_basis.quotient_equiv_quotient_minpoly_map pb p).trans $
+(ideal.quotient_equiv _ (∏ i, q i) (ring_equiv.refl _)
+  (by rw [← ring_equiv.to_ring_hom_eq_coe, ring_equiv.to_ring_hom_refl, ideal.map_id, prod_q_eq]))
+
+/-- The factorization of the minimal polynomial of `S` over `R` mod `p` into coprime divisors
+determines how `S / pS` decomposes as a product of quotients. -/
+noncomputable def ideal.is_prime.quotient_equiv_Pi_span_coprime_factor_minpoly
   (pb : power_basis R S) {p : ideal R} (hp : p.is_prime)
   {ι : Type*} [fintype ι] (g : ι → (polynomial R)) (e : ι → ℕ)
   (g_coprime : ∀ i j (hij : i ≠ j),
@@ -235,20 +258,33 @@ by rw [quotient_inf_ring_equiv_pi_quotient, ring_equiv.coe_mk, equiv.to_fun_as_c
 lemma ideal.is_prime.quotient_equiv_prod_span_coprime_factor_minpoly_apply
   (pb : power_basis R S) {p : ideal R} (hp : p.is_prime)
   {ι : Type*} [fintype ι] (g : ι → (polynomial R)) (e : ι → ℕ)
+  (prod_eq : ∏ i, ((g i).map (ideal.quotient.mk p) ^ e i) =
+    (minpoly R pb.gen).map (ideal.quotient.mk p))
+  (x : polynomial R) :
+  hp.quotient_equiv_prod_span_coprime_factor_minpoly pb g e prod_eq
+    (ideal.quotient.mk _ (aeval pb.gen x)) = ideal.quotient.mk _ (x.map p^.quotient.mk) :=
+begin
+  rw [ideal.is_prime.quotient_equiv_prod_span_coprime_factor_minpoly,
+      ring_equiv.trans_apply, power_basis.quotient_equiv_quotient_minpoly_map_apply,
+      quotient_equiv_mk, ring_equiv.refl_apply]
+end
+
+lemma ideal.is_prime.quotient_equiv_Pi_span_coprime_factor_minpoly_apply
+  (pb : power_basis R S) {p : ideal R} (hp : p.is_prime)
+  {ι : Type*} [fintype ι] (g : ι → (polynomial R)) (e : ι → ℕ)
   (g_coprime : ∀ i j (hij : i ≠ j),
     is_coprime ((g i).map p^.quotient.mk) ((g j).map p^.quotient.mk))
   (prod_eq : ∏ i, ((g i).map (ideal.quotient.mk p) ^ e i) =
     (minpoly R pb.gen).map (ideal.quotient.mk p))
   (x : polynomial R) (i : ι) :
-hp.quotient_equiv_prod_span_coprime_factor_minpoly pb g e g_coprime prod_eq
-  (ideal.quotient.mk _ (aeval pb.gen x)) i = ideal.quotient.mk _ (x.map p^.quotient.mk) :=
+  hp.quotient_equiv_Pi_span_coprime_factor_minpoly pb g e g_coprime prod_eq
+    (ideal.quotient.mk _ (aeval pb.gen x)) i = ideal.quotient.mk _ (x.map p^.quotient.mk) :=
 begin
-  rw [ideal.is_prime.quotient_equiv_prod_span_coprime_factor_minpoly,
+  rw [ideal.is_prime.quotient_equiv_Pi_span_coprime_factor_minpoly,
       ring_equiv.trans_apply, ring_equiv.trans_apply,
       power_basis.quotient_equiv_quotient_minpoly_map_apply, quotient_equiv_mk,
       quotient_inf_ring_equiv_pi_quotient_apply, ring_equiv.refl_apply]
 end
-.
 
 lemma polynomial.monic.normalize_eq_self {R : Type*} [integral_domain R] [normalized_gcd_monoid R]
   {p : polynomial R} (hp : p.monic) :
@@ -258,7 +294,7 @@ by simp only [polynomial.coe_norm_unit, normalize_apply, hp.leading_coeff, norm_
 
 /-- The factorization of the minimal polynomial of `S` over `R` mod `p` into
 monic irreducible polynomials determines how `S / pS` decomposes as a product of quotients. -/
-noncomputable def ideal.is_prime.quotient_equiv_prod_span_irred_factor_minpoly
+noncomputable def ideal.is_prime.quotient_equiv_Pi_span_irred_factor_minpoly
   [is_dedekind_domain R]
   (pb : power_basis R S) {p : ideal R} (hp : p.is_prime)
   (hp0 : p ≠ ⊥) -- this assumption can be dropped but it's easier to do that later
@@ -271,7 +307,7 @@ noncomputable def ideal.is_prime.quotient_equiv_prod_span_irred_factor_minpoly
   (p.map (algebra_map R S)).quotient ≃+* Π (i : ι), ideal.quotient
     (ideal.span ({(g i).map (ideal.quotient.mk p)} : set (polynomial p.quotient)) ^ e i) :=
 begin
-  refine hp.quotient_equiv_prod_span_coprime_factor_minpoly pb g e _ prod_eq,
+  refine hp.quotient_equiv_Pi_span_coprime_factor_minpoly pb g e _ prod_eq,
   intros i j hij,
   haveI : p.is_maximal := is_dedekind_domain.dimension_le_one p hp0 hp,
   letI : field p.quotient := ideal.quotient.field p,
@@ -287,7 +323,7 @@ end
 
 .
 
-lemma ideal.is_prime.quotient_equiv_prod_span_irred_factor_minpoly_apply
+lemma ideal.is_prime.quotient_equiv_Pi_span_irred_factor_minpoly_apply
   [is_dedekind_domain R]
   (pb : power_basis R S) {p : ideal R} (hp : p.is_prime)
   (hp0 : p ≠ ⊥) -- this assumption can be dropped but it's easier to do that later
@@ -298,48 +334,66 @@ lemma ideal.is_prime.quotient_equiv_prod_span_irred_factor_minpoly_apply
   (prod_eq : ∏ i, ((g i).map (ideal.quotient.mk p) ^ e i) =
     (minpoly R pb.gen).map (ideal.quotient.mk p))
   (x : polynomial R) (i : ι) :
-  hp.quotient_equiv_prod_span_irred_factor_minpoly pb hp0 g e g_irred g_monic g_ne prod_eq
+  hp.quotient_equiv_Pi_span_irred_factor_minpoly pb hp0 g e g_irred g_monic g_ne prod_eq
     (ideal.quotient.mk _ (aeval pb.gen x)) i =
     ideal.quotient.mk _ (x.map p^.quotient.mk) :=
-ideal.is_prime.quotient_equiv_prod_span_coprime_factor_minpoly_apply _ _ _ _ _ _ _ _
+ideal.is_prime.quotient_equiv_Pi_span_coprime_factor_minpoly_apply _ _ _ _ _ _ _ _
 
-.
 
-lemma ideal.eq_prod_comap_of_equiv {ι : Type*} [fintype ι]
-  {A B : Type*} [integral_domain A] [integral_domain B] [algebra R A] [algebra R B]
-  (p : ideal A) (qs : ι → ideal B) (f : A →ₐ[R] B)
-  -- TODO: what is going on in this line:
-  (φ : by letI : comm_ring (Π i, (qs i).quotient) := @pi.comm_ring _ _ (λ i, @quotient.comm_ring B _ (qs i)); exact
-    p.quotient ≃+* Π i, (qs i).quotient) :
-  p = ∏ i, (qs i).comap f :=
-sorry -- TODO: from @Paul-Lez
+lemma ideal.is_prime.irreducible {R : Type*} [integral_domain R] {I : ideal R} (hI0 : I ≠ ⊥)
+  (hI : I.is_prime) : irreducible I :=
+{ not_unit' := mt ideal.is_unit_iff.mp hI.ne_top,
+  is_unit_or_is_unit' := begin
+    unfreezingI { rintro J K rfl },
+    rw [ideal.is_unit_iff, ideal.is_unit_iff],
+    rw [ne.def, ideal.mul_eq_bot, not_or_distrib, ← ne.def, submodule.ne_bot_iff, ← ne.def,
+      submodule.ne_bot_iff] at hI0,
+    obtain ⟨⟨x, hx, hx0⟩, ⟨y, hy, hy0⟩⟩ := hI0,
+    cases hI.mem_or_mem (mul_mem_mul hx hy) with h h,
+    revert hx,
+    refine submodule.smul_induction_on h _ _ _ _,
+    { intros x hx y hy hxy, }
+  end }
 
 /-- **Kummer-Dedekind theorem**: the factorization of the minimal polynomial mod `p`
 determines how the prime ideal `p` splits in a monogenic ring extension.
 
 This version allows the user to supply the factorization; see `ideal.is_prime.prod_ideals_above`
 for this theorem stated with a (non-canonical) choice of factorization.
+
+TODO: generalize this to non-monogenic extensions (using the conductor)
 -/
 theorem ideal.is_prime.prod_span_irred_factor_minpoly {ι : Type*} [fintype ι]
-  [is_dedekind_domain R]
+  [is_dedekind_domain R] [is_dedekind_domain S]
   [algebra R S] (pb : power_basis R S)
   {p : ideal R} (hp : p.is_prime)
   (gs : ι → polynomial R) (e : ι → ℕ) (g_monic : ∀ i, polynomial.monic (gs i))
   (g_irr : ∀ i, irreducible (polynomial.map (ideal.quotient.mk p) (gs i)))
   (g_ne : ∀ i j (h : i ≠ j), ((gs i).map (ideal.quotient.mk p)) ≠ ((gs j).map (ideal.quotient.mk p)))
   (prod_eq : (∏ i, (gs i).map p^.quotient.mk ^ e i) = (minpoly R pb.gen).map (ideal.quotient.mk p)) :
-  (Π i, p.map (algebra_map R S) ⊔ ideal.span {polynomial.aeval pb.gen (gs i)}) =
+  (∏ (i : ι), (ideal.span {polynomial.aeval pb.gen (gs i)} ⊔ p.map (algebra_map R S)) ^ e i) =
     p.map (algebra_map R S) :=
 begin
   by_cases hp0 : p = ⊥,
   { unfreezingI { subst hp0 },
     have : unique ι := sorry, -- because we can't have different divisors of the minpoly
     sorry },
-  set φ := hp.quotient_equiv_prod_span_irred_factor_minpoly pb hp0 gs e g_irr g_monic g_ne prod_eq with φ_def,
+  have hp0' : p.map (algebra_map R S) ≠ ⊥ := sorry,
+  haveI : p.is_maximal := is_dedekind_domain.dimension_le_one p hp0 hp,
+  letI : field p.quotient := ideal.quotient.field p,
+  set ϕ := pb.quotient_equiv_quotient_minpoly_map p,
+  -- set φ := hp.quotient_equiv_prod_span_coprime_factor_minpoly pb gs e prod_eq with φ_def,
+  have hprod0 : span {polynomial.map p^.quotient.mk (minpoly R pb.gen)} ≠ ⊥ := sorry,
 
   let q : ι → ideal S := λ i, ideal.span (p.map (algebra_map R S) ∪ {aeval pb.gen (gs i)}),
-  have := (p.map (algebra_map R S)).eq_prod_comap_of_equiv _ _ φ,
-  refine trans _ ((p.map (algebra_map R S)).eq_prod_comap_of_equiv _ _ φ).symm,
+  have := λ i, simp_ideal_correspondence _ S ϕ.symm (polynomial R) (map_ring_hom p^.quotient.mk)
+    (aeval pb.gen).to_ring_hom hprod0 hp0' (ideal.span {gs i}) _ _,
+  simp_rw [map_span, set.image_singleton, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom] at this,
+  simp_rw ← this,
+  refine prod_eq_of_quot_equiv _ _ _ _ _ _ _ e _,
+  { have : irreducible (ideal.span {(gs i).map p^.quotient.mk}) := ideal.is_prime.irreducible _,
+    obtain := unique_factorization_monoid.exists_mem_normalized_factors_of_dvd _ this },
+  { },
 end
 
 /-- **Kummer-Dedekind theorem**: the factorization of the minimal polynomial mod `p`

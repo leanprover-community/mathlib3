@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import order.bounded_lattice
 import order.galois_connection
+import order.iterate
 import tactic.monotonicity
 
 /-!
@@ -19,6 +20,10 @@ order...
 
 * `succ_order`: Order equipped with a sensible successor function.
 * `pred_order`: Order equipped with a sensible predecessor function.
+* `is_succ_archimedean`: `succ_order` where `succ` iterated to an element gives all the greater
+  ones.
+* `is_pred_archimedean`: `pred_order` where `pred` iterated to an element gives all the greater
+  ones.
 
 ## Implementation notes
 
@@ -737,3 +742,118 @@ instance pred_order_of_no_bot [partial_order α] [no_bot_order α] [pred_order �
   end }
 
 end with_bot
+
+/-! ### Archimedeanness -/
+
+/-- A `succ_order` is succ-archimedean if one can go from any two comparable elements by iterating
+`succ` -/
+class is_succ_archimedean (α : Type*) [preorder α] [succ_order α] : Prop :=
+(exists_succ_iterate_of_le {a b : α} (h : a ≤ b) : ∃ n, succ^[n] a = b)
+
+/-- A `pred_order` is pred-archimedean if one can go from any two comparable elements by iterating
+`pred` -/
+class is_pred_archimedean (α : Type*) [preorder α] [pred_order α] : Prop :=
+(exists_pred_iterate_of_le {a b : α} (h : a ≤ b) : ∃ n, pred^[n] b = a)
+
+export is_succ_archimedean (exists_succ_iterate_of_le)
+export is_pred_archimedean (exists_pred_iterate_of_le)
+
+section preorder
+variables [preorder α]
+
+section succ_order
+variables [succ_order α] [is_succ_archimedean α] {a b : α}
+
+instance : is_pred_archimedean (order_dual α) :=
+{ exists_pred_iterate_of_le := λ a b h, by convert @exists_succ_iterate_of_le α _ _ _ _ _ h }
+
+lemma has_le.le.exists_succ_iterate (h : a ≤ b) : ∃ n, succ^[n] a = b :=
+exists_succ_iterate_of_le h
+
+lemma exists_succ_iterate_iff_le : (∃ n, succ^[n] a = b) ↔ a ≤ b :=
+begin
+  refine ⟨_, exists_succ_iterate_of_le⟩,
+  rintro ⟨n, rfl⟩,
+  exact id_le_iterate_of_id_le le_succ n a,
+end
+
+lemma succ.rec {p : α → Prop} (hsucc : ∀ a, p a → p (succ a)) {a b : α} (h : a ≤ b) (ha : p a) :
+  p b :=
+begin
+  obtain ⟨n, rfl⟩ := h.exists_succ_iterate,
+  exact iterate.rec _ hsucc ha n,
+end
+
+lemma succ.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (succ a)) {a b : α} (h : a ≤ b) :
+  p a ↔ p b :=
+begin
+  obtain ⟨n, rfl⟩ := h.exists_succ_iterate,
+  exact iterate.rec (λ b, p a ↔ p b) (λ c hc, hc.trans (hsucc _)) iff.rfl n,
+end
+
+end succ_order
+
+section pred_order
+variables [pred_order α] [is_pred_archimedean α] {a b : α}
+
+instance : is_succ_archimedean (order_dual α) :=
+{ exists_succ_iterate_of_le := λ a b h, by convert @exists_pred_iterate_of_le α _ _ _ _ _ h }
+
+lemma has_le.le.exists_pred_iterate (h : a ≤ b) : ∃ n, pred^[n] b = a :=
+exists_pred_iterate_of_le h
+
+lemma exists_pred_iterate_iff_le : (∃ n, pred^[n] b = a) ↔ a ≤ b :=
+@exists_succ_iterate_iff_le (order_dual α) _ _ _ _ _
+
+lemma pred.rec {p : α → Prop} (hsucc : ∀ a, p a → p (pred a)) {a b : α} (h : b ≤ a) (ha : p a) :
+  p b :=
+@succ.rec (order_dual α) _ _ _ _ hsucc _ _ h ha
+
+lemma pred.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) {a b : α} (h : a ≤ b) :
+  p a ↔ p b :=
+(@succ.rec_iff (order_dual α) _ _ _ _ hsucc _ _ h).symm
+
+end pred_order
+end preorder
+
+section linear_order
+variables [linear_order α]
+
+section succ_order
+variables [succ_order α] [is_succ_archimedean α] {a b : α}
+
+lemma exists_succ_iterate_or : (∃ n, succ^[n] a = b) ∨ ∃ n, succ^[n] b = a :=
+(le_total a b).imp exists_succ_iterate_of_le exists_succ_iterate_of_le
+
+lemma succ.rec_linear {p : α → Prop} (hsucc : ∀ a, p a ↔ p (succ a)) (a b : α) : p a ↔ p b :=
+(le_total a b).elim (succ.rec_iff hsucc) (λ h, (succ.rec_iff hsucc h).symm)
+
+end succ_order
+
+section pred_order
+variables [pred_order α] [is_pred_archimedean α] {a b : α}
+
+lemma exists_pred_iterate_or : (∃ n, pred^[n] b = a) ∨ ∃ n, pred^[n] a = b :=
+(le_total a b).imp exists_pred_iterate_of_le exists_pred_iterate_of_le
+
+lemma pred.rec_linear {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) (a b : α) : p a ↔ p b :=
+(le_total a b).elim (pred.rec_iff hsucc) (λ h, (pred.rec_iff hsucc h).symm)
+
+end pred_order
+end linear_order
+
+section order_bot
+variables [order_bot α] [succ_order α] [is_succ_archimedean α]
+
+lemma succ.rec_bot (p : α → Prop) (hbot : p ⊥) (hsucc : ∀ a, p a → p (succ a)) (a : α) : p a :=
+succ.rec hsucc bot_le hbot
+
+end order_bot
+
+section order_top
+variables [order_top α] [pred_order α] [is_pred_archimedean α]
+
+lemma pred.rec_top (p : α → Prop) (htop : p ⊤) (hpred : ∀ a, p a → p (pred a)) (a : α) : p a :=
+pred.rec hpred le_top htop
+
+end order_top

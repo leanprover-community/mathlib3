@@ -7,7 +7,7 @@ import algebra.floor
 import topology.algebra.ordered.basic
 
 /-!
-# Topological facts about `floor`, `ceil` and `fract`
+# Topological facts about `int.floor`, `int.ceil` and `int.fract`
 
 This file proves statements about limits and continuity of functions involving `floor`, `ceil` and
 `fract`.
@@ -15,15 +15,15 @@ This file proves statements about limits and continuity of functions involving `
 ## Main declarations
 
 * `tendsto_floor_at_top`, `tendsto_floor_at_bot`, `tendsto_ceil_at_top`, `tendsto_ceil_at_bot`:
-  `floor` and `ceil` tend to +-∞ in +-∞.
-* `continuous_on_floor`: `floor` is continuous on `Ico n (n + 1)`, because constant.
-* `continuous_on_ceil`: `ceil` is continuous on `Ioc n (n + 1)`, because constant.
-* `continuous_on_fract`: `fract` is continuous on `Ico n (n + 1)`.
-* `continuous_on.comp_fract`: Precomposing a continuous function satisfying `f 0 = f 1` with `fract`
-  yields another continuous function.
+  `int.floor` and `int.ceil` tend to +-∞ in +-∞.
+* `continuous_on_floor`: `int.floor` is continuous on `Ico n (n + 1)`, because constant.
+* `continuous_on_ceil`: `int.ceil` is continuous on `Ioc n (n + 1)`, because constant.
+* `continuous_on_fract`: `int.fract` is continuous on `Ico n (n + 1)`.
+* `continuous_on.comp_fract`: Precomposing a continuous function satisfying `f 0 = f 1` with
+  `int.fract` yields another continuous function.
 -/
 
-open set function filter
+open filter function int set
 open_locale topological_space
 
 variables {α : Type*} [linear_ordered_ring α] [floor_ring α]

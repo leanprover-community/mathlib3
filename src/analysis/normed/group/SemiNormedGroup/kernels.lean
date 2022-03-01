@@ -141,6 +141,10 @@ def explicit_cokernel_desc {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y �
 def explicit_cokernel_π {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) : Y ⟶ explicit_cokernel f :=
 (cokernel_cocone f).ι.app walking_parallel_pair.one
 
+lemma explicit_cokernel_π_surjective {X Y : SemiNormedGroup.{u}} {f : X ⟶ Y} :
+  function.surjective (explicit_cokernel_π f) :=
+surjective_quot_mk _
+
 @[simp, reassoc]
 lemma comp_explicit_cokernel_π {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
   f ≫ explicit_cokernel_π f = 0 :=
@@ -149,10 +153,20 @@ begin
   simp,
 end
 
+@[simp]
+lemma explicit_cokernel_π_apply_dom_eq_zero {X Y : SemiNormedGroup.{u}} {f : X ⟶ Y} (x : X) :
+  (explicit_cokernel_π f) (f x) = 0 :=
+show (f ≫ (explicit_cokernel_π f)) x = 0, by { rw [comp_explicit_cokernel_π], refl }
+
 @[simp, reassoc]
 lemma explicit_cokernel_π_desc {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
   (w : f ≫ g = 0) : explicit_cokernel_π f ≫ explicit_cokernel_desc w = g :=
 (is_colimit_cokernel_cocone f).fac _ _
+
+@[simp]
+lemma explicit_cokernel_π_desc_apply {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
+  {cond : f ≫ g = 0} (x : Y) : explicit_cokernel_desc cond (explicit_cokernel_π f x) = g x :=
+show (explicit_cokernel_π f ≫ explicit_cokernel_desc cond) x = g x, by rw explicit_cokernel_π_desc
 
 lemma explicit_cokernel_desc_unique {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
   (w : f ≫ g = 0) (e : explicit_cokernel f ⟶ Z) (he : explicit_cokernel_π f ≫ e = g) :
@@ -164,6 +178,20 @@ begin
     simp },
   { exact he }
 end
+
+lemma explicit_cokernel_desc_comp_eq_desc {X Y Z W : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
+  {h : Z ⟶ W} {cond : f ≫ g = 0} :
+  explicit_cokernel_desc cond ≫ h = explicit_cokernel_desc (show f ≫ (g ≫ h) = 0,
+  by rw [← category_theory.category.assoc, cond, limits.zero_comp]) :=
+begin
+  refine explicit_cokernel_desc_unique _ _ _,
+  rw [← category_theory.category.assoc, explicit_cokernel_π_desc]
+end
+
+@[simp]
+lemma explicit_cokernel_desc_zero {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} :
+  explicit_cokernel_desc (show f ≫ (0 : Y ⟶ Z) = 0, from category_theory.limits.comp_zero) = 0 :=
+eq.symm $ explicit_cokernel_desc_unique _ _ category_theory.limits.comp_zero
 
 @[ext]
 lemma explicit_cokernel_hom_ext {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y}
@@ -177,6 +205,17 @@ begin
   rw this,
   apply explicit_cokernel_desc_unique,
   exact h,
+end
+
+instance explicit_cokernel_π.epi {X Y : SemiNormedGroup.{u}} {f : X ⟶ Y} :
+  epi (explicit_cokernel_π f) :=
+begin
+  constructor,
+  intros Z g h H,
+  ext x,
+  obtain ⟨x, hx⟩ := explicit_cokernel_π_surjective (explicit_cokernel_π f x),
+  change (explicit_cokernel_π f ≫ g) _ = _,
+  rw [H]
 end
 
 lemma is_quotient_explicit_cokernel_π {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
@@ -193,6 +232,24 @@ lemma explicit_cokernel_desc_norm_le_of_norm_le {X Y Z : SemiNormedGroup.{u}}
   {f : X ⟶ Y} {g : Y ⟶ Z} (w : f ≫ g = 0) (c : ℝ≥0) (h : ∥ g ∥ ≤ c) :
   ∥ explicit_cokernel_desc w ∥ ≤ c :=
 normed_group_hom.lift_norm_le _ _ _ h
+
+lemma explicit_cokernel_desc_norm_noninc {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
+  {cond : f ≫ g = 0} (hg : g.norm_noninc) :
+  (explicit_cokernel_desc cond).norm_noninc :=
+begin
+  refine normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.2 _,
+  rw [← nnreal.coe_one],
+  exact explicit_cokernel_desc_norm_le_of_norm_le cond 1
+    (normed_group_hom.norm_noninc.norm_noninc_iff_norm_le_one.1 hg)
+end
+
+lemma explicit_cokernel_desc_comp_eq_zero {X Y Z W : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
+  {h : Z ⟶ W} (cond : f ≫ g = 0) (cond2 : g ≫ h = 0) :
+  explicit_cokernel_desc cond ≫ h = 0 :=
+begin
+  rw [← cancel_epi (explicit_cokernel_π f), ← category.assoc, explicit_cokernel_π_desc],
+  simp [cond2]
+end
 
 lemma explicit_cokernel_desc_norm_le {X Y Z : SemiNormedGroup.{u}}
   {f : X ⟶ Y} {g : Y ⟶ Z} (w : f ≫ g = 0) : ∥ explicit_cokernel_desc w ∥ ≤ ∥ g ∥ :=

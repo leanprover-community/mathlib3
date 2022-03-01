@@ -712,7 +712,7 @@ begin
     simp only [mem_Union, mem_Ioo, mem_univ_pi, coe_coe],
     let f : γ n := λ i, ⟨⌊(x i - a i) * n⌋₊,
     begin
-      apply nat_floor_lt_nat_ceil_of_lt_of_pos,
+      apply nat.floor_lt_ceil_of_lt_of_pos,
       { refine (mul_lt_mul_right npos).2 _,
         simp only [(hx i).right, sub_lt_sub_iff_right] },
       { refine mul_pos _ npos,
@@ -723,13 +723,13 @@ begin
       ≤ (a i : ℝ) + ((x i - a i) * n) / n :
           begin
             refine add_le_add le_rfl ((div_le_div_right npos).2 _),
-            exact nat_floor_le (mul_nonneg (sub_nonneg.2 (hx i).1.le) npos.le),
+            exact nat.floor_le (mul_nonneg (sub_nonneg.2 (hx i).1.le) npos.le),
           end
       ... = x i : by field_simp [npos.ne'] },
     { calc x i
       = (a i : ℝ) + ((x i - a i) * n) / n : by field_simp [npos.ne']
       ... ≤ (a i : ℝ) + (⌊(x i - a i) * n⌋₊ + 1) / n :
-        add_le_add le_rfl ((div_le_div_right npos).2 (lt_nat_floor_add_one _).le) } },
+        add_le_add le_rfl ((div_le_div_right npos).2 (nat.lt_floor_add_one _).le) } },
   calc μH[fintype.card ι] (set.pi univ (λ (i : ι), Ioo (a i : ℝ) (b i)))
     ≤ liminf at_top (λ (n : ℕ), ∑ (i : γ n), diam (t n i) ^ ↑(fintype.card ι)) :
       hausdorff_measure_le_liminf_sum _ (set.pi univ (λ i, Ioo (a i : ℝ) (b i)))

@@ -69,9 +69,9 @@ variable [floor_ring K]
 
 /-- Just a computational lemma we need for the next main proof. -/
 protected lemma comp_exact_value_correctness_of_stream_eq_some_aux_comp {a : K} (b c : K)
-  (fract_a_ne_zero : fract a ≠ 0) :
-  ((⌊a⌋ : K) * b + c) / (fract a) + b = (b * a + c) / fract a :=
-by { field_simp [fract_a_ne_zero], rw [fract], ring }
+  (fract_a_ne_zero : int.fract a ≠ 0) :
+  ((⌊a⌋ : K) * b + c) / (int.fract a) + b = (b * a + c) / int.fract a :=
+by { field_simp [fract_a_ne_zero], rw int.fract, ring }
 
 open generalized_continued_fraction as gcf
 
@@ -105,13 +105,13 @@ begin
     { have : int_fract_pair.stream v 0 = some (int_fract_pair.of v), from rfl,
       simpa only [this] using stream_zero_eq },
     cases this,
-    cases decidable.em (fract v = 0) with fract_eq_zero fract_ne_zero,
-    -- fract v = 0; we must then have `v = ⌊v⌋`
+    cases decidable.em (int.fract v = 0) with fract_eq_zero fract_ne_zero,
+    -- int.fract v = 0; we must then have `v = ⌊v⌋`
     { suffices : v = ⌊v⌋, by simpa [continuants_aux, fract_eq_zero, gcf.comp_exact_value],
       calc
-          v = fract v + ⌊v⌋ : by rw fract_add_floor
+          v = int.fract v + ⌊v⌋ : by rw int.fract_add_floor
         ... = ⌊v⌋           : by simp [fract_eq_zero] },
-    -- fract v ≠ 0; the claim then easily follows by unfolding a single computation step
+    -- int.fract v ≠ 0; the claim then easily follows by unfolding a single computation step
     { field_simp [continuants_aux, next_continuants, next_numerator, next_denominator,
         gcf.of_h_eq_floor, gcf.comp_exact_value, fract_ne_zero] } },
   { assume ifp_succ_n succ_nth_stream_eq,  -- nat.succ
@@ -172,7 +172,7 @@ begin
       have tmp_calc' := gcf.comp_exact_value_correctness_of_stream_eq_some_aux_comp
         pB ppB ifp_succ_n_fr_ne_zero,
       rw inv_eq_one_div at tmp_calc tmp_calc',
-      have : fract (1 / ifp_n.fr) ≠ 0, by simpa using ifp_succ_n_fr_ne_zero,
+      have : int.fract (1 / ifp_n.fr) ≠ 0, by simpa using ifp_succ_n_fr_ne_zero,
       -- now unfold the recurrence one step and simplify both sides to arrive at the conclusion
       field_simp [conts, gcf.comp_exact_value,
         (gcf.continuants_aux_recurrence s_nth_eq ppconts_eq pconts_eq), next_continuants,

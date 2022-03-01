@@ -799,10 +799,10 @@ begin
   refine ⟨N, trivial, λ x hx, _⟩, rw set.mem_Ioi at hx,
   have hx₀ : 0 < x, from N.cast_nonneg.trans_lt hx,
   rw [set.mem_Ici, le_div_iff (pow_pos hx₀ _), ← le_div_iff' hC₀],
-  calc x ^ n ≤ ⌈x⌉₊ ^ n : pow_le_pow_of_le_left hx₀.le (le_nat_ceil _) _
-  ... ≤ exp ⌈x⌉₊ / (exp 1 * C) : (hN _ (lt_nat_ceil.2 hx).le).le
+  calc x ^ n ≤ ⌈x⌉₊ ^ n : pow_le_pow_of_le_left hx₀.le (nat.le_ceil _) _
+  ... ≤ exp ⌈x⌉₊ / (exp 1 * C) : (hN _ (nat.lt_ceil.2 hx).le).le
   ... ≤ exp (x + 1) / (exp 1 * C) : div_le_div_of_le (mul_pos (exp_pos _) hC₀).le
-    (exp_le_exp.2 $ (nat_ceil_lt_add_one hx₀.le).le)
+    (exp_le_exp.2 $ (nat.ceil_lt_add_one hx₀.le).le)
   ... = exp x / C : by rw [add_comm, exp_add, mul_div_mul_left _ _ (exp_pos _).ne']
 end
 

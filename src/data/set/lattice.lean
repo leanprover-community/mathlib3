@@ -29,8 +29,6 @@ for `set α`, and some more set constructions.
   `f ⁻¹ y ⊆ s`.
 * `set.seq`: Union of the image of a set under a **seq**uence of functions. `seq s t` is the union
   of `f '' t` over all `f ∈ s`, where `t : set α` and `s : set (α → β)`.
-* `set.pairwise_disjoint`: `pairwise_disjoint s` states that all sets in `s` are either equal or
-  disjoint.
 * `set.Union_eq_sigma_of_disjoint`: Equivalence between `⋃ i, t i` and `Σ i, t i`, where `t` is an
   indexed family of disjoint sets.
 
@@ -1528,31 +1526,6 @@ disjoint_right
 end set
 
 end disjoint
-
-namespace set
-
-/-- A collection of sets is `pairwise_disjoint`, if any two different sets in this collection
-are disjoint. -/
-def pairwise_disjoint (s : set (set α)) : Prop :=
-pairwise_on s disjoint
-
-lemma pairwise_disjoint.subset {s t : set (set α)} (h : s ⊆ t)
-  (ht : pairwise_disjoint t) : pairwise_disjoint s :=
-pairwise_on.mono h ht
-
-lemma pairwise_disjoint.range {s : set (set α)} (f : s → set α) (hf : ∀ (x : s), f x ⊆ x.1)
-  (ht : pairwise_disjoint s) : pairwise_disjoint (range f) :=
-begin
-  rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ hxy, refine (ht _ x.2 _ y.2 _).mono (hf x) (hf y),
-  intro h, apply hxy, apply congr_arg f, exact subtype.eq h
-end
-
--- classical
-lemma pairwise_disjoint.elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
-  (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
-not_not.1 $ λ h', h x hx y hy h' ⟨hzx, hzy⟩
-
-end set
 
 namespace set
 variables (t : α → set β)

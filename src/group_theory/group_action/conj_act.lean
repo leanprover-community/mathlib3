@@ -140,4 +140,8 @@ by { change _ * (_)⁻¹⁻¹ = _, rw inv_inv, refl }
   ↑((mul_aut.conj_normal g)⁻¹ h) = g⁻¹ * h * g :=
 mul_aut.conj_normal_symm_apply g h
 
+lemma _root_.mul_aut.conj_normal_coe {H : subgroup G} [H.normal] {h : H} :
+  mul_aut.conj_normal ↑h = mul_aut.conj h :=
+mul_equiv.ext (λ x, rfl)
+
 end conj_act

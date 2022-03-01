@@ -115,6 +115,12 @@ protected def copy (S : subring R) (s : set R) (hs : s = ↑S) : subring R :=
   neg_mem' := hs.symm ▸ S.neg_mem',
   ..S.to_subsemiring.copy s hs }
 
+@[simp] lemma coe_copy (S : subring R) (s : set R) (hs : s = ↑S) :
+  (S.copy s hs : set R) = s := rfl
+
+lemma copy_eq (S : subring R) (s : set R) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
+
 lemma to_subsemiring_injective : function.injective (to_subsemiring : subring R → subsemiring R)
 | r s h := ext (set_like.ext_iff.mp h : _)
 

@@ -162,7 +162,7 @@ namespace int_fract_pair
 
 lemma coe_of_rat_eq :
   ((int_fract_pair.of q).mapFr coe : int_fract_pair K) = int_fract_pair.of v :=
-by simp [int_fract_pair.of, v_eq_q, fract]
+by simp [int_fract_pair.of, v_eq_q, int.fract]
 
 lemma coe_stream_nth_rat_eq :
     ((int_fract_pair.stream q n).map (mapFr coe) : option $ int_fract_pair K)
@@ -246,10 +246,10 @@ section terminates_of_rat
 
 Finally, we show that the continued fraction of a rational number terminates.
 
-The crucial insight is that, given any `q : ℚ` with `0 < q < 1`, the numerator of `fract q` is
+The crucial insight is that, given any `q : ℚ` with `0 < q < 1`, the numerator of `int.fract q` is
 smaller than the numerator of `q`. As the continued fraction computation recursively operates on
-the fractional part of a value `v` and `0 ≤ fract v < 1`, we infer that the numerator of the
-fractional part in the computation decreases by at least one in each step. As `0 ≤ fract v`,
+the fractional part of a value `v` and `0 ≤ int.fract v < 1`, we infer that the numerator of the
+fractional part in the computation decreases by at least one in each step. As `0 ≤ int.fract v`,
 this process must stop after finite number of steps, and the computation hence terminates.
 -/
 
@@ -306,7 +306,7 @@ end
 
 lemma exists_nth_stream_eq_none_of_rat (q : ℚ) : ∃ (n : ℕ), int_fract_pair.stream q n = none :=
 begin
-  let fract_q_num := (fract q).num, let n := fract_q_num.nat_abs + 1,
+  let fract_q_num := (int.fract q).num, let n := fract_q_num.nat_abs + 1,
   cases stream_nth_eq : (int_fract_pair.stream q n) with ifp,
   { use n, exact stream_nth_eq },
   { -- arrive at a contradiction since the numerator decreased num + 1 times but every fractional
@@ -314,7 +314,7 @@ begin
     have ifp_fr_num_le_q_fr_num_sub_n : ifp.fr.num ≤ fract_q_num - n, from
       stream_nth_fr_num_le_fr_num_sub_n_rat stream_nth_eq,
     have : fract_q_num - n = -1, by
-    { have : 0 ≤ fract_q_num, from rat.num_nonneg_iff_zero_le.elim_right (fract_nonneg q),
+    { have : 0 ≤ fract_q_num, from rat.num_nonneg_iff_zero_le.elim_right (int.fract_nonneg q),
       simp [(int.nat_abs_of_nonneg this), sub_add_eq_sub_sub_swap, sub_right_comm] },
     have : ifp.fr.num ≤ -1, by rwa this at ifp_fr_num_le_q_fr_num_sub_n,
     have : 0 ≤ ifp.fr, from (nth_stream_fr_nonneg_lt_one stream_nth_eq).left,

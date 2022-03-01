@@ -125,11 +125,11 @@ begin
   have : int_fract_pair.of ifp_n_fr⁻¹ = ifp_succ_n, by finish,
   cases ifp_succ_n with _ ifp_succ_n_fr,
   change ifp_succ_n_fr = 0 at succ_nth_fr_eq_zero,
-  have : fract ifp_n_fr⁻¹ = ifp_succ_n_fr, by injection this,
-  have : fract ifp_n_fr⁻¹ = 0, by rwa [succ_nth_fr_eq_zero] at this,
+  have : int.fract ifp_n_fr⁻¹ = ifp_succ_n_fr, by injection this,
+  have : int.fract ifp_n_fr⁻¹ = 0, by rwa [succ_nth_fr_eq_zero] at this,
   calc
-    ifp_n_fr⁻¹ = fract ifp_n_fr⁻¹ + ⌊ifp_n_fr⁻¹⌋ : by rw (fract_add_floor ifp_n_fr⁻¹)
-           ... = ⌊ifp_n_fr⁻¹⌋                    : by simp [‹fract ifp_n_fr⁻¹ = 0›]
+    ifp_n_fr⁻¹ = int.fract ifp_n_fr⁻¹ + ⌊ifp_n_fr⁻¹⌋ : by rw (int.fract_add_floor ifp_n_fr⁻¹)
+           ... = ⌊ifp_n_fr⁻¹⌋                    : by simp [‹int.fract ifp_n_fr⁻¹ = 0›]
 end
 
 end int_fract_pair

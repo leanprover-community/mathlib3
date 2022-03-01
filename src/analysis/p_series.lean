@@ -187,6 +187,9 @@ begin
         hp.not_lt, hk₀] using hk₁ } }
 end
 
+@[simp] lemma real.summable_nat_rpow {p : ℝ} : summable (λ n, n ^ p : ℕ → ℝ) ↔ p < -1 :=
+by { rcases neg_surjective p with ⟨p, rfl⟩, simp [rpow_neg] }
+
 /-- Test for convergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
 if and only if `1 < p`. -/
 lemma real.summable_one_div_nat_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
@@ -220,7 +223,10 @@ begin
   { exact λ i, div_nonneg zero_le_one i.cast_add_one_pos.le }
 end
 
-@[simp] lemma nnreal.summable_one_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ≥0) ↔ 1 < p :=
+@[simp] lemma nnreal.summable_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ≥0) ↔ 1 < p :=
+by simp [← nnreal.summable_coe]
+
+@[simp] lemma nnreal.summable_rpow {p : ℝ} : summable (λ n, n ^ p : ℕ → ℝ≥0) ↔ p < -1 :=
 by simp [← nnreal.summable_coe]
 
 lemma nnreal.summable_one_div_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ≥0) ↔ 1 < p :=

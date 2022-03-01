@@ -589,18 +589,9 @@ variables [second_countable_topology G]
 @[to_additive]
 theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
   (K₀ : positive_compacts G) : μ = μ K₀ • haar_measure K₀ :=
-begin
-  ext1 s hs,
-  have := measure_mul_measure_eq μ (haar_measure K₀) K₀.compact hs,
-  rw [haar_measure_self, one_mul] at this,
-  rw [← this one_ne_zero, smul_apply, smul_eq_mul]
--- =======
---   refine (measure_eq_div_smul μ (haar_measure K₀) K₀.compact.measurable_set
---     (measure_pos_of_nonempty_interior _ K₀.interior_nonempty).ne'
---     K₀.compact.measure_lt_top.ne).trans _,
---   rw [haar_measure_self, ennreal.div_one]
--- >>>>>>> origin/master
-end
+(measure_eq_div_smul μ (haar_measure K₀) K₀.compact.measurable_set
+  (measure_pos_of_nonempty_interior _ K₀.interior_nonempty).ne'
+  K₀.compact.measure_lt_top.ne).trans (by rw [haar_measure_self, ennreal.div_one])
 
 example [locally_compact_space G] (μ : measure G) [is_haar_measure μ] (K₀ : positive_compacts G) :
   μ = μ K₀.1 • haar_measure K₀ :=

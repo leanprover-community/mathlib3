@@ -431,8 +431,7 @@ begin
 end
 
 @[simp] theorem cof_add (a b : ordinal) : b ≠ 0 → cof (a + b) = cof b :=
-begin
-  intro hb,
+λ h, begin
   rcases zero_or_succ_or_limit b with rfl | ⟨c, rfl⟩ | hb,
   { contradiction },
   { rw [add_succ, cof_succ, cof_succ] },

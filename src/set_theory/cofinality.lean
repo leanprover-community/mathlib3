@@ -372,17 +372,11 @@ theorem is_fs.trans {a o o' : ordinal.{u}} {f : Π b < o, ordinal.{u}} (hf : is_
   {g : Π b < o', ordinal.{u}} (hg : is_fs o o' g) :
   is_fs a o' (λ i hi, f (g i hi) (by { rw ←hg.2.2, apply lt_blsub })) :=
 begin
-  refine ⟨_, λ i j _ _ h, _, (blsub_le.2 (λ i hi, _)).antisymm _⟩,
+  refine ⟨_, λ i j _ _ h, hf.2.1 _ _ (hg.2.1 _ _ h), _⟩,
   { rw hf.cof_eq,
     exact hg.1.trans (ord_cof_le o) },
-  { exact hf.2.1 _ _ (hg.2.1 _ _ h) },
-  { rw ←hf.2.2,
-    apply lt_blsub },
-  { rw [←hf.2.2, blsub_le],
-    intros i hi,
-    rw [←hg.2.2, lt_blsub_iff] at hi,
-    rcases hi with ⟨j, hj, hg⟩,
-    exact (hf.monotone hi _ hg).trans_lt (lt_blsub _ j hj) }
+  { rw @blsub_comp.{u u u} o _ f (@is_fs.monotone _ _ f hf),
+    exact hf.2.2 }
 end
 
 /-- Every ordinal has a fundamental sequence. -/

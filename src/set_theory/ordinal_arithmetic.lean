@@ -1378,6 +1378,23 @@ begin
   exact lsub_typein _
 end
 
+theorem bsup_comp {o o' : ordinal} {f : Π a < o, ordinal}
+  (hf : ∀ {i j} (hi) (hj), i ≤ j → f i hi ≤ f j hj) {g : Π a < o', ordinal} (hg : blsub o' g = o) :
+  bsup o' (λ a ha, f (g a ha) (by { rw ←hg, apply lt_blsub })) = bsup o f :=
+begin
+  apply le_antisymm;
+  refine bsup_le.2 (λ i hi, _),
+  { apply le_bsup },
+  { rw [←hg, lt_blsub_iff] at hi,
+    rcases hi with ⟨j, hj, hj'⟩,
+    exact (hf _ _ hj').trans (le_bsup _ _ _) }
+end
+
+theorem blsub_comp {o o' : ordinal} {f : Π a < o, ordinal}
+  (hf : ∀ {i j} (hi) (hj), i ≤ j → f i hi ≤ f j hj) {g : Π a < o', ordinal} (hg : blsub o' g = o) :
+  blsub o' (λ a ha, f (g a ha) (by { rw ←hg, apply lt_blsub })) = blsub o f :=
+@bsup_comp o _ (λ a ha, (f a ha).succ) (λ i j _ _ h, succ_le_succ.2 (hf _ _ h)) g hg
+
 end ordinal
 
 /-! ### Results about injectivity and surjectivity -/

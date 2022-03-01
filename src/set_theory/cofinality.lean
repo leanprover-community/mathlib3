@@ -278,6 +278,9 @@ le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
     (mk_eq_zero_iff.1 (e.trans z)).elim' ⟨_, h⟩⟩,
 λ e, by simp [e]⟩
 
+theorem cof_ne_zero {o} : cof o ≠ 0 ↔ o ≠ 0 :=
+by simp only [ne.def, cof_eq_zero]
+
 @[simp] theorem cof_succ (o) : cof (succ o) = 1 :=
 begin
   apply le_antisymm,
@@ -379,6 +382,35 @@ begin
     exact hf.2.2 }
 end
 
+theorem is_normal.is_fs {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {a o} (ha : is_limit a)
+  {g} (hg : is_fs a o g) : is_fs (f a) o (λ b hb, f (g b hb)) :=
+begin
+  refine ⟨_, λ i j _ _ h, hf.strict_mono (hg.2.1 _ _ h), _⟩, {
+    rw [←hg.cof_eq, ord_le_ord],
+    rcases exists_lsub_cof (f a) with ⟨ι, f', hf', hι⟩,
+    rw ←hι,
+    suffices : lsub.{u u} (λ i, (Inf {b : ordinal | f' i ≤ f b})) = a,
+    { rw ←this,
+      apply cof_lsub_le },
+    have H : ∀ i, ∃ b < a, f' i ≤ f b := λ i, begin
+      have := lt_lsub.{u u} f' i,
+      rwa [hf', ←is_normal.blsub_eq.{u u} hf ha, lt_blsub_iff] at this
+    end,
+    refine le_antisymm (lsub_le.2 (λ i, _)) (le_of_forall_lt (λ b hb, _)),
+    { rcases H i with ⟨b, hb, hb'⟩,
+      exact lt_of_le_of_lt (cInf_le' hb') hb },
+    { have := hf.strict_mono hb,
+      rw [←hf', lt_lsub_iff] at this,
+      cases this with i hi,
+      refine lt_of_le_of_lt _ (lt_lsub _ i),
+      rw le_cInf_iff'',
+      { exact λ c hc, hf.strict_mono.le_iff_le.1 (hi.trans hc) },
+      { rcases H i with ⟨b, _, hb⟩,
+        exact ⟨b, hb⟩ } } },
+  { rw @blsub_comp.{u u u} a _ (λ b _, f b) (λ i j hi hj h, hf.strict_mono.monotone h) g hg.2.2,
+    exact is_normal.blsub_eq.{u u} hf ha }
+end
+
 /-- Every ordinal has a fundamental sequence. -/
 theorem exists_fs (a : ordinal.{u}) : ∃ f, is_fs a a.cof.ord f :=
 begin
@@ -412,6 +444,19 @@ begin
       { by_contra' H,
         exact (wo.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj hji, H⟩) hkj },
       { rwa bfamily_of_family'_typein } } }
+end
+
+theorem is_normal.cof_eq {f} (hf : is_normal f) {a} (ha : is_limit a) : cof (f a) = cof a :=
+let ⟨g, hg⟩ := exists_fs a in ord_injective (hf.is_fs ha hg).cof_eq
+
+theorem is_normal.cof_le {f} (hf : is_normal f) (a) : cof a ≤ cof (f a) :=
+begin
+  rcases zero_or_succ_or_limit a with rfl | ⟨b, hb⟩ | ha,
+  { rw cof_zero,
+    exact zero_le _ },
+  { rw [hb, cof_succ, cardinal.one_le_iff_ne_zero, cof_ne_zero, ←ordinal.pos_iff_ne_zero],
+    exact (ordinal.zero_le (f b)).trans_lt (hf.1 b) },
+  { rw hf.cof_eq ha }
 end
 
 @[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=

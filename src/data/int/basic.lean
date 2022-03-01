@@ -1151,6 +1151,10 @@ le_iff_le_iff_lt_iff_lt.1 to_nat_le
 @[simp]lemma le_to_nat_iff {n : ℕ} {z : ℤ} (h : 0 ≤ z) : n ≤ z.to_nat ↔ (n : ℤ) ≤ z :=
 by rw [←int.coe_nat_le_coe_nat_iff, int.to_nat_of_nonneg h]
 
+@[simp]
+lemma int.coe_nat_nonpos_iff {n : ℕ} : (n : ℤ) ≤ 0 ↔ n = 0 :=
+by exact_mod_cast nat.le_zero_iff
+
 theorem to_nat_le_to_nat {a b : ℤ} (h : a ≤ b) : to_nat a ≤ to_nat b :=
 by rw to_nat_le; exact le_trans h (le_to_nat b)
 
@@ -1209,6 +1213,14 @@ lemma to_nat_of_nonpos : ∀ {z : ℤ}, z ≤ 0 → z.to_nat = 0
 | (0 : ℕ)     := λ _, rfl
 | (n + 1 : ℕ) := λ h, (h.not_lt (by { exact_mod_cast nat.succ_pos n })).elim
 | (-[1+ n])  := λ _, rfl
+
+@[simp]
+lemma int.to_nat_eq_zero {n : ℤ} : n.to_nat = 0 ↔ n ≤ 0 :=
+begin
+  induction n,
+  { simp only [int.of_nat_eq_coe, int.to_nat_coe_nat, int.coe_nat_nonpos_iff] },
+  { simp [int.neg_succ_of_nat_coe'] }
+end
 
 /-! ### units -/
 

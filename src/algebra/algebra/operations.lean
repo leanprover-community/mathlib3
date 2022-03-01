@@ -72,9 +72,21 @@ lemma map_one {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
   map f.to_linear_map (1 : submodule R A) = 1 :=
 by { ext, simp }
 
-lemma map_op_one :
+@[simp] lemma map_op_one :
   map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (1 : submodule R A) = 1 :=
 by { ext, induction x using mul_opposite.rec, simp }
+
+@[simp] lemma comap_op_one :
+  comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (1 : submodule R Aᵐᵒᵖ) = 1 :=
+by { ext, simp }
+
+@[simp] lemma map_unop_one :
+  map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (1 : submodule R Aᵐᵒᵖ) = 1 :=
+by rw [←comap_equiv_eq_map_symm, comap_op_one]
+
+@[simp] lemma comap_unop_one :
+  comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (1 : submodule R A) = 1 :=
+by rw [←map_equiv_eq_comap_symm, map_op_one]
 
 /-- Multiplication of sub-R-modules of an R-algebra A. The submodule `M * N` is the
 smallest R-submodule of `A` containing the elements `m * n` for `m ∈ M` and `n ∈ N`. -/
@@ -218,6 +230,12 @@ begin
     exact mul_mem_mul hn hm, }
 end
 
+lemma comap_unop_mul :
+  comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (M * N) =
+    comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) N *
+      comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) M :=
+by simp_rw [comap_equiv_eq_map_symm, linear_equiv.symm_symm, map_op_mul]
+
 section decidable_eq
 
 open_locale classical
@@ -332,7 +350,7 @@ ring_equiv.symm
   left_inv := λ p, unop_injective $ set_like.coe_injective rfl,
   right_inv := λ p, set_like.coe_injective $ rfl,
   map_add' := λ p q, by simp [comap_equiv_eq_map_symm],
-  map_mul' := λ p q, by simp [comap_equiv_eq_map_symm, map_op_mul] }
+  map_mul' := λ p q, comap_unop_mul _ _ }
 
 lemma map_pow {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') (n : ℕ) :
   map f.to_linear_map (M ^ n) = map f.to_linear_map M ^ n :=
@@ -345,6 +363,11 @@ begin
   rw [map_equiv_eq_comap_symm, map_equiv_eq_comap_symm],
   exact (equiv_opposite : submodule R Aᵐᵒᵖ ≃+* _).symm.map_pow (op M) n,
 end
+
+lemma comap_unop_pow (n : ℕ) :
+  comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (M ^ n) =
+    comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) M ^ n :=
+(equiv_opposite : submodule R Aᵐᵒᵖ ≃+* _).symm.map_pow (op M) n
 
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
 on either side). -/

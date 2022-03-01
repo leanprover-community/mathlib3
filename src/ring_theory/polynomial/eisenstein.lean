@@ -340,7 +340,8 @@ begin
   refine mem_adjoin_of_dvd_coeff_of_dvd_aeval hp.ne_zero (λ i, _) hQ,
   refine nat.case_strong_induction_on i _ (λ j hind, _),
   { intro H,
-    exact dvd_coeff_zero_of_aeval_eq_prime_smul_of_minpoly_is_eiseinstein_at hp hBint hQ hzint hei },
+    exact dvd_coeff_zero_of_aeval_eq_prime_smul_of_minpoly_is_eiseinstein_at
+      hp hBint hQ hzint hei },
   { intro hj,
     refine hp.dvd_of_pow_dvd_pow_mul_pow_of_square_not_dvd _ hndiv,
     exact n,

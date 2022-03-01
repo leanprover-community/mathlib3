@@ -76,6 +76,8 @@ end
 variables [cartesian_closed C] [cartesian_closed D]
 variables [preserves_limits_of_shape (discrete.{v} walking_pair) F]
 
+open category_theory.exp
+
 /--
 The exponential comparison map.
 `F` is a cartesian closed functor if this is an iso for all `A`.

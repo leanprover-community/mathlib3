@@ -115,6 +115,7 @@ lemma reflective_products [has_finite_products C] [reflective i] : has_finite_pr
 local attribute [instance, priority 10] reflective_products
 
 open cartesian_closed
+open category_theory.exp
 
 variables [has_finite_products C] [reflective i] [cartesian_closed C]
 

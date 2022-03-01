@@ -54,12 +54,7 @@ prove all objects are exponential uniformly.
 -/
 def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] {X Y : C}
   (hX : exponentiable X) (hY : exponentiable Y) : exponentiable (X ⨯ Y) :=
-{ is_adj :=
-  begin
-    haveI := hX.is_adj,
-    haveI := hY.is_adj,
-    exact adjunction.left_adjoint_of_nat_iso (monoidal_category.tensor_left_tensor _ _).symm
-  end }
+tensor_closed hX hY
 
 /--
 The terminal object is always exponentiable.
@@ -79,59 +74,60 @@ monoidal_closed C
 
 variables {C : Type u} [category.{v} C] (A B : C) {X X' Y Y' Z : C}
 
-section exp
 variables [has_finite_products C] [exponentiable A]
 
 /-- This is (-)^A. -/
-def exp : C ⥤ C :=
-(@closed.is_adj _ _ _ A _).right
+abbreviation exp : C ⥤ C :=
+ihom A
+
+namespace exp
 
 /-- The adjunction between A ⨯ - and (-)^A. -/
-def exp.adjunction : prod.functor.obj A ⊣ exp A :=
-closed.is_adj.adj
+abbreviation adjunction : prod.functor.obj A ⊣ exp A :=
+ihom.adjunction A
 
 /-- The evaluation natural transformation. -/
-def ev : exp A ⋙ prod.functor.obj A ⟶ 𝟭 C :=
-(exp.adjunction A).counit
+abbreviation ev : exp A ⋙ prod.functor.obj A ⟶ 𝟭 C :=
+ihom.ev A
 
 /-- The coevaluation natural transformation. -/
-def coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
-(exp.adjunction A).unit
+abbreviation coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
+ihom.coev A
 
-@[simp] lemma exp_adjunction_counit : (exp.adjunction A).counit = ev A := rfl
-@[simp] lemma exp_adjunction_unit : (exp.adjunction A).unit = coev A := rfl
+-- @[simp] lemma exp_adjunction_counit : (exp.adjunction A).counit = ev A := rfl
+-- @[simp] lemma exp_adjunction_unit : (exp.adjunction A).unit = coev A := rfl
 
-@[simp, reassoc]
-lemma ev_naturality {X Y : C} (f : X ⟶ Y) :
-  limits.prod.map (𝟙 A) ((exp A).map f) ≫ (ev A).app Y = (ev A).app X ≫ f :=
-(ev A).naturality f
+-- @[simp, reassoc]
+-- lemma ev_naturality {X Y : C} (f : X ⟶ Y) :
+--   limits.prod.map (𝟙 A) ((exp A).map f) ≫ (ev A).app Y = (ev A).app X ≫ f :=
+-- (ev A).naturality f
 
-@[simp, reassoc]
-lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
-  f ≫ (coev A).app Y = (coev A).app X ≫ (exp A).map (limits.prod.map (𝟙 A) f) :=
-(coev A).naturality f
+-- @[simp, reassoc]
+-- lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
+--   f ≫ (coev A).app Y = (coev A).app X ≫ (exp A).map (limits.prod.map (𝟙 A) f) :=
+-- (coev A).naturality f
 
 notation A ` ⟹ `:20 B:19 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
 
 @[simp, reassoc] lemma ev_coev :
   limits.prod.map (𝟙 A) ((coev A).app B) ≫ (ev A).app (A ⨯ B) = 𝟙 (A ⨯ B) :=
-adjunction.left_triangle_components (exp.adjunction A)
+ihom.ev_coev A B
 
-@[simp, reassoc] lemma coev_ev : (coev A).app (A⟹B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A⟹B) :=
-adjunction.right_triangle_components (exp.adjunction A)
+@[simp, reassoc] lemma coev_ev : (coev A).app (A ⟹ B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A ⟹ B) :=
+ihom.coev_ev A B
+
+end exp
 
 instance : preserves_colimits (prod.functor.obj A) :=
 (exp.adjunction A).left_adjoint_preserves_colimits
 
-end exp
+open exp
 
 variables {A}
 
 -- Wrap these in a namespace so we don't clash with the core versions.
 namespace cartesian_closed
-
-variables [has_finite_products C] [exponentiable A]
 
 /-- Currying in a cartesian closed category. -/
 def curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
@@ -290,7 +286,8 @@ def pow_zero {I : C} (t : is_initial I) [cartesian_closed C] : I ⟹ B ≅ ⊤_ 
     rw [← curry_natural_left, curry_eq_iff, ← cancel_epi (mul_zero t).inv],
     { apply t.hom_ext },
     { apply_instance },
-    { apply_instance }
+    { apply_instance },
+    { apply_instance },
   end }
 
 -- TODO: Generalise the below to its commutated variants.

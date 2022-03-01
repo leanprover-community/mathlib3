@@ -106,3 +106,4 @@ Forgetting that a von Neumann algebra is equal to its double commutant
 and just remembering the underlying *-subalgebra.
 -/
 add_decl_doc von_neumann_algebra.to_star_subalgebra
+#print  von_neumann_algebra

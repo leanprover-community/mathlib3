@@ -22,13 +22,21 @@ noncomputable theory
 
 universes v u
 
-/-- A valued ring is a ring that comes equipped with a distinguished valuation.-/
+/-- A valued ring is a ring that comes equipped with a distinguished valuation. The class `valued`
+is designed for the situation that there is a canonical valuation on the ring. It allows such a
+valuation to be registered as a typeclass; this is used for instance by `valued.topological_space`.
+
+TODO: show that there always exists an equivalent valuation taking values in a type belonging to
+the same universe as the ring. -/
 class valued (R : Type u) [ring R] (Γ₀ : out_param (Type v))
   [linear_ordered_comm_group_with_zero Γ₀] :=
 (v : valuation R Γ₀)
 
 namespace valued
-variables {R : Type u} [ring R] (Γ₀ : Type v) [linear_ordered_comm_group_with_zero Γ₀] [valued R Γ₀]
+variables {R : Type u} [ring R] (Γ₀ : Type v) [linear_ordered_comm_group_with_zero Γ₀]
+  [hv : valued R Γ₀]
+
+include hv
 
 /-- The basis of open subgroups for the topology on a valued ring.-/
 lemma subgroups_basis :
@@ -104,11 +112,11 @@ end
 
 /-- The uniform structure on a valued ring.-/
 @[priority 100]
-instance uniform_space [valued R Γ₀] : uniform_space R := topological_add_group.to_uniform_space R
+instance uniform_space : uniform_space R := topological_add_group.to_uniform_space R
 
 /-- A valued ring is a uniform additive group.-/
 @[priority 100]
-instance uniform_add_group [valued R Γ₀] : uniform_add_group R := topological_add_group_is_uniform
+instance uniform_add_group : uniform_add_group R := topological_add_group_is_uniform
 
 lemma cauchy_iff {F : filter R} :
   cauchy F ↔ F.ne_bot ∧ ∀ γ : Γ₀ˣ, ∃ M ∈ F, ∀ x y ∈ M, (v (y - x) : Γ₀) < γ :=

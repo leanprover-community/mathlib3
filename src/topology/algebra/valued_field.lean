@@ -147,7 +147,10 @@ end division_ring
 section valuation_on_valued_field_completion
 open uniform_space
 
-variables {K : Type*} [field K] {Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀] [valued K Γ₀]
+variables {K : Type*} [field K] {Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀]
+  [hv: valued K Γ₀]
+
+include hv
 
 open valued uniform_space
 
@@ -155,7 +158,7 @@ local notation `hat ` := completion
 
 /-- A valued field is completable. -/
 @[priority 100]
-instance valued.completable [valued K Γ₀] : completable_top_field K :=
+instance valued.completable : completable_top_field K :=
 { nice := begin
     rintros F hF h0,
     have : ∃ (γ₀ : Γ₀ˣ) (M ∈ F), ∀ x ∈ M, (γ₀ : Γ₀) ≤ v x,

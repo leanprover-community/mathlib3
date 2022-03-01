@@ -319,7 +319,7 @@ namespace functor
 variables [has_zero_morphisms V] [has_kernels V] {W : Type u₂} [category.{v₂} W]
 variables [has_images W] [has_zero_morphisms W] [has_kernels W]
 
-/-- A fucntor reflects exact sequences if any composable pair of morphisms that is mapped to an
+/-- A functor reflects exact sequences if any composable pair of morphisms that is mapped to an
     exact pair is itself exact. -/
 class reflects_exact_sequences (F : V ⥤ W) :=
 (reflects : ∀ {A B C : V} (f : A ⟶ B) (g : B ⟶ C), exact (F.map f) (F.map g) → exact f g)

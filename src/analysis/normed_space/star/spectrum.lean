@@ -185,12 +185,11 @@ end
 want to show that exp a = 1 + a * b for some b.
 -/
 
--- do we just want a nondiscrete normed field?
-noncomputable def blah₅ (p : formal_multilinear_series ℂ ℂ A) : formal_multilinear_series ℂ ℂ A :=
-λ n, (p (n + 1)).curry_left (1 : ℂ)
-
--- need to show this has the same radius of convergence
-
-lemma blah₄ {f : ℂ → A} {p : formal_multilinear_series ℂ ℂ A} {r : ℝ≥0∞} {z : ℂ}
-  (h : has_fpower_series_on_ball f p z r) :
-  has_fpower_series_on_ball (λ w, (f w - f z)) (blah₅ p) z r := sorry
+lemma blah₄ (a : A) : summable (λ n : ℕ, ((1 / (n + 1).factorial) : ℂ) • a ^ n) :=
+begin
+  refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial ∥a∥) _,
+  filter_upwards [eventually_cofinite_ne 0] with n hn,
+  field_simp [norm_smul],
+  exact div_le_div (pow_nonneg (norm_nonneg _) n) (norm_pow_le' a (zero_lt_iff.mpr hn))
+    (by exact_mod_cast nat.factorial_pos n) (by exact_mod_cast nat.factorial_le (lt_add_one n).le)
+end

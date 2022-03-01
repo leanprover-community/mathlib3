@@ -69,7 +69,7 @@ begin
     { exact rfl.ge } },
 
   rw [h0, ← summable_iff_not_tendsto_nat_at_top_of_nonneg hf, summable_iff_vanishing] at h,
-  obtain ⟨s, h⟩ := h (set.Ioo (-1) (1/2)) (mem_nhds_sets is_open_Ioo (by norm_num)),
+  obtain ⟨s, h⟩ := h (set.Ioo (-1) (1/2)) (is_open_Ioo.mem_nhds (by norm_num)),
   obtain ⟨k, hk⟩ := exists_nat_subset_range s,
   use k,
   intro x,
@@ -96,10 +96,8 @@ begin
   { rintros ⟨hex, hexh⟩,
     obtain ⟨p, ⟨hpp, hpe1⟩, hpk⟩ := hexh hex,
     refine ⟨p, _, ⟨hex, hpe1⟩⟩,
-    simp only [mem_filter, mem_range],
     exact ⟨(nat.le_of_dvd e.succ_pos hpe1).trans_lt (nat.succ_lt_succ hex), hpk, hpp⟩ },
   { rintros ⟨p, hpfilter, ⟨hex, hpe1⟩⟩,
-    simp only [mem_filter, mem_range] at hpfilter,
     rw imp_iff_right hex,
     exact ⟨hex, ⟨p, ⟨hpfilter.2.2, hpe1⟩, hpfilter.2.1⟩⟩ },
 end
@@ -138,10 +136,10 @@ begin
     { rwa [multiset.coe_nodup, ← nat.squarefree_iff_nodup_factors m.succ_ne_zero] },
     refine ⟨λ p, _, _⟩,
     { suffices : p ∈ (m + 1).factors → ∃ a : ℕ, a < k ∧ a.succ = p, { simpa },
-      simp_intros hp only [nat.mem_factors m.zero_lt_succ],
+      simp_intros hp only [nat.mem_factors m.succ_ne_zero],
       exact ⟨p.pred, (nat.pred_lt (nat.prime.ne_zero hp.1)).trans_le ((hmp p) hp),
             nat.succ_pred_eq_of_pos (nat.prime.pos hp.1)⟩ },
-    { simp_rw f, simp [nat.prod_factors m.zero_lt_succ, m.succ_sub_one] } },
+    { simp_rw f, simp [nat.prod_factors m.succ_ne_zero, m.succ_sub_one] } },
 
   calc card M₁ ≤ card (image f K)                    : card_le_of_subset h
   ...          ≤ card K                              : card_image_le
@@ -168,11 +166,11 @@ begin
     obtain ⟨ham, hbm⟩ := ⟨dvd.intro_left _ hab₁, dvd.intro _ hab₁⟩,
     refine ⟨a, b, ⟨⟨_, hab₂, λ p hp, _⟩, ⟨_, λ p hp, _⟩⟩, by simp_rw [f, hab₁, m.succ_sub_one]⟩,
     { exact (nat.succ_le_succ_iff.mp (nat.le_of_dvd hm' ham)).trans_lt hm.1 },
-    { exact hm.2 p ⟨hp.1, dvd.trans hp.2 ham⟩ },
+    { exact hm.2 p ⟨hp.1, hp.2.trans ham⟩ },
     { calc b < b + 1        : lt_add_one b
       ...    ≤ (m + 1).sqrt : by simpa only [nat.le_sqrt, pow_two] using nat.le_of_dvd hm' hbm
       ...    ≤ x.sqrt       : nat.sqrt_le_sqrt (nat.succ_le_iff.mpr hm.1) },
-    { exact hm.2 p ⟨hp.1, dvd.trans hp.2 (nat.dvd_of_pow_dvd one_le_two hbm)⟩ } },
+    { exact hm.2 p ⟨hp.1, hp.2.trans (nat.dvd_of_pow_dvd one_le_two hbm)⟩ } },
 
   have h2 : card M₂ ≤ nat.sqrt x,
   { rw ← card_range (nat.sqrt x), apply card_le_of_subset, simp [M₂] },
@@ -186,19 +184,32 @@ end
 theorem real.tendsto_sum_one_div_prime_at_top :
   tendsto (λ n, ∑ p in {p ∈ range n | nat.prime p}, (1 / (p : ℝ))) at_top at_top :=
 begin
+  -- Assume that the sum of the reciprocals of the primes converges.
   by_contradiction h,
+
+  -- Then there is a natural number `k` such that for all `x`, the sum of the reciprocals of primes
+  -- between `k` and `x` is less than 1/2.
   obtain ⟨k, h1⟩ := sum_lt_half_of_not_tendsto h,
 
+  -- Choose `x` sufficiently large for the argument below to work.
   let x := 2 ^ (k + 1) * 2 ^ (k + 1),
-  let P := {p ∈ range (x + 1) | k < p ∧ nat.prime p},
-  let M := {e ∈ range x | ∀ p : ℕ, (nat.prime p ∧ p ∣ e + 1) → p ≤ k},
-  let N := λ p, {e ∈ range x | p ∣ e + 1},
-  let U := finset.bUnion {p ∈ range (x + 1) | k < p ∧ nat.prime p} N,
 
+  -- We will partition `range x` into two subsets:
+  -- * `M`, the subset of those `e` for which `e + 1` is a product of powers of primes smaller
+  --   than or equal to `k`;
+  let M := {e ∈ range x | ∀ p : ℕ, (nat.prime p ∧ p ∣ e + 1) → p ≤ k},
+
+  -- * `U`, the subset of those `e` for which there is a prime `p > k` that divides `e + 1`.
+  let P := {p ∈ range (x + 1) | k < p ∧ nat.prime p},
+  let N := λ p, {e ∈ range x | p ∣ e + 1},
+  let U := finset.bUnion P N,
+
+  -- This is indeed a partition, so `|U| + |M| = |range x| = x`.
   have h2 : x = card U + card M,
   { rw ← card_range x, simp only [U, M, N, ← range_sdiff_eq_bUnion],
-    exact card_eq_card_sdiff_add_card (by simp) },
+    exact card_eq_card_sdiff_add_card (finset.filter_subset _ _) },
 
+  -- But for the `x` we have chosen above, both `|U|` and `|M|` are smaller than `x / 2`.
   have h3 :=
     calc (card U : ℝ) ≤ x * ∑ p in P, 1 / p : card_le_mul_sum
     ...               < x * (1 / 2)         : mul_lt_mul_of_pos_left (h1 x) (by norm_num)
@@ -209,7 +220,7 @@ begin
     ...               = 2 ^ k * ↑(2 ^ (k + 1)) : by rw nat.sqrt_eq
     ...               = x / 2               : by field_simp [x, mul_right_comm, ← pow_succ'],
 
-  refine (lt_self_iff_false (x : ℝ)).mp _,
+  refine lt_irrefl (x : ℝ) _,
   calc (x : ℝ) = (card U : ℝ) + (card M : ℝ) : by assumption_mod_cast
   ...          < x / 2 + x / 2               : add_lt_add_of_lt_of_le h3 h4
   ...          = x                           : add_halves ↑x,

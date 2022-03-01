@@ -115,7 +115,6 @@ lemma reflective_products [has_finite_products C] [reflective i] : has_finite_pr
 local attribute [instance, priority 10] reflective_products
 
 open cartesian_closed
-open category_theory.exp
 
 variables [has_finite_products C] [reflective i] [cartesian_closed C]
 
@@ -136,7 +135,7 @@ begin
   intros B A,
   let q : i.obj (L.obj (A ⟹ i.obj B)) ⟶ A ⟹ i.obj B,
     apply cartesian_closed.curry (ir.hom_equiv _ _ _),
-    apply _ ≫ (ir.hom_equiv _ _).symm ((ev A).app (i.obj B)),
+    apply _ ≫ (ir.hom_equiv _ _).symm ((exp.ev A).app (i.obj B)),
     refine prod_comparison L A _ ≫ limits.prod.map (𝟙 _) (ε.app _) ≫ inv (prod_comparison _ _ _),
   have : η.app (A ⟹ i.obj B) ≫ q = 𝟙 (A ⟹ i.obj B),
   { dsimp,

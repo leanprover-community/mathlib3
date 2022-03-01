@@ -107,7 +107,7 @@ m.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 
 @[to_additive sum_map_nsmul]
 lemma prod_map_pow {n : ℕ} : (m.map $ λ i, f i ^ n).prod = (m.map f).prod ^ n :=
-m.prod_hom' (@pow_monoid_hom α _ n) f
+m.prod_hom' (pow_monoid_hom n : α →* α) f
 
 @[to_additive]
 lemma prod_map_prod_map (m : multiset β) (n : multiset γ) {f : β → γ → α} :
@@ -199,7 +199,7 @@ variables [comm_group α] {m : multiset ι} {f g : ι → α}
 
 @[simp, to_additive]
 lemma prod_map_inv' : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
-by { convert (m.map f).prod_hom (@comm_group.inv_monoid_hom α _), rw map_map, refl }
+by { convert (m.map f).prod_hom (comm_group.inv_monoid_hom : α →* α), rw map_map, refl }
 
 @[simp, to_additive]
 lemma prod_map_div : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=
@@ -207,13 +207,13 @@ m.prod_hom₂ (/) mul_div_comm' (div_one' _) _ _
 
 @[to_additive]
 lemma prod_map_zpow {n : ℤ} : (m.map $ λ i, f i ^ n).prod = (m.map f).prod ^ n :=
-by { convert (m.map f).prod_hom (@zpow_group_hom α _ _), rw map_map, refl }
+by { convert (m.map f).prod_hom (zpow_group_hom _ : α →* α), rw map_map, refl }
 
 @[simp] lemma coe_inv_monoid_hom : (comm_group.inv_monoid_hom : α → α) = has_inv.inv := rfl
 
 @[simp, to_additive]
 lemma prod_map_inv (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
-m.prod_hom (@comm_group.inv_monoid_hom α _)
+m.prod_hom (comm_group.inv_monoid_hom : α →* α)
 
 end comm_group
 
@@ -222,14 +222,14 @@ variables [comm_group_with_zero α] {m : multiset ι} {f g : ι → α}
 
 @[simp]
 lemma prod_map_inv₀ : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
-by { convert (m.map f).prod_hom (@inv_monoid_with_zero_hom α _), rw map_map, refl }
+by { convert (m.map f).prod_hom (inv_monoid_with_zero_hom : α →*₀ α), rw map_map, refl }
 
 @[simp]
 lemma prod_map_div₀ : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=
 m.prod_hom₂ (/) (λ _ _ _ _, (div_mul_div _ _ _ _).symm) (div_one _) _ _
 
 lemma prod_map_zpow₀ {n : ℤ} : prod (m.map $ λ i, f i ^ n) = (m.map f).prod ^ n :=
-by { convert (m.map f).prod_hom (@zpow_group_hom₀ α _ _), rw map_map, refl }
+by { convert (m.map f).prod_hom (zpow_group_hom₀ _ : α →* α), rw map_map, refl }
 
 end comm_group_with_zero
 

@@ -70,9 +70,9 @@ begin
     surjective_iff_surjective_res_of_supr_eq_top f U hU]
 end
 
+-- This is probably incorrect
 lemma continuous_iff_continuous_res_of_supr_eq_top :
   continuous f ↔ ∀ i, continuous ((U i).1.res f) := sorry
-
 
 lemma inducing_iff_inducing_res_of_supr_eq_top (h : continuous f) :
   inducing f ↔ ∀ i, inducing ((U i).1.res f) :=
@@ -91,8 +91,11 @@ begin
     erw ← map_nhds_of_open_embedding (h.1 _ (U i).2).open_embedding_subtype_coe ⟨x, hi⟩,
     rw (induced_iff_nhds_eq _).mp (H i).1 ⟨x, hi⟩,
     erw (induced_iff_nhds_eq (coe : (U i).1 → β)).mp embedding_subtype_coe.to_inducing.1 ⟨_, hi⟩,
-    rw [filter.comap_comap, (show coe ∘ (U i).val.res f = f ∘ coe, from rfl)],
-      }
+    rw [filter.comap_comap, (show coe ∘ (U i).val.res f = f ∘ coe, from rfl), subtype.coe_mk,
+      ← filter.comap_comap, filter.subtype_coe_map_comap, inf_eq_left],
+    intros S hS,
+    rw filter.mem_comap,
+    exact ⟨U i, (U i).2.mem_nhds hi, hS⟩ }
 end
 
 -- lemma bijective_iff_bijective_res_of_supr_eq_top :

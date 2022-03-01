@@ -127,7 +127,7 @@ lemma mul_poly_of_interest_aux1 (n : ℕ) :
 begin
   simp only [witt_poly_prod],
   convert witt_structure_int_prop p (X (0 : fin 2) * X 1) n using 1,
-  { simp only [witt_polynomial, witt_mul, int.nat_cast_eq_coe_nat],
+  { simp only [witt_polynomial, witt_mul],
     rw alg_hom.map_sum,
     congr' 1 with i,
     congr' 1,
@@ -166,7 +166,7 @@ begin
       sum_range_succ],
   -- these are sums up to `n+2`, so be careful to only unfold to `n+1`.
   conv_lhs {congr, skip, rw [sum_range_succ] },
-  simp only [add_mul, mul_add, tsub_self, int.nat_cast_eq_coe_nat, pow_zero, alg_hom.map_sum],
+  simp only [add_mul, mul_add, tsub_self, pow_zero, alg_hom.map_sum],
 
   -- rearrange so that the first summand on rhs and lhs is `remainder`, and peel off
   conv_rhs { rw add_comm },
@@ -243,17 +243,10 @@ begin
   rw [sub_sub, add_comm (_ * _), ← sub_sub],
   have mvpz : (p : mv_polynomial ℕ ℤ) = mv_polynomial.C ↑p,
   { rw [ring_hom.eq_int_cast, int.cast_coe_nat] },
-  congr' 3,
-  { simp only [mul_coeff, peval, map_nat_cast, map_add, matrix.head_cons, map_pow,
-      function.uncurry_apply_pair, aeval_X, matrix.cons_val_one, map_mul, matrix.cons_val_zero], },
-  all_goals
-  { simp only [witt_polynomial_eq_sum_C_mul_X_pow, aeval, eval₂_rename, int.cast_coe_nat,
-      ring_hom.eq_int_cast, eval₂_mul, function.uncurry_apply_pair, function.comp_app, eval₂_sum,
-      eval₂_X, matrix.cons_val_zero, eval₂_pow, int.cast_pow, ring_hom.to_fun_eq_coe, coe_eval₂_hom,
-      int.nat_cast_eq_coe_nat, alg_hom.coe_mk],
-  congr' 1 with z,
-  rw [mvpz, mv_polynomial.eval₂_C],
-  refl }
+  have : ∀ (f : ℤ →+* k) (g : ℕ → k), eval₂ f g p = f p,
+  { intros, rw [mvpz, mv_polynomial.eval₂_C] },
+  simp [witt_polynomial_eq_sum_C_mul_X_pow, aeval, eval₂_rename, this, mul_coeff, peval,
+    map_nat_cast, map_add, map_pow, map_mul]
 end
 
 variable [char_p k p]

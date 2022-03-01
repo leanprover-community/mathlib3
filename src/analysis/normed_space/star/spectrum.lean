@@ -5,6 +5,8 @@ Authors: Jireh Loreaux
 -/
 import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
+import analysis.normed_space.exponential
+import algebra.star.module
 
 /-! # Spectral properties in C⋆-algebras
 In this file, we establish various propreties related to the spectrum of elements in C⋆-algebras.
@@ -12,6 +14,8 @@ In this file, we establish various propreties related to the spectrum of element
 
 open_locale topological_space ennreal
 open filter ennreal spectrum
+
+local postfix `⋆`:std.prec.max_plus := star
 
 section unitary_spectrum
 
@@ -62,3 +66,131 @@ lemma self_adjoint.coe_spectral_radius_eq_nnnorm (a : self_adjoint A) :
 spectral_radius_eq_nnnorm_of_self_adjoint a.property
 
 end complex_scalars
+
+
+/-- In a normed algebra, the inclusion of the base field in the extended field is a continuous
+linear map. -/
+@[simps?]
+def algebra_map_clm (𝕜 : Type*) (E : Type*) [normed_field 𝕜] [semi_normed_ring E]
+  [normed_algebra 𝕜 E] : 𝕜 →L[𝕜] E :=
+{ to_fun := algebra_map 𝕜 E,
+  map_add' := (algebra_map 𝕜 E).map_add,
+  map_smul' := λ r x, by rw [algebra.id.smul_eq_mul, map_mul, ring_hom.id_apply, algebra.smul_def],
+  cont := (algebra_map_isometry 𝕜 E).continuous }
+
+lemma algebra_map_clm_coe (𝕜 : Type*) (E : Type*) [normed_field 𝕜] [semi_normed_ring E]
+  [normed_algebra 𝕜 E] : (algebra_map_clm 𝕜 E : 𝕜 → E) = (algebra_map 𝕜 E : 𝕜 → E) := rfl
+
+-- need is_R_or_C for exp_series_summable'
+lemma star_exp {𝕜 A : Type*} [is_R_or_C 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
+  [star_ring A] [cstar_ring A] [complete_space A]
+  [star_module 𝕜 A] (a : A) : (exp 𝕜 A a)⋆ = exp 𝕜 A a⋆ :=
+begin
+  rw exp_eq_tsum,
+  have := continuous_linear_map.map_tsum
+    (starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A).to_linear_isometry.to_continuous_linear_map
+    (exp_series_summable' a),
+  dsimp at this,
+  convert this,
+  funext,
+  simp only [star_smul, star_pow, one_div, is_R_or_C.star_def, is_R_or_C.conj_inv, map_nat_cast],
+end
+
+lemma algebra_map_exp_comm (𝕜 : Type*) (A : Type*) [is_R_or_C 𝕜] [normed_ring A]
+  [normed_algebra 𝕜 A] [complete_space A] (z : 𝕜) :
+  algebra_map 𝕜 A (exp 𝕜 𝕜 z) = exp 𝕜 A (algebra_map 𝕜 A z) :=
+begin
+  rw [exp_eq_tsum, exp_eq_tsum],
+  rw [←algebra_map_clm_coe, (algebra_map_clm 𝕜 A).map_tsum (exp_series_summable' z)],
+  simp_rw (algebra_map_clm 𝕜 A).map_smul,
+  dsimp,
+  simp_rw map_pow,
+end
+
+variables {A : Type*}
+[normed_ring A] [normed_algebra ℂ A] [star_ring A] [cstar_ring A] [complete_space A]
+[measurable_space A] [borel_space A] [topological_space.second_countable_topology A]
+[star_module ℂ A]
+
+open complex
+
+lemma self_adjoint.exp_i_smul_unitary {a : A} (ha : a ∈ self_adjoint A) :
+  exp ℂ A (I • a) ∈ unitary A :=
+begin
+  rw [unitary.mem_iff, star_exp],
+  simp only [star_smul, is_R_or_C.star_def, self_adjoint.mem_iff.mp ha, conj_I, neg_smul],
+  rw ←@exp_add_of_commute ℂ A _ _ _ _ _ _ ((commute.refl (I • a)).neg_left),
+  rw ←@exp_add_of_commute ℂ A _ _ _ _ _ _ ((commute.refl (I • a)).neg_right),
+  simpa only [add_right_neg, add_left_neg, and_self] using (exp_zero : exp ℂ A 0 = 1),
+end
+
+/-- The map from the selfadjoint real subspace to the unitary group. This map only makes sense
+over ℂ. -/
+@[simps]
+noncomputable def self_adjoint.exp_unitary (a : self_adjoint A) : unitary A :=
+⟨exp ℂ A (I • a), self_adjoint.exp_i_smul_unitary (a.property)⟩
+
+open self_adjoint
+
+lemma commute.exp_unitary_add {a b : self_adjoint A} (h : commute (a : A) (b : A)) :
+  exp_unitary (a + b) = exp_unitary a * exp_unitary b :=
+begin
+  ext,
+  have hcomm : commute (I • (a : A)) (I • (b : A)),
+  calc _ = _ : by simp only [h.eq, algebra.smul_mul_assoc, algebra.mul_smul_comm],
+  simpa only [exp_unitary_coe, add_subgroup.coe_add, smul_add] using exp_add_of_commute hcomm,
+end
+
+lemma commute.exp_unitary {a b : self_adjoint A} (h : commute (a : A) (b : A)) :
+  commute (exp_unitary a) (exp_unitary b) :=
+calc (exp_unitary a) * (exp_unitary b) = (exp_unitary b) * (exp_unitary a)
+  : by rw [←h.exp_unitary_add, ←h.symm.exp_unitary_add, add_comm]
+
+noncomputable lemma self_adjoint.one_paramter_unitary (a : self_adjoint A) (r : ℝ) : unitary A :=
+exp_unitary (r • a)
+
+/- (exp(i (t + h) a) - exp(i t a)) / h = exp (i t a) * (exp (i h a) - 1) / h-/
+
+lemma blah {a : self_adjoint A} : (exp_unitary a : A)
+  = (1 : A) + (∑' n : ℕ, (1 / (n + 1).factorial : ℂ) • (I • (a : A)) ^ (n + 1)) :=
+begin
+  dsimp,
+  rw exp_eq_tsum,
+  convert tsum_eq_zero_add (exp_series_summable' (I • (a : A))),
+  simp only [nat.factorial_zero, nat.cast_one, _root_.div_one, pow_zero, one_smul], -- `simp` works
+end
+
+local notation `↑ₐ` := algebra_map ℂ A
+
+lemma blah₁ (a : A) (z : ℂ) : exp ℂ A a = exp ℂ A (a - ↑ₐ z) * ↑ₐ (exp ℂ ℂ z) :=
+begin
+  nth_rewrite 0 ←sub_add_cancel a (↑ₐ z),
+  rw exp_add_of_commute,
+  rw algebra_map_exp_comm ℂ A z,
+  calc _ = _ : by { rw [_root_.mul_sub, _root_.sub_mul, algebra.commutes z a], },
+end
+
+variable (A)
+lemma blah₂ (z : ℂ) : I • (↑ₐ z : A) = ↑ₐ (I * z) :=
+by simp only [algebra.algebra_map_eq_smul_one, smul_smul]
+
+lemma blah₃ (a : A) (z : ℂ) : exp ℂ A (I • a) = exp ℂ A (I • (a - ↑ₐ z)) * ↑ₐ (exp ℂ ℂ (I * z)) :=
+begin
+  rw [smul_sub],
+  rw [blah₂ A z],
+  rw [blah₁ (I • a) (I * z)],
+end
+
+/-
+want to show that exp a = 1 + a * b for some b.
+-/
+
+-- do we just want a nondiscrete normed field?
+noncomputable def blah₅ (p : formal_multilinear_series ℂ ℂ A) : formal_multilinear_series ℂ ℂ A :=
+λ n, (p (n + 1)).curry_left (1 : ℂ)
+
+-- need to show this has the same radius of convergence
+
+lemma blah₄ {f : ℂ → A} {p : formal_multilinear_series ℂ ℂ A} {r : ℝ≥0∞} {z : ℂ}
+  (h : has_fpower_series_on_ball f p z r) :
+  has_fpower_series_on_ball (λ w, (f w - f z)) (blah₅ p) z r := sorry

@@ -44,7 +44,7 @@ Note that `submonoid M` does not actually require `monoid M`, instead requiring 
 `mul_one_class M`.
 
 This file is designed to have very few dependencies. In particular, it should not use natural
-numbers. It relies on the an underlying subsemigroup.
+numbers. It relies on an underlying subsemigroup.
 
 ## Tags
 submonoid, submonoids

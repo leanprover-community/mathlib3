@@ -74,10 +74,10 @@ end
 
 variables {R : Type*} [ring R]
 
-lemma complement {P: R} : is_projection P → is_projection (1-P) :=
+lemma complement {P: R} (h: is_projection P) : is_projection (1-P) :=
 begin
   unfold is_projection,
-  intro h,
+  unfold is_projection at h,
   rw sq at h,
   rw [sq, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
 end
@@ -119,9 +119,8 @@ def is_Mprojection (P: X →L[𝕜] X) : Prop :=
 
 namespace is_Lprojection
 
-lemma Lcomplement {P: X →L[𝕜] X} : is_Lprojection P → is_Lprojection (1-P) :=
+lemma Lcomplement {P: X →L[𝕜] X} (h: is_Lprojection P) :  is_Lprojection (1-P) :=
 begin
-  intro h,
   unfold is_Lprojection,
   rw [← is_projection.complement_iff, sub_sub_cancel],
   split,

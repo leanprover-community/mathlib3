@@ -37,7 +37,7 @@ in the implementation details section.
 * `is_primitive_root.sub_one_norm_eq_eval_cyclotomic`: if `irreducible (cyclotomic n K)`
   (in particular for `K = ℚ`), then the norm of `ζ - 1` is `eval 1 (cyclotomic n ℤ)`, for a
   primitive root ζ. We also prove the analogous of this result for `zeta`.
-* `is_primitive_root.prime_ne_two_pow.sub_one_norm` : if `irreducible (cyclotomic (p ^ (k + 1)) K)`
+* `is_primitive_root.prime_ne_two_pow_sub_one_norm` : if `irreducible (cyclotomic (p ^ (k + 1)) K)`
   (in particular for `K = ℚ`) and `p` is an odd prime, then the norm of `ζ - 1` is `p`. We also
   prove the analogous of this result for `zeta`.
   gives a K-power basis for L given a primitive root `ζ`.

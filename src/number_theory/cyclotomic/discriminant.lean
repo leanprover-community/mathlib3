@@ -59,7 +59,7 @@ begin
       hζ.norm_eq_one hodd hirr, one_pow, mul_one, ← map_nat_cast (algebra_map K L),
       norm_algebra_map, finrank _ hirr, totient_prime hp.out, ← succ_pred_eq_of_pos hpos, pow_succ,
       mul_comm _ (p : K), coe_coe, ← hζ.minpoly_eq_cyclotomic_of_irreducible hirr] at H,
-    simpa [(mul_right_inj' (cast_ne_zero.2 hp.out.ne_zero : (p : K) ≠ 0)).1 H],
+    simpa [(mul_right_inj' $ ne_zero.ne ↑↑p).1 H],
     apply_instance },
   { apply_instance },
 end

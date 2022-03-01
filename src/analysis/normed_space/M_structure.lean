@@ -201,7 +201,7 @@ begin
   nth_rewrite_rhs 0 QP_eq_QPQ P Q h₁ h₂,
 end
 
-@[simp] lemma product {P Q: X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :
+lemma mul {P Q : X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :
   is_Lprojection (P*Q) :=
 begin
   unfold is_Lprojection,

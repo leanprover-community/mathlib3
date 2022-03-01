@@ -62,8 +62,8 @@ variables [ring R] [is_domain R] [fintype R]
 
 TODO: Prove Wedderburn's little theorem,
 which shows a finite domain is in fact commutative, hence a field. -/
-def fintype.division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq R] [fintype R] :
-  division_ring R :=
+def fintype.division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq R]
+  [fintype R] : division_ring R :=
 { ..show group_with_zero R, from fintype.group_with_zero_of_cancel R,
   ..‹ring R› }
 

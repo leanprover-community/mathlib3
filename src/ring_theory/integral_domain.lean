@@ -67,18 +67,6 @@ def division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq 
 { ..show group_with_zero R, from group_with_zero_of_fintype R,
   ..‹ring R› }
 
-/-- Every finite commutative domain is a field.
-
-TODO: Prove Wedderburn's little theorem, which shows a finite domain is automatically commutative,
-dropping one assumption from this theorem. -/
-def fintype.field_of_domain (R) [comm_ring R] [is_domain R] [decidable_eq R] [fintype R] :
-  field R :=
-{ .. group_with_zero_of_fintype R,
-  .. ‹comm_ring R› }
-
-lemma fintype.is_field_of_domain (R) [comm_ring R] [is_domain R] [fintype R] :
-  is_field R := @field.to_is_field R $ @@fintype.field_of_domain R _ _ (classical.dec_eq R) _
-
 end ring
 
 variables [comm_ring R] [is_domain R] [group G] [fintype G]

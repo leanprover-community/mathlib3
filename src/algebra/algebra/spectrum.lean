@@ -142,9 +142,9 @@ by simpa only [units.smul_def, algebra.id.smul_eq_mul, units.inv_mul]
   using @units_smul_resolvent _ _ _ _ _ r r a
 
 /-- The resolvent is a unit when the argument is in the resolvent set. -/
-lemma is_unit_resolvent {r : R} {a : A} (h : r ∈ resolvent_set R a) :
-  is_unit (resolvent a r) :=
-(resolvent_eq h).symm ▸ ⟨⟨(h.unit⁻¹ : Aˣ), h.unit, _, _⟩, rfl⟩
+lemma is_unit_resolvent {r : R} {a : A} :
+  r ∈ resolvent_set R a ↔ is_unit (resolvent a r) :=
+is_unit_ring_inverse.symm
 
 lemma inv_mem_resolvent_set {r : Rˣ} {a : Aˣ} (h : (r : R) ∈ resolvent_set R (a : A)) :
   (↑r⁻¹ : R) ∈ resolvent_set R (↑a⁻¹ : A) :=

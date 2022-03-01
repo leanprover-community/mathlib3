@@ -206,7 +206,7 @@ lemma mul {P Q : X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojectio
 begin
   unfold is_Lprojection,
   split,
-  { apply is_projection.commuting (Lproj_commute h₁ h₂) h₁.left h₂.left, },
+  { apply is_projection.mul_of_commute (Lproj_commute h₁ h₂) h₁.left h₂.left, },
   { intro x,
     rw le_antisymm_iff,
     split,
@@ -233,7 +233,7 @@ begin
   ... = P + Q - P * Q : by rw [mul_sub, mul_one, add_sub, add_comm],
   rw ← e1,
   rw ← is_Lprojection.Lcomplement_iff,
-  apply is_Lprojection.product,
+  apply is_Lprojection.mul,
   apply is_Lprojection.Lcomplement h₁,
   apply is_Lprojection.Lcomplement h₂,
 end
@@ -245,7 +245,7 @@ instance : has_compl(subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
   ↑(Pᶜ) = (1:X →L[𝕜] X) - ↑P := rfl
 
 instance : has_inf (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
-⟨λ P Q, ⟨P * Q, P.prop.product Q.prop⟩ ⟩
+⟨λ P Q, ⟨P * Q, P.prop.mul Q.prop⟩ ⟩
 
 @[simp] lemma coe_inf (P Q : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :
   ↑(P ⊓ Q) = ((↑P : (X →L[𝕜] X)) * ↑Q) := rfl
@@ -257,7 +257,7 @@ instance : has_sup (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
   ↑(P ⊔ Q) = ((↑P:X →L[𝕜] X) + ↑Q - ↑P * ↑Q) := rfl
 
 instance : has_sdiff (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
-⟨λ P Q, ⟨P * (1-Q), by exact is_Lprojection.product P.prop (is_Lprojection.Lcomplement Q.prop) ⟩⟩
+⟨λ P Q, ⟨P * (1-Q), by exact is_Lprojection.mul P.prop (is_Lprojection.Lcomplement Q.prop) ⟩⟩
 
 @[simp] lemma coe_sdiff (P Q : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :
   ↑(P \ Q) = (↑P:X →L[𝕜] X) * (1-↑Q) := rfl

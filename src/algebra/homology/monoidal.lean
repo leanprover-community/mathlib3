@@ -31,10 +31,10 @@ def right_distributor {J : Type} [decidable_eq J] [fintype J] (X : C) (f : J →
   hom_inv_id' := sorry,
   inv_hom_id' := sorry, }
 
-namespace cochain_complex
-
 def antidiagonal (i : ℕ) := { p : ℕ × ℕ // p.1 + p.2 = i }
 instance (i : ℕ) : fintype (antidiagonal i) := sorry
+
+namespace cochain_complex
 
 def tensor_d (X Y : cochain_complex C ℕ) (i j : ℕ) (p : antidiagonal i) (q : antidiagonal j) :
   X.X p.1.1 ⊗ Y.X p.1.2 ⟶ X.X q.1.1 ⊗ Y.X q.1.2 :=
@@ -58,36 +58,36 @@ def tensor_hom {X₁ X₂ Y₁ Y₂ : cochain_complex C ℕ} (f : X₁ ⟶ X₂)
 
 def tensor_unit : cochain_complex C ℕ := (cochain_complex.single₀ C).obj (𝟙_ C)
 
-def associator_hom_aux (X Y Z : cochain_complex C ℕ) (i : ℕ)
+def associator_hom_aux (X Y Z : ℕ → C) (i : ℕ)
   (p q : antidiagonal i) (j : antidiagonal p.1.1) (k : antidiagonal q.1.2) :
-    (X.X j.1.1 ⊗ Y.X j.1.2) ⊗ Z.X p.1.2 ⟶ X.X q.1.1 ⊗ (Y.X k.1.1 ⊗ Z.X k.1.2) :=
+    (X j.1.1 ⊗ Y j.1.2) ⊗ Z p.1.2 ⟶ X q.1.1 ⊗ (Y k.1.1 ⊗ Z k.1.2) :=
 if h : j.1.1 = q.1.1 ∧ j.1.2 = k.1.1 ∧ p.1.2 = k.1.2 then
   (α_ _ _ _).hom ≫
-    (eq_to_hom (congr_arg X.X h.1) ⊗ eq_to_hom (congr_arg Y.X h.2.1) ⊗
-      eq_to_hom (congr_arg Z.X h.2.2))
+    (eq_to_hom (congr_arg X h.1) ⊗ eq_to_hom (congr_arg Y h.2.1) ⊗
+      eq_to_hom (congr_arg Z h.2.2))
 else
   0
 
 def associator_hom (X Y Z : cochain_complex C ℕ) :
   tensor_obj (tensor_obj X Y) Z ⟶ tensor_obj X (tensor_obj Y Z) :=
 { f := λ i, biproduct.matrix (λ p q,
-  (right_distributor _ _).hom ≫ biproduct.matrix (associator_hom_aux X Y Z i p q) ≫
+  (right_distributor _ _).hom ≫ biproduct.matrix (associator_hom_aux X.X Y.X Z.X i p q) ≫
     (left_distributor _ _).inv),
   comm' := sorry }
 
-def associator_inv_aux (X Y Z : cochain_complex C ℕ) (i : ℕ)
+def associator_inv_aux (X Y Z : ℕ → C) (i : ℕ)
   (p q : antidiagonal i) (j : antidiagonal p.1.2) (k : antidiagonal q.1.1) :
-    X.X p.1.1 ⊗ (Y.X j.1.1 ⊗ Z.X j.1.2) ⟶ (X.X k.1.1 ⊗ Y.X k.1.2) ⊗ Z.X q.1.2 :=
+    X p.1.1 ⊗ (Y j.1.1 ⊗ Z j.1.2) ⟶ (X k.1.1 ⊗ Y k.1.2) ⊗ Z q.1.2 :=
 if h : p.1.1 = k.1.1 ∧ j.1.1 = k.1.2 ∧ j.1.2 = q.1.2 then
-  (eq_to_hom (congr_arg X.X h.1) ⊗ eq_to_hom (congr_arg Y.X h.2.1) ⊗
-      eq_to_hom (congr_arg Z.X h.2.2)) ≫ (α_ _ _ _).inv
+  (eq_to_hom (congr_arg X h.1) ⊗ eq_to_hom (congr_arg Y h.2.1) ⊗
+      eq_to_hom (congr_arg Z h.2.2)) ≫ (α_ _ _ _).inv
 else
   0
 
 def associator_inv (X Y Z : cochain_complex C ℕ) :
   tensor_obj X (tensor_obj Y Z) ⟶ tensor_obj (tensor_obj X Y) Z :=
 { f := λ i, biproduct.matrix (λ p q,
-  (left_distributor _ _).hom ≫ biproduct.matrix (associator_inv_aux X Y Z i p q) ≫
+  (left_distributor _ _).hom ≫ biproduct.matrix (associator_inv_aux X.X Y.X Z.X i p q) ≫
     (right_distributor _ _).inv),
   comm' := sorry }
 
@@ -98,13 +98,39 @@ def associator (X Y Z : cochain_complex C ℕ) :
   hom_inv_id' := sorry,
   inv_hom_id' := sorry, }
 
--- TODO there is still data to construct here
-def left_unitor (X : cochain_complex C ℕ) :
-  tensor_obj tensor_unit X ≅ X := sorry
+def left_unitor_hom (X : cochain_complex C ℕ) :
+  tensor_obj tensor_unit X ⟶ X :=
+{ f := λ i, biproduct.π _ ⟨⟨0, i⟩, by simp⟩ ≫ (λ_ (X.X i)).hom,
+  comm' := sorry, }
 
--- TODO there is still data to construct here
+def left_unitor_inv (X : cochain_complex C ℕ) :
+  X ⟶ tensor_obj tensor_unit X :=
+{ f := λ i, (λ_ (X.X i)).inv ≫ biproduct.ι (λ p : antidiagonal i, tensor_unit.X p.1.1 ⊗ X.X p.1.2) ⟨⟨0, i⟩, by simp⟩,
+  comm' := sorry, }
+
+def left_unitor (X : cochain_complex C ℕ) :
+  tensor_obj tensor_unit X ≅ X :=
+{ hom := left_unitor_hom X,
+  inv := left_unitor_inv X,
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry, }
+
+def right_unitor_hom (X : cochain_complex C ℕ) :
+  tensor_obj X tensor_unit ⟶ X :=
+{ f := λ i, biproduct.π _ ⟨⟨i, 0⟩, by simp⟩ ≫ (ρ_ (X.X i)).hom,
+  comm' := sorry, }
+
+def right_unitor_inv (X : cochain_complex C ℕ) :
+  X ⟶ tensor_obj X tensor_unit :=
+{ f := λ i, (ρ_ (X.X i)).inv ≫ biproduct.ι (λ p : antidiagonal i, X.X p.1.1 ⊗ tensor_unit.X p.1.2) ⟨⟨i, 0⟩, by simp⟩,
+  comm' := sorry, }
+
 def right_unitor (X : cochain_complex C ℕ) :
-  tensor_obj X tensor_unit ≅ X := sorry
+  tensor_obj X tensor_unit ≅ X :=
+{ hom := right_unitor_hom X,
+  inv := right_unitor_inv X,
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry, }
 
 end cochain_complex
 
@@ -125,27 +151,59 @@ instance : monoidal_category (cochain_complex C ℕ) :=
 
 variables [braided_category C]
 
+namespace cochain_complex
+
+def braiding_hom (X Y : cochain_complex C ℕ) : X ⊗ Y ⟶ Y ⊗ X :=
+{ f := λ i, biproduct.lift (λ p, biproduct.π (λ p : antidiagonal i, X.X p.1.1 ⊗ Y.X p.1.2) ⟨⟨p.1.2, p.1.1⟩, sorry⟩ ≫ (β_ _ _).hom),
+  comm' := sorry, }
+
+def braiding_inv (X Y : cochain_complex C ℕ) : Y ⊗ X ⟶ X ⊗ Y :=
+{ f := λ i, biproduct.desc (λ p, (β_ _ _).inv ≫ biproduct.ι (λ p : antidiagonal i, X.X p.1.1 ⊗ Y.X p.1.2) ⟨⟨p.1.2, p.1.1⟩, sorry⟩),
+  comm' := sorry, }
+
+def braiding (X Y : cochain_complex C ℕ) : X ⊗ Y ≅ Y ⊗ X :=
+{ hom := braiding_hom X Y,
+  inv := braiding_inv X Y,
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry, }
+
+end cochain_complex
+
 instance : braided_category (cochain_complex C ℕ) :=
-sorry
+{ braiding := cochain_complex.braiding,
+  braiding_naturality' := sorry,
+  hexagon_forward' := sorry,
+  hexagon_reverse' := sorry, }
 
 namespace graded_object
 
 def tensor_obj (X Y : graded_object ℕ C) : graded_object ℕ C :=
-sorry
+λ i, ⨁ (λ p : antidiagonal i, X p.1.1 ⊗ Y p.1.2)
 
 def tensor_hom {X₁ X₂ Y₁ Y₂ : graded_object ℕ C} (f : X₁ ⟶ X₂) (g : Y₁ ⟶ Y₂) :
   tensor_obj X₁ Y₁ ⟶ tensor_obj X₂ Y₂ :=
-sorry
+-- I can't write this in term mode and have it typecheck... ?
+by exact λ i, biproduct.map (λ p, f p.1.1 ⊗ g p.1.2)
 
-def tensor_unit : graded_object ℕ C := sorry
+local attribute [instance] has_zero_object.has_zero
+
+def tensor_unit : graded_object ℕ C :=
+λ i, match i with
+| 0 := 𝟙_ C
+| n+1 := 0
+end
 
 def associator_hom (X Y Z : graded_object ℕ C) :
   tensor_obj (tensor_obj X Y) Z ⟶ tensor_obj X (tensor_obj Y Z) :=
-sorry
+by exact λ i, biproduct.matrix (λ p q,
+  (right_distributor _ _).hom ≫ biproduct.matrix (cochain_complex.associator_hom_aux X Y Z i p q) ≫
+    (left_distributor _ _).inv)
 
 def associator_inv (X Y Z : graded_object ℕ C) :
   tensor_obj X (tensor_obj Y Z) ⟶ tensor_obj (tensor_obj X Y) Z :=
-sorry
+by exact λ i, biproduct.matrix (λ p q,
+  (left_distributor _ _).hom ≫ biproduct.matrix (cochain_complex.associator_inv_aux X Y Z i p q) ≫
+    (right_distributor _ _).inv)
 
 def associator (X Y Z : graded_object ℕ C) :
   tensor_obj (tensor_obj X Y) Z ≅ tensor_obj X (tensor_obj Y Z) :=
@@ -155,10 +213,18 @@ def associator (X Y Z : graded_object ℕ C) :
   inv_hom_id' := sorry, }
 
 def left_unitor (X : graded_object ℕ C) :
-  tensor_obj tensor_unit X ≅ X := sorry
+  tensor_obj tensor_unit X ≅ X :=
+{ hom := λ i, biproduct.π _ ⟨⟨0, i⟩, by simp⟩ ≫ (λ_ (X i)).hom,
+  inv := λ i, (λ_ (X i)).inv ≫ biproduct.ι (λ p : antidiagonal i, tensor_unit p.1.1 ⊗ X p.1.2) ⟨⟨0, i⟩, by simp⟩,
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry, }
 
 def right_unitor (X : graded_object ℕ C) :
-  tensor_obj X tensor_unit ≅ X := sorry
+  tensor_obj X tensor_unit ≅ X :=
+{ hom := λ i, biproduct.π _ ⟨⟨i, 0⟩, by simp⟩ ≫ (ρ_ (X i)).hom,
+  inv := λ i, (ρ_ (X i)).inv ≫ biproduct.ι (λ p : antidiagonal i, X p.1.1 ⊗ tensor_unit p.1.2) ⟨⟨i, 0⟩, by simp⟩,
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry, }
 
 end graded_object
 
@@ -177,26 +243,65 @@ instance : monoidal_category (graded_object ℕ C) :=
   pentagon' := sorry,
   triangle' := sorry, }
 
+namespace graded_object
+
+def braiding_hom (X Y : graded_object ℕ C) : X ⊗ Y ⟶ Y ⊗ X :=
+λ i, biproduct.lift (λ p, biproduct.π (λ p : antidiagonal i, X p.1.1 ⊗ Y p.1.2) ⟨⟨p.1.2, p.1.1⟩, sorry⟩ ≫ (β_ _ _).hom)
+
+def braiding_inv (X Y : graded_object ℕ C) : Y ⊗ X ⟶ X ⊗ Y :=
+λ i, biproduct.desc (λ p, (β_ _ _).inv ≫ biproduct.ι (λ p : antidiagonal i, X p.1.1 ⊗ Y p.1.2) ⟨⟨p.1.2, p.1.1⟩, sorry⟩)
+
+def braiding (X Y : graded_object ℕ C) : X ⊗ Y ≅ Y ⊗ X :=
+{ hom := braiding_hom X Y,
+  inv := braiding_inv X Y,
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry, }
+
+end graded_object
+
 instance : braided_category (graded_object ℕ C) :=
-sorry
+{ braiding := graded_object.braiding,
+  braiding_naturality' := sorry,
+  hexagon_forward' := sorry,
+  hexagon_reverse' := sorry, }
 
 variables [has_equalizers C] [has_images C] [has_image_maps C] [has_cokernels C]
 
-instance : lax_monoidal (graded_homology_functor C (complex_shape.up ℕ)).obj :=
-sorry
-
 variables (C)
+
+def lax_monoidal_ε :
+  𝟙_ (graded_object ℕ C) ⟶
+    (graded_homology_functor C (complex_shape.up ℕ)).obj (𝟙_ _) :=
+by exact λ i, match i with
+| 0 := sorry
+| n+1 := 0
+end
+
+def lax_monoidal_μ (X Y : cochain_complex C ℕ) :
+  (graded_homology_functor C (complex_shape.up ℕ)).obj X ⊗
+    (graded_homology_functor C (complex_shape.up ℕ)).obj Y ⟶
+  (graded_homology_functor C (complex_shape.up ℕ)).obj (X ⊗ Y) :=
+by exact λ i, biproduct.desc (λ ⟨⟨j,k⟩,h⟩,
+begin dsimp, sorry end)
+
+instance : lax_monoidal (graded_homology_functor C (complex_shape.up ℕ)).obj :=
+{ ε := lax_monoidal_ε C,
+  μ := lax_monoidal_μ C,
+  μ_natural' := sorry,
+  associativity' := sorry,
+  left_unitality' := sorry,
+  right_unitality' := sorry, }
 
 def graded_homology_lax_monoidal_functor : lax_monoidal_functor (cochain_complex C ℕ) (graded_object ℕ C) :=
 lax_monoidal_functor.of (graded_homology_functor C (complex_shape.up ℕ)).obj
 
 def graded_homology_lax_braided_functor : lax_braided_functor (cochain_complex C ℕ) (graded_object ℕ C) :=
-sorry
+{ braided' := sorry,
+  ..graded_homology_lax_monoidal_functor C }
 
 def CDGA_challenge : CommMon_ (cochain_complex C ℕ) ⥤ CommMon_ (graded_object ℕ C) :=
 (graded_homology_lax_braided_functor C).map_CommMon
 
-variables (R : Type) [comm_ring R]
-
-def CDGA_challenge' : CommMon_ (cochain_complex (Module.{0} R) ℕ) ⥤ CommMon_ (graded_object ℕ (Module.{0} R)) :=
+def CDGA_challenge' (R : Type) [comm_ring R] :
+  CommMon_ (cochain_complex (Module.{0} R) ℕ) ⥤ CommMon_ (graded_object ℕ (Module.{0} R)) :=
 CDGA_challenge _

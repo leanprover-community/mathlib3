@@ -697,6 +697,14 @@ end pretrivialization
 
 open pretrivialization
 
+-- move this
+lemma inducing_prod_mk {X Y : Type*} [topological_space X] [topological_space Y] (c : X) :
+  inducing (prod.mk c : Y → X × Y) :=
+begin
+  refine inducing_of_inducing_compose (continuous.prod.mk c) continuous_snd _,
+  exact inducing_id,
+end
+
 /-- Auxiliary construction (`vector_prebundle`) for the direct sum of topological vector bundles. -/
 def _root_.topological_vector_prebundle.prod :
   topological_vector_prebundle R (F₁ × F₂) (λ x, E₁ x × E₂ x) :=
@@ -709,7 +717,21 @@ def _root_.topological_vector_prebundle.prod :
     (trivialization_at R F₁ E₁ q)
     (trivialization_at R F₂ E₂ p)
     (trivialization_at R F₂ E₂ q),
-  total_space_mk_inducing := _ }
+  total_space_mk_inducing := λ b,
+  begin
+    let e₁ := trivialization_at R F₁ E₁ b,
+    let e₂ := trivialization_at R F₂ E₂ b,
+    have hb₁ : b ∈ e₁.base_set := mem_base_set_trivialization_at R F₁ E₁ b,
+    have hb₂ : b ∈ e₂.base_set := mem_base_set_trivialization_at R F₂ E₂ b,
+    have key : inducing (λ w : E₁ b × E₂ b,
+      (b, e₁.continuous_linear_equiv_at b hb₁ w.1, e₂.continuous_linear_equiv_at b hb₂ w.2)),
+    { refine (inducing_prod_mk b).comp _,
+      exact ((e₁.continuous_linear_equiv_at b hb₁).to_homeomorph.inducing.prod_mk
+        (e₂.continuous_linear_equiv_at b hb₂).to_homeomorph.inducing) },
+    { convert key,
+      ext1 w,
+      simpa using prod_apply hb₁ hb₂ w.1 w.2 },
+  end }
 
 /-- The natural topology on the total space of the product of two vector bundles. -/
 instance prod.topological_space :

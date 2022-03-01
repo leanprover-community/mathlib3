@@ -35,7 +35,7 @@ open_locale real
 /-- For 0 < x, we have sin x < x. -/
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
-  cases lt_or_ge 1 x with h' h',
+  cases lt_or_le 1 x with h' h',
   { exact (sin_le_one x).trans_lt h' },
   have hx : |x| = x := abs_of_nonneg h.le,
   have := le_of_abs_le (sin_bound $ show |x| ≤ 1, by rwa [hx]),
@@ -67,7 +67,7 @@ end
 
 
 /-- The derivative of `tan x - x` is `1/(cos x)^2 - 1` away from the zeroes of cos. -/
-lemma deriv_tan_sub_id (x : ℝ) (h: cos x ≠ 0) :
+lemma deriv_tan_sub_id (x : ℝ) (h : cos x ≠ 0) :
     deriv (λ y : ℝ, tan y - y) x = 1 / cos x ^ 2 - 1 :=
 has_deriv_at.deriv $ by simpa using (has_deriv_at_tan h).add (has_deriv_at_id x).neg
 
@@ -75,24 +75,22 @@ has_deriv_at.deriv $ by simpa using (has_deriv_at_tan h).add (has_deriv_at_id x)
 
 This is proved by checking that the function `tan x - x` vanishes
 at zero and has non-negative derivative. -/
-theorem lt_tan (x : ℝ) (h1 : 0 < x) (h2 : x < π / 2): x < tan x :=
+theorem lt_tan (x : ℝ) (h1 : 0 < x) (h2 : x < π / 2) : x < tan x :=
 begin
   let U := Ico 0 (π / 2),
 
   have intU : interior U = Ioo 0 (π / 2) := interior_Ico,
 
+  have half_pi_pos : 0 < π / 2 := div_pos pi_pos two_pos,
+
   have cos_pos : ∀ {y : ℝ}, y ∈ U → 0 < cos y,
   { intros y hy,
-    apply cos_pos_of_mem_Ioo,
-    cases hy,
-    split; linarith },
+    exact cos_pos_of_mem_Ioo (Ico_subset_Ioo_left (neg_lt_zero.mpr half_pi_pos) hy) },
 
   have sin_pos : ∀ {y : ℝ}, y ∈ interior U → 0 < sin y,
   { intros y hy,
     rw intU at hy,
-    apply sin_pos_of_mem_Ioo,
-    cases hy,
-    split; linarith },
+    exact sin_pos_of_mem_Ioo (Ioo_subset_Ioo_right (div_le_self pi_pos.le one_le_two) hy) },
 
   have tan_cts_U : continuous_on tan U,
   { apply continuous_on.mono continuous_on_tan,
@@ -118,9 +116,8 @@ begin
 
   have mono := convex.strict_mono_on_of_deriv_pos (convex_Ico 0 (π / 2)) tan_minus_id_cts deriv_pos,
   have zero_in_U : (0 : ℝ) ∈ U,
-  { split; linarith },
-  have x_in_U : x ∈ U,
-  { split; linarith },
+  { rwa left_mem_Ico },
+  have x_in_U : x ∈ U := ⟨h1.le, h2⟩,
   simpa only [tan_zero, sub_zero, sub_pos] using mono zero_in_U x_in_U h1
 end
 

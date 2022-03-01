@@ -40,19 +40,20 @@ class wstar_algebra (M : Type u) [normed_ring M] [star_ring M] [cstar_ring M]
 
 open_locale inner_product
 
-/-- The commutant of a subsemiring. -/
-def subsemiring.commutant {A : Type u} [semiring A] (B : subsemiring A) : subsemiring A :=
-{ carrier := { x : A | ∀ y ∈ B, x * y = y * x },
+/-- The centralizer of a subsemiring. -/
+def subsemiring.centralizer {A : Type u} [semiring A] (B : subsemiring A) : subsemiring A :=
+{ -- change to `set.centralizer (B : set A)` when #11946 lands.
+  carrier := { x : A | ∀ y ∈ B, x * y = y * x },
   zero_mem' := by { intros y h, simp, },
   one_mem' := by { intros y h, simp, },
   mul_mem' := λ a b ha hb c mc, by rw [mul_assoc, hb _ mc, ←mul_assoc, ha _ mc, mul_assoc],
   add_mem' := λ a b ha hb c mc, by rw [add_mul, mul_add, ha _ mc, hb _ mc], }
 
-/-- The commutant of a subalgebra. -/
-def subalgebra.commutant {𝕜 : Type v} [comm_semiring 𝕜] {A : Type u} [semiring A] [algebra 𝕜 A]
+/-- The centralizer of a subalgebra. -/
+def subalgebra.centralizer {𝕜 : Type v} [comm_semiring 𝕜] {A : Type u} [semiring A] [algebra 𝕜 A]
   (B : subalgebra 𝕜 A) : subalgebra 𝕜 A :=
 { algebra_map_mem' := λ r x mx, by rw [algebra.commutes],
-  .. B.to_subsemiring.commutant, }
+  .. B.to_subsemiring.centralizer, }
 
 set_option old_structure_cmd true
 
@@ -81,12 +82,12 @@ instance (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
 
 end star_subalgebra
 
-/-- The commutant of a *-subalgebra. -/
-def star_subalgebra.commutant {R : Type u} {A : Type v} [comm_semiring R] [star_ring R]
+/-- The centralizer, or commutant, of a *-subalgebra. -/
+def star_subalgebra.centralizer {R : Type u} {A : Type v} [comm_semiring R] [star_ring R]
   [semiring A] [star_ring A] [algebra R A] [star_module R A] (B : star_subalgebra R A) :
   star_subalgebra R A :=
 { star_mem' := λ x xm y hy, by simpa using congr_arg star (xm _ (B.star_mem' hy)).symm,
-  ..B.to_subalgebra.commutant, }
+  ..B.to_subalgebra.centralizer, }
 
 /--
 The double commutant definition of a von Neumann algebra,
@@ -94,16 +95,16 @@ as a *-closed subalgebra of bounded operators on a Hilbert space,
 which is equal to its double commutant.
 
 Note that this definition is parameterised by the Hilbert space
-on which the algebra faithfully acts.
+on which the algebra faithfully acts, as is standard in the literature.
+See `wstar_algebra` for the abstract notion (a C^*-algebra with Banach space predual).
 -/
 @[nolint has_inhabited_instance]
 structure von_neumann_algebra (H : Type u) [inner_product_space ℂ H] [complete_space H] extends
   M : star_subalgebra ℂ (H →L[ℂ] H) :=
-(double_commutant : M.commutant.commutant = M)
+(double_commutant : M.centralizer.centralizer = M)
 /--
 Forgetting that a von Neumann algebra is equal to its double commutant
 (equivalent, is closed in the weak and strong operator topologies),
 and just remembering the underlying *-subalgebra.
 -/
 add_decl_doc von_neumann_algebra.to_star_subalgebra
-#print  von_neumann_algebra

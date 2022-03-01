@@ -11,7 +11,7 @@ variables {s : set β} {ι : Type*} (U : ι → opens β) (hU : supr U = ⊤)
 def set.res {α β : Type*} (s : set β) (f : α → β) : f ⁻¹' s → s :=
 (set.maps_to_preimage f s).restrict _ _ _
 
-lemma continuous_at_iff_continuous_at_res (s : opens β) (x : f ⁻¹' s)
+lemma continuous_at_res (s : opens β) (x : f ⁻¹' s)
   (h : continuous_at f x) : continuous_at (s.1.res f) x :=
 begin
   intros U hU,

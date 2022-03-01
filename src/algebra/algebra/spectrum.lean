@@ -44,13 +44,15 @@ section defs
 variables (R : Type u) {A : Type v}
 variables [comm_semiring R] [ring A] [algebra R A]
 
+local notation `↑ₐ` := algebra_map R A
+
 -- definition and basic properties
 
 /-- Given a commutative ring `R` and an `R`-algebra `A`, the *resolvent set* of `a : A`
 is the `set R` consisting of those `r : R` for which `r•1 - a` is a unit of the
 algebra `A`.  -/
 def resolvent_set (a : A) : set R :=
-{ r : R | is_unit (algebra_map R A r - a) }
+{ r : R | is_unit (↑ₐr - a) }
 
 
 /-- Given a commutative ring `R` and an `R`-algebra `A`, the *spectrum* of `a : A`
@@ -66,13 +68,13 @@ variable {R}
     a map `R → A` which sends `r : R` to `(algebra_map R A r - a)⁻¹` when
     `r ∈ resolvent R A` and `0` when `r ∈ spectrum R A`. -/
 noncomputable def resolvent (a : A) (r : R) : A :=
-ring.inverse (algebra_map R A r - a)
+ring.inverse (↑ₐr - a)
 
 /-- The unit `1 - r⁻¹ • a` constructed from `r • 1 - a` when the latter is a unit. -/
 @[simps]
 noncomputable def is_unit.sub_inv_smul {r : Rˣ} {s : R} {a : A}
-  (h : is_unit $ r • (algebra_map R A s)  - a) : Aˣ :=
-{ val := (algebra_map R A s)  - r⁻¹ • a,
+  (h : is_unit $ r • ↑ₐs  - a) : Aˣ :=
+{ val := ↑ₐs - r⁻¹ • a,
   inv := r • ↑h.unit⁻¹,
   val_inv := by rw [mul_smul_comm, ←smul_mul_assoc, smul_sub, smul_inv_smul, h.mul_coe_inv],
   inv_val := by rw [smul_mul_assoc, ←mul_smul_comm, smul_sub, smul_inv_smul, h.coe_inv_mul], }

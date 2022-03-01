@@ -54,57 +54,12 @@ section upper_half_plane_action
 /-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
 the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
 
-lemma coetest {R : Type*} [linear_ordered_comm_ring R] (g : SL(2, R)) : ∀ i j, g i j =
-(g : (GL_pos (fin 2) R)) i j :=
-begin
-intros i j,
-rw coe,
-rw lift_t,
-dsimp,
-refl,
-end
-
-@[simp]
-lemma coedet {R : Type*} [linear_ordered_comm_ring R] (g : SL(2, R)) : det g =
-det ( g : (GL_pos (fin 2) R))  :=
-begin
-simp_rw det_of_22,
-simp [coetest],
-end
-
-@[simp]
-lemma coedet' {R : Type*} [linear_ordered_comm_ring R] (g : SL(2, R)) :
-  det ( g : (GL_pos (fin 2) R)) = 1   :=
-begin
-have := coedet g,
-rw ← this,
-simp,
-end
-
-
-@[simp]
-lemma coe2 (g : SL(2,ℤ)) : ∀ i j,  ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ)) i j = (↑ₘg i j  : ℝ)  :=
-begin
-intros i j,
-have := coetest (g : SL(2, ℝ)) i j,
-rw ← this,
-simp only [int.coe_cast_ring_hom,
- int.cast_inj,
- matrix.map_apply,
- matrix.special_linear_group.coe_fn_eq_coe,
- eq_self_iff_true,
- matrix.special_linear_group.coe_matrix_coe],
-end
-
 lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
-by {simp only [im_smul_eq_div_norm_sq, coedet', one_mul, sl_moeb, coe_coe]}
+by {simp only [im_smul_eq_div_norm_sq, coe_to_GL_pos_det, one_mul, sl_moeb, coe_coe]}
 
 @[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
-begin
-rw denom,
-simp only [of_real_int_cast, coe_coe, coe2],
-end
+  by {simp [denom],}
 
 end upper_half_plane_action
 

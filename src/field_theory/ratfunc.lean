@@ -1165,6 +1165,9 @@ num_algebra_map _
 @[simp] lemma denom_X : denom (X : ratfunc K) = 1 :=
 denom_algebra_map _
 
+lemma X_ne_zero : (ratfunc.X : ratfunc K) ≠ 0 :=
+ratfunc.algebra_map_ne_zero polynomial.X_ne_zero
+
 variables {L : Type*} [field L]
 
 /-- Evaluate a rational function `p` given a ring hom `f` from the scalar field

@@ -222,15 +222,31 @@ def infty_valuation  : valuation (ratfunc Fq) (with_zero (multiplicative ℤ)) :
   map_mul'        := infty_valuation.map_mul' Fq,
   map_add_le_max' := infty_valuation.map_add_le_max' Fq }
 
-lemma foo : infty_valuation Fq (ratfunc.X) = multiplicative.of_add(1) :=
+@[simp] lemma infty_valuation_apply {x : ratfunc Fq} :
+  infty_valuation Fq x = infty_valuation_def Fq x := rfl
+
+@[simp] lemma infty_valuation.X :
+  infty_valuation_def Fq (ratfunc.X) = (multiplicative.of_add (1 : ℤ)) :=
+by rw [infty_valuation_def, if_neg ratfunc.X_ne_zero, with_zero.coe_inj, ratfunc.num_X,
+       polynomial.nat_degree_X, ratfunc.denom_X, polynomial.nat_degree_one, int.coe_nat_one,
+       int.coe_nat_zero, sub_zero]
+
+@[simp] lemma infty_valuation.C {k : Fq} (hk : k ≠ 0) :
+  infty_valuation_def Fq (ratfunc.C k) = (multiplicative.of_add (0 : ℤ)) :=
 begin
-  change infty_valuation_def Fq (ratfunc.X) = multiplicative.of_add(1),
-  rw infty_valuation_def,
-  rw if_neg,
-  { sorry},
-  rw ratfunc.X,
-  apply ratfunc.algebra_map_ne_zero,
-  exact polynomial.X_ne_zero,
+  have hCk : ratfunc.C k ≠ 0 := (ring_hom.map_ne_zero _).mpr hk,
+  rw [infty_valuation_def, if_neg hCk, ratfunc.num_C,
+    polynomial.nat_degree_C, ratfunc.denom_C, polynomial.nat_degree_one, sub_self],
+end
+
+@[simp] lemma infty_valuation.polynomial {p : polynomial Fq} (hp : p ≠ 0) :
+  infty_valuation_def Fq (algebra_map (polynomial Fq) (ratfunc Fq) p) =
+    (multiplicative.of_add(p.nat_degree : ℤ)) :=
+begin
+  have hp' : algebra_map (polynomial Fq) (ratfunc Fq) p ≠ 0,
+  { rw [ne.def, ratfunc.algebra_map_eq_zero_iff], exact hp },
+  rw [infty_valuation_def, if_neg hp', ratfunc.num_algebra_map, ratfunc.denom_algebra_map,
+    polynomial.nat_degree_one, int.coe_nat_zero, sub_zero],
 end
 
 end infty_valuation

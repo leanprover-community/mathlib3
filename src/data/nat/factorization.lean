@@ -6,7 +6,7 @@ Authors: Stuart Presnell
 import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
-import ring_theory.multiplicity
+import number_theory.padics.padic_norm
 
 /-!
 # Prime factorizations
@@ -44,11 +44,15 @@ namespace nat
  mapping each prime factor of `n` to its multiplicity in `n`. -/
 def factorization (n : ℕ) : ℕ →₀ ℕ :=
 { support := n.factors.to_finset,
-  to_fun := λ p, if p.prime then ((multiplicity p n).get_or_else 0) else 0,
+  to_fun := λ p, if p.prime then padic_val_nat p n else 0,
   mem_support_to_fun :=
     begin
       intro a,
-      simp,
+      rw list.mem_to_finset,
+      by_cases hn0 : n = 0,
+      { sorry, },
+      rw mem_factors hn0,
+      simp only [ne.def, ite_eq_right_iff, exists_prop],
       sorry,
     end }
 

@@ -1,5 +1,10 @@
+/-
+Copyright (c) 2021 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin
+-/
 import group_theory.group_action.conj_act
-import ring_theory.polynomial.cyclotomic
+import ring_theory.polynomial.cyclotomic.basic
 import ring_theory.centralizer
 import tactic.by_contra
 

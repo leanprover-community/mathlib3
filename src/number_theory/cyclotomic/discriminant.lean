@@ -20,7 +20,7 @@ We compute the discriminant of a `p`-th cyclotomic extension.
 -/
 
 universes u v
-variables {p : ℕ+} (k : ℕ) {K : Type u} {L : Type v} {ζ : L} [field K] [field L] [char_zero K]
+variables {p : ℕ+} (k : ℕ) {K : Type u} {L : Type v} {ζ : L} [field K] [field L]
 variables [algebra K L] [ne_zero ((p : ℕ) : K)]
 
 open algebra polynomial nat is_primitive_root

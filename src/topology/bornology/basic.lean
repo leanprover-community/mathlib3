@@ -18,7 +18,8 @@ The specification of a bornology in terms of the cobounded filter is equivalent 
 one (e.g., see [Bourbaki, *Topological Vector Spaces*][bourbaki1987], **covering bornology**, now
 often called simply **bornology**) in terms of bounded sets (see `bornology.of_bounded`,
 `is_bounded.union`, `is_bounded.subset`), except that we do not allow the empty bornology (that is,
-we require that *some* set must be bounded; equivalently, `∅` is bounded).
+we require that *some* set must be bounded; equivalently, `∅` is bounded). In the literature the
+cobounded filter is generally referred to as the *filter at infinity*.
 
 ## Main definitions
 

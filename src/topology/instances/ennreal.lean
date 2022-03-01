@@ -233,6 +233,13 @@ protected theorem tendsto_nhds {f : filter α} {u : α → ℝ≥0∞} {a : ℝ�
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, (u x) ∈ Icc (a - ε) (a + ε) :=
 by simp only [nhds_of_ne_top ha, tendsto_infi, tendsto_principal, mem_Icc]
 
+protected lemma tendsto_nhds_zero {f : filter α} {u : α → ℝ≥0∞} :
+  tendsto u f (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in f, u x ≤ ε :=
+begin
+  rw ennreal.tendsto_nhds zero_ne_top,
+  simp only [true_and, zero_tsub, zero_le, zero_add, set.mem_Icc],
+end
+
 protected lemma tendsto_at_top [nonempty β] [semilattice_sup β] {f : β → ℝ≥0∞} {a : ℝ≥0∞}
   (ha : a ≠ ⊤) : tendsto f at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, (f n) ∈ Icc (a - ε) (a + ε) :=
 by simp only [ennreal.tendsto_nhds ha, mem_at_top_sets, mem_set_of_eq, filter.eventually]
@@ -423,6 +430,22 @@ lemma infi_mul_right {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
   (⨅ i, f i * a) = (⨅ i, f i) * a :=
 infi_mul_right' h (λ _, ‹nonempty ι›)
 
+lemma inv_map_infi {ι : Sort*} {x : ι → ℝ≥0∞} :
+  (infi x)⁻¹ = (⨆ i, (x i)⁻¹) :=
+order_iso.inv_ennreal.map_infi x
+
+lemma inv_map_supr {ι : Sort*} {x : ι → ℝ≥0∞} :
+  (supr x)⁻¹ = (⨅ i, (x i)⁻¹) :=
+order_iso.inv_ennreal.map_supr x
+
+lemma inv_limsup {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
+  (l.limsup x)⁻¹ = l.liminf (λ i, (x i)⁻¹) :=
+by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
+
+lemma inv_liminf {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
+  (l.liminf x)⁻¹ = l.limsup (λ i, (x i)⁻¹) :=
+by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
+
 protected lemma continuous_inv : continuous (has_inv.inv : ℝ≥0∞ → ℝ≥0∞) :=
 continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
 ⟨begin
@@ -438,7 +461,7 @@ end⟩
 
 @[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
   tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=
-⟨λ h, by simpa only [function.comp, ennreal.inv_inv]
+⟨λ h, by simpa only [function.comp, inv_inv]
   using (ennreal.continuous_inv.tendsto a⁻¹).comp h,
   (ennreal.continuous_inv.tendsto a).comp⟩
 

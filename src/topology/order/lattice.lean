@@ -3,9 +3,8 @@ Copyright (c) 2021 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import topology.basic
+import topology.algebra.order.basic
 import topology.constructions
-import topology.algebra.ordered.basic
 
 /-!
 # Topological lattices
@@ -22,6 +21,9 @@ and `has_continuous_sup`.
 
 topological, lattice
 -/
+
+open filter
+open_locale topological_space
 
 /--
 Let `L` be a topological space and let `L×L` be equipped with the product topology and let
@@ -83,3 +85,27 @@ has_continuous_sup.continuous_sup
   {f g : X → L} (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x ⊔ g x) :=
 continuous_sup.comp (hf.prod_mk hg : _)
+
+lemma filter.tendsto.sup_right_nhds' {ι β} [topological_space β] [has_sup β] [has_continuous_sup β]
+  {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (f ⊔ g) l (𝓝 (x ⊔ y)) :=
+(continuous_sup.tendsto _).comp (tendsto.prod_mk_nhds hf hg)
+
+lemma filter.tendsto.sup_right_nhds {ι β} [topological_space β] [has_sup β] [has_continuous_sup β]
+  {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ i, f i ⊔ g i) l (𝓝 (x ⊔ y)) :=
+hf.sup_right_nhds' hg
+
+lemma filter.tendsto.inf_right_nhds' {ι β} [topological_space β] [has_inf β] [has_continuous_inf β]
+  {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (f ⊓ g) l (𝓝 (x ⊓ y)) :=
+(continuous_inf.tendsto _).comp (tendsto.prod_mk_nhds hf hg)
+
+lemma filter.tendsto.inf_right_nhds {ι β} [topological_space β] [has_inf β] [has_continuous_inf β]
+  {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ i, f i ⊓ g i) l (𝓝 (x ⊓ y)) :=
+hf.inf_right_nhds' hg

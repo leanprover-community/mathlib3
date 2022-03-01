@@ -13,6 +13,20 @@ bornologies in terms of those, we recognize that the cobounded sets form a filte
 bornology as a filter of cobounded sets which contains the cofinite filter.  This allows us to make
 use of the extensive library for filters, but we also provide the relevant connecting results for
 bounded sets.
+
+## Main definitions
+
+- `bornology α`: a class consisting of `cobounded : filter α` and a proof that this filter
+  contains the `cofinite` filter.
+- `bornology.is_cobounded`: the predicate that a set is a member of the `cobounded α` filter. For
+  `s : set α`, one should prefer `bornology.is_cobounded s` over `s ∈ cobounded α`.
+- `bornology.is_bounded`: the predicate that states a set is bounded (i.e., the complement of a
+  cobounded set). One should prefer `bornology.is_bounded s` over `sᶜ ∈ cobounded α`.
+- `bounded_space α`: a class extending `bornology α` with the condition
+  `bornology.is_bounded (set.univ : set α)`
+
+Although use of `cobounded α` is discouraged for indicating the (co)boundedness of individual sets,
+it is intended for regular use as a filter on `α`.
 -/
 
 open set filter

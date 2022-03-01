@@ -92,7 +92,9 @@ notation α ` →ₘ[`:25 μ `] ` β := ae_eq_fun α β μ
 end measurable_space
 
 namespace ae_eq_fun
-variables [topological_space β] [measurable_space γ] [measurable_space δ]
+variables [topological_space β] [measurable_space β] [borel_space β]
+[topological_space γ] [measurable_space γ] [borel_space γ]
+[topological_space δ] [measurable_space δ] [borel_space δ]
 
 /-- Construct the equivalence class `[f]` of an almost everywhere measurable function `f`, based
     on the equivalence relation of being almost everywhere equal. -/
@@ -102,10 +104,16 @@ def mk (f : α → β) (hf : ae_strongly_measurable f μ) : α →ₘ[μ] β := 
 instance : has_coe_to_fun (α →ₘ[μ] β) (λ _, α → β) :=
 ⟨λf, ae_strongly_measurable.mk _ (quotient.out' f : {f : α → β // ae_strongly_measurable f μ}).2⟩
 
-protected lemma measurable (f : α →ₘ[μ] β) : measurable f :=
+protected lemma strongly_measurable (f : α →ₘ[μ] β) : strongly_measurable f :=
+ae_strongly_measurable.strongly_measurable_mk _
+
+protected lemma ae_strongly_measurable (f : α →ₘ[μ] β) : ae_strongly_measurable f μ :=
+f.strongly_measurable.ae_strongly_measurable
+
+protected lemma measurable [metrizable_space β] (f : α →ₘ[μ] β) : measurable f :=
 ae_strongly_measurable.measurable_mk _
 
-protected lemma ae_measurable (f : α →ₘ[μ] β) : ae_measurable f μ :=
+protected lemma ae_measurable (f : α →ₘ[μ] β) [metrizable_space β] : ae_measurable f μ :=
 f.measurable.ae_measurable
 
 @[simp] lemma quot_mk_eq_mk (f : α → β) (hf) :
@@ -116,13 +124,13 @@ rfl
   (mk f hf : α →ₘ[μ] β) = mk g hg ↔ f =ᵐ[μ] g :=
 quotient.eq'
 
-@[simp] lemma mk_coe_fn (f : α →ₘ[μ] β) : mk f f.ae_measurable = f :=
+@[simp] lemma mk_coe_fn (f : α →ₘ[μ] β) : mk f f.ae_strongly_measurable = f :=
 begin
   conv_rhs { rw ← quotient.out_eq' f },
-  set g : {f : α → β // ae_measurable f μ} := quotient.out' f with hg,
+  set g : {f : α → β // ae_strongly_measurable f μ} := quotient.out' f with hg,
   have : g = ⟨g.1, g.2⟩ := subtype.eq rfl,
   rw [this, ← mk, mk_eq_mk],
-  exact (ae_measurable.ae_eq_mk _).symm,
+  exact (ae_strongly_measurable.ae_eq_mk _).symm,
 end
 
 @[ext] lemma ext {f g : α →ₘ[μ] β} (h : f =ᵐ[μ] g) : f = g :=
@@ -133,8 +141,8 @@ lemma ext_iff {f g : α →ₘ[μ] β} : f = g ↔ f =ᵐ[μ] g :=
 
 lemma coe_fn_mk (f : α → β) (hf) : (mk f hf : α →ₘ[μ] β) =ᵐ[μ] f :=
 begin
-  apply (ae_measurable.ae_eq_mk _).symm.trans,
-  exact @quotient.mk_out' _ (μ.ae_eq_setoid β) (⟨f, hf⟩ : {f // ae_measurable f μ})
+  apply (ae_strongly_measurable.ae_eq_mk _).symm.trans,
+  exact @quotient.mk_out' _ (μ.ae_eq_setoid β) (⟨f, hf⟩ : {f // ae_strongly_measurable f μ})
 end
 
 @[elab_as_eliminator]
@@ -142,15 +150,18 @@ lemma induction_on (f : α →ₘ[μ] β) {p : (α →ₘ[μ] β) → Prop} (H :
 quotient.induction_on' f $ subtype.forall.2 H
 
 @[elab_as_eliminator]
-lemma induction_on₂ {α' β' : Type*} [measurable_space α'] [measurable_space β'] {μ' : measure α'}
+lemma induction_on₂ {α' β' : Type*} [measurable_space α'] [topological_space β']
+  [measurable_space β'] [borel_space β'] {μ' : measure α'}
   (f : α →ₘ[μ] β) (f' : α' →ₘ[μ'] β') {p : (α →ₘ[μ] β) → (α' →ₘ[μ'] β') → Prop}
   (H : ∀ f hf f' hf', p (mk f hf) (mk f' hf')) :
   p f f' :=
 induction_on f $ λ f hf, induction_on f' $ H f hf
 
 @[elab_as_eliminator]
-lemma induction_on₃ {α' β' : Type*} [measurable_space α'] [measurable_space β'] {μ' : measure α'}
-  {α'' β'' : Type*} [measurable_space α''] [measurable_space β''] {μ'' : measure α''}
+lemma induction_on₃ {α' β' : Type*} [measurable_space α'] [topological_space β']
+  [measurable_space β'] [borel_space β'] {μ' : measure α'}
+  {α'' β'' : Type*} [measurable_space α''] [topological_space β'']
+  [measurable_space β''] [borel_space β''] {μ'' : measure α''}
   (f : α →ₘ[μ] β) (f' : α' →ₘ[μ'] β') (f'' : α'' →ₘ[μ''] β'')
   {p : (α →ₘ[μ] β) → (α' →ₘ[μ'] β') → (α'' →ₘ[μ''] β'') → Prop}
   (H : ∀ f hf f' hf' f'' hf'', p (mk f hf) (mk f' hf') (mk f'' hf'')) :

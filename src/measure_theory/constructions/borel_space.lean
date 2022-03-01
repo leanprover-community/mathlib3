@@ -15,6 +15,7 @@ import topology.instances.ereal
 import topology.G_delta
 import topology.order.lattice
 import topology.semicontinuous
+import topology.metric_space.metrizable
 
 /-!
 # Borel (measurable) space
@@ -1800,8 +1801,7 @@ lemma measurable_of_tendsto_nnreal {f : ℕ → α → ℝ≥0} {g : α → ℝ�
 measurable_of_tendsto_nnreal' at_top hf lim
 
 /-- A limit (over a general filter) of measurable functions valued in a metric space is measurable.
-The assumption `hs` can be dropped using `filter.is_countably_generated.has_antitone_basis`, but we
-don't need that case yet. -/
+-/
 lemma measurable_of_tendsto_metric' {ι} {f : ι → α → β} {g : α → β}
   (u : filter ι) [ne_bot u] [is_countably_generated u]
   (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
@@ -1823,6 +1823,26 @@ lemma measurable_of_tendsto_metric {f : ℕ → α → β} {g : α → β}
   (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) :
   measurable g :=
 measurable_of_tendsto_metric' at_top hf lim
+
+/-- A limit (over a general filter) of measurable functions valued in a metrizable space is
+measurable. -/
+lemma measurable_of_tendsto_metrizable'
+  {β : Type*} [topological_space β] [metrizable_space β]
+  [measurable_space β] [borel_space β] {ι} {f : ι → α → β} {g : α → β}
+  (u : filter ι) [ne_bot u] [is_countably_generated u]
+  (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
+  measurable g :=
+begin
+  letI : metric_space β := metrizable_space_metric β,
+  exact measurable_of_tendsto_metric' u hf lim
+end
+
+/-- A sequential limit of measurable functions valued in a metrizable space is measurable. -/
+lemma measurable_of_tendsto_metrizable {β : Type*} [topological_space β] [metrizable_space β]
+  [measurable_space β] [borel_space β] {f : ℕ → α → β} {g : α → β}
+  (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) :
+  measurable g :=
+measurable_of_tendsto_metrizable' at_top hf lim
 
 lemma ae_measurable_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, ae_measurable (f n) μ)

@@ -7,6 +7,7 @@ Authors: Rémy Degenne
 import measure_theory.function.ess_sup
 import measure_theory.integral.mean_inequalities
 import topology.continuous_function.compact
+import topology.metric_space.metrizable
 
 /-!
 # Strongly measurable and finitely strongly measurable functions
@@ -190,15 +191,10 @@ hf.fin_strongly_measurable_of_set_sigma_finite measurable_set.univ (by simp)
   (by rwa measure.restrict_univ)
 
 /-- A strongly measurable function is measurable. -/
-protected lemma measurable [measurable_space α] [metric_space β] [measurable_space β]
-  [borel_space β] (hf : strongly_measurable f) :
+protected lemma measurable [measurable_space α] [topological_space β] [metrizable_space β]
+  [measurable_space β] [borel_space β] (hf : strongly_measurable f) :
   measurable f :=
-measurable_of_tendsto_metric (λ n, (hf.approx n).measurable) (tendsto_pi_nhds.mpr hf.tendsto_approx)
-
-protected lemma measurable_ennreal [measurable_space α] {f : α → ℝ≥0∞}
-  (hf : strongly_measurable f) :
-  measurable f :=
-measurable_of_tendsto_ennreal (λ n, (hf.approx n).measurable)
+measurable_of_tendsto_metrizable (λ n, (hf.approx n).measurable)
   (tendsto_pi_nhds.mpr hf.tendsto_approx)
 
 section arithmetic
@@ -322,14 +318,10 @@ begin
 end
 
 /-- A finitely strongly measurable function is measurable. -/
-protected lemma measurable [has_zero β] [metric_space β] [measurable_space β] [borel_space β]
-  (hf : fin_strongly_measurable f μ) :
+protected lemma measurable [has_zero β] [topological_space β] [metrizable_space β]
+  [measurable_space β] [borel_space β] (hf : fin_strongly_measurable f μ) :
   measurable f :=
 hf.strongly_measurable.measurable
-
-protected lemma measurable_ennreal {f : α → ℝ≥0∞} (hf : fin_strongly_measurable f μ) :
-  measurable f :=
-hf.strongly_measurable.measurable_ennreal
 
 section arithmetic
 variables [topological_space β]
@@ -438,17 +430,18 @@ lemma strongly_measurable_mk (hf : ae_strongly_measurable f μ) :
   strongly_measurable (hf.mk f) :=
 hf.some_spec.1
 
+lemma measurable_mk [metrizable_space β] [measurable_space β] [borel_space β]
+  (hf : ae_strongly_measurable f μ) :
+  measurable (hf.mk f) :=
+hf.strongly_measurable_mk.measurable
+
 lemma ae_eq_mk (hf : ae_strongly_measurable f μ) : f =ᵐ[μ] hf.mk f :=
 hf.some_spec.2
 
-protected lemma ae_measurable {β} [measurable_space β] [metric_space β] [borel_space β]
-  {f : α → β} (hf : ae_strongly_measurable f μ) :
+protected lemma ae_measurable {β} [measurable_space β] [topological_space β] [metrizable_space β]
+  [borel_space β] {f : α → β} (hf : ae_strongly_measurable f μ) :
   ae_measurable f μ :=
 ⟨hf.mk f, hf.strongly_measurable_mk.measurable, hf.ae_eq_mk⟩
-
-protected lemma ae_measurable_ennreal {f : α → ℝ≥0∞} (hf : ae_strongly_measurable f μ) :
-  ae_measurable f μ :=
-⟨hf.mk f, hf.strongly_measurable_mk.measurable_ennreal, hf.ae_eq_mk⟩
 
 end mk
 
@@ -523,14 +516,11 @@ hf.some_spec.1
 lemma ae_eq_mk (hf : ae_fin_strongly_measurable f μ) : f =ᵐ[μ] hf.mk f :=
 hf.some_spec.2
 
-protected lemma ae_measurable {β} [has_zero β] [measurable_space β] [metric_space β] [borel_space β]
+protected lemma ae_measurable {β} [has_zero β] [measurable_space β] [topological_space β]
+  [metrizable_space β] [borel_space β]
   {f : α → β} (hf : ae_fin_strongly_measurable f μ) :
   ae_measurable f μ :=
 ⟨hf.mk f, hf.fin_strongly_measurable_mk.measurable, hf.ae_eq_mk⟩
-
-protected lemma ae_measurable_ennreal {f : α → ℝ≥0∞} (hf : ae_fin_strongly_measurable f μ) :
-  ae_measurable f μ :=
-⟨hf.mk f, hf.fin_strongly_measurable_mk.measurable_ennreal, hf.ae_eq_mk⟩
 
 end mk
 

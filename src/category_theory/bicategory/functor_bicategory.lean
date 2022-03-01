@@ -55,7 +55,7 @@ modification_iso.of_components (λ a, α_ (η.app a) (θ.app a) (ι.app a))
 begin
   intros a b f,
   dsimp,
-  simp only [whisker_right_comp, whisker_left_comp, assoc],
+  simp only [bicategory.whisker_right_comp, bicategory.whisker_left_comp, assoc],
   rw [←pentagon_inv_inv_hom_hom_inv_assoc, ←associator_naturality_left_assoc,
       pentagon_hom_hom_inv_hom_hom_assoc, ←associator_naturality_middle_assoc,
       ←pentagon_inv_hom_hom_hom_hom_assoc, ←associator_naturality_right_assoc,
@@ -69,7 +69,8 @@ modification_iso.of_components (λ a, λ_ (η.app a))
 begin
   intros a b f,
   dsimp,
-  simp only [triangle_assoc_comp_right_assoc, whisker_right_comp, assoc, whisker_exchange_assoc],
+  simp only [triangle_assoc_comp_right_assoc,
+    bicategory.whisker_right_comp, assoc, whisker_exchange_assoc],
   rw [←left_unitor_comp, left_unitor_naturality, left_unitor_comp],
   simp only [iso.hom_inv_id_assoc, inv_hom_whisker_right_assoc, assoc, whisker_exchange_assoc]
 end
@@ -82,7 +83,7 @@ begin
   intros a b f,
   dsimp,
   simp only [triangle_assoc_comp_left_inv, inv_hom_whisker_right_assoc, whisker_exchange,
-    assoc, whisker_left_comp],
+    assoc, bicategory.whisker_left_comp],
   rw [←right_unitor_comp, right_unitor_naturality, right_unitor_comp],
   simp only [iso.inv_hom_id_assoc, assoc]
 end

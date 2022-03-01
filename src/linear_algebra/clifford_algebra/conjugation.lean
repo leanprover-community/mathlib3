@@ -3,7 +3,7 @@ Copyright (c) 2020 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import linear_algebra.clifford_algebra.basic
+import linear_algebra.clifford_algebra.grading
 import algebra.module.opposites
 
 /-!
@@ -25,6 +25,9 @@ https://en.wikipedia.org/wiki/Clifford_algebra#Antiautomorphisms
 * `clifford_algebra.involute_involutive`
 * `clifford_algebra.reverse_involutive`
 * `clifford_algebra.reverse_involute_commute`
+* `clifford_algebra.involute_mem_even_odd_iff`
+* `clifford_algebra.reverse_mem_even_odd_iff`
+
 -/
 
 variables {R : Type*} [comm_ring R]
@@ -50,6 +53,38 @@ alg_hom.congr_fun involute_comp_involute
 
 @[simp] lemma involute_involute : ∀ a : clifford_algebra Q, involute (involute a) = a :=
 involute_involutive
+
+lemma involute_mem_range_ι_pow {x : clifford_algebra Q} {n : ℕ} (hx : x ∈ (ι Q).range ^ n) :
+  involute x ∈ (ι Q).range ^ n :=
+begin
+  apply submodule.pow_induction_on' _ (λ r, _) (λ x y i hx hy, _) (λ y hy i x hx ihx, _) hx,
+  { rw [alg_hom.commutes, pow_zero],
+    exact (submodule.algebra_map_mem r) },
+  { rw map_add,
+    exact submodule.add_mem _, },
+  { obtain ⟨m, rfl⟩ := hy,
+    rw [map_mul, involute_ι, neg_mul, submodule.neg_mem_iff, pow_succ],
+    apply submodule.mul_mem_mul (linear_map.mem_range_self _ m) ihx }
+end
+
+@[simp] lemma involute_mem_range_ι_pow_iff {x : clifford_algebra Q} {n : ℕ} :
+  involute x ∈ (ι Q).range ^ n ↔ x ∈ (ι Q).range ^ n :=
+⟨λ h, involute_involute x ▸ involute_mem_range_ι_pow h, involute_mem_range_ι_pow⟩
+
+lemma involute_mem_even_odd {x : clifford_algebra Q} {n : zmod 2} (hx : x ∈ even_odd Q n) :
+  involute x ∈ even_odd Q n :=
+begin
+  apply submodule.supr_induction _ hx _ _ (λ x y, _) ,
+  { rintros i x hx,
+    rw ← involute_mem_range_ι_pow_iff at hx,
+    exact submodule.mem_supr_of_mem _ hx },
+  { rw map_zero, exact submodule.zero_mem _ },
+  { rw map_add, exact submodule.add_mem _ },
+end
+
+@[simp] lemma involute_mem_even_odd_iff {x : clifford_algebra Q} {n : zmod 2} :
+  involute x ∈ even_odd Q n ↔ x ∈ even_odd Q n :=
+⟨λ h, involute_involute x ▸ involute_mem_even_odd h, involute_mem_even_odd⟩
 
 end involute
 
@@ -116,6 +151,38 @@ linear_map.congr_fun reverse_comp_involute
 
 lemma reverse_involute : ∀ a : clifford_algebra Q, reverse (involute a) = involute (reverse a) :=
 reverse_involute_commute
+
+lemma reverse_mem_range_ι_pow {x : clifford_algebra Q} {n : ℕ} (hx : x ∈ (ι Q).range ^ n) :
+  reverse x ∈ (ι Q).range ^ n :=
+begin
+  apply submodule.pow_induction_on' _ (λ r, _) (λ x y i hx hy, _) (λ y hy i x hx ihx, _) hx,
+  { rw [reverse.commutes, pow_zero],
+    exact submodule.algebra_map_mem r },
+  { rw map_add,
+    exact submodule.add_mem _, },
+  { obtain ⟨m, rfl⟩ := hy,
+    rw [reverse.map_mul, reverse_ι, pow_succ'],
+    exact submodule.mul_mem_mul ihx (linear_map.mem_range_self _ _) }
+end
+
+@[simp] lemma reverse_mem_range_ι_pow_iff {x : clifford_algebra Q} {n : ℕ} :
+  reverse x ∈ (ι Q).range ^ n ↔ x ∈ (ι Q).range ^ n :=
+⟨λ h, reverse_reverse x ▸ reverse_mem_range_ι_pow h, reverse_mem_range_ι_pow⟩
+
+lemma reverse_mem_even_odd {x : clifford_algebra Q} {n : zmod 2} (hx : x ∈ even_odd Q n) :
+  reverse x ∈ even_odd Q n :=
+begin
+  apply submodule.supr_induction _ hx _ _ (λ x y, _) ,
+  { rintros i x hx,
+    rw ←reverse_mem_range_ι_pow_iff at hx,
+    exact submodule.mem_supr_of_mem _ hx },
+  { rw map_zero, exact submodule.zero_mem _ },
+  { rw map_add, exact submodule.add_mem _ },
+end
+
+@[simp] lemma reverse_mem_even_odd_iff {x : clifford_algebra Q} {n : zmod 2} :
+  reverse x ∈ even_odd Q n ↔ x ∈ even_odd Q n :=
+⟨λ h, reverse_reverse x ▸ reverse_mem_even_odd h, reverse_mem_even_odd⟩
 
 end reverse
 

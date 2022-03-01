@@ -100,8 +100,6 @@ instance valued.topological_division_ring [valued K Γ₀] : topological_divisio
     end,
   ..(by apply_instance : topological_ring K) }
 
-
-
 /-- A valued division ring is separated. -/
 @[priority 100]
 instance valued_ring.separated [valued K Γ₀] : separated_space K :=

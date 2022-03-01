@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import analysis.von_neumann_algebra.basic
 import topology.algebra.algebra
 import analysis.seminorm
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Von Neumann's double commutant theorem
@@ -145,8 +146,8 @@ end star_subalgebra
 namespace star_subalgebra
 variables (𝕜 : Type*) [is_R_or_C 𝕜] (H : Type*) --[inner_product_space 𝕜 H] [complete_space H]
 
-example [inner_product_space 𝕜 H] (ι : Type*) [fintype ι] :
-  inner_product_space 𝕜 (ι → H) := by apply_instance
+-- example [inner_product_space 𝕜 H] (ι : Type*) [fintype ι] :
+--   inner_product_space 𝕜 (ι → H) := by apply_instance
 
 example [inner_product_space 𝕜 H] (ι : Type*) [fintype ι] :
   inner_product_space 𝕜 (pi_Lp 2 (λ i : ι, H)) := by apply_instance

@@ -318,32 +318,6 @@ end
       apply subsingleton.elim } }
 end, λ ⟨a, e⟩, by simp [e]⟩
 
-@[simp] theorem cof_add (a b : ordinal) : b ≠ 0 → cof (a + b) = cof b :=
-induction_on a $ λ α r _, induction_on b $ λ β s _ b0, begin
-  resetI,
-  change cof (type _) = _,
-  refine eq_of_forall_le_iff (λ c, _),
-  rw [le_cof_type, le_cof_type],
-  split; intros H S hS,
-  { refine le_trans (H {a | sum.rec_on a (∅:set α) S} (λ a, _)) ⟨⟨_, _⟩⟩,
-    { cases a with a b,
-      { cases type_ne_zero_iff_nonempty.1 b0 with b,
-        rcases hS b with ⟨b', bs, _⟩,
-        exact ⟨sum.inr b', bs, by simp⟩ },
-      { rcases hS b with ⟨b', bs, h⟩,
-        exact ⟨sum.inr b', bs, by simp [h]⟩ } },
-    { exact λ a, match a with ⟨sum.inr b, h⟩ := ⟨b, h⟩ end },
-    { exact λ a b, match a, b with
-        ⟨sum.inr a, h₁⟩, ⟨sum.inr b, h₂⟩, h := by congr; injection h
-      end } },
-  { refine le_trans (H (sum.inr ⁻¹' S) (λ a, _)) ⟨⟨_, _⟩⟩,
-    { rcases hS (sum.inr a) with ⟨a'|b', bs, h⟩; simp at h,
-      { cases h }, { exact ⟨b', bs, h⟩ } },
-    { exact λ ⟨a, h⟩, ⟨_, h⟩ },
-    { exact λ ⟨a, h₁⟩ ⟨b, h₂⟩ h,
-        by injection h with h; congr; injection h } }
-end
-
 /-- A fundamental sequence for `a`, or FS for short, is an increasing sequence of length
     `o = cof a` that converges at `a`. We provide `o` explicitly in order to avoid type rewrites. -/
 def is_fs (a o : ordinal.{u}) (f : Π b < o, ordinal.{u}) : Prop :=
@@ -448,12 +422,21 @@ let ⟨g, hg⟩ := exists_fs a in ord_injective (hf.is_fs ha hg).cof_eq
 
 theorem is_normal.cof_le {f} (hf : is_normal f) (a) : cof a ≤ cof (f a) :=
 begin
-  rcases zero_or_succ_or_limit a with rfl | ⟨b, hb⟩ | ha,
+  rcases zero_or_succ_or_limit a with rfl | ⟨b, rfl⟩ | ha,
   { rw cof_zero,
     exact zero_le _ },
-  { rw [hb, cof_succ, cardinal.one_le_iff_ne_zero, cof_ne_zero, ←ordinal.pos_iff_ne_zero],
+  { rw [cof_succ, cardinal.one_le_iff_ne_zero, cof_ne_zero, ←ordinal.pos_iff_ne_zero],
     exact (ordinal.zero_le (f b)).trans_lt (hf.1 b) },
   { rw hf.cof_eq ha }
+end
+
+@[simp] theorem cof_add (a b : ordinal) : b ≠ 0 → cof (a + b) = cof b :=
+begin
+  intro hb,
+  rcases zero_or_succ_or_limit b with rfl | ⟨c, rfl⟩ | hb,
+  { contradiction },
+  { rw [add_succ, cof_succ, cof_succ] },
+  { exact (add_is_normal a).cof_eq hb }
 end
 
 @[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=

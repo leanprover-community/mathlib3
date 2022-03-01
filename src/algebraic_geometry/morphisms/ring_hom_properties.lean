@@ -293,7 +293,7 @@ lemma target_affine_locally_is_iso :
 begin
   ext X Y f,
   split,
-  { intro H, rw ring_hom.Scheme.is_iso_iff_stalk, , }
+  { intro H, rw ring_hom.Scheme.is_iso_iff_stalk, sorry }, sorry
 end
 
 def source_affine_locally : affine_target_morphism_property :=

@@ -173,7 +173,6 @@ begin
   exact equalizer.hom_ext h,
 end
 
--- Should this be tagged with `simp`?
 @[simp, reassoc]
 lemma π'_ι : π' f g w ≫ ι f g w = kernel.ι _ ≫ cokernel.π _ :=
 by { dsimp [π', ι, homology_iso_kernel_desc], simp }

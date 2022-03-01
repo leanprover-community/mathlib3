@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.has_limits
 import category_theory.products.basic
-import category_theory.currying
+import category_theory.functor.currying
 
 /-!
 # A Fubini theorem for categorical limits

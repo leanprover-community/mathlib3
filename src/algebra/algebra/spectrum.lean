@@ -82,11 +82,7 @@ noncomputable def is_unit.sub_inv_smul {r : Rˣ} {s : R} {a : A}
 -- products of scalar units and algebra units
 lemma is_unit.smul_sub_iff_sub_inv_smul {r : Rˣ} {a : A} :
   is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
-begin
-  have a_eq : a = r•r⁻¹•a, by simp,
-  nth_rewrite 0 a_eq,
-  rw [←smul_sub,is_unit_smul_iff],
-end
+by rw [←@is_unit_smul_iff _ _ _ _ _ _ _ r (1 - r⁻¹ • a), smul_sub, smul_inv_smul]
 
 end defs
 

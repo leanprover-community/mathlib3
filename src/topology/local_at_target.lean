@@ -95,7 +95,7 @@ begin
       }
 end
 
-lemma bijective_iff_bijective_res_of_supr_eq_top :
-  function.bijective f ↔ ∀ i, function.bijective ((U i).1.res f) := sorry
-lemma bijective_iff_bijective_res_of_supr_eq_top :
-  function.bijective f ↔ ∀ i, function.bijective ((U i).1.res f) := sorry
+-- lemma bijective_iff_bijective_res_of_supr_eq_top :
+--   function.bijective f ↔ ∀ i, function.bijective ((U i).1.res f) := sorry
+-- lemma bijective_iff_bijective_res_of_supr_eq_top :
+--   function.bijective f ↔ ∀ i, function.bijective ((U i).1.res f) := sorry

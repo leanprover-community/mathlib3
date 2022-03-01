@@ -94,19 +94,6 @@ ihom.ev A
 abbreviation coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
 ihom.coev A
 
--- @[simp] lemma exp_adjunction_counit : (exp.adjunction A).counit = ev A := rfl
--- @[simp] lemma exp_adjunction_unit : (exp.adjunction A).unit = coev A := rfl
-
--- @[simp, reassoc]
--- lemma ev_naturality {X Y : C} (f : X ⟶ Y) :
---   limits.prod.map (𝟙 A) ((exp A).map f) ≫ (ev A).app Y = (ev A).app X ≫ f :=
--- (ev A).naturality f
-
--- @[simp, reassoc]
--- lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
---   f ≫ (coev A).app Y = (coev A).app X ≫ (exp A).map (limits.prod.map (𝟙 A) f) :=
--- (coev A).naturality f
-
 notation A ` ⟹ `:20 B:19 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
 

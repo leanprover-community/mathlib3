@@ -34,10 +34,9 @@ all intermediate fields `E` with `E/K` finite dimensional.
 
 ## Main Results
 
-- `krull_topology_t2 K L h_int`. For an integral field extension `L/K`,`krull_topology_t2 K L h_int`
-  is a term of type `t2_space(L ≃ₐ[K] L)`. The existence of the such a term implies that the Krull
-  topology is Hausdorff. Here `h_int` is a term of type `∀ (x : L), is_integral K x`. That is,
-  `h_int` is a proof that the extension `L/K` is integral.
+- `krull_topology_t2 K L h_int`. For an integral field extension `L/K` (one that satisfies
+  `h_int : algebra.is_integral K L`), the Krull topology on `L ≃ₐ[K] L`, `krull_topology K L`,
+  is Hausdorff.
 
 ## Notations
 
@@ -250,8 +249,8 @@ lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
     have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
     rw mem_nhds_iff at h_nhd,
     rcases h_nhd with ⟨W, hWH, hW_open, hW_1⟩,
-    refine ⟨left_coset f W, left_coset g W, ⟨is_open.left_coset hW_open f,
-      is_open.left_coset hW_open g, ⟨1, hW_1, by apply mul_one⟩, ⟨1, hW_1, by apply mul_one⟩, _⟩⟩,
+    refine ⟨left_coset f W, left_coset g W,
+      ⟨hW_open.left_coset f, hW_open.left_coset g, ⟨1, hW_1, mul_one _⟩, ⟨1, hW_1, mul_one _⟩, _⟩⟩,
     by_contra h_nonempty,
     change left_coset f W ∩ left_coset g W ≠ ∅ at h_nonempty,
     rw set.ne_empty_iff_nonempty at h_nonempty,

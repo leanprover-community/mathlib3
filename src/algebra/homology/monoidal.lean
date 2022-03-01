@@ -265,43 +265,43 @@ instance : braided_category (graded_object ℕ C) :=
   hexagon_forward' := sorry,
   hexagon_reverse' := sorry, }
 
-variables [has_equalizers C] [has_images C] [has_image_maps C] [has_cokernels C]
+/-!
+At this point we specialise to `C = Module R`,
+and prove that the homology functor is lax monoidal.
+I'm not certain how far this could be generalised.
+-/
 
-variables (C)
+variables (R : Type) [comm_ring R]
 
 def lax_monoidal_ε :
-  𝟙_ (graded_object ℕ C) ⟶
-    (graded_homology_functor C (complex_shape.up ℕ)).obj (𝟙_ _) :=
+  𝟙_ (graded_object ℕ (Module.{0} R)) ⟶
+    (graded_homology_functor (Module.{0} R) (complex_shape.up ℕ)).obj (𝟙_ _) :=
 by exact λ i, match i with
 | 0 := sorry
 | n+1 := 0
 end
 
-def lax_monoidal_μ (X Y : cochain_complex C ℕ) :
-  (graded_homology_functor C (complex_shape.up ℕ)).obj X ⊗
-    (graded_homology_functor C (complex_shape.up ℕ)).obj Y ⟶
-  (graded_homology_functor C (complex_shape.up ℕ)).obj (X ⊗ Y) :=
+def lax_monoidal_μ (X Y : cochain_complex (Module.{0} R) ℕ) :
+  (graded_homology_functor (Module.{0} R) (complex_shape.up ℕ)).obj X ⊗
+    (graded_homology_functor (Module.{0} R) (complex_shape.up ℕ)).obj Y ⟶
+  (graded_homology_functor (Module.{0} R) (complex_shape.up ℕ)).obj (X ⊗ Y) :=
 by exact λ i, biproduct.desc (λ ⟨⟨j,k⟩,h⟩,
 begin dsimp, sorry end)
 
-instance : lax_monoidal (graded_homology_functor C (complex_shape.up ℕ)).obj :=
-{ ε := lax_monoidal_ε C,
-  μ := lax_monoidal_μ C,
+instance : lax_monoidal (graded_homology_functor (Module.{0} R) (complex_shape.up ℕ)).obj :=
+{ ε := lax_monoidal_ε R,
+  μ := lax_monoidal_μ R,
   μ_natural' := sorry,
   associativity' := sorry,
   left_unitality' := sorry,
   right_unitality' := sorry, }
 
-def graded_homology_lax_monoidal_functor : lax_monoidal_functor (cochain_complex C ℕ) (graded_object ℕ C) :=
-lax_monoidal_functor.of (graded_homology_functor C (complex_shape.up ℕ)).obj
+def graded_homology_lax_monoidal_functor : lax_monoidal_functor (cochain_complex (Module.{0} R) ℕ) (graded_object ℕ (Module.{0} R)) :=
+lax_monoidal_functor.of (graded_homology_functor (Module.{0} R) (complex_shape.up ℕ)).obj
 
-def graded_homology_lax_braided_functor : lax_braided_functor (cochain_complex C ℕ) (graded_object ℕ C) :=
+def graded_homology_lax_braided_functor : lax_braided_functor (cochain_complex (Module.{0} R) ℕ) (graded_object ℕ (Module.{0} R)) :=
 { braided' := sorry,
-  ..graded_homology_lax_monoidal_functor C }
+  ..graded_homology_lax_monoidal_functor R }
 
-def CDGA_challenge : CommMon_ (cochain_complex C ℕ) ⥤ CommMon_ (graded_object ℕ C) :=
-(graded_homology_lax_braided_functor C).map_CommMon
-
-def CDGA_challenge' (R : Type) [comm_ring R] :
-  CommMon_ (cochain_complex (Module.{0} R) ℕ) ⥤ CommMon_ (graded_object ℕ (Module.{0} R)) :=
-CDGA_challenge _
+def CDGA_challenge : CommMon_ (cochain_complex (Module.{0} R) ℕ) ⥤ CommMon_ (graded_object ℕ (Module.{0} R)) :=
+(graded_homology_lax_braided_functor R).map_CommMon

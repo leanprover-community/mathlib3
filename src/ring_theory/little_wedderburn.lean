@@ -12,12 +12,8 @@ import tactic.by_contra
 # Little Wedderburn TODO
 -/
 
-noncomputable theory
+--noncomputable theory
 open_locale classical nnreal big_operators
-
--- move this
-lemma fintype.card_pos (X : Type*) [h : nonempty X] [fintype X] : 0 < fintype.card X :=
-fintype.card_pos_iff.mpr h
 
 lemma int.dvd_div_of_mul_dvd {a b c : ℤ} (h : a * b ∣ c) : b ∣ c / a :=
 begin
@@ -32,18 +28,16 @@ lemma finset.prod_dvd_prod_of_subset {ι M : Type*} [comm_monoid M] (s t : finse
 by { rw [← finset.prod_sdiff h], exact dvd_mul_left _ _ }
 
 -- move this
-@[simps] def complex.abs_hom : ℂ →* ℝ :=
+@[simps] noncomputable def complex.abs_hom : ℂ →*₀ ℝ :=
 { to_fun := complex.abs,
+  map_zero' := complex.abs_zero,
   map_one' := complex.abs_one,
   map_mul' := complex.abs_mul }
 
+-- todo: `map_prod` `fun-like`.
 @[simp] lemma complex.abs_prod {ι : Type*} (s : finset ι) (f : ι → ℂ) :
   complex.abs (s.prod f) = s.prod (λ i, complex.abs (f i)) :=
-complex.abs_hom.map_prod _ _
-
-lemma complex.sq_abs (z : ℂ) : z.abs ^ 2 = z.re ^ 2 + z.im ^ 2 :=
-by { rw [complex.abs, real.sq_sqrt, complex.norm_sq_apply, pow_two, pow_two],
-  exact complex.norm_sq_nonneg _ }
+(complex.abs_hom).to_monoid_hom.map_prod _ _
 
 @[simp] lemma complex.nnnorm_coe_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
 by { ext, simp only [complex.norm_real, coe_nnnorm], }
@@ -65,7 +59,7 @@ lemma complex.nnnorm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) 
   ∥ζ∥₊ = 1 :=
 begin
   refine (@pow_left_inj ℝ≥0 _ _ _ _ zero_le' zero_le' hn.bot_lt).mp _,
-  rw [← normed_field.nnnorm_pow, h, nnnorm_one, one_pow],
+  rw [←nnnorm_pow, h, nnnorm_one, one_pow],
 end
 
 lemma complex.norm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
@@ -125,7 +119,7 @@ begin
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn'.ne',
   have hζ' : ζ ∈ primitive_roots n ℂ, { rwa mem_primitive_roots hn', },
   have norm_ζ : ∥ζ∥ = 1 := hζ.norm_eq_one hn'.ne',
-  rw [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, normed_field.nnnorm_prod],
+  rw [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, nnnorm_prod],
   simp only [eval_C, eval_X, ring_hom.eq_int_cast, eval_sub],
   rw [← finset.prod_sdiff (finset.singleton_subset_iff.mpr hζ'), finset.prod_singleton],
   rw ← one_mul ↑(q - 1), swap, apply_instance,
@@ -258,39 +252,38 @@ open finite_dimensional polynomial
 
 variables {D}
 
-protected def field (hD : induction_hyp D) (R : subring D) (hR : R < ⊤) : field R :=
+protected noncomputable def field (hD : induction_hyp D) (R : subring D) (hR : R < ⊤) : field R :=
 { mul_comm := λ x y, subtype.ext $ hD R hR x.2 y.2,
-  ..(show division_ring R, from division_ring_of_domain R)}
+  ..(show division_ring R, from division_ring_of_is_domain R)}
 
 lemma center_eq_top (hD : induction_hyp D) : subring.center D = ⊤ :=
 begin
   set Z := subring.center D,
-  by_contra hZ, replace hZ := ne.lt_top hZ,
+  by_contra hZ,
+  replace hZ := ne.lt_top hZ,
   letI : field Z := hD.field Z hZ,
   set q := fintype.card Z with card_Z,
   have hq : 2 ≤ q, { rw card_Z, exact fintype.one_lt_card },
   have h1q : 1 ≤ q := one_le_two.trans hq,
   let n := finrank Z D,
-  have hn : 1 < n,
-  { by_contra' hn : n ≤ 1,
-    rw finrank_le_one_iff at hn,
+  cases le_or_lt n 1 with hn hn,
+  { rw finrank_le_one_iff at hn,
     rcases hn with ⟨x, hx⟩,
     refine not_le_of_lt hZ _,
     rintro y - z,
     obtain ⟨r, rfl⟩ := hx y, obtain ⟨s, rfl⟩ := hx z,
     show (s.1 * x) * (r.1 * x) = (r.1 * x) * (s.1 * x),
-    rw [← r.2, ← s.2, mul_assoc, mul_assoc, ← r.2, ← s.2, mul_assoc, mul_assoc, r.2], },
-  have h0n : 0 < n := zero_lt_one.trans hn,
+    rw [← r.2, ← s.2, mul_assoc, mul_assoc, ← r.2, ← s.2, mul_assoc, mul_assoc, r.2] },
   have card_D : fintype.card D = q ^ n := card_eq_pow_finrank,
-  have h1qn : 1 ≤ q ^ n, { rw ← card_D, exact fintype.card_pos _ },
+  have h1qn : 1 ≤ q ^ n, { rw ← card_D, exact fintype.card_pos },
   have key := class_equation (units D),
   simp only [nat.card_eq_fintype_card] at key,
   rw [fintype.card_congr (center_units_equiv_units_center D).to_equiv,
     fintype.card_units, ← card_Z, fintype.card_units, card_D] at key,
   let Φ := cyclotomic n ℤ,
-  have aux : Φ.eval q ∣ q^n - 1,
-  { simpa only [eval_X, eval_one, eval_pow, eval_sub, coe_eval_ring_hom] using
-      (eval_ring_hom (q : ℤ)).map_dvd (cyclotomic_dvd_X_pow_sub_one n h0n.ne' ℤ), },
+  have aux : Φ.eval q ∣ q ^ n - 1,
+  { simpa only [eval_X, eval_one, eval_pow, eval_sub, coe_eval_ring_hom]
+    using (eval_ring_hom (q : ℤ)).map_dvd (cyclotomic.dvd_X_pow_sub_one n ℤ) },
   apply_fun (coe : ℕ → ℤ) at key,
   simp only [nat.cast_one, nat.cast_pow,
     ←int.nat_cast_eq_coe_nat, nat.cast_add, nat.cast_sub h1qn] at key aux,
@@ -310,7 +303,8 @@ begin
     ← fintype.card_congr (units_centralizer_equiv x).to_equiv],
   set Zx := subring.centralizer (x:D),
   have hZx : Zx < ⊤,
-  { rw lt_top_iff_ne_top, intro hZx,
+  { rw lt_top_iff_ne_top,
+    intro hZx,
     have Hx := mem_center_units_of_coe_mem_center _
       (subring.mem_center_of_centralizer_eq_top hZx),
     simp only [set.mem_to_finset, conj_classes.quot_mk_eq_mk] at hx,
@@ -319,7 +313,7 @@ begin
   letI : algebra Z Zx := (subring.inclusion' $ subring.center_le_centralizer (x : D)).to_algebra,
   let d := finrank Z Zx,
   have card_Zx : fintype.card Zx = q ^ d := card_eq_pow_finrank,
-  have h1qd : 1 ≤ q ^ d, { rw ← card_Zx, exact fintype.card_pos _ },
+  have h1qd : 1 ≤ q ^ d, { rw ← card_Zx, exact fintype.card_pos },
   haveI : is_scalar_tower Z Zx D := ⟨λ x y z, mul_assoc _ _ _⟩,
   have hdn : d ∣ n := ⟨_, (finrank_mul_finrank Z Zx D).symm⟩,
   rw [fintype.card_units, card_Zx, int.coe_nat_div],
@@ -352,13 +346,14 @@ begin
   intros R hR x y hx hy,
   suffices : (⟨y,hy⟩ : R) ∈ subring.center R,
   { exact congr_arg subtype.val (this ⟨x, hx⟩), },
-  letI R_dr : division_ring R := division_ring_of_domain R,
+  letI R_dr : division_ring R := division_ring_of_is_domain R,
   rw IH (fintype.card R) _ R le_rfl, { trivial },
   obtain ⟨b, -, hb⟩ := set_like.exists_of_lt hR,
-  refine lt_of_lt_of_le (fintype.card_lt_of_injective_of_not_mem _ subtype.val_injective _) hD,
-  exact b,
+  refine (fintype.card_lt_of_injective_of_not_mem _ subtype.val_injective _).trans_le hD,
+  { exact b },
   simp only [not_exists, set.mem_range, subtype.val_eq_coe],
-  rintro y rfl, exact hb y.2
+  rintro y rfl,
+  exact hb y.2
 end
 
 end little_wedderburn

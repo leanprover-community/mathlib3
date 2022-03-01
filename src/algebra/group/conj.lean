@@ -168,7 +168,7 @@ quotient.fintype (is_conj.setoid α)
 instance [decidable_rel (is_conj : α → α → Prop)] : decidable_eq (conj_classes α) :=
 quotient.decidable_eq
 
-noncomputable
+-- can this be an instance?
 lemma decidable_rel_is_conj [decidable_eq α] [fintype α] :
   decidable_rel (is_conj : α → α → Prop) :=
 λ a b, by { delta is_conj semiconj_by, apply_instance }

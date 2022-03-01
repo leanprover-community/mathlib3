@@ -258,19 +258,13 @@ calc volume ((* a) ⁻¹' s) = measure.map (* a) volume s :
   ((homeomorph.mul_right₀ a h).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_right h, refl }
 
-@[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
-eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [show measure.map has_neg.neg volume (Ioo (p : ℝ) q) = _,
-    from measure.map_apply measurable_neg measurable_set_Ioo]
+instance : is_neg_invariant (volume : measure ℝ) :=
+⟨eq.symm $ real.measure_ext_Ioo_rat $ λ p q, by simp [show volume.neg (Ioo (p : ℝ) q) = _,
+  from measure.map_apply measurable_neg measurable_set_Ioo]⟩
 
 /-!
 ### Images of the Lebesgue measure under translation/linear maps in ℝⁿ
 -/
-
--- for some reason `apply_instance` doesn't find this
-instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
-  is_add_left_invariant (volume : measure (ι → ℝ)) :=
-pi.is_add_left_invariant_volume
 
 open matrix
 

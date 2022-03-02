@@ -1,4 +1,39 @@
+/-
+Copyright (c) 2022 Kexing Ying. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kexing Ying
+-/
 import measure_theory.function.convergence_in_measure
+
+/-!
+# Uniform integrability
+
+This file contains the definitions for uniform integrability (both in the measure theory sense
+as well as the probability theory sense). This file also contains the Vitali convergence theorem
+which estabishes a relation between uniform integrability, convergence in measure and
+Lp convergence.
+
+Uniform integrability plays a vital role in the theory of martingales most notably is used to
+fomulate the martingale convergence theorem.
+
+## Main definitions
+
+* `measure_theory.unif_integrable`: uniform integrability in the measure theory sense.
+* `measure_theory.uniform_integrable`: uniform integrability in the probability theory sense.
+
+# Main results
+
+* `measure_theory.unif_integrable_fintype`: a finite sequence of Lp functions is uniformly
+  integrable.
+* `measure_theory.tendsto_Lp_of_tendsto_ae`: a sequence of Lp functions which is uniformly
+  integrable converges in Lp if they converge almost everywhere.
+* `measure_theory.tendsto_in_measure_iff_tendsto_Lp`: Vitali convergence theorem:
+  a sequence of Lp functions converges in Lp if and only if it is uniformly integrable
+  and converges in measure.
+
+## Tags
+uniform integrable, uniformly absolutely continuous integral, Vitali convergence theorem
+-/
 
 noncomputable theory
 open_locale classical measure_theory nnreal ennreal topological_space
@@ -11,13 +46,58 @@ begin
   rw [ennreal.rpow_mul, ← one_div, ennreal.rpow_le_rpow_iff (one_div_pos.2 ha)],
 end
 
+section
+
+open filter
+
+-- a sequence is convergent if and only if every subsequence has a convergent subsequence
+lemma tendsto_at_top_of_seq_tendsto_at_top
+  {α : Type*} [topological_space α] {x : ℕ → α} {y : α}
+  (hxy : ∀ ns : ℕ → ℕ, tendsto ns at_top at_top →
+    ∃ ms : ℕ → ℕ, tendsto (λ n, x (ns $ ms n)) at_top (𝓝 y)) :
+  tendsto (λ n, x n) at_top (𝓝 y) :=
+begin
+  by_contra h,
+  obtain ⟨s, hs, hfreq⟩ : ∃ s ∈ 𝓝 y, ∃ᶠ n in at_top, x n ∉ s,
+  { by_contra h', push_neg at h',
+    simp_rw frequently_at_top at h',
+    refine h (λ s hs, _),
+    specialize h' s hs,
+    push_neg at h',
+    exact mem_at_top_sets.2 h' },
+  choose ns hge hns using frequently_at_top.1 hfreq,
+  obtain ⟨ms, hns'⟩ := hxy ns (tendsto_at_top_mono hge tendsto_id),
+  obtain ⟨a, ha⟩ := (tendsto_at_top'.1 hns') s hs,
+  exact hns (ms a) (ha a le_rfl),
+end
+
+lemma tendsto_at_top_of_seq_tendsto_at_top'
+  {α : Type*} [topological_space α] {x : ℕ → α} {y : α}
+  (hxy : ∀ ns : ℕ → ℕ, strict_mono ns →
+    ∃ ms : ℕ → ℕ, tendsto (λ n, x (ns $ ms n)) at_top (𝓝 y)) :
+  tendsto (λ n, x n) at_top (𝓝 y) :=
+begin
+  refine tendsto_at_top_of_seq_tendsto_at_top (λ ns hns, _),
+  obtain ⟨ms, hms⟩ := strict_mono_subseq_of_tendsto_at_top hns,
+  obtain ⟨os, hos⟩ := hxy _ hms.2,
+  exact ⟨ms ∘ os, hos⟩,
+end
+
+end
+
 namespace measure_theory
 
 open set filter topological_space
 
 variables {α β ι : Type*} {m : measurable_space α} {μ : measure α} [normed_group β]
 
-/-- Also known as uniformly absolutely continuous integrals. -/
+/-- Uniform integrability in the measure theory sense.
+
+A sequence of functions `f` is said to be uniformly integrable if for all `ε > 0`, there exists
+some `δ > 0` such that for all sets `s` with measure less than `δ`, the Lp-norm of `f i`
+restricted on `s` is less than `ε`.
+
+Uniform integrablility is also known as uniformly absolutely continuous integrals. -/
 def unif_integrable {m : measurable_space α} (f : ι → α → β) (p : ℝ≥0∞) (μ : measure α) : Prop :=
 ∀ ⦃ε : ℝ⦄ (hε : 0 < ε), ∃ (δ : ℝ) (hδ : 0 < δ), ∀ i s, measurable_set s → μ s ≤ ennreal.of_real δ →
 snorm (s.indicator (f i)) p μ ≤ ennreal.of_real ε
@@ -28,11 +108,24 @@ def uniform_integrable {m : measurable_space α} [measurable_space β]
   (μ : measure α) (f : ι → α → β) (p : ℝ≥0∞) : Prop :=
 (∀ i, measurable (f i)) ∧ unif_integrable f p μ ∧ ∃ C : ℝ≥0, ∀ i, snorm (f i) p μ ≤ C
 
+lemma uniform_integrable.measurable [measurable_space β] {f : ι → α → β} {p : ℝ≥0∞}
+  (hf : uniform_integrable μ f p) (i : ι) : measurable (f i) :=
+hf.1 i
+
+lemma uniform_integrable.unif_integrable [measurable_space β] {f : ι → α → β} {p : ℝ≥0∞}
+  (hf : uniform_integrable μ f p) : unif_integrable f p μ :=
+hf.2.1
+
+lemma uniform_integrable.mem_ℒp [measurable_space β] {f : ι → α → β} {p : ℝ≥0∞}
+  (hf : uniform_integrable μ f p) (i : ι) :
+  mem_ℒp (f i) p μ :=
+⟨(hf.1 i).ae_measurable, let ⟨_, _, hC⟩ := hf.2 in lt_of_le_of_lt (hC i) ennreal.coe_lt_top⟩
+
 section unif_integrable
 
-variables (μ) {p : ℝ≥0∞}
+/- This section deals with uniform integrability in the measure theory sense. -/
 
-lemma tendsto_indicator_ge_zero (f : α → β) (x : α):
+lemma tendsto_indicator_ge (f : α → β) (x : α):
   tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ∥f x∥₊}.indicator f x) at_top (𝓝 0) :=
 begin
   refine @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ (nat.ceil (∥f x∥₊ : ℝ) + 1) (λ n hn, _),
@@ -44,17 +137,21 @@ begin
   rwa [ge_iff_le, coe_nnnorm] at hn,
 end
 
+variables (μ) {p : ℝ≥0∞}
+
 section
 
-variables [measurable_space β] [borel_space β] [hβ : second_countable_topology β]
+variables [measurable_space β] [borel_space β] [hβ : second_countable_topology β] {f : α → β}
 include hβ
 
+/-- This lemma is slightly weaker than `measure_theory.mem_ℒp.integral_indicator_ge_le` as the
+latter provides `0 ≤ M`. -/
 lemma mem_ℒp.integral_indicator_ge_le'
-  {f : α → β} (hf : mem_ℒp f 1 μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
+  (hf : mem_ℒp f 1 μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
 begin
   have htendsto : ∀ᵐ x ∂μ, tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ∥f x∥₊}.indicator f x) at_top (𝓝 0) :=
-    univ_mem' (id $ λ x, tendsto_indicator_ge_zero f x),
+    univ_mem' (id $ λ x, tendsto_indicator_ge f x),
   have hmeas : ∀ M : ℕ, ae_measurable ({x | (M : ℝ) ≤ ∥f x∥₊}.indicator f) μ,
   { cases hf,
     measurability },
@@ -83,14 +180,14 @@ begin
 end
 
 lemma mem_ℒp.integral_indicator_ge_le
-  {f : α → β} (hf : mem_ℒp f 1 μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
+  (hf : mem_ℒp f 1 μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
 let ⟨M, hM⟩ := hf.integral_indicator_ge_le' μ hmeas hε in ⟨max M 0, le_max_right _ _, by simpa⟩
 
 omit hβ
 
 lemma mem_ℒp.snorm_ess_sup_indicator_ge_eq_zero
-  {f : α → β} (hf : mem_ℒp f ∞ μ) (hmeas : measurable f) :
+  (hf : mem_ℒp f ∞ μ) (hmeas : measurable f) :
   ∃ M : ℝ, snorm_ess_sup ({x | M ≤ ∥f x∥₊}.indicator f) μ = 0 :=
 begin
   have hbdd : snorm_ess_sup f μ < ∞ := hf.snorm_lt_top,
@@ -116,9 +213,10 @@ begin
   exact measurable_set_le measurable_const hmeas.nnnorm.subtype_coe,
 end
 
-/-- This lemma implies that a single function is uniformly integrable (in the probability sense). -/
+/- This lemma is slightly weaker than `measure_theory.mem_ℒp.snorm_indicator_ge_le_pos` as the
+latter provides `0 < M`. -/
 lemma mem_ℒp.snorm_indicator_ge_le'
-  {f : α → β} (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
+  (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, snorm ({x | M ≤ ∥f x∥₊}.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
   by_cases hp_ne_zero : p = 0,
@@ -171,8 +269,9 @@ begin
   { exact hmeas.norm.pow_const _ }
 end
 
+/-- This lemma implies that a single function is uniformly integrable (in the probability sense). -/
 lemma mem_ℒp.snorm_indicator_ge_le_pos
-  {f : α → β} (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
+  (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, 0 < M ∧ snorm ({x | M ≤ ∥f x∥₊}.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
   obtain ⟨M, hM⟩ := hf.snorm_indicator_ge_le' μ hmeas hε,
@@ -186,7 +285,7 @@ end
 
 end
 
-lemma snorm_indicator_ge_le_of_bound (hp_top : p ≠ ∞) {f : α → β}
+lemma snorm_indicator_ge_le_of_bound {f : α → β} (hp_top : p ≠ ∞)
   {ε : ℝ} (hε : 0 < ε) {M : ℝ} (hf : ∀ x, ∥f x∥ < M) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ ennreal.of_real ε :=
@@ -213,39 +312,22 @@ begin
     refine le_trans hμ _,
     rw [← ennreal.of_real_rpow_of_pos (div_pos hε hM),
       ennreal.rpow_le_rpow_iff (ennreal.to_real_pos hp hp_top), ennreal.of_real_div_of_pos hM],
-    exact le_rfl,
-
-     },
+    exact le_rfl },
   { simpa only [ennreal.of_real_eq_zero, not_le, ne.def] },
-end
-
-lemma snorm_le_snorm_of_measure_le {m : measurable_space α} {f : α → β} {μ ν : measure α}
-  (hμν : μ ≤ ν) : snorm f p μ ≤ snorm f p ν :=
-begin
-  by_cases hp_zero : p = 0,
-  { rw hp_zero,
-    simp },
-  by_cases hp_top : p = ∞,
-  { rw hp_top,
-    simp only [snorm_exponent_top, snorm_ess_sup],
-    refine ess_sup_mono_measure (measure.ae_le_iff_absolutely_continuous.1 (ae_mono hμν)) },
-  rw [snorm_eq_lintegral_rpow_nnnorm hp_zero hp_top, snorm_eq_lintegral_rpow_nnnorm hp_zero hp_top],
-  exact ennreal.rpow_le_rpow (lintegral_mono' hμν le_rfl)
-    (one_div_nonneg.2 ennreal.to_real_nonneg),
 end
 
 section
 
-variables [measurable_space β] [borel_space β]
+variables [measurable_space β] [borel_space β] {f : α → β}
 
 lemma mem_ℒp.snorm_indicator_ge_le'' (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
-  {f : α → β} (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
+  (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ 2 * ennreal.of_real ε :=
 begin
   obtain ⟨M, hMpos, hM⟩ :=  hf.snorm_indicator_ge_le_pos μ hmeas hε,
-  obtain ⟨δ, hδpos, hδ⟩ := @snorm_indicator_ge_le_of_bound _ _ _ μ _ _ hp_top
-    ({x | ∥f x∥ < M}.indicator f) _ hε M _,
+  obtain ⟨δ, hδpos, hδ⟩ := @snorm_indicator_ge_le_of_bound _ _ _ μ _ _
+    ({x | ∥f x∥ < M}.indicator f) hp_top _ hε M _,
   { refine ⟨δ, hδpos, λ s hs hμs, _⟩,
     rw (_ : f = {x : α | M ≤ ∥f x∥₊}.indicator f + {x : α | ∥f x∥ < M}.indicator f),
     { rw snorm_indicator_eq_snorm_restrict hs,
@@ -255,7 +337,7 @@ begin
       { exact measurable.ae_measurable (hmeas.indicator
         (measurable_set_lt hmeas.nnnorm.subtype_coe measurable_const)) },
       { rw two_mul,
-        refine add_le_add (le_trans (snorm_le_snorm_of_measure_le measure.restrict_le_self) hM) _,
+        refine add_le_add (le_trans (snorm_mono_measure _ measure.restrict_le_self) hM) _,
         rw ← snorm_indicator_eq_snorm_restrict hs,
         exact hδ s hs hμs } },
     { ext x,
@@ -271,7 +353,7 @@ begin
 end
 
 lemma mem_ℒp.snorm_indicator_ge_le_of_meas (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
-  {f : α → β} (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
+  (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
@@ -283,7 +365,7 @@ begin
 end
 
 lemma mem_ℒp.snorm_indicator_ge_le (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
-  {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
+  (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
@@ -309,6 +391,8 @@ begin
   { exact ⟨1, zero_lt_one, λ i, false.elim $ hι $ nonempty.intro i⟩ }
 end
 
+/-- This lemma is less general than `measure_theory.unif_integrable_fintype` which applies to
+all sequences indexed by a fintype. -/
 lemma unif_integrable_fin (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
   {n : ℕ} {f : fin n → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
   unif_integrable f p μ :=
@@ -332,6 +416,19 @@ begin
       rw nat.lt_succ_iff at hi',
       rw not_lt at hi,
       simp [← le_antisymm hi' hi] } }
+end
+
+/-- A finite sequence of Lp functions is uniformly integrable. -/
+lemma unif_integrable_fintype [fintype ι] (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
+  {f : ι → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
+  unif_integrable f p μ :=
+begin
+  intros ε hε,
+  set g : fin (fintype.card ι) → α → β := f ∘ (fintype.equiv_fin ι).symm,
+  have hg : ∀ i, mem_ℒp (g i) p μ := λ _, hf _,
+  obtain ⟨δ, hδpos, hδ⟩ := unif_integrable_fin μ hp_one hp_top hg hε,
+  exact ⟨δ, hδpos, λ i s hs hμs,
+    equiv.symm_apply_apply (fintype.equiv_fin ι) i ▸ hδ (fintype.equiv_fin ι i) s hs hμs⟩,
 end
 
 end
@@ -441,45 +538,6 @@ begin
     exact ⟨0, λ n hn, by simp [h]⟩ }
 end
 
-section
-
-open filter
-
--- a sequence is convergent if and only if every subsequence has a convergent subsequence
-lemma tendsto_at_top_of_seq_tendsto_at_top
-  {α : Type*} [topological_space α] {x : ℕ → α} {y : α}
-  (hxy : ∀ ns : ℕ → ℕ, tendsto ns at_top at_top →
-    ∃ ms : ℕ → ℕ, tendsto (λ n, x (ns $ ms n)) at_top (𝓝 y)) :
-  tendsto (λ n, x n) at_top (𝓝 y) :=
-begin
-  by_contra h,
-  obtain ⟨s, hs, hfreq⟩ : ∃ s ∈ 𝓝 y, ∃ᶠ n in at_top, x n ∉ s,
-  { by_contra h', push_neg at h',
-    simp_rw frequently_at_top at h',
-    refine h (λ s hs, _),
-    specialize h' s hs,
-    push_neg at h',
-    exact mem_at_top_sets.2 h' },
-  choose ns hge hns using frequently_at_top.1 hfreq,
-  obtain ⟨ms, hns'⟩ := hxy ns (tendsto_at_top_mono hge tendsto_id),
-  obtain ⟨a, ha⟩ := (tendsto_at_top'.1 hns') s hs,
-  exact hns (ms a) (ha a le_rfl),
-end
-
-lemma tendsto_at_top_of_seq_tendsto_at_top'
-  {α : Type*} [topological_space α] {x : ℕ → α} {y : α}
-  (hxy : ∀ ns : ℕ → ℕ, strict_mono ns →
-    ∃ ms : ℕ → ℕ, tendsto (λ n, x (ns $ ms n)) at_top (𝓝 y)) :
-  tendsto (λ n, x n) at_top (𝓝 y) :=
-begin
-  refine tendsto_at_top_of_seq_tendsto_at_top (λ ns hns, _),
-  obtain ⟨ms, hms⟩ := strict_mono_subseq_of_tendsto_at_top hns,
-  obtain ⟨os, hos⟩ := hxy _ hms.2,
-  exact ⟨ms ∘ os, hos⟩,
-end
-
-end
-
 variables [measurable_space β] [borel_space β] [second_countable_topology β]
 variables {f : ℕ → α → β} {g : α → β}
 
@@ -499,6 +557,7 @@ begin
     (λ ε hε, let ⟨δ, hδ, hδ'⟩ := hui hε in ⟨δ, hδ, λ i s hs hμs, hδ' _ s hs hμs⟩) hms'⟩,
 end
 
+/-- Convergence in Lp implies uniform integrability. -/
 lemma unif_integrable_of_tendsto_Lp (hp : 1 ≤ p) (hp' : p ≠ ∞)
   (hf : ∀ n, measurable (f n)) (hg : measurable g)
   (hf' : ∀ n, mem_ℒp (f n) p μ) (hg' : mem_ℒp g p μ)
@@ -549,13 +608,7 @@ lemma tendsto_in_measure_iff_tendsto_Lp [is_finite_measure μ] (hp : 1 ≤ p) (h
     (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm
     (λ n, (hf n).ae_measurable)
     hg.ae_measurable h, unif_integrable_of_tendsto_Lp μ hp hp' hf hg hf' hg' h⟩⟩
+
 end unif_integrable
 
-variables [measurable_space β] {f : ι → α → β} {p : ℝ≥0∞}
-
-lemma uniform_integrable.mem_ℒp (hf : uniform_integrable μ f p) (i : ι) :
-  mem_ℒp (f i) p μ :=
-⟨(hf.1 i).ae_measurable, let ⟨_, _, hC⟩ := hf.2 in lt_of_le_of_lt (hC i) ennreal.coe_lt_top⟩
-
 end measure_theory
-#lint

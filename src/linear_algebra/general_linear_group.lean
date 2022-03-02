@@ -191,22 +191,21 @@ lemma to_GL_pos_injective :
 (show function.injective ((coe : GL_pos n R → matrix n n R) ∘ to_GL_pos),
  from subtype.coe_injective).of_comp
 
-lemma coe_to_GL_pos_ext {R : Type*} [linear_ordered_comm_ring R] (g : (special_linear_group n R)) :
-∀ i j, g i j = (g : (GL_pos n R)) i j :=by {intros i j, refl,}
+lemma coe_to_GL_pos_ext (g : special_linear_group n R) (i j : n) : g i j = (g : (GL_pos n R)) i j :=
+rfl
 
 @[simp]
-lemma coe_to_GL_pos_det {R : Type*} [linear_ordered_comm_ring R] (g : (special_linear_group n R)) :
-  det ( g : (GL_pos n R)) = 1 :=by {convert g.prop,}
+lemma coe_to_GL_pos_det (g : special_linear_group n R) : det (g : GL_pos n R) = 1 :=
+g.prop
 
 @[simp]
-lemma coe_coe_matrix (g : (special_linear_group n ℤ)) :
-∀ i j, ((g : (special_linear_group n R)) : (GL_pos n R )) i j = (g  : matrix n n ℤ) i j :=
-by {intros i j,refl,}
+lemma coe_coe_matrix (g : special_linear_group n ℤ) (i j : n) :
+  ((g : special_linear_group n R) : GL_pos n R) i j = (g : matrix n n ℤ) i j := rfl
 
 variable [fact (even (fintype.card n))]
 
-@[simp] lemma coe_GL_pos_neg (g : special_linear_group n R) :
-  ↑(- g) = - (↑g : GL_pos n R) :=by {ext, refl}
+@[simp] lemma coe_GL_pos_neg (g : special_linear_group n R) : ↑(-g) = -(↑g : GL_pos n R) :=
+by {ext, refl}
 
 end special_linear_group
 

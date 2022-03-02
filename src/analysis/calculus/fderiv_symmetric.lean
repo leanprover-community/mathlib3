@@ -265,7 +265,7 @@ begin
       field_simp [has_lt.lt.ne' hpos] },
     { filter_upwards [self_mem_nhds_within] with _ hpos,
       field_simp [has_lt.lt.ne' hpos, has_scalar.smul], }, },
-  simpa only [sub_eq_zero] using (is_o_const_const_iff (@one_ne_zero ℝ _ _)).1 B,
+  simpa only [sub_eq_zero] using is_o_const_const_iff.1 B,
 end
 
 omit s_conv xs hx hf

@@ -7,9 +7,6 @@ import .mod_group
 
 /-  This is an attemmatrix_makrto update the kbb birthday repo, so most is not orginal to me-/
 
-@[simp] lemma not_one_lt_zero {α : Type*} [linear_ordered_semiring α] : ¬ (1:α) < 0 :=
-not_lt_of_gt zero_lt_one
-
 namespace int
 
 theorem mul_eq_one {m n : ℤ} :
@@ -284,25 +281,25 @@ by rw [reduce.equations._eqn_1 _ _, if_neg h]
 
 theorem reduce_spec (m : ℤ) : ∀A : Mat m, ∃ (R: gengrp), R • A = reduce m A :=
 begin
-  refine reduce_rec m _ _, 
+  refine reduce_rec m _ _,
   { intros A hc,
-    by_cases ha : 0 < (A 0 0), 
+    by_cases ha : 0 < (A 0 0),
     {have:= reduce_eq1 m, simp at *, have h1:=this hc ha, simp only at h1,
-    simp  [*, int.nat_abs_eq_zero, h1 , exists_apply_eq_apply], 
-     let gg:= (T ^ (A 0 1 / A 1 1))⁻¹, 
-     refine ⟨⟨gg, _⟩, _⟩, 
+    simp  [*, int.nat_abs_eq_zero, h1 , exists_apply_eq_apply],
+     let gg:= (T ^ (A 0 1 / A 1 1))⁻¹,
+     refine ⟨⟨gg, _⟩, _⟩,
      simp only [subgroup.inv_mem_iff],
      apply Tpows,
-     simp_rw gg, refl, },  
+     simp_rw gg, refl, },
     {simp only [*, int.div_neg, int.nat_abs_eq_zero, not_false_iff, neg_neg, reduce_eq2],
     erw [← mul_smul], rw [← mul_smul],
     let g:= (T ^ (-A 0 1 / A 1 1))*S*S,
-    refine ⟨⟨g,_⟩, _ ⟩, 
+    refine ⟨⟨g,_⟩, _ ⟩,
     apply TSS,
-    simp_rw g,refl,} },  
+    simp_rw g,refl,} },
   { rintros A hc ⟨U, eq⟩, rw reduce_eq3 m hc, rw ← eq, rw reduce_step, simp only [zpow_neg],
     simp only [int.nat_abs_eq_zero, ne.def] at *,
-    refine ⟨⟨ (U : SL2Z) * S *(T ^ (A 0 0 / A 1 0))⁻¹,_⟩,_⟩, 
+    refine ⟨⟨ (U : SL2Z) * S *(T ^ (A 0 0 / A 1 0))⁻¹,_⟩,_⟩,
     have Umem:= set_like.coe_mem U,
     apply UST _ U Umem,
     have j: ∀ (x y z : SL2Z) (M: Mat m), x • y • z • M = (x * y*z)• M , by {simp_rw ← mul_smul, intros x y z A,
@@ -855,22 +852,22 @@ split,
 intro hr,
 rw setoid.eq_top_iff at *,
 intros x y,
-have hr3:= (rh2 x 1).1 (hr x 1), 
-have hr3':= (rh2 1 y).1 (hr 1 y), 
+have hr3:= (rh2 x 1).1 (hr x 1),
+have hr3':= (rh2 1 y).1 (hr 1 y),
 have : r1 x y, by {rw rh1, simp at *, apply subgroup.mul_mem H ((subgroup.inv_mem_iff H).symm.1 hr3)  hr3',},
 convert this,
 intro hr,
 rw setoid.eq_top_iff at *,
 intros x y,
-have hr3:= (rh1 x 1).1 (hr x 1), 
-have hr3':= (rh1 1 y).1 (hr 1 y), 
+have hr3:= (rh1 x 1).1 (hr x 1),
+have hr3':= (rh1 1 y).1 (hr 1 y),
 have : r2 x y, by {rw rh2, simp at *, apply subgroup.mul_mem H  hr3' ((subgroup.inv_mem_iff H).symm.1 hr3) ,},
 convert this,
-end  
+end
 
 
 
-lemma ring_quot_subsingleton_iff_left_quot_subsingleton (H : subgroup G) : 
+lemma ring_quot_subsingleton_iff_left_quot_subsingleton (H : subgroup G) :
   subsingleton (quotient (quotient_group.right_rel H)) ↔ subsingleton (G ⧸ H) :=
 begin
 have : (G ⧸ H) = quotient (quotient_group.left_rel H), by {refl,},
@@ -882,7 +879,7 @@ apply (left_rel_to_right_rel_top H).1 hr,
 intro hr,
 rw quotient.subsingleton_iff at *,
 apply (left_rel_to_right_rel_top H).2 hr,
-end  
+end
 
 lemma sl2z_gens: gengrp = (⊤ : subgroup SL2Z) :=
 begin
@@ -894,7 +891,7 @@ begin
   have htt: subsingleton (quotient (orbit_rel''' 1)), by {rw (equiv.subsingleton_congr h1), rw h2, simp, },
   have ht: quotient (orbit_rel''' 1) ≃ (quotient (quotient_group.right_rel gengrp)), by {
   let r1:= ( (orbit_rel''' 1)).r,
-  let r2:= (quotient_group.right_rel gengrp).r, 
+  let r2:= (quotient_group.right_rel gengrp).r,
   apply quot.congr_right,
   simp at htt,
   rw htt,
@@ -910,7 +907,7 @@ split,
 intro ha,
 have haa:= (subgroup.inv_mem_iff gengrp).2 ha,
 simp at haa,
-refine ⟨⟨(a*b⁻¹ : SL2Z), haa⟩, _⟩, 
+refine ⟨⟨(a*b⁻¹ : SL2Z), haa⟩, _⟩,
 have:= smul_is_mul_1 (a * b⁻¹) b,
 convert this,
 have hbb: (a *b⁻¹*b :SL2Z) = (a : SL2Z), by {simp, },

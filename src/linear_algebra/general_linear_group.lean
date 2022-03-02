@@ -156,12 +156,6 @@ instance : has_neg (GL_pos n R) :=
     exact gdet,
   end⟩⟩
 
-instance : has_distrib_neg (GL_pos n R) :=
-{ neg := has_neg.neg,
-  neg_neg := λ x, subtype.ext $ neg_neg _,
-  neg_mul := λ x y, subtype.ext $ neg_mul _ _,
-  mul_neg := λ x y, subtype.ext $ mul_neg _ _ }
-
 @[simp] lemma GL_pos_coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
 rfl
 
@@ -169,6 +163,7 @@ rfl
 begin
   simp [coe_fn_coe_base'],
 end
+
 
 end has_neg
 
@@ -191,6 +186,23 @@ lemma to_GL_pos_injective :
 (show function.injective ((coe : GL_pos n R → matrix n n R) ∘ to_GL_pos),
  from subtype.coe_injective).of_comp
 
+lemma coe_to_GL_pos_ext {R : Type*} [linear_ordered_comm_ring R] (g : (special_linear_group n R)) :
+∀ i j, g i j = (g : (GL_pos n R)) i j :=by {intros i j, refl,}
+
+@[simp]
+lemma coe_to_GL_pos_det {R : Type*} [linear_ordered_comm_ring R] (g : (special_linear_group n R)) :
+  det ( g : (GL_pos n R)) = 1   :=by {convert g.prop,}
+
+@[simp]
+lemma coe_coe_matrix (g : (special_linear_group n ℤ)) :
+∀ i j, ((g : (special_linear_group n R)) : (GL_pos n R )) i j =
+ (g  : matrix n n ℤ) i j   := by {intros i j,refl,}
+
+variable [fact (even (fintype.card n))]
+
+@[simp] lemma coe_GL_pos_neg (g : special_linear_group n R) :
+  ↑(- g) = - (↑g : GL_pos n R) :=by {ext, refl}
+
 end special_linear_group
 
 section examples
@@ -200,7 +212,7 @@ $GL_2(R)$ if `a ^ 2 + b ^ 2` is nonzero. -/
 @[simps coe {fully_applied := ff}]
 def plane_conformal_matrix {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
   matrix.general_linear_group (fin 2) R :=
-general_linear_group.mk_of_det_ne_zero ![![a, -b], ![b, a]]
+general_linear_group.mk_of_det_ne_zero ![![a, b], ![-b, a]]
   (by simpa [det_fin_two, sq] using hab)
 
 /- TODO: Add Iwasawa matrices `n_x=![![1,x],![0,1]]`, `a_t=![![exp(t/2),0],![0,exp(-t/2)]]` and

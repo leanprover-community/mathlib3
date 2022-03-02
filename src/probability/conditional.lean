@@ -86,7 +86,7 @@ section bayes
 by simp [cond, measure_univ, measure.restrict_univ]
 
 /-- The axiomatic definition of conditional probability derived from a measure-theoretic one. -/
-@[simp] lemma cond_measure_apply (hms : measurable_set s) (t : set α) :
+@[simp] lemma cond_apply (hms : measurable_set s) (t : set α) :
   μ[t|s] = (μ s)⁻¹ * μ (s ∩ t) :=
 by { rw [cond, measure.smul_apply, measure.restrict_apply' hms, set.inter_comm], refl }
 
@@ -104,7 +104,7 @@ variable [is_finite_measure μ]
 lemma cond_pos_of_inter_ne_zero (hms : measurable_set s) (hci : μ (s ∩ t) ≠ 0) :
   0 < μ[|s] t :=
 begin
-  rw cond_measure_apply _ hms,
+  rw cond_apply _ hms,
   refine ennreal.mul_pos _ hci,
   exact ennreal.inv_ne_zero.mpr (measure_ne_top _ _),
 end
@@ -120,20 +120,20 @@ begin
   ext1,
   haveI := cond_is_probability_measure μ
     (μ.to_outer_measure.pos_of_subset_ne_zero (set.inter_subset_left _ _) hci).ne',
-  simp only [*, cond_measure_apply, ←mul_assoc, ←set.inter_assoc],
+  simp only [*, cond_apply, ←mul_assoc, ←set.inter_assoc],
   congr,
   simp [*, ennreal.mul_inv, mul_comm, ←mul_assoc, ennreal.inv_mul_cancel]
 end
 
 @[simp] lemma cond_mul_eq_inter (hms : measurable_set s) (hcs : μ s ≠ 0) (t : set α) :
   μ[t|s] * μ s = μ (s ∩ t) :=
-by rw [cond_measure_apply μ hms t, mul_comm, ←mul_assoc,
+by rw [cond_apply μ hms t, mul_comm, ←mul_assoc,
   ennreal.mul_inv_cancel hcs (measure_ne_top _ s), one_mul]
 
 /-- **Bayes' Theorem** -/
 theorem cond_eq_inv_mul_cond_mul (hms : measurable_set s) (hmt : measurable_set t) (ht : μ t ≠ 0) :
   μ[t|s] = (μ s)⁻¹ * μ[s|t] * (μ t) :=
-by rw [mul_assoc, cond_mul_eq_inter μ hmt ht s, set.inter_comm, cond_measure_apply _ hms]
+by rw [mul_assoc, cond_mul_eq_inter μ hmt ht s, set.inter_comm, cond_apply _ hms]
 
 end bayes
 

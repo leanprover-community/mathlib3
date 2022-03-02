@@ -259,6 +259,9 @@ omit M
 
 variables {M S}
 
+def unique_of_zero_mem (h : (0 : R) ∈ M) : _root_.unique S :=
+unique_of_zero_eq_one $ by simpa using is_localization.map_units S ⟨0, h⟩
+
 lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :
   mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (x₁ * y₂) = algebra_map R S (x₂ * y₁) :=
 (to_localization_map M S).mk'_eq_iff_eq

@@ -98,9 +98,7 @@ begin
   {simp [H1, complex.of_real_zero] at H,
   have:= det_of_22 g,
   simp [coe_fn_coe_base'] at *,
-  simp at *,
-  rw H1 at H,
-  simp at *,
+  simp [coe_GL_pos_coe_GL_coe_matrix] at *,
   rw this at DET,
   simp [H, H1] at DET,
   exact DET,},
@@ -220,8 +218,7 @@ begin
   ring_nf,
   simp_rw ← coe_coe,
   simp only [GL_pos_coe_neg, GL_pos_neg_elt],
-  simp only [coe_fn_coe_base', neg_mul_eq_neg_mul_symm, general_linear_group.coe_fn_eq_coe,
-   mul_neg_eq_neg_mul_symm, coe_coe,  complex.of_real_neg],
+  simp [coe_fn_coe_base', general_linear_group.coe_fn_eq_coe, coe_coe,  complex.of_real_neg],
   ring,
   end
 

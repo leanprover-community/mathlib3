@@ -117,8 +117,8 @@ pnat.find_min' _ (h _ (pnat.find_spec hq))
 lemma find_le {h : ∃ n, p n} (hn : p n) : pnat.find h ≤ n :=
 (pnat.find_le_iff _ _).2 ⟨n, le_rfl, hn⟩
 
-lemma find_comp_succ (h₁ : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h1 : ¬ p 1) :
-  pnat.find h₁ = pnat.find h₂ + 1 :=
+lemma find_comp_succ (h : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h1 : ¬ p 1) :
+  pnat.find h = pnat.find h₂ + 1 :=
 begin
   refine (find_eq_iff _).2 ⟨pnat.find_spec h₂, λ n hn, _⟩,
   revert n,

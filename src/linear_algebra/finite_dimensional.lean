@@ -596,7 +596,8 @@ b.map (linear_equiv.smul_of_unit (units.mk0
   basis_singleton ι h v hv i = v :=
 calc basis_singleton ι h v hv i
     = (((basis_unique ι h).repr) v) default • (basis_unique ι h) default :
-      by simp [subsingleton.elim i default, basis_singleton, linear_equiv.smul_of_unit]
+      by simp [subsingleton.elim i default, basis_singleton, linear_equiv.smul_of_unit,
+               units.smul_def]
 ... = v : by rw [← finsupp.total_unique K (basis.repr _ v), basis.total_repr]
 
 @[simp] lemma range_basis_singleton (ι : Type*) [unique ι]
@@ -792,17 +793,16 @@ protected theorem finite_dimensional (f : V ≃ₗ[K] V₂) [finite_dimensional 
   finite_dimensional K V₂ :=
 module.finite.equiv f
 
+variables {R M M₂ : Type*} [ring R] [add_comm_group M] [add_comm_group M₂]
+variables [module R M] [module R M₂]
+
 /-- The dimension of a finite dimensional space is preserved under linear equivalence. -/
-theorem finrank_eq (f : V ≃ₗ[K] V₂) [finite_dimensional K V] :
-  finrank K V = finrank K V₂ :=
-begin
-  haveI : finite_dimensional K V₂ := f.finite_dimensional,
-  simpa [← finrank_eq_dim] using f.lift_dim_eq
-end
+theorem finrank_eq (f : M ≃ₗ[R] M₂) : finrank R M = finrank R M₂ :=
+by { unfold finrank, rw [← cardinal.to_nat_lift, f.lift_dim_eq, cardinal.to_nat_lift] }
 
 /-- Pushforwards of finite-dimensional submodules along a `linear_equiv` have the same finrank. -/
-lemma finrank_map_eq (f : V ≃ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
-  finrank K (p.map (f : V →ₗ[K] V₂)) = finrank K p :=
+lemma finrank_map_eq (f : M ≃ₗ[R] M₂) (p : submodule R M) :
+  finrank R (p.map (f : M →ₗ[R] M₂)) = finrank R p :=
 (f.submodule_map p).finrank_eq.symm
 
 end linear_equiv
@@ -858,6 +858,11 @@ lemma eq_of_le_of_finrank_eq {S₁ S₂ : submodule K V} [finite_dimensional K S
   (hd : finrank K S₁ = finrank K S₂) : S₁ = S₂ :=
 eq_of_le_of_finrank_le hle hd.ge
 
+@[simp]
+lemma finrank_map_subtype_eq (p : subspace K V) (q : subspace K p) :
+  finite_dimensional.finrank K (q.map p.subtype) = finite_dimensional.finrank K q :=
+(submodule.equiv_subtype_map p q).symm.finrank_eq
+
 variables [finite_dimensional K V] [finite_dimensional K V₂]
 
 /-- Given isomorphic subspaces `p q` of vector spaces `V` and `V₁` respectively,
@@ -880,11 +885,6 @@ begin
   rw [← @add_right_cancel_iff _ _ (finrank K q), submodule.finrank_quotient_add_finrank,
       ← linear_equiv.finrank_eq f, add_comm, submodule.finrank_quotient_add_finrank]
 end
-
-@[simp]
-lemma finrank_map_subtype_eq (p : subspace K V) (q : subspace K p) :
-  finite_dimensional.finrank K (q.map p.subtype) = finite_dimensional.finrank K q :=
-(submodule.equiv_subtype_map p q).symm.finrank_eq
 
 end finite_dimensional
 
@@ -949,6 +949,11 @@ the dimension of the source space. -/
 theorem finrank_range_add_finrank_ker [finite_dimensional K V] (f : V →ₗ[K] V₂) :
   finrank K f.range + finrank K f.ker = finrank K V :=
 by { rw [← f.quot_ker_equiv_range.finrank_eq], exact submodule.finrank_quotient_add_finrank _ }
+
+/-- The dimensions of the domain and range of an injective linear map are equal. -/
+lemma finrank_range_of_inj {f : V →ₗ[K] V₂} (hf : function.injective f) :
+  finrank K f.range = finrank K V :=
+by rw (linear_equiv.of_injective f hf).finrank_eq
 
 end linear_map
 

@@ -231,6 +231,7 @@ le_trans (le_abs_self _) (abs_norm_sub_norm_le g h)
 lemma dist_norm_norm_le (g h : E) : dist ∥g∥ ∥h∥ ≤ ∥g - h∥ :=
 abs_norm_sub_norm_le g h
 
+/-- The direct path from `0` to `v` is shorter than the path with `u` inserted in between. -/
 lemma norm_le_insert (u v : E) : ∥v∥ ≤ ∥u∥ + ∥u - v∥ :=
 calc ∥v∥ = ∥u - (u - v)∥ : by abel
 ... ≤ ∥u∥ + ∥u - v∥ : norm_sub_le u _
@@ -1017,5 +1018,18 @@ lemma tendsto_norm_sub_self_punctured_nhds (a : E) : tendsto (λ x, ∥x - a∥)
 
 lemma tendsto_norm_nhds_within_zero : tendsto (norm : E → ℝ) (𝓝[≠] 0) (𝓝[>] 0) :=
 tendsto_norm_zero.inf $ tendsto_principal_principal.2 $ λ x, norm_pos_iff.2
+
+/-! Some relations with `has_compact_support` -/
+
+lemma has_compact_support_norm_iff [topological_space α] {f : α → E} :
+  has_compact_support (λ x, ∥ f x ∥) ↔ has_compact_support f :=
+has_compact_support_comp_left $ λ x, norm_eq_zero
+
+alias has_compact_support_norm_iff ↔ _ has_compact_support.norm
+
+lemma continuous.bounded_above_of_compact_support [topological_space α] {f : α → E}
+  (hf : continuous f) (hsupp : has_compact_support f) : ∃ C, ∀ x, ∥f x∥ ≤ C :=
+by simpa [bdd_above_def] using hf.norm.bdd_above_range_of_has_compact_support hsupp.norm
+
 
 end normed_group

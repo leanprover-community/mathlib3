@@ -91,6 +91,11 @@ by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
 lemma conjugate' {x : R} (hx : x ∈ self_adjoint R) (z : R) : star z * x * z ∈ self_adjoint R :=
 by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
 
+instance : has_pow (self_adjoint R) ℕ :=
+⟨λ x n, ⟨(x : R) ^ n, by simp only [mem_iff, star_pow, star_coe_eq]⟩⟩
+
+@[simp, norm_cast] lemma coe_pow (x : self_adjoint R) (n : ℕ) : ↑(x ^ n) = (x : R) ^ n := rfl
+
 end ring
 
 section comm_ring
@@ -100,11 +105,6 @@ instance : has_mul (self_adjoint R) :=
 ⟨λ x y, ⟨(x : R) * y, by simp only [mem_iff, star_mul', star_coe_eq]⟩⟩
 
 @[simp, norm_cast] lemma coe_mul (x y : self_adjoint R) : ↑(x * y) = (x : R) * y := rfl
-
-instance : has_pow (self_adjoint R) ℕ :=
-⟨λ x n, ⟨(x : R) ^ n, by simp only [mem_iff, star_pow, star_coe_eq]⟩⟩
-
-@[simp, norm_cast] lemma coe_pow (x : self_adjoint R) (n : ℕ) : ↑(x ^ n) = (x : R) ^ n := rfl
 
 instance : comm_ring (self_adjoint R) :=
 { npow := λ n x, x ^ n,
@@ -157,8 +157,12 @@ end field
 section has_scalar
 variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
 
+lemma smul_mem [has_scalar R A] [star_module R A] (r : R) {x : A}
+  (h : x ∈ self_adjoint A) : r • x ∈ self_adjoint A :=
+by rw [mem_iff, star_smul, star_trivial, mem_iff.mp h]
+
 instance [has_scalar R A] [star_module R A] : has_scalar R (self_adjoint A) :=
-⟨λ r x, ⟨r • x, by rw [mem_iff, star_smul, star_trivial, star_coe_eq]⟩⟩
+⟨λ r x, ⟨r • x, smul_mem r x.prop⟩⟩
 
 @[simp, norm_cast] lemma coe_smul [has_scalar R A] [star_module R A] (r : R) (x : self_adjoint A) :
   ↑(r • x) = r • (x : A) := rfl
@@ -213,8 +217,12 @@ end ring
 section has_scalar
 variables [has_star R] [has_trivial_star R] [add_comm_group A] [star_add_monoid A]
 
+lemma smul_mem [monoid R] [distrib_mul_action R A] [star_module R A] (r : R) {x : A}
+  (h : x ∈ skew_adjoint A) : r • x ∈ skew_adjoint A :=
+by rw [mem_iff, star_smul, star_trivial, mem_iff.mp h, smul_neg r]
+
 instance [monoid R] [distrib_mul_action R A] [star_module R A] : has_scalar R (skew_adjoint A) :=
-⟨λ r x, ⟨r • x, by rw [mem_iff, star_smul, star_trivial, star_coe_eq, smul_neg r]⟩⟩
+⟨λ r x, ⟨r • x, smul_mem r x.prop⟩⟩
 
 @[simp, norm_cast] lemma coe_smul [monoid R] [distrib_mul_action R A] [star_module R A]
   (r : R) (x : skew_adjoint A) : ↑(r • x) = r • (x : A) := rfl

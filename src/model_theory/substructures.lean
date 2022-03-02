@@ -115,7 +115,7 @@ variable {S : L.substructure M}
 lemma copy_eq {s : set M} (hs : s = S) : S.copy s hs = S :=
 set_like.coe_injective hs
 
-lemma const_mem {c : L.const} : ↑c ∈ S :=
+lemma constants_mem {c : L.constants} : ↑c ∈ S :=
 mem_carrier.2 (S.fun_mem c _ fin.elim0)
 
 /-- The substructure `M` of the structure `M`. -/

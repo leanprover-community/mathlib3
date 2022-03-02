@@ -471,7 +471,7 @@ fork.is_limit.mk' _ $ λ s,
    exact (category.comp_id _).symm
  end⟩
 
-/-- The kernel of `biproduct.ι f i` is the projection from the biproduct over the index set `J`
+/-- The cokernel of `biproduct.ι f i` is the projection from the biproduct over the index set `J`
 onto the biproduct omitting `i`. -/
 def biproduct.is_colimit_to_subtype : is_colimit
   (cokernel_cofork.of_π (biproduct.to_subtype f (λ j, i ≠ j))

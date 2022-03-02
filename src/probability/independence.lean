@@ -254,7 +254,7 @@ lemma Indep.Indep_sets {α ι} [measurable_space α] {μ : measure α} {m : ι �
   (h_indep : Indep m μ) :
   Indep_sets s μ :=
 λ S f hfs, h_indep S $ λ x hxS,
-  ((hms x).symm ▸ measurable_set_generate_from (hfs x hxS) : (m x).measurable_set' (f x))
+  ((hms x).symm ▸ measurable_set_generate_from (hfs x hxS) : measurable_set[m x] (f x))
 
 lemma indep.indep_sets {α} [measurable_space α] {μ : measure α} {s1 s2 : set (set α)}
   (h_indep : indep (generate_from s1) (generate_from s2) μ) :

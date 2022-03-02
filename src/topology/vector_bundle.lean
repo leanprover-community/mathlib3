@@ -303,6 +303,15 @@ lemma is_topological_vector_bundle_is_topological_fiber_bundle :
 λ x, ⟨(trivialization_at R F E x).to_fiber_bundle_trivialization,
   mem_base_set_trivialization_at R F E x⟩
 
+variables (R B F)
+include R F
+@[continuity] lemma continuous_proj : continuous (proj E) :=
+begin
+  apply @is_topological_fiber_bundle.continuous_proj B F,
+  apply @is_topological_vector_bundle_is_topological_fiber_bundle R,
+end
+omit F
+
 end topological_vector_bundle
 
 /-! ### Constructing topological vector bundles -/
@@ -480,7 +489,7 @@ a.to_topological_fiber_prebundle.total_space_topology
 /-- Promotion from a `topologial_vector_prebundle.trivialization` to a
   `topological_vector_bundle.trivialization`. -/
 def trivialization_at (a : topological_vector_prebundle R F E) (x : B) :
-  @topological_vector_bundle.trivialization R _ F E _ _ _ _ _ _ _ a.total_space_topology  :=
+  @topological_vector_bundle.trivialization R _ F E _ _ _ _ _ _ _ a.total_space_topology :=
 begin
   letI := a.total_space_topology,
   exact { linear := (a.pretrivialization_at x).linear,
@@ -629,10 +638,16 @@ def prod : pretrivialization R (F₁ × F₂) (λ x, E₁ x × E₂ x) :=
     map_smul := λ c ⟨v₁, v₂⟩,
       congr_arg2 prod.mk ((e₁.linear x h₁).map_smul c v₁) ((e₂.linear x h₂).map_smul c v₂), } }
 
-@[simp] lemma base_set_prod (e₁ : trivialization R F₁ E₁)
-  (e₂ : trivialization R F₂ E₂) :
+@[simp] lemma base_set_prod (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂) :
   (prod e₁ e₂).base_set = e₁.base_set ∩ e₂.base_set :=
 rfl
+
+lemma open_base_set_prod (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂) :
+  is_open (prod e₁ e₂).base_set :=
+begin
+  rw base_set_prod,
+  exact e₁.to_pretrivialization.open_base_set.inter e₂.open_base_set,
+end
 
 @[simp] lemma prod_apply {e₁ : trivialization R F₁ E₁}
   {e₂ : trivialization R F₂ E₂} {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set)
@@ -754,13 +769,47 @@ instance prod.topological_vector_bundle :
 
 variables {R F₁ E₁ F₂ E₂}
 
+lemma pretrivialization.is_open_source_prod
+  (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂) :
+  is_open (prod e₁ e₂).source :=
+(open_base_set_prod e₁ e₂).preimage (topological_vector_bundle.continuous_proj R B (F₁ × F₂))
+
+-- lemma pretrivialization.is_open_target_prod
+--   (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂) :
+--   is_open (prod e₁ e₂).target :=
+-- (open_base_set_prod e₁ e₂).prod is_open_univ
+
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the induced
 trivialization for the direct sum of `E₁` and `E₂`, whose base set is `e₁.base_set ∩ e₂.base_set`.
 -/
 def trivialization.prod (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂) :
   trivialization R (F₁ × F₂) (λ x, E₁ x × E₂ x) :=
-{ open_source := _,
-  continuous_to_fun := _,
+{ open_source := pretrivialization.is_open_source_prod e₁ e₂,
+  continuous_to_fun :=
+  begin
+    intros x hx,
+    rw continuous_within_at_iff_continuous_at
+      ((pretrivialization.is_open_source_prod e₁ e₂).mem_nhds hx),
+    let f := topological_fiber_prebundle.trivialization_at
+      (topological_vector_prebundle.prod R F₁ E₁ F₂ E₂).to_topological_fiber_prebundle x.1,
+    let f₁ := trivialization_at R F₁ E₁ x.1,
+    let f₂ := trivialization_at R F₂ E₂ x.1,
+    have H : x ∈ f.source,
+    { rw f.mem_source,
+      exact topological_fiber_prebundle.mem_base_pretrivialization_at _ x.1 },
+    rw [f.to_local_homeomorph.symm.continuous_at_iff_continuous_at_comp_right H,
+      local_homeomorph.symm_symm],
+    refine (continuous_triv_change_prod e₁ f₁ e₂ f₂).continuous_at _,
+    apply is_open.mem_nhds,
+    { rw [inter_comm, (prod f₁ f₂).target_eq, (prod e₁ e₂).source_eq,
+        (prod f₁ f₂).to_fiber_bundle_pretrivialization.preimage_symm_proj_inter
+        (prod e₁ e₂).base_set],
+      exact ((open_base_set_prod e₁ e₂).inter (open_base_set_prod f₁ f₂)).prod is_open_univ },
+    { refine ⟨f.to_local_homeomorph.map_source H, _⟩,
+      rw mem_preimage,
+      convert hx,
+      exact local_equiv.left_inv _ H },
+  end,
   continuous_inv_fun := _,
   .. pretrivialization.prod e₁ e₂ }
 

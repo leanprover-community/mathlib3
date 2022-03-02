@@ -5,7 +5,6 @@ Authors: Jireh Loreaux
 -/
 import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
-import analysis.normed_space.exponential
 import algebra.star.module
 import analysis.special_functions.exponential
 

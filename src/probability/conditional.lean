@@ -12,7 +12,7 @@ This file defines conditional probability and includes basic results relating to
 
 Given some measure `μ` defined on a measure space on some type `α` and some `s : set α`,
 we define the measure of `μ` conditioned on `s` as the restricted measure scaled by
-the inverse of the measure of `s`: `(μ s)⁻¹ • μ.restrict s`. The scaling
+the inverse of the measure of `s`: `cond μ s = (μ s)⁻¹ • μ.restrict s`. The scaling
 ensures that this is a probability measure (when `μ` is a finite measure).
 
 From this definition, we derive the "axiomatic" definition of conditional probability

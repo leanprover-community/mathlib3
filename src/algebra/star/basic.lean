@@ -146,7 +146,7 @@ op_injective $
   ((star_mul_equiv : R ≃* Rᵐᵒᵖ).to_monoid_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
-@[simp] lemma star_div [comm_group R] [star_semigroup R] (x y : R) : 
+@[simp] lemma star_div [comm_group R] [star_semigroup R] (x y : R) :
   star (x / y) = star x / star y :=
 (star_mul_aut : R ≃* R).to_monoid_hom.map_div _ _
 
@@ -202,6 +202,13 @@ variables (R)
 (star_add_equiv : R ≃+ R).map_zero
 
 variables {R}
+
+@[simp]
+lemma star_eq_zero [add_monoid R] [star_add_monoid R] {x : R} : star x = 0 ↔ x = 0 :=
+by { nth_rewrite 0 ← star_zero, exact ⟨λ h, star_injective h, λ h, star_injective (by simpa)⟩ }
+
+lemma star_ne_zero [add_monoid R] [star_add_monoid R] {x : R} : star x ≠ 0 ↔ x ≠ 0 :=
+by simp only [ne.def, star_eq_zero]
 
 @[simp] lemma star_neg [add_group R] [star_add_monoid R] (r : R) : star (-r) = - star r :=
 (star_add_equiv : R ≃+ R).map_neg _

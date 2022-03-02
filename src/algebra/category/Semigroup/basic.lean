@@ -5,7 +5,7 @@ Authors: Julian Kuelshammer
 -/
 import algebra.pempty_instances
 import category_theory.concrete_category.bundled_hom
-import category_theory.reflects_isomorphisms
+import category_theory.functor.reflects_isomorphisms
 
 /-!
 # Category instances for has_mul, has_add, semigroup and add_semigroup

@@ -282,6 +282,36 @@ noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R �
 lemma of_bijective_apply (f : R →+* S) (hf : function.bijective f) (x : R) :
   of_bijective f hf x = f x := rfl
 
+/-- A family of ring isomorphisms `Π j, (R j ≃+* S j)` generates a
+ring isomorphisms between `Π j, R j` and `Π j, S j`.
+
+This is the `ring_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
+`ring_equiv.arrow_congr`.
+-/
+@[simps apply]
+def Pi_congr_right {ι : Type*} {R S : ι → Type*}
+  [Π i, semiring (R i)] [Π i, semiring (S i)]
+  (e : Π i, R i ≃+* S i) : (Π i, R i) ≃+* Π i, S i :=
+{ to_fun := λ x j, e j (x j),
+  inv_fun := λ x j, (e j).symm (x j),
+  .. @mul_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_mul_equiv),
+  .. @add_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_add_equiv) }
+
+@[simp]
+lemma Pi_congr_right_refl {ι : Type*} {R : ι → Type*} [Π i, semiring (R i)] :
+  Pi_congr_right (λ i, ring_equiv.refl (R i)) = ring_equiv.refl _ := rfl
+
+@[simp]
+lemma Pi_congr_right_symm {ι : Type*} {R S : ι → Type*}
+  [Π i, semiring (R i)] [Π i, semiring (S i)]
+  (e : Π i, R i ≃+* S i) : (Pi_congr_right e).symm = (Pi_congr_right $ λ i, (e i).symm) := rfl
+
+@[simp]
+lemma Pi_congr_right_trans {ι : Type*} {R S T : ι → Type*}
+  [Π i, semiring (R i)] [Π i, semiring (S i)] [Π i, semiring (T i)]
+  (e : Π i, R i ≃+* S i) (f : Π i, S i ≃+* T i) :
+  (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) := rfl
+
 end semiring
 
 section

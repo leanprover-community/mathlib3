@@ -21,7 +21,6 @@ namespace monoid_hom
 local attribute [reducible] with_zero
 variables {α β γ : Type*}
 
-section mul_one_class
 variables [mul_one_class α] [mul_one_class β] [mul_one_class γ]
 
 /-- Turn a `monoid_hom` into a `monoid_with_zero_hom` by adjoining a `0` to the domain and codomain.
@@ -40,25 +39,6 @@ fun_like.coe_injective option.map_id
 protected lemma with_zero_comp (f : β →* γ) (g : α →* β) :
   (f.comp g).with_zero = f.with_zero.comp g.with_zero :=
 fun_like.coe_injective (option.map_comp_map _ _).symm
-
-end mul_one_class
-
-variables [monoid α] [monoid β] [monoid γ]
-
-/-- Restrict a morphism between monoids to a morphism between their units -/
-@[to_additive, simps] protected def units (f : α →* β) : αˣ →* βˣ :=
-{ to_fun := λ a, ⟨f a, f (a⁻¹ : αˣ),
-    by rw [←map_mul, ←units.coe_mul, mul_inv_self, units.coe_one, map_one],
-    by rw [←map_mul, ←units.coe_mul, inv_mul_self, units.coe_one, map_one]⟩,
-  map_one' := units.ext f.map_one',
-  map_mul' := λ a b, units.ext $ f.map_mul' _ _ }
-
-@[to_additive]
-protected lemma units_id : (monoid_hom.id α).units = monoid_hom.id _ := ext $ λ a, units.ext $ rfl
-
-@[to_additive]
-protected lemma units_comp (f : β →* γ) (g : α →* β) : (f.comp g).units = f.units.comp g.units :=
-ext $ λ a, units.ext $ rfl
 
 end monoid_hom
 
@@ -171,21 +151,17 @@ def Group_to_GroupWithZero : Group.{u} ⥤ GroupWithZero :=
 @[to_additive AddMon.add_units "`add_units` as a functor."]
 protected def Mon.units : Mon.{u} ⥤ Group :=
 { obj := λ X, Group.of Xˣ,
-  map := λ X Y, monoid_hom.units,
-  map_id' := λ X, fun_like.coe_injective $
-    by { simp only [fun_like.coe_fn_eq], exact monoid_hom.units_id },
-  map_comp' := λ X Y Z f g, fun_like.coe_injective $
-    by { simp only [fun_like.coe_fn_eq], exact monoid_hom.units_comp _ _ } }
+  map := λ X Y, units.map,
+  map_id' := λ X, units.map_id _,
+  map_comp' := λ X Y Z, units.map_comp }
 
 /-- `units` as a functor. -/
 @[to_additive AddCommMon.add_units "`add_units` as a functor."]
 protected def CommMon.units : CommMon.{u} ⥤ CommGroup :=
 { obj := λ X, CommGroup.of Xˣ,
-  map := λ X Y, monoid_hom.units,
-  map_id' := λ X, fun_like.coe_injective $
-    by { simp only [fun_like.coe_fn_eq], exact monoid_hom.units_id },
-  map_comp' := λ X Y Z f g, fun_like.coe_injective $
-    by { simp only [fun_like.coe_fn_eq], exact monoid_hom.units_comp _ _ } }
+  map := λ X Y, units.map,
+  map_id' := λ X, units.map_id _,
+  map_comp' := λ X Y Z, units.map_comp }
 
 /-- `Mon.units` is right adjoint to the forgetful functor. -/
 @[to_additive forget_AddMon_add_units_adjunction "`AddMon.add_units` is right adjoint to the
@@ -208,7 +184,7 @@ by classical; exact equivalence.mk
   (forget₂ GroupWithZero Mon ⋙ Mon.units) Group_to_GroupWithZero
   (nat_iso.of_components (λ X, GroupWithZero.iso.mk (with_zero_units_equiv X).symm) $ λ X Y f,
     monoid_with_zero_hom.ext $ λ a, begin
-      change dite (f a = 0) _ _ = monoid_hom.with_zero (monoid_hom.units _) (dite (a = 0) _ _),
+      change dite (f a = 0) _ _ = monoid_hom.with_zero (units.map _) (dite (a = 0) _ _),
       obtain rfl | h := eq_or_ne a 0,
       { rw [dif_pos (map_zero f), dif_pos rfl],
         refl },

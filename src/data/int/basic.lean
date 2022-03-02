@@ -1212,7 +1212,7 @@ theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 
 lemma to_nat_of_nonpos : ∀ {z : ℤ}, z ≤ 0 → z.to_nat = 0
 | 0           _ := rfl
-| (n + 1 : ℕ) h := (h.not_lt (by { exact_mod_cast nat.succ_pos n })).elim
+| (n + 1 : ℕ) h := (h.not_lt (coe_nat_succ_pos _)).elim
 | -[1+ n]     _ := rfl
 
 @[simp]

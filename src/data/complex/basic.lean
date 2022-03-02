@@ -477,7 +477,6 @@ by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
   map_one' := abs_one,
   map_mul' := abs_mul }
 
--- todo: `map_prod` `fun-like`.
 @[simp] lemma abs_prod {ι : Type*} (s : finset ι) (f : ι → ℂ) :
   abs (s.prod f) = s.prod (λ i, abs (f i)) :=
 abs_hom.to_monoid_hom.map_prod _ _

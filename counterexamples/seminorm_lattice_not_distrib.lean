@@ -43,7 +43,8 @@ begin
 end
 
 /-- This is a counterexample to the distributivity of the lattice `seminorm ℝ (ℝ × ℝ)`. -/
-lemma not_distrib : ¬((p ⊔ q1) ⊓ (p ⊔ q2) ≤ p ⊔ (q1 ⊓ q2)) := begin
+lemma not_distrib : ¬((p ⊔ q1) ⊓ (p ⊔ q2) ≤ p ⊔ (q1 ⊓ q2)) :=
+begin
   intro le_sup_inf,
   have c : ¬(4/3 ≤ (1:ℝ)) := by norm_num,
   apply c, nth_rewrite 2 ← eq_one,

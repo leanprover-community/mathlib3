@@ -20,18 +20,11 @@ variables [fintype n] [decidable_eq n]
 
 section entrywise_sup_norm
 
-local attribute [instance] matrix.normed_group
-
-/-- The entrywise sup norm of a unitary matrix is at most 1. -/
-lemma entrywise_sup_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) :
-  ∥ U ∥ ≤ 1 :=
+lemma entry_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) (i j : n):
+  ∥U i j∥ ≤ 1 :=
 begin
-  rw pi_norm_le_iff zero_le_one,
-  intro i,
-  rw pi_norm_le_iff zero_le_one,
-  intro j,
   -- The norm squared of an entry is at most the L2 norm of its row.
-  have norm_sum : ∥ U i j ∥^2 ≤ (∑ (x : n), ∥ U i x ∥^2),
+  have norm_sum : ∥ U i j ∥^2 ≤ (∑ x, ∥ U i x ∥^2),
   { apply multiset.single_le_sum,
     { intros x h_x,
       rw multiset.mem_map at h_x,
@@ -59,12 +52,15 @@ begin
   exact norm_sum,
 end
 
-lemma entry_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) (i j : n):
-  ∥U i j∥ ≤ 1 :=
+local attribute [instance] matrix.normed_group
+
+/-- The entrywise sup norm of a unitary matrix is at most 1. -/
+lemma entrywise_sup_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) :
+  ∥ U ∥ ≤ 1 :=
 begin
-  have sup_bound := by apply entrywise_sup_norm_bound_of_unitary hU,
-  have : ∥U i j∥ ≤ ∥U∥ := by apply matrix.norm_entry_le_entrywise_sup_norm U,
-  apply @le_trans _ _ (∥U i j∥) (∥U∥) 1 this sup_bound,
+  simp_rw pi_norm_le_iff zero_le_one,
+  intros i j,
+  exact entry_norm_bound_of_unitary hU _ _
 end
 
 end entrywise_sup_norm

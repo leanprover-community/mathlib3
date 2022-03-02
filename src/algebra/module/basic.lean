@@ -78,6 +78,10 @@ theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
 
 theorem two_smul' : (2 : R) • x = bit0 x := two_smul R x
 
+@[simp] lemma inv_of_two_smul_add_inv_of_two_smul [invertible (2 : R)] (x : M) :
+  (⅟2 : R) • x + (⅟2 : R) • x = x :=
+by rw [←add_smul, inv_of_two_add_inv_of_two, one_smul]
+
 /-- Pullback a `module` structure along an injective additive monoid homomorphism.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -547,10 +551,14 @@ section smul_injective
 variables (M)
 
 lemma smul_right_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
-  function.injective (λ (x : M), c • x) :=
-λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
-  (calc c • (x - y) = c • x - c • y : smul_sub c x y
-                ... = 0 : sub_eq_zero.mpr h)).resolve_left hc)
+  function.injective ((•) c : M → M) :=
+(smul_add_hom R M c).injective_iff.2 $ λ a ha, (smul_eq_zero.mp ha).resolve_left hc
+
+variables {M}
+
+lemma smul_right_inj [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) {x y : M} :
+  c • x = c • y ↔ x = y :=
+(smul_right_injective M hc).eq_iff
 
 end smul_injective
 

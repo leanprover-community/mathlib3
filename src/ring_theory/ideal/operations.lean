@@ -1190,12 +1190,16 @@ le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
   by rw [← f.map_mul];
   exact mem_map_of_mem f (mul_mem_mul hri hsj))
 
+/-- The pushforward `ideal.map` as a monoid-with-zero homomorphism. -/
+@[simps]
+def map_hom : ideal R →*₀ ideal S :=
+{ to_fun := map f,
+  map_mul' := λ I J, ideal.map_mul f I J,
+  map_one' := by convert ideal.map_top f; exact one_eq_top,
+  map_zero' := ideal.map_bot }
+
 protected theorem map_pow (n : ℕ) : map f (I^n) = (map f I)^n :=
-begin
-  induction n with n hn,
-  { rw [pow_zero, one_eq_top, map_top, pow_zero, one_eq_top], },
-  { rw [pow_succ, map_mul, pow_succ, hn], },
-end
+map_pow (map_hom f) I n
 
 theorem comap_radical : comap f (radical K) = radical (comap f K) :=
 le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,

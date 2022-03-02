@@ -181,6 +181,12 @@ instance order_iso.inf_hom_class [semilattice_inf α] [semilattice_inf β] :
 instance order_iso.lattice_hom_class [lattice α] [lattice β] : lattice_hom_class (α ≃o β) α β :=
 { ..order_iso.sup_hom_class, ..order_iso.inf_hom_class }
 
+@[priority 100] -- See note [lower instance priority]
+instance order_iso.bounded_lattice_hom_class [lattice α] [lattice β] [bounded_order α]
+  [bounded_order β] :
+  bounded_lattice_hom_class (α ≃o β) α β :=
+{ ..order_iso.lattice_hom_class, ..order_iso.bounded_order_hom_class }
+
 @[simp] lemma map_finset_sup [semilattice_sup α] [order_bot α] [semilattice_sup β] [order_bot β]
   [sup_bot_hom_class F α β] (f : F) (s : finset ι) (g : ι → α) :
   f (s.sup g) = s.sup (f ∘ g) :=
@@ -774,7 +780,19 @@ lemma cancel_right {g₁ g₂ : bounded_lattice_hom β γ} {f : bounded_lattice_
 lemma cancel_left {g : bounded_lattice_hom β γ} {f₁ f₂ : bounded_lattice_hom α β}
   (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, bounded_lattice_hom.ext $ λ a, hg $
-  by rw [←bounded_lattice_hom.comp_apply, h, bounded_lattice_hom.comp_apply], congr_arg _⟩
+⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
+
+/-- Reinterpret a bounded lattice homomorphism as a bounded lattice homomorphism between the dual
+bounded lattices. -/
+@[simps] protected def dual :
+   bounded_lattice_hom α β ≃ bounded_lattice_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, { to_lattice_hom := f.to_lattice_hom.dual,
+                   map_top' := congr_arg to_dual f.map_bot',
+                   map_bot' := congr_arg to_dual f.map_top' },
+  inv_fun := λ f, { to_lattice_hom := lattice_hom.dual.symm f.to_lattice_hom,
+                    map_top' := congr_arg of_dual f.map_bot',
+                    map_bot' := congr_arg of_dual f.map_top' },
+  left_inv := λ f, ext $ λ a, rfl,
+  right_inv := λ f, ext $ λ a, rfl }
 
 end bounded_lattice_hom

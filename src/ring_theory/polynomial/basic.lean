@@ -208,7 +208,8 @@ ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split
 variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : R[X]} :
-  eval₂ f x p = eval₂ (f.comp (subring.subtype _)) x p.restriction :=
+  eval₂ f x p =
+  eval₂ (f.comp (subring.subtype (subring.closure (p.frange : set R)))) x p.restriction :=
 begin
   simp only [eval₂_eq_sum, sum, support_restriction, ←@coeff_restriction _ _ p],
   refl,

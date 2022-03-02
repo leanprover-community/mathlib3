@@ -6,7 +6,8 @@ Authors: Sebastian Monnet
 
 import field_theory.galois
 import topology.algebra.filter_basis
-import algebra.algebra.subalgebra
+import topology.algebra.open_subgroup
+
 
 /-!
 # Krull topology
@@ -34,9 +35,11 @@ all intermediate fields `E` with `E/K` finite dimensional.
 
 ## Main Results
 
-- `krull_topology_t2 K L h_int`. For an integral field extension `L/K` (one that satisfies
-  `h_int : algebra.is_integral K L`), the Krull topology on `L ≃ₐ[K] L`, `krull_topology K L`,
+- `krull_topology_t2 K L`. For an integral field extension `L/K`, the topology `krull_topology K L`
   is Hausdorff.
+
+- `krull_topology_totally_disconnected K L`. For an integral field extension `L/K`, the topology
+  `krull_topology K L` is totally disconnected.
 
 ## Notations
 
@@ -231,7 +234,7 @@ end
 
 /-- If `L/K` is an algebraic extension, then the Krull topology on `L ≃ₐ[K] L` is Hausdorff. -/
 lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
-  (h_int : algebra.is_integral K L) : t2_space (L ≃ₐ[K] L) :=
+  [algebra.is_integral K L] : t2_space (L ≃ₐ[K] L) :=
 { t2 := λ f g hfg,
   begin
     let φ := f⁻¹ * g,
@@ -243,7 +246,7 @@ lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
       exact hx },
     let E : intermediate_field K L := intermediate_field.adjoin K {x},
     let h_findim : finite_dimensional K E :=
-      intermediate_field.adjoin.finite_dimensional (h_int x),
+      intermediate_field.adjoin.finite_dimensional (_inst_4 x),
     let H := E.fixing_subgroup,
     have h_basis : (H : set (L ≃ₐ[K] L)) ∈ gal_group_basis K L := ⟨H, ⟨E, ⟨h_findim, rfl⟩⟩, rfl⟩,
     have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
@@ -270,3 +273,73 @@ lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
   end }
 
 end krull_t2
+
+section totally_disconnected
+
+/-- Let `X` be a topological space, and suppose that for all distinct `x,y ∈ X`, there
+  is some clopen set `U` such that `x ∈ U` and `y ∉ U`. Then `X` is totally disconnected. -/
+lemma is_totally_disconnected_of_clopen_set {X : Type*} [topological_space X]
+  (h_exists_clopen : ∀ {x y : X} (h_diff : x ≠ y), ∃ (U : set X) (h_clopen : is_clopen U),
+  x ∈ U ∧ y ∉ U) : is_totally_disconnected (set.univ : set X) :=
+begin
+  intros S _ hS,
+  by_contra,
+  unfold set.subsingleton at h,
+  simp at h,
+  rcases h with ⟨x, hx, y, hy, hxy⟩,
+  specialize h_exists_clopen hxy,
+  rcases h_exists_clopen with ⟨U, h_clopen, hxU, hyU⟩,
+  let V := set.compl U,
+  have hV_open : is_open V,
+  { rw ← is_closed_compl_iff,
+    change is_closed U.compl.compl,
+    simp,
+    exact h_clopen.2 },
+  specialize hS U V h_clopen.1 hV_open (λ a ha, em (a ∈ U)) ⟨x, hx, hxU⟩ ⟨y, hy, hyU⟩,
+  have hUV : U ∩ V = ∅,
+  { change U ∩ U.compl = ∅,
+   simp },
+  rw hUV at hS,
+  simp at hS,
+  exact hS,
+end
+
+/-- Given a tower of fields `L/E/K`, with `E/K` finite, the subgroup `Gal(L/E) ≤ L ≃ₐ[K] L` is
+  closed. -/
+lemma intermediate_field.fixing_subgroup_is_closed {K L : Type*} [field K] [field L] [algebra K L]
+  (E : intermediate_field K L) [finite_dimensional K E] :
+  is_closed (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
+begin
+  let h_open : open_subgroup (L ≃ₐ[K] L) :=
+  { to_subgroup := E.fixing_subgroup,
+    is_open' := intermediate_field.fixing_subgroup_is_open E },
+  exact open_subgroup.is_closed h_open,
+end
+
+/-- If `L/K` is an algebraic field extension, then the Krull topology on `L ≃ₐ[K] L` is
+  totally disconnected. -/
+lemma krull_topology_totally_disconnected (K L : Type*) [field K] [field L] [algebra K L]
+  [algebra.is_integral K L] : is_totally_disconnected (set.univ : set (L ≃ₐ[K] L)) :=
+begin
+  apply is_totally_disconnected_of_clopen_set,
+  intros σ τ h_diff,
+  have hστ : σ⁻¹ * τ ≠ 1,
+  { simp [inv_mul_eq_one],
+    exact h_diff },
+  cases (fun_like.exists_ne hστ) with x hx,
+  change (σ⁻¹ * τ) x ≠ x at hx,
+  let E := intermediate_field.adjoin K ({x} : set L),
+  haveI := intermediate_field.adjoin.finite_dimensional (_inst_4 x),
+  refine ⟨left_coset σ E.fixing_subgroup,
+  ⟨is_open.left_coset (intermediate_field.fixing_subgroup_is_open E) σ,
+    is_closed.left_coset (intermediate_field.fixing_subgroup_is_closed E) σ⟩,
+    ⟨1, E.fixing_subgroup.one_mem', by simp⟩,
+    _⟩,
+  rw mem_left_coset_iff,
+  change ¬ σ⁻¹ * τ ∈ E.fixing_subgroup,
+  rw mem_fixing_subgroup_iff E (σ⁻¹ * τ),
+  simp,
+  exact ⟨x, intermediate_field.mem_adjoin_simple_self K x, hx⟩,
+end
+
+end totally_disconnected

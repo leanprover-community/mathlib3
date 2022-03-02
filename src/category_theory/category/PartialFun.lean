@@ -22,7 +22,7 @@ constructive.
 
 ## References
 
-* [nLab, *The category of sets and partial functions]
+* [nLab, *The category of sets and partial functions*]
   (https://ncatlab.org/nlab/show/partial+function)
 -/
 

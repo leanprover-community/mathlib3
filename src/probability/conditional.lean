@@ -116,15 +116,13 @@ on `s ∩ t`. -/
   μ[|s][|t] = μ[|s ∩ t] :=
 begin
   have := hms.inter hmt,
-  have := (measure_ne_top μ s),
-  apply measure.ext, 
-  intros,
+  have := measure_ne_top μ s,
+  ext1,
   haveI := cond_is_probability_measure μ
     (μ.to_outer_measure.pos_of_subset_ne_zero (set.inter_subset_left _ _) hci).ne',
-  simp only [*, cond_measure_apply],
-  rw [← mul_assoc, ← set.inter_assoc],
+  simp only [*, cond_measure_apply, ←mul_assoc, ←set.inter_assoc],
   congr,
-  rw [ennreal.mul_inv, mul_comm, inv_inv, ← mul_assoc, ennreal.inv_mul_cancel, one_mul];
+  rw [ennreal.mul_inv, mul_comm, inv_inv, ←mul_assoc, ennreal.inv_mul_cancel, one_mul];
   simp *
 end
 

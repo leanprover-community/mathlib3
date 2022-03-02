@@ -115,14 +115,17 @@ on `s ∩ t`. -/
   (hms : measurable_set s) (hmt : measurable_set t) (hcs : μ s ≠ 0) (hci : μ (s ∩ t) ≠ 0) :
   μ[|s][|t] = μ[|s ∩ t] :=
 begin
+  have := hms.inter hmt,
+  have := (measure_ne_top μ s),
   apply measure.ext, 
   intros,
   haveI := cond_is_probability_measure μ
     (μ.to_outer_measure.pos_of_subset_ne_zero (set.inter_subset_left _ _) hci).ne',
-  simp [*, measure_ne_top, ennreal.mul_inv],
-  conv { to_lhs, rw mul_assoc, congr, skip, rw mul_comm },
-  simp_rw [← mul_assoc, ennreal.mul_inv_cancel hcs (measure_ne_top _ s), one_mul,
-    ← set.inter_assoc, mul_comm]
+  simp only [*, cond_measure_apply],
+  rw [← mul_assoc, ← set.inter_assoc],
+  congr,
+  rw [ennreal.mul_inv, mul_comm, inv_inv, ← mul_assoc, ennreal.inv_mul_cancel, one_mul];
+  simp *
 end
 
 @[simp] lemma cond_mul_eq_inter (hms : measurable_set s) (hcs : μ s ≠ 0) (t : set α) :
@@ -130,8 +133,8 @@ end
 by rw [cond_measure_apply μ hms t, mul_comm, ←mul_assoc,
   ennreal.mul_inv_cancel hcs (measure_ne_top _ s), one_mul]
 
-/-- Bayes' Theorem. -/
-theorem bayes (hms : measurable_set s) (hmt : measurable_set t) (ht : μ t ≠ 0) :
+/-- **Bayes' Theorem** -/
+theorem cond_eq_inv_mul_cond_mul (hms : measurable_set s) (hmt : measurable_set t) (ht : μ t ≠ 0) :
   μ[t|s] = (μ s)⁻¹ * μ[s|t] * (μ t) :=
 by rw [mul_assoc, cond_mul_eq_inter μ hmt ht s, set.inter_comm, cond_measure_apply _ hms]
 

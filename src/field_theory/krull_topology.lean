@@ -233,8 +233,8 @@ begin
 end
 
 /-- If `L/K` is an algebraic extension, then the Krull topology on `L ≃ₐ[K] L` is Hausdorff. -/
-lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
-  [algebra.is_integral K L] : t2_space (L ≃ₐ[K] L) :=
+lemma krull_topology_t2 {K L : Type*} [field K] [field L] [algebra K L]
+  (h_int : algebra.is_integral K L) : t2_space (L ≃ₐ[K] L) :=
 { t2 := λ f g hfg,
   begin
     let φ := f⁻¹ * g,
@@ -246,7 +246,7 @@ lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
       exact hx },
     let E : intermediate_field K L := intermediate_field.adjoin K {x},
     let h_findim : finite_dimensional K E :=
-      intermediate_field.adjoin.finite_dimensional (_inst_4 x),
+      intermediate_field.adjoin.finite_dimensional (h_int x),
     let H := E.fixing_subgroup,
     have h_basis : (H : set (L ≃ₐ[K] L)) ∈ gal_group_basis K L := ⟨H, ⟨E, ⟨h_findim, rfl⟩⟩, rfl⟩,
     have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
@@ -318,8 +318,8 @@ end
 
 /-- If `L/K` is an algebraic field extension, then the Krull topology on `L ≃ₐ[K] L` is
   totally disconnected. -/
-lemma krull_topology_totally_disconnected (K L : Type*) [field K] [field L] [algebra K L]
-  [algebra.is_integral K L] : is_totally_disconnected (set.univ : set (L ≃ₐ[K] L)) :=
+lemma krull_topology_totally_disconnected {K L : Type*} [field K] [field L] [algebra K L]
+  (h_int : algebra.is_integral K L) : is_totally_disconnected (set.univ : set (L ≃ₐ[K] L)) :=
 begin
   apply is_totally_disconnected_of_clopen_set,
   intros σ τ h_diff,
@@ -329,7 +329,7 @@ begin
   cases (fun_like.exists_ne hστ) with x hx,
   change (σ⁻¹ * τ) x ≠ x at hx,
   let E := intermediate_field.adjoin K ({x} : set L),
-  haveI := intermediate_field.adjoin.finite_dimensional (_inst_4 x),
+  haveI := intermediate_field.adjoin.finite_dimensional (h_int x),
   refine ⟨left_coset σ E.fixing_subgroup,
   ⟨is_open.left_coset (intermediate_field.fixing_subgroup_is_open E) σ,
     is_closed.left_coset (intermediate_field.fixing_subgroup_is_closed E) σ⟩,

@@ -1215,7 +1215,8 @@ lemma to_nat_of_nonpos : ∀ {z : ℤ}, z ≤ 0 → z.to_nat = 0
 | (n + 1 : ℕ) h := (h.not_lt (by { exact_mod_cast nat.succ_pos n })).elim
 | (-[1+ n])   _ := rfl
 
-lemma to_nat_neg_nat : ∀ {n : ℕ},  (-(n : ℤ)).to_nat = 0
+@[simp]
+lemma to_nat_neg_nat : ∀ (n : ℕ),  (-(n : ℤ)).to_nat = 0
 | 0       := rfl
 | (n + 1) := rfl
 

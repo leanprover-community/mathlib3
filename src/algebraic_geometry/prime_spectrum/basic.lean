@@ -752,13 +752,14 @@ end order
 the localization of `x`. -/
 def localization_map_of_specializes {x y : prime_spectrum R} (h : x ⤳ y) :
   localization.at_prime y.as_ideal →+* localization.at_prime x.as_ideal :=
-@is_localization.lift _ _ _ _ _ _ _ _ localization.is_localization (algebra_map R _)
-begin
-  rintro ⟨a, ha⟩,
-  rw [← prime_spectrum.le_iff_specializes, ← as_ideal_le_as_ideal, ← set_like.coe_subset_coe,
-    ← set.compl_subset_compl] at h,
-  exact (is_localization.map_units _ ⟨a, (show a ∈ x.as_ideal.prime_compl, from h ha)⟩ : _)
-end
+@is_localization.lift _ _ _ _ _ _ _ _
+  localization.is_localization (algebra_map R (localization.at_prime x.as_ideal))
+  begin
+    rintro ⟨a, ha⟩,
+    rw [← prime_spectrum.le_iff_specializes, ← as_ideal_le_as_ideal, ← set_like.coe_subset_coe,
+      ← set.compl_subset_compl] at h,
+    exact (is_localization.map_units _ ⟨a, (show a ∈ x.as_ideal.prime_compl, from h ha)⟩ : _)
+  end
 
 end prime_spectrum
 

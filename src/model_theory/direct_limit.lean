@@ -16,7 +16,6 @@ This file constructs the direct limit of a directed system of first-order embedd
   first-order embeddings between the structures indexed by `G`.
 -/
 
-
 universes v w u₁ u₂
 
 open_locale first_order

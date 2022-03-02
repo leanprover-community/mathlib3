@@ -317,7 +317,7 @@ Single Variable Real Analysis:
     Rolle's theorem: 'exists_deriv_eq_zero'
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
     higher order derivatives of functions: 'iterated_deriv'
-    $C^k$ functions: 'times_cont_diff'
+    $C^k$ functions: 'cont_diff'
     piecewise $C^k$ functions: 'https://en.wikipedia.org/wiki/Piecewise#Continuity_and_differentiability_of_piecewise_functions'
     Leibniz formula: 'deriv_mul'
   Taylor-like theorems:
@@ -453,7 +453,7 @@ Multivariable calculus:
     chain rule: 'fderiv.comp'
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
     differentiable functions: 'differentiable'
-    $k$-times continuously differentiable functions: 'times_cont_diff'
+    $k$-times continuously differentiable functions: 'cont_diff'
     $k$-th order partial derivatives: ''
     partial derivatives commute: 'second_derivative_symmetric'
     Taylor's theorem with little-o remainder: ''

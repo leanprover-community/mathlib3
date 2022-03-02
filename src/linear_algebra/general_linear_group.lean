@@ -132,6 +132,8 @@ def GL_pos : subgroup (GL n R) :=
 (units.pos_subgroup R).comap general_linear_group.det
 end
 
+@[simp] lemma coe_fn_eq_coe (A : GL_pos n R) : ⇑A = (↑(↑A : GL n R) : matrix n n R) := rfl
+
 @[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < (A.det : R) := iff.rfl
 end
 

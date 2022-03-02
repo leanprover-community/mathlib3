@@ -51,6 +51,9 @@ alg_hom.congr_fun involute_comp_involute
 @[simp] lemma involute_involute : ∀ a : clifford_algebra Q, involute (involute a) = a :=
 involute_involutive
 
+@[simp] lemma ι_range_map_involute : (ι Q).range.map involute.to_linear_map = (ι Q).range :=
+(ι_range_map_lift _ _).trans (linear_map.range_neg _)
+
 end involute
 
 section reverse
@@ -95,6 +98,12 @@ linear_map.congr_fun reverse_comp_reverse
 
 @[simp] lemma reverse_reverse : ∀ a : clifford_algebra Q, reverse (reverse a) = a :=
 reverse_involutive
+
+@[simp] lemma ι_range_map_reverse : (ι Q).range.map reverse = (ι Q).range :=
+begin
+  rw [reverse, submodule.map_comp, ι_range_map_lift, linear_map.range_comp, ←submodule.map_comp],
+  exact submodule.map_id _,
+end
 
 lemma reverse_comp_involute :
   reverse.comp involute.to_linear_map =

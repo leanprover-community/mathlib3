@@ -243,7 +243,7 @@ have h2 : (0 : L[X]) ∉ m.map (λ r, X - C (i r)),
 begin
   rw map_id at hm, rw hm at hf0 hmf0 ⊢, rw map_mul at hmf0 ⊢,
   rw [roots_mul hf0, roots_mul hmf0, map_C, roots_C, zero_add, roots_C, zero_add,
-      map_multiset_prod, multiset.map_map], simp_rw [(∘), map_sub, map_X, map_C],
+      polynomial.map_multiset_prod, multiset.map_map], simp_rw [(∘), map_sub, map_X, map_C],
   rw [roots_multiset_prod _ h2, multiset.bind_map,
       roots_multiset_prod _ h1, multiset.bind_map],
   simp_rw roots_X_sub_C,
@@ -407,7 +407,7 @@ lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {K : Type*} [comm_ring K] 
   (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
 begin
   apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
-  rw map_multiset_prod,
+  rw polynomial.map_multiset_prod,
   simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
   have : p.roots.map (algebra_map K (fraction_ring K)) =
     (map (algebra_map K (fraction_ring K)) p).roots :=
@@ -458,7 +458,7 @@ begin
   have hcoeff : p.leading_coeff ≠ 0,
   { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
   apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
-  rw [map_mul, map_multiset_prod],
+  rw [map_mul, polynomial.map_multiset_prod],
   simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
   have h : p.roots.map (algebra_map K (fraction_ring K)) =
     (map (algebra_map K (fraction_ring K)) p).roots :=

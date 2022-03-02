@@ -1211,9 +1211,9 @@ theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 | -[1+ m] n := by split; intro h; cases h
 
 lemma to_nat_of_nonpos : ∀ {z : ℤ}, z ≤ 0 → z.to_nat = 0
-| (0 : ℕ)     _ := rfl
+| 0           _ := rfl
 | (n + 1 : ℕ) h := (h.not_lt (by { exact_mod_cast nat.succ_pos n })).elim
-| (-[1+ n])   _ := rfl
+| -[1+ n]     _ := rfl
 
 @[simp]
 lemma to_nat_neg_nat : ∀ (n : ℕ),  (-(n : ℤ)).to_nat = 0
@@ -1225,7 +1225,7 @@ lemma to_nat_eq_zero : ∀ {n : ℤ}, n.to_nat = 0 ↔ n ≤ 0
 | (n : ℕ) := calc _ ↔ (n = 0) : ⟨(to_nat_coe_nat n).symm.trans, (to_nat_coe_nat n).trans⟩
                 ... ↔ _       : int.coe_nat_nonpos_iff.symm
 | -[1+ n] := show ((-((n : ℤ) + 1)).to_nat = 0) ↔ (-(n + 1) : ℤ) ≤ 0, from
-calc _ ↔ true : ⟨λ _, trivial, λ h, to_nat_neg_nat⟩
+calc _ ↔ true : ⟨λ _, trivial, λ h, to_nat_neg_nat _⟩
    ... ↔ _    : ⟨λ h, int.neg_nonpos_of_nonneg (int.coe_zero_le (n + 1)), λ _, trivial⟩
 
 /-! ### units -/

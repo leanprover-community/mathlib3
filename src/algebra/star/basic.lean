@@ -146,7 +146,7 @@ op_injective $
   ((star_mul_equiv : R ≃* Rᵐᵒᵖ).to_monoid_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
-@[simp] lemma star_div [comm_group R] [star_semigroup R] (x y : R) : 
+@[simp] lemma star_div [comm_group R] [star_semigroup R] (x y : R) :
   star (x / y) = star x / star y :=
 (star_mul_aut : R ≃* R).to_monoid_hom.map_div _ _
 
@@ -246,6 +246,21 @@ def star_ring_equiv [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :
 { to_fun := λ x, mul_opposite.op (star x),
   ..star_add_equiv.trans (mul_opposite.op_add_equiv : R ≃+ Rᵐᵒᵖ),
   ..star_mul_equiv }
+
+@[simp] lemma star_nat_cast [semiring R] [star_ring R] (n : ℕ) :
+  star (n : R) = n :=
+(congr_arg mul_opposite.unop (map_nat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) n)).trans
+  (mul_opposite.unop_nat_cast _)
+
+@[simp] lemma star_int_cast [ring R] [star_ring R] (z : ℤ) :
+  star (z : R) = z :=
+(congr_arg mul_opposite.unop ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_int_cast z)).trans
+  (mul_opposite.unop_int_cast _)
+
+@[simp] lemma star_rat_cast [division_ring R] [char_zero R] [star_ring R] (r : ℚ) :
+  star (r : R) = r :=
+(congr_arg mul_opposite.unop ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_rat_cast r)).trans
+  (mul_opposite.unop_rat_cast _)
 
 /-- `star` as a ring automorphism, for commutative `R`. -/
 @[simps apply]

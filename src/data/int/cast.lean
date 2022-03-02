@@ -318,3 +318,17 @@ by rw [cast_neg_succ_of_nat, cast_neg_succ_of_nat, neg_apply, add_apply, one_app
 by { ext, rw pi.int_apply }
 
 end pi
+
+namespace mul_opposite
+
+variables {α : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
+
+@[simp] lemma op_int_cast : ∀ z : ℤ, mul_opposite.op (z : α) = z
+| (n:ℕ) := op_nat_cast n
+| -[1+n] := congr_arg (λ a : αᵐᵒᵖ, -(a + 1)) $ op_nat_cast n
+
+@[simp] lemma unop_int_cast : ∀ n : ℤ, mul_opposite.unop (n : αᵐᵒᵖ) = n
+| (n:ℕ) := unop_nat_cast n
+| -[1+n] := congr_arg (λ a : α, -(a + 1)) $ unop_nat_cast n
+
+end mul_opposite

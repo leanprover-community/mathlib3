@@ -143,8 +143,6 @@ calc (exp_unitary a) * (exp_unitary b) = (exp_unitary b) * (exp_unitary a)
 
 local notation `↑ₐ` := algebra_map ℂ A
 
-set_option profiler true
-
 /-- `exp ℂ ℂ` maps the spectrum of `a` into the spectrum of `exp ℂ A a`. -/
 theorem spectrum.exp_mem (a : A) {z : ℂ} (hz : z ∈ spectrum ℂ a) :
   exp ℂ ℂ z ∈ spectrum ℂ (exp ℂ A a) :=

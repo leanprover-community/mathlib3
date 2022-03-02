@@ -107,7 +107,7 @@ ihom.coev_ev A B
 end exp
 
 instance : preserves_colimits (prod.functor.obj A) :=
-(exp.adjunction A).left_adjoint_preserves_colimits
+(ihom.adjunction A).left_adjoint_preserves_colimits
 
 variables {A}
 

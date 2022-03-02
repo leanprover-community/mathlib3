@@ -3,12 +3,19 @@ import measure_theory.function.convergence_in_measure
 noncomputable theory
 open_locale classical measure_theory nnreal ennreal topological_space
 
+lemma ennreal.rpow_inv_le_iff
+  {a : ℝ} {b c : ℝ≥0∞} (ha : 0 < a) : b ^ (1 / a) ≤ c ↔ b ≤ c ^ a :=
+begin
+  nth_rewrite 0 ← ennreal.rpow_one c,
+  nth_rewrite 1 ← @_root_.mul_inv_cancel _ _ a ha.ne.symm,
+  rw [ennreal.rpow_mul, ← one_div, ennreal.rpow_le_rpow_iff (one_div_pos.2 ha)],
+end
+
 namespace measure_theory
 
 open set filter topological_space
 
-variables {α β ι : Type*} {m : measurable_space α} {μ : measure α}
-variables [measurable_space β] [normed_group β]
+variables {α β ι : Type*} {m : measurable_space α} {μ : measure α} [normed_group β]
 
 /-- Also known as uniformly absolutely continuous integrals. -/
 def unif_integrable {m : measurable_space α} (f : ι → α → β) (p : ℝ≥0∞) (μ : measure α) : Prop :=
@@ -17,14 +24,13 @@ snorm (s.indicator (f i)) p μ ≤ ennreal.of_real ε
 
 /-- In probability theory, a family of functions is uniformly integrable if it is uniformly
 integrable in the measure theory sense and is uniformly bounded. -/
-def uniform_integrable {m : measurable_space α}
+def uniform_integrable {m : measurable_space α} [measurable_space β]
   (μ : measure α) (f : ι → α → β) (p : ℝ≥0∞) : Prop :=
 (∀ i, measurable (f i)) ∧ unif_integrable f p μ ∧ ∃ C : ℝ≥0, ∀ i, snorm (f i) p μ ≤ C
 
 section unif_integrable
 
-variables (μ)
-variables [borel_space β] [second_countable_topology β] [is_finite_measure μ] {p : ℝ≥0∞}
+variables (μ) {p : ℝ≥0∞}
 
 lemma tendsto_indicator_ge_zero (f : α → β) (x : α):
   tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ∥f x∥₊}.indicator f x) at_top (𝓝 0) :=
@@ -37,6 +43,11 @@ begin
   norm_cast,
   rwa [ge_iff_le, coe_nnnorm] at hn,
 end
+
+section
+
+variables [measurable_space β] [borel_space β] [hβ : second_countable_topology β]
+include hβ
 
 lemma mem_ℒp.integral_indicator_ge_le'
   {f : α → β} (hf : mem_ℒp f 1 μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
@@ -76,17 +87,7 @@ lemma mem_ℒp.integral_indicator_ge_le
   ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
 let ⟨M, hM⟩ := hf.integral_indicator_ge_le' μ hmeas hε in ⟨max M 0, le_max_right _ _, by simpa⟩
 
---move
-lemma ennreal.lt_add_one {a : ℝ≥0∞} (ha : a ≠ ∞) : a < a + 1 :=
-ennreal.lt_add_right ha one_ne_zero
-
-lemma ennreal.rpow_inv_le_iff
-  {a : ℝ} {b c : ℝ≥0∞} (ha : 0 < a) : b ^ (1 / a) ≤ c ↔ b ≤ c ^ a :=
-begin
-  nth_rewrite 0 ← ennreal.rpow_one c,
-  nth_rewrite 1 ← @_root_.mul_inv_cancel _ _ a ha.ne.symm,
-  rw [ennreal.rpow_mul, ← one_div, ennreal.rpow_le_rpow_iff (one_div_pos.2 ha)],
-end
+omit hβ
 
 lemma mem_ℒp.snorm_ess_sup_indicator_ge_eq_zero
   {f : α → β} (hf : mem_ℒp f ∞ μ) (hmeas : measurable f) :
@@ -104,7 +105,7 @@ begin
           ennreal.coe_to_real, coe_nnnorm],
       refine lt_of_lt_of_le _ hx,
       rw ennreal.to_real_lt_to_real hbdd.ne,
-      { exact ennreal.lt_add_one hbdd.ne },
+      { exact ennreal.lt_add_right hbdd.ne one_ne_zero },
       { exact (ennreal.add_lt_top.2 ⟨hbdd, ennreal.one_lt_top⟩).ne } },
     rw ← nonpos_iff_eq_zero,
     refine (measure_mono this).trans _,
@@ -128,7 +129,7 @@ begin
     obtain ⟨M, hM⟩ := hf.snorm_ess_sup_indicator_ge_eq_zero μ hmeas,
     refine ⟨M, _⟩,
     simp only [snorm_exponent_top, hM, zero_le] },
-  obtain ⟨M, hM', hM⟩ := @mem_ℒp.integral_indicator_ge_le _ _ _ μ _ _ _ _ _
+  obtain ⟨M, hM', hM⟩ := @mem_ℒp.integral_indicator_ge_le _ _ _ μ _ _ _ _
     (λ x, ∥f x∥^p.to_real) _ _ _ (real.rpow_pos_of_pos hε p.to_real),
   { refine ⟨M ^(1 / p.to_real), _⟩,
     rw [snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top,
@@ -183,7 +184,9 @@ begin
   exact (max_le_iff.1 hx).1,
 end
 
-lemma mem_ℒp.snorm_indicator_ge_le_of_bound (hp_top : p ≠ ∞) {f : α → β} (hf : mem_ℒp f p μ)
+end
+
+lemma snorm_indicator_ge_le_of_bound (hp_top : p ≠ ∞) {f : α → β}
   {ε : ℝ} (hε : 0 < ε) {M : ℝ} (hf : ∀ x, ∥f x∥ < M) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ ennreal.of_real ε :=
@@ -210,7 +213,9 @@ begin
     refine le_trans hμ _,
     rw [← ennreal.of_real_rpow_of_pos (div_pos hε hM),
       ennreal.rpow_le_rpow_iff (ennreal.to_real_pos hp hp_top), ennreal.of_real_div_of_pos hM],
-    exact le_rfl },
+    exact le_rfl,
+
+     },
   { simpa only [ennreal.of_real_eq_zero, not_le, ne.def] },
 end
 
@@ -229,15 +234,18 @@ begin
     (one_div_nonneg.2 ennreal.to_real_nonneg),
 end
 
+section
+
+variables [measurable_space β] [borel_space β]
+
 lemma mem_ℒp.snorm_indicator_ge_le'' (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
   {f : α → β} (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ 2 * ennreal.of_real ε :=
 begin
   obtain ⟨M, hMpos, hM⟩ :=  hf.snorm_indicator_ge_le_pos μ hmeas hε,
-  obtain ⟨δ, hδpos, hδ⟩ := @mem_ℒp.snorm_indicator_ge_le_of_bound _ _ _ μ _ _ _ _ _ _ hp_top
-    ({x | ∥f x∥ < M}.indicator f)
-    (hf.indicator (measurable_set_lt hmeas.nnnorm.subtype_coe measurable_const)) _ hε M _,
+  obtain ⟨δ, hδpos, hδ⟩ := @snorm_indicator_ge_le_of_bound _ _ _ μ _ _ hp_top
+    ({x | ∥f x∥ < M}.indicator f) _ hε M _,
   { refine ⟨δ, hδpos, λ s hs hμs, _⟩,
     rw (_ : f = {x : α | M ≤ ∥f x∥₊}.indicator f + {x : α | ∥f x∥ < M}.indicator f),
     { rw snorm_indicator_eq_snorm_restrict hs,
@@ -274,15 +282,6 @@ begin
   norm_num,
 end
 
-lemma restrict_ae_eq_of_ae_eq {m : measurable_space α} {μ : measure α}
-  {f g : α → β} {s : set α} (hfg : f =ᵐ[μ] g) :
-  f =ᵐ[μ.restrict s] g :=
-begin
-  refine hfg.filter_mono _,
-  rw measure.ae_le_iff_absolutely_continuous,
-  exact measure.absolutely_continuous_of_le measure.restrict_le_self,
-end
-
 lemma mem_ℒp.snorm_indicator_ge_le (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
   {f : α → β} (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
@@ -294,7 +293,7 @@ begin
   refine ⟨δ, hδpos, λ s hs hμs, _⟩,
   convert hδ s hs hμs using 1,
   rw [snorm_indicator_eq_snorm_restrict hs, snorm_indicator_eq_snorm_restrict hs],
-  refine snorm_congr_ae (restrict_ae_eq_of_ae_eq heq),
+  refine snorm_congr_ae (ae_eq_restrict_of_ae_eq heq),
 end
 
 lemma unif_integrable_subsingleton [subsingleton ι]
@@ -310,27 +309,17 @@ begin
   { exact ⟨1, zero_lt_one, λ i, false.elim $ hι $ nonempty.intro i⟩ }
 end
 
-lemma fin.induction' {X : Type*} (P : Π {n : ℕ} (f : fin n → X), Prop)
-  (h : ∀ (f : fin 0 → X), P f)
-  (hsucc : ∀ (n : ℕ), ((∀ (f : fin n → X), P f) → ∀ (f : (fin n.succ → X)), P f))
-  (n : ℕ) (f : fin n → X) : P f :=
-begin
-  induction n with d hd,
-  { exact h f },
-  { exact hsucc _ hd _ },
-end
-
 lemma unif_integrable_fin (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
   {n : ℕ} {f : fin n → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
   unif_integrable f p μ :=
 begin
   revert f,
-  refine fin.induction' _ (λ f hf, unif_integrable_subsingleton μ hp_one hp_top hf)
-    (λ n h f hfLp, _) _,
+  induction n with n h,
+  { exact (λ f hf, unif_integrable_subsingleton μ hp_one hp_top hf) },
+  intros f hfLp ε hε,
   set g : fin n → α → β := λ k, f k with hg,
   have hgLp : ∀ i, mem_ℒp (g i) p μ := λ i, hfLp i,
-  intros ε hε,
-  obtain ⟨δ₁, hδ₁pos, hδ₁⟩ := h g hgLp hε,
+  obtain ⟨δ₁, hδ₁pos, hδ₁⟩ := h hgLp hε,
   obtain ⟨δ₂, hδ₂pos, hδ₂⟩ := (hfLp n).snorm_indicator_ge_le μ hp_one hp_top hε,
   refine ⟨min δ₁ δ₂, lt_min hδ₁pos hδ₂pos, λ i s hs hμs, _⟩,
   by_cases hi : i.val < n,
@@ -345,7 +334,9 @@ begin
       simp [← le_antisymm hi' hi] } }
 end
 
-lemma snorm_sub_le_of_dist_bdd
+end
+
+lemma snorm_sub_le_of_dist_bdd [is_finite_measure μ]
   {p : ℝ≥0∞} (hp : p ≠ 0) (hp' : p ≠ ∞) {s : set α} (hs : measurable_set[m] s)
   {f g : α → β} {c : ℝ} (hc : 0 ≤ c) (hf : ∀ x ∈ s, dist (f x) (g x) ≤ c) :
   snorm (s.indicator (f - g)) p μ ≤ ennreal.of_real c * μ s ^ (1 / p.to_real) :=
@@ -377,7 +368,8 @@ begin
 end
 
 /-- A sequence of uniformly integrable functions which converges μ-a.e. converges in Lp. -/
-lemma tendsto_Lp_of_tendsto_ae (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
+lemma tendsto_Lp_of_tendsto_ae [measurable_space β] [borel_space β] [second_countable_topology β]
+  [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   (hg' : mem_ℒp g p μ) (hui : unif_integrable f p μ)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
@@ -488,12 +480,13 @@ end
 
 end
 
+variables [measurable_space β] [borel_space β] [second_countable_topology β]
 variables {f : ℕ → α → β} {g : α → β}
 
 /-- Forward direction of Vitali's convergence theorem: if `f` is a sequence of uniformly integrable
 functions that converge in measure to some function `g` in a finite measure space, then `f`
 converge in Lp to `g`. -/
-lemma tendsto_Lp_of_tendsto_in_measure (hp : 1 ≤ p) (hp' : p ≠ ∞)
+lemma tendsto_Lp_of_tendsto_in_measure [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
   (hf : ∀ n, measurable (f n)) (hg : measurable g)
   (hg' : mem_ℒp g p μ) (hui : unif_integrable f p μ)
   (hfg : tendsto_in_measure μ f at_top g) :
@@ -546,7 +539,7 @@ end
 
 /-- **Vitali's convergence theorem**: A sequence of functions `f` converges to `g` in Lp if and
 only if it is uniformly integrable and converges to `g` in measure. -/
-lemma tendsto_in_measure_iff_tendsto_Lp (hp : 1 ≤ p) (hp' : p ≠ ∞)
+lemma tendsto_in_measure_iff_tendsto_Lp [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
   (hf : ∀ n, measurable (f n)) (hg : measurable g)
   (hf' : ∀ n, mem_ℒp (f n) p μ) (hg' : mem_ℒp g p μ) :
   tendsto_in_measure μ f at_top g ∧ unif_integrable f p μ ↔
@@ -558,10 +551,11 @@ lemma tendsto_in_measure_iff_tendsto_Lp (hp : 1 ≤ p) (hp' : p ≠ ∞)
     hg.ae_measurable h, unif_integrable_of_tendsto_Lp μ hp hp' hf hg hf' hg' h⟩⟩
 end unif_integrable
 
-variables {f : ι → α → β} {p : ℝ≥0∞}
+variables [measurable_space β] {f : ι → α → β} {p : ℝ≥0∞}
 
 lemma uniform_integrable.mem_ℒp (hf : uniform_integrable μ f p) (i : ι) :
   mem_ℒp (f i) p μ :=
 ⟨(hf.1 i).ae_measurable, let ⟨_, _, hC⟩ := hf.2 in lt_of_le_of_lt (hC i) ennreal.coe_lt_top⟩
 
 end measure_theory
+#lint

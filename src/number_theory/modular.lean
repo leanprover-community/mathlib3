@@ -53,23 +53,13 @@ section upper_half_plane_action
 
 /-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
 the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
-instance {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
-mul_action.comp_hom ℍ (map (algebra_map R ℝ))
-
-lemma coe_smul (g : SL(2, ℤ)) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
-lemma re_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
-@[simp] lemma smul_coe (g : SL(2, ℤ)) (z : ℍ) : (g : SL(2,ℝ)) • z = g • z := rfl
-
-@[simp] lemma neg_smul (g : SL(2, ℤ)) (z : ℍ) : -g • z = g • z :=
-show ↑(-g) • _ = _, by simp [neg_smul g z]
-
-lemma im_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
 
 lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
-im_smul_eq_div_norm_sq g z
+by {simp only [im_smul_eq_div_norm_sq, coe_to_GL_pos_det,  one_mul, sl_moeb, coe_coe]}
 
-@[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 := by simp
+@[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
+  by {simp [denom],}
 
 end upper_half_plane_action
 
@@ -209,13 +199,18 @@ begin
   have hf₂ : closed_embedding (lc_row0_extend hcd) :=
     (lc_row0_extend hcd).to_continuous_linear_equiv.to_homeomorph.closed_embedding,
   convert hf₂.tendsto_cocompact.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
-  ext ⟨g, rfl⟩ i j : 3,
-  fin_cases i; [fin_cases j, skip],
-  { simp [mB, f₁, mul_vec, dot_product, fin.sum_univ_two] },
-  { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
-    simp [f₁, mul_vec, dot_product, mB, fin.sum_univ_two, matrix.det_fin_two],
-    ring },
-  { refl }
+  funext g,
+  obtain ⟨g, hg⟩ := g,
+  funext j,
+  fin_cases j,
+  { ext i,
+    fin_cases i,
+    { simp [mB, f₁, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ], },
+    { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
+      simp [f₁, ← hg, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ, matrix.det_fin_two,
+        -special_linear_group.det_coe],
+      ring } },
+  { exact congr_arg (λ p, (coe : ℤ → ℝ) ∘ p) hg.symm }
 end
 
 /-- This replaces `(g•z).re = a/c + *` in the standard theory with the following novel identity:
@@ -234,7 +229,7 @@ begin
   field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom, -denom_apply],
   rw (by simp : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
   rw [←hg, det_fin_two],
-  simp only [int.coe_cast_ring_hom, coe_matrix_coe, coe_fn_eq_coe,
+  simp [int.coe_cast_ring_hom, coe_matrix_coe,
     int.cast_mul, of_real_int_cast, map_apply, denom, int.cast_sub],
   ring,
 end

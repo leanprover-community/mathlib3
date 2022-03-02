@@ -339,7 +339,7 @@ Note we didn't require any coherence between the choice of finite products here,
 along the `prod_comparison` isomorphism.
 -/
 def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian_closed D :=
-{ closed := λ X,
+{ closed' := λ X,
   { is_adj :=
     begin
       haveI q : exponentiable (e.inverse.obj X) := infer_instance,

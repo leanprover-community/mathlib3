@@ -305,10 +305,6 @@ lemma measurable_set_generate_from {s : set (set α)} {t : set α} (ht : t ∈ s
   (generate_from s).measurable_set' t :=
 generate_measurable.basic t ht
 
-lemma measurable_set_generate_from' {s : set (set α)} {t : set α} (ht : t ∈ s) :
-  @measurable_set _ (generate_from s) t :=
-generate_measurable.basic t ht
-
 lemma generate_from_le {s : set (set α)} {m : measurable_space α}
   (h : ∀ t ∈ s, m.measurable_set' t) : generate_from s ≤ m :=
 assume t (ht : generate_measurable s t), ht.rec_on h

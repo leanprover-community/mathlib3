@@ -257,7 +257,7 @@ begin
   refine (λ S f hfs, h_indep S (λ x hxS, _)),
   change (m x).measurable_set' (f x),
   simp_rw hms x,
-  exact measurable_set_generate_from' (hfs x hxS),
+  exact measurable_set_generate_from (hfs x hxS),
 end
 
 lemma indep.indep_sets {α} [measurable_space α] {μ : measure α} {s1 s2 : set (set α)}

@@ -332,11 +332,12 @@ protected theorem pow_induction_on
 submodule.pow_induction_on' M
   (by exact hr) (λ x y i hx hy, hadd x y) (λ m hm i x hx, hmul _ hm _) hx
 
-/-- `submonoid.map` as a `monoid_hom`, when applied to `alg_hom`s. -/
+/-- `submonoid.map` as a `monoid_with_zero_hom`, when applied to `alg_hom`s. -/
 @[simps]
-def map_monoid_hom {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
-  submodule R A →* submodule R A' :=
+def map_hom {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
+  submodule R A →*₀ submodule R A' :=
 { to_fun := map f.to_linear_map,
+  map_zero' := submodule.map_bot _,
   map_one' := submodule.map_one _,
   map_mul' := λ _ _, submodule.map_mul _ _ _}
 
@@ -354,7 +355,7 @@ ring_equiv.symm
 
 lemma map_pow {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') (n : ℕ) :
   map f.to_linear_map (M ^ n) = map f.to_linear_map M ^ n :=
-(map_monoid_hom f).map_pow M n
+map_pow (map_hom f) M n
 
 lemma map_op_pow (n : ℕ) :
   map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (M ^ n) =

@@ -78,14 +78,6 @@ begin
   fin_cases i; assumption,
 end
 
-lemma det_of_22 {R : Type*} [comm_ring R] (M: matrix (fin 2) (fin 2) R):
-  M.det = (M 0 0) * (M 1 1) - (M 0 1) * (M 1 0):=
-begin
-rw  matrix.det_succ_row_zero,
-simp [fin.sum_univ_succ],
-ring,
-end
-
 lemma denom_ne_zero (g : GL_pos (fin 2) ℝ) (z : ℍ) : denom g z ≠ 0 :=
 begin
   intro H,
@@ -97,7 +89,7 @@ begin
   cases H1,
   {simp only [H1, complex.of_real_zero, denom, matrix.coe_fn_eq_coe, zero_mul, zero_add,
     complex.of_real_eq_zero] at H,
-  have:= det_of_22 g,
+  have:= matrix.det_fin_two g,
   simp only [coe_fn_coe_base', subtype.val_eq_coe, coe_im, general_linear_group.coe_fn_eq_coe] at *,
   rw this at DET,
   simp only [H, H1, mul_zero, sub_zero, lt_self_iff_false] at DET,
@@ -122,7 +114,7 @@ begin
   set NsqBot := (denom g z).norm_sq,
   have : NsqBot ≠ 0,
   { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
-  field_simp [smul_aux'], ring_nf, have:= det_of_22  g, simp at this, rw this, ring,
+  field_simp [smul_aux'], ring_nf, have:= matrix.det_fin_two  g, simp at this, rw this, ring,
 end
 
 /-- Fractional linear transformation,  also known as the Moebius transformation -/

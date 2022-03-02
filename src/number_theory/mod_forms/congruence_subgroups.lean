@@ -14,7 +14,7 @@ ring_hom.map_matrix (red_map N)
 
 def SL_mod_map' (N : ℕ) : SL(2, ℤ) → SL(2, zmod N):=
 λ M, ⟨mat_mod_map (N : ℕ) M.1 , by {rw mat_mod_map, rw ring_hom.map_matrix, rw red_map, simp,
-    have:= matrix.special_linear_group.det_coe M, rw modular_group.det_of_22 at *,
+    have:= matrix.special_linear_group.det_coe M, rw matrix.det_fin_two at *,
     simp at *, norm_cast, rw this, simp,} ⟩
 
 def SL_mod_map (N : ℕ) : SL(2, ℤ)  →* SL(2, zmod N):={
@@ -148,7 +148,7 @@ begin
   simp_rw Gamma_0_map at ha, dsimp at *,
   simp only [ha, hA, and_true, eq_self_iff_true],
   have adet:= Gamma0_det N A,
-  rw modular_group.det_of_22 at adet,
+  rw matrix.det_fin_two at adet,
   simp only [int.cast_mul, int.cast_sub, subtype.val_eq_coe] at adet,
   simp [coe_fn_coe_base'] at *,
   rw [hA, ha] at adet,

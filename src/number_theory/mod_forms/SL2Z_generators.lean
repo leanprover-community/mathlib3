@@ -480,7 +480,7 @@ begin
     rw h at e_pos,
     exact (irrefl _ e_pos).elim, },
   have d1: (M 0 0)*(M 1 1)=1,
-    by {have:= modular_group.det_of_22 M, simp at *, rw ht at this, simp at this,
+    by {have:= matrix.det_fin_two M, simp at *, rw ht at this, simp at this,
       have hm:= gengroup_det M, rw hm at this, apply this.symm, },
   have mg0: (M  0 0) > 0, by
     {rw g_eq at B_eq, simp only [add_zero, mul_zero] at B_eq,
@@ -526,7 +526,7 @@ def  matrix_makr(a b c d : ℤ ): matrix  (fin 2) (fin 2 ) ℤ:= ![![a, b], ![c,
 lemma dm  (a b c d : ℤ ) : (matrix_makr a b c d).det = a*d-b*c:=
 begin
   rw matrix_makr,
-  apply modular_group.det_of_22 (matrix_makr a b c d),
+  apply matrix.det_fin_two (matrix_makr a b c d),
 end
 
 
@@ -543,7 +543,7 @@ end
 lemma en_pos (m : ℕ+) (A: matrix (fin 2) (fin 2) ℤ)
 (h1: A.det= ↑ m) (h2: 0 < A 0 0) (h3: A 1 0 =0) : 0 ≤ A 1 1:=
 begin
-  rw modular_group.det_of_22 at h1,
+  rw matrix.det_fin_two at h1,
   rw h3 at h1,
   simp only [sub_zero, mul_zero, coe_coe] at h1,
   by_contradiction h,
@@ -594,7 +594,7 @@ inv_fun := λ A, ⟨ (
         have ao: (A.1).val 1 0 = 0, by { apply A.2.1},
         have := A.1.2,
         simp at *,
-        rw modular_group.det_of_22 at this,
+        rw matrix.det_fin_two at this,
         rw ao at this,
         simp at this,
         rw [← int.nat_abs_mul],
@@ -605,7 +605,7 @@ inv_fun := λ A, ⟨ (
         have ao: (A.1).val 1 0 = 0, by { apply A.2.1},
         have := A.1.2,
         simp at *,
-        rw modular_group.det_of_22 at this,
+        rw matrix.det_fin_two at this,
         rw ao at this,
         simp at this,
         rw mul_comm at this,
@@ -617,7 +617,7 @@ inv_fun := λ A, ⟨ (
         have ao: (A.1).val 1 0 = 0, by { apply A.2.1},
         have := A.1.2,
         simp at *,
-        rw modular_group.det_of_22 at this,
+        rw matrix.det_fin_two at this,
         rw ao at this,
         simp at this,
         rw mul_comm at this,
@@ -628,7 +628,7 @@ inv_fun := λ A, ⟨ (
         have ao: (A.1).val 1 0 = 0, by { apply A.2.1},
         have := A.1.2,
         simp at *,
-        rw modular_group.det_of_22 at this,
+        rw matrix.det_fin_two at this,
         rw ao at this,
         simp at this,
         rw [← int.nat_abs_mul],
@@ -687,7 +687,7 @@ def reps.fintype : Π m : ℤ, m ≠ 0 → fintype (reps m)
       have := A.1.2,
       simp only [subtype.val_eq_coe, coe_coe] at this,
       simp only [pnat.mk_coe, int.coe_nat_succ] at this,
-      rw modular_group.det_of_22 at *,
+      rw matrix.det_fin_two at *,
       simp,
       simp only [subtype.val_eq_coe] at ao,
       rw ao at *,
@@ -702,7 +702,7 @@ def reps.fintype : Π m : ℤ, m ≠ 0 → fintype (reps m)
     by  {
       have := A.1.2,
       simp only [subtype.val_eq_coe, coe_coe] at this,
-      rw modular_group.det_of_22 at *,
+      rw matrix.det_fin_two at *,
       simp,
       simp only [subtype.val_eq_coe] at ao,
       rw ao at *,
@@ -806,7 +806,7 @@ begin
   split,
   intro hx,
   simp at *,
-  have detsl:= modular_group.det_of_22 x.1,
+  have detsl:= matrix.det_fin_two x.1,
   simp at detsl,
   rw hx.1 at detsl,
   simp at detsl,

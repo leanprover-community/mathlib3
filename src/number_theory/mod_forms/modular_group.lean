@@ -83,11 +83,6 @@ def S2: matrix  (fin 2) (fin 2 ) ℤ:= ![![-2, 0], ![0, -1]]
 
 variables  {R : Type*} [comm_ring R]
 
-lemma det_of_22  (M: matrix (fin 2) (fin 2) R): M.det= (M 0 0) * (M 1 1) - (M 0 1) * (M 1 0):=
-begin
-rw  matrix.det_succ_row_zero, simp [fin.sum_univ_succ],ring,
-end
-
 @[simp] lemma mat_mul_expl  (A B : matrix (fin 2) (fin 2) R) :
 (A * B) 0 0 =  A 0 0 * B 0 0 + A 0 1 * B 1 0 ∧ (A * B) 0 1 = A 0 0 * B 0 1 + A 0 1 * B 1 1 ∧
 (A * B) 1 0 = A 1 0 * B 0 0 + A 1 1 * B 1 0 ∧ (A * B) 1 1  = A 1 0 * B 0 1 + A 1 1  * B 1 1 :=
@@ -142,7 +137,7 @@ end
 
 lemma det_onee (A: SL2Z):  det A= A 0 0 * A 1 1 - A 1 0 * A 0 1 :=
 begin
-have:= det_of_22 A.1,
+have:= matrix.det_fin_two A.1,
 have ad:=A.2,simp [valorsl],
 rw ad at this,
 have cg : A.1 1 0* A.1 0 1 =  A.1 0 1* A.1 1 0, by {ring,},
@@ -167,7 +162,7 @@ end
 
 lemma det_m (M: integral_matrices_with_determinant m): (M 0 0 * M 1 1 - M 1 0 * M 0 1)=m:=
 begin
- have H:= det_of_22 M.1, simp [valor_mat_m] at *, have m2:=M.2, simp at m2, rw m2 at H,
+ have H:= matrix.det_fin_two M.1, simp [valor_mat_m] at *, have m2:=M.2, simp at m2, rw m2 at H,
  have cg : M.1 1 0* M.1 0 1 =  M.1 0 1* M.1 1 0, by {ring,}, simp at cg, rw cg, exact H.symm,
 end
 
@@ -179,7 +174,7 @@ end
 
 lemma det_m' (M: integral_matrices_with_determinant m): M 0 0 * M 1 1 - M 1 0 * M 0 1= M.val.det:=
 begin
-have:=det_of_22 M.1, simp [valor_mat_m],simp  at this,
+have:=matrix.det_fin_two M.1, simp [valor_mat_m],simp  at this,
  have cg : M.1 1 0* M.1 0 1 =  M.1 0 1* M.1 1 0, by {ring,}, simp at cg, rw cg, exact this.symm,
 end
 
@@ -286,7 +281,7 @@ def ainv' (A: SL2Z): matrix (fin 2) (fin 2) ℤ:=![![A 1 1, -A 0 1], ![-A 1 0 , 
 
 lemma ainvdet (A : SL2Z): (ainv' A).det=1:=
 begin
-rw ainv', rw det_of_22, simp, have :=det_onne A, simp only [valorsl] at *, rw mul_comm at this,
+rw ainv', rw matrix.det_fin_two, simp, have :=det_onne A, simp only [valorsl] at *, rw mul_comm at this,
 have cg: A.val 0 1 * A.val 1 0= A.val 1 0 * A.val 0 1, by {ring,}, simp at cg,
 rw cg, exact this,
 end
@@ -463,7 +458,7 @@ def mi (m: ℤ) (M: integral_matrices_with_determinant m) : (matrix (fin 2) (fin
 lemma fff (m: ℤ) (M: integral_matrices_with_determinant m): (mi m M).det = m:=
 
 begin
-rw mi, rw det_of_22, simp, have:=det_m m M, simp [valor_mat_m] at *,
+rw mi, rw matrix.det_fin_two, simp, have:=det_m m M, simp [valor_mat_m] at *,
 have cg : M.1 1 0* M.1 0 1 =  M.1 0 1* M.1 1 0, by {ring,}, simp at cg, rw ← cg,exact this,
 end
 
@@ -551,7 +546,8 @@ end
 
 
 instance SLZ_to_GLZ: has_coe SL2Z (matrix.special_linear_group (fin 2 ) ℝ):=
-⟨λ A, ⟨mat_Z_to_R A.1, by {rw mat_Z_to_R, rw det_of_22, have:= det_onne' A, simp,simp at this,
+⟨λ A, ⟨mat_Z_to_R A.1, by {rw mat_Z_to_R, rw matrix.det_fin_two,
+have:= det_onne' A, simp,simp at this,
  norm_cast, exact this,}, ⟩⟩
 
 

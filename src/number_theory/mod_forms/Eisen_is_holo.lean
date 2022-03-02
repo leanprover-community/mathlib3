@@ -218,7 +218,7 @@ def Tn (n : ℤ) : matrix  (fin 2) (fin 2 ) ℤ := ![![1, n], ![0, 1]]
 lemma Tndet (n : ℤ) : matrix.det (Tn(n)) = 1 :=
 begin
   simp_rw Tn,
-  rw det_of_22,
+  rw matrix.det_fin_two,
   simp only [matrix.head_cons, mul_one, sub_zero, matrix.cons_val_one, mul_zero,
   matrix.cons_val_zero],
 end

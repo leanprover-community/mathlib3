@@ -215,7 +215,7 @@ end special_linear_group
 
 section examples
 
-/-- The matrix [a, b; -b, a] (inspired by multiplication by a complex number); it is an element of
+/-- The matrix [a, -b; b, a] (inspired by multiplication by a complex number); it is an element of
 $GL_2(R)$ if `a ^ 2 + b ^ 2` is nonzero. -/
 @[simps coe {fully_applied := ff}]
 def plane_conformal_matrix {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :

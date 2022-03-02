@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
-import set_theory.ordinal_arithmetic
-import tactic.linarith
 import order.bounded
+import set_theory.principal
+import tactic.linarith
 
 /-!
 # Cardinals and ordinals
@@ -243,9 +243,9 @@ theorem eq_aleph'_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) : ∃ a, (a
 ⟨cardinal.aleph_idx.rel_iso o.card, by simpa using ho⟩
 
 /-- `ord ∘ aleph'` enumerates the ordinals that are cardinals. -/
-theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord _ ord_card_unbounded :=
+theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord {b : ordinal | b.card.ord = b} :=
 begin
-  rw [←eq_enum_ord, range_eq_iff],
+  rw [←eq_enum_ord _ ord_card_unbounded, range_eq_iff],
   exact ⟨aleph'_is_normal.strict_mono, ⟨(λ a, (by { dsimp, rw card_ord })),
     λ b hb, eq_aleph'_of_eq_card_ord hb⟩⟩
 end
@@ -265,9 +265,10 @@ begin
 end
 
 /-- `ord ∘ aleph` enumerates the infinite ordinals that are cardinals. -/
-theorem ord_aleph_eq_enum_card : ord ∘ aleph = enum_ord _ ord_card_unbounded' :=
+theorem ord_aleph_eq_enum_card :
+  ord ∘ aleph = enum_ord {b : ordinal | b.card.ord = b ∧ ordinal.omega ≤ b} :=
 begin
-  rw ←eq_enum_ord,
+  rw ←eq_enum_ord _ ord_card_unbounded',
   use aleph_is_normal.strict_mono,
   rw range_eq_iff,
   refine ⟨(λ a, ⟨_, _⟩), λ b hb, eq_aleph_of_eq_card_ord hb.1 hb.2⟩,
@@ -509,6 +510,12 @@ end
 protected lemma eq_of_add_eq_add_right {a b c : cardinal} (h : a + b = c + b) (hb : b < ω) :
   a = c :=
 by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left h hb }
+
+theorem ord_is_principal_add {c : cardinal} (hc : ω ≤ c) : ordinal.principal (+) c.ord :=
+λ a b ha hb, by { rw [lt_ord, ordinal.card_add] at *, exact add_lt_of_lt hc ha hb }
+
+theorem aleph_is_principal_add (o : ordinal) : ordinal.principal (+) (aleph o).ord :=
+ord_is_principal_add $ omega_le_aleph o
 
 /-! ### Properties about power -/
 

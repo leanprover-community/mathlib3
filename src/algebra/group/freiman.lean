@@ -34,7 +34,7 @@ an `add_monoid`/`monoid` instead of the `add_monoid`/`monoid` itself.
 
 ## References
 
-[Yufei Zhao, *18.225: Graph Theory and Additive Combinatorics][https://yufeizhao.com/gtac/]
+[Yufei Zhao, *18.225: Graph Theory and Additive Combinatorics*](https://yufeizhao.com/gtac/)
 
 ## TODO
 

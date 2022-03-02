@@ -122,8 +122,7 @@ begin
     (μ.to_outer_measure.pos_of_subset_ne_zero (set.inter_subset_left _ _) hci).ne',
   simp only [*, cond_measure_apply, ←mul_assoc, ←set.inter_assoc],
   congr,
-  rw [ennreal.mul_inv, mul_comm, inv_inv, ←mul_assoc, ennreal.inv_mul_cancel, one_mul];
-  simp *
+  simp [*, ennreal.mul_inv, mul_comm, inv_inv, ←mul_assoc, ennreal.inv_mul_cancel, one_mul]
 end
 
 @[simp] lemma cond_mul_eq_inter (hms : measurable_set s) (hcs : μ s ≠ 0) (t : set α) :

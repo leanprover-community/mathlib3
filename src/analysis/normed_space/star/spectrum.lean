@@ -67,7 +67,6 @@ spectral_radius_eq_nnnorm_of_self_adjoint a.property
 
 end complex_scalars
 
-
 /-- The inclusion of the base field in a algebra as a continuous linear map. -/
 @[simps]
 def algebra_map_clm (𝕜 : Type*) (E : Type*) [normed_field 𝕜] [semi_normed_ring E]

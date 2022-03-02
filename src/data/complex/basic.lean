@@ -479,7 +479,7 @@ by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
 
 @[simp] lemma abs_prod {ι : Type*} (s : finset ι) (f : ι → ℂ) :
   abs (s.prod f) = s.prod (λ i, abs (f i)) :=
-abs_hom.to_monoid_hom.map_prod _ _
+map_prod abs_hom _ _
 
 @[simp] lemma abs_pow (z : ℂ) (n : ℕ) : abs (z ^ n) = abs z ^ n :=
 map_pow abs_hom z n

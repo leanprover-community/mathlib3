@@ -866,7 +866,7 @@ h ▸ by simp only [inv_eq_one_div, one_div_neg_eq_neg_one_div]
 
 theorem inv_one {α} [division_ring α] : (1 : α)⁻¹ = 1 := inv_one
 theorem inv_one_div {α} [division_ring α] (a : α) : (1 / a)⁻¹ = a :=
-by rw [one_div, inv_inv₀]
+by rw [one_div, inv_inv]
 theorem inv_div_one {α} [division_ring α] (a : α) : a⁻¹ = 1 / a :=
 inv_eq_one_div _
 theorem inv_div {α} [division_ring α] (a b : α) : (a / b)⁻¹ = b / a :=
@@ -1045,6 +1045,33 @@ meta def prove_pow (a : expr) (na : ℚ) :
 
 end
 
+lemma zpow_pos {α} [div_inv_monoid α] (a : α) (b : ℤ) (b' : ℕ) (c : α)
+  (hb : b = b') (h : a ^ b' = c) : a ^ b = c := by rw [← h, hb, zpow_coe_nat]
+lemma zpow_neg {α} [div_inv_monoid α] (a : α) (b : ℤ) (b' : ℕ) (c c' : α)
+  (b0 : 0 < b') (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, hb, zpow_neg_coe_of_pos _ b0]
+
+/-- Given `a` a rational numeral and `b : ℤ`, returns `(c, ⊢ a ^ b = c)`. -/
+meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr) :
+  tactic (instance_cache × instance_cache × instance_cache × expr × expr) :=
+  match match_sign b with
+  | sum.inl b := do
+    (zc, nc, b', hb) ← prove_nat_uncast zc nc b,
+    (ic, c, h) ← prove_pow a na ic b',
+    (ic, c', hc) ← c.to_rat >>= prove_inv ic c,
+    (ic, p) ← ic.mk_app ``zpow_neg [a, b, b', c, c', hb, h, hc],
+    pure (ic, zc, nc, c', p)
+  | sum.inr ff := do
+    (ic, o) ← ic.mk_app ``has_one.one [],
+    (ic, p) ← ic.mk_app ``zpow_zero [a],
+    pure (ic, zc, nc, o, p)
+  | sum.inr tt := do
+    (zc, nc, b', hb) ← prove_nat_uncast zc nc b,
+    (ic, c, h) ← prove_pow a na ic b',
+    (ic, p) ← ic.mk_app ``zpow_pos [a, b, b', c, hb, h],
+    pure (ic, zc, nc, c, p)
+  end
+
 /-- Evaluates expressions of the form `a ^ b`, `monoid.npow a b` or `nat.pow a b`. -/
 meta def eval_pow : expr → tactic (expr × expr)
 | `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
@@ -1052,12 +1079,22 @@ meta def eval_pow : expr → tactic (expr × expr)
   c ← infer_type e₁ >>= mk_instance_cache,
   match m with
   | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
+  | `(@div_inv_monoid.has_pow %%_ %%_) := do
+    zc ← mk_instance_cache `(ℤ),
+    nc ← mk_instance_cache `(ℕ),
+    (prod.snd ∘ prod.snd ∘ prod.snd) <$> prove_zpow c zc nc e₁ n₁ e₂
   | _ := failed
   end
 | `(monoid.npow %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
   prod.snd <$> prove_pow e₁ n₁ c e₂
+| `(div_inv_monoid.zpow %%e₁ %%e₂) := do
+  n₁ ← e₁.to_rat,
+  c ← infer_type e₁ >>= mk_instance_cache,
+  zc ← mk_instance_cache `(ℤ),
+  nc ← mk_instance_cache `(ℕ),
+  (prod.snd ∘ prod.snd ∘ prod.snd) <$> prove_zpow c zc nc e₁ n₁ e₂
 | _ := failed
 
 /-- Given `⊢ p`, returns `(true, ⊢ p = true)`. -/

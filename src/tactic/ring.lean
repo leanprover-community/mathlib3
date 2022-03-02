@@ -549,10 +549,10 @@ do
   | normalize_mode.SOP :=
     [``horner_def', ``add_zero, ``mul_one, ``mul_add, ``mul_sub,
     ``mul_assoc_rev, ``pow_add_rev, ``pow_add_rev_right,
-    ``mul_neg_eq_neg_mul_symm, ``add_neg_eq_sub]
+    ``mul_neg, ``add_neg_eq_sub]
   | normalize_mode.horner :=
     [``horner.equations._eqn_1, ``add_zero, ``one_mul, ``pow_one,
-    ``neg_mul_eq_neg_mul_symm, ``add_neg_eq_sub]
+    ``neg_mul, ``add_neg_eq_sub]
   | _ := []
   end,
   lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,

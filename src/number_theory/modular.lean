@@ -70,7 +70,7 @@ lemma bottom_row_coprime {R : Type*} [comm_ring R] (g : SL(2, R)) :
   is_coprime ((↑g : matrix (fin 2) (fin 2) R) 1 0) ((↑g : matrix (fin 2) (fin 2) R) 1 1) :=
 begin
   use [- (↑g : matrix (fin 2) (fin 2) R) 0 1, (↑g : matrix (fin 2) (fin 2) R) 0 0],
-  rw [add_comm, ←neg_mul_eq_neg_mul, ←sub_eq_add_neg, ←det_fin_two],
+  rw [add_comm, neg_mul, ←sub_eq_add_neg, ←det_fin_two],
   exact g.det_coe,
 end
 
@@ -134,7 +134,7 @@ begin
       rw [f_def, add_im, of_real_mul_im, of_real_im, add_zero, mul_left_comm,
         inv_mul_cancel hz, mul_one], },
     { show ((z : ℂ).im)⁻¹ * ((z : ℂ) * conj (f c)).im = c 1,
-      rw [f_def, ring_equiv.map_add, ring_equiv.map_mul, mul_add, mul_left_comm, mul_conj,
+      rw [f_def, ring_hom.map_add, ring_hom.map_mul, mul_add, mul_left_comm, mul_conj,
         conj_of_real, conj_of_real, ← of_real_mul, add_im, of_real_im, zero_add,
         inv_mul_eq_iff_eq_mul₀ hz],
       simp only [of_real_im, of_real_re, mul_im, zero_add, mul_zero] } },
@@ -169,11 +169,12 @@ some fixed `(c₀, d₀)`. -/
 linear_equiv.Pi_congr_right
 ![begin
     refine linear_map.general_linear_group.general_linear_equiv ℝ (fin 2 → ℝ)
-      (general_linear_group.to_linear (plane_conformal_matrix (cd 0 : ℝ) (cd 1 : ℝ) _)),
+      (general_linear_group.to_linear (plane_conformal_matrix (cd 0 : ℝ) (-(cd 1 : ℝ)) _)),
     norm_cast,
+    rw neg_sq,
     exact hcd.sq_add_sq_ne_zero
   end,
-  (linear_equiv.refl _ _)]
+  linear_equiv.refl ℝ (fin 2 → ℝ)]
 
 /-- The map `lc_row0` is proper, that is, preimages of cocompact sets are finite in
 `[[* , *], [c, d]]`.-/

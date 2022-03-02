@@ -206,6 +206,19 @@ protected def non_unital_non_assoc_ring [non_unital_non_assoc_ring β] :
 let zero := e.has_zero, add := e.has_add, mul := e.has_mul, neg := e.has_neg, sub := e.has_sub in
 by resetI; apply e.injective.non_unital_non_assoc_ring _; intros; exact e.apply_symm_apply _
 
+/-- Transfer `non_unital_ring` across an `equiv` -/
+protected def non_unital_ring [non_unital_ring β] :
+  non_unital_ring α :=
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul, neg := e.has_neg, sub := e.has_sub in
+by resetI; apply e.injective.non_unital_ring _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_assoc_ring` across an `equiv` -/
+protected def non_assoc_ring [non_assoc_ring β] :
+  non_assoc_ring α :=
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
+  sub := e.has_sub in
+by resetI; apply e.injective.non_assoc_ring _; intros; exact e.apply_symm_apply _
+
 /-- Transfer `ring` across an `equiv` -/
 protected def ring [ring β] : ring α :=
 let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
@@ -218,7 +231,7 @@ let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, ne
   sub := e.has_sub in
 by resetI; apply e.injective.comm_ring _; intros; exact e.apply_symm_apply _
 
-/-- Transfer `nonzero` across an `equiv` -/
+/-- Transfer `nontrivial` across an `equiv` -/
 protected theorem nontrivial [nontrivial β] : nontrivial α :=
 e.surjective.nontrivial
 

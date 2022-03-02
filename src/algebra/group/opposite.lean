@@ -140,11 +140,11 @@ semiconj_by_unop.2 h
 @[to_additive] lemma commute.unop [has_mul α] {x y : αᵐᵒᵖ} (h : commute x y) :
   commute (unop x) (unop y) := h.unop
 
-@[to_additive, simp] lemma commute_op [has_mul α] {x y : α} :
+@[simp, to_additive] lemma commute_op [has_mul α] {x y : α} :
   commute (op x) (op y) ↔ commute x y :=
 semiconj_by_op
 
-@[to_additive, simp] lemma commute_unop [has_mul α] {x y : αᵐᵒᵖ} :
+@[simp, to_additive] lemma commute_unop [has_mul α] {x y : αᵐᵒᵖ} :
   commute (unop x) (unop y) ↔ commute x y :=
 semiconj_by_unop
 
@@ -220,16 +220,16 @@ open mul_opposite
 
 /-- Inversion on a group is a `mul_equiv` to the opposite group. When `G` is commutative, there is
 `mul_equiv.inv`. -/
-@[to_additive "/-- Negation on an additive group is an `add_equiv` to the opposite group. When `G`
-is commutative, there is `add_equiv.inv`. -/", simps { fully_applied := ff, simp_rhs := tt }]
+@[to_additive "Negation on an additive group is an `add_equiv` to the opposite group. When `G`
+is commutative, there is `add_equiv.inv`.", simps { fully_applied := ff, simp_rhs := tt }]
 def mul_equiv.inv' (G : Type*) [group G] : G ≃* Gᵐᵒᵖ :=
 { map_mul' := λ x y, unop_injective $ mul_inv_rev x y,
   .. (equiv.inv G).trans op_equiv }
 
 /-- A monoid homomorphism `f : M →* N` such that `f x` commutes with `f y` for all `x, y` defines
 a monoid homomorphism to `Nᵐᵒᵖ`. -/
-@[to_additive "/-- An additive monoid homomorphism `f : M →+ N` such that `f x` additively commutes
-with `f y` for all `x, y` defines an additive monoid homomorphism to `Sᵃᵒᵖ`. -/",
+@[to_additive "An additive monoid homomorphism `f : M →+ N` such that `f x` additively commutes
+with `f y` for all `x, y` defines an additive monoid homomorphism to `Sᵃᵒᵖ`.",
   simps {fully_applied := ff}]
 def monoid_hom.to_opposite {M N : Type*} [mul_one_class M] [mul_one_class N] (f : M →* N)
   (hf : ∀ x y, commute (f x) (f y)) : M →* Nᵐᵒᵖ :=
@@ -239,8 +239,8 @@ def monoid_hom.to_opposite {M N : Type*} [mul_one_class M] [mul_one_class N] (f 
 
 /-- A monoid homomorphism `f : M →* N` such that `f x` commutes with `f y` for all `x, y` defines
 a monoid homomorphism from `Mᵐᵒᵖ`. -/
-@[to_additive "/-- An additive monoid homomorphism `f : M →+ N` such that `f x` additively commutes
-with `f y` for all `x`, `y` defines an additive monoid homomorphism from `Mᵃᵒᵖ`. -/",
+@[to_additive "An additive monoid homomorphism `f : M →+ N` such that `f x` additively commutes
+with `f y` for all `x`, `y` defines an additive monoid homomorphism from `Mᵃᵒᵖ`.",
   simps {fully_applied := ff}]
 def monoid_hom.from_opposite {M N : Type*} [mul_one_class M] [mul_one_class N] (f : M →* N)
   (hf : ∀ x y, commute (f x) (f y)) : Mᵐᵒᵖ →* N :=
@@ -270,9 +270,9 @@ rfl
 
 /-- A monoid homomorphism `M →* N` can equivalently be viewed as a monoid homomorphism
 `Mᵐᵒᵖ →* Nᵐᵒᵖ`. This is the action of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/
-@[to_additive "/-- An additive monoid homomorphism `M →+ N` can equivalently be viewed as an
+@[to_additive "An additive monoid homomorphism `M →+ N` can equivalently be viewed as an
 additive monoid homomorphism `Mᵃᵒᵖ →+ Nᵃᵒᵖ`. This is the action of the (fully faithful)
-`ᵃᵒᵖ`-functor on morphisms. -/", simps]
+`ᵃᵒᵖ`-functor on morphisms.", simps]
 def monoid_hom.op {M N} [mul_one_class M] [mul_one_class N] :
   (M →* N) ≃ (Mᵐᵒᵖ →* Nᵐᵒᵖ) :=
 { to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,
@@ -323,7 +323,7 @@ def add_equiv.mul_op {α β} [has_add α] [has_add β] :
   (αᵐᵒᵖ ≃+ βᵐᵒᵖ) ≃ (α ≃+ β) := add_equiv.mul_op.symm
 
 /-- A iso `α ≃* β` can equivalently be viewed as an iso `αᵐᵒᵖ ≃* βᵐᵒᵖ`. -/
-@[to_additive "A iso `α ≃+ β` can equivalently be viewed as an iso `αᵃᵒᵖ ≃+ βᵃᵒᵖ`. -/", simps]
+@[to_additive "A iso `α ≃+ β` can equivalently be viewed as an iso `αᵃᵒᵖ ≃+ βᵃᵒᵖ`.", simps]
 def mul_equiv.op {α β} [has_mul α] [has_mul β] :
   (α ≃* β) ≃ (αᵐᵒᵖ ≃* βᵐᵒᵖ) :=
 { to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,

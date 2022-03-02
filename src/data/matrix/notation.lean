@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 import data.matrix.basic
 import data.fin.vec_notation
+import tactic.fin_cases
 
 /-!
 # Matrix and vector notation
@@ -230,5 +231,89 @@ empty_eq _
 by { ext i j, refine fin.cases _ _ i; simp [minor] }
 
 end minor
+
+section vec2_and_vec3
+
+section one
+
+variables [has_zero α] [has_one α]
+
+lemma one_fin_two : (1 : matrix (fin 2) (fin 2) α) = ![![1, 0], ![0, 1]] :=
+by { ext i j, fin_cases i; fin_cases j; refl }
+
+lemma one_fin_three : (1 : matrix (fin 3) (fin 3) α) = ![![1, 0, 0], ![0, 1, 0], ![0, 0, 1]] :=
+by { ext i j, fin_cases i; fin_cases j; refl }
+
+end one
+
+lemma mul_fin_two [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
+  ![![a₁₁, a₁₂],
+    ![a₂₁, a₂₂]] ⬝ ![![b₁₁, b₁₂],
+                     ![b₂₁, b₂₂]] = ![![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂],
+                                      ![a₂₁ * b₁₁ + a₂₂ * b₂₁, a₂₁ * b₁₂ + a₂₂ * b₂₂]] :=
+begin
+  ext i j,
+  fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]
+end
+
+lemma mul_fin_three [add_comm_monoid α] [has_mul α]
+  (a₁₁ a₁₂ a₁₃ a₂₁ a₂₂ a₂₃ a₃₁ a₃₂ a₃₃ b₁₁ b₁₂ b₁₃ b₂₁ b₂₂ b₂₃ b₃₁ b₃₂ b₃₃ : α) :
+  ![![a₁₁, a₁₂, a₁₃],
+    ![a₂₁, a₂₂, a₂₃],
+    ![a₃₁, a₃₂, a₃₃]] ⬝ ![![b₁₁, b₁₂, b₁₃],
+                          ![b₂₁, b₂₂, b₂₃],
+                          ![b₃₁, b₃₂, b₃₃]] =
+  ![![a₁₁*b₁₁ + a₁₂*b₂₁ + a₁₃*b₃₁, a₁₁*b₁₂ + a₁₂*b₂₂ + a₁₃*b₃₂, a₁₁*b₁₃ + a₁₂*b₂₃ + a₁₃*b₃₃],
+    ![a₂₁*b₁₁ + a₂₂*b₂₁ + a₂₃*b₃₁, a₂₁*b₁₂ + a₂₂*b₂₂ + a₂₃*b₃₂, a₂₁*b₁₃ + a₂₂*b₂₃ + a₂₃*b₃₃],
+    ![a₃₁*b₁₁ + a₃₂*b₂₁ + a₃₃*b₃₁, a₃₁*b₁₂ + a₃₂*b₂₂ + a₃₃*b₃₂, a₃₁*b₁₃ + a₃₂*b₂₃ + a₃₃*b₃₃]] :=
+begin
+  ext i j,
+  fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ, ←add_assoc],
+end
+
+lemma vec2_eq {a₀ a₁ b₀ b₁ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) :
+  ![a₀, a₁] = ![b₀, b₁] :=
+by subst_vars
+
+lemma vec3_eq {a₀ a₁ a₂ b₀ b₁ b₂ : α} (h₀ : a₀ = b₀) (h₁ : a₁ = b₁) (h₂ : a₂ = b₂) :
+  ![a₀, a₁, a₂] = ![b₀, b₁, b₂] :=
+by subst_vars
+
+lemma vec2_add [has_add α] (a₀ a₁ b₀ b₁ : α) :
+  ![a₀, a₁] + ![b₀, b₁] = ![a₀ + b₀, a₁ + b₁] :=
+by rw [cons_add_cons, cons_add_cons, empty_add_empty]
+
+lemma vec3_add [has_add α] (a₀ a₁ a₂ b₀ b₁ b₂ : α) :
+  ![a₀, a₁, a₂] + ![b₀, b₁, b₂] = ![a₀ + b₀, a₁ + b₁, a₂ + b₂] :=
+by rw [cons_add_cons, cons_add_cons, cons_add_cons, empty_add_empty]
+
+lemma smul_vec2 {R : Type*} [has_scalar R α] (x : R) (a₀ a₁ : α) :
+  x • ![a₀, a₁] = ![x • a₀, x • a₁] :=
+by rw [smul_cons, smul_cons, smul_empty]
+
+lemma smul_vec3 {R : Type*} [has_scalar R α] (x : R) (a₀ a₁ a₂ : α) :
+  x • ![a₀, a₁, a₂] = ![x • a₀, x • a₁, x • a₂] :=
+by rw [smul_cons, smul_cons, smul_cons, smul_empty]
+
+variables [add_comm_monoid α] [has_mul α]
+
+lemma vec2_dot_product' {a₀ a₁ b₀ b₁ : α} :
+  ![a₀, a₁] ⬝ᵥ ![b₀, b₁] = a₀ * b₀ + a₁ * b₁ :=
+by rw [cons_dot_product_cons, cons_dot_product_cons, dot_product_empty, add_zero]
+
+@[simp] lemma vec2_dot_product (v w : fin 2 → α) :
+  v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 :=
+vec2_dot_product'
+
+lemma vec3_dot_product' {a₀ a₁ a₂ b₀ b₁ b₂ : α} :
+  ![a₀, a₁, a₂] ⬝ᵥ ![b₀, b₁, b₂] = a₀ * b₀ + a₁ * b₁ + a₂ * b₂ :=
+by rw [cons_dot_product_cons, cons_dot_product_cons, cons_dot_product_cons,
+       dot_product_empty, add_zero, add_assoc]
+
+@[simp] lemma vec3_dot_product (v w : fin 3 → α) :
+  v ⬝ᵥ w = v 0 * w 0 + v 1 * w 1 + v 2 * w 2 :=
+vec3_dot_product'
+
+end vec2_and_vec3
 
 end matrix

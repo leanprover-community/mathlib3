@@ -122,7 +122,7 @@ lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) :
   (∑ i in s, f i).degrees ≤ s.sup (λi, (f i).degrees) :=
 begin
   refine s.induction _ _,
-  { simp only [finset.sum_empty, finset.sup_empty, degrees_zero], exact le_refl _ },
+  { simp only [finset.sum_empty, finset.sup_empty, degrees_zero], exact le_rfl },
   { assume i s his ih,
     rw [finset.sup_insert, finset.sum_insert his],
     exact le_trans (degrees_add _ _) (sup_le_sup_left ih _) }
@@ -536,7 +536,7 @@ nat.eq_zero_of_le_zero $ finset.sup_le $ assume n hn,
   begin
     rw [finset.mem_singleton] at this,
     subst this,
-    exact le_refl _
+    exact le_rfl
   end
 
 @[simp] lemma total_degree_zero : (0 : mv_polynomial σ R).total_degree = 0 :=
@@ -597,7 +597,7 @@ finset.sup_le $ assume n hn,
   begin
     simp only [finset.mem_bUnion, finset.mem_singleton] at this,
     rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
-    rw [finsupp.sum_add_index],
+    rw [finsupp.sum_add_index'],
     { exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂) },
     { assume a, refl },
     { assume a b₁ b₂, refl }
@@ -648,6 +648,15 @@ begin
   refl
 end
 
+lemma total_degree_finset_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) :
+  (s.sum f).total_degree ≤ finset.sup s (λ i, (f i).total_degree) :=
+begin
+  induction s using finset.cons_induction with a s has hind,
+  { exact zero_le _ },
+  { rw [finset.sum_cons, finset.sup_cons, sup_eq_max],
+    exact (mv_polynomial.total_degree_add _ _).trans (max_le_max le_rfl hind), }
+end
+
 lemma exists_degree_lt [fintype σ] (f : mv_polynomial σ R) (n : ℕ)
   (h : f.total_degree < n * fintype.card σ) {d : σ →₀ ℕ} (hd : d ∈ f.support) :
   ∃ i, d i < n :=
@@ -681,7 +690,7 @@ begin
   rw finset.mem_image at h',
   rcases h' with ⟨s, hs, rfl⟩,
   rw finsupp.sum_map_domain_index,
-  exact le_trans (le_refl _) (finset.le_sup hs),
+  exact le_trans le_rfl (finset.le_sup hs),
   exact assume _, rfl,
   exact assume _ _ _, rfl
 end

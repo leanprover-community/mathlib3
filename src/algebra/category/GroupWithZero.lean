@@ -17,62 +17,93 @@ This file defines `GroupWithZero`, the category of groups with zero.
 ⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
   right_inv := equiv_like.right_inv f, map_mul' := map_mul f }⟩
 
-namespace monoid_hom
-local attribute [reducible] with_zero
-variables {α β γ : Type*}
-
-variables [mul_one_class α] [mul_one_class β] [mul_one_class γ]
-
-/-- Turn a `monoid_hom` into a `monoid_with_zero_hom` by adjoining a `0` to the domain and codomain.
--/
-protected def with_zero (f : α →* β) : with_zero α →*₀ with_zero β :=
-{ to_fun := option.map f,
-  map_zero' := rfl,
-  map_one' := _root_.congr_arg some (map_one f),
-  map_mul' := λ a b, with_zero.cases_on a (by { rw zero_mul, exact (zero_mul _).symm }) $ λ a,
-    with_zero.cases_on b (by { rw mul_zero, exact (mul_zero _).symm }) $ λ b,
-      by { change option.map _ _ = _, exact _root_.congr_arg some (f.map_mul' _ _) } }
-
-protected lemma with_zero_id : (monoid_hom.id α).with_zero = monoid_with_zero_hom.id _ :=
-fun_like.coe_injective option.map_id
-
-protected lemma with_zero_comp (f : β →* γ) (g : α →* β) :
-  (f.comp g).with_zero = f.with_zero.comp g.with_zero :=
-fun_like.coe_injective (option.map_comp_map _ _).symm
-
-end monoid_hom
-
 @[simp] lemma option.coe_get {α : Type*} {a : option α} (h : option.is_some a) :
   (↑(option.get h) : option α) = a :=
 option.some_get _
 
-section
-local attribute [reducible] with_zero
+@[simp] lemma option.get_coe {α : Type*} (a : α) : option.get (@option.is_some_some _ a) = a := rfl
+
+section with_one
+local attribute [reducible] with_one with_zero
+variables {α β γ : Type*}
+
+@[to_additive] def with_one.map' (f : α → β) : with_one α → with_one β := option.map f
+
+@[to_additive] lemma with_one.map'_coe (f : α → β) (a : α) : with_one.map' f a = f a := rfl
+@[to_additive] lemma with_one.map'_id : with_one.map' (@id α) = id := option.map_id
+@[to_additive] lemma with_one.map'_comp (f : β → γ) (g : α → β) :
+  with_one.map' (f ∘ g) = with_one.map' f ∘ with_one.map' g := (option.map_comp_map _ _).symm
+
+@[to_additive] def with_one.get (a : with_one α) (ha : a ≠ 1) : α :=
+option.get $ option.ne_none_iff_is_some.1 ha
+
+@[simp, to_additive] lemma with_one.coe_get {a : with_one α} (ha : a ≠ 1) :
+  (↑(with_one.get _ ha) : with_one α) = a :=
+option.some_get _
+
+@[simp, to_additive] lemma with_one.get_coe (a : α) :
+  (a : with_one α).get with_one.coe_ne_one = a := rfl
+
+@[nolint check_type, to_additive] lemma with_one.none_eq_one : (none : with_zero α) = 0 := rfl
+
+@[elab_as_eliminator, to_additive] def with_one.rec_on {motive : with_one α → Sort*} :
+  Π (a : with_one α), motive 0 → (Π a : α, motive a) → motive a :=
+option.rec_on
+
+/-- An elimination principle for `option`. It is a nondependent version of `option.rec_on`. -/
+@[simp] protected def option.elim' : option α → β → (α → β) → β
+| (some x) y f := f x
+| none     y f := y
+
+/-- An elimination principle for `with_one`. It is a nondependent version of `option.rec_on`. -/
+@[to_additive] protected def with_one.elim {β : Sort*} : with_one α → β → (α → β) → β :=
+option.elim'
+
+@[simp, to_additive] lemma with_one.elim_coe {β : Sort*} (a : α) (b : β) (f : α → β) :
+  with_one.elim (a : with_one α) b f = f a := rfl
+
+end with_one
+
+namespace monoid_hom
+variables {α β γ : Type*} [mul_one_class α] [mul_one_class β] [mul_one_class γ]
+
+/-- Turn a `monoid_hom` into a `monoid_with_zero_hom` by adjoining a `0` to the domain and codomain.
+-/
+protected def with_zero (f : α →* β) : with_zero α →*₀ with_zero β :=
+{ to_fun := with_zero.map' f,
+  map_zero' := rfl,
+  map_one' := (with_zero.map'_coe _ _).trans $ _root_.congr_arg coe (map_one f),
+  map_mul' := λ a b, with_zero.cases_on a (by { rw zero_mul, exact (zero_mul _).symm }) $ λ a,
+    with_zero.cases_on b (by { rw mul_zero, exact (mul_zero _).symm }) $ λ b,
+      (with_zero.map'_coe _ _).trans $
+        by { simp_rw with_zero.map'_coe, exact _root_.congr_arg coe (f.map_mul' _ _) } }
+
+protected lemma with_zero_id : (monoid_hom.id α).with_zero = monoid_with_zero_hom.id _ :=
+fun_like.coe_injective with_zero.map'_id
+
+protected lemma with_zero_comp (f : β →* γ) (g : α →* β) :
+  (f.comp g).with_zero = f.with_zero.comp g.with_zero :=
+fun_like.coe_injective $ with_zero.map'_comp _ _
+
+end monoid_hom
 
 /-- Any group is isomorphic to the units of itself adjoined with `0`. -/
 @[simps] def units_with_zero_equiv (α : Type*) [group α] : (with_zero α)ˣ ≃* α :=
-{ to_fun    := λ a, option.get (option.ne_none_iff_is_some.1 a.ne_zero),
-  inv_fun   := λ a, ⟨a, a⁻¹, mul_inv_cancel $ option.some_ne_none _,
-    inv_mul_cancel $ option.some_ne_none _⟩,
-  left_inv  := λ a, units.ext $ option.some_get _,
+{ to_fun    := λ a, with_zero.get _ a.ne_zero,
+  inv_fun   := λ a, ⟨a, a⁻¹, mul_inv_cancel with_zero.coe_ne_zero,
+    inv_mul_cancel with_zero.coe_ne_zero⟩,
+  left_inv  := λ a, units.ext $ with_zero.coe_get _,
   right_inv := λ a, rfl,
   map_mul'  := λ a b, with_zero.coe_inj.1 $
-    by simp only [units.coe_mul, option.coe_get, with_zero.coe_mul] }
-
-@[nolint check_type] lemma with_zero.none_eq_zero {α : Type*} : (none : with_zero α) = 0 := rfl
+    by simp only [units.coe_mul, with_zero.coe_get, with_zero.coe_mul] }
 
 /-- Any group with zero is isomorphic to its units adjoined with `0`. -/
 @[simps] def with_zero_units_equiv (α : Type*) [group_with_zero α] [decidable_eq α] :
   with_zero αˣ ≃* α :=
-{ to_fun    := λ a, option.elim a 0 coe,
+{ to_fun    := λ a, with_zero.elim a 0 coe,
   inv_fun   := λ a, if h : a = 0 then 0 else units.mk0 a h,
-  left_inv  := λ a, begin
-    cases a,
-    { simp only [option.elim, dif_pos],
-      refl },
-    { simp only [option.elim, units.ne_zero, units.mk0_coe, dite_eq_ite, if_false],
-      refl }
-  end,
+  left_inv  := λ a, with_zero.rec_on a (dif_pos rfl) $ λ a,
+    by { dsimp, exact (dif_neg a.ne_zero).trans (congr_arg _ $ units.mk0_coe _ _) },
   right_inv := λ a, begin
     dsimp,
     split_ifs,
@@ -81,8 +112,6 @@ local attribute [reducible] with_zero
   end,
   map_mul' := λ a b, with_zero.cases_on a (by { rw zero_mul, exact (zero_mul _).symm }) $ λ a,
     with_zero.cases_on b (by { rw mul_zero, exact (mul_zero _).symm }) $ λ b, rfl }
-
-end
 
 /-- Monoid homomorphisms from a group `α` to a monoid `β` are just monoid homomorphisms from `α` to
 the units of `β`. -/
@@ -176,8 +205,6 @@ def forget_CommMon_units_adjunction : forget₂ CommGroup CommMon ⊣ CommMon.un
 adjunction.mk_of_hom_equiv
   { hom_equiv := λ X Y, (monoid_hom_units_equiv.symm : (X →* Y) ≃ (X →* Yˣ)) }
 
-local attribute [reducible] with_zero
-
 /-- The equivalence between `GroupWithZero` and `Group` induced by adding and removing `0`. -/
 @[simps] noncomputable def GroupWithZero_equiv_Group : GroupWithZero ≌ Group :=
 by classical; exact equivalence.mk
@@ -193,10 +220,10 @@ by classical; exact equivalence.mk
         exact units.ext rfl }
     end)
   (nat_iso.of_components
-    (λ X, mul_equiv.to_Group_iso (units_with_zero_equiv X)) $ λ X Y f, monoid_hom.ext $ λ a,
+    (λ X, mul_equiv.to_Group_iso $ units_with_zero_equiv X) $ λ X Y f, monoid_hom.ext $ λ a,
       begin
-        have := (option.ne_none_iff_is_some.1 a.ne_zero),
-        obtain ⟨(_ | a), _, _, _⟩ := a,
-        { exact (option.ne_none_iff_is_some.2 this rfl).elim },
-        { refl }
+        have := a.ne_zero,
+        obtain ⟨a,  _⟩ := a,
+        obtain ⟨b, (rfl : _ = a)⟩ := with_zero.ne_zero_iff_exists.1 this,
+        refl,
       end)

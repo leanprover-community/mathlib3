@@ -24,45 +24,44 @@ def to_prod (f : fin n → G) : fin (n + 1) → G :=
 
 variables (G n)
 
-def to_tensor_aux (x : fin (n + 1) → G) : group_ring G ⊗[ℤ] ((fin n → G) →₀ ℤ) :=
-tensor_product.tmul _ (group_ring.of G (x 0))
-  (finsupp.single (λ i, (x i)⁻¹ * x i.succ) 1)
+def to_tensor_aux (x : fin (n + 1) → G) (m : ℤ) : group_ring G ⊗[ℤ] ((fin n → G) →₀ ℤ) :=
+finsupp.single (x 0) m ⊗ₜ[ℤ] finsupp.single (λ i, (x i)⁻¹ * x i.succ) 1
 
 @[simps] def to_tensor_add_hom : group_ring (fin (n + 1) → G) →+ group_ring G
   ⊗[ℤ] ((fin n → G) →₀ ℤ) :=
 { to_fun := finsupp.lift_add_hom (λ x,
-  { to_fun := zmultiples_hom _ (to_tensor_aux G n x),
-    map_zero' := by simp only [zmultiples_hom_apply, zero_smul],
-    map_add' := λ f g, by { dsimp, rw add_smul } }),
+  { to_fun := to_tensor_aux G n x,
+    map_zero' := by simp only [to_tensor_aux, tensor_product.zero_tmul, finsupp.single_zero],
+    map_add' := λ f g, by { unfold to_tensor_aux, rw [finsupp.single_add, tensor_product.add_tmul] } }),
   map_zero' := by { simp only [finsupp.lift_add_hom_apply, finsupp.sum_zero_index], },
   map_add' := λ f g, by {simp only [finsupp.sum_add_index', finsupp.lift_add_hom_apply]} }
+
+lemma to_tensor_add_hom_single (f : fin (n + 1) → G) (m : ℤ) :
+  to_tensor_add_hom G n (finsupp.single f m) =
+    (finsupp.single (f 0) m) ⊗ₜ (finsupp.single (λ i, (f i)⁻¹ * f i.succ) 1) :=
+begin
+  dsimp,
+  rw [finsupp.sum_single_index],
+  refl,
+  { simp only [to_tensor_aux, tensor_product.zero_tmul, finsupp.single_zero] },
+end
 
 def to_tensor : group_ring (fin (n + 1) → G) →ₗ[group_ring G] group_ring G
   ⊗[ℤ] ((fin n → G) →₀ ℤ) :=
 group_ring.mk_linear (to_tensor_add_hom G n) $ λ g x,
 begin
-  refine x.induction_on _ _ _,
-  { intro y,
-    unfold to_tensor_add_hom to_tensor_aux,
-    dsimp,
-    simp only [zmultiples_hom_apply, zero_smul, one_zsmul, finsupp.sum_single_index,
-      group_ring.single_smul_single, one_mul],
-    dsimp, simp only [mul_inv_rev],
-    congr' 1,
-    { dsimp, rw monoid_algebra.single_mul_single, rw mul_one},
-    { dsimp,
-    congr' 1,
-    ext, simp only [smul_eq_mul, pi.smul_apply, fin.tail_def],
-    assoc_rw inv_mul_cancel_left} },
-  { intros y z hy hz,
-    simp only [smul_add, add_monoid_hom.map_add, hy, hz] },
-  { intros r y hy,
-    rw smul_comm,
-    rw add_monoid_hom.map_zsmul,
-    rw hy,
-    rw add_monoid_hom.map_zsmul,
-    rw smul_comm,
-      }
+  refine map_smul_of_map_smul_of _ _ _ _,
+  intros h x,
+  simp only [of_apply, single_smul_single, one_smul, one_mul, to_tensor_add_hom_single],
+  dsimp,
+  simp only [mul_inv_rev],
+  rw tensor_product.smul_tmul',
+  rw smul_eq_mul,
+  erw monoid_algebra.single_mul_single,
+  rw one_mul,
+  congr,
+  ext,
+  assoc_rw inv_mul_cancel_left,
 end
 
 def of_tensor_add_hom :
@@ -70,143 +69,150 @@ def of_tensor_add_hom :
 (tensor_product.lift (finsupp.lift _ _ _ $ λ g, finsupp.lift _ _ _
   (λ f, group_ring.of (fin (n + 1) → G) (g • to_prod f)))).to_add_monoid_hom
 
+lemma of_tensor_add_hom_single (g : G) (m : ℤ) (x : (fin n → G) →₀ ℤ) :
+  of_tensor_add_hom G n ((finsupp.single g m) ⊗ₜ x) =
+  m • finsupp.lift (group_ring (fin (n + 1) → G)) ℤ (fin n → G)
+    (λ f, of _ (g • to_prod f)) x :=
+begin
+  unfold of_tensor_add_hom,
+  dsimp,
+  rw tensor_product.lift.tmul,
+  dsimp,
+  rw finsupp.sum_single_index,
+  refl,
+  { rw zero_smul }
+end
+
 def of_tensor : group_ring G ⊗[ℤ] ((fin n → G) →₀ ℤ)
   →ₗ[group_ring G] group_ring (fin (n + 1) → G) :=
 group_ring.mk_linear (of_tensor_add_hom G n) $
 λ g x,
 begin
-  unfold of_tensor_add_hom,
   refine tensor_product.induction_on x _ _ _,
-  { simp only [smul_zero, map_zero], },
-  { intros y z,
-    refine y.induction_on _ _ _,
-    { intro w,
-      dsimp,
-      rw tensor_product.smul_tmul',
-      rw smul_eq_mul,
-      rw monoid_algebra.single_mul_single,
-      rw one_mul,
-      rw tensor_product.lift.tmul,
-      rw tensor_product.lift.tmul,
-      dsimp,
-      rw finsupp.sum_single_index,
-      rw finsupp.sum_single_index,
-      simp only [one_smul],
-      dsimp,
-      refine z.induction_linear _ _ _,
-      { simp only [finsupp.sum_zero_index, smul_zero] },
-      { intros v u hv hu,
-        rw finsupp.sum_add_index,
-        rw finsupp.sum_add_index,
-        simp only [smul_add, hu, hv],
-        { intros, simp only [zero_mul, finsupp.smul_single', finsupp.single_zero]},
-        { intros, rw add_smul},
-        { intros, simp only [zero_mul, finsupp.smul_single', finsupp.single_zero], },
-        { intros, rw add_smul}
-        },
-      { intros,
-        rw finsupp.sum_single_index,
-        rw finsupp.sum_single_index,
-        rw smul_comm,
-        rw group_ring.single_smul_single,
-        rw one_mul,
-        congr,
-        ext, simp only [smul_eq_mul, pi.smul_apply],
-        sorry,
-        sorry,
-        sorry },
-      sorry,
-      sorry },
-      sorry,
-      sorry
-      }, sorry,
+  { simp only [smul_zero, map_zero] },
+  { intros x y,
+    let F := (of_tensor_add_hom G n).comp (((tensor_product.mk ℤ (group_ring G)
+      _).flip y).to_add_monoid_hom.comp $ distrib_mul_action.to_add_monoid_hom (group_ring G)
+      (of G g)),
+    let G := (distrib_mul_action.to_add_monoid_hom _ (of G g)).comp
+      ((of_tensor_add_hom G n).comp ((tensor_product.mk ℤ (group_ring G)
+      _).flip y).to_add_monoid_hom),
+    refine add_monoid_hom.ext_iff.1 (@finsupp.add_hom_ext _ _ _ _ _ F G _) x,
+    intros h z,
+    dsimp,
+    rw [monoid_algebra.single_mul_single, one_mul, of_tensor_add_hom_single,
+      of_tensor_add_hom_single],
+    simp only [←linear_map.map_smul],
+    dsimp,
+    rw finsupp.smul_sum,
+    congr,
+    ext1 f, ext1 j,
+    rw [smul_comm, single_smul_single, one_mul, smul_smul] },
+  { intros x y hx hy,
+    simp only [smul_add, add_monoid_hom.map_add, hx, hy] },
 end
 
 example : 1+1= 2 := rfl
 
-lemma equiv_tensor_left_inv_aux (f : fin (n + 1) → G) (i : fin (n + 1)) :
+lemma equiv_tensor_left_inv_aux (f : fin (n + 1) → G) :
   f 0 • to_prod (λ i : fin n, (f i)⁻¹ * f i.succ) = f :=
 begin
   ext,
   unfold to_prod,
   simp only [fin.coe_eq_cast_succ, list.nth_le_inits, smul_eq_mul, pi.smul_apply],
+  cases x with x hn,
+  revert hn,
+  induction x with x hx,
+  { intro hn,
+    simp only [fin.mk_zero, mul_one, fin.coe_zero, list.take_zero, list.prod_nil] },
+  { intro hn,
+    specialize hx (lt_trans (nat.lt_succ_self x) hn),
+    rw fin.coe_mk at hx ⊢,
+    rw list.take_succ,
+    simp only [list.prod_append, list.nth_of_fn],
+    rw ←mul_assoc,
+    rw hx,
+    unfold list.of_fn_nth_val,
+    rw dif_pos (nat.succ_lt_succ_iff.1 hn),
+    erw list.prod_cons,
+    simp only [mul_one, mul_inv_cancel_left, fin.succ_mk, fin.cast_succ_mk, list.prod_nil],}
+end
 
+lemma equiv_tensor_right_inv_aux (g : G) (f : fin n → G) (i : fin n) :
+  ((g • to_prod f) i)⁻¹ * (g • to_prod f) i.succ = f i :=
+begin
+  unfold to_prod,
+  simp only [mul_inv_rev, fin.coe_eq_cast_succ, list.nth_le_inits, fin.coe_succ,
+    fin.coe_cast_succ, smul_eq_mul, pi.smul_apply],
+  cases i with i hn,
+  revert hn,
+  induction i with i hi,
+  { intro hn,
+    simp only [list.take_succ, one_inv, nat.nat_zero_eq_zero, one_mul, inv_mul_cancel_left, list.nil_append, list.take_zero,
+      list.prod_nil, fin.coe_mk, list.nth_of_fn],
+    unfold list.of_fn_nth_val,
+    rw [dif_pos hn, option.to_list],
+    exact one_mul _ },
+  { intro hn,
+    specialize hi (lt_trans (nat.lt_succ_self i) hn),
+    rw fin.coe_mk at hi ⊢,
+    simp only [list.take_succ, mul_inv_rev, list.prod_append, list.nth_of_fn] at ⊢ hi,
+    unfold list.of_fn_nth_val at ⊢ hi,
+    simp only [dif_pos hn, dif_pos (lt_trans (nat.lt_succ_self i) hn)] at ⊢ hi,
+    erw option.to_list_some at ⊢ hi,
+    erw option.to_list_some,
+    assoc_rw hi,
+    simp only [mul_one, one_mul, list.prod_cons, mul_left_inv, list.prod_nil] }
 end
 
 def equiv_tensor : group_ring (fin (n + 1) → G) ≃ₗ[group_ring G] group_ring G
   ⊗[ℤ] ((fin n → G) →₀ ℤ) :=
 { inv_fun := of_tensor G n,
   left_inv := λ x, by {
-    refine x.induction_on _ _ _,
-    { intro g,
-      unfold to_tensor of_tensor of_tensor_add_hom to_tensor_add_hom to_prod,
-      dsimp,
-      rw finsupp.sum_single_index,
-      rw zmultiples_hom_apply,
-      rw one_smul,
-      unfold to_tensor_aux,
-      dsimp,
-      rw tensor_product.lift.tmul,
-      dsimp,
-      rw finsupp.sum_single_index,
-      rw one_smul,
-      rw finsupp.lift_apply,
-      rw finsupp.sum_single_index,
-      rw one_smul,
-
-     /- dsimp,
-      rw finsupp.sum_single_index,
-      rw zmultiples_hom_apply,
-      rw one_smul,
-      unfold to_tensor_aux,
-      dsimp,
-      rw tensor_product.lift.tmul,
-      dsimp,
-      rw finsupp.sum_single_index,
-      rw one_smul,
-      dsimp,
-      rw finsupp.sum_single_index,
-      sorry,-/
-     all_goals {sorry} },
-    sorry, sorry
-  },
+    refine add_monoid_hom.ext_iff.1 (@finsupp.add_hom_ext _ _ _ _ _
+      ((of_tensor G n).comp (to_tensor G n)).to_add_monoid_hom (add_monoid_hom.id _) _) x,
+    intros x y,
+    dsimp,
+    erw to_tensor_add_hom_single,
+    erw of_tensor_add_hom_single,
+    rw [finsupp.lift_apply, finsupp.sum_single_index, one_smul, of_apply,
+      finsupp.smul_single_one, equiv_tensor_left_inv_aux],
+    { rw zero_smul }},
   right_inv := λ x, by
   { refine tensor_product.induction_on x _ _ _,
-    sorry,
+    { simp only [linear_map.to_fun_eq_coe, map_zero] },
     { intros y z,
-      unfold to_tensor of_tensor of_tensor_add_hom to_tensor_add_hom,
       dsimp,
-      rw tensor_product.lift.tmul, sorry,
-      }, sorry }, ..to_tensor G n }
+      let F := ((to_tensor G n).comp (of_tensor G n)).to_add_monoid_hom.comp ((tensor_product.mk ℤ
+        (group_ring G) _).flip z).to_add_monoid_hom,
+      refine add_monoid_hom.ext_iff.1 (@finsupp.add_hom_ext _ _ _ _ _ F ((tensor_product.mk ℤ
+        (group_ring G) _).flip z).to_add_monoid_hom _) y,
+      intros x m,
+      dsimp [of_tensor],
+      rw of_tensor_add_hom_single,
+      rw linear_map.map_smul_of_tower,
+      rw finsupp.lift_apply,
+      simp only [mul_one, finsupp.smul_single', of_apply, linear_map.map_finsupp_sum],
+      unfold to_tensor,
+      simp only [mk_linear_apply],
+      simp only [to_tensor_add_hom_single, equiv_tensor_right_inv_aux],
+      unfold finsupp.sum,
+      sorry },
+    { intros z w hz hw,
+      dsimp at hz hw ⊢,
+      simp only [map_add, hz, hw] } },
+  ..to_tensor G n }
 
 
-@[simp] lemma equiv_tensor_apply (x : fin (n + 1) → G) :
-  equiv_tensor G n (of _ x) = (of G (x 0)) ⊗ₜ (finsupp.single ((x 0)⁻¹ • fin.tail x) 1) :=
-begin
-  unfold equiv_tensor to_tensor,
-  dsimp,
-  rw finsupp.sum_single_index,
-  { exact one_smul _ _ },
-  { exact zero_smul _ _ },
-end
+@[simp] lemma equiv_tensor_apply (x : fin (n + 1) → G) (m : ℤ) :
+  equiv_tensor G n (finsupp.single x m) = (finsupp.single (x 0) m) ⊗ₜ (finsupp.single (λ i, (x i)⁻¹ * x i.succ) 1) :=
+to_tensor_add_hom_single _ _ _ _
 
-@[simp] lemma equiv_tensor_symm_apply (x : G) (y : fin n → G) :
-  (equiv_tensor G n).symm (of G x ⊗ₜ finsupp.single y 1)
-    = of _ (fin.cons x (x • y : fin n → G) : fin (n + 1) → G) :=
-begin
-  erw linear_equiv.coe_symm_mk,
-  unfold of_tensor of_tensor_add_hom,
-  dsimp,
-  rw tensor_product.lift.tmul,
-  dsimp,
-  rw finsupp.sum_single_index,
-  rw one_smul,
-  dsimp,
-  rw finsupp.sum_single_index,
-  rw one_smul,
-  { rw zero_smul },
-  { rw zero_smul },
-end
+@[simp] lemma equiv_tensor_symm_apply (g : G) (m : ℤ) (x : (fin n → G) →₀ ℤ) :
+  (equiv_tensor G n).symm ((finsupp.single g m) ⊗ₜ x) =
+  m • finsupp.lift (group_ring (fin (n + 1) → G)) ℤ (fin n → G)
+    (λ f, of _ (g • to_prod f)) x :=
+of_tensor_add_hom_single G n _ _ _
 
 end
 
@@ -315,107 +321,94 @@ def cochain_equiv :
 
 @[simp] lemma cochain_equiv_apply (f : group_ring (fin (n + 1) → G) →ₗ[group_ring G] M)
   (x : fin n → G) :
-  cochain_equiv G M n f x = f (of _ (@fin.cons n (λ i, G) 1 x)) :=
-show f _ = _, by erw [equiv_tensor_symm_apply, one_smul]; refl
+  cochain_equiv G M n f x = f (of _ (to_prod x)) :=
+show f _ = _, by erw [equiv_tensor_symm_apply, one_smul];
+begin
+  dsimp,
+  simp only [one_smul],
+  rw [finsupp.sum_single_index, one_smul],
+  { rw zero_smul }
+end
 
 @[simp] lemma cochain_equiv_symm_apply (f : (fin n → G) → M) (x : fin (n + 1) → G) :
-  (cochain_equiv G M n).symm f (of _ x) = of _ (x 0) • f ((x 0)⁻¹ • fin.tail x) :=
+  (cochain_equiv G M n).symm f (of _ x) = of _ (x 0) • f (λ i, (x i)⁻¹ * x i.succ) :=
 begin
   unfold cochain_equiv,
   dsimp,
   erw equiv_tensor_apply,
-  rw linear_map.id_apply,
-  rw dom_tensor_int_equiv_symm_apply,
-  rw add_equiv.symm_symm,
+  rw [linear_map.id_apply, dom_tensor_int_equiv_symm_apply, add_equiv.symm_symm],
   dsimp,
   erw finsupp.lift_apply,
-  rw finsupp.sum_single_index,
-  rw one_smul,
-  rw zero_smul,
+  rw [finsupp.sum_single_index, one_smul],
+  { rw zero_smul },
 end
 
 open group_ring
 
 variables {G M n} (f : fin n → G) (i : fin (n + 1))
 
-lemma cochain_comm_aux (x : group_ring (fin (n + 1) → G) →ₗ[group_ring G] M) :
+lemma smul_eq_of_smul (g : G) (m : M) :
+  of G g • m = g • m :=
+begin
+  show finsupp.total _ _ _ _ (finsupp.single _ _) = _,
+  rw [finsupp.total_single, one_smul],
+end
+
+lemma to_prod_succ (g : fin (n + 1) → G) (k : fin (n + 1)) :
+  g 0 * to_prod (λ (i : fin n), g ((fin.add_nat 1) i)) k = to_prod g k.succ :=
+begin
+  unfold to_prod,
+  simp only [mul_right_inj, list.nth_le_inits, list.take, fin.coe_succ, list.of_fn_succ, list.prod_cons],
+  cases k with k hk,
+  revert hk,
+  induction k with k hn,
+  { intro hk,
+    simp only [fin.mk_zero, fin.coe_zero, list.take_zero], },
+  { intro hk,
+    specialize hn (lt_trans (nat.lt_succ_self _) hk),
+    simp only [fin.coe_mk] at hn ⊢,
+    simp only [list.take_succ, list.prod_append, list.nth_of_fn, list.of_fn_nth_val,
+      dif_pos (nat.succ_lt_succ_iff.1 hk)],
+    erw option.to_list_some,
+    rw hn }
+end
+
+lemma cochain_comm (x : group_ring (fin (n + 1) → G) →ₗ[group_ring G] M) :
   cochain.d G M _ (cochain_equiv G M _ x)
-    = cochain_equiv G M _ (x.comp $ group_ring.d G rfl)  :=
+    = cochain_equiv G M _ (x.comp $ group_ring.d G rfl) :=
 begin
   ext g,
   rw cochain_equiv_apply,
   unfold cochain.d,
   dsimp,
   unfold d_to_fun,
-  rw d_single,
-  simp only [cochain_equiv_apply],
-  rw linear_map.map_sum,
+  rw [d_single, linear_map.map_sum],
   symmetry,
-  rw finset.range_succ,
-  rw finset.sum_insert,
-
+  rw [finset.range_add_one', finset.sum_insert, pow_zero, one_mul],
+  congr' 1,
+  { simp only [cochain_equiv_apply, fin.delta_zero_apply, id.def, fin.cast_refl,
+      order_iso.coe_refl, of_apply],
+    rw [←smul_eq_of_smul, ←linear_map.map_smul],
+    erw of_smul_of,
+    congr,
+    ext k,
+    simp only [to_prod_succ, smul_eq_mul, pi.smul_apply] },
+  { rw finset.sum_map,
+    refine finset.sum_congr rfl (λ m hm, _),
+    rw [cochain_equiv_apply, ←linear_map.map_smul_of_tower, of_apply, finsupp.smul_single_one],
+    congr' 2,
+    { dsimp,
+      ext j,
+      sorry },
+    sorry },
+  sorry
 end
 
-lemma cochain_succ_comm (x : cochain_succ G M (n + 1)) :
-  cochain_succ_add_equiv _ _ _ (cochain_succ.d rfl x) = ((map_std_resn G M).d _ _).unop
-    (hom_equiv_yoneda _ _ _ (cochain_succ_add_equiv G M _ x)) :=
+lemma cochain_symm_comm (x : (fin n → G) → M) :
+  (cochain_equiv G M (n + 1)).symm (cochain.d G M n x)
+    = ((cochain_equiv G M n).symm x).comp (group_ring.d G rfl) :=
 begin
-  rw [map_std_resn_d_apply, cochain_succ_comm_aux],
-  refl,
+  sorry
 end
 
-lemma cochain_succ_symm_comm (x : group_ring (fin (n + 1) → G) →ₗ[group_ring G] M) :
-  (cochain_succ_add_equiv G M _).symm (((map_std_resn G M).d _ _).unop (hom_equiv_yoneda _ _ _ x))
-    = cochain_succ.d rfl ((cochain_succ_add_equiv G M _).symm x) :=
-begin
-  rw [add_equiv.symm_apply_eq, cochain_succ_comm, add_equiv.apply_symm_apply],
-end
-
-/-- The cochain map from our complex of homogeneous cochains to `Hom(-, M)` of our
-  projective resolution of the trivial `ℤ[G]`-module `ℤ`. -/
-def cochain_succ_to_map_std_resn :
-  cochain_succ.complex G M ⟶ (map_std_resn G M).unop_obj :=
-{ f := λ i, (cochain_succ_add_equiv G M (i + 1)).to_add_monoid_hom.to_int_linear_map,
-  comm' := λ i j hij,
-  begin
-    cases hij,
-    ext1,
-    simp only [category_theory.comp_apply],
-    erw [cochain_complex.of_d, cochain_succ_comm],
-    refl,
-  end }
-
-/-- The cochain map from `Hom(-, M)` of our projective resolution of the trivial `ℤ[G]`-module `ℤ`
-  to our complex of homogeneous cochains. -/
-def map_std_resn_to_cochain_succ :
-  (map_std_resn G M).unop_obj ⟶ cochain_succ.complex G M :=
-{ f := λ i, ((cochain_succ_add_equiv G M (i + 1)).trans
-    (hom_equiv_yoneda _ _ _)).symm.to_add_monoid_hom.to_int_linear_map,
-  comm' := λ i j hij,
-  begin
-    cases hij,
-    ext1,
-    simp only [category_theory.comp_apply],
-    erw [cochain_complex.of_d, cochain_succ_symm_comm],
-    refl,
-  end }
-
-/-- Homotopy equivalence between complex of homogeneous cochains and `Hom(-, M)`
-  of our projective resolution of trivial `ℤ[G]`-module `ℤ`. -/
-def homotopy_equiv_cochain_succ :
-  homotopy_equiv (cochain_succ.complex G M) (map_std_resn G M).unop_obj :=
-{ hom := cochain_succ_to_map_std_resn G M,
-  inv := map_std_resn_to_cochain_succ G M,
-  homotopy_hom_inv_id := homotopy.of_eq $
-  begin
-    ext n x i,
-    congr' 1,
-    exact add_equiv.apply_symm_apply _ _,
-  end,
-  homotopy_inv_hom_id := homotopy.of_eq $
-  begin
-    ext n x i,
-    congr' 1,
-    exact add_equiv.apply_symm_apply _ _,
-  end }
 end group_ring

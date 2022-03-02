@@ -34,7 +34,8 @@ by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
 @[simps] noncomputable def q2 : seminorm ℝ (ℝ×ℝ) :=
 (4 : ℝ≥0) • (norm_seminorm ℝ ℝ).comp (linear_map.snd _ _ _)
 
-lemma eq_one : (p ⊔ (q1 ⊓ q2)) (1, 1) = 1 := begin
+lemma eq_one : (p ⊔ (q1 ⊓ q2)) (1, 1) = 1 :=
+begin
   dsimp [-seminorm.inf_apply],
   rw [sup_idem, norm_one, sup_eq_left],
   apply cinfi_le_of_le (bdd_below_range_add _ _ _) ((0, 1) : ℝ×ℝ), dsimp,

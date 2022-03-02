@@ -41,8 +41,11 @@ variables [semiring R] [add_comm_group M] [module R M]
 /-- The submodule with every element negated. Note if `R` is a ring and not just a semiring, this
 is a no-op, as shown by `submodule.neg_eq_self`.
 
+Recall that When `R` is the semiring corresponding to the nonnegative elements of `R'`,
+`submodule R' M` is the type of cones of `M`. This instance reflects such cones about `0`.
+
 This is available as an instance in the `pointwise` locale. -/
-protected def has_pointwise_neg : has_neg (submodule R M):=
+protected def has_pointwise_neg : has_neg (submodule R M) :=
 { neg := λ p,
   { carrier := -(p : set M),
     smul_mem' := λ r m hm, set.mem_neg.2 $ smul_neg r m ▸ p.smul_mem r $ set.mem_neg.1 hm,
@@ -58,9 +61,14 @@ open_locale pointwise
 
 @[simp] lemma mem_neg {g : M} {S : submodule R M} : g ∈ -S ↔ -g ∈ S := iff.rfl
 
-instance : has_involutive_neg (submodule R M) :=
+/-- `submodule.has_pointwise_neg` is involutive.
+
+This is available as an instance in the `pointwise` locale. -/
+def has_involutive_pointwise_neg : has_involutive_neg (submodule R M) :=
 { neg := has_neg.neg,
   neg_neg := λ S, set_like.coe_injective $ neg_neg _ }
+
+localized "attribute [instance] submodule.has_involutive_pointwise_neg" in pointwise
 
 @[simp] lemma neg_le_neg (S T : submodule R M) : -S ≤ -T ↔ S ≤ T :=
 set_like.coe_subset_coe.symm.trans set.neg_subset_neg
@@ -107,6 +115,8 @@ lemma neg_supr {ι : Sort*} (S : ι → submodule R M) : -(⨆ i, S i) = ⨆ i, 
 (neg_order_iso : submodule R M ≃o submodule R M).map_supr _
 
 end semiring
+
+open_locale pointwise
 
 @[simp] lemma neg_eq_self [ring R] [add_comm_group M] [module R M] (p : submodule R M) : -p = p :=
 ext $ λ _, p.neg_mem_iff

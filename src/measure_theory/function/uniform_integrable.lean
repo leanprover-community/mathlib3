@@ -38,45 +38,6 @@ uniform integrable, uniformly absolutely continuous integral, Vitali convergence
 noncomputable theory
 open_locale classical measure_theory nnreal ennreal topological_space
 
-section
-
-open filter
-
--- a sequence is convergent if and only if every subsequence has a convergent subsequence
-lemma tendsto_at_top_of_seq_tendsto_at_top
-  {α : Type*} [topological_space α] {x : ℕ → α} {y : α}
-  (hxy : ∀ ns : ℕ → ℕ, tendsto ns at_top at_top →
-    ∃ ms : ℕ → ℕ, tendsto (λ n, x (ns $ ms n)) at_top (𝓝 y)) :
-  tendsto (λ n, x n) at_top (𝓝 y) :=
-begin
-  by_contra h,
-  obtain ⟨s, hs, hfreq⟩ : ∃ s ∈ 𝓝 y, ∃ᶠ n in at_top, x n ∉ s,
-  { by_contra h', push_neg at h',
-    simp_rw frequently_at_top at h',
-    refine h (λ s hs, _),
-    specialize h' s hs,
-    push_neg at h',
-    exact mem_at_top_sets.2 h' },
-  choose ns hge hns using frequently_at_top.1 hfreq,
-  obtain ⟨ms, hns'⟩ := hxy ns (tendsto_at_top_mono hge tendsto_id),
-  obtain ⟨a, ha⟩ := (tendsto_at_top'.1 hns') s hs,
-  exact hns (ms a) (ha a le_rfl),
-end
-
-lemma tendsto_at_top_of_seq_tendsto_at_top'
-  {α : Type*} [topological_space α] {x : ℕ → α} {y : α}
-  (hxy : ∀ ns : ℕ → ℕ, strict_mono ns →
-    ∃ ms : ℕ → ℕ, tendsto (λ n, x (ns $ ms n)) at_top (𝓝 y)) :
-  tendsto (λ n, x n) at_top (𝓝 y) :=
-begin
-  refine tendsto_at_top_of_seq_tendsto_at_top (λ ns hns, _),
-  obtain ⟨ms, hms⟩ := strict_mono_subseq_of_tendsto_at_top hns,
-  obtain ⟨os, hos⟩ := hxy _ hms.2,
-  exact ⟨ms ∘ os, hos⟩,
-end
-
-end
-
 namespace measure_theory
 
 open set filter topological_space

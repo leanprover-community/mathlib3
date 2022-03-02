@@ -798,6 +798,39 @@ theorem tendsto_at_bot_principal [nonempty β] [semilattice_inf β] {f : β → 
   tendsto f at_bot (𝓟 s) ↔ ∃N, ∀n≤N, f n ∈ s :=
 @tendsto_at_top_principal _ (order_dual β) _ _ _ _
 
+/-- a sequence is convergent if and only if every subsequence has a convergent subsequence. -/
+lemma tendsto_at_top_of_seq_tendsto_at_top
+  (γ : Type*) [semilattice_sup ι] [nonempty ι] [semilattice_sup γ] [nonempty γ]
+  {x : ι → α} {f : filter α}
+  (hxy : ∀ ns : ι → ι, tendsto ns at_top at_top →
+    ∃ ms : γ → ι, tendsto (λ n, x (ns $ ms n)) at_top f) :
+  tendsto (λ n, x n) at_top f :=
+begin
+  by_contra h,
+  obtain ⟨s, hs, hfreq⟩ : ∃ s ∈ f, ∃ᶠ n in at_top, x n ∉ s,
+  { by_contra h', push_neg at h',
+    simp_rw frequently_at_top at h',
+    refine h (λ s hs, _),
+    specialize h' s hs,
+    push_neg at h',
+    exact mem_at_top_sets.2 h' },
+  choose ns hge hns using frequently_at_top.1 hfreq,
+  obtain ⟨ms, hns'⟩ := hxy ns (tendsto_at_top_mono hge tendsto_id),
+  obtain ⟨a, ha⟩ := (tendsto_at_top'.1 hns') s hs,
+  exact hns (ms a) (ha a le_rfl),
+end
+
+lemma tendsto_at_top_of_seq_tendsto_at_top' {x : ℕ → α} {f : filter α}
+  (hxy : ∀ ns : ℕ → ℕ, strict_mono ns →
+    ∃ ms : ℕ → ℕ, tendsto (λ n, x (ns $ ms n)) at_top f) :
+  tendsto (λ n, x n) at_top f :=
+begin
+  refine tendsto_at_top_of_seq_tendsto_at_top ℕ (λ ns hns, _),
+  obtain ⟨ms, hms⟩ := strict_mono_subseq_of_tendsto_at_top hns,
+  obtain ⟨os, hos⟩ := hxy _ hms.2,
+  exact ⟨ms ∘ os, hos⟩,
+end
+
 /-- A function `f` grows to `+∞` independent of an order-preserving embedding `e`. -/
 lemma tendsto_at_top_at_top [nonempty α] [semilattice_sup α] [preorder β] {f : α → β} :
   tendsto f at_top at_top ↔ ∀ b : β, ∃ i : α, ∀ a : α, i ≤ a → b ≤ f a :=

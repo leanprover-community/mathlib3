@@ -97,7 +97,7 @@ measure `μ` (defined on a third σ-algebra) if for any sets `t₁ ∈ m₁, t�
 `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
 def indep {α} (m₁ m₂ : measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
   Prop :=
-indep_sets (m₁.measurable_set') (m₂.measurable_set') μ
+indep_sets ({s | measurable_set[m₁] s}) ({s | measurable_set[m₂] s}) μ
 
 /-- A family of sets is independent if the family of measurable space structures they generate is
 independent. For a set `s`, the generated measurable space has measurable sets `∅, s, sᶜ, univ`. -/
@@ -255,6 +255,7 @@ lemma Indep.Indep_sets {α ι} [measurable_space α] {μ : measure α} {m : ι �
   Indep_sets s μ :=
 begin
   refine (λ S f hfs, h_indep S (λ x hxS, _)),
+  change (m x).measurable_set' (f x),
   simp_rw hms x,
   exact measurable_set_generate_from' (hfs x hxS),
 end

@@ -104,7 +104,15 @@ end mul
 
 section group
 
-variables [group G] [has_measurable_mul G]
+variables [group G]
+
+@[to_additive]
+lemma map_div_right_eq_self (μ : measure G) [is_mul_right_invariant μ] (g : G) :
+  map (/ g) μ = μ :=
+by simp_rw [div_eq_mul_inv, map_mul_right_eq_self μ g⁻¹]
+
+
+variables [has_measurable_mul G]
 
 /-- We shorten this from `measure_preimage_mul_left`, since left invariant is the preferred option
   for measures in this formalization. -/
@@ -131,20 +139,59 @@ namespace measure
 protected def inv [has_inv G] (μ : measure G) : measure G :=
 measure.map inv μ
 
-variables [group G] [has_measurable_inv G]
+/-- A measure is invariant under negation if `- μ = μ`. Equivalently, this means that for all
+measurable `A` we have `μ (- A) = μ A`, where `- A` is the pointwise negation of `A`. -/
+class is_neg_invariant [has_neg G] (μ : measure G) : Prop :=
+(neg_eq_self : μ.neg = μ)
 
-@[to_additive]
+/-- A measure is invariant under inversion if `μ⁻¹ = μ`. Equivalently, this means that for all
+measurable `A` we have `μ (A⁻¹) = μ A`, where `A⁻¹` is the pointwise inverse of `A`. -/
+@[to_additive] class is_inv_invariant [has_inv G] (μ : measure G) : Prop :=
+(inv_eq_self : μ.inv = μ)
+
+section inv
+
+variables [has_inv G]
+
+@[simp, to_additive]
+lemma inv_eq_self (μ : measure G) [is_inv_invariant μ] : μ.inv = μ :=
+is_inv_invariant.inv_eq_self
+
+@[simp, to_additive]
+lemma map_inv_eq_self (μ : measure G) [is_inv_invariant μ] : map has_inv.inv μ = μ :=
+is_inv_invariant.inv_eq_self
+
+end inv
+
+section has_involutive_inv
+
+variables [has_involutive_inv G] [has_measurable_inv G]
+
+@[simp, to_additive]
 lemma inv_apply (μ : measure G) (s : set G) : μ.inv s = μ s⁻¹ :=
 (measurable_equiv.inv G).map_apply s
 
-@[simp, to_additive] protected lemma inv_inv (μ : measure G) : μ.inv.inv = μ :=
+@[simp, to_additive]
+protected lemma inv_inv (μ : measure G) : μ.inv.inv = μ :=
 (measurable_equiv.inv G).map_symm_map
 
-end measure
+@[simp, to_additive]
+lemma measure_inv (μ : measure G) [is_inv_invariant μ] (A : set G) : μ A⁻¹ = μ A :=
+by rw [← inv_apply, inv_eq_self]
 
-section inv
-variables [group G] [has_measurable_mul G] [has_measurable_inv G]
-  {μ : measure G}
+@[to_additive]
+lemma measure_preimage_inv (μ : measure G) [is_inv_invariant μ] (A : set G) :
+  μ (has_inv.inv ⁻¹' A) = μ A :=
+μ.measure_inv A
+
+@[to_additive]
+instance (μ : measure G) [sigma_finite μ] : sigma_finite μ.inv :=
+(measurable_equiv.inv G).sigma_finite_map ‹_›
+
+end has_involutive_inv
+
+section mul_inv
+variables [group G] [has_measurable_mul G] [has_measurable_inv G] {μ : measure G}
 
 @[to_additive]
 instance [is_mul_left_invariant μ] : is_mul_right_invariant μ.inv :=
@@ -166,9 +213,28 @@ begin
     map_map measurable_inv (measurable_mul_const g⁻¹), function.comp, mul_inv_rev, inv_inv]
 end
 
-end inv
+@[to_additive]
+lemma map_div_left_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_left_invariant μ] (g : G) :
+  map (λ t, g / t) μ = μ :=
+begin
+  simp_rw [div_eq_mul_inv],
+  conv_rhs { rw [← map_mul_left_eq_self μ g, ← map_inv_eq_self μ] },
+  exact (map_map (measurable_const_mul g) measurable_inv).symm
+end
 
-section group
+@[to_additive]
+lemma map_mul_right_inv_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_left_invariant μ]
+  (g : G) : map (λ t, (g * t)⁻¹) μ = μ :=
+begin
+  conv_rhs { rw [← map_inv_eq_self μ, ← map_mul_left_eq_self μ g] },
+  exact (map_map measurable_inv (measurable_const_mul g)).symm
+end
+
+end mul_inv
+
+end measure
+
+section topological_group
 
 variables [topological_space G] [borel_space G] {μ : measure G}
 variables [group G] [topological_group G]
@@ -258,7 +324,7 @@ lemma measure_lt_top_of_is_compact_of_is_mul_left_invariant'
 measure_lt_top_of_is_compact_of_is_mul_left_invariant (interior U) is_open_interior hU
   ((measure_mono (interior_subset)).trans_lt (lt_top_iff_ne_top.2 h)).ne hK
 
-end group
+end topological_group
 
 section comm_group
 

@@ -64,7 +64,7 @@ open_locale pointwise
 /-- `submodule.has_pointwise_neg` is involutive.
 
 This is available as an instance in the `pointwise` locale. -/
-def has_involutive_pointwise_neg : has_involutive_neg (submodule R M) :=
+protected def has_involutive_pointwise_neg : has_involutive_neg (submodule R M) :=
 { neg := has_neg.neg,
   neg_neg := λ S, set_like.coe_injective $ neg_neg _ }
 

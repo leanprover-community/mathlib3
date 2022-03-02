@@ -199,7 +199,8 @@ open_locale pointwise
 /-- `submodule.has_neg` distributes over multiplication.
 
 This is available as an instance in the `pointwise` locale. -/
-def has_distrib_pointwise_neg {A} [ring A] [algebra R A] : has_distrib_neg (submodule R A) :=
+protected def has_distrib_pointwise_neg {A} [ring A] [algebra R A] :
+  has_distrib_neg (submodule R A) :=
 { neg := has_neg.neg,
   neg_mul := λ x y, begin
     refine le_antisymm

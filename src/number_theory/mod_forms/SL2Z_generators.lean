@@ -177,7 +177,7 @@ end
 lemma fixlem (m : ℤ) (A : Mat m) :
   A 0 0 + -(A 0 0/ A 1 0)*( A 1 0)= A 0 0 % A 1 0:=
 begin
-  simp only [neg_mul_eq_neg_mul_symm],
+  simp,
   rw  ← sub_eq_add_neg,
   rw mul_comm,
   rw  ← int.mod_def,
@@ -329,7 +329,7 @@ begin
             ⟨ha, int.mod_nonneg _ hd,
               int.nat_abs_lt_nat_abs _ _ (int.mod_nonneg _ hd) (int.mod_lt _ hd)⟩,
     by_cases ha : 0 < A 0 0,
-    {simpa only [reduce_eq1, reps, c_eq, ha, eq, neg_mul_eq_neg_mul_symm, true_and,
+    {simpa only [reduce_eq1, reps, c_eq, ha, eq, neg_mul, true_and,
      T_pow_c, modular_group.SL2Z_inv_d, T_pow_a, add_zero, one_mul,modular_group.SLnZ_M_c,
      modular_group.SLnZ_M_b, zero_mul, int.nat_abs_eq_zero, eq_self_iff_true,
      modular_group.SLnZ_M_a, zero_add, modular_group.SLnZ_M_d,
@@ -342,8 +342,8 @@ begin
       have a_pos : -A 0 0 > 0 := neg_pos_of_neg (lt_of_le_of_ne (le_of_not_gt ha) a_ne),
        simp only [reduce_eq2, reps, c_eq, ha, eq, true_and, T_pow_c, T_pow_a, add_zero,
         int.div_neg, one_mul,  modular_group.SLnZ_M_c,  modular_group.SLnZ_M_b,
-        S_mul_c, right.neg_pos_iff, zero_mul, int.nat_abs_neg, int.nat_abs_eq_zero, eq_self_iff_true,
-        S_mul_a, mul_neg_eq_neg_mul_symm,  modular_group.SLnZ_M_a, zero_add, not_false_iff,
+        S_mul_c, right.neg_pos_iff, zero_mul, int.nat_abs_neg, int.nat_abs_eq_zero,
+        eq_self_iff_true, S_mul_a, mul_neg,  modular_group.SLnZ_M_a, zero_add, not_false_iff,
         modular_group.SLnZ_M_d, neg_neg, int.nat_abs, set.mem_set_of_eq,
         reduce_eq2, mul_zero, S_mul_d, T_pow_d, neg_zero, S_mul_b, T_pow_b],
       rw S_a,

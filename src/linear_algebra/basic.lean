@@ -122,19 +122,6 @@ by { ext, simp [linear_equiv_fun_on_fintype], }
 
 end finsupp
 
-namespace dfinsupp
-
-variables {α : Type*} {β : α → Type*} [decidable_eq α]
-  [∀ i : α, has_zero (β i)] [∀ (i : α) (x : β i), decidable (x ≠ 0)]
-  [monoid R] [add_comm_monoid M] [distrib_mul_action R M]
-  {v : Π₀ (i : α), β i} {c : R} {h : Π (i : α), β i → M}
-
-lemma smul_sum : c • (v.sum h) = v.sum (λa b, c • h a b) := finset.smul_sum
-
-lemma sum_eq_zero (hyp : ∀ i : α, h i (v i) = 0) : v.sum h = 0 := finset.sum_eq_zero $ λ i hi, hyp i
-
-end dfinsupp
-
 section
 open_locale classical
 

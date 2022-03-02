@@ -321,7 +321,7 @@ lemma descending_central_series_ge_lower (H : ℕ → subgroup G)
 | 0 := hH.1.symm ▸ le_refl ⊤
 | (n + 1) := begin
   specialize descending_central_series_ge_lower n,
-  apply subgroup.commutator_le.mpr,
+  apply (commutator_le _ _ _).2,
   intros x hx q _,
   exact hH.2 x n (descending_central_series_ge_lower hx) q,
 end
@@ -670,7 +670,7 @@ end
 
 
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
-by { induction n with i ih, { simp }, { apply subgroup.commutator_mono ih, simp } }
+by { induction n with i ih, { simp }, { apply commutator_mono ih, simp } }
 
 /-- Abelian groups are nilpotent -/
 @[priority 100]
@@ -754,9 +754,9 @@ begin
   { simp [pi_top] },
   { calc lower_central_series (Π i, Gs i) n.succ
         = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆           : rfl
-    ... ≤ ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆    : general_commutator_mono ih (le_refl _)
+    ... ≤ ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆    : commutator_mono ih (le_refl _)
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simp [pi, pi_top]
-    ... ≤ pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)    : general_commutator_pi_pi_le _ _
+    ... ≤ pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)    : commutator_pi_pi_le _ _
     ... = pi (λ i, lower_central_series (Gs i) n.succ)      : rfl }
 end
 
@@ -792,7 +792,7 @@ begin
         = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆          : rfl
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆   : by rw ih
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simp [pi, pi_top]
-    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)   : general_commutator_pi_pi_of_fintype _ _
+    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)   : commutator_pi_pi_of_fintype _ _
     ... = pi (λ i, lower_central_series (Gs i) n.succ)     : rfl }
 end
 

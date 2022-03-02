@@ -29,8 +29,9 @@ variables (A B : Type*) [my_class A] [my_class B]
 instance : fun_like (my_hom A B) A (λ _, B) :=
 { coe := my_hom.to_fun, coe_injective' := λ f g h, by cases f; cases g; congr' }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
-instance : has_coe_to_fun (my_hom A B) (λ _, A → B) := to_fun.to_coe_fn
+/-- Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly. -/
+instance : has_coe_to_fun (my_hom A B) (λ _, A → B) := fun_like.has_coe_to_fun
 
 @[simp] lemma to_fun_eq_coe {f : my_hom A B} : f.to_fun = (f : A → B) := rfl
 
@@ -167,6 +168,9 @@ coe_fn_eq.symm.trans function.funext_iff
 
 protected lemma congr_fun {f g : F} (h₁ : f = g) (x : α) : f x = g x :=
 congr_fun (congr_arg _ h₁) x
+
+lemma exists_ne {f g : F} (h : f ≠ g) : ∃ x, f x ≠ g x :=
+not_forall.mp $ mt (fun_like.ext _ _) h
 
 end fun_like
 

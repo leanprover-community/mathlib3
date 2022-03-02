@@ -68,7 +68,7 @@ lemma map_derived_series_le_derived_series (n : ℕ) :
 begin
   induction n with n ih,
   { simp only [derived_series_zero, le_top], },
-  { simp only [derived_series_succ, map_commutator, commutator_mono, *], }
+  { simp only [derived_series_succ, map_commutator, commutator_mono, ih] }
 end
 
 variables {f}
@@ -195,7 +195,7 @@ begin
   rw [derived_series_succ, ih],
   cases (commutator.normal G).eq_bot_or_eq_top with h h,
   { rw [h, commutator_bot] },
-  { rwa [h, ←_root_.commutator_def] },
+  { rwa h },
 end
 
 lemma is_simple_group.comm_iff_is_solvable :

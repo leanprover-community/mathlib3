@@ -21,10 +21,10 @@ unitary
 -/
 
 /--
-In a `star_monoid R`, `unitary R` is the submonoid consisting of all the elements `U` of
+In a *-monoid, `unitary R` is the submonoid consisting of all the elements `U` of
 `R` such that `star U * U = 1` and `U * star U = 1`.
 -/
-def unitary (R : Type*) [monoid R] [star_monoid R] : submonoid R :=
+def unitary (R : Type*) [monoid R] [star_semigroup R] : submonoid R :=
 { carrier := {U | star U * U = 1 ∧ U * star U = 1},
   one_mem' := by simp only [mul_one, and_self, set.mem_set_of_eq, star_one],
   mul_mem' := λ U B ⟨hA₁, hA₂⟩ ⟨hB₁, hB₂⟩,
@@ -43,7 +43,7 @@ variables {R : Type*}
 namespace unitary
 
 section monoid
-variables [monoid R] [star_monoid R]
+variables [monoid R] [star_semigroup R]
 
 lemma mem_iff {U : R} : U ∈ unitary R ↔ star U * U = 1 ∧ U * star U = 1 := iff.rfl
 @[simp] lemma star_mul_self_of_mem {U : R} (hU : U ∈ unitary R) : star U * U = 1 := hU.1
@@ -73,7 +73,7 @@ instance : group (unitary R) :=
 instance : has_involutive_star (unitary R) :=
 ⟨λ _, by { ext, simp only [coe_star, star_star] }⟩
 
-instance : star_monoid (unitary R) :=
+instance : star_semigroup (unitary R) :=
 ⟨λ _ _, by { ext, simp only [coe_star, submonoid.coe_mul, star_mul] }⟩
 
 instance : inhabited (unitary R) := ⟨1⟩
@@ -95,7 +95,7 @@ lemma to_units_injective : function.injective (to_units : unitary R → Rˣ) :=
 end monoid
 
 section comm_monoid
-variables [comm_monoid R] [star_monoid R]
+variables [comm_monoid R] [star_semigroup R]
 
 instance : comm_group (unitary R) :=
 { ..unitary.group,
@@ -110,7 +110,7 @@ mem_iff.trans $ and_iff_right_of_imp $ λ h, mul_comm U (star U) ▸ h
 end comm_monoid
 
 section group_with_zero
-variables [group_with_zero R] [star_monoid R]
+variables [group_with_zero R] [star_semigroup R]
 
 @[norm_cast] lemma coe_inv (U : unitary R) : ↑(U⁻¹) = (U⁻¹ : R) :=
 eq_inv_of_mul_right_eq_one (coe_mul_star_self _)

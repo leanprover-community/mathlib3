@@ -89,7 +89,7 @@ universes w u v
 
 /-- The isomorphism `parallel_pair f 0 ⋙ F ≅ parallel_pair (F.map f) 0`. -/
 def parallel_pair_zero_iso_parallel_pair_map_zero {C : Type u} {D : Type v} [category.{w} C]
-  [category.{w} D] [preadditive C] [preadditive D] (F : C ⥤ D) [functor.additive F] {X Y : C}
+  [category.{w} D] [preadditive C] [preadditive D] (F : C ⥤ D) [additive F] {X Y : C}
   (f : X ⟶ Y) : limits.parallel_pair f 0 ⋙ F ≅ limits.parallel_pair (F.map f) 0 :=
 nat_iso.of_components (λ A,
   match A with

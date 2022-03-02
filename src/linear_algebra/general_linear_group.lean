@@ -187,10 +187,10 @@ lemma to_GL_pos_injective :
 (show function.injective ((coe : GL_pos n R → matrix n n R) ∘ to_GL_pos),
  from subtype.coe_injective).of_comp
 
-lemma coe_to_GL_pos_ext (g : special_linear_group n R) (i j : n) : g i j = (g : (GL_pos n R)) i j :=
-rfl
+lemma coe_to_GL_pos_ext (g : special_linear_group n R) (i j : n) :
+  g.1 i j = (g : (GL_pos n R)).1.1 i j := rfl
 
-lemma coe_to_GL_pos_det (g : special_linear_group n R) : det (g : GL_pos n R) = 1 :=
+lemma coe_to_GL_pos_det (g : special_linear_group n R) : det (g : GL_pos n R).1.1 = 1 :=
 g.prop
 
 /-- Coercing a `special_linear_group` via `GL_pos` and `GL` is the same as coercing striaght to a

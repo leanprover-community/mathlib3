@@ -42,7 +42,7 @@ begin
   simp only [norm_zero, smul_zero, sub_self, add_zero, zero_le_one]
 end
 
-/-- This is a counterexample to the distributivity of the lattice (seminorm ℝ (ℝ×ℝ)). -/
+/-- This is a counterexample to the distributivity of the lattice `seminorm ℝ (ℝ × ℝ)`. -/
 lemma not_distrib : ¬((p ⊔ q1) ⊓ (p ⊔ q2) ≤ p ⊔ (q1 ⊓ q2)) := begin
   intro le_sup_inf,
   have c : ¬(4/3 ≤ (1:ℝ)) := by norm_num,

@@ -132,6 +132,8 @@ def GL_pos : subgroup (GL n R) :=
 (units.pos_subgroup R).comap general_linear_group.det
 end
 
+@[simp] lemma coe_fn_eq_coe (A : GL_pos n R) : ⇑A = (↑(↑A : GL n R) : matrix n n R) := rfl
+
 @[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < (A.det : R) := iff.rfl
 end
 
@@ -202,7 +204,7 @@ lemma coe_to_GL_pos_det {R : Type*} [linear_ordered_comm_ring R] (g : (special_l
 @[simp]
 lemma coe_coe_matrix (g : (special_linear_group n ℤ)) :
 ∀ i j, ((g : (special_linear_group n R)) : (GL_pos n R )) i j =
- (g  : matrix n n ℤ) i j   := by {intros i j,refl,}
+ (g  : matrix n n ℤ) i j   := by {intros i j, refl,}
 
 variable [fact (even (fintype.card n))]
 

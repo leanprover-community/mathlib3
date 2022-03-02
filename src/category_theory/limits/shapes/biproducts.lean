@@ -377,7 +377,8 @@ begin
   by_cases h : p j,
   { rw [dif_pos h, biproduct.ι_π],
     split_ifs with h₁ h₂ h₂,
-    exacts [rfl, false.elim (h₂ (subtype.ext h₁)), false.elim (h₁ (congr_arg subtype.val h₂)), rfl] },
+    exacts [rfl, false.elim (h₂ (subtype.ext h₁)),
+      false.elim (h₁ (congr_arg subtype.val h₂)), rfl] },
   { rw [dif_neg h, dif_neg (show (i : J) ≠ j, from λ h₂, h (h₂ ▸ i.2)), comp_zero] }
 end
 
@@ -406,7 +407,8 @@ begin
   by_cases h : p j,
   { rw [dif_pos h, biproduct.ι_π],
     split_ifs with h₁ h₂ h₂,
-    exacts [rfl, false.elim (h₂ (subtype.ext h₁)), false.elim (h₁ (congr_arg subtype.val h₂)), rfl] },
+    exacts [rfl, false.elim (h₂ (subtype.ext h₁)),
+      false.elim (h₁ (congr_arg subtype.val h₂)), rfl] },
   { rw [dif_neg h, dif_neg (show j ≠ i, from λ h₂, h (h₂.symm ▸ i.2)), zero_comp] }
 end
 
@@ -457,8 +459,8 @@ fork.is_limit.mk' _ $ λ s,
 ⟨s.ι ≫ biproduct.to_subtype _ _,
  begin
    ext j,
-   rw [kernel_fork.ι_of_ι, category.assoc, category.assoc, biproduct.to_subtype_from_subtype_assoc,
-     biproduct.map_π],
+   rw [kernel_fork.ι_of_ι, category.assoc, category.assoc, 
+     biproduct.to_subtype_from_subtype_assoc, biproduct.map_π],
    rcases em (i = j) with (rfl|h),
    { rw [if_neg (not_not.2 rfl), comp_zero, comp_zero, kernel_fork.condition] },
    { rw [if_pos h, category.comp_id] }

@@ -196,7 +196,7 @@ end
 section
 open_locale pointwise
 
-/-- `submodule.has_neg` distributes over multiplication.
+/-- `submodule.has_pointwise_neg` distributes over multiplication.
 
 This is available as an instance in the `pointwise` locale. -/
 protected def has_distrib_pointwise_neg {A} [ring A] [algebra R A] :

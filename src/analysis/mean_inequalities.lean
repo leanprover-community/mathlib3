@@ -125,6 +125,43 @@ begin
       { rw [exp_log hz] } } }
 end
 
+theorem geom_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
+  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
+  (∏ i in s, (z i) ^ (w i)) = x :=
+calc (∏ i in s, (z i) ^ (w i)) = ∏ i in s, x ^ w i :
+  begin
+    refine prod_congr rfl (λ i hi, _),
+    cases eq_or_ne (w i) 0 with h₀ h₀,
+    { rw [h₀, rpow_zero, rpow_zero] },
+    { rw hx i hi h₀ }
+  end
+... = x :
+  begin
+    rw [← rpow_sum_of_nonneg _ hw, hw', rpow_one],
+    have : (∑ i in s, w i) ≠ 0,
+    { rw hw', exact one_ne_zero },
+    obtain ⟨i, his, hi⟩ := exists_ne_zero_of_sum_ne_zero this,
+    rw ← hx i his hi,
+    exact hz i his
+  end
+
+theorem arith_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ)
+  (hw' : ∑ i in s, w i = 1) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
+  ∑ i in s, w i * z i = x :=
+calc ∑ i in s, w i * z i = ∑ i in s, w i * x :
+  begin
+    refine sum_congr rfl (λ i hi, _),
+    cases eq_or_ne (w i) 0 with hwi hwi,
+    { rw [hwi, zero_mul, zero_mul] },
+    { rw hx i hi hwi },
+  end
+... = x : by rw [←sum_mul, hw', one_mul]
+
+theorem geom_mean_eq_arith_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
+  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
+  (∏ i in s, (z i) ^ (w i)) = ∑ i in s, w i * z i :=
+by rw [geom_mean_weighted_of_constant, arith_mean_weighted_of_constant]; assumption
+
 end real
 
 namespace nnreal

@@ -35,7 +35,8 @@ open_locale topological_space
 
 local postfix `⋆`:std.prec.max_plus := star
 
-/-- A normed star ring is a star ring endowed with a norm such that `star` is isometric. -/
+/-- A normed star monoid is an additive monoid with a star,
+endowed with a norm such that `star` is isometric. -/
 class normed_star_monoid (E : Type*) [normed_group E] [star_add_monoid E] : Prop :=
 (norm_star : ∀ {x : E}, ∥x⋆∥ = ∥x∥)
 

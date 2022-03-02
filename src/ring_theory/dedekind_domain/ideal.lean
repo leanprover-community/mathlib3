@@ -19,6 +19,7 @@ Then we prove some results on the unique factorization monoid structure of the i
    every nonzero fractional ideal is invertible.
  - `is_dedekind_domain_inv_iff` shows that this does note depend on the choice of field of
    fractions.
+ - `height_one_spectrum` defines the type of nonzero prime ideals of `R`.
 
 ## Main results:
  - `is_dedekind_domain_iff_is_dedekind_domain_inv`
@@ -675,6 +676,18 @@ theorem ideal.prime_iff_is_prime {P : ideal A} (hP : P ≠ ⊥) :
   prime P ↔ is_prime P :=
 ⟨ideal.is_prime_of_prime, ideal.prime_of_is_prime hP⟩
 
+lemma ideal.strict_anti_pow (I : ideal A) (hI0 : I ≠ ⊥) (hI1 : I ≠ ⊤) :
+  strict_anti ((^) I : ℕ → ideal A) :=
+strict_anti_nat_of_succ_lt $ λ e, ideal.dvd_not_unit_iff_lt.mp
+  ⟨pow_ne_zero _ hI0, I, mt is_unit_iff.mp hI1, pow_succ' I e⟩
+
+lemma ideal.pow_lt_self (I : ideal A) (hI0 : I ≠ ⊥) (hI1 : I ≠ ⊤) (e : ℕ) (he : 2 ≤ e) : I^e < I :=
+by convert I.strict_anti_pow hI0 hI1 he; rw pow_one
+
+lemma ideal.exists_mem_pow_not_mem_pow_succ (I : ideal A) (hI0 : I ≠ ⊥) (hI1 : I ≠ ⊤) (e : ℕ) :
+  ∃ x ∈ I^e, x ∉ I^(e+1) :=
+set_like.exists_of_lt (I.strict_anti_pow hI0 hI1 e.lt_succ_self)
+
 end is_dedekind_domain
 
 section is_dedekind_domain
@@ -730,3 +743,47 @@ begin
 end
 
 end is_dedekind_domain
+
+section height_one_spectrum
+
+/-!
+### Height one spectrum of a Dedekind domain
+If `R` is a Dedekind domain of Krull dimension 1, the maximal ideals of `R` are exactly its nonzero
+prime ideals.
+We define `height_one_spectrum` and provide lemmas to recover the facts that prime ideals of height
+one are prime and irreducible. -/
+
+namespace is_dedekind_domain
+
+variables [is_domain R] [is_dedekind_domain R]
+
+/-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
+`R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
+@[nolint has_inhabited_instance unused_arguments]
+structure height_one_spectrum :=
+(as_ideal : ideal R)
+(is_prime : as_ideal.is_prime)
+(ne_bot   : as_ideal ≠ ⊥)
+
+variables (v : height_one_spectrum R) {R}
+
+lemma height_one_spectrum.prime (v : height_one_spectrum R) : prime v.as_ideal :=
+ideal.prime_of_is_prime v.ne_bot v.is_prime
+
+lemma height_one_spectrum.irreducible (v : height_one_spectrum R) :
+  irreducible v.as_ideal :=
+begin
+  rw [unique_factorization_monoid.irreducible_iff_prime],
+  apply v.prime,
+end
+
+lemma height_one_spectrum.associates.irreducible (v : height_one_spectrum R) :
+  irreducible (associates.mk v.as_ideal) :=
+begin
+  rw [associates.irreducible_mk _],
+  apply v.irreducible,
+end
+
+end is_dedekind_domain
+
+end height_one_spectrum

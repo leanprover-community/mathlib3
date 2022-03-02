@@ -70,7 +70,8 @@ corresponding results for Euclidean affine spaces.
 variables {V : Type*} [inner_product_space ℝ V]
 
 /-- The undirected angle between two vectors. If either vector is 0,
-this is π/2. -/
+this is π/2. See `orientation.oangle` for the corresponding oriented angle
+definition. -/
 def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))
 
 lemma is_conformal_map.preserves_angle {E F : Type*}

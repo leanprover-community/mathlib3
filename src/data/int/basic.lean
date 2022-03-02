@@ -1223,10 +1223,10 @@ lemma to_nat_neg_nat : ∀ (n : ℕ),  (-(n : ℤ)).to_nat = 0
 @[simp]
 lemma to_nat_eq_zero : ∀ {n : ℤ}, n.to_nat = 0 ↔ n ≤ 0
 | (n : ℕ) := calc _ ↔ (n = 0) : ⟨(to_nat_coe_nat n).symm.trans, (to_nat_coe_nat n).trans⟩
-                ... ↔ _       : int.coe_nat_nonpos_iff.symm
+                ... ↔ _       : coe_nat_nonpos_iff.symm
 | -[1+ n] := show ((-((n : ℤ) + 1)).to_nat = 0) ↔ (-(n + 1) : ℤ) ≤ 0, from
 calc _ ↔ true : ⟨λ _, trivial, λ h, to_nat_neg_nat _⟩
-   ... ↔ _    : ⟨λ h, int.neg_nonpos_of_nonneg (int.coe_zero_le (n + 1)), λ _, trivial⟩
+   ... ↔ _    : ⟨λ h, neg_nonpos_of_nonneg (coe_zero_le _), λ _, trivial⟩
 
 /-! ### units -/
 

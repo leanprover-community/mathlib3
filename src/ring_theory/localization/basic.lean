@@ -259,7 +259,8 @@ omit M
 
 variables {M S}
 
-def unique_of_zero_mem (h : (0 : R) ∈ M) : _root_.unique S :=
+/-- Localizing at a submonoid with 0 inside it leads to the trivial ring. -/
+def unique_of_zero_mem (h : (0 : R) ∈ M) : unique S :=
 unique_of_zero_eq_one $ by simpa using is_localization.map_units S ⟨0, h⟩
 
 lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :

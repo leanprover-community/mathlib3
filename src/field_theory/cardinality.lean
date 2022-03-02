@@ -63,7 +63,7 @@ begin
   suffices : #α = #K,
   { obtain ⟨e⟩ := cardinal.eq.1 this,
     exact ⟨e.field⟩ },
-  rw ←is_localization.cardinal_mk K (le_refl (mv_polynomial α $ ulift.{u} ℚ)⁰),
+  rw ←is_localization.card (mv_polynomial α $ ulift.{u} ℚ)⁰ K le_rfl,
   apply le_antisymm,
   { refine ⟨⟨λ a, mv_polynomial.monomial (finsupp.single a 1) (1 : ulift.{u} ℚ), λ x y h, _⟩⟩,
     simpa [mv_polynomial.monomial_eq_monomial_iff, finsupp.single_eq_single_iff] using h },

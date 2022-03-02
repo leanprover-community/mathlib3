@@ -62,6 +62,8 @@ begin
   rwa [dif_pos $ show ↑y ∈ S, from y.2, set_like.eta]
 end
 
+variables (L)
+
 /-- If you do not localize at any zero-divisors, localization preserves cardinality. -/
 lemma card (hS : S ≤ R⁰) : #R = #L :=
 (cardinal.mk_le_of_injective (is_localization.injective L hS)).antisymm (card_le S)

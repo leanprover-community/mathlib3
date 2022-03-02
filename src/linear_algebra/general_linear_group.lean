@@ -196,12 +196,12 @@ lemma coe_to_GL_pos_ext {R : Type*} [linear_ordered_comm_ring R] (g : (special_l
 
 @[simp]
 lemma coe_to_GL_pos_det {R : Type*} [linear_ordered_comm_ring R] (g : (special_linear_group n R)) :
-  det ( g : (GL_pos n R)) = 1   :=by {convert g.prop,}
+  det ( g : (GL_pos n R)) = 1 :=by {convert g.prop,}
 
 @[simp]
 lemma coe_coe_matrix (g : (special_linear_group n ℤ)) :
-∀ i j, ((g : (special_linear_group n R)) : (GL_pos n R )) i j =
- (g  : matrix n n ℤ) i j   := by {intros i j,refl,}
+∀ i j, ((g : (special_linear_group n R)) : (GL_pos n R )) i j = (g  : matrix n n ℤ) i j :=
+by {intros i j,refl,}
 
 variable [fact (even (fintype.card n))]
 

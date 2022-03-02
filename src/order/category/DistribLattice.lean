@@ -10,7 +10,7 @@ import order.category.Lattice
 
 This file defines `DistribLattice`, the category of distributive lattices.
 
-Note that [`DistLat`][https://ncatlab.org/nlab/show/DistLat] in the literature doesn't always
+Note that [`DistLat`](https://ncatlab.org/nlab/show/DistLat) in the literature doesn't always
 correspond to `DistribLattice` as we don't require bottom or top elements. Instead, this `DistLat`
 corresponds to `BoundedDistribLattice`.
 -/

@@ -78,8 +78,8 @@ begin
   fin_cases i; assumption,
 end
 
-lemma det_of_22   {R : Type*} [comm_ring R] (M: matrix (fin 2) (fin 2) R):
-  M.det= (M 0 0) * (M 1 1) - (M 0 1) * (M 1 0):=
+lemma det_of_22 {R : Type*} [comm_ring R] (M: matrix (fin 2) (fin 2) R):
+  M.det = (M 0 0) * (M 1 1) - (M 0 1) * (M 1 0):=
 begin
 rw  matrix.det_succ_row_zero,
 simp [fin.sum_univ_succ],
@@ -91,16 +91,16 @@ begin
   intro H,
   have DET:= g.property,
   have hz:=z.property,
-  simp at DET,
+  simp only [subtype.val_eq_coe, mem_GL_pos, general_linear_group.coe_det_apply] at DET,
   have H1 : g.1 1 0 = 0 ∨ z.im = 0, by simpa using congr_arg complex.im H,
-  simp [coe_fn_coe_base'] at H1,
+  simp only [subtype.val_eq_coe, general_linear_group.coe_fn_eq_coe] at H1,
   cases H1,
-  {simp [H1, complex.of_real_zero] at H,
+  {simp only [H1, complex.of_real_zero, denom, matrix.coe_fn_eq_coe, zero_mul, zero_add,
+    complex.of_real_eq_zero] at H,
   have:= det_of_22 g,
-  simp [coe_fn_coe_base'] at *,
-  simp [coe_GL_pos_coe_GL_coe_matrix] at *,
+  simp only [coe_fn_coe_base', subtype.val_eq_coe, coe_im, general_linear_group.coe_fn_eq_coe] at *,
   rw this at DET,
-  simp [H, H1] at DET,
+  simp only [H, H1, mul_zero, sub_zero, lt_self_iff_false] at DET,
   exact DET,},
   change z.im > 0 at hz,
   linarith,
@@ -171,10 +171,10 @@ instance SL_action {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, 
  mul_action.comp_hom ℍ  (monoid_hom.comp (special_linear_group.to_GL_pos)
  (map (algebra_map R ℝ)) )
 
-instance : has_coe SL(2,ℤ) (GL_pos (fin 2) ℝ) :=
-⟨λ g , ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ))⟩
+instance : has_coe SL(2,ℤ) (GL_pos (fin 2) ℝ) := ⟨λ g , ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ))⟩
 
-instance SL_ON_GL_pos : has_scalar SL(2,ℤ) (GL_pos (fin 2) ℝ) :=⟨λ s g, s * g⟩
+/-
+instance SL_ON_GL_pos : has_scalar SL(2,ℤ) (GL_pos (fin 2) ℝ) := ⟨λ s g, s * g⟩
 
 lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
   (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := rfl
@@ -198,6 +198,7 @@ lemma subgroup_on_SL_apply (s : Γ) (g : SL(2,ℤ) ) (z : ℍ) :
 
 instance subgroup_to_sl_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :={
   smul_assoc := by {intros s g z, rw subgroup_on_SL_apply, apply upper_half_plane.SL_action.3,},}
+-/
 
 @[simp] lemma coe_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
 @[simp] lemma re_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl

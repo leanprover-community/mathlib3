@@ -136,7 +136,7 @@ begin
   have h2 : (((A 1 0 : ℂ) * x + A 1 1)^(k1+k2))⁻¹ =
   ((A 1 0 *x + A 1 1)^k1)⁻¹ * ((A 1 0 *x + A 1 1)^k2)⁻¹,
   by {simp_rw ← mul_inv₀,
-  simp only [inv_inj₀],
+  simp  [group_with_zero.to_has_involutive_inv],
   apply zpow_add₀,
   apply upper_half_plane.denom_ne_zero A x,},
   rw h2,
@@ -188,10 +188,9 @@ end
 lemma slash_k_mul_subgroup (k1 k2 : ℤ) (Γ : subgroup SL(2,ℤ)) (A : Γ) (f g : ℍ → ℂ) :
   (f * g) ∣[k1+k2] A = (f ∣[k1] A) * (g ∣[k2] A) :=
   begin
-  have hd: ((A : GL(2,ℝ)⁺).1.det : ℂ) = (A : SL(2,ℤ)) .1.det, by {simp [det_coe_sl], norm_cast,
+  have hd: ((A : GL(2,ℝ)⁺).1.det : ℂ) = (A : SL(2,ℤ)) .1.det, by {simp [det_coe_sl],
   rw ← coe_coe,
-  rw ← coe_coe,
-  rw ← coe_coe, apply matrix.special_linear_group.det_coe,},
+  convert matrix.special_linear_group.det_coe (A : SL(2, ℝ)),},
   rw slash_k_mul,
   ext1,
   have : (((A : GL(2,ℝ)⁺).1.det) • (f ∣[k1] A) * (g ∣[k2] A)) x =
@@ -216,7 +215,7 @@ lemma coe_aux (Γ : subgroup SL(2,ℤ)) (γ : Γ) :
  ∀ i j, ((γ : matrix.GL_pos (fin 2) ℝ) i j : ℂ) = ((γ i j : ℤ) : ℝ) :=
 begin
   intros i j,
-  simp only [int.cast_inj, matrix.special_linear_group.coe_coe_matrix, of_real_int_cast, coe_coe],
+  simp  [int.cast_inj, of_real_int_cast, coe_coe],
   refl,
 end
 
@@ -439,7 +438,6 @@ def zero_at_infty_submodule: submodule (ℂ) (ℍ  → ℂ) := {
   intros x  h1,
   norm_cast,
   intros t,
-  dsimp at *,
   simp only [complex.abs_zero, nat.cast_one, int.cast_neg_of_nat] at *,
   apply he.le},
   add_mem' := by  {intros f g hf hg ε hε, begin

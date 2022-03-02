@@ -177,7 +177,7 @@ instance : has_coe SL(2,ℤ) (GL_pos (fin 2) ℝ) :=
 instance SL_ON_GL_pos : has_scalar SL(2,ℤ) (GL_pos (fin 2) ℝ) :=⟨λ s g, s * g⟩
 
 lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
-  (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := by {simp, refl}
+  (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := rfl
 
 instance SL_to_GL_tower : is_scalar_tower SL(2,ℤ) (GL_pos (fin 2) ℝ) ℍ :={
   smul_assoc := by {intros s g z, rw SL_on_GL_pos_smul_apply, simp, apply mul_smul',},}
@@ -185,7 +185,7 @@ instance SL_to_GL_tower : is_scalar_tower SL(2,ℤ) (GL_pos (fin 2) ℝ) ℍ :={
 instance subgroup_GL_pos : has_scalar Γ (GL_pos (fin 2) ℝ) :=⟨λ s g, s * g⟩
 
 lemma subgroup_on_gl_pos_smul_apply (s : Γ) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
-  (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := by {simp only [coe_coe], refl}
+  (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := rfl
 
 instance subgroup_on_GL_pos : is_scalar_tower Γ (GL_pos (fin 2) ℝ) ℍ :={
   smul_assoc :=
@@ -194,11 +194,10 @@ instance subgroup_on_GL_pos : is_scalar_tower Γ (GL_pos (fin 2) ℝ) ℍ :={
 instance subgroup_SL : has_scalar Γ SL(2,ℤ) :=⟨λ s g, s * g⟩
 
 lemma subgroup_on_SL_apply (s : Γ) (g : SL(2,ℤ) ) (z : ℍ) :
-  (s • g) • z = ( (s : SL(2, ℤ)) * g) • z := by {refl}
+  (s • g) • z = ( (s : SL(2, ℤ)) * g) • z := rfl
 
 instance subgroup_to_sl_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :={
-  smul_assoc := by {intros s g z, rw subgroup_on_SL_apply, apply upper_half_plane.SL_action.3,},
-}
+  smul_assoc := by {intros s g z, rw subgroup_on_SL_apply, apply upper_half_plane.SL_action.3,},}
 
 @[simp] lemma coe_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
 @[simp] lemma re_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
@@ -222,8 +221,8 @@ begin
   ring,
   end
 
-@[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := by {refl}
-@[simp]lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := by {refl}
-@[simp]lemma subgroup_to_sl_moeb (A: Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := by {refl}
+@[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl
+@[simp]lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl
+@[simp]lemma subgroup_to_sl_moeb (A: Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
 
 end upper_half_plane

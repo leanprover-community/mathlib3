@@ -470,14 +470,12 @@ begin
     simp only [←hroots, multiset.card_map], },
   rw [← C_leading_coeff_mul_prod_multiset_X_sub_C_of_field this],
   simp only [map_C, function.comp_app, map_X, map_sub],
-  congr' 2,
-  { rw leading_coeff_map_of_leading_coeff_ne_zero,
-    intro hn,
+  have w : (algebra_map K (fraction_ring K)) p.leading_coeff ≠ 0,
+  { intro hn,
     apply hcoeff,
     apply is_fraction_ring.injective K (fraction_ring K),
     simp [hn], },
-  rw ← h,
-  simp,
+  rw [←h, leading_coeff_map_of_leading_coeff_ne_zero _ w, multiset.map_map],
 end
 
 /-- A polynomial splits if and only if it has as many roots as its degree. -/

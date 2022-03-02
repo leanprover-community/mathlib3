@@ -210,6 +210,9 @@ begin
   simpa [re_μ] using key,
 end
 
+lemma has_eigenvalue_eigenvalues (i : fin n) : has_eigenvalue T (hT.eigenvalues hn i) :=
+    module.End.has_eigenvalue_of_has_eigenvector (hT.has_eigenvector_eigenvector_basis hn i)
+
 attribute [irreducible] eigenvector_basis eigenvalues
 
 @[simp] lemma apply_eigenvector_basis (i : fin n) :

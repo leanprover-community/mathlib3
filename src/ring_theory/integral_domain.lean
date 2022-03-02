@@ -41,8 +41,8 @@ lemma mul_left_bijective_of_fintype₀ {a : M} (ha : a ≠ 0) : bijective (λ b,
 fintype.injective_iff_bijective.1 $ mul_left_injective₀ ha
 
 /-- Every finite nontrivial cancel_monoid_with_zero is a group_with_zero. -/
-def group_with_zero_of_fintype (M : Type*) [cancel_monoid_with_zero M] [decidable_eq M] [fintype M]
-  [nontrivial M] : group_with_zero M :=
+def fintype.group_with_zero_of_cancel (M : Type*) [cancel_monoid_with_zero M] [decidable_eq M]
+  [fintype M] [nontrivial M] : group_with_zero M :=
 { inv := λ a, if h : a = 0 then 0 else fintype.bij_inv (mul_right_bijective_of_fintype₀ h) 1,
   mul_inv_cancel := λ a ha,
     by { simp [has_inv.inv, dif_neg ha], exact fintype.right_inverse_bij_inv _ _ },
@@ -62,9 +62,9 @@ variables [ring R] [is_domain R] [fintype R]
 
 TODO: Prove Wedderburn's little theorem,
 which shows a finite domain is in fact commutative, hence a field. -/
-def division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq R] [fintype R] :
-  division_ring R :=
-{ ..show group_with_zero R, from group_with_zero_of_fintype R,
+def fintype.division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq R]
+  [fintype R] : division_ring R :=
+{ ..show group_with_zero R, from fintype.group_with_zero_of_cancel R,
   ..‹ring R› }
 
 /-- Every finite commutative domain is a field.
@@ -73,7 +73,7 @@ TODO: Prove Wedderburn's little theorem, which shows a finite domain is automati
 dropping one assumption from this theorem. -/
 def fintype.field_of_domain (R) [comm_ring R] [is_domain R] [decidable_eq R] [fintype R] :
   field R :=
-{ .. group_with_zero_of_fintype R,
+{ .. fintype.group_with_zero_of_cancel R,
   .. ‹comm_ring R› }
 
 lemma fintype.is_field_of_domain (R) [comm_ring R] [is_domain R] [fintype R] :
@@ -113,7 +113,7 @@ is_cyclic_of_subgroup_is_domain (units.coe_hom R) $ units.ext
 
 /-- Every finite integral domain is a field. -/
 def field_of_is_domain [decidable_eq R] [fintype R] : field R :=
-{ ..division_ring_of_is_domain R, ..‹comm_ring R› }
+{ ..fintype.division_ring_of_is_domain R, ..‹comm_ring R› }
 
 section
 

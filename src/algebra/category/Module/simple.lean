@@ -20,6 +20,7 @@ variables {R M : Type*} [ring R] [add_comm_group M] [module R M]
 open category_theory
 open Module
 
+/-- If the zero morphism is an epi then the codomain in trivial. -/
 def unique_of_epi_zero (N : Module R) [h : epi (0 : N ⟶ of R M)] : unique M :=
 unique_of_surjective_zero N ((Module.epi_iff_surjective _).mp h)
 

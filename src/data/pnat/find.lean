@@ -17,18 +17,10 @@ namespace pnat
 variables {p q : ℕ+ → Prop} [decidable_pred p] [decidable_pred q] (h : ∃ n, p n)
 
 instance decidable_pred_exists_nat :
-  decidable_pred (λ n' : ℕ, ∃ (n : ℕ+) (hn : n' = n), p n)
-| 0       := is_false begin
-    push_neg,
-    rintro ⟨x, hx⟩,
-    simp [hx.ne]
-  end
-| (n' + 1) := if hp : p (n' + 1).to_pnat' then is_true ⟨(n' + 1).to_pnat', rfl, hp⟩
-  else is_false $ begin
-    contrapose! hp,
-    obtain ⟨n, hn, hp⟩ := hp,
-    simp [hn, hp]
-  end
+  decidable_pred (λ n' : ℕ, ∃ (n : ℕ+) (hn : n' = n), p n) := λ n',
+decidable_of_iff' (∃ (h : 0 < n'), p ⟨n', h⟩) $ subtype.exists.trans $
+  by simp_rw [subtype.coe_mk, @exists_comm (_ < _) (_ = _), exists_prop, exists_eq_left']
+
 
 include h
 
@@ -83,13 +75,7 @@ protected theorem find_min : ∀ {m : ℕ+}, m < pnat.find h → ¬p m :=
 begin
   simp only [pnat.find, ←pnat.coe_lt_coe, pnat.find_aux, mk_coe, nat.lt_find_iff, exists_prop,
              not_exists, not_and],
-  rintro ⟨m, hm⟩,
-  contrapose!,
-  intro h,
-  refine ⟨m, le_rfl, m.to_pnat', _, _⟩,
-  { simp [hm] },
-  { convert h,
-    simp [subtype.ext_iff, hm] }
+  exact λ m h, h m le_rfl m rfl
 end
 
 protected theorem find_min' {m : ℕ+} (hm : p m) : pnat.find h ≤ m :=

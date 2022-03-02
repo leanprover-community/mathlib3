@@ -276,7 +276,7 @@ end
 
 theorem deriv_family_eq_of_range_eq {f : ι → ordinal → ordinal}
   {g : ι' → ordinal → ordinal.{max u v w}} (hfg : set.range f = set.range g) :
-  deriv_family f = deriv_family.{w (max u v w)} g :=
+  deriv_family f = deriv_family.{w max u v w} g :=
 funext (λ a, begin
   apply limit_rec_on a,
   { simp only [deriv_family_zero],
@@ -293,6 +293,28 @@ funext (λ a, begin
     ext c hc,
     exact H c hc }
 end)
+
+-- another PR
+theorem deriv_family_le_of_fp_subset {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal} (hf : ∀ i, is_normal (f i)) (hg : ∀ i', is_normal (g i'))
+  (H : ∀ o, (∀ i, f i o = o) → (∀ i', g i' o = o)) (a) :
+  deriv_family.{w max u v w} g a ≤ deriv_family.{u max u v w} f a :=
+begin
+  rw [deriv_family_eq_enum_ord.{u max u v w} hf, deriv_family_eq_enum_ord hg],
+  apply enum_ord_le_of_subset (fp_family_unbounded.{u max u v w} hf),
+  intros a ha,
+  rw set.mem_Inter at *,
+  exact H a ha
+end
+
+-- another PR
+theorem deriv_family_eq_of_fp_eq {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal} (hf : ∀ i, is_normal (f i)) (hg : ∀ i', is_normal (g i'))
+  (H : ∀ o, (∀ i, f i o = o) ↔ (∀ i', g i' o = o)) :
+  deriv_family.{u max u v w} f = deriv_family.{w max u v w} g :=
+funext (λ a, le_antisymm
+  (deriv_family_le_of_fp_subset.{w v u} hg hf (λ o, (H o).2) a)
+  (deriv_family_le_of_fp_subset.{u v w} hf hg (λ o, (H o).1) a))
 
 end
 
@@ -446,6 +468,29 @@ funext (λ a, begin
   simpa [range_family_of_bfamily] using hfg
 end)
 
+-- another PR
+theorem deriv_bfamily_le_of_fp_subset {f : Π a < o, ordinal → ordinal}
+  {g : Π a < o', ordinal → ordinal} (hf : ∀ i hi, is_normal (f i hi))
+  (hg : ∀ i' hi', is_normal (g i' hi'))
+  (H : ∀ o, (∀ i hi, f i hi o = o) → (∀ i' hi', g i' hi' o = o)) (a) :
+  deriv_bfamily.{w max u v w} o' g a ≤ deriv_bfamily.{u max u v w} o f a :=
+begin
+  refine deriv_family_le_of_fp_subset (λ i, hf _ _) (λ i, hg _ _) (λ a h i', H _ (λ i hi, _) _ _) a,
+  rw ←type_out o at hi,
+  have := h (enum o.out.r i hi),
+  rwa family_of_bfamily_enum at this
+end
+
+-- another PR
+theorem deriv_bfamily_eq_of_fp_eq {f : Π a < o, ordinal → ordinal}
+  {g : Π a < o', ordinal → ordinal} (hf : ∀ i hi, is_normal (f i hi))
+  (hg : ∀ i' hi', is_normal (g i' hi'))
+  (H : ∀ o, (∀ i hi, f i hi o = o) ↔ (∀ i' hi', g i' hi' o = o)) :
+  deriv_bfamily.{u max u v w} o f = deriv_bfamily.{w max u v w} o' g :=
+funext (λ a, le_antisymm
+  (deriv_bfamily_le_of_fp_subset.{w v u} hg hf (λ o, (H o).2) a)
+  (deriv_bfamily_le_of_fp_subset.{u v w} hf hg (λ o, (H o).1) a))
+
 end
 
 /-! ### Fixed points of a single function -/
@@ -559,6 +604,24 @@ by rw [←H.le_iff_eq, H.le_iff_deriv]
 
 theorem deriv_eq_enum_ord (H : is_normal f) : deriv f = enum_ord (function.fixed_points f) :=
 by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _).symm }
+
+@[simp] theorem deriv_id : deriv id = id :=
+begin
+  rw [deriv_eq_enum_ord is_normal.refl, fixed_points_id],
+  exact enum_ord_univ
+end
+
+-- another PR
+theorem deriv_le_of_fp_subset {f g : ordinal → ordinal} (hf : is_normal f) (hg : is_normal g)
+  (H : ∀ o, f o = o → g o = o) (a) : deriv g a ≤ deriv f a :=
+deriv_family_le_of_fp_subset (λ _, hf) (λ _, hg) (λ o hf' _, H o (hf' unit.star)) a
+
+-- another PR
+theorem deriv_eq_of_fp_eq {f g : ordinal → ordinal} (hf : is_normal f) (hg : is_normal g)
+  (H : ∀ o, f o = o ↔ g o = o) : deriv f = deriv g :=
+funext (λ a, le_antisymm
+  (deriv_le_of_fp_subset hg hf (λ o, (H o).2) a)
+  (deriv_le_of_fp_subset hf hg (λ o, (H o).1) a))
 
 /-! ### Fixed points of addition -/
 

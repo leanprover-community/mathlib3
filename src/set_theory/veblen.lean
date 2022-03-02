@@ -25,73 +25,78 @@ TODO:
 
 noncomputable theory
 
-universes u v
-variable {ι : Type u}
+universe u
 
 namespace ordinal
 
+set_option pp.universes true
 
-theorem le_nfp_family [hι : nonempty ι] {f : ι → ordinal → ordinal} (Hf : ∀ i, is_normal (f i))
-{a b} : (∀ i, f i b ≤ nfp_family f a) ↔ b ≤ nfp_family f a :=
+def veblen (f : ordinal → ordinal) : ordinal → ordinal → ordinal :=
+wf.fix (λ o φ, if o = 0 then f else deriv_bfamily.{u u} o φ)
+
+private theorem veblen_def (f : ordinal → ordinal) (o) :
+  veblen f o = if o = 0 then f else deriv_bfamily.{u u} o (λ a _, veblen f a) :=
+wf.fix_eq _ o
+
+theorem veblen_zero (f : ordinal → ordinal) : veblen f 0 = f :=
+by { rw veblen_def, simp }
+
+theorem veblen_pos (f : ordinal → ordinal) {o : ordinal} (ho : o ≠ 0) :
+  veblen f o = deriv_bfamily.{u u} o (λ a _, veblen f a) :=
+by { rw veblen_def, simp [ho] }
+
+theorem veblen_is_normal' (f : ordinal → ordinal) {o : ordinal.{u}} (ho : o ≠ 0) :
+  is_normal (veblen f o) :=
+by { rw veblen_pos f ho, apply deriv_bfamily_is_normal }
+
+theorem veblen_is_normal {f : ordinal → ordinal} (hf : is_normal f) (o : ordinal.{u}) :
+  is_normal (veblen f o) :=
 begin
-  refine ⟨λ h, _, λ h i, _⟩,
-  { unfreezingI { cases hι with i },
-    exact ((Hf i).le_self b).trans (h i) },
-  rw ←nfp_family_fp Hf i,
-  exact (Hf i).strict_mono.monotone h
+  rcases eq_or_ne o 0 with rfl | ho,
+  { rwa veblen_zero },
+  { exact veblen_is_normal' f ho }
 end
 
-theorem nfp_family_limit {f : ι → ordinal.{max u v} → ordinal.{max u v}} (Hf : ∀ i, is_normal (f i))
-{o : ordinal.{max u v}} (ho : is_limit o) :
-  nfp_family.{u v} f o = bsup.{(max u v) u} o (λ a ha, nfp_family f a) :=
+theorem veblen_id (o : ordinal.{u}) : veblen id o = id :=
 begin
-
+  apply wf.induction o,
+  intros a H,
+  rcases eq_or_ne a 0 with rfl | ho,
+  { rw veblen_zero },
+  { rw veblen_pos id ho,
+  suffices : (λ (i : a.out.α), veblen id (typein a.out.r i)) = λ i, id,
+  { change deriv_family (λ (i : a.out.α), _) = _,
+    rw [this, ←@deriv_eq_deriv_family'.{u u} a.out.α (by rwa out_nonempty_iff_ne_zero), deriv_id] },
+  funext,
+  rw H _ (typein_lt_self i) }
 end
 
-/-- A generalization of the fixed point lemma for normal functions: any family of normal functions
-has an unbounded set of common fixed points. -/
-theorem nfp_family_unbounded {f : ι → ordinal.{max u v} → ordinal} (Hf : ∀ i, is_normal (f i)) :
-  unbounded (<) (⋂ i, function.fixed_points (f i)) :=
-λ a, ⟨_, begin
-  rintros S ⟨i, hi⟩,
-  rw ←hi,
-  exact nfp_family_fp Hf a i
-end, not_lt_of_ge (le_nfp_family_self f a)⟩
-
-theorem nfp_family_is_normal {f : ι → ordinal.{max u v} → ordinal} (Hf : ∀ i, is_normal (f i)) :
-  is_normal (enum_ord _ (nfp_family_unbounded Hf)) :=
+theorem veblen_fp_lt_of_fp {f : ordinal → ordinal} {o o' a : ordinal.{u}} (hf : is_normal f)
+  (ho : veblen f o a = a) (ho' : o' ≤ o) : veblen f o' a = a :=
 begin
-  rw ←is_normal_iff_strict_mono_limit,
-  use enum_ord.strict_mono _,
-  intros a ha c b,
-  sorry,
+  rcases lt_or_eq_of_le ho' with ho' | rfl,
+  { rw veblen_pos f ((ordinal.zero_le o').trans_lt ho').ne' at ho,
+    have := deriv_bfamily_fp.{u u} (λ i _, @veblen_is_normal f hf i) a _ ho',
+    rwa ho at this },
+  { exact ho }
 end
 
-/-- The next common fixed point above `a` for a family of normal functions indexed by ordinals. -/
-def nfp_bfamily (o : ordinal.{u}) (f : Π b < o, ordinal.{max u v} → ordinal.{max u v}) :
-  ordinal.{max u v} → ordinal.{max u v} :=
-nfp_family (family_of_bfamily o f)
-
-/-- A generalization of the fixed point lemma for normal functions: any family of normal functions
-has an unbounded set of common fixed points. -/
--- Big thanks to Bhavik for this.
-theorem nfp_bfamily_unbounded {o : ordinal.{u}} {f : Π i < o, ordinal.{max u v} → ordinal}
-  (Hf : ∀ i hi, is_normal (f i hi)) :
-  unbounded (<) (λ b, ∀ i hi, f i hi b = b) :=
+theorem veblen_succ {f : ordinal → ordinal} (hf : is_normal f) (o : ordinal.{u}) :
+  veblen f o.succ = deriv (veblen f o) :=
 begin
-  induction o using ordinal.induction_on with α r hr,
-  introI a,
-  obtain ⟨b, hb₁, hb₂⟩ := nfp_family_unbounded (λ i, Hf _ (typein_lt_type r i)) a,
-  refine ⟨b, λ i hi, _, hb₂⟩,
-  convert hb₁ (ordinal.enum r i hi),
-  simp
+  rw veblen_pos f (@succ_ne_zero o),
+  refine deriv_family_eq_of_fp_eq.{u 0 0}
+    (λ i, veblen_is_normal hf _)
+    (λ _, veblen_is_normal hf o)
+    (λ a, ⟨λ H _, _, λ H i, veblen_fp_lt_of_fp hf (H unit.star) (lt_succ.1 (typein_lt_self i))⟩),
+  have := H (enum o.succ.out.r o (by { rw type_out, exact lt_succ_self o })),
+  rwa family_of_bfamily_enum at this
 end
 
-theorem nfp_bfamily_is_normal {o : ordinal.{u}} {f : Π i < o, ordinal.{max u v} → ordinal}
-  (Hf : ∀ i hi, is_normal (f i hi)) : is_normal (enum_ord (nfp_bfamily_unbounded Hf)) := sorry
-
-private def veblen_aux {f : ordinal.{u} → ordinal.{u}} (Hf : is_normal f) :
-  ordinal.{u} → {φ // is_normal φ} :=
-wf.fix (λ a φ, if a = 0 then ⟨f, Hf⟩ else ⟨_, nfp_bfamily_is_normal.{u u} (λ i hi, (φ i hi).prop)⟩)
+theorem veblen_zero_is_normal {f : ordinal → ordinal} (hf : is_normal f) :
+  is_normal (λ a, veblen f a 0) :=
+begin
+  sorry
+end
 
 end ordinal

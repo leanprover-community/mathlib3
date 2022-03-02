@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
 import logic.small
+import order.bounded
 import set_theory.ordinal
 import tactic.by_contra
 
@@ -1448,6 +1449,23 @@ end
 lemma enum_ord_def_nonempty (hS : unbounded (<) S) {o} :
   {x | x ∈ S ∧ ∀ c, c < o → enum_ord S c < x}.nonempty :=
 (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
+
+-- Another PR
+@[simp] theorem enum_ord_univ : enum_ord set.univ = id :=
+funext (λ o, begin
+  apply wf.induction o,
+  intros a H,
+  rw enum_ord_def a,
+  simp only [univ_inter, id.def],
+  refine le_antisymm (cInf_le' (λ b hb, _)) _,
+  { rwa H b hb },
+  { rw le_cInf_iff'',
+    { refine λ b hcb, le_of_forall_lt (λ c hc, _),
+      have := hcb c hc,
+      rwa H c hc at this },
+    { refine ⟨a, λ c hc, _⟩,
+      rwa H c hc } }
+end)
 
 @[simp] theorem enum_ord_zero : enum_ord S 0 = Inf S :=
 by { rw enum_ord_def, simp [ordinal.not_lt_zero] }

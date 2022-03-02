@@ -200,7 +200,8 @@ rfl
 lemma coe_to_GL_pos_det (g : special_linear_group n R) : det (g : GL_pos n R) = 1 :=
 g.prop
 
-/-- Coercing a `special_linear_group` via `GL_pos` and `GL` is the same as coercing striaght to a matrix -/
+/-- Coercing a `special_linear_group` via `GL_pos` and `GL` is the same as coercing striaght to a
+matrix -/
 @[simp]
 lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
   (↑(↑(↑(g : special_linear_group n R) : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl

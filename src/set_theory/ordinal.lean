@@ -502,6 +502,8 @@ by { refine eq.trans _ (by rw [←quotient.out_eq o]), cases quotient.out o, ref
   (o : ordinal) (H : ∀ α r [is_well_order α r], by exactI C (type r)) : C o :=
 quot.induction_on o $ λ ⟨α, r, wo⟩, @H α r wo
 
+instance (o : ordinal) : has_well_founded o.out.α := ⟨o.out.r, o.out.wo.wf⟩
+
 /-! ### The order on ordinals -/
 
 /-- Ordinal less-equal is defined such that

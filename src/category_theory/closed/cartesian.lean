@@ -184,7 +184,6 @@ lemma uncurry_injective : function.injective (uncurry : (Y ⟶ A ⟹ X) → (A �
 end cartesian_closed
 
 open cartesian_closed
-variables [has_finite_products C] [exponentiable A]
 
 /--
 Show that the exponential of the terminal object is isomorphic to itself, i.e. `X^1 ≅ X`.
@@ -271,7 +270,6 @@ def pow_zero {I : C} (t : is_initial I) [cartesian_closed C] : I ⟹ B ≅ ⊤_ 
   begin
     rw [← curry_natural_left, curry_eq_iff, ← cancel_epi (mul_zero t).inv],
     { apply t.hom_ext },
-    { apply_instance },
     { apply_instance },
     { apply_instance },
   end }

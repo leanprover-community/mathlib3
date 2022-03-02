@@ -30,14 +30,14 @@ lemma star_def [Π i, has_star (f i)] (x : Π i, f i) : star x = λ i, star (x i
 instance [Π i, has_involutive_star (f i)] : has_involutive_star (Π i, f i) :=
 { star_involutive := λ _, funext $ λ _, star_star _ }
 
-instance [Π i, monoid (f i)] [Π i, star_monoid (f i)] : star_monoid (Π i, f i) :=
+instance [Π i, semigroup (f i)] [Π i, star_semigroup (f i)] : star_semigroup (Π i, f i) :=
 { star_mul := λ _ _, funext $ λ _, star_mul _ _ }
 
 instance [Π i, add_monoid (f i)] [Π i, star_add_monoid (f i)] : star_add_monoid (Π i, f i) :=
 { star_add := λ _ _, funext $ λ _, star_add _ _ }
 
-instance [Π i, semiring (f i)] [Π i, star_ring (f i)] : star_ring (Π i, f i) :=
-{ ..pi.star_add_monoid, ..(pi.star_monoid : star_monoid (Π i, f i)) }
+instance [Π i, non_unital_semiring (f i)] [Π i, star_ring (f i)] : star_ring (Π i, f i) :=
+{ ..pi.star_add_monoid, ..(pi.star_semigroup : star_semigroup (Π i, f i)) }
 
 instance {R : Type w}
   [Π i, has_scalar R (f i)] [has_star R] [Π i, has_star (f i)] [Π i, star_module R (f i)] :

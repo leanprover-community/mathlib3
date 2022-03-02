@@ -38,14 +38,6 @@ uniform integrable, uniformly absolutely continuous integral, Vitali convergence
 noncomputable theory
 open_locale classical measure_theory nnreal ennreal topological_space
 
-lemma ennreal.rpow_inv_le_iff
-  {a : ℝ} {b c : ℝ≥0∞} (ha : 0 < a) : b ^ (1 / a) ≤ c ↔ b ≤ c ^ a :=
-begin
-  nth_rewrite 0 ← ennreal.rpow_one c,
-  nth_rewrite 1 ← @_root_.mul_inv_cancel _ _ a ha.ne.symm,
-  rw [ennreal.rpow_mul, ← one_div, ennreal.rpow_le_rpow_iff (one_div_pos.2 ha)],
-end
-
 section
 
 open filter

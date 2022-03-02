@@ -25,7 +25,7 @@ Definition of the Fibonacci sequence `F₀ = 0, F₁ = 1, Fₙ₊₂ = Fₙ + F�
 - `nat.fib_add_two`: shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.`.
 - `nat.fib_gcd`: `fib n` is a strong divisibility sequence.
 - `nat.fib_succ_eq_sum_choose`: `fib` is given by the sum of `nat.choose` along an antidiagonal.
-- `nat.sum_fib_is_next_fib`: shows that `F₀ + F₁ + ⋯ + Fₙ = Fₙ₊₂ - 1`.
+- `nat.fib_succ_eq_succ_sum`: shows that `F₀ + F₁ + ⋯ + Fₙ = Fₙ₊₂ - 1`.
 
 ## Implementation Notes
 
@@ -160,15 +160,15 @@ two_step_induction rfl rfl (λ n h1 h2, by
 { rw [fib_add_two, h1, h2, finset.nat.antidiagonal_succ_succ', finset.nat.antidiagonal_succ'],
   simp [choose_succ_succ, finset.sum_add_distrib, add_left_comm] })
 
-lemma sum_fib_is_next_fib (n : ℕ):
-  fib (n + 1) = 1 + ∑ k in finset.range n, fib k :=
+lemma fib_succ_eq_succ_sum (n : ℕ):
+  fib (n + 1) = (∑ k in finset.range n, fib k) + 1 :=
 begin
   induction n with n ih,
   { simp },
-  { calc fib (n + 2) = fib (n + 1) + fib n : by rw [fib_add_two, add_comm]
-                 ... = 1 + ∑ k in finset.range n, fib k + fib n : by rw ih
-                 ... = 1 + ∑ k in finset.range (n + 1), fib k
-                          : by simp [finset.range_add_one]; ring }
+  { calc fib (n + 2) = fib n + fib (n + 1) : by rw [fib_add_two]
+                 ... = fib n + (∑ k in finset.range n, fib k) + 1 : by rw ih; ring
+                 ... = (∑ k in finset.range (n + 1), fib k) + 1
+                          : by simp [finset.range_add_one] }
 end
 
 end nat

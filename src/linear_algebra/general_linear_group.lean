@@ -196,10 +196,6 @@ lemma to_GL_pos_injective :
 lemma coe_to_GL_pos_ext (g : special_linear_group n R) (i j : n) : g i j = (g : (GL_pos n R)) i j :=
 rfl
 
-@[simp]
-lemma coe_to_GL_pos_det (g : special_linear_group n R) : det (g : GL_pos n R) = 1 :=
-g.prop
-
 /-- Coercing a `special_linear_group` via `GL_pos` and `GL` is the same as coercing striaght to a
 matrix -/
 @[simp]

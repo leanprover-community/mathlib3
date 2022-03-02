@@ -1095,6 +1095,40 @@ begin
   { exact algebra_map_ne_zero (denom_ne_zero y) },
 end
 
+lemma nat_degree_well_defined {r₁ r₂ s₁ s₂ : polynomial K} (hr₁ : r₁ ≠ 0) (hs₁ : s₁ ≠ 0)
+  (hr₂ : r₂ ≠ 0) (hs₂ : s₂ ≠ 0) (h_eq : r₁*s₂ = r₂*s₁) :
+  (r₁.nat_degree : ℤ) - s₁.nat_degree = (r₂.nat_degree : ℤ) - s₂.nat_degree :=
+begin
+  rw sub_eq_sub_iff_add_eq_add,
+  norm_cast,
+  rw [← nat_degree_mul hr₁ hs₂, ← nat_degree_mul hr₂ hs₁, h_eq]
+end
+
+lemma num_add_ne_zero {x y : ratfunc K} (hxy : x + y ≠ 0) :
+  x.num * y.denom + x.denom * y.num ≠ 0 :=
+begin
+  intro h_zero,
+  have h := num_denom_add x y,
+  rw [h_zero, zero_mul] at h,
+  exact (mul_ne_zero (num_ne_zero hxy) (mul_ne_zero x.denom_ne_zero y.denom_ne_zero)) h
+end
+
+lemma nat_degree_add {x y : ratfunc K} (hxy : x + y ≠ 0) :
+  ((x + y).num.nat_degree : ℤ) - ((x + y).denom.nat_degree)  =
+  ((x.num) * y.denom + (x.denom) * y.num).nat_degree - ((x.denom) * y.denom).nat_degree :=
+nat_degree_well_defined (num_ne_zero hxy) ((x + y).denom_ne_zero)
+    (num_add_ne_zero hxy) (mul_ne_zero x.denom_ne_zero y.denom_ne_zero)
+    (num_denom_add x y)
+
+lemma nat_degree_rescale {x : ratfunc K} (hx : x ≠ 0) {s : polynomial K} (hs : s ≠ 0):
+  (x.num.nat_degree : ℤ) - (x.denom.nat_degree)  =
+  ((x.num)*s).nat_degree - (s*(x.denom)).nat_degree :=
+begin
+  apply nat_degree_well_defined (num_ne_zero hx) x.denom_ne_zero
+    (mul_ne_zero (num_ne_zero hx) hs) (mul_ne_zero hs x.denom_ne_zero),
+  rw mul_assoc
+end
+
 lemma map_denom_ne_zero {L F : Type*} [has_zero L] [zero_hom_class F K[X] L]
   (φ : F) (hφ : function.injective φ) (f : ratfunc K) : φ f.denom ≠ 0 :=
 λ H, (denom_ne_zero f) ((map_eq_zero_iff φ hφ).mp H)

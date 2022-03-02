@@ -149,47 +149,6 @@ begin
           (x * y).denom_ne_zero, ratfunc.num_denom_mul]} }
 end
 
-omit dec
-
-variable {Fq}
-/-- Equivalent fractions have the same valuation. -/
-lemma infty_valuation_well_defined {r₁ r₂ s₁ s₂ : polynomial Fq} (hr₁ : r₁ ≠ 0) (hs₁ : s₁ ≠ 0)
-  (hr₂ : r₂ ≠ 0) (hs₂ : s₂ ≠ 0) (h_eq : r₁*s₂ = r₂*s₁) :
-  (r₁.nat_degree : ℤ) - s₁.nat_degree = (r₂.nat_degree : ℤ) - s₂.nat_degree :=
-begin
-  rw sub_eq_sub_iff_add_eq_add,
-  norm_cast,
-  rw [← polynomial.nat_degree_mul hr₁ hs₂, ← polynomial.nat_degree_mul hr₂ hs₁, h_eq]
-end
-
-lemma ratfunc.num_add_ne_zero {x y : ratfunc Fq} (hxy : x + y ≠ 0) :
-  x.num * y.denom + x.denom * y.num ≠ 0 :=
-begin
-  intro h_zero,
-  have h := ratfunc.num_denom_add x y,
-  rw [h_zero, zero_mul] at h,
-  exact (mul_ne_zero (ratfunc.num_ne_zero hxy) (mul_ne_zero x.denom_ne_zero y.denom_ne_zero)) h
-end
-
-lemma infty_valuation_add_rw {x y : ratfunc Fq} (hxy : x + y ≠ 0) :
-  ((x + y).num.nat_degree : ℤ) - ((x + y).denom.nat_degree)  =
-  ((x.num) * y.denom + (x.denom) * y.num).nat_degree - ((x.denom) * y.denom).nat_degree :=
-infty_valuation_well_defined (ratfunc.num_ne_zero hxy) ((x + y).denom_ne_zero)
-    (ratfunc.num_add_ne_zero hxy) (mul_ne_zero x.denom_ne_zero y.denom_ne_zero)
-    (ratfunc.num_denom_add x y)
-
-lemma infty_valuation_rw {x : ratfunc Fq} (hx : x ≠ 0) {s : polynomial Fq} (hs : s ≠ 0):
-  (x.num.nat_degree : ℤ) - (x.denom.nat_degree)  =
-  ((x.num)*s).nat_degree - (s*(x.denom)).nat_degree :=
-begin
-  apply infty_valuation_well_defined (ratfunc.num_ne_zero hx) x.denom_ne_zero
-    (mul_ne_zero (ratfunc.num_ne_zero hx) hs) (mul_ne_zero hs x.denom_ne_zero),
-  rw mul_assoc
-end
-
-include dec
-
-variable (Fq)
 lemma infty_valuation.map_add_le_max' (x y : ratfunc Fq) :
   infty_valuation_def Fq (x + y) ≤ max (infty_valuation_def Fq x) (infty_valuation_def Fq y) :=
 begin
@@ -206,11 +165,11 @@ begin
     { by_cases hxy : x + y = 0,
       { rw [infty_valuation_def, if_pos hxy], exact zero_le',},
       { rw [infty_valuation_def, infty_valuation_def, infty_valuation_def, if_neg hx, if_neg hy,
-        if_neg hxy, infty_valuation_add_rw hxy, infty_valuation_rw hx y.denom_ne_zero,
-        mul_comm y.denom, infty_valuation_rw hy x.denom_ne_zero, le_max_iff, with_zero.coe_le_coe,
-        multiplicative.of_add_le, with_zero.coe_le_coe, multiplicative.of_add_le,
-        sub_le_sub_iff_right, int.coe_nat_le, sub_le_sub_iff_right, int.coe_nat_le, ← le_max_iff,
-        mul_comm y.num],
+        if_neg hxy, ratfunc.nat_degree_add hxy, ratfunc.nat_degree_rescale hx y.denom_ne_zero,
+        mul_comm y.denom, ratfunc.nat_degree_rescale hy x.denom_ne_zero, le_max_iff,
+        with_zero.coe_le_coe, multiplicative.of_add_le, with_zero.coe_le_coe,
+        multiplicative.of_add_le, sub_le_sub_iff_right, int.coe_nat_le, sub_le_sub_iff_right,
+        int.coe_nat_le, ← le_max_iff, mul_comm y.num],
         exact polynomial.nat_degree_add_le _ _ }}}
 end
 

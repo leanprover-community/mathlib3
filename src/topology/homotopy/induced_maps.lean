@@ -5,7 +5,6 @@ Authors: Praneeth Kolichala
 -/
 import topology.homotopy.product
 import topology.homotopy.equiv
-import topology.homotopy.casts
 import category_theory.equivalence
 
 /-!
@@ -59,6 +58,31 @@ open unit_interval (uhpath01)
 
 local attribute [instance] path.homotopic.setoid
 
+section casts
+
+/-- Abbreviation for `eq_to_hom` that accepts points in a topological space -/
+abbreviation hcast {X : Top} {x₀ x₁ : X} (hx : x₀ = x₁) : from_top x₀ ⟶ from_top x₁ := eq_to_hom hx
+
+@[simp] lemma hcast_def {X : Top} {x₀ x₁ : X} (hx₀ : x₀ = x₁) : hcast hx₀ = eq_to_hom hx₀ := rfl
+
+variables {X₁ X₂ Y : Top.{u}} {f : C(X₁, Y)} {g : C(X₂, Y)}
+  {x₀ x₁ : X₁} {x₂ x₃ : X₂} {p : path x₀ x₁} {q : path x₂ x₃} (hfg : ∀ t, f (p t) = g (q t))
+
+include hfg
+
+/-- If `f(p(t) = g(q(t))` for two paths `p` and `q`, then the induced path homotopy classes
+`f(p)` and `g(p)` are the same as well, despite having a priori different types -/
+lemma heq_path_of_eq_image : (πₘ f).map ⟦p⟧ == (πₘ g).map ⟦q⟧ :=
+by { simp only [map_eq, ← path.homotopic.map_lift], apply path.homotopic.hpath_hext, exact hfg, }
+
+private lemma start_path : f x₀ = g x₂ := by { convert hfg 0; simp only [path.source], }
+private lemma end_path : f x₁ = g x₃ := by { convert hfg 1; simp only [path.target], }
+
+lemma eq_path_of_eq_image :
+  (πₘ f).map ⟦p⟧ = hcast (start_path hfg) ≫ (πₘ g).map ⟦q⟧ ≫ hcast (end_path hfg).symm :=
+by { rw functor.conj_eq_to_hom_iff_heq, exact heq_path_of_eq_image hfg }
+
+end casts
 
 /- We let `X` and `Y` be spaces, and `f` and `g` be homotopic maps between them -/
 variables {X Y : Top.{u}} {f g : C(X, Y)} (H : continuous_map.homotopy f g)
@@ -134,12 +158,13 @@ end
 lemma eval_at_eq (x : X) : ⟦H.eval_at x⟧ =
   hcast (H.apply_zero x).symm ≫
 (πₘ H.ulift_map).map (prod_to_prod_Top_I uhpath01 (𝟙 x)) ≫
-hcast (H.apply_one x) :=
+hcast (H.apply_one x).symm.symm :=
 begin
-  dunfold prod_to_prod_Top_I uhpath01,
+  dunfold prod_to_prod_Top_I uhpath01 hcast,
+  refine (@functor.conj_eq_to_hom_iff_heq (πₓ Y) _ _ _ _ _ _ _ _ _).mpr _,
   simp only [id_eq_path_refl, prod_to_prod_Top_map, path.homotopic.prod_lift, map_eq,
-    ← path.homotopic.map_lift, path_cast_right, path_cast_left],
-  refl,
+    ← path.homotopic.map_lift],
+  apply path.homotopic.hpath_hext, intro, refl,
 end
 
 /- Finally, we show `d = f(p) ≫ H₁ = H₀ ≫ g(p)` -/

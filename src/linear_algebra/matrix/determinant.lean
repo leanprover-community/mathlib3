@@ -582,8 +582,7 @@ begin
     rw fintype.prod_sum_type,
     simp_rw [equiv.sum_congr_apply, sum.map_inr, sum.map_inl, from_blocks_apply₁₁,
       from_blocks_apply₂₂],
-    have hr : ∀ (a b c d : R), (a * b) * (c * d) = a * c * (b * d), { intros, ac_refl },
-    rw hr,
+    rw mul_mul_mul_comm,
     congr,
     rw [sign_sum_congr, units.coe_mul, int.cast_mul] },
   { intros σ₁ σ₂ h₁ h₂,
@@ -646,7 +645,7 @@ begin
       equiv.perm.decompose_fin_symm_apply_zero, equiv.perm.decompose_fin_symm_apply_succ]
   ... = (-1) * (A (fin.succ i) 0 * (σ.sign : ℤ) •
         ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) :
-    by simp only [mul_assoc, mul_comm, neg_mul_eq_neg_mul_symm, one_mul, zsmul_eq_mul, neg_inj,
+    by simp only [mul_assoc, mul_comm, _root_.neg_mul, one_mul, zsmul_eq_mul, neg_inj,
       neg_smul, fin.succ_above_cycle_range],
 end
 

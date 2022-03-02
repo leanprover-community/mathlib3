@@ -197,6 +197,12 @@ instance : has_neg (special_linear_group n R) :=
   ↑(- g) = - (↑g : matrix n n R) :=
 rfl
 
+instance : has_distrib_neg (special_linear_group n R) :=
+{ neg := has_neg.neg,
+  neg_neg := λ x, subtype.ext $ neg_neg _,
+  neg_mul := λ x y, subtype.ext $ neg_mul _ _,
+  mul_neg := λ x y, subtype.ext $ mul_neg _ _ }
+
 @[simp] lemma coe_int_neg (g : (special_linear_group n ℤ)) :
   ↑(-g) = (-↑g : special_linear_group n R) :=
 subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg ↑g

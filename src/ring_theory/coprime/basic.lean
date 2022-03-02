@@ -170,7 +170,7 @@ variables {R : Type u} [comm_ring R]
 
 lemma add_mul_left_left {x y : R} (h : is_coprime x y) (z : R) : is_coprime (x + y * z) y :=
 @of_add_mul_left_left R _ _ _ (-z) $
-by simpa only [mul_neg_eq_neg_mul_symm, add_neg_cancel_right] using h
+by simpa only [mul_neg, add_neg_cancel_right] using h
 
 lemma add_mul_right_left {x y : R} (h : is_coprime x y) (z : R) : is_coprime (x + z * y) y :=
 by { rw mul_comm, exact h.add_mul_left_left z }

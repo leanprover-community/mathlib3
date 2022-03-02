@@ -128,10 +128,10 @@ lemma ext_iff : B = D ↔ (∀ x y, B x y = D x y) := ⟨congr_fun, ext⟩
 
 instance : add_comm_monoid (bilin_form R M) :=
 { add := λ B D, { bilin := λ x y, B x y + D x y,
-                  bilin_add_left := λ x y z, by { rw add_left, rw add_left, ac_refl },
-                  bilin_smul_left := λ a x y, by { rw [smul_left, smul_left, mul_add] },
-                  bilin_add_right := λ x y z, by { rw add_right, rw add_right, ac_refl },
-                  bilin_smul_right := λ a x y, by { rw [smul_right, smul_right, mul_add] } },
+                  bilin_add_left := λ x y z, by rw [add_left, add_left, add_add_add_comm],
+                  bilin_smul_left := λ a x y, by rw [smul_left, smul_left, mul_add],
+                  bilin_add_right := λ x y z, by rw [add_right, add_right, add_add_add_comm],
+                  bilin_smul_right := λ a x y, by rw [smul_right, smul_right, mul_add] },
   add_assoc := by { intros, ext, unfold bilin coe_fn has_coe_to_fun.coe bilin, rw add_assoc },
   zero := { bilin := λ x y, 0,
             bilin_add_left := λ x y z, (add_zero 0).symm,
@@ -145,9 +145,9 @@ instance : add_comm_monoid (bilin_form R M) :=
 instance : add_comm_group (bilin_form R₁ M₁) :=
 { neg := λ B, { bilin := λ x y, - (B.1 x y),
                 bilin_add_left := λ x y z, by rw [bilin_add_left, neg_add],
-                bilin_smul_left := λ a x y, by rw [bilin_smul_left, mul_neg_eq_neg_mul_symm],
+                bilin_smul_left := λ a x y, by rw [bilin_smul_left, mul_neg],
                 bilin_add_right := λ x y z, by rw [bilin_add_right, neg_add],
-                bilin_smul_right := λ a x y, by rw [bilin_smul_right, mul_neg_eq_neg_mul_symm] },
+                bilin_smul_right := λ a x y, by rw [bilin_smul_right, mul_neg] },
   add_left_neg := by { intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw neg_add_self },
   .. bilin_form.add_comm_monoid }
 
@@ -1542,7 +1542,7 @@ begin
     rintro ⟨n, hn⟩,
     rw [restrict_apply, submodule.coe_mk, submodule.coe_mk, b₁],
     exact hx₂ n hn },
-  refine ⟨this ▸ le_refl _, _⟩,
+  refine ⟨this ▸ le_rfl, _⟩,
   { rw top_le_iff,
     refine eq_top_of_finrank_eq _,
     refine le_antisymm (submodule.finrank_le _) _,

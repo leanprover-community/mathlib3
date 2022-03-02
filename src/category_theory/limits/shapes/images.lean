@@ -17,9 +17,10 @@ so that `m` factors through the `m'` in any other such factorisation.
 
 * A `mono_factorisation` is a factorisation `f = e ≫ m`, where `m` is a monomorphism
 * `is_image F` means that a given mono factorisation `F` has the universal property of the image.
-* `has_image f` means that we have chosen an image for the morphism `f : X ⟶ Y`.
-  * In this case, `image f` is the image object, `image.ι f : image f ⟶ Y` is the monomorphism `m`
-    of the factorisation and `factor_thru_image f : X ⟶ image f` is the morphism `e`.
+* `has_image f` means that there is some image factorization for the morphism `f : X ⟶ Y`.
+  * In this case, `image f` is some image object (selected with choice), `image.ι f : image f ⟶ Y`
+    is the monomorphism `m` of the factorisation and `factor_thru_image f : X ⟶ image f` is the
+    morphism `e`.
 * `has_images C` means that every morphism in `C` has an image.
 * Let `f : X ⟶ Y` and `g : P ⟶ Q` be morphisms in `C`, which we will represent as objects of the
   arrow category `arrow C`. Then `sq : f ⟶ g` is a commutative square in `C`. If `f` and `g` have
@@ -249,7 +250,7 @@ lemma has_image.of_arrow_iso {f g : arrow C} [h : has_image f.hom] (sq : f ⟶ g
 section
 variable [has_image f]
 
-/-- The chosen factorisation of `f` through a monomorphism. -/
+/-- Some factorisation of `f` through a monomorphism (selected with choice). -/
 def image.mono_factorisation : mono_factorisation f :=
 (classical.choice (has_image.exists_image)).F
 
@@ -318,8 +319,8 @@ end
 section
 variables (C)
 
-/-- `has_images` represents a choice of image for every morphism -/
-class has_images :=
+/-- `has_images` asserts that every morphism has an image. -/
+class has_images : Prop :=
 (has_image : Π {X Y : C} (f : X ⟶ Y), has_image f)
 
 attribute [instance, priority 100] has_images.has_image

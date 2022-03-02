@@ -523,7 +523,7 @@ begin
   rw [pow_succ, succ_nsmul, normalized_factors_mul h0 (pow_ne_zero _ h0), ih],
 end
 
-theorem normalized_factors_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
+theorem _root_.irreducible.normalized_factors_pow {p : α} (hp : irreducible p) (k : ℕ) :
   normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
 by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
 

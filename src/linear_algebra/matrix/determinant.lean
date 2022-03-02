@@ -240,10 +240,23 @@ det_minor_equiv_self e.symm A
 by rw [←matrix.mul_one (σ.to_pequiv.to_matrix : matrix n n R), pequiv.to_pequiv_mul_matrix,
   det_permute, det_one, mul_one]
 
-@[simp] lemma det_smul (A : matrix n n R) (c : R) : det (c • A) = c ^ fintype.card n * det A :=
+lemma det_smul (A : matrix n n R) (c : R) : det (c • A) = c ^ fintype.card n * det A :=
 calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_diagonal_mul]
              ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
              ... = c ^ fintype.card n * det A             : by simp [card_univ]
+
+@[simp] lemma det_smul_of_tower {α} [monoid α] [distrib_mul_action α R] [is_scalar_tower α R R]
+  [smul_comm_class α R R] (c : α) (A : matrix n n R) :
+  det (c • A) = c ^ fintype.card n • det A :=
+by rw [←smul_one_smul R c A, det_smul, smul_pow, one_pow, smul_mul_assoc, one_mul]
+
+lemma det_neg (A : matrix n n R) : det (-A) = (-1) ^ fintype.card n * det A :=
+by rw [←det_smul, neg_one_smul]
+
+/-- A variant of `matrix.det_neg` with scalar multiplication by `units ℤ` instead of multiplication
+by `R`. -/
+lemma det_neg_eq_smul (A : matrix n n R) : det (-A) = (-1 : units ℤ) ^ fintype.card n • det A :=
+by rw [←det_smul_of_tower, units.neg_smul, one_smul]
 
 /-- Multiplying each row by a fixed `v i` multiplies the determinant by
 the product of the `v`s. -/

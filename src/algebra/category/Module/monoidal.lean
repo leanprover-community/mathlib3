@@ -262,6 +262,10 @@ end monoidal_category
 
 open opposite
 
+/--
+Auxiliary definition for the `monoidal_closed` instance on `Module R`.
+(This is only a separate definition in order to speed up typechecking. )
+-/
 @[simps]
 def monoidal_closed_hom_equiv (M N P : Module.{u} R) :
   ((monoidal_category.tensor_left M).obj N ⟶ P) ≃

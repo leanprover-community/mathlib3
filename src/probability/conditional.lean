@@ -22,7 +22,7 @@ based on application: for any `s t : set α`, we have `μ[t|s] = (μ s)⁻¹ * �
 
 * `cond_cond_eq_cond_inter`: conditioning on one set and then another is equivalent
   to conditioning on their intersection.
-* `bayes`: Bayes' Theorem.
+* `cond_eq_inv_mul_cond_mul`: Bayes' Theorem, `μ[t|s] = (μ s)⁻¹ * μ[s|t] * (μ t)`.
 
 ## Notations
 

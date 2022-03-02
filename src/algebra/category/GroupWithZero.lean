@@ -108,11 +108,11 @@ end
 the units of `β`. -/
 @[to_additive "Additive monoid homomorphisms from an additive group `α` to an additive monoid `β`
 are just additive monoid homomorphisms from `α` to the units of `β`.", simps]
-def monoid_hom_equiv_monoid_hom_units {α β : Type*} [group α] [monoid β] : (α →* β) ≃ (α →* βˣ) :=
-{ to_fun := monoid_hom.to_hom_units,
-  inv_fun := (units.coe_hom _).comp,
-  left_inv := λ f, monoid_hom.ext $ λ a, rfl,
-  right_inv := λ f, monoid_hom.ext $ λ a, units.ext rfl }
+def monoid_hom_units_equiv {α β : Type*} [group α] [monoid β] : (α →* βˣ) ≃ (α →* β) :=
+{ to_fun := (units.coe_hom _).comp,
+  inv_fun := monoid_hom.to_hom_units,
+  left_inv := λ f, monoid_hom.ext $ λ a, units.ext rfl,
+  right_inv := λ f, monoid_hom.ext $ λ a, rfl }
 
 universes u
 
@@ -168,7 +168,8 @@ def Group_to_GroupWithZero : Group.{u} ⥤ GroupWithZero :=
     by { simp only [fun_like.coe_fn_eq], exact monoid_hom.with_zero_comp _ _ } }
 
 /-- `units` as a functor. -/
-@[to_additive AddMon_to_AddGroup "`add_units` as a functor."] def Mon_to_Group : Mon.{u} ⥤ Group :=
+@[to_additive AddMon.add_units "`add_units` as a functor."]
+protected def Mon.units : Mon.{u} ⥤ Group :=
 { obj := λ X, Group.of Xˣ,
   map := λ X Y, monoid_hom.units,
   map_id' := λ X, fun_like.coe_injective $
@@ -177,7 +178,8 @@ def Group_to_GroupWithZero : Group.{u} ⥤ GroupWithZero :=
     by { simp only [fun_like.coe_fn_eq], exact monoid_hom.units_comp _ _ } }
 
 /-- `units` as a functor. -/
-def CommMon_to_CommGroup : CommMon.{u} ⥤ CommGroup :=
+@[to_additive AddCommMon.add_units "`add_units` as a functor."]
+protected def CommMon.units : CommMon.{u} ⥤ CommGroup :=
 { obj := λ X, CommGroup.of Xˣ,
   map := λ X Y, monoid_hom.units,
   map_id' := λ X, fun_like.coe_injective $
@@ -185,21 +187,25 @@ def CommMon_to_CommGroup : CommMon.{u} ⥤ CommGroup :=
   map_comp' := λ X Y Z f g, fun_like.coe_injective $
     by { simp only [fun_like.coe_fn_eq], exact monoid_hom.units_comp _ _ } }
 
-/-- `Mon_to_Group` is right adjoint to the forgetful functor. -/
-def forget_Mon_to_Group_adjunction : forget₂ Group Mon ⊣ Mon_to_Group.{u} :=
-adjunction.mk_of_hom_equiv { hom_equiv := λ X Y, monoid_hom_equiv_monoid_hom_units }
+/-- `Mon.units` is right adjoint to the forgetful functor. -/
+@[to_additive forget_AddMon_add_units_adjunction "`AddMon.add_units` is right adjoint to the
+forgetful functor."]
+def forget_Mon_units_adjunction : forget₂ Group Mon ⊣ Mon.units.{u} :=
+adjunction.mk_of_hom_equiv { hom_equiv := λ X Y, monoid_hom_units_equiv.symm }
 
-/-- `CommMon_to_CommGroup` is right adjoint to the forgetful functor. -/
-def forget_CommMon_to_CommGroup_adjunction : forget₂ CommGroup CommMon ⊣ CommMon_to_CommGroup.{u} :=
+/-- `CommMon.units` is right adjoint to the forgetful functor. -/
+@[to_additive forget_AddMon_add_units_adjunction "`AddCommMon.add_units` is right adjoint to the
+forgetful functor."]
+def forget_CommMon_units_adjunction : forget₂ CommGroup CommMon ⊣ CommMon.units.{u} :=
 adjunction.mk_of_hom_equiv
-  { hom_equiv := λ X Y, (monoid_hom_equiv_monoid_hom_units : (X →* Y) ≃ (X →* Yˣ)) }
+  { hom_equiv := λ X Y, (monoid_hom_units_equiv.symm : (X →* Y) ≃ (X →* Yˣ)) }
 
 local attribute [reducible] with_zero
 
 /-- The equivalence between `GroupWithZero` and `Group` induced by adding and removing `0`. -/
 @[simps] noncomputable def GroupWithZero_equiv_Group : GroupWithZero ≌ Group :=
 by classical; exact equivalence.mk
-  (forget₂ GroupWithZero Mon ⋙ Mon_to_Group) Group_to_GroupWithZero
+  (forget₂ GroupWithZero Mon ⋙ Mon.units) Group_to_GroupWithZero
   (nat_iso.of_components (λ X, GroupWithZero.iso.mk (with_zero_units_equiv X).symm) $ λ X Y f,
     monoid_with_zero_hom.ext $ λ a, begin
       change dite (f a = 0) _ _ = monoid_hom.with_zero (monoid_hom.units _) (dite (a = 0) _ _),

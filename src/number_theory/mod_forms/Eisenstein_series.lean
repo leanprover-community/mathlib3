@@ -118,16 +118,10 @@ begin
   simp [coe_fn_coe_base'],
   dsimp,
   rw calc_lem,
-  have h1:= coe_chain A,
-  simp only [subtype.val_eq_coe] at h1,
-  rw h1,
-  rw h1,
-  rw ← coe_coe,
-  simp,
-  rw ← coe_coe,
-  simp [forall_const, mul_eq_mul_left_iff, true_or, eq_self_iff_true,
-    group_with_zero.to_has_involutive_inv, h1, coe_coe] at *,
-  apply upper_half_plane.denom_ne_zero A,
+  have := upper_half_plane.denom_ne_zero A z,
+  rw upper_half_plane.denom at this,
+  simp at this,
+  apply this,
 end
 
 lemma Eisenstein_is_wmodular (Γ : subgroup SL2Z) (k: ℤ)  :

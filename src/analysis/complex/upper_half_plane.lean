@@ -89,9 +89,9 @@ end
 lemma denom_ne_zero (g : GL_pos (fin 2) ℝ) (z : ℍ) : denom g z ≠ 0 :=
 begin
   intro H,
-  have DET:= g.property,
+  have DET:= (mem_GL_pos _).1 g.property,
   have hz:=z.property,
-  simp only [subtype.val_eq_coe, mem_GL_pos, general_linear_group.coe_det_apply] at DET,
+  simp only [subtype.val_eq_coe, general_linear_group.coe_det_apply] at DET,
   have H1 : g.1 1 0 = 0 ∨ z.im = 0, by simpa using congr_arg complex.im H,
   simp only [subtype.val_eq_coe, general_linear_group.coe_fn_eq_coe] at H1,
   cases H1,
@@ -165,6 +165,8 @@ instance : mul_action  (GL_pos (fin 2) ℝ) ℍ :=
    simp [coe_fn_coe_base']  },
   mul_smul := mul_smul' }
 
+section modular_scalar_towers
+
 variable (Γ : subgroup (special_linear_group (fin 2) ℤ))
 
 instance SL_action {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
@@ -173,8 +175,7 @@ instance SL_action {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, 
 
 instance : has_coe SL(2,ℤ) (GL_pos (fin 2) ℝ) := ⟨λ g , ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ))⟩
 
-/-
-instance SL_ON_GL_pos : has_scalar SL(2,ℤ) (GL_pos (fin 2) ℝ) := ⟨λ s g, s * g⟩
+instance SL_on_GL_pos : has_scalar SL(2,ℤ) (GL_pos (fin 2) ℝ) := ⟨λ s g, s * g⟩
 
 lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
   (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := rfl
@@ -184,21 +185,22 @@ instance SL_to_GL_tower : is_scalar_tower SL(2,ℤ) (GL_pos (fin 2) ℝ) ℍ :={
 
 instance subgroup_GL_pos : has_scalar Γ (GL_pos (fin 2) ℝ) :=⟨λ s g, s * g⟩
 
-lemma subgroup_on_gl_pos_smul_apply (s : Γ) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
+lemma subgroup_on_GL_pos_smul_apply (s : Γ) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
   (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := rfl
 
 instance subgroup_on_GL_pos : is_scalar_tower Γ (GL_pos (fin 2) ℝ) ℍ :={
   smul_assoc :=
-  by {intros s g z, rw subgroup_on_gl_pos_smul_apply, simp only [coe_coe], apply mul_smul',},}
+  by {intros s g z, rw subgroup_on_GL_pos_smul_apply, simp only [coe_coe], apply mul_smul',},}
 
 instance subgroup_SL : has_scalar Γ SL(2,ℤ) :=⟨λ s g, s * g⟩
 
 lemma subgroup_on_SL_apply (s : Γ) (g : SL(2,ℤ) ) (z : ℍ) :
   (s • g) • z = ( (s : SL(2, ℤ)) * g) • z := rfl
 
-instance subgroup_to_sl_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :={
+instance subgroup_to_SL_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :={
   smul_assoc := by {intros s g z, rw subgroup_on_SL_apply, apply upper_half_plane.SL_action.3,},}
--/
+
+end modular_scalar_towers
 
 @[simp] lemma coe_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
 @[simp] lemma re_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
@@ -221,6 +223,8 @@ begin
   simp [coe_fn_coe_base', general_linear_group.coe_fn_eq_coe, coe_coe,  complex.of_real_neg],
   ring,
   end
+
+variable (Γ : subgroup (special_linear_group (fin 2) ℤ))
 
 @[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl
 @[simp]lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl

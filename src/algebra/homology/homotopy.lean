@@ -771,4 +771,4 @@ def functor.map_homotopy_equiv (F : V ⥤ W) [F.additive] (h : homotopy_equiv C 
   end }
 
 end category_theory
-#lint
+

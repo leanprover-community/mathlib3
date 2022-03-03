@@ -43,8 +43,8 @@ end monoid
 
 open monoid
 
-/--Torsion monoids are really groups. -/
-@[to_additive]
+/-- Torsion monoids are really groups. -/
+@[to_additive "Torsion additive monoids are really additive groups"]
 noncomputable def is_torsion.group [monoid G] (tG : is_torsion G) : group G :=
 { inv := λ g, g ^ (order_of g - 1),
   mul_left_inv := λ g,

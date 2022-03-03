@@ -2372,6 +2372,9 @@ begin
   exact ⟨(deriv_is_normal f).strict_mono, H.deriv_fp, λ _, H.apply_eq_self_iff_deriv.1⟩
 end
 
+theorem deriv_eq_id_of_nfp_eq_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
+(is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simp [h, succ_inj])
+
 end
 
 /-! ### Fixed points of addition -/
@@ -2456,6 +2459,9 @@ begin
   exact ordinal.zero_le a
 end
 
+@[simp] theorem deriv_mul_zero : deriv ((*) 0) = id :=
+deriv_id_of_nfp_id nfp_zero_mul
+
 theorem nfp_mul_eq_opow_omega {a b : ordinal} (hb : 0 < b) (hba : b ≤ a ^ omega) :
   nfp ((*) a) b = a ^ omega.{u} :=
 begin
@@ -2470,7 +2476,7 @@ begin
   exact monotone.nfp (mul_is_normal ha).strict_mono.monotone (one_le_iff_pos.2 hb)
 end
 
-theorem zero_or_opow_omega_le_of_mul_eq_right {a b : ordinal} (hab : a * b = b) :
+theorem eq_zero_or_opow_omega_le_of_mul_eq_right {a b : ordinal} (hab : a * b = b) :
   b = 0 ∨ a ^ omega.{u} ≤ b :=
 begin
   cases eq_zero_or_pos a with ha ha,
@@ -2484,7 +2490,7 @@ begin
   exact (mul_is_normal ha).nfp_le_fp hb (le_of_eq hab)
 end
 
-theorem mul_eq_right_iff_dvd_opow_omega {a b : ordinal} : a * b = b ↔ a ^ omega ∣ b :=
+theorem mul_eq_right_iff_opow_omega_dvd {a b : ordinal} : a * b = b ↔ a ^ omega ∣ b :=
 begin
   cases eq_zero_or_pos a with ha ha,
   { rw [ha, zero_mul, zero_opow omega_ne_zero, zero_dvd],
@@ -2501,7 +2507,7 @@ begin
   rw [hc, ←mul_assoc, ←opow_one_add, one_add_omega]
 end
 
-theorem mul_le_right_iff_dvd_opow_omega {a b : ordinal} (ha : 0 < a) : a * b ≤ b ↔ a ^ omega ∣ b :=
+theorem mul_le_right_iff_opow_omega_dvd {a b : ordinal} (ha : 0 < a) : a * b ≤ b ↔ a ^ omega ∣ b :=
 by { rw ←mul_eq_right_iff_dvd_opow_omega, exact (mul_is_normal ha).le_iff_eq }
 
 theorem nfp_mul_opow_omega_add {a c : ordinal} (b) (ha : 0 < a) (hc : 0 < c) (hca : c ≤ a ^ omega) :
@@ -2523,7 +2529,7 @@ begin
     rwa succ_le }
 end
 
-theorem deriv_mul_eq_mul_opow_omega {a : ordinal.{u}} (ha : 0 < a) (b) :
+theorem deriv_mul_eq_opow_omega_mul {a : ordinal.{u}} (ha : 0 < a) (b) :
   deriv ((*) a) b = a ^ omega * b :=
 begin
   revert b,
@@ -2534,11 +2540,5 @@ begin
   { rw [deriv_succ, h],
     exact nfp_mul_opow_omega_add c ha zero_lt_one (one_le_iff_pos.2 (opow_pos _ ha)) },
 end
-
-theorem deriv_id_of_nfp_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
-(is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simp [h, succ_inj])
-
-theorem deriv_mul_zero : deriv ((*) 0) = id :=
-deriv_id_of_nfp_id nfp_zero_mul
 
 end ordinal

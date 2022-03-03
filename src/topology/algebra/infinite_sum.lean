@@ -7,7 +7,7 @@ import algebra.big_operators.intervals
 import algebra.big_operators.nat_antidiagonal
 import data.equiv.encodable.lattice
 import topology.algebra.mul_action
-import topology.algebra.ordered.monotone_convergence
+import topology.algebra.order.monotone_convergence
 import topology.instances.real
 
 /-!
@@ -338,8 +338,13 @@ by simpa [(hf'.has_sum.sigma hf).unique ha] using hf'.has_sum
 end has_sum
 
 section tsum
-variables [add_comm_monoid α] [topological_space α] [t2_space α]
-variables {f g : β → α} {a a₁ a₂ : α}
+variables [add_comm_monoid α] [topological_space α]
+
+lemma tsum_congr_subtype (f : β → α) {s t : set β} (h : s = t) :
+  ∑' (x : s), f x = ∑' (x : t), f x :=
+by rw h
+
+variables [t2_space α] {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum.tsum_eq (ha : has_sum f a) : ∑'b, f b = a :=
 (summable.has_sum ⟨a, ha⟩).unique ha
@@ -552,7 +557,7 @@ variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ 
 
 lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
   has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
-by simp only [has_sum, tendsto_pi, sum_apply]
+by simp only [has_sum, tendsto_pi_nhds, sum_apply]
 
 lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
 by simp only [summable, pi.has_sum, skolem]
@@ -759,23 +764,41 @@ end tsum
 
 end topological_ring
 
-section has_continuous_smul
+section const_smul
 variables {R : Type*}
-[monoid R] [topological_space R]
+[monoid R]
 [topological_space α] [add_comm_monoid α]
-[distrib_mul_action R α] [has_continuous_smul R α]
+[distrib_mul_action R α] [has_continuous_const_smul R α]
 {f : β → α}
 
-lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
-hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const.smul continuous_id)
+lemma has_sum.const_smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
+hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const_smul r)
 
-lemma summable.smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
-hf.has_sum.smul.summable
+lemma summable.const_smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
+hf.has_sum.const_smul.summable
 
-lemma tsum_smul [t2_space α] {r : R} (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
-hf.has_sum.smul.tsum_eq
+lemma tsum_const_smul [t2_space α] {r : R} (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
+hf.has_sum.const_smul.tsum_eq
 
-end has_continuous_smul
+end const_smul
+
+section smul_const
+variables {R : Type*}
+[semiring R] [topological_space R]
+[topological_space α] [add_comm_monoid α]
+[module R α] [has_continuous_smul R α]
+{f : β → R}
+
+lemma has_sum.smul_const {a : α} {r : R} (hf : has_sum f r) : has_sum (λ z, f z • a) (r • a) :=
+hf.map ((smul_add_hom R α).flip a) (continuous_id.smul continuous_const)
+
+lemma summable.smul_const {a : α} (hf : summable f) : summable (λ z, f z • a) :=
+hf.has_sum.smul_const.summable
+
+lemma tsum_smul_const [t2_space α] {a : α} (hf : summable f) : ∑' z, f z • a = (∑' z, f z) • a :=
+hf.has_sum.smul_const.tsum_eq
+
+end smul_const
 
 section division_ring
 
@@ -868,7 +891,7 @@ ge_of_tendsto hf (eventually_at_top.2 ⟨s, λ t hst,
 
 lemma is_lub_has_sum (h : ∀ b, 0 ≤ f b) (hf : has_sum f a) :
   is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
-is_lub_of_tendsto (finset.sum_mono_set_of_nonneg h) hf
+is_lub_of_tendsto_at_top (finset.sum_mono_set_of_nonneg h) hf
 
 lemma le_has_sum (hf : has_sum f a) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ a :=
 calc f b = ∑ b in {b}, f b : finset.sum_singleton.symm
@@ -951,6 +974,18 @@ lemma tsum_pos (hsum : summable g) (hg : ∀ b, 0 ≤ g b) (i : β) (hi : 0 < g 
   0 < ∑' b, g b :=
 by { rw ← tsum_zero, exact tsum_lt_tsum hg hi summable_zero hsum }
 
+lemma has_sum_zero_iff_of_nonneg (hf : ∀ i, 0 ≤ f i) : has_sum f 0 ↔ f = 0 :=
+begin
+  split,
+  { intros hf',
+    ext i,
+    by_contra hi',
+    have hi : 0 < f i := lt_of_le_of_ne (hf i) (ne.symm hi'),
+    simpa using has_sum_lt hf hi has_sum_zero hf' },
+  { rintros rfl,
+    exact has_sum_zero },
+end
+
 end ordered_topological_group
 
 section canonically_ordered
@@ -979,7 +1014,7 @@ lemma tsum_ne_zero_iff (hf : summable f) : ∑' i, f i ≠ 0 ↔ ∃ x, f x ≠ 
 by rw [ne.def, tsum_eq_zero_iff hf, not_forall]
 
 lemma is_lub_has_sum' (hf : has_sum f a) : is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
-is_lub_of_tendsto (finset.sum_mono_set f) hf
+is_lub_of_tendsto_at_top (finset.sum_mono_set f) hf
 
 end canonically_ordered
 
@@ -987,6 +1022,7 @@ section uniform_group
 
 variables [add_comm_group α] [uniform_space α]
 
+/-- The **Cauchy criterion** for infinite sums, also known as the **Cauchy convergence test** -/
 lemma summable_iff_cauchy_seq_finset [complete_space α] {f : β → α} :
   summable f ↔ cauchy_seq (λ (s : finset β), ∑ b in s, f b) :=
 cauchy_map_iff_exists_tendsto.symm
@@ -1198,6 +1234,22 @@ calc summable (λ x, |f x|) ↔
 
 alias summable_abs_iff ↔ summable.of_abs summable.abs
 
+lemma finite_of_summable_const [linear_ordered_add_comm_group β] [archimedean β]
+  [topological_space β] [order_closed_topology β] {b : β} (hb : 0 < b)
+  (hf : summable (λ a : α, b)) :
+  set.finite (set.univ : set α) :=
+begin
+  have H : ∀ s : finset α, s.card • b ≤ ∑' a : α, b,
+  { intros s,
+    simpa using sum_le_has_sum s (λ a ha, hb.le) hf.has_sum },
+  obtain ⟨n, hn⟩ := archimedean.arch (∑' a : α, b) hb,
+  have : ∀ s : finset α, s.card ≤ n,
+  { intros s,
+    simpa [nsmul_le_nsmul_iff hb] using (H s).trans hn },
+  haveI : fintype α := fintype_of_finset_card_le n this,
+  exact set.finite_univ
+end
+
 end linear_order
 
 section cauchy_seq
@@ -1244,7 +1296,7 @@ end
 
 lemma cauchy_seq_of_summable_dist [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) : cauchy_seq f :=
-cauchy_seq_of_dist_le_of_summable _ (λ _, le_refl _) h
+cauchy_seq_of_dist_le_of_summable _ (λ _, le_rfl) h
 
 lemma dist_le_tsum_of_dist_le_of_tendsto [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a))
@@ -1268,7 +1320,7 @@ lemma dist_le_tsum_dist_of_tendsto [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) (n) :
   dist (f n) a ≤ ∑' m, dist (f (n+m)) (f (n+m).succ) :=
 show dist (f n) a ≤ ∑' m, (λx, dist (f x) (f x.succ)) (n + m), from
-dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_refl _) h ha n
+dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_rfl) h ha n
 
 lemma dist_le_tsum_dist_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) :

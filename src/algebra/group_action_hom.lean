@@ -3,8 +3,8 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+import group_theory.group_action.basic
 import algebra.group_ring_action
-import group_theory.group_action
 
 /-!
 # Equivariant homomorphisms
@@ -109,7 +109,7 @@ variables {A B}
 variables {G} (H)
 
 /-- The canonical map to the left cosets. -/
-def to_quotient : G →[G] quotient_group.quotient H :=
+def to_quotient : G →[G] G ⧸ H :=
 ⟨coe, λ g x, rfl⟩
 
 @[simp] lemma to_quotient_apply (g : G) : to_quotient H g = g := rfl

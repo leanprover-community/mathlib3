@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Minchao Wu
 -/
+import meta.rb_map
 import tactic.core
 /-!
 # `#explode` command
@@ -140,7 +141,7 @@ with explode.args : expr → list expr → nat → entries → thm → list nat 
 
 meta def explode_expr (e : expr) (hide_non_prop := tt) : tactic entries :=
 let filter := if hide_non_prop then λ e, may_be_proof e >>= guardb else λ _, skip in
-tactic.explode.core filter e tt 0 (default _)
+tactic.explode.core filter e tt 0 default
 
 meta def explode (n : name) : tactic unit :=
 do const n _ ← resolve_name n | fail "cannot resolve name",

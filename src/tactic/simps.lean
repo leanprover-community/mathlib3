@@ -3,9 +3,8 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import algebra.group.to_additive
 import tactic.protected
-import data.sum
+import algebra.group.to_additive
 
 /-!
 # simps attribute
@@ -722,7 +721,7 @@ meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []
   e ← get_env,
   d ← e.get nm,
   let lhs : expr := const d.to_name d.univ_levels,
-  let todo := todo.erase_dup.map $ λ proj, "_" ++ proj,
+  let todo := todo.dedup.map $ λ proj, "_" ++ proj,
   let cfg := { trace := cfg.trace || is_trace_enabled_for `simps.verbose || trc, ..cfg },
   b ← has_attribute' `to_additive nm,
   cfg ← if b then do

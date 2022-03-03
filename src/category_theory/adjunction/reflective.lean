@@ -3,9 +3,9 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.preserves.shapes.binary_products
-import category_theory.limits.preserves.shapes.terminal
 import category_theory.adjunction.fully_faithful
+import category_theory.functor.reflects_isomorphisms
+import category_theory.epi_mono
 
 /-!
 # Reflective functors
@@ -22,7 +22,7 @@ noncomputable theory
 
 namespace category_theory
 
-open category adjunction limits
+open category adjunction
 
 variables {C : Type u₁} {D : Type u₂} {E : Type u₃}
 variables [category.{v₁} C] [category.{v₂} D] [category.{v₃} E]
@@ -152,5 +152,21 @@ lemma unit_comp_partial_bijective_natural [reflective i] (A : C) {B B' : C} (h :
   (hB : B ∈ i.ess_image) (hB' : B' ∈ i.ess_image) (f : A ⟶ B) :
   (unit_comp_partial_bijective A hB') (f ≫ h) = unit_comp_partial_bijective A hB f ≫ h :=
 by rw [←equiv.eq_symm_apply, unit_comp_partial_bijective_symm_natural A h, equiv.symm_apply_apply]
+
+/-- If `i : D ⥤ C` is reflective, the inverse functor of `i ≌ F.ess_image` can be explicitly
+defined by the reflector. -/
+@[simps]
+def equiv_ess_image_of_reflective [reflective i] : D ≌ i.ess_image :=
+{ functor := i.to_ess_image,
+  inverse := i.ess_image_inclusion ⋙ (left_adjoint i : _),
+  unit_iso := nat_iso.of_components (λ X, (as_iso $ (of_right_adjoint i).counit.app X).symm)
+    (by { intros X Y f, dsimp, simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.assoc],
+      exact ((of_right_adjoint i).counit.naturality _).symm }),
+  counit_iso := nat_iso.of_components
+    (λ X, by { refine (iso.symm $ as_iso _), exact (of_right_adjoint i).unit.app X,
+      apply_with (is_iso_of_reflects_iso _ i.ess_image_inclusion) { instances := ff },
+      exact functor.ess_image.unit_is_iso X.prop })
+    (by { intros X Y f, dsimp, simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.assoc],
+      exact ((of_right_adjoint i).unit.naturality f).symm }) }
 
 end category_theory

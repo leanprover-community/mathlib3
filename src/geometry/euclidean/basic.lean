@@ -70,7 +70,8 @@ corresponding results for Euclidean affine spaces.
 variables {V : Type*} [inner_product_space ℝ V]
 
 /-- The undirected angle between two vectors. If either vector is 0,
-this is π/2. -/
+this is π/2. See `orientation.oangle` for the corresponding oriented angle
+definition. -/
 def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))
 
 lemma is_conformal_map.preserves_angle {E F : Type*}
@@ -223,9 +224,7 @@ begin
       rw [hx, inner_zero_left, zero_mul, neg_zero] },
     { rw norm_eq_zero at hy,
       rw [hy, inner_zero_right, zero_mul, neg_zero] } },
-  { field_simp [h],
-    ring_nf,
-    ring_nf, }
+  { field_simp [h], ring_nf }
 end
 
 /-- The angle between two vectors is zero if and only if they are
@@ -715,9 +714,8 @@ classical.some $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.directionᗮ)
   begin
-    convert submodule.is_compl_orthogonal_of_is_complete
-      (complete_space_coe_iff_is_complete.mp ‹_›),
-    exact direction_mk' p s.directionᗮ
+    rw direction_mk' p s.directionᗮ,
+    exact submodule.is_compl_orthogonal_of_complete_space,
   end
 
 /-- The intersection of the subspace and the orthogonal subspace
@@ -732,9 +730,8 @@ classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.directionᗮ)
   begin
-    convert submodule.is_compl_orthogonal_of_is_complete
-      (complete_space_coe_iff_is_complete.mp ‹_›),
-    exact direction_mk' p s.directionᗮ
+    rw direction_mk' p s.directionᗮ,
+    exact submodule.is_compl_orthogonal_of_complete_space
   end
 
 /-- The `orthogonal_projection_fn` lies in the given subspace.  This
@@ -984,8 +981,8 @@ lemma dist_sq_smul_orthogonal_vadd_smul_orthogonal_vadd {s : affine_subspace ℝ
     dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (∥v∥ * ∥v∥) :=
 calc dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2)
     = ∥(p1 -ᵥ p2) + (r1 - r2) • v∥ * ∥(p1 -ᵥ p2) + (r1 - r2) • v∥
-  : by { rw [dist_eq_norm_vsub V (r1 • v +ᵥ p1), vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, sub_smul],
-         abel }
+  : by rw [dist_eq_norm_vsub V (r1 • v +ᵥ p1), vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, sub_smul,
+      add_comm, add_sub_assoc]
 ... = ∥p1 -ᵥ p2∥ * ∥p1 -ᵥ p2∥ + ∥(r1 - r2) • v∥ * ∥(r1 - r2) • v∥
   : norm_add_sq_eq_norm_sq_add_norm_sq_real
       (submodule.inner_right_of_mem_orthogonal (vsub_mem_direction hp1 hp2)

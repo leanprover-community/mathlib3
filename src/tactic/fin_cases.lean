@@ -77,7 +77,7 @@ The optional list of expressions `with_list` provides descriptions for the cases
 for example, to display nats as `n.succ` instead of `n+1`.
 These should be defeq to and in the same order as the terms in the enumeration of `α`.
 -/
-meta def fin_cases_at : Π (with_list : option pexpr) (e : expr), tactic unit
+meta def fin_cases_at (nm : option name) : Π (with_list : option pexpr) (e : expr), tactic unit
 | with_list e :=
 do ty ← try_core $ guard_mem_fin e,
     match ty with
@@ -87,7 +87,7 @@ do ty ← try_core $ guard_mem_fin e,
         i ← to_expr ``(fintype %%ty) >>= mk_instance <|> fail "Failed to find `fintype` instance.",
         t ← to_expr ``(%%e ∈ @fintype.elems %%ty %%i),
         v ← to_expr ``(@fintype.complete %%ty %%i %%e),
-        h ← assertv `h t v,
+        h ← assertv (nm.get_or_else `this) t v,
         fin_cases_at with_list h)
     | (some ty) := -- Deal with `x ∈ A` hypotheses:
       (do
@@ -106,7 +106,7 @@ private meta def hyp := tk "*" *> return none <|> some <$> ident
 /--
 `fin_cases h` performs case analysis on a hypothesis of the form
 `h : A`, where `[fintype A]` is available, or
-`h ∈ A`, where `A : finset X`, `A : multiset X` or `A : list X`.
+`h : a ∈ A`, where `A : finset X`, `A : multiset X` or `A : list X`.
 
 `fin_cases *` performs case analysis on all suitable hypotheses.
 
@@ -119,18 +119,48 @@ begin
 end
 ```
 after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
+
+`fin_cases h with l` takes a list of descriptions for the cases of `h`.
+These should be definitionally equal to and in the same order as the
+default enumeration of the cases.
+
+For example,
+```
+example (x y : ℕ) (h : x ∈ [1, 2]) : x = y :=
+begin
+  fin_cases h with [1, 1+1],
+end
+```
+produces two cases: `1 = y` and `1 + 1 = y`.
+
+When using `fin_cases a` on data `a` defined with `let`,
+the tactic will not be able to clear the variable `a`,
+and will instead produce hypotheses `this : a = ...`.
+These hypotheses can be given a name using `fin_cases a using ha`.
+
+For example,
+```
+example (f : ℕ → fin 3) : true :=
+begin
+  let a := f 3,
+  fin_cases a using ha,
+end
+```
+produces three goals with hypotheses
+`ha : a = 0`, `ha : a = 1`, and `ha : a = 2`.
 -/
-meta def fin_cases : parse hyp → parse (tk "with" *> texpr)? → tactic unit
-| none none := focus1 $ do
+meta def fin_cases :
+  parse hyp → parse (tk "with" *> texpr)? → parse (tk "using" *> ident)? → tactic unit
+| none none nm := focus1 $ do
     ctx ← local_context,
-    ctx.mfirst (fin_cases_at none) <|>
+    ctx.mfirst (fin_cases_at nm none) <|>
       fail ("No hypothesis of the forms `x ∈ A`, where " ++
         "`A : finset X`, `A : list X`, or `A : multiset X`, or `x : A`, with `[fintype A]`.")
-| none (some _) := fail "Specify a single hypothesis when using a `with` argument."
-| (some n) with_list :=
+| none (some _) _ := fail "Specify a single hypothesis when using a `with` argument."
+| (some n) with_list nm :=
   do
     h ← get_local n,
-    focus1 $ fin_cases_at with_list h
+    focus1 $ fin_cases_at nm with_list h
 
 end interactive
 

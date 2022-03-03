@@ -6,6 +6,7 @@ Authors: Anatole Dedecker
 import analysis.specific_limits
 import analysis.analytic.basic
 import analysis.complex.basic
+import data.nat.choose.cast
 
 /-!
 # Exponential in a Banach algebra
@@ -238,8 +239,7 @@ lemma exp_series_radius_eq_top : (exp_series 𝕂 𝔸).radius = ∞ :=
 begin
   refine (exp_series 𝕂 𝔸).radius_eq_top_of_summable_norm (λ r, _),
   refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial r) _,
-  filter_upwards [eventually_cofinite_ne 0],
-  intros n hn,
+  filter_upwards [eventually_cofinite_ne 0] with n hn,
   rw [norm_mul, norm_norm (exp_series 𝕂 𝔸 n), exp_series, norm_smul, norm_div, norm_one, norm_pow,
       nnreal.norm_eq, norm_eq_abs, abs_cast_nat, mul_comm, ←mul_assoc, ←mul_div_assoc, mul_one],
   have : ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸∥ ≤ 1 :=
@@ -310,8 +310,6 @@ analytic_at_exp_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edi
 
 end complete_algebra
 
-local attribute [instance] char_zero_R_or_C
-
 /-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if `x` and `y` commute, then
 `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`. -/
 lemma exp_add_of_commute [complete_space 𝔸]
@@ -326,9 +324,7 @@ section comm_algebra
 
 variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸] [complete_space 𝔸]
 
-local attribute [instance] char_zero_R_or_C
-
-/-- In a comutative Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`,
+/-- In a commutative Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`,
 `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`. -/
 lemma exp_add {x y : 𝔸} : exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 exp_add_of_mem_ball ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)

@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 import deprecated.subgroup
 import deprecated.group
-import ring_theory.subring
+import ring_theory.subring.basic
 
 universes u v
 

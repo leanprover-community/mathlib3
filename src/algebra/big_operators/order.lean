@@ -14,6 +14,7 @@ Mostly monotonicity results for the `∏` and `∑` operations.
 
 -/
 
+open function
 open_locale big_operators
 
 variables {ι α β M N G k R : Type*}
@@ -118,8 +119,12 @@ or equal to the corresponding summand `g i` of another finite sum, then
 `∑ i in s, f i ≤ ∑ i in s, g i`. -/
 add_decl_doc sum_le_sum
 
-@[to_additive sum_nonneg]  lemma one_le_prod' (h : ∀i ∈ s, 1 ≤ f i) : 1 ≤ (∏ i in s, f i) :=
+@[to_additive sum_nonneg] lemma one_le_prod' (h : ∀i ∈ s, 1 ≤ f i) : 1 ≤ (∏ i in s, f i) :=
 le_trans (by rw prod_const_one) (prod_le_prod'' h)
+
+@[to_additive finset.sum_nonneg']
+lemma one_le_prod'' (h : ∀ (i : ι), 1 ≤ f i) : 1 ≤ ∏ (i : ι) in s, f i :=
+finset.one_le_prod' (λ i hi, h i)
 
 @[to_additive sum_nonpos] lemma prod_le_one' (h : ∀i ∈ s, f i ≤ 1) : (∏ i in s, f i) ≤ 1 :=
 (prod_le_prod'' h).trans_eq (by rw prod_const_one)
@@ -207,6 +212,16 @@ lemma abs_sum_le_sum_abs {G : Type*} [linear_ordered_add_comm_group G] (f : ι �
   |∑ i in s, f i| ≤ ∑ i in s, |f i| :=
 le_sum_of_subadditive _ abs_zero abs_add s f
 
+lemma abs_sum_of_nonneg {G : Type*} [linear_ordered_add_comm_group G] {f : ι → G} {s : finset ι}
+  (hf : ∀ i ∈ s, 0 ≤ f i) :
+  |∑ (i : ι) in s, f i| = ∑ (i : ι) in s, f i :=
+by rw abs_of_nonneg (finset.sum_nonneg hf)
+
+lemma abs_sum_of_nonneg' {G : Type*} [linear_ordered_add_comm_group G] {f : ι → G} {s : finset ι}
+  (hf : ∀ i, 0 ≤ f i) :
+  |∑ (i : ι) in s, f i| = ∑ (i : ι) in s, f i :=
+by rw abs_of_nonneg (finset.sum_nonneg' hf)
+
 lemma abs_prod {R : Type*} [linear_ordered_comm_ring R] {f : ι → R} {s : finset ι} :
   |∏ x in s, f x| = ∏ x in s, |f x| :=
 (abs_hom.to_monoid_hom : R →* R).map_prod _ _
@@ -240,6 +255,78 @@ theorem mul_card_image_le_card {f : α → β} (s : finset α)
 mul_card_image_le_card_of_maps_to (λ x, mem_image_of_mem _) n hn
 
 end pigeonhole
+
+section double_counting
+variables [decidable_eq α] {s : finset α} {B : finset (finset α)} {n : ℕ}
+
+/-- If every element belongs to at most `n` finsets, then the sum of their sizes is at most `n`
+times how many they are. -/
+lemma sum_card_inter_le (h : ∀ a ∈ s, (B.filter $ (∈) a).card ≤ n) :
+  ∑ t in B, (s ∩ t).card ≤ s.card * n :=
+begin
+  refine le_trans _ (s.sum_le_of_forall_le _ _ h),
+  simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
+  exact sum_comm.le,
+end
+
+/-- If every element belongs to at most `n` finsets, then the sum of their sizes is at most `n`
+times how many they are. -/
+lemma sum_card_le [fintype α] (h : ∀ a, (B.filter $ (∈) a).card ≤ n) :
+  ∑ s in B, s.card ≤ fintype.card α * n :=
+calc ∑ s in B, s.card = ∑ s in B, (univ ∩ s).card : by simp_rw univ_inter
+                  ... ≤ fintype.card α * n        : sum_card_inter_le (λ a _, h a)
+
+/-- If every element belongs to at least `n` finsets, then the sum of their sizes is at least `n`
+times how many they are. -/
+lemma le_sum_card_inter (h : ∀ a ∈ s, n ≤ (B.filter $ (∈) a).card) :
+  s.card * n ≤ ∑ t in B, (s ∩ t).card :=
+begin
+  apply (s.le_sum_of_forall_le _ _ h).trans,
+  simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
+  exact sum_comm.le,
+end
+
+/-- If every element belongs to at least `n` finsets, then the sum of their sizes is at least `n`
+times how many they are. -/
+lemma le_sum_card [fintype α] (h : ∀ a, n ≤ (B.filter $ (∈) a).card) :
+  fintype.card α * n ≤ ∑ s in B, s.card :=
+calc fintype.card α * n ≤ ∑ s in B, (univ ∩ s).card : le_sum_card_inter (λ a _, h a)
+                    ... = ∑ s in B, s.card          : by simp_rw univ_inter
+
+/-- If every element belongs to exactly `n` finsets, then the sum of their sizes is `n` times how
+many they are. -/
+lemma sum_card_inter (h : ∀ a ∈ s, (B.filter $ (∈) a).card = n) :
+  ∑ t in B, (s ∩ t).card = s.card * n :=
+(sum_card_inter_le $ λ a ha, (h a ha).le).antisymm (le_sum_card_inter $ λ a ha, (h a ha).ge)
+
+/-- If every element belongs to exactly `n` finsets, then the sum of their sizes is `n` times how
+many they are. -/
+lemma sum_card [fintype α] (h : ∀ a, (B.filter $ (∈) a).card = n) :
+  ∑ s in B, s.card = fintype.card α * n :=
+by simp_rw [fintype.card, ←sum_card_inter (λ a _, h a), univ_inter]
+
+lemma card_le_card_bUnion {s : finset ι} {f : ι → finset α} (hs : (s : set ι).pairwise_disjoint f)
+  (hf : ∀ i ∈ s, (f i).nonempty) :
+  s.card ≤ (s.bUnion f).card :=
+by { rw [card_bUnion hs, card_eq_sum_ones], exact sum_le_sum (λ i hi, (hf i hi).card_pos) }
+
+lemma card_le_card_bUnion_add_card_fiber {s : finset ι} {f : ι → finset α}
+  (hs : (s : set ι).pairwise_disjoint f) :
+  s.card ≤ (s.bUnion f).card + (s.filter $ λ i, f i = ∅).card :=
+begin
+  rw [←finset.filter_card_add_filter_neg_card_eq_card (λ i, f i = ∅), add_comm],
+  exact add_le_add_right ((card_le_card_bUnion (hs.subset $ filter_subset _ _) $ λ i hi,
+    nonempty_of_ne_empty $ (mem_filter.1 hi).2).trans $ card_le_of_subset $
+    bUnion_subset_bUnion_of_subset_left _ $ filter_subset _ _) _,
+end
+
+lemma card_le_card_bUnion_add_one {s : finset ι} {f : ι → finset α} (hf : injective f)
+  (hs : (s : set ι).pairwise_disjoint f) :
+  s.card ≤ (s.bUnion f).card + 1 :=
+(card_le_card_bUnion_add_card_fiber hs).trans $ add_le_add_left (card_le_one.2 $ λ i hi j hj, hf $
+  (mem_filter.1 hi).2.trans (mem_filter.1 hj).2.symm) _
+
+end double_counting
 
 section canonically_ordered_monoid
 
@@ -321,6 +408,26 @@ calc f i = ∏ k in {i}, f k : prod_singleton.symm
      ... < ∏ k in s, f k   :
   prod_lt_prod_of_subset' (singleton_subset_iff.2 hi) hj (mt mem_singleton.1 hij) hlt $
     λ k hks hki, hle k hks (mt mem_singleton.2 hki)
+
+@[to_additive sum_pos] lemma one_lt_prod (h : ∀i ∈ s, 1 < f i) (hs : s.nonempty) :
+  1 < (∏ i in s, f i) :=
+lt_of_le_of_lt (by rw prod_const_one) $ prod_lt_prod_of_nonempty' hs h
+
+@[to_additive] lemma prod_lt_one (h : ∀i ∈ s, f i < 1) (hs : s.nonempty) :
+  (∏ i in s, f i) < 1 :=
+(prod_lt_prod_of_nonempty' hs h).trans_le (by rw prod_const_one)
+
+@[to_additive] lemma prod_eq_prod_iff_of_le {f g : ι → M} (h : ∀ i ∈ s, f i ≤ g i) :
+  ∏ i in s, f i = ∏ i in s, g i ↔ ∀ i ∈ s, f i = g i :=
+begin
+  classical,
+  revert h,
+  refine finset.induction_on s (λ _, ⟨λ _ _, false.elim, λ _, rfl⟩) (λ a s ha ih H, _),
+  specialize ih (λ i, H i ∘ finset.mem_insert_of_mem),
+  rw [finset.prod_insert ha, finset.prod_insert ha, finset.forall_mem_insert, ←ih],
+  exact mul_eq_mul_iff_eq_and_eq (H a (s.mem_insert_self a)) (finset.prod_le_prod''
+    (λ i, H i ∘ finset.mem_insert_of_mem)),
+end
 
 end ordered_cancel_comm_monoid
 
@@ -512,7 +619,7 @@ begin
   refine finset.induction_on s _ (λ i s hi ih, _),
   { simp },
   { simp only [finset.sum_insert hi],
-  exact (abv.add_le _ _).trans (add_le_add (le_refl _) ih) },
+  exact (abv.add_le _ _).trans (add_le_add le_rfl ih) },
 end
 
 lemma is_absolute_value.abv_sum [semiring R] [ordered_semiring S] (abv : R → S)

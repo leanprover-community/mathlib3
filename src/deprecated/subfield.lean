@@ -102,7 +102,6 @@ have h0 : (0:F) ∈ closure S, from ring_closure_subset $
   end,
   inv_mem := begin
     rintros _ ⟨p, hp, q, hq, rfl⟩,
-    classical, by_cases hp0 : p = 0, by simp [hp0, h0],
     exact ⟨q, hq, p, hp, inv_div.symm⟩
   end,
   ..closure.is_submonoid }

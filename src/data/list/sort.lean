@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.list.perm
-import data.list.chain
 
 /-!
 # Sorting algorithms on lists
@@ -72,6 +71,10 @@ begin
         (@eq_repeat _ a (length u₂ + 1) (u₂++[a])).2];
     split; simp [iff_true_intro this, or_comm] }
 end
+
+theorem sublist_of_subperm_of_sorted [is_antisymm α r]
+  {l₁ l₂ : list α} (p : l₁ <+~ l₂) (s₁ : l₁.sorted r) (s₂ : l₂.sorted r) : l₁ <+ l₂ :=
+let ⟨_, h, h'⟩ := p in by rwa ←list.eq_of_perm_of_sorted h (list.pairwise_of_sublist h' s₂) s₁
 
 @[simp] theorem sorted_singleton (a : α) : sorted r [a] := pairwise_singleton _ _
 

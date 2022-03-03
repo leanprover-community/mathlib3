@@ -5,7 +5,6 @@ Authors: Oliver Nash
 -/
 import algebra.algebra.restrict_scalars
 import algebra.lie.tensor_product
-import ring_theory.tensor_product
 
 /-!
 # Extension and restriction of scalars for Lie algebras

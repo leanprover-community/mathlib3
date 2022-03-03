@@ -3,10 +3,10 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie.basic
-import algebra.lie.submodule
+import algebra.direct_sum.module
 import algebra.lie.of_associative
-import linear_algebra.direct_sum.finsupp
+import algebra.lie.submodule
+import algebra.lie.basic
 
 /-!
 # Direct sums of Lie algebras and Lie modules

@@ -3,6 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
+import meta.rb_map
 import tactic.lint.basic
 
 /-!
@@ -103,14 +104,44 @@ list.reverse $ rb_lmap.values $ rb_lmap.of_list $
   results.fold [] $ λ decl linter_warning results,
     (((e.decl_pos decl).get_or_else ⟨0,0⟩).line, (decl, linter_warning)) :: results
 
-/-- Formats a linter warning as `#print` command with comment. -/
+/-- Formats a linter warning as `#check` command with comment. -/
 meta def print_warning (decl_name : name) (warning : string) : format :=
 "#check @" ++ to_fmt decl_name ++ " /- " ++ warning ++ " -/"
 
+private def workflow_command_replacements : char → string
+| '%' := "%25"
+| '\n' := "%0A"
+| c := to_string c
+
+/--
+Escape characters that may not be used in a workflow commands, following
+https://github.com/actions/toolkit/blob/7257597d731b34d14090db516d9ea53439300e98/packages/core/src/command.ts#L92-L105
+-/
+def escape_workflow_command (s : string) : string :=
+"".intercalate $ s.to_list.map workflow_command_replacements
+
+/--
+Prints a workflow command to emit an error understood by github in an actions workflow.
+This enables CI to tag the parts of the file where linting failed with annotations, and makes it
+easier for mathlib contributors to see what needs fixing.
+See https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#setting-an-error-message
+-/
+meta def print_workflow_command (env : environment) (linter_name decl_name : name)
+ (warning : string) : option string := do
+  po ← env.decl_pos decl_name,
+  ol ← env.decl_olean decl_name,
+  return $ sformat!"\n::error file={ol},line={po.line},col={po.column},title=" ++
+    sformat!"Warning from {linter_name} linter::" ++
+    sformat!"{escape_workflow_command $ to_string decl_name} - {escape_workflow_command warning}"
+
 /-- Formats a map of linter warnings using `print_warning`, sorted by line number. -/
-meta def print_warnings (env : environment) (results : rb_map name string) : format :=
+meta def print_warnings (env : environment) (emit_workflow_commands : bool) (linter_name : name)
+  (results : rb_map name string) : format :=
 format.intercalate format.line $ (sort_results env results).map $
-  λ ⟨decl_name, warning⟩, print_warning decl_name warning
+  λ ⟨decl_name, warning⟩, let form := print_warning decl_name warning in
+    if emit_workflow_commands then
+      form ++ (print_workflow_command env linter_name decl_name warning).get_or_else ""
+    else form
 
 /--
 Formats a map of linter warnings grouped by filename with `-- filename` comments.
@@ -128,21 +159,25 @@ let l := results.to_list.reverse.map (λ ⟨fn, results⟩,
 format.intercalate "\n\n" l ++ "\n"
 
 /--
-Formats the linter results as Lean code with comments and `#print` commands.
+Formats the linter results as Lean code with comments and `#check` commands.
 -/
 meta def format_linter_results
   (env : environment)
   (results : list (name × linter × rb_map name string))
   (decls non_auto_decls : list declaration)
   (group_by_filename : option ℕ)
-  (where_desc : string) (slow : bool) (verbose : lint_verbosity) (num_linters : ℕ) :
+  (where_desc : string) (slow : bool) (verbose : lint_verbosity) (num_linters : ℕ)
+  -- whether to include codes understood by github to create file annotations
+  (emit_workflow_commands : bool := ff) :
   format := do
 let formatted_results := results.map $ λ ⟨linter_name, linter, results⟩,
   let report_str : format := to_fmt "/- The `" ++ to_fmt linter_name ++ "` linter reports: -/\n" in
   if ¬ results.empty then
     let warnings := match group_by_filename with
-      | none := print_warnings env results
-      | some dropped := grouped_by_filename env results dropped (print_warnings env)
+      | none := print_warnings env emit_workflow_commands linter_name results
+      | some dropped :=
+        grouped_by_filename env results dropped
+          (print_warnings env emit_workflow_commands linter_name)
       end in
     report_str ++ "/- " ++ linter.errors_found ++ " -/\n" ++ warnings ++ "\n"
   else if verbose = lint_verbosity.high then

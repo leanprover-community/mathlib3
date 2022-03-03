@@ -3,7 +3,7 @@ Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import data.pfunctor.univariate
+import data.pfunctor.univariate.M
 
 /-!
 
@@ -341,7 +341,7 @@ def Mcongr : q.P.M → q.P.M → Prop :=
 /-- coinductive type defined as the final coalgebra of a qpf -/
 def cofix (F : Type u → Type u) [functor F] [q : qpf F]:= quot (@Mcongr F _ q)
 
-instance [inhabited q.P.A] : inhabited (cofix F) := ⟨ quot.mk _ (default _) ⟩
+instance [inhabited q.P.A] : inhabited (cofix F) := ⟨ quot.mk _ default ⟩
 
 /-- corecursor for type defined by `cofix` -/
 def cofix.corec {α : Type*} (g : α → F α) (x : α) : cofix F :=

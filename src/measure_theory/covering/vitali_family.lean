@@ -22,7 +22,8 @@ This file gives the basic definition of Vitali families. More interesting develo
 notion are deferred to other files:
 * constructions of specific Vitali families are provided by the Besicovitch covering theorem, in
 `besicovitch.vitali_family`, and by the Vitali covering theorem, in `vitali.vitali_family`.
-* TODO: prove the main theorem on differentiation of measures along a Vitali family.
+* The main theorem on differentiation of measures along a Vitali family is proved in
+`vitali_family.ae_tendsto_rn_deriv`.
 
 ## Main definitions
 
@@ -201,6 +202,10 @@ begin
              implies_true_iff] {contextual := tt},
   exact ⟨1, zero_lt_one⟩
 end
+
+lemma eventually_filter_at_measurable_set (x : α) :
+  ∀ᶠ a in v.filter_at x, measurable_set a :=
+by { filter_upwards [v.eventually_filter_at_mem_sets x] with _ ha using v.measurable_set' _ _ ha }
 
 lemma frequently_filter_at_iff {x : α} {P : set α → Prop} :
   (∃ᶠ a in v.filter_at x, P a) ↔ ∀ (ε > (0 : ℝ)), ∃ a ∈ v.sets_at x, a ⊆ closed_ball x ε ∧ P a :=

@@ -123,26 +123,26 @@ map_sub (right_comp P g) f f'
 map_sub (left_comp R f) g g'
 
 @[simp, reassoc] lemma neg_comp : (-f) ≫ g = -(f ≫ g) :=
-map_neg (right_comp _ _) _
+map_neg (right_comp P g) f
 
 /- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
 @[reassoc, simp] lemma comp_neg : f ≫ (-g) = -(f ≫ g) :=
-map_neg (left_comp _ _) _
+map_neg (left_comp R f) g
 
 @[reassoc] lemma neg_comp_neg : (-f) ≫ (-g) = f ≫ g :=
 by simp
 
 lemma nsmul_comp (n : ℕ) : (n • f) ≫ g = n • (f ≫ g) :=
-map_nsmul (right_comp _ _) _ _
+map_nsmul (right_comp P g) f n
 
 lemma comp_nsmul (n : ℕ) : f ≫ (n • g) = n • (f ≫ g) :=
-map_nsmul (left_comp _ _) _ _
+map_nsmul (left_comp R f) g n
 
 lemma zsmul_comp (n : ℤ) : (n • f) ≫ g = n • (f ≫ g) :=
-map_zsmul (right_comp _ _) _ _
+map_zsmul (right_comp P g) f n
 
 lemma comp_zsmul (n : ℤ) : f ≫ (n • g) = n • (f ≫ g) :=
-map_zsmul (left_comp _ _) _ _
+map_zsmul (left_comp R f) g n
 
 @[reassoc] lemma comp_sum {P Q R : C} {J : Type*} (s : finset J) (f : P ⟶ Q) (g : J → (Q ⟶ R)) :
   f ≫ ∑ j in s, g j = ∑ j in s, f ≫ g j :=
@@ -161,8 +161,14 @@ instance {P Q : C} {f : P ⟶ Q} [mono f] : mono (-f) :=
 @[priority 100]
 instance preadditive_has_zero_morphisms : has_zero_morphisms C :=
 { has_zero := infer_instance,
-  comp_zero' := λ P Q f R, map_zero $ left_comp R f,
-  zero_comp' := λ P Q R f, map_zero $ right_comp P f }
+  comp_zero' := λ P Q f R, show left_comp R f 0 = 0, from map_zero _,
+  zero_comp' := λ P Q R f, show right_comp P f 0 = 0, from map_zero _ }
+
+instance module_End_right {X Y : C} : module (End Y) (X ⟶ Y) :=
+{ smul_add := λ r f g, add_comp _ _ _ _ _ _,
+  smul_zero := λ r, zero_comp,
+  add_smul := λ r s f, comp_add _ _ _ _ _ _,
+  zero_smul := λ r, comp_zero }
 
 lemma mono_of_cancel_zero {Q R : C} (f : Q ⟶ R) (h : ∀ {P : C} (g : P ⟶ Q), g ≫ f = 0 → g = 0) :
   mono f :=
@@ -217,6 +223,18 @@ has_limit.mk { cone := fork.of_ι (kernel.ι (f - g)) (sub_eq_zero.1 $
       by { rw comp_sub, apply sub_eq_zero.2, exact fork.condition _ })
     (λ s, by simp)
     (λ s m h, by { ext, simpa using h walking_parallel_pair.zero }) }
+
+/-- Conversely, an equalizer of `f` and `g` is a kernel of `f - g`. -/
+lemma has_kernel_of_has_equalizer
+  [has_equalizer f g] : has_kernel (f - g) :=
+has_limit.mk
+  { cone := fork.of_ι (equalizer.ι f g)
+      (by erw [comp_zero, comp_sub, equalizer.condition f g, sub_self]),
+    is_limit := fork.is_limit.mk _
+      (λ s, equalizer.lift s.ι (by simpa only [comp_sub, comp_zero, sub_eq_zero]
+        using s.condition))
+      (λ s, by simp only [fork.ι_eq_app_zero, fork.of_ι_π_app, equalizer.lift_ι])
+      (λ s m h, by { ext, simpa only [equalizer.lift_ι] using h walking_parallel_pair.zero, }), }
 
 end
 

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.basic
+import data.fun_like.embedding
+import data.pprod
 import data.set.basic
 import data.sigma.basic
 
@@ -26,6 +28,16 @@ infixr ` ↪ `:25 := embedding
 instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) (λ _, α → β) := ⟨embedding.to_fun⟩
 
 initialize_simps_projections embedding (to_fun → apply)
+
+instance {α : Sort u} {β : Sort v} : embedding_like (α ↪ β) α β :=
+{ coe := embedding.to_fun,
+  injective' := embedding.inj',
+  coe_injective' := λ f g h, by { cases f, cases g, congr' } }
+
+instance {α β : Sort*} : can_lift (α → β) (α ↪ β) :=
+{ coe := coe_fn,
+  cond := injective,
+  prf := λ f hf, ⟨⟨f, hf⟩, rfl⟩ }
 
 end function
 
@@ -71,14 +83,11 @@ end equiv
 namespace function
 namespace embedding
 
-lemma coe_injective {α β} : @function.injective (α ↪ β) (α → β) coe_fn
-| ⟨x, _⟩ ⟨y, _⟩ rfl := rfl
+lemma coe_injective {α β} : @function.injective (α ↪ β) (α → β) coe_fn := fun_like.coe_injective
 
-@[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
-coe_injective (funext h)
+@[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
 
-lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
-⟨ext, λ h _, by rw h⟩
+lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g := fun_like.ext_iff.symm
 
 @[simp] theorem to_fun_eq_coe {α β} (f : α ↪ β) : to_fun f = f := rfl
 
@@ -88,10 +97,10 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 @[simp] lemma mk_coe {α β : Type*} (f : α ↪ β) (inj) : (⟨f, inj⟩ : α ↪ β) = f :=
 by { ext, simp }
 
-protected theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
+protected theorem injective {α β} (f : α ↪ β) : injective f := embedding_like.injective f
 
-@[simp] lemma apply_eq_iff_eq {α β : Type*} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
-f.injective.eq_iff
+lemma apply_eq_iff_eq {α β} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
+embedding_like.apply_eq_iff_eq f
 
 /-- The identity map as a `function.embedding`. -/
 @[refl, simps {simp_rhs := tt}]
@@ -148,9 +157,17 @@ theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidabl
   [∀ a', decidable (f a' = b)] : set_value f a b a = b :=
 by simp [set_value]
 
-/-- Embedding into `option` -/
+/-- Embedding into `option α` using `some`. -/
 @[simps { fully_applied := ff }] protected def some {α} : α ↪ option α :=
 ⟨some, option.some_injective α⟩
+
+/-- Embedding into `option α` using `coe`. Usually the correct synctatical form for `simp`. -/
+@[simps { fully_applied := ff }]
+def coe_option {α} : α ↪ option α := ⟨coe, option.some_injective α⟩
+
+/-- Embedding into `with_top α`. -/
+@[simps]
+def coe_with_top {α} : α ↪ with_top α := { to_fun := coe, ..embedding.some}
 
 /-- Given an embedding `f : α ↪ β` and a point outside of `set.range f`, construct an embedding
 `option α ↪ β`. -/
@@ -190,6 +207,10 @@ def prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ×
 @[simp] lemma coe_prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) :
   ⇑(e₁.prod_map e₂) = prod.map e₁ e₂ :=
 rfl
+
+/-- If `e₁` and `e₂` are embeddings, then so is `λ ⟨a, b⟩, ⟨e₁ a, e₂ b⟩ : pprod α γ → pprod β δ`. -/
+def pprod_map {α β γ δ : Sort*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : pprod α γ ↪ pprod β δ :=
+⟨λ x, ⟨e₁ x.1, e₂ x.2⟩, e₁.injective.pprod_map e₂.injective⟩
 
 section sum
 open sum
@@ -249,10 +270,10 @@ Pi_congr_right (λ _, e)
 
 /-- An embedding `e : α ↪ β` defines an embedding `(α → γ) ↪ (β → γ)` for any inhabited type `γ`.
 This embedding sends each `f : α → γ` to a function `g : β → γ` such that `g ∘ e = f` and
-`g y = default γ` whenever `y ∉ range e`. -/
+`g y = default` whenever `y ∉ range e`. -/
 noncomputable def arrow_congr_left {α : Sort u} {β : Sort v} {γ : Sort w} [inhabited γ]
   (e : α ↪ β) : (α → γ) ↪ (β → γ) :=
-⟨λ f, extend e f (λ _, default γ), λ f₁ f₂ h, funext $ λ x,
+⟨λ f, extend e f (λ _, default), λ f₁ f₂ h, funext $ λ x,
   by simpa only [extend_apply e.injective] using congr_fun h (e x)⟩
 
 /-- Restrict both domain and codomain of an embedding. -/

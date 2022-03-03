@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov
 -/
 import data.real.sqrt
-import data.rat.sqrt
-import ring_theory.int.basic
-import data.polynomial.eval
-import data.polynomial.degree
 import tactic.interval_cases
 import ring_theory.algebraic
+import data.rat.sqrt
+import data.polynomial.eval
+import ring_theory.int.basic
 /-!
 # Irrational real numbers
 
@@ -298,7 +297,7 @@ theorem of_inv (h : irrational x⁻¹) : irrational x :=
 λ ⟨q, hq⟩, h $ hq ▸ ⟨q⁻¹, q.cast_inv⟩
 
 protected theorem inv (h : irrational x) : irrational x⁻¹ :=
-of_inv $ by rwa inv_inv₀
+of_inv $ by rwa inv_inv
 
 /-!
 #### Division

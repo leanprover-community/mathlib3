@@ -3,10 +3,10 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
-import topology.homotopy.path
-import category_theory.groupoid
 import category_theory.category.Groupoid
-import topology.category.Top
+import category_theory.groupoid
+import topology.category.Top.basic
+import topology.homotopy.path
 
 /-!
 # Fundamental groupoid of a space
@@ -83,8 +83,8 @@ end
 def refl_trans_symm (p : path x₀ x₁) : homotopy (path.refl x₀) (p.trans p.symm) :=
 { to_fun := λ x, p ⟨refl_trans_symm_aux x, refl_trans_symm_aux_mem_I x⟩,
   continuous_to_fun := by continuity,
-  to_fun_zero := by norm_num [refl_trans_symm_aux],
-  to_fun_one := λ x, begin
+  map_zero_left' := by norm_num [refl_trans_symm_aux],
+  map_one_left' := λ x, begin
     dsimp only [refl_trans_symm_aux, path.coe_to_continuous_map, path.trans],
     change _ = ite _ _ _,
     split_ifs,
@@ -217,25 +217,22 @@ begin
   simp only [trans_assoc_reparam_aux, path.trans_apply, mul_inv_cancel_left₀, not_le,
              function.comp_app, ne.def, not_false_iff, bit0_eq_zero, one_ne_zero, mul_ite,
              subtype.coe_mk, path.coe_to_fun],
+  -- TODO: why does split_ifs not reduce the ifs??????
   split_ifs with h₁ h₂ h₃ h₄ h₅,
-  { simp only [one_div, subtype.coe_mk] at h₂,
-    simp [h₂, h₃] },
-  { exfalso,
-    simp only [subtype.coe_mk] at h₂,
-    linarith },
-  { exfalso,
-    simp only [subtype.coe_mk] at h₂,
-    linarith },
+  { simp [h₂, h₃, -one_div] },
+  { exfalso, linarith },
+  { exfalso, linarith },
   { have h : ¬ (x : ℝ) + 1/4 ≤ 1/2, by linarith,
     have h' : 2 * ((x : ℝ) + 1/4) - 1 ≤ 1/2, by linarith,
     have h'' : 2 * (2 * (x : ℝ)) - 1 = 2 * (2 * (↑x + 1/4) - 1), by linarith,
-    simp only [one_div, subtype.coe_mk] at h h' h'' h₂,
-    simp [h₁, h₂, h₄, h, h', h''] },
+    simp only [h₄, h₁, h, h', h'',
+      dif_neg (show ¬ false, from id), dif_pos true.intro, if_false, if_true] },
   { exfalso,
     linarith },
   { have h : ¬ (1 / 2 : ℝ) * (x + 1) ≤ 1/2, by linarith,
-    simp only [one_div] at h h₁,
-    simp [h₁, h₅, h] }
+    have h' : ¬ 2 * ((1 / 2 : ℝ) * (x + 1)) - 1 ≤ 1/2, by linarith,
+    simp only [h₁, h₅, h, h', if_false, dif_neg (show ¬ false, from id)],
+    congr, ring }
 end
 
 /--
@@ -270,8 +267,7 @@ local attribute [instance] path.homotopic.setoid
 instance : category_theory.groupoid (fundamental_groupoid X) :=
 { hom := λ x y, path.homotopic.quotient x y,
   id := λ x, ⟦path.refl x⟧,
-  comp := λ x y z, quotient.map₂ path.trans
-    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq),
+  comp := λ x y z, path.homotopic.quotient.comp,
   id_comp' := λ x y f, quotient.induction_on f
     (λ a, show ⟦(path.refl x).trans a⟧ = ⟦a⟧,
           from quotient.sound ⟨path.homotopy.refl_trans a⟩ ),
@@ -293,9 +289,9 @@ instance : category_theory.groupoid (fundamental_groupoid X) :=
     (λ a, show ⟦a.trans a.symm⟧ = ⟦path.refl x⟧,
           from quotient.sound ⟨(path.homotopy.refl_trans_symm a).symm⟩) }
 
-lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) :
-  p ≫ q = quotient.map₂ path.trans
-    (λ (p₀ : path x y) p₁ hp q₀ q₁ hq, path.homotopic.hcomp hp hq) p q := rfl
+lemma comp_eq (x y z : fundamental_groupoid X) (p : x ⟶ y) (q : y ⟶ z) : p ≫ q = p.comp q := rfl
+
+lemma id_eq_path_refl (x : fundamental_groupoid X) : 𝟙 x = ⟦path.refl x⟧ := rfl
 
 /--
 The functor sending a topological space `X` to its fundamental groupoid.
@@ -304,17 +300,17 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
 { obj := λ X, { α := fundamental_groupoid X },
   map := λ X Y f,
   { obj := f,
-    map := λ x y, quotient.map
-      (λ (q : path x y), q.map f.continuous) (λ p₀ p₁ h, path.homotopic.map h f),
+    map := λ x y p, p.map_fn f,
     map_id' := λ X, rfl,
-    map_comp' := λ x y z p q, quotient.induction_on₂ p q $ λ a b, by simp [comp_eq] },
+    map_comp' := λ x y z p q, quotient.induction_on₂ p q $ λ a b,
+      by simp [comp_eq, ← path.homotopic.map_lift, ← path.homotopic.comp_lift] },
   map_id' := begin
     intro X,
     change _ = (⟨_, _, _, _⟩ : fundamental_groupoid X ⥤ fundamental_groupoid X),
     congr',
     ext x y p,
     refine quotient.induction_on p (λ q, _),
-    rw [quotient.map_mk],
+    rw [← path.homotopic.map_lift],
     conv_rhs { rw [←q.map_id] },
     refl,
   end,
@@ -326,5 +322,33 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
     simp only [quotient.map_mk, path.map_map, quotient.eq],
     refl,
   end }
+
+localized "notation `π` := fundamental_groupoid.fundamental_groupoid_functor"
+  in fundamental_groupoid
+localized "notation `πₓ` := fundamental_groupoid.fundamental_groupoid_functor.obj"
+  in fundamental_groupoid
+localized "notation `πₘ` := fundamental_groupoid.fundamental_groupoid_functor.map"
+  in fundamental_groupoid
+
+/-- Help the typechecker by converting a point in a groupoid back to a point in
+the underlying topological space. -/
+@[reducible]
+def to_top {X : Top} (x : πₓ X) : X := x
+
+/-- Help the typechecker by converting a point in a topological space to a
+point in the fundamental groupoid of that space -/
+@[reducible]
+def from_top {X : Top} (x : X) : πₓ X := x
+
+/-- Help the typechecker by converting an arrow in the fundamental groupoid of
+a topological space back to a path in that space (i.e., `path.homotopic.quotient`). -/
+@[reducible]
+def to_path {X : Top} {x₀ x₁ : πₓ X} (p : x₀ ⟶ x₁) :
+  path.homotopic.quotient x₀ x₁ := p
+
+/-- Help the typechecker by convering a path in a topological space to an arrow in the
+fundamental groupoid of that space. -/
+@[reducible]
+def from_path {X : Top} {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁) : (x₀ ⟶ x₁) := p
 
 end fundamental_groupoid

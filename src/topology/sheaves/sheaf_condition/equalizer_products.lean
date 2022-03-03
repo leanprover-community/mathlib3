@@ -3,12 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.sheaves.presheaf
-import category_theory.limits.punit
-import category_theory.limits.shapes.products
-import category_theory.limits.shapes.equalizers
 import category_theory.full_subcategory
+import category_theory.limits.shapes.equalizers
+import category_theory.limits.shapes.products
 import tactic.elementwise
+import topology.sheaves.presheaf
 
 /-!
 # The sheaf condition in terms of an equalizer of products
@@ -179,10 +178,10 @@ pi.map_iso (λ X, F.map_iso
     exact iso.op
     { hom := hom_of_le (by
       { simp only [oe.to_embedding.inj, set.image_inter],
-        apply le_refl _, }),
+        exact le_rfl, }),
       inv := hom_of_le (by
       { simp only [oe.to_embedding.inj, set.image_inter],
-        apply le_refl _, }), },
+        exact le_rfl, }), },
   end)
 
 /-- The isomorphism of sheaf condition diagrams corresponding to an open embedding. -/

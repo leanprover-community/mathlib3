@@ -93,17 +93,17 @@ by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
 @[continuity] lemma continuous_norm_sq : continuous norm_sq :=
 by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
 
-@[simp, norm_cast] lemma nnnorm_coe_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
-subtype.ext $ by simp only [norm_real, coe_nnnorm]
+@[simp, norm_cast] lemma nnnorm_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
+subtype.ext $ norm_real r
 
-@[simp, norm_cast] lemma nnnorm_nat_cast (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
-by rw [← real.nnnorm_coe_nat, ← nnnorm_coe_real, of_real_nat_cast]
+@[simp, norm_cast] lemma nnnorm_nat (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
+by rw [←real.nnnorm_coe_nat, ←nnnorm_real, of_real_nat_cast]
 
-@[simp, norm_cast] lemma nnnorm_int_cast (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
+@[simp, norm_cast] lemma nnnorm_int (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
 begin
   obtain ⟨k, rfl | rfl⟩ := int.eq_coe_or_neg n,
-  { rw [int.cast_coe_nat, nnnorm_nat_cast, ← nnreal.coe_nat_abs, int.nat_abs_of_nat] },
-  { rw [int.cast_neg, nnnorm_neg, nnnorm_neg, int.cast_coe_nat, nnnorm_nat_cast,
+  { rw [int.cast_coe_nat, nnnorm_nat, ← nnreal.coe_nat_abs, int.nat_abs_of_nat] },
+  { rw [int.cast_neg, nnnorm_neg, nnnorm_neg, int.cast_coe_nat, nnnorm_nat,
         ←nnreal.coe_nat_abs, int.nat_abs_of_nat], },
 end
 

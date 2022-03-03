@@ -2460,7 +2460,7 @@ begin
 end
 
 @[simp] theorem deriv_mul_zero : deriv ((*) 0) = id :=
-deriv_id_of_nfp_id nfp_zero_mul
+deriv_eq_id_of_nfp_eq_id nfp_zero_mul
 
 theorem nfp_mul_eq_opow_omega {a b : ordinal} (hb : 0 < b) (hba : b ≤ a ^ omega) :
   nfp ((*) a) b = a ^ omega.{u} :=
@@ -2499,7 +2499,7 @@ begin
   { rw dvd_iff_mod_eq_zero,
     rw [←div_add_mod b (a ^ omega), mul_add, ←mul_assoc, ←opow_one_add, one_add_omega,
       add_left_cancel] at hab,
-    cases zero_or_opow_omega_le_of_mul_eq_right hab with hab hab,
+    cases eq_zero_or_opow_omega_le_of_mul_eq_right hab with hab hab,
     { exact hab },
     refine (not_lt_of_le hab (mod_lt b (opow_ne_zero omega _))).elim,
     rwa ←ordinal.pos_iff_ne_zero },
@@ -2508,7 +2508,7 @@ begin
 end
 
 theorem mul_le_right_iff_opow_omega_dvd {a b : ordinal} (ha : 0 < a) : a * b ≤ b ↔ a ^ omega ∣ b :=
-by { rw ←mul_eq_right_iff_dvd_opow_omega, exact (mul_is_normal ha).le_iff_eq }
+by { rw ←mul_eq_right_iff_opow_omega_dvd, exact (mul_is_normal ha).le_iff_eq }
 
 theorem nfp_mul_opow_omega_add {a c : ordinal} (b) (ha : 0 < a) (hc : 0 < c) (hca : c ≤ a ^ omega) :
   nfp ((*) a) (a ^ omega * b + c) = a ^ omega.{u} * b.succ :=
@@ -2518,7 +2518,7 @@ begin
     { rw mul_succ,
       apply add_le_add_left hca },
     { rw [←mul_assoc, ←opow_one_add, one_add_omega] } },
-  { cases mul_eq_right_iff_dvd_opow_omega.1 ((mul_is_normal ha).nfp_fp (a ^ omega * b + c))
+  { cases mul_eq_right_iff_opow_omega_dvd.1 ((mul_is_normal ha).nfp_fp (a ^ omega * b + c))
       with d hd,
     rw hd,
     apply mul_le_mul_left',

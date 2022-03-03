@@ -1581,8 +1581,8 @@ lemma map_le_range [ring_hom_surjective τ₁₂] {f : M →ₛₗ[τ₁₂] M�
 set_like.coe_mono (set.image_subset_range f p)
 
 @[simp] lemma range_neg {R : Type*} {R₂ : Type*} {M : Type*} {M₂ : Type*}
-  [semiring R] [ring R₂]  [add_comm_monoid M] [add_comm_group M₂] [module R M] [module R₂ M₂]
-  {τ₁₂ : R →+* R₂} [_inst_12 : ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂):
+  [semiring R] [ring R₂] [add_comm_monoid M] [add_comm_group M₂] [module R M] [module R₂ M₂]
+  {τ₁₂ : R →+* R₂} [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
   (-f).range = f.range :=
 begin
   change ((-linear_map.id : M₂ →ₗ[R₂] M₂).comp f).range = _,

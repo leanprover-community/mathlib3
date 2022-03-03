@@ -110,14 +110,6 @@ lemma is_closed.right_coset {U : set G} (h : is_closed U) (x : G) : is_closed (r
 is_closed_map_mul_right x _ h
 
 @[to_additive]
-lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=
-by simpa only [div_eq_mul_inv] using is_open_map_mul_right (a⁻¹)
-
-@[to_additive]
-lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
-by simpa only [div_eq_mul_inv] using is_closed_map_mul_right (a⁻¹)
-
-@[to_additive]
 lemma discrete_topology_of_open_singleton_one (h : is_open ({1} : set G)) : discrete_topology G :=
 begin
   rw ← singletons_open_iff_discrete,
@@ -216,6 +208,11 @@ continuous_inv.continuous_at
 @[to_additive]
 lemma tendsto_inv (a : G) : tendsto has_inv.inv (𝓝 a) (𝓝 (a⁻¹)) :=
 continuous_at_inv
+
+/-- Conjugation in a topological group is continuous.-/
+@[to_additive "Conjugation in a topological additive group is continuous."]
+lemma topological_group.continuous_conj (g : G) : continuous (λ (h : G), g * h * g⁻¹) :=
+(continuous_mul_right g⁻¹).comp (continuous_mul_left g)
 
 /-- If a function converges to a value in a multiplicative topological group, then its inverse
 converges to the inverse of this value. For the version in normed fields assuming additionally
@@ -444,6 +441,48 @@ begin
   exact hf'.dense_image hf hs
 end
 
+/-- The topological closure of a normal subgroup is normal.-/
+@[to_additive "The topological closure of a normal additive subgroup is normal."]
+lemma subgroup.is_normal_topological_closure {G : Type*} [topological_space G] [group G]
+  [topological_group G] (N : subgroup G) [N.normal] :
+  (subgroup.topological_closure N).normal :=
+{ conj_mem := λ n hn g,
+  begin
+    apply mem_closure_of_continuous (topological_group.continuous_conj g) hn,
+    intros m hm,
+    exact subset_closure (subgroup.normal.conj_mem infer_instance m hm g),
+  end }
+
+@[to_additive] lemma mul_mem_connected_component_one {G : Type*} [topological_space G]
+  [mul_one_class G] [has_continuous_mul G] {g h : G} (hg : g ∈ connected_component (1 : G))
+  (hh : h ∈ connected_component (1 : G)) : g * h ∈ connected_component (1 : G) :=
+begin
+  rw connected_component_eq hg,
+  have hmul: g ∈ connected_component (g*h),
+  { apply continuous.image_connected_component_subset (continuous_mul_left g),
+    rw ← connected_component_eq hh,
+    exact ⟨(1 : G), mem_connected_component, by simp only [mul_one]⟩ },
+  simpa [← connected_component_eq hmul] using (mem_connected_component)
+end
+
+@[to_additive] lemma inv_mem_connected_component_one {G : Type*} [topological_space G] [group G]
+  [topological_group G] {g : G} (hg : g ∈ connected_component (1 : G)) :
+  g⁻¹ ∈ connected_component (1 : G) :=
+begin
+  rw ← one_inv,
+  exact continuous.image_connected_component_subset continuous_inv _
+    ((set.mem_image _ _ _).mp ⟨g, hg, rfl⟩)
+end
+
+/-- The connected component of 1 is a subgroup of `G`. -/
+@[to_additive "The connected component of 0 is a subgroup of `G`."]
+def subgroup.connected_component_of_one (G : Type*) [topological_space G] [group G]
+  [topological_group G] : subgroup G :=
+{ carrier  := connected_component (1 : G),
+  one_mem' := mem_connected_component,
+  mul_mem' := λ g h hg hh, mul_mem_connected_component_one hg hh,
+  inv_mem' := λ g hg, inv_mem_connected_component_one hg }
+
 /-- If a subgroup of a topological group is commutative, then so is its topological closure. -/
 @[to_additive "If a subgroup of an additive topological group is commutative, then so is its
 topological closure."]
@@ -664,6 +703,35 @@ lemma continuous_on.div' (hf : continuous_on f s) (hg : continuous_on g s) :
 
 end has_continuous_div
 
+section div_in_topological_group
+variables [group G] [topological_space G] [topological_group G]
+
+/-- A version of `homeomorph.mul_left a b⁻¹` that is defeq to `a / b`. -/
+@[to_additive /-" A version of `homeomorph.add_left a (-b)` that is defeq to `a - b`. "-/,
+  simps {simp_rhs := tt}]
+def homeomorph.div_left (x : G) : G ≃ₜ G :=
+{ continuous_to_fun := continuous_const.div' continuous_id,
+  continuous_inv_fun := continuous_inv.mul continuous_const,
+  .. equiv.div_left x }
+
+/-- A version of `homeomorph.mul_right a⁻¹ b` that is defeq to `b / a`. -/
+@[to_additive /-" A version of `homeomorph.add_right (-a) b` that is defeq to `b - a`. "-/,
+  simps {simp_rhs := tt}]
+def homeomorph.div_right (x : G) : G ≃ₜ G :=
+{ continuous_to_fun := continuous_id.div' continuous_const,
+  continuous_inv_fun := continuous_id.mul continuous_const,
+  .. equiv.div_right x }
+
+@[to_additive]
+lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=
+(homeomorph.div_right a).is_open_map
+
+@[to_additive]
+lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
+(homeomorph.div_right a).is_closed_map
+
+end div_in_topological_group
+
 @[to_additive]
 lemma nhds_translation_div [topological_space G] [group G] [topological_group G] (x : G) :
   comap (λy:G, y / x) (𝓝 1) = 𝓝 x :=
@@ -785,10 +853,10 @@ is locally compact. -/
   locally_compact_space G :=
 begin
   refine locally_compact_of_compact_nhds (λ x, _),
-  obtain ⟨y, hy⟩ : ∃ y, y ∈ interior K.1 := K.2.2,
+  obtain ⟨y, hy⟩ := K.interior_nonempty,
   let F := homeomorph.mul_left (x * y⁻¹),
-  refine ⟨F '' K.1, _, is_compact.image K.2.1 F.continuous⟩,
-  suffices : F.symm ⁻¹' K.1 ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
+  refine ⟨F '' K, _, K.compact.image F.continuous⟩,
+  suffices : F.symm ⁻¹' K ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
   apply continuous_at.preimage_mem_nhds F.symm.continuous.continuous_at,
   have : F.symm x = y, by simp [F, homeomorph.mul_left_symm],
   rw this,

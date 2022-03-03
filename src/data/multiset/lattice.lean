@@ -46,20 +46,20 @@ sup_le.2 $ assume b hb, le_sup (h hb)
 
 variables [decidable_eq α]
 
-@[simp] lemma sup_erase_dup (s : multiset α) : (erase_dup s).sup = s.sup :=
-fold_erase_dup_idem _ _ _
+@[simp] lemma sup_dedup (s : multiset α) : (dedup s).sup = s.sup :=
+fold_dedup_idem _ _ _
 
 @[simp] lemma sup_ndunion (s₁ s₂ : multiset α) :
   (ndunion s₁ s₂).sup = s₁.sup ⊔ s₂.sup :=
-by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_add]; simp
+by rw [← sup_dedup, dedup_ext.2, sup_dedup, sup_add]; simp
 
 @[simp] lemma sup_union (s₁ s₂ : multiset α) :
   (s₁ ∪ s₂).sup = s₁.sup ⊔ s₂.sup :=
-by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_add]; simp
+by rw [← sup_dedup, dedup_ext.2, sup_dedup, sup_add]; simp
 
 @[simp] lemma sup_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).sup = a ⊔ s.sup :=
-by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_cons]; simp
+by rw [← sup_dedup, dedup_ext.2, sup_dedup, sup_cons]; simp
 
 lemma nodup_sup_iff {α : Type*} [decidable_eq α] {m : multiset (multiset α) } :
   m.sup.nodup ↔ ∀ (a : multiset α), a ∈ m → a.nodup :=
@@ -105,20 +105,20 @@ le_inf.2 $ assume b hb, inf_le (h hb)
 
 variables [decidable_eq α]
 
-@[simp] lemma inf_erase_dup (s : multiset α) : (erase_dup s).inf = s.inf :=
-fold_erase_dup_idem _ _ _
+@[simp] lemma inf_dedup (s : multiset α) : (dedup s).inf = s.inf :=
+fold_dedup_idem _ _ _
 
 @[simp] lemma inf_ndunion (s₁ s₂ : multiset α) :
   (ndunion s₁ s₂).inf = s₁.inf ⊓ s₂.inf :=
-by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_add]; simp
+by rw [← inf_dedup, dedup_ext.2, inf_dedup, inf_add]; simp
 
 @[simp] lemma inf_union (s₁ s₂ : multiset α) :
   (s₁ ∪ s₂).inf = s₁.inf ⊓ s₂.inf :=
-by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_add]; simp
+by rw [← inf_dedup, dedup_ext.2, inf_dedup, inf_add]; simp
 
 @[simp] lemma inf_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).inf = a ⊓ s.inf :=
-by rw [← inf_erase_dup, erase_dup_ext.2, inf_erase_dup, inf_cons]; simp
+by rw [← inf_dedup, dedup_ext.2, inf_dedup, inf_cons]; simp
 
 end inf
 

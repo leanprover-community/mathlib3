@@ -439,9 +439,10 @@ begin
 end
 
 lemma X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd (R) [comm_ring R] {d n : ℕ}
-  (hd : d ∣ n) (hdn : d < n) :
+  (h : d ∈ n.proper_divisors) :
   (X ^ d - 1) * ∏ x in n.divisors \ d.divisors, cyclotomic x R = X ^ n - 1 :=
 begin
+  obtain ⟨hd, hdn⟩ := nat.mem_proper_divisors.mp h,
   have h0n := pos_of_gt hdn,
   rcases d.eq_zero_or_pos with rfl | h0d,
   { exfalso, linarith [eq_zero_of_zero_dvd hd] },
@@ -450,18 +451,18 @@ begin
 end
 
 lemma X_pow_sub_one_mul_cyclotomic_dvd_X_pow_sub_one_of_dvd (R) [comm_ring R] {d n : ℕ}
-  (hd : d ∣ n) (hdn : d < n) : (X ^ d - 1) * cyclotomic n R ∣ X ^ n - 1 :=
+  (h : d ∈ n.proper_divisors) : (X ^ d - 1) * cyclotomic n R ∣ X ^ n - 1 :=
 begin
+  have hdn := (nat.mem_proper_divisors.mp h).2,
   use ∏ x in n.proper_divisors \ d.divisors, cyclotomic x R,
-  have hn := pos_of_gt hdn,
   symmetry,
-  convert X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd R hd hdn using 1,
+  convert X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd R h using 1,
   rw mul_assoc,
   congr' 1,
-  rw [nat.divisors_eq_proper_divisors_insert_self_of_pos hn,
+  rw [nat.divisors_eq_proper_divisors_insert_self_of_pos $ pos_of_gt hdn,
       finset.insert_sdiff_of_not_mem, finset.prod_insert],
   { exact finset.not_mem_sdiff_of_not_mem_left nat.proper_divisors.not_self_mem },
-  { exact λ h, hdn.not_le $ nat.divisor_le h }
+  { exact λ hk, hdn.not_le $ nat.divisor_le hk }
 end
 
 lemma _root_.is_root_of_unity_iff {n : ℕ} (h : 0 < n) (R : Type*) [comm_ring R] [is_domain R]

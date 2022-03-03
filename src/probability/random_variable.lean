@@ -95,7 +95,7 @@ the unmarginalized variables to take any value. -/
 theorem marginal_apply (hm : ∀ i : ι, measurable (f i)) (mv : set ι)
   {s : set (Π i : mv, β i)} (hms : measurable_set s) :
   marginal μ f mv s = joint μ f (>[] s) :=
-by { rw [marginal_eq_marginalize_joint _ _ hm, marginalize_apply _ _ hms] }
+by rw [marginal_eq_marginalize_joint _ _ hm, marginalize_apply _ _ hms] 
 
 end marginal
 

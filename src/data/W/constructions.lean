@@ -69,7 +69,7 @@ def equiv_nat : W_type nat_β ≃ ℕ :=
 open sum punit
 
 /--
-`nat_α` is equivalent to `punit ⊕ punit`.
+`W_type.nat_α` is equivalent to `punit ⊕ punit`.
 This is useful when considering the associated polynomial endofunctor.
 -/
 @[simps] def nat_α_equiv_punit_sum_punit : nat_α ≃ punit.{u + 1} ⊕ punit :=

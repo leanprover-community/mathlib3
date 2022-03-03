@@ -423,9 +423,14 @@ begin
            geom_sum_mul, prod_cyclotomic_eq_X_pow_sub_one h]
 end
 
-lemma cyclotomic_dvd_geom_sum_of_dvd (R) [comm_ring R] [is_domain R] {d n : ℕ} (hdn : d ∣ n)
+lemma cyclotomic_dvd_geom_sum_of_dvd (R) [comm_ring R] {d n : ℕ} (hdn : d ∣ n)
   (hd : d ≠ 1) : cyclotomic d R ∣ geom_sum X n :=
 begin
+  suffices : (cyclotomic d ℤ).map (int.cast_ring_hom R) ∣ (geom_sum X n).map (int.cast_ring_hom R),
+  { have key := (map_ring_hom (int.cast_ring_hom R)).map_geom_sum X n,
+    simp only [coe_map_ring_hom, map_X] at key,
+    rwa [map_cyclotomic, key] at this },
+  apply map_dvd,
   rcases n.eq_zero_or_pos with rfl | hn,
   { simp },
   rw ←prod_cyclotomic_eq_geom_sum hn,

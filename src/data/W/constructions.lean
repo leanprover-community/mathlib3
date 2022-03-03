@@ -88,10 +88,12 @@ variable (γ : Type u)
 The constructors for lists.
 There is "one constructor `cons x` for each `x : γ`",
 since we view `list γ` as
+```
 | nil : list γ
 | cons x₀ : list γ → list γ
 | cons x₁ : list γ → list γ
 |   ⋮      γ many times
+```
 -/
 inductive list_α : Type u
 | nil : list_α

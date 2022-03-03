@@ -1327,8 +1327,8 @@ lemma cont_diff_at_zero :
   cont_diff_at 𝕜 0 f x ↔ ∃ u ∈ 𝓝 x, continuous_on f u :=
 by { rw ← cont_diff_within_at_univ, simp [cont_diff_within_at_zero, nhds_within_univ] }
 
-theorem cont_diff_at_one_iff : cont_diff_at 𝕜 1 f x
-  ↔ ∃ f' : E → (E →L[𝕜] F), ∃ u ∈ 𝓝 x, continuous_on f' u ∧ ∀ x ∈ u, has_fderiv_at f (f' x) x :=
+theorem cont_diff_at_one_iff : cont_diff_at 𝕜 1 f x ↔
+  ∃ f' : E → (E →L[𝕜] F), ∃ u ∈ 𝓝 x, continuous_on f' u ∧ ∀ x ∈ u, has_fderiv_at f (f' x) x :=
 by simp_rw [show (1 : with_top ℕ) = (0 + 1 : ℕ), from (zero_add 1).symm,
   cont_diff_at_succ_iff_has_fderiv_at, show ((0 : ℕ) : with_top ℕ) = 0, from rfl,
   cont_diff_at_zero, exists_mem_and_iff antitone_bforall antitone_continuous_on, and_comm]

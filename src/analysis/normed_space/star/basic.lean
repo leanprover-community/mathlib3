@@ -109,13 +109,13 @@ variables [normed_ring E] [star_ring E] [cstar_ring E]
 @[priority 100] -- see Note [lower instance priority]
 instance to_normed_star_monoid : normed_star_monoid E :=
 ⟨λ x, begin
-  have n_le : ∀ {x : E}, ∥x⋆∥ ≤ ∥x∥,
+  have n_le : ∀ {y : E}, ∥y∥ ≤ ∥y⋆∥,
   { intros y,
     by_cases y0 : y = 0,
-    { simp [y0] },
-    { exact le_of_mul_le_mul_right (by simp [← norm_star_mul_self, norm_mul_le])
-        (norm_pos_iff.mpr (star_ne_zero.mpr y0)) } },
-  exact n_le.antisymm ((congr_arg _ (star_star _)).ge.trans n_le)
+    { rw [y0, star_zero] },
+    { refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr y0),
+      exact (norm_star_mul_self.symm.trans_le $ norm_mul_le _ _) } },
+  exact (n_le.trans_eq $ congr_arg _ $ star_star _).antisymm n_le,
 end⟩
 
 lemma norm_self_mul_star {x : E} : ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=

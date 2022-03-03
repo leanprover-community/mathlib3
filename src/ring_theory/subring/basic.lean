@@ -99,7 +99,7 @@ instance to_ring : ring s :=
 omit hSR
 /-- A subring of a `comm_ring` is a `comm_ring`. -/
 instance to_comm_ring {R} [comm_ring R] [set_like S R] [subring_class S R] : comm_ring s :=
-{ mul_comm := λ _ _, subtype.eq $ mul_comm _ _, .. subring_class.to_ring s}
+subtype.coe_injective.comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
 /-- A subring of a domain is a domain. -/
 instance {R} [ring R] [is_domain R] [set_like S R] [subring_class S R] : is_domain s :=

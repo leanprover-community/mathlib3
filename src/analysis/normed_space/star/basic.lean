@@ -131,11 +131,7 @@ lemma norm_star_mul_self' {x : E} : ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
 by rw [norm_star_mul_self, norm_star]
 
 lemma nnnorm_star_mul_self {x : E} : ∥x⋆ * x∥₊ = ∥x∥₊ * ∥x∥₊ :=
-begin
-  have : (∥x⋆ * x∥₊ : ℝ) = ∥x∥₊ * ∥x∥₊,
-    by simpa only [←coe_nnnorm] using @norm_star_mul_self _ _ _ _ x,
-  exact_mod_cast this,
-end
+subtype.ext norm_star_mul_self
 
 @[simp] lemma norm_one [nontrivial E] : ∥(1 : E)∥ = 1 :=
 begin

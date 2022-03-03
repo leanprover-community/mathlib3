@@ -701,6 +701,13 @@ continuous_iff_le_induced.2 $ bot_le
 @[continuity] lemma continuous_top {t : tspace α} : cont t ⊤ f :=
 continuous_iff_coinduced_le.2 $ le_top
 
+lemma continuous_id_of_le {t t' : tspace α} (h : t ≤ t') : cont t t' id :=
+begin
+  rw continuous_def,
+  assume u hu,
+  exact h u hu
+end
+
 /- 𝓝 in the induced topology -/
 
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :

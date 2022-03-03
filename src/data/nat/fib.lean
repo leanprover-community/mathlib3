@@ -165,10 +165,9 @@ lemma fib_succ_eq_succ_sum (n : ℕ):
 begin
   induction n with n ih,
   { simp },
-  { calc fib (n + 2) = fib n + fib (n + 1) : by rw [fib_add_two]
-                 ... = fib n + (∑ k in finset.range n, fib k) + 1 : by rw ih; ring
-                 ... = (∑ k in finset.range (n + 1), fib k) + 1
-                          : by simp [finset.range_add_one] }
+  { calc fib (n + 2) = fib n + fib (n + 1)                        : fib_add_two
+                 ... = fib n + (∑ k in finset.range n, fib k) + 1 : by rw [ih, add_assoc]
+                 ... = (∑ k in finset.range (n + 1), fib k) + 1   : by simp [finset.range_add_one] }
 end
 
 end nat

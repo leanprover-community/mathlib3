@@ -187,6 +187,17 @@ one_hom_class.map_one f
 hf.eq_iff' (map_one f)
 
 @[to_additive]
+lemma map_ne_one_iff {R S F : Type*} [has_one R] [has_one S] [one_hom_class F R S]
+  (f : F) (hf : function.injective f) {x : R} :
+  f x ≠ 1 ↔ x ≠ 1 :=
+(map_eq_one_iff f hf).not
+
+@[to_additive]
+lemma ne_one_of_map {R S F : Type*} [has_one R] [has_one S] [one_hom_class F R S]
+  {f : F} {x : R} (hx : f x ≠ 1) : x ≠ 1 :=
+ne_of_apply_ne f $ ne_of_ne_of_eq hx (map_one f).symm
+
+@[to_additive]
 instance [one_hom_class F M N] : has_coe_t F (one_hom M N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f }⟩
 

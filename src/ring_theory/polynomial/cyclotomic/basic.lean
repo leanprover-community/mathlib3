@@ -390,7 +390,7 @@ lemma prod_cyclotomic_eq_X_pow_sub_one {n : ℕ} (hpos : 0 < n) (R : Type*) [com
 begin
   have integer : ∏ i in nat.divisors n, cyclotomic i ℤ = X ^ n - 1,
   { apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
-    rw map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
+    rw polynomial.map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
     simp only [int_cyclotomic_spec, polynomial.map_pow, nat.cast_id, map_X, map_one, map_sub],
     exact prod_cyclotomic'_eq_X_pow_sub_one hpos
           (complex.is_primitive_root_exp n (ne_of_lt hpos).symm) },
@@ -399,8 +399,8 @@ begin
   have h : ∀ i ∈ n.divisors, cyclotomic i R = map (int.cast_ring_hom R) (cyclotomic i ℤ),
   { intros i hi,
     exact (map_cyclotomic_int i R).symm },
-  rw [finset.prod_congr (refl n.divisors) h, coerc, ←map_prod (int.cast_ring_hom R)
-                                                    (λ i, cyclotomic i ℤ), integer]
+  rw [finset.prod_congr (refl n.divisors) h, coerc,
+      ← polynomial.map_prod (int.cast_ring_hom R) (λ i, cyclotomic i ℤ), integer]
 end
 
 lemma cyclotomic.dvd_X_pow_sub_one (n : ℕ) (R : Type*) [comm_ring R] :

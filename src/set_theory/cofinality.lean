@@ -97,7 +97,7 @@ namespace ordinal
 
 /-- Cofinality of an ordinal. This is the smallest cardinal of a
   subset `S` of the ordinal which is unbounded, in the sense
-  `∀ a, ∃ b ∈ S, ¬(b > a)`. It is defined for all ordinals, but
+  `∀ a, ∃ b ∈ S, a ≤ b`. It is defined for all ordinals, but
   `cof 0 = 0` and `cof (succ o) = 1`, so it is only really
   interesting on limit ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
@@ -472,8 +472,14 @@ theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 def is_regular (c : cardinal) : Prop :=
 ω ≤ c ∧ c.ord.cof = c
 
+lemma is_regular.omega_le {c : cardinal} (H : c.is_regular) : ω ≤ c :=
+H.1
+
+lemma is_regular.cof_eq {c : cardinal} (H : c.is_regular) : c.ord.cof = c :=
+H.2
+
 lemma is_regular.pos {c : cardinal} (H : c.is_regular) : 0 < c :=
-omega_pos.trans_le H.left
+omega_pos.trans_le H.1
 
 lemma is_regular.ord_pos {c : cardinal} (H : c.is_regular) : 0 < c.ord :=
 by { rw cardinal.lt_ord, exact H.pos }
@@ -508,6 +514,12 @@ end⟩
 
 theorem is_regular_aleph_one : is_regular (aleph 1) :=
 by { rw ← succ_omega, exact succ_is_regular le_rfl }
+
+theorem aleph'_succ_is_regular {o : ordinal} (h : ordinal.omega ≤ o) : is_regular (aleph' o.succ) :=
+by { rw aleph'_succ, exact succ_is_regular (omega_le_aleph'.2 h) }
+
+theorem aleph_succ_is_regular {o : ordinal} : is_regular (aleph o.succ) :=
+by { rw aleph_succ, exact succ_is_regular (omega_le_aleph o) }
 
 /--
 A function whose codomain's cardinality is infinite but strictly smaller than its domain's

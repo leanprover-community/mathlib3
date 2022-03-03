@@ -30,7 +30,7 @@ Add instances for `prod`, `filter`
 
 ## References
 
-* [Wikipedia, *Complete Heyting algebra*][https://en.wikipedia.org/wiki/Complete_Heyting_algebra]
+* [Wikipedia, *Complete Heyting algebra*](https://en.wikipedia.org/wiki/Complete_Heyting_algebra)
 * [Francis Borceux, *Handbook of Categorical Algebra III*][borceux-vol3]
 -/
 

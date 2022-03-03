@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Michael Howes
 -/
-import group_theory.general_commutator
+import group_theory.commutator
 import group_theory.quotient_group
 
 /-!

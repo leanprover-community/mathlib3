@@ -730,7 +730,111 @@ protected def function.surjective.non_unital_non_assoc_ring
 { .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
   .. hf.distrib f add mul }
 
+@[priority 100]
+instance non_unital_non_assoc_ring.to_has_distrib_neg : has_distrib_neg α :=
+{ neg := has_neg.neg,
+  neg_neg := neg_neg,
+  neg_mul := λ a b, (neg_eq_of_add_eq_zero $ by rw [← right_distrib, add_right_neg, zero_mul]).symm,
+  mul_neg := λ a b, (neg_eq_of_add_eq_zero $ by rw [← left_distrib, add_right_neg, mul_zero]).symm }
+
+lemma mul_sub_left_distrib (a b c : α) : a * (b - c) = a * b - a * c :=
+by simpa only [sub_eq_add_neg, neg_mul_eq_mul_neg] using mul_add a b (-c)
+
+alias mul_sub_left_distrib ← mul_sub
+
+lemma mul_sub_right_distrib (a b c : α) : (a - b) * c = a * c - b * c :=
+by simpa only [sub_eq_add_neg, neg_mul_eq_neg_mul] using add_mul a (-b) c
+
+alias mul_sub_right_distrib ← sub_mul
+
+variables {a b c d e : α}
+
+/-- An iff statement following from right distributivity in rings and the definition
+  of subtraction. -/
+theorem mul_add_eq_mul_add_iff_sub_mul_add_eq : a * e + c = b * e + d ↔ (a - b) * e + c = d :=
+calc
+  a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp [add_comm]
+    ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin rw h, simp end) (λ h,
+                                                  begin rw ← h, simp end)
+    ... ↔ (a - b) * e + c = d   : begin simp [sub_mul, sub_add_eq_add_sub] end
+
+/-- A simplification of one side of an equation exploiting right distributivity in rings
+  and the definition of subtraction. -/
+theorem sub_mul_add_eq_of_mul_add_eq_mul_add : a * e + c = b * e + d → (a - b) * e + c = d :=
+assume h,
+calc
+  (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
+              ... = d                   : begin rw h, simp [@add_sub_cancel α] end
+
 end non_unital_non_assoc_ring
+
+/-- An associative but not-necessarily unital ring. -/
+@[protect_proj, ancestor non_unital_non_assoc_ring non_unital_semiring]
+class non_unital_ring (α : Type*) extends
+  non_unital_non_assoc_ring α, non_unital_semiring α
+
+section non_unital_ring
+variables [non_unital_ring α]
+
+/-- Pullback a `non_unital_ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.non_unital_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  non_unital_ring β :=
+{ .. hf.add_comm_group f zero add neg sub, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul,
+  .. hf.semigroup f mul }
+
+/-- Pushforward a `non_unital_ring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.non_unital_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : α → β) (hf : surjective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  non_unital_ring β :=
+{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
+  .. hf.distrib f add mul, .. hf.semigroup f mul }
+
+end non_unital_ring
+
+/-- A unital but not-necessarily-associative ring. -/
+@[protect_proj, ancestor non_unital_non_assoc_ring non_assoc_semiring]
+class non_assoc_ring (α : Type*) extends
+  non_unital_non_assoc_ring α, non_assoc_semiring α
+
+section non_assoc_ring
+variables [non_assoc_ring α]
+
+/-- Pullback a `non_assoc_ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.non_assoc_ring
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  non_assoc_ring β :=
+{ .. hf.add_comm_group f zero add neg sub, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul,
+  .. hf.mul_one_class f one mul }
+
+/-- Pushforward a `non_unital_ring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.non_assoc_ring
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  non_assoc_ring β :=
+{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
+  .. hf.distrib f add mul, .. hf.mul_one_class f one mul }
+
+end non_assoc_ring
 
 /-- A ring is a type with the following structures: additive commutative group (`add_comm_group`),
 multiplicative monoid (`monoid`), and distributive laws (`distrib`).  Equivalently, a ring is a
@@ -741,10 +845,20 @@ class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
 section ring
 variables [ring α] {a b c d e : α}
 
-/- A (unital, associative) ring is a not-necessarily-unital, not-necessarily-associative ring -/
+/- A (unital, associative) ring is a not-necessarily-unital ring -/
 @[priority 100] -- see Note [lower instance priority]
-instance ring.to_non_unital_non_assoc_ring :
-  non_unital_non_assoc_ring α :=
+instance ring.to_non_unital_ring :
+  non_unital_ring α :=
+{ zero_mul := λ a, add_left_cancel $ show 0 * a + 0 * a = 0 * a + 0,
+    by rw [← add_mul, zero_add, add_zero],
+  mul_zero := λ a, add_left_cancel $ show a * 0 + a * 0 = a * 0 + 0,
+    by rw [← mul_add, add_zero, add_zero],
+  ..‹ring α› }
+
+/- A (unital, associative) ring is a not-necessarily-associative ring -/
+@[priority 100] -- see Note [lower instance priority]
+instance ring.to_non_assoc_ring :
+  non_assoc_ring α :=
 { zero_mul := λ a, add_left_cancel $ show 0 * a + 0 * a = 0 * a + 0,
     by rw [← add_mul, zero_add, add_zero],
   mul_zero := λ a, add_left_cancel $ show a * 0 + a * 0 = a * 0 + 0,
@@ -757,7 +871,7 @@ a little bit its priority above 100 to try it quickly, but remaining below the d
 more specific instances are tried first. -/
 @[priority 200]
 instance ring.to_semiring : semiring α :=
-{ ..‹ring α›, .. ring.to_non_unital_non_assoc_ring }
+{ ..‹ring α›, .. ring.to_non_unital_ring }
 
 /-- Pullback a `ring` instance along an injective function.
 See note [reducible non-instances]. -/
@@ -780,40 +894,6 @@ protected def function.surjective.ring
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
   ring β :=
 { .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
-
-@[priority 100]
-instance ring.to_has_distrib_neg : has_distrib_neg α :=
-{ neg := has_neg.neg,
-  neg_neg := neg_neg,
-  neg_mul := λ a b, (neg_eq_of_add_eq_zero $ by rw [← right_distrib, add_right_neg, zero_mul]).symm,
-  mul_neg := λ a b, (neg_eq_of_add_eq_zero $ by rw [← left_distrib, add_right_neg, mul_zero]).symm }
-
-lemma mul_sub_left_distrib (a b c : α) : a * (b - c) = a * b - a * c :=
-by simpa only [sub_eq_add_neg, neg_mul_eq_mul_neg] using mul_add a b (-c)
-
-alias mul_sub_left_distrib ← mul_sub
-
-lemma mul_sub_right_distrib (a b c : α) : (a - b) * c = a * c - b * c :=
-by simpa only [sub_eq_add_neg, neg_mul_eq_neg_mul] using add_mul a (-b) c
-
-alias mul_sub_right_distrib ← sub_mul
-
-/-- An iff statement following from right distributivity in rings and the definition
-  of subtraction. -/
-theorem mul_add_eq_mul_add_iff_sub_mul_add_eq : a * e + c = b * e + d ↔ (a - b) * e + c = d :=
-calc
-  a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp [add_comm]
-    ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin rw h, simp end) (λ h,
-                                                  begin rw ← h, simp end)
-    ... ↔ (a - b) * e + c = d   : begin simp [sub_mul, sub_add_eq_add_sub] end
-
-/-- A simplification of one side of an equation exploiting right distributivity in rings
-  and the definition of subtraction. -/
-theorem sub_mul_add_eq_of_mul_add_eq_mul_add : a * e + c = b * e + d → (a - b) * e + c = d :=
-assume h,
-calc
-  (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
-              ... = d                   : begin rw h, simp [@add_sub_cancel α] end
 
 end ring
 
@@ -850,25 +930,26 @@ lemma is_unit.sub_iff [ring α] {x y : α} :
 namespace ring_hom
 
 /-- Ring homomorphisms preserve additive inverse. -/
-protected theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
+protected theorem map_neg {α β} [non_assoc_ring α] [non_assoc_ring β] (f : α →+* β) (x : α) :
+  f (-x) = -(f x) :=
 map_neg f x
 
 /-- Ring homomorphisms preserve subtraction. -/
-protected theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
+protected theorem map_sub {α β} [non_assoc_ring α] [non_assoc_ring β] (f : α →+* β) (x y : α) :
   f (x - y) = (f x) - (f y) := map_sub f x y
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :
+theorem injective_iff {α β} [non_assoc_ring α] [non_assoc_semiring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 (f : α →+ β).injective_iff
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff' {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :
+theorem injective_iff' {α β} [non_assoc_ring α] [non_assoc_semiring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 ↔ a = 0) :=
 (f : α →+ β).injective_iff'
 
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
-def mk' {γ} [non_assoc_semiring α] [ring γ] (f : α →* γ)
+def mk' {γ} [non_assoc_semiring α] [non_assoc_ring γ] (f : α →* γ)
   (map_add : ∀ a b : α, f (a + b) = f a + f b) :
   α →+* γ :=
 { to_fun := f,

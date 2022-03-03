@@ -193,6 +193,37 @@ calc map f.to_linear_map (M * N)
       simp [fy_eq] }
 end
 
+section
+open_locale pointwise
+
+/-- `submodule.has_pointwise_neg` distributes over multiplication.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def has_distrib_pointwise_neg {A} [ring A] [algebra R A] :
+  has_distrib_neg (submodule R A) :=
+{ neg := has_neg.neg,
+  neg_mul := λ x y, begin
+    refine le_antisymm
+      (mul_le.2 $ λ m hm n hn, _)
+      ((submodule.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
+    simp only [submodule.mem_neg, ←neg_mul] at *,
+    { exact mul_mem_mul hm hn,},
+    { exact mul_mem_mul (neg_mem_neg.2 hm) hn },
+  end,
+  mul_neg := λ x y, begin
+    refine le_antisymm
+      (mul_le.2 $ λ m hm n hn, _)
+      ((submodule.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
+    simp only [submodule.mem_neg, ←mul_neg] at *,
+    { exact mul_mem_mul hm hn,},
+    { exact mul_mem_mul hm (neg_mem_neg.2 hn) },
+  end,
+  ..submodule.has_involutive_pointwise_neg }
+
+localized "attribute [instance] submodule.has_distrib_pointwise_neg" in pointwise
+
+end
+
 section decidable_eq
 
 open_locale classical

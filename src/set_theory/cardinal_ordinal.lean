@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
-import set_theory.ordinal_arithmetic
-import tactic.linarith
 import order.bounded
+import set_theory.principal
+import tactic.linarith
 
 /-!
 # Cardinals and ordinals
@@ -510,6 +510,12 @@ end
 protected lemma eq_of_add_eq_add_right {a b c : cardinal} (h : a + b = c + b) (hb : b < ω) :
   a = c :=
 by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left h hb }
+
+theorem ord_is_principal_add {c : cardinal} (hc : ω ≤ c) : ordinal.principal (+) c.ord :=
+λ a b ha hb, by { rw [lt_ord, ordinal.card_add] at *, exact add_lt_of_lt hc ha hb }
+
+theorem aleph_is_principal_add (o : ordinal) : ordinal.principal (+) (aleph o).ord :=
+ord_is_principal_add $ omega_le_aleph o
 
 /-! ### Properties about power -/
 

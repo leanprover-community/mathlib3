@@ -29,8 +29,6 @@ universe u
 
 namespace ordinal
 
-set_option pp.universes true
-
 def veblen (f : ordinal → ordinal) : ordinal → ordinal → ordinal :=
 wf.fix (λ o φ, if o = 0 then f else deriv_bfamily.{u u} o φ)
 
@@ -93,10 +91,34 @@ begin
   rwa family_of_bfamily_enum at this
 end
 
-theorem veblen_zero_is_normal {f : ordinal → ordinal} (hf : is_normal f) :
+theorem veblen_monotone {f : ordinal → ordinal} (hf : is_normal f) (o) :
+  monotone (λ a, veblen f a o) :=
+begin
+  intros b c hbc,dsimp,
+  rcases eq_zero_or_pos b with rfl | hb,
+  {
+    rw veblen_zero,
+    apply (self_le_deriv f o).trans,
+  }
+end
+
+theorem veblen_zero_is_normal {f : ordinal → ordinal} (hf : is_normal f) (hf₀ : f 0 ≠ 0) :
   is_normal (λ a, veblen f a 0) :=
 begin
-  sorry
+  split,{
+    intro o,
+    have ho := veblen_is_normal hf o,
+    simp_rw veblen_succ hf,
+    rw [deriv_zero, ←ho.nfp_fp],
+    apply ho.strict_mono ((ordinal.pos_iff_ne_zero.2 (λ h, hf₀ _)).trans_le (iterate_le_nfp _ 0 1)),
+    have := veblen_fp_lt_of_fp hf h (ordinal.zero_le o),
+    rwa veblen_zero at this
+  },
+  {
+intros o ho a,dsimp,split,{
+  intros ha b hb,
+}
+  }
 end
 
 end ordinal

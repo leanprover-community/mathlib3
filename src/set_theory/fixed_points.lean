@@ -611,6 +611,11 @@ begin
   exact enum_ord_univ
 end
 
+theorem self_le_deriv {f : ordinal → ordinal} (hf : is_normal f) (o) : f o ≤ deriv f o :=
+begin
+  rw deriv_eq_enum_ord hf,
+end
+
 -- another PR
 theorem deriv_le_of_fp_subset {f g : ordinal → ordinal} (hf : is_normal f) (hg : is_normal g)
   (H : ∀ o, f o = o → g o = o) (a) : deriv g a ≤ deriv f a :=

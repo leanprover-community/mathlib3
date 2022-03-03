@@ -313,9 +313,9 @@ lemma map_mem_span_algebra_map_image {S T : Type*} [comm_semiring S] [semiring T
   (x : S) (a : set S) (hx : x ∈ submodule.span R a) :
   algebra_map S T x ∈ submodule.span R (algebra_map S T '' a) :=
 begin
-  rw [← algebra.coe_linear_map, ← linear_map.coe_restrict_scalars R, ← submodule.map_span],
+  rw [← algebra.coe_linear_map, ←(algebra.linear_map S T).coe_restrict_scalars R,
+    ← submodule.map_span],
   exact submodule.mem_map_of_mem hx,
-  all_goals { apply_instance }
 end
 
 end submodule

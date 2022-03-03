@@ -14,25 +14,6 @@ import tactic.by_contra
 
 open_locale nnreal big_operators polynomial
 
-namespace int
-
--- #12382, awaiting master merge
-lemma dvd_div_of_mul_dvd {a b c : ℤ} (h : a * b ∣ c) : b ∣ c / a :=
-begin
-  rcases eq_or_ne a 0 with rfl | ha,
-  { simp only [int.div_zero, dvd_zero] },
-  rcases h with ⟨d, rfl⟩,
-  refine ⟨d, _⟩,
-  rw [mul_assoc, int.mul_div_cancel_left _ ha],
-end
-
-end int
-
--- #12383, awaiting master merge
-lemma finset.prod_dvd_prod_of_subset {ι M : Type*} [comm_monoid M] (s t : finset ι) (f : ι → M)
-  (h : s ⊆ t) : ∏ i in s, f i ∣ ∏ i in t, f i :=
-multiset.prod_dvd_prod_of_le $ multiset.map_le_map $ by simpa
-
 section pr12428
 
 @[simp] lemma complex.nnnorm_coe_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=

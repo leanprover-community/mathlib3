@@ -68,128 +68,6 @@ subsemigroup, range, product, map, comap
 
 variables {M N P : Type*}
 
-namespace mul_hom
-
--- TODO: put algebra.group.hom
-/-- Given two mul morphisms `f`, `g` to a commutative semigroup, `f * g` is the mul morphism
-sending `x` to `f x * g x`. -/
-@[to_additive]
-instance [has_mul M] [comm_semigroup N] : has_mul (mul_hom M N) :=
-⟨λ f g,
-  { to_fun := λ m, f m * g m,
-    map_mul' := begin intros, show f (x * y) * g (x * y) = f x * g x * (f y * g y),
-      rw [f.map_mul, g.map_mul, ←mul_assoc, ←mul_assoc, mul_right_comm (f x)], end }⟩
-
-/-- Given two additive morphisms `f`, `g` to an additive commutative semigroup, `f + g` is the
-additive morphism sending `x` to `f x + g x`. -/
-add_decl_doc add_hom.has_add
-
-@[simp, to_additive] lemma mul_apply {M N} {mM : has_mul M} {mN : comm_semigroup N}
-  (f g : mul_hom M N) (x : M) :
-  (f * g) x = f x * g x := rfl
-
-@[to_additive] lemma mul_comp [has_mul M] [comm_semigroup N] [comm_semigroup P]
-  (g₁ g₂ : mul_hom N P) (f : mul_hom M N) :
-  (g₁ * g₂).comp f = g₁.comp f * g₂.comp f := rfl
-@[to_additive] lemma comp_mul [has_mul M] [comm_semigroup N] [comm_semigroup P]
-  (g : mul_hom N P) (f₁ f₂ : mul_hom M N) :
-  g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
-by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
-
-section prod
-
-variables (M N) [has_mul M] [has_mul N] [has_mul P]
--- TODO: put in algebra.group.prod
-
-/-- Given magmas `M`, `N`, the natural projection homomorphism from `M × N` to `M`.-/
-@[to_additive "Given additive magmas `A`, `B`, the natural projection homomorphism
-from `A × B` to `A`"]
-def fst : mul_hom (M × N) M := ⟨prod.fst, λ _ _, rfl⟩
-
-/-- Given magmas `M`, `N`, the natural projection homomorphism from `M × N` to `N`.-/
-@[to_additive "Given additive magmas `A`, `B`, the natural projection homomorphism
-from `A × B` to `B`"]
-def snd : mul_hom (M × N) N := ⟨prod.snd, λ _ _, rfl⟩
-
-variables {M N}
-
-@[simp, to_additive] lemma coe_fst : ⇑(fst M N) = prod.fst := rfl
-@[simp, to_additive] lemma coe_snd : ⇑(snd M N) = prod.snd := rfl
-
-/-- Combine two `monoid_hom`s `f : mul_hom M N`, `g : mul_hom M P` into
-`f.prod g : mul_hom M (N × P)` given by `(f.prod g) x = (f x, g x)`. -/
-@[to_additive prod "Combine two `add_monoid_hom`s `f : add_hom M N`, `g : add_hom M P` into
-`f.prod g : add_hom M (N × P)` given by `(f.prod g) x = (f x, g x)`"]
-protected def prod (f : mul_hom M N) (g : mul_hom M P) : mul_hom M (N × P) :=
-{ to_fun := pi.prod f g,
-  map_mul' := λ x y, prod.ext (f.map_mul x y) (g.map_mul x y) }
-
-@[to_additive coe_prod]
-lemma coe_prod (f : mul_hom M N) (g : mul_hom M P) : ⇑(f.prod g) = pi.prod f g := rfl
-
-@[simp, to_additive prod_apply]
-lemma prod_apply (f : mul_hom M N) (g : mul_hom M P) (x) : f.prod g x = (f x, g x) := rfl
-
-@[simp, to_additive fst_comp_prod]
-lemma fst_comp_prod (f : mul_hom M N) (g : mul_hom M P) : (fst N P).comp (f.prod g) = f :=
-ext $ λ x, rfl
-
-@[simp, to_additive snd_comp_prod]
-lemma snd_comp_prod (f : mul_hom M N) (g : mul_hom M P) : (snd N P).comp (f.prod g) = g :=
-ext $ λ x, rfl
-
-@[simp, to_additive prod_unique]
-lemma prod_unique (f : mul_hom M (N × P)) :
-  ((fst N P).comp f).prod ((snd N P).comp f) = f :=
-ext $ λ x, by simp only [prod_apply, coe_fst, coe_snd, comp_apply, prod.mk.eta]
-
-end prod
-
-section prod_map
-
-variables {M' : Type*} {N' : Type*} [has_mul M] [has_mul N] [has_mul M'] [has_mul N'] [has_mul P]
-  (f : mul_hom M M') (g : mul_hom N N')
-
-/-- `prod.map` as a `monoid_hom`. -/
-@[to_additive prod_map "`prod.map` as an `add_monoid_hom`"]
-def prod_map : mul_hom (M × N) (M' × N') := (f.comp (fst M N)).prod (g.comp (snd M N))
-
-@[to_additive prod_map_def]
-lemma prod_map_def : prod_map f g = (f.comp (fst M N)).prod (g.comp (snd M N)) := rfl
-
-@[simp, to_additive coe_prod_map]
-lemma coe_prod_map : ⇑(prod_map f g) = prod.map f g := rfl
-
-@[to_additive prod_comp_prod_map]
-lemma prod_comp_prod_map (f : mul_hom P M) (g : mul_hom P N)
-  (f' : mul_hom M M') (g' : mul_hom N N') :
-  (f'.prod_map g').comp (f.prod g) = (f'.comp f).prod (g'.comp g) :=
-rfl
-
-end prod_map
-
-section coprod
-
-variables [has_mul M] [has_mul N] [comm_semigroup P] (f : mul_hom M P) (g : mul_hom N P)
-
-/-- Coproduct of two `mul_hom`s with the same codomain:
-`f.coprod g (p : M × N) = f p.1 * g p.2`. -/
-@[to_additive "Coproduct of two `add__hom`s with the same codomain:
-`f.coprod g (p : M × N) = f p.1 + g p.2`."]
-def coprod : mul_hom (M × N) P := f.comp (fst M N) * g.comp (snd M N)
-
-@[simp, to_additive]
-lemma coprod_apply (p : M × N) : f.coprod g p = f p.1 * g p.2 := rfl
-
-@[to_additive] --TODO: add to_additive in group_theory.submonoid.operations
-lemma comp_coprod {Q : Type*} [comm_semigroup Q]
-  (h : mul_hom P Q) (f : mul_hom M P) (g : mul_hom N P) :
-  h.comp (f.coprod g) = (h.comp f).coprod (h.comp g) :=
-ext $ λ x, by simp
-
-end coprod
-
-end mul_hom
 /-!
 ### Conversion to/from `additive`/`multiplicative`
 -/
@@ -379,7 +257,8 @@ lemma map_comap_map {f : mul_hom M N} : ((S.map f).comap f).map f = S.map f :=
 (gc_map_comap f).l_u_l_eq_l _
 
 @[simp, to_additive]
-lemma comap_map_comap {S : subsemigroup N} {f : mul_hom M N} : ((S.comap f).map f).comap f = S.comap f :=
+lemma comap_map_comap {S : subsemigroup N} {f : mul_hom M N} :
+  ((S.comap f).map f).comap f = S.comap f :=
 (gc_map_comap f).u_l_u_eq_u _
 
 @[to_additive]
@@ -392,7 +271,8 @@ lemma map_supr {ι : Sort*} (f : mul_hom M N) (s : ι → subsemigroup M) :
 (gc_map_comap f).l_supr
 
 @[to_additive]
-lemma comap_inf (S T : subsemigroup N) (f : mul_hom M N) : (S ⊓ T).comap f = S.comap f ⊓ T.comap f :=
+lemma comap_inf (S T : subsemigroup N) (f : mul_hom M N) :
+  (S ⊓ T).comap f = S.comap f ⊓ T.comap f :=
 (gc_map_comap f).u_inf
 
 @[to_additive]

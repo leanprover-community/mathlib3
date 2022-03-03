@@ -226,7 +226,8 @@ variable {S}
 open set
 
 /-- A subsemigroup `S` includes `closure s` if and only if it includes `s`. -/
-@[simp, to_additive "An additive subsemigroup `S` includes `closure s` if and only if it includes `s`"]
+@[simp, to_additive
+  "An additive subsemigroup `S` includes `closure s` if and only if it includes `s`"]
 lemma closure_le : closure s ≤ S ↔ s ⊆ S :=
 ⟨subset.trans subset_closure, λ h, Inf_le h⟩
 

@@ -1449,7 +1449,7 @@ begin
     obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm'.ne',
     obtain ⟨l, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn'.ne',
     simp only [set.mem_Iic, ←pnat.coe_le_coe, pnat.mk_coe, nat.le_find_iff, ne.def, not_exists,
-               not_and, nat.to_pnat'_coe, nat.find_pos, not_lt_zero', false_and, exists_false,
+               not_and, nat.to_pnat'_coe, nat.find_pos, @not_lt_zero' ℕ, false_and, exists_false,
                not_false_iff, if_true, exists_and_distrib_left] at hm hn hmn,
     rcases lt_trichotomy k l with H|rfl|H,
     { refine absurd hmn _,
@@ -1458,16 +1458,14 @@ begin
     { refine absurd hmn.symm _,
       exact hm l.succ (nat.succ_lt_succ H) l.succ_pos k.succ k.succ_pos (nat.succ_lt_succ H).ne } },
   refine ⟨i, i.to_pnat', _, hs, _⟩,
-  sorry,
-  sorry,
-  -- { simp },
-  -- sorry,
-  -- intros k hk,
-  -- rw ←hi at h'',
-  -- obtain ⟨hi', j, hj, hne, hij⟩ := h'',
-  -- cases positive_or_negative x with hx hx;
-  -- { refine hx.pnpow_eq_of_eq hij _ _ hk,
-  --   simp [subtype.ext_iff, hj, hne] }
+  { simp only [nat.to_pnat'_coe, nat.find_pos, @not_lt_zero' ℕ, false_and, not_false_iff,
+               if_true] },
+  intros k hk,
+  rw ←hi at h'',
+  obtain ⟨hi', j, hj, hne, hij⟩ := h'',
+  cases positive_or_negative x with hx hx;
+  { refine hx.pnpow_eq_of_eq hij _ _ hk,
+    simp [subtype.ext_iff, hj, hne, @not_lt_zero' ℕ] }
 end
 
 end page184

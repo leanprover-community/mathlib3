@@ -907,6 +907,10 @@ begin
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_omega, omega_pos, zero_mul, mul_zero]
 end
 
+lemma omega_le_mul_iff {a b : cardinal} : ω ≤ a * b ↔ a ≠ 0 ∧ b ≠ 0 ∧ (ω ≤ a ∨ ω ≤ b) :=
+let h := (@mul_lt_omega_iff a b).not in
+by rwa [not_lt, not_or_distrib, not_or_distrib, not_and_distrib, not_lt, not_lt] at h
+
 lemma mul_lt_omega_iff_of_ne_zero {a b : cardinal} (ha : a ≠ 0) (hb : b ≠ 0) :
   a * b < ω ↔ a < ω ∧ b < ω :=
 by simp [mul_lt_omega_iff, ha, hb]

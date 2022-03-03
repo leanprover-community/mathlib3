@@ -65,6 +65,14 @@ alg_equiv.of_alg_hom involute involute
 @[simp] lemma ι_range_comap_involute : (ι Q).range.comap involute.to_linear_map = (ι Q).range :=
 (submodule.comap_equiv_eq_map_symm involute_equiv.to_linear_equiv _).trans ι_range_map_involute
 
+@[simp] lemma even_odd_map_involute (n : zmod 2) :
+  (even_odd Q n).map involute.to_linear_map = (even_odd Q n) :=
+by simp_rw [even_odd, submodule.map_supr, submodule.map_pow, ι_range_map_involute]
+
+@[simp] lemma even_odd_comap_involute (n : zmod 2) :
+  (even_odd Q n).comap involute.to_linear_map = (even_odd Q n) :=
+(submodule.comap_equiv_eq_map_symm involute_equiv.to_linear_equiv _).trans (even_odd_map_involute n)
+
 lemma involute_mem_range_ι_pow {x : clifford_algebra Q} {n : ℕ} (hx : x ∈ (ι Q).range ^ n) :
   involute x ∈ (ι Q).range ^ n :=
 begin
@@ -82,20 +90,9 @@ end
   involute x ∈ (ι Q).range ^ n ↔ x ∈ (ι Q).range ^ n :=
 ⟨λ h, involute_involute x ▸ involute_mem_range_ι_pow h, involute_mem_range_ι_pow⟩
 
-lemma involute_mem_even_odd {x : clifford_algebra Q} {n : zmod 2} (hx : x ∈ even_odd Q n) :
-  involute x ∈ even_odd Q n :=
-begin
-  apply submodule.supr_induction _ hx _ _ (λ x y, _) ,
-  { rintros i x hx,
-    rw ← involute_mem_range_ι_pow_iff at hx,
-    exact submodule.mem_supr_of_mem _ hx },
-  { rw map_zero, exact submodule.zero_mem _ },
-  { rw map_add, exact submodule.add_mem _ },
-end
-
 @[simp] lemma involute_mem_even_odd_iff {x : clifford_algebra Q} {n : zmod 2} :
   involute x ∈ even_odd Q n ↔ x ∈ even_odd Q n :=
-⟨λ h, involute_involute x ▸ involute_mem_even_odd h, involute_mem_even_odd⟩
+iff.trans (by refl) $ set_like.ext_iff.mp (even_odd_comap_involute n) x
 
 end involute
 

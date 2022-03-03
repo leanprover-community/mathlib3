@@ -104,18 +104,18 @@ instance ring_hom_isometric.star_ring_end [normed_comm_ring E] [star_ring E]
 
 namespace cstar_ring
 variables [normed_ring E] [star_ring E] [cstar_ring E]
-
-lemma norm_star_le {x : E} (htriv : x ≠ 0) : ∥x⋆∥ ≤ ∥x∥ :=
-le_of_mul_le_mul_right (by simp [← norm_star_mul_self, norm_mul_le])
-  (norm_pos_iff.mpr ((add_equiv.map_ne_zero_iff star_add_equiv).mpr htriv))
-
+.
 /-- In a C*-ring, star preserves the norm. -/
 @[priority 100] -- see Note [lower instance priority]
 instance to_normed_star_monoid : normed_star_monoid E :=
 ⟨λ x, begin
-  by_cases htriv : x = 0,
-  { simp only [htriv, star_zero] },
-  { exact le_antisymm (norm_star_le htriv) (norm_star_le (star_ne_zero.mpr htriv)) }
+  have n_le : ∀ {x : E}, ∥x⋆∥ ≤ ∥x∥,
+  { intros y,
+    by_cases y0 : y = 0,
+    { simp [y0] },
+    { exact le_of_mul_le_mul_right (by simp [← norm_star_mul_self, norm_mul_le])
+        (norm_pos_iff.mpr (star_ne_zero.mpr y0)) } },
+  exact n_le.antisymm ((congr_arg _ (star_star _)).ge.trans n_le)
 end⟩
 
 lemma norm_self_mul_star {x : E} : ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=

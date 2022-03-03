@@ -205,10 +205,10 @@ variables {R}
 
 @[simp]
 lemma star_eq_zero [add_monoid R] [star_add_monoid R] {x : R} : star x = 0 ↔ x = 0 :=
-by { nth_rewrite 0 ← star_zero, exact ⟨λ h, star_injective h, λ h, star_injective (by simpa)⟩ }
+star_add_equiv.map_eq_zero_iff
 
 lemma star_ne_zero [add_monoid R] [star_add_monoid R] {x : R} : star x ≠ 0 ↔ x ≠ 0 :=
-by simp only [ne.def, star_eq_zero]
+star_eq_zero.not
 
 @[simp] lemma star_neg [add_group R] [star_add_monoid R] (r : R) : star (-r) = - star r :=
 (star_add_equiv : R ≃+ R).map_neg _

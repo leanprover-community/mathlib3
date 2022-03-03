@@ -122,6 +122,14 @@ by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*),
 
 end pi
 
+namespace mul_hom
+
+@[to_additive] lemma coe_mul {M N} {mM : has_mul M} {mN : comm_semigroup N}
+  (f g : mul_hom M N) :
+  (f * g : M → N) = λ x, f x * g x := rfl
+
+end mul_hom
+
 section monoid_hom
 
 variables (f) [Π i, mul_one_class (f i)]

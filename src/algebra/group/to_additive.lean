@@ -387,7 +387,7 @@ There are some exceptions to this heuristic:
   declaration when the first argument has no multiplicative type-class, but argument `n` does.
 * If an identifier has attribute `@[to_additive_ignore_args n1 n2 ...]` then all the arguments in
   positions `n1`, `n2`, ... will not be checked for unapplied identifiers (start counting from 1).
-  For example, `times_cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means
+  For example, `cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means
   that its 21st argument `(n : with_top ℕ)` can contain `ℕ`
   (usually in the form `has_top.top ℕ ...`) and still be additivized.
   So `@has_mul.mul (C^∞⟮I, N; I', G⟯) _ f g` will be additivized.

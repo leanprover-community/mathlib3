@@ -6,6 +6,7 @@ Authors: Stuart Presnell
 import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
+import tactic.linarith
 
 /-!
 # Prime factorizations
@@ -224,7 +225,7 @@ begin
     set K := n.factorization - d.factorization with hK,
     use K.prod pow,
     rw [←factorization_prod_pow_eq_self hn, ←factorization_prod_pow_eq_self hd,
-        ←finsupp.prod_add_index pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
+        ←finsupp.prod_add_index' pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
 end
 

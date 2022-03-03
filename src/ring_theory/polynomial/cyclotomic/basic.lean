@@ -438,19 +438,32 @@ begin
   simp [hd, hdn, hn.ne']
 end
 
+lemma X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd (R) [comm_ring R] {d n : ℕ}
+  (hd : d ∣ n) (hdn : d < n) :
+  (X ^ d - 1) * ∏ x in n.divisors \ d.divisors, cyclotomic x R = X ^ n - 1 :=
+begin
+  rcases n.eq_zero_or_pos with rfl | h0n,
+  { exact (d.not_lt_zero hdn).elim },
+  rcases d.eq_zero_or_pos with rfl | h0d,
+  { exfalso, linarith [eq_zero_of_zero_dvd hd] },
+  rw [←prod_cyclotomic_eq_X_pow_sub_one h0d, ←prod_cyclotomic_eq_X_pow_sub_one h0n,
+      mul_comm, finset.prod_sdiff (nat.divisors_subset_of_dvd h0n.ne' hd)]
+end
+
 lemma X_pow_sub_one_mul_cyclotomic_dvd_X_pow_sub_one_of_dvd (R) [comm_ring R] {d n : ℕ}
   (hd : d ∣ n) (hdn : d < n) : (X ^ d - 1) * cyclotomic n R ∣ X ^ n - 1 :=
 begin
-  rcases n.eq_zero_or_pos with rfl | h0n,
-  { simp },
-  rcases d.eq_zero_or_pos with rfl | h0d,
-  { linarith [eq_zero_of_zero_dvd hd] },
-  rw [←prod_cyclotomic_eq_X_pow_sub_one h0d, ←prod_cyclotomic_eq_X_pow_sub_one h0n,
-      mul_comm, ←finset.prod_insert $ λ h, hdn.not_le $ nat.divisor_le h],
-  refine finset.prod_dvd_prod_of_subset _ _ _ (λ k hk, _),
-  rcases finset.mem_insert.mp hk with (rfl | hkd),
-  { exact k.mem_divisors_self h0n.ne' },
-  { exact nat.divisors_subset_of_dvd h0n.ne' hd hkd }
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { exact (d.not_lt_zero hdn).elim },
+  use ∏ x in n.proper_divisors \ d.divisors, cyclotomic x R,
+  symmetry,
+  convert X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd R hd hdn using 1,
+  rw mul_assoc,
+  congr' 1,
+  rw [nat.divisors_eq_proper_divisors_insert_self_of_pos hn,
+      finset.insert_sdiff_of_not_mem, finset.prod_insert],
+  { exact finset.not_mem_sdiff_of_not_mem_left nat.proper_divisors.not_self_mem },
+  { exact λ h, hdn.not_le $ nat.divisor_le h }
 end
 
 lemma _root_.is_root_of_unity_iff {n : ℕ} (h : 0 < n) (R : Type*) [comm_ring R] [is_domain R]

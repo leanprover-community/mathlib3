@@ -233,6 +233,13 @@ protected theorem tendsto_nhds {f : filter α} {u : α → ℝ≥0∞} {a : ℝ�
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, (u x) ∈ Icc (a - ε) (a + ε) :=
 by simp only [nhds_of_ne_top ha, tendsto_infi, tendsto_principal, mem_Icc]
 
+protected lemma tendsto_nhds_zero {f : filter α} {u : α → ℝ≥0∞} :
+  tendsto u f (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in f, u x ≤ ε :=
+begin
+  rw ennreal.tendsto_nhds zero_ne_top,
+  simp only [true_and, zero_tsub, zero_le, zero_add, set.mem_Icc],
+end
+
 protected lemma tendsto_at_top [nonempty β] [semilattice_sup β] {f : β → ℝ≥0∞} {a : ℝ≥0∞}
   (ha : a ≠ ⊤) : tendsto f at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, (f n) ∈ Icc (a - ε) (a + ε) :=
 by simp only [ennreal.tendsto_nhds ha, mem_at_top_sets, mem_set_of_eq, filter.eventually]
@@ -454,7 +461,7 @@ end⟩
 
 @[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
   tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=
-⟨λ h, by simpa only [function.comp, ennreal.inv_inv]
+⟨λ h, by simpa only [function.comp, inv_inv]
   using (ennreal.continuous_inv.tendsto a⁻¹).comp h,
   (ennreal.continuous_inv.tendsto a).comp⟩
 

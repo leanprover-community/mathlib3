@@ -13,32 +13,52 @@ bornologies in terms of those, we recognize that the cobounded sets form a filte
 bornology as a filter of cobounded sets which contains the cofinite filter.  This allows us to make
 use of the extensive library for filters, but we also provide the relevant connecting results for
 bounded sets.
+
+The specification of a bornology in terms of the cobounded filter is equivalent to the standard
+one (e.g., see [Bourbaki, *Topological Vector Spaces*][bourbaki1987], **covering bornology**, now
+often called simply **bornology**) in terms of bounded sets (see `bornology.of_bounded`,
+`is_bounded.union`, `is_bounded.subset`), except that we do not allow the empty bornology (that is,
+we require that *some* set must be bounded; equivalently, `∅` is bounded). In the literature the
+cobounded filter is generally referred to as the *filter at infinity*.
+
+## Main definitions
+
+- `bornology α`: a class consisting of `cobounded : filter α` and a proof that this filter
+  contains the `cofinite` filter.
+- `bornology.is_cobounded`: the predicate that a set is a member of the `cobounded α` filter. For
+  `s : set α`, one should prefer `bornology.is_cobounded s` over `s ∈ cobounded α`.
+- `bornology.is_bounded`: the predicate that states a set is bounded (i.e., the complement of a
+  cobounded set). One should prefer `bornology.is_bounded s` over `sᶜ ∈ cobounded α`.
+- `bounded_space α`: a class extending `bornology α` with the condition
+  `bornology.is_bounded (set.univ : set α)`
+
+Although use of `cobounded α` is discouraged for indicating the (co)boundedness of individual sets,
+it is intended for regular use as a filter on `α`.
 -/
 
 open set filter
 
 variables {α β : Type*}
 
-
 /-- A **bornology** on a type `α` is a filter of cobounded sets which contains the cofinite filter.
 Such spaces are equivalently specified by their bounded sets, see `bornology.of_bounded`
-and `bornology.eq_iff_is_bounded`-/
+and `bornology.ext_iff_is_bounded`-/
 @[ext]
 class bornology (α : Type*) :=
 (cobounded [] : filter α)
 (le_cofinite [] : cobounded ≤ cofinite)
 
-attribute [class] bornology
 
 /-- A constructor for bornologies by specifying the bounded sets,
 and showing that they satisfy the appropriate conditions. -/
+@[simps]
 def bornology.of_bounded {α : Type*} (B : set (set α))
   (empty_mem : ∅ ∈ B) (subset_mem : ∀ s₁ ∈ B, ∀ s₂ : set α, s₂ ⊆ s₁ → s₂ ∈ B)
   (union_mem : ∀ s₁ s₂ ∈ B, s₁ ∪ s₂ ∈ B) (sUnion_univ : ⋃₀ B = univ) :
   bornology α :=
 { cobounded :=
   { sets := {s : set α | sᶜ ∈ B},
-    univ_sets := by { rwa ←compl_univ at empty_mem },
+    univ_sets := by rwa ←compl_univ at empty_mem,
     sets_of_superset := λ x y hx hy, subset_mem xᶜ hx yᶜ (compl_subset_compl.mpr hy),
     inter_sets := λ x y hx hy, by simpa [compl_inter] using union_mem xᶜ hx yᶜ hy, },
   le_cofinite :=
@@ -90,15 +110,11 @@ univ_subset_iff.mp $ λ x hx, mem_sUnion_of_mem (mem_singleton x)
 
 end
 
-end bornology
-
-namespace bornology
-
-lemma eq_iff {t t' : bornology α} :
+lemma ext_iff' {t t' : bornology α} :
   t = t' ↔ ∀ s, (@cobounded α t).sets s ↔ (@cobounded α t').sets s :=
-⟨λ h s, h ▸ iff.rfl, λ h, by { ext, exact h _ }⟩
+⟨λ h s, h ▸ iff.rfl, λ h, by { ext, exact h _ } ⟩
 
-lemma eq_iff_is_bounded {t t' : bornology α} :
+lemma ext_iff_is_bounded {t t' : bornology α} :
   t = t' ↔ ∀ s, @is_bounded α t s ↔ @is_bounded α t' s :=
 ⟨λ h s, h ▸ iff.rfl, λ h, by { ext, simpa only [is_bounded_def, compl_compl] using h sᶜ, }⟩
 

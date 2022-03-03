@@ -67,7 +67,7 @@ instance : borel_space circle := ⟨rfl⟩
 
 /-- Haar measure on the circle, normalized to have total measure 1. -/
 @[derive is_haar_measure]
-def haar_circle : measure circle := haar_measure positive_compacts_univ
+def haar_circle : measure circle := haar_measure ⊤
 
 instance : is_probability_measure haar_circle := ⟨haar_measure_self⟩
 
@@ -85,7 +85,7 @@ section monomials
 continuous maps from `circle` to `ℂ`. -/
 @[simps] def fourier (n : ℤ) : C(circle, ℂ) :=
 { to_fun := λ z, z ^ n,
-  continuous_to_fun := continuous_subtype_coe.zpow n $ λ z, or.inl (ne_zero_of_mem_circle z) }
+  continuous_to_fun := continuous_subtype_coe.zpow₀ n $ λ z, or.inl (ne_zero_of_mem_circle z) }
 
 @[simp] lemma fourier_zero {z : circle} : fourier 0 z = 1 := rfl
 
@@ -205,7 +205,7 @@ begin
   have hij : -i + j ≠ 0,
   { rw add_comm,
     exact sub_ne_zero.mpr (ne.symm h) },
-  exact integral_zero_of_mul_left_eq_neg (fourier_add_half_inv_index hij)
+  exact integral_eq_zero_of_mul_left_eq_neg (fourier_add_half_inv_index hij)
 end
 
 end monomials

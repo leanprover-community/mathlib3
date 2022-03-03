@@ -883,7 +883,6 @@ Here we build the cone, and show in `split_mono_equalizes` that it is a limit co
 def cone_of_split_mono : cone (parallel_pair (𝟙 Y) (retraction f ≫ f)) :=
 fork.of_ι f (by simp)
 
-
 /--
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
 -/
@@ -894,6 +893,14 @@ fork.is_limit.mk' _ $ λ s,
  λ m hm, by simp [←hm]⟩
 
 end
+
+/-- We show that the converse to `split_mono_equalizes` is true:
+Whenever `f` equalizes `(r ≫ f)` and `(𝟙 Y)`, `r` is the retraction of `f`. -/
+def split_mono_of_equalizer {X Y : C} (f : X ⟶ Y) (r : Y ⟶ X) (hr : f ≫ r ≫ f = f)
+  (h : is_limit (fork.of_ι f (eq.trans hr (eq.symm (category.comp_id _)) : f ≫ r ≫ f = f ≫ 𝟙 Y))) :
+  split_mono f :=
+{ retraction := r,
+  id' := fork.is_limit.hom_ext h (by { rw [category.assoc, category.id_comp], exact hr }) }
 
 section
 -- In this section we show that a split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.

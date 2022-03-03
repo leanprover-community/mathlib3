@@ -7,6 +7,7 @@ Authors: Frédéric Dupuis
 import analysis.normed.group.hom
 import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
+import algebra.star.self_adjoint
 import algebra.star.unitary
 
 /-!
@@ -34,8 +35,9 @@ open_locale topological_space
 
 local postfix `⋆`:std.prec.max_plus := star
 
-/-- A normed star ring is a star ring endowed with a norm such that `star` is isometric. -/
-class normed_star_monoid (E : Type*) [normed_group E] [star_add_monoid E] :=
+/-- A normed star monoid is an additive monoid with a star,
+endowed with a norm such that `star` is isometric. -/
+class normed_star_monoid (E : Type*) [normed_group E] [star_add_monoid E] : Prop :=
 (norm_star : ∀ {x : E}, ∥x⋆∥ = ∥x∥)
 
 export normed_star_monoid (norm_star)
@@ -43,10 +45,10 @@ attribute [simp] norm_star
 
 /-- A C*-ring is a normed star ring that satifies the stronger condition `∥x⋆ * x∥ = ∥x∥^2`
 for every `x`. -/
-class cstar_ring (E : Type*) [normed_ring E] [star_ring E] :=
+class cstar_ring (E : Type*) [normed_ring E] [star_ring E] : Prop :=
 (norm_star_mul_self : ∀ {x : E}, ∥x⋆ * x∥ = ∥x∥ * ∥x∥)
 
-noncomputable instance : cstar_ring ℝ :=
+instance : cstar_ring ℝ :=
 { norm_star_mul_self := λ x, by simp only [star, id.def, norm_mul] }
 
 variables {𝕜 E α : Type*}
@@ -128,6 +130,13 @@ by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
 lemma norm_star_mul_self' {x : E} : ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
 by rw [norm_star_mul_self, norm_star]
 
+lemma nnnorm_star_mul_self {x : E} : ∥x⋆ * x∥₊ = ∥x∥₊ * ∥x∥₊ :=
+begin
+  have : (∥x⋆ * x∥₊ : ℝ) = ∥x∥₊ * ∥x∥₊,
+    by simpa only [←coe_nnnorm] using @norm_star_mul_self _ _ _ _ x,
+  exact_mod_cast this,
+end
+
 @[simp] lemma norm_one [nontrivial E] : ∥(1 : E)∥ = 1 :=
 begin
   have : 0 < ∥(1 : E)∥ := norm_pos_iff.mpr one_ne_zero,
@@ -173,6 +182,20 @@ lemma norm_mul_mem_unitary (A : E) {U : E} (hU : U ∈ unitary E) : ∥A * U∥ 
 norm_mul_coe_unitary A ⟨U, hU⟩
 
 end cstar_ring
+
+lemma nnnorm_pow_two_pow_of_self_adjoint [normed_ring E] [star_ring E] [cstar_ring E]
+  {x : E} (hx : x ∈ self_adjoint E) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
+begin
+  induction n with k hk,
+  { simp only [pow_zero, pow_one] },
+  { rw [pow_succ, pow_mul', sq],
+    nth_rewrite 0 ←(self_adjoint.mem_iff.mp hx),
+    rw [←star_pow, cstar_ring.nnnorm_star_mul_self, ←sq, hk, pow_mul'] },
+end
+
+lemma self_adjoint.nnnorm_pow_two_pow [normed_ring E] [star_ring E] [cstar_ring E]
+  (x : self_adjoint E) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
+nnnorm_pow_two_pow_of_self_adjoint x.property _
 
 section starₗᵢ
 

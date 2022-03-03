@@ -968,7 +968,7 @@ by rw [mul_comm, (div_mul_cancel _ hb)]
 
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
-lemma div_mul_div (a b c d : G₀) :
+lemma div_mul_div_comm₀ (a b c d : G₀) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
 by simp [div_eq_mul_inv, mul_inv₀]
 
@@ -981,7 +981,7 @@ by simp [div_eq_mul_inv]
 
 lemma div_mul_eq_mul_div_comm (a b c : G₀) :
       (b / c) * a = b * (a / c) :=
-by rw [div_mul_eq_mul_div, ← one_mul c, ← div_mul_div, div_one, one_mul]
+by rw [div_mul_eq_mul_div, ← one_mul c, ← div_mul_div_comm₀, div_one, one_mul]
 
 lemma mul_eq_mul_of_div_eq_div (a : G₀) {b : G₀} (c : G₀) {d : G₀} (hb : b ≠ 0)
       (hd : d ≠ 0) (h : a / b = c / d) : a * d = c * b :=
@@ -990,7 +990,7 @@ by rw [← mul_one (a*d), mul_assoc, mul_comm d, ← mul_assoc, ← div_self hb,
 
 @[field_simps] lemma div_div_eq_div_mul (a b c : G₀) :
       (a / b) / c = a / (b * c) :=
-by rw [div_eq_mul_one_div, div_mul_div, mul_one]
+by rw [div_eq_mul_one_div, div_mul_div_comm₀, mul_one]
 
 lemma div_div_div_div_eq (a : G₀) {b c d : G₀} :
       (a / b) / (c / d) = (a * d) / (b * c) :=

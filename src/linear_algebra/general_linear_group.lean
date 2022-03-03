@@ -82,7 +82,6 @@ section coe_lemmas
 
 variables (A B : GL n R)
 
-
 @[simp] lemma coe_mul : ↑(A * B) = (↑A : matrix n n R) ⬝ (↑B : matrix n n R) := rfl
 
 @[simp] lemma coe_one : ↑(1 : GL n R) = (1 : matrix n n R) := rfl

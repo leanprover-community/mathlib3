@@ -11,7 +11,7 @@ import ring_theory.integral_domain
 # Cardinality of localizations
 
 In this file, we establish the cardinality of localizations. In most cases, a localization has
-cardinality equal to the base ring. If there is zero-divisors, however, this is no longer true -
+cardinality equal to the base ring. If there are zero-divisors, however, this is no longer true -
 for example, `zmod 6` localized at `{2, 4}` is equal to `zmod 3`, and if you have zero in your
 submonoid, then your localization is trivial (see `is_localization.unique_of_zero_mem`).
 

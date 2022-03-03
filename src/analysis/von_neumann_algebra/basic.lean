@@ -42,8 +42,7 @@ open_locale inner_product
 
 /-- The centralizer of a subsemiring. -/
 def subsemiring.centralizer {A : Type u} [semiring A] (B : subsemiring A) : subsemiring A :=
-{ -- change to `set.centralizer (B : set A)` when #11946 lands.
-  carrier := { x : A | ∀ y ∈ B, x * y = y * x },
+{ carrier := set.centralizer (B : set A),
   zero_mem' := by { intros y h, simp, },
   one_mem' := by { intros y h, simp, },
   mul_mem' := λ a b ha hb c mc, by rw [mul_assoc, hb _ mc, ←mul_assoc, ha _ mc, mul_assoc],
@@ -77,7 +76,7 @@ instance : set_like (star_subalgebra R A) A :=
 ⟨star_subalgebra.carrier, λ p q h, by cases p; cases q; congr'⟩
 
 instance (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
-  [semiring A] [star_ring A] [algebra R A] [star_module R A] : inhabited (star_subalgebra R A) :=
+  [semiring A] [star_ring A] [algebra R A] [star_module R A] : has_top (star_subalgebra R A) :=
 ⟨{ star_mem' := by tidy, ..(⊤ : subalgebra R A) }⟩
 
 end star_subalgebra

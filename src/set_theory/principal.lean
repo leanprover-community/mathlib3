@@ -94,8 +94,7 @@ end
 
 theorem principal_nfp_blsub₂ (op : ordinal → ordinal → ordinal) (o : ordinal) :
   principal op (nfp (blsub₂.{u u} op) o) :=
-begin
-  intros a b ha hb,
+λ a b ha hb, begin
   rw lt_nfp at *,
   cases ha with m hm,
   cases hb with n hn,
@@ -233,8 +232,7 @@ theorem principal_mul_one : principal (*) 1 :=
 by { rw principal_one_iff, exact zero_mul _ }
 
 theorem principal_mul_two : principal (*) 2 :=
-begin
-  intros a b ha hb,
+λ a b ha hb, begin
   have h₂ : (1 : ordinal).succ = 2 := rfl,
   rw [←h₂, ordinal.lt_succ] at *,
   convert mul_le_mul' ha hb,

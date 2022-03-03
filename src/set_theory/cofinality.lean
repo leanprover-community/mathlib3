@@ -174,9 +174,8 @@ begin
   refine le_antisymm (le_cInf (cof_lsub_def_nonempty o) _) (cInf_le' _),
   { rintros a ⟨ι, f, hf, rfl⟩,
     rw ←type_out o,
-    refine (cof_type_le _ (λ a, _)).trans
-      (@mk_le_of_injective ((typein o.out.r)⁻¹' (set.range f)) _
-      (λ s, classical.some s.prop)
+    refine (cof_type_le _ (λ a, _)).trans (@mk_le_of_injective _ _
+      (λ s : (typein o.out.r)⁻¹' (set.range f), classical.some s.prop)
       (λ s t hst, let H := congr_arg f hst in by rwa [classical.some_spec s.prop,
         classical.some_spec t.prop, typein_inj, subtype.coe_inj] at H)),
     have := typein_lt_self a,

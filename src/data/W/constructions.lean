@@ -42,27 +42,27 @@ def nat_β : nat_α → Type
 instance : inhabited (nat_β nat_α.succ) := ⟨ () ⟩
 
 /-- The isomorphism from the naturals to its corresponding `W_type` -/
-@[simp] def nat_to : ℕ → W_type nat_β
+@[simp] def of_nat : ℕ → W_type nat_β
 | nat.zero := ⟨ nat_α.zero , empty.elim ⟩
-| (nat.succ n) := ⟨ nat_α.succ , λ _ , nat_to n ⟩
+| (nat.succ n) := ⟨ nat_α.succ , λ _ , of_nat n ⟩
 
 /-- The isomorphism from the `W_type` of the naturals to the naturals -/
 @[simp] def to_nat : W_type nat_β → ℕ
 | (W_type.mk nat_α.zero f) := 0
 | (W_type.mk nat_α.succ f) := (to_nat (f ())).succ
 
-lemma left_inv_nat : function.left_inverse nat_to to_nat
+lemma left_inv_nat : function.left_inverse of_nat to_nat
 | (W_type.mk nat_α.zero f) := by { simp, tidy }
 | (W_type.mk nat_α.succ f) := by { simp, tidy }
 
-lemma right_inv_nat : function.right_inverse nat_to to_nat
+lemma right_inv_nat : function.right_inverse of_nat to_nat
 | nat.zero := rfl
-| (nat.succ n) := by rw [nat_to, to_nat, right_inv_nat n]
+| (nat.succ n) := by rw [of_nat, to_nat, right_inv_nat n]
 
 /-- The naturals are equivalent to their associated `W_type` -/
 def equiv_nat : W_type nat_β ≃ ℕ :=
 { to_fun := to_nat,
-  inv_fun := nat_to,
+  inv_fun := of_nat,
   left_inv := left_inv_nat,
   right_inv := right_inv_nat }
 
@@ -105,27 +105,27 @@ def list_β : list_α γ → Type u
 instance (hd : γ) : inhabited (list_β γ (list_α.cons hd)) := ⟨ punit.star ⟩
 
 /-- The isomorphism from lists to the `W_type` construction of lists -/
-@[simp] def list_to : list γ → W_type (list_β γ)
+@[simp] def of_list : list γ → W_type (list_β γ)
 | list.nil := ⟨ list_α.nil, pempty.elim ⟩
-| (list.cons hd tl) := ⟨ list_α.cons hd, λ _ , list_to tl ⟩
+| (list.cons hd tl) := ⟨ list_α.cons hd, λ _ , of_list tl ⟩
 
 /-- The isomorphism from the `W_type` construction of lists to lists -/
 @[simp] def to_list : W_type (list_β γ) → list γ
 | (W_type.mk list_α.nil f) := []
 | (W_type.mk (list_α.cons hd) f) := hd :: to_list (f punit.star)
 
-lemma left_inv_list : function.left_inverse (list_to γ) (to_list _)
+lemma left_inv_list : function.left_inverse (of_list γ) (to_list _)
 | (W_type.mk list_α.nil f) := by { simp, tidy }
 | (W_type.mk (list_α.cons x) f) := by { simp, tidy }
 
-lemma right_inv_list : function.right_inverse (list_to γ) (to_list _)
+lemma right_inv_list : function.right_inverse (of_list γ) (to_list _)
 | list.nil := rfl
 | (list.cons hd tl) := by simp [right_inv_list tl]
 
 /-- Lists are equivalent to their associated `W_type` -/
 def equiv_list : W_type (list_β γ) ≃ list γ :=
 { to_fun := to_list _,
-  inv_fun := list_to _,
+  inv_fun := of_list _,
   left_inv := left_inv_list _,
   right_inv := right_inv_list _ }
 

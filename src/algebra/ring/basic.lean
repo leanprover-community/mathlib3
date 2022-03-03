@@ -1291,16 +1291,16 @@ lemma bit1_left [semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
 h.bit0_left.add_left (commute.one_left y)
 
 /-- Representation of a difference of two squares of commuting elements as a product. -/
-lemma mul_self_sub_mul_self_eq [ring R] {a b : R} (h : commute a b) :
+lemma mul_self_sub_mul_self_eq [non_unital_non_assoc_ring R] {a b : R} (h : commute a b) :
   a * a - b * b = (a + b) * (a - b) :=
 by rw [add_mul, mul_sub, mul_sub, h.eq, sub_add_sub_cancel]
 
-lemma mul_self_sub_mul_self_eq' [ring R] {a b : R} (h : commute a b) :
+lemma mul_self_sub_mul_self_eq' [non_unital_non_assoc_ring R] {a b : R} (h : commute a b) :
   a * a - b * b = (a - b) * (a + b) :=
 by rw [mul_add, sub_mul, sub_mul, h.eq, sub_add_sub_cancel]
 
-lemma mul_self_eq_mul_self_iff [ring R] [no_zero_divisors R] {a b : R} (h : commute a b) :
-  a * a = b * b ↔ a = b ∨ a = -b :=
+lemma mul_self_eq_mul_self_iff [non_unital_non_assoc_ring R] [no_zero_divisors R] {a b : R}
+  (h : commute a b) : a * a = b * b ↔ a = b ∨ a = -b :=
 by rw [← sub_eq_zero, h.mul_self_sub_mul_self_eq, mul_eq_zero, or_comm, sub_eq_zero,
   add_eq_zero_iff_eq_neg]
 
@@ -1337,14 +1337,15 @@ end commute
 theorem mul_self_sub_mul_self [comm_ring R] (a b : R) : a * a - b * b = (a + b) * (a - b) :=
 (commute.all a b).mul_self_sub_mul_self_eq
 
-lemma mul_self_sub_one [ring R] (a : R) : a * a - 1 = (a + 1) * (a - 1) :=
+lemma mul_self_sub_one [non_assoc_ring R] (a : R) : a * a - 1 = (a + 1) * (a - 1) :=
 by rw [←(commute.one_right a).mul_self_sub_mul_self_eq, mul_one]
 
 lemma mul_self_eq_mul_self_iff [comm_ring R] [no_zero_divisors R] {a b : R} :
   a * a = b * b ↔ a = b ∨ a = -b :=
 (commute.all a b).mul_self_eq_mul_self_iff
 
-lemma mul_self_eq_one_iff [ring R] [no_zero_divisors R] {a : R} : a * a = 1 ↔ a = 1 ∨ a = -1 :=
+lemma mul_self_eq_one_iff [non_assoc_ring R] [no_zero_divisors R] {a : R} :
+  a * a = 1 ↔ a = 1 ∨ a = -1 :=
 by rw [←(commute.one_right a).mul_self_eq_mul_self_iff, mul_one]
 
 /-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or

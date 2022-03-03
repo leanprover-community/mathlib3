@@ -438,8 +438,8 @@ begin
 end
 
 theorem deriv_bfamily_eq_of_range_eq {f : Π b < o, ordinal → ordinal}
-  {g : Π b < o', ordinal → ordinal.{max u v w}} (hf : ∀ i hi, monotone (f i hi))
-  (hfg : brange o f = brange o' g) : deriv_bfamily o f = deriv_bfamily.{w (max u v w)} o' g :=
+  {g : Π b < o', ordinal → ordinal.{max u v w}} (hfg : brange o f = brange o' g) :
+  deriv_bfamily o f = deriv_bfamily.{w (max u v w)} o' g :=
 funext (λ a, begin
   unfold deriv_bfamily,
   rw deriv_family_eq_of_range_eq,

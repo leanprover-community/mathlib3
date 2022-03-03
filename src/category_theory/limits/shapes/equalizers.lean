@@ -895,12 +895,13 @@ fork.is_limit.mk' _ $ λ s,
 end
 
 /-- We show that the converse to `split_mono_equalizes` is true:
-Whenever `f` equalizes `(r ≫ f)` and `(𝟙 Y)`, `r` is the retraction of `f`. -/
-def split_mono_of_equalizer {X Y : C} (f : X ⟶ Y) (r : Y ⟶ X) (hr : f ≫ r ≫ f = f)
-  (h : is_limit (fork.of_ι f (eq.trans hr (eq.symm (category.comp_id _)) : f ≫ r ≫ f = f ≫ 𝟙 Y))) :
+Whenever `f` equalizes `(r ≫ f)` and `(𝟙 Y)`, then `r` is a retraction of `f`. -/
+def split_mono_of_equalizer {X Y : C} {f : X ⟶ Y} {r : Y ⟶ X} (hr : f ≫ r ≫ f = f)
+  (h : is_limit (fork.of_ι f (hr.trans (category.comp_id _).symm : f ≫ r ≫ f = f ≫ 𝟙 Y))) :
   split_mono f :=
 { retraction := r,
-  id' := fork.is_limit.hom_ext h (by { rw [category.assoc, category.id_comp], exact hr }) }
+  id' := fork.is_limit.hom_ext h
+    ((category.assoc _ _ _).trans $ hr.trans (category.id_comp _).symm) }
 
 section
 -- In this section we show that a split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
@@ -925,5 +926,14 @@ cofork.is_colimit.mk' _ $ λ s,
  λ m hm, by simp [← hm]⟩
 
 end
+
+/-- We show that the converse to `split_epi_equalizes` is true:
+Whenever `f` coequalizes `(f ≫ s)` and `(𝟙 X)`, then `s` is a section of `f`. -/
+def split_epi_of_coequalizer {X Y : C} {f : X ⟶ Y} {s : Y ⟶ X} (hs : f ≫ s ≫ f = f)
+  (h : is_colimit (cofork.of_π f ((category.assoc _ _ _).trans $
+    hs.trans (category.id_comp f).symm : (f ≫ s) ≫ f = 𝟙 X ≫ f))) :
+  split_epi f :=
+{ section_ := s,
+  id' := cofork.is_colimit.hom_ext h (hs.trans (category.comp_id _).symm) }
 
 end category_theory.limits

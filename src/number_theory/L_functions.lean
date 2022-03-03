@@ -398,12 +398,19 @@ end
 
 /-- Given an `f ∈ C(X, A)` and an `ε > 0`, one can find a locally constant function `b` which is in
   an ε-ball with center `f`, `b` is precisely `c2`. -/
-theorem loc_const_dense' [nonempty X] : ∃ (b : C(X, A)) (H_1 : b ∈ set.range (inclusion X A)),
+theorem loc_const_dense' : ∃ (b : C(X, A)) (H_1 : b ∈ set.range (inclusion X A)),
   dist f b < ε := ⟨inclusion X A ⟨c2 ε f, loc_const ε f⟩, ⟨⟨c2 ε f, loc_const ε f⟩, rfl⟩,
   gt_of_gt_of_ge (half_lt_self (fact.out _))
 begin
 -- showing that the distance between `f` and `c2` is less than or equal to `ε/2`
   rw [dist_eq_norm, continuous_map.norm_eq_supr_norm],
+  -- empty type is special case
+  cases is_empty_or_nonempty X with hempty hnonempty,
+  { change _ ≥ dite _ _ _,
+    split_ifs with h,
+    { rcases h with ⟨⟨_, x, _⟩, _⟩,
+      exact (@is_empty.false _ hempty x).elim },
+    exact le_of_lt (half_pos (fact.out _)) },
 -- writing the distance in terms of the sup norm
   refine cSup_le _ (λ m hm, _),
   { rw set.range_nonempty_iff_nonempty, assumption, }, -- this is where `nonempty X` is needed
@@ -443,7 +450,7 @@ end ⟩
 variable (X)
 /-- The locally constant functions from `X` to `A` (viewed as a subset of C(X, A)) are dense
   in C(X, A). -/
-theorem loc_const_dense [nonempty X] : dense (set.range (inclusion X A)) :=
+theorem loc_const_dense : dense (set.range (inclusion X A)) :=
   λ f, begin
   rw metric.mem_closure_iff,
   rintros ε hε,
@@ -456,10 +463,12 @@ end locally_constant.density
 
 variables (X) (A)
 
+-- (KB) maybe `measure` not `measures`?
+
 /-- Given a profinite space `X` and a normed commutative ring `A`, a `p-adic measure` is a
   "bounded" linear map from the locally constant functions from `X` to `A` to `A` -/
 def measures :=
-  {φ : linear_map A (locally_constant X A) A //
+  {φ : (locally_constant X A) →ₗ[A] A //
     ∃ K : ℝ, 0 < K ∧ ∀ f : (locally_constant X A), ∥φ f∥ ≤ K * ∥inclusion X A f∥ }
 
 instance : has_zero (measures X A) :=
@@ -473,27 +482,16 @@ noncomputable instance : normed_group (locally_constant X A) :=
   normed_group.induced locally_constant.to_continuous_map_add_monoid_hom
   locally_constant.to_continuous_map_injective
 
+-- probably should be "measure"
 namespace measures
 open locally_constant.density
 
 variables {X} {A}
 
-/-- Any measure is continuous. This follows from the boundedness of the measure. -/
-lemma integral_cont (φ : measures X A) : continuous (φ.1) :=
-begin
-  rw metric.continuous_iff, rintros b ε hε,
-  obtain ⟨K, hKpos, hK⟩ := φ.prop,
-  refine ⟨ε/K, div_pos hε hKpos, _⟩,
-  rintros a dab, rw dist_eq_norm,
-  rw ←linear_map.map_sub,
-  specialize hK (a - b), apply lt_of_le_of_lt hK _, rw mul_comm, rw ←lt_div_iff hKpos,
-  convert dab,
-  change ∥inclusion X A (a - b)∥ = dist (inclusion X A a) (inclusion X A b),
-  rw [dist_eq_norm, ← linear_map.map_sub],
-end
+-- maybe add coe to fun instead of φ.1 ?
 
 /-- Any measure is uniformly continuous -/
-lemma uni_cont (φ : measures X A) : uniform_continuous (φ.val) :=
+lemma uniform_continuous (φ : measures X A) : uniform_continuous (φ.val) :=
 begin
   refine metric.uniform_continuous_iff.mpr (λ ε hε, _),
   obtain ⟨K, hKpos, hK⟩ := φ.prop,
@@ -505,6 +503,9 @@ begin
   rw [dist_eq_norm, ← linear_map.map_sub],
 end
 
+lemma integral_cont (φ : measures X A) : continuous (φ.1) :=
+uniform_continuous.continuous (uniform_continuous _)
+
 variables (X) (A)
 
 /-- The inclusion map from `locally_constant X A` to `C(X, A)` is uniform inducing -/
@@ -513,74 +514,65 @@ lemma uni_ind : uniform_inducing (inclusion X A) := ⟨rfl⟩
 variables [t2_space X] [totally_disconnected_space X]
 
 /-- The inclusion map from `locally_constant X A` to `C(X, A)` is dense inducing -/
-lemma dense_ind_inclusion [nonempty X] : dense_inducing (inclusion X A) :=
+lemma dense_ind_inclusion : dense_inducing (inclusion X A) :=
   ⟨⟨rfl⟩, loc_const_dense X⟩
 
 variables {X} {A}
 
 /-- If `A` is a complete space, the extension of `measures X A` to C(X, A) → A is
   uniformly continuous -/
-lemma uni_cont_extend [nonempty X] [complete_space A] (φ : measures X A) :
-  uniform_continuous ((dense_ind_inclusion X A).extend (φ.val)) :=
+lemma uniform_continuous_extend [complete_space A] (φ : measures X A) :
+  _root_.uniform_continuous ((dense_ind_inclusion X A).extend (φ.val)) :=
   uniform_continuous_uniformly_extend (uni_ind X A)
-    (dense_inducing.dense (dense_ind_inclusion X A)) (uni_cont φ)
+    (dense_inducing.dense (dense_ind_inclusion X A)) (uniform_continuous φ)
 
 /-- The extension of `measures X A` to C(X, A) → A is continuous when `A` is a complete space -/
-lemma cont [complete_space A] [nonempty X] (φ : measures X A) :
+lemma cont [complete_space A] (φ : measures X A) :
   continuous ((dense_ind_inclusion X A).extend (φ.val)) :=
-  uniform_continuous.continuous (uni_cont_extend φ)
+  uniform_continuous.continuous (uniform_continuous_extend φ)
 
 /-- The extended map is additive -/
-lemma map_add_extend [nonempty X] [complete_space A] (φ : measures X A) (x y : C(X, A)) :
+lemma map_add_extend [complete_space A] (φ : measures X A) (x y : C(X, A)) :
   (dense_ind_inclusion X A).extend (φ.val) (x + y) =
   (dense_ind_inclusion X A).extend (φ.val) x + (dense_ind_inclusion X A).extend (φ.val) y :=
 begin
   have cont := cont φ,
   have di := dense_ind_inclusion X A,
 --   it is sufficient to restrict to `inclusion`, since it has dense range
-  refine dense_range.induction_on₂ (dense_inducing.dense di) _ _ x y,
-  { exact is_closed_eq (cont.comp continuous_add)
-      ((cont.comp continuous_fst).add (cont.comp continuous_snd)) },
+  refine dense_range.induction_on₂ di.dense
+    (is_closed_eq (cont.comp continuous_add)
+      ((cont.comp continuous_fst).add (cont.comp continuous_snd))) (λ a b, _) x y,
 --   restricting to `inclusion`
-  { rintros a b,
-    change di.extend (φ.val) (inclusion X A a + inclusion X A b) =
-      di.extend (φ.val) (inclusion X A a) + di.extend (φ.val) (inclusion X A b),
     rw ← linear_map.map_add,
-    change di.extend (φ.val) ((inclusion X A) (a + b)) =
-      di.extend (φ.val) (inclusion X A a) + di.extend (φ.val) (inclusion X A b),
-    repeat { rw dense_inducing.extend_eq di (integral_cont φ), },
-    { simp only [linear_map.map_add], }, },
+    simp only [dense_inducing.extend_eq di (integral_cont φ), (φ.val).map_add ],
 end
 
 /-- The extended map preserves smul -/
-lemma map_smul_extend [nonempty X] [complete_space A] (φ : measures X A) (m : A) (x : C(X, A)) :
+lemma map_smul_extend [complete_space A] (φ : measures X A) (m : A) (x : C(X, A)) :
   (dense_ind_inclusion X A).extend (φ.val) (m • x) =
   m • (dense_ind_inclusion X A).extend (φ.val) x :=
 begin
+  let : has_continuous_smul A C(X, A) := continuous_map.has_continuous_smul X,
   have cont := cont φ,
   have di := dense_ind_inclusion X A,
 --   it is sufficient to restrict to `inclusion`, since it has dense range
-  refine dense_range.induction_on (dense_inducing.dense di) x _ (λ a, _),
-  { exact is_closed_eq (cont.comp (continuous_const.smul continuous_id))
-    ((continuous_const.smul continuous_id).comp cont) },
+  refine dense_range.induction_on di.dense x
+    (is_closed_eq (cont.comp (continuous_const.smul continuous_id))
+      ((continuous_const.smul continuous_id).comp cont)) (λ a, _),
 --   restricting to `inclusion`
-  { change di.extend (φ.val) (m • inclusion X A a) = m • di.extend (φ.val) (inclusion X A a),
     rw ← linear_map.map_smul,
-    change di.extend (φ.val) ((inclusion X A) (m • a)) = m • di.extend (φ.val) (inclusion X A a),
-    repeat { rw dense_inducing.extend_eq di (integral_cont φ), },
-    simp only [linear_map.map_smul], },
+    simp only [dense_inducing.extend_eq di (integral_cont φ), (φ.val).map_smul],
 end
 
 /-- Given a profinite space `X` and a normed commutative ring `A`, and a `p-adic measure` φ, the
   `p-adic integral` on a locally constant function `f` from `X` to `A` is φ(f). This map can then
   be extended continuously and linearly to C(X, A), due to `loc_const_dense`. We use the dense
   inducing and uniform continuity properties of the map `inclusion X A`. -/
-noncomputable def integral [nonempty X] [complete_space A] (φ : measures X A) :
+noncomputable def integral [complete_space A] (φ : measures X A) :
   continuous_linear_map A C(X, A) A :=
-  ⟨{ --  X nonempty needed here, for the topo space on loc const to exist
-    to_fun := dense_inducing.extend (dense_ind_inclusion X A) (φ.1),
-    map_add' := λ x y, map_add_extend φ x y,
-    map_smul' := λ m x, map_smul_extend φ m x, },
-    cont φ⟩
+  ⟨{ to_fun := dense_inducing.extend (dense_ind_inclusion X A) (φ.1),
+     map_add' := λ x y, map_add_extend φ x y,
+     map_smul' := λ m x, map_smul_extend φ m x, },
+     cont φ⟩
 
 end measures

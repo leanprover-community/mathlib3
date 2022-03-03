@@ -78,6 +78,9 @@ variable [has_scalar M X]
 @[to_additive] instance : has_uniform_continuous_const_smul M (completion X) :=
 ⟨λ c, uniform_continuous_map⟩
 
+instance [has_scalar Mᵐᵒᵖ X] [is_central_scalar M X] : is_central_scalar M (completion X) :=
+⟨λ c a, congr_arg (λ f, completion.map f a) $ by exact funext (op_smul_eq_smul c)⟩
+
 variables {M X} [has_uniform_continuous_const_smul M X]
 
 @[simp, norm_cast, to_additive]

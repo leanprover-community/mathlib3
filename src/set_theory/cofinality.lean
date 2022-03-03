@@ -174,28 +174,26 @@ begin
   refine le_antisymm (le_cInf (cof_lsub_def_nonempty o) _) (cInf_le' _),
   { rintros a ⟨ι, f, hf, rfl⟩,
     rw ←type_out o,
-    let S := {a : o.out.α | typein o.out.r a ∈ set.range f},
-    suffices : #S ≤ #ι,
-    { refine (cof_type_le _ (λ a, _)).trans this,
-      have := typein_lt_self a,
-      simp_rw [←hf, lt_lsub_iff] at this,
-      cases this with i hi,
-      refine ⟨enum o.out.r (f i) _, _, _⟩,
-      { rw [type_out, ←hf], apply lt_lsub },
-      { simp [S] },
-      { rwa [←typein_le_typein, typein_enum] } },
-    apply @mk_le_of_injective S _ (λ s, classical.some s.prop) (λ s t hst, _),
-    have := congr_arg f hst,
-    rwa [classical.some_spec s.prop, classical.some_spec t.prop, typein_inj, subtype.coe_inj]
-      at this },
+    refine (cof_type_le _ (λ a, _)).trans
+      (@mk_le_of_injective ((typein o.out.r)⁻¹' (set.range f)) _
+      (λ s, classical.some s.prop)
+      (λ s t hst, let H := congr_arg f hst in by rwa [classical.some_spec s.prop,
+        classical.some_spec t.prop, typein_inj, subtype.coe_inj] at H)),
+    have := typein_lt_self a,
+    simp_rw [←hf, lt_lsub_iff] at this,
+    cases this with i hi,
+    refine ⟨enum o.out.r (f i) _, _, _⟩,
+    { rw [type_out, ←hf], apply lt_lsub },
+    { rw [mem_preimage, typein_enum], exact mem_range_self i },
+    { rwa [←typein_le_typein, typein_enum] } },
   { rcases cof_eq o.out.r with ⟨S, hS, hS'⟩,
     let f : S → ordinal := λ s, typein o.out.r s,
     refine ⟨S, f, le_antisymm (lsub_le.2 (λ i, typein_lt_self i)) (le_of_forall_lt (λ a ha, _)),
       by rwa type_out o at hS'⟩,
-    { rw ←type_out o at ha,
-      rcases hS (enum o.out.r a ha) with ⟨b, hb, hb'⟩,
-      rw [←typein_le_typein, typein_enum] at hb',
-      exact hb'.trans_lt (lt_lsub.{u u} f ⟨b, hb⟩) } }
+    rw ←type_out o at ha,
+    rcases hS (enum o.out.r a ha) with ⟨b, hb, hb'⟩,
+    rw [←typein_le_typein, typein_enum] at hb',
+    exact hb'.trans_lt (lt_lsub.{u u} f ⟨b, hb⟩) }
 end
 
 theorem lift_cof (o) : (cof o).lift = cof o.lift :=

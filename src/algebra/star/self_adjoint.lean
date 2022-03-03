@@ -266,19 +266,19 @@ end skew_adjoint
 instance is_star_normal_zero [semiring R] [star_ring R] : is_star_normal (0 : R) :=
 ⟨by simp only [star_comm_self, star_zero]⟩
 
-instance is_star_normal_one [monoid R] [star_monoid R] : is_star_normal (1 : R) :=
+instance is_star_normal_one [monoid R] [star_semigroup R] : is_star_normal (1 : R) :=
 ⟨by simp only [star_comm_self, star_one]⟩
 
-instance is_star_normal_star_self [monoid R] [star_monoid R] {x : R} [is_star_normal x] :
+instance is_star_normal_star_self [monoid R] [star_semigroup R] {x : R} [is_star_normal x] :
   is_star_normal (star x) :=
 ⟨show star (star x) * (star x) = (star x) * star (star x), by rw [star_star, star_comm_self']⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance has_trivial_star.is_star_normal [monoid R] [star_monoid R] [has_trivial_star R] {x : R} :
+instance has_trivial_star.is_star_normal [monoid R] [star_semigroup R] [has_trivial_star R] {x : R} :
   is_star_normal x :=
 ⟨by rw [star_trivial]⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance comm_monoid.is_star_normal [comm_monoid R] [star_monoid R] {x : R} :
+instance comm_monoid.is_star_normal [comm_monoid R] [star_semigroup R] {x : R} :
   is_star_normal x :=
 ⟨mul_comm _ _⟩

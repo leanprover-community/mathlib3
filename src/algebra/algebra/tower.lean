@@ -308,6 +308,16 @@ le_antisymm (span_le.2 $ λ x hx, let ⟨p, q, hps, hqt, hpqx⟩ := set.mem_smul
   (λ _ _, add_mem _)
   (λ k x hx, smul_mem_span_smul' hs hx)
 
+lemma map_mem_span_algebra_map_image {S T : Type*} [comm_semiring S] [semiring T]
+  [algebra R S] [algebra R T] [algebra S T] [is_scalar_tower R S T]
+  (x : S) (a : set S) (hx : x ∈ submodule.span R a) :
+  algebra_map S T x ∈ submodule.span R (algebra_map S T '' a) :=
+begin
+  rw [← algebra.coe_linear_map, ← linear_map.coe_restrict_scalars R, ← submodule.map_span],
+  exact submodule.mem_map_of_mem hx,
+  all_goals { apply_instance }
+end
+
 end submodule
 
 end semiring

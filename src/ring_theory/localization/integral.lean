@@ -349,4 +349,40 @@ begin
       (no_zero_smul_divisors.algebra_map_injective _ _) _ hf₂ }
 end
 
+open_locale non_zero_divisors
+
+/-- If the `S`-multiples of `a` are contained in some `R`-span, then `Frac(S)`-multiples of `a`
+are contained in the equivalent `Frac(R)`-span. -/
+lemma ideal_span_singleton_subset (R : Type*) {S K L : Type*}
+  [comm_ring R] [comm_ring S] [is_domain R] [is_domain S] [field K] [field L]
+  [algebra R K] [algebra R S] [algebra R L] [algebra S L] [is_integral_closure S R L]
+  [is_fraction_ring S L] [algebra K L] [is_scalar_tower R S L] [is_scalar_tower R K L]
+  {a : S} {b : set S} (alg : algebra.is_algebraic R L) (inj : function.injective (algebra_map R L))
+  (h : (ideal.span ({a} : set S) : set S) ⊆ submodule.span R b) :
+  (ideal.span ({algebra_map S L a} : set L) : set L) ⊆ submodule.span K (algebra_map S L '' b) :=
+begin
+  intros x hx,
+  obtain ⟨x', rfl⟩ := ideal.mem_span_singleton.mp hx,
+  obtain ⟨y', z', rfl⟩ := is_localization.mk'_surjective (S⁰) x',
+  obtain ⟨y, z, hz0, yz_eq⟩ := is_integral_closure.exists_smul_eq_mul alg inj y'
+    (non_zero_divisors.coe_ne_zero z'),
+  have injRS : function.injective (algebra_map R S),
+  { refine function.injective.of_comp
+      (show function.injective (algebra_map S L ∘ algebra_map R S), from _),
+    rwa [← ring_hom.coe_comp, ← is_scalar_tower.algebra_map_eq] },
+  have hz0' : algebra_map R S z ∈ S⁰ := map_mem_non_zero_divisors (algebra_map R S) injRS
+    (mem_non_zero_divisors_of_ne_zero hz0),
+  have mk_yz_eq : is_localization.mk' L y' z' = is_localization.mk' L y ⟨_, hz0'⟩,
+  { rw [algebra.smul_def, mul_comm _ y, mul_comm _ y', ← set_like.coe_mk (algebra_map R S z) hz0']
+        at yz_eq,
+    exact is_localization.mk'_eq_of_eq yz_eq.symm },
+  suffices hy : algebra_map S L (a * y) ∈ submodule.span K (⇑(algebra_map S L) '' b),
+  { rw [mk_yz_eq, is_fraction_ring.mk'_eq_div, set_like.coe_mk,
+        ← is_scalar_tower.algebra_map_apply, is_scalar_tower.algebra_map_apply R K L,
+        div_eq_mul_inv, ← mul_assoc, mul_comm, ← ring_hom.map_inv, ← algebra.smul_def,
+        ← _root_.map_mul],
+    exact (submodule.span K _).smul_mem _ hy },
+  refine submodule.span_subset_span R K _ (map_mem_span_algebra_map_image _ _ _),
+  exact h (ideal.mem_span_singleton.mpr ⟨y, rfl⟩)
+end
 end is_fraction_ring

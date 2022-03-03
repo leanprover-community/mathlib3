@@ -170,6 +170,7 @@ section map
 
 variables {L W : Type*} [field L] [add_comm_group W] [module L W]
 
+/-- A semilinear map of vector spaces induces a map on projective spaces. -/
 def map {σ : K →+* L} (f : V →ₛₗ[σ] W) (hf : function.injective f) :
   projectivization K V → projectivization L W :=
 quotient.map' (λ v, ⟨f v, λ c, v.2 (hf (by simp [c]))⟩)
@@ -229,3 +230,4 @@ end
 end map
 
 end projectivization
+#lint

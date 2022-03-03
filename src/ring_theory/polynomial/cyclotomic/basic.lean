@@ -453,7 +453,7 @@ lemma X_pow_sub_one_mul_cyclotomic_dvd_X_pow_sub_one_of_dvd (R) [comm_ring R] {d
   (hd : d ∣ n) (hdn : d < n) : (X ^ d - 1) * cyclotomic n R ∣ X ^ n - 1 :=
 begin
   use ∏ x in n.proper_divisors \ d.divisors, cyclotomic x R,
-  have h0n := pos_of_gt hdn,
+  have hn := pos_of_gt hdn,
   symmetry,
   convert X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd R hd hdn using 1,
   rw mul_assoc,

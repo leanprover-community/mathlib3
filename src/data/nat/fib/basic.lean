@@ -53,6 +53,7 @@ def fib (n : ℕ) : ℕ := ((λ p : ℕ × ℕ, (p.snd, p.fst + p.snd))^[n] (0, 
 @[simp] lemma fib_zero : fib 0 = 0 := rfl
 @[simp] lemma fib_one : fib 1 = 1 := rfl
 @[simp] lemma fib_two : fib 2 = 1 := rfl
+@[simp] lemma fib_three : fib 3 = 2 := rfl
 
 /-- Shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.` -/
 lemma fib_add_two {n : ℕ} : fib (n + 2) = fib n + fib (n + 1) :=

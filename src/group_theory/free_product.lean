@@ -357,7 +357,7 @@ def to_list : Π {i j} (w : neword M i j), list (Σ i, M i)
 | _ _ (append w₁ hne w₂) := w₁.to_list ++ w₂.to_list
 
 lemma to_list_ne_nil {i j} (w : neword M i j) : w.to_list ≠ list.nil :=
-by { induction w, { rintros ⟨rfl⟩ }, { apply list.append_ne_nil_of_ne_nil_left, assumption,} }
+by { induction w, { rintros ⟨rfl⟩ }, { apply list.append_ne_nil_of_ne_nil_left, assumption } }
 
 /--  The first letter of a `neword` -/
 @[simp]
@@ -546,17 +546,13 @@ variables (hpp : pairwise (λ i j, ∀ h : H i, h ≠ 1 → f i h • X j ⊆ X 
 
 include hpp
 
-lemma lift_word_ping_pong {i j k} (w : neword H i j) (hj : j ≠ k) :
+lemma lift_word_ping_pong {i j k} (w : neword H i j) (hk : j ≠ k) :
   lift f w.prod • X k ⊆ X i :=
 begin
-  rename [i → i', j → j'],
-  revert k,
-  induction w
-    with i x hne_one i j k l w₁ hne w₂  hIw₁ hIw₂; clear i' j',
-  { intros k hk,
-    simpa using hpp _ _ hk _ hne_one, },
-  { intros m hm,
-    calc lift f (neword.append w₁ hne w₂).prod • X m
+  rename [i → i', j → j', k → m, hk → hm],
+  induction w with i x hne_one i j k l w₁ hne w₂  hIw₁ hIw₂ generalizing m; clear i' j',
+  { simpa using hpp _ _ hm _ hne_one, },
+  { calc lift f (neword.append w₁ hne w₂).prod • X m
         = lift f w₁.prod • lift f w₂.prod • X m : by simp [mul_action.mul_smul]
     ... ⊆ lift f w₁.prod • X k : set_smul_subset_set_smul_iff.mpr (hIw₂ hm)
     ... ⊆ X i : hIw₁ hne },

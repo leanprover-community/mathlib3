@@ -148,7 +148,7 @@ end
 /-- `E →L[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →L[𝕜] E) := ⟨adjoint_adjoint⟩
-instance : star_monoid (E →L[𝕜] E) := ⟨adjoint_comp⟩
+instance : star_semigroup (E →L[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
 
@@ -280,7 +280,7 @@ by rw [is_self_adjoint, ← linear_map.eq_adjoint_iff]
 /-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →ₗ[𝕜] E) := ⟨adjoint_adjoint⟩
-instance : star_monoid (E →ₗ[𝕜] E) := ⟨adjoint_comp⟩
+instance : star_semigroup (E →ₗ[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →ₗ[𝕜] E) := ⟨linear_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →ₗ[𝕜] E) := ⟨linear_equiv.map_smulₛₗ adjoint⟩
 

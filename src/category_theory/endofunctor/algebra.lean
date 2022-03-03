@@ -158,8 +158,7 @@ Furthermore, they are equivalent as categories over `C`, that is,
 we have `equiv_of_nat_iso h ⋙ forget = forget`.
 -/
 @[simps]
-def
-equiv_of_nat_iso {F G : C ⥤ C} (α : F ≅ G) :
+def equiv_of_nat_iso {F G : C ⥤ C} (α : F ≅ G) :
   algebra F ≌ algebra G :=
 { functor := functor_of_nat_trans α.inv,
   inverse := functor_of_nat_trans α.hom,

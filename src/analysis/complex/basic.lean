@@ -97,15 +97,10 @@ by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
 subtype.ext $ norm_real r
 
 @[simp, norm_cast] lemma nnnorm_nat (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
-by rw [←real.nnnorm_coe_nat, ←nnnorm_real, of_real_nat_cast]
+subtype.ext $ by simp
 
 @[simp, norm_cast] lemma nnnorm_int (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
-begin
-  obtain ⟨k, rfl | rfl⟩ := int.eq_coe_or_neg n,
-  { rw [int.cast_coe_nat, nnnorm_nat, ← nnreal.coe_nat_abs, int.nat_abs_of_nat] },
-  { rw [int.cast_neg, nnnorm_neg, nnnorm_neg, int.cast_coe_nat, nnnorm_nat,
-        ←nnreal.coe_nat_abs, int.nat_abs_of_nat], },
-end
+subtype.ext $ by simp only [coe_nnnorm, norm_int, int.norm_eq_abs]
 
 lemma nnnorm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
   ∥ζ∥₊ = 1 :=

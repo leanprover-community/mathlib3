@@ -51,6 +51,7 @@ lemma coe_nat_mem (n : ℕ) : (n : R) ∈ s :=
 by simp only [← nsmul_one, nsmul_mem, one_mem]
 
 /-- A subsemiring of a `non_assoc_semiring` inherits a `non_assoc_semiring` structure -/
+@[priority 75] -- Prefer subclasses of `non_assoc_semiring` over subclasses of `subsemiring_class`.
 instance to_non_assoc_semiring : non_assoc_semiring s :=
 subtype.coe_injective.non_assoc_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
 
@@ -71,6 +72,7 @@ def subtype : s →+* R :=
 omit hSR
 
 /-- A subsemiring of a `semiring` is a `semiring`. -/
+@[priority 75] -- Prefer subclasses of `semiring` over subclasses of `subsemiring_class`.
 instance to_semiring {R} [semiring R] [set_like S R] [subsemiring_class S R] : semiring s :=
 subtype.coe_injective.semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
 

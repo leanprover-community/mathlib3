@@ -436,35 +436,40 @@ rfl
 
 /-- A submonoid of a unital magma inherits a unital magma structure. -/
 @[to_additive "An `add_submonoid` of an unital additive magma inherits an unital additive magma
-structure."]
+structure.",
+priority 75] -- Prefer subclasses of `monoid` over subclasses of `submonoid_class`.
 instance to_mul_one_class {M : Type*} [mul_one_class M] {A : Type*} [set_like A M]
   [submonoid_class A M] (S : A) : mul_one_class S :=
 subtype.coe_injective.mul_one_class _ rfl (λ _ _, rfl)
 
 /-- A submonoid of a monoid inherits a monoid structure. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
-structure."]
+structure.",
+priority 75] -- Prefer subclasses of `monoid` over subclasses of `submonoid_class`.
 instance to_monoid {M : Type*} [monoid M] {A : Type*} [set_like A M] [submonoid_class A M]
   (S : A) : monoid S :=
 subtype.coe_injective.monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of a `comm_monoid` is a `comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `add_comm_monoid` is
-an `add_comm_monoid`."]
+an `add_comm_monoid`.",
+priority 75] -- Prefer subclasses of `monoid` over subclasses of `submonoid_class`.
 instance to_comm_monoid {M} [comm_monoid M] {A : Type*} [set_like A M] [submonoid_class A M]
   (S : A) : comm_monoid S :=
 subtype.coe_injective.comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of an `ordered_comm_monoid` is an `ordered_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `ordered_add_comm_monoid` is
-an `ordered_add_comm_monoid`."]
+an `ordered_add_comm_monoid`.",
+priority 75] -- Prefer subclasses of `monoid` over subclasses of `submonoid_class`.
 instance to_ordered_comm_monoid {M} [ordered_comm_monoid M] {A : Type*} [set_like A M]
   [submonoid_class A M] (S : A) : ordered_comm_monoid S :=
 subtype.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of a `linear_ordered_comm_monoid` is a `linear_ordered_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of a `linear_ordered_add_comm_monoid` is
-a `linear_ordered_add_comm_monoid`."]
+a `linear_ordered_add_comm_monoid`.",
+priority 75] -- Prefer subclasses of `monoid` over subclasses of `submonoid_class`.
 instance to_linear_ordered_comm_monoid {M} [linear_ordered_comm_monoid M] {A : Type*}
   [set_like A M] [submonoid_class A M] (S : A) :
   linear_ordered_comm_monoid S :=
@@ -472,7 +477,8 @@ subtype.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, 
 
 /-- A submonoid of an `ordered_cancel_comm_monoid` is an `ordered_cancel_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `ordered_cancel_add_comm_monoid` is
-an `ordered_cancel_add_comm_monoid`."]
+an `ordered_cancel_add_comm_monoid`.",
+priority 75] -- Prefer subclasses of `monoid` over subclasses of `submonoid_class`.
 instance to_ordered_cancel_comm_monoid {M} [ordered_cancel_comm_monoid M] {A : Type*}
   [set_like A M] [submonoid_class A M] (S : A) :
   ordered_cancel_comm_monoid S :=
@@ -481,7 +487,8 @@ subtype.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, 
 /-- A submonoid of a `linear_ordered_cancel_comm_monoid` is a `linear_ordered_cancel_comm_monoid`.
 -/
 @[to_additive "An `add_submonoid` of a `linear_ordered_cancel_add_comm_monoid` is
-a `linear_ordered_cancel_add_comm_monoid`."]
+a `linear_ordered_cancel_add_comm_monoid`.",
+priority 75] -- Prefer subclasses of `monoid` over subclasses of `submonoid_class`.
 instance to_linear_ordered_cancel_comm_monoid {M} [linear_ordered_cancel_comm_monoid M]
   {A : Type*} [set_like A M] [submonoid_class A M] (S : A) : linear_ordered_cancel_comm_monoid S :=
 subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)

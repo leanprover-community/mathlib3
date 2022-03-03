@@ -81,6 +81,7 @@ Be assured that we're not actually proving that subfields are subgroups:
 instance subfield_class.to_subgroup_class : subgroup_class S K := { .. h }
 
 /-- A subfield inherits a field structure -/
+@[priority 75] -- Prefer subclasses of `field` over subclasses of `subfield_class`.
 instance to_field (s : S) : field s :=
 subtype.coe_injective.field (coe : s → K)
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
@@ -88,6 +89,7 @@ subtype.coe_injective.field (coe : s → K)
 omit h
 
 /-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
+@[priority 75] -- Prefer subclasses of `field` over subclasses of `subfield_class`.
 instance to_linear_ordered_field {K} [linear_ordered_field K] [set_like S K]
   [subfield_class S K] (s : S) :
   linear_ordered_field s :=

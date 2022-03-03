@@ -93,20 +93,26 @@ def comp (f : locally_bounded_map β γ) (g : locally_bounded_map α β) : local
   comap_cobounded_le' :=
     comap_comap.ge.trans $ (comap_mono f.comap_cobounded_le').trans g.comap_cobounded_le' }
 
-@[simp] lemma coe_comp (f : locally_bounded_map β γ) (g : locally_bounded_map α β) : (f.comp g : α → γ) = f ∘ g :=
+@[simp] lemma coe_comp (f : locally_bounded_map β γ) (g : locally_bounded_map α β) :
+  (f.comp g : α → γ) = f ∘ g :=
 rfl
 @[simp] lemma comp_apply (f : locally_bounded_map β γ) (g : locally_bounded_map α β) (a : α) :
   (f.comp g) a = f (g a) := rfl
-@[simp] lemma comp_assoc (f : locally_bounded_map γ δ) (g : locally_bounded_map β γ) (h : locally_bounded_map α β) :
+@[simp] lemma comp_assoc (f : locally_bounded_map γ δ) (g : locally_bounded_map β γ)
+  (h : locally_bounded_map α β) :
   (f.comp g).comp h = f.comp (g.comp h) := rfl
-@[simp] lemma comp_id (f : locally_bounded_map α β) : f.comp (locally_bounded_map.id α) = f := ext $ λ a, rfl
-@[simp] lemma id_comp (f : locally_bounded_map α β) : (locally_bounded_map.id β).comp f = f := ext $ λ a, rfl
+@[simp] lemma comp_id (f : locally_bounded_map α β) :
+  f.comp (locally_bounded_map.id α) = f := ext $ λ a, rfl
+@[simp] lemma id_comp (f : locally_bounded_map α β) :
+  (locally_bounded_map.id β).comp f = f := ext $ λ a, rfl
 
-lemma cancel_right {g₁ g₂ : locally_bounded_map β γ} {f : locally_bounded_map α β} (hf : surjective f) :
+lemma cancel_right {g₁ g₂ : locally_bounded_map β γ} {f : locally_bounded_map α β}
+  (hf : surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
 ⟨λ h, ext $ hf.forall.2 $ fun_like.ext_iff.1 h, congr_arg _⟩
 
-lemma cancel_left {g : locally_bounded_map β γ} {f₁ f₂ : locally_bounded_map α β} (hg : injective g) :
+lemma cancel_left {g : locally_bounded_map β γ} {f₁ f₂ : locally_bounded_map α β}
+  (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
 ⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 

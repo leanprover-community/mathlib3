@@ -1450,7 +1450,6 @@ lemma enum_ord_def_nonempty (hS : unbounded (<) S) {o} :
   {x | x ∈ S ∧ ∀ c, c < o → enum_ord S c < x}.nonempty :=
 (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
 
--- Another PR
 @[simp] theorem enum_ord_range {f : ordinal → ordinal} (hf : strict_mono f) :
   enum_ord (range f) = f :=
 funext (λ o, begin
@@ -1468,7 +1467,6 @@ funext (λ o, begin
   exact this.ne hc
 end)
 
--- Another PR
 @[simp] theorem enum_ord_univ : enum_ord set.univ = id :=
 by { rw ←range_id, exact enum_ord_range strict_mono_id }
 

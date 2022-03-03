@@ -614,6 +614,8 @@ end
 theorem self_le_deriv {f : ordinal → ordinal} (hf : is_normal f) (o) : f o ≤ deriv f o :=
 begin
   rw deriv_eq_enum_ord hf,
+  nth_rewrite 0 ←enum_ord_range hf.strict_mono,
+  refine enum_ord_le_of_subset (fp_unbounded hf) _ _,
 end
 
 -- another PR

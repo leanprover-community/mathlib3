@@ -217,18 +217,14 @@ section star
 
 variables [star_add_monoid R] [star_ring A] [star_module R A]
 
-lemma star_mem_resolvent_set_star {r : R} {a : A} (h : r ∈ resolvent_set R a) :
-  star r ∈ resolvent_set R (star a) :=
-by simpa only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one, star_sub, star_smul,
-  star_one] using is_unit.star h
+lemma star_mem_resolvent_set_iff {r : R} {a : A} :
+  star r ∈ resolvent_set R a ↔ r ∈ resolvent_set R (star a) :=
+by refine ⟨λ h, _, λ h, _⟩;
+   simpa only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one, star_sub, star_smul,
+     star_star, star_one] using is_unit.star h
 
 protected lemma map_star (a : A) : σ (star a) = star (σ a) :=
-begin
-  ext,
-  simp only [set.mem_star, mem_iff, not_iff_not],
-  exact ⟨ λ h, star_star a ▸ star_mem_resolvent_set_star h,
-          λ h, star_star x ▸ star_mem_resolvent_set_star h⟩,
-end
+by { ext, simpa only [set.mem_star, mem_iff, not_iff_not] using star_mem_resolvent_set_iff.symm }
 
 end star
 

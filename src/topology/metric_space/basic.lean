@@ -184,6 +184,8 @@ class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 (to_bornology : bornology α := bornology.of_dist dist dist_comm dist_triangle)
+(cobounded_sets :
+  (bornology.cobounded α).sets = { s | ∃ C, ∀ x y ∈ sᶜ, dist x y ≤ C } . control_laws_tac)
 
 /-- Two pseudo metric space structures with the same distance function coincide. -/
 @[ext] lemma pseudo_metric_space.ext {α : Type*} {m m' : pseudo_metric_space α}
@@ -198,7 +200,11 @@ begin
     simp [m_edist_dist, m'_edist_dist] },
   { dsimp at m_uniformity_dist m'_uniformity_dist,
     rw ← m'_uniformity_dist at m_uniformity_dist,
-    exact uniform_space_eq m_uniformity_dist }
+    exact uniform_space_eq m_uniformity_dist },
+  { ext1,
+    dsimp at m_cobounded_sets m'_cobounded_sets,
+    rw ← m'_cobounded_sets at m_cobounded_sets,
+    exact filter_eq m_cobounded_sets }
 end
 
 variables [pseudo_metric_space α]
@@ -243,7 +249,9 @@ pseudo_metric_space α :=
     { apply_instance }
     end,
     ..uniform_space.core_of_dist dist dist_self dist_comm dist_triangle },
-  uniformity_dist := rfl }
+  uniformity_dist := rfl,
+  to_bornology := bornology.of_dist dist dist_comm dist_triangle,
+  cobounded_sets := rfl }
 
 @[simp] theorem dist_self (x : α) : dist x x = 0 := pseudo_metric_space.dist_self x
 

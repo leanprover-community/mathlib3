@@ -202,7 +202,7 @@ lemma norm_of_cyclotomic_irreducible [is_cyclotomic_extension {n} K L]
 begin
   split_ifs with hn,
   { unfreezingI {subst hn},
-    convert norm_eq_neg_one hζ,
+    convert norm_eq_neg_one_pow hζ,
     erw [is_cyclotomic_extension.finrank _ hirr, totient_two, pow_one],
     apply_instance },
   { exact hζ.norm_eq_one hn hirr }

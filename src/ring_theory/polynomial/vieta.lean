@@ -42,11 +42,11 @@ begin
   classical,
   rw [prod_add, sum_powerset],
   refine sum_congr begin congr end (λ j hj, _),
-  rw [esymm, polynomial.C.map_sum, sum_mul],
+  rw [esymm, map_sum, sum_mul],
   refine sum_congr rfl (λ t ht, _),
   have h : (univ \ t).card = card σ - j :=
   by { rw card_sdiff (mem_powerset_len.mp ht).1, congr, exact (mem_powerset_len.mp ht).2 },
-  rw [(polynomial.C : mv_polynomial σ R →+* polynomial _).map_prod, prod_const, ← h],
+  rw [map_prod, prod_const, ← h],
   congr,
 end
 
@@ -60,21 +60,20 @@ begin
   classical,
   have h := @prod_X_add_C_eq_sum_esymm _ _ σ _,
   apply_fun (polynomial.map (eval r)) at h,
-  rw [map_prod, map_sum] at h,
+  rw [polynomial.map_prod, polynomial.map_sum] at h,
   convert h,
   simp only [eval_X, polynomial.map_add, polynomial.map_C, polynomial.map_X, eq_self_iff_true],
   funext,
-  simp only [function.funext_iff, esymm, polynomial.map_C, map_sum, polynomial.C.map_sum,
+  simp only [function.funext_iff, esymm, polynomial.map_C, polynomial.map_sum, map_sum,
     polynomial.map_C, polynomial.map_pow, polynomial.map_X, polynomial.map_mul],
   congr,
   funext,
-  simp only [eval_prod, eval_X, (polynomial.C : R →+* R[X]).map_prod],
+  simp only [eval_prod, eval_X, map_prod],
 end
 
 lemma esymm_to_sum (r : σ → R) (j : ℕ) : polynomial.C (eval r (esymm σ R j)) =
   ∑ t in powerset_len j (univ : finset σ), ∏ i in t, polynomial.C (r i) :=
-by simp only [esymm, eval_sum, eval_prod, eval_X, polynomial.C.map_sum,
-  (polynomial.C : R →+* polynomial _).map_prod]
+by simp only [esymm, eval_sum, eval_prod, eval_X, map_sum, map_prod]
 
 /-- Vieta's formula for the coefficients of the product of linear terms `X + r i`,
 The `k`th coefficient is `∑ t in powerset_len (card σ - k) (univ : finset σ), ∏ i in t, r i`,

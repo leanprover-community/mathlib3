@@ -472,8 +472,14 @@ theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 def is_regular (c : cardinal) : Prop :=
 ω ≤ c ∧ c.ord.cof = c
 
+lemma is_regular.omega_le {c : cardinal} (H : c.is_regular) : ω ≤ c :=
+H.1
+
+lemma is_regular.cof_eq {c : cardinal} (H : c.is_regular) : c.ord.cof = c :=
+H.2
+
 lemma is_regular.pos {c : cardinal} (H : c.is_regular) : 0 < c :=
-omega_pos.trans_le H.left
+omega_pos.trans_le H.1
 
 lemma is_regular.ord_pos {c : cardinal} (H : c.is_regular) : 0 < c.ord :=
 by { rw cardinal.lt_ord, exact H.pos }
@@ -505,6 +511,12 @@ theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) 
     rw [← lt_succ, ← lt_ord, ← αe, re],
     apply typein_lt_type }
 end⟩
+
+theorem aleph'_succ_is_regular {o : ordinal} (h : ordinal.omega ≤ o) : is_regular (aleph' o.succ) :=
+by { rw aleph'_succ, exact succ_is_regular (omega_le_aleph'.2 h) }
+
+theorem aleph_succ_is_regular {o : ordinal} : is_regular (aleph o.succ) :=
+by { rw aleph_succ, exact succ_is_regular (omega_le_aleph o) }
 
 /--
 A function whose codomain's cardinality is infinite but strictly smaller than its domain's

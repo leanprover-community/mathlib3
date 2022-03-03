@@ -489,6 +489,12 @@ by { rw ←sup_iterate_eq_nfp, exact lt_sup }
 theorem nfp_le {a b} : nfp f a ≤ b ↔ ∀ n, (f^[n]) a ≤ b :=
 by { rw ←sup_iterate_eq_nfp, exact sup_le }
 
+theorem nfp_id : nfp id = id :=
+funext (λ a, begin
+  simp_rw [←sup_iterate_eq_nfp, iterate_id],
+  exact sup_const a
+end)
+
 theorem nfp_monotone (hf : monotone f) : monotone (nfp f) :=
 nfp_family_monotone (λ i, hf)
 
@@ -543,6 +549,9 @@ deriv_family_limit _
 
 theorem deriv_is_normal (f) : is_normal (deriv f) :=
 deriv_family_is_normal _
+
+theorem deriv_id_of_nfp_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
+((deriv_is_normal _).eq_iff_zero_and_succ is_normal.refl).2 (by simp [h, succ_inj])
 
 theorem is_normal.deriv_fp {f} (H : is_normal f) (o) : f (deriv f o) = deriv f o :=
 deriv_family_fp (λ _, H) _ unit.star

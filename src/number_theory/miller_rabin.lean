@@ -31,6 +31,8 @@ a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 (n-1) ∧ a^(2^r * 
 
 instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.decidable
 
+-- TODO(Bolton): Find a way of making modular exponentiation faster
+
 #eval to_bool (strong_probable_prime 1000007 4)
 
 def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
@@ -170,7 +172,26 @@ begin
     sorry,
   },
   {
-    -- This is till not ready to prove, it should probably be extracted as a lemma
+    intro h,
+    have foo : (a ^ (odd_part (p - 1)))^(two_power_part (p - 1)) = 1,
+    { -- TODO(Sean): This is similar to what we were doing last sunday.
+      sorry,
+    },
+    have goo : ∃ (j : ℕ) (H : j ≤ padic_val_nat 2 (p-1)), order_of (a ^ (odd_part (p - 1))) = 2^j,
+    { have := order_of_dvd_of_pow_eq_one foo,
+      rw two_power_part at this,
+      rw nat.dvd_prime_pow at this,
+      exact this,
+      exact nat.prime_two,
+    },
+    rcases goo with ⟨j, H, hj⟩,
+    by_cases j = 0,
+    { rw strong_probable_prime,
+      sorry,
+    },
+    {
+      sorry,
+    },
     sorry,
   },
 end

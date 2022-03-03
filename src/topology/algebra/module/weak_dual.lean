@@ -72,6 +72,10 @@ nolint has_inhabited_instance unused_arguments]
 def weak_bilin [comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] [add_comm_monoid F]
   [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) := E
 
+instance [comm_semiring 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_monoid F]
+  [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : add_comm_group (weak_bilin B) :=
+by { dunfold weak_bilin, apply_instance }
+
 section semiring
 
 variables [topological_space 𝕜] [comm_semiring 𝕜]
@@ -122,6 +126,26 @@ begin
 end
 
 end semiring
+
+section ring
+
+variables [topological_space 𝕜] [comm_ring 𝕜]
+variables [add_comm_group E] [module 𝕜 E]
+variables [add_comm_group F] [module 𝕜 F]
+variables (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
+
+/-- `weak_space B` is a `topological_add_group`, meaning that addition and negation are
+continuous. -/
+instance [has_continuous_add 𝕜] : topological_add_group (weak_bilin B) :=
+{ to_has_continuous_add := by apply_instance,
+  continuous_neg := begin
+    refine continuous_induced_rng (continuous_pi_iff.mpr (λ y, _)),
+    refine cast (congr_arg _ _) (eval_continuous B (-y)),
+    ext,
+    simp only [map_neg, function.comp_app, linear_map.neg_apply],
+  end }
+
+end ring
 
 end weak_topology
 

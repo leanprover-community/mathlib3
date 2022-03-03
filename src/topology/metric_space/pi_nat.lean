@@ -59,24 +59,16 @@ namespace pi_nat
 
 /-! ### The first_diff function -/
 
-lemma exists_index_ne_of_ne {x y : Π n, E n} (h : x ≠ y) :
-  ∃ n, x n ≠ y n :=
-begin
-  contrapose! h,
-  ext1 n,
-  exact h n
-end
-
 /-- In a product space `Π n, E n`, then `first_diff x y` is the first index at which `x` and `y`
 differ. If `x = y`, then by convention we set `first_diff x x = 0`. -/
 @[irreducible, pp_nodot] def first_diff (x y : Π n, E n) : ℕ :=
-if h : x ≠ y then nat.find (exists_index_ne_of_ne h) else 0
+if h : x ≠ y then nat.find (ne_iff.1 h) else 0
 
 lemma apply_first_diff_ne {x y : Π n, E n} (h : x ≠ y) :
   x (first_diff x y) ≠ y (first_diff x y) :=
 begin
   rw [first_diff, dif_pos h],
-  exact nat.find_spec (exists_index_ne_of_ne h),
+  exact nat.find_spec (ne_iff.1 h),
 end
 
 lemma apply_eq_of_lt_first_diff {x y : Π n, E n} {n : ℕ} (hn : n < first_diff x y) :
@@ -84,7 +76,7 @@ lemma apply_eq_of_lt_first_diff {x y : Π n, E n} {n : ℕ} (hn : n < first_diff
 begin
   rw first_diff at hn,
   split_ifs at hn,
-  { convert nat.find_min (exists_index_ne_of_ne h) hn,
+  { convert nat.find_min (ne_iff.1 h) hn,
     simp },
   { exact (not_lt_zero' hn).elim }
 end

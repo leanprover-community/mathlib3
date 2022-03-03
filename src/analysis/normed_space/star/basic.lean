@@ -104,7 +104,7 @@ instance ring_hom_isometric.star_ring_end [normed_comm_ring E] [star_ring E]
 
 namespace cstar_ring
 variables [normed_ring E] [star_ring E] [cstar_ring E]
-.
+
 /-- In a C*-ring, star preserves the norm. -/
 @[priority 100] -- see Note [lower instance priority]
 instance to_normed_star_monoid : normed_star_monoid E :=

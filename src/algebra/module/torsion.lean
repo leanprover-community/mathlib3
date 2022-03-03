@@ -45,6 +45,7 @@ import ring_theory.non_zero_divisors
 Torsion, submodule, module, quotient
 -/
 
+namespace submodule
 open_locale non_zero_divisors
 section defs
 variables (R M : Type*) [comm_semiring R] [add_comm_monoid M] [module R M]
@@ -53,17 +54,17 @@ variables (R M : Type*) [comm_semiring R] [add_comm_monoid M] [module R M]
   `a • x = 0`. -/
 @[simps] def torsion (a : R) : submodule R M := (distrib_mul_action.to_linear_map _ _ a).ker
 
-/-- The `S`-torsion submodule, for `S` a multiplicative submonoid of `R`, containing all elements
-  `x` of `M` such that `a • x = 0` for some `a` in `S`. -/
-@[simps] def torsion'' (S : submonoid R) : submodule R M :=
+/-- The `S`-torsion submodule, containing all elements `x` of `M` such that `a • x = 0` for some
+`a` in `S`. -/
+@[simps] def torsion'' (S : Type*)
+  [comm_monoid S] [distrib_mul_action S M] [smul_comm_class S R M] :
+  submodule R M :=
 { carrier := { x | ∃ a : S, a • x = 0 },
   zero_mem' := ⟨1, smul_zero _⟩,
   add_mem' := λ x y ⟨a, hx⟩ ⟨b, hy⟩,
     ⟨b * a,
-      by rw [smul_add, ← smul_smul, mul_comm, ← smul_smul, hx, hy, smul_zero, smul_zero, add_zero]⟩,
-  smul_mem' := λ a x ⟨b, h⟩, ⟨b, begin
-    have h' : (b : R) • x = 0 := h,
-    change (b : R) • a • x = 0, rw [smul_smul, mul_comm, ←smul_smul, h', smul_zero] end⟩ }
+      by rw [smul_add, mul_smul, mul_comm, mul_smul, hx, hy, smul_zero, smul_zero, add_zero]⟩,
+  smul_mem' := λ a x ⟨b, h⟩, ⟨b, by rw [smul_comm, h, smul_zero]⟩ }
 
 /-- The torsion submoule, containing all elements `x` of `M` such that  `a • x = 0` for some
   non-zero-divisor `a` in `R`. -/
@@ -75,7 +76,7 @@ section
 variables {R M : Type*}
 
 section torsion
-variables [comm_semiring R] [add_comm_monoid M] [module R M] (a : R) (S : submonoid R)
+variables [comm_semiring R] [add_comm_monoid M] [module R M] (a : R)
 
 @[simp] lemma smul_torsion (x : torsion R M a) : a • x = 0 := subtype.ext x.prop
 @[simp] lemma smul'_torsion (x : torsion R M a) : a • (x:M) = 0 := x.prop
@@ -93,7 +94,6 @@ end torsion
 
 section quotient
 variables [comm_ring R] [add_comm_group M] [module R M] (a : R)
-open ideal.quotient
 
 instance : has_scalar (R ⧸ R ∙ a) (torsion R M a) :=
 { smul := λ b x, quotient.lift_on' b (• x) $ λ b₁ b₂ (h : b₁ - b₂ ∈ _), begin
@@ -103,11 +103,11 @@ instance : has_scalar (R ⧸ R ∙ a) (torsion R M a) :=
   end }
 
 @[simp] lemma torsion.mk_smul (b : R) (x : torsion R M a) :
-  mk (R ∙ a) b • x = b • x := rfl
+  ideal.quotient.mk (R ∙ a) b • x = b • x := rfl
 
 /-- The `a`-torsion submodule as a `(R ⧸ R∙a)`-module. -/
 instance : module (R ⧸ R ∙ a) (torsion R M a) :=
-function.surjective.module_left (mk _) mk_surjective (torsion.mk_smul _)
+ideal.quotient.mk_surjective.module_left _ (torsion.mk_smul _)
 
 instance {S : Type*} [has_scalar S R] [has_scalar S M]
   [is_scalar_tower S R M] [is_scalar_tower S R R] :
@@ -117,19 +117,24 @@ instance {S : Type*} [has_scalar S R] [has_scalar S M]
 end quotient
 
 section torsion''
-variables [comm_semiring R] [add_comm_monoid M] [module R M] (S : submonoid R)
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
+variables (S : Type*) [comm_monoid S] [distrib_mul_action S M] [smul_comm_class S R M]
 
 @[simp] lemma mem_torsion''_iff (x : M) : x ∈ torsion'' R M S ↔ ∃ a : S, a • x = 0 := iff.rfl
 @[simp] lemma mem_torsion'_iff (x : M) : x ∈ torsion' R M ↔ ∃ a : R⁰, a • x = 0 := iff.rfl
+
+instance i : has_scalar S (torsion'' R M S) := ⟨λ s x, ⟨s • x, begin
+  obtain ⟨x, a, h⟩ := x, use a, dsimp, rw [smul_comm, h, smul_zero] end⟩⟩
+instance : distrib_mul_action S (torsion'' R M S) := subtype.coe_injective.distrib_mul_action
+  ((torsion'' R M S).subtype).to_add_monoid_hom (λ (c : S) x, rfl)
+instance : smul_comm_class S R (torsion'' R M S) := ⟨λ s a x, begin ext, exact smul_comm _ _ _ end⟩
 
 /-- The `S`-torsion submodule of the `S`-torsion submodule (viewed as a module) is the full
 `S`-torsion module. -/
 lemma torsion''_torsion''_eq_top : torsion'' R (torsion'' R M S) S = ⊤ :=
 begin
-  ext,
-  refine ⟨λ _, trivial, λ _, _⟩,
-  cases x with x hx,
-  cases hx with a ha, use a, ext, exact ha
+  ext, refine ⟨λ _, trivial, λ _, _⟩,
+  obtain ⟨x, a, ha⟩ := x, use a, ext, exact ha
 end
 /-- The `torsion'` submodule of the `torsion'` submodule (viewed as a module) is the full
 `torsion'` module. -/
@@ -163,7 +168,6 @@ end torsion'
 
 section torsion'_quotient
 variables [comm_ring R] [add_comm_group M] [module R M]
-open submodule.quotient
 
 /-- Quotienting by the `torsion'` submodule gives a torsion-free module. -/
 lemma quotient_torsion.torsion'_eq_bot : torsion' R (M ⧸ torsion' R M) = ⊥ :=
@@ -171,12 +175,12 @@ begin
   ext z, split,
   { exact quotient.induction_on' z (λ x hx, begin
       cases hx with a hax,
-      rw [mk'_eq_mk, ← mk_smul, mk_eq_zero] at hax,
-      change mk x = 0, rw mk_eq_zero,
+      rw [quotient.mk'_eq_mk, ← quotient.mk_smul, quotient.mk_eq_zero] at hax,
+      change quotient.mk x = 0, rw quotient.mk_eq_zero,
       cases hax with b h,
       exact ⟨b * a, (mul_smul _ _ _).trans h⟩
     end) },
-  { intro hz, have hz : z = 0 := hz, rw hz, exact submodule.zero_mem _ }
+  { intro hz, have hz : z = 0 := hz, rw hz, exact zero_mem _ }
 end
 
 instance quotient_torsion.no_zero_smul_divisors [is_domain R] :
@@ -185,3 +189,4 @@ no_zero_smul_divisors_iff_torsion'_bot.mpr quotient_torsion.torsion'_eq_bot
 
 end torsion'_quotient
 end
+end submodule

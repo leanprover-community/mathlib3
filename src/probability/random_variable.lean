@@ -56,7 +56,7 @@ localized "notation  `>[`S`]` := set.preimage (set.pi_restrict S)" in probabilit
 localized "notation  `<[]` := set.image (set.pi_restrict _)" in probability_theory
 localized "notation  `>[]` := set.preimage (set.pi_restrict _)" in probability_theory
 
-variables {α : Type*} [m : measurable_space α] (μ : measure α) {ι : Type*}
+variables {α : Type*} {m : measurable_space α} (μ : measure α) {ι : Type*}
   {β : ι → Type*} (f : Π i : ι, α → (β i)) [Π i : ι, measurable_space (β i)]
 
 section definitions
@@ -83,14 +83,18 @@ theorem marginal_eq_marginalize_joint (hm : ∀ i : ι, measurable (f i)) (mv : 
 by { rw [marginalize, joint, map_map, function.comp], refl,
   apply measurable_pi_restrict, exact measurable_pi_iff.mpr hm }
 
+lemma marginalize_apply (μ : measure (Π i : ι, β i)) (mv : set ι)
+  {s : set (Π i : mv, β i)} (hms : measurable_set s) :
+  marginalize μ mv s = μ (>[] s) :=
+by { rw [marginalize, map_apply _ hms], apply measurable_pi_restrict }
+
 /-- The marginalization principle: the marginal probability of a particular "marginal assignment" 
 measurable set `s` is equal to the joint probability of that same set, extended to allow
 the unmarginalized variables to take any value. -/
 theorem marginal_apply (hm : ∀ i : ι, measurable (f i)) (mv : set ι)
   {s : set (Π i : mv, β i)} (hms : measurable_set s) :
   marginal μ f mv s = joint μ f (>[] s) :=
-by { rw [marginal_eq_marginalize_joint _ _ hm, marginalize, map_apply _ hms],
-  apply measurable_pi_restrict }
+by { rw [marginal_eq_marginalize_joint _ _ hm, marginalize_apply _ _ hms] }
 
 end marginal
 

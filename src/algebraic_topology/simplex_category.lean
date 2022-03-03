@@ -8,7 +8,7 @@ import category_theory.skeletal
 import tactic.linarith
 import data.fintype.sort
 import order.category.NonemptyFinLinOrd
-import category_theory.reflects_isomorphisms
+import category_theory.functor.reflects_isomorphisms
 
 /-! # The simplex category
 

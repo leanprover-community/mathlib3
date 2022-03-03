@@ -229,7 +229,7 @@ open_locale classical
 
 protected noncomputable def field (hD : induction_hyp D) (R : subring D) (hR : R < ⊤) : field R :=
 { mul_comm := λ x y, subtype.ext $ hD R hR x.2 y.2,
-  ..(show division_ring R, from division_ring_of_is_domain R)}
+  ..(show division_ring R, from fintype.division_ring_of_is_domain R)}
 
 lemma center_eq_top (hD : induction_hyp D) : subring.center D = ⊤ :=
 begin
@@ -321,7 +321,7 @@ begin
   intros R hR x y hx hy,
   suffices : (⟨y,hy⟩ : R) ∈ subring.center R,
   { exact congr_arg subtype.val (this ⟨x, hx⟩), },
-  letI R_dr : division_ring R := division_ring_of_is_domain R,
+  letI R_dr : division_ring R := fintype.division_ring_of_is_domain R,
   rw IH (fintype.card R) _ R le_rfl, { trivial },
   obtain ⟨b, -, hb⟩ := set_like.exists_of_lt hR,
   refine (fintype.card_lt_of_injective_of_not_mem _ subtype.val_injective _).trans_le hD,

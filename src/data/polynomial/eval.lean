@@ -792,6 +792,7 @@ end eval
 
 section map
 
+--TODO rename to `map_dvd_map`
 lemma map_dvd {R S} [semiring R] [comm_semiring S] (f : R →+* S) {x y : R[X]} :
   x ∣ y → x.map f ∣ y.map f := eval₂_dvd _ _
 

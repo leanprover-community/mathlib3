@@ -135,7 +135,7 @@ instance subtype.fun_like (F : Sort*) (α : out_param Sort*) (β : out_param $ �
   coe_injective' := function.injective.comp fun_like.coe_injective' subtype.coe_injective }
 
 @[simp] lemma subtype.coe_fn_mk {F α : Type*} [has_coe_to_fun F (λ _, α)]
-  {p : F → Prop} (f : F) (hf : p f) : (⇑(subtype.mk f hf) : F) = (⇑f : F) :=
+  {p : F → Prop} (f : F) (hf : p f) : (⇑(subtype.mk f hf) : α) = (⇑f : α) :=
 rfl
 
 section dependent

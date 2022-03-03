@@ -164,7 +164,7 @@ variables [field L] {ζ : L} (hζ : is_primitive_root ζ n)
 variables {K} [field K] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
 /-- This mathematically trivial result is complementary to `norm_eq_one` below. -/
-lemma norm_eq_neg_one (hζ : is_primitive_root ζ 2) : norm K ζ = (-1) ^ finrank K L :=
+lemma norm_eq_neg_one_pow (hζ : is_primitive_root ζ 2) : norm K ζ = (-1) ^ finrank K L :=
 by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simp, norm_algebra_map]
 
 include hζ

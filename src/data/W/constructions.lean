@@ -6,7 +6,7 @@ Authors: Joseph Hua
 import data.W.basic
 
 /-!
-# Instances of W types
+# Examples of W-types
 
 We take the view of W types as inductive types.
 Given `α : Type` and `β : α → Type`, the W type determined by this data, `W_type β`, is the
@@ -66,7 +66,10 @@ def equiv_nat : W_type nat_β ≃ ℕ :=
   left_inv := left_inv_nat,
   right_inv := right_inv_nat }
 
-/-- `nat_α` is equivalent to `bool` -/
+/--
+`nat_α` is equivalent to `bool`.
+This is useful when considering the associated polynomial endofunctor
+-/
 @[simps] def nat_α_equiv_bool : nat_α ≃ bool :=
 { to_fun := λ c, match c with | nat_α.zero := ff | nat_α.succ := tt end,
   inv_fun := λ b, match b with | bool.tt := nat_α.succ | bool.ff := nat_α.zero end,
@@ -126,7 +129,10 @@ def equiv_list : W_type (list_β γ) ≃ list γ :=
   left_inv := left_inv_list _,
   right_inv := right_inv_list _ }
 
-/-- `list_α` is equivalent to `γ` with an extra point -/
+/--
+`list_α` is equivalent to `γ` with an extra point.
+This is useful when considering the polynomial endofunctor associated to the `W_type`
+-/
 def list_α_equiv_punit_sum : list_α γ ≃ punit.{v + 1} ⊕ γ :=
 { to_fun := λ c, match c with | list_α.nil := sum.inl punit.star | list_α.cons x := sum.inr x end,
   inv_fun := sum.elim (λ _, list_α.nil) (λ x, list_α.cons x),

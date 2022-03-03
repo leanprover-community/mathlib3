@@ -444,9 +444,14 @@ have ∀x : completion α × completion β × completion γ, p x.1 x.2.1 x.2.2, 
   is_closed_property dense_range_coe₃ hp $ assume ⟨a, b, c⟩, ih a b c,
 this (a, b, c)
 
-lemma ext [t2_space β] {f g : completion α → β} (hf : continuous f) (hg : continuous g)
-  (h : ∀a:α, f a = g a) : f = g :=
+lemma ext {Y : Type*} [topological_space Y] [t2_space Y] {f g : completion α → Y}
+  (hf : continuous f) (hg : continuous g) (h : ∀a:α, f a = g a) : f = g :=
 cpkg.funext hf hg h
+
+lemma ext' {Y : Type*} [topological_space Y] [t2_space Y] {f g : completion α → Y}
+  (hf : continuous f) (hg : continuous g) (h : ∀a:α, f a = g a) (a : completion α) :
+  f a = g a :=
+congr_fun (ext hf hg h) a
 
 section extension
 variables {f : α → β}

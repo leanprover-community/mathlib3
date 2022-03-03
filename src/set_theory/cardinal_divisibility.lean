@@ -53,7 +53,7 @@ theorem le_of_dvd : ∀ {a b : cardinal}, b ≠ 0 → a ∣ b → a ≤ b
 | a _ b0 ⟨b, rfl⟩ := by simpa only [mul_one] using mul_le_mul_left'
   (one_le_iff_ne_zero.2 (λ h : b = 0, by simpa only [h, mul_zero] using b0)) a
 
-lemma dvd_of_le_of_omega_le (ha : a ≠ 0) (hb : ω ≤ b) (h : a ≤ b) : a ∣ b :=
+lemma dvd_of_le_of_omega_le (ha : a ≠ 0) (h : a ≤ b) (hb : ω ≤ b) : a ∣ b :=
 ⟨b, (mul_eq_right hb h ha).symm⟩
 
 @[simp] lemma prime_of_omega_le (ha : ω ≤ a) : prime a :=
@@ -108,7 +108,7 @@ begin
     rw [h, zero_dvd_iff, mul_eq_zero] at hbc,
     cases hbc; contradiction },
   wlog hω : ω ≤ b := hω using [b c],
-  exact or.inl (dvd_of_le_of_omega_le hn hω ((nat_lt_omega n).le.trans hω)),
+  exact or.inl (dvd_of_le_of_omega_le hn ((nat_lt_omega n).le.trans hω) hω),
 end
 
 lemma is_prime_iff {a : cardinal} : prime a ↔ ω ≤ a ∨ ∃ p : ℕ, a = p ∧ p.prime :=

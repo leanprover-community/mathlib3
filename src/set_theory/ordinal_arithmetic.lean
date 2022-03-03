@@ -1495,7 +1495,7 @@ def enum_ord.order_iso (hS : unbounded (<) S) : ordinal ≃o S :=
 strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) (enum_ord.strict_mono hS)
   (λ s, let ⟨a, ha⟩ := enum_ord.surjective hS s s.prop in ⟨a, subtype.eq ha⟩)
 
-theorem enum_ord_range (hS : unbounded (<) S) : range (enum_ord S) = S :=
+theorem range_enum_ord (hS : unbounded (<) S) : range (enum_ord S) = S :=
 by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord.surjective hS⟩ }
 
 /-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
@@ -1504,9 +1504,9 @@ theorem eq_enum_ord (f : ordinal → ordinal) (hS : unbounded (<) S) :
 begin
   split,
   { rintro ⟨h₁, h₂⟩,
-    rwa [←wf.eq_strict_mono_iff_eq_range h₁ (enum_ord.strict_mono hS), enum_ord_range hS] },
+    rwa [←wf.eq_strict_mono_iff_eq_range h₁ (enum_ord.strict_mono hS), range_enum_ord hS] },
   { rintro rfl,
-    exact ⟨enum_ord.strict_mono hS, enum_ord_range hS⟩ }
+    exact ⟨enum_ord.strict_mono hS, range_enum_ord hS⟩ }
 end
 
 end

@@ -13,7 +13,7 @@ We define principal or indecomposable ordinals, and we prove the standard proper
 
 ### Main definitions and results
 * `principal`: A principal or indecomposable ordinal under some binary operation. We include 0 and
-any other typically excluded edge cases for simplicity.
+  any other typically excluded edge cases for simplicity.
 * `unbounded_principal`: Principal ordinals are unbounded.
 * `principal_add_iff_zero_or_omega_opow`: The main characterization theorem for additive principal
   ordinals.

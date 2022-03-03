@@ -710,6 +710,11 @@ def positive {S : Type*} [has_mul S] [has_le S] (a : S) : Prop := a ≤ a * a
 @[reducible, to_additive add_negative]
 def negative {S : Type*} [has_mul S] [has_le S] (a : S) : Prop := a * a ≤ a
 
+@[to_additive add_positive_or_add_negative]
+lemma positive_or_negative {S : Type*} [has_mul S] [has_le S] [is_total S (≤)] (a : S) :
+  positive a ∨ negative a :=
+is_total.total _ _
+
 section
 
 variables {S S' M : Type*} [comm_semigroup S] [preorder S] [nakada_po S]
@@ -1021,38 +1026,38 @@ lemma quotient.mk_eq_mk' (x : α) : ⟦x⟧ = quotient.mk' x := rfl
 end
 
 -- Theorem 8, mpr
--- @[to_additive neg_add_subsemigroup_iso_of_is_directed]
--- noncomputable def neg_subsemigroup_iso_of_is_directed (G : Type*) [comm_group G] [partial_order G]
---   [nakada_po G] [is_directed G (≤)] :
---   quotient (mul_pair_setoid (neg_subsemigroup G)) ≃*o G :=
--- { inv_fun := λ x, begin
---     set a := (directed_of (≤) x 1).some with ha,
---     refine quotient.mk' (⟨a⁻¹ * x, _⟩, ⟨a⁻¹, positive.negative_inv _⟩),
---     { have hxa : x ≤ a,
---       { rw ha,
---         generalize_proofs ha',
---         exact ha'.some_spec.left },
---       have hx : x = a * (a * x⁻¹)⁻¹,
---       { rw [mul_inv, inv_inv, mul_inv_cancel_left] },
---       have : 1 ≤ (a⁻¹ * x)⁻¹,
---       { rw [hx],
---         simpa only [mul_inv_rev, inv_inv, mul_inv_cancel_comm_assoc,
---                     le_inv_mul_iff_mul_le, mul_one] using hxa},
---       simpa only [inv_inv] using (positive_of_one_le this).negative_inv },
---     { refine positive_of_one_le _,
---       rw ha,
---       generalize_proofs ha',
---       exact ha'.some_spec.right }
---   end,
---   to_fun := (out_mul_pair_quotient _).comp
---     (mul_order_embedding.coe (neg_subsemigroup G) (λ _ _, iff.rfl)).lift_pair_quotient,
---   right_inv := λ _, by  simp [←quotient.mk_eq_mk'],
---   left_inv := λ x, begin
---     induction x using quotient.induction_on,
---     simp [←quotient.mk_eq_mk', subtype.ext_iff, mul_comm _ (Exists.some _)⁻¹, mul_assoc]
---   end,
---   map_mul' := map_mul _,
---   map_rel_iff' := λ _ _, mul_order_embedding.map_le_iff _ }
+@[to_additive neg_add_subsemigroup_iso_of_is_directed]
+noncomputable def neg_subsemigroup_iso_of_is_directed (G : Type*) [comm_group G] [partial_order G]
+  [nakada_po G] [is_directed G (≤)] :
+  quotient (mul_pair_setoid (neg_subsemigroup G)) ≃*o G :=
+{ inv_fun := λ x, begin
+    set a := (directed_of (≤) x 1).some with ha,
+    refine quotient.mk' (⟨a⁻¹ * x, _⟩, ⟨a⁻¹, positive.negative_inv _⟩),
+    { have hxa : x ≤ a,
+      { rw ha,
+        generalize_proofs ha',
+        exact ha'.some_spec.left },
+      have hx : x = a * (a * x⁻¹)⁻¹,
+      { rw [mul_inv, inv_inv, mul_inv_cancel_left] },
+      have : 1 ≤ (a⁻¹ * x)⁻¹,
+      { rw [hx],
+        simpa only [mul_inv_rev, inv_inv, mul_inv_cancel_comm_assoc,
+                    le_inv_mul_iff_mul_le, mul_one] using hxa},
+      simpa only [inv_inv] using (positive_of_one_le this).negative_inv },
+    { refine positive_of_one_le _,
+      rw ha,
+      generalize_proofs ha',
+      exact ha'.some_spec.right }
+  end,
+  to_fun := (out_mul_pair_quotient _).comp
+    (mul_order_embedding.coe (neg_subsemigroup G) (λ _ _, iff.rfl)).lift_pair_quotient,
+  right_inv := λ _, by  simp [←quotient.mk_eq_mk'],
+  left_inv := λ x, begin
+    induction x using quotient.induction_on,
+    simp [←quotient.mk_eq_mk', subtype.ext_iff, mul_comm _ (Exists.some _)⁻¹, mul_assoc]
+  end,
+  map_mul' := map_mul _,
+  map_rel_iff' := λ _ _, mul_order_embedding.map_le_iff _ }
 
 section pnpow
 
@@ -1080,72 +1085,270 @@ instance has_add.has_scalar_pnat {M : Type*} [has_add M] : has_scalar ℕ+ M :=
 attribute [to_additive has_add.has_scalar_pnat] has_mul.has_pow
 
 @[simp, to_additive zero_pnsmul] lemma pnpow_one : x ^ (1 : ℕ+) = x := rfl
-@[simp, to_additive add_one_pnsmul] lemma pnpow_add_one : x ^ (p + 1) = x * x ^ p :=
+@[to_additive add_one_pnsmul'] lemma pnpow_add_one' : x ^ (p + 1) = x * x ^ p :=
 begin
   change (pnpow_rec (p + 1) x) = x * (pnpow_rec p x),
   simp [pnpow_rec]
 end
-@[simp, to_additive add_one_pnsmul']
-lemma pnpow_add_one' {S : Type*} [semigroup S] (x : S) (p : ℕ+) : x ^ (p + 1) = x ^ p * x :=
+
+@[to_additive add_one_pnsmul]
+lemma pnpow_add_one {S : Type*} [semigroup S] (x : S) (p : ℕ+) : x ^ (p + 1) = x ^ p * x :=
 begin
   refine pnat.rec_on p _ _,
-  { simp },
+  { simp [pnpow_add_one'] },
   { intros n h,
-    rw [pnpow_add_one, pnpow_add_one, mul_assoc, ←h, ←pnpow_add_one] }
+    rw [pnpow_add_one', pnpow_add_one', mul_assoc, ←h, ←pnpow_add_one'] }
+end
+
+@[to_additive add_pnsmul'] lemma pnpow_add' {S : Type*} [semigroup S] (x : S) (p q : ℕ+) :
+  x ^ (p + q) = x ^ q * x ^ p :=
+begin
+  revert q p,
+  intro q,
+  refine pnat.rec_on q _ _,
+  { simp [pnpow_add_one'] },
+  { intros q' IH p,
+    simp [←add_assoc, IH, ←mul_assoc, pnpow_add_one'] }
+end
+
+@[to_additive add_pnsmul] lemma pnpow_add {S : Type*} [semigroup S] (x : S) (p q : ℕ+) :
+  x ^ (p + q) = x ^ p * x ^ q :=
+begin
+  revert q p,
+  intro q,
+  refine pnat.rec_on q _ _,
+  { simp [pnpow_add_one] },
+  { intros q' IH p,
+    simp [←add_assoc, IH, ←mul_assoc, pnpow_add_one] }
 end
 
 @[simp, to_additive pnsmul_eq_nsmul] lemma pnpow_eq_npow_coe {M : Type*} [monoid M] (x : M)
   (p : ℕ+) : x ^ p = x ^ (p : ℕ) :=
 begin
   refine pnat.rec_on p _ _;
-  simp [pow_succ'] {contextual := tt}
+  simp [pow_succ', pnpow_add_one] {contextual := tt}
 end
+
+@[to_additive two_pnsmul] lemma pnpow_two : x ^ (2 : ℕ+) = x * x := rfl
 
 end pnpow
 
 @[simp] lemma nat.succ_pnat_zero : nat.succ_pnat 0 = 1 := rfl
 @[simp] lemma nat.succ_pnat_succ (n : ℕ) : n.succ.succ_pnat = (n.succ_pnat + 1) := rfl
 
+@[to_additive pnsmul_le_pnsmul_of_le]
+lemma pnpow_le_pnpow_of_le {S : Type*} [has_mul S] [preorder S] [nakada_po S]
+  [covariant_class S S (function.swap (*)) (≤)]
+  {x y : S} (H : x ≤ y) (n : ℕ+) : x ^ n ≤ y ^ n :=
+begin
+  refine pnat.rec_on n _ _,
+  { exact H },
+  { intros n' h,
+    simp only [pnpow_add_one'],
+    refine (homogeneity h x).trans _,
+    exact mul_le_mul_right' H _ }
+end
+
+@[to_additive add_positive.pnsmul_le_pnsmul_of_le]
+lemma positive.pnpow_le_pnpow_of_le {S : Type*} [semigroup S] [preorder S] [nakada_po S]
+  {x : S} (H : positive x) {n m : ℕ+} (h : n ≤ m) : x ^ n ≤ x ^ m :=
+begin
+  rcases h.eq_or_lt with rfl|h',
+  { refl },
+  obtain ⟨k, rfl⟩ : ∃ (k : ℕ+), m = n + k,
+  { cases m, cases n,
+    obtain ⟨k, hk⟩ := nat.exists_eq_add_of_lt h',
+    refine ⟨⟨k + 1, nat.succ_pos'⟩, _⟩,
+    simpa [subtype.ext_iff] using hk },
+  refine pnat.rec_on n _ _,
+  { refine pnat.rec_on k _ _,
+    { simpa using H },
+    { intros k' hk,
+      refine hk.trans _,
+      rw [←add_assoc, pnpow_add_one, add_comm, pnpow_add_one, mul_assoc],
+      exact homogeneity H _ } },
+  intros n' IH,
+  rw [add_right_comm, pnpow_add_one', pnpow_add_one'],
+  exact homogeneity IH _
+end
+
+@[to_additive add_negative.pnsmul_le_pnsmul_of_le]
+lemma negative.pnpow_le_pnpow_of_le {S : Type*} [semigroup S] [preorder S] [nakada_po S]
+  {x : S} (H : negative x) {n m : ℕ+} (h : n ≤ m) : x ^ m ≤ x ^ n :=
+begin
+  rcases h.eq_or_lt with rfl|h',
+  { refl },
+  obtain ⟨k, rfl⟩ : ∃ (k : ℕ+), m = n + k,
+  { cases m, cases n,
+    obtain ⟨k, hk⟩ := nat.exists_eq_add_of_lt h',
+    refine ⟨⟨k + 1, nat.succ_pos'⟩, _⟩,
+    simpa [subtype.ext_iff] using hk },
+  refine pnat.rec_on n _ _,
+  { refine pnat.rec_on k _ _,
+    { simpa using H },
+    { intros k' hk,
+      refine le_trans _ hk,
+      rw [←add_assoc, pnpow_add_one, add_comm, pnpow_add_one, mul_assoc],
+      exact homogeneity H _ } },
+  intros n' IH,
+  rw [add_right_comm, pnpow_add_one', pnpow_add_one'],
+  exact homogeneity IH _
+end
+
 section quasiidempotent
 
 variables {M : Type*} [has_mul M]
+
+-- TODO: in data.pnat.basic
+instance pnat.decidable_div {k l : ℕ+} : decidable (k ∣ l) :=
+decidable_of_iff' ((k : ℕ) ∣ (l : ℕ)) pnat.dvd_iff
+
+lemma pnat.div_pos {k l : ℕ+} (h : k < l) : 0 < pnat.div l k :=
+begin
+  rw pnat.div_coe,
+  split_ifs with hd hd,
+  { rw ←nat.dvd_iff_mod_eq_zero at hd,
+    obtain ⟨_|_|z, hz⟩ := hd,
+    { simpa using hz },
+    { rw [mul_one] at hz,
+      rw [←pnat.coe_lt_coe, hz] at h,
+      exact absurd h (lt_irrefl _) },
+    rw [hz, mul_comm, nat.mul_div_cancel];
+    simp },
+  { exact nat.div_pos h.le (pnat.pos _) }
+end
+
+lemma pnat.add_lt_left (m n : ℕ+) : m < n + m :=
+by simp [←pnat.coe_lt_coe]
+
+lemma pnat.add_lt_right (m n : ℕ+) : m < m + n :=
+by simp [←pnat.coe_lt_coe]
+
+lemma pnat.exists_eq_add_of_lt {m n : ℕ+} (h : m < n) : ∃ k : ℕ+, n = m + k :=
+begin
+  obtain ⟨k, hk⟩ := nat.exists_eq_add_of_lt h,
+  exact ⟨k.succ_pnat, subtype.ext hk⟩
+end
+
+@[priority 10]
+instance : covariant_class ℕ+ ℕ+ ((+)) (≤) :=
+⟨begin
+  rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩,
+  simp [←pnat.coe_le_coe]
+end⟩
+
+@[to_additive add_positive.pnsmul_eq_of_eq]
+lemma positive.pnpow_eq_of_eq {S : Type*} [semigroup S] [partial_order S] [nakada_po S] {x : S}
+  (h : positive x) {m n : ℕ+} (hx : x ^ m = x ^ n) (hne : m ≠ n) (k : ℕ+) (hk : m ≤ k) :
+  x ^ k = x ^ m :=
+begin
+  rcases hk.eq_or_lt with rfl|hk',
+  { refl },
+  obtain ⟨k, rfl⟩ := pnat.exists_eq_add_of_lt hk',
+  clear hk hk',
+  refine le_antisymm _ (h.pnpow_le_pnpow_of_le (pnat.add_lt_right _ _).le),
+  wlog hmn : m < n using [m n, n m],
+  { exact hne.lt_or_lt },
+  { obtain ⟨l, rfl⟩ := pnat.exists_eq_add_of_lt hmn,
+    clear hne hmn,
+    cases le_or_lt k l with hkl hkl,
+    { rw hx,
+      exact h.pnpow_le_pnpow_of_le (add_le_add le_rfl hkl) },
+    { obtain ⟨p, r, hr, rfl⟩ : ∃ (p r : ℕ+) (hr : r ≤ l), k = p * l + r,
+      { refine ⟨⟨k.div l, pnat.div_pos hkl⟩, k.mod l, (pnat.mod_le _ _).right, _⟩,
+        simpa [subtype.ext_iff] using (pnat.div_add_mod' _ _).symm },
+      clear hkl,
+      revert p,
+      intro p,
+      refine pnat.rec_on p _ _,
+      { rw [one_mul, ←add_assoc, pnpow_add, hx],
+        nth_rewrite_lhs 0 ←hx,
+        rw [←pnpow_add],
+        exact (h.pnpow_le_pnpow_of_le (add_le_add le_rfl hr)) },
+      { intros n IH,
+        rwa [add_mul, one_mul, add_right_comm, ←add_assoc, add_right_comm, pnpow_add, ←hx,
+             ←pnpow_add] } } },
+  { rw [pnpow_add, hx, ←pnpow_add],
+    exact this hx.symm hne.symm }
+end
+
+@[to_additive add_negative.pnsmul_eq_of_eq]
+lemma negative.pnpow_eq_of_eq {S : Type*} [semigroup S] [partial_order S] [nakada_po S] {x : S}
+  (h : negative x) {m n : ℕ+} (hx : x ^ m = x ^ n) (hne : m ≠ n) (k : ℕ+) (hk : m ≤ k) :
+  x ^ k = x ^ m :=
+begin
+  rcases hk.eq_or_lt with rfl|hk',
+  { refl },
+  obtain ⟨k, rfl⟩ := pnat.exists_eq_add_of_lt hk',
+  clear hk hk',
+  refine le_antisymm (h.pnpow_le_pnpow_of_le (pnat.add_lt_right _ _).le) _,
+  wlog hmn : m < n using [m n, n m],
+  { exact hne.lt_or_lt },
+  { obtain ⟨l, rfl⟩ := pnat.exists_eq_add_of_lt hmn,
+    clear hne hmn,
+    cases le_or_lt k l with hkl hkl,
+    { rw hx,
+      exact h.pnpow_le_pnpow_of_le (add_le_add le_rfl hkl) },
+    { obtain ⟨p, r, hr, rfl⟩ : ∃ (p r : ℕ+) (hr : r ≤ l), k = p * l + r,
+      { refine ⟨⟨k.div l, pnat.div_pos hkl⟩, k.mod l, (pnat.mod_le _ _).right, _⟩,
+        simpa [subtype.ext_iff] using (pnat.div_add_mod' _ _).symm },
+      clear hkl,
+      revert p,
+      intro p,
+      refine pnat.rec_on p _ _,
+      { rw [one_mul, ←add_assoc, pnpow_add, ←hx, ←pnpow_add, hx],
+        exact (h.pnpow_le_pnpow_of_le (add_le_add le_rfl hr)), },
+      { intros n IH,
+        rwa [add_mul, one_mul, add_right_comm, ←add_assoc, add_right_comm, pnpow_add, ←hx,
+             ←pnpow_add] } } },
+  { rw [pnpow_add, hx, ←pnpow_add],
+    exact this hx.symm hne.symm }
+end
 
 @[to_additive is_infinite_add_order]
 def is_infinite_order (x : M) : Prop :=
 ∀ (i j : ℕ+) (h : i ≠ j), x ^ i ≠ x ^ j
 
+@[to_additive is_infinite_add_order.not_is_of_fin_add_order]
+lemma is_infinite_order.not_is_of_fin_order {M : Type*} [monoid M] {x : M}
+  (h : is_infinite_order x) : ¬ is_of_fin_order x :=
+begin
+  rw [is_infinite_order] at h,
+  rw [is_of_fin_order],
+  rintros ⟨n, hn, H⟩,
+  refine h 1 n.succ_pnat _ _,
+  { simpa [subtype.ext_iff, nat.succ_inj'] using hn.lt.ne },
+  { obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero (hn.lt.ne'),
+    have : k.succ.iterate ((*) x) 1 = 1 := H,
+    simp only [mul_one, mul_left_iterate] at this,
+    simp [pow_succ', this] }
+end
+
 @[to_additive is_infinite_add_order_iff_not_is_of_fin_add_order]
 lemma is_infinite_order_iff_not_is_of_fin_order {M : Type*} [monoid M] {x : M} :
   is_infinite_order x ↔ ¬ is_of_fin_order x :=
 begin
+  refine ⟨is_infinite_order.not_is_of_fin_order, _⟩,
   rw [is_infinite_order, is_of_fin_order],
-  split,
-  { rintros h ⟨n, hn, H⟩,
-    refine h 1 n.succ_pnat _ _,
-    { simpa [subtype.ext_iff, nat.succ_inj'] using hn.lt.ne },
-    { obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero (hn.lt.ne'),
-      have : k.succ.iterate ((*) x) 1 = 1 := H,
-      simp only [mul_one, mul_left_iterate] at this,
-      simp [pow_succ', this] } },
-  { contrapose!,
-    intro h,
-    have h' : ∃ (i j : ℕ), 0 < i ∧ 0 < j ∧ i ≠ j ∧ x ^ i = x ^ j,
-    { obtain ⟨⟨i, hi⟩, ⟨j, hj⟩, hne, h⟩ := h,
-      refine ⟨i, j, hi, hj, _, _⟩,
-      { simpa using hne },
-      { simpa using h } },
-    classical,
-    set i : ℕ := nat.find h' with hi,
-    have h'' := nat.find_spec h',
-    set j : ℕ := nat.find (nat.find_spec h') with hj,
-    have ipos : 0 < i := (nat.find_spec h'').left,
-    have jpos : 0 < j := (nat.find_spec h'').right.left,
-    have hne : i ≠ j := (nat.find_spec h'').right.right.left,
-    have hx : x ^ i = x ^ j := (nat.find_spec h'').right.right.right,
-    clear_value i j,
-    cases hne.lt_or_lt with hij hij,
-    { sorry },
-    { sorry } },
+  contrapose!,
+  intro h,
+  have h' : ∃ (i j : ℕ), 0 < i ∧ 0 < j ∧ i ≠ j ∧ x ^ i = x ^ j,
+  { obtain ⟨⟨i, hi⟩, ⟨j, hj⟩, hne, h⟩ := h,
+    refine ⟨i, j, hi, hj, _, _⟩,
+    { simpa using hne },
+    { simpa using h } },
+  classical,
+  set i : ℕ := nat.find h' with hi,
+  have h'' := nat.find_spec h',
+  set j : ℕ := nat.find (nat.find_spec h') with hj,
+  have ipos : 0 < i := (nat.find_spec h'').left,
+  have jpos : 0 < j := (nat.find_spec h'').right.left,
+  have hne : i ≠ j := (nat.find_spec h'').right.right.left,
+  have hx : x ^ i = x ^ j := (nat.find_spec h'').right.right.right,
+  clear_value i j,
+  cases hne.lt_or_lt with hij hij,
+  { sorry },
+  { sorry }
 end
 
 @[to_additive add_idempotent]
@@ -1202,7 +1405,7 @@ lemma idempotent_of_length_eq_one (hl : length h = 1) :
   idempotent x :=
 begin
   convert h.pnpow_eq_on_length_le 2 _,
-  { simp [idempotent, hl, show (2 : ℕ+) = 1 + 1, from rfl] },
+  { simp [idempotent, hl, pnpow_two] },
   { simp [hl, ←pnat.coe_le_coe] }
 end
 
@@ -1215,7 +1418,7 @@ lemma quasi_add_idempotent.add_idempotent_of_add_length_eq_one {A : Type*} [has_
   add_idempotent x :=
 begin
   convert h.pnsmul_eq_on_length_le 2 _,
-  { simp [add_idempotent, hl, show (2 : ℕ+) = 1 + 1, from rfl] },
+  { simp [add_idempotent, hl, two_pnsmul] },
   { simp [hl, ←pnat.coe_le_coe] }
 end
 
@@ -1223,5 +1426,48 @@ attribute [to_additive quasi_add_idempotent.add_idempotent_of_add_length_eq_one]
   quasi_idempotent.idempotent_of_length_eq_one
 
 end quasiidempotent
+
+-- Theorem 9
+@[to_additive is_infinite_add_order_or_quasi_add_idempotent]
+lemma is_infinite_order_or_quasi_idempotent {S : Type*} [semigroup S] [linear_order S] [nakada_po S]
+  (x : S) : is_infinite_order x ∨ quasi_idempotent x :=
+begin
+  refine or_iff_not_imp_left.mpr (λ h, _),
+  rw is_infinite_order at h,
+  push_neg at h,
+  have h' : ∃ (i : ℕ), 0 < i ∧ ∃ (j : ℕ), 0 < j ∧ i ≠ j ∧ x ^ i.to_pnat' = x ^ j.to_pnat',
+  { obtain ⟨⟨i, hi⟩, ⟨j, hj⟩, hne, h⟩ := h,
+    refine ⟨i, hi, j, hj, _, _⟩,
+    { simpa using hne },
+    { convert h;
+      simp [subtype.ext_iff, hi, hj] } },
+  classical,
+  set i : ℕ := nat.find h' with hi,
+  have h'' := nat.find_spec h',
+  have hs : set.inj_on (λ (k : ℕ+), x ^ k) (set.Iic i.to_pnat'),
+  { rintros ⟨m, hm'⟩ hm ⟨n, hn'⟩ hn hmn,
+    obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm'.ne',
+    obtain ⟨l, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn'.ne',
+    simp only [set.mem_Iic, ←pnat.coe_le_coe, pnat.mk_coe, nat.le_find_iff, ne.def, not_exists,
+               not_and, nat.to_pnat'_coe, nat.find_pos, not_lt_zero', false_and, exists_false,
+               not_false_iff, if_true, exists_and_distrib_left] at hm hn hmn,
+    rcases lt_trichotomy k l with H|rfl|H,
+    { refine absurd hmn _,
+      exact hn k.succ (nat.succ_lt_succ H) k.succ_pos l.succ l.succ_pos (nat.succ_lt_succ H).ne },
+    { refl },
+    { refine absurd hmn.symm _,
+      exact hm l.succ (nat.succ_lt_succ H) l.succ_pos k.succ k.succ_pos (nat.succ_lt_succ H).ne } },
+  refine ⟨i, i.to_pnat', _, hs, _⟩,
+  sorry,
+  sorry,
+  -- { simp },
+  -- sorry,
+  -- intros k hk,
+  -- rw ←hi at h'',
+  -- obtain ⟨hi', j, hj, hne, hij⟩ := h'',
+  -- cases positive_or_negative x with hx hx;
+  -- { refine hx.pnpow_eq_of_eq hij _ _ hk,
+  --   simp [subtype.ext_iff, hj, hne] }
+end
 
 end page184

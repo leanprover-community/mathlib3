@@ -1068,8 +1068,8 @@ theorem bdd_above_iff_small {s : set ordinal.{u}} : bdd_above s ↔ small.{u} s 
 ⟨λ ⟨a, h⟩, @small_subset _ _ _ (by exact λ b hb, lt_succ.2 (h hb)) (small_Iio a.succ),
 λ h, ⟨sup.{u u} (λ x, ((@equiv_shrink s h).symm x).val), le_sup_shrink_equiv h⟩⟩
 
-@[simp] theorem sup_eq_Sup {s : set ordinal.{u}} (hs : small.{u} s) :
-  sup.{u u} (λ x, ((@equiv_shrink s hs).symm x).val) = Sup s :=
+theorem sup_eq_Sup {s : set ordinal.{u}} (hs : small.{u} s) :
+  sup.{u u} (λ x, (@equiv_shrink s hs).symm x) = Sup s :=
 let hs' := bdd_above_iff_small.2 hs in
   ((cSup_le_iff' hs').2 (le_sup_shrink_equiv hs)).antisymm'
   (sup_le.2 (λ x, le_cSup hs' (subtype.mem _)))

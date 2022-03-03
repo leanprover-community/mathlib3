@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import group_theory.group_action.conj_act
-import ring_theory.polynomial.cyclotomic.basic
+import ring_theory.polynomial.cyclotomic.eval
 import ring_theory.centralizer
 import tactic.by_contra
 
@@ -12,12 +12,11 @@ import tactic.by_contra
 # Little Wedderburn TODO
 -/
 
---noncomputable theory
-open_locale nnreal big_operators
+open_locale nnreal big_operators polynomial
 
 namespace int
 
--- #12382
+-- #12382, awaiting master merge
 lemma dvd_div_of_mul_dvd {a b c : ℤ} (h : a * b ∣ c) : b ∣ c / a :=
 begin
   rcases eq_or_ne a 0 with rfl | ha,
@@ -29,38 +28,25 @@ end
 
 end int
 
--- #12383
+-- #12383, awaiting master merge
 lemma finset.prod_dvd_prod_of_subset {ι M : Type*} [comm_monoid M] (s t : finset ι) (f : ι → M)
   (h : s ⊆ t) : ∏ i in s, f i ∣ ∏ i in t, f i :=
 multiset.prod_dvd_prod_of_le $ multiset.map_le_map $ by simpa
 
--- move this
-/-- todo: tempo docstring -/
-@[simps] noncomputable def complex.abs_hom : ℂ →*₀ ℝ :=
-{ to_fun := complex.abs,
-  map_zero' := complex.abs_zero,
-  map_one' := complex.abs_one,
-  map_mul' := complex.abs_mul }
-
--- todo: `map_prod` `fun-like`.
-@[simp] lemma complex.abs_prod {ι : Type*} (s : finset ι) (f : ι → ℂ) :
-  complex.abs (s.prod f) = s.prod (λ i, complex.abs (f i)) :=
-(complex.abs_hom).to_monoid_hom.map_prod _ _
+section pr12428
 
 @[simp] lemma complex.nnnorm_coe_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
-by { ext, simp only [complex.norm_real, coe_nnnorm], }
+subtype.ext $ by simp only [complex.norm_real, coe_nnnorm]
 
 @[simp] lemma complex.nnnorm_nat_cast (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
-by { rw [← real.nnnorm_coe_nat, ← complex.nnnorm_coe_real], norm_cast, }
+by rw [← real.nnnorm_coe_nat, ← complex.nnnorm_coe_real, complex.of_real_nat_cast]
 
 @[simp] lemma complex.nnnorm_int_cast (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
 begin
-  by_cases hn : 0 ≤ n,
-  { lift n to ℕ using hn,
-    rw [int.cast_coe_nat, complex.nnnorm_nat_cast, ← nnreal.coe_nat_abs, int.nat_abs_of_nat], },
-  { lift -n to ℕ with k hk, swap, { push_neg at hn, rw neg_nonneg, exact hn.le },
-    rw [← nnnorm_neg, ← int.cast_neg, ← hk, ← nnnorm_neg n, ← hk],
-    rw [int.cast_coe_nat, complex.nnnorm_nat_cast, ← nnreal.coe_nat_abs, int.nat_abs_of_nat], },
+  obtain ⟨k, rfl | rfl⟩ := int.eq_coe_or_neg n,
+  { rw [int.cast_coe_nat, complex.nnnorm_nat_cast, ← nnreal.coe_nat_abs, int.nat_abs_of_nat] },
+  { rw [int.cast_neg, nnnorm_neg, nnnorm_neg, int.cast_coe_nat, complex.nnnorm_nat_cast,
+        ←nnreal.coe_nat_abs, int.nat_abs_of_nat], },
 end
 
 lemma complex.nnnorm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
@@ -78,33 +64,26 @@ lemma is_primitive_root.nnnorm_eq_one {ζ : ℂ} {n : ℕ} (h : is_primitive_roo
   ∥ζ∥ = 1 :=
 complex.norm_eq_one_of_pow_eq_one h.pow_eq_one hn
 
-lemma fintype.card_conj_act (G : Type*) [fintype G] : fintype.card (conj_act G) = fintype.card G :=
-rfl
+end pr12428
 
 /-- The ring homomorphism associated to an inclusion of subrings. -/
 def subring.inclusion' {R : Type*} [ring R] {S T : subring R} (h : S ≤ T) : S →+* T :=
 S.subtype.cod_restrict' _ (λ x, h x.2)
-
-namespace nat
-
-@[simp, norm_cast] theorem cast_eq_one {R : Type*} [add_monoid R] [has_one R] [char_zero R]
-  {n : ℕ} : (n : R) = 1 ↔ n = 1 := by rw [←cast_one, cast_inj]
-
--- seems unused but probably useful
-@[simp] lemma cast_pow_eq_one (R : Type*) [semiring R] [char_zero R]
-  (q : ℕ) (n : ℕ) (hn : n ≠ 0) : (q : R) ^ n = 1 ↔ q = 1 :=
-by { rw [←cast_pow, cast_eq_one], exact pow_eq_one_iff hn }
-
-end nat
 
 namespace little_wedderburn
 
 section cyclotomic
 open polynomial
 
-lemma sub_one_lt_nat_abs_cyclotomic_eval (n : ℕ) (q : ℕ) (hn : 1 < n) (hq : 2 ≤ q) :
-  q - 1 < int.nat_abs ((cyclotomic n ℤ).eval ↑q) :=
+lemma sub_one_lt_nat_abs_cyclotomic_eval (n : ℕ) (q : ℕ) (hn : 1 < n) (hq' : q ≠ 1) :
+  q - 1 < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
 begin
+  have : _ ∨ 2 ≤ q := (iff_iff_not_or_and_or_not.mp nat.one_lt_iff_ne_zero_and_ne_one).2.symm,
+  simp only [not_and_distrib, ne.def, not_not] at this,
+  rcases this with (rfl | rfl) | hq,
+  { rw [zero_tsub, int.coe_nat_zero, ←coeff_zero_eq_eval_zero, cyclotomic_coeff_zero _ hn],
+    norm_num },
+  { exact (hq' rfl).elim },
   rw ← @nat.cast_lt ℝ≥0,
   calc ↑(q - 1)
       < ∥(cyclotomic n ℂ).eval ↑q∥₊ : _
@@ -144,28 +123,43 @@ begin
     refine (hζ.pow_ne_one_of_pos_of_lt zero_lt_one hn _).elim, rw pow_one },
   { refine (ne_of_lt _ norm_ζ).elim, nlinarith }
 end
-.
 
-lemma cyclotomic_eval_dvd_pow_sub_one_div_pow_sub_one_of_dvd (q d n : ℕ)
-  (hd : d ∣ n) (hd0 : d ≠ 0) (hdn : d < n) :
-  (cyclotomic n ℤ).eval q ∣ (q ^ n - 1) / (q ^ d - 1) :=
+-- #12426
+lemma cyclotomic_dvd_geom_sum_of_dvd {R} [comm_ring R] [is_domain R] {d n : ℕ} (hdn : d ∣ n)
+  (hd : d ≠ 1) : cyclotomic d R ∣ geom_sum X n :=
 begin
-  have h0d : 0 < d := hd0.bot_lt,
-  have h0n : 0 < n := h0d.trans hdn,
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  rw ←prod_cyclotomic_eq_geom_sum hn,
+  apply finset.dvd_prod_of_mem,
+  simp [hd, hdn, hn.ne']
+end
+
+-- #12426
+lemma X_pow_sub_one_mul_cyclotomic_dvd_X_pow_sub_one_of_dvd {R : Type*} [comm_ring R] {d n : ℕ}
+  (hd : d ∣ n) (hdn : d < n) : (X ^ d - 1) * cyclotomic n R ∣ X ^ n - 1 :=
+begin
+  rcases n.eq_zero_or_pos with rfl | h0n,
+  { simp },
+  rcases d.eq_zero_or_pos with rfl | h0d,
+  { linarith [eq_zero_of_zero_dvd hd] },
+  rw [←prod_cyclotomic_eq_X_pow_sub_one h0d, ←prod_cyclotomic_eq_X_pow_sub_one h0n,
+      mul_comm, ←finset.prod_insert $ λ h, hdn.not_le $ nat.divisor_le h],
+  refine finset.prod_dvd_prod_of_subset _ _ _ (λ k hk, _),
+  rcases finset.mem_insert.mp hk with (rfl | hkd),
+  { exact k.mem_divisors_self h0n.ne' },
+  { exact nat.divisors_subset_of_dvd h0n.ne' hd hkd }
+end
+
+-- todo: move into proof
+lemma cyclotomic_eval_dvd_pow_sub_one_div_pow_sub_one_of_dvd (q d n : ℕ)
+  (hd : d ∣ n) (hdn : d < n) : (cyclotomic n ℤ).eval q ∣ (q ^ n - 1) / (q ^ d - 1) :=
+begin
   apply int.dvd_div_of_mul_dvd,
-  have aux : ∀ k:ℕ, ((X : polynomial ℤ) ^ k - 1).eval q = q ^ k - 1,
-  { intro, simp only [eval_X, eval_one, eval_pow, eval_sub], },
+  have aux : ∀ {k : ℕ}, ((X : ℤ[X]) ^ k - 1).eval q = q ^ k - 1,
+  { simp only [eval_X, eval_one, eval_pow, eval_sub, eq_self_iff_true, forall_const] },
   rw [← aux, ← aux, ← eval_mul],
-  apply (eval_ring_hom (q : ℤ)).map_dvd,
-  rw [← prod_cyclotomic_eq_X_pow_sub_one h0d, ← prod_cyclotomic_eq_X_pow_sub_one h0n,
-    mul_comm, ← @finset.prod_insert _ _ d.divisors n (λ k, cyclotomic k ℤ)],
-  swap, { intro h, exact not_le_of_lt hdn (nat.divisor_le h), },
-  apply finset.prod_dvd_prod_of_subset,
-  intros k hk,
-  simp only [nat.mem_divisors, ne.def, finset.mem_insert] at hk ⊢,
-  rcases hk with (rfl|⟨H1, H2⟩),
-  { exact ⟨dvd_rfl, h0n.ne'⟩ },
-  { exact ⟨H1.trans hd, h0n.ne'⟩ }
+  exact (eval_ring_hom ↑q).map_dvd (X_pow_sub_one_mul_cyclotomic_dvd_X_pow_sub_one_of_dvd hd hdn),
 end
 
 end cyclotomic
@@ -263,7 +257,7 @@ begin
   replace hZ := ne.lt_top hZ,
   letI : field Z := hD.field Z hZ,
   set q := fintype.card Z with card_Z,
-  have hq : 2 ≤ q, { rw card_Z, exact fintype.one_lt_card },
+  have hq : 1 < q, { rw card_Z, exact fintype.one_lt_card },
   have h1q : 1 ≤ q := one_le_two.trans hq,
   let n := finrank Z D,
   cases le_or_lt n 1 with hn hn,
@@ -289,7 +283,7 @@ begin
     ←int.nat_cast_eq_coe_nat, nat.cast_add, nat.cast_sub h1qn] at key aux,
   rw [← key, ← dvd_add_iff_left, ← int.nat_abs_dvd, ← int.dvd_nat_abs] at aux,
   simp only [int.nat_cast_eq_coe_nat, int.nat_abs_of_nat, int.coe_nat_dvd] at aux,
-  { refine not_lt_of_ge (nat.le_of_dvd _ aux) (sub_one_lt_nat_abs_cyclotomic_eval _ _ hn hq),
+  { refine not_lt_of_ge (nat.le_of_dvd _ aux) (sub_one_lt_nat_abs_cyclotomic_eval _ _ hn hq.ne'),
     exact nat.sub_pos_of_lt hq },
   suffices : Φ.eval q ∣ ↑∑ x in (conj_classes.noncenter (units D)).to_finset,fintype.card x.carrier,
   { simp only [int.nat_cast_eq_coe_nat] at this ⊢,
@@ -299,8 +293,8 @@ begin
   apply finset.dvd_sum,
   rintro ⟨x⟩ hx,
   simp only [int.nat_cast_eq_coe_nat, conj_classes.quot_mk_eq_mk],
-  rw [card_carrier, fintype.card_conj_act, fintype.card_units, card_D,
-    ← fintype.card_congr (units_centralizer_equiv x).to_equiv],
+  rw [card_carrier, conj_act.card, fintype.card_units, card_D,
+      ←fintype.card_congr (units_centralizer_equiv x).to_equiv],
   set Zx := subring.centralizer (x:D),
   have hZx : Zx < ⊤,
   { rw lt_top_iff_ne_top,
@@ -321,7 +315,6 @@ begin
     nat.cast_one, nat.cast_pow],
   simp only [int.nat_cast_eq_coe_nat],
   apply cyclotomic_eval_dvd_pow_sub_one_div_pow_sub_one_of_dvd _ _ _ hdn,
-  { apply ne_of_gt, exact finrank_pos },
   rw [← (nat.pow_right_strict_mono hq).lt_iff_lt],
   dsimp,
   rw [← card_D, ← card_Zx],

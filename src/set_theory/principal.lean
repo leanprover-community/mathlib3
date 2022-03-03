@@ -21,8 +21,8 @@ We define principal or indecomposable ordinals, and we prove the standard proper
   multiplicative principal ordinals.
 
 ### Todo
-* Prove that exponential principal ordinals are either less than 2 or epsilon numbers, i.e. fixed
-  points of `λ x, ω ^ x`.
+* Prove that exponential principal ordinals are 0, 1, 2, ω, or epsilon numbers, i.e. fixed points
+  of `λ x, ω ^ x`.
 -/
 
 universe u

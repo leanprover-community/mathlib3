@@ -54,6 +54,17 @@ alg_hom.congr_fun involute_comp_involute
 @[simp] lemma involute_involute : ∀ a : clifford_algebra Q, involute (involute a) = a :=
 involute_involutive
 
+/-- `clifford_algebra.involute` as an `alg_equiv`. -/
+@[simps] def involute_equiv : clifford_algebra Q ≃ₐ[R] clifford_algebra Q :=
+alg_equiv.of_alg_hom involute involute
+  (alg_hom.ext $ involute_involute) (alg_hom.ext $ involute_involute)
+
+@[simp] lemma ι_range_map_involute : (ι Q).range.map involute.to_linear_map = (ι Q).range :=
+(ι_range_map_lift _ _).trans (linear_map.range_neg _)
+
+@[simp] lemma ι_range_comap_involute : (ι Q).range.comap involute.to_linear_map = (ι Q).range :=
+(submodule.comap_equiv_eq_map_symm involute_equiv.to_linear_equiv _).trans ι_range_map_involute
+
 lemma involute_mem_range_ι_pow {x : clifford_algebra Q} {n : ℕ} (hx : x ∈ (ι Q).range ^ n) :
   involute x ∈ (ι Q).range ^ n :=
 begin
@@ -130,6 +141,19 @@ linear_map.congr_fun reverse_comp_reverse
 
 @[simp] lemma reverse_reverse : ∀ a : clifford_algebra Q, reverse (reverse a) = a :=
 reverse_involutive
+
+/-- `clifford_algebra.reverse` as a `linear_equiv`. -/
+@[simps] def reverse_equiv : clifford_algebra Q ≃ₗ[R] clifford_algebra Q :=
+linear_equiv.of_involutive reverse reverse_involutive
+
+@[simp] lemma ι_range_map_reverse : (ι Q).range.map reverse = (ι Q).range :=
+begin
+  rw [reverse, submodule.map_comp, ι_range_map_lift, linear_map.range_comp, ←submodule.map_comp],
+  exact submodule.map_id _,
+end
+
+@[simp] lemma ι_range_comap_reverse : (ι Q).range.comap reverse = (ι Q).range :=
+(submodule.comap_equiv_eq_map_symm (reverse_equiv : _ ≃ₗ[R] _) _).trans ι_range_map_reverse
 
 lemma reverse_comp_involute :
   reverse.comp involute.to_linear_map =

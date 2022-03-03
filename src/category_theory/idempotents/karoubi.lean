@@ -42,7 +42,7 @@ one may define a formal direct factor of an object `X : C` : it consists of an i
 `p : X ⟶ X` which is thought as the "formal image" of `p`. The type `karoubi C` shall be the
 type of the objects of the karoubi enveloppe of `C`. It makes sense for any category `C`. -/
 @[nolint has_inhabited_instance]
-structure karoubi := (X : C) (p : X ⟶ X) (idempotence : p ≫ p = p)
+structure karoubi := (X : C) (p : X ⟶ X) (idem : p ≫ p = p)
 
 namespace karoubi
 
@@ -80,11 +80,11 @@ end
 
 @[simp, reassoc]
 lemma p_comp {P Q : karoubi C} (f : hom P Q) : P.p ≫ f.f = f.f :=
-by rw [f.comm, ← assoc, P.idempotence]
+by rw [f.comm, ← assoc, P.idem]
 
 @[simp, reassoc]
 lemma comp_p {P Q : karoubi C} (f : hom P Q) : f.f ≫ Q.p = f.f :=
-by rw [f.comm, assoc, assoc, Q.idempotence]
+by rw [f.comm, assoc, assoc, Q.idem]
 
 lemma p_comm {P Q : karoubi C} (f : hom P Q) : P.p ≫ f.f = f.f ≫ Q.p :=
 by rw [p_comp, comp_p]
@@ -96,7 +96,7 @@ by rw [assoc, comp_p, ← assoc, p_comp]
 /-- The category structure on the karoubi envelope of a category. -/
 instance : category (karoubi C) :=
 { hom      := karoubi.hom,
-  id       := λ P, ⟨P.p, by { repeat { rw P.idempotence, }, }⟩,
+  id       := λ P, ⟨P.p, by { repeat { rw P.idem, }, }⟩,
   comp     := λ P Q R f g, ⟨f.f ≫ g.f, karoubi.comp_proof g f⟩, }
 
 @[simp]
@@ -104,7 +104,7 @@ lemma comp {P Q R : karoubi C} (f : P ⟶ Q) (g : Q ⟶ R) :
   f ≫ g = ⟨f.f ≫ g.f, comp_proof g f⟩ := by refl
 
 @[simp]
-lemma id_eq {P : karoubi C} : 𝟙 P = ⟨P.p, by repeat { rw P.idempotence, }⟩ := by refl
+lemma id_eq {P : karoubi C} : 𝟙 P = ⟨P.p, by repeat { rw P.idem, }⟩ := by refl
 
 /-- It is possible to coerce an object of `C` into an object of `karoubi C`.
 See also the functor `to_karoubi`. -/
@@ -198,7 +198,7 @@ end
 
 instance [is_idempotent_complete C] : ess_surj (to_karoubi C) := ⟨λ P, begin
   have h : is_idempotent_complete C := infer_instance,
-  rcases is_idempotent_complete.idempotents_split P.X P.p P.idempotence
+  rcases is_idempotent_complete.idempotents_split P.X P.p P.idem
     with ⟨Y,i,e,⟨h₁,h₂⟩⟩,
   use Y,
   exact nonempty.intro
@@ -217,22 +217,22 @@ variables {C}
 
 /-- The split mono which appears in the factorisation `decomp_id P`. -/
 @[simps]
-def decomp_id_i (P : karoubi C) : P ⟶ P.X := ⟨P.p, by erw [coe_p, comp_id, P.idempotence]⟩
+def decomp_id_i (P : karoubi C) : P ⟶ P.X := ⟨P.p, by erw [coe_p, comp_id, P.idem]⟩
 
 /-- The split epi which appears in the factorisation `decomp_id P`. -/
 @[simps]
 def decomp_id_p (P : karoubi C) : (P.X : karoubi C) ⟶ P :=
-⟨P.p, by erw [coe_p, id_comp, P.idempotence]⟩
+⟨P.p, by erw [coe_p, id_comp, P.idem]⟩
 
 /-- The formal direct factor of `P.X` given by the idempotent `P.p` in the category `C`
 is actually a direct factor in the category `karoubi C`. -/
 lemma decomp_id (P : karoubi C) :
   𝟙 P = (decomp_id_i P) ≫ (decomp_id_p P) :=
-by { ext, simp only [comp, id_eq, P.idempotence, decomp_id_i, decomp_id_p], }
+by { ext, simp only [comp, id_eq, P.idem, decomp_id_i, decomp_id_p], }
 
 lemma decomp_p (P : karoubi C) :
   (to_karoubi C).map P.p = (decomp_id_p P) ≫ (decomp_id_i P) :=
-by { ext, simp only [comp, decomp_id_p_f, decomp_id_i_f, P.idempotence, to_karoubi_map_f], }
+by { ext, simp only [comp, decomp_id_p_f, decomp_id_i_f, P.idem, to_karoubi_map_f], }
 
 lemma decomp_id_i_to_karoubi (X : C) : decomp_id_i ((to_karoubi C).obj X) = 𝟙 _ :=
 by { ext, refl, }

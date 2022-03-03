@@ -48,6 +48,8 @@ Some properties of the operations are also used to discuss general tools on ordi
   `Type u`, as an ordinal in `Type u`.
 * `bsup`, `blsub`: the supremum / least strict upper bound of a set of ordinals indexed by ordinals
   less than a given ordinal `o`.
+
+Various other basic arithmetic results are given in `principal.lean` instead.
 -/
 
 noncomputable theory

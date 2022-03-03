@@ -22,7 +22,7 @@ any other typically excluded edge cases for simplicity.
 
 ### Todo
 * Prove that exponential principal ordinals are either less than 2 or epsilon numbers, i.e. fixed
-  points of `λ x, omega ^ x`.
+  points of `λ x, ω ^ x`.
 -/
 
 universe u

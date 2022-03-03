@@ -899,15 +899,25 @@ end
 lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 (differentiable_const _).differentiable_on
 
-lemma has_fderiv_at_of_subsingleton {R X Y : Type*} [nondiscrete_normed_field R]
-  [normed_group X] [normed_group Y] [normed_space R X] [normed_space R Y] [h : subsingleton X]
-  (f : X → Y) (x : X) :
-  has_fderiv_at f (0 : X →L[R] Y) x :=
+lemma has_fderiv_within_at_singleton (f : E → F) (x : E) :
+  has_fderiv_within_at f (0 : E →L[𝕜] F) {x} x :=
+by simp only [has_fderiv_within_at, nhds_within_singleton, has_fderiv_at_filter, is_o_pure,
+  continuous_linear_map.zero_apply, sub_self]
+
+lemma has_fderiv_at_of_subsingleton [h : subsingleton E] (f : E → F) (x : E) :
+  has_fderiv_at f (0 : E →L[𝕜] F) x :=
 begin
-  rw subsingleton_iff at h,
-  have key : function.const X (f 0) = f := by ext x'; rw h x' 0,
-  exact key ▸ (has_fderiv_at_const (f 0) _),
+  rw [← has_fderiv_within_at_univ, subsingleton_univ.eq_singleton_of_mem (mem_univ x)],
+  exact has_fderiv_within_at_singleton f x
 end
+
+lemma differentiable_on_empty : differentiable_on 𝕜 f ∅ := λ x, false.elim
+
+lemma differentiable_on_singleton : differentiable_on 𝕜 f {x} :=
+forall_eq.2 (has_fderiv_within_at_singleton f x).differentiable_within_at
+
+lemma set.subsingleton.differentiable_on (hs : s.subsingleton) : differentiable_on 𝕜 f s :=
+hs.induction_on differentiable_on_empty (λ x, differentiable_on_singleton)
 
 end const
 
@@ -1093,7 +1103,7 @@ lemma fderiv.comp_fderiv_within {g : F → G}
 (hg.has_fderiv_at.comp_has_fderiv_within_at x hf.has_fderiv_within_at).fderiv_within hxs
 
 lemma differentiable_on.comp {g : F → G} {t : set F}
-  (hg : differentiable_on 𝕜 g t) (hf : differentiable_on 𝕜 f s) (st : s ⊆ f ⁻¹' t) :
+  (hg : differentiable_on 𝕜 g t) (hf : differentiable_on 𝕜 f s) (st : maps_to f s t) :
   differentiable_on 𝕜 (g ∘ f) s :=
 λx hx, differentiable_within_at.comp x (hg (f x) (st hx)) (hf x hx) st
 
@@ -1104,7 +1114,7 @@ lemma differentiable.comp {g : F → G} (hg : differentiable 𝕜 g) (hf : diffe
 lemma differentiable.comp_differentiable_on {g : F → G} (hg : differentiable 𝕜 g)
   (hf : differentiable_on 𝕜 f s) :
   differentiable_on 𝕜 (g ∘ f) s :=
-(differentiable_on_univ.2 hg).comp hf (by simp)
+hg.differentiable_on.comp hf (maps_to_univ _ _)
 
 /-- The chain rule for derivatives in the sense of strict differentiability. -/
 protected lemma has_strict_fderiv_at.comp {g : F → G} {g' : F →L[𝕜] G}

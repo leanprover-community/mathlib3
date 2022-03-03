@@ -42,10 +42,21 @@ instance has_uniform_continuous_const_smul.to_has_continuous_const_smul
   [has_uniform_continuous_const_smul M X] : has_continuous_const_smul M X :=
 ⟨λ c, (uniform_continuous_const_smul c).continuous⟩
 
+
 lemma uniform_continuous.const_smul [has_uniform_continuous_const_smul M X]
   {f : Y → X} (hf : uniform_continuous f) (c : M) :
   uniform_continuous (c • f) :=
 (uniform_continuous_const_smul c).comp hf
+
+/-- If a scalar is central, then its right action is uniform continuous when its left action is. -/
+@[priority 100]
+instance has_uniform_continuous_const_smul.op [has_scalar Mᵐᵒᵖ X] [is_central_scalar M X]
+  [has_uniform_continuous_const_smul M X] : has_uniform_continuous_const_smul Mᵐᵒᵖ X :=
+⟨mul_opposite.rec $ λ c, begin
+  change uniform_continuous (λ m, mul_opposite.op c • m),
+  simp_rw op_smul_eq_smul,
+  exact uniform_continuous_const_smul c,
+end⟩
 
 end has_scalar
 
@@ -67,6 +78,9 @@ variable [has_scalar M X]
 
 @[to_additive] instance : has_uniform_continuous_const_smul M (completion X) :=
 ⟨λ c, uniform_continuous_map⟩
+
+instance [has_scalar Mᵐᵒᵖ X] [is_central_scalar M X] : is_central_scalar M (completion X) :=
+⟨λ c a, congr_arg (λ f, completion.map f a) $ by exact funext (op_smul_eq_smul c)⟩
 
 variables {M X} [has_uniform_continuous_const_smul M X]
 

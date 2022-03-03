@@ -226,7 +226,7 @@ end category_theory.iso
 in `Group` -/
 @[to_additive add_equiv_iso_AddGroup_iso "additive equivalences between `add_group`s are the same
 as (isomorphic to) isomorphisms in `AddGroup`"]
-def mul_equiv_iso_Group_iso {X Y : Group} : (X ≃* Y) ≅ (X ≅ Y) :=
+def mul_equiv_iso_Group_iso {X Y : Group.{u}} : (X ≃* Y) ≅ (X ≅ Y) :=
 { hom := λ e, e.to_Group_iso,
   inv := λ i, i.Group_iso_to_mul_equiv, }
 
@@ -234,7 +234,7 @@ def mul_equiv_iso_Group_iso {X Y : Group} : (X ≃* Y) ≅ (X ≅ Y) :=
 in `CommGroup` -/
 @[to_additive add_equiv_iso_AddCommGroup_iso "additive equivalences between `add_comm_group`s are
 the same as (isomorphic to) isomorphisms in `AddCommGroup`"]
-def mul_equiv_iso_CommGroup_iso {X Y : CommGroup} : X ≃* Y ≅ (X ≅ Y) :=
+def mul_equiv_iso_CommGroup_iso {X Y : CommGroup.{u}} : X ≃* Y ≅ (X ≅ Y) :=
 { hom := λ e, e.to_CommGroup_iso,
   inv := λ i, i.CommGroup_iso_to_mul_equiv, }
 

@@ -57,6 +57,8 @@ structure conj_linear_map_bad₃ (b : bool) (𝕜 : Type*) (M₁ : Type*) (M₂ 
 
 end bad_def₃
 
+section solution
+
 /-
 Bad solution 4: Conjugate space -> define a type copy of the vector space where
 scalar multiplication has complex conjugation baked in.
@@ -69,8 +71,21 @@ structure semilinear_map {R₁ : Type*} {R₂ : Type*} [ring R₁] [ring R₂] (
   extends add_hom M₁ M₂ :=
 (map_smul' : ∀ (r : R₁) (x : M₁), to_fun (r • x) = (σ r) • to_fun x)
 
--- Big advantage: can actually replace linear maps, no need to duplicate API
--- Drawback: implies massive refactor
+variables {M₁ M₂ : Type*} [add_comm_group M₁] [add_comm_group M₂] [module ℝ M₁]
+[module ℝ M₂]
+
+example (f₁ : semilinear_map (ring_hom.id ℝ) M₁ M₂) :
+  semilinear_map (is_R_or_C.conj : ℝ →+* ℝ) M₁ M₂ := f₁
+
+/-
+Big advantage: can actually replace linear maps, no need to duplicate API
+Use notation to hide the ugliness:
+`semilinear_map (ring_hom.id ℂ) M₁ M₂` denoted by `M₁ →ₗ[ℂ] M₂`
+Conjugate-linear maps denoted as `M₁ →ₗ⋆[ℂ] M₂`
+Drawback: implies massive refactor
+-/
+
+end solution
 
 -- Over to Heather!
 

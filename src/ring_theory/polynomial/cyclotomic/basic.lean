@@ -442,8 +442,7 @@ lemma X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd (R) [comm_ring R
   (hd : d ∣ n) (hdn : d < n) :
   (X ^ d - 1) * ∏ x in n.divisors \ d.divisors, cyclotomic x R = X ^ n - 1 :=
 begin
-  rcases n.eq_zero_or_pos with rfl | h0n,
-  { exact (d.not_lt_zero hdn).elim },
+  have h0n := pos_of_gt hdn,
   rcases d.eq_zero_or_pos with rfl | h0d,
   { exfalso, linarith [eq_zero_of_zero_dvd hd] },
   rw [←prod_cyclotomic_eq_X_pow_sub_one h0d, ←prod_cyclotomic_eq_X_pow_sub_one h0n,
@@ -453,9 +452,8 @@ end
 lemma X_pow_sub_one_mul_cyclotomic_dvd_X_pow_sub_one_of_dvd (R) [comm_ring R] {d n : ℕ}
   (hd : d ∣ n) (hdn : d < n) : (X ^ d - 1) * cyclotomic n R ∣ X ^ n - 1 :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn,
-  { exact (d.not_lt_zero hdn).elim },
   use ∏ x in n.proper_divisors \ d.divisors, cyclotomic x R,
+  have h0n := pos_of_gt hdn,
   symmetry,
   convert X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd R hd hdn using 1,
   rw mul_assoc,

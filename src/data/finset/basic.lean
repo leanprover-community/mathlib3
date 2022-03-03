@@ -1913,6 +1913,26 @@ alias map_nonempty ↔ _ finset.nonempty.map
 lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
 
+lemma disjoint_range_add_left_embedding (a b : ℕ) :
+  disjoint (range a) (map (add_left_embedding a) (range b)) :=
+begin
+  intros k hk,
+  simp only [exists_prop, mem_range, inf_eq_inter, mem_map, add_left_embedding_apply,
+    mem_inter] at hk,
+  obtain ⟨a, haQ, ha⟩ := hk.2,
+  simpa [← ha] using hk.1,
+end
+
+lemma disjoint_range_add_right_embedding (a b : ℕ) :
+  disjoint (range a) (map (add_right_embedding a) (range b)) :=
+begin
+  intros k hk,
+  simp only [exists_prop, mem_range, inf_eq_inter, mem_map, add_left_embedding_apply,
+    mem_inter] at hk,
+  obtain ⟨a, haQ, ha⟩ := hk.2,
+  simpa [← ha] using hk.1,
+end
+
 end map
 
 lemma range_add_one' (n : ℕ) :

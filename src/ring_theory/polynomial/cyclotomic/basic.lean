@@ -423,6 +423,31 @@ begin
            geom_sum_mul, prod_cyclotomic_eq_X_pow_sub_one h]
 end
 
+lemma cyclotomic_dvd_geom_sum_of_dvd (R) [comm_ring R] [is_domain R] {d n : ℕ} (hdn : d ∣ n)
+  (hd : d ≠ 1) : cyclotomic d R ∣ geom_sum X n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  rw ←prod_cyclotomic_eq_geom_sum hn,
+  apply finset.dvd_prod_of_mem,
+  simp [hd, hdn, hn.ne']
+end
+
+lemma X_pow_sub_one_mul_cyclotomic_dvd_X_pow_sub_one_of_dvd (R) [comm_ring R] {d n : ℕ}
+  (hd : d ∣ n) (hdn : d < n) : (X ^ d - 1) * cyclotomic n R ∣ X ^ n - 1 :=
+begin
+  rcases n.eq_zero_or_pos with rfl | h0n,
+  { simp },
+  rcases d.eq_zero_or_pos with rfl | h0d,
+  { linarith [eq_zero_of_zero_dvd hd] },
+  rw [←prod_cyclotomic_eq_X_pow_sub_one h0d, ←prod_cyclotomic_eq_X_pow_sub_one h0n,
+      mul_comm, ←finset.prod_insert $ λ h, hdn.not_le $ nat.divisor_le h],
+  refine finset.prod_dvd_prod_of_subset _ _ _ (λ k hk, _),
+  rcases finset.mem_insert.mp hk with (rfl | hkd),
+  { exact k.mem_divisors_self h0n.ne' },
+  { exact nat.divisors_subset_of_dvd h0n.ne' hd hkd }
+end
+
 lemma _root_.is_root_of_unity_iff {n : ℕ} (h : 0 < n) (R : Type*) [comm_ring R] [is_domain R]
   {ζ : R} : ζ ^ n = 1 ↔ ∃ i ∈ n.divisors, (cyclotomic i R).is_root ζ :=
 by rw [←mem_nth_roots h, nth_roots, mem_roots $ X_pow_sub_C_ne_zero h _,

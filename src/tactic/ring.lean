@@ -577,7 +577,7 @@ do
           end e,
           guard (¬ new_e =ₐ e),
           a ← read_ref atoms,
-          pure (a, new_e, some pr, ff))
+          pure (a, new_e, some pr, tt))
         (λ _ _ _ _ _, failed) `eq e,
       write_ref atoms a,
       pure (e', pr))

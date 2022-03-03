@@ -16,41 +16,63 @@ variables {F : Type*} [inner_product_space ℝ F]
 
 section bad_def₁
 
-structure conj_linear_map_bad (𝕜 : Type*) (M₁ : Type*) (M₂ : Type*) [is_R_or_C 𝕜]
-  [add_comm_group M₁] [add_comm_group M₂] [module 𝕜 M₁] [module 𝕜 M₂]
+-- Make a totally separate definition for conjugate linear maps like this:
+structure conj_linear_map_bad₁ (M₁ : Type*) (M₂ : Type*)
+  [add_comm_group M₁] [add_comm_group M₂] [module ℂ M₁] [module ℂ M₂]
   extends add_hom M₁ M₂ :=
-(map_smul : ∀ (c : 𝕜) (z : M₁), to_fun (c • z) = (conj c) • to_fun z)
+(map_smul : ∀ (c : ℂ) (z : M₁), to_fun (c • z) = (conj c) • to_fun z)
 
-variables {M₁ M₂ : Type*} [add_comm_group M₁] [add_comm_group M₂] [module ℝ M₁] [module ℝ M₂]
-
---example (f₁ : linear_map ℝ M₁ M₂) : conj_linear_map_bad ℝ M₁ M₂ := f₁
+-- Main problem: totally separate from linear maps, which means massive code duplication
 
 end bad_def₁
 
 section bad_def₂
 
-structure conj_linear_map_bad₂ (b : bool) (𝕜 : Type*) (M₁ : Type*) (M₂ : Type*)
-  [ring 𝕜] [star_ring 𝕜] [add_comm_group M₁] [add_comm_group M₂] [module 𝕜 M₁] [module 𝕜 M₂]
+-- Generalize this construction to real or complex:
+structure conj_linear_map_bad₂ (𝕜 : Type*) (M₁ : Type*) (M₂ : Type*) [is_R_or_C 𝕜]
+  [add_comm_group M₁] [add_comm_group M₂] [module 𝕜 M₁] [module 𝕜 M₂]
   extends add_hom M₁ M₂ :=
-(map_smul : ∀ (c : 𝕜) (z : M₁), to_fun (c • z) = (if b then star c else c) • to_fun z)
+(map_smul : ∀ (c : 𝕜) (z : M₁), to_fun (c • z) = (conj c) • to_fun z)
+
+variables {M₁ M₂ : Type*} [add_comm_group M₁] [add_comm_group M₂] [module ℝ M₁]
+[module ℝ M₂]
+
+-- Better, could at least unify e.g. vector spaces
+-- Not general enough to replace linear maps -> needs to be a separate definition with its own API
+-- Also, in the real case, we don't actually get a linear map:
+--example (f₁ : linear_map ℝ M₁ M₂) : conj_linear_map_bad ℝ M₁ M₂ := f₁
 
 end bad_def₂
 
 section bad_def₃
 
+-- Generalize some more?
 structure conj_linear_map_bad₃ (b : bool) (𝕜 : Type*) (M₁ : Type*) (M₂ : Type*)
   [ring 𝕜] [star_ring 𝕜] [add_comm_group M₁] [add_comm_group M₂] [module 𝕜 M₁] [module 𝕜 M₂]
   extends add_hom M₁ M₂ :=
 (map_smul : ∀ (c : 𝕜) (z : M₁), to_fun (c • z) = (if b then star c else c) • to_fun z)
 
+-- Problem: in the real case, still have two different definitions when b=0 and b=1
+-- Also, still not general enough to actually replace linear maps
+
 end bad_def₃
 
--- Our solution
+/-
+Bad solution 4: Conjugate space -> define a type copy of the vector space where
+scalar multiplication has complex conjugation baked in.
+-/
+
+-- (Part of) our solution
 structure semilinear_map {R₁ : Type*} {R₂ : Type*} [ring R₁] [ring R₂] (σ : R₁ →+* R₂)
   (M₁ : Type*) (M₂ : Type*)
   [add_comm_group M₁] [add_comm_group M₂] [module R₁ M₁] [module R₂ M₂]
   extends add_hom M₁ M₂ :=
 (map_smul' : ∀ (r : R₁) (x : M₁), to_fun (r • x) = (σ r) • to_fun x)
+
+-- Big advantage: can actually replace linear maps, no need to duplicate API
+-- Drawback: implies massive refactor
+
+-- Over to Heather!
 
 -- How to deal with composition?
 variables {R₁ R₂ R₃ M₁ M₂ M₃ : Type*} [ring R₁] [ring R₂] [ring R₃]

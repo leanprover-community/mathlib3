@@ -134,7 +134,7 @@ def equiv_list : W_type (list_β γ) ≃ list γ :=
   right_inv := right_inv_list _ }
 
 /--
-`list_α` is equivalent to `γ` with an extra point.
+`W_type.list_α` is equivalent to `γ` with an extra point.
 This is useful when considering the associated polynomial endofunctor
 -/
 def list_α_equiv_punit_sum : list_α γ ≃ punit.{v + 1} ⊕ γ :=

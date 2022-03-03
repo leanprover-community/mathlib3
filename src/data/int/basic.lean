@@ -1216,7 +1216,7 @@ lemma to_nat_of_nonpos : ∀ {z : ℤ}, z ≤ 0 → z.to_nat = 0
 | -[1+ n]     _ := rfl
 
 @[simp]
-lemma to_nat_neg_nat : ∀ (n : ℕ),  (-(n : ℤ)).to_nat = 0
+lemma to_nat_neg_nat : ∀ (n : ℕ), (-(n : ℤ)).to_nat = 0
 | 0       := rfl
 | (n + 1) := rfl
 

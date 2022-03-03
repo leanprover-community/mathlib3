@@ -66,15 +66,17 @@ def equiv_nat : W_type nat_β ≃ ℕ :=
   left_inv := left_inv_nat,
   right_inv := right_inv_nat }
 
+open sum punit
+
 /--
 `nat_α` is equivalent to `bool`.
 This is useful when considering the associated polynomial endofunctor
 -/
-@[simps] def nat_α_equiv_bool : nat_α ≃ bool :=
-{ to_fun := λ c, match c with | nat_α.zero := ff | nat_α.succ := tt end,
-  inv_fun := λ b, match b with | bool.tt := nat_α.succ | bool.ff := nat_α.zero end,
+@[simps] def nat_α_equiv_punit_sum_punit : nat_α ≃ punit.{u + 1} ⊕ punit :=
+{ to_fun := λ c, match c with | nat_α.zero := inl star | nat_α.succ := inr star end,
+  inv_fun := λ b, match b with | inl x := nat_α.zero | inr x := nat_α.succ end,
   left_inv := λ c, match c with | nat_α.zero := rfl | nat_α.succ := rfl end,
-  right_inv := λ b, match b with | bool.tt := rfl | bool.ff := rfl end }
+  right_inv := λ b, match b with | inl star := rfl | inr star := rfl end }
 
 end nat
 

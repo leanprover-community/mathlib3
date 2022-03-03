@@ -1443,21 +1443,25 @@ lemma enum_ord_def_nonempty (hS : unbounded (<) S) {o} :
   {x | x ∈ S ∧ ∀ c, c < o → enum_ord S c < x}.nonempty :=
 (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
 
-@[simp] theorem enum_ord_univ : enum_ord set.univ = id :=
+@[simp] theorem enum_ord_range {f : ordinal → ordinal} (hf : strict_mono f) :
+  enum_ord (range f) = f :=
 funext (λ o, begin
   apply wf.induction o,
   intros a H,
   rw enum_ord_def a,
-  simp only [univ_inter, id.def],
-  refine le_antisymm (cInf_le' (λ b hb, _)) _,
-  { rwa H b hb },
-  { rw le_cInf_iff'',
-    { refine λ b hcb, le_of_forall_lt (λ c hc, _),
-      have := hcb c hc,
-      rwa H c hc at this },
-    { refine ⟨a, λ c hc, _⟩,
-      rwa H c hc } }
+  have Hfa : f a ∈ range f ∩ {b | ∀ c, c < a → enum_ord (range f) c < b} :=
+    ⟨mem_range_self a, λ b hb, (by {rw H b hb, exact hf hb})⟩,
+  refine (cInf_le' Hfa).antisymm ((le_cInf_iff'' ⟨_, Hfa⟩).2 _),
+  rintros b ⟨⟨c, hc⟩, hb'⟩,
+  rw [←hc, hf.le_iff_le],
+  by_contra' hca,
+  have := hb' c hca,
+  rw H c hca at this,
+  exact this.ne hc
 end)
+
+@[simp] theorem enum_ord_univ : enum_ord set.univ = id :=
+by { rw ←range_id, exact enum_ord_range strict_mono_id }
 
 @[simp] theorem enum_ord_zero : enum_ord S 0 = Inf S :=
 by { rw enum_ord_def, simp [ordinal.not_lt_zero] }

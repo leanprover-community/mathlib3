@@ -274,8 +274,8 @@ instance is_star_normal_star_self [monoid R] [star_semigroup R] {x : R} [is_star
 ⟨show star (star x) * (star x) = (star x) * star (star x), by rw [star_star, star_comm_self']⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance has_trivial_star.is_star_normal [monoid R] [star_semigroup R] [has_trivial_star R] {x : R} :
-  is_star_normal x :=
+instance has_trivial_star.is_star_normal [monoid R] [star_semigroup R]
+  [has_trivial_star R] {x : R} : is_star_normal x :=
 ⟨by rw [star_trivial]⟩
 
 @[priority 100] -- see Note [lower instance priority]

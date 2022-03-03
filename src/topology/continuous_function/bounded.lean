@@ -3,11 +3,11 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
+import analysis.normed_space.lattice_ordered_group
 import analysis.normed_space.operator_norm
 import analysis.normed_space.star.basic
-import topology.continuous_function.algebra
 import data.real.sqrt
-import analysis.normed_space.lattice_ordered_group
+import topology.continuous_function.algebra
 
 /-!
 # Bounded continuous functions
@@ -23,22 +23,48 @@ open_locale topological_space classical nnreal
 open set filter metric function
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {F : Type*} {α : Type u} {β : Type v} {γ : Type w}
 
-/-- The type of bounded continuous functions from a topological space to a metric space -/
+/-- `α →ᵇ β` is the type of bounded continuous functions `α → β` from a topological space to a
+metric space.
+
+When possible, instead of parametrizing results over `(f : α →ᵇ β)`,
+you should parametrize over `(F : Type*) [bounded_continuous_map_class F α β] (f : F)`.
+
+When you extend this structure, make sure to extend `bounded_continuous_map_class`. -/
 structure bounded_continuous_function
   (α : Type u) (β : Type v) [topological_space α] [metric_space β] extends continuous_map α β :
   Type (max u v) :=
-(bounded' : ∃C, ∀x y:α, dist (to_fun x) (to_fun y) ≤ C)
+(map_bounded' : ∃ C, ∀ x y, dist (to_fun x) (to_fun y) ≤ C)
 
 localized "infixr ` →ᵇ `:25 := bounded_continuous_function" in bounded_continuous_function
+
+/-- `bounded_continuous_map_class F α β` states that `F` is a type of bounded continuous maps.
+
+You should also extend this typeclass when you extend `bounded_continuous_function`. -/
+class bounded_continuous_map_class (F α β : Type*) [topological_space α] [metric_space β]
+  extends continuous_map_class F α β :=
+(map_bounded (f : F) : ∃ C, ∀ x y, dist (f x) (f y) ≤ C)
+
+export bounded_continuous_map_class (map_bounded)
 
 namespace bounded_continuous_function
 section basics
 variables [topological_space α] [metric_space β] [metric_space γ]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
-instance : has_coe_to_fun (α →ᵇ β) (λ _, α → β) :=  ⟨λ f, f.to_fun⟩
+instance : bounded_continuous_map_class (α →ᵇ β) α β :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
+  map_continuous := λ f, f.continuous_to_fun,
+  map_bounded := λ f, f.map_bounded' }
+
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (α →ᵇ β) (λ _, α → β) := fun_like.has_coe_to_fun
+
+instance [bounded_continuous_map_class F α β] : has_coe_t F (α →ᵇ β) :=
+⟨λ f, { to_fun := f, continuous_to_fun := map_continuous f, map_bounded' := map_bounded f }⟩
 
 @[simp] lemma coe_to_continuous_fun (f : α →ᵇ β) : (f.to_continuous_map : α → β) = f := rfl
 
@@ -48,17 +74,10 @@ def simps.apply (h : α →ᵇ β) : α → β := h
 
 initialize_simps_projections bounded_continuous_function (to_continuous_map_to_fun → apply)
 
-protected lemma bounded (f : α →ᵇ β) : ∃C, ∀ x y : α, dist (f x) (f y) ≤ C := f.bounded'
-@[continuity]
+protected lemma bounded (f : α →ᵇ β) : ∃C, ∀ x y : α, dist (f x) (f y) ≤ C := f.map_bounded'
 protected lemma continuous (f : α →ᵇ β) : continuous f := f.to_continuous_map.continuous
 
-@[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
-by { cases f, cases g, congr, ext, exact H x, }
-
-lemma ext_iff : f = g ↔ ∀ x, f x = g x :=
-⟨λ h, λ x, h ▸ rfl, ext⟩
-
-lemma coe_injective : @injective (α →ᵇ β) (α → β) coe_fn := λ f g h, ext $ congr_fun h
+@[ext] lemma ext (h : ∀ x, f x = g x) : f = g := fun_like.ext _ _ h
 
 lemma bounded_range (f : α →ᵇ β) : bounded (range f) :=
 bounded_range_iff.2 f.bounded
@@ -176,7 +195,7 @@ variables (α) {β}
 
 /-- Constant as a continuous bounded function. -/
 @[simps {fully_applied := ff}] def const (b : β) : α →ᵇ β :=
-⟨continuous_map.const b, 0, by simp [le_refl]⟩
+⟨continuous_map.const α b, 0, by simp [le_rfl]⟩
 
 variable {α}
 
@@ -242,7 +261,7 @@ end
 @[simps { fully_applied := ff }]
 def comp_continuous {δ : Type*} [topological_space δ] (f : α →ᵇ β) (g : C(δ, α)) : δ →ᵇ β :=
 { to_continuous_map := f.1.comp g,
-  bounded' := f.bounded'.imp (λ C hC x y, hC _ _) }
+  map_bounded' := f.map_bounded'.imp (λ C hC x y, hC _ _) }
 
 lemma lipschitz_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, α)) :
   lipschitz_with 1 (λ f : α →ᵇ β, f.comp_continuous g) :=
@@ -254,7 +273,8 @@ lemma continuous_comp_continuous {δ : Type*} [topological_space δ] (g : C(δ, 
 
 /-- Restrict a bounded continuous function to a set. -/
 @[simps apply { fully_applied := ff }]
-def restrict (f : α →ᵇ β) (s : set α) : s →ᵇ β := f.comp_continuous (continuous_map.id.restrict s)
+def restrict (f : α →ᵇ β) (s : set α) : s →ᵇ β :=
+f.comp_continuous $ (continuous_map.id _).restrict s
 
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
 gives a bounded continuous function -/
@@ -298,7 +318,7 @@ discrete topology, so we only need to verify boundedness. -/
 def extend (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) : δ →ᵇ β :=
 { to_fun := extend f g h,
   continuous_to_fun := continuous_of_discrete_topology,
-  bounded' :=
+  map_bounded' :=
     begin
       rw [← bounded_range_iff, range_extend f.injective, metric.bounded_union],
       exact ⟨g.bounded_range, h.bounded_image _⟩
@@ -317,7 +337,7 @@ extend_apply' _ _ _ hx
 
 lemma extend_of_empty [is_empty α] (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) :
   extend f g h = h :=
-coe_injective $ function.extend_of_empty f g h
+fun_like.coe_injective $ function.extend_of_empty f g h
 
 @[simp] lemma dist_extend_extend (f : α ↪ δ) (g₁ g₂ : α →ᵇ β) (h₁ h₂ : δ →ᵇ β) :
   dist (g₁.extend f h₁) (g₂.extend f h₂) =
@@ -511,8 +531,8 @@ variables [topological_space α] [metric_space β] [has_one β]
 @[simp, to_additive]
 lemma mk_of_compact_one [compact_space α] : mk_of_compact (1 : C(α, β)) = 1 := rfl
 
-@[to_additive] lemma forall_coe_one_iff_one (f : α →ᵇ β) : (∀x, f x = 1) ↔ f = 1 :=
-(@ext_iff _ _ _ _ f 1).symm
+@[to_additive] lemma forall_coe_one_iff_one (f : α →ᵇ β) : (∀ x, f x = 1) ↔ f = 1 :=
+(@fun_like.ext_iff _ _ _ _ f 1).symm
 
 @[simp, to_additive] lemma one_comp_continuous [topological_space γ] (f : C(γ, α)) :
   (1 : α →ᵇ β).comp_continuous f = 1 := rfl
@@ -559,8 +579,7 @@ lemma add_apply : (f + g) x = f x + g x := rfl
 lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
   (g + f).comp_continuous h = g.comp_continuous h + f.comp_continuous h := rfl
 
-instance : add_monoid (α →ᵇ β) :=
-coe_injective.add_monoid _ coe_zero coe_add
+instance : add_monoid (α →ᵇ β) := fun_like.coe_injective.add_monoid _ coe_zero coe_add
 
 instance : has_lipschitz_add (α →ᵇ β) :=
 { lipschitz_add := ⟨has_lipschitz_add.C β, begin
@@ -770,7 +789,7 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
   mk_of_compact (f - g) = mk_of_compact f - mk_of_compact g := rfl
 
 instance : add_comm_group (α →ᵇ β) :=
-coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
 
 instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
@@ -806,7 +825,7 @@ variables [has_zero 𝕜] [has_zero β] [has_scalar 𝕜 β] [has_bounded_smul �
 instance : has_scalar 𝕜 (α →ᵇ β) :=
 { smul := λ c f,
   { to_continuous_map := c • f.to_continuous_map,
-    bounded' := let ⟨b, hb⟩ := f.bounded in ⟨dist c 0 * b, λ x y, begin
+    map_bounded' := let ⟨b, hb⟩ := f.bounded in ⟨dist c 0 * b, λ x y, begin
       refine (dist_smul_pair c (f x) (f y)).trans _,
       refine mul_le_mul_of_nonneg_left _ dist_nonneg,
       exact hb x y
@@ -814,6 +833,9 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
 
 @[simp] lemma coe_smul (c : 𝕜) (f : α →ᵇ β) : ⇑(c • f) = λ x, c • (f x) := rfl
 lemma smul_apply (c : 𝕜) (f : α →ᵇ β) (x : α) : (c • f) x = c • f x := rfl
+
+instance [has_scalar 𝕜ᵐᵒᵖ β] [is_central_scalar 𝕜 β] : is_central_scalar 𝕜 (α →ᵇ β) :=
+{ op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _ }
 
 instance : has_bounded_smul 𝕜 (α →ᵇ β) :=
 { dist_smul_pair' := λ c f₁ f₂, begin
@@ -835,8 +857,7 @@ end has_scalar
 section mul_action
 variables [monoid_with_zero 𝕜] [has_zero β] [mul_action 𝕜 β] [has_bounded_smul 𝕜 β]
 
-instance : mul_action 𝕜 (α →ᵇ β) :=
-function.injective.mul_action _ coe_injective coe_smul
+instance : mul_action 𝕜 (α →ᵇ β) := fun_like.coe_injective.mul_action _ coe_smul
 
 end mul_action
 
@@ -845,7 +866,7 @@ variables [monoid_with_zero 𝕜] [add_monoid β] [distrib_mul_action 𝕜 β] [
 variables [has_lipschitz_add β]
 
 instance : distrib_mul_action 𝕜 (α →ᵇ β) :=
-function.injective.distrib_mul_action ⟨_, coe_zero, coe_add⟩ coe_injective coe_smul
+function.injective.distrib_mul_action ⟨_, coe_zero, coe_add⟩ fun_like.coe_injective coe_smul
 
 end distrib_mul_action
 
@@ -856,7 +877,7 @@ variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 variables [has_lipschitz_add β]
 
 instance : module 𝕜 (α →ᵇ β) :=
-function.injective.module _ ⟨_, coe_zero, coe_add⟩ coe_injective coe_smul
+function.injective.module _ ⟨_, coe_zero, coe_add⟩ fun_like.coe_injective coe_smul
 
 variables (𝕜)
 /-- The evaluation at a point, as a continuous linear map from `α →ᵇ β` to `β`. -/
@@ -947,7 +968,7 @@ instance : has_mul (α →ᵇ R) :=
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 
 instance : ring (α →ᵇ R) :=
-coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
+fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
 
 instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
@@ -1141,9 +1162,9 @@ instance : semilattice_inf (α →ᵇ β) :=
 { inf := λ f g,
   { to_fun := λ t, f t ⊓ g t,
     continuous_to_fun := f.continuous.inf g.continuous,
-    bounded' := begin
-      cases f.bounded' with C₁ hf,
-      cases g.bounded' with C₂ hg,
+    map_bounded' := begin
+      obtain ⟨C₁, hf⟩ := f.bounded,
+      obtain ⟨C₂, hg⟩ := g.bounded,
       refine ⟨C₁ + C₂, λ x y, _⟩,
       simp_rw normed_group.dist_eq at hf hg ⊢,
       exact (norm_inf_sub_inf_le_add_norm _ _ _ _).trans (add_le_add (hf _ _) (hg _ _)),
@@ -1158,9 +1179,9 @@ instance : semilattice_sup (α →ᵇ β) :=
 { sup := λ f g,
   { to_fun := λ t, f t ⊔ g t,
     continuous_to_fun := f.continuous.sup g.continuous,
-    bounded' := begin
-      cases f.bounded' with C₁ hf,
-      cases g.bounded' with C₂ hg,
+    map_bounded' := begin
+      obtain ⟨C₁, hf⟩ := f.bounded,
+      obtain ⟨C₂, hg⟩ := g.bounded,
       refine ⟨C₁ + C₂, λ x y, _⟩,
       simp_rw normed_group.dist_eq at hf hg ⊢,
       exact (norm_sup_sub_sup_le_add_norm _ _ _ _).trans (add_le_add (hf _ _) (hg _ _)),

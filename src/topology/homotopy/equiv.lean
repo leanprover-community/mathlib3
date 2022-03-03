@@ -41,8 +41,8 @@ are both homotopic to `id`.
 structure homotopy_equiv (X : Type u) (Y : Type v) [topological_space X] [topological_space Y] :=
 (to_fun : C(X, Y))
 (inv_fun : C(Y, X))
-(left_inv : (inv_fun.comp to_fun).homotopic id)
-(right_inv : (to_fun.comp inv_fun).homotopic id)
+(left_inv : (inv_fun.comp to_fun).homotopic (continuous_map.id X))
+(right_inv : (to_fun.comp inv_fun).homotopic (continuous_map.id Y))
 
 localized "infix ` ≃ₕ `:25 := continuous_map.homotopy_equiv" in continuous_map
 

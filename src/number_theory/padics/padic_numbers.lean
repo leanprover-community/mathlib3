@@ -48,7 +48,7 @@ Coercions from `ℚ` to `ℚ_p` are set up to work with the `norm_cast` tactic.
 
 ## References
 
-* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [F. Q. Gouvêa, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
 * <https://en.wikipedia.org/wiki/P-adic_number>
 
@@ -827,11 +827,11 @@ begin
 end
 
 @[simp] lemma norm_p_pow (n : ℤ) : ∥(p^n : ℚ_[p])∥ = p^-n :=
-by rw [normed_field.norm_zpow, norm_p]; field_simp
+by rw [norm_zpow, norm_p]; field_simp
 
 instance : nondiscrete_normed_field ℚ_[p] :=
 { non_trivial := ⟨p⁻¹, begin
-    rw [normed_field.norm_inv, norm_p, inv_inv],
+    rw [norm_inv, norm_p, inv_inv],
     exact_mod_cast hp.1.one_lt
   end⟩ }
 
@@ -965,6 +965,20 @@ let ⟨N, hN⟩ := setoid.symm (cau_seq.equiv_lim f) _ ha in
 calc ∥f.lim∥ = ∥f.lim - f N + f N∥ : by simp
                 ... ≤ max (∥f.lim - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
                 ... ≤ a : max_le (le_of_lt (hN _ le_rfl)) (hf _)
+
+open filter set
+
+instance : complete_space ℚ_[p] :=
+begin
+  apply complete_of_cauchy_seq_tendsto,
+  intros u hu,
+  let c : cau_seq ℚ_[p] norm := ⟨u, metric.cauchy_seq_iff'.mp hu⟩,
+  refine ⟨c.lim, λ s h, _⟩,
+  rcases metric.mem_nhds_iff.1 h with ⟨ε, ε0, hε⟩,
+  have := c.equiv_lim ε ε0,
+  simp only [mem_map, mem_at_top_sets, mem_set_of_eq],
+  exact this.imp (λ N hN n hn, hε (hN n hn))
+end
 
 /-!
 ### Valuation on `ℚ_[p]`

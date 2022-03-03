@@ -15,7 +15,19 @@ import linear_algebra.bilinear_form
 
 This file defines the conversion between bilinear forms and matrices.
 
+## Main definitions
+
+ * `matrix.to_bilin` given a basis define a bilinear form
+ * `matrix.to_bilin'` define the bilinear form on `n → R`
+ * `bilin_form.to_matrix`: calculate the matrix coefficients of a bilinear form
+ * `bilin_form.to_matrix'`: calculate the matrix coefficients of a bilinear form on `n → R`
+
+## Tags
+
+bilinear_form, matrix, basis
+
 -/
+
 variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M]
 variables {R₁ : Type*} {M₁ : Type*} [ring R₁] [add_comm_group M₁] [module R₁ M₁]
 variables {R₂ : Type*} {M₂ : Type*} [comm_semiring R₂] [add_comm_monoid M₂] [module R₂ M₂]

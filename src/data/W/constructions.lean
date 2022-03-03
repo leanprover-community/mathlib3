@@ -69,8 +69,8 @@ def equiv_nat : W_type nat_β ≃ ℕ :=
 open sum punit
 
 /--
-`nat_α` is equivalent to `bool`.
-This is useful when considering the associated polynomial endofunctor
+`nat_α` is equivalent to `punit ⊕ punit`.
+This is useful when considering the associated polynomial endofunctor.
 -/
 @[simps] def nat_α_equiv_punit_sum_punit : nat_α ≃ punit.{u + 1} ⊕ punit :=
 { to_fun := λ c, match c with | nat_α.zero := inl star | nat_α.succ := inr star end,
@@ -133,7 +133,7 @@ def equiv_list : W_type (list_β γ) ≃ list γ :=
 
 /--
 `list_α` is equivalent to `γ` with an extra point.
-This is useful when considering the polynomial endofunctor associated to the `W_type`
+This is useful when considering the associated polynomial endofunctor
 -/
 def list_α_equiv_punit_sum : list_α γ ≃ punit.{v + 1} ⊕ γ :=
 { to_fun := λ c, match c with | list_α.nil := sum.inl punit.star | list_α.cons x := sum.inr x end,

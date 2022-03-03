@@ -431,7 +431,7 @@ variables {R : Type*} [has_zero R] {U : set X} (f : locally_constant X R)
 
 /-- Given a clopen set `U` and a locally constant function `f`, `locally_constant.indicator`
   returns the locally constant function that is `f` on `U` and `0` otherwise. -/
-@[simps]
+@[simps?]
 noncomputable def indicator (hU : is_clopen U) :
   locally_constant X R :=
 { to_fun := set.indicator U f,
@@ -450,16 +450,16 @@ noncomputable def indicator (hU : is_clopen U) :
 
 variables (a : X)
 
-@[simp] theorem apply_indicator (hU : is_clopen U) :
+theorem apply_indicator (hU : is_clopen U) :
   indicator f hU a = @ite _ (a ∈ U) (classical.dec (a ∈ U)) (f a) 0 :=
 by {rw [indicator_apply, set.indicator_apply]}
 
 variables {a}
 
-@[simp] theorem indicator_of_mem (hU : is_clopen U) (h : a ∈ U) : f.indicator hU a = f a :=
+theorem indicator_of_mem (hU : is_clopen U) (h : a ∈ U) : f.indicator hU a = f a :=
 by{ rw indicator_apply, apply set.indicator_of_mem h, }
 
-@[simp] theorem indicator_of_not_mem (hU : is_clopen U) (h : a ∉ U) : f.indicator hU a = 0 :=
+theorem indicator_of_not_mem (hU : is_clopen U) (h : a ∉ U) : f.indicator hU a = 0 :=
 by{ rw indicator_apply, apply set.indicator_of_not_mem h, }
 
 end indicator

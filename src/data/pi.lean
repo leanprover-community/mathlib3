@@ -213,8 +213,8 @@ lemma bijective_pi_map {F : Π i, f i → g i} (hF : ∀ i, bijective (F i)) :
 
 end function
 
-/-- If the trivial morphism is surjective, the codomain is trivial. -/
-@[to_additive]
+/-- If the one function is surjective, the codomain is trivial. -/
+@[to_additive "If the zero function is surjective, the codomain is trivial."]
 def unique_of_surjective_one (α : Type*) {β : Type*} [has_one β]
   (h : function.surjective (1 : α → β)) : unique β :=
 h.unique_of_surjective_const α (1 : β)

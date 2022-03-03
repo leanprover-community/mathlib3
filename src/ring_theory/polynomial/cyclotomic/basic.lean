@@ -390,7 +390,7 @@ lemma prod_cyclotomic_eq_X_pow_sub_one {n : ℕ} (hpos : 0 < n) (R : Type*) [com
 begin
   have integer : ∏ i in nat.divisors n, cyclotomic i ℤ = X ^ n - 1,
   { apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
-    rw map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
+    rw polynomial.map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
     simp only [int_cyclotomic_spec, polynomial.map_pow, nat.cast_id, map_X, map_one, map_sub],
     exact prod_cyclotomic'_eq_X_pow_sub_one hpos
           (complex.is_primitive_root_exp n (ne_of_lt hpos).symm) },
@@ -399,8 +399,8 @@ begin
   have h : ∀ i ∈ n.divisors, cyclotomic i R = map (int.cast_ring_hom R) (cyclotomic i ℤ),
   { intros i hi,
     exact (map_cyclotomic_int i R).symm },
-  rw [finset.prod_congr (refl n.divisors) h, coerc, ←map_prod (int.cast_ring_hom R)
-                                                    (λ i, cyclotomic i ℤ), integer]
+  rw [finset.prod_congr (refl n.divisors) h, coerc,
+      ← polynomial.map_prod (int.cast_ring_hom R) (λ i, cyclotomic i ℤ), integer]
 end
 
 lemma cyclotomic.dvd_X_pow_sub_one (n : ℕ) (R : Type*) [comm_ring R] :
@@ -684,6 +684,11 @@ begin
   rw this at n_ih,
   rw [mul_comm _ (geom_sum _ _), n_ih, geom_sum_mul, sub_left_inj, ← pow_mul, pow_add, pow_one],
 end
+
+lemma cyclotomic_prime_pow_mul_X_pow_sub_one (R : Type*) [comm_ring R] (p k : ℕ)
+  [hn : fact (nat.prime p)] :
+  (cyclotomic (p ^ (k + 1)) R) * (X ^ (p ^ k) - 1) = X ^ (p ^ (k + 1)) - 1 :=
+by rw [cyclotomic_prime_pow_eq_geom_sum hn.out, geom_sum_mul, ← pow_mul, pow_succ, mul_comm]
 
 /-- The constant term of `cyclotomic n R` is `1` if `2 ≤ n`. -/
 lemma cyclotomic_coeff_zero (R : Type*) [comm_ring R] {n : ℕ} (hn : 2 ≤ n) :

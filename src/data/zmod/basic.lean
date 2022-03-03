@@ -884,7 +884,7 @@ lemma ring_hom_eq_of_ker_eq [comm_ring R] (f g : R →+* (zmod n))
 begin
   have := f.lift_of_right_inverse_comp _ (zmod.ring_hom_right_inverse f) ⟨g, le_of_eq h⟩,
   rw subtype.coe_mk at this,
-  rw [←this, ring_hom.ext_zmod (f.lift_of_right_inverse _ _ _) (ring_hom.id _), ring_hom.id_comp],
+  rw [←this, ring_hom.ext_zmod (f.lift_of_right_inverse _ _ ⟨g, _⟩) _, ring_hom.id_comp],
 end
 
 section lift

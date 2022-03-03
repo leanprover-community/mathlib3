@@ -70,6 +70,18 @@ by refine_struct { zero := (0 : ulift α), add := (+), mul := (*), sub := has_su
   neg := has_neg.neg, nsmul := add_monoid.nsmul, zsmul := sub_neg_monoid.zsmul };
 tactic.pi_instance_derive_field
 
+instance non_unital_ring [non_unital_ring α] :
+  non_unital_ring (ulift α) :=
+by refine_struct { zero := (0 : ulift α), add := (+), mul := (*), sub := has_sub.sub,
+  neg := has_neg.neg, nsmul := add_monoid.nsmul, zsmul := sub_neg_monoid.zsmul };
+tactic.pi_instance_derive_field
+
+instance non_assoc_ring [non_assoc_ring α] :
+  non_assoc_ring (ulift α) :=
+by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub := has_sub.sub,
+  neg := has_neg.neg, nsmul := add_monoid.nsmul, zsmul := sub_neg_monoid.zsmul };
+tactic.pi_instance_derive_field
+
 instance ring [ring α] : ring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), sub := has_sub.sub,
   neg := has_neg.neg, nsmul := add_monoid.nsmul, npow := monoid.npow,

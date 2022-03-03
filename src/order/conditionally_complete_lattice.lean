@@ -463,6 +463,10 @@ begin
   { exact csupr_le (λ x, le_csupr_of_le B x (H x)) },
 end
 
+lemma le_csupr_set {f : β → α} {s : set β}
+  (H : bdd_above (f '' s)) {c : β} (hc : c ∈ s) : f c ≤ ⨆ i : s, f i :=
+(le_cSup H $ mem_image_of_mem f hc).trans_eq Sup_image'
+
 /--The indexed infimum of two functions are comparable if the functions are pointwise comparable-/
 lemma cinfi_le_cinfi {f g : ι → α} (B : bdd_below (range f)) (H : ∀x, f x ≤ g x) :
   infi f ≤ infi g :=
@@ -478,6 +482,10 @@ lemma cinfi_le {f : ι → α} (H : bdd_below (range f)) (c : ι) : infi f ≤ f
 
 lemma cinfi_le_of_le {f : ι → α} (H : bdd_below (range f)) (c : ι) (h : f c ≤ a) : infi f ≤ a :=
 @le_csupr_of_le (order_dual α) _ _ _ _ H c h
+
+lemma cinfi_set_le {f : β → α} {s : set β}
+  (H : bdd_below (f '' s)) {c : β} (hc : c ∈ s) : (⨅ i : s, f i) ≤ f c :=
+@le_csupr_set (order_dual α) _ _ _ _ H _ hc
 
 @[simp] theorem csupr_const [hι : nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
 by rw [supr, range_const, cSup_singleton]
@@ -1054,3 +1062,39 @@ noncomputable instance with_top.with_bot.complete_linear_order {α : Type*}
   .. with_top.linear_order }
 
 end with_top_bot
+
+section group
+
+variables [nonempty ι] [conditionally_complete_lattice α] [group α]
+
+@[to_additive]
+lemma le_mul_cinfi [covariant_class α α (*) (≤)] {a : α} {g : α} {h : ι → α}
+  (H : ∀ j, a ≤ g * h j) : a ≤ g * infi h :=
+inv_mul_le_iff_le_mul.mp $ le_cinfi $ λ hi, inv_mul_le_iff_le_mul.mpr $ H _
+
+@[to_additive]
+lemma mul_csupr_le [covariant_class α α (*) (≤)] {a : α} {g : α} {h : ι → α}
+  (H : ∀ j, g * h j ≤ a) : g * supr h ≤ a :=
+@le_mul_cinfi (order_dual α) _ _ _ _ _ _ _ _ H
+
+@[to_additive]
+lemma le_cinfi_mul [covariant_class α α (function.swap (*)) (≤)] {a : α} {g : ι → α} {h : α}
+  (H : ∀ i, a ≤ g i * h) : a ≤ infi g * h :=
+mul_inv_le_iff_le_mul.mp $ le_cinfi $ λ gi, mul_inv_le_iff_le_mul.mpr $ H _
+
+@[to_additive]
+lemma csupr_mul_le [covariant_class α α (function.swap (*)) (≤)] {a : α} {g : ι → α} {h : α}
+  (H : ∀ i, g i * h ≤ a) : supr g * h ≤ a :=
+@le_cinfi_mul (order_dual α) _ _ _ _ _ _ _ _ H
+
+@[to_additive]
+lemma le_cinfi_mul_cinfi [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
+  {a : α} {g h : ι → α} (H : ∀ i j, a ≤ g i * h j) : a ≤ infi g * infi h :=
+le_cinfi_mul $ λ i, le_mul_cinfi $ H _
+
+@[to_additive]
+lemma csupr_mul_csupr_le [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
+  {a : α} {g h : ι → α} (H : ∀ i j, g i * h j ≤ a) : supr g * supr h ≤ a :=
+csupr_mul_le $ λ i, mul_csupr_le $ H _
+
+end group

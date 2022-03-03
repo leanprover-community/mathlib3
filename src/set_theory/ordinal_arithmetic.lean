@@ -1059,12 +1059,10 @@ theorem le_sup_shrink_equiv {s : set ordinal.{u}} (hs : small.{u} s) (a) (ha : a
 by { convert le_sup.{u u} _ ((@equiv_shrink s hs) ⟨a, ha⟩), rw symm_apply_apply }
 
 theorem small_Iio (o : ordinal.{u}) : small.{u} (set.Iio o) :=
-begin
-  let f : o.out.α → set.Iio o := λ x, ⟨typein o.out.r x, typein_lt_self x⟩,
-  have hf : surjective f := λ b, ⟨enum o.out.r b.val (by { rw type_out, exact b.prop }),
-    subtype.ext (typein_enum _ _)⟩,
-  exact small_of_surjective hf
-end
+let f : o.out.α → set.Iio o := λ x, ⟨typein o.out.r x, typein_lt_self x⟩ in
+let hf : surjective f := λ b, ⟨enum o.out.r b.val (by { rw type_out, exact b.prop }),
+  subtype.ext (typein_enum _ _)⟩ in
+small_of_surjective hf
 
 theorem bdd_above_iff_small {s : set ordinal.{u}} : bdd_above s ↔ small.{u} s :=
 ⟨λ ⟨a, h⟩, @small_subset _ _ _ (by exact λ b hb, lt_succ.2 (h hb)) (small_Iio a.succ),

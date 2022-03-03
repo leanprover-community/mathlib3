@@ -324,11 +324,11 @@ namespace mul_opposite
 
 variables {α : Type*} [division_ring α]
 
-@[simp] lemma op_rat_cast (r : ℚ) : mul_opposite.op (r : α) = (↑r : αᵐᵒᵖ) :=
+@[simp, norm_cast] lemma op_rat_cast (r : ℚ) : op (r : α) = (↑r : αᵐᵒᵖ) :=
 by rw [cast_def, div_eq_mul_inv, op_mul, op_inv, op_nat_cast, op_int_cast,
     (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
 
-@[simp] lemma unop_rat_cast (r : ℚ) : mul_opposite.unop (r : αᵐᵒᵖ) = r :=
+@[simp, norm_cast] lemma unop_rat_cast (r : ℚ) : unop (r : αᵐᵒᵖ) = r :=
 by rw [cast_def, div_eq_mul_inv, unop_mul, unop_inv, unop_nat_cast, unop_int_cast,
     (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
 

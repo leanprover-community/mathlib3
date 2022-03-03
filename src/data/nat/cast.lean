@@ -339,11 +339,11 @@ namespace mul_opposite
 
 variables {α : Type*} [has_zero α] [has_one α] [has_add α]
 
-@[simp] lemma op_nat_cast : ∀ n : ℕ, mul_opposite.op (n : α) = n
+@[simp, norm_cast] lemma op_nat_cast : ∀ n : ℕ, op (n : α) = n
 | 0 := rfl
 | (n + 1) := congr_arg (+ (1 : αᵐᵒᵖ)) $ op_nat_cast n
 
-@[simp] lemma unop_nat_cast : ∀ n : ℕ, mul_opposite.unop (n : αᵐᵒᵖ) = n
+@[simp, norm_cast] lemma unop_nat_cast : ∀ n : ℕ, unop (n : αᵐᵒᵖ) = n
 | 0 := rfl
 | (n + 1) := congr_arg (+ (1 : α)) $ unop_nat_cast n
 

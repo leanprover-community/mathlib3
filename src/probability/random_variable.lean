@@ -22,7 +22,7 @@ marginal distribution `marginal μ f mv` as the distribution on `Π (i : mv), β
 the restriction of `f` to `mv` via `μ`.
 
 We also define a generic marginalization on a measure `μ : measure (Π (i : ι), β i)` to
-an index subset `mv` (yielding a `measure (Π (i : mv), β i)` as `marginalize μ mv`.
+an index subset `mv` (yielding a `measure (Π (i : mv), β i)`) as `marginalize μ mv`.
 
 ## Notations
 

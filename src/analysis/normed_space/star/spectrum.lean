@@ -67,18 +67,6 @@ spectral_radius_eq_nnnorm_of_self_adjoint a.property
 
 end complex_scalars
 
-/-- The inclusion of the base field in a algebra as a continuous linear map. -/
-@[simps]
-def algebra_map_clm (𝕜 : Type*) (E : Type*) [normed_field 𝕜] [semi_normed_ring E]
-  [normed_algebra 𝕜 E] : 𝕜 →L[𝕜] E :=
-{ to_fun := algebra_map 𝕜 E,
-  map_add' := (algebra_map 𝕜 E).map_add,
-  map_smul' := λ r x, by rw [algebra.id.smul_eq_mul, map_mul, ring_hom.id_apply, algebra.smul_def],
-  cont := (algebra_map_isometry 𝕜 E).continuous }
-
-lemma algebra_map_clm_coe (𝕜 : Type*) (E : Type*) [normed_field 𝕜] [semi_normed_ring E]
-  [normed_algebra 𝕜 E] : (algebra_map_clm 𝕜 E : 𝕜 → E) = (algebra_map 𝕜 E : 𝕜 → E) := rfl
-
 lemma star_exp {𝕜 A : Type*} [is_R_or_C 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
   [star_ring A] [cstar_ring A] [complete_space A]
   [star_module 𝕜 A] (a : A) : (exp 𝕜 A a)⋆ = exp 𝕜 A a⋆ :=

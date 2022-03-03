@@ -89,17 +89,12 @@ open rat
 
 /-- ℚ ⧸ ℤ is a torsion group -/
 lemma is_torsion : add_monoid.is_torsion qmodz :=
-λ qz, quotient.induction_on' qz $ begin
-  intro q,
-  rw is_of_fin_add_order_iff_nsmul_eq_zero,
-  refine ⟨q.denom, q.pos, quotient.eq'.mpr _⟩,
-  by_cases h : q.denom = 0,
-  { rw h, simp only [nsmul_eq_mul, nat.cast_zero, zero_mul], exact quotient.eq'.mp rfl },
-  { use q.num,
-    apply @mul_right_cancel₀ _ _ _ (q.denom : ℚ)⁻¹ _
-      (by simp only [h, ne.def, inv_eq_zero, not_false_iff, nat.cast_eq_zero]),
-    have z' : ↑(q.num) * (↑(q.denom)) ⁻¹ = (q.num : ℚ) / q.denom := by rw div_eq_mul_inv,
-    field_simp [z', mul_comm, ← _root_.mul_assoc], }
+λ q, begin
+  induction q using quotient.induction_on',
+  simp_rw [is_of_fin_add_order_iff_nsmul_eq_zero, submodule.quotient.mk'_eq_mk,
+    ←submodule.quotient.mk_smul, submodule.quotient.mk_eq_zero, linear_map.mem_range,
+    algebra.linear_map_apply, algebra_map_int_eq, ring_hom.eq_int_cast, nsmul_eq_mul, mul_comm],
+  exact ⟨q.denom, q.pos, q.num, mul_denom_eq_num.symm⟩,
 end
 
 end qmodz
@@ -111,13 +106,11 @@ open_locale polynomial
 variables {Fq : Type*} [field Fq] [fintype Fq]
 
 /-- Fq[X] is a torsion group -/
-lemma is_torsion : add_monoid.is_torsion Fq[X] := begin
-  intro f,
+lemma is_torsion : add_monoid.is_torsion Fq[X] :=
+λ f, begin
   rw is_of_fin_add_order_iff_nsmul_eq_zero,
-  refine ⟨fintype.card Fq, ⟨fintype.card_pos, _⟩⟩,
-  by_cases h : f = 0, by rw [h, smul_zero],
-  { rw [nsmul_eq_mul, mul_eq_zero], left,
-    rw [← C_eq_zero.mpr (finite_field.cast_card_eq_zero Fq), C_eq_nat_cast] },
+  refine ⟨fintype.card Fq, fintype.card_pos, _⟩,
+  rw [nsmul_eq_smul_cast Fq _ f, finite_field.cast_card_eq_zero, zero_smul],
 end
 
 end polynomial

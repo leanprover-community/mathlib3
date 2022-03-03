@@ -351,11 +351,12 @@ end
 
 open_locale non_zero_divisors
 
+variables (R) {S K}
 /-- If the `S`-multiples of `a` are contained in some `R`-span, then `Frac(S)`-multiples of `a`
 are contained in the equivalent `Frac(R)`-span. -/
-lemma ideal_span_singleton_subset (R : Type*) {S K L : Type*}
-  [comm_ring R] [comm_ring S] [is_domain R] [is_domain S] [field K] [field L]
-  [algebra R K] [algebra R S] [algebra R L] [algebra S L] [is_integral_closure S R L]
+lemma ideal_span_singleton_subset {L : Type*}
+  [is_domain R] [is_domain S] [field K] [field L]
+  [algebra R K] [algebra R L] [algebra S L] [is_integral_closure S R L]
   [is_fraction_ring S L] [algebra K L] [is_scalar_tower R S L] [is_scalar_tower R K L]
   {a : S} {b : set S} (alg : algebra.is_algebraic R L) (inj : function.injective (algebra_map R L))
   (h : (ideal.span ({a} : set S) : set S) ⊆ submodule.span R b) :
@@ -382,7 +383,7 @@ begin
         div_eq_mul_inv, ← mul_assoc, mul_comm, ← ring_hom.map_inv, ← algebra.smul_def,
         ← _root_.map_mul],
     exact (submodule.span K _).smul_mem _ hy },
-  refine submodule.span_subset_span R K _ (map_mem_span_algebra_map_image _ _ _),
+  refine submodule.span_subset_span R K _ (submodule.map_mem_span_algebra_map_image _ _ _),
   exact h (ideal.mem_span_singleton.mpr ⟨y, rfl⟩)
 end
 end is_fraction_ring

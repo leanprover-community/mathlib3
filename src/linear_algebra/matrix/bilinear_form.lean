@@ -22,6 +22,15 @@ This file defines the conversion between bilinear forms and matrices.
  * `bilin_form.to_matrix`: calculate the matrix coefficients of a bilinear form
  * `bilin_form.to_matrix'`: calculate the matrix coefficients of a bilinear form on `n → R`
 
+## Notations
+
+In this file we use the following type variables:
+ - `M`, `M'`, ... are modules over the semiring `R`,
+ - `M₁`, `M₁'`, ... are modules over the ring `R₁`,
+ - `M₂`, `M₂'`, ... are modules over the commutative semiring `R₂`,
+ - `M₃`, `M₃'`, ... are modules over the commutative ring `R₃`,
+ - `V`, ... is a vector space over the field `K`.
+
 ## Tags
 
 bilinear_form, matrix, basis

@@ -1101,6 +1101,44 @@ begin
     exact ht.is_preconnected.subsingleton.image _ }
 end
 
+/-- Let `X` be a topological space, and suppose that for all distinct `x,y ∈ X`, there
+  is some clopen set `U` such that `x ∈ U` and `y ∉ U`. Then `X` is totally disconnected. -/
+lemma is_totally_disconnected_of_clopen_set {X : Type*} [topological_space X]
+  (h_exists_clopen : ∀ {x y : X} (h_diff : x ≠ y), ∃ (U : set X) (h_clopen : is_clopen U),
+  x ∈ U ∧ y ∉ U) : is_totally_disconnected (set.univ : set X) :=
+begin
+  intros S _ hS,
+  by_contra' h_contra,
+  unfold set.subsingleton at h_contra,
+  have hx_exists : ∃ (x : X), x ∈ S ∧ ∃ (a : X), a ∈ S ∧ ¬x = a,
+  {
+    rw not_forall at h_contra,
+    cases h_contra with x hx,
+    rw not_forall at hx,
+    cases hx with hxS hx,
+    rw not_forall at hx,
+    cases hx with a ha,
+    rw not_forall at ha,
+    cases ha with haS hax,
+    exact ⟨x, hxS, a, haS, hax⟩,
+  },
+  rcases hx_exists with ⟨x, hx, y, hy, hxy⟩,
+  specialize h_exists_clopen hxy,
+  rcases h_exists_clopen with ⟨U, h_clopen, hxU, hyU⟩,
+  let V := set.compl U,
+  have hV_open : is_open V,
+  { rw ← is_closed_compl_iff,
+    change is_closed U.compl.compl,
+    rw [set.compl_eq_compl, compl_compl],
+    exact h_clopen.2 },
+  specialize hS U V h_clopen.1 hV_open (λ a ha, em (a ∈ U)) ⟨x, hx, hxU⟩ ⟨y, hy, hyU⟩,
+  have hUV : U ∩ V = ∅,
+  { change U ∩ U.compl = ∅,
+   simp },
+  rw [hUV, set.inter_empty] at hS,
+  exact set.not_nonempty_empty hS,
+end
+
 /-- A space is totally disconnected iff its connected components are subsingletons. -/
 lemma totally_disconnected_space_iff_connected_component_subsingleton :
   totally_disconnected_space α ↔ ∀ x : α, (connected_component x).subsingleton :=

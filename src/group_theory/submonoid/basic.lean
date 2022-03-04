@@ -315,9 +315,6 @@ lemma dense_induction {p : M → Prop} (x : M) {s : set M} (hs : closure s = ⊤
 have ∀ x ∈ closure s, p x, from λ x hx, closure_induction hx Hs H1 Hmul,
 by simpa [hs] using this x
 
-def closure_comm_monoid_of_comm {s : set A} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a)
-  comm_ring (adjoin R s) :
-
 variable (M)
 
 /-- `closure` forms a Galois insertion with the coercion to set. -/

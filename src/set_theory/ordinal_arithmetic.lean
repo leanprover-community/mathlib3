@@ -1138,13 +1138,6 @@ theorem bsup_eq_of_brange_eq {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordi
   (h : brange o f = brange o' g) : bsup.{u (max v w)} o f = bsup.{v (max u w)} o' g :=
 (bsup_le_of_brange_subset h.le).antisymm (bsup_le_of_brange_subset.{v u w} h.ge)
 
-theorem bsup_id_limit {o} (ho : ∀ a < o, succ a < o) : bsup.{u u} o (λ x _, x) = o :=
-le_antisymm (bsup_le.2 (λ i hi, hi.le))
-  (not_lt.1 (λ h, (lt_bsup_of_limit.{u u} (λ _ _ _ _, id) ho _ h).false))
-
-theorem bsup_id_succ (o) : bsup.{u u} (succ o) (λ x _, x) = o :=
-le_antisymm (bsup_le.2 $ (λ o, lt_succ.1)) (le_bsup _ o (lt_succ_self o))
-
 theorem is_normal.bsup_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
   bsup.{u} o (λ x _, f x) = f o :=
 by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id_limit h.2] }
@@ -1357,6 +1350,12 @@ bsup_const.{u v} ho a.succ
 
 @[simp] theorem blsub_id : ∀ o, blsub.{u u} o (λ x _, x) = o :=
 lsub_typein
+
+theorem bsup_id_limit {o} : (∀ a < o, succ a < o) → bsup.{u u} o (λ x _, x) = o :=
+sup_typein_limit
+
+@[simp] theorem bsup_id_succ (o) : bsup.{u u} o.succ (λ x _, x) = o :=
+sup_typein_succ
 
 theorem blsub_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
   (h : brange o f ⊆ brange o' g) : blsub.{u (max v w)} o f ≤ blsub.{v (max u w)} o' g :=

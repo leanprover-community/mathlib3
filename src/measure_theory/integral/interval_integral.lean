@@ -7,6 +7,7 @@ import analysis.normed_space.dual
 import data.set.intervals.disjoint
 import measure_theory.measure.haar_lebesgue
 import analysis.calculus.extend_deriv
+import measure_theory.function.locally_integrable
 import measure_theory.integral.set_integral
 import measure_theory.integral.vitali_caratheodory
 
@@ -653,7 +654,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_div (hc : c ≠ 0) :
   ∫ x in a..b, f (x / c) = c • ∫ x in a/c..b/c, f x :=
-by simpa only [inv_inv₀] using integral_comp_mul_right f (inv_ne_zero hc)
+by simpa only [inv_inv] using integral_comp_mul_right f (inv_ne_zero hc)
 
 @[simp] lemma inv_smul_integral_comp_div (c) :
   c⁻¹ • ∫ x in a..b, f (x / c) = ∫ x in a/c..b/c, f x :=
@@ -666,7 +667,7 @@ have A : measurable_embedding (λ x, x + d) :=
 calc  ∫ x in a..b, f (x + d)
     = ∫ x in a+d..b+d, f x ∂(measure.map (λ x, x + d) volume)
                            : by simp [interval_integral, A.set_integral_map]
-... = ∫ x in a+d..b+d, f x : by rw [real.map_volume_add_right]
+... = ∫ x in a+d..b+d, f x : by rw [map_add_right_eq_self]
 
 @[simp] lemma integral_comp_add_left (d) :
   ∫ x in a..b, f (d + x) = ∫ x in d+a..d+b, f x :=
@@ -690,7 +691,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_div_add (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c + d) = c • ∫ x in a/c+d..b/c+d, f x :=
-by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_mul_add f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv] using integral_comp_mul_add f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_div_add (c d) :
   c⁻¹ • ∫ x in a..b, f (x / c + d) = ∫ x in a/c+d..b/c+d, f x :=
@@ -698,7 +699,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_add_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d + x / c) = c • ∫ x in d+a/c..d+b/c, f x :=
-by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_add_mul f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv] using integral_comp_add_mul f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_add_div (c d) :
   c⁻¹ • ∫ x in a..b, f (d + x / c) = ∫ x in d+a/c..d+b/c, f x :=
@@ -726,7 +727,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_div_sub (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (x / c - d) = c • ∫ x in a/c-d..b/c-d, f x :=
-by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_mul_sub f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv] using integral_comp_mul_sub f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_div_sub (c d) :
   c⁻¹ • ∫ x in a..b, f (x / c - d) = ∫ x in a/c-d..b/c-d, f x  :=
@@ -734,7 +735,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_sub_div (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d - x / c) = c • ∫ x in d-b/c..d-a/c, f x :=
-by simpa only [div_eq_inv_mul, inv_inv₀] using integral_comp_sub_mul f (inv_ne_zero hc) d
+by simpa only [div_eq_inv_mul, inv_inv] using integral_comp_sub_mul f (inv_ne_zero hc) d
 
 @[simp] lemma inv_smul_integral_comp_sub_div (c d) :
   c⁻¹ • ∫ x in a..b, f (d - x / c) = ∫ x in d-b/c..d-a/c, f x :=
@@ -1330,7 +1331,7 @@ namespace FTC_filter
 variables [linear_order β] [measurable_space β] [topological_space β]
 
 instance pure (a : β) : FTC_filter a (pure a) ⊥ :=
-{ pure_le := le_refl _,
+{ pure_le := le_rfl,
   le_nhds := bot_le }
 
 instance nhds_within_singleton (a : β) : FTC_filter a (𝓝[{a}] a) ⊥ :=
@@ -1345,7 +1346,7 @@ variables [opens_measurable_space β] [order_topology β]
 
 instance nhds (a : β) : FTC_filter a (𝓝 a) (𝓝 a) :=
 { pure_le := pure_le_nhds a,
-  le_nhds := le_refl _ }
+  le_nhds := le_rfl }
 
 instance nhds_univ (a : β) : FTC_filter a (𝓝[univ] a) (𝓝 a) :=
 by { rw nhds_within_univ, apply_instance }
@@ -2113,7 +2114,7 @@ begin
         { simp only [integrable_on_const, real.volume_Icc, ennreal.of_real_lt_top, or_true] },
         { exact integrable_on.mono_set G'int I },
         { have C1 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), G' x < ⊤ :=
-            ae_mono (measure.restrict_mono I (le_refl _)) G'lt_top,
+            ae_mono (measure.restrict_mono I le_rfl) G'lt_top,
           have C2 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), x ∈ Icc t u :=
             ae_restrict_mem measurable_set_Icc,
           filter_upwards [C1, C2] with x G'x hx,
@@ -2141,7 +2142,7 @@ begin
     -- choose a point `x` slightly to the right of `t` which satisfies the above bound
     rcases (I3.and I4).exists with ⟨x, hx, h'x⟩,
     -- we check that it belongs to `s`, essentially by construction
-    refine ⟨x, _, Ioc_subset_Ioc (le_refl _) (min_le_left _ _) h'x⟩,
+    refine ⟨x, _, Ioc_subset_Ioc le_rfl (min_le_left _ _) h'x⟩,
     calc g x - g a = (g t - g a) + (g x - g t) : by abel
     ... ≤ (∫ w in a..t, (G' w).to_real) + ∫ w in t..x, (G' w).to_real : add_le_add ht.1 hx
     ... = ∫ w in a..x, (G' w).to_real :
@@ -2210,9 +2211,9 @@ begin
     assume t ht,
     refine ⟨_, ⟨ht.1.le, ht.2⟩⟩,
     exact integral_eq_sub_of_has_deriv_right_of_le_real ht.2
-      (hcont.mono (Icc_subset_Icc ht.1.le (le_refl _)))
+      (hcont.mono (Icc_subset_Icc ht.1.le le_rfl))
       (λ x hx, hderiv x ⟨ht.1.trans_le hx.1, hx.2⟩)
-      (g'int.mono_set (Icc_subset_Icc ht.1.le (le_refl _))) },
+      (g'int.mono_set (Icc_subset_Icc ht.1.le le_rfl)) },
   rw closure_Ioc a_lt_b.ne at A,
   exact (A (left_mem_Icc.2 hab)).1,
 end
@@ -2357,8 +2358,8 @@ begin
   have h_cont : continuous_on (λ u, ∫ t in f a..f u, g t) [a, b],
   { rw [hf.image_interval] at hg,
     refine (continuous_on_primitive_interval' hg.interval_integrable _).comp hf _,
-    { rw [← hf.image_interval], exact mem_image_of_mem f left_mem_interval },
-    { rw [← image_subset_iff], exact hf.image_interval.subset } },
+    { rw ← hf.image_interval, exact mem_image_of_mem f left_mem_interval },
+    { rw ← hf.image_interval, exact maps_to_image _ _ } },
   have h_der : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at
     (λ u, ∫ t in f a..f u, g t) (f' x • ((g ∘ f) x)) (Ioi x) x,
   { intros x hx,

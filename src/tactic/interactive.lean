@@ -577,7 +577,7 @@ meta def h_generalize (rev : parse (tk "!")?)
      (h : parse ident_?)
      (_ : parse (tk ":"))
      (arg : parse h_generalize_arg_p)
-     (eqs_h : parse ( (tk "with" >> pure <$> ident_) <|> pure [])) :
+     (eqs_h : parse ( (tk "with" *> pure <$> ident_) <|> pure [])) :
   tactic unit :=
 do let (e,n) := arg,
    let h' := if h = `_ then none else h,
@@ -775,10 +775,7 @@ add_tactic_doc
   inherit_description_from := `tactic.interactive.change' }
 
 private meta def opt_dir_with : parser (option (bool × name)) :=
-(do tk "with",
-   arrow ← (tk "<-")?,
-   h ← ident,
-   return (arrow.is_some, h)) <|> return none
+(tk "with" *> ((λ arrow h, (option.is_some arrow, h)) <$> (tk "<-")? <*> ident))?
 
 /--
 `set a := t with h` is a variant of `let a := t`. It adds the hypothesis `h : a = t` to
@@ -802,7 +799,7 @@ h : y = 3
 end
 ```
 -/
-meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?)
+meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") *> texpr)?)
   (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
 do tp ← i_to_expr $ tp.get_or_else pexpr.mk_placeholder,
@@ -946,7 +943,7 @@ end
 ```
 
 -/
-meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
+meta def extract_goal (print_use : parse $ (tk "!" *> pure tt) <|> pure ff)
   (n : parse ident?) (vs : parse (tk "with" *> ident*)?)
   : tactic unit :=
 do tgt ← target,

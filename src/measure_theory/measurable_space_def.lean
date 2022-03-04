@@ -282,7 +282,7 @@ lemma le_def {α} {a b : measurable_space α} :
   a ≤ b ↔ a.measurable_set' ≤ b.measurable_set' := iff.rfl
 
 instance : partial_order (measurable_space α) :=
-{ le_refl     := assume a b, le_refl _,
+{ le_refl     := assume a b, le_rfl,
   le_trans    := assume a b c hab hbc, le_def.mpr (le_trans hab hbc),
   le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩,
   ..measurable_space.has_le }
@@ -302,7 +302,7 @@ def generate_from (s : set (set α)) : measurable_space α :=
   measurable_set_Union := generate_measurable.union }
 
 lemma measurable_set_generate_from {s : set (set α)} {t : set α} (ht : t ∈ s) :
-  (generate_from s).measurable_set' t :=
+  @measurable_set _ (generate_from s) t :=
 generate_measurable.basic t ht
 
 lemma generate_from_le {s : set (set α)} {m : measurable_space α}

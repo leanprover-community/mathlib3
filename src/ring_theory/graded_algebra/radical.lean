@@ -33,7 +33,7 @@ open_locale big_operators
 
 variables {ι R A : Type*}
 variables [comm_semiring R] [comm_ring A] [algebra R A]
-variables [linear_ordered_cancel_add_comm_monoid ι] [decidable_eq ι]
+variables [linear_ordered_cancel_add_comm_monoid ι]
 variables {𝒜 : ι → submodule R A} [graded_algebra 𝒜]
 
 lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem

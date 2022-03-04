@@ -20,12 +20,7 @@ variables {R M : Type*} [ring R] [add_comm_group M] [module R M]
 open category_theory
 open Module
 
-/-- If the zero morphism is an epi then the codomain in trivial. -/
-def unique_of_epi_zero (N : Module R) [h : epi (0 : N ⟶ of R M)] : unique M :=
-unique_of_surjective_zero N ((Module.epi_iff_surjective _).mp h)
-
-instance is_simple_module_of [_inst : is_simple_module R M] : is_simple_module R (of R M) :=
-_inst
+instance is_simple_module_of [H : is_simple_module R M] : is_simple_module R (of R M) := H
 
 /-- A simple module is a simple object in the category of modules. -/
 instance simple_of_is_simple_module [is_simple_module R M] : simple (of R M) :=

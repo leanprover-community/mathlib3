@@ -61,20 +61,16 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
   letI : Π i (x : 𝒜 i), decidable (x ≠ 0) := λ i x, classical.dec _,
   set set₁ := (support 𝒜 x).filter (λ i, proj 𝒜 i x ∉ I) with set₁_eq,
   set set₂ := (support 𝒜 y).filter (λ i, proj 𝒜 i y ∉ I) with set₂_eq,
-  have set₁_nonempty : set₁.nonempty,
-  { rw filter_nonempty_iff,
-    contrapose! rid₁,
+  have nonempty : ∀ (x : A), (x ∉ I) → ((support 𝒜 x).filter (λ i, proj 𝒜 i x ∉ I)).nonempty,
+  { intros x hx,
+    rw filter_nonempty_iff,
+    contrapose! hx,
     rw ← sum_support_decompose 𝒜 x,
-    apply ideal.sum_mem _ rid₁,},
-  have set₂_nonempty : set₂.nonempty,
-  { rw filter_nonempty_iff,
-    contrapose! rid₂,
-    rw ← sum_support_decompose 𝒜 y,
-    apply ideal.sum_mem _ rid₂, },
-  set max₁ := set₁.max' set₁_nonempty with max₁_eq,
-  set max₂ := set₂.max' set₂_nonempty with max₂_eq,
-  have mem_max₁ := max'_mem set₁ set₁_nonempty,
-  have mem_max₂ := max'_mem set₂ set₂_nonempty,
+    apply ideal.sum_mem _ hx, },
+  set max₁ := set₁.max' (nonempty x rid₁) with max₁_eq,
+  set max₂ := set₂.max' (nonempty y rid₂) with max₂_eq,
+  have mem_max₁ := max'_mem set₁ (nonempty x rid₁),
+  have mem_max₂ := max'_mem set₂ (nonempty y rid₂),
   replace hxy : (decompose 𝒜 (x * y) (max₁ + max₂) : A) ∈ I := hI _ hxy,
   have eq :=
     calc  proj 𝒜 (max₁ + max₂) (x * y)
@@ -97,7 +93,7 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
   have eq₂ : (proj 𝒜 max₁) x * (proj 𝒜 max₂) y
           = proj 𝒜 (max₁ + max₂) (x * y)
           - ∑ (ij : ι × ι) in (((support 𝒜 x).product (support 𝒜 y)).filter
-              (λ (z : ι × ι), z.fst + z.snd = max₁ + max₂)).erase (max₁, max₂),
+              (λ (z : ι × ι), z.1 + z.2 = max₁ + max₂)).erase (max₁, max₂),
               (proj 𝒜 ij.fst) x * (proj 𝒜 ij.snd) y,
   { rw [eq, eq_sub_iff_add_eq, add_comm], },
 
@@ -117,13 +113,15 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
         apply lt_of_add_lt_add_left this, }, },
     cases max_lt,
     { -- in this case `max₁ < i`, then `xᵢ ∈ I`; for otherwise `i ∈ set₁` then `i ≤ max₁`.
-      have not_mem : i ∉ set₁ := λ h, lt_irrefl _ ((max'_lt_iff set₁ set₁_nonempty).mp max_lt i h),
+      have not_mem : i ∉ set₁ := λ h, lt_irrefl _
+        ((max'_lt_iff set₁ (nonempty x rid₁)).mp max_lt i h),
       rw set₁_eq at not_mem,
       simp only [not_and, not_not, ne.def, dfinsupp.mem_support_to_fun,
         mem_filter] at not_mem,
       exact ideal.mul_mem_right _ I (not_mem H₂), },
     { -- in this case  `max₂ < j`, then `yⱼ ∈ I`; for otherwise `j ∈ set₂`, then `j ≤ max₂`.
-      have not_mem : j ∉ set₂ := λ h, lt_irrefl _ ((max'_lt_iff set₂ set₂_nonempty).mp max_lt j h),
+      have not_mem : j ∉ set₂ := λ h, lt_irrefl _
+        ((max'_lt_iff set₂ (nonempty y rid₂)).mp max_lt j h),
       rw set₂_eq at not_mem,
       simp only [not_and, not_not, ne.def, dfinsupp.mem_support_to_fun, mem_filter] at not_mem,
       exact ideal.mul_mem_left I _ (not_mem H₃), }, },

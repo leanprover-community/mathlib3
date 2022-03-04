@@ -28,10 +28,8 @@ does not work on `linear_ordered_cancel_add_comm_monoid`.
 homogeneous, radical
 -/
 
-
+open graded_algebra set_like finset
 open_locale big_operators
-
-section linear_ordered_cancel_add_comm_monoid
 
 variables {ι R A : Type*}
 variables [comm_semiring R] [comm_ring A] [algebra R A]
@@ -41,67 +39,73 @@ variables {𝒜 : ι → submodule R A} [graded_algebra 𝒜]
 lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
   {I : ideal A} (hI : I.is_homogeneous 𝒜) (I_ne_top : I ≠ ⊤)
   (homogeneous_mem_or_mem : ∀ {x y : A},
-    set_like.is_homogeneous 𝒜 x → set_like.is_homogeneous 𝒜 y
-    → (x * y ∈ I → x ∈ I ∨ y ∈ I)) : ideal.is_prime I :=
+    is_homogeneous 𝒜 x → is_homogeneous 𝒜 y → (x * y ∈ I → x ∈ I ∨ y ∈ I)) :
+  ideal.is_prime I :=
 ⟨I_ne_top, begin
   intros x y hxy, by_contradiction rid,
   obtain ⟨rid₁, rid₂⟩ := not_or_distrib.mp rid,
+  -- the idea of the proof is the following :
+  -- since `x * y ∈ I` and `I` homogeneous, then `proj i (x * y) ∈ I` for any `i : ι`.
+  -- Then consider two sets `{i ∈ x.support | xᵢ ∉ I}` and `{j ∈ y.support | yⱼ ∉ J}`;
+  -- let `max₁, max₂` be the maximum of the two sets, then `proj (max₁ + max₂) (x * y) ∈ I`.
+  -- Then, `proj max₁ x ∉ I` and `proj max₂ j ∉ I`
+  -- but `proj i x ∈ I` for all `max₁ < i` and `proj j y ∈ I` for all `max₂ < j`.
+  -- `  proj (max₁ + max₂) (x * y)`
+  -- `= ∑ {(i, j) ∈ supports | i + j = max₁ + max₂}, xᵢ * yⱼ`
+  -- `= proj max₁ x * proj max₂ y`
+  -- `  + ∑ {(i, j) ∈ supports \ {(max₁, max₂)} | i + j = max₁ + max₂}, xᵢ * yⱼ`.
+  -- This is a contradiction, because both `proj (max₁ + max₂) (x * y) ∈ I` and the sum on the
+  -- right hand side is in `I` however `proj max₁ x * proj max₂ y` is not in `I`.
   letI : Π (x : A),
-    decidable_pred (λ (i : ι), graded_algebra.proj 𝒜 i x ∉ I) := λ x, classical.dec_pred _,
+    decidable_pred (λ (i : ι), proj 𝒜 i x ∉ I) := λ x, classical.dec_pred _,
   letI : Π i (x : 𝒜 i), decidable (x ≠ 0) := λ i x, classical.dec _,
-  set set₁ := (graded_algebra.support 𝒜 x).filter (λ i, graded_algebra.proj 𝒜 i x ∉ I) with set₁_eq,
-  set set₂ := (graded_algebra.support 𝒜 y).filter (λ i, graded_algebra.proj 𝒜 i y ∉ I) with set₂_eq,
+  set set₁ := (support 𝒜 x).filter (λ i, proj 𝒜 i x ∉ I) with set₁_eq,
+  set set₂ := (support 𝒜 y).filter (λ i, proj 𝒜 i y ∉ I) with set₂_eq,
   have set₁_nonempty : set₁.nonempty,
-  { rw finset.filter_nonempty_iff,
+  { rw filter_nonempty_iff,
     contrapose! rid₁,
-    rw ← graded_algebra.sum_support_decompose 𝒜 x,
+    rw ← sum_support_decompose 𝒜 x,
     apply ideal.sum_mem _ rid₁,},
   have set₂_nonempty : set₂.nonempty,
-  { rw finset.filter_nonempty_iff,
+  { rw filter_nonempty_iff,
     contrapose! rid₂,
-    rw ← graded_algebra.sum_support_decompose 𝒜 y,
+    rw ← sum_support_decompose 𝒜 y,
     apply ideal.sum_mem _ rid₂, },
   set max₁ := set₁.max' set₁_nonempty with max₁_eq,
   set max₂ := set₂.max' set₂_nonempty with max₂_eq,
-  have mem_max₁ := finset.max'_mem set₁ set₁_nonempty,
-  have mem_max₂ := finset.max'_mem set₂ set₂_nonempty,
-  replace hxy : ∀ (i : ι), (graded_algebra.decompose 𝒜 (x * y) i : A) ∈ I := λ i, hI i hxy,
-  specialize hxy (max₁ + max₂),
+  have mem_max₁ := max'_mem set₁ set₁_nonempty,
+  have mem_max₂ := max'_mem set₂ set₂_nonempty,
+  replace hxy : (decompose 𝒜 (x * y) (max₁ + max₂) : A) ∈ I := hI _ hxy,
   have eq :=
-    calc  graded_algebra.proj 𝒜 (max₁ + max₂) (x * y)
-        = ∑ ij in ((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)).filter
-            (λ z, z.1 + z.2 = max₁ + max₂),
-            (graded_algebra.proj 𝒜 ij.1 x) * (graded_algebra.proj 𝒜 ij.2 y)
+    calc  proj 𝒜 (max₁ + max₂) (x * y)
+        = ∑ ij in ((support 𝒜 x).product (support 𝒜 y)).filter (λ z, z.1 + z.2 = max₁ + max₂),
+            (proj 𝒜 ij.1 x) * (proj 𝒜 ij.2 y)
         : begin
-          rw [graded_algebra.proj_apply, alg_equiv.map_mul, graded_algebra.support,
-            graded_algebra.support, direct_sum.coe_mul_apply_submodule],
+          rw [proj_apply, alg_equiv.map_mul, support,support, direct_sum.coe_mul_apply_submodule],
           refl,
         end
-    ... = ∑ ij in (((graded_algebra.support 𝒜 x).product (graded_algebra.support 𝒜 y)).filter
+    ... = ∑ ij in (((support 𝒜 x).product (support 𝒜 y)).filter
             (λ (z : ι × ι), z.1 + z.2 = max₁ + max₂)).erase (max₁, max₂),
-            (graded_algebra.proj 𝒜 ij.1 x) * (graded_algebra.proj 𝒜 ij.2 y) +
-          (graded_algebra.proj 𝒜 max₁ x) * (graded_algebra.proj 𝒜 max₂ y)
+            (proj 𝒜 ij.1 x) * (proj 𝒜 ij.2 y) +
+          (proj 𝒜 max₁ x) * (proj 𝒜 max₂ y)
         : begin
-          rw finset.sum_erase_add,
-          simp only [finset.mem_filter, finset.mem_product, eq_self_iff_true, and_true],
-          exact ⟨(finset.filter_subset _ _) mem_max₁, (finset.filter_subset _ _) mem_max₂⟩,
+          rw sum_erase_add,
+          simp only [mem_filter, mem_product, eq_self_iff_true, and_true],
+          exact ⟨(filter_subset _ _) mem_max₁, (filter_subset _ _) mem_max₂⟩,
         end,
 
-  have eq₂ : (graded_algebra.proj 𝒜 max₁) x * (graded_algebra.proj 𝒜 max₂) y
-          = graded_algebra.proj 𝒜 (max₁ + max₂) (x * y)
-          - ∑ (ij : ι × ι) in (((graded_algebra.support 𝒜 x).product
-              (graded_algebra.support 𝒜 y)).filter
+  have eq₂ : (proj 𝒜 max₁) x * (proj 𝒜 max₂) y
+          = proj 𝒜 (max₁ + max₂) (x * y)
+          - ∑ (ij : ι × ι) in (((support 𝒜 x).product (support 𝒜 y)).filter
               (λ (z : ι × ι), z.fst + z.snd = max₁ + max₂)).erase (max₁, max₂),
-              (graded_algebra.proj 𝒜 ij.fst) x * (graded_algebra.proj 𝒜 ij.snd) y,
+              (proj 𝒜 ij.fst) x * (proj 𝒜 ij.snd) y,
   { rw [eq, eq_sub_iff_add_eq, add_comm], },
 
-  have mem_I :
-    (graded_algebra.proj 𝒜 (max₁, max₂).fst) x * (graded_algebra.proj 𝒜 (max₁, max₂).snd) y ∈ I,
+  have mem_I : (proj 𝒜 max₁) x * (proj 𝒜 max₂) y ∈ I,
   { rw eq₂,
     refine ideal.sub_mem _ hxy (ideal.sum_mem _ (λ z H, _)),
     rcases z with ⟨i, j⟩,
-    simp only [finset.mem_erase, prod.mk.inj_iff, ne.def, finset.mem_filter,
-      finset.mem_product] at H,
+    simp only [mem_erase, prod.mk.inj_iff, ne.def, mem_filter, mem_product] at H,
     rcases H with ⟨H₁, ⟨H₂, H₃⟩, H₄⟩,
     have max_lt : max₁ < i ∨ max₂ < j,
     { rcases lt_trichotomy max₁ i with h | rfl | h,
@@ -112,25 +116,22 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
         rw H₄ at this,
         apply lt_of_add_lt_add_left this, }, },
     cases max_lt,
-    { -- in this case `i < max₁`, so `of A i (x i) ∈ I`
-      have not_mem : i ∉ set₁ := λ h,
-        lt_irrefl _ ((finset.max'_lt_iff set₁ set₁_nonempty).mp max_lt i h),
+    { -- in this case `max₁ < i`, then `xᵢ ∈ I`; for otherwise `i ∈ set₁` then `i ≤ max₁`.
+      have not_mem : i ∉ set₁ := λ h, lt_irrefl _ ((max'_lt_iff set₁ set₁_nonempty).mp max_lt i h),
       rw set₁_eq at not_mem,
       simp only [not_and, not_not, ne.def, dfinsupp.mem_support_to_fun,
-        finset.mem_filter] at not_mem,
+        mem_filter] at not_mem,
       exact ideal.mul_mem_right _ I (not_mem H₂), },
-    { -- in this case  `max₂ < j`, so `of A j (y j) ∈ I`
-      have not_mem : j ∉ set₂ := λ h,
-        lt_irrefl _ ((finset.max'_lt_iff set₂ set₂_nonempty).mp max_lt j h),
+    { -- in this case  `max₂ < j`, then `yⱼ ∈ I`; for otherwise `j ∈ set₂`, then `j ≤ max₂`.
+      have not_mem : j ∉ set₂ := λ h, lt_irrefl _ ((max'_lt_iff set₂ set₂_nonempty).mp max_lt j h),
       rw set₂_eq at not_mem,
-      simp only [not_and, not_not, ne.def, dfinsupp.mem_support_to_fun,
-        finset.mem_filter] at not_mem,
+      simp only [not_and, not_not, ne.def, dfinsupp.mem_support_to_fun, mem_filter] at not_mem,
       exact ideal.mul_mem_left I _ (not_mem H₃), }, },
   specialize homogeneous_mem_or_mem ⟨max₁, submodule.coe_mem _⟩ ⟨max₂, submodule.coe_mem _⟩ mem_I,
   cases homogeneous_mem_or_mem;
-  simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_filter] at mem_max₁ mem_max₂,
-  exact mem_max₁.2 homogeneous_mem_or_mem,
-  exact mem_max₂.2 homogeneous_mem_or_mem,
+  simp only [ne.def, dfinsupp.mem_support_to_fun, mem_filter] at mem_max₁ mem_max₂,
+  { exact mem_max₁.2 homogeneous_mem_or_mem },
+  { exact mem_max₂.2 homogeneous_mem_or_mem },
 end⟩
 
 lemma homogeneous_ideal.is_prime_iff (I : homogeneous_ideal 𝒜) :
@@ -176,7 +177,7 @@ end
 lemma ideal.is_homogeneous_ideal.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
   I.radical.is_homogeneous 𝒜 :=
 begin
-  have radI_eq : I.radical = _ := homogeneous_ideal.rad_eq ⟨I, h⟩,
+  have radI_eq : I.radical = _ := homogeneous_ideal.radical_eq ⟨I, h⟩,
   rw radI_eq,
   convert (Inf {J : homogeneous_ideal 𝒜 | I ≤ J.val ∧ J.val.is_prime}).2,
   ext J,
@@ -187,5 +188,3 @@ begin
   { obtain ⟨J', HJ1, ⟨HJ2, HJ3⟩, rfl⟩ := H,
     exact ⟨HJ2, HJ1, HJ3⟩, },
 end
-
-end linear_ordered_cancel_add_comm_monoid

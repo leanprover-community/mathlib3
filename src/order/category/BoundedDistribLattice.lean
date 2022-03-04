@@ -34,10 +34,14 @@ attribute [instance] BoundedDistribLattice.is_bounded_order
 /-- Construct a bundled `BoundedDistribLattice` from a `bounded_order` `distrib_lattice`. -/
 def of (α : Type*) [distrib_lattice α] [bounded_order α] : BoundedDistribLattice := ⟨⟨α⟩⟩
 
+@[simp] lemma coe_of (α : Type*) [distrib_lattice α] [bounded_order α] : ↥(of α) = α := rfl
+
 instance : inhabited BoundedDistribLattice := ⟨of punit⟩
 
 /-- Turn a `BoundedDistribLattice` into a `BoundedLattice` by forgetting it is distributive. -/
 def to_BoundedLattice (X : BoundedDistribLattice) : BoundedLattice := BoundedLattice.of X
+
+@[simp] lemma coe_to_BoundedLattice (X : BoundedDistribLattice) : ↥X.to_BoundedLattice = ↥X := rfl
 
 instance : large_category.{u} BoundedDistribLattice := induced_category.category to_BoundedLattice
 

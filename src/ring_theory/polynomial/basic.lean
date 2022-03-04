@@ -251,7 +251,7 @@ begin
       true_and, nat.succ_lt_succ_iff.2 ha] }
 end
 
-lemma geom_sum_monic (R : Type*) [semiring R] {n : ℕ} (hn : n ≠ 0) :
+lemma monic.geom_sum_X (R : Type*) [semiring R] {n : ℕ} (hn : n ≠ 0) :
   (geom_sum (X : R[X]) n).monic :=
 begin
   nontriviality R,
@@ -264,6 +264,21 @@ begin
     conv_lhs { congr, congr, skip, funext,
       rw [← one_mul (X ^ ↑i), ← C_1] },
     exact degree_sum_fin_lt _ }
+end
+
+lemma monic.geom_sum_of_monic {R : Type*} [comm_ring R] {P : R[X]}
+  (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
+begin
+  nontriviality R,
+  have : (P - 1 : R[X]).monic,
+  { rw [sub_eq_add_neg],
+    refine monic_add_of_left hP _,
+    simp [hdeg] },
+  apply monic.of_mul_monic this,
+  rw [mul_geom_sum, sub_eq_add_neg],
+  refine monic_add_of_left (monic_pow hP _) _,
+  rw [degree_neg, degree_one, ← nat_degree_pos_iff_degree_pos, hP.nat_degree_pow],
+  refine mul_pos (zero_lt_iff.2 hn) (nat_degree_pos_iff_degree_pos.2 hdeg)
 end
 
 section to_subring

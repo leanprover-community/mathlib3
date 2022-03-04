@@ -45,7 +45,7 @@ structure injective_presentation (X : C) :=
 
 variables (C)
 
-/-- A category "has enough injectives" if every object has an injective presentation, 
+/-- A category "has enough injectives" if every object has an injective presentation,
 i.e. if for every object `X` there is an injective object `J` and a monomorphism `X ↪ J`. -/
 class enough_injectives : Prop :=
 (presentation : ∀ (X : C), nonempty (injective_presentation X))
@@ -57,11 +57,11 @@ namespace injective
 /--
 Let `J` be injective and `g` a morphism into `J`, then `g` can be factored through any monomorphism.
 -/
-def factor_of {J X Y : C} [injective J] (g : X ⟶ J) (f : X ⟶ Y) [mono f] : Y ⟶ J :=
+def factor_thru {J X Y : C} [injective J] (g : X ⟶ J) (f : X ⟶ Y) [mono f] : Y ⟶ J :=
 (injective.factors g f).some
 
-@[simp] lemma factor_of_comp {J X Y : C} [injective J] (g : X ⟶ J) (f : X ⟶ Y) [mono f] :
-  f ≫ factor_of g f = g :=
+@[simp] lemma comp_factor_thru {J X Y : C} [injective J] (g : X ⟶ J) (f : X ⟶ Y) [mono f] :
+  f ≫ factor_thru g f = g :=
 (injective.factors g f).some_spec
 
 section
@@ -106,8 +106,8 @@ instance {P Q : C} [has_binary_product P Q] [injective P] [injective Q] :
   injective (P ⨯ Q) :=
 { factors := λ X Y g f mono, begin
   resetI,
-  use limits.prod.lift (factor_of (g ≫ limits.prod.fst) f) (factor_of (g ≫ limits.prod.snd) f),
-  simp only [prod.comp_lift, factor_of_comp],
+  use limits.prod.lift (factor_thru (g ≫ limits.prod.fst) f) (factor_thru (g ≫ limits.prod.snd) f),
+  simp only [prod.comp_lift, comp_factor_thru],
   ext,
   { simp only [prod.lift_fst] },
   { simp only [prod.lift_snd] },
@@ -117,9 +117,9 @@ instance {β : Type v} (c : β → C) [has_product c] [∀ b, injective (c b)] :
   injective (∏ c) :=
 { factors := λ X Y g f mono, begin
   resetI,
-  refine ⟨pi.lift (λ b, factor_of (g ≫ (pi.π c _)) f), _⟩,
+  refine ⟨pi.lift (λ b, factor_thru (g ≫ (pi.π c _)) f), _⟩,
   ext,
-  simp only [category.assoc, limit.lift_π, fan.mk_π_app, factor_of_comp],
+  simp only [category.assoc, limit.lift_π, fan.mk_π_app, comp_factor_thru],
 end }
 
 instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
@@ -127,19 +127,19 @@ instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
   injective (P ⊞ Q) :=
 { factors := λ X Y g f mono, begin
   resetI,
-  refine ⟨biprod.lift (factor_of (g ≫ biprod.fst) f) (factor_of (g ≫ biprod.snd) f), _⟩,
+  refine ⟨biprod.lift (factor_thru (g ≫ biprod.fst) f) (factor_thru (g ≫ biprod.snd) f), _⟩,
   ext,
-  { simp only [category.assoc, biprod.lift_fst, factor_of_comp] },
-  { simp only [category.assoc, biprod.lift_snd, factor_of_comp] },
+  { simp only [category.assoc, biprod.lift_fst, comp_factor_thru] },
+  { simp only [category.assoc, biprod.lift_snd, comp_factor_thru] },
 end }
 
 instance {β : Type v} [decidable_eq β] (c : β → C) [has_zero_morphisms C] [has_biproduct c]
   [∀ b, injective (c b)] : injective (⨁ c) :=
 { factors := λ X Y g f mono, begin
   resetI,
-  refine ⟨biproduct.lift (λ b, factor_of (g ≫ biproduct.π _ _) f), _⟩,
+  refine ⟨biproduct.lift (λ b, factor_thru (g ≫ biproduct.π _ _) f), _⟩,
   ext,
-  simp only [category.assoc, biproduct.lift_π, factor_of_comp],
+  simp only [category.assoc, biproduct.lift_π, comp_factor_thru],
 end }
 
 instance {P : Cᵒᵖ} [projective P] : injective (P.unop) :=
@@ -155,8 +155,8 @@ end }
 instance {J : C} [injective J] : projective (opposite.op J) :=
 { factors := λ E X f e epi, begin
   resetI,
-  refine ⟨(@factor_of C _ J _ _ _ f.unop e.unop _).op, _⟩,
-  have eq1 := congr_arg quiver.hom.op (@factor_of_comp C _ J _ _ _ f.unop e.unop _),
+  refine ⟨(@factor_thru C _ J _ _ _ f.unop e.unop _).op, _⟩,
+  have eq1 := congr_arg quiver.hom.op (@comp_factor_thru C _ J _ _ _ f.unop e.unop _),
   rw [quiver.hom.op_unop] at eq1,
   exact eq1,
 end }

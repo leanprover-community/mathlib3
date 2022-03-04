@@ -7,6 +7,7 @@ import analysis.normed_space.dual
 import analysis.normed_space.star.basic
 import analysis.complex.basic
 import analysis.inner_product_space.adjoint
+import algebra.star.subalgebra
 
 /-!
 # Von Neumann algebras
@@ -38,8 +39,6 @@ class wstar_algebra (M : Type u) [normed_ring M] [star_ring M] [cstar_ring M]
 (exists_predual : ∃ (X : Type u) [normed_group X] [normed_space ℂ X] [complete_space X],
   nonempty (normed_space.dual ℂ X ≃ₗᵢ⋆[ℂ] M))
 
-open_locale inner_product
-
 /--
 The double commutant definition of a von Neumann algebra,
 as a *-closed subalgebra of bounded operators on a Hilbert space,
@@ -57,12 +56,5 @@ and instead will use `⊤ : von_neumann_algebra H`.
 -/
 @[nolint has_inhabited_instance]
 structure von_neumann_algebra (H : Type u) [inner_product_space ℂ H] [complete_space H] extends
-  M : star_subalgebra ℂ (H →L[ℂ] H) :=
-(double_commutant : centralizer (centralizer (M : set (H →L[ℂ] H))) = M)
-
-/--
-Forgetting that a von Neumann algebra is equal to its double commutant
-(equivalently, is closed in the weak and strong operator topologies),
-and just remembering the underlying *-subalgebra.
--/
-add_decl_doc von_neumann_algebra.to_star_subalgebra
+  star_subalgebra ℂ (H →L[ℂ] H) :=
+(double_commutant : set.centralizer (set.centralizer carrier) = carrier)

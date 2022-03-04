@@ -254,7 +254,7 @@ end
 lemma geom_sum_monic {n : ℕ} (hn : 0 < n) : (geom_sum (X : R[X]) n).monic :=
 begin
   nontriviality R,
-  rw [geom_sum_def, monic.def, polynomial.leading_coeff, finset_sum_coeff],
+  rw [geom_sum_def, monic.def, leading_coeff, finset_sum_coeff],
   simp_rw [coeff_X_pow, finset.sum_boole],
   suffices :
     ((finset.filter (eq ((finset.range n).sum (pow X)).nat_degree) (finset.range n)).card) = 1,

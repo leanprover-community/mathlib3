@@ -255,9 +255,9 @@ lemma geom_sum_monic (R : Type*) [semiring R] {n : ℕ} (hn : n ≠ 0) :
   (geom_sum (X : R[X]) n).monic :=
 begin
   nontriviality R,
-  obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
-  cases k,
-  { simp },
+  cases n,
+  { exfalso,
+    exact hn rfl},
   { rw [geom_sum_succ'],
     refine monic_add_of_left (monic_X_pow _) _,
     rw [degree_X_pow, geom_sum_def, ← fin.sum_univ_eq_sum_range],

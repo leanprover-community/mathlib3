@@ -26,6 +26,10 @@ Definition of the Fibonacci sequence `F₀ = 0, F₁ = 1, Fₙ₊₂ = Fₙ + F�
 - `nat.fib_gcd`: `fib n` is a strong divisibility sequence.
 - `nat.fib_succ_eq_sum_choose`: `fib` is given by the sum of `nat.choose` along an antidiagonal.
 - `nat.fib_succ_eq_succ_sum`: shows that `F₀ + F₁ + ⋯ + Fₙ = Fₙ₊₂ - 1`.
+- `nat.fib_two_mul` and `nat.fib_two_mul_add_one` are the basis for an efficient algorithm to
+  compute `fib`. There are `bit0`/`bit1` variants of these can be used to simplify `fib`
+  expressions: `simp only [nat.fib_bit0, nat.fib_bit1, nat.fib_bit0_succ, nat.fib_bit1_succ,
+  nat.fib_one, nat.fib_two]`.
 
 ## Implementation Notes
 
@@ -125,14 +129,14 @@ begin
     ring, },
 end
 
-lemma fib_two_mul_succ (n : ℕ) : fib (2 * n + 1) = fib (n + 1) ^ 2 + fib n ^ 2 :=
+lemma fib_two_mul_add_one (n : ℕ) : fib (2 * n + 1) = fib (n + 1) ^ 2 + fib n ^ 2 :=
 by { rw [two_mul, fib_add], ring }
 
 lemma fib_bit0 (n : ℕ) : fib (bit0 n) = fib n * (2 * fib (n + 1) - fib n) :=
 by rw [bit0_eq_two_mul, fib_two_mul]
 
 lemma fib_bit1 (n : ℕ) : fib (bit1 n) = fib (n + 1) ^ 2 + fib n ^ 2 :=
-by rw [nat.bit1_eq_succ_bit0, bit0_eq_two_mul, fib_two_mul_succ]
+by rw [nat.bit1_eq_succ_bit0, bit0_eq_two_mul, fib_two_mul_add_one]
 
 lemma fib_bit0_succ (n : ℕ) : fib (bit0 n + 1) = fib (n + 1) ^ 2 + fib n ^ 2 := fib_bit1 n
 

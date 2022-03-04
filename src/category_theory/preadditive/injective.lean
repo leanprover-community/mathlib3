@@ -229,11 +229,7 @@ def exact.desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R �
 
 @[simp] lemma exact.comp_desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S)
   [exact g.op f.op] (w : f ≫ h = 0) : g ≫ exact.desc h f g w = h :=
-begin
-  have := congr_arg quiver.hom.unop (exact.lift_comp h.op g.op f.op (congr_arg quiver.hom.op w)),
-  simp only [quiver.hom.unop_op] at this,
-  convert this,
-end
+by convert congr_arg quiver.hom.unop (exact.lift_comp h.op g.op f.op (congr_arg quiver.hom.op w))
 
 end
 

@@ -195,7 +195,7 @@ def syzygies : C := under (cokernel f)
 /--
 When `C` has enough injective,
 `injective.d f : Y ⟶ syzygies f` is the composition
-`π (kernel f) ≫ kernel.ι f`.
+`cokernel.π f ≫ ι (cokernel f)`.
 
 (When `C` is abelian, we have `exact f (injective.d f)`.)
 -/

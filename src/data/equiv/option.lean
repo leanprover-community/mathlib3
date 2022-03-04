@@ -9,16 +9,50 @@ import control.equiv_functor
 /-!
 # Equivalences for `option α`
 
-We define `remove_none` which acts to provide a `e : α ≃ β` if given a `f : option α ≃ option β`.
 
-To construct an `f : option α ≃ option β` from `e : α ≃ β` such that
-`f none = none` and `f (some x) = some (e x)`, use
-`f = equiv_functor.map_equiv option e`.
+We define
+* `equiv.option_congr`: the `option α ≃ option β` constructed from `e : α ≃ β` by sending `none` to
+  `none`, and applying a `e` elsewhere.
+* `equiv.remove_none`: the `α ≃ β` constructed from `option α ≃ option β` by removing `none` from
+  both sides.
 -/
 
 namespace equiv
 
-variables {α β : Type*} (e : option α ≃ option β)
+variables {α β γ : Type*}
+
+section option_congr
+
+variables
+
+/-- A universe-polymorphic version of `equiv_functor.map_equiv option e`. -/
+@[simps apply]
+def option_congr (e : α ≃ β) : option α ≃ option β :=
+{ to_fun := option.map e,
+  inv_fun := option.map e.symm,
+  left_inv := λ x, (option.map_map _ _ _).trans $
+    e.symm_comp_self.symm ▸ congr_fun option.map_id x,
+  right_inv := λ x, (option.map_map _ _ _).trans $
+    e.self_comp_symm.symm ▸ congr_fun option.map_id x }
+
+@[simp] lemma option_congr_refl : option_congr (equiv.refl α) = equiv.refl _ :=
+ext $ congr_fun option.map_id
+
+@[simp] lemma option_congr_symm (e : α ≃ β) : (option_congr e).symm = option_congr e.symm := rfl
+
+@[simp] lemma option_congr_trans (e₁ : α ≃ β) (e₂ : β ≃ γ) :
+  (option_congr e₁).trans (option_congr e₂) = option_congr (e₁.trans e₂) :=
+ext $ option.map_map _ _
+
+/-- When `α` and `β` are in the same universe, this is the same as the result of
+`equiv_functor.map_equiv`. -/
+lemma option_congr_eq_equiv_function_map_equiv {α β : Type*} (e : α ≃ β) :
+  option_congr e = equiv_functor.map_equiv option e := rfl
+
+end option_congr
+
+section remove_none
+variables (e : option α ≃ option β)
 
 private def remove_none_aux (x : α) : β :=
 if h : (e (some x)).is_some
@@ -87,8 +121,12 @@ begin
 end
 
 @[simp]
-lemma remove_none_map_equiv {α β : Type*} (e : α ≃ β) :
-  remove_none (equiv_functor.map_equiv option e) = e :=
+lemma remove_none_option_congr (e : α ≃ β) : remove_none e.option_congr = e :=
 equiv.ext $ λ x, option.some_injective _ $ remove_none_some _ ⟨e x, by simp [equiv_functor.map]⟩
+
+end remove_none
+
+lemma option_congr_injective : function.injective (option_congr : α ≃ β → option α ≃ option β) :=
+function.left_inverse.injective remove_none_option_congr
 
 end equiv

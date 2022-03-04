@@ -1112,6 +1112,8 @@ instance : generalized_boolean_algebra (finset α) :=
 lemma not_mem_sdiff_of_mem_right (h : a ∈ t) : a ∉ s \ t :=
 by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]
 
+lemma not_mem_sdiff_of_not_mem_left (h : a ∉ s) : a ∉ s \ t := by simpa
+
 lemma union_sdiff_of_subset (h : s ⊆ t) : s ∪ (t \ s) = t := sup_sdiff_cancel_right h
 
 theorem sdiff_union_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
@@ -1912,6 +1914,26 @@ alias map_nonempty ↔ _ finset.nonempty.map
 
 lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
+
+lemma disjoint_range_add_left_embedding (a b : ℕ) :
+  disjoint (range a) (map (add_left_embedding a) (range b)) :=
+begin
+  intros k hk,
+  simp only [exists_prop, mem_range, inf_eq_inter, mem_map, add_left_embedding_apply,
+    mem_inter] at hk,
+  obtain ⟨a, haQ, ha⟩ := hk.2,
+  simpa [← ha] using hk.1,
+end
+
+lemma disjoint_range_add_right_embedding (a b : ℕ) :
+  disjoint (range a) (map (add_right_embedding a) (range b)) :=
+begin
+  intros k hk,
+  simp only [exists_prop, mem_range, inf_eq_inter, mem_map, add_left_embedding_apply,
+    mem_inter] at hk,
+  obtain ⟨a, haQ, ha⟩ := hk.2,
+  simpa [← ha] using hk.1,
+end
 
 end map
 

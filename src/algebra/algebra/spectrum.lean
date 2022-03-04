@@ -5,6 +5,7 @@ Authors: Jireh Loreaux
 -/
 import tactic.noncomm_ring
 import field_theory.is_alg_closed.basic
+import algebra.star.pointwise
 /-!
 # Spectrum of an element in an algebra
 This file develops the basic theory of the spectrum of an element of an algebra.
@@ -241,6 +242,21 @@ end
 theorem preimage_units_mul_eq_swap_mul {a b : A} :
   (coe : Rˣ → R) ⁻¹' σ (a * b) = coe ⁻¹'  σ (b * a) :=
 by { ext, exact unit_mem_mul_iff_mem_swap_mul, }
+
+section star
+
+variables [star_add_monoid R] [star_ring A] [star_module R A]
+
+lemma star_mem_resolvent_set_iff {r : R} {a : A} :
+  star r ∈ resolvent_set R a ↔ r ∈ resolvent_set R (star a) :=
+by refine ⟨λ h, _, λ h, _⟩;
+   simpa only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one, star_sub, star_smul,
+     star_star, star_one] using is_unit.star h
+
+protected lemma map_star (a : A) : σ (star a) = star (σ a) :=
+by { ext, simpa only [set.mem_star, mem_iff, not_iff_not] using star_mem_resolvent_set_iff.symm }
+
+end star
 
 end scalar_ring
 

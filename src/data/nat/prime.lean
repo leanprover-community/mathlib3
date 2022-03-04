@@ -729,9 +729,7 @@ begin
   rwa eq_of_mem_repeat hq,
 end
 
-lemma eq_prime_pow_of_unique_prime_dvd
-  {n p : ℕ}
-  (hpos : n ≠ 0)
+lemma eq_prime_pow_of_unique_prime_dvd {n p : ℕ} (hpos : n ≠ 0)
   (h : ∀ {d}, nat.prime d → d ∣ n → d = p) :
   n = p ^ n.factors.length :=
 begin
@@ -1164,7 +1162,7 @@ end
 lemma mem_factors_mul_right {p a b : ℕ} (hpb : p ∈ b.factors) (ha : a ≠ 0) : p ∈ (a*b).factors :=
 by { rw mul_comm, exact mem_factors_mul_left hpb ha }
 
-lemma exists_odd_prime_and_dvd_or_two_pow (n : ℕ) :
+lemma eq_two_pow_or_exists_odd_prime_and_dvd (n : ℕ) :
   (∃ k : ℕ, n = 2 ^ k) ∨ ∃ p, nat.prime p ∧ p ∣ n ∧ odd p :=
 (eq_or_ne n 0).elim
   (λ hn, (or.inr ⟨3, prime_three, hn.symm ▸ dvd_zero 3, ⟨1, rfl⟩⟩))

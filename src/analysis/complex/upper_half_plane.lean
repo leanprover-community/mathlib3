@@ -210,7 +210,8 @@ begin
   simp [coe_GL_pos_neg, coe_fn_coe_base'],
   ring_nf,
   simp_rw ← coe_coe,
-  simp [coe_fn_coe_base',coe_GL_pos_neg, general_linear_group.coe_fn_eq_coe, coe_coe,  complex.of_real_neg],
+  simp only [GL_pos_coe_neg,GL_pos.coe_neg_apply],
+  simp [coe_fn_coe_base', general_linear_group.coe_fn_eq_coe, coe_coe,  complex.of_real_neg],
   ring,
   end
 

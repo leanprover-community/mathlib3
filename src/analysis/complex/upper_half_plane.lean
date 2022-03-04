@@ -107,7 +107,7 @@ ne_of_gt (norm_sq_denom_pos g z)
 def smul_aux' (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := num g z / denom g z
 
 lemma smul_aux'_im (g :  GL_pos (fin 2) ℝ) (z : ℍ) :
-  (smul_aux' g z).im = ((det g)*z.im) / (denom g z).norm_sq :=
+  (smul_aux' g z).im = ((det g) * z.im) / (denom g z).norm_sq :=
 begin
   rw [smul_aux', complex.div_im],
   set NsqBot := (denom g z).norm_sq,
@@ -210,8 +210,7 @@ begin
   simp [coe_GL_pos_neg, coe_fn_coe_base'],
   ring_nf,
   simp_rw ← coe_coe,
-  simp only [GL_pos_coe_neg,GL_pos.coe_neg_apply],
-  simp [coe_fn_coe_base', general_linear_group.coe_fn_eq_coe, coe_coe,  complex.of_real_neg],
+  simp  [coe_GL_pos_neg, GL_pos.coe_neg_apply],
   ring,
   end
 
@@ -220,5 +219,10 @@ variable (Γ : subgroup (special_linear_group (fin 2) ℤ))
 @[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl
 @[simp]lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl
 @[simp]lemma subgroup_to_sl_moeb (A: Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
+
+@[simp] lemma SL_neg_smul (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=
+begin
+simp,
+end
 
 end upper_half_plane

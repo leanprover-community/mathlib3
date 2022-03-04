@@ -76,10 +76,17 @@ the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
 
 lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
-by {simp only [im_smul_eq_div_norm_sq, coe_to_GL_pos_det,  one_mul, sl_moeb, coe_coe]}
+begin
+simp only [im_smul_eq_div_norm_sq, sl_moeb, coe_coe, denom, GL_pos_det_eq_det,
+  general_linear_group.coe_det_apply,coe_GL_pos_coe_GL_coe_matrix,
+  int.coe_cast_ring_hom],
+rw (g : SL(2,ℝ)).prop,
+simp,
+end
 
 @[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
-  by {simp [denom, coe_to_GL_pos_ext],}
+  by {simp [denom, coe_GL_pos_coe_GL_coe_matrix, general_linear_group.coe_fn_eq_coe,
+  coe_to_GL_pos_ext],}
 
 end upper_half_plane_action
 
@@ -622,12 +629,13 @@ begin
     { intros gg h₀ h₁ h₂ hh,
       have := gIsId gg hh h₀ h₁ h₂,
       rw this,
-      simp, },
+      have hsl1 : (((1 : SL(2, ℤ)) : SL(2,ℝ)) : GL_pos (fin 2) ℝ) = 1 , by {ext, simp,},
+      simp [hsl1], },
     cases this,
     { -- case a = d = 1
       exact zIsGz g h this_1.1 this_1.2 hg, },
     { -- case a = d = -1
-      rw ← neg_smul,
+      rw ← upper_half_plane.SL_neg_smul,
       apply zIsGz; simp,
       exact_mod_cast h,
       simp only [this_1, neg_neg],

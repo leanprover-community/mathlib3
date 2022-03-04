@@ -120,6 +120,8 @@ variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 instance has_coe_to_general_linear_group : has_coe (special_linear_group n R) (GL n R) :=
 ⟨λ A, ⟨↑A, ↑(A⁻¹), congr_arg coe (mul_right_inv A), congr_arg coe (mul_left_inv A)⟩⟩
 
+lemma coe_to_GL_det (g : special_linear_group n R) : ((g : GL n R).det : R) = (1 : R) :=g.prop
+
 end special_linear_group
 
 section
@@ -186,17 +188,14 @@ lemma to_GL_pos_injective :
 (show function.injective ((coe : GL_pos n R → matrix n n R) ∘ to_GL_pos),
  from subtype.coe_injective).of_comp
 
-lemma coe_to_GL_pos_ext (g : special_linear_group n R) (i j : n) :
-  g.1 i j = (g : (GL_pos n R)).1.1 i j := rfl
-
-lemma coe_to_GL_pos_det (g : special_linear_group n R) : det (g : GL_pos n R).1.1 = 1 :=
-g.prop
-
 /-- Coercing a `special_linear_group` via `GL_pos` and `GL` is the same as coercing striaght to a
 matrix -/
 @[simp]
 lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
   (↑(↑(↑(g : special_linear_group n R) : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
+
+lemma coe_to_GL_pos_det (g : special_linear_group n R) :
+  det ((g : GL_pos n R) : matrix n n R) = (1 : R) :=g.prop
 
 variable [fact (even (fintype.card n))]
 
@@ -236,5 +235,20 @@ instance : has_coe_to_fun (GL n R) (λ _, n → n → R) :=
 end coe_fn_instance
 
 end general_linear_group
+
+variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [linear_ordered_comm_ring R]
+
+@[simp]
+lemma GL_pos_det_eq_det (A : GL_pos n R) : (det A) = (A : GL n R).det :=rfl
+
+@[simp]
+lemma coe_to_GL_pos_ext (g : special_linear_group n R) (i j : n) :
+   (g : (GL_pos n R)) i j = g i j := rfl
+
+@[simp] lemma coe_one_GL_pos : ((1 : special_linear_group n R) : GL_pos n R) = 1 :=
+begin
+ext,
+refl,
+end
 
 end matrix

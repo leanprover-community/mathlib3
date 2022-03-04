@@ -195,7 +195,7 @@ lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
   (↑(↑(↑(g : special_linear_group n R) : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
 
 lemma coe_to_GL_pos_det (g : special_linear_group n R) :
-  det ((g : GL_pos n R) : matrix n n R) = (1 : R) :=g.prop
+  det ((g : GL_pos n R) : matrix n n R) = (1 : R) := g.prop
 
 variable [fact (even (fintype.card n))]
 
@@ -237,18 +237,5 @@ end coe_fn_instance
 end general_linear_group
 
 variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [linear_ordered_comm_ring R]
-
-@[simp]
-lemma GL_pos_det_eq_det (A : GL_pos n R) : (det A) = (A : GL n R).det :=rfl
-
-@[simp]
-lemma coe_to_GL_pos_ext (g : special_linear_group n R) (i j : n) :
-   (g : (GL_pos n R)) i j = g i j := rfl
-
-@[simp] lemma coe_one_GL_pos : ((1 : special_linear_group n R) : GL_pos n R) = 1 :=
-begin
-ext,
-refl,
-end
 
 end matrix

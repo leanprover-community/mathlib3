@@ -30,6 +30,8 @@ open_locale classical big_operators matrix_groups
 
 local attribute [instance] fintype.card_fin_even
 
+local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
+
 /-- The open upper half plane -/
 abbreviation upper_half_plane :=
 {point : ℂ // 0 < point.im}
@@ -61,10 +63,10 @@ by { rw complex.norm_sq_pos, exact z.ne_zero }
 lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_pos z).ne'
 
 /-- Numerator of the formula for a fractional linear transformation -/
-@[simp] def num (g : GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := (g 0 0) * z + (g 0 1)
+@[simp] def num (g : GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := (↑ₘg 0 0 : ℝ) * z + (↑ₘg 0 1 : ℝ)
 
 /-- Denominator of the formula for a fractional linear transformation -/
-@[simp] def denom (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := (g 1 0) * z + (g 1 1)
+@[simp] def denom (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := (↑ₘg 1 0 : ℝ) * z + (↑ₘg 1 1 : ℝ)
 
 lemma linear_ne_zero (cd : fin 2 → ℝ) (z : ℍ) (h : cd ≠ 0) : (cd 0 : ℂ) * z + cd 1 ≠ 0 :=
 begin
@@ -84,7 +86,7 @@ begin
   have DET:= (mem_GL_pos _).1 g.property,
   have hz:=z.property,
   simp only [subtype.val_eq_coe, general_linear_group.coe_det_apply] at DET,
-  have H1 : g 1 0 = 0 ∨ z.im = 0, by simpa using congr_arg complex.im H,
+  have H1 : (↑ₘg 1 0 : ℝ) = 0 ∨ z.im = 0, by simpa using congr_arg complex.im H,
   cases H1,
   {simp [H1, complex.of_real_zero, denom, coe_fn_eq_coe, zero_mul, zero_add,
     complex.of_real_eq_zero] at H,
@@ -107,13 +109,19 @@ ne_of_gt (norm_sq_denom_pos g z)
 def smul_aux' (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := num g z / denom g z
 
 lemma smul_aux'_im (g :  GL_pos (fin 2) ℝ) (z : ℍ) :
-  (smul_aux' g z).im = ((det g) * z.im) / (denom g z).norm_sq :=
+  (smul_aux' g z).im = ((det ↑ₘg) * z.im) / (denom g z).norm_sq :=
 begin
   rw [smul_aux', complex.div_im],
   set NsqBot := (denom g z).norm_sq,
   have : NsqBot ≠ 0,
   { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
-  field_simp [smul_aux'], ring_nf, have:= matrix.det_fin_two  g, simp at this, rw this, ring,
+  field_simp [smul_aux'],
+  ring_nf,
+  have:= matrix.det_fin_two(g : GL (fin 2) ℝ),
+  simp at this,
+  rw this,
+  ring,
+  exact real.comm_ring,
 end
 
 /-- Fractional linear transformation,  also known as the Moebius transformation -/
@@ -199,7 +207,7 @@ end modular_scalar_towers
 lemma im_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
 
 lemma im_smul_eq_div_norm_sq (g : GL_pos (fin 2) ℝ) (z : ℍ) :
-  (g • z).im = (det g * z.im) / (complex.norm_sq (denom g z)) :=
+  (g • z).im = (det ↑ₘg * z.im) / (complex.norm_sq (denom g z)) :=
 smul_aux'_im g z
 
 @[simp] lemma neg_smul (g :  GL_pos (fin 2) ℝ) (z : ℍ) : -g • z = g • z :=

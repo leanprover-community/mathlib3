@@ -77,7 +77,7 @@ the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
 lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
 begin
-simp only [im_smul_eq_div_norm_sq, sl_moeb, coe_coe, denom, GL_pos_det_eq_det,
+simp only [im_smul_eq_div_norm_sq, sl_moeb, coe_coe, denom,
   general_linear_group.coe_det_apply,coe_GL_pos_coe_GL_coe_matrix,
   int.coe_cast_ring_hom],
 rw (g : SL(2,ℝ)).prop,
@@ -85,8 +85,7 @@ simp,
 end
 
 @[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
-  by {simp [denom, coe_GL_pos_coe_GL_coe_matrix, general_linear_group.coe_fn_eq_coe,
-  coe_to_GL_pos_ext],}
+  by {simp [denom, coe_GL_pos_coe_GL_coe_matrix, general_linear_group.coe_fn_eq_coe],}
 
 end upper_half_plane_action
 

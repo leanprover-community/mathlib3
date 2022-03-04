@@ -1354,7 +1354,7 @@ lsub_typein
 theorem bsup_id_limit {o} : (∀ a < o, succ a < o) → bsup.{u u} o (λ x _, x) = o :=
 sup_typein_limit
 
-@[simp] theorem bsup_id_succ (o) : bsup.{u u} o.succ (λ x _, x) = o :=
+@[simp] theorem bsup_id_succ (o) : bsup.{u u} (succ o) (λ x _, x) = o :=
 sup_typein_succ
 
 theorem blsub_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}

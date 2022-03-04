@@ -190,6 +190,15 @@ end
 
 variables {K} [field K] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
+lemma sub_one_minpoly_eq_cyclotomic_comp [is_cyclotomic_extension {n} K L]
+  (h : irreducible (polynomial.cyclotomic n K)) :
+  minpoly K (ζ - 1) = (cyclotomic n K).comp (X + 1) :=
+begin
+  rw [show ζ - 1 = ζ + (algebra_map K L (-1)), by simp [sub_eq_add_neg], minpoly.add_algebra_map
+    (is_cyclotomic_extension.integral {n} K L ζ), hζ.minpoly_eq_cyclotomic_of_irreducible h],
+  simp
+end
+
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the norm of
 `ζ - 1` is `eval 1 (cyclotomic n ℤ)`. -/
 lemma sub_one_norm_eq_eval_cyclotomic [is_cyclotomic_extension {n} K L]

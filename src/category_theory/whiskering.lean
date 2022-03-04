@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.isomorphism
-import category_theory.functor_category
-import category_theory.fully_faithful
+import category_theory.functor.category
+import category_theory.functor.fully_faithful
 
 /-!
 # Whiskering

@@ -27,16 +27,16 @@ boilerplate for every `set_like`: a `coe_sort`, a `coe` to set, a
 
 A typical subobject should be declared as:
 ```
-structure my_subobject (X : Type*) :=
+structure my_subobject (X : Type*) [object_typeclass X] :=
 (carrier : set X)
-(op_mem : ∀ {x : X}, x ∈ carrier → sorry ∈ carrier)
+(op_mem' : ∀ {x : X}, x ∈ carrier → sorry ∈ carrier)
 
 namespace my_subobject
 
-variables (X : Type*)
+variables {X : Type*} [object_typeclass X] {x : X}
 
 instance : set_like (my_subobject X) X :=
-⟨sub_mul_action.carrier, λ p q h, by cases p; cases q; congr'⟩
+⟨my_subobject.carrier, λ p q h, by cases p; cases q; congr'⟩
 
 @[simp] lemma mem_carrier {p : my_subobject X} : x ∈ p.carrier ↔ x ∈ (p : set X) := iff.rfl
 

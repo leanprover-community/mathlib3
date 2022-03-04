@@ -93,6 +93,9 @@ by refl
 @[simp] lemma fixed_points_id : fixed_points (@id α) = set.univ :=
 set.ext $ λ _, by simpa using is_fixed_pt_id _
 
+lemma fixed_points_subset_range : fixed_points f ⊆ set.range f :=
+λ x hx, ⟨x, hx⟩
+
 /-- If `g` semiconjugates `fa` to `fb`, then it sends fixed points of `fa` to fixed points
 of `fb`. -/
 lemma semiconj.maps_to_fixed_pts {g : α → β} (h : semiconj g fa fb) :

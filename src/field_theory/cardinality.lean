@@ -75,11 +75,10 @@ end
 lemma field.nonempty_iff {α : Type u} : nonempty (field α) ↔ is_prime_pow (#α) :=
 begin
   rw cardinal.is_prime_pow_iff,
-  by_cases ω ≤ (#α),
-  { simp only [h, true_or, iff_true],
-    haveI := cardinal.infinite_iff.mpr h,
-    exact infinite.nonempty_field },
-  casesI cardinal.lt_omega_iff_fintype.mp (not_le.mp h),
-  simp_rw [h, false_or, cardinal.mk_fintype, nat.cast_inj, exists_eq_left'],
-  exact fintype.nonempty_field_iff
+  casesI fintype_or_infinite α with h h,
+  { simpa only [cardinal.mk_fintype, nat.cast_inj, exists_eq_left',
+        (cardinal.nat_lt_omega _).not_le, false_or]
+      using fintype.nonempty_field_iff },
+  { simpa only [← cardinal.infinite_iff, h, true_or, iff_true]
+      using infinite.nonempty_field },
 end

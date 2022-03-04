@@ -354,7 +354,7 @@ open_locale non_zero_divisors
 variables (R) {S K}
 /-- If the `S`-multiples of `a` are contained in some `R`-span, then `Frac(S)`-multiples of `a`
 are contained in the equivalent `Frac(R)`-span. -/
-lemma ideal_span_singleton_subset {L : Type*}
+lemma ideal_span_singleton_map_subset {L : Type*}
   [is_domain R] [is_domain S] [field K] [field L]
   [algebra R K] [algebra R L] [algebra S L] [is_integral_closure S R L]
   [is_fraction_ring S L] [algebra K L] [is_scalar_tower R S L] [is_scalar_tower R K L]

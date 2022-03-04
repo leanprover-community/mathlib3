@@ -6,7 +6,7 @@ Authors: Anne Baanen, Kexing Ying, Eric Wieser
 
 import algebra.invertible
 import linear_algebra.matrix.determinant
-import linear_algebra.bilinear_form
+import linear_algebra.matrix.bilinear_form
 
 /-!
 # Quadratic forms

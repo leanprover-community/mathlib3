@@ -226,7 +226,7 @@ by { convert (m.map f).prod_hom (inv_monoid_with_zero_hom : α →*₀ α), rw m
 
 @[simp]
 lemma prod_map_div₀ : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=
-m.prod_hom₂ (/) (λ _ _ _ _, (div_mul_div _ _ _ _).symm) (div_one _) _ _
+m.prod_hom₂ (/) (λ _ _ _ _, (div_mul_div_comm₀ _ _ _ _).symm) (div_one _) _ _
 
 lemma prod_map_zpow₀ {n : ℤ} : prod (m.map $ λ i, f i ^ n) = (m.map f).prod ^ n :=
 by { convert (m.map f).prod_hom (zpow_group_hom₀ _ : α →* α), rw map_map, refl }

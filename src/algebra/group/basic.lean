@@ -480,7 +480,7 @@ lemma div_eq_of_eq_mul' {a b c : G} (h : a = b * c) : a / b = c :=
 by rw [h, div_eq_mul_inv, mul_comm, inv_mul_cancel_left]
 
 @[to_additive]
-lemma div_mul_comm (a b c d : G) : a / b * (c / d) = a * c / (b * d) :=
+lemma div_mul_div_comm (a b c d : G) : a / b * (c / d) = a * c / (b * d) :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_assoc,
   mul_left_cancel_iff, mul_comm, mul_assoc]
 

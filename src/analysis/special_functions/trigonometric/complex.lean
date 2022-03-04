@@ -107,7 +107,7 @@ begin
         ← div_div_div_cancel_right (sin x * cos y + cos x * sin y)
             (mul_ne_zero (cos_ne_zero_iff.mpr h1) (cos_ne_zero_iff.mpr h2)),
         add_div, sub_div],
-    simp only [←div_mul_div, ←tan, mul_one, one_mul,
+    simp only [←div_mul_div_comm₀, ←tan, mul_one, one_mul,
               div_self (cos_ne_zero_iff.mpr h1), div_self (cos_ne_zero_iff.mpr h2)] },
   { obtain ⟨t, hx, hy, hxy⟩ := ⟨tan_int_mul_pi_div_two, t (2*k+1), t (2*l+1), t (2*k+1+(2*l+1))⟩,
     simp only [int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one, hx, hy] at hx hy hxy,

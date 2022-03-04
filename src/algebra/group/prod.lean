@@ -502,6 +502,6 @@ def div_monoid_with_zero_hom [comm_group_with_zero α] : α × α →*₀ α :=
 { to_fun := λ a, a.1 / a.2,
   map_zero' := zero_div _,
   map_one' := div_one _,
-  map_mul' := λ a b, (div_mul_div _ _ _ _).symm }
+  map_mul' := λ a b, (div_mul_div_comm₀ _ _ _ _).symm }
 
 end bundled_mul_div

@@ -218,7 +218,7 @@ instance grade_zero.has_one : has_one (A 0) :=
 end one
 
 section mul
-variables [add_monoid ι] [ghas_mul A]
+variables [add_zero_class ι] [ghas_mul A]
 
 /-- `(•) : A 0 → A i → A i` is the value provided in `graded_monoid.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + i)` into `A i`.

@@ -22,7 +22,7 @@ a field structure, and so can all types with prime power cardinalities, and this
 * `fintype.nonempty_field_iff`: A `fintype` can be given a field structure iff its cardinality is a
   prime power.
 * `infinite.nonempty_field` : Any infinite type can be endowed a field structure.
-* `field.nonempty_iff` : There is a field structure on type if its cardinality is a prime power.
+* `field.nonempty_iff` : There is a field structure on type iff its cardinality is a prime power.
 
 -/
 
@@ -71,7 +71,7 @@ begin
   { simpa using @mv_polynomial.cardinal_mk_le_max α (ulift.{u} ℚ) _ }
 end
 
-/-- There is a field structure on type if its cardinality is a prime power. -/
+/-- There is a field structure on type if and only if its cardinality is a prime power. -/
 lemma field.nonempty_iff {α : Type u} : nonempty (field α) ↔ is_prime_pow (#α) :=
 begin
   rw cardinal.is_prime_pow_iff,

@@ -869,7 +869,7 @@ S.to_submonoid.mul_distrib_mul_action
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
 { smul := (•), .. module.comp_hom _ S.subtype }
 
-/-- If all the elements of a set `s` commute, then `closure s` forms a commutative monoid. -/
+/-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
 def closure_comm_semiring_of_comm {s : set R'} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
   comm_semiring (closure s) :=
 { mul_comm := λ x y,

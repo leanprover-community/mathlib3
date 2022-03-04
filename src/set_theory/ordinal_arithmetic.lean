@@ -1251,7 +1251,7 @@ theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
 
-theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
+@[simp] theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
 begin
   apply (lsub_le.{u u}.2 typein_lt_self).antisymm,
   by_contra' h,
@@ -1361,7 +1361,7 @@ by rw [blsub_le, lsub_le]; exact
 theorem blsub_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : blsub.{u v} o (λ _ _, a) = a + 1 :=
 bsup_const.{u v} ho a.succ
 
-theorem blsub_id : ∀ o, blsub.{u u} o (λ x _, x) = o :=
+@[simp] theorem blsub_id : ∀ o, blsub.{u u} o (λ x _, x) = o :=
 lsub_typein
 
 theorem blsub_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}

@@ -43,6 +43,72 @@ def generate_measurable_rec (s : set (set α)) : ω₁ → set (set α)
     s ∪ {∅} ∪ compl '' S ∪ (set.range (λ (f : ℕ → S), ⋃ n, (f n).1))
 using_well_founded {dec_tac := `[exact j.2]}
 
+theorem self_subset_generate_measurable_rec (s : set (set α)) (i : ω₁) :
+  s ⊆ generate_measurable_rec s i :=
+begin
+  unfold generate_measurable_rec,
+  apply_rules [subset_union_of_subset_left],
+  exact subset_rfl
+end
+
+theorem empty_mem_generate_measurable_rec (s : set (set α)) (i : ω₁) :
+  ∅ ∈ generate_measurable_rec s i :=
+begin
+  unfold generate_measurable_rec,
+  exact mem_union_left _ (mem_union_left _ (mem_union_right _ (mem_singleton ∅)))
+end
+
+theorem compl_mem_generate_measurable_rec {s : set (set α)} {i j : ω₁} (h : j <₁ i) {t : set α}
+  (ht : t ∈ generate_measurable_rec s j) : tᶜ ∈ generate_measurable_rec s i :=
+begin
+  unfold generate_measurable_rec,
+  exact mem_union_left _ (mem_union_right _ ⟨t, mem_Union.2 ⟨⟨j, h⟩, ht⟩, rfl⟩)
+end
+
+theorem Union_mem_generate_measurable_rec {s : set (set α)} {i : ω₁}
+  {f : ℕ → set α} (hf : ∀ n, ∃ j <₁ i, f n ∈ generate_measurable_rec s j) :
+  (⋃ n, f n) ∈ generate_measurable_rec s i :=
+begin
+  unfold generate_measurable_rec,
+  exact mem_union_right _ ⟨λ n, ⟨f n, let ⟨j, hj, hf⟩ := hf n in mem_Union.2 ⟨⟨j, hj⟩, hf⟩⟩, rfl⟩
+end
+
+theorem generate_measurable_rec_subset (s : set (set α)) {i j : ω₁} (h : i <₁ j) :
+  generate_measurable_rec s i ⊆ generate_measurable_rec s j :=
+λ x hx, begin
+  convert Union_mem_generate_measurable_rec (λ n, ⟨i, h, hx⟩),
+  exact (Union_const x).symm
+end
+
+theorem generate_measurable_rec.induction {s : set (set α)} {i : ω₁} {t : set α}
+  (ht : t ∈ generate_measurable_rec s i) :
+  t ∈ s ∨ t = ∅ ∨ (∃ j <₁ i, tᶜ ∈ generate_measurable_rec s j) ∨
+  (∃ (f : ℕ → set α) (hf : ∀ n, ∃ j <₁ i, f n ∈ generate_measurable_rec s j), t = ⋃ n, f n) :=
+begin
+  unfold generate_measurable_rec at ht,
+  rcases ht with (((h | h) | ⟨t, ⟨_, ⟨j, rfl⟩, ht⟩, rfl⟩) | ⟨f, hf⟩),
+  { exact or.inl h },
+  { exact or.inr (or.inl h) },
+  { rw compl_compl,
+    exact or.inr (or.inr (or.inl ⟨j, j.prop, ht⟩)) },
+  { apply_rules [or.inr],
+    refine ⟨λ n, (f n).1, λ n, _, hf.symm⟩,
+    rcases (f n).2 with ⟨t, ⟨j, rfl⟩, ht⟩,
+    exact ⟨j, j.2, ht⟩ }
+end
+
+theorem mem_generate_measurable_rec_iff {s : set (set α)} {i : ω₁} {t : set α} :
+  t ∈ generate_measurable_rec s i ↔ (t ∈ s ∨ t = ∅ ∨ (∃ j <₁ i, tᶜ ∈ generate_measurable_rec s j) ∨
+  (∃ (f : ℕ → set α) (hf : ∀ n, ∃ j <₁ i, f n ∈ generate_measurable_rec s j), t = ⋃ n, f n)) :=
+⟨generate_measurable_rec.induction, begin
+  rintro (h | rfl | ⟨j, h, hj⟩ | ⟨f, hf, rfl⟩),
+  { exact self_subset_generate_measurable_rec s i h },
+  { exact empty_mem_generate_measurable_rec s i },
+  { have := compl_mem_generate_measurable_rec h hj,
+    rwa compl_compl at this },
+  { exact Union_mem_generate_measurable_rec hf }
+end⟩
+
 /-- At each step of the inductive construction, the cardinality bound `≤ (max (#s) 2) ^ ω`
 holds. -/
 lemma cardinal_generate_measurable_rec_le (s : set (set α)) (i : ω₁) :
@@ -65,8 +131,7 @@ begin
     exact max_le B le_rfl },
   rw [generate_measurable_rec],
   apply_rules [(mk_union_le _ _).trans, add_le_of_le C, mk_image_le.trans],
-  { calc #s ≤ max (#s) 2 : le_max_left _ _
-    ... ≤ (max (#s) 2) ^ omega.{u} : self_le_power _ one_lt_omega.le },
+  { exact (le_max_left _ _).trans (self_le_power _ one_lt_omega.le) },
   { rw [mk_singleton],
     exact one_lt_omega.le.trans C },
   { apply mk_range_le.trans,
@@ -91,49 +156,51 @@ end
 transfinite induction defining `generate_measurable_rec`.
 The other inclusion is also true, but not proved here as it is not needed for the cardinality
 bounds.-/
-theorem generate_measurable_subset_rec (s : set (set α)) ⦃t : set α⦄
+theorem generate_measurable_subset_rec {s : set (set α)} ⦃t : set α⦄
   (ht : generate_measurable s t) :
   t ∈ ⋃ i, generate_measurable_rec s i :=
 begin
   haveI : nonempty ω₁, by simp [← mk_ne_zero_iff, ne_of_gt, (aleph 1).mk_ord_out, aleph_pos 1],
   inhabit ω₁,
   induction ht with u hu u hu IH f hf IH,
-  { refine mem_Union.2 ⟨default, _⟩,
-    rw generate_measurable_rec,
-    simp only [hu, mem_union_eq, true_or] },
-  { refine mem_Union.2 ⟨default, _⟩,
-    rw generate_measurable_rec,
-    simp only [union_singleton, mem_union_eq, mem_insert_iff, eq_self_iff_true, true_or] },
+  { exact mem_Union.2 ⟨default, self_subset_generate_measurable_rec s _ hu⟩ },
+  { exact mem_Union.2 ⟨default, empty_mem_generate_measurable_rec s _⟩ },
   { rcases mem_Union.1 IH with ⟨i, hi⟩,
     obtain ⟨j, hj⟩ : ∃ j, i <₁ j := ordinal.has_succ_of_is_limit
       (by { rw ordinal.type_out, exact ord_aleph_is_limit 1 }) _,
-    apply mem_Union.2 ⟨j, _⟩,
-    rw generate_measurable_rec,
-    have : ∃ a, (a <₁ j) ∧ u ∈ generate_measurable_rec s a := ⟨i, hj, hi⟩,
-    simp [this] },
+    exact mem_Union.2 ⟨j, compl_mem_generate_measurable_rec hj hi⟩ },
   { have : ∀ n, ∃ i, f n ∈ generate_measurable_rec s i := λ n, by simpa using IH n,
     choose I hI using this,
-    obtain ⟨j, hj⟩ : ∃ j, ∀ k, k ∈ range I → (k <₁ j),
-    { apply ordinal.lt_cof_type,
-      simp only [is_regular_aleph_one.2, mk_singleton, ordinal.type_out],
-      have : #(range I) = lift.{0} (#(range I)), by simp only [lift_uzero],
-      rw this,
-      apply mk_range_le_lift.trans_lt _,
-      simp [omega_lt_aleph_one] },
-    apply mem_Union.2 ⟨j, _⟩,
-    rw generate_measurable_rec,
-    have : ∃ (g : ℕ → (↥⋃ (i : {i // i <₁ j}), generate_measurable_rec s i.1)),
-      (⋃ (n : ℕ), ↑(g n)) = (⋃ n, f n),
-    { refine ⟨λ n, ⟨f n, _⟩, rfl⟩,
-      exact mem_Union.2 ⟨⟨I n, hj (I n) (mem_range_self _)⟩, hI n⟩ },
-    simp [this] }
+    let j := ordinal.lsub (λ n, ordinal.typein.{u} (<₁) (I n)),
+    refine mem_Union.2 ⟨ordinal.enum (<₁) (ordinal.lsub (λ n, ordinal.typein.{u} (<₁) (I n))) _,
+      Union_mem_generate_measurable_rec _⟩,
+    {
+      rw ordinal.type_out,
+      apply ordinal.lsub_lt_ord.{u},
+    } }
+end
+
+/-- `generate_measurable_rec` precisely generates the smallest sigma-algebra. -/
+theorem generate_measurable_eq_rec (s : set (set α)) :
+  {t | generate_measurable s t} = ⋃ i, generate_measurable_rec s i :=
+begin
+  ext, refine ⟨λ hx, _, λ hx, _⟩,
+  { exact generate_measurable_subset_rec hx },
+  { rcases hx with ⟨t, ⟨i, rfl⟩, hx⟩,
+    rcases generate_measurable_rec.induction hx with (h | rfl | h | h),
+    { exact generate_measurable.basic x h },
+    { exact generate_measurable.empty },
+    {
+
+    }
+  }
 end
 
 /-- If a sigma-algebra is generated by a set of sets `s`, then the sigma
 algebra has cardinality at most `(max (#s) 2) ^ ω`. -/
 theorem cardinal_generate_measurable_le (s : set (set α)) :
   #{t | generate_measurable s t} ≤ (max (#s) 2) ^ omega.{u} :=
-(mk_subtype_le_of_subset (generate_measurable_subset_rec s)).trans
+(mk_subtype_le_of_subset generate_measurable_subset_rec).trans
   (cardinal_Union_generate_measurable_rec_le s)
 
 /-- If a sigma-algebra is generated by a set of sets `s`, then the sigma
@@ -146,15 +213,10 @@ cardinal_generate_measurable_le s
 then the sigma algebra has the same cardinality bound. -/
 theorem cardinal_generate_measurable_le_continuum {s : set (set α)} (hs : #s ≤ 𝔠) :
   #{t | generate_measurable s t} ≤ 𝔠 :=
-calc
-#{t | generate_measurable s t} ≤ (max (#s) 2) ^ omega.{u} : cardinal_generate_measurable_le s
-... ≤ 𝔠 ^ omega.{u} :
-begin
-  apply power_le_power_right,
-  convert max_le hs (nat_lt_continuum 2).le,
-  simp,
+(cardinal_generate_measurable_le s).trans begin
+  rw ←continuum_power_omega,
+  exact_mod_cast power_le_power_right (max_le hs (nat_lt_continuum 2).le)
 end
-... = 𝔠 : continuum_power_omega
 
 /-- If a sigma-algebra is generated by a set of sets `s` with cardinality at most the continuum,
 then the sigma algebra has the same cardinality bound. -/

@@ -257,6 +257,11 @@ theorem lsub_lt_ord {ι} {f : ι → ordinal} {c : ordinal} (hι : #ι < c.cof) 
 lt_of_le_of_ne (lsub_le.2 hf) (λ h, not_le_of_lt hι
   (by simpa [sup_ord, hf, h] using cof_lsub_le.{u} f))
 
+theorem lsub_lt_ord_lift {ι} {f : ι → ordinal} {c : ordinal}
+  (hι : cardinal.lift (#ι) < c.cof) (hf : ∀ i, f i < c) : lsub.{u v} f < c :=
+lt_of_le_of_ne (lsub_le.2 hf) (λ h, not_le_of_lt hι
+  (by simpa [sup_ord, hf, h] using cof_lsub_le_lift.{u} f))
+
 theorem cof_sup_le_lift {ι} {f : ι → ordinal} (H : ∀ i, f i < sup f) : cof (sup f) ≤ (#ι).lift :=
 by { rw ←sup_eq_lsub_iff_lt_sup at H, rw H, exact cof_lsub_le_lift f }
 
@@ -300,6 +305,11 @@ theorem cof_blsub_le_lift {o} (f : Π a < o, ordinal) :
 by { convert cof_lsub_le_lift _, exact (mk_ordinal_out o).symm }
 
 theorem blsub_lt_ord {o : ordinal} {f : Π a < o, ordinal} {c : ordinal} (ho : o.card < c.cof)
+  (hf : ∀ i hi, f i hi < c) : blsub.{u u} o f < c :=
+lt_of_le_of_ne (blsub_le.2 hf) (λ h, not_le_of_lt ho
+  (by simpa [sup_ord, hf, h] using cof_blsub_le.{u} f))
+
+theorem blsub_lt_ord_lift {o : ordinal} {f : Π a < o, ordinal} {c : ordinal} (ho : o.card < c.cof)
   (hf : ∀ i hi, f i hi < c) : blsub.{u u} o f < c :=
 lt_of_le_of_ne (blsub_le.2 hf) (λ h, not_le_of_lt ho
   (by simpa [sup_ord, hf, h] using cof_blsub_le.{u} f))

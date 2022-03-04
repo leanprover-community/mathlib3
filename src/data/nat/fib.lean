@@ -105,17 +105,38 @@ end
 
 /-- See https://proofwiki.org/wiki/Fibonacci_Number_in_terms_of_Smaller_Fibonacci_Numbers -/
 lemma fib_add (m n : ℕ) :
-  fib m * fib n + fib (m + 1) * fib (n + 1) = fib (m + n + 1) :=
+  fib (m + n + 1) = fib m * fib n + fib (m + 1) * fib (n + 1) :=
 begin
   induction n with n ih generalizing m,
   { simp },
   { intros,
     specialize ih (m + 1),
     rw [add_assoc m 1 n, add_comm 1 n] at ih,
-    simp only [fib_add_two, ← ih],
+    simp only [fib_add_two, ih],
     ring, }
 end
 
+lemma fib_two_mul (n : ℕ) : fib (2 * n) = fib n * (2 * fib (n + 1) - fib n) :=
+begin
+  cases n,
+  { simp },
+  { rw [nat.succ_eq_add_one, two_mul, ←add_assoc, fib_add, fib_add_two, two_mul],
+    simp only [← add_assoc, add_tsub_cancel_right],
+    ring, },
+end
+
+lemma fib_two_mul_succ (n : ℕ) : fib (2 * n + 1) = fib (n + 1) ^ 2 + fib n ^ 2 :=
+by { rw [two_mul, fib_add], ring }
+
+lemma fib_bit0 (n : ℕ) : fib (bit0 n) = fib n * (2 * fib (n + 1) - fib n) :=
+by rw [bit0_eq_two_mul, fib_two_mul]
+
+lemma fib_bit1 (n : ℕ) : fib (bit1 n) = fib (n + 1) ^ 2 + fib n ^ 2 :=
+by rw [nat.bit1_eq_succ_bit0, bit0_eq_two_mul, fib_two_mul_succ]
+
+lemma fib_bit0_succ (n : ℕ) : fib (bit0 n + 1) = fib (n + 1) ^ 2 + fib n ^ 2 := fib_bit1 n
+
+lemma fib_bit1_succ (n : ℕ) : fib (bit1 n + 1) = fib (bit0 n) + fib (bit0 n + 1) := fib_add_two
 
 lemma gcd_fib_add_self (m n : ℕ) : gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n) :=
 begin
@@ -124,7 +145,7 @@ begin
   replace h := nat.succ_pred_eq_of_pos h, rw [← h, succ_eq_add_one],
   calc gcd (fib m) (fib (n.pred + 1 + m))
         = gcd (fib m) (fib (n.pred) * (fib m) + fib (n.pred + 1) * fib (m + 1)) :
-    by { rw fib_add n.pred _, ring_nf }
+    by { rw ← fib_add n.pred _, ring_nf }
     ... = gcd (fib m) (fib (n.pred + 1) * fib (m + 1)) :
     by rw [add_comm, gcd_add_mul_right_right (fib m) _ (fib (n.pred))]
     ... = gcd (fib m) (fib (n.pred + 1)) :

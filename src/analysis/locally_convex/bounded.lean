@@ -15,7 +15,7 @@ section semi_normed_ring
 
 variables (𝕜)
 variables [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-variables [topological_space E] [topological_add_group E]
+variables [topological_space E]
 --variables (s : set E)
 
 def is_bounded (B : set E) : Prop := ∀ V ∈ 𝓝 (0 : E), absorbs 𝕜 V B
@@ -41,17 +41,20 @@ end semi_normed_ring
 section normed_field
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-variables [topological_space E] [topological_add_group E] [has_continuous_smul 𝕜 E]
+variables [topological_space E] [has_continuous_smul 𝕜 E]
 
 lemma is_bounded_singleton (x : E) : is_bounded 𝕜 ({x} : set E) :=
 λ V hV, absorbent.absorbs (absorbent_nhds_zero hV)
 
+lemma is_bounded_covers : ⋃₀ (set_of (is_bounded 𝕜)) = (set.univ : set E) :=
+set.eq_univ_iff_forall.mpr (λ x, set.mem_sUnion.mpr
+  ⟨{x}, is_bounded_singleton _, set.mem_singleton _⟩)
+
+-- We do not make this an instance because there is the definitionally unequal notion of metric
+-- bornology
 def bounded_bornology : bornology E :=
 bornology.of_bounded (set_of (is_bounded 𝕜)) (is_bounded_empty 𝕜 E)
-  (λ _ hB _, is_bounded_subset hB)
-  (λ _ hB _, is_bounded_union hB)
-  (set.eq_univ_iff_forall.mpr (λ x, set.mem_sUnion.mpr
-    ⟨{x}, is_bounded_singleton _, set.mem_singleton _⟩))
+  (λ _ hB _, is_bounded_subset hB) (λ _ hB _, is_bounded_union hB) is_bounded_covers
 
 
 -- Todo:

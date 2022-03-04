@@ -75,43 +75,9 @@ variables (𝕜) [has_scalar 𝕜 E]
 `A` by elements of sufficiently large norms. -/
 def absorbs (A B : set E) := ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → B ⊆ a • A
 
-/-- A set is absorbent if it absorbs every singleton. -/
-def absorbent (A : set E) := ∀ x, ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → x ∈ a • A
+variables {𝕜} {s t u v A B : set E}
 
-/-- A set `A` is balanced if `a • A` is contained in `A` whenever `a`
-has norm less than or equal to one. -/
-def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
-
-variables {𝕜} {A B : set E}
-
-lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
-
-lemma balanced.union (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∪ B) :=
-begin
-  intros a ha t ht,
-  rw [smul_set_union] at ht,
-  exact ht.imp (λ x, hA _ ha x) (λ x, hB _ ha x),
-end
-
-end has_scalar
-
-section add_comm_group
-variables [add_comm_group E] [module 𝕜 E] {s t u v A B : set E}
-
-lemma balanced.inter (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∩ B) :=
-begin
-  rintro a ha _ ⟨x, ⟨hx₁, hx₂⟩, rfl⟩,
-  exact ⟨hA _ ha ⟨_, hx₁, rfl⟩, hB _ ha ⟨_, hx₂, rfl⟩⟩,
-end
-
-lemma balanced.add (hA₁ : balanced 𝕜 A) (hA₂ : balanced 𝕜 B) : balanced 𝕜 (A + B) :=
-begin
-  rintro a ha _ ⟨_, ⟨x, y, hx, hy, rfl⟩, rfl⟩,
-  rw smul_add,
-  exact ⟨_, _, hA₁ _ ha ⟨_, hx, rfl⟩, hA₂ _ ha ⟨_, hy, rfl⟩, rfl⟩,
-end
-
-lemma absorbs_empty : absorbs 𝕜 t (∅ : set E) :=
+lemma absorbs_empty {s : set E}: absorbs 𝕜 s (∅ : set E) :=
 ⟨1, one_pos, λ a ha, set.empty_subset _⟩
 
 lemma absorbs.mono (hs : absorbs 𝕜 s u) (hst : s ⊆ t) (hvu : v ⊆ u) : absorbs 𝕜 t v :=
@@ -131,6 +97,13 @@ end
 @[simp] lemma absorbs_union : absorbs 𝕜 s (u ∪ v) ↔ absorbs 𝕜 s u ∧ absorbs 𝕜 s v :=
 ⟨λ h, ⟨h.mono_right $ subset_union_left _ _, h.mono_right $ subset_union_right _ _⟩,
   λ h, h.1.union h.2⟩
+
+variables (𝕜)
+
+/-- A set is absorbent if it absorbs every singleton. -/
+def absorbent (A : set E) := ∀ x, ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → x ∈ a • A
+
+variables {𝕜}
 
 lemma absorbent.subset (hA : absorbent 𝕜 A) (hAB : A ⊆ B) : absorbent 𝕜 B :=
 begin
@@ -155,6 +128,41 @@ begin
     obtain ⟨r, hr, hx⟩ := hA x,
     exact ⟨r + 1, add_pos_of_nonneg_of_pos hr zero_lt_one,
       λ a ha, hx a ((lt_add_of_pos_right r zero_lt_one).trans_le ha)⟩ }
+end
+
+variables (𝕜)
+
+/-- A set `A` is balanced if `a • A` is contained in `A` whenever `a`
+has norm less than or equal to one. -/
+def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
+
+variables {𝕜}
+
+lemma balanced.inter (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∩ B) :=
+begin
+  rintro a ha _ ⟨x, ⟨hx₁, hx₂⟩, rfl⟩,
+  exact ⟨hA _ ha ⟨_, hx₁, rfl⟩, hB _ ha ⟨_, hx₂, rfl⟩⟩,
+end
+
+lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
+
+lemma balanced.union (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∪ B) :=
+begin
+  intros a ha t ht,
+  rw [smul_set_union] at ht,
+  exact ht.imp (λ x, hA _ ha x) (λ x, hB _ ha x),
+end
+
+end has_scalar
+
+section add_comm_group
+variables [add_comm_group E] [module 𝕜 E] {A B : set E}
+
+lemma balanced.add (hA₁ : balanced 𝕜 A) (hA₂ : balanced 𝕜 B) : balanced 𝕜 (A + B) :=
+begin
+  rintro a ha _ ⟨_, ⟨x, y, hx, hy, rfl⟩, rfl⟩,
+  rw smul_add,
+  exact ⟨_, _, hA₁ _ ha ⟨_, hx, rfl⟩, hA₂ _ ha ⟨_, hy, rfl⟩, rfl⟩,
 end
 
 end add_comm_group

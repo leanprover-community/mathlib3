@@ -1824,24 +1824,31 @@ lemma measurable_of_tendsto_metric {f : ℕ → α → β} {g : α → β}
   measurable g :=
 measurable_of_tendsto_metric' at_top hf lim
 
-lemma ae_measurable_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → β} {g : α → β}
+lemma ae_measurable_of_tendsto_metric_ae {ι : Type*} [hι : nonempty ι] [encodable ι]
+  {μ : measure α} {f : ι → α → β} {g : α → β}
+  (u : filter ι) [ne_bot u] [is_countably_generated u]
+  (hf : ∀ n, ae_measurable (f n) μ) (h_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
+  ae_measurable g μ :=
+begin
+  set p : α → (ι → β) → Prop := λ x f', tendsto (λ n, f' n) u (𝓝 (g x)),
+  have hp : ∀ᵐ x ∂μ, p x (λ n, f n x) := h_tendsto,
+  set ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨f hι.some x⟩ : nonempty β).some with hs,
+  refine ⟨ae_seq_lim, measurable_of_tendsto_metric' u (@ae_seq.measurable α β _ _ _ f μ hf p)
+    (tendsto_pi_nhds.mpr (λ x, _)), _⟩,
+  { simp_rw [ae_seq, ae_seq_lim],
+    split_ifs with hx,
+    { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
+      exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hf x hx, },
+    { exact tendsto_const_nhds } },
+  { exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f hι.some x⟩ : nonempty β).some)
+      (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm },
+end
+
+lemma ae_measurable_of_tendsto_metric_ae' {μ : measure α} {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, ae_measurable (f n) μ)
   (h_ae_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   ae_measurable g μ :=
-begin
-  let p : α → (ℕ → β) → Prop := λ x f', filter.at_top.tendsto (λ n, f' n) (𝓝 (g x)),
-  let hp : ∀ᵐ x ∂μ, p x (λ n, f n x), from h_ae_tendsto,
-  let ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨f 0 x⟩ : nonempty β).some,
-  refine ⟨ae_seq_lim, _, (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f 0 x⟩ : nonempty β).some)
-    (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm⟩,
-  refine measurable_of_tendsto_metric (@ae_seq.measurable α β _ _ _ f μ hf p) _,
-  refine tendsto_pi_nhds.mpr (λ x, _),
-  simp_rw [ae_seq, ae_seq_lim],
-  split_ifs with hx,
-  { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
-    exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hf x hx, },
-  { exact tendsto_const_nhds, },
-end
+ae_measurable_of_tendsto_metric_ae at_top hf h_ae_tendsto
 
 lemma ae_measurable_of_unif_approx {μ : measure α} {g : α → β}
   (hf : ∀ ε > (0 : ℝ), ∃ (f : α → β), ae_measurable f μ ∧ ∀ᵐ x ∂μ, dist (f x) (g x) ≤ ε) :
@@ -1857,7 +1864,7 @@ begin
     assume x hx,
     rw tendsto_iff_dist_tendsto_zero,
     exact squeeze_zero (λ n, dist_nonneg) hx u_lim },
-  exact ae_measurable_of_tendsto_metric_ae (λ n, (Hf n).1) this,
+  exact ae_measurable_of_tendsto_metric_ae' (λ n, (Hf n).1) this,
 end
 
 lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β} {g : α → β}
@@ -1865,7 +1872,7 @@ lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : �
   (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (g x))) :
   measurable g :=
 ae_measurable_iff_measurable.mp
-  (ae_measurable_of_tendsto_metric_ae (λ i, (hf i).ae_measurable) h_ae_tendsto)
+  (ae_measurable_of_tendsto_metric_ae' (λ i, (hf i).ae_measurable) h_ae_tendsto)
 
 lemma measurable_limit_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → β}
   (hf : ∀ n, ae_measurable (f n) μ)

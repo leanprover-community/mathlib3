@@ -91,7 +91,7 @@ def equiv_signed_measure : complex_measure α ≃ signed_measure α × signed_me
 section
 
 variables {R : Type*} [semiring R] [module R ℝ]
-variables [topological_space R] [has_continuous_smul R ℝ] [has_continuous_smul R ℂ]
+variables [has_continuous_const_smul R ℝ] [has_continuous_const_smul R ℂ]
 
 /-- The complex measures form an linear isomorphism to the type of pairs of signed measures. -/
 @[simps]

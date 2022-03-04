@@ -8,11 +8,14 @@ import algebra.star.basic
 import group_theory.subgroup.basic
 
 /-!
-# Self-adjoint and skew-adjoint elements of a star additive group
+# Self-adjoint, skew-adjoint and normal elements of a star additive group
 
 This file defines `self_adjoint R` (resp. `skew_adjoint R`), where `R` is a star additive group,
 as the additive subgroup containing the elements that satisfy `star x = x` (resp. `star x = -x`).
 This includes, for instance, (skew-)Hermitian operators on Hilbert spaces.
+
+We also define `is_star_normal R`, a `Prop` that states that an element `x` satisfies
+`star x * x = x * star x`.
 
 ## Implementation notes
 
@@ -54,6 +57,16 @@ def skew_adjoint [add_comm_group R] [star_add_monoid R] : add_subgroup R :=
 
 variables {R}
 
+/-- An element of a star monoid is normal if it commutes with its adjoint. -/
+class is_star_normal [has_mul R] [has_star R] (x : R) : Prop :=
+(star_comm_self : commute (star x) x)
+
+export is_star_normal (star_comm_self)
+
+lemma star_comm_self' [has_mul R] [has_star R] (x : R) [is_star_normal x] :
+  (star x) * x = x * star x :=
+is_star_normal.star_comm_self
+
 namespace self_adjoint
 
 section add_group
@@ -91,6 +104,17 @@ by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
 lemma conjugate' {x : R} (hx : x ∈ self_adjoint R) (z : R) : star z * x * z ∈ self_adjoint R :=
 by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, mul_assoc]
 
+lemma is_star_normal_of_mem {x : R} (hx : x ∈ self_adjoint R) : is_star_normal x :=
+⟨by { simp only [mem_iff] at hx, simp only [hx] }⟩
+
+instance (x : self_adjoint R) : is_star_normal (x : R) :=
+is_star_normal_of_mem (set_like.coe_mem _)
+
+instance : has_pow (self_adjoint R) ℕ :=
+⟨λ x n, ⟨(x : R) ^ n, by simp only [mem_iff, star_pow, star_coe_eq]⟩⟩
+
+@[simp, norm_cast] lemma coe_pow (x : self_adjoint R) (n : ℕ) : ↑(x ^ n) = (x : R) ^ n := rfl
+
 end ring
 
 section comm_ring
@@ -100,11 +124,6 @@ instance : has_mul (self_adjoint R) :=
 ⟨λ x y, ⟨(x : R) * y, by simp only [mem_iff, star_mul', star_coe_eq]⟩⟩
 
 @[simp, norm_cast] lemma coe_mul (x y : self_adjoint R) : ↑(x * y) = (x : R) * y := rfl
-
-instance : has_pow (self_adjoint R) ℕ :=
-⟨λ x n, ⟨(x : R) ^ n, by simp only [mem_iff, star_pow, star_coe_eq]⟩⟩
-
-@[simp, norm_cast] lemma coe_pow (x : self_adjoint R) (n : ℕ) : ↑(x ^ n) = (x : R) ^ n := rfl
 
 instance : comm_ring (self_adjoint R) :=
 { npow := λ n x, x ^ n,
@@ -157,8 +176,12 @@ end field
 section has_scalar
 variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
 
+lemma smul_mem [has_scalar R A] [star_module R A] (r : R) {x : A}
+  (h : x ∈ self_adjoint A) : r • x ∈ self_adjoint A :=
+by rw [mem_iff, star_smul, star_trivial, mem_iff.mp h]
+
 instance [has_scalar R A] [star_module R A] : has_scalar R (self_adjoint A) :=
-⟨λ r x, ⟨r • x, by rw [mem_iff, star_smul, star_trivial, star_coe_eq]⟩⟩
+⟨λ r x, ⟨r • x, smul_mem r x.prop⟩⟩
 
 @[simp, norm_cast] lemma coe_smul [has_scalar R A] [star_module R A] (r : R) (x : self_adjoint A) :
   ↑(r • x) = r • (x : A) := rfl
@@ -208,13 +231,23 @@ by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, neg_mul, mul_neg, mul
 lemma conjugate' {x : R} (hx : x ∈ skew_adjoint R) (z : R) : star z * x * z ∈ skew_adjoint R :=
 by simp only [mem_iff, star_mul, star_star, mem_iff.mp hx, neg_mul, mul_neg, mul_assoc]
 
+lemma is_star_normal_of_mem {x : R} (hx : x ∈ skew_adjoint R) : is_star_normal x :=
+⟨by { simp only [mem_iff] at hx, simp only [hx, commute.neg_left] }⟩
+
+instance (x : skew_adjoint R) : is_star_normal (x : R) :=
+is_star_normal_of_mem (set_like.coe_mem _)
+
 end ring
 
 section has_scalar
 variables [has_star R] [has_trivial_star R] [add_comm_group A] [star_add_monoid A]
 
+lemma smul_mem [monoid R] [distrib_mul_action R A] [star_module R A] (r : R) {x : A}
+  (h : x ∈ skew_adjoint A) : r • x ∈ skew_adjoint A :=
+by rw [mem_iff, star_smul, star_trivial, mem_iff.mp h, smul_neg r]
+
 instance [monoid R] [distrib_mul_action R A] [star_module R A] : has_scalar R (skew_adjoint A) :=
-⟨λ r x, ⟨r • x, by rw [mem_iff, star_smul, star_trivial, star_coe_eq, smul_neg r]⟩⟩
+⟨λ r x, ⟨r • x, smul_mem r x.prop⟩⟩
 
 @[simp, norm_cast] lemma coe_smul [monoid R] [distrib_mul_action R A] [star_module R A]
   (r : R) (x : skew_adjoint A) : ↑(r • x) = r • (x : A) := rfl
@@ -229,3 +262,23 @@ function.injective.module R (skew_adjoint A).subtype subtype.coe_injective coe_s
 end has_scalar
 
 end skew_adjoint
+
+instance is_star_normal_zero [semiring R] [star_ring R] : is_star_normal (0 : R) :=
+⟨by simp only [star_comm_self, star_zero]⟩
+
+instance is_star_normal_one [monoid R] [star_semigroup R] : is_star_normal (1 : R) :=
+⟨by simp only [star_comm_self, star_one]⟩
+
+instance is_star_normal_star_self [monoid R] [star_semigroup R] {x : R} [is_star_normal x] :
+  is_star_normal (star x) :=
+⟨show star (star x) * (star x) = (star x) * star (star x), by rw [star_star, star_comm_self']⟩
+
+@[priority 100] -- see Note [lower instance priority]
+instance has_trivial_star.is_star_normal [monoid R] [star_semigroup R]
+  [has_trivial_star R] {x : R} : is_star_normal x :=
+⟨by rw [star_trivial]⟩
+
+@[priority 100] -- see Note [lower instance priority]
+instance comm_monoid.is_star_normal [comm_monoid R] [star_semigroup R] {x : R} :
+  is_star_normal x :=
+⟨mul_comm _ _⟩

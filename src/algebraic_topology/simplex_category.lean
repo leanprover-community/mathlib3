@@ -8,6 +8,7 @@ import category_theory.skeletal
 import tactic.linarith
 import data.fintype.sort
 import order.category.NonemptyFinLinOrd
+import category_theory.functor.reflects_isomorphisms
 
 /-! # The simplex category
 
@@ -493,6 +494,242 @@ end
 
 lemma le_of_epi {n m : ℕ} {f : [n] ⟶ [m]} : epi f → (m ≤ n) :=
 len_le_of_epi
+
+instance {n : ℕ} {i : fin (n+2)} : mono (δ i) :=
+begin
+  rw mono_iff_injective,
+  exact fin.succ_above_right_injective,
+end
+
+instance {n : ℕ} {i : fin (n+1)} : epi (σ i) :=
+begin
+  rw epi_iff_surjective,
+  intro b,
+  simp only [σ, mk_hom, hom.to_order_hom_mk, order_hom.coe_fun_mk],
+  by_cases b ≤ i,
+  { use b,
+    rw fin.pred_above_below i b (by simpa only [fin.coe_eq_cast_succ] using h),
+    simp only [fin.coe_eq_cast_succ, fin.cast_pred_cast_succ], },
+  { use b.succ,
+    rw [fin.pred_above_above i b.succ _, fin.pred_succ],
+    rw not_le at h,
+    rw fin.lt_iff_coe_lt_coe at h ⊢,
+    simpa only [fin.coe_succ, fin.coe_cast_succ] using nat.lt.step h, }
+end
+
+instance : reflects_isomorphisms (forget simplex_category) :=
+⟨begin
+  intros x y f,
+  introI,
+  exact is_iso.of_iso
+  { hom := f,
+    inv := hom.mk
+    { to_fun := inv ((forget simplex_category).map f),
+      monotone' :=λ y₁ y₂ h, begin
+          by_cases h' : y₁ < y₂,
+          { by_contradiction h'',
+            have eq := λ i, congr_hom (iso.inv_hom_id (as_iso ((forget _).map f))) i,
+            have ineq := f.to_order_hom.monotone' (le_of_not_ge h''),
+            dsimp at ineq,
+            erw [eq, eq] at ineq,
+            exact not_le.mpr h' ineq, },
+          { rw eq_of_le_of_not_lt h h', }
+        end, },
+    hom_inv_id' := by { ext1, ext1, exact iso.hom_inv_id (as_iso ((forget _).map f)), },
+    inv_hom_id' := by { ext1, ext1, exact iso.inv_hom_id (as_iso ((forget _).map f)), }, },
+end⟩
+
+lemma is_iso_of_bijective {x y : simplex_category.{u}} {f : x ⟶ y}
+  (hf : function.bijective (f.to_order_hom.to_fun)) : is_iso f :=
+begin
+  haveI : is_iso ((forget simplex_category).map f) := (is_iso_iff_bijective _).mpr hf,
+  exact is_iso_of_reflects_iso f (forget simplex_category),
+end
+
+/-- An isomorphism in `simplex_category` induces an `order_iso`. -/
+@[simp]
+def order_iso_of_iso {x y : simplex_category.{u}} (e : x ≅ y) :
+  fin (x.len+1) ≃o fin (y.len+1) :=
+equiv.to_order_iso
+  { to_fun    := e.hom.to_order_hom,
+    inv_fun   := e.inv.to_order_hom,
+    left_inv  := λ i, by simpa only using congr_arg (λ φ, (hom.to_order_hom φ) i) e.hom_inv_id',
+    right_inv := λ i, by simpa only using congr_arg (λ φ, (hom.to_order_hom φ) i) e.inv_hom_id', }
+  e.hom.to_order_hom.monotone e.inv.to_order_hom.monotone
+
+lemma iso_eq_iso_refl {x : simplex_category.{u}} (e : x ≅ x) :
+  e = iso.refl x :=
+begin
+  have h : (finset.univ : finset (fin (x.len+1))).card = x.len+1 := finset.card_fin (x.len+1),
+  have eq₁ := finset.order_emb_of_fin_unique' h
+    (λ i, finset.mem_univ ((order_iso_of_iso e) i)),
+  have eq₂ := finset.order_emb_of_fin_unique' h
+    (λ i, finset.mem_univ ((order_iso_of_iso (iso.refl x)) i)),
+  ext1, ext1,
+  convert congr_arg (λ φ, (order_embedding.to_order_hom φ)) (eq₁.trans eq₂.symm),
+  ext1, ext1 i,
+  refl,
+end
+
+lemma eq_id_of_is_iso {x : simplex_category.{u}} {f : x ⟶ x} (hf : is_iso f) : f = 𝟙 _ :=
+congr_arg (λ (φ : _ ≅ _), φ.hom) (iso_eq_iso_refl (as_iso f))
+
+lemma eq_σ_comp_of_not_injective' {n : ℕ} {Δ' : simplex_category} (θ : mk (n+1) ⟶ Δ')
+  (i : fin (n+1)) (hi : θ.to_order_hom i.cast_succ = θ.to_order_hom i.succ):
+  ∃ (θ' : mk n ⟶ Δ'), θ = σ i ≫ θ' :=
+begin
+  use δ i.succ ≫ θ,
+  ext1, ext1, ext1 x,
+  simp only [hom.to_order_hom_mk, function.comp_app, order_hom.comp_coe,
+    hom.comp, small_category_comp, σ, mk_hom, order_hom.coe_fun_mk],
+  by_cases h' : x ≤ i.cast_succ,
+  { rw fin.pred_above_below i x h',
+    have eq := fin.cast_succ_cast_pred (gt_of_gt_of_ge (fin.cast_succ_lt_last i) h'),
+    erw fin.succ_above_below i.succ x.cast_pred _, swap,
+    { rwa [eq, ← fin.le_cast_succ_iff], },
+    rw eq, },
+  { simp only [not_le] at h',
+    let y := x.pred begin
+      intro h,
+      rw h at h',
+      simpa only [fin.lt_iff_coe_lt_coe, nat.not_lt_zero, fin.coe_zero] using h',
+    end,
+    simp only [show x = y.succ, by rw fin.succ_pred] at h' ⊢,
+    rw [fin.pred_above_above i y.succ h', fin.pred_succ],
+    by_cases h'' : y = i,
+    { rw h'',
+      convert hi.symm,
+      erw fin.succ_above_below i.succ _,
+      exact fin.lt_succ, },
+    { erw fin.succ_above_above i.succ _,
+      simp only [fin.lt_iff_coe_lt_coe, fin.le_iff_coe_le_coe, fin.coe_succ,
+        fin.coe_cast_succ, nat.lt_succ_iff, fin.ext_iff] at h' h'' ⊢,
+      cases nat.le.dest h' with c hc,
+      cases c,
+      { exfalso,
+        rw [add_zero] at hc,
+        rw [hc] at h'',
+        exact h'' rfl, },
+      { rw ← hc,
+        simp only [add_le_add_iff_left, nat.succ_eq_add_one,
+          le_add_iff_nonneg_left, zero_le], }, }, }
+end
+
+lemma eq_σ_comp_of_not_injective {n : ℕ} {Δ' : simplex_category} (θ : mk (n+1) ⟶ Δ')
+  (hθ : ¬function.injective θ.to_order_hom) :
+  ∃ (i : fin (n+1)) (θ' : mk n ⟶ Δ'), θ = σ i ≫ θ' :=
+begin
+  simp only [function.injective, exists_prop, not_forall] at hθ,
+  -- as θ is not injective, there exists `x<y` such that `θ x = θ y`
+  -- and then, `θ x = θ (x+1)`
+  have hθ₂ : ∃ (x y : fin (n+2)), (hom.to_order_hom θ) x = (hom.to_order_hom θ) y ∧ x<y,
+  { rcases hθ with ⟨x, y, ⟨h₁, h₂⟩⟩,
+    by_cases x<y,
+    { exact ⟨x, y, ⟨h₁, h⟩⟩, },
+    { refine ⟨y, x, ⟨h₁.symm, _⟩⟩,
+      cases lt_or_eq_of_le (not_lt.mp h) with h' h',
+      { exact h', },
+      { exfalso,
+        exact h₂ h'.symm, }, }, },
+  rcases hθ₂ with ⟨x, y, ⟨h₁, h₂⟩⟩,
+  let z := x.cast_pred,
+  use z,
+  simp only [← (show z.cast_succ = x,
+    by exact fin.cast_succ_cast_pred (lt_of_lt_of_le h₂ (fin.le_last y)))] at h₁ h₂,
+  apply eq_σ_comp_of_not_injective',
+  rw fin.cast_succ_lt_iff_succ_le at h₂,
+  apply le_antisymm,
+  { exact θ.to_order_hom.monotone (le_of_lt (fin.cast_succ_lt_succ z)), },
+  { rw h₁,
+    exact θ.to_order_hom.monotone h₂, },
+end
+
+lemma eq_comp_δ_of_not_surjective' {n : ℕ} {Δ : simplex_category} (θ : Δ ⟶ mk (n+1))
+  (i : fin (n+2)) (hi : ∀ x, θ.to_order_hom x ≠ i) :
+  ∃ (θ' : Δ ⟶ (mk n)), θ = θ' ≫ δ i :=
+begin
+  by_cases i < fin.last (n+1),
+  { use θ ≫ σ (fin.cast_pred i),
+    ext1, ext1, ext1 x,
+    simp only [hom.to_order_hom_mk, function.comp_app,
+      order_hom.comp_coe, hom.comp, small_category_comp],
+    by_cases h' : θ.to_order_hom x ≤ i,
+    { simp only [σ, mk_hom, hom.to_order_hom_mk, order_hom.coe_fun_mk],
+      erw fin.pred_above_below (fin.cast_pred i) (θ.to_order_hom x)
+        (by simpa [fin.cast_succ_cast_pred h] using h'),
+      erw fin.succ_above_below i, swap,
+      { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ],
+        exact lt_of_le_of_lt (fin.coe_cast_pred_le_self _)
+          (fin.lt_iff_coe_lt_coe.mp ((ne.le_iff_lt (hi x)).mp h')), },
+      rw fin.cast_succ_cast_pred,
+      apply lt_of_le_of_lt h' h, },
+    { simp only [not_le] at h',
+      simp only [σ, mk_hom, hom.to_order_hom_mk, order_hom.coe_fun_mk,
+        fin.pred_above_above (fin.cast_pred i) (θ.to_order_hom x)
+        (by simpa only [fin.cast_succ_cast_pred h] using h')],
+      erw [fin.succ_above_above i _, fin.succ_pred],
+      simpa only [fin.le_iff_coe_le_coe, fin.coe_cast_succ, fin.coe_pred]
+          using nat.le_pred_of_lt (fin.lt_iff_coe_lt_coe.mp h'), }, },
+  { have h' := le_antisymm (fin.le_last i) (not_lt.mp h),
+    subst h',
+    use θ ≫ σ (fin.last _),
+    ext1, ext1, ext1 x,
+    simp only [hom.to_order_hom_mk, function.comp_app, order_hom.comp_coe, hom.comp,
+      small_category_comp, σ, δ, mk_hom, order_hom.coe_fun_mk,
+      order_embedding.to_order_hom_coe, fin.pred_above_last, fin.succ_above_last,
+      fin.cast_succ_cast_pred ((ne.le_iff_lt (hi x)).mp (fin.le_last _))], },
+end
+
+lemma eq_comp_δ_of_not_surjective {n : ℕ} {Δ : simplex_category} (θ : Δ ⟶ mk (n+1))
+  (hθ : ¬function.surjective θ.to_order_hom) :
+  ∃ (i : fin (n+2)) (θ' : Δ ⟶ (mk n)), θ = θ' ≫ δ i :=
+begin
+  cases not_forall.mp hθ with i hi,
+  use i,
+  exact eq_comp_δ_of_not_surjective' θ i (not_exists.mp hi),
+end
+
+lemma eq_id_of_mono {x : simplex_category.{u}} (i : x ⟶ x) [mono i] : i = 𝟙 _ :=
+begin
+  apply eq_id_of_is_iso,
+  apply is_iso_of_bijective,
+  erw [fintype.bijective_iff_injective_and_card i.to_order_hom, ← mono_iff_injective,
+    eq_self_iff_true, and_true],
+  apply_instance,
+end
+
+lemma eq_id_of_epi {x : simplex_category.{u}} (i : x ⟶ x) [epi i] : i = 𝟙 _ :=
+begin
+  apply eq_id_of_is_iso,
+  apply is_iso_of_bijective,
+  erw [fintype.bijective_iff_surjective_and_card i.to_order_hom, ← epi_iff_surjective,
+    eq_self_iff_true, and_true],
+  apply_instance,
+end
+
+lemma eq_σ_of_epi {n : ℕ} (θ : mk (n+1) ⟶ mk n) [epi θ] : ∃ (i : fin (n+1)), θ = σ i :=
+begin
+  rcases eq_σ_comp_of_not_injective θ _ with ⟨i, θ', h⟩, swap,
+  { by_contradiction,
+    simpa only [nat.one_ne_zero, add_le_iff_nonpos_right, nonpos_iff_eq_zero]
+      using le_of_mono (mono_iff_injective.mpr h), },
+  use i,
+  haveI : epi (σ i ≫ θ') := by { rw ← h, apply_instance, },
+  haveI := category_theory.epi_of_epi (σ i) θ',
+  erw [h, eq_id_of_epi θ', category.comp_id],
+end
+
+lemma eq_δ_of_mono {n : ℕ} (θ : mk n ⟶ mk (n+1)) [mono θ] : ∃ (i : fin (n+2)), θ = δ i :=
+begin
+  rcases eq_comp_δ_of_not_surjective θ _ with ⟨i, θ', h⟩, swap,
+  { by_contradiction,
+    simpa only [add_le_iff_nonpos_right, nonpos_iff_eq_zero]
+      using le_of_epi (epi_iff_surjective.mpr h), },
+  use i,
+  haveI : mono (θ' ≫ δ i) := by { rw ← h, apply_instance, },
+  haveI := category_theory.mono_of_mono θ' (δ i),
+  erw [h, eq_id_of_mono θ', category.id_comp],
+end
 
 end epi_mono
 

@@ -40,54 +40,6 @@ class wstar_algebra (M : Type u) [normed_ring M] [star_ring M] [cstar_ring M]
 
 open_locale inner_product
 
-/-- The centralizer of a subsemiring. -/
-def subsemiring.centralizer {A : Type u} [semiring A] (B : subsemiring A) : subsemiring A :=
-{ carrier := set.centralizer (B : set A),
-  zero_mem' := by { intros y h, simp, },
-  one_mem' := by { intros y h, simp, },
-  mul_mem' := λ a b ha hb c mc, by rw [mul_assoc, hb _ mc, ←mul_assoc, ha _ mc, mul_assoc],
-  add_mem' := λ a b ha hb c mc, by rw [add_mul, mul_add, ha _ mc, hb _ mc], }
-
-/-- The centralizer of a subalgebra. -/
-def subalgebra.centralizer {𝕜 : Type v} [comm_semiring 𝕜] {A : Type u} [semiring A] [algebra 𝕜 A]
-  (B : subalgebra 𝕜 A) : subalgebra 𝕜 A :=
-{ algebra_map_mem' := λ r x mx, by rw [algebra.commutes],
-  .. B.to_subsemiring.centralizer, }
-
-set_option old_structure_cmd true
-
-/-- A *-subalgebra is a sub
-algebra of a *-algebra which is closed under *. -/
-structure star_subalgebra (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
-  [semiring A] [star_ring A] [algebra R A] [star_module R A] extends subalgebra R A : Type v :=
-(star_mem' {a} : a ∈ carrier → star a ∈ carrier)
-
-namespace star_subalgebra
-
-/--
-Forgetting that a *-subalgebra is closed under *.
--/
-add_decl_doc star_subalgebra.to_subalgebra
-
-variables (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
-  [semiring A] [star_ring A] [algebra R A] [star_module R A]
-
-instance : set_like (star_subalgebra R A) A :=
-⟨star_subalgebra.carrier, λ p q h, by cases p; cases q; congr'⟩
-
-instance (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
-  [semiring A] [star_ring A] [algebra R A] [star_module R A] : has_top (star_subalgebra R A) :=
-⟨{ star_mem' := by tidy, ..(⊤ : subalgebra R A) }⟩
-
-end star_subalgebra
-
-/-- The centralizer, or commutant, of a *-subalgebra. -/
-def star_subalgebra.centralizer {R : Type u} {A : Type v} [comm_semiring R] [star_ring R]
-  [semiring A] [star_ring A] [algebra R A] [star_module R A] (B : star_subalgebra R A) :
-  star_subalgebra R A :=
-{ star_mem' := λ x xm y hy, by simpa using congr_arg star (xm _ (B.star_mem' hy)).symm,
-  ..B.to_subalgebra.centralizer, }
-
 /--
 The double commutant definition of a von Neumann algebra,
 as a *-closed subalgebra of bounded operators on a Hilbert space,
@@ -106,11 +58,11 @@ and instead will use `⊤ : von_neumann_algebra H`.
 @[nolint has_inhabited_instance]
 structure von_neumann_algebra (H : Type u) [inner_product_space ℂ H] [complete_space H] extends
   M : star_subalgebra ℂ (H →L[ℂ] H) :=
-(double_commutant : M.centralizer.centralizer = M)
+(double_commutant : centralizer (centralizer (M : set (H →L[ℂ] H))) = M)
 
 /--
 Forgetting that a von Neumann algebra is equal to its double commutant
-(equivalent, is closed in the weak and strong operator topologies),
+(equivalently, is closed in the weak and strong operator topologies),
 and just remembering the underlying *-subalgebra.
 -/
 add_decl_doc von_neumann_algebra.to_star_subalgebra

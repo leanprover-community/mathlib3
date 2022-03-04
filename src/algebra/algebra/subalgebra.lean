@@ -1042,6 +1042,31 @@ lemma mem_center_iff {a : A} : a ∈ center R A ↔ ∀ (b : A), b*a = a*b := if
 
 end center
 
+section centralizer
+
+variables (R)
+
+/-- The centralizer of a set as a subalgebra. -/
+def centralizer (s : set A) : subalgebra R A :=
+{ algebra_map_mem' := λ r x mx, by rw [algebra.commutes],
+  ..subsemiring.centralizer s, }
+
+lemma coe_centralizer (s : set A) : (centralizer R s : set A) = s.centralizer := rfl
+
+lemma mem_centralizer_iff {s : set A} {z : A} :
+  z ∈ centralizer R s ↔ ∀ g ∈ s, g * z = z * g :=
+iff.rfl
+
+lemma centralizer_subset (s t : set A) (h : s ⊆ t) :
+  centralizer R t ≤ centralizer R s :=
+set.centralizer_subset h
+
+@[simp]
+lemma centralizer_univ : centralizer R set.univ = center R A :=
+set_like.ext' (set.centralizer_univ A)
+
+end centralizer
+
 end subalgebra
 
 section nat

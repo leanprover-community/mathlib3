@@ -166,7 +166,7 @@ variables [t2_space (G ⧸ Γ)] [second_countable_topology (G ⧸ Γ)] (K : posi
 lemma measure_theory.is_fundamental_domain.map_restrict_quotient [subgroup.normal Γ]
   [measure_theory.measure.is_haar_measure μ] [μ.is_mul_right_invariant]
   (h𝓕_finite : μ 𝓕 < ⊤) : measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)
-  = (μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K.val)) • (measure_theory.measure.haar_measure K) :=
+  = (μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K)) • (measure_theory.measure.haar_measure K) :=
 begin
   let π : G →* G ⧸ Γ := quotient_group.mk' Γ,
   have meas_π : measurable π := continuous_quotient_mk.measurable,
@@ -179,5 +179,5 @@ begin
     h𝓕.is_mul_left_invariant_map,
   rw [measure.haar_measure_unique (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)) K,
     measure.map_apply meas_π, measure.restrict_apply' 𝓕meas, inter_comm],
-  exact K.prop.1.measurable_set,
+  exact K.compact.measurable_set,
 end

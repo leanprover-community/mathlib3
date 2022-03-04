@@ -48,6 +48,8 @@ Some properties of the operations are also used to discuss general tools on ordi
   `Type u`, as an ordinal in `Type u`.
 * `bsup`, `blsub`: the supremum / least strict upper bound of a set of ordinals indexed by ordinals
   less than a given ordinal `o`.
+
+Various other basic arithmetic results are given in `principal.lean` instead.
 -/
 
 noncomputable theory
@@ -1169,6 +1171,9 @@ by { convert sup_le, simp [succ_le] }
 theorem lt_lsub {ι} (f : ι → ordinal) (i) : f i < lsub f :=
 succ_le.1 (le_sup _ i)
 
+theorem lt_lsub_iff {ι} {f : ι → ordinal} {a} : a < lsub f ↔ ∃ i, a ≤ f i :=
+by simpa only [not_forall, not_lt, not_le] using not_congr (@lsub_le _ f a)
+
 theorem sup_le_lsub {ι} (f : ι → ordinal) : sup f ≤ lsub f :=
 sup_le.2 $ λ i, le_of_lt (lt_lsub f i)
 
@@ -1231,12 +1236,12 @@ theorem lsub_const {ι} [hι : nonempty ι] (o : ordinal) : lsub (λ _ : ι, o) 
 sup_const o.succ
 
 theorem lsub_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f ⊆ set.range g) : lsub f ≤ lsub g :=
+  (h : set.range f ⊆ set.range g) : lsub.{u (max v w)} f ≤ lsub.{v (max u w)} g :=
 sup_le_of_range_subset (by convert set.image_subset _ h; apply set.range_comp)
 
 theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
-  (h : set.range f = set.range g) : lsub f = lsub g :=
-(lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset h.ge)
+  (h : set.range f = set.range g) : lsub.{u (max v w)} f = lsub.{v (max u w)} g :=
+(lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset.{v u w} h.ge)
 
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
@@ -1273,6 +1278,9 @@ by { convert bsup_le, apply propext, simp [succ_le] }
 
 theorem lt_blsub {o} (f : Π a < o, ordinal) (i h) : f i h < blsub o f :=
 blsub_le.1 le_rfl _ _
+
+theorem lt_blsub_iff {o f a} : a < blsub o f ↔ ∃ i hi, a ≤ f i hi :=
+by simpa only [not_forall, not_lt, not_le] using not_congr (@blsub_le _ f a)
 
 theorem bsup_le_blsub {o} (f : Π a < o, ordinal) : bsup o f ≤ blsub o f :=
 bsup_le.2 (λ i h, le_of_lt (lt_blsub f i h))
@@ -1348,6 +1356,13 @@ theorem blsub_eq_of_brange_eq {o o'} {f : Π a < o, ordinal} {g : Π a < o', ord
   blsub.{u (max v w)} o f = blsub.{v (max u w)} o' g :=
 (blsub_le_of_brange_subset h.le).antisymm (blsub_le_of_brange_subset.{v u w} h.ge)
 
+theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
+  blsub.{u} o (λ x _, f x) = f o :=
+begin
+  rw ←H.bsup_eq h,
+  exact ((bsup_eq_blsub_iff_lt_bsup _).2 (λ a ha, (H.1 a).trans_le (le_bsup _ _ (h.2 a ha)))).symm
+end
+
 theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
 by { have := blsub_id o, rwa blsub_eq_lsub at this }
 
@@ -1364,6 +1379,23 @@ begin
   rw [←succ_inj, h],
   exact lsub_typein _
 end
+
+theorem bsup_comp {o o' : ordinal} {f : Π a < o, ordinal}
+  (hf : ∀ {i j} (hi) (hj), i ≤ j → f i hi ≤ f j hj) {g : Π a < o', ordinal} (hg : blsub o' g = o) :
+  bsup o' (λ a ha, f (g a ha) (by { rw ←hg, apply lt_blsub })) = bsup o f :=
+begin
+  apply le_antisymm;
+  refine bsup_le.2 (λ i hi, _),
+  { apply le_bsup },
+  { rw [←hg, lt_blsub_iff] at hi,
+    rcases hi with ⟨j, hj, hj'⟩,
+    exact (hf _ _ hj').trans (le_bsup _ _ _) }
+end
+
+theorem blsub_comp {o o' : ordinal} {f : Π a < o, ordinal}
+  (hf : ∀ {i j} (hi) (hj), i ≤ j → f i hi ≤ f j hj) {g : Π a < o', ordinal} (hg : blsub o' g = o) :
+  blsub o' (λ a ha, f (g a ha) (by { rw ←hg, apply lt_blsub })) = blsub o f :=
+@bsup_comp o _ (λ a ha, (f a ha).succ) (λ i j _ _ h, succ_le_succ.2 (hf _ _ h)) g hg
 
 end ordinal
 
@@ -2063,19 +2095,6 @@ theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 theorem omega_le_of_is_limit {o} (h : is_limit o) : omega ≤ o :=
 omega_le.2 $ λ n, le_of_lt $ nat_lt_limit h n
 
-theorem add_omega {a : ordinal} (h : a < omega) : a + omega = omega :=
-begin
-  rcases lt_omega.1 h with ⟨n, rfl⟩,
-  clear h, induction n with n IH,
-  { rw [nat.cast_zero, zero_add] },
-  { rw [nat.cast_succ, add_assoc, one_add_of_omega_le le_rfl, IH] }
-end
-
-theorem add_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a + b < omega :=
-match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat.cast_add]; apply nat_lt_omega
-end
-
 theorem mul_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_mul]; apply nat_lt_omega
@@ -2103,50 +2122,6 @@ theorem opow_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a ^ b 
 match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_opow]; apply nat_lt_omega
 end
-
-theorem add_omega_opow {a b : ordinal} (h : a < omega ^ b) : a + omega ^ b = omega ^ b :=
-begin
-  refine le_antisymm _ (le_add_left _ _),
-  revert h, apply limit_rec_on b,
-  { intro h, rw [opow_zero, ← succ_zero, lt_succ, ordinal.le_zero] at h,
-    rw [h, zero_add] },
-  { intros b _ h, rw [opow_succ] at h,
-    rcases (lt_mul_of_limit omega_is_limit).1 h with ⟨x, xo, ax⟩,
-    refine le_trans (add_le_add_right (le_of_lt ax) _) _,
-    rw [opow_succ, ← mul_add, add_omega xo] },
-  { intros b l IH h, rcases (lt_opow_of_limit omega_ne_zero l).1 h with ⟨x, xb, ax⟩,
-    refine (((add_is_normal a).trans (opow_is_normal one_lt_omega))
-      .limit_le l).2 (λ y yb, _),
-    let z := max x y,
-    have := IH z (max_lt xb yb)
-      (lt_of_lt_of_le ax $ opow_le_opow_right omega_pos (le_max_left _ _)),
-    exact le_trans (add_le_add_left (opow_le_opow_right omega_pos (le_max_right _ _)) _)
-      (le_trans this (opow_le_opow_right omega_pos $ le_of_lt $ max_lt xb yb)) }
-end
-
-theorem add_lt_omega_opow {a b c : ordinal} (h₁ : a < omega ^ c) (h₂ : b < omega ^ c) :
-  a + b < omega ^ c :=
-by rwa [← add_omega_opow h₁, add_lt_add_iff_left]
-
-theorem add_absorp {a b c : ordinal} (h₁ : a < omega ^ b) (h₂ : omega ^ b ≤ c) : a + c = c :=
-by rw [← ordinal.add_sub_cancel_of_le h₂, ← add_assoc, add_omega_opow h₁]
-
-theorem add_absorp_iff {o : ordinal} (o0 : 0 < o) : (∀ a < o, a + o = o) ↔ ∃ a, o = omega ^ a :=
-⟨λ H, ⟨log omega o, begin
-  refine ((lt_or_eq_of_le (opow_log_le _ o0))
-    .resolve_left $ λ h, _).symm,
-  have := H _ h,
-  have := lt_opow_succ_log one_lt_omega o,
-  rw [opow_succ, lt_mul_of_limit omega_is_limit] at this,
-  rcases this with ⟨a, ao, h'⟩,
-  rcases lt_omega.1 ao with ⟨n, rfl⟩, clear ao,
-  revert h', apply not_lt_of_le,
-  suffices e : omega ^ log omega o * ↑n + o = o,
-  { simpa only [e] using le_add_right (omega ^ log omega o * ↑n) o },
-  induction n with n IH, {simp only [nat.cast_zero, mul_zero, zero_add]},
-  simp only [nat.cast_succ, mul_add_one, add_assoc, this, IH]
-end⟩,
-λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_opow⟩
 
 theorem add_mul_limit_aux {a b c : ordinal} (ba : b + a = a)
   (l : is_limit c)
@@ -2205,6 +2180,8 @@ theorem mul_omega_dvd {a : ordinal}
   (a0 : 0 < a) (ha : a < omega) : ∀ {b}, omega ∣ b → a * b = b
 | _ ⟨b, rfl⟩ := by rw [← mul_assoc, mul_omega a0 ha]
 
+/- This will be part of a future PR on multiplicative principal ordinals.
+
 theorem mul_omega_opow_opow {a b : ordinal} (a0 : 0 < a) (h : a < omega ^ omega ^ b) :
   a * omega ^ omega ^ b = omega ^ omega ^ b :=
 begin
@@ -2216,6 +2193,7 @@ begin
   apply (mul_le_mul_right' (le_of_lt ax) _).trans,
   rw [← opow_add, add_omega_opow xb]
 end
+--/
 
 theorem opow_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omega :=
 le_antisymm

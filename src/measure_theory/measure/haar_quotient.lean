@@ -46,6 +46,56 @@ open_locale ennreal
 
 open measure_theory
 
+
+lemma foo {X : Type*}
+  [measurable_space X]
+  [topological_space X]
+  [borel_space X]
+  {μ : measure X}
+  {Γ : Type*} [group Γ]
+  {𝓕 : set X}
+  [mul_action Γ X]
+  (h𝓕 : is_fundamental_domain Γ 𝓕 μ)
+  [encodable Γ]
+  [smul_invariant_measure Γ X μ]
+  (f : X → ℝ≥0∞) (hf : ∀ γ : Γ, ∀ x: X, f (γ • x) =  f x)
+  (f_measurable : measurable f) :
+     ess_sup f (μ.restrict 𝓕) = ess_sup f μ :=
+begin
+  refine le_antisymm _ _,
+  { refine ess_sup_mono_measure _,
+    apply measure.absolutely_continuous_of_le, -- combine this and prev to a convenience lemma
+    exact measure.restrict_le_self },
+
+  -- have : ∀ a, μ {x | f x ≤ a} = 0 ↔ (μ.restrict 𝓕) {x | f x ≤ a} = 0 := sorry,
+  have h₁ : ess_sup f (μ.restrict 𝓕) = Inf {a | (μ.restrict 𝓕) {x | f x ≤ a} = 0} := sorry,
+  have h₂ : ess_sup f μ = Inf {a | μ {x | f x ≤ a} = 0} := sorry,
+  rw [h₁, h₂],
+  -- congr' 1,
+  -- ext a,
+  -- dsimp,
+  refine Inf_le_Inf _,
+  intros a,
+  dsimp,
+  intros ha,
+
+
+  -- have := ennreal.ae_le_ess_sup f,
+  -- have := h𝓕.Union_smul_ae_eq,
+  suffices : μ {x : X | f x ≤ a} ≤ 0,
+  { sorry }, -- `le_antisymm` and nonnegativity of measure
+  -- library_search,
+  calc μ {x : X | f x ≤ a} = μ ({x : X | f x ≤ a} ∩ ⋃ γ, γ • 𝓕) : _
+  ... = μ (⋃ γ, {x : X | f x ≤ a} ∩ γ • 𝓕) : _
+  ... ≤ ∑' γ, μ ({x : X | f x ≤ a} ∩ γ • 𝓕) : _
+  ... = ∑' γ, μ (γ • ({x : X | f (γ⁻¹ • x) ≤ a} ∩ 𝓕)) : _
+  ... = ∑' γ, μ (γ • ({x : X | f x ≤ a} ∩ 𝓕)) : _
+  ... = ∑' γ, μ ({x : X | f x ≤ a} ∩ 𝓕) : _
+  ... = 0 : _,
+end
+
+#exit
+
 lemma integrable.mul_ℒ_infinity  {G : Type*} {E : Type*} [normed_ring E] [normed_algebra ℝ E]
   [measurable_space E] [measurable_space G] {μ : measure G}
   (f : G → E)
@@ -317,32 +367,21 @@ by simp [subgroup.opposite]
 
 
 
-
 lemma ess_sup_of_g [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
-  (g : G ⧸ Γ → ℂ) (g_measurable : measurable g)
---  (g_ℒ_infinity : mem_ℒp g ∞ μ_𝓕)
-   :
-  ess_sup (λ (x : G ⧸ Γ), (∥g x∥₊:ennreal)) μ_𝓕 = ess_sup (λ (x : G), ↑∥g x∥₊) μ
-:=
+  (g : G ⧸ Γ → ℝ≥0∞) (g_measurable : measurable g) :
+  ess_sup g μ_𝓕 = ess_sup (λ (x : G), g x) μ :=
 begin
-
-
-
-
-
-  suffices : ess_sup (λ (x : G), ↑∥g ↑x∥₊) μ < ∞,
-  {
-    sorry,
-  },
-  have : ess_sup (λ (x : G ⧸ Γ), ↑∥g x∥₊) μ_𝓕 < ∞,
-  {
-
-    sorry,
-  },
-
-
+  have hπ : measurable (quotient_group.mk : G → G ⧸ Γ) := sorry,
+  rw ess_sup_map_measure_of_measurable g_measurable hπ,
+  let f : G → ℝ≥0∞ := (λ (x : G), g x),
+  have hf : ∀ (γ : Γ.opposite) (x : G), f (γ • x) = f x := sorry,
+  change ess_sup f _ = ess_sup f _,
+  apply foo h𝓕 f hf,
+  exact g_measurable.comp hπ,
 end
 
+
+#exit
 
 /-- This is the "unfolding" trick -/
 lemma unfolding_trick [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]

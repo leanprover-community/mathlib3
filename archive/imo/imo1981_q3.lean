@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker
 -/
 
-import data.nat.fib
+import data.nat.fib.basic
 import tactic.linarith
 
 /-!

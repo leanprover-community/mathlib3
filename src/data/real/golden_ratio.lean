@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker, Alexey Soloyev, Junyan Xu
 -/
 import data.real.irrational
-import data.nat.fib
+import data.nat.fib.basic
 import data.fin.vec_notation
 import tactic.ring_exp
 import algebra.linear_recurrence

@@ -153,6 +153,10 @@ theorem antitone_set_of [preorder α] {p : α → β → Prop}
   (hp : ∀ b, antitone (λ a, p a b)) : antitone (λ a, {b | p a b}) :=
 λ a a' h b, hp b h
 
+/-- Quantifying over a set is antitone in the set -/
+lemma antitone_bforall {P : α → Prop} : antitone (λ s : set α, ∀ x ∈ s, P x) :=
+λ s t hst h x hx, h x $ hst hx
+
 section galois_connection
 variables {f : α → β}
 

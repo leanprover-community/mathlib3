@@ -18,12 +18,7 @@ In this file, we establish the basic properties of Polish spaces.
 
 * `polish_space α` is a mixin typeclass on a topological space, requiring that the topology is
   second-countable and compatible with a complete metric. To endow the space with such a metric,
-  use in a proof
-    ```
-    letI : metric_space α := polish_space_metric α,
-    haveI : complete_space α := complete_polish_space_metric α,
-    haveI : second_countable_topology α := polish_space.second_countable α,
-    ```
+  use in a proof `letI := upgrade_polish_space α`.
   We register an instance from complete second-countable metric spaces to polish spaces, not the
   other way around.
 * We register that countable products and sums of Polish spaces are Polish.
@@ -60,17 +55,18 @@ with a metric for which it is complete.
 We register an instance from complete second countable metric space to polish space, and not the
 other way around as this is the most common use case.
 
-To endow a Polish space with a complete metric space structure, use
-```
-letI : metric_space α := polish_space_metric α,
-haveI : complete_space α := complete_polish_space_metric α,
-haveI : second_countable_topology α := polish_space.second_countable α,
-```
+To endow a Polish space with a complete metric space structure, do `letI := upgrade_polish_space α`.
 -/
 class polish_space (α : Type*) [h : topological_space α] : Prop :=
 (second_countable [] : second_countable_topology α)
 (complete : ∃ m : metric_space α, m.to_uniform_space.to_topological_space = h ∧
   @complete_space α m.to_uniform_space)
+
+/-- A convenience class, for a Polish space endowed with a complete metric. No instance of this
+class should be registered: It should be used as `letI := upgrade_polish_space α` to endow a Polish
+space with a complete metric. -/
+class upgraded_polish_space (α : Type*) extends metric_space α, second_countable_topology α,
+  complete_space α
 
 @[priority 100]
 instance polish_space_of_complete_second_countable
@@ -91,20 +87,27 @@ begin
   exact metric_space.replace_topology_eq _ _
 end
 
+/-- This definition endows a Polish space with a complete metric. Use it as:
+`letI := upgrade_polish_space α`. -/
+def upgrade_polish_space (α : Type*) [ht : topological_space α] [h : polish_space α] :
+  upgraded_polish_space α :=
+begin
+  letI := polish_space_metric α,
+  exact { .. complete_polish_space_metric α, .. polish_space.second_countable α }
+end
+
 namespace polish_space
 
 @[priority 100]
 instance t2_space (α : Type*) [topological_space α] [polish_space α] : t2_space α :=
-by { letI : metric_space α := polish_space_metric α, apply_instance }
+by { letI := upgrade_polish_space α, apply_instance }
 
 /-- A countable product of Polish spaces is Polish. -/
 instance pi_countable {ι : Type*} [encodable ι] {E : ι → Type*}
   [∀ i, topological_space (E i)] [∀ i, polish_space (E i)] :
   polish_space (Π i, E i) :=
 begin
-  letI : ∀ i, metric_space (E i) := λ i, polish_space_metric (E i),
-  haveI : ∀ i, complete_space (E i) := λ i, complete_polish_space_metric (E i),
-  haveI : ∀ i, second_countable_topology (E i) := λ i, polish_space.second_countable (E i),
+  letI := λ i, upgrade_polish_space (E i),
   letI : metric_space (Π i, E i) := pi_countable.metric_space,
   apply_instance,
 end
@@ -119,9 +122,7 @@ instance sigma {ι : Type*} [encodable ι]
   {E : ι → Type*} [∀ n, topological_space (E n)] [∀ n, polish_space (E n)] :
   polish_space (Σ n, E n) :=
 begin
-  letI : ∀ n, metric_space (E n) := λ n, polish_space_metric (E n),
-  haveI : ∀ n, complete_space (E n) := λ n, complete_polish_space_metric (E n),
-  haveI : ∀ n, second_countable_topology (E n) := λ n, polish_space.second_countable (E n),
+  letI := λ n, upgrade_polish_space (E n),
   letI : metric_space (Σ n, E n) := sigma.metric_space,
   haveI : complete_space (Σ n, E n) := sigma.complete_space,
   apply_instance
@@ -131,12 +132,8 @@ end
 instance sum [topological_space α] [polish_space α] [topological_space β] [polish_space β] :
   polish_space (α ⊕ β) :=
 begin
-  letI : metric_space α := polish_space_metric α,
-  haveI : complete_space α := complete_polish_space_metric α,
-  haveI : second_countable_topology α := polish_space.second_countable α,
-  letI : metric_space β := polish_space_metric β,
-  haveI : complete_space β := complete_polish_space_metric β,
-  haveI : second_countable_topology β := polish_space.second_countable β,
+  letI := upgrade_polish_space α,
+  letI := upgrade_polish_space β,
   letI : metric_space (α ⊕ β) := metric_space_sum,
   apply_instance
 end
@@ -146,9 +143,7 @@ lemma exists_nat_nat_continuous_surjective
   (α : Type*) [topological_space α] [polish_space α] [nonempty α] :
   ∃ (f : (ℕ → ℕ) → α), continuous f ∧ surjective f :=
 begin
-  letI : metric_space α := polish_space_metric α,
-  haveI : complete_space α := complete_polish_space_metric α,
-  haveI : second_countable_topology α := polish_space.second_countable α,
+  letI := upgrade_polish_space α,
   exact exists_nat_nat_continuous_surjective_of_complete_space α
 end
 
@@ -157,9 +152,7 @@ lemma _root_.closed_embedding.polish_space [topological_space α] [topological_s
   [polish_space β] {f : α → β} (hf : closed_embedding f) :
   polish_space α :=
 begin
-  letI : metric_space β := polish_space_metric β,
-  haveI : complete_space β := complete_polish_space_metric β,
-  haveI : second_countable_topology β := polish_space.second_countable β,
+  letI := upgrade_polish_space β,
   letI : metric_space α := hf.to_embedding.comap_metric_space f,
   haveI : second_countable_topology α := hf.to_embedding.second_countable_topology,
   haveI : complete_space α,
@@ -403,9 +396,7 @@ begin
     apply is_closed.polish_space,
     rw h's,
     exact is_closed_univ },
-  { letI : metric_space α := polish_space_metric α,
-    haveI : complete_space α := complete_polish_space_metric α,
-    haveI : second_countable_topology α := polish_space.second_countable α,
+  { letI := upgrade_polish_space α,
     haveI : complete_space (complete_copy s) := complete_space_complete_copy hs h's,
     haveI : second_countable_topology (complete_copy s) :=
       (complete_copy_id_homeo hs h's).embedding.second_countable_topology,

@@ -235,13 +235,13 @@ begin
   rw [X_in_terms_of_W_eq, mul_comm, vars_C_mul, vars_sub_of_disjoint, vars_X, range_succ,
       insert_eq],
   swap 3, { apply nonzero_of_invertible },
-  work_on_goal 0
+  work_on_goal 1
   { simp only [true_and, true_or, eq_self_iff_true,
       mem_union, mem_singleton],
     intro i,
     rw [mem_union, mem_union],
     apply or.imp id },
-  work_on_goal 1 { rw [vars_X, disjoint_singleton_left] },
+  work_on_goal 2 { rw [vars_X, disjoint_singleton_left] },
   all_goals
   { intro H,
     replace H := vars_sum_subset _ _ H,

@@ -215,6 +215,42 @@ begin
   refl,
 end
 
+lemma geom_sum_X_comp_X_add_one_eq_sum (n : ℕ) :
+  (geom_sum (X : R[X]) n).comp (X + 1) =
+  (finset.range n).sum (λ (i : ℕ), X ^ i * n.choose (i + 1)) :=
+begin
+  have := congr_arg (λ P : R[X], P.comp (X + 1)) (geom_sum_mul (X : R[X]) n),
+  simp only [add_pow, mul_comp, sub_comp, X_comp, one_comp, add_sub_cancel, pow_comp, one_pow,
+      mul_one] at this,
+  rw [← finset.insert_erase (show 0 ∈ finset.range (n + 1), by simp), finset.sum_insert
+      (finset.not_mem_erase 0 _), pow_zero, one_mul, nat.choose_zero_right, nat.cast_one,
+      add_sub_cancel'] at this,
+  set f : ℕ → R[X] := λ i, X ^ i * (n.choose i) with hf,
+  have aux : ∀ i ∈ (finset.range (n + 1)).erase 0, f i = X * X ^ i.pred * (n.choose i),
+  { intros i hi,
+    simp only [finset.mem_erase, ne.def, finset.mem_range] at hi,
+    simp only [← pow_succ, hf],
+    congr,
+    exact (nat.succ_pred_eq_of_pos (zero_lt_iff.2 hi.1)).symm },
+  simp_rw [finset.sum_congr rfl aux, mul_assoc, ← finset.mul_sum, mul_comm _ X] at this,
+  rw [mul_X_injective this],
+  refine finset.sum_bij (λ a _, a.pred) (λ a ha, _) (λ a ha, _) (λ a b ha hb hab, _) (λ a ha, _),
+  { simp only [finset.mem_erase, ne.def, finset.mem_range] at ha,
+    have := ha.2,
+    rw [← nat.succ_pred_eq_of_pos (zero_lt_iff.2 ha.1)] at this,
+    exact finset.mem_range.2 (nat.succ_lt_succ_iff.1 this) },
+  { simp only [finset.mem_erase, ne.def, finset.mem_range] at ha,
+    congr,
+    exact (nat.succ_pred_eq_of_pos (zero_lt_iff.2 ha.1)).symm },
+  { simp only [finset.mem_erase, ne.def, finset.mem_range] at ha,
+    simp only [finset.mem_erase, ne.def, finset.mem_range] at hb,
+    exact nat.pred_inj (zero_lt_iff.2 ha.1) (zero_lt_iff.2 hb.1) hab },
+  { refine ⟨a.succ, _, nat.pred_succ _⟩,
+    simp only [finset.mem_erase, ne.def, finset.mem_range] at ha,
+    simp only [finset.mem_erase, ne.def, nat.succ_ne_zero, not_false_iff, finset.mem_range,
+      true_and, nat.succ_lt_succ_iff.2 ha] }
+end
+
 section to_subring
 
 variables (p : R[X]) (T : subring R)

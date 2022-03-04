@@ -79,7 +79,7 @@ lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
 by {simp only [im_smul_eq_div_norm_sq, coe_to_GL_pos_det,  one_mul, sl_moeb, coe_coe]}
 
 @[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
-  by {simp [denom],}
+  by {simp [denom, coe_to_GL_pos_ext],}
 
 end upper_half_plane_action
 

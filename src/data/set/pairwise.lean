@@ -21,7 +21,7 @@ This file defines pairwise relations and pairwise disjoint indexed sets.
 
 open function order set
 
-variables {α ι ι' : Type*} {r p q : α → α → Prop}
+variables {ι κ α β : Type*} {r p q : α → α → Prop}
 
 section pairwise
 variables {f g : ι → α} {s t u : set α} {a b : α}
@@ -250,7 +250,7 @@ begin
   exact (hs ha hb $ ne_of_apply_ne _ h).mono (hg a) (hg b),
 end
 
-lemma inj_on.pairwise_disjoint_image {g : ι' → ι} {s : set ι'} (h : s.inj_on g) :
+lemma inj_on.pairwise_disjoint_image {g : κ → ι} {s : set κ} (h : s.inj_on g) :
   (g '' s).pairwise_disjoint f ↔ s.pairwise_disjoint (f ∘ g) :=
 h.pairwise_image
 
@@ -272,7 +272,7 @@ lemma pairwise_disjoint.union (hs : s.pairwise_disjoint f) (ht : t.pairwise_disj
   (s ∪ t).pairwise_disjoint f :=
 pairwise_disjoint_union.2 ⟨hs, ht, h⟩
 
-lemma pairwise_disjoint_Union {g : ι' → set ι} (h : directed (⊆) g) :
+lemma pairwise_disjoint_Union {g : κ → set ι} (h : directed (⊆) g) :
   (⋃ n, g n).pairwise_disjoint f ↔ ∀ ⦃n⦄, (g n).pairwise_disjoint f :=
 pairwise_Union h
 
@@ -300,12 +300,12 @@ hs.elim' hi hj $ λ h, hf $ (inf_of_le_left hij).symm.trans h
 end semilattice_inf_bot
 
 section complete_lattice
-variables [complete_lattice α]
+variables [complete_lattice α] {s : set ι} {t : set κ}
 
 /-- Bind operation for `set.pairwise_disjoint`. If you want to only consider finsets of indices, you
 can use `set.pairwise_disjoint.bUnion_finset`. -/
-lemma pairwise_disjoint.bUnion {s : set ι'} {g : ι' → set ι} {f : ι → α}
-  (hs : s.pairwise_disjoint (λ i' : ι', ⨆ i ∈ g i', f i))
+lemma pairwise_disjoint.bUnion {s : set κ} {g : κ → set ι} {f : ι → α}
+  (hs : s.pairwise_disjoint (λ i' : κ, ⨆ i ∈ g i', f i))
   (hg : ∀ i ∈ s, (g i).pairwise_disjoint f) :
   (⋃ i ∈ s, g i).pairwise_disjoint f :=
 begin
@@ -318,10 +318,10 @@ begin
   { exact (hs hc hd (ne_of_apply_ne _ hcd)).mono (le_bsupr a ha) (le_bsupr b hb) }
 end
 
-lemma pairwise_disjoint.prod {s : set ι} {t : set ι'} {f : ι × ι' → α}
+lemma pairwise_disjoint.prod' {f : ι × κ → α}
   (hs : s.pairwise_disjoint $ λ i, ⨆ i' ∈ t, f (i, i'))
   (ht : t.pairwise_disjoint $ λ i', ⨆ i ∈ s, f (i, i')) :
-  (s ×ˢ t : set (ι × ι')).pairwise_disjoint f :=
+  (s ×ˢ t : set (ι × κ)).pairwise_disjoint f :=
 begin
   rintro ⟨i, i'⟩ hi ⟨j, j'⟩ hj h,
   rw mem_prod at hi hj,
@@ -339,12 +339,12 @@ end complete_lattice
 section frame
 variables [frame α]
 
-lemma pairwise_disjoint_prod_iff {s : set ι} {t : set ι'}
-  {f : ι × ι' → α} :
-  (s ×ˢ t : set (ι × ι')).pairwise_disjoint f ↔ s.pairwise_disjoint (λ i, ⨆ i' ∈ t, f (i, i')) ∧
+lemma pairwise_disjoint_prod_iff {s : set ι} {t : set κ}
+  {f : ι × κ → α} :
+  (s ×ˢ t : set (ι × κ)).pairwise_disjoint f ↔ s.pairwise_disjoint (λ i, ⨆ i' ∈ t, f (i, i')) ∧
     t.pairwise_disjoint (λ i', ⨆ i ∈ s, f (i, i')) :=
 begin
-  refine (⟨λ h, ⟨λ i hi j hj hij, _, λ i hi j hj hij, _⟩, λ h, h.1.prod h.2⟩);
+  refine (⟨λ h, ⟨λ i hi j hj hij, _, λ i hi j hj hij, _⟩, λ h, h.1.prod' h.2⟩);
     simp_rw [function.on_fun, supr_disjoint_iff, disjoint_supr_iff]; intros i' hi' j' hj',
   { exact h (mk_mem_prod hi hi') (mk_mem_prod hj hj') (ne_of_apply_ne prod.fst hij) },
   { exact h (mk_mem_prod hi' hi) (mk_mem_prod hj' hj) (ne_of_apply_ne prod.snd hij) }
@@ -353,6 +353,8 @@ end
 end frame
 
 /-! ### Pairwise disjoint set of sets -/
+
+variables {s : set ι} {t : set κ}
 
 lemma pairwise_disjoint_range_singleton :
   (set.range (singleton : ι → set ι)).pairwise_disjoint id :=
@@ -369,6 +371,18 @@ lemma pairwise_disjoint.elim_set {s : set ι} {f : ι → set α} (hs : s.pairwi
   (hi : i ∈ s) (hj : j ∈ s) (a : α) (hai : a ∈ f i) (haj : a ∈ f j) : i = j :=
 hs.elim hi hj $ not_disjoint_iff.2 ⟨a, hai, haj⟩
 
+lemma pairwise_disjoint.prod {f : ι → set α} {g : κ → set β} (hs : s.pairwise_disjoint f)
+  (ht : t.pairwise_disjoint g) :
+  (s ×ˢ t : set (ι × κ)).pairwise_disjoint (λ i, (f i.1) ×ˢ (g i.2)) :=
+λ ⟨i, i'⟩ ⟨hi, hi'⟩ ⟨j, j'⟩ ⟨hj, hj'⟩ hij ⟨a, b⟩ ⟨⟨hai, hbi⟩, haj, hbj⟩,
+  hij $ prod.ext (hs.elim_set hi hj _ hai haj) $ ht.elim_set hi' hj' _ hbi hbj
+
+lemma pairwise_disjoint_pi {κ α : ι → Type*} {s : Π i, set (κ i)} {f : Π i, κ i → set (α i)}
+  (hs : ∀ i, (s i).pairwise_disjoint (f i)) :
+  ((univ : set ι).pi s).pairwise_disjoint (λ I, (univ : set ι).pi (λ i, f _ (I i))) :=
+λ I hI J hJ hIJ a ⟨haI, haJ⟩, hIJ $ funext $ λ i,
+  (hs i).elim_set (hI i trivial) (hJ i trivial) (a i) (haI i trivial) (haJ i trivial)
+
 lemma bUnion_diff_bUnion_eq {s t : set ι} {f : ι → set α} (h : (s ∪ t).pairwise_disjoint f) :
   (⋃ i ∈ s, f i) \ (⋃ i ∈ t, f i) = (⋃ i ∈ s \ t, f i) :=
 begin
@@ -379,8 +393,7 @@ begin
 end
 
 /-- Equivalence between a disjoint bounded union and a dependent sum. -/
-noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
-  (h : s.pairwise_disjoint f) :
+noncomputable def bUnion_eq_sigma_of_disjoint {f : ι → set α} (h : s.pairwise_disjoint f) :
   (⋃ i ∈ s, f i) ≃ (Σ i : s, f i) :=
 (equiv.set_congr (bUnion_eq_Union _ _)).trans $ Union_eq_sigma_of_disjoint $
   λ ⟨i, hi⟩ ⟨j, hj⟩ ne, h hi hj $ λ eq, ne $ subtype.eq eq

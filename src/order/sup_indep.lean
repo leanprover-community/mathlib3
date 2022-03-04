@@ -109,26 +109,6 @@ begin
   rwa subtype.ext hji at hj,
 end
 
-lemma sup_indep_subtype {p : ι → Prop} {s : finset (subtype p)} :
-  s.sup_indep (f ∘ subtype.val) ↔ (s.map $ function.embedding.subtype p).sup_indep f :=
-begin
-  classical,
-  split,
-  { rintro hs t ht i hi hit,
-    rw mem_map at hi,
-    obtain ⟨i, hi, rfl⟩ := hi,
-    suffices h : t.sup f ≤ ((s.erase i).map $ function.embedding.subtype p).sup f,
-    { rw sup_map at h,
-      exact (hs (erase_subset _ _) hi $ not_mem_erase _ _).mono_right h },
-    refine sup_mono _,
-    rw map_erase,
-    exact subset_erase.2 ⟨ht, hit⟩ },
-  { rintro hs t ht i hi hit,
-    suffices h : disjoint (f i) ((t.map $ function.embedding.subtype p).sup f),
-    { rwa sup_map at h },
-    exact hs (map_subset_map.2 ht) (mem_map_of_mem _ hi) (λ h, hit ((mem_map' _).1 h)) }
-end
-
 end lattice
 
 section distrib_lattice

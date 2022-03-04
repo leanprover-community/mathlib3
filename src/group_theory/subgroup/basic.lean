@@ -679,8 +679,8 @@ eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
   { exact inv_mem _ }
 end
 
-/-- If all the elements of a set `s` commute, then `closure s` forms a commutative group. -/
-@[to_additive "If all the elements of a set `s` commute, then `closure s` forms an additive
+/-- If all the elements of a set `s` commute, then `closure s` is a commutative group. -/
+@[to_additive "If all the elements of a set `s` commute, then `closure s` is an additive
 commutative group."]
 def closure_comm_group_of_comm {k : set G} (hcomm : ∀ (x ∈ k) (y ∈ k), x * y = y * x) :
   comm_group (closure k) :=

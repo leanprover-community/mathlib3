@@ -3,9 +3,9 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import data.equiv.option
 import order.rel_iso
 import tactic.monotonicity.basic
-import data.equiv.option
 
 /-!
 # Order homomorphisms
@@ -759,7 +759,7 @@ rel_iso.to_equiv_injective e.to_equiv.option_congr_symm
 rel_iso.to_equiv_injective $ e₁.to_equiv.option_congr_trans e₂.to_equiv
 
 /-- A version of `equiv.option_congr` for `with_bot`. -/
-@[simps]
+@[simps apply]
 def with_bot_congr (e : α ≃o β) :
   with_bot α ≃o with_bot β :=
 { to_equiv := e.to_equiv.option_congr,

@@ -33,17 +33,17 @@ def of (α : Type*) [frame α] : Frame := bundled.of α
 
 instance : inhabited Frame := ⟨of punit⟩
 
-instance : large_category.{u} Frame :=
-{ hom := λ X Y, frame_hom X Y,
-  id := λ X, frame_hom.id X,
-  comp := λ X Y Z f g, g.comp f,
-  id_comp' := λ X Y, frame_hom.comp_id,
-  comp_id' := λ X Y, frame_hom.id_comp,
-  assoc' := λ W X Y Z _ _ _, frame_hom.comp_assoc _ _ _ }
+/-- An abbreviation of `frame_hom` that assumes `frame` instead of the weaker `complete_lattice`.
+Necessary for the category theory machinery. -/
+abbreviation hom (α β : Type*) [frame α] [frame β] : Type* := frame_hom α β
 
-instance : concrete_category Frame :=
-{ forget := ⟨coe_sort, λ X Y, coe_fn, λ X, rfl, λ X Y Z f g, rfl⟩,
-  forget_faithful := ⟨λ X Y, by convert fun_like.coe_injective⟩ }
+instance bundled_hom : bundled_hom hom :=
+⟨λ α β [frame α] [frame β], by exactI (coe_fn : frame_hom α β → α → β),
+ λ α [frame α], by exactI frame_hom.id α,
+ λ α β γ [frame α] [frame β] [frame γ], by exactI frame_hom.comp,
+ λ α β [frame α] [frame β], by exactI fun_like.coe_injective⟩
+
+attribute [derive [large_category, concrete_category]] Frame
 
 instance has_forget_to_Lattice : has_forget₂ Frame Lattice :=
 { forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y, frame_hom.to_lattice_hom } }

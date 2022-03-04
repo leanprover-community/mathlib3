@@ -23,7 +23,7 @@ open_locale Module
 namespace Module
 
 variables {R : Type u} [ring R] {X Y : Module.{v} R} (f : X ⟶ Y)
-varibales {M : Type v} [add_comm_monoid M] [module R M]
+variables {M : Type v} [add_comm_group M] [module R M]
 
 lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
 linear_map.ker_eq_bot_of_cancel $ λ u v, (@cancel_mono _ _ _ _ _ f _ ↟u ↟v).1
@@ -46,7 +46,7 @@ lemma epi_iff_surjective : epi f ↔ function.surjective f :=
 by rw [epi_iff_range_eq_top, linear_map.range_eq_top]
 
 /-- If the zero morphism is an epi then the codomain is trivial. -/
-def unique_of_epi_zero [h : epi (0 : X ⟶ of R M)] : unique M :=
+def unique_of_epi_zero (X) [h : epi (0 : X ⟶ of R M)] : unique M :=
 unique_of_surjective_zero X ((Module.epi_iff_surjective _).mp h)
 
 instance mono_as_hom'_subtype (U : submodule R X) : mono ↾U.subtype :=

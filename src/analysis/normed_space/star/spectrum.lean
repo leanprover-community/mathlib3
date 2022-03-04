@@ -73,7 +73,7 @@ begin
     = (λ x, x ^ 2) ∘ (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)),
   { funext,
     rw [function.comp_apply, ←rpow_nat_cast, ←rpow_mul, mul_comm, rpow_mul, rpow_nat_cast,
-      ←coe_pow, sq, ←nnnorm_star_mul_self, (star_comm_self a).mul_pow, star_pow], },
+      ←coe_pow, sq, ←nnnorm_star_mul_self, commute.mul_pow (star_comm_self' a), star_pow], },
   have h₂ := ((ennreal.continuous_pow 2).tendsto (spectral_radius ℂ a)).comp
     (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a),
   rw ←heq at h₂,

@@ -563,6 +563,13 @@ end
 lemma tendsto_neg_at_bot_at_top : tendsto (has_neg.neg : β → β) at_bot at_top :=
 @tendsto_neg_at_top_at_bot (order_dual β) _
 
+lemma tendsto_at_top_iff_tends_to_neg_at_bot : tendsto f l at_top ↔ tendsto (-f) l at_bot :=
+have hf : f = has_neg.neg ∘ -f, { ext, simp, },
+⟨tendsto_neg_at_top_at_bot.comp, λ h, hf.symm ▸ tendsto_neg_at_bot_at_top.comp h⟩
+
+lemma tendsto_at_bot_iff_tends_to_neg_at_top : tendsto f l at_bot ↔ tendsto (-f) l at_top :=
+@tendsto_at_top_iff_tends_to_neg_at_bot α (order_dual β) _ l f
+
 end ordered_group
 
 section ordered_semiring

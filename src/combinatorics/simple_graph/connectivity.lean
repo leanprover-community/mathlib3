@@ -69,7 +69,7 @@ lemma exists_eq_cons_of_ne : Π {u v : V} (hne : u ≠ v) (p : G.walk u v),
 | _ _ hne nil := (hne rfl).elim
 | _ _ _ (cons h p') := ⟨_, h, p', rfl⟩
 
-/-- The length of a walk is the number of edges along it. -/
+/-- The length of a walk is the number of edges/darts along it. -/
 def length : Π {u v : V}, G.walk u v → ℕ
 | _ _ nil := 0
 | _ _ (cons _ q) := q.length.succ
@@ -173,10 +173,14 @@ def support : Π {u v : V}, G.walk u v → list V
 | u v nil := [u]
 | u v (cons h p) := u :: p.support
 
-/-- The `edges` of a walk is the list of edges it visits in order. -/
-def edges : Π {u v : V}, G.walk u v → list (sym2 V)
+/-- The `darts` of a walk is the list of darts it visits in order. -/
+def darts : Π {u v : V}, G.walk u v → list G.dart
 | u v nil := []
-| u v (@cons _ _ _ x _ h p) := ⟦(u, x)⟧ :: p.edges
+| u v (cons h p) := ⟨(u, _), h⟩ :: p.darts
+
+/-- The `edges` of a walk is the list of edges it visits in order.
+This is defined to be the list of edges underlying `simple_graph.walk.darts`. -/
+def edges {u v : V} (p : G.walk u v) : list (sym2 V) := p.darts.map dart.edge
 
 @[simp] lemma support_nil {u : V} : (nil : G.walk u u).support = [u] := rfl
 
@@ -250,20 +254,58 @@ begin
   simp only [← add_assoc, add_tsub_cancel_right],
 end
 
-lemma chain_adj_support_aux : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
+lemma chain_adj_support : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
   list.chain G.adj u p.support
 | _ _ _ h nil := list.chain.cons h list.chain.nil
-| _ _ _ h (cons h' p) := list.chain.cons h (chain_adj_support_aux h' p)
+| _ _ _ h (cons h' p) := list.chain.cons h (chain_adj_support h' p)
 
-lemma chain_adj_support : Π {u v : V} (p : G.walk u v), list.chain' G.adj p.support
+lemma chain'_adj_support : Π {u v : V} (p : G.walk u v), list.chain' G.adj p.support
 | _ _ nil := list.chain.nil
-| _ _ (cons h p) := chain_adj_support_aux h p
+| _ _ (cons h p) := chain_adj_support h p
+
+lemma chain_dart_adj_darts : Π {d : G.dart} {v w : V} (h : d.snd = v) (p : G.walk v w),
+  list.chain G.dart_adj d p.darts
+| _ _ _ h nil := list.chain.nil
+| _ _ _ h (cons h' p) := list.chain.cons h (chain_dart_adj_darts (by exact rfl) p)
+
+lemma chain'_dart_adj_darts : Π {u v : V} (p : G.walk u v), list.chain' G.dart_adj p.darts
+| _ _ nil := trivial
+| _ _ (cons h p) := chain_dart_adj_darts rfl p
 
 /-- Every edge in a walk's edge list is an edge of the graph.
-It is written in this form to avoid unsightly coercions. -/
-lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) {e : sym2 V}
+It is written in this form (rather than using `⊆`) to avoid unsightly coercions. -/
+lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) ⦃e : sym2 V⦄
   (h : e ∈ p.edges), e ∈ G.edge_set
 | _ _ (cons h' p') e h := by rcases h with ⟨rfl, h⟩; solve_by_elim
+
+@[simp] lemma darts_nil {u : V} : (nil : G.walk u u).darts = [] := rfl
+
+@[simp] lemma darts_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+  (cons h p).darts = ⟨(u, v), h⟩ :: p.darts := rfl
+
+@[simp] lemma darts_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  (p.append p').darts = p.darts ++ p'.darts :=
+by induction p; simp [*]
+
+@[simp] lemma darts_reverse {u v : V} (p : G.walk u v) :
+  p.reverse.darts = (p.darts.map dart.symm).reverse :=
+by induction p; simp [*, sym2.eq_swap]
+
+lemma cons_map_snd_darts {u v : V} (p : G.walk u v) :
+  u :: p.darts.map dart.snd = p.support :=
+by induction p; simp! [*]
+
+lemma map_snd_darts {u v : V} (p : G.walk u v) :
+  p.darts.map dart.snd = p.support.tail :=
+by simpa using congr_arg list.tail (cons_map_snd_darts p)
+
+lemma map_fst_darts_append {u v : V} (p : G.walk u v) :
+  p.darts.map dart.fst ++ [v] = p.support :=
+by induction p; simp! [*]
+
+lemma map_fst_darts {u v : V} (p : G.walk u v) :
+  p.darts.map dart.fst = p.support.init :=
+by simpa! using congr_arg list.init (map_fst_darts_append p)
 
 @[simp] lemma edges_nil {u : V} : (nil : G.walk u u).edges = [] := rfl
 
@@ -272,25 +314,55 @@ lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) {e : sym2 V}
 
 @[simp] lemma edges_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
   (p.append p').edges = p.edges ++ p'.edges :=
-by induction p; simp [*]
+by simp [edges]
 
 @[simp] lemma edges_reverse {u v : V} (p : G.walk u v) : p.reverse.edges = p.edges.reverse :=
-by induction p; simp [*, sym2.eq_swap]
+by simp [edges]
 
 @[simp] lemma length_support {u v : V} (p : G.walk u v) : p.support.length = p.length + 1 :=
 by induction p; simp *
 
-@[simp] lemma length_edges {u v : V} (p : G.walk u v) : p.edges.length = p.length :=
+@[simp] lemma length_darts {u v : V} (p : G.walk u v) : p.darts.length = p.length :=
 by induction p; simp *
 
-lemma mem_support_of_mem_edges : Π {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges),
-  t ∈ p.support
-| t u v w (cons h p') he := begin
-  simp only [support_cons, edges_cons, list.mem_cons_iff, quotient.eq] at he ⊢,
-  rcases he with ((he|he)|he),
-  { exact or.inl rfl },
-  { exact or.inr (start_mem_support _) },
-  { exact or.inr (mem_support_of_mem_edges _ he), }
+@[simp] lemma length_edges {u v : V} (p : G.walk u v) : p.edges.length = p.length :=
+by simp [edges]
+
+lemma dart_fst_mem_support_of_mem_darts :
+  Π {u v : V} (p : G.walk u v) {d : G.dart}, d ∈ p.darts → d.fst ∈ p.support
+| u v (cons h p') d hd := begin
+  simp only [support_cons, darts_cons, list.mem_cons_iff] at hd ⊢,
+  rcases hd with (rfl|hd),
+  { exact or.inl rfl, },
+  { exact or.inr (dart_fst_mem_support_of_mem_darts _ hd), },
+end
+
+lemma dart_snd_mem_support_of_mem_darts :
+  Π {u v : V} (p : G.walk u v) {d : G.dart}, d ∈ p.darts → d.snd ∈ p.support
+| u v (cons h p') d hd := begin
+  simp only [support_cons, darts_cons, list.mem_cons_iff] at hd ⊢,
+  rcases hd with (rfl|hd),
+  { simp },
+  { exact or.inr (dart_snd_mem_support_of_mem_darts _ hd), },
+end
+
+lemma mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
+  t ∈ p.support :=
+begin
+  obtain ⟨d, hd, he⟩ := list.mem_map.mp he,
+  rw dart_edge_eq_mk_iff' at he,
+  rcases he with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩,
+  { exact dart_fst_mem_support_of_mem_darts _ hd, },
+  { exact dart_snd_mem_support_of_mem_darts _ hd, },
+end
+
+lemma darts_nodup_of_support_nodup {u v : V} {p : G.walk u v} (h : p.support.nodup) :
+  p.darts.nodup :=
+begin
+  induction p,
+  { simp, },
+  { simp only [darts_cons, support_cons, list.nodup_cons] at h ⊢,
+    refine ⟨λ h', h.1 (dart_fst_mem_support_of_mem_darts p_p h'), p_ih h.2⟩, }
 end
 
 lemma edges_nodup_of_support_nodup {u v : V} {p : G.walk u v} (h : p.support.nodup) :
@@ -482,13 +554,21 @@ lemma support_drop_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.suppor
   (p.drop_until u h).support ⊆ p.support :=
 λ x hx, by { rw [← take_spec p h, mem_support_append_iff], exact or.inr hx }
 
+lemma darts_take_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
+  (p.take_until u h).darts ⊆ p.darts :=
+λ x hx, by { rw [← take_spec p h, darts_append, list.mem_append], exact or.inl hx }
+
+lemma darts_drop_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
+  (p.drop_until u h).darts ⊆ p.darts :=
+λ x hx, by { rw [← take_spec p h, darts_append, list.mem_append], exact or.inr hx }
+
 lemma edges_take_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.take_until u h).edges ⊆ p.edges :=
-λ x hx, by { rw [← take_spec p h, edges_append, list.mem_append], exact or.inl hx }
+list.map_subset _ (p.darts_take_until_subset h)
 
 lemma edges_drop_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.drop_until u h).edges ⊆ p.edges :=
-λ x hx, by { rw [← take_spec p h, edges_append, list.mem_append], exact or.inr hx }
+list.map_subset _ (p.darts_drop_until_subset h)
 
 lemma length_take_until_le {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.take_until u h).length ≤ p.length :=
@@ -539,13 +619,17 @@ begin
   rw [←tail_support_append, take_spec],
 end
 
+lemma rotate_darts {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
+  (c.rotate h).darts ~r c.darts :=
+begin
+  simp only [rotate, darts_append],
+  apply list.is_rotated.trans list.is_rotated_append,
+  rw [←darts_append, take_spec],
+end
+
 lemma rotate_edges {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
   (c.rotate h).edges ~r c.edges :=
-begin
-  simp only [rotate, edges_append],
-  apply list.is_rotated.trans list.is_rotated_append,
-  rw [←edges_append, take_spec],
-end
+(rotate_darts c h).map _
 
 protected
 lemma is_trail.rotate {u v : V} {c : G.walk v v} (hc : c.is_trail) (h : u ∈ c.support) :
@@ -646,17 +730,24 @@ lemma support_to_path_subset {u v : V} (p : G.walk u v) :
   (p.to_path : G.walk u v).support ⊆ p.support :=
 support_bypass_subset _
 
-lemma edges_bypass_subset {u v : V} (p : G.walk u v) : p.bypass.edges ⊆ p.edges :=
+lemma darts_bypass_subset {u v : V} (p : G.walk u v) : p.bypass.darts ⊆ p.darts :=
 begin
   induction p,
   { simp!, },
   { simp! only,
     split_ifs,
-    { apply list.subset.trans (edges_drop_until_subset _ _),
+    { apply list.subset.trans (darts_drop_until_subset _ _),
       apply list.subset_cons_of_subset _ p_ih, },
-    { rw edges_cons,
+    { rw darts_cons,
       exact list.cons_subset_cons _ p_ih, }, },
 end
+
+lemma edges_bypass_subset {u v : V} (p : G.walk u v) : p.bypass.edges ⊆ p.edges :=
+list.map_subset _ p.darts_bypass_subset
+
+lemma darts_to_path_subset {u v : V} (p : G.walk u v) :
+  (p.to_path : G.walk u v).darts ⊆ p.darts :=
+darts_bypass_subset _
 
 lemma edges_to_path_subset {u v : V} (p : G.walk u v) :
   (p.to_path : G.walk u v).edges ⊆ p.edges :=

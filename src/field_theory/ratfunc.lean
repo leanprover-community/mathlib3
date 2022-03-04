@@ -1120,8 +1120,8 @@ nat_degree_well_defined (num_ne_zero hxy) ((x + y).denom_ne_zero)
     (num_mul_denom_add_denom_mul_num_ne_zero hxy) (mul_ne_zero x.denom_ne_zero y.denom_ne_zero)
     (num_denom_add x y)
 
-lemma nat_degree_rescale_eq_nat_degree {x : ratfunc K} (hx : x ≠ 0) {s : polynomial K} (hs : s ≠ 0) :
-  ((x.num * s).nat_degree : ℤ) - (s * x.denom).nat_degree =
+lemma nat_degree_rescale_eq_nat_degree {x : ratfunc K} (hx : x ≠ 0) {s : polynomial K}
+  (hs : s ≠ 0) : ((x.num * s).nat_degree : ℤ) - (s * x.denom).nat_degree =
   x.num.nat_degree  - x.denom.nat_degree :=
 begin
   apply nat_degree_well_defined (mul_ne_zero (num_ne_zero hx) hs) (mul_ne_zero hs x.denom_ne_zero)

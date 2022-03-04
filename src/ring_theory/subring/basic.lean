@@ -645,7 +645,7 @@ lemma mem_closure_iff {s : set R} {x} :
  ( λ x hx, neg_mem _ hx ) ⟩
 
 /-- If all elements of `s : set A` commute pairwise, then `closure s` is a commutative ring.  -/
-def closure_comm_semiring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
+def closure_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
   comm_ring (closure s) :=
 { mul_comm := λ x y,
   begin

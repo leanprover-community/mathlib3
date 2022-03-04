@@ -76,17 +76,15 @@ by rw [dist_comm, dist_self_conj]
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
 @[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = |(r : ℝ)| :=
-suffices ∥((r : ℝ) : ℂ)∥ = |r|, by simpa,
-by rw [norm_real, real.norm_eq_abs]
+by { rw ← of_real_rat_cast, exact norm_real _ }
 
 @[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _
 
 @[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = |n| :=
-suffices ∥((n : ℝ) : ℂ)∥ = |n|, by simpa,
-by rw [norm_real, real.norm_eq_abs]
+by simp [← rat.cast_coe_int] {single_pass := tt}
 
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
-by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
+by simp [hn]
 
 @[continuity] lemma continuous_abs : continuous abs := continuous_norm
 
@@ -216,6 +214,9 @@ noncomputable instance : is_R_or_C ℂ :=
   inv_def_ax := λ z, by simp only [complex.inv_def, complex.norm_sq_eq_abs, complex.coe_algebra_map,
     complex.of_real_eq_coe, complex.norm_eq_abs],
   div_I_ax := complex.div_I }
+
+lemma _root_.is_R_or_C.re_eq_complex_re : ⇑(is_R_or_C.re : ℂ →+ ℝ) = complex.re := rfl
+lemma _root_.is_R_or_C.im_eq_complex_im : ⇑(is_R_or_C.im : ℂ →+ ℝ) = complex.im := rfl
 
 section
 

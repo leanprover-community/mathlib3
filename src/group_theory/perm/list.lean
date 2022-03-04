@@ -315,7 +315,7 @@ begin
     simpa using support_form_perm_le' _ this },
   obtain ⟨n, hn, hx'⟩ := nth_le_of_mem hx,
   have hl : (x :: y :: l).length = (x' :: y' :: l').length,
-  { rw [←erase_dup_eq_self.mpr hd, ←erase_dup_eq_self.mpr hd',
+  { rw [←dedup_eq_self.mpr hd, ←dedup_eq_self.mpr hd',
         ←card_to_finset, ←card_to_finset],
     refine congr_arg finset.card _,
     rw [←finset.coe_inj, ←support_form_perm_of_nodup' _ hd (by simp),

@@ -248,7 +248,7 @@ because for `y=x` the slope equals zero due to the convention `0⁻¹=0`. -/
 lemma has_deriv_at_filter_iff_tendsto_slope {x : 𝕜} {L : filter 𝕜} :
   has_deriv_at_filter f f' x L ↔ tendsto (slope f x) (L ⊓ 𝓟 {x}ᶜ) (𝓝 f') :=
 begin
-  conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (normed_field.norm_inv _).symm,
+  conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (norm_inv _).symm,
     (norm_smul _ _).symm, tendsto_zero_iff_norm_tendsto_zero.symm] },
   conv_rhs { rw [← nhds_translation_sub f', tendsto_comap_iff] },
   refine (tendsto_inf_principal_nhds_iff_of_forall_eq $ by simp).symm.trans (tendsto_congr' _),
@@ -387,6 +387,9 @@ lemma differentiable_on.has_deriv_at (h : differentiable_on 𝕜 f s) (hs : s �
 
 lemma has_deriv_at.deriv (h : has_deriv_at f f' x) : deriv f x = f' :=
 h.differentiable_at.has_deriv_at.unique h
+
+lemma deriv_eq {f' : 𝕜 → F} (h : ∀ x, has_deriv_at f (f' x) x) : deriv f = f' :=
+funext $ λ x, (h x).deriv
 
 lemma has_deriv_within_at.deriv_within
   (h : has_deriv_within_at f f' s x) (hxs : unique_diff_within_at 𝕜 s x) :
@@ -2019,6 +2022,27 @@ funext (iter_deriv_inv k)
 
 end zpow
 
+/-! ### Support of derivatives -/
+
+section support
+
+open function
+variables {F : Type*} [normed_group F] [normed_space 𝕜 F] {f : 𝕜 → F}
+
+lemma support_deriv_subset : support (deriv f) ⊆ tsupport f :=
+begin
+  intros x,
+  rw [← not_imp_not],
+  intro h2x,
+  rw [not_mem_closure_support_iff_eventually_eq] at h2x,
+  exact nmem_support.mpr (h2x.deriv_eq.trans (deriv_const x 0))
+end
+
+lemma has_compact_support.deriv (hf : has_compact_support f) : has_compact_support (deriv f) :=
+hf.mono' support_deriv_subset
+
+end support
+
 /-! ### Upper estimates on liminf and limsup -/
 
 section real
@@ -2065,7 +2089,7 @@ begin
   have C := mem_sup.2 ⟨A, B⟩,
   rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup] at C,
   filter_upwards [C.1],
-  simp only [norm_smul, mem_Iio, normed_field.norm_inv],
+  simp only [norm_smul, mem_Iio, norm_inv],
   exact λ _, id
 end
 

@@ -7,6 +7,7 @@ Authors: Sebastian Monnet
 import field_theory.galois
 import topology.algebra.filter_basis
 import topology.algebra.open_subgroup
+import tactic.by_contra
 
 
 /-!
@@ -276,34 +277,6 @@ end krull_t2
 
 section totally_disconnected
 
-/-- Let `X` be a topological space, and suppose that for all distinct `x,y ∈ X`, there
-  is some clopen set `U` such that `x ∈ U` and `y ∉ U`. Then `X` is totally disconnected. -/
-lemma is_totally_disconnected_of_clopen_set {X : Type*} [topological_space X]
-  (h_exists_clopen : ∀ {x y : X} (h_diff : x ≠ y), ∃ (U : set X) (h_clopen : is_clopen U),
-  x ∈ U ∧ y ∉ U) : is_totally_disconnected (set.univ : set X) :=
-begin
-  intros S _ hS,
-  by_contra,
-  unfold set.subsingleton at h,
-  simp at h,
-  rcases h with ⟨x, hx, y, hy, hxy⟩,
-  specialize h_exists_clopen hxy,
-  rcases h_exists_clopen with ⟨U, h_clopen, hxU, hyU⟩,
-  let V := set.compl U,
-  have hV_open : is_open V,
-  { rw ← is_closed_compl_iff,
-    change is_closed U.compl.compl,
-    simp,
-    exact h_clopen.2 },
-  specialize hS U V h_clopen.1 hV_open (λ a ha, em (a ∈ U)) ⟨x, hx, hxU⟩ ⟨y, hy, hyU⟩,
-  have hUV : U ∩ V = ∅,
-  { change U ∩ U.compl = ∅,
-   simp },
-  rw hUV at hS,
-  simp at hS,
-  exact hS,
-end
-
 /-- Given a tower of fields `L/E/K`, with `E/K` finite, the subgroup `Gal(L/E) ≤ L ≃ₐ[K] L` is
   closed. -/
 lemma intermediate_field.fixing_subgroup_is_closed {K L : Type*} [field K] [field L] [algebra K L]
@@ -324,7 +297,7 @@ begin
   apply is_totally_disconnected_of_clopen_set,
   intros σ τ h_diff,
   have hστ : σ⁻¹ * τ ≠ 1,
-  { simp [inv_mul_eq_one],
+  { rw [ne.def, inv_mul_eq_one],
     exact h_diff },
   cases (fun_like.exists_ne hστ) with x hx,
   change (σ⁻¹ * τ) x ≠ x at hx,
@@ -338,8 +311,10 @@ begin
   rw mem_left_coset_iff,
   change ¬ σ⁻¹ * τ ∈ E.fixing_subgroup,
   rw mem_fixing_subgroup_iff E (σ⁻¹ * τ),
-  simp,
-  exact ⟨x, intermediate_field.mem_adjoin_simple_self K x, hx⟩,
+  rw not_forall,
+  use x,
+  rw not_forall,
+  exact ⟨intermediate_field.mem_adjoin_simple_self K x, hx⟩,
 end
 
 end totally_disconnected

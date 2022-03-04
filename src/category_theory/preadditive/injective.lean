@@ -96,10 +96,11 @@ instance (X : Type u) [nonempty X] : injective X :=
   end⟩ }
 
 instance Type.enough_injectives : enough_injectives (Type u) :=
-{ presentation := λ X, ⟨{ J := with_bot X,
-  injective := by apply_instance,
-  f := option.some,
-  mono := begin rw [mono_iff_injective], exact option.some_injective X, end }⟩, }
+{ presentation := λ X, nonempty.intro
+  { J := with_bot X,
+    injective := by apply_instance,
+    f := option.some,
+    mono := begin rw [mono_iff_injective], exact option.some_injective X, end } }
 
 instance {P Q : C} [has_binary_product P Q] [injective P] [injective Q] :
   injective (P ⨯ Q) :=

@@ -45,7 +45,7 @@ using_well_founded {dec_tac := `[exact j.2]}
 
 /-- At each step of the inductive construction, the cardinality bound `≤ (max (#s) 2) ^ ω`
 holds. -/
-lemma cardinal_generate_measurable_rec_le {s : set (set α)} (i : ω₁) :
+lemma cardinal_generate_measurable_rec_le (s : set (set α)) (i : ω₁) :
   #(generate_measurable_rec s i) ≤ (max (#s) 2) ^ omega.{u} :=
 begin
   apply (aleph 1).ord.out.wo.wf.induction i,
@@ -82,7 +82,7 @@ begin
   apply (mk_Union_le _).trans,
   rw [(aleph 1).mk_ord_out],
   refine le_trans (mul_le_mul' aleph_one_le_continuum
-    (cardinal.sup_le.2 (λ i, cardinal_generate_measurable_rec_le i))) _,
+    (cardinal.sup_le.2 (λ i, cardinal_generate_measurable_rec_le s i))) _,
   have := power_le_power_right (le_max_right (#s) 2),
   rw mul_eq_max omega_le_continuum (omega_le_continuum.trans this),
   exact max_le this le_rfl

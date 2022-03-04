@@ -465,8 +465,12 @@ by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ hα ⟨e⟩; exact
   let ⟨a⟩ := mk_ne_zero_iff.1 hα in
   ⟨@embedding.arrow_congr_left _ _ _ ⟨a⟩ e⟩
 
-theorem self_le_power {a b : cardinal} (ha : a ≠ 0) (hb : 1 ≤ b) : a ≤ a ^ b :=
-by { convert power_le_power_left ha hb, exact power_one.symm }
+theorem self_le_power (a : cardinal) {b : cardinal} (hb : 1 ≤ b) : a ≤ a ^ b :=
+begin
+  rcases eq_or_ne a 0 with rfl|ha,
+  { exact zero_le _ },
+  { convert power_le_power_left ha hb, exact power_one.symm }
+end
 
 /-- **Cantor's theorem** -/
 theorem cantor (a : cardinal.{u}) : a < 2 ^ a :=

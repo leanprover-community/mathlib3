@@ -65,15 +65,14 @@ begin
     exact max_le B le_rfl },
   rw [generate_measurable_rec],
   apply_rules [(mk_union_le _ _).trans, add_le_of_le C, mk_image_le.trans],
-  { have : (0 : cardinal.{u}) < max (#s) 2 := by simp,
-    calc #s ≤ max (#s) 2 : le_max_left _ _
-    ... ≤ (max (#s) 2) ^ omega.{u} : self_le_power this.ne' one_lt_omega.le },
+  { calc #s ≤ max (#s) 2 : le_max_left _ _
+    ... ≤ (max (#s) 2) ^ omega.{u} : self_le_power _ one_lt_omega.le },
   { rw [mk_singleton],
     exact one_lt_omega.le.trans C },
   { apply mk_range_le.trans,
     simp only [mk_pi, subtype.val_eq_coe, prod_const, lift_uzero, mk_denumerable, lift_omega],
     have := @power_le_power_right _ _ omega.{u} J,
-    rwa [←power_mul, omega_mul_omega] at this }
+    rwa [← power_mul, omega_mul_omega] at this }
 end
 
 lemma cardinal_Union_generate_measurable_rec_le (s : set (set α)) :

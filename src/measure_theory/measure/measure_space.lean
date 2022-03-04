@@ -1776,7 +1776,7 @@ begin
   congr' with x, simp [and_comm]
 end
 
-lemma ae_eq_restrict_of_ae_eq {f g : α → δ} {s : set α} (hfg : f =ᵐ[μ] g) :
+lemma _root_.filter.eventually_eq.restrict {f g : α → δ} {s : set α} (hfg : f =ᵐ[μ] g) :
   f =ᵐ[μ.restrict s] g :=
 begin -- note that we cannot use `ae_restrict_iff` since we do not require measurability
   refine hfg.filter_mono _,

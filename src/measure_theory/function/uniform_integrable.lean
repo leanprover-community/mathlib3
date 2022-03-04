@@ -328,7 +328,7 @@ begin
   refine ⟨δ, hδpos, λ s hs hμs, _⟩,
   convert hδ s hs hμs using 1,
   rw [snorm_indicator_eq_snorm_restrict hs, snorm_indicator_eq_snorm_restrict hs],
-  refine snorm_congr_ae (ae_eq_restrict_of_ae_eq heq),
+  refine snorm_congr_ae heq.restrict,
 end
 
 lemma unif_integrable_subsingleton [subsingleton ι]

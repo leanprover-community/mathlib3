@@ -47,9 +47,9 @@ variables {X : Type*}
 /-- The Alexandroff extension of an arbitrary topological space `X` -/
 def alexandroff (X : Type*) := option X
 
-/-- The repr uses the notation from the `alexandroff` locale -/
+/-- The repr uses the notation from the `alexandroff` locale. -/
 instance [has_repr X] : has_repr (alexandroff X) :=
-⟨λ o, match o with | none := "∞" | (some a) := "(some " ++ repr a ++ ")" end⟩
+⟨λ o, match o with | none := "∞" | (some a) := "(↑ " ++ repr a ++ ")" end⟩
 
 namespace alexandroff
 

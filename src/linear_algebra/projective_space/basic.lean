@@ -27,7 +27,7 @@ We have three ways to construct terms of `projectivization K V`:
 
 -/
 
-variables (K V : Type*) [field K] [add_comm_group V] [module K V]
+variables (K V : Type*) [division_ring K] [add_comm_group V] [module K V]
 
 /-- The setoid whose quotient is the projectivization of `V`. -/
 def projectivization_setoid : setoid { v : V // v ≠ 0 } :=
@@ -106,7 +106,8 @@ begin
 end
 
 lemma finrank_submodule (v : projectivization K V) : finrank K v.submodule = 1 :=
-finrank_span_singleton v.rep_nonzero
+sorry
+--finrank_span_singleton v.rep_nonzero
 
 instance (v : projectivization K V) : finite_dimensional K v.submodule :=
 by { dsimp [projectivization.submodule], apply_instance }
@@ -132,6 +133,8 @@ begin
   { intros u v h, apply_fun (λ e, e.val) at h,
     apply submodule_injective h },
   { rintros ⟨H, h⟩,
+    sorry
+    /-
     rw finrank_eq_one_iff' at h,
     obtain ⟨v, hv, h⟩ := h,
     have : (v : V) ≠ 0 := λ c, hv (subtype.coe_injective c),
@@ -144,7 +147,9 @@ begin
     { obtain ⟨c,hc⟩ := h ⟨x,hh⟩,
       exact ⟨c, congr_arg coe hc⟩ },
     { rintros ⟨c,rfl⟩,
-      refine submodule.smul_mem _ _ v.2 } }
+      refine submodule.smul_mem _ _ v.2 }
+    -/
+  }
 end
 variables {K V}
 
@@ -168,7 +173,7 @@ show (equiv_submodule K V).symm (equiv_submodule K V _) = _, by simp
 
 section map
 
-variables {L W : Type*} [field L] [add_comm_group W] [module L W]
+variables {L W : Type*} [division_ring L] [add_comm_group W] [module L W]
 
 /-- A semilinear map of vector spaces induces a map on projective spaces. -/
 def map {σ : K →+* L} (f : V →ₛₗ[σ] W) (hf : function.injective f) :
@@ -183,7 +188,8 @@ end
 
 /-- Mapping with respect to a semilinear map over an isomorphism of fields yields
 an injective map on projective spaces. -/
-lemma map_injective {σ : K ≃+* L} (f : V →ₛₗ[σ.to_ring_hom] W) (hf : function.injective f) :
+lemma map_injective {σ : K →+* L} {τ : L →+* K} [ring_hom_inv_pair σ τ]
+  (f : V →ₛₗ[σ] W) (hf : function.injective f) :
   function.injective (map f hf) :=
 begin
   intros u v h,
@@ -192,9 +198,10 @@ begin
   dsimp [map, mk] at h,
   simp only [quotient.eq'] at h,
   obtain ⟨a,ha⟩ := h,
-  use σ.symm a,
+  use τ a,
   dsimp at ⊢ ha,
-  erw [← σ.apply_symm_apply a, ← f.map_smulₛₗ] at ha,
+  have : a = σ (τ a), by rw ring_hom_inv_pair.comp_apply_eq₂,
+  rw [this, ← f.map_smulₛₗ] at ha,
   exact hf ha,
 end
 
@@ -202,15 +209,7 @@ end
 lemma map_id : map
   (linear_map.id : V →ₗ[K] V)
   (linear_equiv.refl K V).injective = id :=
-begin
-  ext v,
-  rw ← v.mk_rep,
-  dsimp [mk, map],
-  simp only [quotient.eq'],
-  use 1,
-  rw one_smul,
-  refl,
-end
+by { ext v, rw ← v.mk_rep, refl }
 
 @[simp]
 lemma map_comp {F U : Type*} [field F] [add_comm_group U] [module F U]
@@ -218,14 +217,7 @@ lemma map_comp {F U : Type*} [field F] [add_comm_group U] [module F U]
   (f : V →ₛₗ[σ] W) (hf : function.injective f)
   (g : W →ₛₗ[τ] U) (hg : function.injective g) :
   map (g.comp f) (hg.comp hf) = map g hg ∘ map f hf :=
-begin
-  ext v,
-  rw ← v.mk_rep,
-  dsimp [mk, map],
-  simp only [quotient.eq'],
-  use 1,
-  simp,
-end
+by { ext v, rw ← v.mk_rep, refl }
 
 end map
 

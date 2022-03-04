@@ -69,7 +69,15 @@ variables (A B : C) {X X' Y Y' Z : C}
 
 variables [closed A]
 
-/-- This is the internal hom `A ⟹ -`. -/
+/--
+This is the internal hom `A ⟶[C] -`.
+Note that this is essentially an opaque definition,
+and so will not agree definitionally with any "native" internal hom the category has.
+
+TODO: we could introduce a `has_ihom` class
+that allows specifying a particular definition of the internal hom,
+and provide a low priority opaque instance.
+-/
 def ihom : C ⥤ C :=
 (@closed.is_adj _ _ _ A _).right
 

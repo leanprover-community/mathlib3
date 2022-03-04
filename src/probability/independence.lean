@@ -64,7 +64,7 @@ Part A, Chapter 4.
 -/
 
 open measure_theory measurable_space
-open_locale big_operators classical
+open_locale big_operators classical measure_theory
 
 namespace probability_theory
 
@@ -90,14 +90,14 @@ for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
 `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. -/
 def Indep {α ι} (m : ι → measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
   Prop :=
-Indep_sets (λ x, (m x).measurable_set') μ
+Indep_sets (λ x, {s | measurable_set[m x] s}) μ
 
 /-- Two measurable space structures (or σ-algebras) `m₁, m₂` are independent with respect to a
 measure `μ` (defined on a third σ-algebra) if for any sets `t₁ ∈ m₁, t₂ ∈ m₂`,
 `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
 def indep {α} (m₁ m₂ : measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
   Prop :=
-indep_sets (m₁.measurable_set') (m₂.measurable_set') μ
+indep_sets ({s | measurable_set[m₁] s}) ({s | measurable_set[m₂] s}) μ
 
 /-- A family of sets is independent if the family of measurable space structures they generate is
 independent. For a set `s`, the generated measurable space has measurable sets `∅, s, sᶜ, univ`. -/
@@ -250,14 +250,11 @@ section from_measurable_spaces_to_sets_of_sets
 /-! ### Independence of measurable space structures implies independence of generating π-systems -/
 
 lemma Indep.Indep_sets {α ι} [measurable_space α] {μ : measure α} {m : ι → measurable_space α}
-  {s : ι → set (set α)} (hms : ∀ n, m n = measurable_space.generate_from (s n))
+  {s : ι → set (set α)} (hms : ∀ n, m n = generate_from (s n))
   (h_indep : Indep m μ) :
   Indep_sets s μ :=
-begin
-  refine (λ S f hfs, h_indep S (λ x hxS, _)),
-  simp_rw hms x,
-  exact measurable_set_generate_from (hfs x hxS),
-end
+λ S f hfs, h_indep S $ λ x hxS,
+  ((hms x).symm ▸ measurable_set_generate_from (hfs x hxS) : measurable_set[m x] (f x))
 
 lemma indep.indep_sets {α} [measurable_space α] {μ : measure α} {s1 s2 : set (set α)}
   (h_indep : indep (generate_from s1) (generate_from s2) μ) :

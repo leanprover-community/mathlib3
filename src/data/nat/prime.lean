@@ -792,7 +792,7 @@ lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : prime p) {m 
 have hpd : p^(k+l)*p ∣ m*n, by rwa pow_succ' at hpmn,
 have hpd2 : p ∣ (m*n) / p ^ (k+l), from dvd_div_of_mul_dvd hpd,
 have hpd3 : p ∣ (m*n) / (p^k * p^l), by simpa [pow_add] using hpd2,
-have hpd4 : p ∣ (m / p^k) * (n / p^l), by simpa [nat.div_mul_div hpm hpn] using hpd3,
+have hpd4 : p ∣ (m / p^k) * (n / p^l), by simpa [nat.div_mul_div_comm hpm hpn] using hpd3,
 have hpd5 : p ∣ (m / p^k) ∨ p ∣ (n / p^l), from (prime.dvd_mul p_prime).1 hpd4,
 suffices p^k*p ∣ m ∨ p^l*p ∣ n, by rwa [pow_succ', pow_succ'],
   hpd5.elim

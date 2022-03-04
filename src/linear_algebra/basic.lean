@@ -1580,6 +1580,15 @@ lemma map_le_range [ring_hom_surjective τ₁₂] {f : M →ₛₗ[τ₁₂] M�
   map f p ≤ range f :=
 set_like.coe_mono (set.image_subset_range f p)
 
+@[simp] lemma range_neg {R : Type*} {R₂ : Type*} {M : Type*} {M₂ : Type*}
+  [semiring R] [ring R₂] [add_comm_monoid M] [add_comm_group M₂] [module R M] [module R₂ M₂]
+  {τ₁₂ : R →+* R₂} [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
+  (-f).range = f.range :=
+begin
+  change ((-linear_map.id : M₂ →ₗ[R₂] M₂).comp f).range = _,
+  rw [range_comp, submodule.map_neg, submodule.map_id],
+end
+
 end
 
 /--
@@ -2459,7 +2468,7 @@ variables (K) (M)
 open _root_.linear_map
 
 /-- Multiplying by a nonzero element `a` of the field `K` is a linear equivalence. -/
-def smul_of_ne_zero (a : K) (ha : a ≠ 0) : M ≃ₗ[K] M :=
+@[simps] def smul_of_ne_zero (a : K) (ha : a ≠ 0) : M ≃ₗ[K] M :=
 smul_of_unit $ units.mk0 a ha
 
 section

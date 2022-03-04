@@ -76,17 +76,15 @@ by rw [dist_comm, dist_self_conj]
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
 @[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = |(r : ℝ)| :=
-suffices ∥((r : ℝ) : ℂ)∥ = |r|, by simpa,
-by rw [norm_real, real.norm_eq_abs]
+by { rw ← of_real_rat_cast, exact norm_real _ }
 
 @[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _
 
 @[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = |n| :=
-suffices ∥((n : ℝ) : ℂ)∥ = |n|, by simpa,
-by rw [norm_real, real.norm_eq_abs]
+by simp [← rat.cast_coe_int] {single_pass := tt}
 
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
-by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
+by simp [hn]
 
 @[continuity] lemma continuous_abs : continuous abs := continuous_norm
 

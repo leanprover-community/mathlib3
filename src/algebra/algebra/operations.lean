@@ -336,7 +336,7 @@ begin
 end
 
 /-- Dependent version of `submodule.pow_induction_on`. -/
-protected theorem pow_induction_on'
+@[elab_as_eliminator] protected theorem pow_induction_on'
   {C : Π (n : ℕ) x, x ∈ M ^ n → Prop}
   (hr : ∀ r : R, C 0 (algebra_map _ _ r) (algebra_map_mem r))
   (hadd : ∀ x y i hx hy, C i x hx → C i y hy → C i (x + y) (add_mem _ ‹_› ‹_›))
@@ -354,7 +354,7 @@ end
 
 /-- To show a property on elements of `M ^ n` holds, it suffices to show that it holds for scalars,
 is closed under addition, and holds for `m * x` where `m ∈ M` and it holds for `x` -/
-protected theorem pow_induction_on
+@[elab_as_eliminator] protected theorem pow_induction_on
   {C : A → Prop}
   (hr : ∀ r : R, C (algebra_map _ _ r))
   (hadd : ∀ x y, C x → C y → C (x + y))

@@ -374,6 +374,13 @@ begin
   convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
 
+lemma mul_eq_max' {a b : cardinal} (h : ω ≤ a * b) : a * b = max a b :=
+begin
+  rcases omega_le_mul_iff.mp h with ⟨ha, hb, h⟩,
+  wlog h : ω ≤ a := h using [a b],
+  exact mul_eq_max_of_omega_le_left h hb
+end
+
 theorem mul_le_max (a b : cardinal) : a * b ≤ max (max a b) ω :=
 begin
   by_cases ha0 : a = 0,

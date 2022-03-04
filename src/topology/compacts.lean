@@ -285,7 +285,8 @@ end clopens
 
 /-! ### Compact open sets -/
 
-/-- The type of compact open sets of a topological space. -/
+/-- The type of compact open sets of a topological space. This is useful in non Hausdorff contexts,
+in particular spectral spaces. -/
 structure compact_opens (α : Type*) [topological_space α] extends compacts α :=
 (open' : is_open carrier)
 

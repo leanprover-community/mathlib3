@@ -31,16 +31,7 @@ variables (K V : Type*) [division_ring K] [add_comm_group V] [module K V]
 
 /-- The setoid whose quotient is the projectivization of `V`. -/
 def projectivization_setoid : setoid { v : V // v ≠ 0 } :=
-{ r := λ u v, ∃ a : K, a • (u : V) = v,
-  iseqv := begin
-    refine ⟨λ u, ⟨1, by simp⟩, _, λ u v w ⟨a,ha⟩ ⟨b,hb⟩, ⟨b * a, by simp [ha, hb, mul_smul]⟩⟩,
-    rintros u v ⟨a,ha⟩,
-    use a⁻¹,
-    rw [← ha, ← mul_smul, inv_mul_cancel, one_smul],
-    intros c, apply v.2,
-    simpa [c] using ha.symm,
-  end }
-
+(mul_action.orbit_rel Kˣ V).comap coe
 
 /-- The projectivization of the `K`-vector space `V`. -/
 def projectivization := quotient (projectivization_setoid K V)
@@ -77,49 +68,48 @@ by { dsimp [mk, projectivization.rep], simp }
 open finite_dimensional
 
 /-- Consider an element of the projectivization as a submodule of `V`. -/
-protected def submodule (v : projectivization K V) : submodule K V := K ∙ v.rep
+protected def submodule (v : projectivization K V) : submodule K V :=
+quotient.lift_on' v (λ v, K ∙ (v : V)) $ begin
+  rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨x, (rfl : x • b = a)⟩,
+  exact (submodule.span_singleton_smul_eq _ x.ne_zero),
+end
 
 variable (K)
 
 lemma exists_of_mk_eq_mk  (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) (h : mk K v hv = mk K w hw) :
-  ∃ (a : K) (ha : a ≠ 0), a • v = w :=
-begin
-  obtain ⟨a,h⟩ := quotient.exact' h,
-  refine ⟨a,_,h⟩,
-  intros c, refine hw _,
-  simpa [c] using h.symm,
-end
+  ∃ (a : Kˣ), a • w = v :=
+quotient.exact' h
 
 lemma exists_smul_eq_mk_rep
-  (v : V) (hv : v ≠ 0) : ∃ (a : K) (ha : a ≠ 0), a • v = (mk K v hv).rep :=
-exists_of_mk_eq_mk _ _ _ hv (rep_nonzero _) (by simp)
+  (v : V) (hv : v ≠ 0) : ∃ (a : Kˣ), a • v = (mk K v hv).rep :=
+exists_of_mk_eq_mk _ _ _ (rep_nonzero _) hv (by simp)
 
 variable {K}
 
 @[simp]
-lemma submodule_mk (v : V) (hv : v ≠ 0) : (mk K v hv).submodule = K ∙ v :=
-begin
-  dsimp only [projectivization.submodule],
-  obtain ⟨a, ha, h⟩ := exists_smul_eq_mk_rep K v hv,
-  rw ← h,
-  apply submodule.span_singleton_smul_eq _ ha,
-end
+lemma submodule_mk (v : V) (hv : v ≠ 0) : (mk K v hv).submodule = K ∙ v := rfl
+
+lemma submodule_eq (v : projectivization K V) : v.submodule = K ∙ v.rep :=
+by { conv_lhs { rw ← v.mk_rep }, refl }
 
 lemma finrank_submodule (v : projectivization K V) : finrank K v.submodule = 1 :=
 sorry
 --finrank_span_singleton v.rep_nonzero
 
 instance (v : projectivization K V) : finite_dimensional K v.submodule :=
-by { dsimp [projectivization.submodule], apply_instance }
+by { rw ← v.mk_rep, change finite_dimensional K (K ∙ v.rep), apply_instance }
 
 lemma submodule_injective : function.injective
   (projectivization.submodule : projectivization K V → submodule K V) :=
 begin
   intros u v h, replace h := le_of_eq h,
-  erw submodule.le_span_singleton_iff at h,
+  simp only [submodule_eq] at h,
+  rw submodule.le_span_singleton_iff at h,
   rw [← mk_rep v, ← mk_rep u],
-  symmetry,
-  exact quotient.sound' (h u.rep (submodule.mem_span_singleton_self _))
+  apply quotient.sound',
+  obtain ⟨a,ha⟩ := h u.rep (submodule.mem_span_singleton_self _),
+  have : a ≠ 0 := λ c, u.rep_nonzero (by simpa [c] using ha.symm),
+  use [units.mk0 a this, ha],
 end
 
 variables (K V)
@@ -181,9 +171,9 @@ def map {σ : K →+* L} (f : V →ₛₗ[σ] W) (hf : function.injective f) :
 quotient.map' (λ v, ⟨f v, λ c, v.2 (hf (by simp [c]))⟩)
 begin
   rintros ⟨u,hu⟩ ⟨v,hv⟩ ⟨a,ha⟩,
-  use σ a,
+  use units.map σ.to_monoid_hom a,
   dsimp at ⊢ ha,
-  rw [← f.map_smulₛₗ, ha],
+  erw [← f.map_smulₛₗ, ha],
 end
 
 /-- Mapping with respect to a semilinear map over an isomorphism of fields yields
@@ -198,9 +188,10 @@ begin
   dsimp [map, mk] at h,
   simp only [quotient.eq'] at h,
   obtain ⟨a,ha⟩ := h,
-  use τ a,
+  use units.map τ.to_monoid_hom a,
   dsimp at ⊢ ha,
-  have : a = σ (τ a), by rw ring_hom_inv_pair.comp_apply_eq₂,
+  have : (a : L) = σ (τ a), by rw ring_hom_inv_pair.comp_apply_eq₂,
+  change (a : L) • f v.rep = f u.rep at ha,
   rw [this, ← f.map_smulₛₗ] at ha,
   exact hf ha,
 end

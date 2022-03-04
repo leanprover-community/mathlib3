@@ -44,18 +44,20 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
 ⟨I_ne_top, begin
   intros x y hxy, by_contradiction rid,
   obtain ⟨rid₁, rid₂⟩ := not_or_distrib.mp rid,
-  -- the idea of the proof is the following :
-  -- since `x * y ∈ I` and `I` homogeneous, then `proj i (x * y) ∈ I` for any `i : ι`.
-  -- Then consider two sets `{i ∈ x.support | xᵢ ∉ I}` and `{j ∈ y.support | yⱼ ∉ J}`;
-  -- let `max₁, max₂` be the maximum of the two sets, then `proj (max₁ + max₂) (x * y) ∈ I`.
-  -- Then, `proj max₁ x ∉ I` and `proj max₂ j ∉ I`
-  -- but `proj i x ∈ I` for all `max₁ < i` and `proj j y ∈ I` for all `max₂ < j`.
-  -- `  proj (max₁ + max₂) (x * y)`
-  -- `= ∑ {(i, j) ∈ supports | i + j = max₁ + max₂}, xᵢ * yⱼ`
-  -- `= proj max₁ x * proj max₂ y`
-  -- `  + ∑ {(i, j) ∈ supports \ {(max₁, max₂)} | i + j = max₁ + max₂}, xᵢ * yⱼ`.
-  -- This is a contradiction, because both `proj (max₁ + max₂) (x * y) ∈ I` and the sum on the
-  -- right hand side is in `I` however `proj max₁ x * proj max₂ y` is not in `I`.
+  /-
+  The idea of the proof is the following :
+  since `x * y ∈ I` and `I` homogeneous, then `proj i (x * y) ∈ I` for any `i : ι`.
+  Then consider two sets `{i ∈ x.support | xᵢ ∉ I}` and `{j ∈ y.support | yⱼ ∉ J}`;
+  let `max₁, max₂` be the maximum of the two sets, then `proj (max₁ + max₂) (x * y) ∈ I`.
+  Then, `proj max₁ x ∉ I` and `proj max₂ j ∉ I`
+  but `proj i x ∈ I` for all `max₁ < i` and `proj j y ∈ I` for all `max₂ < j`.
+  `  proj (max₁ + max₂) (x * y)`
+  `= ∑ {(i, j) ∈ supports | i + j = max₁ + max₂}, xᵢ * yⱼ`
+  `= proj max₁ x * proj max₂ y`
+  `  + ∑ {(i, j) ∈ supports \ {(max₁, max₂)} | i + j = max₁ + max₂}, xᵢ * yⱼ`.
+  This is a contradiction, because both `proj (max₁ + max₂) (x * y) ∈ I` and the sum on the
+  right hand side is in `I` however `proj max₁ x * proj max₂ y` is not in `I`.
+  -/
   letI : Π (x : A),
     decidable_pred (λ (i : ι), proj 𝒜 i x ∉ I) := λ x, classical.dec_pred _,
   letI : Π i (x : 𝒜 i), decidable (x ≠ 0) := λ i x, classical.dec _,
@@ -69,8 +71,8 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
     apply ideal.sum_mem _ hx, },
   set max₁ := set₁.max' (nonempty x rid₁) with max₁_eq,
   set max₂ := set₂.max' (nonempty y rid₂) with max₂_eq,
-  have mem_max₁ := max'_mem set₁ (nonempty x rid₁),
-  have mem_max₂ := max'_mem set₂ (nonempty y rid₂),
+  have mem_max₁ : max₁ ∈ set₁ := max'_mem set₁ (nonempty x rid₁),
+  have mem_max₂ : max₂ ∈ set₂ := max'_mem set₂ (nonempty y rid₂),
   replace hxy : (decompose 𝒜 (x * y) (max₁ + max₂) : A) ∈ I := hI _ hxy,
   have eq :=
     calc  proj 𝒜 (max₁ + max₂) (x * y)
@@ -125,12 +127,18 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
       rw set₂_eq at not_mem,
       simp only [not_and, not_not, ne.def, dfinsupp.mem_support_to_fun, mem_filter] at not_mem,
       exact ideal.mul_mem_left I _ (not_mem H₃), }, },
-  specialize homogeneous_mem_or_mem ⟨max₁, submodule.coe_mem _⟩ ⟨max₂, submodule.coe_mem _⟩ mem_I,
-  cases homogeneous_mem_or_mem;
-  simp only [ne.def, dfinsupp.mem_support_to_fun, mem_filter] at mem_max₁ mem_max₂,
-  { exact mem_max₁.2 homogeneous_mem_or_mem },
-  { exact mem_max₂.2 homogeneous_mem_or_mem },
-end⟩
+
+  have not_mem_I₁ : proj 𝒜 max₁ x ∉ I ∧ proj 𝒜 max₂ y ∉ I,
+  { rw mem_filter at mem_max₁ mem_max₂,
+    exact ⟨mem_max₁.2, mem_max₂.2⟩, },
+  have not_mem_I₂ : proj 𝒜 max₁ x * proj 𝒜 max₂ y ∉ I,
+  { intro rid,
+    cases homogeneous_mem_or_mem ⟨max₁, submodule.coe_mem _⟩ ⟨max₂, submodule.coe_mem _⟩ mem_I,
+    { apply not_mem_I₁.1 h },
+    { apply not_mem_I₁.2 h }, },
+
+  exact not_mem_I₂ mem_I,
+end⟩.
 
 lemma homogeneous_ideal.is_prime_iff (I : homogeneous_ideal 𝒜) :
   I.1.is_prime ↔

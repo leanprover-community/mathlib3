@@ -47,7 +47,7 @@ begin
     { use k, split; omega } }
 end
 
-lemma subset_is_zeckendorf {S T : finset ℕ}
+lemma is_zeckendorf_rep.mono {S T : finset ℕ}
   (HzT : is_zeckendorf_rep T)
   (Hsubset : S ⊆ T): is_zeckendorf_rep S :=
 begin
@@ -60,7 +60,7 @@ begin
   tauto
 end
 
-lemma insert_is_zeckendorf
+lemma is_zeckendorf_rep.insert
   (S : finset ℕ) (Hzeckendorf : is_zeckendorf_rep S)
   (n : ℕ) (Hle_n : ∀ i ∈ S, i ≤ n):
   is_zeckendorf_rep (insert (n + 2) S) :=
@@ -95,6 +95,8 @@ begin
   linarith
 end
 
+#find strict_mono
+
 /-- If we use Fibonacci numbers with indexes less than `n`, the sum will be less than `fib n`. -/
 lemma zeckendorf_bound
   (S : finset ℕ) (Hzeckendorf : is_zeckendorf_rep S)
@@ -119,7 +121,7 @@ begin
           contradiction },
         show i ≤ n, by omega },
       have Hzeckendorf' : is_zeckendorf_rep S',
-        { apply subset_is_zeckendorf Hzeckendorf, apply finset.erase_subset },
+        { apply is_zeckendorf_rep.mono Hzeckendorf, apply finset.erase_subset },
       have S_insert : S = insert n.succ.succ S', by rwa finset.insert_erase,
       have S'_no_nsucc : n.succ.succ ∉ S', by simp,
       have IH := IHn S' Hzeckendorf' Hless_n_S',
@@ -129,7 +131,7 @@ begin
       ... = fib (n + 3) : by simp [@fib_add_two (n + 1)]; ring },
     /- Case 2: the bound is not tight, i.e. `n.succ.succ ∉ S`. -/
     { calc ∑ k in S, fib k < fib (n + 2) : _
-                       ... ≤ fib (n + 3) : by apply fib_mono; omega,
+                       ... ≤ fib (n + 3) : by apply fib_mono; linarith,
       apply IHnsucc S Hzeckendorf,
       assume (i : ℕ) (Hi : i ∈ S),
       have less_n_succ : i ≤ n.succ.succ, from Hle_n i Hi,
@@ -146,19 +148,14 @@ begin
   { simp at Hmore, have n0 : n = 0 := by assumption,
     rw n0 at *,
     use ∅, split,
-    { split,
-      show is_zeckendorf_rep ∅,
-      { assume (k : ℕ) (Hk : k ∈ ∅),
-        have H : k ∉ ∅ := finset.not_mem_empty k,
-        contradiction },
-      show ∑ k in ∅, fib k = 0, by refl },
+    { tauto },
     { assume (S : finset ℕ) (H : is_zeckendorf_rep S ∧ S.sum fib = 0),
       by_contradiction Hnonempty,
       obtain ⟨m, Hm⟩ : ∃ m, m ∈ S := finset.nonempty.bex (finset.nonempty_of_ne_empty Hnonempty),
       suffices H : (0 : ℕ) > 0, cases H,
       have Hge2 : m ≥ 2 := (H.elim_left m Hm).elim_left,
       calc 0 = S.sum fib : by rw H.elim_right
-      ...    ≥ fib m     : finset.single_le_sum (by intros; omega) Hm
+      ...    ≥ fib m     : finset.single_le_sum (by intros; apply zero_le) Hm
       ...    > 0         : by apply fib_pos; linarith } },
   /- i = 1 is impossible, because the [fib i; fib i.succ) interval is empty. -/
   { finish },
@@ -178,7 +175,7 @@ begin
       calc n = n' + fib i.succ.succ         : by linarith
       ...    = S'.sum fib + fib i.succ.succ : by rw S'sum
       ...    ≥ fib k + fib i.succ.succ
-                  : by simp; from finset.single_le_sum (by intros; omega) Hk
+                  : by simp; from finset.single_le_sum (by intros; apply zero_le) Hk
       ...    ≥ fib i.succ + fib i.succ.succ : by simp [fib_mono Hisucc]
       ...    = fib i.succ.succ.succ         : by simp [fib_add_two],
     linarith },
@@ -188,7 +185,7 @@ begin
     linarith },
   split, split,
   show is_zeckendorf_rep S,
-  { apply insert_is_zeckendorf; assumption },
+  { apply is_zeckendorf_rep.insert; assumption },
   show S.sum fib = n,
   { calc S.sum fib = fib (i + 2) + S'.sum fib : by simp [nmem_S']
     ...            = fib (i + 2) + n'         : by rw S'sum
@@ -200,7 +197,7 @@ begin
     { by_contra' Hbig_k,
       obtain ⟨k, k_mem, lt_k⟩ : ∃ k : ℕ, k ∈ S₂ ∧ i + 2 < k := Hbig_k,
       have H :=
-        calc S₂.sum fib ≥ fib k       : finset.single_le_sum (by intros; omega) k_mem
+        calc S₂.sum fib ≥ fib k       : finset.single_le_sum (by intros; apply zero_le) k_mem
         ...             ≥ fib (i + 3) : by apply fib_mono; omega
         ...             > n           : Hmore,
       linarith },
@@ -217,7 +214,7 @@ begin
       linarith },
     let S₂' := S₂.erase (i + 2),
     have S₂'_rep : is_zeckendorf_rep S₂',
-    { apply subset_is_zeckendorf S₂_rep, apply finset.erase_subset },
+    { apply is_zeckendorf_rep.mono S₂_rep, apply finset.erase_subset },
     have H : S₂.sum fib = S₂'.sum fib + fib (i + 2) := by simp [finset.sum_erase_add, has_i_plus_2],
     have S₂'_sum : S₂'.sum fib = n' := by linarith,
     have S₂'_is_S' : S₂' = S' := by apply S'unique; tauto,

@@ -176,7 +176,7 @@ of_map_split_add
     rw with_top.coe_le_coe at hJ,
     refine i.succ_above_cases _ _ j,
     { intros x hx,
-      simp only [box.split_lower_def hx, box.split_upper_def hx, update_same, 
+      simp only [box.split_lower_def hx, box.split_upper_def hx, update_same,
         ← with_bot.some_eq_coe, option.elim, box.face, (∘), update_noteq (fin.succ_above_ne _ _)],
       abel },
     { clear j, intros j x hx,
@@ -189,7 +189,7 @@ of_map_split_add
       simp only [box.split_lower_def hx, box.split_upper_def hx,
         box.split_lower_def hx', box.split_upper_def hx',
         ← with_bot.some_eq_coe, option.elim, box.face_mk,
-        update_noteq (fin.succ_above_ne _ _).symm, sub_add_comm,
+        update_noteq (fin.succ_above_ne _ _).symm, sub_add_sub_comm,
         update_comp_eq_of_injective _ i.succ_above.injective j x, ← hf],
       simp only [box.face] }
   end

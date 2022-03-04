@@ -3,7 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.derived
+import category_theory.functor.derived
 import category_theory.monoidal.preadditive
 
 /-!

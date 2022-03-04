@@ -188,7 +188,7 @@ def noncomm_prod (s : finset α) (f : α → β) (comm : ∀ (x ∈ s) (y ∈ s)
   (hl : l.nodup) :
   noncomm_prod l.to_finset f comm = (l.map f).prod :=
 begin
-  rw ←list.erase_dup_eq_self at hl,
+  rw ←list.dedup_eq_self at hl,
   simp [noncomm_prod, hl]
 end
 

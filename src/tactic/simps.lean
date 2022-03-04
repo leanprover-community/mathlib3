@@ -721,7 +721,7 @@ meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []
   e ← get_env,
   d ← e.get nm,
   let lhs : expr := const d.to_name d.univ_levels,
-  let todo := todo.erase_dup.map $ λ proj, "_" ++ proj,
+  let todo := todo.dedup.map $ λ proj, "_" ++ proj,
   let cfg := { trace := cfg.trace || is_trace_enabled_for `simps.verbose || trc, ..cfg },
   b ← has_attribute' `to_additive nm,
   cfg ← if b then do

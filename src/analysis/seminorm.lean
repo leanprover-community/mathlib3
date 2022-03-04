@@ -111,6 +111,9 @@ begin
   exact ⟨_, _, hA₁ _ ha ⟨_, hx, rfl⟩, hA₂ _ ha ⟨_, hy, rfl⟩, rfl⟩,
 end
 
+lemma absorbs_empty : absorbs 𝕜 t (∅ : set E) :=
+⟨1, one_pos, λ a ha, set.empty_subset _⟩
+
 lemma absorbs.mono (hs : absorbs 𝕜 s u) (hst : s ⊆ t) (hvu : v ⊆ u) : absorbs 𝕜 t v :=
 let ⟨r, hr, h⟩ := hs in ⟨r, hr, λ a ha, hvu.trans $ (h _ ha).trans $ smul_set_mono hst⟩
 

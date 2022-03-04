@@ -310,7 +310,7 @@ begin
   simp only [bilin_form.to_matrix_apply, bilin_form.comp_apply, transpose_apply, matrix.mul_apply,
     linear_map.to_matrix', linear_equiv.coe_mk, sum_mul],
   rw sum_comm,
-  conv_lhs { rw ← sum_repr_mul_repr_mul b },
+  conv_lhs { rw ← bilin_form.sum_repr_mul_repr_mul b },
   rw finsupp.sum_fintype,
   { apply sum_congr rfl,
     rintros i' -,

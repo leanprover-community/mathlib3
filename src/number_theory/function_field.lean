@@ -165,8 +165,9 @@ begin
     { by_cases hxy : x + y = 0,
       { rw [infty_valuation_def, if_pos hxy], exact zero_le',},
       { rw [infty_valuation_def, infty_valuation_def, infty_valuation_def, if_neg hx, if_neg hy,
-        if_neg hxy, ratfunc.nat_degree_add hxy, ratfunc.nat_degree_rescale hx y.denom_ne_zero,
-        mul_comm y.denom, ratfunc.nat_degree_rescale hy x.denom_ne_zero, le_max_iff,
+        if_neg hxy, ratfunc.nat_degree_add_eq_nat_degree_num_denom_add hxy,
+        ← ratfunc.nat_degree_rescale_eq_nat_degree hx y.denom_ne_zero, mul_comm y.denom,
+        ← ratfunc.nat_degree_rescale_eq_nat_degree hy x.denom_ne_zero, le_max_iff,
         with_zero.coe_le_coe, multiplicative.of_add_le, with_zero.coe_le_coe,
         multiplicative.of_add_le, sub_le_sub_iff_right, int.coe_nat_le, sub_le_sub_iff_right,
         int.coe_nat_le, ← le_max_iff, mul_comm y.num],
@@ -200,7 +201,7 @@ end
 
 @[simp] lemma infty_valuation.polynomial {p : polynomial Fq} (hp : p ≠ 0) :
   infty_valuation_def Fq (algebra_map (polynomial Fq) (ratfunc Fq) p) =
-    (multiplicative.of_add(p.nat_degree : ℤ)) :=
+    (multiplicative.of_add (p.nat_degree : ℤ)) :=
 begin
   have hp' : algebra_map (polynomial Fq) (ratfunc Fq) p ≠ 0,
   { rw [ne.def, ratfunc.algebra_map_eq_zero_iff], exact hp },

@@ -187,11 +187,9 @@ end
 
 end AddCommGroup
 
-variables {X Y : Type u}
-
 /-- Build an isomorphism in the category `Group` from a `mul_equiv` between `group`s. -/
 @[to_additive add_equiv.to_AddGroup_iso, simps]
-def mul_equiv.to_Group_iso [group X] [group Y] (e : X ≃* Y) : Group.of X ≅ Group.of Y :=
+def mul_equiv.to_Group_iso {X Y : Group} (e : X ≃* Y) : X ≅ Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
@@ -200,8 +198,7 @@ add_decl_doc add_equiv.to_AddGroup_iso
 
 /-- Build an isomorphism in the category `CommGroup` from a `mul_equiv` between `comm_group`s. -/
 @[to_additive add_equiv.to_AddCommGroup_iso, simps]
-def mul_equiv.to_CommGroup_iso [comm_group X] [comm_group Y] (e : X ≃* Y) :
-  CommGroup.of X ≅ CommGroup.of Y :=
+def mul_equiv.to_CommGroup_iso {X Y : CommGroup} (e : X ≃* Y) : X ≅ Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
@@ -229,8 +226,7 @@ end category_theory.iso
 in `Group` -/
 @[to_additive add_equiv_iso_AddGroup_iso "additive equivalences between `add_group`s are the same
 as (isomorphic to) isomorphisms in `AddGroup`"]
-def mul_equiv_iso_Group_iso {X Y : Type u} [group X] [group Y] :
-  (X ≃* Y) ≅ (Group.of X ≅ Group.of Y) :=
+def mul_equiv_iso_Group_iso {X Y : Group.{u}} : (X ≃* Y) ≅ (X ≅ Y) :=
 { hom := λ e, e.to_Group_iso,
   inv := λ i, i.Group_iso_to_mul_equiv, }
 
@@ -238,8 +234,7 @@ def mul_equiv_iso_Group_iso {X Y : Type u} [group X] [group Y] :
 in `CommGroup` -/
 @[to_additive add_equiv_iso_AddCommGroup_iso "additive equivalences between `add_comm_group`s are
 the same as (isomorphic to) isomorphisms in `AddCommGroup`"]
-def mul_equiv_iso_CommGroup_iso {X Y : Type u} [comm_group X] [comm_group Y] :
-  (X ≃* Y) ≅ (CommGroup.of X ≅ CommGroup.of Y) :=
+def mul_equiv_iso_CommGroup_iso {X Y : CommGroup.{u}} : X ≃* Y ≅ (X ≅ Y) :=
 { hom := λ e, e.to_CommGroup_iso,
   inv := λ i, i.CommGroup_iso_to_mul_equiv, }
 

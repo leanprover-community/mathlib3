@@ -5,6 +5,7 @@ Authors: Kalle Kytölä
 -/
 import data.complex.is_R_or_C
 import analysis.normed_space.operator_norm
+import analysis.normed_space.pointwise
 
 /-!
 # Normed spaces over R or C
@@ -64,7 +65,7 @@ begin
   { rw [hz₁, linear_map.map_smul, smul_eq_mul],
     rw [← mul_assoc, ← mul_assoc, div_mul_cancel _ r_ne_zero, mul_inv_cancel, one_mul],
     simp only [z_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero, ne.def, not_false_iff], },
-  rw [eq, normed_field.norm_mul, normed_field.norm_div, is_R_or_C.norm_coe_norm,
+  rw [eq, norm_mul, norm_div, is_R_or_C.norm_coe_norm,
       is_R_or_C.norm_of_nonneg r_pos.le, div_mul_eq_mul_div, div_mul_eq_mul_div, mul_comm],
   apply div_le_div _ _ r_pos rfl.ge,
   { exact mul_nonneg ((norm_nonneg _).trans norm_f_z₁) (norm_nonneg z), },
@@ -89,4 +90,13 @@ begin
           (h 0 (by simp only [norm_zero, mem_closed_ball, dist_zero_left, r_pos.le])), },
   apply linear_map.bound_of_ball_bound' r_pos,
   exact λ z hz, h z hz,
+end
+
+variables (𝕜)
+include 𝕜
+lemma normed_space.sphere_nonempty_is_R_or_C [nontrivial E] {r : ℝ} (hr : 0 ≤ r) :
+  nonempty (sphere (0:E) r) :=
+begin
+  letI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
+  exact (sphere (0:E) r).nonempty_coe_sort.mpr (normed_space.sphere_nonempty.mpr hr),
 end

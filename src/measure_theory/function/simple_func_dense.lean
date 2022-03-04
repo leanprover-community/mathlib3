@@ -252,8 +252,7 @@ begin
   -- to zero
   have h_lim : ∀ᵐ (a : β) ∂μ,
     tendsto (λ n, (∥approx_on f hf s y₀ h₀ n a - f a∥₊ : ℝ≥0∞) ^ p.to_real) at_top (𝓝 0),
-  { filter_upwards [hμ],
-    intros a ha,
+  { filter_upwards [hμ] with a ha,
     have : tendsto (λ n, (approx_on f hf s y₀ h₀ n) a - f a) at_top (𝓝 (f a - f a)),
     { exact (tendsto_approx_on hf h₀ ha).sub tendsto_const_nhds },
     convert continuous_rpow_const.continuous_at.tendsto.comp (tendsto_coe.mpr this.nnnorm),
@@ -570,7 +569,7 @@ local attribute [instance] simple_func.module
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a normed space. Not declared as an
 instance as it is (as of writing) used only in the construction of the Bochner integral. -/
 protected def normed_space [fact (1 ≤ p)] : normed_space 𝕜 (Lp.simple_func E p μ) :=
-⟨ λc f, by { rw [coe_norm_subgroup, coe_norm_subgroup, coe_smul, norm_smul] } ⟩
+⟨ λc f, by { rw [add_subgroup.coe_norm, add_subgroup.coe_norm, coe_smul, norm_smul] } ⟩
 
 end instances
 
@@ -645,42 +644,41 @@ lemma to_simple_func_to_Lp (f : α →ₛ E) (hfi : mem_ℒp f p μ) :
 by { rw ← mk_eq_mk, exact classical.some_spec (to_Lp f hfi).2 }
 
 variables (E μ)
+
 lemma zero_to_simple_func : to_simple_func (0 : Lp.simple_func E p μ) =ᵐ[μ] 0 :=
 begin
-  filter_upwards [to_simple_func_eq_to_fun (0 : Lp.simple_func E p μ), Lp.coe_fn_zero E 1 μ],
-  assume a h₁ h₂,
+  filter_upwards [to_simple_func_eq_to_fun (0 : Lp.simple_func E p μ), Lp.coe_fn_zero E 1 μ]
+    with _ h₁ _,
   rwa h₁,
 end
+
 variables {E μ}
 
 lemma add_to_simple_func (f g : Lp.simple_func E p μ) :
   to_simple_func (f + g) =ᵐ[μ] to_simple_func f + to_simple_func g :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (f + g), to_simple_func_eq_to_fun f,
-    to_simple_func_eq_to_fun g, Lp.coe_fn_add (f :  Lp E p μ) g],
-  assume a,
+    to_simple_func_eq_to_fun g, Lp.coe_fn_add (f :  Lp E p μ) g] with _,
   simp only [← coe_coe, add_subgroup.coe_add, pi.add_apply],
-  iterate 4 { assume h, rw h }
+  iterate 4 { assume h, rw h, },
 end
 
 lemma neg_to_simple_func (f : Lp.simple_func E p μ) :
   to_simple_func (-f) =ᵐ[μ] - to_simple_func f :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (-f), to_simple_func_eq_to_fun f,
-    Lp.coe_fn_neg (f : Lp E p μ)],
-  assume a,
+    Lp.coe_fn_neg (f : Lp E p μ)] with _,
   simp only [pi.neg_apply, add_subgroup.coe_neg, ← coe_coe],
-  repeat { assume h, rw h }
+  repeat { assume h, rw h, },
 end
 
 lemma sub_to_simple_func (f g : Lp.simple_func E p μ) :
   to_simple_func (f - g) =ᵐ[μ] to_simple_func f - to_simple_func g :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (f - g), to_simple_func_eq_to_fun f,
-    to_simple_func_eq_to_fun g, Lp.coe_fn_sub (f : Lp E p μ) g],
-  assume a,
+    to_simple_func_eq_to_fun g, Lp.coe_fn_sub (f : Lp E p μ) g] with _,
   simp only [add_subgroup.coe_sub, pi.sub_apply, ← coe_coe],
-  repeat { assume h, rw h }
+  repeat { assume h, rw h, },
 end
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
@@ -689,10 +687,9 @@ lemma smul_to_simple_func (k : 𝕜) (f : Lp.simple_func E p μ) :
   to_simple_func (k • f) =ᵐ[μ] k • to_simple_func f :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (k • f), to_simple_func_eq_to_fun f,
-    Lp.coe_fn_smul k (f : Lp E p μ)],
-  assume a,
+    Lp.coe_fn_smul k (f : Lp E p μ)] with _,
   simp only [pi.smul_apply, coe_smul, ← coe_coe],
-  repeat { assume h, rw h }
+  repeat { assume h, rw h, },
 end
 
 lemma norm_to_simple_func [fact (1 ≤ p)] (f : Lp.simple_func E p μ) :
@@ -817,8 +814,7 @@ begin
   rw ← Lp.simple_func.coe_fn_le at hg₁₂ ⊢,
   have h_add_1 : ⇑(f + g₁) =ᵐ[μ] f + g₁, from Lp.coe_fn_add _ _,
   have h_add_2 : ⇑(f + g₂) =ᵐ[μ] f + g₂, from Lp.coe_fn_add _ _,
-  filter_upwards [h_add_1, h_add_2, hg₁₂],
-  intros a h1 h2 h3,
+  filter_upwards [h_add_1, h_add_2, hg₁₂] with _ h1 h2 h3,
   rw [h1, h2, pi.add_apply, pi.add_apply],
   exact add_le_add le_rfl h3,
 end
@@ -831,7 +827,7 @@ lemma coe_fn_nonneg (f : Lp.simple_func G p μ) : 0 ≤ᵐ[μ] f ↔ 0 ≤ f :=
 begin
   rw ← Lp.simple_func.coe_fn_le,
   have h0 : (0 : Lp.simple_func G p μ) =ᵐ[μ] (0 : α → G), from Lp.simple_func.coe_fn_zero p μ G,
-  split; intro h; filter_upwards [h, h0]; intros a h1 h2,
+  split; intro h; filter_upwards [h, h0] with _ _ h2,
   { rwa h2, },
   { rwa ← h2, },
 end
@@ -841,7 +837,7 @@ lemma exists_simple_func_nonneg_ae_eq {f : Lp.simple_func G p μ} (hf : 0 ≤ f)
 begin
   rw ← Lp.simple_func.coe_fn_nonneg at hf,
   have hf_ae : 0 ≤ᵐ[μ] (simple_func.to_simple_func f),
-    by { filter_upwards [to_simple_func_eq_to_fun f, hf], intros x h1 h2, rwa h1, },
+    by { filter_upwards [to_simple_func_eq_to_fun f, hf] with _ h1 _, rwa h1 },
   let s := (to_measurable μ {x | ¬ 0 ≤ simple_func.to_simple_func f x})ᶜ,
   have hs_zero : μ sᶜ = 0,
     by { rw [compl_compl, measure_to_measurable], rwa [eventually_le, ae_iff] at hf_ae, },
@@ -891,8 +887,7 @@ begin
     rw [← Lp.simple_func.coe_fn_le, coe_fn_coe_base' (simple_func.to_Lp (x n) _),
       Lp.simple_func.to_Lp_eq_to_Lp],
     have h0 := Lp.simple_func.coe_fn_zero p μ G,
-    filter_upwards [Lp.simple_func.coe_fn_zero p μ G, h_to_Lp n],
-    intros a ha0 ha_to_Lp,
+    filter_upwards [Lp.simple_func.coe_fn_zero p μ G, h_to_Lp n] with a ha0 ha_to_Lp,
     rw [ha0, ha_to_Lp],
     exact hx_nonneg n a, },
   have hx_tendsto : tendsto (λ (n : ℕ), snorm (x n - g) p μ) at_top (𝓝 0),
@@ -906,7 +901,7 @@ begin
     hx_nonneg_Lp n⟩, λ n, mem_range_self _, _⟩,
   suffices : tendsto (λ (n : ℕ), ↑(to_Lp (x n) (hx_mem_ℒp n))) at_top (𝓝 (g : Lp G p μ)),
   { rw tendsto_iff_dist_tendsto_zero at this ⊢,
-    simp_rw subtype.pseudo_dist_eq,
+    simp_rw subtype.dist_eq,
     convert this, },
   rw Lp.tendsto_Lp_iff_tendsto_ℒp',
   convert hx_tendsto,
@@ -989,8 +984,6 @@ begin
 end
 
 section integrable
-
-local attribute [instance] fact_one_le_one_ennreal
 
 notation α ` →₁ₛ[`:25 μ `] ` E := @measure_theory.Lp.simple_func α E _ _ _ _ _ 1 μ
 

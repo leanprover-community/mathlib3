@@ -135,7 +135,7 @@ lemma mul_mem_sup {S T : submonoid M} {x y : M} (hx : x ∈ S) (hy : y ∈ T) : 
 (S ⊔ T).mul_mem (mem_sup_left hx) (mem_sup_right hy)
 
 @[to_additive]
-lemma mem_supr_of_mem {ι : Type*} {S : ι → submonoid M} (i : ι) :
+lemma mem_supr_of_mem {ι : Sort*} {S : ι → submonoid M} (i : ι) :
   ∀ {x : M}, x ∈ S i → x ∈ supr S :=
 show S i ≤ supr S, from le_supr _ _
 
@@ -143,6 +143,39 @@ show S i ≤ supr S, from le_supr _ _
 lemma mem_Sup_of_mem {S : set (submonoid M)} {s : submonoid M}
   (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
 show s ≤ Sup S, from le_Sup hs
+
+/-- An induction principle for elements of `⨆ i, S i`.
+If `C` holds for `1` and all elements of `S i` for all `i`, and is preserved under multiplication,
+then it holds for all elements of the supremum of `S`. -/
+@[elab_as_eliminator, to_additive /-" An induction principle for elements of `⨆ i, S i`.
+If `C` holds for `0` and all elements of `S i` for all `i`, and is preserved under addition,
+then it holds for all elements of the supremum of `S`. "-/]
+lemma supr_induction {ι : Sort*} (S : ι → submonoid M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, S i)
+  (hp : ∀ i (x ∈ S i), C x)
+  (h1 : C 1)
+  (hmul : ∀ x y, C x → C y → C (x * y)) : C x :=
+begin
+  rw supr_eq_closure at hx,
+  refine closure_induction hx (λ x hx, _) h1 hmul,
+  obtain ⟨i, hi⟩ := set.mem_Union.mp hx,
+  exact hp _ _ hi,
+end
+
+/-- A dependent version of `submonoid.supr_induction`. -/
+@[elab_as_eliminator, to_additive /-"A dependent version of `add_submonoid.supr_induction`. "-/]
+lemma supr_induction' {ι : Sort*} (S : ι → submonoid M) {C : Π x, (x ∈ ⨆ i, S i) → Prop}
+  (hp : ∀ i (x ∈ S i), C x (mem_supr_of_mem i ‹_›))
+  (h1 : C 1 (one_mem _))
+  (hmul : ∀ x y hx hy, C x hx → C y hy → C (x * y) (mul_mem _ ‹_› ‹_›))
+  {x : M} (hx : x ∈ ⨆ i, S i) : C x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ ⨆ i, S i) (hc : C x hx), hc),
+  refine supr_induction S hx (λ i x hx, _) _ (λ x y, _),
+  { exact ⟨_, hp _ _ hx⟩ },
+  { exact ⟨_, h1⟩ },
+  { rintro ⟨_, Cx⟩ ⟨_, Cy⟩,
+    refine ⟨_, hmul _ _ _ _ Cx Cy⟩ },
+end
 
 end non_assoc
 

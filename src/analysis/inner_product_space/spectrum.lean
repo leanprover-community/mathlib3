@@ -48,8 +48,6 @@ variables {E : Type*} [inner_product_space 𝕜 E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 
-local attribute [instance] fact_one_le_two_real
-
 open_locale big_operators complex_conjugate
 open module.End
 
@@ -212,6 +210,9 @@ begin
   simpa [re_μ] using key,
 end
 
+lemma has_eigenvalue_eigenvalues (i : fin n) : has_eigenvalue T (hT.eigenvalues hn i) :=
+    module.End.has_eigenvalue_of_has_eigenvector (hT.has_eigenvector_eigenvector_basis hn i)
+
 attribute [irreducible] eigenvector_basis eigenvalues
 
 @[simp] lemma apply_eigenvector_basis (i : fin n) :
@@ -221,7 +222,7 @@ mem_eigenspace_iff.mp (hT.has_eigenvector_eigenvector_basis hn i).1
 /-- An isometry from an inner product space `E` to Euclidean space, induced by a choice of
 orthonormal basis of eigenvectors for a self-adjoint operator `T` on `E`. -/
 noncomputable def diagonalization_basis : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 (fin n) :=
-(hT.eigenvector_basis hn).isometry_euclidean_of_orthonormal (hT.eigenvector_basis_orthonormal hn)
+((hT.eigenvector_basis hn).to_orthonormal_basis (hT.eigenvector_basis_orthonormal hn)).repr
 
 @[simp] lemma diagonalization_basis_symm_apply (w : euclidean_space 𝕜 (fin n)) :
   (hT.diagonalization_basis hn).symm w = ∑ i, w i • hT.eigenvector_basis hn i :=
@@ -246,3 +247,32 @@ end version2
 
 end is_self_adjoint
 end inner_product_space
+
+section nonneg
+
+@[simp]
+lemma inner_product_apply_eigenvector {μ : 𝕜} {v : E} {T : E →ₗ[𝕜] E}
+  (h : v ∈ module.End.eigenspace T μ) : ⟪v, T v⟫ = μ * ∥v∥ ^ 2 :=
+by simp only [mem_eigenspace_iff.mp h, inner_smul_right, inner_self_eq_norm_sq_to_K]
+
+lemma eigenvalue_nonneg_of_nonneg {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenvalue T μ)
+  (hnn : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪x, T x⟫) : 0 ≤ μ :=
+begin
+  obtain ⟨v, hv⟩ := hμ.exists_has_eigenvector,
+  have hpos : 0 < ∥v∥ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,
+  have : is_R_or_C.re ⟪v, T v⟫ = μ * ∥v∥ ^ 2,
+  { exact_mod_cast congr_arg is_R_or_C.re (inner_product_apply_eigenvector hv.1) },
+  exact (zero_le_mul_right hpos).mp (this ▸ hnn v),
+end
+
+lemma eigenvalue_pos_of_pos {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenvalue T μ)
+  (hnn : ∀ (x : E), 0 < is_R_or_C.re ⟪x, T x⟫) : 0 < μ :=
+begin
+  obtain ⟨v, hv⟩ := hμ.exists_has_eigenvector,
+  have hpos : 0 < ∥v∥ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,
+  have : is_R_or_C.re ⟪v, T v⟫ = μ * ∥v∥ ^ 2,
+  { exact_mod_cast congr_arg is_R_or_C.re (inner_product_apply_eigenvector hv.1) },
+  exact (zero_lt_mul_right hpos).mp (this ▸ hnn v),
+end
+
+end nonneg

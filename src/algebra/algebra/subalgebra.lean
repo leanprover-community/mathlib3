@@ -406,6 +406,42 @@ subring.is_domain S.to_subring
 
 end subalgebra
 
+namespace submodule
+
+variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+variables (p : submodule R A)
+
+/-- A submodule containing `1` and closed under multiplication is a subalgebra. -/
+def to_subalgebra (p : submodule R A) (h_one : (1 : A) ∈ p)
+  (h_mul : ∀ x y, x ∈ p → y ∈ p → x * y ∈ p) : subalgebra R A :=
+{ mul_mem' := h_mul,
+  algebra_map_mem' := λ r, begin
+    rw algebra.algebra_map_eq_smul_one,
+    exact p.smul_mem _ h_one,
+  end,
+  ..p}
+
+@[simp] lemma mem_to_subalgebra {p : submodule R A} {h_one h_mul} {x} :
+  x ∈ p.to_subalgebra h_one h_mul ↔ x ∈ p := iff.rfl
+
+@[simp] lemma coe_to_subalgebra (p : submodule R A) (h_one h_mul) :
+  (p.to_subalgebra h_one h_mul : set A) = p := rfl
+
+@[simp] lemma to_subalgebra_mk (s : set A) (h0 hadd hsmul h1 hmul) :
+  (submodule.mk s h0 hadd hsmul : submodule R A).to_subalgebra h1 hmul =
+    subalgebra.mk s h1 @hmul h0 @hadd
+      (λ r, by { rw algebra.algebra_map_eq_smul_one, exact hsmul r h1 }) := rfl
+
+@[simp] lemma to_subalgebra_to_submodule (p : submodule R A) (h_one h_mul) :
+  (p.to_subalgebra h_one h_mul).to_submodule = p :=
+set_like.coe_injective rfl
+
+@[simp] lemma _root_.subalgebra.to_submodule_to_subalgebra (S : subalgebra R A) :
+  S.to_submodule.to_subalgebra S.one_mem (λ _ _, S.mul_mem) = S :=
+set_like.coe_injective rfl
+
+end submodule
+
 namespace alg_hom
 
 variables {R' : Type u'} {R : Type u} {A : Type v} {B : Type w} {C : Type w'}
@@ -515,6 +551,13 @@ noncomputable def of_injective_field {E F : Type*} [division_ring E] [semiring F
   [nontrivial F] [algebra R E] [algebra R F] (f : E →ₐ[R] F) : E ≃ₐ[R] f.range :=
 of_injective f f.to_ring_hom.injective
 
+/-- Given an equivalence `e : A ≃ₐ[R] B` of `R`-algebras and a subalgebra `S` of `A`,
+`subalgebra_map` is the induced equivalence between `S` and `S.map e` -/
+@[simps] def subalgebra_map (e : A ≃ₐ[R] B) (S : subalgebra R A) :
+  S ≃ₐ[R] (S.map e.to_alg_hom) :=
+{ commutes' := λ r, by { ext, simp },
+  ..e.to_ring_equiv.subsemiring_map S.to_subsemiring }
+
 end alg_equiv
 
 namespace algebra
@@ -537,7 +580,7 @@ protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe
 protected def gi : galois_insertion (adjoin R : set A → subalgebra R A) coe :=
 { choice := λ s hs, (adjoin R s).copy s $ le_antisymm (algebra.gc.le_u_l s) hs,
   gc := algebra.gc,
-  le_l_u := λ S, (algebra.gc (S : set A) (adjoin R S)).1 $ le_refl _,
+  le_l_u := λ S, (algebra.gc (S : set A) (adjoin R S)).1 $ le_rfl,
   choice_eq := λ _ _, subalgebra.copy_eq _ _ _ }
 
 instance : complete_lattice (subalgebra R A) :=

@@ -13,13 +13,13 @@ of `#R` and `ω`.
 -/
 universe u
 
-open_locale cardinal
+open_locale cardinal polynomial
 open cardinal
 
 namespace polynomial
 
-lemma cardinal_mk_le_max {R : Type u} [comm_semiring R] : #(polynomial R) ≤ max (#R) ω :=
-calc #(polynomial R) = #(mv_polynomial punit.{u + 1} R) :
+lemma cardinal_mk_le_max {R : Type u} [comm_semiring R] : #R[X] ≤ max (#R) ω :=
+calc #R[X] = #(mv_polynomial punit.{u + 1} R) :
   cardinal.eq.2 ⟨(mv_polynomial.punit_alg_equiv.{u u} R).to_equiv.symm⟩
 ... ≤ _ : mv_polynomial.cardinal_mk_le_max
 ... ≤ _ : begin

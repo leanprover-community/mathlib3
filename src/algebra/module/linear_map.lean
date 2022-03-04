@@ -9,6 +9,7 @@ import algebra.module.basic
 import algebra.module.pi
 import algebra.group_action_hom
 import algebra.ring.comp_typeclasses
+import algebra.star.basic
 
 /-!
 # (Semi)linear maps
@@ -118,7 +119,8 @@ instance : add_monoid_hom_class (M →ₛₗ[σ] M₃) M M₃ :=
 def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
 { map_zero' := show f 0 = 0, from map_zero f, ..f }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly.
 -/
 instance : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨linear_map.to_fun⟩
 
@@ -145,8 +147,7 @@ def id : M →ₗ[R] M :=
 lemma id_apply (x : M) :
   @id R M _ _ _ x = x := rfl
 
-@[simp, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id :=
-by { ext x, refl }
+@[simp, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id := rfl
 
 end
 
@@ -274,11 +275,16 @@ are defined by an action of `R` on `S` (formally, we have two scalar towers), th
 map from `M` to `M₂` is `R`-linear.
 
 See also `linear_map.map_smul_of_tower`. -/
-@[simps]
 def restrict_scalars (fₗ : M →ₗ[S] M₂) : M →ₗ[R] M₂ :=
 { to_fun := fₗ,
   map_add' := fₗ.map_add,
   map_smul' := fₗ.map_smul_of_tower }
+
+@[simp] lemma coe_restrict_scalars (fₗ : M →ₗ[S] M₂) : ⇑(restrict_scalars R fₗ) = fₗ :=
+rfl
+
+lemma restrict_scalars_apply (fₗ : M →ₗ[S] M₂) (x) : restrict_scalars R fₗ x = fₗ x :=
+rfl
 
 lemma restrict_scalars_injective :
   function.injective (restrict_scalars R : (M →ₗ[S] M₂) → (M →ₗ[R] M₂)) :=
@@ -793,6 +799,10 @@ instance apply_smul_comm_class : smul_comm_class R (module.End R M) M :=
 
 instance apply_smul_comm_class' : smul_comm_class (module.End R M) R M :=
 { smul_comm := linear_map.map_smul }
+
+instance apply_is_scalar_tower {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
+  is_scalar_tower R (module.End R M) M :=
+⟨λ t f m, rfl⟩
 
 end endomorphisms
 

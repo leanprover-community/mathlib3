@@ -86,7 +86,7 @@ variables [cancel_comm_monoid_with_zero α] [normalization_monoid α]
 norm_unit_coe_units 1
 
 /-- Chooses an element of each associate class, by multiplying by `norm_unit` -/
-def normalize : monoid_with_zero_hom α α :=
+def normalize : α →*₀ α :=
 { to_fun := λ x, x * norm_unit x,
   map_zero' := by simp,
   map_one' := by rw [norm_unit_one, units.coe_one, mul_one],
@@ -557,9 +557,11 @@ begin
       mul_dvd_mul_iff_left h1, mul_dvd_mul_iff_right h2, and_comm] }
 end
 
-lemma dvd_lcm_left [gcd_monoid α] (a b : α) : a ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).1
+lemma dvd_lcm_left [gcd_monoid α] (a b : α) : a ∣ lcm a b :=
+(lcm_dvd_iff.1 (dvd_refl (lcm a b))).1
 
-lemma dvd_lcm_right [gcd_monoid α] (a b : α) : b ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).2
+lemma dvd_lcm_right [gcd_monoid α] (a b : α) : b ∣ lcm a b :=
+(lcm_dvd_iff.1 (dvd_refl (lcm a b))).2
 
 lemma lcm_dvd [gcd_monoid α] {a b c : α} (hab : a ∣ b) (hcb : c ∣ b) : lcm a c ∣ b :=
 lcm_dvd_iff.2 ⟨hab, hcb⟩

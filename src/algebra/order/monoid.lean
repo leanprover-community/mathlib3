@@ -7,6 +7,7 @@ import algebra.group.with_one
 import algebra.group.type_tags
 import algebra.group.prod
 import algebra.order.monoid_lemmas
+import data.equiv.mul_add
 import order.bounded_order
 import order.min_max
 import order.hom.basic
@@ -58,6 +59,28 @@ pick up a `covariant_class M M (function.swap (*)) (≤)` instance without it (s
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (swap (*)) (≤) :=
 covariant_swap_mul_le_of_covariant_mul_le M
+
+/- This is not an instance, to avoid creating a loop in the type-class system: in a
+`left_cancel_semigroup` with a `partial_order`, assuming `covariant_class M M (*) (≤)`
+implies `covariant_class M M (*) (<)` . -/
+@[to_additive] lemma has_mul.to_covariant_class_left
+  (M : Type*) [has_mul M] [linear_order M] [covariant_class M M (*) (<)] :
+  covariant_class M M (*) (≤) :=
+{ elim := λ a b c bc, by
+  { rcases eq_or_lt_of_le bc with rfl | bc,
+    { exact rfl.le },
+    { exact (mul_lt_mul_left' bc a).le } } }
+
+/- This is not an instance, to avoid creating a loop in the type-class system: in a
+`right_cancel_semigroup` with a `partial_order`, assuming `covariant_class M M (swap (*)) (<)`
+implies `covariant_class M M (swap (*)) (≤)` . -/
+@[to_additive] lemma has_mul.to_covariant_class_right
+  (M : Type*) [has_mul M] [linear_order M] [covariant_class M M (swap (*)) (<)] :
+  covariant_class M M (swap (*)) (≤) :=
+{ elim := λ a b c bc, by
+  { rcases eq_or_lt_of_le bc with rfl | bc,
+    { exact rfl.le },
+    { exact (mul_lt_mul_right' bc a).le } } }
 
 end ordered_instances
 
@@ -248,7 +271,7 @@ elements are ≤ 1 and then 1 is the top element.
 /--
 If `0` is the least element in `α`, then `with_zero α` is an `ordered_add_comm_monoid`.
 -/
-def ordered_add_comm_monoid [ordered_add_comm_monoid α]
+protected def ordered_add_comm_monoid [ordered_add_comm_monoid α]
   (zero_le : ∀ a : α, 0 ≤ a) : ordered_add_comm_monoid (with_zero α) :=
 begin
   suffices, refine
@@ -258,7 +281,7 @@ begin
   { intros a b h c ca h₂,
     cases b with b,
     { rw le_antisymm h bot_le at h₂,
-      exact ⟨_, h₂, le_refl _⟩ },
+      exact ⟨_, h₂, le_rfl⟩ },
     cases a with a,
     { change c + 0 = some ca at h₂,
       simp at h₂, simp [h₂],
@@ -343,21 +366,26 @@ instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
   end,
   ..with_top.add_semigroup }
 
-instance [add_monoid α] : add_monoid (with_top α) :=
+instance [add_zero_class α] : add_zero_class (with_top α) :=
 { zero_add :=
   begin
     refine with_top.rec_top_coe _ _,
-    { simpa },
+    { simp },
     { intro,
       rw [←with_top.coe_zero, ←with_top.coe_add, zero_add] }
   end,
   add_zero :=
   begin
     refine with_top.rec_top_coe _ _,
-    { simpa },
+    { simp },
     { intro,
       rw [←with_top.coe_zero, ←with_top.coe_add, add_zero] }
   end,
+  ..with_top.has_zero,
+  ..with_top.has_add }
+
+instance [add_monoid α] : add_monoid (with_top α) :=
+{ ..with_top.add_zero_class,
   ..with_top.has_zero,
   ..with_top.add_semigroup }
 
@@ -402,8 +430,10 @@ namespace with_bot
 
 instance [has_zero α] : has_zero (with_bot α) := with_top.has_zero
 instance [has_one α] : has_one (with_bot α) := with_top.has_one
+instance [has_add α] : has_add (with_bot α) := with_top.has_add
 instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigroup
 instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
+instance [add_zero_class α] : add_zero_class (with_bot α) := with_top.add_zero_class
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_comm_monoid
 
@@ -456,6 +486,27 @@ by norm_cast
 with_top.add_eq_top
 
 end with_bot
+
+namespace with_zero
+
+local attribute [semireducible] with_zero
+variables [has_add α]
+
+/-- Making an additive monoid multiplicative then adding a zero is the same as adding a bottom
+element then making it multiplicative. -/
+def to_mul_bot : with_zero (multiplicative α) ≃* multiplicative (with_bot α) :=
+by exact mul_equiv.refl _
+
+@[simp] lemma to_mul_bot_zero :
+  to_mul_bot (0 : with_zero (multiplicative α)) = multiplicative.of_add ⊥ := rfl
+@[simp] lemma to_mul_bot_coe (x : multiplicative α) :
+  to_mul_bot ↑x = multiplicative.of_add (x.to_add : with_bot α) := rfl
+@[simp] lemma to_mul_bot_symm_bot :
+  to_mul_bot.symm (multiplicative.of_add (⊥ : with_bot α)) = 0 := rfl
+@[simp] lemma to_mul_bot_coe_of_add (x : α) :
+  to_mul_bot.symm (multiplicative.of_add (x : with_bot α)) = multiplicative.of_add x := rfl
+
+end with_zero
 
 /-- A canonically ordered additive monoid is an ordered commutative additive monoid
   in which the ordering coincides with the subtractibility relation,
@@ -998,6 +1049,46 @@ instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multi
 instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (additive α) :=
 { ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
+
+lemma with_zero.to_mul_bot_strict_mono [has_add α] [preorder α] :
+  strict_mono (@with_zero.to_mul_bot α _) :=
+λ x y, id
+
+@[simp] lemma with_zero.to_mul_bot_le [has_add α] [preorder α]
+  (a b : with_zero (multiplicative α)) :
+  with_zero.to_mul_bot a ≤ with_zero.to_mul_bot b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma with_zero.to_mul_bot_lt [has_add α] [preorder α]
+  (a b : with_zero (multiplicative α)) :
+  with_zero.to_mul_bot a < with_zero.to_mul_bot b ↔ a < b := iff.rfl
+
+namespace additive
+
+variables [preorder α]
+
+@[simp] lemma of_mul_le {a b : α} : of_mul a ≤ of_mul b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma of_mul_lt {a b : α} : of_mul a < of_mul b ↔ a < b := iff.rfl
+
+@[simp] lemma to_mul_le {a b : additive α} : to_mul a ≤ to_mul b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma to_mul_lt {a b : additive α} : to_mul a < to_mul b ↔ a < b := iff.rfl
+
+end additive
+
+namespace multiplicative
+
+variables [preorder α]
+
+@[simp] lemma of_add_le {a b : α} : of_add a ≤ of_add b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma of_add_lt {a b : α} : of_add a < of_add b ↔ a < b := iff.rfl
+
+@[simp] lemma to_add_le {a b : multiplicative α} : to_add a ≤ to_add b ↔ a ≤ b := iff.rfl
+
+@[simp] lemma to_add_lt {a b : multiplicative α} : to_add a < to_add b ↔ a < b := iff.rfl
+
+end multiplicative
 
 end type_tags
 

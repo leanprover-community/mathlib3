@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
-import category_theory.limits.shapes.zero
+import category_theory.limits.preserves.shapes.zero
 
 /-!
 # Kernels and cokernels
@@ -231,6 +231,28 @@ has_limit.iso_of_nat_iso (by simp[h])
 @[simp]
 lemma kernel_iso_of_eq_refl {h : f = f} : kernel_iso_of_eq h = iso.refl (kernel f) :=
 by { ext, simp [kernel_iso_of_eq], }
+
+@[simp, reassoc]
+lemma kernel_iso_of_eq_hom_comp_ι {f g : X ⟶ Y} [has_kernel f] [has_kernel g] (h : f = g) :
+  (kernel_iso_of_eq h).hom ≫ kernel.ι _ = kernel.ι _ :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma kernel_iso_of_eq_inv_comp_ι {f g : X ⟶ Y} [has_kernel f] [has_kernel g] (h : f = g) :
+  (kernel_iso_of_eq h).inv ≫ kernel.ι _ = kernel.ι _ :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma lift_comp_kernel_iso_of_eq_hom {Z} {f g : X ⟶ Y} [has_kernel f] [has_kernel g]
+  (h : f = g) (e : Z ⟶ X) (he) :
+  kernel.lift _ e he ≫ (kernel_iso_of_eq h).hom = kernel.lift _ e (by simp [← h, he]) :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma lift_comp_kernel_iso_of_eq_inv {Z} {f g : X ⟶ Y} [has_kernel f] [has_kernel g]
+  (h : f = g) (e : Z ⟶ X) (he) :
+  kernel.lift _ e he ≫ (kernel_iso_of_eq h).inv = kernel.lift _ e (by simp [h, he]) :=
+by { unfreezingI { induction h, simp } }
 
 @[simp]
 lemma kernel_iso_of_eq_trans {f g h : X ⟶ Y} [has_kernel f] [has_kernel g] [has_kernel h]
@@ -513,6 +535,28 @@ has_colimit.iso_of_nat_iso (by simp[h])
 @[simp]
 lemma cokernel_iso_of_eq_refl {h : f = f} : cokernel_iso_of_eq h = iso.refl (cokernel f) :=
 by { ext, simp [cokernel_iso_of_eq], }
+
+@[simp, reassoc]
+lemma π_comp_cokernel_iso_of_eq_hom {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g] (h : f = g) :
+  cokernel.π _ ≫ (cokernel_iso_of_eq h).hom = cokernel.π _ :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma π_comp_cokernel_iso_of_eq_inv {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g] (h : f = g) :
+  cokernel.π _ ≫ (cokernel_iso_of_eq h).inv = cokernel.π _ :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma cokernel_iso_of_eq_hom_comp_desc {Z} {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g]
+  (h : f = g) (e : Y ⟶ Z) (he) :
+  (cokernel_iso_of_eq h).hom ≫ cokernel.desc _ e he = cokernel.desc _ e (by simp [h, he]) :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma cokernel_iso_of_eq_inv_comp_desc {Z} {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g]
+  (h : f = g) (e : Y ⟶ Z) (he) :
+  (cokernel_iso_of_eq h).inv ≫ cokernel.desc _ e he = cokernel.desc _ e (by simp [← h, he]) :=
+by { unfreezingI { induction h, simp } }
 
 @[simp]
 lemma cokernel_iso_of_eq_trans {f g h : X ⟶ Y} [has_cokernel f] [has_cokernel g] [has_cokernel h]

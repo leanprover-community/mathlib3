@@ -125,6 +125,43 @@ begin
       { rw [exp_log hz] } } }
 end
 
+theorem geom_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
+  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
+  (∏ i in s, (z i) ^ (w i)) = x :=
+calc (∏ i in s, (z i) ^ (w i)) = ∏ i in s, x ^ w i :
+  begin
+    refine prod_congr rfl (λ i hi, _),
+    cases eq_or_ne (w i) 0 with h₀ h₀,
+    { rw [h₀, rpow_zero, rpow_zero] },
+    { rw hx i hi h₀ }
+  end
+... = x :
+  begin
+    rw [← rpow_sum_of_nonneg _ hw, hw', rpow_one],
+    have : (∑ i in s, w i) ≠ 0,
+    { rw hw', exact one_ne_zero },
+    obtain ⟨i, his, hi⟩ := exists_ne_zero_of_sum_ne_zero this,
+    rw ← hx i his hi,
+    exact hz i his
+  end
+
+theorem arith_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ)
+  (hw' : ∑ i in s, w i = 1) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
+  ∑ i in s, w i * z i = x :=
+calc ∑ i in s, w i * z i = ∑ i in s, w i * x :
+  begin
+    refine sum_congr rfl (λ i hi, _),
+    cases eq_or_ne (w i) 0 with hwi hwi,
+    { rw [hwi, zero_mul, zero_mul] },
+    { rw hx i hi hwi },
+  end
+... = x : by rw [←sum_mul, hw', one_mul]
+
+theorem geom_mean_eq_arith_mean_weighted_of_constant (w z : ι → ℝ) (x : ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
+  (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) (hx : ∀ i ∈ s, w i ≠ 0 → z i = x) :
+  (∏ i in s, (z i) ^ (w i)) = ∑ i in s, w i * z i :=
+by rw [geom_mean_weighted_of_constant, arith_mean_weighted_of_constant]; assumption
+
 end real
 
 namespace nnreal
@@ -303,11 +340,11 @@ begin
   let f' := λ i, (f i) / (∑ i in s, (f i) ^ p) ^ (1 / p),
   let g' := λ i, (g i) / (∑ i in s, (g i) ^ q) ^ (1 / q),
   suffices : ∑ i in s, f' i * g' i ≤ 1,
-  { simp_rw [f', g', div_mul_div, ← sum_div] at this,
+  { simp_rw [f', g', div_mul_div_comm₀, ← sum_div] at this,
     rwa [div_le_iff, one_mul] at this,
     refine mul_ne_zero _ _,
-    { rw [ne.def, rpow_eq_zero_iff, auto.not_and_eq], exact or.inl hF_zero, },
-    { rw [ne.def, rpow_eq_zero_iff, auto.not_and_eq], exact or.inl hG_zero, }, },
+    { rw [ne.def, rpow_eq_zero_iff, not_and_distrib], exact or.inl hF_zero, },
+    { rw [ne.def, rpow_eq_zero_iff, not_and_distrib], exact or.inl hG_zero, }, },
   refine inner_le_Lp_mul_Lp_of_norm_le_one s f' g' hpq (le_of_eq _) (le_of_eq _),
   { simp_rw [f', div_rpow, ← sum_div, ← rpow_mul, one_div, inv_mul_cancel hpq.ne_zero, rpow_one,
       div_self hF_zero], },

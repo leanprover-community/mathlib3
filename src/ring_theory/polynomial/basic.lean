@@ -251,6 +251,34 @@ begin
       true_and, nat.succ_lt_succ_iff.2 ha] }
 end
 
+lemma geom_sum_monic {n : ℕ} (hn : 0 < n) : (geom_sum (X : R[X]) n).monic :=
+begin
+  nontriviality R,
+  rw [geom_sum_def, monic.def, polynomial.leading_coeff, finset_sum_coeff],
+  simp_rw [coeff_X_pow, finset.sum_boole],
+  suffices :
+    ((finset.filter (eq ((finset.range n).sum (pow X)).nat_degree) (finset.range n)).card) = 1,
+  { rw [this, nat.cast_one] },
+  rw [finset.card_eq_one],
+  refine ⟨((finset.range n).sum (pow (X : R[X]))).nat_degree, finset.ext (λ a, ⟨λ ha, _, λ ha, _⟩)⟩,
+  { simp only [finset.mem_filter, finset.mem_range] at ha,
+    refine finset.mem_singleton.2 ha.2.symm },
+  { simp only [finset.mem_filter, finset.mem_range],
+    refine ⟨_, (finset.mem_singleton.1 ha).symm⟩,
+    rw [finset.mem_singleton.1 ha],
+    suffices : ((finset.range n).sum (pow (X : R[X]))).degree < n,
+    { rw [degree_eq_nat_degree] at this,
+      { exact with_bot.coe_lt_coe.mp this },
+      { intro h,
+        replace h := congr_arg (λ P : R[X], eval 0 P) h,
+        rw [← geom_sum_def] at h,
+        simpa [hn.ne'] using h } },
+    rw [← fin.sum_univ_eq_sum_range],
+    conv_lhs { congr, congr, skip, funext,
+      rw [← one_mul (X ^ ↑i), ← C_1] },
+    exact degree_sum_fin_lt _ }
+end
+
 section to_subring
 
 variables (p : R[X]) (T : subring R)

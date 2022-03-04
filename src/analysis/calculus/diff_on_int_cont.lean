@@ -3,12 +3,12 @@ Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import analysis.calculus.fderiv
+import analysis.calculus.deriv
 
 /-!
 -/
 
-open set filter
+open set filter metric
 open_locale topological_space
 
 variables (𝕜 : Type*) {E F G : Type*} [nondiscrete_normed_field 𝕜] [normed_group E]
@@ -39,7 +39,36 @@ lemma diff_on_int_cont_const {c : F} :
   diff_on_int_cont 𝕜 (λ x : E, c) s :=
 ⟨differentiable_on_const c, continuous_on_const⟩
 
+lemma differentiable_on.comp_diff_on_int_cont {g : G → E} {t : set G}
+  (hf : differentiable_on 𝕜 f s) (hg : diff_on_int_cont 𝕜 g t) (h : maps_to g t s) :
+  diff_on_int_cont 𝕜 (f ∘ g) t :=
+⟨hf.comp hg.differentiable_on $ h.mono_left interior_subset, hf.continuous_on.comp hg.2 h⟩
+
+lemma differentiable.comp_diff_on_int_cont {g : G → E} {t : set G}
+  (hf : differentiable 𝕜 f) (hg : diff_on_int_cont 𝕜 g t) :
+  diff_on_int_cont 𝕜 (f ∘ g) t :=
+hf.differentiable_on.comp_diff_on_int_cont hg (maps_to_image _ _)
+
 namespace diff_on_int_cont
+
+lemma comp {g : G → E} {t : set G} (hf : diff_on_int_cont 𝕜 f s) (hg : diff_on_int_cont 𝕜 g t)
+  (h : maps_to g t s) (h' : maps_to g (interior t) (interior s)) :
+  diff_on_int_cont 𝕜 (f ∘ g) t :=
+⟨hf.1.comp hg.1 h', hf.2.comp hg.2 h⟩
+
+lemma differentiable_on_ball {x : E} {r : ℝ} (h : diff_on_int_cont 𝕜 f (closed_ball x r)) :
+  differentiable_on 𝕜 f (ball x r) :=
+h.differentiable_on.mono ball_subset_interior_closed_ball
+
+lemma mk_ball [normed_space ℝ E] {x : E} {r : ℝ} (hd : differentiable_on 𝕜 f (ball x r))
+  (hc : continuous_on f (closed_ball x r)) : diff_on_int_cont 𝕜 f (closed_ball x r) :=
+begin
+  refine ⟨_, hc⟩,
+  rcases eq_or_ne r 0 with rfl|hr,
+  { rw [closed_ball_zero],
+    exact (subsingleton_singleton.mono interior_subset).differentiable_on },
+  { rwa interior_closed_ball x hr }
+end
 
 protected lemma differentiable_at (h : diff_on_int_cont 𝕜 f s) (hx : x ∈ interior s) :
   differentiable_at 𝕜 f x :=
@@ -92,5 +121,9 @@ lemma smul_const {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebr
   (hc : diff_on_int_cont 𝕜 c s) (y : F) :
   diff_on_int_cont 𝕜 (λ x, c x • y) s :=
 hc.smul diff_on_int_cont_const
+
+lemma inv {f : E → 𝕜} (hf : diff_on_int_cont 𝕜 f s) (h₀ : ∀ x ∈ s, f x ≠ 0) :
+  diff_on_int_cont 𝕜 f⁻¹ s :=
+_
 
 end diff_on_int_cont

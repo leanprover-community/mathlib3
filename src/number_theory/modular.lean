@@ -85,7 +85,7 @@ simp,
 end
 
 @[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
-  by {simp [denom, coe_GL_pos_coe_GL_coe_matrix, general_linear_group.coe_fn_eq_coe],}
+  by {simp,}
 
 end upper_half_plane_action
 

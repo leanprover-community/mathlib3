@@ -236,6 +236,4 @@ end coe_fn_instance
 
 end general_linear_group
 
-variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [linear_ordered_comm_ring R]
-
 end matrix

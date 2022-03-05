@@ -10,8 +10,8 @@ import category_theory.bicategory.basic
 
 An oplax functor `F` between bicategories `B` and `C` consists of
 * a function between objects `F.obj : B ⟶ C`,
-* a family of functions between 1-morphisms `F.map : (a ⟶ b) → (obj a ⟶ obj b)`,
-* a family of functions between 2-morphisms `F.map₂ : (f ⟶ g) → (map f ⟶ map g)`,
+* a family of functions between 1-morphisms `F.map : (a ⟶ b) → (F.obj a ⟶ F.obj b)`,
+* a family of functions between 2-morphisms `F.map₂ : (f ⟶ g) → (F.map f ⟶ F.map g)`,
 * a family of 2-morphisms `F.map_id a : F.map (𝟙 a) ⟶ 𝟙 (F.obj a)`,
 * a family of 2-morphisms `F.map_comp f g : F.map (f ≫ g) ⟶ F.map f ≫ F.map g`, and
 * certain consistency conditions on them.
@@ -130,16 +130,16 @@ map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) =
   map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ (map f) (map g) (map h)).hom
 
 /--
-An oplax functor `F` between bicategories `B` and `C` consists of functions between objects,
-1-morphisms, and 2-morphisms.
+An oplax functor `F` between bicategories `B` and `C` consists of a function between objects
+`F.obj`, a function between 1-morphisms `F.map`, and a function between 2-morphisms `F.map₂`.
 
-Unlike functors between categories, functions between 1-morphisms do not need to strictly commute
-with compositions, and do not need to strictly preserve the identity. Instead, there are
-specified 2-morphisms `F.map (𝟙 a) ⟶ 𝟙 (F.obj a)` and `F.map (f ≫ g) ⟶ F.map f ≫ F.map g`.
+Unlike functors between categories, `F.map` do not need to strictly commute with the composition,
+and do not need to strictly preserve the identity. Instead, there are specified 2-morphisms
+`F.map (𝟙 a) ⟶ 𝟙 (F.obj a)` and `F.map (f ≫ g) ⟶ F.map f ≫ F.map g`.
 
-Functions between 2-morphisms strictly commute with compositions and preserve the identity.
-They also preserve the associator, the left unitor, and the right unitor modulo some adjustments
-of domains and codomains of 2-morphisms.
+`F.map₂` strictly commute with compositions and preserve the identity. They also preserve the
+associator, the left unitor, and the right unitor modulo some adjustments of domains and codomains
+of 2-morphisms.
 -/
 structure oplax_functor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u₂) [bicategory.{w₂ v₂} C]
   extends prelax_functor B C :=
@@ -274,16 +274,16 @@ map₂ (α_ f g h).hom = (map_comp (f ≫ g) h).hom ≫ ((map_comp f g).hom ▷ 
   (α_ (map f) (map g) (map h)).hom ≫ (map f ◁ (map_comp g h).inv) ≫ (map_comp f (g ≫ h)).inv
 
 /--
-A pseudofunctor `F` between bicategories `B` and `C` consists of functions between objects,
-1-morphisms, and 2-morphisms.
+A pseudofunctor `F` between bicategories `B` and `C` consists of a function between objects
+`F.obj`, a function between 1-morphisms `F.map`, and a function between 2-morphisms `F.map₂`.
 
-Unlike functors between categories, functions between 1-morphisms do not need to strictly commute
-with compositions, and do not need to strictly preserve the identity. Instead, there are
-specified 2-isomorphisms `F.map (𝟙 a) ≅ 𝟙 (F.obj a)` and `F.map (f ≫ g) ≅ F.map f ≫ F.map g`.
+Unlike functors between categories, `F.map` do not need to strictly commute with the compositions,
+and do not need to strictly preserve the identity. Instead, there are specified 2-isomorphisms
+`F.map (𝟙 a) ≅ 𝟙 (F.obj a)` and `F.map (f ≫ g) ≅ F.map f ≫ F.map g`.
 
-Functions between 2-morphisms strictly commute with compositions and preserve the identity.
-They also preserve the associator, the left unitor, and the right unitor modulo some adjustments
-of domains and codomains of 2-morphisms.
+`F.map₂` strictly commute with compositions and preserve the identity. They also preserve the
+associator, the left unitor, and the right unitor modulo some adjustments of domains and codomains
+of 2-morphisms.
 -/
 structure pseudofunctor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u₂) [bicategory.{w₂ v₂} C]
   extends prelax_functor B C :=

@@ -364,27 +364,55 @@ theorem map_mul [has_mul β] [has_mul γ] {g : β → γ}
   (hg : ∀ x y, g (x * y) = g x * g y) (f₁ f₂ : α →ₛ β) : (f₁ * f₂).map g = f₁.map g * f₂.map g :=
 ext $ λ x, hg _ _
 
-@[to_additive] instance [monoid β] : monoid (α →ₛ β) :=
-function.injective.monoid (λ f, show α → β, from f) coe_injective coe_one coe_mul
+variables {K : Type*}
 
-@[to_additive] instance comm_monoid [comm_monoid β] : comm_monoid (α →ₛ β) :=
-function.injective.comm_monoid (λ f, show α → β, from f) coe_injective coe_one coe_mul
+instance [has_scalar K β] : has_scalar K (α →ₛ β) := ⟨λ k f, f.map ((•) k)⟩
+@[simp] lemma coe_smul [has_scalar K β] (c : K) (f : α →ₛ β) : ⇑(c • f) = c • f := rfl
+lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
+
+instance has_nat_pow [monoid β] : has_pow (α →ₛ β) ℕ := ⟨λ f n, f.map (^ n)⟩
+@[simp] lemma coe_pow [monoid β] (f : α →ₛ β) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
+lemma pow_apply [monoid β] (n : ℕ) (f : α →ₛ β) (a : α) : (f ^ n) a = f a ^ n := rfl
+
+instance has_int_pow [div_inv_monoid β] : has_pow (α →ₛ β) ℤ := ⟨λ f n, f.map (^ n)⟩
+@[simp] lemma coe_zpow [div_inv_monoid β] (f : α →ₛ β) (z : ℤ) : ⇑(f ^ z) = f ^ z := rfl
+lemma zpow_apply [div_inv_monoid β] (z : ℤ) (f : α →ₛ β) (a : α) : (f ^ z) a = f a ^ z := rfl
+
+-- TODO: work out how to generate these instances with `to_additive`, which gets confused by the
+-- argument order swap between `coe_smul` and `coe_pow`.
+section additive
+
+instance [add_monoid β] : add_monoid (α →ₛ β) :=
+function.injective.add_monoid (λ f, show α → β, from f) coe_injective coe_zero coe_add
+  (λ _ _, coe_smul _ _)
+
+instance [add_comm_monoid β] : add_comm_monoid (α →ₛ β) :=
+function.injective.add_comm_monoid (λ f, show α → β, from f) coe_injective coe_zero coe_add
+  (λ _ _, coe_smul _ _)
+
+instance [add_group β] : add_group (α →ₛ β) :=
+function.injective.add_group (λ f, show α → β, from f) coe_injective
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
+
+instance [add_comm_group β] : add_comm_group (α →ₛ β) :=
+function.injective.add_comm_group (λ f, show α → β, from f) coe_injective
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
+
+end additive
+
+@[to_additive] instance [monoid β] : monoid (α →ₛ β) :=
+function.injective.monoid (λ f, show α → β, from f) coe_injective coe_one coe_mul coe_pow
+
+@[to_additive] instance [comm_monoid β] : comm_monoid (α →ₛ β) :=
+function.injective.comm_monoid (λ f, show α → β, from f) coe_injective coe_one coe_mul coe_pow
 
 @[to_additive] instance [group β] : group (α →ₛ β) :=
 function.injective.group (λ f, show α → β, from f) coe_injective
-  coe_one coe_mul coe_inv coe_div
+  coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
 @[to_additive] instance [comm_group β] : comm_group (α →ₛ β) :=
 function.injective.comm_group (λ f, show α → β, from f) coe_injective
-  coe_one coe_mul coe_inv coe_div
-
-variables {K : Type*}
-
-instance [has_scalar K β] : has_scalar K (α →ₛ β) := ⟨λk f, f.map ((•) k)⟩
-
-@[simp] lemma coe_smul [has_scalar K β] (c : K) (f : α →ₛ β) : ⇑(c • f) = c • f := rfl
-
-lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
+  coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
 instance [semiring K] [add_comm_monoid β] [module K β] : module K (α →ₛ β) :=
 function.injective.module K ⟨λ f, show α → β, from f, coe_zero, coe_add⟩

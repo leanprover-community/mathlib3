@@ -395,21 +395,8 @@ begin
     { simp [indicator_of_not_mem hx] } },
   refine le_trans (snorm_mono this) _,
   rw snorm_indicator_const hs hp hp',
-  by_cases hμs : μ s = 0,
-  { rw [hμs, ennreal.zero_rpow_of_pos, mul_zero, mul_zero],
-    { exact le_rfl },
-    { rw one_div_pos,
-      exact ennreal.to_real_pos hp hp' } },
-  { rw [ennreal.mul_le_mul_right, real.nnnorm_of_nonneg hc, ennreal.coe_nnreal_eq],
-    { exact le_rfl },
-    { intro h,
-      obtain (h' | h') := ennreal.rpow_eq_zero_iff.1 h,
-      { exact hμs h'.1 },
-      { exact (measure_lt_top μ s).ne h'.1 } },
-    { intro h,
-      obtain (h' | h') := ennreal.rpow_eq_top_iff.1 h,
-      { exact hμs h'.1 },
-      { exact (measure_lt_top μ s).ne h'.1 } } }
+  refine ennreal.mul_le_mul (le_of_eq _) le_rfl,
+  rw [← of_real_norm_eq_coe_nnnorm, real.norm_eq_abs, abs_of_nonneg hc],
 end
 
 /-- A sequence of uniformly integrable functions which converges μ-a.e. converges in Lp. -/

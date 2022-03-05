@@ -512,7 +512,7 @@ begin
 end
 
 /-!
-`homotopy.mk_inductive` allows us to build a homotopy inductively,
+`homotopy.mk_inductive` allows us to build a homotopy of chain complexes inductively,
 so that as we construct each component, we have available the previous two components,
 and the fact that they satisfy the homotopy condition.
 
@@ -645,6 +645,19 @@ end
 
 end mk_inductive
 
+/-!
+`homotopy.mk_coinductive` allows us to build a homotopy of cochain complexes inductively,
+so that as we construct each component, we have available the previous two components,
+and the fact that they satisfy the homotopy condition.
+
+To simplify the situation, we only construct homotopies of the form `homotopy e 0`.
+`homotopy.equiv_sub_zero` can provide the general case.
+
+Notice however, that this construction does not have particularly good definitional properties:
+we have to insert `eq_to_hom` in several places.
+Hopefully this is okay in most applications, where we only need to have the existence of some
+homotopy.
+-/
 section mk_coinductive
 
 variables {P Q : cochain_complex V ℕ}
@@ -685,6 +698,18 @@ variables (e : P ⟶ Q)
 
 include comm_one comm_zero succ
 
+/--
+An auxiliary construction for `mk_coinductive`.
+
+Here we build by induction a family of diagrams,
+but don't require at the type level that these successive diagrams actually agree.
+They do in fact agree, and we then capture that at the type level (i.e. by constructing a homotopy)
+in `mk_coinductive`.
+
+At this stage, we don't check the homotopy condition in degree 0,
+because it "falls off the end", and is easier to treat using `X_next` and `X_prev`,
+which we do in `mk_inductive_aux₂`.
+-/
 @[simp, nolint unused_arguments]
 def mk_coinductive_aux₁ :
   Π n, Σ' (f : P.X (n+1) ⟶ Q.X n) (f' : P.X (n+2) ⟶ Q.X (n+1)),
@@ -700,6 +725,9 @@ section
 
 variable [has_zero_object V]
 
+/--
+An auxiliary construction for `mk_inductive`.
+-/
 @[simp]
 def mk_coinductive_aux₂ :
   Π n, Σ' (f : P.X n ⟶ Q.X_prev n) (f' : P.X_next n ⟶ Q.X n),
@@ -713,6 +741,16 @@ lemma mk_coinductive_aux₃ (i : ℕ) :
     = (P.X_next_iso rfl).hom ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ (i+1)).1 :=
 by rcases i with (_|_|i); { dsimp, simp, }
 
+/--
+A constructor for a `homotopy e 0`, for `e` a chain map between `ℕ`-indexed cochain complexes,
+working by induction.
+
+You need to provide the components of the homotopy in degrees 0 and 1,
+show that these satisfy the homotopy condition,
+and then give a construction of each component,
+and the fact that it satisfies the homotopy condition,
+using as an inductive hypothesis the data and homotopy condition for the previous two components.
+-/
 def mk_coinductive : homotopy e 0 :=
 { hom := λ i j, if h : j + 1 = i then
     (P.X_next_iso h).inv ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ j).2.1
@@ -873,4 +911,3 @@ def functor.map_homotopy_equiv (F : V ⥤ W) [F.additive] (h : homotopy_equiv C 
   end }
 
 end category_theory
-

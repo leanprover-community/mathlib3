@@ -382,6 +382,10 @@ begin
   { rw [dif_neg h, dif_neg (show (i : J) ≠ j, from λ h₂, h (h₂ ▸ i.2)), comp_zero] }
 end
 
+lemma biproduct.from_subtype_eq_lift [decidable_pred p] : biproduct.from_subtype f p =
+    biproduct.lift (λ j, if h : p j then biproduct.π (subtype.restrict f p) ⟨j, h⟩ else 0) :=
+biproduct.hom_ext _ _ (by simp)
+
 @[simp, reassoc]
 lemma biproduct.from_subtype_π_subtype (j : subtype p) :
   biproduct.from_subtype f p ≫ biproduct.π f j = biproduct.π (subtype.restrict f p) j :=
@@ -411,6 +415,10 @@ begin
       false.elim (h₁ (congr_arg subtype.val h₂)), rfl] },
   { rw [dif_neg h, dif_neg (show j ≠ i, from λ h₂, h (h₂.symm ▸ i.2)), zero_comp] }
 end
+
+lemma biproduct.to_subtype_eq_desc [decidable_pred p] : biproduct.to_subtype f p =
+  biproduct.desc (λ j, if h : p j then biproduct.ι (subtype.restrict f p) ⟨j, h⟩ else 0) :=
+biproduct.hom_ext' _ _ (by simp)
 
 @[simp, reassoc]
 lemma biproduct.ι_to_subtype_subtype (j : subtype p) :
@@ -459,7 +467,7 @@ fork.is_limit.mk' _ $ λ s,
 ⟨s.ι ≫ biproduct.to_subtype _ _,
  begin
    ext j,
-   rw [kernel_fork.ι_of_ι, category.assoc, category.assoc, 
+   rw [kernel_fork.ι_of_ι, category.assoc, category.assoc,
      biproduct.to_subtype_from_subtype_assoc, biproduct.map_π],
    rcases em (i = j) with (rfl|h),
    { rw [if_neg (not_not.2 rfl), comp_zero, comp_zero, kernel_fork.condition] },

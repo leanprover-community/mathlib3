@@ -8,15 +8,12 @@ import algebra.homology.exact
 import category_theory.types
 import category_theory.preadditive.projective
 import category_theory.limits.shapes.biproducts
-<<<<<<< HEAD
 
 /-!
 # Injective objects and categories with enough injectives
 
 An object `J` is injective iff every morphism into `J` can be obtained by extending a monomorphism.
 -/
-=======
->>>>>>> a408129e2c9a189a78e05be929be66bbb590949c
 
 noncomputable theory
 
@@ -162,14 +159,12 @@ instance {J : C} [injective J] : projective (opposite.op J) :=
   convert congr_arg quiver.hom.op (@comp_factor_thru C _ J _ _ _ f.unop e.unop _),
 end }
 
--- STOP HERE AND PR
-
 section enough_injectives
 variable [enough_injectives C]
 
 /--
 `injective.under X` provides an arbitrarily chosen injective object equipped with
-an monomorphism `projective.ι : X ⟶ injective.under X`.
+an monomorphism `injective.ι : X ⟶ injective.under X`.
 -/
 def under (X : C) : C :=
 (enough_injectives.presentation X).some.J
@@ -200,7 +195,7 @@ def syzygies : C := under (cokernel f)
 /--
 When `C` has enough injective,
 `injective.d f : Y ⟶ syzygies f` is the composition
-`π (kernel f) ≫ kernel.ι f`.
+`cokernel.π f ≫ ι (cokernel f)`.
 
 (When `C` is abelian, we have `exact f (injective.d f)`.)
 -/
@@ -217,21 +212,24 @@ section
 variables [has_zero_morphisms C] [has_images Cᵒᵖ] [has_equalizers Cᵒᵖ]
 
 /--
-Given a projective object `P` mapping via `h` into
-the middle object `R` of a pair of exact morphisms `f : Q ⟶ R` and `g : R ⟶ S`,
-such that `h ≫ g = 0`, there is a lift of `h` to `Q`.
+Given a pair of exact morphism `f : Q ⟶ R` and `g : R ⟶ S` and a map `h : R ⟶ J` to an injective
+object `J` such that `f ≫ h = 0`, then `g` descents to a map `S ⟶ J`. See below:
+
+```
+Q --- f --> R --- g --> S
+            |
+            | h
+            v
+            J
+```
 -/
 def exact.desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S) [exact g.op f.op]
   (w : f ≫ h = 0)  : S ⟶ J :=
 (exact.lift h.op g.op f.op (congr_arg quiver.hom.op w)).unop
 
-@[simp] lemma exact.desc_comp {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S)
+@[simp] lemma exact.comp_desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S)
   [exact g.op f.op] (w : f ≫ h = 0) : g ≫ exact.desc h f g w = h :=
-begin
-  have := congr_arg quiver.hom.unop (exact.lift_comp h.op g.op f.op (congr_arg quiver.hom.op w)),
-  simp only [quiver.hom.unop_op] at this,
-  convert this,
-end
+by convert congr_arg quiver.hom.unop (exact.lift_comp h.op g.op f.op (congr_arg quiver.hom.op w))
 
 end
 

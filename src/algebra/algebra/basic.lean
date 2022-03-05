@@ -593,6 +593,12 @@ def mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : A →ₐ[
 
 @[simp] lemma coe_mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : ⇑(mk' f h) = f := rfl
 
+def of_comp_eq (f : A →+* B) (h : f.comp (algebra_map R A) = algebra_map R B) : A →ₐ[R] B :=
+mk' f (λ c x, by { rw [algebra.smul_def, algebra.smul_def, f.map_mul, ← h], refl })
+
+@[simp] lemma coe_of_comp_eq (f : A →+* B) (h : f.comp (algebra_map R A) = algebra_map R B) :
+  ⇑(of_comp_eq f h) = f := rfl
+
 section
 
 variables (R A)

@@ -101,6 +101,11 @@ variables {f}
 
 instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 
+@[ext] lemma alg_hom_ext [semiring S] [algebra R S] {g₁ g₂ : adjoin_root f →ₐ[R] S}
+  (h : g₁ (root f) = g₂ (root f)) : g₁ = g₂ :=
+alg_hom.coe_ring_hom_injective (ideal.quotient.ring_hom_ext
+  (polynomial.ring_hom_ext (λ r, by erw [alg_hom.commutes, alg_hom.commutes]) h))
+
 @[simp] lemma mk_eq_mk {g h : R[X]} : mk f g = mk f h ↔ f ∣ g - h :=
 ideal.quotient.eq.trans ideal.mem_span_singleton
 
@@ -191,6 +196,13 @@ lift_root hfx
 
 @[simp] lemma lift_hom_of {x : R} : lift_hom f a hfx (of f x) = algebra_map _ _ x :=
 lift_of hfx
+
+section adjoin_inv
+
+@[simp] lemma root_is_inv (r : R) : of _ r * root (C r * X - 1) = 1 :=
+by { have := eval₂_root (C r * X - 1), revert this, simp [eval₂_sub, ← sub_eq_zero] }
+
+end adjoin_inv
 
 end comm_ring
 

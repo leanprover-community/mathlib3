@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
 import ring_theory.localization.basic
+import ring_theory.adjoin_root
 
 /-!
 # Localizations away from an element
@@ -43,6 +44,9 @@ variables [is_localization.away x S]
 /-- Given `x : R` and a localization map `F : R →+* S` away from `x`, `inv_self` is `(F x)⁻¹`. -/
 noncomputable def inv_self : S :=
 mk' S (1 : R) ⟨x, submonoid.mem_powers _⟩
+
+@[simp] lemma mul_inv_self : algebra_map R S x * inv_self x = 1 :=
+by { convert is_localization.mk'_mul_mk'_eq_one _ 1, symmetry, apply is_localization.mk'_one }
 
 variables {g : R →+* P}
 
@@ -147,5 +151,34 @@ noncomputable
 abbreviation away_map (f : R →+* P) (r : R) :
   localization.away r →+* localization.away (f r) :=
 is_localization.away.map _ _ f r
+
+open polynomial adjoin_root
+
+@[simps]
+noncomputable def away_to_adjoin (r : R) : away r →ₐ[R] adjoin_root (C r * X - 1) :=
+alg_hom.of_comp_eq
+  (away_lift (of (C r * X - 1)) r (is_unit_of_mul_eq_one _ (root _) (root_is_inv r)))
+  (away.away_map.lift_comp _ _)
+
+@[simps]
+noncomputable def adjoin_to_away (r : R) : adjoin_root (C r * X - 1) →ₐ[R] away r :=
+alg_hom.of_comp_eq (adjoin_root.lift (algebra_map R (away r)) (is_localization.away.inv_self r)
+  (by simp)) (lift_comp_of _)
+
+@[simp] lemma away_to_adjoin_app_inv (r : R) :
+  away_to_adjoin r (is_localization.away.inv_self r) = root _ :=
+begin
+  apply inv_unique _ (root_is_inv r),
+  have : of _ r = away_to_adjoin r (algebra_map R _ r), simp,
+  rw [this, ← _root_.map_mul], simp,
+end
+
+noncomputable def away_equiv_adjoin (r : R) : away r ≃ₐ[R] adjoin_root (C r * X - 1) :=
+alg_equiv.of_alg_hom (away_to_adjoin r) (adjoin_to_away r)
+  (alg_hom_ext (by simp))
+  (alg_hom.coe_ring_hom_injective (is_localization.ring_hom_ext (submonoid.powers r) (by simp)))
+
+instance adjoin_is_localization (r : R) : is_localization.away r (adjoin_root (C r * X - 1)) :=
+is_localization.is_localization_of_alg_equiv _ (away_equiv_adjoin r)
 
 end localization

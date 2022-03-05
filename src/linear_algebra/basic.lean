@@ -2378,9 +2378,7 @@ open _root_.linear_map
 
 /-- Multiplying by a unit `a` of the ring `R` is a linear equivalence. -/
 def smul_of_unit (a : Rˣ) : M ≃ₗ[R] M :=
-of_linear ((a:R) • 1 : M →ₗ[R] M) (((a⁻¹ : Rˣ) : R) • 1 : M →ₗ[R] M)
-  (by rw [smul_comp, comp_smul, smul_smul, units.mul_inv, one_smul]; refl)
-  (by rw [smul_comp, comp_smul, smul_smul, units.inv_mul, one_smul]; refl)
+distrib_mul_action.to_linear_equiv R M a
 
 /-- A linear isomorphism between the domains and codomains of two spaces of linear maps gives a
 linear isomorphism between the two function spaces. -/

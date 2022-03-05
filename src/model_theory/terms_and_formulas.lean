@@ -43,7 +43,7 @@ variables (L : language.{u v})
 variables {M : Type w} {N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
 variables {α : Type u'} {β : Type v'}
 open_locale first_order
-open Structure
+open Structure fin
 
 /-- A term on `α` is either a variable indexed by an element of `α`
   or a function symbol applied to simpler terms. -/
@@ -64,8 +64,8 @@ namespace term
 instance [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
-instance : has_coe L.const (L.term α) :=
-⟨λ c, func c fin_zero_elim⟩
+instance : has_coe L.constants (L.term α) :=
+⟨λ c, func c default⟩
 
 /-- A term `t` with variables indexed by `α` can be evaluated by giving a value to each variable. -/
 @[simp] def realize (v : α → M) :
@@ -80,6 +80,16 @@ begin
   { refl, },
   { simp [ih] }
 end
+
+/-- Raises all of the `fin`-indexed variables of a term greater than or equal to `m` by `n'`. -/
+def lift_at {n : ℕ} (n' m : ℕ) : L.term (α ⊕ fin n) → L.term (α ⊕ fin (n + n')) :=
+relabel (sum.map id (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i))
+
+@[simp] lemma realize_lift_at {n n' m : ℕ} {t : L.term (α ⊕ fin n)}
+  {v : (α ⊕ fin (n + n')) → M} :
+  (t.lift_at n' m).realize v = t.realize (v ∘
+    (sum.map id (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i))) :=
+realize_relabel
 
 end term
 
@@ -181,6 +191,15 @@ begin
   { exact ha ih3 }
 end
 
+/-- Casts `L.bounded_formula α m` as `L.bounded_formula α n`, where `m = n`. -/
+def cast : ∀ {m n : ℕ} (h : m = n), L.bounded_formula α m → L.bounded_formula α n
+| m n h falsum := falsum
+| m n h (equal t₁ t₂) := (t₁.relabel (sum.map id (fin.cast h))).bd_equal
+    (t₂.relabel (sum.map id (fin.cast h)))
+| m n h (rel R ts) := R.bounded_formula (term.relabel (sum.map id (fin.cast h)) ∘ ts)
+| m n h (imp f₁ f₂) := (f₁.cast h).imp (f₂.cast h)
+| m n h (all f) := (f.cast (congr rfl h)).all
+
 /-- A function to help relabel the variables in bounded formulas. -/
 def relabel_aux (g : α → (β ⊕ fin n)) (k : ℕ) :
   α ⊕ fin k → β ⊕ fin (n + k) :=
@@ -189,7 +208,7 @@ def relabel_aux (g : α → (β ⊕ fin n)) (k : ℕ) :
 @[simp] lemma sum_elim_comp_relabel_aux {m : ℕ} {g : α → (β ⊕ fin n)}
   {v : β → M} {xs : fin (n + m) → M} :
   sum.elim v xs ∘ relabel_aux g m =
-    sum.elim (sum.elim v (xs ∘ (fin.cast_add m)) ∘ g) (xs ∘ (fin.nat_add n)) :=
+    sum.elim (sum.elim v (xs ∘ (cast_add m)) ∘ g) (xs ∘ (nat_add n)) :=
 begin
   ext x,
   cases x,
@@ -218,6 +237,14 @@ def exs : ∀ {n}, L.bounded_formula α n → L.formula α
 | 0 φ := φ
 | (n + 1) φ := φ.ex.exs
 
+/-- Raises all of the `fin`-indexed variables of a formula greater than or equal to `m` by `n'`. -/
+def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_formula α (n + n')
+| n n' m falsum := falsum
+| n n' m (equal t₁ t₂) := (t₁.lift_at n' m).bd_equal (t₂.lift_at n' m)
+| n n' m (rel R ts) := R.bounded_formula (term.lift_at n' m ∘ ts)
+| n n' m (imp f₁ f₂) := (f₁.lift_at n' m).imp (f₂.lift_at n' m)
+| n n' m (all f) := ((f.lift_at n' m).cast (by rw [add_assoc, add_comm 1, ← add_assoc])).all
+
 /-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
 def realize :
   ∀ {l} (f : L.bounded_formula α l) (v : α → M) (xs : fin l → M), Prop
@@ -225,7 +252,7 @@ def realize :
 | _ (equal t₁ t₂) v xs := t₁.realize (sum.elim v xs) = t₂.realize (sum.elim v xs)
 | _ (rel R ts)    v xs := rel_map R (λ i, (ts i).realize (sum.elim v xs))
 | _ (imp f₁ f₂)   v xs := realize f₁ v xs → realize f₂ v xs
-| _ (all f)       v xs := ∀(x : M), realize f v (fin.snoc xs x)
+| _ (all f)       v xs := ∀(x : M), realize f v (snoc xs x)
 
 variables {l : ℕ} {φ ψ : L.bounded_formula α l} {θ : L.bounded_formula α l.succ}
 variables {v : α → M} {xs : fin l → M}
@@ -275,6 +302,24 @@ end
 @[simp] lemma realize_iff : (φ.iff ψ).realize v xs ↔ (φ.realize v xs ↔ ψ.realize v xs) :=
 by simp only [bounded_formula.iff, realize_inf, realize_imp, and_imp, ← iff_def]
 
+@[simp] lemma realize_cast {m n : ℕ} {h : m = n} {φ : L.bounded_formula α m}
+  {v : α → M} {xs : fin n → M} :
+  (φ.cast h).realize v xs ↔ φ.realize v (xs ∘ fin.cast h) :=
+begin
+  revert n,
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 k _ ih3; intros n h xs,
+  { simp [cast, realize] },
+  { simp only [cast, realize, realize_bd_equal, term.realize_relabel, sum.elim_comp_map,
+      function.comp.right_id], },
+  { simp only [cast, realize, realize_rel, term.realize_relabel, sum.elim_comp_map,
+      function.comp.right_id] },
+  { simp only [cast, realize, ih1, ih2] },
+  { simp only [cast, realize, ih3],
+    refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (last_cases _ (λ i, _))))),
+    { rw [function.comp_app, snoc_last, cast_last, snoc_last] },
+    { rw [function.comp_app, snoc_cast_succ, cast_cast_succ, snoc_cast_succ] } }
+end
+
 lemma realize_relabel {m n : ℕ}
   {φ : L.bounded_formula α n} {g : α → (β ⊕ fin m)} {v : β → M} {xs : fin (m + n) → M} :
   (φ.relabel g).realize v xs ↔
@@ -294,6 +339,7 @@ begin
       { exact (dif_neg (λ h', h (nat.lt_of_add_lt_add_left h'))).trans (dif_neg h).symm } } }
 end
 
+<<<<<<< HEAD
 namespace sum
 
 @[simp] lemma elim_comp_map {α β γ δ ε : Sort*} (f : α → β) (g : γ → δ) (f' : β → ε) (g' : δ → ε) :
@@ -427,6 +473,66 @@ begin
     exact h.all },
   { intros _ _ h,
     exact h.ex }
+=======
+lemma realize_lift_at {n n' m : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin (n + n') → M} (hmn : m + n' ≤ n + 1) :
+  (φ.lift_at n' m).realize v xs ↔ φ.realize v (xs ∘
+    (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i)) :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 k _ ih3,
+  { simp [lift_at, realize] },
+  { simp only [lift_at, realize, realize_bd_equal, realize_lift_at, sum.elim_comp_map,
+      function.comp.right_id] },
+  { simp only [lift_at, realize, realize_rel, realize_lift_at, sum.elim_comp_map,
+      function.comp.right_id] },
+  { simp only [lift_at, realize, ih1 hmn, ih2 hmn], },
+  { simp only [lift_at, realize, realize_cast, ih3 (hmn.trans k.succ.le_succ)],
+    refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (fin.last_cases _ (λ i, _))))),
+    { simp only [function.comp_app, coe_last, snoc_last],
+      by_cases (k < m),
+      { rw if_pos h,
+        refine (congr rfl (ext _)).trans (snoc_last _ _),
+        simp only [coe_cast, coe_cast_add, coe_last, self_eq_add_right],
+        refine le_antisymm (le_of_add_le_add_left ((hmn.trans (nat.succ_le_of_lt h)).trans _))
+          n'.zero_le,
+        rw add_zero },
+      { rw if_neg h,
+        refine (congr rfl (ext _)).trans (snoc_last _ _),
+        simp } },
+    { simp only [function.comp_app, fin.snoc_cast_succ],
+      refine (congr rfl (ext _)).trans (snoc_cast_succ _ _ _),
+      simp only [cast_refl, coe_cast_succ, order_iso.coe_refl, id.def],
+      split_ifs;
+      simp } }
+end
+
+lemma realize_lift_at_one {n m : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin (n + 1) → M} (hmn : m ≤ n) :
+  (φ.lift_at 1 m).realize v xs ↔ φ.realize v (xs ∘
+    (λ i, if ↑i < m then cast_succ i else i.succ)) :=
+by simp_rw [realize_lift_at (add_le_add_right hmn 1), cast_succ, add_nat_one]
+
+@[simp] lemma realize_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin (n + 1) → M} :
+  (φ.lift_at 1 n).realize v xs ↔ φ.realize v (xs ∘ cast_succ) :=
+begin
+  rw [realize_lift_at_one (refl n), iff_eq_eq],
+  refine congr rfl (congr rfl (funext (λ i, _))),
+  rw [if_pos i.is_lt],
+end
+
+lemma realize_all_lift_at_one_self [nonempty M] {n : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin n → M} :
+  (φ.lift_at 1 n).all.realize v xs ↔ φ.realize v xs :=
+begin
+  inhabit M,
+  simp only [realize_all, realize_lift_at_one_self],
+  refine ⟨λ h, _, λ h a, _⟩,
+  { refine (congr rfl (funext (λ i, _))).mp (h default),
+    simp, },
+  { refine (congr rfl (funext (λ i, _))).mp h,
+    simp }
+>>>>>>> origin/lift_term_at
 end
 
 end bounded_formula
@@ -438,7 +544,7 @@ namespace formula
 
 /-- Relabels a formula's variables along a particular function. -/
 def relabel (g : α → β) : L.formula α → L.formula β :=
-bounded_formula.relabel (sum.inl ∘ g)
+@bounded_formula.relabel _ _ _ 0 (sum.inl ∘ g) 0
 
 /-- The graph of a function as a first-order formula. -/
 def graph (f : L.functions n) : L.formula (fin (n + 1)) :=
@@ -774,6 +880,10 @@ lemma sup_semantically_equivalent_not_inf_not :
 lemma inf_semantically_equivalent_not_sup_not :
   T.semantically_equivalent (φ ⊓ ψ) (φ.not ⊔ ψ.not).not :=
 λ M ne str v xs hM, by simp [and_iff_not_or_not]
+
+lemma semantically_equivalent_all_lift_at :
+  T.semantically_equivalent φ (φ.lift_at 1 n).all :=
+λ M ne str v xs hM, by { resetI, rw [realize_iff, realize_all_lift_at_one_self] }
 
 end bounded_formula
 

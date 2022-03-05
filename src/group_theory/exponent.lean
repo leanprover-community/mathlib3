@@ -64,13 +64,17 @@ if h : exponent_exists G then nat.find h else 0
 variable {G}
 
 @[to_additive]
-lemma exponent_eq_zero_iff : exponent G = 0 ↔ ¬ exponent_exists G :=
+lemma exponent_exists_iff_ne_zero : exponent_exists G ↔ exponent G ≠ 0 :=
 begin
   rw [exponent],
   split_ifs,
   { simp [h, @not_lt_zero' ℕ] }, --if this isn't done this way, `to_additive` freaks
-  { tauto }
+  { tauto },
 end
+
+@[to_additive]
+lemma exponent_eq_zero_iff : exponent G = 0 ↔ ¬ exponent_exists G := 
+by simp only [exponent_exists_iff_ne_zero, not_not]
 
 @[to_additive]
 lemma exponent_eq_zero_of_order_zero {g : G} (hg : order_of g = 0) : exponent G = 0 :=

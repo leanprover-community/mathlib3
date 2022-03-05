@@ -243,6 +243,10 @@ def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
 
 @[simp, norm_cast] lemma coe_last (n : ℕ) : (last n : ℕ) = n := rfl
 
+@[simp] lemma cast_last {n' : ℕ} {h : n + 1 = n' + 1} :
+  cast h (last m) = last n :=
+ext (by simp only [coe_cast, coe_last, nat.succ_injective h])
+
 lemma last_val (n : ℕ) : (last n).val = n := rfl
 
 theorem le_last (i : fin (n+1)) : i ≤ last n :=
@@ -667,6 +671,10 @@ def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
 
 @[simp] lemma cast_succ_mk (n i : ℕ) (h : i < n) : cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ := rfl
 
+@[simp] lemma cast_cast_succ {n' : ℕ} {h : n + 1 = n' + 1} {i : fin n} :
+  cast h (cast_succ i) = cast_succ (cast (nat.succ_injective h) i) :=
+by { ext, simp only [coe_cast, coe_cast_succ] }
+
 lemma cast_succ_lt_succ (i : fin n) : i.cast_succ < i.succ :=
 lt_iff_coe_lt_coe.2 $ by simp only [coe_cast_succ, coe_succ, nat.lt_succ_self]
 
@@ -752,6 +760,9 @@ order_embedding.of_strict_mono (λ i, ⟨(i : ℕ) + m, add_lt_add_right i.2 _�
   λ i j h, lt_iff_coe_lt_coe.2 $ add_lt_add_right h _
 
 @[simp] lemma coe_add_nat (m : ℕ) (i : fin n) : (add_nat m i : ℕ) = i + m := rfl
+
+@[simp] lemma add_nat_one {i : fin n} : add_nat 1 i = i.succ :=
+by { ext, rw [coe_add_nat, coe_succ] }
 
 lemma le_coe_add_nat (m : ℕ) (i : fin n) : m ≤ add_nat m i := nat.le_add_left _ _
 

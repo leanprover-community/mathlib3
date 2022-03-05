@@ -5,7 +5,7 @@ Authors: Kexing Ying
 -/
 import group_theory.submonoid.pointwise
 import group_theory.submonoid.membership
-import group_theory.submonoid.center
+import group_theory.submonoid.centralizer
 import algebra.group.conj
 import algebra.module.basic
 import order.atoms
@@ -1383,6 +1383,9 @@ def _root_.group.comm_group_of_center_eq_top (h : center G = ⊤) : comm_group G
   .. (_ : group G) }
 
 variables {G} (H)
+
+section normalizer
+
 /-- The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal. -/
 @[to_additive "The `normalizer` of `H` is the largest subgroup of `G` inside which `H` is normal."]
 def normalizer : subgroup G :=
@@ -1494,6 +1497,30 @@ variable (H)
 lemma normalizer_condition.normal_of_coatom
   (hnc : normalizer_condition G) (hmax : is_coatom H) : H.normal :=
 normalizer_eq_top.mp (hmax.2 _ (hnc H (lt_top_iff_ne_top.mpr hmax.1)))
+
+end normalizer
+
+section centralizer
+
+/-- The `centralizer` of `H` is the subgroup of `g : G` commuting with every `h : H`. -/
+@[to_additive "The `centralizer` of `H` is the additive subgroup of `g : G` commuting with
+every `h : H`."]
+def centralizer : subgroup G :=
+{ carrier := set.centralizer H,
+  inv_mem' := λ g, set.inv_mem_centralizer,
+  .. submonoid.centralizer ↑H }
+
+@[to_additive] lemma mem_centralizer_iff {g : G} : g ∈ H.centralizer ↔ ∀ h ∈ H, h * g = g * h :=
+iff.rfl
+
+@[to_additive] lemma mem_centralizer_iff_commutator_eq_one {g : G} :
+  g ∈ H.centralizer ↔ ∀ h ∈ H, h * g * h⁻¹ * g⁻¹ = 1 :=
+by simp only [mem_centralizer_iff, mul_inv_eq_iff_eq_mul, one_mul]
+
+@[to_additive] lemma centralizer_top : centralizer ⊤ = center G :=
+set_like.ext' (set.centralizer_univ G)
+
+end centralizer
 
 /-- Commutivity of a subgroup -/
 structure is_commutative : Prop :=

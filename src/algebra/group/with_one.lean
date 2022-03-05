@@ -5,6 +5,8 @@ Authors: Mario Carneiro, Johan Commelin
 -/
 import algebra.ring.basic
 import data.equiv.basic
+import data.equiv.mul_add
+import data.equiv.option
 
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures
@@ -19,7 +21,7 @@ information about these structures (which are not that standard in informal math
 -/
 
 universes u v w
-variable {α : Type u}
+variables {α : Type u} {β : Type v} {γ : Type w}
 
 /-- Add an extra element `1` to a type -/
 @[to_additive "Add an extra element `0` to a type"]
@@ -114,7 +116,7 @@ end
 
 section lift
 
-variables [has_mul α] {β : Type v} [mul_one_class β]
+variables [has_mul α] [mul_one_class β]
 
 /-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism. -/
 @[to_additive "Lift an add_semigroup homomorphism `f` to a bundled add_monoid homorphism."]
@@ -144,9 +146,11 @@ theorem lift_unique (f : with_one α →* β) : f = lift (f.to_mul_hom.comp coe_
 
 end lift
 
+attribute [irreducible] with_one
+
 section map
 
-variables {β : Type v} [has_mul α] [has_mul β]
+variables [has_mul α] [has_mul β] [has_mul γ]
 
 /-- Given a multiplicative map from `α → β` returns a monoid homomorphism
   from `with_one α` to `with_one β` -/
@@ -155,18 +159,46 @@ variables {β : Type v} [has_mul α] [has_mul β]
 def map (f : mul_hom α β) : with_one α →* with_one β :=
 lift (coe_mul_hom.comp f)
 
+@[simp, to_additive] lemma map_coe (f : mul_hom α β) (a : α) : map f (a : with_one α) = f a :=
+lift_coe _ _
+
 @[simp, to_additive]
 lemma map_id : map (mul_hom.id α) = monoid_hom.id (with_one α) :=
-by { ext, cases x; refl }
+by { ext, induction x using with_one.cases_on; refl }
+
+@[to_additive]
+lemma map_map (f : mul_hom α β) (g : mul_hom β γ) (x) :
+  map g (map f x) = map (g.comp f) x :=
+by { induction x using with_one.cases_on; refl }
 
 @[simp, to_additive]
-lemma map_comp {γ : Type w} [has_mul γ] (f : mul_hom α β) (g : mul_hom β γ) :
-map (g.comp f) = (map g).comp (map f) :=
-by { ext, cases x; refl }
+lemma map_comp (f : mul_hom α β) (g : mul_hom β γ) :
+  map (g.comp f) = (map g).comp (map f) :=
+monoid_hom.ext $ λ x, (map_map f g x).symm
+
+/-- A version of `equiv.option_congr` for `with_one`. -/
+@[to_additive "A version of `equiv.option_congr` for `with_zero`.", simps apply]
+def _root_.mul_equiv.with_one_congr (e : α ≃* β) : with_one α ≃* with_one β :=
+{ to_fun := map e.to_mul_hom,
+  inv_fun := map e.symm.to_mul_hom,
+  left_inv := λ x, (map_map _ _ _).trans $ by induction x using with_one.cases_on; { simp },
+  right_inv := λ x, (map_map _ _ _).trans $ by induction x using with_one.cases_on; { simp },
+  .. map e.to_mul_hom }
+
+@[simp]
+lemma _root_.mul_equiv.with_one_congr_refl : (mul_equiv.refl α).with_one_congr = mul_equiv.refl _ :=
+mul_equiv.to_monoid_hom_injective map_id
+
+@[simp]
+lemma _root_.mul_equiv.with_one_congr_symm (e : α ≃* β) :
+  e.with_one_congr.symm = e.symm.with_one_congr := rfl
+
+@[simp]
+lemma _root_.mul_equiv.with_one_congr_trans (e₁ : α ≃* β) (e₂ : β ≃* γ) :
+  e₁.with_one_congr.trans e₂.with_one_congr = (e₁.trans e₂).with_one_congr :=
+mul_equiv.to_monoid_hom_injective (map_comp _ _).symm
 
 end map
-
-attribute [irreducible] with_one
 
 @[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := rfl

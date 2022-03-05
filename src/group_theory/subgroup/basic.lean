@@ -1166,7 +1166,7 @@ end
 @[simp]
 lemma single_mem_pi [decidable_eq η] {I : set η} {H : Π i, subgroup (f i)}
   (i : η) (x : f i) :
-  monoid_hom.single f i x ∈ pi I H ↔ (i ∈ I → x ∈ H i) :=
+  pi.mul_single i x ∈ pi I H ↔ (i ∈ I → x ∈ H i) :=
 begin
   split,
   { intros h hi, simpa using h i hi, },

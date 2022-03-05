@@ -8,12 +8,15 @@ import algebra.homology.exact
 import category_theory.types
 import category_theory.preadditive.projective
 import category_theory.limits.shapes.biproducts
+<<<<<<< HEAD
 
 /-!
 # Injective objects and categories with enough injectives
 
 An object `J` is injective iff every morphism into `J` can be obtained by extending a monomorphism.
 -/
+=======
+>>>>>>> a408129e2c9a189a78e05be929be66bbb590949c
 
 noncomputable theory
 
@@ -158,6 +161,79 @@ instance {J : C} [injective J] : projective (opposite.op J) :=
   refine ⟨(@factor_thru C _ J _ _ _ f.unop e.unop _).op, _⟩,
   convert congr_arg quiver.hom.op (@comp_factor_thru C _ J _ _ _ f.unop e.unop _),
 end }
+
+-- STOP HERE AND PR
+
+section enough_injectives
+variable [enough_injectives C]
+
+/--
+`injective.under X` provides an arbitrarily chosen injective object equipped with
+an monomorphism `projective.ι : X ⟶ injective.under X`.
+-/
+def under (X : C) : C :=
+(enough_injectives.presentation X).some.J
+
+instance injective_under (X : C) : injective (under X) :=
+(enough_injectives.presentation X).some.injective
+
+/--
+The monomorphism `injective.ι : X ⟶ injective.under X`
+from the arbitrarily chosen injective object under `X`.
+-/
+def ι (X : C) : X ⟶ under X :=
+(enough_injectives.presentation X).some.f
+
+instance ι_mono (X : C) : mono (ι X) :=
+(enough_injectives.presentation X).some.mono
+
+section
+variables [has_zero_morphisms C] {X Y : C} (f : X ⟶ Y) [has_cokernel f]
+
+/--
+When `C` has enough injectives, the object `injective.syzygies f` is
+an arbitrarily chosen injective object under `cokernel f`.
+-/
+@[derive injective]
+def syzygies : C := under (cokernel f)
+
+/--
+When `C` has enough injective,
+`injective.d f : Y ⟶ syzygies f` is the composition
+`π (kernel f) ≫ kernel.ι f`.
+
+(When `C` is abelian, we have `exact f (injective.d f)`.)
+-/
+abbreviation d : Y ⟶ syzygies f :=
+cokernel.π f ≫ ι (cokernel f)
+
+end
+
+end enough_injectives
+
+open injective
+
+section
+variables [has_zero_morphisms C] [has_images Cᵒᵖ] [has_equalizers Cᵒᵖ]
+
+/--
+Given a projective object `P` mapping via `h` into
+the middle object `R` of a pair of exact morphisms `f : Q ⟶ R` and `g : R ⟶ S`,
+such that `h ≫ g = 0`, there is a lift of `h` to `Q`.
+-/
+def exact.desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S) [exact g.op f.op]
+  (w : f ≫ h = 0)  : S ⟶ J :=
+(exact.lift h.op g.op f.op (congr_arg quiver.hom.op w)).unop
+
+@[simp] lemma exact.desc_comp {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S)
+  [exact g.op f.op] (w : f ≫ h = 0) : g ≫ exact.desc h f g w = h :=
+begin
+  have := congr_arg quiver.hom.unop (exact.lift_comp h.op g.op f.op (congr_arg quiver.hom.op w)),
+  simp only [quiver.hom.unop_op] at this,
+  convert this,
+end
+
+end
 
 end injective
 

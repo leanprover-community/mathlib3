@@ -558,17 +558,14 @@ variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
 { add := λ f g,
-    bounded_continuous_function.mk_of_bound (f.to_continuous_map + g.to_continuous_map)
-    (↑(has_lipschitz_add.C β) * max (classical.some f.bounded) (classical.some g.bounded))
-    begin
-      intros x y,
-      refine le_trans (lipschitz_with_lipschitz_const_add ⟨f x, g x⟩ ⟨f y, g y⟩) _,
-      rw prod.dist_eq,
-      refine mul_le_mul_of_nonneg_left _ (has_lipschitz_add.C β).coe_nonneg,
-      apply max_le_max,
-      exact classical.some_spec f.bounded x y,
-      exact classical.some_spec g.bounded x y,
-    end }
+  { to_continuous_map := f.to_continuous_map + g.to_continuous_map,
+    map_bounded' := let ⟨fb, hfb⟩ := f.bounded, ⟨gb, hgb⟩ := g.bounded in
+      ⟨↑(has_lipschitz_add.C β) * max fb gb, λ x y, begin
+        refine le_trans (lipschitz_with_lipschitz_const_add ⟨f x, g x⟩ ⟨f y, g y⟩) _,
+        rw prod.dist_eq,
+        refine mul_le_mul_of_nonneg_left _ (has_lipschitz_add.C β).coe_nonneg,
+        exact max_le_max (hfb x y) (hgb x y),
+      end⟩ } }
 
 @[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
@@ -579,7 +576,20 @@ lemma add_apply : (f + g) x = f x + g x := rfl
 lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
   (g + f).comp_continuous h = g.comp_continuous h + f.comp_continuous h := rfl
 
-instance : add_monoid (α →ᵇ β) := fun_like.coe_injective.add_monoid _ coe_zero coe_add
+@[simp] lemma coe_nsmul_rec : ∀ n, ⇑(nsmul_rec n f) = n • f
+| 0 := by rw [nsmul_rec, zero_smul, coe_zero]
+| (n + 1) := by rw [nsmul_rec, succ_nsmul, coe_add, coe_nsmul_rec]
+
+instance has_nat_scalar : has_scalar ℕ (α →ᵇ β) :=
+{ smul := λ n f,
+  { to_continuous_map := n • f.to_continuous_map,
+    map_bounded' := by simpa [coe_nsmul_rec] using (nsmul_rec n f).map_bounded' } }
+
+@[simp] lemma coe_nsmul (r : ℕ) (f : α →ᵇ β) : ⇑(r • f) = r • f := rfl
+@[simp] lemma nsmul_apply (r : ℕ) (f : α →ᵇ β) (v : α) : (r • f) v = r • f v := rfl
+
+instance : add_monoid (α →ᵇ β) :=
+fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
 
 instance : has_lipschitz_add (α →ᵇ β) :=
 { lipschitz_add := ⟨has_lipschitz_add.C β, begin
@@ -788,8 +798,21 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
 @[simp] lemma mk_of_compact_sub [compact_space α] (f g : C(α, β)) :
   mk_of_compact (f - g) = mk_of_compact f - mk_of_compact g := rfl
 
+@[simp] lemma coe_zsmul_rec : ∀ z, ⇑(zsmul_rec z f) = z • f
+| (int.of_nat n) := by rw [zsmul_rec, int.of_nat_eq_coe, coe_nsmul_rec, coe_nat_zsmul]
+| -[1+ n] := by rw [zsmul_rec, zsmul_neg_succ_of_nat, coe_neg, coe_nsmul_rec]
+
+instance has_int_scalar : has_scalar ℤ (α →ᵇ β) :=
+{ smul := λ n f,
+  { to_continuous_map := n • f.to_continuous_map,
+    map_bounded' := by simpa using (zsmul_rec n f).map_bounded' } }
+
+@[simp] lemma coe_zsmul (r : ℤ) (f : α →ᵇ β) : ⇑(r • f) = r • f := rfl
+@[simp] lemma zsmul_apply (r : ℤ) (f : α →ᵇ β) (v : α) : (r • f) v = r • f v := rfl
+
 instance : add_comm_group (α →ᵇ β) :=
-fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _)
+  (λ _ _, coe_zsmul _ _)
 
 instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }

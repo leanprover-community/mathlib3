@@ -120,15 +120,15 @@ begin
   { rw mem_ℒp_one_iff_integrable at hf,
     exact hf.norm.2 },
   have := tendsto_lintegral_norm_of_dominated_convergence hmeas hbound _ htendsto,
-  { rw ennreal.tendsto_at_top ennreal.zero_ne_top at this,
-    { obtain ⟨M, hM⟩ := this (ennreal.of_real ε) (ennreal.of_real_pos.2 hε),
-      simp only [true_and, ge_iff_le, zero_tsub, zero_le,
-                sub_zero, zero_add, coe_nnnorm, mem_Icc] at hM,
-      refine ⟨M, _⟩,
-      convert hM M le_rfl,
-      ext1 x,
-      simp only [coe_nnnorm, ennreal.of_real_eq_coe_nnreal (norm_nonneg _)],
-      refl },
+  { rw ennreal.tendsto_at_top_zero at this,
+    obtain ⟨M, hM⟩ := this (ennreal.of_real ε) (ennreal.of_real_pos.2 hε),
+    simp only [true_and, ge_iff_le, zero_tsub, zero_le,
+              sub_zero, zero_add, coe_nnnorm, mem_Icc] at hM,
+    refine ⟨M, _⟩,
+    convert hM M le_rfl,
+    ext1 x,
+    simp only [coe_nnnorm, ennreal.of_real_eq_coe_nnreal (norm_nonneg _)],
+    refl },
     { apply_instance } },
   { refine λ n, univ_mem' (id $ λ x, _),
     by_cases hx : (n : ℝ) ≤ ∥f x∥,
@@ -174,6 +174,23 @@ begin
   exact measurable_set_le measurable_const hmeas.nnnorm.subtype_coe,
 end
 
+lemma mem_ℒp.norm_rpow {m : measurable_space α} {μ : measure α}
+  (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
+  mem_ℒp (λ (x : α), ∥f x∥ ^ p.to_real) 1 μ :=
+begin
+  refine ⟨hf.1.norm.pow_const _, _⟩,
+  have := hf.snorm_ne_top,
+  rw snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top at this,
+  rw snorm_one_eq_lintegral_nnnorm,
+  convert ennreal.rpow_lt_top_of_nonneg (@ennreal.to_real_nonneg p) this,
+  rw [← ennreal.rpow_mul, one_div_mul_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm,
+      ennreal.rpow_one],
+  congr,
+  ext1 x,
+  rw [ennreal.coe_rpow_of_nonneg _ ennreal.to_real_nonneg, real.nnnorm_of_nonneg],
+  congr
+end
+
 /- This lemma is slightly weaker than `measure_theory.mem_ℒp.snorm_indicator_ge_le_pos` as the
 latter provides `0 < M`. -/
 lemma mem_ℒp.snorm_indicator_ge_le'
@@ -189,45 +206,33 @@ begin
     refine ⟨M, _⟩,
     simp only [snorm_exponent_top, hM, zero_le] },
   obtain ⟨M, hM', hM⟩ := @mem_ℒp.integral_indicator_ge_le _ _ _ μ _ _ _ _
-    (λ x, ∥f x∥^p.to_real) _ _ _ (real.rpow_pos_of_pos hε p.to_real),
-  { refine ⟨M ^(1 / p.to_real), _⟩,
-    rw [snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top,
-        ← ennreal.rpow_one (ennreal.of_real ε)],
-    conv_rhs { rw ← mul_one_div_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm },
-    rw [ennreal.rpow_mul,
-        ennreal.rpow_le_rpow_iff (one_div_pos.2 $ ennreal.to_real_pos hp_ne_zero hp_ne_top),
-        ennreal.of_real_rpow_of_pos hε],
-    convert hM,
-    ext1 x,
-    rw [ennreal.coe_rpow_of_nonneg _ ennreal.to_real_nonneg,
-        nnnorm_indicator_eq_indicator_nnnorm, nnnorm_indicator_eq_indicator_nnnorm],
-    have hiff : M ^ (1 / p.to_real) ≤ ∥f x∥₊ ↔ M ≤ ∥∥f x∥ ^ p.to_real∥₊,
-    { rw [coe_nnnorm, coe_nnnorm, real.norm_rpow_of_nonneg (norm_nonneg _), norm_norm,
-          ← real.rpow_le_rpow_iff hM' (real.rpow_nonneg_of_nonneg (norm_nonneg _) _)
-          (one_div_pos.2 $ ennreal.to_real_pos hp_ne_zero hp_ne_top),
-          ← real.rpow_mul (norm_nonneg _),
-          mul_one_div_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm, real.rpow_one] },
-    by_cases hx : x ∈ {x : α | M ^ (1 / p.to_real) ≤ ∥f x∥₊},
-    { rw [set.indicator_of_mem hx,set.indicator_of_mem, real.nnnorm_of_nonneg], refl,
-      change _ ≤ _,
-      rwa ← hiff },
-    { rw [set.indicator_of_not_mem hx, set.indicator_of_not_mem],
-      { simp [(ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm] },
-      { change ¬ _ ≤ _,
-        rwa ← hiff } } },
-  { have := hf.snorm_lt_top,
-    rw snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top at this,
-    rw mem_ℒp_one_iff_integrable,
-    refine ⟨hf.1.norm.pow_const _, _⟩,
-    rw has_finite_integral,
-    convert ennreal.rpow_lt_top_of_nonneg (@ennreal.to_real_nonneg p) this.ne,
-    rw [← ennreal.rpow_mul, one_div_mul_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm,
-        ennreal.rpow_one],
-    congr,
-    ext1 x,
-    rw [ennreal.coe_rpow_of_nonneg _ ennreal.to_real_nonneg, real.nnnorm_of_nonneg],
-    congr },
-  { exact hmeas.norm.pow_const _ }
+    (λ x, ∥f x∥^p.to_real) (hf.norm_rpow hp_ne_zero hp_ne_top) (hmeas.norm.pow_const _) _
+    (real.rpow_pos_of_pos hε p.to_real),
+  refine ⟨M ^(1 / p.to_real), _⟩,
+  rw [snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top,
+      ← ennreal.rpow_one (ennreal.of_real ε)],
+  conv_rhs { rw ← mul_one_div_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm },
+  rw [ennreal.rpow_mul,
+      ennreal.rpow_le_rpow_iff (one_div_pos.2 $ ennreal.to_real_pos hp_ne_zero hp_ne_top),
+      ennreal.of_real_rpow_of_pos hε],
+  convert hM,
+  ext1 x,
+  rw [ennreal.coe_rpow_of_nonneg _ ennreal.to_real_nonneg,
+      nnnorm_indicator_eq_indicator_nnnorm, nnnorm_indicator_eq_indicator_nnnorm],
+  have hiff : M ^ (1 / p.to_real) ≤ ∥f x∥₊ ↔ M ≤ ∥∥f x∥ ^ p.to_real∥₊,
+  { rw [coe_nnnorm, coe_nnnorm, real.norm_rpow_of_nonneg (norm_nonneg _), norm_norm,
+        ← real.rpow_le_rpow_iff hM' (real.rpow_nonneg_of_nonneg (norm_nonneg _) _)
+        (one_div_pos.2 $ ennreal.to_real_pos hp_ne_zero hp_ne_top),
+        ← real.rpow_mul (norm_nonneg _),
+        mul_one_div_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm, real.rpow_one] },
+  by_cases hx : x ∈ {x : α | M ^ (1 / p.to_real) ≤ ∥f x∥₊},
+  { rw [set.indicator_of_mem hx,set.indicator_of_mem, real.nnnorm_of_nonneg], refl,
+    change _ ≤ _,
+    rwa ← hiff },
+  { rw [set.indicator_of_not_mem hx, set.indicator_of_not_mem],
+    { simp [(ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm] },
+    { change ¬ _ ≤ _,
+      rwa ← hiff } }
 end
 
 /-- This lemma implies that a single function is uniformly integrable (in the probability sense). -/
@@ -434,8 +439,7 @@ lemma tendsto_Lp_of_tendsto_ae {mβ : measurable_space β}
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
 begin
-  rw ennreal.tendsto_at_top ennreal.zero_ne_top,
-  swap, apply_instance,
+  rw ennreal.tendsto_at_top_zero,
   intros ε hε,
   by_cases ε < ∞,
   { by_cases hμ : μ = 0,

@@ -57,6 +57,24 @@ begin
     apply _root_.le_antisymm; { apply nat.find_mono, norm_cast, simp } }
 end
 
+example (a b : ℤ) : a ∣ b ↔ a ∣ b.nat_abs := int.dvd_nat_abs.symm
+
+theorem quoi (a b : ℕ) :
+    multiplicity a (b : ℤ).nat_abs = multiplicity (a : ℤ) (b : ℤ) :=
+begin
+  apply part.ext',
+  { repeat { rw [← finite_iff_dom, finite_def] },
+    norm_cast },
+  { intros h1 h2,
+    apply _root_.le_antisymm; { apply nat.find_mono, norm_cast, simp } }
+end
+
+theorem int.nat_abs (a : ℕ) (b : ℤ) :
+    multiplicity a b.nat_abs = multiplicity (a : ℤ) b :=
+begin
+  sorry,
+end
+
 lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n ∣ b :=
 ⟨λ h n, nat.cases_on n (by { rw pow_zero, exact one_dvd _ }) (by simpa [finite, not_not] using h),
   by simp [finite, multiplicity, not_not]; tauto⟩
@@ -224,9 +242,9 @@ lemma dvd_iff_multiplicity_pos {a b : α} : (0 : enat) < multiplicity a b ↔ a 
       by simpa only [heq, nat.cast_zero] using enat.coe_lt_coe.mpr zero_lt_one)
     (by rwa pow_one a))⟩
 
-lemma finite_nat_iff {a b : ℕ} : finite a b ↔ (a ≠ 1 ∧ 0 < b) :=
+lemma finite_nat_iff {a b : ℕ} : finite a b ↔ (a ≠ 1 ∧ b ≠ 0) :=
 begin
-  rw [← not_iff_not, not_finite_iff_forall, not_and_distrib, ne.def,
+  rw [←pos_iff_ne_zero, ← not_iff_not, not_finite_iff_forall, not_and_distrib, ne.def,
     not_not, not_lt, nat.le_zero_iff],
   exact ⟨λ h, or_iff_not_imp_right.2 (λ hb,
     have ha : a ≠ 0, from λ ha, by simpa [ha] using h 1,

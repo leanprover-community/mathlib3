@@ -506,6 +506,19 @@ lemma mul_mem_mul [has_mul α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb 
   ma * mb ∈ a * b := by tidy
 
 @[to_additive]
+lemma left_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
+  a.dom := by tidy
+
+@[to_additive]
+lemma right_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
+  b.dom := by tidy
+
+@[to_additive, simp]
+lemma mul_get_eq [has_mul α] (a b : part α) (hab : dom (a * b)) :
+  (a * b).get hab = a.get (left_dom_of_mul_dom hab) * b.get (right_dom_of_mul_dom hab) :=
+by tidy
+
+@[to_additive]
 lemma some_mul_some [has_mul α] (a b : α) : some a * some b = some (a * b) := by tidy
 
 @[to_additive]
@@ -519,30 +532,98 @@ lemma div_mem_div [has_div α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb 
   ma / mb ∈ a / b := by tidy
 
 @[to_additive]
+lemma left_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
+  a.dom := by tidy
+
+@[to_additive]
+lemma right_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
+  b.dom := by tidy
+
+@[to_additive, simp]
+lemma div_get_eq [has_div α] (a b : part α) (hab : dom (a / b)) :
+  (a / b).get hab = a.get (left_dom_of_div_dom hab) / b.get (right_dom_of_div_dom hab) :=
+by tidy
+
+@[to_additive]
 lemma some_div_some [has_div α] (a b : α) : some a / some b = some (a / b) := by tidy
 
 lemma mod_mem_mod [has_mod α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
   ma % mb ∈ a % b := by tidy
+
+lemma left_dom_of_mod_dom [has_mod α] {a b : part α} (hab : dom (a % b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_mod_dom [has_mod α] {a b : part α} (hab : dom (a % b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma mod_get_eq [has_mod α] (a b : part α) (hab : dom (a % b)) :
+  (a % b).get hab = a.get (left_dom_of_mod_dom hab) % b.get (right_dom_of_mod_dom hab) :=
+by tidy
 
 lemma some_mod_some [has_mod α] (a b : α) : some a % some b = some (a % b) := by tidy
 
 lemma append_mem_append [has_append α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
   ma ++ mb ∈ a ++ b := by tidy
 
+lemma left_dom_of_append_dom [has_append α] {a b : part α} (hab : dom (a ++ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_append_dom [has_append α] {a b : part α} (hab : dom (a ++ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma append_get_eq [has_append α] (a b : part α) (hab : dom (a ++ b)) :
+  (a ++ b).get hab = a.get (left_dom_of_append_dom hab) ++ b.get (right_dom_of_append_dom hab) :=
+by tidy
+
 lemma some_append_some [has_append α] (a b : α) : some a ++ some b = some (a ++ b) := by tidy
 
 lemma inter_mem_inter [has_inter α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
   ma ∩ mb ∈ a ∩ b := by tidy
+
+lemma left_dom_of_inter_dom [has_inter α] {a b : part α} (hab : dom (a ∩ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_inter_dom [has_inter α] {a b : part α} (hab : dom (a ∩ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma inter_get_eq [has_inter α] (a b : part α) (hab : dom (a ∩ b)) :
+  (a ∩ b).get hab = a.get (left_dom_of_inter_dom hab) ∩ b.get (right_dom_of_inter_dom hab) :=
+by tidy
 
 lemma some_inter_some [has_inter α] (a b : α) : some a ∩ some b = some (a ∩ b) := by tidy
 
 lemma union_mem_union [has_union α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
   ma ∪ mb ∈ a ∪ b := by tidy
 
+lemma left_dom_of_union_dom [has_union α] {a b : part α} (hab : dom (a ∪ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_union_dom [has_union α] {a b : part α} (hab : dom (a ∪ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma union_get_eq [has_union α] (a b : part α) (hab : dom (a ∪ b)) :
+  (a ∪ b).get hab = a.get (left_dom_of_union_dom hab) ∪ b.get (right_dom_of_union_dom hab) :=
+by tidy
+
 lemma some_union_some [has_union α] (a b : α) : some a ∪ some b = some (a ∪ b) := by tidy
 
 lemma sdiff_mem_sdiff [has_sdiff α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
   ma \ mb ∈ a \ b := by tidy
+
+lemma left_dom_of_sdiff_dom [has_sdiff α] {a b : part α} (hab : dom (a \ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_sdiff_dom [has_sdiff α] {a b : part α} (hab : dom (a \ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma sdiff_get_eq [has_sdiff α] (a b : part α) (hab : dom (a \ b)) :
+  (a \ b).get hab = a.get (left_dom_of_sdiff_dom hab) \ b.get (right_dom_of_sdiff_dom hab) :=
+by tidy
 
 lemma some_sdiff_some [has_sdiff α] (a b : α) : some a \ some b = some (a \ b) := by tidy
 

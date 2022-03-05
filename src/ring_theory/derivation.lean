@@ -57,7 +57,8 @@ instance : add_monoid_hom_class (derivation R A M) A M :=
   map_add := λ D, D.to_linear_map.map_add',
   map_zero := λ D, D.to_linear_map.map_zero }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (derivation R A M) (λ _, A → M) := ⟨λ D, D.to_linear_map.to_fun⟩
 
 -- Not a simp lemma because it can be proved via `coe_fn_coe` + `to_linear_map_eq_coe`

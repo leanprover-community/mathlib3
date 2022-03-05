@@ -724,8 +724,7 @@ def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order �
 /-- The cardinal of an ordinal is the cardinal of any
   set with that order type. -/
 def card (o : ordinal) : cardinal :=
-quot.lift_on o (λ ⟨α, r, _⟩, #α) $
-λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
+quot.lift_on o (λ a, #a.α) $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
 
 @[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] :
   card (type r) = #α := rfl
@@ -1064,6 +1063,16 @@ by rw [←not_lt, typein_lt_typein]
 lemma enum_le_enum (r : α → α → Prop) [is_well_order α r] {o o' : ordinal}
   (ho : o < type r) (ho' : o' < type r) : ¬r (enum r o' ho') (enum r o ho) ↔ o ≤ o' :=
 by rw [←@not_lt _ _ o' o, enum_lt ho']
+
+theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
+  (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=
+⟨λ h, begin
+  by_contra hne,
+  cases lt_or_gt_of_ne hne with hlt hlt;
+    apply (is_well_order.is_irrefl r).1,
+    { rwa [←@enum_lt α r _ o₁ o₂ h₁ h₂, h] at hlt },
+    { change _ < _ at hlt, rwa [←@enum_lt α r _ o₂ o₁ h₂ h₁, h] at hlt }
+end, λ h, by simp_rw h⟩
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/

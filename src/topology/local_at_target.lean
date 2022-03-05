@@ -8,11 +8,12 @@ variables {α β : Type*} [topological_space α] [topological_space β] (f : α 
 variables {s : set β} {ι : Type*} (U : ι → opens β) (hU : supr U = ⊤)
 
 -- change this name (`set.restrict` and `set.cod_restrict` are taken)
+@[simps]
 def set.res {α β : Type*} (s : set β) (f : α → β) : f ⁻¹' s → s :=
 (set.maps_to_preimage f s).restrict _ _ _
 
-lemma continuous_at_res (s : opens β) (x : f ⁻¹' s)
-  (h : continuous_at f x) : continuous_at (s.1.res f) x :=
+lemma continuous_at_res (s : set β) (x : f ⁻¹' s)
+  (h : continuous_at f x) : continuous_at (s.res f) x :=
 begin
   intros U hU,
   obtain ⟨_, e, ⟨V, hV, rfl⟩, hx⟩ := mem_nhds_iff.mp hU,
@@ -25,6 +26,12 @@ begin
   apply e,
   exact e' hy
 end
+
+@[simps]
+def set.res_continuous {α β : Type*} [topological_space α] [topological_space β]
+  (f : C(α, β)) (s : set β) : C(f ⁻¹' s, s) :=
+⟨s.res f, by { rw continuous_iff_continuous_at, intro x,
+  apply continuous_at_res f s, exact f.2.continuous_at }⟩
 
 lemma map_nhds_of_open_embedding {f : α → β} (hf : open_embedding f) (a : α) :
   filter.map f (nhds a) = nhds (f a) :=

@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 import algebraic_geometry.morphisms.affine
 import ring_theory.local_properties
+import topology.local_at_target
 
 /-!
 # Properties of morphisms from properties of ring homs.
@@ -40,7 +41,8 @@ variable (P : ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R �
 instance {C : Type*} [category C] {X Y : Cᵒᵖ} (f : X ⟶ Y) [H : is_iso f] : is_iso f.unop :=
 @@is_iso_of_op _ f.unop H
 
-namespace ring_hom
+namespace algebraic_geometry
+
 
 lemma Scheme.is_iso_iff {X Y : Scheme} (f : X ⟶ Y) :
   is_iso f ↔ is_iso f.1.base ∧ is_iso f.1.c :=
@@ -71,10 +73,14 @@ begin
   { rintro ⟨h₁, h₂⟩,
     resetI,
     apply_with is_open_immersion.to_iso { instances := ff },
-    { apply_with is_open_immersion.of_stalk_iso { instances := ff },
+    { apply_with algebraic_geometry.is_open_immersion.of_stalk_iso { instances := ff },
       exacts [(Top.homeo_of_iso (as_iso f.1.base)).open_embedding, h₂] },
     { apply_instance } }
 end
+
+end algebraic_geometry
+
+namespace ring_hom
 
 include P
 
@@ -192,9 +198,6 @@ begin
   apply_instance
 end
 
-instance {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) [is_open_immersion f] :
-  is_open_immersion (f ∣_ U) := by { delta morphism_restrict, apply_instance }
-
 include P
 
 def affine_and : affine_target_morphism_property :=
@@ -288,12 +291,33 @@ begin
   exact ⟨hX, H _ hf⟩,
 end
 
-lemma target_affine_locally_is_iso :
-  target_affine_locally (λ X Y f _, is_iso f) = @is_iso Scheme _ :=
+lemma target_affine_locally_is_open_immersion {X Y : Scheme} (f : X ⟶ Y) :
+  tfae [is_open_immersion f,
+    ∃ (𝒰 : Scheme.open_cover.{u} Y), ∀ (i : 𝒰.J),
+      is_open_immersion (pullback.snd : (𝒰.pullback_cover f).obj i ⟶ 𝒰.obj i),
+    ∀ (𝒰 : Scheme.open_cover.{u} Y) (i : 𝒰.J),
+      is_open_immersion (pullback.snd : (𝒰.pullback_cover f).obj i ⟶ 𝒰.obj i),
+    ∀ (U : opens Y.carrier), is_open_immersion (f ∣_ U),
+    ∀ {U : Scheme} (g : U ⟶ Y) [is_open_immersion g],
+      is_open_immersion (pullback.snd : pullback f g ⟶ U)] :=
+begin
+  tfae_have : 1 → 4,
+  { intros H U, resetI, apply_instance },
+  tfae_have : 4 → 3,
+  { intros H 𝒰 i, }
+end
+
+lemma target_affine_locally_is_open_immersion :
+  target_affine_locally (λ X Y f _, is_open_immersion f) = @is_open_immersion :=
 begin
   ext X Y f,
   split,
-  { intro H, rw ring_hom.Scheme.is_iso_iff_stalk, sorry }, sorry
+  { intro H,
+    apply_with is_open_immersion.of_stalk_iso { instances := ff },
+    rw open_embedding_iff_open_embedding_res_of_supr_eq_top,
+
+
+   }, sorry
 end
 
 def source_affine_locally : affine_target_morphism_property :=

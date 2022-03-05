@@ -318,6 +318,26 @@ begin
         (H ⟨r, hr'⟩) } }
 end
 
+@[simps J obj map]
+def Scheme.open_cover_of_supr_eq_top {s : Type*} (X : Scheme) (U : s → opens X.carrier)
+  (hU : (⨆ i, U i) = ⊤) : X.open_cover :=
+{ J := s,
+  obj := λ i, X.restrict (U i).open_embedding,
+  map := λ i, X.of_restrict (U i).open_embedding,
+  f := λ x, begin
+    have : x ∈ ⨆ i, U i := hU.symm ▸ (show x ∈ (⊤ : opens X.carrier), by triv),
+    exact (opens.mem_supr.mp this).some,
+  end,
+  covers := λ x, begin
+    erw subtype.range_coe,
+    have : x ∈ ⨆ i, U i := hU.symm ▸ (show x ∈ (⊤ : opens X.carrier), by triv),
+    exact (opens.mem_supr.mp this).some_spec,
+  end }
+
+@[simps]
+def open_range {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] :
+  opens Y.carrier := ⟨set.range f.1.base, H.base_open.open_range⟩
+
 lemma affine_target_morphism_property.is_local.affine_open_cover_tfae
   {P : affine_target_morphism_property}
   (hP : P.is_local) {X Y : Scheme.{u}} (f : X ⟶ Y) :
@@ -327,7 +347,9 @@ lemma affine_target_morphism_property.is_local.affine_open_cover_tfae
     ∀ (𝒰 : Scheme.open_cover.{u} Y) [∀ i, is_affine (𝒰.obj i)] (i : 𝒰.J),
       by exactI P (pullback.snd : (𝒰.pullback_cover f).obj i ⟶ 𝒰.obj i),
     ∀ {U : Scheme} (g : U ⟶ Y) [is_affine U] [is_open_immersion g],
-      by exactI P (pullback.snd : pullback f g ⟶ U)] :=
+      by exactI P (pullback.snd : pullback f g ⟶ U),
+    ∃ {ι : Type u} (U : ι → opens Y.carrier) (hU : supr U = ⊤) (hU' : ∀ i, is_affine_open (U i)),
+      ∀ i, @@P (f ∣_ (U i)) (hU' i)] :=
 begin
   tfae_have : 1 → 4,
   { intros H U g h₁ h₂,
@@ -344,24 +366,23 @@ begin
   { exact λ H, ⟨Y.affine_cover, infer_instance, H Y.affine_cover⟩ },
   tfae_have : 2 → 1,
   { rintro ⟨𝒰, h𝒰, H⟩, exactI target_affine_locally_of_open_cover hP f 𝒰 H },
+  tfae_have : 5 → 2,
+  { rintro ⟨ι, U, hU, hU', H⟩,
+    refine ⟨Y.open_cover_of_supr_eq_top U hU, hU', _⟩,
+    intro i,
+    specialize H i,
+    rw [← P.to_property_apply, property_iff_of_is_open_immersion _ hP.respects_iso.to_property],
+    rw ← P.to_property_apply at H,
+    convert H,
+    all_goals { ext1, rw subtype.coe_mk, exact subtype.range_coe } },
+  tfae_have : 1 → 5,
+  { intro H,
+    refine ⟨Y.carrier, λ x, open_range (Y.affine_cover.map x), _,
+      λ i, range_is_affine_open_of_open_immersion _, _⟩,
+    { rw eq_top_iff, intros x _, erw opens.mem_supr, exact⟨x, Y.affine_cover.covers x⟩ },
+    { intro i, exact H ⟨_, range_is_affine_open_of_open_immersion _⟩ } },
   tfae_finish
 end
-
-@[simps J obj map]
-def Scheme.open_cover_of_supr_eq_top {s : Type*} (X : Scheme) (U : s → opens X.carrier)
-  (hU : (⨆ i, U i) = ⊤) : X.open_cover :=
-{ J := s,
-  obj := λ i, X.restrict (U i).open_embedding,
-  map := λ i, X.of_restrict (U i).open_embedding,
-  f := λ x, begin
-    have : x ∈ ⨆ i, U i := hU.symm ▸ (show x ∈ (⊤ : opens X.carrier), by triv),
-    exact (opens.mem_supr.mp this).some,
-  end,
-  covers := λ x, begin
-    erw subtype.range_coe,
-    have : x ∈ ⨆ i, U i := hU.symm ▸ (show x ∈ (⊤ : opens X.carrier), by triv),
-    exact (opens.mem_supr.mp this).some_spec,
-  end }
 
 lemma affine_target_morphism_property.is_local_of_open_cover_imply
   (P : affine_target_morphism_property) (hP : P.respects_iso)
@@ -394,6 +415,55 @@ begin
       rwa hP.cancel_left_is_iso at hs' } }
 end
 
+lemma open_cover_tfae_mk
+  {P : morphism_property}
+  (hP : respects_iso P)
+  (hP' : ∀ {X Y : Scheme.{u}} (f : X ⟶ Y) (𝒰 : Scheme.open_cover.{u} Y),
+    (∀ (i : 𝒰.J), P (pullback.snd : (𝒰.pullback_cover f).obj i ⟶ 𝒰.obj i)) → P f)
+  (hP'' : ∀ {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier), P f → P (f ∣_ U))
+  {X Y : Scheme.{u}} (f : X ⟶ Y) :
+  tfae [P f,
+    ∃ (𝒰 : Scheme.open_cover.{u} Y), ∀ (i : 𝒰.J),
+      P (pullback.snd : (𝒰.pullback_cover f).obj i ⟶ 𝒰.obj i),
+    ∀ (𝒰 : Scheme.open_cover.{u} Y) (i : 𝒰.J),
+      P (pullback.snd : (𝒰.pullback_cover f).obj i ⟶ 𝒰.obj i),
+    ∀ (U : opens Y.carrier), P (f ∣_ U),
+    ∀ {U : Scheme} (g : U ⟶ Y) [is_open_immersion g],
+      P (pullback.snd : pullback f g ⟶ U),
+    ∃ {ι : Type u} (U : ι → opens Y.carrier) (hU : supr U = ⊤), (∀ i, P (f ∣_ (U i)))] :=
+begin
+  tfae_have : 2 → 1,
+  { rintro ⟨𝒰, H⟩, exact hP' f 𝒰 H },
+  tfae_have : 1 → 4,
+  { intros H U, exact hP'' f U H },
+  tfae_have : 4 → 3,
+  { intros H 𝒰 i,
+    have := H ⟨_, (𝒰.is_open i).base_open.open_range⟩,
+    rw property_iff_of_is_open_immersion _ hP,
+    exact H ⟨_, (𝒰.is_open i).base_open.open_range⟩ },
+  tfae_have : 3 → 2,
+  { exact λ H, ⟨Y.affine_cover, H Y.affine_cover⟩ },
+  tfae_have : 4 → 5,
+  { intros H U g hg,
+    resetI,
+    rw property_iff_of_is_open_immersion _ hP,
+    apply H },
+  tfae_have : 5 → 4,
+  { intros H U,
+    erw hP.cancel_left_is_iso,
+    apply H },
+  tfae_have : 4 → 6,
+  { intro H, exact ⟨punit, λ _, ⊤, csupr_const, λ _, H _⟩ },
+  tfae_have : 6 → 2,
+  { rintro ⟨ι, U, hU, H⟩,
+    refine ⟨Y.open_cover_of_supr_eq_top U hU, _⟩,
+    intro i,
+    rw property_iff_of_is_open_immersion _ hP,
+    convert H i,
+    all_goals { ext1, rw subtype.coe_mk, exact subtype.range_coe } },
+  tfae_finish
+end
+
 lemma affine_target_morphism_property.is_local.open_cover_tfae
   {P : affine_target_morphism_property}
   (hP : P.is_local) {X Y : Scheme.{u}} (f : X ⟶ Y) :
@@ -404,10 +474,13 @@ lemma affine_target_morphism_property.is_local.open_cover_tfae
       target_affine_locally P (pullback.snd : (𝒰.pullback_cover f).obj i ⟶ 𝒰.obj i),
     ∀ (U : opens Y.carrier), target_affine_locally P (f ∣_ U),
     ∀ {U : Scheme} (g : U ⟶ Y) [is_open_immersion g],
-      target_affine_locally P (pullback.snd : pullback f g ⟶ U)] :=
+      target_affine_locally P (pullback.snd : pullback f g ⟶ U),
+    ∃ {ι : Type u} (U : ι → opens Y.carrier) (hU : supr U = ⊤),
+      ∀ i, target_affine_locally P (f ∣_ (U i))] :=
 begin
-  tfae_have : 2 → 1,
-  { rintros ⟨𝒰, h𝒰⟩,
+  apply open_cover_tfae_mk,
+  { exact target_affine_locally_respects_iso hP.1 },
+  { rintros X Y f 𝒰 h𝒰,
     rw (hP.affine_open_cover_tfae f).out 0 1,
     refine ⟨𝒰.bind (λ _, Scheme.affine_cover _), _, _⟩,
     { intro i, dsimp [Scheme.open_cover.bind], apply_instance },
@@ -422,33 +495,16 @@ begin
       { refine (pullback_symmetry _ _).hom ≫ _,
         refine (pullback_right_pullback_fst_iso _ _ _).inv ≫ _,
         refine (pullback_symmetry _ _).hom ≫ _,
-        refine pullback.map _ _ _ _ (pullback_symmetry _ _).hom (𝟙 _) (𝟙 _) _ _; simp },
+        refine pullback.map _ _ _ _ (pullback_symmetry _ _).hom (𝟙 _) (𝟙 _) _ _;
+          simp only [category.comp_id, category.id_comp, pullback_symmetry_hom_comp_snd] },
       rw ← hP.1.cancel_left_is_iso e at h𝒰,
       convert h𝒰,
       simp } },
-  tfae_have : 1 → 4,
-  { intros H U V,
+  { intros X Y f U H V,
     rw [← P.to_property_apply, property_restrict_restrict_iff _ hP.1.to_property],
     convert H ⟨_, V.2.image_is_open_immersion (Y.of_restrict _)⟩,
     rw ← P.to_property_apply,
     refl },
-  tfae_have : 4 → 3,
-  { intros H 𝒰 i,
-    have := H ⟨_, (𝒰.is_open i).base_open.open_range⟩,
-    rw property_iff_of_is_open_immersion _ (target_affine_locally_respects_iso hP.1),
-    exact H ⟨_, (𝒰.is_open i).base_open.open_range⟩ },
-  tfae_have : 3 → 2,
-  { exact λ H, ⟨Y.affine_cover, H Y.affine_cover⟩ },
-  tfae_have : 4 → 5,
-  { intros H U g hg,
-    resetI,
-    rw property_iff_of_is_open_immersion _ (target_affine_locally_respects_iso hP.1),
-    apply H },
-  tfae_have : 5 → 4,
-  { intros H U,
-    erw (target_affine_locally_respects_iso hP.1).cancel_left_is_iso,
-    apply H },
-  tfae_finish
 end
 
 lemma affine_target_morphism_property.is_local.affine_open_cover_iff

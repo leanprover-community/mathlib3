@@ -22,6 +22,8 @@ true in more general settings.
   `cokernel.π = 0` iff `exact f 0`.
 * A faithful functor between abelian categories that preserves zero morphisms reflects exact
   sequences.
+* `X ⟶ Y ⟶ Z ⟶ 0` is exact if and only if the second map is a cokernel of the first, and
+  `0 ⟶ X ⟶ Y ⟶ Z` is exact if and only if the first map is a kernel of the second.
 
 -/
 
@@ -147,6 +149,38 @@ suffices h : cokernel.desc f g (by simp) =
   (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) (is_colimit_image f g)).hom
     ≫ image.ι g, by { rw h, apply mono_comp },
 (cancel_epi (cokernel.π f)).1 $ by simp
+
+/-- If `X ⟶ Y ⟶ Z ⟶ 0` is exact, then the second map is a cokernel of the first. -/
+def is_colimit_of_exact_of_epi [epi g] (h : exact f g) :
+  is_colimit (cokernel_cofork.of_π _ h.w) :=
+is_colimit.of_iso_colimit (colimit.is_colimit _) $ cocones.ext
+  ⟨cokernel.desc _ _ h.w, epi_desc g (cokernel.π f) ((exact_iff _ _).1 h).2,
+    (cancel_epi (cokernel.π f)).1 (by tidy), (cancel_epi g).1 (by tidy)⟩ (λ j, by cases j; simp)
+
+/-- If `0 ⟶ X ⟶ Y ⟶ Z` is exact, then the first map is a kernel of the second. -/
+def is_limit_of_exact_of_mono [mono f] (h : exact f g) :
+  is_limit (kernel_fork.of_ι _ h.w) :=
+is_limit.of_iso_limit (limit.is_limit _) $ cones.ext
+ ⟨mono_lift f (kernel.ι g) ((exact_iff _ _).1 h).2, kernel.lift _ _ h.w,
+  (cancel_mono (kernel.ι g)).1 (by tidy), (cancel_mono f).1 (by tidy)⟩ (λ j, by cases j; simp)
+
+lemma exact_of_is_cokernel (w : f ≫ g = 0)
+  (h : is_colimit (cokernel_cofork.of_π _ w)) : exact f g :=
+begin
+  refine (exact_iff _ _).2 ⟨w, _⟩,
+  have := h.fac (cokernel_cofork.of_π _ (cokernel.condition f)) walking_parallel_pair.one,
+  simp only [cofork.of_π_ι_app] at this,
+  rw [← this, ← category.assoc, kernel.condition, zero_comp]
+end
+
+lemma exact_of_is_kernel (w : f ≫ g = 0)
+  (h : is_limit (kernel_fork.of_ι _ w)) : exact f g :=
+begin
+  refine (exact_iff _ _).2 ⟨w, _⟩,
+  have := h.fac (kernel_fork.of_ι _ (kernel.condition g)) walking_parallel_pair.zero,
+  simp only [fork.of_ι_π_app] at this,
+  rw [← this, category.assoc, cokernel.condition, comp_zero]
+end
 
 section
 variables (Z)

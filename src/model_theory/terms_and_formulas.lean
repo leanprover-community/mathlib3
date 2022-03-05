@@ -339,14 +339,65 @@ begin
       { exact (dif_neg (λ h', h (nat.lt_of_add_lt_add_left h'))).trans (dif_neg h).symm } } }
 end
 
-<<<<<<< HEAD
-namespace sum
+lemma realize_lift_at {n n' m : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin (n + n') → M} (hmn : m + n' ≤ n + 1) :
+  (φ.lift_at n' m).realize v xs ↔ φ.realize v (xs ∘
+    (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i)) :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 k _ ih3,
+  { simp [lift_at, realize] },
+  { simp only [lift_at, realize, realize_bd_equal, realize_lift_at, sum.elim_comp_map,
+      function.comp.right_id] },
+  { simp only [lift_at, realize, realize_rel, realize_lift_at, sum.elim_comp_map,
+      function.comp.right_id] },
+  { simp only [lift_at, realize, ih1 hmn, ih2 hmn], },
+  { simp only [lift_at, realize, realize_cast, ih3 (hmn.trans k.succ.le_succ)],
+    refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (fin.last_cases _ (λ i, _))))),
+    { simp only [function.comp_app, coe_last, snoc_last],
+      by_cases (k < m),
+      { rw if_pos h,
+        refine (congr rfl (ext _)).trans (snoc_last _ _),
+        simp only [coe_cast, coe_cast_add, coe_last, self_eq_add_right],
+        refine le_antisymm (le_of_add_le_add_left ((hmn.trans (nat.succ_le_of_lt h)).trans _))
+          n'.zero_le,
+        rw add_zero },
+      { rw if_neg h,
+        refine (congr rfl (ext _)).trans (snoc_last _ _),
+        simp } },
+    { simp only [function.comp_app, fin.snoc_cast_succ],
+      refine (congr rfl (ext _)).trans (snoc_cast_succ _ _ _),
+      simp only [cast_refl, coe_cast_succ, order_iso.coe_refl, id.def],
+      split_ifs;
+      simp } }
+end
 
-@[simp] lemma elim_comp_map {α β γ δ ε : Sort*} (f : α → β) (g : γ → δ) (f' : β → ε) (g' : δ → ε) :
-  sum.elim f' g' ∘ sum.map f g = sum.elim (f' ∘ f) (g' ∘ g) :=
-funext (λ x, sum.cases_on x (λ _, sum.elim_inl _ _ _) (λ _, sum.elim_inr _ _ _))
+lemma realize_lift_at_one {n m : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin (n + 1) → M} (hmn : m ≤ n) :
+  (φ.lift_at 1 m).realize v xs ↔ φ.realize v (xs ∘
+    (λ i, if ↑i < m then cast_succ i else i.succ)) :=
+by simp_rw [realize_lift_at (add_le_add_right hmn 1), cast_succ, add_nat_one]
 
-end sum
+@[simp] lemma realize_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin (n + 1) → M} :
+  (φ.lift_at 1 n).realize v xs ↔ φ.realize v (xs ∘ cast_succ) :=
+begin
+  rw [realize_lift_at_one (refl n), iff_eq_eq],
+  refine congr rfl (congr rfl (funext (λ i, _))),
+  rw [if_pos i.is_lt],
+end
+
+lemma realize_all_lift_at_one_self [nonempty M] {n : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin n → M} :
+  (φ.lift_at 1 n).all.realize v xs ↔ φ.realize v xs :=
+begin
+  inhabit M,
+  simp only [realize_all, realize_lift_at_one_self],
+  refine ⟨λ h, _, λ h a, _⟩,
+  { refine (congr rfl (funext (λ i, _))).mp (h default),
+    simp, },
+  { refine (congr rfl (funext (λ i, _))).mp h,
+    simp }
+end
 
 /-- An atomic formula is either equality or a relation symbol applied to terms. -/
 inductive is_atomic : L.bounded_formula α n → Prop
@@ -473,66 +524,6 @@ begin
     exact h.all },
   { intros _ _ h,
     exact h.ex }
-=======
-lemma realize_lift_at {n n' m : ℕ} {φ : L.bounded_formula α n}
-  {v : α → M} {xs : fin (n + n') → M} (hmn : m + n' ≤ n + 1) :
-  (φ.lift_at n' m).realize v xs ↔ φ.realize v (xs ∘
-    (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i)) :=
-begin
-  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 k _ ih3,
-  { simp [lift_at, realize] },
-  { simp only [lift_at, realize, realize_bd_equal, realize_lift_at, sum.elim_comp_map,
-      function.comp.right_id] },
-  { simp only [lift_at, realize, realize_rel, realize_lift_at, sum.elim_comp_map,
-      function.comp.right_id] },
-  { simp only [lift_at, realize, ih1 hmn, ih2 hmn], },
-  { simp only [lift_at, realize, realize_cast, ih3 (hmn.trans k.succ.le_succ)],
-    refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (fin.last_cases _ (λ i, _))))),
-    { simp only [function.comp_app, coe_last, snoc_last],
-      by_cases (k < m),
-      { rw if_pos h,
-        refine (congr rfl (ext _)).trans (snoc_last _ _),
-        simp only [coe_cast, coe_cast_add, coe_last, self_eq_add_right],
-        refine le_antisymm (le_of_add_le_add_left ((hmn.trans (nat.succ_le_of_lt h)).trans _))
-          n'.zero_le,
-        rw add_zero },
-      { rw if_neg h,
-        refine (congr rfl (ext _)).trans (snoc_last _ _),
-        simp } },
-    { simp only [function.comp_app, fin.snoc_cast_succ],
-      refine (congr rfl (ext _)).trans (snoc_cast_succ _ _ _),
-      simp only [cast_refl, coe_cast_succ, order_iso.coe_refl, id.def],
-      split_ifs;
-      simp } }
-end
-
-lemma realize_lift_at_one {n m : ℕ} {φ : L.bounded_formula α n}
-  {v : α → M} {xs : fin (n + 1) → M} (hmn : m ≤ n) :
-  (φ.lift_at 1 m).realize v xs ↔ φ.realize v (xs ∘
-    (λ i, if ↑i < m then cast_succ i else i.succ)) :=
-by simp_rw [realize_lift_at (add_le_add_right hmn 1), cast_succ, add_nat_one]
-
-@[simp] lemma realize_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
-  {v : α → M} {xs : fin (n + 1) → M} :
-  (φ.lift_at 1 n).realize v xs ↔ φ.realize v (xs ∘ cast_succ) :=
-begin
-  rw [realize_lift_at_one (refl n), iff_eq_eq],
-  refine congr rfl (congr rfl (funext (λ i, _))),
-  rw [if_pos i.is_lt],
-end
-
-lemma realize_all_lift_at_one_self [nonempty M] {n : ℕ} {φ : L.bounded_formula α n}
-  {v : α → M} {xs : fin n → M} :
-  (φ.lift_at 1 n).all.realize v xs ↔ φ.realize v xs :=
-begin
-  inhabit M,
-  simp only [realize_all, realize_lift_at_one_self],
-  refine ⟨λ h, _, λ h a, _⟩,
-  { refine (congr rfl (funext (λ i, _))).mp (h default),
-    simp, },
-  { refine (congr rfl (funext (λ i, _))).mp h,
-    simp }
->>>>>>> origin/lift_term_at
 end
 
 end bounded_formula

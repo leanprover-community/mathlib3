@@ -1356,6 +1356,13 @@ theorem blsub_eq_of_brange_eq {o o'} {f : Π a < o, ordinal} {g : Π a < o', ord
   blsub.{u (max v w)} o f = blsub.{v (max u w)} o' g :=
 (blsub_le_of_brange_subset h.le).antisymm (blsub_le_of_brange_subset.{v u w} h.ge)
 
+theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
+  blsub.{u} o (λ x _, f x) = f o :=
+begin
+  rw ←H.bsup_eq h,
+  exact ((bsup_eq_blsub_iff_lt_bsup _).2 (λ a ha, (H.1 a).trans_le (le_bsup _ _ (h.2 a ha)))).symm
+end
+
 theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
 by { have := blsub_id o, rwa blsub_eq_lsub at this }
 
@@ -1372,6 +1379,23 @@ begin
   rw [←succ_inj, h],
   exact lsub_typein _
 end
+
+theorem bsup_comp {o o' : ordinal} {f : Π a < o, ordinal}
+  (hf : ∀ {i j} (hi) (hj), i ≤ j → f i hi ≤ f j hj) {g : Π a < o', ordinal} (hg : blsub o' g = o) :
+  bsup o' (λ a ha, f (g a ha) (by { rw ←hg, apply lt_blsub })) = bsup o f :=
+begin
+  apply le_antisymm;
+  refine bsup_le.2 (λ i hi, _),
+  { apply le_bsup },
+  { rw [←hg, lt_blsub_iff] at hi,
+    rcases hi with ⟨j, hj, hj'⟩,
+    exact (hf _ _ hj').trans (le_bsup _ _ _) }
+end
+
+theorem blsub_comp {o o' : ordinal} {f : Π a < o, ordinal}
+  (hf : ∀ {i j} (hi) (hj), i ≤ j → f i hi ≤ f j hj) {g : Π a < o', ordinal} (hg : blsub o' g = o) :
+  blsub o' (λ a ha, f (g a ha) (by { rw ←hg, apply lt_blsub })) = blsub o f :=
+@bsup_comp o _ (λ a ha, (f a ha).succ) (λ i j _ _ h, succ_le_succ.2 (hf _ _ h)) g hg
 
 end ordinal
 

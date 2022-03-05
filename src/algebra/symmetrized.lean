@@ -140,10 +140,10 @@ instance [add_comm_semigroup α] : add_comm_semigroup (αˢʸᵐ) :=
 unsym_injective.add_comm_semigroup _ unsym_add
 
 instance [add_monoid α] : add_monoid (αˢʸᵐ) :=
-unsym_injective.add_monoid_smul _ unsym_zero unsym_add (λ _ _, rfl)
+unsym_injective.add_monoid _ unsym_zero unsym_add (λ _ _, rfl)
 
 instance [add_group α] : add_group (αˢʸᵐ) :=
-unsym_injective.add_group_smul _ unsym_zero
+unsym_injective.add_group _ unsym_zero
   unsym_add unsym_neg unsym_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_monoid α] : add_comm_monoid (αˢʸᵐ) :=

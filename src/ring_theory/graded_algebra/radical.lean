@@ -138,7 +138,7 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
     { apply not_mem_I₁.2 h }, },
 
   exact not_mem_I₂ mem_I,
-end⟩.
+end⟩
 
 lemma homogeneous_ideal.is_prime_iff (I : homogeneous_ideal 𝒜) :
   I.1.is_prime ↔

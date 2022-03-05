@@ -367,11 +367,12 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 @[simp] lemma sub_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
   (f - g : normed_group_hom V₁ V₂) v = f v - g v := rfl
 
-#print add_monoid_hom.module
+section has_scalar
 
-instance {R} [monoid_with_zero R] [has_norm R] [distrib_mul_action R V₂] [pseudo_metric_space R]
-  [has_bounded_smul R V₂] :
-  has_scalar R (normed_group_hom V₁ V₂) :=
+variables {R : Type*} [monoid_with_zero R] [has_norm R] [distrib_mul_action R V₂]
+  [pseudo_metric_space R] [has_bounded_smul R V₂]
+
+instance : has_scalar R (normed_group_hom V₁ V₂) :=
 { smul := λ r f,
   { to_fun := r • f,
     map_add' := (r • f.to_add_monoid_hom).map_add',
@@ -384,13 +385,34 @@ instance {R} [monoid_with_zero R] [has_norm R] [distrib_mul_action R V₂] [pseu
       exact hb x
     end⟩ } }
 
-instance : has_bounded_smul R V₁
+@[simp] lemma coe_smul (r : R) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
+@[simp] lemma smul_apply (r : R) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
 
-#check dist_smul_pair
+end has_scalar
 
-instance : has_scalar ℤ (normed_group_hom V₁ V₂) := normed_group_hom.has_scalar
+instance has_nat_scalar : has_scalar ℕ (normed_group_hom V₁ V₂) :=
+{ smul := λ n f,
+  { to_fun := n • f,
+    map_add' := (n • f.to_add_monoid_hom).map_add',
+    bound' := let ⟨b, hb⟩ := f.bound' in ⟨n • b, λ v, begin
+      rw [pi.smul_apply, nsmul_eq_mul, mul_assoc],
+      exact (norm_nsmul_le _ _).trans (mul_le_mul_of_nonneg_left (hb _) (nat.cast_nonneg _)),
+    end⟩ } }
 
-instance : pseudo_metric_space ℕ := by apply_instance
+@[simp] lemma coe_nsmul (r : ℕ) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
+@[simp] lemma nsmul_apply (r : ℕ) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+
+instance has_int_scalar : has_scalar ℤ (normed_group_hom V₁ V₂) :=
+{ smul := λ z f,
+  { to_fun := z • f,
+    map_add' := (z • f.to_add_monoid_hom).map_add',
+    bound' := let ⟨b, hb⟩ := f.bound' in ⟨∥z∥ • b, λ v, begin
+      rw [pi.smul_apply, smul_eq_mul, mul_assoc],
+      exact (norm_zsmul_le _ _).trans  (mul_le_mul_of_nonneg_left (hb _) $ norm_nonneg _),
+    end⟩ } }
+
+@[simp] lemma coe_zsmul (r : ℤ) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
+@[simp] lemma zsmul_apply (r : ℤ) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
 
 /-! ### Normed group structure on normed group homs -/
 
@@ -398,7 +420,6 @@ instance : pseudo_metric_space ℕ := by apply_instance
 instance : add_comm_group (normed_group_hom V₁ V₂) :=
 coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
-#exit
 /-- Normed group homomorphisms themselves form a seminormed group with respect to
     the operator norm. -/
 instance to_semi_normed_group : semi_normed_group (normed_group_hom V₁ V₂) :=

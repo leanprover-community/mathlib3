@@ -593,6 +593,30 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd, Hneg⟩).2 Hs h
 
+/-- An induction principle for closure membership, for predicates with two arguments. -/
+@[elab_as_eliminator]
+lemma closure_induction₂ {s : set R} {p : R → R → Prop} {a b : R}
+  (ha : a ∈ closure s) (hb : b ∈ closure s)
+  (Hs : ∀ (x ∈ s) (y ∈ s), p x y)
+  (H0_left : ∀ x, p 0 x)
+  (H0_right : ∀ x, p x 0)
+  (H1_left : ∀ x, p 1 x)
+  (H1_right : ∀ x, p x 1)
+  (Hneg_left : ∀ x y, p x y → p (-x) y)
+  (Hneg_right : ∀ x y, p x y → p x (-y))
+  (Hadd_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ + x₂) y)
+  (Hadd_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ + y₂))
+  (Hmul_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ * x₂) y)
+  (Hmul_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ * y₂)) : p a b :=
+begin
+  refine closure_induction hb _ (H0_right _) (H1_right _)
+    (Hadd_right a) (Hneg_right a) (Hmul_right a),
+  refine closure_induction ha Hs (λ x _, H0_left x) (λ x _, H1_left x) _ _ _,
+  { exact (λ x y H₁ H₂ z zs, Hadd_left x y z (H₁ z zs) (H₂ z zs)) },
+  { exact (λ x hx z zs, Hneg_left x z (hx z zs)) },
+  { exact (λ x y H₁ H₂ z zs, Hmul_left x y z (H₁ z zs) (H₂ z zs)) }
+end
+
 lemma mem_closure_iff {s : set R} {x} :
   x ∈ closure s ↔ x ∈ add_subgroup.closure (submonoid.closure s : set R) :=
 ⟨ λ h, closure_induction h (λ x hx, add_subgroup.subset_closure $ submonoid.subset_closure hx )
@@ -619,6 +643,29 @@ lemma mem_closure_iff {s : set R} {x} :
  ( zero_mem _ )
  (λ x y hx hy, add_mem _ hx hy)
  ( λ x hx, neg_mem _ hx ) ⟩
+
+/-- If all elements of `s : set A` commute pairwise, then `closure s` is a commutative ring.  -/
+def closure_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
+  comm_ring (closure s) :=
+{ mul_comm := λ x y,
+  begin
+    ext,
+    simp only [subring.coe_mul],
+    refine closure_induction₂ x.prop y.prop
+    hcomm
+    (λ x, by simp only [mul_zero, zero_mul])
+    (λ x, by simp only [mul_zero, zero_mul])
+    (λ x, by simp only [mul_one, one_mul])
+    (λ x, by simp only [mul_one, one_mul])
+    (λ x y hxy, by simp only [mul_neg, neg_mul, hxy])
+    (λ x y hxy, by simp only [mul_neg, neg_mul, hxy])
+    (λ x₁ x₂ y h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
+    (λ x₁ x₂ y h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
+    (λ x₁ x₂ y h₁ h₂, by rw [←mul_assoc, ←h₁, mul_assoc x₁ y x₂, ←h₂, mul_assoc])
+    (λ x₁ x₂ y h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc])
+  end,
+  ..(closure s).to_ring }
+
 
 theorem exists_list_of_mem_closure {s : set R} {x : R} (h : x ∈ closure s) :
   (∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s ∨ y = (-1:R)) ∧ (L.map list.prod).sum = x) :=

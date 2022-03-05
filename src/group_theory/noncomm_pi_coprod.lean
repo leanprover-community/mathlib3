@@ -176,8 +176,8 @@ variable {hcomm}
 include hdec
 
 @[to_additive add_to_fun_single]
-lemma to_fun_single (i : ι) (y : N i) (S : finset ι) :
-  to_fun ϕ hcomm (monoid_hom.single _ i y) S = if i ∈ S then ϕ i y else 1 :=
+lemma to_fun_mul_single (i : ι) (y : N i) (S : finset ι) :
+  to_fun ϕ hcomm (pi.mul_single i y) S = if i ∈ S then ϕ i y else 1 :=
 begin
   induction S using finset.induction_on with j S hnmem ih,
   { simp, },
@@ -189,8 +189,8 @@ begin
 end
 
 @[simp, to_additive add_hom_single]
-lemma hom_single (i : ι) (y : N i):
-  hom ϕ hcomm S (monoid_hom.single _ i y) = if i ∈ S then ϕ i y else 1 := to_fun_single _ _ _ _
+lemma hom_mul_single (i : ι) (y : N i):
+  hom ϕ hcomm S (pi.mul_single i y) = if i ∈ S then ϕ i y else 1 := to_fun_mul_single _ _ _ _
 
 omit hdec
 
@@ -203,7 +203,7 @@ begin
     exact (to_fun_mem_bsupr_mrange ϕ f S), },
   { refine (bsupr_le _),
     rintro i hmem x ⟨y, rfl⟩,
-    use (monoid_hom.single _ i y),
+    use (pi.mul_single i y),
     simp [hmem], }
 end
 
@@ -226,9 +226,9 @@ variable {hcomm}
 include hdec
 
 @[simp, to_additive]
-lemma noncomm_pi_coprod_single (i : ι) (y : N i):
-  noncomm_pi_coprod ϕ hcomm (monoid_hom.single _ i y) = ϕ i y :=
-by { show noncomm_pi_coprod_on.hom ϕ hcomm finset.univ (monoid_hom.single _ i y) = ϕ i y, simp }
+lemma noncomm_pi_coprod_mul_single (i : ι) (y : N i):
+  noncomm_pi_coprod ϕ hcomm (pi.mul_single i y) = ϕ i y :=
+by { show noncomm_pi_coprod_on.hom ϕ hcomm finset.univ (pi.mul_single i y) = ϕ i y, simp }
 
 omit hcomm
 
@@ -241,7 +241,7 @@ def noncomm_pi_coprod_equiv :
   inv_fun := λ f,
   ⟨ λ i, f.comp (monoid_hom.single N i),
     λ i j hij x y, commute.map (pi.mul_single_commute i j hij x y) f ⟩,
-  left_inv := λ ϕ, by { ext, simp },
+  left_inv := λ ϕ, by { ext, simp, },
   right_inv := λ f, pi_ext (λ i x, by simp) }
 
 omit hdec
@@ -405,9 +405,9 @@ variable {hcomm}
 include hdec
 
 @[simp, to_additive]
-lemma noncomm_pi_coprod_single (i : ι) (y : H i) :
-  noncomm_pi_coprod hcomm (monoid_hom.single _ i y) = y :=
-by apply monoid_hom.noncomm_pi_coprod_single
+lemma noncomm_pi_coprod_mul_single (i : ι) (y : H i) :
+  noncomm_pi_coprod hcomm (pi.mul_single i y) = y :=
+by apply monoid_hom.noncomm_pi_coprod_mul_single
 
 omit hdec
 

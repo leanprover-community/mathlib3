@@ -197,6 +197,22 @@ begin
     category.assoc, kernel_comp_cokernel_assoc, zero_comp, comp_zero, unop_zero],
 end
 
+instance exact.unop [e : exact g.op f.op] : exact f g :=
+begin
+  rw exact_iff at e ⊢,
+  cases e with e1 e2,
+  apply_fun quiver.hom.unop at e1,
+  apply_fun quiver.hom.unop at e2,
+  refine ⟨by convert e1, _⟩,
+  rw [unop_comp, cokernel.π_op, kernel.ι_op, unop_zero] at e2,
+  have e3 := whisker_eq (cokernel_op_unop g).inv e2,
+  simp only [← category.assoc, iso.inv_hom_id, category.id_comp] at e3,
+  have e4 := eq_whisker e3 (kernel_op_unop f).hom,
+  simp only [category.assoc, iso.inv_hom_id, category.comp_id, comp_zero, zero_comp,
+    eq_to_hom_refl] at e4,
+  rw ← e4
+end
+
 end opposite
 
 end category_theory.abelian

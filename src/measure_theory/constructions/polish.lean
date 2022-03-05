@@ -16,12 +16,12 @@ structure on Polish spaces.
 
 First, we define the class of analytic sets and establish its basic properties.
 
-* `analytic_set s`: a set in a topological space is analytic if it is the continuous image of
+* `measure_theory.analytic_set s`: a set in a topological space is analytic if it is the continuous image of
   a Polish space. Equivalently, it is empty, or the image of `ℕ → ℕ`.
-* `analytic_set.image_of_continuous`: a continuous image of an analytic set is analytic.
+* `measure_theory.analytic_set.image_of_continuous`: a continuous image of an analytic set is analytic.
 * `measurable_set.analytic_set`: in a Polish space, any Borel-measurable set is analytic.
 
-Then, we show Lusin theorem that two disjoint analytic sets can be separated by Borel sets.
+Then, we show Lusin's theorem that two disjoint analytic sets can be separated by Borel sets.
 
 * `measurably_separable s t` states that there exists a measurable set containing `s` and disjoint
   from `t`.
@@ -65,9 +65,7 @@ context of complex analysis. -/
 @[irreducible] def analytic_set (s : set α) : Prop :=
 s = ∅ ∨ ∃ (f : (ℕ → ℕ) → α), continuous f ∧ range f = s
 
-lemma analytic_set_empty :
-  analytic_set (∅ : set α) :=
-by { rw analytic_set, exact or.inl rfl }
+lemma analytic_set_empty : analytic_set (∅ : set α) := or.inl rfl
 
 lemma analytic_set_range_of_polish_space
   {β : Type*} [topological_space β] [polish_space β] {f : β → α} (f_cont : continuous f) :

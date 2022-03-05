@@ -194,8 +194,8 @@ end
 
 /-- The radical of a homogenous ideal, as another homogenous ideal. -/
 def homogeneous_ideal.radical (I : homogeneous_ideal 𝒜) : homogeneous_ideal 𝒜 :=
-⟨(I : ideal R).radical, I.prop.radical⟩
+⟨(I : ideal A).radical, I.prop.radical⟩
 
 @[simp]
 lemma homogeneous_ideal.coe_radical (I : homogeneous_ideal 𝒜) :
-  (I.radical : ideal R) = (I : ideal R).radical := rfl
+  (I.radical : ideal A) = (I : ideal A).radical := rfl

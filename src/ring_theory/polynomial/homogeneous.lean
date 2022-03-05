@@ -311,13 +311,15 @@ lemma homogeneous_component_homogeneous_polynomial (m n : ℕ)
 begin
   simp only [mem_homogeneous_submodule] at h,
   ext x,
-  rw coeff_homogeneous_component, split_ifs, refl,
-  by_cases zero_coeff : coeff x p = 0, rw zero_coeff, simp only [coeff_zero],
-  exfalso, apply h_2, rw ←h_1,
-  apply h, exact zero_coeff,
-  by_cases zero_coeff : coeff x p = 0, rw zero_coeff,
-  exfalso, apply h_1, convert h zero_coeff,
-  simp only [coeff_zero],
+  rw coeff_homogeneous_component,
+  by_cases zero_coeff : coeff x p = 0,
+  { split_ifs,
+    all_goals { simp only [zero_coeff, coeff_zero], }, },
+  { rw h zero_coeff,
+    simp only [show n = m ↔ m = n, from eq_comm],
+    split_ifs with h1,
+    { refl },
+    { simp only [coeff_zero] } }
 end
 
 end homogeneous_component

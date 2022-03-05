@@ -140,16 +140,15 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
   exact not_mem_I₂ mem_I,
 end⟩.
 
-lemma homogeneous_ideal.is_prime_iff (I : homogeneous_ideal 𝒜) :
-  I.1.is_prime ↔
+lemma ideal.is_homogeneous.is_prime_iff {I : ideal A} (hI : I.is_homogeneous 𝒜) :
+  I.is_prime ↔
   (I ≠ ⊤) ∧
     ∀ {x y : A}, set_like.is_homogeneous 𝒜 x → set_like.is_homogeneous 𝒜 y
       → (x * y ∈ I.1 → x ∈ I.1 ∨ y ∈ I.1) :=
 ⟨λ HI,
   ⟨ne_of_apply_ne _ HI.ne_top, λ x y hx hy hxy, ideal.is_prime.mem_or_mem HI hxy⟩,
   λ ⟨I_ne_top, homogeneous_mem_or_mem⟩,
-    I.prop.is_prime_of_homogeneous_mem_or_mem (subtype.coe_injective.ne I_ne_top)
-      @homogeneous_mem_or_mem ⟩
+    hI.is_prime_of_homogeneous_mem_or_mem I_ne_top @homogeneous_mem_or_mem⟩
 
 lemma ideal.is_prime.homogeneous_core {I : ideal A} (h : I.is_prime) :
   (I.homogeneous_core 𝒜 : ideal A).is_prime :=
@@ -163,8 +162,8 @@ begin
   { exact ideal.mem_homogeneous_core_of_is_homogeneous_of_mem hy, },
 end
 
-lemma homogeneous_ideal.radical_eq (I : homogeneous_ideal 𝒜) :
-  (I : ideal A).radical = Inf {J | ↑I ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime} :=
+lemma ideal.is_homogeneous.radical_eq {I : ideal A} (hI : I.is_homogeneous 𝒜) :
+  I.radical = Inf { J | I ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime } :=
 begin
   letI : Π i (x : 𝒜 i), decidable (x ≠ 0) := λ i x, classical.dec _,
   rw ideal.radical_eq_Inf,
@@ -177,10 +176,15 @@ begin
     rintros J ⟨HJ₁, HJ₂⟩,
     refine (ideal.coe_homogeneous_core_le 𝒜 J) (hx _ _),
     refine ⟨_, subtype.prop _, HJ₂.homogeneous_core⟩,
-    refine I.homogeneous_core_coe_eq_self.symm.trans_le (ideal.homogeneous_core_mono _ HJ₁), }
+    refine (homogeneous_ideal.homogeneous_core_coe_eq_self ⟨I, hI⟩).symm.trans_le
+      (ideal.homogeneous_core_mono _ HJ₁), }
 end
 
-lemma ideal.is_homogeneous_ideal.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
+lemma homogeneous_ideal.radical_eq (I : homogeneous_ideal 𝒜) :
+  (I : ideal A).radical = Inf {J | ↑I ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime} :=
+ideal.is_homogeneous.radical_eq I.2
+
+lemma ideal.is_homogeneous.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
   I.radical.is_homogeneous 𝒜 :=
 begin
   have radI_eq : I.radical = _ := homogeneous_ideal.radical_eq ⟨I, h⟩,
@@ -194,3 +198,9 @@ begin
   { obtain ⟨J', HJ1, ⟨HJ2, HJ3⟩, rfl⟩ := H,
     exact ⟨HJ2, HJ1, HJ3⟩, },
 end
+
+/--
+Radical of any homogeneous ideal is homogeneous.
+-/
+def homogeneous_ideal.radical (I : homogeneous_ideal 𝒜) : homogeneous_ideal 𝒜 :=
+⟨I.1.radical, I.2.radical⟩

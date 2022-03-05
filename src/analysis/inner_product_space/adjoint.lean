@@ -5,6 +5,7 @@ Authors: Frédéric Dupuis, Heather Macbeth
 -/
 
 import analysis.inner_product_space.dual
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Adjoint of operators on Hilbert spaces
@@ -147,7 +148,7 @@ end
 /-- `E →L[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →L[𝕜] E) := ⟨adjoint_adjoint⟩
-instance : star_monoid (E →L[𝕜] E) := ⟨adjoint_comp⟩
+instance : star_semigroup (E →L[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
 
@@ -272,10 +273,14 @@ begin
   refine ext_inner_right_basis b (λ i, by simp only [h i, adjoint_inner_left]),
 end
 
+lemma is_self_adjoint_iff_eq_adjoint (A : E →ₗ[𝕜] E) :
+  is_self_adjoint A ↔ A = A.adjoint :=
+by rw [is_self_adjoint, ← linear_map.eq_adjoint_iff]
+
 /-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →ₗ[𝕜] E) := ⟨adjoint_adjoint⟩
-instance : star_monoid (E →ₗ[𝕜] E) := ⟨adjoint_comp⟩
+instance : star_semigroup (E →ₗ[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →ₗ[𝕜] E) := ⟨linear_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →ₗ[𝕜] E) := ⟨linear_equiv.map_smulₛₗ adjoint⟩
 
@@ -294,3 +299,21 @@ lemma is_adjoint_pair (A : E' →ₗ[ℝ] F') :
 end real
 
 end linear_map
+
+namespace matrix
+variables {m n : Type*} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
+open_locale complex_conjugate
+
+/-- The adjoint of the linear map associated to a matrix is the linear map associated to the
+conjugate transpose of that matrix. -/
+lemma conj_transpose_eq_adjoint (A : matrix m n 𝕜) :
+  to_lin' A.conj_transpose =
+  @linear_map.adjoint _ (euclidean_space 𝕜 n) (euclidean_space 𝕜 m) _ _ _ _ _ (to_lin' A) :=
+begin
+  rw @linear_map.eq_adjoint_iff _ (euclidean_space 𝕜 m) (euclidean_space 𝕜 n),
+  intros x y,
+  convert dot_product_assoc (conj ∘ (id x : m → 𝕜)) y A using 1,
+  simp [dot_product, mul_vec, ring_hom.map_sum,  ← star_ring_end_apply, mul_comm],
+end
+
+end matrix

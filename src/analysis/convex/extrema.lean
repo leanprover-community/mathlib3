@@ -30,8 +30,7 @@ lemma is_min_on.of_is_local_min_on_of_convex_on_Icc {f : ℝ → β} {a b : ℝ}
   (h_local_min : is_local_min_on f (Icc a b) a) (h_conv : convex_on ℝ (Icc a b) f) :
   ∀ x ∈ Icc a b, f a ≤ f x :=
 begin
-  by_contradiction H_cont,
-  push_neg at H_cont,
+  by_contra' H_cont,
   rcases H_cont with ⟨x, ⟨h_ax, h_xb⟩, fx_lt_fa⟩,
   obtain ⟨z, hz, ge_on_nhd⟩ : ∃ z > a, ∀ y ∈ (Icc a z), f y ≥ f a,
   { rcases eventually_iff_exists_mem.mp h_local_min with ⟨U, U_in_nhds_within, fy_ge_fa⟩,
@@ -64,8 +63,7 @@ lemma is_min_on.of_is_local_min_on_of_convex_on {f : E → β} {a : E}
   (a_in_s : a ∈ s) (h_localmin : is_local_min_on f s a) (h_conv : convex_on ℝ s f) :
   ∀ x ∈ s, f a ≤ f x :=
 begin
-  by_contradiction H_cont,
-  push_neg at H_cont,
+  by_contra' H_cont,
   rcases H_cont with ⟨x, ⟨x_in_s, fx_lt_fa⟩⟩,
   let g : ℝ →ᵃ[ℝ] E := affine_map.line_map a x,
   have hg0 : g 0 = a := affine_map.line_map_apply_zero a x,

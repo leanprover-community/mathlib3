@@ -113,7 +113,7 @@ weak_dual.to_normed_dual.injective.eq_iff
 theorem to_weak_dual_continuous :
   continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=
 begin
-  apply weak_dual.continuous_of_continuous_eval,
+  apply continuous_of_continuous_eval,
   intros z,
   exact (inclusion_in_double_dual 𝕜 E z).continuous,
 end
@@ -170,7 +170,7 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜 E`. -/
 lemma weak_dual.is_closed_polar (s : set E) : is_closed (weak_dual.polar 𝕜 s) :=
 begin
-  rw [weak_dual.polar, polar_eq_Inter, preimage_bInter],
+  rw [weak_dual.polar, polar_eq_Inter, preimage_Inter₂],
   apply is_closed_bInter,
   intros z hz,
   rw set.preimage_set_of_eq,
@@ -178,7 +178,7 @@ begin
     = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1) := by refl,
   rw eq,
   refine is_closed.preimage _ (is_closed_Iic),
-  apply continuous.comp continuous_norm (weak_dual.eval_continuous _ _ z),
+  apply continuous.comp continuous_norm (eval_continuous (top_dual_pairing _ _) z),
 end
 
 end polar_sets_in_weak_dual

@@ -205,6 +205,35 @@ ext $ λ x, ceil_eq_zero
 lemma preimage_ceil_of_ne_zero (hn : n ≠ 0) : (nat.ceil : α → ℕ) ⁻¹' {n} = Ioc ↑(n - 1) n :=
 ext $ λ x, ceil_eq_iff hn
 
+/-! #### Intervals -/
+
+@[simp] lemma preimage_Ioo {a b : α} (ha : 0 ≤ a) :
+  ((coe : ℕ → α) ⁻¹' (set.Ioo a b)) = set.Ioo ⌊a⌋₊ ⌈b⌉₊ :=
+by { ext, simp [floor_lt, lt_ceil, ha] }
+
+@[simp] lemma preimage_Ico {a b : α} : ((coe : ℕ → α) ⁻¹' (set.Ico a b)) = set.Ico ⌈a⌉₊ ⌈b⌉₊ :=
+by { ext, simp [ceil_le, lt_ceil] }
+
+@[simp] lemma preimage_Ioc {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) :
+  ((coe : ℕ → α) ⁻¹' (set.Ioc a b)) = set.Ioc ⌊a⌋₊ ⌊b⌋₊ :=
+by { ext, simp [floor_lt, le_floor_iff, hb, ha] }
+
+@[simp] lemma preimage_Icc {a b : α} (hb : 0 ≤ b) :
+  ((coe : ℕ → α) ⁻¹' (set.Icc a b)) = set.Icc ⌈a⌉₊ ⌊b⌋₊ :=
+by { ext, simp [ceil_le, hb, le_floor_iff] }
+
+@[simp] lemma preimage_Ioi {a : α} (ha : 0 ≤ a) : ((coe : ℕ → α) ⁻¹' (set.Ioi a)) = set.Ioi ⌊a⌋₊ :=
+by { ext, simp [floor_lt, ha] }
+
+@[simp] lemma preimage_Ici {a : α} : ((coe : ℕ → α) ⁻¹' (set.Ici a)) = set.Ici ⌈a⌉₊ :=
+by { ext, simp [ceil_le] }
+
+@[simp] lemma preimage_Iio {a : α} : ((coe : ℕ → α) ⁻¹' (set.Iio a)) = set.Iio ⌈a⌉₊ :=
+by { ext, simp [lt_ceil] }
+
+@[simp] lemma preimage_Iic {a : α} (ha : 0 ≤ a) : ((coe : ℕ → α) ⁻¹' (set.Iic a)) = set.Iic ⌊a⌋₊ :=
+by { ext, simp [le_floor_iff, ha] }
+
 end linear_ordered_semiring
 
 section linear_ordered_ring
@@ -279,6 +308,7 @@ lemma floor_div_eq_div (m n : ℕ) : ⌊(m : α) / n⌋₊ = m / n :=
 by { convert floor_div_nat (m : α) n, rw m.floor_coe }
 
 end linear_ordered_field
+
 end nat
 
 /-- There exists at most one `floor_semiring` structure on a linear ordered semiring. -/

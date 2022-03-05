@@ -182,7 +182,7 @@ end
 lemma smul (H : inner_regular μ p q) (c : ℝ≥0∞) : inner_regular (c • μ) p q :=
 begin
   intros U hU r hr,
-  rw [smul_apply, H.measure_eq_supr hU] at hr,
+  rw [smul_apply, H.measure_eq_supr hU, smul_eq_mul] at hr,
   simpa only [ennreal.mul_supr, lt_supr_iff, exists_prop] using hr
 end
 
@@ -295,7 +295,7 @@ begin
   rcases eq_or_ne x 0 with rfl|h0,
   { rw zero_smul, exact outer_regular.zero },
   { refine ⟨λ A hA r hr, _⟩,
-    rw [smul_apply, A.measure_eq_infi_is_open] at hr,
+    rw [smul_apply, A.measure_eq_infi_is_open, smul_eq_mul] at hr,
     simpa only [ennreal.mul_infi_of_ne h0 hx, gt_iff_lt, infi_lt_iff, exists_prop] using hr }
 end
 
@@ -328,7 +328,7 @@ begin
     rw [H₁, H₁, inter_eq_self_of_subset_left (hAs _)] at hU,
     exact ⟨U ∩ s.set n, subset_inter hAU (hAs _), hUo.inter (s.set_mem n).1, hU⟩ },
   choose U hAU hUo hU,
-  refine ⟨⋃ n, U n, Union_subset_Union hAU, is_open_Union hUo, _⟩,
+  refine ⟨⋃ n, U n, Union_mono hAU, is_open_Union hUo, _⟩,
   calc μ (⋃ n, U n) ≤ ∑' n, μ (U n)             : measure_Union_le _
                 ... ≤ ∑' n, (μ (A n) + δ n)     : ennreal.tsum_le_tsum (λ n, (hU n).le)
                 ... = ∑' n, μ (A n) + ∑' n, δ n : ennreal.tsum_add
@@ -404,8 +404,8 @@ begin
     rcases (this.eventually $ lt_mem_nhds $ ennreal.lt_add_right hfin ε0').exists with ⟨t, ht⟩,
     -- the approximating open set is constructed by taking for each `s n` an approximating open set
     -- `U n` with measure at most `μ (s n) + δ n` for a summable `δ`, and taking the union of these.
-    refine ⟨⋃ k ∈ t, F k, Union_subset_Union $ λ k, Union_subset $ λ _, hFs _,
-      ⋃ n, U n, Union_subset_Union hsU, is_closed_bUnion t.finite_to_set $ λ k _, hFc k,
+    refine ⟨⋃ k ∈ t, F k, Union_mono $ λ k, Union_subset $ λ _, hFs _,
+      ⋃ n, U n, Union_mono hsU, is_closed_bUnion t.finite_to_set $ λ k _, hFc k,
       is_open_Union hUo, ht.le.trans _, _⟩,
     { calc ∑ k in t, μ (s k) + ε / 2 ≤ ∑ k in t, μ (F k) + ∑ k in t, δ k + ε / 2 :
         by { rw ← sum_add_distrib, exact add_le_add_right (sum_le_sum $ λ k hk, hF k) _ }
@@ -422,20 +422,20 @@ end
 
 /-- In a metric space (or even a pseudo emetric space), an open set can be approximated from inside
 by closed sets. -/
-lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X] [measurable_space X]
-  [opens_measurable_space X] (μ : measure X) :
+lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X]
+  [measurable_space X] (μ : measure X) :
   inner_regular μ is_closed is_open :=
 begin
   intros U hU r hr,
   rcases hU.exists_Union_is_closed with ⟨F, F_closed, -, rfl, F_mono⟩,
-  rw measure_Union_eq_supr (λ n, (F_closed n).measurable_set) F_mono.directed_le at hr,
+  rw measure_Union_eq_supr F_mono.directed_le at hr,
   rcases lt_supr_iff.1 hr with ⟨n, hn⟩,
   exact ⟨F n, subset_Union _ _, F_closed n, hn⟩
 end
 
 /-- In a `σ`-compact space, any closed set can be approximated by a compact subset. -/
-lemma is_compact_is_closed {X : Type*} [topological_space X] [t2_space X]
-  [sigma_compact_space X] [measurable_space X] [opens_measurable_space X] (μ : measure X) :
+lemma is_compact_is_closed {X : Type*} [topological_space X]
+  [sigma_compact_space X] [measurable_space X] (μ : measure X) :
   inner_regular μ is_compact is_closed :=
 begin
   intros F hF r hr,
@@ -444,8 +444,8 @@ begin
   have hBU : (⋃ n, F ∩ B n) = F, by rw [← inter_Union, Union_compact_covering, set.inter_univ],
   have : μ F = ⨆ n, μ (F ∩ B n),
   { rw [← measure_Union_eq_supr, hBU],
-    exacts [λ n, (hBc n).measurable_set, monotone.directed_le $
-      λ m n h, inter_subset_inter_right _ (compact_covering_subset _ h)] },
+    exact monotone.directed_le
+      (λ m n h, inter_subset_inter_right _ (compact_covering_subset _ h)) },
   rw this at hr, rcases lt_supr_iff.1 hr with ⟨n, hn⟩,
   exact ⟨_, inter_subset_left _ _, hBc n, hn⟩
 end

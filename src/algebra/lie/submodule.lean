@@ -62,6 +62,8 @@ instance : inhabited (lie_submodule R L M) := ⟨0⟩
 
 instance coe_submodule : has_coe (lie_submodule R L M) (submodule R M) := ⟨to_submodule⟩
 
+@[simp] lemma to_submodule_eq_coe : N.to_submodule = N := rfl
+
 @[norm_cast]
 lemma coe_to_submodule : ((N : submodule R M) : set M) = N := rfl
 
@@ -77,6 +79,8 @@ iff.rfl
 lemma mem_coe {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
 
 @[simp] lemma zero_mem : (0 : M) ∈ N := (N : submodule R M).zero_mem
+
+@[simp] lemma mk_eq_zero {x} (h : x ∈ N) : (⟨x, h⟩ : N) = 0 ↔ x = 0 := subtype.ext_iff_val
 
 @[simp] lemma coe_to_set_mk (S : set M) (h₁ h₂ h₃ h₄) :
   ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_submodule R L M) : set M) = S := rfl
@@ -400,6 +404,8 @@ def incl : N →ₗ⁅R,L⁆ M :=
 { map_lie' := λ x m, rfl,
   ..submodule.subtype (N : submodule R M) }
 
+@[simp] lemma incl_coe : (N.incl : N →ₗ[R] M) = (N : submodule R M).subtype := rfl
+
 @[simp] lemma incl_apply (m : N) : N.incl m = m := rfl
 
 lemma incl_eq_val : (N.incl : N → M) = subtype.val := rfl
@@ -521,6 +527,10 @@ def comap : lie_submodule R L M :=
 { lie_mem := λ x m h, by { suffices : ⁅x, f m⁆ ∈ N', { simp [this], }, apply N'.lie_mem h, },
   ..(N' : submodule R M').comap (f : M →ₗ[R] M') }
 
+@[simp] lemma coe_submodule_comap :
+  (N'.comap f : submodule R M) = (N' : submodule R M').comap (f : M →ₗ[R] M') :=
+rfl
+
 variables {f N N₂ N'}
 
 lemma map_le_iff_le_comap : map f N ≤ N' ↔ N ≤ comap f N' :=
@@ -594,11 +604,11 @@ variables {f}
 (gc_map_comap f).l_sup
 
 lemma map_comap_le : map f (comap f J) ≤ J :=
-by { rw map_le_iff_le_comap, apply le_refl _, }
+by { rw map_le_iff_le_comap, exact le_rfl, }
 
 /-- See also `lie_ideal.map_comap_eq`. -/
 lemma comap_map_le : I ≤ comap f (map f I) :=
-by { rw ← map_le_iff_le_comap, apply le_refl _, }
+by { rw ← map_le_iff_le_comap, exact le_rfl, }
 
 @[mono] lemma map_mono : monotone (map f) :=
 λ I₁ I₂ h,
@@ -862,6 +872,12 @@ variables (f : M →ₗ⁅R,L⁆ N)
 /-- The kernel of a morphism of Lie algebras, as an ideal in the domain. -/
 def ker : lie_submodule R L M := lie_submodule.comap f ⊥
 
+@[simp] lemma ker_coe_submodule : (f.ker : submodule R M) = (f : M →ₗ[R] N).ker := rfl
+
+lemma ker_eq_bot : f.ker = ⊥ ↔ function.injective f :=
+by rw [← lie_submodule.coe_to_submodule_eq_iff, ker_coe_submodule, lie_submodule.bot_coe_submodule,
+  linear_map.ker_eq_bot, coe_to_linear_map]
+
 variables {f}
 
 @[simp] lemma mem_ker (m : M) : m ∈ f.ker ↔ f m = 0 := iff.rfl
@@ -893,6 +909,24 @@ lemma map_top : lie_submodule.map f ⊤ = f.range :=
 by { ext, simp [lie_submodule.mem_map], }
 
 end lie_module_hom
+
+namespace lie_submodule
+
+variables {R : Type u} {L : Type v} {M : Type w}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L]
+variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables (N : lie_submodule R L M)
+
+@[simp] lemma ker_incl : N.incl.ker = ⊥ :=
+by simp [← lie_submodule.coe_to_submodule_eq_iff]
+
+@[simp] lemma range_incl : N.incl.range = N :=
+by simp [← lie_submodule.coe_to_submodule_eq_iff]
+
+@[simp] lemma comap_incl_self : comap N.incl N = ⊤ :=
+by simp [← lie_submodule.coe_to_submodule_eq_iff]
+
+end lie_submodule
 
 section top_equiv_self
 

@@ -5,9 +5,9 @@ Authors: Yury G. Kudryashov
 -/
 import algebra.iterate_hom
 import analysis.specific_limits
-import topology.algebra.ordered.monotone_continuity
 import order.iterate
 import order.semiconj_Sup
+import topology.algebra.order.monotone_continuity
 
 /-!
 # Translation number of a monotone real map that commutes with `x ↦ x + 1`
@@ -774,12 +774,10 @@ lemma exists_eq_add_translation_number (hf : continuous f) :
   ∃ x, f x = x + τ f :=
 begin
   obtain ⟨a, ha⟩ : ∃ x, f x ≤ x + f.translation_number,
-  { by_contradiction H,
-    push_neg at H,
+  { by_contra' H,
     exact lt_irrefl _ (f.lt_translation_number_of_forall_add_lt hf H) },
   obtain ⟨b, hb⟩ : ∃ x, x + τ f ≤ f x,
-  { by_contradiction H,
-    push_neg at H,
+  { by_contra' H,
     exact lt_irrefl _ (f.translation_number_lt_of_forall_lt_add hf H) },
   exact intermediate_value_univ₂ hf (continuous_id.add continuous_const) ha hb
 end

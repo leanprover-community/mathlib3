@@ -153,6 +153,10 @@ theorem antitone_set_of [preorder α] {p : α → β → Prop}
   (hp : ∀ b, antitone (λ a, p a b)) : antitone (λ a, {b | p a b}) :=
 λ a a' h b, hp b h
 
+/-- Quantifying over a set is antitone in the set -/
+lemma antitone_bforall {P : α → Prop} : antitone (λ s : set α, ∀ x ∈ s, P x) :=
+λ s t hst h x hx, h x $ hst hx
+
 section galois_connection
 variables {f : α → β}
 
@@ -492,6 +496,10 @@ variables {s : ι → set α}
 @[simp] lemma Inter_eq_univ : (⋂ i, s i) = univ ↔ ∀ i, s i = univ := infi_eq_top
 
 @[simp] lemma nonempty_Union : (⋃ i, s i).nonempty ↔ ∃ i, (s i).nonempty :=
+by simp [← ne_empty_iff_nonempty]
+
+@[simp] lemma nonempty_bUnion {t : set α} {s : α → set β} :
+  (⋃ i ∈ t, s i).nonempty ↔ ∃ i ∈ t, (s i).nonempty :=
 by simp [← ne_empty_iff_nonempty]
 
 lemma Union_nonempty_index (s : set α) (t : s.nonempty → set β) :

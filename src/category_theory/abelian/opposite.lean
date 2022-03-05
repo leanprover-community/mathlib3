@@ -26,10 +26,10 @@ local attribute [instance]
   has_finite_limits_opposite has_finite_colimits_opposite has_finite_products_opposite
 
 instance : abelian Cᵒᵖ :=
-{ normal_mono := λ X Y f m, by exactI
-    normal_mono_of_normal_epi_unop _ (abelian.normal_epi f.unop),
-  normal_epi := λ X Y f m, by exactI
-    normal_epi_of_normal_mono_unop _ (abelian.normal_mono f.unop), }
+{ normal_mono_of_mono := λ X Y f m, by exactI
+    normal_mono_of_normal_epi_unop _ (normal_epi_of_epi f.unop),
+  normal_epi_of_epi := λ X Y f m, by exactI
+    normal_epi_of_normal_mono_unop _ (normal_mono_of_mono f.unop), }
 
 section
 

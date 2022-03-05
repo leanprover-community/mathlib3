@@ -7,6 +7,7 @@ Authors: Frédéric Dupuis
 import analysis.normed.group.hom
 import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
+import algebra.star.self_adjoint
 import algebra.star.unitary
 
 /-!
@@ -34,8 +35,9 @@ open_locale topological_space
 
 local postfix `⋆`:std.prec.max_plus := star
 
-/-- A normed star ring is a star ring endowed with a norm such that `star` is isometric. -/
-class normed_star_monoid (E : Type*) [normed_group E] [star_add_monoid E] :=
+/-- A normed star monoid is an additive monoid with a star,
+endowed with a norm such that `star` is isometric. -/
+class normed_star_monoid (E : Type*) [normed_group E] [star_add_monoid E] : Prop :=
 (norm_star : ∀ {x : E}, ∥x⋆∥ = ∥x∥)
 
 export normed_star_monoid (norm_star)
@@ -43,11 +45,11 @@ attribute [simp] norm_star
 
 /-- A C*-ring is a normed star ring that satifies the stronger condition `∥x⋆ * x∥ = ∥x∥^2`
 for every `x`. -/
-class cstar_ring (E : Type*) [normed_ring E] [star_ring E] :=
+class cstar_ring (E : Type*) [normed_ring E] [star_ring E] : Prop :=
 (norm_star_mul_self : ∀ {x : E}, ∥x⋆ * x∥ = ∥x∥ * ∥x∥)
 
-noncomputable instance : cstar_ring ℝ :=
-{ norm_star_mul_self := λ x, by simp only [star, id.def, normed_field.norm_mul] }
+instance : cstar_ring ℝ :=
+{ norm_star_mul_self := λ x, by simp only [star, id.def, norm_mul] }
 
 variables {𝕜 E α : Type*}
 
@@ -106,20 +108,14 @@ variables [normed_ring E] [star_ring E] [cstar_ring E]
 /-- In a C*-ring, star preserves the norm. -/
 @[priority 100] -- see Note [lower instance priority]
 instance to_normed_star_monoid : normed_star_monoid E :=
-⟨begin
-  intro x,
-  by_cases htriv : x = 0,
-  { simp only [htriv, star_zero] },
-  { have hnt : 0 < ∥x∥ := norm_pos_iff.mpr htriv,
-    have hnt_star : 0 < ∥x⋆∥ :=
-      norm_pos_iff.mpr ((add_equiv.map_ne_zero_iff star_add_equiv).mpr htriv),
-    have h₁ := calc
-      ∥x∥ * ∥x∥ = ∥x⋆ * x∥        : norm_star_mul_self.symm
-            ... ≤ ∥x⋆∥ * ∥x∥      : norm_mul_le _ _,
-    have h₂ := calc
-      ∥x⋆∥ * ∥x⋆∥ = ∥x * x⋆∥      : by rw [←norm_star_mul_self, star_star]
-             ... ≤ ∥x∥ * ∥x⋆∥     : norm_mul_le _ _,
-    exact le_antisymm (le_of_mul_le_mul_right h₂ hnt_star) (le_of_mul_le_mul_right h₁ hnt) },
+⟨λ x, begin
+  have n_le : ∀ {y : E}, ∥y∥ ≤ ∥y⋆∥,
+  { intros y,
+    by_cases y0 : y = 0,
+    { rw [y0, star_zero] },
+    { refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr y0),
+      exact (norm_star_mul_self.symm.trans_le $ norm_mul_le _ _) } },
+  exact (n_le.trans_eq $ congr_arg _ $ star_star _).antisymm n_le,
 end⟩
 
 lemma norm_self_mul_star {x : E} : ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
@@ -127,6 +123,9 @@ by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
 
 lemma norm_star_mul_self' {x : E} : ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
 by rw [norm_star_mul_self, norm_star]
+
+lemma nnnorm_star_mul_self {x : E} : ∥x⋆ * x∥₊ = ∥x∥₊ * ∥x∥₊ :=
+subtype.ext norm_star_mul_self
 
 @[simp] lemma norm_one [nontrivial E] : ∥(1 : E)∥ = 1 :=
 begin
@@ -173,6 +172,20 @@ lemma norm_mul_mem_unitary (A : E) {U : E} (hU : U ∈ unitary E) : ∥A * U∥ 
 norm_mul_coe_unitary A ⟨U, hU⟩
 
 end cstar_ring
+
+lemma nnnorm_pow_two_pow_of_self_adjoint [normed_ring E] [star_ring E] [cstar_ring E]
+  {x : E} (hx : x ∈ self_adjoint E) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
+begin
+  induction n with k hk,
+  { simp only [pow_zero, pow_one] },
+  { rw [pow_succ, pow_mul', sq],
+    nth_rewrite 0 ←(self_adjoint.mem_iff.mp hx),
+    rw [←star_pow, cstar_ring.nnnorm_star_mul_self, ←sq, hk, pow_mul'] },
+end
+
+lemma self_adjoint.nnnorm_pow_two_pow [normed_ring E] [star_ring E] [cstar_ring E]
+  (x : self_adjoint E) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
+nnnorm_pow_two_pow_of_self_adjoint x.property _
 
 section starₗᵢ
 

@@ -314,6 +314,83 @@ relevant maps `C_i ⟶ D_j` such that `c.rel j i`. -/
 def null_homotopic_map' (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) : C ⟶ D :=
 null_homotopic_map (λ i j, dite (c.rel j i) (h i j) (λ _, 0))
 
+/-- Compatibility of `null_homotopic_map` with the postcomposition by a morphism
+of complexes. -/
+lemma null_homotopic_map_comp (hom : Π i j, C.X i ⟶ D.X j) (g : D ⟶ E) :
+null_homotopic_map hom ≫ g = null_homotopic_map (λ i j, hom i j ≫ g.f j) :=
+begin
+  ext n,
+  dsimp [null_homotopic_map],
+  simp only [preadditive.add_comp, d_next_comp_right, to_prev'_comp_right],
+end
+
+/-- Compatibility of `null_homotopic_map'` with the postcomposition by a morphism
+of complexes. -/
+lemma null_homotopic_map'_comp (hom : Π i j, c.rel j i → (C.X i ⟶ D.X j)) (g : D ⟶ E) :
+null_homotopic_map' hom ≫ g = null_homotopic_map' (λ i j hij, hom i j hij ≫ g.f j) :=
+begin
+  ext n,
+  erw null_homotopic_map_comp,
+  congr',
+  ext i j,
+  split_ifs,
+  { refl, },
+  { rw zero_comp, },
+end
+
+/-- Compatibility of `null_homotopic_map` with the precomposition by a morphism
+of complexes. -/
+lemma comp_null_homotopic_map (f : C ⟶ D) (hom : Π i j, D.X i ⟶ E.X j) :
+f ≫ null_homotopic_map hom = null_homotopic_map (λ i j, f.f i ≫ hom i j) :=
+begin
+  ext n,
+  dsimp [null_homotopic_map],
+  simp only [preadditive.comp_add, d_next_comp_left, prev_d_comp_left],
+end
+
+/-- Compatibility of `null_homotopic_map'` with the precomposition by a morphism
+of complexes. -/
+lemma comp_null_homotopic_map' (f : C ⟶ D) (hom : Π i j, c.rel j i → (D.X i ⟶ E.X j)) :
+f ≫ null_homotopic_map' hom = null_homotopic_map' (λ i j hij, f.f i ≫ hom i j hij) :=
+begin
+  ext n,
+  erw comp_null_homotopic_map,
+  congr',
+  ext i j,
+  split_ifs,
+  { refl, },
+  { rw comp_zero, },
+end
+
+/-- Compatibility of `null_homotopic_map` with the application of additive functors -/
+lemma map_null_homotopic_map {W : Type*} [category W] [preadditive W]
+  (G : V ⥤ W) [G.additive] (hom : Π i j, C.X i ⟶ D.X j) :
+  (G.map_homological_complex c).map (null_homotopic_map hom) =
+  null_homotopic_map (λ i j, G.map (hom i j)) :=
+begin
+  ext i,
+  dsimp [null_homotopic_map, d_next, prev_d],
+  rcases c.next i with _|⟨inext,wn⟩;
+  rcases c.prev i with _|⟨iprev,wp⟩;
+  dsimp [d_next, prev_d];
+  simp only [G.map_comp, functor.map_zero, functor.map_add],
+end
+
+/-- Compatibility of `null_homotopic_map'` with the application of additive functors -/
+lemma map_null_homotopic_map' {W : Type*} [category W] [preadditive W]
+  (G : V ⥤ W) [G.additive] (hom : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
+  (G.map_homological_complex c).map (null_homotopic_map' hom) =
+  null_homotopic_map' (λ i j hij, G.map (hom i j hij)) :=
+begin
+  ext n,
+  erw map_null_homotopic_map,
+  congr',
+  ext i j,
+  split_ifs,
+  { refl, },
+  { rw G.map_zero, }
+end
+
 /-- Tautological construction of the `homotopy` to zero for maps constructed by
 `null_homotopic_map`, at least when we have the `zero'` condition. -/
 @[simps]
@@ -796,3 +873,4 @@ def functor.map_homotopy_equiv (F : V ⥤ W) [F.additive] (h : homotopy_equiv C 
   end }
 
 end category_theory
+

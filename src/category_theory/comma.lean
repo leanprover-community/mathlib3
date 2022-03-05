@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.isomorphism
-import category_theory.functor_category
+import category_theory.functor.category
 import category_theory.eq_to_hom
 
 /-!

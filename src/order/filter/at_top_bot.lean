@@ -563,6 +563,13 @@ end
 lemma tendsto_neg_at_bot_at_top : tendsto (has_neg.neg : β → β) at_bot at_top :=
 @tendsto_neg_at_top_at_bot (order_dual β) _
 
+lemma tendsto_at_top_iff_tends_to_neg_at_bot : tendsto f l at_top ↔ tendsto (-f) l at_bot :=
+have hf : f = has_neg.neg ∘ -f, { ext, simp, },
+⟨tendsto_neg_at_top_at_bot.comp, λ h, hf.symm ▸ tendsto_neg_at_bot_at_top.comp h⟩
+
+lemma tendsto_at_bot_iff_tends_to_neg_at_top : tendsto f l at_bot ↔ tendsto (-f) l at_top :=
+@tendsto_at_top_iff_tends_to_neg_at_bot α (order_dual β) _ l f
+
 end ordered_group
 
 section ordered_semiring
@@ -1011,7 +1018,7 @@ begin
   rw [@map_at_top_eq _ _ ⟨g b'⟩],
   refine le_infi (λ a, infi_le_of_le (f a ⊔ b') $ principal_mono.2 $ λ b hb, _),
   rw [mem_Ici, sup_le_iff] at hb,
-  exact ⟨g b, (gc _ _ hb.2).1 hb.1, le_antisymm ((gc _ _ hb.2).2 (le_refl _)) (hgi _ hb.2)⟩
+  exact ⟨g b, (gc _ _ hb.2).1 hb.1, le_antisymm ((gc _ _ hb.2).2 le_rfl) (hgi _ hb.2)⟩
 end
 
 lemma map_at_bot_eq_of_gc [semilattice_inf α] [semilattice_inf β] {f : α → β} (g : β → α) (b' : β)
@@ -1195,7 +1202,7 @@ begin
   cases mem_at_top_sets.mp (h $ Ioi_mem_at_top M) with a ha,
   apply lt_irrefl M,
   calc
-  M < f a : ha a (le_refl _)
+  M < f a : ha a le_rfl
   ... ≤ M : hM (set.mem_range_self a)
 end
 

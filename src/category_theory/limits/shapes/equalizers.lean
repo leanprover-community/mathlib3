@@ -195,6 +195,17 @@ def parallel_pair_hom {X' Y' : C} (f g : X ⟶ Y) (f' g' : X' ⟶ Y') (p : X ⟶
   (wf : f ≫ q = p ≫ f') (wg : g ≫ q = p ≫ g') :
   (parallel_pair_hom f g f' g' p q wf wg).app one = q := rfl
 
+/-- Construct a natural isomorphism between functors out of the walking parallel pair from
+its components. -/
+@[simps]
+def parallel_pair.ext {F G : walking_parallel_pair.{v} ⥤ C}
+  (zero : F.obj zero ≅ G.obj zero) (one : F.obj one ≅ G.obj one)
+  (left : F.map left ≫ one.hom = zero.hom ≫ G.map left)
+  (right : F.map right ≫ one.hom = zero.hom ≫ G.map right) : F ≅ G :=
+nat_iso.of_components
+  (by { rintro ⟨j⟩, exacts [zero, one] })
+  (by { rintro ⟨j₁⟩ ⟨j₂⟩ ⟨f⟩; simp [left, right], })
+
 /-- A fork on `f` and `g` is just a `cone (parallel_pair f g)`. -/
 abbreviation fork (f g : X ⟶ Y) := cone (parallel_pair f g)
 

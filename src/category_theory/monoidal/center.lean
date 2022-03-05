@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monoidal.braided
-import category_theory.reflects_isomorphisms
+import category_theory.functor.reflects_isomorphisms
 
 /-!
 # Half braidings and the Drinfeld center of a monoidal category

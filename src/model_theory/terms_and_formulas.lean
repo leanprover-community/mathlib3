@@ -81,7 +81,7 @@ def list_decode [inhabited (L.term α)] :
 | ((sum.inl a) :: l) := var a :: list_decode l
 | ((sum.inr ⟨n, f⟩) :: l) := func f (λ i, ((list_decode l).nth i).iget) :: ((list_decode l).drop n)
 
-theorem list_decode_encode_list [inhabited (L.term α)] (l : list (L.term α)) :
+@[simp] theorem list_decode_encode_list [inhabited (L.term α)] (l : list (L.term α)) :
   list_decode (l.bind list_encode) = l :=
 begin
   suffices h : ∀ (t : L.term α) (l : list (α ⊕ (Σ i, L.functions i))),

@@ -129,7 +129,6 @@ begin
     ext1 x,
     simp only [coe_nnnorm, ennreal.of_real_eq_coe_nnreal (norm_nonneg _)],
     refl },
-    { apply_instance } },
   { refine λ n, univ_mem' (id $ λ x, _),
     by_cases hx : (n : ℝ) ≤ ∥f x∥,
     { dsimp,
@@ -174,6 +173,7 @@ begin
   exact measurable_set_le measurable_const hmeas.nnnorm.subtype_coe,
 end
 
+-- move
 lemma mem_ℒp.norm_rpow {m : measurable_space α} {μ : measure α}
   (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   mem_ℒp (λ (x : α), ∥f x∥ ^ p.to_real) 1 μ :=
@@ -460,7 +460,6 @@ begin
       (div_pos (ennreal.to_real_pos (gt_iff_lt.1 hε).ne.symm h.ne) (mul_pos (by norm_num) hpow)),
     obtain ⟨N, hN⟩ := eventually_at_top.1 ht₂, clear ht₂,
     refine ⟨N, λ n hn, _⟩,
-    simp only [mem_Icc, true_and, zero_tsub, zero_le, zero_add],
     rw [← t.indicator_self_add_compl (f n - g)],
     refine le_trans (snorm_add_le ((((hf n).sub hg).indicator htm).ae_measurable)
       (((hf n).sub hg).indicator htm.compl).ae_measurable hp) _,

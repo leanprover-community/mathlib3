@@ -1244,8 +1244,8 @@ by simpa [hn, differentiable_within_at_univ] using h.differentiable_within_at
 /-- A function is `C^(n + 1)` at a point iff locally, it has a derivative which is `C^n`. -/
 theorem cont_diff_at_succ_iff_has_fderiv_at {n : ℕ} :
   cont_diff_at 𝕜 ((n + 1) : ℕ) f x
-  ↔ (∃ f' : E → (E →L[𝕜] F), (∃ u ∈ 𝓝 x, (∀ x ∈ u, has_fderiv_at f (f' x) x))
-      ∧ (cont_diff_at 𝕜 n f' x)) :=
+  ↔ (∃ f' : E → E →L[𝕜] F, (∃ u ∈ 𝓝 x, ∀ x ∈ u, has_fderiv_at f (f' x) x)
+      ∧ cont_diff_at 𝕜 n f' x) :=
 begin
   rw [← cont_diff_within_at_univ, cont_diff_within_at_succ_iff_has_fderiv_within_at],
   simp only [nhds_within_univ, exists_prop, mem_univ, insert_eq_of_mem],
@@ -1326,6 +1326,12 @@ end
 lemma cont_diff_at_zero :
   cont_diff_at 𝕜 0 f x ↔ ∃ u ∈ 𝓝 x, continuous_on f u :=
 by { rw ← cont_diff_within_at_univ, simp [cont_diff_within_at_zero, nhds_within_univ] }
+
+theorem cont_diff_at_one_iff : cont_diff_at 𝕜 1 f x ↔
+  ∃ f' : E → (E →L[𝕜] F), ∃ u ∈ 𝓝 x, continuous_on f' u ∧ ∀ x ∈ u, has_fderiv_at f (f' x) x :=
+by simp_rw [show (1 : with_top ℕ) = (0 + 1 : ℕ), from (zero_add 1).symm,
+  cont_diff_at_succ_iff_has_fderiv_at, show ((0 : ℕ) : with_top ℕ) = 0, from rfl,
+  cont_diff_at_zero, exists_mem_and_iff antitone_bforall antitone_continuous_on, and_comm]
 
 lemma cont_diff.of_le {m n : with_top ℕ}
   (h : cont_diff 𝕜 n f) (hmn : m ≤ n) :
@@ -1441,8 +1447,8 @@ lemma cont_diff_of_differentiable_iterated_fderiv {n : with_top ℕ}
 cont_diff_iff_continuous_differentiable.2
 ⟨λ m hm, (h m hm).continuous, λ m hm, (h m (le_of_lt hm))⟩
 
-/-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if
-it is differentiable there, and its derivative is `C^n`. -/
+/-- A function is `C^(n + 1)` if and only if it is differentiable,
+and its derivative (formulated in terms of `fderiv`) is `C^n`. -/
 theorem cont_diff_succ_iff_fderiv {n : ℕ} :
   cont_diff 𝕜 ((n + 1) : ℕ) f ↔
   differentiable 𝕜 f ∧ cont_diff 𝕜 n (λ y, fderiv 𝕜 f y) :=
@@ -1450,8 +1456,12 @@ by simp [cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ
          - fderiv_within_univ, cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ,
          -with_zero.coe_add, -add_comm]
 
-/-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
-there, and its derivative is `C^∞`. -/
+theorem cont_diff_one_iff_fderiv :
+  cont_diff 𝕜 1 f ↔ differentiable 𝕜 f ∧ continuous (fderiv 𝕜 f) :=
+cont_diff_succ_iff_fderiv.trans $ iff.rfl.and cont_diff_zero
+
+/-- A function is `C^∞` if and only if it is differentiable,
+and its derivative (formulated in terms of `fderiv`) is `C^∞`. -/
 theorem cont_diff_top_iff_fderiv :
   cont_diff 𝕜 ∞ f ↔
   differentiable 𝕜 f ∧ cont_diff 𝕜 ∞ (λ y, fderiv 𝕜 f y) :=
@@ -1552,7 +1562,7 @@ begin
   suffices h : cont_diff 𝕜 ∞ f, by exact h.of_le le_top,
   rw cont_diff_top_iff_fderiv,
   refine ⟨hf.differentiable, _⟩,
-  simp [hf.fderiv],
+  simp_rw [hf.fderiv],
   exact cont_diff_const
 end
 
@@ -2906,13 +2916,32 @@ lemma cont_diff_on.continuous_on_deriv_of_open {n : with_top ℕ}
   continuous_on (deriv f₂) s₂ :=
 ((cont_diff_on_succ_iff_deriv_of_open hs).1 (h.of_le hn)).2.continuous_on
 
-/-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is
-differentiable there, and its derivative is `C^n`. -/
+/-- A function is `C^(n + 1)` if and only if it is differentiable,
+  and its derivative (formulated in terms of `deriv`) is `C^n`. -/
 theorem cont_diff_succ_iff_deriv {n : ℕ} :
   cont_diff 𝕜 ((n + 1) : ℕ) f₂ ↔
     differentiable 𝕜 f₂ ∧ cont_diff 𝕜 n (deriv f₂) :=
 by simp only [← cont_diff_on_univ, cont_diff_on_succ_iff_deriv_of_open, is_open_univ,
   differentiable_on_univ]
+
+theorem cont_diff_one_iff_deriv :
+  cont_diff 𝕜 1 f₂ ↔ differentiable 𝕜 f₂ ∧ continuous (deriv f₂) :=
+cont_diff_succ_iff_deriv.trans $ iff.rfl.and cont_diff_zero
+
+/-- A function is `C^∞` if and only if it is differentiable,
+and its derivative (formulated in terms of `deriv`) is `C^∞`. -/
+theorem cont_diff_top_iff_deriv :
+  cont_diff 𝕜 ∞ f₂ ↔
+  differentiable 𝕜 f₂ ∧ cont_diff 𝕜 ∞ (deriv f₂) :=
+begin
+  simp [cont_diff_on_univ.symm, differentiable_on_univ.symm, deriv_within_univ.symm,
+        - deriv_within_univ],
+  rw cont_diff_on_top_iff_deriv_within unique_diff_on_univ,
+end
+
+lemma cont_diff.continuous_deriv {n : with_top ℕ} (h : cont_diff 𝕜 n f₂) (hn : 1 ≤ n) :
+  continuous (deriv f₂) :=
+(cont_diff_succ_iff_deriv.mp (h.of_le hn)).2.continuous
 
 end deriv
 

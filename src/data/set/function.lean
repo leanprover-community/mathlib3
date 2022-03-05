@@ -205,7 +205,7 @@ end order
 /-! ### maps to -/
 
 /-- `maps_to f a b` means that the image of `a` is contained in `b`. -/
-@[reducible] def maps_to (f : α → β) (s : set α) (t : set β) : Prop := ∀ ⦃x⦄, x ∈ s → f x ∈ t
+def maps_to (f : α → β) (s : set α) (t : set β) : Prop := ∀ ⦃x⦄, x ∈ s → f x ∈ t
 
 /-- Given a map `f` sending `s : set α` into `t : set β`, restrict domain of `f` to `s`
 and the codomain to `t`. Same as `subtype.map`. -/
@@ -260,9 +260,15 @@ begin
   { simp [nat.iterate, ihn] }
 end
 
-theorem maps_to.mono (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) (hf : maps_to f s₁ t₁) :
+theorem maps_to.mono (hf : maps_to f s₁ t₁) (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) :
   maps_to f s₂ t₂ :=
 λ x hx, ht (hf $ hs hx)
+
+theorem maps_to.mono_left (hf : maps_to f s₁ t) (hs : s₂ ⊆ s₁) : maps_to f s₂ t :=
+λ x hx, hf (hs hx)
+
+theorem maps_to.mono_right (hf : maps_to f s t₁) (ht : t₁ ⊆ t₂) : maps_to f s t₂ :=
+λ x hx, ht (hf hx)
 
 theorem maps_to.union_union (h₁ : maps_to f s₁ t₁) (h₂ : maps_to f s₂ t₂) :
   maps_to f (s₁ ∪ s₂) (t₁ ∪ t₂) :=
@@ -319,7 +325,7 @@ theorem maps_to.mem_iff (h : maps_to f s t) (hc : maps_to f sᶜ tᶜ) {x} : f x
 /-! ### Injectivity on a set -/
 
 /-- `f` is injective on `a` if the restriction of `f` to `a` is injective. -/
-@[reducible] def inj_on (f : α → β) (s : set α) : Prop :=
+def inj_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃x₁ : α⦄, x₁ ∈ s → ∀ ⦃x₂ : α⦄, x₂ ∈ s → f x₁ = f x₂ → x₁ = x₂
 
 theorem subsingleton.inj_on (hs : s.subsingleton) (f : α → β) : inj_on f s :=
@@ -408,7 +414,7 @@ lemma inj_on.cancel_left (hg : t.inj_on g) (hf₁ : s.maps_to f₁ t) (hf₂ : s
 /-! ### Surjectivity on a set -/
 
 /-- `f` is surjective from `a` to `b` if `b` is contained in the image of `a`. -/
-@[reducible] def surj_on (f : α → β) (s : set α) (t : set β) : Prop := t ⊆ f '' s
+def surj_on (f : α → β) (s : set α) (t : set β) : Prop := t ⊆ f '' s
 
 theorem surj_on.subset_range (h : surj_on f s t) : t ⊆ range f :=
 subset.trans h $ image_subset_range f s
@@ -502,7 +508,7 @@ lemma eq_on_comp_right_iff : s.eq_on (g₁ ∘ f) (g₂ ∘ f) ↔ (f '' s).eq_o
 /-! ### Bijectivity -/
 
 /-- `f` is bijective from `s` to `t` if `f` is injective on `s` and `f '' s = t`. -/
-@[reducible] def bij_on (f : α → β) (s : set α) (t : set β) : Prop :=
+def bij_on (f : α → β) (s : set α) (t : set β) : Prop :=
 maps_to f s t ∧ inj_on f s ∧ surj_on f s t
 
 lemma bij_on.maps_to (h : bij_on f s t) : maps_to f s t := h.left
@@ -566,7 +572,7 @@ lemma bij_on.compl (hst : bij_on f s t) (hf : bijective f) : bij_on f sᶜ tᶜ 
 /-! ### left inverse -/
 
 /-- `g` is a left inverse to `f` on `a` means that `g (f x) = x` for all `x ∈ a`. -/
-@[reducible] def left_inv_on (f' : β → α) (f : α → β) (s : set α) : Prop :=
+def left_inv_on (f' : β → α) (f : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f' (f x) = x
 
 lemma left_inv_on.eq_on (h : left_inv_on f' f s) : eq_on (f' ∘ f) id s := h
@@ -682,7 +688,7 @@ theorem surj_on.left_inv_on_of_right_inv_on (hf : surj_on f s t) (hf' : right_in
 /-! ### Two-side inverses -/
 
 /-- `g` is an inverse to `f` viewed as a map from `a` to `b` -/
-@[reducible] def inv_on (g : β → α) (f : α → β) (s : set α) (t : set β) : Prop :=
+def inv_on (g : β → α) (f : α → β) (s : set α) (t : set β) : Prop :=
 left_inv_on g f s ∧ right_inv_on g f t
 
 lemma inv_on.symm (h : inv_on f' f s t) : inv_on f f' t s := ⟨h.right, h.left⟩

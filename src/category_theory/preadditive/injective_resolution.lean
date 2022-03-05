@@ -75,7 +75,7 @@ def self (Z : C) [category_theory.injective Z] : InjectiveResolution Z :=
 
 def desc_f_zero {Y Z : C} (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z) :
   Q.cocomplex.X 0 ⟶ P.cocomplex.X 0 :=
-factor_of (f ≫ P.ι.f 0) (Q.ι.f 0)
+factor_thru (f ≫ P.ι.f 0) (Q.ι.f 0)
 end
 
 section abelian
@@ -92,7 +92,7 @@ exact.desc (desc_f_zero f P Q ≫ P.cocomplex.d 0 1) (Q.ι.f 0) (Q.cocomplex.d 0
   Q.cocomplex.d 0 1 ≫ desc_f_one f P Q = desc_f_zero f P Q ≫ P.cocomplex.d 0 1 :=
 begin
   dsimp only [desc_f_zero, desc_f_one],
-  simp only [exact.desc_comp],
+  simp only [exact.comp_desc],
 end
 
 def desc_f_succ {Y Z : C}
@@ -147,7 +147,8 @@ def desc_homotopy_zero_one {Y Z : C} {P : InjectiveResolution Y} {Q : InjectiveR
 exact.desc (f.f 1 - desc_homotopy_zero_zero f comm ≫ Q.cocomplex.d 0 1)
   (P.cocomplex.d 0 1) (P.cocomplex.d 1 2)
   (begin
-    simp only [desc_homotopy_zero_zero, ←category.assoc, preadditive.comp_sub, exact.desc_comp, homological_complex.hom.comm, sub_self],
+    simp only [desc_homotopy_zero_zero, ←category.assoc, preadditive.comp_sub, exact.comp_desc,
+      homological_complex.hom.comm, sub_self],
   end)
 
 def desc_homotopy_zero_succ {Y Z : C} {P : InjectiveResolution Y} {Q : InjectiveResolution Z}
@@ -233,7 +234,7 @@ section
 
 variables [abelian C]
 
-/-- An arbitrarily chosen projective resolution of an object. -/
+/-- An arbitrarily chosen injective resolution of an object. -/
 abbreviation injective_resolution (Z : C) [has_injective_resolution Z] : cochain_complex C ℕ :=
 (has_injective_resolution.out Z).some.cocomplex
 
@@ -251,9 +252,9 @@ end
 variables (C) [abelian C] [has_injective_resolutions C]
 
 /--
-Taking projective resolutions is functorial,
+Taking injective resolutions is functorial,
 if considered with target the homotopy category
-(`ℕ`-indexed chain complexes and chain maps up to homotopy).
+(`ℕ`-indexed cochain complexes and chain maps up to homotopy).
 -/
 def injective_resolutions : C ⥤ homotopy_category C (complex_shape.up ℕ) :=
 { obj := λ X, (homotopy_category.quotient _ _).obj (injective_resolution X),

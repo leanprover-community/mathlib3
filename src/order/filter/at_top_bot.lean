@@ -1341,7 +1341,7 @@ begin
   exact ⟨x ∘ n_to_n, h_tendsto, h_freq⟩,
 end
 
-/-- a sequence is converges if every subsequence has a convergent subsequence. -/
+/-- a sequence converges if every subsequence has a convergent subsequence. -/
 lemma tendsto_of_subseq_tendsto {α ι : Type*}
   {x : ι → α} {f : filter α} {l : filter ι} [l.is_countably_generated]
   (hxy : ∀ ns : ℕ → ι, tendsto ns at_top l →

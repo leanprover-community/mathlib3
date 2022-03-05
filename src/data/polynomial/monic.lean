@@ -101,7 +101,7 @@ lemma monic_add_of_right (hq : monic q) (hpq : degree p < degree q) :
   monic (p + q) :=
 by rwa [monic, leading_coeff_add_of_degree_lt hpq]
 
-lemma monic_of_mul_monic_left (hp : p.monic) (hpq : (p * q).monic) : q.monic :=
+lemma monic.of_mul_monic_left (hp : p.monic) (hpq : (p * q).monic) : q.monic :=
 begin
   contrapose! hpq,
   rw monic.def at hpq ⊢,

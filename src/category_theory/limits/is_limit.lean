@@ -250,6 +250,15 @@ def postcompose_inv_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cone G) :
 postcompose_hom_equiv α.symm c
 
 /--
+Constructing an equivalence `is_limit c ≃ is_limit d` from a natural isomorphism
+between the underlying functors, and then an isomorphism between `c` transported along this and `d`.
+-/
+def equiv_of_nat_iso_of_iso {F G : J ⥤ C} (α : F ≅ G) (c : cone F) (d : cone G)
+  (w : (cones.postcompose α.hom).obj c ≅ d) :
+  is_limit c ≃ is_limit d :=
+(postcompose_hom_equiv α _).symm.trans (equiv_iso_limit w)
+
+/--
 The cone points of two limit cones for naturally isomorphic functors
 are themselves isomorphic.
 -/
@@ -689,6 +698,15 @@ if and only if the original cocone is.
 def precompose_inv_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cocone F) :
   is_colimit ((cocones.precompose α.inv).obj c) ≃ is_colimit c :=
 precompose_hom_equiv α.symm c
+
+/--
+Constructing an equivalence `is_colimit c ≃ is_colimit d` from a natural isomorphism
+between the underlying functors, and then an isomorphism between `c` transported along this and `d`.
+-/
+def equiv_of_nat_iso_of_iso {F G : J ⥤ C} (α : F ≅ G) (c : cocone F) (d : cocone G)
+  (w : (cocones.precompose α.inv).obj c ≅ d) :
+  is_colimit c ≃ is_colimit d :=
+(precompose_inv_equiv α _).symm.trans (equiv_iso_colimit w)
 
 /--
 The cocone points of two colimit cocones for naturally isomorphic functors

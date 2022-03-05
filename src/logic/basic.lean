@@ -509,6 +509,30 @@ or.comm.trans decidable.or_iff_not_imp_left
 theorem or_iff_not_imp_right : a ∨ b ↔ (¬ b → a) := decidable.or_iff_not_imp_right
 
 -- See Note [decidable namespace]
+protected lemma decidable.not_or_of_imp [decidable a] (h : a → b) : ¬ a ∨ b :=
+dite _ (or.inr ∘ h) or.inl
+
+lemma not_or_of_imp : (a → b) → ¬ a ∨ b := decidable.not_or_of_imp
+
+-- See Note [decidable namespace]
+protected lemma decidable.or_not_of_imp [decidable a] (h : a → b) : b ∨ ¬ a :=
+dite _ (or.inl ∘ h) or.inr
+
+lemma or_not_of_imp : (a → b) → b ∨ ¬ a := decidable.or_not_of_imp
+
+-- See Note [decidable namespace]
+protected lemma decidable.imp_iff_not_or [decidable a] : a → b ↔ ¬ a ∨ b :=
+⟨decidable.not_or_of_imp, or.neg_resolve_left⟩
+
+lemma imp_iff_not_or : a → b ↔ ¬ a ∨ b := decidable.imp_iff_not_or
+
+-- See Note [decidable namespace]
+protected lemma decidable.imp_iff_or_not [decidable b] : b → a ↔ a ∨ ¬ b :=
+decidable.imp_iff_not_or.trans or.comm
+
+lemma imp_iff_or_not : b → a ↔ a ∨ ¬ b  := decidable.imp_iff_or_not
+
+-- See Note [decidable namespace]
 protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b → a) :=
 ⟨assume h hb, decidable.by_contradiction $ assume na, h na hb, mt⟩
 
@@ -587,18 +611,6 @@ iff.comm.trans (iff_false_left ha)
 
 @[simp]
 lemma iff_mpr_iff_true_intro {P : Prop} (h : P) : iff.mpr (iff_true_intro h) true.intro = h := rfl
-
--- See Note [decidable namespace]
-protected theorem decidable.not_or_of_imp [decidable a] (h : a → b) : ¬ a ∨ b :=
-if ha : a then or.inr (h ha) else or.inl ha
-
-theorem not_or_of_imp : (a → b) → ¬ a ∨ b := decidable.not_or_of_imp
-
--- See Note [decidable namespace]
-protected theorem decidable.imp_iff_not_or [decidable a] : (a → b) ↔ (¬ a ∨ b) :=
-⟨decidable.not_or_of_imp, or.neg_resolve_left⟩
-
-theorem imp_iff_not_or : (a → b) ↔ (¬ a ∨ b) := decidable.imp_iff_not_or
 
 -- See Note [decidable namespace]
 protected theorem decidable.imp_or_distrib [decidable a] : (a → b ∨ c) ↔ (a → b) ∨ (a → c) :=

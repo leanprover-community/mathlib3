@@ -413,6 +413,14 @@ instance grade_zero.non_unital_non_assoc_ring : non_unital_non_assoc_ring (A 0) 
 function.injective.non_unital_non_assoc_ring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of A 0).map_add (of_zero_mul A)
   (of A 0).map_neg (of A 0).map_sub
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℕ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end)
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℤ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end)
 
 end ring
 

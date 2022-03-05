@@ -381,7 +381,7 @@ end
 
 end
 
-lemma snorm_sub_le_of_dist_bdd [is_finite_measure μ]
+lemma snorm_sub_le_of_dist_bdd
   {p : ℝ≥0∞} (hp : p ≠ 0) (hp' : p ≠ ∞) {s : set α} (hs : measurable_set[m] s)
   {f g : α → β} {c : ℝ} (hc : 0 ≤ c) (hf : ∀ x ∈ s, dist (f x) (g x) ≤ c) :
   snorm (s.indicator (f - g)) p μ ≤ ennreal.of_real c * μ s ^ (1 / p.to_real) :=

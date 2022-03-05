@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 import ring_theory.localization.cardinality
-import algebra.is_prime_pow
+import set_theory.cardinal_divisibility
 import field_theory.finite.galois_field
 import data.equiv.transfer_instance
 import algebra.ring.ulift
@@ -22,6 +22,7 @@ a field structure, and so can all types with prime power cardinalities, and this
 * `fintype.nonempty_field_iff`: A `fintype` can be given a field structure iff its cardinality is a
   prime power.
 * `infinite.nonempty_field` : Any infinite type can be endowed a field structure.
+* `field.nonempty_iff` : There is a field structure on type iff its cardinality is a prime power.
 
 -/
 
@@ -68,4 +69,16 @@ begin
   { refine ⟨⟨λ a, mv_polynomial.monomial (finsupp.single a 1) (1 : ulift.{u} ℚ), λ x y h, _⟩⟩,
     simpa [mv_polynomial.monomial_eq_monomial_iff, finsupp.single_eq_single_iff] using h },
   { simpa using @mv_polynomial.cardinal_mk_le_max α (ulift.{u} ℚ) _ }
+end
+
+/-- There is a field structure on type if and only if its cardinality is a prime power. -/
+lemma field.nonempty_iff {α : Type u} : nonempty (field α) ↔ is_prime_pow (#α) :=
+begin
+  rw cardinal.is_prime_pow_iff,
+  casesI fintype_or_infinite α with h h,
+  { simpa only [cardinal.mk_fintype, nat.cast_inj, exists_eq_left',
+        (cardinal.nat_lt_omega _).not_le, false_or]
+      using fintype.nonempty_field_iff },
+  { simpa only [← cardinal.infinite_iff, h, true_or, iff_true]
+      using infinite.nonempty_field },
 end

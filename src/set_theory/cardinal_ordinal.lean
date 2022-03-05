@@ -599,7 +599,7 @@ end
 
 /-! ### Computing cardinality of various types -/
 
-theorem mk_ordinal_out (o : ordinal.{u}) : #(o.out.α) = o.card :=
+@[simp] theorem mk_ordinal_out (o : ordinal.{u}) : #(o.out.α) = o.card :=
 by { convert (ordinal.card_type o.out.r).symm, exact (ordinal.type_out o).symm }
 
 theorem mk_list_eq_mk (α : Type u) [infinite α] : #(list α) = #α :=

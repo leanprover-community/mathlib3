@@ -38,7 +38,7 @@ equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 
 open_locale big_operators
 
-variables {R : Type*} {S : Type*} {S' : Type*}
+variables {F α β R S S' : Type*}
 
 set_option old_structure_cmd true
 
@@ -85,6 +85,11 @@ instance to_ring_hom_class (F R S : Type*)
 
 end ring_equiv_class
 
+instance [has_mul α] [has_add α] [has_mul β] [has_add β] [ring_equiv_class F α β] :
+  has_coe_t F (α ≃+* β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f, map_mul' := map_mul f, map_add' := map_add f }⟩
+
 namespace ring_equiv
 
 section basic
@@ -125,10 +130,6 @@ protected lemma congr_arg {f : R ≃+* S} {x x' : R} : x = x' → f x = f x' := 
 protected lemma congr_fun {f g : R ≃+* S} (h : f = g) (x : R) : f x = g x := fun_like.congr_fun h x
 
 protected lemma ext_iff {f g : R ≃+* S} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
-
-instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.to_mul_equiv⟩
-
-instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
 
 @[simp] lemma to_add_equiv_eq_coe (f : R ≃+* S) : f.to_add_equiv = ↑f := rfl
 

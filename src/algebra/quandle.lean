@@ -354,13 +354,13 @@ by { intro b, dsimp [dihedral_act], ring }
 instance (n : ℕ) : quandle (dihedral n) :=
 { act := dihedral_act n,
   self_distrib := λ x y z, begin
-    dsimp [function.involutive.to_equiv, dihedral_act], ring,
+    dsimp [dihedral_act], ring,
   end,
   inv_act := dihedral_act n,
   left_inv := λ x, (dihedral_act.inv n x).left_inverse,
   right_inv := λ x, (dihedral_act.inv n x).right_inverse,
   fix := λ x, begin
-    dsimp [function.involutive.to_equiv, dihedral_act], ring,
+    dsimp [dihedral_act], ring,
   end }
 
 end quandle

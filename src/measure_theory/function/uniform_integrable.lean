@@ -19,7 +19,13 @@ fomulate the martingale convergence theorem.
 ## Main definitions
 
 * `measure_theory.unif_integrable`: uniform integrability in the measure theory sense.
+  In particular, a sequence of functions `f` is uniformly integrable if for all `ε > 0`, there
+  exists some `δ > 0` such that for all sets `s` of smaller measure than `δ`, the Lp-norm of
+  `f i` restricted `s` is smaller than `ε` for all `i`.
 * `measure_theory.uniform_integrable`: uniform integrability in the probability theory sense.
+  In particular, a sequence of measurable functions `f` is uniformly integrable in the
+  probability theory sense if it is uniformly integrable in the measure theory sense and
+  has uniformly bounded Lp-norm.
 
 # Main results
 
@@ -55,28 +61,30 @@ def unif_integrable {m : measurable_space α} (f : ι → α → β) (p : ℝ≥
 ∀ ⦃ε : ℝ⦄ (hε : 0 < ε), ∃ (δ : ℝ) (hδ : 0 < δ), ∀ i s, measurable_set s → μ s ≤ ennreal.of_real δ →
 snorm (s.indicator (f i)) p μ ≤ ennreal.of_real ε
 
-/-- In probability theory, a family of functions is uniformly integrable if it is uniformly
-integrable in the measure theory sense and is uniformly bounded. -/
+/-- In probability theory, a family of measurable functions is uniformly integrable if it is
+uniformly integrable in the measure theory sense and is uniformly bounded. -/
 def uniform_integrable {m : measurable_space α} [measurable_space β]
-  (μ : measure α) (f : ι → α → β) (p : ℝ≥0∞) : Prop :=
+  (f : ι → α → β) (p : ℝ≥0∞) (μ : measure α) : Prop :=
 (∀ i, measurable (f i)) ∧ unif_integrable f p μ ∧ ∃ C : ℝ≥0, ∀ i, snorm (f i) p μ ≤ C
 
-lemma uniform_integrable.measurable [measurable_space β] {f : ι → α → β} {p : ℝ≥0∞}
-  (hf : uniform_integrable μ f p) (i : ι) : measurable (f i) :=
+lemma uniform_integrable.measurable {mβ : measurable_space β} {f : ι → α → β} {p : ℝ≥0∞}
+  (hf : uniform_integrable f p μ) (i : ι) : measurable (f i) :=
 hf.1 i
 
-lemma uniform_integrable.unif_integrable [measurable_space β] {f : ι → α → β} {p : ℝ≥0∞}
-  (hf : uniform_integrable μ f p) : unif_integrable f p μ :=
+lemma uniform_integrable.unif_integrable {mβ : measurable_space β} {f : ι → α → β} {p : ℝ≥0∞}
+  (hf : uniform_integrable f p μ) : unif_integrable f p μ :=
 hf.2.1
 
-lemma uniform_integrable.mem_ℒp [measurable_space β] {f : ι → α → β} {p : ℝ≥0∞}
-  (hf : uniform_integrable μ f p) (i : ι) :
+lemma uniform_integrable.mem_ℒp {mβ : measurable_space β} {f : ι → α → β} {p : ℝ≥0∞}
+  (hf : uniform_integrable f p μ) (i : ι) :
   mem_ℒp (f i) p μ :=
 ⟨(hf.1 i).ae_measurable, let ⟨_, _, hC⟩ := hf.2 in lt_of_le_of_lt (hC i) ennreal.coe_lt_top⟩
 
 section unif_integrable
 
-/- This section deals with uniform integrability in the measure theory sense. -/
+/-! ### `unif_integrable`
+
+This section deals with uniform integrability in the measure theory sense. -/
 
 lemma tendsto_indicator_ge (f : α → β) (x : α):
   tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ∥f x∥₊}.indicator f x) at_top (𝓝 0) :=
@@ -418,8 +426,9 @@ begin
 end
 
 /-- A sequence of uniformly integrable functions which converges μ-a.e. converges in Lp. -/
-lemma tendsto_Lp_of_tendsto_ae [measurable_space β] [borel_space β] [second_countable_topology β]
-  [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
+lemma tendsto_Lp_of_tendsto_ae {mβ : measurable_space β}
+  [borel_space β] [second_countable_topology β] [is_finite_measure μ]
+  (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, measurable[m] (f n)) (hg : measurable g)
   (hg' : mem_ℒp g p μ) (hui : unif_integrable f p μ)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
@@ -491,8 +500,10 @@ begin
     exact ⟨0, λ n hn, by simp [h]⟩ }
 end
 
-variables [measurable_space β] [borel_space β] [second_countable_topology β]
+variables {mβ : measurable_space β} [borel_space β] [second_countable_topology β]
 variables {f : ℕ → α → β} {g : α → β}
+
+include mβ
 
 /-- Forward direction of Vitali's convergence theorem: if `f` is a sequence of uniformly integrable
 functions that converge in measure to some function `g` in a finite measure space, then `f`

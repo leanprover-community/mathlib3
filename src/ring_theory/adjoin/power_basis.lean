@@ -62,3 +62,11 @@ where `d` is the degree of the minimal polynomial of `x`. -/
   basis_eq_pow := basis.mk_apply _ _ }
 
 end algebra
+
+open algebra
+
+/-- The power basis given by `x` if `B.gen ∈ adjoin K {x}`. -/
+@[simps] noncomputable def power_basis.of_gen_mem_adjoin {x : S} (B : power_basis K S)
+  (hint : _root_.is_integral K x) (hx : B.gen ∈ adjoin K ({x} : set S)) : power_basis K S :=
+(algebra.adjoin.power_basis hint).map $
+  (subalgebra.equiv_of_eq _ _ $ power_basis.adjoin_eq_top_of_gen_mem_adjoin hx).trans top_equiv

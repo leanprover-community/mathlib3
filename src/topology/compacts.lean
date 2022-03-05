@@ -3,7 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Yaël Dillies
 -/
-import topology.homeomorph
+import topology.opens
 
 /-!
 # Compact sets
@@ -17,6 +17,9 @@ For a topological space `α`,
 - `compacts α`: The type of compact sets.
 - `nonempty_compacts α`: The type of non-empty compact sets.
 - `positive_compacts α`: The type of compact sets with non-empty interior.
+- `clopens α`: The type of clopen sets.
+- `compact_opens α`: The type of compact open sets. This is a central object of study in the
+  context of spectral spaces.
 -/
 
 open set
@@ -50,7 +53,8 @@ instance : has_inf (closeds α) := ⟨λ s t, ⟨s ∩ t, s.closed.inter t.close
 instance : has_top (closeds α) := ⟨⟨univ, is_closed_univ⟩⟩
 instance : has_bot (closeds α) := ⟨⟨∅, is_closed_empty⟩⟩
 
-instance : lattice (closeds α) := set_like.coe_injective.lattice _ (λ _ _, rfl) (λ _ _, rfl)
+instance : distrib_lattice (closeds α) :=
+set_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
 instance : bounded_order (closeds α) := bounded_order.lift (coe : _ → set α) (λ _ _, id) rfl rfl
 
 /-- The type of closed sets is inhabited, with default element the empty set. -/
@@ -71,6 +75,7 @@ structure compacts (α : Type*) [topological_space α] :=
 (compact' : is_compact carrier)
 
 namespace compacts
+variables {α}
 
 instance : set_like (compacts α) α :=
 { coe := compacts.carrier,
@@ -89,8 +94,8 @@ instance : has_bot (compacts α) := ⟨⟨∅, is_compact_empty⟩⟩
 
 instance : semilattice_sup (compacts α) := set_like.coe_injective.semilattice_sup _ (λ _ _, rfl)
 
-instance [t2_space α] : lattice (compacts α) :=
-set_like.coe_injective.lattice _ (λ _ _, rfl) (λ _ _, rfl)
+instance [t2_space α] : distrib_lattice (compacts α) :=
+set_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
 
 instance : order_bot (compacts α) := order_bot.lift (coe : _ → set α) (λ _ _, id) rfl
 
@@ -234,4 +239,119 @@ let ⟨s, hs⟩ := exists_compact_subset is_open_univ $ mem_univ (classical.arbi
   ⟨{ carrier := s, compact' := hs.1, interior_nonempty' := ⟨_, hs.2.1⟩ }⟩
 
 end positive_compacts
+
+/-! ### Clopen sets -/
+
+/-- The type of clopen sets of a topological space. -/
+structure clopens (α : Type*) [topological_space α] :=
+(carrier : set α)
+(clopen' : is_clopen carrier)
+
+namespace clopens
+
+instance : set_like (clopens α) α :=
+{ coe := λ s, s.carrier,
+  coe_injective' := λ s t h, by { cases s, cases t, congr' } }
+
+lemma clopen (s : clopens α) : is_clopen (s : set α) := s.clopen'
+
+/-- Reinterpret a compact open as an open. -/
+@[simps] def to_opens (s : clopens α) : opens α := ⟨s, s.clopen.is_open⟩
+
+@[ext] protected lemma ext {s t : clopens α} (h : (s : set α) = t) : s = t := set_like.ext' h
+
+@[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
+
+instance : has_sup (clopens α) := ⟨λ s t, ⟨s ∪ t, s.clopen.union t.clopen⟩⟩
+instance : has_inf (clopens α) := ⟨λ s t, ⟨s ∩ t, s.clopen.inter t.clopen⟩⟩
+instance : has_top (clopens α) := ⟨⟨⊤, is_clopen_univ⟩⟩
+instance : has_bot (clopens α) := ⟨⟨⊥, is_clopen_empty⟩⟩
+instance : has_sdiff (clopens α) := ⟨λ s t, ⟨s \ t, s.clopen.diff t.clopen⟩⟩
+instance : has_compl (clopens α) := ⟨λ s, ⟨sᶜ, s.clopen.compl⟩⟩
+
+instance : boolean_algebra (clopens α) :=
+set_like.coe_injective.boolean_algebra _ (λ _ _, rfl) (λ _ _, rfl) rfl rfl (λ _, rfl) (λ _ _, rfl)
+
+@[simp] lemma coe_sup (s t : clopens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
+@[simp] lemma coe_inf (s t : clopens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simp] lemma coe_top : (↑(⊤ : clopens α) : set α) = univ := rfl
+@[simp] lemma coe_bot : (↑(⊥ : clopens α) : set α) = ∅ := rfl
+@[simp] lemma coe_sdiff (s t : clopens α) : (↑(s \ t) : set α) = s \ t := rfl
+@[simp] lemma coe_compl (s : clopens α) : (↑sᶜ : set α) = sᶜ := rfl
+
+instance : inhabited (clopens α) := ⟨⊥⟩
+
+end clopens
+
+/-! ### Compact open sets -/
+
+/-- The type of compact open sets of a topological space. This is useful in non Hausdorff contexts,
+in particular spectral spaces. -/
+structure compact_opens (α : Type*) [topological_space α] extends compacts α :=
+(open' : is_open carrier)
+
+namespace compact_opens
+
+instance : set_like (compact_opens α) α :=
+{ coe := λ s, s.carrier,
+  coe_injective' := λ s t h, by { obtain ⟨⟨_, _⟩, _⟩ := s, obtain ⟨⟨_, _⟩, _⟩ := t, congr' } }
+
+lemma compact (s : compact_opens α) : is_compact (s : set α) := s.compact'
+lemma «open» (s : compact_opens α) : is_open (s : set α) := s.open'
+
+/-- Reinterpret a compact open as an open. -/
+@[simps] def to_opens (s : compact_opens α) : opens α := ⟨s, s.open⟩
+
+/-- Reinterpret a compact open as a clopen. -/
+@[simps] def to_clopens [t2_space α] (s : compact_opens α) : clopens α :=
+⟨s, s.open, s.compact.is_closed⟩
+
+@[ext] protected lemma ext {s t : compact_opens α} (h : (s : set α) = t) : s = t := set_like.ext' h
+
+@[simp] lemma coe_mk (s : compacts α) (h) : (mk s h : set α) = s := rfl
+
+instance : has_sup (compact_opens α) :=
+⟨λ s t, ⟨s.to_compacts ⊔ t.to_compacts, s.open.union t.open⟩⟩
+instance [t2_space α] : has_inf (compact_opens α) :=
+⟨λ s t, ⟨s.to_compacts ⊓ t.to_compacts, s.open.inter t.open⟩⟩
+instance [compact_space α] : has_top (compact_opens α) := ⟨⟨⊤, is_open_univ⟩⟩
+instance : has_bot (compact_opens α) := ⟨⟨⊥, is_open_empty⟩⟩
+instance [t2_space α] : has_sdiff (compact_opens α) :=
+⟨λ s t, ⟨⟨s \ t, s.compact.diff t.open⟩, s.open.sdiff t.compact.is_closed⟩⟩
+instance [t2_space α] [compact_space α] : has_compl (compact_opens α) :=
+⟨λ s, ⟨⟨sᶜ, s.open.is_closed_compl.is_compact⟩, s.compact.is_closed.is_open_compl⟩⟩
+
+instance : semilattice_sup (compact_opens α) :=
+set_like.coe_injective.semilattice_sup _ (λ _ _, rfl)
+
+instance : order_bot (compact_opens α) := order_bot.lift (coe : _ → set α) (λ _ _, id) rfl
+
+instance [t2_space α] : generalized_boolean_algebra (compact_opens α) :=
+set_like.coe_injective.generalized_boolean_algebra _ (λ _ _, rfl) (λ _ _, rfl) rfl (λ _ _, rfl)
+
+instance [compact_space α] : bounded_order (compact_opens α) :=
+bounded_order.lift (coe : _ → set α) (λ _ _, id) rfl rfl
+
+instance [t2_space α] [compact_space α] : boolean_algebra (compact_opens α) :=
+set_like.coe_injective.boolean_algebra _ (λ _ _, rfl) (λ _ _, rfl) rfl rfl (λ _, rfl) (λ _ _, rfl)
+
+@[simp] lemma coe_sup (s t : compact_opens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
+@[simp] lemma coe_inf [t2_space α] (s t : compact_opens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simp] lemma coe_top [compact_space α] : (↑(⊤ : compact_opens α) : set α) = univ := rfl
+@[simp] lemma coe_bot : (↑(⊥ : compact_opens α) : set α) = ∅ := rfl
+@[simp] lemma coe_sdiff [t2_space α] (s t : compact_opens α) : (↑(s \ t) : set α) = s \ t := rfl
+@[simp] lemma coe_compl [t2_space α] [compact_space α] (s : compact_opens α) : (↑sᶜ : set α) = sᶜ :=
+rfl
+
+instance : inhabited (compact_opens α) := ⟨⊥⟩
+
+/-- The image of a compact open under a continuous open map. -/
+@[simps] def map (f : α → β) (hf : continuous f) (hf' : is_open_map f) (s : compact_opens α) :
+  compact_opens β :=
+⟨s.to_compacts.map f hf, hf' _ s.open⟩
+
+@[simp] lemma coe_map {f : α → β} (hf : continuous f) (hf' : is_open_map f) (s : compact_opens α) :
+  (s.map f hf hf' : set β) = f '' s := rfl
+
+end compact_opens
 end topological_space

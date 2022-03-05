@@ -578,54 +578,59 @@ end
 additive group."]
 def haar [locally_compact_space G] : measure G := haar_measure $ classical.arbitrary _
 
-section unique
+section second_countable
 
 variables [second_countable_topology G]
 
 /-- The Haar measure is unique up to scaling. More precisely: every σ-finite left invariant measure
-  is a scalar multiple of the Haar measure. -/
+  is a scalar multiple of the Haar measure.
+  This is slightly weaker than assuming that `μ` is a Haar measure (in particular we don't require
+  `μ ≠ 0`). -/
 @[to_additive]
 theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
   (K₀ : positive_compacts G) : μ = μ K₀ • haar_measure K₀ :=
 begin
-  ext1 s hs,
-  have := measure_mul_measure_eq μ (haar_measure K₀) K₀.compact hs,
-  rw [haar_measure_self, one_mul] at this,
-  rw [← this (by norm_num), smul_apply, smul_eq_mul],
+  refine (measure_eq_div_smul μ (haar_measure K₀) K₀.compact.measurable_set
+    (measure_pos_of_nonempty_interior _ K₀.interior_nonempty).ne'
+    K₀.compact.measure_lt_top.ne).trans _,
+  rw [haar_measure_self, ennreal.div_one]
 end
 
+example [locally_compact_space G] (μ : measure G) [is_haar_measure μ] (K₀ : positive_compacts G) :
+  μ = μ K₀.1 • haar_measure K₀ :=
+haar_measure_unique μ K₀
+
+/-- To show that an invariant σ-finite measure is regular it is sufficient to show that it is finite
+  on some compact set with non-empty interior. -/
 @[to_additive]
 theorem regular_of_is_mul_left_invariant {μ : measure G} [sigma_finite μ] [is_mul_left_invariant μ]
   {K : set G} (hK : is_compact K) (h2K : (interior K).nonempty) (hμK : μ K ≠ ∞) :
   regular μ :=
 by { rw [haar_measure_unique μ ⟨⟨K, hK⟩, h2K⟩], exact regular.smul hμK }
 
-end unique
-
 @[to_additive is_add_haar_measure_eq_smul_is_add_haar_measure]
 theorem is_haar_measure_eq_smul_is_haar_measure
-  [locally_compact_space G] [second_countable_topology G]
-  (μ ν : measure G) [is_haar_measure μ] [is_haar_measure ν] :
-  ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (μ = c • ν) :=
+  [locally_compact_space G] (μ ν : measure G) [is_haar_measure μ] [is_haar_measure ν] :
+  ∃ (c : ℝ≥0∞), c ≠ 0 ∧ c ≠ ∞ ∧ μ = c • ν :=
 begin
   have K : positive_compacts G := classical.arbitrary _,
   have νpos : 0 < ν K := measure_pos_of_nonempty_interior _ K.interior_nonempty,
-  have νlt : ν K < ∞ := K.compact.measure_lt_top ,
+  have νne : ν K ≠ ∞ := K.compact.measure_lt_top.ne,
   refine ⟨μ K / ν K, _, _, _⟩,
-  { simp only [νlt.ne, (μ.measure_pos_of_nonempty_interior K.interior_nonempty).ne', ne.def,
+  { simp only [νne, (μ.measure_pos_of_nonempty_interior K.interior_nonempty).ne', ne.def,
       ennreal.div_zero_iff, not_false_iff, or_self] },
-  { simp only [div_eq_mul_inv, νpos.ne', K.compact.measure_lt_top.ne, or_self,
+  { simp only [div_eq_mul_inv, νpos.ne', (K.compact.measure_lt_top).ne, or_self,
       ennreal.inv_eq_top, with_top.mul_eq_top_iff, ne.def, not_false_iff, and_false, false_and] },
   { calc
     μ = μ K • haar_measure K : haar_measure_unique μ K
     ... = (μ K / ν K) • (ν K • haar_measure K) :
-      by rw [smul_smul, div_eq_mul_inv, mul_assoc, ennreal.inv_mul_cancel νpos.ne' νlt.ne, mul_one]
+      by rw [smul_smul, div_eq_mul_inv, mul_assoc, ennreal.inv_mul_cancel νpos.ne' νne, mul_one]
     ... = (μ K / ν K) • ν : by rw ← haar_measure_unique ν K }
 end
 
-@[priority 90, to_additive] -- see Note [lower instance priority]]
+@[priority 90, to_additive] -- see Note [lower instance priority]
 instance regular_of_is_haar_measure
-  [locally_compact_space G] [second_countable_topology G] (μ : measure G) [is_haar_measure μ] :
+  [locally_compact_space G] (μ : measure G) [is_haar_measure μ] :
   regular μ :=
 begin
   have K : positive_compacts G := classical.arbitrary _,
@@ -634,6 +639,8 @@ begin
   rw hμ,
   exact regular.smul ctop,
 end
+
+end second_countable
 
 /-- Any Haar measure is invariant under inversion in a commutative group. -/
 @[to_additive]
@@ -651,7 +658,7 @@ begin
   obtain ⟨c, cpos, clt, hc⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (measure.map has_inv.inv μ = c • μ)
     := is_haar_measure_eq_smul_is_haar_measure _ _,
   have : map has_inv.inv (map has_inv.inv μ) = c^2 • μ,
-    by simp only [hc, smul_smul, pow_two, linear_map.map_smul],
+    by simp only [hc, smul_smul, pow_two, map_smul],
   have μeq : μ = c^2 • μ,
   { rw [map_map continuous_inv.measurable continuous_inv.measurable] at this,
     { simpa only [inv_involutive, involutive.comp_self, map_id] },

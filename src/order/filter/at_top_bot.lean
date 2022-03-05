@@ -798,39 +798,6 @@ theorem tendsto_at_bot_principal [nonempty β] [semilattice_inf β] {f : β → 
   tendsto f at_bot (𝓟 s) ↔ ∃N, ∀n≤N, f n ∈ s :=
 @tendsto_at_top_principal _ (order_dual β) _ _ _ _
 
-/-- a sequence is convergent if and only if every subsequence has a convergent subsequence. -/
-lemma tendsto_at_top_of_seq_tendsto_at_top
-  (γ : Type*) [semilattice_sup ι] [nonempty ι] [semilattice_sup γ] [nonempty γ]
-  {x : ι → α} {f : filter α}
-  (hxy : ∀ ns : ι → ι, tendsto ns at_top at_top →
-    ∃ ms : γ → ι, tendsto (λ n, x (ns $ ms n)) at_top f) :
-  tendsto (λ n, x n) at_top f :=
-begin
-  by_contra h,
-  obtain ⟨s, hs, hfreq⟩ : ∃ s ∈ f, ∃ᶠ n in at_top, x n ∉ s,
-  { by_contra h', push_neg at h',
-    simp_rw frequently_at_top at h',
-    refine h (λ s hs, _),
-    specialize h' s hs,
-    push_neg at h',
-    exact mem_at_top_sets.2 h' },
-  choose ns hge hns using frequently_at_top.1 hfreq,
-  obtain ⟨ms, hns'⟩ := hxy ns (tendsto_at_top_mono hge tendsto_id),
-  obtain ⟨a, ha⟩ := (tendsto_at_top'.1 hns') s hs,
-  exact hns (ms a) (ha a le_rfl),
-end
-
-lemma tendsto_at_top_of_seq_tendsto_at_top' {x : ℕ → α} {f : filter α}
-  (hxy : ∀ ns : ℕ → ℕ, strict_mono ns →
-    ∃ ms : ℕ → ℕ, tendsto (λ n, x (ns $ ms n)) at_top f) :
-  tendsto (λ n, x n) at_top f :=
-begin
-  refine tendsto_at_top_of_seq_tendsto_at_top ℕ (λ ns hns, _),
-  obtain ⟨ms, hms⟩ := strict_mono_subseq_of_tendsto_at_top hns,
-  obtain ⟨os, hos⟩ := hxy _ hms.2,
-  exact ⟨ms ∘ os, hos⟩,
-end
-
 /-- A function `f` grows to `+∞` independent of an order-preserving embedding `e`. -/
 lemma tendsto_at_top_at_top [nonempty α] [semilattice_sup α] [preorder β] {f : α → β} :
   tendsto f at_top at_top ↔ ∀ b : β, ∃ i : α, ∀ a : α, i ≤ a → b ≤ f a :=
@@ -1320,6 +1287,83 @@ end
 lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β} [k.is_countably_generated] :
   (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
 tendsto_iff_seq_tendsto.2
+
+lemma tendsto_iff_forall_eventually_mem {α ι : Type*} {x : ι → α} {f : filter α} {l : filter ι} :
+  tendsto x l f ↔ ∀ s ∈ f, ∀ᶠ n in l, x n ∈ s :=
+by { rw tendsto_def, refine forall_congr (λ s, imp_congr_right (λ hsf, _)), refl, }
+
+lemma not_tendsto_iff_exists_frequently_nmem {α ι : Type*} {x : ι → α} {f : filter α}
+  {l : filter ι} :
+  ¬ tendsto x l f ↔ ∃ s ∈ f, ∃ᶠ n in l, x n ∉ s :=
+begin
+  rw tendsto_iff_forall_eventually_mem,
+  push_neg,
+  refine exists_congr (λ s, _),
+  rw [not_eventually, exists_prop],
+end
+
+lemma frequently_iff_seq_frequently {ι : Type*} {l : filter ι} {p : ι → Prop}
+  [hl : l.is_countably_generated] :
+  (∃ᶠ n in l, p n) ↔ ∃ (x : ℕ → ι), tendsto x at_top l ∧ ∃ᶠ (n : ℕ) in at_top, p (x n) :=
+begin
+  refine ⟨λ h_freq, _, λ h_exists_freq, _⟩,
+  { haveI : ne_bot (l ⊓ 𝓟 {x : ι | p x}), by simpa [ne_bot_iff, inf_principal_eq_bot],
+    obtain ⟨x, hx⟩ := exists_seq_tendsto (l ⊓ (𝓟 {x : ι | p x})),
+    rw tendsto_inf at hx,
+    cases hx with hx_l hx_p,
+    refine ⟨x, hx_l, _⟩,
+    rw tendsto_principal at hx_p,
+    exact hx_p.frequently, },
+  { obtain ⟨x, hx_tendsto, hx_freq⟩ := h_exists_freq,
+    simp_rw [filter.frequently, filter.eventually] at hx_freq ⊢,
+    have : {n : ℕ | ¬p (x n)} = {n | x n ∈ {y | ¬ p y}} := rfl,
+    rw [this, ← mem_map'] at hx_freq,
+    contrapose! hx_freq,
+    exact hx_tendsto hx_freq, },
+end
+
+lemma subseq_forall_of_frequently {ι : Type*} {x : ℕ → ι} {p : ι → Prop} {l : filter ι}
+  (h_tendsto : tendsto x at_top l) (h : ∃ᶠ n in at_top, p (x n)) :
+  ∃ ns : ℕ → ℕ, tendsto (λ n, x (ns n)) at_top l ∧ ∀ n, p (x (ns n)) :=
+begin
+  rw tendsto_iff_seq_tendsto at h_tendsto,
+  choose ns hge hns using frequently_at_top.1 h,
+  exact ⟨ns, h_tendsto ns (tendsto_at_top_mono hge tendsto_id), hns⟩,
+end
+
+lemma exists_seq_forall_of_frequently {ι : Type*} {l : filter ι} {p : ι → Prop}
+  [hl : l.is_countably_generated] (h : ∃ᶠ n in l, p n) :
+  ∃ ns : ℕ → ι, tendsto ns at_top l ∧ ∀ n, p (ns n) :=
+begin
+  rw frequently_iff_seq_frequently at h,
+  obtain ⟨x, hx_tendsto, hx_freq⟩ := h,
+  obtain ⟨n_to_n, h_tendsto, h_freq⟩ := subseq_forall_of_frequently hx_tendsto hx_freq,
+  exact ⟨x ∘ n_to_n, h_tendsto, h_freq⟩,
+end
+
+/-- a sequence is converges if and only if every subsequence has a convergent subsequence. -/
+lemma tendsto_of_subseq_tendsto {α ι : Type*}
+  {x : ι → α} {f : filter α} {l : filter ι} [l.is_countably_generated]
+  (hxy : ∀ ns : ℕ → ι, tendsto ns at_top l →
+    ∃ ms : ℕ → ℕ, tendsto (λ n, x (ns $ ms n)) at_top f) :
+  tendsto x l f :=
+begin
+  by_contra h,
+  obtain ⟨s, hs, hfreq⟩ : ∃ s ∈ f, ∃ᶠ n in l, x n ∉ s,
+    by rwa not_tendsto_iff_exists_frequently_nmem at h,
+  obtain ⟨y, hy_tendsto, hy_freq⟩ := exists_seq_forall_of_frequently hfreq,
+  specialize hxy y hy_tendsto,
+  obtain ⟨ms, hms_tendsto⟩ := hxy,
+  specialize hms_tendsto hs,
+  rw mem_map at hms_tendsto,
+  have hms_freq : ∀ (n : ℕ), x (y (ms n)) ∉ s, from λ n, hy_freq (ms n),
+  have h_empty : (λ (n : ℕ), x (y (ms n))) ⁻¹' s = ∅,
+  { ext1 n,
+    simp only [set.mem_preimage, set.mem_empty_eq, iff_false],
+    exact hms_freq n, },
+  rw h_empty at hms_tendsto,
+  exact empty_not_mem at_top hms_tendsto,
+end
 
 lemma subseq_tendsto_of_ne_bot {f : filter α} [is_countably_generated f] {u : ℕ → α}
   (hx : ne_bot (f ⊓ map u at_top)) :

@@ -499,7 +499,7 @@ lemma tendsto_Lp_of_tendsto_in_measure [is_finite_measure μ] (hp : 1 ≤ p) (hp
   (hfg : tendsto_in_measure μ f at_top g) :
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
 begin
-  refine tendsto_at_top_of_seq_tendsto_at_top' (λ ns hns, _),
+  refine tendsto_of_subseq_tendsto (λ ns hns, _),
   obtain ⟨ms, hms, hms'⟩ := tendsto_in_measure.exists_seq_tendsto_ae
     (λ ε hε, (hfg ε hε).comp hns.tendsto_at_top),
   exact ⟨ms, tendsto_Lp_of_tendsto_ae μ hp hp' (λ _, hf _) hg hg'

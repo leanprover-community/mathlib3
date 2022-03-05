@@ -294,6 +294,23 @@ theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x
   (powers m).map f = powers (f m) :=
 by simp only [powers_eq_closure, f.map_mclosure, set.image_singleton]
 
+/-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
+@[to_additive "If all the elements of a set `s` commute, then `closure s` forms an additive
+commutative monoid."]
+def closure_comm_monoid_of_comm {s : set M} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
+  comm_monoid (closure s) :=
+{ mul_comm := λ x y,
+  begin
+    ext,
+    simp only [submonoid.coe_mul],
+    exact closure_induction₂ x.prop y.prop hcomm
+      (λ x, by simp only [mul_one, one_mul])
+      (λ x, by simp only [mul_one, one_mul])
+      (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
+      (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc]),
+  end,
+  ..(closure s).to_monoid }
+
 end submonoid
 
 namespace submonoid

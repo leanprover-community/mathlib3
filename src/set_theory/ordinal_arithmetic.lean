@@ -1478,12 +1478,10 @@ funext (λ o, begin
   have Hfa : f a ∈ range f ∩ {b | ∀ c, c < a → enum_ord (range f) c < b} :=
     ⟨mem_range_self a, λ b hb, (by {rw H b hb, exact hf hb})⟩,
   refine (cInf_le' Hfa).antisymm ((le_cInf_iff'' ⟨_, Hfa⟩).2 _),
-  rintros b ⟨⟨c, hc⟩, hb'⟩,
-  rw [←hc, hf.le_iff_le],
-  by_contra' hca,
-  have := hb' c hca,
-  rw H c hca at this,
-  exact this.ne hc
+  rintros _ ⟨⟨c, rfl⟩, hc : ∀ b < a, enum_ord (range f) b < f c⟩,
+  rw hf.le_iff_le,
+  contrapose! hc,
+  exact ⟨c, hc, (H c hc).ge⟩,
 end)
 
 @[simp] theorem enum_ord_univ : enum_ord set.univ = id :=

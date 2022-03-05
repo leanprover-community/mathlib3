@@ -38,6 +38,7 @@ variables {C : Type u₁} [category.{v₁} C] [abelian C]
 namespace category_theory
 
 namespace abelian
+
 variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
 local attribute [instance] has_equalizers_of_has_kernels

@@ -189,6 +189,14 @@ mul_support_binop_subset (/) (by simp only [div_one]) f g
   support (λ x, f x * g x) = support f ∩ support g :=
 set.ext $ λ x, by simp only [mem_support, mul_ne_zero_iff, mem_inter_eq, not_or_distrib]
 
+@[simp] lemma support_mul_subset_left [mul_zero_class R] (f g : α → R) :
+  support (λ x, f x * g x) ⊆ support f :=
+λ x hfg hf, hfg $ by simp only [hf, zero_mul]
+
+@[simp] lemma support_mul_subset_right [mul_zero_class R] (f g : α → R) :
+  support (λ x, f x * g x) ⊆ support g :=
+λ x hfg hg, hfg $ by simp only [hg, mul_zero]
+
 lemma support_smul_subset_right [add_monoid A] [monoid B] [distrib_mul_action B A]
   (b : B) (f : α → A) :
   support (b • f) ⊆ support f :=
@@ -203,6 +211,11 @@ lemma support_smul [semiring R] [add_comm_monoid M] [module R M]
   [no_zero_smul_divisors R M] (f : α → R) (g : α → M) :
   support (f • g) = support f ∩ support g :=
 ext $ λ x, smul_ne_zero
+
+lemma support_const_smul_of_ne_zero [semiring R] [add_comm_monoid M] [module R M]
+  [no_zero_smul_divisors R M] (c : R) (g : α → M) (hc : c ≠ 0) :
+  support (c • g) = support g :=
+ext $ λ x, by simp only [hc, mem_support, pi.smul_apply, ne.def, smul_eq_zero, false_or]
 
 @[simp] lemma support_inv [group_with_zero G₀] (f : α → G₀) :
   support (λ x, (f x)⁻¹) = support f :=

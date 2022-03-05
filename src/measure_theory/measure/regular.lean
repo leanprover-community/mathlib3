@@ -182,7 +182,7 @@ end
 lemma smul (H : inner_regular μ p q) (c : ℝ≥0∞) : inner_regular (c • μ) p q :=
 begin
   intros U hU r hr,
-  rw [smul_apply, H.measure_eq_supr hU] at hr,
+  rw [smul_apply, H.measure_eq_supr hU, smul_eq_mul] at hr,
   simpa only [ennreal.mul_supr, lt_supr_iff, exists_prop] using hr
 end
 
@@ -295,7 +295,7 @@ begin
   rcases eq_or_ne x 0 with rfl|h0,
   { rw zero_smul, exact outer_regular.zero },
   { refine ⟨λ A hA r hr, _⟩,
-    rw [smul_apply, A.measure_eq_infi_is_open] at hr,
+    rw [smul_apply, A.measure_eq_infi_is_open, smul_eq_mul] at hr,
     simpa only [ennreal.mul_infi_of_ne h0 hx, gt_iff_lt, infi_lt_iff, exists_prop] using hr }
 end
 

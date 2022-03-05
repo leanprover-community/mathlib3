@@ -27,7 +27,7 @@ the two must be equal.
 
 -/
 
-variables {α β : Type*} (f : α → β → β) (op : α → α → α)
+variables {α β γ : Type*} (f : α → β → β) (op : α → α → α)
 
 namespace multiset
 
@@ -174,7 +174,7 @@ end multiset
 
 namespace finset
 
-variables [monoid β]
+variables [monoid β] [monoid γ]
 
 /-- Product of a `s : finset α` mapped with `f : α → β` with `[monoid β]`,
 given a proof that `*` commutes on all elements `f x` for `x ∈ s`. -/
@@ -218,22 +218,21 @@ by simp [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
 by simp [noncomm_prod, multiset.singleton_eq_cons]
 
 @[to_additive]
-lemma noncomm_prod_map {α : Type*} {β : Type*} [monoid β]
-  (s : finset α) (f : α → β)
+lemma noncomm_prod_map (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
-  {M : Type*} [monoid M] (g : β →* M) :
+  {F : Type*} [monoid_hom_class F β γ] (g : F) :
   g (s.noncomm_prod f comm) = s.noncomm_prod (λ i, g (f i))
   (λ x hx y hy, commute.map (comm x hx y hy) g)  :=
 begin
   classical,
   revert comm, rw ← s.to_list_to_finset, intro,
   iterate 2 { rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list },
-  convert g.map_list_prod _, rw list.comp_map,
+  convert map_list_prod g _, rw list.comp_map,
 end
 
 @[to_additive]
-lemma noncomm_prod_eq_pow_of_forall_eq {α : Type*} {β : Type*} [monoid β] (s : finset α)
-  (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
+lemma noncomm_prod_eq_pow_of_forall_eq (s : finset α) (f : α → β)
+  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (m : β) (h : ∀ (x : α), x ∈ s → f x = m) : s.noncomm_prod f comm = m ^ s.card :=
 begin
   classical,
@@ -245,8 +244,8 @@ begin
 end
 
 @[to_additive]
-lemma noncomm_prod_eq_one_of_forall_eq_one {α : Type*} {β : Type*} [monoid β] (s : finset α)
-  (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
+lemma noncomm_prod_eq_one_of_forall_eq_one (s : finset α) (f : α → β)
+  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (h : ∀ (x : α), x ∈ s → f x = 1) : s.noncomm_prod f comm = 1 :=
 begin
   rw finset.noncomm_prod_eq_pow_of_forall_eq s f comm 1 h,
@@ -282,16 +281,18 @@ end
 
 section finite_pi
 
+variables {ι : Type*} [fintype ι] [decidable_eq ι] {M : ι → Type*} [∀ i, monoid (M i)]
+variables (x : Π i, M i)
+
 @[to_additive]
-lemma noncomm_prod_single {ι : Type*} [fintype ι] [decidable_eq ι]
-  {M : ι → Type*} [∀ i, monoid (M i)] (x : Π i, M i) :
+lemma noncomm_prod_single :
   finset.univ.noncomm_prod (λ i, monoid_hom.single M i (x i))
   (λ i _ j _, by { by_cases h : i = j, { rw h }, { apply pi.mul_single_commute i j h } })
   = x :=
 begin
   ext i,
   apply (finset.univ.noncomm_prod_map (λ i, monoid_hom.single M i (x i)) _
-    (pi.eval_monoid_hom _ i)).trans,
+    (pi.eval_monoid_hom M i)).trans,
   rw (finset.insert_erase (finset.mem_univ i)).symm,
   rw finset.noncomm_prod_insert_of_not_mem',
   { rw finset.noncomm_prod_eq_one_of_forall_eq_one,
@@ -301,8 +302,7 @@ begin
 end
 
 @[to_additive]
-lemma _root_.monoid_hom.pi_ext {ι : Type*} [fintype ι] [decidable_eq ι]
-  {M : ι → Type*} [∀ i, monoid (M i)] {N : Type*} [monoid N] {f g : (Π i, M i) →* N}
+lemma _root_.monoid_hom.pi_ext {f g : (Π i, M i) →* γ}
   (h : ∀ i x, f (monoid_hom.single M i x) = g (monoid_hom.single M i x)) :
   f = g :=
 begin

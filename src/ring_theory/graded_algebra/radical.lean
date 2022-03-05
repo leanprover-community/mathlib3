@@ -170,7 +170,7 @@ end
 
 lemma homogeneous_ideal.radical_eq (I : homogeneous_ideal 𝒜) :
   (I : ideal A).radical = Inf {J | ↑I ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime} :=
-ideal.is_homogeneous.radical_eq I.2
+I.prop.radical_eq
 
 lemma ideal.is_homogeneous.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
   I.radical.is_homogeneous 𝒜 :=
@@ -187,8 +187,10 @@ begin
     exact ⟨HJ2, HJ1, HJ3⟩, },
 end
 
-/--
-Radical of any homogeneous ideal is homogeneous.
--/
+/-- The radical of a homogenous ideal, as another homogenous ideal. -/
 def homogeneous_ideal.radical (I : homogeneous_ideal 𝒜) : homogeneous_ideal 𝒜 :=
-⟨I.1.radical, I.2.radical⟩
+⟨(I : ideal R).radical, I.prop.radical⟩
+
+@[simp]
+lemma homogeneous_ideal.coe_radical (I : homogeneous_ideal 𝒜) :
+  (I.radical : ideal R) = (I : ideal R).radical := rfl

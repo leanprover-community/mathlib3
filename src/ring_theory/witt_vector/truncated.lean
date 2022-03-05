@@ -177,6 +177,15 @@ instance : has_neg (truncated_witt_vector p n R) :=
 instance : has_sub (truncated_witt_vector p n R) :=
 ⟨λ x y, truncate_fun n (x.out - y.out)⟩
 
+instance has_nat_scalar : has_scalar ℕ (truncated_witt_vector p n R) :=
+⟨λ m x, truncate_fun n (m • x.out)⟩
+
+instance has_int_scalar : has_scalar ℤ (truncated_witt_vector p n R) :=
+⟨λ m x, truncate_fun n (m • x.out)⟩
+
+instance has_nat_pow : has_pow (truncated_witt_vector p n R) ℕ :=
+⟨λ x m, truncate_fun n (x.out ^ m)⟩
+
 @[simp] lemma coeff_zero (i : fin n) :
   (0 : truncated_witt_vector p n R).coeff i = 0 :=
 begin
@@ -190,8 +199,7 @@ end truncated_witt_vector
 meta def tactic.interactive.witt_truncate_fun_tac : tactic unit :=
 `[show _ = truncate_fun n _,
   apply truncated_witt_vector.out_injective,
-  iterate { rw [out_truncate_fun] },
-  rw init_add <|> rw init_mul <|> rw init_neg <|> rw init_sub]
+  iterate { rw [out_truncate_fun] }]
 
 namespace witt_vector
 
@@ -215,20 +223,32 @@ variables {p R}
 @[simp]
 lemma truncate_fun_add (x y : 𝕎 R) :
   truncate_fun n (x + y) = truncate_fun n x + truncate_fun n y :=
-by witt_truncate_fun_tac
+by { witt_truncate_fun_tac, rw init_add }
 
 @[simp]
 lemma truncate_fun_mul (x y : 𝕎 R) :
   truncate_fun n (x * y) = truncate_fun n x * truncate_fun n y :=
-by witt_truncate_fun_tac
+by { witt_truncate_fun_tac, rw init_mul }
 
 lemma truncate_fun_neg (x : 𝕎 R) :
   truncate_fun n (-x) = -truncate_fun n x :=
-by witt_truncate_fun_tac
+by { witt_truncate_fun_tac, rw init_neg }
 
 lemma truncate_fun_sub (x y : 𝕎 R) :
   truncate_fun n (x - y) = truncate_fun n x - truncate_fun n y :=
-by witt_truncate_fun_tac
+by { witt_truncate_fun_tac, rw init_sub }
+
+lemma truncate_fun_nsmul (x : 𝕎 R) (m : ℕ) :
+  truncate_fun n (m • x) = m • truncate_fun n x :=
+by { witt_truncate_fun_tac, rw init_nsmul }
+
+lemma truncate_fun_zsmul (x : 𝕎 R) (m : ℤ) :
+  truncate_fun n (m • x) = m • truncate_fun n x :=
+by { witt_truncate_fun_tac, rw init_zsmul }
+
+lemma truncate_fun_pow (x : 𝕎 R) (m : ℕ) :
+  truncate_fun n (x ^ m) = truncate_fun n x ^ m :=
+by { witt_truncate_fun_tac, rw init_pow }
 
 end witt_vector
 
@@ -246,6 +266,9 @@ instance : comm_ring (truncated_witt_vector p n R) :=
   (truncate_fun_mul n)
   (truncate_fun_neg n)
   (truncate_fun_sub n)
+  (truncate_fun_nsmul n)
+  (truncate_fun_zsmul n)
+  (truncate_fun_pow n)
 
 end truncated_witt_vector
 

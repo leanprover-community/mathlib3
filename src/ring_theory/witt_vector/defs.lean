@@ -382,4 +382,16 @@ lemma witt_neg_vars (n : ℕ) :
   (witt_neg p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
 witt_structure_int_vars _ _ _
 
+lemma witt_nsmul_vars (m : ℕ) (n : ℕ) :
+  (witt_nsmul p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
+lemma witt_zsmul_vars (m : ℤ) (n : ℕ) :
+  (witt_zsmul p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
+lemma witt_pow_vars (m : ℕ) (n : ℕ) :
+  (witt_pow p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
 end witt_vector

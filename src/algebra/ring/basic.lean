@@ -793,24 +793,26 @@ variables [non_unital_ring α]
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_unital_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_scalar ℕ β] [has_scalar ℤ β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
   non_unital_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul,
+{ .. hf.add_comm_group f zero add neg sub nsmul gsmul, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul,
   .. hf.semigroup f mul }
 
 /-- Pushforward a `non_unital_ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_unital_ring
-  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_scalar ℕ β] [has_scalar ℤ β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
   non_unital_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
+{ .. hf.add_comm_group f zero add neg sub nsmul gsmul, .. hf.mul_zero_class f zero mul,
   .. hf.distrib f add mul, .. hf.semigroup f mul }
 
 end non_unital_ring
@@ -828,11 +830,14 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_assoc_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_scalar ℕ β] [has_scalar ℤ β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
   non_assoc_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul,
+{ .. hf.add_comm_group f zero add neg sub nsmul gsmul,
+  .. hf.mul_zero_class f zero mul, .. hf.distrib f add mul,
   .. hf.mul_one_class f one mul }
 
 /-- Pushforward a `non_unital_ring` instance along a surjective function.
@@ -840,11 +845,13 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_assoc_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_scalar ℕ β] [has_scalar ℤ β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
   non_assoc_ring β :=
-{ .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
+{ .. hf.add_comm_group f zero add neg sub nsmul gsmul, .. hf.mul_zero_class f zero mul,
   .. hf.distrib f add mul, .. hf.mul_one_class f one mul }
 
 end non_assoc_ring

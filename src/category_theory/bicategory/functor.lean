@@ -274,7 +274,7 @@ map₂ (α_ f g h).hom = (map_comp (f ≫ g) h).hom ≫ ((map_comp f g).hom ▷ 
   (α_ (map f) (map g) (map h)).hom ≫ (map f ◁ (map_comp g h).inv) ≫ (map_comp f (g ≫ h)).inv
 
 /--
-A pseudofunctors `F` between bicategories `B` and `C` consists of functions between objects,
+A pseudofunctor `F` between bicategories `B` and `C` consists of functions between objects,
 1-morphisms, and 2-morphisms.
 
 Unlike functors between categories, functions between 1-morphisms do not need to strictly commute

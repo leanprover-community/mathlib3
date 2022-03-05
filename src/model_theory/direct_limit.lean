@@ -43,7 +43,8 @@ directed_system.map_map (λ i j h, f i j h) hij hjk x
 
 variables {G' : ℕ → Type w} [Π i, L.Structure (G' i)] (f' : Π (n : ℕ), G' n ↪[L] G' (n + 1))
 
-/-- Given a chain of embeddings indexed by `ℕ`, defines a `directed_system` by composing them. -/
+/-- Given a chain of embeddings of structures indexed by `ℕ`, defines a `directed_system` by
+composing them. -/
 def nat_le_rec (m n : ℕ) (h : m ≤ n) : G' m ↪[L] G' n :=
 { to_fun := nat.le_rec_on h (λ n, f' n),
   inj' := nat.le_rec_on_injective h _ (λ n, (f' _).injective),

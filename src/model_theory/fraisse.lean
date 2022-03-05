@@ -10,6 +10,7 @@ import category_theory.concrete_category.bundled
 
 /-!
 # Fraïssé Classes and Fraïssé Limits
+
 This file pertains to the ages of countable first-order structures. The age of a structure is the
 class of all finitely-generated structures that embed into it.
 
@@ -20,20 +21,20 @@ Fraïssé limit - the countable structure with that age.
 ## Main Definitions
 * `first_order.language.equiv_setoid` is the equivalence relation on bundled `L.Structure`s
 indicating that they are isomorphic. Its quotients represent isomorphism classes of structures.
-* `first_order.language.is_equiv_invariant_class` indicates that a class of structures is invariant
+* `first_order.language.is_equiv_invariant` indicates that a class of structures is invariant
 under isomorphism.
-* `first_order.language.is_equiv_invariant_class.to_set_quotient` allows us to view an
+* `first_order.language.is_equiv_invariant.to_set_quotient` allows us to view an
 isomorphism-invariant class as a set of isomorphism classes.
 * `first_order.language.age` is the class of finitely-generated structures that embed into a
 particular structure.
-* A class `K` has the `first_order.language.hereditary_property` when all finitely-generated
+* A class `K` has the `first_order.language.hereditary` when all finitely-generated
 structures that embed into structures in `K` are also in `K`.
-* A class `K` has the `first_order.language.joint_embedding_property` when for every `M`, `N` in
+* A class `K` has the `first_order.language.joint_embedding` when for every `M`, `N` in
 `K`, there is another structure in `K` into which both `M` and `N` embed.
-* A class `K` has the `first_order.language.amalgamation_property` when for any pair of embeddings
+* A class `K` has the `first_order.language.amalgamation` when for any pair of embeddings
 of a structure `M` in `K` into other structures in `K`, those two structures can be embedded into a
 fourth structure in `K` such that the resulting square of embeddings commutes.
-* `first_order.language.is_fraisse_class` indicates that a class is nonempty, isomorphism-invariant,
+* `first_order.language.is_fraisse` indicates that a class is nonempty, isomorphism-invariant,
 essentially countable, and satisfies the hereditary, joint embedding, and amalgamation properties.
 * `first_order.language.fraisse_limit` noncomputably constructs a Fraïssé limit for any Fraïssé
 class.
@@ -92,27 +93,27 @@ variables {L} (K : Π (M : Type w) [L.Structure M], Prop)
 
 /-- A class `K` is isomorphism-invariant when structure isomorphic to a structure in `K` is also in
   `K`. -/
-def is_equiv_invariant_class : Prop :=
+def is_equiv_invariant : Prop :=
 ∀ (M N : Type w) [strM : L.Structure M] [strN : L.Structure N],
   nonempty (@equiv L M N strM strN) → (@K M strM = @K N strN)
 
 variables {K}
 
 /-- An isomorphism-invariant class can also be thought of as a set of isomorphism classes. -/
-def is_equiv_invariant_class.to_set_quotient (h : is_equiv_invariant_class K) :
+def is_equiv_invariant.to_set_quotient (h : is_equiv_invariant K) :
   set (quotient L.equiv_setoid) :=
 { M | quotient.lift (λ (M : bundled L.Structure), K M) (λ M N MN, h M N MN) M }
 
 @[simp]
-lemma is_equiv_invariant_class.mk_mem_to_set_quotient (h : is_equiv_invariant_class K)
+lemma is_equiv_invariant.mk_mem_to_set_quotient (h : is_equiv_invariant K)
   (M : bundled L.Structure) :
   (⟦M⟧ : quotient L.equiv_setoid) ∈ h.to_set_quotient ↔ K M :=
-by rw [is_equiv_invariant_class.to_set_quotient, set.mem_set_of_eq, quotient.lift_mk]
+by rw [is_equiv_invariant.to_set_quotient, set.mem_set_of_eq, quotient.lift_mk]
 
 /-- If `K` is a nonempty but essentially countable class of structures, there is a family of
   structures in `K`, indexed by `ℕ`, that covers every isomorphism class. -/
 lemma exists_nat_transversal_of_countable_quotient (hn : K ≠ λ _ _, false)
-  (h : is_equiv_invariant_class K) (hc : h.to_set_quotient.countable) :
+  (h : is_equiv_invariant K) (hc : h.to_set_quotient.countable) :
   ∃ (f : ℕ → bundled.{w} L.Structure), ∀ (M : Type w) [strM : L.Structure M],
     @K M strM ↔ ∃ (n : ℕ), nonempty (@equiv L M (f n) strM _) :=
 begin
@@ -122,7 +123,7 @@ begin
     exact ⟨⟦⟨M, strM⟩⟧, hM⟩ },
   obtain ⟨f, hf⟩ := hc.exists_surjective hne,
   refine ⟨quotient.out ∘ f, λ M strM, _⟩,
-  rw [is_equiv_invariant_class.to_set_quotient, set.ext_iff] at hf,
+  rw [is_equiv_invariant.to_set_quotient, set.ext_iff] at hf,
   have hfM := hf ⟦⟨M, strM⟩⟧,
   rw [mem_range, mem_set_of_eq, quotient.lift_mk] at hfM,
   simp_rw [quotient.eq_mk_iff_out] at hfM,
@@ -141,13 +142,13 @@ variables {L} (K)
 
 /-- A class `K` has the hereditary property when all finitely-generated structures that embed into
   structures in `K` are also in `K`.  -/
-def hereditary_property : Prop :=
+def hereditary : Prop :=
 ∀ (M N : Type w) [strM : L.Structure M] [strN : L.Structure N],
   nonempty (@embedding L M N strM strN) → @Structure.fg L M strM → @K N strN → @K M strM
 
 /-- A class `K` has the joint embedding property when for every `M`, `N` in `K`, there is another
   structure in `K` into which both `M` and `N` embed. -/
-def joint_embedding_property : Prop :=
+def joint_embedding : Prop :=
 ∀ (M N : Type w) [strM : L.Structure M] [strN : L.Structure N], @K M strM → @K N strN →
   ∃ (P : Type w) [strP : L.Structure P],
   @K P strP ∧ nonempty (@embedding L M P strM strP) ∧ nonempty (@embedding L N P strN strP)
@@ -155,7 +156,7 @@ def joint_embedding_property : Prop :=
 /-- A class `K` has the amalgamation property when for any pair of embeddings of a structure `M` in
   `K` into other structures in `K`, those two structures can be embedded into a fourth structure in
   `K` such that the resulting square of embeddings commutes. -/
-def amalgamation_property : Prop :=
+def amalgamation : Prop :=
 ∀ (M N P : Type w) [strM : L.Structure M] [strN : L.Structure N] [strP : L.Structure P]
   (MN : @embedding L M N strM strN) (MP : @embedding L M P strM strP),
   @K M strM → @K N strN → @K P strP →
@@ -165,18 +166,18 @@ def amalgamation_property : Prop :=
 
 /-- A Fraïssé class is a nonempty, isomorphism-invariant, essentially countable class of structures
 satisfying the hereditary, joint embedding, and amalgamation properties. -/
-class is_fraisse_class : Prop :=
+class is_fraisse : Prop :=
 (is_nonempty : K ≠ λ _ _, false)
 (fg : K ≤ Structure.fg L)
-(is_equiv_invariant : is_equiv_invariant_class K)
+(is_equiv_invariant : is_equiv_invariant K)
 (is_essentially_countable : is_equiv_invariant.to_set_quotient.countable)
-(hp : hereditary_property K)
-(jep : joint_embedding_property K)
-(ap : amalgamation_property K)
+(hereditary : hereditary K)
+(joint_embedding : joint_embedding K)
+(amalgamation : amalgamation K)
 
 variables {K}
 
-lemma Structure.fg.is_equiv_invariant_class : is_equiv_invariant_class (Structure.fg L) :=
+lemma Structure.fg.is_equiv_invariant : is_equiv_invariant (Structure.fg L) :=
 begin
   rintro N P strN strP ⟨NP⟩,
   resetI,
@@ -185,7 +186,7 @@ end
 
 variables (L) (M : Type w) [L.Structure M]
 
-lemma age.is_equiv_invariant : is_equiv_invariant_class (L.age M) :=
+lemma age.is_equiv_invariant : is_equiv_invariant (L.age M) :=
 begin
   rintro N P strN strP ⟨NP⟩,
   resetI,
@@ -196,14 +197,14 @@ end
 
 variable {L}
 
-lemma age.hp : hereditary_property (L.age M) :=
+lemma age.hereditary : hereditary (L.age M) :=
 begin
   rintro N P strN strP ⟨NP⟩ Nfg ⟨h1, h2⟩,
   resetI,
   exact ⟨Nfg, nonempty.map (λ x, embedding.comp x NP) h2⟩,
 end
 
-lemma age.jep : joint_embedding_property (L.age M) :=
+lemma age.joint_embedding : joint_embedding (L.age M) :=
 begin
   rintro N P strN strP ⟨Nfg, ⟨NM⟩⟩ ⟨Pfg, ⟨PM⟩⟩,
   resetI,
@@ -224,7 +225,7 @@ begin
     (λ s, ⟦⟨closure L s, infer_instance⟩⟧)),
   rw forall_quotient_iff,
   rintro ⟨N, str⟩,
-  simp only [subset_univ, and_true, mem_image, is_equiv_invariant_class.mk_mem_to_set_quotient],
+  simp only [subset_univ, and_true, mem_image, is_equiv_invariant.mk_mem_to_set_quotient],
   split,
   { rintro ⟨s, hs1, hs2⟩,
     rw ← age.is_equiv_invariant L M _ _ (quotient.exact hs2),
@@ -288,15 +289,15 @@ end
 
 /-- Sufficient conditions for a class to be the age of a countably-generated structure. -/
 theorem exists_cg_is_age_of (hn : K ≠ λ _ _, false)
-  (h : is_equiv_invariant_class K)
+  (h : is_equiv_invariant K)
   (hc : h.to_set_quotient.countable)
   (fg : K ≤ Structure.fg L)
-  (hp : hereditary_property K)
-  (jep : joint_embedding_property K) :
+  (hereditary : hereditary K)
+  (joint_embedding : joint_embedding K) :
   ∃ (M : bundled L.Structure), Structure.cg L M ∧ L.age M = K :=
 begin
   obtain ⟨F, hF⟩ := exists_nat_transversal_of_countable_quotient hn h hc,
-  have hj := λ (N : {N : (bundled L.Structure) // K N}) (n : ℕ), jep N (F (n + 1)) N.2
+  have hj := λ (N : {N : (bundled L.Structure) // K N}) (n : ℕ), joint_embedding N (F (n + 1)) N.2
     ((hF (F (n + 1))).2 ⟨n + 1, ⟨equiv.refl _ _⟩⟩),
   set G : ℕ → {N : (bundled L.Structure) // K N} :=
     @nat.rec (λ _, {N : (bundled L.Structure) // K N}) (⟨F 0, (hF (F 0)).2 ⟨0, ⟨equiv.refl _ _⟩⟩⟩)
@@ -314,7 +315,7 @@ begin
   resetI,
   refine ⟨λ h, _, λ KN, _⟩,
   { obtain ⟨i, h1, h2⟩ := (age_direct_limit (λ n, G n) f N).1 h,
-    exact hp N (G i) h2 h.1 (G i).2, },
+    exact hereditary N (G i) h2 h.1 (G i).2, },
   { obtain ⟨n, ⟨e⟩⟩ := (hF N).1 KN,
     refine ⟨fg _ _ KN, ⟨embedding.comp _ e.to_embedding⟩⟩,
     cases n,
@@ -327,20 +328,20 @@ end
 variable (K)
 
 /-- A Fraïssé limit of a Fraïssé class, constructed as a direct limit. -/
-noncomputable def fraisse_limit [h : is_fraisse_class K] : bundled L.Structure :=
+noncomputable def fraisse_limit [h : is_fraisse K] : bundled L.Structure :=
 classical.some (exists_cg_is_age_of
   h.is_nonempty
   h.is_equiv_invariant
   h.is_essentially_countable
-  h.fg h.hp h.jep)
+  h.fg h.hereditary h.joint_embedding)
 
-instance cg_fraisse_limit [h : is_fraisse_class K] : Structure.cg L (fraisse_limit K) :=
+instance cg_fraisse_limit [h : is_fraisse K] : Structure.cg L (fraisse_limit K) :=
 (classical.some_spec (exists_cg_is_age_of h.is_nonempty h.is_equiv_invariant
-  h.is_essentially_countable h.fg h.hp h.jep)).1
+  h.is_essentially_countable h.fg h.hereditary h.joint_embedding)).1
 
-theorem age_fraisse_limit [h : is_fraisse_class K] : L.age (fraisse_limit K) = K :=
+theorem age_fraisse_limit [h : is_fraisse K] : L.age (fraisse_limit K) = K :=
 (classical.some_spec (exists_cg_is_age_of h.is_nonempty h.is_equiv_invariant
-  h.is_essentially_countable h.fg h.hp h.jep)).2
+  h.is_essentially_countable h.fg h.hereditary h.joint_embedding)).2
 
 end language
 end first_order

@@ -21,8 +21,6 @@ noncomputable theory
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
-section semi_normed_ring
-
 /-- A non-unital seminormed ring is a not-necessarily-unital ring
 endowed with a seminorm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
 class non_unital_semi_normed_ring (α : Type*)
@@ -248,16 +246,6 @@ nat.rec_on n (by simp only [pow_zero, norm_one]) (λ n hn, norm_pow_le' a n.succ
 lemma eventually_norm_pow_le (a : α) : ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
 eventually_at_top.mpr ⟨1, λ b h, norm_pow_le' a (nat.succ_le_iff.mp h)⟩
 
-/-- In a seminormed ring, the left-multiplication `add_monoid_hom` is bounded. -/
-lemma mul_left_bound (x : α) :
-  ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=
-norm_mul_le x
-
-/-- In a seminormed ring, the right-multiplication `add_monoid_hom` is bounded. -/
-lemma mul_right_bound (x : α) :
-  ∀ (y:α), ∥add_monoid_hom.mul_right x y∥ ≤ ∥x∥ * ∥y∥ :=
-λ y, by {rw mul_comm, convert norm_mul_le y x}
-
 /-- Seminormed ring structure on the product of two seminormed rings,
   using the sup norm. -/
 instance prod.semi_normed_ring [semi_normed_ring β] :
@@ -295,12 +283,6 @@ norm_pos_iff.mpr (units.ne_zero x)
 instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
-
-/-- Normed group instance (using sup norm of sup norm) for matrices over a normed ring.  Not
-declared as an instance because there are several natural choices for defining the norm of a
-matrix. -/
-def matrix.normed_group {n m : Type*} [fintype n] [fintype m] : normed_group (matrix n m α) :=
-pi.normed_group
 
 end normed_ring
 

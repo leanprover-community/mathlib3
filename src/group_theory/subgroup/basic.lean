@@ -654,6 +654,21 @@ begin
     (λ x ⟨hx', hx⟩, ⟨_, Hinv _ _ hx⟩),
 end
 
+/-- An induction principle for closure membership for predicates with two arguments. -/
+@[elab_as_eliminator, to_additive "An induction principle for additive closure membership, for
+predicates with two arguments."]
+lemma closure_induction₂ {p : G → G → Prop} {x} {y : G} (hx : x ∈ closure k) (hy : y ∈ closure k)
+  (Hk : ∀ (x ∈ k) (y ∈ k), p x y)
+  (H1_left : ∀ x, p 1 x)
+  (H1_right : ∀ x, p x 1)
+  (Hmul_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ * x₂) y)
+  (Hmul_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ * y₂))
+  (Hinv_left : ∀ x y, p x y → p x⁻¹ y)
+  (Hinv_right : ∀ x y, p x y → p x y⁻¹) : p x y :=
+closure_induction hx
+  (λ x xk, closure_induction hy (Hk x xk) (H1_right x) (Hmul_right x) (Hinv_right x))
+  (H1_left y) (λ z z', Hmul_left z z' y) (λ z, Hinv_left z y)
+
 @[simp, to_additive]
 lemma closure_closure_coe_preimage {k : set G} : closure ((coe : closure k → G) ⁻¹' k) = ⊤ :=
 eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
@@ -663,6 +678,25 @@ eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
   { exact mul_mem _ },
   { exact inv_mem _ }
 end
+
+/-- If all the elements of a set `s` commute, then `closure s` is a commutative group. -/
+@[to_additive "If all the elements of a set `s` commute, then `closure s` is an additive
+commutative group."]
+def closure_comm_group_of_comm {k : set G} (hcomm : ∀ (x ∈ k) (y ∈ k), x * y = y * x) :
+  comm_group (closure k) :=
+{ mul_comm := λ x y,
+  begin
+    ext,
+    simp only [subgroup.coe_mul],
+    refine closure_induction₂ x.prop y.prop hcomm
+    (λ  x, by simp only [mul_one, one_mul])
+    (λ  x, by simp only [mul_one, one_mul])
+    (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
+    (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc])
+    (λ x y h, by rw [inv_mul_eq_iff_eq_mul, ←mul_assoc, h, mul_assoc, mul_inv_self, mul_one])
+    (λ x y h, by rw [mul_inv_eq_iff_eq_mul, mul_assoc, h, ←mul_assoc, inv_mul_self, one_mul])
+  end,
+  ..(closure k).to_group }
 
 variable (G)
 

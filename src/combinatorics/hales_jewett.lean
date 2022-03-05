@@ -191,7 +191,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
 -- Later we'll need `α` to be nonempty. So we first deal with the trivial case where `α` is empty.
 -- Then `option α` has only one element, so any line is monochromatic.
   by_cases h : nonempty α,
-  work_on_goal 1 { refine ⟨unit, infer_instance, λ C, ⟨diagonal _ _, C (λ _, none), _⟩⟩,
+  work_on_goal 2 { refine ⟨unit, infer_instance, λ C, ⟨diagonal _ _, C (λ _, none), _⟩⟩,
     rintros (_ | ⟨a⟩), refl, exact (h ⟨a⟩).elim, },
 -- The key idea is to show that for every `r`, in high dimension we can either find
 -- `r` color focused lines or a monochromatic line.
@@ -236,7 +236,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
   specialize hι C',
   rcases hι with ⟨s, sr⟩ | _,
 -- By above, we are done if `C'` has a monochromatic line.
-  work_on_goal 1 { exact or.inr (mono_of_mono hι) },
+  work_on_goal 2 { exact or.inr (mono_of_mono hι) },
 -- Here we assume `C'` has `r` color focused lines. We split into cases depending on whether one of
 -- these `r` lines has the same color as the focus point.
   by_cases h : ∃ p ∈ s.lines, (p : almost_mono _).color = C' s.focus,

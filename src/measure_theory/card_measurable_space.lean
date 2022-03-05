@@ -109,11 +109,9 @@ begin
   have C : omega.{u} ≤ (max (#s) 2) ^ omega.{u} := A.trans B,
   have J : #(⋃ (j : {j // j <₁ i}), generate_measurable_rec s j.1) ≤ (max (#s) 2) ^ omega.{u},
   { apply (mk_Union_le _).trans,
-    have D : # {j // j <₁ i} ≤ aleph 1 := (mk_subtype_le _).trans (le_of_eq (aleph 1).mk_ord_out),
-    have E : cardinal.sup.{u u}
-      (λ (j : {j // j <₁ i}), #(generate_measurable_rec s j.1)) ≤ (max (#s) 2) ^ omega.{u} :=
-    cardinal.sup_le.2 (λ ⟨j, hj⟩, IH j hj),
-    apply (mul_le_mul' D E).trans,
+    have D : cardinal.sup.{u u} (λ (j : {j // j <₁ i}), #(generate_measurable_rec s j.1)) ≤ _ :=
+      cardinal.sup_le.2 (λ ⟨j, hj⟩, IH j hj),
+    apply (mul_le_mul' ((mk_subtype_le _).trans (le_of_eq (aleph 1).mk_ord_out)) D).trans,
     rw mul_eq_max A C,
     exact max_le B le_rfl },
   rw [generate_measurable_rec],
@@ -154,7 +152,7 @@ begin
   { rcases ht with ⟨t, ⟨i, rfl⟩, hx⟩,
     revert t,
     apply (aleph 1).ord.out.wo.wf.induction i,
-    intros j H t ht,dsimp at *,
+    intros j H t ht,
     rcases generate_measurable_rec.cases_on ht with (h | rfl | ⟨k, hk, ht'⟩ | ⟨f, hf, rfl⟩),
     { exact generate_measurable.basic t h },
     { exact generate_measurable.empty },
@@ -165,8 +163,7 @@ end
 
 lemma cardinal_Union_generate_measurable_rec_le (s : set (set α)) :
   #(⋃ i, generate_measurable_rec s i) ≤ (max (#s) 2) ^ omega.{u} :=
-begin
-  apply (mk_Union_le _).trans,
+(mk_Union_le _).trans begin
   rw [(aleph 1).mk_ord_out],
   refine le_trans (mul_le_mul' aleph_one_le_continuum
     (cardinal.sup_le.2 (λ i, cardinal_generate_measurable_rec_le s i))) _,

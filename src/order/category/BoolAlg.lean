@@ -51,7 +51,7 @@ between them. -/
 @[simps] def dual : BoolAlg ⥤ BoolAlg :=
 { obj := λ X, of (order_dual X), map := λ X Y, bounded_lattice_hom.dual }
 
-/-- The equivalence between `NonemptyFinLinOrd` and itself induced by `order_dual` both ways. -/
+/-- The equivalence between `BoolAlg` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : BoolAlg ≌ BoolAlg :=
 equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)

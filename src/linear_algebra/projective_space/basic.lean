@@ -39,6 +39,7 @@ def projectivization_setoid : setoid { v : V // v ≠ 0 } :=
 (mul_action.orbit_rel Kˣ V).comap coe
 
 /-- The projectivization of the `K`-vector space `V`. -/
+@[nolint has_inhabited_instance]
 def projectivization := quotient (projectivization_setoid K V)
 
 namespace projectivization
@@ -55,8 +56,8 @@ def mk' (v : { v : V // v ≠ 0 }) : projectivization K V := quotient.mk' v
   mk' K v = mk K v v.2 :=
 by { dsimp [mk, mk'], congr' 1, simp }
 
-noncomputable instance [nontrivial V] : inhabited (projectivization K V) :=
-let e := exists_ne (0 : V) in ⟨mk K e.some e.some_spec⟩
+instance [nontrivial V] : nonempty (projectivization K V) :=
+let ⟨v, hv⟩ := exists_ne (0 : V) in ⟨mk K v hv⟩
 
 variable {K}
 

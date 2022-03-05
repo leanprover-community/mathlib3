@@ -20,7 +20,7 @@ namespace pi
 @[to_additive]
 lemma list_prod_apply {α : Type*} {β : α → Type*} [Πa, monoid (β a)] (a : α) (l : list (Πa, β a)) :
   l.prod a = (l.map (λf:Πa, β a, f a)).prod :=
-monoid_hom.map_list_prod (eval_monoid_hom β a) _
+(eval_monoid_hom β a).map_list_prod _
 
 @[to_additive]
 lemma multiset_prod_apply {α : Type*} {β : α → Type*} [∀a, comm_monoid (β a)] (a : α)

@@ -1108,7 +1108,7 @@ begin
   -- Finally, we prove the upper estimate
   intros n hn,
   calc ∥x ^ (n + 1) / (n + 1)!∥ = (∥x∥ / (n + 1)) * ∥x ^ n / n!∥ :
-    by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div,
+    by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div_comm₀,
       norm_mul, norm_div, real.norm_coe_nat, nat.cast_succ]
   ... ≤ (∥x∥ / (⌊∥x∥⌋₊ + 1)) * ∥x ^ n / n!∥ :
     by mono* with [0 ≤ ∥x ^ n / n!∥, 0 ≤ ∥x∥]; apply norm_nonneg

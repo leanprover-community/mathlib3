@@ -593,6 +593,8 @@ def mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : A →ₐ[
 
 @[simp] lemma coe_mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : ⇑(mk' f h) = f := rfl
 
+/-- If a `ring_hom` between `R`-algebras commutes with the `algebra_map`s,
+  then it is an `alg_hom`. -/
 def of_comp_eq (f : A →+* B) (h : f.comp (algebra_map R A) = algebra_map R B) : A →ₐ[R] B :=
 mk' f (λ c x, by { rw [algebra.smul_def, algebra.smul_def, f.map_mul, ← h], refl })
 

@@ -101,6 +101,8 @@ variables {f}
 
 instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 
+/-- Two `R`-`alg_hom` from `adjoin_root f` to the same `R`-algebra are the same iff
+    they agree on `root f`. -/
 @[ext] lemma alg_hom_ext [semiring S] [algebra R S] {g₁ g₂ : adjoin_root f →ₐ[R] S}
   (h : g₁ (root f) = g₂ (root f)) : g₁ = g₂ :=
 alg_hom.coe_ring_hom_injective (ideal.quotient.ring_hom_ext

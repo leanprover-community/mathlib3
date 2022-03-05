@@ -128,11 +128,11 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
   exact not_mem_I mem_I,
 end⟩
 
-lemma homogeneous_ideal.is_prime_iff (I : homogeneous_ideal 𝒜) :
-  I.1.is_prime ↔
+lemma ideal.is_homogeneous.is_prime_iff {I : ideal A} (h : ideal.is_homogeneous 𝒜) :
+  I.is_prime ↔
   (I ≠ ⊤) ∧
     ∀ {x y : A}, set_like.is_homogeneous 𝒜 x → set_like.is_homogeneous 𝒜 y
-      → (x * y ∈ I.1 → x ∈ I.1 ∨ y ∈ I.1) :=
+      → (x * y ∈ I → x ∈ I ∨ y ∈ I) :=
 ⟨λ HI,
   ⟨ne_of_apply_ne _ HI.ne_top, λ x y hx hy hxy, ideal.is_prime.mem_or_mem HI hxy⟩,
   λ ⟨I_ne_top, homogeneous_mem_or_mem⟩,

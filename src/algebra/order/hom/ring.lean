@@ -47,7 +47,6 @@ add_decl_doc order_ring_hom.to_ring_hom
 
 infix ` →+*o `:25 := order_ring_hom
 
-/-- An equivalence between two (semi)rings that preserves the order. -/
 /-- `order_ring_hom α β` is the type of order-preserving semiring isomorphisms between `α` and `β`.
 
 When possible, instead of parametrizing results over `(f : order_ring_iso α β)`,
@@ -105,7 +104,7 @@ instance [non_assoc_semiring α] [preorder α] [non_assoc_semiring β] [preorder
 instance [has_mul α] [has_add α] [has_le α] [has_mul β] [has_add β] [has_le β]
   [order_ring_iso_class F α β] :
   has_coe_t F (α ≃+*o β) :=
-⟨λ f, ⟨f, λ a b, (map_le_map_iff f).2⟩⟩
+⟨λ f, ⟨f, λ a b, map_le_map_iff f⟩⟩
 
 /-! ### Ordered ring homomorphisms -/
 
@@ -239,8 +238,7 @@ lemma to_fun_eq_coe (f : α ≃+*o β) : f.to_fun = f := rfl
 @[simp] lemma mk_coe (e : α ≃+*o β) (h) : (⟨e, h⟩ : α ≃+*o β) = e := ext $ λ _, rfl
 
 @[simp] lemma to_ring_equiv_eq_coe (f : α ≃+*o β) : f.to_ring_equiv = f := ring_equiv.ext $ λ _, rfl
-
-@[simp] lemma to_order_iso_eq_coe (f : α ≃+*o β) : f.to_order_iso = f := order_iso.ext $ λ _, rfl
+@[simp] lemma to_order_iso_eq_coe (f : α ≃+*o β) : f.to_order_iso = f := order_iso.ext rfl
 
 @[simp, norm_cast] lemma coe_to_ring_equiv (f : α ≃+*o β) : ⇑(f : α ≃+* β) = f := rfl
 @[simp, norm_cast] lemma coe_to_order_iso (f : α ≃+*o β) : ⇑(f : α ≃o β) = f := rfl

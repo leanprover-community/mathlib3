@@ -160,15 +160,10 @@ namespace topological_vector_bundle.trivialization
 variables {R F E} (e : trivialization R F E) {x : total_space E} {b : B} {y : E b}
 
 /-- Natural identification as `topological_vector_bundle.pretrivialization`. -/
-def trivialization.to_pretrivialization (e : trivialization R F E) :
+def to_pretrivialization (e : trivialization R F E) :
   topological_vector_bundle.pretrivialization R F E := { ..e }
 
-lemma trivialization.mem_source (e : trivialization R F E)
-  {x : total_space E} : x ∈ e.source ↔ proj E x ∈ e.base_set :=
-topological_fiber_bundle.trivialization.mem_source e
-
 protected lemma linear : ∀ x ∈ e.base_set, is_linear_map R (λ y : (E x), (e y).2) := e.linear'
-
 protected lemma continuous_on : continuous_on e e.source := e.continuous_to_fun
 
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
@@ -677,9 +672,10 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization R F E)
     else 0,
   source := (λ z, (z.1, (total_space_mk E (f z.1) z.2)).2) ⁻¹' e.source,
   base_set := f ⁻¹' e.base_set,
-  target := (f ⁻¹' e.base_set).prod univ,
+  target := (f ⁻¹' e.base_set) ×ˢ univ,
   map_source' := λ x h, begin
-    simp only [prod_mk_mem_set_prod_eq, and_true, mem_univ, mem_preimage],
+    rw [prod_mk_mem_set_prod_eq], -- why does it not work inside simp anymore?
+    simp only [and_true, mem_univ, mem_preimage],
     simp only [mem_preimage, e.source_eq, proj] at h,
     exact h,
   end,
@@ -724,7 +720,7 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization R F E)
   open_base_set := f.continuous.is_open_preimage _ e.open_base_set,
   continuous_to_fun := pullback.continuous_proj.continuous_on.prod (continuous_on_snd.comp
     (e.continuous_on.comp (continuous.continuous_on pullback.continuous_lift) rfl.subset)
-    subset_preimage_univ),
+    (maps_to_univ _ _)),
   continuous_inv_fun := begin
     dsimp only [trivialization.coe_coe, prod_mk_mem_set_prod_eq, and_true, mem_univ,
       mem_prod, mem_preimage, proj, trivialization.symm_coe_fst', cast_heq],
@@ -746,7 +742,7 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization R F E)
       ⟨hb2, e.map_target (e.mem_target'.mpr h2)⟩,
     rw is_open_prod_iff at hu1,
     obtain ⟨c, d , hc1, hd1, hc2, hd2, hcd⟩ := hu1 (f x.1) x.2 hu2,
-    refine ⟨(f ⁻¹' (c ∩ e.base_set) ∩ a).prod d, ((continuous.is_open_preimage f.continuous _
+      refine ⟨(f ⁻¹' (c ∩ e.base_set) ∩ a) ×ˢ d, ((continuous.is_open_preimage f.continuous _
         (hc1.inter e.open_base_set)).inter ha1).prod hd1, ⟨_, hd2⟩, _⟩,
     { exact ⟨⟨hc2, h2⟩, ha2⟩, },
     { rw subset_def,

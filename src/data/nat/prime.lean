@@ -396,6 +396,9 @@ lemma prime.eq_two_or_odd {p : ℕ} (hp : prime p) : p = 2 ∨ p % 2 = 1 :=
 p.mod_two_eq_zero_or_one.imp_left
   (λ h, ((hp.eq_one_or_self_of_dvd 2 (dvd_of_mod_eq_zero h)).resolve_left dec_trivial).symm)
 
+lemma prime.eq_two_or_odd' {p : ℕ} (hp : prime p) : p = 2 ∨ odd p :=
+or.imp_right (λ h, ⟨p / 2, (div_add_mod p 2).symm.trans (congr_arg _ h)⟩) hp.eq_two_or_odd
+
 theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, prime k → k ∣ m → ¬ k ∣ n) : coprime m n :=
 begin
   rw [coprime_iff_gcd_eq_one],
@@ -724,6 +727,15 @@ begin
   apply nat.factors_unique (list.prod_repeat p n),
   intros q hq,
   rwa eq_of_mem_repeat hq,
+end
+
+lemma eq_prime_pow_of_unique_prime_dvd {n p : ℕ} (hpos : n ≠ 0)
+  (h : ∀ {d}, nat.prime d → d ∣ n → d = p) :
+  n = p ^ n.factors.length :=
+begin
+  set k := n.factors.length,
+  rw [←prod_factors hpos, ←prod_repeat p k,
+    eq_repeat_of_mem (λ d hd, h (prime_of_mem_factors hd) (dvd_of_mem_factors hd))],
 end
 
 /-- For positive `a` and `b`, the prime factors of `a * b` are the union of those of `a` and `b` -/
@@ -1149,6 +1161,15 @@ end
 /-- If `p` is a prime factor of `b` then `p` is also a prime factor of `a * b` for any `a > 0` -/
 lemma mem_factors_mul_right {p a b : ℕ} (hpb : p ∈ b.factors) (ha : a ≠ 0) : p ∈ (a*b).factors :=
 by { rw mul_comm, exact mem_factors_mul_left hpb ha }
+
+lemma eq_two_pow_or_exists_odd_prime_and_dvd (n : ℕ) :
+  (∃ k : ℕ, n = 2 ^ k) ∨ ∃ p, nat.prime p ∧ p ∣ n ∧ odd p :=
+(eq_or_ne n 0).elim
+  (λ hn, (or.inr ⟨3, prime_three, hn.symm ▸ dvd_zero 3, ⟨1, rfl⟩⟩))
+  (λ hn, or_iff_not_imp_right.mpr
+    (λ H, ⟨n.factors.length, eq_prime_pow_of_unique_prime_dvd hn
+      (λ p hprime hdvd, hprime.eq_two_or_odd'.resolve_right
+        (λ hodd, H ⟨p, hprime, hdvd, hodd⟩))⟩))
 
 end nat
 

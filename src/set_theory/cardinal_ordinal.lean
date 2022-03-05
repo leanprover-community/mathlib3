@@ -232,6 +232,9 @@ aleph'_is_normal.trans $ add_is_normal ordinal.omega
 theorem succ_omega : succ ω = aleph 1 :=
 by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
 
+lemma omega_lt_aleph_one : ω < aleph 1 :=
+by { rw ← succ_omega, exact lt_succ_self _ }
+
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
 by rw [← succ_omega, lt_succ, mk_set_le_omega]
 
@@ -455,6 +458,10 @@ begin
       exact le_max_left _ _ },
     { exact le_max_of_le_right (le_of_lt (add_lt_omega (lt_of_not_ge ha) (lt_of_not_ge hb))) } }
 end
+
+theorem add_le_of_le {a b c : cardinal} (hc : ω ≤ c)
+  (h1 : a ≤ c) (h2 : b ≤ c) : a + b ≤ c :=
+(add_le_add h1 h2).trans $ le_of_eq $ add_eq_self hc
 
 theorem add_lt_of_lt {a b c : cardinal} (hc : ω ≤ c)
   (h1 : a < c) (h2 : b < c) : a + b < c :=

@@ -1404,7 +1404,7 @@ begin
   rw [rpow_mul, ←one_div, @rpow_lt_rpow_iff _ _ (1/z) (by simp [hz])],
 end
 
-lemma rpow_inv_le_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) : x ^ (1 / z) ≤ y ↔ x ≤ y ^ z :=
+lemma rpow_one_div_le_iff {x y : ℝ≥0∞} {z : ℝ} (hz : 0 < z) : x ^ (1 / z) ≤ y ↔ x ≤ y ^ z :=
 begin
   nth_rewrite 0 ← ennreal.rpow_one y,
   nth_rewrite 1 ← @_root_.mul_inv_cancel _ _ z hz.ne.symm,

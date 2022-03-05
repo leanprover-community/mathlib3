@@ -542,6 +542,9 @@ theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) 
     apply typein_lt_type }
 end⟩
 
+theorem is_regular_aleph_one : is_regular (aleph 1) :=
+by { rw ← succ_omega, exact succ_is_regular le_rfl }
+
 theorem aleph'_succ_is_regular {o : ordinal} (h : ordinal.omega ≤ o) : is_regular (aleph' o.succ) :=
 by { rw aleph'_succ, exact succ_is_regular (omega_le_aleph'.2 h) }
 

@@ -94,11 +94,11 @@ end
 
 @[to_additive]
 instance [is_mul_left_invariant μ] (c : ℝ≥0∞) : is_mul_left_invariant (c • μ) :=
-⟨λ g, by rw [(map ((*) g)).map_smul, map_mul_left_eq_self]⟩
+⟨λ g, by rw [map_smul, map_mul_left_eq_self]⟩
 
 @[to_additive]
 instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (c • μ) :=
-⟨λ g, by rw [(map (* g)).map_smul, map_mul_right_eq_self]⟩
+⟨λ g, by rw [map_smul, map_mul_right_eq_self]⟩
 
 end mul
 

@@ -1612,9 +1612,9 @@ include σ₂₁
 lemma linear_equiv.uniform_embedding (e : E ≃ₛₗ[σ₁₂] F) (h₁ : continuous e)
   (h₂ : continuous e.symm) : uniform_embedding e :=
 continuous_linear_equiv.uniform_embedding
-{ continuous_to_fun := h₁,
+({ continuous_to_fun := h₁,
   continuous_inv_fun := h₂,
-  .. e }
+  .. e } : E ≃SL[σ₁₂] F)
 
 omit σ₂₁
 

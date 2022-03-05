@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Michael Howes
 -/
-import group_theory.general_commutator
+import group_theory.commutator
 import group_theory.quotient_group
 
 /-!
@@ -36,12 +36,11 @@ def commutator : subgroup G :=
 
 lemma commutator_def : commutator G = ⁅(⊤ : subgroup G), ⊤⁆ := rfl
 
-lemma commutator_eq_closure :
-  commutator G = subgroup.closure {x | ∃ p q, p * q * p⁻¹ * q⁻¹ = x} :=
+lemma commutator_eq_closure : commutator G = subgroup.closure {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 by simp_rw [commutator, subgroup.commutator_def, subgroup.mem_top, exists_true_left]
 
 lemma commutator_eq_normal_closure :
-  commutator G = subgroup.normal_closure {x | ∃ p q, p * q * p⁻¹ * q⁻¹ = x} :=
+  commutator G = subgroup.normal_closure {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 by simp_rw [commutator, subgroup.commutator_def', subgroup.mem_top, exists_true_left]
 
 /-- The abelianization of G is the quotient of G by its commutator subgroup. -/
@@ -84,7 +83,7 @@ lemma commutator_subset_ker : commutator G ≤ f.ker :=
 begin
   rw [commutator_eq_closure, subgroup.closure_le],
   rintros x ⟨p, q, rfl⟩,
-  simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q)],
+  simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q), commutator_element_def],
 end
 
 /-- If `f : G → A` is a group homomorphism to an abelian group, then `lift f` is the unique map from

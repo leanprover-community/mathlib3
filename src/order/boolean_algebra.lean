@@ -62,7 +62,7 @@ generalized Boolean algebras, Boolean algebras, lattices, sdiff, compl
 -/
 set_option old_structure_cmd true
 
-open function
+open function order_dual
 
 universes u v
 variables {α : Type u} {β : Type*} {w x y z : α}
@@ -753,6 +753,14 @@ end of_core
 
 section boolean_algebra
 variables [boolean_algebra α]
+
+--TODO@Yaël: Once we have co-Heyting algebras, we won't need to go through `boolean_algebra.of_core`
+instance : boolean_algebra (order_dual α) :=
+boolean_algebra.of_core
+{ compl := λ a, to_dual (of_dual a)ᶜ,
+  inf_compl_le_bot := λ _, sup_compl_eq_top.ge,
+  top_le_sup_compl := λ _, inf_compl_eq_bot.ge,
+  ..order_dual.distrib_lattice α, ..order_dual.bounded_order α }
 
 theorem sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
 

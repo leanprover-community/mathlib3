@@ -136,7 +136,7 @@ def full_subcategory.lift (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) : C ⥤ {X // 
     original functor. Unfortunately, this is not true by definition, so we only get a natural
     isomorphism, but it is pointwise definitionally true, see
     `full_subcategory.inclusion_obj_lift_obj` and `full_subcategory.inclusion_map_lift_map`. -/
-def full_subcategory.lift_factor (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) :
+def full_subcategory.lift_comp_inclusion (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) :
   full_subcategory.lift P F hF ⋙ full_subcategory_inclusion P ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by simp)
 
@@ -152,10 +152,10 @@ rfl
 
 instance (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) [faithful F] :
   faithful (full_subcategory.lift P F hF) :=
-faithful.of_comp_iso (full_subcategory.lift_factor P F hF)
+faithful.of_comp_iso (full_subcategory.lift_comp_inclusion P F hF)
 
 instance (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) [full F] : full (full_subcategory.lift P F hF) :=
-full.of_comp_faithful_iso (full_subcategory.lift_factor P F hF)
+full.of_comp_faithful_iso (full_subcategory.lift_comp_inclusion P F hF)
 
 @[simp]
 lemma full_subcategory.lift_comp_map (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) (h : ∀ ⦃X⦄, P X → Q X) :

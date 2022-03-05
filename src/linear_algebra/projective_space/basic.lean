@@ -81,13 +81,13 @@ end
 
 variable (K)
 
-lemma exists_of_mk_eq_mk  (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) :
+lemma mk_eq_mk_iff  (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) :
   mk K v hv = mk K w hw ↔ ∃ (a : Kˣ), a • w = v :=
 quotient.eq'
 
 lemma exists_smul_eq_mk_rep
   (v : V) (hv : v ≠ 0) : ∃ (a : Kˣ), a • v = (mk K v hv).rep :=
-(exists_of_mk_eq_mk _ _ _ (rep_nonzero _) hv).mp (by simp)
+show (projectivization_setoid K V).rel _ _, from quotient.mk_out' ⟨v, hv⟩
 
 variable {K}
 

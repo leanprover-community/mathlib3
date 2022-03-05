@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang
+Authors: Jujian Zhang, Eric Wieser
 -/
 
 import ring_theory.graded_algebra.homogeneous_ideal
@@ -12,10 +12,15 @@ This file contains a proof that the radical of any homogeneous ideal is a homoge
 
 ## Main statements
 
-* `homogeneous_ideal.is_prime_iff`: a homogeneous ideal `I` is prime if and only if `I` is
-  homogeneously prime, i.e. if `x, y` are homogeneous elements such that `x * y ∈ I`, then
-  at least one of `x,y` is in `I`.
-* `homogeneous_ideal.rad`: radical of homogeneous ideal is a homogeneous ideal.
+* `ideal.is_homogeneous.is_prime_iff`: for any `I : ideal A`, if `I` is homogeneous, then
+  `I` is prime if and only if `I` is homogeneously prime, i.e. `I ≠ ⊤` and if `x, y` are
+  homogeneous elements such that `x * y ∈ I`, then at least one of `x,y` is in `I`.
+* `ideal.is_prime.homogeneous_core`: for any `I : ideal A`, if `I` is prime, then
+  `I.homogeneous_core 𝒜` (i.e. the largest homogeneous ideal contained in `I`) is also prime.
+* `ideal.is_homogeneous.radical`: for any `I : ideal A`, if `I` is homogeneous, then the
+  radical of `I` is homogeneous as well.
+* `homogeneous_ideal.radical`: for any `I : homogeneous_ideal 𝒜`, `I.radical` is the the
+  radical of `I` as an `homogeneous_ideal 𝒜`
 
 ## Implementation details
 

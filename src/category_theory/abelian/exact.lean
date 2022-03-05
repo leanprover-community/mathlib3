@@ -3,7 +3,7 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import category_theory.abelian.basic
+import category_theory.abelian.opposite
 import algebra.homology.exact
 import tactic.tfae
 
@@ -185,5 +185,21 @@ lemma epi_iff_cokernel_π_eq_zero : epi f ↔ cokernel.π f = 0 :=
 (tfae_epi X f).out 0 1
 
 end
+
+section opposite
+
+instance exact.op [exact f g] : exact g.op f.op :=
+begin
+  rw exact_iff,
+  refine ⟨by simp [← op_comp], _⟩,
+  apply_fun quiver.hom.unop,
+  { simp only [unop_comp, unop_zero],
+    rw [cokernel.π_op, kernel.ι_op],
+    simp only [unop_comp, cokernel.π_op, eq_to_hom_refl, kernel.ι_op, category.id_comp,
+      category.assoc, kernel_comp_cokernel_assoc, zero_comp, comp_zero, unop_zero] },
+  { exact quiver.hom.unop_inj },
+end
+
+end opposite
 
 end category_theory.abelian

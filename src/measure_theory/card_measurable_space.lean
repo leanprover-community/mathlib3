@@ -65,8 +65,7 @@ begin
     exact max_le B le_rfl },
   rw [generate_measurable_rec],
   apply_rules [(mk_union_le _ _).trans, add_le_of_le C, mk_image_le.trans],
-  { calc #s ≤ max (#s) 2 : le_max_left _ _
-    ... ≤ (max (#s) 2) ^ omega.{u} : self_le_power _ one_lt_omega.le },
+  { exact (le_max_left _ _).trans (self_le_power _ one_lt_omega.le) },
   { rw [mk_singleton],
     exact one_lt_omega.le.trans C },
   { apply mk_range_le.trans,

@@ -765,6 +765,7 @@ assume h,
 calc
   (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
               ... = d                   : begin rw h, simp [@add_sub_cancel α] end
+
 end non_unital_non_assoc_ring
 
 /-- An associative but not-necessarily unital ring. -/

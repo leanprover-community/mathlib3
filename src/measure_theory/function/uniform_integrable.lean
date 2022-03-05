@@ -489,7 +489,7 @@ variables {mβ : measurable_space β} [borel_space β] [second_countable_topolog
 variables {f : ℕ → α → β} {g : α → β}
 
 include mβ
-#check tendsto
+
 /-- Forward direction of Vitali's convergence theorem: if `f` is a sequence of uniformly integrable
 functions that converge in measure to some function `g` in a finite measure space, then `f`
 converge in Lp to `g`. -/

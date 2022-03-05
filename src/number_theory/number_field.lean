@@ -45,7 +45,7 @@ open_locale classical big_operators
 
 /-- `ℤ` with its usual ring structure is not a field. -/
 lemma int.not_is_field : ¬ is_field ℤ := 
-λ h, int.not_even_one $ (h.3 two_ne_zero).imp $ λ a, eq.symm
+λ h, int.not_even_one $ (h.mul_inv_cancel two_ne_zero).imp $ λ a, eq.symm
 
 namespace number_field
 

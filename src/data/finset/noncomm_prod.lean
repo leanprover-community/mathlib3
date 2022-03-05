@@ -286,19 +286,18 @@ variables (x : Π i, M i)
 
 @[to_additive]
 lemma noncomm_prod_single :
-  finset.univ.noncomm_prod (λ i, monoid_hom.single M i (x i))
+  univ.noncomm_prod (λ i, monoid_hom.single M i (x i))
   (λ i _ j _, by { by_cases h : i = j, { rw h }, { apply pi.mul_single_commute i j h } })
   = x :=
 begin
   ext i,
-  apply (finset.univ.noncomm_prod_map (λ i, monoid_hom.single M i (x i)) _
+  apply (univ.noncomm_prod_map (λ i, monoid_hom.single M i (x i)) _
     (pi.eval_monoid_hom M i)).trans,
-  rw (finset.insert_erase (finset.mem_univ i)).symm,
-  rw finset.noncomm_prod_insert_of_not_mem',
-  { rw finset.noncomm_prod_eq_one_of_forall_eq_one,
-    { simp, },
-    { intros i h, simp at h, simp [h], } },
+  rw [ ← insert_erase (mem_univ i),
+    noncomm_prod_insert_of_not_mem' _ _ _ _ (not_mem_erase _ _),
+    noncomm_prod_eq_one_of_forall_eq_one ],
   { simp, },
+  { intros i h, simp at h, simp [h], },
 end
 
 @[to_additive]
@@ -307,10 +306,8 @@ lemma _root_.monoid_hom.pi_ext {f g : (Π i, M i) →* γ}
   f = g :=
 begin
   ext x,
-  rw ← finset.noncomm_prod_single x,
-  rw finset.univ.noncomm_prod_map _ _ f,
-  rw finset.univ.noncomm_prod_map _ _ g,
-  congr' 1, ext i, exact h i (x i),
+  rw [← noncomm_prod_single x, univ.noncomm_prod_map, univ.noncomm_prod_map],
+  congr' 1 with i, exact h i (x i),
 end
 
 end finite_pi

@@ -799,8 +799,8 @@ protected def function.injective.non_unital_ring
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
   non_unital_ring β :=
-{ .. hf.add_comm_group f zero add neg sub nsmul gsmul, ..hf.mul_zero_class f zero mul, .. hf.distrib f add mul,
-  .. hf.semigroup f mul }
+{ .. hf.add_comm_group f zero add neg sub nsmul gsmul, ..hf.mul_zero_class f zero mul,
+  .. hf.distrib f add mul, .. hf.semigroup f mul }
 
 /-- Pushforward a `non_unital_ring` instance along a surjective function.
 See note [reducible non-instances]. -/

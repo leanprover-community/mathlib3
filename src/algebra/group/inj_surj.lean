@@ -324,7 +324,7 @@ protected def div_inv_monoid [has_pow M₂ ℕ] [has_pow M₂ ℤ] [div_inv_mono
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
 if it admits a surjective map that preserves `1`, `*` and `⁻¹` to a group.
 See note [reducible non-instances]. -/
-@[reducible, to_additive add_group
+@[reducible, to_additive
 "A type endowed with `0` and `+` is an additive group,
 if it admits a surjective map that preserves `0` and `+` to an additive group."]
 protected def group [group M₁] (f : M₁ → M₂) (hf : surjective f)

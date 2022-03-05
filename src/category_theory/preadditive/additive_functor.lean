@@ -100,10 +100,10 @@ nat_iso.of_components (λ A,
   end)
 begin
   rintros (a|a) (b|b) (f|f),
-  work_on_goal 0 { dsimp at *, simp at *, dsimp at *, simp at * },
-  work_on_goal 0 { dsimp at *, unfold_aux, dsimp at *, simp at * },
-  work_on_goal 0 { dsimp at *, simp at * },
-  dsimp at *, simp at *, dsimp at *, simp at *,
+  { dsimp at *, simp at *, dsimp at *, simp at * },
+  { dsimp at *, unfold_aux, dsimp at *, simp at * },
+  { dsimp at *, simp at * },
+  { dsimp at *, simp at *, dsimp at *, simp at * },
 end
 
 end

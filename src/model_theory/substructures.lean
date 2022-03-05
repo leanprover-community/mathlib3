@@ -111,15 +111,19 @@ protected def copy (S : L.substructure M) (s : set M) (hs : s = S) : L.substruct
 { carrier := s,
   fun_mem := λ n f, hs.symm ▸ (S.fun_mem f) }
 
+end substructure
+
 variable {S : L.substructure M}
 
-lemma term_mem {α : Type*} (t : L.term α) (xs : α → M) (h : ∀ a, xs a ∈ S) :
+lemma term.realize_mem {α : Type*} (t : L.term α) (xs : α → M) (h : ∀ a, xs a ∈ S) :
   t.realize xs ∈ S :=
 begin
   induction t with a n f ts ih,
   { exact h a },
-  { exact fun_mem _ _ _ ih }
+  { exact substructure.fun_mem _ _ _ ih }
 end
+
+namespace substructure
 
 @[simp] lemma coe_copy {s : set M} (hs : s = S) :
   (S.copy s hs : set M) = s := rfl
@@ -226,7 +230,7 @@ lemma closure_mono ⦃s t : set M⦄ (h : s ⊆ t) : closure L s ≤ closure L t
 lemma closure_eq_of_le (h₁ : s ⊆ S) (h₂ : S ≤ closure L s) : closure L s = S :=
 (closure L).eq_of_le h₁ h₂
 
-lemma coe_closure_eq_range_realize_term :
+lemma coe_closure_eq_range_term_realize :
   (closure L s : set M) = range (@term.realize L _ _ _ (coe : s → M)) :=
 begin
   let S : L.substructure M := ⟨range (term.realize coe), λ n f x hx, _⟩,
@@ -234,7 +238,7 @@ begin
     rw ← set_like.ext'_iff,
     refine closure_eq_of_le (λ x hx, ⟨var ⟨x, hx⟩, rfl⟩) (le_Inf (λ S' hS', _)),
     { rintro _ ⟨t, rfl⟩,
-      exact term_mem t _ (λ i, hS' i.2) } },
+      exact t.realize_mem _ (λ i, hS' i.2) } },
   { simp only [mem_range] at *,
     refine ⟨func f (λ i, (classical.some (hx i))), _⟩,
     simp only [term.realize, λ i, classical.some_spec (hx i)] }
@@ -242,11 +246,11 @@ end
 
 lemma mem_closure_iff_exists_term {x : M} :
   x ∈ closure L s ↔ ∃ (t : L.term s), t.realize (coe : s → M) = x :=
-by rw [← set_like.mem_coe, coe_closure_eq_range_realize_term, mem_range]
+by rw [← set_like.mem_coe, coe_closure_eq_range_term_realize, mem_range]
 
 lemma lift_card_closure_le_card_term : cardinal.lift.{max u w} (# (closure L s)) ≤ # (L.term s) :=
 begin
-  rw [← set_like.coe_sort_coe, coe_closure_eq_range_realize_term],
+  rw [← set_like.coe_sort_coe, coe_closure_eq_range_term_realize],
   rw [← cardinal.lift_id'.{w (max u w)} (# (L.term s))],
   exact cardinal.mk_range_le_lift,
 end
@@ -570,7 +574,7 @@ def with_constants (S : L.substructure M) {A : set M} (h : A ⊆ S) : L[[A]].sub
       { exact pempty.elim f } }
   end }
 
-variables {S : L.substructure M} {A : set M} {s : set M} (h : A ⊆ S)
+variables {A : set M} {s : set M} (h : A ⊆ S)
 
 @[simp] lemma mem_with_constants {x : M} : x ∈ S.with_constants h ↔ x ∈ S := iff.rfl
 

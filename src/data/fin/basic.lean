@@ -243,10 +243,6 @@ def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
 
 @[simp, norm_cast] lemma coe_last (n : ℕ) : (last n : ℕ) = n := rfl
 
-@[simp] lemma cast_last {n' : ℕ} {h : n + 1 = n' + 1} :
-  cast h (last m) = last n :=
-ext (by simp only [coe_cast, coe_last, nat.succ_injective h])
-
 lemma last_val (n : ℕ) : (last n).val = n := rfl
 
 theorem le_last (i : fin (n+1)) : i ≤ last n :=
@@ -604,6 +600,14 @@ def cast (eq : n = m) : fin n ≃o fin m :=
 as it is eligible for `dsimp`. -/
 @[simp]
 lemma coe_cast (h : n = m) (i : fin n) : (cast h i : ℕ) = i := rfl
+
+@[simp] lemma cast_zero {n' : ℕ} {h : n + 1 = n' + 1} :
+  cast h (0 : fin (n + 1)) = 0 :=
+ext rfl
+
+@[simp] lemma cast_last {n' : ℕ} {h : n + 1 = n' + 1} :
+  cast h (last n) = last n' :=
+ext (by rw [coe_cast, coe_last, coe_last, nat.succ_injective h])
 
 @[simp] lemma cast_mk (h : n = m) (i : ℕ) (hn : i < n) :
   cast h ⟨i, hn⟩ = ⟨i, lt_of_lt_of_le hn h.le⟩ := rfl

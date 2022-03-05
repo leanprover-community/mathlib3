@@ -460,10 +460,17 @@ lt_of_le_of_ne (zero_le _) zero_ne_one
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
-theorem power_le_power_left : ∀{a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
+theorem power_le_power_left : ∀ {a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ hα ⟨e⟩; exact
   let ⟨a⟩ := mk_ne_zero_iff.1 hα in
   ⟨@embedding.arrow_congr_left _ _ _ ⟨a⟩ e⟩
+
+theorem self_le_power (a : cardinal) {b : cardinal} (hb : 1 ≤ b) : a ≤ a ^ b :=
+begin
+  rcases eq_or_ne a 0 with rfl|ha,
+  { exact zero_le _ },
+  { convert power_le_power_left ha hb, exact power_one.symm }
+end
 
 /-- **Cantor's theorem** -/
 theorem cantor (a : cardinal.{u}) : a < 2 ^ a :=
@@ -906,6 +913,10 @@ begin
       refine lt_of_le_of_lt (mul_le_mul' ha (le_refl b)) h }},
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_omega, omega_pos, zero_mul, mul_zero]
 end
+
+lemma omega_le_mul_iff {a b : cardinal} : ω ≤ a * b ↔ a ≠ 0 ∧ b ≠ 0 ∧ (ω ≤ a ∨ ω ≤ b) :=
+let h := (@mul_lt_omega_iff a b).not in
+by rwa [not_lt, not_or_distrib, not_or_distrib, not_and_distrib, not_lt, not_lt] at h
 
 lemma mul_lt_omega_iff_of_ne_zero {a b : cardinal} (ha : a ≠ 0) (hb : b ≠ 0) :
   a * b < ω ↔ a < ω ∧ b < ω :=

@@ -966,6 +966,20 @@ calc ∥f.lim∥ = ∥f.lim - f N + f N∥ : by simp
                 ... ≤ max (∥f.lim - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
                 ... ≤ a : max_le (le_of_lt (hN _ le_rfl)) (hf _)
 
+open filter set
+
+instance : complete_space ℚ_[p] :=
+begin
+  apply complete_of_cauchy_seq_tendsto,
+  intros u hu,
+  let c : cau_seq ℚ_[p] norm := ⟨u, metric.cauchy_seq_iff'.mp hu⟩,
+  refine ⟨c.lim, λ s h, _⟩,
+  rcases metric.mem_nhds_iff.1 h with ⟨ε, ε0, hε⟩,
+  have := c.equiv_lim ε ε0,
+  simp only [mem_map, mem_at_top_sets, mem_set_of_eq],
+  exact this.imp (λ N hN n hn, hε (hN n hn))
+end
+
 /-!
 ### Valuation on `ℚ_[p]`
 -/

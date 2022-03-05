@@ -422,7 +422,7 @@ def closure (s : set K) : subfield K :=
     obtain ⟨ny, hny, dy, hdy, rfl⟩ := id y_mem,
     exact ⟨nx * ny, subring.mul_mem _ hnx hny,
            dx * dy, subring.mul_mem _ hdx hdy,
-           (div_mul_div _ _ _ _).symm⟩
+           (div_mul_div_comm₀ _ _ _ _).symm⟩
   end }
 
 lemma mem_closure_iff {s : set K} {x} :

@@ -8,6 +8,8 @@ import data.fintype.basic
 import data.set.finite
 import data.setoid.basic
 
+import order.partition.finpartition
+
 /-!
 # Equivalence relations: partitions
 
@@ -20,6 +22,9 @@ There are two implementations of partitions here:
 
 Of course both implementations are related to `quotient` and `setoid`.
 
+`finpartition.of_partition` and `is_partition.of_finpartition` furnish
+a link between `setoid.is_partition` and `finpartition`.
+
 ## TODO
 
 Link `setoid.is_partition` and `finpartition`.
@@ -27,6 +32,8 @@ Link `setoid.is_partition` and `finpartition`.
 Could the design of `finpartition` inform the one of `setoid.is_partition`? Maybe bundling it and
 changing it from `set (set α)` to `set α` where `[lattice α] [order_bot α]` would make it more
 usable.
+
+Are `finpartition.of_partition` and `is_partition.of_finpartition` enough ?
 
 ## Tags
 
@@ -237,6 +244,89 @@ _ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order
 
 end partition
 
+section finpartition
+
+open_locale classical
+
+-- Variant of finset.mem_sup that does not assume that f is finset valued
+lemma finset.mem_sup' {α β : Type*}  {s : finset α} {f : α → set β}
+  {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=
+begin
+  split,
+  { apply s.induction_on,
+    { intro hx,
+      exfalso,
+      simpa only using hx, },
+    intros a t hat hrec hx,
+    simp only [finset.sup_insert, set.sup_eq_union, set.mem_union_eq] at hx,
+    cases hx with hx hx,
+      exact ⟨a, finset.mem_insert_self a t, hx ⟩,
+      { obtain ⟨v, H, hH⟩ := hrec hx ,
+        exact ⟨v, finset.mem_insert_of_mem H, hH⟩, }},
+  { rintros ⟨v, H, hx⟩,
+    suffices : f v ≤ s.sup f,
+      exact this hx,
+    exact finset.le_sup H, }
+end
+
+/-- A finite setoid partition furnishes a finpartition -/
+theorem finpartition.of_partition {c : finset (set α)} (hc : setoid.is_partition (c : set (set α))) :
+  finpartition (set.univ : set α) :=
+{ parts := c, --  finset (set α)
+  sup_indep := --  self.parts.sup_indep id
+  begin
+    intros d hd t ht htd,
+    simp, refine set.disjoint_iff.mpr _,
+    rw set.subset_empty_iff,
+    rw set.eq_empty_iff_forall_not_mem,
+    intros a ha,
+    apply htd,
+
+    obtain ⟨s, hs, hs'⟩ := hc.right a,
+    simp only [finset.mem_coe, exists_unique_iff_exists, exists_prop, and_imp] at hs',
+    rw (hs' t ht (set.mem_of_mem_inter_left ha)),
+
+    obtain ⟨v, hvd, hav⟩ := finset.mem_sup'.mp (set.mem_of_mem_inter_right ha),
+    rw ← hs' v (hd hvd) hav,
+    exact hvd,
+  end,
+
+  sup_parts := --  self.parts.sup id = (set.univ : set α)
+  begin
+    apply set.eq_univ_of_forall ,
+    intro x,
+    simp only [finset.mem_sup',  id.def],
+    obtain ⟨s, hs, hs'⟩ := hc.right x,
+    simp only [finset.mem_coe, exists_unique_iff_exists, exists_prop] at hs,
+    use s, exact hs,
+  end,
+  not_bot_mem := hc.left --  ⊥ ∉ self.parts
+}
+
+/-- A finpartition gives rise to a setoid partition -/
+theorem is_partition.of_finpartition(f : finpartition (set.univ : set α)) :
+  setoid.is_partition (f.parts : set (set α)) :=
+begin
+  apply and.intro f.not_bot_mem,
+  intro a,
+  simp only [finset.mem_coe, exists_unique_iff_exists, exists_prop],
+  let ha := set.mem_univ a,
+  rw [← f.sup_parts, finset.mem_sup'] at ha,
+  obtain ⟨v, hv, hav⟩ := ha,
+  use v,
+  split,
+    exact ⟨hv, hav⟩,
+    { intros u hu,
+      have huv : ¬ disjoint u v,
+      { rw set.not_disjoint_iff, exact ⟨a, hu.right, hav⟩,  },
+      by_contradiction, apply huv,
+      let hf := f.sup_indep (finset.singleton_subset_iff.mpr hv) (hu.left) _,
+      simp only [id.def, finset.sup_singleton] at hf,
+      exact hf,
+      { rw finset.not_mem_singleton , intro h', exact h h' } }
+end
+
+end finpartition
 end setoid
 
 /-- Constructive information associated with a partition of a type `α` indexed by another type `ι`,

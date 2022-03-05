@@ -105,10 +105,11 @@ nnreal.eq norm_one
 instance semi_normed_comm_ring.to_comm_ring [β : semi_normed_comm_ring α] : comm_ring α := { ..β }
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
+instance non_unital_normed_ring.to_normed_group [β : non_unital_normed_ring α] : normed_group α :=
+{ ..β }
 
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_ring.to_semi_normed_group [β : semi_normed_ring α] :
+instance non_unital_semi_normed_ring.to_semi_normed_group [β : non_unital_semi_normed_ring α] :
   semi_normed_group α := { ..β }
 
 instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class α]

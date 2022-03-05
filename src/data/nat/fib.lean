@@ -248,4 +248,77 @@ begin
                  ... = (∑ k in finset.range (n + 1), fib k) + 1   : by simp [finset.range_add_one] }
 end
 
+namespace norm_num
+open tactic
+
+/-! ### `norm_num` plugin for `fib`
+
+The `norm_num` plugin uses a strategy parallel to that of `nat.fast_fib`, but it instead
+produces proofs of what `nat.fib` evaluates to.
+-/
+
+private lemma fib_bit0_rw {n a b : ℕ} (hn : fib n = a) (hn' : fib (n + 1) = b) :
+  fib (bit0 n) = a * (2 * b - a) := by rw [fib_bit0, hn, hn']
+
+private lemma fib_bit0_succ_rw {n a b : ℕ} (hn : fib n = a) (hn' : fib (n + 1) = b) :
+  fib (bit0 n + 1) = b ^ 2 + a ^ 2 := by rw [fib_bit0_succ, hn, hn']
+
+private lemma fib_bit1_rw {n a b : ℕ} (hn : fib n = a) (hn' : fib (n + 1) = b) :
+  fib (bit1 n) = b ^ 2 + a ^ 2 := by rw [fib_bit1, hn, hn']
+
+private lemma fib_bit1_succ_rw {n a b : ℕ} (hn : fib n = a) (hn' : fib (n + 1) = b) :
+  fib (bit1 n + 1) = b * (2 * a + b) := by rw [fib_bit1_succ, hn, hn']
+
+/-- A helper function to use `norm_num` to reduce the right-hand-side of a proof of an equality.
+This is being used only for equations of the form `fib n = e` where `e` is an arithmetic expression
+involving only natural number literals. -/
+private meta def fib_norm_rhs (prf : expr) : tactic expr :=
+do ty ← infer_type prf,
+   match ty with
+   | `(%%a = %%b) :=
+     do (_, prfb) ← norm_num.derive b,
+        to_expr ``(eq.trans %%prf %%prfb)
+   | e := trace e >> failed
+   end
+
+/-- `fast_fib_aux_norm_num n` returns `(fib n = x, fib (n + 1) = y)`, where `n` is a numeral. -/
+private meta def norm_num_fib_aux : ℕ → tactic (expr × expr)
+| 0 := do
+  n0 ← to_expr ``(fib_zero),
+  n1 ← to_expr ``(fib_one),
+  pure (n0, n1)
+| n :=
+  if bodd n
+  then do
+    (p1, p2) ← norm_num_fib_aux (n / 2),
+    h0 ← to_expr ``(fib_bit1_rw %%p1 %%p2) >>= fib_norm_rhs,
+    h1 ← to_expr ``(fib_bit1_succ_rw %%p1 %%p2) >>= fib_norm_rhs,
+    pure (h0, h1)
+  else do
+    (p1, p2) ← norm_num_fib_aux (n / 2),
+    h0 ← to_expr ``(fib_bit0_rw %%p1 %%p2) >>= fib_norm_rhs,
+    h1 ← to_expr ``(fib_bit1_rw %%p1 %%p2) >>= fib_norm_rhs,
+    pure (h0, h1)
+
+/-- A `norm_num` plugin for `fib n` when `n` is a numeral.
+Uses the binary representation of `n` like `nat.fast_fib`. -/
+@[norm_num] meta def fast_fib_norm_num : expr → tactic (expr × expr)
+| `(fib %%n) :=
+  do n ← expr.to_nat n,
+    (p1, p2) ← norm_num_fib_aux n,
+    t ← infer_type p1,
+    match t with
+    | `(%%a = %%b) := pure (b, p1)
+    | _ := failed
+    end
+| _ := failed
+
+example : fib 3 = 2 := by norm_num
+
+example : fib 64 = 10610209857723 := by norm_num
+
+example : fib 100 + fib 101 = fib 102 := by norm_num
+
+end norm_num
+
 end nat

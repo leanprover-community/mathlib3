@@ -529,8 +529,7 @@ lemma unif_integrable_of_tendsto_Lp (hp : 1 ≤ p) (hp' : p ≠ ∞)
   unif_integrable f p μ :=
 begin
   intros ε hε,
-  rw ennreal.tendsto_at_top ennreal.zero_ne_top at hfg,
-  swap, apply_instance,
+  rw ennreal.tendsto_at_top_zero at hfg,
   obtain ⟨N, hN⟩ := hfg (ennreal.of_real ε / 2) (by simpa),
   set F : fin N → α → β := λ n, f n,
   have hF : ∀ n, mem_ℒp (F n) p μ := λ n, hf' n,
@@ -552,9 +551,8 @@ begin
     ... ≤ ennreal.of_real ε / 2 + ennreal.of_real (ε / 2) :
       begin
         refine add_le_add _ (hδ₂ punit.star s hs
-            (le_trans hμs (ennreal.of_real_le_of_real $ min_le_right _ _))),
+          (le_trans hμs (ennreal.of_real_le_of_real $ min_le_right _ _))),
         specialize hN n (not_lt.1 hn),
-        simp only [zero_tsub, zero_add, mem_Icc, zero_le, true_and] at hN,
         exact le_trans (snorm_indicator_le _) hN
       end
     ... ≤ ennreal.of_real ε : by simp [ennreal.of_real_div_of_pos (by norm_num : (0 : ℝ) < 2)] },

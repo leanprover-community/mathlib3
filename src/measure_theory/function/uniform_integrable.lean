@@ -173,24 +173,6 @@ begin
   exact measurable_set_le measurable_const hmeas.nnnorm.subtype_coe,
 end
 
--- move
-lemma mem_ℒp.norm_rpow {m : measurable_space α} {μ : measure α}
-  (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
-  mem_ℒp (λ (x : α), ∥f x∥ ^ p.to_real) 1 μ :=
-begin
-  refine ⟨hf.1.norm.pow_const _, _⟩,
-  have := hf.snorm_ne_top,
-  rw snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top at this,
-  rw snorm_one_eq_lintegral_nnnorm,
-  convert ennreal.rpow_lt_top_of_nonneg (@ennreal.to_real_nonneg p) this,
-  rw [← ennreal.rpow_mul, one_div_mul_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm,
-      ennreal.rpow_one],
-  congr,
-  ext1 x,
-  rw [ennreal.coe_rpow_of_nonneg _ ennreal.to_real_nonneg, real.nnnorm_of_nonneg],
-  congr
-end
-
 /- This lemma is slightly weaker than `measure_theory.mem_ℒp.snorm_indicator_ge_le_pos` as the
 latter provides `0 < M`. -/
 lemma mem_ℒp.snorm_indicator_ge_le'

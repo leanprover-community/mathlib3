@@ -164,8 +164,7 @@ export has_measurable_pow (measurable_pow)
 /-- `monoid.has_pow` is measurable. -/
 instance monoid.has_measurable_pow (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul₂ M] : has_measurable_pow M ℕ :=
-⟨begin
-  refine measurable_from_prod_encodable (λ n, _),
+⟨measurable_from_prod_encodable $ λ n, begin
   induction n with n ih,
   { simp only [pow_zero, ←pi.one_def, measurable_one] },
   { simp only [pow_succ], exact measurable_id.mul ih }
@@ -407,9 +406,7 @@ end inv
 instance div_inv_monoid.has_measurable_zpow (G : Type u) [div_inv_monoid G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] :
   has_measurable_pow G ℤ :=
-⟨begin
-  refine measurable_from_prod_encodable (λ n, _),
-  dsimp,
+⟨measurable_from_prod_encodable $ λ n, begin
   cases n with n n,
   { simp_rw zpow_of_nat, exact measurable_id.pow_const _ },
   { simp_rw zpow_neg_succ_of_nat, exact (measurable_id.pow_const (n + 1)).inv }

@@ -125,22 +125,22 @@ variables {α}
 @[simp] lemma id_apply (a : α) : pseudo_epimorphism.id α a = a := rfl
 
 /-- Composition of `pseudo_epimorphism`s as a `pseudo_epimorphism`. -/
-def comp (f : pseudo_epimorphism β γ) (g : pseudo_epimorphism α β) : pseudo_epimorphism α γ :=
-⟨f.to_order_hom.comp g.to_order_hom, λ a b h₀, begin
-  obtain ⟨b, h₁, rfl⟩ := f.exists_map_eq_of_map_le' h₀,
-  obtain ⟨b, h₂, rfl⟩ := g.exists_map_eq_of_map_le' h₁,
+def comp (g : pseudo_epimorphism β γ) (f : pseudo_epimorphism α β) : pseudo_epimorphism α γ :=
+⟨g.to_order_hom.comp f.to_order_hom, λ a b h₀, begin
+  obtain ⟨b, h₁, rfl⟩ := g.exists_map_eq_of_map_le' h₀,
+  obtain ⟨b, h₂, rfl⟩ := f.exists_map_eq_of_map_le' h₁,
   exact ⟨b, h₂, rfl⟩,
 end⟩
 
-@[simp] lemma coe_comp (f : pseudo_epimorphism β γ) (g : pseudo_epimorphism α β) :
-  (f.comp g : α → γ) = f ∘ g := rfl
-@[simp] lemma coe_comp_order_hom (f : pseudo_epimorphism β γ) (g : pseudo_epimorphism α β) :
-  (f.comp g : α →o γ) = (f : β →o γ).comp g := rfl
-@[simp] lemma comp_apply (f : pseudo_epimorphism β γ) (g : pseudo_epimorphism α β) (a : α) :
-  (f.comp g) a = f (g a) := rfl
-@[simp] lemma comp_assoc (f : pseudo_epimorphism γ δ) (g : pseudo_epimorphism β γ)
-  (h : pseudo_epimorphism α β) :
-  (f.comp g).comp h = f.comp (g.comp h) := rfl
+@[simp] lemma coe_comp (g : pseudo_epimorphism β γ) (f : pseudo_epimorphism α β) :
+  (g.comp f : α → γ) = g ∘ f := rfl
+@[simp] lemma coe_comp_order_hom (g : pseudo_epimorphism β γ) (f : pseudo_epimorphism α β) :
+  (g.comp f : α →o γ) = (g : β →o γ).comp f := rfl
+@[simp] lemma comp_apply (g : pseudo_epimorphism β γ) (f : pseudo_epimorphism α β) (a : α) :
+  (g.comp f) a = g (f a) := rfl
+@[simp] lemma comp_assoc (h : pseudo_epimorphism γ δ) (g : pseudo_epimorphism β γ)
+  (f : pseudo_epimorphism α β) :
+  (h.comp g).comp f = h.comp (g.comp f) := rfl
 @[simp] lemma comp_id (f : pseudo_epimorphism α β) : f.comp (pseudo_epimorphism.id α) = f :=
 ext $ λ a, rfl
 @[simp] lemma id_comp (f : pseudo_epimorphism α β) : (pseudo_epimorphism.id β).comp f = f :=
@@ -206,22 +206,22 @@ variables {α}
 @[simp] lemma id_apply (a : α) : esakia_hom.id α a = a := rfl
 
 /-- Composition of `esakia_hom`s as an `esakia_hom`. -/
-def comp (f : esakia_hom β γ) (g : esakia_hom α β) : esakia_hom α γ :=
-⟨f.to_continuous_order_hom.comp g.to_continuous_order_hom, λ a b h₀, begin
-  obtain ⟨b, h₁, rfl⟩ := f.exists_map_eq_of_map_le' h₀,
-  obtain ⟨b, h₂, rfl⟩ := g.exists_map_eq_of_map_le' h₁,
+def comp (g : esakia_hom β γ) (f : esakia_hom α β) : esakia_hom α γ :=
+⟨g.to_continuous_order_hom.comp f.to_continuous_order_hom, λ a b h₀, begin
+  obtain ⟨b, h₁, rfl⟩ := g.exists_map_eq_of_map_le' h₀,
+  obtain ⟨b, h₂, rfl⟩ := f.exists_map_eq_of_map_le' h₁,
   exact ⟨b, h₂, rfl⟩,
 end⟩
 
-@[simp] lemma coe_comp (f : esakia_hom β γ) (g : esakia_hom α β) : (f.comp g : α → γ) = f ∘ g := rfl
-@[simp] lemma comp_apply (f : esakia_hom β γ) (g : esakia_hom α β) (a : α) :
-  (f.comp g) a = f (g a) := rfl
-@[simp] lemma coe_comp_continuous_order_hom (f : esakia_hom β γ) (g : esakia_hom α β) :
-  (f.comp g : α →Co γ) = (f : β →Co γ).comp g := rfl
-@[simp] lemma coe_comp_pseudo_epimorphism (f : esakia_hom β γ) (g : esakia_hom α β) :
-  (f.comp g : pseudo_epimorphism α γ) = (f : pseudo_epimorphism β γ).comp g := rfl
-@[simp] lemma comp_assoc (f : esakia_hom γ δ) (g : esakia_hom β γ) (h : esakia_hom α β) :
-  (f.comp g).comp h = f.comp (g.comp h) := rfl
+@[simp] lemma coe_comp (g : esakia_hom β γ) (f : esakia_hom α β) : (g.comp f : α → γ) = g ∘ f := rfl
+@[simp] lemma comp_apply (g : esakia_hom β γ) (f : esakia_hom α β) (a : α) :
+  (g.comp f) a = g (f a) := rfl
+@[simp] lemma coe_comp_continuous_order_hom (g : esakia_hom β γ) (f : esakia_hom α β) :
+  (g.comp f : α →Co γ) = (g : β →Co γ).comp f := rfl
+@[simp] lemma coe_comp_pseudo_epimorphism (g : esakia_hom β γ) (f : esakia_hom α β) :
+  (g.comp f : pseudo_epimorphism α γ) = (g : pseudo_epimorphism β γ).comp f := rfl
+@[simp] lemma comp_assoc (h : esakia_hom γ δ) (g : esakia_hom β γ) (f : esakia_hom α β) :
+  (h.comp g).comp f = h.comp (g.comp f) := rfl
 @[simp] lemma comp_id (f : esakia_hom α β) : f.comp (esakia_hom.id α) = f := ext $ λ a, rfl
 @[simp] lemma id_comp (f : esakia_hom α β) : (esakia_hom.id β).comp f = f := ext $ λ a, rfl
 

@@ -154,7 +154,7 @@ begin
   ring,
 end
 
-/-- Computes `(nat.fib n, nat.fib (n + 1))` using the binary represenation of `n`.
+/-- Computes `(nat.fib n, nat.fib (n + 1))` using the binary representation of `n`.
 Supports `nat.fast_fib`. -/
 def fast_fib_aux : ℕ → ℕ × ℕ :=
 nat.binary_rec (fib 0, fib 1) (λ b n p,

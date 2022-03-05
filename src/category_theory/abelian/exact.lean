@@ -193,10 +193,8 @@ begin
   rw exact_iff,
   refine ⟨by simp [← op_comp], _⟩,
   apply_fun quiver.hom.unop,
-  { simp only [unop_comp, unop_zero],
-    rw [cokernel.π_op, kernel.ι_op],
-    simp only [unop_comp, cokernel.π_op, eq_to_hom_refl, kernel.ι_op, category.id_comp,
-      category.assoc, kernel_comp_cokernel_assoc, zero_comp, comp_zero, unop_zero] },
+  { simp only [unop_comp, cokernel.π_op, eq_to_hom_refl, kernel.ι_op, category.id_comp,
+      category.assoc, kernel_comp_cokernel_assoc, zero_comp, comp_zero, unop_zero], },
   { exact quiver.hom.unop_inj },
 end
 

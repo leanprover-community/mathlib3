@@ -6,6 +6,7 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 import data.equiv.fin
 import data.finset.basic
 import model_theory.basic
+import set_theory.cardinal_ordinal
 
 /-!
 # Basics on First-Order Structures
@@ -25,6 +26,10 @@ relation `T.semantically_equivalent` on formulas of a particular signature, indi
 formulas have the same realization in models of `T`. (This is more often known as logical
 equivalence once it is known that this is equivalent to the proof-theoretic definition.)
 
+## Main Results
+* `first_order.language.term.card_le` shows that the number of terms in `L.term α` is at most
+`# (α ⊕ Σ i, L.functions i) + ω`.
+
 ## References
 For the Flypitch project:
 - [J. Han, F. van Doorn, *A formal proof of the independence of the continuum hypothesis*]
@@ -42,8 +47,8 @@ namespace language
 variables (L : language.{u v})
 variables {M : Type w} {N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
 variables {α : Type u'} {β : Type v'}
-open_locale first_order
-open Structure
+open_locale first_order cardinal
+open Structure cardinal
 
 /-- A term on `α` is either a variable indexed by an element of `α`
   or a function symbol applied to simpler terms. -/
@@ -56,13 +61,93 @@ variable {L}
 
 namespace term
 
+open list
+
 /-- Relabels a term's variables along a particular function. -/
 @[simp] def relabel (g : α → β) : L.term α → L.term β
 | (var i) := var (g i)
 | (func f ts) := func f (λ i, (ts i).relabel)
 
-instance [inhabited α] : inhabited (L.term α) :=
+/-- Encodes a term as a list of variables and function symbols. -/
+def list_encode : L.term α → list (α ⊕ (Σ i, L.functions i))
+| (var i) := [sum.inl i]
+| (func f ts) := ((sum.inr (⟨_, f⟩ : Σ i, L.functions i)) ::
+    ((list.fin_range _).bind (λ i, (ts i).list_encode)))
+
+/-- Decodes a list of variables and function symbols as a list of terms. -/
+def list_decode [inhabited (L.term α)] :
+  list (α ⊕ (Σ i, L.functions i)) → list (L.term α)
+| [] := []
+| ((sum.inl a) :: l) := var a :: list_decode l
+| ((sum.inr ⟨n, f⟩) :: l) := func f (λ i, ((list_decode l).nth i).iget) :: ((list_decode l).drop n)
+
+@[simp] theorem list_decode_encode_list [inhabited (L.term α)] (l : list (L.term α)) :
+  list_decode (l.bind list_encode) = l :=
+begin
+  suffices h : ∀ (t : L.term α) (l : list (α ⊕ (Σ i, L.functions i))),
+    list_decode (t.list_encode ++ l) = t :: list_decode l,
+  { induction l with t l lih,
+    { refl },
+    { rw [cons_bind, h t (l.bind list_encode), lih] } },
+  { intro t,
+    induction t with a n f ts ih; intro l,
+    { rw [list_encode, singleton_append, list_decode] },
+    { rw [list_encode, cons_append, list_decode],
+      have h : list_decode ((fin_range n).bind (λ (i : fin n), (ts i).list_encode) ++ l) =
+        (fin_range n).map ts ++ list_decode l,
+      { induction (fin_range n) with i l' l'ih,
+        { refl },
+        { rw [cons_bind, append_assoc, ih, map_cons, l'ih, cons_append] } },
+      have h' : n ≤ (list_decode ((fin_range n).bind (λ (i : fin n),
+        (ts i).list_encode) ++ l)).length,
+      { rw [h, length_append, length_map, length_fin_range],
+        exact le_self_add, },
+      refine congr (congr rfl (congr rfl (funext (λ i, _)))) _,
+      { rw [nth_le_nth (lt_of_lt_of_le i.is_lt h'), option.iget_some, nth_le_of_eq h, nth_le_append,
+          nth_le_map, nth_le_fin_range, fin.eta],
+        { rw [length_fin_range],
+          exact i.is_lt },
+        { rw [length_map, length_fin_range],
+          exact i.is_lt } },
+      { rw [h, drop_left'],
+        rw [length_map, length_fin_range] } } }
+end
+
+lemma list_encode_injective :
+  function.injective (list_encode : L.term α → list (α ⊕ (Σ i, L.functions i))) :=
+begin
+  cases is_empty_or_nonempty (L.term α) with he hne,
+  { exact he.elim },
+  { resetI,
+    inhabit (L.term α),
+    intros t1 t2 h,
+    have h' : (list_decode ([t1].bind (list_encode))) = (list_decode ([t2].bind (list_encode))),
+    { rw [bind_singleton, h, bind_singleton] },
+    rw [list_decode_encode_list, list_decode_encode_list] at h',
+    exact head_eq_of_cons_eq h' }
+end
+
+theorem card_le : # (L.term α) ≤ # (α ⊕ (Σ i, L.functions i)) + ω :=
+begin
+  have h := (mk_le_of_injective list_encode_injective),
+  refine h.trans _,
+  casesI fintype_or_infinite (α ⊕ (Σ i, L.functions i)) with ft inf,
+  { haveI := fintype.encodable (α ⊕ (Σ i, L.functions i)),
+    exact le_add_left (encodable_iff.1 ⟨encodable.list⟩) },
+  { rw mk_list_eq_mk,
+    exact le_self_add }
+end
+
+instance [encodable α] [encodable ((Σ i, L.functions i))] [inhabited (L.term α)] :
+  encodable (L.term α) :=
+encodable.of_left_injection list_encode (λ l, (list_decode l).head')
+  (λ t, by rw [← bind_singleton list_encode, list_decode_encode_list, head'])
+
+instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
+
+instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
+⟨func (default : L.constants) default⟩
 
 instance : has_coe L.constants (L.term α) :=
 ⟨λ c, func c default⟩

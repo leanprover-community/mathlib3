@@ -474,6 +474,8 @@ instance ordinal.is_equivalent : setoid Well_order :=
 /-- `ordinal.{u}` is the type of well orders in `Type u`, up to order isomorphism. -/
 def ordinal : Type (u + 1) := quotient ordinal.is_equivalent
 
+instance (o : ordinal) : has_well_founded o.out.α := ⟨o.out.r, o.out.wo.wf⟩
+
 namespace ordinal
 
 /-- The order type of a well order is an ordinal. -/

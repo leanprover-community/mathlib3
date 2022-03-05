@@ -489,7 +489,7 @@ variables {mβ : measurable_space β} [borel_space β] [second_countable_topolog
 variables {f : ℕ → α → β} {g : α → β}
 
 include mβ
-
+#check tendsto
 /-- Forward direction of Vitali's convergence theorem: if `f` is a sequence of uniformly integrable
 functions that converge in measure to some function `g` in a finite measure space, then `f`
 converge in Lp to `g`. -/
@@ -500,8 +500,7 @@ lemma tendsto_Lp_of_tendsto_in_measure [is_finite_measure μ] (hp : 1 ≤ p) (hp
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
 begin
   refine tendsto_of_subseq_tendsto (λ ns hns, _),
-  obtain ⟨ms, hms, hms'⟩ := tendsto_in_measure.exists_seq_tendsto_ae
-    (λ ε hε, (hfg ε hε).comp hns.tendsto_at_top),
+  obtain ⟨ms, hms, hms'⟩ := tendsto_in_measure.exists_seq_tendsto_ae (λ ε hε, (hfg ε hε).comp hns),
   exact ⟨ms, tendsto_Lp_of_tendsto_ae μ hp hp' (λ _, hf _) hg hg'
     (λ ε hε, let ⟨δ, hδ, hδ'⟩ := hui hε in ⟨δ, hδ, λ i s hs hμs, hδ' _ s hs hμs⟩) hms'⟩,
 end

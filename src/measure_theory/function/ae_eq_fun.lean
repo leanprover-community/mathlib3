@@ -390,8 +390,8 @@ instance [has_scalar 𝕜ᵐᵒᵖ γ] [is_central_scalar 𝕜 γ] : is_central_
 
 end has_scalar
 
-section monoid
-variables [monoid γ] [has_measurable_mul₂ γ]
+section has_mul
+variables [has_mul γ] [has_measurable_mul₂ γ]
 
 @[to_additive]
 instance : has_mul (α →ₘ[μ] γ) := ⟨comp₂ (*) measurable_mul⟩
@@ -406,9 +406,52 @@ rfl
   (f * g).to_germ = f.to_germ * g.to_germ :=
 comp₂_to_germ _ _ _ _
 
+end has_mul
+
+section add_monoid
+variables [add_monoid γ] [has_measurable_add₂ γ]
+
+instance has_nat_scalar : has_scalar ℕ (α →ₘ[μ] γ) :=
+⟨λ n f, comp ((•) n) (measurable_nsmul _) f⟩
+
+@[simp] lemma mk_nsmul (n : ℕ) (f : α → γ) (hf) :
+  n • (mk f hf : α →ₘ[μ] γ) = mk (n • f) (hf.nsmul n) :=
+rfl
+
+lemma coe_fn_nsmul (f : α →ₘ[μ] γ) (n : ℕ) : ⇑(n • f) =ᵐ[μ] n • f :=
+coe_fn_comp _ _ _
+
+@[simp] lemma nsmul_to_germ (f : α →ₘ[μ] γ) (n : ℕ) :
+  (n • f).to_germ = n • f.to_germ :=
+comp_to_germ _ _ _
+
+instance : add_monoid (α →ₘ[μ] γ) :=
+to_germ_injective.add_monoid to_germ zero_to_germ add_to_germ nsmul_to_germ
+
+end add_monoid
+
+instance [add_comm_monoid γ] [has_measurable_add₂ γ] : add_comm_monoid (α →ₘ[μ] γ) :=
+to_germ_injective.add_comm_monoid to_germ zero_to_germ add_to_germ nsmul_to_germ
+
+section monoid
+variables [monoid γ] [has_measurable_mul₂ γ]
+
+instance : has_pow (α →ₘ[μ] γ) ℕ := ⟨λ f n, comp (^ n) (measurable.pow_const measurable_id _) f⟩
+
+@[simp] lemma mk_pow (f : α → γ) (hf) (n : ℕ) :
+  (mk f hf : α →ₘ[μ] γ) ^ n = mk (f ^ n) (hf.pow_const n) :=
+rfl
+
+lemma coe_fn_pow (f : α →ₘ[μ] γ) (n : ℕ) : ⇑(f ^ n) =ᵐ[μ] f ^ n :=
+coe_fn_comp _ _ _
+
+@[simp] lemma pow_to_germ (f : α →ₘ[μ] γ) (n : ℕ) :
+  (f ^ n).to_germ = f.to_germ ^ n :=
+comp_to_germ _ _ _
+
 @[to_additive]
 instance : monoid (α →ₘ[μ] γ) :=
-to_germ_injective.monoid to_germ one_to_germ mul_to_germ
+to_germ_injective.monoid to_germ one_to_germ mul_to_germ pow_to_germ
 
 /-- `ae_eq_fun.to_germ` as a `monoid_hom`. -/
 @[to_additive "`ae_eq_fun.to_germ` as an `add_monoid_hom`.", simps]
@@ -420,14 +463,11 @@ def to_germ_monoid_hom : (α →ₘ[μ] γ) →* μ.ae.germ γ :=
 end monoid
 
 @[to_additive]
-instance comm_monoid [comm_monoid γ] [has_measurable_mul₂ γ] : comm_monoid (α →ₘ[μ] γ) :=
-to_germ_injective.comm_monoid to_germ one_to_germ mul_to_germ
-
-section group
-variables [group γ]
+instance [comm_monoid γ] [has_measurable_mul₂ γ] : comm_monoid (α →ₘ[μ] γ) :=
+to_germ_injective.comm_monoid to_germ one_to_germ mul_to_germ pow_to_germ
 
 section inv
-variables [has_measurable_inv γ]
+variables [has_inv γ] [has_measurable_inv γ]
 
 @[to_additive] instance : has_inv (α →ₘ[μ] γ) := ⟨comp has_inv.inv measurable_inv⟩
 
@@ -440,7 +480,7 @@ variables [has_measurable_inv γ]
 end inv
 
 section div
-variables [has_measurable_div₂ γ]
+variables [has_div γ] [has_measurable_div₂ γ]
 
 @[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div measurable_div⟩
 
@@ -455,10 +495,59 @@ comp₂_to_germ _ _ _ _
 
 end div
 
+section sub_neg_monoid
+variables [sub_neg_monoid γ] [has_measurable_add₂ γ] [has_measurable_neg γ]
+
+instance has_int_scalar : has_scalar ℤ (α →ₘ[μ] γ) :=
+⟨λ n f, comp ((•) n) (measurable_zsmul _) f⟩
+
+@[simp] lemma mk_zsmul (n : ℤ) (f : α → γ) (hf) :
+  n • (mk f hf : α →ₘ[μ] γ) = mk (n • f) (hf.zsmul n) :=
+rfl
+
+lemma coe_fn_zsmul (f : α →ₘ[μ] γ) (n : ℤ) : ⇑(n • f) =ᵐ[μ] n • f :=
+coe_fn_comp _ _ _
+
+@[simp] lemma zsmul_to_germ (f : α →ₘ[μ] γ) (n : ℤ) :
+  (n • f).to_germ = n • f.to_germ :=
+comp_to_germ _ _ _
+
+instance : sub_neg_monoid (α →ₘ[μ] γ) :=
+to_germ_injective.sub_neg_monoid to_germ zero_to_germ add_to_germ neg_to_germ sub_to_germ
+  nsmul_to_germ zsmul_to_germ
+
+end sub_neg_monoid
+
+instance [add_group γ] [has_measurable_add₂ γ] [has_measurable_neg γ] :
+  add_group (α →ₘ[μ] γ) :=
+to_germ_injective.add_group to_germ zero_to_germ add_to_germ neg_to_germ sub_to_germ
+  nsmul_to_germ zsmul_to_germ
+
+section div_inv_monoid
+
+instance has_int_pow : has_pow (α →ₘ[μ] γ) ℤ :=
+⟨λ f n, comp (^ n) (has_measurable_zpow _) f⟩
+
+@[simp] lemma mk_pow (f : α → γ) (hf) (n : ℕ) :
+  (mk f hf : α →ₘ[μ] γ) ^ n = mk (f ^ n) (hf.pow_const n) :=
+rfl
+
+lemma coe_fn_pow (f : α →ₘ[μ] γ) (n : ℕ) : ⇑(f ^ n) =ᵐ[μ] f ^ n :=
+coe_fn_comp _ _ _
+
+@[simp] lemma pow_to_germ (f : α →ₘ[μ] γ) (n : ℕ) :
+  (f ^ n).to_germ = f.to_germ ^ n :=
+comp_to_germ _ _ _
+
+end div_inv_monoid
+
+section group
+variables [group γ]
+
 @[to_additive]
 instance [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
   group (α →ₘ[μ] γ) :=
-to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ
+to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ pow_to_germ _
 
 end group
 

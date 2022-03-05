@@ -161,6 +161,7 @@ class has_measurable_pow (β γ : Type*) [measurable_space β] [measurable_space
 
 export has_measurable_pow (measurable_pow)
 
+/-- `monoid.has_pow` is measurable. -/
 instance monoid.has_measurable_pow (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul₂ M] : has_measurable_pow M ℕ :=
 ⟨begin
@@ -402,6 +403,7 @@ measurable_inv hs
 
 end inv
 
+/-- `div_inv_monoid.has_pow` is measurable. -/
 instance div_inv_monoid.has_measurable_zpow (G : Type u) [div_inv_monoid G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] :
   has_measurable_pow G ℤ :=
@@ -543,6 +545,7 @@ instance pi.has_measurable_smul {ι : Type*} {α : ι → Type*} [∀ i, has_sca
 ⟨λ g, measurable_pi_iff.mpr $ λ i, (measurable_pi_apply i).const_smul _,
  λ g, measurable_pi_iff.mpr $ λ i, measurable_smul_const _⟩
 
+/-- `add_monoid.has_scalar_nat` is measurable. -/
 instance add_monoid.has_measurable_smul_nat₂ (M : Type*) [add_monoid M] [measurable_space M]
   [has_measurable_add₂ M] : has_measurable_smul₂ ℕ M :=
 ⟨begin
@@ -554,6 +557,7 @@ instance add_monoid.has_measurable_smul_nat₂ (M : Type*) [add_monoid M] [measu
   { simp only [succ_nsmul], exact measurable_id.add ih }
 end⟩
 
+/-- `sub_neg_monoid.has_scalar_int` is measurable. -/
 instance sub_neg_monoid.has_measurable_smul_int₂ (M : Type*) [sub_neg_monoid M] [measurable_space M]
   [has_measurable_add₂ M] [has_measurable_neg M] : has_measurable_smul₂ ℤ M :=
 ⟨begin

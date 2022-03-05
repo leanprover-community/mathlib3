@@ -245,7 +245,23 @@ variables (M)
 lemma mk'_surjective (z : S) : ∃ x (y : M), mk' S x y = z :=
 let ⟨r, hr⟩ := is_localization.surj _ z in ⟨r.1, r.2, (eq_mk'_iff_mul_eq.2 hr).symm⟩
 
-variables {M}
+variables (S)
+
+include M
+
+/-- The localization of a `fintype` is a `fintype`. Cannot be an instance. -/
+noncomputable def fintype' [fintype R] : fintype S :=
+have _ := classical.prop_decidable, by exactI
+fintype.of_surjective (function.uncurry $ is_localization.mk' S)
+                      (λ a, prod.exists'.mpr $ is_localization.mk'_surjective M a)
+
+omit M
+
+variables {M S}
+
+/-- Localizing at a submonoid with 0 inside it leads to the trivial ring. -/
+def unique_of_zero_mem (h : (0 : R) ∈ M) : unique S :=
+unique_of_zero_eq_one $ by simpa using is_localization.map_units S ⟨0, h⟩
 
 lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :
   mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (x₁ * y₂) = algebra_map R S (x₂ * y₁) :=
@@ -270,6 +286,15 @@ protected lemma eq {a₁ b₁} {a₂ b₂ : M} :
 lemma mk'_eq_zero_iff (x : R) (s : M) :
   mk' S x s = 0 ↔ ∃ (m : M), x * m = 0 :=
 by rw [← (map_units S s).mul_left_inj, mk'_spec, zero_mul, map_eq_zero_iff M]
+
+@[simp] lemma mk'_zero (s : M) : is_localization.mk' S 0 s = 0 :=
+by rw [eq_comm, is_localization.eq_mk'_iff_mul_eq, zero_mul, map_zero]
+
+lemma ne_zero_of_mk'_ne_zero {x : R} {y : M} (hxy : is_localization.mk' S x y ≠ 0) : x ≠ 0 :=
+begin
+  rintro rfl,
+  exact hxy (is_localization.mk'_zero _)
+end
 
 section ext
 
@@ -677,8 +702,8 @@ variables {M}
 
 section
 
-instance [subsingleton R] : subsingleton (localization M) :=
-⟨λ a b, by { induction a, induction b, congr, refl, refl }⟩
+instance [subsingleton R] : unique (localization M) :=
+⟨⟨1⟩, begin intro a, induction a, induction default, congr, refl, refl end⟩
 
 /-- Addition in a ring localization is defined as `⟨a, b⟩ + ⟨c, d⟩ = ⟨b * c + d * a, b * d⟩`.
 
@@ -854,6 +879,12 @@ variables (M S)
 noncomputable def alg_equiv : localization M ≃ₐ[R] S :=
 is_localization.alg_equiv M _ _
 
+/-- The localization of a singleton is a singleton. Cannot be an instance due to metavariables. -/
+noncomputable def _root_.is_localization.unique (R Rₘ) [comm_ring R] [comm_ring Rₘ]
+  (M : submonoid R) [subsingleton R] [algebra R Rₘ] [is_localization M Rₘ] : unique Rₘ :=
+have inhabited Rₘ := ⟨1⟩,
+by exactI (alg_equiv M Rₘ).symm.injective.unique
+
 end
 
 @[simp] lemma alg_equiv_mk' (x : R) (y : M) :
@@ -959,17 +990,26 @@ end is_localization
 open is_localization
 
 /-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
-lemma localization_map_bijective_of_field
-  {R Rₘ : Type*} [comm_ring R] [is_domain R] [comm_ring Rₘ]
+lemma is_field.localization_map_bijective
+  {R Rₘ : Type*} [comm_ring R] [comm_ring Rₘ]
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
 begin
-  refine ⟨is_localization.injective _ (le_non_zero_divisors_of_no_zero_divisors hM), λ x, _⟩,
+  letI := hR.to_field R,
+  replace hM := le_non_zero_divisors_of_no_zero_divisors hM,
+  refine ⟨is_localization.injective _ hM, λ x, _⟩,
   obtain ⟨r, ⟨m, hm⟩, rfl⟩ := mk'_surjective M x,
-  obtain ⟨n, hn⟩ := hR.mul_inv_cancel (λ hm0, hM (hm0 ▸ hm) : m ≠ 0),
-  exact ⟨r * n,
-    by erw [eq_mk'_iff_mul_eq, ← ring_hom.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
+  obtain ⟨n, hn⟩ := hR.mul_inv_cancel (non_zero_divisors.ne_zero $ hM hm),
+  exact ⟨r * n, by erw [eq_mk'_iff_mul_eq, ←map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
 end
+
+/-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
+lemma field.localization_map_bijective
+  {K Kₘ : Type*} [field K] [comm_ring Kₘ] {M : submonoid K} (hM : (0 : K) ∉ M)
+  [algebra K Kₘ] [is_localization M Kₘ] : function.bijective (algebra_map K Kₘ) :=
+(field.to_is_field K).localization_map_bijective hM
+-- this looks weird due to the `letI` inside the above lemma, but trying to do it the other
+-- way round causes issues with defeq of instances, so this is actually easier.
 
 section algebra
 

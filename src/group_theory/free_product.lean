@@ -6,7 +6,9 @@ Authors: David Wärn
 import algebra.free_monoid
 import group_theory.congruence
 import group_theory.is_free_group
+import group_theory.subgroup.pointwise
 import data.list.chain
+import set_theory.cardinal
 /-!
 # The free product of groups or monoids
 
@@ -25,6 +27,11 @@ groups).
 - `free_product.lift : (Π {i}, M i →* N) ≃ (free_product M →* N)`: the universal property.
 - `free_product.word M`: the type of reduced words.
 - `free_product.word.equiv M : free_product M ≃ word M`.
+- `free_product.neword M i j`: an inductive description of non-empty words with first letter from
+  `M i` and last letter from `M j`, together with an API (`singleton`, `append`, `head`, `tail`,
+  `to_word`, `prod`, `inv`). Used in the proof of the Ping-Pong-lemma.
+- `free_product.lift_injective_of_ping_pong`: The Ping-Pong-lemma, proving injectivity of the
+  `lift`. See the documentation of that theorem for more information.
 
 ## Remarks
 
@@ -138,8 +145,8 @@ begin
 end
 
 lemma of_left_inverse [decidable_eq ι] (i : ι) :
-  function.left_inverse (lift $ function.update 1 i (monoid_hom.id (M i))) of :=
-λ x, by simp only [lift_of, function.update_same, monoid_hom.id_apply]
+  function.left_inverse (lift $ pi.mul_single i (monoid_hom.id (M i))) of :=
+λ x, by simp only [lift_of, pi.mul_single_eq_same, monoid_hom.id_apply]
 
 lemma of_injective (i : ι) : function.injective ⇑(of : M i →* _) :=
 by { classical, exact (of_left_inverse i).injective }
@@ -182,7 +189,7 @@ instance : inhabited (word M) := ⟨empty⟩
 def prod (w : word M) : free_product M :=
 list.prod (w.to_list.map $ λ l, of l.snd)
 
-@[simp] lemma prod_nil : prod (empty : word M) = 1 := rfl
+@[simp] lemma prod_empty : prod (empty : word M) = 1 := rfl
 
 /-- `fst_idx w` is `some i` if the first letter of `w` is `⟨i, m⟩` with `m : M i`. If `w` is empty
 then it's `none`. -/
@@ -316,10 +323,10 @@ end
 def equiv : free_product M ≃ word M :=
 { to_fun := λ m, m • empty,
   inv_fun := λ w, prod w,
-  left_inv := λ m, by dsimp only; rw [prod_smul, prod_nil, mul_one],
+  left_inv := λ m, by dsimp only; rw [prod_smul, prod_empty, mul_one],
   right_inv := begin
     apply smul_induction,
-    { dsimp only, rw [prod_nil, one_smul], },
+    { dsimp only, rw [prod_empty, one_smul], },
     { dsimp only, intros i m w ih, rw [prod_smul, mul_smul, ih], },
   end }
 
@@ -327,6 +334,332 @@ instance : decidable_eq (word M) := function.injective.decidable_eq word.ext
 instance : decidable_eq (free_product M) := word.equiv.decidable_eq
 
 end word
+
+variable (M)
+
+/-- A `neword M i j` is a representation of a non-empty reduced words where the first letter comes
+from `M i` and the last letter comes from `M j`. It can be constructed from singletons and via
+concatentation, and thus provides a useful induction principle. -/
+@[nolint has_inhabited_instance]
+inductive neword : ι → ι → Type (max u_1 u_2)
+| singleton : ∀ {i} (x : M i) (hne1 : x ≠ 1), neword i i
+| append : ∀ {i j k l} (w₁ : neword i j) (hne : j ≠ k) (w₂ : neword k l), neword i l
+variable {M}
+
+namespace neword
+
+open word
+
+/-- The list represented by a given `neword` -/
+@[simp]
+def to_list : Π {i j} (w : neword M i j), list (Σ i, M i)
+| i _ (singleton x hne1) := [⟨i, x⟩]
+| _ _ (append w₁ hne w₂) := w₁.to_list ++ w₂.to_list
+
+lemma to_list_ne_nil {i j} (w : neword M i j) : w.to_list ≠ list.nil :=
+by { induction w, { rintros ⟨rfl⟩ }, { apply list.append_ne_nil_of_ne_nil_left, assumption } }
+
+/--  The first letter of a `neword` -/
+@[simp]
+def head : Π {i j} (w : neword M i j), M i
+| i _ (singleton x hne1) := x
+| _ _ (append w₁ hne w₂) := w₁.head
+
+/--  The last letter of a `neword` -/
+@[simp]
+def last : Π {i j} (w : neword M i j), M j
+| i _ (singleton x hne1) := x
+| _ _ (append w₁ hne w₂) := w₂.last
+
+@[simp]
+lemma to_list_head' {i j} (w : neword M i j) :
+  w.to_list.head' = option.some ⟨i, w.head⟩ :=
+begin
+  rw ← option.mem_def,
+  induction w,
+  { rw option.mem_def, reflexivity, },
+  { exact list.head'_append w_ih_w₁, },
+end
+
+@[simp]
+lemma to_list_last' {i j} (w : neword M i j) :
+  w.to_list.last' = option.some ⟨j, w.last⟩ :=
+begin
+  rw ← option.mem_def,
+  induction w,
+  { rw option.mem_def, reflexivity, },
+  { exact list.last'_append w_ih_w₂, },
+end
+
+/-- The `word M` represented by a `neword M i j` -/
+def to_word {i j} (w : neword M i j) : word M :=
+{ to_list := w.to_list,
+  ne_one :=
+  begin
+    induction w,
+    { rintros ⟨k,x⟩ ⟨rfl, rfl⟩,
+      exact w_hne1,
+      exfalso, apply H, },
+    { intros l h,
+      simp only [to_list, list.mem_append] at h,
+      cases h,
+      { exact w_ih_w₁ _ h, },
+      { exact w_ih_w₂ _ h, }, },
+  end,
+  chain_ne := begin
+    induction w,
+    { exact list.chain'_singleton _, },
+    { apply list.chain'.append w_ih_w₁ w_ih_w₂,
+      intros x hx y hy,
+      rw [w_w₁.to_list_last', option.mem_some_iff] at hx,
+      rw [w_w₂.to_list_head', option.mem_some_iff] at hy,
+      subst hx, subst hy,
+      exact w_hne, },
+  end, }
+
+/-- Every nonempty `word M` can be constructed as a `neword M i j` -/
+lemma of_word (w : word M) (h : w ≠ empty) :
+  ∃ i j (w' : neword M i j), w'.to_word = w :=
+begin
+  suffices : ∃ i j (w' : neword M i j), w'.to_word.to_list = w.to_list,
+  { obtain ⟨i, j, w, h⟩ := this, refine ⟨i, j, w, _⟩, ext, rw h, },
+  cases w with l hnot1 hchain,
+  induction l with x l hi,
+  { contradiction, },
+  { rw list.forall_mem_cons at hnot1,
+    cases l with y l,
+    { refine ⟨x.1, x.1, singleton x.2 hnot1.1, _ ⟩,
+      simp [to_word], },
+    { rw list.chain'_cons at hchain,
+      specialize hi hnot1.2 hchain.2 (by rintros ⟨rfl⟩),
+      obtain ⟨i, j, w', hw' : w'.to_list = y :: l⟩ := hi,
+      obtain rfl : y = ⟨i, w'.head⟩, by simpa [hw'] using w'.to_list_head',
+      refine ⟨x.1, j, append (singleton x.2 hnot1.1) hchain.1 w', _⟩,
+      { simpa [to_word] using hw', } } }
+end
+
+/-- A non-empty reduced word determines an element of the free product, given by multiplication. -/
+def prod {i j} (w : neword M i j) := w.to_word.prod
+
+@[simp]
+lemma singleton_head {i} (x : M i) (hne_one : x ≠ 1) :
+  (singleton x hne_one).head = x := rfl
+
+@[simp]
+lemma singleton_last {i} (x : M i) (hne_one : x ≠ 1) :
+  (singleton x hne_one).last = x := rfl
+
+@[simp] lemma prod_singleton {i} (x : M i) (hne_one : x ≠ 1) :
+  (singleton x hne_one).prod = of x :=
+by simp [to_word, prod, word.prod]
+
+@[simp]
+lemma append_head {i j k l} {w₁ : neword M i j} {hne : j ≠ k} {w₂ : neword M k l} :
+  (append w₁ hne w₂).head = w₁.head := rfl
+
+@[simp]
+lemma append_last {i j k l} {w₁ : neword M i j} {hne : j ≠ k} {w₂ : neword M k l} :
+  (append w₁ hne w₂).last = w₂.last := rfl
+
+@[simp]
+lemma append_prod {i j k l} {w₁ : neword M i j} {hne : j ≠ k} {w₂ : neword M k l} :
+  (append w₁ hne w₂).prod = w₁.prod * w₂.prod :=
+by simp [to_word, prod, word.prod]
+
+/-- One can replace the first letter in a non-empty reduced word by an element of the same
+group -/
+def replace_head : Π {i j : ι} (x : M i) (hnotone : x ≠ 1) (w : neword M i j), neword M i j
+| _ _ x h (singleton _ _) := singleton x h
+| _ _ x h (append w₁ hne w₂) := append (replace_head x h w₁) hne w₂
+
+@[simp]
+lemma replace_head_head {i j : ι} (x : M i) (hnotone : x ≠ 1) (w : neword M i j) :
+  (replace_head x hnotone w).head = x :=
+by { induction w, refl, exact w_ih_w₁ _ _, }
+
+/-- One can multiply an element from the left to a non-empty reduced word if it does not cancel
+with the first element in the word. -/
+def mul_head {i j : ι} (w : neword M i j) (x : M i) (hnotone : x * w.head ≠ 1) :
+  neword M i j := replace_head (x * w.head) hnotone w
+
+@[simp]
+lemma mul_head_head {i j : ι} (w : neword M i j) (x : M i) (hnotone : x * w.head ≠ 1) :
+   (mul_head w x hnotone).head = x * w.head :=
+by { induction w, refl, exact w_ih_w₁ _ _, }
+
+@[simp]
+lemma mul_head_prod {i j : ι} (w : neword M i j) (x : M i) (hnotone : x * w.head ≠ 1) :
+  (mul_head w x hnotone).prod = of x * w.prod :=
+begin
+  unfold mul_head,
+  induction w,
+  { simp [mul_head, replace_head], },
+  { specialize w_ih_w₁ _ hnotone, clear w_ih_w₂,
+    simp [replace_head, ← mul_assoc] at *,
+    congr' 1, }
+end
+
+section group
+
+variables {G : ι → Type*} [Π i, group (G i)]
+
+/-- The inverse of a non-empty reduced word -/
+def inv : Π {i j} (w : neword G i j), neword G j i
+| _ _ (singleton x h) := singleton x⁻¹ (mt inv_eq_one.mp h)
+| _ _ (append w₁ h w₂) := append w₂.inv h.symm w₁.inv
+
+@[simp]
+lemma inv_prod {i j} (w : neword G i j) : w.inv.prod = w.prod⁻¹ :=
+by induction w; simp [inv, *]
+
+@[simp]
+lemma inv_head {i j} (w : neword G i j) : w.inv.head = w.last⁻¹ :=
+by induction w; simp [inv, *]
+
+@[simp]
+lemma inv_last {i j} (w : neword G i j) : w.inv.last = w.head⁻¹ :=
+by induction w; simp [inv, *]
+
+end group
+
+end neword
+
+section ping_pong_lemma
+
+open_locale pointwise
+open_locale cardinal
+
+variables [hnontriv : nontrivial ι]
+variables {G : Type*} [group G]
+variables {H : ι → Type*} [∀ i, group (H i)]
+variables (f : Π i, H i →* G)
+
+-- We need many groups or one group with many elements
+variables (hcard : 3 ≤ # ι ∨ ∃ i, 3 ≤ # (H i))
+
+-- A group action on α, and the ping-pong sets
+variables {α : Type*} [mul_action G α]
+variables (X : ι → set α)
+variables (hXnonempty : ∀ i, (X i).nonempty)
+variables (hXdisj : pairwise (λ i j, disjoint (X i) (X j)))
+variables (hpp : pairwise (λ i j, ∀ h : H i, h ≠ 1 → f i h • X j ⊆ X i))
+
+include hpp
+
+lemma lift_word_ping_pong {i j k} (w : neword H i j) (hk : j ≠ k) :
+  lift f w.prod • X k ⊆ X i :=
+begin
+  rename [i → i', j → j', k → m, hk → hm],
+  induction w with i x hne_one i j k l w₁ hne w₂  hIw₁ hIw₂ generalizing m; clear i' j',
+  { simpa using hpp _ _ hm _ hne_one, },
+  { calc lift f (neword.append w₁ hne w₂).prod • X m
+        = lift f w₁.prod • lift f w₂.prod • X m : by simp [mul_action.mul_smul]
+    ... ⊆ lift f w₁.prod • X k : set_smul_subset_set_smul_iff.mpr (hIw₂ hm)
+    ... ⊆ X i : hIw₁ hne },
+end
+
+include X hXnonempty hXdisj
+
+lemma lift_word_prod_nontrivial_of_other_i {i j k} (w : neword H i j)
+  (hhead : k ≠ i) (hlast : k ≠ j) : lift f w.prod ≠ 1 :=
+begin
+  intro heq1,
+  have : X k ⊆ X i,
+    by simpa [heq1] using lift_word_ping_pong f X hpp w hlast.symm,
+  obtain ⟨x, hx⟩ := hXnonempty k,
+  exact hXdisj k i hhead ⟨hx, this hx⟩,
+end
+
+include hnontriv
+
+lemma lift_word_prod_nontrivial_of_head_eq_last {i} (w : neword H i i) :
+  lift f w.prod ≠ 1 :=
+begin
+  obtain ⟨k, hk⟩ := exists_ne i,
+  exact lift_word_prod_nontrivial_of_other_i f X hXnonempty hXdisj hpp w hk hk,
+end
+
+lemma lift_word_prod_nontrivial_of_head_card {i j} (w : neword H i j)
+  (hcard : 3 ≤ # (H i)) (hheadtail : i ≠ j) : lift f w.prod ≠ 1 :=
+begin
+  obtain ⟨h, hn1, hnh⟩ := cardinal.three_le hcard 1 (w.head⁻¹),
+  have hnot1 : h * w.head ≠ 1, by { rw ← div_inv_eq_mul, exact div_ne_one_of_ne hnh },
+  let w' : neword H i i := neword.append
+    (neword.mul_head w h hnot1) hheadtail.symm
+    (neword.singleton h⁻¹ (inv_ne_one.mpr hn1)),
+  have hw' : lift f w'.prod ≠ 1 :=
+    lift_word_prod_nontrivial_of_head_eq_last f X hXnonempty hXdisj hpp w',
+  intros heq1, apply hw', simp [w', heq1]
+end
+
+include hcard
+lemma lift_word_prod_nontrivial_of_not_empty {i j} (w : neword H i j) :
+  lift f w.prod ≠ 1 :=
+begin
+  classical,
+  cases hcard,
+  { obtain ⟨i, h1, h2⟩ := cardinal.three_le hcard i j,
+    exact lift_word_prod_nontrivial_of_other_i f X hXnonempty hXdisj hpp w h1 h2, },
+  { cases hcard with k hcard,
+    by_cases hh : i = k; by_cases hl : j = k,
+    { subst hh, subst hl,
+      exact lift_word_prod_nontrivial_of_head_eq_last f X hXnonempty hXdisj hpp w, },
+    { subst hh,
+      change j ≠ i at hl,
+      exact lift_word_prod_nontrivial_of_head_card f X hXnonempty hXdisj hpp w hcard hl.symm, },
+    { subst hl,
+      change i ≠ j at hh,
+      have : lift f w.inv.prod ≠ 1 :=
+        lift_word_prod_nontrivial_of_head_card f X hXnonempty hXdisj hpp w.inv hcard hh.symm,
+      intros heq, apply this, simpa using heq, },
+    { change i ≠ k at hh,
+      change j ≠ k at hl,
+      obtain ⟨h, hn1, -⟩ := cardinal.three_le hcard 1 1,
+      let w' : neword H k k := neword.append
+        (neword.append (neword.singleton h hn1) hh.symm w)
+        hl (neword.singleton h⁻¹ (inv_ne_one.mpr hn1)) ,
+      have hw' : lift f w'.prod ≠ 1 :=
+        lift_word_prod_nontrivial_of_head_eq_last f X hXnonempty hXdisj hpp w',
+      intros heq1, apply hw', simp [w', heq1], }, }
+end
+
+lemma empty_of_word_prod_eq_one {w : word H} (h : lift f w.prod = 1) :
+  w = word.empty :=
+begin
+  by_contradiction hnotempty,
+  obtain ⟨i, j, w, rfl⟩ := neword.of_word _ hnotempty,
+  exact lift_word_prod_nontrivial_of_not_empty f hcard X hXnonempty hXdisj hpp w h,
+end
+
+/--
+The Ping-Pong-Lemma.
+
+Given a group action of `G` on `X` so that the `H i` acts in a specific way on disjoint subsets
+`X i` we can prove that `lift f` is injective, and thus the image of `lift f` is isomorphic to the
+direct product of the `H i`.
+
+Often the Ping-Pong-Lemma is stated with regard to subgroups `H i` that generate the whole group;
+we generalize to arbitrary group homomorphisms `f i : H i →* G` and do not require the group to be
+generated by the images.
+
+Usually the Ping-Pong-Lemma requires that one group `H i` has at least three elements. This
+condition is only needed if `# ι = 2`, and we accept `3 ≤ # ι` as an alternative.
+-/
+theorem lift_injective_of_ping_pong:
+  function.injective (lift f) :=
+begin
+  classical,
+  apply (monoid_hom.injective_iff (lift f)).mpr,
+  rw free_product.word.equiv.forall_congr_left',
+  { intros w Heq,
+    dsimp [word.equiv] at *,
+    { rw empty_of_word_prod_eq_one f hcard X hXnonempty hXdisj hpp Heq,
+      reflexivity, }, },
+  apply_instance,
+  apply_instance,
+end
+
+end ping_pong_lemma
 
 /-- The free product of free groups is itself a free group -/
 @[simps]

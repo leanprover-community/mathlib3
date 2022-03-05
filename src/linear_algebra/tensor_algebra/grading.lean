@@ -47,7 +47,7 @@ graded_algebra.of_alg_hom _
   (λ i x, begin
     cases x with x hx,
     dsimp only [subtype.coe_mk, direct_sum.lof_eq_of],
-    apply submodule.pow_induction_on' _
+    refine submodule.pow_induction_on' _
       (λ r, _) (λ x y i hx hy ihx ihy, _) (λ m hm i x hx ih, _) hx,
     { rw [alg_hom.commutes, direct_sum.algebra_map_apply], refl },
     { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },

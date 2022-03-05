@@ -108,7 +108,7 @@ begin
   rwa leading_coeff_monic_mul hp,
 end
 
-lemma monic_of_mul_monic_right (hq : q.monic) (hpq : (p * q).monic) : p.monic :=
+lemma monic.of_mul_monic_right (hq : q.monic) (hpq : (p * q).monic) : p.monic :=
 begin
   contrapose! hpq,
   rw monic.def at hpq ⊢,

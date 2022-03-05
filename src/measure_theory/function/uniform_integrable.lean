@@ -269,7 +269,7 @@ begin
   refine le_trans (snorm_le_of_ae_bound haebdd) _,
   rw [measure.restrict_apply measurable_set.univ, univ_inter,
     ← ennreal.le_div_iff_mul_le (or.inl _) (or.inl ennreal.of_real_ne_top)],
-  { rw [← one_div, ennreal.rpow_inv_le_iff (ennreal.to_real_pos hp hp_top)],
+  { rw [← one_div, ennreal.rpow_one_div_le_iff (ennreal.to_real_pos hp hp_top)],
     refine le_trans hμ _,
     rw [← ennreal.of_real_rpow_of_pos (div_pos hε hM),
       ennreal.rpow_le_rpow_iff (ennreal.to_real_pos hp hp_top), ennreal.of_real_div_of_pos hM],

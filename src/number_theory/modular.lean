@@ -453,18 +453,28 @@ begin
     repeat {linarith}, },
 end
 
-/-- Definition: `T_pow` is the matrix `T` raised to the power `n:ℤ`. -/
-def T_pow (n : ℤ) : SL(2,ℤ) := ⟨ ![![1, n],![0,1]],
+lemma coe_T : ↑ₘT = ![![1, 1], ![0, 1]] := rfl
+
+lemma coe_T_inv : ↑ₘ(T⁻¹) = ![![1, -1], ![0, 1]] :=
 begin
-  rw matrix.det_fin_two,
+  rw [coe_inv, coe_T, adjugate_fin_two],
   simp,
-end ⟩
+end
+
+/-- `coe_T_zpow` is the matrix `T` raised to the power `n : ℤ`. -/
+lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = ![![1, n], ![0,1]] :=
+begin
+  induction n using int.induction_on with n h n h,
+  { rw [zpow_zero, coe_one], sorry },
+  { rw [zpow_add, zpow_one, coe_mul, h, coe_T], ext i j, sorry },
+  { rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv], sorry },
+end
 
 /- If c=1, then `g=[[1,a],[0,1]] * S * [[1,d],[0,1]]`. -/
 lemma g_eq_of_c_eq_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
-  g = T_pow (g 0 0) * S * T_pow (g 1 1) :=
+  g = coe_T_zpow (g 0 0) * S * coe_T_zpow (g 1 1) :=
 begin
-  rw [T_pow, T_pow],
+  rw [coe_T_zpow, coe_T_zpow],
   ext i,
   fin_cases i; fin_cases j,
   { simp [S, matrix.mul_apply, fin.sum_univ_succ] },
@@ -478,6 +488,33 @@ begin
     simp, },
   { simpa [S, matrix.mul_apply, fin.sum_univ_succ] using hc },
   { simp [S, matrix.mul_apply, fin.sum_univ_succ], },
+end
+
+lemma cast_one_le_of_pos {n : ℤ} (hn : 0 < n) : (1 : ℝ) ≤ n :=
+begin
+  rw ← cast_one,
+  exact cast_le.mpr (add_one_le_of_lt hn),
+end
+
+lemma cast_le_neg_one_of_neg {n : ℤ} (hn : n < 0) : (n : ℝ) ≤ -1 :=
+begin
+  rw ← cast_one,
+  exact cast_le.mpr (le_sub_one_of_lt hn),
+end
+
+lemma nneg_mul_add_sq_of_abs_le_one (n : ℤ) (x : ℝ) (hx : |x| ≤ 1) : (0 : ℝ) ≤ n * x + n * n :=
+begin
+  have hnx : 0 < n → 0 ≤ x + n := λ hn, by
+  { convert add_le_add (neg_le_of_abs_le hx) (cast_one_le_of_pos hn),
+    rw add_left_neg, },
+  have hnx' : n < 0 → x + n ≤ 0 := λ hn, by
+  { convert add_le_add (le_of_abs_le hx) (cast_le_neg_one_of_neg hn),
+    rw add_right_neg, },
+  rw [← mul_add, mul_nonneg_iff],
+  rcases lt_trichotomy n 0 with h | rfl | h,
+  { exact or.inr ⟨cast_nonpos.mpr h.le, hnx' h⟩, },
+  { simp [le_total 0 x], },
+  { exact or.inl ⟨cast_nonneg.mpr h.le, hnx h⟩, },
 end
 
 /-- Nontrivial lemma: if `|x|<1/2` and `n:ℤ`, then `2nx+n^2≥0`. (False for `n:ℝ`!) -/
@@ -527,9 +564,9 @@ begin
 end
 
 /-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`. -/
-lemma move_by_T {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T_pow n) • z) : ℍ) :=
+lemma move_by_T {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((coe_T_zpow n) • z) : ℍ) :=
 begin
-  rw T_pow,
+  rw coe_T_zpow,
   simp,
   rw complex.norm_sq_apply,
   have hz1 : 1 < z.re * z.re + z.im * z.im,
@@ -546,30 +583,30 @@ begin
 end
 
 /-- If `c=1`, then `[[1,-a],[0,1]]*g = S * [[1,d],[0,1]]`. -/
-lemma T_pow_mul_g_eq_S_mul_T_pow_of_c_eq_one (g : SL(2,ℤ))
-  (hc : g 1 0 = 1) : T_pow (- g 0 0) * g = S * T_pow (g 1 1) :=
+lemma coe_T_zpow_mul_g_eq_S_mul_coe_T_zpow_of_c_eq_one (g : SL(2,ℤ))
+  (hc : g 1 0 = 1) : coe_T_zpow (- g 0 0) * g = S * coe_T_zpow (g 1 1) :=
 begin
   rw g_eq_of_c_eq_one g hc,
   ext i,
   fin_cases i; fin_cases j,
-  { simp [T_pow, S, matrix.mul_apply, fin.sum_univ_succ], },
-  { simp [T_pow, S, matrix.mul_apply, fin.sum_univ_succ],
+  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
+  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ],
     ring },
-  { simp [T_pow, S, matrix.mul_apply, fin.sum_univ_succ], },
-  { simp [T_pow, S, matrix.mul_apply, fin.sum_univ_succ], },
+  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
+  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
 end
 
 /-- If both `z` and `g•z` are in `𝒟ᵒ`, then `c` can't be `1`. -/
 lemma c_ne_one {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : g 1 0 ≠ 1 :=
 begin
   by_contra hc,
-  let z₁ := T_pow (g 1 1) • z,
-  let w₁ := T_pow (- g 0 0) • (g • z),
+  let z₁ := coe_T_zpow (g 1 1) • z,
+  let w₁ := coe_T_zpow (- g 0 0) • (g • z),
   have w₁_norm : 1 < norm_sq w₁ := move_by_T hg (- g 0 0),
   have z₁_norm : 1 < norm_sq z₁ := move_by_T hz (g 1 1),
   have w₁_S_z₁ : w₁ = S • z₁,
   { dsimp only [w₁, z₁],
-    rw [← mul_action.mul_smul, T_pow_mul_g_eq_S_mul_T_pow_of_c_eq_one g hc,
+    rw [← mul_action.mul_smul, coe_T_zpow_mul_g_eq_S_mul_coe_T_zpow_of_c_eq_one g hc,
       ← mul_action.mul_smul], },
   have := norm_sq_S_smul_lt_one z₁_norm,
   rw ← w₁_S_z₁ at this,

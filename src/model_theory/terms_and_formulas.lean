@@ -89,7 +89,7 @@ end term
 
 @[simp] lemma Lhom.realize_on_term [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   {α : Type} (t : L.term α) (v : α → M) :
-  (φ.on_term t).realize v  = t.realize v :=
+  (φ.on_term t).realize v = t.realize v :=
 begin
   induction t with _ n f ts ih,
   { refl },

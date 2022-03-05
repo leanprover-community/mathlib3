@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import linear_algebra.bilinear_form
+import linear_algebra.matrix.bilinear_form
 import linear_algebra.matrix.charpoly.coeff
 import linear_algebra.determinant
 import linear_algebra.vandermonde

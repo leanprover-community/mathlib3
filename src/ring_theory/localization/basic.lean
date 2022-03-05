@@ -259,6 +259,10 @@ omit M
 
 variables {M S}
 
+/-- Localizing at a submonoid with 0 inside it leads to the trivial ring. -/
+def unique_of_zero_mem (h : (0 : R) ∈ M) : unique S :=
+unique_of_zero_eq_one $ by simpa using is_localization.map_units S ⟨0, h⟩
+
 lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :
   mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (x₁ * y₂) = algebra_map R S (x₂ * y₁) :=
 (to_localization_map M S).mk'_eq_iff_eq
@@ -986,7 +990,7 @@ end is_localization
 open is_localization
 
 /-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
-lemma localization_map_bijective_of_field
+lemma is_field.localization_map_bijective
   {R Rₘ : Type*} [comm_ring R] [comm_ring Rₘ]
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
@@ -996,8 +1000,16 @@ begin
   refine ⟨is_localization.injective _ hM, λ x, _⟩,
   obtain ⟨r, ⟨m, hm⟩, rfl⟩ := mk'_surjective M x,
   obtain ⟨n, hn⟩ := hR.mul_inv_cancel (non_zero_divisors.ne_zero $ hM hm),
-  exact ⟨r * n, by erw [eq_mk'_iff_mul_eq, ← ring_hom.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
+  exact ⟨r * n, by erw [eq_mk'_iff_mul_eq, ←map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
 end
+
+/-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
+lemma field.localization_map_bijective
+  {K Kₘ : Type*} [field K] [comm_ring Kₘ] {M : submonoid K} (hM : (0 : K) ∉ M)
+  [algebra K Kₘ] [is_localization M Kₘ] : function.bijective (algebra_map K Kₘ) :=
+(field.to_is_field K).localization_map_bijective hM
+-- this looks weird due to the `letI` inside the above lemma, but trying to do it the other
+-- way round causes issues with defeq of instances, so this is actually easier.
 
 section algebra
 

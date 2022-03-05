@@ -34,10 +34,14 @@ attribute [instance] BoundedDistribLattice.is_bounded_order
 /-- Construct a bundled `BoundedDistribLattice` from a `bounded_order` `distrib_lattice`. -/
 def of (α : Type*) [distrib_lattice α] [bounded_order α] : BoundedDistribLattice := ⟨⟨α⟩⟩
 
+@[simp] lemma coe_of (α : Type*) [distrib_lattice α] [bounded_order α] : ↥(of α) = α := rfl
+
 instance : inhabited BoundedDistribLattice := ⟨of punit⟩
 
 /-- Turn a `BoundedDistribLattice` into a `BoundedLattice` by forgetting it is distributive. -/
 def to_BoundedLattice (X : BoundedDistribLattice) : BoundedLattice := BoundedLattice.of X
+
+@[simp] lemma coe_to_BoundedLattice (X : BoundedDistribLattice) : ↥X.to_BoundedLattice = ↥X := rfl
 
 instance : large_category.{u} BoundedDistribLattice := induced_category.category to_BoundedLattice
 
@@ -49,6 +53,10 @@ instance has_forget_to_DistribLattice : has_forget₂ BoundedDistribLattice Dist
 
 instance has_forget_to_BoundedLattice : has_forget₂ BoundedDistribLattice BoundedLattice :=
 induced_category.has_forget₂ to_BoundedLattice
+
+lemma forget_BoundedLattice_Lattice_eq_forget_DistribLattice_Lattice :
+  forget₂ BoundedDistribLattice BoundedLattice ⋙ forget₂ BoundedLattice Lattice =
+    forget₂ BoundedDistribLattice DistribLattice ⋙ forget₂ DistribLattice Lattice := rfl
 
 /-- Constructs an equivalence between bounded distributive lattices from an order isomorphism
 between them. -/

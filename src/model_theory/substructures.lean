@@ -255,6 +255,14 @@ begin
   exact cardinal.mk_range_le_lift,
 end
 
+theorem lift_card_closure_le_card_term : cardinal.lift.{max u w} (# (closure L s)) ≤
+  #s + #(Σ i, L.functions i) + ω :=
+begin
+  refine lift_card_closure_le_card_term.trans _,
+  refine term.card_le.trans _,
+  sorry,
+end
+
 variable (S)
 
 /-- An induction principle for closure membership. If `p` holds for all elements of `s`, and

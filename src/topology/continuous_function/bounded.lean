@@ -990,8 +990,23 @@ instance : has_mul (α →ᵇ R) :=
 @[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 
+@[simp] lemma coe_npow_rec (f : α →ᵇ R) : ∀ n, ⇑(npow_rec n f) = f ^ n
+| 0 := by rw [npow_rec, pow_zero, coe_one]
+| (n + 1) := by rw [npow_rec, pow_succ, coe_mul, coe_npow_rec]
+
+instance has_nat_pow : has_pow (α →ᵇ R) ℕ :=
+{ pow := λ f n,
+  { to_continuous_map := f.to_continuous_map ^ n,
+    map_bounded' := by simpa [coe_npow_rec] using (npow_rec n f).map_bounded' } }
+
+@[simp] lemma coe_pow (n : ℕ) (f : α →ᵇ R) : ⇑(f ^ n) = f ^ n := rfl
+@[simp] lemma pow_apply (n : ℕ) (f : α →ᵇ R) (v : α) : (f ^ n) v = f v ^ n := rfl
+
 instance : ring (α →ᵇ R) :=
 fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
+  (λ _ _, coe_nsmul _ _)
+  (λ _ _, coe_zsmul _ _)
+  (λ _ _, coe_pow _ _)
 
 instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,

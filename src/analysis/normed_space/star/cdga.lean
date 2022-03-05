@@ -9,6 +9,8 @@ import category_theory.limits.preserves.shapes.kernels
 import category_theory.monoidal.preadditive
 import algebra.category.Module.monoidal
 
+universes u v
+
 def cast_hom (A : ℕ → Type*) [Π n, add_comm_monoid (A n)] {i j : ℕ} (h : i = j) : A i →+ A j :=
 { to_fun := cast (congr_arg A h),
   map_zero' := by { cases h, refl, },
@@ -114,6 +116,19 @@ def d_linear_map {A : ℕ → Type*} [Π n, add_comm_group (A n)] [Π n, module 
 { map_smul' := differential_graded_module.d_smul,
   ..d }
 
+class differential_graded_algebra (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)]
+  extends differential_graded_module R A, differential_graded_ring A.
+
+def mul_bilinear (A : ℕ → Type u) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] (i j : ℕ) :
+  tensor_product R (A i) (A j) →ₗ[R] A (i + j) :=
+tensor_product.lift
+{ to_fun := λ x,
+  { to_fun := λ y, gmul x y,
+    map_add' := sorry,
+    map_smul' := sorry, },
+  map_add' := sorry,
+  map_smul' := sorry,  }
+
 @[simp, to_additive] lemma CommGroup.of_hom_apply {X Y : Type*} [comm_group X] [comm_group Y] (f : X →* Y) (x : X) :
   CommGroup.of_hom f x = f x :=
 rfl
@@ -186,7 +201,7 @@ def foo' {C : Type*} [category C] [preadditive C] [has_cokernels C]
   cokernel f ⊗ Z ≅ cokernel (f ⊗ 𝟙 Z) :=
 sorry
 
-def nn (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_module R A] (i j : ℕ) :
+def nn (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] (i j : ℕ) :
   (to_homological_complex R A).homology i ⊗ (to_homological_complex R A).homology j ⟶ (to_homological_complex R A).homology (i + j) :=
 begin
   refine (foo _).hom ≫ _,
@@ -194,6 +209,12 @@ begin
   refine (foo' _).hom ≫ _,
   refine cokernel.desc _ _ _,
   refine _ ≫ cokernel.π _,
+  refine factor_thru_kernel_subobject _ _ _,
+  refine ((kernel_subobject _).arrow ⊗ (kernel_subobject _).arrow) ≫ _,
+  exact Module.of_hom (mul_bilinear R A i j),
+  { apply tensor_product.ext', intros, sorry, },
+  { sorry, },
+  { sorry, }
 end
 
 def mm (A : ℕ → Type*) [Π n, add_comm_group (A n)] [differential_graded A] (i j : ℕ) :

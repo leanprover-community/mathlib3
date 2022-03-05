@@ -351,6 +351,13 @@ theorem is_integral_mul {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) : is_integral R (x * y) :=
 (algebra_map R A).is_integral_mul hx hy
 
+lemma is_integral_smul [algebra S A] [algebra R S] [is_scalar_tower R S A] {x : A} (r : R)
+  (hx : is_integral S x) : is_integral S (r • x) :=
+begin
+  rw [algebra.smul_def, is_scalar_tower.algebra_map_apply R S A],
+  exact is_integral_mul is_integral_algebra_map hx,
+end
+
 variables (R A)
 
 /-- The integral closure of R in an R-algebra A. -/
@@ -846,7 +853,7 @@ begin
   -- TODO: we could use a lemma for `polynomial.div_X` here.
   rw [finset.sum_range_succ_comm, p_monic.coeff_nat_degree, one_mul, tsub_self, pow_zero,
       add_eq_zero_iff_eq_neg, eq_comm] at hq,
-  rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
+  rw [mul_comm, neg_mul, finset.sum_mul],
   convert hq using 2,
   refine finset.sum_congr rfl (λ i hi, _),
   have : 1 ≤ p.nat_degree - i := le_tsub_of_add_le_left (finset.mem_range.mp hi),

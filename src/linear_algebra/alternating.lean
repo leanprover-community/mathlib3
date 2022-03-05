@@ -662,7 +662,7 @@ begin
   dsimp only [quotient.lift_on'_mk', quotient.map'_mk', mul_action.quotient.smul_mk,
     dom_coprod.summand],
   rw [perm.sign_mul, perm.sign_swap hij],
-  simp only [one_mul, units.neg_mul, function.comp_app, units.neg_smul, perm.coe_mul,
+  simp only [one_mul, neg_mul, function.comp_app, units.neg_smul, perm.coe_mul,
     units.coe_neg, multilinear_map.smul_apply, multilinear_map.neg_apply,
     multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
   convert add_right_neg _;
@@ -689,16 +689,16 @@ begin
   case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j']
   { -- the term pairs with and cancels another term
     all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.exact' hσ, },
-    work_on_goal 0 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
-    work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
+    work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
+    work_on_goal 2 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
     all_goals
     { rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
       simpa using hσ, }, },
   case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j']
   { -- the term does not pair but is zero
     all_goals { convert smul_zero _, },
-    work_on_goal 0 { convert tensor_product.tmul_zero _ _, },
-    work_on_goal 1 { convert tensor_product.zero_tmul _ _, },
+    work_on_goal 1 { convert tensor_product.tmul_zero _ _, },
+    work_on_goal 2 { convert tensor_product.zero_tmul _ _, },
     all_goals { exact alternating_map.map_eq_zero_of_eq _ _ hv (λ hij', hij (hij' ▸ rfl)), } },
 end
 

@@ -144,6 +144,20 @@ end
   uniform_continuous f :=
 uniform_continuous_of_tendsto_one (by simpa using hf.tendsto)
 
+/-- A homomorphism from a uniform group to a discrete uniform group is continuous if and only if
+its kernel is open. -/
+@[to_additive "A homomorphism from a uniform additive group to a discrete uniform additive group is
+continuous if and only if its kernel is open."]
+lemma uniform_group.uniform_continuous_iff_open_ker [uniform_space β] [discrete_topology β]
+  [group β] [uniform_group β] {f : α →* β} : uniform_continuous f ↔ is_open (f.ker : set α) :=
+begin
+  refine ⟨λ hf, _, λ hf, _⟩,
+  { apply (is_open_discrete ({1} : set β)).preimage (uniform_continuous.continuous hf) },
+  { apply monoid_hom.uniform_continuous_of_continuous_at_one,
+    rw [continuous_at, nhds_discrete β, map_one, tendsto_pure],
+    exact hf.mem_nhds (map_one f) }
+end
+
 @[to_additive] lemma uniform_continuous_monoid_hom_of_continuous [uniform_space β]
   [group β] [uniform_group β] {f : α →* β} (h : continuous f) : uniform_continuous f :=
 uniform_continuous_of_tendsto_one $
@@ -153,6 +167,18 @@ uniform_continuous_of_tendsto_one $
 @[to_additive] lemma cauchy_seq.mul {ι : Type*} [semilattice_sup ι] {u v : ι → α}
   (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (u * v) :=
 uniform_continuous_mul.comp_cauchy_seq (hu.prod hv)
+
+@[to_additive] lemma cauchy_seq.mul_const {ι : Type*} [semilattice_sup ι]
+  {u : ι → α} {x : α} (hu : cauchy_seq u) : cauchy_seq (λ n, u n * x) :=
+(uniform_continuous_id.mul uniform_continuous_const).comp_cauchy_seq hu
+
+@[to_additive] lemma cauchy_seq.const_mul {ι : Type*} [semilattice_sup ι]
+  {u : ι → α} {x : α} (hu : cauchy_seq u) : cauchy_seq (λ n, x * u n) :=
+(uniform_continuous_const.mul uniform_continuous_id).comp_cauchy_seq hu
+
+@[to_additive] lemma cauchy_seq.inv {ι : Type*} [semilattice_sup ι]
+  {u : ι → α} (h : cauchy_seq u) : cauchy_seq (u⁻¹) :=
+uniform_continuous_inv.comp_cauchy_seq h
 
 end uniform_group
 

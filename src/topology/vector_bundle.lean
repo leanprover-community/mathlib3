@@ -73,7 +73,7 @@ structure topological_vector_bundle.pretrivialization extends to_fiber_bundle_pr
   topological_fiber_bundle.pretrivialization F (proj E) :=
 (linear' : ∀ x ∈ base_set, is_linear_map R (λ y : (E x), (to_fun y).2))
 
-instance : has_coe_to_fun (topological_vector_bundle.pretrivialization R F E) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe_to_fun (topological_vector_bundle.pretrivialization R F E) _ := ⟨λ e, e.to_fun⟩
 
 instance : has_coe (topological_vector_bundle.pretrivialization R F E)
   (topological_fiber_bundle.pretrivialization F (proj E)) :=
@@ -159,8 +159,13 @@ namespace topological_vector_bundle.trivialization
 
 variables {R F E} (e : trivialization R F E) {x : total_space E} {b : B} {y : E b}
 
-/-- Natural identification as a `pretrivialization`. -/
-def to_pretrivialization : topological_vector_bundle.pretrivialization R F E := { ..e }
+/-- Natural identification as `topological_vector_bundle.pretrivialization`. -/
+def trivialization.to_pretrivialization (e : trivialization R F E) :
+  topological_vector_bundle.pretrivialization R F E := { ..e }
+
+lemma trivialization.mem_source (e : trivialization R F E)
+  {x : total_space E} : x ∈ e.source ↔ proj E x ∈ e.base_set :=
+topological_fiber_bundle.trivialization.mem_source e
 
 protected lemma linear : ∀ x ∈ e.base_set, is_linear_map R (λ y : (E x), (e y).2) := e.linear'
 
@@ -552,7 +557,7 @@ def total_space_topology (a : topological_vector_prebundle R F E) :
 a.to_topological_fiber_prebundle.total_space_topology
 
 /-- Promotion from a `topologial_vector_prebundle.trivialization` to a
-  `topologial_vector_bundle.trivialization`. -/
+  `topological_vector_bundle.trivialization`. -/
 def trivialization_at (a : topological_vector_prebundle R F E) (x : B) :
   @topological_vector_bundle.trivialization R _ F E _ _ _ _ _ _ _ a.total_space_topology  :=
 begin
@@ -570,7 +575,7 @@ begin
   exact a.mem_base_pretrivialization_at b,
 end
 
-lemma total_space_mk_preimage_soure (b : B) :
+@[simp] lemma total_space_mk_preimage_source (b : B) :
   (total_space_mk E b) ⁻¹' (a.pretrivialization_at b).source = univ :=
 begin
   apply eq_univ_of_univ_subset,
@@ -585,7 +590,7 @@ end
 begin
   letI := a.total_space_topology,
   rw (a.trivialization_at b).to_local_homeomorph.continuous_iff_continuous_comp_left
-    (univ_subset_iff.mpr (a.total_space_mk_preimage_soure b)),
+    (a.total_space_mk_preimage_source b),
   exact continuous_iff_le_induced.mpr (le_antisymm_iff.mp (a.total_space_mk_inducing b).induced).1,
 end
 
@@ -594,8 +599,8 @@ lemma inducing_total_space_mk_of_inducing_comp (b : B)
   @inducing _ _ _ a.total_space_topology (total_space_mk E b) :=
 begin
   letI := a.total_space_topology,
-  rw restrict_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
-  apply inducing_of_inducing_cod_restrict (a.mem_trivialization_at_source b),
+  rw ←restrict_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
+  apply inducing.of_cod_restrict (a.mem_trivialization_at_source b),
   refine inducing_of_inducing_compose _ (continuous_on_iff_continuous_restrict.mp
     (a.trivialization_at b).continuous_to_fun) h,
   exact (a.continuous_total_space_mk b).cod_restrict (a.mem_trivialization_at_source b),

@@ -3,7 +3,8 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Scott Morrison
 -/
-import category_theory.preadditive
+import category_theory.preadditive.functor_category
+import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.shapes.biproducts
 
 /-!
@@ -14,6 +15,8 @@ provided that the induced map on hom types is a morphism of abelian
 groups.
 
 An additive functor between preadditive categories creates and preserves biproducts.
+
+We also define the category of bundled additive functors.
 
 # Implementation details
 
@@ -54,9 +57,9 @@ add_monoid_hom.mk' (λ f, F.map f) (λ f g, F.map_add)
 
 lemma coe_map_add_hom {X Y : C} : ⇑(F.map_add_hom : (X ⟶ Y) →+ _) = @map C _ D _ F X Y := rfl
 
-@[simp]
-lemma map_zero {X Y : C} : F.map (0 : X ⟶ Y) = 0 :=
-F.map_add_hom.map_zero
+@[priority 100]
+instance preserves_zero_morphisms_of_additive : preserves_zero_morphisms F :=
+{ map_zero' := λ X Y, F.map_add_hom.map_zero }
 
 instance : additive (𝟭 C) :=
 {}
@@ -83,16 +86,6 @@ open_locale big_operators
 lemma map_sum {X Y : C} {α : Type*} (f : α → (X ⟶ Y)) (s : finset α) :
   F.map (∑ a in s, f a) = ∑ a in s, F.map (f a) :=
 (F.map_add_hom : (X ⟶ Y) →+ _).map_sum f s
-
-open category_theory.limits
-open_locale zero_object
-
-/-- An additive functor takes the zero object to the zero object (up to isomorphism). -/
-@[simps]
-def map_zero_object [has_zero_object C] [has_zero_object D] : F.obj 0 ≅ 0 :=
-{ hom := 0,
-  inv := 0,
-  hom_inv_id' := by { rw ←F.map_id, simp, } }
 
 end
 
@@ -157,6 +150,55 @@ instance inverse_additive (e : C ≌ D) [e.functor.additive] : e.inverse.additiv
 { map_add' := λ X Y f g, by { apply e.functor.map_injective, simp, }, }
 
 end equivalence
+
+section
+variables (C D : Type*) [category C] [category D] [preadditive C] [preadditive D]
+
+/-- Bundled additive functors. -/
+@[derive category, nolint has_inhabited_instance]
+def AdditiveFunctor :=
+{ F : C ⥤ D // functor.additive F }
+
+infixr ` ⥤+ `:26 := AdditiveFunctor
+
+instance : preadditive (C ⥤+ D) :=
+preadditive.induced_category.category _
+
+/-- An additive functor is in particular a functor. -/
+@[derive full, derive faithful]
+def AdditiveFunctor.forget : (C ⥤+ D) ⥤ (C ⥤ D) :=
+full_subcategory_inclusion _
+
+variables {C D}
+
+/-- Turn an additive functor into an object of the category `AdditiveFunctor C D`. -/
+def AdditiveFunctor.of (F : C ⥤ D) [F.additive] : C ⥤+ D :=
+⟨F, infer_instance⟩
+
+@[simp]
+lemma AdditiveFunctor.of_fst (F : C ⥤ D) [F.additive] : (AdditiveFunctor.of F).1 = F :=
+rfl
+
+@[simp]
+lemma AdditiveFunctor.forget_obj (F : C ⥤+ D) : (AdditiveFunctor.forget C D).obj F = F.1 :=
+rfl
+
+lemma AdditiveFunctor.forget_obj_of (F : C ⥤ D) [F.additive] :
+  (AdditiveFunctor.forget C D).obj (AdditiveFunctor.of F) = F :=
+rfl
+
+@[simp]
+lemma AdditiveFunctor.forget_map (F G : C ⥤+ D) (α : F ⟶ G) :
+  (AdditiveFunctor.forget C D).map α = α :=
+rfl
+
+instance : functor.additive (AdditiveFunctor.forget C D) :=
+{ map_add' := λ F G α β, rfl }
+
+instance (F : C ⥤+ D) : functor.additive F.1 :=
+F.2
+
+end
 
 end preadditive
 

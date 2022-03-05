@@ -152,9 +152,13 @@ theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
 
 theorem map_some {α β} {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
 
+theorem map_coe {α β} {a : α} {f : α → β} : f <$> (a : option α) = ↑(f a) := rfl
+
 @[simp] theorem map_none' {f : α → β} : option.map f none = none := rfl
 
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
+
+@[simp] theorem map_coe' {a : α} {f : α → β} : option.map f (a : option α) = ↑(f a) := rfl
 
 theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} :
   f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=

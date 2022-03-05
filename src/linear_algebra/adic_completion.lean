@@ -197,9 +197,7 @@ instance : is_Hausdorff I (adic_completion I M) :=
 ⟨λ x hx, ext $ λ n, smul_induction_on (smodeq.zero.1 $ hx n)
   (λ r hr x _, ((eval I M n).map_smul r x).symm ▸ quotient.induction_on' (eval I M n x)
     (λ x, smodeq.zero.2 $ smul_mem_smul hr mem_top))
-  rfl
-  (λ _ _ ih1 ih2, by rw [linear_map.map_add, ih1, ih2, linear_map.map_zero, add_zero])
-  (λ c _ ih, by rw [linear_map.map_smul, ih, linear_map.map_zero, smul_zero])⟩
+  (λ _ _ ih1 ih2, by rw [linear_map.map_add, ih1, ih2, linear_map.map_zero, add_zero])⟩
 
 end adic_completion
 
@@ -233,7 +231,7 @@ begin
   obtain ⟨L, hL⟩ := is_precomplete.prec to_is_precomplete hf,
   { rw is_unit_iff_exists_inv,
     use L,
-    rw [← sub_eq_zero, neg_mul_eq_neg_mul_symm],
+    rw [← sub_eq_zero, neg_mul],
     apply is_Hausdorff.haus (to_is_Hausdorff : is_Hausdorff I R),
     intros n,
     specialize hL n,
@@ -245,7 +243,7 @@ begin
     cases n,
     { simp only [ideal.one_eq_top, pow_zero] },
     { dsimp [f],
-      rw [← neg_sub _ (1:R), neg_mul_eq_neg_mul_symm, mul_geom_sum, neg_sub,
+      rw [← neg_sub _ (1:R), neg_mul, mul_geom_sum, neg_sub,
         sub_sub, add_comm, ← sub_sub, sub_self, zero_sub, neg_mem_iff, mul_pow],
       exact ideal.mul_mem_right _ (I ^ _) (ideal.pow_mem_pow hx _), } },
 end

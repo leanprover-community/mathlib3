@@ -5,7 +5,8 @@ Authors: Anne Baanen
 -/
 
 import ring_theory.algebraic
-import ring_theory.localization
+import ring_theory.localization.at_prime
+import ring_theory.localization.integral
 
 /-!
 # Ideals over/under ideals
@@ -164,6 +165,12 @@ instance quotient.tower_quotient_map_quotient [algebra R S] :
 is_scalar_tower.of_algebra_map_eq $ λ x,
 by rw [quotient.algebra_map_eq, quotient.algebra_map_quotient_map_quotient,
        quotient.mk_algebra_map]
+
+instance quotient_map_quotient.is_noetherian [algebra R S] [is_noetherian R S] (I : ideal R) :
+  is_noetherian (R ⧸ I) (S ⧸ ideal.map (algebra_map R S) I) :=
+is_noetherian_of_tower R $
+is_noetherian_of_surjective S (ideal.quotient.mkₐ R _).to_linear_map $
+linear_map.range_eq_top.mpr ideal.quotient.mk_surjective
 
 end comm_ring
 

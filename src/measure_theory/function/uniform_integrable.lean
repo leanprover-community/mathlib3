@@ -415,10 +415,7 @@ begin
     { exact ⟨0, λ n hn, by simp [hμ]⟩ },
     have hε' : 0 < ε.to_real / 3 :=
       div_pos (ennreal.to_real_pos (gt_iff_lt.1 hε).ne.symm h.ne) (by norm_num),
-    have hdivp : 0 ≤ 1 / p.to_real,
-    { refine one_div_nonneg.2 _,
-      rw [← ennreal.zero_to_real, ennreal.to_real_le_to_real ennreal.zero_ne_top hp'],
-      exact le_trans ennreal.zero_lt_one.le hp },
+    have hdivp : 0 ≤ 1 / p.to_real := one_div_nonneg.2 ennreal.to_real_nonneg,
     have hpow : 0 < (measure_univ_nnreal μ) ^ (1 / p.to_real) :=
       real.rpow_pos_of_pos (measure_univ_nnreal_pos hμ) _,
     obtain ⟨δ₁, hδ₁, hsnorm₁⟩ := hui hε',
@@ -436,13 +433,9 @@ begin
     refine le_trans (add_le_add_right (snorm_add_le ((hf n).indicator htm).ae_measurable
       (hg.indicator htm).neg.ae_measurable hp) _) _,
     have hnf : snorm (t.indicator (f n)) p μ ≤ ennreal.of_real (ε.to_real / 3),
-    { refine hsnorm₁ n t htm (le_trans ht₁ _),
-      rw ennreal.of_real_le_of_real_iff hδ₁.le,
-      exact min_le_left _ _ },
+      from hsnorm₁ n t htm (le_trans ht₁ (ennreal.of_real_le_of_real (min_le_left _ _))),
     have hng : snorm (t.indicator g) p μ ≤ ennreal.of_real (ε.to_real / 3),
-    { refine hsnorm₂ t htm (le_trans ht₁ _),
-      rw ennreal.of_real_le_of_real_iff hδ₂.le,
-      exact min_le_right _ _ },
+      from hsnorm₂ t htm (le_trans ht₁ (ennreal.of_real_le_of_real (min_le_right _ _))),
     have hlt : snorm (tᶜ.indicator (f n - g)) p μ ≤ ennreal.of_real (ε.to_real / 3),
     { specialize hN n hn,
       have := snorm_sub_le_of_dist_bdd μ ((lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm)

@@ -200,10 +200,10 @@ local attribute [instance] matrix.normed_group
 
 open_locale matrix
 
-lemma matrix.entrywise_sup_norm_star_eq_norm {α : Type*} [normed_ring α] [star_add_monoid α]
-  [normed_star_monoid α] {n : Type*} [fintype n] :
-  ∀ (M : (matrix n n α)), ∥star M∥ = ∥M∥ :=
-begin
+@[priority 100] -- see Note [lower instance priority]
+noncomputable instance to_normed_star_monoid {α : Type*} [normed_ring α] [star_add_monoid α]
+  [normed_star_monoid α] {n : Type*} [fintype n] : normed_star_monoid (matrix n n α) :=
+⟨begin
   intro M,
   have star_le : ∥star M∥ ≤ ∥M∥,
   { rw [matrix.star_eq_conj_transpose, norm_matrix_le_iff (norm_nonneg M)],
@@ -218,6 +218,6 @@ begin
     rw this,
     apply matrix.norm_entry_le_entrywise_sup_norm},
   exact ge_antisymm no_star_le star_le,
-end
+end⟩
 
 end matrix

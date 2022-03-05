@@ -49,7 +49,7 @@ begin
     exact zero_ne_one ht }
 end
 
-instance : unique (units cardinal.{u}) :=
+instance : unique cardinal.{u}ˣ :=
 { default := 1,
   uniq := λ a, units.coe_eq_one.mp $ is_unit_iff.mp a.is_unit }
 

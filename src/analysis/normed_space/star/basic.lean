@@ -203,19 +203,10 @@ open_locale matrix
 @[simp] lemma matrix.entrywise_sup_norm_star_eq_norm {n : Type*} [normed_ring E] [star_add_monoid E]
   [normed_star_monoid E] [fintype n] (M : (matrix n n E)) : ∥star M∥ = ∥M∥ :=
 begin
-  have star_le : ∥star M∥ ≤ ∥M∥,
-  { rw [matrix.star_eq_conj_transpose, norm_matrix_le_iff (norm_nonneg M)],
-    intros i j,
-    simp only [matrix.conj_transpose_apply, normed_star_monoid.norm_star,
-      matrix.norm_entry_le_entrywise_sup_norm]},
-  have no_star_le : ∥M∥ ≤ ∥star M∥,
-  { rw [matrix.star_eq_conj_transpose, norm_matrix_le_iff (norm_nonneg Mᴴ)],
-    intros i j,
-    have : ∥M i j∥ = ∥Mᴴ j i∥,
-      by simp only [matrix.conj_transpose_apply, normed_star_monoid.norm_star],
-    rw this,
-    apply matrix.norm_entry_le_entrywise_sup_norm},
-  exact ge_antisymm no_star_le star_le,
+  refine le_antisymm (by simp [norm_matrix_le_iff, M.norm_entry_le_entrywise_sup_norm]) _,
+  refine ((norm_matrix_le_iff (norm_nonneg _)).mpr (λ i j, _)).trans
+    (congr_arg _ M.star_eq_conj_transpose).ge,
+  exact (normed_star_monoid.norm_star).symm.le.trans Mᴴ.norm_entry_le_entrywise_sup_norm
 end
 
 end matrix

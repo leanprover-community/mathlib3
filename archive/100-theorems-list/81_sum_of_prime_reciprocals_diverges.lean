@@ -51,8 +51,7 @@ noncomputable def P (x k : ℕ) := {p ∈ range (x + 1) | k < p ∧ nat.prime p}
 The union over those primes `p ∈ (k, x]` of the sets of `e < x` for which `e + 1` is a multiple
 of `p`, i.e., those `e < x` for which there is a prime `p ∈ (k, x]` that divides `e + 1`.
 -/
-noncomputable def U (x k : ℕ) :=
-  finset.bUnion (P x k) (λ p, {e ∈ range x | p ∣ e + 1})
+noncomputable def U (x k : ℕ) := finset.bUnion (P x k) (λ p, {e ∈ range x | p ∣ e + 1})
 
 /--
 Those `e < x` for which `e + 1` is a product of powers of primes smaller than or equal to `k`.

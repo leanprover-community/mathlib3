@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis, Heather Macbeth
 -/
 
-import logic.function.basic
 import analysis.inner_product_space.dual
 import analysis.inner_product_space.pi_L2
 

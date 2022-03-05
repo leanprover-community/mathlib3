@@ -19,8 +19,8 @@ Homomorphisms between ordered (semi)rings that respect the ordering.
 
 ## Notation
 
-* `→+*o`: Type of ordered ring homomorphisms.
-* `≃+*o`: Type of ordered ring equivalences.
+* `→+*o`: Ordered ring homomorphisms.
+* `≃+*o`: Ordered ring isomorphisms.
 
 ## Tags
 
@@ -177,7 +177,7 @@ variable {α}
 @[simp] lemma coe_order_monoid_with_zero_hom_id :
   (order_ring_hom.id α : α →*₀o α) = order_monoid_with_zero_hom.id α := rfl
 
-/-- Composition of two `order_ring_hom`β as an `order_ring_hom`. -/
+/-- Composition of two `order_ring_hom`s as an `order_ring_hom`. -/
 protected def comp (f : β →+*o γ) (g : α →+*o β) : α →+*o γ :=
 { ..f.to_ring_hom.comp g.to_ring_hom, ..f.to_order_add_monoid_hom.comp g.to_order_add_monoid_hom }
 
@@ -247,7 +247,7 @@ lemma to_fun_eq_coe (f : α ≃+*o β) : f.to_fun = f := rfl
 
 variable (α)
 
-/-- The identity map as a ring isomorphism. -/
+/-- The identity map as an ordered ring isomorphism. -/
 @[refl] protected def refl : α ≃+*o α := ⟨ring_equiv.refl α, λ _ _, iff.rfl⟩
 
 instance : inhabited (α ≃+*o α) := ⟨order_ring_iso.refl α⟩

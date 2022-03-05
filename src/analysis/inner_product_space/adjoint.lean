@@ -197,19 +197,6 @@ begin
     inner_self_eq_norm_sq],
 end
 
-instance [hE : nontrivial E] : nontrivial (E →L[𝕜] E) :=
-begin
-  rw nontrivial_iff,
-  use (1 : (E →L[𝕜] E)),
-  use (0 : (E →L[𝕜] E)),
-  by_contra,
-  rw nontrivial_iff at hE,
-  cases hE with x hx,
-  cases hx with y hxy,
-  have heq : (1 : (E →L[𝕜] E)) x = (1 : (E →L[𝕜] E)) y :=
-    by simp only [h, continuous_linear_map.zero_apply],
-  tauto,
-end
 
 end continuous_linear_map
 

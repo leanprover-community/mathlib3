@@ -81,15 +81,22 @@ end
 
 variable (K)
 
-lemma exists_of_mk_eq_mk  (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) (h : mk K v hv = mk K w hw) :
-  ∃ (a : Kˣ), a • w = v :=
-quotient.exact' h
+lemma exists_of_mk_eq_mk  (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) :
+  mk K v hv = mk K w hw ↔ ∃ (a : Kˣ), a • w = v :=
+quotient.eq'
 
 lemma exists_smul_eq_mk_rep
   (v : V) (hv : v ≠ 0) : ∃ (a : Kˣ), a • v = (mk K v hv).rep :=
-exists_of_mk_eq_mk _ _ _ (rep_nonzero _) hv (by simp)
+(exists_of_mk_eq_mk _ _ _ (rep_nonzero _) hv).mp (by simp)
 
 variable {K}
+
+/-- An induction principle for `projectivization`.
+Use as `induction v using projectivization.ind`. -/
+@[elab_as_eliminator]
+lemma ind {P : projectivization K V → Prop} (h : ∀ (v : V) (h : v ≠ 0), P (mk K v h)) :
+  ∀ p, P p :=
+quotient.ind' $ subtype.rec $ by exact h
 
 @[simp]
 lemma submodule_mk (v : V) (hv : v ≠ 0) : (mk K v hv).submodule = K ∙ v := rfl
@@ -203,7 +210,7 @@ end
 lemma map_id : map
   (linear_map.id : V →ₗ[K] V)
   (linear_equiv.refl K V).injective = id :=
-by { ext v, rw ← v.mk_rep, refl }
+by { ext v, induction v using projectivization.ind, refl }
 
 @[simp]
 lemma map_comp {F U : Type*} [field F] [add_comm_group U] [module F U]
@@ -211,7 +218,7 @@ lemma map_comp {F U : Type*} [field F] [add_comm_group U] [module F U]
   (f : V →ₛₗ[σ] W) (hf : function.injective f)
   (g : W →ₛₗ[τ] U) (hg : function.injective g) :
   map (g.comp f) (hg.comp hf) = map g hg ∘ map f hf :=
-by { ext v, rw ← v.mk_rep, refl }
+by { ext v, induction v using projectivization.ind, refl }
 
 end map
 

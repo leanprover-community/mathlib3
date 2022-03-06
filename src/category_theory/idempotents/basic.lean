@@ -92,7 +92,7 @@ variables {C}
 
 /-- In a preadditive category, when `p : X ⟶ X` is idempotent,
 then `𝟙 X - p` is also idempotent. -/
-lemma idempotence_of_id_sub_idempotent [preadditive C]
+lemma idem_of_id_sub_idem [preadditive C]
   {X : C} (p : X ⟶ X) (hp : p ≫ p = p) :
   (𝟙 _ - p) ≫ (𝟙 _ - p) = (𝟙 _ - p) :=
 by simp only [comp_sub, sub_comp, id_comp, comp_id, hp, sub_self, sub_zero]
@@ -106,11 +106,11 @@ begin
   rw is_idempotent_complete_iff_has_equalizer_of_id_and_idempotent,
   split,
   { intros h X p hp,
-    haveI := h X (𝟙 _ - p) (idempotence_of_id_sub_idempotent p hp),
+    haveI := h X (𝟙 _ - p) (idem_of_id_sub_idem p hp),
     convert has_kernel_of_has_equalizer (𝟙 X) (𝟙 X - p),
     rw [sub_sub_cancel], },
   { intros h X p hp,
-    haveI : has_kernel (𝟙 _ - p) := h X (𝟙 _ - p) (idempotence_of_id_sub_idempotent p hp),
+    haveI : has_kernel (𝟙 _ - p) := h X (𝟙 _ - p) (idem_of_id_sub_idem p hp),
     apply preadditive.has_limit_parallel_pair, },
 end
 

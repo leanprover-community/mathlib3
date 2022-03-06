@@ -96,7 +96,7 @@ hs.preimage $ star_injective.inj_on _
 lemma star_singleton {β : Type*} [has_involutive_star β] (x : β) : ({x} : set β)⋆ = {x⋆} :=
 by { ext1 y, rw [mem_star, mem_singleton_iff, mem_singleton_iff, star_eq_iff_star_eq, eq_comm], }
 
-protected lemma star_mul [monoid α] [star_monoid α] (s t : set α) :
+protected lemma star_mul [monoid α] [star_semigroup α] (s t : set α) :
   (s * t)⋆ = t⋆ * s⋆ :=
 by simp_rw [←image_star, ←image2_mul, image_image2, image2_image_left, image2_image_right,
               star_mul, image2_swap _ s t]
@@ -109,7 +109,7 @@ by simp_rw [←image_star, ←image2_add, image_image2, image2_image_left, image
 instance [has_star α] [has_trivial_star α] : has_trivial_star (set α) :=
 { star_trivial := λ s, by { rw [←star_preimage], ext1, simp [star_trivial] } }
 
-protected lemma star_inv [group α] [star_monoid α] (s : set α) : (s⁻¹)⋆ = (s⋆)⁻¹ :=
+protected lemma star_inv [group α] [star_semigroup α] (s : set α) : (s⁻¹)⋆ = (s⋆)⁻¹ :=
 by { ext, simp only [mem_star, mem_inv, star_inv] }
 
 protected lemma star_inv' [division_ring α] [star_ring α] (s : set α) : (s⁻¹)⋆ = (s⋆)⁻¹ :=

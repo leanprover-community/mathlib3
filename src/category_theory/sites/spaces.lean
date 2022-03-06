@@ -23,7 +23,7 @@ site, Grothendieck topology, space
 
 ## References
 
-* [https://ncatlab.org/nlab/show/Grothendieck+topology][nlab]
+* [nLab, *Grothendieck topology*](https://ncatlab.org/nlab/show/Grothendieck+topology)
 * [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
 
 ## Implementation notes

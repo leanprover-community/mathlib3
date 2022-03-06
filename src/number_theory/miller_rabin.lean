@@ -13,6 +13,8 @@ import number_theory.padics.padic_norm
 import field_theory.finite.basic
 import data.fintype.basic
 
+-- TODO add reference to [this](https://kconrad.math.uconn.edu/blurbs/ugradnumthy/millerrabin.pdf)
+
 def two_power_part (n : ℕ) := 2 ^ (padic_val_nat 2 n)
 
 def odd_part (n : ℕ) := n / two_power_part n
@@ -217,10 +219,31 @@ begin
   },
 end
 
-lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)]
-  [decidable_pred (strong_probable_prime n)] (hp : ¬ n.prime) :
+
+
+lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)] (not_prime : ¬ n.prime) :
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
 begin
   -- TODO(Bolton): This will be a harder proof. Find some sublemmas that will be needed and
-  -- extract them. F
+  -- extract them.
+  by_cases h : ∃ (p q : ℕ), p.prime ∧ q.prime ∧ p ∣ n ∧ q ∣ n,
+  {
+    rcases h with ⟨p, q, p_prime, q_prime, p_dvd, q_dvd⟩,
+    let i0 := ((finset.range (odd_part (n-1))).filter (λ i, ∃ a_0 : zmod n, a_0^(2^i) = -1)).max' (
+      by {
+        rw finset.filter_nonempty_iff,
+        use 0,
+        simp,
+        sorry,
+      }
+    ),
+    let G : subgroup ((zmod n)ˣ) := {
+      carrier := _,
+      one_mem' := _,
+      mul_mem' := _,
+      inv_mem' := _ },
+  },
+  {
+    sorry,
+  },
 end

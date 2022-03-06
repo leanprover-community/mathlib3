@@ -99,8 +99,3 @@ bornology.of_bounded (set_of (is_bounded 𝕜)) (is_bounded_empty 𝕜 E)
   (λ _ hs _, is_bounded_subset hs) (λ _ hs _, is_bounded_union hs) is_bounded_covers
 
 end normed_field
-
--- Todo:
--- - totally bounded implies bounded
--- - if the topology is induced by family of seminorms then `s` is bounded iff for every
--- continuous seminorm `p`, `p s` is bounded.

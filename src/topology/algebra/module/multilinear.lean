@@ -106,8 +106,6 @@ rfl
 section has_scalar
 
 variables {R' R'' A : Type*} [monoid R'] [monoid R''] [semiring A]
-  [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
-  [Π i, topological_space (M₁ i)] [topological_space M₂]
   [Π i, module A (M₁ i)] [module A M₂]
   [distrib_mul_action R' M₂] [has_continuous_const_smul R' M₂] [smul_comm_class A R' M₂]
   [distrib_mul_action R'' M₂] [has_continuous_const_smul R'' M₂] [smul_comm_class A R'' M₂]

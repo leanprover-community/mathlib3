@@ -145,41 +145,30 @@ def to_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
       rw [non_unital_non_assoc_algebra.smul_def', non_unital_non_assoc_algebra.commutes', one_mul],
     end, }
 
-/-- A (unital associative) algebra is also a non-unital non-associative algebra -/
-def to_non_unital_non_assoc_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
-  [algebra R A]  : non_unital_non_assoc_algebra R A :=
-{ to_fun := λ r,
-  { to_fun := λ a, r • a,
-    map_zero' := by rw [algebra.smul_def', mul_zero],
-    map_add' := λ a b, by rw [algebra.smul_def', algebra.smul_def', algebra.smul_def',
-      left_distrib], },
-  map_zero' := begin
-    ext,
-    simp only [add_monoid_hom.coe_mk, add_monoid_hom.zero_apply],
-    rw [algebra.smul_def', ring_hom.to_fun_eq_coe, map_zero, zero_mul],
-  end,
-  map_add' := λ r₁ r₂, begin
-    ext,
-    simp only [add_monoid_hom.coe_mk, add_monoid_hom.add_apply],
-    rw [algebra.smul_def', ring_hom.to_fun_eq_coe, map_add, right_distrib, algebra.smul_def',
-      algebra.smul_def', ring_hom.to_fun_eq_coe],
-  end,
-  map_one' := begin
-    ext,
-    simp only [add_monoid_hom.coe_mk, add_monoid.coe_one, id.def],
-    rw [algebra.smul_def', ring_hom.to_fun_eq_coe, map_one, one_mul],
-  end,
-  map_mul' := λ r₁ r₂, begin
-    ext,
-    simp only [add_monoid_hom.coe_mk, add_monoid.coe_mul, function.comp_app],
-    rw [algebra.smul_def', algebra.smul_def', algebra.smul_def', ring_hom.to_fun_eq_coe, map_mul,
-      mul_assoc],
-  end,
-  commutes' := λ r a b, begin
-    simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk],
-    rw [algebra.smul_def', algebra.smul_def', algebra.commutes', ← mul_assoc],
-  end,
-  smul_def' := λ r a, by simp only [add_monoid_hom.coe_mk, ring_hom.coe_mk], }
+/-
+@[priority 200] -- see Note [lower instance priority]
+instance to_mul_action (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
+  [algebra R A] : mul_action R A := {
+    one_smul := λ a, begin
+
+    end,
+    mul_smul := sorry,
+  }
+
+@[priority 200] -- see Note [lower instance priority]
+instance to_distrib_mul_action (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
+  [algebra R A] : distrib_mul_action R A := {
+    smul_add := sorry,
+    smul_zero := sorry,
+  }
+
+@[priority 200] -- see Note [lower instance priority]
+instance to_module (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
+  [algebra R A] : module R A := {
+    add_smul := sorry,
+    zero_smul := sorry,
+  }
+-/
 
 end prio
 
@@ -279,6 +268,19 @@ instance to_module : module R A :=
   smul_zero := by simp [smul_def''],
   add_smul := by simp [smul_def'', add_mul],
   zero_smul := by simp [smul_def''] }
+
+/-- A (unital associative) algebra is also a non-unital non-associative algebra -/
+def to_non_unital_non_assoc_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
+  [algebra R A]  : non_unital_non_assoc_algebra R A :=
+{
+  commutes' := λ r a b, begin
+    simp only [ring_hom.to_fun_eq_coe, ring_hom.mk_coe, module.to_add_monoid_End_apply_apply],
+    rw [algebra.smul_def', algebra.smul_def', algebra.commutes', mul_assoc],
+  end,
+  smul_def' := λ r a, by simp only [ring_hom.to_fun_eq_coe, ring_hom.mk_coe,
+    module.to_add_monoid_End_apply_apply],
+  ..module.to_add_monoid_End R A
+   }
 
 -- From now on, we don't want to use the following instance anymore.
 -- Unfortunately, leaving it in place causes deterministic timeouts later in mathlib.

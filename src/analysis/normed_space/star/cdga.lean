@@ -34,8 +34,22 @@ class graded_monoid (A : ℕ → Type*) :=
 (mul_assoc : ∀ {i j k} {x : A i} {y : A j} {z : A k},
   mul (mul x y) z = cast (congr_arg A (add_assoc _ _ _).symm) (mul x (mul y z)))
 
+instance monoid_zero {A : ℕ → Type*} [graded_monoid A] : monoid (A 0) :=
+{ one := graded_monoid.one,
+  mul := graded_monoid.mul,
+  one_mul := λ a, @graded_monoid.one_mul _ _ 0 a,
+  mul_one := λ a, @graded_monoid.mul_one _ _ 0 a,
+  mul_assoc := λ a b c, @graded_monoid.mul_assoc _ _ 0 0 0 a b c, }
+
 def gmul {A : ℕ → Type*} [graded_monoid A] {i j} (x : A i) (y : A j) : A (i + j) :=
   graded_monoid.mul x y
+
+@[simp] lemma gmul_one {A : ℕ → Type*} [graded_monoid A] {i} (x : A i) : gmul x (1 : A 0) = x :=
+graded_monoid.mul_one
+
+@[simp] lemma one_gmul {A : ℕ → Type*} [graded_monoid A] {i} (x : A i) :
+  gmul (1 : A 0) x = cast (congr_arg A (zero_add _).symm) x :=
+graded_monoid.one_mul
 
 class graded_semiring (A : ℕ → Type*) [Π n, add_comm_monoid (A n)] extends graded_monoid A :=
 (mul_zero : ∀ {i j} (x : A i), gmul x (0 : A j) = 0)
@@ -78,9 +92,15 @@ class differential_graded_comm_ring (A : ℕ → Type*) [Π n, add_comm_group (A
 
 variables {A : ℕ → Type*} [Π n, add_comm_group (A n)] [differential_graded_ring A]
 
-lemma d_mul {i j} {x : A i} {y : A j} :
+lemma d_mul {i j} (x : A i) (y : A j) :
   d (gmul x y) = cast_hom A (by abel) (gmul (d x) y) + (-1 : ℤ)^i • (gmul x (d y) : A (i + (j+1))) :=
 differential_graded_ring.d_mul
+
+@[simp]
+lemma d_one (A : ℕ → Type*) [Π n, add_comm_group (A n)] [differential_graded_ring A] :
+  d (1 : A 0) = 0 :=
+by simpa using d_mul (1 : A 0) (1 : A 0)
+
 
 lemma mul_cycle_of_cycle_cycle {i j} (x : A i) (y : A j) (dx : d x = 0) (dy : d y = 0) :
   d (gmul x y) = 0 :=
@@ -157,6 +177,15 @@ lemma d_linear_map_squared {A : ℕ → Type*} [Π n, add_comm_group (A n)] [Π 
 differential_graded.d_squared
 
 @[simp]
+lemma d_linear_map_one {A : ℕ → Type*} [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
+  d_linear_map R (1 : A 0) = 0 :=
+begin
+  change d (1 : A 0) = 0,
+  convert d_one A,
+  sorry,
+end
+
+@[simp]
 lemma cast_linear_map_d {A : ℕ → Type*} [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_module R A] {i j : ℕ} {x : A i}
   (h : i + 1 = j + 1):
   cast_linear_map R A h (d_linear_map R x) = d_linear_map R (cast_linear_map R A (nat.succ.inj h) x) :=
@@ -194,13 +223,13 @@ open category_theory.monoidal_category
 attribute [instance, priority 100] closed.is_adj
 
 def foo {C : Type*} [category C] [preadditive C] [has_cokernels C]
-  [monoidal_category C] [monoidal_preadditive C] [monoidal_closed C]
+  [monoidal_category C] [monoidal_preadditive C] [has_internal_homs C]
   {X Y Z : C} (f : Y ⟶ Z) :
   X ⊗ cokernel f ≅ cokernel (𝟙 X ⊗ f) :=
 (as_iso (cokernel_comparison f (tensor_left X))).symm
 
 def foo' {C : Type*} [category C] [preadditive C] [has_cokernels C]
-  [monoidal_category C] [monoidal_preadditive C] [monoidal_closed C]
+  [monoidal_category C] [monoidal_preadditive C] [has_internal_homs C]
   {X Y Z : C} (f : X ⟶ Y) :
   cokernel f ⊗ Z ≅ cokernel (f ⊗ 𝟙 Z) :=
 sorry
@@ -216,20 +245,41 @@ begin
   refine factor_thru_kernel_subobject _ _ _,
   refine ((kernel_subobject _).arrow ⊗ (kernel_subobject _).arrow) ≫ _,
   exact Module.of_hom (mul_bilinear R A i j),
-  -- Now we have three proofs obligations. Discharging these nicely will require some custom extensionality lemmas.
+  -- Now we have three proof obligations. Discharging these nicely will require some custom extensionality lemmas.
   { apply tensor_product.ext', intros, sorry, },
   { sorry, },
   { sorry, }
 end
 
 def mm (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] (i j : ℕ) :
-  graded.homology R A j →+ (graded.homology R A i →+ graded.homology R A (i + j)) :=
- (adjunction.of_left_adjoint (tensor_left (Module.of R (graded.homology R A i)))).hom_equiv _ _ (nn R A i j)
+  graded.homology R A j →ₗ[R] (graded.homology R A i →ₗ[R] graded.homology R A (i + j)) :=
+monoidal_closed.curry (nn R A i j).
+
+-- This is horrific.
+def blah {M N P : Module R} (f : M ⟶ N) (g : N ⟶ P) (w : f ≫ g = 0) (x : N) (gx : g x = 0) : (homology f g w : Module R) :=
+begin
+  apply homology.π f g w _,
+  apply (kernel_subobject_iso g).inv _,
+  apply (Module.kernel_iso_ker g).inv _,
+  exact ⟨x, gx⟩,
+end
+
+def one (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
+  graded.homology R A 0 :=
+begin
+  refine blah _ _ _ _ _ _,
+  exact (1 : A 0),
+  rw homological_complex.d_from_eq,
+  swap 3, exact 1,swap 2, exact zero_add _,
+  simp,
+  dsimp [to_homological_complex],
+  simp,
+end
 
 instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
   graded_monoid (graded.homology R A) :=
-{ one := sorry,
-  mul := λ i j x y, begin end,
+{ one := one R A,
+  mul := λ i j x y, mm R A i j y x,
   one_mul := sorry,
   mul_one := sorry,
   mul_assoc := sorry, }

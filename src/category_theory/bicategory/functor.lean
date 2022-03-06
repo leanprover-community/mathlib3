@@ -237,7 +237,7 @@ def comp (F : oplax_functor B C) (G : oplax_functor C D) : oplax_functor B D :=
   .. (F : prelax_functor B C).comp ↑G }
 
 /--
-A structure on an oplax functor that promotes an oplax functors to a pseudofunctor.
+A structure on an oplax functor that promotes an oplax functor to a pseudofunctor.
 See `pseudofunctor.mk_of_oplax`.
 -/
 @[nolint has_inhabited_instance]

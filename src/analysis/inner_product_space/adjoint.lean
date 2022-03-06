@@ -186,14 +186,52 @@ lemma is_adjoint_pair (A : E' →L[ℝ] F') :
 
 end real
 
+def linear_equiv_of_unitary {U : (E →L[𝕜] E)} (hU : U ∈ unitary (E →L[𝕜] E)) :
+  (E ≃ₗ[𝕜] E) :=
+  { to_fun := U,
+    map_add' := map_add U,
+    map_smul' := map_smul U,
+    inv_fun := (star U : (E →L[𝕜] E)),
+    left_inv :=
+    begin
+      rw function.left_inverse_iff_comp,
+      ext,
+      simp only [id.def, function.comp_app, ← continuous_linear_map.mul_apply,
+        unitary.star_mul_self_of_mem hU, continuous_linear_map.one_apply],
+    end,
+    right_inv :=
+    begin
+      rw function.right_inverse_iff_comp,
+      ext,
+      simp only [id.def, function.comp_app, ← continuous_linear_map.mul_apply,
+        unitary.mul_star_self_of_mem hU, continuous_linear_map.one_apply],
+    end,
+  }
+
+def linear_isometry_equiv_of_unitary {U : (E →L[𝕜] E)} (hU : U ∈ unitary (E →L[𝕜] E)) :
+  (E ≃ₗᵢ[𝕜] E) :=
+{
+  to_linear_equiv := linear_equiv_of_unitary hU,
+  norm_map' :=
+  begin
+    intro x,
+    simp only [linear_equiv_of_unitary, linear_equiv.coe_mk],
+    rw [← sq_eq_sq (norm_nonneg (U x)) (norm_nonneg x), norm_sq_eq_inner,
+      ← continuous_linear_map.adjoint_inner_left, ← continuous_linear_map.mul_apply],
+    rw unitary.mem_iff at hU,
+    rw [← continuous_linear_map.star_eq_adjoint, hU.1, continuous_linear_map.one_apply,
+      inner_self_eq_norm_sq],
+  end
+}
+
 lemma norm_map_of_unitary {U : (E →L[𝕜] E)} (hU : U ∈ unitary (E →L[𝕜] E)) (x : E) :
   ∥U x∥ = ∥x∥ :=
 begin
-  rw [← sq_eq_sq (norm_nonneg (U x)) (norm_nonneg x), norm_sq_eq_inner,
-    ← continuous_linear_map.adjoint_inner_left, ← continuous_linear_map.mul_apply],
-  rw unitary.mem_iff at hU,
-  rw [← continuous_linear_map.star_eq_adjoint, hU.1, continuous_linear_map.one_apply,
-    inner_self_eq_norm_sq],
+  have := (linear_isometry_equiv_of_unitary hU).norm_map',
+  specialize this x,
+  simp only [linear_isometry_equiv_of_unitary, linear_equiv_of_unitary,
+    linear_equiv.coe_mk] at this,
+  exact this,
 end
 
 

@@ -36,7 +36,7 @@ def star_linear_equiv (R : Type*) {A : Type*}
   .. star_add_equiv }
 
 variables (R : Type*) (A : Type*)
-  [semiring R] [star_monoid R] [has_trivial_star R]
+  [semiring R] [star_semigroup R] [has_trivial_star R]
   [add_comm_group A] [module R A] [star_add_monoid A] [star_module R A]
 
 /-- The self-adjoint elements of a star module, as a submodule. -/

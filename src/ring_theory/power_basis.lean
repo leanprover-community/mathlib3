@@ -533,4 +533,26 @@ pb.equiv_of_root_map _ _ _
 
 end map
 
+section adjoin
+
+open algebra
+
+lemma adjoin_gen_eq_top (B : power_basis R S) : adjoin R ({B.gen} : set S) = ⊤ :=
+begin
+  rw [← to_submodule_eq_top, _root_.eq_top_iff, ← B.basis.span_eq, submodule.span_le],
+  rintros x ⟨i, rfl⟩,
+  rw [B.basis_eq_pow i],
+  exact subalgebra.pow_mem _ (subset_adjoin (set.mem_singleton _)) _,
+end
+
+lemma adjoin_eq_top_of_gen_mem_adjoin {B : power_basis R S} {x : S}
+  (hx : B.gen ∈ adjoin R ({x} : set S)) : adjoin R ({x} : set S) = ⊤ :=
+begin
+  rw [_root_.eq_top_iff, ← B.adjoin_gen_eq_top],
+  refine adjoin_le _,
+  simp [hx],
+end
+
+end adjoin
+
 end power_basis

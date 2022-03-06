@@ -1414,6 +1414,21 @@ by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 @[simp] lemma algebra_map_smul (r : R) (m : M) : ((algebra_map R A) r) • m = r • m :=
 (algebra_compatible_smul A r m).symm
 
+lemma no_zero_smul_divisors.trans (R A M : Type*) [comm_ring R] [ring A] [is_domain A] [algebra R A]
+  [add_comm_group M] [module R M] [module A M] [is_scalar_tower R A M] [no_zero_smul_divisors R A]
+  [no_zero_smul_divisors A M] : no_zero_smul_divisors R M :=
+begin
+  refine ⟨λ r m h, _⟩,
+  rw [algebra_compatible_smul A r m] at h,
+  cases smul_eq_zero.1 h with H H,
+  { have : function.injective (algebra_map R A) :=
+      no_zero_smul_divisors.iff_algebra_map_injective.1 infer_instance,
+    left,
+    exact (ring_hom.injective_iff _).1 this _ H },
+  { right,
+    exact H }
+end
+
 variable {A}
 
 @[priority 100] -- see Note [lower instance priority]

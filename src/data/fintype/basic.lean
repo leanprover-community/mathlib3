@@ -1560,7 +1560,7 @@ lemma mem_of_mem_perms_of_list :
     else mem_cons_of_mem _ $
     mem_of_mem_perms_of_list hg₁ $
       by rw [eq_inv_mul_iff_mul_eq.2 hg₂, mul_apply, swap_inv, swap_apply_def];
-        split_ifs; cc)
+        split_ifs; [exact ne.symm hxy, exact ne.symm hxa, exact hx])
 
 lemma mem_perms_of_list_iff {l : list α} {f : perm α} :
   f ∈ perms_of_list l ↔ ∀ {x}, f x ≠ x → x ∈ l :=

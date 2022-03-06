@@ -333,7 +333,7 @@ lemma has_succ_of_is_limit {α} {r : α → α → Prop} [wo : is_well_order α 
   (h : (type r).is_limit) (x : α) : ∃y, r x y :=
 begin
   use enum r (typein r x).succ (h.2 _ (typein_lt_type r x)),
-  convert (enum_lt (typein_lt_type r x) _).mpr (lt_succ_self _), rw [enum_typein]
+  convert (enum_lt_enum (typein_lt_type r x) _).mpr (lt_succ_self _), rw [enum_typein]
 end
 
 lemma type_subrel_lt (o : ordinal.{u}) :
@@ -1138,29 +1138,6 @@ theorem bsup_eq_of_brange_eq {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordi
   (h : brange o f = brange o' g) : bsup.{u (max v w)} o f = bsup.{v (max u w)} o' g :=
 (bsup_le_of_brange_subset h.le).antisymm (bsup_le_of_brange_subset.{v u w} h.ge)
 
-theorem bsup_id_limit {o} (ho : ∀ a < o, succ a < o) : bsup.{u u} o (λ x _, x) = o :=
-le_antisymm (bsup_le.2 (λ i hi, hi.le))
-  (not_lt.1 (λ h, (lt_bsup_of_limit.{u u} (λ _ _ _ _, id) ho _ h).false))
-
-theorem bsup_id_succ (o) : bsup.{u u} (succ o) (λ x _, x) = o :=
-le_antisymm (bsup_le.2 $ (λ o, lt_succ.1)) (le_bsup _ o (lt_succ_self o))
-
-theorem is_normal.bsup_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
-  bsup.{u} o (λ x _, f x) = f o :=
-by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id_limit h.2] }
-
-theorem is_normal.eq_iff_zero_and_succ {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {g}
-  (hg : is_normal g) : f = g ↔ (f 0 = g 0 ∧ ∀ a : ordinal, f a = g a → f a.succ = g a.succ) :=
-⟨λ h, by simp [h], λ ⟨h₁, h₂⟩, funext (λ a, begin
-  apply a.limit_rec_on,
-  assumption',
-  intros o ho H,
-  rw [←is_normal.bsup_eq.{u u} hf ho, ←is_normal.bsup_eq.{u u} hg ho],
-  congr,
-  ext b hb,
-  exact H b hb
-end)⟩
-
 /-- The least strict upper bound of a family of ordinals. -/
 def lsub {ι} (f : ι → ordinal) : ordinal :=
 sup (ordinal.succ ∘ f)
@@ -1245,6 +1222,27 @@ theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
 
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
+
+@[simp] theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
+(lsub_le.{u u}.2 typein_lt_self).antisymm begin
+  by_contra' h,
+  nth_rewrite 0 ←type_out o at h,
+  simpa [typein_enum] using lt_lsub.{u u} (typein o.out.r) (enum o.out.r _ h)
+end
+
+theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
+  sup.{u u} (typein o.out.r) = o :=
+by rw (sup_eq_lsub_iff_succ.{u u} (typein o.out.r)).2; rwa lsub_typein o
+
+@[simp] theorem sup_typein_succ {o : ordinal} : sup.{u u} (typein o.succ.out.r) = o :=
+begin
+  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein o.succ.out.r) with h h,
+  { rw sup_eq_lsub_iff_succ at h,
+    simp only [lsub_typein] at h,
+    exact (h o (lt_succ_self o)).false.elim },
+  rw [←succ_inj, h],
+  apply lsub_typein
+end
 
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
@@ -1334,14 +1332,14 @@ by rw [blsub_le, lsub_le]; exact
 theorem blsub_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : blsub.{u v} o (λ _ _, a) = a + 1 :=
 bsup_const.{u v} ho a.succ
 
-theorem blsub_id (o) : blsub.{u u} o (λ x _, x) = o :=
-begin
-  apply le_antisymm,
-  { rw blsub_le,
-    exact λ _, id },
-  by_contra' h,
-  exact (lt_blsub.{u u} (λ x _, x) _ h).false
-end
+@[simp] theorem blsub_id : ∀ o, blsub.{u u} o (λ x _, x) = o :=
+lsub_typein
+
+theorem bsup_id_limit {o} : (∀ a < o, succ a < o) → bsup.{u u} o (λ x _, x) = o :=
+sup_typein_limit
+
+@[simp] theorem bsup_id_succ (o) : bsup.{u u} (succ o) (λ x _, x) = o :=
+sup_typein_succ
 
 theorem blsub_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
   (h : brange o f ⊆ brange o' g) : blsub.{u (max v w)} o f ≤ blsub.{v (max u w)} o' g :=
@@ -1355,30 +1353,6 @@ theorem blsub_eq_of_brange_eq {o o'} {f : Π a < o, ordinal} {g : Π a < o', ord
   (h : {o | ∃ i hi, f i hi = o} = {o | ∃ i hi, g i hi = o}) :
   blsub.{u (max v w)} o f = blsub.{v (max u w)} o' g :=
 (blsub_le_of_brange_subset h.le).antisymm (blsub_le_of_brange_subset.{v u w} h.ge)
-
-theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
-  blsub.{u} o (λ x _, f x) = f o :=
-begin
-  rw ←H.bsup_eq h,
-  exact ((bsup_eq_blsub_iff_lt_bsup _).2 (λ a ha, (H.1 a).trans_le (le_bsup _ _ (h.2 a ha)))).symm
-end
-
-theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
-by { have := blsub_id o, rwa blsub_eq_lsub at this }
-
-theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
-  sup.{u u} (typein o.out.r) = o :=
-by rw (sup_eq_lsub_iff_succ.{u u} (typein o.out.r)).2; rwa lsub_typein o
-
-theorem sup_typein_succ (o : ordinal) : sup.{u u} (typein o.succ.out.r) = o :=
-begin
-  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein o.succ.out.r) with h h,
-  { rw sup_eq_lsub_iff_succ at h,
-    simp only [lsub_typein] at h,
-    exact (h o (lt_succ_self o)).false.elim },
-  rw [←succ_inj, h],
-  exact lsub_typein _
-end
 
 theorem bsup_comp {o o' : ordinal} {f : Π a < o, ordinal}
   (hf : ∀ {i j} (hi) (hj), i ≤ j → f i hi ≤ f j hj) {g : Π a < o', ordinal} (hg : blsub o' g = o) :
@@ -1396,6 +1370,29 @@ theorem blsub_comp {o o' : ordinal} {f : Π a < o, ordinal}
   (hf : ∀ {i j} (hi) (hj), i ≤ j → f i hi ≤ f j hj) {g : Π a < o', ordinal} (hg : blsub o' g = o) :
   blsub o' (λ a ha, f (g a ha) (by { rw ←hg, apply lt_blsub })) = blsub o f :=
 @bsup_comp o _ (λ a ha, (f a ha).succ) (λ i j _ _ h, succ_le_succ.2 (hf _ _ h)) g hg
+
+theorem is_normal.bsup_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
+  bsup.{u} o (λ x _, f x) = f o :=
+by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id_limit h.2] }
+
+theorem is_normal.eq_iff_zero_and_succ {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {g}
+  (hg : is_normal g) : f = g ↔ (f 0 = g 0 ∧ ∀ a : ordinal, f a = g a → f a.succ = g a.succ) :=
+⟨λ h, by simp [h], λ ⟨h₁, h₂⟩, funext (λ a, begin
+  apply a.limit_rec_on,
+  assumption',
+  intros o ho H,
+  rw [←is_normal.bsup_eq.{u u} hf ho, ←is_normal.bsup_eq.{u u} hg ho],
+  congr,
+  ext b hb,
+  exact H b hb
+end)⟩
+
+theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
+  blsub.{u} o (λ x _, f x) = f o :=
+begin
+  rw ←H.bsup_eq h,
+  exact ((bsup_eq_blsub_iff_lt_bsup _).2 (λ a ha, (H.1 a).trans_le (le_bsup _ _ (h.2 a ha)))).symm
+end
 
 end ordinal
 

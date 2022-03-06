@@ -3,6 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.group.ext
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
@@ -52,7 +53,9 @@ universes v u
 open category_theory
 open category_theory.functor
 
-namespace category_theory.limits
+namespace category_theory
+
+namespace limits
 
 variables {J : Type v} [decidable_eq J]
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C]
@@ -217,9 +220,9 @@ def biproduct_iso (F : J → C) [has_biproduct F] :
 (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (biproduct.is_limit F)).trans $
   is_colimit.cocone_point_unique_up_to_iso (biproduct.is_colimit F) (colimit.is_colimit _)
 
-end category_theory.limits
+end limits
 
-namespace category_theory.limits
+namespace limits
 variables {J : Type v} [decidable_eq J]
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C]
 
@@ -948,9 +951,9 @@ end
 -- If someone is interested, they could provide the constructions:
 --   has_binary_biproducts ↔ has_finite_biproducts
 
-end category_theory.limits
+end limits
 
-namespace category_theory.limits
+namespace limits
 
 section preadditive
 variables {C : Type u} [category.{v} C] [preadditive C]
@@ -1329,4 +1332,25 @@ end
 
 end preadditive
 
-end category_theory.limits
+end limits
+
+open category_theory.limits
+
+local attribute [ext] preadditive
+
+/-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
+instance subsingleton_preadditive_of_has_binary_biproducts {C : Type u} [category.{v} C]
+  [has_zero_morphisms C] [has_binary_biproducts C] : subsingleton (preadditive C) :=
+subsingleton.intro $ λ a b,
+begin
+  ext X Y f g,
+  have h₁ := @biprod.add_eq_lift_id_desc _ _ a _ _ f g
+    (by convert (infer_instance : has_binary_biproduct X X)),
+  have h₂ := @biprod.add_eq_lift_id_desc _ _ b _ _ f g
+    (by convert (infer_instance : has_binary_biproduct X X)),
+  refine h₁.trans (eq.trans _ h₂.symm),
+  congr' 2;
+  exact subsingleton.elim _ _
+end
+
+end category_theory

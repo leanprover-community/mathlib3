@@ -37,7 +37,7 @@ these results are found in `category_theory/abelian/exact.lean`.
 
 -/
 
-universes v u
+universes v v₂ u u₂
 
 open category_theory
 open category_theory.limits
@@ -290,7 +290,7 @@ end
 section
 variables [preadditive V]
 
-lemma mono_iff_exact_zero_left [has_kernels V]{B C : V} (f : B ⟶ C) :
+lemma mono_iff_exact_zero_left [has_kernels V] {B C : V} (f : B ⟶ C) :
   mono f ↔ exact (0 : (0 ⟶ B)) f :=
 ⟨λ h, by { resetI, apply_instance, },
   λ h, preadditive.mono_of_kernel_iso_zero
@@ -314,5 +314,24 @@ lemma epi_iff_exact_zero_right [has_equalizers V] {A B : V} (f : A ⟶ B) :
 end
 
 end
+
+namespace functor
+variables [has_zero_morphisms V] [has_kernels V] {W : Type u₂} [category.{v₂} W]
+variables [has_images W] [has_zero_morphisms W] [has_kernels W]
+
+/-- A functor reflects exact sequences if any composable pair of morphisms that is mapped to an
+    exact pair is itself exact. -/
+class reflects_exact_sequences (F : V ⥤ W) :=
+(reflects : ∀ {A B C : V} (f : A ⟶ B) (g : B ⟶ C), exact (F.map f) (F.map g) → exact f g)
+
+lemma exact_of_exact_map (F : V ⥤ W) [reflects_exact_sequences F] {A B C : V} {f : A ⟶ B}
+  {g : B ⟶ C} (hfg : exact (F.map f) (F.map g)) : exact f g :=
+reflects_exact_sequences.reflects f g hfg
+
+lemma exact_of_exact_map' (F : V ⥤ W) [reflects_exact_sequences F] {A B C : V} {f : A ⟶ B}
+  {g : B ⟶ C} [hfg : exact (F.map f) (F.map g)] : exact f g :=
+F.exact_of_exact_map hfg
+
+end functor
 
 end category_theory

@@ -116,16 +116,20 @@ class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
 (commutes' : ∀ r x, to_fun r * x = x * to_fun r)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
 
-class non_unital_non_assoc_algebra (R : Type u) (A : Type v) [comm_semiring R] [non_unital_non_assoc_semiring A]
-  extends has_scalar R A, R →+* (add_monoid.End A) :=
+/--
+A (non-unital, non-associative) `R`-algebra is a non-unital, non-associative, semiring `A` equipped
+with a map into its centroid `R → Z(A)`.
+-/
+class non_unital_non_assoc_algebra (R : Type u) (A : Type v) [comm_semiring R]
+  [non_unital_non_assoc_semiring A] extends has_scalar R A, R →+* (add_monoid.End A) :=
 (commutes' : ∀ r a b, (to_ring_hom r a) * b = a * (to_ring_hom r b))
 (smul_def' : ∀ r a, r • a = to_ring_hom r  a)
 
-/- If R is a commutative semiring and A is a semiring and R →+* (add_monoid.End A) is a
-(non-unital, non-associative) algebra then  r → r•1 is a (unital, associative) algebra-/
-lemma to_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
-  [non_unital_non_assoc_algebra R A] : algebra R A:= {
-    to_fun := λ r, _inst_3.to_fun r 1,
+/-- If R is a commutative semiring, A is a semiring and R →+* (add_monoid.End A) is a
+(non-unital, non-associative) algebra then  r → r•1 is a (unital, associative) algebra -/
+def to_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
+  [non_unital_non_assoc_algebra R A] : algebra R A:=
+  { to_fun := λ r, _inst_3.to_fun r 1,
     map_one' := by rw [ring_hom.to_fun_eq_coe, map_one, add_monoid.coe_one, id.def],
     map_mul' := λ r₁ r₂, by rw [ring_hom.to_fun_eq_coe, map_mul, add_monoid.coe_mul,
       function.comp_app, non_unital_non_assoc_algebra.commutes', one_mul],
@@ -139,17 +143,16 @@ lemma to_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
     smul_def' := λ r a, begin
       simp only [ring_hom.to_fun_eq_coe],
       rw [non_unital_non_assoc_algebra.smul_def', non_unital_non_assoc_algebra.commutes', one_mul],
-    end,
-  }
+    end, }
 
-/- A (unital associative) algebra is also a non-unital non-associative algebra -/
-lemma to_non_unital_non_assoc_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
-  [algebra R A]  : non_unital_non_assoc_algebra R A := {
-  to_fun := λ r, {
-    to_fun := λ a, r • a,
+/-- A (unital associative) algebra is also a non-unital non-associative algebra -/
+def to_non_unital_non_assoc_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
+  [algebra R A]  : non_unital_non_assoc_algebra R A :=
+{ to_fun := λ r,
+  { to_fun := λ a, r • a,
     map_zero' := by rw [algebra.smul_def', mul_zero],
-    map_add' := λ a b, by rw [algebra.smul_def', algebra.smul_def', algebra.smul_def', left_distrib],
-  }, -- for each r we have an element of add_monoid.End A
+    map_add' := λ a b, by rw [algebra.smul_def', algebra.smul_def', algebra.smul_def',
+      left_distrib], },
   map_zero' := begin
     ext,
     simp only [add_monoid_hom.coe_mk, add_monoid_hom.zero_apply],
@@ -176,9 +179,7 @@ lemma to_non_unital_non_assoc_algebra (R : Type u) (A : Type v) [comm_semiring R
     simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk],
     rw [algebra.smul_def', algebra.smul_def', algebra.commutes', ← mul_assoc],
   end,
-  smul_def' := λ r a, by simp only [add_monoid_hom.coe_mk, ring_hom.coe_mk],
-}
-
+  smul_def' := λ r a, by simp only [add_monoid_hom.coe_mk, ring_hom.coe_mk], }
 
 end prio
 

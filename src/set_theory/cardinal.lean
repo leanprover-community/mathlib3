@@ -460,10 +460,17 @@ lt_of_le_of_ne (zero_le _) zero_ne_one
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
-theorem power_le_power_left : ∀{a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
+theorem power_le_power_left : ∀ {a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ hα ⟨e⟩; exact
   let ⟨a⟩ := mk_ne_zero_iff.1 hα in
   ⟨@embedding.arrow_congr_left _ _ _ ⟨a⟩ e⟩
+
+theorem self_le_power (a : cardinal) {b : cardinal} (hb : 1 ≤ b) : a ≤ a ^ b :=
+begin
+  rcases eq_or_ne a 0 with rfl|ha,
+  { exact zero_le _ },
+  { convert power_le_power_left ha hb, exact power_one.symm }
+end
 
 /-- **Cantor's theorem** -/
 theorem cantor (a : cardinal.{u}) : a < 2 ^ a :=

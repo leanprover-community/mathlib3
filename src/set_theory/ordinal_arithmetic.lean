@@ -333,7 +333,7 @@ lemma has_succ_of_is_limit {α} {r : α → α → Prop} [wo : is_well_order α 
   (h : (type r).is_limit) (x : α) : ∃y, r x y :=
 begin
   use enum r (typein r x).succ (h.2 _ (typein_lt_type r x)),
-  convert (enum_lt (typein_lt_type r x) _).mpr (lt_succ_self _), rw [enum_typein]
+  convert (enum_lt_enum (typein_lt_type r x) _).mpr (lt_succ_self _), rw [enum_typein]
 end
 
 lemma type_subrel_lt (o : ordinal.{u}) :
@@ -2181,6 +2181,16 @@ begin
   rw [← opow_add, add_omega_opow xb]
 end
 --/
+
+theorem add_le_of_forall_add_lt {a b c : ordinal} (hb : 0 < b) (h : ∀ d < b, a + d < c) :
+  a + b ≤ c :=
+begin
+  have H : a + (c - a) = c := ordinal.add_sub_cancel_of_le (by {rw ←add_zero a, exact (h _ hb).le}),
+  rw ←H,
+  apply add_le_add_left _ a,
+  by_contra' hb,
+  exact (h _ hb).ne H
+end
 
 theorem opow_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omega :=
 le_antisymm

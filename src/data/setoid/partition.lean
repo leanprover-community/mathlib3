@@ -256,7 +256,7 @@ finset.sup_id_eq_Sup _
 -/
 
 /-- A finite setoid partition furnishes a finpartition -/
-theorem finpartition.of_partition {c : finset (set α)}
+def finpartition.of_partition {c : finset (set α)}
   (hc : setoid.is_partition (c : set (set α))) : finpartition (set.univ : set α) :=
 { parts := c, --  finset (set α)
   sup_indep := --  self.parts.sup_indep id

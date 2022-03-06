@@ -62,24 +62,16 @@ instance nim_impartial : ∀ (O : ordinal), impartial (nim O)
 | O :=
 begin
   rw [impartial_def, nim_def, neg_def],
-  split,
-  split;
+  split, split;
   rw pgame.le_def,
-  { refine ⟨λ i, _, λ j, _⟩,
-    { let hwf := ordinal.typein_lt_self i,
-      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).1⟩ },
-    { let hwf := ordinal.typein_lt_self j,
-      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).1⟩ } },
-  { refine ⟨λ i, _, λ j, _⟩,
-    { let hwf := ordinal.typein_lt_self i,
-      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).2⟩ },
-    { let hwf := ordinal.typein_lt_self j,
-      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).2⟩ } },
-  refine ⟨λ i, _, λ j, _⟩,
-  { let hwf := ordinal.typein_lt_self i,
-    exact nim_impartial (typein (<) i) },
-  { let hwf := ordinal.typein_lt_self j,
-    exact nim_impartial (typein (<) j) }
+  all_goals { refine ⟨λ i, let hwf := ordinal.typein_lt_self i in _,
+    λ j, let hwf := ordinal.typein_lt_self j in _⟩ },
+  { exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).1⟩ },
+  { exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).1⟩ },
+  { exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).2⟩ },
+  { exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).2⟩ },
+  { exact nim_impartial (typein (<) i) },
+  { exact nim_impartial (typein (<) j) }
 end
 using_well_founded { dec_tac := tactic.assumption }
 

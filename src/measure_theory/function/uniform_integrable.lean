@@ -118,7 +118,21 @@ protected lemma sub {mβ : measurable_space β} [opens_measurable_space β] [has
   unif_integrable (f - g) p μ :=
 by { rw sub_eq_add_neg, exact hf.add hg.neg hp hf_meas (λ i, (hg_meas i).neg), }
 
+protected lemma ae_eq (hf : unif_integrable f p μ) (hfg : ∀ n, f n =ᵐ[μ] g n) :
+  unif_integrable g p μ :=
+begin
+  intros ε hε,
+  obtain ⟨δ, hδ_pos, hfδ⟩ := hf hε,
+  refine ⟨δ, hδ_pos, λ n s hs hμs, (le_of_eq $ snorm_congr_ae _).trans (hfδ n s hs hμs)⟩,
+  filter_upwards [hfg n] with x hx,
+  simp_rw [indicator_apply, hx],
+end
+
 end unif_integrable
+
+lemma unif_integrable_congr_ae {f g : ι → α → β} {p : ℝ≥0∞} (hfg : ∀ n, f n =ᵐ[μ] g n) :
+  unif_integrable f p μ ↔ unif_integrable g p μ :=
+⟨λ hf, hf.ae_eq hfg, λ hg, hg.ae_eq (λ n, (hfg n).symm)⟩
 
 lemma tendsto_indicator_ge (f : α → β) (x : α):
   tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ∥f x∥₊}.indicator f x) at_top (𝓝 0) :=
@@ -173,10 +187,22 @@ begin
       { assumption } } }
 end
 
-lemma mem_ℒp.integral_indicator_ge_le
+lemma mem_ℒp.integral_indicator_ge_le_of_meas
   (hf : mem_ℒp f 1 μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
 let ⟨M, hM⟩ := hf.integral_indicator_ge_le' μ hmeas hε in ⟨max M 0, le_max_right _ _, by simpa⟩
+
+lemma mem_ℒp.integral_indicator_ge_le
+  (hf : mem_ℒp f 1 μ) {ε : ℝ} (hε : 0 < ε) :
+  ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
+begin
+  have hf_mk : mem_ℒp (hf.1.mk f) 1 μ := (mem_ℒp_congr_ae hf.1.ae_eq_mk).mp hf,
+  obtain ⟨M, hM_pos, hfM⟩ := hf_mk.integral_indicator_ge_le_of_meas μ hf.1.measurable_mk hε,
+  refine ⟨M, hM_pos, (le_of_eq _).trans hfM⟩,
+  refine lintegral_congr_ae _,
+  filter_upwards [hf.1.ae_eq_mk] with x hx,
+  simp only [indicator_apply, coe_nnnorm, mem_set_of_eq, ennreal.coe_eq_coe, hx.symm],
+end
 
 omit hβ
 
@@ -222,7 +248,7 @@ begin
     refine ⟨M, _⟩,
     simp only [snorm_exponent_top, hM, zero_le] },
   obtain ⟨M, hM', hM⟩ := @mem_ℒp.integral_indicator_ge_le _ _ _ μ _ _ _ _
-    (λ x, ∥f x∥^p.to_real) (hf.norm_rpow hp_ne_zero hp_ne_top) (hmeas.norm.pow_const _) _
+    (λ x, ∥f x∥^p.to_real) (hf.norm_rpow hp_ne_zero hp_ne_top) _
     (real.rpow_pos_of_pos hε p.to_real),
   refine ⟨M ^(1 / p.to_real), _⟩,
   rw [snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top,
@@ -442,7 +468,7 @@ begin
 end
 
 /-- A sequence of uniformly integrable functions which converges μ-a.e. converges in Lp. -/
-lemma tendsto_Lp_of_tendsto_ae {mβ : measurable_space β}
+lemma tendsto_Lp_of_tendsto_ae_of_meas {mβ : measurable_space β}
   [borel_space β] [second_countable_topology β] [is_finite_measure μ]
   (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, measurable (f n)) (hg : measurable g)
@@ -514,6 +540,29 @@ begin
   exact add_le_add_three hnf hng hlt
 end
 
+/-- A sequence of uniformly integrable functions which converges μ-a.e. converges in Lp. -/
+lemma tendsto_Lp_of_tendsto_ae {mβ : measurable_space β}
+  [borel_space β] [second_countable_topology β] [is_finite_measure μ]
+  (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ℕ → α → β} {g : α → β}
+  (hf : ∀ n, ae_measurable (f n) μ) (hg : mem_ℒp g p μ) (hui : unif_integrable f p μ)
+  (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
+  tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
+begin
+  suffices : tendsto (λ (n : ℕ), snorm ((hf n).mk (f n) - (hg.1.mk g)) p μ) at_top (𝓝 0),
+  { convert this,
+    exact funext (λ n, snorm_congr_ae ((hf n).ae_eq_mk.sub hg.1.ae_eq_mk)), },
+  refine tendsto_Lp_of_tendsto_ae_of_meas μ hp hp' (λ n, (hf n).measurable_mk) hg.1.measurable_mk
+    (hg.ae_eq hg.1.ae_eq_mk) (hui.ae_eq (λ n, (hf n).ae_eq_mk)) _,
+  have h_ae_forall_eq : ∀ᵐ x ∂μ, ∀ n, f n x = (hf n).mk (f n) x,
+  { rw ae_all_iff,
+    exact λ n, (hf n).ae_eq_mk, },
+  filter_upwards [hfg, h_ae_forall_eq, hg.1.ae_eq_mk] with x hx_tendsto hxf_eq hxg_eq,
+  rw ← hxg_eq,
+  convert hx_tendsto,
+  ext1 n,
+  exact (hxf_eq n).symm,
+end
+
 variables {mβ : measurable_space β} [borel_space β]
 variables {f : ℕ → α → β} {g : α → β}
 
@@ -554,29 +603,28 @@ end
 functions that converge in measure to some function `g` in a finite measure space, then `f`
 converge in Lp to `g`. -/
 lemma tendsto_Lp_of_tendsto_in_measure [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g)
-  (hg' : mem_ℒp g p μ) (hui : unif_integrable f p μ)
+  (hf : ∀ n, ae_measurable (f n) μ)
+  (hg : mem_ℒp g p μ) (hui : unif_integrable f p μ)
   (hfg : tendsto_in_measure μ f at_top g) :
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
 begin
   refine tendsto_of_subseq_tendsto (λ ns hns, _),
   obtain ⟨ms, hms, hms'⟩ := tendsto_in_measure.exists_seq_tendsto_ae (λ ε hε, (hfg ε hε).comp hns),
-  exact ⟨ms, tendsto_Lp_of_tendsto_ae μ hp hp' (λ _, hf _) hg hg'
+  exact ⟨ms, tendsto_Lp_of_tendsto_ae μ hp hp' (λ _, hf _) hg
     (λ ε hε, let ⟨δ, hδ, hδ'⟩ := hui hε in ⟨δ, hδ, λ i s hs hμs, hδ' _ s hs hμs⟩) hms'⟩,
 end
 
 /-- **Vitali's convergence theorem**: A sequence of functions `f` converges to `g` in Lp if and
 only if it is uniformly integrable and converges to `g` in measure. -/
 lemma tendsto_in_measure_iff_tendsto_Lp [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g)
-  (hf' : ∀ n, mem_ℒp (f n) p μ) (hg' : mem_ℒp g p μ) :
+  (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ) :
   tendsto_in_measure μ f at_top g ∧ unif_integrable f p μ ↔
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
-⟨λ h, tendsto_Lp_of_tendsto_in_measure μ hp hp' hf hg hg' h.2 h.1,
+⟨λ h, tendsto_Lp_of_tendsto_in_measure μ hp hp' (λ n, (hf n).1) hg h.2 h.1,
   λ h, ⟨tendsto_in_measure_of_tendsto_snorm
     (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm
     (λ n, (hf n).ae_measurable)
-    hg.ae_measurable h, unif_integrable_of_tendsto_Lp μ hp hp' hf' hg' h⟩⟩
+    hg.ae_measurable h, unif_integrable_of_tendsto_Lp μ hp hp' hf hg h⟩⟩
 
 end unif_integrable
 

@@ -41,6 +41,7 @@ def ordinal.out (o : ordinal) : Well_order :=
 instance ordinal.has_well_founded' (o : ordinal) : has_well_founded o.out.α :=
 ⟨o.out.r, o.out.wo.wf⟩
 
+-- We can't declare a `linear_order` instance as before, as it would be noncomputable.
 instance ordinal.has_lt' (o : ordinal) : has_lt o.out.α :=
 ⟨o.out.r⟩
 

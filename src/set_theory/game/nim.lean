@@ -49,7 +49,8 @@ instance ordinal.has_well_order' (o : ordinal) : is_well_order o.out.α (<) :=
 o.out.wo
 
 /-- This is the same as `ordinal.type_lt` but defined to use `ordinal.out`. -/
-theorem ordinal.type_lt' : ∀ (o : ordinal), ordinal.type ((<) : o.out.α → o.out.α → Prop) = o := ordinal.type_lt
+theorem ordinal.type_lt' : ∀ (o : ordinal), ordinal.type ((<) : o.out.α → o.out.α → Prop) = o :=
+ordinal.type_lt
 
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
  take a positive number of stones from it on their turn. -/

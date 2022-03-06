@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Michael Howes
 -/
-import group_theory.general_commutator
+import group_theory.commutator
 import group_theory.quotient_group
 
 /-!
@@ -38,11 +38,11 @@ lemma commutator_def : commutator G = ⁅(⊤ : subgroup G), ⊤⁆ := rfl
 
 lemma commutator_eq_closure :
   commutator G = subgroup.closure {x | ∃ p q, p * q * p⁻¹ * q⁻¹ = x} :=
-by simp_rw [commutator, general_commutator_def, subgroup.mem_top, exists_true_left]
+by simp_rw [commutator, subgroup.commutator_def, subgroup.mem_top, exists_true_left]
 
 lemma commutator_eq_normal_closure :
   commutator G = subgroup.normal_closure {x | ∃ p q, p * q * p⁻¹ * q⁻¹ = x} :=
-by simp_rw [commutator, general_commutator_def', subgroup.mem_top, exists_true_left]
+by simp_rw [commutator, subgroup.commutator_def', subgroup.mem_top, exists_true_left]
 
 /-- The abelianization of G is the quotient of G by its commutator subgroup. -/
 def abelianization : Type u :=

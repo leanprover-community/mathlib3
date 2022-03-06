@@ -126,8 +126,8 @@ begin
   unfold fermat_pseudoprime,
   cases h,
   {
-    -- you'll have to use mul_two_power_part_odd_part somehow here
-    sorry,
+  rw
+  [← mul_two_power_part_odd_part (n - 1), mul_comm, pow_mul, h, one_pow],
   },
   {
     rcases h with ⟨r, hrlt, hpow⟩,
@@ -138,22 +138,36 @@ begin
 
 end
 
-lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : prime p)
+lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
 begin
   have one_lt_n : 1 < p^α,
   {
-    clear a,
+  clear a,
     -- if p is prime and α ≥ 1, then p^α should always be greater than 1, because p will be at
     -- least two. See if library search finds facts to tell you that p is at least two or that if
     -- you raise a ℕ to a power at least one, it gives a number at least as big.
-    sorry,
+  have pgeq2 : 2 ≤ p,
+  exact nat.prime.two_le hp,
+  --have thing1 : p ≤ p ^ 1,
+  --have thing2 : 2 ≤ p ^ α,
+  have waa : 1 ≤ p,
+  exact nat.le_of_succ_le pgeq2,
+  have thing3 : p ^ 1 ≤ p ^ α,
+  exact pow_mono waa hα,
+
+  /- clear hp,
+  induction p with n hi,
+  simp, -/
+  --rw pow_lt_pow_of_lt_left, why doesn't this work?
+  sorry,
+  sorry,
   },
   have zero_lt_n : 0 < p^α,
+  exact pos_of_gt one_lt_n,
   {
     clear a,
-    -- try to prove this using 0 < 1 and 1 < p^α
-    sorry,
+    exact pos_of_gt one_lt_n,
   },
   haveI : fact (0 < p ^ α),
   { exact {out := zero_lt_n}, },

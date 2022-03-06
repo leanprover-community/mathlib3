@@ -307,14 +307,22 @@ To use this attribute, just write:
 theorem mul_comm' {α} [comm_semigroup α] (x y : α) : x * y = y * x := comm_semigroup.mul_comm
 ```
 
-This code will generate a theorem named `add_comm'`.  It is also
-possible to manually specify the name of the new declaration, and
-provide a documentation string:
+This code will generate a theorem named `add_comm'`. It is also
+possible to manually specify the name of the new declaration:
 
 ```
-@[to_additive add_foo "add_foo doc string"]
-/-- foo doc string -/
+@[to_additive add_foo]
 theorem foo := sorry
+```
+
+An existing documentation string will _not_ be automatically used, so if the theorem or definition
+has a doc string, a doc string for the additive version should be passed explicitly to
+`to_additive`.
+
+```
+/-- Multiplication is commutative -/
+@[to_additive "Addition is commutative"]
+theorem mul_comm' {α} [comm_semigroup α] (x y : α) : x * y = y * x := comm_semigroup.mul_comm
 ```
 
 The transport tries to do the right thing in most cases using several

@@ -170,18 +170,18 @@ calc f a = ∏ i in {a}, f i : prod_singleton.symm
   prod_le_prod_of_subset_of_one_le' (singleton_subset_iff.2 h) $ λ i hi _, hf i hi
 
 @[to_additive]
-lemma prod_le_npow_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, f x ≤ n) :
+lemma prod_le_pow_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, f x ≤ n) :
   s.prod f ≤ n ^ s.card :=
 begin
-  refine (multiset.prod_le_npow_of_forall_le (s.val.map f) n _).trans _,
+  refine (multiset.prod_le_pow_of_forall_le (s.val.map f) n _).trans _,
   { simpa using h },
   { simpa }
 end
 
 @[to_additive]
-lemma npow_le_prod_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
+lemma pow_le_prod_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
   n ^ s.card ≤ s.prod f :=
-@finset.prod_le_npow_of_forall_le _ (order_dual N) _ _ _ _ h
+@finset.prod_le_pow_of_forall_le _ (order_dual N) _ _ _ _ h
 
 lemma card_bUnion_le_card_mul [decidable_eq β] (s : finset ι) (f : ι → finset β) (n : ℕ)
   (h : ∀ a ∈ s, (f a).card ≤ n) :

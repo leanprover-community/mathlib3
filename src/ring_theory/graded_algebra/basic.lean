@@ -179,9 +179,9 @@ begin
   { induction (graded_algebra.support 𝒜 a) using finset.induction_on with x s hx ih,
     { rwa finset.sum_empty },
     { rw finset.sum_insert hx,
-      exact h_add _ _ (h_hom ⟨(graded_algebra.decompose 𝒜 a x), ⟨x, submodule.coe_mem _⟩⟩) ih } },
+      exact h_add _ _ (h_hom (graded_algebra.decompose 𝒜 a x) ⟨x, submodule.coe_mem _⟩) ih } },
   rintros ⟨i, hi⟩,
-  exact h_hom ⟨(graded_algebra.decompose 𝒜 a i), ⟨i, submodule.coe_mem _⟩⟩,
+  exact h_hom (graded_algebra.decompose 𝒜 a i) ⟨i, submodule.coe_mem _⟩,
 end
 
 end homogeneous_induction

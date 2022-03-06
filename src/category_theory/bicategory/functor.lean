@@ -10,8 +10,8 @@ import category_theory.bicategory.basic
 
 An oplax functor `F` between bicategories `B` and `C` consists of
 * a function between objects `F.obj : B ⟶ C`,
-* a family of functions between 1-morphisms `F.map : (a ⟶ b) → (obj a ⟶ obj b)`,
-* a family of functions between 2-morphisms `F.map₂ : (f ⟶ g) → (map f ⟶ map g)`,
+* a family of functions between 1-morphisms `F.map : (a ⟶ b) → (F.obj a ⟶ F.obj b)`,
+* a family of functions between 2-morphisms `F.map₂ : (f ⟶ g) → (F.map f ⟶ F.map g)`,
 * a family of 2-morphisms `F.map_id a : F.map (𝟙 a) ⟶ 𝟙 (F.obj a)`,
 * a family of 2-morphisms `F.map_comp f g : F.map (f ≫ g) ⟶ F.map f ≫ F.map g`, and
 * certain consistency conditions on them.
@@ -25,12 +25,29 @@ several constructors for pseudofunctors:
 * `pseudofunctor.mk_of_oplax'` : similar to `mk_of_oplax`, but uses `is_iso` to describe
   isomorphisms.
 
+The additional constructors are useful when constructing a pseudofunctor where the construction
+of the oplax functor associated with it is already done. For example, the composition of
+pseudofunctors can be defined by using the composition of oplax functors as follows:
+```lean
+def pseudofunctor.comp (F : pseudofunctor B C) (G : pseudofunctor C D) : pseudofunctor B D :=
+mk_of_oplax ((F : oplax_functor B C).comp G)
+{ map_id_iso := λ a, (G.map_functor _ _).map_iso (F.map_id a) ≪≫ G.map_id (F.obj a),
+  map_comp_iso := λ a b c f g,
+    (G.map_functor _ _).map_iso (F.map_comp f g) ≪≫ G.map_comp (F.map f) (F.map g) }
+```
+although the composition of pseudofunctors in this file is defined by using the default constructor
+because `obviously` is smart enough. Similarly, the composition is also defined by using
+`mk_of_oplax'` after giving appropriate instances for `is_iso`. The former constructor
+`mk_of_oplax` requires isomorphisms as data type `iso`, and so it is useful if you don't want
+to forget the definitions of the inverses. On the other hand, the latter constructor
+`mk_of_oplax'` is useful if you want to use propositional type class `is_iso`.
+
 ## Main definitions
 
-* `oplax_functor B C` : an oplax functor between bicategories `B` and `C`
-* `oplax_functor.comp F G` : the composition of oplax functors
-* `pseudofunctor B C` : a pseudofunctor between bicategories `B` and `C`
-* `pseudofunctor.comp F G` : the composition of pseudofunctors
+* `category_theory.oplax_functor B C` : an oplax functor between bicategories `B` and `C`
+* `category_theory.oplax_functor.comp F G` : the composition of oplax functors
+* `category_theory.pseudofunctor B C` : a pseudofunctor between bicategories `B` and `C`
+* `category_theory.pseudofunctor.comp F G` : the composition of pseudofunctors
 
 ## Future work
 
@@ -49,14 +66,17 @@ open_locale bicategory
 universes w₁ w₂ w₃ v₁ v₂ v₃ u₁ u₂ u₃
 
 section
-variables (B : Type u₁) [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
-variables (C : Type u₂) [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
+variables {B : Type u₁} [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
+variables {C : Type u₂} [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)]
+variables {D : Type u₃} [quiver.{v₃+1} D] [∀ a b : D, quiver.{w₃+1} (a ⟶ b)]
 
 /--
 A prelax functor between bicategories consists of functions between objects,
 1-morphisms, and 2-morphisms. This structure will be extended to define `oplax_functor`.
 -/
-structure prelax_functor extends prefunctor B C :=
+structure prelax_functor
+  (B : Type u₁) [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)]
+  (C : Type u₂) [quiver.{v₂+1} C] [∀ a b : C, quiver.{w₂+1} (a ⟶ b)] extends prefunctor B C :=
 (map₂ {a b : B} {f g : a ⟶ b} : (f ⟶ g) → (map f ⟶ map g))
 
 /-- The prefunctor between the underlying quivers. -/
@@ -64,29 +84,24 @@ add_decl_doc prelax_functor.to_prefunctor
 
 namespace prelax_functor
 
-variables {B C} {D : Type u₃} [quiver.{v₃+1} D] [∀ a b : D, quiver.{w₃+1} (a ⟶ b)]
-variables (F : prelax_functor B C) (G : prelax_functor C D)
-
 instance has_coe_to_prefunctor : has_coe (prelax_functor B C) (prefunctor B C) := ⟨to_prefunctor⟩
+
+variables (F : prelax_functor B C)
 
 @[simp] lemma to_prefunctor_eq_coe : F.to_prefunctor = F := rfl
 @[simp] lemma to_prefunctor_obj : (F : prefunctor B C).obj = F.obj := rfl
 @[simp] lemma to_prefunctor_map : (F : prefunctor B C).map = F.map := rfl
 
-variables (B)
-
 /-- The identity prelax functor. -/
 @[simps]
-def id : prelax_functor B B :=
+def id (B : Type u₁) [quiver.{v₁+1} B] [∀ a b : B, quiver.{w₁+1} (a ⟶ b)] : prelax_functor B B :=
 { map₂ := λ a b f g η, η, .. prefunctor.id B }
 
 instance : inhabited (prelax_functor B B) := ⟨prelax_functor.id B⟩
 
-variables {B}
-
 /-- Composition of prelax functors. -/
 @[simps]
-def comp : prelax_functor B D :=
+def comp (F : prelax_functor B C) (G : prelax_functor C D) : prelax_functor B D :=
 { map₂ := λ a b f g η, G.map₂ (F.map₂ η), .. (F : prefunctor B C).comp ↑G }
 
 end prelax_functor
@@ -114,21 +129,20 @@ def oplax_functor.map₂_associator_aux
 map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) =
   map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ (map f) (map g) (map h)).hom
 
-variables (B C)
-
 /--
-An oplax functor `F` between bicategories `B` and `C` consists of functions between objects,
-1-morphisms, and 2-morphisms.
+An oplax functor `F` between bicategories `B` and `C` consists of a function between objects
+`F.obj`, a function between 1-morphisms `F.map`, and a function between 2-morphisms `F.map₂`.
 
-Unlike functors between categories, functions between 1-morphisms do not need to strictly commute
-with compositions, and do not need to strictly preserve the identity. Instead, there are
-specified 2-morphisms `F.map (𝟙 a) ⟶ 𝟙 (F.obj a)` and `F.map (f ≫ g) ⟶ F.map f ≫ F.map g`.
+Unlike functors between categories, `F.map` do not need to strictly commute with the composition,
+and do not need to strictly preserve the identity. Instead, there are specified 2-morphisms
+`F.map (𝟙 a) ⟶ 𝟙 (F.obj a)` and `F.map (f ≫ g) ⟶ F.map f ≫ F.map g`.
 
-Functions between 2-morphisms strictly commute with compositions and preserve the identity.
-They also preserve the associator, the left unitor, and the right unitor modulo some adjustments
-of domains and codomains of 2-morphisms.
+`F.map₂` strictly commute with compositions and preserve the identity. They also preserve the
+associator, the left unitor, and the right unitor modulo some adjustments of domains and codomains
+of 2-morphisms.
 -/
-structure oplax_functor extends prelax_functor B C :=
+structure oplax_functor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u₂) [bicategory.{w₂ v₂} C]
+  extends prelax_functor B C :=
 (map_id (a : B) : map (𝟙 a) ⟶ 𝟙 (obj a))
 (map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map (f ≫ g) ⟶ map f ≫ map g)
 (map_comp_naturality_left' : ∀ {a b c : B} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
@@ -146,8 +160,6 @@ structure oplax_functor extends prelax_functor B C :=
 (map₂_right_unitor' : ∀ {a b : B} (f : a ⟶ b),
   map₂ (ρ_ f).hom = map_comp f (𝟙 b) ≫ (map f ◁ map_id b) ≫ (ρ_ (map f)).hom . obviously)
 
-variables {B C}
-
 namespace oplax_functor
 
 restate_axiom map_comp_naturality_left'
@@ -164,7 +176,19 @@ attribute [reassoc]
 attribute [simp] map₂_comp map₂_left_unitor map₂_right_unitor
 
 section
-variables (F : oplax_functor B C) (G : oplax_functor C D)
+
+/-- The prelax functor between the underlying quivers. -/
+add_decl_doc oplax_functor.to_prelax_functor
+
+instance has_coe_to_prelax : has_coe (oplax_functor B C) (prelax_functor B C) :=
+⟨to_prelax_functor⟩
+
+variables (F : oplax_functor B C)
+
+@[simp] lemma to_prelax_eq_coe : F.to_prelax_functor = F := rfl
+@[simp] lemma to_prelax_functor_obj : (F : prelax_functor B C).obj = F.obj := rfl
+@[simp] lemma to_prelax_functor_map : (F : prelax_functor B C).map = F.map := rfl
+@[simp] lemma to_prelax_functor_map₂ : (F : prelax_functor B C).map₂ = F.map₂ := rfl
 
 /-- The prelax functor between the underlying quivers. -/
 add_decl_doc oplax_functor.to_prelax_functor
@@ -183,22 +207,18 @@ def map_functor (a b : B) : (a ⟶ b) ⥤ (F.obj a ⟶ F.obj b) :=
 { obj := λ f, F.map f,
   map := λ f g η, F.map₂ η }
 
-variables (B)
-
 /-- The identity oplax functor. -/
 @[simps]
-def id : oplax_functor B B :=
+def id (B : Type u₁) [bicategory.{w₁ v₁} B] : oplax_functor B B :=
 { map_id := λ a, 𝟙 (𝟙 a),
   map_comp := λ a b c f g, 𝟙 (f ≫ g),
   .. prelax_functor.id B }
 
 instance : inhabited (oplax_functor B B) := ⟨id B⟩
 
-variables {B}
-
 /-- Composition of oplax functors. -/
 @[simps]
-def comp : oplax_functor B D :=
+def comp (F : oplax_functor B C) (G : oplax_functor C D) : oplax_functor B D :=
 { map_id := λ a,
     (G.map_functor _ _).map (F.map_id a) ≫ G.map_id (F.obj a),
   map_comp := λ a b c f g,
@@ -228,11 +248,11 @@ def comp : oplax_functor B D :=
   .. (F : prelax_functor B C).comp ↑G }
 
 /--
-A structure on an oplax functor that promotes an oprax functors to a pseudofunctor.
+A structure on an oplax functor that promotes an oplax functor to a pseudofunctor.
 See `pseudofunctor.mk_of_oplax`.
 -/
 @[nolint has_inhabited_instance]
-structure pseudo_core :=
+structure pseudo_core (F : oplax_functor B C) :=
 (map_id_iso (a : B) : F.map (𝟙 a) ≅ 𝟙 (F.obj a))
 (map_comp_iso {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : F.map (f ≫ g) ≅ F.map f ≫ F.map g)
 (map_id_iso_hom' : ∀ {a : B}, (map_id_iso a).hom = F.map_id a . obviously)
@@ -248,11 +268,12 @@ end
 end oplax_functor
 
 /--
-The auxiliary definition that claims that pseudofunctors preserve the associators
-modulo some adjustments of domains and codomains of 2-morphisms. -/
+This auxiliary definition states that pseudofunctors preserve the associators
+modulo some adjustments of domains and codomains of 2-morphisms.
+-/
 /-
-The reason for using this auxiliary definition instead of writing it directly in the definition
-of pseudofunctors is that doing so will cause a timeout.
+We use this auxiliary definition instead of writing it directly in the definition
+of pseudofunctors because doing so will cause a timeout.
 -/
 @[simp]
 def pseudofunctor.map₂_associator_aux
@@ -263,21 +284,20 @@ def pseudofunctor.map₂_associator_aux
 map₂ (α_ f g h).hom = (map_comp (f ≫ g) h).hom ≫ ((map_comp f g).hom ▷ map h) ≫
   (α_ (map f) (map g) (map h)).hom ≫ (map f ◁ (map_comp g h).inv) ≫ (map_comp f (g ≫ h)).inv
 
-variables (B C)
-
 /--
-A pseudofunctors `F` between bicategories `B` and `C` consists of functions between objects,
-1-morphisms, and 2-morphisms.
+A pseudofunctor `F` between bicategories `B` and `C` consists of a function between objects
+`F.obj`, a function between 1-morphisms `F.map`, and a function between 2-morphisms `F.map₂`.
 
-Unlike functors between categories, functions between 1-morphisms do not need to strictly commute
-with compositions, and do not need to strictly preserve the identity. Instead, there are
-specified 2-isomorphisms `F.map (𝟙 a) ≅ 𝟙 (F.obj a)` and `F.map (f ≫ g) ≅ F.map f ≫ F.map g`.
+Unlike functors between categories, `F.map` do not need to strictly commute with the compositions,
+and do not need to strictly preserve the identity. Instead, there are specified 2-isomorphisms
+`F.map (𝟙 a) ≅ 𝟙 (F.obj a)` and `F.map (f ≫ g) ≅ F.map f ≫ F.map g`.
 
-Functions between 2-morphisms strictly commute with compositions and preserve the identity.
-They also preserve the associator, the left unitor, and the right unitor modulo some adjustments
-of domains and codomains of 2-morphisms.
+`F.map₂` strictly commute with compositions and preserve the identity. They also preserve the
+associator, the left unitor, and the right unitor modulo some adjustments of domains and codomains
+of 2-morphisms.
 -/
-structure pseudofunctor extends prelax_functor B C :=
+structure pseudofunctor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u₂) [bicategory.{w₂ v₂} C]
+  extends prelax_functor B C :=
 (map_id (a : B) : map (𝟙 a) ≅ 𝟙 (obj a))
 (map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map (f ≫ g) ≅ map f ≫ map g)
 (map₂_id' : ∀ {a b : B} (f : a ⟶ b), map₂ (𝟙 f) = 𝟙 (map f) . obviously)
@@ -297,8 +317,6 @@ structure pseudofunctor extends prelax_functor B C :=
   map₂ (ρ_ f).hom = (map_comp f (𝟙 b)).hom ≫ (map f ◁ (map_id b).hom) ≫ (ρ_ (map f)).hom
     . obviously)
 
-variables {B C}
-
 namespace pseudofunctor
 
 restate_axiom map₂_id'
@@ -315,8 +333,6 @@ attribute [simp]
   map₂_associator map₂_left_unitor map₂_right_unitor
 
 section
-variables (F : pseudofunctor B C) (G : pseudofunctor C D)
-
 open iso
 
 /-- The prelax functor between the underlying quivers. -/
@@ -324,6 +340,8 @@ add_decl_doc pseudofunctor.to_prelax_functor
 
 instance has_coe_to_prelax_functor : has_coe (pseudofunctor B C) (prelax_functor B C) :=
 ⟨to_prelax_functor⟩
+
+variables (F : pseudofunctor B C)
 
 @[simp] lemma to_prelax_functor_eq_coe : F.to_prelax_functor = F := rfl
 @[simp] lemma to_prelax_functor_obj : (F : prelax_functor B C).obj = F.obj := rfl
@@ -351,22 +369,18 @@ instance has_coe_to_oplax : has_coe (pseudofunctor B C) (oplax_functor B C) := �
 def map_functor (a b : B) : (a ⟶ b) ⥤ (F.obj a ⟶ F.obj b) :=
 (F : oplax_functor B C).map_functor a b
 
-variables (B)
-
 /-- The identity pseudofunctor. -/
 @[simps]
-def id : pseudofunctor B B :=
+def id (B : Type u₁) [bicategory.{w₁ v₁} B] : pseudofunctor B B :=
 { map_id := λ a, iso.refl (𝟙 a),
   map_comp := λ a b c f g, iso.refl (f ≫ g),
   .. prelax_functor.id B }
 
 instance : inhabited (pseudofunctor B B) := ⟨id B⟩
 
-variables {B}
-
 /-- Composition of pseudofunctors. -/
 @[simps]
-def comp : pseudofunctor B D :=
+def comp (F : pseudofunctor B C) (G : pseudofunctor C D) : pseudofunctor B D :=
 { map_id := λ a, (G.map_functor _ _).map_iso (F.map_id a) ≪≫ G.map_id (F.obj a),
   map_comp := λ a b c f g,
     (G.map_functor _ _).map_iso (F.map_comp f g) ≪≫ G.map_comp (F.map f) (F.map g),
@@ -379,14 +393,14 @@ Construct a pseudofunctor from an oplax functor whose `map_id` and `map_comp` ar
 def mk_of_oplax (F : oplax_functor B C) (F' : F.pseudo_core) : pseudofunctor B C :=
 { map_id := F'.map_id_iso,
   map_comp := F'.map_comp_iso,
-  map₂_whisker_right' := λ a b c f g η h, by
-  { dsimp,
-    rw [F'.map_comp_iso_hom f h, ←F.map_comp_naturality_left_assoc,
-      ←F'.map_comp_iso_hom g h, hom_inv_id, comp_id] },
   map₂_whisker_left' := λ a b c f g h η, by
   { dsimp,
     rw [F'.map_comp_iso_hom f g, ←F.map_comp_naturality_right_assoc,
       ←F'.map_comp_iso_hom f h, hom_inv_id, comp_id] },
+  map₂_whisker_right' := λ a b c f g η h, by
+  { dsimp,
+    rw [F'.map_comp_iso_hom f h, ←F.map_comp_naturality_left_assoc,
+      ←F'.map_comp_iso_hom g h, hom_inv_id, comp_id] },
   map₂_associator' := λ a b c d f g h, by
   { dsimp,
     rw [F'.map_comp_iso_hom (f ≫ g) h, F'.map_comp_iso_hom f g, ←F.map₂_associator_assoc,
@@ -399,17 +413,17 @@ Construct a pseudofunctor from an oplax functor whose `map_id` and `map_comp` ar
 -/
 @[simps]
 noncomputable
-def mk_of_oplax' {F : oplax_functor B C}
+def mk_of_oplax' (F : oplax_functor B C)
   [∀ a, is_iso (F.map_id a)] [∀ {a b c} (f : a ⟶ b) (g : b ⟶ c), is_iso (F.map_comp f g)] :
   pseudofunctor B C :=
 { map_id := λ a, as_iso (F.map_id a),
   map_comp := λ a b c f g, as_iso (F.map_comp f g),
-  map₂_whisker_right' := λ a b c f g η h, by
-  { dsimp,
-    rw [←assoc, is_iso.eq_comp_inv, F.map_comp_naturality_left] },
   map₂_whisker_left' := λ a b c f g h η, by
   { dsimp,
     rw [←assoc, is_iso.eq_comp_inv, F.map_comp_naturality_right] },
+  map₂_whisker_right' := λ a b c f g η h, by
+  { dsimp,
+    rw [←assoc, is_iso.eq_comp_inv, F.map_comp_naturality_left] },
   map₂_associator' := λ a b c d f g h, by
   { dsimp,
     simp only [←assoc],

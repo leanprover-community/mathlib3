@@ -165,6 +165,23 @@ begin
 end
 
 
+/-! ### Cases without any arguments provided -/
+
+-- the corner case is "just apply the normalization procedure"
+example {x y z w : ℤ} (h₁ : 3 * x = 4 + y) (h₂ : x + 2 * y = 1) : z + w = w + z :=
+by linear_combination
+
+-- this interacts as expected with options
+example {x y z w : ℤ} (h₁ : 3 * x = 4 + y) (h₂ : x + 2 * y = 1) : z + w = w + z :=
+begin
+  linear_combination {normalize := ff},
+  guard_target' z + w - (w + z) = 0 - 0,
+  simp [add_comm]
+end
+
+example {x y z w : ℤ} (h₁ : 3 * x = 4 + y) (h₂ : x + 2 * y = 1) : z + w = w + z :=
+by linear_combination {normalization_tactic := `[simp [add_comm]]}
+
 /-! ### Cases that should fail -/
 
 -- This should fail because there are no hypotheses given
@@ -214,4 +231,11 @@ example (a b : ℕ) (h1 : a = 3) :
 begin
   success_if_fail {linear_combination (h1, (1 : ℕ))},
   exact h1
+end
+
+example (a b : ℤ) (x y : ℝ) (hab : a = b) (hxy : x = y) : 2*x = 2*y :=
+begin
+  success_if_fail_with_msg {linear_combination (hab, 2)}
+    "hab is an equality between terms of type ℤ, but is expected to be between terms of type ℝ",
+  linear_combination (hxy, 2)
 end

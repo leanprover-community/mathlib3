@@ -382,7 +382,7 @@ begin
     rw [sup_right_idem, sup_assoc, inf_assoc],
     nth_rewrite 3 inf_comm,
     rw [inf_right_idem, inf_assoc], }
-  ... = (b ⊔ a ⊔ c) * ((b ⊔ a) ⊓ c) /(((b ⊓ a) ⊔ c) * (b ⊓ a ⊓ c)) : by rw div_mul_comm
+  ... = (b ⊔ a ⊔ c) * ((b ⊔ a) ⊓ c) /(((b ⊓ a) ⊔ c) * (b ⊓ a ⊓ c)) : by rw div_mul_div_comm
   ... = (b ⊔ a) * c / ((b ⊓ a) * c) :
     by rw [mul_comm, inf_mul_sup, mul_comm (b ⊓ a ⊔ c), inf_mul_sup]
   ... = (b ⊔ a) / (b ⊓ a) : by rw [div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_inv_cancel_left,

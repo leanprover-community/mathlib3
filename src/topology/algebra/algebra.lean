@@ -89,6 +89,12 @@ lemma subalgebra.topological_closure_minimal
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
+/-- If a subalgebra of a topological algebra is commutative, then so is its topological closure. -/
+def subalgebra.comm_semiring_topological_closure [t2_space A] (s : subalgebra R A)
+  (hs : ∀ (x y : s), x * y = y * x) : comm_semiring s.topological_closure :=
+{ ..s.topological_closure.to_semiring,
+  ..s.to_submonoid.comm_monoid_topological_closure hs }
+
 /--
 This is really a statement about topological algebra isomorphisms,
 but we don't have those, so we use the clunky approach of talking about
@@ -109,3 +115,17 @@ begin
 end
 
 end topological_algebra
+
+section ring
+variables {R : Type*} [comm_ring R]
+variables {A : Type u} [topological_space A]
+variables [ring A]
+variables [algebra R A] [topological_ring A]
+
+/-- If a subalgebra of a topological algebra is commutative, then so is its topological closure. -/
+def subalgebra.comm_ring_topological_closure [t2_space A] (s : subalgebra R A)
+  (hs : ∀ (x y : s), x * y = y * x) : comm_ring s.topological_closure :=
+{ ..s.topological_closure.to_ring,
+  ..s.to_submonoid.comm_monoid_topological_closure hs }
+
+end ring

@@ -70,16 +70,16 @@ lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 lemma _root_.finset.range_eq_Ico : range = Ico 0 := Ico_zero_eq_range.symm
 
 @[simp] lemma card_Icc : (Icc a b).card = b + 1 - a :=
-by rw [Icc_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
+by rw [Icc_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
 
 @[simp] lemma card_Ico : (Ico a b).card = b - a :=
-by rw [Ico_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
+by rw [Ico_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
 
 @[simp] lemma card_Ioc : (Ioc a b).card = b - a :=
-by rw [Ioc_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
+by rw [Ioc_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
 
 @[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 :=
-by rw [Ioo_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
+by rw [Ioo_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
 
 @[simp] lemma card_Iic : (Iic b).card = b + 1 := by rw [Iic, card_Icc, bot_eq_zero, tsub_zero]
 @[simp] lemma card_Iio : (Iio b).card = b := by rw [Iio, card_Ico, bot_eq_zero, tsub_zero]
@@ -233,7 +233,7 @@ open multiset
 lemma multiset_Ico_map_mod (n a : ℕ) : (multiset.Ico n (n+a)).map (% a) = range a :=
 begin
   convert congr_arg finset.val (image_Ico_mod n a),
-  refine ((nodup_map_iff_inj_on (finset.Ico _ _).nodup).2 $ _).erase_dup.symm,
+  refine ((nodup_map_iff_inj_on (finset.Ico _ _).nodup).2 $ _).dedup.symm,
   exact mod_inj_on_Ico _ _,
 end
 

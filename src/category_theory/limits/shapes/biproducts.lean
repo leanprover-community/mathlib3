@@ -3,6 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.group.ext
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
@@ -52,7 +53,9 @@ universes v u
 open category_theory
 open category_theory.functor
 
-namespace category_theory.limits
+namespace category_theory
+
+namespace limits
 
 variables {J : Type v} [decidable_eq J]
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C]
@@ -70,10 +73,11 @@ structure bicone (F : J → C) :=
 (ι : Π j, F j ⟶ X)
 (ι_π : ∀ j j', ι j ≫ π j' = if h : j = j' then eq_to_hom (congr_arg F h) else 0)
 
-@[simp] lemma bicone_ι_π_self {F : J → C} (B : bicone F) (j : J) : B.ι j ≫ B.π j = 𝟙 (F j) :=
+@[simp, reassoc] lemma bicone_ι_π_self {F : J → C} (B : bicone F) (j : J) :
+  B.ι j ≫ B.π j = 𝟙 (F j) :=
 by simpa using B.ι_π j j
 
-@[simp] lemma bicone_ι_π_ne {F : J → C} (B : bicone F) {j j' : J} (h : j ≠ j') :
+@[simp, reassoc] lemma bicone_ι_π_ne {F : J → C} (B : bicone F) {j j' : J} (h : j ≠ j') :
   B.ι j ≫ B.π j' = 0 :=
 by simpa [h] using B.ι_π j j'
 
@@ -92,6 +96,38 @@ def to_cocone (B : bicone F) : cocone (discrete.functor F) :=
 { X := B.X,
   ι := { app := λ j, B.ι j }, }
 
+/-- We can turn any limit cone over a discrete collection of objects into a bicone. -/
+@[simps]
+def of_limit_cone {f : J → C} {t : cone (discrete.functor f)} (ht : is_limit t) :
+  bicone f :=
+{ X := t.X,
+  π := t.π.app,
+  ι := λ j, ht.lift (fan.mk _ (λ j', if h : j = j' then eq_to_hom (congr_arg f h) else 0)),
+  ι_π := λ j j', by simp }
+
+lemma ι_of_is_limit {f : J → C} {t : bicone f} (ht : is_limit t.to_cone) (j : J) :
+  t.ι j = ht.lift (fan.mk _ (λ j', if h : j = j' then eq_to_hom (congr_arg f h) else 0)) :=
+ht.hom_ext (λ j', by { rw ht.fac, simp [t.ι_π] })
+
+/-- We can turn any colimit cocone over a discrete collection of objects into a bicone. -/
+@[simps]
+def of_colimit_cocone {f : J → C} {t : cocone (discrete.functor f)} (ht : is_colimit t) :
+  bicone f :=
+{ X := t.X,
+  π := λ j, ht.desc (cofan.mk _ (λ j', if h : j' = j then eq_to_hom (congr_arg f h) else 0)),
+  ι := t.ι.app,
+  ι_π := λ j j', by simp }
+
+lemma π_of_is_colimit {f : J → C} {t : bicone f} (ht : is_colimit t.to_cocone) (j : J) :
+  t.π j = ht.desc (cofan.mk _ (λ j', if h : j' = j then eq_to_hom (congr_arg f h) else 0)) :=
+ht.hom_ext (λ j', by { rw ht.fac, simp [t.ι_π] })
+
+/-- Structure witnessing that a bicone is both a limit cone and a colimit cocone. -/
+@[nolint has_inhabited_instance]
+structure is_bilimit {F : J → C} (B : bicone F) :=
+(is_limit : is_limit B.to_cone)
+(is_colimit : is_colimit B.to_cocone)
+
 end bicone
 
 /--
@@ -100,8 +136,7 @@ A bicone over `F : J → C`, which is both a limit cone and a colimit cocone.
 @[nolint has_inhabited_instance]
 structure limit_bicone (F : J → C) :=
 (bicone : bicone F)
-(is_limit : is_limit bicone.to_cone)
-(is_colimit : is_colimit bicone.to_cocone)
+(is_bilimit : bicone.is_bilimit)
 
 /--
 `has_biproduct F` expresses the mere existence of a bicone which is
@@ -121,14 +156,18 @@ classical.choice has_biproduct.exists_biproduct
 def biproduct.bicone (F : J → C) [has_biproduct F] : bicone F :=
 (get_biproduct_data F).bicone
 
+/-- `biproduct.bicone F` is a bilimit bicone. -/
+def biproduct.is_bilimit (F : J → C) [has_biproduct F] : (biproduct.bicone F).is_bilimit :=
+(get_biproduct_data F).is_bilimit
+
 /-- `biproduct.bicone F` is a limit cone. -/
 def biproduct.is_limit (F : J → C) [has_biproduct F] : is_limit (biproduct.bicone F).to_cone :=
-(get_biproduct_data F).is_limit
+(get_biproduct_data F).is_bilimit.is_limit
 
 /-- `biproduct.bicone F` is a colimit cocone. -/
 def biproduct.is_colimit (F : J → C) [has_biproduct F] :
   is_colimit (biproduct.bicone F).to_cocone :=
-(get_biproduct_data F).is_colimit
+(get_biproduct_data F).is_bilimit.is_colimit
 
 @[priority 100]
 instance has_product_of_has_biproduct [has_biproduct F] : has_limit (discrete.functor F) :=
@@ -181,9 +220,9 @@ def biproduct_iso (F : J → C) [has_biproduct F] :
 (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (biproduct.is_limit F)).trans $
   is_colimit.cocone_point_unique_up_to_iso (biproduct.is_colimit F) (colimit.is_colimit _)
 
-end category_theory.limits
+end limits
 
-namespace category_theory.limits
+namespace limits
 variables {J : Type v} [decidable_eq J]
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C]
 
@@ -369,7 +408,35 @@ instance biproduct.π_epi (f : J → C) [has_biproduct f]
 { section_ := biproduct.lift $
     λ b', if h : b = b' then eq_to_hom (congr_arg f h) else biproduct.ι f b ≫ biproduct.π f b' }
 
-variables {C}
+/-- Auxiliary lemma for `biproduct.unique_up_to_iso`. -/
+lemma biproduct.cone_point_unique_up_to_iso_hom (f : J → C) [has_biproduct f] {b : bicone f}
+  (hb : b.is_bilimit) :
+  (hb.is_limit.cone_point_unique_up_to_iso (biproduct.is_limit _)).hom = biproduct.lift b.π :=
+rfl
+
+/-- Auxiliary lemma for `biproduct.unique_up_to_iso`. -/
+lemma biproduct.cone_point_unique_up_to_iso_inv (f : J → C) [has_biproduct f] {b : bicone f}
+  (hb : b.is_bilimit) :
+  (hb.is_limit.cone_point_unique_up_to_iso (biproduct.is_limit _)).inv = biproduct.desc b.ι :=
+begin
+  refine biproduct.hom_ext' _ _ (λ j, hb.is_limit.hom_ext (λ j', _)),
+  rw [category.assoc, is_limit.cone_point_unique_up_to_iso_inv_comp, bicone.to_cone_π_app,
+    biproduct.bicone_π, biproduct.ι_desc, biproduct.ι_π, b.to_cone_π_app, b.ι_π]
+end
+
+/-- Biproducts are unique up to isomorphism. This already follows because bilimits are limits,
+    but in the case of biproducts we can give an isomorphism with particularly nice definitional
+    properties, namely that `biproduct.lift b.π` and `biproduct.desc b.ι` are inverses of each
+    other. -/
+@[simps]
+def biproduct.unique_up_to_iso (f : J → C) [has_biproduct f] {b : bicone f} (hb : b.is_bilimit) :
+  b.X ≅ ⨁ f :=
+{ hom := biproduct.lift b.π,
+  inv := biproduct.desc b.ι,
+  hom_inv_id' := by rw [← biproduct.cone_point_unique_up_to_iso_hom f hb,
+    ← biproduct.cone_point_unique_up_to_iso_inv f hb, iso.hom_inv_id],
+  inv_hom_id' := by rw [← biproduct.cone_point_unique_up_to_iso_hom f hb,
+    ← biproduct.cone_point_unique_up_to_iso_inv f hb, iso.inv_hom_id] }
 
 /--
 A binary bicone for a pair of objects `P Q : C` consists of the cone point `X`,
@@ -412,6 +479,10 @@ lemma to_cone_π_app_left (c : binary_bicone P Q) :
 @[simp]
 lemma to_cone_π_app_right (c : binary_bicone P Q) :
   c.to_cone.π.app (walking_pair.right) = c.snd := rfl
+@[simp]
+lemma binary_fan_fst_to_cone (c : binary_bicone P Q) : binary_fan.fst c.to_cone = c.fst := rfl
+@[simp]
+lemma binary_fan_snd_to_cone (c : binary_bicone P Q) : binary_fan.snd c.to_cone = c.snd := rfl
 
 /-- Extract the cocone from a binary bicone. -/
 def to_cocone (c : binary_bicone P Q) : cocone (pair P Q) :=
@@ -427,6 +498,31 @@ lemma to_cocone_ι_app_left (c : binary_bicone P Q) :
 @[simp]
 lemma to_cocone_ι_app_right (c : binary_bicone P Q) :
   c.to_cocone.ι.app (walking_pair.right) = c.inr := rfl
+@[simp]
+lemma binary_cofan_inl_to_cocone (c : binary_bicone P Q) : binary_cofan.inl c.to_cocone = c.inl :=
+rfl
+@[simp]
+lemma binary_cofan_inr_to_cocone (c : binary_bicone P Q) : binary_cofan.inr c.to_cocone = c.inr :=
+rfl
+
+/-- Convert a `binary_bicone` into a `bicone` over a pair. -/
+@[simps]
+def to_bicone {X Y : C} (b : binary_bicone X Y) : bicone (pair X Y).obj :=
+{ X := b.X,
+  π := λ j, walking_pair.cases_on j b.fst b.snd,
+  ι := λ j, walking_pair.cases_on j b.inl b.inr,
+  ι_π := λ j j', by { cases j; cases j', tidy } }
+
+/-- A binary bicone is a limit cone if and only if the corresponding bicone is a limit cone. -/
+def to_bicone_is_limit {X Y : C} (b : binary_bicone X Y) :
+  is_limit (b.to_bicone.to_cone) ≃ is_limit (b.to_cone) :=
+is_limit.equiv_iso_limit $ cones.ext (iso.refl _) (λ j, by { cases j, tidy })
+
+/-- A binary bicone is a colimit cocone if and only if the corresponding bicone is a colimit
+    cocone. -/
+def to_bicone_is_colimit {X Y : C} (b : binary_bicone X Y) :
+  is_colimit (b.to_bicone.to_cocone) ≃ is_colimit (b.to_cocone) :=
+is_colimit.equiv_iso_colimit $ cocones.ext (iso.refl _) (λ j, by { cases j, tidy })
 
 end binary_bicone
 
@@ -445,41 +541,44 @@ def to_binary_bicone {X Y : C} (b : bicone (pair X Y).obj) : binary_bicone X Y :
   inl_snd' := by simp [bicone.ι_π],
   inr_snd' := by { simp [bicone.ι_π], refl, }, }
 
-/--
-If the cone obtained from a bicone over `pair X Y` is a limit cone,
-so is the cone obtained by converting that bicone to a binary_bicone, then to a cone.
--/
-def to_binary_bicone_is_limit {X Y : C} {b : bicone (pair X Y).obj}
-  (c : is_limit (b.to_cone)) :
-  is_limit (b.to_binary_bicone.to_cone) :=
-{ lift := λ s, c.lift s,
-   fac' := λ s j, by { cases j; erw c.fac, },
-   uniq' := λ s m w,
-   begin
-     apply c.uniq s,
-     rintro (⟨⟩|⟨⟩),
-     exact w walking_pair.left,
-     exact w walking_pair.right,
-   end, }
+/-- A bicone over a pair is a limit cone if and only if the corresponding binary bicone is a limit
+    cone.  -/
+def to_binary_bicone_is_limit {X Y : C} (b : bicone (pair X Y).obj) :
+  is_limit (b.to_binary_bicone.to_cone) ≃ is_limit (b.to_cone) :=
+is_limit.equiv_iso_limit $ cones.ext (iso.refl _) (λ j, by { cases j, tidy })
 
-/--
-If the cocone obtained from a bicone over `pair X Y` is a colimit cocone,
-so is the cocone obtained by converting that bicone to a binary_bicone, then to a cocone.
--/
-def to_binary_bicone_is_colimit {X Y : C} {b : bicone (pair X Y).obj}
-  (c : is_colimit (b.to_cocone)) :
-  is_colimit (b.to_binary_bicone.to_cocone) :=
-{ desc := λ s, c.desc s,
-   fac' := λ s j, by { cases j; erw c.fac, },
-   uniq' := λ s m w,
-   begin
-     apply c.uniq s,
-     rintro (⟨⟩|⟨⟩),
-     exact w walking_pair.left,
-     exact w walking_pair.right,
-   end, }
+/-- A bicone over a pair is a colimit cocone if and only if the corresponding binary bicone is a
+    colimit cocone. -/
+def to_binary_bicone_is_colimit {X Y : C} (b : bicone (pair X Y).obj) :
+  is_colimit (b.to_binary_bicone.to_cocone) ≃ is_colimit (b.to_cocone) :=
+is_colimit.equiv_iso_colimit $ cocones.ext (iso.refl _) (λ j, by { cases j, tidy })
 
 end bicone
+
+/-- Structure witnessing that a binary bicone is a limit cone and a limit cocone. -/
+@[nolint has_inhabited_instance]
+structure binary_bicone.is_bilimit {P Q : C} (b : binary_bicone P Q) :=
+(is_limit : is_limit b.to_cone)
+(is_colimit : is_colimit b.to_cocone)
+
+/-- A binary bicone is a bilimit bicone if and only if the corresponding bicone is a bilimit. -/
+def binary_bicone.to_bicone_is_bilimit {X Y : C} (b : binary_bicone X Y) :
+  b.to_bicone.is_bilimit ≃ b.is_bilimit :=
+{ to_fun := λ h, ⟨b.to_bicone_is_limit h.is_limit, b.to_bicone_is_colimit h.is_colimit⟩,
+  inv_fun := λ h, ⟨b.to_bicone_is_limit.symm h.is_limit, b.to_bicone_is_colimit.symm h.is_colimit⟩,
+  left_inv := λ ⟨h, h'⟩, by { dsimp only, simp },
+  right_inv := λ ⟨h, h'⟩, by { dsimp only, simp } }
+
+/-- A bicone over a pair is a bilimit bicone if and only if the corresponding binary bicone is a
+    bilimit. -/
+def bicone.to_binary_bicone_is_bilimit {X Y : C} (b : bicone (pair X Y).obj) :
+  b.to_binary_bicone.is_bilimit ≃ b.is_bilimit :=
+{ to_fun := λ h, ⟨b.to_binary_bicone_is_limit h.is_limit,
+    b.to_binary_bicone_is_colimit h.is_colimit⟩,
+  inv_fun := λ h, ⟨b.to_binary_bicone_is_limit.symm h.is_limit,
+    b.to_binary_bicone_is_colimit.symm h.is_colimit⟩,
+  left_inv := λ ⟨h, h'⟩, by { dsimp only, simp },
+  right_inv := λ ⟨h, h'⟩, by { dsimp only, simp } }
 
 /--
 A bicone over `P Q : C`, which is both a limit cone and a colimit cocone.
@@ -487,8 +586,7 @@ A bicone over `P Q : C`, which is both a limit cone and a colimit cocone.
 @[nolint has_inhabited_instance]
 structure binary_biproduct_data (P Q : C) :=
 (bicone : binary_bicone P Q)
-(is_limit : is_limit bicone.to_cone)
-(is_colimit : is_colimit bicone.to_cocone)
+(is_bilimit : bicone.is_bilimit)
 
 /--
 `has_binary_biproduct P Q` expresses the mere existence of a bicone which is
@@ -511,15 +609,20 @@ classical.choice has_binary_biproduct.exists_binary_biproduct
 def binary_biproduct.bicone (P Q : C) [has_binary_biproduct P Q] : binary_bicone P Q :=
 (get_binary_biproduct_data P Q).bicone
 
+/-- `binary_biproduct.bicone P Q` is a limit bicone. -/
+def binary_biproduct.is_bilimit (P Q : C) [has_binary_biproduct P Q] :
+  (binary_biproduct.bicone P Q).is_bilimit :=
+(get_binary_biproduct_data P Q).is_bilimit
+
 /-- `binary_biproduct.bicone P Q` is a limit cone. -/
 def binary_biproduct.is_limit (P Q : C) [has_binary_biproduct P Q] :
   is_limit (binary_biproduct.bicone P Q).to_cone :=
-(get_binary_biproduct_data P Q).is_limit
+(get_binary_biproduct_data P Q).is_bilimit.is_limit
 
 /-- `binary_biproduct.bicone P Q` is a colimit cocone. -/
 def binary_biproduct.is_colimit (P Q : C) [has_binary_biproduct P Q] :
   is_colimit (binary_biproduct.bicone P Q).to_cocone :=
-(get_binary_biproduct_data P Q).is_colimit
+(get_binary_biproduct_data P Q).is_bilimit.is_colimit
 
 section
 variable (C)
@@ -543,8 +646,7 @@ lemma has_binary_biproducts_of_finite_biproducts [has_finite_biproducts C] :
   has_binary_biproducts C :=
 { has_binary_biproduct := λ P Q, has_binary_biproduct.mk
   { bicone := (biproduct.bicone (pair P Q).obj).to_binary_bicone,
-    is_limit := bicone.to_binary_bicone_is_limit (biproduct.is_limit _),
-    is_colimit := bicone.to_binary_bicone_is_colimit (biproduct.is_colimit _) } }
+    is_bilimit := (bicone.to_binary_bicone_is_bilimit _).symm (biproduct.is_bilimit _) } }
 
 end
 
@@ -771,6 +873,39 @@ def biprod.map_iso {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduc
 { hom := biprod.map f.hom g.hom,
   inv := biprod.map f.inv g.inv }
 
+/-- Auxiliary lemma for `biprod.unique_up_to_iso`. -/
+lemma biprod.cone_point_unique_up_to_iso_hom (X Y : C) [has_binary_biproduct X Y]
+  {b : binary_bicone X Y} (hb : b.is_bilimit) :
+  (hb.is_limit.cone_point_unique_up_to_iso (binary_biproduct.is_limit _ _)).hom
+    = biprod.lift b.fst b.snd :=
+rfl
+
+/-- Auxiliary lemma for `biprod.unique_up_to_iso`. -/
+lemma biprod.cone_point_unique_up_to_iso_inv (X Y : C) [has_binary_biproduct X Y]
+  {b : binary_bicone X Y} (hb : b.is_bilimit) :
+  (hb.is_limit.cone_point_unique_up_to_iso (binary_biproduct.is_limit _ _)).inv
+    = biprod.desc b.inl b.inr :=
+begin
+  refine biprod.hom_ext' _ _ (hb.is_limit.hom_ext (λ j, _)) (hb.is_limit.hom_ext (λ j, _)),
+  all_goals { simp only [category.assoc, is_limit.cone_point_unique_up_to_iso_inv_comp],
+    cases j },
+  all_goals { simp }
+end
+
+/-- Binary biproducts are unique up to isomorphism. This already follows because bilimits are
+    limits, but in the case of biproducts we can give an isomorphism with particularly nice
+    definitional properties, namely that `biprod.lift b.fst b.snd` and `biprod.desc b.inl b.inr`
+    are inverses of each other. -/
+@[simps]
+def biprod.unique_up_to_iso (X Y : C) [has_binary_biproduct X Y] {b : binary_bicone X Y}
+  (hb : b.is_bilimit) : b.X ≅ X ⊞ Y :=
+{ hom := biprod.lift b.fst b.snd,
+  inv := biprod.desc b.inl b.inr,
+  hom_inv_id' := by rw [← biprod.cone_point_unique_up_to_iso_hom X Y hb,
+    ← biprod.cone_point_unique_up_to_iso_inv X Y hb, iso.hom_inv_id],
+  inv_hom_id' := by rw [← biprod.cone_point_unique_up_to_iso_hom X Y hb,
+    ← biprod.cone_point_unique_up_to_iso_inv X Y hb, iso.inv_hom_id] }
+
 section
 variables [has_binary_biproducts C]
 
@@ -816,9 +951,9 @@ end
 -- If someone is interested, they could provide the constructions:
 --   has_binary_biproducts ↔ has_finite_biproducts
 
-end category_theory.limits
+end limits
 
-namespace category_theory.limits
+namespace limits
 
 section preadditive
 variables {C : Type u} [category.{v} C] [preadditive C]
@@ -833,11 +968,9 @@ any bicone `b` for `f` satisfying `total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b
 
 (That is, such a bicone is a limit cone and a colimit cocone.)
 -/
-lemma has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X) :
-  has_biproduct f :=
-has_biproduct.mk
-{ bicone := b,
-  is_limit :=
+def is_bilimit_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X) :
+  b.is_bilimit :=
+{ is_limit :=
   { lift := λ s, ∑ j, s.π.app j ≫ b.ι j,
     uniq' := λ s m h,
     begin
@@ -867,34 +1000,53 @@ has_biproduct.mk
       dsimp, simp,
     end } }
 
+/--
+In a preadditive category, we can construct a biproduct for `f : J → C` from
+any bicone `b` for `f` satisfying `total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X`.
+
+(That is, such a bicone is a limit cone and a colimit cocone.)
+-/
+lemma has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X) :
+  has_biproduct f :=
+has_biproduct.mk
+{ bicone := b,
+  is_bilimit := is_bilimit_of_total b total }
+
+/-- In a preadditive category, any finite bicone which is a limit cone is in fact a bilimit
+    bicone. -/
+def is_bilimit_of_is_limit {f : J → C} (t : bicone f) (ht : is_limit t.to_cone) : t.is_bilimit :=
+is_bilimit_of_total _ $ ht.hom_ext $ λ j, by simp [sum_comp, t.ι_π, dite_comp, comp_dite]
+
+/-- We can turn any limit cone over a pair into a bilimit bicone. -/
+def bicone_is_bilimit_of_limit_cone_of_is_limit {f : J → C} {t : cone (discrete.functor f)}
+  (ht : is_limit t) : (bicone.of_limit_cone ht).is_bilimit :=
+is_bilimit_of_is_limit _ $ is_limit.of_iso_limit ht $ cones.ext (iso.refl _) (by tidy)
+
 /-- In a preadditive category, if the product over `f : J → C` exists,
     then the biproduct over `f` exists. -/
-lemma has_biproduct.of_has_product (f : J → C) [has_product f] :
-  has_biproduct f :=
-has_biproduct_of_total
-{ X := pi_obj f,
-  π := limits.pi.π f,
-  ι := λ j, pi.lift (λ j', if h : j = j' then eq_to_hom (congr_arg f h) else 0),
-  ι_π := λ j j', by simp, }
-(by { ext, simp [sum_comp, comp_dite] })
+lemma has_biproduct.of_has_product (f : J → C) [has_product f] : has_biproduct f :=
+has_biproduct.mk
+{ bicone := _,
+  is_bilimit := bicone_is_bilimit_of_limit_cone_of_is_limit (limit.is_limit _) }
+
+/-- In a preadditive category, any finite bicone which is a colimit cocone is in fact a bilimit
+    bicone. -/
+def is_bilimit_of_is_colimit {f : J → C} (t : bicone f) (ht : is_colimit t.to_cocone) :
+  t.is_bilimit :=
+is_bilimit_of_total _ $ ht.hom_ext $ λ j,
+  by { simp_rw [bicone.to_cocone_ι_app, comp_sum, ← category.assoc, t.ι_π, dite_comp], tidy }
+
+/-- We can turn any limit cone over a pair into a bilimit bicone. -/
+def bicone_is_bilimit_of_colimit_cocone_of_is_colimit {f : J → C} {t : cocone (discrete.functor f)}
+  (ht : is_colimit t) : (bicone.of_colimit_cocone ht).is_bilimit :=
+is_bilimit_of_is_colimit _ $ is_colimit.of_iso_colimit ht $ cocones.ext (iso.refl _) (by tidy)
 
 /-- In a preadditive category, if the coproduct over `f : J → C` exists,
     then the biproduct over `f` exists. -/
-lemma has_biproduct.of_has_coproduct (f : J → C) [has_coproduct f] :
-  has_biproduct f :=
-has_biproduct_of_total
-{ X := sigma_obj f,
-  π := λ j, sigma.desc (λ j', if h : j' = j then eq_to_hom (congr_arg f h) else 0),
-  ι := limits.sigma.ι f,
-  ι_π := λ j j', by simp, }
-begin
-  ext,
-  simp only [comp_sum, limits.colimit.ι_desc_assoc, eq_self_iff_true,
-    limits.colimit.ι_desc, category.comp_id],
-  dsimp,
-  simp only [dite_comp, finset.sum_dite_eq, finset.mem_univ, if_true, category.id_comp,
-    eq_to_hom_refl, zero_comp],
-end
+lemma has_biproduct.of_has_coproduct (f : J → C) [has_coproduct f] : has_biproduct f :=
+has_biproduct.mk
+{ bicone := _,
+  is_bilimit := bicone_is_bilimit_of_colimit_cocone_of_is_colimit (colimit.is_colimit _) }
 
 /-- A preadditive category with finite products has finite biproducts. -/
 lemma has_finite_biproducts.of_has_finite_products [has_finite_products C] :
@@ -981,12 +1133,9 @@ any binary bicone `b` satisfying `total : b.fst ≫ b.inl + b.snd ≫ b.inr = �
 
 (That is, such a bicone is a limit cone and a colimit cocone.)
 -/
-lemma has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)
-  (total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X) :
-  has_binary_biproduct X Y :=
-has_binary_biproduct.mk
-{ bicone := b,
-  is_limit :=
+def is_binary_bilimit_of_total {X Y : C} (b : binary_bicone X Y)
+  (total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X) : b.is_bilimit :=
+{ is_limit :=
   { lift := λ s, binary_fan.fst s ≫ b.inl +
       binary_fan.snd s ≫ b.inr,
     uniq' := λ s m h, by erw [←category.comp_id m, ←total,
@@ -999,38 +1148,133 @@ has_binary_biproduct.mk
       add_comp, category.assoc, category.assoc, h walking_pair.left, h walking_pair.right],
     fac' := λ s j, by cases j; simp, } }
 
+/--
+In a preadditive category, we can construct a binary biproduct for `X Y : C` from
+any binary bicone `b` satisfying `total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X`.
+
+(That is, such a bicone is a limit cone and a colimit cocone.)
+-/
+lemma has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)
+  (total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X) : has_binary_biproduct X Y :=
+has_binary_biproduct.mk
+{ bicone := b,
+  is_bilimit := is_binary_bilimit_of_total b total }
+
+/-- We can turn any limit cone over a pair into a bicone. -/
+@[simps]
+def binary_bicone.of_limit_cone {X Y : C} {t : cone (pair X Y)} (ht : is_limit t) :
+  binary_bicone X Y :=
+{ X := t.X,
+  fst := t.π.app walking_pair.left,
+  snd := t.π.app walking_pair.right,
+  inl := ht.lift (binary_fan.mk (𝟙 X) 0),
+  inr := ht.lift (binary_fan.mk 0 (𝟙 Y)) }
+
+lemma inl_of_is_limit {X Y : C} {t : binary_bicone X Y} (ht : is_limit t.to_cone) :
+  t.inl = ht.lift (binary_fan.mk (𝟙 X) 0) :=
+ht.hom_ext $ λ j, by { rw ht.fac, cases j; simp }
+
+lemma inr_of_is_limit {X Y : C} {t : binary_bicone X Y} (ht : is_limit t.to_cone) :
+  t.inr = ht.lift (binary_fan.mk 0 (𝟙 Y)) :=
+ht.hom_ext $ λ j, by { rw ht.fac, cases j; simp }
+
+/-- In a preadditive category, any binary bicone which is a limit cone is in fact a bilimit
+    bicone. -/
+def is_binary_bilimit_of_is_limit {X Y : C} (t : binary_bicone X Y) (ht : is_limit t.to_cone) :
+  t.is_bilimit :=
+is_binary_bilimit_of_total _
+begin
+  refine binary_fan.is_limit.hom_ext ht _ _,
+  { rw [inl_of_is_limit ht, inr_of_is_limit ht, add_comp, category.assoc, category.assoc, ht.fac,
+      ht.fac, binary_fan.mk_π_app_left, binary_fan.mk_π_app_left, comp_zero, add_zero,
+      binary_bicone.binary_fan_fst_to_cone, category.comp_id, category.id_comp] },
+  { rw [inr_of_is_limit ht, inl_of_is_limit ht, add_comp, category.assoc, category.assoc, ht.fac,
+      ht.fac, binary_fan.mk_π_app_right, binary_fan.mk_π_app_right, comp_zero, zero_add,
+      binary_bicone.binary_fan_snd_to_cone, category.comp_id, category.id_comp] }
+end
+
+/-- We can turn any limit cone over a pair into a bilimit bicone. -/
+def binary_bicone_is_bilimit_of_limit_cone_of_is_limit {X Y : C} {t : cone (pair X Y)}
+  (ht : is_limit t) : (binary_bicone.of_limit_cone ht).is_bilimit :=
+is_binary_bilimit_of_total _ $ binary_fan.is_limit.hom_ext ht (by simp) (by simp)
+
 /-- In a preadditive category, if the product of `X` and `Y` exists, then the
     binary biproduct of `X` and `Y` exists. -/
 lemma has_binary_biproduct.of_has_binary_product (X Y : C) [has_binary_product X Y] :
   has_binary_biproduct X Y :=
-has_binary_biproduct_of_total
-{ X := X ⨯ Y,
-  fst := category_theory.limits.prod.fst,
-  snd := category_theory.limits.prod.snd,
-  inl := prod.lift (𝟙 X) 0,
-  inr := prod.lift 0 (𝟙 Y) }
-begin
-  ext; simp [add_comp],
-end
+has_binary_biproduct.mk
+{ bicone := _,
+  is_bilimit := binary_bicone_is_bilimit_of_limit_cone_of_is_limit (limit.is_limit _) }
 
 /-- In a preadditive category, if all binary products exist, then all binary biproducts exist. -/
 lemma has_binary_biproducts.of_has_binary_products [has_binary_products C] :
   has_binary_biproducts C :=
 { has_binary_biproduct := λ X Y, has_binary_biproduct.of_has_binary_product X Y, }
 
+/-- We can turn any colimit cocone over a pair into a bicone. -/
+@[simps]
+def binary_bicone.of_colimit_cocone {X Y : C} {t : cocone (pair X Y)} (ht : is_colimit t) :
+  binary_bicone X Y :=
+{ X := t.X,
+  fst := ht.desc (binary_cofan.mk (𝟙 X) 0),
+  snd := ht.desc (binary_cofan.mk 0 (𝟙 Y)),
+  inl := t.ι.app walking_pair.left,
+  inr := t.ι.app walking_pair.right }
+
+lemma fst_of_is_colimit {X Y : C} {t : binary_bicone X Y} (ht : is_colimit t.to_cocone) :
+  t.fst = ht.desc (binary_cofan.mk (𝟙 X) 0) :=
+begin
+  refine ht.hom_ext (λ j, _),
+  rw ht.fac,
+  cases j,
+  all_goals { simp only [binary_bicone.to_cocone_ι_app_left, binary_bicone.inl_fst,
+      binary_cofan.mk_ι_app_left, binary_bicone.to_cocone_ι_app_right, binary_bicone.inr_fst,
+      binary_cofan.mk_ι_app_right] },
+  refl
+end
+
+lemma snd_of_is_colimit {X Y : C} {t : binary_bicone X Y} (ht : is_colimit t.to_cocone) :
+  t.snd = ht.desc (binary_cofan.mk 0 (𝟙 Y)) :=
+begin
+  refine ht.hom_ext (λ j, _),
+  rw ht.fac,
+  cases j,
+  all_goals { simp only [binary_bicone.to_cocone_ι_app_left, binary_bicone.inl_snd,
+    binary_cofan.mk_ι_app_left, binary_bicone.to_cocone_ι_app_right, binary_bicone.inr_snd,
+    binary_cofan.mk_ι_app_right] },
+  refl
+end
+
+/-- In a preadditive category, any binary bicone which is a colimit cocone is in fact a
+    bilimit bicone. -/
+def is_binary_bilimit_of_is_colimit {X Y : C} (t : binary_bicone X Y)
+  (ht : is_colimit t.to_cocone) : t.is_bilimit :=
+is_binary_bilimit_of_total _
+begin
+  refine binary_cofan.is_colimit.hom_ext ht _ _,
+  { rw [fst_of_is_colimit ht, snd_of_is_colimit ht, comp_add, ht.fac_assoc, ht.fac_assoc,
+      binary_cofan.mk_ι_app_left, binary_cofan.mk_ι_app_left,
+      binary_bicone.binary_cofan_inl_to_cocone, zero_comp, add_zero, category.id_comp t.inl,
+      category.comp_id t.inl] },
+  { rw [fst_of_is_colimit ht, snd_of_is_colimit ht, comp_add, ht.fac_assoc, ht.fac_assoc,
+      binary_cofan.mk_ι_app_right, binary_cofan.mk_ι_app_right,
+      binary_bicone.binary_cofan_inr_to_cocone, zero_comp, zero_add, category.comp_id t.inr,
+      category.id_comp t.inr] }
+end
+
+/-- We can turn any colimit cocone over a pair into a bilimit bicone. -/
+def binary_bicone_is_bilimit_of_colimit_cocone_of_is_colimit {X Y : C} {t : cocone (pair X Y)}
+  (ht : is_colimit t) : (binary_bicone.of_colimit_cocone ht).is_bilimit :=
+is_binary_bilimit_of_is_colimit (binary_bicone.of_colimit_cocone ht) $
+  is_colimit.of_iso_colimit ht $ cocones.ext (iso.refl _) $ λ j, by { cases j, tidy }
+
 /-- In a preadditive category, if the coproduct of `X` and `Y` exists, then the
     binary biproduct of `X` and `Y` exists. -/
 lemma has_binary_biproduct.of_has_binary_coproduct (X Y : C) [has_binary_coproduct X Y] :
   has_binary_biproduct X Y :=
-has_binary_biproduct_of_total
-{ X := X ⨿ Y,
-  fst := coprod.desc (𝟙 X) 0,
-  snd := coprod.desc 0 (𝟙 Y),
-  inl := category_theory.limits.coprod.inl,
-  inr := category_theory.limits.coprod.inr }
-begin
-  ext; simp [add_comp],
-end
+has_binary_biproduct.mk
+{ bicone := _,
+  is_bilimit := binary_bicone_is_bilimit_of_colimit_cocone_of_is_colimit (colimit.is_colimit _) }
 
 /-- In a preadditive category, if all binary coproducts exist, then all binary biproducts exist. -/
 lemma has_binary_biproducts.of_has_binary_coproducts [has_binary_coproducts C] :
@@ -1065,13 +1309,49 @@ end
   biprod.lift f g ≫ biprod.desc h i = f ≫ h + g ≫ i :=
 by simp [biprod.lift_eq, biprod.desc_eq]
 
-
 lemma biprod.map_eq [has_binary_biproducts C] {W X Y Z : C} {f : W ⟶ Y} {g : X ⟶ Z} :
   biprod.map f g = biprod.fst ≫ f ≫ biprod.inl + biprod.snd ≫ g ≫ biprod.inr :=
 by apply biprod.hom_ext; apply biprod.hom_ext'; simp
 
 end
 
+section
+variables {X Y : C} (f g : X ⟶ Y)
+
+/-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
+lemma biprod.add_eq_lift_id_desc [has_binary_biproduct X X] :
+  f + g = biprod.lift (𝟙 X) (𝟙 X) ≫ biprod.desc f g :=
+by simp
+
+/-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
+lemma biprod.add_eq_lift_desc_id [has_binary_biproduct Y Y] :
+  f + g = biprod.lift f g ≫ biprod.desc (𝟙 Y) (𝟙 Y) :=
+by simp
+
+end
+
+
 end preadditive
 
-end category_theory.limits
+end limits
+
+open category_theory.limits
+
+local attribute [ext] preadditive
+
+/-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
+instance subsingleton_preadditive_of_has_binary_biproducts {C : Type u} [category.{v} C]
+  [has_zero_morphisms C] [has_binary_biproducts C] : subsingleton (preadditive C) :=
+subsingleton.intro $ λ a b,
+begin
+  ext X Y f g,
+  have h₁ := @biprod.add_eq_lift_id_desc _ _ a _ _ f g
+    (by convert (infer_instance : has_binary_biproduct X X)),
+  have h₂ := @biprod.add_eq_lift_id_desc _ _ b _ _ f g
+    (by convert (infer_instance : has_binary_biproduct X X)),
+  refine h₁.trans (eq.trans _ h₂.symm),
+  congr' 2;
+  exact subsingleton.elim _ _
+end
+
+end category_theory

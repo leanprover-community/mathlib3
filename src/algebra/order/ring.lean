@@ -127,7 +127,7 @@ lt_of_le_of_ne zero_le_one zero_ne_one
 lemma zero_lt_two : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
 
 @[field_simps] lemma two_ne_zero : (2:α) ≠ 0 :=
-ne.symm (ne_of_lt zero_lt_two)
+zero_lt_two.ne'
 
 lemma one_lt_two : 1 < (2:α) :=
 calc (2:α) = 1+1 : one_add_one_eq_two
@@ -136,7 +136,13 @@ calc (2:α) = 1+1 : one_add_one_eq_two
 
 lemma zero_lt_three : 0 < (3:α) := add_pos zero_lt_two zero_lt_one
 
+@[field_simps] lemma three_ne_zero : (3:α) ≠ 0 :=
+zero_lt_three.ne'
+
 lemma zero_lt_four : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
+
+@[field_simps] lemma four_ne_zero : (4:α) ≠ 0 :=
+zero_lt_four.ne'
 
 alias zero_lt_one ← one_pos
 alias zero_lt_two ← two_pos

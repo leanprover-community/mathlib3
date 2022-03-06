@@ -53,7 +53,7 @@ begin
     have : x = x • 1 := by rw [smul_eq_mul, mul_one],
     nth_rewrite 0 [this],
     rw [_root_.coe_coe map, linear_map.coe_coe_is_scalar_tower],
-    simp only [map.coe_coe, map.map_smul, norm_smul, normed_field.norm_inv, norm_norm],
+    simp only [map.coe_coe, map.map_smul, norm_smul, norm_inv, norm_norm],
     field_simp [minor₁], },
   { ext1,
     rw [← linear_isometry.coe_to_linear_map],

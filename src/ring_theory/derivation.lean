@@ -154,8 +154,9 @@ instance : inhabited (derivation R A M) := ⟨0⟩
 
 section scalar
 
-variables {S : Type*} [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
-  [smul_comm_class S A M]
+variables {S S' : Type*}
+  [monoid S] [distrib_mul_action S M] [smul_comm_class R S M] [smul_comm_class S A M]
+  [monoid S'] [distrib_mul_action S' M] [smul_comm_class R S' M] [smul_comm_class S' A M]
 
 @[priority 100]
 instance : has_scalar S (derivation R A M) :=
@@ -164,6 +165,12 @@ instance : has_scalar S (derivation R A M) :=
     map_one_eq_zero' := by rw [linear_map.smul_apply, coe_fn_coe, D.map_one_eq_zero, smul_zero],
     leibniz' := λ a b, by simp only [linear_map.smul_apply, coe_fn_coe, leibniz, smul_add,
       smul_comm r] }⟩
+
+instance [smul_comm_class S S' M] : smul_comm_class S S' (derivation R A M) :=
+⟨λ s s' m, ext $ λ _, smul_comm _ _ _⟩
+
+instance [has_scalar S S'] [is_scalar_tower S S' M] : is_scalar_tower S S' (derivation R A M) :=
+⟨λ s s' m, ext $ λ _, smul_assoc _ _ _⟩
 
 @[simp] lemma coe_smul (r : S) (D : derivation R A M) : ⇑(r • D) = r • D := rfl
 @[simp] lemma coe_smul_linear_map (r : S) (D : derivation R A M) :
@@ -191,9 +198,6 @@ end scalar
 instance {S : Type*} [semiring S] [module S M] [smul_comm_class R S M] [smul_comm_class S A M] :
   module S (derivation R A M) :=
 function.injective.module S coe_fn_add_monoid_hom coe_injective coe_smul
-
-instance [is_scalar_tower R A M] : is_scalar_tower R A (derivation R A M) :=
-⟨λ x y z, ext (λ a, smul_assoc _ _ _)⟩
 
 section push_forward
 

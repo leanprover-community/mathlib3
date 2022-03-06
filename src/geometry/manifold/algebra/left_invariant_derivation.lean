@@ -103,6 +103,29 @@ instance : has_neg (left_invariant_derivation I G) :=
 instance : has_sub (left_invariant_derivation I G) :=
 { sub := λ X Y, ⟨X - Y, λ g, by simp [left_invariant']⟩ }
 
+#check 1
+
+#check @derivation.has_scalar
+
+instance {α} [monoid α] [distrib_mul_action α C^⊤⟮I, G; 𝓘(𝕜, 𝕜), 𝕜⟯]
+  [smul_comm_class α C^⊤⟮I, G; 𝓘(𝕜, 𝕜), 𝕜⟯ C^⊤⟮I, G; 𝓘(𝕜, 𝕜), 𝕜⟯]
+  [smul_comm_class 𝕜 α C^⊤⟮I, G; 𝓘(𝕜, 𝕜), 𝕜⟯]
+  [distrib_mul_action α 𝕜] [smul_comm_class α 𝕜 𝕜] [is_scalar_tower α 𝕜 C^⊤⟮I, G; 𝓘(𝕜, 𝕜), 𝕜⟯] :
+  has_scalar α (left_invariant_derivation I G) :=
+{ smul := λ r X, ⟨r • X, λ g, by {
+  haveI : smul_comm_class α C^⊤⟮I,G;𝕜⟯⟨1⟩ 𝕜 := _,
+  haveI: smul_comm_class 𝕜 α 𝕜 := smul_comm_class.symm _ _ _,
+  haveI : has_scalar α (point_derivation I (1 : G)) := derivation.has_scalar,
+  rw linear_map.map_smul_of_tower _ r,
+  rw linear_map.map_smul_of_tower _ r,
+  rw linear_map.map_smul_of_tower _ r,
+  simp only [derivation.smul_apply, smul_eq_mul,
+            mul_eq_mul_left_iff, linear_map.map_smul_of_tower, left_invariant'],
+  sorry
+}⟩ }
+
+#exit
+
 @[simp] lemma coe_add : ⇑(X + Y) = X + Y := rfl
 @[simp] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl
 @[simp] lemma coe_neg : ⇑(-X) = -X := rfl
@@ -112,17 +135,15 @@ instance : has_sub (left_invariant_derivation I G) :=
 @[simp, norm_cast] lemma lift_zero :
   (↑(0 : left_invariant_derivation I G) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = 0 := rfl
 
+@[simp] lemma coe_smul : ⇑(r • X) = r • X := rfl
+@[simp] lemma lift_smul (k : 𝕜) : (↑(k • X) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = k • X := rfl
+
 instance : add_comm_group (left_invariant_derivation I G) :=
 coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
 
-instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
-{ smul := λ r X, ⟨r • X, λ g, by simp only [derivation.smul_apply, smul_eq_mul,
-            mul_eq_mul_left_iff, linear_map.map_smul, left_invariant']⟩ }
+#exit
 
 variables (r X)
-
-@[simp] lemma coe_smul : ⇑(r • X) = r • X := rfl
-@[simp] lemma lift_smul (k : 𝕜) : (↑(k • X) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = k • X := rfl
 
 variables (I G)
 

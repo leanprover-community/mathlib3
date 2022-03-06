@@ -132,7 +132,7 @@ begin
   simpa using hm₁,
 end
 
-lemma is_prime_pow_iff_factorization_single (n : ℕ) :
+lemma is_prime_pow_iff_factorization_single {n : ℕ} :
   is_prime_pow n ↔ ∃ p k : ℕ, 0 < k ∧ n.factorization = finsupp.single p k :=
 begin
   rw is_prime_pow_nat_iff,

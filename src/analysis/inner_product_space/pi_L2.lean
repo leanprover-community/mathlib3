@@ -5,7 +5,6 @@ Authors: Joseph Myers, Sébastien Gouëzel, Heather Macbeth
 -/
 import analysis.inner_product_space.projection
 import analysis.normed_space.pi_Lp
-import analysis.normed_space.lp_space
 
 /-!
 # `L²` inner product space structure on finite products of inner product spaces
@@ -46,6 +45,7 @@ the last section, various properties of matrices are explored.
 
 For consequences in infinite dimension (Hilbert bases, etc.), see the file
 `analysis.inner_product_space.l2_space`.
+
 -/
 
 open real set filter is_R_or_C
@@ -186,24 +186,25 @@ pi.single i a
 
 @[simp] theorem euclidean_space.single_apply [decidable_eq ι] (i : ι) (a : 𝕜) (j : ι) :
   (euclidean_space.single i a) j = ite (j = i) a 0 :=
-begin
-  classical,
-  simp_rw [euclidean_space.single, pi.single, function.update],
-  simp only [dite_eq_ite, eq_rec_constant, pi.zero_apply, dif_ctx_congr],
-  split_ifs,
-  exact rfl,
-  exact rfl
-end
+by { rw [euclidean_space.single, ← pi.single_apply i a j] }
 
-lemma euclidean_space.inner_single_left
-  [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
-    ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=
+lemma euclidean_space.inner_single_left [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
+  ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=
 by simp [apply_ite conj]
 
-lemma euclidean_space.inner_single_right [decidable_eq ι]
-  (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
+lemma euclidean_space.inner_single_right [decidable_eq ι] (i : ι) (a : 𝕜)
+  (v : euclidean_space 𝕜 ι) :
   ⟪v, euclidean_space.single i (a : 𝕜)⟫ =  a * conj (v i) :=
 by simp [apply_ite conj, mul_comm]
+
+lemma euclidean_space.pi_Lp_congr_left_single [fintype ι] [decidable_eq ι]
+  {ι' : Type*} [fintype ι'] [decidable_eq ι'] (e : ι' ≃ ι) (i' : ι') :
+  linear_isometry_equiv.pi_Lp_congr_left 2 𝕜 𝕜 e (euclidean_space.single i' (1:𝕜)) =
+    euclidean_space.single (e i') (1:𝕜) :=
+begin
+  ext i,
+  simpa using if_congr e.symm_apply_eq rfl rfl
+end
 
 variables (ι 𝕜 E)
 
@@ -216,41 +217,48 @@ variables {ι 𝕜 E}
 namespace orthonormal_basis
 
 instance : inhabited (orthonormal_basis ι 𝕜 (euclidean_space 𝕜 ι)) :=
-⟨orthonormal_basis.of_repr (linear_isometry_equiv.refl 𝕜 (euclidean_space 𝕜 ι))⟩
+⟨of_repr (linear_isometry_equiv.refl 𝕜 (euclidean_space 𝕜 ι))⟩
 
 /-- `b i` is the `i`th basis vector. -/
-instance [decidable_eq ι] : has_coe_to_fun (orthonormal_basis ι 𝕜 E) (λ _, ι → E) :=
-{ coe := λ (b : orthonormal_basis ι 𝕜 E) (i : ι),
-b.repr.symm (euclidean_space.single i (1 : 𝕜)) }
+instance : has_coe_to_fun (orthonormal_basis ι 𝕜 E) (λ _, ι → E) :=
+{ coe := λ b i, by classical; exact b.repr.symm (euclidean_space.single i (1 : 𝕜)) }
 
 @[simp] lemma coe_of_repr [decidable_eq ι] (e : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι) :
   ⇑(orthonormal_basis.of_repr e) = λ i, e.symm (euclidean_space.single i (1 : 𝕜)) :=
-rfl
+begin
+  rw [coe_fn],
+  simp only [has_coe_to_fun.coe],
+  ext,
+  congr,
+  ext,
+  simp only [eq_iff_true_of_subsingleton],
+end
 
 @[simp] protected lemma repr_symm_single [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr.symm (euclidean_space.single i (1:𝕜)) = b i :=
-rfl
-
-@[simp] protected lemma repr_symm_single' [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
-  b.repr.symm (pi.single i (1:𝕜)) = b i :=
-rfl
+by { classical, congr, simp, }
 
 @[simp] protected lemma repr_self [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr (b i) = euclidean_space.single i (1:𝕜) :=
 begin
+  classical,
   rw [← b.repr_symm_single i, linear_isometry_equiv.apply_symm_apply],
+  congr,
+  simp,
 end
 
-protected lemma repr_apply_apply [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (v : E) (i : ι) :
+protected lemma repr_apply_apply (b : orthonormal_basis ι 𝕜 E) (v : E) (i : ι) :
   b.repr v i = ⟪b i, v⟫ :=
 begin
+  classical,
   rw [← b.repr.inner_map_map (b i) v, b.repr_self i, euclidean_space.inner_single_left],
   simp only [one_mul, eq_self_iff_true, map_one],
 end
 
 @[simp]
-protected lemma orthonormal [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) : orthonormal 𝕜 b :=
+protected lemma orthonormal (b : orthonormal_basis ι 𝕜 E) : orthonormal 𝕜 b :=
 begin
+  classical,
   rw orthonormal_iff_ite,
   intros i j,
   rw [← b.repr.inner_map_map (b i) (b j), b.repr_self i, b.repr_self j],
@@ -263,7 +271,7 @@ end
 protected def to_basis (b : orthonormal_basis ι 𝕜 E) : basis ι 𝕜 E :=
 basis.of_equiv_fun b.repr.to_linear_equiv
 
-@[simp] protected lemma coe_to_basis [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) :
+@[simp] protected lemma coe_to_basis (b : orthonormal_basis ι 𝕜 E) :
   (⇑b.to_basis : ι → E) = ⇑b :=
 begin
   change ⇑(basis.of_equiv_fun b.repr.to_linear_equiv) = b,
@@ -282,10 +290,9 @@ begin
     linear_isometry_equiv.coe_to_linear_equiv, basis.equiv_fun_apply],
 end
 
-protected lemma sum_repr_symm
-  [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
+protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
   ∑ i , v i • b i = (b.repr.symm v) :=
-by simpa using (b.to_basis.equiv_fun_symm_apply v).symm
+by { classical, simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
 
 /-- A basis that is orthonormal is an orthonormal basis. -/
 def _root_.basis.to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
@@ -316,25 +323,23 @@ rfl
   (v.to_orthonormal_basis hv).to_basis = v :=
 by simp [basis.to_orthonormal_basis, orthonormal_basis.to_basis]
 
-@[simp] lemma _root_.basis.coe_to_orthonormal_basis
-  [decidable_eq ι] (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
+@[simp] lemma _root_.basis.coe_to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   (v.to_orthonormal_basis hv : ι → E) = (v : ι → E) :=
 calc (v.to_orthonormal_basis hv : ι → E) = ((v.to_orthonormal_basis hv).to_basis : ι → E) :
-  by rw orthonormal_basis.coe_to_basis
+  by { classical, rw orthonormal_basis.coe_to_basis }
 ... = (v : ι → E) : by simp
 
 variable {v : ι → E}
 
-/-- A finite orthonormal set that spans is an orthonormal basis. -/
+/-- A finite orthonormal set that spans is an orthonormal basis -/
 protected def mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤):
   orthonormal_basis ι 𝕜 E :=
 (basis.mk (orthonormal.linear_independent hon) hsp).to_orthonormal_basis (by rwa basis.coe_mk)
 
 @[simp]
-protected lemma coe_mk
-  [decidable_eq ι] (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :
+protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :
   ⇑(orthonormal_basis.mk hon hsp) = v :=
-by rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
+by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
 
 open submodule
 
@@ -350,7 +355,7 @@ begin
   rwa orthogonal_eq_bot_iff at hsp,
 end
 
-@[simp] protected lemma coe_of_orthogonal_eq_bot_mk [decidable_eq ι] (hon : orthonormal 𝕜 v)
+@[simp] protected lemma coe_of_orthogonal_eq_bot_mk (hon : orthonormal 𝕜 v)
   (hsp : (span 𝕜 (set.range v))ᗮ = ⊥) :
   ⇑(orthonormal_basis.mk_of_orthogonal_eq_bot hon hsp) = v :=
 orthonormal_basis.coe_mk hon _
@@ -360,23 +365,20 @@ variables [fintype ι']
 
 /-- `b.reindex (e : ι ≃ ι')` is an `orthonormal_basis` indexed by `ι'` -/
 def reindex (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') : orthonormal_basis ι' 𝕜 E :=
-orthonormal_basis.of_repr (b.repr.trans (linear_isometry_equiv.pi_Lp_congr_left e))
+orthonormal_basis.of_repr (b.repr.trans (linear_isometry_equiv.pi_Lp_congr_left 2 𝕜 𝕜 e))
 
-protected lemma reindex_apply
-  [decidable_eq ι] [decidable_eq ι'] (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (i' : ι') :
+protected lemma reindex_apply (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (i' : ι') :
   (b.reindex e) i' = b (e.symm i') :=
 begin
-  change (b.repr.trans (linear_isometry_equiv.pi_Lp_congr_left e)).symm
-    (euclidean_space.single i' 1)
-  = b.repr.symm (euclidean_space.single (e.symm i') 1),
-  rw [linear_isometry_equiv.symm_trans, linear_isometry_equiv.trans_apply,
-    linear_isometry_equiv.pi_Lp_congr_left_symm, euclidean_space.single],
-  simp only [orthonormal_basis.repr_symm_single, linear_isometry_equiv.pi_Lp_congr_left_single],
-  rw b.repr_symm_single',
+  classical,
+  dsimp [reindex, orthonormal_basis.has_coe_to_fun],
+  rw coe_of_repr,
+  dsimp,
+  rw [← b.repr_symm_single, linear_isometry_equiv.pi_Lp_congr_left_symm,
+    euclidean_space.pi_Lp_congr_left_single],
 end
 
-@[simp] protected lemma coe_reindex
-  [decidable_eq ι] [decidable_eq ι'] (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') :
+@[simp] protected lemma coe_reindex (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') :
   ⇑(b.reindex e) = ⇑b ∘ ⇑(e.symm) :=
 funext (b.reindex_apply e)
 

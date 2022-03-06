@@ -179,7 +179,7 @@ begin
 end
 
 @[to_additive]
-lemma le_prod_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
+lemma npow_le_prod_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
   n ^ s.card ≤ s.prod f :=
 @finset.prod_le_npow_of_forall_le _ (order_dual N) _ _ _ _ h
 
@@ -281,7 +281,7 @@ times how many they are. -/
 lemma le_sum_card_inter (h : ∀ a ∈ s, n ≤ (B.filter $ (∈) a).card) :
   s.card * n ≤ ∑ t in B, (s ∩ t).card :=
 begin
-  apply (s.le_sum_of_forall_le _ _ h).trans,
+  apply (s.nsmul_le_sum_of_forall_le _ _ h).trans,
   simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
   exact sum_comm.le,
 end

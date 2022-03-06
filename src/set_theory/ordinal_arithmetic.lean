@@ -913,7 +913,7 @@ def family_of_bfamily' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι 
 /-- Converts a family indexed by an `ordinal.{u}` to one indexed by a `Type u` using a well-ordering
 given by the axiom of choice. -/
 def family_of_bfamily (o : ordinal) (f : Π a < o, α) : o.out.α → α :=
-family_of_bfamily' o.out.r (type_out o) f
+family_of_bfamily' (<) (type_lt o) f
 
 @[simp] theorem bfamily_of_family'_typein {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α)
   (i) : bfamily_of_family' r f (typein r i) (typein_lt_type r i) = f i :=
@@ -929,8 +929,8 @@ bfamily_of_family'_typein  _ f i
 by simp only [family_of_bfamily', typein_enum]
 
 @[simp] theorem family_of_bfamily_enum (o : ordinal) (f : Π a < o, α) (i hi) :
-  family_of_bfamily o f (enum o.out.r i (by { convert hi, exact type_out _ })) = f i hi :=
-family_of_bfamily'_enum _ (type_out o) f _ _
+  family_of_bfamily o f (enum (<) i (by { convert hi, exact type_lt _ })) = f i hi :=
+family_of_bfamily'_enum _ (type_lt o) f _ _
 
 /-- The range of a family indexed by ordinals. -/
 def brange (o : ordinal) (f : Π a < o, α) : set α :=
@@ -1363,16 +1363,18 @@ begin
   exact ((bsup_eq_blsub_iff_lt_bsup _).2 (λ a ha, (H.1 a).trans_le (le_bsup _ _ (h.2 a ha)))).symm
 end
 
-theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
+theorem lsub_typein (o : ordinal) : lsub.{u u} (typein ((<) : o.out.α → o.out.α → Prop)) = o :=
 by { have := blsub_id o, rwa blsub_eq_lsub at this }
 
 theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
-  sup.{u u} (typein o.out.r) = o :=
-by rw (sup_eq_lsub_iff_succ.{u u} (typein o.out.r)).2; rwa lsub_typein o
+  sup.{u u} (typein ((<) : o.out.α → o.out.α → Prop)) = o :=
+by rw (sup_eq_lsub_iff_succ.{u u} (typein (<))).2; rwa lsub_typein o
 
-theorem sup_typein_succ (o : ordinal) : sup.{u u} (typein o.succ.out.r) = o :=
+theorem sup_typein_succ (o : ordinal) :
+  sup.{u u} (typein ((<) : o.succ.out.α → o.succ.out.α → Prop)) = o :=
 begin
-  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein o.succ.out.r) with h h,
+  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein ((<) : o.succ.out.α → o.succ.out.α → Prop))
+    with h h,
   { rw sup_eq_lsub_iff_succ at h,
     simp only [lsub_typein] at h,
     exact (h o (lt_succ_self o)).false.elim },

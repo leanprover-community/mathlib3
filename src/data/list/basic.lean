@@ -2429,7 +2429,7 @@ end mfoldl_mfoldr
 /-! ### split_at and split_on -/
 
 section split_at_on
-variables (p : α → Prop) [decidable_pred p] (xs ys as : list α)
+variables (p : α → Prop) [decidable_pred p] (xs ys : list α)
   (ls : list (list α))
 
 @[simp] theorem split_at_eq_take_drop : ∀ (n : ℕ) (l : list α), split_at n l = (take n l, drop n l)

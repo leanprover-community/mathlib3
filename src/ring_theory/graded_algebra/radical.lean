@@ -20,7 +20,7 @@ This file contains a proof that the radical of any homogeneous ideal is a homoge
 * `ideal.is_homogeneous.radical`: for any `I : ideal A`, if `I` is homogeneous, then the
   radical of `I` is homogeneous as well.
 * `homogeneous_ideal.radical`: for any `I : homogeneous_ideal 𝒜`, `I.radical` is the the
-  radical of `I` as an `homogeneous_ideal 𝒜`
+  radical of `I` as a `homogeneous_ideal 𝒜`
 
 ## Implementation details
 

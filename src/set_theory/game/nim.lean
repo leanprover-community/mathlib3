@@ -157,9 +157,9 @@ end nim
   the image of the function. It is guaranteed that the smallest ordinal not in the image will be
   in the set, i.e. we can use this to find the mex. -/
 def nonmoves {α : Type u} (M : α → ordinal.{u}) : set ordinal.{u} :=
-{ O : ordinal | ¬ ∃ a : α, M a = O }
+(set.range M)ᶜ
 
-lemma nonmoves_nonempty {α : Type u} (M : α → ordinal.{u}) : ∃ O : ordinal, O ∈ nonmoves M :=
+lemma nonmoves_nonempty {α : Type u} (M : α → ordinal.{u}) : set.nonempty (nonmoves M) :=
 ⟨_, ordinal.lsub_nmem_range.{u u} M⟩
 
 /-- The Grundy value of an impartial game, the ordinal which corresponds to the game of nim that the
@@ -248,7 +248,7 @@ begin
   have h₀ : (nat.lxor n m : ordinal) ∈ nonmoves (λ i, grundy_value ((nim n + nim m).move_left i)),
   { -- To show that `n xor m` is unreachable, we show that every move produces a Grundy number
     -- different from `n xor m`.
-    simp only [nonmoves, not_exists, set.mem_set_of_eq],
+    rw [nonmoves, set.mem_compl_eq, set.mem_range, not_exists],
     equiv_rw left_moves_add _ _,
 
     -- The move operates either on the left pile or on the right pile.
@@ -270,7 +270,7 @@ begin
       intro h,
       rw ordinal.nat_cast_inj at h,
       try { rw [nat.lxor_comm n k, nat.lxor_comm n m] at h },
-      exact _root_.ne_of_lt hk (nat.lxor_left_inj h) } },
+      exact hk.ne (nat.lxor_left_inj h) } },
 
   have h₁ : ∀ (u : ordinal), u < nat.lxor n m →
     u ∉ nonmoves (λ i, grundy_value ((nim n + nim m).move_left i)),
@@ -280,7 +280,7 @@ begin
     replace hu := ordinal.nat_cast_lt.1 hu,
 
     -- Our goal is to produce a move that gives the Grundy value `u`.
-    simp only [nonmoves, not_exists, not_not, set.mem_set_of_eq, not_forall],
+    rw [nonmoves, set.mem_compl_eq, set.mem_range, not_not],
 
     -- By a lemma about xor, either `u xor m < n` or `u xor n < m`.
     have : nat.lxor u (nat.lxor n m) ≠ 0,
@@ -300,7 +300,7 @@ begin
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },
 
   -- We are done!
-  apply le_antisymm (cInf_le' h₀),
+  apply (cInf_le' h₀).antisymm,
   contrapose! h₁,
   exact ⟨_, ⟨h₁, Inf_mem (nonmoves_nonempty _)⟩⟩
 end

@@ -169,6 +169,9 @@ by simp [eq_univ_iff_forall, finset.nonempty]
 lemma compl_singleton (a : α) : ({a} : finset α)ᶜ = univ.erase a :=
 by rw [compl_eq_univ_sdiff, sdiff_singleton_eq_erase]
 
+lemma insert_inj_on' (s : finset α) : set.inj_on (λ a, insert a s) (sᶜ : finset α) :=
+by { rw coe_compl, exact s.insert_inj_on }
+
 end boolean_algebra
 
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
@@ -1557,7 +1560,7 @@ lemma mem_of_mem_perms_of_list :
     else mem_cons_of_mem _ $
     mem_of_mem_perms_of_list hg₁ $
       by rw [eq_inv_mul_iff_mul_eq.2 hg₂, mul_apply, swap_inv, swap_apply_def];
-        split_ifs; cc)
+        split_ifs; [exact ne.symm hxy, exact ne.symm hxa, exact hx])
 
 lemma mem_perms_of_list_iff {l : list α} {f : perm α} :
   f ∈ perms_of_list l ↔ ∀ {x}, f x ≠ x → x ∈ l :=

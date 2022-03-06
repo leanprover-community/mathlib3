@@ -51,8 +51,7 @@ theorem add_one (n : pos_num) : n + 1 = succ n := by cases n; refl
 theorem add_to_nat : ∀ m n, ((m + n : pos_num) : ℕ) = m + n
 | 1        b        := by rw [one_add b, succ_to_nat, add_comm]; refl
 | a        1        := by rw [add_one a, succ_to_nat]; refl
-| (bit0 a) (bit0 b) := (congr_arg _root_.bit0 (add_to_nat a b)).trans $
-  show ((a + b) + (a + b) : ℕ) = (a + a) + (b + b), by simp [add_left_comm]
+| (bit0 a) (bit0 b) := (congr_arg _root_.bit0 (add_to_nat a b)).trans $ add_add_add_comm _ _ _ _
 | (bit0 a) (bit1 b) := (congr_arg _root_.bit1 (add_to_nat a b)).trans $
   show ((a + b) + (a + b) + 1 : ℕ) = (a + a) + (b + b + 1), by simp [add_left_comm]
 | (bit1 a) (bit0 b) := (congr_arg _root_.bit1 (add_to_nat a b)).trans $

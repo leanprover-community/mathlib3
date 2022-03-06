@@ -26,7 +26,7 @@ variables {R : Type u} {S : Type v} {a b : R} {m n : ℕ} {ι : Type y}
 section semiring
 variables [semiring R] {p q r : R[X]}
 
-lemma monic.as_sum {p : R[X]} (hp : p.monic) :
+lemma monic.as_sum (hp : p.monic) :
   p = X^(p.nat_degree) + (∑ i in range p.nat_degree, C (p.coeff i) * X^i) :=
 begin
   conv_lhs { rw [p.as_sum_range_C_mul_X_pow, sum_range_succ_comm] },
@@ -35,12 +35,10 @@ begin
   exact congr_arg C hp
 end
 
-lemma ne_zero_of_monic_of_zero_ne_one (hp : monic p) (h : (0 : R) ≠ 1) :
-  p ≠ 0 := mt (congr_arg leading_coeff) $ by rw [monic.def.1 hp, leading_coeff_zero]; cc
-
 lemma ne_zero_of_ne_zero_of_monic (hp : p ≠ 0) (hq : monic q) : q ≠ 0 :=
 begin
-  intro h, rw [h, monic.def, leading_coeff_zero] at hq,
+  rintro rfl,
+  rw [monic.def, leading_coeff_zero] at hq,
   rw [← mul_one p, ← C_1, ← hq, C_0, mul_zero] at hp,
   exact hp rfl
 end
@@ -95,13 +93,27 @@ lemma monic_pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
 | 0     := monic_one
 | (n+1) := by { rw pow_succ, exact monic_mul hp (monic_pow n) }
 
-lemma monic_add_of_left {p q : R[X]} (hp : monic p) (hpq : degree q < degree p) :
+lemma monic_add_of_left (hp : monic p) (hpq : degree q < degree p) :
   monic (p + q) :=
 by rwa [monic, add_comm, leading_coeff_add_of_degree_lt hpq]
 
-lemma monic_add_of_right {p q : R[X]} (hq : monic q) (hpq : degree p < degree q) :
+lemma monic_add_of_right (hq : monic q) (hpq : degree p < degree q) :
   monic (p + q) :=
 by rwa [monic, leading_coeff_add_of_degree_lt hpq]
+
+lemma monic.of_mul_monic_left (hp : p.monic) (hpq : (p * q).monic) : q.monic :=
+begin
+  contrapose! hpq,
+  rw monic.def at hpq ⊢,
+  rwa leading_coeff_monic_mul hp,
+end
+
+lemma monic.of_mul_monic_right (hq : q.monic) (hpq : (p * q).monic) : p.monic :=
+begin
+  contrapose! hpq,
+  rw monic.def at hpq ⊢,
+  rwa leading_coeff_mul_monic hq,
+end
 
 namespace monic
 
@@ -306,6 +318,28 @@ lemma monic_sub_of_right {p q : R[X]}
 have (-q).coeff (-q).nat_degree = 1 :=
 by rw [nat_degree_neg, coeff_neg, show q.coeff q.nat_degree = -1, from hq, neg_neg],
 by { rw sub_eq_add_neg, apply monic_add_of_right this, rwa degree_neg }
+
+@[simp]
+lemma nat_degree_map_of_monic [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic)
+  (f : R →+* S) : (P.map f).nat_degree = P.nat_degree :=
+begin
+  refine le_antisymm (nat_degree_map_le _ _) (le_nat_degree_of_ne_zero _),
+  rw [coeff_map, monic.coeff_nat_degree hmo, ring_hom.map_one],
+  exact one_ne_zero
+end
+
+@[simp]
+lemma degree_map_of_monic [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic)
+  (f : R →+* S) : (P.map f).degree = P.degree :=
+begin
+  by_cases hP : P = 0,
+  { simp [hP] },
+  { refine le_antisymm (degree_map_le _ _) _,
+    rw [degree_eq_nat_degree hP],
+    refine le_degree_of_ne_zero _,
+    rw [coeff_map, monic.coeff_nat_degree hmo, ring_hom.map_one],
+    exact one_ne_zero }
+end
 
 section injective
 open function

@@ -349,15 +349,13 @@ hf.strongly_measurable.measurable_ennreal
 section arithmetic
 variables [topological_space β]
 
-protected lemma mul [monoid_with_zero β] [no_zero_divisors β] [has_continuous_mul β]
+protected lemma mul [monoid_with_zero β] [has_continuous_mul β]
   (hf : fin_strongly_measurable f μ) (hg : fin_strongly_measurable g μ) :
   fin_strongly_measurable (f * g) μ :=
 begin
   refine ⟨λ n, hf.approx n * hg.approx n, _, λ x, (hf.tendsto_approx x).mul (hg.tendsto_approx x)⟩,
   intro n,
-  rw (_ : support ⇑(hf.approx n * hg.approx n) = support (hf.approx n) ∩ support (hg.approx n)),
-  { exact measure_inter_lt_top_of_left_ne_top (hf.fin_support_approx n).ne,},
-  { exact function.support_mul _ _, },
+  exact (measure_mono (support_mul_subset_left _ _)).trans_lt (hf.fin_support_approx n),
 end
 
 protected lemma add [add_monoid β] [has_continuous_add β]
@@ -469,7 +467,7 @@ end mk
 
 section arithmetic
 
-protected lemma mul [monoid_with_zero β] [no_zero_divisors β] [has_continuous_mul β]
+protected lemma mul [monoid_with_zero β] [has_continuous_mul β]
   (hf : ae_fin_strongly_measurable f μ) (hg : ae_fin_strongly_measurable g μ) :
   ae_fin_strongly_measurable (f * g) μ :=
 ⟨hf.mk f * hg.mk g, hf.fin_strongly_measurable_mk.mul hg.fin_strongly_measurable_mk,

@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
-import set_theory.ordinal_arithmetic
-import tactic.linarith
 import order.bounded
+import set_theory.principal
+import tactic.linarith
 
 /-!
 # Cardinals and ordinals
@@ -232,6 +232,9 @@ aleph'_is_normal.trans $ add_is_normal ordinal.omega
 theorem succ_omega : succ ω = aleph 1 :=
 by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
 
+lemma omega_lt_aleph_one : ω < aleph 1 :=
+by { rw ← succ_omega, exact lt_succ_self _ }
+
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
 by rw [← succ_omega, lt_succ, mk_set_le_omega]
 
@@ -371,6 +374,13 @@ begin
   convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
 
+lemma mul_eq_max' {a b : cardinal} (h : ω ≤ a * b) : a * b = max a b :=
+begin
+  rcases omega_le_mul_iff.mp h with ⟨ha, hb, h⟩,
+  wlog h : ω ≤ a := h using [a b],
+  exact mul_eq_max_of_omega_le_left h hb
+end
+
 theorem mul_le_max (a b : cardinal) : a * b ≤ max (max a b) ω :=
 begin
   by_cases ha0 : a = 0,
@@ -449,6 +459,10 @@ begin
     { exact le_max_of_le_right (le_of_lt (add_lt_omega (lt_of_not_ge ha) (lt_of_not_ge hb))) } }
 end
 
+theorem add_le_of_le {a b c : cardinal} (hc : ω ≤ c)
+  (h1 : a ≤ c) (h2 : b ≤ c) : a + b ≤ c :=
+(add_le_add h1 h2).trans $ le_of_eq $ add_eq_self hc
+
 theorem add_lt_of_lt {a b c : cardinal} (hc : ω ≤ c)
   (h1 : a < c) (h2 : b < c) : a + b < c :=
 lt_of_le_of_lt (add_le_add (le_max_left a b) (le_max_right a b)) $
@@ -510,6 +524,12 @@ end
 protected lemma eq_of_add_eq_add_right {a b c : cardinal} (h : a + b = c + b) (hb : b < ω) :
   a = c :=
 by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left h hb }
+
+theorem ord_is_principal_add {c : cardinal} (hc : ω ≤ c) : ordinal.principal (+) c.ord :=
+λ a b ha hb, by { rw [lt_ord, ordinal.card_add] at *, exact add_lt_of_lt hc ha hb }
+
+theorem aleph_is_principal_add (o : ordinal) : ordinal.principal (+) (aleph o).ord :=
+ord_is_principal_add $ omega_le_aleph o
 
 /-! ### Properties about power -/
 
@@ -578,6 +598,9 @@ begin
 end
 
 /-! ### Computing cardinality of various types -/
+
+@[simp] theorem mk_ordinal_out (o : ordinal.{u}) : #(o.out.α) = o.card :=
+by { convert (ordinal.card_type o.out.r).symm, exact (ordinal.type_out o).symm }
 
 theorem mk_list_eq_mk (α : Type u) [infinite α] : #(list α) = #α :=
 have H1 : ω ≤ #α := omega_le_mk α,

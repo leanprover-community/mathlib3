@@ -159,8 +159,7 @@ begin
   intros x hx,
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
   rw ←graded_algebra.sum_support_decompose 𝒜 x,
-  refine ideal.sum_mem _ (λ j hj, _),
-  apply ideal.mem_homogeneous_core_of_is_homogeneous_of_mem (is_homogeneous_coe _) (h _ hx),
+  exact ideal.sum_mem _ (λ j hj, ideal.subset_span ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩)
 end
 
 @[simp] lemma homogeneous_ideal.homogeneous_core_coe_eq_self (I : homogeneous_ideal 𝒜) :

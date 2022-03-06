@@ -1,7 +1,8 @@
 import analysis.special_functions.exponential
 import measure_theory.integral.integral_eq_improper
 import measure_theory.integral.limit_comparison
---import topology.basic
+import analysis.special_functions.integrals
+
 
 noncomputable theory
 open finset filter metric interval_integral set function
@@ -411,6 +412,57 @@ begin
   rw this,
   apply tendsto.const_mul,
   exact l3
+end
+
+lemma incomp_gamma_at_one (X : ℝ) (hX: 0 < X): real_incomplete_gamma 1 X = 1-exp(-X) :=
+begin
+  rw real_incomplete_gamma,
+  simp
+end
+
+lemma gamma_at_one: real_gamma 1 = 1 :=
+begin
+  have t1: tendsto (1:ℝ).real_incomplete_gamma at_top (𝓝 (1:ℝ).real_gamma),
+  {
+    apply tendsto_incomplete_gamma,
+    refl
+  },
+  have t2: tendsto (1:ℝ).real_incomplete_gamma at_top (𝓝 (1:ℝ)),
+  {
+    have t2a: eventually_eq at_top (λ X:ℝ, 1-exp(-X)) (1:ℝ).real_incomplete_gamma,
+    {
+      apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
+      intros X hX,
+      symmetry,
+      apply incomp_gamma_at_one,
+      rw [←Ioi_def, mem_set_of_eq] at hX, exact hX
+    },
+    apply tendsto.congr' t2a,
+
+    have t2b: tendsto (λ X, exp(-X)) at_top (𝓝 (0:ℝ)),
+    {
+      have := tendsto_exp_mul_div_rpow_at_top' 0 1,
+      simpa using this
+    },
+    have := tendsto.const_sub (1:ℝ) t2b,
+    simpa using this
+  },
+  apply tendsto_nhds_unique t1 t2
+end
+
+lemma gamma_integer: ∀ n:ℕ, real_gamma (n+1) = nat.factorial n :=
+begin
+  intro n,
+  induction n with n hn,
+
+  simp only [nat.cast_zero, zero_add, nat.factorial_zero, nat.cast_one],
+  exact gamma_at_one,
+
+  rw FE_gamma,
+  simp only [nat.cast_succ, nat.factorial_succ, nat.cast_mul, mul_eq_mul_left_iff],
+  left, exact hn,
+
+  simp only [nat.cast_succ, le_add_iff_nonneg_left, nat.cast_nonneg]
 end
 
 end real

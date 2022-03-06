@@ -490,7 +490,7 @@ end
 
 /-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is left-separating
 if the basis has no elements which are self-orthogonal. -/
-lemma is_Ortho.separating_left_of_not_is_ortho_basis_self [nontrivial R] [no_zero_divisors R]
+lemma is_Ortho.separating_left_of_not_is_ortho_basis_self [no_zero_divisors R]
   {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) (h : ∀ i, ¬B.is_ortho (v i) (v i)) :
   B.separating_left :=
 begin
@@ -510,7 +510,7 @@ end
 
 /-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is right-separating
 if the basis has no elements which are self-orthogonal. -/
-lemma is_Ortho.separating_right_iff_not_is_ortho_basis_self [nontrivial R] [no_zero_divisors R]
+lemma is_Ortho.separating_right_iff_not_is_ortho_basis_self [no_zero_divisors R]
   {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) (h : ∀ i, ¬B.is_ortho (v i) (v i)) :
   B.separating_right :=
 begin
@@ -523,7 +523,7 @@ end
 
 /-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is nondegenerate
 if the basis has no elements which are self-orthogonal. -/
-lemma is_Ortho.nondegenerate_of_not_is_ortho_basis_self [nontrivial R] [no_zero_divisors R]
+lemma is_Ortho.nondegenerate_of_not_is_ortho_basis_self [no_zero_divisors R]
   {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) (h : ∀ i, ¬B.is_ortho (v i) (v i)) :
   B.nondegenerate :=
 ⟨is_Ortho.separating_left_of_not_is_ortho_basis_self v hO h,

@@ -59,10 +59,6 @@ begin
   simp,
 end
 
-lemma self_adjoint.coe_spectral_radius_eq_nnnorm (a : self_adjoint A) :
-  spectral_radius ℂ (a : A) = ∥(a : A)∥₊ :=
-spectral_radius_eq_nnnorm_of_self_adjoint a.property
-
 lemma spectral_radius_eq_nnnorm_of_star_normal (a : A) [is_star_normal a] :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin

@@ -35,7 +35,7 @@ attribute [instance, priority 100] monoidal_closed.closed'
 /--
 A data-carrying typeclass giving a particular choice of internal hom for a single object.
 This is useful for concrete categories,
-where it is important that the internal has a particular definition.
+where it is important that the internal hom has a particular definition.
 -/
 class has_internal_hom {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
 (ihom : C ⥤ C)
@@ -44,7 +44,7 @@ class has_internal_hom {C : Type u} [category.{v} C] [monoidal_category.{v} C] (
 /--
 A data-carrying typeclass giving a particular choice of internal hom for every object.
 This is useful for concrete categories,
-where it is important that the internal has a particular definition.
+where it is important that the internal homs have a particular definition.
 -/
 class has_internal_homs (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
 (has_internal_hom : Π (X : C), has_internal_hom X)

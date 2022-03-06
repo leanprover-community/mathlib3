@@ -274,7 +274,7 @@ begin
   { rw [sub_eq_add_neg],
     refine monic_add_of_left hP _,
     simp [hdeg] },
-  apply monic.of_mul_monic this,
+  apply this.of_mul_monic_left,
   rw [mul_geom_sum, sub_eq_add_neg],
   refine monic_add_of_left (monic_pow hP _) _,
   rw [degree_neg, degree_one, ← nat_degree_pos_iff_degree_pos, hP.nat_degree_pow],

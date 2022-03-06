@@ -169,7 +169,7 @@ variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 lemma set_like.homogeneous_induction {P : A → Prop}
   (a : A)
   (h_zero : P 0)
-  (h_hom : ∀ (a : set_like.homogeneous_submonoid 𝒜), P a.1)
+  (h_hom : ∀ (a : A), set_like.is_homogeneous 𝒜 a → P a)
   (h_add : ∀ (a b : A), P a → P b → P (a + b))
   : P a :=
 begin

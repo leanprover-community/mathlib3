@@ -690,8 +690,18 @@ eq_inv_of_mul_left_eq_one u.inv_mul
   units.mk0 a ha = units.mk0 b hb ↔ a = b :=
 ⟨λ h, by injection h, λ h, units.ext h⟩
 
+/-- In a group with zero, an existential over a unit can be rewritten in terms of `units.mk0`. -/
+lemma exists0 {p : G₀ˣ → Prop} : (∃ g : G₀ˣ, p g) ↔ ∃ (g : G₀) (hg : g ≠ 0), p (units.mk0 g hg) :=
+⟨λ ⟨g, pg⟩, ⟨g, g.ne_zero, (g.mk0_coe g.ne_zero).symm ▸ pg⟩, λ ⟨g, hg, pg⟩, ⟨units.mk0 g hg, pg⟩⟩
+
+/-- An alternative version of `units.exists0`. This one is useful if Lean cannot
+figure out `p` when using `units.exists0` from right to left. -/
+lemma exists0' {p : Π g : G₀, g ≠ 0 → Prop} :
+  (∃ (g : G₀) (hg : g ≠ 0), p g hg) ↔ ∃ g : G₀ˣ, p g g.ne_zero :=
+iff.trans (by simp_rw [coe_mk0]) exists0.symm
+
 @[simp] lemma exists_iff_ne_zero {x : G₀} : (∃ u : G₀ˣ, ↑u = x) ↔ x ≠ 0 :=
-⟨λ ⟨u, hu⟩, hu ▸ u.ne_zero, assume hx, ⟨mk0 x hx, rfl⟩⟩
+by simp [exists0]
 
 lemma _root_.group_with_zero.eq_zero_or_unit (a : G₀) :
   a = 0 ∨ ∃ u : G₀ˣ, a = u :=

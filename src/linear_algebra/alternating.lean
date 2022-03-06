@@ -689,16 +689,16 @@ begin
   case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j']
   { -- the term pairs with and cancels another term
     all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.exact' hσ, },
-    work_on_goal 0 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
-    work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
+    work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
+    work_on_goal 2 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
     all_goals
     { rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
       simpa using hσ, }, },
   case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j']
   { -- the term does not pair but is zero
     all_goals { convert smul_zero _, },
-    work_on_goal 0 { convert tensor_product.tmul_zero _ _, },
-    work_on_goal 1 { convert tensor_product.zero_tmul _ _, },
+    work_on_goal 1 { convert tensor_product.tmul_zero _ _, },
+    work_on_goal 2 { convert tensor_product.zero_tmul _ _, },
     all_goals { exact alternating_map.map_eq_zero_of_eq _ _ hv (λ hij', hij (hij' ▸ rfl)), } },
 end
 

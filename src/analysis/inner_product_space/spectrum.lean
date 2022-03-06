@@ -44,7 +44,7 @@ self-adjoint operator, spectral theorem, diagonalization theorem
 -/
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] [dec_𝕜 : decidable_eq 𝕜]
-variables {E : Type*} [inner_product_space 𝕜 E] [dec_E : decidable_eq E]
+variables {E : Type*} [inner_product_space 𝕜 E]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 

@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 . All rights reserved.
+Copyright (c) 2021 Paul Lezeau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Paul Lezeau
 -/
@@ -61,15 +61,13 @@ begin
 end
 
 lemma upper_chain_not_is_unit {n : ℕ} {i : fin (n + 1)} (i_pos : i ≠ 0)
-  (c : fin (n + 1) → associates M) (h₁ : strict_mono c) :
+  {c : fin (n + 1) → associates M} (h₁ : strict_mono c) :
   ¬ is_unit (c i) :=
 dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
   (h₁ $ show (0 : fin (n + 1)) < i, from i.pos_iff_ne_zero.mpr i_pos))
 
-lemma first_of_chain_is_unit {q : associates M} (n : ℕ) (c : fin (n + 1) → associates M)
-  (h₁ : strict_mono c)
-  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i):
-  is_unit (c 0) :=
+lemma first_of_chain_is_unit {q : associates M} {n : ℕ} {c : fin (n + 1) → associates M}
+  (h₁ : strict_mono c) (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i) : is_unit (c 0) :=
 begin
   obtain ⟨i, hr⟩ := h₂.mp associates.one_le,
   rw [associates.is_unit_iff_eq_one, ← associates.le_one_iff, hr],
@@ -77,9 +75,8 @@ begin
 end
 
 /-- The second element of a chain is irreducible. -/
-lemma second_of_chain_is_irreducible {q : associates M} (n : ℕ) (hn : n ≠ 0)
-  (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
-  (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i)
+lemma second_of_chain_is_irreducible {q : associates M} {n : ℕ} (hn : n ≠ 0)
+  {c : fin (n + 1) → associates M} (h₁ : strict_mono c) (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i)
   (hq : q ≠ 0) : irreducible (c 1) :=
 begin
   cases n, { contradiction },
@@ -87,11 +84,11 @@ begin
   { exact ne_bot_of_gt (h₁ (show (0 : fin (n + 2)) < 1, from fin.one_pos)) },
   obtain ⟨⟨i, hi⟩, rfl⟩ := h₂.1 (hb.le.trans (h₂.2 ⟨1, rfl⟩)),
   cases i,
-  { exact (associates.is_unit_iff_eq_one _).mp (first_of_chain_is_unit _ c h₁ @h₂) },
+  { exact (associates.is_unit_iff_eq_one _).mp (first_of_chain_is_unit h₁ @h₂) },
   { simpa [fin.lt_iff_coe_lt_coe] using h₁.lt_iff_lt.mp hb },
 end
 
-lemma prime_dvd_eq_second_of_chain {p q r : associates M} (n : ℕ) (hn : n ≠ 0)
+lemma prime_dvd_eq_second_of_chain {p q r : associates M} {n : ℕ} (hn : n ≠ 0)
   (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
   (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i)
   (hp : prime p) (hr : r ∣ q) (hp' : p ∣ r) :
@@ -105,7 +102,7 @@ begin
     rw [fin.le_iff_coe_le_coe, fin.coe_one, nat.succ_le_iff, ← fin.coe_zero,
         ← fin.lt_iff_coe_lt_coe, fin.pos_iff_ne_zero],
     rintro rfl,
-    exact prime.not_unit hp (first_of_chain_is_unit _ c h₁ @h₂) },
+    exact prime.not_unit hp (first_of_chain_is_unit h₁ @h₂) },
   { refine le_of_not_lt (λ hi, _),
     have hp' := hp.irreducible,
     contrapose hp',
@@ -122,7 +119,7 @@ begin
 end
 
 lemma card_subset_divisors_le_length_of_chain {q : associates M}
-  (n : ℕ) (c : fin (n + 1) → associates M) (h₂ : ∀ (r : associates M), r ≤ q ↔ ∃ i, r = c i)
+  {n : ℕ} (c : fin (n + 1) → associates M) (h₂ : ∀ (r : associates M), r ≤ q ↔ ∃ i, r = c i)
   (m : finset (associates M)) (hm : ∀ r, r ∈ m → r ≤ q) : m.card ≤ n + 1 :=
 begin
   classical,
@@ -138,7 +135,7 @@ end
 
 variables [unique_factorization_monoid M]
 
-lemma mem_chain_eq_pow_second_of_chain {q r : associates M} (n : ℕ) (hn : n ≠ 0)
+lemma mem_chain_eq_pow_second_of_chain {q r : associates M} {n : ℕ} (hn : n ≠ 0)
   (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
   (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i) (hr : r ∣ q)
   (hq : q ≠ 0) : ∃ (i : fin (n + 1)), r = (c 1) ^ (i : ℕ) :=
@@ -148,7 +145,7 @@ begin
   have hi : normalized_factors r = multiset.repeat (c 1) i,
   { apply multiset.eq_repeat_of_mem,
     intros b hb,
-    refine prime_dvd_eq_second_of_chain n hn c h₁ (λ r', h₂) (prime_of_normalized_factor b hb) hr
+    refine prime_dvd_eq_second_of_chain hn c h₁ (λ r', h₂) (prime_of_normalized_factor b hb) hr
       (dvd_of_mem_normalized_factors hb) },
   have H : r = (c 1)^i,
   { have := unique_factorization_monoid.normalized_factors_prod (ne_zero_of_dvd_ne_zero hq hr),
@@ -161,12 +158,12 @@ begin
     cases n, { contradiction },
     rw finset.card_image_eq_iff_inj_on,
     refine set.inj_on_of_injective (λ m m' h, fin.ext _) _,
-    refine pow_injective_of_not_unit (upper_chain_not_is_unit (n+1) 1 (by simp) c h₁) _ h,
-    exact irreducible.ne_zero (second_of_chain_is_irreducible _ hn c h₁ (λ r, h₂) hq) },
+    refine pow_injective_of_not_unit (upper_chain_not_is_unit (by simp) h₁) _ h,
+    exact irreducible.ne_zero (second_of_chain_is_irreducible hn h₁ @h₂ hq) },
 
   suffices H' : ∀ r ∈ (finset.univ.image (λ (m : fin (i + 1)), (c 1) ^ (m : ℕ))), r ≤ q,
   { simp only [← nat.succ_le_iff, nat.succ_eq_add_one, ← this],
-    apply card_subset_divisors_le_length_of_chain n c (λ r', h₂) (finset.univ.image
+    apply card_subset_divisors_le_length_of_chain c (λ r', h₂) (finset.univ.image
         (λ (m : fin (i + 1)), (c 1) ^ (m : ℕ))) H' },
 
   simp only [finset.mem_image],
@@ -178,13 +175,12 @@ begin
   { exact nat.succ_le_succ_iff.mp a.2 }
 end
 
-lemma eq_pow_second_of_chain_of_has_chain {q : associates M} (n : ℕ) (hn : n ≠ 0)
-  (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
-  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i)
-  (hq : q ≠ 0) : q = (c 1)^n :=
+lemma eq_pow_second_of_chain_of_has_chain {q : associates M} {n : ℕ} (hn : n ≠ 0)
+  {c : fin (n + 1) → associates M} (h₁ : strict_mono c)
+  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i) (hq : q ≠ 0) : q = (c 1)^n :=
 begin
   classical,
-  obtain ⟨i, hi'⟩ := mem_chain_eq_pow_second_of_chain n hn c h₁ (λ r, h₂) (dvd_refl q) hq,
+  obtain ⟨i, hi'⟩ := mem_chain_eq_pow_second_of_chain hn c h₁ (λ r, h₂) (dvd_refl q) hq,
   suffices : n ≤ i,
   { rwa le_antisymm (nat.succ_le_succ_iff.mp i.prop) this at hi' },
 
@@ -203,15 +199,15 @@ begin
   obtain ⟨u, hu, hu'⟩ := (dvd_prime_pow (show prime (c 1), from _) i).1 this,
   refine finset.mem_image.mpr ⟨u, finset.mem_univ _, _⟩,
   { rw associated_iff_eq at hu', rw [fin.coe_coe_of_lt (nat.lt_succ_of_le hu), hu'] },
-  { rw ← irreducible_iff_prime, exact second_of_chain_is_irreducible n hn c h₁ (λ r, h₂) hq, }
+  { rw ← irreducible_iff_prime, exact second_of_chain_is_irreducible hn h₁ @h₂ hq, }
 end
 
-lemma is_prime_pow_of_has_chain {q : associates M} (n : ℕ) (hn : n ≠ 0)
-  (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
+lemma is_prime_pow_of_has_chain {q : associates M} {n : ℕ} (hn : n ≠ 0)
+  {c : fin (n + 1) → associates M} (h₁ : strict_mono c)
   (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i) (hq : q ≠ 0) : is_prime_pow q :=
 (is_prime_pow_def q).mpr (exists.intro (c 1) (exists.intro n
-  ⟨irreducible_iff_prime.mp (second_of_chain_is_irreducible n hn c h₁ (λ r,h₂) hq),
-  zero_lt_iff.mpr hn, (eq_pow_second_of_chain_of_has_chain n hn c h₁ (λ r, h₂) hq).symm⟩  ) )
+  ⟨irreducible_iff_prime.mp (second_of_chain_is_irreducible hn h₁ @h₂ hq),
+  zero_lt_iff.mpr hn, (eq_pow_second_of_chain_of_has_chain hn h₁ @h₂ hq).symm⟩  ) )
 
 end divisor_chain
 

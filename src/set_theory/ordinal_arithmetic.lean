@@ -2180,6 +2180,16 @@ begin
 end
 --/
 
+theorem add_le_of_forall_add_lt {a b c : ordinal} (hb : 0 < b) (h : ∀ d < b, a + d < c) :
+  a + b ≤ c :=
+begin
+  have H : a + (c - a) = c := ordinal.add_sub_cancel_of_le (by {rw ←add_zero a, exact (h _ hb).le}),
+  rw ←H,
+  apply add_le_add_left _ a,
+  by_contra' hb,
+  exact (h _ hb).ne H
+end
+
 theorem opow_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omega :=
 le_antisymm
   ((opow_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2

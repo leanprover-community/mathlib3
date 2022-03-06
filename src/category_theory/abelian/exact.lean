@@ -20,10 +20,12 @@ true in more general settings.
 * If `(f, g)` is exact, then `image.ι f` has the universal property of the kernel of `g`.
 * `f` is a monomorphism iff `kernel.ι f = 0` iff `exact 0 f`, and `f` is an epimorphism iff
   `cokernel.π = 0` iff `exact f 0`.
+* A faithful functor between abelian categories that preserves zero morphisms reflects exact
+  sequences.
 
 -/
 
-universes v u
+universes v₁ v₂ u₁ u₂
 
 noncomputable theory
 
@@ -31,9 +33,12 @@ open category_theory
 open category_theory.limits
 open category_theory.preadditive
 
-variables {C : Type u} [category.{v} C] [abelian C]
+variables {C : Type u₁} [category.{v₁} C] [abelian C]
 
-namespace category_theory.abelian
+namespace category_theory
+
+namespace abelian
+
 variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
 local attribute [instance] has_equalizers_of_has_kernels
@@ -186,4 +191,23 @@ lemma epi_iff_cokernel_π_eq_zero : epi f ↔ cokernel.π f = 0 :=
 
 end
 
-end category_theory.abelian
+end abelian
+
+namespace functor
+variables {D : Type u₂} [category.{v₂} D] [abelian D]
+
+@[priority 100]
+instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful (F : C ⥤ D)
+  [preserves_zero_morphisms F] [faithful F] : reflects_exact_sequences F :=
+{ reflects := λ X Y Z f g hfg,
+  begin
+    rw [abelian.exact_iff, ← F.map_comp, F.map_eq_zero_iff] at hfg,
+    refine (abelian.exact_iff _ _).2 ⟨hfg.1, F.zero_of_map_zero _ _⟩,
+    obtain ⟨k, hk⟩ := kernel.lift' (F.map g) (F.map (kernel.ι g)) (by simp [← F.map_comp]),
+    obtain ⟨l, hl⟩ := cokernel.desc' (F.map f) (F.map (cokernel.π f)) (by simp [← F.map_comp]),
+    rw [F.map_comp, ← hk, ← hl, category.assoc, reassoc_of hfg.2, zero_comp, comp_zero]
+  end }
+
+end functor
+
+end category_theory

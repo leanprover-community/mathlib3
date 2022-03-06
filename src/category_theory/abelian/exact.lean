@@ -203,7 +203,7 @@ begin
 end
 
 /--
-If `exact g.op f.op`, then `exact f g` as well. This is a def because changing def to instance
+If `exact g.op f.op`, then `exact f g` as well. This is a lemma because changing lemma to instance
 causes "maximum class-instance resolution depth has been reached" in `pseudoelements.lean`.
 -/
 lemma exact.unop [e : exact g.op f.op] : exact f g :=

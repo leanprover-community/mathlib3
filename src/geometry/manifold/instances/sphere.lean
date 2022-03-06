@@ -286,25 +286,23 @@ orthogonalization, but in the finite-dimensional case it follows more easily by 
 space `E`.  This version has codomain the Euclidean space of dimension `n`, and is obtained by
 composing the original sterographic projection (`stereographic`) with an arbitrary linear isometry
 from `(ℝ ∙ v)ᗮ` to the Euclidean space. -/
-def stereographic' [decidable_eq E] (n : ℕ) [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
+def stereographic' (n : ℕ) [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
 (linear_isometry_equiv.from_orthogonal_span_singleton n
   (ne_zero_of_mem_unit_sphere v)).repr.to_homeomorph.to_local_homeomorph
 
-@[simp] lemma stereographic'_source [decidable_eq E] {n : ℕ} [fact (finrank ℝ E = n + 1)]
-  (v : sphere (0:E) 1) :
+@[simp] lemma stereographic'_source {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   (stereographic' n v).source = {v}ᶜ :=
 by simp [stereographic']
 
-@[simp] lemma stereographic'_target [decidable_eq E] {n : ℕ} [fact (finrank ℝ E = n + 1)]
-  (v : sphere (0:E) 1) :
+@[simp] lemma stereographic'_target {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   (stereographic' n v).target = set.univ :=
 by simp [stereographic']
 
 /-- The unit sphere in an `n + 1`-dimensional inner product space `E` is a charted space
 modelled on the Euclidean space of dimension `n`. -/
-instance [decidable_eq E] {n : ℕ} [fact (finrank ℝ E = n + 1)] :
+instance {n : ℕ} [fact (finrank ℝ E = n + 1)] :
   charted_space (euclidean_space ℝ (fin n)) (sphere (0:E) 1) :=
 { atlas            := {f | ∃ v : (sphere (0:E) 1), f = stereographic' n v},
   chart_at         := λ v, stereographic' n (-v),
@@ -319,7 +317,7 @@ section smooth_manifold
 
 /-- The unit sphere in an `n + 1`-dimensional inner product space `E` is a smooth manifold,
 modelled on the Euclidean space of dimension `n`. -/
-instance [decidable_eq E] {n : ℕ} [fact (finrank ℝ E = n + 1)] :
+instance {n : ℕ} [fact (finrank ℝ E = n + 1)] :
   smooth_manifold_with_corners (𝓡 n) (sphere (0:E) 1) :=
 smooth_manifold_with_corners_of_cont_diff_on (𝓡 n) (sphere (0:E) 1)
 begin
@@ -345,7 +343,7 @@ begin
 end
 
 /-- The inclusion map (i.e., `coe`) from the sphere in `E` to `E` is smooth.  -/
-lemma cont_mdiff_coe_sphere [decidable_eq E] {n : ℕ} [fact (finrank ℝ E = n + 1)] :
+lemma cont_mdiff_coe_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] :
   cont_mdiff (𝓡 n) 𝓘(ℝ, E) ∞ (coe : (sphere (0:E) 1) → E) :=
 begin
   rw cont_mdiff_iff,
@@ -365,7 +363,7 @@ variables {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold
 
 /-- If a `cont_mdiff` function `f : M → E`, where `M` is some manifold, takes values in the
 sphere, then it restricts to a `cont_mdiff` function from `M` to the sphere. -/
-lemma cont_mdiff.cod_restrict_sphere [decidable_eq E] {n : ℕ} [fact (finrank ℝ E = n + 1)]
+lemma cont_mdiff.cod_restrict_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)]
   {m : with_top ℕ} {f : M → E} (hf : cont_mdiff I 𝓘(ℝ, E) m f)
   (hf' : ∀ x, f x ∈ sphere (0:E) 1) :
   cont_mdiff I (𝓡 n) m (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
@@ -390,7 +388,7 @@ begin
 end
 
 /-- The antipodal map is smooth. -/
-lemma cont_mdiff_neg_sphere [decidable_eq E] {n : ℕ} [fact (finrank ℝ E = n + 1)] :
+lemma cont_mdiff_neg_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] :
   cont_mdiff (𝓡 n) (𝓡 n) ∞ (λ x : sphere (0:E) 1, -x) :=
 begin
   -- this doesn't elaborate well in term mode

@@ -173,7 +173,6 @@ end version1
 
 section version2
 variables {n : ℕ} (hn : finite_dimensional.finrank 𝕜 E = n)
-variables [decidable_eq E]
 
 /-- A choice of orthonormal basis of eigenvectors for self-adjoint operator `T` on a
 finite-dimensional inner product space `E`.

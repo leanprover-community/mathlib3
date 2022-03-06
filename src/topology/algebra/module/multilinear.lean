@@ -103,6 +103,35 @@ instance : inhabited (continuous_multilinear_map R M₁ M₂) := ⟨0⟩
   (0 : continuous_multilinear_map R M₁ M₂).to_multilinear_map = 0 :=
 rfl
 
+section has_scalar
+
+variables {R' R'' A : Type*} [monoid R'] [monoid R''] [semiring A]
+  [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+  [Π i, topological_space (M₁ i)] [topological_space M₂]
+  [Π i, module A (M₁ i)] [module A M₂]
+  [distrib_mul_action R' M₂] [has_continuous_const_smul R' M₂] [smul_comm_class A R' M₂]
+  [distrib_mul_action R'' M₂] [has_continuous_const_smul R'' M₂] [smul_comm_class A R'' M₂]
+
+instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c f, { cont := f.cont.const_smul c, .. c • f.to_multilinear_map }⟩
+
+@[simp] lemma smul_apply (f : continuous_multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
+  (c • f) m = c • f m := rfl
+
+@[simp] lemma to_multilinear_map_smul (c : R') (f : continuous_multilinear_map A M₁ M₂) :
+  (c • f).to_multilinear_map = c • f.to_multilinear_map :=
+rfl
+
+instance [smul_comm_class R' R'' M₂] :
+  smul_comm_class R' R'' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c₁ c₂ f, ext $ λ x, smul_comm _ _ _⟩
+
+instance [has_scalar R' R''] [is_scalar_tower R' R'' M₂] :
+  is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
+
+end has_scalar
+
 section has_continuous_add
 variable [has_continuous_add M₂]
 
@@ -114,9 +143,6 @@ instance : has_add (continuous_multilinear_map R M₁ M₂) :=
 @[simp] lemma to_multilinear_map_add (f g : continuous_multilinear_map R M₁ M₂) :
   (f + g).to_multilinear_map = f.to_multilinear_map + g.to_multilinear_map :=
 rfl
-
-instance has_nsmul : has_scalar ℕ (continuous_multilinear_map R M₁ M₂) :=
-⟨λ c f, { cont := f.cont.nsmul c, .. c • f.to_multilinear_map }⟩
 
 instance add_comm_monoid : add_comm_monoid (continuous_multilinear_map R M₁ M₂) :=
 to_multilinear_map_inj.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
@@ -299,9 +325,6 @@ instance : has_sub (continuous_multilinear_map R M₁ M₂) :=
 
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
 
-instance has_zsmul : has_scalar ℤ (continuous_multilinear_map R M₁ M₂) :=
-⟨λ c f, { cont := f.cont.zsmul c, .. c • f.to_multilinear_map }⟩
-
 instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
 to_multilinear_map_inj.add_comm_group _
   rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
@@ -338,24 +361,6 @@ variables {R' R'' A : Type*} [monoid R'] [monoid R''] [semiring A]
   [Π i, module A (M₁ i)] [module A M₂]
   [distrib_mul_action R' M₂] [has_continuous_const_smul R' M₂] [smul_comm_class A R' M₂]
   [distrib_mul_action R'' M₂] [has_continuous_const_smul R'' M₂] [smul_comm_class A R'' M₂]
-
-instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
-⟨λ c f, { cont := f.cont.const_smul c, .. c • f.to_multilinear_map }⟩
-
-@[simp] lemma smul_apply (f : continuous_multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
-  (c • f) m = c • f m := rfl
-
-@[simp] lemma to_multilinear_map_smul (c : R') (f : continuous_multilinear_map A M₁ M₂) :
-  (c • f).to_multilinear_map = c • f.to_multilinear_map :=
-rfl
-
-instance [smul_comm_class R' R'' M₂] :
-  smul_comm_class R' R'' (continuous_multilinear_map A M₁ M₂) :=
-⟨λ c₁ c₂ f, ext $ λ x, smul_comm _ _ _⟩
-
-instance [has_scalar R' R''] [is_scalar_tower R' R'' M₂] :
-  is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
-⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
 
 instance [distrib_mul_action R'ᵐᵒᵖ M₂] [is_central_scalar R' M₂] :
   is_central_scalar R' (continuous_multilinear_map A M₁ M₂) :=

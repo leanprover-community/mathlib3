@@ -39,6 +39,9 @@ begin
   exact (pow_one _).ge,
 end
 
+lemma ι_mem_even_odd_one (m : M) : ι Q m ∈ even_odd Q 1 :=
+range_ι_le_even_odd_one Q $ linear_map.mem_range_self _ m
+
 lemma even_odd_mul_le (i j : zmod 2) : even_odd Q i * even_odd Q j ≤ even_odd Q (i + j) :=
 begin
   simp_rw [even_odd, submodule.supr_eq_span, submodule.span_mul_span],
@@ -59,13 +62,11 @@ instance even_odd.graded_monoid : set_like.graded_monoid (even_odd Q) :=
 /-- A version of `clifford_algebra.ι` that maps directly into the graded structure. This is
 primarily an auxiliary construction used to provide `clifford_algebra.graded_algebra`. -/
 def graded_algebra.ι : M →ₗ[R] ⨁ i : zmod 2, even_odd Q i :=
-direct_sum.lof R (zmod 2) (λ i, ↥(even_odd Q i)) 1
-  ∘ₗ (ι Q).cod_restrict _ (λ m, range_ι_le_even_odd_one Q $ linear_map.mem_range_self _ m)
+direct_sum.lof R (zmod 2) (λ i, ↥(even_odd Q i)) 1 ∘ₗ (ι Q).cod_restrict _ (ι_mem_even_odd_one Q)
 
 lemma graded_algebra.ι_apply (m : M) :
-  graded_algebra.ι Q m =
-    direct_sum.of (λ i, ↥(even_odd Q i)) 1
-      (⟨ι Q m, range_ι_le_even_odd_one Q $ linear_map.mem_range_self _ m⟩) := rfl
+  graded_algebra.ι Q m = direct_sum.of (λ i, ↥(even_odd Q i)) 1 (⟨ι Q m, ι_mem_even_odd_one Q m⟩) :=
+rfl
 
 lemma graded_algebra.ι_sq_scalar (m : M) :
   graded_algebra.ι Q m * graded_algebra.ι Q m = algebra_map R _ (Q m) :=

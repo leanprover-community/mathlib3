@@ -730,6 +730,42 @@ protected def function.surjective.non_unital_non_assoc_ring
 { .. hf.add_comm_group f zero add neg sub, .. hf.mul_zero_class f zero mul,
   .. hf.distrib f add mul }
 
+@[priority 100]
+instance non_unital_non_assoc_ring.to_has_distrib_neg : has_distrib_neg α :=
+{ neg := has_neg.neg,
+  neg_neg := neg_neg,
+  neg_mul := λ a b, (neg_eq_of_add_eq_zero $ by rw [← right_distrib, add_right_neg, zero_mul]).symm,
+  mul_neg := λ a b, (neg_eq_of_add_eq_zero $ by rw [← left_distrib, add_right_neg, mul_zero]).symm }
+
+lemma mul_sub_left_distrib (a b c : α) : a * (b - c) = a * b - a * c :=
+by simpa only [sub_eq_add_neg, neg_mul_eq_mul_neg] using mul_add a b (-c)
+
+alias mul_sub_left_distrib ← mul_sub
+
+lemma mul_sub_right_distrib (a b c : α) : (a - b) * c = a * c - b * c :=
+by simpa only [sub_eq_add_neg, neg_mul_eq_neg_mul] using add_mul a (-b) c
+
+alias mul_sub_right_distrib ← sub_mul
+
+variables {a b c d e : α}
+
+/-- An iff statement following from right distributivity in rings and the definition
+  of subtraction. -/
+theorem mul_add_eq_mul_add_iff_sub_mul_add_eq : a * e + c = b * e + d ↔ (a - b) * e + c = d :=
+calc
+  a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp [add_comm]
+    ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin rw h, simp end) (λ h,
+                                                  begin rw ← h, simp end)
+    ... ↔ (a - b) * e + c = d   : begin simp [sub_mul, sub_add_eq_add_sub] end
+
+/-- A simplification of one side of an equation exploiting right distributivity in rings
+  and the definition of subtraction. -/
+theorem sub_mul_add_eq_of_mul_add_eq_mul_add : a * e + c = b * e + d → (a - b) * e + c = d :=
+assume h,
+calc
+  (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
+              ... = d                   : begin rw h, simp [@add_sub_cancel α] end
+
 end non_unital_non_assoc_ring
 
 /-- An associative but not-necessarily unital ring. -/
@@ -859,40 +895,6 @@ protected def function.surjective.ring
   ring β :=
 { .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
-@[priority 100]
-instance ring.to_has_distrib_neg : has_distrib_neg α :=
-{ neg := has_neg.neg,
-  neg_neg := neg_neg,
-  neg_mul := λ a b, (neg_eq_of_add_eq_zero $ by rw [← right_distrib, add_right_neg, zero_mul]).symm,
-  mul_neg := λ a b, (neg_eq_of_add_eq_zero $ by rw [← left_distrib, add_right_neg, mul_zero]).symm }
-
-lemma mul_sub_left_distrib (a b c : α) : a * (b - c) = a * b - a * c :=
-by simpa only [sub_eq_add_neg, neg_mul_eq_mul_neg] using mul_add a b (-c)
-
-alias mul_sub_left_distrib ← mul_sub
-
-lemma mul_sub_right_distrib (a b c : α) : (a - b) * c = a * c - b * c :=
-by simpa only [sub_eq_add_neg, neg_mul_eq_neg_mul] using add_mul a (-b) c
-
-alias mul_sub_right_distrib ← sub_mul
-
-/-- An iff statement following from right distributivity in rings and the definition
-  of subtraction. -/
-theorem mul_add_eq_mul_add_iff_sub_mul_add_eq : a * e + c = b * e + d ↔ (a - b) * e + c = d :=
-calc
-  a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp [add_comm]
-    ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin rw h, simp end) (λ h,
-                                                  begin rw ← h, simp end)
-    ... ↔ (a - b) * e + c = d   : begin simp [sub_mul, sub_add_eq_add_sub] end
-
-/-- A simplification of one side of an equation exploiting right distributivity in rings
-  and the definition of subtraction. -/
-theorem sub_mul_add_eq_of_mul_add_eq_mul_add : a * e + c = b * e + d → (a - b) * e + c = d :=
-assume h,
-calc
-  (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
-              ... = d                   : begin rw h, simp [@add_sub_cancel α] end
-
 end ring
 
 namespace units
@@ -928,25 +930,26 @@ lemma is_unit.sub_iff [ring α] {x y : α} :
 namespace ring_hom
 
 /-- Ring homomorphisms preserve additive inverse. -/
-protected theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
+protected theorem map_neg {α β} [non_assoc_ring α] [non_assoc_ring β] (f : α →+* β) (x : α) :
+  f (-x) = -(f x) :=
 map_neg f x
 
 /-- Ring homomorphisms preserve subtraction. -/
-protected theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
+protected theorem map_sub {α β} [non_assoc_ring α] [non_assoc_ring β] (f : α →+* β) (x y : α) :
   f (x - y) = (f x) - (f y) := map_sub f x y
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :
+theorem injective_iff {α β} [non_assoc_ring α] [non_assoc_semiring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 (f : α →+ β).injective_iff
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff' {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :
+theorem injective_iff' {α β} [non_assoc_ring α] [non_assoc_semiring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 ↔ a = 0) :=
 (f : α →+ β).injective_iff'
 
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
-def mk' {γ} [non_assoc_semiring α] [ring γ] (f : α →* γ)
+def mk' {γ} [non_assoc_semiring α] [non_assoc_ring γ] (f : α →* γ)
   (map_add : ∀ a b : α, f (a + b) = f a + f b) :
   α →+* γ :=
 { to_fun := f,
@@ -1072,13 +1075,6 @@ protected def function.surjective.comm_ring
 
 local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 
-/-- Representation of a difference of two squares in a commutative ring as a product. -/
-theorem mul_self_sub_mul_self (a b : α) : a * a - b * b = (a + b) * (a - b) :=
-by rw [add_mul, mul_sub, mul_sub, mul_comm a b, sub_add_sub_cancel]
-
-lemma mul_self_sub_one (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
-by rw [← mul_self_sub_mul_self, mul_one]
-
 /-- Vieta's formula for a quadratic equation, relating the coefficients of the polynomial with
   its roots. This particular version states that if we have a root `x` of a monic quadratic
   polynomial, then there is another root `y` such that `x + y` is negative the `a_1` coefficient
@@ -1182,18 +1178,6 @@ variables [comm_ring α] [is_domain α]
 @[priority 100] -- see Note [lower instance priority]
 instance is_domain.to_cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero α :=
 { ..comm_semiring.to_comm_monoid_with_zero, ..is_domain.to_cancel_monoid_with_zero }
-
-lemma mul_self_eq_mul_self_iff {a b : α} : a * a = b * b ↔ a = b ∨ a = -b :=
-by rw [← sub_eq_zero, mul_self_sub_mul_self, mul_eq_zero, or_comm, sub_eq_zero,
-  add_eq_zero_iff_eq_neg]
-
-lemma mul_self_eq_one_iff {a : α} : a * a = 1 ↔ a = 1 ∨ a = -1 :=
-by rw [← mul_self_eq_mul_self_iff, one_mul]
-
-/-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or
-  one's additive inverse. -/
-lemma units.inv_eq_self_iff (u : αˣ) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
-by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_self_eq_one_iff }
 
 /--
 Makes a ring homomorphism from an additive group homomorphism from a commutative ring to an integral
@@ -1306,6 +1290,20 @@ h.bit0_right.add_right (commute.one_right x)
 lemma bit1_left [semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
 h.bit0_left.add_left (commute.one_left y)
 
+/-- Representation of a difference of two squares of commuting elements as a product. -/
+lemma mul_self_sub_mul_self_eq [non_unital_non_assoc_ring R] {a b : R} (h : commute a b) :
+  a * a - b * b = (a + b) * (a - b) :=
+by rw [add_mul, mul_sub, mul_sub, h.eq, sub_add_sub_cancel]
+
+lemma mul_self_sub_mul_self_eq' [non_unital_non_assoc_ring R] {a b : R} (h : commute a b) :
+  a * a - b * b = (a - b) * (a + b) :=
+by rw [mul_add, sub_mul, sub_mul, h.eq, sub_add_sub_cancel]
+
+lemma mul_self_eq_mul_self_iff [non_unital_non_assoc_ring R] [no_zero_divisors R] {a b : R}
+  (h : commute a b) : a * a = b * b ↔ a = b ∨ a = -b :=
+by rw [← sub_eq_zero, h.mul_self_sub_mul_self_eq, mul_eq_zero, or_comm, sub_eq_zero,
+  add_eq_zero_iff_eq_neg]
+
 section
 variables [has_mul R] [has_distrib_neg R] {a b : R}
 
@@ -1334,3 +1332,28 @@ variables [ring R] {a b c : R}
 end
 
 end commute
+
+/-- Representation of a difference of two squares in a commutative ring as a product. -/
+theorem mul_self_sub_mul_self [comm_ring R] (a b : R) : a * a - b * b = (a + b) * (a - b) :=
+(commute.all a b).mul_self_sub_mul_self_eq
+
+lemma mul_self_sub_one [non_assoc_ring R] (a : R) : a * a - 1 = (a + 1) * (a - 1) :=
+by rw [←(commute.one_right a).mul_self_sub_mul_self_eq, mul_one]
+
+lemma mul_self_eq_mul_self_iff [comm_ring R] [no_zero_divisors R] {a b : R} :
+  a * a = b * b ↔ a = b ∨ a = -b :=
+(commute.all a b).mul_self_eq_mul_self_iff
+
+lemma mul_self_eq_one_iff [non_assoc_ring R] [no_zero_divisors R] {a : R} :
+  a * a = 1 ↔ a = 1 ∨ a = -1 :=
+by rw [←(commute.one_right a).mul_self_eq_mul_self_iff, mul_one]
+
+/-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or
+  one's additive inverse. -/
+lemma units.inv_eq_self_iff [ring R] [no_zero_divisors R] (u : Rˣ) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
+begin
+  rw inv_eq_iff_mul_eq_one,
+  simp only [units.ext_iff],
+  push_cast,
+  exact mul_self_eq_one_iff
+end

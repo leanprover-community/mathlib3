@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Himmel
+Authors: Markus Himmel, Adam Topaz
 -/
 import category_theory.abelian.opposite
 import algebra.homology.exact

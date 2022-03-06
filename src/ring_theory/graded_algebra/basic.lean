@@ -158,3 +158,30 @@ begin
 end
 
 end graded_algebra
+
+section homogeneous_induction
+
+variables {ι R A: Type*} [add_monoid ι] [decidable_eq ι]
+variables [comm_ring R] [semiring A] [algebra R A]
+variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+
+@[elab_as_eliminator]
+lemma set_like.homogeneous_induction {P : A → Prop}
+  (a : A)
+  (h_zero : P 0)
+  (h_hom : ∀ (a : set_like.homogeneous_submonoid 𝒜), P a.1)
+  (h_add : ∀ (a b : A), P a → P b → P (a + b))
+  : P a :=
+begin
+  haveI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
+  rw ←graded_algebra.sum_support_decompose 𝒜 a,
+  suffices : ∀ (i : graded_algebra.support 𝒜 a), P (graded_algebra.decompose 𝒜 a i.1 : A),
+  { induction (graded_algebra.support 𝒜 a) using finset.induction_on with x s hx ih,
+    { rwa finset.sum_empty },
+    { rw finset.sum_insert hx,
+      exact h_add _ _ (h_hom ⟨(graded_algebra.decompose 𝒜 a x), ⟨x, submodule.coe_mem _⟩⟩) ih } },
+  rintros ⟨i, hi⟩,
+  exact h_hom ⟨(graded_algebra.decompose 𝒜 a i), ⟨i, submodule.coe_mem _⟩⟩,
+end
+
+end homogeneous_induction

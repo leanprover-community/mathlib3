@@ -27,7 +27,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_eq_npow_of_forall_eq [monoid α] (l : list α) (m : α) (h : ∀ (x : α), x ∈ l → x = m) :
+lemma prod_eq_npow_of_forall_eq [monoid α] (l : list α) (m : α) (h : ∀ (x ∈ l), x = m) :
   l.prod = m ^ l.length :=
 begin
   convert list.prod_repeat m l.length,

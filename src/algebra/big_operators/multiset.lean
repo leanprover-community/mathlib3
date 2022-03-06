@@ -268,11 +268,11 @@ lemma single_le_prod : (∀ x ∈ s, (1 : α) ≤ x) → ∀ x ∈ s, x ≤ s.pr
 quotient.induction_on s $ λ l hl x hx, by simpa using list.single_le_prod hl x hx
 
 @[to_additive]
-lemma prod_le_pow_of_forall_le (s : multiset α) (n : α) (h : ∀ x ∈ s, x ≤ n) :
+lemma prod_le_npow_of_forall_le (s : multiset α) (n : α) (h : ∀ x ∈ s, x ≤ n) :
   s.prod ≤ n ^ s.card :=
 begin
   induction s using quotient.induction_on,
-  simpa using list.prod_le_pow_of_forall_le _ _ h,
+  simpa using list.prod_le_npow_of_forall_le _ _ h,
 end
 
 @[to_additive all_zero_of_le_zero_le_of_sum_eq_zero]

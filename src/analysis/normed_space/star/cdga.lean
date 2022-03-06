@@ -183,6 +183,10 @@ instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)]
   add_comm_group (graded.homology R A i) :=
 by { dsimp [graded.homology], apply_instance, }
 
+instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_module R A] (i : ℕ) :
+  module R (graded.homology R A i) :=
+by { dsimp [graded.homology], apply_instance, }
+
 open category_theory
 open category_theory.limits
 open category_theory.monoidal_category
@@ -212,22 +216,27 @@ begin
   refine factor_thru_kernel_subobject _ _ _,
   refine ((kernel_subobject _).arrow ⊗ (kernel_subobject _).arrow) ≫ _,
   exact Module.of_hom (mul_bilinear R A i j),
+  -- Now we have three proofs obligations. Discharging these nicely will require some custom extensionality lemmas.
   { apply tensor_product.ext', intros, sorry, },
   { sorry, },
   { sorry, }
 end
 
-def mm (A : ℕ → Type*) [Π n, add_comm_group (A n)] [differential_graded A] (i j : ℕ) :
-  graded.homology A i →+ (graded.homology A j →+ graded.homology A (i + j)) :=
-sorry
+def mm (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] (i j : ℕ) :
+  graded.homology R A j →+ (graded.homology R A i →+ graded.homology R A (i + j)) :=
+ (adjunction.of_left_adjoint (tensor_left (Module.of R (graded.homology R A i)))).hom_equiv _ _ (nn R A i j)
 
-instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [differential_graded_ring A] :
-  graded_monoid (graded.homology A) :=
-{ mul := λ i j x y, begin end }
+instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
+  graded_monoid (graded.homology R A) :=
+{ one := sorry,
+  mul := λ i j x y, begin end,
+  one_mul := sorry,
+  mul_one := sorry,
+  mul_assoc := sorry, }
 
 
-instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [differential_graded_ring A] :
-  graded_semiring (graded.homology A) :=
+instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
+  graded_semiring (graded.homology R A) :=
 sorry
 
 -- total

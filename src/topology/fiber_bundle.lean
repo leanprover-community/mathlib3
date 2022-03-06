@@ -243,6 +243,16 @@ begin
   rw [e.proj_symm_apply' h]
 end
 
+lemma target_inter_preimage_symm_source_eq (e f : pretrivialization F proj) :
+  f.target ∩ (f.to_local_equiv.symm) ⁻¹' e.source
+  = (e.base_set ∩ f.base_set) ×ˢ (univ : set F) :=
+by rw [inter_comm, f.target_eq, e.source_eq, f.preimage_symm_proj_inter]
+
+lemma trans_source (e f : pretrivialization F proj) :
+  (f.to_local_equiv.symm.trans e.to_local_equiv).source
+  = (e.base_set ∩ f.base_set) ×ˢ (univ : set F) :=
+by rw [local_equiv.trans_source, local_equiv.symm_source, e.target_inter_preimage_symm_source_eq]
+
 end topological_fiber_bundle.pretrivialization
 
 variable [topological_space Z]
@@ -342,6 +352,33 @@ def comp_homeomorph {Z' : Type*} [topological_space Z'] (h : Z' ≃ₜ Z) :
   proj_to_fun := λ p hp,
     have hp : h p ∈ e.source, by simpa using hp,
     by simp [hp] }
+
+/-- Read off the continuity of a function `f : Z → X` at `z : Z` by transferring via a
+trivialization of `Z` containing `z`. -/
+lemma continuous_at_of_comp_right {X : Type*} [topological_space X] {f : Z → X} {z : Z}
+  (e : trivialization F proj) (he : proj z ∈ e.base_set)
+  (hf : continuous_at (f ∘ e.to_local_equiv.symm) (e z)) :
+  continuous_at f z :=
+begin
+  have hez : z ∈ e.to_local_equiv.symm.target,
+  { rw [local_equiv.symm_target, e.mem_source],
+    exact he },
+  rwa [e.to_local_homeomorph.symm.continuous_at_iff_continuous_at_comp_right hez,
+   local_homeomorph.symm_symm]
+end
+
+/-- Read off the continuity of a function `f : X → Z` at `x : X` by transferring via a
+trivialization of `Z` containing `f x`. -/
+lemma continuous_at_of_comp_left {X : Type*} [topological_space X] {f : X → Z} {x : X}
+  (e : trivialization F proj) (hf_proj : continuous_at (proj ∘ f) x) (he : proj (f x) ∈ e.base_set)
+  (hf : continuous_at (e ∘ f) x) :
+  continuous_at f x :=
+begin
+  rw e.to_local_homeomorph.continuous_at_iff_continuous_at_comp_left,
+  { exact hf },
+  rw [e.source_eq, ← preimage_comp],
+  exact hf_proj.preimage_mem_nhds (e.open_base_set.mem_nhds he),
+end
 
 end topological_fiber_bundle.trivialization
 
@@ -1166,5 +1203,74 @@ lemma is_topological_fiber_bundle :
 
 lemma continuous_proj : @continuous _ _ a.total_space_topology _ proj :=
 by { letI := a.total_space_topology, exact a.is_topological_fiber_bundle.continuous_proj, }
+
+-- lemma continuous_at_of_comp_dom {X : Type*} [topological_space X] {f : Z → X} {z : Z}
+--   (hf : continuous_at (f ∘ (a.pretrivialization_at (proj z)).to_local_equiv.symm)
+--     ((a.pretrivialization_at (proj z)) z)) :
+--   @continuous_at _ _ a.total_space_topology _ f z :=
+-- begin
+--   letI := a.total_space_topology,
+--   let e : trivialization F proj := a.trivialization_at (proj z),
+--   have hez : z ∈ e.to_local_equiv.symm.target,
+--   { rw [local_equiv.symm_target, e.source_eq],
+--     exact a.mem_base_pretrivialization_at (proj z) },
+--   rwa [e.to_local_homeomorph.symm.continuous_at_iff_continuous_at_comp_right hez,
+--    local_homeomorph.symm_symm]
+-- end
+
+/-- For a fiber bundle `Z` over `B` constructed using the `topological_fiber_prebundle` mechanism,
+continuity of a function `Z → X` on an open set `s` can be checked by precomposing at each point
+with the pretrivialization used for the construction at that point. -/
+lemma continuous_on_of_comp_right {X : Type*} [topological_space X] {f : Z → X} {s : set B}
+  (hs : is_open s)
+  (hf : ∀ b, continuous_on (f ∘ (a.pretrivialization_at b).to_local_equiv.symm)
+    ((s ∩ (a.pretrivialization_at b).base_set) ×ˢ (set.univ : set F))) :
+  @continuous_on _ _ a.total_space_topology _ f (proj ⁻¹' s) :=
+begin
+  letI := a.total_space_topology,
+  intros z hz,
+  let e : trivialization F proj := a.trivialization_at (proj z),
+  refine (e.continuous_at_of_comp_right _
+    ((hf (proj z)).continuous_at (is_open.mem_nhds _ _))).continuous_within_at,
+  { exact a.mem_base_pretrivialization_at (proj z) },
+  { exact ((hs.inter (a.pretrivialization_at (proj z)).open_base_set).prod is_open_univ) },
+  refine ⟨_, mem_univ _⟩,
+  rw e.coe_fst,
+  { exact ⟨hz, a.mem_base_pretrivialization_at (proj z)⟩ },
+  { rw e.mem_source,
+    exact a.mem_base_pretrivialization_at (proj z) },
+end
+
+-- lemma continuous_at_of_comp_rng {X : Type*} [topological_space X] {f : X → Z} {x : X}
+--   -- (hf_proj : continuous_at (proj ∘ f) x)
+--   (hf : continuous_at ((a.pretrivialization_at (proj (f x))) ∘ f) x) :
+--   @continuous_at _ _ _ a.total_space_topology f x :=
+-- begin
+--   letI := a.total_space_topology,
+--   let e : trivialization F proj := a.trivialization_at (proj (f x)),
+--   rw e.to_local_homeomorph.continuous_at_iff_continuous_at_comp_left,
+--   { exact hf },
+--   have hf_proj : continuous_at (proj ∘ f) x,
+--   { refine (continuous_fst.continuous_at.comp hf).congr _,
+--     sorry,
+--     -- ext x',
+--     -- simp,
+--     -- convert (e.coe_fst _).symm,
+--     -- exact a.mem_base_pretrivialization_at (proj (f x)),
+--   },
+--   rw [e.source_eq, ← preimage_comp],
+--   apply hf_proj.preimage_mem_nhds,
+--   exact e.open_base_set.mem_nhds (a.mem_base_pretrivialization_at (proj (f x))),
+-- end
+
+/-- For a fiber bundle `Z` over `B` constructed using the `topological_fiber_prebundle` mechanism,
+continuity of a function `f : X → Z` on an open set `s` can be checked by postcomposing at each
+point `f x : Z` with the pretrivialization used for the construction at that point. -/
+lemma continuous_at_of_comp_rng {X : Type*} [topological_space X] {f : X → Z}  {s : set B}
+  (hs : is_open s)
+  -- (hf_proj : continuous_at (proj ∘ f) x)
+  (hf : ∀ b, continuous_on ((a.pretrivialization_at b)) ∘ f) ((proj ∘ f) ⁻¹' s)) :
+  @continuous_on _ _ _ a.total_space_topology f x :=
+
 
 end topological_fiber_prebundle

@@ -677,21 +677,14 @@ begin
     rintros p ⟨hp₁, hp₂⟩,
     convert (prod e₁ e₂).to_fiber_bundle_pretrivialization.coe_fst hp₂,
     rw (prod f₁ f₂).to_fiber_bundle_pretrivialization.proj_symm_apply hp₁ },
-  rw [(prod e₁ e₂).source_eq, (prod f₁ f₂).target_eq, inter_comm,
-    topological_fiber_bundle.pretrivialization.preimage_symm_proj_inter,
+  rw [topological_fiber_bundle.pretrivialization.target_inter_preimage_symm_source_eq,
     pretrivialization.base_set_prod, pretrivialization.base_set_prod],
   let ψ₁ := f₁.to_local_homeomorph.symm.trans e₁.to_local_homeomorph,
   let ψ₂ := f₂.to_local_homeomorph.symm.trans e₂.to_local_homeomorph,
-  have hψ₁ : ψ₁.source = (e₁.base_set ∩ f₁.base_set) ×ˢ (univ : set F₁),
-  { dsimp [ψ₁],
-    rw [e₁.source_eq, f₁.target_eq, inter_comm],
-    exact topological_fiber_bundle.pretrivialization.preimage_symm_proj_inter
-      f₁.to_pretrivialization.to_fiber_bundle_pretrivialization e₁.base_set },
-  have hψ₂ : ψ₂.source = (e₂.base_set ∩ f₂.base_set) ×ˢ (univ : set F₂),
-  { dsimp [ψ₂],
-    rw [e₂.source_eq, f₂.target_eq, inter_comm],
-    exact topological_fiber_bundle.pretrivialization.preimage_symm_proj_inter
-      f₂.to_pretrivialization.to_fiber_bundle_pretrivialization e₂.base_set },
+  have hψ₁ : ψ₁.source = (e₁.base_set ∩ f₁.base_set) ×ˢ (univ : set F₁) :=
+    e₁.to_pretrivialization.to_fiber_bundle_pretrivialization.trans_source f₁,
+  have hψ₂ : ψ₂.source = (e₂.base_set ∩ f₂.base_set) ×ˢ (univ : set F₂) :=
+    e₂.to_pretrivialization.to_fiber_bundle_pretrivialization.trans_source f₂,
   refine continuous_on.prod' _ _,
   { refine ((continuous_snd.comp_continuous_on ψ₁.continuous_on).comp
       (continuous_id.prod_map continuous_fst).continuous_on _).congr _,
@@ -774,10 +767,10 @@ lemma pretrivialization.is_open_source_prod
   is_open (prod e₁ e₂).source :=
 (open_base_set_prod e₁ e₂).preimage (topological_vector_bundle.continuous_proj R B (F₁ × F₂))
 
--- lemma pretrivialization.is_open_target_prod
---   (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂) :
---   is_open (prod e₁ e₂).target :=
--- (open_base_set_prod e₁ e₂).prod is_open_univ
+lemma pretrivialization.is_open_target_prod
+  (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂) :
+  is_open (prod e₁ e₂).target :=
+(open_base_set_prod e₁ e₂).prod is_open_univ
 
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the induced
 trivialization for the direct sum of `E₁` and `E₂`, whose base set is `e₁.base_set ∩ e₂.base_set`.
@@ -787,30 +780,30 @@ def trivialization.prod (e₁ : trivialization R F₁ E₁) (e₂ : trivializati
 { open_source := pretrivialization.is_open_source_prod e₁ e₂,
   continuous_to_fun :=
   begin
+    apply topological_fiber_prebundle.continuous_on_of_comp_right,
+    { exact e₁.open_base_set.inter e₂.open_base_set },
+    intros b,
+    convert continuous_triv_change_prod e₁ (trivialization_at R F₁ E₁ b) e₂
+      (trivialization_at R F₂ E₂ b),
+    rw topological_fiber_bundle.pretrivialization.target_inter_preimage_symm_source_eq,
+    refl,
+  end,
+  continuous_inv_fun :=
+  begin
     intros x hx,
-    rw continuous_within_at_iff_continuous_at
-      ((pretrivialization.is_open_source_prod e₁ e₂).mem_nhds hx),
+    apply continuous_at.continuous_within_at,
     let f := topological_fiber_prebundle.trivialization_at
       (topological_vector_prebundle.prod R F₁ E₁ F₂ E₂).to_topological_fiber_prebundle x.1,
     let f₁ := trivialization_at R F₁ E₁ x.1,
     let f₂ := trivialization_at R F₂ E₂ x.1,
-    have H : x ∈ f.source,
-    { rw f.mem_source,
-      exact topological_fiber_prebundle.mem_base_pretrivialization_at _ x.1 },
-    rw [f.to_local_homeomorph.symm.continuous_at_iff_continuous_at_comp_right H,
-      local_homeomorph.symm_symm],
-    refine (continuous_triv_change_prod e₁ f₁ e₂ f₂).continuous_at _,
-    apply is_open.mem_nhds,
-    { rw [inter_comm, (prod f₁ f₂).target_eq, (prod e₁ e₂).source_eq,
-        (prod f₁ f₂).to_fiber_bundle_pretrivialization.preimage_symm_proj_inter
-        (prod e₁ e₂).base_set],
-      exact ((open_base_set_prod e₁ e₂).inter (open_base_set_prod f₁ f₂)).prod is_open_univ },
-    { refine ⟨f.to_local_homeomorph.map_source H, _⟩,
-      rw mem_preimage,
-      convert hx,
-      exact local_equiv.left_inv _ H },
+    have H : (prod e₁ e₂).to_local_equiv.symm ⁻¹' (prod f₁ f₂).to_local_equiv.source ∈ nhds x,
+    { sorry },
+    rw [f.to_local_homeomorph.continuous_at_iff_continuous_at_comp_left],
+    { refine (continuous_triv_change_prod f₁ e₁ f₂ e₂).continuous_at _,
+      refine filter.inter_mem _ H,
+      exact (pretrivialization.is_open_target_prod e₁ e₂).mem_nhds hx },
+    { exact H },
   end,
-  continuous_inv_fun := _,
   .. pretrivialization.prod e₁ e₂ }
 
 @[simp] lemma trivialization.base_set_prod (e₁ : trivialization R F₁ E₁)

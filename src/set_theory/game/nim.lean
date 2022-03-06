@@ -95,7 +95,7 @@ using_well_founded { dec_tac := tactic.assumption }
 lemma exists_ordinal_move_left_eq (O : ordinal) : ∀ i, ∃ O' < O, (nim O).move_left i = nim O' :=
 by { rw nim_def, exact λ i, ⟨_, ⟨ordinal.typein_lt_self i, rfl⟩⟩ }
 
-lemma exists_move_left_eq (O : ordinal) : ∀ O' < O, ∃ i, (nim O).move_left i = nim O' :=
+lemma exists_move_left_eq {O : ordinal} : ∀ O' < O, ∃ i, (nim O).move_left i = nim O' :=
 by { rw nim_def, exact λ _ h, ⟨(ordinal.principal_seg_out h).top, by simp⟩ }
 
 lemma zero_first_loses : (nim (0 : ordinal)).first_loses :=
@@ -104,7 +104,7 @@ begin
   exact ⟨@is_empty_elim (0 : ordinal).out.α _ _, @is_empty_elim pempty _ _⟩
 end
 
-lemma non_zero_first_wins (O : ordinal) (hO : O ≠ 0) : (nim O).first_wins :=
+lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : (nim O).first_wins :=
 begin
   rw [impartial.first_wins_symm, nim_def, lt_def_le],
   rw ←ordinal.pos_iff_ne_zero at hO,
@@ -277,11 +277,11 @@ begin
 
     -- Therefore, we can play the corresponding move, and by the inductive hypothesis the new state
     -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.
-    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ _ (ordinal.nat_cast_lt.2 h),
+    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ (ordinal.nat_cast_lt.2 h),
       refine ⟨(left_moves_add _ _).symm (sum.inl i), _⟩,
       simp only [hi, add_move_left_inl],
       rw [hn _ h, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] },
-    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ _ (ordinal.nat_cast_lt.2 h),
+    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ (ordinal.nat_cast_lt.2 h),
       refine ⟨(left_moves_add _ _).symm (sum.inr i), _⟩,
       simp only [hi, add_move_left_inr],
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },

@@ -39,7 +39,7 @@ where it is important that the internal has a particular definition.
 -/
 class has_internal_hom {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
 (ihom : C ⥤ C)
-(adjunction : tensor_left X ⊣ ihom)
+(adj : tensor_left X ⊣ ihom)
 
 /--
 A data-carrying typeclass giving a particular choice of internal hom for every object.
@@ -57,7 +57,7 @@ variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
 def ihom (X : C) [has_internal_hom X] : C ⥤ C := has_internal_hom.ihom X
 
 instance closed_of_has_internal_hom (X : C) [has_internal_hom X] : closed X :=
-{ is_adj := { right := ihom X, adj := has_internal_hom.adjunction, }, }
+{ is_adj := { right := ihom X, adj := has_internal_hom.adj, }, }
 
 instance monoidal_closed_of_has_internal_homs [has_internal_homs C] : monoidal_closed C :=
 { closed' := λ X, by apply_instance, }
@@ -69,7 +69,7 @@ Construct a `has_internal_hom` instance using choice to pick an arbitrary right 
 -/
 def has_internal_hom_of_closed (X : C) [closed X] : has_internal_hom X :=
 { ihom := (@closed.is_adj _ _ _ X _).right,
-  adjunction := @adjunction.of_left_adjoint _ _ _ _ (tensor_left X) (@closed.is_adj _ _ _ X _) }
+  adj := @adjunction.of_left_adjoint _ _ _ _ (tensor_left X) (@closed.is_adj _ _ _ X _) }
 
 variables (C)
 

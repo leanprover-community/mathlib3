@@ -91,25 +91,25 @@ begin
   split;
   rw pgame.le_def,
   { refine ⟨λ i, _, λ j, _⟩,
-    { let hwf : typein O.out.r i < O := nim_wf_lemma i,
+    { let hwf := nim_wf_lemma i,
       exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).1⟩ },
-    { let hwf : typein O.out.r j < O := nim_wf_lemma j,
+    { let hwf := nim_wf_lemma j,
       exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).1⟩ } },
   { refine ⟨λ i, _, λ j, _⟩,
-    { let hwf : typein O.out.r i < O := nim_wf_lemma i,
+    { let hwf := nim_wf_lemma i,
       exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).2⟩ },
-    { let hwf : typein O.out.r j < O := nim_wf_lemma j,
+    { let hwf := nim_wf_lemma j,
       exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).2⟩ } },
   refine ⟨λ i, _, λ j, _⟩,
-  { let hwf : typein O.out.r i < O := nim_wf_lemma i,
-    simpa using nim_impartial (typein O.out.r i) },
-  { let hwf : typein O.out.r j < O := nim_wf_lemma j,
-    simpa using nim_impartial (typein O.out.r j) }
+  { let hwf := nim_wf_lemma i,
+    simpa using nim_impartial (typein ((<) : O.out.α → O.out.α → Prop) i) },
+  { let hwf := nim_wf_lemma j,
+    simpa using nim_impartial (typein ((<) : O.out.α → O.out.α → Prop) j) }
 end
 using_well_founded { dec_tac := tactic.assumption }
 
 lemma exists_ordinal_move_left_eq (O : ordinal) : ∀ i, ∃ O' < O, (nim O).move_left i = nim O' :=
-by { rw nim_def, exact λ i, ⟨ordinal.typein O.out.r i, ⟨nim_wf_lemma _, rfl⟩⟩ }
+by { rw nim_def, exact λ i, ⟨_, ⟨nim_wf_lemma i, rfl⟩⟩ }
 
 lemma exists_move_left_eq (O : ordinal) : ∀ O' < O, ∃ i, (nim O).move_left i = nim O' :=
 by { rw nim_def, exact λ _ h, ⟨(ordinal.principal_seg_out h).top, by simp⟩ }
@@ -233,12 +233,7 @@ begin
       revert i₂ hlt,
       rw grundy_value_def,
       intros i₂ hlt,
-      have hnotin : ordinal.typein (Inf (nonmoves (λ i, grundy_value (G.move_left i)))).out.r i₂ ∉
-        (nonmoves (λ (i : G.left_moves), grundy_value (G.move_left i))),
-      { intro hin,
-        have hge := cInf_le' hin,
-        have hcontra := (le_not_le_of_lt hlt).2,
-        contradiction },
+      have hnotin : _ ∉ _ := λ hin, (le_not_le_of_lt hlt).2 (cInf_le' hin),
       simpa [nonmoves] using hnotin },
 
     cases h' with i hi,

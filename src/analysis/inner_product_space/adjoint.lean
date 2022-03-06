@@ -190,6 +190,7 @@ section unitary
 
 variables {U : (E →L[𝕜] E)}
 
+/-- Builds a linear equivalence from `U ∈ unitary (E →L[𝕜] E)`. -/
 def linear_equiv_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) : (E ≃ₗ[𝕜] E) :=
   { to_fun    := U,
     map_add'  := map_add U,
@@ -202,6 +203,7 @@ def linear_equiv_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) : (E ≃ₗ[�
       ← continuous_linear_map.mul_apply, unitary.mul_star_self_of_mem hU,
       continuous_linear_map.one_apply] } }
 
+/-- Builds a linear isometric equivalence from `U ∈ unitary (E →L[𝕜] E)`. -/
 def linear_isometry_equiv_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) : (E ≃ₗᵢ[𝕜] E) :=
   { to_linear_equiv := linear_equiv_of_unitary hU,
     norm_map' := λ x : E, by { simp only [linear_equiv_of_unitary, linear_equiv.coe_mk],
@@ -213,10 +215,9 @@ def linear_isometry_equiv_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) : (E 
 
 lemma norm_map_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) (x : E) : ∥U x∥ = ∥x∥ :=
 begin
-  have := (linear_isometry_equiv_of_unitary hU).norm_map',
-  specialize this x,
-  simp only [linear_isometry_equiv_of_unitary, linear_equiv_of_unitary,
-    linear_equiv.coe_mk] at this,
+  have := (linear_isometry_equiv_of_unitary hU).norm_map' x,
+  simp only [linear_isometry_equiv_of_unitary, linear_equiv_of_unitary, linear_equiv.coe_mk]
+    at this,
   exact this,
 end
 

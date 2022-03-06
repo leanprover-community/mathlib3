@@ -801,7 +801,6 @@ theorem div_lt_iff_lt_mul' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x / k < y ↔ x 
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le' k0
 
 lemma one_le_div_iff {a b : ℕ} (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
--- somebody golf me
 by rw [le_div_iff_mul_le _ _ hb, one_mul]
 
 lemma div_lt_one_iff {a b : ℕ} (hb : 0 < b) : a / b < 1 ↔ a < b :=

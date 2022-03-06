@@ -1223,20 +1223,23 @@ theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
 
-@[simp] theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
+@[simp] theorem lsub_typein (o : ordinal) :
+  lsub.{u u} (typein ((<) : o.out.α → o.out.α → Prop)) = o :=
 (lsub_le.{u u}.2 typein_lt_self).antisymm begin
   by_contra' h,
-  nth_rewrite 0 ←type_out o at h,
-  simpa [typein_enum] using lt_lsub.{u u} (typein o.out.r) (enum o.out.r _ h)
+  nth_rewrite 0 ←type_lt o at h,
+  simpa [typein_enum] using lt_lsub.{u u} (typein (<)) (enum (<) _ h)
 end
 
 theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
-  sup.{u u} (typein o.out.r) = o :=
-by rw (sup_eq_lsub_iff_succ.{u u} (typein o.out.r)).2; rwa lsub_typein o
+  sup.{u u} (typein ((<) : o.out.α → o.out.α → Prop)) = o :=
+by rw (sup_eq_lsub_iff_succ.{u u} (typein (<))).2; rwa lsub_typein o
 
-@[simp] theorem sup_typein_succ {o : ordinal} : sup.{u u} (typein o.succ.out.r) = o :=
+@[simp] theorem sup_typein_succ {o : ordinal} :
+  sup.{u u} (typein ((<) : o.succ.out.α → o.succ.out.α → Prop)) = o :=
 begin
-  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein o.succ.out.r) with h h,
+  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein ((<) : o.succ.out.α → o.succ.out.α → Prop))
+    with h h,
   { rw sup_eq_lsub_iff_succ at h,
     simp only [lsub_typein] at h,
     exact (h o (lt_succ_self o)).false.elim },

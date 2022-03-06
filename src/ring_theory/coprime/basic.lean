@@ -162,6 +162,32 @@ by { rw add_comm at h, exact h.of_add_mul_right_right }
 
 end comm_semiring
 
+section comm_semiring_unit
+variables {R : Type*} [comm_semiring R] {x : R} (hu : is_unit x) (y z : R)
+
+lemma is_coprime_mul_unit_left_left : is_coprime (x * y) z ↔ is_coprime y z :=
+⟨λ ⟨a, b, h⟩, ⟨a * x, b, by rwa [mul_assoc]⟩,
+  λ ⟨a, b, h⟩,
+    let ⟨x', hx⟩ := hu.exists_left_inv in
+    ⟨a * x', b, by rwa [←mul_assoc (a * x'), mul_assoc a, hx, mul_one]⟩⟩
+
+lemma is_coprime_mul_unit_left_right : is_coprime y (x * z) ↔ is_coprime y z :=
+is_coprime_comm.trans $ (is_coprime_mul_unit_left_left hu z y).trans is_coprime_comm
+
+lemma is_coprime_mul_unit_left : is_coprime (x * y) (x * z) ↔ is_coprime y z :=
+(is_coprime_mul_unit_left_left hu y (x * z)).trans (is_coprime_mul_unit_left_right hu y z)
+
+lemma is_coprime_mul_unit_right_left : is_coprime (y * x) z ↔ is_coprime y z :=
+mul_comm x y ▸ is_coprime_mul_unit_left_left hu y z
+
+lemma is_coprime_mul_unit_right_right : is_coprime y (z * x) ↔ is_coprime y z :=
+mul_comm x z ▸ is_coprime_mul_unit_left_right hu y z
+
+lemma is_coprime_mul_unit_right : is_coprime (y * x) (z * x) ↔ is_coprime y z :=
+(is_coprime_mul_unit_right_left hu y (z * x)).trans (is_coprime_mul_unit_right_right hu y z)
+
+end comm_semiring_unit
+
 namespace is_coprime
 
 section comm_ring

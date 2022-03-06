@@ -33,6 +33,13 @@ Sakai's definition of a von Neumann algebra as a C^* algebra with a Banach space
 So that we can unambiguously talk about these "abstract" von Neumann algebras
 in parallel with the "concrete" ones (weakly closed *-subalgebras of B(H)),
 we name this definition `wstar_algebra`.
+
+Note that for now we only assert the mere existence of predual, rather than picking one.
+This may later prove problematic, and need to be revisited.
+Picking one may cause problems with definitional unification of different instances.
+One the other hand, not picking one means that the weak-* topology
+(which depends on a choice of predual) must be defined using the choice,
+and we may be unhappy with the resulting opaqueness of the definition.
 -/
 class wstar_algebra (M : Type u) [normed_ring M] [star_ring M] [cstar_ring M]
   [module ℂ M] [normed_algebra ℂ M] [star_module ℂ M] :=

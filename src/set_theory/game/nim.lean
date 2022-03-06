@@ -33,38 +33,25 @@ useful.
 -/
 universes u
 
-/-- `ordinal.out` and `ordinal.type_lt'` are required to make the definition of nim computable.
- `ordinal.out` performs the same job as `quotient.out` but is specific to ordinals. -/
-def ordinal.out (o : ordinal) : Well_order :=
+/-- `ordinal.out'` and `ordinal.type_lt'` are required to make the definition of nim computable.
+ `ordinal.out'` performs the same job as `quotient.out` but is specific to ordinals. -/
+def ordinal.out' (o : ordinal) : Well_order :=
 ⟨o.out.α, (<), o.out.wo⟩
 
-instance ordinal.has_well_founded' (o : ordinal) : has_well_founded o.out.α :=
-⟨o.out.r, o.out.wo.wf⟩
-
--- We can't declare a `linear_order` instance as before, as it would be noncomputable.
-instance ordinal.has_lt' (o : ordinal) : has_lt o.out.α :=
-⟨o.out.r⟩
-
-instance ordinal.has_well_order' (o : ordinal) : is_well_order o.out.α (<) :=
-o.out.wo
-
-instance : is_empty (0 : ordinal.{u}).out.α :=
-ordinal.α.is_empty
-
 /-- This is the same as `ordinal.type_lt` but defined to use `ordinal.out`. -/
-theorem ordinal.type_lt' : ∀ (o : ordinal), ordinal.type ((<) : o.out.α → o.out.α → Prop) = o :=
+theorem ordinal.type_lt' : ∀ (o : ordinal), ordinal.type o.out'.r = o :=
 ordinal.type_lt
 
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
  take a positive number of stones from it on their turn. -/
 def nim : ordinal → pgame
-| O₁ := ⟨ O₁.out.α, O₁.out.α,
-  λ O₂, have hwf : (ordinal.typein (<) O₂) < O₁,
+| O₁ := ⟨ O₁.out'.α, O₁.out'.α,
+  λ O₂, have hwf : (ordinal.typein O₁.out'.r O₂) < O₁,
     from begin nth_rewrite_rhs 0 ←ordinal.type_lt' O₁, exact ordinal.typein_lt_type _ _ end,
-    nim (ordinal.typein (<) O₂),
-  λ O₂, have hwf : (ordinal.typein (<) O₂) < O₁,
+    nim (ordinal.typein O₁.out'.r O₂),
+  λ O₂, have hwf : (ordinal.typein O₁.out'.r O₂) < O₁,
     from begin nth_rewrite_rhs 0 ←ordinal.type_lt' O₁, exact ordinal.typein_lt_type _ _ end,
-    nim (ordinal.typein (<) O₂)⟩
+    nim (ordinal.typein O₁.out'.r O₂)⟩
 using_well_founded { dec_tac := tactic.assumption }
 
 namespace pgame
@@ -78,7 +65,7 @@ open ordinal
 lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein (<) O₂))
   (λ O₂, nim (ordinal.typein (<) O₂)) :=
-by rw nim
+by { rw nim, refl }
 
 instance nim_impartial : ∀ (O : ordinal), impartial (nim O)
 | O :=

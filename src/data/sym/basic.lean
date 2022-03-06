@@ -28,7 +28,9 @@ symmetric powers
 
 -/
 
-universes u
+open function
+
+universes u v
 
 /--
 The nth symmetric power is n-tuples up to permutation.  We define it
@@ -55,6 +57,20 @@ namespace sym
 
 variables {α : Type u} {n : ℕ} {s : sym α n} {a b : α}
 
+lemma coe_injective : injective (coe : sym α n → multiset α) := subtype.coe_injective
+
+@[simp, norm_cast] lemma coe_inj {s₁ s₂ : sym α n} : (s₁ : multiset α) = s₂ ↔ s₁ = s₂ :=
+coe_injective.eq_iff
+
+/--
+Construct an element of the `n`th symmetric power from a multiset of cardinality `n`.
+-/
+@[simps, pattern]
+abbreviation mk (m : multiset α) (h : m.card = n) : sym α n := ⟨m, h⟩
+
+lemma exists_mk : Π (s : sym α n), ∃ m h, s = mk m h
+| (mk m h) := ⟨m, h, rfl⟩
+
 /--
 The unique element in `sym α 0`.
 -/
@@ -63,7 +79,7 @@ The unique element in `sym α 0`.
 /--
 Inserts an element into the term of `sym α n`, increasing the length by one.
 -/
-@[pattern] def cons (a : α) (s : sym α n) : sym α (nat.succ n) :=
+@[pattern] def cons (a : α) (s : sym α n) : sym α n.succ :=
 ⟨a ::ₘ s.1, by rw [multiset.card_cons, s.2]⟩
 
 notation a :: b := cons a b
@@ -78,6 +94,8 @@ subtype.ext_iff.trans $ multiset.cons_inj_left _
 
 lemma cons_swap (a b : α) (s : sym α n) : a :: b :: s = b :: a :: s :=
 subtype.ext $ multiset.cons_swap a b s.1
+
+lemma coe_cons (s : sym α n) (a : α) : (a :: s : multiset α) = a ::ₘ s := rfl
 
 /--
 This is the quotient map that takes a list of n elements as an n-tuple and produces an nth
@@ -99,6 +117,9 @@ instance : has_mem α (sym α n) := ⟨λ a s, a ∈ s.1⟩
 instance decidable_mem [decidable_eq α] (a : α) (s : sym α n) : decidable (a ∈ s) :=
 s.1.decidable_mem _
 
+@[simp]
+lemma mem_mk (a : α) (s : multiset α) (h : s.card = n) : a ∈ mk s h ↔ a ∈ s := iff.rfl
+
 @[simp] lemma mem_cons {a b : α} {s : sym α n} : a ∈ b :: s ↔ a = b ∨ a ∈ s :=
 multiset.mem_cons
 
@@ -119,8 +140,19 @@ subtype.ext $ quotient.sound h
 def erase [decidable_eq α] (s : sym α (n + 1)) (a : α) (h : a ∈ s) : sym α n :=
 ⟨s.val.erase a, (multiset.card_erase_of_mem h).trans $ s.property.symm ▸ n.pred_succ⟩
 
-@[simp] lemma cons_erase [decidable_eq α] (s : sym α (n + 1)) (a : α) (h : a ∈ s) :
-  a :: s.erase a h = s := subtype.ext $ multiset.cons_erase h
+@[simp] lemma erase_mk [decidable_eq α] (m : multiset α) (hc : m.card = n + 1) (a : α) (h : a ∈ m) :
+  (mk m hc).erase a h = mk (m.erase a) (by { rw [multiset.card_erase_of_mem h, hc], refl }) := rfl
+
+@[simp] lemma coe_erase [decidable_eq α] {s : sym α n.succ} {a : α} (h : a ∈ s) :
+  (s.erase a h : multiset α) = multiset.erase s a := rfl
+
+@[simp] lemma cons_erase [decidable_eq α] {s : sym α n.succ} {a : α} (h : a ∈ s) :
+  a :: s.erase a h = s :=
+coe_injective $ multiset.cons_erase h
+
+@[simp] lemma erase_cons_head [decidable_eq α] (s : sym α n) (a : α) (h : a ∈ a :: s) :
+  (a :: s).erase a h = s :=
+coe_injective $ multiset.erase_cons_head a s.1
 
 /--
 Another definition of the nth symmetric power, using vectors modulo permutations. (See `sym`.)
@@ -177,7 +209,7 @@ lemma exists_eq_cons_of_succ (s : sym α n.succ) : ∃ (a : α) (s' : sym α n),
 begin
   obtain ⟨a, ha⟩ := exists_mem s,
   classical,
-  exact ⟨a, s.erase a ha, (s.cons_erase _ _).symm⟩,
+  exact ⟨a, s.erase a ha, (@cons_erase _ _ _ s _ _).symm⟩,
 end
 
 lemma eq_repeat {a : α} {n : ℕ} {s : sym α n} : s = repeat a n ↔ ∀ b ∈ s, b = a :=
@@ -223,7 +255,7 @@ def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
 @[simp] lemma mem_map {α β : Type*} {n : ℕ} {f : α → β} {b : β} {l : sym α n} :
   b ∈ sym.map f l ↔ ∃ a, a ∈ l ∧ f a = b := multiset.mem_map
 
-@[simp] lemma map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map id s = s :=
+@[simp] lemma map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map (λ (x : α), x) s = s :=
 by simp [sym.map]
 
 @[simp] lemma map_map {α β γ : Type*} {n : ℕ} (g : β → γ) (f : α → β) (s : sym α n) :
@@ -237,13 +269,51 @@ by simp [sym.map]
   (a :: s).map f = (f a) :: s.map f :=
 by simp [map, cons]
 
+@[congr] lemma map_congr {β : Type*} {f g : α → β} {s : sym α n} (h: ∀ x ∈ s, f x = g x) :
+  map f s = map g s := subtype.ext $ multiset.map_congr rfl h
+
+@[simp] lemma map_mk {β : Type*} {f : α → β} {m : multiset α} {hc : m.card = n} :
+  map f (mk m hc) = mk (m.map f) (by simp [hc]) := rfl
+
+@[simp] lemma coe_map {β : Type*} (s : sym α n) (f : α → β) : ↑(s.map f) = multiset.map f s := rfl
+
+lemma map_injective {β : Type*} {f : α → β} (hf : injective f) (n : ℕ) :
+  injective (map f : sym α n → sym β n) :=
+λ s t h, coe_injective $ multiset.map_injective hf $ coe_inj.2 h
+
 /-- Mapping an equivalence `α ≃ β` using `sym.map` gives an equivalence between `sym α n` and
 `sym β n`. -/
 @[simps]
-def equiv_congr {β : Type u} (e : α ≃ β) : sym α n ≃ sym β n :=
+def equiv_congr {α β : Type*} (e : α ≃ β) : sym α n ≃ sym β n :=
 { to_fun := map e,
   inv_fun := map e.symm,
-  left_inv := λ x, by rw [map_map, equiv.symm_comp_self, map_id],
-  right_inv := λ x, by rw [map_map, equiv.self_comp_symm, map_id] }
+  left_inv := λ x, by { rw [map_map, equiv.symm_comp_self], simp only [id.def, map_id], },
+  right_inv := λ x, by { simp only [equiv.self_comp_symm, id.def, map_id, map_map], }, }
+
+/-- "Attach" a proof that `a ∈ s` to each element `a` in `s` to produce
+an element of the symmetric power on `{x // x ∈ s}`. -/
+def attach (s : sym α n) : sym {x // x ∈ s} n := ⟨s.val.attach, by rw [multiset.card_attach, s.2]⟩
+
+@[simp] lemma attach_mk {m : multiset α} {hc : m.card = n} :
+  attach (mk m hc) = mk m.attach (by simp [hc]) := rfl
+
+@[simp] lemma coe_attach (s : sym α n) : (s.attach : multiset {a // a ∈ s}) = multiset.attach s :=
+rfl
+
+lemma attach_map_coe (s : sym α n) : s.attach.map coe = s :=
+coe_injective $ multiset.attach_map_val _
+
+@[simp] lemma mem_attach : Π (s : sym α n), ∀ x, x ∈ s.attach
+| (mk s _) := by simp
+
+@[simp] lemma attach_nil : (nil : sym α 0).attach = nil := rfl
+
+@[simp] lemma attach_cons {x : α} {s : sym α n} :
+  (cons x s).attach = cons ⟨x, by simp⟩ (s.attach.map (λ x, ⟨x.1, mem_cons_of_mem x.2⟩)) :=
+begin
+  cases s,
+  simp only [cons, map, attach, subtype.mk_eq_mk, subtype.val_eq_coe],
+  apply multiset.attach_cons,
+end
 
 end sym

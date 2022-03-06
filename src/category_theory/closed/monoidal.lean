@@ -23,14 +23,14 @@ namespace category_theory
 open category monoidal_category
 
 /-- An object `X` is (right) closed if `(X ⊗ -)` is a left adjoint. -/
-class closed {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
+class right_closed {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
 (is_adj : is_left_adjoint (tensor_left X))
 
 /-- A monoidal category `C` is (right) monoidal closed if every object is (right) closed. -/
-class monoidal_closed (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
-(closed' : Π (X : C), closed X)
+class right_monoidal_closed (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
+(closed' : Π (X : C), right_closed X)
 
-attribute [instance, priority 100] monoidal_closed.closed'
+attribute [instance, priority 100] right_monoidal_closed.closed'
 
 variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
 
@@ -39,8 +39,8 @@ If `X` and `Y` are closed then `X ⊗ Y` is.
 This isn't an instance because it's not usually how we want to construct internal homs,
 we'll usually prove all objects are closed uniformly.
 -/
-def tensor_closed {X Y : C}
-  (hX : closed X) (hY : closed Y) : closed (X ⊗ Y) :=
+def tensor_right_closed {X Y : C}
+  (hX : right_closed X) (hY : right_closed Y) : right_closed (X ⊗ Y) :=
 { is_adj :=
   begin
     haveI := hX.is_adj,
@@ -53,7 +53,7 @@ The unit object is always closed.
 This isn't an instance because most of the time we'll prove closedness for all objects at once,
 rather than just for this one.
 -/
-def unit_closed : closed (𝟙_ C) :=
+def unit_right_closed : right_closed (𝟙_ C) :=
 { is_adj :=
   { right := 𝟭 C,
     adj := adjunction.mk_of_hom_equiv
@@ -67,7 +67,7 @@ def unit_closed : closed (𝟙_ C) :=
 
 variables (A B : C) {X X' Y Y' Z : C}
 
-variables [closed A]
+variables [right_closed A]
 
 /--
 This is the internal hom `A ⟶[C] -`.
@@ -79,13 +79,13 @@ that allows specifying a particular definition of the internal hom,
 and provide a low priority opaque instance.
 -/
 def ihom : C ⥤ C :=
-(@closed.is_adj _ _ _ A _).right
+(@right_closed.is_adj _ _ _ A _).right
 
 namespace ihom
 
 /-- The adjunction between `A ⊗ -` and `A ⟹ -`. -/
 def adjunction : tensor_left A ⊣ ihom A :=
-closed.is_adj.adj
+right_closed.is_adj.adj
 
 /-- The evaluation natural transformation. -/
 def ev : ihom A ⋙ tensor_left A ⟶ 𝟭 C :=
@@ -128,7 +128,7 @@ instance : preserves_colimits (tensor_left A) :=
 variables {A}
 
 -- Wrap these in a namespace so we don't clash with the core versions.
-namespace monoidal_closed
+namespace right_monoidal_closed
 
 /-- Currying in a monoidal closed category. -/
 def curry : (A ⊗ Y ⟶ X) → (Y ⟶ A ⟶[C] X) :=
@@ -164,11 +164,11 @@ adjunction.hom_equiv_naturality_left_symm _ _ _
 
 @[simp]
 lemma uncurry_curry (f : A ⊗ X ⟶ Y) : uncurry (curry f) = f :=
-(closed.is_adj.adj.hom_equiv _ _).left_inv f
+(right_closed.is_adj.adj.hom_equiv _ _).left_inv f
 
 @[simp]
 lemma curry_uncurry (f : X ⟶ A ⟶[C] Y) : curry (uncurry f) = f :=
-(closed.is_adj.adj.hom_equiv _ _).right_inv f
+(right_closed.is_adj.adj.hom_equiv _ _).right_inv f
 
 lemma curry_eq_iff (f : A ⊗ Y ⟶ X) (g : Y ⟶ A ⟶[C] X) :
   curry f = g ↔ f = uncurry g :=
@@ -186,10 +186,10 @@ lemma curry_eq (g : A ⊗ Y ⟶ X) : curry g = (ihom.coev A).app Y ≫ (ihom A).
 adjunction.hom_equiv_unit _
 
 lemma curry_injective : function.injective (curry : (A ⊗ Y ⟶ X) → (Y ⟶ A ⟶[C] X)) :=
-(closed.is_adj.adj.hom_equiv _ _).injective
+(right_closed.is_adj.adj.hom_equiv _ _).injective
 
 lemma uncurry_injective : function.injective (uncurry : (Y ⟶ A ⟶[C] X) → (A ⊗ Y ⟶ X)) :=
-(closed.is_adj.adj.hom_equiv _ _).symm.injective
+(right_closed.is_adj.adj.hom_equiv _ _).symm.injective
 
 variables (A X)
 
@@ -201,7 +201,7 @@ by { rw [curry_eq, (ihom A).map_id (A ⊗ _)], apply comp_id }
 
 section pre
 
-variables {A B} [closed B]
+variables {A B} [right_closed B]
 
 /-- Pre-compose an internal hom with an external hom. -/
 def pre (f : B ⟶ A) : ihom A ⟶ ihom B :=
@@ -213,7 +213,7 @@ lemma id_tensor_pre_app_comp_ev (f : B ⟶ A) (X : C) :
 transfer_nat_trans_self_counit _ _ ((tensoring_left C).map f) X
 
 lemma uncurry_pre (f : B ⟶ A) (X : C) :
-  monoidal_closed.uncurry ((pre f).app X) = (f ⊗ 𝟙 _) ≫ (ihom.ev A).app X :=
+  right_monoidal_closed.uncurry ((pre f).app X) = (f ⊗ 𝟙 _) ≫ (ihom.ev A).app X :=
 by rw [uncurry_eq, id_tensor_pre_app_comp_ev]
 
 lemma coev_app_comp_pre_app (f : B ⟶ A) :
@@ -222,11 +222,11 @@ lemma coev_app_comp_pre_app (f : B ⟶ A) :
 unit_transfer_nat_trans_self _ _ ((tensoring_left C).map f) X
 
 @[simp]
-lemma pre_id (A : C) [closed A] : pre (𝟙 A) = 𝟙 _ :=
+lemma pre_id (A : C) [right_closed A] : pre (𝟙 A) = 𝟙 _ :=
 by { simp only [pre, functor.map_id], dsimp, simp, }
 
 @[simp]
-lemma pre_map {A₁ A₂ A₃ : C} [closed A₁] [closed A₂] [closed A₃]
+lemma pre_map {A₁ A₂ A₃ : C} [right_closed A₁] [right_closed A₂] [right_closed A₃]
   (f : A₁ ⟶ A₂) (g : A₂ ⟶ A₃) :
   pre (f ≫ g) = pre g ≫ pre f :=
 by rw [pre, pre, pre, transfer_nat_trans_self_comp, (tensoring_left C).map_comp]
@@ -234,10 +234,10 @@ by rw [pre, pre, pre, transfer_nat_trans_self_comp, (tensoring_left C).map_comp]
 end pre
 
 /-- The internal hom functor given by the monoidal closed structure. -/
-def internal_hom [monoidal_closed C] : Cᵒᵖ ⥤ C ⥤ C :=
+def internal_hom [right_monoidal_closed C] : Cᵒᵖ ⥤ C ⥤ C :=
 { obj := λ X, ihom X.unop,
   map := λ X Y f, pre f.unop }
 
-end monoidal_closed
+end right_monoidal_closed
 
 end category_theory

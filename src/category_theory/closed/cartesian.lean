@@ -45,7 +45,7 @@ An object `X` is *exponentiable* if `(X × -)` is a left adjoint.
 We define this as being `closed` in the cartesian monoidal structure.
 -/
 abbreviation exponentiable {C : Type u} [category.{v} C] [has_finite_products C] (X : C) :=
-closed X
+right_closed X
 
 /--
 If `X` and `Y` are exponentiable then `X ⨯ Y` is.
@@ -54,7 +54,7 @@ prove all objects are exponential uniformly.
 -/
 def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] {X Y : C}
   (hX : exponentiable X) (hY : exponentiable Y) : exponentiable (X ⨯ Y) :=
-tensor_closed hX hY
+tensor_right_closed hX hY
 
 /--
 The terminal object is always exponentiable.
@@ -63,14 +63,14 @@ at once, rather than just for this one.
 -/
 def terminal_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] :
   exponentiable ⊤_ C :=
-unit_closed
+unit_right_closed
 
 /--
 A category `C` is cartesian closed if it has finite products and every object is exponentiable.
 We define this as `monoidal_closed` with respect to the cartesian monoidal structure.
 -/
 abbreviation cartesian_closed (C : Type u) [category.{v} C] [has_finite_products C] :=
-monoidal_closed C
+right_monoidal_closed C
 
 variables {C : Type u} [category.{v} C] (A B : C) {X X' Y Y' Z : C}
 
@@ -148,11 +148,11 @@ adjunction.hom_equiv_naturality_left_symm _ _ _
 
 @[simp]
 lemma uncurry_curry (f : A ⨯ X ⟶ Y) : uncurry (curry f) = f :=
-(closed.is_adj.adj.hom_equiv _ _).left_inv f
+(right_closed.is_adj.adj.hom_equiv _ _).left_inv f
 
 @[simp]
 lemma curry_uncurry (f : X ⟶ A⟹Y) : curry (uncurry f) = f :=
-(closed.is_adj.adj.hom_equiv _ _).right_inv f
+(right_closed.is_adj.adj.hom_equiv _ _).right_inv f
 
 lemma curry_eq_iff (f : A ⨯ Y ⟶ X) (g : Y ⟶ A ⟹ X) :
   curry f = g ↔ f = uncurry g :=
@@ -176,10 +176,10 @@ lemma curry_id_eq_coev (A X : C) [exponentiable A] : curry (𝟙 _) = (exp.coev 
 by { rw [curry_eq, (exp A).map_id (A ⨯ _)], apply comp_id }
 
 lemma curry_injective : function.injective (curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X)) :=
-(closed.is_adj.adj.hom_equiv _ _).injective
+(right_closed.is_adj.adj.hom_equiv _ _).injective
 
 lemma uncurry_injective : function.injective (uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X)) :=
-(closed.is_adj.adj.hom_equiv _ _).symm.injective
+(right_closed.is_adj.adj.hom_equiv _ _).symm.injective
 
 end cartesian_closed
 

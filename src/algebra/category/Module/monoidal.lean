@@ -263,11 +263,11 @@ end monoidal_category
 open opposite
 
 /--
-Auxiliary definition for the `monoidal_closed` instance on `Module R`.
+Auxiliary definition for the `right_monoidal_closed` instance on `Module R`.
 (This is only a separate definition in order to speed up typechecking. )
 -/
 @[simps]
-def monoidal_closed_hom_equiv (M N P : Module.{u} R) :
+def right_monoidal_closed_hom_equiv (M N P : Module.{u} R) :
   ((monoidal_category.tensor_left M).obj N ⟶ P) ≃
     (N ⟶ ((linear_coyoneda R (Module R)).obj (op M)).obj P) :=
 { to_fun := λ f, linear_map.compr₂ (tensor_product.mk R N M) ((β_ N M).hom ≫ f),
@@ -281,11 +281,11 @@ def monoidal_closed_hom_equiv (M N P : Module.{u} R) :
       symmetric_category.symmetry_assoc],
   end, }
 
-instance : monoidal_closed (Module.{u} R) :=
+instance : right_monoidal_closed (Module.{u} R) :=
 { closed' := λ M,
   { is_adj :=
     { right := (linear_coyoneda R (Module.{u} R)).obj (op M),
       adj := adjunction.mk_of_hom_equiv
-      { hom_equiv := λ N P, monoidal_closed_hom_equiv M N P, } } } }
+      { hom_equiv := λ N P, right_monoidal_closed_hom_equiv M N P, } } } }
 
 end Module

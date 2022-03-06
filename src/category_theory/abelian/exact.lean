@@ -205,15 +205,13 @@ end
 instance exact.unop [e : exact g.op f.op] : exact f g :=
 begin
   rw exact_iff at e ⊢,
-  cases e with e1 e2,
-  apply_fun quiver.hom.unop at e1,
-  apply_fun quiver.hom.unop at e2,
-  refine ⟨by convert e1, _⟩,
-  have e3 := eq_whisker (whisker_eq (cokernel_op_unop g).inv e2) (kernel_op_unop f).hom,
-  simp only [unop_comp, cokernel.π_op, kernel.ι_op, unop_zero, ← category.assoc, iso.inv_hom_id,
-    category.id_comp] at e3,
-  simpa only [category.assoc, iso.inv_hom_id, category.comp_id, eq_to_hom_refl, comp_zero,
-    zero_comp] using e3,
+  refine ⟨by convert (congr_arg quiver.hom.unop e.1), _⟩,
+  have e3 := eq_whisker (whisker_eq (cokernel_op_unop g).inv (congr_arg quiver.hom.unop e.2))
+    (kernel_op_unop f).hom,
+  rwa [unop_comp, cokernel.π_op, kernel.ι_op, unop_zero, ← category.assoc,
+    ← category.assoc, ← category.assoc, ← category.assoc, iso.inv_hom_id,
+    category.id_comp, category.assoc, iso.inv_hom_id, category.comp_id, eq_to_hom_refl,
+    eq_to_hom_refl, comp_zero, zero_comp, category.comp_id, category.comp_id] at e3,
 end
 
 end opposite
@@ -231,8 +229,10 @@ instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful (F : C
   begin
     rw [abelian.exact_iff, ← F.map_comp, F.map_eq_zero_iff] at hfg,
     refine (abelian.exact_iff _ _).2 ⟨hfg.1, F.zero_of_map_zero _ _⟩,
-    obtain ⟨k, hk⟩ := kernel.lift' (F.map g) (F.map (kernel.ι g)) (by simp [← F.map_comp]),
-    obtain ⟨l, hl⟩ := cokernel.desc' (F.map f) (F.map (cokernel.π f)) (by simp [← F.map_comp]),
+    obtain ⟨k, hk⟩ := kernel.lift' (F.map g) (F.map (kernel.ι g))
+      (by simp only [← F.map_comp, kernel.condition, category_theory.functor.map_zero]),
+    obtain ⟨l, hl⟩ := cokernel.desc' (F.map f) (F.map (cokernel.π f))
+      (by simp only [← F.map_comp, cokernel.condition, category_theory.functor.map_zero]),
     rw [F.map_comp, ← hk, ← hl, category.assoc, reassoc_of hfg.2, zero_comp, comp_zero]
   end }
 

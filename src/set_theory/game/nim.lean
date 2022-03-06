@@ -33,13 +33,13 @@ useful.
 -/
 universes u
 
-/-- `ordinal.out'` is required to make the definition of nim computable. It performs the same job as
- `quotient.out` but is specific to ordinals. -/
+/-- `ordinal.out'` has the sole purpose of making `nim` computable. It performs the same job as
+  `quotient.out` but is specific to ordinals. -/
 def ordinal.out' (o : ordinal) : Well_order :=
 ⟨o.out.α, (<), o.out.wo⟩
 
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
- take a positive number of stones from it on their turn. -/
+  take a positive number of stones from it on their turn. -/
 def nim : ordinal → pgame
 | O₁ := let f := λ O₂, have hwf : ordinal.typein O₁.out'.r O₂ < O₁ := ordinal.typein_lt_self O₂,
           nim (ordinal.typein O₁.out'.r O₂) in ⟨O₁.out'.α, O₁.out'.α, f, f⟩
@@ -77,9 +77,9 @@ begin
       exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).2⟩ } },
   refine ⟨λ i, _, λ j, _⟩,
   { let hwf := ordinal.typein_lt_self i,
-    simpa using nim_impartial (typein ((<) : O.out.α → O.out.α → Prop) i) },
+    exact nim_impartial (typein (<) i) },
   { let hwf := ordinal.typein_lt_self j,
-    simpa using nim_impartial (typein ((<) : O.out.α → O.out.α → Prop) j) }
+    exact nim_impartial (typein (<) j) }
 end
 using_well_founded { dec_tac := tactic.assumption }
 

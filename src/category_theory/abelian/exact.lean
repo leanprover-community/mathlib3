@@ -209,13 +209,11 @@ begin
   apply_fun quiver.hom.unop at e1,
   apply_fun quiver.hom.unop at e2,
   refine ⟨by convert e1, _⟩,
-  rw [unop_comp, cokernel.π_op, kernel.ι_op, unop_zero] at e2,
-  have e3 := whisker_eq (cokernel_op_unop g).inv e2,
-  simp only [← category.assoc, iso.inv_hom_id, category.id_comp] at e3,
-  have e4 := eq_whisker e3 (kernel_op_unop f).hom,
-  simp only [category.assoc, iso.inv_hom_id, category.comp_id, comp_zero, zero_comp,
-    eq_to_hom_refl] at e4,
-  rw ← e4
+  have e3 := eq_whisker (whisker_eq (cokernel_op_unop g).inv e2) (kernel_op_unop f).hom,
+  simp only [unop_comp, cokernel.π_op, kernel.ι_op, unop_zero, ← category.assoc, iso.inv_hom_id,
+    category.id_comp] at e3,
+  simpa only [category.assoc, iso.inv_hom_id, category.comp_id, eq_to_hom_refl, comp_zero,
+    zero_comp] using e3,
 end
 
 end opposite

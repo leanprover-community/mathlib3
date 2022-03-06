@@ -269,25 +269,8 @@ def finpartition.of_partition {c : finset (set α)}
 /-- A finpartition gives rise to a setoid partition -/
 theorem is_partition.of_finpartition(f : finpartition (set.univ : set α)) :
   setoid.is_partition (f.parts : set (set α)) :=
-begin
-  apply and.intro f.not_bot_mem,
-  intro a,
-  simp only [finset.mem_coe, exists_unique_iff_exists, exists_prop],
-  let ha := set.mem_univ a,
-  rw [← f.sup_parts, finset.sup_id_eq_sUnion] at ha,
-  obtain ⟨v, hv, hav⟩ := ha,
-  use v,
-  split,
-    exact ⟨hv, hav⟩,
-    { intros u hu,
-      have huv : ¬ disjoint u v,
-      { rw set.not_disjoint_iff, exact ⟨a, hu.right, hav⟩,  },
-      by_contradiction, apply huv,
-      let hf := f.sup_indep (finset.singleton_subset_iff.mpr hv) (hu.left) _,
-      simp only [id.def, finset.sup_singleton] at hf,
-      exact hf,
-      { rw finset.not_mem_singleton , intro h', exact h h' } }
-end
+⟨f.not_bot_mem, eqv_classes_of_disjoint_union
+  (f.parts.sup_id_eq_sUnion.symm.trans f.sup_parts) f.sup_indep.pairwise_disjoint⟩
 
 end finpartition
 end setoid

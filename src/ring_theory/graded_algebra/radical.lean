@@ -158,7 +158,6 @@ end
 lemma ideal.is_homogeneous.radical_eq {I : ideal A} (hI : I.is_homogeneous 𝒜) :
   I.radical = Inf { J | J.is_homogeneous 𝒜 ∧ I ≤ J ∧ J.is_prime } :=
 begin
-  letI : Π i (x : 𝒜 i), decidable (x ≠ 0) := λ i x, classical.dec _,
   rw ideal.radical_eq_Inf,
   apply le_antisymm,
   { exact Inf_le_Inf (λ J, and.right), },

@@ -1243,9 +1243,11 @@ function.injective.mul_one_class _ coe_injective (coe_singleton 1) (by simp)
 protected def semigroup [decidable_eq α] [semigroup α] : semigroup (finset α) :=
 function.injective.semigroup _ coe_injective (by simp)
 
+/-- Pointwise repeated addition of a `finset`. -/
 protected def has_nsmul [decidable_eq α] [add_monoid α] : has_scalar ℕ (finset α) :=
 { smul := λ n s, nsmul_rec n s }
 
+/-- Pointwise repeated multiplication of a `finset`. -/
 @[to_additive]
 protected def has_npow [decidable_eq α] [monoid α] : has_pow (finset α) ℕ :=
 { pow := λ s n, npow_rec n s }

@@ -302,11 +302,11 @@ variables [has_inv M₂] [has_div M₂] [has_pow M₂ ℤ]
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`
 if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` to a `div_inv_monoid`.
 See note [reducible non-instances]. -/
-@[reducible, to_additive
+@[reducible, to_additive sub_neg_monoid
 "A type endowed with `0`, `+`, unary `-`, and binary `-` is a `sub_neg_monoid`
 if it admits a surjective map that preserves `0`, `+`, unary `-`, and binary `-` to
 a `sub_neg_monoid`."]
-protected def div_inv_monoid [has_pow M₂ ℕ] [has_pow M₂ ℤ] [div_inv_monoid M₁]
+protected def div_inv_monoid [div_inv_monoid M₁]
   (f : M₁ → M₂) (hf : surjective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)

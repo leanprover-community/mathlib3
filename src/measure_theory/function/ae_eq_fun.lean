@@ -509,8 +509,7 @@ coe_fn_comp _ _ _
 comp_to_germ _ _ _
 
 @[to_additive sub_neg_monoid]
-instance [group γ] [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
-  div_inv_monoid (α →ₘ[μ] γ) :=
+instance : div_inv_monoid (α →ₘ[μ] γ) :=
 to_germ_injective.div_inv_monoid _
   one_to_germ mul_to_germ inv_to_germ div_to_germ pow_to_germ zpow_to_germ
 

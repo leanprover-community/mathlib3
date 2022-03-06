@@ -273,11 +273,11 @@ instance [right_cancel_semigroup M] : right_cancel_semigroup (germ l M) :=
 
 instance has_nat_pow [monoid G] : has_pow (germ l G) ℕ := ⟨λ f n, map (^ n) f⟩
 
-@[simp] lemma coe_pow [monoid G] (f : α → G) (n : ℕ) : ↑f ^ n = (f ^ n : germ l G) := rfl
+@[simp] lemma coe_pow [monoid G] (f : α → G) (n : ℕ) : ↑(f ^ n) = (f ^ n : germ l G) := rfl
 
 instance has_int_pow [div_inv_monoid G] : has_pow (germ l G) ℤ := ⟨λ f z, map (^ z) f⟩
 
-@[simp] lemma coe_zpow [div_inv_monoid G] (f : α → G) (z : ℤ) : ↑f ^ z = (f ^ z : germ l G) :=
+@[simp] lemma coe_zpow [div_inv_monoid G] (f : α → G) (z : ℤ) : ↑(f ^ z) = (f ^ z : germ l G) :=
 rfl
 
 instance [has_scalar M β] : has_scalar M (germ l β) :=

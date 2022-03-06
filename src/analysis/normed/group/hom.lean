@@ -369,7 +369,7 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 
 section has_scalar
 
-variables {R : Type*} [monoid_with_zero R] [has_norm R] [distrib_mul_action R V₂]
+variables {R : Type*} [monoid_with_zero R] [distrib_mul_action R V₂]
   [pseudo_metric_space R] [has_bounded_smul R V₂]
 
 instance : has_scalar R (normed_group_hom V₁ V₂) :=

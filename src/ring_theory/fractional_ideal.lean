@@ -385,7 +385,7 @@ end
 instance : has_scalar ℕ (fractional_ideal S P) :=
 { smul := λ n I, ⟨n • I, I.is_fractional.nsmul n⟩}
 
-@[simp, norm_cast]
+@[norm_cast]
 lemma coe_nsmul (n : ℕ) (I : fractional_ideal S P) : (↑(n • I) : submodule R P) = n • I := rfl
 
 lemma _root_.is_fractional.mul {I J : submodule R P} :

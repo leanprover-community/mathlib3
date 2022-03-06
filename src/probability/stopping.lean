@@ -252,12 +252,11 @@ measurable with respect to a filtration `f` if at each point in time `i`, `u` re
 The usual definition uses the interval `[0,i]`, which we replace by `set.Iic i`. We recover the
 usual definition for index types `ℝ≥0` or `ℕ`. -/
 def prog_measurable [measurable_space ι] (f : filtration ι m) (u : ι → α → β) : Prop :=
-∀ i, measurable[prod.measurable_space' subtype.measurable_space (f i)]
-  (λ p : set.Iic i × α, u p.1 p.2)
+∀ i, measurable[subtype.measurable_space.prod (f i)] (λ p : set.Iic i × α, u p.1 p.2)
 
 lemma prog_measurable_const [measurable_space ι] (f : filtration ι m) (b : β) :
   prog_measurable f ((λ _ _, b) : ι → α → β) :=
-λ i, @measurable_const _ _ _ (prod.measurable_space' subtype.measurable_space (f i)) _
+λ i, @measurable_const _ _ _ (subtype.measurable_space.prod (f i)) _
 
 namespace prog_measurable
 
@@ -276,7 +275,6 @@ protected lemma comp {t : ι → α → ι} (h : prog_measurable f u) (ht : prog
   prog_measurable f (λ i x, u (t i x) x) :=
 begin
   intro i,
-  dsimp only,
   have : (λ p : ↥(set.Iic i) × α, u (t (p.fst : ι) p.snd) p.snd)
     = (λ p : ↥(set.Iic i) × α, u (p.fst : ι) p.snd) ∘ (λ p : ↥(set.Iic i) × α,
       (⟨t (p.fst : ι) p.snd, set.mem_Iic.mpr ((ht_le _ _).trans p.fst.prop)⟩, p.snd)) := rfl,
@@ -320,7 +318,7 @@ lemma prog_measurable_of_tendsto' {γ} [measurable_space ι] [metric_space β] [
   (h : ∀ l, prog_measurable f (U l)) (h_tendsto : tendsto U fltr (𝓝 u)) :
   prog_measurable f u :=
 begin
-  refine λ i, @measurable_of_tendsto_metric' (set.Iic i × α) β (prod.measurable_space' _ (f i))
+  refine λ i, @measurable_of_tendsto_metric' (set.Iic i × α) β (measurable_space.prod _ (f i))
     _ _ _ γ _ _ fltr _ _ (λ l, h l i) _,
   rw tendsto_pi_nhds at h_tendsto ⊢,
   intro x,
@@ -718,7 +716,7 @@ lemma prog_measurable_min_stopping_time (hτ : is_stopping_time f τ) :
   prog_measurable f (λ i x, min i (τ x)) :=
 begin
   intro i,
-  let m_prod : measurable_space (set.Iic i × α) := prod.measurable_space' _ (f i),
+  let m_prod : measurable_space (set.Iic i × α) := measurable_space.prod _ (f i),
   let m_set : ∀ t : set (set.Iic i × α), measurable_space t :=
     λ _, @subtype.measurable_space (set.Iic i × α) _ m_prod,
   let s := {p : set.Iic i × α | τ p.2 ≤ i},
@@ -817,13 +815,13 @@ begin
     simp only [hp_mem, if_true], },
   rw this,
   refine finset.measurable_sum _ (λ j hj, measurable.ite _ _ _),
-  { suffices h_meas : measurable[prod.measurable_space' _ (f i)]
+  { suffices h_meas : measurable[measurable_space.prod _ (f i)]
         (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
       from h_meas (measurable_set_singleton j),
     exact (@measurable_fst _ α _ (f i)).subtype_coe, },
   { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
     exact (measurable.le (f.mono h_le) (h j)).comp (@measurable_snd _ α _ (f i)), },
-  { exact @measurable_const _ (set.Iic i × α) _ (prod.measurable_space' _ (f i)) _, },
+  { exact @measurable_const _ (set.Iic i × α) _ (measurable_space.prod _ (f i)) _, },
 end
 
 /-- For filtrations indexed by `ℕ`, the stopped process obtained from an adapted process is

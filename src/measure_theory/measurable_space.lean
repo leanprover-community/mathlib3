@@ -477,12 +477,12 @@ end subtype
 section prod
 
 /-- A `measurable_space` structure on the product of two measurable spaces. -/
-def prod.measurable_space' {α β} (m₁ : measurable_space α) (m₂ : measurable_space β) :
+def measurable_space.prod {α β} (m₁ : measurable_space α) (m₂ : measurable_space β) :
   measurable_space (α × β) :=
 m₁.comap prod.fst ⊔ m₂.comap prod.snd
 
 instance {α β} [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α × β) :=
-prod.measurable_space' m₁ m₂
+m₁.prod m₂
 
 @[measurability] lemma measurable_fst [measurable_space α] [measurable_space β] :
   measurable (prod.fst : α × β → α) :=

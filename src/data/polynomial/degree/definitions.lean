@@ -973,20 +973,6 @@ by rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), add_comm, leading_coef
 
 end semiring
 
-section comm_semiring
-
-variable [comm_semiring R]
-
-lemma monic.of_mul_monic {p q : R[X]} (hp : p.monic) (hpq : (p * q).monic) : q.monic :=
-begin
-  contrapose! hpq,
-  rw monic.def at hpq ⊢,
-  rwa leading_coeff_monic_mul hp
-end
-
-end comm_semiring
-
-
 section nontrivial_semiring
 variables [semiring R] [nontrivial R] {p q : R[X]}
 

@@ -15,18 +15,19 @@ functor from groups to types, see `algebra/category/Group/adjunctions`.
 
 ## Main definitions
 
-* `free_group`: the free group associated to a type `α` defined as the words over `a : α × bool `
+* `free_group`: the free group associated to a type `α` defined as the words over `a : α × bool`
   modulo the relation `a * x * x⁻¹ * b = a * b`.
-* `mk`: the canonical quotient map `list (α × bool) → free_group α`.
-* `of`: the canoical injection `α → free_group α`.
-* `lift f`: the canonical group homomorphism `free_group α →* G` given a group `G` and a
-  function `f : α → G`.
+* `free_group.mk`: the canonical quotient map `list (α × bool) → free_group α`.
+* `free_group.of`: the canoical injection `α → free_group α`.
+* `free_group.lift f`: the canonical group homomorphism `free_group α →* G`
+  given a group `G` and a function `f : α → G`.
 
 ## Main statements
 
-* `church_rosser`: The Church-Rosser theorem for word reduction (also known as Newman's diamond
-  lemma).
-* `free_group_unit_equiv_int`: The free group over the one-point type is isomorphic to the integers.
+* `free_group.church_rosser`: The Church-Rosser theorem for word reduction
+  (also known as Newman's diamond lemma).
+* `free_group.free_group_unit_equiv_int`: The free group over the one-point type
+  is isomorphic to the integers.
 * The free group construction is an instance of a monad.
 
 ## Implementation details
@@ -523,7 +524,11 @@ by rintros ⟨L⟩; exact list.rec_on L g.map_one
 theorem map_eq_lift : map f x = lift (of ∘ f) x :=
 eq.symm $ map.unique _ $ λ x, by simp
 
-/-- Equivalent types give rise to multiplicatively equivalent free groups. -/
+/-- Equivalent types give rise to multiplicatively equivalent free groups.
+
+The converse can be found in `group_theory.free_abelian_group_finsupp`,
+as `equiv.of_free_group_equiv`
+ -/
 @[simps apply]
 def free_group_congr {α β} (e : α ≃ β) : free_group α ≃* free_group β :=
 { to_fun := map e, inv_fun := map e.symm,

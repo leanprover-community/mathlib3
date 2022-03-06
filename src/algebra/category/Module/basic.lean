@@ -96,6 +96,18 @@ instance (M N : Module R) : add_monoid_hom_class (M ⟶ N) M N :=
 /-- The object in the category of R-modules associated to an R-module -/
 def of (X : Type v) [add_comm_group X] [module R X] : Module R := ⟨X⟩
 
+@[simp] lemma forget₂_obj (X : Module R) :
+  (forget₂ (Module R) AddCommGroup).obj X = AddCommGroup.of X :=
+rfl
+
+@[simp] lemma forget₂_obj_Module_of (X : Type v) [add_comm_group X] [module R X] :
+  (forget₂ (Module R) AddCommGroup).obj (of R X) = AddCommGroup.of X :=
+rfl
+
+@[simp] lemma forget₂_map (X Y : Module R) (f : X ⟶ Y) :
+  (forget₂ (Module R) AddCommGroup).map f = linear_map.to_add_monoid_hom f :=
+rfl
+
 /-- Typecheck a `linear_map` as a morphism in `Module R`. -/
 def of_hom {R : Type u} [ring R] {X Y : Type u} [add_comm_group X] [module R X] [add_comm_group Y]
   [module R Y] (f : X →ₗ[R] Y) : of R X ⟶ of R Y := f

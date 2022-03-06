@@ -568,8 +568,8 @@ begin
   /- if `μa = 0`, then the lemma is trivial, otherwise we can use `hg`
   to deduce `sigma_finite μc`. -/
   rcases eq_or_ne μa 0 with (rfl|ha),
-  { rw [← hf.map_eq, zero_prod, (map f).map_zero, zero_prod],
-    exact ⟨this, (map _).map_zero⟩ },
+  { rw [← hf.map_eq, zero_prod, measure.map_zero, zero_prod],
+    exact ⟨this, (mapₗ _).map_zero⟩ },
   haveI : sigma_finite μc,
   { rcases (ae_ne_bot.2 ha).nonempty_of_mem hg with ⟨x, hx : map (g x) μc = μd⟩,
     exact sigma_finite.of_map _ hgm.of_uncurry_left (by rwa hx) },
@@ -620,19 +620,13 @@ hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
 lemma ae_measurable.integral_prod_right' [sigma_finite ν]
   [second_countable_topology E] [normed_space ℝ E] [borel_space E] [complete_space E]
   ⦃f : α × β → E⦄ (hf : ae_measurable f (μ.prod ν)) : ae_measurable (λ x, ∫ y, f (x, y) ∂ν) μ :=
-⟨λ x, ∫ y, hf.mk f (x, y) ∂ν, hf.measurable_mk.integral_prod_right', begin
-  filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
-  assume x hx,
-  exact integral_congr_ae hx
-end⟩
+⟨λ x, ∫ y, hf.mk f (x, y) ∂ν, hf.measurable_mk.integral_prod_right',
+  by { filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk] with _ hx using integral_congr_ae hx }⟩
 
 lemma ae_measurable.prod_mk_left [sigma_finite ν] {f : α × β → γ}
-  (hf : ae_measurable f (μ.prod ν)) : ∀ᵐ x ∂μ, ae_measurable (λ y, f (x, y)) ν :=
-begin
-  filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
-  intros x hx,
-  exact ⟨λ y, hf.mk f (x, y), hf.measurable_mk.comp measurable_prod_mk_left, hx⟩
-end
+  (hf : ae_measurable f (μ.prod ν)) : ∀ᵐ x ∂μ, ae_measurable (λ y, f (x, y)) ν := by
+{ filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk] with x hx
+    using ⟨λ y, hf.mk f (x, y), hf.measurable_mk.comp measurable_prod_mk_left, hx⟩ }
 
 end
 
@@ -676,9 +670,7 @@ begin
     lintegral_congr_ae hf.ae_eq_mk,
   have B : ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ = ∫⁻ x, ∫⁻ y, hf.mk f (x, y) ∂ν ∂μ,
   { apply lintegral_congr_ae,
-    filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk],
-    assume a ha,
-    exact lintegral_congr_ae ha },
+    filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk] with _ ha using lintegral_congr_ae ha, },
   rw [A, B, lintegral_prod_of_measurable _ hf.measurable_mk],
   apply_instance
 end
@@ -764,10 +756,9 @@ begin
     assume x hx,
     exact has_finite_integral_congr hx },
   { apply has_finite_integral_congr,
-    filter_upwards [ae_ae_of_ae_prod h1f.ae_eq_mk.symm],
-    assume x hx,
-    exact integral_congr_ae (eventually_eq.fun_comp hx _) },
-  { apply_instance }
+    filter_upwards [ae_ae_of_ae_prod h1f.ae_eq_mk.symm] with _ hx
+      using integral_congr_ae (eventually_eq.fun_comp hx _), },
+  { apply_instance, },
 end
 
 
@@ -841,8 +832,8 @@ lemma integral_fn_integral_add ⦃f g : α × β → E⦄ (F : E → E')
   ∫ x, F (∫ y, f (x, y) + g (x, y) ∂ν) ∂μ = ∫ x, F (∫ y, f (x, y) ∂ν + ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine integral_congr_ae _,
-  filter_upwards [hf.prod_right_ae, hg.prod_right_ae],
-  intros x h2f h2g, simp [integral_add h2f h2g],
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with _ h2f h2g,
+  simp [integral_add h2f h2g],
 end
 
 /-- Integrals commute with subtraction inside another integral.
@@ -852,8 +843,8 @@ lemma integral_fn_integral_sub ⦃f g : α × β → E⦄ (F : E → E')
   ∫ x, F (∫ y, f (x, y) - g (x, y) ∂ν) ∂μ = ∫ x, F (∫ y, f (x, y) ∂ν - ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine integral_congr_ae _,
-  filter_upwards [hf.prod_right_ae, hg.prod_right_ae],
-  intros x h2f h2g, simp [integral_sub h2f h2g]
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with _ h2f h2g,
+  simp [integral_sub h2f h2g],
 end
 
 /-- Integrals commute with subtraction inside a lower Lebesgue integral.
@@ -863,8 +854,8 @@ lemma lintegral_fn_integral_sub ⦃f g : α × β → E⦄
   ∫⁻ x, F (∫ y, f (x, y) - g (x, y) ∂ν) ∂μ = ∫⁻ x, F (∫ y, f (x, y) ∂ν - ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine lintegral_congr_ae _,
-  filter_upwards [hf.prod_right_ae, hg.prod_right_ae],
-  intros x h2f h2g, simp [integral_sub h2f h2g]
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae] with _ h2f h2g,
+  simp [integral_sub h2f h2g],
 end
 
 /-- Double integrals commute with addition. -/

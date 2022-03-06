@@ -6,6 +6,7 @@ Authors: Kenny Lau
 
 import algebra.module.basic
 import algebra.gcd_monoid.basic
+import algebra.group_ring_action
 import group_theory.group_action.defs
 
 /-!
@@ -114,6 +115,8 @@ instance : has_scalar R punit :=
 
 @[simp] lemma smul_eq (r : R) : r • y = star := rfl
 
+instance : is_central_scalar R punit := ⟨λ _ _, rfl⟩
+
 instance : smul_comm_class R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
 
 instance [has_scalar R S] : is_scalar_tower R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
@@ -134,8 +137,8 @@ instance [monoid R] : mul_distrib_mul_action R punit :=
 by refine { ..punit.mul_action, .. };
 intros; exact subsingleton.elim _ _
 
-/-! TODO: provide `mul_semiring_action R punit` -/
--- importing it here currently causes timeouts elsewhere due to the import order changing
+instance [semiring R] : mul_semiring_action R punit :=
+{ ..punit.distrib_mul_action, ..punit.mul_distrib_mul_action }
 
 instance [monoid_with_zero R] : mul_action_with_zero R punit :=
 { .. punit.mul_action, .. punit.smul_with_zero }

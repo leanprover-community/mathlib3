@@ -76,8 +76,6 @@ noncomputable theory
 open_locale classical topological_space big_operators nnreal ennreal measure_theory pointwise
 open set filter topological_space ennreal emetric
 
-local attribute [instance] fact_one_le_one_ennreal
-
 namespace measure_theory
 
 variables {α E F F' G 𝕜 : Type*} {p : ℝ≥0∞}
@@ -126,7 +124,7 @@ lemma of_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞) (hT : fin_meas_ad
   fin_meas_additive μ T :=
 begin
   refine of_eq_top_imp_eq_top (λ s hs hμs, _) hT,
-  rw [measure.smul_apply, with_top.mul_eq_top_iff] at hμs,
+  rw [measure.smul_apply, smul_eq_mul, with_top.mul_eq_top_iff] at hμs,
   simp only [hc_ne_top, or_false, ne.def, false_and] at hμs,
   exact hμs.2,
 end
@@ -135,7 +133,7 @@ lemma smul_measure (c : ℝ≥0∞) (hc_ne_zero : c ≠ 0) (hT : fin_meas_additi
   fin_meas_additive (c • μ) T :=
 begin
   refine of_eq_top_imp_eq_top (λ s hs hμs, _) hT,
-  rw [measure.smul_apply, with_top.mul_eq_top_iff],
+  rw [measure.smul_apply, smul_eq_mul, with_top.mul_eq_top_iff],
   simp only [hc_ne_zero, true_and, ne.def, not_false_iff],
   exact or.inl hμs,
 end
@@ -227,7 +225,7 @@ begin
   exact (norm_add_le _ _).trans (add_le_add (hT.2 s hs hμs) (hT'.2 s hs hμs)),
 end
 
-lemma smul [normed_field 𝕜] [semi_normed_space 𝕜 β] (hT : dominated_fin_meas_additive μ T C)
+lemma smul [normed_field 𝕜] [normed_space 𝕜 β] (hT : dominated_fin_meas_additive μ T C)
   (c : 𝕜) :
   dominated_fin_meas_additive μ (λ s, c • (T s)) (∥c∥ * C) :=
 begin
@@ -272,7 +270,7 @@ begin
   refine ⟨hT.1.of_eq_top_imp_eq_top h, λ s hs hμs, _⟩,
   have hcμs : c • μ s ≠ ∞, from mt (h s hs) hμs.ne,
   rw smul_eq_mul at hcμs,
-  simp_rw [dominated_fin_meas_additive, measure.smul_apply, to_real_mul] at hT,
+  simp_rw [dominated_fin_meas_additive, measure.smul_apply, smul_eq_mul, to_real_mul] at hT,
   refine (hT.2 s hs hcμs.lt_top).trans (le_of_eq _),
   ring,
 end
@@ -443,12 +441,12 @@ begin
   exact hx.2,
 end
 
-lemma set_to_simple_func_smul_left [has_continuous_smul ℝ F'] {m : measurable_space α}
+lemma set_to_simple_func_smul_left {m : measurable_space α}
   (T : set α → F →L[ℝ] F') (c : ℝ) (f : α →ₛ F) :
   set_to_simple_func (λ s, c • (T s)) f = c • set_to_simple_func T f :=
 by simp_rw [set_to_simple_func, continuous_linear_map.smul_apply, smul_sum]
 
-lemma set_to_simple_func_smul_left' [has_continuous_smul ℝ F']
+lemma set_to_simple_func_smul_left'
   (T T' : set α → E →L[ℝ] F') (c : ℝ) (h_smul : ∀ s, measurable_set s → μ s < ∞ → T' s = c • (T s))
   {f : α →ₛ E} (hf : integrable f μ) :
   set_to_simple_func T' f = c • set_to_simple_func T f :=
@@ -1562,8 +1560,7 @@ begin
     rw ← Lp.coe_fn_le,
     have h0 := Lp.coe_fn_zero G' 1 μ,
     have h := integrable.coe_fn_to_L1 hfi,
-    filter_upwards [h0, h, hf],
-    intros a h0a ha hfa,
+    filter_upwards [h0, h, hf] with _ h0a ha hfa,
     rw [h0a, ha],
     exact hfa, },
   { simp_rw set_to_fun_undef _ hfi, },
@@ -1647,7 +1644,7 @@ begin
   { intros c s hs hμs,
     have hμ's : μ' s ≠ ∞,
     { refine ((hμ'_le s hs).trans_lt _).ne,
-      rw measure.smul_apply,
+      rw [measure.smul_apply, smul_eq_mul],
       exact ennreal.mul_lt_top hc' hμs.ne, },
     rw [set_to_fun_indicator_const hT hs hμs.ne, set_to_fun_indicator_const hT' hs hμ's], },
   { intros f₂ g₂ h_dish hf₂ hg₂ h_eq_f h_eq_g,
@@ -1705,8 +1702,8 @@ begin
   refine set_to_fun_measure_zero' hT (λ s hs hμs, _),
   rw lt_top_iff_ne_top at hμs,
   simp only [true_and, measure.smul_apply, with_top.mul_eq_top_iff, eq_self_iff_true, top_ne_zero,
-    ne.def, not_false_iff, auto.not_or_eq, not_not] at hμs,
-  simp only [hμs.right, measure.smul_apply, mul_zero],
+    ne.def, not_false_iff, not_or_distrib, not_not, smul_eq_mul] at hμs,
+  simp only [hμs.right, measure.smul_apply, mul_zero, smul_eq_mul],
 end
 
 lemma set_to_fun_congr_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞)
@@ -1756,7 +1753,7 @@ theorem tendsto_set_to_fun_of_dominated_convergence (hT : dominated_fin_meas_add
   tendsto (λ n, set_to_fun μ T hT (fs n)) at_top (𝓝 $ set_to_fun μ T hT f) :=
 begin
   /- `f` is a.e.-measurable, since it is the a.e.-pointwise limit of a.e.-measurable functions. -/
-  have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae fs_measurable h_lim,
+  have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae' fs_measurable h_lim,
   /- all functions we consider are integrable -/
   have fs_int : ∀ n, integrable (fs n) μ :=
     λ n, bound_integrable.mono' (fs_measurable n) (h_bound _),

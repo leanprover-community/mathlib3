@@ -38,7 +38,7 @@ begin
     with ⟨v, hsv, hvc, hcv⟩,
   have := λ i, exists_lt_subset_ball (hvc i) (hcv i),
   choose r' hlt hsub,
-  exact ⟨r', subset.trans hsv $ Union_subset_Union $ hsub, hlt⟩
+  exact ⟨r', hsv.trans $ Union_mono $ hsub, hlt⟩
 end
 
 /-- Shrinking lemma for coverings by open balls in a proper metric space. A point-finite open cover
@@ -61,7 +61,7 @@ begin
     with ⟨v, hsv, hvc, hcv⟩,
   have := λ i, exists_pos_lt_subset_ball (hr i) (hvc i) (hcv i),
   choose r' hlt hsub,
-  exact ⟨r', subset.trans hsv $ Union_subset_Union hsub, hlt⟩
+  exact ⟨r', hsv.trans $ Union_mono hsub, hlt⟩
 end
 
 /-- Shrinking lemma for coverings by open balls in a proper metric space. A point-finite open cover

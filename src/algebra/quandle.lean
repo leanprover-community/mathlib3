@@ -319,7 +319,7 @@ lemma conj_act_eq_conj {G : Type*} [group G] (x y : conj G) :
 lemma conj_swap {G : Type*} [group G] (x y : conj G) :
   x ◃ y = y ↔ y ◃ x = x :=
 begin
-  dsimp, split,
+  dsimp [conj] at *, split,
   repeat { intro h, conv_rhs { rw eq_mul_inv_of_mul_eq (eq_mul_inv_of_mul_eq h) }, simp, },
 end
 

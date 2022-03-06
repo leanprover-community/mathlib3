@@ -87,7 +87,7 @@ non-interactive tactic for patterns like `tac1; id {tac2}` where `tac2` is non-i
 @[inline] protected meta def id (tac : itactic) : tactic unit := tac
 
 /--
-`work_on_goal n { tac }` creates a block scope for the `n`-goal (indexed from zero),
+`work_on_goal n { tac }` creates a block scope for the `n`-goal,
 and does not require that the goal be solved at the end
 (any remaining subgoals are inserted back into the list of goals).
 
@@ -96,16 +96,17 @@ Typically usage might look like:
 intros,
 simp,
 apply lemma_1,
-work_on_goal 2
+work_on_goal 3
 { dsimp,
   simp },
 refl
 ````
 
-See also `id { tac }`, which is equivalent to `work_on_goal 0 { tac }`.
+See also `id { tac }`, which is equivalent to `work_on_goal 1 { tac }`.
 -/
 meta def work_on_goal : parse small_nat → itactic → tactic unit
-| n t := do
+| 0 t := fail "work_on_goal failed: goals are 1-indexed"
+| (n+1) t := do
   goals ← get_goals,
   let earlier_goals := goals.take n,
   let later_goals := goals.drop (n+1),
@@ -576,7 +577,7 @@ meta def h_generalize (rev : parse (tk "!")?)
      (h : parse ident_?)
      (_ : parse (tk ":"))
      (arg : parse h_generalize_arg_p)
-     (eqs_h : parse ( (tk "with" >> pure <$> ident_) <|> pure [])) :
+     (eqs_h : parse ( (tk "with" *> pure <$> ident_) <|> pure [])) :
   tactic unit :=
 do let (e,n) := arg,
    let h' := if h = `_ then none else h,
@@ -630,10 +631,11 @@ add_tactic_doc
   tags       := ["testing"] }
 
 /--
-a weaker version of `trivial` that tries to solve the goal by reflexivity or by reducing it to true,
-unfolding only `reducible` constants. -/
+Tries to solve the goal using a canonical proof of `true` or the `reflexivity` tactic.
+Unlike `trivial` or `trivial'`, does not the `contradiction` tactic.
+-/
 meta def triv : tactic unit :=
-tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail "triv tactic failed"
+tactic.triv <|> tactic.reflexivity <|> fail "triv tactic failed"
 
 add_tactic_doc
 { name       := "triv",
@@ -642,9 +644,25 @@ add_tactic_doc
   tags       := ["finishing"] }
 
 /--
+A weaker version of `trivial` that tries to solve the goal using a canonical proof of `true` or the
+`reflexivity` tactic (unfolding only `reducible` constants, so can fail faster than `trivial`),
+and otherwise tries the `contradiction` tactic. -/
+meta def trivial' : tactic unit :=
+tactic.triv'
+  <|> tactic.reflexivity reducible
+  <|> tactic.contradiction
+  <|> fail "trivial' tactic failed"
+
+add_tactic_doc
+{ name       := "trivial'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.trivial'],
+  tags       := ["finishing"] }
+
+/--
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`. It
-will then try to close the new goal using `triv`, or try to simplify it by applying `exists_prop`.
-Unlike `existsi`, `x` is elaborated with respect to the expected type.
+will then try to close the new goal using `trivial'`, or try to simplify it by applying
+`exists_prop`. Unlike `existsi`, `x` is elaborated with respect to the expected type.
 `use` will alternatively take a list of terms `[x0, ..., xn]`.
 
 `use` will work with constructors of arbitrary inductive types.
@@ -683,7 +701,7 @@ by use [100, tt, 4, 3]
 meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
 focus1 $
   tactic.use l;
-  try (triv <|> (do
+  try (trivial' <|> (do
         `(Exists %%p) ← target,
         to_expr ``(exists_prop.mpr) >>= tactic.apply >> skip))
 
@@ -757,10 +775,7 @@ add_tactic_doc
   inherit_description_from := `tactic.interactive.change' }
 
 private meta def opt_dir_with : parser (option (bool × name)) :=
-(do tk "with",
-   arrow ← (tk "<-")?,
-   h ← ident,
-   return (arrow.is_some, h)) <|> return none
+(tk "with" *> ((λ arrow h, (option.is_some arrow, h)) <$> (tk "<-")? <*> ident))?
 
 /--
 `set a := t with h` is a variant of `let a := t`. It adds the hypothesis `h : a = t` to
@@ -784,7 +799,7 @@ h : y = 3
 end
 ```
 -/
-meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?)
+meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") *> texpr)?)
   (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
 do tp ← i_to_expr $ tp.get_or_else pexpr.mk_placeholder,
@@ -928,7 +943,7 @@ end
 ```
 
 -/
-meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
+meta def extract_goal (print_use : parse $ (tk "!" *> pure tt) <|> pure ff)
   (n : parse ident?) (vs : parse (tk "with" *> ident*)?)
   : tactic unit :=
 do tgt ← target,

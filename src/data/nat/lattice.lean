@@ -84,7 +84,7 @@ begin
   split,
   { intro H,
     rw [eq_Ici_of_nonempty_of_upward_closed (nonempty_of_Inf_eq_succ H) hs, H, mem_Ici, mem_Ici],
-    exact ⟨le_refl _, k.not_succ_le_self⟩, },
+    exact ⟨le_rfl, k.not_succ_le_self⟩, },
   { rintro ⟨H, H'⟩,
     rw [Inf_def (⟨_, H⟩ : s.nonempty), find_eq_iff],
     exact ⟨H, λ n hnk hns, H' $ hs n k (lt_succ_iff.mp hnk) hns⟩, },

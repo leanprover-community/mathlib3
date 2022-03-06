@@ -3,7 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import data.list.erase_dup
+import data.list.dedup
 import data.list.lattice
 import data.list.permutation
 import data.list.zip
@@ -738,6 +738,10 @@ begin
   convert (subperm_append_right _).mpr nil_subperm using 1
 end
 
+@[simp] lemma subperm_singleton_iff {α} {l : list α} {a : α} : [a] <+~ l ↔ a ∈ l :=
+⟨λ ⟨s, hla, h⟩, by rwa [perm_singleton.mp hla, singleton_sublist] at h,
+ λ h, ⟨[a], perm.refl _, singleton_sublist.mpr h⟩⟩
+
 lemma subperm.cons_left {l₁ l₂ : list α} (h : l₁ <+~ l₂)
   (x : α) (hx : count x l₁ < count x l₂) :
   x :: l₁ <+~ l₂  :=
@@ -759,11 +763,11 @@ instance decidable_perm : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂)
                         exact decidable_of_iff' _ cons_perm_iff_perm_erase
 
 -- @[congr]
-theorem perm.erase_dup {l₁ l₂ : list α} (p : l₁ ~ l₂) :
-  erase_dup l₁ ~ erase_dup l₂ :=
+theorem perm.dedup {l₁ l₂ : list α} (p : l₁ ~ l₂) :
+  dedup l₁ ~ dedup l₂ :=
 perm_iff_count.2 $ λ a,
 if h : a ∈ l₁
-then by simp [nodup_erase_dup, h, p.subset h]
+then by simp [nodup_dedup, h, p.subset h]
 else by simp [h, mt p.mem_iff.2 h]
 
 -- attribute [congr]

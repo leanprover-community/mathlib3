@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
 import data.sum.order
-import order.conditionally_complete_lattice
-import order.succ_pred
+import order.succ_pred.basic
 import set_theory.cardinal
 
 /-!
@@ -45,16 +44,13 @@ initial segment (or, equivalently, in any way). This total order is well founded
   we only introduce it and prove its basic properties to deduce the fact that the order on ordinals
   is total (and well founded).
 * `succ o` is the successor of the ordinal `o`.
-
 * `ordinal.min`: the minimal element of a nonempty indexed family of ordinals
-* `ordinal.omin` : the minimal element of a nonempty set of ordinals
-
 * `cardinal.ord c`: when `c` is a cardinal, `ord c` is the smallest ordinal with this cardinality.
   It is the canonical way to represent a cardinal with an ordinal.
 
 A conditionally complete linear order with bot structure is registered on ordinals, where `⊥` is
-`0`, the ordinal corresponding to the empty type, and `Inf` is `ordinal.omin` for nonempty sets
-and `0` for the empty set by convention.
+`0`, the ordinal corresponding to the empty type, and `Inf` is the minimum for nonempty sets and `0`
+for the empty set by convention.
 
 ## Notations
 * `r ≼i s`: the type of initial segment embeddings of `r` into `s`.
@@ -478,6 +474,8 @@ instance ordinal.is_equivalent : setoid Well_order :=
 /-- `ordinal.{u}` is the type of well orders in `Type u`, up to order isomorphism. -/
 def ordinal : Type (u + 1) := quotient ordinal.is_equivalent
 
+instance (o : ordinal) : has_well_founded o.out.α := ⟨o.out.r, o.out.wo.wf⟩
+
 namespace ordinal
 
 /-- The order type of a well order is an ordinal. -/
@@ -673,7 +671,7 @@ def typein_iso (r : α → α → Prop) [is_well_order α r] : r ≃r subrel (<)
  λ ⟨y, hy⟩, subtype.eq (typein_enum r hy)⟩,
   λ a b, (typein_lt_typein r)⟩
 
-theorem enum_lt {r : α → α → Prop} [is_well_order α r]
+theorem enum_lt_enum {r : α → α → Prop} [is_well_order α r]
   {o₁ o₂ : ordinal} (h₁ : o₁ < type r) (h₂ : o₂ < type r) :
   r (enum r o₁ h₁) (enum r o₂ h₂) ↔ o₁ < o₂ :=
 by rw [← typein_lt_typein r, typein_enum, typein_enum]
@@ -728,8 +726,7 @@ def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order �
 /-- The cardinal of an ordinal is the cardinal of any
   set with that order type. -/
 def card (o : ordinal) : cardinal :=
-quot.lift_on o (λ ⟨α, r, _⟩, #α) $
-λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
+quot.lift_on o (λ a, #a.α) $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
 
 @[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] :
   card (type r) = #α := rfl
@@ -775,6 +772,9 @@ begin
   subst h,
   exact not_lt_of_le (ordinal.zero_le _) this
 end
+
+@[simp] theorem out_nonempty_iff_ne_zero {o : ordinal} : nonempty o.out.α ↔ o ≠ 0 :=
+by rw [←not_iff_not, ←not_is_empty_iff, not_not, not_not, out_empty_iff_eq_zero]
 
 instance : has_one ordinal :=
 ⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
@@ -966,36 +966,43 @@ instance : add_monoid ordinal.{u} :=
       simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
         sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
 
-theorem add_le_add_left {a b : ordinal} : a ≤ b → ∀ c, c + a ≤ c + b :=
-induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
-induction_on c $ λ β s _,
-⟨⟨⟨(embedding.refl _).sum_map f,
-  λ a b, match a, b with
-    | sum.inl a, sum.inl b := sum.lex_inl_inl.trans sum.lex_inl_inl.symm
-    | sum.inl a, sum.inr b := by apply iff_of_true; apply sum.lex.sep
-    | sum.inr a, sum.inl b := by apply iff_of_false; exact sum.lex_inr_inl
-    | sum.inr a, sum.inr b := sum.lex_inr_inr.trans $ fo.trans sum.lex_inr_inr.symm
-    end⟩,
-  λ a b H, match a, b, H with
-    | _,         sum.inl b, _ := ⟨sum.inl b, rfl⟩
-    | sum.inl a, sum.inr b, H := (sum.lex_inr_inl H).elim
-    | sum.inr a, sum.inr b, H := let ⟨w, h⟩ := fi _ _ (sum.lex_inr_inr.1 H) in
-        ⟨sum.inr w, congr_arg sum.inr h⟩
-  end⟩⟩
+instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
+⟨λ c a b h, begin
+  revert h c, exact (
+  induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
+  induction_on c $ λ β s _,
+  ⟨⟨⟨(embedding.refl _).sum_map f,
+    λ a b, match a, b with
+      | sum.inl a, sum.inl b := sum.lex_inl_inl.trans sum.lex_inl_inl.symm
+      | sum.inl a, sum.inr b := by apply iff_of_true; apply sum.lex.sep
+      | sum.inr a, sum.inl b := by apply iff_of_false; exact sum.lex_inr_inl
+      | sum.inr a, sum.inr b := sum.lex_inr_inr.trans $ fo.trans sum.lex_inr_inr.symm
+      end⟩,
+    λ a b H, match a, b, H with
+      | _,         sum.inl b, _ := ⟨sum.inl b, rfl⟩
+      | sum.inl a, sum.inr b, H := (sum.lex_inr_inl H).elim
+      | sum.inr a, sum.inr b, H := let ⟨w, h⟩ := fi _ _ (sum.lex_inr_inr.1 H) in
+          ⟨sum.inr w, congr_arg sum.inr h⟩
+    end⟩⟩)
+end⟩
+
+instance has_le.le.add_swap_covariant_class :
+  covariant_class ordinal.{u} ordinal.{u} (function.swap (+)) (≤) :=
+⟨λ c a b h, begin
+  revert h c, exact (
+  induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
+  induction_on c $ λ β s hs, (@type_le' _ _ _ _
+    (@sum.lex.is_well_order _ _ _ _ hr₁ hs)
+    (@sum.lex.is_well_order _ _ _ _ hr₂ hs)).2
+  ⟨⟨f.sum_map (embedding.refl _), λ a b, begin
+    split; intro H,
+    { cases a with a a; cases b with b b; cases H; constructor; [rwa ← fo, assumption] },
+    { cases H; constructor; [rwa fo, assumption] }
+  end⟩⟩)
+end⟩
 
 theorem le_add_right (a b : ordinal) : a ≤ a + b :=
 by simpa only [add_zero] using add_le_add_left (ordinal.zero_le b) a
-
-theorem add_le_add_right {a b : ordinal} : a ≤ b → ∀ c, a + c ≤ b + c :=
-induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
-induction_on c $ λ β s hs, (@type_le' _ _ _ _
-  (@sum.lex.is_well_order _ _ _ _ hr₁ hs)
-  (@sum.lex.is_well_order _ _ _ _ hr₂ hs)).2
-⟨⟨f.sum_map (embedding.refl _), λ a b, begin
-  split; intro H,
-  { cases a with a a; cases b with b b; cases H; constructor; [rwa ← fo, assumption] },
-  { cases H; constructor; [rwa fo, assumption] }
-end⟩⟩
 
 theorem le_add_left (a b : ordinal) : a ≤ b + a :=
 by simpa only [zero_add] using add_le_add_right (ordinal.zero_le b) a
@@ -1057,7 +1064,17 @@ by rw [←not_lt, typein_lt_typein]
 
 lemma enum_le_enum (r : α → α → Prop) [is_well_order α r] {o o' : ordinal}
   (ho : o < type r) (ho' : o' < type r) : ¬r (enum r o' ho') (enum r o ho) ↔ o ≤ o' :=
-by rw [←@not_lt _ _ o' o, enum_lt ho']
+by rw [←@not_lt _ _ o' o, enum_lt_enum ho']
+
+theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
+  (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=
+⟨λ h, begin
+  by_contra hne,
+  cases lt_or_gt_of_ne hne with hlt hlt;
+    apply (is_well_order.is_irrefl r).1,
+    { rwa [←@enum_lt_enum α r _ o₁ o₂ h₁ h₂, h] at hlt },
+    { change _ < _ at hlt, rwa [←@enum_lt_enum α r _ o₂ o₁ h₂ h₁, h] at hlt }
+end, λ h, by simp_rw h⟩
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/
@@ -1119,23 +1136,6 @@ theorem le_min {ι I} {f : ι → ordinal} {a} : a ≤ min I f ↔ ∀ i, a ≤ 
 ⟨λ h i, le_trans h (min_le _ _),
  λ h, let ⟨i, e⟩ := min_eq I f in e.symm ▸ h i⟩
 
-/-- The minimal element of a nonempty set of ordinals -/
-def omin (S : set ordinal.{u}) (H : ∃ x, x ∈ S) : ordinal.{u} :=
-@min.{(u+2) u} S (let ⟨x, px⟩ := H in ⟨⟨x, px⟩⟩) subtype.val
-
-theorem omin_mem (S H) : omin S H ∈ S :=
-let ⟨⟨i, h⟩, e⟩ := @min_eq S _ _ in
-(show omin S H = i, from e).symm ▸ h
-
-theorem le_omin {S H a} : a ≤ omin S H ↔ ∀ i ∈ S, a ≤ i :=
-le_min.trans set_coe.forall
-
-theorem omin_le {S H i} (h : i ∈ S) : omin S H ≤ i :=
-le_omin.1 (le_refl _) _ h
-
-theorem not_lt_omin {S H i} (h : i ∈ S) : ¬ i < omin S H :=
-not_lt_of_le (omin_le h)
-
 @[simp] theorem lift_min {ι} (I) (f : ι → ordinal) : lift (min I f) = min I (lift ∘ f) :=
 le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
 let ⟨i, e⟩ := min_eq I (lift ∘ f) in
@@ -1151,21 +1151,17 @@ wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le
 protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
 not_lt_bot
 
-lemma Inf_eq_omin {s : set ordinal} (hs : s.nonempty) :
-  Inf s = omin s hs :=
-begin
-  simp only [Inf, conditionally_complete_lattice.Inf, omin, conditionally_complete_linear_order.Inf,
-    conditionally_complete_linear_order_bot.Inf, hs, dif_pos],
-  congr,
-  rw subtype.range_val,
-end
-
-lemma Inf_mem {s : set ordinal} (hs : s.nonempty) :
-  Inf s ∈ s :=
-by { rw Inf_eq_omin hs, exact omin_mem _ hs }
+theorem eq_zero_or_pos : ∀ a : ordinal, a = 0 ∨ 0 < a :=
+eq_bot_or_bot_lt
 
 instance : no_max_order ordinal :=
 ⟨λ a, ⟨a.succ, lt_succ_self a⟩⟩
+
+@[simp] theorem Inf_empty : Inf (∅ : set ordinal) = 0 :=
+begin
+  change dite _ (wf.min ∅) (λ _, 0) = 0,
+  simp only [not_nonempty_empty, not_false_iff, dif_neg]
+end
 
 end ordinal
 
@@ -1227,7 +1223,7 @@ quotient.induction_on c $ λ α,
 let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
 
 theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
-ord_le.2 (le_refl _)
+ord_le.2 le_rfl
 
 lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.ord :=
 by { rw [lt_ord], apply cardinal.lt_succ_self }

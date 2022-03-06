@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Yaël Dillies
 -/
 import data.nat.pow
+import tactic.by_contra
 
 /-!
 # Natural number logarithms
@@ -50,22 +51,18 @@ by rw [log, if_neg (λ h : b ≤ n ∧ 1 < b, h.2.not_le hb)]
 
 lemma log_eq_zero_iff {b n : ℕ} : log b n = 0 ↔ n < b ∨ b ≤ 1 :=
 begin
-  split,
-  { intro h_log,
-    by_contra h,
-    push_neg at h,
-    have := log_of_one_lt_of_le h.2 h.1,
-    rw h_log at this,
-    exact succ_ne_zero _ this.symm, },
-  { exact log_eq_zero, },
+  refine ⟨λ h_log, _, log_eq_zero⟩,
+  by_contra' h,
+  have := log_of_one_lt_of_le h.2 h.1,
+  rw h_log at this,
+  exact succ_ne_zero _ this.symm
 end
 
 lemma log_eq_one_iff {b n : ℕ} : log b n = 1 ↔ n < b * b ∧ 1 < b ∧ b ≤ n :=
 -- This is best possible: if b = 2, n = 5, then 1 < b and b ≤ n but n > b * b.
 begin
-  split,
-  { intro h_log,
-    have bound : 1 < b ∧ b ≤ n,
+  refine ⟨λ h_log, _, _⟩,
+  { have bound : 1 < b ∧ b ≤ n,
     { contrapose h_log,
       rw [not_and_distrib, not_lt, not_le, or_comm, ←log_eq_zero_iff] at h_log,
       rw h_log,

@@ -188,14 +188,12 @@ end
 /-- The Grundy value of an impartial game, the ordinal which corresponds to the game of nim that the
  game is equivalent to -/
 noncomputable def grundy_value : Π (G : pgame.{u}) [G.impartial], ordinal.{u}
-| G := λ hG, by exactI
-    ordinal.omin (nonmoves (λ i, grundy_value (G.move_left i))) (nonmoves_nonempty _)
+| G := λ hG, by exactI Inf (nonmoves (λ i, grundy_value (G.move_left i)))
 using_well_founded { dec_tac := pgame_wf_tac }
 
 lemma grundy_value_def (G : pgame) [G.impartial] :
-grundy_value G = ordinal.omin (nonmoves (λ i, (grundy_value (G.move_left i))))
-  (nonmoves_nonempty _) :=
-by { rw grundy_value, refl }
+  grundy_value G = Inf (nonmoves (λ i, (grundy_value (G.move_left i)))) :=
+by rw grundy_value
 
 /-- The Sprague-Grundy theorem which states that every impartial game is equivalent to a game of
  nim, namely the game of nim corresponding to the games Grundy value -/
@@ -214,8 +212,7 @@ begin
     rw nim.sum_first_wins_iff_neq,
     intro heq,
     rw [eq_comm, grundy_value_def G] at heq,
-    have h := ordinal.omin_mem
-      (nonmoves (λ (i : G.left_moves), grundy_value (G.move_left i))) (nonmoves_nonempty _),
+    have h := Inf_mem (nonmoves_nonempty _),
     rw heq at h,
     have hcontra : ∃ (i' : G.left_moves),
       (λ (i'' : G.left_moves), grundy_value (G.move_left i'')) i' = grundy_value (G.move_left i₁) :=
@@ -234,11 +231,10 @@ begin
       revert i₂ hlt,
       rw grundy_value_def,
       intros i₂ hlt,
-      have hnotin : ordinal.typein (quotient.out (ordinal.omin
-          (nonmoves (λ i, grundy_value (G.move_left i))) _)).r i₂ ∉
+      have hnotin : ordinal.typein (Inf (nonmoves (λ i, grundy_value (G.move_left i)))).out.r i₂ ∉
         (nonmoves (λ (i : G.left_moves), grundy_value (G.move_left i))),
       { intro hin,
-        have hge := ordinal.omin_le hin,
+        have hge := cInf_le' hin,
         have hcontra := (le_not_le_of_lt hlt).2,
         contradiction },
       simpa [nonmoves] using hnotin },
@@ -336,9 +332,9 @@ begin
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },
 
   -- We are done!
-  apply le_antisymm (ordinal.omin_le h₀),
+  apply le_antisymm (cInf_le' h₀),
   contrapose! h₁,
-  exact ⟨_, ⟨h₁, ordinal.omin_mem _ _⟩⟩
+  exact ⟨_, ⟨h₁, Inf_mem (nonmoves_nonempty _)⟩⟩
 end
 
 lemma nim_add_nim_equiv {n m : ℕ} : nim n + nim m ≈ nim (nat.lxor n m) :=

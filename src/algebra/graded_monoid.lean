@@ -218,7 +218,7 @@ instance grade_zero.has_one : has_one (A 0) :=
 end one
 
 section mul
-variables [add_monoid ι] [ghas_mul A]
+variables [add_zero_class ι] [ghas_mul A]
 
 /-- `(•) : A 0 → A i → A i` is the value provided in `graded_monoid.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + i)` into `A i`.
@@ -517,6 +517,10 @@ variables {R S : Type*} [set_like S R]
 
 /-- An element `a : R` is said to be homogeneous if there is some `i : ι` such that `a ∈ A i`. -/
 def set_like.is_homogeneous (A : ι → S) (a : R) : Prop := ∃ i, a ∈ A i
+
+@[simp] lemma set_like.is_homogeneous_coe {A : ι → S} {i} (x : A i) :
+  set_like.is_homogeneous A (x : R) :=
+⟨i, x.prop⟩
 
 lemma set_like.is_homogeneous_one [has_zero ι] [has_one R]
   (A : ι → S) [set_like.has_graded_one A] : set_like.is_homogeneous A (1 : R) :=

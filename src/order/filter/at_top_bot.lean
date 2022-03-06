@@ -38,6 +38,8 @@ def at_bot [preorder α] : filter α := ⨅ a, 𝓟 (Iic a)
 lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ @at_top α _ :=
 mem_infi_of_mem a $ subset.refl _
 
+lemma Ici_mem_at_top [preorder α] (a : α) : Ici a ∈ (at_top : filter α) := mem_at_top a
+
 lemma Ioi_mem_at_top [preorder α] [no_max_order α] (x : α) : Ioi x ∈ (at_top : filter α) :=
 let ⟨z, hz⟩ := exists_gt x in mem_of_superset (mem_at_top z) $ λ y h,  lt_of_lt_of_le hz h
 
@@ -100,6 +102,10 @@ lemma eventually_le_at_bot [preorder α] (a : α) : ∀ᶠ x in at_bot, x ≤ a 
 lemma eventually_gt_at_top [preorder α] [no_max_order α] (a : α) :
   ∀ᶠ x in at_top, a < x :=
 Ioi_mem_at_top a
+
+lemma eventually_ne_at_top [preorder α] [no_max_order α] (a : α) :
+  ∀ᶠ x in at_top, x ≠ a :=
+(eventually_gt_at_top a).mono (λ x hx, hx.ne.symm)
 
 lemma eventually_lt_at_bot [preorder α] [no_min_order α] (a : α) :
   ∀ᶠ x in at_bot, x < a :=
@@ -557,6 +563,13 @@ end
 lemma tendsto_neg_at_bot_at_top : tendsto (has_neg.neg : β → β) at_bot at_top :=
 @tendsto_neg_at_top_at_bot (order_dual β) _
 
+lemma tendsto_at_top_iff_tends_to_neg_at_bot : tendsto f l at_top ↔ tendsto (-f) l at_bot :=
+have hf : f = has_neg.neg ∘ -f, { ext, simp, },
+⟨tendsto_neg_at_top_at_bot.comp, λ h, hf.symm ▸ tendsto_neg_at_bot_at_top.comp h⟩
+
+lemma tendsto_at_bot_iff_tends_to_neg_at_top : tendsto f l at_bot ↔ tendsto (-f) l at_top :=
+@tendsto_at_top_iff_tends_to_neg_at_bot α (order_dual β) _ l f
+
 end ordered_group
 
 section ordered_semiring
@@ -570,8 +583,8 @@ lemma tendsto.at_top_mul_at_top (hf : tendsto f l at_top) (hg : tendsto g l at_t
   tendsto (λ x, f x * g x) l at_top :=
 begin
   refine tendsto_at_top_mono' _ _ hg,
-  filter_upwards [hg.eventually (eventually_ge_at_top 0), hf.eventually (eventually_ge_at_top 1)],
-  exact λ x, le_mul_of_one_le_left
+  filter_upwards [hg.eventually (eventually_ge_at_top 0), hf.eventually (eventually_ge_at_top 1)]
+    with _ using le_mul_of_one_le_left,
 end
 
 lemma tendsto_mul_self_at_top : tendsto (λ x : α, x * x) at_top at_top :=
@@ -1005,7 +1018,7 @@ begin
   rw [@map_at_top_eq _ _ ⟨g b'⟩],
   refine le_infi (λ a, infi_le_of_le (f a ⊔ b') $ principal_mono.2 $ λ b hb, _),
   rw [mem_Ici, sup_le_iff] at hb,
-  exact ⟨g b, (gc _ _ hb.2).1 hb.1, le_antisymm ((gc _ _ hb.2).2 (le_refl _)) (hgi _ hb.2)⟩
+  exact ⟨g b, (gc _ _ hb.2).1 hb.1, le_antisymm ((gc _ _ hb.2).2 le_rfl) (hgi _ hb.2)⟩
 end
 
 lemma map_at_bot_eq_of_gc [semilattice_inf α] [semilattice_inf β] {f : α → β} (g : β → α) (b' : β)
@@ -1030,9 +1043,8 @@ begin
     rintro _ ⟨y, hy, rfl⟩,
     exact le_trans le_sup_left (subtype.coe_le_coe.2 hy) },
   { intro x,
-    filter_upwards [mem_at_top (↑x ⊔ a)],
-    intros b hb,
-    exact ⟨⟨b, h $ le_sup_right.trans hb⟩, subtype.coe_le_coe.1 (le_sup_left.trans hb), rfl⟩ }
+    filter_upwards [mem_at_top (↑x ⊔ a)] with b hb,
+    exact ⟨⟨b, h $ le_sup_right.trans hb⟩, subtype.coe_le_coe.1 (le_sup_left.trans hb), rfl⟩, },
 end
 
 /-- The image of the filter `at_top` on `Ici a` under the coercion equals `at_top`. -/
@@ -1190,7 +1202,7 @@ begin
   cases mem_at_top_sets.mp (h $ Ioi_mem_at_top M) with a ha,
   apply lt_irrefl M,
   calc
-  M < f a : ha a (le_refl _)
+  M < f a : ha a le_rfl
   ... ≤ M : hM (set.mem_range_self a)
 end
 

@@ -56,8 +56,8 @@ def limit_cone_infi (F : J ⥤ Top.{u}) : cone F :=
   π :=
   { app := λ j, ⟨(types.limit_cone (F ⋙ forget)).π.app j,
                  continuous_iff_le_induced.mpr (infi_le _ _)⟩,
-    naturality' := λ j j' f,
-                   continuous_map.coe_inj ((types.limit_cone (F ⋙ forget)).π.naturality f) } }
+    naturality' := λ j j' f, continuous_map.coe_injective
+      ((types.limit_cone (F ⋙ forget)).π.naturality f) } }
 
 /--
 The chosen cone `Top.limit_cone F` for a functor `F : J ⥤ Top` is a limit cone.
@@ -100,8 +100,8 @@ def colimit_cocone (F : J ⥤ Top.{u}) : cocone F :=
   ι :=
   { app := λ j, ⟨(types.colimit_cocone (F ⋙ forget)).ι.app j,
                  continuous_iff_coinduced_le.mpr (le_supr _ j)⟩,
-    naturality' := λ j j' f,
-                   continuous_map.coe_inj ((types.colimit_cocone (F ⋙ forget)).ι.naturality f) } }
+    naturality' := λ j j' f, continuous_map.coe_injective
+      ((types.colimit_cocone (F ⋙ forget)).ι.naturality f) } }
 
 /--
 The chosen cocone `Top.colimit_cocone F` for a functor `F : J ⥤ Top` is a colimit cocone.
@@ -987,11 +987,10 @@ theorem nonempty_sections_of_fintype_inverse_system
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
-  tactic.unfreeze_local_instances,
-  by_cases h : nonempty J,
-  { apply nonempty_sections_of_fintype_cofiltered_system, },
-  { rw not_nonempty_iff_imp_false at h,
-    exact ⟨λ j, false.elim (h j.unop), λ j, false.elim (h j.unop)⟩, },
+  casesI is_empty_or_nonempty J,
+  { haveI : is_empty Jᵒᵖ := ⟨λ j, is_empty_elim j.unop⟩,  -- TODO: this should be a global instance
+    exact ⟨is_empty_elim, is_empty_elim⟩, },
+  { exact nonempty_sections_of_fintype_cofiltered_system _, },
 end
 
 end fintype_konig

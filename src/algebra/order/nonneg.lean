@@ -7,7 +7,7 @@ import algebra.order.archimedean
 import algebra.order.sub
 import algebra.order.with_zero
 import order.lattice_intervals
-import order.conditionally_complete_lattice
+import order.complete_lattice_intervals
 
 /-!
 # The type of nonnegative elements

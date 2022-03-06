@@ -466,7 +466,7 @@ such that `f x ≠ 1`. -/
 @[to_additive] lemma exists_ne_one_of_finprod_mem_ne_one (h : ∏ᶠ i ∈ s, f i ≠ 1) :
   ∃ x ∈ s, f x ≠ 1 :=
 begin
-  by_contra h', push_neg at h',
+  by_contra' h',
   exact h (finprod_mem_of_eq_on_one h')
 end
 

@@ -205,13 +205,11 @@ def linear_equiv_of_unitary {U : (E →L[𝕜] E)} (hU : U ∈ unitary (E →L[�
       ext,
       simp only [id.def, function.comp_app, ← continuous_linear_map.mul_apply,
         unitary.mul_star_self_of_mem hU, continuous_linear_map.one_apply],
-    end,
-  }
+    end }
 
 def linear_isometry_equiv_of_unitary {U : (E →L[𝕜] E)} (hU : U ∈ unitary (E →L[𝕜] E)) :
   (E ≃ₗᵢ[𝕜] E) :=
-{
-  to_linear_equiv := linear_equiv_of_unitary hU,
+{ to_linear_equiv := linear_equiv_of_unitary hU,
   norm_map' :=
   begin
     intro x,
@@ -221,8 +219,7 @@ def linear_isometry_equiv_of_unitary {U : (E →L[𝕜] E)} (hU : U ∈ unitary 
     rw unitary.mem_iff at hU,
     rw [← continuous_linear_map.star_eq_adjoint, hU.1, continuous_linear_map.one_apply,
       inner_self_eq_norm_sq],
-  end
-}
+  end }
 
 lemma norm_map_of_unitary {U : (E →L[𝕜] E)} (hU : U ∈ unitary (E →L[𝕜] E)) (x : E) :
   ∥U x∥ = ∥x∥ :=

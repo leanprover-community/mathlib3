@@ -162,10 +162,9 @@ begin
   rw ideal.radical_eq_Inf,
   apply le_antisymm,
   { exact Inf_le_Inf (λ J, and.right), },
-  { intros x hx,
-    rw [ideal.mem_Inf] at hx ⊢,
+  { refine Inf_le_Inf_of_forall_exists_le _,
     rintros J ⟨HJ₁, HJ₂⟩,
-    refine J.coe_homogeneous_core_le 𝒜 (hx _),
+    refine ⟨J.homogeneous_core 𝒜, _, J.coe_homogeneous_core_le _⟩,
     refine ⟨subtype.prop _, _, HJ₂.homogeneous_core⟩,
     refine hI.coe_homogeneous_core_eq_self.symm.trans_le (ideal.homogeneous_core_mono _ HJ₁), }
 end

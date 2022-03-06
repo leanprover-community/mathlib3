@@ -247,15 +247,13 @@ instance to_module : module R A :=
 /-- A (unital associative) algebra is also a non-unital non-associative algebra -/
 def to_non_unital_non_assoc_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
   [algebra R A]  : non_unital_non_assoc_algebra R A :=
-{
-  commutes' := λ r a b, begin
+{ commutes' := λ r a b, begin
     simp only [ring_hom.to_fun_eq_coe, ring_hom.mk_coe, module.to_add_monoid_End_apply_apply],
     rw [algebra.smul_def', algebra.smul_def', algebra.commutes', mul_assoc],
   end,
   smul_def' := λ r a, by simp only [ring_hom.to_fun_eq_coe, ring_hom.mk_coe,
     module.to_add_monoid_End_apply_apply],
-  ..module.to_add_monoid_End R A
-   }
+  ..module.to_add_monoid_End R A }
 
 -- From now on, we don't want to use the following instance anymore.
 -- Unfortunately, leaving it in place causes deterministic timeouts later in mathlib.

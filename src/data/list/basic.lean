@@ -845,6 +845,10 @@ begin
   { simpa }
 end
 
+@[simp] lemma modify_modify_head (l : list α) (f g : α → α) :
+  (l.modify_head f).modify_head g = l.modify_head (g ∘ f) :=
+by cases l; simp
+
 /-! ### Induction from the right -/
 
 /-- Induction principle from the right for lists: if a property holds for the empty list, and
@@ -2430,7 +2434,7 @@ end mfoldl_mfoldr
 
 section split_at_on
 variables (p : α → Prop) [decidable_pred p] (xs ys : list α)
-  (ls : list (list α))
+  (ls : list (list α)) (f : list α → list α)
 
 @[simp] theorem split_at_eq_take_drop : ∀ (n : ℕ) (l : list α), split_at n l = (take n l, drop n l)
 | 0        a         := rfl
@@ -2475,45 +2479,46 @@ begin
   split_ifs; simp [zip_with, join, *],
 end
 
-lemma split_on_p_aux'_ne_nil : split_on_p_aux' p xs ys ≠ [] :=
+lemma split_on_p_aux_ne_nil : split_on_p_aux p xs f ≠ [] :=
 begin
-  induction xs with _ _ ih generalizing ys, { trivial, },
-  simp only [split_on_p_aux'], split_ifs, { trivial, }, exact ih _,
+  induction xs with _ _ ih generalizing f, { trivial, },
+  simp only [split_on_p_aux], split_ifs, { trivial, }, exact ih _,
 end
+
+lemma split_on_p_aux_spec : split_on_p_aux p xs f = (xs.split_on_p p).modify_head f :=
+begin
+  simp only [split_on_p],
+  induction xs with hd tl ih generalizing f, { simp [split_on_p_aux], },
+  simp only [split_on_p_aux], split_ifs, { simp, },
+  rw [ih (λ l, f (hd :: l)), ih (λ l, id (hd :: l))],
+  simp,
+end
+
+lemma split_on_p_ne_nil : xs.split_on_p p ≠ [] := split_on_p_aux_ne_nil _ _ id
+
+@[simp] lemma split_on_p_cons (x : α) (xs : list α) :
+  (x :: xs).split_on_p p =
+  if p x then [] :: xs.split_on_p p else (xs.split_on_p p).modify_head (cons x) :=
+by { simp only [split_on_p, split_on_p_aux], split_ifs, { simp }, rw split_on_p_aux_spec, refl, }
 
 /-- If no element satisfies `p` in the list `xs`, then `xs.split_on_p p = [xs]` -/
 lemma split_single (h : ∀ x ∈ xs, ¬p x) : xs.split_on_p p = [xs] :=
-begin
-  suffices : ∀ rst, split_on_p_aux' p xs rst = [rst ++ xs],
-  { simp [split_on_p, split_on_p_aux, split_on_p_aux_nil, this], },
-  induction xs with hd tl ih, { intro, simp [split_on_p_aux'], },
-  simp only [split_on_p_aux', h hd (by simp), if_false],
-  intro rst, rw ih (λ t ht, h t (or.inr ht)) (rst ++ [hd]), simp,
-end
+by { induction xs with hd tl ih, { refl, }, simp [h hd _, ih (λ t ht, h t (or.inr ht))], }
 
 /-- When an array of the form `[...xs, sep, ...as]` splits on `p`, the first element is `xs`,
   assuming no element in `xs` satisfies `p` but `sep` does satisfy `p` -/
 lemma split_first (h : ∀ x ∈ xs, ¬p x) (sep : α) (hsep : p sep)
   (as : list α) : (xs ++ sep :: as).split_on_p p = xs :: as.split_on_p p :=
-begin
-  suffices : ∀ rst, split_on_p_aux' p (xs ++ sep :: as) rst = (rst ++ xs) :: (as.split_on_p p),
-  { simp only [split_on_p, split_on_p_aux, split_on_p_aux_nil] at this ⊢, rw this, simp, },
-  induction xs with hd tl ih, { simp [split_on_p_aux', hsep, split_on_p, split_on_p_aux_nil], },
-  simp only [split_on_p_aux', cons_append, h hd (by simp), if_false],
-  intro rst, rw ih (λ t ht, h t (or.inr ht)) (rst ++ [hd]), simp,
-end
+by { induction xs with hd tl ih, { simp [hsep], }, simp [h hd _, ih (λ t ht, h t (or.inr ht))], }
 
 /-- `intercalate [x]` is the left inverse of `split_on x`  -/
-lemma intercalate_split (x : α) [decidable_eq α] :
-  [x].intercalate (xs.split_on x) = xs :=
+lemma intercalate_split (x : α) [decidable_eq α] : [x].intercalate (xs.split_on x) = xs :=
 begin
-  suffices : ∀ rst : list α, (intersperse [x] (split_on_p_aux' (=x) xs rst)).join = rst ++ xs,
-  { simp [intercalate, split_on, split_on_p, split_on_p_aux_nil, this], },
-  induction xs with hd tl ih; simp only [split_on_p_aux'], { simp [join], },
-  intro rst, split_ifs,
-  { cases h' : split_on_p_aux' (=x) tl [], { exfalso, exact split_on_p_aux'_ne_nil _ tl [] h', },
-    specialize ih [], rw h' at ih, simp [ih, h, join], },
-  { rw ih, simp, }
+  simp only [intercalate, split_on],
+  induction xs with hd tl ih, { simp [join], }, simp only [split_on_p_cons],
+  cases h' : split_on_p (=x) tl with hd' tl', { exact (split_on_p_ne_nil _ tl h').elim, },
+  rw h' at ih, split_ifs, { subst h, simp [ih, join], },
+  cases tl'; simpa [join] using ih,
 end
 
 /-- `split_on x` is the left inverse of `intercalate [x]`, on the domain

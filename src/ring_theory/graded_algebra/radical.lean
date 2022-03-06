@@ -156,21 +156,18 @@ begin
 end
 
 lemma ideal.is_homogeneous.radical_eq {I : ideal A} (hI : I.is_homogeneous 𝒜) :
-  I.radical = Inf { J | I ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime } :=
+  I.radical = Inf { J | J.is_homogeneous 𝒜 ∧ I ≤ J ∧ J.is_prime } :=
 begin
   letI : Π i (x : 𝒜 i), decidable (x ≠ 0) := λ i x, classical.dec _,
   rw ideal.radical_eq_Inf,
   apply le_antisymm,
-  { refine Inf_le_Inf _,
-    rintros J ⟨HJ₁, _, HJ₂⟩,
-    exact ⟨HJ₁, HJ₂⟩, },
+  { exact Inf_le_Inf (λ J, and.right), },
   { intros x hx,
-    rw [submodule.mem_Inf] at hx ⊢,
+    rw [ideal.mem_Inf] at hx ⊢,
     rintros J ⟨HJ₁, HJ₂⟩,
-    refine (ideal.coe_homogeneous_core_le 𝒜 J) (hx _ _),
-    refine ⟨_, subtype.prop _, HJ₂.homogeneous_core⟩,
-    refine (homogeneous_ideal.homogeneous_core_coe_eq_self ⟨I, hI⟩).symm.trans_le
-      (ideal.homogeneous_core_mono _ HJ₁), }
+    refine J.coe_homogeneous_core_le 𝒜 (hx _),
+    refine ⟨subtype.prop _, _, HJ₂.homogeneous_core⟩,
+    refine hI.coe_homogeneous_core_eq_self.symm.trans_le (ideal.homogeneous_core_mono _ HJ₁), }
 end
 
 lemma ideal.is_homogeneous.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
@@ -178,7 +175,7 @@ lemma ideal.is_homogeneous.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
 begin
   convert (Inf {J : homogeneous_ideal 𝒜 | I ≤ J.val ∧ J.val.is_prime}).prop using 2,
   simp_rw [h.radical_eq, homogeneous_ideal.coe_Inf, subtype.coe_image, set.mem_set_of_eq,
-    exists_prop, and.left_comm]
+    exists_prop]
 end
 
 /-- The radical of a homogenous ideal, as another homogenous ideal. -/

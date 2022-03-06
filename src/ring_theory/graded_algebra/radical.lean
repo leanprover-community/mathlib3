@@ -173,15 +173,10 @@ begin
       (ideal.homogeneous_core_mono _ HJ₁), }
 end
 
-lemma homogeneous_ideal.radical_eq (I : homogeneous_ideal 𝒜) :
-  (I : ideal A).radical = Inf {J | ↑I ≤ J ∧ J.is_homogeneous 𝒜 ∧ J.is_prime} :=
-I.prop.radical_eq
-
 lemma ideal.is_homogeneous.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
   I.radical.is_homogeneous 𝒜 :=
 begin
-  have radI_eq : I.radical = _ := homogeneous_ideal.radical_eq ⟨I, h⟩,
-  rw radI_eq,
+  rw h.radical_eq,
   convert (Inf {J : homogeneous_ideal 𝒜 | I ≤ J.val ∧ J.val.is_prime}).2,
   ext J,
   simp only [subtype.coe_mk, set.mem_set_of_eq, subtype.exists, exists_prop],

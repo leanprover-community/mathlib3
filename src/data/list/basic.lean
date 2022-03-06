@@ -2535,7 +2535,7 @@ begin
 end
 
 end split_at_on
-#exit
+
 /-! ### map for partial functions -/
 
 /-- Partial map. If `f : Π a, p a → β` is a partial function defined on

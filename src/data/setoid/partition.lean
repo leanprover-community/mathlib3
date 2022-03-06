@@ -259,34 +259,10 @@ finset.sup_id_eq_Sup _
 def finpartition.of_partition {c : finset (set α)}
   (hc : setoid.is_partition (c : set (set α))) : finpartition (set.univ : set α) :=
 { parts := c, --  finset (set α)
-  sup_indep := --  self.parts.sup_indep id
-  begin
-    intros d hd t ht htd,
-    simp, refine set.disjoint_iff.mpr _,
-    rw set.subset_empty_iff,
-    rw set.eq_empty_iff_forall_not_mem,
-    intros a ha,
-    apply htd,
-
-    obtain ⟨s, hs, hs'⟩ := hc.right a,
-    simp only [finset.mem_coe, exists_unique_iff_exists, exists_prop, and_imp] at hs',
-    rw (hs' t ht (set.mem_of_mem_inter_left ha)),
-
-    rw finset.sup_id_eq_sUnion at ha,
-    obtain ⟨v, hvd, hav⟩ := set.mem_of_mem_inter_right ha,
-    rw ← hs' v (hd hvd) hav,
-    exact hvd,
-  end,
-
-  sup_parts := --  self.parts.sup id = (set.univ : set α)
-  begin
-    apply set.eq_univ_of_forall ,
-    rw finset.sup_id_eq_sUnion,
-    intro x,
-    obtain ⟨s, hs, hs'⟩ := hc.right x,
-    simp only [finset.mem_coe, exists_unique_iff_exists, exists_prop] at hs,
-    use s, exact hs,
-  end,
+  sup_indep := finset.sup_indep_iff_pairwise_disjoint.mpr $ eqv_classes_disjoint hc.2,
+  --  self.parts.sup_indep id
+  sup_parts := c.sup_id_eq_sUnion.trans hc.sUnion_eq_univ,
+  --  self.parts.sup id = (set.univ : set α)
   not_bot_mem := hc.left --  ⊥ ∉ self.parts
 }
 

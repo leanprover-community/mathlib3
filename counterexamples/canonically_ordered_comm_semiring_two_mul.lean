@@ -191,19 +191,38 @@ begin
   { simp [mul_ne_zero _ _, nat.succ_ne_zero _] }
 end
 
+lemma nsmul_L {n : ℕ} {a : ℕ × zmod 2} (ha : a ≠ (0, 1)) :
+  n • a ≠ (0, 1) :=
+begin
+  induction n with n ih,
+  { simp [prod.zero_eq_mk] },
+  { simpa only [succ_nsmul] using add_L ha ih, },
+end
+
+lemma pow_L {n : ℕ} {a : ℕ × zmod 2} (ha : a ≠ (0, 1)) :
+  a ^ n ≠ (0, 1) :=
+begin
+  induction n with n ih,
+  { simp [prod.one_eq_mk] },
+  { simpa only [pow_succ] using mul_L ha ih, },
+end
+
 instance has_add_L : has_add L :=
-{ add := λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨a + b, add_L ha hb⟩ }
+{ add := λ a b, ⟨a.1 + b.1, add_L a.prop b.prop⟩ }
 
 instance : has_mul L :=
-{ mul := λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨a * b, mul_L ha hb⟩ }
+{ mul := λ a b, ⟨a.1 * b.1, mul_L a.prop b.prop⟩ }
+
+instance : has_scalar ℕ L :=
+{ smul := λ n a, ⟨n • a.1, nsmul_L a.prop⟩ }
+
+instance : has_pow L ℕ :=
+{ pow := λ a n, ⟨a.1 ^ n, pow_L a.prop⟩ }
 
 instance : ordered_comm_semiring L :=
 begin
-  refine function.injective.ordered_comm_semiring _ subtype.coe_injective rfl rfl _ _;
-  { refine λ x y, _,
-    cases x,
-    cases y,
-    refl }
+  refine function.injective.ordered_comm_semiring _ subtype.coe_injective rfl rfl _ _ _ _;
+  { intros, refl }
 end
 
 lemma bot_le : ∀ (a : L), 0 ≤ a :=

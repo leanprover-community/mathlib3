@@ -248,26 +248,12 @@ section finpartition
 
 open_locale classical
 
--- Variant of finset.mem_sup that does not assume that f is finset valued
-lemma finset.mem_sup' {α β : Type*}  {s : finset α} {f : α → set β}
-  {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=
-begin
-  split,
-  { apply s.induction_on,
-    { intro hx,
-      exfalso,
-      simpa only using hx, },
-    intros a t hat hrec hx,
-    simp only [finset.sup_insert, set.sup_eq_union, set.mem_union_eq] at hx,
-    cases hx with hx hx,
-      exact ⟨a, finset.mem_insert_self a t, hx ⟩,
-      { obtain ⟨v, H, hH⟩ := hrec hx ,
-        exact ⟨v, finset.mem_insert_of_mem H, hH⟩, }},
-  { rintros ⟨v, H, hx⟩,
-    suffices : f v ≤ s.sup f,
-      exact this hx,
-    exact finset.le_sup H, }
-end
+/-
+-- Inserted in data.finset.lattice.lean, line 1115
+lemma finset.sup_id_eq_sUnion {α} (s : finset (set α)) :
+  s.sup id = ⋃₀(↑s) :=
+finset.sup_id_eq_Sup _
+-/
 
 /-- A finite setoid partition furnishes a finpartition -/
 theorem finpartition.of_partition {c : finset (set α)}
@@ -286,7 +272,8 @@ theorem finpartition.of_partition {c : finset (set α)}
     simp only [finset.mem_coe, exists_unique_iff_exists, exists_prop, and_imp] at hs',
     rw (hs' t ht (set.mem_of_mem_inter_left ha)),
 
-    obtain ⟨v, hvd, hav⟩ := finset.mem_sup'.mp (set.mem_of_mem_inter_right ha),
+    rw finset.sup_id_eq_sUnion at ha,
+    obtain ⟨v, hvd, hav⟩ := set.mem_of_mem_inter_right ha,
     rw ← hs' v (hd hvd) hav,
     exact hvd,
   end,
@@ -294,8 +281,8 @@ theorem finpartition.of_partition {c : finset (set α)}
   sup_parts := --  self.parts.sup id = (set.univ : set α)
   begin
     apply set.eq_univ_of_forall ,
+    rw finset.sup_id_eq_sUnion,
     intro x,
-    simp only [finset.mem_sup',  id.def],
     obtain ⟨s, hs, hs'⟩ := hc.right x,
     simp only [finset.mem_coe, exists_unique_iff_exists, exists_prop] at hs,
     use s, exact hs,
@@ -311,7 +298,7 @@ begin
   intro a,
   simp only [finset.mem_coe, exists_unique_iff_exists, exists_prop],
   let ha := set.mem_univ a,
-  rw [← f.sup_parts, finset.mem_sup'] at ha,
+  rw [← f.sup_parts, finset.sup_id_eq_sUnion] at ha,
   obtain ⟨v, hv, hav⟩ := ha,
   use v,
   split,

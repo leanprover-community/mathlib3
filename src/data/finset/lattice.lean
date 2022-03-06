@@ -1112,6 +1112,10 @@ lemma sup_eq_bUnion {α β} [decidable_eq β] (s : finset α) (t : α → finset
   s.sup t = s.bUnion t :=
 by { ext, rw [mem_sup, mem_bUnion], }
 
+lemma sup_id_eq_sUnion {α} (s : finset (set α)) :
+  s.sup id = ⋃₀(↑s) :=
+sup_id_eq_Sup _
+
 @[simp] lemma sup_singleton'' [decidable_eq α] (s : finset β) (f : β → α) :
   s.sup (λ b, {f b}) = s.image f :=
 by { ext a, rw [mem_sup, mem_image], simp only [mem_singleton, eq_comm] }

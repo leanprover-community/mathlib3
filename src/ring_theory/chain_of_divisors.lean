@@ -13,7 +13,7 @@ import algebra.squarefree
 
 The results in this file show that in the monoid `associates M` of a `unique_factorization_monoid`
 `M`, an element `a` is an n-th prime power iff its set of divisors is a strictly increasing chain
-of length `n + 1`, aka we can find a strictly increasing bijection bewteen `fin (n + 1)` and
+of length `n + 1`, meaning that we can find a strictly increasing bijection bewteen `fin (n + 1)` and
 the set of factors of `a`.
 
 We can then use this to show that given `a b : M`, if there is an monotone bijection

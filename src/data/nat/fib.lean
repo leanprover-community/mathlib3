@@ -258,6 +258,7 @@ The `norm_num` plugin uses a strategy parallel to that of `nat.fast_fib`, but it
 produces proofs of what `nat.fib` evaluates to.
 -/
 
+/-- Auxiliary definition for `prove_fib` plugin. -/
 def is_fib_aux (n a b : ℕ) := fib n = a ∧ fib (n + 1) = b
 
 lemma is_fib_aux_one : is_fib_aux 1 1 1 := ⟨fib_one, fib_two⟩

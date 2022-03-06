@@ -202,7 +202,11 @@ begin
     category.assoc, kernel_comp_cokernel_assoc, zero_comp, comp_zero, unop_zero],
 end
 
-instance exact.unop [e : exact g.op f.op] : exact f g :=
+/--
+If `exact g.op f.op`, then `exact f g` as well. This is a def because changing def to instance
+causes "maximum class-instance resolution depth has been reached" in `pseudoelements.lean`.
+-/
+def exact.unop [e : exact g.op f.op] : exact f g :=
 begin
   rw exact_iff at e ⊢,
   refine ⟨by convert (congr_arg quiver.hom.unop e.1), _⟩,

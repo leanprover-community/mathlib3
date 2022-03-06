@@ -42,7 +42,7 @@ open unique_factorization_monoid multiplicity irreducible
 
 namespace divisor_chain
 
-lemma pow_prime_has_chain {p : associates M} (n : ℕ) (hn : n ≠ 0) (hp : prime p) :
+lemma pow_prime_has_chain {p : associates M} {n : ℕ} (hn : n ≠ 0) (hp : prime p) :
   ∃ c : fin (n + 1) → associates M,
     c 1 = p ∧ strict_mono c ∧
     ∀ {r : associates M}, r ≤ p^n ↔ ∃ i, r = c i :=
@@ -60,7 +60,7 @@ begin
     exact ⟨p^(n - i : ℕ), (pow_mul_pow_sub p (nat.succ_le_succ_iff.mp i.2)).symm⟩ }
 end
 
-lemma upper_chain_not_is_unit (n : ℕ) (i : fin (n + 1)) (i_pos : i ≠ 0)
+lemma upper_chain_not_is_unit {n : ℕ} {i : fin (n + 1)} (i_pos : i ≠ 0)
   (c : fin (n + 1) → associates M) (h₁ : strict_mono c) :
   ¬ is_unit (c i) :=
 dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
@@ -76,7 +76,7 @@ begin
   exact h₁.monotone (fin.zero_le i)
 end
 
-/-- The second element of a chain is irreducible -/
+/-- The second element of a chain is irreducible. -/
 lemma second_of_chain_is_irreducible {q : associates M} (n : ℕ) (hn : n ≠ 0)
   (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
   (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i)

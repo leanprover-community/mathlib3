@@ -973,6 +973,7 @@ by rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), add_comm, leading_coef
 
 end semiring
 
+
 section nontrivial_semiring
 variables [semiring R] [nontrivial R] {p q : R[X]}
 

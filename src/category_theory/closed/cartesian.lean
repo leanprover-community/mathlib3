@@ -76,6 +76,10 @@ variables {C : Type u} [category.{v} C] (A B : C) {X X' Y Y' Z : C}
 
 variables [has_finite_products C] [exponentiable A]
 
+section
+
+local attribute [instance] has_internal_hom_of_closed
+
 /-- This is (-)^A. -/
 abbreviation exp : C ⥤ C :=
 ihom A
@@ -238,10 +242,20 @@ by rw [pre, pre, pre, transfer_nat_trans_self_comp, prod.functor.map_comp]
 
 end pre
 
+end
+
+open cartesian_closed
+
 /-- The internal hom functor given by the cartesian closed structure. -/
 def internal_hom [cartesian_closed C] : Cᵒᵖ ⥤ C ⥤ C :=
 { obj := λ X, exp X.unop,
   map := λ X Y f, pre f.unop }
+
+variables {A B}
+
+section
+
+local attribute [instance] has_internal_hom_of_closed
 
 /-- If an initial object `I` exists in a CCC, then `A ⨯ I ≅ I`. -/
 @[simps]
@@ -257,6 +271,8 @@ def zero_mul {I : C} (t : is_initial I) : A ⨯ I ≅ I :=
     apply t.hom_ext,
   end,
   inv_hom_id' := t.hom_ext _ _ }
+
+end
 
 /-- If an initial object `0` exists in a CCC, then `0 ⨯ A ≅ 0`. -/
 def mul_zero {I : C} (t : is_initial I) : I ⨯ A ≅ I :=

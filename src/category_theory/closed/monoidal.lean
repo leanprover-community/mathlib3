@@ -32,7 +32,56 @@ class monoidal_closed (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
 
 attribute [instance, priority 100] monoidal_closed.closed'
 
+/--
+A data-carrying typeclass giving a particular choice of internal hom for a single object.
+This is useful for concrete categories,
+where it is important that the internal has a particular definition.
+-/
+class has_internal_hom {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
+(ihom : C ⥤ C)
+(adjunction : tensor_left X ⊣ ihom)
+
+/--
+A data-carrying typeclass giving a particular choice of internal hom for every object.
+This is useful for concrete categories,
+where it is important that the internal has a particular definition.
+-/
+class has_internal_homs (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
+(has_internal_hom : Π (X : C), has_internal_hom X)
+
+attribute [instance, priority 100] has_internal_homs.has_internal_hom
+
 variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
+
+/- The internal hom `A ⟶[C] -`. -/
+def ihom (X : C) [has_internal_hom X] : C ⥤ C := has_internal_hom.ihom X
+
+instance closed_of_has_internal_hom (X : C) [has_internal_hom X] : closed X :=
+{ is_adj := { right := ihom X, adj := has_internal_hom.adjunction, }, }
+
+instance monoidal_closed_of_has_internal_homs [has_internal_homs C] : monoidal_closed C :=
+{ closed' := λ X, by apply_instance, }
+
+/--
+Construct a `has_internal_hom` instance using choice to pick an arbitrary right adjoint for
+`(X ⊗ -)`. This is not an instance, as in many cases we will prefer to construct the
+`has_internal_hom` instance directly, in order to obtain definitional equality.
+-/
+def has_internal_hom_of_closed (X : C) [closed X] : has_internal_hom X :=
+{ ihom := (@closed.is_adj _ _ _ X _).right,
+  adjunction := @adjunction.of_left_adjoint _ _ _ _ (tensor_left X) (@closed.is_adj _ _ _ X _) }
+
+variables (C)
+
+/--
+Construct a `has_internal_homs` instance using choice to pick an arbitrary right adjoint for
+each `(X ⊗ -)`. This is not an instance, as in many cases we will prefer to construct the
+`has_internal_homs` instance directly, in order to obtain definitional equality.
+-/
+def has_internal_homs_of_monoidal_closed [monoidal_closed C] : has_internal_homs C :=
+{ has_internal_hom := λ X, has_internal_hom_of_closed X }
+
+variables {C}
 
 /--
 If `X` and `Y` are closed then `X ⊗ Y` is.
@@ -67,19 +116,7 @@ def unit_closed : closed (𝟙_ C) :=
 
 variables (A B : C) {X X' Y Y' Z : C}
 
-variables [closed A]
-
-/--
-This is the internal hom `A ⟶[C] -`.
-Note that this is essentially an opaque definition,
-and so will not agree definitionally with any "native" internal hom the category has.
-
-TODO: we could introduce a `has_ihom` class
-that allows specifying a particular definition of the internal hom,
-and provide a low priority opaque instance.
--/
-def ihom : C ⥤ C :=
-(@closed.is_adj _ _ _ A _).right
+variables [has_internal_hom A]
 
 namespace ihom
 
@@ -201,7 +238,7 @@ by { rw [curry_eq, (ihom A).map_id (A ⊗ _)], apply comp_id }
 
 section pre
 
-variables {A B} [closed B]
+variables {A B} [has_internal_hom B]
 
 /-- Pre-compose an internal hom with an external hom. -/
 def pre (f : B ⟶ A) : ihom A ⟶ ihom B :=
@@ -222,11 +259,11 @@ lemma coev_app_comp_pre_app (f : B ⟶ A) :
 unit_transfer_nat_trans_self _ _ ((tensoring_left C).map f) X
 
 @[simp]
-lemma pre_id (A : C) [closed A] : pre (𝟙 A) = 𝟙 _ :=
+lemma pre_id (A : C) [has_internal_hom A] : pre (𝟙 A) = 𝟙 _ :=
 by { simp only [pre, functor.map_id], dsimp, simp, }
 
 @[simp]
-lemma pre_map {A₁ A₂ A₃ : C} [closed A₁] [closed A₂] [closed A₃]
+lemma pre_map {A₁ A₂ A₃ : C} [has_internal_hom A₁] [has_internal_hom A₂] [has_internal_hom A₃]
   (f : A₁ ⟶ A₂) (g : A₂ ⟶ A₃) :
   pre (f ≫ g) = pre g ≫ pre f :=
 by rw [pre, pre, pre, transfer_nat_trans_self_comp, (tensoring_left C).map_comp]
@@ -234,7 +271,7 @@ by rw [pre, pre, pre, transfer_nat_trans_self_comp, (tensoring_left C).map_comp]
 end pre
 
 /-- The internal hom functor given by the monoidal closed structure. -/
-def internal_hom [monoidal_closed C] : Cᵒᵖ ⥤ C ⥤ C :=
+def internal_hom [has_internal_homs C] : Cᵒᵖ ⥤ C ⥤ C :=
 { obj := λ X, ihom X.unop,
   map := λ X Y f, pre f.unop }
 

@@ -333,7 +333,7 @@ lemma has_succ_of_is_limit {α} {r : α → α → Prop} [wo : is_well_order α 
   (h : (type r).is_limit) (x : α) : ∃y, r x y :=
 begin
   use enum r (typein r x).succ (h.2 _ (typein_lt_type r x)),
-  convert (enum_lt (typein_lt_type r x) _).mpr (lt_succ_self _), rw [enum_typein]
+  convert (enum_lt_enum (typein_lt_type r x) _).mpr (lt_succ_self _), rw [enum_typein]
 end
 
 lemma type_subrel_lt (o : ordinal.{u}) :

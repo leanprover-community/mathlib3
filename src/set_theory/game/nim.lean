@@ -157,7 +157,7 @@ end nim
   the image of the function. It is guaranteed that the smallest ordinal not in the image will be
   in the set, i.e. we can use this to find the mex. -/
 def nonmoves {α : Type u} (M : α → ordinal.{u}) : set ordinal.{u} :=
-  { O : ordinal | ¬ ∃ a : α, M a = O }
+{ O : ordinal | ¬ ∃ a : α, M a = O }
 
 lemma nonmoves_nonempty {α : Type u} (M : α → ordinal.{u}) : ∃ O : ordinal, O ∈ nonmoves M :=
 ⟨_, ordinal.lsub_nmem_range.{u u} M⟩

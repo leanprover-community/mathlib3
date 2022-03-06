@@ -145,31 +145,6 @@ def to_algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
       rw [non_unital_non_assoc_algebra.smul_def', non_unital_non_assoc_algebra.commutes', one_mul],
     end, }
 
-/-
-@[priority 200] -- see Note [lower instance priority]
-instance to_mul_action (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
-  [algebra R A] : mul_action R A := {
-    one_smul := λ a, begin
-
-    end,
-    mul_smul := sorry,
-  }
-
-@[priority 200] -- see Note [lower instance priority]
-instance to_distrib_mul_action (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
-  [algebra R A] : distrib_mul_action R A := {
-    smul_add := sorry,
-    smul_zero := sorry,
-  }
-
-@[priority 200] -- see Note [lower instance priority]
-instance to_module (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
-  [algebra R A] : module R A := {
-    add_smul := sorry,
-    zero_smul := sorry,
-  }
--/
-
 end prio
 
 /-- Embedding `R →+* A` given by `algebra` structure. -/

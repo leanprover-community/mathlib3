@@ -485,17 +485,16 @@ lemma is_Ortho.not_is_ortho_basis_self_of_separating_right [nontrivial R]
 begin
   rw is_Ortho_flip at h,
   rw is_ortho_flip,
-  rw separating_right_flip at hB,
-  exact h.not_is_ortho_basis_self_of_separating_left hB i,
+  exact h.not_is_ortho_basis_self_of_separating_left (separating_right_flip.mp hB) i,
 end
 
 /-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is left-separating
-iff the basis has no elements which are self-orthogonal. -/
-lemma is_Ortho.separating_left_iff_not_is_ortho_basis_self [nontrivial R] [no_zero_divisors R]
-  {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) :
-  B.separating_left ↔ ∀ i, ¬B.is_ortho (v i) (v i) :=
+if the basis has no elements which are self-orthogonal. -/
+lemma is_Ortho.separating_left_of_not_is_ortho_basis_self [nontrivial R] [no_zero_divisors R]
+  {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) (h : ∀ i, ¬B.is_ortho (v i) (v i)) :
+  B.separating_left :=
 begin
-  refine ⟨hO.not_is_ortho_basis_self_of_separating_left, λ ho m hB, _⟩,
+  intros m hB,
   obtain ⟨vi, rfl⟩ := v.repr.symm.surjective m,
   rw linear_equiv.map_eq_zero_iff,
   ext i,
@@ -504,35 +503,31 @@ begin
   simp_rw [basis.repr_symm_apply, finsupp.total_apply, finsupp.sum, map_sum₂, map_smulₛₗ₂,
     smul_eq_mul] at hB,
   rw finset.sum_eq_single i at hB,
-  { exact eq_zero_of_ne_zero_of_mul_right_eq_zero (ho i) hB, },
+  { exact eq_zero_of_ne_zero_of_mul_right_eq_zero (h i) hB, },
   { intros j hj hij, convert mul_zero _ using 2, exact hO j i hij, },
   { intros hi, convert zero_mul _ using 2, exact finsupp.not_mem_support_iff.mp hi }
 end
 
 /-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is right-separating
-iff the basis has no elements which are self-orthogonal. -/
+if the basis has no elements which are self-orthogonal. -/
 lemma is_Ortho.separating_right_iff_not_is_ortho_basis_self [nontrivial R] [no_zero_divisors R]
-  {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) :
-  B.separating_right ↔ ∀ i, ¬B.is_ortho (v i) (v i) :=
+  {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) (h : ∀ i, ¬B.is_ortho (v i) (v i)) :
+  B.separating_right :=
 begin
   rw is_Ortho_flip at hO,
-  rw [separating_right_flip, is_Ortho.separating_left_iff_not_is_ortho_basis_self v hO],
-  split; intros h i;
-  rw is_ortho_flip;
+  rw [separating_right_flip],
+  refine is_Ortho.separating_left_of_not_is_ortho_basis_self v hO (λ i, _),
+  rw is_ortho_flip,
   exact h i,
 end
 
 /-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is nondegenerate
-iff the basis has no elements which are self-orthogonal. -/
-lemma is_Ortho.nondegenerate_iff_not_is_ortho_basis_self [nontrivial R] [no_zero_divisors R]
-  {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) :
-  B.nondegenerate ↔ ∀ i, ¬B.is_ortho (v i) (v i) :=
-begin
-  refine ⟨hO.not_is_ortho_basis_self_of_separating_left ∘ and.elim_left, _⟩,
-  intros h,
-  exact ⟨(is_Ortho.separating_left_iff_not_is_ortho_basis_self v hO).mpr h,
-    (is_Ortho.separating_right_iff_not_is_ortho_basis_self v hO).mpr h⟩,
-end
+if the basis has no elements which are self-orthogonal. -/
+lemma is_Ortho.nondegenerate_of_not_is_ortho_basis_self [nontrivial R] [no_zero_divisors R]
+  {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) (h : ∀ i, ¬B.is_ortho (v i) (v i)) :
+  B.nondegenerate :=
+⟨is_Ortho.separating_left_of_not_is_ortho_basis_self v hO h,
+  is_Ortho.separating_right_iff_not_is_ortho_basis_self v hO h⟩
 
 end comm_ring
 

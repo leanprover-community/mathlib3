@@ -2522,20 +2522,20 @@ lemma split_intercalate [decidable_eq α] (x : α) (hx : ∀ l ∈ ls, x ∉ l) 
   ([x].intercalate ls).split_on x = ls :=
 begin
   simp only [intercalate],
-  induction ls, { contradiction, },
-  cases ls_tl,
-  { suffices : ls_hd.split_on x = [ls_hd], { simpa [join], },
+  induction ls with hd tl ih, { contradiction, },
+  cases tl,
+  { suffices : hd.split_on x = [hd], { simpa [join], },
     refine split_single _ _ _, intros y hy H, rw H at hy,
-    refine hx ls_hd _ hy, simp, },
+    refine hx hd _ hy, simp, },
   { simp only [intersperse_cons_cons, singleton_append, join],
-    specialize ls_ih _ _, { intros l hl, apply hx l, simp at hl ⊢, tauto, }, { trivial, },
-    have := @split_first _ (=x) _ ls_hd _ x rfl _,
-    { simp only [split_on] at ⊢ ls_ih, rw this, rw ls_ih, },
-    intros y hy H, rw H at hy, exact hx ls_hd (or.inl rfl) hy, }
+    specialize ih _ _, { intros l hl, apply hx l, simp at hl ⊢, tauto, }, { trivial, },
+    have := split_first (=x) hd _ x rfl _,
+    { simp only [split_on] at ⊢ ih, rw this, rw ih, },
+    intros y hy H, rw H at hy, exact hx hd (or.inl rfl) hy, }
 end
 
 end split_at_on
-
+#exit
 /-! ### map for partial functions -/
 
 /-- Partial map. If `f : Π a, p a → β` is a partial function defined on

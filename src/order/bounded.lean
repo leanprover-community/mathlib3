@@ -26,20 +26,6 @@ hs.imp $ λ a ha b hb, ha b (hst hb)
 theorem unbounded.mono (hst : s ⊆ t) (hs : unbounded r s) : unbounded r t :=
 λ a, let ⟨b, hb, hb'⟩ := hs a in ⟨b, hst hb, hb'⟩
 
-/-! ### The universal set -/
-
-theorem unbounded_le_univ [has_le α] [no_top_order α]: unbounded (≤) (@set.univ α) :=
-λ a, let ⟨b, hb⟩ := exists_not_le a in ⟨b, ⟨⟩, hb⟩
-
-theorem unbounded_lt_univ [preorder α] [no_max_order α]: unbounded (<) (@set.univ α) :=
-λ a, let ⟨b, hb⟩ := exists_gt a in ⟨b, ⟨⟩, hb.not_lt⟩
-
-theorem unbounded_ge_univ [has_le α] [no_bot_order α]: unbounded (≥) (@set.univ α) :=
-λ a, let ⟨b, hb⟩ := exists_not_ge a in ⟨b, ⟨⟩, hb⟩
-
-theorem unbounded_gt_univ [preorder α] [no_min_order α]: unbounded (>) (@set.univ α) :=
-λ a, let ⟨b, hb⟩ := exists_lt a in ⟨b, ⟨⟩, hb.not_lt⟩
-
 /-! ### Alternate characterizations of unboundedness on orders -/
 
 lemma unbounded_le_of_forall_exists_lt [preorder α] (h : ∀ a, ∃ b ∈ s, a < b) : unbounded (≤) s :=

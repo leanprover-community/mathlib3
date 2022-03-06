@@ -149,6 +149,11 @@ begin
       (by simp [hn, hk.ne'] : p ∈ n.factorization.support), hk, rfl⟩ }
 end
 
+lemma is_prime_pow_iff_card_support_factorization_eq_one {n : ℕ} :
+  is_prime_pow n ↔ n.factorization.support.card = 1 :=
+by simp_rw [is_prime_pow_iff_factorization_single, finsupp.card_support_eq_one', exists_prop,
+  pos_iff_ne_zero]
+
 /-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime
 dividing it. -/
 lemma is_prime_pow_iff_unique_prime_dvd {n : ℕ} :

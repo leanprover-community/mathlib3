@@ -77,8 +77,8 @@ lemma analytic_set_range_of_polish_space
   analytic_set (range f) :=
 begin
   casesI is_empty_or_nonempty β,
-  { rw [range_eq_empty, analytic_set],
-    exact or.inl rfl },
+  { rw range_eq_empty,
+    exact analytic_set_empty },
   { rw analytic_set,
     obtain ⟨g, g_cont, hg⟩ : ∃ (g : (ℕ → ℕ) → β), continuous g ∧ surjective g :=
       exists_nat_nat_continuous_surjective β,
@@ -214,12 +214,9 @@ lemma _root_.measurable_set.is_clopenable {α : Type*} [topological_space α]
 begin
   revert s,
   apply measurable_set.induction_on_open,
-  { assume u hu,
-    exact hu.is_clopenable },
-  { assume u hu h'u,
-    exact h'u.compl },
-  { assume f f_disj f_meas hf,
-    exact is_clopenable.Union hf }
+  { exact λ u hu, hu.is_clopenable },
+  { exact λ u hu h'u, h'u.compl },
+  { exact λ f f_disj f_meas hf, is_clopenable.Union hf }
 end
 
 theorem _root_.measurable_set.analytic_set
@@ -609,11 +606,11 @@ begin
   obtain ⟨t', t't, f_cont, t'_polish⟩ :
     ∃ (t' : topological_space α), t' ≤ t ∧ @continuous α β t' tβ f ∧ @polish_space α t' :=
       f_meas.exists_continuous,
-  have M : @measurable_set α (@borel α t') s :=
+  have M : measurable_set[@borel α t'] s :=
     @continuous.measurable α α t' (@borel α t')
       (@borel_space.opens_measurable α t' (@borel α t') (by { constructor, refl }))
       t _ _ _ (continuous_id_of_le t't) s hs,
-  exact @_root_.measurable_set.image_of_continuous_on_inj_on α t' t'_polish
+  exact @measurable_set.image_of_continuous_on_inj_on α t' t'_polish
     (@borel α t') (by { constructor, refl }) β _ _ _ _ s M f
     (@continuous.continuous_on α β t' tβ f s f_cont) f_inj,
 end

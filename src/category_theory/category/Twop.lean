@@ -14,7 +14,7 @@ This defines `Twop`, the category of two-pointed types.
 ## References
 
 * [nLab, *coalgebra of the real interval*]
-[http://nlab-pages.s3.us-east-2.amazonaws.com/nlab/show/coalgebra+of+the+real+interval]
+  (https://ncatlab.org/nlab/show/coalgebra+of+the+real+interval)
 -/
 
 open category_theory option

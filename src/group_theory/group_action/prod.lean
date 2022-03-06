@@ -32,6 +32,7 @@ variables [has_scalar M α] [has_scalar M β] [has_scalar N α] [has_scalar N β
 @[simp, to_additive] theorem smul_snd : (a • x).2 = a • x.2 := rfl
 @[simp, to_additive] theorem smul_mk (a : M) (b : α) (c : β) : a • (b, c) = (a • b, a • c) := rfl
 @[to_additive] theorem smul_def (a : M) (x : α × β) : a • x = (a • x.1, a • x.2) := rfl
+@[simp, to_additive] theorem smul_swap : (a • x).swap = a • x.swap := rfl
 
 instance [has_scalar M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   is_scalar_tower M N (α × β) :=

@@ -31,7 +31,7 @@ these are deprecated.
 equiv, mul_equiv, add_equiv
 -/
 
-variables {α β A B M N P Q G H : Type*}
+variables {F α β A B M N P Q G H : Type*}
 
 /-- Makes a multiplicative inverse from a bijection which preserves multiplication. -/
 @[to_additive "Makes an additive inverse from a bijection which preserves addition."]
@@ -88,11 +88,8 @@ class mul_equiv_class (F A B : Type*) [has_mul A] [has_mul B]
 infix ` ≃* `:25 := mul_equiv
 infix ` ≃+ `:25 := add_equiv
 
-section mul_equiv_class
-
-variables (F : Type*)
-
 namespace mul_equiv_class
+variables (F)
 
 @[priority 100, -- See note [lower instance priority]
   to_additive]
@@ -124,19 +121,20 @@ variables {F}
 
 @[simp, to_additive]
 lemma map_eq_one_iff {M N} [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N]
-  (h : F) {x : M} :
-  h x = 1 ↔ x = 1 :=
-by rw [← map_one h, equiv_like.apply_eq_iff_eq h]
+  (h : F) {x : M} : h x = 1 ↔ x = 1 :=
+map_eq_one_iff h (equiv_like.injective h)
 
 @[to_additive]
 lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N]
   (h : F) {x : M} :
   h x ≠ 1 ↔ x ≠ 1 :=
-not_congr (map_eq_one_iff h)
+map_ne_one_iff h (equiv_like.injective h)
 
 end mul_equiv_class
 
-end mul_equiv_class
+@[to_additive] instance [has_mul α] [has_mul β] [mul_equiv_class F α β] : has_coe_t F (α ≃* β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f, map_mul' := map_mul f }⟩
 
 namespace mul_equiv
 

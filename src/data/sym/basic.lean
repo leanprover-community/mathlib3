@@ -256,7 +256,9 @@ def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
 @[simp] lemma mem_map {α β : Type*} {n : ℕ} {f : α → β} {b : β} {l : sym α n} :
   b ∈ sym.map f l ↔ ∃ a, a ∈ l ∧ f a = b := multiset.mem_map
 
-@[simp] lemma map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map (λ (x : α), x) s = s :=
+@[simp] lemma map_id {α : Type*} {n : ℕ} (s : sym α n) : sym.map id s = s := by simp [sym.map]
+
+@[simp] lemma map_id' {α : Type*} {n : ℕ} (s : sym α n) : sym.map (λ (x : α), x) s = s :=
 by simp [sym.map]
 
 @[simp] lemma map_map {α β γ : Type*} {n : ℕ} (g : β → γ) (f : α → β) (s : sym α n) :
@@ -288,8 +290,8 @@ lemma map_injective {β : Type*} {f : α → β} (hf : injective f) (n : ℕ) :
 def equiv_congr {α β : Type*} (e : α ≃ β) : sym α n ≃ sym β n :=
 { to_fun := map e,
   inv_fun := map e.symm,
-  left_inv := λ x, by { rw [map_map, equiv.symm_comp_self], simp only [id.def, map_id], },
-  right_inv := λ x, by { simp only [equiv.self_comp_symm, id.def, map_id, map_map], }, }
+  left_inv := λ x, by rw [map_map, equiv.symm_comp_self, map_id],
+  right_inv := λ x, by rw [map_map, equiv.self_comp_symm, map_id] }
 
 /-- "Attach" a proof that `a ∈ s` to each element `a` in `s` to produce
 an element of the symmetric power on `{x // x ∈ s}`. -/

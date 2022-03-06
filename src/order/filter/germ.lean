@@ -323,7 +323,7 @@ instance [has_div M] : has_div (germ l M) := ⟨map₂ (/)⟩
 lemma coe_div [has_div M] (f g : α → M) : ↑(f / g) = (f / g : germ l M) := rfl
 
 instance [sub_neg_monoid G] : sub_neg_monoid (germ l G) :=
-function.surjective.sub_neg_add_monoid coe (surjective_quot_mk _) rfl (λ _ _, rfl)
+function.surjective.sub_neg_monoid coe (surjective_quot_mk _) rfl (λ _ _, rfl)
   (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive sub_neg_monoid]

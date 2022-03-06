@@ -524,7 +524,8 @@ to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ pow_to
 @[to_additive]
 instance [comm_group γ] [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
   comm_group (α →ₘ[μ] γ) :=
-to_germ_injective.comm_group _ one_to_germ mul_to_germ inv_to_germ div_to_germ pow_to_germ zpow_to_germ
+to_germ_injective.comm_group _
+  one_to_germ mul_to_germ inv_to_germ div_to_germ pow_to_germ zpow_to_germ
 
 section module
 

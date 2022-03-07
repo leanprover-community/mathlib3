@@ -1378,6 +1378,13 @@ theorem is_normal.bsup_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
   bsup.{u} o (λ x _, f x) = f o :=
 by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id_limit h.2] }
 
+theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
+  blsub.{u} o (λ x _, f x) = f o :=
+begin
+  rw ←H.bsup_eq h,
+  exact ((bsup_eq_blsub_iff_lt_bsup _).2 (λ a ha, (H.1 a).trans_le (le_bsup _ _ (h.2 a ha)))).symm
+end
+
 theorem is_normal.eq_iff_zero_and_succ {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {g}
   (hg : is_normal g) : f = g ↔ (f 0 = g 0 ∧ ∀ a : ordinal, f a = g a → f a.succ = g a.succ) :=
 ⟨λ h, by simp [h], λ ⟨h₁, h₂⟩, funext (λ a, begin
@@ -1389,13 +1396,6 @@ theorem is_normal.eq_iff_zero_and_succ {f : ordinal.{u} → ordinal.{u}} (hf : i
   ext b hb,
   exact H b hb
 end)⟩
-
-theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
-  blsub.{u} o (λ x _, f x) = f o :=
-begin
-  rw ←H.bsup_eq h,
-  exact ((bsup_eq_blsub_iff_lt_bsup _).2 (λ a ha, (H.1 a).trans_le (le_bsup _ _ (h.2 a ha)))).symm
-end
 
 end ordinal
 
@@ -1469,6 +1469,24 @@ lemma enum_ord_def_nonempty (hS : unbounded (<) S) {o} :
   {x | x ∈ S ∧ ∀ c, c < o → enum_ord S c < x}.nonempty :=
 (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
 
+@[simp] theorem enum_ord_range {f : ordinal → ordinal} (hf : strict_mono f) :
+  enum_ord (range f) = f :=
+funext (λ o, begin
+  apply wf.induction o,
+  intros a H,
+  rw enum_ord_def a,
+  have Hfa : f a ∈ range f ∩ {b | ∀ c, c < a → enum_ord (range f) c < b} :=
+    ⟨mem_range_self a, λ b hb, (by {rw H b hb, exact hf hb})⟩,
+  refine (cInf_le' Hfa).antisymm ((le_cInf_iff'' ⟨_, Hfa⟩).2 _),
+  rintros _ ⟨⟨c, rfl⟩, hc : ∀ b < a, enum_ord (range f) b < f c⟩,
+  rw hf.le_iff_le,
+  contrapose! hc,
+  exact ⟨c, hc, (H c hc).ge⟩,
+end)
+
+@[simp] theorem enum_ord_univ : enum_ord set.univ = id :=
+by { rw ←range_id, exact enum_ord_range strict_mono_id }
+
 @[simp] theorem enum_ord_zero : enum_ord S 0 = Inf S :=
 by { rw enum_ord_def, simp [ordinal.not_lt_zero] }
 
@@ -1501,7 +1519,7 @@ def enum_ord.order_iso (hS : unbounded (<) S) : ordinal ≃o S :=
 strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) (enum_ord.strict_mono hS)
   (λ s, let ⟨a, ha⟩ := enum_ord.surjective hS s s.prop in ⟨a, subtype.eq ha⟩)
 
-theorem enum_ord_range (hS : unbounded (<) S) : range (enum_ord S) = S :=
+theorem range_enum_ord (hS : unbounded (<) S) : range (enum_ord S) = S :=
 by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord.surjective hS⟩ }
 
 /-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
@@ -1510,9 +1528,9 @@ theorem eq_enum_ord (f : ordinal → ordinal) (hS : unbounded (<) S) :
 begin
   split,
   { rintro ⟨h₁, h₂⟩,
-    rwa [←wf.eq_strict_mono_iff_eq_range h₁ (enum_ord.strict_mono hS), enum_ord_range hS] },
+    rwa [←wf.eq_strict_mono_iff_eq_range h₁ (enum_ord.strict_mono hS), range_enum_ord hS] },
   { rintro rfl,
-    exact ⟨enum_ord.strict_mono hS, enum_ord_range hS⟩ }
+    exact ⟨enum_ord.strict_mono hS, range_enum_ord hS⟩ }
 end
 
 end

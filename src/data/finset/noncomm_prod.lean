@@ -225,7 +225,6 @@ by simp [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
     (λ x hx y hy, by rw [mem_singleton.mp hx, mem_singleton.mp hy]) = f a :=
 by simp [noncomm_prod, multiset.singleton_eq_cons]
 
-<<<<<<< HEAD
 @[to_additive]
 lemma noncomm_prod_map (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))

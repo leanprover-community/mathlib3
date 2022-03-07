@@ -12,10 +12,10 @@ import analysis.normed_space.star.exponential
 In this file, we establish various propreties related to the spectrum of elements in C⋆-algebras.
 -/
 
+local postfix `⋆`:std.prec.max_plus := star
+
 open_locale topological_space ennreal
 open filter ennreal spectrum cstar_ring
-
-local postfix `⋆`:std.prec.max_plus := star
 
 section unitary_spectrum
 

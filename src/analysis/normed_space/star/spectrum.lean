@@ -98,7 +98,7 @@ begin
       using spectrum.subset_circle_of_unitary (self_adjoint.exp_i_smul_unitary ha) this),
 end
 
-/-- The spectrum of a selfadjoint is -/
+/-- The spectrum of a selfadjoint is real -/
 theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] {a : A}
   (ha : a ∈ self_adjoint A) : spectrum ℂ a = (coe ∘ re '' (spectrum ℂ a) : set ℂ) :=
 le_antisymm (λ z hz, ⟨z, hz, (self_adjoint.mem_spectrum_eq_re ha hz).symm⟩) (λ z, by

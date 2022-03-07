@@ -247,10 +247,6 @@ class star_ring (R : Type u) [non_unital_semiring R] extends star_semigroup R :=
 instance star_ring.to_star_add_monoid [non_unital_semiring R] [star_ring R] : star_add_monoid R :=
 { star_add := star_ring.star_add }
 
-@[simp, norm_cast]
-lemma star_nat_cast [semiring R] [star_ring R] (n : ℕ) : star (n : R) = n :=
-by induction n; simp *
-
 /-- `star` as an `ring_equiv` from `R` to `Rᵐᵒᵖ` -/
 @[simps apply]
 def star_ring_equiv [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :=

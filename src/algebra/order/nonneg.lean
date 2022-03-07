@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import algebra.order.archimedean
+import algebra.order.floor
 import algebra.order.sub
 import algebra.order.with_zero
-import algebra.order.floor
 import order.lattice_intervals
 import order.complete_lattice_intervals
 

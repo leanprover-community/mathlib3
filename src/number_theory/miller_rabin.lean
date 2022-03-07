@@ -157,20 +157,12 @@ begin
   exact nat.le_of_succ_le pgeq2,
   have thing3 : p ^ 1 ≤ p ^ α,
   exact pow_mono waa hα,
+  -- wait for le_pow to be approved
 
-  /- clear hp,
-  induction p with n hi,
-  simp, -/
-  --rw pow_lt_pow_of_lt_left, why doesn't this work?
-  sorry,
   sorry,
   },
   have zero_lt_n : 0 < p^α,
   exact pos_of_gt one_lt_n,
-  {
-    clear a,
-    exact pos_of_gt one_lt_n,
-  },
   haveI : fact (0 < p ^ α),
   { exact {out := zero_lt_n}, },
   split,

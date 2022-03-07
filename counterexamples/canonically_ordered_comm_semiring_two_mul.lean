@@ -151,12 +151,6 @@ open Nxzmod_2 subtype
 /-- Initially, `L` was defined as the subsemiring closure of `(1,0)`. -/
 def L : Type := { l : (ℕ × zmod 2) // l ≠ (0, 1) }
 
-instance zero : has_zero L := ⟨⟨(0, 0), dec_trivial⟩⟩
-
-instance one : has_one L := ⟨⟨(1, 1), dec_trivial⟩⟩
-
-instance inhabited : inhabited L := ⟨1⟩
-
 lemma add_L {a b : ℕ × zmod 2} (ha : a ≠ (0, 1)) (hb : b ≠ (0, 1)) :
   a + b ≠ (0, 1) :=
 begin
@@ -191,39 +185,18 @@ begin
   { simp [mul_ne_zero _ _, nat.succ_ne_zero _] }
 end
 
-lemma nsmul_L {n : ℕ} {a : ℕ × zmod 2} (ha : a ≠ (0, 1)) :
-  n • a ≠ (0, 1) :=
-begin
-  induction n with n ih,
-  { simp [prod.zero_eq_mk] },
-  { simpa only [succ_nsmul] using add_L ha ih, },
-end
-
-lemma pow_L {n : ℕ} {a : ℕ × zmod 2} (ha : a ≠ (0, 1)) :
-  a ^ n ≠ (0, 1) :=
-begin
-  induction n with n ih,
-  { simp [prod.one_eq_mk] },
-  { simpa only [pow_succ] using mul_L ha ih, },
-end
-
-instance has_add_L : has_add L :=
-{ add := λ a b, ⟨a.1 + b.1, add_L a.prop b.prop⟩ }
-
-instance : has_mul L :=
-{ mul := λ a b, ⟨a.1 * b.1, mul_L a.prop b.prop⟩ }
-
-instance : has_scalar ℕ L :=
-{ smul := λ n a, ⟨n • a.1, nsmul_L a.prop⟩ }
-
-instance : has_pow L ℕ :=
-{ pow := λ a n, ⟨a.1 ^ n, pow_L a.prop⟩ }
+/-- The subsemiring corresponding to the elements of `L`, used to transfer instances. -/
+def L_subsemiring : subsemiring (ℕ × zmod 2) :=
+{ carrier := { l | l ≠ (0, 1) },
+  zero_mem' := dec_trivial,
+  one_mem' := dec_trivial,
+  add_mem' := λ _ _, add_L,
+  mul_mem' := λ _ _, mul_L }
 
 instance : ordered_comm_semiring L :=
-begin
-  refine function.injective.ordered_comm_semiring _ subtype.coe_injective rfl rfl _ _ _ _;
-  { intros, refl }
-end
+L_subsemiring.to_ordered_comm_semiring
+
+instance inhabited : inhabited L := ⟨1⟩
 
 lemma bot_le : ∀ (a : L), 0 ≤ a :=
 begin

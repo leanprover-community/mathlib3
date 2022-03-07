@@ -192,6 +192,10 @@ instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
 def coe_ring_hom [ordered_semiring α] : {x : α // 0 ≤ x} →+* α :=
 ⟨coe, nonneg.coe_one, nonneg.coe_mul, nonneg.coe_zero, nonneg.coe_add⟩
 
+@[simp, norm_cast]
+lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n :=
+map_nat_cast (coe_ring_hom : {x : α // 0 ≤ x} →+* α) n
+
 instance has_inv [linear_ordered_field α] : has_inv {x : α // 0 ≤ x} :=
 { inv := λ x, ⟨x⁻¹, inv_nonneg.mpr x.2⟩ }
 

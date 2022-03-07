@@ -186,14 +186,7 @@ pi.single i a
 
 @[simp] theorem euclidean_space.single_apply [decidable_eq ι] (i : ι) (a : 𝕜) (j : ι) :
   (euclidean_space.single i a) j = ite (j = i) a 0 :=
-begin
-  classical,
-  simp_rw [euclidean_space.single, pi.single, function.update],
-  simp only [dite_eq_ite, eq_rec_constant, pi.zero_apply, dif_ctx_congr],
-  split_ifs,
-  exact rfl,
-  exact rfl
-end
+pi.single_apply _ _ _
 
 lemma euclidean_space.inner_single_left
   [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :

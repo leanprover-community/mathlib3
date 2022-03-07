@@ -47,7 +47,7 @@ variables {M : Type*} [monoid M]
 
 -- We have a family of monoids
 -- The fintype assumption is not always used, but declared here, to keep things in order
-variables {ι : Type*} [hdec : decidable_eq ι] [hfin : fintype ι]
+variables {ι : Type*} [hdec : decidable_eq ι] [fintype ι]
 variables {N : ι → Type*} [∀ i, monoid (N i)]
 
 -- And morphisms ϕ into G
@@ -61,10 +61,6 @@ include hcomm
 variables (f g : Π (i : ι), N i)
 
 namespace monoid_hom
-
-include hfin
-
-variable (hcomm)
 
 /-- The canonical homomorphism from a family of monoids. -/
 @[to_additive "The canonical homomorphism from a family of additive monoids.
@@ -101,8 +97,9 @@ begin
      (finset.insert_erase (finset.mem_univ i)).symm,
   rw finset.noncomm_prod_congr h,
   rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ (finset.not_mem_erase i finset.univ),
+  rw pi.mul_single_eq_same,
   rw finset.noncomm_prod_eq_one_of_forall_eq_one,
-  { simp, },
+  { exact mul_one _, },
   { intros j hj, simp only [finset.mem_erase] at hj, simp [hj], },
 end
 

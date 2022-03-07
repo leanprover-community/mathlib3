@@ -313,7 +313,7 @@ begin
 end
 
 /- The non-commutative version of `finset.prod_union` -/
-@[to_additive /-" The non-commutative version of `finset.sum_union` "-/]
+@[to_additive "The non-commutative version of `finset.sum_union`"]
 lemma noncomm_prod_union_of_disjoint [decidable_eq α] {s t : finset α}
   (h : disjoint s t) (f : α → β)
   (comm : ∀ (x ∈ s ∪ t) (y ∈ s ∪ t), commute (f x) (f y))
@@ -331,7 +331,7 @@ begin
 end
 
 /- The non-commutative version of `finset.prod_mul_distrib` -/
-@[to_additive /-" The non-commutative version of `finset.sum_add_distrib` "-/]
+@[to_additive "The non-commutative version of `finset.sum_add_distrib`"]
 lemma noncomm_prod_mul_distrib [decidable_eq α] {s : finset α}
   (f : α → β) (g : α → β)
   (comm_fgfg : ∀ (x ∈ s) (y ∈ s), commute (f x * g x) (f y * g y))
@@ -360,24 +360,6 @@ begin
     exact comm_gf x (mem_insert_self x s) y (mem_insert_of_mem hy) this, }
 end
 
--- I think it's worth keeping it and moving to appropriate file
-@[to_additive]
-lemma mul_eq_one_iff_disjoint {G : Type*} [group G] {H₁ H₂ : subgroup G} :
-  disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x * y = 1 → x = 1 ∧ y = 1 :=
-begin
-  split,
-  { intros hdis x y hx hy heq,
-    obtain rfl : y = x⁻¹ := symm (inv_eq_iff_mul_eq_one.mpr heq),
-    have hy := H₂.inv_mem_iff.mp hy,
-    have : x ∈ H₁ ⊓ H₂, by { simp, cc },
-    rw [hdis.eq_bot, subgroup.mem_bot] at this,
-    subst this,
-    simp },
-  { rintros h x ⟨hx1, hx2⟩,
-    obtain rfl : x = 1 := (h hx1 (H₂.inv_mem hx2) (mul_inv_self x)).1,
-    exact rfl, },
-end
-
 /-- `finset.noncomm_prod` is injective in `f` if `f` maps into independent subgroups.  -/
 @[to_additive "`finset.noncomm_sum` is injective in `f` if `f` maps into independent subgroups"]
 lemma eq_one_of_noncomm_prod_eq_one_of_independent {β : Type*} [group β]
@@ -401,7 +383,7 @@ begin
     intro heq1,
     rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,
     have hnmem' : i ∉ (s : set α), by simpa,
-    have heq1' : f i = 1 ∧ s.noncomm_prod f _ = 1 := mul_eq_one_iff_disjoint.mp
+    have heq1' : f i = 1 ∧ s.noncomm_prod f _ = 1 := subgroup.mul_eq_one_iff_disjoint.mp
       (hind.disjoint_bsupr hnmem') (hmem i (mem_insert_self _ _)) hmem_bsupr heq1,
     rcases heq1' with ⟨ heq1i, heq1S ⟩,
     specialize ih heq1S,

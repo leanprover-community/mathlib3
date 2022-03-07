@@ -86,10 +86,7 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M] (a : R)
 /-- The `a`-torsion submodule of the `a`-torsion submodule (viewed as a module) is the full
 `a`-torsion module. -/
 lemma torsion_by_torsion_by_eq_top : torsion_by R (torsion_by R M a) a = ⊤ :=
-begin
-  ext,
-  exact ⟨λ _, trivial, λ _, smul_torsion_by a x⟩
-end
+eq_top_iff.mpr (λ _ _, smul_torsion_by _ _)
 
 end torsion_by
 
@@ -100,7 +97,7 @@ instance : has_scalar (R ⧸ R ∙ a) (torsion_by R M a) :=
 { smul := λ b x, quotient.lift_on' b (• x) $ λ b₁ b₂ (h : b₁ - b₂ ∈ _), begin
     show b₁ • x = b₂ • x,
     obtain ⟨c, h⟩ := ideal.mem_span_singleton'.mp h,
-    rw [← sub_eq_zero, ← sub_smul, ←h, mul_smul, smul_torsion_by, smul_zero],
+    rw [← sub_eq_zero, ← sub_smul, ← h, mul_smul, smul_torsion_by, smul_zero],
   end }
 
 @[simp] lemma torsion_by.mk_smul (b : R) (x : torsion_by R M a) :
@@ -133,10 +130,7 @@ instance : smul_comm_class S R (torsion' R M S) := ⟨λ s a x, begin ext, exact
 /-- The `S`-torsion submodule of the `S`-torsion submodule (viewed as a module) is the full
 `S`-torsion module. -/
 lemma torsion'_torsion'_eq_top : torsion' R (torsion' R M S) S = ⊤ :=
-begin
-  ext, refine ⟨λ _, trivial, λ _, _⟩,
-  obtain ⟨x, a, ha⟩ := x, use a, ext, exact ha
-end
+eq_top_iff.mpr (λ ⟨x, ⟨a, h⟩⟩ _, ⟨a, subtype.ext h⟩)
 /-- The torsion submodule of the torsion submodule (viewed as a module) is the full
 torsion module. -/
 lemma torsion_torsion_eq_top : torsion R (torsion R M) = ⊤ := torsion'_torsion'_eq_top R⁰
@@ -163,16 +157,14 @@ lemma no_zero_smul_divisors_iff_torsion_eq_bot :
 begin
   split; intro h,
   { haveI : no_zero_smul_divisors R M := h,
-    ext, split; intro hx,
-    { cases hx with a hax,
-      have hax : (a : R) • x = 0 := hax,
-      cases eq_zero_or_eq_zero_of_smul_eq_zero hax with h0 h0,
-      { exfalso, exact non_zero_divisors.coe_ne_zero a h0 }, { exact h0 } },
-    { have hx : x = 0 := hx, rw hx, exact (torsion R M).zero_mem } },
+    rw eq_bot_iff, rintro x ⟨a, hax⟩,
+    change (a : R) • x = 0 at hax,
+    cases eq_zero_or_eq_zero_of_smul_eq_zero hax with h0 h0,
+    { exfalso, exact non_zero_divisors.coe_ne_zero a h0 }, { exact h0 } },
   { exact { eq_zero_or_eq_zero_of_smul_eq_zero := λ a x hax, begin
       by_cases ha : a = 0,
       { left, exact ha },
-      { right, rw [← submodule.mem_bot _, ← h],
+      { right, rw [← mem_bot _, ← h],
         exact ⟨⟨a, mem_non_zero_divisors_of_ne_zero ha⟩, hax⟩ }
     end } }
 end
@@ -183,17 +175,14 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 
 /-- Quotienting by the torsion submodule gives a torsion-free module. -/
 lemma torsion_eq_bot : torsion R (M ⧸ torsion R M) = ⊥ :=
+eq_bot_iff.mpr $ λ z, quotient.induction_on' z $ λ x ⟨a, hax⟩,
 begin
-  ext z, split,
-  { exact quotient.induction_on' z (λ x hx, begin
-      cases hx with a hax,
-      rw [quotient.mk'_eq_mk, ← quotient.mk_smul, quotient.mk_eq_zero] at hax,
-      change quotient.mk x = 0, rw quotient.mk_eq_zero,
-      cases hax with b h,
-      exact ⟨b * a, (mul_smul _ _ _).trans h⟩
-    end) },
-  { intro hz, have hz : z = 0 := hz, rw hz, exact zero_mem _ }
+  rw [quotient.mk'_eq_mk, ← quotient.mk_smul, quotient.mk_eq_zero] at hax,
+  rw [mem_bot, quotient.mk'_eq_mk, quotient.mk_eq_zero],
+  cases hax with b h,
+  exact ⟨b * a, (mul_smul _ _ _).trans h⟩
 end
+
 
 instance no_zero_smul_divisors [is_domain R] : no_zero_smul_divisors R (M ⧸ torsion R M) :=
 no_zero_smul_divisors_iff_torsion_eq_bot.mpr torsion_eq_bot
@@ -207,13 +196,12 @@ variables {M : Type*} [add_comm_monoid M]
 
 theorem is_torsion_iff_torsion_eq_top : add_monoid.is_torsion M ↔ submodule.torsion ℕ M = ⊤ :=
 begin
-  refine ⟨λ h, submodule.ext (λ x, ⟨λ _, trivial, λ _, _⟩), λ h x, _⟩,
+  refine ⟨λ h, eq_top_iff.mpr $ λ x _, _, λ h x, _⟩,
   { obtain ⟨n, h0, hn⟩ := (is_of_fin_add_order_iff_nsmul_eq_zero x).mp (h x),
     exact ⟨⟨n, mem_non_zero_divisors_of_ne_zero (ne_of_gt h0)⟩, hn⟩ },
   { rw is_of_fin_add_order_iff_nsmul_eq_zero,
     have : x ∈ (⊤ : submodule ℕ M) := trivial, rw ← h at this,
-    obtain ⟨⟨n, h0⟩, hn⟩ := this,
-    refine ⟨n, nat.pos_of_ne_zero _, hn⟩,
-    rw mem_non_zero_divisors_iff at h0, exact λ hn0, one_ne_zero (h0 _ $ by rw [hn0, mul_zero]), }
+    obtain ⟨n, hn⟩ := this,
+    refine ⟨n, nat.pos_of_ne_zero (non_zero_divisors.coe_ne_zero _), hn⟩ }
 end
 end ℕ_torsion

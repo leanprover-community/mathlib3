@@ -226,9 +226,6 @@ theorem ord_cof_le (o : ordinal.{u}) : o.cof.ord ≤ o :=
 theorem exists_lsub_cof (o : ordinal) : ∃ {ι} (f : ι → ordinal), (lsub.{u u} f = o) ∧ #ι = cof o :=
 by { rw cof_eq_Inf_lsub, exact Inf_mem (cof_lsub_def_nonempty o) }
 
-theorem cof_lsub_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
-by { rw cof_eq_Inf_lsub, exact cInf_le' ⟨ι, f, rfl, rfl⟩ }
-
 theorem le_cof_iff_lsub {o : ordinal} {a : cardinal} :
   a ≤ cof o ↔ ∀ {ι} (f : ι → ordinal), lsub.{u u} f = o → a ≤ #ι :=
 begin
@@ -236,6 +233,9 @@ begin
   exact (le_cInf_iff'' (cof_lsub_def_nonempty o)).trans ⟨λ H ι f hf, H _ ⟨ι, f, hf, rfl⟩,
     λ H b ⟨ι, f, hf, hb⟩, ( by { rw ←hb, exact H _ hf} )⟩
 end
+
+theorem cof_lsub_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
+by { rw cof_eq_Inf_lsub, exact cInf_le' ⟨ι, f, rfl, rfl⟩ }
 
 theorem cof_lsub_le_lift {ι} (f : ι → ordinal) : cof (lsub f) ≤ cardinal.lift.{v u} (#ι) :=
 begin
@@ -245,29 +245,36 @@ begin
     (set.ext (λ x, ⟨λ ⟨i, hi⟩, ⟨ulift.up i, hi⟩, λ ⟨i, hi⟩, ⟨_, hi⟩⟩))
 end
 
-theorem lsub_lt_ord {ι} {f : ι → ordinal} {c : ordinal} (hι : #ι < c.cof) (hf : ∀ i, f i < c) :
-  lsub.{u u} f < c :=
-lt_of_le_of_ne (lsub_le.2 hf) (λ h, not_le_of_lt hι
-  (by simpa [sup_ord, hf, h] using cof_lsub_le.{u} f))
-
 theorem lsub_lt_ord_lift {ι} {f : ι → ordinal} {c : ordinal} (hι : cardinal.lift (#ι) < c.cof)
   (hf : ∀ i, f i < c) : lsub.{u v} f < c :=
 lt_of_le_of_ne (lsub_le.2 hf) (λ h, not_le_of_lt hι
   (by simpa [sup_ord, hf, h] using cof_lsub_le_lift.{u} f))
 
+theorem lsub_lt_ord {ι} {f : ι → ordinal} {c : ordinal} (hι : #ι < c.cof) :
+  (∀ i, f i < c) → lsub.{u u} f < c :=
+lsub_lt_ord_lift (by rwa (#ι).lift_id)
+
 theorem cof_sup_le_lift {ι} {f : ι → ordinal} (H : ∀ i, f i < sup f) : cof (sup f) ≤ (#ι).lift :=
 by { rw ←sup_eq_lsub_iff_lt_sup at H, rw H, exact cof_lsub_le_lift f }
 
 theorem cof_sup_le {ι} {f : ι → ordinal} (H : ∀ i, f i < sup.{u u} f) : cof (sup.{u u} f) ≤ #ι :=
-by simpa using cof_sup_le_lift.{u u} H
+by { rw ←(#ι).lift_id, exact cof_sup_le_lift H }
 
-theorem sup_lt_ord {ι} {f : ι → ordinal} {c : ordinal} (hι : #ι < c.cof) (hf : ∀ i, f i < c) :
-  sup.{u u} f < c :=
-(sup_le_lsub.{u u} f).trans_lt (lsub_lt_ord hι hf)
+theorem sup_lt_ord_lift {ι} {f : ι → ordinal} {c : ordinal} (hι : cardinal.lift (#ι) < c.cof)
+  (hf : ∀ i, f i < c) : sup.{u v} f < c :=
+(sup_le_lsub.{u v} f).trans_lt (lsub_lt_ord_lift hι hf)
 
-theorem sup_lt {ι} {f : ι → cardinal} {c : cardinal} (hι : #ι < c.ord.cof) (hf : ∀ i, f i < c) :
-  cardinal.sup.{u u} f < c :=
-by { rw [←ord_lt_ord, ←sup_ord], refine sup_lt_ord hι (λ i, _), rw ord_lt_ord, apply hf }
+theorem sup_lt_ord {ι} {f : ι → ordinal} {c : ordinal} (hι : #ι < c.cof) :
+  (∀ i, f i < c) → sup.{u u} f < c :=
+sup_lt_ord_lift (by rwa (#ι).lift_id)
+
+theorem sup_lt_lift {ι} {f : ι → cardinal} {c : cardinal} (hι : cardinal.lift (#ι) < c.ord.cof)
+  (hf : ∀ i, f i < c) : cardinal.sup.{u v} f < c :=
+by { rw [←ord_lt_ord, ←sup_ord], refine sup_lt_ord_lift hι (λ i, _), rw ord_lt_ord, apply hf }
+
+theorem sup_lt {ι} {f : ι → cardinal} {c : cardinal} (hι : #ι < c.ord.cof) :
+  (∀ i, f i < c) → cardinal.sup.{u u} f < c :=
+sup_lt_lift (by rwa (#ι).lift_id)
 
 theorem exists_blsub_cof (o : ordinal) : ∃ (f : Π a < (cof o).ord, ordinal), blsub.{u u} _ f = o :=
 begin
@@ -277,9 +284,6 @@ begin
   rw [←hι, hι'],
   exact ⟨_, hf⟩
 end
-
-theorem cof_blsub_le {o} (f : Π a < o, ordinal) : cof (blsub.{u u} o f) ≤ o.card :=
-by { convert cof_lsub_le _, exact (mk_ordinal_out o).symm }
 
 theorem le_cof_iff_blsub {b : ordinal} {a : cardinal} :
   a ≤ cof b ↔ ∀ {o} (f : Π a < o, ordinal), blsub.{u u} o f = b → a ≤ o.card :=
@@ -297,27 +301,33 @@ theorem cof_blsub_le_lift {o} (f : Π a < o, ordinal) :
   cof (blsub o f) ≤ cardinal.lift.{v u} (o.card) :=
 by { convert cof_lsub_le_lift _, exact (mk_ordinal_out o).symm }
 
-theorem blsub_lt_ord {o : ordinal} {f : Π a < o, ordinal} {c : ordinal} (ho : o.card < c.cof)
-  (hf : ∀ i hi, f i hi < c) : blsub.{u u} o f < c :=
-lt_of_le_of_ne (blsub_le.2 hf) (λ h, not_le_of_lt ho
-  (by simpa [sup_ord, hf, h] using cof_blsub_le.{u} f))
+theorem cof_blsub_le {o} (f : Π a < o, ordinal) : cof (blsub.{u u} o f) ≤ o.card :=
+by { rw ←(o.card).lift_id, exact cof_blsub_le_lift f }
 
 theorem blsub_lt_ord_lift {o : ordinal} {f : Π a < o, ordinal} {c : ordinal}
   (ho : o.card.lift < c.cof) (hf : ∀ i hi, f i hi < c) : blsub.{u v} o f < c :=
 lt_of_le_of_ne (blsub_le.2 hf) (λ h, not_le_of_lt ho
   (by simpa [sup_ord, hf, h] using cof_blsub_le_lift.{u} f))
 
-theorem cof_bsup_le_lift {o : ordinal} (f : Π a < o, ordinal) (H : ∀ i h, f i h < bsup o f) :
+theorem blsub_lt_ord {o : ordinal} {f : Π a < o, ordinal} {c : ordinal} (ho : o.card < c.cof)
+  (hf : ∀ i hi, f i hi < c) : blsub.{u u} o f < c :=
+blsub_lt_ord_lift (by rwa (o.card).lift_id) hf
+
+theorem cof_bsup_le_lift {o : ordinal} {f : Π a < o, ordinal} (H : ∀ i h, f i h < bsup o f) :
   cof (bsup o f) ≤ o.card.lift :=
 by { rw ←bsup_eq_blsub_iff_lt_bsup at H, rw H, exact cof_blsub_le_lift f }
 
-theorem cof_bsup_le {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, f i h < bsup.{u u} o f) →
-  cof (bsup.{u u} o f) ≤ o.card :=
-induction_on o $ λ α r _ f H, by simpa using cof_bsup_le_lift.{u u} f H
+theorem cof_bsup_le {o : ordinal} {f : Π a < o, ordinal} :
+  (∀ i h, f i h < bsup.{u u} o f) → cof (bsup.{u u} o f) ≤ o.card :=
+by { rw ←(o.card).lift_id, exact cof_bsup_le_lift }
 
-theorem bsup_lt_ord {o : ordinal} {f : Π a < o, ordinal} {c : ordinal} (ho : o.card < c.cof)
-  (hf : ∀ i hi, f i hi < c) : bsup.{u u} o f < c :=
-(bsup_le_blsub.{u u} f).trans_lt (blsub_lt_ord ho hf)
+theorem bsup_lt_ord_lift {o : ordinal} {f : Π a < o, ordinal} {c : ordinal}
+  (ho : o.card.lift < c.cof) (hf : ∀ i hi, f i hi < c) : bsup.{u v} o f < c :=
+(bsup_le_blsub f).trans_lt (blsub_lt_ord_lift ho hf)
+
+theorem bsup_lt_ord {o : ordinal} {f : Π a < o, ordinal} {c : ordinal} (ho : o.card < c.cof) :
+  (∀ i hi, f i hi < c) → bsup.{u u} o f < c :=
+bsup_lt_ord_lift (by rwa (o.card).lift_id)
 
 @[simp] theorem cof_zero : cof 0 = 0 :=
 (cof_le_card 0).antisymm (cardinal.zero_le _)

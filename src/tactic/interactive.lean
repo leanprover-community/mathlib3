@@ -28,7 +28,7 @@ meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
 do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
   λ s, match _root_.try_for max (tac s) with
   | some r := r
-  | none   := (tactic.trace "try_for timeout, using sorry" >> admit) s
+  | none   := (tactic.trace "try_for timeout, using sorry" >> tactic.admit) s
   end
 
 /-- Multiple `subst`. `substs x y z` is the same as `subst x, subst y, subst z`. -/

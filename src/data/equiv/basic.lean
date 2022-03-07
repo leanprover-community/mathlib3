@@ -82,14 +82,10 @@ instance {F} [equiv_like F α β] : has_coe_t F (α ≃ β) :=
 ⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
   right_inv := equiv_like.right_inv f }⟩
 
-/-- Convert an involutive function `f` to an equivalence with `to_fun = inv_fun = f`. -/
-def function.involutive.to_equiv (f : α → α) (h : involutive f) : α ≃ α :=
-⟨f, f, h.left_inverse, h.right_inverse⟩
+/-- `perm α` is the type of bijections from `α` to itself. -/
+@[reducible] def equiv.perm (α : Sort*) := equiv α α
 
 namespace equiv
-
-/-- `perm α` is the type of bijections from `α` to itself. -/
-@[reducible] def perm (α : Sort*) := equiv α α
 
 instance : equiv_like (α ≃ β) α β :=
 { coe := to_fun, inv := inv_fun, left_inv := left_inv, right_inv := right_inv,
@@ -133,9 +129,6 @@ instance inhabited' : inhabited (α ≃ α) := ⟨equiv.refl α⟩
 def simps.symm_apply (e : α ≃ β) : β → α := e.symm
 
 initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
-
--- Generate the `simps` projections for previously defined equivs.
-attribute [simps] function.involutive.to_equiv
 
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
@@ -1753,6 +1746,20 @@ by { dsimp [set_value], simp [swap_apply_left] }
 end swap
 
 end equiv
+
+namespace function.involutive
+
+/-- Convert an involutive function `f` to a permutation with `to_fun = inv_fun = f`. -/
+def to_perm (f : α → α) (h : involutive f) : equiv.perm α :=
+⟨f, f, h.left_inverse, h.right_inverse⟩
+
+@[simp] lemma coe_to_perm {f : α → α} (h : involutive f) : (h.to_perm f : α → α) = f := rfl
+
+@[simp] lemma to_perm_symm {f : α → α} (h : involutive f) : (h.to_perm f).symm = h.to_perm f := rfl
+
+lemma to_perm_involutive {f : α → α} (h : involutive f) : involutive (h.to_perm f) := h
+
+end function.involutive
 
 lemma plift.eq_up_iff_down_eq {x : plift α} {y : α} : x = plift.up y ↔ x.down = y :=
 equiv.plift.eq_symm_apply

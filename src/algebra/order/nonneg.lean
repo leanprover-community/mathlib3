@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import algebra.order.archimedean
+import algebra.order.floor
 import algebra.order.sub
 import algebra.order.with_zero
 import order.lattice_intervals
@@ -214,6 +215,10 @@ instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
 def coe_ring_hom [ordered_semiring α] : {x : α // 0 ≤ x} →+* α :=
 ⟨coe, nonneg.coe_one, nonneg.coe_mul, nonneg.coe_zero, nonneg.coe_add⟩
 
+@[simp, norm_cast]
+protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n :=
+map_nat_cast (coe_ring_hom : {x : α // 0 ≤ x} →+* α) n
+
 instance has_inv [linear_ordered_field α] : has_inv {x : α // 0 ≤ x} :=
 { inv := λ x, ⟨x⁻¹, inv_nonneg.mpr x.2⟩ }
 
@@ -260,6 +265,25 @@ instance canonically_ordered_comm_semiring [ordered_comm_ring α] [no_zero_divis
 instance canonically_linear_ordered_add_monoid [linear_ordered_ring α] :
   canonically_linear_ordered_add_monoid {x : α // 0 ≤ x} :=
 { ..subtype.linear_order _, ..nonneg.canonically_ordered_add_monoid }
+
+instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
+{ floor := λ a, ⌊(a : α)⌋₊,
+  ceil := λ a, ⌈(a : α)⌉₊,
+  floor_of_neg := λ a ha, floor_semiring.floor_of_neg ha,
+  gc_floor := λ a n ha, begin
+    refine (floor_semiring.gc_floor (show 0 ≤ (a : α), from ha)).trans _,
+    rw [←subtype.coe_le_coe, nonneg.coe_nat_cast]
+  end,
+  gc_ceil := λ a n, begin
+    refine (floor_semiring.gc_ceil (a : α) n).trans _,
+    rw [←subtype.coe_le_coe, nonneg.coe_nat_cast]
+  end}
+
+@[norm_cast] lemma nat_floor_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
+  ⌊(a : α)⌋₊ = ⌊a⌋₊ := rfl
+
+@[norm_cast] lemma nat_ceil_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
+  ⌈(a : α)⌉₊ = ⌈a⌉₊  := rfl
 
 section linear_order
 

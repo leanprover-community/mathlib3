@@ -222,15 +222,15 @@ end
 local notation `φ` := is_fraction_ring.field_equiv_of_ring_equiv
   (ring_equiv.of_bijective _ (frobenius_bijective p k))
 
-lemma exists_frobenius_solution_fraction_ring_aux {a : fraction_ring (witt_vector p k)}
-  (m n : ℕ) (r' q' : witt_vector p k) (hr' : r'.coeff 0 ≠ 0) (hq' : q'.coeff 0 ≠ 0)
-  (hq : ↑p ^ n * q' ∈ non_zero_divisors (witt_vector p k)) :
-  let b : witt_vector p k := frobenius_rotation p hr' hq' in
+lemma exists_frobenius_solution_fraction_ring_aux
+  (m n : ℕ) (r' q' : 𝕎 k) (hr' : r'.coeff 0 ≠ 0) (hq' : q'.coeff 0 ≠ 0)
+  (hq : ↑p ^ n * q' ∈ non_zero_divisors (𝕎 k)) :
+  let b : 𝕎 k := frobenius_rotation p hr' hq' in
   is_fraction_ring.field_equiv_of_ring_equiv
       (ring_equiv.of_bijective frobenius (frobenius_bijective p k))
-      (algebra_map (witt_vector p k) (fraction_ring (witt_vector p k)) b) *
+      (algebra_map (𝕎 k) (fraction_ring (𝕎 k)) b) *
     localization.mk (↑p ^ m * r') ⟨↑p ^ n * q', hq⟩ =
-  ↑p ^ (m - n : ℤ) * algebra_map (witt_vector p k) (fraction_ring (witt_vector p k)) b :=
+  ↑p ^ (m - n : ℤ) * algebra_map (𝕎 k) (fraction_ring (𝕎 k)) b :=
 begin
   intros b,
   have key : witt_vector.frobenius b * p ^ m * r' * p ^ n = p ^ m * b * (p ^ n * q'),

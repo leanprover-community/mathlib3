@@ -3,6 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.group.ext
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
@@ -52,7 +53,9 @@ universes v u
 open category_theory
 open category_theory.functor
 
-namespace category_theory.limits
+namespace category_theory
+
+namespace limits
 
 variables {J : Type v} [decidable_eq J]
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C]
@@ -70,7 +73,8 @@ structure bicone (F : J → C) :=
 (ι : Π j, F j ⟶ X)
 (ι_π : ∀ j j', ι j ≫ π j' = if h : j = j' then eq_to_hom (congr_arg F h) else 0)
 
-@[simp] lemma bicone_ι_π_self {F : J → C} (B : bicone F) (j : J) : B.ι j ≫ B.π j = 𝟙 (F j) :=
+@[simp, reassoc] lemma bicone_ι_π_self {F : J → C} (B : bicone F) (j : J) :
+  B.ι j ≫ B.π j = 𝟙 (F j) :=
 by simpa using B.ι_π j j
 
 @[simp, reassoc] lemma bicone_ι_π_ne {F : J → C} (B : bicone F) {j j' : J} (h : j ≠ j') :
@@ -216,9 +220,9 @@ def biproduct_iso (F : J → C) [has_biproduct F] :
 (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (biproduct.is_limit F)).trans $
   is_colimit.cocone_point_unique_up_to_iso (biproduct.is_colimit F) (colimit.is_colimit _)
 
-end category_theory.limits
+end limits
 
-namespace category_theory.limits
+namespace limits
 variables {J : Type v} [decidable_eq J]
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C]
 
@@ -947,9 +951,9 @@ end
 -- If someone is interested, they could provide the constructions:
 --   has_binary_biproducts ↔ has_finite_biproducts
 
-end category_theory.limits
+end limits
 
-namespace category_theory.limits
+namespace limits
 
 section preadditive
 variables {C : Type u} [category.{v} C] [preadditive C]
@@ -999,6 +1003,7 @@ def is_bilimit_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j 
 /--
 In a preadditive category, we can construct a biproduct for `f : J → C` from
 any bicone `b` for `f` satisfying `total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X`.
+
 (That is, such a bicone is a limit cone and a colimit cocone.)
 -/
 lemma has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X) :
@@ -1017,6 +1022,8 @@ def bicone_is_bilimit_of_limit_cone_of_is_limit {f : J → C} {t : cone (discret
   (ht : is_limit t) : (bicone.of_limit_cone ht).is_bilimit :=
 is_bilimit_of_is_limit _ $ is_limit.of_iso_limit ht $ cones.ext (iso.refl _) (by tidy)
 
+/-- In a preadditive category, if the product over `f : J → C` exists,
+    then the biproduct over `f` exists. -/
 lemma has_biproduct.of_has_product (f : J → C) [has_product f] : has_biproduct f :=
 has_biproduct.mk
 { bicone := _,
@@ -1034,6 +1041,8 @@ def bicone_is_bilimit_of_colimit_cocone_of_is_colimit {f : J → C} {t : cocone 
   (ht : is_colimit t) : (bicone.of_colimit_cocone ht).is_bilimit :=
 is_bilimit_of_is_colimit _ $ is_colimit.of_iso_colimit ht $ cocones.ext (iso.refl _) (by tidy)
 
+/-- In a preadditive category, if the coproduct over `f : J → C` exists,
+    then the biproduct over `f` exists. -/
 lemma has_biproduct.of_has_coproduct (f : J → C) [has_coproduct f] : has_biproduct f :=
 has_biproduct.mk
 { bicone := _,
@@ -1142,6 +1151,7 @@ def is_binary_bilimit_of_total {X Y : C} (b : binary_bicone X Y)
 /--
 In a preadditive category, we can construct a binary biproduct for `X Y : C` from
 any binary bicone `b` satisfying `total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X`.
+
 (That is, such a bicone is a limit cone and a colimit cocone.)
 -/
 lemma has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)
@@ -1299,13 +1309,48 @@ end
   biprod.lift f g ≫ biprod.desc h i = f ≫ h + g ≫ i :=
 by simp [biprod.lift_eq, biprod.desc_eq]
 
-
 lemma biprod.map_eq [has_binary_biproducts C] {W X Y Z : C} {f : W ⟶ Y} {g : X ⟶ Z} :
   biprod.map f g = biprod.fst ≫ f ≫ biprod.inl + biprod.snd ≫ g ≫ biprod.inr :=
 by apply biprod.hom_ext; apply biprod.hom_ext'; simp
 
 end
 
+section
+variables {X Y : C} (f g : X ⟶ Y)
+
+/-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
+lemma biprod.add_eq_lift_id_desc [has_binary_biproduct X X] :
+  f + g = biprod.lift (𝟙 X) (𝟙 X) ≫ biprod.desc f g :=
+by simp
+
+/-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
+lemma biprod.add_eq_lift_desc_id [has_binary_biproduct Y Y] :
+  f + g = biprod.lift f g ≫ biprod.desc (𝟙 Y) (𝟙 Y) :=
+by simp
+
+end
+
 end preadditive
 
-end category_theory.limits
+end limits
+
+open category_theory.limits
+
+local attribute [ext] preadditive
+
+/-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
+instance subsingleton_preadditive_of_has_binary_biproducts {C : Type u} [category.{v} C]
+  [has_zero_morphisms C] [has_binary_biproducts C] : subsingleton (preadditive C) :=
+subsingleton.intro $ λ a b,
+begin
+  ext X Y f g,
+  have h₁ := @biprod.add_eq_lift_id_desc _ _ a _ _ f g
+    (by convert (infer_instance : has_binary_biproduct X X)),
+  have h₂ := @biprod.add_eq_lift_id_desc _ _ b _ _ f g
+    (by convert (infer_instance : has_binary_biproduct X X)),
+  refine h₁.trans (eq.trans _ h₂.symm),
+  congr' 2;
+  exact subsingleton.elim _ _
+end
+
+end category_theory

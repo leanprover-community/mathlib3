@@ -74,6 +74,12 @@ lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   ∏ c in t, f c ∈ S :=
 S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
 
+<<<<<<< HEAD
+=======
+@[to_additive] lemma pow_mem {x : M} (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
+by simpa only [coe_pow] using ((⟨x, hx⟩ : S) ^ n).coe_prop
+
+>>>>>>> origin/staging
 end assoc
 
 section non_assoc

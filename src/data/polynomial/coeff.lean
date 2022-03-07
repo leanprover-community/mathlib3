@@ -178,11 +178,7 @@ begin
 end
 
 lemma mul_X_injective : function.injective (λ P : R[X], X * P) :=
-begin
-  intros P Q hPQ,
-  rw [← pow_one X] at hPQ,
-  exact mul_X_pow_injective 1 hPQ
-end
+by simpa only [pow_one] using mul_X_pow_injective 1
 
 lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
 by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul, smul_eq_mul] }

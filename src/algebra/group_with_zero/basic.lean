@@ -576,12 +576,14 @@ calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
 calc 1⁻¹ = 1 * 1⁻¹ : by rw [one_mul]
      ... = (1:G₀)  : by simp
 
-@[simp] lemma inv_inv₀ (a : G₀) : a⁻¹⁻¹ = a :=
-begin
-  by_cases h : a = 0, { simp [h] },
-  calc a⁻¹⁻¹ = a * (a⁻¹ * a⁻¹⁻¹) : by simp [h]
-         ... = a                 : by simp [inv_ne_zero h]
-end
+@[priority 100]
+instance group_with_zero.to_has_involutive_inv : has_involutive_inv G₀ :=
+{ inv := has_inv.inv,
+  inv_inv := λ a, begin
+    by_cases h : a = 0, { simp [h] },
+    calc a⁻¹⁻¹ = a * (a⁻¹ * a⁻¹⁻¹) : by simp [h]
+          ... = a                 : by simp [inv_ne_zero h]
+  end }
 
 /-- Multiplying `a` by itself and then by its inverse results in `a`
 (whether or not `a` is zero). -/
@@ -620,9 +622,6 @@ by rw [div_eq_mul_inv, mul_self_mul_inv a]
 @[simp] lemma div_self_mul_self (a : G₀) : a / a * a = a :=
 by rw [div_eq_mul_inv, mul_inv_mul_self a]
 
-lemma inv_involutive₀ : function.involutive (has_inv.inv : G₀ → G₀) :=
-inv_inv₀
-
 lemma eq_inv_of_mul_right_eq_one (h : a * b = 1) :
   b = a⁻¹ :=
 by rw [← inv_mul_cancel_left₀ (left_ne_zero_of_mul_eq_one h) b, h, mul_one]
@@ -631,23 +630,8 @@ lemma eq_inv_of_mul_left_eq_one (h : a * b = 1) :
   a = b⁻¹ :=
 by rw [← mul_inv_cancel_right₀ (right_ne_zero_of_mul_eq_one h) a, h, one_mul]
 
-lemma inv_injective₀ : function.injective (@has_inv.inv G₀ _) :=
-inv_involutive₀.injective
-
-@[simp] lemma inv_inj₀ : g⁻¹ = h⁻¹ ↔ g = h := inv_injective₀.eq_iff
-
-/-- This is the analogue of `inv_eq_iff_inv_eq` for `group_with_zero`.
-  It could also be named `inv_eq_iff_inv_eq'`. -/
-lemma inv_eq_iff : g⁻¹ = h ↔ h⁻¹ = g :=
-by rw [← inv_inj₀, eq_comm, inv_inv₀]
-
-/-- This is the analogue of `eq_inv_iff_eq_inv` for `group_with_zero`.
-  It could also be named `eq_inv_iff_eq_inv'`. -/
-lemma eq_inv_iff : a = b⁻¹ ↔ b = a⁻¹ :=
-by rw [eq_comm, inv_eq_iff, eq_comm]
-
 @[simp] lemma inv_eq_one₀ : g⁻¹ = 1 ↔ g = 1 :=
-by rw [inv_eq_iff, inv_one, eq_comm]
+by rw [inv_eq_iff_inv_eq, inv_one, eq_comm]
 
 lemma eq_mul_inv_iff_mul_eq₀ (hc : c ≠ 0) : a = b * c⁻¹ ↔ a * c = b :=
 by split; rintro rfl; [rw inv_mul_cancel_right₀ hc, rw mul_inv_cancel_right₀ hc]
@@ -668,10 +652,10 @@ lemma inv_mul_eq_one₀ (ha : a ≠ 0) : a⁻¹ * b = 1 ↔ a = b :=
 by rw [inv_mul_eq_iff_eq_mul₀ ha, mul_one, eq_comm]
 
 lemma mul_eq_one_iff_eq_inv₀ (hb : b ≠ 0) : a * b = 1 ↔ a = b⁻¹ :=
-by { convert mul_inv_eq_one₀ (inv_ne_zero hb), rw [inv_inv₀] }
+by { convert mul_inv_eq_one₀ (inv_ne_zero hb), rw [inv_inv] }
 
 lemma mul_eq_one_iff_inv_eq₀ (ha : a ≠ 0) : a * b = 1 ↔ a⁻¹ = b :=
-by { convert inv_mul_eq_one₀ (inv_ne_zero ha), rw [inv_inv₀] }
+by { convert inv_mul_eq_one₀ (inv_ne_zero ha), rw [inv_inv] }
 
 end group_with_zero
 
@@ -814,7 +798,7 @@ lemma eq_one_div_of_mul_eq_one_left {a b : G₀} (h : b * a = 1) : b = 1 / a :=
 by simpa only [one_div] using eq_inv_of_mul_left_eq_one h
 
 @[simp] lemma one_div_div (a b : G₀) : 1 / (a / b) = b / a :=
-by rw [one_div, div_eq_mul_inv, mul_inv_rev₀, inv_inv₀, div_eq_mul_inv]
+by rw [one_div, div_eq_mul_inv, mul_inv_rev₀, inv_inv, div_eq_mul_inv]
 
 lemma one_div_one_div (a : G₀) : 1 / (1 / a) = a :=
 by simp
@@ -825,7 +809,7 @@ by rw [← one_div_one_div a, h, one_div_one_div]
 variables {a b c : G₀}
 
 @[simp] lemma inv_eq_zero {a : G₀} : a⁻¹ = 0 ↔ a = 0 :=
-by rw [inv_eq_iff, inv_zero, eq_comm]
+by rw [inv_eq_iff_inv_eq, inv_zero, eq_comm]
 
 @[simp] lemma zero_eq_inv {a : G₀} : 0 = a⁻¹ ↔ 0 = a :=
 eq_comm.trans $ inv_eq_zero.trans eq_comm
@@ -841,7 +825,7 @@ by simpa only [div_eq_mul_inv] using congr_arg ((*) a) u.coe_inv'
 divp_eq_div _ _
 
 lemma inv_div : (a / b)⁻¹ = b / a :=
-by rw [div_eq_mul_inv, mul_inv_rev₀, div_eq_mul_inv, inv_inv₀]
+by rw [div_eq_mul_inv, mul_inv_rev₀, div_eq_mul_inv, inv_inv]
 
 lemma inv_div_left : a⁻¹ / b = (b * a)⁻¹ :=
 by rw [mul_inv_rev₀, div_eq_mul_inv]
@@ -1086,7 +1070,7 @@ begin
 end
 
 @[simp] lemma inv_right_iff₀ : semiconj_by a x⁻¹ y⁻¹ ↔ semiconj_by a x y :=
-⟨λ h, inv_inv₀ x ▸ inv_inv₀ y ▸ h.inv_right₀, inv_right₀⟩
+⟨λ h, inv_inv x ▸ inv_inv y ▸ h.inv_right₀, inv_right₀⟩
 
 lemma div_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x / x') (y / y') :=

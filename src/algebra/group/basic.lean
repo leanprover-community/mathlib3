@@ -150,6 +150,36 @@ eq_comm.trans mul_left_eq_self
 
 end right_cancel_monoid
 
+section has_involutive_inv
+variables {G : Type u} [has_involutive_inv G] {a b : G}
+
+@[simp, to_additive]
+lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
+
+@[simp, to_additive]
+lemma inv_surjective : function.surjective (has_inv.inv : G → G) :=
+inv_involutive.surjective
+
+@[to_additive]
+lemma inv_injective : function.injective (has_inv.inv : G → G) :=
+inv_involutive.injective
+
+@[simp, to_additive] theorem inv_inj {a b : G} : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
+
+@[to_additive]
+lemma eq_inv_of_eq_inv (h : a = b⁻¹) : b = a⁻¹ :=
+by simp [h]
+
+@[to_additive]
+theorem eq_inv_iff_eq_inv : a = b⁻¹ ↔ b = a⁻¹ :=
+⟨eq_inv_of_eq_inv, eq_inv_of_eq_inv⟩
+
+@[to_additive]
+theorem inv_eq_iff_inv_eq  : a⁻¹ = b ↔ b⁻¹ = a :=
+eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
+
+end has_involutive_inv
+
 section div_inv_monoid
 
 variables {G : Type u} [div_inv_monoid G]
@@ -194,19 +224,6 @@ theorem left_inverse_inv (G) [group G] :
 inv_inv
 
 @[simp, to_additive]
-lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
-
-@[simp, to_additive]
-lemma inv_surjective : function.surjective (has_inv.inv : G → G) :=
-inv_involutive.surjective
-
-@[to_additive]
-lemma inv_injective : function.injective (has_inv.inv : G → G) :=
-inv_involutive.injective
-
-@[simp, to_additive] theorem inv_inj : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
-
-@[simp, to_additive]
 theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 := inv_injective.eq_iff' one_inv
 
 @[simp, to_additive]
@@ -233,10 +250,6 @@ theorem mul_right_surjective (a : G) : function.surjective (λ x, x * a) :=
 @[simp, to_additive neg_add_rev]
 lemma mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
 inv_eq_of_mul_eq_one $ by simp
-
-@[to_additive]
-lemma eq_inv_of_eq_inv (h : a = b⁻¹) : b = a⁻¹ :=
-by simp [h]
 
 @[to_additive]
 lemma eq_inv_of_mul_eq_one (h : a * b = 1) : a = b⁻¹ :=
@@ -274,14 +287,6 @@ by rw [h, mul_inv_cancel_left]
 @[to_additive]
 lemma mul_eq_of_eq_mul_inv (h : a = c * b⁻¹) : a * b = c :=
 by simp [h]
-
-@[to_additive]
-theorem eq_inv_iff_eq_inv : a = b⁻¹ ↔ b = a⁻¹ :=
-⟨eq_inv_of_eq_inv, eq_inv_of_eq_inv⟩
-
-@[to_additive]
-theorem inv_eq_iff_inv_eq : a⁻¹ = b ↔ b⁻¹ = a :=
-eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
 
 @[to_additive]
 theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=

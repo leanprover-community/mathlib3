@@ -28,7 +28,7 @@ namespace finset
 
 /-! ### prod -/
 section prod
-variables {s s' : finset α} {t t' : finset β}
+variables {s s' : finset α} {t t' : finset β} {a : α} {b : β}
 
 /-- `product s t` is the set of pairs `(a, b)` such that `a ∈ s` and `b ∈ t`. -/
 protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨_, nodup_product s.2 t.2⟩
@@ -36,6 +36,8 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 @[simp] lemma product_val : (s.product t).1 = s.1.product t.1 := rfl
 
 @[simp] lemma mem_product {p : α × β} : p ∈ s.product t ↔ p.1 ∈ s ∧ p.2 ∈ t := mem_product
+
+lemma mk_mem_product (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s.product t := mem_product.2 ⟨ha, hb⟩
 
 @[simp, norm_cast] lemma coe_product (s : finset α) (t : finset β) :
   (s.product t : set (α × β)) = (s : set α) ×ˢ (t : set β) :=

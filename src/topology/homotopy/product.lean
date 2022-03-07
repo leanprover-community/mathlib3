@@ -68,17 +68,15 @@ open continuous_map
 
 section pi
 
-variables {I : Type*} {X : I → Type*} [∀i, topological_space (X i)]
-  {A : Type*} [topological_space A]
+variables {I A : Type*} {X : I → Type*} [Π i, topological_space (X i)] [topological_space A]
   {f g : Π i, C(A, X i)} {S : set A}
 
 /-- The product homotopy of `homotopies` between functions `f` and `g` -/
 @[simps]
-def homotopy.pi (homotopies : Π i, homotopy (f i) (g i)) :
-        homotopy (pi f) (pi g) :=
+def homotopy.pi (homotopies : Π i, homotopy (f i) (g i)) : homotopy (pi f) (pi g) :=
 { to_fun := λ t i, homotopies i t,
-  to_fun_zero := by { intro t, ext i, simp only [pi_eval, homotopy.apply_zero], },
-  to_fun_one := by { intro t, ext i, simp only [pi_eval, homotopy.apply_one], } }
+  map_zero_left' := λ t, by { ext i, simp only [pi_eval, homotopy.apply_zero] },
+  map_one_left' := λ t, by { ext i, simp only [pi_eval, homotopy.apply_one] } }
 
 /-- The relative product homotopy of `homotopies` between functions `f` and `g` -/
 @[simps]
@@ -108,8 +106,8 @@ variables {α β : Type*} [topological_space α] [topological_space β]
 def homotopy.prod (F : homotopy f₀ f₁) (G : homotopy g₀ g₁) :
   homotopy (prod_mk f₀ g₀) (prod_mk f₁ g₁) :=
 { to_fun := λ t, (F t, G t),
-  to_fun_zero := by { intro, simp only [prod_eval, homotopy.apply_zero], },
-  to_fun_one := by { intro, simp only [prod_eval, homotopy.apply_one], } }
+  map_zero_left' := λ x, by simp only [prod_eval, homotopy.apply_zero],
+  map_one_left' := λ x, by simp only [prod_eval, homotopy.apply_one] }
 
 /-- The relative product of homotopies `F` and `G`,
   where `F` takes `f₀` to `f₁`  and `G` takes `g₀` to `g₁` -/
@@ -285,10 +283,10 @@ variables {I : Type u} (X : I → Top.{u})
 /--
 The projection map Π i, X i → X i induces a map π(Π i, X i) ⟶ π(X i).
 -/
-def proj (i : I) : (πₓ (Top.of (Π i, X i))).α ⥤ (πₓ (X i)).α := πₘ ⟨_, continuous_apply i⟩
+def proj (i : I) : πₓ (Top.of (Π i, X i)) ⥤ πₓ (X i) := πₘ ⟨_, continuous_apply i⟩
 
 /-- The projection map is precisely path.homotopic.proj interpreted as a functor -/
-@[simp] lemma proj_map (i : I) (x₀ x₁ : (πₓ (Top.of (Π i, X i))).α) (p : x₀ ⟶ x₁) :
+@[simp] lemma proj_map (i : I) (x₀ x₁ : πₓ (Top.of (Π i, X i))) (p : x₀ ⟶ x₁) :
   (proj X i).map p = (@path.homotopic.proj _ _ _ _ _ i p) := rfl
 
 /--
@@ -296,7 +294,7 @@ The map taking the pi product of a family of fundamental groupoids to the fundam
 groupoid of the pi product. This is actually an isomorphism (see `pi_iso`)
 -/
 @[simps]
-def pi_to_pi_Top : (Π i, (πₓ (X i)).α) ⥤ (πₓ (Top.of (Π i, X i))).α :=
+def pi_to_pi_Top : (Π i, πₓ (X i)) ⥤ πₓ (Top.of (Π i, X i)) :=
 { obj := λ g, g,
   map := λ v₁ v₂ p, path.homotopic.pi p,
   map_id' :=
@@ -313,7 +311,7 @@ Shows `pi_to_pi_Top` is an isomorphism, whose inverse is precisely the pi produc
 of the induced projections. This shows that `fundamental_groupoid_functor` preserves products.
 -/
 @[simps]
-def pi_iso : category_theory.Groupoid.of (Π i : I, (πₓ (X i)).α) ≅ (πₓ (Top.of (Π i, X i))) :=
+def pi_iso : category_theory.Groupoid.of (Π i : I, πₓ (X i)) ≅ πₓ (Top.of (Π i, X i)) :=
 { hom := pi_to_pi_Top X,
   inv := category_theory.functor.pi' (proj X),
   hom_inv_id' :=
@@ -373,15 +371,15 @@ section prod
 variables (A B : Top.{u})
 
 /-- The induced map of the left projection map X × Y → X -/
-def proj_left : (πₓ (Top.of (A × B))).α ⥤ (πₓ A).α := πₘ ⟨_, continuous_fst⟩
+def proj_left : πₓ (Top.of (A × B)) ⥤ πₓ A := πₘ ⟨_, continuous_fst⟩
 
 /-- The induced map of the right projection map X × Y → Y -/
-def proj_right : (πₓ (Top.of (A × B))).α ⥤ (πₓ B).α := πₘ ⟨_, continuous_snd⟩
+def proj_right : πₓ (Top.of (A × B)) ⥤ πₓ B := πₘ ⟨_, continuous_snd⟩
 
-@[simp] lemma proj_left_map (x₀ x₁ : (πₓ (Top.of (A × B))).α) (p : x₀ ⟶ x₁) :
+@[simp] lemma proj_left_map (x₀ x₁ : πₓ (Top.of (A × B))) (p : x₀ ⟶ x₁) :
   (proj_left A B).map p = path.homotopic.proj_left p := rfl
 
-@[simp] lemma proj_right_map (x₀ x₁ : (πₓ (Top.of (A × B))).α) (p : x₀ ⟶ x₁) :
+@[simp] lemma proj_right_map (x₀ x₁ : πₓ (Top.of (A × B))) (p : x₀ ⟶ x₁) :
   (proj_right A B).map p = path.homotopic.proj_right p := rfl
 
 
@@ -390,7 +388,7 @@ The map taking the product of two fundamental groupoids to the fundamental group
 of the two topological spaces. This is in fact an isomorphism (see `prod_iso`).
 -/
 @[simps]
-def prod_to_prod_Top : (πₓ A).α × (πₓ B).α ⥤ (πₓ (Top.of (A × B))).α :=
+def prod_to_prod_Top : (πₓ A) × (πₓ B) ⥤ πₓ (Top.of (A × B)) :=
 { obj := λ g, g,
   map := λ x y p, match x, y, p with
     | (x₀, x₁), (y₀, y₁), (p₀, p₁) := path.homotopic.prod p₀ p₁
@@ -411,7 +409,7 @@ Shows `prod_to_prod_Top` is an isomorphism, whose inverse is precisely the produ
 of the induced left and right projections.
 -/
 @[simps]
-def prod_iso : category_theory.Groupoid.of ((πₓ A).α × (πₓ B).α) ≅ (πₓ (Top.of (A × B))) :=
+def prod_iso : category_theory.Groupoid.of ((πₓ A) × (πₓ B)) ≅ (πₓ (Top.of (A × B))) :=
 { hom := prod_to_prod_Top A B,
   inv := (proj_left A B).prod' (proj_right A B),
   hom_inv_id' :=

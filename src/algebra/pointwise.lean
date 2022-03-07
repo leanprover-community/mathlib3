@@ -436,24 +436,25 @@ lemma inv_empty [has_inv α] : (∅ : set α)⁻¹ = ∅ := rfl
 lemma inv_univ [has_inv α] : (univ : set α)⁻¹ = univ := rfl
 
 @[simp, to_additive]
-lemma nonempty_inv [group α] {s : set α} : s⁻¹.nonempty ↔ s.nonempty :=
+lemma nonempty_inv [has_involutive_inv α] {s : set α} : s⁻¹.nonempty ↔ s.nonempty :=
 inv_involutive.surjective.nonempty_preimage
 
-@[to_additive] lemma nonempty.inv [group α] {s : set α} (h : s.nonempty) : s⁻¹.nonempty :=
+@[to_additive] lemma nonempty.inv [has_involutive_inv α] {s : set α} (h : s.nonempty) :
+  s⁻¹.nonempty :=
 nonempty_inv.2 h
 
 @[simp, to_additive]
 lemma mem_inv [has_inv α] : a ∈ s⁻¹ ↔ a⁻¹ ∈ s := iff.rfl
 
 @[to_additive]
-lemma inv_mem_inv [group α] : a⁻¹ ∈ s⁻¹ ↔ a ∈ s :=
+lemma inv_mem_inv [has_involutive_inv α] : a⁻¹ ∈ s⁻¹ ↔ a ∈ s :=
 by simp only [mem_inv, inv_inv]
 
 @[simp, to_additive]
 lemma inv_preimage [has_inv α] : has_inv.inv ⁻¹' s = s⁻¹ := rfl
 
 @[simp, to_additive]
-lemma image_inv [group α] : has_inv.inv '' s = s⁻¹ :=
+lemma image_inv [has_involutive_inv α] : has_inv.inv '' s = s⁻¹ :=
 by { simp only [← inv_preimage], rw [image_eq_preimage_of_inverse]; intro; simp only [inv_inv] }
 
 @[simp, to_additive]
@@ -474,23 +475,22 @@ preimage_Union
 lemma compl_inv [has_inv α] : (sᶜ)⁻¹ = (s⁻¹)ᶜ := preimage_compl
 
 @[simp, to_additive]
-protected lemma inv_inv [group α] : s⁻¹⁻¹ = s :=
-by { simp only [← inv_preimage, preimage_preimage, inv_inv, preimage_id'] }
+instance [has_involutive_inv α] : has_involutive_inv (set α) :=
+{ inv := has_inv.inv,
+  inv_inv := λ s, by { simp only [← inv_preimage, preimage_preimage, inv_inv, preimage_id'] } }
 
 @[simp, to_additive]
-protected lemma univ_inv [group α] : (univ : set α)⁻¹ = univ := preimage_univ
-
-@[simp, to_additive]
-lemma inv_subset_inv [group α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
+lemma inv_subset_inv [has_involutive_inv α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
 (equiv.inv α).surjective.preimage_subset_preimage_iff
 
-@[to_additive] lemma inv_subset [group α] {s t : set α} : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ :=
-by { rw [← inv_subset_inv, set.inv_inv] }
+@[to_additive] lemma inv_subset [has_involutive_inv α] {s t : set α} : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ :=
+by { rw [← inv_subset_inv, inv_inv] }
 
-@[to_additive] lemma finite.inv [group α] {s : set α} (hs : finite s) : finite s⁻¹ :=
+@[to_additive] lemma finite.inv [has_involutive_inv α] {s : set α} (hs : finite s) : finite s⁻¹ :=
 hs.preimage $ inv_injective.inj_on _
 
-@[to_additive] lemma inv_singleton {β : Type*} [group β] (x : β) : ({x} : set β)⁻¹ = {x⁻¹} :=
+@[to_additive] lemma inv_singleton {β : Type*} [has_involutive_inv β] (x : β) :
+  ({x} : set β)⁻¹ = {x⁻¹} :=
 by { ext1 y, rw [mem_inv, mem_singleton_iff, mem_singleton_iff, inv_eq_iff_inv_eq, eq_comm], }
 
 @[to_additive] protected lemma mul_inv_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=

@@ -423,8 +423,8 @@ by simp only [and.left_comm, and.comm]
 lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
 by rw [←and_assoc, @and.right_comm a, and_assoc]
 
-lemma and.rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a :=
-by simp only [and.left_comm, and.comm]
+lemma and_rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a := by simp only [and.left_comm, and.comm]
+lemma and.rotate : a ∧ b ∧ c → b ∧ c ∧ a := and_rotate.1
 
 theorem and_not_self_iff (a : Prop) : a ∧ ¬ a ↔ false :=
 iff.intro (assume h, (h.right) (h.left)) (assume h, h.elim)
@@ -466,11 +466,16 @@ by simp only [and.comm, ← and.congr_right_iff]
 
 lemma iff.or (h₁ : a ↔ b) (h₂ : c ↔ d) : a ∨ c ↔ b ∨ d := or_congr h₁ h₂
 
-theorem or_congr_left (h : a ↔ b) : a ∨ c ↔ b ∨ c := h.or iff.rfl
-
-theorem or_congr_right (h : b ↔ c) : a ∨ b ↔ a ∨ c := iff.rfl.or h
+lemma or_congr_left' (h : a ↔ b) : a ∨ c ↔ b ∨ c := h.or iff.rfl
+lemma or_congr_right' (h : b ↔ c) : a ∨ b ↔ a ∨ c := iff.rfl.or h
 
 theorem or.right_comm : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b := by rw [or_assoc, or_assoc, or_comm b]
+
+lemma or_or_or_comm (a b c d : Prop) : (a ∨ b) ∨ c ∨ d ↔ (a ∨ c) ∨ b ∨ d :=
+by rw [←or_assoc, @or.right_comm a, or_assoc]
+
+lemma or_rotate : a ∨ b ∨ c ↔ b ∨ c ∨ a := by simp only [or.left_comm, or.comm]
+lemma or.rotate : a ∨ b ∨ c → b ∨ c ∨ a := or_rotate.1
 
 theorem or_of_or_of_imp_of_imp (h₁ : a ∨ b) (h₂ : a → c) (h₃ : b → d) : c ∨ d :=
 or.imp h₂ h₃ h₁
@@ -508,6 +513,20 @@ protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b �
 ⟨assume h hb, decidable.by_contradiction $ assume na, h na hb, mt⟩
 
 theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
+
+-- See Note [decidable namespace]
+protected lemma decidable.or_congr_left [decidable c] (h : ¬ c → (a ↔ b)) : a ∨ c ↔ b ∨ c :=
+by { rw [decidable.or_iff_not_imp_right, decidable.or_iff_not_imp_right], exact imp_congr_right h }
+
+lemma or_congr_left (h : ¬ c → (a ↔ b)) : a ∨ c ↔ b ∨ c :=
+decidable.or_congr_left h
+
+-- See Note [decidable namespace]
+protected lemma decidable.or_congr_right [decidable a] (h : ¬ a → (b ↔ c)) : a ∨ b ↔ a ∨ c :=
+by { rw [decidable.or_iff_not_imp_left, decidable.or_iff_not_imp_left], exact imp_congr_right h }
+
+lemma or_congr_right (h : ¬ a → (b ↔ c)) : a ∨ b ↔ a ∨ c :=
+decidable.or_congr_right h
 
 @[simp] theorem or_iff_left_iff_imp : (a ∨ b ↔ a) ↔ (b → a) :=
 ⟨λ h hb, h.1 (or.inr hb), or_iff_left_of_imp⟩
@@ -734,6 +753,19 @@ end propositional
 
 /-! ### Declarations about equality -/
 
+section mem
+variables {α β : Type*} [has_mem α β] {s t : β} {a b : α}
+
+lemma ne_of_mem_of_not_mem (h : a ∈ s) : b ∉ s → a ≠ b := mt $ λ e, e ▸ h
+lemma ne_of_mem_of_not_mem' (h : a ∈ s) : a ∉ t → s ≠ t := mt $ λ e, e ▸ h
+
+/-- **Alias** of `ne_of_mem_of_not_mem`. -/
+lemma has_mem.mem.ne_of_not_mem : a ∈ s → b ∉ s → a ≠ b := ne_of_mem_of_not_mem
+/-- **Alias** of `ne_of_mem_of_not_mem'`. -/
+lemma has_mem.mem.ne_of_not_mem' : a ∈ s → a ∉ t → s ≠ t := ne_of_mem_of_not_mem'
+
+end mem
+
 section equality
 variables {α : Sort*} {a b : α}
 
@@ -743,10 +775,6 @@ variables {α : Sort*} {a b : α}
 theorem proof_irrel_heq {p q : Prop} (hp : p) (hq : q) : hp == hq :=
 have p = q, from propext ⟨λ _, hq, λ _, hp⟩,
 by subst q; refl
-
-theorem ne_of_mem_of_not_mem {α β} [has_mem α β] {s : β} {a b : α}
-  (h : a ∈ s) : b ∉ s → a ≠ b :=
-mt $ λ e, e ▸ h
 
 -- todo: change name
 lemma ball_cond_comm {α} {s : α → Prop} {p : α → α → Prop} :
@@ -869,12 +897,20 @@ exists_congr $ λ a, exists₄_congr $ h a
 
 end congr
 
-variables {β : Sort*} {p q : α → Prop} {b : Prop}
+variables {ι β : Sort*} {κ : ι → Sort*} {p q : α → Prop} {b : Prop}
 
 lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
 λ h' a, h a (h' a)
 
+lemma forall₂_imp {p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
+  (∀ i j, p i j) → ∀ i j, q i j :=
+forall_imp $ λ i, forall_imp $ h i
+
 lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
+
+lemma Exists₂.imp {p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
+  (∃ i j, p i j) → ∃ i j, q i j :=
+Exists.imp $ λ i, Exists.imp $ h i
 
 lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
   (hp : ∃ a, p a) : ∃ b, q b :=

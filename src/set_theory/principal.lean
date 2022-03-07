@@ -60,7 +60,7 @@ end
 theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : ordinal.{u}}
   (hao : a < o) (H : is_normal (op a)) (ho : principal op o) (ho' : is_limit o) : op a o = o :=
 begin
-  refine le_antisymm _ (H.le_self _),
+  refine le_antisymm _ (H.self_le _),
   rw [←is_normal.bsup_eq.{u u} H ho', bsup_le],
   exact λ b hbo, le_of_lt (ho hao hbo)
 end

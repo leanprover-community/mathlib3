@@ -315,7 +315,7 @@ begin
   letI := classical.dec_eq E,
   rw [pb.trace_gen_eq_sum_roots hE, fintype.sum_equiv pb.lift_equiv', finset.sum_mem_multiset,
       finset.sum_eq_multiset_sum, multiset.to_finset_val,
-      multiset.erase_dup_eq_self.mpr _, multiset.map_id],
+      multiset.dedup_eq_self.mpr _, multiset.map_id],
   { exact nodup_roots ((separable_map _).mpr hfx) },
   { intro x, refl },
   { intro σ, rw [power_basis.lift_equiv'_apply_coe, id.def] }
@@ -375,6 +375,10 @@ def trace_matrix (b : κ → B) : matrix κ κ A
 | i j := trace_form A B (b i) (b j)
 
 lemma trace_matrix_def (b : κ → B) : trace_matrix A b = λ i j, trace_form A B (b i) (b j) := rfl
+
+lemma trace_matrix_reindex {κ' : Type*} (b : basis κ A B) (f : κ ≃ κ') :
+  trace_matrix A (b.reindex f) = reindex f f (trace_matrix A b) :=
+by {ext x y, simp}
 
 variables {A}
 

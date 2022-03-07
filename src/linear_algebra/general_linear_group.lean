@@ -156,6 +156,12 @@ instance : has_neg (GL_pos n R) :=
     exact gdet,
   end⟩⟩
 
+instance : has_distrib_neg (GL_pos n R) :=
+{ neg := has_neg.neg,
+  neg_neg := λ x, subtype.ext $ neg_neg _,
+  neg_mul := λ x y, subtype.ext $ neg_mul _ _,
+  mul_neg := λ x y, subtype.ext $ mul_neg _ _ }
+
 @[simp] lemma GL_pos_coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
 rfl
 

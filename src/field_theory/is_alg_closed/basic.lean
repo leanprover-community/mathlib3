@@ -3,7 +3,10 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+
 import field_theory.splitting_field
+import field_theory.perfect_closure
+
 /-!
 # Algebraically Closed Field
 
@@ -326,6 +329,12 @@ begin
     lift_aux (fraction_ring R) (fraction_ring S) M hfRfS,
   exact (f.restrict_scalars R).comp ((algebra.of_id S (fraction_ring S)).restrict_scalars R),
 end
+
+omit hS
+@[priority 100]
+noncomputable instance perfect_ring (p : ℕ) [fact p.prime] [char_p k p]
+  [is_alg_closed k] : perfect_ring k p :=
+perfect_ring.of_surjective k p $ λ x, is_alg_closed.exists_pow_nat_eq _ $ fact.out _
 
 end is_alg_closed
 

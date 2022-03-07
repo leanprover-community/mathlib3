@@ -217,6 +217,9 @@ noncomputable instance : is_R_or_C ℂ :=
     complex.of_real_eq_coe, complex.norm_eq_abs],
   div_I_ax := complex.div_I }
 
+lemma _root_.is_R_or_C.re_eq_complex_re : ⇑(is_R_or_C.re : ℂ →+ ℝ) = complex.re := rfl
+lemma _root_.is_R_or_C.im_eq_complex_im : ⇑(is_R_or_C.im : ℂ →+ ℝ) = complex.im := rfl
+
 section
 
 variables {α β γ : Type*}

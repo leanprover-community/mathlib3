@@ -168,6 +168,12 @@ protected def injective.unique [inhabited α] [subsingleton β] (hf : injective 
 
 end function
 
+lemma unique.bijective {A B} [unique A] [unique B] {f : A → B} : function.bijective f :=
+begin
+  rw function.bijective_iff_has_inverse,
+  refine ⟨λ x, default, _, _⟩; intro x; simp
+end
+
 namespace option
 
 /-- `option α` is a `subsingleton` if and only if `α` is empty. -/

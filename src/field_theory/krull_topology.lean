@@ -88,7 +88,7 @@ lemma intermediate_field.fixing_subgroup.bot {K L : Type*} [field K]
 begin
   ext f,
   refine ⟨λ _, subgroup.mem_top _, λ _, _⟩,
-  rintro ⟨x, hx⟩,
+  rintro ⟨x, hx : x ∈ (⊥ : intermediate_field K L)⟩,
   rw intermediate_field.mem_bot at hx,
   rcases hx with ⟨y, rfl⟩,
   exact f.commutes y,

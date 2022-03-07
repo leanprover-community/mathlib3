@@ -248,7 +248,7 @@ because for `y=x` the slope equals zero due to the convention `0⁻¹=0`. -/
 lemma has_deriv_at_filter_iff_tendsto_slope {x : 𝕜} {L : filter 𝕜} :
   has_deriv_at_filter f f' x L ↔ tendsto (slope f x) (L ⊓ 𝓟 {x}ᶜ) (𝓝 f') :=
 begin
-  conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (normed_field.norm_inv _).symm,
+  conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (norm_inv _).symm,
     (norm_smul _ _).symm, tendsto_zero_iff_norm_tendsto_zero.symm] },
   conv_rhs { rw [← nhds_translation_sub f', tendsto_comap_iff] },
   refine (tendsto_inf_principal_nhds_iff_of_forall_eq $ by simp).symm.trans (tendsto_congr' _),
@@ -799,8 +799,8 @@ end smul
 
 section const_smul
 
-variables {R : Type*} [semiring R] [module R F] [topological_space R] [smul_comm_class 𝕜 R F]
-  [has_continuous_smul R F]
+variables {R : Type*} [semiring R] [module R F] [smul_comm_class 𝕜 R F]
+  [has_continuous_const_smul R F]
 
 theorem has_strict_deriv_at.const_smul
   (c : R) (hf : has_strict_deriv_at f f' x) :
@@ -1935,9 +1935,9 @@ begin
   { have hx : x ≠ 0, from h.resolve_right hm.not_le,
     have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
       [skip, exact zpow_ne_zero_of_ne_zero hx _],
-    simp only [(∘), zpow_neg₀, one_div, inv_inv₀, smul_eq_mul] at this,
+    simp only [(∘), zpow_neg₀, one_div, inv_inv, smul_eq_mul] at this,
     convert this using 1,
-    rw [sq, mul_inv₀, inv_inv₀, int.cast_neg, neg_mul, neg_mul_neg,
+    rw [sq, mul_inv₀, inv_inv, int.cast_neg, neg_mul, neg_mul_neg,
       ← zpow_add₀ hx, mul_assoc, ← zpow_add₀ hx], congr, abel },
   { simp only [hm, zpow_zero, int.cast_zero, zero_mul, has_strict_deriv_at_const] },
   { exact this m hm }
@@ -2065,7 +2065,7 @@ begin
   have C := mem_sup.2 ⟨A, B⟩,
   rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup] at C,
   filter_upwards [C.1],
-  simp only [norm_smul, mem_Iio, normed_field.norm_inv],
+  simp only [norm_smul, mem_Iio, norm_inv],
   exact λ _, id
 end
 

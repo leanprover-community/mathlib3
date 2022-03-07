@@ -77,7 +77,6 @@ begin
   intros A h,
   obtain ⟨A, hA, i, hi, rfl⟩ := mem_shadow_iff.1 h,
   rw [card_erase_of_mem hi, h𝒜 hA],
-  refl,
 end
 
 /-- `t` is in the shadow of `𝒜` iff we can add an element to it so that the resulting finset is in

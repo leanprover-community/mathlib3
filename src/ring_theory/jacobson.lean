@@ -3,7 +3,7 @@ Copyright (c) 2020 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
-import ring_theory.localization
+import ring_theory.localization.away
 import ring_theory.ideal.over
 import ring_theory.jacobson_ideal
 

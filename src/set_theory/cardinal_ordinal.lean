@@ -243,9 +243,9 @@ theorem eq_aleph'_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) : ∃ a, (a
 ⟨cardinal.aleph_idx.rel_iso o.card, by simpa using ho⟩
 
 /-- `ord ∘ aleph'` enumerates the ordinals that are cardinals. -/
-theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord _ ord_card_unbounded :=
+theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord {b : ordinal | b.card.ord = b} :=
 begin
-  rw [←eq_enum_ord, range_eq_iff],
+  rw [←eq_enum_ord _ ord_card_unbounded, range_eq_iff],
   exact ⟨aleph'_is_normal.strict_mono, ⟨(λ a, (by { dsimp, rw card_ord })),
     λ b hb, eq_aleph'_of_eq_card_ord hb⟩⟩
 end
@@ -265,9 +265,10 @@ begin
 end
 
 /-- `ord ∘ aleph` enumerates the infinite ordinals that are cardinals. -/
-theorem ord_aleph_eq_enum_card : ord ∘ aleph = enum_ord _ ord_card_unbounded' :=
+theorem ord_aleph_eq_enum_card :
+  ord ∘ aleph = enum_ord {b : ordinal | b.card.ord = b ∧ ordinal.omega ≤ b} :=
 begin
-  rw ←eq_enum_ord,
+  rw ←eq_enum_ord _ ord_card_unbounded',
   use aleph_is_normal.strict_mono,
   rw range_eq_iff,
   refine ⟨(λ a, ⟨_, _⟩), λ b hb, eq_aleph_of_eq_card_ord hb.1 hb.2⟩,

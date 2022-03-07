@@ -1490,6 +1490,15 @@ congr_arg coe (nat.one_shiftl _)
 
 @[simp] lemma zero_shiftr (n) : shiftr 0 n = 0 := zero_shiftl _
 
+lemma eq_zero_of_abs_lt_dvd {m x : ℤ} (h1 : m ∣ x) (h2 : | x | < m) : x = 0 :=
+begin
+  by_cases hm : m = 0, { subst m, exact zero_dvd_iff.mp h1, },
+  rcases h1 with ⟨d, rfl⟩,
+  apply mul_eq_zero_of_right,
+  rw [←eq_zero_iff_abs_lt_one, ←mul_lt_iff_lt_one_right (abs_pos.mpr hm), ←abs_mul],
+  exact lt_of_lt_of_le h2 (le_abs_self m),
+end
+
 end int
 
 attribute [irreducible] int.nonneg

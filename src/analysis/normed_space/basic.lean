@@ -9,6 +9,7 @@ import analysis.normed.group.infinite_sum
 import data.matrix.basic
 import topology.algebra.module.basic
 import topology.instances.ennreal
+import topology.instances.rat
 import topology.sequences
 
 /-!
@@ -206,6 +207,11 @@ lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
 by simp [pi_norm_le_iff hr]
 
+lemma norm_matrix_lt_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 < r)
+  {A : matrix n m α} :
+  ∥A∥ < r ↔ ∀ i j, ∥A i j∥ < r :=
+by simp [pi_norm_lt_iff hr]
+
 end semi_normed_ring
 
 section normed_ring
@@ -261,8 +267,6 @@ by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
 
-namespace normed_field
-
 section normed_field
 
 variables [normed_field α]
@@ -271,13 +275,15 @@ variables [normed_field α]
 normed_field.norm_mul' a b
 
 @[priority 100] -- see Note [lower instance priority]
-instance to_normed_comm_ring : normed_comm_ring α :=
+instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
 { norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
 
 @[priority 900]
-instance to_norm_one_class : norm_one_class α :=
+instance normed_field.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
+
+export norm_one_class (norm_one)
 
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
@@ -317,7 +323,7 @@ nnreal.eq $ by simp
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
 
 @[priority 100] -- see Note [lower instance priority]
-instance : has_continuous_inv₀ α :=
+instance normed_field.has_continuous_inv₀ : has_continuous_inv₀ α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
@@ -334,6 +340,8 @@ begin
 end
 
 end normed_field
+
+namespace normed_field
 
 variables (α) [nondiscrete_normed_field α]
 
@@ -368,7 +376,7 @@ lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[≠] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
-  rcases normed_field.exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
+  rcases exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
   refine ⟨x + b, mt (set.mem_singleton_iff.trans add_right_eq_self).1 $ norm_pos_iff.1 hb0, _⟩,
   rwa [dist_comm, dist_eq_norm, add_sub_cancel'],
 end
@@ -554,7 +562,7 @@ instance normed_space.has_bounded_smul [normed_space α β] : has_bounded_smul �
     by simpa [dist_eq_norm, sub_smul] using normed_space.norm_smul_le (x₁ - x₂) y }
 
 instance normed_field.to_normed_space : normed_space α α :=
-{ norm_smul_le := λ a b, le_of_eq (normed_field.norm_mul a b) }
+{ norm_smul_le := λ a b, le_of_eq (norm_mul a b) }
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 begin
@@ -565,7 +573,7 @@ begin
                ... ≤ ∥s∥ * (∥s⁻¹∥ * ∥s • x∥) :
       mul_le_mul_of_nonneg_left (normed_space.norm_smul_le _ _) (norm_nonneg _)
                ... = ∥s • x∥                 :
-      by rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
+      by rw [norm_inv, ← mul_assoc, mul_inv_cancel (mt norm_eq_zero.1 h), one_mul] }
 end
 
 @[simp] lemma abs_norm_eq_norm (z : β) : |∥z∥| = ∥z∥ :=
@@ -581,6 +589,9 @@ lemma nndist_smul [normed_space α β] (s : α) (x y : β) :
   nndist (s • x) (s • y) = ∥s∥₊ * nndist x y :=
 nnreal.eq $ dist_smul s x y
 
+lemma lipschitz_with_smul [normed_space α β] (s : α) : lipschitz_with ∥s∥₊ ((•) s : β → β) :=
+lipschitz_with_iff_dist_le_mul.2 $ λ x y, by rw [dist_smul, coe_nnnorm]
+
 lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) :
   ∥t • x∥ = t * ∥x∥ := by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
 
@@ -590,7 +601,7 @@ variables {F : Type*} [semi_normed_group F] [normed_space α F]
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
 have tendsto (λ y, ∥c • (y - x)∥) (𝓝 x) (𝓝 0),
-  from (continuous_const.smul (continuous_id.sub continuous_const)).norm.tendsto' _ _ (by simp),
+  from ((continuous_id.sub continuous_const).const_smul _).norm.tendsto' _ _ (by simp),
 this.eventually (gt_mem_nhds h)
 
 theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
@@ -603,7 +614,7 @@ begin
   { rw [one_smul, sub_add_cancel] },
   { simp [closure_Ico (@zero_ne_one ℝ _ _), zero_le_one] },
   { rintros c ⟨hc0, hc1⟩,
-    rw [set.mem_preimage, mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
+    rw [mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
       abs_of_nonneg hc0, mul_comm, ← mul_one r],
     rw [mem_closed_ball, dist_eq_norm] at hy,
     apply mul_lt_mul'; assumption }
@@ -616,12 +627,14 @@ begin
   ext x, exact (@eq_iff_le_not_lt ℝ _ _ _).symm
 end
 
-theorem interior_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+theorem interior_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
   interior (closed_ball x r) = ball x r :=
 begin
+  cases hr.lt_or_lt with hr hr,
+  { rw [closed_ball_eq_empty.2 hr, ball_eq_empty.2 hr.le, interior_empty] },
   refine set.subset.antisymm _ ball_subset_interior_closed_ball,
   intros y hy,
-  rcases le_iff_lt_or_eq.1 (mem_closed_ball.1 $ interior_subset hy) with hr|rfl, { exact hr },
+  rcases (mem_closed_ball.1 $ interior_subset hy).lt_or_eq with hr|rfl, { exact hr },
   set f : ℝ → E := λ c : ℝ, c • (y - x) + x,
   suffices : f ⁻¹' closed_ball x (dist y x) ⊆ set.Icc (-1) 1,
   { have hfc : continuous f := (continuous_id.smul continuous_const).add continuous_const,
@@ -635,7 +648,7 @@ begin
   simpa [f, dist_eq_norm, norm_smul] using hc
 end
 
-theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
@@ -674,7 +687,7 @@ def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [normed_space ℝ E] 
 variables (α)
 
 lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : r ≠ 0) (x : sphere (0:E) r) : x ≠ - x :=
-λ h, ne_zero_of_mem_sphere hr x (eq_zero_of_eq_neg α (by { conv_lhs {rw h}, simp }))
+λ h, ne_zero_of_mem_sphere hr x ((self_eq_neg α _).mp (by { conv_lhs {rw h}, simp }))
 
 lemma ne_neg_of_mem_unit_sphere [char_zero α] (x : sphere (0:E) 1) : x ≠ - x :=
 ne_neg_of_mem_sphere α one_ne_zero x
@@ -727,7 +740,7 @@ begin
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
   { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv₀, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
+    rw [norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 
@@ -760,8 +773,7 @@ instance normed_space.to_module' : module α F := normed_space.to_module
 theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   interior (closed_ball x r) = ball x r :=
 begin
-  rcases lt_trichotomy r 0 with hr|rfl|hr,
-  { simp [closed_ball_eq_empty.2 hr, ball_eq_empty.2 hr.le] },
+  rcases eq_or_ne r 0 with rfl|hr,
   { rw [closed_ball_zero, ball_zero, interior_singleton] },
   { exact interior_closed_ball x hr }
 end
@@ -788,6 +800,11 @@ matrix. -/
 def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
   normed_space α (matrix n m α) :=
 pi.normed_space
+
+lemma matrix.norm_entry_le_entrywise_sup_norm {α : Type*} [normed_field α] {n m : Type*} [fintype n]
+  [fintype m] (M : (matrix n m α)) {i : n} {j : m} :
+  ∥M i j∥ ≤ ∥M∥ :=
+(norm_le_pi_norm (M i) j).trans (norm_le_pi_norm M i)
 
 end
 

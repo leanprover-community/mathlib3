@@ -113,6 +113,9 @@ def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s 
   (cod_restrict f s h x : β) = f x :=
 rfl
 
+@[simp] lemma restrict_comp_cod_restrict {f : α → β} {g : β → γ} {b : set β}
+  (h : ∀ x, f x ∈ b) : (b.restrict g) ∘ (b.cod_restrict f h) = g ∘ f := rfl
+
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g g₁ g₂ : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}
 
@@ -257,9 +260,15 @@ begin
   { simp [nat.iterate, ihn] }
 end
 
-theorem maps_to.mono (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) (hf : maps_to f s₁ t₁) :
+theorem maps_to.mono (hf : maps_to f s₁ t₁) (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) :
   maps_to f s₂ t₂ :=
 λ x hx, ht (hf $ hs hx)
+
+theorem maps_to.mono_left (hf : maps_to f s₁ t) (hs : s₂ ⊆ s₁) : maps_to f s₂ t :=
+λ x hx, hf (hs hx)
+
+theorem maps_to.mono_right (hf : maps_to f s t₁) (ht : t₁ ⊆ t₂) : maps_to f s t₂ :=
+λ x hx, ht (hf hx)
 
 theorem maps_to.union_union (h₁ : maps_to f s₁ t₁) (h₂ : maps_to f s₂ t₂) :
   maps_to f (s₁ ∪ s₂) (t₁ ∪ t₂) :=
@@ -1115,5 +1124,7 @@ lemma update_comp_eq_of_not_mem_range {α β γ : Sort*} [decidable_eq β]
   (g : β → γ) {f : α → β} {i : β} (a : γ) (h : i ∉ set.range f) :
   (function.update g i a) ∘ f = g ∘ f :=
 update_comp_eq_of_not_mem_range' g a h
+
+lemma insert_inj_on (s : set α) : sᶜ.inj_on (λ a, insert a s) := λ a ha b _, (insert_inj ha).1
 
 end function

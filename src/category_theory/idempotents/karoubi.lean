@@ -37,7 +37,7 @@ namespace idempotents
 
 /-- In a preadditive category `C`, when an object `X` decomposes as `X ≅ P ⨿ Q`, one may
 consider `P` as a direct factor of `X` and up to unique isomorphism, it is determined by the
-obvious idempotent `X ⟶ P ⟶ X` which is the projector on `P` with kernel `Q`. More generally,
+obvious idempotent `X ⟶ P ⟶ X` which is the projection onto `P` with kernel `Q`. More generally,
 one may define a formal direct factor of an object `X : C` : it consists of an idempotent
 `p : X ⟶ X` which is thought as the "formal image" of `p`. The type `karoubi C` shall be the
 type of the objects of the karoubi enveloppe of `C`. It makes sense for any category `C`. -/
@@ -97,10 +97,7 @@ by rw [assoc, comp_p, ← assoc, p_comp]
 instance : category (karoubi C) :=
 { hom      := karoubi.hom,
   id       := λ P, ⟨P.p, by { repeat { rw P.idempotence, }, }⟩,
-  comp     := λ P Q R f g, ⟨f.f ≫ g.f, karoubi.comp_proof g f⟩,
-  id_comp' := λ P Q f, by { ext, simp only [karoubi.p_comp], },
-  comp_id' := λ P Q f, by { ext, simp only [karoubi.comp_p], },
-  assoc'   := λ P Q R S f g h, by { ext, simp only [category.assoc], }, }
+  comp     := λ P Q R f g, ⟨f.f ≫ g.f, karoubi.comp_proof g f⟩, }
 
 @[simp]
 lemma comp {P Q R : karoubi C} (f : P ⟶ Q) (g : Q ⟶ R) :
@@ -134,8 +131,7 @@ def to_karoubi : C ⥤ karoubi C :=
   map := λ X Y f, ⟨f, by simp only [comp_id, id_comp]⟩ }
 
 instance : full (to_karoubi C) :=
-{ preimage := λ X Y f, f.f,
-  witness' := λ X Y f, by { ext, simp only [to_karoubi_map_f], }, }
+{ preimage := λ X Y f, f.f, }
 
 instance : faithful (to_karoubi C) := { }
 
@@ -207,9 +203,7 @@ instance [is_idempotent_complete C] : ess_surj (to_karoubi C) := ⟨λ P, begin
   use Y,
   exact nonempty.intro
     { hom := ⟨i, by erw [id_comp, ← h₂, ← assoc, h₁, id_comp]⟩,
-      inv := ⟨e, by erw [comp_id, ← h₂, assoc, h₁, comp_id]⟩,
-      hom_inv_id' := by { ext, simpa only [comp, h₁], },
-      inv_hom_id' := by { ext, simp only [comp, ← h₂, id_eq], }, },
+      inv := ⟨e, by erw [comp_id, ← h₂, assoc, h₁, comp_id]⟩, },
 end⟩
 
 /-- If `C` is idempotent complete, the functor `to_karoubi : C ⥤ karoubi C` is an equivalence. -/

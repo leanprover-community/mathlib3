@@ -58,9 +58,9 @@ if h : cos x = 0 then
   by simp [deriv_zero_of_not_differentiable_at this, h, sq]
 else (has_deriv_at_tan h).deriv
 
-@[simp] lemma times_cont_diff_at_tan {n x} : times_cont_diff_at ℝ n tan x ↔ cos x ≠ 0 :=
+@[simp] lemma cont_diff_at_tan {n x} : cont_diff_at ℝ n tan x ↔ cos x ≠ 0 :=
 ⟨λ h, continuous_at_tan.1 h.continuous_at,
-  λ h, (complex.times_cont_diff_at_tan.2 $ by exact_mod_cast h).real_of_complex⟩
+  λ h, (complex.cont_diff_at_tan.2 $ by exact_mod_cast h).real_of_complex⟩
 
 lemma has_deriv_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ Ioo (-(π/2):ℝ) (π/2)) :
   has_deriv_at tan (1 / (cos x)^2) x :=
@@ -86,11 +86,11 @@ lemma differentiable_arctan : differentiable ℝ arctan := differentiable_at_arc
 @[simp] lemma deriv_arctan : deriv arctan = (λ x, 1 / (1 + x^2)) :=
 funext $ λ x, (has_deriv_at_arctan x).deriv
 
-lemma times_cont_diff_arctan {n : with_top ℕ} : times_cont_diff ℝ n arctan :=
-times_cont_diff_iff_times_cont_diff_at.2 $ λ x,
+lemma cont_diff_arctan {n : with_top ℕ} : cont_diff ℝ n arctan :=
+cont_diff_iff_cont_diff_at.2 $ λ x,
 have cos (arctan x) ≠ 0 := (cos_arctan_pos x).ne',
-tan_local_homeomorph.times_cont_diff_at_symm_deriv (by simpa) trivial (has_deriv_at_tan this)
-  (times_cont_diff_at_tan.2 this)
+tan_local_homeomorph.cont_diff_at_symm_deriv (by simpa) trivial (has_deriv_at_tan this)
+  (cont_diff_at_tan.2 this)
 
 end real
 
@@ -172,21 +172,21 @@ lemma differentiable_on.arctan (hc : differentiable_on ℝ f s) :
   differentiable ℝ (λ x, arctan (f x)) :=
 λ x, (hc x).arctan
 
-lemma times_cont_diff_at.arctan (h : times_cont_diff_at ℝ n f x) :
-  times_cont_diff_at ℝ n (λ x, arctan (f x)) x :=
-times_cont_diff_arctan.times_cont_diff_at.comp x h
+lemma cont_diff_at.arctan (h : cont_diff_at ℝ n f x) :
+  cont_diff_at ℝ n (λ x, arctan (f x)) x :=
+cont_diff_arctan.cont_diff_at.comp x h
 
-lemma times_cont_diff.arctan (h : times_cont_diff ℝ n f) :
-  times_cont_diff ℝ n (λ x, arctan (f x)) :=
-times_cont_diff_arctan.comp h
+lemma cont_diff.arctan (h : cont_diff ℝ n f) :
+  cont_diff ℝ n (λ x, arctan (f x)) :=
+cont_diff_arctan.comp h
 
-lemma times_cont_diff_within_at.arctan (h : times_cont_diff_within_at ℝ n f s x) :
-  times_cont_diff_within_at ℝ n (λ x, arctan (f x)) s x :=
-times_cont_diff_arctan.comp_times_cont_diff_within_at h
+lemma cont_diff_within_at.arctan (h : cont_diff_within_at ℝ n f s x) :
+  cont_diff_within_at ℝ n (λ x, arctan (f x)) s x :=
+cont_diff_arctan.comp_cont_diff_within_at h
 
-lemma times_cont_diff_on.arctan (h : times_cont_diff_on ℝ n f s) :
-  times_cont_diff_on ℝ n (λ x, arctan (f x)) s :=
-times_cont_diff_arctan.comp_times_cont_diff_on h
+lemma cont_diff_on.arctan (h : cont_diff_on ℝ n f s) :
+  cont_diff_on ℝ n (λ x, arctan (f x)) s :=
+cont_diff_arctan.comp_cont_diff_on h
 
 end fderiv
 end

@@ -16,7 +16,7 @@ preadditive categories).
 ## Main definitions
 
 - `is_idempotent_complete C` expresses that `C` is idempotent complete, i.e.
-all idempotents in `C` split. Other caracterisations of idempotent completeness are given
+all idempotents in `C` split. Other characterisations of idempotent completeness are given
 by `is_idempotent_complete_iff_has_equalizer_of_id_and_idempotent` and
 `is_idempotent_complete_iff_idempotents_have_kernels`.
 - `is_idempotent_complete_of_abelian` expresses that abelian categories are
@@ -41,7 +41,7 @@ namespace category_theory
 
 variables (C : Type*) [category C]
 
-/-- A category is idempotent complete iff all idempotents endomorphisms `p`
+/-- A category is idempotent complete iff all idempotent endomorphisms `p`
 split as a composition `p = e ≫ i` with `i ≫ e = 𝟙 _` -/
 class is_idempotent_complete : Prop :=
 (idempotents_split : ∀ (X : C) (p : X ⟶ X), p ≫ p = p →
@@ -49,7 +49,7 @@ class is_idempotent_complete : Prop :=
 
 namespace idempotents
 
-/-- A category is idempotent complete iff for all idempotents endomorphisms,
+/-- A category is idempotent complete iff for all idempotent endomorphisms,
 the equalizer of the identity and this idempotent exists. -/
 lemma is_idempotent_complete_iff_has_equalizer_of_id_and_idempotent :
   is_idempotent_complete C ↔ ∀ (X : C) (p : X ⟶ X), p ≫ p = p → has_equalizer (𝟙 X) p :=

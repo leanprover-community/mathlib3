@@ -68,6 +68,11 @@ begin
   { exact hf _ _ _ _ }
 end
 
+@[simp, to_additive]
+lemma prod_map_mul {α : Type*} [comm_monoid α] {l : list ι} {f g : ι → α} :
+  (l.map $ λ i, f i * g i).prod = (l.map f).prod * (l.map g).prod :=
+l.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
+
 @[to_additive]
 lemma prod_map_hom (L : list ι) (f : ι → M) (g : M →* N) :
   (L.map (g ∘ f)).prod = g ((L.map f).prod) :=

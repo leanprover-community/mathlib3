@@ -48,7 +48,7 @@ Coercions from `ℚ` to `ℚ_p` are set up to work with the `norm_cast` tactic.
 
 ## References
 
-* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [F. Q. Gouvêa, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
 * <https://en.wikipedia.org/wiki/P-adic_number>
 
@@ -827,11 +827,11 @@ begin
 end
 
 @[simp] lemma norm_p_pow (n : ℤ) : ∥(p^n : ℚ_[p])∥ = p^-n :=
-by rw [normed_field.norm_zpow, norm_p]; field_simp
+by rw [norm_zpow, norm_p]; field_simp
 
 instance : nondiscrete_normed_field ℚ_[p] :=
 { non_trivial := ⟨p⁻¹, begin
-    rw [normed_field.norm_inv, norm_p, inv_inv₀],
+    rw [norm_inv, norm_p, inv_inv],
     exact_mod_cast hp.1.one_lt
   end⟩ }
 

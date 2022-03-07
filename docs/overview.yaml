@@ -272,7 +272,7 @@ Analysis:
     derivative of the inverse of a function: 'has_fderiv_at.of_local_left_inverse'
     Rolle's theorem: 'exists_deriv_eq_zero'
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
-    $C^k$ function: 'times_cont_diff'
+    $C^k$ function: 'cont_diff'
     Leibniz formula: 'fderiv_mul'
     local extrema: 'is_local_min.fderiv_eq_zero'
     inverse function theorem: 'has_strict_fderiv_at.to_local_inverse'

@@ -91,6 +91,26 @@ by simp [hn]
 @[continuity] lemma continuous_norm_sq : continuous norm_sq :=
 by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
 
+@[simp, norm_cast] lemma nnnorm_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
+subtype.ext $ norm_real r
+
+@[simp, norm_cast] lemma nnnorm_nat (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
+subtype.ext $ by simp
+
+@[simp, norm_cast] lemma nnnorm_int (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
+subtype.ext $ by simp only [coe_nnnorm, norm_int, int.norm_eq_abs]
+
+lemma nnnorm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
+  ∥ζ∥₊ = 1 :=
+begin
+  refine (@pow_left_inj nnreal _ _ _ _ zero_le' zero_le' hn.bot_lt).mp _,
+  rw [←nnnorm_pow, h, nnnorm_one, one_pow],
+end
+
+lemma norm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
+  ∥ζ∥ = 1 :=
+congr_arg coe (nnnorm_eq_one_of_pow_eq_one h hn)
+
 /-- The `abs` function on `ℂ` is proper. -/
 lemma tendsto_abs_cocompact_at_top : filter.tendsto abs (filter.cocompact ℂ) filter.at_top :=
 tendsto_norm_cocompact_at_top

@@ -305,7 +305,7 @@ by rw [map_mul, map_inv]
   (f : F) (x y : G) : f (x / y) = f x / f y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
 
-@[simp, to_additive map_nsmul] theorem map_pow [monoid G] [monoid H] [monoid_hom_class F G H]
+@[simp, to_additive] theorem map_pow [monoid G] [monoid H] [monoid_hom_class F G H]
   (f : F) (a : G) :
   ∀ (n : ℕ), f (a ^ n) = (f a) ^ n
 | 0     := by rw [pow_zero, pow_zero, map_one]

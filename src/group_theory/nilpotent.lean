@@ -499,7 +499,7 @@ begin
       (λ y hy, by simp [f.map_inv, subgroup.inv_mem _ hy]),
     rintros a ⟨y, hy, z, ⟨-, rfl⟩⟩,
     apply mem_closure.mpr,
-    exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp⟩ }
+    exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp [commutator_element_def]⟩ }
 end
 
 lemma lower_central_series_succ_eq_bot {n : ℕ} (h : lower_central_series G n ≤ center G) :

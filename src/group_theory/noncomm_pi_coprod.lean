@@ -134,13 +134,9 @@ begin
     intros i hi,
     apply submonoid.mem_Sup_of_mem, { use i },
     simp, },
-  { have : ∀ i, i ∈ finset.univ → (ϕ i).mrange ≤ (noncomm_pi_coprod ϕ hcomm).mrange,
-    { rintro i hmem x ⟨y, rfl⟩,
-      refine ⟨pi.mul_single i y, noncomm_pi_coprod_mul_single _ _ _⟩, },
-    -- Why does this bsupr_le not work?
-    exact bsupr_le this,
-    -- exact @bsupr_le (submonoid M) ι submonoid.complete_lattice (noncomm_pi_coprod ϕ hcomm).mrange (λ i, i ∈ finset.univ) (λ i _, (ϕ i).mrange) this ,
-  },
+  { refine supr_le _,
+    rintro i x ⟨y, rfl⟩,
+    refine ⟨pi.mul_single i y, noncomm_pi_coprod_mul_single _ _ _⟩, },
 end
 
 end monoid_hom
@@ -199,18 +195,16 @@ namespace monoid_hom
 @[to_additive]
 lemma noncomm_pi_coprod_range : (noncomm_pi_coprod ϕ hcomm).range = ⨆ i : ι, (ϕ i).range :=
 begin
+  classical,
   apply le_antisymm,
   { rintro x ⟨f, rfl⟩,
     refine finset.noncomm_prod_mem_subgroup _ _ _ _ _,
     intros i hi,
     apply subgroup.mem_Sup_of_mem, { use i },
     simp, },
-  sorry;{
-    refine bsupr_le _,
-    rintro i hmem x ⟨y, rfl⟩,
-    use (pi.mul_single i y),
-    simp [hmem],
-   }
+  { refine supr_le _,
+    rintro i x ⟨y, rfl⟩,
+    refine ⟨pi.mul_single i y, noncomm_pi_coprod_mul_single _ _ _⟩, },
 end
 
 @[to_additive]

@@ -477,7 +477,7 @@ begin
   rw (map_bot.symm : (⊥ : ideal (localization M')) =
                      map (algebra_map (R[X] ⧸ P) (localization M')) ⊥),
   let bot_maximal := ((bot_quotient_is_maximal_iff _).mpr hP),
-  refine map.is_maximal (algebra_map _ _) (localization_map_bijective_of_field hM' _) bot_maximal,
+  refine map.is_maximal (algebra_map _ _) (is_field.localization_map_bijective hM' _) bot_maximal,
   rwa [← quotient.maximal_ideal_iff_is_field_quotient, ← bot_quotient_is_maximal_iff],
 end
 
@@ -504,9 +504,8 @@ begin
     refine ring_hom.is_integral_trans (algebra_map (R ⧸ P') (localization M))
       (is_localization.map _ _ M.le_comap_map) _ _,
     { exact (algebra_map (R ⧸ P') (localization M)).is_integral_of_surjective
-        (localization_map_bijective_of_field hM
-          ((quotient.maximal_ideal_iff_is_field_quotient _).mp
-          (is_maximal_comap_C_of_is_maximal P hP'))).2 },
+      (is_field.localization_map_bijective hM ((quotient.maximal_ideal_iff_is_field_quotient _).mp
+                                               (is_maximal_comap_C_of_is_maximal P hP'))).2 },
     { -- `convert` here is faster than `exact`, and this proof is near the time limit.
       convert is_integral_is_localization_polynomial_quotient P pX hpX } }
 end

@@ -129,6 +129,27 @@ lemma prime.pow_dvd_of_dvd_mul_right
   {p a b : α} (hp : prime p) (n : ℕ) (h : ¬p ∣ b) (h' : p ^ n ∣ a * b) : p ^ n ∣ a :=
 by { rw [mul_comm] at h', exact hp.pow_dvd_of_dvd_mul_left n h h' }
 
+lemma prime.dvd_of_pow_dvd_pow_mul_pow_of_square_not_dvd [cancel_comm_monoid_with_zero α]
+  {p a b : α} {n : ℕ} (hp : prime p) (hpow : p ^ n.succ ∣ a ^ n.succ * b ^ n)
+  (hb : ¬ p ^ 2 ∣ b) : p ∣ a :=
+begin
+  -- Suppose `p ∣ b`, write `b = p * x` and `hy : a ^ n.succ * b ^ n = p ^ n.succ * y`.
+  cases (hp.dvd_or_dvd ((dvd_pow_self p (nat.succ_ne_zero n)).trans hpow)) with H hbdiv,
+  { exact hp.dvd_of_dvd_pow H },
+  obtain ⟨x, rfl⟩ := hp.dvd_of_dvd_pow hbdiv,
+  obtain ⟨y, hy⟩ := hpow,
+  -- Then we can divide out a common factor of `p ^ n` from the equation `hy`.
+  have : a ^ n.succ * x ^ n = p * y,
+  { refine mul_left_cancel₀ (pow_ne_zero n hp.ne_zero) _,
+    rw [← mul_assoc _ p, ← pow_succ', ← hy, mul_pow, ← mul_assoc (a ^ n.succ),
+      mul_comm _ (p ^ n), mul_assoc] },
+  -- So `p ∣ a` (and we're done) or `p ∣ x`, which can't be the case since it implies `p^2 ∣ b`.
+  refine hp.dvd_of_dvd_pow ((hp.dvd_or_dvd ⟨_, this⟩).resolve_right (λ hdvdx, hb _)),
+  obtain ⟨z, rfl⟩ := hp.dvd_of_dvd_pow hdvdx,
+  rw [pow_two, ← mul_assoc],
+  exact dvd_mul_right _ _,
+end
+
 /-- `irreducible p` states that `p` is non-unit and only factors into units.
 
 We explicitly avoid stating that `p` is non-zero, this would require a semiring. Assuming only a

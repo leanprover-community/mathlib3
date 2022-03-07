@@ -390,7 +390,7 @@ lemma prod_cyclotomic_eq_X_pow_sub_one {n : ℕ} (hpos : 0 < n) (R : Type*) [com
 begin
   have integer : ∏ i in nat.divisors n, cyclotomic i ℤ = X ^ n - 1,
   { apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
-    rw map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
+    rw polynomial.map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
     simp only [int_cyclotomic_spec, polynomial.map_pow, nat.cast_id, map_X, map_one, map_sub],
     exact prod_cyclotomic'_eq_X_pow_sub_one hpos
           (complex.is_primitive_root_exp n (ne_of_lt hpos).symm) },
@@ -399,8 +399,8 @@ begin
   have h : ∀ i ∈ n.divisors, cyclotomic i R = map (int.cast_ring_hom R) (cyclotomic i ℤ),
   { intros i hi,
     exact (map_cyclotomic_int i R).symm },
-  rw [finset.prod_congr (refl n.divisors) h, coerc, ←map_prod (int.cast_ring_hom R)
-                                                    (λ i, cyclotomic i ℤ), integer]
+  rw [finset.prod_congr (refl n.divisors) h, coerc,
+      ← polynomial.map_prod (int.cast_ring_hom R) (λ i, cyclotomic i ℤ), integer]
 end
 
 lemma cyclotomic.dvd_X_pow_sub_one (n : ℕ) (R : Type*) [comm_ring R] :
@@ -421,6 +421,48 @@ begin
   have : ∏ i in {1}, cyclotomic i R = cyclotomic 1 R := finset.prod_singleton,
   simp_rw [←this, finset.prod_sdiff $ show {1} ⊆ n.divisors, by simp [h.ne'], this, cyclotomic_one,
            geom_sum_mul, prod_cyclotomic_eq_X_pow_sub_one h]
+end
+
+lemma cyclotomic_dvd_geom_sum_of_dvd (R) [comm_ring R] {d n : ℕ} (hdn : d ∣ n)
+  (hd : d ≠ 1) : cyclotomic d R ∣ geom_sum X n :=
+begin
+  suffices : (cyclotomic d ℤ).map (int.cast_ring_hom R) ∣ (geom_sum X n).map (int.cast_ring_hom R),
+  { have key := (map_ring_hom (int.cast_ring_hom R)).map_geom_sum X n,
+    simp only [coe_map_ring_hom, map_X] at key,
+    rwa [map_cyclotomic, key] at this },
+  apply map_dvd,
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp },
+  rw ←prod_cyclotomic_eq_geom_sum hn,
+  apply finset.dvd_prod_of_mem,
+  simp [hd, hdn, hn.ne']
+end
+
+lemma X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd (R) [comm_ring R] {d n : ℕ}
+  (h : d ∈ n.proper_divisors) :
+  (X ^ d - 1) * ∏ x in n.divisors \ d.divisors, cyclotomic x R = X ^ n - 1 :=
+begin
+  obtain ⟨hd, hdn⟩ := nat.mem_proper_divisors.mp h,
+  have h0n := pos_of_gt hdn,
+  rcases d.eq_zero_or_pos with rfl | h0d,
+  { exfalso, linarith [eq_zero_of_zero_dvd hd] },
+  rw [←prod_cyclotomic_eq_X_pow_sub_one h0d, ←prod_cyclotomic_eq_X_pow_sub_one h0n,
+      mul_comm, finset.prod_sdiff (nat.divisors_subset_of_dvd h0n.ne' hd)]
+end
+
+lemma X_pow_sub_one_mul_cyclotomic_dvd_X_pow_sub_one_of_dvd (R) [comm_ring R] {d n : ℕ}
+  (h : d ∈ n.proper_divisors) : (X ^ d - 1) * cyclotomic n R ∣ X ^ n - 1 :=
+begin
+  have hdn := (nat.mem_proper_divisors.mp h).2,
+  use ∏ x in n.proper_divisors \ d.divisors, cyclotomic x R,
+  symmetry,
+  convert X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd R h using 1,
+  rw mul_assoc,
+  congr' 1,
+  rw [nat.divisors_eq_proper_divisors_insert_self_of_pos $ pos_of_gt hdn,
+      finset.insert_sdiff_of_not_mem, finset.prod_insert],
+  { exact finset.not_mem_sdiff_of_not_mem_left nat.proper_divisors.not_self_mem },
+  { exact λ hk, hdn.not_le $ nat.divisor_le hk }
 end
 
 lemma _root_.is_root_of_unity_iff {n : ℕ} (h : 0 < n) (R : Type*) [comm_ring R] [is_domain R]

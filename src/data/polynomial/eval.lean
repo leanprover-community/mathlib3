@@ -642,7 +642,7 @@ end
 lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
 eval₂_map f (ring_hom.id _) x
 
-lemma map_sum {ι : Type*} (g : ι → R[X]) (s : finset ι) :
+protected lemma map_sum {ι : Type*} (g : ι → R[X]) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
 (map_ring_hom f).map_sum _ _
 
@@ -792,12 +792,16 @@ end eval
 
 section map
 
+--TODO rename to `map_dvd_map`
+lemma map_dvd {R S} [semiring R] [comm_semiring S] (f : R →+* S) {x y : R[X]} :
+  x ∣ y → x.map f ∣ y.map f := eval₂_dvd _ _
+
 variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
 
-lemma map_multiset_prod (m : multiset R[X]) : m.prod.map f = (m.map $ map f).prod :=
+protected lemma map_multiset_prod (m : multiset R[X]) : m.prod.map f = (m.map $ map f).prod :=
 eq.symm $ multiset.prod_hom _ (map_ring_hom f).to_monoid_hom
 
-lemma map_prod {ι : Type*} (g : ι → R[X]) (s : finset ι) :
+protected lemma map_prod {ι : Type*} (g : ι → R[X]) (s : finset ι) :
   (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
 (map_ring_hom f).map_prod _ _
 

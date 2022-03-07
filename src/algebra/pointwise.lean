@@ -250,7 +250,7 @@ protected def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
 localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigroup set.add_semigroup
   set.monoid set.add_monoid set.comm_monoid set.add_comm_monoid" in pointwise
 
-@[to_additive nsmul_mem_nsmul]
+@[to_additive]
 lemma pow_mem_pow [monoid α] (ha : a ∈ s) (n : ℕ) :
   a ^ n ∈ s ^ n :=
 begin
@@ -261,7 +261,7 @@ begin
     exact set.mul_mem_mul ha ih },
 end
 
-@[to_additive empty_nsmul]
+@[to_additive]
 lemma empty_pow [monoid α] (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 

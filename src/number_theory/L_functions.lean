@@ -10,7 +10,7 @@ import topology.continuous_function.locally_constant
 /-!
 # p-adic measure theory
 
-This file defines p-adic distributions and measures on the space of locally constant functions
+This file defines p-adic distributions and measure on the space of locally constant functions
 from a profinite space to a normed ring. We then use the measure to construct the p-adic integral.
 In fact, we prove that this integral is linearly and continuously extended on `C(X, A`.
 
@@ -463,8 +463,6 @@ end locally_constant.density
 
 variables (X) (A)
 
--- (KB) maybe `measure` not `measures`?
-
 /-- Given a profinite space `X` and a normed commutative ring `A`, a `p-adic measure` is a
   "bounded" linear map from the locally constant functions from `X` to `A` to `A` -/
 def measures :=
@@ -483,15 +481,17 @@ noncomputable instance : normed_group (locally_constant X A) :=
   locally_constant.to_continuous_map_injective
 
 -- probably should be "measure"
-namespace measures
+namespace measure
 open locally_constant.density
 
 variables {X} {A}
 
--- maybe add coe to fun instead of φ.1 ?
+instance : has_coe_to_fun (measures X A) :=
+{ F := _,
+  coe := λ φ, φ.1, }
 
 /-- Any measure is uniformly continuous -/
-lemma uniform_continuous (φ : measures X A) : uniform_continuous (φ.val) :=
+lemma uniform_continuous (φ : measures X A) : uniform_continuous ⇑φ :=
 begin
   refine metric.uniform_continuous_iff.mpr (λ ε hε, _),
   obtain ⟨K, hKpos, hK⟩ := φ.prop,
@@ -503,8 +503,8 @@ begin
   rw [dist_eq_norm, ← linear_map.map_sub],
 end
 
-lemma integral_cont (φ : measures X A) : continuous (φ.1) :=
-uniform_continuous.continuous (uniform_continuous _)
+lemma integral_cont (φ : measures X A) : continuous ⇑φ :=
+  uniform_continuous.continuous (uniform_continuous _)
 
 variables (X) (A)
 
@@ -519,22 +519,22 @@ lemma dense_ind_inclusion : dense_inducing (inclusion X A) :=
 
 variables {X} {A}
 
-/-- If `A` is a complete space, the extension of `measures X A` to C(X, A) → A is
+/-- If `A` is a complete space, the extension of `measure X A` to C(X, A) → A is
   uniformly continuous -/
 lemma uniform_continuous_extend [complete_space A] (φ : measures X A) :
-  _root_.uniform_continuous ((dense_ind_inclusion X A).extend (φ.val)) :=
+  _root_.uniform_continuous ((dense_ind_inclusion X A).extend ⇑φ) :=
   uniform_continuous_uniformly_extend (uni_ind X A)
     (dense_inducing.dense (dense_ind_inclusion X A)) (uniform_continuous φ)
 
 /-- The extension of `measures X A` to C(X, A) → A is continuous when `A` is a complete space -/
 lemma cont [complete_space A] (φ : measures X A) :
-  continuous ((dense_ind_inclusion X A).extend (φ.val)) :=
+  continuous ((dense_ind_inclusion X A).extend ⇑φ) :=
   uniform_continuous.continuous (uniform_continuous_extend φ)
 
 /-- The extended map is additive -/
 lemma map_add_extend [complete_space A] (φ : measures X A) (x y : C(X, A)) :
-  (dense_ind_inclusion X A).extend (φ.val) (x + y) =
-  (dense_ind_inclusion X A).extend (φ.val) x + (dense_ind_inclusion X A).extend (φ.val) y :=
+  (dense_ind_inclusion X A).extend ⇑φ (x + y) =
+  (dense_ind_inclusion X A).extend ⇑φ x + (dense_ind_inclusion X A).extend ⇑φ y :=
 begin
   have cont := cont φ,
   have di := dense_ind_inclusion X A,
@@ -544,13 +544,13 @@ begin
       ((cont.comp continuous_fst).add (cont.comp continuous_snd))) (λ a b, _) x y,
 --   restricting to `inclusion`
     rw ← linear_map.map_add,
-    simp only [dense_inducing.extend_eq di (integral_cont φ), (φ.val).map_add ],
+    simp only [dense_inducing.extend_eq di (integral_cont φ), linear_map.map_add ⇑φ a b],
 end
 
 /-- The extended map preserves smul -/
 lemma map_smul_extend [complete_space A] (φ : measures X A) (m : A) (x : C(X, A)) :
-  (dense_ind_inclusion X A).extend (φ.val) (m • x) =
-  m • (dense_ind_inclusion X A).extend (φ.val) x :=
+  (dense_ind_inclusion X A).extend ⇑φ (m • x) =
+  m • (dense_ind_inclusion X A).extend ⇑φ x :=
 begin
   let : has_continuous_smul A C(X, A) := continuous_map.has_continuous_smul X,
   have cont := cont φ,
@@ -561,7 +561,7 @@ begin
       ((continuous_const.smul continuous_id).comp cont)) (λ a, _),
 --   restricting to `inclusion`
     rw ← linear_map.map_smul,
-    simp only [dense_inducing.extend_eq di (integral_cont φ), (φ.val).map_smul],
+    simp only [dense_inducing.extend_eq di (integral_cont φ), linear_map.map_smul ⇑φ m a],
 end
 
 /-- Given a profinite space `X` and a normed commutative ring `A`, and a `p-adic measure` φ, the
@@ -575,4 +575,4 @@ noncomputable def integral [complete_space A] (φ : measures X A) :
      map_smul' := λ m x, map_smul_extend φ m x, },
      cont φ⟩
 
-end measures
+end measure

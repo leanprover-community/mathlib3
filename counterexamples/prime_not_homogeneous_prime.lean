@@ -336,8 +336,8 @@ lemma grading.right_inv :
 begin
   cases zz with a b,
   unfold grading.decompose,
-  simp only [add_monoid_hom.coe_mk, map_add, submodule_coe_of, subtype.coe_mk, prod.mk_add_mk, add_zero,
-  add_sub_cancel'_right],
+  simp only [add_monoid_hom.coe_mk, map_add, submodule_coe_of, subtype.coe_mk, prod.mk_add_mk,
+    add_zero, add_sub_cancel'_right],
 end
 
 noncomputable instance : graded_algebra grading :=
@@ -474,5 +474,3 @@ begin
 end
 
 end counterexample_not_prime_but_homogeneous_prime
-
-#lint

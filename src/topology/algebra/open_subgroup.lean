@@ -48,10 +48,6 @@ add_decl_doc open_subgroup.to_subgroup
 /-- Reinterpret an `open_add_subgroup` as an `add_subgroup`. -/
 add_decl_doc open_add_subgroup.to_add_subgroup
 
--- Tell Lean that `open_add_subgroup` is a namespace
-namespace open_add_subgroup
-end open_add_subgroup
-
 namespace open_subgroup
 open function topological_space
 variables {G : Type*} [group G] [topological_space G]
@@ -127,7 +123,7 @@ variables {H : Type*} [group H] [topological_space H]
 /-- The product of two open subgroups as an open subgroup of the product group. -/
 @[to_additive "The product of two open subgroups as an open subgroup of the product group."]
 def prod (U : open_subgroup G) (V : open_subgroup H) : open_subgroup (G × H) :=
-{ carrier := (U : set G).prod (V : set H),
+{ carrier := (U : set G) ×ˢ (V : set H),
   is_open' := U.is_open.prod V.is_open,
   .. (U : subgroup G).prod (V : subgroup H) }
 

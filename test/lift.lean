@@ -1,6 +1,5 @@
-import tactic.lift
-import data.set.basic
 import data.int.basic
+import tactic.lift
 
 /-! Some tests of the `lift` tactic. -/
 

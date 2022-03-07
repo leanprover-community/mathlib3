@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import algebra.group_power.order
+import algebra.big_operators.basic
 
 /-!
 # Definitions and properties of `gcd`, `lcm`, and `coprime`
@@ -81,6 +82,15 @@ or.elim (nat.eq_zero_or_pos m) id
 theorem eq_zero_of_gcd_eq_zero_right {m n : ℕ} (H : gcd m n = 0) : n = 0 :=
 by rw gcd_comm at H; exact eq_zero_of_gcd_eq_zero_left H
 
+@[simp] theorem gcd_eq_zero_iff {i j : ℕ} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
+begin
+  split,
+  { intro h,
+    exact ⟨eq_zero_of_gcd_eq_zero_left h, eq_zero_of_gcd_eq_zero_right h⟩, },
+  { rintro ⟨rfl, rfl⟩,
+    exact nat.gcd_zero_right 0 }
+end
+
 theorem gcd_div {m n k : ℕ} (H1 : k ∣ m) (H2 : k ∣ n) :
   gcd (m / k) (n / k) = gcd m n / k :=
 or.elim (nat.eq_zero_or_pos k)
@@ -88,6 +98,10 @@ or.elim (nat.eq_zero_or_pos k)
   (λH3, nat.eq_of_mul_eq_mul_right H3 $ by rw [
     nat.div_mul_cancel (dvd_gcd H1 H2), ←gcd_mul_right,
     nat.div_mul_cancel H1, nat.div_mul_cancel H2])
+
+theorem gcd_greatest {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b)
+  (hd : ∀ e : ℕ, e ∣ a → e ∣ b → e ∣ d) : d = a.gcd b :=
+(dvd_antisymm (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b)) (dvd_gcd hda hdb)).symm
 
 theorem gcd_dvd_gcd_of_dvd_left {m k : ℕ} (n : ℕ) (H : m ∣ k) : gcd m n ∣ gcd k n :=
 dvd_gcd ((gcd_dvd_left m n).trans H) (gcd_dvd_right m n)
@@ -113,6 +127,8 @@ dvd_antisymm (gcd_dvd_left _ _) (dvd_gcd dvd_rfl H)
 theorem gcd_eq_right {m n : ℕ} (H : n ∣ m) : gcd m n = n :=
 by rw [gcd_comm, gcd_eq_left H]
 
+-- Lemmas where one argument is a multiple of the other
+
 @[simp] lemma gcd_mul_left_left (m n : ℕ) : gcd (m * n) n = n :=
 dvd_antisymm (gcd_dvd_right _ _) (dvd_gcd (dvd_mul_left _ _) dvd_rfl)
 
@@ -124,6 +140,8 @@ by rw [mul_comm, gcd_mul_left_left]
 
 @[simp] lemma gcd_mul_right_right (m n : ℕ) : gcd n (n * m) = n :=
 by rw [gcd_comm, gcd_mul_right_left]
+
+-- Lemmas for repeated application of `gcd`
 
 @[simp] lemma gcd_gcd_self_right_left (m n : ℕ) : gcd m (gcd m n) = gcd m n :=
 dvd_antisymm (gcd_dvd_right _ _) (dvd_gcd (gcd_dvd_left _ _) dvd_rfl)
@@ -137,11 +155,36 @@ by rw [gcd_comm, gcd_gcd_self_right_right]
 @[simp] lemma gcd_gcd_self_left_left (m n : ℕ) : gcd (gcd m n) m = gcd m n :=
 by rw [gcd_comm m n, gcd_gcd_self_left_right]
 
-@[simp] lemma gcd_add_mul_self (m n k : ℕ) : gcd m (n + k * m) = gcd m n :=
+-- Lemmas where one argument consists of addition of a multiple of the other
+
+@[simp] lemma gcd_add_mul_right_right (m n k : ℕ) : gcd m (n + k * m) = gcd m n :=
 by simp [gcd_rec m (n + k * m), gcd_rec m n]
 
+@[simp] lemma gcd_add_mul_left_right (m n k : ℕ) : gcd m (n + m * k) = gcd m n :=
+by simp [gcd_rec m (n + m * k), gcd_rec m n]
+
+@[simp] lemma gcd_mul_right_add_right (m n k : ℕ) : gcd m (k * m + n) = gcd m n :=
+by simp [add_comm _ n]
+
+@[simp] lemma gcd_mul_left_add_right (m n k : ℕ) : gcd m (m * k + n) = gcd m n :=
+by simp [add_comm _ n]
+
+@[simp] lemma gcd_add_mul_right_left (m n k : ℕ) : gcd (m + k * n) n = gcd m n :=
+by rw [gcd_comm, gcd_add_mul_right_right, gcd_comm]
+
+@[simp] lemma gcd_add_mul_left_left (m n k : ℕ) : gcd (m + n * k) n = gcd m n :=
+by rw [gcd_comm, gcd_add_mul_left_right, gcd_comm]
+
+@[simp] lemma gcd_mul_right_add_left (m n k : ℕ) : gcd (k * n + m) n = gcd m n :=
+by rw [gcd_comm, gcd_mul_right_add_right, gcd_comm]
+
+@[simp] lemma gcd_mul_left_add_left (m n k : ℕ) : gcd (n * k + m) n = gcd m n :=
+by rw [gcd_comm, gcd_mul_left_add_right, gcd_comm]
+
+-- Lemmas where one argument consists of an addition of the other
+
 @[simp] lemma gcd_add_self_right (m n : ℕ) : gcd m (n + m) = gcd m n :=
-eq.trans (by rw one_mul) (gcd_add_mul_self m n 1)
+eq.trans (by rw one_mul) (gcd_add_mul_right_right m n 1)
 
 @[simp] lemma gcd_add_self_left (m n : ℕ) : gcd (m + n) n = gcd m n :=
 by rw [gcd_comm, gcd_add_self_right, gcd_comm]
@@ -151,15 +194,6 @@ by rw [add_comm, gcd_add_self_left]
 
 @[simp] lemma gcd_self_add_right (m n : ℕ) : gcd m (m + n) = gcd m n :=
 by rw [add_comm, gcd_add_self_right]
-
-@[simp] theorem gcd_eq_zero_iff {i j : ℕ} : gcd i j = 0 ↔ i = 0 ∧ j = 0 :=
-begin
-  split,
-  { intro h,
-    exact ⟨eq_zero_of_gcd_eq_zero_left h, eq_zero_of_gcd_eq_zero_right h⟩, },
-  { rintro ⟨rfl, rfl⟩,
-    exact nat.gcd_zero_right 0 }
-end
 
 /-! ### `lcm` -/
 
@@ -304,6 +338,30 @@ by rw [coprime, coprime, gcd_add_self_left]
 @[simp] theorem coprime_self_add_left {m n : ℕ} : coprime (m + n) m ↔ coprime n m :=
 by rw [coprime, coprime, gcd_self_add_left]
 
+@[simp] lemma coprime_add_mul_right_right (m n k : ℕ) : coprime m (n + k * m) ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_mul_right_right]
+
+@[simp] lemma coprime_add_mul_left_right (m n k : ℕ) : coprime m (n + m * k) ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_mul_left_right]
+
+@[simp] lemma coprime_mul_right_add_right (m n k : ℕ) : coprime m (k * m + n) ↔ coprime m n :=
+by rw [coprime, coprime, gcd_mul_right_add_right]
+
+@[simp] lemma coprime_mul_left_add_right (m n k : ℕ) : coprime m (m * k + n) ↔ coprime m n :=
+by rw [coprime, coprime, gcd_mul_left_add_right]
+
+@[simp] lemma coprime_add_mul_right_left (m n k : ℕ) : coprime (m + k * n) n ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_mul_right_left]
+
+@[simp] lemma coprime_add_mul_left_left (m n k : ℕ) : coprime (m + n * k) n ↔ coprime m n :=
+by rw [coprime, coprime, gcd_add_mul_left_left]
+
+@[simp] lemma coprime_mul_right_add_left (m n k : ℕ) : coprime (k * n + m) n ↔ coprime m n :=
+by rw [coprime, coprime, gcd_mul_right_add_left]
+
+@[simp] lemma coprime_mul_left_add_left (m n k : ℕ) : coprime (n * k + m) n ↔ coprime m n :=
+by rw [coprime, coprime, gcd_mul_left_add_left]
+
 theorem coprime.mul {m n k : ℕ} (H1 : coprime m k) (H2 : coprime n k) : coprime (m * n) k :=
 (H1.gcd_mul_left_cancel n).trans H2
 
@@ -408,6 +466,24 @@ by simp [coprime]
 
 @[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
 by simp [coprime]
+
+section big_operators
+
+open_locale big_operators
+
+/-- See `is_coprime.prod_left` for the corresponding lemma about `is_coprime` -/
+lemma coprime_prod_left
+  {ι : Type*} {x : ℕ} {s : ι → ℕ} {t : finset ι} :
+  (∀ (i : ι), i ∈ t → coprime (s i) x) → coprime (∏ (i : ι) in t, s i) x :=
+finset.prod_induction s (λ y, y.coprime x) (λ a b, coprime.mul) (by simp)
+
+/-- See `is_coprime.prod_right` for the corresponding lemma about `is_coprime` -/
+lemma coprime_prod_right
+  {ι : Type*} {x : ℕ} {s : ι → ℕ} {t : finset ι} :
+  (∀ (i : ι), i ∈ t → coprime x (s i)) → coprime x (∏ (i : ι) in t, s i) :=
+finset.prod_induction s (λ y, x.coprime y) (λ a b, coprime.mul_right) (by simp)
+
+end big_operators
 
 lemma coprime.eq_of_mul_eq_zero {m n : ℕ} (h : m.coprime n) (hmn : m * n = 0) :
   m = 0 ∧ n = 1 ∨ m = 1 ∧ n = 0 :=

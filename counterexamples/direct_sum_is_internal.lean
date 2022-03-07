@@ -18,10 +18,10 @@ This file demonstrates why `direct_sum.submodule_is_internal_of_independent_of_s
 take `ring R` and not `semiring R`.
 -/
 
-lemma units_int.one_ne_neg_one : (1 : units ℤ) ≠ -1 := dec_trivial
+lemma units_int.one_ne_neg_one : (1 : ℤˣ) ≠ -1 := dec_trivial
 
 /-- Submodules of positive and negative integers, keyed by sign. -/
-def with_sign (i : units ℤ) : submodule ℕ ℤ :=
+def with_sign (i : ℤˣ) : submodule ℕ ℤ :=
 add_submonoid.to_nat_submodule $ show add_submonoid ℤ, from
   { carrier := {z | 0 ≤ i • z},
     zero_mem' := show 0 ≤ i • (0 : ℤ), from (smul_zero _).ge,
@@ -75,7 +75,7 @@ end
 
 /-- But there is no embedding into `ℤ` from the direct sum. -/
 lemma with_sign.not_injective :
-  ¬function.injective (direct_sum.to_module ℕ (units ℤ) ℤ (λ i, (with_sign i).subtype)) :=
+  ¬function.injective (direct_sum.to_module ℕ ℤˣ ℤ (λ i, (with_sign i).subtype)) :=
 begin
   intro hinj,
   let p1 : ℤ≥0 := ⟨1, mem_with_sign_one.2 zero_le_one⟩,

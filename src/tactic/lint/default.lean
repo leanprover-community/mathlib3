@@ -53,6 +53,7 @@ The following linters are run by default:
 20. `check_univs` checks that there are no bad `max u v` universe levels.
 21. `syn_taut` checks that declarations are not syntactic tautologies.
 22. `check_reducibility` checks whether non-instances with a class as type are reducible.
+23. `unprintable_interactive` checks that interactive tactics have parser documentation.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.

@@ -30,7 +30,7 @@ open filter set metric measure_theory real
 
 lemma set_of_liouville_with_subset_aux :
   {x : ℝ | ∃ p > 2, liouville_with p x} ⊆
-    ⋃ m : ℤ, (λ x : ℝ, x + m) ⁻¹' (⋃ n > (0 : ℕ), 
+    ⋃ m : ℤ, (λ x : ℝ, x + m) ⁻¹' (⋃ n > (0 : ℕ),
       {x : ℝ | ∃ᶠ b : ℕ in at_top, ∃ a ∈ finset.Icc (0 : ℤ) b,
         |x - (a : ℤ) / b| < 1 / b ^ (2 + 1 / n : ℝ)}) :=
 begin
@@ -74,7 +74,7 @@ measure zero. -/
 begin
   simp only [← set_of_exists],
   refine measure_mono_null set_of_liouville_with_subset_aux _,
-  rw measure_Union_null_iff, intro m, rw real.volume_preimage_add_right, clear m,
+  rw measure_Union_null_iff, intro m, rw measure_preimage_add_right, clear m,
   refine (measure_bUnion_null_iff $ countable_encodable _).2 (λ n (hn : 1 ≤ n), _),
   generalize hr : (2 + 1 / n : ℝ) = r,
   replace hr : 2 < r, by simp [← hr, zero_lt_one.trans_le hn], clear hn n,

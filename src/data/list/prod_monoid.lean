@@ -9,8 +9,6 @@ import data.list.big_operators
 # Products / sums of lists of terms of a monoid
 
 This file provides basic results about `list.prod` (definition in `data.list.defs`) in a monoid.
-It is in a separate file so that `data.list.big_operators` does not depend on
-`algebra.group_power.basic`.
 -/
 
 open nat

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
-import algebra.algebra.tower
+import ring_theory.adjoin.basic
 import data.finsupp.antidiagonal
 import algebra.monoid_algebra.basic
 import order.symm_diff
@@ -119,8 +119,16 @@ instance [monoid R] [monoid S₁][comm_semiring S₂]
   [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [smul_comm_class R S₁ S₂] :
   smul_comm_class R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.smul_comm_class
+instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [distrib_mul_action Rᵐᵒᵖ S₁]
+  [is_central_scalar R S₁] :
+  is_central_scalar R (mv_polynomial σ S₁) :=
+add_monoid_algebra.is_central_scalar
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
 add_monoid_algebra.algebra
+-- Register with high priority to avoid timeout in `data.mv_polynomial.pderiv`
+instance is_scalar_tower' [comm_semiring R] [comm_semiring S₁] [algebra R S₁] :
+  is_scalar_tower R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
+is_scalar_tower.right
 -- TODO[gh-6025]: make this an instance once safe to do so
 /-- If `R` is a subsingleton, then `mv_polynomial σ R` has a unique element -/
 protected def unique [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
@@ -232,10 +240,13 @@ lemma monomial_eq_C_mul_X {s : σ} {a : R} {n : ℕ} :
   monomial (single s n) a = C a * (X s)^n :=
 by rw [← zero_add (single s n), monomial_add_single, C_apply]
 
-@[simp] lemma monomial_zero {s : σ →₀ ℕ}: monomial s (0 : R) = 0 :=
+@[simp] lemma monomial_zero {s : σ →₀ ℕ} : monomial s (0 : R) = 0 :=
 single_zero
 
 @[simp] lemma monomial_zero' : (monomial (0 : σ →₀ ℕ) : R → mv_polynomial σ R) = C := rfl
+
+@[simp] lemma monomial_eq_zero {s : σ →₀ ℕ} {b : R} : monomial s b = 0 ↔ b = 0 :=
+finsupp.single_eq_zero
 
 @[simp] lemma sum_monomial_eq {A : Type*} [add_comm_monoid A]
   {u : σ →₀ ℕ} {r : R} {b : (σ →₀ ℕ) → R → A} (w : b u 0 = 0) :
@@ -259,6 +270,10 @@ lemma monomial_finsupp_sum_index {α β : Type*} [has_zero β] (f : α →₀ β
   (g : α → β → (σ →₀ ℕ)) (a : R) :
   (monomial (f.sum g) a) = C a * f.prod (λ a b, monomial (g a b) 1) :=
 monomial_sum_index _ _ _
+
+lemma monomial_eq_monomial_iff {α : Type*} (a₁ a₂ : α →₀ ℕ) (b₁ b₂ : R) :
+  monomial a₁ b₁ = monomial a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ ∨ b₁ = 0 ∧ b₂ = 0 :=
+finsupp.single_eq_single_iff _ _ _ _
 
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ R) :=
 by simp only [X_pow_eq_monomial, ← monomial_finsupp_sum_index, finsupp.sum_single]
@@ -341,7 +356,7 @@ hom_eq_hom f (ring_hom.id _) hC hX p
 alg_hom.coe_ring_hom_injective (mv_polynomial.ring_hom_ext'
   (congr_arg alg_hom.to_ring_hom h₁) h₂)
 
-@[ext] lemma alg_hom_ext {A : Type*} [comm_semiring A] [algebra R A]
+@[ext] lemma alg_hom_ext {A : Type*} [semiring A] [algebra R A]
   {f g : mv_polynomial σ R →ₐ[R] A} (hf : ∀ i : σ, f (X i) = g (X i)) :
   f = g :=
 add_monoid_algebra.alg_hom_ext' (mul_hom_ext' (λ (x : σ), monoid_hom.ext_mnat (hf x)))
@@ -350,6 +365,20 @@ add_monoid_algebra.alg_hom_ext' (mul_hom_ext' (λ (x : σ), monoid_hom.ext_mnat 
   f (C r) = C r :=
 f.commutes r
 
+@[simp] lemma adjoin_range_X : algebra.adjoin R (range (X : σ → mv_polynomial σ R)) = ⊤ :=
+begin
+  set S := algebra.adjoin R (range (X : σ → mv_polynomial σ R)),
+  refine top_unique (λ p hp, _), clear hp,
+  induction p using mv_polynomial.induction_on,
+  case h_C : { exact S.algebra_map_mem _ },
+  case h_add : p q hp hq { exact S.add_mem hp hq },
+  case h_X : p i hp { exact S.mul_mem hp (algebra.subset_adjoin $ mem_range_self _) }
+end
+
+@[ext] lemma linear_map_ext {M : Type*} [add_comm_monoid M] [module R M]
+  {f g : mv_polynomial σ R →ₗ[R] M} (h : ∀ s, f ∘ₗ monomial s = g ∘ₗ monomial s) :
+  f = g :=
+finsupp.lhom_ext' h
 
 section support
 
@@ -371,6 +400,11 @@ lemma support_add : (p + q).support ⊆ p.support ∪ q.support := finsupp.suppo
 
 lemma support_X [nontrivial R] : (X n : mv_polynomial σ R).support = {single n 1} :=
 by rw [X, support_monomial, if_neg]; exact one_ne_zero
+
+@[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
+
+lemma support_sum {α : Type*} {s : finset α} {f : α → mv_polynomial σ R} :
+  (∑ x in s, f x).support ⊆ s.bUnion (λ x, (f x).support) := finsupp.support_finset_sum
 
 end support
 
@@ -551,7 +585,6 @@ begin
   refine (coeff_mul_monomial' _ _ _ _).trans _,
   simp_rw [finsupp.single_le_iff, finsupp.mem_support_iff, nat.succ_le_iff, pos_iff_ne_zero,
     mul_one],
-  congr,
 end
 
 lemma coeff_X_mul' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
@@ -560,7 +593,6 @@ begin
   refine (coeff_monomial_mul' _ _ _ _).trans _,
   simp_rw [finsupp.single_le_iff, finsupp.mem_support_iff, nat.succ_le_iff, pos_iff_ne_zero,
     one_mul],
-  congr,
 end
 
 lemma eq_zero_iff {p : mv_polynomial σ R} :
@@ -1122,6 +1154,17 @@ lemma aeval_sum {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) :
 lemma aeval_prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) :
   aeval f (∏ i in s, φ i) = ∏ i in s, aeval f (φ i) :=
 (mv_polynomial.aeval f).map_prod _ _
+
+variable (R)
+
+lemma _root_.algebra.adjoin_range_eq_range_aeval :
+  algebra.adjoin R (set.range f) = (mv_polynomial.aeval f).range :=
+by simp only [← algebra.map_top, ← mv_polynomial.adjoin_range_X, alg_hom.map_adjoin,
+  ← set.range_comp, (∘), mv_polynomial.aeval_X]
+
+theorem _root_.algebra.adjoin_eq_range (s : set S₁) :
+  algebra.adjoin R s = (mv_polynomial.aeval (coe : s → S₁)).range :=
+by rw [← algebra.adjoin_range_eq_range_aeval, subtype.range_coe]
 
 end aeval
 

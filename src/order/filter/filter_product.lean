@@ -118,8 +118,8 @@ by rw [min_def, map₂_const]
   (↑(|x|) : β*) = |↑x| :=
 by rw [abs_def, map_const]
 
-lemma lattice_of_linear_order_eq_filter_germ_lattice [linear_order β] :
-  (@lattice_of_linear_order (filter.germ ↑φ β) filter.germ.linear_order) = filter.germ.lattice :=
+lemma linear_order.to_lattice_eq_filter_germ_lattice [linear_order β] :
+  (@linear_order.to_lattice (filter.germ ↑φ β) filter.germ.linear_order) = filter.germ.lattice :=
 lattice.ext (λ x y, iff.rfl)
 
 end germ

@@ -19,7 +19,7 @@ depends on the first component. This can be seen as a generalization of the sum 
   `equiv.sum_equiv_sigma_bool`.
 
 `Σ x, A x` is notation for `sigma A` (note the difference with the big operator `∑`).
-`Σ x y z ..., A x y z ...` is notation for `Σ x, Σ y, Σ z, ..., A x y z ...`. Here we have 
+`Σ x y z ..., A x y z ...` is notation for `Σ x, Σ y, Σ z, ..., A x y z ...`. Here we have
 `α : Type*`, `β : α → Type*`, `γ : Π a : α, β a → Type*`, ...,
 `A : Π (a : α) (b : β a) (c : γ a b) ..., Type*`  with `x : α` `y : β x`, `z : γ x y`, ...
 
@@ -35,8 +35,8 @@ variables {α α₁ α₂ : Type*} {β : α → Type*} {β₁ : α₁ → Type*}
 
 namespace sigma
 
-instance [inhabited α] [inhabited (β (default α))] : inhabited (sigma β) :=
-⟨⟨default α, default (β (default α))⟩⟩
+instance [inhabited α] [inhabited (β default)] : inhabited (sigma β) :=
+⟨⟨default, default⟩⟩
 
 instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable_eq (sigma β)
 | ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ := match a₁, b₁, a₂, b₂, h₁ a₁ a₂ with
@@ -162,8 +162,8 @@ psigma.cases_on a f
 
 @[simp] theorem elim_val {γ} (f : ∀ a, β a → γ) (a b) : psigma.elim f ⟨a, b⟩ = f a b := rfl
 
-instance [inhabited α] [inhabited (β (default α))] : inhabited (psigma β) :=
-⟨⟨default α, default (β (default α))⟩⟩
+instance [inhabited α] [inhabited (β default)] : inhabited (psigma β) :=
+⟨⟨default, default⟩⟩
 
 instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable_eq (psigma β)
 | ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ := match a₁, b₁, a₂, b₂, h₁ a₁ a₂ with

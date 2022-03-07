@@ -297,8 +297,7 @@ lemma diff_eq_filter_of_nodup [decidable_eq α] :
 begin
   rw [diff_cons, diff_eq_filter_of_nodup (nodup_erase_of_nodup _ hl₁),
     nodup_erase_eq_filter _ hl₁, filter_filter],
-  simp only [mem_cons_iff, not_or_distrib, and.comm],
-  congr
+  simp only [mem_cons_iff, not_or_distrib, and.comm]
 end
 
 lemma mem_diff_iff_of_nodup [decidable_eq α] {l₁ l₂ : list α} (hl₁ : l₁.nodup) {a : α} :

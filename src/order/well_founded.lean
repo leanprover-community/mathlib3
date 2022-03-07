@@ -3,6 +3,7 @@ Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
+import tactic.by_contra
 import data.set.basic
 
 /-!
@@ -111,6 +112,40 @@ begin
     left, exact hy },
   rintro (hy | rfl), exact trans hy (wo.wf.lt_succ h), exact wo.wf.lt_succ h
 end
+
+section linear_order
+
+variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → Prop))
+  {γ : Type*} [partial_order γ]
+
+private theorem eq_strict_mono_iff_eq_range_aux {f g : β → γ} (hf : strict_mono f)
+  (hg : strict_mono g) (hfg : set.range f = set.range g) {b : β} (H : ∀ a < b, f a = g a) :
+  f b ≤ g b :=
+begin
+  obtain ⟨c, hc⟩ : g b ∈ set.range f := by { rw hfg, exact set.mem_range_self b },
+  cases lt_or_le c b with hcb hbc,
+  { rw [H c hcb] at hc,
+    rw hg.injective hc at hcb,
+    exact hcb.false.elim },
+  { rw ←hc,
+    exact hf.monotone hbc }
+end
+
+include h
+theorem eq_strict_mono_iff_eq_range {f g : β → γ} (hf : strict_mono f)
+  (hg : strict_mono g) : set.range f = set.range g ↔ f = g :=
+⟨λ hfg, begin
+  funext a,
+  apply h.induction a,
+  exact λ b H, le_antisymm
+    (eq_strict_mono_iff_eq_range_aux hf hg hfg H)
+    (eq_strict_mono_iff_eq_range_aux hg hf hfg.symm (λ a hab, (H a hab).symm))
+end, congr_arg _⟩
+
+theorem self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
+by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hφ h₂) h₂ }
+
+end linear_order
 
 end well_founded
 

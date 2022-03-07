@@ -5,6 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.lie.submodule
 import algebra.lie.of_associative
+import linear_algebra.isomorphisms
 
 /-!
 # Quotients of Lie algebras and Lie modules
@@ -44,7 +45,14 @@ namespace quotient
 variables {N I}
 
 instance add_comm_group : add_comm_group (M ⧸ N) := submodule.quotient.add_comm_group _
+instance module' {S : Type*} [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+  module S (M ⧸ N) := submodule.quotient.module' _
 instance module : module R (M ⧸ N) := submodule.quotient.module _
+instance is_central_scalar {S : Type*} [semiring S]
+  [has_scalar S R] [module S M] [is_scalar_tower S R M]
+  [has_scalar Sᵐᵒᵖ R] [module Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [is_central_scalar S M] : is_central_scalar S (M ⧸ N) :=
+submodule.quotient.is_central_scalar _
 instance inhabited : inhabited (M ⧸ N) := ⟨0⟩
 
 /-- Map sending an element of `M` to the corresponding element of `M/N`, when `N` is a
@@ -137,6 +145,15 @@ instance lie_quotient_lie_algebra : lie_algebra R (L ⧸ I) :=
 def mk' : M →ₗ⁅R,L⁆ M ⧸ N :=
 { to_fun := mk, map_lie' := λ r m, rfl, ..N.to_submodule.mkq}
 
+@[simp] lemma mk_eq_zero {m : M} : mk' N m = 0 ↔ m ∈ N :=
+submodule.quotient.mk_eq_zero N.to_submodule
+
+@[simp] lemma mk'_ker : (mk' N).ker = N :=
+by { ext, simp, }
+
+@[simp] lemma map_mk'_eq_bot_le : map (mk' N) N' = ⊥ ↔ N' ≤ N :=
+by rw [← lie_module_hom.le_ker_iff_map, mk'_ker]
+
 /-- Two `lie_module_hom`s from a quotient lie module are equal if their compositions with
 `lie_submodule.quotient.mk'` are equal.
 
@@ -149,3 +166,23 @@ lie_module_hom.ext $ λ x, quotient.induction_on' x $ lie_module_hom.congr_fun h
 end quotient
 
 end lie_submodule
+
+namespace lie_hom
+
+variables {R L L' : Type*}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
+variables (f : L →ₗ⁅R⁆ L')
+
+/-- The first isomorphism theorem for morphisms of Lie algebras. -/
+@[simps] noncomputable def quot_ker_equiv_range : L ⧸ f.ker ≃ₗ⁅R⁆ f.range :=
+{ to_fun := (f : L →ₗ[R] L').quot_ker_equiv_range,
+  map_lie' :=
+  begin
+    rintros ⟨x⟩ ⟨y⟩,
+    rw [← set_like.coe_eq_coe, lie_subalgebra.coe_bracket],
+    simp only [submodule.quotient.quot_mk_eq_mk, linear_map.quot_ker_equiv_range_apply_mk,
+      ← lie_submodule.quotient.mk_bracket, coe_to_linear_map, map_lie],
+  end,
+  .. (f : L →ₗ[R] L').quot_ker_equiv_range, }
+
+end lie_hom

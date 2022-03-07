@@ -15,9 +15,11 @@ The lexicographic order on `list α` is defined by `L < M` iff
 
 ## See also
 
-The lexicographic order on a product type can be found in `order.lexicographic`.
-
-The lexicographic order on a sigma type can be found in `data.sigma.lex`.
+Related files are:
+* `data.finset.colex`: Colexicographic order on finite sets.
+* `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
+* `data.sigma.order`: Lexicographic order on `Σ i, α i`.
+* `order.lexicographic`: Lexicographic order on `α × β`.
 -/
 
 namespace list

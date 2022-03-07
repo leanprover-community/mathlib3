@@ -14,7 +14,7 @@ In this file we define
 * `linear_equiv σ M M₂`, `M ≃ₛₗ[σ] M₂`: an invertible semilinear map. Here, `σ` is a `ring_hom`
   from `R` to `R₂` and an `e : M ≃ₛₗ[σ] M₂` satisfies `e (c • x) = (σ c) • (e x)`. The plain
   linear version, with `σ` being `ring_hom.id R`, is denoted by `M ≃ₗ[R] M₂`, and the
-  star-linear version (with `σ` begin `star_ring_aut`) is denoted by `M ≃ₗ⋆[R] M₂`.
+  star-linear version (with `σ` being `star_ring_end`) is denoted by `M ≃ₗ⋆[R] M₂`.
 
 ## Implementation notes
 
@@ -58,7 +58,7 @@ attribute [nolint doc_blame] linear_equiv.to_add_equiv
 
 notation M ` ≃ₛₗ[`:50 σ `] ` M₂ := linear_equiv σ M M₂
 notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv (ring_hom.id R) M M₂
-notation M ` ≃ₗ⋆[`:50 R `] ` M₂ := linear_equiv (@star_ring_aut R _ _ : R →+* R) M M₂
+notation M ` ≃ₗ⋆[`:50 R `] ` M₂ := linear_equiv (star_ring_end R) M M₂
 
 namespace linear_equiv
 
@@ -101,9 +101,15 @@ lemma to_linear_map_injective :
   (e₁ : M →ₛₗ[σ] M₂) = e₂ ↔ e₁ = e₂ :=
 to_linear_map_injective.eq_iff
 
+instance : add_monoid_hom_class (M ≃ₛₗ[σ] M₂) M M₂ :=
+{ coe := linear_equiv.to_fun,
+  coe_injective' := λ f g h, to_linear_map_injective (fun_like.coe_injective h),
+  map_add := linear_equiv.map_add',
+  map_zero := λ f, f.to_linear_map.map_zero }
+
 lemma coe_injective :
   @injective (M ≃ₛₗ[σ] M₂) (M → M₂) coe_fn :=
-linear_map.coe_injective.comp to_linear_map_injective
+fun_like.coe_injective
 
 end
 
@@ -128,16 +134,13 @@ lemma to_linear_map_eq_coe : e.to_linear_map = (e : M →ₛₗ[σ] M₂) := rfl
 
 section
 variables {e e'}
-@[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
-coe_injective $ funext h
+@[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' := fun_like.ext _ _ h
 
-protected lemma congr_arg : Π {x x' : M}, x = x' → e x = e x'
-| _ _ rfl := rfl
+lemma ext_iff : e = e' ↔ ∀ x, e x = e' x := fun_like.ext_iff
 
-protected lemma congr_fun (h : e = e') (x : M) : e x = e' x := h ▸ rfl
+protected lemma congr_arg {x x'} : x = x' → e x = e x' := fun_like.congr_arg e
 
-lemma ext_iff : e = e' ↔ ∀ x, e x = e' x :=
-⟨λ h x, h ▸ rfl, ext⟩
+protected lemma congr_fun (h : e = e') (x : M) : e x = e' x := fun_like.congr_fun h x
 
 end
 
@@ -307,8 +310,8 @@ rfl
 @[simp] lemma mk_coe (h₁ h₂ f h₃ h₄) :
   (linear_equiv.mk e h₁ h₂ f h₃ h₄ : M ≃ₛₗ[σ] M₂) = e := ext $ λ _, rfl
 
-@[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
-@[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
+protected theorem map_add (a b : M) : e (a + b) = e a + e b := map_add e a b
+protected theorem map_zero : e 0 = 0 := map_zero e
 @[simp] theorem map_smulₛₗ (c : R) (x : M) : e (c • x) = (σ c) • e x := e.map_smul' c x
 
 include module_N₁ module_N₂
@@ -338,12 +341,10 @@ equiv.bijective ⟨(symm : (M ≃ₛₗ[σ] M₂) →
   M₂ ≃ₛₗ[σ'] M) = e.symm :=
 symm_bijective.injective $ ext $ λ x, rfl
 
-include σ'
 @[simp] theorem symm_mk (f h₁ h₂ h₃ h₄) :
   (⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₛₗ[σ] M₂).symm =
   { to_fun := f, inv_fun := e,
     ..(⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₛₗ[σ] M₂).symm } := rfl
-omit σ'
 
 @[simp] lemma coe_symm_mk [module R M] [module R M₂]
   {to_fun inv_fun map_add map_smul left_inv right_inv} :
@@ -354,10 +355,35 @@ protected lemma bijective : function.bijective e := e.to_equiv.bijective
 protected lemma injective : function.injective e := e.to_equiv.injective
 protected lemma surjective : function.surjective e := e.to_equiv.surjective
 
-include σ'
 protected lemma image_eq_preimage (s : set M) : e '' s = e.symm ⁻¹' s :=
 e.to_equiv.image_eq_preimage s
-omit σ'
+
+protected lemma image_symm_eq_preimage (s : set M₂) : e.symm '' s = e ⁻¹' s :=
+e.to_equiv.symm.image_eq_preimage s
+
+section pointwise
+open_locale pointwise
+
+@[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
+  e '' (c • s) = (σ c) • e '' s :=
+linear_map.image_smul_setₛₗ e.to_linear_map c s
+
+@[simp] lemma preimage_smul_setₛₗ (c : S) (s : set M₂) :
+  e ⁻¹' (c • s) = σ' c • e ⁻¹' s :=
+by rw [← linear_equiv.image_symm_eq_preimage, ← linear_equiv.image_symm_eq_preimage,
+  image_smul_setₛₗ]
+
+include module_M₁ module_N₁
+
+@[simp] lemma image_smul_set (e : M₁ ≃ₗ[R₁] N₁) (c : R₁) (s : set M₁) :
+  e '' (c • s) = c • e '' s :=
+linear_map.image_smul_set e.to_linear_map c s
+
+@[simp] lemma preimage_smul_set (e : M₁ ≃ₗ[R₁] N₁) (c : R₁) (s : set N₁) :
+  e ⁻¹' (c • s) = c • e ⁻¹' s :=
+e.preimage_smul_setₛₗ c s
+
+end pointwise
 
 end
 
@@ -379,7 +405,7 @@ variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂]
 def of_involutive {σ σ' : R →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
   {module_M : module R M} (f : M →ₛₗ[σ] M) (hf : involutive f) :
   M ≃ₛₗ[σ] M :=
-{ .. f, .. hf.to_equiv f }
+{ .. f, .. hf.to_perm f }
 
 @[simp] lemma coe_of_involutive {σ σ' : R →+* R} [ring_hom_inv_pair σ σ']
   [ring_hom_inv_pair σ' σ] {module_M : module R M} (f : M →ₛₗ[σ] M) (hf : involutive f) :
@@ -501,3 +527,83 @@ def to_module_aut : S →* M ≃ₗ[R] M :=
   map_mul' := λ a b, linear_equiv.ext $ mul_smul _ _ }
 
 end distrib_mul_action
+
+namespace add_equiv
+
+section add_comm_monoid
+
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R M₂]
+
+variable (e : M ≃+ M₂)
+
+/-- An additive equivalence whose underlying function preserves `smul` is a linear equivalence. -/
+def to_linear_equiv (h : ∀ (c : R) x, e (c • x) = c • e x) : M ≃ₗ[R] M₂ :=
+{ map_smul' := h, .. e, }
+
+@[simp] lemma coe_to_linear_equiv (h : ∀ (c : R) x, e (c • x) = c • e x) :
+  ⇑(e.to_linear_equiv h) = e :=
+rfl
+
+@[simp] lemma coe_to_linear_equiv_symm (h : ∀ (c : R) x, e (c • x) = c • e x) :
+  ⇑(e.to_linear_equiv h).symm = e.symm :=
+rfl
+
+/-- An additive equivalence between commutative additive monoids is a linear equivalence between
+ℕ-modules -/
+def to_nat_linear_equiv  : M ≃ₗ[ℕ] M₂ :=
+e.to_linear_equiv $ λ c a, by { erw e.to_add_monoid_hom.map_nsmul, refl }
+
+@[simp] lemma coe_to_nat_linear_equiv :
+  ⇑(e.to_nat_linear_equiv) = e := rfl
+
+@[simp] lemma to_nat_linear_equiv_to_add_equiv :
+  e.to_nat_linear_equiv.to_add_equiv = e := by { ext, refl }
+
+@[simp] lemma _root_.linear_equiv.to_add_equiv_to_nat_linear_equiv
+  (e : M ≃ₗ[ℕ] M₂) : e.to_add_equiv.to_nat_linear_equiv = e := fun_like.coe_injective rfl
+
+@[simp] lemma to_nat_linear_equiv_symm :
+  (e.to_nat_linear_equiv).symm = e.symm.to_nat_linear_equiv := rfl
+
+@[simp] lemma to_nat_linear_equiv_refl :
+  ((add_equiv.refl M).to_nat_linear_equiv) = linear_equiv.refl ℕ M := rfl
+
+@[simp] lemma to_nat_linear_equiv_trans (e₂ : M₂ ≃+ M₃) :
+  (e.to_nat_linear_equiv).trans (e₂.to_nat_linear_equiv) = (e.trans e₂).to_nat_linear_equiv := rfl
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
+
+variable (e : M ≃+ M₂)
+
+/-- An additive equivalence between commutative additive groups is a linear
+equivalence between ℤ-modules -/
+def to_int_linear_equiv : M ≃ₗ[ℤ] M₂ :=
+e.to_linear_equiv $ λ c a, e.to_add_monoid_hom.map_zsmul a c
+
+@[simp] lemma coe_to_int_linear_equiv :
+  ⇑(e.to_int_linear_equiv) = e := rfl
+
+@[simp] lemma to_int_linear_equiv_to_add_equiv :
+  e.to_int_linear_equiv.to_add_equiv = e := by { ext, refl }
+
+@[simp] lemma _root_.linear_equiv.to_add_equiv_to_int_linear_equiv
+  (e : M ≃ₗ[ℤ] M₂) : e.to_add_equiv.to_int_linear_equiv = e := fun_like.coe_injective rfl
+
+@[simp] lemma to_int_linear_equiv_symm :
+  (e.to_int_linear_equiv).symm = e.symm.to_int_linear_equiv := rfl
+
+@[simp] lemma to_int_linear_equiv_refl :
+  ((add_equiv.refl M).to_int_linear_equiv) = linear_equiv.refl ℤ M := rfl
+
+@[simp] lemma to_int_linear_equiv_trans (e₂ : M₂ ≃+ M₃)  :
+  (e.to_int_linear_equiv).trans (e₂.to_int_linear_equiv) = (e.trans e₂).to_int_linear_equiv :=
+rfl
+
+end add_comm_group
+
+end add_equiv

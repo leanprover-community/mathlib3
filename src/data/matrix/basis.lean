@@ -64,8 +64,9 @@ end
 lemma std_basis_eq_basis_mul_basis (i : m) (j : n) :
 std_basis_matrix i j 1 = vec_mul_vec (λ i', ite (i = i') 1 0) (λ j', ite (j = j') 1 0) :=
 begin
-  ext, norm_num [std_basis_matrix, vec_mul_vec],
-  exact ite_and,
+  ext,
+  norm_num [std_basis_matrix, vec_mul_vec],
+  exact ite_and _ _ _ _,
 end
 
 -- todo: the old proof used fintypes, I don't know `finsupp` but this feels generalizable
@@ -90,7 +91,7 @@ matrix.induction_on' M
 begin
   inhabit m,
   inhabit n,
-  simpa using h_std_basis (default m) (default n) 0,
+  simpa using h_std_basis default default 0
 end
 h_add h_std_basis
 

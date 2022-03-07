@@ -221,7 +221,7 @@ lemma cyclotomic_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] :
     rw [cyclotomic_eq_geom_sum hp.out, geom_sum_X_comp_X_add_one_eq_sum, ← lcoeff_apply,
       linear_map.map_sum],
     conv { congr, congr, skip, funext,
-      rw [lcoeff_apply, mul_comm, ← C_eq_nat_cast, ← monomial_eq_C_mul_X, coeff_monomial] },
+      rw [lcoeff_apply, ← C_eq_nat_cast, ← monomial_eq_C_mul_X, coeff_monomial] },
     rw [nat_degree_comp, show (X + 1 : ℤ[X]) = X + C 1, by simp, nat_degree_X_add_C, mul_one,
       nat_degree_cyclotomic, nat.totient_prime hp.out] at hi,
     simp only [lt_of_lt_of_le hi (nat.sub_le _ _), int.nat_cast_eq_coe_nat, sum_ite_eq', mem_range,

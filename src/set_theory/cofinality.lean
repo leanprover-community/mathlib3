@@ -706,6 +706,10 @@ theorem sum_lt_of_is_regular {ι : Type u} {f : ι → cardinal} {c : cardinal} 
   (hι : #ι < c) : (∀ i, f i < c) → sum f < c :=
 sum_lt_lift_of_is_regular.{u u} hc (by rwa lift_id)
 
+theorem nfp_lt_ord_of_is_regular {f : ordinal → ordinal} {c} (hc : is_regular c) (hc' : c ≠ ω) {a}
+  (hf : ∀ i < c.ord, f i < c.ord) : (a < c.ord) → nfp f a < c.ord :=
+nfp_lt_ord (by { rw hc.2, exact lt_of_le_of_ne hc.1 hc'.symm }) hf
+
 theorem deriv_lt_ord {f : ordinal → ordinal} {c} (hc : is_regular c) (hc' : c ≠ ω)
   (hf : ∀ i < c.ord, f i < c.ord) {a} : a < c.ord → deriv f a < c.ord :=
 begin
@@ -716,11 +720,10 @@ begin
     exact nfp_lt_ord hω hf },
   { intros b hb hb',
     rw deriv_succ,
-    exact nfp_lt_ord hω hf ((omega_le_cof.1 hω.le).2 _ (hb ((lt_succ_self b).trans hb'))) },
-  {
-    intros b hb H hb',
+    exact nfp_lt_ord hω hf ((omega_le_cof.1 hω.le).2 _ (hb ((ordinal.lt_succ_self b).trans hb'))) },
+  { intros b hb H hb',
     rw deriv_limit f hb,
-    apply bsup_lt_ord,
+    apply bsup_lt_ord_of_is_regular,
   }
 end
 

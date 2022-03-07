@@ -2717,7 +2717,7 @@ end
 end subgroup_normal
 
 @[to_additive]
-lemma mul_eq_one_iff_disjoint {H₁ H₂ : subgroup G} :
+lemma disjoint_iff_mul_eq_one {H₁ H₂ : subgroup G} :
   disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x * y = 1 → x = 1 ∧ y = 1 :=
 begin
   split,

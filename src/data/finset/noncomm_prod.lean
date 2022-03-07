@@ -383,7 +383,7 @@ begin
     intro heq1,
     rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,
     have hnmem' : i ∉ (s : set α), by simpa,
-    have heq1' : f i = 1 ∧ s.noncomm_prod f _ = 1 := subgroup.mul_eq_one_iff_disjoint.mp
+    have heq1' : f i = 1 ∧ s.noncomm_prod f _ = 1 := subgroup.disjoint_iff_mul_eq_one.mp
       (hind.disjoint_bsupr hnmem') (hmem i (mem_insert_self _ _)) hmem_bsupr heq1,
     rcases heq1' with ⟨ heq1i, heq1S ⟩,
     specialize ih heq1S,

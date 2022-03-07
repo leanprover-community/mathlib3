@@ -180,9 +180,9 @@ begin
       rw units.coe_pow,
       congr, },
     rw nat.totient_prime_pow at euler,
-    -- this is probably approachable if you can prove a^(b * c) = (a^c)^b,
-    rw pow_mul at euler,
-    sorry,
+    {
+      sorry,
+    },
     exact hp,
     exact nat.succ_le_iff.mp hα,
   },
@@ -205,11 +205,23 @@ begin
     {
       sorry,
     },
-    sorry,
   },
 end
 
-
+def pow_alt_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
+{ carrier := ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1 ∨ a^e = -1)),
+  one_mem' := by simp,
+  mul_mem' := begin
+    simp,
+    intros a b ha hb,
+    sorry, -- TODO(Sean): This should be doable following the lean cheat sheet and using mul_pow
+  end,
+  inv_mem' := begin
+    simp,
+    intros a ha,
+    sorry, -- TODO(Sean): This should be doable following the lean cheat sheet and using inv_neg' and one_inv,
+  end,
+}
 
 lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)] (not_prime : ¬ n.prime) :
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
@@ -224,14 +236,23 @@ begin
         rw finset.filter_nonempty_iff,
         use 0,
         simp,
-        sorry,
+        by_contra,
+        simp * at *,
+        have hn : 0 < n,
+        {
+          exact _inst_1.out,
+        },
+        have hn' : n ≠ 0,
+        {
+          simp,
+          exact ne_of_gt hn,
+        },
+        apply hn',
+        clear hn hn',
+        sorry, -- TODO(Sean): Prove this using mul_two_power_part_odd_part
       }
     ),
-    let G : subgroup ((zmod n)ˣ) := {
-      carrier := _,
-      one_mem' := _,
-      mul_mem' := _,
-      inv_mem' := _ },
+    let G : subgroup ((zmod n)ˣ) :=
   },
   {
     sorry,

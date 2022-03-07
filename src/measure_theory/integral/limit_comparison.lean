@@ -30,7 +30,7 @@ namespace limit_comparison
 
 /-- exp(-b x) is integrable on (a, X] for any finite a, X. -/
 lemma exp_neg_finite_integrable (b : ℝ) (a : ℝ) (X : ℝ):
-  integrable_on (λ x : ℝ, exp(-b * x) ) (set.Ioc a X) :=
+  integrable_on (λ x : ℝ, exp(-b * x) ) (Ioc a X) :=
   (continuous_const.mul continuous_id).exp.integrable_on_Ioc
 
 lemma exp_neg_hasderiv (b : ℝ) (x : ℝ) (h : 0 < b) :
@@ -48,7 +48,7 @@ begin
   rw s at this, exact this
 end
 
-lemma exp_neg_antideriv (b: ℝ) (h: 0 < b):
+lemma exp_neg_antideriv {b: ℝ} (h: 0 < b):
   deriv (λ (x : ℝ), -exp (-b * x) / b) = (λ (x : ℝ), exp (-b * x)) :=
 begin
   ext1,
@@ -56,33 +56,33 @@ begin
 end
 
 /-- Integral of exp(-b x) over (a, X) is bounded as X → ∞ -/
-lemma exp_neg_integral_bound (a : ℝ) (X : ℝ) (b : ℝ) (h: a ≤ X) (h2 : 0 < b):
+lemma exp_neg_integral_bound {a b : ℝ} (X : ℝ) (h: a ≤ X) (h2 : 0 < b):
   (∫ x in a .. X, exp (-b * x)) ≤ exp(-b*a)/b :=
 begin
   rw (integral_deriv_eq_sub' (λ x:ℝ, -exp(-b*x)/b ) ),
   -- goal 1/4: F(X) - F(a) is bounded
-  simp only [tsub_le_iff_right],
-  rw (neg_div b (exp (-b * a))),
-  rw (neg_div b (exp (-b * X))),
-  rw add_neg_self,
-  rw [neg_le, neg_zero],
-  apply le_of_lt,
-  apply div_pos,
-  apply exp_pos,
-  exact h2,
+  { simp only [tsub_le_iff_right],
+    rw (neg_div b (exp (-b * a))),
+    rw (neg_div b (exp (-b * X))),
+    rw add_neg_self,
+    rw [neg_le, neg_zero],
+    apply le_of_lt,
+    apply div_pos,
+    apply exp_pos,
+    exact h2 },
   -- goal 2/4: the derivative of F is exp(-b x)
-  exact exp_neg_antideriv b h2,
+  exact exp_neg_antideriv h2,
   -- goal 3/4: F is differentiable (why isn't this implicit?)
   intros x hx,
   exact has_deriv_at.differentiable_at (exp_neg_hasderiv b x h2 ),
   -- goal 4/4: exp(-b x) is continuous
-  apply continuous.continuous_on,
-  continuity
+  { apply continuous.continuous_on,
+    continuity }
 end
 
 /-- exp(-b x) is integrable on (a, ∞) -/
-lemma exp_neg_integrable_Ioi (a : ℝ) (b : ℝ) (h : 0 < b):
-  integrable_on (λ x : ℝ, exp(-b*x)) (set.Ioi a) :=
+lemma exp_neg_integrable_Ioi (a : ℝ) {b : ℝ} (h : 0 < b):
+  integrable_on (λ x : ℝ, exp(-b*x)) (Ioi a) :=
 begin
   apply (integrable_on_Ioi_of_interval_integral_norm_bounded
     (exp (-b*a)/b) a (exp_neg_finite_integrable b a) tendsto_id),
@@ -98,12 +98,12 @@ begin
   exact h
 end
 
-lemma exp_neg_finite_integral_Ioi (a : ℝ) (b : ℝ) (h : 0 < b):
+lemma exp_neg_finite_integral_Ioi (a : ℝ) {b : ℝ} (h : 0 < b):
   has_finite_integral (λ x : ℝ, exp(-b * x))
-  (measure_space.volume.restrict (set.Ioi a)) :=
+  (measure_space.volume.restrict (Ioi a)) :=
 begin
   apply integrable.has_finite_integral,
-  exact exp_neg_integrable_Ioi a b h,
+  exact exp_neg_integrable_Ioi a h,
 end
 
 /- Now show any continous function which is O(exp(-b x)) is integrable. -/
@@ -181,7 +181,7 @@ begin
   apply (mul_le_mul_of_nonneg_right (le_max_right C1 c) (le_of_lt(exp_pos (-b * x))))
 end
 
-lemma integrable_bigoh_exp (f: ℝ → ℝ) (a : ℝ) (b : ℝ) (h0 : 0 < b)
+lemma integrable_bigoh_exp (f: ℝ → ℝ) (a : ℝ) {b : ℝ} (h0 : 0 < b)
   (h1: continuous_on f (Ici a) )
   (h2: asymptotics.is_O f (λ x:ℝ, exp(-b * x)) at_top)
   : integrable_on f (Ioi a) :=
@@ -196,7 +196,7 @@ begin
   -- now have to show "has_finite_integral f"
   have : has_finite_integral (λ x : ℝ, C * exp (-b * x)) (volume.restrict(Ioi a)),
   { apply has_finite_integral.const_mul,
-    exact exp_neg_finite_integral_Ioi a b h0 },
+    exact exp_neg_finite_integral_Ioi a h0 },
 
   apply measure_theory.has_finite_integral.mono this,
 

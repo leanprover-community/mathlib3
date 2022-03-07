@@ -92,23 +92,20 @@ begin
   intros x hxX,
   apply continuous_at_id,
   intros x hxX,
-  right,
-  exact le_trans(zero_le_one)(hs),
+  right, linarith,
 
   -- halfway...
   apply continuous_on.mul,
   exact c,
   apply continuous_on.mul,
-  apply continuous.continuous_on,
-  apply continuous_const,
+  { apply continuous.continuous_on,
+  apply continuous_const },
   apply continuous_on.rpow_const,
   apply continuous_at.continuous_on,
   intros x hxX,
   apply continuous_at_id,
   intros x hxX,
-  right,
-  rw le_sub,
-  simp,exact hs
+  right, linarith,
 end
 
 
@@ -343,22 +340,22 @@ begin
   rw [this, F] at int_eval,
   simp only [sub_zero] at int_eval,
   rw integral_add at int_eval,
-  simp only [add_tsub_cancel_right],
-  have : (∫ (x : ℝ) in 0..X, exp (-x) * x ^ s)
-   = (∫ (x : ℝ) in 0..X, exp (-x) * (s * x ^ (s - 1))) - exp (-X) * X ^ s,
-  rw sub_eq_neg_add,
-  apply eq_add_of_add_neg_eq,
-  rw ← int_eval, simp,ring,
-  rw this,
-  have : (exp (-X) * X ^ s) = (X^s * exp(-X)) := by ring,
-  rw this, simp,
-  clear this, clear this,clear this,clear int_eval,
-  have : (λ (x : ℝ), exp (-x) * (s * x ^ (s - 1)))
-    = (λ (x : ℝ), s * (exp (-x) * x ^ (s - 1))),
-  ext1, ring,
-  rw this,
-  apply integral_const_mul,
-  clear this, clear int_eval,
+  { simp only [add_tsub_cancel_right],
+    have : (∫ (x : ℝ) in 0..X, exp (-x) * x ^ s)
+      = (∫ (x : ℝ) in 0..X, exp (-x) * (s * x ^ (s - 1))) - exp (-X) * X ^ s,
+    { rw sub_eq_neg_add,
+      apply eq_add_of_add_neg_eq,
+      rw ← int_eval,
+      simp only [integral_neg, neg_add_rev, neg_neg], ring },
+    rw this,
+    have : (exp (-X) * X ^ s) = (X^s * exp(-X)) := by ring,
+    rw this,
+    simp only [sub_left_inj],
+
+    have : (λ (x : ℝ), exp (-x) * (s * x ^ (s - 1))) = (λ (x : ℝ), s * (exp (-x) * x ^ (s - 1))),
+    { ext1, ring },
+    rw this,
+    apply integral_const_mul },
 
   -- now two more integrability statements, yawn
   { apply continuous_on.interval_integrable,
@@ -373,26 +370,26 @@ begin
     exact continuous_on.mono this ss },
 
   -- and the last one
-  apply continuous_on.interval_integrable,
-  apply continuous_on.mul,
-  apply continuous_on.exp,
-  apply continuous_on.neg,
-  apply continuous_on_id,
-  apply continuous_on.mul,
-  apply continuous_on_const,
-  apply continuous_on.rpow_const,
-  apply continuous_on_id,
-  intros x hx,
-  right,
-  rw le_sub,
-  simp only [sub_zero],
-  exact h
+  { apply continuous_on.interval_integrable,
+    apply continuous_on.mul,
+    apply continuous_on.exp,
+    apply continuous_on.neg,
+    apply continuous_on_id,
+    apply continuous_on.mul,
+    apply continuous_on_const,
+    apply continuous_on.rpow_const,
+    apply continuous_on_id,
+    intros x hx,
+    right,
+    rw le_sub,
+    simp only [sub_zero],
+    exact h },
 end
 
 lemma integrable_F (s: ℝ) (h: 1 ≤ s): measure_theory.integrable_on
   (λ (x:ℝ), exp(-x) * x^(s-1)) (Ioi 0) :=
 begin
-  apply limit_comparison.integrable_bigoh_exp (s-1).F 0 (1/2) one_half_pos,
+  apply limit_comparison.integrable_bigoh_exp (s-1).F 0 one_half_pos,
   apply cont_F,
   { linarith },
   exact asymp_F (s-1)

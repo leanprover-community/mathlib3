@@ -256,6 +256,8 @@ def is_partition.finpartition {c : finset (set α)}
   sup_parts := c.sup_id_eq_sUnion.trans hc.sUnion_eq_univ,
   not_bot_mem := hc.left }
 
+end setoid
+
 /-- A finpartition gives rise to a setoid partition -/
 theorem finpartition.is_partition_parts (f : finpartition (set.univ : set α)) :
   setoid.is_partition (f.parts : set (set α)) :=
@@ -263,8 +265,6 @@ theorem finpartition.is_partition_parts (f : finpartition (set.univ : set α)) :
   (f.parts.sup_id_eq_sUnion.symm.trans f.sup_parts) f.sup_indep.pairwise_disjoint⟩
 
 end finpartition
-
-end setoid
 
 /-- Constructive information associated with a partition of a type `α` indexed by another type `ι`,
 `s : ι → set α`.

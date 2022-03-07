@@ -558,14 +558,17 @@ variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
 { add := λ f g,
-  { to_continuous_map := f.to_continuous_map + g.to_continuous_map,
-    map_bounded' := let ⟨fb, hfb⟩ := f.bounded, ⟨gb, hgb⟩ := g.bounded in
-      ⟨↑(has_lipschitz_add.C β) * max fb gb, λ x y, begin
-        refine le_trans (lipschitz_with_lipschitz_const_add ⟨f x, g x⟩ ⟨f y, g y⟩) _,
-        rw prod.dist_eq,
-        refine mul_le_mul_of_nonneg_left _ (has_lipschitz_add.C β).coe_nonneg,
-        exact max_le_max (hfb x y) (hgb x y),
-      end⟩ } }
+  bounded_continuous_function.mk_of_bound (f.to_continuous_map + g.to_continuous_map)
+    (↑(has_lipschitz_add.C β) * max (classical.some f.bounded) (classical.some g.bounded))
+    begin
+      intros x y,
+      refine le_trans (lipschitz_with_lipschitz_const_add ⟨f x, g x⟩ ⟨f y, g y⟩) _,
+      rw prod.dist_eq,
+      refine mul_le_mul_of_nonneg_left _ (has_lipschitz_add.C β).coe_nonneg,
+      apply max_le_max,
+      exact classical.some_spec f.bounded x y,
+      exact classical.some_spec g.bounded x y,
+    end }
 
 @[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl

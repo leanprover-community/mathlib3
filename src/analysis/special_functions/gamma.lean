@@ -3,17 +3,42 @@ import measure_theory.integral.integral_eq_improper
 import measure_theory.integral.limit_comparison
 import analysis.special_functions.integrals
 
+/-!
+# The Gamma function
+
+In this file we define the Γ function (of a real variable in the range `1 ≤ s`), using the
+definition `Γ(s) = ∫ x in 0..∞, x^(s-1) exp(-x) dx`, and prove that it satisfies the relation
+`Γ(s+1) = s Γ(s)`. We also prove that `Γ(n+1) = n!` for `n ∈ ℕ`. We also show that `Γ(s)` is
+continuous on `(0, ∞)` (but not yet at the left endpoint).
+
+TO DO:
+
+- Extend to the whole real line.
+- Allow complex `s` and prove analyticity.
+
+## Tags
+
+gamma
+-/
 
 noncomputable theory
 open finset filter metric interval_integral set function
-open_locale classical topological_space ennreal filter
+open_locale classical topological_space ennreal filter measure_theory
 
 namespace real
 
-
-/- The integrand in the integration-by-parts argument -/
+/- The integrand function and its properties -/
 
 def F (s x : ℝ) : ℝ := exp(-x) * x^s
+
+
+/- We prove some lemmas about F:
+
+- for any `s ≥ 0`, F is continuous of `x ∈ [0,∞)`;
+- for any `s ≥ 1`, the derivative of `F(s, -)` at any `x ∈ [0, ∞)` is what it should be;
+- for any `s ≥ 1`, the derivative of `F(s, -)` is integrable on [0, X] for any X ≥ 0;
+- for any `s ∈ ℝ`, F is `O( exp(-(1/2) * x))` as `x → ∞`.
+-/
 
 lemma cont_F (s : ℝ) (h1: 0 ≤ s) :
   continuous_on s.F (Ici 0) :=
@@ -39,10 +64,54 @@ begin
   simpa using has_deriv_at.mul d1 d2
 end
 
+lemma dF_interval_integrable (s X: ℝ) (hs: 1 ≤ s) (hX: 0 ≤ X):
+interval_integrable (λ (x : ℝ),  -(exp (-x) * x ^ s) + exp (-x) * (s * x ^ (s - 1)))
+  measure_theory.measure_space.volume 0 X :=
+begin
+  apply continuous_on.interval_integrable,
+
+  have c : continuous_on (λ (x : ℝ), exp (-x)) (interval 0 X),
+  { apply continuous_on.exp,
+    apply continuous_on.neg,
+    apply continuous_on_id },
+
+  -- This is an awful mess,
+  -- proving continuity of a function
+  -- built up as a sum of many terms.
+  apply continuous_on.add,
+  apply continuous_on.neg,
+  apply continuous_on.mul,
+  exact c,
+  apply continuous_on.rpow_const,
+  apply continuous_at.continuous_on,
+  intros x hxX,
+  apply continuous_at_id,
+  intros x hxX,
+  right,
+  exact le_trans(zero_le_one)(hs),
+
+  -- halfway...
+  apply continuous_on.mul,
+  exact c,
+  apply continuous_on.mul,
+  apply continuous.continuous_on,
+  apply continuous_const,
+  apply continuous_on.rpow_const,
+  apply continuous_at.continuous_on,
+  intros x hxX,
+  apply continuous_at_id,
+  intros x hxX,
+  right,
+  rw le_sub,
+  simp,exact hs
+end
+
+
 
 /- A long and fiddly argument to show that F decays exponentially at +∞ -/
 
-/- This lemma should really go in specific_limits.lean or something -/
+
+/- The next three lemmas should really be in exp.lean or somewhere like that -/
 lemma tendsto_exp_div_rpow_at_top (s : ℝ) : tendsto (λ x : ℝ, exp x / x ^ s ) at_top at_top :=
 begin
   have := archimedean_iff_nat_lt.1 (real.archimedean) s,
@@ -57,13 +126,10 @@ begin
   have ff2: f2 = (λ x:ℝ, exp x / x ^ s) := by refl,
 
   have : ∀ x : ℝ, (0 < x) → f1 x = f2 x,
-  --have : ∀ x : ℝ, (0 < x) → ( (exp x / x ^ n) * (x ^ (↑n - s)) = exp x / x ^ s),
-  --have : ∀ x : ℝ, (0 < x) → (λ x:ℝ, (exp x / x ^ n) * (x ^ (↑n - s))) x = (λ x:ℝ, exp x / x ^ s) x,
   {
     intros x h,
     rw [ff1,ff2],
     ring_nf,
-    --rw div_eq_mul_inv (exp x) (x^n),
     rw mul_eq_mul_right_iff,
     left,
     rw [sub_eq_neg_add,rpow_add_nat, mul_assoc],
@@ -97,7 +163,7 @@ begin
   exact t,
 end
 
-/- More general version allowing exp(-bx) for any b > 0 -/
+/- This one too -- a more general version allowing exp(-bx) for any b > 0 -/
 lemma tendsto_exp_mul_div_rpow_at_top (s : ℝ) (b : ℝ) (hb : 0 < b):
   tendsto (λ x : ℝ, exp (b * x) / x ^ s ) at_top at_top :=
 begin
@@ -231,9 +297,54 @@ begin
   exact (tendsto_exp_mul_div_rpow_at_top s (1/2))(one_half_pos) -- hooray!
 end
 
+lemma loc_unif_bound_F (s : ℝ) (h: 0 < s) (t: ℝ) (ht: t ∈ set.Icc 0 s )
+  (x:ℝ) (hx: x ∈ set.Ioi (0:ℝ)): F t x ≤  F s x + F 0 x:=
+begin
+  rw [set.Ioi,mem_set_of_eq] at hx,
+  rw [set.Icc,mem_set_of_eq] at ht,
+  by_cases (1 ≤ x),
+  { -- case 1 ≤ x
+    suffices: F t x ≤ F s x,
+    {
+      suffices: 0 ≤ F 0 x,
+      { linarith },
+      simp only [F, rpow_zero, mul_one],
+      exact le_of_lt(exp_pos (-x))
+    },
+    simp only [F],
+    apply mul_le_mul,
+    refl,
+    apply rpow_le_rpow_of_exponent_le h ht.2,
+    apply le_of_lt,
+    apply rpow_pos_of_pos,
+    linarith,
+    exact le_of_lt(exp_pos (-x))
+  },
+  { -- case x < 1
+    simp only [not_le] at h,
+    suffices: F t x ≤ F 0 x,
+    {
+      suffices: 0 ≤ F s x,
+      { linarith },
+      apply le_of_lt,
+      apply mul_pos,
+      apply exp_pos,
+      apply rpow_pos_of_pos hx
+    },
+    simp only [F],
+    rw [rpow_zero, mul_one],
+    rw mul_le_iff_le_one_right,
+    apply rpow_le_one,
+    exact le_of_lt hx,
+    exact le_of_lt h,
+    exact ht.1,
+    exact exp_pos (-x),
+  },
+end
 
 
-
+/- The lower incomplete Γ function. This is an object of independent interest, so we
+prove the recurrence in terms of incomplete Γ and deduce it for the genuine Γ later. -/
 
 def real_incomplete_gamma (s X : ℝ) : ℝ := ∫ x in 0..X, exp(-x) * x^(s-1)
 
@@ -254,48 +365,8 @@ begin
     tauto,
   },
 
-  have c : continuous_on (λ (x : ℝ), exp (-x)) (interval 0 X),
-  { apply continuous_on.exp,
-    apply continuous_on.neg,
-    apply continuous_on_id },
+  have int_eval := integral_eq_sub_of_has_deriv_at F_der_I (dF_interval_integrable s X h h2),
 
-  have dF_int_I: interval_integrable (λ (x : ℝ),
-    -(exp (-x) * x ^ s) + exp (-x) * (s * x ^ (s - 1)))
-    measure_theory.measure_space.volume 0 X,
-  {
-    -- This is an awful mess,
-    -- proving continuity of a function
-    -- built up as a sum of many terms.
-    apply continuous_on.interval_integrable,
-    apply continuous_on.add,
-    apply continuous_on.neg,
-    apply continuous_on.mul,
-    exact c,
-    apply continuous_on.rpow_const,
-    apply continuous_at.continuous_on,
-    intros x hxX,
-    apply continuous_at_id,
-    intros x hxX,
-    right,
-    exact le_trans(zero_le_one)(h),
-
-    -- halfway...
-    apply continuous_on.mul,
-    exact c,
-    apply continuous_on.mul,
-    apply continuous.continuous_on,
-    apply continuous_const,
-    apply continuous_on.rpow_const,
-    apply continuous_at.continuous_on,
-    intros x hxX,
-    apply continuous_at_id,
-    intros x hxX,
-    right,
-    rw le_sub,
-    simp,exact h
-  },
-  have int_eval := integral_eq_sub_of_has_deriv_at F_der_I dF_int_I,
-  clear F_der_I dF_int_I c,
   have : (F s 0) = 0,
   { rw F, rw zero_rpow, ring, apply ne_of_gt,
     apply lt_of_lt_of_le zero_lt_one h },
@@ -320,17 +391,21 @@ begin
   clear this, clear int_eval,
 
   -- now two more integrability statements, yawn
-  apply continuous_on.interval_integrable,
-  apply continuous_on.neg,
-  apply continuous_on.mul,
-  apply continuous_on.exp,
-  apply continuous_on.neg,
-  apply continuous_on_id,
-  apply continuous_on.rpow_const,
-  apply continuous_on_id,
-  intros x hx,
-  right,
-  exact le_trans(zero_le_one)(h),
+  {
+    apply continuous_on.interval_integrable,
+    have := cont_F s (le_trans zero_le_one h),
+    replace := continuous_on.neg this,
+    have ss : (interval 0 X) ⊆ (set.Ici 0),
+    {
+      rw interval,
+      rw [max_def, min_def],
+      rw Icc_subset_Ici_iff,
+      { split_ifs,tauto,tauto },
+      { split_ifs, tauto,tauto,tauto,tauto },
+
+    },
+    exact continuous_on.mono this ss
+  },
 
   -- and the last one
   apply continuous_on.interval_integrable,
@@ -348,7 +423,6 @@ begin
   simp only [sub_zero],
   exact h
 end
-
 
 lemma integrable_F (s: ℝ) (h: 1 ≤ s): measure_theory.integrable_on
   (λ (x:ℝ), exp(-x) * x^(s-1)) (Ioi 0) :=
@@ -463,6 +537,135 @@ begin
   left, exact hn,
 
   simp only [nat.cast_succ, le_add_iff_nonneg_left, nat.cast_nonneg]
+end
+
+
+/- Continuity of the gamma function. This is proved using `continuous_at_of_dominated`, so
+we need to verify the hypotheses. -/
+lemma gamma_cts: continuous_on real_gamma (Ioi 1):=
+begin
+
+  apply continuous_at.continuous_on,
+  intros s hs,
+  rw [set.Ioi, mem_set_of_eq] at hs,
+
+  have Ioo_nhd: Ioo 1 (s+1) ∈ 𝓝 s,
+  {
+    apply Ioo_mem_nhds,
+    linarith, linarith,
+  },
+
+  -- F(t-1, -) is bounded, locally uniformly in t near s
+  have bound: ∀ᶠ (t : ℝ) in 𝓝 s, ∀ᵐ (x : ℝ) ∂ measure_theory.measure_space.volume.restrict (Ioi 0),
+    ∥exp (-x) * x ^ (t - 1)∥ ≤ (λ y:ℝ, F s y + F 0 y) x,
+  {
+
+    apply eventually_of_mem (Ioo_nhd),
+    intros t ht,
+    rw [set.Ioo, mem_set_of_eq] at ht,
+
+    rw measure_theory.ae_iff,
+    rw measure_theory.measure.restrict_apply',
+    swap, apply measurable_set_Ioi,
+    suffices: ({a : ℝ | ¬∥exp (-a) * a ^ (t - 1)∥ ≤ (λ (y : ℝ), F s y + F 0 y) a} ∩ Ioi 0)
+      = ∅,
+    {
+      rw this,
+      apply measure_theory.measure_empty,
+    },
+    ext,
+    simp only [not_le, mem_inter_eq, mem_set_of_eq, set.mem_Ioi,
+      mem_empty_eq, iff_false, not_and, not_lt],
+    contrapose,
+    simp only [not_le, not_lt],
+    intro hx,
+    have: ∥exp(-x) * x^(t-1)∥ = exp(-x) * x^(t-1),
+    {
+      apply abs_of_nonneg,
+      apply le_of_lt,
+      apply mul_pos,
+      exact exp_pos (-x),
+      apply rpow_pos_of_pos,
+      exact hx
+    },
+    rw this,
+    have: exp(-x) * x^(t-1) ≤ F s x + F 0 x,
+    {
+      apply loc_unif_bound_F s _ (t-1),
+      rw [set.Icc,mem_set_of_eq],
+      split,
+      linarith,linarith,
+      tauto,linarith
+    },
+    exact this,
+  },
+
+  -- The upper bound is integrable
+  have bd_integrable: measure_theory.integrable (λ (x : ℝ), F s x + F 0 x)
+  (measure_theory.measure_space.volume.restrict (Ioi 0)),
+  {
+    apply measure_theory.integrable.add,
+    {
+      --exact integrable_F s (le_of_lt hs)
+      have: 1 ≤ s+1,
+      { linarith },
+      replace := integrable_F (s+1) this,
+      simpa using this
+    },
+    { have := integrable_F (1:ℝ) (le_refl (1:ℝ)),
+      rw sub_self at this,
+      exact this,
+    }
+  },
+
+  -- F(t-1, -) is a.e. measurable in x, for all t near s
+  have ae_meas: ∀ᶠ (t : ℝ) in 𝓝 s, ae_measurable (λ (x : ℝ), exp (-x) * x ^ (t - 1))
+    (measure_theory.measure_space.volume.restrict (Ioi 0)),
+  {
+    apply eventually_of_mem (Ioi_mem_nhds hs),
+    intros t ht,
+    rw [set.Ioi, mem_set_of_eq] at ht,
+    apply continuous_on.ae_measurable,
+    have : 0 ≤ t-1 := by linarith,
+    replace := (cont_F (t-1) this),
+
+    apply continuous_on.mono this,
+    rw [set.Ioi, set.Ici, set_of_subset_set_of],
+    intro a,
+    apply le_of_lt,
+    apply measurable_set_Ioi,
+  },
+
+  -- F(-, x) is continuous at s-1, for almost all x
+  have F_cts: ∀ᵐ (x : ℝ) ∂measure_theory.measure_space.volume.restrict (Ioi 0),
+    continuous_at (λ (t : ℝ), exp (-x) * x ^ (t - 1) ) s,
+  {
+    have emp: {a : ℝ | ¬continuous_at (λ (t : ℝ), exp (-a) * a ^ (t - 1)) s} ∩ Ioi 0 = ∅,
+    {
+      ext,
+      simp only [mem_inter_eq, mem_set_of_eq, set.mem_Ioi, mem_empty_eq, iff_false, not_and, not_lt],
+      contrapose,
+      simp only [not_le, not_not],
+      intro hx,
+      apply continuous_at.mul,
+      { apply continuous_at_const },
+      { apply continuous_at.rpow,
+        apply continuous_at_const,
+        apply continuous_at.sub,
+        apply continuous_at_id,
+        apply continuous_at_const,
+        left, exact hx.ne'
+       },
+    },
+
+    rw measure_theory.ae_iff,
+    rw measure_theory.measure.restrict_apply',
+    rw emp,
+    exact measure_theory.measure_empty,
+    apply measurable_set_Ioi
+  },
+
+  apply measure_theory.continuous_at_of_dominated ae_meas bound bd_integrable F_cts,
 end
 
 end real

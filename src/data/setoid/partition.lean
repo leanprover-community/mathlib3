@@ -249,7 +249,7 @@ section finpartition
 open_locale classical
 
 /-- A finite setoid partition furnishes a finpartition -/
-def _root_.is_partition.finpartition {c : finset (set α)}
+def is_partition.finpartition {c : finset (set α)}
   (hc : setoid.is_partition (c : set (set α))) : finpartition (set.univ : set α) :=
 { parts := c,
   sup_indep := finset.sup_indep_iff_pairwise_disjoint.mpr $ eqv_classes_disjoint hc.2,
@@ -257,7 +257,7 @@ def _root_.is_partition.finpartition {c : finset (set α)}
   not_bot_mem := hc.left }
 
 /-- A finpartition gives rise to a setoid partition -/
-theorem _root_.finpartition.is_partition_parts (f : finpartition (set.univ : set α)) :
+theorem finpartition.is_partition_parts (f : finpartition (set.univ : set α)) :
   setoid.is_partition (f.parts : set (set α)) :=
 ⟨f.not_bot_mem, eqv_classes_of_disjoint_union
   (f.parts.sup_id_eq_sUnion.symm.trans f.sup_parts) f.sup_indep.pairwise_disjoint⟩

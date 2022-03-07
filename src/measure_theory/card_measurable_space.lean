@@ -79,7 +79,7 @@ end
 theorem generate_measurable_rec.cases_on {s : set (set α)} {i : ω₁} {t : set α}
   (ht : t ∈ generate_measurable_rec s i) :
   t ∈ s ∨ t = ∅ ∨ (∃ j <₁ i, tᶜ ∈ generate_measurable_rec s j) ∨
-  (∃ (f : ℕ → set α), (∀ n, ∃ j <₁ i, f n ∈ generate_measurable_rec s j) ∧ t = ⋃ n, f n) :=
+  ∃ (f : ℕ → set α), (∀ n, ∃ j <₁ i, f n ∈ generate_measurable_rec s j) ∧ t = ⋃ n, f n :=
 begin
   unfold generate_measurable_rec at ht,
   rcases ht with (((h | h) | ⟨t, ⟨_, ⟨j, rfl⟩, ht⟩, rfl⟩) | ⟨f, hf⟩),

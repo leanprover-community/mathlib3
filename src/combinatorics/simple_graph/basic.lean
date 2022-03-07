@@ -329,6 +329,12 @@ structure dart extends V × V :=
 section darts
 variables {G}
 
+/-- The first vertex for the dart. -/
+abbreviation dart.fst (d : G.dart) : V := d.fst
+
+/-- The second vertex for the dart. -/
+abbreviation dart.snd (d : G.dart) : V := d.snd
+
 instance dart.fintype [fintype V] [decidable_rel G.adj] : fintype G.dart :=
 fintype.of_equiv (Σ v, G.neighbor_set v)
 { to_fun := λ s, ⟨(s.fst, s.snd), s.snd.property⟩,
@@ -355,6 +361,9 @@ d.is_adj
 @[simp] lemma dart.edge_symm (d : G.dart) : d.symm.edge = d.edge :=
 sym2.mk_prod_swap_eq
 
+@[simp] lemma dart.edge_comp_symm : dart.edge ∘ dart.symm = (dart.edge : G.dart → sym2 V) :=
+funext dart.edge_symm
+
 @[simp] lemma dart.symm_symm (d : G.dart) : d.symm.symm = d :=
 dart.ext _ _ $ prod.swap_swap _
 
@@ -368,7 +377,20 @@ lemma dart_edge_eq_iff : Π (d₁ d₂ : G.dart),
   d₁.edge = d₂.edge ↔ d₁ = d₂ ∨ d₁ = d₂.symm :=
 by { rintros ⟨p, hp⟩ ⟨q, hq⟩, simp [sym2.mk_eq_mk_iff] }
 
+lemma dart_edge_eq_mk_iff : Π {d : G.dart} {p : V × V},
+  d.edge = ⟦p⟧ ↔ d.to_prod = p ∨ d.to_prod = p.swap :=
+by { rintro ⟨p, h⟩, apply sym2.mk_eq_mk_iff }
+
+lemma dart_edge_eq_mk_iff' : Π {d : G.dart} {u v : V},
+  d.edge = ⟦(u, v)⟧ ↔ d.fst = u ∧ d.snd = v ∨ d.fst = v ∧ d.snd = u :=
+by { rintro ⟨⟨a, b⟩, h⟩ u v, rw dart_edge_eq_mk_iff, simp }
+
 variables (G)
+
+/-- Two darts are said to be adjacent if they could be consecutive
+darts in a walk -- that is, the first dart's second vertex is equal to
+the second dart's first vertex. -/
+def dart_adj (d d' : G.dart) : Prop := d.snd = d'.fst
 
 /-- For a given vertex `v`, this is the bijective map from the neighbor set at `v`
 to the darts `d` with `d.fst = v`. --/

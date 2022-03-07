@@ -202,21 +202,47 @@ begin
     category.assoc, kernel_comp_cokernel_assoc, zero_comp, comp_zero, unop_zero],
 end
 
-/--
-If `exact g.op f.op`, then `exact f g` as well. This is a lemma because changing lemma to instance
-causes "maximum class-instance resolution depth has been reached" in `pseudoelements.lean`.
--/
-lemma exact.unop [e : exact g.op f.op] : exact f g :=
-begin
+lemma exact.op_iff : exact f g ↔ exact g.op f.op :=
+⟨λ e, @@exact.op _ _ _ _ e, λ e, begin
   rw exact_iff at e ⊢,
   refine ⟨by convert (congr_arg quiver.hom.unop e.1), _⟩,
   have e3 := eq_whisker (whisker_eq (cokernel_op_unop g).inv (congr_arg quiver.hom.unop e.2))
     (kernel_op_unop f).hom,
-  rwa [unop_comp, cokernel.π_op, kernel.ι_op, unop_zero, ← category.assoc,
-    ← category.assoc, ← category.assoc, ← category.assoc, iso.inv_hom_id,
-    category.id_comp, category.assoc, iso.inv_hom_id, category.comp_id, eq_to_hom_refl,
-    eq_to_hom_refl, comp_zero, zero_comp, category.comp_id, category.comp_id] at e3,
+  simp only [← category.assoc, iso.inv_hom_id, unop_comp, cokernel.π_op, kernel.ι_op,
+    category.id_comp, eq_to_hom_refl, category.comp_id, unop_zero, comp_zero, zero_comp] at e3,
+  simpa only [category.assoc, iso.inv_hom_id, category.comp_id] using e3,
+end⟩
+
+
+instance exact.unop {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) [exact g f] : exact f.unop g.unop :=
+begin
+  have e0 : exact g f := infer_instance,
+  rw abelian.exact_iff at e0 ⊢,
+  have e02 := e0.2,
+  refine ⟨by convert (congr_arg quiver.hom.unop e0.1), _⟩,
+  have eq2 : (kernel.ι f).unop = _ := @kernel.ι_op C _ _ Z.unop Y.unop f.unop,
+  have eq1 : (cokernel.π g).unop = _ := @cokernel.π_op C _ _ Y.unop X.unop g.unop,
+  apply_fun quiver.hom.unop at e02,
+  rw [unop_comp, unop_zero, eq1, cokernel_op_unop_hom, ← category.assoc, limits.kernel.lift_ι,
+    eq_to_hom_refl, category.comp_id, cokernel.π_op, eq_to_hom_refl, category.comp_id, eq2,
+    eq_to_hom_refl, category.id_comp] at e02,
+  have e03 := whisker_eq (cokernel_op_unop g.unop).inv (eq_whisker e02 (kernel_op_unop f.unop).hom),
+  rwa [← category.assoc, ← category.assoc, ← category.assoc, ← category.assoc, iso.inv_hom_id,
+    category.id_comp, category.assoc, iso.inv_hom_id, category.comp_id, zero_comp, comp_zero]at e03,
 end
+
+lemma exact.unop_iff {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) : exact g f ↔ exact f.unop g.unop :=
+⟨λ e, @@exact.unop _ _ g f e, λ e, begin
+  rw exact_iff at e ⊢,
+  refine ⟨by convert (congr_arg quiver.hom.op e.1), _⟩,
+  have e' := e.2,
+  apply_fun quiver.hom.op at e',
+  rw [op_zero, op_comp, cokernel.π_unop, kernel.ι_unop, eq_to_hom_refl, eq_to_hom_refl,
+    category.comp_id, category.id_comp] at e',
+  have e'' := whisker_eq (cokernel_unop_op f).inv (eq_whisker e' (kernel_unop_op g).hom),
+  rwa [zero_comp, comp_zero, ← category.assoc, ← category.assoc, ← category.assoc, ← category.assoc,
+    iso.inv_hom_id, category.id_comp, category.assoc, iso.inv_hom_id, category.comp_id] at e'',
+end⟩
 
 end opposite
 

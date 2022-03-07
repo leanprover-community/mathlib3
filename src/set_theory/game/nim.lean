@@ -33,24 +33,25 @@ useful.
 -/
 universes u
 
-/-- `ordinal.out` and `ordinal.type_out'` are required to make the definition of nim computable.
- `ordinal.out` performs the same job as `quotient.out` but is specific to ordinals. -/
-def ordinal.out (o : ordinal) : Well_order :=
-⟨o.out.α, λ x y, o.out.r x y, o.out.wo⟩
+/-- `ordinal.out'` and `ordinal.type_lt'` are required to make the definition of nim computable.
+ `ordinal.out'` performs the same job as `quotient.out` but is specific to ordinals. -/
+def ordinal.out' (o : ordinal) : Well_order :=
+⟨o.out.α, (<), o.out.wo⟩
 
-/-- This is the same as `ordinal.type_out` but defined to use `ordinal.out`. -/
-theorem ordinal.type_out' : ∀ (o : ordinal), ordinal.type (ordinal.out o).r = o := ordinal.type_out
+/-- This is the same as `ordinal.type_lt` but defined to use `ordinal.out`. -/
+private theorem ordinal.type_lt' : ∀ (o : ordinal), ordinal.type o.out'.r = o :=
+ordinal.type_lt
 
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
  take a positive number of stones from it on their turn. -/
 def nim : ordinal → pgame
-| O₁ := ⟨ O₁.out.α, O₁.out.α,
-  λ O₂, have hwf : (ordinal.typein O₁.out.r O₂) < O₁,
-    from begin nth_rewrite_rhs 0 ←ordinal.type_out' O₁, exact ordinal.typein_lt_type _ _ end,
-    nim (ordinal.typein O₁.out.r O₂),
-  λ O₂, have hwf : (ordinal.typein O₁.out.r O₂) < O₁,
-    from begin nth_rewrite_rhs 0 ←ordinal.type_out' O₁, exact ordinal.typein_lt_type _ _ end,
-    nim (ordinal.typein O₁.out.r O₂)⟩
+| O₁ := ⟨ O₁.out'.α, O₁.out'.α,
+  λ O₂, have hwf : ordinal.typein O₁.out'.r O₂ < O₁,
+    from begin nth_rewrite_rhs 0 ←ordinal.type_lt' O₁, exact ordinal.typein_lt_type _ _ end,
+    nim (ordinal.typein O₁.out'.r O₂),
+  λ O₂, have hwf : ordinal.typein O₁.out'.r O₂ < O₁,
+    from begin nth_rewrite_rhs 0 ←ordinal.type_lt' O₁, exact ordinal.typein_lt_type _ _ end,
+    nim (ordinal.typein O₁.out'.r O₂)⟩
 using_well_founded { dec_tac := tactic.assumption }
 
 namespace pgame
@@ -62,13 +63,13 @@ namespace nim
 open ordinal
 
 lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
-  (λ O₂, nim (ordinal.typein O.out.r O₂))
-  (λ O₂, nim (ordinal.typein O.out.r O₂)) :=
-by rw nim
+  (λ O₂, nim (ordinal.typein (<) O₂))
+  (λ O₂, nim (ordinal.typein (<) O₂)) :=
+by { rw nim, refl }
 
-lemma nim_wf_lemma {O₁ : ordinal} (O₂ : O₁.out.α) : (ordinal.typein O₁.out.r O₂) < O₁ :=
+lemma nim_wf_lemma {O₁ : ordinal} (O₂ : O₁.out.α) : (ordinal.typein (<) O₂) < O₁ :=
 begin
-  nth_rewrite_rhs 0 ← ordinal.type_out O₁,
+  nth_rewrite_rhs 0 ← ordinal.type_lt O₁,
   exact ordinal.typein_lt_type _ _
 end
 
@@ -77,35 +78,28 @@ instance nim_impartial : ∀ (O : ordinal), impartial (nim O)
 begin
   rw [impartial_def, nim_def, neg_def],
   split,
-  split,
-  { rw pgame.le_def,
-    split,
-    { intro i,
-      let hwf : (typein O.out.r i) < O := nim_wf_lemma i,
-      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r i).1⟩ },
-    { intro j,
-      let hwf : (typein O.out.r j) < O := nim_wf_lemma j,
-      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r j).1⟩ } },
-  { rw pgame.le_def,
-    split,
-    { intro i,
-      let hwf : (typein O.out.r i) < O := nim_wf_lemma i,
-      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r i).2⟩ },
-    { intro j,
-      let hwf : (typein O.out.r j) < O := nim_wf_lemma j,
-      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r j).2⟩ } },
-  split,
-  { intro i,
-    let hwf : (typein O.out.r i) < O := nim_wf_lemma i,
-    simpa using nim_impartial (typein O.out.r i) },
-  { intro j,
-    let hwf : (typein O.out.r j) < O := nim_wf_lemma j,
-    simpa using nim_impartial (typein O.out.r j) }
+  split;
+  rw pgame.le_def,
+  { refine ⟨λ i, _, λ j, _⟩,
+    { let hwf := nim_wf_lemma i,
+      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).1⟩ },
+    { let hwf := nim_wf_lemma j,
+      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).1⟩ } },
+  { refine ⟨λ i, _, λ j, _⟩,
+    { let hwf := nim_wf_lemma i,
+      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).2⟩ },
+    { let hwf := nim_wf_lemma j,
+      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).2⟩ } },
+  refine ⟨λ i, _, λ j, _⟩,
+  { let hwf := nim_wf_lemma i,
+    simpa using nim_impartial (typein ((<) : O.out.α → O.out.α → Prop) i) },
+  { let hwf := nim_wf_lemma j,
+    simpa using nim_impartial (typein ((<) : O.out.α → O.out.α → Prop) j) }
 end
 using_well_founded { dec_tac := tactic.assumption }
 
 lemma exists_ordinal_move_left_eq (O : ordinal) : ∀ i, ∃ O' < O, (nim O).move_left i = nim O' :=
-by { rw nim_def, exact λ i, ⟨ordinal.typein O.out.r i, ⟨nim_wf_lemma _, rfl⟩⟩ }
+by { rw nim_def, exact λ i, ⟨_, ⟨nim_wf_lemma i, rfl⟩⟩ }
 
 lemma exists_move_left_eq (O : ordinal) : ∀ O' < O, ∃ i, (nim O).move_left i = nim O' :=
 by { rw nim_def, exact λ _ h, ⟨(ordinal.principal_seg_out h).top, by simp⟩ }
@@ -116,7 +110,7 @@ begin
   split,
   { rintro (i : (0 : ordinal).out.α),
     have h := ordinal.typein_lt_type _ i,
-    rw ordinal.type_out at h,
+    rw ordinal.type_lt at h,
     exact false.elim (not_le_of_lt h (ordinal.zero_le (ordinal.typein _ i))) },
   { tidy }
 end
@@ -225,18 +219,11 @@ begin
 
     have h' : ∃ i : G.left_moves, (grundy_value (G.move_left i)) =
       ordinal.typein (quotient.out (grundy_value G)).r i₂,
-    { have hlt : ordinal.typein (quotient.out (grundy_value G)).r i₂ <
-        ordinal.type (quotient.out (grundy_value G)).r := ordinal.typein_lt_type _ _,
-      rw ordinal.type_out at hlt,
+    { have hlt := ordinal.typein_lt_self i₂,
       revert i₂ hlt,
       rw grundy_value_def,
       intros i₂ hlt,
-      have hnotin : ordinal.typein (Inf (nonmoves (λ i, grundy_value (G.move_left i)))).out.r i₂ ∉
-        (nonmoves (λ (i : G.left_moves), grundy_value (G.move_left i))),
-      { intro hin,
-        have hge := cInf_le' hin,
-        have hcontra := (le_not_le_of_lt hlt).2,
-        contradiction },
+      have hnotin : _ ∉ _ := λ hin, (le_not_le_of_lt hlt).2 (cInf_le' hin),
       simpa [nonmoves] using hnotin },
 
     cases h' with i hi,

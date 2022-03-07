@@ -278,8 +278,7 @@ variables (B)
 
 /-- Analogous construction of `topological_fiber_bundle_core` for vector bundles. This
 construction gives a way to construct vector bundles from a structure registering how
-trivialization changes act on fibers.-/
-@[nolint has_inhabited_instance]
+trivialization changes act on fibers. -/
 structure topological_vector_bundle_core (ι : Type*) :=
 (base_set          : ι → set B)
 (is_open_base_set  : ∀ i, is_open (base_set i))
@@ -292,7 +291,21 @@ structure topological_vector_bundle_core (ι : Type*) :=
 (coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
 
-attribute [simp, mfld_simps] topological_vector_bundle_core.mem_base_set_at
+/-- The trivial topological vector bundle core, in which all the changes of coordinates are the
+identity. -/
+def trivial_topological_vector_bundle_core (ι : Type*) [inhabited ι] :
+  topological_vector_bundle_core R B F ι :=
+{ base_set := λ ι, univ,
+  is_open_base_set := λ i, is_open_univ,
+  index_at := λ x, default,
+  mem_base_set_at := λ x, mem_univ x,
+  coord_change := λ i j x, linear_map.id,
+  coord_change_self := λ i x hx v, rfl,
+  coord_change_comp := λ i j k x hx v, rfl,
+  coord_change_continuous := λ i j, continuous_on_snd, }
+
+instance (ι : Type*) [inhabited ι] : inhabited (topological_vector_bundle_core R B F ι) :=
+⟨trivial_topological_vector_bundle_core R B F ι⟩
 
 namespace topological_vector_bundle_core
 
@@ -332,10 +345,20 @@ instance topological_space_fiber (x : B) : topological_space (Z.fiber x) := by a
 instance add_comm_monoid_fiber : ∀ (x : B), add_comm_monoid (Z.fiber x) := λ x, by apply_instance
 instance module_fiber : ∀ (x : B), module R (Z.fiber x) := λ x, by apply_instance
 
+variable [add_comm_group F]
+
+instance add_comm_group_fiber : ∀ (x : B), add_comm_group (Z.fiber x) := λ x, by apply_instance
+
 end fiber_instances
 
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
 @[reducible, simp, mfld_simps] def proj : total_space Z.fiber → B := bundle.proj Z.fiber
+
+/-- The total space of the topological vector bundle, as a convenience function for dot notation.
+It is by definition equal to `bundle.total_space Z.fiber`, a.k.a. `Σ x, Z.fiber x` but with a
+different name for typeclass inference. -/
+@[nolint unused_arguments, reducible]
+def total_space := bundle.total_space Z.fiber
 
 /-- Local homeomorphism version of the trivialization change. -/
 def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
@@ -349,7 +372,7 @@ variable (ι)
 
 /-- Topological structure on the total space of a topological bundle created from core, designed so
 that all the local trivialization are continuous. -/
-instance to_topological_space : topological_space (total_space Z.fiber) :=
+instance to_topological_space : topological_space (Z.total_space) :=
 topological_fiber_bundle_core.to_topological_space ι ↑Z
 
 variables {ι} (b : B) (a : F)
@@ -365,20 +388,41 @@ def local_triv (i : ι) : topological_vector_bundle.trivialization R F Z.fiber :
     map_smul := λ r v, by simp only [linear_map.map_smul] with mfld_simps},
   ..topological_fiber_bundle_core.local_triv ↑Z i }
 
-@[simp, mfld_simps] lemma mem_local_triv_source (i : ι) (p : total_space Z.fiber) :
-  p ∈ (Z.local_triv i).source ↔ p.1 ∈ Z.base_set i :=
-iff.rfl
+variable (i : ι)
+
+@[simp, mfld_simps] lemma mem_local_triv_source (p : Z.total_space) :
+  p ∈ (Z.local_triv i).source ↔ p.1 ∈ Z.base_set i := iff.rfl
+
+@[simp, mfld_simps] lemma base_set_at : Z.base_set i = (Z.local_triv i).base_set := rfl
+
+@[simp, mfld_simps] lemma local_triv_apply (p : Z.total_space) :
+  (Z.local_triv i) p = ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩ := rfl
+
+@[simp, mfld_simps] lemma mem_local_triv_target (p : B × F) :
+  p ∈ (Z.local_triv i).target ↔ p.1 ∈ (Z.local_triv i).base_set :=
+topological_fiber_bundle_core.mem_local_triv_target Z i p
+
+@[simp, mfld_simps] lemma local_triv_symm_fst (p : B × F) :
+  (Z.local_triv i).to_local_homeomorph.symm p =
+    ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩ := rfl
 
 /-- Preferred local trivialization of a vector bundle constructed from core, at a given point, as
 a bundle trivialization -/
 def local_triv_at (b : B) : topological_vector_bundle.trivialization R F Z.fiber :=
 Z.local_triv (Z.index_at b)
 
-lemma mem_source_at : (⟨b, a⟩ : total_space Z.fiber) ∈ (Z.local_triv_at b).source :=
+@[simp, mfld_simps] lemma local_triv_at_def :
+  Z.local_triv (Z.index_at b) = Z.local_triv_at b := rfl
+
+@[simp, mfld_simps] lemma mem_source_at : (⟨b, a⟩ : Z.total_space) ∈ (Z.local_triv_at b).source :=
 by { rw [local_triv_at, mem_local_triv_source], exact Z.mem_base_set_at b }
 
 @[simp, mfld_simps] lemma local_triv_at_apply : ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
 topological_fiber_bundle_core.local_triv_at_apply Z b a
+
+@[simp, mfld_simps] lemma mem_local_triv_at_base_set :
+  b ∈ (Z.local_triv_at b).base_set :=
+topological_fiber_bundle_core.mem_local_triv_at_base_set Z b
 
 instance : topological_vector_bundle R F Z.fiber :=
 { total_space_mk_inducing := λ b, ⟨ begin refine le_antisymm _ (λ s h, _),

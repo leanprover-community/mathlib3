@@ -65,7 +65,8 @@ begin
   simp,
 end
 
-lemma spectral_radius_eq_nnnorm_of_star_normal (a : A) [is_star_normal a] :
+lemma spectral_radius_eq_nnnorm_of_star_normal [topological_space.second_countable_topology A]
+  [measurable_space A] [borel_space A] (a : A) [is_star_normal a] :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
   refine (ennreal.pow_strict_mono (by linarith : 2 ≠ 0)).injective _,

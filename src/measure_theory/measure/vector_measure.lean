@@ -434,7 +434,7 @@ end
 begin
   ext i hi,
   rw [to_signed_measure_apply_measurable hi, vector_measure.smul_apply,
-      to_signed_measure_apply_measurable hi, coe_nnreal_smul, pi.smul_apply,
+      to_signed_measure_apply_measurable hi, coe_smul, pi.smul_apply,
       ennreal.to_real_smul],
 end
 

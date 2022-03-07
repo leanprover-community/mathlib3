@@ -60,10 +60,23 @@ open bundle set
 
 variables (R : Type*) {B : Type*} (F : Type*) (E : B → Type*)
 [semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-[topological_space F] [add_comm_monoid F] [module R F]
-[topological_space (total_space E)] [topological_space B]
+[topological_space F] [add_comm_monoid F] [module R F] [topological_space B]
 
 section
+
+/-- Local pretrivialization for vector prebundles. -/
+@[nolint has_inhabited_instance]
+structure topological_vector_bundle.pretrivialization extends to_fiber_bundle_pretrivialization :
+  topological_fiber_bundle.pretrivialization F (proj E) :=
+(linear : ∀ x ∈ base_set, is_linear_map R (λ y : (E x), (to_fun y).2))
+
+instance : has_coe_to_fun (topological_vector_bundle.pretrivialization R F E) _ := ⟨λ e, e.to_fun⟩
+
+instance : has_coe (topological_vector_bundle.pretrivialization R F E)
+  (topological_fiber_bundle.pretrivialization F (proj E)) :=
+⟨topological_vector_bundle.pretrivialization.to_fiber_bundle_pretrivialization⟩
+
+variable [topological_space (total_space E)]
 
 /-- Local trivialization for vector bundles. -/
 @[nolint has_inhabited_instance]
@@ -82,6 +95,10 @@ namespace topological_vector_bundle
 
 variables {R F E}
 
+/-- Natural identification as `topological_vector_bundle.pretrivialization`. -/
+def trivialization.to_pretrivialization (e : trivialization R F E) :
+  topological_vector_bundle.pretrivialization R F E := { ..e }
+
 lemma trivialization.mem_source (e : trivialization R F E)
   {x : total_space E} : x ∈ e.source ↔ proj E x ∈ e.base_set :=
 topological_fiber_bundle.trivialization.mem_source e
@@ -94,8 +111,6 @@ topological_fiber_bundle.trivialization.mem_source e
 
 end topological_vector_bundle
 
-end
-
 variables [∀ x, topological_space (E x)]
 
 /-- The space `total_space E` (for `E : B → Type*` such that each `E x` is a topological vector
@@ -103,7 +118,7 @@ space) has a topological vector space structure with fiber `F` (denoted with
 `topological_vector_bundle R F E`) if around every point there is a fiber bundle trivialization
 which is linear in the fibers. -/
 class topological_vector_bundle : Prop :=
-(inducing [] : ∀ (b : B), inducing (λ x : (E b), (id ⟨b, x⟩ : total_space E)))
+(total_space_mk_inducing [] : ∀ (b : B), inducing (total_space_mk E b))
 (locally_trivial [] : ∀ b : B, ∃ e : topological_vector_bundle.trivialization R F E, b ∈ e.base_set)
 
 variable [topological_vector_bundle R F E]
@@ -171,12 +186,12 @@ def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   continuous_to_fun := begin
     refine continuous_snd.comp _,
     apply continuous_on.comp_continuous e.to_local_homeomorph.continuous_on
-      (topological_vector_bundle.inducing R F E b).continuous (λ x, _),
+      (topological_vector_bundle.total_space_mk_inducing R F E b).continuous (λ x, _),
     rw topological_fiber_bundle.trivialization.mem_source,
     exact hb,
   end,
   continuous_inv_fun := begin
-    rw (topological_vector_bundle.inducing R F E b).continuous_iff,
+    rw (topological_vector_bundle.total_space_mk_inducing R F E b).continuous_iff,
     dsimp,
     have : continuous (λ (z : F), e.to_fiber_bundle_trivialization.to_local_homeomorph.symm (b, z)),
     { apply e.to_local_homeomorph.symm.continuous_on.comp_continuous
@@ -240,7 +255,7 @@ def trivial_topological_vector_bundle.trivialization : trivialization R F (bundl
 instance trivial_bundle.topological_vector_bundle :
   topological_vector_bundle R F (bundle.trivial B F) :=
 { locally_trivial := λ x, ⟨trivial_topological_vector_bundle.trivialization R B F, mem_univ x⟩,
-  inducing := λ b, ⟨begin
+  total_space_mk_inducing := λ b, ⟨begin
     have : (λ (x : trivial B F b), x) = @id F, by { ext x, refl },
     simp only [total_space.topological_space, induced_inf, induced_compose, function.comp, proj,
       induced_const, top_inf_eq, trivial.proj_snd, id.def, trivial.topological_space, this,
@@ -263,8 +278,7 @@ variables (B)
 
 /-- Analogous construction of `topological_fiber_bundle_core` for vector bundles. This
 construction gives a way to construct vector bundles from a structure registering how
-trivialization changes act on fibers.-/
-@[nolint has_inhabited_instance]
+trivialization changes act on fibers. -/
 structure topological_vector_bundle_core (ι : Type*) :=
 (base_set          : ι → set B)
 (is_open_base_set  : ∀ i, is_open (base_set i))
@@ -277,7 +291,21 @@ structure topological_vector_bundle_core (ι : Type*) :=
 (coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
 
-attribute [simp, mfld_simps] topological_vector_bundle_core.mem_base_set_at
+/-- The trivial topological vector bundle core, in which all the changes of coordinates are the
+identity. -/
+def trivial_topological_vector_bundle_core (ι : Type*) [inhabited ι] :
+  topological_vector_bundle_core R B F ι :=
+{ base_set := λ ι, univ,
+  is_open_base_set := λ i, is_open_univ,
+  index_at := λ x, default,
+  mem_base_set_at := λ x, mem_univ x,
+  coord_change := λ i j x, linear_map.id,
+  coord_change_self := λ i x hx v, rfl,
+  coord_change_comp := λ i j k x hx v, rfl,
+  coord_change_continuous := λ i j, continuous_on_snd, }
+
+instance (ι : Type*) [inhabited ι] : inhabited (topological_vector_bundle_core R B F ι) :=
+⟨trivial_topological_vector_bundle_core R B F ι⟩
 
 namespace topological_vector_bundle_core
 
@@ -317,10 +345,20 @@ instance topological_space_fiber (x : B) : topological_space (Z.fiber x) := by a
 instance add_comm_monoid_fiber : ∀ (x : B), add_comm_monoid (Z.fiber x) := λ x, by apply_instance
 instance module_fiber : ∀ (x : B), module R (Z.fiber x) := λ x, by apply_instance
 
+variable [add_comm_group F]
+
+instance add_comm_group_fiber : ∀ (x : B), add_comm_group (Z.fiber x) := λ x, by apply_instance
+
 end fiber_instances
 
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
 @[reducible, simp, mfld_simps] def proj : total_space Z.fiber → B := bundle.proj Z.fiber
+
+/-- The total space of the topological vector bundle, as a convenience function for dot notation.
+It is by definition equal to `bundle.total_space Z.fiber`, a.k.a. `Σ x, Z.fiber x` but with a
+different name for typeclass inference. -/
+@[nolint unused_arguments, reducible]
+def total_space := bundle.total_space Z.fiber
 
 /-- Local homeomorphism version of the trivialization change. -/
 def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
@@ -334,7 +372,7 @@ variable (ι)
 
 /-- Topological structure on the total space of a topological bundle created from core, designed so
 that all the local trivialization are continuous. -/
-instance to_topological_space : topological_space (total_space Z.fiber) :=
+instance to_topological_space : topological_space (Z.total_space) :=
 topological_fiber_bundle_core.to_topological_space ι ↑Z
 
 variables {ι} (b : B) (a : F)
@@ -350,23 +388,44 @@ def local_triv (i : ι) : topological_vector_bundle.trivialization R F Z.fiber :
     map_smul := λ r v, by simp only [linear_map.map_smul] with mfld_simps},
   ..topological_fiber_bundle_core.local_triv ↑Z i }
 
-@[simp, mfld_simps] lemma mem_local_triv_source (i : ι) (p : total_space Z.fiber) :
-  p ∈ (Z.local_triv i).source ↔ p.1 ∈ Z.base_set i :=
-iff.rfl
+variable (i : ι)
+
+@[simp, mfld_simps] lemma mem_local_triv_source (p : Z.total_space) :
+  p ∈ (Z.local_triv i).source ↔ p.1 ∈ Z.base_set i := iff.rfl
+
+@[simp, mfld_simps] lemma base_set_at : Z.base_set i = (Z.local_triv i).base_set := rfl
+
+@[simp, mfld_simps] lemma local_triv_apply (p : Z.total_space) :
+  (Z.local_triv i) p = ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩ := rfl
+
+@[simp, mfld_simps] lemma mem_local_triv_target (p : B × F) :
+  p ∈ (Z.local_triv i).target ↔ p.1 ∈ (Z.local_triv i).base_set :=
+topological_fiber_bundle_core.mem_local_triv_target Z i p
+
+@[simp, mfld_simps] lemma local_triv_symm_fst (p : B × F) :
+  (Z.local_triv i).to_local_homeomorph.symm p =
+    ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩ := rfl
 
 /-- Preferred local trivialization of a vector bundle constructed from core, at a given point, as
 a bundle trivialization -/
 def local_triv_at (b : B) : topological_vector_bundle.trivialization R F Z.fiber :=
 Z.local_triv (Z.index_at b)
 
-lemma mem_source_at : (⟨b, a⟩ : total_space Z.fiber) ∈ (Z.local_triv_at b).source :=
+@[simp, mfld_simps] lemma local_triv_at_def :
+  Z.local_triv (Z.index_at b) = Z.local_triv_at b := rfl
+
+@[simp, mfld_simps] lemma mem_source_at : (⟨b, a⟩ : Z.total_space) ∈ (Z.local_triv_at b).source :=
 by { rw [local_triv_at, mem_local_triv_source], exact Z.mem_base_set_at b }
 
 @[simp, mfld_simps] lemma local_triv_at_apply : ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
 topological_fiber_bundle_core.local_triv_at_apply Z b a
 
+@[simp, mfld_simps] lemma mem_local_triv_at_base_set :
+  b ∈ (Z.local_triv_at b).base_set :=
+topological_fiber_bundle_core.mem_local_triv_at_base_set Z b
+
 instance : topological_vector_bundle R F Z.fiber :=
-{ inducing := λ b, ⟨ begin refine le_antisymm _ (λ s h, _),
+{ total_space_mk_inducing := λ b, ⟨ begin refine le_antisymm _ (λ s h, _),
     { rw ←continuous_iff_le_induced,
       exact topological_fiber_bundle_core.continuous_total_space_mk ↑Z b, },
     { refine is_open_induced_iff.mpr ⟨(Z.local_triv_at b).source ∩ (Z.local_triv_at b) ⁻¹'
@@ -374,7 +433,7 @@ instance : topological_vector_bundle R F Z.fiber :=
         (Z.local_triv_at b).open_source).mp (Z.local_triv_at b).continuous_to_fun _
         ((Z.local_triv_at b).open_base_set.prod h), _⟩,
       rw [preimage_inter, ←preimage_comp, function.comp],
-      simp only [id.def],
+      simp only [total_space_mk],
       refine ext_iff.mpr (λ a, ⟨λ ha, _, λ ha, ⟨Z.mem_base_set_at b, _⟩⟩),
       { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply] at ha,
         exact ha.2.2, },
@@ -391,3 +450,100 @@ lemma is_open_map_proj : is_open_map Z.proj :=
 topological_fiber_bundle_core.is_open_map_proj Z
 
 end topological_vector_bundle_core
+
+end
+
+section
+
+/-! ### Topological vector prebundle -/
+
+variable [∀ x, topological_space (E x)]
+
+open topological_space
+
+/-- This structure permits to define a vector bundle when trivializations are given as local
+equivalences but there is not yet a topology on the total space. The total space is hence given a
+topology in such a way that there is a fiber bundle structure for which the local equivalences
+are also local homeomorphism and hence vector bundle trivializations. -/
+@[nolint has_inhabited_instance]
+structure topological_vector_prebundle :=
+(pretrivialization_at : B → topological_vector_bundle.pretrivialization R F E)
+(mem_base_pretrivialization_at : ∀ x : B, x ∈ (pretrivialization_at x).base_set)
+(continuous_triv_change : ∀ x y : B, continuous_on ((pretrivialization_at x) ∘
+  (pretrivialization_at y).to_local_equiv.symm) ((pretrivialization_at y).target ∩
+  ((pretrivialization_at y).to_local_equiv.symm ⁻¹' (pretrivialization_at x).source)))
+(total_space_mk_inducing : ∀ (b : B), inducing ((pretrivialization_at b) ∘ (total_space_mk E b)))
+
+namespace topological_vector_prebundle
+
+variables {R E F}
+
+/-- Natural identification of `topological_vector_prebundle` as a `topological_fiber_prebundle`. -/
+def to_topological_fiber_prebundle (a : topological_vector_prebundle R F E) :
+  topological_fiber_prebundle F (proj E) :=
+{ pretrivialization_at := λ x, a.pretrivialization_at x, ..a }
+
+/-- Topology on the total space that will make the prebundle into a bundle. -/
+def total_space_topology (a : topological_vector_prebundle R F E) :
+  topological_space (total_space E) :=
+a.to_topological_fiber_prebundle.total_space_topology
+
+/-- Promotion from a `topologial_vector_prebundle.trivialization` to a
+  `topological_vector_bundle.trivialization`. -/
+def trivialization_at (a : topological_vector_prebundle R F E) (x : B) :
+  @topological_vector_bundle.trivialization R _ F E _ _ _ _ _ _ _ a.total_space_topology  :=
+begin
+  letI := a.total_space_topology,
+  exact { linear := (a.pretrivialization_at x).linear,
+  ..a.to_topological_fiber_prebundle.trivialization_at x }
+end
+
+variable (a : topological_vector_prebundle R F E)
+
+lemma mem_trivialization_at_source (b : B) (x : E b) :
+  total_space_mk E b x ∈ (a.pretrivialization_at b).source :=
+begin
+  simp only [(a.pretrivialization_at b).source_eq, mem_preimage, proj],
+  exact a.mem_base_pretrivialization_at b,
+end
+
+@[simp] lemma total_space_mk_preimage_source (b : B) :
+  (total_space_mk E b) ⁻¹' (a.pretrivialization_at b).source = univ :=
+begin
+  apply eq_univ_of_univ_subset,
+  rw [(a.pretrivialization_at b).source_eq, ←preimage_comp, function.comp],
+  simp only [proj],
+  rw preimage_const_of_mem _,
+  exact a.mem_base_pretrivialization_at b,
+end
+
+@[continuity] lemma continuous_total_space_mk (b : B) :
+  @continuous _ _ _ a.total_space_topology (total_space_mk E b) :=
+begin
+  letI := a.total_space_topology,
+  rw (a.trivialization_at b).to_local_homeomorph.continuous_iff_continuous_comp_left
+    (a.total_space_mk_preimage_source b),
+  exact continuous_iff_le_induced.mpr (le_antisymm_iff.mp (a.total_space_mk_inducing b).induced).1,
+end
+
+lemma inducing_total_space_mk_of_inducing_comp (b : B)
+  (h : inducing ((a.trivialization_at b) ∘ (total_space_mk E b))) :
+  @inducing _ _ _ a.total_space_topology (total_space_mk E b) :=
+begin
+  letI := a.total_space_topology,
+  rw ←restrict_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
+  apply inducing.of_cod_restrict (a.mem_trivialization_at_source b),
+  refine inducing_of_inducing_compose _ (continuous_on_iff_continuous_restrict.mp
+    (a.trivialization_at b).continuous_to_fun) h,
+  exact (a.continuous_total_space_mk b).cod_restrict (a.mem_trivialization_at_source b),
+end
+
+lemma to_topological_vector_bundle :
+  @topological_vector_bundle R _ F E _ _ _ _ _ _ _ a.total_space_topology _ :=
+{ total_space_mk_inducing := λ b, a.inducing_total_space_mk_of_inducing_comp b
+    (a.total_space_mk_inducing b),
+  locally_trivial := λ b, ⟨a.trivialization_at b, a.mem_base_pretrivialization_at b⟩ }
+
+end topological_vector_prebundle
+
+end

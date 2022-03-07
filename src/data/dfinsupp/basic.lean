@@ -1135,6 +1135,14 @@ finset.prod_mul_distrib
   f.prod (λi b, (h i b)⁻¹) = (f.prod h)⁻¹ :=
 ((comm_group.inv_monoid_hom : γ →* γ).map_prod _ f.support).symm
 
+@[to_additive] lemma prod_eq_one [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [comm_monoid γ] {f : Π₀ i, β i} {h : Π i, β i → γ} (hyp : ∀ i, h i (f i) = 1) :
+  f.prod h = 1 := finset.prod_eq_one $ λ i hi, hyp i
+
+lemma smul_sum {α : Type*} [monoid α] [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [add_comm_monoid γ] [distrib_mul_action α γ] {f : Π₀ i, β i} {h : Π i, β i → γ} {c : α} :
+  c • f.sum h = f.sum (λ a b, c • h a b) := finset.smul_sum
+
 @[to_additive]
 lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_monoid γ] {f g : Π₀ i, β i}

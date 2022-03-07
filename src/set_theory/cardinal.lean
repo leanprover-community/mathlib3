@@ -460,10 +460,17 @@ lt_of_le_of_ne (zero_le _) zero_ne_one
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
-theorem power_le_power_left : ∀{a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
+theorem power_le_power_left : ∀ {a b c : cardinal}, a ≠ 0 → b ≤ c → a ^ b ≤ a ^ c :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ hα ⟨e⟩; exact
   let ⟨a⟩ := mk_ne_zero_iff.1 hα in
   ⟨@embedding.arrow_congr_left _ _ _ ⟨a⟩ e⟩
+
+theorem self_le_power (a : cardinal) {b : cardinal} (hb : 1 ≤ b) : a ≤ a ^ b :=
+begin
+  rcases eq_or_ne a 0 with rfl|ha,
+  { exact zero_le _ },
+  { convert power_le_power_left ha hb, exact power_one.symm }
+end
 
 /-- **Cantor's theorem** -/
 theorem cantor (a : cardinal.{u}) : a < 2 ^ a :=
@@ -907,6 +914,10 @@ begin
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_omega, omega_pos, zero_mul, mul_zero]
 end
 
+lemma omega_le_mul_iff {a b : cardinal} : ω ≤ a * b ↔ a ≠ 0 ∧ b ≠ 0 ∧ (ω ≤ a ∨ ω ≤ b) :=
+let h := (@mul_lt_omega_iff a b).not in
+by rwa [not_lt, not_or_distrib, not_or_distrib, not_and_distrib, not_lt, not_lt] at h
+
 lemma mul_lt_omega_iff_of_ne_zero {a b : cardinal} (ha : a ≠ 0) (hb : b ≠ 0) :
   a * b < ω ↔ a < ω ∧ b < ω :=
 by simp [mul_lt_omega_iff, ha, hb]
@@ -1111,24 +1122,6 @@ by simp
 lemma mk_int : #ℤ = ω := mk_denumerable ℤ
 
 lemma mk_pnat : #ℕ+ = ω := mk_denumerable ℕ+
-
-lemma two_le_iff : (2 : cardinal) ≤ #α ↔ ∃x y : α, x ≠ y :=
-begin
-  split,
-  { rintro ⟨f⟩, refine ⟨f $ sum.inl ⟨⟩, f $ sum.inr ⟨⟩, _⟩, intro h, cases f.2 h },
-  { rintro ⟨x, y, h⟩, by_contra h',
-    rw [not_le, ←nat.cast_two, nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
-    apply h, exactI subsingleton.elim _ _ }
-end
-
-lemma two_le_iff' (x : α) : (2 : cardinal) ≤ #α ↔ ∃y : α, x ≠ y :=
-begin
-  rw [two_le_iff],
-  split,
-  { rintro ⟨y, z, h⟩, refine classical.by_cases (λ(h' : x = y), _) (λ h', ⟨y, h'⟩),
-    rw [←h'] at h, exact ⟨z, h⟩ },
-  { rintro ⟨y, h⟩, exact ⟨x, y, h⟩ }
-end
 
 /-- **König's theorem** -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
@@ -1362,6 +1355,43 @@ theorem le_mk_iff_exists_subset {c : cardinal} {α : Type u} {s : set α} :
 begin
   rw [le_mk_iff_exists_set, ←subtype.exists_set_subtype],
   apply exists_congr, intro t, rw [mk_image_eq], apply subtype.val_injective
+end
+
+lemma two_le_iff : (2 : cardinal) ≤ #α ↔ ∃x y : α, x ≠ y :=
+begin
+  split,
+  { rintro ⟨f⟩, refine ⟨f $ sum.inl ⟨⟩, f $ sum.inr ⟨⟩, _⟩, intro h, cases f.2 h },
+  { rintro ⟨x, y, h⟩, by_contra h',
+    rw [not_le, ←nat.cast_two, nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
+    apply h, exactI subsingleton.elim _ _ }
+end
+
+lemma two_le_iff' (x : α) : (2 : cardinal) ≤ #α ↔ ∃y : α, x ≠ y :=
+begin
+  rw [two_le_iff],
+  split,
+  { rintro ⟨y, z, h⟩, refine classical.by_cases (λ(h' : x = y), _) (λ h', ⟨y, h'⟩),
+    rw [←h'] at h, exact ⟨z, h⟩ },
+  { rintro ⟨y, h⟩, exact ⟨x, y, h⟩ }
+end
+
+lemma exists_not_mem_of_length_le {α : Type*} (l : list α) (h : ↑l.length < # α) :
+  ∃ (z : α), z ∉ l :=
+begin
+  contrapose! h,
+  calc # α = # (set.univ : set α) : mk_univ.symm
+    ... ≤ # l.to_finset           : mk_le_mk_of_subset (λ x _, list.mem_to_finset.mpr (h x))
+    ... = l.to_finset.card        : cardinal.mk_finset
+    ... ≤ l.length                : cardinal.nat_cast_le.mpr (list.to_finset_card_le l),
+end
+
+lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
+  ∃ (z : α), z ≠ x ∧ z ≠ y :=
+begin
+  have : ((3:nat) : cardinal) ≤ # α, simpa using h,
+  have : ((2:nat) : cardinal) < # α, rwa [← cardinal.succ_le, ← cardinal.nat_succ],
+  have := exists_not_mem_of_length_le [x, y] this,
+  simpa [not_or_distrib] using this,
 end
 
 /-- The function α^{<β}, defined to be sup_{γ < β} α^γ.

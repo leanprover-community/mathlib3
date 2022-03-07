@@ -358,6 +358,38 @@ instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α default⟩
 @[to_additive] lemma coe_fn_one [has_one β] : ⇑(1 : α →ₘ[μ] β) =ᵐ[μ] 1 := coe_fn_const _ _
 @[simp, to_additive] lemma one_to_germ [has_one β] : (1 : α →ₘ[μ] β).to_germ = 1 := rfl
 
+-- Note we set up the scalar actions before the `monoid` structures in case we want to
+-- try to override the `nsmul` or `zsmul` fields in future.
+section has_scalar
+
+variables {𝕜 𝕜' : Type*}
+variables [measurable_space 𝕜] [measurable_space 𝕜']
+variables [has_scalar 𝕜 γ] [has_measurable_smul 𝕜 γ]
+variables [has_scalar 𝕜' γ] [has_measurable_smul 𝕜' γ]
+
+instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
+⟨λ c f, comp ((•) c) (measurable_id.const_smul c) f⟩
+
+@[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf) :
+  c • (mk f hf : α →ₘ[μ] γ) = mk (c • f) (hf.const_smul _) :=
+rfl
+
+lemma coe_fn_smul (c : 𝕜) (f : α →ₘ[μ] γ) : ⇑(c • f) =ᵐ[μ] c • f := coe_fn_comp _ _ _
+
+lemma smul_to_germ (c : 𝕜) (f : α →ₘ[μ] γ) : (c • f).to_germ = c • f.to_germ :=
+comp_to_germ _ _ _
+
+instance [smul_comm_class 𝕜 𝕜' γ] : smul_comm_class 𝕜 𝕜' (α →ₘ[μ] γ) :=
+⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_comm]⟩
+
+instance [has_scalar 𝕜 𝕜'] [is_scalar_tower 𝕜 𝕜' γ] : is_scalar_tower 𝕜 𝕜' (α →ₘ[μ] γ) :=
+⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_assoc]⟩
+
+instance [has_scalar 𝕜ᵐᵒᵖ γ] [is_central_scalar 𝕜 γ] : is_central_scalar 𝕜 (α →ₘ[μ] γ) :=
+⟨λ a f, induction_on f $ λ f hf, by simp_rw [smul_mk, op_smul_eq_smul]⟩
+
+end has_scalar
+
 section monoid
 variables [monoid γ] [has_measurable_mul₂ γ]
 
@@ -377,6 +409,13 @@ comp₂_to_germ _ _ _ _
 @[to_additive]
 instance : monoid (α →ₘ[μ] γ) :=
 to_germ_injective.monoid to_germ one_to_germ mul_to_germ
+
+/-- `ae_eq_fun.to_germ` as a `monoid_hom`. -/
+@[to_additive "`ae_eq_fun.to_germ` as an `add_monoid_hom`.", simps]
+def to_germ_monoid_hom : (α →ₘ[μ] γ) →* μ.ae.germ γ :=
+{ to_fun := to_germ,
+  map_one' := one_to_germ,
+  map_mul' := mul_to_germ }
 
 end monoid
 
@@ -430,25 +469,22 @@ instance [comm_group γ] [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [
 
 section module
 
-variables {𝕜 : Type*} [semiring 𝕜] [measurable_space 𝕜]
-variables [add_comm_monoid γ] [module 𝕜 γ] [has_measurable_smul 𝕜 γ]
+variables {𝕜 : Type*}
 
-instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
-⟨λ c f, comp ((•) c) (measurable_id.const_smul c) f⟩
+instance [measurable_space 𝕜] [monoid 𝕜] [mul_action 𝕜 γ] [has_measurable_smul 𝕜 γ] :
+  mul_action 𝕜 (α →ₘ[μ] γ) :=
+to_germ_injective.mul_action to_germ smul_to_germ
 
-@[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf) :
-  c • (mk f hf : α →ₘ[μ] γ) = mk (c • f) (hf.const_smul _) :=
-rfl
+instance [measurable_space 𝕜] [monoid 𝕜] [add_monoid γ] [has_measurable_add₂ γ]
+  [distrib_mul_action 𝕜 γ] [has_measurable_smul 𝕜 γ] :
+  distrib_mul_action 𝕜 (α →ₘ[μ] γ) :=
+to_germ_injective.distrib_mul_action (to_germ_add_monoid_hom : (α →ₘ[μ] γ) →+ _)
+  (λ c : 𝕜, smul_to_germ c)
 
-lemma coe_fn_smul (c : 𝕜) (f : α →ₘ[μ] γ) : ⇑(c • f) =ᵐ[μ] c • f := coe_fn_comp _ _ _
-
-lemma smul_to_germ (c : 𝕜) (f : α →ₘ[μ] γ) : (c • f).to_germ = c • f.to_germ :=
-comp_to_germ _ _ _
-
-variables [has_measurable_add₂ γ]
-
-instance : module 𝕜 (α →ₘ[μ] γ) :=
-to_germ_injective.module 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to_germ⟩ smul_to_germ
+instance [measurable_space 𝕜] [semiring 𝕜] [add_comm_monoid γ] [has_measurable_add₂ γ] [module 𝕜 γ]
+  [has_measurable_smul 𝕜 γ] :
+  module 𝕜 (α →ₘ[μ] γ) :=
+to_germ_injective.module 𝕜 (to_germ_add_monoid_hom : (α →ₘ[μ] γ) →+ _) smul_to_germ
 
 end module
 

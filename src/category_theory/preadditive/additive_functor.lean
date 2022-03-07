@@ -3,9 +3,8 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Scott Morrison
 -/
-import category_theory.preadditive
-import category_theory.limits.preserves.shapes.zero
-import category_theory.limits.shapes.biproducts
+import category_theory.limits.preserves.shapes.biproducts
+import category_theory.preadditive.functor_category
 
 /-!
 # Additive Functors
@@ -15,18 +14,16 @@ provided that the induced map on hom types is a morphism of abelian
 groups.
 
 An additive functor between preadditive categories creates and preserves biproducts.
+Conversely, if `F : C ⥤ D` is a functor between preadditive categories, where `C` has binary
+biproducts, and if `F` preserves binary biproducts, then `F` is additive.
+
+We also define the category of bundled additive functors.
 
 # Implementation details
 
-`functor.additive` is a `Prop`-valued class, defined by saying that
-for every two objects `X` and `Y`, the map
-`F.map : (X ⟶ Y) → (F.obj X ⟶ F.obj Y)` is a morphism of abelian
-groups.
+`functor.additive` is a `Prop`-valued class, defined by saying that for every two objects `X` and
+`Y`, the map `F.map : (X ⟶ Y) → (F.obj X ⟶ F.obj Y)` is a morphism of abelian groups.
 
-# Project:
-
-- Prove that a functor is additive if it preserves finite biproducts
-  (See https://stacks.math.columbia.edu/tag/010M.)
 -/
 
 namespace category_theory
@@ -100,41 +97,31 @@ section
 noncomputable theory
 universes v u₁ u₂
 
+
 variables {C : Type u₁} {D : Type u₂} [category.{v} C] [category.{v} D]
-  [preadditive C] [preadditive D] (F : C ⥤ D) [functor.additive F]
+  [preadditive C] [preadditive D] (F : C ⥤ D)
 
 open category_theory.limits
+open category_theory.preadditive
 
-/--
-An additive functor between preadditive categories creates finite biproducts.
--/
-instance map_has_biproduct {J : Type v} [fintype J] [decidable_eq J] (f : J → C) [has_biproduct f] :
-  has_biproduct (λ j, F.obj (f j)) :=
-has_biproduct_of_total
-{ X := F.obj (⨁ f),
-  π := λ j, F.map (biproduct.π f j),
-  ι := λ j, F.map (biproduct.ι f j),
-  ι_π := λ j j', by { simp only [←F.map_comp], split_ifs, { subst h, simp, }, { simp [h], }, }, }
-(by simp_rw [←F.map_comp, ←F.map_sum, biproduct.total, functor.map_id])
+@[priority 100]
+instance preserves_finite_biproducts_of_additive [additive F] : preserves_finite_biproducts F :=
+{ preserves := λ J _ _,
+  { preserves := λ f,
+    { preserves := λ b hb, by exactI is_bilimit_of_total _
+      begin
+        simp_rw [F.map_bicone_π, F.map_bicone_ι, ← F.map_comp, ← F.map_sum],
+        dsimp only [map_bicone_X],
+        simp_rw [← F.map_id],
+        refine congr_arg _ (hb.is_limit.hom_ext (λ j, hb.is_colimit.hom_ext (λ j', _))),
+        simp [sum_comp, comp_sum, bicone.ι_π, comp_dite, dite_comp]
+      end } } }
 
-/--
-An additive functor between preadditive categories preserves finite biproducts.
--/
--- This essentially repeats the work of the previous instance,
--- but gives good definitional reduction to `biproduct.lift` and `biproduct.desc`.
-@[simps]
-def map_biproduct {J : Type v} [fintype J] [decidable_eq J] (f : J → C) [has_biproduct f] :
-  F.obj (⨁ f) ≅ ⨁ (λ j, F.obj (f j)) :=
-{ hom := biproduct.lift (λ j, F.map (biproduct.π f j)),
-  inv := biproduct.desc (λ j, F.map (biproduct.ι f j)),
-  hom_inv_id' :=
-  by simp only [biproduct.lift_desc, ←F.map_comp, ←F.map_sum, biproduct.total, F.map_id],
-  inv_hom_id' :=
-  begin
-    ext j j',
-    simp only [category.comp_id,  category.assoc, biproduct.lift_π, biproduct.ι_desc_assoc,
-      ←F.map_comp, biproduct.ι_π, F.map_dite, dif_ctx_congr, eq_to_hom_map, F.map_zero],
-  end }
+lemma additive_of_preserves_binary_biproducts [has_binary_biproducts C] [preserves_zero_morphisms F]
+  [preserves_binary_biproducts F] : additive F :=
+{ map_add' := λ X Y f g, by rw [biprod.add_eq_lift_id_desc, F.map_comp, ← biprod.lift_map_biprod,
+    ← biprod.map_biprod_hom_desc, category.assoc, iso.inv_hom_id_assoc, F.map_id,
+    biprod.add_eq_lift_id_desc] }
 
 end
 
@@ -148,6 +135,55 @@ instance inverse_additive (e : C ≌ D) [e.functor.additive] : e.inverse.additiv
 { map_add' := λ X Y f g, by { apply e.functor.map_injective, simp, }, }
 
 end equivalence
+
+section
+variables (C D : Type*) [category C] [category D] [preadditive C] [preadditive D]
+
+/-- Bundled additive functors. -/
+@[derive category, nolint has_inhabited_instance]
+def AdditiveFunctor :=
+{ F : C ⥤ D // functor.additive F }
+
+infixr ` ⥤+ `:26 := AdditiveFunctor
+
+instance : preadditive (C ⥤+ D) :=
+preadditive.induced_category.category _
+
+/-- An additive functor is in particular a functor. -/
+@[derive full, derive faithful]
+def AdditiveFunctor.forget : (C ⥤+ D) ⥤ (C ⥤ D) :=
+full_subcategory_inclusion _
+
+variables {C D}
+
+/-- Turn an additive functor into an object of the category `AdditiveFunctor C D`. -/
+def AdditiveFunctor.of (F : C ⥤ D) [F.additive] : C ⥤+ D :=
+⟨F, infer_instance⟩
+
+@[simp]
+lemma AdditiveFunctor.of_fst (F : C ⥤ D) [F.additive] : (AdditiveFunctor.of F).1 = F :=
+rfl
+
+@[simp]
+lemma AdditiveFunctor.forget_obj (F : C ⥤+ D) : (AdditiveFunctor.forget C D).obj F = F.1 :=
+rfl
+
+lemma AdditiveFunctor.forget_obj_of (F : C ⥤ D) [F.additive] :
+  (AdditiveFunctor.forget C D).obj (AdditiveFunctor.of F) = F :=
+rfl
+
+@[simp]
+lemma AdditiveFunctor.forget_map (F G : C ⥤+ D) (α : F ⟶ G) :
+  (AdditiveFunctor.forget C D).map α = α :=
+rfl
+
+instance : functor.additive (AdditiveFunctor.forget C D) :=
+{ map_add' := λ F G α β, rfl }
+
+instance (F : C ⥤+ D) : functor.additive F.1 :=
+F.2
+
+end
 
 end preadditive
 

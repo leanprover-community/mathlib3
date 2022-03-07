@@ -31,8 +31,7 @@ these are deprecated.
 equiv, mul_equiv, add_equiv
 -/
 
-variables {A : Type*} {B : Type*} {M : Type*} {N : Type*}
-  {P : Type*} {Q : Type*} {G : Type*} {H : Type*}
+variables {F α β A B M N P Q G H : Type*}
 
 /-- Makes a multiplicative inverse from a bijection which preserves multiplication. -/
 @[to_additive "Makes an additive inverse from a bijection which preserves addition."]
@@ -89,11 +88,8 @@ class mul_equiv_class (F A B : Type*) [has_mul A] [has_mul B]
 infix ` ≃* `:25 := mul_equiv
 infix ` ≃+ `:25 := add_equiv
 
-section mul_equiv_class
-
-variables (F : Type*)
-
 namespace mul_equiv_class
+variables (F)
 
 @[priority 100, -- See note [lower instance priority]
   to_additive]
@@ -114,23 +110,31 @@ instance [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N] :
        ... = 1 : right_inv e 1,
   .. mul_equiv_class.mul_hom_class F }
 
+@[priority 100] -- See note [lower instance priority]
+instance to_monoid_with_zero_hom_class {α β : Type*} [mul_zero_one_class α]
+  [mul_zero_one_class β] [mul_equiv_class F α β] : monoid_with_zero_hom_class F α β :=
+{ map_zero := λ e, calc e 0 = e 0 * e (equiv_like.inv e 0) : by rw [←map_mul, zero_mul]
+                        ... = 0 : by { convert mul_zero _, exact equiv_like.right_inv e _ }
+  ..mul_equiv_class.monoid_hom_class _ }
+
 variables {F}
 
 @[simp, to_additive]
 lemma map_eq_one_iff {M N} [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N]
-  (h : F) {x : M} :
-  h x = 1 ↔ x = 1 :=
-by rw [← map_one h, equiv_like.apply_eq_iff_eq h]
+  (h : F) {x : M} : h x = 1 ↔ x = 1 :=
+map_eq_one_iff h (equiv_like.injective h)
 
 @[to_additive]
 lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N]
   (h : F) {x : M} :
   h x ≠ 1 ↔ x ≠ 1 :=
-not_congr (map_eq_one_iff h)
+map_ne_one_iff h (equiv_like.injective h)
 
 end mul_equiv_class
 
-end mul_equiv_class
+@[to_additive] instance [has_mul α] [has_mul β] [mul_equiv_class F α β] : has_coe_t F (α ≃* β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f, map_mul' := map_mul f }⟩
 
 namespace mul_equiv
 
@@ -534,7 +538,7 @@ variables (G) [has_involutive_inv G]
 /-- Inversion on a `group` or `group_with_zero` is a permutation of the underlying type. -/
 @[to_additive "Negation on an `add_group` is a permutation of the underlying type.",
   simps apply {fully_applied := ff}]
-protected def inv : perm G := inv_involutive.to_equiv _
+protected def inv : perm G := inv_involutive.to_perm _
 
 variable {G}
 

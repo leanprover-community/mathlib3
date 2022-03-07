@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2022 David Loeffler. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: David Loeffler
+-/
+
 import analysis.special_functions.exponential
 import measure_theory.integral.integral_eq_improper
 import measure_theory.integral.limit_comparison
@@ -9,7 +15,7 @@ import analysis.special_functions.integrals
 In this file we define the Γ function (of a real variable in the range `1 ≤ s`), using the
 definition `Γ(s) = ∫ x in 0..∞, x^(s-1) exp(-x) dx`, and prove that it satisfies the relation
 `Γ(s+1) = s Γ(s)`. We also prove that `Γ(n+1) = n!` for `n ∈ ℕ`. We also show that `Γ(s)` is
-continuous on `(0, ∞)` (but not yet at the left endpoint).
+continuous on `(1, ∞)` (but not yet at the left endpoint).
 
 TO DO:
 
@@ -30,7 +36,6 @@ namespace real
 /- The integrand function and its properties -/
 
 def F (s x : ℝ) : ℝ := exp(-x) * x^s
-
 
 /- We prove some lemmas about F:
 
@@ -126,8 +131,7 @@ begin
   have ff2: f2 = (λ x:ℝ, exp x / x ^ s) := by refl,
 
   have : ∀ x : ℝ, (0 < x) → f1 x = f2 x,
-  {
-    intros x h,
+  { intros x h,
     rw [ff1,ff2],
     ring_nf,
     rw mul_eq_mul_right_iff,
@@ -140,25 +144,20 @@ begin
     rw [this, mul_one],
     apply rpow_neg,
     exact le_of_lt(h),
-    exact h.ne',
-  },
+    exact h.ne' },
 
   have Icieq: eq_on f1 f2 (Ici 1),
-  {
-    intros x hx,
+  { intros x hx,
     rw [set.Ici, mem_set_of_eq] at hx,
     have b: 0 < x := by linarith,
-    exact (this x b),
-  },
+    exact (this x b) },
 
   have eveq : eventually_eq at_top f1 f2,
-  {
-    rw eventually_eq_iff_exists_mem,
+  { rw eventually_eq_iff_exists_mem,
     use (Ici 1),
     split,
     apply mem_at_top,
-    exact Icieq,
-  },
+    exact Icieq },
   apply tendsto.congr' eveq,
   exact t,
 end
@@ -174,17 +173,12 @@ begin
   let f1 := (λ (x : ℝ), (exp x / x ^ (s / b)) ^ b),
   let f2 := (λ x : ℝ, exp (b * x) / x ^ s ),
   have ff1 : ∀ x:ℝ, f1 x = (exp x / x ^ (s / b)) ^ b,
-  {
-    by simp only [eq_self_iff_true, forall_const],
-  },
+  { by simp only [eq_self_iff_true, forall_const] },
   have ff2 : ∀ x:ℝ, f2 x = exp (b * x) / x ^ s,
-  {
-    by simp only [eq_self_iff_true, forall_const],
-  },
+  {by simp only [eq_self_iff_true, forall_const] },
 
   have Ioieq: eq_on f1 f2 (Ioi 0),
-  {
-    intros x hx,
+  { intros x hx,
     rw [set.Ioi, mem_set_of_eq] at hx,
     rw [ff1, ff2],
     rw div_rpow,
@@ -214,15 +208,12 @@ begin
     left,
     rw ←rpow_mul,
     show 0 ≤ x, linarith,
-    rw div_mul_cancel, exact hb.ne'
-  },
+    rw div_mul_cancel, exact hb.ne' },
   have : Ici (1:ℝ) ⊆ Ioi (0:ℝ),
-  {
-    rw [set.Ioi, set.Ici],
+  { rw [set.Ioi, set.Ici],
     intro x,
     rw mem_set_of_eq,rw mem_set_of_eq,
-    intro hx,linarith,
-  },
+    intro hx,linarith },
   have Ioi_at_top: Ioi (0:ℝ) ∈ at_top := Ioi_mem_at_top (0:ℝ),
   have ev_eq: eventually_eq at_top f1 f2 := eventually_eq_of_mem Ioi_at_top Ioieq,
 
@@ -234,14 +225,12 @@ lemma tendsto_exp_mul_div_rpow_at_top' (s : ℝ) (b : ℝ) (hb : 0 < b):
 begin
   have l := tendsto_exp_mul_div_rpow_at_top s b hb,
   have:  (λ x : ℝ, x^s * exp (-b * x)) =  (λ x : ℝ, exp (b * x) / x^s)⁻¹,
-  {
-    ext,
+  { ext,
     simp only [neg_mul, pi.inv_apply],
     rw [inv_div,div_eq_mul_inv],
     rw mul_eq_mul_left_iff,
     left,
-    apply exp_neg,
-  },
+    apply exp_neg },
   rw this,
   exact tendsto.inv_tendsto_at_top l
 end
@@ -256,42 +245,33 @@ begin
     exfalso,
     apply ( exp_pos(-(1/2) * x)).ne',
     exact hx },
-
   simp only [F],
 
   have : ∀ (x: ℝ), (x > 0) → (exp (-x) * x ^ s / exp (-(1 / 2) * x) = exp (-(1/2) * x) * x ^ s),
-  {
-    intros x h,
+  { intros x h,
     rw mul_comm,
     rw mul_comm (exp (-(1/2) * x)) (x ^ s),
     rw div_eq_of_eq_mul,
     exact (exp_pos (-(1/2) * x)).ne',
     have: exp(-x) = exp(-(1/2)*x) * exp (-(1 / 2) * x),
-    {
-      rw ←real.exp_add,
+    { rw ←real.exp_add,
       simp only [exp_eq_exp],
-      ring,
-    },
+      ring },
     rw this,
-    ring
-  },
+    ring },
   replace : eventually_eq at_top
     (λ x:ℝ,(exp (-x) * x ^ s / exp (-(1 / 2) * x))) (λ x:ℝ,  exp (-(1/2) * x) * x ^ s),
-  {
-    apply eventually_eq_of_mem (Ioi_mem_at_top(0:ℝ)),
+  { apply eventually_eq_of_mem (Ioi_mem_at_top(0:ℝ)),
     intros x hx,
     rw [set.Ioi, mem_set_of_eq] at hx,
-    exact (this x hx)
-  },
+    exact (this x hx) },
   rw (tendsto_congr' this),
   have : (λ (x : ℝ), exp (-(1 / 2) * x) * x ^ s) = (λ (x : ℝ), exp ((1 / 2) * x) / x ^ s)⁻¹,
-  {
-    ext1,
+  { ext1,
     simp only [neg_mul, pi.inv_apply],
     rw inv_div,
     rw exp_neg,
-    ring,
-  },
+    ring },
   rw this,
   apply tendsto.inv_tendsto_at_top,
   exact (tendsto_exp_mul_div_rpow_at_top s (1/2))(one_half_pos) -- hooray!
@@ -303,14 +283,11 @@ begin
   rw [set.Ioi,mem_set_of_eq] at hx,
   rw [set.Icc,mem_set_of_eq] at ht,
   by_cases (1 ≤ x),
-  { -- case 1 ≤ x
-    suffices: F t x ≤ F s x,
-    {
-      suffices: 0 ≤ F 0 x,
+  { suffices: F t x ≤ F s x, -- case 1 ≤ x
+    { suffices: 0 ≤ F 0 x,
       { linarith },
       simp only [F, rpow_zero, mul_one],
-      exact le_of_lt(exp_pos (-x))
-    },
+      exact le_of_lt(exp_pos (-x)) },
     simp only [F],
     apply mul_le_mul,
     refl,
@@ -318,19 +295,15 @@ begin
     apply le_of_lt,
     apply rpow_pos_of_pos,
     linarith,
-    exact le_of_lt(exp_pos (-x))
-  },
-  { -- case x < 1
-    simp only [not_le] at h,
+    exact le_of_lt(exp_pos (-x)) },
+  { simp only [not_le] at h, -- case x < 1
     suffices: F t x ≤ F 0 x,
-    {
-      suffices: 0 ≤ F s x,
+    { suffices: 0 ≤ F s x,
       { linarith },
       apply le_of_lt,
       apply mul_pos,
       apply exp_pos,
-      apply rpow_pos_of_pos hx
-    },
+      apply rpow_pos_of_pos hx },
     simp only [F],
     rw [rpow_zero, mul_one],
     rw mul_le_iff_le_one_right,
@@ -338,8 +311,7 @@ begin
     exact le_of_lt hx,
     exact le_of_lt h,
     exact ht.1,
-    exact exp_pos (-x),
-  },
+    exact exp_pos (-x) },
 end
 
 
@@ -356,14 +328,12 @@ begin
 
   have F_der_I: (∀ (x:ℝ), (x ∈ interval 0 X) →
     has_deriv_at s.F (- (exp (-x) * x ^ s) + exp (-x) * (s * x ^ (s - 1))) x),
-  {
-    intros x hx,
+  { intros x hx,
     cases hx,
     rw min_def at hx_left,
     split_ifs at hx_left,
     exact deriv_F s x h hx_left,
-    tauto,
-  },
+    tauto },
 
   have int_eval := integral_eq_sub_of_has_deriv_at F_der_I (dF_interval_integrable s X h h2),
 
@@ -391,21 +361,16 @@ begin
   clear this, clear int_eval,
 
   -- now two more integrability statements, yawn
-  {
-    apply continuous_on.interval_integrable,
+  { apply continuous_on.interval_integrable,
     have := cont_F s (le_trans zero_le_one h),
     replace := continuous_on.neg this,
     have ss : (interval 0 X) ⊆ (set.Ici 0),
-    {
-      rw interval,
+    { rw interval,
       rw [max_def, min_def],
       rw Icc_subset_Ici_iff,
       { split_ifs,tauto,tauto },
-      { split_ifs, tauto,tauto,tauto,tauto },
-
-    },
-    exact continuous_on.mono this ss
-  },
+      { split_ifs, tauto,tauto,tauto,tauto } },
+    exact continuous_on.mono this ss },
 
   -- and the last one
   apply continuous_on.interval_integrable,
@@ -453,12 +418,10 @@ begin
 
   have a: eventually_eq at_top ((s+1).real_incomplete_gamma)
     (λ X:ℝ, s * real_incomplete_gamma s X - X^s * exp(-X)),
-  {
-    apply eventually_eq_of_mem (Ici_mem_at_top (0:ℝ)),
+  { apply eventually_eq_of_mem (Ici_mem_at_top (0:ℝ)),
     intros X hX,
     rw [set.Ici, mem_set_of_eq] at hX,
-    exact gamma_FE_incomp s X h hX
-  },
+    exact gamma_FE_incomp s X h hX },
   replace a := eventually_eq.symm a,
 
   suffices b: tendsto (λ X:ℝ, s * real_incomplete_gamma s X - X^s * exp(-X)) at_top
@@ -466,21 +429,16 @@ begin
   { exact tendsto.congr' a b, },
 
   have l1: tendsto (λ X:ℝ, s * real_incomplete_gamma s X) at_top (𝓝 $ s * real_gamma s),
-  {
-    apply tendsto.const_mul,
-    exact tendsto_incomplete_gamma s h
-  },
+  { apply tendsto.const_mul,
+    exact tendsto_incomplete_gamma s h },
   suffices l2: tendsto (λ X:ℝ, -X^s * exp(-X)) at_top (𝓝 $ (0:ℝ)),
-  {
-    have := tendsto.add l1 l2,
-    simpa using this
-  },
+  { have := tendsto.add l1 l2,
+    simpa using this },
   have l3: tendsto (λ X:ℝ, X^s * exp(-X)) at_top (𝓝 $ (0:ℝ)),
-  {
-    have := tendsto_exp_mul_div_rpow_at_top' s (1:ℝ) zero_lt_one,
-    simpa using this
-  },
-  have: (λ X:ℝ, -X^s * exp(-X)) = (λ X:ℝ, (-1) * (X^s * exp(-X))) := by { simp only [neg_mul, one_mul], },
+  { have := tendsto_exp_mul_div_rpow_at_top' s (1:ℝ) zero_lt_one,
+    simpa using this },
+  have: (λ X:ℝ, -X^s * exp(-X)) = (λ X:ℝ, (-1) * (X^s * exp(-X))) :=
+    by { simp only [neg_mul, one_mul] },
   rw this,
   have : (0:ℝ) = (-1) * (0:ℝ) := by {ring, },
   rw this,
@@ -497,30 +455,22 @@ end
 lemma gamma_at_one: real_gamma 1 = 1 :=
 begin
   have t1: tendsto (1:ℝ).real_incomplete_gamma at_top (𝓝 (1:ℝ).real_gamma),
-  {
-    apply tendsto_incomplete_gamma,
-    refl
-  },
+  { apply tendsto_incomplete_gamma,
+    refl },
   have t2: tendsto (1:ℝ).real_incomplete_gamma at_top (𝓝 (1:ℝ)),
-  {
-    have t2a: eventually_eq at_top (λ X:ℝ, 1-exp(-X)) (1:ℝ).real_incomplete_gamma,
-    {
-      apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
+  { have t2a: eventually_eq at_top (λ X:ℝ, 1-exp(-X)) (1:ℝ).real_incomplete_gamma,
+    { apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
       intros X hX,
       symmetry,
       apply incomp_gamma_at_one,
-      rw [←Ioi_def, mem_set_of_eq] at hX, exact hX
-    },
+      rw [←Ioi_def, mem_set_of_eq] at hX, exact hX },
     apply tendsto.congr' t2a,
 
     have t2b: tendsto (λ X, exp(-X)) at_top (𝓝 (0:ℝ)),
-    {
-      have := tendsto_exp_mul_div_rpow_at_top' 0 1,
-      simpa using this
-    },
+    { have := tendsto_exp_mul_div_rpow_at_top' 0 1,
+      simpa using this },
     have := tendsto.const_sub (1:ℝ) t2b,
-    simpa using this
-  },
+    simpa using this },
   apply tendsto_nhds_unique t1 t2
 end
 
@@ -550,17 +500,13 @@ begin
   rw [set.Ioi, mem_set_of_eq] at hs,
 
   have Ioo_nhd: Ioo 1 (s+1) ∈ 𝓝 s,
-  {
-    apply Ioo_mem_nhds,
-    linarith, linarith,
-  },
+  { apply Ioo_mem_nhds,
+    linarith, linarith },
 
   -- F(t-1, -) is bounded, locally uniformly in t near s
   have bound: ∀ᶠ (t : ℝ) in 𝓝 s, ∀ᵐ (x : ℝ) ∂ measure_theory.measure_space.volume.restrict (Ioi 0),
     ∥exp (-x) * x ^ (t - 1)∥ ≤ (λ y:ℝ, F s y + F 0 y) x,
-  {
-
-    apply eventually_of_mem (Ioo_nhd),
+  { apply eventually_of_mem (Ioo_nhd),
     intros t ht,
     rw [set.Ioo, mem_set_of_eq] at ht,
 
@@ -569,10 +515,8 @@ begin
     swap, apply measurable_set_Ioi,
     suffices: ({a : ℝ | ¬∥exp (-a) * a ^ (t - 1)∥ ≤ (λ (y : ℝ), F s y + F 0 y) a} ∩ Ioi 0)
       = ∅,
-    {
-      rw this,
-      apply measure_theory.measure_empty,
-    },
+    { rw this,
+      apply measure_theory.measure_empty },
     ext,
     simp only [not_le, mem_inter_eq, mem_set_of_eq, set.mem_Ioi,
       mem_empty_eq, iff_false, not_and, not_lt],
@@ -580,49 +524,37 @@ begin
     simp only [not_le, not_lt],
     intro hx,
     have: ∥exp(-x) * x^(t-1)∥ = exp(-x) * x^(t-1),
-    {
-      apply abs_of_nonneg,
+    { apply abs_of_nonneg,
       apply le_of_lt,
       apply mul_pos,
       exact exp_pos (-x),
       apply rpow_pos_of_pos,
-      exact hx
-    },
+      exact hx },
     rw this,
     have: exp(-x) * x^(t-1) ≤ F s x + F 0 x,
-    {
-      apply loc_unif_bound_F s _ (t-1),
+    { apply loc_unif_bound_F s _ (t-1),
       rw [set.Icc,mem_set_of_eq],
       split,
       linarith,linarith,
-      tauto,linarith
-    },
-    exact this,
-  },
+      tauto,linarith },
+    exact this },
 
   -- The upper bound is integrable
   have bd_integrable: measure_theory.integrable (λ (x : ℝ), F s x + F 0 x)
   (measure_theory.measure_space.volume.restrict (Ioi 0)),
-  {
-    apply measure_theory.integrable.add,
-    {
-      --exact integrable_F s (le_of_lt hs)
-      have: 1 ≤ s+1,
+  { apply measure_theory.integrable.add,
+    { have: 1 ≤ s+1,
       { linarith },
       replace := integrable_F (s+1) this,
-      simpa using this
-    },
+      simpa using this },
     { have := integrable_F (1:ℝ) (le_refl (1:ℝ)),
       rw sub_self at this,
-      exact this,
-    }
-  },
+      exact this } },
 
   -- F(t-1, -) is a.e. measurable in x, for all t near s
   have ae_meas: ∀ᶠ (t : ℝ) in 𝓝 s, ae_measurable (λ (x : ℝ), exp (-x) * x ^ (t - 1))
     (measure_theory.measure_space.volume.restrict (Ioi 0)),
-  {
-    apply eventually_of_mem (Ioi_mem_nhds hs),
+  { apply eventually_of_mem (Ioi_mem_nhds hs),
     intros t ht,
     rw [set.Ioi, mem_set_of_eq] at ht,
     apply continuous_on.ae_measurable,
@@ -633,17 +565,15 @@ begin
     rw [set.Ioi, set.Ici, set_of_subset_set_of],
     intro a,
     apply le_of_lt,
-    apply measurable_set_Ioi,
-  },
+    apply measurable_set_Ioi },
 
   -- F(-, x) is continuous at s-1, for almost all x
   have F_cts: ∀ᵐ (x : ℝ) ∂measure_theory.measure_space.volume.restrict (Ioi 0),
     continuous_at (λ (t : ℝ), exp (-x) * x ^ (t - 1) ) s,
-  {
-    have emp: {a : ℝ | ¬continuous_at (λ (t : ℝ), exp (-a) * a ^ (t - 1)) s} ∩ Ioi 0 = ∅,
-    {
-      ext,
-      simp only [mem_inter_eq, mem_set_of_eq, set.mem_Ioi, mem_empty_eq, iff_false, not_and, not_lt],
+  { have emp: {a : ℝ | ¬continuous_at (λ (t : ℝ), exp (-a) * a ^ (t - 1)) s} ∩ Ioi 0 = ∅,
+    { ext,
+      simp only [mem_inter_eq, mem_set_of_eq, set.mem_Ioi,
+        mem_empty_eq, iff_false, not_and, not_lt],
       contrapose,
       simp only [not_le, not_not],
       intro hx,
@@ -654,16 +584,12 @@ begin
         apply continuous_at.sub,
         apply continuous_at_id,
         apply continuous_at_const,
-        left, exact hx.ne'
-       },
-    },
-
+        left, exact hx.ne'}, },
     rw measure_theory.ae_iff,
     rw measure_theory.measure.restrict_apply',
     rw emp,
     exact measure_theory.measure_empty,
-    apply measurable_set_Ioi
-  },
+    apply measurable_set_Ioi },
 
   apply measure_theory.continuous_at_of_dominated ae_meas bound bd_integrable F_cts,
 end

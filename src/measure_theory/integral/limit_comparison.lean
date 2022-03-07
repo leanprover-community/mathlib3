@@ -50,8 +50,7 @@ begin
   have := (has_deriv_at.div_const this b),
   have s : (-(exp (-b * x) * -b) / b) = exp(-b*x),
   { simp only [neg_mul, mul_neg, neg_neg],
-    rw mul_div_cancel _ (h.ne')
-  },
+    rw mul_div_cancel _ (h.ne') },
   rw s at this, exact this
 end
 
@@ -141,35 +140,29 @@ begin
   let C1 := |f(z)| * exp(b * v),
 
   have bound1 : ∀ x : ℝ, (x ∈ Icc a v) → |f(x)| ≤ (C1 * exp(-b * x)),
-  {
-    intro x, cases hz with hz0 hz1,
+  { intro x, cases hz with hz0 hz1,
     specialize hz1 x,
     intro dummy,
     have hz1 := hz1(dummy),
     have : exp(-b * v) ≤ exp(-b * x),
-    {
-      rw exp_le_exp,
+    { rw exp_le_exp,
       rw neg_mul,rw neg_mul,
       apply neg_le_neg,
       apply mul_le_mul_of_nonneg_left,
-      exact dummy.2, exact le_of_lt(h)
-    },
+      exact dummy.2, exact le_of_lt(h) },
     have this2: |f(x)| ≤ C1 * exp(-b * v),
-    {
-      apply le_trans hz1, apply le_of_eq,
+    { apply le_trans hz1, apply le_of_eq,
       rw neg_mul,
       rw exp_neg,
       have : C1*(exp (b*v))⁻¹ = |f(z)|,
       apply mul_div_cancel,
       exact (exp_pos (b*v)).ne',
-      rw this,
-    },
+      rw this },
     apply (le_trans this2 _),
     apply mul_le_mul_of_nonneg_left this,
     apply mul_nonneg,
     apply abs_nonneg,
-    apply le_of_lt(exp_pos (b*v))
-  },
+    apply le_of_lt(exp_pos (b*v)) },
   clear icc_non cts_left hz,
 
   let C := max C1 c,
@@ -186,17 +179,13 @@ begin
     apply le_of_lt(exp_pos (-b * x)) },
   exact le_trans bound1 this,
   have h : (r ≤ x),
-  {
-    have : r ≤ v := le_max_right a r,
-    linarith,
-  },
+  { have : r ≤ v := le_max_right a r,
+    linarith },
   specialize bdr x h,
   apply le_trans bdr,
   have : ∥exp(-b * x)∥ = exp(-b * x),
-  {
-    apply abs_of_nonneg,
-    apply le_of_lt(exp_pos (-b * x)),
-  },
+  { apply abs_of_nonneg,
+    apply le_of_lt(exp_pos (-b * x)) },
   rw this,
   apply (mul_le_mul_of_nonneg_right (le_max_right C1 c) (le_of_lt(exp_pos (-b * x))))
 end

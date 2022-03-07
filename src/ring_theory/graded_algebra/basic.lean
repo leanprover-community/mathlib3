@@ -169,11 +169,10 @@ include h
 
 @[elab_as_eliminator]
 lemma set_like.homogeneous_induction {P : A → Prop}
-  (a : A)
   (h_zero : P 0)
   (h_hom : ∀ (a : A), set_like.is_homogeneous 𝒜 a → P a)
   (h_add : ∀ (a b : A), P a → P b → P (a + b))
-  : P a :=
+  (a : A) : P a :=
 begin
   haveI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
   change function.bijective _ at h,

@@ -1390,20 +1390,11 @@ by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id_limit h.2] }
 
 theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
   blsub.{u} o (λ x _, f x) = f o :=
-begin
-  rw [←H.bsup_eq h, bsup_eq_blsub_of_lt_succ_limit h],
-  exact (λ a _, H.1 a)
-end
+by { rw [←H.bsup_eq h, bsup_eq_blsub_of_lt_succ_limit h], exact (λ a _, H.1 a) }
 
 theorem is_normal_iff_lt_succ_and_bsup_eq {f} :
   is_normal f ↔ (∀ a, f a < f a.succ) ∧ ∀ o, is_limit o → bsup o (λ x _, f x) = f o :=
-begin
-  use λ hf, ⟨hf.1, @is_normal.bsup_eq f hf⟩,
-  rintro ⟨hf, hf'⟩,
-  refine ⟨hf, λ o ho a, _⟩,
-  rw ←hf' o ho,
-  exact bsup_le
-end
+⟨λ h, ⟨h.1, @is_normal.bsup_eq f h⟩, λ ⟨h₁, h₂⟩, ⟨h₁, λ o ho a, (by {rw ←h₂ o ho, exact bsup_le})⟩⟩
 
 theorem is_normal_iff_lt_succ_and_blsub_eq {f} :
   is_normal f ↔ (∀ a, f a < f a.succ) ∧ ∀ o, is_limit o → blsub o (λ x _, f x) = f o :=

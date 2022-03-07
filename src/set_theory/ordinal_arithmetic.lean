@@ -429,12 +429,6 @@ theorem is_normal.is_limit {f} (H : is_normal f) {o} (l : is_limit o) :
 theorem is_normal.le_iff_eq {f} (H : is_normal f) {a} : f a ≤ a ↔ f a = a :=
 (H.self_le a).le_iff_eq
 
-theorem is_normal_iff_strict_mono_limit (f : ordinal → ordinal) :
-  (strict_mono f ∧ ∀ o, is_limit o → ∀ a, (∀ b < o, f b ≤ a) → f o ≤ a) ↔ is_normal f :=
-⟨λ ⟨hs, hl⟩, ⟨λ a, hs (ordinal.lt_succ_self a),
-  λ a ha c, ⟨λ hac b hba, ((hs hba).trans_le hac).le, hl a ha c⟩⟩,
-  λ hf, ⟨hf.strict_mono, λ a ha c, (hf.2 a ha c).2⟩⟩
-
 theorem add_le_of_limit {a b c : ordinal.{u}}
   (h : is_limit b) : a + b ≤ c ↔ ∀ b' < b, a + b' ≤ c :=
 ⟨λ h b' l, le_trans (add_le_add_left (le_of_lt l) _) h,

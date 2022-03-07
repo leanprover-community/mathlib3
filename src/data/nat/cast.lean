@@ -335,6 +335,20 @@ end ring_hom_class
 instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℕ →+* R) :=
 ⟨ext_nat⟩
 
+namespace mul_opposite
+
+variables {α : Type*} [has_zero α] [has_one α] [has_add α]
+
+@[simp, norm_cast] lemma op_nat_cast : ∀ n : ℕ, op (n : α) = n
+| 0 := rfl
+| (n + 1) := congr_arg (+ (1 : αᵐᵒᵖ)) $ op_nat_cast n
+
+@[simp, norm_cast] lemma unop_nat_cast : ∀ n : ℕ, unop (n : αᵐᵒᵖ) = n
+| 0 := rfl
+| (n + 1) := congr_arg (+ (1 : α)) $ unop_nat_cast n
+
+end mul_opposite
+
 namespace with_top
 variables {α : Type*}
 

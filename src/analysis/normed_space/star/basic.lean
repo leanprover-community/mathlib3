@@ -108,20 +108,14 @@ variables [normed_ring E] [star_ring E] [cstar_ring E]
 /-- In a C*-ring, star preserves the norm. -/
 @[priority 100] -- see Note [lower instance priority]
 instance to_normed_star_monoid : normed_star_monoid E :=
-⟨begin
-  intro x,
-  by_cases htriv : x = 0,
-  { simp only [htriv, star_zero] },
-  { have hnt : 0 < ∥x∥ := norm_pos_iff.mpr htriv,
-    have hnt_star : 0 < ∥x⋆∥ :=
-      norm_pos_iff.mpr ((add_equiv.map_ne_zero_iff star_add_equiv).mpr htriv),
-    have h₁ := calc
-      ∥x∥ * ∥x∥ = ∥x⋆ * x∥        : norm_star_mul_self.symm
-            ... ≤ ∥x⋆∥ * ∥x∥      : norm_mul_le _ _,
-    have h₂ := calc
-      ∥x⋆∥ * ∥x⋆∥ = ∥x * x⋆∥      : by rw [←norm_star_mul_self, star_star]
-             ... ≤ ∥x∥ * ∥x⋆∥     : norm_mul_le _ _,
-    exact le_antisymm (le_of_mul_le_mul_right h₂ hnt_star) (le_of_mul_le_mul_right h₁ hnt) },
+⟨λ x, begin
+  have n_le : ∀ {y : E}, ∥y∥ ≤ ∥y⋆∥,
+  { intros y,
+    by_cases y0 : y = 0,
+    { rw [y0, star_zero] },
+    { refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr y0),
+      exact (norm_star_mul_self.symm.trans_le $ norm_mul_le _ _) } },
+  exact (n_le.trans_eq $ congr_arg _ $ star_star _).antisymm n_le,
 end⟩
 
 lemma norm_self_mul_star {x : E} : ∥x * x⋆∥ = ∥x∥ * ∥x∥ :=
@@ -131,11 +125,7 @@ lemma norm_star_mul_self' {x : E} : ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
 by rw [norm_star_mul_self, norm_star]
 
 lemma nnnorm_star_mul_self {x : E} : ∥x⋆ * x∥₊ = ∥x∥₊ * ∥x∥₊ :=
-begin
-  have : (∥x⋆ * x∥₊ : ℝ) = ∥x∥₊ * ∥x∥₊,
-    by simpa only [←coe_nnnorm] using @norm_star_mul_self _ _ _ _ x,
-  exact_mod_cast this,
-end
+subtype.ext norm_star_mul_self
 
 @[simp] lemma norm_one [nontrivial E] : ∥(1 : E)∥ = 1 :=
 begin

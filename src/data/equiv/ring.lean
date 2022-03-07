@@ -38,7 +38,7 @@ equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 
 open_locale big_operators
 
-variables {R : Type*} {S : Type*} {S' : Type*}
+variables {F α β R S S' : Type*}
 
 set_option old_structure_cmd true
 
@@ -85,6 +85,11 @@ instance to_ring_hom_class (F R S : Type*)
 
 end ring_equiv_class
 
+instance [has_mul α] [has_add α] [has_mul β] [has_add β] [ring_equiv_class F α β] :
+  has_coe_t F (α ≃+* β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f, map_mul' := map_mul f, map_add' := map_add f }⟩
+
 namespace ring_equiv
 
 section basic
@@ -125,10 +130,6 @@ protected lemma congr_arg {f : R ≃+* S} {x x' : R} : x = x' → f x = f x' := 
 protected lemma congr_fun {f g : R ≃+* S} (h : f = g) (x : R) : f x = g x := fun_like.congr_fun h x
 
 protected lemma ext_iff {f g : R ≃+* S} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
-
-instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.to_mul_equiv⟩
-
-instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
 
 @[simp] lemma to_add_equiv_eq_coe (f : R ≃+* S) : f.to_add_equiv = ↑f := rfl
 
@@ -281,6 +282,36 @@ noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R �
 
 lemma of_bijective_apply (f : R →+* S) (hf : function.bijective f) (x : R) :
   of_bijective f hf x = f x := rfl
+
+/-- A family of ring isomorphisms `Π j, (R j ≃+* S j)` generates a
+ring isomorphisms between `Π j, R j` and `Π j, S j`.
+
+This is the `ring_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
+`ring_equiv.arrow_congr`.
+-/
+@[simps apply]
+def Pi_congr_right {ι : Type*} {R S : ι → Type*}
+  [Π i, semiring (R i)] [Π i, semiring (S i)]
+  (e : Π i, R i ≃+* S i) : (Π i, R i) ≃+* Π i, S i :=
+{ to_fun := λ x j, e j (x j),
+  inv_fun := λ x j, (e j).symm (x j),
+  .. @mul_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_mul_equiv),
+  .. @add_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_add_equiv) }
+
+@[simp]
+lemma Pi_congr_right_refl {ι : Type*} {R : ι → Type*} [Π i, semiring (R i)] :
+  Pi_congr_right (λ i, ring_equiv.refl (R i)) = ring_equiv.refl _ := rfl
+
+@[simp]
+lemma Pi_congr_right_symm {ι : Type*} {R S : ι → Type*}
+  [Π i, semiring (R i)] [Π i, semiring (S i)]
+  (e : Π i, R i ≃+* S i) : (Pi_congr_right e).symm = (Pi_congr_right $ λ i, (e i).symm) := rfl
+
+@[simp]
+lemma Pi_congr_right_trans {ι : Type*} {R S T : ι → Type*}
+  [Π i, semiring (R i)] [Π i, semiring (S i)] [Π i, semiring (T i)]
+  (e : Π i, R i ≃+* S i) (f : Π i, S i ≃+* T i) :
+  (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) := rfl
 
 end semiring
 

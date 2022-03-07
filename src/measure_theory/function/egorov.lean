@@ -6,12 +6,12 @@ Authors: Kexing Ying
 import measure_theory.integral.set_integral
 
 /-!
-# Uniform integrability
+# Egorov theorem
 
-This file will be used in the future to define uniform integrability. Uniform integrability
-is an important notion in both measure theory as well as probability theory. So far this file
-only contains the Egorov theorem which will be used to prove the Vitali convergence theorem
-which is one of the main results about uniform integrability.
+This file contains the Egorov theorem which states that an almost everywhere convergent
+sequence on a finite measure space converges uniformly except on an arbitrarily small set.
+This theorem is useful for the Vitali convergence theorem as well as theorems regarding
+convergence in measure.
 
 ## Main results
 
@@ -28,10 +28,6 @@ namespace measure_theory
 open set filter topological_space
 
 variables {α β ι : Type*} {m : measurable_space α} [metric_space β] {μ : measure α}
-
-section
-
-/-! We will in this section prove Egorov's theorem. -/
 
 namespace egorov
 
@@ -220,8 +216,6 @@ begin
   { refine ⟨_, ht, _⟩,
     rwa compl_eq_univ_diff },
   { filter_upwards [hfg] with _ htendsto _ using htendsto, },
-end
-
 end
 
 end measure_theory

@@ -205,9 +205,7 @@ begin
           apply fun_mono_2 rfl,
           simp only [coeffs.val_except, mul_add],
           repeat {rw ← coeffs.val_between_map_mul},
-          have h4 : ∀ {a b c d : int},
-            a + b + (c + d) = (a + c) + (b + d),
-          { intros, ring }, rw h4,
+          rw add_add_add_comm,
           have h5 : add as (list.map (has_mul.mul a_n)
             (list.map (λ (x : ℤ), symmod x (get n as + 1)) as)) =
             list.map (λ (a_i : ℤ), a_i + a_n * symmod a_i m) as,

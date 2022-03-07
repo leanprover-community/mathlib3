@@ -38,14 +38,14 @@ instance (X : Type v₁) : is_left_adjoint (types.binary_product_functor.obj X) 
 instance : has_finite_products (Type v₁) := has_finite_products_of_has_products _
 
 instance : cartesian_closed (Type v₁) :=
-{ closed := λ X,
+{ closed' := λ X,
   { is_adj := adjunction.left_adjoint_of_nat_iso (types.binary_product_iso_prod.app X) } }
 
 instance {C : Type u₁} [category.{v₁} C] : has_finite_products (C ⥤ Type u₁) :=
 has_finite_products_of_has_products _
 
 instance {C : Type v₁} [small_category C] : cartesian_closed (C ⥤ Type v₁) :=
-{ closed := λ F,
+{ closed' := λ F,
   { is_adj :=
     begin
       letI := functor_category.prod_preserves_colimits F,

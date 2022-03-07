@@ -474,31 +474,6 @@ instance has_measurable_smul₂_of_mul (M : Type*) [has_mul M] [measurable_space
   has_measurable_smul s α :=
 s.to_submonoid.has_measurable_smul
 
-section nsmul
-
-variables {β α : Type*} [measurable_space β]
-
-@[measurability]
-lemma measurable_nsmul [measurable_space α] [add_monoid α] [has_measurable_add₂ α] (n : ℕ) :
-  measurable (λ x : α, n • x) :=
-begin
-  induction n with n ih,
-  { simp_rw [zero_smul], exact measurable_const },
-  { simp_rw [succ_nsmul], exact measurable_id.add ih }
-end
-
-@[measurability]
-lemma measurable_zsmul [measurable_space α] [sub_neg_monoid α] [has_measurable_add₂ α]
-  [has_measurable_neg α] (z : ℤ) :
-  measurable (λ x : α, z • x) :=
-begin
-  induction z with n n,
-  { simp_rw [of_nat_zsmul], exact measurable_nsmul n },
-  { simp_rw [zsmul_neg_succ_of_nat], exact (measurable_nsmul _).neg }
-end
-
-end nsmul
-
 section smul
 
 variables {M β α : Type*} [measurable_space M] [measurable_space β] [has_scalar M β]
@@ -516,29 +491,6 @@ lemma ae_measurable.smul [has_measurable_smul₂ M β]
   {μ : measure α} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
   ae_measurable (λ x, f x • g x) μ :=
 has_measurable_smul₂.measurable_smul.comp_ae_measurable (hf.prod_mk hg)
-
-@[measurability]
-lemma measurable.nsmul [add_monoid M] [has_measurable_add₂ M] (n : ℕ) (hf : measurable f):
-  measurable (λ x, n • f x) :=
-(measurable_nsmul n).comp hf
-
-@[measurability]
-lemma ae_measurable.nsmul [add_monoid M] [has_measurable_add₂ M]
-  {μ : measure α} (n : ℕ) (hf : ae_measurable f μ) :
-  ae_measurable (λ x, n • f x) μ :=
-(measurable_nsmul n).comp_ae_measurable hf
-
-@[measurability]
-lemma measurable.zsmul [sub_neg_monoid M] [has_measurable_add₂ M] [has_measurable_neg M]
-  (z : ℤ) (hf : measurable f):
-  measurable (λ x, z • f x) :=
-(measurable_zsmul z).comp hf
-
-@[measurability]
-lemma ae_measurable.zsmul [sub_neg_monoid M] [has_measurable_add₂ M] [has_measurable_neg M]
-  {μ : measure α} (z : ℤ) (hf : ae_measurable f μ) :
-  ae_measurable (λ x, z • f x) μ :=
-(measurable_zsmul z).comp_ae_measurable hf
 
 omit m
 

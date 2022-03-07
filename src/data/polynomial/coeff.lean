@@ -180,7 +180,6 @@ end
 lemma mul_X_injective : function.injective (λ P : R[X], X * P) :=
 begin
   intros P Q hPQ,
-  simp only at hPQ,
   rw [← pow_one X] at hPQ,
   exact mul_X_pow_injective 1 hPQ
 end

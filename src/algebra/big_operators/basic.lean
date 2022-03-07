@@ -1035,7 +1035,7 @@ by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
 @[to_additive]
 lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
 
-@[to_additive sum_nsmul]
+@[to_additive]
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   ∏ x in s, f x ^ n = (∏ x in s, f x) ^ n :=
 by haveI := classical.dec_eq α; exact

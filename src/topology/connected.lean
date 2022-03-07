@@ -1104,26 +1104,16 @@ end
 /-- Let `X` be a topological space, and suppose that for all distinct `x,y ∈ X`, there
   is some clopen set `U` such that `x ∈ U` and `y ∉ U`. Then `X` is totally disconnected. -/
 lemma is_totally_disconnected_of_clopen_set {X : Type*} [topological_space X]
-  (h_exists_clopen : ∀ {x y : X} (h_diff : x ≠ y), ∃ (U : set X) (h_clopen : is_clopen U),
-  x ∈ U ∧ y ∉ U) : is_totally_disconnected (set.univ : set X) :=
+  (hX : ∀ {x y : X} (h_diff : x ≠ y), ∃ (U : set X) (h_clopen : is_clopen U), x ∈ U ∧ y ∉ U) :
+  is_totally_disconnected (set.univ : set X) :=
 begin
-  intros S _ hS,
-  by_contra h_contra,
-  unfold set.subsingleton at h_contra,
-  push_neg at h_contra,
+  rintro S - hS,
+  unfold set.subsingleton,
+  by_contra' h_contra,
   rcases h_contra with ⟨x, hx, y, hy, hxy⟩,
-  obtain ⟨U, h_clopen, hxU, hyU⟩ := h_exists_clopen hxy,
-  let V := set.compl U,
-  have hV_open : is_open V,
-  { rw ← is_closed_compl_iff,
-    change is_closed U.compl.compl,
-    rw [set.compl_eq_compl, compl_compl],
-    exact h_clopen.2 },
-  specialize hS U V h_clopen.1 hV_open (λ a ha, em (a ∈ U)) ⟨x, hx, hxU⟩ ⟨y, hy, hyU⟩,
-  have hUV : U ∩ V = ∅,
-  { change U ∩ U.compl = ∅,
-    simp },
-  rw [hUV, set.inter_empty] at hS,
+  obtain ⟨U, h_clopen, hxU, hyU⟩ := hX hxy,
+  specialize hS U Uᶜ h_clopen.1 h_clopen.compl.1 (λ a ha, em (a ∈ U)) ⟨x, hx, hxU⟩ ⟨y, hy, hyU⟩,
+  rw [inter_compl_self, set.inter_empty] at hS,
   exact set.not_nonempty_empty hS,
 end
 

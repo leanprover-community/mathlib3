@@ -491,12 +491,6 @@ by simp [direct_sum.submodule_is_internal.collected_orthonormal_basis]
 
 variables [finite_dimensional 𝕜 E]
 
--- move this
-lemma _root_.linear_independent.finite {K : Type*} {V : Type*} [division_ring K] [add_comm_group V]
-  [module K V] [finite_dimensional K V] {b : set V} (h : linear_independent K (λ (x:b), (x:V))) :
-  b.finite :=
-cardinal.lt_omega_iff_finite.mp (finite_dimensional.lt_omega_of_linear_independent h)
-
 /-- In a finite-dimensional `inner_product_space`, any orthonormal subset can be extended to an
 orthonormal basis. -/
 lemma _root_.orthonormal.exists_orthonormal_basis_extension
@@ -598,7 +592,7 @@ local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 /-- Given a natural number `n` one less than the `finrank` of a finite-dimensional inner product
 space, there exists an isometry from the orthogonal complement of a nonzero singleton to
 `euclidean_space 𝕜 (fin n)`. -/
-def linear_isometry_equiv.from_orthogonal_span_singleton
+def orthonormal_basis.orthogonal_span_singleton
   [decidable_eq E] (n : ℕ) [fact (finrank 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   orthonormal_basis (fin n) 𝕜 (𝕜 ∙ v)ᗮ :=
 (fin_std_orthonormal_basis (finrank_orthogonal_span_singleton hv))

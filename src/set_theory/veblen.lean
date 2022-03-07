@@ -29,8 +29,8 @@ universe u
 
 namespace ordinal
 
-/-- The Veblen hierarchy from a function. `veblen f 0` equals the original function, and for any
-    `o > 0`, `veblen f o` enumerates the common fixed points of all `veblen f a` for `a < o`. -/
+/-- The Veblen hierarchy from a normal function. `veblen f 0` equals the original function, and for
+    any `o > 0`, `veblen f o` enumerates the common fixed points of all `veblen f a` for `a < o`. -/
 def veblen (f : ordinal → ordinal) : ordinal → ordinal → ordinal :=
 wf.fix (λ o φ, if o = 0 then f else deriv_bfamily.{u u} o φ)
 
@@ -71,18 +71,34 @@ begin
   rw H _ (typein_lt_self i) }
 end
 
-theorem veblen_fp_lt_of_fp {f : ordinal → ordinal} {o o' a : ordinal.{u}} (hf : is_normal f)
-  (ho : veblen f o a = a) (ho' : o' ≤ o) : veblen f o' a = a :=
+variables {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f)
+include hf
+
+theorem veblen_veblen {o o' : ordinal} (ho : o < o') (a) :
+  veblen f o (veblen f o' a) = veblen f o' a :=
+begin
+  rw veblen_pos f ((ordinal.zero_le o).trans_lt ho).ne',
+  exact deriv_bfamily_fp.{u u} (λ i _, @veblen_is_normal f hf i) a _ ho
+end
+
+theorem veblen_fp_lt_of_fp {o o' a : ordinal.{u}} (ho : veblen f o a = a) (ho' : o' ≤ o) :
+  veblen f o' a = a :=
 begin
   rcases lt_or_eq_of_le ho' with ho' | rfl,
-  { rw veblen_pos f ((ordinal.zero_le o').trans_lt ho').ne' at ho,
-    have := deriv_bfamily_fp.{u u} (λ i _, @veblen_is_normal f hf i) a _ ho',
-    rwa ho at this },
+  { rw ←ho,
+    exact veblen_veblen hf ho' a },
   { exact ho }
 end
 
-theorem veblen_succ {f : ordinal → ordinal} (hf : is_normal f) (o : ordinal.{u}) :
-  veblen f o.succ = deriv (veblen f o) :=
+theorem veblen_zero_le_of_fp {o a : ordinal} (ho : o ≠ 0) (H : ∀ o' < o, veblen f o' a = a) :
+  veblen f o 0 ≤ a :=
+begin
+  rw [veblen_pos f ho, deriv_bfamily_eq_enum_ord, enum_ord_zero],
+  { apply cInf_le', simpa only [set.mem_Inter] using H },
+  { exact λ i hi, veblen_is_normal hf i }
+end
+
+theorem veblen_succ (o : ordinal.{u}) : veblen f o.succ = deriv (veblen f o) :=
 begin
   rw veblen_pos f (@succ_ne_zero o),
   refine deriv_family_eq_of_fp_eq.{u 0 0}
@@ -93,10 +109,7 @@ begin
   rwa family_of_bfamily_enum at this
 end
 
-set_option pp.universes true
-
-theorem veblen_monotone {f : ordinal.{u} → ordinal} (hf : is_normal f) (o) :
-  monotone (λ a, veblen f a o) :=
+theorem veblen_monotone (o) : monotone (λ a, veblen.{u} f a o) :=
 λ b c hbc, begin
   dsimp,
   rcases eq_zero_or_pos b with rfl | hb,
@@ -114,23 +127,23 @@ theorem veblen_monotone {f : ordinal.{u} → ordinal} (hf : is_normal f) (o) :
       (λ a _, veblen_is_normal hf a) (λ a H i hib, H i (hib.trans_le hbc)) o }
 end
 
-theorem veblen_zero_is_normal {f : ordinal → ordinal} (hf : is_normal f) (hf₀ : f 0 ≠ 0) :
-  is_normal (λ a, veblen f a 0) :=
+theorem veblen_zero_is_normal (hf₀ : f 0 ≠ 0) : is_normal (λ a, veblen.{u} f a 0) :=
 begin
-  split,{
-    dsimp,
-    intro o,
-    have ho := veblen_is_normal hf o,
-    rw [veblen_succ hf, deriv_zero, ←ho.nfp_fp],
-    apply ho.strict_mono ((ordinal.pos_iff_ne_zero.2 (λ h, hf₀ _)).trans_le (iterate_le_nfp _ 0 1)),
-    have := veblen_fp_lt_of_fp hf h (ordinal.zero_le o),
-    rwa veblen_zero at this
-  },
-  {
-intros o ho a,dsimp,split,{
-  intros ha b hb,sorry,
-}
-  }
+  refine is_normal_iff_lt_succ_and_bsup_eq.{u u}.2 ⟨λ o₁, _, λ o ho, le_antisymm
+    (bsup_le.2 (λ i hi, veblen_monotone hf 0 hi.le))
+    (veblen_zero_le_of_fp hf ho.1 (λ o₁ ho₁, _))⟩;
+  have H := veblen_is_normal hf o₁,
+  { rw [veblen_succ hf, deriv_zero, ←H.nfp_fp],
+    apply H.strict_mono ((ordinal.pos_iff_ne_zero.2 (λ h, hf₀ _)).trans_le (iterate_le_nfp _ 0 1)),
+    rw ←veblen_zero f,
+    exact veblen_fp_lt_of_fp hf h (ordinal.zero_le _) },
+  { rw is_normal.bsup.{u u u} H _ ho.1,
+    refine le_antisymm (bsup_le.2 (λ o₂ ho₂, (H.strict_mono.monotone
+      (veblen_monotone hf _ ((le_max_right o₁ o₂).trans (lt_succ_self _).le))).trans _))
+      (bsup_le.2 (λ o₂ ho₂, (H.self_le _).trans (le_bsup.{u u} _ _ ho₂))),
+    rw veblen_veblen hf,
+    { exact le_bsup.{u u} _ _ (ho.2 _ (max_lt ho₁ ho₂)) },
+    { exact lt_succ.2 (le_max_left _ _) } }
 end
 
 end ordinal

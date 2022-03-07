@@ -582,10 +582,7 @@ theorem deriv_eq_deriv_bfamily (f : ordinal → ordinal) : deriv f = deriv_bfami
 
 theorem deriv_eq_deriv_bfamily' {o : ordinal} (ho : o ≠ 0) (f : ordinal → ordinal) :
   deriv f = deriv_bfamily.{u (max u v)} o (λ a _, f) :=
-begin
-  apply deriv_family_eq_of_range_eq.{0 v u},simp,
-
-end
+deriv_family_eq_of_range_eq.{0 v} $ by rwa [set.range_const, range_family_of_bfamily, brange_const]
 
 @[simp] theorem deriv_zero (f) : deriv f 0 = nfp f 0 :=
 deriv_family_zero _

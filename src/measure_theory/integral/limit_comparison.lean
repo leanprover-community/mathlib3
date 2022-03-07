@@ -29,20 +29,14 @@ open_locale classical topological_space ennreal
 namespace limit_comparison
 
 /-- exp(-b x) is integrable on (a, X] for any finite a, X. -/
-lemma exp_neg_finite_integrable (a : ℝ) (b : ℝ) (X : ℝ):
+lemma exp_neg_finite_integrable (b : ℝ) (a : ℝ) (X : ℝ):
   integrable_on (λ x : ℝ, exp(-b * x) ) (set.Ioc a X) :=
-begin
-  apply continuous.integrable_on_Ioc,
-  apply continuous.exp,
-  apply continuous.mul,
-  apply continuous_const,
-  apply continuous_id
-end
+  (continuous_const.mul continuous_id).exp.integrable_on_Ioc
 
 lemma exp_neg_hasderiv (b : ℝ) (x : ℝ) (h : 0 < b) :
   has_deriv_at (λ (y : ℝ), -exp (-b * y) / b) (exp (-b * x)) x :=
 begin
-  have : has_deriv_at (λ (x : ℝ), x) 1 x := by apply has_deriv_at_id,
+  have : has_deriv_at (λ (x : ℝ), x) 1 x := has_deriv_at_id x,
   have : has_deriv_at (λ (x : ℝ), b*x) b x := by simpa using has_deriv_at.const_mul b this,
   have : has_deriv_at (λ (x : ℝ), -b*x) (-b) x := by simpa using has_deriv_at.neg this,
   have : has_deriv_at (λ (x : ℝ), exp (-b*x)) (exp (-b*x)*(-b)) x := has_deriv_at.exp this,
@@ -54,8 +48,8 @@ begin
   rw s at this, exact this
 end
 
-lemma exp_neg_antideriv (b: ℝ) (h: 0 < b): deriv (λ (x : ℝ), -exp (-b * x) / b)
-  = (λ (x : ℝ), exp (-b * x)) :=
+lemma exp_neg_antideriv (b: ℝ) (h: 0 < b):
+  deriv (λ (x : ℝ), -exp (-b * x) / b) = (λ (x : ℝ), exp (-b * x)) :=
 begin
   ext1,
   exact has_deriv_at.deriv ( exp_neg_hasderiv b x h )
@@ -83,10 +77,7 @@ begin
   exact has_deriv_at.differentiable_at (exp_neg_hasderiv b x h2 ),
   -- goal 4/4: exp(-b x) is continuous
   apply continuous.continuous_on,
-  apply continuous.exp,
-  apply continuous.mul,
-  apply continuous_const,
-  apply continuous_id
+  continuity
 end
 
 /-- exp(-b x) is integrable on (a, ∞) -/
@@ -94,7 +85,7 @@ lemma exp_neg_integrable_Ioi (a : ℝ) (b : ℝ) (h : 0 < b):
   integrable_on (λ x : ℝ, exp(-b*x)) (set.Ioi a) :=
 begin
   apply (integrable_on_Ioi_of_interval_integral_norm_bounded
-    (exp (-b*a)/b) a (exp_neg_finite_integrable a b) tendsto_id),
+    (exp (-b*a)/b) a (exp_neg_finite_integrable b a) tendsto_id),
   simp only [eventually_at_top, ge_iff_le],
   use a,
   intros b2 hb2,

@@ -115,14 +115,6 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
-/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`:
-backwards direction. -/
-def to_euclidean_space [fintype ι] : (ι → 𝕜) ≃ euclidean_space 𝕜 ι := equiv.refl _
-
-/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`:
-forwards direction. -/
-def of_euclidean_space [fintype ι]: euclidean_space 𝕜 ι ≃ (ι → 𝕜) := equiv.refl _
-
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
 pi_Lp.norm_eq_of_L2 x

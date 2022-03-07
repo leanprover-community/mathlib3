@@ -918,7 +918,7 @@ def split_mono_of_is_limit_fork_of_idempotent {X : C} {f : X ⟶ X} (hf : f ≫ 
   id' :=
   begin
     letI := mono_of_is_limit_parallel_pair i,
-    rw [← cancel_mono_id c.ι, category.assoc, fork.is_limit.lift_of_ι, c.condition],
+    rw [← cancel_mono_id c.ι, category.assoc, fork.is_limit.lift_of_ι_ι, c.condition],
     exact category.comp_id c.ι
   end }
 

@@ -977,6 +977,12 @@ end
   brange _ (bfamily_of_family f) = range f :=
 brange_bfamily_of_family' _ _
 
+@[simp] theorem brange_const {o : ordinal} (ho : o ≠ 0) {c : α} : brange o (λ _ _, c) = {c} :=
+begin
+  rw ←range_family_of_bfamily,
+  exact @set.range_const _ o.out.α (out_nonempty_iff_ne_zero.2 ho) c
+end
+
 theorem comp_bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α)
   (g : α → β) : (λ i hi, g (bfamily_of_family' r f i hi)) = bfamily_of_family' r (g ∘ f) :=
 rfl
@@ -1321,6 +1327,14 @@ theorem bsup_eq_blsub_iff_lt_bsup {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ i hi, f i hi < bsup o f :=
 ⟨λ h i, (by { rw h, apply lt_blsub }), λ h, le_antisymm (bsup_le_blsub f) (blsub_le.2 h)⟩
 
+-- Another PR
+theorem bsup_eq_blsub_of_lt_succ_limit {o} (ho : is_limit o) {f : Π a < o, ordinal}
+  (hf : ∀ a ha, f a ha < f a.succ (ho.2 a ha)) : bsup o f = blsub o f :=
+begin
+  rw bsup_eq_blsub_iff_lt_bsup,
+  exact λ i hi, (hf i hi).trans_le (le_bsup f _ _)
+end
+
 @[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
 
@@ -1385,8 +1399,31 @@ by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id_limit h.2] }
 theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
   blsub.{u} o (λ x _, f x) = f o :=
 begin
-  rw ←H.bsup_eq h,
-  exact ((bsup_eq_blsub_iff_lt_bsup _).2 (λ a ha, (H.1 a).trans_le (le_bsup _ _ (h.2 a ha)))).symm
+  rw [←H.bsup_eq h, bsup_eq_blsub_of_lt_succ_limit h],
+  exact (λ a _, H.1 a)
+end
+
+-- Another PR
+theorem is_normal_iff_lt_succ_and_bsup_eq {f} :
+  is_normal f ↔ (∀ a, f a < f a.succ) ∧ ∀ o, is_limit o → bsup o (λ x _, f x) = f o :=
+begin
+  use λ hf, ⟨hf.1, @is_normal.bsup_eq f hf⟩,
+  rintro ⟨hf, hf'⟩,
+  refine ⟨hf, λ o ho a, _⟩,
+  rw ←hf' o ho,
+  exact bsup_le
+end
+
+-- Another PR
+theorem is_normal_iff_lt_succ_and_blsub_eq {f} :
+  is_normal f ↔ (∀ a, f a < f a.succ) ∧ ∀ o, is_limit o → blsub o (λ x _, f x) = f o :=
+begin
+  rw [is_normal_iff_lt_succ_and_bsup_eq, and.congr_right_iff],
+  intro h,
+  split;
+  intros H o ho;
+  have := H o ho;
+  rwa ←bsup_eq_blsub_of_lt_succ_limit ho (λ a _, h a) at *
 end
 
 theorem is_normal.eq_iff_zero_and_succ {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {g}
@@ -1530,7 +1567,7 @@ strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) (enum_ord
   (λ s, let ⟨a, ha⟩ := enum_ord_surjective hS s s.prop in ⟨a, subtype.eq ha⟩)
 
 theorem range_enum_ord (hS : unbounded (<) S) : range (enum_ord S) = S :=
-by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord.surjective hS⟩ }
+by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord_surjective hS⟩ }
 
 /-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
 theorem eq_enum_ord (f : ordinal → ordinal) (hS : unbounded (<) S) :

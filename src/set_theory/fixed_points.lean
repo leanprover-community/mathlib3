@@ -575,7 +575,17 @@ rfl
 
 theorem deriv_eq_deriv_family' (ι : Type u) [nonempty ι] (f : ordinal → ordinal) :
   deriv f = deriv_family.{u (max u v)} (λ _ : ι, f) :=
-deriv_family_eq_of_range_eq.{0 v u} (by simp [set.range_const])
+deriv_family_eq_of_range_eq.{0 v u} (by simp)
+
+theorem deriv_eq_deriv_bfamily (f : ordinal → ordinal) : deriv f = deriv_bfamily 1 (λ a _, f) :=
+@deriv_eq_deriv_family' _ (out_nonempty_iff_ne_zero.2 ordinal.one_ne_zero) f
+
+theorem deriv_eq_deriv_bfamily' {o : ordinal} (ho : o ≠ 0) (f : ordinal → ordinal) :
+  deriv f = deriv_bfamily.{u (max u v)} o (λ a _, f) :=
+begin
+  apply deriv_family_eq_of_range_eq.{0 v u},simp,
+
+end
 
 @[simp] theorem deriv_zero (f) : deriv f 0 = nfp f 0 :=
 deriv_family_zero _
@@ -615,7 +625,7 @@ theorem self_le_deriv {f : ordinal → ordinal} (hf : is_normal f) (o) : f o ≤
 begin
   rw deriv_eq_enum_ord hf,
   nth_rewrite 0 ←enum_ord_range hf.strict_mono,
-  refine enum_ord_le_of_subset (fp_unbounded hf) _ _,
+  exact enum_ord_le_of_subset (fp_unbounded hf) fixed_points_subset_range _
 end
 
 -- another PR

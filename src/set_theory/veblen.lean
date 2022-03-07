@@ -29,6 +29,8 @@ universe u
 
 namespace ordinal
 
+/-- The Veblen hierarchy from a function. `veblen f 0` equals the original function, and for any
+    `o > 0`, `veblen f o` enumerates the common fixed points of all `veblen f a` for `a < o`. -/
 def veblen (f : ordinal → ordinal) : ordinal → ordinal → ordinal :=
 wf.fix (λ o φ, if o = 0 then f else deriv_bfamily.{u u} o φ)
 
@@ -37,11 +39,11 @@ private theorem veblen_def (f : ordinal → ordinal) (o) :
 wf.fix_eq _ o
 
 theorem veblen_zero (f : ordinal → ordinal) : veblen f 0 = f :=
-by { rw veblen_def, simp }
+by { rw veblen_def, exact if_pos rfl }
 
 theorem veblen_pos (f : ordinal → ordinal) {o : ordinal} (ho : o ≠ 0) :
   veblen f o = deriv_bfamily.{u u} o (λ a _, veblen f a) :=
-by { rw veblen_def, simp [ho] }
+by { rw veblen_def, exact if_neg ho }
 
 theorem veblen_is_normal' (f : ordinal → ordinal) {o : ordinal.{u}} (ho : o ≠ 0) :
   is_normal (veblen f o) :=
@@ -91,32 +93,42 @@ begin
   rwa family_of_bfamily_enum at this
 end
 
-theorem veblen_monotone {f : ordinal → ordinal} (hf : is_normal f) (o) :
+set_option pp.universes true
+
+theorem veblen_monotone {f : ordinal.{u} → ordinal} (hf : is_normal f) (o) :
   monotone (λ a, veblen f a o) :=
-begin
-  intros b c hbc,dsimp,
+λ b c hbc, begin
+  dsimp,
   rcases eq_zero_or_pos b with rfl | hb,
-  {
-    rw veblen_zero,
-    apply (self_le_deriv f o).trans,
-  }
+  { rcases lt_or_eq_of_le hbc with hc | rfl,
+    { rw [veblen_zero, veblen_pos f hc.ne'],
+      apply (self_le_deriv hf o).trans,
+      rw deriv_eq_deriv_bfamily.{0 u} f,
+      refine deriv_bfamily_le_of_fp_subset.{u 0 0} (λ a _, veblen_is_normal hf a) (λ _ _, hf)
+        (λ a H _ _, _) o,
+      rw ←veblen_zero f,
+      exact H 0 hc },
+    { refl } },
+  { rw [veblen_pos f hb.ne', veblen_pos f (hb.trans_le hbc).ne'],
+    exact deriv_bfamily_le_of_fp_subset.{u u u} (λ a _, veblen_is_normal hf a)
+      (λ a _, veblen_is_normal hf a) (λ a H i hib, H i (hib.trans_le hbc)) o }
 end
 
 theorem veblen_zero_is_normal {f : ordinal → ordinal} (hf : is_normal f) (hf₀ : f 0 ≠ 0) :
   is_normal (λ a, veblen f a 0) :=
 begin
   split,{
+    dsimp,
     intro o,
     have ho := veblen_is_normal hf o,
-    simp_rw veblen_succ hf,
-    rw [deriv_zero, ←ho.nfp_fp],
+    rw [veblen_succ hf, deriv_zero, ←ho.nfp_fp],
     apply ho.strict_mono ((ordinal.pos_iff_ne_zero.2 (λ h, hf₀ _)).trans_le (iterate_le_nfp _ 0 1)),
     have := veblen_fp_lt_of_fp hf h (ordinal.zero_le o),
     rwa veblen_zero at this
   },
   {
 intros o ho a,dsimp,split,{
-  intros ha b hb,
+  intros ha b hb,sorry,
 }
   }
 end

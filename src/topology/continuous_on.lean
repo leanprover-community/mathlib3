@@ -888,6 +888,11 @@ lemma continuous_on.prod {f : α → β} {g : α → γ} {s : set α}
   (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, (f x, g x)) s :=
 λx hx, continuous_within_at.prod (hf x hx) (hg x hx)
 
+lemma continuous_on.prod' {f : α → β × γ} {s : set α}
+  (hf : continuous_on (prod.fst ∘ f) s) (hg : continuous_on (prod.snd ∘ f) s) :
+  continuous_on f s :=
+by simpa using hf.prod hg
+
 lemma inducing.continuous_within_at_iff {f : α → β} {g : β → γ} (hg : inducing g) {s : set α}
   {x : α} : continuous_within_at f s x ↔ continuous_within_at (g ∘ f) s x :=
 by simp_rw [continuous_within_at, inducing.tendsto_nhds_iff hg]

@@ -536,6 +536,9 @@ lemma dense_range.prod_map {ι : Type*} {κ : Type*} {f : ι → β} {g : κ →
   (hf : dense_range f) (hg : dense_range g) : dense_range (prod.map f g) :=
 by simpa only [dense_range, prod_range_range_eq] using hf.prod hg
 
+lemma inducing_prod_mk (c : α) : inducing (prod.mk c : β → α × β) :=
+inducing_of_inducing_compose (continuous.prod.mk c) continuous_snd inducing_id
+
 lemma inducing.prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : inducing g) :
   inducing (λx:α×γ, (f x.1, g x.2)) :=
 ⟨by rw [prod.topological_space, prod.topological_space, hf.induced, hg.induced,

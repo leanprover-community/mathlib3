@@ -222,7 +222,7 @@ begin
   { exact hζ.norm_eq_one hn hirr }
 end
 
-lemma sub_one_minpoly_eq_cyclotomic_comp [is_cyclotomic_extension {n} K L]
+lemma minpoly_sub_one_eq_cyclotomic_comp [is_cyclotomic_extension {n} K L]
   (h : irreducible (polynomial.cyclotomic n K)) :
   minpoly K (ζ - 1) = (cyclotomic n K).comp (X + 1) :=
 begin

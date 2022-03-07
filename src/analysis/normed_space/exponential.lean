@@ -391,7 +391,7 @@ begin
   dsimp at this,
   convert this,
   funext,
-  simp only [star_smul, star_pow, one_div, is_R_or_C.star_def, is_R_or_C.conj_inv, map_nat_cast],
+  simp only [star_smul, star_pow, one_div, star_inv', star_nat_cast],
 end
 
 end star

@@ -2716,6 +2716,23 @@ end
 
 end subgroup_normal
 
+@[to_additive]
+lemma disjoint_iff_mul_eq_one {H₁ H₂ : subgroup G} :
+  disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x * y = 1 → x = 1 ∧ y = 1 :=
+begin
+  split,
+  { intros hdis x y hx hy heq,
+    obtain rfl : y = x⁻¹ := symm (inv_eq_iff_mul_eq_one.mpr heq),
+    have hy := H₂.inv_mem_iff.mp hy,
+    have : x ∈ H₁ ⊓ H₂, by { simp, cc },
+    rw [hdis.eq_bot, subgroup.mem_bot] at this,
+    subst this,
+    simp },
+  { rintros h x ⟨hx1, hx2⟩,
+    obtain rfl : x = 1 := (h hx1 (H₂.inv_mem hx2) (mul_inv_self x)).1,
+    exact rfl, },
+end
+
 end subgroup
 
 namespace is_conj

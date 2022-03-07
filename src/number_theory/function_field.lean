@@ -109,6 +109,48 @@ is_integral_closure.is_dedekind_domain Fq[X] (ratfunc Fq) F _
 
 end ring_of_integers
 
+namespace with_bot
+
+variables {α : Type*}
+
+instance [has_neg α] : has_neg (with_bot α) :=
+⟨option.map (λ (a : α), -a)⟩
+
+@[simp] lemma neg_bot [has_neg α] : - (⊥ : with_bot α) = ⊥ := rfl
+lemma neg_coe [has_neg α] (x : α) : (-x : with_bot α) = ((-x : α) : with_bot α) := rfl
+lemma coe_neg [has_neg α] (x : α) : ((-x : α) : with_bot α) = -x := rfl
+@[simp] lemma neg_eq_bot [has_neg α] (x : with_bot α) : - x = ⊥ ↔ x = ⊥ :=
+by { induction x using with_bot.rec_bot_coe; simp [neg_coe] }
+
+variables [sub_neg_monoid α]
+
+instance : sub_neg_monoid (with_bot α) :=
+{ sub := λ x y, x.bind (λ a, y.map (λ b, a - b)),
+  sub_eq_add_neg := λ a b, begin
+    induction a using with_bot.rec_bot_coe,
+    { refl },
+    induction b using with_bot.rec_bot_coe,
+    { refl },
+    { rw [neg_coe, ←coe_add, ←sub_eq_add_neg a b],
+      refl }
+  end,
+  ..with_bot.has_neg,
+  ..with_bot.add_monoid }
+
+lemma coe_sub (x y : α) : ((x - y : α) : with_bot α) = x - y := rfl
+@[simp] lemma bot_sub (x : with_bot α) : (⊥ : with_bot α) - x = ⊥ := rfl
+@[simp] lemma sub_bot (x : with_bot α) : x - ⊥ = ⊥ :=
+rec_bot_coe rfl (λ _, rfl) x
+
+lemma sub_eq_bot_iff {a b : with_bot α} : a - b = ⊥ ↔ a = ⊥ ∨ b = ⊥ :=
+begin
+  induction a using with_bot.rec_bot_coe;
+  induction b using with_bot.rec_bot_coe;
+  simp [←with_bot.coe_sub]
+end
+
+namespace with_bot
+
 /-! ### The place at infinity on Fq(t) -/
 
 section infty_valuation
@@ -118,22 +160,24 @@ include dec
 /-- The valuation at infinity is the nonarchimedean valuation on `Fq(t)` with uniformizer `1/t`.
 Explicitly, if `f/g ∈ Fq(t)` is a nonzero quotient of polynomials, its valuation at infinity is
 `multiplicative.of_add(degree(f) - degree(g))`. -/
-def infty_valuation_def (r : ratfunc Fq) : with_zero (multiplicative ℤ) :=
-if r = 0 then 0 else (multiplicative.of_add ((r.num.nat_degree : ℤ) - r.denom.nat_degree))
+def infty_valuation_def (r : ratfunc Fq) : with_bot ℤ :=
+r.num.degree.map coe - r.denom.degree.map coe
 
-lemma infty_valuation.map_zero' : infty_valuation_def Fq 0 = 0 := if_pos rfl
+lemma infty_valuation.map_zero' : infty_valuation_def Fq 0 = ⊥ :=
+by simp [infty_valuation_def]
 
-lemma infty_valuation.map_one' : infty_valuation_def Fq 1 = 1 :=
-(if_neg one_ne_zero).trans $
-  by simp only [polynomial.nat_degree_one, ratfunc.num_one, int.coe_nat_zero, sub_zero,
-    ratfunc.denom_one, of_add_zero, with_zero.coe_one]
+lemma infty_valuation.map_one' : infty_valuation_def Fq 1 = 0 :=
+by simp [infty_valuation_def]
+-- (if_neg one_ne_zero).trans $
+--   by simp only [polynomial.nat_degree_one, ratfunc.num_one, int.coe_nat_zero, sub_zero,
+--     ratfunc.denom_one, of_add_zero, with_zero.coe_one]
 
 lemma infty_valuation.map_mul' (x y : ratfunc Fq) :
-  infty_valuation_def Fq (x * y) = infty_valuation_def Fq x * infty_valuation_def Fq y :=
+  infty_valuation_def Fq (x * y) = infty_valuation_def Fq x + infty_valuation_def Fq y :=
 begin
   rw [infty_valuation_def, infty_valuation_def, infty_valuation_def],
   by_cases hx : x = 0,
-  { rw [hx, zero_mul, if_pos (eq.refl _), zero_mul] },
+  { rw [hx, zero_mul, ratfunc.num_zero, denom_zero, polynomial.degree_zero] },
   { by_cases hy : y = 0,
     { rw [hy, mul_zero, if_pos (eq.refl _), mul_zero] },
     { rw [if_neg hx, if_neg hy, if_neg (mul_ne_zero hx hy), ← with_zero.coe_mul,
@@ -148,6 +192,8 @@ begin
         ← polynomial.nat_degree_mul (mul_ne_zero (ratfunc.num_ne_zero hx) (ratfunc.num_ne_zero hy))
           (x * y).denom_ne_zero, ratfunc.num_denom_mul]} }
 end
+
+#exit
 
 lemma infty_valuation.map_add_le_max' (x y : ratfunc Fq) :
   infty_valuation_def Fq (x + y) ≤ max (infty_valuation_def Fq x) (infty_valuation_def Fq y) :=

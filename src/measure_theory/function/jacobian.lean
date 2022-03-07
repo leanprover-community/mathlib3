@@ -12,7 +12,7 @@ import measure_theory.constructions.polish
 /-!
 # Change of variables in higher-dimensional integrals
 
-Let `μ` be a Lebesgue measure on a finite-dimensional vector space `E`.
+Let `μ` be a Lebesgue measure on a finite-dimensional real vector space `E`.
 Let `f : E → E` be a function which is injective and differentiable on a measurable set `s`,
 with derivative `f'`. Then we prove that `f '' s` is measurable, and
 its measure is given by the formula `μ (f '' s) = ∫⁻ x in s, |(f' x).det| ∂μ` (where `(f' x).det`
@@ -28,7 +28,7 @@ and `integral_image_eq_integral_abs_det_fderiv_smul` respectively.
 * `add_haar_image_eq_zero_of_det_fderiv_within_eq_zero`: if `f` is differentiable on a set `s`, and
   its derivative is never invertible, then `f '' s` has zero measure (a version of Sard's lemma).
 * `ae_measurable_fderiv_within`: if `f` is differentiable on a measurable set `s`, then `f'`
-  is almost everywhere differentiable on `s`.
+  is almost everywhere measurable on `s`.
 
 For the next statements, `s` is a measurable set and `f` is differentiable on `s`
 (with a derivative `f'`) and injective on `s`.
@@ -76,7 +76,7 @@ The key point to check the almost everywhere measurability of `f'` is that, if `
 up to `δ` by a linear map on a set `s`, then `f'` is within `δ` of `A` on a full measure subset
 of `s` (namely, its density points). With the above approximation argument, it follows that `f'`
 is the almost everywhere limit of a sequence of measurable functions (which are constant on the
-pieces of the good discretization).
+pieces of the good discretization), and is therefore almost everywhere measurable.
 
 ## Tags
 Change of variables in integrals
@@ -109,7 +109,8 @@ lemma exists_closed_cover_approximates_linear_on_of_has_fderiv_within_at
 begin
   /- Choose countably many linear maps `f' z`. For every such map, if `f` has a derivative at `x`
   close enough to `f' z`, then `f y - f x` is well approximated by `f' z (y - x)` for `y` close
-  enough to `x`, say on a ball of radius `r` (or even `u n` for some sequence `u` tending to `0`).
+  enough to `x`, say on a ball of radius `r` (or even `u n` for some `n`, where `u` is a fixed
+  sequence tending to `0`).
   Let `M n z` be the points where this happens. Then this set is relatively closed inside `s`,
   and moreover in every closed ball of radius `u n / 3` inside it the map is well approximated by
   `f' z`. Using countably many closed balls to split `M n z` into small diameter subsets `K n z p`,
@@ -457,7 +458,7 @@ lemma _root_.approximates_linear_on.norm_fderiv_sub_le
   ∀ᵐ x ∂(μ.restrict s), ∥f' x - A∥₊ ≤ δ :=
 begin
   /- The conclusion will hold at the Lebesgue density points of `s` (which have full measure).
-  at such a point `x`, for any `z` and any `ε > 0` one has for small `r`
+  At such a point `x`, for any `z` and any `ε > 0` one has for small `r`
   that `{x} + r • closed_ball z ε` intersects `s`. At a point `y` in the intersection,
   `f y - f x` is close both to `f' x (r z)` (by differentiability) and to `A (r z)`
   (by linear approximation), so these two quantities are close, i.e., `(f' x - A) z` is small. -/
@@ -1229,7 +1230,7 @@ variables [measurable_space F] [borel_space F]
 
 /-- Integrability in the change of variable formula for differentiable functions: if a
 function `f` is injective and differentiable on a measurable set `s`, then a function
-`g : E → F` isn integrable on `f '' s` if and only if  `|(f' x).det| • g ∘ f` is
+`g : E → F` is integrable on `f '' s` if and only if `|(f' x).det| • g ∘ f` is
 integrable on `s`. -/
 theorem integrable_on_image_iff_integrable_on_abs_det_fderiv_smul {f : E → E} {s : set E}
   (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}

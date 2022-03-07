@@ -153,9 +153,9 @@ section
 variables [measurable_space β] [borel_space β] [hβ : second_countable_topology β] {f : α → β}
 include hβ
 
-/-- This lemma is slightly weaker than `measure_theory.mem_ℒp.integral_indicator_ge_le` as the
-latter provides `0 ≤ M`. -/
-lemma mem_ℒp.integral_indicator_ge_le'
+/-- This lemma is weaker than `measure_theory.mem_ℒp.integral_indicator_norm_ge_nonneg_le`
+as the latter provides `0 ≤ M` and does not require the measurability of `f`. -/
+lemma mem_ℒp.integral_indicator_norm_ge_le
   (hf : mem_ℒp f 1 μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
 begin
@@ -187,17 +187,19 @@ begin
       { assumption } } }
 end
 
-lemma mem_ℒp.integral_indicator_ge_le_of_meas
+/-- This lemma is superceded by `measure_theory.mem_ℒp.integral_indicator_norm_ge_nonneg_le`
+which does not require measurability. -/
+lemma mem_ℒp.integral_indicator_norm_ge_nonneg_le_of_meas
   (hf : mem_ℒp f 1 μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
-let ⟨M, hM⟩ := hf.integral_indicator_ge_le' μ hmeas hε in ⟨max M 0, le_max_right _ _, by simpa⟩
+let ⟨M, hM⟩ := hf.integral_indicator_norm_ge_le μ hmeas hε in ⟨max M 0, le_max_right _ _, by simpa⟩
 
-lemma mem_ℒp.integral_indicator_ge_le
+lemma mem_ℒp.integral_indicator_norm_ge_nonneg_le
   (hf : mem_ℒp f 1 μ) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
 begin
   have hf_mk : mem_ℒp (hf.1.mk f) 1 μ := (mem_ℒp_congr_ae hf.1.ae_eq_mk).mp hf,
-  obtain ⟨M, hM_pos, hfM⟩ := hf_mk.integral_indicator_ge_le_of_meas μ hf.1.measurable_mk hε,
+  obtain ⟨M, hM_pos, hfM⟩ := hf_mk.integral_indicator_norm_ge_nonneg_le_of_meas μ hf.1.measurable_mk hε,
   refine ⟨M, hM_pos, (le_of_eq _).trans hfM⟩,
   refine lintegral_congr_ae _,
   filter_upwards [hf.1.ae_eq_mk] with x hx,
@@ -206,7 +208,7 @@ end
 
 omit hβ
 
-lemma mem_ℒp.snorm_ess_sup_indicator_ge_eq_zero
+lemma mem_ℒp.snorm_ess_sup_indicator_norm_ge_eq_zero
   (hf : mem_ℒp f ∞ μ) (hmeas : measurable f) :
   ∃ M : ℝ, snorm_ess_sup ({x | M ≤ ∥f x∥₊}.indicator f) μ = 0 :=
 begin
@@ -233,9 +235,9 @@ begin
   exact measurable_set_le measurable_const hmeas.nnnorm.subtype_coe,
 end
 
-/- This lemma is slightly weaker than `measure_theory.mem_ℒp.snorm_indicator_ge_le_pos` as the
+/- This lemma is slightly weaker than `measure_theory.mem_ℒp.snorm_indicator_norm_ge_pos_le` as the
 latter provides `0 < M`. -/
-lemma mem_ℒp.snorm_indicator_ge_le'
+lemma mem_ℒp.snorm_indicator_norm_ge_le
   (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, snorm ({x | M ≤ ∥f x∥₊}.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
@@ -244,10 +246,10 @@ begin
     simp [snorm_exponent_zero] },
   by_cases hp_ne_top : p = ∞,
   { subst hp_ne_top,
-    obtain ⟨M, hM⟩ := hf.snorm_ess_sup_indicator_ge_eq_zero μ hmeas,
+    obtain ⟨M, hM⟩ := hf.snorm_ess_sup_indicator_norm_ge_eq_zero μ hmeas,
     refine ⟨M, _⟩,
     simp only [snorm_exponent_top, hM, zero_le] },
-  obtain ⟨M, hM', hM⟩ := @mem_ℒp.integral_indicator_ge_le _ _ _ μ _ _ _ _
+  obtain ⟨M, hM', hM⟩ := @mem_ℒp.integral_indicator_norm_ge_nonneg_le _ _ _ μ _ _ _ _
     (λ x, ∥f x∥^p.to_real) (hf.norm_rpow hp_ne_zero hp_ne_top) _
     (real.rpow_pos_of_pos hε p.to_real),
   refine ⟨M ^(1 / p.to_real), _⟩,
@@ -278,11 +280,11 @@ begin
 end
 
 /-- This lemma implies that a single function is uniformly integrable (in the probability sense). -/
-lemma mem_ℒp.snorm_indicator_ge_le_pos
+lemma mem_ℒp.snorm_indicator_norm_ge_pos_le
   (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ M : ℝ, 0 < M ∧ snorm ({x | M ≤ ∥f x∥₊}.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
-  obtain ⟨M, hM⟩ := hf.snorm_indicator_ge_le' μ hmeas hε,
+  obtain ⟨M, hM⟩ := hf.snorm_indicator_norm_ge_le μ hmeas hε,
   refine ⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _),
     le_trans (snorm_mono (λ x, _)) hM⟩,
   rw [norm_indicator_eq_indicator_norm, norm_indicator_eq_indicator_norm],
@@ -293,7 +295,7 @@ end
 
 end
 
-lemma snorm_indicator_ge_le_of_bound {f : α → β} (hp_top : p ≠ ∞)
+lemma snorm_indicator_le_of_bound {f : α → β} (hp_top : p ≠ ∞)
   {ε : ℝ} (hε : 0 < ε) {M : ℝ} (hf : ∀ x, ∥f x∥ < M) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ ennreal.of_real ε :=
@@ -328,13 +330,14 @@ section
 
 variables [measurable_space β] [borel_space β] {f : α → β}
 
-lemma mem_ℒp.snorm_indicator_ge_le'' (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
+/-- Auxiliary lemma for `measure_theory.mem_ℒp.snorm_indicator_le`. -/
+lemma mem_ℒp.snorm_indicator_le' (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
   (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ 2 * ennreal.of_real ε :=
 begin
-  obtain ⟨M, hMpos, hM⟩ :=  hf.snorm_indicator_ge_le_pos μ hmeas hε,
-  obtain ⟨δ, hδpos, hδ⟩ := @snorm_indicator_ge_le_of_bound _ _ _ μ _ _
+  obtain ⟨M, hMpos, hM⟩ := hf.snorm_indicator_norm_ge_pos_le μ hmeas hε,
+  obtain ⟨δ, hδpos, hδ⟩ := @snorm_indicator_le_of_bound _ _ _ μ _ _
     ({x | ∥f x∥ < M}.indicator f) hp_top _ hε M _,
   { refine ⟨δ, hδpos, λ s hs hμs, _⟩,
     rw (_ : f = {x : α | M ≤ ∥f x∥₊}.indicator f + {x : α | ∥f x∥ < M}.indicator f),
@@ -360,40 +363,44 @@ begin
     exacts [h, hMpos] }
 end
 
-lemma mem_ℒp.snorm_indicator_ge_le_of_meas (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
+/-- This lemma is superceded by `measure_theory.mem_ℒp.snorm_indicator_le` which does not require
+measurability on `f`. -/
+lemma mem_ℒp.snorm_indicator_le_of_meas (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
   (hf : mem_ℒp f p μ) (hmeas : measurable f) {ε : ℝ} (hε : 0 < ε) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
-  obtain ⟨δ, hδpos, hδ⟩ := hf.snorm_indicator_ge_le'' μ hp_one hp_top hmeas (half_pos hε),
+  obtain ⟨δ, hδpos, hδ⟩ := hf.snorm_indicator_le' μ hp_one hp_top hmeas (half_pos hε),
   refine ⟨δ, hδpos, λ s hs hμs, le_trans (hδ s hs hμs) _⟩,
   rw [ennreal.of_real_div_of_pos zero_lt_two, (by norm_num : ennreal.of_real 2 = 2),
     ennreal.mul_div_cancel'];
   norm_num,
 end
 
-lemma mem_ℒp.snorm_indicator_ge_le (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
+lemma mem_ℒp.snorm_indicator_le (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
   (hf : mem_ℒp f p μ) {ε : ℝ} (hε : 0 < ε) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
   have hℒp := hf,
   obtain ⟨⟨f', hf', heq⟩, hnorm⟩ := hf,
-  obtain ⟨δ, hδpos, hδ⟩ := (hℒp.ae_eq heq).snorm_indicator_ge_le_of_meas μ hp_one hp_top hf' hε,
+  obtain ⟨δ, hδpos, hδ⟩ := (hℒp.ae_eq heq).snorm_indicator_le_of_meas μ hp_one hp_top hf' hε,
   refine ⟨δ, hδpos, λ s hs hμs, _⟩,
   convert hδ s hs hμs using 1,
   rw [snorm_indicator_eq_snorm_restrict hs, snorm_indicator_eq_snorm_restrict hs],
   refine snorm_congr_ae heq.restrict,
 end
 
+/-- A constant function is uniformly integrable. -/
 lemma unif_integrable_const {g : α → β} (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞) (hg : mem_ℒp g p μ) :
   unif_integrable (λ n : ι, g) p μ :=
 begin
   intros ε hε,
-  obtain ⟨δ, hδ_pos, hgδ⟩ := hg.snorm_indicator_ge_le μ hp hp_ne_top hε,
+  obtain ⟨δ, hδ_pos, hgδ⟩ := hg.snorm_indicator_le μ hp hp_ne_top hε,
   exact ⟨δ, hδ_pos, λ i, hgδ⟩,
 end
 
+/-- A single function is uniformly integrable. -/
 lemma unif_integrable_subsingleton [subsingleton ι]
   (hp_one : 1 ≤ p) (hp_top : p ≠ ∞) {f : ι → α → β} (hf : ∀ i, mem_ℒp (f i) p μ) :
   unif_integrable f p μ :=
@@ -401,7 +408,7 @@ begin
   intros ε hε,
   by_cases hι : nonempty ι,
   { cases hι with i,
-    obtain ⟨δ, hδpos, hδ⟩ := (hf i).snorm_indicator_ge_le μ hp_one hp_top hε,
+    obtain ⟨δ, hδpos, hδ⟩ := (hf i).snorm_indicator_le μ hp_one hp_top hε,
     refine ⟨δ, hδpos, λ j s hs hμs, _⟩,
     convert hδ s hs hμs },
   { exact ⟨1, zero_lt_one, λ i, false.elim $ hι $ nonempty.intro i⟩ }
@@ -420,7 +427,7 @@ begin
   set g : fin n → α → β := λ k, f k with hg,
   have hgLp : ∀ i, mem_ℒp (g i) p μ := λ i, hfLp i,
   obtain ⟨δ₁, hδ₁pos, hδ₁⟩ := h hgLp hε,
-  obtain ⟨δ₂, hδ₂pos, hδ₂⟩ := (hfLp n).snorm_indicator_ge_le μ hp_one hp_top hε,
+  obtain ⟨δ₂, hδ₂pos, hδ₂⟩ := (hfLp n).snorm_indicator_le μ hp_one hp_top hε,
   refine ⟨min δ₁ δ₂, lt_min hδ₁pos hδ₂pos, λ i s hs hμs, _⟩,
   by_cases hi : i.val < n,
   { rw (_ : f i = g ⟨i.val, hi⟩),
@@ -492,7 +499,7 @@ begin
   have hpow : 0 < (measure_univ_nnreal μ) ^ (1 / p.to_real) :=
     real.rpow_pos_of_pos (measure_univ_nnreal_pos hμ) _,
   obtain ⟨δ₁, hδ₁, hsnorm₁⟩ := hui hε',
-  obtain ⟨δ₂, hδ₂, hsnorm₂⟩ := hg'.snorm_indicator_ge_le μ hp hp' hε',
+  obtain ⟨δ₂, hδ₂, hsnorm₂⟩ := hg'.snorm_indicator_le μ hp hp' hε',
   obtain ⟨t, htm, ht₁, ht₂⟩ := tendsto_uniformly_on_of_ae_tendsto' hf hg hfg (lt_min hδ₁ hδ₂),
   rw metric.tendsto_uniformly_on_iff at ht₂,
   specialize ht₂ (ε.to_real / (3 * measure_univ_nnreal μ ^ (1 / p.to_real)))

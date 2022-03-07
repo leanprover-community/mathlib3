@@ -115,14 +115,6 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
-/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`:
-backwards direction. -/
-def to_euclidean_space [fintype ι] : (ι → 𝕜) ≃ euclidean_space 𝕜 ι := equiv.refl _
-
-/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`:
-forwards direction. -/
-def of_euclidean_space [fintype ι]: euclidean_space 𝕜 ι ≃ (ι → 𝕜) := equiv.refl _
-
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
 pi_Lp.norm_eq_of_L2 x
@@ -188,6 +180,7 @@ pi.single i a
   (euclidean_space.single i a) j = ite (j = i) a 0 :=
 by { rw [euclidean_space.single, ← pi.single_apply i a j] }
 
+
 lemma euclidean_space.inner_single_left [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=
 by simp [apply_ite conj]
@@ -237,6 +230,10 @@ end
 @[simp] protected lemma repr_symm_single [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr.symm (euclidean_space.single i (1:𝕜)) = b i :=
 by { classical, congr, simp, }
+
+@[simp] protected lemma repr_symm_single' [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
+  b.repr.symm (pi.single i (1:𝕜)) = b i :=
+linear_isometry_equiv.apply_symm_apply _ _
 
 @[simp] protected lemma repr_self [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr (b i) = euclidean_space.single i (1:𝕜) :=
@@ -491,12 +488,6 @@ by simp [direct_sum.submodule_is_internal.collected_orthonormal_basis]
 
 variables [finite_dimensional 𝕜 E]
 
--- move this
-lemma _root_.linear_independent.finite {K : Type*} {V : Type*} [division_ring K] [add_comm_group V]
-  [module K V] [finite_dimensional K V] {b : set V} (h : linear_independent K (λ (x:b), (x:V))) :
-  b.finite :=
-cardinal.lt_omega_iff_finite.mp (finite_dimensional.lt_omega_of_linear_independent h)
-
 /-- In a finite-dimensional `inner_product_space`, any orthonormal subset can be extended to an
 orthonormal basis. -/
 lemma _root_.orthonormal.exists_orthonormal_basis_extension (hv : orthonormal 𝕜 (coe : v → E)) :
@@ -592,7 +583,8 @@ local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 /-- Given a natural number `n` one less than the `finrank` of a finite-dimensional inner product
 space, there exists an isometry from the orthogonal complement of a nonzero singleton to
 `euclidean_space 𝕜 (fin n)`. -/
-def linear_isometry_equiv.from_orthogonal_span_singleton
+
+def orthonormal_basis.orthogonal_span_singleton
   (n : ℕ) [fact (finrank 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   orthonormal_basis (fin n) 𝕜 (𝕜 ∙ v)ᗮ :=
 (fin_std_orthonormal_basis (finrank_orthogonal_span_singleton hv))

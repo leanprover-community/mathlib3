@@ -219,12 +219,9 @@ instance : has_coe_to_fun (orthonormal_basis ι 𝕜 E) (λ _, ι → E) :=
 @[simp] lemma coe_of_repr [decidable_eq ι] (e : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι) :
   ⇑(orthonormal_basis.of_repr e) = λ i, e.symm (euclidean_space.single i (1 : 𝕜)) :=
 begin
-  rw [coe_fn],
-  simp only [has_coe_to_fun.coe],
   ext,
-  congr,
-  ext,
-  simp only [eq_iff_true_of_subsingleton],
+  convert rfl using 3,
+  exact subsingleton.elim _ _,
 end
 
 @[simp] protected lemma repr_symm_single [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :

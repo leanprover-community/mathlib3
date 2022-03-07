@@ -99,15 +99,6 @@ variables {R F E}
 def trivialization.to_pretrivialization (e : trivialization R F E) :
   topological_vector_bundle.pretrivialization R F E := { ..e }
 
--- lemma trivialization.to_pretrivialization_injective {e₁ e₂ : trivialization R F E}
---   (h : e₁.to_pretrivialization = e₂.to_pretrivialization) :
---   e₁ = e₂ :=
--- begin
---   rcases e₁ with ⟨⟨⟨e₁_pre_pre, _⟩, s₁, _⟩, _⟩,
---   rcases e₂ with ⟨⟨⟨e₂_pre_pre, _⟩, s₂, _⟩, _⟩,
---   simpa [trivialization.to_pretrivialization] using h,
--- end
-
 lemma trivialization.mem_source (e : trivialization R F E)
   {x : total_space E} : x ∈ e.source ↔ proj E x ∈ e.base_set :=
 topological_fiber_bundle.trivialization.mem_source e

@@ -13,17 +13,20 @@ This file contains the definition of the projectivization of a vector space over
 as well as the bijection between said projectivization and the collection of all one
 dimensional subspaces of the vector space.
 
-## Constructing terms of `projectivization K V`.
-We have three ways to construct terms of `projectivization K V`:
+## Notation
+`ℙ K V` is notation for `projectivization K V`, the projectivization of a `K`-vector space `V`.
+
+## Constructing terms of `ℙ K V`.
+We have three ways to construct terms of `ℙ K V`:
 - `projectivization.mk K v hv` where `v : V` and `hv : v ≠ 0`.
 - `projectivization.mk' K v` where `v : { w : V // w ≠ 0 }`.
 - `projectivization.mk'' H h` where `H : submodule K V` and `h : finrank H = 1`.
 
 ## Other definitions
-- For `v : projectivization K V`, `v.submodule` gives the corresponding submodule of `V`.
-- `projectivization.equiv_submodule` is the equivalence between `projectivization K V`
+- For `v : ℙ K V`, `v.submodule` gives the corresponding submodule of `V`.
+- `projectivization.equiv_submodule` is the equivalence between `ℙ K V`
   and `{ H : submodule K V // finrank H = 1 }`.
-- For `v : projectivization K V`, `v.rep : V` is a representative of `v`.
+- For `v : ℙ K V`, `v.rep : V` is a representative of `v`.
 
 ## Projects
 Everything in this file can be done for `division_ring`s instead of `field`s, but
@@ -38,43 +41,46 @@ variables (K V : Type*) [field K] [add_comm_group V] [module K V]
 def projectivization_setoid : setoid { v : V // v ≠ 0 } :=
 (mul_action.orbit_rel Kˣ V).comap coe
 
-/-- The projectivization of the `K`-vector space `V`. -/
+/-- The projectivization of the `K`-vector space `V`.
+The notation `ℙ K V` is preferred. -/
 @[nolint has_inhabited_instance]
 def projectivization := quotient (projectivization_setoid K V)
+
+notation `ℙ` := projectivization
 
 namespace projectivization
 
 variables {V}
 
 /-- Construct an element of the projectivization from a nonzero vector. -/
-def mk (v : V) (hv : v ≠ 0) : projectivization K V := quotient.mk' ⟨v,hv⟩
+def mk (v : V) (hv : v ≠ 0) : ℙ K V := quotient.mk' ⟨v,hv⟩
 
 /-- A variant of `projectivization.mk` in terms of a subtype. `mk` is preferred. -/
-def mk' (v : { v : V // v ≠ 0 }) : projectivization K V := quotient.mk' v
+def mk' (v : { v : V // v ≠ 0 }) : ℙ K V := quotient.mk' v
 
 @[simp] lemma mk'_eq_mk (v : { v : V // v ≠ 0}) :
   mk' K v = mk K v v.2 :=
 by { dsimp [mk, mk'], congr' 1, simp }
 
-instance [nontrivial V] : nonempty (projectivization K V) :=
+instance [nontrivial V] : nonempty (ℙ K V) :=
 let ⟨v, hv⟩ := exists_ne (0 : V) in ⟨mk K v hv⟩
 
 variable {K}
 
 /-- Choose a representative of `v : projectivization K V` in `V`. -/
-protected noncomputable def rep (v : projectivization K V) : V := v.out'.1
+protected noncomputable def rep (v : ℙ K V) : V := v.out'
 
-lemma rep_nonzero (v : projectivization K V) : v.rep ≠ 0 := v.out'.2
+lemma rep_nonzero (v : ℙ K V) : v.rep ≠ 0 := v.out'.2
 
 @[simp]
-lemma mk_rep (v : projectivization K V) :
+lemma mk_rep (v : ℙ K V) :
   mk K v.rep v.rep_nonzero = v :=
 by { dsimp [mk, projectivization.rep], simp }
 
 open finite_dimensional
 
 /-- Consider an element of the projectivization as a submodule of `V`. -/
-protected def submodule (v : projectivization K V) : submodule K V :=
+protected def submodule (v : ℙ K V) : submodule K V :=
 quotient.lift_on' v (λ v, K ∙ (v : V)) $ begin
   rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨x, (rfl : x • b = a)⟩,
   exact (submodule.span_singleton_smul_eq _ x.ne_zero),
@@ -82,7 +88,7 @@ end
 
 variable (K)
 
-lemma mk_eq_mk_iff  (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) :
+lemma mk_eq_mk_iff (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) :
   mk K v hv = mk K w hw ↔ ∃ (a : Kˣ), a • w = v :=
 quotient.eq'
 
@@ -95,27 +101,27 @@ variable {K}
 /-- An induction principle for `projectivization`.
 Use as `induction v using projectivization.ind`. -/
 @[elab_as_eliminator]
-lemma ind {P : projectivization K V → Prop} (h : ∀ (v : V) (h : v ≠ 0), P (mk K v h)) :
+lemma ind {P : ℙ K V → Prop} (h : ∀ (v : V) (h : v ≠ 0), P (mk K v h)) :
   ∀ p, P p :=
 quotient.ind' $ subtype.rec $ by exact h
 
 @[simp]
 lemma submodule_mk (v : V) (hv : v ≠ 0) : (mk K v hv).submodule = K ∙ v := rfl
 
-lemma submodule_eq (v : projectivization K V) : v.submodule = K ∙ v.rep :=
+lemma submodule_eq (v : ℙ K V) : v.submodule = K ∙ v.rep :=
 by { conv_lhs { rw ← v.mk_rep }, refl }
 
-lemma finrank_submodule (v : projectivization K V) : finrank K v.submodule = 1 :=
+lemma finrank_submodule (v : ℙ K V) : finrank K v.submodule = 1 :=
 begin
   rw submodule_eq,
   exact finrank_span_singleton v.rep_nonzero,
 end
 
-instance (v : projectivization K V) : finite_dimensional K v.submodule :=
+instance (v : ℙ K V) : finite_dimensional K v.submodule :=
 by { rw ← v.mk_rep, change finite_dimensional K (K ∙ v.rep), apply_instance }
 
 lemma submodule_injective : function.injective
-  (projectivization.submodule : projectivization K V → submodule K V) :=
+  (projectivization.submodule : ℙ K V → submodule K V) :=
 begin
   intros u v h, replace h := le_of_eq h,
   simp only [submodule_eq] at h,
@@ -131,7 +137,7 @@ variables (K V)
 /-- The equivalence between the projectivization and the
 collection of subspaces of dimension 1. -/
 noncomputable
-def equiv_submodule : projectivization K V ≃ { H : submodule K V // finrank K H = 1 } :=
+def equiv_submodule : ℙ K V ≃ { H : submodule K V // finrank K H = 1 } :=
 equiv.of_bijective (λ v, ⟨v.submodule, v.finrank_submodule⟩)
 begin
   split,
@@ -156,7 +162,7 @@ variables {K V}
 
 /-- Construct an element of the projectivization from a subspace of dimension 1. -/
 noncomputable
-def mk'' (H : _root_.submodule K V) (h : finrank K H = 1) : projectivization K V :=
+def mk'' (H : _root_.submodule K V) (h : finrank K H = 1) : ℙ K V :=
 (equiv_submodule K V).symm ⟨H,h⟩
 
 @[simp]
@@ -169,16 +175,16 @@ begin
 end
 
 @[simp]
-lemma mk''_submodule (v : projectivization K V) : mk'' v.submodule v.finrank_submodule = v :=
+lemma mk''_submodule (v : ℙ K V) : mk'' v.submodule v.finrank_submodule = v :=
 show (equiv_submodule K V).symm (equiv_submodule K V _) = _, by simp
 
 section map
 
 variables {L W : Type*} [field L] [add_comm_group W] [module L W]
 
-/-- A semilinear map of vector spaces induces a map on projective spaces. -/
+/-- An injective semilinear map of vector spaces induces a map on projective spaces. -/
 def map {σ : K →+* L} (f : V →ₛₗ[σ] W) (hf : function.injective f) :
-  projectivization K V → projectivization L W :=
+  ℙ K V → ℙ L W :=
 quotient.map' (λ v, ⟨f v, λ c, v.2 (hf (by simp [c]))⟩)
 begin
   rintros ⟨u,hu⟩ ⟨v,hv⟩ ⟨a,ha⟩,

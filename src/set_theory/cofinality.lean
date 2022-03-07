@@ -672,17 +672,30 @@ begin
   exact (@infinite.of_injective _ _ p (inclusion (v' a)) (inclusion_injective _)).false,
 end
 
-theorem sup_lt_ord_of_is_regular {ι} (f : ι → ordinal) {c} (hc : is_regular c) (hι : #ι < c)
-  (hf : ∀ i, f i < c.ord) : ordinal.sup.{u u} f < c.ord :=
-by { apply sup_lt_ord _ hf, rw [hc.2], exact hι }
+theorem sup_lt_ord_lift_of_is_regular {ι} {f : ι → ordinal} {c} (hc : is_regular c)
+  (hι : cardinal.lift (#ι) < c) : (∀ i, f i < c.ord) → ordinal.sup.{u v} f < c.ord :=
+sup_lt_ord_lift (by rwa hc.2)
 
-theorem sup_lt_of_is_regular {ι} (f : ι → cardinal) {c} (hc : is_regular c) (hι : #ι < c)
-  (hf : ∀ i, f i < c) : sup.{u u} f < c :=
-by { apply sup_lt _ hf, rwa hc.2 }
+theorem sup_lt_ord_of_is_regular {ι} {f : ι → ordinal} {c} (hc : is_regular c) (hι : #ι < c) :
+  (∀ i, f i < c.ord) → ordinal.sup.{u u} f < c.ord :=
+sup_lt_ord (by rwa hc.2)
 
-theorem sum_lt_of_is_regular {ι} (f : ι → cardinal) {c} (hc : is_regular c) (hι : #ι < c)
-  (hf : ∀ i, f i < c) : sum.{u u} f < c :=
-(sum_le_sup _).trans_lt $ mul_lt_of_lt hc.1 hι $ sup_lt_of_is_regular f hc hι hf
+theorem sup_lt_lift_of_is_regular {ι} {f : ι → cardinal} {c} (hc : is_regular c)
+  (hι : cardinal.lift (#ι) < c) : (∀ i, f i < c) → sup.{u v} f < c :=
+sup_lt_lift (by rwa hc.2)
+
+theorem sup_lt_of_is_regular {ι} {f : ι → cardinal} {c} (hc : is_regular c) (hι : #ι < c) :
+  (∀ i, f i < c) → sup.{u u} f < c :=
+sup_lt (by rwa hc.2)
+
+theorem sum_lt_lift_of_is_regular {ι : Type u} {f : ι → cardinal} {c : cardinal} (hc : is_regular c)
+  (hι : cardinal.lift.{v u} (#ι) < c) (hf : ∀ i, f i < c) : sum f < c :=
+(sum_le_sup_lift _).trans_lt $
+  mul_lt_of_lt hc.1 (by rwa lift_umax) (sup_lt_lift_of_is_regular hc hι hf)
+
+theorem sum_lt_of_is_regular {ι : Type u} {f : ι → cardinal} {c : cardinal} (hc : is_regular c)
+  (hι : #ι < c) : (∀ i, f i < c) → sum f < c :=
+sum_lt_lift_of_is_regular.{u u} hc (by rwa lift_id)
 
 /-- A cardinal is inaccessible if it is an uncountable regular strong limit cardinal. -/
 def is_inaccessible (c : cardinal) :=

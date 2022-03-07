@@ -199,7 +199,8 @@ lemma mem_ℒp.integral_indicator_norm_ge_nonneg_le
   ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
 begin
   have hf_mk : mem_ℒp (hf.1.mk f) 1 μ := (mem_ℒp_congr_ae hf.1.ae_eq_mk).mp hf,
-  obtain ⟨M, hM_pos, hfM⟩ := hf_mk.integral_indicator_norm_ge_nonneg_le_of_meas μ hf.1.measurable_mk hε,
+  obtain ⟨M, hM_pos, hfM⟩ := hf_mk.integral_indicator_norm_ge_nonneg_le_of_meas μ
+    hf.1.measurable_mk hε,
   refine ⟨M, hM_pos, (le_of_eq _).trans hfM⟩,
   refine lintegral_congr_ae _,
   filter_upwards [hf.1.ae_eq_mk] with x hx,

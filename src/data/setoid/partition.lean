@@ -7,7 +7,6 @@ Authors: Amelia Livingston, Bryan Gin-ge Chen, Patrick Massot
 import data.fintype.basic
 import data.set.finite
 import data.setoid.basic
-
 import order.partition.finpartition
 
 /-!
@@ -22,18 +21,14 @@ There are two implementations of partitions here:
 
 Of course both implementations are related to `quotient` and `setoid`.
 
-`finpartition.of_partition` and `is_partition.of_finpartition` furnish
+`setoid.is_partition.partition` and `finpartition.is_partition_parts` furnish
 a link between `setoid.is_partition` and `finpartition`.
 
 ## TODO
 
-Link `setoid.is_partition` and `finpartition`.
-
 Could the design of `finpartition` inform the one of `setoid.is_partition`? Maybe bundling it and
 changing it from `set (set α)` to `set α` where `[lattice α] [order_bot α]` would make it more
 usable.
-
-Are `finpartition.of_partition` and `is_partition.of_finpartition` enough ?
 
 ## Tags
 
@@ -244,27 +239,21 @@ _ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order
 
 end partition
 
-section finpartition
-
-open_locale classical
-
 /-- A finite setoid partition furnishes a finpartition -/
 def is_partition.finpartition {c : finset (set α)}
   (hc : setoid.is_partition (c : set (set α))) : finpartition (set.univ : set α) :=
 { parts := c,
   sup_indep := finset.sup_indep_iff_pairwise_disjoint.mpr $ eqv_classes_disjoint hc.2,
-  sup_parts := c.sup_id_eq_sUnion.trans hc.sUnion_eq_univ,
+  sup_parts := c.sup_id_set_eq_sUnion.trans hc.sUnion_eq_univ,
   not_bot_mem := hc.left }
-
-end setoid
 
 /-- A finpartition gives rise to a setoid partition -/
 theorem finpartition.is_partition_parts (f : finpartition (set.univ : set α)) :
   setoid.is_partition (f.parts : set (set α)) :=
 ⟨f.not_bot_mem, eqv_classes_of_disjoint_union
-  (f.parts.sup_id_eq_sUnion.symm.trans f.sup_parts) f.sup_indep.pairwise_disjoint⟩
+  (f.parts.sup_id_set_eq_sUnion.symm.trans f.sup_parts) f.sup_indep.pairwise_disjoint⟩
 
-end finpartition
+end setoid
 
 /-- Constructive information associated with a partition of a type `α` indexed by another type `ι`,
 `s : ι → set α`.

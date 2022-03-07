@@ -202,6 +202,7 @@ section krull_t2
 
 open_locale topological_space filter
 
+-- TODO: move this to a more general file
 /-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
 lemma subgroup.is_open_of_one_mem_interior {G : Type*} [group G] [topological_space G]
   [topological_group G] {H : subgroup G} (h_1_int : (1 : G) ∈ interior (H : set G)) :
@@ -232,6 +233,13 @@ begin
   rcases h_nhd with ⟨U, hU_le, hU_open, h1U⟩,
   exact subgroup.is_open_of_one_mem_interior ⟨U, ⟨hU_open, hU_le⟩, h1U⟩,
 end
+
+/-- Given a tower of fields `L/E/K`, with `E/K` finite, the subgroup `Gal(L/E) ≤ L ≃ₐ[K] L` is
+  closed. -/
+lemma intermediate_field.fixing_subgroup_is_closed {K L : Type*} [field K] [field L] [algebra K L]
+  (E : intermediate_field K L) [finite_dimensional K E] :
+  is_closed (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
+open_subgroup.is_closed ⟨E.fixing_subgroup, E.fixing_subgroup_is_open⟩
 
 /-- If `L/K` is an algebraic extension, then the Krull topology on `L ≃ₐ[K] L` is Hausdorff. -/
 lemma krull_topology_t2 {K L : Type*} [field K] [field L] [algebra K L]
@@ -277,18 +285,6 @@ end krull_t2
 
 section totally_disconnected
 
-/-- Given a tower of fields `L/E/K`, with `E/K` finite, the subgroup `Gal(L/E) ≤ L ≃ₐ[K] L` is
-  closed. -/
-lemma intermediate_field.fixing_subgroup_is_closed {K L : Type*} [field K] [field L] [algebra K L]
-  (E : intermediate_field K L) [finite_dimensional K E] :
-  is_closed (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
-begin
-  let h_open : open_subgroup (L ≃ₐ[K] L) :=
-  { to_subgroup := E.fixing_subgroup,
-    is_open' := intermediate_field.fixing_subgroup_is_open E },
-  exact open_subgroup.is_closed h_open,
-end
-
 /-- If `L/K` is an algebraic field extension, then the Krull topology on `L ≃ₐ[K] L` is
   totally disconnected. -/
 lemma krull_topology_totally_disconnected {K L : Type*} [field K] [field L] [algebra K L]
@@ -297,24 +293,15 @@ begin
   apply is_totally_disconnected_of_clopen_set,
   intros σ τ h_diff,
   have hστ : σ⁻¹ * τ ≠ 1,
-  { rw [ne.def, inv_mul_eq_one],
-    exact h_diff },
-  cases (fun_like.exists_ne hστ) with x hx,
-  change (σ⁻¹ * τ) x ≠ x at hx,
+  { rwa [ne.def, inv_mul_eq_one] },
+  rcases (fun_like.exists_ne hστ) with ⟨x, hx : (σ⁻¹ * τ) x ≠ x⟩,
   let E := intermediate_field.adjoin K ({x} : set L),
   haveI := intermediate_field.adjoin.finite_dimensional (h_int x),
   refine ⟨left_coset σ E.fixing_subgroup,
-  ⟨is_open.left_coset (intermediate_field.fixing_subgroup_is_open E) σ,
-    is_closed.left_coset (intermediate_field.fixing_subgroup_is_closed E) σ⟩,
-    ⟨1, E.fixing_subgroup.one_mem', by simp⟩,
-    _⟩,
-  rw mem_left_coset_iff,
-  change ¬ σ⁻¹ * τ ∈ E.fixing_subgroup,
-  rw mem_fixing_subgroup_iff E (σ⁻¹ * τ),
-  rw not_forall,
-  use x,
-  rw not_forall,
-  exact ⟨intermediate_field.mem_adjoin_simple_self K x, hx⟩,
+    ⟨E.fixing_subgroup_is_open.left_coset σ, E.fixing_subgroup_is_closed.left_coset σ⟩,
+    ⟨1, E.fixing_subgroup.one_mem', by simp⟩, _⟩,
+  simp only [mem_left_coset_iff, set_like.mem_coe, mem_fixing_subgroup_iff, not_forall],
+  exact ⟨x, intermediate_field.mem_adjoin_simple_self K x, hx⟩,
 end
 
 end totally_disconnected

@@ -334,24 +334,21 @@ end
 @[to_additive /-" The non-commutative version of `finset.sum_add_distrib` "-/]
 lemma noncomm_prod_mul_distrib [decidable_eq α] {s : finset α}
   (f : α → β) (g : α → β)
-  (comm_fg : ∀ (x ∈ s) (y ∈ s), commute (f x * g x) (f y * g y))
-  (comm_fg' : ∀ (x ∈ s) (y ∈ s), x ≠ y → commute (f x) (g y))
+  (comm_fgfg : ∀ (x ∈ s) (y ∈ s), commute (f x * g x) (f y * g y))
   (comm_ff : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
-  (comm_gg : ∀ (x ∈ s) (y ∈ s), commute (g x) (g y)) :
-  noncomm_prod s (f * g) comm_fg
+  (comm_gg : ∀ (x ∈ s) (y ∈ s), commute (g x) (g y))
+  (comm_gf : ∀ (x ∈ s) (y ∈ s), x ≠ y → commute (g x) (f y)) :
+  noncomm_prod s (f * g) comm_fgfg
     = noncomm_prod s f comm_ff * noncomm_prod s g comm_gg :=
 begin
   induction s using finset.induction_on with x s hnmem ih,
   { simp, },
-  { rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem,
-    rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem,
-    rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem,
-    rw pi.mul_apply,
+  { simp only [finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem, pi.mul_apply],
     specialize ih
-      (λ x hx y hy, comm_fg x (mem_insert_of_mem hx) y (mem_insert_of_mem hy))
-      (λ x hx y hy hne, comm_fg' x (mem_insert_of_mem hx) y (mem_insert_of_mem hy) hne)
+      (λ x hx y hy, comm_fgfg x (mem_insert_of_mem hx) y (mem_insert_of_mem hy))
       (λ x hx y hy, comm_ff x (mem_insert_of_mem hx) y (mem_insert_of_mem hy))
-      (λ x hx y hy, comm_gg x (mem_insert_of_mem hx) y (mem_insert_of_mem hy)),
+      (λ x hx y hy, comm_gg x (mem_insert_of_mem hx) y (mem_insert_of_mem hy))
+      (λ x hx y hy hne, comm_gf x (mem_insert_of_mem hx) y (mem_insert_of_mem hy) hne),
     rw ih,
     simp only [mul_assoc],
     congr' 1,
@@ -359,8 +356,8 @@ begin
     congr' 1,
     apply noncomm_prod_commute,
     intros y hy,
-    have : y ≠ x, by {rintro rfl, contradiction},
-    exact (comm_fg' y (mem_insert_of_mem hy) x (mem_insert_self x s) this).symm, }
+    have : x ≠ y, by {rintro rfl, contradiction},
+    exact comm_gf x (mem_insert_self x s) y (mem_insert_of_mem hy) this, }
 end
 
 -- I think it's worth keeping it and moving to appropriate file

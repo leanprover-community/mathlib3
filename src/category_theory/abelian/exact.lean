@@ -206,8 +206,7 @@ lemma exact.op_iff : exact f g ↔ exact g.op f.op :=
 ⟨λ e, @@exact.op _ _ _ _ e, λ e, begin
   rw exact_iff at e ⊢,
   refine ⟨by convert (congr_arg quiver.hom.unop e.1), _⟩,
-  have e3 := eq_whisker (whisker_eq (cokernel_op_unop g).inv (congr_arg quiver.hom.unop e.2))
-    (kernel_op_unop f).hom,
+  have e3 := ((cokernel_op_unop g).inv ≫= congr_arg quiver.hom.unop e.2) =≫ (kernel_op_unop f).hom,
   simp only [← category.assoc, iso.inv_hom_id, unop_comp, cokernel.π_op, kernel.ι_op,
     category.id_comp, eq_to_hom_refl, category.comp_id, unop_zero, comp_zero, zero_comp] at e3,
   simpa only [category.assoc, iso.inv_hom_id, category.comp_id] using e3,
@@ -226,7 +225,7 @@ begin
   rw [unop_comp, unop_zero, eq1, cokernel_op_unop_hom, ← category.assoc, limits.kernel.lift_ι,
     eq_to_hom_refl, category.comp_id, cokernel.π_op, eq_to_hom_refl, category.comp_id, eq2,
     eq_to_hom_refl, category.id_comp] at e02,
-  have e03 := whisker_eq (cokernel_op_unop g.unop).inv (eq_whisker e02 (kernel_op_unop f.unop).hom),
+  have e03 := (cokernel_op_unop g.unop).inv ≫= (e02 =≫ (kernel_op_unop f.unop).hom),
   rwa [← category.assoc, ← category.assoc, ← category.assoc, ← category.assoc, iso.inv_hom_id,
     category.id_comp, category.assoc, iso.inv_hom_id, category.comp_id, zero_comp, comp_zero]at e03,
 end
@@ -239,7 +238,7 @@ lemma exact.unop_iff {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) : exact g f �
   apply_fun quiver.hom.op at e',
   rw [op_zero, op_comp, cokernel.π_unop, kernel.ι_unop, eq_to_hom_refl, eq_to_hom_refl,
     category.comp_id, category.id_comp] at e',
-  have e'' := whisker_eq (cokernel_unop_op f).inv (eq_whisker e' (kernel_unop_op g).hom),
+  have e'' := (cokernel_unop_op f).inv ≫= (e' =≫ (kernel_unop_op g).hom),
   rwa [zero_comp, comp_zero, ← category.assoc, ← category.assoc, ← category.assoc, ← category.assoc,
     iso.inv_hom_id, category.id_comp, category.assoc, iso.inv_hom_id, category.comp_id] at e'',
 end⟩

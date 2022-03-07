@@ -69,7 +69,7 @@ variables (R M : Type*) [comm_semiring R] [add_comm_monoid M] [module R M]
 
 /-- The torsion submoule, containing all elements `x` of `M` such that  `a • x = 0` for some
   non-zero-divisor `a` in `R`. -/
-@[simps] def torsion := torsion' R M R⁰
+@[reducible] def torsion := torsion' R M R⁰
 
 end defs
 
@@ -148,7 +148,7 @@ variables [comm_semiring R] [add_comm_monoid M] [no_zero_divisors R] [nontrivial
 
 example (a : R⁰) (x : M) : a • x = (a : R) • x := submonoid.smul_def a x
 
-lemma coe_torsion_eq_annihilator_ne_bot [nontrivial R] [no_zero_divisors R] :
+lemma coe_torsion_eq_annihilator_ne_bot :
   (torsion R M : set M) = { x : M | (R ∙ x).annihilator ≠ ⊥ } :=
 begin
   ext x, simp_rw [submodule.ne_bot_iff, mem_annihilator, mem_span_singleton],

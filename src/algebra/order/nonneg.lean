@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import algebra.order.archimedean
 import algebra.order.sub
 import algebra.order.with_zero
+import algebra.order.floor
 import order.lattice_intervals
 import order.complete_lattice_intervals
 
@@ -242,6 +243,25 @@ instance canonically_ordered_comm_semiring [ordered_comm_ring α] [no_zero_divis
 instance canonically_linear_ordered_add_monoid [linear_ordered_ring α] :
   canonically_linear_ordered_add_monoid {x : α // 0 ≤ x} :=
 { ..subtype.linear_order _, ..nonneg.canonically_ordered_add_monoid }
+
+instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
+{ floor := λ a, ⌊(a : α)⌋₊,
+  ceil := λ a, ⌈(a : α)⌉₊,
+  floor_of_neg := λ a ha, floor_semiring.floor_of_neg ha,
+  gc_floor := λ a n ha, begin
+    refine (floor_semiring.gc_floor (show 0 ≤ (a : α), from ha)).trans _,
+    rw [←subtype.coe_le_coe, nonneg.coe_nat_cast]
+  end,
+  gc_ceil := λ a n, begin
+    refine (floor_semiring.gc_ceil (a : α) n).trans _,
+    rw [←subtype.coe_le_coe, nonneg.coe_nat_cast]
+  end}
+
+@[norm_cast] lemma nat_floor_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
+  ⌊(a : α)⌋₊ = ⌊a⌋₊ := rfl
+
+@[norm_cast] lemma nat_ceil_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
+  ⌈(a : α)⌉₊ = ⌈a⌉₊  := rfl
 
 section linear_order
 

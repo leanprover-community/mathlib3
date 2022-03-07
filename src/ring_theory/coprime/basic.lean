@@ -174,6 +174,9 @@ lemma is_coprime_group_smul_left : is_coprime (x • y) z ↔ is_coprime y z :=
 lemma is_coprime_group_smul_right : is_coprime y (x • z) ↔ is_coprime y z :=
 is_coprime_comm.trans $ (is_coprime_group_smul_left x z y).trans is_coprime_comm
 
+lemma is_coprime_group_smul : is_coprime (x • y) (x • z) ↔ is_coprime y z :=
+(is_coprime_group_smul_left x y (x • z)).trans (is_coprime_group_smul_right x y z)
+
 end scalar_tower
 
 section comm_semiring_unit

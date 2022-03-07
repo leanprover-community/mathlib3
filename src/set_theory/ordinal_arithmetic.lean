@@ -970,6 +970,12 @@ end
   brange _ (bfamily_of_family f) = range f :=
 brange_bfamily_of_family' _ _
 
+@[simp] theorem brange_const {o : ordinal} (ho : o ≠ 0) {c : α} : brange o (λ _ _, c) = {c} :=
+begin
+  rw ←range_family_of_bfamily,
+  exact @set.range_const _ o.out.α (out_nonempty_iff_ne_zero.2 ho) c
+end
+
 theorem comp_bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α)
   (g : α → β) : (λ i hi, g (bfamily_of_family' r f i hi)) = bfamily_of_family' r (g ∘ f) :=
 rfl

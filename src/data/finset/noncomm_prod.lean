@@ -343,8 +343,7 @@ lemma noncomm_prod_mul_distrib [decidable_eq α] {s : finset α}
 begin
   induction s using finset.induction_on with x s hnmem ih,
   { simp, },
-  {
-    rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem,
+  { rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem,
     rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem,
     rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem,
     rw pi.mul_apply,
@@ -361,8 +360,7 @@ begin
     apply noncomm_prod_commute,
     intros y hy,
     have : y ≠ x, by {rintro rfl, contradiction},
-    exact (comm_fg' y (mem_insert_of_mem hy) x (mem_insert_self x s) this).symm,
-  }
+    exact (comm_fg' y (mem_insert_of_mem hy) x (mem_insert_self x s) this).symm, }
 end
 
 -- I think it's worth keeping it and moving to appropriate file
@@ -406,8 +404,8 @@ begin
     intro heq1,
     rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,
     have hnmem' : i ∉ (s : set α), by simpa,
-    have heq1' : f i = 1 ∧ s.noncomm_prod f _ = 1 :=
-      mul_eq_one_iff_disjoint.mp (hind.disjoint_bsupr hnmem') (hmem i (mem_insert_self _ _)) hmem_bsupr heq1,
+    have heq1' : f i = 1 ∧ s.noncomm_prod f _ = 1 := mul_eq_one_iff_disjoint.mp
+      (hind.disjoint_bsupr hnmem') (hmem i (mem_insert_self _ _)) hmem_bsupr heq1,
     rcases heq1' with ⟨ heq1i, heq1S ⟩,
     specialize ih heq1S,
     intros i h,

@@ -573,10 +573,7 @@ lemma fract_div_mul_self_mem_Ico (a b : k) (ha : 0 < a) : fract (b/a) * a ∈ Ic
 
 lemma fract_div_mul_self_add_zsmul_eq (a b : k) (ha : a ≠ 0) :
   fract (b/a) * a + ⌊b/a⌋ • a = b :=
-begin
-  conv_rhs { rw [← div_mul_cancel b ha, ← fract_add_floor (b/a)], },
-  rw [zsmul_eq_mul, add_mul],
-end
+by rw [zsmul_eq_mul, ← add_mul, fract_add_floor, div_mul_cancel b ha]
 
 end linear_ordered_field
 

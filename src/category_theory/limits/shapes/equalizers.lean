@@ -903,6 +903,13 @@ def split_mono_of_equalizer {X Y : C} {f : X ⟶ Y} {r : Y ⟶ X} (hr : f ≫ r 
   id' := fork.is_limit.hom_ext h
     ((category.assoc _ _ _).trans $ hr.trans (category.id_comp _).symm) }
 
+/-- The equalizer of an idempotent morphism and the identity is split mono. -/
+def split_mono_of_idempotent_equalizer {X : C} {f : X ⟶ X} (hf : f ≫ f = f)
+  [has_equalizer f (𝟙 X)] : split_mono (equalizer.ι f (𝟙 X)) :=
+{ retraction := equalizer.lift f (by simp [hf]),
+  id' := by { rw [← cancel_mono_id (equalizer.ι f (𝟙 X)), category.assoc, 
+    equalizer.lift_ι, equalizer.condition, category.comp_id] } }
+
 section
 -- In this section we show that a split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
 variables {C} [split_epi f]
@@ -935,5 +942,12 @@ def split_epi_of_coequalizer {X Y : C} {f : X ⟶ Y} {s : Y ⟶ X} (hs : f ≫ s
   split_epi f :=
 { section_ := s,
   id' := cofork.is_colimit.hom_ext h (hs.trans (category.comp_id _).symm) }
+
+/-- The coequalizer of an idempotent morphism and the identity is split epi. -/
+def split_epi_of_idempotent_coequalizer {X : C} {f : X ⟶ X} (hf : f ≫ f = f)
+  [has_coequalizer f (𝟙 X)] : split_epi (coequalizer.π f (𝟙 X)) :=
+{ section_ := coequalizer.desc f (by simp [hf]),
+  id' := by { rw [← cancel_epi_id (coequalizer.π f (𝟙 X)), 
+    ←category.assoc, coequalizer.π_desc, coequalizer.condition, category.id_comp] } }
 
 end category_theory.limits

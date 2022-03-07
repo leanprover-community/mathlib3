@@ -128,8 +128,7 @@ begin
   unfold fermat_pseudoprime,
   cases h,
   {
-  rw
-  [← mul_two_power_part_odd_part (n - 1), mul_comm, pow_mul, h, one_pow],
+  rw [← mul_two_power_part_odd_part (n - 1), mul_comm, pow_mul, h, one_pow],
   },
   {
     rcases h with ⟨r, hrlt, hpow⟩,
@@ -189,9 +188,7 @@ begin
   {
     intro h,
     have foo : (a ^ (odd_part (p - 1)))^(two_power_part (p - 1)) = 1,
-    { -- TODO(Sean): This is similar to what we were doing last sunday.
-      sorry,
-    },
+    { rw [← pow_mul, mul_comm, mul_two_power_part_odd_part (p - 1), h],},
     have goo : ∃ (j : ℕ) (H : j ≤ padic_val_nat 2 (p-1)), order_of (a ^ (odd_part (p - 1))) = 2^j,
     { have := order_of_dvd_of_pow_eq_one foo,
       rw two_power_part at this,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import ring_theory.graded_algebra.homogeneous_ideal
+import tactic.derive_fintype
 
 /-!
 # A homogeneous prime that is homogeneously prime but not prime
@@ -16,7 +17,7 @@ underlying indexing set is a `linear_ordered_add_comm_monoid` but is not cancell
 statement is false.
 
 We first give the two element set `ι = {0, 1}` a structure of linear ordered additive commutative
-monoid by seting `0 + 0 = 0` and `_ + _ = 1` and `0 < 1`. Then we use `ι` to grade `ℤ²` by
+monoid by setting `0 + 0 = 0` and `_ + _ = 1` and `0 < 1`. Then we use `ι` to grade `ℤ²` by
 setting `{(a, a) | a ∈ ℤ}` to have grade `0`; and `{(0, b) | b ∈ ℤ}`. Then the ideal
 `I = span {(0, 2)}` is certainly homogeneous and not prime. But it is also homogeneously prime, i.e.
 if `(a, b), (c, d)` are two homogeneous element then `(a, b) * (c, d) ∈ I` implies either
@@ -35,7 +36,7 @@ open direct_sum
 /--
 The underlying indexing set with two elements `z` for zero and `o` for one
 -/
-@[derive inhabited]
+@[derive [inhabited, decidable_eq, fintype]]
 inductive two
 | z
 | o
@@ -56,21 +57,11 @@ instance has_add : has_add two :=
 
 instance : add_comm_monoid two :=
 { zero := z,
-  add_comm := λ a b, begin
-    cases a; cases b;
-    trivial,
-  end,
-  add_zero := λ a, begin
-    cases a; trivial,
-  end,
-  zero_add := λ a, begin
-    cases a; trivial,
-  end,
-  add_assoc := λ a b c, begin
-    cases a; cases b; cases c;
-    refl,
-  end,
-  ..(_ : has_add two)}
+  add := (+),
+  add_comm := dec_trivial,
+  add_zero := dec_trivial,
+  zero_add := dec_trivial,
+  add_assoc := dec_trivial}
 
 instance : has_lt two :=
 { lt := λ i j, begin
@@ -81,70 +72,38 @@ instance : has_lt two :=
   { exact false },
 end }
 
-lemma two.z_lt_o : z < o := by tauto
+instance : decidable_rel ((<) : two → two → Prop) :=
+λ i j, by cases i; cases j; apply_instance
+
+lemma two.z_lt_o : z < o := dec_trivial
 
 instance : has_le two :=
 { le := λ i j, i < j ∨ i = j }
 
-lemma two.not_o_le_z : ¬ o ≤ z :=
-begin
-  intro rid,
-  cases rid;
-  tauto,
-end
+instance : decidable_rel ((≤) : two → two → Prop) :=
+λ i j, or.decidable
 
-lemma two.z_le_o : z ≤ o := by { left, tauto }
+lemma two.not_o_le_z : ¬ o ≤ z := dec_trivial
 
-instance : preorder two :=
-{ le_refl := λ i, begin
-    change i < i ∨ i = i,
-    right,
-    refl,
-  end,
-  le_trans := λ a b c h1 h2, begin
-    unfold has_le.le,
-    cases a; cases b; cases c,
-    all_goals { try { right, refl, } },
-    all_goals { try { left, exact two.z_lt_o } },
-    all_goals { exfalso, apply two.not_o_le_z, assumption },
-  end,
-  ..(_ : has_le two)}
+lemma two.z_le_o : z ≤ o := dec_trivial
 
-instance : partial_order two :=
-{ le_antisymm := λ i j h1 h2, begin
-    cases i; cases j,
-    all_goals { try { refl, } },
-    all_goals { exfalso, apply two.not_o_le_z, assumption },
-  end,
-  ..(_ : preorder two) }
+instance : linear_order two :=
+{ le := (≤),
+  le_refl := dec_trivial,
+  le_trans := dec_trivial,
+  le_antisymm := dec_trivial,
+  le_total := dec_trivial,
+  decidable_le := by apply_instance }
 
-noncomputable instance : linear_order two :=
-{ le_total := λ i j, begin
-    cases i; cases j,
-    all_goals { try { right, refl } },
-    { left, exact two.z_le_o, },
-    { right, exact two.z_le_o },
-  end,
-  decidable_le := by { exactI classical.dec_rel _, },
-  ..(_ : partial_order two)}
-
-noncomputable instance : linear_ordered_add_comm_monoid two :=
-{ add_le_add_left := λ a b h1 c, begin
-    cases a; cases b; cases c,
-    all_goals { try { refl } },
-    { change z ≤ o,
-      assumption, },
-    { exfalso,
-      apply two.not_o_le_z,
-      assumption },
-  end,
+instance : linear_ordered_add_comm_monoid two :=
+{ add_le_add_left := dec_trivial,
   ..(_ : linear_order two),
   ..(_ : add_comm_monoid two)}
 
 /--
 We consider the ring `ℤ²`, later we see that `span {(0, 2)}` is a working counterexample.
 -/
-@[derive [inhabited, comm_ring]]
+@[derive comm_ring]
 def Z_sq : Type := ℤ × ℤ
 
 /--
@@ -152,36 +111,18 @@ The grade 0 part of `ℤ²` is `{(a, a) | a ∈ ℤ}`.
 -/
 def submodule_z : submodule ℤ Z_sq :=
 { carrier := { zz | zz.1 = zz.2 },
-  zero_mem' := by simp,
-  add_mem' := λ a b ha hb, begin
-    change a.1 = a.2 at ha,
-    change b.1 = b.2 at hb,
-    change a.1 + b.1 = a.2 + b.2,
-    rw [ha, hb],
-  end,
-  smul_mem' := λ a b hb, begin
-    change a * b.1 = a * b.2,
-    change b.1 = b.2 at hb,
-    rw [hb],
-  end }
+  zero_mem' := rfl,
+  add_mem' := λ a b ha hb, congr_arg2 (+) ha hb,
+  smul_mem' := λ a b hb, congr_arg ((*) a) hb }
 
 /--
 The grade 1 part of `ℤ²` is `{(0, b) | b ∈ ℤ}`.
 -/
 def submodule_o : submodule ℤ Z_sq :=
 { carrier := { zz | zz.1 = 0 },
-  zero_mem' := by simp,
-  add_mem' := λ a b ha hb, begin
-    change a.1 = 0 at ha,
-    change b.1 = 0 at hb,
-    change a.1 + b.1 = 0,
-    rw [ha, hb, zero_add],
-  end,
-  smul_mem' := λ a b hb, begin
-    change b.1 = 0 at hb,
-    change a * b.1 = 0,
-    rw [hb, mul_zero],
-  end }
+  zero_mem' := rfl,
+  add_mem' := λ a b (ha : a.1 = 0) (hb : b.1 = 0), show a.1 + b.1 = 0, by rw [ha, hb, zero_add],
+  smul_mem' := λ a b (hb : b.1 = 0), show a * b.1 = 0, by rw [hb, mul_zero] }
 
 /--
 Give the above grading (see `submodule_z` and `submodule_o`), we turn `ℤ²` into a graded ring.
@@ -191,39 +132,19 @@ def grading : two → submodule ℤ Z_sq
 | o := submodule_o
 
 lemma grading.one_mem : (1 : Z_sq) ∈ grading 0 :=
-begin
-  change ((1, 1) : Z_sq).1 = ((1, 1) : Z_sq).2,
-  refl,
-end
+eq.refl (1, 1).fst
 
-lemma grading.mul_mem ⦃i j : two⦄ {a b : Z_sq} (ha : a ∈ grading i) (hb : b ∈ grading j) :
-  a * b ∈ grading (i + j) :=
-begin
-  cases i; cases j,
-  { change _ ∈ grading z,
-    change a.1 = a.2 at ha,
-    change b.1 = b.2 at hb,
-    change a.1 * b.1 = a.2 * b.2,
-    rw [ha, hb], },
-  { change _ ∈ grading o,
-    change a.1 = a.2 at ha,
-    change b.1 = 0 at hb,
-    change a.1 * b.1 = 0,
-    rw [hb, mul_zero], },
-  { change _ ∈ grading o,
-    change a.1 = 0 at ha,
-    change a.1 * b.1 = 0,
-    rw [ha, zero_mul], },
-  { change _ ∈ grading o,
-    change a.1 = 0 at ha,
-    change a.1 * b.1 = 0,
-    rw [ha, zero_mul], },
-end
+lemma grading.mul_mem : ∀ ⦃i j : two⦄ {a b : Z_sq} (ha : a ∈ grading i) (hb : b ∈ grading j),
+  a * b ∈ grading (i + j)
+| z z a b (ha : a.1 = a.2) (hb : b.1 = b.2) := show a.1 * b.1 = a.2 * b.2, by rw [ha, hb]
+| z o a b (ha : a.1 = a.2) (hb : b.1 = 0)   := show a.1 * b.1 = 0, by rw [hb, mul_zero]
+| o z a b (ha : a.1 = 0) hb                 := show a.1 * b.1 = 0, by rw [ha, zero_mul]
+| o o a b (ha : a.1 = 0) hb                 := show a.1 * b.1 = 0, by rw [ha, zero_mul]
 
 /--
 `ℤ² ≅ {(a, a) | a ∈ ℤ} ⨁ {(0, b) | b ∈ ℤ}` by `(x, y) ↦ (x, x) + (0, y - x)`.
 -/
-noncomputable def grading.decompose : Z_sq →+ direct_sum two (λ i, grading i) :=
+def grading.decompose : Z_sq →+ direct_sum two (λ i, grading i) :=
 { to_fun := λ zz, of (λ i, grading i) z ⟨(zz.1, zz.1), rfl⟩ +
     of (λ i, grading i) o ⟨(0, zz.2 - zz.1), rfl⟩,
   map_zero' := begin
@@ -246,8 +167,7 @@ noncomputable def grading.decompose : Z_sq →+ direct_sum two (λ i, grading i)
   map_add' := λ zz1 zz2, begin
     cases zz1 with a1 b1,
     cases zz2 with a2 b2,
-    simp only [show ∀ (c d : Z_sq), (c + d).1 = c.1 + d.1, from λ _ _, rfl,
-      show ∀ (c d : Z_sq), (c + d).2 = c.2 + d.2, from λ _ _, rfl],
+    simp only [prod.fst_add, prod.snd_add],
     ext;
     cases i,
     { simp only [add_apply, map_add, of_eq_same],
@@ -340,7 +260,7 @@ begin
     add_zero, add_sub_cancel'_right],
 end
 
-noncomputable instance : graded_algebra grading :=
+instance : graded_algebra grading :=
 { one_mem := grading.one_mem,
   mul_mem := grading.mul_mem,
   decompose' := grading.decompose,

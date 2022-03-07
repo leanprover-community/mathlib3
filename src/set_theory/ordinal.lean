@@ -671,7 +671,7 @@ def typein_iso (r : α → α → Prop) [is_well_order α r] : r ≃r subrel (<)
  λ ⟨y, hy⟩, subtype.eq (typein_enum r hy)⟩,
   λ a b, (typein_lt_typein r)⟩
 
-theorem enum_lt {r : α → α → Prop} [is_well_order α r]
+theorem enum_lt_enum {r : α → α → Prop} [is_well_order α r]
   {o₁ o₂ : ordinal} (h₁ : o₁ < type r) (h₂ : o₂ < type r) :
   r (enum r o₁ h₁) (enum r o₂ h₂) ↔ o₁ < o₂ :=
 by rw [← typein_lt_typein r, typein_enum, typein_enum]
@@ -1064,7 +1064,7 @@ by rw [←not_lt, typein_lt_typein]
 
 lemma enum_le_enum (r : α → α → Prop) [is_well_order α r] {o o' : ordinal}
   (ho : o < type r) (ho' : o' < type r) : ¬r (enum r o' ho') (enum r o ho) ↔ o ≤ o' :=
-by rw [←@not_lt _ _ o' o, enum_lt ho']
+by rw [←@not_lt _ _ o' o, enum_lt_enum ho']
 
 theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
   (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=
@@ -1072,8 +1072,8 @@ theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordi
   by_contra hne,
   cases lt_or_gt_of_ne hne with hlt hlt;
     apply (is_well_order.is_irrefl r).1,
-    { rwa [←@enum_lt α r _ o₁ o₂ h₁ h₂, h] at hlt },
-    { change _ < _ at hlt, rwa [←@enum_lt α r _ o₂ o₁ h₂ h₁, h] at hlt }
+    { rwa [←@enum_lt_enum α r _ o₁ o₂ h₁ h₂, h] at hlt },
+    { change _ < _ at hlt, rwa [←@enum_lt_enum α r _ o₂ o₁ h₂ h₁, h] at hlt }
 end, λ h, by simp_rw h⟩
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member

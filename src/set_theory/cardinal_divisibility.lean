@@ -49,6 +49,10 @@ begin
     exact zero_ne_one ht }
 end
 
+instance : unique cardinal.{u}ˣ :=
+{ default := 1,
+  uniq := λ a, units.coe_eq_one.mp $ is_unit_iff.mp a.is_unit }
+
 theorem le_of_dvd : ∀ {a b : cardinal}, b ≠ 0 → a ∣ b → a ≤ b
 | a _ b0 ⟨b, rfl⟩ := by simpa only [mul_one] using mul_le_mul_left'
   (one_le_iff_ne_zero.2 (λ h : b = 0, by simpa only [h, mul_zero] using b0)) a

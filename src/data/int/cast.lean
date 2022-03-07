@@ -237,3 +237,13 @@ lemma int_apply (n : ℤ) (a : α) : (n : ∀ a, β a) a = n := rfl
 @[simp] lemma coe_int (n : ℤ) : (n : ∀ a, β a) = λ _, n := rfl
 
 end pi
+
+namespace mul_opposite
+
+variables {α : Type*} [add_group_with_one α]
+
+@[simp, norm_cast] lemma op_int_cast (z : ℤ) : op (z : α) = z := rfl
+
+@[simp, norm_cast] lemma unop_int_cast (n : ℤ) : unop (n : αᵐᵒᵖ) = n := rfl
+
+end mul_opposite

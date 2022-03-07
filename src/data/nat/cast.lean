@@ -240,6 +240,16 @@ theorem nat.cast_with_bot (n : ℕ) :
 instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℕ →+* R) :=
 ⟨ext_nat⟩
 
+namespace mul_opposite
+
+variables {α : Type*} [add_monoid_with_one α]
+
+@[simp, norm_cast] lemma op_nat_cast (n : ℕ) : op (n : α) = n := rfl
+
+@[simp, norm_cast] lemma unop_nat_cast (n : ℕ) : unop (n : αᵐᵒᵖ) = n := rfl
+
+end mul_opposite
+
 namespace with_top
 variables {α : Type*}
 

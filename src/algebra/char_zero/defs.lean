@@ -57,4 +57,10 @@ not_congr cast_eq_zero
 lemma cast_add_one_ne_zero (n : ℕ) : (n + 1 : R) ≠ 0 :=
 by exact_mod_cast n.succ_ne_zero
 
+@[simp, norm_cast] theorem cast_eq_one {n : ℕ} : (n : R) = 1 ↔ n = 1 :=
+by rw [←cast_one, cast_inj]
+
+@[norm_cast] theorem cast_ne_one {n : ℕ} : (n : R) ≠ 1 ↔ n ≠ 1 :=
+cast_eq_one.not
+
 end nat

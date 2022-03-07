@@ -314,6 +314,30 @@ def mono_is_kernel_of_cokernel [mono f] (s : cofork f 0) (h : is_colimit s) :
   is_limit (kernel_fork.of_ι f (cokernel_cofork.condition s)) :=
 non_preadditive_abelian.mono_is_kernel_of_cokernel s h
 
+variables (f)
+
+/-- In an abelian category, any morphism that turns to zero when precomposed with the kernel of an
+    epimorphism factors through that epimorphism. -/
+def epi_desc [epi f] {T : C} (g : X ⟶ T) (hg : kernel.ι f ≫ g = 0) : Y ⟶ T :=
+(epi_is_cokernel_of_kernel _ (limit.is_limit _)).desc (cokernel_cofork.of_π _ hg)
+
+@[simp, reassoc]
+lemma comp_epi_desc [epi f] {T : C} (g : X ⟶ T) (hg : kernel.ι f ≫ g = 0) :
+  f ≫ epi_desc f g hg = g :=
+(epi_is_cokernel_of_kernel _ (limit.is_limit _)).fac (cokernel_cofork.of_π _ hg)
+  walking_parallel_pair.one
+
+/-- In an abelian category, any morphism that turns to zero when postcomposed with the cokernel of a
+    monomorphism factors through that monomorphism. -/
+def mono_lift [mono f] {T : C} (g : T ⟶ Y) (hg : g ≫ cokernel.π f = 0) : T ⟶ X :=
+(mono_is_kernel_of_cokernel _ (colimit.is_colimit _)).lift (kernel_fork.of_ι _ hg)
+
+@[simp, reassoc]
+lemma mono_lift_comp [mono f] {T : C} (g : T ⟶ Y) (hg : g ≫ cokernel.π f = 0) :
+  mono_lift f g hg ≫ f = g :=
+(mono_is_kernel_of_cokernel _ (colimit.is_colimit _)).fac (kernel_fork.of_ι _ hg)
+  walking_parallel_pair.zero
+
 end cokernel_of_kernel
 
 section

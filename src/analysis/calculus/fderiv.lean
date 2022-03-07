@@ -461,6 +461,9 @@ lemma differentiable_on.eventually_differentiable_at (h : differentiable_on 𝕜
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
 by { ext, rw h.unique h.differentiable_at.has_fderiv_at }
 
+lemma fderiv_eq {f' : E → E →L[𝕜] F} (h : ∀ x, has_fderiv_at f (f' x) x) : fderiv 𝕜 f = f' :=
+funext $ λ x, (h x).fderiv
+
 /-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
 on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by `C`.
 Version using `fderiv`. -/
@@ -2997,3 +3000,25 @@ begin
 end
 
 end restrict_scalars
+
+/-! ### Support of derivatives -/
+
+section support
+
+open function
+variables (𝕜 : Type*) {E F : Type*} [nondiscrete_normed_field 𝕜]
+variables [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F] {f : E → F}
+
+lemma support_fderiv_subset : support (fderiv 𝕜 f) ⊆ tsupport f :=
+begin
+  intros x,
+  rw [← not_imp_not],
+  intro h2x,
+  rw [not_mem_closure_support_iff_eventually_eq] at h2x,
+  exact nmem_support.mpr (h2x.fderiv_eq.trans $ fderiv_const_apply 0),
+end
+
+lemma has_compact_support.fderiv (hf : has_compact_support f) : has_compact_support (fderiv 𝕜 f) :=
+hf.mono' $ support_fderiv_subset 𝕜
+
+end support

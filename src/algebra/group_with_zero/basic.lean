@@ -690,8 +690,18 @@ eq_inv_of_mul_left_eq_one u.inv_mul
   units.mk0 a ha = units.mk0 b hb ↔ a = b :=
 ⟨λ h, by injection h, λ h, units.ext h⟩
 
+/-- In a group with zero, an existential over a unit can be rewritten in terms of `units.mk0`. -/
+lemma exists0 {p : G₀ˣ → Prop} : (∃ g : G₀ˣ, p g) ↔ ∃ (g : G₀) (hg : g ≠ 0), p (units.mk0 g hg) :=
+⟨λ ⟨g, pg⟩, ⟨g, g.ne_zero, (g.mk0_coe g.ne_zero).symm ▸ pg⟩, λ ⟨g, hg, pg⟩, ⟨units.mk0 g hg, pg⟩⟩
+
+/-- An alternative version of `units.exists0`. This one is useful if Lean cannot
+figure out `p` when using `units.exists0` from right to left. -/
+lemma exists0' {p : Π g : G₀, g ≠ 0 → Prop} :
+  (∃ (g : G₀) (hg : g ≠ 0), p g hg) ↔ ∃ g : G₀ˣ, p g g.ne_zero :=
+iff.trans (by simp_rw [coe_mk0]) exists0.symm
+
 @[simp] lemma exists_iff_ne_zero {x : G₀} : (∃ u : G₀ˣ, ↑u = x) ↔ x ≠ 0 :=
-⟨λ ⟨u, hu⟩, hu ▸ u.ne_zero, assume hx, ⟨mk0 x hx, rfl⟩⟩
+by simp [exists0]
 
 lemma _root_.group_with_zero.eq_zero_or_unit (a : G₀) :
   a = 0 ∨ ∃ u : G₀ˣ, a = u :=
@@ -968,7 +978,7 @@ by rw [mul_comm, (div_mul_cancel _ hb)]
 
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
-lemma div_mul_div (a b c d : G₀) :
+lemma div_mul_div_comm₀ (a b c d : G₀) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
 by simp [div_eq_mul_inv, mul_inv₀]
 
@@ -981,7 +991,7 @@ by simp [div_eq_mul_inv]
 
 lemma div_mul_eq_mul_div_comm (a b c : G₀) :
       (b / c) * a = b * (a / c) :=
-by rw [div_mul_eq_mul_div, ← one_mul c, ← div_mul_div, div_one, one_mul]
+by rw [div_mul_eq_mul_div, ← one_mul c, ← div_mul_div_comm₀, div_one, one_mul]
 
 lemma mul_eq_mul_of_div_eq_div (a : G₀) {b : G₀} (c : G₀) {d : G₀} (hb : b ≠ 0)
       (hd : d ≠ 0) (h : a / b = c / d) : a * d = c * b :=
@@ -990,7 +1000,7 @@ by rw [← mul_one (a*d), mul_assoc, mul_comm d, ← mul_assoc, ← div_self hb,
 
 @[field_simps] lemma div_div_eq_div_mul (a b c : G₀) :
       (a / b) / c = a / (b * c) :=
-by rw [div_eq_mul_one_div, div_mul_div, mul_one]
+by rw [div_eq_mul_one_div, div_mul_div_comm₀, mul_one]
 
 lemma div_div_div_div_eq (a : G₀) {b c d : G₀} :
       (a / b) / (c / d) = (a * d) / (b * c) :=

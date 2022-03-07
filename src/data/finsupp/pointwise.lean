@@ -71,6 +71,9 @@ instance [non_unital_non_assoc_ring β] : non_unital_non_assoc_ring (α →₀ �
 { ..(infer_instance : non_unital_non_assoc_semiring (α →₀ β)),
   ..(infer_instance : add_comm_group (α →₀ β)) }
 
+instance [non_unital_ring β] : non_unital_ring (α →₀ β) :=
+{ ..(infer_instance : non_unital_semiring (α →₀ β)),
+  ..(infer_instance : add_comm_group (α →₀ β)) }
 
 -- TODO can this be generalized in the direction of `pi.has_scalar'`
 -- (i.e. dependent functions and finsupps)

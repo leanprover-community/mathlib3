@@ -167,8 +167,7 @@ begin
   { assume x h,
     simp only [(lift _).map_neg, lift.of, pi.add_apply, neg_add] },
   { assume x y hx hy,
-    simp only [(lift _).map_add, hx, hy],
-    ac_refl }
+    simp only [(lift _).map_add, hx, hy, add_add_add_comm] }
 end
 
 /-- If `g : free_abelian_group X` and `A` is an abelian group then `lift_add_group_hom g`

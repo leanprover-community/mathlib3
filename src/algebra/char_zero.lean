@@ -33,6 +33,10 @@ variables {R : Type*} [add_monoid_with_one R] [char_zero R]
 @[simps]
 def cast_embedding : ℕ ↪ R := ⟨coe, cast_injective⟩
 
+@[simp] lemma cast_pow_eq_one {R : Type*} [semiring R] [char_zero R] (q : ℕ) (n : ℕ) (hn : n ≠ 0) :
+  (q : R) ^ n = 1 ↔ q = 1 :=
+by { rw [←cast_pow, cast_eq_one], exact pow_eq_one_iff hn }
+
 @[simp, norm_cast]
 theorem cast_dvd_char_zero {k : Type*} [field k] [char_zero k] {m n : ℕ}
   (n_dvd : n ∣ m) : ((m / n : ℕ) : k) = m / n :=

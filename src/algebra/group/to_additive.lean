@@ -568,10 +568,11 @@ them has one -/
       mul_doc <- doc_string mul_name >> return tt <|> return ff,
       add_doc <- doc_string add_name >> return tt <|> return ff,
       match mul_doc, add_doc with
-      | tt, ff := return $ some $ "declaration has a docstring, but its additive version does " ++
-        "not. You might want to pass a string argument to `to_additive`."
-      | ff, tt := return $ some $ "declaration has no docstring, but its additive version does. " ++
-        "You might want to add a doc string to the declaration."
+      | tt, ff := return $ some $ "declaration has a docstring, but its additive version `" ++
+         add_name.to_string ++ "` does not. You might want to pass a string argument to " ++
+         "`to_additive`."
+      | ff, tt := return $ some $ "declaration has no docstring, but its additive version `" ++
+         add_name.to_string ++ "` does. You might want to add a doc string to the declaration."
       | _, _ := return none
       end
     | none := return none
@@ -579,7 +580,7 @@ them has one -/
   auto_decls := ff,
   no_errors_found := "Multiplicative and additive lemmas are consistently documented",
   errors_found := "The following declarations have doc strings, but their additive versions do " ++
-  "not (or vica versa).",
+  "not (or vice versa).",
   is_fast := ff }
 
 end linter

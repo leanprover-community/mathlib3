@@ -281,6 +281,15 @@ theorem sup_lt {ι} {f : ι → cardinal} {c : cardinal} (hι : #ι < c.ord.cof)
   (∀ i, f i < c) → cardinal.sup.{u u} f < c :=
 sup_lt_lift (by rwa (#ι).lift_id)
 
+theorem nfp_lt_ord {f : ordinal → ordinal} {c} (hc : ω < cof c) (hf : ∀ i < c, f i < c) {a}
+  (ha : a < c) : nfp f a < c :=
+sup_lt_ord_lift hc (λ n, begin
+  induction n with n hn,
+  { exact ha },
+  { rw iterate_succ_apply',
+    exact hf _ hn }
+end)
+
 theorem exists_blsub_cof (o : ordinal) : ∃ (f : Π a < (cof o).ord, ordinal), blsub.{u u} _ f = o :=
 begin
   rcases exists_lsub_cof o with ⟨ι, f, hf, hι⟩,
@@ -683,6 +692,24 @@ by { apply sup_lt _ hf, rwa hc.2 }
 theorem sum_lt_of_is_regular {ι} (f : ι → cardinal) {c} (hc : is_regular c) (hι : #ι < c)
   (hf : ∀ i, f i < c) : sum.{u u} f < c :=
 (sum_le_sup _).trans_lt $ mul_lt_of_lt hc.1 hι $ sup_lt_of_is_regular f hc hι hf
+
+theorem deriv_lt_ord {f : ordinal → ordinal} {c} (hc : is_regular c) (hc' : c ≠ ω)
+  (hf : ∀ i < c.ord, f i < c.ord) {a} : a < c.ord → deriv f a < c.ord :=
+begin
+  have hω : ω < c.ord.cof,
+  { rw hc.2, exact lt_of_le_of_ne hc.1 hc'.symm },
+  apply a.limit_rec_on,
+  { rw deriv_zero,
+    exact nfp_lt_ord hω hf },
+  { intros b hb hb',
+    rw deriv_succ,
+    exact nfp_lt_ord hω hf ((omega_le_cof.1 hω.le).2 _ (hb ((lt_succ_self b).trans hb'))) },
+  {
+    intros b hb H hb',
+    rw deriv_limit f hb,
+    apply bsup_lt_ord,
+  }
+end
 
 /-- A cardinal is inaccessible if it is an uncountable regular strong limit cardinal. -/
 def is_inaccessible (c : cardinal) :=

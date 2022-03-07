@@ -19,9 +19,6 @@ image of different morphism commute, we obtain a canoncial morphism
 ## Main definitions
 
 * `monoid_hom.noncomm_pi_coprod : (Π i, N i) →* M` is the main homomorphism
-* `noncomm_pi_coprod_on.hom (S : finset S) : (Π (i : ι), N i) →* M` is the homomorphism
-   restricted to the set `S`, and mostly of internal interest in this file, to allow inductive
-   proofs (and thus in its own namespace).
 * `subgroup.noncomm_pi_coprod : (Π i, H i) →* G` is the specialization to `H i : subgroup G`
    and the subgroup embedding.
 
@@ -44,24 +41,6 @@ image of different morphism commute, we obtain a canoncial morphism
 
 open_locale big_operators
 
--- I think it's worth keeping it and moving to appropriate file
-@[to_additive]
-lemma mul_eq_one_iff_disjoint {G : Type*} [group G] {H₁ H₂ : subgroup G} :
-  disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x * y = 1 → x = 1 ∧ y = 1 :=
-begin
-  split,
-  { intros hdis x y hx hy heq,
-    obtain rfl : y = x⁻¹ := symm (inv_eq_iff_mul_eq_one.mpr heq),
-    have hy := H₂.inv_mem_iff.mp hy,
-    have : x ∈ H₁ ⊓ H₂, by { simp, cc },
-    rw [hdis.eq_bot, subgroup.mem_bot] at this,
-    subst this,
-    simp },
-  { rintros h x ⟨hx1, hx2⟩,
-    obtain rfl : x = 1 := (h hx1 (H₂.inv_mem hx2) (mul_inv_self x)).1,
-    exact rfl, },
-end
-
 section family_of_monoids
 
 variables {M : Type*} [monoid M]
@@ -81,134 +60,6 @@ include hcomm
 -- We use `f` and `g` to denote elements of `Π (i : ι), N i`
 variables (f g : Π (i : ι), N i)
 
-namespace noncomm_pi_coprod_on
-
--- In this section, we restrict the hom to a set S
-variables (S : finset ι)
-
-/-- The underlying function of `noncomm_pi_coprod_on.hom` -/
-@[to_additive add_to_fun "The underlying function of `noncomm_pi_coprod_on.add_hom` "]
-def to_fun (S : finset ι) : M := finset.noncomm_prod S (λ i, ϕ i (f i)) $
-  by { rintros i - j -, by_cases h : i = j, { subst h }, { exact hcomm _ _ h _ _ } }
-
-variable {hcomm}
-
-@[simp, to_additive add_to_fun_empty]
-lemma to_fun_empty : to_fun ϕ hcomm f ∅ = 1 := finset.noncomm_prod_empty _ _
-
-include hdec
-
-@[simp, to_additive add_to_fun_insert_of_not_mem]
-lemma to_fun_insert_of_not_mem (S : finset ι) (i : ι) (h : i ∉ S) :
-  to_fun ϕ hcomm f (insert i S) = ϕ i (f i) * to_fun ϕ hcomm f S :=
-finset.noncomm_prod_insert_of_not_mem _ _ _ _ h
-
-omit hdec
-
-@[simp, to_additive add_to_fun_zero]
-lemma to_fun_one : to_fun ϕ hcomm 1 S = 1 :=
-begin
-  classical,
-  induction S using finset.cons_induction_on with i S hnmem ih,
-  { simp }, { simp [ih, hnmem], }
-end
-
-@[to_additive add_to_fun_commutes]
-lemma to_fun_commutes (i : ι) (hnmem : i ∉ S) :
-  commute (ϕ i (g i)) (to_fun ϕ hcomm f S) :=
-begin
-  classical,
-  induction S using finset.induction_on with j S hnmem' ih,
-  { simp, },
-  { simp only [to_fun_insert_of_not_mem _ _ _ _ hnmem'],
-    have hij : i ≠ j, by {rintro rfl, apply hnmem, exact finset.mem_insert_self i S},
-    have hiS : i ∉ S, by {rintro h, apply hnmem, exact finset.mem_insert_of_mem h},
-    calc ϕ i (g i) * (ϕ j (f j) * (to_fun ϕ hcomm f S : M))
-        = (ϕ i (g i) * ϕ j (f j)) * to_fun ϕ hcomm f S : by rw ← mul_assoc
-    ... = (ϕ j (f j) * ϕ i (g i)) * to_fun ϕ hcomm f S : by { congr' 1, apply hcomm _ _ hij }
-    ... = ϕ j (f j) * (ϕ i (g i) * to_fun ϕ hcomm f S) : by rw mul_assoc
-    ... = ϕ j (f j) * (to_fun ϕ hcomm f S * ϕ i (g i)) : by { congr' 1, apply ih hiS }
-    ... = (ϕ j (f j) * to_fun ϕ hcomm f S) * ϕ i (g i) : by rw ← mul_assoc }
-end
-
-@[simp, to_additive add_to_fun_add]
-lemma to_fun_mul (S : finset ι) :
-  to_fun ϕ hcomm (f * g) S = to_fun ϕ hcomm f S * to_fun ϕ hcomm g S :=
-begin
-  classical,
-  induction S using finset.induction_on with i S hnmem ih,
-  { simp, },
-  { simp only [to_fun_insert_of_not_mem _ _ _ _ hnmem],
-    rw ih, clear ih,
-    simp only [pi.mul_apply, map_mul],
-    repeat { rw mul_assoc }, congr' 1,
-    repeat { rw ← mul_assoc }, congr' 1,
-    exact (to_fun_commutes _ _ _ S i hnmem), }
-end
-
-@[to_additive add_to_fun_mem_bsupr_mrange]
-lemma to_fun_mem_bsupr_mrange (S : finset ι) :
-  to_fun ϕ hcomm f S ∈ ⨆ i ∈ S, (ϕ i).mrange :=
-begin
-  classical,
-  induction S using finset.induction_on with i S hnmem ih,
-  { simp, },
-  { simp only [to_fun_insert_of_not_mem _ _ _ _ hnmem],
-    refine (submonoid.mul_mem _ _ _),
-    { apply submonoid.mem_Sup_of_mem, { use i }, { simp, }, },
-    { refine @bsupr_le_bsupr' _ _ _ _ _ _ (λ i, (ϕ i).mrange) _ ih,
-      exact λ i, finset.mem_insert_of_mem } }
-end
-
-variable (hcomm)
-
-/-- The canonical homomorphism from a family of monoids, restricted to a subset of the index space.
--/
-@[to_additive add_hom "The canonical homomorphism from a family of additive monoids, restricted to a
-subset of the index space"]
-def hom : (Π (i : ι), N i) →* M :=
-{ to_fun := λ f, to_fun ϕ hcomm f S,
-  map_one' := to_fun_one ϕ _,
-  map_mul' := λ f g, to_fun_mul ϕ f g S, }
-
-variable {hcomm}
-
-include hdec
-
-@[to_additive add_to_fun_single]
-lemma to_fun_mul_single (i : ι) (y : N i) (S : finset ι) :
-  to_fun ϕ hcomm (pi.mul_single i y) S = if i ∈ S then ϕ i y else 1 :=
-begin
-  induction S using finset.induction_on with j S hnmem ih,
-  { simp, },
-  { simp only [ to_fun_insert_of_not_mem _ _ _ _ hnmem],
-    by_cases (i = j),
-    { subst h, rw ih, simp [hnmem], },
-    { change i ≠ j at h,
-      simpa [h] using ih, } }
-end
-
-@[simp, to_additive add_hom_single]
-lemma hom_mul_single (i : ι) (y : N i):
-  hom ϕ hcomm S (pi.mul_single i y) = if i ∈ S then ϕ i y else 1 := to_fun_mul_single _ _ _ _
-
-omit hdec
-
-@[to_additive add_mrange]
-lemma mrange : (hom ϕ hcomm S).mrange = ⨆ i ∈ S, (ϕ i).mrange :=
-begin
-  classical,
-  apply le_antisymm,
-  { rintro x ⟨f, rfl⟩,
-    exact (to_fun_mem_bsupr_mrange ϕ f S), },
-  { refine (bsupr_le _),
-    rintro i hmem x ⟨y, rfl⟩,
-    use (pi.mul_single i y),
-    simp [hmem], }
-end
-
-end noncomm_pi_coprod_on
-
 namespace monoid_hom
 
 include hfin
@@ -219,7 +70,23 @@ variable (hcomm)
 @[to_additive "The canonical homomorphism from a family of additive monoids.
 
 See also `linear_map.lsum` for a linear version without the commutativity assumption."]
-def noncomm_pi_coprod : (Π (i : ι), N i) →* M := noncomm_pi_coprod_on.hom ϕ hcomm finset.univ
+def noncomm_pi_coprod : (Π (i : ι), N i) →* M :=
+{ to_fun := λ f, finset.univ.noncomm_prod (λ i, ϕ i (f i)) $
+    by { rintros i - j -, by_cases h : i = j, { subst h }, { exact hcomm _ _ h _ _ } },
+  map_one' := finset.noncomm_prod_eq_one_of_forall_eq_one _ _ _(by simp),
+  map_mul' := λ f g,
+  begin
+    classical,
+    convert finset.noncomm_prod_mul_distrib (λ i, ϕ i (f i)) (λ i, ϕ i (g i)) _ _ _ _,
+    { ext i, simp, },
+    { rintros i - j -,
+      by_cases h : i = j,
+      { subst h, },
+      { simp only [← monoid_hom.map_mul],
+        exact hcomm _ _ h _ _ } },
+    { rintros i - j - h,
+      exact hcomm _ _ h _ _ },
+  end }
 
 variable {hcomm}
 
@@ -228,7 +95,16 @@ include hdec
 @[simp, to_additive]
 lemma noncomm_pi_coprod_mul_single (i : ι) (y : N i):
   noncomm_pi_coprod ϕ hcomm (pi.mul_single i y) = ϕ i y :=
-by { show noncomm_pi_coprod_on.hom ϕ hcomm finset.univ (pi.mul_single i y) = ϕ i y, simp }
+begin
+  change finset.univ.noncomm_prod (λ j, ϕ j (pi.mul_single i y j)) _ = ϕ i y,
+  have h : finset.univ = insert i (finset.univ.erase i) :=
+     (finset.insert_erase (finset.mem_univ i)).symm,
+  rw finset.noncomm_prod_congr h,
+  rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ (finset.not_mem_erase i finset.univ),
+  rw finset.noncomm_prod_eq_one_of_forall_eq_one,
+  { simp, },
+  { intros j hj, simp only [finset.mem_erase] at hj, simp [hj], },
+end
 
 omit hcomm
 
@@ -251,8 +127,20 @@ include hcomm
 @[to_additive]
 lemma noncomm_pi_coprod_mrange : (noncomm_pi_coprod ϕ hcomm).mrange = ⨆ i : ι, (ϕ i).mrange :=
 begin
-  show (noncomm_pi_coprod_on.hom ϕ hcomm finset.univ).mrange = _,
-  simp [noncomm_pi_coprod_on.mrange],
+  classical,
+  apply le_antisymm,
+  { rintro x ⟨f, rfl⟩,
+    refine finset.noncomm_prod_mem_submonoid _ _ _ _ _,
+    intros i hi,
+    apply submonoid.mem_Sup_of_mem, { use i },
+    simp, },
+  { have : ∀ i, i ∈ finset.univ → (ϕ i).mrange ≤ (noncomm_pi_coprod ϕ hcomm).mrange,
+    { rintro i hmem x ⟨y, rfl⟩,
+      refine ⟨pi.mul_single i y, noncomm_pi_coprod_mul_single _ _ _⟩, },
+    -- Why does this bsupr_le not work?
+    exact bsupr_le this,
+    -- exact @bsupr_le (submonoid M) ι submonoid.complete_lattice (noncomm_pi_coprod ϕ hcomm).mrange (λ i, i ∈ finset.univ) (λ i _, (ϕ i).mrange) this ,
+  },
 end
 
 end monoid_hom
@@ -271,6 +159,7 @@ include hcomm
 -- We use `f` and `g` to denote elements of `Π (i : ι), H i`
 variables (f g : Π (i : ι), H i)
 
+  /-
 -- The subgroup version of `noncomm_pi_coprod_on.to_fun_mem_bsupr_mrange`
 @[to_additive noncomm_pi_coprod_on.add_to_fun_mem_bsupr_range]
 lemma noncomm_pi_coprod_on.to_fun_mem_bsupr_range (S : finset ι) :
@@ -300,6 +189,7 @@ begin
     use (monoid_hom.single _ i y),
     simp [hmem], }
 end
+  -/
 
 include hfin
 
@@ -309,8 +199,18 @@ namespace monoid_hom
 @[to_additive]
 lemma noncomm_pi_coprod_range : (noncomm_pi_coprod ϕ hcomm).range = ⨆ i : ι, (ϕ i).range :=
 begin
-  show (noncomm_pi_coprod_on.hom ϕ hcomm finset.univ).range = _,
-  simp [noncomm_pi_coprod_on.range]
+  apply le_antisymm,
+  { rintro x ⟨f, rfl⟩,
+    refine finset.noncomm_prod_mem_subgroup _ _ _ _ _,
+    intros i hi,
+    apply subgroup.mem_Sup_of_mem, { use i },
+    simp, },
+  sorry;{
+    refine bsupr_le _,
+    rintro i hmem x ⟨y, rfl⟩,
+    use (pi.mul_single i y),
+    simp [hmem],
+   }
 end
 
 @[to_additive]
@@ -322,31 +222,17 @@ begin
   classical,
   apply (monoid_hom.ker_eq_bot_iff _).mp,
   apply eq_bot_iff.mpr,
-  intro f,
-  show noncomm_pi_coprod_on.to_fun ϕ hcomm f finset.univ = 1 → f = 1,
-  suffices : noncomm_pi_coprod_on.to_fun ϕ hcomm f finset.univ = 1 →
-    (∀ (i : ι), i ∈ finset.univ → f i = 1),
-  by exact (λ h, funext (λ (i : ι), this h i (finset.mem_univ i))),
-  induction (finset.univ : finset ι) using finset.induction_on with i S hnmem ih,
-  { simp },
-  { intro heq1,
-    simp only [ noncomm_pi_coprod_on.to_fun_insert_of_not_mem _ _ _ _ hnmem] at heq1,
-    have hnmem' : i ∉ (S : set ι), by simpa,
-    have heq1' : ϕ i (f i) = 1 ∧ noncomm_pi_coprod_on.to_fun ϕ hcomm f S = 1,
-    { apply mul_eq_one_iff_disjoint.mp (hind.disjoint_bsupr hnmem') _ _ heq1,
-      { simp, },
-      { apply noncomm_pi_coprod_on.to_fun_mem_bsupr_range, }, },
-    rcases heq1' with ⟨ heq1i, heq1S ⟩,
-    specialize ih heq1S,
-    intros i h,
-    simp only [finset.mem_insert] at h,
-    rcases h with ⟨rfl | _⟩,
-    { apply hinj i, simpa, },
-    { exact (ih _ h), } }
+  intros f heq1,
+  change finset.univ.noncomm_prod (λ i, ϕ i (f i)) _ = 1 at heq1,
+  change f = 1,
+  have : ∀ i, i ∈ finset.univ → ϕ i (f i) = 1 :=
+    finset.eq_one_of_noncomm_prod_eq_one_of_independent _ _ _ _ hind (by simp) heq1,
+  ext i,
+  apply hinj,
+  simp [this i (finset.mem_univ i)],
 end
 
 variable (hcomm)
-
 
 @[to_additive]
 lemma independent_range_of_coprime_order [∀ i, fintype (H i)]

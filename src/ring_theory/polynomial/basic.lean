@@ -252,20 +252,25 @@ begin
     exact degree_sum_fin_lt _ }
 end
 
-lemma monic.geom_sum_of_monic {R : Type*} [comm_ring R] {P : R[X]}
-  (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
+lemma monic.geom_sum_of_monic {R : Type*} [semiring R] {P : R[X]}
+  (hP : P.monic) (hdeg : 0 < P.nat_degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
 begin
   nontriviality R,
-  have : (P - 1 : R[X]).monic,
-  { rw [sub_eq_add_neg],
-    refine monic_add_of_left hP _,
-    simp [hdeg] },
-  apply this.of_mul_monic_left,
-  rw [mul_geom_sum, sub_eq_add_neg],
+  cases n, { exact (hn rfl).elim },
+  rw [geom_sum_succ', geom_sum_def],
   refine monic_add_of_left (monic_pow hP _) _,
-  rw [degree_neg, degree_one, ← nat_degree_pos_iff_degree_pos, hP.nat_degree_pow],
-  refine mul_pos (zero_lt_iff.2 hn) (nat_degree_pos_iff_degree_pos.2 hdeg)
+  refine lt_of_le_of_lt (degree_sum_le _ _) _,
+  rw [finset.sup_lt_iff],
+  { simp only [finset.mem_range, degree_eq_nat_degree (monic_pow hP _).ne_zero,
+      with_bot.coe_lt_coe, hP.nat_degree_pow],
+    intro k, exact nsmul_lt_nsmul hdeg },
+  { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
+    exact (monic_pow hP _).ne_zero }
 end
+
+lemma monic.geom_sum_of_monic' {R : Type*} [semiring R] {P : R[X]}
+  (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
+monic.geom_sum_of_monic hP (nat_degree_pos_iff_degree_pos.2 hdeg) hn
 
 section to_subring
 

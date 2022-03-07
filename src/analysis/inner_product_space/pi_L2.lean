@@ -226,7 +226,7 @@ rfl
 
 @[simp] protected lemma repr_symm_single' [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr.symm (pi.single i (1:𝕜)) = b i :=
-rfl
+linear_isometry_equiv.apply_symm_apply _ _
 
 @[simp] protected lemma repr_self [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr (b i) = euclidean_space.single i (1:𝕜) :=

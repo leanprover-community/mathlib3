@@ -222,21 +222,17 @@ end
 local notation `φ` := is_fraction_ring.field_equiv_of_ring_equiv
   (ring_equiv.of_bijective _ (frobenius_bijective p k))
 
-lemma exists_frobenius_solution_fraction_ring {a : fraction_ring (𝕎 k)} (ha : a ≠ 0) :
-  ∃ (b : fraction_ring (𝕎 k)) (hb : b ≠ 0) (m : ℤ), φ b * a = p ^ m * b :=
+lemma exists_frobenius_solution_fraction_ring_aux {a : fraction_ring (witt_vector p k)}
+  (m n : ℕ) (r' q' : witt_vector p k) (hr' : r'.coeff 0 ≠ 0) (hq' : q'.coeff 0 ≠ 0)
+  (hq : ↑p ^ n * q' ∈ non_zero_divisors (witt_vector p k)) :
+  let b : witt_vector p k := frobenius_rotation p hr' hq' in
+  is_fraction_ring.field_equiv_of_ring_equiv
+      (ring_equiv.of_bijective frobenius (frobenius_bijective p k))
+      (algebra_map (witt_vector p k) (fraction_ring (witt_vector p k)) b) *
+    localization.mk (↑p ^ m * r') ⟨↑p ^ n * q', hq⟩ =
+  ↑p ^ (m - n : ℤ) * algebra_map (witt_vector p k) (fraction_ring (witt_vector p k)) b :=
 begin
-  revert ha,
-  refine localization.induction_on a _,
-  rintros ⟨r, q, hq⟩ hrq,
-  rw mem_non_zero_divisors_iff_ne_zero at hq,
-  have : r ≠ 0 := λ h, hrq (by simp [h]),
-  obtain ⟨m, r', hr', rfl⟩ := exists_eq_pow_p_mul r this,
-  obtain ⟨n, q', hq', rfl⟩ := exists_eq_pow_p_mul q hq,
-  let b := frobenius_rotation p hr' hq',
-  refine ⟨algebra_map (𝕎 k) _ b, _, m - n, _⟩,
-  { simpa only [map_zero] using
-      (is_fraction_ring.injective (witt_vector p k) (fraction_ring (witt_vector p k))).ne
-        (frobenius_rotation_nonzero p hr' hq')},
+  intros b,
   have key : witt_vector.frobenius b * p ^ m * r' * p ^ n = p ^ m * b * (p ^ n * q'),
   { have H := congr_arg (λ x : 𝕎 k, x * p ^ m * p ^ n) (frobenius_frobenius_rotation p hr' hq'),
     dsimp at H,
@@ -253,6 +249,24 @@ begin
   { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast],
     ring },
   { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast] }
+end
+
+lemma exists_frobenius_solution_fraction_ring {a : fraction_ring (𝕎 k)} (ha : a ≠ 0) :
+  ∃ (b : fraction_ring (𝕎 k)) (hb : b ≠ 0) (m : ℤ), φ b * a = p ^ m * b :=
+begin
+  revert ha,
+  refine localization.induction_on a _,
+  rintros ⟨r, q, hq⟩ hrq,
+  rw mem_non_zero_divisors_iff_ne_zero at hq,
+  have : r ≠ 0 := λ h, hrq (by simp [h]),
+  obtain ⟨m, r', hr', rfl⟩ := exists_eq_pow_p_mul r this,
+  obtain ⟨n, q', hq', rfl⟩ := exists_eq_pow_p_mul q hq,
+  let b := frobenius_rotation p hr' hq',
+  refine ⟨algebra_map (𝕎 k) _ b, _, m - n, _⟩,
+  { simpa only [map_zero] using
+      (is_fraction_ring.injective (witt_vector p k) (fraction_ring (witt_vector p k))).ne
+        (frobenius_rotation_nonzero p hr' hq')},
+  apply exists_frobenius_solution_fraction_ring_aux; assumption,
 end
 
 end is_alg_closed

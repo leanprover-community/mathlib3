@@ -253,18 +253,30 @@ open_locale classical
 lemma finset.sup_id_eq_sUnion {α} (s : finset (set α)) :
   s.sup id = ⋃₀(↑s) :=
 finset.sup_id_eq_Sup _
+
+
+@[simp] lemma finset.sup_eq_bUnion {α β : Type*} {s : finset α} {f : α → set β} :
+  s.sup f = ⋃ x ∈ s, f x :=
+finset.sup_eq_supr _ _
+
+lemma finset.inf_id_eq_sInter {α} (s : finset (set α)) :
+  s.inf id = ⋂₀(↑s) :=
+finset.inf_id_eq_Inf _
+
+@[simp] lemma finset.inf_eq_bInter {α β : Type*} {s : finset α} {f : α → set β} :
+  s.inf f = ⋂ x ∈ s, f x :=
+finset.inf_eq_infi _ _
 -/
 
 /-- A finite setoid partition furnishes a finpartition -/
 def finpartition.of_partition {c : finset (set α)}
   (hc : setoid.is_partition (c : set (set α))) : finpartition (set.univ : set α) :=
-{ parts := c, --  finset (set α)
+{ parts := c,
   sup_indep := finset.sup_indep_iff_pairwise_disjoint.mpr $ eqv_classes_disjoint hc.2,
-  --  self.parts.sup_indep id
   sup_parts := c.sup_id_eq_sUnion.trans hc.sUnion_eq_univ,
-  --  self.parts.sup id = (set.univ : set α)
-  not_bot_mem := hc.left --  ⊥ ∉ self.parts
-}
+  not_bot_mem := hc.left }
+
+end finpartition
 
 /-- A finpartition gives rise to a setoid partition -/
 theorem is_partition.of_finpartition(f : finpartition (set.univ : set α)) :
@@ -272,7 +284,6 @@ theorem is_partition.of_finpartition(f : finpartition (set.univ : set α)) :
 ⟨f.not_bot_mem, eqv_classes_of_disjoint_union
   (f.parts.sup_id_eq_sUnion.symm.trans f.sup_parts) f.sup_indep.pairwise_disjoint⟩
 
-end finpartition
 end setoid
 
 /-- Constructive information associated with a partition of a type `α` indexed by another type `ι`,

@@ -372,6 +372,12 @@ theorem is_normal.strict_mono {f} (H : is_normal f) : strict_mono f :=
   (λ b l IH h, lt_of_lt_of_le (H.1 a)
     ((H.2 _ l _).1 le_rfl _ (l.2 _ h)))
 
+theorem is_normal_iff_strict_mono_limit (f : ordinal → ordinal) :
+  (strict_mono f ∧ ∀ o, is_limit o → ∀ a, (∀ b < o, f b ≤ a) → f o ≤ a) ↔ is_normal f :=
+⟨λ ⟨hs, hl⟩, ⟨λ a, hs (ordinal.lt_succ_self a),
+  λ a ha c, ⟨λ hac b hba, ((hs hba).trans_le hac).le, hl a ha c⟩⟩,
+  λ hf, ⟨hf.strict_mono, λ a ha c, (hf.2 a ha c).2⟩⟩
+
 theorem is_normal.lt_iff {f} (H : is_normal f) {a b} : f a < f b ↔ a < b :=
 strict_mono.lt_iff_lt $ H.strict_mono
 
@@ -1327,7 +1333,6 @@ theorem bsup_eq_blsub_iff_lt_bsup {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ i hi, f i hi < bsup o f :=
 ⟨λ h i, (by { rw h, apply lt_blsub }), λ h, le_antisymm (bsup_le_blsub f) (blsub_le.2 h)⟩
 
--- Another PR
 theorem bsup_eq_blsub_of_lt_succ_limit {o} (ho : is_limit o) {f : Π a < o, ordinal}
   (hf : ∀ a ha, f a ha < f a.succ (ho.2 a ha)) : bsup o f = blsub o f :=
 begin
@@ -1398,23 +1403,12 @@ by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id_limit h.2] }
 
 theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
   blsub.{u} o (λ x _, f x) = f o :=
-begin
-  rw [←H.bsup_eq h, bsup_eq_blsub_of_lt_succ_limit h],
-  exact (λ a _, H.1 a)
-end
+by { rw [←H.bsup_eq h, bsup_eq_blsub_of_lt_succ_limit h], exact (λ a _, H.1 a) }
 
--- Another PR
 theorem is_normal_iff_lt_succ_and_bsup_eq {f} :
   is_normal f ↔ (∀ a, f a < f a.succ) ∧ ∀ o, is_limit o → bsup o (λ x _, f x) = f o :=
-begin
-  use λ hf, ⟨hf.1, @is_normal.bsup_eq f hf⟩,
-  rintro ⟨hf, hf'⟩,
-  refine ⟨hf, λ o ho a, _⟩,
-  rw ←hf' o ho,
-  exact bsup_le
-end
+⟨λ h, ⟨h.1, @is_normal.bsup_eq f h⟩, λ ⟨h₁, h₂⟩, ⟨h₁, λ o ho a, (by {rw ←h₂ o ho, exact bsup_le})⟩⟩
 
--- Another PR
 theorem is_normal_iff_lt_succ_and_blsub_eq {f} :
   is_normal f ↔ (∀ a, f a < f a.succ) ∧ ∀ o, is_limit o → blsub o (λ x _, f x) = f o :=
 begin

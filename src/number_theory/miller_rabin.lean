@@ -181,9 +181,10 @@ begin
       congr, },
     rw nat.totient_prime_pow at euler,
     -- this is probably approachable if you can prove a^(b * c) = (a^c)^b,
+    rw pow_mul at euler,
     sorry,
-    sorry,
-    sorry,
+    exact hp,
+    exact nat.succ_le_iff.mp hα,
   },
   {
     intro h,

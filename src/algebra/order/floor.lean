@@ -562,9 +562,8 @@ section linear_ordered_field
 
 variables {k : Type*} [linear_ordered_field k] [floor_ring k]
 
-lemma fract_div_mul_self_mem_Icc (a b : k) (ha : 0 < a) : fract (b/a) * a ∈ Icc 0 a :=
-⟨(zero_le_mul_right ha).mpr (fract_nonneg (b/a)),
- (mul_le_iff_le_one_left ha).mpr (fract_lt_one (b/a)).le⟩
+lemma fract_div_mul_self_mem_Ico (a b : k) (ha : 0 < a) : fract (b/a) * a ∈ Ico 0 a :=
+⟨(zero_le_mul_right ha).2 (fract_nonneg (b/a)), (mul_lt_iff_lt_one_left ha).2 (fract_lt_one (b/a))⟩
 
 lemma fract_div_mul_self_add_zsmul_eq (a b : k) (ha : a ≠ 0) :
   fract (b/a) * a + ⌊b/a⌋ • a = b :=

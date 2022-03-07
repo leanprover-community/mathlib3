@@ -104,8 +104,9 @@ variables {g : ℝ → ℝ}
 variables (hg : periodic g a) (h_int : ∀ t₁ t₂, interval_integrable g measure_space.volume t₁ t₂)
 include hg h_int
 
-/-- If `g : ℝ → ℝ` is periodic with period `a > 0`, then for any `b : ℝ`, `∫ x in 0..b, g x` is
-bounded below by `X + ⌊b/a⌋ • Y` for appropriate constants `X` and `Y`. -/
+/-- If `g : ℝ → ℝ` is periodic with period `a > 0`, then for any `b : ℝ`, the function
+`b ↦ ∫ x in 0..b, g x` is bounded below by `b ↦ X + ⌊b/a⌋ • Y` for appropriate constants `X` and
+`Y`. -/
 lemma Inf_add_zsmul_le_integral_of_pos (ha : 0 < a) (b : ℝ) :
   Inf ((λ t, ∫ x in 0..t, g x) '' (Icc 0 a)) + ⌊b/a⌋ • (∫ x in 0..a, g x) ≤ ∫ x in 0..b, g x :=
 begin
@@ -115,7 +116,7 @@ begin
   rw [hg.interval_integral_add_zsmul_eq ⌊b/a⌋ ε h_int, hg.interval_integral_add_eq ε 0, zero_add,
     add_le_add_iff_right],
   exact (continuous_primitive h_int 0).continuous_on.Inf_image_Icc_le
-    (int.fract_div_mul_self_mem_Icc a b ha),
+    (mem_Icc_of_Ico (int.fract_div_mul_self_mem_Ico a b ha)),
 end
 
 /-- If `g : ℝ → ℝ` is periodic with period `a > 0` and `0 < ∫ x in 0..a, g x`, then

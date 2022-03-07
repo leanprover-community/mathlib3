@@ -538,7 +538,7 @@ variables (G) [has_involutive_inv G]
 /-- Inversion on a `group` or `group_with_zero` is a permutation of the underlying type. -/
 @[to_additive "Negation on an `add_group` is a permutation of the underlying type.",
   simps apply {fully_applied := ff}]
-protected def inv : perm G := inv_involutive.to_equiv _
+protected def inv : perm G := inv_involutive.to_perm _
 
 variable {G}
 

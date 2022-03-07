@@ -72,7 +72,7 @@ by rw [hf.interval_integral_add_eq b c, integral_add_adjacent_intervals (h_int b
 
 /-- If `f` is an integrable periodic function with period `a`, and `n` is an integer, then its
 integral over `[b, b + n • a]` is `n` times its integral over `[b, b + a]`. -/
-@[simp] lemma interval_integral_add_zsmul_eq (hf : periodic f a) (n : ℤ) (b : ℝ)
+lemma interval_integral_add_zsmul_eq (hf : periodic f a) (n : ℤ) (b : ℝ)
   (h_int : ∀ t₁ t₂, interval_integrable f measure_space.volume t₁ t₂) :
   ∫ x in b..b + n • a, f x = n • ∫ x in b..b + a, f x :=
 begin
@@ -104,9 +104,9 @@ variables {g : ℝ → ℝ}
 variables (hg : periodic g a) (h_int : ∀ t₁ t₂, interval_integrable g measure_space.volume t₁ t₂)
 include hg h_int
 
-/-- If `g : ℝ → ℝ` is periodic with period `a > 0` and `0 < ∫ x in 0..a, g x`, then for any `b : ℝ`,
-`∫ x in 0..b, g x` is bounded below by `X + ⌊b/a⌋ • Y` for appropriate constants `X` and `Y`. -/
-lemma Inf_add_zsmul_le_integral_of_pos (ha : 0 < a) (h₀ : 0 < ∫ x in 0..a, g x) (b : ℝ) :
+/-- If `g : ℝ → ℝ` is periodic with period `a > 0`, then for any `b : ℝ`, `∫ x in 0..b, g x` is
+bounded below by `X + ⌊b/a⌋ • Y` for appropriate constants `X` and `Y`. -/
+lemma Inf_add_zsmul_le_integral_of_pos (ha : 0 < a) (b : ℝ) :
   Inf ((λ t, ∫ x in 0..t, g x) '' (Icc 0 a)) + ⌊b/a⌋ • (∫ x in 0..a, g x) ≤ ∫ x in 0..b, g x :=
 begin
   let ε := int.fract (b/a) * a,
@@ -123,7 +123,7 @@ end
 lemma tendsto_at_top_interval_integral_of_pos (h₀ : 0 < ∫ x in 0..a, g x) (ha : 0 < a) :
   tendsto (λ b, ∫ x in 0..b, g x) at_top at_top :=
 begin
-  apply tendsto_at_top_mono (hg.Inf_add_zsmul_le_integral_of_pos h_int ha h₀),
+  apply tendsto_at_top_mono (hg.Inf_add_zsmul_le_integral_of_pos h_int ha),
   apply at_top.tendsto_at_top_add_const_left (Inf $ (λ t, ∫ x in 0..t, g x) '' (Icc 0 a)),
   apply tendsto.at_top_zsmul_const h₀,
   exact tendsto_floor_at_top.comp (tendsto_id.at_top_mul_const (inv_pos.mpr ha)),

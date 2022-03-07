@@ -1253,7 +1253,7 @@ end
 /-- Change of variable formula for differentiable functions: if a function `f` is
 injective and differentiable on a measurable set `s`, then the Bochner integral of a function
 `g : E → F` on `f '' s` coincides with the integral of `|(f' x).det| • g ∘ f` on `s`. -/
-theorem integral_image_eq_integral_abs_det_fderiv_smul [complete_space F]  {f : E → E} {s : set E}
+theorem integral_image_eq_integral_abs_det_fderiv_smul [complete_space F] {f : E → E} {s : set E}
   (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → F) :
   ∫ x in f '' s, g x ∂μ = ∫ x in s, |(f' x).det| • g (f x) ∂μ :=

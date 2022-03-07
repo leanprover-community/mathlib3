@@ -165,11 +165,14 @@ end comm_semiring
 section comm_semiring_unit
 variables {R : Type*} [comm_semiring R] {x : R} (hu : is_unit x) (y z : R)
 
+lemma is_coprime_group_smul_left {G} [group G] [mul_action G R]
+  [smul_comm_class G R R] [is_scalar_tower G R R] (x : G) (y z : R):
+  is_coprime (x • y) z ↔ is_coprime y z :=
+⟨λ ⟨a, b, h⟩, ⟨x • a, b, by rwa [smul_mul_assoc, ←mul_smul_comm]⟩,
+  λ ⟨a, b, h⟩, ⟨x⁻¹ • a, b, by rwa [smul_mul_smul, inv_mul_self, one_smul]⟩⟩
+
 lemma is_coprime_mul_unit_left_left : is_coprime (x * y) z ↔ is_coprime y z :=
-⟨λ ⟨a, b, h⟩, ⟨a * x, b, by rwa [mul_assoc]⟩,
-  λ ⟨a, b, h⟩,
-    let ⟨x', hx⟩ := hu.exists_left_inv in
-    ⟨a * x', b, by rwa [←mul_assoc (a * x'), mul_assoc a, hx, mul_one]⟩⟩
+let ⟨u, hu⟩ := hu in hu ▸ is_coprime_group_smul_left u y z
 
 lemma is_coprime_mul_unit_left_right : is_coprime y (x * z) ↔ is_coprime y z :=
 is_coprime_comm.trans $ (is_coprime_mul_unit_left_left hu z y).trans is_coprime_comm

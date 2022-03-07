@@ -387,26 +387,27 @@ end
 @[to_additive "`finset.noncomm_sum` is injective in `f` if `f` maps into independent subgroups"]
 lemma eq_one_of_noncomm_prod_eq_one_of_independent {β : Type*} [group β]
   (s : finset α) (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
-  (H : α → subgroup β) (hind : complete_lattice.independent H) (hmem : ∀ x, f x ∈ H x)
+  (γ : α → subgroup β) (hind : complete_lattice.independent γ) (hmem : ∀ (x ∈ s), f x ∈ γ x)
   (heq1 : s.noncomm_prod f comm = 1) : ∀ (i ∈ s), f i = 1 :=
 begin
   classical,
   revert heq1,
   induction s using finset.induction_on with i s hnmem ih,
   { simp, },
-  { specialize ih (λ x hx y hy, comm x (mem_insert_of_mem hx) y (mem_insert_of_mem hy)),
+  { specialize ih (λ x hx y hy, comm x (mem_insert_of_mem hx) y (mem_insert_of_mem hy))
+      (λ x hx, hmem x (mem_insert_of_mem hx)),
     have hmem_bsupr: s.noncomm_prod f
       (λ x hx y hy, comm x (mem_insert_of_mem hx) y (mem_insert_of_mem hy)) ∈
-      ⨆ (i : α) (_x : i ∈ (s : set α)), H i,
+      ⨆ (i : α) (_x : i ∈ (s : set α)), γ i,
     { refine noncomm_prod_mem_subgroup s f _ _ _,
       intros x hx,
-      suffices : H x ≤ ⨆ (i : α) (_ : i ∈ (s : set α)), H i, by apply this (hmem x),
-      exact le_bsupr x hx, },
+      have : γ x ≤ ⨆ (i ∈ (s : set α)), γ i := le_bsupr x hx,
+      exact this (hmem x (mem_insert_of_mem hx)), },
     intro heq1,
     rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,
     have hnmem' : i ∉ (s : set α), by simpa,
     have heq1' : f i = 1 ∧ s.noncomm_prod f _ = 1 :=
-      mul_eq_one_iff_disjoint.mp (hind.disjoint_bsupr hnmem') (hmem i) hmem_bsupr heq1,
+      mul_eq_one_iff_disjoint.mp (hind.disjoint_bsupr hnmem') (hmem i (mem_insert_self _ _)) hmem_bsupr heq1,
     rcases heq1' with ⟨ heq1i, heq1S ⟩,
     specialize ih heq1S,
     intros i h,

@@ -64,23 +64,23 @@ lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
 instance has_nsmul [add_monoid β] [has_continuous_add β] : has_scalar ℕ C(α, β) :=
 ⟨λ n f, ⟨n • f, f.continuous.nsmul n⟩⟩
 
-@[to_additive has_nsmul]
+@[to_additive]
 instance has_pow [monoid β] [has_continuous_mul β] : has_pow C(α, β) ℕ :=
 ⟨λ f n, ⟨f ^ n, f.continuous.pow n⟩⟩
 
-@[norm_cast, to_additive coe_nsmul]
+@[norm_cast, to_additive]
 lemma coe_pow [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ⇑(f ^ n) = f ^ n := rfl
-  
--- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul` 
+
+-- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul`
 attribute [simp] coe_pow
 
-@[to_additive nsmul_comp] lemma pow_comp [monoid γ] [has_continuous_mul γ]
+@[to_additive] lemma pow_comp [monoid γ] [has_continuous_mul γ]
   (f : C(β, γ)) (n : ℕ) (g : C(α, β)) :
   (f^n).comp g = (f.comp g)^n :=
 rfl
 
--- don't make `nsmul_comp` simp as the linter complains it's redundant WRT `smul_comp` 
+-- don't make `nsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] pow_comp
 
 @[to_additive]
@@ -122,7 +122,7 @@ lemma coe_zpow [group β] [topological_group β] (f : C(α, β)) (z : ℤ) :
   ⇑(f ^ z) = f ^ z :=
 rfl
 
--- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul` 
+-- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul`
 attribute [simp] coe_zpow
 
 @[to_additive]
@@ -130,7 +130,7 @@ lemma zpow_comp [group γ] [topological_group γ] (f : C(β, γ)) (z : ℤ) (g :
   (f^z).comp g = (f.comp g)^z :=
 rfl
 
--- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp` 
+-- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] zpow_comp
 
 end continuous_map

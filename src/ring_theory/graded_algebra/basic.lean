@@ -159,11 +159,13 @@ end
 
 end graded_algebra
 
+
 section homogeneous_induction
 
 variables {ι R A: Type*} [add_monoid ι] [decidable_eq ι]
 variables [comm_ring R] [semiring A] [algebra R A]
-variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+variables (𝒜 : ι → submodule R A) (h : direct_sum.submodule_is_internal 𝒜)
+include h
 
 @[elab_as_eliminator]
 lemma set_like.homogeneous_induction {P : A → Prop}
@@ -174,11 +176,18 @@ lemma set_like.homogeneous_induction {P : A → Prop}
   : P a :=
 begin
   haveI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw ←graded_algebra.sum_support_decompose 𝒜 a,
-  induction (graded_algebra.support 𝒜 a) using finset.induction_on with x s hx ih,
+  change function.bijective _ at h,
+  obtain ⟨g, hg⟩ := function.bijective_iff_has_inverse.mp h,
+  rw show a = ∑ i in (g a).support, (g a i), begin
+    have eq1 := direct_sum.sum_support_of _ (g a),
+    apply_fun (direct_sum.submodule_coe 𝒜) at eq1,
+    simp only [linear_map.map_sum, direct_sum.submodule_coe_of] at eq1,
+    rw [eq1, hg.2]
+  end,
+  induction (g a).support using finset.induction_on with x s hx ih,
   { rwa finset.sum_empty },
   { rw finset.sum_insert hx,
-    exact h_add _ _ (h_hom (graded_algebra.decompose 𝒜 a x) ⟨x, submodule.coe_mem _⟩) ih },
+    exact h_add _ _ (h_hom (g a x) ⟨x, submodule.coe_mem _⟩) ih },
 end
 
 end homogeneous_induction

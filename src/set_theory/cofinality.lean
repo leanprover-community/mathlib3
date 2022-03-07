@@ -50,6 +50,8 @@ open_locale classical cardinal
 universes u v w
 variables {α : Type*} {r : α → α → Prop}
 
+/-! ### Cofinality of orders -/
+
 namespace order
 /-- Cofinality of a reflexive order `≼`. This is the smallest cardinality
   of a subset `S : set α` such that `∀ a, ∃ b ∈ S, a ≼ b`. -/
@@ -92,6 +94,8 @@ le_antisymm (rel_iso.cof.aux f) (rel_iso.cof.aux f.symm)
 
 def strict_order.cof (r : α → α → Prop) [h : is_irrefl α r] : cardinal :=
 @order.cof α (λ x y, ¬ r y x) ⟨h.1⟩
+
+/-! ### Cofinality of ordinals -/
 
 namespace ordinal
 
@@ -159,6 +163,8 @@ begin
     exact (is_well_order.wf).not_lt_min _ this
       (is_order_connected.neg_trans h ba) }
 end
+
+/-! ### Cofinality of suprema and least strict upper bounds -/
 
 private theorem card_mem_cof {o} : ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = o.card :=
 ⟨_, _, lsub_typein o, mk_ordinal_out o⟩
@@ -241,14 +247,13 @@ theorem cof_lsub_le_lift {ι} (f : ι → ordinal) : cof (lsub f) ≤ cardinal.l
 begin
   rw ←mk_ulift,
   convert cof_lsub_le (λ i : ulift ι, f i.down),
-  exact lsub_eq_of_range_eq.{u (max u v) (max u v)}
+  exact lsub_eq_of_range_eq.{u (max u v) max u v}
     (set.ext (λ x, ⟨λ ⟨i, hi⟩, ⟨ulift.up i, hi⟩, λ ⟨i, hi⟩, ⟨_, hi⟩⟩))
 end
 
 theorem lsub_lt_ord_lift {ι} {f : ι → ordinal} {c : ordinal} (hι : cardinal.lift (#ι) < c.cof)
   (hf : ∀ i, f i < c) : lsub.{u v} f < c :=
-lt_of_le_of_ne (lsub_le.2 hf) (λ h, not_le_of_lt hι
-  (by simpa [sup_ord, hf, h] using cof_lsub_le_lift.{u} f))
+lt_of_le_of_ne (lsub_le.2 hf) (λ h, by { subst h, exact (cof_lsub_le_lift f).not_lt hι })
 
 theorem lsub_lt_ord {ι} {f : ι → ordinal} {c : ordinal} (hι : #ι < c.cof) :
   (∀ i, f i < c) → lsub.{u u} f < c :=
@@ -328,6 +333,8 @@ theorem bsup_lt_ord_lift {o : ordinal} {f : Π a < o, ordinal} {c : ordinal}
 theorem bsup_lt_ord {o : ordinal} {f : Π a < o, ordinal} {c : ordinal} (ho : o.card < c.cof) :
   (∀ i hi, f i hi < c) → bsup.{u u} o f < c :=
 bsup_lt_ord_lift (by rwa (o.card).lift_id)
+
+/-! ### Basic results -/
 
 @[simp] theorem cof_zero : cof 0 = 0 :=
 (cof_le_card 0).antisymm (cardinal.zero_le _)
@@ -468,6 +475,8 @@ le_antisymm (cof_le_card _) begin
   apply le_sup
 end
 
+/-! ### Infinite pigeonhole principle -/
+
 /-- If the union of s is unbounded and s is smaller than the cofinality,
   then s has an unbounded member -/
 theorem unbounded_of_unbounded_sUnion (r : α → α → Prop) [wo : is_well_order α r] {s : set (set α)}
@@ -535,6 +544,8 @@ begin
 end
 
 end ordinal
+
+/-! ### Regular and inaccessible cardinals -/
 
 namespace cardinal
 open ordinal

@@ -276,8 +276,7 @@ end
 
 /- The non-commutative version of `finset.prod_mul_distrib` -/
 @[to_additive "The non-commutative version of `finset.sum_add_distrib`"]
-lemma noncomm_prod_mul_distrib [decidable_eq α] {s : finset α}
-  (f : α → β) (g : α → β)
+lemma noncomm_prod_mul_distrib {s : finset α} (f : α → β) (g : α → β)
   (comm_ff : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
   (comm_gg : ∀ (x ∈ s) (y ∈ s), commute (g x) (g y))
   (comm_gf : ∀ (x ∈ s) (y ∈ s), x ≠ y → commute (g x) (f y)) :
@@ -293,14 +292,15 @@ lemma noncomm_prod_mul_distrib [decidable_eq α] {s : finset α}
     end
     = noncomm_prod s f comm_ff * noncomm_prod s g comm_gg :=
 begin
+  classical,
   induction s using finset.induction_on with x s hnmem ih,
   { simp, },
-  { simp only [finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem, pi.mul_apply],
+  { simp only [finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem],
     specialize ih
       (λ x hx y hy, comm_ff x (mem_insert_of_mem hx) y (mem_insert_of_mem hy))
       (λ x hx y hy, comm_gg x (mem_insert_of_mem hx) y (mem_insert_of_mem hy))
       (λ x hx y hy hne, comm_gf x (mem_insert_of_mem hx) y (mem_insert_of_mem hy) hne),
-    rw ih,
+    rw [ih, pi.mul_apply],
     simp only [mul_assoc],
     congr' 1,
     simp only [← mul_assoc],

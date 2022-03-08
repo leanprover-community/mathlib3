@@ -115,6 +115,12 @@ on all elements `x ∈ s`." ]
 def noncomm_prod (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s), commute x y) : α :=
 s.noncomm_fold (*) comm 1
 
+/-- A helper for rewriting the dependent argument. -/
+@[to_additive "A helper for rewriting the dependent argument "]
+lemma noncomm_prod_congr
+  {s₁ s₂ : multiset α} (h : s₁ = s₂) (comm : ∀ (x ∈ s₁) (y ∈ s₁), commute x y) :
+  noncomm_prod s₁ comm = noncomm_prod s₂ (h ▸ comm) := by subst h
+
 @[simp, to_additive] lemma noncomm_prod_coe (l : list α)
   (comm : ∀ (x ∈ (l : multiset α)) (y ∈ (l : multiset α)), commute x y) :
   noncomm_prod (l : multiset α) comm = l.prod :=
@@ -183,10 +189,19 @@ given a proof that `+` commutes on all elements `f x` for `x ∈ s`."]
 def noncomm_prod (s : finset α) (f : α → β) (comm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y)) : β :=
 (s.1.map f).noncomm_prod (by simpa [multiset.mem_map, ←finset.mem_def] using comm)
 
-/-- A helper for rewriting the dependent `finset` argument together with the commutativity proof -/
-@[to_additive "A helper for rewriting the dependnet `finset` argument together with the
-commutativity proof"]
+/-- A helper for rewriting the dependent arguments. -/
+@[to_additive "A helper for rewriting the dependent arguments "]
 lemma noncomm_prod_congr
+  {s₁ s₂ : finset α}  (f g : α → β) (h₁ : s₁ = s₂) (h₂ : ∀ (x ∈ s₂), f x = g x)
+  (comm : ∀ (x ∈ s₁) (y ∈ s₁), commute (f x) (f y)) :
+  noncomm_prod s₁ f comm = noncomm_prod s₂ g
+    (λ x hx y hy, h₂ x hx ▸ h₂ y hy ▸ comm x (h₁.symm ▸ hx) y (h₁.symm ▸ hy)) :=
+multiset.noncomm_prod_congr (multiset.map_congr (congr_arg _ h₁) h₂) _,
+
+/-- A helper for rewriting the dependent `finset` argument together with the commutativity proof -/
+@[to_additive "A helper for rewriting the dependent `finset` argument together with the
+commutativity proof"]
+lemma noncomm_prod_congr_finset
   {s₁ s₂ : finset α} (h : s₁ = s₂) (f : α → β)
   (comm : ∀ (x ∈ s₁) (y ∈ s₁), commute (f x) (f y)) :
   noncomm_prod s₁ f comm = noncomm_prod s₂ f (h ▸ comm) := by subst h

@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Himmel, Adam Topaz
+Authors: Markus Himmel, Adam Topaz, Johan Commelin
 -/
 import category_theory.abelian.opposite
 import category_theory.limits.preserves.basic
+import category_theory.limits.preserves.finite
 import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.preserves.shapes.kernels
 import algebra.homology.exact

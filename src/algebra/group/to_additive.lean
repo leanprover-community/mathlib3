@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Yury Kudryashov, Floris van Doorn
 -/
 import tactic.transform_decl
 import tactic.algebra
+import tactic.lint.basic
 
 /-!
 # Transport multiplicative to additive
@@ -560,3 +561,35 @@ attribute [to_additive empty] empty
 attribute [to_additive pempty] pempty
 attribute [to_additive punit] punit
 attribute [to_additive unit] unit
+
+section linter
+
+open tactic expr
+
+/-- A linter that checks that multiplicative and additive lemmas have both doc strings if one of
+them has one -/
+@[linter] meta def linter.to_additive_doc : linter :=
+{ test := (λ d, do
+    let mul_name := d.to_name,
+    dict ← to_additive.aux_attr.get_cache,
+    match dict.find mul_name with
+    | some add_name := do
+      mul_doc <- doc_string mul_name >> return tt <|> return ff,
+      add_doc <- doc_string add_name >> return tt <|> return ff,
+      match mul_doc, add_doc with
+      | tt, ff := return $ some $ "declaration has a docstring, but its additive version `" ++
+         add_name.to_string ++ "` does not. You might want to pass a string argument to " ++
+         "`to_additive`."
+      | ff, tt := return $ some $ "declaration has no docstring, but its additive version `" ++
+         add_name.to_string ++ "` does. You might want to add a doc string to the declaration."
+      | _, _ := return none
+      end
+    | none := return none
+    end),
+  auto_decls := ff,
+  no_errors_found := "Multiplicative and additive lemmas are consistently documented",
+  errors_found := "The following declarations have doc strings, but their additive versions do " ++
+  "not (or vice versa).",
+  is_fast := ff }
+
+end linter

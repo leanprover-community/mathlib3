@@ -610,6 +610,9 @@ calc  #(list α)
 ... ≤ sum (λ n : ℕ, #α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
 ... = #α : by simp [H1]
 
+theorem mk_list_eq_omega (α : Type u) [encodable α] [nonempty α] : #(list α) = ω :=
+mk_le_omega.antisymm (omega_le_mk _)
+
 theorem mk_list_le_max (α : Type u) : #(list α) ≤ max ω (#α) :=
 begin
   cases le_or_lt ω (#α),

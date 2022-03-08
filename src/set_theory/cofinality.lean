@@ -734,7 +734,7 @@ theorem nfp_lt_ord_of_is_regular {f : ordinal → ordinal} {c} (hc : is_regular 
   (hf : ∀ i < c.ord, f i < c.ord) : (a < c.ord) → nfp f a < c.ord :=
 nfp_lt_ord (by { rw hc.2, exact lt_of_le_of_ne hc.1 hc'.symm }) hf
 
-theorem deriv_lt_ord {f : ordinal → ordinal} {c} (hc : is_regular c) (hc' : c ≠ ω)
+theorem deriv_lt_ord {f : ordinal.{u} → ordinal} {c} (hc : is_regular c) (hc' : c ≠ ω)
   (hf : ∀ i < c.ord, f i < c.ord) {a} : a < c.ord → deriv f a < c.ord :=
 begin
   have hω : ω < c.ord.cof,
@@ -747,8 +747,8 @@ begin
     exact nfp_lt_ord hω hf ((omega_le_cof.1 hω.le).2 _ (hb ((ordinal.lt_succ_self b).trans hb'))) },
   { intros b hb H hb',
     rw deriv_limit f hb,
-    apply bsup_lt_ord_of_is_regular,
-  }
+    exact bsup_lt_ord_of_is_regular.{u u} hc (ord_lt_ord.1 ((ord_card_le b).trans_lt hb'))
+      (λ o' ho', H o' ho' (ho'.trans hb')) }
 end
 
 /-- A cardinal is inaccessible if it is an uncountable regular strong limit cardinal. -/

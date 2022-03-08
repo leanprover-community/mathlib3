@@ -243,6 +243,28 @@ end
 
 end
 
+section has_scalar
+variables {M : Type*} [add_comm_monoid M] [topological_space M]
+variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
+
+include m
+
+/-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
+measure corresponding to the function `r • s`. -/
+def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
+{ measure_of' := r • v,
+  empty' := by rw [pi.smul_apply, empty, smul_zero],
+  not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
+  m_Union' := λ _ hf₁ hf₂, has_sum.const_smul (v.m_Union hf₁ hf₂) }
+
+instance : has_scalar R (vector_measure α M) := ⟨smul⟩
+
+@[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
+lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
+  (r • v) i = r • v i := rfl
+
+end has_scalar
+
 section add_comm_monoid
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
@@ -322,25 +344,10 @@ function.injective.add_comm_group _ coe_injective coe_zero coe_add coe_neg coe_s
 end add_comm_group
 
 section distrib_mul_action
-
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
 
 include m
-
-/-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
-measure corresponding to the function `r • s`. -/
-def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
-{ measure_of' := r • v,
-  empty' := by rw [pi.smul_apply, empty, smul_zero],
-  not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
-  m_Union' := λ _ hf₁ hf₂, has_sum.const_smul (v.m_Union hf₁ hf₂) }
-
-instance : has_scalar R (vector_measure α M) := ⟨smul⟩
-
-@[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
-lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
-  (r • v) i = r • v i := rfl
 
 instance [has_continuous_add M] : distrib_mul_action R (vector_measure α M) :=
 function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective coe_smul

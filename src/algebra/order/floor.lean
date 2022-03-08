@@ -68,8 +68,9 @@ instance : floor_semiring ℕ :=
   gc_ceil := λ n a, by { rw nat.cast_id, refl } }
 
 namespace nat
-section linear_ordered_semiring
-variables [linear_ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
+
+section ordered_semiring
+variables [ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
 
 /-- `⌊a⌋₊` is the greatest natural `n` such that `n ≤ a`. If `a` is negative, then `⌊a⌋₊ = 0`. -/
 def floor : α → ℕ := floor_semiring.floor
@@ -79,6 +80,11 @@ def ceil : α → ℕ := floor_semiring.ceil
 
 notation `⌊` a `⌋₊` := nat.floor a
 notation `⌈` a `⌉₊` := nat.ceil a
+
+end ordered_semiring
+
+section linear_ordered_semiring
+variables [linear_ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
 
 lemma le_floor_iff (ha : 0 ≤ a) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a := floor_semiring.gc_floor ha
 
@@ -567,10 +573,7 @@ lemma fract_div_mul_self_mem_Ico (a b : k) (ha : 0 < a) : fract (b/a) * a ∈ Ic
 
 lemma fract_div_mul_self_add_zsmul_eq (a b : k) (ha : a ≠ 0) :
   fract (b/a) * a + ⌊b/a⌋ • a = b :=
-begin
-  conv_rhs { rw [← div_mul_cancel b ha, ← fract_add_floor (b/a)], },
-  rw [zsmul_eq_mul, add_mul],
-end
+by rw [zsmul_eq_mul, ← add_mul, fract_add_floor, div_mul_cancel b ha]
 
 end linear_ordered_field
 

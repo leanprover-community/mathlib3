@@ -192,7 +192,6 @@ begin
   by_cases Rtrivial : nontrivial R,
   swap,
   { rw not_nontrivial_iff_subsingleton at Rtrivial,
-    resetI,
     obtain ⟨q, hq⟩ := mem_lifts_and_degree_eq hlifts,
     use q,
     exact ⟨hq.1, hq.2, monic_of_subsingleton _⟩ },

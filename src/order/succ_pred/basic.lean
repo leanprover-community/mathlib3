@@ -1008,6 +1008,48 @@ begin
   tauto
 end
 
+/-- The range of a function with a `is_succ_archimedean` domain partitions the number line
+    into intervals.
+
+    For `α = ℕ`, you'll probably want to set `a₀ = 0`.
+
+    It is not obvious that the typeclasses required here are necessary, but it is indeed the case:
+    - `linear_order α`: consider the partial ordering on `α` where `(≤) = (=)` and `succ = id`.
+    - `linear_order β`: consider `f : ℕ → ℕ` given by `f n = 2^n`, with the
+      divisibility ordering on the codomain.
+    - `is_succ_archimedean α`: consider the identity function on the set of rational
+      numbers that can be expressed as `2k - 1/l.succ`, for `k l : ℕ`. Then `5/2` doesn't lie in any
+      interval.
+    -/
+lemma ex_le_lt_of_mono_of_unbounded
+  [linear_order α] [linear_order β]
+  [succ_order α] [is_succ_archimedean α]
+  (f : α → β) (Hmono : monotone f)
+  (Hunbounded : ¬ bdd_above (set.range f))
+  (b : β)
+  {a₀ : α} (Hlow: f a₀ ≤ b):
+  ∃ a : α, f a ≤ b ∧ b < f (succ a) :=
+begin
+  by_contra' next : ∀ {a}, f a ≤ b → f (succ a) ≤ b,
+  have ge_bounded : ∀ {a}, a₀ ≤ a → f a ≤ b,
+  { apply succ.rec,
+    { exact Hlow },
+    { assume (a : α) (a₀_le_a : a₀ ≤ a) (fa_le_b : f a ≤ b),
+      show f (succ a) ≤ b, from next fa_le_b } },
+  have all_bounded : ∀ {a}, f a ≤ b,
+  { intro a, by_cases h : a₀ ≤ a,
+    { exact ge_bounded h },
+    { have : a ≤ a₀ := le_of_not_le h,
+      calc f a ≤ f a₀ : Hmono this
+      ...      ≤ b    : Hlow } },
+  apply Hunbounded,
+  show bdd_above (set.range f),
+  { use b,
+    assume (x : β) (Hx : x ∈ set.range f),
+    obtain ⟨a, Ha⟩ : ∃ a, f a = x := Hx,
+    show x ≤ b, rw ← Ha, from all_bounded },
+end
+
 section order_bot
 variables [preorder α] [order_bot α] [succ_order α] [is_succ_archimedean α]
 

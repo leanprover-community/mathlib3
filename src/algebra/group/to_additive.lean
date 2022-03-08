@@ -572,19 +572,16 @@ them has one -/
 { test := (λ d, do
     let mul_name := d.to_name,
     dict ← to_additive.aux_attr.get_cache,
-    match dict.find mul_name with
-    | some add_name := do
-      mul_doc <- doc_string mul_name >> return tt <|> return ff,
-      add_doc <- doc_string add_name >> return tt <|> return ff,
-      match mul_doc, add_doc with
-      | tt, ff := return $ some $ "declaration has a docstring, but its additive version `" ++
-         add_name.to_string ++ "` does not. You might want to pass a string argument to " ++
-         "`to_additive`."
-      | ff, tt := return $ some $ "declaration has no docstring, but its additive version `" ++
-         add_name.to_string ++ "` does. You might want to add a doc string to the declaration."
-      | _, _ := return none
-      end
-    | none := return none
+    add_name ← dict.find mul_name | return none,
+    mul_doc <- try_core $ doc_string mul_name,
+    add_doc <- try_core $ doc_string add_name,
+    match mul_doc, add_doc with
+    | some _, none := return $ some $ "declaration has a docstring, but its additive version `" ++
+        add_name.to_string ++ "` does not. You might want to pass a string argument to " ++
+        "`to_additive`."
+    | none, some_ := return $ some $ "declaration has no docstring, but its additive version `" ++
+        add_name.to_string ++ "` does. You might want to add a doc string to the declaration."
+    | _, _ := return none
     end),
   auto_decls := ff,
   no_errors_found := "Multiplicative and additive lemmas are consistently documented",

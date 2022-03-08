@@ -213,35 +213,14 @@ lemma exact.op_iff : exact g.op f.op ↔ exact f g :=
 end, λ e, @@exact.op _ _ _ _ e⟩
 
 
-instance exact.unop {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) [exact g f] : exact f.unop g.unop :=
+instance exact.unop {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) [h : exact g f] : exact f.unop g.unop :=
 begin
-  have e0 : exact g f := infer_instance,
-  rw abelian.exact_iff at e0 ⊢,
-  have e02 := e0.2,
-  refine ⟨by convert (congr_arg quiver.hom.unop e0.1), _⟩,
-  have eq2 : (kernel.ι f).unop = _ := @kernel.ι_op C _ _ Z.unop Y.unop f.unop,
-  have eq1 : (cokernel.π g).unop = _ := @cokernel.π_op C _ _ Y.unop X.unop g.unop,
-  apply_fun quiver.hom.unop at e02,
-  rw [unop_comp, unop_zero, eq1, cokernel_op_unop_hom, ← category.assoc, limits.kernel.lift_ι,
-    eq_to_hom_refl, category.comp_id, cokernel.π_op, eq_to_hom_refl, category.comp_id, eq2,
-    eq_to_hom_refl, category.id_comp] at e02,
-  have e03 := (cokernel_op_unop g.unop).inv ≫= (e02 =≫ (kernel_op_unop f.unop).hom),
-  rwa [← category.assoc, ← category.assoc, ← category.assoc, ← category.assoc, iso.inv_hom_id,
-    category.id_comp, category.assoc, iso.inv_hom_id, category.comp_id, zero_comp, comp_zero]at e03,
+  rw [← f.op_unop, ← g.op_unop] at h,
+  rwa ← exact.op_iff,
 end
 
 lemma exact.unop_iff {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) : exact g f ↔ exact f.unop g.unop :=
-⟨λ e, @@exact.unop _ _ g f e, λ e, begin
-  rw exact_iff at e ⊢,
-  refine ⟨by convert (congr_arg quiver.hom.op e.1), _⟩,
-  have e' := e.2,
-  apply_fun quiver.hom.op at e',
-  rw [op_zero, op_comp, cokernel.π_unop, kernel.ι_unop, eq_to_hom_refl, eq_to_hom_refl,
-    category.comp_id, category.id_comp] at e',
-  have e'' := (cokernel_unop_op f).inv ≫= (e' =≫ (kernel_unop_op g).hom),
-  rwa [zero_comp, comp_zero, ← category.assoc, ← category.assoc, ← category.assoc, ← category.assoc,
-    iso.inv_hom_id, category.id_comp, category.assoc, iso.inv_hom_id, category.comp_id] at e'',
-end⟩
+⟨λ e, @@exact.unop _ _ g f e, λ e, by rwa [← f.op_unop, ← g.op_unop, ← exact.op_iff] at e⟩
 
 end opposite
 

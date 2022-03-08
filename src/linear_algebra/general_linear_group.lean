@@ -199,8 +199,8 @@ lemma coe_to_GL_pos_det (g : special_linear_group n R) :
 
 variable [fact (even (fintype.card n))]
 
-@[simp] lemma coe_GL_pos_neg (g : special_linear_group n R) : ↑(-g) = -(↑g : GL_pos n R) :=
-by {ext, refl}
+@[simp, norm_cast] lemma coe_GL_pos_neg (g : special_linear_group n R) : ↑(-g) = -(↑g : GL_pos n R)
+:= by {ext, refl}
 
 end special_linear_group
 

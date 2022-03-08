@@ -55,13 +55,10 @@ existence of `g` maximizing `(g•z).im` (see `modular_group.exists_max_im`), an
 those, to minimize `|(g•z).re|` (see `modular_group.exists_row_one_eq_and_min_re`).
 -/
 
-<<<<<<< HEAD
-=======
 /- Disable these instances as they are not the simp-normal form, and having them disabled ensures
 we state lemmas in this file without spurious `coe_fn` terms. -/
 local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
 local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
->>>>>>> origin/master
 
 open complex matrix matrix.special_linear_group upper_half_plane
 noncomputable theory

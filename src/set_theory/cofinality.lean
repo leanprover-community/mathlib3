@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.cardinal_ordinal
+import set_theory.fixed_points
+
 /-!
 # Cofinality
 
@@ -39,9 +41,8 @@ This file contains the definition of cofinality of a ordinal number and regular 
 
 cofinality, regular cardinals, limits cardinals, inaccessible cardinals,
 infinite pigeonhole principle
-
-
 -/
+
 noncomputable theory
 
 open function cardinal set
@@ -730,9 +731,41 @@ theorem sum_lt_of_is_regular {ι : Type u} {f : ι → cardinal} {c : cardinal} 
   (hι : #ι < c) : (∀ i, f i < c) → sum f < c :=
 sum_lt_lift_of_is_regular.{u u} hc (by rwa lift_id)
 
+set_option pp.universes true
+
+theorem nfp_family_lt_ord_lift_of_is_regular {ι} {f : ι → ordinal → ordinal} {c} (hc : is_regular c)
+  (hι : (#ι).lift < c) (hc' : c ≠ ω) {a} (hf : ∀ i (b < c.ord), f i b < c.ord) (ha : a < c.ord) :
+  nfp_family.{u v} f a < c.ord :=
+begin
+  apply sup_lt_ord_lift_of_is_regular hc,
+  {
+    apply (lift_le.2 (mk_list_le_max ι)).trans_lt,
+    rw lift_max,
+    apply  (mk_list_le_max ι).trans,
+  }
+
+end
+
 theorem nfp_lt_ord_of_is_regular {f : ordinal → ordinal} {c} (hc : is_regular c) (hc' : c ≠ ω) {a}
   (hf : ∀ i < c.ord, f i < c.ord) : (a < c.ord) → nfp f a < c.ord :=
 nfp_lt_ord (by { rw hc.2, exact lt_of_le_of_ne hc.1 hc'.symm }) hf
+
+theorem deriv_family_lt_ord {f : ordinal.{u} → ordinal} {c} (hc : is_regular c) (hc' : c ≠ ω)
+  (hf : ∀ i < c.ord, f i < c.ord) {a} : a < c.ord → deriv f a < c.ord :=
+begin
+  have hω : ω < c.ord.cof,
+  { rw hc.2, exact lt_of_le_of_ne hc.1 hc'.symm },
+  apply a.limit_rec_on,
+  { rw deriv_zero,
+    exact nfp_lt_ord hω hf },
+  { intros b hb hb',
+    rw deriv_succ,
+    exact nfp_lt_ord hω hf ((omega_le_cof.1 hω.le).2 _ (hb ((ordinal.lt_succ_self b).trans hb'))) },
+  { intros b hb H hb',
+    rw deriv_limit f hb,
+    exact bsup_lt_ord_of_is_regular.{u u} hc (ord_lt_ord.1 ((ord_card_le b).trans_lt hb'))
+      (λ o' ho', H o' ho' (ho'.trans hb')) }
+end
 
 theorem deriv_lt_ord {f : ordinal.{u} → ordinal} {c} (hc : is_regular c) (hc' : c ≠ ω)
   (hf : ∀ i < c.ord, f i < c.ord) {a} : a < c.ord → deriv f a < c.ord :=

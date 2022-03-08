@@ -120,7 +120,6 @@ begin
         sorry
       end,
       fac' := λ s j, begin
-        have := hc.fac' (functor.map_cone_inv F s),
         rw [functor.map_cone_π_app, category.assoc, ← functor.map_comp, hc.fac',
           ← functor.map_cone_π_app, cone_morphism.w],
       end }⟩,
@@ -128,7 +127,10 @@ begin
     { desc := λ s, F.map (hc.desc (functor.map_cocone_inv F s)) ≫
         (functor.map_cocone_map_cocone_inv F s).hom.hom,
       uniq' := sorry,
-      fac' := sorry }⟩,
+      fac' := λ s j, begin
+        rw [functor.map_cocone_ι_app, ← category.assoc, ← functor.map_comp, hc.fac',
+          ← functor.map_cocone_ι_app, cocone_morphism.w],
+      end }⟩,
   simp only [exact_iff, ← F.map_eq_zero_iff, F.map_comp, category.assoc,
     ← kernel_comparison_comp_π g F, ← ι_comp_cokernel_comparison f F],
   rw [is_iso.comp_left_eq_zero (kernel_comparison g F), ← category.assoc,

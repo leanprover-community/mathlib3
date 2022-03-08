@@ -237,21 +237,6 @@ begin
       eq_self_iff_true, if_true, implies_true_iff, not_le] {contextual := tt}, },
 end
 
-lemma monic.geom_sum_X (R : Type*) [semiring R] {n : ℕ} (hn : n ≠ 0) :
-  (geom_sum (X : R[X]) n).monic :=
-begin
-  nontriviality R,
-  cases n,
-  { exfalso,
-    exact hn rfl},
-  { rw [geom_sum_succ'],
-    refine monic_add_of_left (monic_X_pow _) _,
-    rw [degree_X_pow, geom_sum_def, ← fin.sum_univ_eq_sum_range],
-    conv_lhs { congr, congr, skip, funext,
-      rw [← one_mul (X ^ ↑i), ← C_1] },
-    exact degree_sum_fin_lt _ }
-end
-
 lemma monic.geom_sum {R : Type*} [semiring R] {P : R[X]}
   (hP : P.monic) (hdeg : 0 < P.nat_degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
 begin
@@ -271,6 +256,14 @@ end
 lemma monic.geom_sum' {R : Type*} [semiring R] {P : R[X]}
   (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
 hP.geom_sum (nat_degree_pos_iff_degree_pos.2 hdeg) hn
+
+lemma monic_geom_sum_X (R : Type*) [semiring R] {n : ℕ} (hn : n ≠ 0) :
+  (geom_sum (X : R[X]) n).monic :=
+begin
+  nontriviality R,
+  apply monic_X.geom_sum _ hn,
+  simpa only [nat_degree_X] using zero_lt_one
+end
 
 section to_subring
 

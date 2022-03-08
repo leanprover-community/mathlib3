@@ -16,8 +16,6 @@ elsewhere, with a shorter name for ease of discovery, and no need for a `[fact (
 
 variables {R ι : Type*}
 
-local attribute [instance] nat.fact_prime_two
-
 namespace char_two
 
 section semiring

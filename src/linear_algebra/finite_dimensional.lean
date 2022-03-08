@@ -588,15 +588,16 @@ noncomputable def basis_singleton (ι : Type*) [unique ι]
   basis ι K V :=
 let b := basis_unique ι h in
 b.map (linear_equiv.smul_of_unit (units.mk0
-  (b.repr v (default ι))
+  (b.repr v default)
   (mt basis_unique.repr_eq_zero_iff.mp hv)))
 
 @[simp] lemma basis_singleton_apply (ι : Type*) [unique ι]
   (h : finrank K V = 1) (v : V) (hv : v ≠ 0) (i : ι) :
   basis_singleton ι h v hv i = v :=
 calc basis_singleton ι h v hv i
-    = (((basis_unique ι h).repr) v) (default ι) • (basis_unique ι h) (default ι) :
-      by simp [subsingleton.elim i (default ι), basis_singleton, linear_equiv.smul_of_unit]
+    = (((basis_unique ι h).repr) v) default • (basis_unique ι h) default :
+      by simp [subsingleton.elim i default, basis_singleton, linear_equiv.smul_of_unit,
+               units.smul_def]
 ... = v : by rw [← finsupp.total_unique K (basis.repr _ v), basis.total_repr]
 
 @[simp] lemma range_basis_singleton (ι : Type*) [unique ι]
@@ -792,17 +793,16 @@ protected theorem finite_dimensional (f : V ≃ₗ[K] V₂) [finite_dimensional 
   finite_dimensional K V₂ :=
 module.finite.equiv f
 
+variables {R M M₂ : Type*} [ring R] [add_comm_group M] [add_comm_group M₂]
+variables [module R M] [module R M₂]
+
 /-- The dimension of a finite dimensional space is preserved under linear equivalence. -/
-theorem finrank_eq (f : V ≃ₗ[K] V₂) [finite_dimensional K V] :
-  finrank K V = finrank K V₂ :=
-begin
-  haveI : finite_dimensional K V₂ := f.finite_dimensional,
-  simpa [← finrank_eq_dim] using f.lift_dim_eq
-end
+theorem finrank_eq (f : M ≃ₗ[R] M₂) : finrank R M = finrank R M₂ :=
+by { unfold finrank, rw [← cardinal.to_nat_lift, f.lift_dim_eq, cardinal.to_nat_lift] }
 
 /-- Pushforwards of finite-dimensional submodules along a `linear_equiv` have the same finrank. -/
-lemma finrank_map_eq (f : V ≃ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
-  finrank K (p.map (f : V →ₗ[K] V₂)) = finrank K p :=
+lemma finrank_map_eq (f : M ≃ₗ[R] M₂) (p : submodule R M) :
+  finrank R (p.map (f : M →ₗ[R] M₂)) = finrank R p :=
 (f.submodule_map p).finrank_eq.symm
 
 end linear_equiv
@@ -858,6 +858,11 @@ lemma eq_of_le_of_finrank_eq {S₁ S₂ : submodule K V} [finite_dimensional K S
   (hd : finrank K S₁ = finrank K S₂) : S₁ = S₂ :=
 eq_of_le_of_finrank_le hle hd.ge
 
+@[simp]
+lemma finrank_map_subtype_eq (p : subspace K V) (q : subspace K p) :
+  finite_dimensional.finrank K (q.map p.subtype) = finite_dimensional.finrank K q :=
+(submodule.equiv_subtype_map p q).symm.finrank_eq
+
 variables [finite_dimensional K V] [finite_dimensional K V₂]
 
 /-- Given isomorphic subspaces `p q` of vector spaces `V` and `V₁` respectively,
@@ -880,11 +885,6 @@ begin
   rw [← @add_right_cancel_iff _ _ (finrank K q), submodule.finrank_quotient_add_finrank,
       ← linear_equiv.finrank_eq f, add_comm, submodule.finrank_quotient_add_finrank]
 end
-
-@[simp]
-lemma finrank_map_subtype_eq (p : subspace K V) (q : subspace K p) :
-  finite_dimensional.finrank K (q.map p.subtype) = finite_dimensional.finrank K q :=
-(submodule.equiv_subtype_map p q).symm.finrank_eq
 
 end finite_dimensional
 
@@ -949,6 +949,11 @@ the dimension of the source space. -/
 theorem finrank_range_add_finrank_ker [finite_dimensional K V] (f : V →ₗ[K] V₂) :
   finrank K f.range + finrank K f.ker = finrank K V :=
 by { rw [← f.quot_ker_equiv_range.finrank_eq], exact submodule.finrank_quotient_add_finrank _ }
+
+/-- The dimensions of the domain and range of an injective linear map are equal. -/
+lemma finrank_range_of_inj {f : V →ₗ[K] V₂} (hf : function.injective f) :
+  finrank K f.range = finrank K V :=
+by rw (linear_equiv.of_injective f hf).finrank_eq
 
 end linear_map
 
@@ -1141,18 +1146,29 @@ section span
 
 open submodule
 
+variable (K)
+
+
+/-- The rank of a set of vectors as a natural number. -/
+protected noncomputable def set.finrank (s : set V) : ℕ := finrank K (span K s)
+
+variable {K}
+
+lemma set.finrank_mono [finite_dimensional K V] {s t : set V} (h : s ⊆ t) :
+  s.finrank K ≤ t.finrank K := finrank_mono (span_mono h)
+
 lemma finrank_span_le_card (s : set V) [fin : fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
 begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) ≤ #s := dim_span_le s,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
-  exact_mod_cast this
+  exact_mod_cast this,
 end
 
 lemma finrank_span_finset_le_card (s : finset V)  :
-  finrank K (span K (s : set V)) ≤ s.card :=
-calc finrank K (span K (s : set V)) ≤ (s : set V).to_finset.card : finrank_span_le_card s
+  (s : set V).finrank K ≤ s.card :=
+calc (s : set V).finrank K ≤ (s : set V).to_finset.card : finrank_span_le_card s
                                 ... = s.card : by simp
 
 lemma finrank_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
@@ -1172,7 +1188,7 @@ begin
   haveI := span_of_finite K ⟨fin⟩,
   have : module.rank K (span K s) = #s := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
-  exact_mod_cast this
+  exact_mod_cast this,
 end
 
 lemma finrank_span_finset_eq_card (s : finset V)
@@ -1181,7 +1197,7 @@ lemma finrank_span_finset_eq_card (s : finset V)
 begin
   convert finrank_span_set_eq_card ↑s hs,
   ext,
-  simp
+  simp,
 end
 
 lemma span_lt_of_subset_of_card_lt_finrank {s : set V} [fintype s] {t : submodule K V}
@@ -1257,7 +1273,7 @@ end
 /-- A finite family of vectors is linearly independent if and only if
 its cardinality equals the dimension of its span. -/
 lemma linear_independent_iff_card_eq_finrank_span {ι : Type*} [fintype ι] {b : ι → V} :
-  linear_independent K b ↔ fintype.card ι = finrank K (span K (set.range b)) :=
+  linear_independent K b ↔ fintype.card ι = (set.range b).finrank K :=
 begin
   split,
   { intro h,
@@ -1606,7 +1622,7 @@ lemma ker_pow_constant {f : End K V} {k : ℕ} (h : (f ^ k).ker = (f ^ k.succ).k
     { rw [ker_pow_constant m, add_comm m 1, ←add_assoc, pow_add, pow_add f k m],
       change linear_map.ker ((f ^ (k + 1)).comp (f ^ m)) ≤ linear_map.ker ((f ^ k).comp (f ^ m)),
       rw [linear_map.ker_comp, linear_map.ker_comp, h, nat.add_one],
-      exact le_refl _, }
+      exact le_rfl, }
   end
 
 lemma ker_pow_eq_ker_pow_finrank_of_le [finite_dimensional K V]
@@ -1630,7 +1646,7 @@ begin
   { rw [←add_tsub_cancel_of_le (nat.le_of_lt h_cases), add_comm, pow_add],
     apply linear_map.ker_le_ker_comp },
   { rw [ker_pow_eq_ker_pow_finrank_of_le (le_of_not_lt h_cases)],
-    exact le_refl _ }
+    exact le_rfl }
 end
 
 end End

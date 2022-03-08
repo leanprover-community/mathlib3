@@ -62,7 +62,7 @@ begin
   split,
   { simp only [pi, mem_infi', mem_comap, pi_def],
     rintro ⟨I, If, V, hVf, hVI, rfl, -⟩, choose t htf htV using hVf,
-    exact ⟨I, If, t, htf, bInter_mono (λ i _, htV i)⟩ },
+    exact ⟨I, If, t, htf, Inter₂_mono (λ i _, htV i)⟩ },
   { rintro ⟨I, If, t, htf, hts⟩,
     exact mem_of_superset (pi_mem_pi If $ λ i _, htf i) hts }
 end
@@ -87,6 +87,17 @@ end
   I.pi s ∈ pi f ↔ ∀ i ∈ I, s i ∈ f i :=
 ⟨λ h i hi, mem_of_pi_mem_pi h hi, pi_mem_pi hI⟩
 
+lemma has_basis_pi {ι' : ι → Type} {s : Π i, ι' i → set (α i)} {p : Π i, ι' i → Prop}
+  (h : ∀ i, (f i).has_basis (p i) (s i)) :
+  (pi f).has_basis (λ If : set ι × Π i, ι' i, finite If.1 ∧ ∀ i ∈ If.1, p i (If.2 i))
+    (λ If : set ι × Π i, ι' i, If.1.pi (λ i, s i $ If.2 i)) :=
+begin
+  have : (pi f).has_basis _ _ := has_basis_infi (λ i, (h i).comap (eval i : (Π j, α j) → α i)),
+  convert this,
+  ext,
+  simp
+end
+
 @[simp] lemma pi_inf_principal_univ_pi_eq_bot :
   pi f ⊓ 𝓟 (set.pi univ s) = ⊥ ↔ ∃ i, f i ⊓ 𝓟 (s i) = ⊥ :=
 begin
@@ -98,8 +109,7 @@ begin
     exact hts (λ i hi, hxt i) (mem_univ_pi.2 hxs) },
   { simp only [inf_principal_eq_bot],
     rintro ⟨i, hi⟩,
-    filter_upwards [mem_pi_of_mem i hi],
-    exact λ x, mt (λ h, h i trivial) }
+    filter_upwards [mem_pi_of_mem i hi] with x using mt (λ h, h i trivial), },
 end
 
 @[simp] lemma pi_inf_principal_pi_eq_bot [Π i, ne_bot (f i)] {I : set ι} :

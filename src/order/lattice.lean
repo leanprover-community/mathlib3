@@ -143,6 +143,12 @@ le_trans h le_sup_left
 theorem le_sup_of_le_right (h : c ≤ b) : c ≤ a ⊔ b :=
 le_trans h le_sup_right
 
+theorem lt_sup_of_lt_left (h : c < a) : c < a ⊔ b :=
+h.trans_le le_sup_left
+
+theorem lt_sup_of_lt_right (h : c < b) : c < a ⊔ b :=
+h.trans_le le_sup_right
+
 theorem sup_le : a ≤ c → b ≤ c → a ⊔ b ≤ c :=
 semilattice_sup.sup_le a b c
 
@@ -172,10 +178,10 @@ theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
 sup_le (le_sup_of_le_left h₁) (le_sup_of_le_right h₂)
 
 theorem sup_le_sup_left (h₁ : a ≤ b) (c) : c ⊔ a ≤ c ⊔ b :=
-sup_le_sup (le_refl _) h₁
+sup_le_sup le_rfl h₁
 
 theorem sup_le_sup_right (h₁ : a ≤ b) (c) : a ⊔ c ≤ b ⊔ c :=
-sup_le_sup h₁ (le_refl _)
+sup_le_sup h₁ le_rfl
 
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
 by { rw ← h, simp }
@@ -196,7 +202,7 @@ lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
 ⟨λ h, (total_of (≤) c b).imp
   (λ bc, by rwa sup_eq_left.2 bc at h)
   (λ bc, by rwa sup_eq_right.2 bc at h),
- λ h, h.elim (λ h, h.trans_le le_sup_left) (λ h, h.trans_le le_sup_right)⟩
+ λ h, h.elim lt_sup_of_lt_left lt_sup_of_lt_right⟩
 
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; simp
@@ -330,6 +336,12 @@ le_trans inf_le_left h
 theorem inf_le_of_right_le (h : b ≤ c) : a ⊓ b ≤ c :=
 le_trans inf_le_right h
 
+theorem inf_lt_of_left_lt (h : a < c) : a ⊓ b < c :=
+lt_of_le_of_lt inf_le_left h
+
+theorem inf_lt_of_right_lt (h : b < c) : a ⊓ b < c :=
+lt_of_le_of_lt inf_le_right h
+
 @[simp] theorem le_inf_iff : a ≤ b ⊓ c ↔ a ≤ b ∧ a ≤ c :=
 @sup_le_iff (order_dual α) _ _ _ _
 
@@ -355,10 +367,10 @@ theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
 le_inf (inf_le_of_left_le h₁) (inf_le_of_right_le h₂)
 
 lemma inf_le_inf_right (a : α) {b c : α} (h : b ≤ c) : b ⊓ a ≤ c ⊓ a :=
-inf_le_inf h (le_refl _)
+inf_le_inf h le_rfl
 
 lemma inf_le_inf_left (a : α) {b c : α} (h : b ≤ c) : a ⊓ b ≤ a ⊓ c :=
-inf_le_inf (le_refl _) h
+inf_le_inf le_rfl h
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
 by { rw ← h, simp }
@@ -645,24 +657,33 @@ instance linear_order.to_lattice {α : Type u} [o : linear_order α] :
 theorem sup_eq_max [linear_order α] {x y : α} : x ⊔ y = max x y := rfl
 theorem inf_eq_min [linear_order α] {x y : α} : x ⊓ y = min x y := rfl
 
+lemma sup_eq_max_default [semilattice_sup α] [decidable_rel ((≤) : α → α → Prop)]
+  [is_total α (≤)] : (⊔) = (max_default : α → α → α) :=
+begin
+  ext x y,
+  dunfold max_default,
+  split_ifs with h',
+  exacts [sup_of_le_left h', sup_of_le_right $ (total_of (≤) x y).resolve_right h']
+end
+
+lemma inf_eq_min_default [semilattice_inf α] [decidable_rel ((≤) : α → α → Prop)]
+  [is_total α (≤)] : (⊓) = (min_default : α → α → α) :=
+@sup_eq_max_default (order_dual α) _ _ _
+
 /-- A lattice with total order is a linear order.
 
 See note [reducible non-instances]. -/
 @[reducible] def lattice.to_linear_order (α : Type u) [lattice α] [decidable_eq α]
   [decidable_rel ((≤) : α → α → Prop)] [decidable_rel ((<) : α → α → Prop)]
-  (h : ∀ x y : α, x ≤ y ∨ y ≤ x) :
+  [is_total α (≤)] :
   linear_order α :=
 { decidable_le := ‹_›, decidable_eq := ‹_›, decidable_lt := ‹_›,
-  le_total := h,
+  le_total := total_of (≤),
   max := (⊔),
-  max_def := by
-  { funext x y, dunfold max_default,
-    split_ifs with h', exacts [sup_of_le_left h', sup_of_le_right $ (h x y).resolve_right h'] },
+  max_def := sup_eq_max_default,
   min := (⊓),
-  min_def := by
-  { funext x y, dunfold min_default,
-    split_ifs with h', exacts [inf_of_le_left h', inf_of_le_right $ (h x y).resolve_left h'] },
-  .. ‹lattice α› }
+  min_def := inf_eq_min_default,
+  ..‹lattice α› }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_order.to_distrib_lattice {α : Type u} [o : linear_order α] :
@@ -919,3 +940,6 @@ See note [reducible non-instances]. -/
   ..hf_inj.lattice f map_sup map_inf, }
 
 end lift
+
+--To avoid noncomputability poisoning from `bool.complete_boolean_algebra`
+instance : distrib_lattice bool := linear_order.to_distrib_lattice

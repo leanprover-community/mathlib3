@@ -35,8 +35,8 @@ open function
 
 /-- Multiplicative opposite of a type. This type inherits all additive structures on `α` and
 reverses left and right in multiplication.-/
-@[to_additive "/-- Additive opposite of a type. This type inherits all multiplicative structures on
-`α` and reverses left and right in addition. -/"]
+@[to_additive "Additive opposite of a type. This type inherits all multiplicative structures on
+`α` and reverses left and right in addition."]
 def mul_opposite (α : Type u) : Type u := α
 
 postfix `ᵐᵒᵖ`:std.prec.max_plus := mul_opposite
@@ -86,7 +86,7 @@ def op_equiv : α ≃ αᵐᵒᵖ := ⟨op, unop, unop_op, op_unop⟩
 variable (α)
 
 @[to_additive] instance [nontrivial α] : nontrivial αᵐᵒᵖ := op_injective.nontrivial
-@[to_additive] instance [inhabited α] : inhabited αᵐᵒᵖ := ⟨op (default α)⟩
+@[to_additive] instance [inhabited α] : inhabited αᵐᵒᵖ := ⟨op default⟩
 @[to_additive] instance [subsingleton α] : subsingleton αᵐᵒᵖ := unop_injective.subsingleton
 @[to_additive] instance [unique α] : unique αᵐᵒᵖ := unique.mk' _
 @[to_additive] instance [is_empty α] : is_empty αᵐᵒᵖ := function.is_empty unop

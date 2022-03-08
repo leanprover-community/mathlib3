@@ -17,10 +17,12 @@ induces on `C(α, β)`:
  1. Given a sequence of continuous functions `Fₙ : α → β` together with some continuous `f : α → β`,
     then `Fₙ` converges to `f` as a sequence in `C(α, β)` iff `Fₙ` converges to `f` uniformly on
     each compact subset `K` of `α`.
- 2. The topology coincides with the compact-open topology.
+ 2. Given `Fₙ` and `f` as above and suppose `α` is locally compact, then `Fₙ` converges to `f` iff
+    `Fₙ` converges to `f` locally uniformly.
+ 3. The topology coincides with the compact-open topology.
 
-Property 1 is essentially true by definition but 2 requires a little work and uses the Lebesgue
-number lemma.
+Property 1 is essentially true by definition, 2 follows from basic results about uniform
+convergence, but 3 requires a little work and uses the Lebesgue number lemma.
 
 ## The uniform space structure
 
@@ -52,6 +54,10 @@ neighbourhood basis (the compact-convergence neighbourhood basis).
  * `mem_compact_convergence_entourage_iff`: a characterisation of the entourages of `C(α, β)`.
  * `tendsto_iff_forall_compact_tendsto_uniformly_on`: a sequence of functions `Fₙ` in `C(α, β)`
    converges to some `f` iff `Fₙ` converges to `f` uniformly on each compact subset `K` of `α`.
+ * `tendsto_iff_tendsto_locally_uniformly`: on a locally compact space, a sequence of functions
+   `Fₙ` in `C(α, β)` converges to some `f` iff `Fₙ` converges to `f` locally uniformly.
+ * `tendsto_iff_tendsto_uniformly`: on a compact space, a sequence of functions `Fₙ` in `C(α, β)`
+   converges to some `f` iff `Fₙ` converges to `f` uniformly.
 
 ## Implementation details
 
@@ -177,7 +183,7 @@ begin
     and_imp, prod.forall],
   refine forall_congr (λ K, _),
   rw forall_swap,
-  exact forall_congr (λ hK, forall_congr (λ V, forall_congr (λ hV, iff.rfl))),
+  exact forall₃_congr (λ hK V hV, iff.rfl),
 end
 
 /-- Any point of `compact_open.gen K U` is also an interior point wrt the topology of compact
@@ -218,9 +224,9 @@ begin
   let C : t → set α := λ i, K ∩ closure (U ((i : K) : α)),
   have hC : K ⊆ ⋃ i, C i,
   { rw [← K.inter_Union, subset_inter_iff],
-    refine ⟨rfl.subset, ht.trans _⟩,
+    refine ⟨subset.rfl, ht.trans _⟩,
     simp only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
-    exact λ x hx₁ hx₂, subset_subset_Union (⟨_, hx₂⟩ : t) (by simp [subset_closure]), },
+    exact λ x hx₁ hx₂, subset_Union_of_subset (⟨_, hx₂⟩ : t) (by simp [subset_closure]) },
   have hfC : ∀ (i : t), C i ⊆ f ⁻¹' ball (f ((i : K) : α)) W,
   { simp only [← image_subset_iff, ← mem_preimage],
     rintros ⟨⟨x, hx₁⟩, hx₂⟩,
@@ -279,7 +285,7 @@ begin
   rw [compact_convergence_uniformity,
     (filter.has_basis_binfi_principal _ compact_conv_nhd_compact_entourage_nonempty).mem_iff],
   { simp only [exists_prop, prod.forall, set_of_subset_set_of, mem_set_of_eq, prod.exists],
-    exact exists_congr (λ K, exists_congr (λ V, by tauto)), },
+    exact exists₂_congr (λ K V, by tauto) },
   { rintros ⟨K₁, V₁⟩ ⟨hK₁, hV₁⟩ ⟨K₂, V₂⟩ ⟨hK₂, hV₂⟩,
     refine ⟨⟨K₁ ∪ K₂, V₁ ∩ V₂⟩, ⟨hK₁.union hK₂, filter.inter_mem hV₁ hV₂⟩, _⟩,
     simp only [le_eq_subset, prod.forall, set_of_subset_set_of, ge_iff_le, order.preimage,
@@ -324,11 +330,10 @@ instance compact_convergence_uniform_space : uniform_space C(α, β) :=
   is_open_uniformity :=
     begin
       rw compact_open_eq_compact_convergence,
-      refine λ Y, forall_congr (λ f, forall_congr (λ hf, _)),
+      refine λ Y, forall₂_congr (λ f hf, _),
       simp only [mem_compact_convergence_nhd_filter, mem_compact_convergence_uniformity,
         prod.forall, set_of_subset_set_of, compact_conv_nhd],
-      refine exists_congr (λ K, exists_congr (λ V, exists_congr (λ hK, exists_congr (λ hV, _)))),
-      refine ⟨_, λ hY g hg, hY f g hg rfl⟩,
+      refine exists₄_congr (λ K V hK hV, ⟨_, λ hY g hg, hY f g hg rfl⟩),
       rintros hY g₁ g₂ hg₁ rfl,
       exact hY hg₁,
     end }
@@ -343,10 +348,45 @@ lemma has_basis_compact_convergence_uniformity :
             (λ p, { fg : C(α, β) × C(α, β) | ∀ x ∈ p.1, (fg.1 x, fg.2 x) ∈ p.2 }) :=
 ⟨λ t, by { simp only [mem_compact_convergence_entourage_iff, prod.exists], tauto, }⟩
 
-lemma tendsto_iff_forall_compact_tendsto_uniformly_on
-  {ι : Type u₃} {p : filter ι} {F : ι → C(α, β)} :
-  filter.tendsto F p (𝓝 f) ↔ ∀ K, is_compact K → tendsto_uniformly_on (λ i a, F i a) f p K :=
+variables {ι : Type u₃} {p : filter ι} {F : ι → C(α, β)} {f}
+
+lemma tendsto_iff_forall_compact_tendsto_uniformly_on :
+  tendsto F p (𝓝 f) ↔ ∀ K, is_compact K → tendsto_uniformly_on (λ i a, F i a) f p K :=
 by rw [compact_open_eq_compact_convergence, tendsto_iff_forall_compact_tendsto_uniformly_on']
+
+/-- Locally uniform convergence implies convergence in the compact-open topology. -/
+lemma tendsto_of_tendsto_locally_uniformly
+  (h : tendsto_locally_uniformly (λ i a, F i a) f p) : tendsto F p (𝓝 f) :=
+begin
+  rw tendsto_iff_forall_compact_tendsto_uniformly_on,
+  intros K hK,
+  rw ← tendsto_locally_uniformly_on_iff_tendsto_uniformly_on_of_compact hK,
+  exact h.tendsto_locally_uniformly_on,
+end
+
+/-- If every point has a compact neighbourhood, then convergence in the compact-open topology
+implies locally uniform convergence.
+
+See also `tendsto_iff_tendsto_locally_uniformly`, especially for T2 spaces. -/
+lemma tendsto_locally_uniformly_of_tendsto
+  (hα : ∀ x : α, ∃ n, is_compact n ∧ n ∈ 𝓝 x) (h : tendsto F p (𝓝 f)) :
+  tendsto_locally_uniformly (λ i a, F i a) f p :=
+begin
+  rw tendsto_iff_forall_compact_tendsto_uniformly_on at h,
+  intros V hV x,
+  obtain ⟨n, hn₁, hn₂⟩ := hα x,
+  exact ⟨n, hn₂, h n hn₁ V hV⟩,
+end
+
+/-- Convergence in the compact-open topology is the same as locally uniform convergence on a locally
+compact space.
+
+For non-T2 spaces, the assumption `locally_compact_space α` is stronger than we need and in fact
+the `←` direction is true unconditionally. See `tendsto_locally_uniformly_of_tendsto` and
+`tendsto_of_tendsto_locally_uniformly` for versions requiring weaker hypotheses. -/
+lemma tendsto_iff_tendsto_locally_uniformly [locally_compact_space α] :
+  tendsto F p (𝓝 f) ↔ tendsto_locally_uniformly (λ i a, F i a) f p :=
+⟨tendsto_locally_uniformly_of_tendsto exists_compact_mem_nhds, tendsto_of_tendsto_locally_uniformly⟩
 
 section compact_domain
 
@@ -361,9 +401,8 @@ has_basis_compact_convergence_uniformity.to_has_basis
 
 /-- Convergence in the compact-open topology is the same as uniform convergence for sequences of
 continuous functions on a compact space. -/
-lemma tendsto_iff_tendsto_uniformly
-  {ι : Type u₃} {p : filter ι} {F : ι → C(α, β)} :
-  filter.tendsto F p (𝓝 f) ↔ tendsto_uniformly (λ i a, F i a) f p :=
+lemma tendsto_iff_tendsto_uniformly :
+  tendsto F p (𝓝 f) ↔ tendsto_uniformly (λ i a, F i a) f p :=
 begin
   rw [tendsto_iff_forall_compact_tendsto_uniformly_on, ← tendsto_uniformly_on_univ],
   exact ⟨λ h, h univ compact_univ, λ h K hK, h.mono (subset_univ K)⟩,

@@ -476,7 +476,7 @@ variables (M)
     binary relations on `M`. -/
 @[to_additive "There is a Galois insertion of additive congruence relations on a type with
 an addition `M` into binary relations on `M`."]
-protected noncomputable def gi :
+protected def gi :
   @galois_insertion (M → M → Prop) (con M) _ _ con_gen coe_fn :=
 { choice := λ r h, con_gen r,
   gc := λ r c, ⟨λ H _ _ h, H $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
@@ -907,14 +907,14 @@ function.surjective.comm_semigroup _ quotient.surjective_quotient_mk' (λ _ _, r
 @[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
 an `add_monoid`."]
 instance monoid {M : Type*} [monoid M] (c : con M) : monoid c.quotient :=
-function.surjective.monoid_pow _ quotient.surjective_quotient_mk' rfl (λ _ _, rfl) (λ _ _, rfl)
+function.surjective.monoid _ quotient.surjective_quotient_mk' rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
 @[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
 relation is an `add_comm_monoid`."]
 instance comm_monoid {M : Type*} [comm_monoid M] (c : con M) :
   comm_monoid c.quotient :=
-{ ..c.comm_semigroup, ..c.monoid}
+function.surjective.comm_monoid _ quotient.surjective_quotient_mk' rfl (λ _ _, rfl) (λ _ _, rfl)
 
 end monoids
 
@@ -972,7 +972,7 @@ instance has_zpow : has_pow c.quotient ℤ :=
 @[to_additive "The quotient of an `add_group` by an additive congruence relation is
 an `add_group`."]
 instance group : group c.quotient :=
-function.surjective.group_pow _ quotient.surjective_quotient_mk' rfl
+function.surjective.group _ quotient.surjective_quotient_mk' rfl
   (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end groups

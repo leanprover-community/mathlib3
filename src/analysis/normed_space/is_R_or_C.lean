@@ -5,6 +5,7 @@ Authors: Kalle Kytölä
 -/
 import data.complex.is_R_or_C
 import analysis.normed_space.operator_norm
+import analysis.normed_space.pointwise
 
 /-!
 # Normed spaces over R or C
@@ -27,7 +28,7 @@ This file exists mainly to avoid importing `is_R_or_C` in the main normed space 
 
 open metric
 
-@[simp] lemma is_R_or_C.norm_coe_norm {𝕜 : Type*} [is_R_or_C 𝕜]
+@[simp, is_R_or_C_simps] lemma is_R_or_C.norm_coe_norm {𝕜 : Type*} [is_R_or_C 𝕜]
   {E : Type*} [normed_group E] {z : E} : ∥(∥z∥ : 𝕜)∥ = ∥z∥ :=
 by { unfold_coes, simp only [norm_algebra_map_eq, ring_hom.to_fun_eq_coe, norm_norm], }
 
@@ -45,7 +46,7 @@ lemma norm_smul_inv_norm' {r : ℝ} (r_nonneg : 0 ≤ r) {x : E} (hx : x ≠ 0) 
   ∥(r * ∥x∥⁻¹ : 𝕜) • x∥ = r :=
 begin
   have : ∥x∥ ≠ 0 := by simp [hx],
-  field_simp [norm_smul, is_R_or_C.norm_of_real, is_R_or_C.norm_eq_abs, r_nonneg]
+  field_simp [norm_smul, is_R_or_C.norm_eq_abs, r_nonneg] with is_R_or_C_simps
 end
 
 lemma linear_map.bound_of_sphere_bound
@@ -64,7 +65,7 @@ begin
   { rw [hz₁, linear_map.map_smul, smul_eq_mul],
     rw [← mul_assoc, ← mul_assoc, div_mul_cancel _ r_ne_zero, mul_inv_cancel, one_mul],
     simp only [z_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero, ne.def, not_false_iff], },
-  rw [eq, normed_field.norm_mul, normed_field.norm_div, is_R_or_C.norm_coe_norm,
+  rw [eq, norm_mul, norm_div, is_R_or_C.norm_coe_norm,
       is_R_or_C.norm_of_nonneg r_pos.le, div_mul_eq_mul_div, div_mul_eq_mul_div, mul_comm],
   apply div_le_div _ _ r_pos rfl.ge,
   { exact mul_nonneg ((norm_nonneg _).trans norm_f_z₁) (norm_nonneg z), },
@@ -89,4 +90,13 @@ begin
           (h 0 (by simp only [norm_zero, mem_closed_ball, dist_zero_left, r_pos.le])), },
   apply linear_map.bound_of_ball_bound' r_pos,
   exact λ z hz, h z hz,
+end
+
+variables (𝕜)
+include 𝕜
+lemma normed_space.sphere_nonempty_is_R_or_C [nontrivial E] {r : ℝ} (hr : 0 ≤ r) :
+  nonempty (sphere (0:E) r) :=
+begin
+  letI : normed_space ℝ E := normed_space.restrict_scalars ℝ 𝕜 E,
+  exact (sphere (0:E) r).nonempty_coe_sort.mpr (normed_space.sphere_nonempty.mpr hr),
 end

@@ -18,9 +18,9 @@ multiplication of bounded sets remain bounded.
 open metric set
 open_locale pointwise topological_space
 
-section semi_normed_space
+section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E]
+variables {𝕜 : Type*} [normed_field 𝕜] {E : Type*} [semi_normed_group E] [normed_space 𝕜 E]
 
 theorem smul_ball {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (∥c∥ * r) :=
@@ -37,7 +37,7 @@ begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp only [mem_sphere, dist_smul, normed_field.norm_inv, ← div_eq_inv_mul,
+  simp only [mem_sphere, dist_smul, norm_inv, ← div_eq_inv_mul,
     div_eq_iff (norm_pos_iff.2 hc).ne', mul_comm r],
 end
 
@@ -89,8 +89,7 @@ begin
   obtain ⟨R, Rpos, hR⟩ : ∃ (R : ℝ), 0 < R ∧ s ⊆ closed_ball 0 R := hs.subset_ball_lt 0 0,
   have : metric.closed_ball (0 : 𝕜) (ε / R) ∈ 𝓝 (0 : 𝕜) :=
     closed_ball_mem_nhds _ (div_pos εpos Rpos),
-  filter_upwards [this],
-  assume r hr,
+  filter_upwards [this] with r hr,
   simp only [image_add_left, singleton_add],
   assume y hy,
   obtain ⟨z, zs, hz⟩ : ∃ (z : E), z ∈ s ∧ r • z = -x + y, by simpa [mem_smul_set] using hy,
@@ -123,7 +122,7 @@ begin
   rw [smul_smul, inv_mul_cancel hc, one_smul],
 end
 
-end semi_normed_space
+end normed_space
 
 section normed_space
 

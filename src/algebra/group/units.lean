@@ -58,7 +58,7 @@ attribute [to_additive add_units] units
 section has_elem
 
 @[to_additive] lemma unique_has_one {α : Type*} [unique α] [has_one α] :
-  default α = 1 :=
+  default = (1 : α) :=
 unique.default_eq 1
 
 end has_elem

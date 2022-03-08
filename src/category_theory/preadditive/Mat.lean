@@ -271,7 +271,7 @@ instance : functor.additive (embedding C) := {}
 
 end embedding
 
-instance [inhabited C] : inhabited (Mat_ C) := ⟨(embedding C).obj (default C)⟩
+instance [inhabited C] : inhabited (Mat_ C) := ⟨(embedding C).obj default⟩
 
 open category_theory.limits
 
@@ -331,6 +331,8 @@ variables [has_finite_biproducts D]
 begin
   -- This is disappointingly tedious.
   ext,
+  simp only [additive_obj_iso_biproduct_hom, category.assoc, biproduct.lift_π, functor.map_bicone_π,
+    biproduct.bicone_π, biproduct.lift_matrix],
   dsimp [embedding],
   simp only [←F.map_comp, biproduct.lift_π, biproduct.matrix_π, category.assoc],
   simp only [←F.map_comp, ←F.map_sum, biproduct.lift_desc, biproduct.lift_π_assoc, comp_sum],

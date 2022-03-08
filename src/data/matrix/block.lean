@@ -362,13 +362,8 @@ end
   (block_diagonal' M)ᵀ = block_diagonal' (λ k, (M k)ᵀ) :=
 begin
   ext ⟨ii, ix⟩ ⟨ji, jx⟩,
-  simp only [transpose_apply, block_diagonal'_apply, eq_comm],
-  dsimp only,
-  split_ifs with h₁ h₂ h₂,
-  { subst h₁, refl, },
-  { exact (h₂ h₁.symm).elim },
-  { exact (h₁ h₂.symm).elim },
-  { refl }
+  simp only [transpose_apply, block_diagonal'_apply],
+  split_ifs; cc
 end
 
 @[simp] lemma block_diagonal'_conj_transpose {α} [semiring α] [star_ring α]
@@ -388,11 +383,7 @@ by { ext, simp [block_diagonal'_apply] }
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
   simp only [block_diagonal'_apply, diagonal],
-  split_ifs; -- `finish` can close these goals
-  try { refl }; exfalso,
-  { exact h_2 ⟨h, (cast_eq_iff_heq.mp h_1.symm).symm⟩ },
-  { exact h_1 (cast_eq_iff_heq.mpr h_2.right.symm).symm },
-  { tauto },
+  split_ifs; cc
 end
 
 @[simp] lemma block_diagonal'_one [∀ i, decidable_eq (m' i)] [has_one α] :

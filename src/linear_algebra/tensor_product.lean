@@ -274,6 +274,13 @@ instance left_module : module R'' (M ⊗[R] N) :=
 
 instance : module R (M ⊗[R] N) := tensor_product.left_module
 
+instance [module R''ᵐᵒᵖ M] [is_central_scalar R'' M] : is_central_scalar R'' (M ⊗[R] N) :=
+{ op_smul_eq_smul := λ r x,
+  tensor_product.induction_on x
+    (by rw [smul_zero, smul_zero])
+    (λ x y, by rw [smul_tmul', smul_tmul', op_smul_eq_smul])
+    (λ x y hx hy, by rw [smul_add, smul_add, hx, hy]) }
+
 section
 
 -- Like `R'`, `R'₂` provides a `distrib_mul_action R'₂ (M ⊗[R] N)`

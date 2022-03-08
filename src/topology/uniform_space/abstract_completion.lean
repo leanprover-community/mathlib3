@@ -84,11 +84,14 @@ lemma induction_on {p : hatα → Prop}
   (a : hatα) (hp : is_closed {a | p a}) (ih : ∀ a, p (ι a)) : p a :=
 is_closed_property pkg.dense hp ih a
 
-variables {β : Type*} [uniform_space β]
+variables {β : Type*}
 
-protected lemma funext [t2_space β] {f g : hatα → β} (hf : continuous f) (hg : continuous g)
+protected lemma funext [topological_space β] [t2_space β] {f g : hatα → β}
+  (hf : continuous f) (hg : continuous g)
   (h : ∀ a, f (ι a) = g (ι a)) : f = g :=
 funext $ assume a, pkg.induction_on a (is_closed_eq hf hg) h
+
+variables [uniform_space β]
 
 section extend
 /-- Extension of maps to completions -/
@@ -104,7 +107,7 @@ lemma extend_def (hf : uniform_continuous f) : pkg.extend f = pkg.dense_inducing
 if_pos hf
 
 lemma extend_coe [t2_space β] (hf : uniform_continuous f) (a : α) :
-(pkg.extend f) (ι a) = f a :=
+  (pkg.extend f) (ι a) = f a :=
 begin
   rw pkg.extend_def hf,
   exact pkg.dense_inducing.extend_eq hf.continuous a

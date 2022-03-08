@@ -329,7 +329,7 @@ lemma cast_pow (h : m ∣ n) (a : zmod n) (k : ℕ) : ((a ^ k : zmod n) : R) = a
 
 @[simp, norm_cast]
 lemma cast_nat_cast (h : m ∣ n) (k : ℕ) : ((k : zmod n) : R) = k :=
-(cast_hom h R).map_nat_cast k
+map_nat_cast (cast_hom h R) k
 
 @[simp, norm_cast]
 lemma cast_int_cast (h : m ∣ n) (k : ℤ) : ((k : zmod n) : R) = k :=
@@ -884,7 +884,7 @@ lemma ring_hom_eq_of_ker_eq [comm_ring R] (f g : R →+* (zmod n))
 begin
   have := f.lift_of_right_inverse_comp _ (zmod.ring_hom_right_inverse f) ⟨g, le_of_eq h⟩,
   rw subtype.coe_mk at this,
-  rw [←this, ring_hom.ext_zmod (f.lift_of_right_inverse _ _ _) (ring_hom.id _), ring_hom.id_comp],
+  rw [←this, ring_hom.ext_zmod (f.lift_of_right_inverse _ _ ⟨g, _⟩) _, ring_hom.id_comp],
 end
 
 section lift

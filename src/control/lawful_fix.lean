@@ -57,10 +57,9 @@ end
 
 lemma approx_mono ⦃i j : ℕ⦄ (hij : i ≤ j) : approx f i ≤ approx f j :=
 begin
-  induction j, cases hij, refine @le_refl _ _ _,
-  cases hij, apply @le_refl _ _ _,
-  apply @le_trans _ _ _ (approx f j_n) _ (j_ih ‹_›),
-  apply approx_mono' f
+  induction j with j ih, { cases hij, exact le_rfl },
+  cases hij, { exact le_rfl },
+  exact le_trans (ih ‹_›) (approx_mono' f)
 end
 
 lemma mem_iff (a : α) (b : β a) : b ∈ part.fix f a ↔ ∃ i, b ∈ approx f i a :=

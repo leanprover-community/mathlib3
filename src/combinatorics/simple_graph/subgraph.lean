@@ -65,6 +65,9 @@ namespace subgraph
 
 variables {V : Type u} {G : simple_graph V}
 
+protected lemma loopless (G' : subgraph G) : irreflexive G'.adj :=
+λ v h, G.loopless v (G'.adj_sub h)
+
 lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 ⟨λ x, G'.symm x, λ x, G'.symm x⟩
 
@@ -93,8 +96,8 @@ In general, this adds in all vertices from `V` as isolated vertices. -/
   symm := G'.symm,
   loopless := λ v hv, G.loopless v (G'.adj_sub hv) }
 
-@[simp] lemma spanning_coe_adj_sub (H : subgraph G) (u v : H.verts) (h : H.spanning_coe.adj u v) :
-  G.adj u v := H.adj_sub h
+@[simp] lemma adj.of_spanning_coe {G' : subgraph G} {u v : G'.verts}
+  (h : G'.spanning_coe.adj u v) : G.adj u v := G'.adj_sub h
 
 /-- `spanning_coe` is equivalent to `coe` for a subgraph that `is_spanning`.  -/
 @[simps] def spanning_coe_equiv_coe_of_spanning (G' : subgraph G) (h : G'.is_spanning) :
@@ -122,6 +125,9 @@ def neighbor_set (G' : subgraph G) (v : V) : set V := set_of (G'.adj v)
 
 lemma neighbor_set_subset (G' : subgraph G) (v : V) : G'.neighbor_set v ⊆ G.neighbor_set v :=
 λ w h, G'.adj_sub h
+
+lemma neighbor_set_subset_verts (G' : subgraph G) (v : V) : G'.neighbor_set v ⊆ G'.verts :=
+λ _ h, G'.edge_vert (adj_symm G' h)
 
 @[simp] lemma mem_neighbor_set (G' : subgraph G) (v w : V) : w ∈ G'.neighbor_set v ↔ G'.adj v w :=
 iff.rfl
@@ -374,9 +380,17 @@ def finite_at_of_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj]
    fintype (G'.neighbor_set v) :=
 set.fintype_subset (G''.neighbor_set v) (neighbor_set_subset_of_subgraph h v)
 
+instance (G' : subgraph G) [fintype G'.verts]
+  (v : V) [decidable_pred (∈ G'.neighbor_set v)] : fintype (G'.neighbor_set v) :=
+set.fintype_subset G'.verts (neighbor_set_subset_verts G' v)
+
 instance coe_finite_at {G' : subgraph G} (v : G'.verts) [fintype (G'.neighbor_set v)] :
   fintype (G'.coe.neighbor_set v) :=
 fintype.of_equiv _ (coe_neighbor_set_equiv v).symm
+
+lemma is_spanning.card_verts [fintype V] {G' : subgraph G} [fintype G'.verts]
+  (h : G'.is_spanning) : G'.verts.to_finset.card = fintype.card V :=
+by { rw is_spanning_iff at h, simpa [h] }
 
 /-- The degree of a vertex in a subgraph. It's zero for vertices outside the subgraph. -/
 def degree (G' : subgraph G) (v : V) [fintype (G'.neighbor_set v)] : ℕ :=
@@ -405,6 +419,11 @@ begin
   rw ←card_neighbor_set_eq_degree,
   exact fintype.card_congr (coe_neighbor_set_equiv v),
 end
+
+@[simp] lemma degree_spanning_coe {G' : G.subgraph} (v : V) [fintype (G'.neighbor_set v)]
+  [fintype (G'.spanning_coe.neighbor_set v)] :
+  G'.spanning_coe.degree v = G'.degree v :=
+by { rw [← card_neighbor_set_eq_degree, subgraph.degree], congr }
 
 lemma degree_eq_one_iff_unique_adj {G' : subgraph G} {v : V} [fintype (G'.neighbor_set v)] :
   G'.degree v = 1 ↔ ∃! (w : V), G'.adj v w :=

@@ -86,3 +86,39 @@ periodic_exp_map_circle.sub_eq x
 
 lemma exp_map_circle_add_two_pi (x : ℝ) : exp_map_circle (x + 2 * π) = exp_map_circle x :=
 periodic_exp_map_circle x
+
+/-- `exp_map_circle`, applied to a `real.angle`. -/
+noncomputable def real.angle.exp_map_circle (θ : real.angle) : circle :=
+periodic_exp_map_circle.lift θ
+
+@[simp] lemma real.angle.exp_map_circle_coe (x : ℝ) :
+  real.angle.exp_map_circle x = exp_map_circle x :=
+rfl
+
+@[simp] lemma real.angle.exp_map_circle_zero :
+  real.angle.exp_map_circle 0 = 1 :=
+by rw [←real.angle.coe_zero, real.angle.exp_map_circle_coe, exp_map_circle_zero]
+
+@[simp] lemma real.angle.exp_map_circle_neg (θ : real.angle) :
+  real.angle.exp_map_circle (-θ) = (real.angle.exp_map_circle θ)⁻¹ :=
+begin
+  induction θ using real.angle.induction_on,
+  simp_rw [←real.angle.coe_neg, real.angle.exp_map_circle_coe, exp_map_circle_neg]
+end
+
+@[simp] lemma real.angle.exp_map_circle_add (θ₁ θ₂ : real.angle) :
+  real.angle.exp_map_circle (θ₁ + θ₂) =
+    (real.angle.exp_map_circle θ₁) * (real.angle.exp_map_circle θ₂) :=
+begin
+  induction θ₁ using real.angle.induction_on,
+  induction θ₂ using real.angle.induction_on,
+  exact exp_map_circle_add θ₁ θ₂
+end
+
+@[simp] lemma real.angle.arg_exp_map_circle (θ : real.angle) :
+  (arg (real.angle.exp_map_circle θ) : real.angle) = θ :=
+begin
+  induction θ using real.angle.induction_on,
+  rw [real.angle.exp_map_circle_coe, exp_map_circle_apply, exp_mul_I, ←of_real_cos,
+      ←of_real_sin, ←real.angle.cos_coe, ←real.angle.sin_coe, arg_cos_add_sin_mul_I_coe_angle]
+end

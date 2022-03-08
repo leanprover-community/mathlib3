@@ -42,7 +42,7 @@ vectors.
   over an auxiliary `s : finset ι`;
 * `linear_independent_empty_type`: a family indexed by an empty type is linearly independent;
 * `linear_independent_unique_iff`: if `ι` is a singleton, then `linear_independent K v` is
-  equivalent to `v (default ι) ≠ 0`;
+  equivalent to `v default ≠ 0`;
 * linear_independent_option`, `linear_independent_sum`, `linear_independent_fin_cons`,
   `linear_independent_fin_succ`: type-specific tests for linear independence of families of vector
   fields;
@@ -405,7 +405,7 @@ begin
     refine linear_independent_of_finite (⋃ i, s i) (λ t ht ft, _),
     rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
     rcases hs.finset_le fi.to_finset with ⟨i, hi⟩,
-    exact (h i).mono (subset.trans hI $ bUnion_subset $
+    exact (h i).mono (subset.trans hI $ Union₂_subset $
       λ j hj, hi j (fi.mem_to_finset.2 hj)) },
   { refine (linear_independent_empty _ _).mono _,
     rintro _ ⟨_, ⟨i, _⟩, _⟩, exact hη ⟨i⟩ }
@@ -655,7 +655,7 @@ begin
   rw [Union_eq_Union_finset f],
   apply linear_independent_Union_of_directed,
   { apply directed_of_sup,
-    exact (λ t₁ t₂ ht, Union_subset_Union $ λ i, Union_subset_Union_const $ λ h, ht h) },
+    exact (λ t₁ t₂ ht, Union_mono $ λ i, Union_subset_Union_const $ λ h, ht h) },
   assume t,
   induction t using finset.induction_on with i s his ih,
   { refine (linear_independent_empty _ _).mono _,
@@ -712,7 +712,7 @@ apply linear_equiv.of_bijective
 { rw [← linear_map.range_eq_top, linear_map.range_eq_map, linear_map.map_cod_restrict,
     ← linear_map.range_le_iff_comap, range_subtype, map_top],
   rw finsupp.range_total,
-  apply le_refl (span R (range v)) },
+  exact le_rfl },
 { intro l,
   rw ← finsupp.range_total,
   rw linear_map.mem_range,
@@ -1026,11 +1026,11 @@ variables {v : ι → M} {s t : set M} {x y z : M}
 
 lemma linear_independent_unique_iff
   (v : ι → M) [unique ι] :
-  linear_independent R v ↔ v (default ι) ≠ 0 :=
+  linear_independent R v ↔ v default ≠ 0 :=
 begin
   simp only [linear_independent_iff, finsupp.total_unique, smul_eq_zero],
   refine ⟨λ h hv, _, λ hv l hl, finsupp.unique_ext $ hl.resolve_right hv⟩,
-  have := h (finsupp.single (default ι) 1) (or.inr hv),
+  have := h (finsupp.single default 1) (or.inr hv),
   exact one_ne_zero (finsupp.single_eq_zero.1 this)
 end
 
@@ -1166,7 +1166,7 @@ lemma linear_independent_fin2 {f : fin 2 → V} :
   linear_independent K f ↔ f 1 ≠ 0 ∧ ∀ a : K, a • f 1 ≠ f 0 :=
 by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
   mem_span_singleton, not_exists,
-  show fin.tail f (default (fin 1)) = f 1, by rw ← fin.succ_zero_eq_one; refl]
+  show fin.tail f default = f 1, by rw ← fin.succ_zero_eq_one; refl]
 
 lemma exists_linear_independent_extension (hs : linear_independent K (coe : s → V)) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (coe : b → V) :=

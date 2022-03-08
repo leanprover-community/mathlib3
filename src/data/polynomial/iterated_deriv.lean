@@ -16,7 +16,7 @@ We define and prove some lemmas about iterated (formal) derivative for polynomia
 noncomputable theory
 
 open finset nat polynomial
-open_locale big_operators
+open_locale big_operators polynomial
 
 namespace polynomial
 universes u
@@ -24,17 +24,17 @@ variable {R : Type u}
 
 section semiring
 
-variables [semiring R] (r : R) (f p q : polynomial R) (n k : ℕ)
+variables [semiring R] (r : R) (f p q : R[X]) (n k : ℕ)
 
 /-- `iterated_deriv f n` is the `n`-th formal derivative of the polynomial `f` -/
-def iterated_deriv : polynomial R := derivative ^[n] f
+def iterated_deriv : R[X] := derivative ^[n] f
 
 @[simp] lemma iterated_deriv_zero_right : iterated_deriv f 0 = f := rfl
 
 lemma iterated_deriv_succ : iterated_deriv f (n + 1) = (iterated_deriv f n).derivative :=
 by rw [iterated_deriv, iterated_deriv, function.iterate_succ']
 
-@[simp] lemma iterated_deriv_zero_left : iterated_deriv (0 : polynomial R) n = 0 :=
+@[simp] lemma iterated_deriv_zero_left : iterated_deriv (0 : R[X]) n = 0 :=
 begin
   induction n with n hn,
   { exact iterated_deriv_zero_right _ },
@@ -56,13 +56,13 @@ begin
   { simp only [iterated_deriv_succ, ih, derivative_smul] }
 end
 
-@[simp] lemma iterated_deriv_X_zero : iterated_deriv (X : polynomial R) 0 = X :=
+@[simp] lemma iterated_deriv_X_zero : iterated_deriv (X : R[X]) 0 = X :=
 by simp only [iterated_deriv_zero_right]
 
-@[simp] lemma iterated_deriv_X_one : iterated_deriv (X : polynomial R) 1 = 1 :=
+@[simp] lemma iterated_deriv_X_one : iterated_deriv (X : R[X]) 1 = 1 :=
 by simp only [iterated_deriv, derivative_X, function.iterate_one]
 
-@[simp] lemma iterated_deriv_X (h : 1 < n) : iterated_deriv (X : polynomial R) n = 0 :=
+@[simp] lemma iterated_deriv_X (h : 1 < n) : iterated_deriv (X : R[X]) n = 0 :=
 begin
   induction n with n ih,
   { exfalso, exact nat.not_lt_zero 1 h },
@@ -87,19 +87,19 @@ begin
       rw [iterated_deriv_succ, ih h], simp only [derivative_zero] } }
 end
 
-@[simp] lemma iterated_deriv_one_zero : iterated_deriv (1 : polynomial R) 0 = 1 :=
+@[simp] lemma iterated_deriv_one_zero : iterated_deriv (1 : R[X]) 0 = 1 :=
 by simp only [iterated_deriv_zero_right]
 
-@[simp] lemma iterated_deriv_one : 0 < n → iterated_deriv (1 : polynomial R) n = 0 := λ h,
+@[simp] lemma iterated_deriv_one : 0 < n → iterated_deriv (1 : R[X]) n = 0 := λ h,
 begin
-  have eq1 : (1 : polynomial R) = C 1 := by simp only [ring_hom.map_one],
+  have eq1 : (1 : R[X]) = C 1 := by simp only [ring_hom.map_one],
   rw eq1, exact iterated_deriv_C _ _ h,
 end
 
 end semiring
 
 section ring
-variables [ring R] (p q : polynomial R) (n : ℕ)
+variables [ring R] (p q : R[X]) (n : ℕ)
 
 @[simp] lemma iterated_deriv_neg : iterated_deriv (-p) n = - iterated_deriv p n :=
 begin
@@ -117,7 +117,7 @@ end ring
 
 section comm_semiring
 variable [comm_semiring R]
-variables (f p q : polynomial R) (n k : ℕ)
+variables (f p q : R[X]) (n k : ℕ)
 
 lemma coeff_iterated_deriv_as_prod_Ico :
   ∀ m : ℕ, (iterated_deriv f k).coeff m = (∏ i in Ico m.succ (m + k.succ), i) * (f.coeff (m+k)) :=

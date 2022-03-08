@@ -141,7 +141,7 @@ begin
   refl,
 end
 
-lemma basic_open_res {U V : (opens X)ᵒᵖ} (i : U ⟶ V) (f : X.presheaf.obj U) :
+@[simp] lemma basic_open_res {U V : (opens X)ᵒᵖ} (i : U ⟶ V) (f : X.presheaf.obj U) :
   @basic_open X (unop V) (X.presheaf.map i f) = (unop V) ∩ @basic_open X (unop U) f :=
 begin
   induction U using opposite.rec,
@@ -155,6 +155,41 @@ begin
     split,
     { change is_unit _, rw germ_res_apply, exact hx },
     { refl } }
+end
+
+-- This should fire before `basic_open_res`.
+@[simp, priority 1100] lemma basic_open_res_eq {U V : (opens X)ᵒᵖ} (i : U ⟶ V) [is_iso i]
+  (f : X.presheaf.obj U) :
+  @basic_open X (unop V) (X.presheaf.map i f) = @RingedSpace.basic_open X (unop U) f :=
+begin
+  apply le_antisymm,
+  { rw X.basic_open_res i f, exact inf_le_right },
+  { have := X.basic_open_res (inv i) (X.presheaf.map i f),
+    rw [← comp_apply, ← X.presheaf.map_comp, is_iso.hom_inv_id, X.presheaf.map_id] at this,
+    erw this,
+    exact inf_le_right }
+end
+
+@[simp] lemma basic_open_mul {U : opens X} (f g : X.presheaf.obj (op U)) :
+  X.basic_open (f * g) = X.basic_open f ⊓ X.basic_open g :=
+begin
+  ext1,
+  dsimp [RingedSpace.basic_open],
+  rw set.image_inter subtype.coe_injective,
+  congr,
+  ext,
+  simp_rw map_mul,
+  exact is_unit.mul_iff,
+end
+
+lemma basic_open_of_is_unit {U : opens X} {f : X.presheaf.obj (op U)} (hf : is_unit f) :
+  X.basic_open f = U :=
+begin
+  apply le_antisymm,
+  { exact X.basic_open_subset f },
+  intros x hx,
+  erw X.mem_basic_open f (⟨x, hx⟩ : U),
+  exact ring_hom.is_unit_map _ hf
 end
 
 end RingedSpace

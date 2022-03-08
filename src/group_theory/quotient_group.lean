@@ -30,7 +30,7 @@ proves Noether's first and second isomorphism theorems.
   isomorphism between `H/(H ∩ N)` and `(HN)/N` given a subgroup `H` and a normal subgroup `N` of a
   group `G`.
 * `quotient_group.quotient_quotient_equiv_quotient`: Noether's third isomorphism theorem,
-  the canonical isomorphism between `(G / M) / (M / N)` and `G / N`, where `N ≤ M`.
+  the canonical isomorphism between `(G / N) / (M / N)` and `G / M`, where `N ≤ M`.
 
 ## Tags
 
@@ -404,5 +404,19 @@ top_unique $ λ x _,
   by rwa [one_inv, one_mul] at this
 
 end trivial
+
+@[to_additive quotient_add_grup.comap_comap_center]
+lemma comap_comap_center {H₁ : subgroup G} [H₁.normal] {H₂ : subgroup (G ⧸ H₁)} [H₂.normal] :
+  (((subgroup.center ((G ⧸ H₁) ⧸ H₂))).comap (mk' H₂)).comap (mk' H₁) =
+  (subgroup.center (G ⧸ H₂.comap (mk' H₁))).comap (mk' (H₂.comap (mk' H₁))) :=
+begin
+  ext x,
+  simp only [mk'_apply, subgroup.mem_comap, subgroup.mem_center_iff, forall_coe],
+  apply forall_congr,
+  change ∀ (y : G), (↑↑(y * x) = ↑↑(x * y) ↔ ↑(y * x) = ↑(x * y)),
+  intro y,
+  repeat { rw [eq_iff_div_mem] },
+  simp,
+end
 
 end quotient_group

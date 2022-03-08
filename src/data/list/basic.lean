@@ -9,7 +9,7 @@ import data.nat.basic
 # Basic properties of lists
 -/
 
-open function nat
+open function nat (hiding one_pos)
 
 namespace list
 universes u v w x
@@ -772,6 +772,10 @@ theorem last'_append_of_ne_nil (l₁ : list α) : ∀ {l₂ : list α} (hl₂ : 
 | [] hl₂ := by contradiction
 | (b::l₂) _ := last'_append_cons l₁ b l₂
 
+theorem last'_append {l₁ l₂ : list α} {x : α} (h : x ∈ l₂.last') :
+  x ∈ (l₁ ++ l₂).last' :=
+by { cases l₂, { contradiction, }, { rw list.last'_append_cons, exact h } }
+
 /-! ### head(') and tail -/
 
 theorem head_eq_head' [inhabited α] (l : list α) : head l = (head' l).iget :=
@@ -794,6 +798,11 @@ by {induction s, contradiction, refl}
 theorem head'_append {s t : list α} {x : α} (h : x ∈ s.head') :
   x ∈ (s ++ t).head' :=
 by { cases s, contradiction, exact h }
+
+theorem head'_append_of_ne_nil : ∀ (l₁ : list α) {l₂ : list α} (hl₁ : l₁ ≠ []),
+  head' (l₁ ++ l₂) = head' l₁
+| [] _ hl₁ := by contradiction
+| (x::l₁) _ _ := rfl
 
 theorem tail_append_singleton_of_ne_nil {a : α} {l : list α} (h : l ≠ nil) :
   tail (l ++ [a]) = tail l ++ [a] :=
@@ -1633,8 +1642,11 @@ end
 theorem map_concat (f : α → β) (a : α) (l : list α) : map f (concat l a) = concat (map f l) (f a) :=
 by induction l; [refl, simp only [*, concat_eq_append, cons_append, map, map_append]]; split; refl
 
+@[simp] theorem map_id'' (l : list α) : map (λ x, x) l = l :=
+map_id _
+
 theorem map_id' {f : α → α} (h : ∀ x, f x = x) (l : list α) : map f l = l :=
-by induction l; [refl, simp only [*, map]]; split; refl
+by simp [show f = id, from funext h]
 
 theorem eq_nil_of_map_eq_nil {f : α → β} {l : list α} (h : map f l = nil) : l = nil :=
 eq_nil_of_length_eq_zero $ by rw [← length_map f l, h]; refl
@@ -2022,7 +2034,7 @@ variable [inhabited α]
 | 0     l := rfl
 | (n+1) l := congr_arg succ (take'_length _ _)
 
-@[simp] theorem take'_nil : ∀ n, take' n (@nil α) = repeat (default _) n
+@[simp] theorem take'_nil : ∀ n, take' n (@nil α) = repeat default n
 | 0     := rfl
 | (n+1) := congr_arg (cons _) (take'_nil _)
 
@@ -2868,12 +2880,12 @@ theorem filter_eq_foldr (p : α → Prop) [decidable_pred p] (l : list α) :
   filter p l = foldr (λ a out, if p a then a :: out else out) [] l :=
 by induction l; simp [*, filter]
 
-lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+lemma filter_congr' {p q : α → Prop} [decidable_pred p] [decidable_pred q]
   : ∀ {l : list α}, (∀ x ∈ l, p x ↔ q x) → filter p l = filter q l
 | [] _     := rfl
 | (a::l) h := by rw forall_mem_cons at h; by_cases pa : p a;
-  [simp only [filter_cons_of_pos _ pa, filter_cons_of_pos _ (h.1.1 pa), filter_congr h.2],
-   simp only [filter_cons_of_neg _ pa, filter_cons_of_neg _ (mt h.1.2 pa), filter_congr h.2]];
+  [simp only [filter_cons_of_pos _ pa, filter_cons_of_pos _ (h.1.1 pa), filter_congr' h.2],
+   simp only [filter_cons_of_neg _ pa, filter_cons_of_neg _ (mt h.1.2 pa), filter_congr' h.2]];
      split; refl
 
 @[simp] theorem filter_subset (l : list α) : filter p l ⊆ l :=
@@ -2920,6 +2932,9 @@ begin
     have := filter_sublist l, rw e at this,
     exact not_lt_of_ge (length_le_of_sublist this) (lt_succ_self _) }
 end
+
+theorem filter_length_eq_length {l} : (filter p l).length = l.length ↔ ∀ a ∈ l, p a :=
+iff.trans ⟨eq_of_sublist_of_length_eq l.filter_sublist, congr_arg list.length⟩ filter_eq_self
 
 theorem filter_eq_nil {l} : filter p l = [] ↔ ∀ a ∈ l, ¬p a :=
 by simp only [eq_nil_iff_forall_not_mem, mem_filter, not_and]
@@ -3163,8 +3178,8 @@ else by simp only [erase_of_not_mem ha, erase_of_not_mem (mt mem_of_mem_erase ha
 
 theorem map_erase [decidable_eq β] {f : α → β} (finj : injective f) {a : α}
   (l : list α) : map f (l.erase a) = (map f l).erase (f a) :=
-by rw [erase_eq_erasep, erase_eq_erasep, erasep_map]; congr;
-   ext b; simp [finj.eq_iff]
+have this : eq a = eq (f a) ∘ f, { ext b, simp [finj.eq_iff] },
+by simp [erase_eq_erasep, erase_eq_erasep, erasep_map, this]
 
 theorem map_foldl_erase [decidable_eq β] {f : α → β} (finj : injective f) {l₁ l₂ : list α} :
   map f (foldl list.erase l₁ l₂) = foldl (λ l a, l.erase (f a)) (map f l₁) l₂ :=

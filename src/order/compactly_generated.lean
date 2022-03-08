@@ -55,7 +55,7 @@ variables (α)
 /-- A compactness property for a complete lattice is that any `sup`-closed non-empty subset
 contains its `Sup`. -/
 def is_sup_closed_compact : Prop :=
-  ∀ (s : set α) (h : s.nonempty), (∀ a b, a ∈ s → b ∈ s → a ⊔ b ∈ s) → (Sup s) ∈ s
+  ∀ (s : set α) (h : s.nonempty), (∀ a b ∈ s, a ⊔ b ∈ s) → (Sup s) ∈ s
 
 /-- A compactness property for a complete lattice is that any subset has a finite subset with the
 same `Sup`. -/
@@ -178,25 +178,23 @@ begin
     apply lt_irrefl (a (n+1)), apply lt_of_le_of_lt _ h', apply le_Sup, apply set.mem_range_self, },
   apply h (set.range a),
   { use a 37, apply set.mem_range_self, },
-  { rintros x y ⟨m, hm⟩ ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply rel_hom_class.map_sup a, },
+  { rintros x ⟨m, hm⟩ y ⟨n, hn⟩, use m ⊔ n, rw [← hm, ← hn], apply rel_hom_class.map_sup a, },
 end
 
 lemma is_Sup_finite_compact_iff_all_elements_compact :
   is_Sup_finite_compact α ↔ (∀ k : α, is_compact_element k) :=
 begin
-  split,
-  { intros h k s hs,
-    obtain ⟨t, ⟨hts, htsup⟩⟩ := h s,
+  refine ⟨λ h k s hs, _, λ h s, _⟩,
+  { obtain ⟨t, ⟨hts, htsup⟩⟩ := h s,
     use [t, hts],
     rwa ←htsup, },
-  { intros h s,
-    obtain ⟨t, ⟨hts, htsup⟩⟩ := h (Sup s) s (by refl),
+  { obtain ⟨t, ⟨hts, htsup⟩⟩ := h (Sup s) s (by refl),
     have : Sup s = t.sup id,
     { suffices : t.sup id ≤ Sup s, by { apply le_antisymm; assumption },
       simp only [id.def, finset.sup_le_iff],
       intros x hx,
-      apply le_Sup, exact hts hx, },
-    use [t, hts], assumption, },
+      exact le_Sup (hts hx) },
+    use [t, hts, this] },
 end
 
 lemma well_founded_characterisations :
@@ -316,7 +314,7 @@ begin
     intros t ht,
     obtain ⟨I, fi, hI⟩ := set.finite_subset_Union t.finite_to_set ht,
     obtain ⟨i, hi⟩ := hs.finset_le fi.to_finset,
-    exact (h i).mono (set.subset.trans hI $ set.bUnion_subset $
+    exact (h i).mono (set.subset.trans hI $ set.Union₂_subset $
       λ j hj, hi j (fi.mem_to_finset.2 hj)) },
   { rintros a ⟨_, ⟨i, _⟩, _⟩,
     exfalso, exact hη ⟨i⟩, },

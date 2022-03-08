@@ -52,6 +52,8 @@ variables (𝕜)
 
 def balanced_core (s : set E) := ⋃₀ {t : set E | balanced 𝕜 t ∧ t ⊆ s}
 
+def balanced_core_aux (s : set E) := ⋂ (r : 𝕜) (hr : 1 ≤ ∥r∥), r • s
+
 def balanced_hull (s : set E) := ⋃ (r : 𝕜) (hr : ∥r∥ ≤ 1), r • s
 
 variables {𝕜}
@@ -101,9 +103,10 @@ begin
   exact ⟨hs, h⟩,
 end
 
---lemma balanced_core_mem_iff (s : set E) (x : E) : x ∈ balanced_core 𝕜 s ↔
---  ∀ (r : 𝕜) (hr : 1 ≤ ∥r∥), x ∈ r • s :=
---by rw [balanced_core, set.mem_Inter₂]
+lemma balanced_core_aux_mem_iff (s : set E) (x : E) : x ∈ balanced_core_aux 𝕜 s ↔
+  ∀ (r : 𝕜) (hr : 1 ≤ ∥r∥), x ∈ r • s :=
+by rw [balanced_core_aux, set.mem_Inter₂]
+
 
 lemma balanced_hull_mem_iff (s : set E) (x : E) : x ∈ balanced_hull 𝕜 s ↔
   ∃ (r : 𝕜) (hr : ∥r∥ ≤ 1), x ∈ r • s :=
@@ -147,6 +150,10 @@ begin
   exact balanced.core_maximal zero_singleton_balanced (singleton_subset_iff.mpr h),
 end
 
+lemma balanced_core_zero {s : set E} (hs: (0 : E) ∈ s) : (0 : E) ∈ balanced_core 𝕜 s :=
+balanced_core_mem_iff.mpr
+  ⟨{0}, zero_singleton_balanced, singleton_subset_iff.mpr hs, mem_singleton 0⟩
+
 lemma subset_balanced_hull [norm_one_class 𝕜] (s : set E) : s ⊆ balanced_hull 𝕜 s :=
 λ _ hx, (balanced_hull_mem_iff _ _).mpr ⟨1, norm_one.le, mem_smul_set.mp ⟨_, hx, one_smul _ _⟩⟩
 
@@ -172,8 +179,27 @@ end semi_normed_ring
 section normed_field
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-/-
-lemma balanced_core_balanced (s : set E) : balanced 𝕜 (balanced_core 𝕜 s) :=
+
+@[simp] lemma balanced_core_aux_empty : balanced_core_aux 𝕜 (∅ : set E) = ∅ :=
+begin
+  rw [balanced_core_aux, set.Inter₂_eq_empty_iff],
+  intros _,
+  simp only [smul_set_empty, mem_empty_eq, not_false_iff, exists_prop, and_true],
+  exact ⟨1, norm_one.ge⟩,
+end
+
+lemma balanced_core_aux_subset (s : set E) : balanced_core_aux 𝕜 s ⊆ s :=
+begin
+  rw subset_def,
+  intros x hx,
+  rw balanced_core_aux_mem_iff at hx,
+  have h := hx 1 norm_one.ge,
+  rw one_smul at h,
+  exact h,
+end
+
+lemma balanced_core_aux_balanced (s : set E) (h0 : (0 : E) ∈ balanced_core_aux 𝕜 s):
+  balanced 𝕜 (balanced_core_aux 𝕜 s) :=
 begin
   intros a ha x hx,
   rcases mem_smul_set.mp hx with ⟨y, hy, hx⟩,
@@ -181,10 +207,10 @@ begin
   {
     simp[h] at hx,
     rw ←hx,
-    sorry,
+    exact h0,
   },
-  rw [←hx, balanced_core_mem_iff],
-  rw balanced_core_mem_iff at hy,
+  rw [←hx, balanced_core_aux_mem_iff],
+  rw balanced_core_aux_mem_iff at hy,
   intros r hr,
   have h'' : 1 ≤ ∥a⁻¹ • r∥ :=
   begin
@@ -197,17 +223,31 @@ begin
   exact (mem_inv_smul_set_iff₀ h _ _).mp h',
 end
 
-lemma balanced_core.maximal (s t : set E) (h : t ⊆ s) (ht : balanced 𝕜 t) : t ⊆ balanced_core 𝕜 s :=
+lemma balanced_core_aux_maximal {s t : set E} (h : t ⊆ s) (ht : balanced 𝕜 t) :
+  t ⊆ balanced_core_aux 𝕜 s :=
 begin
   intros x hx,
-  rw balanced_core_mem_iff,
+  rw balanced_core_aux_mem_iff,
   intros r hr,
   rw mem_smul_set_iff_inv_smul_mem₀ (norm_pos_iff.mp (lt_of_lt_of_le zero_lt_one hr)),
   refine h (balanced_mem ht hx _),
   rw norm_inv,
   exact inv_le_one hr,
 end
--/
+
+lemma balanced_core_subset_balanced_core_aux {s : set E} :
+  balanced_core 𝕜 s ⊆ balanced_core_aux 𝕜 s :=
+balanced_core_aux_maximal (balanced_core_subset s) (balanced_core_balanced s)
+
+lemma balanced_core_eq_Inter {s : set E} (hs : (0 : E) ∈ s) :
+  balanced_core 𝕜 s = ⋂ (r : 𝕜) (hr : 1 ≤ ∥r∥), r • s :=
+begin
+  rw ←balanced_core_aux,
+  refine subset_antisymm balanced_core_subset_balanced_core_aux _,
+  refine balanced.core_maximal (balanced_core_aux_balanced s _) (balanced_core_aux_subset s),
+  refine mem_of_subset_of_mem balanced_core_subset_balanced_core_aux (balanced_core_zero hs),
+end
+
 end normed_field
 
 end balanced_hull

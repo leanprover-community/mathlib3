@@ -9,6 +9,7 @@ namespace category_theory
 
 namespace bicategory
 
+open category
 open_locale bicategory
 
 universes w₁ w₂ v₁ v₂ u₁ u₂
@@ -39,7 +40,7 @@ begin
   apply (cancel_mono (λ_ g₁).inv).1,
   apply (cancel_epi (g₁ ◁ (ρ_ (𝟙 a)).hom)).1,
   apply (cancel_mono ((λ_ (𝟙 b)).inv ▷ g₁)).1,
-  simp only [iso.hom_inv_id_assoc, category.assoc, category.comp_id],
+  simp only [iso.hom_inv_id_assoc, assoc, comp_id],
   calc
     (g₁ ◁ (ρ_ _).hom) ≫ (g₁ ◁ adj₂.unit) ≫ (α_ g₁ f g₂).inv ≫ (adj₁.counit ▷ g₂) ≫ (λ_ g₂).hom ≫
       (ρ_ g₂).inv ≫ (g₂ ◁ adj₁.unit) ≫ (α_ g₂ f g₁).inv ≫ (adj₂.counit ▷ g₁) ≫ ((λ_ _).inv ▷ g₁)
@@ -48,43 +49,35 @@ begin
       ((adj₁.counit ▷ g₂) ▷ _) ≫ (α_ _ _ _).hom ≫ (_ ◁ (g₂ ◁ adj₁.unit)) ≫
         (_ ◁ (α_ g₂ f g₁).inv) ≫ (_ ◁ (adj₂.counit ▷ g₁)) ≫ (α_ _ _ _).inv : _
     ... =
-    (g₁ ◁ (ρ_ _).hom) ≫ (g₁ ◁ adj₁.unit) ≫ (g₁ ◁ (((λ_ f).inv ≫ (adj₂.unit ▷ f) ≫ (α_ _ _ _).hom ≫
-      (f ◁ adj₂.counit) ≫ (ρ_ f).hom) ▷ g₁)) ≫ (α_ _ _ _).inv ≫ (adj₁.counit ▷ g₁) ≫
-        ((λ_ _).inv ▷ g₁) : _
-    ... = (g₁ ◁ (ρ_ _).hom) ≫ (ρ_ g₁).hom ≫ (λ_ g₁).inv ≫ ((λ_ _).inv ▷ g₁) : _,
-  { rw [←whisker_left_comp_assoc, ←right_unitor_naturality, whisker_left_comp_assoc,
-      ←whisker_right_comp, left_unitor_inv_naturality, whisker_right_comp],
-    simp_rw [right_unitor_comp, whisker_left_comp, left_unitor_comp_inv, whisker_right_comp,
-      category.assoc],
-    rw [←associator_inv_naturality_left_assoc, whisker_exchange_assoc,
-      associator_inv_naturality_right_assoc, whisker_exchange_assoc,
-      left_unitor_right_unitor_inv_assoc, hom_inv_whisker_right_assoc, hom_inv_whisker_left_assoc,
-      ←associator_inv_naturality_right_assoc, associator_naturality_left_assoc,
-      ←associator_inv_naturality_middle_assoc, pentagon_inv_inv_hom_hom_inv_assoc,
+    (g₁ ◁ (ρ_ _).hom) ≫ (g₁ ◁ adj₁.unit) ≫ (g₁ ◁ (((λ_ f).inv ≫ (adj₂.unit ▷ f) ≫
+      (α_ _ _ _).hom ≫ (f ◁ adj₂.counit) ≫ (ρ_ f).hom) ▷ g₁)) ≫ (α_ _ _ _).inv ≫
+        (adj₁.counit ▷ g₁) ≫ ((λ_ _).inv ▷ g₁) : _
+    ... =
+    (g₁ ◁ (ρ_ _).hom) ≫ (ρ_ g₁).hom ≫ (λ_ g₁).inv ≫ ((λ_ _).inv ▷ g₁) : _,
+  { simp_rw [←whisker_left_comp_assoc, ←right_unitor_naturality, whisker_left_comp_assoc,
+      ←whisker_right_comp, left_unitor_inv_naturality, whisker_right_comp, right_unitor_comp,
+      whisker_left_comp, left_unitor_comp_inv, whisker_right_comp, assoc,
+      ←associator_inv_naturality_left_assoc, associator_inv_naturality_right_assoc,
+      whisker_exchange_assoc, left_unitor_right_unitor_inv_assoc, hom_inv_whisker_right_assoc,
+      hom_inv_whisker_left_assoc, ←associator_inv_naturality_right_assoc,
+      associator_naturality_left_assoc, ←associator_inv_naturality_middle_assoc,
+      pentagon_inv_inv_hom_hom_inv_assoc,
       associator_inv_naturality_middle, pentagon_inv_inv_hom_inv_inv_assoc] },
-  { rw [associator_naturality_left_assoc, ←associator_inv_naturality_middle_assoc,
-      pentagon_inv_inv_hom_hom_inv_assoc],
-    simp_rw [←whisker_exchange_assoc, ←associator_inv_naturality_right_assoc],
-    rw [associator_inv_naturality_left, ←pentagon_inv_assoc],
-    simp_rw [←whisker_left_comp_assoc g₁],
-    rw [associator_inv_naturality_middle, ←associator_naturality_right_assoc,
+  { apply (cancel_epi (g₁ ◁ (ρ_ (𝟙 a)).inv)).1,
+    apply (cancel_mono ((λ_ (𝟙 b)).hom ▷ g₁)).1,
+    simp_rw [associator_naturality_left_assoc, ←associator_inv_naturality_middle_assoc,
+      pentagon_inv_inv_hom_hom_inv_assoc, ←whisker_exchange_assoc,
+      ←associator_inv_naturality_right_assoc,
+      associator_inv_naturality_left, ←pentagon_inv_assoc, ←whisker_left_comp_assoc g₁,
+      associator_inv_naturality_middle, ←associator_naturality_right_assoc,
       pentagon_hom_inv_inv_inv_hom_assoc, ←whisker_exchange_assoc,
-      associator_inv_naturality_left_assoc],
-    apply (cancel_epi (g₁ ◁ (ρ_ (𝟙 a)).inv)).1,
-    simp_rw [←whisker_left_comp_assoc, iso.inv_hom_id_assoc, ←unitors_inv_equal,
+      associator_inv_naturality_left_assoc, iso.inv_hom_id_assoc, ←unitors_inv_equal,
       ←left_unitor_inv_naturality_assoc, left_unitor_comp_inv_assoc, iso.hom_inv_id_assoc,
-      whisker_right_comp, whisker_left_comp_assoc],
-    congr' 5,
-    rw associator_inv_naturality_middle_assoc,
-    congr' 1,
-    simp_rw [←whisker_right_comp],
-    congr' 1,
-    apply (cancel_mono ((λ_ (𝟙 b)).hom)).1,
-    simp_rw [category.assoc, iso.inv_hom_id, category.comp_id, unitors_equal,
-      right_unitor_naturality, right_unitor_comp_assoc, iso.inv_hom_id_assoc] },
-  { simp_rw [adjunction.left_triangle_assoc,
-      iso.inv_hom_id_assoc, iso.inv_hom_id, whisker_right_id, whisker_left_id, category.id_comp,
-      adjunction.right_triangle_assoc] }
+      whisker_right_comp, whisker_left_comp_assoc, associator_inv_naturality_middle_assoc g₁,
+      ←whisker_right_comp, unitors_inv_equal, right_unitor_inv_naturality,
+      right_unitor_comp_inv_assoc, hom_inv_whisker_left_assoc] },
+  { simp_rw [adjunction.left_triangle_assoc, iso.inv_hom_id_assoc, iso.inv_hom_id,
+      whisker_right_id, whisker_left_id, id_comp, adjunction.right_triangle_assoc] }
 end
 
 def right_adjoint_uniq {f : a ⟶ b} {g₁ g₂ : b ⟶ a}

@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Adam Topaz
 -/
 import category_theory.abelian.opposite
+import category_theory.limits.preserves.basic
+import category_theory.limits.preserves.shapes.zero
+import category_theory.limits.preserves.shapes.kernels
 import algebra.homology.exact
 import tactic.tfae
 
@@ -105,6 +108,18 @@ begin
   tfae_finish
 end
 
+lemma is_equivalence.exact_iff {D : Type u₁} [category.{v₁} D] [abelian D]
+  (F : C ⥤ D) [is_equivalence F] :
+  exact (F.map f) (F.map g) ↔ exact f g :=
+begin
+  haveI : preserves_limit (parallel_pair g 0) F := sorry,
+  haveI : preserves_colimit (parallel_pair f 0) F := sorry,
+  simp only [exact_iff, ← F.map_eq_zero_iff, F.map_comp, category.assoc,
+    ← kernel_comparison_comp_π g F, ← ι_comp_cokernel_comparison f F],
+  rw [is_iso.comp_left_eq_zero (kernel_comparison g F), ← category.assoc,
+    is_iso.comp_right_eq_zero _ (cokernel_comparison f F)],
+end
+
 /-- If `(f, g)` is exact, then `images.image.ι f` is a kernel of `g`. -/
 def is_limit_image [h : exact f g] :
   is_limit
@@ -204,12 +219,8 @@ end
 
 lemma exact.op_iff : exact g.op f.op ↔ exact f g :=
 ⟨λ e, begin
-  rw exact_iff at e ⊢,
-  refine ⟨by convert (congr_arg quiver.hom.unop e.1), _⟩,
-  have e3 := ((cokernel_op_unop g).inv ≫= congr_arg quiver.hom.unop e.2) =≫ (kernel_op_unop f).hom,
-  simp only [← category.assoc, iso.inv_hom_id, unop_comp, cokernel.π_op, kernel.ι_op,
-    category.id_comp, eq_to_hom_refl, category.comp_id, unop_zero, comp_zero, zero_comp] at e3,
-  simpa only [category.assoc, iso.inv_hom_id, category.comp_id] using e3,
+  rw ← is_equivalence.exact_iff _ _ (op_op_equivalence C).inverse,
+  dsimp, resetI, apply_instance,
 end, λ e, @@exact.op _ _ _ _ e⟩
 
 
@@ -219,8 +230,8 @@ begin
   rwa ← exact.op_iff,
 end
 
-lemma exact.unop_iff {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) : exact g f ↔ exact f.unop g.unop :=
-⟨λ e, @@exact.unop _ _ g f e, λ e, by rwa [← f.op_unop, ← g.op_unop, ← exact.op_iff] at e⟩
+lemma exact.unop_iff {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) : exact f.unop g.unop ↔ exact g f :=
+⟨λ e, by rwa [← f.op_unop, ← g.op_unop, ← exact.op_iff] at e, λ e, @@exact.unop _ _ g f e⟩
 
 end opposite
 

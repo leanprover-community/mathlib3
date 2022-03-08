@@ -205,6 +205,18 @@ lemma epi_of_cokernel_iso_zero {X Y : C} {f : X ⟶ Y} [has_colimit (parallel_pa
   (w : cokernel f ≅ 0) : epi f :=
 epi_of_cokernel_zero (zero_of_target_iso_zero _ w)
 
+namespace is_iso
+
+@[simp] lemma comp_left_eq_zero [is_iso f] :
+  f ≫ g = 0 ↔ g = 0 :=
+by rw [← is_iso.eq_inv_comp, limits.comp_zero]
+
+@[simp] lemma comp_right_eq_zero [is_iso g] :
+  f ≫ g = 0 ↔ f = 0 :=
+by rw [← is_iso.eq_comp_inv, limits.zero_comp]
+
+end is_iso
+
 end preadditive
 
 section equalizers

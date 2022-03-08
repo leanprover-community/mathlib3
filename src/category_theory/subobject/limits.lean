@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.subobject.lattice
+import tactic.elementwise
 
 /-!
 # Specific subobjects
@@ -81,12 +82,12 @@ def kernel_subobject_iso :
   (kernel_subobject f : C) ≅ kernel f :=
 subobject.underlying_iso (kernel.ι f)
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow :
   (kernel_subobject_iso f).hom ≫ kernel.ι f = (kernel_subobject f).arrow :=
 by simp [kernel_subobject_iso]
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow' :
   (kernel_subobject_iso f).inv ≫ (kernel_subobject f).arrow = kernel.ι f :=
 by simp [kernel_subobject_iso]
@@ -111,7 +112,8 @@ def factor_thru_kernel_subobject {W : C} (h : W ⟶ X) (w : h ≫ f = 0) :
   W ⟶ kernel_subobject f :=
 (kernel_subobject f).factor_thru h (kernel_subobject_factors f h w)
 
-@[simp] lemma factor_thru_kernel_subobject_comp_arrow {W : C} (h : W ⟶ X) (w : h ≫ f = 0) :
+@[simp, elementwise] lemma factor_thru_kernel_subobject_comp_arrow
+  {W : C} (h : W ⟶ X) (w : h ≫ f = 0) :
   factor_thru_kernel_subobject f h w ≫ (kernel_subobject f).arrow = h :=
 by { dsimp [factor_thru_kernel_subobject], simp, }
 

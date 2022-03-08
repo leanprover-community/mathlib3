@@ -47,16 +47,19 @@ def image_to_kernel (w : f ≫ g = 0) :
   subobject.of_le (image_subobject f) (kernel_subobject g) h = image_to_kernel f g w :=
 rfl
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma image_to_kernel_arrow (w : f ≫ g = 0) :
   image_to_kernel f g w ≫ (kernel_subobject g).arrow = (image_subobject f).arrow :=
 by simp [image_to_kernel]
 
 -- This is less useful as a `simp` lemma than it initially appears,
 -- as it "loses" the information the morphism factors through the image.
+@[elementwise]
 lemma factor_thru_image_subobject_comp_image_to_kernel (w : f ≫ g = 0) :
   factor_thru_image_subobject f ≫ image_to_kernel f g w = factor_thru_kernel_subobject g f w :=
 by { ext, simp, }
+
+attribute [simp] factor_thru_image_subobject_comp_image_to_kernel_apply
 
 end
 

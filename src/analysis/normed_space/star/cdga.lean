@@ -8,6 +8,8 @@ import category_theory.closed.monoidal
 import category_theory.limits.preserves.shapes.kernels
 import category_theory.monoidal.preadditive
 import algebra.category.Module.monoidal
+import category_theory.abelian.homology
+import algebra.category.Module.abelian
 
 universes u v
 
@@ -257,53 +259,82 @@ monoidal_closed.curry (nn R A i j).
 
 namespace Module
 
-variables {R}
--- This is horrific.
-def to_homology {M N P : Module R} (f : M ⟶ N) (g : N ⟶ P) (w : f ≫ g = 0) (x : N) (gx : g x = 0) : (homology f g w : Module R) :=
-begin
-  apply homology.π f g w _,
-  apply (kernel_subobject_iso g).inv _,
-  apply (Module.kernel_iso_ker g).inv _,
-  exact ⟨x, gx⟩,
-end
+namespace homology
 
-def ker_of_homology {M N P : Module R} {f : M ⟶ N} {g : N ⟶ P} {w : f ≫ g = 0} (x : homology f g w) : linear_map.ker g :=
+variables {R}
+variables {M N P : Module.{u} R} (f : M ⟶ N) (g : N ⟶ P) (w : f ≫ g = 0)
+
+/--
+Construct elements of the homology of `f g` from elements of the kernel of `g`.
+-/
+def mk : linear_map.ker g →ₗ[R] (homology f g w : Module R) :=
+(Module.kernel_iso_ker g).inv ≫ (kernel_subobject_iso g).inv ≫ homology.π f g w
+
+variables {f g w}
+
+/--
+Pick an arbitrary representative of the homology of a pair of morphisms `f g`.
+-/
+def out (x : homology f g w) : linear_map.ker g :=
 (Module.kernel_iso_ker g).hom ((kernel_subobject_iso g).hom
   (quot.out ((Module.cokernel_iso_range_quotient _).hom x)))
 
-def homology_cases {M N P : Module R} {f : M ⟶ N} {g : N ⟶ P} {w : f ≫ g = 0} (x : homology f g w) : N :=
-(ker_of_homology x).1
-
-lemma aa {M N P : Module R} {f : M ⟶ N} {g : N ⟶ P} {w : f ≫ g = 0} (x : homology f g w) :
-  g (homology_cases x) = 0 :=
-(ker_of_homology x).2
-
-lemma bb {M N P : Module R} {f : M ⟶ N} {g : N ⟶ P} {w : f ≫ g = 0} (x : homology f g w) :
-  to_homology f g w (homology_cases x) (aa x) = x :=
+@[simp]
+lemma mk_out (x : homology f g w) :
+  mk f g w (out x) = x :=
 begin
-  dsimp [to_homology, homology_cases, ker_of_homology],
-  simp only [set_like.eta, category_theory.coe_hom_inv_id],
-  sorry,
+  dsimp [mk, out],
+  apply (show function.injective (cokernel_iso_range_quotient (image_to_kernel f g w)).hom,
+    { rw ←mono_iff_injective, apply_instance, }),
+  simp only [set_like.eta, category_theory.coe_hom_inv_id, homology.π,
+    cokernel_π_cokernel_iso_range_quotient_hom_apply, submodule.mkq_apply],
+  apply quotient.out_eq',
 end
 
-def to_homology.ext {M N P : Module R} (f : M ⟶ N) (g : N ⟶ P) (w : f ≫ g = 0) (x : N) (gx : g x = 0) (y : N) (gy : g y = 0) (z : M) (h : x = y + f z) :
-  to_homology f g w x gx = to_homology f g w y gy :=
-sorry
+-- We supply an arbitrary proof that `g (f z) = 0`, so this can be used to rewrite.
+@[simp]
+lemma mk_boundary (z : M) (h : g (f z) = 0) : mk f g w ⟨f z, h⟩ = 0 :=
+begin
+  dsimp [mk],
+  convert linear_map.congr_fun (homology.condition f g w) (factor_thru_image_subobject f z) using 2,
+  apply (show function.injective (kernel_subobject g).arrow,
+    { rw ←mono_iff_injective, apply_instance, }),
+  simp,
+end
 
-def homology.ext {M N P : Module R} (f : M ⟶ N) (g : N ⟶ P) (w : f ≫ g = 0) (x y : homology f g w) (z : M) (h : homology_cases x = homology_cases y + f z) :
+/--
+To show that two elements in homology constructed from representatives are the same,
+it suffices to show those representatives differ by a boundary.
+-/
+lemma mk_ext {x y : linear_map.ker g} (z : M) (h : x.1 = y.1 + f z) :
+  mk f g w x = mk f g w y :=
+begin
+  have h' : x = y + ⟨f z, linear_map.congr_fun w z⟩, { ext, exact h, },
+  subst h',
+  rw [linear_map.map_add, mk_boundary, add_zero],
+end
+
+/--
+To show two elements in homology are the same,
+it suffices to show their representatives differ by a boundary.
+-/
+lemma ext {x y : homology f g w}
+  (z : M) (h : homology.out x = homology.out y + ⟨f z, linear_map.congr_fun w z⟩) :
   x = y :=
 begin
-  rw [←bb x, ←bb y],
-  apply to_homology.ext f g w _ _ _ _ z h,
+  rw [←mk_out x, ←mk_out y],
+  exact mk_ext _ (congr_arg subtype.val h),
 end
+
+end homology
 
 end Module
 
 def one (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
   graded.homology R A 0 :=
 begin
-  refine Module.to_homology _ _ _ _ _,
-  exact (1 : A 0),
+  refine Module.homology.mk _ _ _ _,
+  refine ⟨(1 : A 0), _⟩,
   rw homological_complex.d_from_eq,
   swap 3, exact 1,swap 2, exact zero_add _,
   simp,

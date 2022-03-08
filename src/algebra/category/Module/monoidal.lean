@@ -270,11 +270,11 @@ instance : monoidal_preadditive (Module.{u} R) :=
   add_tensor' := by { intros, ext, simp [tensor_product.add_tmul], }, }
 
 /--
-Auxiliary definition for the `has_internal_homs` instance on `Module R`.
+Auxiliary definition for the `monoidal_closed` instance on `Module R`.
 (This is only a separate definition in order to speed up typechecking. )
 -/
 @[simps]
-def has_internal_homs_hom_equiv (M N P : Module.{u} R) :
+def monoidal_closed_hom_equiv (M N P : Module.{u} R) :
   ((monoidal_category.tensor_left M).obj N ⟶ P) ≃
     (N ⟶ ((linear_coyoneda R (Module R)).obj (op M)).obj P) :=
 { to_fun := λ f, linear_map.compr₂ (tensor_product.mk R N M) ((β_ N M).hom ≫ f),
@@ -288,10 +288,24 @@ def has_internal_homs_hom_equiv (M N P : Module.{u} R) :
       symmetric_category.symmetry_assoc],
   end, }
 
-instance : has_internal_homs (Module.{u} R) :=
-{ has_internal_hom := λ M,
-  { ihom := (linear_coyoneda R (Module.{u} R)).obj (op M),
-    adj := adjunction.mk_of_hom_equiv
-    { hom_equiv := λ N P, has_internal_homs_hom_equiv M N P, } } }
+instance : monoidal_closed (Module.{u} R) :=
+{ closed' := λ M,
+  { is_adj :=
+    { right := (linear_coyoneda R (Module.{u} R)).obj (op M),
+      adj := adjunction.mk_of_hom_equiv
+      { hom_equiv := λ N P, monoidal_closed_hom_equiv M N P, } } } }.
+
+-- I can't seem to express the function coercion here without writing `@coe_fn`.
+@[simp]
+lemma monoidal_closed_curry {M N P : Module.{u} R} (f : M ⊗ N ⟶ P) (x : M) (y : N) :
+  @coe_fn _ _ linear_map.has_coe_to_fun ((monoidal_closed.curry f : N →ₗ[R] (M →ₗ[R] P)) y) x =
+    f (x ⊗ₜ[R] y) :=
+rfl
+
+@[simp]
+lemma monoidal_closed_uncurry {M N P : Module.{u} R}
+  (f : N ⟶ (M ⟶[Module.{u} R] P)) (x : M) (y : N) :
+  monoidal_closed.uncurry f (x ⊗ₜ[R] y) = (@coe_fn _ _ linear_map.has_coe_to_fun (f y)) x :=
+by { simp only [monoidal_closed.uncurry, ihom.adjunction, is_left_adjoint.adj], simp, }
 
 end Module

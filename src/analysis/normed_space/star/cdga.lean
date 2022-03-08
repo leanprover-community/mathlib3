@@ -223,13 +223,13 @@ open category_theory.monoidal_category
 attribute [instance, priority 100] closed.is_adj
 
 def foo {C : Type*} [category C] [preadditive C] [has_cokernels C]
-  [monoidal_category C] [monoidal_preadditive C] [has_internal_homs C]
+  [monoidal_category C] [monoidal_preadditive C] [monoidal_closed C]
   {X Y Z : C} (f : Y ⟶ Z) :
   X ⊗ cokernel f ≅ cokernel (𝟙 X ⊗ f) :=
 (as_iso (cokernel_comparison f (tensor_left X))).symm
 
 def foo' {C : Type*} [category C] [preadditive C] [has_cokernels C]
-  [monoidal_category C] [monoidal_preadditive C] [has_internal_homs C]
+  [monoidal_category C] [monoidal_preadditive C] [monoidal_closed C]
   {X Y Z : C} (f : X ⟶ Y) :
   cokernel f ⊗ Z ≅ cokernel (f ⊗ 𝟙 Z) :=
 sorry
@@ -255,8 +255,11 @@ def mm (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [
   graded.homology R A j →ₗ[R] (graded.homology R A i →ₗ[R] graded.homology R A (i + j)) :=
 monoidal_closed.curry (nn R A i j).
 
+namespace Module
+
+variables {R}
 -- This is horrific.
-def blah {M N P : Module R} (f : M ⟶ N) (g : N ⟶ P) (w : f ≫ g = 0) (x : N) (gx : g x = 0) : (homology f g w : Module R) :=
+def to_homology {M N P : Module R} (f : M ⟶ N) (g : N ⟶ P) (w : f ≫ g = 0) (x : N) (gx : g x = 0) : (homology f g w : Module R) :=
 begin
   apply homology.π f g w _,
   apply (kernel_subobject_iso g).inv _,
@@ -264,30 +267,76 @@ begin
   exact ⟨x, gx⟩,
 end
 
+def ker_of_homology {M N P : Module R} {f : M ⟶ N} {g : N ⟶ P} {w : f ≫ g = 0} (x : homology f g w) : linear_map.ker g :=
+(Module.kernel_iso_ker g).hom ((kernel_subobject_iso g).hom
+  (quot.out ((Module.cokernel_iso_range_quotient _).hom x)))
+
+def homology_cases {M N P : Module R} {f : M ⟶ N} {g : N ⟶ P} {w : f ≫ g = 0} (x : homology f g w) : N :=
+(ker_of_homology x).1
+
+lemma aa {M N P : Module R} {f : M ⟶ N} {g : N ⟶ P} {w : f ≫ g = 0} (x : homology f g w) :
+  g (homology_cases x) = 0 :=
+(ker_of_homology x).2
+
+lemma bb {M N P : Module R} {f : M ⟶ N} {g : N ⟶ P} {w : f ≫ g = 0} (x : homology f g w) :
+  to_homology f g w (homology_cases x) (aa x) = x :=
+begin
+  dsimp [to_homology, homology_cases, ker_of_homology],
+  simp only [set_like.eta, category_theory.coe_hom_inv_id],
+  sorry,
+end
+
+def to_homology.ext {M N P : Module R} (f : M ⟶ N) (g : N ⟶ P) (w : f ≫ g = 0) (x : N) (gx : g x = 0) (y : N) (gy : g y = 0) (z : M) (h : x = y + f z) :
+  to_homology f g w x gx = to_homology f g w y gy :=
+sorry
+
+def homology.ext {M N P : Module R} (f : M ⟶ N) (g : N ⟶ P) (w : f ≫ g = 0) (x y : homology f g w) (z : M) (h : homology_cases x = homology_cases y + f z) :
+  x = y :=
+begin
+  rw [←bb x, ←bb y],
+  apply to_homology.ext f g w _ _ _ _ z h,
+end
+
+end Module
+
 def one (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
   graded.homology R A 0 :=
 begin
-  refine blah _ _ _ _ _ _,
+  refine Module.to_homology _ _ _ _ _,
   exact (1 : A 0),
   rw homological_complex.d_from_eq,
   swap 3, exact 1,swap 2, exact zero_add _,
   simp,
   dsimp [to_homological_complex],
   simp,
+end.
+
+lemma one_mul' (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A]
+  {i : ℕ} (x : graded.homology R A i) :
+  (nn R A 0 i) (one R A ⊗ₜ[R] x) = cast sorry x :=
+begin
+  dsimp [nn, one],
+  dsimp only [foo],
 end
 
 instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
   graded_monoid (graded.homology R A) :=
 { one := one R A,
   mul := λ i j x y, mm R A i j y x,
-  one_mul := sorry,
+  one_mul := λ i x, begin dsimp [mm], end,
   mul_one := sorry,
   mul_assoc := sorry, }
 
+lemma graded.homology.gmul_def (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A]
+  {i j} (x : graded.homology R A i) (y : graded.homology R A j) : gmul x y = mm R A i j y x :=
+rfl
 
 instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
   graded_semiring (graded.homology R A) :=
-sorry
+{ mul_zero := begin intros, simp only [graded.homology.gmul_def, mm], simp only [linear_map.zero_apply, map_zero], end,
+  zero_mul := begin intros, simp only [graded.homology.gmul_def, mm], simp only [map_zero], end,
+  left_distrib := begin intros, simp only [graded.homology.gmul_def, mm], simp only [map_add, add_left_inj, linear_map.add_apply], end,
+  right_distrib := begin intros, simp only [graded.homology.gmul_def, mm, linear_map.map_add], end, }
 
 -- total
 

@@ -122,7 +122,7 @@ def desc' {W : A} (e : kernel g ⟶ W) (he : kernel.lift g f w ≫ e = 0) :
   homology f g w ⟶ W :=
 (homology_iso_cokernel_lift _ _ _).hom ≫ cokernel.desc _ e he
 
-/-- Obtain a moprhism to the homology, given a morphism to the kernel. -/
+/-- Obtain a morphism to the homology, given a morphism to the kernel. -/
 def lift {W : A} (e : W ⟶ cokernel f) (he : e ≫ cokernel.desc f g w = 0) :
   W ⟶ homology f g w :=
 kernel.lift _ e he ≫ (homology_iso_kernel_desc _ _ _).inv

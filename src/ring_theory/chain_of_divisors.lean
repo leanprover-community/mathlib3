@@ -13,26 +13,23 @@ import algebra.squarefree
 
 The results in this file show that in the monoid `associates M` of a `unique_factorization_monoid`
 `M`, an element `a` is an n-th prime power iff its set of divisors is a strictly increasing chain
-of length `n + 1`, meaning that we can find a strictly increasing bijection bewteen `fin (n + 1)` and
-the set of factors of `a`.
-
-We can then use this to show that given `a b : M`, if there is an monotone bijection
-between the sets of factors of `associates.mk a` and `associates.mk b`, then the prime
-factorisations of `a` and `b` have the same shape.
-
+of length `n + 1`, meaning that we can find a strictly increasing bijection between `fin (n + 1)`
+and the set of factors of `a`.
 
 ## Main results
-- `prime_pow_has_chain` : existence of chain for prime powers
-- `is_prime_pow_of_has_chain` : elements that have a chain are prime powers
-- `multiplicity_prime_le_multiplicity_image_by_factor_order_iso` : if there is a monotone bijection
-  `d` between the set of factors of `a : associates M` and the set of factors of `b : associates N`,
-  then, for any prime `p ∣ a`, `multiplicity p a ≤ multiplicity (d p) b`.
+- `divisor_chain.exists_chain_of_prime_pow` : existence of a chain for prime powers.
+- `divisor_chain.is_prime_pow_of_has_chain` : elements that have a chain are prime powers.
+- `multiplicity_prime_le_multiplicity_image_by_factor_order_iso` : if there is a
+  monotone bijection `d` between the set of factors of `a : associates M` and the set of factors of
+  `b : associates N`, then, for any prime `p ∣ a`, `multiplicity p a ≤ multiplicity (d p) b`.
 
 ## Todo
-- show that under the assumptions of `multiplicity_prime_le_multiplicity_image_by_factor_order_iso`,
-  `d p` is prime. Applying `multiplicity_prime_le_multiplicity_image_by_factor_order_iso` on
-  `d.symm` then gives us `multiplicity p a = multiplicity (d p) b`
-- Maybe create a structure for chains of divisors?
+- Show that under the assumptions of `multiplicity_prime_le_multiplicity_image_by_factor_order_iso`,
+  `d p` is prime whenever `p` is prime. Applying
+  `multiplicity_prime_le_multiplicity_image_by_factor_order_iso` on `d.symm` then gives us
+  `multiplicity p a = multiplicity (d p) b`.
+- Create a structure for chains of divisors.
+
 -/
 
 
@@ -42,7 +39,7 @@ open unique_factorization_monoid multiplicity irreducible
 
 namespace divisor_chain
 
-lemma pow_prime_has_chain {p : associates M} {n : ℕ} (hn : n ≠ 0) (hp : prime p) :
+lemma exists_chain_of_prime_pow {p : associates M} {n : ℕ} (hn : n ≠ 0) (hp : prime p) :
   ∃ c : fin (n + 1) → associates M,
     c 1 = p ∧ strict_mono c ∧
     ∀ {r : associates M}, r ≤ p^n ↔ ∃ i, r = c i :=
@@ -60,7 +57,7 @@ begin
     exact ⟨p^(n - i : ℕ), (pow_mul_pow_sub p (nat.succ_le_succ_iff.mp i.2)).symm⟩ }
 end
 
-lemma upper_chain_not_is_unit {n : ℕ} {i : fin (n + 1)} (i_pos : i ≠ 0)
+lemma mem_chain_not_is_unit_of_index_ne_zero {n : ℕ} {i : fin (n + 1)} (i_pos : i ≠ 0)
   {c : fin (n + 1) → associates M} (h₁ : strict_mono c) :
   ¬ is_unit (c i) :=
 dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
@@ -158,7 +155,7 @@ begin
     cases n, { contradiction },
     rw finset.card_image_eq_iff_inj_on,
     refine set.inj_on_of_injective (λ m m' h, fin.ext _) _,
-    refine pow_injective_of_not_unit (upper_chain_not_is_unit (by simp) h₁) _ h,
+    refine pow_injective_of_not_unit (mem_chain_not_is_unit_of_index_ne_zero (by simp) h₁) _ h,
     exact irreducible.ne_zero (second_of_chain_is_irreducible hn h₁ @h₂ hq) },
 
   suffices H' : ∀ r ∈ (finset.univ.image (λ (m : fin (i + 1)), (c 1) ^ (m : ℕ))), r ≤ q,
@@ -224,12 +221,12 @@ begin
   suffices : (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s = ↑(d ⟨p^s, hs'⟩),
   { rw this,
     apply subtype.prop (d ⟨p^s, hs'⟩) },
-  obtain ⟨c₁, rfl, hc₁', hc₁''⟩ := pow_prime_has_chain s hs (prime_of_normalized_factor p hp),
+  obtain ⟨c₁, rfl, hc₁', hc₁''⟩ := exists_chain_of_prime_pow hs (prime_of_normalized_factor p hp),
 
   set c₂ : fin (s + 1) → associates N := λ t, d ⟨c₁ t, le_trans (hc₁''.2 ⟨t, by simp⟩) hs'⟩,
   have c₂.def : ∀ (t), c₂ t = d ⟨c₁ t, _⟩ := λ t, rfl,
   refine (congr_arg (^s) (c₂.def 1).symm).trans _,
-  refine (eq_pow_second_of_chain_of_has_chain s hs c₂ (λ t u h, _) (λ r, ⟨λ hr, _, _⟩) _).symm,
+  refine (eq_pow_second_of_chain_of_has_chain hs (λ t u h, _) (λ r, ⟨λ hr, _, _⟩) _).symm,
   { rw [c₂.def, c₂.def, subtype.coe_lt_coe, d.lt_iff_lt, subtype.mk_lt_mk, (hc₁').lt_iff_lt],
     exact h },
   { have : r ≤ n := hr.trans (d ⟨c₁ 1 ^ s, _⟩).2,
@@ -246,8 +243,8 @@ begin
   exact ne_zero_of_dvd_ne_zero hn (subtype.prop (d ⟨c₁ 1 ^ s, _⟩))
 end
 
-variable [decidable_rel ((∣) : associates M → associates M → Prop)]
-variable [decidable_rel ((∣) : associates N → associates N → Prop)]
+variables [decidable_rel ((∣) : associates M → associates M → Prop)]
+ [decidable_rel ((∣) : associates N → associates N → Prop)]
 
 lemma multiplicity_prime_le_multiplicity_image_by_factor_order_iso {m p : associates M}
   {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)

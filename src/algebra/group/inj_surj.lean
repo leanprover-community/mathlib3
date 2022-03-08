@@ -320,6 +320,22 @@ protected def monoid [monoid M₁] (f : M₁ → M₂) (hf : surjective f)
   monoid M₂ :=
 { .. hf.semigroup f mul, .. hf.mul_one_class f one mul }
 
+/-- A type endowed with `1` and `*` is a monoid,
+if it admits a surjective map that preserves `1` and `*` to a monoid.
+This version takes a custom `npow` as a `[has_pow M₂ ℕ]` argument.
+See note [reducible non-instances]. -/
+@[reducible, to_additive add_monoid_smul
+"A type endowed with `0` and `+` is an additive monoid,
+if it admits a surjective map that preserves `0` and `+` to an additive monoid.
+This version takes a custom `nsmul` as a `[has_scalar ℕ M₂]` argument."]
+protected def monoid_pow [has_pow M₂ ℕ] [monoid M₁] (f : M₁ → M₂) (hf : surjective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  monoid M₂ :=
+{ npow := λ n x, x ^ n,
+  npow_zero' := hf.forall.2 $ λ x, by erw [←npow, pow_zero, ←one],
+  npow_succ' := λ n, hf.forall.2 $ λ x, by erw [←npow, pow_succ, ←npow, ←mul],
+  .. hf.monoid f one mul }
+
 /-- A type endowed with `1` and `*` is a commutative monoid,
 if it admits a surjective map that preserves `1` and `*` from a commutative monoid.
 See note [reducible non-instances]. -/
@@ -346,6 +362,31 @@ protected def div_inv_monoid [div_inv_monoid M₁] (f : M₁ → M₂) (hf : sur
 { div_eq_mul_inv := hf.forall₂.2 $ λ x y, by erw [← inv, ← mul, ← div, div_eq_mul_inv],
   .. hf.monoid f one mul, .. ‹has_div M₂›, .. ‹has_inv M₂› }
 
+/-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`
+if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` to a `div_inv_monoid`.
+This version takes custom `npow` and `zpow` as `[has_pow M₂ ℕ]` and `[has_pow M₂ ℤ]` arguments.
+See note [reducible non-instances]. -/
+@[reducible, to_additive sub_neg_monoid_smul
+"A type endowed with `0`, `+`, unary `-`, and binary `-` is a `sub_neg_monoid`
+if it admits a surjective map that preserves `0`, `+`, unary `-`, and binary `-` to
+a `sub_neg_monoid`.
+This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₂]` and
+`[has_scalar ℤ M₂]` arguments."]
+protected def div_inv_monoid_pow [has_pow M₂ ℕ] [has_pow M₂ ℤ] [div_inv_monoid M₁]
+  (f : M₁ → M₂) (hf : surjective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
+  div_inv_monoid M₂ :=
+{ zpow := λ n x, x ^ n,
+  zpow_zero' := hf.forall.2 $ λ x, by erw [←zpow, zpow_zero, ←one],
+  zpow_succ' := λ n, hf.forall.2 $ λ x, by
+    erw [←zpow, ←zpow, zpow_of_nat, zpow_of_nat, pow_succ, ←mul],
+  zpow_neg' := λ n, hf.forall.2 $ λ x, by
+    erw [←zpow, ←zpow, zpow_neg_succ_of_nat, zpow_coe_nat, inv],
+  .. hf.monoid_pow f one mul npow,
+  .. hf.div_inv_monoid f one mul inv div }
+
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a group,
 if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` from a group.
 See note [reducible non-instances]. -/
@@ -358,6 +399,22 @@ protected def group [group M₁] (f : M₁ → M₂) (hf : surjective f)
   group M₂ :=
 { mul_left_inv := hf.forall.2 $ λ x, by erw [← inv, ← mul, mul_left_inv, one]; refl,
   .. hf.div_inv_monoid f one mul inv div }
+/-- A type endowed with `1`, `*` and `⁻¹` is a group,
+if it admits a surjective map that preserves `1`, `*` and `⁻¹` to a group.
+This version takes custom `npow` and `zpow` as `[has_pow M₂ ℕ]` and `[has_pow M₂ ℤ]` arguments.
+See note [reducible non-instances]. -/
+@[reducible, to_additive add_group_smul
+"A type endowed with `0` and `+` is an additive group,
+if it admits a surjective map that preserves `0` and `+` to an additive group.
+This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₂]` and
+`[has_scalar ℤ M₂]` arguments."]
+protected def group_pow [has_pow M₂ ℕ] [has_pow M₂ ℤ] [group M₁] (f : M₁ → M₂) (hf : surjective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
+  group M₂ :=
+{ .. hf.div_inv_monoid_pow f one mul inv div npow zpow,
+  .. hf.group f one mul inv div }
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a commutative group,
 if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` from a commutative group.

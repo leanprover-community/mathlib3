@@ -46,6 +46,10 @@ instance is_scalar_tower'' [has_scalar R M] [has_scalar M N] [has_scalar R N]
   [is_scalar_tower R M N] : is_scalar_tower R M (ulift N) :=
 ⟨λ x y z, show up ((x • y) • z.down) = ⟨x • y • z.down⟩, by rw smul_assoc⟩
 
+instance [has_scalar R M] [has_scalar Rᵐᵒᵖ M] [is_central_scalar R M] :
+  is_central_scalar R (ulift M) :=
+⟨λ r m, congr_arg up $ op_smul_eq_smul r m.down⟩
+
 instance mul_action [monoid R] [mul_action R M] :
   mul_action (ulift R) M :=
 { smul := (•),

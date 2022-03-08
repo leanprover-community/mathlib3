@@ -409,13 +409,19 @@ noncomputable def quotient_equiv_prod_of_le (h_le : s ≤ t) :
   α ⧸ s ≃ (α ⧸ t) × (t ⧸ s.subgroup_of t) :=
 quotient_equiv_prod_of_le' h_le quotient.out' quotient.out_eq'
 
+/-- If `K ≤ L`, then there is an embedding `K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L)`. -/
+def quotient_subgroup_of_embedding_of_le (H : subgroup α) {K L : subgroup α} (h : K ≤ L) :
+  K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L) :=
+{ to_fun := quotient.map' (set.inclusion h) (λ a b, id),
+  inj' := by refine quotient.ind₂' (λ a b, _); exact quotient.eq'.mpr ∘ quotient.eq'.mp }
+
 @[to_additive] lemma card_eq_card_quotient_mul_card_subgroup
   [fintype α] (s : subgroup α) [fintype s] [decidable_pred (λ a, a ∈ s)] :
   fintype.card α = fintype.card (α ⧸ s) * fintype.card s :=
 by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
-/-- **Order of a Subgroup** -/
+/-- **Lagrange's Theorem**: The order of a subgroup divides the order of its ambient group. -/
 @[to_additive] lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
 by classical; simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_left ℕ]

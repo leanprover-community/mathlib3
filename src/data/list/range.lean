@@ -148,6 +148,12 @@ by simp only [range_eq_range', range'_concat, zero_add]
 
 @[simp] lemma range_zero : range 0 = [] := rfl
 
+lemma range_add (a : ℕ) :
+  ∀ b, range (a + b) = range a ++ (range b).map (λ x, a + x)
+| 0 := by rw [add_zero, range_zero, map_nil, append_nil]
+| (b + 1) := by rw [nat.add_succ, range_succ, range_add b, range_succ,
+  map_append, map_singleton, append_assoc]
+
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
 | 0     := rfl
 | (n+1) := by simp only [iota, range'_concat, iota_eq_reverse_range' n,

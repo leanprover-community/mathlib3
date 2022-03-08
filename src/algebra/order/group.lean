@@ -71,7 +71,7 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
-instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
+instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group αˣ :=
 { mul_le_mul_left := λ a b h c, (mul_le_mul_left' (h : (a : α) ≤ b) _ :  (c : α) * a ≤ c * b),
   .. units.partial_order,
   .. units.comm_group }
@@ -971,15 +971,15 @@ begin
 end
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_no_top_order [nontrivial α] :
-  no_top_order α :=
+instance linear_ordered_comm_group.to_no_max_order [nontrivial α] :
+  no_max_order α :=
 ⟨ begin
     obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
     exact λ a, ⟨a * y, lt_mul_of_one_lt_right' a hy⟩
   end ⟩
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
+instance linear_ordered_comm_group.to_no_min_order [nontrivial α] : no_min_order α :=
 ⟨ begin
     obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
     exact λ a, ⟨a / y, (div_lt_self_iff a).mpr hy⟩
@@ -1236,6 +1236,9 @@ instance with_top.linear_ordered_add_comm_group_with_top :
   end,
   .. with_top.linear_ordered_add_comm_monoid_with_top,
   .. option.nontrivial }
+
+@[simp, norm_cast]
+lemma with_top.coe_neg (a : α) : ((-a : α) : with_top α) = -a := rfl
 
 end linear_ordered_add_comm_group
 

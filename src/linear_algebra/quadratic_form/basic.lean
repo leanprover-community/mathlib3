@@ -6,7 +6,7 @@ Authors: Anne Baanen, Kexing Ying, Eric Wieser
 
 import algebra.invertible
 import linear_algebra.matrix.determinant
-import linear_algebra.bilinear_form
+import linear_algebra.matrix.bilinear_form
 
 /-!
 # Quadratic forms
@@ -80,6 +80,10 @@ by { simp only [polar, pi.smul_apply, smul_sub] }
 
 lemma polar_comm (f : M → R) (x y : M) : polar f x y = polar f y x :=
 by rw [polar, polar, add_comm, sub_sub, sub_sub, add_comm (f x) (f y)]
+
+lemma polar_comp {F : Type*} [ring S] [add_monoid_hom_class F R S] (f : M → R) (g : F) (x y : M) :
+  polar (g ∘ f) x y = g (polar f x y) :=
+by simp only [polar, pi.smul_apply, function.comp_apply, map_sub]
 
 end quadratic_form
 
@@ -177,6 +181,11 @@ section of_tower
 
 variables [comm_semiring S] [algebra S R] [module S M] [is_scalar_tower S R M]
 
+variables (Q)
+
+lemma map_smul_of_tower (a : S) (x : M) : Q (a • x) = (a * a) • Q x :=
+by rw [←is_scalar_tower.algebra_map_smul R a x, map_smul, ←ring_hom.map_mul, algebra.smul_def]
+
 @[simp]
 lemma polar_smul_left_of_tower (a : S) (x y : M) :
   polar Q (a • x) y = a • polar Q x y :=
@@ -234,15 +243,15 @@ instance : has_neg (quadratic_form R M) :=
 ⟨ λ Q,
   { to_fun := -Q,
   to_fun_smul := λ a x,
-    by simp only [pi.neg_apply, map_smul, mul_neg_eq_neg_mul_symm],
+    by simp only [pi.neg_apply, map_smul, mul_neg],
   polar_add_left' := λ x x' y,
     by simp only [polar_neg, polar_add_left, neg_add],
   polar_smul_left' := λ a x y,
-    by simp only [polar_neg, polar_smul_left, mul_neg_eq_neg_mul_symm, smul_eq_mul],
+    by simp only [polar_neg, polar_smul_left, mul_neg, smul_eq_mul],
   polar_add_right' := λ x y y',
     by simp only [polar_neg, polar_add_right, neg_add],
   polar_smul_right' := λ a x y,
-    by simp only [polar_neg, polar_smul_right, mul_neg_eq_neg_mul_symm, smul_eq_mul] } ⟩
+    by simp only [polar_neg, polar_smul_right, mul_neg, smul_eq_mul] } ⟩
 
 @[simp] lemma coe_fn_neg (Q : quadratic_form R M) : ⇑(-Q) = -Q := rfl
 
@@ -356,6 +365,20 @@ def comp (Q : quadratic_form R N) (f : M →ₗ[R] N) :
 @[simp] lemma comp_apply (Q : quadratic_form R N) (f : M →ₗ[R] N) (x : M) :
   (Q.comp f) x = Q (f x) := rfl
 
+/-- Compose a quadratic form with a linear function on the left. -/
+@[simps {simp_rhs := tt}]
+def _root_.linear_map.comp_quadratic_form {S : Type*}
+  [comm_ring S] [algebra S R] [module S M] [is_scalar_tower S R M]
+  (f : R →ₗ[S] S) (Q : quadratic_form R M) :
+  quadratic_form S M :=
+{ to_fun := f ∘ Q,
+  to_fun_smul := λ b x, by rw [function.comp_apply, Q.map_smul_of_tower b x, f.map_smul,
+                               smul_eq_mul],
+  polar_add_left' := λ x x' y, by simp only [polar_comp, f.map_add, polar_add_left],
+  polar_smul_left' := λ b x y, by simp only [polar_comp, f.map_smul, polar_smul_left_of_tower],
+  polar_add_right' := λ x y y', by simp only [polar_comp, f.map_add, polar_add_right],
+  polar_smul_right' := λ b x y, by simp only [polar_comp, f.map_smul, polar_smul_right_of_tower], }
+
 end comp
 
 section comm_ring
@@ -406,6 +429,11 @@ lemma lin_mul_lin_comp (f g : M →ₗ[R₁] R₁) (h : N →ₗ[R₁] M) :
 rfl
 
 variables {n : Type*}
+
+/-- `sq` is the quadratic form mapping the vector `x : R₁` to `x * x` -/
+@[simps]
+def sq : quadratic_form R₁ R₁ :=
+lin_mul_lin linear_map.id linear_map.id
 
 /-- `proj i j` is the quadratic form mapping the vector `x : n → R₁` to `x i * x j` -/
 def proj (i j : n) : quadratic_form R₁ (n → R₁) :=
@@ -592,6 +620,10 @@ lemma not_anisotropic_iff_exists (Q : quadratic_form R M) :
   ¬anisotropic Q ↔ ∃ x ≠ 0, Q x = 0 :=
 by simp only [anisotropic, not_forall, exists_prop, and_comm]
 
+lemma anisotropic.eq_zero_iff {Q : quadratic_form R M} (h : anisotropic Q) {x : M} :
+  Q x = 0 ↔ x = 0 :=
+⟨h x, λ h, h.symm ▸ map_zero⟩
+
 /-- The associated bilinear form of an anisotropic quadratic form is nondegenerate. -/
 lemma nondegenerate_of_anisotropic [invertible (2 : R)] (Q : quadratic_form R M)
   (hB : Q.anisotropic) : Q.associated'.nondegenerate :=
@@ -617,6 +649,25 @@ lemma pos_def.smul {R} [linear_ordered_comm_ring R] [module R M]
 
 variables {n : Type*}
 
+lemma pos_def.nonneg {Q : quadratic_form R₂ M} (hQ : pos_def Q) (x : M) :
+  0 ≤ Q x :=
+(eq_or_ne x 0).elim (λ h, h.symm ▸ (map_zero).symm.le) (λ h, (hQ _ h).le)
+
+lemma pos_def.anisotropic {Q : quadratic_form R₂ M} (hQ : Q.pos_def) : Q.anisotropic :=
+λ x hQx, classical.by_contradiction $ λ hx, lt_irrefl (0 : R₂) $ begin
+  have := hQ _ hx,
+  rw hQx at this,
+  exact this,
+end
+
+lemma pos_def_of_nonneg {Q : quadratic_form R₂ M} (h : ∀ x, 0 ≤ Q x) (h0 : Q.anisotropic) :
+  pos_def Q :=
+λ x hx, lt_of_le_of_ne (h x) (ne.symm $ λ hQx, hx $ h0 _ hQx)
+
+lemma pos_def_iff_nonneg {Q : quadratic_form R₂ M} :
+  pos_def Q ↔ (∀ x, 0 ≤ Q x) ∧ Q.anisotropic  :=
+⟨λ h, ⟨h.nonneg, h.anisotropic⟩, λ ⟨n, a⟩, pos_def_of_nonneg n a⟩
+
 lemma pos_def.add (Q Q' : quadratic_form R₂ M) (hQ : pos_def Q) (hQ' : pos_def Q') :
   pos_def (Q + Q') :=
 λ x hx, add_pos (hQ x hx) (hQ' x hx)
@@ -624,7 +675,7 @@ lemma pos_def.add (Q Q' : quadratic_form R₂ M) (hQ : pos_def Q) (hQ' : pos_def
 lemma lin_mul_lin_self_pos_def {R} [linear_ordered_comm_ring R] [module R M]
   (f : M →ₗ[R] R) (hf : linear_map.ker f = ⊥) :
   pos_def (lin_mul_lin f f) :=
-λ x hx, mul_self_pos (λ h, hx (linear_map.ker_eq_bot.mp hf (by rw [h, linear_map.map_zero])))
+λ x hx, mul_self_pos.2 (λ h, hx (linear_map.ker_eq_bot.mp hf (by rw [h, linear_map.map_zero])))
 
 end pos_def
 end quadratic_form
@@ -788,8 +839,7 @@ lemma exists_orthogonal_basis [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₂ : B.is_symm) :
   ∃ (v : basis (fin (finrank K V)) K V), B.is_Ortho v :=
 begin
-  tactic.unfreeze_local_instances,
-  induction hd : finrank K V with d ih generalizing V,
+  unfreezingI { induction hd : finrank K V with d ih generalizing V },
   { exact ⟨basis_of_finrank_zero hd, λ _ _ _, zero_left _⟩ },
   haveI := finrank_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < finrank K V),
   -- either the bilinear form is trivial or we can pick a non-null `x`
@@ -928,7 +978,7 @@ let ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q) in
 
 lemma equivalent_weighted_sum_squares_units_of_nondegenerate'
   (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
-  ∃ w : fin (finite_dimensional.finrank K V) → units K,
+  ∃ w : fin (finite_dimensional.finrank K V) → Kˣ,
     equivalent Q (weighted_sum_squares K w) :=
 begin
   obtain ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q),

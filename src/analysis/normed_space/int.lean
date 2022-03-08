@@ -20,13 +20,13 @@ open_locale big_operators
 
 namespace int
 
-lemma nnnorm_coe_units (e : units ℤ) : ∥(e : ℤ)∥₊ = 1 :=
+lemma nnnorm_coe_units (e : ℤˣ) : ∥(e : ℤ)∥₊ = 1 :=
 begin
   obtain (rfl|rfl) := int.units_eq_one_or e;
   simp only [units.coe_neg_one, units.coe_one, nnnorm_neg, nnnorm_one],
 end
 
-lemma norm_coe_units (e : units ℤ) : ∥(e : ℤ)∥ = 1 :=
+lemma norm_coe_units (e : ℤˣ) : ∥(e : ℤ)∥ = 1 :=
 by rw [← coe_nnnorm, int.nnnorm_coe_units, nnreal.coe_one]
 
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : ∥(n : ℤ)∥₊ = n := real.nnnorm_coe_nat _

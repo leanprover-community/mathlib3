@@ -79,7 +79,7 @@ begin
 end ⟩⟩⟩
 
 instance whiskering_right_preserves_limits_of_shape {C : Type u} [category C]
-  {D : Type*} [category D] {E : Type*} [category.{u} E]
+  {D : Type*} [category.{u} D] {E : Type*} [category.{u} E]
   {J : Type u} [small_category J] [has_limits_of_shape J D]
     (F : D ⥤ E) [preserves_limits_of_shape J F] :
   preserves_limits_of_shape J ((whiskering_right C D E).obj F) := ⟨λ K, ⟨λ c hc,
@@ -91,8 +91,8 @@ begin
 end ⟩⟩
 
 instance whiskering_right_preserves_limits {C : Type u} [category C]
-  {D : Type*} [category D] {E : Type*} [category.{u} E] (F : D ⥤ E)
-  [has_limits D] [preserves_limits F] : preserves_limits ((whiskering_right C D E).obj F) := {}
+  {D : Type*} [category.{u} D] {E : Type*} [category.{u} E] (F : D ⥤ E)
+  [has_limits D] [preserves_limits F] : preserves_limits ((whiskering_right C D E).obj F) := ⟨⟩
 
 /-- If `Lan F.op : (Cᵒᵖ ⥤ Type*) ⥤ (Dᵒᵖ ⥤ Type*)` preserves limits of shape `J`, so will `F`. -/
 noncomputable

@@ -371,7 +371,7 @@ section -- implementation of `has_image`
 def image : Type u := set.range f
 
 instance [inhabited α] : inhabited (image f) :=
-{ default := ⟨f (default α), ⟨_, rfl⟩⟩ }
+{ default := ⟨f default, ⟨_, rfl⟩⟩ }
 
 /-- the inclusion of `image f` into the target -/
 def image.ι : image f ⟶ β := subtype.val

@@ -150,12 +150,12 @@ begin
     convert (finsupp.apply_add_hom x' : (σ →₀ ℕ) →+ ℕ).map_sum _ x,
     classical,
     simp [finsupp.single_apply, finset.filter_eq', apply_ite, apply_ite finset.card],
-    rw if_pos hx', },
+    rw if_pos, exact hx', },
   { convert pow_zero _,
     convert (finsupp.apply_add_hom y : (σ →₀ ℕ) →+ ℕ).map_sum _ x,
     classical,
     simp [finsupp.single_apply, finset.filter_eq', apply_ite, apply_ite finset.card],
-    rw if_neg hy, }
+    rw if_neg, exact hy }
 end
 
 @[simp] lemma esymm_zero : esymm σ R 0 = 1 :=

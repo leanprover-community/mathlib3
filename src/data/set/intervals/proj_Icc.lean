@@ -84,7 +84,7 @@ f ∘ proj_Icc a b h
 
 @[simp] lemma Icc_extend_range (f : Icc a b → β) :
   range (Icc_extend h f) = range f :=
-by simp [Icc_extend, range_comp f]
+by simp only [Icc_extend, range_comp f, range_proj_Icc, range_id']
 
 lemma Icc_extend_of_le_left (f : Icc a b → β) (hx : x ≤ a) :
   Icc_extend h f x = f ⟨a, left_mem_Icc.2 h⟩ :=

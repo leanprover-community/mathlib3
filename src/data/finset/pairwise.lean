@@ -53,8 +53,8 @@ begin
   obtain ⟨c, hc, ha⟩ := ha,
   obtain ⟨d, hd, hb⟩ := hb,
   obtain hcd | hcd := eq_or_ne (g c) (g d),
-  { exact hg d hd a (hcd ▸ ha) b hb hab },
-  { exact (hs _ hc _ hd (ne_of_apply_ne _ hcd)).mono (finset.le_sup ha) (finset.le_sup hb) }
+  { exact hg d hd (by rwa hcd at ha) hb hab },
+  { exact (hs hc hd (ne_of_apply_ne _ hcd)).mono (finset.le_sup ha) (finset.le_sup hb) }
 end
 
 end set

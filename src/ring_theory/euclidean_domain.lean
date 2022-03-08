@@ -28,6 +28,14 @@ section gcd_monoid
 
 variables {R : Type*} [euclidean_domain R] [gcd_monoid R]
 
+lemma gcd_ne_zero_of_left (p q : R) (hp : p ≠ 0) :
+  gcd_monoid.gcd p q ≠ 0 :=
+λ h, hp $ eq_zero_of_zero_dvd (h ▸ gcd_dvd_left p q)
+
+lemma gcd_ne_zero_of_right (p q : R) (hp : q ≠ 0) :
+  gcd_monoid.gcd p q ≠ 0 :=
+λ h, hp $ eq_zero_of_zero_dvd (h ▸ gcd_dvd_right p q)
+
 lemma left_div_gcd_ne_zero {p q : R} (hp : p ≠ 0) :
   p / gcd_monoid.gcd p q ≠ 0 :=
 begin
@@ -79,11 +87,11 @@ end
 
 -- this should be proved for UFDs surely?
 theorem is_coprime_of_dvd {α} [euclidean_domain α] {x y : α}
-  (z : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits α, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
+  (nonzero : ¬ (x = 0 ∧ y = 0)) (H : ∀ z ∈ nonunits α, z ≠ 0 → z ∣ x → ¬ z ∣ y) :
   is_coprime x y :=
 begin
   letI := euclidean_domain.gcd_monoid α,
-  exact is_coprime_of_dvd x y z H,
+  exact is_coprime_of_dvd x y nonzero H,
 end
 
 -- this should be proved for UFDs surely?

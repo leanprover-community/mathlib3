@@ -3,7 +3,6 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
-import algebra.invertible
 import algebra.order.group
 import algebra.order.sub
 import data.set.intervals.basic
@@ -128,7 +127,7 @@ lt_of_le_of_ne zero_le_one zero_ne_one
 lemma zero_lt_two : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
 
 @[field_simps] lemma two_ne_zero : (2:α) ≠ 0 :=
-ne.symm (ne_of_lt zero_lt_two)
+zero_lt_two.ne'
 
 lemma one_lt_two : 1 < (2:α) :=
 calc (2:α) = 1+1 : one_add_one_eq_two
@@ -137,7 +136,18 @@ calc (2:α) = 1+1 : one_add_one_eq_two
 
 lemma zero_lt_three : 0 < (3:α) := add_pos zero_lt_two zero_lt_one
 
+@[field_simps] lemma three_ne_zero : (3:α) ≠ 0 :=
+zero_lt_three.ne'
+
 lemma zero_lt_four : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
+
+@[field_simps] lemma four_ne_zero : (4:α) ≠ 0 :=
+zero_lt_four.ne'
+
+alias zero_lt_one ← one_pos
+alias zero_lt_two ← two_pos
+alias zero_lt_three ← three_pos
+alias zero_lt_four ← four_pos
 
 end nontrivial
 
@@ -307,7 +317,7 @@ by classical; exact decidable.le_mul_of_one_le_left
 protected lemma decidable.lt_mul_of_one_lt_right [@decidable_rel α (≤)]
   (hb : 0 < b) (h : 1 < a) : b < b * a :=
 suffices b * 1 < b * a, by rwa mul_one at this,
-decidable.mul_lt_mul' (le_refl _) h zero_le_one hb
+decidable.mul_lt_mul' le_rfl h zero_le_one hb
 
 lemma lt_mul_of_one_lt_right : 0 < b → 1 < a → b < b * a :=
 by classical; exact decidable.lt_mul_of_one_lt_right
@@ -316,7 +326,7 @@ by classical; exact decidable.lt_mul_of_one_lt_right
 protected lemma decidable.lt_mul_of_one_lt_left [@decidable_rel α (≤)]
   (hb : 0 < b) (h : 1 < a) : b < a * b :=
 suffices 1 * b < a * b, by rwa one_mul at this,
-decidable.mul_lt_mul h (le_refl _) hb (zero_le_one.trans h.le)
+decidable.mul_lt_mul h le_rfl hb (zero_le_one.trans h.le)
 
 lemma lt_mul_of_one_lt_left : 0 < b → 1 < a → b < a * b :=
 by classical; exact decidable.lt_mul_of_one_lt_left
@@ -559,33 +569,23 @@ lemma pos_of_mul_pos_left (h : 0 < a * b) (ha : 0 ≤ a) : 0 < b :=
 lemma pos_of_mul_pos_right (h : 0 < a * b) (hb : 0 ≤ b) : 0 < a :=
 ((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_right $ λ h, h.2.not_le hb).1
 
-@[simp] lemma inv_of_pos [invertible a] : 0 < ⅟a ↔ 0 < a :=
-begin
-  have : 0 < a * ⅟a, by simp only [mul_inv_of_self, zero_lt_one],
-  exact ⟨λ h, pos_of_mul_pos_right this h.le, λ h, pos_of_mul_pos_left this h.le⟩
-end
+lemma pos_iff_pos_of_mul_pos (hab : 0 < a * b) : 0 < a ↔ 0 < b :=
+⟨pos_of_mul_pos_left hab ∘ le_of_lt, pos_of_mul_pos_right hab ∘ le_of_lt⟩
 
-@[simp] lemma inv_of_nonpos [invertible a] : ⅟a ≤ 0 ↔ a ≤ 0 :=
-by simp only [← not_lt, inv_of_pos]
+lemma neg_of_mul_pos_left (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
+((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_left $ λ h, h.1.not_le ha).2
+
+lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : b ≤ 0) : a < 0 :=
+((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_left $ λ h, h.2.not_le ha).1
+
+lemma neg_iff_neg_of_mul_pos (hab : 0 < a * b) : a < 0 ↔ b < 0 :=
+⟨neg_of_mul_pos_left hab ∘ le_of_lt, neg_of_mul_pos_right hab ∘ le_of_lt⟩
 
 lemma nonneg_of_mul_nonneg_left (h : 0 ≤ a * b) (h1 : 0 < a) : 0 ≤ b :=
 le_of_not_gt (assume h2 : b < 0, (mul_neg_of_pos_of_neg h1 h2).not_le h)
 
 lemma nonneg_of_mul_nonneg_right (h : 0 ≤ a * b) (h1 : 0 < b) : 0 ≤ a :=
 le_of_not_gt (assume h2 : a < 0, (mul_neg_of_neg_of_pos h2 h1).not_le h)
-
-@[simp] lemma inv_of_nonneg [invertible a] : 0 ≤ ⅟a ↔ 0 ≤ a :=
-begin
-  have : 0 < a * ⅟a, by simp only [mul_inv_of_self, zero_lt_one],
-  exact ⟨λ h, (pos_of_mul_pos_right this h).le, λ h, (pos_of_mul_pos_left this h).le⟩
-end
-
-@[simp] lemma inv_of_lt_zero [invertible a] : ⅟a < 0 ↔ a < 0 :=
-by simp only [← not_le, inv_of_nonneg]
-
-@[simp] lemma inv_of_le_one [invertible a] (h : 1 ≤ a) : ⅟a ≤ 1 :=
-by haveI := @linear_order.decidable_le α _; exact
-mul_inv_of_self a ▸ decidable.le_mul_of_one_le_left (inv_of_nonneg.2 $ zero_le_one.trans h) h
 
 lemma neg_of_mul_neg_left (h : a * b < 0) (h1 : 0 ≤ a) : b < 0 :=
 by haveI := @linear_order.decidable_le α _; exact
@@ -723,23 +723,17 @@ lemma mul_le_iff_le_one_right (hb : 0 < b) : b * a ≤ b ↔ a ≤ 1 :=
 lemma mul_lt_iff_lt_one_right (hb : 0 < b) : b * a < b ↔ a < 1 :=
 lt_iff_lt_of_le_iff_le $ le_mul_iff_one_le_right hb
 
+-- TODO: `left` and `right` for these two lemmas are backwards compared to `neg_of_mul_pos`
+-- lemmas.
 lemma nonpos_of_mul_nonneg_left (h : 0 ≤ a * b) (hb : b < 0) : a ≤ 0 :=
 le_of_not_gt (λ ha, absurd h (mul_neg_of_pos_of_neg ha hb).not_le)
 
 lemma nonpos_of_mul_nonneg_right (h : 0 ≤ a * b) (ha : a < 0) : b ≤ 0 :=
 le_of_not_gt (λ hb, absurd h (mul_neg_of_neg_of_pos ha hb).not_le)
 
-lemma neg_of_mul_pos_left (h : 0 < a * b) (hb : b ≤ 0) : a < 0 :=
-by haveI := @linear_order.decidable_le α _; exact
-lt_of_not_ge (λ ha, absurd h (decidable.mul_nonpos_of_nonneg_of_nonpos ha hb).not_lt)
-
-lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
-by haveI := @linear_order.decidable_le α _; exact
-lt_of_not_ge (λ hb, absurd h (decidable.mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
-
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
-  no_top_order α :=
+instance linear_ordered_semiring.to_no_max_order {α : Type*} [linear_ordered_semiring α] :
+  no_max_order α :=
 ⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
 
 /-- Pullback a `linear_ordered_semiring` under an injective map.
@@ -753,6 +747,16 @@ def function.injective.linear_ordered_semiring {β : Type*}
 { .. linear_order.lift f hf,
   .. pullback_nonzero f zero one,
   .. hf.ordered_semiring f zero one add mul }
+
+@[simp] lemma units.inv_pos {u : αˣ} : (0 : α) < ↑u⁻¹ ↔ (0 : α) < u :=
+have ∀ {u : αˣ}, (0 : α) < u → (0 : α) < ↑u⁻¹ := λ u h,
+  (zero_lt_mul_left h).mp $ u.mul_inv.symm ▸ zero_lt_one,
+⟨this, this⟩
+
+@[simp] lemma units.inv_neg {u : αˣ} : ↑u⁻¹ < (0 : α) ↔ ↑u < (0 : α) :=
+have ∀ {u : αˣ}, ↑u < (0 : α) → ↑u⁻¹ < (0 : α) := λ u h,
+  neg_of_mul_pos_left (by exact (u.mul_inv.symm ▸ zero_lt_one)) h.le,
+⟨this, this⟩
 
 end linear_ordered_semiring
 
@@ -902,7 +906,7 @@ protected lemma decidable.mul_le_mul_of_nonpos_left [@decidable_rel α (≤)]
   {a b c : α} (h : b ≤ a) (hc : c ≤ 0) : c * a ≤ c * b :=
 have -c ≥ 0,              from neg_nonneg_of_nonpos hc,
 have -c * b ≤ -c * a,     from decidable.mul_le_mul_of_nonneg_left h this,
-have -(c * b) ≤ -(c * a), by rwa [← neg_mul_eq_neg_mul, ← neg_mul_eq_neg_mul] at this,
+have -(c * b) ≤ -(c * a), by rwa [neg_mul, neg_mul] at this,
 le_of_neg_le_neg this
 
 lemma mul_le_mul_of_nonpos_left {a b c : α} : b ≤ a → c ≤ 0 → c * a ≤ c * b :=
@@ -913,7 +917,7 @@ protected lemma decidable.mul_le_mul_of_nonpos_right [@decidable_rel α (≤)]
   {a b c : α} (h : b ≤ a) (hc : c ≤ 0) : a * c ≤ b * c :=
 have -c ≥ 0,              from neg_nonneg_of_nonpos hc,
 have b * -c ≤ a * -c,     from decidable.mul_le_mul_of_nonneg_right h this,
-have -(b * c) ≤ -(a * c), by rwa [← neg_mul_eq_mul_neg, ← neg_mul_eq_mul_neg] at this,
+have -(b * c) ≤ -(a * c), by rwa [mul_neg, mul_neg] at this,
 le_of_neg_le_neg this
 
 lemma mul_le_mul_of_nonpos_right {a b c : α} : b ≤ a → c ≤ 0 → a * c ≤ b * c :=
@@ -931,13 +935,13 @@ by classical; exact decidable.mul_nonneg_of_nonpos_of_nonpos
 lemma mul_lt_mul_of_neg_left {a b c : α} (h : b < a) (hc : c < 0) : c * a < c * b :=
 have -c > 0,              from neg_pos_of_neg hc,
 have -c * b < -c * a,     from mul_lt_mul_of_pos_left h this,
-have -(c * b) < -(c * a), by rwa [← neg_mul_eq_neg_mul, ← neg_mul_eq_neg_mul] at this,
+have -(c * b) < -(c * a), by rwa [neg_mul, neg_mul] at this,
 lt_of_neg_lt_neg this
 
 lemma mul_lt_mul_of_neg_right {a b c : α} (h : b < a) (hc : c < 0) : a * c < b * c :=
 have -c > 0,              from neg_pos_of_neg hc,
 have b * -c < a * -c,     from mul_lt_mul_of_pos_right h this,
-have -(b * c) < -(a * c), by rwa [← neg_mul_eq_mul_neg, ← neg_mul_eq_mul_neg] at this,
+have -(b * c) < -(a * c), by rwa [mul_neg, mul_neg] at this,
 lt_of_neg_lt_neg this
 
 lemma mul_pos_of_neg_of_neg {a b : α} (ha : a < 0) (hb : b < 0) : 0 < a * b :=
@@ -1035,11 +1039,11 @@ begin
   rw [abs_eq (decidable.mul_nonneg (abs_nonneg a) (abs_nonneg b))],
   cases le_total a 0 with ha ha; cases le_total b 0 with hb hb;
     simp only [abs_of_nonpos, abs_of_nonneg, true_or, or_true, eq_self_iff_true,
-      neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, neg_neg, *]
+      neg_mul, mul_neg, neg_neg, *]
 end
 
 /-- `abs` as a `monoid_with_zero_hom`. -/
-def abs_hom : monoid_with_zero_hom α α := ⟨abs, abs_zero, abs_one, abs_mul⟩
+def abs_hom : α →*₀ α := ⟨abs, abs_zero, abs_one, abs_mul⟩
 
 @[simp] lemma abs_mul_abs_self (a : α) : |a| * |a| = a * a :=
 abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
@@ -1158,9 +1162,14 @@ lt_iff_lt_of_le_iff_le (mul_le_mul_right_of_neg h)
 lemma sub_one_lt (a : α) : a - 1 < a :=
 sub_lt_iff_lt_add.2 (lt_add_one a)
 
-lemma mul_self_pos {a : α} (ha : a ≠ 0) : 0 < a * a :=
-by rcases lt_trichotomy a 0 with h|h|h;
-   [exact mul_pos_of_neg_of_neg h h, exact (ha h).elim, exact mul_pos h h]
+@[simp] lemma mul_self_pos {a : α} : 0 < a * a ↔ a ≠ 0 :=
+begin
+  split,
+  { rintro h rfl, rw mul_zero at h, exact h.false },
+  { intro h,
+    cases h.lt_or_lt with h h,
+    exacts [mul_pos_of_neg_of_neg h h, mul_pos h h] }
+end
 
 lemma mul_self_le_mul_self_of_le_of_neg_le {x y : α} (h₁ : x ≤ y) (h₂ : -x ≤ y) : x * x ≤ y * y :=
 begin
@@ -1182,6 +1191,12 @@ lt_of_not_ge (λ ha, absurd h (decidable.mul_nonneg_of_nonpos_of_nonpos ha hb).n
 lemma pos_of_mul_neg_right {a b : α} (h : a * b < 0) (ha : a ≤ 0) : 0 < b :=
 by haveI := @linear_order.decidable_le α _; exact
 lt_of_not_ge (λ hb, absurd h (decidable.mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
+
+lemma neg_iff_pos_of_mul_neg (hab : a * b < 0) : a < 0 ↔ 0 < b :=
+⟨pos_of_mul_neg_right hab ∘ le_of_lt, neg_of_mul_neg_right hab ∘ le_of_lt⟩
+
+lemma pos_iff_neg_of_mul_neg (hab : a * b < 0) : 0 < a ↔ b < 0 :=
+⟨neg_of_mul_neg_left hab ∘ le_of_lt, pos_of_mul_neg_left hab ∘ le_of_lt⟩
 
 /-- The sum of two squares is zero iff both elements are zero. -/
 lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
@@ -1260,7 +1275,7 @@ lemma abs_sub_sq (a b : α) : |a - b| * |a - b| = a * a + b * b - (1 + 1) * a * 
 begin
   rw abs_mul_abs_self,
   simp only [mul_add, add_comm, add_left_comm, mul_comm, sub_eq_add_neg,
-    mul_one, mul_neg_eq_neg_mul_symm, neg_add_rev, neg_neg],
+    mul_one, mul_neg, neg_add_rev, neg_neg],
 end
 
 end linear_ordered_comm_ring

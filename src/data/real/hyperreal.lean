@@ -48,7 +48,7 @@ coe_lt_coe
 @[simp, norm_cast] lemma coe_abs (x : ℝ) : ((|x| : ℝ) : ℝ*) = |x| :=
 begin
   convert const_abs x,
-  apply lattice_of_linear_order_eq_filter_germ_lattice,
+  apply linear_order.to_lattice_eq_filter_germ_lattice,
 end
 @[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _
 @[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _
@@ -67,7 +67,7 @@ localized "notation `ω` := hyperreal.omega" in hyperreal
 
 lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 
-lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv₀ _ _ ω
+lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv _ _ ω
 
 lemma epsilon_pos : 0 < ε :=
 suffices ∀ᶠ i in hyperfilter ℕ, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def,
@@ -662,14 +662,14 @@ theorem infinite_iff_infinitesimal_inv {x : ℝ*} (h0 : x ≠ 0) : infinite x �
 
 lemma infinitesimal_pos_iff_infinite_pos_inv {x : ℝ*} :
   infinite_pos x⁻¹ ↔ (infinitesimal x ∧ 0 < x) :=
-by convert infinite_pos_iff_infinitesimal_inv_pos; simp only [inv_inv₀]
+by convert infinite_pos_iff_infinitesimal_inv_pos; simp only [inv_inv]
 
 lemma infinitesimal_neg_iff_infinite_neg_inv {x : ℝ*} :
   infinite_neg x⁻¹ ↔ (infinitesimal x ∧ x < 0) :=
-by convert infinite_neg_iff_infinitesimal_inv_neg; simp only [inv_inv₀]
+by convert infinite_neg_iff_infinitesimal_inv_neg; simp only [inv_inv]
 
 theorem infinitesimal_iff_infinite_inv {x : ℝ*} (h : x ≠ 0) : infinitesimal x ↔ infinite x⁻¹ :=
-by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simp only [inv_inv₀]
+by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simp only [inv_inv]
 
 /-!
 ### `st` stuff that requires infinitesimal machinery

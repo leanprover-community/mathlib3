@@ -23,6 +23,15 @@ instance : has_repr ℕ+ := ⟨λ n, repr n.1⟩
 /-- Predecessor of a `ℕ+`, as a `ℕ`. -/
 def pnat.nat_pred (i : ℕ+) : ℕ := i - 1
 
+@[simp] lemma pnat.one_add_nat_pred (n : ℕ+) : 1 + n.nat_pred = n :=
+by rw [pnat.nat_pred, add_tsub_cancel_iff_le.mpr $ show 1 ≤ (n : ℕ), from n.2]
+
+@[simp] lemma pnat.nat_pred_add_one (n : ℕ+) : n.nat_pred + 1 = n :=
+(add_comm _ _).trans n.one_add_nat_pred
+
+@[simp] lemma pnat.nat_pred_eq_pred {n : ℕ} (h : 0 < n) :
+pnat.nat_pred (⟨n, h⟩ : ℕ+) = n.pred := rfl
+
 namespace nat
 
 /-- Convert a natural number to a positive natural number. The
@@ -74,6 +83,9 @@ subtype.linear_order _
 @[simp, norm_cast] lemma coe_lt_coe (n k : ℕ+) : (n : ℕ) < k ↔ n < k := iff.rfl
 
 @[simp] theorem pos (n : ℕ+) : 0 < (n : ℕ) := n.2
+
+-- see note [fact non_instances]
+lemma fact_pos (n : ℕ+) : fact (0 < ↑n) := ⟨n.pos⟩
 
 theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 

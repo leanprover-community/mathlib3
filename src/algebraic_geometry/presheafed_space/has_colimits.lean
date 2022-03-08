@@ -132,10 +132,15 @@ variables [has_limits C]
 /--
 Auxiliary definition for `PresheafedSpace.has_colimits`.
 -/
-@[simps]
 def colimit (F : J ⥤ PresheafedSpace C) : PresheafedSpace C :=
 { carrier := colimit (F ⋙ PresheafedSpace.forget C),
   presheaf := limit (pushforward_diagram_to_colimit F).left_op, }
+
+@[simp] lemma colimit_carrier (F : J ⥤ PresheafedSpace C) :
+  (colimit F).carrier = limits.colimit (F ⋙ PresheafedSpace.forget C) := rfl
+
+@[simp] lemma colimit_presheaf (F : J ⥤ PresheafedSpace C) :
+  (colimit F).presheaf = limit (pushforward_diagram_to_colimit F).left_op := rfl
 
 /--
 Auxiliary definition for `PresheafedSpace.has_colimits`.
@@ -219,6 +224,25 @@ begin
   dsimp, simp,
 end
 
+/--
+Auxiliary definition for `PresheafedSpace.colimit_cocone_is_colimit`.
+-/
+def desc (F : J ⥤ PresheafedSpace C) (s : cocone F) : colimit F ⟶ s.X :=
+{ base := colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
+  c :=
+  { app := λ U, desc_c_app F s U,
+    naturality' := λ U V i, desc_c_naturality F s i } }
+
+lemma desc_fac  (F : J ⥤ PresheafedSpace C) (s : cocone F) (j : J) :
+  (colimit_cocone F).ι.app j ≫ desc F s = s.ι.app j :=
+begin
+  fapply PresheafedSpace.ext,
+  { simp [desc] },
+  { ext,
+    dsimp [desc, desc_c_app],
+    simpa }
+end
+
 end colimit_cocone_is_colimit
 
 open colimit_cocone_is_colimit
@@ -227,24 +251,8 @@ open colimit_cocone_is_colimit
 Auxiliary definition for `PresheafedSpace.has_colimits`.
 -/
 def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimit_cocone F) :=
-{ desc := λ s,
-  { base := colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
-    c :=
-    { app := λ U, desc_c_app F s U,
-      naturality' := λ U V i, desc_c_naturality F s i }, },
-  fac' := -- tidy can do this but it takes too long
-  begin
-    intros s j,
-    dsimp,
-    fapply PresheafedSpace.ext,
-    { simp, },
-    { ext,
-      dsimp [desc_c_app],
-      simp only [eq_to_hom_op, limit.lift_π_assoc, eq_to_hom_map, assoc, pushforward.comp_inv_app,
-                 limit_obj_iso_limit_comp_evaluation_inv_π_app_assoc],
-      dsimp,
-      simp },
-  end,
+{ desc := λ s, desc F s,
+  fac' := λ s, desc_fac F s,
   uniq' := λ s m w,
   begin
     -- We need to use the identity on the continuous maps twice, so we prepare that first:
@@ -258,7 +266,7 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
       simp, },
     fapply PresheafedSpace.ext, -- could `ext` please not reorder goals?
     { exact t, },
-    { ext U j, dsimp [desc_c_app],
+    { ext U j, dsimp [desc, desc_c_app],
       simp only [limit.lift_π, eq_to_hom_op, eq_to_hom_map, assoc,
         limit_obj_iso_limit_comp_evaluation_inv_π_app],
       rw PresheafedSpace.congr_app (w (unop j)).symm U,

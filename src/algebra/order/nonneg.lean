@@ -7,7 +7,7 @@ import algebra.order.archimedean
 import algebra.order.sub
 import algebra.order.with_zero
 import order.lattice_intervals
-import order.conditionally_complete_lattice
+import order.complete_lattice_intervals
 
 /-!
 # The type of nonnegative elements
@@ -49,8 +49,8 @@ instance order_bot [preorder α] {a : α} : order_bot {x : α // a ≤ x} :=
 
 lemma bot_eq [preorder α] {a : α} : (⊥ : {x : α // a ≤ x}) = ⟨a, le_rfl⟩ := rfl
 
-instance no_top_order [partial_order α] [no_top_order α] {a : α} : no_top_order {x : α // a ≤ x} :=
-set.Ici.no_top_order
+instance no_max_order [partial_order α] [no_max_order α] {a : α} : no_max_order {x : α // a ≤ x} :=
+set.Ici.no_max_order
 
 instance semilattice_inf [semilattice_inf α] {a : α} : semilattice_inf {x : α // a ≤ x} :=
 set.Ici.semilattice_inf
@@ -191,6 +191,10 @@ instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
 /-- Coercion `{x : α // 0 ≤ x} → α` as a `ring_hom`. -/
 def coe_ring_hom [ordered_semiring α] : {x : α // 0 ≤ x} →+* α :=
 ⟨coe, nonneg.coe_one, nonneg.coe_mul, nonneg.coe_zero, nonneg.coe_add⟩
+
+@[simp, norm_cast]
+protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n :=
+map_nat_cast (coe_ring_hom : {x : α // 0 ≤ x} →+* α) n
 
 instance has_inv [linear_ordered_field α] : has_inv {x : α // 0 ≤ x} :=
 { inv := λ x, ⟨x⁻¹, inv_nonneg.mpr x.2⟩ }

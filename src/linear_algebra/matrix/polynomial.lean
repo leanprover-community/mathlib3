@@ -25,7 +25,7 @@ In particular, we give results about the polynomial given by
 matrix determinant, polynomial
 -/
 
-open_locale matrix big_operators
+open_locale matrix big_operators polynomial
 
 variables {n α : Type*} [decidable_eq n] [fintype n] [comm_ring α]
 
@@ -34,7 +34,7 @@ open polynomial matrix equiv.perm
 namespace polynomial
 
 lemma nat_degree_det_X_add_C_le (A B : matrix n n α) :
-  nat_degree (det ((X : polynomial α) • A.map C + B.map C)) ≤ fintype.card n :=
+  nat_degree (det ((X : α[X]) • A.map C + B.map C)) ≤ fintype.card n :=
 begin
   rw det_apply,
   refine (nat_degree_sum_le _ _).trans _,
@@ -47,22 +47,22 @@ begin
     { cases int.units_eq_one_or (sign g) with sg sg,
         { rw [sg, one_smul] },
         { rw [sg, units.neg_smul, one_smul, nat_degree_neg] } }
-  ... ≤ ∑ (i : n), nat_degree (((X : polynomial α) • A.map C + B.map C) (g i) i) :
+  ... ≤ ∑ (i : n), nat_degree (((X : α[X]) • A.map C + B.map C) (g i) i) :
     nat_degree_prod_le (finset.univ : finset n) (λ (i : n), (X • A.map C + B.map C) (g i) i)
   ... ≤ finset.univ.card • 1 : finset.sum_le_of_forall_le _ _ 1 (λ (i : n) _, _)
   ... ≤ fintype.card n : by simpa,
-  calc  nat_degree (((X : polynomial α) • A.map C + B.map C) (g i) i)
-      = nat_degree ((X : polynomial α) * C (A (g i) i) + C (B (g i) i)) : by simp
-  ... ≤ max (nat_degree ((X : polynomial α) * C (A (g i) i))) (nat_degree (C (B (g i) i))) :
+  calc  nat_degree (((X : α[X]) • A.map C + B.map C) (g i) i)
+      = nat_degree ((X : α[X]) * C (A (g i) i) + C (B (g i) i)) : by simp
+  ... ≤ max (nat_degree ((X : α[X]) * C (A (g i) i))) (nat_degree (C (B (g i) i))) :
     nat_degree_add_le _ _
-  ... = nat_degree ((X : polynomial α) * C (A (g i) i)) :
+  ... = nat_degree ((X : α[X]) * C (A (g i) i)) :
     max_eq_left ((nat_degree_C _).le.trans (zero_le _))
-  ... ≤ nat_degree (X : polynomial α) : nat_degree_mul_C_le _ _
+  ... ≤ nat_degree (X : α[X]) : nat_degree_mul_C_le _ _
   ... ≤ 1 : nat_degree_X_le
 end
 
 lemma coeff_det_X_add_C_zero (A B : matrix n n α) :
-  coeff (det ((X : polynomial α) • A.map C + B.map C)) 0 = det B :=
+  coeff (det ((X : α[X]) • A.map C + B.map C)) 0 = det B :=
 begin
   rw [det_apply, finset_sum_coeff, det_apply],
   refine finset.sum_congr rfl _,
@@ -74,7 +74,7 @@ begin
 end
 
 lemma coeff_det_X_add_C_card (A B : matrix n n α) :
-  coeff (det ((X : polynomial α) • A.map C + B.map C)) (fintype.card n) = det A :=
+  coeff (det ((X : α[X]) • A.map C + B.map C)) (fintype.card n) = det A :=
 begin
   rw [det_apply, det_apply, finset_sum_coeff],
   refine finset.sum_congr rfl _,
@@ -92,7 +92,7 @@ begin
 end
 
 lemma leading_coeff_det_X_one_add_C (A : matrix n n α) :
-  leading_coeff (det ((X : polynomial α) • (1 : matrix n n (polynomial α)) + A.map C)) = 1 :=
+  leading_coeff (det ((X : α[X]) • (1 : matrix n n α[X]) + A.map C)) = 1 :=
 begin
   casesI (subsingleton_or_nontrivial α),
   { simp },

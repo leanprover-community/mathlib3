@@ -51,11 +51,13 @@ welcomed.
 
 * Anne Baanen (@Vierkantor): algebra, number theory, tactics
 * Reid Barton (@rwbarton): category theory, topology
+* Riccardo Brasca (@riccardobrasca): algebra, number theory, algebraic geometry, category theory
 * Mario Carneiro (@digama0): lean formalization, tactics, type theory, proof engineering
 * Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
 * Johan Commelin (@jcommelin): algebra, number theory, category theory, algebraic geometry
 * Rémy Degenne (@RemyDegenne): probability, measure theory, analysis
 * Floris van Doorn (@fpvandoorn): measure theory, model theory, tactics
+* Frédéric Dupuis (@dupuisf): linear algebra, functional analysis
 * Gabriel Ebner (@gebner): tactics, infrastructure, core, formal languages
 * Sébastien Gouëzel (@sgouezel): topology, calculus, geometry, analysis, measure theory
 * Markus Himmel (@TwoFX): category theory
@@ -65,6 +67,7 @@ welcomed.
 * Heather Macbeth (@hrmacbeth): geometry, analysis
 * Patrick Massot (@patrickmassot): documentation, topology, geometry
 * Bhavik Mehta (@b-mehta): category theory, combinatorics
+* Kyle Miller (@kmill): combinatorics, documentation
 * Scott Morrison (@semorrison): category theory, tactics
 * Oliver Nash (@ocfnash): algebra, geometry, topology
 * Adam Topaz (@adamtopaz): algebra, category theory, algebraic geometry

@@ -549,10 +549,10 @@ do
   | normalize_mode.SOP :=
     [``horner_def', ``add_zero, ``mul_one, ``mul_add, ``mul_sub,
     ``mul_assoc_rev, ``pow_add_rev, ``pow_add_rev_right,
-    ``mul_neg_eq_neg_mul_symm, ``add_neg_eq_sub]
+    ``mul_neg, ``add_neg_eq_sub]
   | normalize_mode.horner :=
     [``horner.equations._eqn_1, ``add_zero, ``one_mul, ``pow_one,
-    ``neg_mul_eq_neg_mul_symm, ``add_neg_eq_sub]
+    ``neg_mul, ``add_neg_eq_sub]
   | _ := []
   end,
   lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
@@ -610,7 +610,7 @@ setup_tactic_parser
   that is provable by the axioms of commutative (semi)rings. -/
 meta def ring1 (red : parse (tk "!")?) : tactic unit :=
 let transp := if red.is_some then semireducible else reducible in
-do `(%%e₁ = %%e₂) ← target,
+do `(%%e₁ = %%e₂) ← target >>= instantiate_mvars,
   ((e₁', p₁), (e₂', p₂)) ← ring_m.run transp e₁ $
     prod.mk <$> eval e₁ <*> eval e₂,
   is_def_eq e₁' e₂',

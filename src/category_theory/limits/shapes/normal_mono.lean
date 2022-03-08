@@ -16,6 +16,11 @@ We give the construction `normal_mono → regular_mono` (`category_theory.normal
 as well as the dual construction for normal epimorphisms. We show equivalences reflect normal
 monomorphisms (`category_theory.equivalence_reflects_normal_mono`), and that the pullback of a
 normal monomorphism is normal (`category_theory.normal_of_is_pullback_snd_of_normal`).
+
+We also define classes `normal_mono_category` and `normal_epi_category` for classes in which
+every monomorphism or epimorphism is normal, and deduce that these categories are
+`regular_mono_category`s resp. `regular_epi_category`s.
+
 -/
 
 noncomputable theory
@@ -105,6 +110,26 @@ def normal_of_is_pullback_fst_of_normal
   [hn : normal_mono k] (comm : f ≫ h = g ≫ k) (t : is_limit (pullback_cone.mk _ _ comm)) :
 normal_mono f :=
 normal_of_is_pullback_snd_of_normal comm.symm (pullback_cone.flip_is_limit t)
+
+section
+variables (C)
+
+/-- A normal mono category is a category in which every monomorphism is normal. -/
+class normal_mono_category :=
+(normal_mono_of_mono : ∀ {X Y : C} (f : X ⟶ Y) [mono f], normal_mono f)
+
+end
+
+/-- In a category in which every monomorphism is normal, we can express every monomorphism as
+    a kernel. This is not an instance because it would create an instance loop. -/
+def normal_mono_of_mono [normal_mono_category C] (f : X ⟶ Y) [mono f] : normal_mono f :=
+normal_mono_category.normal_mono_of_mono _
+
+@[priority 100]
+instance regular_mono_category_of_normal_mono_category [normal_mono_category C] :
+  regular_mono_category C :=
+{ regular_mono_of_mono := λ _ _ f _,
+    by { haveI := by exactI normal_mono_of_mono f, apply_instance } }
 
 end
 
@@ -226,5 +251,25 @@ def normal_mono_of_normal_epi_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_epi
       apply m.is_colimit.uniq (cokernel_cofork.of_π (f.unop ≫ m'.unop) _) m'.unop,
       rintro (⟨⟩|⟨⟩); simp,
     end, }
+
+section
+variables (C)
+
+/-- A normal epi category is a category in which every epimorphism is normal. -/
+class normal_epi_category :=
+(normal_epi_of_epi : ∀ {X Y : C} (f : X ⟶ Y) [epi f], normal_epi f)
+
+end
+
+/-- In a category in which every epimorphism is normal, we can express every epimorphism as
+    a kernel. This is not an instance because it would create an instance loop. -/
+def normal_epi_of_epi [normal_epi_category C] (f : X ⟶ Y) [epi f] : normal_epi f :=
+normal_epi_category.normal_epi_of_epi _
+
+@[priority 100]
+instance regular_epi_category_of_normal_epi_category [normal_epi_category C] :
+  regular_epi_category C :=
+{ regular_epi_of_epi := λ _ _ f _,
+    by { haveI := by exactI normal_epi_of_epi f, apply_instance } }
 
 end category_theory

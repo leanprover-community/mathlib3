@@ -60,7 +60,7 @@ namespace has_products
 
 /-- The pi-type gives a cone for a product. -/
 def product {J : Type v} (f : J → ωCPO.{v}) : fan f :=
-fan.mk (of (Π j, f j)) (λ j, continuous_hom.of_mono (pi.eval_preorder_hom j) (λ c, rfl))
+fan.mk (of (Π j, f j)) (λ j, continuous_hom.of_mono (pi.eval_order_hom j) (λ c, rfl))
 
 /-- The pi-type is a limit cone for the product. -/
 def is_product (J : Type v) (f : J → ωCPO) : is_limit (product f) :=
@@ -97,7 +97,7 @@ namespace has_equalizers
 def equalizer_ι {α β : Type*} [omega_complete_partial_order α] [omega_complete_partial_order β]
   (f g : α →𝒄 β) :
   {a : α // f a = g a} →𝒄 α :=
-continuous_hom.of_mono (preorder_hom.subtype.val _) (λ c, rfl)
+continuous_hom.of_mono (order_hom.subtype.val _) (λ c, rfl)
 
 /-- A construction of the equalizer fork. -/
 def equalizer {X Y : ωCPO.{v}} (f g : X ⟶ Y) :

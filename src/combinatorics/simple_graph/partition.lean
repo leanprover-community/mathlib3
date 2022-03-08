@@ -88,8 +88,7 @@ begin
   intro hn,
   have hw := P.mem_part_of_vertex w,
   rw ←hn at hw,
-  have h' := P.independent _ (P.part_of_vertex_mem v) _ (P.mem_part_of_vertex v),
-  exact h' w hw (G.ne_of_adj h) h,
+  exact P.independent _ (P.part_of_vertex_mem v) (P.mem_part_of_vertex v) hw (G.ne_of_adj h) h,
 end
 
 /-- Create a coloring using the parts themselves as the colors.
@@ -128,7 +127,7 @@ begin
   { rintro ⟨P, hf, h⟩,
     haveI : fintype P.parts := hf.fintype,
     rw set.finite.card_to_finset at h,
-    apply P.to_colorable.of_le h, },
+    apply P.to_colorable.mono h, },
   { rintro ⟨C⟩,
     refine ⟨C.to_partition, C.color_classes_finite_of_fintype, le_trans _ (fintype.card_fin n).le⟩,
     generalize_proofs h,

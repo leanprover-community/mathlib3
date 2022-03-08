@@ -54,7 +54,7 @@ end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,
 where `d` is the degree of the minimal polynomial of `x`. -/
-noncomputable def adjoin.power_basis {x : S} (hx : _root_.is_integral K x) :
+@[simps gen dim] noncomputable def adjoin.power_basis {x : S} (hx : _root_.is_integral K x) :
   power_basis K (adjoin K ({x} : set S)) :=
 { gen := ⟨x, subset_adjoin (set.mem_singleton x)⟩,
   dim := (minpoly K x).nat_degree,
@@ -62,3 +62,11 @@ noncomputable def adjoin.power_basis {x : S} (hx : _root_.is_integral K x) :
   basis_eq_pow := basis.mk_apply _ _ }
 
 end algebra
+
+open algebra
+
+/-- The power basis given by `x` if `B.gen ∈ adjoin K {x}`. -/
+@[simps] noncomputable def power_basis.of_gen_mem_adjoin {x : S} (B : power_basis K S)
+  (hint : _root_.is_integral K x) (hx : B.gen ∈ adjoin K ({x} : set S)) : power_basis K S :=
+(algebra.adjoin.power_basis hint).map $
+  (subalgebra.equiv_of_eq _ _ $ power_basis.adjoin_eq_top_of_gen_mem_adjoin hx).trans top_equiv

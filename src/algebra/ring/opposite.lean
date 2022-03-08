@@ -50,6 +50,16 @@ instance [semiring α] : semiring αᵐᵒᵖ :=
 instance [comm_semiring α] : comm_semiring αᵐᵒᵖ :=
 { .. mul_opposite.semiring α, .. mul_opposite.comm_semigroup α }
 
+instance [non_unital_non_assoc_ring α] : non_unital_non_assoc_ring αᵐᵒᵖ :=
+{ .. mul_opposite.add_comm_group α, .. mul_opposite.mul_zero_class α, .. mul_opposite.distrib α}
+
+instance [non_unital_ring α] : non_unital_ring αᵐᵒᵖ :=
+{ .. mul_opposite.add_comm_group α, .. mul_opposite.semigroup_with_zero α,
+  .. mul_opposite.distrib α}
+
+instance [non_assoc_ring α] : non_assoc_ring αᵐᵒᵖ :=
+{ .. mul_opposite.add_comm_group α, .. mul_opposite.mul_zero_one_class α, .. mul_opposite.distrib α}
+
 instance [ring α] : ring αᵐᵒᵖ :=
 { .. mul_opposite.add_comm_group α, .. mul_opposite.monoid α, .. mul_opposite.semiring α }
 
@@ -83,13 +93,22 @@ def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
   .. ((op_add_equiv : S ≃+ Sᵐᵒᵖ).to_add_monoid_hom.comp ↑f : R →+ Sᵐᵒᵖ),
   .. f.to_monoid_hom.to_opposite hf }
 
+/-- A monoid homomorphism `f : R →* S` such that `f x` commutes with `f y` for all `x, y` defines
+a monoid homomorphism from `Rᵐᵒᵖ`. -/
+@[simps {fully_applied := ff}]
+def ring_hom.from_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
+  (hf : ∀ x y, commute (f x) (f y)) : Rᵐᵒᵖ →+* S :=
+{ to_fun := f ∘ mul_opposite.unop,
+  .. (f.to_add_monoid_hom.comp (op_add_equiv : R ≃+ Rᵐᵒᵖ).symm.to_add_monoid_hom : Rᵐᵒᵖ →+ S),
+  .. f.to_monoid_hom.from_opposite hf }
+
 /-- A ring hom `α →+* β` can equivalently be viewed as a ring hom `αᵐᵒᵖ →+* βᵐᵒᵖ`. This is the
 action of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/
 @[simps]
 def ring_hom.op {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
   (α →+* β) ≃ (αᵐᵒᵖ →+* βᵐᵒᵖ) :=
-{ to_fun    := λ f, { ..f.to_add_monoid_hom.op, ..f.to_monoid_hom.op },
-  inv_fun   := λ f, { ..f.to_add_monoid_hom.unop, ..f.to_monoid_hom.unop },
+{ to_fun    := λ f, { ..f.to_add_monoid_hom.mul_op, ..f.to_monoid_hom.op },
+  inv_fun   := λ f, { ..f.to_add_monoid_hom.mul_unop, ..f.to_monoid_hom.unop },
   left_inv  := λ f, by { ext, refl },
   right_inv := λ f, by { ext, simp } }
 

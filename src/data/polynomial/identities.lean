@@ -15,6 +15,7 @@ The main def is `binom_expansion`.
 noncomputable theory
 
 namespace polynomial
+open_locale polynomial
 universes u v w x y z
 variables {R : Type u} {S : Type v} {T : Type w} {ι : Type x} {k : Type y} {A : Type z}
   {a b : R} {m n : ℕ}
@@ -53,14 +54,14 @@ begin
   apply (pow_add_expansion _ _ _).property
 end
 
-private lemma poly_binom_aux2 (f : polynomial R) (x y : R) :
+private lemma poly_binom_aux2 (f : R[X]) (x y : R) :
   f.eval (x + y) = f.sum (λ e a, a * (x^e + e*x^(e-1)*y + (poly_binom_aux1 x y e a).val*y^2)) :=
 begin
   unfold eval eval₂, congr' with n z,
   apply (poly_binom_aux1 x y _ _).property
 end
 
-private lemma poly_binom_aux3 (f : polynomial R) (x y : R) : f.eval (x + y) =
+private lemma poly_binom_aux3 (f : R[X]) (x y : R) : f.eval (x + y) =
   f.sum (λ e a, a * x^e) +
   f.sum (λ e a, (a * e * x^(e-1)) * y) +
   f.sum (λ e a, (a *(poly_binom_aux1 x y e a).val)*y^2) :=
@@ -71,7 +72,7 @@ A polynomial `f` evaluated at `x + y` can be expressed as
 the evaluation of `f` at `x`, plus `y` times the (polynomial) derivative of `f` at `x`,
 plus some element `k : R` times `y^2`.
 -/
-def binom_expansion (f : polynomial R) (x y : R) :
+def binom_expansion (f : R[X]) (x y : R) :
   {k : R // f.eval (x + y) = f.eval x + (f.derivative.eval x) * y + k * y^2} :=
 begin
   existsi f.sum (λ e a, a *((poly_binom_aux1 x y e a).val)),
@@ -102,7 +103,7 @@ def pow_sub_pow_factor (x y : R) : Π (i : ℕ), {z : R // x^i - y^i = z * (x - 
 For any polynomial `f`, `f.eval x - f.eval y` can be expressed as `z * (x - y)`
 for some `z` in the ring.
 -/
-def eval_sub_factor (f : polynomial R) (x y : R) :
+def eval_sub_factor (f : R[X]) (x y : R) :
   {z : R // f.eval x - f.eval y = z * (x - y)} :=
 begin
   refine ⟨f.sum (λ i r, r * (pow_sub_pow_factor x y i).val), _⟩,

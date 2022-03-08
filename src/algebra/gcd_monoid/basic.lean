@@ -10,7 +10,7 @@ import algebra.group_power.lemmas
 /-!
 # Monoids with normalization functions, `gcd`, and `lcm`
 
-This file defines extra structures on `comm_cancel_monoid_with_zero`s, including `is_domain`s.
+This file defines extra structures on `cancel_comm_monoid_with_zero`s, including `is_domain`s.
 
 ## Main Definitions
 
@@ -69,24 +69,24 @@ variables {α : Type*}
 /-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated
 elements. -/
 @[protect_proj] class normalization_monoid (α : Type*)
-  [comm_cancel_monoid_with_zero α] :=
-(norm_unit : α → units α)
+  [cancel_comm_monoid_with_zero α] :=
+(norm_unit : α → αˣ)
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
-(norm_unit_coe_units : ∀(u : units α), norm_unit u = u⁻¹)
+(norm_unit_coe_units : ∀(u : αˣ), norm_unit u = u⁻¹)
 
 export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_coe_units)
 
 attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
 
 section normalization_monoid
-variables [comm_cancel_monoid_with_zero α] [normalization_monoid α]
+variables [cancel_comm_monoid_with_zero α] [normalization_monoid α]
 
 @[simp] theorem norm_unit_one : norm_unit (1:α) = 1 :=
 norm_unit_coe_units 1
 
 /-- Chooses an element of each associate class, by multiplying by `norm_unit` -/
-def normalize : monoid_with_zero_hom α α :=
+def normalize : α →*₀ α :=
 { to_fun := λ x, x * norm_unit x,
   map_zero' := by simp,
   map_one' := by rw [norm_unit_one, units.coe_one, mul_one],
@@ -110,7 +110,7 @@ associates.mk_eq_mk_iff_associated.2 (normalize_associated _)
 
 @[simp] lemma normalize_one : normalize (1 : α) = 1 := normalize.map_one
 
-lemma normalize_coe_units (u : units α) : normalize (u : α) = 1 := by simp
+lemma normalize_coe_units (u : αˣ) : normalize (u : α) = 1 := by simp
 
 lemma normalize_eq_zero {x : α} : normalize x = 0 ↔ x = 0 :=
 ⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize _,
@@ -162,7 +162,7 @@ units.mul_right_dvd
 end normalization_monoid
 
 namespace associates
-variables [comm_cancel_monoid_with_zero α] [normalization_monoid α]
+variables [cancel_comm_monoid_with_zero α] [normalization_monoid α]
 
 local attribute [instance] associated.setoid
 
@@ -171,7 +171,7 @@ protected def out : associates α → α :=
 quotient.lift (normalize : α → α) $ λ a b ⟨u, hu⟩, hu ▸
 normalize_eq_normalize ⟨_, rfl⟩ (units.mul_right_dvd.2 $ dvd_refl a)
 
-lemma out_mk (a : α) : (associates.mk a).out = normalize a := rfl
+@[simp] lemma out_mk (a : α) : (associates.mk a).out = normalize a := rfl
 
 @[simp] lemma out_one : (1 : associates α).out = 1 :=
 normalize_one
@@ -194,13 +194,19 @@ normalize_zero
 @[simp] lemma normalize_out (a : associates α) : normalize a.out = a.out :=
 quotient.induction_on a normalize_idem
 
+@[simp] lemma mk_out (a : associates α) : associates.mk (a.out) = a :=
+quotient.induction_on a mk_normalize
+
+lemma out_injective : function.injective (associates.out : _ → α) :=
+function.left_inverse.injective mk_out
+
 end associates
 
-/-- GCD monoid: a `comm_cancel_monoid_with_zero` with `gcd` (greatest common divisor) and
+/-- GCD monoid: a `cancel_comm_monoid_with_zero` with `gcd` (greatest common divisor) and
 `lcm` (least common multiple) operations, determined up to a unit. The type class focuses on `gcd`
 and we derive the corresponding `lcm` facts from `gcd`.
 -/
-@[protect_proj] class gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α] :=
+@[protect_proj] class gcd_monoid (α : Type*) [cancel_comm_monoid_with_zero α] :=
 (gcd : α → α → α)
 (lcm : α → α → α)
 (gcd_dvd_left   : ∀a b, gcd a b ∣ a)
@@ -210,13 +216,13 @@ and we derive the corresponding `lcm` facts from `gcd`.
 (lcm_zero_left  : ∀a, lcm 0 a = 0)
 (lcm_zero_right : ∀a, lcm a 0 = 0)
 
-/-- Normalized GCD monoid: a `comm_cancel_monoid_with_zero` with normalization and `gcd`
+/-- Normalized GCD monoid: a `cancel_comm_monoid_with_zero` with normalization and `gcd`
 (greatest common divisor) and `lcm` (least common multiple) operations. In this setting `gcd` and
 `lcm` form a bounded lattice on the associated elements where `gcd` is the infimum, `lcm` is the
 supremum, `1` is bottom, and `0` is top. The type class focuses on `gcd` and we derive the
 corresponding `lcm` facts from `gcd`.
 -/
-class normalized_gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α]
+class normalized_gcd_monoid (α : Type*) [cancel_comm_monoid_with_zero α]
   extends normalization_monoid α, gcd_monoid α :=
 (normalize_gcd : ∀a b, normalize (gcd a b) = gcd a b)
 (normalize_lcm : ∀a b, normalize (lcm a b) = lcm a b)
@@ -227,7 +233,7 @@ export gcd_monoid (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm
 attribute [simp] lcm_zero_left lcm_zero_right
 
 section gcd_monoid
-variables [comm_cancel_monoid_with_zero α]
+variables [cancel_comm_monoid_with_zero α]
 
 @[simp] theorem normalize_gcd [normalized_gcd_monoid α] : ∀a b:α, normalize (gcd a b) = gcd a b :=
 normalized_gcd_monoid.normalize_gcd
@@ -513,10 +519,26 @@ begin
   rw [units.coe_mk_of_mul_eq_one, ha']
 end
 
-theorem exists_eq_pow_of_mul_eq_pow [gcd_monoid α] [unique (units α)] {a b c : α}
+theorem exists_eq_pow_of_mul_eq_pow [gcd_monoid α] [unique αˣ] {a b c : α}
   (hab : is_unit (gcd a b)) {k : ℕ}
   (h : a * b = c ^ k) : ∃ (d : α), a = d ^ k :=
 let ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow hab h in ⟨d, (associated_iff_eq.mp hd).symm⟩
+
+lemma gcd_greatest {α : Type*} [cancel_comm_monoid_with_zero α] [normalized_gcd_monoid α]
+  {a b d : α} (hda : d ∣ a) (hdb : d ∣ b)
+  (hd : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : gcd_monoid.gcd a b = normalize d :=
+begin
+  have h := hd _ (gcd_monoid.gcd_dvd_left a b) (gcd_monoid.gcd_dvd_right a b),
+  exact gcd_eq_normalize h (gcd_monoid.dvd_gcd hda hdb),
+end
+
+lemma gcd_greatest_associated {α : Type*} [cancel_comm_monoid_with_zero α] [gcd_monoid α]
+  {a b d : α} (hda : d ∣ a) (hdb : d ∣ b)
+  (hd : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : associated d (gcd_monoid.gcd a b) :=
+begin
+  have h := hd _ (gcd_monoid.gcd_dvd_left a b) (gcd_monoid.gcd_dvd_right a b),
+  exact associated_of_dvd_dvd (gcd_monoid.dvd_gcd hda hdb) h,
+end
 
 end gcd
 
@@ -535,9 +557,11 @@ begin
       mul_dvd_mul_iff_left h1, mul_dvd_mul_iff_right h2, and_comm] }
 end
 
-lemma dvd_lcm_left [gcd_monoid α] (a b : α) : a ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).1
+lemma dvd_lcm_left [gcd_monoid α] (a b : α) : a ∣ lcm a b :=
+(lcm_dvd_iff.1 (dvd_refl (lcm a b))).1
 
-lemma dvd_lcm_right [gcd_monoid α] (a b : α) : b ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).2
+lemma dvd_lcm_right [gcd_monoid α] (a b : α) : b ∣ lcm a b :=
+(lcm_dvd_iff.1 (dvd_refl (lcm a b))).2
 
 lemma lcm_dvd [gcd_monoid α] {a b c : α} (hab : a ∣ b) (hcb : c ∣ b) : lcm a c ∣ b :=
 lcm_dvd_iff.2 ⟨hab, hcb⟩
@@ -593,11 +617,11 @@ theorem lcm_dvd_lcm [gcd_monoid α] {a b c d : α} (hab : a ∣ b) (hcd : c ∣ 
   lcm a c ∣ lcm b d :=
 lcm_dvd (hab.trans (dvd_lcm_left _ _)) (hcd.trans (dvd_lcm_right _ _))
 
-@[simp] theorem lcm_units_coe_left [normalized_gcd_monoid α] (u : units α) (a : α) :
+@[simp] theorem lcm_units_coe_left [normalized_gcd_monoid α] (u : αˣ) (a : α) :
   lcm ↑u a = normalize a :=
 lcm_eq_normalize (lcm_dvd units.coe_dvd dvd_rfl) (dvd_lcm_right _ _)
 
-@[simp] theorem lcm_units_coe_right [normalized_gcd_monoid α] (a : α) (u : units α) :
+@[simp] theorem lcm_units_coe_right [normalized_gcd_monoid α] (a : α) (u : αˣ) :
   lcm a ↑u = normalize a :=
 (lcm_comm a u).trans $ lcm_units_coe_left _ _
 
@@ -694,7 +718,7 @@ end gcd_monoid
 
 section unique_unit
 
-variables [comm_cancel_monoid_with_zero α] [unique (units α)]
+variables [cancel_comm_monoid_with_zero α] [unique αˣ]
 
 @[priority 100] -- see Note [lower instance priority]
 instance normalization_monoid_of_unique_units : normalization_monoid α :=
@@ -706,6 +730,15 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 @[simp] lemma norm_unit_eq_one (x : α) : norm_unit x = 1 := rfl
 
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
+
+/-- If a monoid's only unit is `1`, then it is isomorphic to its associates. -/
+@[simps]
+def associates_equiv_of_unique_units : associates α ≃* α :=
+{ to_fun := associates.out,
+  inv_fun := associates.mk,
+  left_inv := associates.mk_out,
+  right_inv := λ t, (associates.out_mk _).trans $ normalize_eq _,
+  map_mul' := associates.out_mul }
 
 end unique_unit
 
@@ -739,7 +772,7 @@ noncomputable theory
 
 open associates
 
-variables [comm_cancel_monoid_with_zero α]
+variables [cancel_comm_monoid_with_zero α]
 
 private lemma map_mk_unit_aux [decidable_eq α] {f : associates α →* α}
   (hinv : function.right_inverse f associates.mk) (a : α) :

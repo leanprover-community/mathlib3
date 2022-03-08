@@ -30,7 +30,6 @@ variables {α : Type u}
 open_locale cardinal
 open cardinal set
 
-local notation a `<₁` b := (aleph 1 : cardinal.{u}).ord.out.r a b
 local notation `ω₁`:= (aleph 1 : cardinal.{u}).ord.out.α
 
 namespace measurable_space
@@ -110,7 +109,7 @@ begin
   have B : aleph 1 ≤ (max (#s) 2) ^ omega.{u} :=
     aleph_one_le_continuum.trans (power_le_power_right (le_max_right _ _)),
   have C : omega.{u} ≤ (max (#s) 2) ^ omega.{u} := A.trans B,
-  have J : #(⋃ (j : {j // j <₁ i}), generate_measurable_rec s j.1) ≤ (max (#s) 2) ^ omega.{u},
+  have J : #(⋃ (j : {j // j < i}), generate_measurable_rec s j.1) ≤ (max (#s) 2) ^ omega.{u},
   { apply (mk_Union_le _).trans,
     have D : cardinal.sup.{u u} (λ (j : {j // j <₁ i}), #(generate_measurable_rec s j.1)) ≤ _ :=
       cardinal.sup_le.2 (λ ⟨j, hj⟩, IH j hj),

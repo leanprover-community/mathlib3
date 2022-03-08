@@ -88,78 +88,7 @@ begin
       exact sub_nonneg.mpr hs } },
 end
 
-/- A long and fiddly argument to show that F decays exponentially at +∞ -/
-
-/- The next three lemmas should really be in exp.lean or somewhere like that -/
-lemma tendsto_exp_div_rpow_at_top (s : ℝ) : tendsto (λ x : ℝ, exp x / x ^ s ) at_top at_top :=
-begin
-  cases archimedean_iff_nat_lt.1 (real.archimedean) s with n hn,
-  have t := tendsto_exp_div_pow_at_top n,
-  have : 0 < (n:ℝ) - s := by linarith,
-  replace t := tendsto.at_top_mul_at_top t (tendsto_rpow_at_top this),
-
-  have Icieq: eq_on (λ x:ℝ, (exp x / x ^ n) * (x ^ (↑n - s))) (λ x:ℝ, exp x / x ^ s) (Ici 1),
-  { intros x hx,
-    rw [set.Ici, mem_set_of_eq] at hx,
-    have xp : 0 < x := by linarith,
-    ring_nf,
-    rw mul_eq_mul_right_iff, left,
-    rw [sub_eq_neg_add,rpow_add_nat xp.ne', mul_assoc],
-    rw [mul_inv_cancel (pow_ne_zero _ xp.ne'), mul_one],
-    apply rpow_neg xp.le, },
-
-  refine tendsto.congr' _ t,
-  exact eventually_eq_iff_exists_mem.2 ⟨ Ici 1, mem_at_top _, Icieq⟩,
-end
-
-/- This one too -- a more general version allowing exp(-bx) for any b > 0 -/
-lemma tendsto_exp_mul_div_rpow_at_top (s : ℝ) (b : ℝ) (hb : 0 < b):
-  tendsto (λ x : ℝ, exp (b * x) / x ^ s ) at_top at_top :=
-begin
-  have t := tendsto.comp (tendsto_rpow_at_top hb) (tendsto_exp_div_rpow_at_top (s/b)),
-
-  let f1 := (λ (x : ℝ), (exp x / x ^ (s / b)) ^ b),
-  have ff1 : ∀ x:ℝ, f1 x = (exp x / x ^ (s / b)) ^ b,
-  { by simp only [eq_self_iff_true, forall_const] },
-
-  have Ioieq: eq_on f1 (λ x : ℝ, exp (b * x) / x ^ s ) (Ioi 0),
-  { intros x hx,
-    rw [set.Ioi, mem_set_of_eq] at hx,
-    rw [ff1, div_rpow (exp_pos x).le (rpow_pos_of_pos hx _).le,
-      ←(exp_mul x b), mul_comm x b, div_eq_div_iff],
-    show x^s ≠ 0,
-    { symmetry, apply ne_of_lt,
-      apply rpow_pos_of_pos,
-      linarith },
-    show (x ^ (s / b)) ^ b ≠ 0,
-    { symmetry, apply ne_of_lt,
-      apply rpow_pos_of_pos,
-      apply rpow_pos_of_pos,
-      linarith },
-    rw mul_eq_mul_left_iff,
-    left,
-    rw ←rpow_mul,
-    show 0 ≤ x, linarith,
-    rw div_mul_cancel, exact hb.ne' },
-
-  exact tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) Ioieq) t,
-end
-
-lemma tendsto_exp_mul_div_rpow_at_top' (s : ℝ) (b : ℝ) (hb : 0 < b):
-  tendsto (λ x : ℝ, x^s * exp (-b * x)) at_top (𝓝 $ (0:ℝ)) :=
-begin
-  have: (λ x : ℝ, x^s * exp (-b * x)) = (λ x : ℝ, exp (b * x) / x^s)⁻¹,
-  { ext,
-    simp only [neg_mul, pi.inv_apply],
-    rw [inv_div,div_eq_mul_inv],
-    rw mul_eq_mul_left_iff,
-    left,
-    apply exp_neg },
-  rw this,
-  exact tendsto.inv_tendsto_at_top (tendsto_exp_mul_div_rpow_at_top s b hb),
-end
-
-/- Now we have the bits we need -/
+/-- The gamma integrand is O(exp(-(1/2) * x)) at top for any fixed s -/
 lemma asymp_integrand (s : ℝ) :
   asymptotics.is_O (integrand s) (λ x : ℝ, exp(-(1/2) * x)) filter.at_top :=
 begin
@@ -197,7 +126,7 @@ begin
     ring },
   rw this,
   apply tendsto.inv_tendsto_at_top,
-  exact (tendsto_exp_mul_div_rpow_at_top s (1/2))(one_half_pos) -- hooray!
+  exact (tendsto_exp_mul_div_rpow_at_top s (1/2))(one_half_pos), -- hooray!
 end
 
 lemma loc_unif_bound (s t x : ℝ) (ht : t ∈ set.Icc 0 s ) (hx : x ∈ set.Ioi (0:ℝ)) :
@@ -236,7 +165,6 @@ begin
     exact ht.1,
     exact exp_pos (-x) },
 end
-
 
 /-- The (lower) incomplete Γ function, Γ(s, X) = ∫ x ∈ 0..X, exp(-x) x^(s-1). -/
 def incomplete_gamma (s X : ℝ) : ℝ := ∫ x in 0..X, exp(-x) * x^(s-1)
@@ -356,7 +284,7 @@ begin
   { have := tendsto.add l1 l2,
     simpa using this },
   have l3: tendsto (λ X:ℝ, X^s * exp(-X)) at_top (𝓝 $ (0:ℝ)),
-  { have := tendsto_exp_mul_div_rpow_at_top' s (1:ℝ) zero_lt_one,
+  { have := tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 s (1:ℝ) zero_lt_one,
     simpa using this },
   have: (λ X:ℝ, -X^s * exp(-X)) = (λ X:ℝ, (-1) * (X^s * exp(-X))) :=
     by { simp only [neg_mul, one_mul] },
@@ -382,7 +310,7 @@ begin
   have t2: tendsto (incomplete_gamma 1) at_top (𝓝 1),
   { rw incomplete_gamma_at_one,
     have : tendsto (λ X, exp(-X)) at_top (𝓝 0),
-    { simpa using tendsto_exp_mul_div_rpow_at_top' 0 1 },
+    { simpa using tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 0 1 },
     simpa only [sub_zero] using tendsto.const_sub 1 this, },
   apply tendsto_nhds_unique t1 t2,
 end

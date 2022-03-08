@@ -50,7 +50,6 @@ variables [has_scalar 𝕜 E]
 
 variables (𝕜)
 
---def balanced_core (s : set E) := ⋂ (r : 𝕜) (hr : 1 ≤ ∥r∥), r • s
 def balanced_core (s : set E) := ⋃₀ {t : set E | balanced 𝕜 t ∧ t ⊆ s}
 
 def balanced_hull (s : set E) := ⋃ (r : 𝕜) (hr : ∥r∥ ≤ 1), r • s
@@ -66,19 +65,40 @@ mem_of_subset_of_mem (hs a ha) (smul_mem_smul_set hx)
 
 -- End of lemmas to be moved
 
-lemma balanced_core_balanced (s : set E) : balanced 𝕜 (balanced_core 𝕜 s) :=
-begin
-  sorry,
-end
-
 lemma balanced_core_subset (s : set E) : balanced_core 𝕜 s ⊆ s :=
 begin
-  sorry,
+  refine sUnion_subset (λ t ht, _),
+  simp only [mem_set_of_eq] at ht,
+  exact ht.2,
 end
+
+lemma balanced_core_mem_iff {s : set E} {x : E} : x ∈ balanced_core 𝕜 s ↔
+  ∃ t : set E, balanced 𝕜 t ∧ t ⊆ s ∧ x ∈ t :=
+by simp_rw [balanced_core, mem_sUnion, mem_set_of_eq, exists_prop, and_assoc]
+
+lemma smul_balanced_core_subset (s : set E) {a : 𝕜} (ha : ∥a∥ ≤ 1) :
+  a • balanced_core 𝕜 s ⊆ balanced_core 𝕜 s :=
+begin
+  rw subset_def,
+  intros x hx,
+  rw mem_smul_set at hx,
+  rcases hx with ⟨y, hy, hx⟩,
+  rw balanced_core_mem_iff at hy,
+  rcases hy with ⟨t, ht1, ht2, hy⟩,
+  rw ←hx,
+  refine ⟨t, _, ht1 a ha (smul_mem_smul_set hy)⟩,
+  rw mem_set_of_eq,
+  exact ⟨ht1, ht2⟩,
+end
+
+lemma balanced_core_balanced (s : set E) : balanced 𝕜 (balanced_core 𝕜 s) :=
+λ _, smul_balanced_core_subset s
 
 lemma balanced.core_maximal {s t : set E} (hs : balanced 𝕜 s) (h : s ⊆ t): s ⊆ balanced_core 𝕜 t :=
 begin
-  sorry,
+  refine subset_sUnion_of_mem _,
+  rw [mem_set_of_eq],
+  exact ⟨hs, h⟩,
 end
 
 --lemma balanced_core_mem_iff (s : set E) (x : E) : x ∈ balanced_core 𝕜 s ↔
@@ -109,9 +129,7 @@ variables [add_comm_monoid E] [module 𝕜 E]
 --variables (𝕜 E)
 
 lemma zero_singleton_balanced : balanced 𝕜 ({0} : set E) :=
-begin
-  sorry,
-end
+λ a ha, by simp only [smul_set_singleton, smul_zero]
 
 --variables {𝕜 E}
 
@@ -120,10 +138,11 @@ end
 lemma balanced_core_nonempty_iff {s : set E} : (balanced_core 𝕜 s).nonempty ↔ (0 : E) ∈ s :=
 begin
   split; intro h,
-  {
-
-    sorry,
-  },
+  { cases h with x hx,
+    have h' : balanced 𝕜 (balanced_core 𝕜 s) := balanced_core_balanced s,
+    have h'' := h' 0 (has_le.le.trans norm_zero.le zero_le_one),
+    refine mem_of_subset_of_mem (subset.trans h'' (balanced_core_subset s)) _,
+    exact mem_smul_set.mpr ⟨x, hx, zero_smul _ _⟩ },
   refine nonempty_of_mem (mem_of_subset_of_mem _ (mem_singleton 0)),
   exact balanced.core_maximal zero_singleton_balanced (singleton_subset_iff.mpr h),
 end

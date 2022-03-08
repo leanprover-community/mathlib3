@@ -308,7 +308,7 @@ lemma re_inner_adjoint_mul_self_nonneg (T : E →ₗ[𝕜] E) (x : E) :
   0 ≤ is_R_or_C.re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [linear_map.mul_apply,
   linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast, exact sq_nonneg _}
 
-lemma im_inner_adjoint_mul_self_eq_zero (T : E →ₗ[𝕜] E) (x : E) :
+@[simp] lemma im_inner_adjoint_mul_self_eq_zero (T : E →ₗ[𝕜] E) (x : E) :
   is_R_or_C.im ⟪ x, (T.adjoint * T) x ⟫ = 0 := by {simp only [linear_map.mul_apply,
     linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast}
 

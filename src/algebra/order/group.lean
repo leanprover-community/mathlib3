@@ -1237,6 +1237,9 @@ instance with_top.linear_ordered_add_comm_group_with_top :
   .. with_top.linear_ordered_add_comm_monoid_with_top,
   .. option.nontrivial }
 
+@[simp, norm_cast]
+lemma with_top.coe_neg (a : α) : ((-a : α) : with_top α) = -a := rfl
+
 end linear_ordered_add_comm_group
 
 namespace add_comm_group

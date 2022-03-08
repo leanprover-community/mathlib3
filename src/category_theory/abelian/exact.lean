@@ -20,10 +20,14 @@ true in more general settings.
 * If `(f, g)` is exact, then `image.ι f` has the universal property of the kernel of `g`.
 * `f` is a monomorphism iff `kernel.ι f = 0` iff `exact 0 f`, and `f` is an epimorphism iff
   `cokernel.π = 0` iff `exact f 0`.
+* A faithful functor between abelian categories that preserves zero morphisms reflects exact
+  sequences.
+* `X ⟶ Y ⟶ Z ⟶ 0` is exact if and only if the second map is a cokernel of the first, and
+  `0 ⟶ X ⟶ Y ⟶ Z` is exact if and only if the first map is a kernel of the second.
 
 -/
 
-universes v u
+universes v₁ v₂ u₁ u₂
 
 noncomputable theory
 
@@ -31,9 +35,12 @@ open category_theory
 open category_theory.limits
 open category_theory.preadditive
 
-variables {C : Type u} [category.{v} C] [abelian C]
+variables {C : Type u₁} [category.{v₁} C] [abelian C]
 
-namespace category_theory.abelian
+namespace category_theory
+
+namespace abelian
+
 variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
 local attribute [instance] has_equalizers_of_has_kernels
@@ -143,6 +150,38 @@ suffices h : cokernel.desc f g (by simp) =
     ≫ image.ι g, by { rw h, apply mono_comp },
 (cancel_epi (cokernel.π f)).1 $ by simp
 
+/-- If `X ⟶ Y ⟶ Z ⟶ 0` is exact, then the second map is a cokernel of the first. -/
+def is_colimit_of_exact_of_epi [epi g] (h : exact f g) :
+  is_colimit (cokernel_cofork.of_π _ h.w) :=
+is_colimit.of_iso_colimit (colimit.is_colimit _) $ cocones.ext
+  ⟨cokernel.desc _ _ h.w, epi_desc g (cokernel.π f) ((exact_iff _ _).1 h).2,
+    (cancel_epi (cokernel.π f)).1 (by tidy), (cancel_epi g).1 (by tidy)⟩ (λ j, by cases j; simp)
+
+/-- If `0 ⟶ X ⟶ Y ⟶ Z` is exact, then the first map is a kernel of the second. -/
+def is_limit_of_exact_of_mono [mono f] (h : exact f g) :
+  is_limit (kernel_fork.of_ι _ h.w) :=
+is_limit.of_iso_limit (limit.is_limit _) $ cones.ext
+ ⟨mono_lift f (kernel.ι g) ((exact_iff _ _).1 h).2, kernel.lift _ _ h.w,
+  (cancel_mono (kernel.ι g)).1 (by tidy), (cancel_mono f).1 (by tidy)⟩ (λ j, by cases j; simp)
+
+lemma exact_of_is_cokernel (w : f ≫ g = 0)
+  (h : is_colimit (cokernel_cofork.of_π _ w)) : exact f g :=
+begin
+  refine (exact_iff _ _).2 ⟨w, _⟩,
+  have := h.fac (cokernel_cofork.of_π _ (cokernel.condition f)) walking_parallel_pair.one,
+  simp only [cofork.of_π_ι_app] at this,
+  rw [← this, ← category.assoc, kernel.condition, zero_comp]
+end
+
+lemma exact_of_is_kernel (w : f ≫ g = 0)
+  (h : is_limit (kernel_fork.of_ι _ w)) : exact f g :=
+begin
+  refine (exact_iff _ _).2 ⟨w, _⟩,
+  have := h.fac (kernel_fork.of_ι _ (kernel.condition g)) walking_parallel_pair.zero,
+  simp only [fork.of_ι_π_app] at this,
+  rw [← this, category.assoc, cokernel.condition, comp_zero]
+end
+
 section
 variables (Z)
 
@@ -186,4 +225,23 @@ lemma epi_iff_cokernel_π_eq_zero : epi f ↔ cokernel.π f = 0 :=
 
 end
 
-end category_theory.abelian
+end abelian
+
+namespace functor
+variables {D : Type u₂} [category.{v₂} D] [abelian D]
+
+@[priority 100]
+instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful (F : C ⥤ D)
+  [preserves_zero_morphisms F] [faithful F] : reflects_exact_sequences F :=
+{ reflects := λ X Y Z f g hfg,
+  begin
+    rw [abelian.exact_iff, ← F.map_comp, F.map_eq_zero_iff] at hfg,
+    refine (abelian.exact_iff _ _).2 ⟨hfg.1, F.zero_of_map_zero _ _⟩,
+    obtain ⟨k, hk⟩ := kernel.lift' (F.map g) (F.map (kernel.ι g)) (by simp [← F.map_comp]),
+    obtain ⟨l, hl⟩ := cokernel.desc' (F.map f) (F.map (cokernel.π f)) (by simp [← F.map_comp]),
+    rw [F.map_comp, ← hk, ← hl, category.assoc, reassoc_of hfg.2, zero_comp, comp_zero]
+  end }
+
+end functor
+
+end category_theory

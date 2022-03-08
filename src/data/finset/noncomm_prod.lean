@@ -115,12 +115,6 @@ on all elements `x ∈ s`." ]
 def noncomm_prod (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s), commute x y) : α :=
 s.noncomm_fold (*) comm 1
 
-/-- A helper for rewriting the dependent argument. -/
-@[to_additive "A helper for rewriting the dependent argument "]
-lemma noncomm_prod_congr
-  {s₁ s₂ : multiset α} (h : s₁ = s₂) (comm : ∀ (x ∈ s₁) (y ∈ s₁), commute x y) :
-  noncomm_prod s₁ comm = noncomm_prod s₂ (h ▸ comm) := by subst h
-
 @[simp, to_additive] lemma noncomm_prod_coe (l : list α)
   (comm : ∀ (x ∈ (l : multiset α)) (y ∈ (l : multiset α)), commute x y) :
   noncomm_prod (l : multiset α) comm = l.prod :=

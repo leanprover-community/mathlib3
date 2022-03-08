@@ -332,20 +332,17 @@ end
 instance : is_partial_order (list α) (<+:) :=
 { refl := prefix_refl,
   trans := λ _ _ _, is_prefix.trans,
-  antisymm := λ l₁ l₂ h₁ h₂,
-    eq_of_prefix_of_length_eq h₁ (le_antisymm (is_prefix.length_le h₁) (is_prefix.length_le h₂)) }
+  antisymm := λ l₁ l₂ h₁ h₂, eq_of_prefix_of_length_eq h₁ $ h₁.length_le.antisymm h₂.length_le }
 
 instance : is_partial_order (list α) (<:+) :=
 { refl := suffix_refl,
   trans := λ _ _ _, is_suffix.trans,
-  antisymm := λ l₁ l₂ h₁ h₂,
-    eq_of_suffix_of_length_eq h₁ (le_antisymm (is_suffix.length_le h₁) (is_suffix.length_le h₂)) }
+  antisymm := λ l₁ l₂ h₁ h₂, eq_of_suffix_of_length_eq h₁ $ h₁.length_le.antisymm h₂.length_le }
 
 instance : is_partial_order (list α) (<:+:) :=
 { refl := infix_refl,
   trans := λ _ _ _, is_infix.trans,
-  antisymm := λ l₁ l₂ h₁ h₂,
-    eq_of_infix_of_length_eq h₁ (le_antisymm (is_infix.length_le h₁) (is_infix.length_le h₂)) }
+  antisymm := λ l₁ l₂ h₁ h₂, eq_of_infix_of_length_eq h₁ $ h₁.length_le.antisymm h₂.length_le }
 
 end fix
 

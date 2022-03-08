@@ -359,7 +359,7 @@ minpoly.unique _ _ (minpoly.monic hx)
     (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero K S T hST
       (h ▸ root_q : polynomial.aeval (algebra_map S T x) q = 0)))
 
-lemma minpoly_add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
+lemma add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   (hx : is_integral A x) (a : A) :
   minpoly A (x + (algebra_map A B a)) = (minpoly A x).comp (X - C a) :=
 begin
@@ -375,10 +375,10 @@ begin
       nat_degree_X_add_C, mul_one] at H }
 end
 
-lemma minpoly_sub_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
+lemma sub_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   (hx : is_integral A x) (a : A) :
   minpoly A (x - (algebra_map A B a)) = (minpoly A x).comp (X + C a) :=
-by simpa [sub_eq_add_neg] using minpoly_add_algebra_map hx (-a)
+by simpa [sub_eq_add_neg] using add_algebra_map hx (-a)
 
 section gcd_domain
 

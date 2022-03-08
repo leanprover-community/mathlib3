@@ -89,6 +89,7 @@ theorem bounded_formula_realize_cast {β : Type*} {n : ℕ} (φ : L.bounded_form
   φ.realize (λ (i : β), ((x i) : (u : filter α).product M)) (λ i, (v i)) ↔
     ∀ᶠ (a : α) in ↑u, φ.realize (λ (i : β), x i a) (λ i, v i a) :=
 begin
+  letI := ((u : filter α).product_setoid M),
   induction φ with _ _ _ _ _ _ _ _ m _ _ ih ih' k φ ih,
   { simp only [bounded_formula.realize, eventually_const], },
   { have h2 : ∀ a : α, sum.elim (λ (i : β), x i a) (λ i, v i a) = λ i, sum.elim x v i a :=
@@ -97,16 +98,14 @@ begin
     exact quotient.eq' },
   { have h2 : ∀ a : α, sum.elim (λ (i : β), x i a) (λ i, v i a) = λ i, sum.elim x v i a :=
       λ a, funext (λ i, sum.cases_on i (λ i, rfl) (λ i, rfl)),
-    simp only [bounded_formula.realize, (sum.comp_elim coe x v).symm, h2, term_realize_cast],
-    unfold rel_map,
-    change quotient.lift _ _ (quotient.fin_choice (λ _, ⟦_⟧)) ↔ _,
-    simp_rw [quotient.fin_choice_eq, quotient.lift_mk] },
+    simp only [bounded_formula.realize, (sum.comp_elim coe x v).symm, term_realize_cast, h2],
+    exact rel_map_quotient_mk _ _ },
   { simp only [bounded_formula.realize, ih v, ih' v],
     rw ultrafilter.eventually_imp },
   { simp only [bounded_formula.realize],
     transitivity (∀ (m : Π (a : α), M a), φ.realize (λ (i : β), (x i : (u : filter α).product M))
       (fin.snoc (coe ∘ v) (↑m : (u : filter α).product M))),
-    { exact (@forall_quotient_iff _ ((u : filter α).product_setoid M) _) },
+    { exact forall_quotient_iff },
     have h' : ∀ (m : Π a, M a) (a : α), (λ (i : fin (k + 1)), (fin.snoc v m : _ → Π a, M a) i a) =
       fin.snoc (λ (i : fin k), v i a) (m a),
     { refine λ m a, funext (fin.reverse_induction _ (λ i hi, _)),
@@ -128,13 +127,8 @@ theorem realize_formula_cast {β : Type*} (φ : L.formula β) (x : β → (Π a,
   φ.realize (λ i, ((x i) : (u : filter α).product M)) ↔
     ∀ᶠ (a : α) in u, φ.realize (λ i, (x i a)) :=
 begin
-  simp_rw [formula.realize],
-  convert bounded_formula_realize_cast φ x default,
-  { simp },
-  ext,
-  rw iff_eq_eq,
-  refine congr rfl _,
-  simp,
+  simp_rw [formula.realize, ← bounded_formula_realize_cast φ x, iff_eq_eq],
+  exact congr rfl (subsingleton.elim _ _),
 end
 
 /-- Łoś's Theorem : A sentence is true in an ultraproduct if and only if the set of structures it is
@@ -142,8 +136,8 @@ end
 theorem sentence_realize (φ : L.sentence) :
   ((u : filter α).product M) ⊨ φ ↔ ∀ᶠ (a : α) in u, (M a) ⊨ φ :=
 begin
-  simp_rw [sentence.realize, iff_eq_eq],
-  exact (congr rfl (subsingleton.elim _ _)).trans (iff_eq_eq.mp (realize_formula_cast φ _))
+  simp_rw [sentence.realize, ← realize_formula_cast φ, iff_eq_eq],
+  exact congr rfl (subsingleton.elim _ _),
 end
 
 end ultraproduct
@@ -156,7 +150,6 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
   T.is_satisfiable ↔ T.is_finitely_satisfiable :=
 ⟨Theory.is_satisfiable.is_finitely_satisfiable, λ h, begin
   classical,
-  unfold is_finitely_satisfiable at h,
   set M : Π (T0 : finset T), Type (max u v) :=
     λ T0, (h (T0.map (function.embedding.subtype (λ x, x ∈ T)))
       T0.map_subtype_subset).some_model with hM,

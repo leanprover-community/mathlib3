@@ -336,15 +336,15 @@ theorem enum_succ_eq_top {o : ordinal} :
   enum (<) o (by { rw type_lt, apply lt_succ_self }) = (⊤ : o.succ.out.α) :=
 rfl
 
-lemma has_succ_of_type_lt_succ {α} {r : α → α → Prop} [wo : is_well_order α r]
+lemma has_succ_of_type_succ_lt {α} {r : α → α → Prop} [wo : is_well_order α r]
   (h : ∀ a < type r, succ a < type r) (x : α) : ∃ y, r x y :=
 begin
   use enum r (typein r x).succ (h _ (typein_lt_type r x)),
   convert (enum_lt_enum (typein_lt_type r x) _).mpr (lt_succ_self _), rw [enum_typein]
 end
 
-theorem out_no_max_of_lt_succ {o : ordinal} (ho : ∀ a < o, succ a < o) : no_max_order o.out.α :=
-⟨has_succ_of_type_lt_succ (by rwa type_lt)⟩
+theorem out_no_max_of_succ_lt {o : ordinal} (ho : ∀ a < o, succ a < o) : no_max_order o.out.α :=
+⟨has_succ_of_type_succ_lt (by rwa type_lt)⟩
 
 lemma type_subrel_lt (o : ordinal.{u}) :
   type (subrel (<) {o' : ordinal | o' < o}) = ordinal.lift.{u+1} o :=

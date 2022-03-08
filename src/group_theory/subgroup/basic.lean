@@ -2731,6 +2731,25 @@ end
 
 end subgroup_normal
 
+@[to_additive]
+lemma disjoint_def {H₁ H₂ : subgroup G} :
+  disjoint H₁ H₂ ↔ ∀ {x : G}, x ∈ H₁ → x ∈ H₂ → x = 1 :=
+show (∀ x, x ∈ H₁ ∧ x ∈ H₂ → x ∈ ({1} : set G)) ↔ _, by simp
+
+@[to_additive]
+lemma disjoint_def' {H₁ H₂ : subgroup G} :
+  disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x = y → x = 1 :=
+disjoint_def.trans ⟨λ h x y hx hy hxy, h hx $ hxy.symm ▸ hy,
+  λ h x hx hx', h hx hx' rfl⟩
+
+@[to_additive]
+lemma disjoint_iff_mul_eq_one {H₁ H₂ : subgroup G} :
+  disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x * y = 1 → x = 1 ∧ y = 1 :=
+disjoint_def'.trans ⟨λ h x y hx hy hxy,
+  let hx1 : x = 1 := h hx (H₂.inv_mem hy) (eq_inv_iff_mul_eq_one.mpr hxy) in
+  ⟨hx1, by simpa [hx1] using hxy⟩,
+  λ h x y hx hy hxy, (h hx (H₂.inv_mem hy) (mul_inv_eq_one.mpr hxy)).1 ⟩
+
 end subgroup
 
 namespace is_conj

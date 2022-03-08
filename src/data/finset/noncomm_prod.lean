@@ -192,14 +192,6 @@ lemma noncomm_prod_congr
     (λ x hx y hy, h₂ x hx ▸ h₂ y hy ▸ comm x (h₁.symm ▸ hx) y (h₁.symm ▸ hy)) :=
 by simp_rw [noncomm_prod, multiset.map_congr (congr_arg _ h₁) h₂]
 
-/-- A helper for rewriting the dependent `finset` argument together with the commutativity proof -/
-@[to_additive "A helper for rewriting the dependent `finset` argument together with the
-commutativity proof"]
-lemma noncomm_prod_congr_finset
-  {s₁ s₂ : finset α} (h : s₁ = s₂) (f : α → β)
-  (comm : ∀ (x ∈ s₁) (y ∈ s₁), commute (f x) (f y)) :
-  noncomm_prod s₁ f comm = noncomm_prod s₂ f (h ▸ comm) := by subst h
-
 @[simp, to_additive] lemma noncomm_prod_to_finset [decidable_eq α] (l : list α) (f : α → β)
   (comm : ∀ (x ∈ l.to_finset) (y ∈ l.to_finset), commute (f x) (f y))
   (hl : l.nodup) :

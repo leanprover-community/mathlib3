@@ -10,7 +10,7 @@ import order.filter.ultrafilter
 /-! # Ultraproducts, Łoś 's Theorem, and Compactness
 
 ## Main Definitions
-* `filter.ultraproduct` is a dependent version of `filter.germ`.
+* `first_order.language.ultraproduct.Structure` is a structure on `filter.product`.
 
 ## Main Results
 * Łoś 's Theorem: `first_order.language.ultraproduct.sentence_realize`. An ultraproduct models a
@@ -167,7 +167,7 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
       subtype.range_coe_subtype, set.set_of_mem_eq], },
   { letI : Π (T0 : finset T), L.Structure (M T0) := λ T0, is_satisfiable.some_model_structure _,
     haveI : (filter.at_top : filter (finset T)).ne_bot := at_top_ne_bot,
-    refine ⟨((ultrafilter.of filter.at_top) : filter _).product M, _, ultraproduct.Structure, _⟩,
+    refine ⟨(↑(ultrafilter.of filter.at_top) : filter _).product M, _, ultraproduct.Structure, _⟩,
     { haveI : Π (T0 : finset T), inhabited (M T0),
       { exact λ T0, classical.inhabited_of_nonempty (is_satisfiable.nonempty_some_model _) },
       exact nonempty_of_inhabited },

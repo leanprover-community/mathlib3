@@ -243,6 +243,7 @@ end
 
 end
 
+section has_scalar
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
 

@@ -140,7 +140,7 @@ def cond_indep_sets {α} [measurable_space α] (s1 s2 : set (set α)) (C : set (
 ∀ (c ∈ C), indep_sets s1 s2 $ μ[|c]
 
 /-- Conditional version of `Indep` that takes a conditioning measurable space `C` and requires
-`∀ c ∈ C, Indep s1 s2 μ[|c]`. -/
+`∀ c ∈ C, Indep m μ[|c]`. -/
 def cond_Indep {α ι} (m : ι → measurable_space α) (C : measurable_space α)
   [measurable_space α] (μ : measure α . volume_tac) : Prop :=
 cond_Indep_sets (λ x, (m x).measurable_set') C.measurable_set' μ 
@@ -405,7 +405,7 @@ end indep_set
 
 We prove an equivalence between independence and conditional irrelevance,
 as well as the more general equivalence between conditional independence
-and conditional intersection irrelevance,
+and conditional intersection irrelevance.
 -/
 
 section cond

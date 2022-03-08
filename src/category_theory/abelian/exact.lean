@@ -116,11 +116,13 @@ begin
   haveI : preserves_limit (parallel_pair g 0) F := ⟨λ c hc,
     { lift := λ s, (functor.map_cone_map_cone_inv F s).inv.hom ≫
         F.map (hc.lift (functor.map_cone_inv F s)),
-      uniq' :=  begin
+      uniq' :=  λ s m eq1, begin
         sorry
       end,
       fac' := λ s j, begin
-        sorry,
+        have := hc.fac' (functor.map_cone_inv F s),
+        rw [functor.map_cone_π_app, category.assoc, ← functor.map_comp, hc.fac',
+          ← functor.map_cone_π_app, cone_morphism.w],
       end }⟩,
   haveI : preserves_colimit (parallel_pair f 0) F := ⟨λ c hc,
     { desc := λ s, F.map (hc.desc (functor.map_cocone_inv F s)) ≫

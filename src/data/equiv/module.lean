@@ -235,16 +235,16 @@ lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
 lemma eq_symm_apply {x y} : y = e.symm x ↔ e y = x := e.to_equiv.eq_symm_apply
 omit σ'
 
-lemma eq_comp_symm (f : M₂ → M₃) (g : M₁ → M₃) :
+lemma eq_comp_symm {α : Type*} (f : M₂ → α) (g : M₁ → α) :
   f = g ∘ e₁₂.symm ↔ f ∘ e₁₂ = g := e₁₂.to_equiv.eq_comp_symm f g
 
-lemma comp_symm_eq (f : M₂ → M₃) (g : M₁ → M₃) :
+lemma comp_symm_eq {α : Type*} (f : M₂ → α) (g : M₁ → α) :
   g ∘ e₁₂.symm = f ↔ g = f ∘ e₁₂ := e₁₂.to_equiv.comp_symm_eq f g
 
-lemma eq_symm_comp (f : M₃ → M₁) (g : M₃ → M₂) :
+lemma eq_symm_comp {α : Type*} (f : α → M₁) (g : α → M₂) :
   f = e₁₂.symm ∘ g ↔ e₁₂ ∘ f = g := e₁₂.to_equiv.eq_symm_comp f g
 
-lemma symm_comp_eq (f : M₃ → M₁) (g : M₃ → M₂) :
+lemma symm_comp_eq {α : Type*} (f : α → M₁) (g : α → M₂) :
   e₁₂.symm ∘ g = f ↔ g = e₁₂ ∘ f := e₁₂.to_equiv.symm_comp_eq f g
 
 variables [ring_hom_comp_triple σ₂₁ σ₁₃ σ₂₃] [ring_hom_comp_triple σ₃₁ σ₁₂ σ₃₂]

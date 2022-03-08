@@ -7,13 +7,13 @@ import model_theory.quotients
 import order.filter.germ
 import order.filter.ultrafilter
 
-/-! # Ultraproducts, Łos's Theorem, and Compactness
+/-! # Ultraproducts, Łoś 's Theorem, and Compactness
 
 ## Main Definitions
 * `filter.ultraproduct` is a dependent version of `filter.germ`.
 
 ## Main Results
-* Łos's Theorem: `first_order.language.ultraproduct.sentence_realize`. An ultraproduct models a
+* Łoś 's Theorem: `first_order.language.ultraproduct.sentence_realize`. An ultraproduct models a
 sentence `φ` if and only if the set of structures in the product that model `φ` is in the
 ultrafilter.
 * The Compactness Theorem: `first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable`.

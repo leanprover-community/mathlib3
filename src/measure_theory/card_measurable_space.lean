@@ -102,7 +102,7 @@ begin
     rw generate_measurable_rec,
     simp only [union_singleton, mem_union_eq, mem_insert_iff, eq_self_iff_true, true_or] },
   { rcases mem_Union.1 IH with ⟨i, hi⟩,
-    obtain ⟨j, hj⟩ : ∃ j, i < j := ordinal.has_succ_of_type_lt_succ
+    obtain ⟨j, hj⟩ : ∃ j, i < j := ordinal.has_succ_of_type_succ_lt
       (by { rw ordinal.type_lt, exact (ord_aleph_is_limit 1).2 }) _,
     apply mem_Union.2 ⟨j, _⟩,
     rw generate_measurable_rec,

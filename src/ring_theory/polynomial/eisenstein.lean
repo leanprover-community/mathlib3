@@ -7,6 +7,7 @@ Authors: Riccardo Brasca
 import ring_theory.eisenstein_criterion
 import ring_theory.integrally_closed
 import ring_theory.norm
+import ring_theory.polynomial.cyclotomic.basic
 
 /-!
 # Eisenstein polynomials
@@ -194,6 +195,55 @@ end is_eisenstein_at
 
 end polynomial
 
+section cyclotomic
+
+variables {p : ℕ}
+
+local notation `𝓟` := submodule.span ℤ {p}
+
+open polynomial
+
+lemma cyclotomic_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] :
+  ((cyclotomic p ℤ).comp (X + 1)).is_eisenstein_at 𝓟 :=
+{ leading :=
+  begin
+    intro h,
+    rw [show (X + 1 : ℤ[X]) = X + C 1, by simp] at h,
+    suffices : ((cyclotomic p ℤ).comp (X + C 1)).monic,
+    { rw [monic.def.1 this, ideal.submodule_span_eq, ideal.mem_span_singleton] at h,
+      exact nat.prime.not_dvd_one hp.out (by exact_mod_cast h) },
+    refine monic.comp (cyclotomic.monic p ℤ) (monic_X_add_C 1) (λ h₁, _),
+    rw [nat_degree_X_add_C] at h₁,
+    exact zero_ne_one h₁.symm,
+  end,
+  mem := λ i hi,
+  begin
+    rw [cyclotomic_eq_geom_sum hp.out, geom_sum_X_comp_X_add_one_eq_sum, ← lcoeff_apply,
+      linear_map.map_sum],
+    conv { congr, congr, skip, funext,
+      rw [lcoeff_apply, ← C_eq_nat_cast, ← monomial_eq_C_mul_X, coeff_monomial] },
+    rw [nat_degree_comp, show (X + 1 : ℤ[X]) = X + C 1, by simp, nat_degree_X_add_C, mul_one,
+      nat_degree_cyclotomic, nat.totient_prime hp.out] at hi,
+    simp only [lt_of_lt_of_le hi (nat.sub_le _ _), int.nat_cast_eq_coe_nat, sum_ite_eq', mem_range,
+      if_true, ideal.submodule_span_eq, ideal.mem_span_singleton],
+    exact int.coe_nat_dvd.2
+      (nat.prime.dvd_choose_self (nat.succ_pos i) (lt_tsub_iff_right.1 hi) hp.out)
+  end,
+  not_mem :=
+  begin
+    rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_eq_geom_sum hp.out, eval_add, eval_X,
+      eval_one, zero_add, eval_geom_sum, one_geom_sum, int.nat_cast_eq_coe_nat,
+      ideal.submodule_span_eq, ideal.span_singleton_pow, ideal.mem_span_singleton],
+    intro h,
+    obtain ⟨k, hk⟩ := int.coe_nat_dvd.1 h,
+    rw [← mul_assoc, mul_one, mul_assoc] at hk,
+    nth_rewrite 0 [← nat.mul_one p] at hk,
+    rw [nat.mul_right_inj hp.out.pos] at hk,
+    exact nat.prime.not_dvd_one hp.out (dvd.intro k (hk.symm)),
+  end }
+
+end cyclotomic
+
 section is_integral
 
 variables {K : Type v} {L : Type z} {p : R} [comm_ring R] [field K] [field L]
@@ -350,12 +400,12 @@ begin
     have H := degree_mod_by_monic_lt Q₁ (minpoly.monic hBint),
     rw [← hQ₁, ← hP] at H,
     replace H:= nat.lt_iff_add_one_le.1 (lt_of_lt_of_le (lt_of_le_of_lt
-      (nat.lt_iff_add_one_le.1 (lt_of_succ_lt_succ (mem_range.1 hj))) (lt_succ_self _))
+      (nat.lt_iff_add_one_le.1 (nat.lt_of_succ_lt_succ (mem_range.1 hj))) (lt_succ_self _))
       (nat.lt_iff_add_one_le.1 (((nat_degree_lt_nat_degree_iff hQzero).2 H)))),
     rw [add_assoc] at H,
     have Hj : Q.nat_degree + 1 = j + 1 + (Q.nat_degree - j),
     { rw [← add_comm 1, ← add_comm 1, add_assoc, add_right_inj, ← nat.add_sub_assoc
-        (lt_of_succ_lt_succ (mem_range.1 hj)).le, add_comm, nat.add_sub_cancel] },
+        (nat.lt_of_succ_lt_succ (mem_range.1 hj)).le, add_comm, nat.add_sub_cancel] },
 
     -- By induction hypothesis we can find `g : ℕ → R` such that
     -- `k ∈ range (j + 1) → Q.coeff k • B.gen ^ k = (algebra_map R L) p * g k • B.gen ^ k`-
@@ -408,7 +458,7 @@ begin
   -- we didn't know were multiples of `p`, and we take the norm on both sides.
   replace hQ := congr_arg (λ x, x * B.gen ^ (P.nat_degree - (j + 2))) hQ,
   simp_rw [sum_map, add_left_embedding_apply, add_mul, sum_mul, mul_assoc] at hQ,
-  rw [← insert_erase (mem_range.2 (tsub_pos_iff_lt.2 $ lt_of_succ_lt_succ $ mem_range.1 hj)),
+  rw [← insert_erase (mem_range.2 (tsub_pos_iff_lt.2 $ nat.lt_of_succ_lt_succ $ mem_range.1 hj)),
       sum_insert (not_mem_erase 0 _), add_zero, sum_congr rfl hf₁, ← mul_sum, ← mul_sum,
       add_assoc, ← mul_add, smul_mul_assoc, ← pow_add, smul_def] at hQ,
   replace hQ := congr_arg (norm K) (eq_sub_of_add_eq hQ),

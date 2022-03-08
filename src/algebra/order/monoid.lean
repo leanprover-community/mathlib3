@@ -147,25 +147,25 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.ordered_add_comm_monoid
 "Pullback an `ordered_add_comm_monoid` under an injective map."]
 def function.injective.ordered_comm_monoid [ordered_comm_monoid α] {β : Type*}
-  [has_one β] [has_mul β]
+  [has_one β] [has_mul β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   ordered_comm_monoid β :=
 { mul_le_mul_left := λ a b ab c, show f (c * a) ≤ f (c * b), by
   { rw [mul, mul], apply mul_le_mul_left', exact ab },
   ..partial_order.lift f hf,
-  ..hf.comm_monoid f one mul }
+  ..hf.comm_monoid f one mul npow }
 
 /-- Pullback a `linear_ordered_comm_monoid` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.linear_ordered_add_comm_monoid
 "Pullback an `ordered_add_comm_monoid` under an injective map."]
 def function.injective.linear_ordered_comm_monoid [linear_ordered_comm_monoid α] {β : Type*}
-  [has_one β] [has_mul β]
+  [has_one β] [has_mul β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   linear_ordered_comm_monoid β :=
-{ .. hf.ordered_comm_monoid f one mul,
+{ .. hf.ordered_comm_monoid f one mul npow,
   .. linear_order.lift f hf }
 
 lemma bit0_pos [ordered_add_comm_monoid α] {a : α} (h : 0 < a) : 0 < bit0 a :=
@@ -308,6 +308,9 @@ variables [has_one α]
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
 coe_eq_coe
 
+@[simp, to_additive] protected lemma map_one {β} (f : α → β) :
+  (1 : with_top α).map f = (f 1 : with_top β) := rfl
+
 @[simp, norm_cast, to_additive] theorem one_eq_coe {a : α} : 1 = (a : with_top α) ↔ a = 1 :=
 trans eq_comm coe_eq_one
 
@@ -428,8 +431,7 @@ end with_top
 
 namespace with_bot
 
-instance [has_zero α] : has_zero (with_bot α) := with_top.has_zero
-instance [has_one α] : has_one (with_bot α) := with_top.has_one
+@[to_additive] instance [has_one α] : has_one (with_bot α) := with_top.has_one
 instance [has_add α] : has_add (with_bot α) := with_top.has_add
 instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigroup
 instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
@@ -456,15 +458,16 @@ instance [linear_ordered_add_comm_monoid α] : linear_ordered_add_comm_monoid (w
   ..with_bot.ordered_add_comm_monoid }
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
-lemma coe_zero [has_zero α] : ((0 : α) : with_bot α) = 0 := rfl
-
--- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+@[to_additive]
 lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
-lemma coe_eq_zero {α : Type*}
-  [add_monoid α] {a : α} : (a : with_bot α) = 0 ↔ a = 0 :=
-by norm_cast
+@[to_additive]
+lemma coe_eq_one [has_one α] {a : α} : (a : with_bot α) = 1 ↔ a = 1 :=
+with_top.coe_eq_one
+
+@[to_additive] protected lemma map_one {β} [has_one α] (f : α → β) :
+  (1 : with_bot α).map f = (f 1 : with_bot β) := rfl
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
 lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := by norm_cast
@@ -761,14 +764,14 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.ordered_cancel_add_comm_monoid
 "Pullback an `ordered_cancel_add_comm_monoid` under an injective map."]
 def function.injective.ordered_cancel_comm_monoid {β : Type*}
-  [has_one β] [has_mul β]
+  [has_one β] [has_mul β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   ordered_cancel_comm_monoid β :=
 { le_of_mul_le_mul_left := λ a b c (bc : f (a * b) ≤ f (a * c)),
     (mul_le_mul_iff_left (f a)).mp (by rwa [← mul, ← mul]),
   ..hf.left_cancel_semigroup f mul,
-  ..hf.ordered_comm_monoid f one mul }
+  ..hf.ordered_comm_monoid f one mul npow }
 
 end ordered_cancel_comm_monoid
 
@@ -859,12 +862,12 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.linear_ordered_cancel_add_comm_monoid
 "Pullback a `linear_ordered_cancel_add_comm_monoid` under an injective map."]
 def function.injective.linear_ordered_cancel_comm_monoid {β : Type*}
-  [has_one β] [has_mul β]
+  [has_one β] [has_mul β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   linear_ordered_cancel_comm_monoid β :=
-{ ..hf.linear_ordered_comm_monoid f one mul,
-  ..hf.ordered_cancel_comm_monoid f one mul }
+{ ..hf.linear_ordered_comm_monoid f one mul npow,
+  ..hf.ordered_cancel_comm_monoid f one mul npow }
 
 end linear_ordered_cancel_comm_monoid
 

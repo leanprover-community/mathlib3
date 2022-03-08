@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
 
 import algebra.group.defs
+import data.bracket
 import logic.function.basic
 
 /-!
@@ -619,3 +620,14 @@ end
 by rw [div_eq_iff_eq_mul, div_mul_eq_mul_div', div_eq_iff_eq_mul', mul_div_assoc]
 
 end comm_group
+
+section commutator
+
+/-- The commutator of two elements `g₁` and `g₂`. -/
+instance commutator_element {G : Type*} [group G] : has_bracket G G :=
+⟨λ g₁ g₂, g₁ * g₂ * g₁⁻¹ * g₂⁻¹⟩
+
+lemma commutator_element_def  {G : Type*} [group G] (g₁ g₂ : G) :
+  ⁅g₁, g₂⁆ = g₁ * g₂ * g₁⁻¹ * g₂⁻¹ := rfl
+
+end commutator

@@ -60,6 +60,9 @@ def ideal.is_homogeneous : Prop :=
 /-- For any `semiring A`, we collect the homogeneous ideals of `A` into a type. -/
 abbreviation homogeneous_ideal : Type* := { I : ideal A // I.is_homogeneous 𝒜 }
 
+instance : has_mem A (homogeneous_ideal 𝒜) :=
+{ mem := λ r I, r ∈ (I : ideal A) }
+
 end homogeneous_def
 
 section homogeneous_core
@@ -145,6 +148,10 @@ ideal.homogeneous_core'_le 𝒜 I
 
 variables {𝒜 I}
 
+lemma ideal.mem_homogeneous_core_of_is_homogeneous_of_mem {x : A}
+  (h : set_like.is_homogeneous 𝒜 x) (hmem : x ∈ I) : x ∈ I.homogeneous_core 𝒜 :=
+ideal.subset_span ⟨⟨x, h⟩, hmem, rfl⟩
+
 lemma ideal.is_homogeneous.coe_homogeneous_core_eq_self (h : I.is_homogeneous 𝒜) :
   ↑(I.homogeneous_core 𝒜) = I :=
 begin
@@ -152,7 +159,7 @@ begin
   intros x hx,
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
   rw ←graded_algebra.sum_support_decompose 𝒜 x,
-  exact ideal.sum_mem _ (λ j hj, ideal.subset_span ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩),
+  exact ideal.sum_mem _ (λ j hj, ideal.subset_span ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩)
 end
 
 @[simp] lemma homogeneous_ideal.homogeneous_core_coe_eq_self (I : homogeneous_ideal 𝒜) :
@@ -242,9 +249,6 @@ namespace homogeneous_ideal
 
 instance : partial_order (homogeneous_ideal 𝒜) :=
 partial_order.lift _ subtype.coe_injective
-
-instance : has_mem A (homogeneous_ideal 𝒜) :=
-{ mem := λ r I, r ∈ (I : ideal A) }
 
 instance : has_bot (homogeneous_ideal 𝒜) :=
 ⟨⟨⊥, ideal.is_homogeneous.bot 𝒜⟩⟩

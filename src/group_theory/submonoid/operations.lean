@@ -405,38 +405,58 @@ structure."]
 instance to_mul_one_class {M : Type*} [mul_one_class M] (S : submonoid M) : mul_one_class S :=
 subtype.coe_injective.mul_one_class coe rfl (λ _ _, rfl)
 
+@[to_additive] lemma pow_mem {M : Type*} [monoid M] (S : submonoid M) {x : M}
+  (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
+begin
+  induction n with n ih,
+  { simpa only [pow_zero] using S.one_mem },
+  { simpa only [pow_succ] using S.mul_mem hx ih }
+end
+
+instance _root_.add_submonoid.has_nsmul {M : Type*} [add_monoid M] (S : add_submonoid M) :
+  has_scalar ℕ S :=
+⟨λ n x, ⟨n • x, S.nsmul_mem x.prop _⟩⟩
+
+@[to_additive]
+instance has_pow {M : Type*} [monoid M] (S : submonoid M) : has_pow S ℕ :=
+⟨λ x n, ⟨x ^ n, S.pow_mem x.prop _⟩⟩
+
+@[simp, norm_cast, to_additive] theorem coe_pow  {M : Type*} [monoid M] {S : submonoid M}
+  (x : S) (n : ℕ) : ↑(x ^ n) = (x ^ n : M) :=
+rfl
+
 /-- A submonoid of a monoid inherits a monoid structure. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
 structure."]
 instance to_monoid {M : Type*} [monoid M] (S : submonoid M) : monoid S :=
-subtype.coe_injective.monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of a `comm_monoid` is a `comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `add_comm_monoid` is
 an `add_comm_monoid`."]
 instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
-subtype.coe_injective.comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of an `ordered_comm_monoid` is an `ordered_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `ordered_add_comm_monoid` is
 an `ordered_add_comm_monoid`."]
 instance to_ordered_comm_monoid {M} [ordered_comm_monoid M] (S : submonoid M) :
   ordered_comm_monoid S :=
-subtype.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of a `linear_ordered_comm_monoid` is a `linear_ordered_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of a `linear_ordered_add_comm_monoid` is
 a `linear_ordered_add_comm_monoid`."]
 instance to_linear_ordered_comm_monoid {M} [linear_ordered_comm_monoid M] (S : submonoid M) :
   linear_ordered_comm_monoid S :=
-subtype.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of an `ordered_cancel_comm_monoid` is an `ordered_cancel_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `ordered_cancel_add_comm_monoid` is
 an `ordered_cancel_add_comm_monoid`."]
 instance to_ordered_cancel_comm_monoid {M} [ordered_cancel_comm_monoid M] (S : submonoid M) :
   ordered_cancel_comm_monoid S :=
-subtype.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of a `linear_ordered_cancel_comm_monoid` is a `linear_ordered_cancel_comm_monoid`.
 -/
@@ -444,7 +464,7 @@ subtype.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
 a `linear_ordered_cancel_add_comm_monoid`."]
 instance to_linear_ordered_cancel_comm_monoid {M} [linear_ordered_cancel_comm_monoid M]
   (S : submonoid M) : linear_ordered_cancel_comm_monoid S :=
-subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]

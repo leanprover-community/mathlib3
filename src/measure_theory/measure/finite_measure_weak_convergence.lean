@@ -157,8 +157,7 @@ by { funext, simp [← ennreal.coe_eq_coe], }
 by { funext, simp [← ennreal.coe_eq_coe, ennreal.coe_smul], }
 
 instance : add_comm_monoid (finite_measure α) :=
-finite_measure.coe_injective.add_comm_monoid
-  (coe : finite_measure α → measure α) finite_measure.coe_zero finite_measure.coe_add
+finite_measure.coe_injective.add_comm_monoid coe coe_zero coe_add (λ _ _, coe_smul _ _)
 
 /-- Coercion is an `add_monoid_hom`. -/
 @[simps]

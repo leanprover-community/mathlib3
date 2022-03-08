@@ -193,6 +193,14 @@ given a proof that `+` commutes on all elements `f x` for `x ∈ s`."]
 def noncomm_prod (s : finset α) (f : α → β) (comm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y)) : β :=
 (s.1.map f).noncomm_prod (by simpa [multiset.mem_map, ←finset.mem_def] using comm)
 
+@[congr, to_additive]
+lemma noncomm_prod_congr
+  {s₁ s₂ : finset α} {f g : α → β} (h₁ : s₁ = s₂) (h₂ : ∀ (x ∈ s₂), f x = g x)
+  (comm : ∀ (x ∈ s₁) (y ∈ s₁), commute (f x) (f y)) :
+  noncomm_prod s₁ f comm = noncomm_prod s₂ g
+    (λ x hx y hy, h₂ x hx ▸ h₂ y hy ▸ comm x (h₁.symm ▸ hx) y (h₁.symm ▸ hy)) :=
+by simp_rw [noncomm_prod, multiset.map_congr (congr_arg _ h₁) h₂]
+
 @[simp, to_additive] lemma noncomm_prod_to_finset [decidable_eq α] (l : list α) (f : α → β)
   (comm : ∀ (x ∈ l.to_finset) (y ∈ l.to_finset), commute (f x) (f y))
   (hl : l.nodup) :

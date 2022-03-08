@@ -14,25 +14,26 @@ import group_theory.torsion
 
 ## Main definitions
 
-* `torsion_by R M a` : the `a`-torsion submodule, containing all elements `x` of `M` such that
-  `a • x = 0`.
-* `torsion' R M S`: the `S`-torsion submodule, containing all elements `x` of `M` such that
-  `a • x = 0` for some `a` in `S`.
-* `torsion R M` : the torsion submoule, containing all elements `x` of `M` such that  `a • x = 0`
-  for some non-zero-divisor `a` in `R`.
+* `submodule.torsion_by R M a` : the `a`-torsion submodule, containing all elements `x` of `M` such
+  that `a • x = 0`.
+* `submodule.torsion' R M S` : the `S`-torsion submodule, containing all elements `x` of `M` such
+  that `a • x = 0` for some `a` in `S`.
+* `submodule.torsion R M` : the torsion submoule, containing all elements `x` of `M` such that
+  `a • x = 0` for some non-zero-divisor `a` in `R`.
+* `module.is_torsion R M` : the property that defines a torsion module.
 
 ## Main statements
 
 * `torsion' R M S` and `torsion R M` are submodules.
 * `torsion_by R M a` can be viewed as a `(R ⧸ R∙a)`-module.
-* `torsion_by_torsion_by_eq_top` : the `a`-torsion submodule of the `a`-torsion submodule (viewed as
-  a module) is the full `a`-torsion module. Similar lemmas for `torsion'` and `torsion`.
-* `no_zero_smul_divisors_iff_torsion_bot` : a module over a domain has `no_zero_smul_divisors`
-  (that is, there is no non-zero `a`, `x` such that `a • x = 0` )iff its torsion submodule is
-  trivial.
-* `quotient_torsion.torsion_eq_bot` : quotienting by the torsion submodule makes the torsion
-  submodule of the new module trivial. If `R` is a domain, we can derive an instance
-  `quotient_torsion.no_zero_smul_divisors : no_zero_smul_divisors R (M ⧸ torsion R M)`.
+* `submodule.torsion_by_torsion_by_eq_top` : the `a`-torsion submodule of the `a`-torsion submodule
+  (viewed as a module) is the full `a`-torsion module. Similar lemmas for `torsion'` and `torsion`.
+* `submodule.no_zero_smul_divisors_iff_torsion_bot` : a module over a domain has
+  `no_zero_smul_divisors` (that is, there is no non-zero `a`, `x` such that `a • x = 0`)
+  iff its torsion submodule is trivial.
+* `submodule.quotient_torsion.torsion_eq_bot` : quotienting by the torsion submodule makes the
+  torsion submodule of the new module trivial. If `R` is a domain, we can derive an instance
+  `submodule.quotient_torsion.no_zero_smul_divisors : no_zero_smul_divisors R (M ⧸ torsion R M)`.
 
 ## Notation
 
@@ -66,11 +67,12 @@ namespace submodule
       by rw [smul_add, mul_smul, mul_comm, mul_smul, hx, hy, smul_zero, smul_zero, add_zero]⟩,
   smul_mem' := λ a x ⟨b, h⟩, ⟨b, by rw [smul_comm, h, smul_zero]⟩ }
 
-/-- The torsion submoule, containing all elements `x` of `M` such that  `a • x = 0` for some
+/-- The torsion submodule, containing all elements `x` of `M` such that  `a • x = 0` for some
   non-zero-divisor `a` in `R`. -/
 @[reducible] def torsion := torsion' R M R⁰
 end submodule
 
+/-- A torsion module is a module whose torsion submodule is the full space. -/
 @[reducible] def module.is_torsion := submodule.torsion R M = ⊤
 end defs
 
@@ -134,6 +136,7 @@ eq_top_iff.mpr (λ ⟨x, ⟨a, h⟩⟩ _, ⟨a, subtype.ext h⟩)
 /-- The torsion submodule of the torsion submodule (viewed as a module) is the full
 torsion module. -/
 @[simp] lemma torsion_torsion_eq_top : torsion R (torsion R M) = ⊤ := torsion'_torsion'_eq_top R⁰
+/-- The torsion submodule is always a torsion module. -/
 lemma torsion_is_torsion : module.is_torsion R (torsion R M) := torsion_torsion_eq_top
 
 end torsion'

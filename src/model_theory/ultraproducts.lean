@@ -9,6 +9,16 @@ import order.filter.ultrafilter
 
 /-! # Ultraproducts, Łos's Theorem, and Compactness
 
+## Main Definitions
+* `filter.ultraproduct` is a dependent version of `filter.germ`.
+
+## Main Results
+* Łos's Theorem: `first_order.language.ultraproduct.sentence_realize`. An ultraproduct models a
+sentence `φ` if and only if the set of structures in the product that model `φ` is in the
+ultrafilter.
+* The Compactness Theorem: `first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable`.
+A theory is satisfiable if and only if it is finitely satisfiable.
+
 -/
 
 universes u v
@@ -20,14 +30,16 @@ namespace filter
 
 variables (l : filter α) (β : α → Type*)
 
-/-- Setoid used to define the space of dependent germs. -/
+/-- Setoid used to define the ultraproduct. This is a dependent version of
+  `filter.germ_setoid`. -/
 def ultraproduct_setoid : setoid (Π a, β a) :=
 { r := λ f g, ∀ᶠ a in l, f a = g a,
   iseqv := ⟨λ _, eventually_of_forall (λ _, rfl),
     λ _ _ h, h.mono (λ _, eq.symm),
     λ x y z h1 h2, h1.congr (h2.mono (λ x hx, hx ▸ iff.rfl))⟩ }
 
-/-- The space of germs of dependent functions `Π (a : α), β a` at a filter `l`. -/
+/-- The ultraproduct `Π (a : α), β a` at a filter `l`. This is a dependent version of
+  `filter.germ`. -/
 def ultraproduct : Type* := quotient (ultraproduct_setoid l β)
 
 variables {l} {β}
@@ -102,44 +114,34 @@ theorem bounded_formula_realize_cast {β : Type*} {n : ℕ} (φ : L.bounded_form
   φ.realize (λ (i : β), ((x i) : ultraproduct ↑u M)) (λ i, (v i)) ↔
     ∀ᶠ (a : α) in ↑u, φ.realize (λ (i : β), x i a) (λ i, v i a) :=
 begin
-  induction φ with _ _ _ _ _ _ _ _ m a0 a1 a2 a3 a4 a5 a6 a7 a8 a9,
+  induction φ with _ _ _ _ _ _ _ _ m _ _ ih ih' k φ ih,
   { simp only [bounded_formula.realize, eventually_const], },
-  { have h2 : ∀ a : α, sum.elim (λ (i : β), x i a) (λ i, v i a) = λ i, sum.elim x v i a,
-    { intro a,
-      ext i,
-      cases i;
-      simp, },
+  { have h2 : ∀ a : α, sum.elim (λ (i : β), x i a) (λ i, v i a) = λ i, sum.elim x v i a :=
+      λ a, funext (λ i, sum.cases_on i (λ i, rfl) (λ i, rfl)),
     simp only [bounded_formula.realize, (sum.comp_elim coe x v).symm, h2, term_realize_cast],
     exact quotient.eq' },
-  { have h2 : ∀ a : α, sum.elim (λ (i : β), x i a) (λ i, v i a) = λ i, sum.elim x v i a,
-    { intro a,
-      ext i,
-      cases i;
-      simp, },
+  { have h2 : ∀ a : α, sum.elim (λ (i : β), x i a) (λ i, v i a) = λ i, sum.elim x v i a :=
+      λ a, funext (λ i, sum.cases_on i (λ i, rfl) (λ i, rfl)),
     simp only [bounded_formula.realize, (sum.comp_elim coe x v).symm, h2, term_realize_cast],
     unfold rel_map,
-    rw quotient.lift,
     change quotient.lift _ _ (quotient.fin_choice (λ _, ⟦_⟧)) ↔ _,
     simp_rw [quotient.fin_choice_eq, quotient.lift_mk] },
-  { simp only [bounded_formula.realize, a2 v, a3 v],
+  { simp only [bounded_formula.realize, ih v, ih' v],
     rw ultrafilter.eventually_imp },
   { simp only [bounded_formula.realize],
-    transitivity (∀ (m : Π (a : α), M a), a5.realize (λ (i : β), (x i : ultraproduct ↑u M))
+    transitivity (∀ (m : Π (a : α), M a), φ.realize (λ (i : β), (x i : ultraproduct ↑u M))
       (fin.snoc (coe ∘ v) (↑m : ultraproduct ↑u M))),
     { exact (@forall_quotient_iff _ (ultraproduct_setoid ↑u M) _) },
-    have h' : ∀ (m : Π a, M a) (a : α), (λ (i : fin (a4 + 1)), (fin.snoc v m : _ → Π a, M a) i a) =
-      fin.snoc (λ (i : fin a4), v i a) (m a),
-    { intros m a,
-      ext i,
-      refine fin.reverse_induction _ _ i,
+    have h' : ∀ (m : Π a, M a) (a : α), (λ (i : fin (k + 1)), (fin.snoc v m : _ → Π a, M a) i a) =
+      fin.snoc (λ (i : fin k), v i a) (m a),
+    { refine λ m a, funext (fin.reverse_induction _ (λ i hi, _)),
       { simp only [fin.snoc_last] },
-      { intros i hi,
-        simp only [fin.snoc_cast_succ] } },
-    simp only [← fin.comp_snoc, a6, h'],
+      { simp only [fin.snoc_cast_succ] } },
+    simp only [← fin.comp_snoc, ih, h'],
     refine ⟨λ h, _, λ h m, _⟩,
     { contrapose! h,
       simp_rw [← ultrafilter.eventually_not, not_forall] at h,
-      refine ⟨λ a : α, classical.epsilon (λ m : M a, ¬ a5.realize (λ i, x i a)
+      refine ⟨λ a : α, classical.epsilon (λ m : M a, ¬ φ.realize (λ i, x i a)
         (fin.snoc (λ i, v i a) m)), _⟩,
       rw [← ultrafilter.eventually_not],
       exact filter.mem_of_superset h (λ a ha, classical.epsilon_spec ha) },

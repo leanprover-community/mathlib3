@@ -69,7 +69,7 @@ begin
   ... ≤ nnnorm c * (nnnorm (c⁻¹) * e (c • x)) : _
   ... = e (c • x) : _,
   { exact ennreal.mul_le_mul le_rfl (e.map_smul_le' _ _) },
-  { rw [← mul_assoc, normed_field.nnnorm_inv, ennreal.coe_inv,
+  { rw [← mul_assoc, nnnorm_inv, ennreal.coe_inv,
      ennreal.mul_inv_cancel _ ennreal.coe_ne_top, one_mul]; simp [hc] }
 end
 

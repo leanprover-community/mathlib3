@@ -97,7 +97,7 @@ private lemma max_var_bound : dist x y ≤ max_var X Y := calc
     diam_union (mem_image_of_mem _ (mem_univ _)) (mem_image_of_mem _ (mem_univ _))
   ... = diam (univ : set X) + (dist default default + 1 + dist default default) +
           diam (univ : set Y) :
-    by { rw [isometry_on_inl.diam_image, isometry_on_inr.diam_image], refl }
+    by { rw [isometry_inl.diam_image, isometry_inr.diam_image], refl }
   ... = 1 * diam (univ : set X) + 1 + 1 * diam (univ : set Y) : by simp
   ... ≤ 2 * diam (univ : set X) + 1 + 2 * diam (univ : set Y) :
   begin

@@ -10,12 +10,12 @@ import field_theory.polynomial_galois_group
 /-!
 # Galois group of cyclotomic extensions
 
-In this file, we show the relationship between the Galois group of`K(ζₙ)` and `(zmod n)ˣ`;
+In this file, we show the relationship between the Galois group of `K(ζₙ)` and `(zmod n)ˣ`;
 it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, they are isomorphic.
 
 ## Main results
 
-* `is_cyclotomic_extension.aut_to_pow_injective`: `is_primitive_root.aut_to_pow` is injective
+* `is_primitive_root.aut_to_pow_injective`: `is_primitive_root.aut_to_pow` is injective
   in the case that it's considered over a cyclotomic field extension, where `n` does not divide
   the characteristic of K.
 * `is_cyclotomic_extension.aut_equiv_pow`: If, additionally, the `n`th cyclotomic polynomial is
@@ -81,7 +81,7 @@ namespace is_cyclotomic_extension
 noncomputable def aut.comm_group [ne_zero ((n : ℕ) : K)] : comm_group (L ≃ₐ[K] L) :=
 let _ := of_no_zero_smul_divisors K L n in by exactI
 ((zeta_primitive_root n K L).aut_to_pow_injective K).comm_group _
-  (map_one _) (map_mul _) (map_inv _) (map_div _)
+  (map_one _) (map_mul _) (map_inv _) (map_div _) (map_pow _) (map_zpow _)
 
 variables (h : irreducible (cyclotomic n K)) {K} (L)
 

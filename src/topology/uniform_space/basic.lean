@@ -274,8 +274,8 @@ uniform_space_eq rfl
 
 /-- Replace topology in a `uniform_space` instance with a propositionally (but possibly not
 definitionally) equal one. -/
-def uniform_space.replace_topology {α : Type*} [i : topological_space α] (u : uniform_space α)
-  (h : i = u.to_topological_space) : uniform_space α :=
+@[reducible] def uniform_space.replace_topology {α : Type*} [i : topological_space α]
+  (u : uniform_space α) (h : i = u.to_topological_space) : uniform_space α :=
 uniform_space.of_core_eq u.to_core i $ h.trans u.to_core_to_topological_space.symm
 
 lemma uniform_space.replace_topology_eq {α : Type*} [i : topological_space α] (u : uniform_space α)
@@ -298,6 +298,13 @@ uniform_space.is_open_uniformity s
 
 lemma refl_le_uniformity : 𝓟 id_rel ≤ 𝓤 α :=
 (@uniform_space.to_core α _).refl
+
+instance uniformity.ne_bot [nonempty α] : ne_bot (𝓤 α) :=
+begin
+  inhabit α,
+  refine (principal_ne_bot_iff.2 _).mono refl_le_uniformity,
+  exact ⟨(default, default), rfl⟩
+end
 
 lemma refl_mem_uniformity {x : α} {s : set (α × α)} (h : s ∈ 𝓤 α) :
   (x, x) ∈ s :=
@@ -1129,6 +1136,12 @@ lemma to_topological_space_inf {u v : uniform_space α} :
   (u ⊓ v).to_topological_space = u.to_topological_space ⊓ v.to_topological_space :=
 by rw [to_topological_space_Inf, infi_pair]
 
+/-- A uniform space with the discrete uniformity has the discrete topology. -/
+lemma discrete_topology_of_discrete_uniformity [hα : uniform_space α]
+  (h : uniformity α = 𝓟 id_rel) :
+  discrete_topology α :=
+⟨(uniform_space_eq h.symm : ⊥ = hα) ▸ rfl⟩
+
 instance : uniform_space empty := ⊥
 instance : uniform_space punit := ⊥
 instance : uniform_space bool := ⊥
@@ -1177,6 +1190,27 @@ begin
   rw continuous_on_iff_continuous_restrict,
   exact h.continuous
 end
+
+@[to_additive]
+instance [uniform_space α] : uniform_space (αᵐᵒᵖ) :=
+uniform_space.comap mul_opposite.unop ‹_›
+
+@[to_additive]
+lemma uniformity_mul_opposite [uniform_space α] :
+  𝓤 (αᵐᵒᵖ) = comap (λ q : αᵐᵒᵖ × αᵐᵒᵖ, (q.1.unop, q.2.unop)) (𝓤 α) :=
+rfl
+
+namespace mul_opposite
+
+@[to_additive]
+lemma uniform_continuous_unop [uniform_space α] : uniform_continuous (unop : αᵐᵒᵖ → α) :=
+uniform_continuous_comap
+
+@[to_additive]
+lemma uniform_continuous_op [uniform_space α] : uniform_continuous (op : α → αᵐᵒᵖ) :=
+uniform_continuous_comap' uniform_continuous_id
+
+end mul_opposite
 
 section prod
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.basic
+import measure_theory.measure.regular
 
 /-!
 # McShane integrability vs Bochner integrability
@@ -61,9 +62,9 @@ begin
   /- Then the union of boxes `J ∈ π` such that `π.tag ∈ s` includes `F` and is included by `U`,
   hence its measure is `ε`-close to the measure of `s`. -/
   dsimp [integral_sum],
-  simp only [mem_closed_ball, dist_eq_norm, ← indicator_smul_apply, sum_indicator_eq_sum_filter,
-    ← sum_smul, ← sub_smul, norm_smul, real.norm_eq_abs, ← prepartition.filter_boxes,
-    ← prepartition.measure_Union_to_real],
+  simp only [mem_closed_ball, dist_eq_norm, ← indicator_const_smul_apply,
+    sum_indicator_eq_sum_filter, ← sum_smul, ← sub_smul, norm_smul, real.norm_eq_abs,
+    ← prepartition.filter_boxes, ← prepartition.measure_Union_to_real],
   refine mul_le_mul_of_nonneg_right _ (norm_nonneg y),
   set t := (π.to_prepartition.filter (λ J, π.tag J ∈ s)).Union,
   change abs ((μ t).to_real - (μ (s ∩ I)).to_real) ≤ ε,

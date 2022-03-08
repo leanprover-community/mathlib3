@@ -78,14 +78,14 @@ structure equiv (α : Sort*) (β : Sort*) :=
 
 infix ` ≃ `:25 := equiv
 
-/-- Convert an involutive function `f` to an equivalence with `to_fun = inv_fun = f`. -/
-def function.involutive.to_equiv (f : α → α) (h : involutive f) : α ≃ α :=
-⟨f, f, h.left_inverse, h.right_inverse⟩
-
-namespace equiv
+instance {F} [equiv_like F α β] : has_coe_t F (α ≃ β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f }⟩
 
 /-- `perm α` is the type of bijections from `α` to itself. -/
-@[reducible] def perm (α : Sort*) := equiv α α
+@[reducible] def equiv.perm (α : Sort*) := equiv α α
+
+namespace equiv
 
 instance : equiv_like (α ≃ β) α β :=
 { coe := to_fun, inv := inv_fun, left_inv := left_inv, right_inv := right_inv,
@@ -129,9 +129,6 @@ instance inhabited' : inhabited (α ≃ α) := ⟨equiv.refl α⟩
 def simps.symm_apply (e : α ≃ β) : β → α := e.symm
 
 initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
-
--- Generate the `simps` projections for previously defined equivs.
-attribute [simps] function.involutive.to_equiv
 
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
@@ -512,13 +509,18 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
 ⟨λ f, punit.star, λ u f, punit.star,
   λ f, by { funext x, cases f x, refl }, λ u, by { cases u, reflexivity }⟩
 
+/-- If `α` is `subsingleton` and `a : α`, then the type of dependent functions `Π (i : α), β
+i` is equivalent to `β i`. -/
+@[simps]
+def Pi_subsingleton {α} (β : α → Sort*) [subsingleton α] (a : α) : (Π a', β a') ≃ β a :=
+{ to_fun := eval a,
+  inv_fun := λ x b, cast (congr_arg β $ subsingleton.elim a b) x,
+  left_inv := λ f, funext $ λ b, by { rw subsingleton.elim b a, reflexivity },
+  right_inv := λ b, rfl }
 
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
 @[simps { fully_applied := ff }] def fun_unique (α β) [unique α] : (α → β) ≃ β :=
-{ to_fun := eval default,
-  inv_fun := const α,
-  left_inv := λ f, funext $ λ a, congr_arg f $ subsingleton.elim _ _,
-  right_inv := λ b, rfl }
+Pi_subsingleton _ default
 
 /-- The sort of maps from `punit` is equivalent to the codomain. -/
 def punit_arrow_equiv (α : Sort*) : (punit.{u} → α) ≃ α :=
@@ -1521,19 +1523,24 @@ end subtype_equiv_codomain
 
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
 @[simps apply]
-noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=
+noncomputable def of_bijective (f : α → β) (hf : bijective f) : α ≃ β :=
 { to_fun := f,
   inv_fun := function.surj_inv hf.surjective,
   left_inv := function.left_inverse_surj_inv hf,
   right_inv := function.right_inverse_surj_inv _}
 
-lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (x : β) :
+lemma of_bijective_apply_symm_apply (f : α → β) (hf : bijective f) (x : β) :
   f ((of_bijective f hf).symm x) = x :=
 (of_bijective f hf).apply_symm_apply x
 
-@[simp] lemma of_bijective_symm_apply_apply {α β} (f : α → β) (hf : bijective f) (x : α) :
+@[simp] lemma of_bijective_symm_apply_apply (f : α → β) (hf : bijective f) (x : α) :
   (of_bijective f hf).symm (f x) = x :=
 (of_bijective f hf).symm_apply_apply x
+
+instance : can_lift (α → β) (α ≃ β) :=
+{ coe := coe_fn,
+  cond := bijective,
+  prf := λ f hf, ⟨of_bijective f hf, rfl⟩ }
 
 section
 
@@ -1739,6 +1746,20 @@ by { dsimp [set_value], simp [swap_apply_left] }
 end swap
 
 end equiv
+
+namespace function.involutive
+
+/-- Convert an involutive function `f` to a permutation with `to_fun = inv_fun = f`. -/
+def to_perm (f : α → α) (h : involutive f) : equiv.perm α :=
+⟨f, f, h.left_inverse, h.right_inverse⟩
+
+@[simp] lemma coe_to_perm {f : α → α} (h : involutive f) : (h.to_perm f : α → α) = f := rfl
+
+@[simp] lemma to_perm_symm {f : α → α} (h : involutive f) : (h.to_perm f).symm = h.to_perm f := rfl
+
+lemma to_perm_involutive {f : α → α} (h : involutive f) : involutive (h.to_perm f) := h
+
+end function.involutive
 
 lemma plift.eq_up_iff_down_eq {x : plift α} {y : α} : x = plift.up y ↔ x.down = y :=
 equiv.plift.eq_symm_apply

@@ -32,7 +32,7 @@ import logic.function.conjugate
 -/
 universes u v w x y
 
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
+variables {α : Type u} {β : Type v} {π : α → Type v} {γ : Type w} {ι : Sort x}
 
 open function
 
@@ -42,7 +42,7 @@ namespace set
 
 /-- Restrict domain of a function `f` to a set `s`. Same as `subtype.restrict` but this version
 takes an argument `↥s` instead of `subtype s`. -/
-def restrict (s : set α) (f : α → β)  : s → β := λ x, f x
+def restrict (s : set α) (f : Π a : α, π a) : Π a : s, π a := λ x, f x
 
 lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 

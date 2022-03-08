@@ -589,7 +589,8 @@ instance {α : Type*} [topological_space α] [locally_compact_space α]
     refine continuous_of_continuous_uncurry _ _,
     change continuous ((λ (x : R × R), x.1 * x.2) ∘
       (λ (x : (C(α, R) × C(α, R)) × α), (x.1.1 x.2, x.1.2 x.2))),
-    refine (continuous_fst.comp (continuous.prod_mk _ _)).mul (continuous_snd.comp (continuous.prod_mk _ _)),
+    refine (continuous_fst.comp (continuous.prod_mk _ _)).mul
+      (continuous_snd.comp (continuous.prod_mk _ _)),
     any_goals { change continuous ((λ (x : C(α, R) × α), x.1 x.2) ∘
         (λ (x : (C(α, R) × C(α, R)) × α), (x.1.1, x.2))),
       refine continuous.comp continuous_ev

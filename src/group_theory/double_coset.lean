@@ -72,21 +72,9 @@ end
 def rel (H K : set G) : G → G → Prop :=
 λ x y, doset x H K = doset y H K
 
-lemma rel_reflexive {H K : set G} : reflexive (rel H K) :=
-λ x, rfl
-
-lemma rel_symmetric {H K : set G} : symmetric (rel H K) :=
-λ x y, eq.symm
-
-lemma rel_transitive {H K : set G} : transitive (rel H K) :=
-λ x y z, eq.trans
-
-lemma rel_equivalence {H K : set G} : equivalence (rel H K) :=
-⟨rel_reflexive, rel_symmetric, rel_transitive⟩
-
 /-- The setoid defined by the double_coset relation -/
 def setoid (H K : set G) : setoid G :=
-⟨rel H K, rel_equivalence⟩
+setoid.ker (λ x, doset x H K)
 
 /-- Quotient of `G` by the double coset relation, i.e. `H \ G / K` -/
 def quotient (H K : set G) : Type* :=

@@ -355,7 +355,7 @@ variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂]
 def of_involutive {σ σ' : R →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
   {module_M : module R M} (f : M →ₛₗ[σ] M) (hf : involutive f) :
   M ≃ₛₗ[σ] M :=
-{ .. f, .. hf.to_equiv f }
+{ .. f, .. hf.to_perm f }
 
 @[simp] lemma coe_of_involutive {σ σ' : R →+* R} [ring_hom_inv_pair σ σ']
   [ring_hom_inv_pair σ' σ] {module_M : module R M} (f : M →ₛₗ[σ] M) (hf : involutive f) :

@@ -192,7 +192,7 @@ def noncomm_prod (s : finset α) (f : α → β) (comm : ∀ (x ∈ s) (y ∈ s)
 /-- A helper for rewriting the dependent arguments. -/
 @[to_additive "A helper for rewriting the dependent arguments "]
 lemma noncomm_prod_congr
-  {s₁ s₂ : finset α}  (f g : α → β) (h₁ : s₁ = s₂) (h₂ : ∀ (x ∈ s₂), f x = g x)
+  {s₁ s₂ : finset α}  {f g : α → β} (h₁ : s₁ = s₂) (h₂ : ∀ (x ∈ s₂), f x = g x)
   (comm : ∀ (x ∈ s₁) (y ∈ s₁), commute (f x) (f y)) :
   noncomm_prod s₁ f comm = noncomm_prod s₂ g
     (λ x hx y hy, h₂ x hx ▸ h₂ y hy ▸ comm x (h₁.symm ▸ hx) y (h₁.symm ▸ hy)) :=

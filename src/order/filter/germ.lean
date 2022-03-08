@@ -84,7 +84,7 @@ def product_setoid (l : filter α) (ε : α → Type*) : setoid (Π a, ε a) :=
 
 /-- The filter product `Π (a : α), ε a` at a filter `l`. This is a dependent version of
   `filter.germ`. -/
-@[protected] def product : Type* := quotient (product_setoid l ε)
+@[protected] def product (l : filter α) (ε : α → Type*) : Type* := quotient (product_setoid l ε)
 
 namespace product
 

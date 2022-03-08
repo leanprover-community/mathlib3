@@ -194,7 +194,7 @@ begin
   { rw not_nontrivial_iff_subsingleton at Rtrivial,
     obtain ⟨q, hq⟩ := mem_lifts_and_degree_eq hlifts,
     use q,
-    exact ⟨hq.1, hq.2, monic_of_subsingleton _⟩ },
+    exactI ⟨hq.1, hq.2, monic_of_subsingleton _⟩ },
   resetI,
   by_cases er_zero : p.erase_lead = 0,
   { rw [← erase_lead_add_C_mul_X_pow p, er_zero, zero_add, monic.def.1 hmonic, C_1, one_mul],

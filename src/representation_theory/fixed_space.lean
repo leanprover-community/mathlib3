@@ -98,7 +98,8 @@ theorem smul_average_fixed (v : V) : (average k G) • v ∈ fixed_space k G V :
 theorem smul_average_id (v ∈ fixed_space k G V) : (average k G) • v = v :=
 begin
   simp at H,
-  simp [average_def, sum_smul, H, card_univ, nsmul_eq_smul_cast k _ v, smul_smul, -of_apply],
+  simp [average_def, sum_smul, H, card_univ, nsmul_eq_smul_cast k _ v, smul_smul, smul_of,
+    -of_apply],
 end
 
 /--

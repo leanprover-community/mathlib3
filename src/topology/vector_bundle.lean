@@ -662,8 +662,8 @@ trivialization for the direct sum of `E₁` and `E₂`, whose base set is `e₁.
 def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
 { to_fun := prod.to_fun' e₁ e₂,
   inv_fun := prod.inv_fun' e₁ e₂,
-  source := (proj (λ x, E₁ x × E₂ x)) ⁻¹' (e₁.base_set.inter e₂.base_set),
-  target := (e₁.base_set.inter e₂.base_set) ×ˢ (set.univ : set (F₁ × F₂)),
+  source := (proj (λ x, E₁ x × E₂ x)) ⁻¹' (e₁.base_set ∩ e₂.base_set),
+  target := (e₁.base_set ∩ e₂.base_set) ×ˢ (set.univ : set (F₁ × F₂)),
   map_source' := λ ⟨x, v₁, v₂⟩ h, ⟨h, set.mem_univ _⟩,
   map_target' := λ ⟨x, w₁, w₂⟩ h, h.1,
   left_inv' := λ ⟨x, v₁, v₂⟩ h,

@@ -249,12 +249,10 @@ le_antisymm
 lemma sup_id_eq_Sup [complete_lattice α] (s : finset α) : s.sup id = Sup s :=
 by simp [Sup_eq_supr, sup_eq_supr]
 
-lemma sup_id_set_eq_sUnion (s : finset (set α)) :
-  s.sup id = ⋃₀(↑s) :=
+@[simp] lemma sup_id_set_eq_sUnion (s : finset (set α)) : s.sup id = ⋃₀(↑s) :=
 sup_id_eq_Sup _
 
-@[simp] lemma sup_set_eq_bUnion (s : finset α) (f : α → set β) :
-  s.sup f = ⋃ x ∈ s, f x :=
+@[simp] lemma sup_set_eq_bUnion (s : finset α) (f : α → set β) : s.sup f = ⋃ x ∈ s, f x :=
 sup_eq_supr _ _
 
 lemma sup_eq_Sup_image [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = Sup (f '' s) :=
@@ -1122,7 +1120,7 @@ begin
   simp_rw [val_to_finset],
 end
 
-lemma sup_eq_bUnion {α β} [decidable_eq β] (s : finset α) (t : α → finset β) :
+@[simp] lemma sup_eq_bUnion {α β} [decidable_eq β] (s : finset α) (t : α → finset β) :
   s.sup t = s.bUnion t :=
 by { ext, rw [mem_sup, mem_bUnion], }
 

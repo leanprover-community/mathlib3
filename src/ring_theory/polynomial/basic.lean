@@ -252,7 +252,7 @@ begin
     exact degree_sum_fin_lt _ }
 end
 
-lemma monic.geom_sum_of_monic {R : Type*} [semiring R] {P : R[X]}
+lemma monic.geom_sum {R : Type*} [semiring R] {P : R[X]}
   (hP : P.monic) (hdeg : 0 < P.nat_degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
 begin
   nontriviality R,
@@ -268,9 +268,9 @@ begin
     exact (monic_pow hP _).ne_zero }
 end
 
-lemma monic.geom_sum_of_monic' {R : Type*} [semiring R] {P : R[X]}
+lemma monic.geom_sum' {R : Type*} [semiring R] {P : R[X]}
   (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
-monic.geom_sum_of_monic hP (nat_degree_pos_iff_degree_pos.2 hdeg) hn
+hP.geom_sum (nat_degree_pos_iff_degree_pos.2 hdeg) hn
 
 section to_subring
 

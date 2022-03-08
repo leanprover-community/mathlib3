@@ -17,6 +17,10 @@ Mostly this uses existing machinery in `linear_algebra.tensor_product`.
 We just need to provide a few small missing pieces to build the
 `monoidal_category` instance and then the `symmetric_category` instance.
 
+Note the universe level of the modules must be at least the universe level of the ring,
+so that we have a monoidal unit.
+For now, we simplify by insisting both universe levels are the same.
+
 We then construct the monoidal closed structure on `Module R`.
 
 If you're happy using the bundled `Module R`, it may be possible to mostly

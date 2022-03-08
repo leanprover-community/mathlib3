@@ -92,6 +92,8 @@ set_option old_structure_cmd true
 class differential_graded_comm_ring (A : ℕ → Type*) [Π n, add_comm_group (A n)]
   extends graded_comm_ring A, differential_graded_ring A
 
+section
+
 variables {A : ℕ → Type*} [Π n, add_comm_group (A n)] [differential_graded_ring A]
 
 lemma d_mul {i j} (x : A i) (y : A j) :
@@ -127,7 +129,9 @@ begin
   rw [cast_hom_cast_hom, cast_hom_refl],
 end
 
-variables (R : Type*) [comm_ring R]
+end
+
+variables (R : Type u) [comm_ring R]
 
 class differential_graded_module (A : ℕ → Type*) [Π n, add_comm_monoid (A n)] [Π n, module R (A n)]
   extends differential_graded A :=
@@ -193,8 +197,9 @@ lemma cast_linear_map_d {A : ℕ → Type*} [Π n, add_comm_group (A n)] [Π n, 
   cast_linear_map R A h (d_linear_map R x) = d_linear_map R (cast_linear_map R A (nat.succ.inj h) x) :=
 by { cases h, refl, }
 
-def to_homological_complex (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_module R A] :
-  cochain_complex (Module R) ℕ :=
+@[simps]
+def to_cochain_complex (A : ℕ → Type v) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_module R A] :
+  cochain_complex (Module.{v} R) ℕ :=
 { X := λ i, Module.of R (A i),
   d := λ i j, if h : i + 1 = j then Module.of_hom (d_linear_map R) ≫ Module.of_hom (cast_linear_map R A h) else 0,
   shape' := λ i j w, by rwa dif_neg,
@@ -205,16 +210,16 @@ def to_homological_complex (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π 
     { exfalso, exact h w₁, }
   end, }
 
-def graded.homology (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_module R A] : ℕ → Type* :=
-λ i, (to_homological_complex R A).homology i
+def graded.homology (A : ℕ → Type v) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_module R A] : ℕ → Type* :=
+λ i, (to_cochain_complex R A).homology i
 
 noncomputable theory
 
-instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_module R A] (i : ℕ) :
+instance (A : ℕ → Type v) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_module R A] (i : ℕ) :
   add_comm_group (graded.homology R A i) :=
 by { dsimp [graded.homology], apply_instance, }
 
-instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_module R A] (i : ℕ) :
+instance (A : ℕ → Type v) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_module R A] (i : ℕ) :
   module R (graded.homology R A i) :=
 by { dsimp [graded.homology], apply_instance, }
 
@@ -236,8 +241,10 @@ def foo' {C : Type*} [category C] [preadditive C] [has_cokernels C]
   cokernel f ⊗ Z ≅ cokernel (f ⊗ 𝟙 Z) :=
 sorry
 
-def nn (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] (i j : ℕ) :
-  (to_homological_complex R A).homology i ⊗ (to_homological_complex R A).homology j ⟶ (to_homological_complex R A).homology (i + j) :=
+-- At this point we specialise the universe levels, because we only have the monoidal structure on `Module R` in that case.
+
+def nn (A : ℕ → Type u) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] (i j : ℕ) :
+  (to_cochain_complex R A).homology i ⊗ (to_cochain_complex R A).homology j ⟶ (to_cochain_complex R A).homology (i + j) :=
 begin
   refine (foo _).hom ≫ _,
   refine cokernel.desc _ _ _,
@@ -253,7 +260,7 @@ begin
   { sorry, }
 end
 
-def mm (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] (i j : ℕ) :
+def mm (A : ℕ → Type u) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] (i j : ℕ) :
   graded.homology R A j →ₗ[R] (graded.homology R A i →ₗ[R] graded.homology R A (i + j)) :=
 monoidal_closed.curry (nn R A i j).
 
@@ -330,19 +337,40 @@ end homology
 
 end Module
 
-def one (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
-  graded.homology R A 0 :=
-begin
-  refine Module.homology.mk _ _ _ _,
-  refine ⟨(1 : A 0), _⟩,
-  rw homological_complex.d_from_eq,
-  swap 3, exact 1,swap 2, exact zero_add _,
-  simp,
-  dsimp [to_homological_complex],
-  simp,
-end.
+variables (A : ℕ → Type u) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A]
 
-lemma one_mul' (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A]
+lemma w {i : ℕ} {x : A i} (dx : d x = 0) : (homological_complex.d_from (to_cochain_complex R A) i) x = 0 :=
+begin
+rw homological_complex.d_from_eq,
+  swap 3, exact i+1,swap 2,
+  simp only [complex_shape.up_rel],
+  simp [to_cochain_complex],
+  erw dx,
+  rw linear_map.map_zero,
+end
+
+def mk {i : ℕ} (x : A i) (dx : d x = 0) : (to_cochain_complex R A).homology i :=
+Module.homology.mk _ _ _ begin fsplit, exact x, exact w R A dx, end
+
+lemma nn_mk_mk (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A]
+  {i j} (x : A i) (dx : d x = 0) (y : A j) (dy : d y = 0) :
+  nn R A i j (mk R A x dx ⊗ₜ[R] mk R A y dy) =
+  mk R A (gmul x y) (mul_cycle_of_cycle_cycle x y dx dy) :=
+sorry
+
+def one : graded.homology R A 0 :=
+mk R A (1 : A 0) (d_one A)
+-- begin
+--   refine Module.homology.mk _ _ _ _,
+--   refine ⟨(1 : A 0), _⟩,
+--   rw homological_complex.d_from_eq,
+--   swap 3, exact 1,swap 2, exact zero_add _,
+--   simp,
+--   dsimp [to_cochain_complex],
+--   simp,
+-- end.
+
+lemma one_mul'
   {i : ℕ} (x : graded.homology R A i) :
   (nn R A 0 i) (one R A ⊗ₜ[R] x) = cast sorry x :=
 begin
@@ -350,7 +378,7 @@ begin
   dsimp only [foo],
 end
 
-instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
+instance :
   graded_monoid (graded.homology R A) :=
 { one := one R A,
   mul := λ i j x y, mm R A i j y x,
@@ -358,11 +386,11 @@ instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)]
   mul_one := sorry,
   mul_assoc := sorry, }
 
-lemma graded.homology.gmul_def (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A]
+lemma graded.homology.gmul_def
   {i j} (x : graded.homology R A i) (y : graded.homology R A j) : gmul x y = mm R A i j y x :=
 rfl
 
-instance (A : ℕ → Type*) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] :
+instance :
   graded_semiring (graded.homology R A) :=
 { mul_zero := begin intros, simp only [graded.homology.gmul_def, mm], simp only [linear_map.zero_apply, map_zero], end,
   zero_mul := begin intros, simp only [graded.homology.gmul_def, mm], simp only [map_zero], end,

@@ -58,13 +58,13 @@ begin
   rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero f _)
 end
 
-lemma monic_C_mul_of_mul_leading_coeff_eq_one [nontrivial R] {b : R}
-  (hp : b * p.leading_coeff = 1) : monic (C b * p) :=
-by rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp]
+lemma monic_C_mul_of_mul_leading_coeff_eq_one {b : R} (hp : b * p.leading_coeff = 1) :
+  monic (C b * p) :=
+by { nontriviality, rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp] }
 
-lemma monic_mul_C_of_leading_coeff_mul_eq_one [nontrivial R] {b : R}
-  (hp : p.leading_coeff * b = 1) : monic (p * C b) :=
-by rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp]
+lemma monic_mul_C_of_leading_coeff_mul_eq_one {b : R} (hp : p.leading_coeff * b = 1) :
+  monic (p * C b) :=
+by { nontriviality, rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp] }
 
 theorem monic_of_degree_le (n : ℕ) (H1 : degree p ≤ n) (H2 : coeff p n = 1) : monic p :=
 decidable.by_cases
@@ -219,8 +219,7 @@ begin
   refine t.induction_on _ _, { simp },
   intros a t ih ht,
   rw [multiset.map_cons, multiset.prod_cons],
-  exact (ht _ (multiset.mem_cons_self _ _)).mul
-    (ih (λ _ hi, ht _ (multiset.mem_cons_of_mem hi)))
+  exact (ht _ (multiset.mem_cons_self _ _)).mul (ih (λ _ hi, ht _ (multiset.mem_cons_of_mem hi)))
 end
 
 lemma monic_prod_of_monic (s : finset ι) (f : ι → R[X]) (hs : ∀ i ∈ s, monic (f i)) :
@@ -528,7 +527,6 @@ begin
     replace hp := congr_arg (* C ↑(h.unit)⁻¹) hp,
     simp only [zero_mul] at hp,
     rwa [mul_assoc, monic.mul_left_eq_zero_iff] at hp,
-    nontriviality,
     refine monic_mul_C_of_leading_coeff_mul_eq_one _,
     simp [units.mul_inv_eq_iff_eq_mul, is_unit.unit_spec] },
   { rintro rfl,

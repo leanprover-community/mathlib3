@@ -975,23 +975,24 @@ end linear_order
 /-- A strictly monotonous function from `no_max_order` to `is_succ_archimedean` is unbounded. -/
 lemma unbounded_of_strict_mono
   [preorder α] [preorder β]
-  [no_max_order α] [inhabited α]
+  [no_max_order α] [nonempty α]
   [succ_order β] [is_succ_archimedean β]
   (f : α → β) (Hmono : strict_mono f) :
-  set.unbounded (≤) (set.range f) :=
+  ¬ bdd_above (set.range f) :=
 begin
-  by_contra',
-  have bounded : set.bounded (≤) (set.range f) := by rwa set.not_unbounded_iff at this,
+  assume bounded : bdd_above (set.range f),
   obtain ⟨m, Hm⟩ : ∃ m, ∀ v ∈ set.range f, v ≤ m := bounded,
   have Hm' : ∀ a, f a ≤ m := λ a, Hm (f a) (set.mem_range_self _),
-  let v₀ := f default,
+  apply nonempty.elim ‹nonempty α›,
+  assume (a₀ : α),
+  let v₀ := f a₀,
   have next_arg : ∀ a, ∃ a', f a < f a',
   { intro a,
     obtain ⟨a', Ha'⟩ : ∃ a', a < a' := exists_gt a,
     use a', show f a < f a', from Hmono Ha' },
   have succ_mem_range : ∀ b, v₀ ≤ b → ∃ a, b < f a,
   { apply succ.rec,
-    { exact next_arg default },
+    { exact next_arg a₀ },
     { assume (b : β) (h : v₀ ≤ b) (IH : ∃ a, b < f a),
       obtain ⟨a, Ha⟩ := IH,
       obtain ⟨a', Ha'⟩ : ∃ a', f a < f a' := next_arg a,
@@ -1001,7 +1002,7 @@ begin
       use a',
       calc succ b < succ (f a) : succ_lt_succ_of_not_is_max not_max Ha
       ...         ≤ f a'       : Hsucc_le } },
-  obtain ⟨a, Ha⟩ : ∃ a, m < f a := succ_mem_range m (Hm' default),
+  obtain ⟨a, Ha⟩ : ∃ a, m < f a := succ_mem_range m (Hm' a₀),
   have : f a ≤ m := Hm' a,
   have : ¬ f a ≤ m := not_le_of_lt Ha,
   tauto

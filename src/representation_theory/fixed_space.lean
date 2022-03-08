@@ -40,7 +40,8 @@ lemma average_def : average k G = ⅟(fintype.card G : k) • ∑ g : G, of k G 
 `average k G` is invariant under left multiplication by elements of `G`.
 -/
 @[simp]
-theorem mul_average_left (g : G) : (of k G g) * average k G = average k G :=
+theorem mul_average_left (g : G) :
+  (finsupp.single g 1 * average k G : monoid_algebra k G) = average k G :=
 begin
   simp [average_def, finset.mul_sum],
   set f : G → monoid_algebra k G := λ x, finsupp.single x 1,
@@ -52,7 +53,8 @@ end
 `average k G` is invariant under right multiplication by elements of `G`.
 -/
 @[simp]
-theorem mul_average_right (g : G) : average k G * (of k G g) = average k G :=
+theorem mul_average_right (g : G) :
+  average k G * finsupp.single g 1 = average k G :=
 begin
   simp [average_def, finset.sum_mul],
   set f : G → monoid_algebra k G := λ x, finsupp.single x 1,
@@ -88,7 +90,7 @@ variables [fintype G] [invertible (fintype.card G : k)]
 Scalar multiplication by `average k G` sends elements of `V` to the subspace of fixed points
 -/
 theorem smul_average_fixed (v : V) : (average k G) • v ∈ fixed_space k G V :=
-λ g, by rw [←smul_of k, smul_smul, mul_average_left]
+λ g, by rw [←smul_of k, smul_smul, of_apply, mul_average_left]
 
 /--
 `average k G` acts as the identity on the subspace of fixed points

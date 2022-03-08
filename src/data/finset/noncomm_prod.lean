@@ -297,8 +297,7 @@ end
 
 /- The non-commutative version of `finset.prod_mul_distrib` -/
 @[to_additive "The non-commutative version of `finset.sum_add_distrib`"]
-lemma noncomm_prod_mul_distrib [decidable_eq α] {s : finset α}
-  (f : α → β) (g : α → β)
+lemma noncomm_prod_mul_distrib {s : finset α} (f : α → β) (g : α → β)
   (comm_fgfg : ∀ (x ∈ s) (y ∈ s), commute (f x * g x) (f y * g y))
   (comm_ff : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
   (comm_gg : ∀ (x ∈ s) (y ∈ s), commute (g x) (g y))
@@ -306,6 +305,7 @@ lemma noncomm_prod_mul_distrib [decidable_eq α] {s : finset α}
   noncomm_prod s (f * g) comm_fgfg
     = noncomm_prod s f comm_ff * noncomm_prod s g comm_gg :=
 begin
+  classical,
   induction s using finset.induction_on with x s hnmem ih,
   { simp, },
   { simp only [finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem, pi.mul_apply],

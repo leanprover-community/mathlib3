@@ -54,7 +54,7 @@ by { delta minpoly, rw dif_pos hx, exact (well_founded.min_mem degree_lt_wf _ hx
 
 /-- A minimal polynomial is nonzero. -/
 lemma ne_zero [nontrivial A] (hx : is_integral A x) : minpoly A x ≠ 0 :=
-ne_zero_of_monic (monic hx)
+(monic hx).ne_zero
 
 lemma eq_zero (hx : ¬ is_integral A x) : minpoly A x = 0 :=
 dif_neg hx
@@ -396,7 +396,7 @@ begin
       (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
   { have htower := is_scalar_tower.aeval_apply A K R x (minpoly A x),
     rwa [aeval, eq_comm] at htower },
-  { exact monic_map _ (monic hx) }
+  { exact (monic hx).map _ }
 end
 
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral

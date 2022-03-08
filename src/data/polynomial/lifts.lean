@@ -192,16 +192,18 @@ begin
   by_cases Rtrivial : nontrivial R,
   swap,
   { rw not_nontrivial_iff_subsingleton at Rtrivial,
+    resetI,
     obtain ⟨q, hq⟩ := mem_lifts_and_degree_eq hlifts,
     use q,
-    exact ⟨hq.1, hq.2, @monic_of_subsingleton _ _ Rtrivial q⟩ },
+    exact ⟨hq.1, hq.2, monic_of_subsingleton _⟩ },
+  resetI,
   by_cases er_zero : p.erase_lead = 0,
   { rw [← erase_lead_add_C_mul_X_pow p, er_zero, zero_add, monic.def.1 hmonic, C_1, one_mul],
     use X ^ p.nat_degree,
     repeat {split},
     { simp only [polynomial.map_pow, map_X] },
-    { rw [@degree_X_pow R _ Rtrivial, degree_X_pow] },
-    {exact monic_pow monic_X p.nat_degree } },
+    { rw [degree_X_pow, degree_X_pow] },
+    { exact monic_X_pow p.nat_degree } },
   obtain ⟨q, hq⟩ := mem_lifts_and_degree_eq (erase_mem_lifts p.nat_degree hlifts),
   have deg_er : p.erase_lead.nat_degree < p.nat_degree :=
     or.resolve_right (erase_lead_nat_degree_lt_or_erase_lead_eq_zero p) er_zero,
@@ -215,8 +217,7 @@ begin
     rw [erase_lead, monic.leading_coeff hmonic, C_1, one_mul] },
   { rw [degree_add_eq_right_of_degree_lt deg_er, @degree_X_pow R _ Rtrivial p.nat_degree,
     degree_eq_nat_degree (monic.ne_zero hmonic)] },
-  { rw [monic.def, leading_coeff_add_of_degree_lt deg_er],
-    exact monic_pow monic_X p.nat_degree }
+  { exact (monic_X_pow _).add_of_right deg_er, },
 end
 
 end monic

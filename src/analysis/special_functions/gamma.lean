@@ -13,9 +13,8 @@ import analysis.special_functions.integrals
 # The Gamma function
 
 In this file we define the Γ function (of a real variable in the range `1 ≤ s`), using the
-definition `Γ(s) = ∫ x in 0..∞, x^(s-1) exp(-x) dx`, and prove that it satisfies the relation
-`Γ(s+1) = s Γ(s)`. We also prove that `Γ(n+1) = n!` for `n ∈ ℕ`. We also show that `Γ(s)` is
-continuous on `(1, ∞)` (but not yet at the left endpoint).
+definition `Γ(s) = ∫ x in 0..∞, x^(s-1) exp(-x) dx`, and prove that it is continuous and satisfies
+the relation `Γ(s+1) = s Γ(s)`. We also prove that `Γ(n+1) = n!` for `n ∈ ℕ`.
 
 TO DO:
 
@@ -449,7 +448,7 @@ end
 
 /- Continuity of the gamma function. This is proved using `continuous_at_of_dominated`, so
 we need to verify the hypotheses. -/
-lemma gamma_cts: continuous_on real_gamma (Ioi 1):=
+lemma gamma_cts_Ioi: continuous_on real_gamma (Ioi 1):=
 begin
 
   apply continuous_at.continuous_on,
@@ -549,6 +548,40 @@ begin
     apply measurable_set_Ioi },
 
   apply measure_theory.continuous_at_of_dominated ae_meas bound bd_integrable F_cts,
+end
+
+lemma gamma_right_cts: continuous_within_at real_gamma (set.Ici (1:ℝ)) 1 :=
+begin
+  have s1: continuous_within_at (λ s:ℝ, real_gamma(s+1) / s) (set.Ici (1:ℝ)) 1,
+  { apply continuous_at.continuous_within_at,
+    apply continuous_at.div,
+    { apply continuous_at.comp,
+      { apply continuous_on.continuous_at (gamma_cts_Ioi) (Ioi_mem_nhds _),
+        linarith, },
+      { exact continuous_at.add continuous_at_id continuous_at_const, }, },
+    { exact continuous_at_id,},
+    { exact one_ne_zero, }, },
+
+  refine (continuous_within_at.congr s1 _ (by {rw FE_gamma, simp })),
+  intros y hy,
+  rw [set.Ici, mem_set_of_eq] at hy,
+  rw FE_gamma,
+  { rw [mul_comm, mul_div_cancel],
+    linarith, },
+  { linarith, }
+end
+
+lemma gamma_cts_Ici: continuous_on real_gamma (Ici 1):=
+begin
+  intros s hs,
+  by_cases s ∈ Ioi (1:ℝ),
+  { apply continuous_at.continuous_within_at,
+    apply continuous_on.continuous_at gamma_cts_Ioi,
+    apply Ioi_mem_nhds,
+    rw [set.Ioi, mem_set_of_eq] at h, linarith,},
+  { have : s = 1,
+    { rw not_mem_Ioi at h, rw [set.Ici, mem_set_of_eq] at hs, linarith },
+    rw this, exact gamma_right_cts, }
 end
 
 end real

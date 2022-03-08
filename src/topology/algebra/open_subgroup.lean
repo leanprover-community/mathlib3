@@ -208,7 +208,7 @@ H.is_open_of_mem_nhds (filter.mem_of_superset U.mem_nhds_one h)
 
 /-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
 @[to_additive]
-lemma subgroup.is_open_of_one_mem_interior {G : Type*} [group G] [topological_space G]
+lemma is_open_of_one_mem_interior {G : Type*} [group G] [topological_space G]
   [topological_group G] {H : subgroup G} (h_1_int : (1 : G) ∈ interior (H : set G)) :
   is_open (H : set G) :=
 begin

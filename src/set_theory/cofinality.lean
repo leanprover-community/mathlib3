@@ -681,13 +681,37 @@ begin
   exact (@infinite.of_injective _ _ p (inclusion (v' a)) (inclusion_injective _)).false,
 end
 
+theorem lsub_lt_ord_lift_of_is_regular {ι} {f : ι → ordinal} {c} (hc : is_regular c)
+  (hι : cardinal.lift (#ι) < c) : (∀ i, f i < c.ord) → ordinal.lsub f < c.ord :=
+lsub_lt_ord_lift (by rwa hc.2)
+
+theorem lsub_lt_ord_of_is_regular {ι} {f : ι → ordinal} {c} (hc : is_regular c) (hι : #ι < c) :
+  (∀ i, f i < c.ord) → ordinal.lsub f < c.ord :=
+lsub_lt_ord (by rwa hc.2)
+
 theorem sup_lt_ord_lift_of_is_regular {ι} {f : ι → ordinal} {c} (hc : is_regular c)
-  (hι : cardinal.lift (#ι) < c) : (∀ i, f i < c.ord) → ordinal.sup.{u v} f < c.ord :=
+  (hι : cardinal.lift (#ι) < c) : (∀ i, f i < c.ord) → ordinal.sup f < c.ord :=
 sup_lt_ord_lift (by rwa hc.2)
 
 theorem sup_lt_ord_of_is_regular {ι} {f : ι → ordinal} {c} (hc : is_regular c) (hι : #ι < c) :
-  (∀ i, f i < c.ord) → ordinal.sup.{u u} f < c.ord :=
+  (∀ i, f i < c.ord) → ordinal.sup f < c.ord :=
 sup_lt_ord (by rwa hc.2)
+
+theorem blsub_lt_ord_lift_of_is_regular {o : ordinal} {f : Π a < o, ordinal} {c} (hc : is_regular c)
+  (ho : cardinal.lift o.card < c) : (∀ i hi, f i hi < c.ord) → ordinal.blsub o f < c.ord :=
+blsub_lt_ord_lift (by rwa hc.2)
+
+theorem blsub_lt_ord_of_is_regular {o : ordinal} {f : Π a < o, ordinal} {c} (hc : is_regular c)
+  (ho : o.card < c) : (∀ i hi, f i hi < c.ord) → ordinal.blsub o f < c.ord :=
+blsub_lt_ord (by rwa hc.2)
+
+theorem bsup_lt_ord_lift_of_is_regular {o : ordinal} {f : Π a < o, ordinal} {c} (hc : is_regular c)
+  (hι : cardinal.lift o.card < c) : (∀ i hi, f i hi < c.ord) → ordinal.bsup o f < c.ord :=
+bsup_lt_ord_lift (by rwa hc.2)
+
+theorem bsup_lt_ord_of_is_regular {o : ordinal} {f : Π a < o, ordinal} {c} (hc : is_regular c)
+  (hι : o.card < c) : (∀ i hi, f i hi < c.ord) → ordinal.bsup o f < c.ord :=
+bsup_lt_ord (by rwa hc.2)
 
 theorem sup_lt_lift_of_is_regular {ι} {f : ι → cardinal} {c} (hc : is_regular c)
   (hι : cardinal.lift (#ι) < c) : (∀ i, f i < c) → sup.{u v} f < c :=

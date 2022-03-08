@@ -1124,6 +1124,7 @@ theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordi
     { change _ < _ at hlt, rwa [←@enum_lt_enum α r _ o₂ o₁ h₂ h₁, h] at hlt }
 end, λ h, by simp_rw h⟩
 
+/-- `o.out.α` is an `order_bot` whenever `0 < o`. -/
 def out_order_bot_of_pos {o : ordinal} (ho : 0 < o) : order_bot o.out.α :=
 ⟨_, enum_zero_le' ho⟩
 

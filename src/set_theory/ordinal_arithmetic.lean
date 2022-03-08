@@ -343,7 +343,7 @@ begin
   convert (enum_lt_enum (typein_lt_type r x) _).mpr (lt_succ_self _), rw [enum_typein]
 end
 
-def out_no_max_of_lt_succ {o : ordinal} (ho : ∀ a < o, succ a < o) : no_max_order o.out.α :=
+theorem out_no_max_of_lt_succ {o : ordinal} (ho : ∀ a < o, succ a < o) : no_max_order o.out.α :=
 ⟨has_succ_of_type_lt_succ (by rwa type_lt)⟩
 
 lemma type_subrel_lt (o : ordinal.{u}) :

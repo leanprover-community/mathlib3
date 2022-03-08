@@ -553,7 +553,7 @@ begin
   { exact dvd_trans (multiset.dvd_prod H) (associated.dvd (normalized_factors_prod hcases)) },
 end
 
-lemma associated_prime_pow_of_unique_normalized_factor {p r : α}
+lemma exists_associated_prime_pow_of_unique_normalized_factor {p r : α}
   (h : ∀ {m}, m ∈ normalized_factors r → m = p) (hr : r ≠ 0) : ∃ (i : ℕ), associated (p ^ i) r :=
 begin
   use (normalized_factors r).card,

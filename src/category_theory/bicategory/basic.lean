@@ -446,6 +446,28 @@ by rw [←whisker_left_iff, ←cancel_epi (α_ (𝟙 a) (𝟙 _) (𝟙 _)).hom,
 lemma unitors_inv_equal : (λ_ (𝟙 a)).inv = (ρ_ (𝟙 a)).inv :=
 by { ext, rw [←unitors_equal], simp only [hom_inv_id] }
 
+@[reassoc]
+lemma left_unitor_right_unitor_inv (f : a ⟶ b) :
+  (λ_ f).hom ≫ (ρ_ f).inv =
+    (𝟙 a ◁ (ρ_ f).inv) ≫ (α_ (𝟙 a) f (𝟙 b)).inv ≫ ((λ_ f).hom ▷ 𝟙 b) :=
+begin
+  apply (cancel_epi (ρ_ (𝟙 a ≫ f)).hom).1,
+  apply (cancel_epi (ρ_ (𝟙 a ≫ f)).inv).1,
+  rw [←left_unitor_naturality],
+  simp
+end
+
+@[reassoc]
+lemma right_unitor_left_unitor_inv (f : a ⟶ b) :
+  (ρ_ f).hom ≫ (λ_ f).inv =
+    ((λ_ f).inv ▷ 𝟙 b) ≫ (α_ (𝟙 a) f (𝟙 b)).hom ≫ (𝟙 a ◁ (ρ_ f).hom) :=
+begin
+  apply (cancel_epi (λ_ (f ≫ 𝟙 b)).hom).1,
+  apply (cancel_epi (λ_ (f ≫ 𝟙 b)).inv).1,
+  rw [←right_unitor_naturality],
+  simp
+end
+
 end
 
 end bicategory

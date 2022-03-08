@@ -30,70 +30,47 @@ restate_axiom adjunction.left_triangle'
 restate_axiom adjunction.right_triangle'
 attribute [simp, reassoc] adjunction.left_triangle adjunction.right_triangle
 
-@[reassoc] lemma left_unitor_right_unitor_inv (f : a ⟶ b) :
-(λ_ f).hom ≫ (ρ_ f).inv
-= (𝟙 a ◁ (ρ_ f).inv) ≫ (α_ (𝟙 a) f (𝟙 b)).inv ≫ ((λ_ f).hom ▷ 𝟙 b) :=
+lemma right_adjoint_uniq_aux {f : a ⟶ b} {g₁ g₂ : b ⟶ a} (adj₁ : f ⊣ g₁) (adj₂ : f ⊣ g₂) :
+  ((ρ_ g₁).inv ≫ (g₁ ◁ adj₂.unit) ≫ (α_ g₁ f g₂).inv ≫ (adj₁.counit ▷ g₂) ≫ (λ_ g₂).hom) ≫
+    (ρ_ g₂).inv ≫ (g₂ ◁ adj₁.unit) ≫ (α_ g₂ f g₁).inv ≫ (adj₂.counit ▷ g₁) ≫ (λ_ g₁).hom =
+      𝟙 g₁ :=
 begin
-  apply (cancel_mono (((λ_ f).inv ▷ 𝟙 b) ≫ (α_ (𝟙 a) f (𝟙 b)).hom ≫ (λ_ (f ≫ 𝟙 b)).hom)).1,
-  simp_rw [category.assoc, ←left_unitor_naturality, left_unitor_comp, iso.hom_inv_id_assoc,
-    inv_hom_whisker_right, category.comp_id]
-end
-
-lemma right_adjoint_uniq_aux {f : a ⟶ b} {g g' : b ⟶ a} (adj₁ : f ⊣ g) (adj₂ : f ⊣ g') :
-  ((ρ_ g).inv ≫ (g ◁ adj₂.unit) ≫ (α_ g f g').inv ≫ (adj₁.counit ▷ g') ≫ (λ_ g').hom) ≫
-    (ρ_ g').inv ≫ (g' ◁ adj₁.unit) ≫ (α_ g' f g).inv ≫ (adj₂.counit ▷ g) ≫ (λ_ g).hom =
-      𝟙 g :=
-begin
-  apply (cancel_epi (ρ_ g).hom).1,
-  apply (cancel_mono (λ_ g).inv).1,
-  apply (cancel_epi (g ◁ (ρ_ (𝟙 a)).hom)).1,
-  apply (cancel_mono ((λ_ (𝟙 b)).inv ▷ g)).1,
+  apply (cancel_epi (ρ_ g₁).hom).1,
+  apply (cancel_mono (λ_ g₁).inv).1,
+  apply (cancel_epi (g₁ ◁ (ρ_ (𝟙 a)).hom)).1,
+  apply (cancel_mono ((λ_ (𝟙 b)).inv ▷ g₁)).1,
   simp only [iso.hom_inv_id_assoc, category.assoc, category.comp_id],
   calc
-    (g ◁ (ρ_ _).hom) ≫ (g ◁ adj₂.unit) ≫ (α_ g f g').inv ≫ (adj₁.counit ▷ g') ≫ (λ_ g').hom ≫
-      (ρ_ g').inv ≫ (g' ◁ adj₁.unit) ≫ (α_ g' f g).inv ≫ (adj₂.counit ▷ g) ≫ ((λ_ _).inv ▷ g)
+    (g₁ ◁ (ρ_ _).hom) ≫ (g₁ ◁ adj₂.unit) ≫ (α_ g₁ f g₂).inv ≫ (adj₁.counit ▷ g₂) ≫ (λ_ g₂).hom ≫
+      (ρ_ g₂).inv ≫ (g₂ ◁ adj₁.unit) ≫ (α_ g₂ f g₁).inv ≫ (adj₂.counit ▷ g₁) ≫ ((λ_ _).inv ▷ g₁)
     =
-    (α_ _ _ _).inv ≫ ((g ◁ adj₂.unit) ▷ _) ≫ ((α_ g f g').inv ▷ _) ≫
-      ((adj₁.counit ▷ g') ▷ _) ≫ (α_ _ _ _).hom ≫ (_ ◁ (g' ◁ adj₁.unit)) ≫
-        (_ ◁ (α_ g' f g).inv) ≫ (_ ◁ (adj₂.counit ▷ g)) ≫ (α_ _ _ _).inv : _
+    (α_ _ _ _).inv ≫ ((g₁ ◁ adj₂.unit) ▷ _) ≫ ((α_ g₁ f g₂).inv ▷ _) ≫
+      ((adj₁.counit ▷ g₂) ▷ _) ≫ (α_ _ _ _).hom ≫ (_ ◁ (g₂ ◁ adj₁.unit)) ≫
+        (_ ◁ (α_ g₂ f g₁).inv) ≫ (_ ◁ (adj₂.counit ▷ g₁)) ≫ (α_ _ _ _).inv : _
     ... =
-    (g ◁ (ρ_ _).hom) ≫ (g ◁ adj₁.unit) ≫ (g ◁ (((λ_ f).inv ≫ (adj₂.unit ▷ f) ≫ (α_ _ _ _).hom ≫
-      (f ◁ adj₂.counit) ≫ (ρ_ f).hom) ▷ g)) ≫ (α_ _ _ _).inv ≫ (adj₁.counit ▷ g) ≫
-        ((λ_ _).inv ▷ g) : _
-    ... = (g ◁ (ρ_ _).hom) ≫ (ρ_ g).hom ≫ (λ_ g).inv ≫ ((λ_ _).inv ▷ g) : _,
-  { rw ←whisker_left_comp_assoc,
-    rw ←right_unitor_naturality,
-    rw whisker_left_comp_assoc,
-    rw ←whisker_right_comp,
-    rw left_unitor_inv_naturality,
-    rw whisker_right_comp,
+    (g₁ ◁ (ρ_ _).hom) ≫ (g₁ ◁ adj₁.unit) ≫ (g₁ ◁ (((λ_ f).inv ≫ (adj₂.unit ▷ f) ≫ (α_ _ _ _).hom ≫
+      (f ◁ adj₂.counit) ≫ (ρ_ f).hom) ▷ g₁)) ≫ (α_ _ _ _).inv ≫ (adj₁.counit ▷ g₁) ≫
+        ((λ_ _).inv ▷ g₁) : _
+    ... = (g₁ ◁ (ρ_ _).hom) ≫ (ρ_ g₁).hom ≫ (λ_ g₁).inv ≫ ((λ_ _).inv ▷ g₁) : _,
+  { rw [←whisker_left_comp_assoc, ←right_unitor_naturality, whisker_left_comp_assoc,
+      ←whisker_right_comp, left_unitor_inv_naturality, whisker_right_comp],
     simp_rw [right_unitor_comp, whisker_left_comp, left_unitor_comp_inv, whisker_right_comp,
       category.assoc],
-    rw ←associator_inv_naturality_left_assoc,
-    rw whisker_exchange_assoc,
-    rw associator_inv_naturality_right_assoc,
-    rw whisker_exchange_assoc,
-    rw left_unitor_right_unitor_inv_assoc,
-    rw [hom_inv_whisker_right_assoc, hom_inv_whisker_left_assoc],
-    rw ←associator_inv_naturality_right_assoc,
-    rw associator_naturality_left_assoc,
-    rw ←associator_inv_naturality_middle_assoc,
-    rw pentagon_inv_inv_hom_hom_inv_assoc,
-    rw associator_inv_naturality_middle,
-    rw pentagon_inv_inv_hom_inv_inv_assoc },
-  { rw associator_naturality_left_assoc,
-    rw ←associator_inv_naturality_middle_assoc,
-    rw pentagon_inv_inv_hom_hom_inv_assoc,
+    rw [←associator_inv_naturality_left_assoc, whisker_exchange_assoc,
+      associator_inv_naturality_right_assoc, whisker_exchange_assoc,
+      left_unitor_right_unitor_inv_assoc, hom_inv_whisker_right_assoc, hom_inv_whisker_left_assoc,
+      ←associator_inv_naturality_right_assoc, associator_naturality_left_assoc,
+      ←associator_inv_naturality_middle_assoc, pentagon_inv_inv_hom_hom_inv_assoc,
+      associator_inv_naturality_middle, pentagon_inv_inv_hom_inv_inv_assoc] },
+  { rw [associator_naturality_left_assoc, ←associator_inv_naturality_middle_assoc,
+      pentagon_inv_inv_hom_hom_inv_assoc],
     simp_rw [←whisker_exchange_assoc, ←associator_inv_naturality_right_assoc],
-    rw associator_inv_naturality_left,
-    rw ←pentagon_inv_assoc,
-    simp_rw [←whisker_left_comp_assoc g],
-    rw associator_inv_naturality_middle,
-    rw ←associator_naturality_right_assoc,
-    rw pentagon_hom_inv_inv_inv_hom_assoc,
-    rw ←whisker_exchange_assoc,
-    rw associator_inv_naturality_left_assoc,
-    apply (cancel_epi (g ◁ (ρ_ (𝟙 a)).inv)).1,
+    rw [associator_inv_naturality_left, ←pentagon_inv_assoc],
+    simp_rw [←whisker_left_comp_assoc g₁],
+    rw [associator_inv_naturality_middle, ←associator_naturality_right_assoc,
+      pentagon_hom_inv_inv_inv_hom_assoc, ←whisker_exchange_assoc,
+      associator_inv_naturality_left_assoc],
+    apply (cancel_epi (g₁ ◁ (ρ_ (𝟙 a)).inv)).1,
     simp_rw [←whisker_left_comp_assoc, iso.inv_hom_id_assoc, ←unitors_inv_equal,
       ←left_unitor_inv_naturality_assoc, left_unitor_comp_inv_assoc, iso.hom_inv_id_assoc,
       whisker_right_comp, whisker_left_comp_assoc],
@@ -110,10 +87,10 @@ begin
       adjunction.right_triangle_assoc] }
 end
 
-def right_adjoint_uniq {f : a ⟶ b} {g g' : b ⟶ a}
-  (adj₁ : f ⊣ g) (adj₂ : f ⊣ g') : g ≅ g' :=
-{ hom := (ρ_ g).inv ≫ (g ◁ adj₂.unit) ≫ (α_ _ _ _).inv ≫ (adj₁.counit ▷ g') ≫ (λ_ g').hom,
-  inv := (ρ_ g').inv ≫ (g' ◁ adj₁.unit) ≫ (α_ _ _ _).inv ≫ (adj₂.counit ▷ g) ≫ (λ_ g).hom,
+def right_adjoint_uniq {f : a ⟶ b} {g₁ g₂ : b ⟶ a}
+  (adj₁ : f ⊣ g₁) (adj₂ : f ⊣ g₂) : g₁ ≅ g₂ :=
+{ hom := (ρ_ g₁).inv ≫ (g₁ ◁ adj₂.unit) ≫ (α_ g₁ f g₂).inv ≫ (adj₁.counit ▷ g₂) ≫ (λ_ g₂).hom,
+  inv := (ρ_ g₂).inv ≫ (g₂ ◁ adj₁.unit) ≫ (α_ g₂ f g₁).inv ≫ (adj₂.counit ▷ g₁) ≫ (λ_ g₁).hom,
   hom_inv_id' := right_adjoint_uniq_aux adj₁ adj₂,
   inv_hom_id' := right_adjoint_uniq_aux adj₂ adj₁ }
 

@@ -793,6 +793,9 @@ end
 @[simp] theorem out_nonempty_iff_ne_zero {o : ordinal} : nonempty o.out.α ↔ o ≠ 0 :=
 by rw [←not_iff_not, ←not_is_empty_iff, not_not, not_not, out_empty_iff_eq_zero]
 
+instance : is_empty (0 : ordinal).out.α :=
+out_empty_iff_eq_zero.2 rfl
+
 instance : has_one ordinal :=
 ⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
 
@@ -1075,13 +1078,41 @@ instance : is_well_order ordinal (<) := ⟨wf⟩
 
 instance : succ_order ordinal := succ_order.of_succ_le_iff succ (λ _ _, succ_le)
 
+theorem lt_succ {a b : ordinal} : a < succ b ↔ a ≤ b :=
+by rw [← not_le, succ_le, not_lt]
+
 @[simp] lemma typein_le_typein (r : α → α → Prop) [is_well_order α r] {x x' : α} :
   typein r x ≤ typein r x' ↔ ¬r x' x :=
 by rw [←not_lt, typein_lt_typein]
 
+@[simp] lemma typein_le_typein' (o : ordinal) {x x' : o.out.α} :
+  typein (<) x ≤ typein (<) x' ↔ x ≤ x' :=
+by { rw typein_le_typein, exact not_lt }
+
 lemma enum_le_enum (r : α → α → Prop) [is_well_order α r] {o o' : ordinal}
   (ho : o < type r) (ho' : o' < type r) : ¬r (enum r o' ho') (enum r o ho) ↔ o ≤ o' :=
 by rw [←@not_lt _ _ o' o, enum_lt_enum ho']
+
+lemma enum_le_enum' (a : ordinal) {o o' : ordinal} (ho : o < a) (ho' : o' < a) :
+  @enum a.out.α (<) _ o (by rwa type_lt) ≤ @enum a.out.α (<) _ o' (by rwa type_lt) ↔ o ≤ o' :=
+by rw [←enum_le_enum (<), ←not_lt]
+
+theorem enum_zero_le {r : α → α → Prop} [is_well_order α r] (h0 : 0 < type r) (a : α) :
+  ¬ r a (enum r 0 h0) :=
+by { rw [←enum_typein r a, enum_le_enum r], apply ordinal.zero_le }
+
+theorem enum_zero_le' {o : ordinal} (h0 : 0 < o) (a : o.out.α) :
+  @enum o.out.α (<) _ 0 (by rwa type_lt) ≤ a :=
+by { rw ←not_lt, apply enum_zero_le }
+
+theorem le_enum_succ {o : ordinal} (a : o.succ.out.α) :
+  a ≤ @enum o.succ.out.α (<) _ o (by { rw type_lt, exact lt_succ_self o }) :=
+begin
+  rw ←enum_typein (<) a,
+  apply (enum_le_enum' o.succ _ _).2,
+  rw ←lt_succ,
+  all_goals { apply typein_lt_self }
+end
 
 theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
   (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=
@@ -1092,6 +1123,13 @@ theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordi
     { rwa [←@enum_lt_enum α r _ o₁ o₂ h₁ h₂, h] at hlt },
     { change _ < _ at hlt, rwa [←@enum_lt_enum α r _ o₂ o₁ h₂ h₁, h] at hlt }
 end, λ h, by simp_rw h⟩
+
+def out_order_bot_of_pos {o : ordinal} (ho : 0 < o) : order_bot o.out.α :=
+⟨_, enum_zero_le' ho⟩
+
+theorem enum_zero_eq_bot {o : ordinal} (ho : 0 < o) :
+  enum (<) 0 (by rwa type_lt) = by { haveI H := out_order_bot_of_pos ho, exact ⊥ } :=
+rfl
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/

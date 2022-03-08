@@ -622,7 +622,8 @@ sup_le.2 $ le_sum _
 theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ #ι * sup.{u u} f :=
 by rw ← sum_const'; exact sum_le_sum _ _ (le_sup _)
 
-theorem sum_le_sup_lift {ι : Type u} (f : ι → cardinal.{v}) : sum f ≤ (#ι).lift * sup.{u v} f :=
+theorem sum_le_sup_lift {ι : Type u} (f : ι → cardinal.{max u v}) :
+  sum f ≤ (#ι).lift * sup.{u v} f :=
 begin
   rw [←(sup f).lift_id, ←lift_umax, lift_umax.{(max u v) u}, ←sum_const],
   exact sum_le_sum _ _ (le_sup _)

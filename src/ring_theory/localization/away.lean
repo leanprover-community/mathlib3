@@ -154,30 +154,17 @@ is_localization.away.map _ _ f r
 
 open polynomial adjoin_root
 
-/-- The `R`-`alg_hom` from the localization of `R` away from `r` to
-    `R` with an inverse of `r` adjoined. -/
-@[simps]
-noncomputable def away_to_adjoin (r : R) : away r →ₐ[R] adjoin_root (C r * X - 1) :=
-alg_hom.of_comp_eq
-  (away_lift (of (C r * X - 1)) r (is_unit_of_mul_eq_one _ (root _) (root_is_inv r)))
-  (away.away_map.lift_comp _ _)
-
-@[simp] lemma away_to_adjoin_app_inv (r : R) :
-  away_to_adjoin r (is_localization.away.inv_self r) = root _ :=
-begin
-  apply inv_unique _ (root_is_inv r),
-  have : of _ r = away_to_adjoin r (algebra_map R _ r), simp,
-  rw [this, ← _root_.map_mul], simp,
-end
-
 /-- The `R`-`alg_equiv` between the localization of `R` away from `r` and
     `R` with an inverse of `r` adjoined. -/
 noncomputable def away_equiv_adjoin (r : R) : away r ≃ₐ[R] adjoin_root (C r * X - 1) :=
-alg_equiv.of_alg_hom (away_to_adjoin r)
+alg_equiv.of_alg_hom
+  (alg_hom.of_comp_eq
+    (away_lift (of (C r * X - 1)) r (is_unit_of_mul_eq_one _ (root _) (root_is_inv r)))
+    (away.away_map.lift_comp _ _))
   (alg_hom.of_comp_eq
     (adjoin_root.lift (algebra_map R (away r)) (is_localization.away.inv_self r) (by simp))
     (lift_comp_of _))
-  (alg_hom_ext (by simp))
+  (alg_hom_unique _ _)
   (alg_hom.coe_ring_hom_injective (is_localization.ring_hom_ext (submonoid.powers r) (by simp)))
 
 instance adjoin_is_localization (r : R) : is_localization.away r (adjoin_root (C r * X - 1)) :=

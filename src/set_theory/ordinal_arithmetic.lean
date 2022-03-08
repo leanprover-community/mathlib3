@@ -1496,9 +1496,6 @@ by { rw ←range_id, exact enum_ord_range strict_mono_id }
 @[simp] theorem enum_ord_zero : enum_ord S 0 = Inf S :=
 by { rw enum_ord_def, simp [ordinal.not_lt_zero] }
 
-theorem enum_ord_zero_le {a} (ha : a ∈ S) : enum_ord S 0 ≤ a :=
-by { rw enum_ord_zero, exact cInf_le' ha }
-
 theorem enum_ord_succ_le {a b} (hS : unbounded (<) S) (ha : a ∈ S) (hb : enum_ord S b < a) :
   enum_ord S b.succ ≤ a :=
 begin
@@ -1506,13 +1503,22 @@ begin
   exact cInf_le' ⟨ha, λ c hc, ((enum_ord.strict_mono hS).monotone (lt_succ.1 hc)).trans_lt hb⟩
 end
 
-theorem enum_ord.surjective (hS : unbounded (<) S) : ∀ s ∈ S, ∃ a, enum_ord S a = s :=
+theorem enum_ord_le_of_subset {S T : set ordinal} (hS : unbounded (<) S) (hST : S ⊆ T) (a) :
+  enum_ord T a ≤ enum_ord S a :=
+begin
+  apply wf.induction a,
+  intros b H,
+  rw enum_ord_def,
+  exact cInf_le' ⟨hST (enum_ord_mem hS b), λ c h, (H c h).trans_lt (enum_ord.strict_mono hS h)⟩
+end
+
+theorem enum_ord_surjective (hS : unbounded (<) S) : ∀ s ∈ S, ∃ a, enum_ord S a = s :=
 λ s hs, ⟨Sup {a | enum_ord S a ≤ s}, begin
   apply le_antisymm,
   { rw enum_ord_def,
-    apply cInf_le',
-    use hs,intros a ha,
-    rcases exists_lt_of_lt_cSup (by exact ⟨0, enum_ord_zero_le hs⟩) ha with ⟨b, hb, hab⟩,
+    refine cInf_le' ⟨hs, λ a ha, _⟩,
+    have : enum_ord S 0 ≤ s := by { rw enum_ord_zero, exact cInf_le' hs },
+    rcases exists_lt_of_lt_cSup (by exact ⟨0, this⟩) ha with ⟨b, hb, hab⟩,
     exact (enum_ord.strict_mono hS hab).trans_le hb },
   { by_contra' h,
     exact (le_cSup ⟨s, λ a,
@@ -1521,12 +1527,12 @@ theorem enum_ord.surjective (hS : unbounded (<) S) : ∀ s ∈ S, ∃ a, enum_or
 end⟩
 
 /-- An order isomorphism between an unbounded set of ordinals and the ordinals. -/
-def enum_ord.order_iso (hS : unbounded (<) S) : ordinal ≃o S :=
+def enum_ord_order_iso (hS : unbounded (<) S) : ordinal ≃o S :=
 strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) (enum_ord.strict_mono hS)
-  (λ s, let ⟨a, ha⟩ := enum_ord.surjective hS s s.prop in ⟨a, subtype.eq ha⟩)
+  (λ s, let ⟨a, ha⟩ := enum_ord_surjective hS s s.prop in ⟨a, subtype.eq ha⟩)
 
 theorem range_enum_ord (hS : unbounded (<) S) : range (enum_ord S) = S :=
-by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord.surjective hS⟩ }
+by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord_surjective hS⟩ }
 
 /-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
 theorem eq_enum_ord (f : ordinal → ordinal) (hS : unbounded (<) S) :

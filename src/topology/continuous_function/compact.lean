@@ -200,14 +200,6 @@ instance : normed_ring C(α,R) :=
 { norm_mul := λ f g, norm_mul_le (mk_of_compact f) (mk_of_compact g),
   ..(infer_instance : normed_group C(α,R)) }
 
-instance : has_continuous_smul R C(α, R) :=
-⟨begin
-  change continuous ((λ p, p.1 * p.2 : C(α, R) × C(α, R) → C(α, R)) ∘
-    (λ p, ((continuous_map.const p.fst), p.2) : R × C(α, R) → C(α, R) × C(α, R))),
-  have h := @continuous_const' α R _ _,
-  continuity,
-end⟩
-
 end
 
 section

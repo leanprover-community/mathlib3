@@ -33,8 +33,7 @@ open_locale classical topological_space ennreal filter measure_theory
 
 namespace real
 
-/- The integrand function and its properties -/
-
+/-- Integrand for the Gamma function integral -/
 def F (s x : ℝ) : ℝ := exp(-x) * x^s
 
 /- We prove some lemmas about F:
@@ -45,31 +44,19 @@ def F (s x : ℝ) : ℝ := exp(-x) * x^s
 - for any `s ∈ ℝ`, F is `O( exp(-(1/2) * x))` as `x → ∞`.
 -/
 
-lemma cont_F (s : ℝ) (h1: 0 ≤ s) :
-  continuous_on s.F (Ici 0) :=
-begin
-  apply continuous_on.mul,
-  { apply continuous_on.exp,
-    apply continuous_on.neg,
-    apply continuous_on_id },
-  { apply continuous_on.rpow_const,
-    apply continuous_on_id,
-    tauto }
-end
+lemma cont_F (s : ℝ) (h1: 0 ≤ s) : continuous_on s.F (Ici 0) :=
+continuous_on.mul (continuous_on.exp $ continuous_on.neg $ continuous_on_id)
+  $ continuous_on.rpow_const continuous_on_id $ λ _ _, or.inr h1
 
-lemma deriv_F (s x: ℝ) (h1: 1 ≤ s) (h2: 0 ≤ x) : has_deriv_at s.F
+lemma deriv_F (s x: ℝ) (h1: 1 ≤ s) : has_deriv_at s.F
 (- (exp (-x) * x ^ s) + exp (-x) * (s * x ^ (s - 1))) x :=
 begin
   have d1 : has_deriv_at (λ (y: ℝ), exp(-y)) (-exp(-x)) x,
   { simpa using has_deriv_at.exp (has_deriv_at_neg x) },
-  have d2 : has_deriv_at (λ (y: ℝ), y^s) (s*x^(s-1)) x,
-  { apply has_deriv_at_rpow_const,
-    right,
-    exact h1 },
-  simpa using has_deriv_at.mul d1 d2
+  simpa using has_deriv_at.mul d1 (has_deriv_at_rpow_const (or.inr h1)),
 end
 
-lemma dF_interval_integrable (s X: ℝ) (hs: 1 ≤ s) (hX: 0 ≤ X):
+lemma dF_interval_integrable (s X: ℝ) (hs: 1 ≤ s):
 interval_integrable (λ (x : ℝ),  -(exp (-x) * x ^ s) + exp (-x) * (s * x ^ (s - 1)))
   measure_theory.measure_space.volume 0 X :=
 begin
@@ -80,38 +67,29 @@ begin
     apply continuous_on.neg,
     apply continuous_on_id },
 
-  -- This is an awful mess,
-  -- proving continuity of a function
-  -- built up as a sum of many terms.
+  -- This is a bit of a mess, proving continuity of a function built up as a sum of many terms.
   apply continuous_on.add,
-  apply continuous_on.neg,
-  apply continuous_on.mul,
-  exact c,
-  apply continuous_on.rpow_const,
-  apply continuous_at.continuous_on,
-  intros x hxX,
-  apply continuous_at_id,
-  intros x hxX,
-  right, linarith,
-
+  { apply continuous_on.neg,
+    apply continuous_on.mul c,
+    apply continuous_on.rpow_const,
+    { apply continuous_at.continuous_on,
+      intros x hxX,
+      apply continuous_at_id },
+    { intros x hxX,
+      right,
+      exact le_trans(zero_le_one)(hs) } },
   -- halfway...
-  apply continuous_on.mul,
-  exact c,
-  apply continuous_on.mul,
-  { apply continuous.continuous_on,
-  apply continuous_const },
-  apply continuous_on.rpow_const,
-  apply continuous_at.continuous_on,
-  intros x hxX,
-  apply continuous_at_id,
-  intros x hxX,
-  right, linarith,
+  { apply continuous_on.mul c,
+    refine continuous_on.mul (continuous.continuous_on continuous_const)
+      (continuous_on.rpow_const (continuous_at.continuous_on _) _),
+    { intros x hxX,
+      apply continuous_at_id },
+    { intros x hxX,
+      right,
+      exact sub_nonneg.mpr hs } },
 end
 
-
-
 /- A long and fiddly argument to show that F decays exponentially at +∞ -/
-
 
 /- The next three lemmas should really be in exp.lean or somewhere like that -/
 lemma tendsto_exp_div_rpow_at_top (s : ℝ) : tendsto (λ x : ℝ, exp x / x ^ s ) at_top at_top :=
@@ -133,30 +111,18 @@ begin
     ring_nf,
     rw mul_eq_mul_right_iff,
     left,
-    rw [sub_eq_neg_add,rpow_add_nat, mul_assoc],
-    have : x^n * (x^n)⁻¹ = 1,
-    apply mul_inv_cancel,
-    apply pow_ne_zero,
-    exact h.ne',
-    rw [this, mul_one],
+    rw [sub_eq_neg_add,rpow_add_nat h.ne', mul_assoc],
+    rw [mul_inv_cancel (pow_ne_zero _ h.ne'), mul_one],
     apply rpow_neg,
-    exact le_of_lt(h),
-    exact h.ne' },
+    exact le_of_lt(h) },
 
   have Icieq: eq_on f1 f2 (Ici 1),
   { intros x hx,
     rw [set.Ici, mem_set_of_eq] at hx,
-    have b: 0 < x := by linarith,
-    exact (this x b) },
+    exact (this x (by linarith)) },
 
-  have eveq : eventually_eq at_top f1 f2,
-  { rw eventually_eq_iff_exists_mem,
-    use (Ici 1),
-    split,
-    apply mem_at_top,
-    exact Icieq },
-  apply tendsto.congr' eveq,
-  exact t,
+  refine tendsto.congr' _ t,
+  exact eventually_eq_iff_exists_mem.2 ⟨ Ici 1, mem_at_top _, Icieq⟩,
 end
 
 /- This one too -- a more general version allowing exp(-bx) for any b > 0 -/
@@ -186,11 +152,7 @@ begin
     { apply le_of_lt,
       apply rpow_pos_of_pos hx },
 
-    have : exp x ^ b = exp (b * x),
-    { calc exp x ^ b = exp(log (exp x ^ b ) ) : by { rw exp_log, apply rpow_pos_of_pos (exp_pos x) }
-      ...            = exp( b * log (exp x) ) : by rw log_rpow (exp_pos x)
-      ...            = exp( b * x )           : by rw log_exp },
-    rw this,
+    rw [←(exp_mul x b), mul_comm x b],
     rw div_eq_div_iff,
     show x^s ≠ 0,
     { symmetry, apply ne_of_lt,
@@ -274,8 +236,8 @@ begin
   exact (tendsto_exp_mul_div_rpow_at_top s (1/2))(one_half_pos) -- hooray!
 end
 
-lemma loc_unif_bound_F (s : ℝ) (h: 0 < s) (t: ℝ) (ht: t ∈ set.Icc 0 s )
-  (x:ℝ) (hx: x ∈ set.Ioi (0:ℝ)): F t x ≤  F s x + F 0 x:=
+lemma loc_unif_bound_F (s t x : ℝ) (ht : t ∈ set.Icc 0 s ) (hx : x ∈ set.Ioi (0:ℝ)) :
+  F t x ≤  F s x + F 0 x :=
 begin
   rw [set.Ioi,mem_set_of_eq] at hx,
   rw [set.Icc,mem_set_of_eq] at ht,
@@ -312,11 +274,10 @@ begin
 end
 
 
-/- The lower incomplete Γ function. This is an object of independent interest, so we
-prove the recurrence in terms of incomplete Γ and deduce it for the genuine Γ later. -/
-
+/-- The (lower) incomplete Γ function, Γ(s, X) = ∫ x ∈ 0..X, exp(-x) x^(s-1). -/
 def real_incomplete_gamma (s X : ℝ) : ℝ := ∫ x in 0..X, exp(-x) * x^(s-1)
 
+/-- Recurrence relation for the incomplete Γ function. -/
 lemma gamma_FE_incomp (s X : ℝ) (h: 1 ≤ s) (h2: 0 ≤ X):
   real_incomplete_gamma (s+1) X = s * real_incomplete_gamma s X - X^s * exp(-X) :=
 begin
@@ -326,13 +287,9 @@ begin
   have F_der_I: (∀ (x:ℝ), (x ∈ interval 0 X) →
     has_deriv_at s.F (- (exp (-x) * x ^ s) + exp (-x) * (s * x ^ (s - 1))) x),
   { intros x hx,
-    cases hx,
-    rw min_def at hx_left,
-    split_ifs at hx_left,
-    exact deriv_F s x h hx_left,
-    tauto },
+    exact deriv_F s x h },
 
-  have int_eval := integral_eq_sub_of_has_deriv_at F_der_I (dF_interval_integrable s X h h2),
+  have int_eval := integral_eq_sub_of_has_deriv_at F_der_I (dF_interval_integrable s X h),
 
   have : (F s 0) = 0,
   { rw F, rw zero_rpow, ring, apply ne_of_gt,
@@ -395,6 +352,9 @@ begin
   exact asymp_F (s-1)
 end
 
+/-- The Γ function, defined by the integral ∫ x = 0..∞, exp(-x) * x^(s-1).
+
+This definition is valid for s > 0, but we only prove convergence of the integral for s ≥ 1. -/
 def real_gamma (s: ℝ) : ℝ :=  ∫ x in (Ioi 0), exp(-x) * x^(s-1)
 
 lemma tendsto_incomplete_gamma (s : ℝ) (h: 1 ≤ s):
@@ -529,11 +489,11 @@ begin
       exact hx },
     rw this,
     have: exp(-x) * x^(t-1) ≤ F s x + F 0 x,
-    { apply loc_unif_bound_F s _ (t-1),
-      rw [set.Icc,mem_set_of_eq],
+    { apply loc_unif_bound_F s (t-1) x,
+      { rw [set.Icc,mem_set_of_eq],
       split,
-      linarith,linarith,
-      tauto,linarith },
+      linarith, linarith,},
+      tauto, },
     exact this },
 
   -- The upper bound is integrable

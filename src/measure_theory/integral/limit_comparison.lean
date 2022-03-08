@@ -56,7 +56,7 @@ begin
 end
 
 /-- Integral of exp(-b x) over (a, X) is bounded as X → ∞ -/
-lemma exp_neg_integral_bound {a b : ℝ} (X : ℝ) (h: a ≤ X) (h2 : 0 < b):
+lemma exp_neg_integral_bound {b : ℝ} (a X : ℝ) (h2 : 0 < b):
   (∫ x in a .. X, exp (-b * x)) ≤ exp(-b*a)/b :=
 begin
   rw (integral_deriv_eq_sub' (λ x:ℝ, -exp(-b*x)/b ) ),
@@ -82,7 +82,7 @@ end
 
 /-- exp(-b x) is integrable on (a, ∞) -/
 lemma exp_neg_integrable_Ioi (a : ℝ) {b : ℝ} (h : 0 < b):
-  integrable_on (λ x : ℝ, exp(-b*x)) (Ioi a) :=
+  integrable_on (λ x : ℝ, exp(-b * x)) (Ioi a) :=
 begin
   apply (integrable_on_Ioi_of_interval_integral_norm_bounded
     (exp (-b*a)/b) a (exp_neg_finite_integrable b a) tendsto_id),
@@ -94,7 +94,6 @@ begin
     exact (exp_pos (-b*x)).le },
   rw this,
   apply exp_neg_integral_bound,
-  exact hb2,
   exact h
 end
 

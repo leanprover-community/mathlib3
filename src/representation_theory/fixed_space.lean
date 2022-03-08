@@ -82,7 +82,7 @@ lemma mem_fixed_space (v : V) : v ∈ (fixed_space k G V) ↔ ∀ (g: G), g • 
 
 lemma fixed_space_inter :
   (fixed_space k G V).carrier = ⋂ g : G, function.fixed_points (has_scalar.smul g) :=
-  by {ext, simp [function.is_fixed_pt]}
+by { ext, simp [function.is_fixed_pt] }
 
 variables [fintype G] [invertible (fintype.card G : k)]
 

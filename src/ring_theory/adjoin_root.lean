@@ -204,10 +204,10 @@ section adjoin_inv
 @[simp] lemma root_is_inv (r : R) : of _ r * root (C r * X - 1) = 1 :=
 by { have := eval₂_root (C r * X - 1), revert this, simp [eval₂_sub, ← sub_eq_zero] }
 
-@[ext] lemma alg_hom_unique {S : Type*} [comm_ring S] [algebra R S] {r : R}
-  (f g : adjoin_root (C r * X - 1) →ₐ[R] S) : f = g :=
-alg_hom_ext (@inv_unique _ _ (algebra_map R S r) (f (root _)) _
-  (by simp [← f.commutes, ← f.map_mul]) (by simp [← g.commutes, ← g.map_mul]))
+instance {S : Type*} [comm_ring S] [algebra R S] {r : R} :
+  subsingleton (adjoin_root (C r * X - 1) →ₐ[R] S) :=
+⟨λ f g, alg_hom_ext (@inv_unique _ _ (algebra_map R S r) (f (root _)) _
+  (by simp [← f.commutes, ← f.map_mul]) (by simp [← g.commutes, ← g.map_mul]))⟩
 
 end adjoin_inv
 

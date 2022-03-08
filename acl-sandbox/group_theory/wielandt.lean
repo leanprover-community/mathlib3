@@ -22,7 +22,7 @@ import algebra.big_operators.order
 
 open_locale big_operators pointwise
 
-/-
+/-!
 # Finite permutation groups
 A formalization of Wielandt's book, *Finite permutation groups*
 
@@ -32,7 +32,8 @@ section Maximal_Subgroups
 variables {G : Type*} [group G]
 
 namespace subgroup
-/-- An subgroup is maximal if it is maximal in the collection of proper subgroups. -/
+
+/-- A subgroup is maximal if it is maximal in the collection of proper subgroups. -/
 class is_maximal (K : subgroup G) : Prop :=
 (out : is_coatom K)
 
@@ -54,11 +55,11 @@ begin
   split, split, assumption,
   introsI H hKH,
   obtain ⟨ g, hgH, hgK ⟩ := (set.exists_of_ssubset hKH),
-  exact hmax H g (le_of_lt hKH) hgK hgH, },
+  exact hmax H g (le_of_lt hKH) hgK hgH },
 end
 
-theorem is_maximal.eq_of_le {K H: subgroup G}
-  (hK : K.is_maximal) (hH : H ≠ ⊤) (KH : K ≤ H) : K = H :=
+theorem is_maximal.eq_of_le {K H: subgroup G} (hK : K.is_maximal) (hH : H ≠ ⊤) (KH : K ≤ H) :
+  K = H :=
 eq_iff_le_not_lt.2 ⟨KH, λ h, hH (hK.1.2 _ h)⟩
 
 end subgroup
@@ -97,7 +98,7 @@ begin
     exact set.univ,
     apply function.injective.inj_on ,
     apply mul_action.injective,
-    repeat { simp only [set.subset_univ], }
+    repeat { simp only [set.subset_univ] }
 end
 
 lemma is_block_def' {B : set X} (hB : is_block G X B) (a : X) (g : G):
@@ -105,7 +106,7 @@ lemma is_block_def' {B : set X} (hB : is_block G X B) (a : X) (g : G):
 begin
   intros ha hga,
   cases hB g⁻¹ with h h',
-  { rw [smul_eq_iff_eq_inv_smul, h], },
+  { rw [smul_eq_iff_eq_inv_smul, h] },
   exfalso, rw ← set.mem_empty_eq a,
   rw [disjoint_iff, set.inf_eq_inter, set.bot_eq_empty] at h',
   rw [← h', set.mem_inter_eq],
@@ -174,7 +175,7 @@ begin
   { intros x hx,
     rw mem_smul_set_iff_inv_smul_mem,
     apply hfB g⁻¹,
-    exact smul_mem_smul_set_iff.mpr hx, },
+    exact smul_mem_smul_set_iff.mpr hx },
 end
 
 /-- A fixed block is a block -/
@@ -232,7 +233,7 @@ lemma is_block.inter {B₁ B₂ : set X} (h₁ : is_block G X B₁) (h₂ : is_b
   is_block G X (B₁ ∩ B₂) :=
 begin
   intro g,
-  rw ← set.smul_inter,
+  rw set.smul_set_inter,
   cases h₁ g with h₁ h₁, -- em (disjoint (g • B₁) B₁) with h h,
   { cases h₂ g with h₂ h₂,
     { apply or.intro_left, rw [h₁, h₂] },
@@ -255,7 +256,7 @@ begin
     simp only [set.top_eq_univ, set.Inter_eq_univ],
     intro i, exfalso, apply hι.false, exact i },
 
-  intro g, rw ← set.smul_Inter (not_is_empty_iff.mp hι),
+  intro g, rw set.smul_set_Inter,
   cases em (∃ (i : ι), disjoint (g • (B i)) (B i)) with h h,
   { obtain ⟨j,hj⟩ := h,
     apply or.intro_right,
@@ -384,15 +385,15 @@ begin
 -- To get the correct type automatically and perform the rewrite
     suffices : ∀ {u v : finset α}, v ∈ c → u = v → u ∈ c,
     { refine this hz _,
-      rw [← finset.coe_inj, set.coe_to_finset], },
-    { intros u v hu huv, rw huv, exact hu, },
+      rw [← finset.coe_inj, set.coe_to_finset] },
+    { intros u v hu huv, rw huv, exact hu },
   },
   use s.to_finset,
   ext t,
   simp only [finset.mem_filter, finset.mem_singleton],
   split,
   { rintro ⟨ht,ha⟩,
-    exact hs'2 t ht ha, },
+    exact hs'2 t ht ha },
   { intro ht,
     rw ← ht at hs, apply and.intro hs.left,
     rw ht, simp only [set.mem_to_finset],  exact hs.right,}
@@ -413,12 +414,12 @@ have hi : ∀ (a : set α) (ha : a ∈ c.to_finset), a.to_finset ∈ c',
   simpa only [set.mem_to_finset] using ha,  },
 have hj : ∀ (a : finset α) (ha : a ∈ c'), (a : set α) ∈ c.to_finset,
 { intros a ha,
-  simpa only [set.mem_to_finset] using ha, },
+  simpa only [set.mem_to_finset] using ha },
 rw finset.sum_bij' _ hi _ _ hj,
 { intros a ha, simp only [set.coe_to_finset],  },
 { intros a ha,
-  rw [← finset.coe_inj, set.coe_to_finset], },
-{ intros a ha, refl, },
+  rw [← finset.coe_inj, set.coe_to_finset] },
+{ intros a ha, refl },
 end
 
 end partition
@@ -439,11 +440,11 @@ begin
     let fz := finset.card_image_of_injective B.to_finset (mul_action.injective g),
     simp only [set.to_finset_card, finset.filter_congr_decidable] at fz,
     rw ← fz, refine congr rfl _, rw ← finset.coe_inj,
-    simp only [set.finite.coe_to_finset, finset.coe_image, set.coe_to_finset, set.image_smul], },
+    simp only [set.finite.coe_to_finset, finset.coe_image, set.coe_to_finset, set.image_smul] },
   have hoB : (set.finite.of_fintype (orbit G B)).to_finset
     = (set.range (λ (g : G), g • B)).to_finset,
   { rw ← finset.coe_inj, simp only [set.finite.coe_to_finset, set.coe_to_finset],
-    refl, },
+    refl },
 
   suffices : ∀ (s : set X) (hs :  s ∈ (set.range (λ (g : G), g • B)).to_finset),
     s.to_finset.card  = fintype.card ↥B,
@@ -494,7 +495,7 @@ lemma orbit.is_pretransitive' (a : X) (ha : mul_action.orbit G a = ⊤) : is_pre
 begin
   apply is_pretransitive.mk,
   have : ∀ (x : X), ∃ (g : G), g • a = x,
-  { intro x, rw [← mul_action.mem_orbit_iff, ha, set.top_eq_univ], apply set.mem_univ, },
+  { intro x, rw [← mul_action.mem_orbit_iff, ha, set.top_eq_univ], apply set.mem_univ },
   intros x y,
   obtain ⟨g, hx⟩ := this x,
   obtain ⟨h, hy⟩ := this y,
@@ -518,7 +519,7 @@ begin
       rw ← set_like.coe_mk (g * h * g⁻¹) this,
       refine mul_action.mem_orbit (g • a) (⟨g * h * g⁻¹, this⟩ : N),
     apply nN.conj_mem, apply set_like.coe_mem,
-    rw [smul_smul, inv_mul_cancel_right, ← smul_smul], refl, },
+    rw [smul_smul, inv_mul_cancel_right, ← smul_smul], refl },
   rintros ⟨n, hn : n • g • a = x⟩,
   use (g⁻¹ * n * g) • a,
   split,
@@ -526,7 +527,7 @@ begin
     have this := nN.conj_mem n _ g⁻¹,
     rw inv_inv g at this, exact this,
     apply set_like.coe_mem,
-    refl, },
+    refl },
   rw [← hn, smul_smul, ← mul_assoc, ← mul_assoc, mul_right_inv, one_mul,
     ← smul_smul], refl,
 end
@@ -562,7 +563,7 @@ begin
     cases hGX.has_trivial_blocks (orbit.is_block_of_normal G X N a) with h h,
     { exfalso, -- orbit N a = ∅
       apply set.nonempty.ne_empty (mul_action.orbit_nonempty a),
-      rw ← h, },
+      rw ← h },
     cases h with h h,
     { exfalso, -- orbit N a = {x}
       have ha' : orbit N a = {a},
@@ -618,7 +619,7 @@ begin
       rw [← smul_smul, mem_smul_set_iff_inv_smul_mem],
       apply hB'₀, -- (g⁻¹ • a) (),
       exact hk, exact mem_smul_set_iff_inv_smul_mem.mp hg, exact hx },
-    simp only [smul_inv_smul], },
+    simp only [smul_inv_smul] },
 
   have hag' : ∀ (g : G), a ∈ g • B' → B' = g • B',
   { intros g hg,
@@ -646,7 +647,7 @@ begin
   obtain ⟨k : G, hk : k • a = b⟩ := hGX_exists a b,
 
   have hak : a ∈ k⁻¹ • B',
-  { use b, apply and.intro hb, rw [← hk, inv_smul_smul], },
+  { use b, apply and.intro hb, rw [← hk, inv_smul_smul] },
 
   have hagk : a ∈ (k⁻¹ * g) • B',
   { rw [mul_smul, mem_smul_set_iff_inv_smul_mem, inv_inv, hk],
@@ -672,7 +673,7 @@ begin
   },
   suffices : B = {a},
   { rw this, rw set.mem_singleton_iff,
-    exact ne.symm h, },
+    exact ne.symm h },
   have ha : a ∈ B,
   { rw set.mem_Inter, intro g, simp only [set.mem_Inter, imp_self] },
   cases hpGX.has_trivial_blocks hB with hyp hyp,
@@ -687,7 +688,7 @@ begin
   { obtain ⟨g, hg⟩ := this,
     have : B ≤ g • A,
     { rw set.le_eq_subset,
-      exact set.bInter_subset_of_mem hg, },
+      exact set.bInter_subset_of_mem hg },
       rw [hyp, top_le_iff] at this,
       rw eq_top_iff, intros x hx,
       suffices : g • x ∈ g • A,
@@ -718,7 +719,7 @@ begin
   intro hb',
   suffices : g ∈ H,
   { rw [← subgroup.coe_mk H g this,  ← subgroup.smul_def],
-    apply smul_orbit_subset, },
+    apply smul_orbit_subset },
   rw [mem_smul_set_iff_inv_smul_mem, subgroup.smul_def, ← mul_action.mul_smul] at hb',
   obtain ⟨k : ↥H, hk⟩ := hb',
   simp only at hk,
@@ -843,7 +844,7 @@ begin
         apply or.intro_right,
         have : stabilizer G (k • B) = ⊤,
         { rw subgroup.is_maximal_def at ha,
-          apply ha.2, exact h, },
+          apply ha.2, exact h },
         rw eq_top_iff,
         intros b _,
         suffices : k • b ∈ k • B, exact smul_mem_smul_set_iff.mp this,
@@ -854,7 +855,7 @@ begin
           rw mem_stabilizer_iff at hg, rw ← hg,
           simp only [smul_mem_smul_set_iff],  exact hx,
           rw this, simp only [subgroup.mem_top],},
-        have Hb : b ∈ k • B, { rw ← h', exact H h a hk, },
+        have Hb : b ∈ k • B, { rw ← h', exact H h a hk },
         exact H k b Hb },
       -- k • B = {a}
       have : {a} = k • B,
@@ -877,8 +878,8 @@ begin
   { obtain ⟨b, hb⟩ := (nontrivial_iff_exists_ne a).mp hnX,
     obtain ⟨g, rfl⟩ := htGX_exists a b,
     suffices : g ∉ stabilizer G a,
-    { intro h, apply this, rw h, exact subgroup.mem_top g, },
-    rw mem_stabilizer_iff, exact hb, },
+    { intro h, apply this, rw h, exact subgroup.mem_top g },
+    rw mem_stabilizer_iff, exact hb },
   { intros H hH,
     rw ← stabilizer_of_block_of_stabilizer G X (le_of_lt hH),
     suffices : orbit H a = (⊤ : set X),
@@ -895,7 +896,7 @@ begin
       { rw this at h,
         intros g hg, rw mem_stabilizer_iff,
         rw [← set.mem_singleton_iff, ← h],
-        use ⟨g, hg⟩, refl, },
+        use ⟨g, hg⟩, refl },
       apply symm,
       rw [← set.mem_singleton_iff, ← h],
       exact mul_action.mem_orbit_self a },
@@ -930,7 +931,7 @@ theorem is_primitive_of_subgroup [hfX : fintype X] (htGX : is_pretransitive G X)
       sorry,
       sorry,
     },
-    { sorry, }
+    { sorry }
   end
 
 lemma test (m n : ℕ) (hm : 2 * m > n) (hn : n > 0) (hmn : m ∣ n) : m  = n :=
@@ -938,15 +939,15 @@ begin
   let hkm := nat.div_mul_cancel hmn,
   rw ← nat.div_mul_cancel hmn at hm,
  --  suffices : n/m = 1,
- --  { rw this at hk, simpa only [one_mul] using hk, },
+ --  { rw this at hk, simpa only [one_mul] using hk },
   --  rw mul_le_mul_iff_left at hm,
   cases nat.eq_zero_or_pos (n/m) with hk hk,
   { exfalso,
     rw [hk, zero_mul] at hkm,
     apply gt_irrefl n,
-    rw hkm at hn, exact hn, },
+    rw hkm at hn, exact hn },
   cases nat.eq_or_lt_of_le hk with hk hk,
-  { rw [← hkm, ← hk, one_mul], },
+  { rw [← hkm, ← hk, one_mul] },
   exfalso,
   apply not_lt.mpr (nat.succ_le_iff.mpr hk),
   exact lt_of_mul_lt_mul_right' hm,

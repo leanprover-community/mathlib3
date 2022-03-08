@@ -93,10 +93,12 @@ lemma noncomm_pi_coprod_mul_single (i : ι) (y : N i):
   noncomm_pi_coprod ϕ hcomm (pi.mul_single i y) = ϕ i y :=
 begin
   change finset.univ.noncomm_prod (λ j, ϕ j (pi.mul_single i y j)) _ = ϕ i y,
-  have h : finset.univ = insert i (finset.univ.erase i) :=
-     (finset.insert_erase (finset.mem_univ i)).symm,
-  rw finset.noncomm_prod_congr h,
-  rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ (finset.not_mem_erase i finset.univ),
+  obtain ⟨s, h⟩ : ∃ (s : finset ι), finset.univ = insert i (s.erase i) := ⟨_,
+     (finset.insert_erase (finset.mem_univ i)).symm⟩,
+  -- NB: need simp_rw, not rw, because of the dependent argument
+  -- NB: but then need to hide the finset.univ on the RHS of h, else simp_rw does not work
+  simp_rw h,
+  rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ (finset.not_mem_erase i _),
   rw pi.mul_single_eq_same,
   rw finset.noncomm_prod_eq_one_of_forall_eq_one,
   { exact mul_one _, },

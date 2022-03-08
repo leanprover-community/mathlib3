@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies
+Authors: Yaël Dillies, Jakub Kądziołka
 -/
 import order.bounded_order
 import order.complete_lattice
@@ -57,7 +57,7 @@ open function
 
 /-! ### Successor order -/
 
-variables {α : Type*}
+variables {α β : Type*}
 
 /-- Order equipped with a sensible successor function. -/
 @[ext] class succ_order (α : Type*) [preorder α] :=
@@ -119,6 +119,17 @@ lemma lt_succ_iff_of_not_is_max {a b : α} (ha : ¬ is_max a) : b < succ_order.s
 
 lemma succ_le_iff_of_not_is_max {a b : α} (ha : ¬ is_max a) : succ a ≤ b ↔ a < b :=
 ⟨(lt_succ_of_not_is_max ha).trans_le, succ_le_of_lt⟩
+
+/-- A limited form for `strict_mono succ` for orders with maximal elements. -/
+lemma succ_lt_succ_of_not_is_max {a b : α} (h₀ : ¬ is_max b) (h₁ : a < b) : succ a < succ b :=
+begin
+  apply (succ_le_succ (le_of_lt h₁)).lt_of_not_le,
+  assume (h : succ b ≤ succ a),
+  rw succ_le_iff_of_not_is_max h₀ at h,
+  have : b ≤ a := le_of_lt_succ h,
+  have : ¬ b ≤ a := not_le_of_lt h₁,
+  tauto,
+end
 
 section no_max_order
 variables [no_max_order α] {a b : α}
@@ -960,6 +971,41 @@ lemma pred.rec_linear {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) (a b
 
 end pred_order
 end linear_order
+
+/-- A strictly monotonous function from `no_max_order` to `is_succ_archimedean` is unbounded. -/
+lemma unbounded_of_strict_mono
+  [preorder α] [preorder β]
+  [no_max_order α] [inhabited α]
+  [succ_order β] [is_succ_archimedean β]
+  (f : α → β) (Hmono : strict_mono f) :
+  set.unbounded (≤) (set.range f) :=
+begin
+  by_contra',
+  have bounded : set.bounded (≤) (set.range f) := by rwa set.not_unbounded_iff at this,
+  obtain ⟨m, Hm⟩ : ∃ m, ∀ v ∈ set.range f, v ≤ m := bounded,
+  have Hm' : ∀ a, f a ≤ m := λ a, Hm (f a) (set.mem_range_self _),
+  let v₀ := f default,
+  have next_arg : ∀ a, ∃ a', f a < f a',
+  { intro a,
+    obtain ⟨a', Ha'⟩ : ∃ a', a < a' := exists_gt a,
+    use a', show f a < f a', from Hmono Ha' },
+  have succ_mem_range : ∀ b, v₀ ≤ b → ∃ a, b < f a,
+  { apply succ.rec,
+    { exact next_arg default },
+    { assume (b : β) (h : v₀ ≤ b) (IH : ∃ a, b < f a),
+      obtain ⟨a, Ha⟩ := IH,
+      obtain ⟨a', Ha'⟩ : ∃ a', f a < f a' := next_arg a,
+      have Hsucc_le : succ (f a) ≤ f a' := succ_le_of_lt Ha',
+      have not_max : ¬ is_max (f a),
+      { rw not_is_max_iff, use (f a'), assumption },
+      use a',
+      calc succ b < succ (f a) : succ_lt_succ_of_not_is_max not_max Ha
+      ...         ≤ f a'       : Hsucc_le } },
+  obtain ⟨a, Ha⟩ : ∃ a, m < f a := succ_mem_range m (Hm' default),
+  have : f a ≤ m := Hm' a,
+  have : ¬ f a ≤ m := not_le_of_lt Ha,
+  tauto
+end
 
 section order_bot
 variables [preorder α] [order_bot α] [succ_order α] [is_succ_archimedean α]

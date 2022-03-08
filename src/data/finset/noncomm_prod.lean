@@ -196,7 +196,7 @@ lemma noncomm_prod_congr
   (comm : ∀ (x ∈ s₁) (y ∈ s₁), commute (f x) (f y)) :
   noncomm_prod s₁ f comm = noncomm_prod s₂ g
     (λ x hx y hy, h₂ x hx ▸ h₂ y hy ▸ comm x (h₁.symm ▸ hx) y (h₁.symm ▸ hy)) :=
-multiset.noncomm_prod_congr (multiset.map_congr (congr_arg _ h₁) h₂) _,
+by simp_rw [noncomm_prod, multiset.map_congr (congr_arg _ h₁) h₂]
 
 /-- A helper for rewriting the dependent `finset` argument together with the commutativity proof -/
 @[to_additive "A helper for rewriting the dependent `finset` argument together with the

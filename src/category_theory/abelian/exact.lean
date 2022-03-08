@@ -202,15 +202,15 @@ begin
     category.assoc, kernel_comp_cokernel_assoc, zero_comp, comp_zero, unop_zero],
 end
 
-lemma exact.op_iff : exact f g ↔ exact g.op f.op :=
-⟨λ e, @@exact.op _ _ _ _ e, λ e, begin
+lemma exact.op_iff : exact g.op f.op ↔ exact f g :=
+⟨λ e, begin
   rw exact_iff at e ⊢,
   refine ⟨by convert (congr_arg quiver.hom.unop e.1), _⟩,
   have e3 := ((cokernel_op_unop g).inv ≫= congr_arg quiver.hom.unop e.2) =≫ (kernel_op_unop f).hom,
   simp only [← category.assoc, iso.inv_hom_id, unop_comp, cokernel.π_op, kernel.ι_op,
     category.id_comp, eq_to_hom_refl, category.comp_id, unop_zero, comp_zero, zero_comp] at e3,
   simpa only [category.assoc, iso.inv_hom_id, category.comp_id] using e3,
-end⟩
+end, λ e, @@exact.op _ _ _ _ e⟩
 
 
 instance exact.unop {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) [exact g f] : exact f.unop g.unop :=

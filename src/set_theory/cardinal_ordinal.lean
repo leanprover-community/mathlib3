@@ -610,6 +610,16 @@ calc  #(list α)
 ... ≤ sum (λ n : ℕ, #α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
 ... = #α : by simp [H1]
 
+theorem mk_list_le_max (α : Type u) : #(list α) ≤ max ω (#α) :=
+begin
+  cases le_or_lt ω (#α),
+  { haveI := infinite_iff.2 h,
+    rw mk_list_eq_mk α,
+    apply le_max_right },
+  { casesI encodable_iff.2 h.le,
+    exact mk_le_omega.trans (le_max_left _ _) }
+end
+
 theorem mk_finset_eq_mk (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
 calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective

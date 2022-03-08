@@ -26,31 +26,6 @@ variables {α : Type*} (M : α → Type*) (u : ultrafilter α)
 
 open_locale first_order filter
 
-namespace filter
-
-variables (l : filter α) (β : α → Type*)
-
-/-- Setoid used to define the ultraproduct. This is a dependent version of
-  `filter.germ_setoid`. -/
-def ultraproduct_setoid : setoid (Π a, β a) :=
-{ r := λ f g, ∀ᶠ a in l, f a = g a,
-  iseqv := ⟨λ _, eventually_of_forall (λ _, rfl),
-    λ _ _ h, h.mono (λ _, eq.symm),
-    λ x y z h1 h2, h1.congr (h2.mono (λ x hx, hx ▸ iff.rfl))⟩ }
-
-/-- The ultraproduct `Π (a : α), β a` at a filter `l`. This is a dependent version of
-  `filter.germ`. -/
-def ultraproduct : Type* := quotient (ultraproduct_setoid l β)
-
-variables {l} {β}
-
-instance : has_coe_t (Π a, β a) (ultraproduct l β) := ⟨quotient.mk'⟩
-
-instance [Π a, inhabited (β a)] : inhabited (ultraproduct l β) :=
-⟨(↑(λ a, (default : β a)) : ultraproduct l β)⟩
-
-end filter
-
 open filter
 
 namespace first_order
@@ -62,7 +37,7 @@ variables {L : language.{u v}} [Π a, L.Structure (M a)]
 
 namespace ultraproduct
 
-instance setoid_prestructure : L.prestructure (ultraproduct_setoid ↑u M) :=
+instance setoid_prestructure : L.prestructure ((u : filter α).product_setoid M) :=
 { to_structure := { fun_map := λ n f x a, fun_map f (λ i, x i a),
              rel_map := λ n r x, ∀ᶠ (a : α) in ↑u, rel_map r (λ i, x i a) },
   fun_equiv := λ n f x y xy, begin
@@ -85,20 +60,20 @@ instance setoid_prestructure : L.prestructure (ultraproduct_setoid ↑u M) :=
       rw funext ha2,
       exact ha1 },
   end,
-  .. ultraproduct_setoid ↑u M }
+  .. (u : filter α).product_setoid M }
 
 variables {M} {u}
 
-instance Structure : L.Structure (ultraproduct ↑u M) := language.quotient_structure
+instance Structure : L.Structure ((u : filter α).product M) := language.quotient_structure
 
 lemma fun_map_cast {n : ℕ} (f : L.functions n) (x : fin n → (Π a, M a)) :
-  fun_map f (λ i, ((x i) : ultraproduct ↑u M)) = λ a, fun_map f (λ i, x i a) :=
+  fun_map f (λ i, ((x i) : (u : filter α).product M)) = λ a, fun_map f (λ i, x i a) :=
 by apply fun_map_quotient_mk
 
 lemma term_realize_cast {β : Type*} (x : β → (Π a, M a)) (t : L.term β) :
-  t.realize (λ i, ((x i) : ultraproduct ↑u M)) = λ a, t.realize (λ i, x i a) :=
+  t.realize (λ i, ((x i) : (u : filter α).product M)) = λ a, t.realize (λ i, x i a) :=
 begin
-  convert @term.realize_quotient_mk L _  (ultraproduct_setoid ↑u M)
+  convert @term.realize_quotient_mk L _  ((u : filter α).product_setoid M)
     (ultraproduct.setoid_prestructure M u) _ t x,
   ext a,
   induction t,
@@ -111,7 +86,7 @@ variables [Π a : α, nonempty (M a)]
 
 theorem bounded_formula_realize_cast {β : Type*} {n : ℕ} (φ : L.bounded_formula β n)
   (x : β → (Π a, M a)) (v : fin n → (Π a, M a)) :
-  φ.realize (λ (i : β), ((x i) : ultraproduct ↑u M)) (λ i, (v i)) ↔
+  φ.realize (λ (i : β), ((x i) : (u : filter α).product M)) (λ i, (v i)) ↔
     ∀ᶠ (a : α) in ↑u, φ.realize (λ (i : β), x i a) (λ i, v i a) :=
 begin
   induction φ with _ _ _ _ _ _ _ _ m _ _ ih ih' k φ ih,
@@ -129,9 +104,9 @@ begin
   { simp only [bounded_formula.realize, ih v, ih' v],
     rw ultrafilter.eventually_imp },
   { simp only [bounded_formula.realize],
-    transitivity (∀ (m : Π (a : α), M a), φ.realize (λ (i : β), (x i : ultraproduct ↑u M))
-      (fin.snoc (coe ∘ v) (↑m : ultraproduct ↑u M))),
-    { exact (@forall_quotient_iff _ (ultraproduct_setoid ↑u M) _) },
+    transitivity (∀ (m : Π (a : α), M a), φ.realize (λ (i : β), (x i : (u : filter α).product M))
+      (fin.snoc (coe ∘ v) (↑m : (u : filter α).product M))),
+    { exact (@forall_quotient_iff _ ((u : filter α).product_setoid M) _) },
     have h' : ∀ (m : Π a, M a) (a : α), (λ (i : fin (k + 1)), (fin.snoc v m : _ → Π a, M a) i a) =
       fin.snoc (λ (i : fin k), v i a) (m a),
     { refine λ m a, funext (fin.reverse_induction _ (λ i hi, _)),
@@ -150,7 +125,7 @@ begin
 end
 
 theorem realize_formula_cast {β : Type*} (φ : L.formula β) (x : β → (Π a, M a)) :
-  φ.realize (λ i, ((x i) : ultraproduct ↑u M)) ↔
+  φ.realize (λ i, ((x i) : (u : filter α).product M)) ↔
     ∀ᶠ (a : α) in u, φ.realize (λ i, (x i a)) :=
 begin
   simp_rw [formula.realize],
@@ -165,7 +140,7 @@ end
 /-- Łoś's Theorem : A sentence is true in an ultraproduct if and only if the set of structures it is
   true in is in the ultrafilter. -/
 theorem sentence_realize (φ : L.sentence) :
-  (ultraproduct ↑u M) ⊨ φ ↔ ∀ᶠ (a : α) in u, (M a) ⊨ φ :=
+  ((u : filter α).product M) ⊨ φ ↔ ∀ᶠ (a : α) in u, (M a) ⊨ φ :=
 begin
   simp_rw [sentence.realize, iff_eq_eq],
   exact (congr rfl (subsingleton.elim _ _)).trans (iff_eq_eq.mp (realize_formula_cast φ _))
@@ -192,7 +167,7 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
       subtype.range_coe_subtype, set.set_of_mem_eq], },
   { letI : Π (T0 : finset T), L.Structure (M T0) := λ T0, is_satisfiable.some_model_structure _,
     haveI : (filter.at_top : filter (finset T)).ne_bot := at_top_ne_bot,
-    refine ⟨ultraproduct ↑(ultrafilter.of filter.at_top) M, _, ultraproduct.Structure, _⟩,
+    refine ⟨((ultrafilter.of filter.at_top) : filter _).product M, _, ultraproduct.Structure, _⟩,
     { haveI : Π (T0 : finset T), inhabited (M T0),
       { exact λ T0, classical.inhabited_of_nonempty (is_satisfiable.nonempty_some_model _) },
       exact nonempty_of_inhabited },

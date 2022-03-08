@@ -37,6 +37,7 @@ begin
     simpa [pow_succ] using mul_le_mul' h.1 (IH h.2) }
 end
 
+@[to_additive]
 lemma prod_commute [monoid α] (l : list α)
   (y : α) (h : ∀ (x ∈ l), commute y x) : commute y l.prod :=
 begin

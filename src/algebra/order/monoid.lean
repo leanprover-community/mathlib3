@@ -308,6 +308,9 @@ variables [has_one α]
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
 coe_eq_coe
 
+@[simp, to_additive] protected lemma map_one {β} (f : α → β) :
+  (1 : with_top α).map f = (f 1 : with_top β) := rfl
+
 @[simp, norm_cast, to_additive] theorem one_eq_coe {a : α} : 1 = (a : with_top α) ↔ a = 1 :=
 trans eq_comm coe_eq_one
 
@@ -428,8 +431,7 @@ end with_top
 
 namespace with_bot
 
-instance [has_zero α] : has_zero (with_bot α) := with_top.has_zero
-instance [has_one α] : has_one (with_bot α) := with_top.has_one
+@[to_additive] instance [has_one α] : has_one (with_bot α) := with_top.has_one
 instance [has_add α] : has_add (with_bot α) := with_top.has_add
 instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigroup
 instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
@@ -456,15 +458,16 @@ instance [linear_ordered_add_comm_monoid α] : linear_ordered_add_comm_monoid (w
   ..with_bot.ordered_add_comm_monoid }
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
-lemma coe_zero [has_zero α] : ((0 : α) : with_bot α) = 0 := rfl
-
--- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
+@[to_additive]
 lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
-lemma coe_eq_zero {α : Type*}
-  [add_monoid α] {a : α} : (a : with_bot α) = 0 ↔ a = 0 :=
-by norm_cast
+@[to_additive]
+lemma coe_eq_one [has_one α] {a : α} : (a : with_bot α) = 1 ↔ a = 1 :=
+with_top.coe_eq_one
+
+@[to_additive] protected lemma map_one {β} [has_one α] (f : α → β) :
+  (1 : with_bot α).map f = (f 1 : with_bot β) := rfl
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
 lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := by norm_cast

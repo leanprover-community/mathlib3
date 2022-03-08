@@ -1278,10 +1278,8 @@ begin
          mem_ℒp_one_iff_integrable.2 (signed_measure.integrable_rn_deriv _ _)⟩
 end
 
--- TODO: fix this diamond
+-- TODO: fix this diamond with `complex.normed_algebra`
 local attribute [-instance] normed_space.complex_to_real inner_product_space.complex_to_real
-
-example : normed_algebra ℝ ℂ := complex.normed_algebra
 
 theorem singular_part_add_with_density_rn_deriv_eq [c.have_lebesgue_decomposition μ] :
   c.singular_part μ + μ.with_densityᵥ (c.rn_deriv μ) = c :=

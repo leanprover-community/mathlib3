@@ -296,11 +296,11 @@ noncomputable def polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [al
 
 open mul_opposite
 
-instance polynomial.has_op_scalar_pi [semiring R'] [has_scalar R'ᵐᵒᵖ S'] :
+def polynomial.has_op_scalar_pi [semiring R'] [has_scalar R'ᵐᵒᵖ S'] :
   has_scalar (R'[X]ᵐᵒᵖ) (R' → S') :=
 ⟨λ p f x, op (eval x p.unop) • f x⟩
 
-noncomputable instance polynomial.has_op_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
+noncomputable def polynomial.has_op_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
   [has_scalar S'ᵐᵒᵖ T'] :
   has_scalar (R'[X]ᵐᵒᵖ) (S' → T') :=
 ⟨λ p f x, op (aeval x p.unop) • f x⟩
@@ -308,6 +308,7 @@ noncomputable instance polynomial.has_op_scalar_pi' [comm_semiring R'] [semiring
 variables {R} {S}
 
 local attribute [instance] polynomial.has_scalar_pi polynomial.has_scalar_pi'
+local attribute [instance] polynomial.has_op_scalar_pi polynomial.has_op_scalar_pi'
 
 @[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
   (p : R'[X]) (f : R' → S') (x : R') :

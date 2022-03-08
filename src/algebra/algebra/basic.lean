@@ -508,8 +508,6 @@ variables [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
 instance : algebra R (module.End R M) :=
 algebra.of_module smul_mul_assoc (λ r f g, (smul_comm r f g).symm)
 
-example : module Rᵐᵒᵖ (module.End R M) := linear_map.module
-
 lemma algebra_map_End_eq_smul_id (a : R) :
   (algebra_map R (End R M)) a = a • linear_map.id := rfl
 

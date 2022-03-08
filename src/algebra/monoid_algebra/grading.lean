@@ -107,7 +107,6 @@ instance grade_by.graded_monoid [add_monoid M] [add_monoid ι] [comm_semiring R]
     apply add_monoid_hom.map_add
   end }
 
-
 instance grade.graded_monoid [add_monoid M] [comm_semiring R] :
   set_like.graded_monoid (grade R : M → submodule R (add_monoid_algebra R M)) :=
 by apply grade_by.graded_monoid (add_monoid_hom.id _)

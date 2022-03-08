@@ -369,8 +369,7 @@ lemma algebra_map_eq_inl' (s : S) : algebra_map S (tsze R M) s = inl (algebra_ma
 variables [module Rᵐᵒᵖ M] [is_central_scalar R M]
 
 -- shortcut instance for the common case
-instance : algebra R (tsze R M) :=
-triv_sq_zero_ext.algebra' _ _ _
+instance : algebra R (tsze R M) := triv_sq_zero_ext.algebra' _ _ _
 
 lemma algebra_map_eq_inl : ⇑(algebra_map R (tsze R M)) = inl := rfl
 lemma algebra_map_eq_inl_hom : algebra_map R (tsze R M) = inl_hom R M := rfl

@@ -42,7 +42,6 @@ instance has_uniform_continuous_const_smul.to_has_continuous_const_smul
   [has_uniform_continuous_const_smul M X] : has_continuous_const_smul M X :=
 ⟨λ c, (uniform_continuous_const_smul c).continuous⟩
 
-
 lemma uniform_continuous.const_smul [has_uniform_continuous_const_smul M X]
   {f : Y → X} (hf : uniform_continuous f) (c : M) :
   uniform_continuous (c • f) :=

@@ -270,12 +270,9 @@ instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ�
   mul_action R (outer_measure α) :=
 injective.mul_action _ coe_fn_injective coe_smul
 
--- there is no `function.injective.add_comm_monoid_smul` so we do this in two steps
 instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
-{ ..injective.add_monoid_smul (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
-    coe_fn_injective rfl (λ _ _, rfl) (λ _ _, rfl),
-  ..injective.add_comm_semigroup (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
-    coe_fn_injective (λ _ _, rfl) }
+injective.add_comm_monoid (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
+    coe_fn_injective rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- `coe_fn` as an `add_monoid_hom`. -/
 @[simps] def coe_fn_add_monoid_hom : outer_measure α →+ (set α → ℝ≥0∞) :=

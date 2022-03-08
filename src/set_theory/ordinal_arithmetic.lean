@@ -913,7 +913,7 @@ def family_of_bfamily' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι 
 /-- Converts a family indexed by an `ordinal.{u}` to one indexed by a `Type u` using a well-ordering
 given by the axiom of choice. -/
 def family_of_bfamily (o : ordinal) (f : Π a < o, α) : o.out.α → α :=
-family_of_bfamily' o.out.r (type_out o) f
+family_of_bfamily' (<) (type_lt o) f
 
 @[simp] theorem bfamily_of_family'_typein {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α)
   (i) : bfamily_of_family' r f (typein r i) (typein_lt_type r i) = f i :=
@@ -929,8 +929,8 @@ bfamily_of_family'_typein  _ f i
 by simp only [family_of_bfamily', typein_enum]
 
 @[simp] theorem family_of_bfamily_enum (o : ordinal) (f : Π a < o, α) (i hi) :
-  family_of_bfamily o f (enum o.out.r i (by { convert hi, exact type_out _ })) = f i hi :=
-family_of_bfamily'_enum _ (type_out o) f _ _
+  family_of_bfamily o f (enum (<) i (by { convert hi, exact type_lt _ })) = f i hi :=
+family_of_bfamily'_enum _ (type_lt o) f _ _
 
 /-- The range of a family indexed by ordinals. -/
 def brange (o : ordinal) (f : Π a < o, α) : set α :=
@@ -969,6 +969,12 @@ end
 @[simp] theorem brange_bfamily_of_family {ι : Type u} (f : ι → α) :
   brange _ (bfamily_of_family f) = range f :=
 brange_bfamily_of_family' _ _
+
+@[simp] theorem brange_const {o : ordinal} (ho : o ≠ 0) {c : α} : brange o (λ _ _, c) = {c} :=
+begin
+  rw ←range_family_of_bfamily,
+  exact @set.range_const _ o.out.α (out_nonempty_iff_ne_zero.2 ho) c
+end
 
 theorem comp_bfamily_of_family' {ι : Type u} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → α)
   (g : α → β) : (λ i hi, g (bfamily_of_family' r f i hi)) = bfamily_of_family' r (g ∘ f) :=
@@ -1223,20 +1229,23 @@ theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
 
-@[simp] theorem lsub_typein (o : ordinal) : lsub.{u u} (typein o.out.r) = o :=
+@[simp] theorem lsub_typein (o : ordinal) :
+  lsub.{u u} (typein ((<) : o.out.α → o.out.α → Prop)) = o :=
 (lsub_le.{u u}.2 typein_lt_self).antisymm begin
   by_contra' h,
-  nth_rewrite 0 ←type_out o at h,
-  simpa [typein_enum] using lt_lsub.{u u} (typein o.out.r) (enum o.out.r _ h)
+  nth_rewrite 0 ←type_lt o at h,
+  simpa [typein_enum] using lt_lsub.{u u} (typein (<)) (enum (<) _ h)
 end
 
 theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
-  sup.{u u} (typein o.out.r) = o :=
-by rw (sup_eq_lsub_iff_succ.{u u} (typein o.out.r)).2; rwa lsub_typein o
+  sup.{u u} (typein ((<) : o.out.α → o.out.α → Prop)) = o :=
+by rw (sup_eq_lsub_iff_succ.{u u} (typein (<))).2; rwa lsub_typein o
 
-@[simp] theorem sup_typein_succ {o : ordinal} : sup.{u u} (typein o.succ.out.r) = o :=
+@[simp] theorem sup_typein_succ {o : ordinal} :
+  sup.{u u} (typein ((<) : o.succ.out.α → o.succ.out.α → Prop)) = o :=
 begin
-  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein o.succ.out.r) with h h,
+  cases sup_eq_lsub_or_sup_succ_eq_lsub.{u u} (typein ((<) : o.succ.out.α → o.succ.out.α → Prop))
+    with h h,
   { rw sup_eq_lsub_iff_succ at h,
     simp only [lsub_typein] at h,
     exact (h o (lt_succ_self o)).false.elim },
@@ -1375,6 +1384,13 @@ theorem is_normal.bsup_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
   bsup.{u} o (λ x _, f x) = f o :=
 by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id_limit h.2] }
 
+theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
+  blsub.{u} o (λ x _, f x) = f o :=
+begin
+  rw ←H.bsup_eq h,
+  exact ((bsup_eq_blsub_iff_lt_bsup _).2 (λ a ha, (H.1 a).trans_le (le_bsup _ _ (h.2 a ha)))).symm
+end
+
 theorem is_normal.eq_iff_zero_and_succ {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {g}
   (hg : is_normal g) : f = g ↔ (f 0 = g 0 ∧ ∀ a : ordinal, f a = g a → f a.succ = g a.succ) :=
 ⟨λ h, by simp [h], λ ⟨h₁, h₂⟩, funext (λ a, begin
@@ -1386,13 +1402,6 @@ theorem is_normal.eq_iff_zero_and_succ {f : ordinal.{u} → ordinal.{u}} (hf : i
   ext b hb,
   exact H b hb
 end)⟩
-
-theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
-  blsub.{u} o (λ x _, f x) = f o :=
-begin
-  rw ←H.bsup_eq h,
-  exact ((bsup_eq_blsub_iff_lt_bsup _).2 (λ a ha, (H.1 a).trans_le (le_bsup _ _ (h.2 a ha)))).symm
-end
 
 end ordinal
 
@@ -1466,6 +1475,24 @@ lemma enum_ord_def_nonempty (hS : unbounded (<) S) {o} :
   {x | x ∈ S ∧ ∀ c, c < o → enum_ord S c < x}.nonempty :=
 (⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
 
+@[simp] theorem enum_ord_range {f : ordinal → ordinal} (hf : strict_mono f) :
+  enum_ord (range f) = f :=
+funext (λ o, begin
+  apply wf.induction o,
+  intros a H,
+  rw enum_ord_def a,
+  have Hfa : f a ∈ range f ∩ {b | ∀ c, c < a → enum_ord (range f) c < b} :=
+    ⟨mem_range_self a, λ b hb, (by {rw H b hb, exact hf hb})⟩,
+  refine (cInf_le' Hfa).antisymm ((le_cInf_iff'' ⟨_, Hfa⟩).2 _),
+  rintros _ ⟨⟨c, rfl⟩, hc : ∀ b < a, enum_ord (range f) b < f c⟩,
+  rw hf.le_iff_le,
+  contrapose! hc,
+  exact ⟨c, hc, (H c hc).ge⟩,
+end)
+
+@[simp] theorem enum_ord_univ : enum_ord set.univ = id :=
+by { rw ←range_id, exact enum_ord_range strict_mono_id }
+
 @[simp] theorem enum_ord_zero : enum_ord S 0 = Inf S :=
 by { rw enum_ord_def, simp [ordinal.not_lt_zero] }
 
@@ -1498,7 +1525,7 @@ def enum_ord.order_iso (hS : unbounded (<) S) : ordinal ≃o S :=
 strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) (enum_ord.strict_mono hS)
   (λ s, let ⟨a, ha⟩ := enum_ord.surjective hS s s.prop in ⟨a, subtype.eq ha⟩)
 
-theorem enum_ord_range (hS : unbounded (<) S) : range (enum_ord S) = S :=
+theorem range_enum_ord (hS : unbounded (<) S) : range (enum_ord S) = S :=
 by { rw range_eq_iff, exact ⟨enum_ord_mem hS, enum_ord.surjective hS⟩ }
 
 /-- A characterization of `enum_ord`: it is the unique strict monotonic function with range `S`. -/
@@ -1507,9 +1534,9 @@ theorem eq_enum_ord (f : ordinal → ordinal) (hS : unbounded (<) S) :
 begin
   split,
   { rintro ⟨h₁, h₂⟩,
-    rwa [←wf.eq_strict_mono_iff_eq_range h₁ (enum_ord.strict_mono hS), enum_ord_range hS] },
+    rwa [←wf.eq_strict_mono_iff_eq_range h₁ (enum_ord.strict_mono hS), range_enum_ord hS] },
   { rintro rfl,
-    exact ⟨enum_ord.strict_mono hS, enum_ord_range hS⟩ }
+    exact ⟨enum_ord.strict_mono hS, range_enum_ord hS⟩ }
 end
 
 end

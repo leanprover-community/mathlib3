@@ -1306,7 +1306,7 @@ variables {R : Type u} [comm_semiring R]
 def is_primary (I : ideal R) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : R}, x * y ∈ I → x ∈ I ∨ y ∈ radical I
 
-theorem is_primary.to_is_prime (I : ideal R) (hi : is_prime I) : is_primary I :=
+theorem is_prime.is_primary {I : ideal R} (hi : is_prime I) : is_primary I :=
 ⟨hi.1, λ x y hxy, (hi.mem_or_mem hxy).imp id $ λ hyi, le_radical hyi⟩
 
 theorem mem_radical_of_pow_mem {I : ideal R} {x : R} {m : ℕ} (hx : x ^ m ∈ radical I) :

@@ -202,24 +202,6 @@ section krull_t2
 
 open_locale topological_space filter
 
--- TODO: move this to a more general file
-/-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
-lemma subgroup.is_open_of_one_mem_interior {G : Type*} [group G] [topological_space G]
-  [topological_group G] {H : subgroup G} (h_1_int : (1 : G) ∈ interior (H : set G)) :
-  is_open (H : set G) :=
-begin
-  have h : 𝓝 1 ≤ 𝓟 (H : set G) :=
-    nhds_le_of_le h_1_int (is_open_interior) (filter.principal_mono.2 interior_subset),
-  rw is_open_iff_nhds,
-  intros g hg,
-  rw (show 𝓝 g = filter.map ⇑(homeomorph.mul_left g) (𝓝 1), by simp),
-  convert filter.map_mono h,
-  simp only [homeomorph.coe_mul_left, filter.map_principal, set.image_mul_left,
-  filter.principal_eq_iff_eq],
-  ext,
-  simp [H.mul_mem_cancel_left (H.inv_mem hg)],
-end
-
 /-- Let `L/E/K` be a tower of fields with `E/K` finite. Then `Gal(L/E)` is an open subgroup of
   `L ≃ₐ[K] L`. -/
 lemma intermediate_field.fixing_subgroup_is_open {K L : Type*} [field K] [field L] [algebra K L]

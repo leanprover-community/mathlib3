@@ -120,7 +120,8 @@ variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 instance has_coe_to_general_linear_group : has_coe (special_linear_group n R) (GL n R) :=
 ⟨λ A, ⟨↑A, ↑(A⁻¹), congr_arg coe (mul_right_inv A), congr_arg coe (mul_left_inv A)⟩⟩
 
-lemma coe_to_GL_det (g : special_linear_group n R) : ((g : GL n R).det : R) = (1 : R) :=g.prop
+@[simp] lemma coe_to_GL_det (g : special_linear_group n R) : (g : GL n R).det = 1 :=
+units.ext g.prop
 
 end special_linear_group
 
@@ -194,8 +195,9 @@ matrix -/
 lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
   (↑(↑(↑(g : special_linear_group n R) : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
 
-lemma coe_to_GL_pos_det (g : special_linear_group n R) :
-  det ((g : GL_pos n R) : matrix n n R) = (1 : R) :=g.prop
+@[simp] lemma coe_to_GL_pos_to_GL_det (g : special_linear_group n R) :
+  ((g : GL_pos n R) : GL n R).det = 1 :=
+units.ext g.prop
 
 variable [fact (even (fintype.card n))]
 

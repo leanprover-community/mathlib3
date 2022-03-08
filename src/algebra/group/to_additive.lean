@@ -573,8 +573,8 @@ them has one -/
     let mul_name := d.to_name,
     dict ← to_additive.aux_attr.get_cache,
     add_name ← dict.find mul_name | return none,
-    mul_doc <- try_core $ doc_string mul_name,
-    add_doc <- try_core $ doc_string add_name,
+    mul_doc ← try_core $ doc_string mul_name,
+    add_doc ← try_core $ doc_string add_name,
     match mul_doc, add_doc with
     | some _, none := return $ some $ "declaration has a docstring, but its additive version `" ++
         add_name.to_string ++ "` does not. You might want to pass a string argument to " ++

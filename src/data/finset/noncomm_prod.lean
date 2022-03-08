@@ -190,7 +190,7 @@ def noncomm_prod (s : finset α) (f : α → β) (comm : ∀ (x ∈ s) (y ∈ s)
 (s.1.map f).noncomm_prod (by simpa [multiset.mem_map, ←finset.mem_def] using comm)
 
 /-- A helper for rewriting the dependent arguments. -/
-@[to_additive "A helper for rewriting the dependent arguments "]
+@[congr, to_additive "A helper for rewriting the dependent arguments "]
 lemma noncomm_prod_congr
   {s₁ s₂ : finset α}  {f g : α → β} (h₁ : s₁ = s₂) (h₂ : ∀ (x ∈ s₂), f x = g x)
   (comm : ∀ (x ∈ s₁) (y ∈ s₁), commute (f x) (f y)) :

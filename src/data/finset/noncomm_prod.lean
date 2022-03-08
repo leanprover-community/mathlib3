@@ -249,7 +249,7 @@ begin
 end
 
 /- The non-commutative version of `finset.prod_union` -/
-@[to_additive /-" The non-commutative version of `finset.sum_union` "-/]
+@[to_additive "The non-commutative version of `finset.sum_union`"]
 lemma noncomm_prod_union_of_disjoint [decidable_eq α] {s t : finset α}
   (h : disjoint s t) (f : α → β)
   (comm : ∀ (x ∈ s ∪ t) (y ∈ s ∪ t), commute (f x) (f y))
@@ -264,6 +264,43 @@ begin
   rw list.disjoint_to_finset_iff_disjoint at h,
   simp [sl', tl', noncomm_prod_to_finset, ←list.prod_append, ←list.to_finset_append,
         list.nodup_append_of_nodup sl' tl' h]
+end
+
+/- The non-commutative version of `finset.prod_mul_distrib` -/
+@[to_additive "The non-commutative version of `finset.sum_add_distrib`"]
+lemma noncomm_prod_mul_distrib [decidable_eq α] {s : finset α}
+  (f : α → β) (g : α → β)
+  (comm_ff : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
+  (comm_gg : ∀ (x ∈ s) (y ∈ s), commute (g x) (g y))
+  (comm_gf : ∀ (x ∈ s) (y ∈ s), x ≠ y → commute (g x) (f y)) :
+  noncomm_prod s (f * g)
+    begin
+      intros x hx y hy,
+      by_cases h : x = y, { subst h },
+      apply commute.mul_left; apply commute.mul_right,
+      { exact comm_ff x hx y hy },
+      { exact (comm_gf y hy x hx (ne.symm h)).symm },
+      { exact comm_gf x hx y hy h },
+      { exact comm_gg x hx y hy },
+    end
+    = noncomm_prod s f comm_ff * noncomm_prod s g comm_gg :=
+begin
+  induction s using finset.induction_on with x s hnmem ih,
+  { simp, },
+  { simp only [finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem, pi.mul_apply],
+    specialize ih
+      (λ x hx y hy, comm_ff x (mem_insert_of_mem hx) y (mem_insert_of_mem hy))
+      (λ x hx y hy, comm_gg x (mem_insert_of_mem hx) y (mem_insert_of_mem hy))
+      (λ x hx y hy hne, comm_gf x (mem_insert_of_mem hx) y (mem_insert_of_mem hy) hne),
+    rw ih,
+    simp only [mul_assoc],
+    congr' 1,
+    simp only [← mul_assoc],
+    congr' 1,
+    apply noncomm_prod_commute,
+    intros y hy,
+    have : x ≠ y, by {rintro rfl, contradiction},
+    exact comm_gf x (mem_insert_self x s) y (mem_insert_of_mem hy) this, }
 end
 
 end finset

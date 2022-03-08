@@ -1794,6 +1794,14 @@ begin
   congr' with x, simp [and_comm]
 end
 
+lemma _root_.filter.eventually_eq.restrict {f g : α → δ} {s : set α} (hfg : f =ᵐ[μ] g) :
+  f =ᵐ[μ.restrict s] g :=
+begin -- note that we cannot use `ae_restrict_iff` since we do not require measurability
+  refine hfg.filter_mono _,
+  rw measure.ae_le_iff_absolutely_continuous,
+  exact measure.absolutely_continuous_of_le measure.restrict_le_self,
+end
+
 lemma ae_restrict_mem (hs : measurable_set s) :
   ∀ᵐ x ∂(μ.restrict s), x ∈ s :=
 (ae_restrict_iff' hs).2 (filter.eventually_of_forall (λ x, id))

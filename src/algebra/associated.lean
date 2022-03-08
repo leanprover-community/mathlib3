@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
 import algebra.divisibility
-import algebra.group_power.basic
+import algebra.group_power.lemmas
 import algebra.invertible
 
 /-!
@@ -191,6 +191,17 @@ theorem of_irreducible_mul {α} [monoid α] {x y : α} :
   irreducible (x * y) → is_unit x ∨ is_unit y
 | ⟨_, h⟩ := h _ _ rfl
 
+theorem of_irreducible_pow {α} [monoid α] {x : α} {n : ℕ} (hn : n ≠ 1) :
+  irreducible (x ^ n) → is_unit x :=
+begin
+  obtain hn|hn := hn.lt_or_lt,
+  { simp only [nat.lt_one_iff.mp hn, forall_false_left, not_irreducible_one, pow_zero] },
+  intro h,
+  obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_lt hn,
+  rw [pow_succ, add_comm] at h,
+  exact (or_iff_left_of_imp ((is_unit_pos_pow_iff (nat.succ_pos _)).mp)).mp (of_irreducible_mul h)
+end
+
 theorem irreducible_or_factor {α} [monoid α] (x : α) (h : ¬ is_unit x) :
   irreducible x ∨ ∃ a b, ¬ is_unit a ∧ ¬ is_unit b ∧ a * b = x :=
 begin
@@ -236,6 +247,10 @@ end
 lemma irreducible.dvd_comm [monoid α] {p q : α}
   (hp : irreducible p) (hq : irreducible q) : p ∣ q ↔ q ∣ p :=
 ⟨hp.dvd_symm hq, hq.dvd_symm hp⟩
+
+lemma pow_not_prime [cancel_comm_monoid_with_zero α] {x : α} {n : ℕ} (hn : n ≠ 1) :
+  ¬ prime (x ^ n) :=
+λ hp, hp.not_unit $ is_unit.pow _ $ of_irreducible_pow hn $ hp.irreducible
 
 /-- Two elements of a `monoid` are `associated` if one of them is another one
 multiplied by a unit on the right. -/

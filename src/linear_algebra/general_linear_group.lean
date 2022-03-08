@@ -195,12 +195,12 @@ lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
   (↑(↑(↑(g : special_linear_group n R) : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
 
 lemma coe_to_GL_pos_det (g : special_linear_group n R) :
-  det ((g : GL_pos n R) : matrix n n R) = (1 : R) := g.prop
+  det ((g : GL_pos n R) : matrix n n R) = (1 : R) :=g.prop
 
 variable [fact (even (fintype.card n))]
 
-@[simp] lemma coe_GL_pos_neg (g : special_linear_group n R) : ↑(-g) = -(↑g : GL_pos n R) :=
-by {ext, refl}
+@[simp, norm_cast] lemma coe_GL_pos_neg (g : special_linear_group n R) : ↑(-g) = -(↑g : GL_pos n R)
+:= by {ext, refl}
 
 end special_linear_group
 

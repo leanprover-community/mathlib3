@@ -101,7 +101,7 @@ The character associated to a representation of `G`, which as a map `G → k`
 sends each element to the trace of the corresponding linear map
 -/
 noncomputable def character : G → k :=
-  λ g, linear_map.trace k V ((as_group_hom k G V) g)
+λ g, linear_map.trace k V ((as_group_hom k G V) g)
 
 @[simp]
 lemma char_apply (g : G) :

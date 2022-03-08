@@ -9,6 +9,7 @@ import algebra.order.with_zero
 import group_theory.subsemigroup.operations
 import group_theory.order_of_element
 import order.order_dual
+import order.zorn
 import tactic.swap_var
 import tactic.tfae
 
@@ -2041,3 +2042,58 @@ end
 end extend
 
 end page185
+
+section page186
+
+variables {S : Type*}
+
+-- Definition 8
+def partial_order_of_chain (s : set (S → S → Prop)) (hs : ∀ r ∈ s, is_partial_order S r)
+  (hw : zorn.chain (≤) s) (hn : s.nonempty) : partial_order S :=
+{ le := λ a b, ∃ (r : S → S → Prop) (hr : r ∈ s), r a b,
+  le_refl := λ a,
+  begin
+    refine hn.imp (λ r hr, _),
+    haveI := hs r hr,
+    exact ⟨hr, refl _⟩
+  end,
+  le_trans := λ a b c, begin
+    rintro ⟨r, hr, hab⟩ ⟨r', hr', hbc⟩,
+    haveI := hs r hr,
+    haveI := hs r' hr',
+    cases hw.total_of_refl hr hr' with h h,
+    { exact ⟨r', hr', trans (h _ _ hab) hbc⟩, },
+    { exact ⟨r, hr, trans hab (h _ _ hbc)⟩ },
+  end,
+  le_antisymm := λ a b, begin
+    rintro ⟨r, hr, hab⟩ ⟨r', hr', hba⟩,
+    haveI := hs r hr,
+    haveI := hs r' hr',
+    cases hw.total_of_refl hr hr' with h h,
+    { exact antisymm (h _ _ hab) hba, },
+    { exact antisymm hab (h _ _ hba) }
+  end }
+
+-- Definition 8, normal
+def normal_order_of_chain [has_mul S] (s : set (S → S → Prop))
+  (hs : ∀ r ∈ s, is_partial_order S r) (hw : zorn.chain (≤) s) (hn : s.nonempty)
+  (hnorm : ∀ (r : S → S → Prop) (hr : r ∈ s) {a b : S} {n : ℕ+}, r (a ^ n) (b ^ n) → r a b) :
+  by letI := partial_order_of_chain s hs hw hn; exact normal_order S :=
+begin
+  constructor,
+  rintro a b n ⟨r, hr, hab⟩,
+  exact ⟨r, hr, hnorm r hr hab⟩
+end
+
+-- Definition 8, strong
+def nakada_strong_of_chain [has_mul S] (s : set (S → S → Prop))
+  (hs : ∀ r ∈ s, is_partial_order S r) (hw : zorn.chain (≤) s) (hn : s.nonempty)
+  (hstrong : ∀ (r : S → S → Prop) (hr : r ∈ s), contravariant S S (*) r) :
+  by letI := partial_order_of_chain s hs hw hn; exact nakada_strong S :=
+begin
+  constructor,
+  rintro a b c ⟨r, hr, hab⟩,
+  exact ⟨r, hr, hstrong r hr a hab⟩
+end
+
+end page186

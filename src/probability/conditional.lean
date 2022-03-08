@@ -3,7 +3,7 @@ Copyright (c) 2022 Rishikesh Vaishnav. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rishikesh Vaishnav
 -/
-import probability.independence
+import measure_theory.measure.measure_space
 
 /-!
 # Conditional Probability
@@ -69,8 +69,10 @@ def cond (s : set α) : measure α :=
 
 end definitions
 
-local notation  μ `[` s `|` t `]` := cond μ t s
-local notation  μ `[|`:60 t`]` := cond μ t
+localized "notation  μ `[` s `|` t `]` := cond μ t s" in probability_theory
+localized "notation  μ `[|`:60 t`]` := cond μ t" in probability_theory
+
+open_locale probability_theory
 
 /-- The conditional probability measure of any finite measure on any set of positive measure
 is a probability measure. -/
@@ -101,12 +103,13 @@ end
 
 variable [is_finite_measure μ]
 
-lemma cond_pos_of_inter_ne_zero (hms : measurable_set s) (hci : μ (s ∩ t) ≠ 0) :
-  0 < μ[|s] t :=
+theorem inter_ne_zero_iff_cond_ne_zero (a : set α) {b : set α} (hmb : measurable_set b) :
+  μ (b ∩ a) ≠ 0 ↔ (μ[|b] a ≠ 0) :=
 begin
-  rw cond_apply _ hms,
-  refine ennreal.mul_pos _ hci,
-  exact ennreal.inv_ne_zero.mpr (measure_ne_top _ _),
+  split; intro hc,
+    simp [*, measure_ne_top],
+  simp only [*, not_or_distrib, cond_apply, ne.def, mul_eq_zero, ennreal.inv_eq_zero] at hc,
+  exact hc.2
 end
 
 /-- Conditioning first on `s` and then on `t` results in the same measure as conditioning

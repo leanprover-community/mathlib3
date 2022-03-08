@@ -6,6 +6,7 @@ Authors: Rémy Degenne
 import algebra.big_operators.intervals
 import measure_theory.measure.measure_space
 import measure_theory.pi_system
+import probability.conditional
 
 /-!
 # Independence of sets of sets and measure spaces (σ-algebras)
@@ -68,6 +69,8 @@ open_locale big_operators classical measure_theory
 
 namespace probability_theory
 
+open_locale probability_theory
+
 section definitions
 
 /-- A family of sets of sets `π : ι → set (set α)` is independent with respect to a measure `μ` if
@@ -123,6 +126,42 @@ measurable space structure is `measurable_space.comap f m`. -/
 def indep_fun {α β γ} [measurable_space α] [mβ : measurable_space β] [mγ : measurable_space γ]
   (f : α → β) (g : α → γ) (μ : measure α . volume_tac) : Prop :=
 indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ
+
+/-- Conditional version of `Indep_sets` that takes a set of conditioning events `C` and requires
+`∀ (c ∈ C), Indep_sets π μ[|c]`. -/
+def cond_Indep_sets {α ι} [measurable_space α] (π : ι → set (set α))
+  (C : set (set α)) (μ : measure α . volume_tac) : Prop :=
+∀ (c ∈ C), Indep_sets π $ μ[|c]
+
+/-- Conditional version of `indep_sets` that takes a set of conditioning events `C` and requires
+`∀ c ∈ C, indep_sets s1 s2 μ[|c]`. -/
+def cond_indep_sets {α} [measurable_space α] (s1 s2 : set (set α)) (C : set (set α))
+  (μ : measure α . volume_tac) : Prop :=
+∀ (c ∈ C), indep_sets s1 s2 $ μ[|c]
+
+/-- Conditional version of `Indep` that takes a conditioning measurable space `C` and requires
+`∀ c ∈ C, Indep s1 s2 μ[|c]`. -/
+def cond_Indep {α ι} (m : ι → measurable_space α) (C : measurable_space α)
+  [measurable_space α] (μ : measure α . volume_tac) : Prop :=
+cond_Indep_sets (λ x, (m x).measurable_set') C.measurable_set' μ 
+
+/-- Conditional version of `indep` that takes a conditioning measurable space `C` and requires
+`∀ c ∈ C, indep s1 s2 μ[|c]`. -/
+def cond_indep {α} (m₁ m₂ : measurable_space α) (C : measurable_space α)
+  [measurable_space α] (μ : measure α . volume_tac) : Prop :=
+cond_indep_sets (m₁.measurable_set') (m₂.measurable_set') C.measurable_set' μ
+
+/-- Conditional version of `Indep_set` that takes a conditioning event `c` and requires
+`Indep s μ[|c]`. -/
+def cond_Indep_set {α ι} [measurable_space α] (s : ι → set α) (c : set α)
+  (μ : measure α . volume_tac) : Prop :=
+cond_Indep_sets (λ i, (generate_from {s i}).measurable_set') {c} μ
+
+/-- Conditional version of `indep_set` that takes a conditioning event `c` and requires
+`indep s1 s2 μ[|c]`. -/
+def cond_indep_set {α} [measurable_space α] (s t : set α) (c : set α)
+  (μ : measure α . volume_tac) : Prop :=
+cond_indep_sets (generate_from {s}).measurable_set' (generate_from {t}).measurable_set' {c} μ
 
 end definitions
 
@@ -199,6 +238,26 @@ lemma indep_sets_singleton_iff {α} [measurable_space α] {s t : set α} {μ : m
   indep_sets {s} {t} μ ↔ μ (s ∩ t) = μ s * μ t :=
 ⟨λ h, h s t rfl rfl,
   λ h s1 t1 hs1 ht1, by rwa [set.mem_singleton_iff.mp hs1, set.mem_singleton_iff.mp ht1]⟩
+
+lemma cond_Indep_def {α ι} (m : ι → measurable_space α) (C : measurable_space α)
+   [measurable_space α](μ : measure α . volume_tac) :
+  cond_Indep m C μ = ∀ (c) (h : measurable_set[C] c), Indep m $ μ[|c] :=
+rfl
+
+lemma cond_indep_def {α} (m₁ m₂ : measurable_space α) (C : measurable_space α)
+  [measurable_space α] (μ : measure α . volume_tac) :
+  cond_indep m₁ m₂ C μ = ∀ (c) (h : measurable_set[C] c), indep m₁ m₂ $ μ[|c] :=
+rfl
+
+lemma cond_Indep_set_def {α ι} [measurable_space α] (s : ι → set α) (c : set α)
+  (μ : measure α . volume_tac) :
+  cond_Indep_set s c μ = Indep_set s (μ[|c]) :=
+by { simpa [cond_Indep_set, cond_Indep_sets] }
+
+lemma cond_indep_set_def {α} [measurable_space α] (s t : set α) (c : set α)
+  (μ : measure α . volume_tac) :
+  cond_indep_set s t c μ = indep_set s t (μ[|c]) :=
+by { simpa [cond_indep_set, cond_indep_sets] }
 
 end indep
 
@@ -341,5 +400,61 @@ lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measu
 (indep_set_iff_measure_inter_eq_mul hs_meas ht_meas μ).mpr (h_indep s t hs ht)
 
 end indep_set
+
+/-! ### Independence and conditionality
+
+We prove an equivalence between independence and conditional irrelevance,
+as well as the more general equivalence between conditional independence
+and conditional intersection irrelevance,
+-/
+
+section cond
+
+variables {α : Type*} [measurable_space α] {s t : set α}
+
+lemma indep_set_of_cond_null_measure {c : set α} (hmc : measurable_set c)
+  (μ : measure α . volume_tac)
+  (hcc : μ c = 0) : indep_set s t (μ [| c]) :=
+by rw [indep_set, indep, indep_sets]; intros; simp [hmc, hcc, measure_inter_null_of_null_left]
+
+/-- Two events are independent if and only if conditioning on one 
+(which has non-zero measure) is irrelevant to the probability of the other. -/
+theorem indep_set_iff_cond_irrel (hms : measurable_set s) (hmt : measurable_set t)
+  (μ : measure α . volume_tac) [is_probability_measure μ] :
+  indep_set s t μ ↔ μ t ≠ 0 → μ[s|t] = μ s :=
+begin
+  split; intro h,
+  { intro hca, 
+    simp [*, (indep_set_iff_measure_inter_eq_mul hmt hms μ).mp h.symm,
+      ← mul_assoc, ennreal.inv_mul_cancel hca (measure_ne_top _ _)] },
+  by_cases hct : μ t = 0,
+  { rw indep_set_iff_measure_inter_eq_mul hms hmt μ,
+    simp [measure_inter_null_of_null_right, hct] },
+  { have hcond := h hct,
+    refine (indep_set_iff_measure_inter_eq_mul hms hmt μ).mpr _,
+    rwa [ ← mul_comm, ennreal.inv_mul_eq_iff_eq_mul hct (measure_ne_top _ _),
+      ← measure.restrict_apply' hmt] },
+end
+
+/-- Two events `s` and `t` are independent given a third event `c` if and only if
+additionally conditioning on `t` (when `c ∩ t` has non-zero measure) is irrelevant
+to the probability of `s`. -/
+theorem cond_indep_set_iff_cond_inter_irrel (hms : measurable_set s)
+  (hmt : measurable_set t) {c : set α} (hmc : measurable_set c)
+  (μ : measure α . volume_tac) [is_probability_measure μ] :
+  cond_indep_set s t c μ ↔ μ (c ∩ t) ≠ 0 → μ[s|c ∩ t] = μ[s|c] :=
+begin
+  have : μ (c ∩ t) ≠ 0 → (μ[s|c ∩ t] = μ[s|c] ↔ (μ[|c][|t]) s = μ[s|c]),
+  { intro h,
+    rw ← cond_cond_eq_cond_inter μ hmc hmt _ h,
+    exact (outer_measure.pos_of_subset_ne_zero _ (set.inter_subset_left _ _) h).ne' },
+  rw [cond_indep_set_def, forall_congr this],
+  by_cases h : μ c = 0,
+  { simp [*, indep_set_of_cond_null_measure, measure_inter_null_of_null_left] },
+  { haveI := probability_theory.cond_is_probability_measure μ h,
+    simp only [*, inter_ne_zero_iff_cond_ne_zero, indep_set_iff_cond_irrel] }
+end
+
+end cond
 
 end probability_theory

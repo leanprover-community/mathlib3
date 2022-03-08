@@ -579,7 +579,7 @@ them has one -/
     | some _, none := return $ some $ "declaration has a docstring, but its additive version `" ++
         add_name.to_string ++ "` does not. You might want to pass a string argument to " ++
         "`to_additive`."
-    | none, some_ := return $ some $ "declaration has no docstring, but its additive version `" ++
+    | none, some _ := return $ some $ "declaration has no docstring, but its additive version `" ++
         add_name.to_string ++ "` does. You might want to add a doc string to the declaration."
     | _, _ := return none
     end),

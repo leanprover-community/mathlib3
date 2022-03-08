@@ -89,7 +89,7 @@ namespace sharkovskii
 
 /-- Turn a natural with the Sharkovskii ordering into the corresponding natural. -/
 @[simp] def to_nat : sharkovskii → ℕ
-| (inlₗ ab) := 2^(of_dual (of_lex ab).1) * (2 * (of_dual (of_lex ab).2) + 3)
+| (inlₗ ab) := 2 ^ (of_lex ab).1 * (2 * (of_lex ab).2 + 3)
 | (inrₗ (to_dual 0)) := 0
 | (inrₗ (to_dual $ succ n)) := 2^n
 
@@ -128,26 +128,38 @@ begin
   rw padic_val_nat.prime_pow,
 end
 
+@[simp] lemma of_nat_to_nat : ∀ n : sharkovskii, of_nat n.to_nat = n
+| (inlₗ ab) := begin
+  simp only [to_nat],
+  sorry,
+end
+| (inrₗ $ to_dual 0) := rfl
+| (inrₗ $ to_dual $ succ n) := by rw [to_nat, of_nat_two_pow]
+
+@[simp] lemma to_nat_of_nat : ∀ n, (of_nat n).to_nat = n
+| 0 := rfl
+| (succ n) := begin
+    unfold of_nat,
+    split_ifs,
+    { exact (nat.mem_powers_iff two_ne_zero).1 h },
+    change _ * _ = _,
+    sorry
+  end
+
 /-- The equivalence between the naturals with the Sharkovskii ordering and the naturals. -/
 @[simps] def equiv_nat : sharkovskii ≃ ℕ :=
 { to_fun := to_nat,
   inv_fun := of_nat,
-  left_inv := λ n, match n with
-    | inlₗ ab := begin
-      simp,
-    end
-    | inrₗ $ to_dual 0 := rfl
-    | inrₗ $ to_dual $ succ n := by rw [to_nat, of_nat_two_pow]
-  end,
-  right_inv := λ n, begin
-    cases n,
-    { refl },
-    { unfold of_nat,
-      split_ifs,
-      { exact (nat.mem_powers_iff two_ne_zero).1 h },
-      change _ * _ = _,
-      sorry
-    }
-  end }
+  left_inv := of_nat_to_nat,
+  right_inv := to_nat_of_nat }
+
+lemma double_order_left' :
+  ∀ {a b : sharkovskii}, a < b → of_nat (2 * a.to_nat) < of_nat (2 * b.to_nat)
+| (inlₗ a) (inlₗ b) h :=
+  begin
+    have := lex.inl_lt_inl_iff.1 h,
+  end
+| (inlₗ ⟨_, _⟩) (inrₗ _) _ := _
+| (inrₗ _) (inrₗ _) _ := _
 
 end sharkovskii

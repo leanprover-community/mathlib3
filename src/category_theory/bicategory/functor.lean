@@ -190,9 +190,6 @@ variables (F : oplax_functor B C)
 @[simp] lemma to_prelax_functor_map : (F : prelax_functor B C).map = F.map := rfl
 @[simp] lemma to_prelax_functor_map₂ : (F : prelax_functor B C).map₂ = F.map₂ := rfl
 
-/-- The prelax functor between the underlying quivers. -/
-add_decl_doc oplax_functor.to_prelax_functor
-
 /-- Function between 1-morphisms as a functor. -/
 @[simps]
 def map_functor (a b : B) : (a ⟶ b) ⥤ (F.obj a ⟶ F.obj b) :=

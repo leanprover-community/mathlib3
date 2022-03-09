@@ -170,7 +170,7 @@ include h
 @[elab_as_eliminator]
 lemma set_like.homogeneous_induction {P : A → Prop}
   (h_zero : P 0)
-  (h_hom : ∀ (a : A), set_like.is_homogeneous 𝒜 a → P a)
+  (h_hom : ∀ {i} (a : A), a ∈ 𝒜 i → P a)
   (h_add : ∀ (a b : A), P a → P b → P (a + b))
   (a : A) : P a :=
 begin

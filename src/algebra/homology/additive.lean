@@ -33,22 +33,25 @@ namespace homological_complex
 
 instance : has_zero (C ⟶ D) := ⟨{ f := λ i, 0 }⟩
 instance : has_add (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i + g.f i, }⟩
-instance : has_neg (C ⟶ D) := ⟨λ f, { f := λ i, -(f.f i), }⟩
+instance : has_neg (C ⟶ D) := ⟨λ f, { f := λ i, -(f.f i) }⟩
 instance : has_sub (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i - g.f i, }⟩
+instance has_nat_scalar : has_scalar ℕ (C ⟶ D) := ⟨λ n f,
+  { f := λ i, n • f.f i,
+    comm' := λ i j h, by simp [preadditive.nsmul_comp, preadditive.comp_nsmul] }⟩
+instance has_int_scalar : has_scalar ℤ (C ⟶ D) := ⟨λ n f,
+  { f := λ i, n • f.f i,
+    comm' := λ i j h, by simp [preadditive.zsmul_comp, preadditive.comp_zsmul] }⟩
 
 @[simp] lemma zero_f_apply (i : ι) : (0 : C ⟶ D).f i = 0 := rfl
 @[simp] lemma add_f_apply (f g : C ⟶ D) (i : ι) : (f + g).f i = f.f i + g.f i := rfl
 @[simp] lemma neg_f_apply (f : C ⟶ D) (i : ι) : (-f).f i = -(f.f i) := rfl
 @[simp] lemma sub_f_apply (f g : C ⟶ D) (i : ι) : (f - g).f i = f.f i - g.f i := rfl
-
-/- TODO(jmc/Scott): the instance below doesn't have the correct defeq for `nsmul` and `zsmul`.
-We should generalize `function.injective.add_comm_group` and friends.
-For the `R`-linear version, it will be very convenient to have
-a good definition of `nsmul` and `zsmul` that matches `smul`. -/
+@[simp] lemma nsmul_f_apply (n : ℕ) (f : C ⟶ D) (i : ι) : (n • f).f i = n • f.f i := rfl
+@[simp] lemma zsmul_f_apply (n : ℤ) (f : C ⟶ D) (i : ι) : (n • f).f i = n • f.f i := rfl
 
 instance : add_comm_group (C ⟶ D) :=
 function.injective.add_comm_group hom.f
-  homological_complex.hom_f_injective (by tidy) (by tidy) (by tidy) (by tidy)
+  homological_complex.hom_f_injective (by tidy) (by tidy) (by tidy) (by tidy) (by tidy) (by tidy)
 
 instance : preadditive (homological_complex V c) := {}
 

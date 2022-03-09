@@ -166,7 +166,7 @@ begin
 end
 
 @[to_additive]
-lemma noncomm_prod_mem_submonoid (s : multiset α)
+lemma _root_.submonoid.multiset_noncomm_prod_mem (s : multiset α)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute x y)
   (m : submonoid α) (h : ∀ (x ∈ s), x ∈ m) : s.noncomm_prod comm ∈ m :=
 begin
@@ -176,7 +176,7 @@ begin
 end
 
 @[to_additive]
-lemma noncomm_prod_mem_subgroup {α : Type*} [group α] (s : multiset α)
+lemma _root_.subgroup.multiset_noncomm_prod_mem {α : Type*} [group α] (s : multiset α)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute x y)
   (m : subgroup α) (h : ∀ (x ∈ s), x ∈ m) : s.noncomm_prod comm ∈ m :=
 begin
@@ -192,6 +192,16 @@ begin
   simp
 end
 
+@[to_additive]
+lemma noncomm_prod_commute (s : multiset α)
+  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute x y)
+  (y : α) (h : ∀ (x : α), x ∈ s → commute y x) : commute y (s.noncomm_prod comm) :=
+begin
+  induction s using quotient.induction_on,
+  simp only [quot_mk_to_coe, noncomm_prod_coe],
+  exact list.prod_commute _ _ h,
+end
+
 end multiset
 
 namespace finset
@@ -204,6 +214,14 @@ given a proof that `*` commutes on all elements `f x` for `x ∈ s`. -/
 given a proof that `+` commutes on all elements `f x` for `x ∈ s`."]
 def noncomm_prod (s : finset α) (f : α → β) (comm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y)) : β :=
 (s.1.map f).noncomm_prod (by simpa [multiset.mem_map, ←finset.mem_def] using comm)
+
+@[congr, to_additive]
+lemma noncomm_prod_congr
+  {s₁ s₂ : finset α} {f g : α → β} (h₁ : s₁ = s₂) (h₂ : ∀ (x ∈ s₂), f x = g x)
+  (comm : ∀ (x ∈ s₁) (y ∈ s₁), commute (f x) (f y)) :
+  noncomm_prod s₁ f comm = noncomm_prod s₂ g
+    (λ x hx y hy, h₂ x hx ▸ h₂ y hy ▸ comm x (h₁.symm ▸ hx) y (h₁.symm ▸ hy)) :=
+by simp_rw [noncomm_prod, multiset.map_congr (congr_arg _ h₁) h₂]
 
 @[simp, to_additive] lemma noncomm_prod_to_finset [decidable_eq α] (l : list α) (f : α → β)
   (comm : ∀ (x ∈ l.to_finset) (y ∈ l.to_finset), commute (f x) (f y))
@@ -240,11 +258,11 @@ by simp [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
 by simp [noncomm_prod, multiset.singleton_eq_cons]
 
 @[to_additive]
-lemma noncomm_prod_mem_submonoid (s : finset α) (f : α → β)
+lemma _root_.submonoid.finset_noncomm_prod_mem (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (m : submonoid β) (h : ∀ (x : α), x ∈ s → f x ∈ m) : s.noncomm_prod f comm ∈ m :=
 begin
-  apply multiset.noncomm_prod_mem_submonoid,
+  apply submonoid.multiset_noncomm_prod_mem,
   intro y,
   rw multiset.mem_map,
   rintros ⟨x, ⟨hx, rfl⟩⟩,
@@ -252,11 +270,23 @@ begin
 end
 
 @[to_additive]
-lemma noncomm_prod_mem_subgroup {β : Type*} [group β] (s : finset α) (f : α → β)
+lemma _root_.subgroup.finset_noncomm_prod_mem {β : Type*} [group β] (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (m : subgroup β) (h : ∀ (x : α), x ∈ s → f x ∈ m) : s.noncomm_prod f comm ∈ m :=
 begin
-  apply multiset.noncomm_prod_mem_subgroup,
+  apply subgroup.multiset_noncomm_prod_mem,
+  intro y,
+  rw multiset.mem_map,
+  rintros ⟨x, ⟨hx, rfl⟩⟩,
+  exact h x hx,
+end
+
+@[to_additive]
+lemma noncomm_prod_commute (s : finset α) (f : α → β)
+  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
+  (y : β) (h : ∀ (x : α), x ∈ s → commute y (f x)) : commute y (s.noncomm_prod f comm) :=
+begin
+  apply multiset.noncomm_prod_commute,
   intro y,
   rw multiset.mem_map,
   rintros ⟨x, ⟨hx, rfl⟩⟩,

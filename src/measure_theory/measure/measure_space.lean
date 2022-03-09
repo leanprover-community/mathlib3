@@ -666,12 +666,9 @@ instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ�
   mul_action R (measure α) :=
 injective.mul_action _ to_outer_measure_injective smul_to_outer_measure
 
--- there is no `function.injective.add_comm_monoid_smul` so we do this in two steps
 instance add_comm_monoid [measurable_space α] : add_comm_monoid (measure α) :=
-{ ..(to_outer_measure_injective.add_monoid_smul to_outer_measure zero_to_outer_measure
-      add_to_outer_measure (λ _ _, smul_to_outer_measure _ _) : add_monoid (measure α)),
-  ..(to_outer_measure_injective.add_comm_semigroup to_outer_measure add_to_outer_measure :
-      add_comm_semigroup (measure α)) }
+to_outer_measure_injective.add_comm_monoid to_outer_measure zero_to_outer_measure
+      add_to_outer_measure (λ _ _, smul_to_outer_measure _ _)
 
 /-- Coercion to function as an additive monoid homomorphism. -/
 def coe_add_hom {m : measurable_space α} : measure α →+ (set α → ℝ≥0∞) :=

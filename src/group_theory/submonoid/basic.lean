@@ -363,6 +363,17 @@ lemma supr_eq_closure {ι : Sort*} (p : ι → submonoid M) :
   (⨆ i, p i) = submonoid.closure (⋃ i, (p i : set M)) :=
 by simp_rw [submonoid.closure_Union, submonoid.closure_eq]
 
+@[to_additive]
+lemma disjoint_def {p₁ p₂ : submonoid M} :
+  disjoint p₁ p₂ ↔ ∀ {x : M}, x ∈ p₁ → x ∈ p₂ → x = 1 :=
+show (∀ x, x ∈ p₁ ∧ x ∈ p₂ → x ∈ ({1} : set M)) ↔ _, by simp
+
+@[to_additive]
+lemma disjoint_def' {p₁ p₂ : submonoid M} :
+  disjoint p₁ p₂ ↔ ∀ {x y : M}, x ∈ p₁ → y ∈ p₂ → x = y → x = 1 :=
+disjoint_def.trans ⟨λ h x y hx hy hxy, h hx $ hxy.symm ▸ hy,
+  λ h x hx hx', h hx hx' rfl⟩
+
 end submonoid
 
 namespace monoid_hom

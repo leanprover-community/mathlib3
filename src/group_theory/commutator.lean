@@ -79,6 +79,15 @@ begin
     exact h p hp q hq, }
 end
 
+lemma commutator_eq_bot_iff_le_centralizer {H₁ H₂ : subgroup G} :
+  ⁅H₁, H₂⁆ = ⊥ ↔ H₁ ≤ H₂.centralizer :=
+begin
+  rw [eq_bot_iff, commutator_le],
+  refine forall_congr (λ p, forall_congr (λ hp, forall_congr (λ q, forall_congr (λ hq, _)))),
+  change ⁅p, q⁆ = (1 : G) ↔ q * p = p * q,
+  -- need commutator_eq_one_iff
+end
+
 lemma commutator_containment (H₁ H₂ : subgroup G) {p q : G} (hp : p ∈ H₁) (hq : q ∈ H₂) :
   p * q * p⁻¹ * q⁻¹ ∈ ⁅H₁, H₂⁆ :=
 (commutator_le H₁ H₂ ⁅H₁, H₂⁆).mp (le_refl ⁅H₁, H₂⁆) p hp q hq

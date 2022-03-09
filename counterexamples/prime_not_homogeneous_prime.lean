@@ -20,7 +20,7 @@ We first give the two element set `ι = {0, 1}` a structure of linear ordered ad
 monoid by setting `0 + 0 = 0` and `_ + _ = 1` and `0 < 1`. Then we use `ι` to grade `ℤ²` by
 setting `{(a, a) | a ∈ ℤ}` to have grade `0`; and `{(0, b) | b ∈ ℤ}`. Then the ideal
 `I = span {(0, 2)}` is certainly homogeneous and not prime. But it is also homogeneously prime, i.e.
-if `(a, b), (c, d)` are two homogeneous element then `(a, b) * (c, d) ∈ I` implies either
+if `(a, b), (c, d)` are two homogeneous elements then `(a, b) * (c, d) ∈ I` implies either
 `(a, b) ∈ I` or `(c, d) ∈ I`.
 
 

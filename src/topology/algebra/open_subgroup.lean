@@ -207,7 +207,8 @@ lemma is_open_of_open_subgroup {U : open_subgroup G} (h : U.1 ≤ H) :
 H.is_open_of_mem_nhds (filter.mem_of_superset U.mem_nhds_one h)
 
 /-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
-@[to_additive]
+@[to_additive "If a subgroup of an additive topological group has `0` in its interior, then it is
+open."]
 lemma is_open_of_one_mem_interior {G : Type*} [group G] [topological_space G]
   [topological_group G] {H : subgroup G} (h_1_int : (1 : G) ∈ interior (H : set G)) :
   is_open (H : set G) :=

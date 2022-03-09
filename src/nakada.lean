@@ -1947,6 +1947,19 @@ begin
   simp [mul_comm]
 end
 
+lemma nakada_extend_le_pivot [comm_semigroup S] [preorder S] [decidable_eq S'] [has_mul S']
+  (f : S ≃ S') (x y : S) :
+  @has_le.le S' (nakada_extend_le f.symm x y) (f x) (f y) :=
+begin
+  simp only [nakada_extend_le_def, ne.def, embedding_like.apply_eq_iff_eq, equiv.symm_apply_apply],
+  split_ifs with hxy hxy,
+  { trivial },
+  refine ⟨_, 1, 1, _⟩,
+  { rintro rfl,
+    exact absurd rfl hxy },
+  simp [mul_comm]
+end
+
 -- Theorem 13, sufficiency vi) first half
 lemma nakada_extend_normal {F : Type*} [semigroup S] [has_le S] [decidable_eq S'] [has_mul S']
   [mul_hom_class F S' S] (f : F) (x y : S)
@@ -1961,6 +1974,23 @@ begin
     simpa only [hj, pnpow_mul, map_pnpow] using h }
 end
 
+lemma nakada_extend_normal_le {F : Type*} [semigroup S] [preorder S] [decidable_eq S'] [has_mul S']
+  [mul_hom_class F S' S] (f : F) (x y : S)
+  {a b : S'} {n : ℕ+} (h : @has_le.le S' (nakada_extend_le f x y) (a ^ n) (b ^ n)) :
+  @has_le.le S' (nakada_extend_le f x y) a b :=
+begin
+  rw nakada_extend_le_def at h ⊢,
+  by_cases hab : a = b,
+  { simp [hab] },
+  simp only [hab, ne.def, not_false_iff, true_and, if_true_left_eq_or, false_or] at h ⊢,
+  obtain (h|⟨hne, i, j, h⟩) := h,
+  { refine ⟨n, 0, _⟩,
+    simp [h, ←map_pnpow] },
+  refine ⟨n * i, j, _⟩,
+  split_ifs with hj hj;
+  simpa only [hj, pnpow_mul, map_pnpow] using h
+end
+
 -- Theorem 13, sufficiency vi) second half
 lemma nakada_extend_strong {F : Type*} [comm_semigroup S] [has_le S] [nakada_strong S]
   [decidable_eq S'] [has_mul S']
@@ -1970,6 +2000,30 @@ lemma nakada_extend_strong {F : Type*} [comm_semigroup S] [has_le S] [nakada_str
 begin
   obtain ⟨hne, n, m, h⟩ := h,
   refine ⟨λ H, hne (by simp [H]), n, m, _⟩,
+  simp only [mul_pnpow, mul_assoc, map_mul] at h,
+  split_ifs with hm hm,
+  { rw if_pos hm at h,
+    exact strong h },
+  { rw if_neg hm at h,
+    exact strong h }
+end
+
+lemma nakada_extend_strong_le {F : Type*} [comm_semigroup S] [partial_order S] [nakada_strong S]
+  [decidable_eq S'] [has_mul S']
+  [mul_hom_class F S' S] (f : F) (x y : S) (hf : function.injective f)
+  {a b c : S'} (h : @has_le.le S' (nakada_extend_le f x y) (c * a) (c * b)) :
+  @has_le.le S' (nakada_extend_le f x y) a b :=
+begin
+  rw nakada_extend_le_def at h ⊢,
+  split_ifs with hab hab,
+  { trivial },
+  have hab' : c * a ≠ c * b,
+  { contrapose! hab,
+    replace hab : f c * f a = f c * f b := by simp [←map_mul, hab],
+    exact hf (nakada_strong.cancel_left hab) },
+  rw if_neg hab' at h,
+  obtain ⟨-, n, m, h⟩ := h,
+  refine ⟨hab, n, m, _⟩,
   simp only [mul_pnpow, mul_assoc, map_mul] at h,
   split_ifs with hm hm,
   { rw if_pos hm at h,
@@ -2043,7 +2097,7 @@ end extend
 
 end page185
 
-section page186
+section page187
 
 variables {S : Type*}
 
@@ -2096,4 +2150,74 @@ begin
   exact ⟨r, hr, hstrong r hr a hab⟩
 end
 
-end page186
+-- Theorem 14, construction
+lemma linear_order_of_chain {S' F : Type*} [decidable_eq S'] [comm_semigroup S] [partial_order S]
+  [nakada_po S]
+  [nakada_strong S] [normal_order S] [has_mul S']
+  [mul_equiv_class F S' S] (f : F) (x y : S) (hf : function.injective f) (hxy : ¬ y ≤ x) :
+  nonempty (linear_order S') :=
+begin
+  -- let sr := {r : S' → S' → Prop | is_partial_order S' r ∧
+  --   (∀ {a b : S'} {n : ℕ+}, r (a ^ n) (b ^ n) → r a b) ∧
+  --   contravariant S' S' (*) r ∧ (@has_le.le S' (nakada_extend_le f x y)) ≤ r},
+  let sr := {r : S' → S' → Prop | is_partial_order S' r ∧
+    (∀ {a b : S'} {n : ℕ+}, r (a ^ n) (b ^ n) → r a b) ∧
+    contravariant S' S' (*) r},
+  have hsr : ∀ C : set (S' → S' → Prop), C ⊆ sr → zorn.chain (≤) C →
+    ∀ y ∈ C, ∃ ub ∈ sr, ∀ z ∈ C, z ≤ ub,
+  { intros C hC hC' s hs,
+    letI := partial_order_of_chain C (λ r hr, (hC hr).left) hC' ⟨s, hs⟩,
+    haveI : nakada_strong S' := nakada_strong_of_chain C (λ r hr, (hC hr).left) hC' ⟨s, hs⟩
+      (λ r hr, (hC hr).right.right),
+    haveI : normal_order S' := normal_order_of_chain C (λ r hr, (hC hr).left) hC' ⟨s, hs⟩
+      (λ r hr, (hC hr).right.left),
+    refine ⟨(≤), ⟨is_partial_order.mk, λ _ _ _, normal_order.le_of_pnpow_le_pnpow,
+      λ _ _ _, strong⟩,
+    -- ⟨is_partial_order.mk, λ _ _ _, nakada_extend_normal_le f x y,
+    --   λ _ _ _, nakada_extend_strong_le f x y hf, refl _⟩,
+      λ r hr a b h, ⟨r, hr, h⟩⟩ },
+  have hle : (@has_le.le S' (nakada_extend_le f x y)) ∈ sr := sorry,
+  obtain ⟨s, hs, hs'⟩ := zorn.zorn_nonempty_partial_order₀ sr hsr
+    (@has_le.le S' (nakada_extend_le f x y)) hle,
+  have htotal : is_total S' s,
+  { constructor,
+    intros a b,
+    by_cases hab : (@has_le.le S' (nakada_extend_le f x y) a b),
+    { exact or.inl (hs'.left _ _ hab) },
+    by_cases hab' : (@has_le.le S' (nakada_extend_le f x y) b a),
+    { exact or.inr (hs'.left _ _ hab') },
+    by_contra h,
+    rw not_or_distrib at h,
+    let z : S' → S' → Prop := @has_le.le S' (nakada_extend_le f (f b) (f a)),
+    have hfab : ¬ (f a) ≤ (f b),
+    { contrapose! hab,
+      simp only [nakada_extend_le_def, ne.def, if_true_left_eq_or],
+      by_cases H : a = b,
+      { simp [H] },
+      refine or.inr ⟨H, 1, 0, _⟩,
+      simp [hab] },
+    -- simp only [not_or_distrib, nakada_extend_le_def, ne.def, if_true_left_eq_or, not_and,
+    --            not_exists] at hab hab',
+    have hz' : z ∈ sr,
+    { letI hp := nakada_extend_partial_order f (f b) (f a) hf hfab,
+      refine ⟨is_partial_order.mk, λ _ _ _, nakada_extend_normal_le f (f b) (f a),
+        λ _ _ _, nakada_extend_strong_le f (f b) (f a) hf⟩ },
+    have hzs : s ≤ z,
+    { intros c d hcd,
+      contrapose! hcd,
+      simp [z, not_or_distrib] at hcd,
+      sorry },
+
+  },
+  let L : linear_order S' :=
+    { le := s,
+      le_refl := @is_refl.refl _ _ hs.left.to_is_preorder.to_is_refl,
+      le_trans := @is_trans.trans _ _ hs.left.to_is_preorder.to_is_trans,
+      le_antisymm := @is_antisymm.antisymm _ _ hs.left.to_is_antisymm,
+      le_total := sorry,
+      decidable_le := sorry },
+
+end
+
+
+end page187

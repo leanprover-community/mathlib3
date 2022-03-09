@@ -142,3 +142,14 @@ end
 
 alias complete_lattice.independent_iff_sup_indep ↔ complete_lattice.independent.sup_indep
   finset.sup_indep.independent
+
+/-- A variant of `complete_lattice.independent_iff_sup_indep` for `fintype`s. -/
+lemma complete_lattice.independent_iff_sup_indep_univ [complete_lattice α] [fintype ι] {f : ι → α} :
+  complete_lattice.independent f ↔ finset.univ.sup_indep f :=
+begin
+  classical,
+  simp [finset.sup_indep_iff_disjoint_erase, complete_lattice.independent, finset.sup_eq_supr],
+end
+
+alias complete_lattice.independent_iff_sup_indep_univ ↔ complete_lattice.independent.sup_indep_univ
+  finset.sup_indep.independent_of_univ

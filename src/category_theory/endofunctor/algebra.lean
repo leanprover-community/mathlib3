@@ -39,6 +39,7 @@ namespace algebra
 variables {F : C ⥤ C} (A : algebra F) {A₀ A₁ A₂ : algebra F}
 
 /-
+```
         str
    F A₀ -----> A₀
     |          |
@@ -46,6 +47,7 @@ F f |          | f
     V          V
    F A₁ -----> A₁
         str
+```
 -/
 /-- A morphism between algebras of endofunctor `F` -/
 @[ext] structure hom (A₀ A₁ : algebra F) :=

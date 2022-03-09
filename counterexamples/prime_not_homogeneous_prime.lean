@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Johan Commelin
+Authors: Jujian Zhang
 -/
 import ring_theory.graded_algebra.homogeneous_ideal
 import data.zmod.basic

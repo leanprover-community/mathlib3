@@ -132,7 +132,8 @@ end
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism
  `End(M) ≃ M* ⊗ M`-/
 lemma trace_eq_contract' [finite_dimensional R M] :
-  (linear_map.trace R M) = (contract_left R M) ∘ₗ (dual_tensor_hom_equiv R M M).symm.to_linear_map :=
+  (linear_map.trace R M) =
+  (contract_left R M) ∘ₗ (dual_tensor_hom_equiv R M M).symm.to_linear_map :=
 by simp [linear_equiv.eq_comp_to_linear_map_symm]
 
 

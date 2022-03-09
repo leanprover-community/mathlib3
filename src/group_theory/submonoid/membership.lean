@@ -40,10 +40,6 @@ namespace submonoid
 section assoc
 variables [monoid M] (S : submonoid M)
 
-@[simp, norm_cast, to_additive] theorem coe_pow (x : S) (n : ℕ) :
-  ↑(x ^ n) = (x ^ n : M) :=
-S.subtype.map_pow x n
-
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list S) :
   (l.prod : M) = (l.map coe).prod :=
 S.subtype.map_list_prod l
@@ -77,9 +73,6 @@ lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   {ι : Type*} {t : finset ι} {f : ι → M} (h : ∀c ∈ t, f c ∈ S) :
   ∏ c in t, f c ∈ S :=
 S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
-
-@[to_additive] lemma pow_mem {x : M} (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
-by simpa only [coe_pow] using ((⟨x, hx⟩ : S) ^ n).coe_prop
 
 end assoc
 

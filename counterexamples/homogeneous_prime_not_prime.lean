@@ -12,16 +12,16 @@ import tactic.derive_fintype
 
 In `src/ring_theory/graded_algebra/radical.lean`,  we assumed that the underline grading is inedxed
 by a `linear_ordered_cancel_add_comm_monoid` to prove that a homogeneous ideal is prime if and only
-if it is homogeneously prime, this file is aimed to show that even if this assumption isn't strictly
-necessary, the assumption of "being cancellative" is by constructing a counterexample where the
+if it is homogeneously prime. This file is aimed to show that even if this assumption isn't strictly
+necessary, the assumption of "being cancellative" is. We construct a counterexample where the
 underlying indexing set is a `linear_ordered_add_comm_monoid` but is not cancellative and the
 statement is false.
 
 We first give the two element set `ι = {0, 1}` a structure of linear ordered additive commutative
 monoid by setting `0 + 0 = 0` and `_ + _ = 1` and `0 < 1`. Then we use `ι` to grade `R²` by
-setting `{(a, a) | a ∈ R}` to have grade `0`; and `{(0, b) | b ∈ R}`. Then the ideal
+setting `{(a, a) | a ∈ R}` to have grade `0`; and `{(0, b) | b ∈ R}` to have grade 1. Then the ideal
 `I = span {(0, 2)}` is certainly homogeneous and not prime. But it is also homogeneously prime, i.e.
-if `(a, b), (c, d)` are two homogeneous element then `(a, b) * (c, d) ∈ I` implies either
+if `(a, b), (c, d)` are two homogeneous elements then `(a, b) * (c, d) ∈ I` implies either
 `(a, b) ∈ I` or `(c, d) ∈ I`.
 
 
@@ -44,8 +44,8 @@ inductive two
 
 open two
 
-lemma two.o_ne_z : o ≠ z := by tauto
-lemma two.z_ne_o : z ≠ o := by tauto
+lemma two.o_ne_z : o ≠ z := dec_trivial
+lemma two.z_ne_o : z ≠ o := dec_trivial
 
 instance has_add : has_add two :=
 { add := λ m n,
@@ -161,24 +161,6 @@ def grading.decompose : (R × R) →+ direct_sum two (λ i, grading R i) :=
     simp only [prod.mk_add_mk, submodule.coe_add, subtype.coe_mk, fin.zero_add],
     abel,
   end }
-
-lemma grading.decompose_z (zz : (R × R)) :
-  (grading.decompose zz) z = ⟨(zz.1, zz.1), rfl⟩ :=
-begin
-  cases zz with a b,
-  unfold grading.decompose,
-  simp only [add_monoid_hom.coe_mk, add_apply, of_eq_same, add_right_eq_self],
-  rw of_eq_of_ne _ _ _ _ two.o_ne_z,
-end
-
-lemma grading.decompose_o (zz : (R × R)) :
-  (grading.decompose zz) o = ⟨(0, zz.2 - zz.1), rfl⟩ :=
-begin
-  cases zz with a b,
-  unfold grading.decompose,
-  simp only [add_monoid_hom.coe_mk, add_apply, of_eq_same, add_left_eq_self],
-  rw of_eq_of_ne _ _ _ _ two.z_ne_o,
-end
 
 lemma grading.left_inv :
   function.left_inverse grading.decompose (submodule_coe (grading R)) := λ zz,

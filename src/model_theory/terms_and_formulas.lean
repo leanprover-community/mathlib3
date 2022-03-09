@@ -41,6 +41,14 @@ the continuum hypothesis*][flypitch_itp]
 
 universes u v w u' v'
 
+namespace fin
+
+@[simp] lemma snoc_comp_cast_succ {n : ℕ} {α : Sort*} {a : α} {f : fin n → α} :
+  (snoc f a : fin (n + 1) → α) ∘ cast_succ = f :=
+funext (λ i, by rw [function.comp_app, snoc_cast_succ])
+
+end fin
+
 namespace first_order
 namespace language
 
@@ -519,6 +527,21 @@ begin
   { exact is_atomic_rel _ _ }
 end
 
+lemma is_atomic.lift_at {k m : ℕ} (h : is_atomic φ) : (φ.lift_at k m).is_atomic :=
+begin
+  cases h,
+  { exact is_atomic.equal },
+  { exact is_atomic.rel }
+end
+
+lemma is_atomic.cast {h : l = n} (hφ : is_atomic φ) :
+  (φ.cast h).is_atomic :=
+begin
+  cases hφ,
+  { exact is_atomic.equal },
+  { exact is_atomic.rel }
+end
+
 /-- A quantifier-free formula is a formula defined without quantifiers. These are all equivalent
 to boolean combinations of atomic formulas. -/
 inductive is_qf : L.bounded_formula α n → Prop
@@ -545,6 +568,10 @@ is_qf.of_is_atomic
 lemma is_qf_bot : is_qf (⊥ : L.bounded_formula α n) :=
 is_qf.falsum
 
+lemma is_qf.not {φ : L.bounded_formula α n} (h : is_qf φ) :
+  is_qf φ.not :=
+h.imp is_qf_bot
+
 lemma is_qf.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_qf)
   (f : α → β ⊕ (fin n)) :
   (φ.relabel f).is_qf :=
@@ -555,6 +582,23 @@ begin
     exact (h.relabel f).is_qf },
   { intros _ _ h1 h2,
     exact h1.imp h2 }
+end
+
+lemma is_qf.lift_at {k m : ℕ} (h : is_qf φ) : (φ.lift_at k m).is_qf :=
+begin
+  induction h with _ ih _ _ _ _ ih1 ih2,
+  { exact is_qf_bot },
+  { exact ih.lift_at.is_qf },
+  { exact ih1.imp ih2 }
+end
+
+lemma is_qf.cast {h : l = n} (hφ : is_qf φ) :
+  (φ.cast h).is_qf :=
+begin
+  induction hφ with _ ih _ _ _ _ ih1 ih2,
+  { exact is_qf_bot },
+  { exact ih.cast.is_qf, },
+  { exact ih1.imp ih2 }
 end
 
 /-- Indicates that a bounded formula is in prenex normal form - that is, it consists of quantifiers
@@ -610,6 +654,98 @@ begin
   { intros _ _ h,
     exact h.ex }
 end
+
+lemma is_prenex.cast {h : l = n} (hφ : is_prenex φ) :
+  (φ.cast h).is_prenex :=
+begin
+  revert n h,
+  induction hφ with _ _ ih _ _ _ ih _ _ _ ih; intros,
+  { exact ih.cast.is_prenex },
+  { exact ih.all, },
+  { exact ih.ex, }
+end
+
+lemma is_prenex.lift_at {k m : ℕ} (h : is_prenex φ) : (φ.lift_at k m).is_prenex :=
+begin
+  induction h with _ _ ih _ _ _ ih _ _ _ ih,
+  { exact ih.lift_at.is_prenex },
+  { exact ih.cast.all, },
+  { exact ih.cast.ex }
+end
+
+def to_prenex_imp_right :
+  ∀ {n}, L.bounded_formula α n → L.bounded_formula α n → L.bounded_formula α n
+| n φ (imp (all (imp ψ falsum)) falsum) := ((φ.lift_at 1 n).to_prenex_imp_right ψ).ex
+| n φ (all ψ) := ((φ.lift_at 1 n).to_prenex_imp_right ψ).all
+| n φ ψ := φ.imp ψ
+
+lemma is_qf.to_prenex_imp_right {φ ψ : L.bounded_formula α n} (hψ : is_qf ψ) :
+  φ.to_prenex_imp_right ψ = φ.imp ψ :=
+begin
+  cases hψ with _ ha _ _ hq,
+  { refl },
+  { cases ha; refl },
+  { cases hq with _ ha,
+    { refl },
+    { cases ha; refl },
+    { refl } }
+end
+
+lemma is_prenex_to_prenex_imp_right {φ ψ : L.bounded_formula α n}
+  (hφ : is_qf φ) (hψ : is_prenex ψ) :
+  is_prenex (φ.to_prenex_imp_right ψ) :=
+begin
+  induction hψ with _ _ hψ _ _ _ ih1 _ _ _ ih2,
+  { rw hψ.to_prenex_imp_right,
+    exact (hφ.imp hψ).is_prenex },
+  { exact (ih1 hφ.lift_at).all },
+  { exact (ih2 hφ.lift_at).ex }
+end
+
+def to_prenex_imp :
+  ∀ {n}, L.bounded_formula α n → L.bounded_formula α n → L.bounded_formula α n
+| n (imp (all (imp φ falsum)) falsum) ψ := (φ.to_prenex_imp (ψ.lift_at 1 n)).all
+| n (all φ) ψ := (φ.to_prenex_imp (ψ.lift_at 1 n)).ex
+| _ φ ψ := φ.to_prenex_imp_right ψ
+
+lemma is_qf.to_prenex_imp {φ ψ : L.bounded_formula α n} (h : φ.is_qf) :
+  φ.to_prenex_imp ψ = φ.to_prenex_imp_right ψ :=
+begin
+  cases h with _ ha _ _ hq,
+  { refl },
+  { cases ha; refl },
+  { cases hq with _ ha,
+    { refl },
+    { cases ha; refl },
+    { refl } }
+end
+
+lemma is_prenex_to_prenex_imp {φ ψ : L.bounded_formula α n}
+  (hφ : is_prenex φ) (hψ : is_prenex ψ) :
+  is_prenex (φ.to_prenex_imp ψ) :=
+begin
+  induction hφ with _ _ hφ _ _ _ ih1 _ _ _ ih2,
+  { rw hφ.to_prenex_imp,
+    exact is_prenex_to_prenex_imp_right hφ hψ },
+  { exact (ih1 hψ.lift_at).ex },
+  { exact (ih2 hψ.lift_at).all }
+end
+
+def to_prenex : ∀ {n}, L.bounded_formula α n → L.bounded_formula α n
+| _ falsum        := ⊥
+| _ (equal t₁ t₂) := t₁.bd_equal t₂
+| _ (rel R ts)    := rel R ts
+| _ (imp f₁ f₂)   := f₁.to_prenex.to_prenex_imp f₂.to_prenex
+| _ (all f)       := f.to_prenex.all
+
+lemma to_prenex_is_prenex (φ : L.bounded_formula α n) :
+  φ.to_prenex.is_prenex :=
+φ.induction_on
+  (λ _, is_qf_bot.is_prenex)
+  (λ _ _ _, (is_atomic_bd_equal _ _).is_prenex)
+  (λ _ _ _ _, (is_atomic_rel _ _).is_prenex)
+  (λ _ _ _ h1 h2, is_prenex_to_prenex_imp h1 h2)
+  (λ _ _, is_prenex.all)
 
 end bounded_formula
 
@@ -957,6 +1093,14 @@ lemma inf_semantically_equivalent_not_sup_not :
   T.semantically_equivalent (φ ⊓ ψ) (φ.not ⊔ ψ.not).not :=
 λ M ne str v xs hM, by simp [and_iff_not_or_not]
 
+lemma all_semantically_equivalent_not_ex_not (φ : L.bounded_formula α (n + 1)) :
+  T.semantically_equivalent φ.all φ.not.ex.not :=
+λ M ne str v xs hM, by simp
+
+lemma ex_semantically_equivalent_not_all_not (φ : L.bounded_formula α (n + 1)) :
+  T.semantically_equivalent φ.ex φ.not.all.not :=
+λ M ne str v xs hM, by simp
+
 lemma semantically_equivalent_all_lift_at :
   T.semantically_equivalent φ (φ.lift_at 1 n).all :=
 λ M ne str v xs hM, by { resetI, rw [realize_iff, realize_all_lift_at_one_self] }
@@ -1015,113 +1159,96 @@ begin
   exact hnot (hinf (hnot h1) (hnot h2)),
 end
 
-lemma foo {φ ψ : L.bounded_formula α n} (hφ : is_prenex φ) (hψ : is_prenex ψ) :
-  ∃ (θ : L.bounded_formula α n), (∅ : L.Theory).semantically_equivalent θ (φ.imp ψ) ∧ is_prenex θ :=
+lemma imp_semantically_equivalent_to_prenex_imp_right {φ ψ : L.bounded_formula α n}
+  (hφ : is_qf φ) (hψ : is_prenex ψ) :
+  (∅ : L.Theory).semantically_equivalent (φ.imp ψ) (φ.to_prenex_imp_right ψ) :=
+begin
+  revert φ,
+  induction hψ with _ _ hψ _ _ hψ ih _ _ hψ ih; intros φ hφ,
+  { rw hψ.to_prenex_imp_right },
+  { refine Theory.semantically_equivalent.trans _ (ih hφ.lift_at).all,
+    introsI M ne str v xs hM,
+    simp only [realize_iff, realize_imp, realize_all, realize_lift_at_one_self,
+      snoc_comp_cast_succ],
+    exact ⟨λ h1 a h2, h1 h2 a, λ h1 h2 a, h1 a h2⟩, },
+  { refine Theory.semantically_equivalent.trans _ (ih hφ.lift_at).ex,
+    introsI M ne str v xs hM,
+    simp only [realize_iff, realize_imp, realize_ex, realize_lift_at_one_self,
+      snoc_comp_cast_succ],
+    refine ⟨λ h', _, _⟩,
+    { by_cases φ.realize v xs,
+      { obtain ⟨a, ha⟩ := h' h,
+        exact ⟨a, λ _, ha⟩ },
+      { inhabit M,
+        exact ⟨default, λ h'', (h h'').elim⟩ } },
+    { rintro ⟨a, ha⟩ h,
+      exact ⟨a, ha h⟩ } }
+end
+
+lemma imp_semantically_equivalent_to_prenex_imp {φ ψ : L.bounded_formula α n}
+  (hφ : is_prenex φ) (hψ : is_prenex ψ) :
+  (∅ : L.Theory).semantically_equivalent (φ.imp ψ) (φ.to_prenex_imp ψ) :=
 begin
   revert ψ,
-  refine hφ.induction_all_not _ _ _,
-  { intros m φ hφ ψ hψ,
-    revert φ,
-    refine hψ.induction_all_not _ _ _,
-    { rintros m ψ hψ φ hφ,
-      exact ⟨φ.imp ψ, refl _, (hφ.imp hψ).is_prenex⟩ },
-    { rintros m ψ hψ φ hφ,
-      let φ' : L.bounded_formula α (m + 1) := φ.cast m.le_succ,
-      have hφ' : φ'.is_qf,
-      { induction hφ with _ h1 _ _ _ _ h2 h3 h4 h5 h6,
-        { exact is_qf_bot },
-        { refine is_atomic.is_qf _,
-          induction h1,
-          { exact is_atomic_bd_equal _ _ },
-          { exact is_atomic_rel _ _ } },
-        { exact h2.imp h3 } },
-      obtain ⟨θ, h1, hθ⟩ := hψ hφ',
-      refine ⟨θ.all, _, hθ.all⟩,
-      introsI M ne str v xs hM,
-      simp only [h1.realize_bd_iff hM, realize_iff, realize_all,
-        realize_imp],
-      split,
-      { intros h1 h2 a,
-        refine h1 a _,
-        induction φ,
-        { sorry },
-        { have h2 := (realize_bd_equal _ _).2 h2,
-          simp only [realize_bd_equal] at h2,
-          refine (realize_bd_equal _ _).1 _,
-          simp only [realize_bd_equal, term.realize_relabel],
-          convert h2,
-          { ext i,
-            cases i,
-            { simp },
-            simp only [function.comp_app, sum.map_inr, sum.elim_inr],
-            cases i with i hi,
-            cases i,
-            simp,
-
-          },
-
-        },
-
-      },
-
-    }
-
-  },
+  induction hφ with _ _ hφ _ _ hφ ih _ _ hφ ih; intros ψ hψ,
+  { rw hφ.to_prenex_imp,
+    exact imp_semantically_equivalent_to_prenex_imp_right hφ hψ },
+  { refine Theory.semantically_equivalent.trans _ (ih hψ.lift_at).ex,
+    introsI M ne str v xs hM,
+    simp only [realize_iff, realize_imp, realize_all, realize_ex, realize_lift_at_one_self,
+      snoc_comp_cast_succ],
+    refine ⟨λ h', _, _⟩,
+    { by_cases ψ.realize v xs,
+      { inhabit M,
+        exact ⟨default, λ h'', h⟩ },
+      { obtain ⟨a, ha⟩ := not_forall.1 (h ∘ h'),
+        exact ⟨a, λ h, (ha h).elim⟩ }, },
+    { rintro ⟨a, ha⟩ h,
+      exact ha (h a) } },
+  { refine Theory.semantically_equivalent.trans _ (ih hψ.lift_at).all,
+    introsI M ne str v xs hM,
+    simp only [realize_iff, realize_imp, realize_ex, forall_exists_index, realize_all,
+      realize_lift_at_one_self, snoc_comp_cast_succ] },
 end
 
-lemma semantically_equivalent_prenex (φ : L.bounded_formula α n) :
-  ∃ ψ, (∅ : L.Theory).semantically_equivalent φ ψ ∧ is_prenex ψ :=
-begin
-  refine φ.induction_on (λ _, ⟨⊥, refl _, is_qf_bot.is_prenex⟩) _ _ _ _,
-  { intros,
-    exact ⟨_, refl _, (is_atomic_bd_equal _ _).is_prenex⟩ },
-  { intros,
-    exact ⟨_, refl _, (is_atomic_rel _ _).is_prenex⟩ },
-  { rintros n φ ψ ⟨φ', h, hφ'⟩,
-    revert φ ψ,
-    refine hφ'.induction_all_not _ _ _,
-    { rintros m φ hφ ψ φ' h ⟨ψ', h', hψ'⟩,
+lemma semantically_equivalent_to_prenex (φ : L.bounded_formula α n) :
+  (∅ : L.Theory).semantically_equivalent φ φ.to_prenex :=
+φ.induction_on
+  (λ _, refl _)
+  (λ _ _ _, refl _)
+  (λ _ _ _ _, refl _)
+  (λ _ φ ψ hφ hψ, (hφ.imp hψ).trans
+      (imp_semantically_equivalent_to_prenex_imp φ.to_prenex_is_prenex ψ.to_prenex_is_prenex))
+  (λ _ _ h, h.all)
 
-
-
-    },
-    sorry,
-  },
-  { rintros n φ ⟨ψ, h, hψ⟩,
-    exact ⟨ψ.all, h.all, hψ.all⟩ }
-end
-
-lemma induction_on_prenex {P : Π {m}, L.bounded_formula α m → Prop} (φ : L.bounded_formula α n)
-  (hqf : ∀ (ψ : L.bounded_formula α n), is_qf ψ → P ψ)
+lemma induction_on_all_ex {P : Π {m}, L.bounded_formula α m → Prop} (φ : L.bounded_formula α n)
+  (hqf : ∀ {m} {ψ : L.bounded_formula α m}, is_qf ψ → P ψ)
   (hall : ∀ {m} {ψ  : L.bounded_formula α (m + 1)} (h : P ψ), P ψ.all)
   (hex : ∀ {m} {φ : L.bounded_formula α (m + 1)} (h : P φ), P φ.ex)
-  (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
+  (hse : ∀ {m} {φ₁ φ₂ : L.bounded_formula α m}
     (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
   P φ :=
 begin
-  refine φ.induction_on _ _ _ _ _,
-  { exact hqf _ is_qf_bot },
-  { exact hqf _ (is_atomic_bd_equal _ _).is_qf },
-  { exact hqf _ (is_atomic_rel _ _).is_qf },
-  { refine hqf _ (h1.bd_imp h2), },
-
+  suffices h' : ∀ {m} {φ : L.bounded_formula α m}, φ.is_prenex → P φ,
+  { exact (hse φ.semantically_equivalent_to_prenex).2 (h' φ.to_prenex_is_prenex) },
+  intros m φ hφ,
+  induction hφ with _ _ hφ _ _ _ hφ _ _ _ hφ,
+  { exact hqf hφ },
+  { exact hall hφ, },
+  { exact hex hφ, },
 end
 
 lemma induction_on_exists_not {P : Π {m}, L.bounded_formula α m → Prop} (φ : L.bounded_formula α n)
-  (hqf : ∀ (ψ : L.bounded_formula α n), is_qf ψ → P ψ)
+  (hqf : ∀ {m} {ψ : L.bounded_formula α m}, is_qf ψ → P ψ)
   (hnot : ∀ {m} {φ : L.bounded_formula α m} (h : P φ), P φ.not)
   (hex : ∀ {m} {φ : L.bounded_formula α (m + 1)} (h : P φ), P φ.ex)
-  (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
-  (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
+  (hse : ∀ {m} {φ₁ φ₂ : L.bounded_formula α m}
+    (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
   P φ :=
-begin
-  induction φ with _ _ _ _ _ _ _ _ _ _ _ h1 h2,
-  { exact hqf _ is_qf_bot },
-  { exact hqf _ (is_atomic_bd_equal _ _).is_qf },
-  { exact hqf _ (is_atomic_rel _ _).is_qf },
-  { refine hqf _ (h1.imp h2), },
-end
-
+φ.induction_on_all_ex
+  (λ _ _, hqf)
+  (λ _ φ hφ, (hse φ.all_semantically_equivalent_not_ex_not).2 (hnot (hex (hnot hφ))))
+  (λ _ _, hex) (λ _ _ _, hse)
 
 end bounded_formula
 

@@ -2303,8 +2303,6 @@ rfl
 end sum
 
 section
-<<<<<<< HEAD
-
 variables [has_zero M] [monoid_with_zero R] [mul_action_with_zero R M]
 
 @[simp] lemma single_one_smul (a b : α) (f : α → M) :
@@ -2315,9 +2313,6 @@ end
 
 section
 variables [group G] [mul_action G α] [add_comm_monoid M]
-=======
-variables [monoid G] [mul_action G α] [add_comm_monoid M]
->>>>>>> 9facd190ef13859e5b7a0677182d87e529e7d8f8
 
 /-- Scalar multiplication acting on the domain.
 

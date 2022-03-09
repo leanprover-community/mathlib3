@@ -11,7 +11,7 @@ import tactic.derive_fintype
 
 In `src/ring_theory/graded_algebra/radical.lean`,  we assumed that the underline grading is inedxed
 by a `linear_ordered_cancel_add_comm_monoid` to prove that a homogeneous ideal is prime if and only
-if it is homogeneously prime, this file is aimed to show that even if this assumption isn't strictly
+if it is homogeneously prime. This file is aimed to show that even if this assumption isn't strictly
 necessary, the assumption of "being cancellative" certainly is. We construct a counterexample where the
 underlying indexing set is a `linear_ordered_add_comm_monoid` but is not cancellative and the
 statement is false.

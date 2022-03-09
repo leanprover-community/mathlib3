@@ -75,7 +75,7 @@ complete_lattice.copy (galois_coinsertion.lift_complete_lattice gi)
 /- bot -/ ⟨∅, is_open_empty⟩ rfl
 /- sup -/ (λ U V, ⟨↑U ∪ ↑V, U.2.union V.2⟩) rfl
 /- inf -/ (λ U V, ⟨↑U ∩ ↑V, U.2.inter V.2⟩)
-  (funext $ λ U, funext $ λ V, ext (is_open.inter U.2 V.2).interior_eq.symm)
+  (funext $ λ U, funext $ λ V, ext (U.2.inter V.2).interior_eq.symm)
 /- Sup -/ _ rfl
 /- Inf -/ _ rfl
 

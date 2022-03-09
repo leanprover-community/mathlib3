@@ -265,7 +265,7 @@ lemma eq_top_iff_forall_le (x : enat) : x = ⊤ ↔ ∀ n : ℕ, (n : enat) ≤ 
 (eq_top_iff_forall_lt x).trans
 ⟨λ h n, (h n).le, λ h n, lt_of_lt_of_le (coe_lt_coe.mpr n.lt_succ_self) (h (n + 1))⟩
 
-lemma le_iff_of_dom {a b : enat} (h : a.dom) : ↑(a.get h) ≤ b ↔ a ≤ b :=
+lemma get_le_iff_of_dom {a b : enat} (h : a.dom) : ↑(a.get h) ≤ b ↔ a ≤ b :=
 begin
   refine ⟨λ H, _, λ H, (enat.coe_le_iff (a.get h) b).mpr (λ h', enat.get_le_get.2 H)⟩,
   by_cases h' : b.dom,

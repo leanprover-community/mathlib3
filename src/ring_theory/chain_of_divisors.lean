@@ -86,7 +86,7 @@ begin
 end
 
 lemma prime_dvd_eq_second_of_chain {p q r : associates M} {n : ℕ} (hn : n ≠ 0)
-  (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
+  {c : fin (n + 1) → associates M} (h₁ : strict_mono c)
   (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i)
   (hp : prime p) (hr : r ∣ q) (hp' : p ∣ r) :
   p = c 1 :=
@@ -116,14 +116,14 @@ begin
 end
 
 lemma card_subset_divisors_le_length_of_chain {q : associates M}
-  {n : ℕ} (c : fin (n + 1) → associates M) (h₂ : ∀ (r : associates M), r ≤ q ↔ ∃ i, r = c i)
-  (m : finset (associates M)) (hm : ∀ r, r ∈ m → r ≤ q) : m.card ≤ n + 1 :=
+  {n : ℕ} {c : fin (n + 1) → associates M} (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i)
+  {m : finset (associates M)} (hm : ∀ r, r ∈ m → r ≤ q) : m.card ≤ n + 1 :=
 begin
   classical,
   have mem_image : ∀ (r : associates M), r ≤ q → r ∈ finset.univ.image c,
   { intros r hr,
     rw finset.mem_image,
-    obtain ⟨i, hi⟩ := (h₂ r).1 hr,
+    obtain ⟨i, hi⟩ := h₂.1 hr,
     exact ⟨i, finset.mem_univ _, hi.symm⟩ },
   have subset_image : m ⊆ finset.univ.image c := λ x hx, (mem_image x) (hm x hx),
   rw ← finset.card_fin (n + 1),
@@ -133,7 +133,7 @@ end
 variables [unique_factorization_monoid M]
 
 lemma mem_chain_eq_pow_second_of_chain {q r : associates M} {n : ℕ} (hn : n ≠ 0)
-  (c : fin (n + 1) → associates M) (h₁ : strict_mono c)
+  {c : fin (n + 1) → associates M} (h₁ : strict_mono c)
   (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i) (hr : r ∣ q)
   (hq : q ≠ 0) : ∃ (i : fin (n + 1)), r = (c 1) ^ (i : ℕ) :=
 begin
@@ -142,7 +142,7 @@ begin
   have hi : normalized_factors r = multiset.repeat (c 1) i,
   { apply multiset.eq_repeat_of_mem,
     intros b hb,
-    refine prime_dvd_eq_second_of_chain hn c h₁ (λ r', h₂) (prime_of_normalized_factor b hb) hr
+    refine prime_dvd_eq_second_of_chain hn h₁ (λ r', h₂) (prime_of_normalized_factor b hb) hr
       (dvd_of_mem_normalized_factors hb) },
   have H : r = (c 1)^i,
   { have := unique_factorization_monoid.normalized_factors_prod (ne_zero_of_dvd_ne_zero hq hr),
@@ -160,8 +160,7 @@ begin
 
   suffices H' : ∀ r ∈ (finset.univ.image (λ (m : fin (i + 1)), (c 1) ^ (m : ℕ))), r ≤ q,
   { simp only [← nat.succ_le_iff, nat.succ_eq_add_one, ← this],
-    apply card_subset_divisors_le_length_of_chain c (λ r', h₂) (finset.univ.image
-        (λ (m : fin (i + 1)), (c 1) ^ (m : ℕ))) H' },
+    apply card_subset_divisors_le_length_of_chain @h₂ H' },
 
   simp only [finset.mem_image],
   rintros r ⟨a, ha, rfl⟩,
@@ -177,7 +176,7 @@ lemma eq_pow_second_of_chain_of_has_chain {q : associates M} {n : ℕ} (hn : n �
   (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i) (hq : q ≠ 0) : q = (c 1)^n :=
 begin
   classical,
-  obtain ⟨i, hi'⟩ := mem_chain_eq_pow_second_of_chain hn c h₁ (λ r, h₂) (dvd_refl q) hq,
+  obtain ⟨i, hi'⟩ := mem_chain_eq_pow_second_of_chain hn h₁ (λ r, h₂) (dvd_refl q) hq,
   suffices : n ≤ i,
   { rwa le_antisymm (nat.succ_le_succ_iff.mp i.prop) this at hi' },
 
@@ -261,5 +260,5 @@ begin
       (part.eq_some_iff.mpr _),
     rw ← H,
     exact part.get_mem H_finite },
-  exact (enat.le_iff_of_dom _).1 temp,
+  exact (enat.get_le_iff_of_dom _).1 temp,
 end

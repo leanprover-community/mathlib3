@@ -71,11 +71,11 @@ def gi : galois_coinsertion subtype.val (@interior α _) :=
 instance : complete_lattice (opens α) :=
 complete_lattice.copy (galois_coinsertion.lift_complete_lattice gi)
 /- le  -/ (λ U V, U ⊆ V) rfl
-/- top -/ ⟨set.univ, is_open_univ⟩ (subtype.ext_iff_val.mpr interior_univ.symm)
+/- top -/ ⟨univ, is_open_univ⟩ (ext interior_univ.symm)
 /- bot -/ ⟨∅, is_open_empty⟩ rfl
-/- sup -/ (λ U V, ⟨↑U ∪ ↑V, is_open.union U.2 V.2⟩) rfl
-/- inf -/ (λ U V, ⟨↑U ∩ ↑V, is_open.inter U.2 V.2⟩)
-  (by { funext, exact subtype.ext (is_open.inter U.2 V.2).interior_eq.symm })
+/- sup -/ (λ U V, ⟨↑U ∪ ↑V, U.2.union V.2⟩) rfl
+/- inf -/ (λ U V, ⟨↑U ∩ ↑V, U.2.inter V.2⟩)
+  (funext $ λ U, funext $ λ V, ext (is_open.inter U.2 V.2).interior_eq.symm)
 /- Sup -/ _ rfl
 /- Inf -/ _ rfl
 

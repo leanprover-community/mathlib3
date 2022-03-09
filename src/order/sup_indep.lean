@@ -65,7 +65,7 @@ lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
 ⟨λ hs i hi, hs (erase_subset _ _) hi (not_mem_erase _ _), λ hs t ht i hi hit,
   (hs i hi).mono_right (sup_mono $ λ j hj, mem_erase.2 ⟨ne_of_mem_of_not_mem hj hit, ht hj⟩)⟩
 
-lemma sup_indep_pair [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
+@[simp] lemma sup_indep_pair [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
   ({i, j} : finset ι).sup_indep f ↔ disjoint (f i) (f j) :=
 ⟨λ h, h.pairwise_disjoint (by simp) (by simp) hij, λ h, begin
   rw sup_indep_iff_disjoint_erase,

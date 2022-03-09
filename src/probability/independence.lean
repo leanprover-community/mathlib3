@@ -143,25 +143,25 @@ def cond_indep_sets {α} [measurable_space α] (s1 s2 : set (set α)) (C : set (
 `∀ c ∈ C, Indep m μ[|c]`. -/
 def cond_Indep {α ι} (m : ι → measurable_space α) (C : measurable_space α)
   [measurable_space α] (μ : measure α . volume_tac) : Prop :=
-cond_Indep_sets (λ x, (m x).measurable_set') C.measurable_set' μ 
+cond_Indep_sets (λ x, {s | measurable_set[m x] s}) {s | measurable_set[C] s} μ 
 
 /-- Conditional version of `indep` that takes a conditioning measurable space `C` and requires
 `∀ c ∈ C, indep s1 s2 μ[|c]`. -/
 def cond_indep {α} (m₁ m₂ : measurable_space α) (C : measurable_space α)
   [measurable_space α] (μ : measure α . volume_tac) : Prop :=
-cond_indep_sets (m₁.measurable_set') (m₂.measurable_set') C.measurable_set' μ
+cond_indep_sets {s | measurable_set[m₁] s} {s | measurable_set[m₂] s} {s | measurable_set[C] s} μ
 
 /-- Conditional version of `Indep_set` that takes a conditioning event `c` and requires
 `Indep s μ[|c]`. -/
 def cond_Indep_set {α ι} [measurable_space α] (s : ι → set α) (c : set α)
   (μ : measure α . volume_tac) : Prop :=
-cond_Indep_sets (λ i, (generate_from {s i}).measurable_set') {c} μ
+cond_Indep_sets (λ i, {t | measurable_set[generate_from {s i}] t}) {c} μ
 
 /-- Conditional version of `indep_set` that takes a conditioning event `c` and requires
 `indep s1 s2 μ[|c]`. -/
 def cond_indep_set {α} [measurable_space α] (s t : set α) (c : set α)
   (μ : measure α . volume_tac) : Prop :=
-cond_indep_sets (generate_from {s}).measurable_set' (generate_from {t}).measurable_set' {c} μ
+cond_indep_sets {u | measurable_set[generate_from {s}] u} {u | measurable_set[generate_from {t}] u} {c} μ
 
 end definitions
 

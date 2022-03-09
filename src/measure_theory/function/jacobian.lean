@@ -18,7 +18,7 @@ with derivative `f'`. Then we prove that `f '' s` is measurable, and
 its measure is given by the formula `μ (f '' s) = ∫⁻ x in s, |(f' x).det| ∂μ` (where `(f' x).det`
 is almost everywhere measurable, but not Borel-measurable in general). This formula is proved in
 `lintegral_abs_det_fderiv_eq_add_haar_image`. We deduce the change of variables
-formula for the Lebesgue and Bochner integrals, in `integral_image_eq_integral_abs_det_fderiv_smul`
+formula for the Lebesgue and Bochner integrals, in `lintegral_image_eq_lintegral_abs_det_fderiv_mul`
 and `integral_image_eq_integral_abs_det_fderiv_smul` respectively.
 
 ## Main results
@@ -193,7 +193,7 @@ begin
       filter_upwards [(tendsto_order.1 L).2 _ hy.2],
       assume k hk,
       exact (aM k).2 y ⟨hy.1, hk⟩ },
-    apply le_of_tendsto_of_tendsto L1 L2 I },
+    exact le_of_tendsto_of_tendsto L1 L2 I },
   -- choose a dense sequence `d p`
   rcases topological_space.exists_dense_seq E with ⟨d, hd⟩,
   -- split `M n z` into subsets `K n z p` of small diameters by intersecting with the ball
@@ -243,8 +243,8 @@ end
 variables [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
 
 /-- Assume that a function `f` has a derivative at every point of a set `s`. Then one may
-partition `s` into countably many disjoint relatively measurable sets `t n` on which `f` is well
-approximated by linear maps `A n`. -/
+partition `s` into countably many disjoint relatively measurable sets (i.e., intersections
+of `s` with measurable sets `t n`) on which `f` is well approximated by linear maps `A n`. -/
 lemma exists_partition_approximates_linear_on_of_has_fderiv_within_at
   (f : E → F) (s : set E) (f' : E → E →L[ℝ] F) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
   (r : (E →L[ℝ] F) → ℝ≥0) (rpos : ∀ A, r A ≠ 0) :

@@ -274,7 +274,7 @@ begin
         list.nodup_append_of_nodup sl' tl' h]
 end
 
-/- The non-commutative version of `finset.prod_mul_distrib` -/
+/-- The non-commutative version of `finset.prod_mul_distrib` -/
 @[to_additive "The non-commutative version of `finset.sum_add_distrib`"]
 lemma noncomm_prod_mul_distrib {s : finset α} (f : α → β) (g : α → β)
   (comm_ff : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))

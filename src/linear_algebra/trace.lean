@@ -132,8 +132,9 @@ end
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism
  `End(M) ≃ M* ⊗ M`-/
 lemma trace_eq_contract' [finite_dimensional R M] :
-  (linear_map.trace R M) = (contract_left R M) ∘ₗ ↑(dual_tensor_hom_equiv R M M).symm :=
-by simp [linear_map.eq_comp_symm]
+  (linear_map.trace R M) = (contract_left R M) ∘ₗ (dual_tensor_hom_equiv R M M).symm.to_linear_map :=
+by simp [linear_equiv.eq_comp_to_linear_map_symm]
+
 
 /-- The trace of the identity endomorphism is the dimension of the vector space -/
 @[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=

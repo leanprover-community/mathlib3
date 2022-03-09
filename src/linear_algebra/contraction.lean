@@ -109,8 +109,8 @@ provides this equivalence in return for a basis of `M`. -/
 linear_equiv.of_linear (dual_tensor_hom R M N) (hom_dual_tensor R M N b)
   (dual_tensor_hom_hom_dual_tensor b) (hom_dual_tensor_dual_tensor_hom b)
 
-@[simp] lemma dual_tensor_hom_equiv_of_basis_coe :
-  ↑(dual_tensor_hom_equiv_of_basis b : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N) =
+@[simp] lemma dual_tensor_hom_equiv_of_basis_to_linear_map :
+  (dual_tensor_hom_equiv_of_basis b : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N).to_linear_map =
   dual_tensor_hom R M N :=
 rfl
 

@@ -132,40 +132,6 @@ begin
   simp [finsupp.single_eq_pi_single, hij],
 end
 
-section
-
-lemma eq_comp_symm {α β γ : Type*} (e : α ≃ β) (f : β → γ) (g : α → γ) :
-  f = g ∘ e.symm ↔ f ∘ e = g := by {split; intro h; ext, simp [h], simp [←h]}
-
-lemma comp_symm_eq {α β γ : Type*} (e : α ≃ β) (f : β → γ) (g : α → γ) :
-  g ∘ e.symm = f ↔ g = f ∘ e := by {split; intro h; ext, simp [←h], simp [h]}
-
-lemma eq_symm_comp {α β γ : Type*} (e : α ≃ β) (f : γ → α) (g : γ → β) :
-  f = e.symm ∘ g ↔ e ∘ f = g := by {split; intro h; ext, simp [h], simp [←h]}
-
-lemma symm_comp_eq {α β γ : Type*} (e : α ≃ β) (f : γ → α) (g : γ → β) :
-  e.symm ∘ g = f ↔ g = e ∘ f := by {split; intro h; ext, simp [←h], simp [h]}
-
-variables {R}
-variables {M₁ M₂ M₃ : Type*}
-variables [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]
-variables [module R M₁] [module R M₂] [module R M₃]
-variables (e : M₁ ≃ₗ[R] M₂)
-
-lemma linear_map.eq_comp_symm (f : M₂ →ₗ[R] M₃) (g : M₁ →ₗ[R] M₃) :
-  f = g ∘ₗ ↑e.symm ↔ f ∘ₗ ↑e = g := by {split; intro h; ext, simp [h], simp [←h]}
-
-lemma linear_map.comp_symm_eq (f : M₂ →ₗ[R] M₃) (g : M₁ →ₗ[R] M₃) :
-  g ∘ₗ ↑e.symm = f ↔ g= f ∘ₗ ↑e := by {split; intro h; ext, simp [←h], simp [h]}
-
-lemma linear_map.eq_symm_comp (f : M₃ →ₗ[R] M₁) (g : M₃ →ₗ[R] M₂) :
-  f = ↑e.symm ∘ₗ g ↔ ↑e ∘ₗ f = g := by {split; intro h; ext, simp [h], simp [←h]}
-
-lemma linear_map.symm_comp_eq (f : M₃ →ₗ[R] M₁) (g : M₃ →ₗ[R] M₂) :
-  ↑e.symm ∘ₗ g = f ↔ g = ↑e ∘ₗ f := by {split; intro h; ext, simp [←h], simp [h]}
-
-end
-
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism
  `End(M) ≃ M* ⊗ M`-/
 lemma trace_eq_contract' [finite_dimensional R M] :

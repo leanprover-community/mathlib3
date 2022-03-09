@@ -6,7 +6,7 @@ Authors: David Loeffler
 
 import analysis.special_functions.exponential
 import measure_theory.integral.integral_eq_improper
-import measure_theory.integral.limit_comparison
+import measure_theory.integral.exp_decay
 import analysis.special_functions.integrals
 
 /-!

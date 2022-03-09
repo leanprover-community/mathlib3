@@ -68,10 +68,6 @@ begin
   apply doset_eq_of_mem ha,
 end
 
-/--The relation given by saying two elements are related if their double cosets are equal -/
-def rel (H K : set G) : G → G → Prop :=
-λ x y, doset x H K = doset y H K
-
 /-- The setoid defined by the double_coset relation -/
 def setoid (H K : set G) : setoid G :=
 setoid.ker (λ x, doset x H K)
@@ -81,12 +77,12 @@ def quotient (H K : set G) : Type* :=
 quotient (setoid H K)
 
 lemma rel_iff {H K : subgroup G} {x y : G} :
-  rel ↑H ↑K x y ↔ ∃ (a ∈ H) (b ∈ K), y = a * x * b :=
+  (setoid ↑H ↑K).rel x y ↔ ∃ (a ∈ H) (b ∈ K), y = a * x * b :=
 iff.trans ⟨λ hxy, (congr_arg _ hxy).mpr (mem_doset_self H K y),
   λ hxy, (doset_eq_of_mem hxy).symm⟩ mem_doset
 
 lemma bot_rel_eq_left_rel (H : subgroup G) :
-  (rel ↑(⊥ : subgroup G) ↑H) = (quotient_group.left_rel H).rel :=
+  (setoid ↑(⊥ : subgroup G) ↑H).rel = (quotient_group.left_rel H).rel :=
 begin
   ext a b,
   rw rel_iff,
@@ -99,7 +95,7 @@ begin
 end
 
 lemma rel_bot_eq_right_group_rel (H : subgroup G) :
-  (rel ↑H ↑(⊥ : subgroup G)) = (quotient_group.right_rel H).rel :=
+  (setoid ↑H ↑(⊥ : subgroup G)).rel = (quotient_group.right_rel H).rel :=
 begin
   ext a b,
   rw rel_iff,

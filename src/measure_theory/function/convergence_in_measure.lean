@@ -213,7 +213,7 @@ begin
   have hμs : μ s = 0,
   { refine measure_limsup_eq_zero (ne_of_lt $ lt_of_le_of_lt (ennreal.tsum_le_tsum hμS_le) _),
     simp only [ennreal.tsum_geometric, ennreal.one_sub_inv_two, inv_inv],
-    exact dec_trivial },
+    dec_trivial },
   have h_tendsto : ∀ x ∈ sᶜ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)),
   { refine λ x hx, metric.tendsto_at_top.mpr (λ ε hε, _),
     rw [hs, limsup_eq_infi_supr_of_nat] at hx,

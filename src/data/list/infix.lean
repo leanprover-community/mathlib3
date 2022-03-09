@@ -170,6 +170,18 @@ begin
     { exact hl₁.trans (l₂.suffix_cons _) } }
 end
 
+lemma infix_cons_iff : l₁ <:+: a :: l₂ ↔ l₁ <+: a :: l₂ ∨ l₁ <:+: l₂ :=
+begin
+  split,
+  { rintro ⟨⟨hd, tl⟩, t, hl₃⟩,
+    { exact or.inl ⟨t, hl₃⟩ },
+    { simp only [cons_append] at hl₃,
+      exact or.inr ⟨_, t, hl₃.2⟩ } },
+  { rintro (h | hl₁),
+    { exact h.is_infix },
+    { exact infix_cons hl₁ } }
+end
+
 lemma infix_of_mem_join : ∀ {L : list (list α)}, l ∈ L → l <:+: join L
 | (_  :: L) (or.inl rfl) := infix_append [] _ _
 | (l' :: L) (or.inr h)   := is_infix.trans (infix_of_mem_join h) $ (suffix_append _ _).is_infix
@@ -228,25 +240,16 @@ instance decidable_prefix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidab
 
 -- Alternatively, use mem_tails
 instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+ l₂)
-| []        l₂ := is_true ⟨l₂, append_nil _⟩
-| (a :: l₁) [] := is_false $ mt (length_le_of_sublist ∘ is_suffix.sublist) dec_trivial
-| l₁        l₂ := let len1 := length l₁, len2 := length l₂ in
-  if hl : len1 ≤ len2 then
-    decidable_of_iff' (l₁ = drop (len2-len1) l₂) suffix_iff_eq_drop
-  else is_false $ λ h, hl $ length_le_of_sublist $ h.sublist
+| []        l₂        := is_true ⟨l₂, append_nil _⟩
+| (a :: l₁) []        := is_false $ mt (length_le_of_sublist ∘ is_suffix.sublist) dec_trivial
+| l₁        (b :: l₂) := decidable_of_decidable_of_iff (@or.decidable _ _
+    _ (l₁.decidable_suffix l₂)) suffix_cons_iff.symm
 
 instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+: l₂)
 | []        l₂        := is_true ⟨[], l₂, rfl⟩
 | (a :: l₁) []        := is_false $ λ ⟨s, t, te⟩, by simp at te; exact te
-| l₁        (b :: l₂) :=
-  if h : l₁ <+: b :: l₂ then
-    is_true (match h with ⟨t, ht⟩ := ⟨[], t, nil_append l₁ ▸ ht⟩ end)
-  else
-    decidable_of_decidable_of_iff (decidable_infix l₁ l₂)
-      ⟨infix_cons, λ h', match h' with
-      | ⟨[]     , t, e⟩ := by simp at e; exact (h ⟨t, e⟩).elim
-      | ⟨c :: cs, t, e⟩ := ⟨cs, t, tail_eq_of_cons_eq e⟩
-      end⟩
+| l₁        (b :: l₂) := decidable_of_decidable_of_iff (@or.decidable _ _
+    (l₁.decidable_prefix (b :: l₂)) (l₁.decidable_infix l₂)) infix_cons_iff.symm
 
 lemma prefix_take_le_iff {L : list (list (option α))} (hm : m < L.length) :
   L.take m <+: L.take n ↔ m ≤ n :=
@@ -332,17 +335,17 @@ end
 instance : is_partial_order (list α) (<+:) :=
 { refl := prefix_refl,
   trans := λ _ _ _, is_prefix.trans,
-  antisymm := λ l₁ l₂ h₁ h₂, eq_of_prefix_of_length_eq h₁ $ h₁.length_le.antisymm h₂.length_le }
+  antisymm := λ _ _ h₁ h₂, eq_of_prefix_of_length_eq h₁ $ h₁.length_le.antisymm h₂.length_le }
 
 instance : is_partial_order (list α) (<:+) :=
 { refl := suffix_refl,
   trans := λ _ _ _, is_suffix.trans,
-  antisymm := λ l₁ l₂ h₁ h₂, eq_of_suffix_of_length_eq h₁ $ h₁.length_le.antisymm h₂.length_le }
+  antisymm := λ _ _ h₁ h₂, eq_of_suffix_of_length_eq h₁ $ h₁.length_le.antisymm h₂.length_le }
 
 instance : is_partial_order (list α) (<:+:) :=
 { refl := infix_refl,
   trans := λ _ _ _, is_infix.trans,
-  antisymm := λ l₁ l₂ h₁ h₂, eq_of_infix_of_length_eq h₁ $ h₁.length_le.antisymm h₂.length_le }
+  antisymm := λ _ _ h₁ h₂, eq_of_infix_of_length_eq h₁ $ h₁.length_le.antisymm h₂.length_le }
 
 end fix
 

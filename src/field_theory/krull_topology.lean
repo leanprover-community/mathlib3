@@ -32,6 +32,12 @@ all intermediate fields `E` with `E/K` finite dimensional.
 - `krull_topology K L`. Given a field extension `L/K`, this is the topology on `L ≃ₐ[K] L`, induced
   by the group filter basis `gal_group_basis K L`.
 
+## Main Results
+
+- `krull_topology_t2 K L h_int`. For an integral field extension `L/K` (one that satisfies
+  `h_int : algebra.is_integral K L`), the Krull topology on `L ≃ₐ[K] L`, `krull_topology K L`,
+  is Hausdorff.
+
 ## Notations
 
 - In docstrings, we will write `Gal(L/E)` to denote the fixing subgroup of an intermediate field
@@ -187,3 +193,80 @@ group_filter_basis.topology (gal_group_basis K L)
 instance (K L : Type*) [field K] [field L] [algebra K L] :
   topological_group (L ≃ₐ[K] L) :=
 group_filter_basis.is_topological_group (gal_group_basis K L)
+
+section krull_t2
+
+open_locale topological_space filter
+
+/-- If a subgroup of a topological group has `1` in its interior, then it is open. -/
+lemma subgroup.is_open_of_one_mem_interior {G : Type*} [group G] [topological_space G]
+  [topological_group G] {H : subgroup G} (h_1_int : (1 : G) ∈ interior (H : set G)) :
+  is_open (H : set G) :=
+begin
+  have h : 𝓝 1 ≤ 𝓟 (H : set G) :=
+    nhds_le_of_le h_1_int (is_open_interior) (filter.principal_mono.2 interior_subset),
+  rw is_open_iff_nhds,
+  intros g hg,
+  rw (show 𝓝 g = filter.map ⇑(homeomorph.mul_left g) (𝓝 1), by simp),
+  convert filter.map_mono h,
+  simp only [homeomorph.coe_mul_left, filter.map_principal, set.image_mul_left,
+  filter.principal_eq_iff_eq],
+  ext,
+  simp [H.mul_mem_cancel_left (H.inv_mem hg)],
+end
+
+/-- Let `L/E/K` be a tower of fields with `E/K` finite. Then `Gal(L/E)` is an open subgroup of
+  `L ≃ₐ[K] L`. -/
+lemma intermediate_field.fixing_subgroup_is_open {K L : Type*} [field K] [field L] [algebra K L]
+  (E : intermediate_field K L) [finite_dimensional K E] :
+  is_open (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
+begin
+  have h_basis : E.fixing_subgroup.carrier ∈ (gal_group_basis K L) :=
+   ⟨E.fixing_subgroup, ⟨E, _inst_4, rfl⟩, rfl⟩,
+  have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
+  rw mem_nhds_iff at h_nhd,
+  rcases h_nhd with ⟨U, hU_le, hU_open, h1U⟩,
+  exact subgroup.is_open_of_one_mem_interior ⟨U, ⟨hU_open, hU_le⟩, h1U⟩,
+end
+
+/-- If `L/K` is an algebraic extension, then the Krull topology on `L ≃ₐ[K] L` is Hausdorff. -/
+lemma krull_topology_t2 (K L : Type*) [field K] [field L] [algebra K L]
+  (h_int : algebra.is_integral K L) : t2_space (L ≃ₐ[K] L) :=
+{ t2 := λ f g hfg,
+  begin
+    let φ := f⁻¹ * g,
+    cases (fun_like.exists_ne hfg) with x hx,
+    have hφx : φ x ≠ x,
+    { apply ne_of_apply_ne f,
+      change f (f.symm (g x)) ≠ f x,
+      rw [alg_equiv.apply_symm_apply f (g x), ne_comm],
+      exact hx },
+    let E : intermediate_field K L := intermediate_field.adjoin K {x},
+    let h_findim : finite_dimensional K E :=
+      intermediate_field.adjoin.finite_dimensional (h_int x),
+    let H := E.fixing_subgroup,
+    have h_basis : (H : set (L ≃ₐ[K] L)) ∈ gal_group_basis K L := ⟨H, ⟨E, ⟨h_findim, rfl⟩⟩, rfl⟩,
+    have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
+    rw mem_nhds_iff at h_nhd,
+    rcases h_nhd with ⟨W, hWH, hW_open, hW_1⟩,
+    refine ⟨left_coset f W, left_coset g W,
+      ⟨hW_open.left_coset f, hW_open.left_coset g, ⟨1, hW_1, mul_one _⟩, ⟨1, hW_1, mul_one _⟩, _⟩⟩,
+    by_contra h_nonempty,
+    change left_coset f W ∩ left_coset g W ≠ ∅ at h_nonempty,
+    rw set.ne_empty_iff_nonempty at h_nonempty,
+    rcases h_nonempty with ⟨σ, ⟨⟨w1, hw1, hfw1⟩, ⟨w2, hw2, hgw2⟩⟩⟩,
+    rw ← hgw2 at hfw1,
+    rename hfw1 h,
+    rw [eq_inv_mul_iff_mul_eq.symm, ← mul_assoc, mul_inv_eq_iff_eq_mul.symm] at h,
+    have h_in_H : w1 * w2⁻¹ ∈ H := H.mul_mem (hWH hw1) (H.inv_mem (hWH hw2)),
+    rw h at h_in_H,
+    change φ ∈ E.fixing_subgroup at h_in_H,
+    rw mem_fixing_subgroup_iff at h_in_H,
+    specialize h_in_H x,
+    have hxE : x ∈ E,
+    { apply intermediate_field.subset_adjoin,
+      apply set.mem_singleton },
+    exact hφx (h_in_H hxE),
+  end }
+
+end krull_t2

@@ -356,7 +356,7 @@ begin
       ennreal.of_real_one, one_smul] },
   { simp only [matrix.transvection_struct.det, ennreal.of_real_one, map_transvection_volume_pi,
       one_smul, _root_.inv_one, abs_one] },
-  { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, linear_map.map_smul,
+  { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, measure.map_smul,
       IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv₀],
     { apply continuous.measurable,
       apply linear_map.continuous_on_pi },

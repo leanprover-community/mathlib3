@@ -250,7 +250,7 @@ protected def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
 localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigroup set.add_semigroup
   set.monoid set.add_monoid set.comm_monoid set.add_comm_monoid" in pointwise
 
-@[to_additive nsmul_mem_nsmul]
+@[to_additive]
 lemma pow_mem_pow [monoid α] (ha : a ∈ s) (n : ℕ) :
   a ^ n ∈ s ^ n :=
 begin
@@ -261,7 +261,7 @@ begin
     exact set.mul_mem_mul ha ih },
 end
 
-@[to_additive empty_nsmul]
+@[to_additive]
 lemma empty_pow [monoid α] (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
@@ -1075,6 +1075,9 @@ by simp [has_one.one]
 @[simp, to_additive]
 theorem one_subset [has_one α] : (1 : finset α) ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
 
+@[simp, to_additive]
+lemma coe_one [has_one α] : ↑(1 : finset α) = (1 : set α) := coe_singleton 1
+
 section decidable_eq
 variables [decidable_eq α]
 
@@ -1098,7 +1101,7 @@ lemma mem_mul {x : α} : x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z 
 by { simp only [finset.mul_def, and.assoc, mem_image, exists_prop, prod.exists, mem_product] }
 
 @[simp, norm_cast, to_additive]
-lemma coe_mul : (↑(s * t) : set α) = ↑s * ↑t :=
+lemma coe_mul (s t : finset α) : (↑(s * t) : set α) = ↑s * ↑t :=
 by { ext, simp only [mem_mul, set.mem_mul, mem_coe] }
 
 @[to_additive]
@@ -1240,15 +1243,36 @@ function.injective.mul_one_class _ coe_injective (coe_singleton 1) (by simp)
 protected def semigroup [decidable_eq α] [semigroup α] : semigroup (finset α) :=
 function.injective.semigroup _ coe_injective (by simp)
 
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. -/
+protected def has_nsmul [decidable_eq α] [add_monoid α] : has_scalar ℕ (finset α) :=
+{ smul := λ n s, nsmul_rec n s }
+
+/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
+`finset`. -/
+@[to_additive]
+protected def has_npow [decidable_eq α] [monoid α] : has_pow (finset α) ℕ :=
+{ pow := λ s n, npow_rec n s }
+
+localized "attribute [instance] finset.has_nsmul finset.has_npow" in pointwise
+
+@[simp, to_additive]
+lemma coe_pow [decidable_eq α] [monoid α] (s : finset α) (n : ℕ) : ↑(s ^ n) = (s ^ n : set α) :=
+begin
+  change ↑(npow_rec n s) = _,
+  induction n with n ih,
+  { rw [npow_rec, pow_zero, coe_one] },
+  { rw [npow_rec, pow_succ, coe_mul, ih], }
+end
+
 /-- `finset α` is a `monoid` under pointwise operations if `α` is. -/
 @[to_additive /-"`finset α` is an `add_monoid` under pointwise operations if `α` is. "-/]
 protected def monoid [decidable_eq α] [monoid α] : monoid (finset α) :=
-function.injective.monoid _ coe_injective (coe_singleton 1) (by simp)
+function.injective.monoid _ coe_injective coe_one coe_mul coe_pow
 
 /-- `finset α` is a `comm_monoid` under pointwise operations if `α` is. -/
 @[to_additive /-"`finset α` is an `add_comm_monoid` under pointwise operations if `α` is. "-/]
 protected def comm_monoid [decidable_eq α] [comm_monoid α] : comm_monoid (finset α) :=
-function.injective.comm_monoid _ coe_injective (coe_singleton 1) (by simp)
+function.injective.comm_monoid _ coe_injective coe_one coe_mul coe_pow
 
 localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
   finset.add_semigroup finset.monoid finset.add_monoid finset.comm_monoid finset.add_comm_monoid"

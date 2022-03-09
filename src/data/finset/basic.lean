@@ -633,6 +633,9 @@ by exact_mod_cast @set.ssubset_iff_insert α s t
 
 lemma ssubset_insert (h : a ∉ s) : s ⊂ insert a s := ssubset_iff.mpr ⟨a, h, subset.rfl⟩
 
+lemma ssubset_iff_exists_insert_subset {s t : finset α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
+by simp_rw [ssubset_iff_exists_cons_subset, cons_eq_insert]
+
 @[elab_as_eliminator]
 lemma cons_induction {α : Type*} {p : finset α → Prop}
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α} (h : a ∉ s), p s → p (cons a s h)) : ∀ s, p s
@@ -1047,6 +1050,13 @@ lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
 calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
   ... = _ : insert_erase h
 
+lemma ssubset_iff_exists_subset_erase {s t : finset α} : s ⊂ t ↔ ∃ a ∈ t, s ⊆ t.erase a :=
+begin
+  refine ⟨λ h, _, λ ⟨a, ha, h⟩, ssubset_of_subset_of_ssubset h $ erase_ssubset ha⟩,
+  obtain ⟨a, ht, hs⟩ := (not_subset _ _).1 h.2,
+  exact ⟨a, ht, subset_erase.2 ⟨h.1, hs⟩⟩,
+end
+
 @[simp]
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
@@ -1101,6 +1111,8 @@ instance : generalized_boolean_algebra (finset α) :=
 
 lemma not_mem_sdiff_of_mem_right (h : a ∈ t) : a ∉ s \ t :=
 by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]
+
+lemma not_mem_sdiff_of_not_mem_left (h : a ∉ s) : a ∉ s \ t := by simpa
 
 lemma union_sdiff_of_subset (h : s ⊆ t) : s ∪ (t \ s) = t := sup_sdiff_cancel_right h
 
@@ -1902,6 +1914,26 @@ alias map_nonempty ↔ _ finset.nonempty.map
 
 lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
+
+lemma disjoint_range_add_left_embedding (a b : ℕ) :
+  disjoint (range a) (map (add_left_embedding a) (range b)) :=
+begin
+  intros k hk,
+  simp only [exists_prop, mem_range, inf_eq_inter, mem_map, add_left_embedding_apply,
+    mem_inter] at hk,
+  obtain ⟨a, haQ, ha⟩ := hk.2,
+  simpa [← ha] using hk.1,
+end
+
+lemma disjoint_range_add_right_embedding (a b : ℕ) :
+  disjoint (range a) (map (add_right_embedding a) (range b)) :=
+begin
+  intros k hk,
+  simp only [exists_prop, mem_range, inf_eq_inter, mem_map, add_left_embedding_apply,
+    mem_inter] at hk,
+  obtain ⟨a, haQ, ha⟩ := hk.2,
+  simpa [← ha] using hk.1,
+end
 
 end map
 

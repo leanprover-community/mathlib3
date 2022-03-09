@@ -214,7 +214,7 @@ begin
   haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
-  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), linear_map.map_smul,
+  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), map_smul,
     map_map Cesymm.measurable Ce.measurable, ecomp, measure.map_id]
 end
 

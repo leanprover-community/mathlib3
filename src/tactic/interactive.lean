@@ -28,7 +28,7 @@ meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
 do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
   λ s, match _root_.try_for max (tac s) with
   | some r := r
-  | none   := (tactic.trace "try_for timeout, using sorry" >> admit) s
+  | none   := (tactic.trace "try_for timeout, using sorry" >> tactic.admit) s
   end
 
 /-- Multiple `subst`. `substs x y z` is the same as `subst x, subst y, subst z`. -/
@@ -87,7 +87,7 @@ non-interactive tactic for patterns like `tac1; id {tac2}` where `tac2` is non-i
 @[inline] protected meta def id (tac : itactic) : tactic unit := tac
 
 /--
-`work_on_goal n { tac }` creates a block scope for the `n`-goal (indexed from zero),
+`work_on_goal n { tac }` creates a block scope for the `n`-goal,
 and does not require that the goal be solved at the end
 (any remaining subgoals are inserted back into the list of goals).
 
@@ -96,16 +96,17 @@ Typically usage might look like:
 intros,
 simp,
 apply lemma_1,
-work_on_goal 2
+work_on_goal 3
 { dsimp,
   simp },
 refl
 ````
 
-See also `id { tac }`, which is equivalent to `work_on_goal 0 { tac }`.
+See also `id { tac }`, which is equivalent to `work_on_goal 1 { tac }`.
 -/
 meta def work_on_goal : parse small_nat → itactic → tactic unit
-| n t := do
+| 0 t := fail "work_on_goal failed: goals are 1-indexed"
+| (n+1) t := do
   goals ← get_goals,
   let earlier_goals := goals.take n,
   let later_goals := goals.drop (n+1),

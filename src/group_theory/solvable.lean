@@ -7,7 +7,6 @@ Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 import data.fin.vec_notation
 import group_theory.abelianization
 import set_theory.cardinal
-import group_theory.general_commutator
 
 /-!
 # Solvable Groups
@@ -46,7 +45,7 @@ lemma derived_series_normal (n : ℕ) : (derived_series G n).normal :=
 begin
   induction n with n ih,
   { exact (⊤ : subgroup G).normal_of_characteristic },
-  { exactI general_commutator_normal (derived_series G n) (derived_series G n) }
+  { exactI subgroup.commutator_normal (derived_series G n) (derived_series G n) }
 end
 
 @[simp] lemma derived_series_one : derived_series G 1 = commutator G :=
@@ -58,7 +57,7 @@ section commutator_map
 
 lemma commutator_le_map_commutator {H₁ H₂ : subgroup G} {K₁ K₂ : subgroup G'} (h₁ : K₁ ≤ H₁.map f)
   (h₂ : K₂ ≤ H₂.map f) : ⁅K₁, K₂⁆ ≤ ⁅H₁, H₂⁆.map f :=
-by { rw map_general_commutator, exact general_commutator_mono h₁ h₂ }
+by { rw map_commutator, exact commutator_mono h₁ h₂ }
 
 section derived_series_map
 
@@ -69,7 +68,7 @@ lemma map_derived_series_le_derived_series (n : ℕ) :
 begin
   induction n with n ih,
   { simp only [derived_series_zero, le_top], },
-  { simp only [derived_series_succ, map_general_commutator, general_commutator_mono, *], }
+  { simp only [derived_series_succ, map_commutator, commutator_mono, ih] }
 end
 
 variables {f}
@@ -195,8 +194,8 @@ begin
   { exact derived_series_one G },
   rw [derived_series_succ, ih],
   cases (commutator.normal G).eq_bot_or_eq_top with h h,
-  { rw [h, general_commutator_bot] },
-  { rwa [h, ←commutator_def] },
+  { rw [h, commutator_bot] },
+  { rwa h },
 end
 
 lemma is_simple_group.comm_iff_is_solvable :
@@ -236,7 +235,7 @@ begin
   { exact mem_top x },
   { rw key,
     exact (derived_series_normal _ _).conj_mem _
-      (general_commutator_containment _ _ ih ((derived_series_normal _ _).conj_mem _ ih _)) _ },
+      (commutator_containment _ _ ih ((derived_series_normal _ _).conj_mem _ ih _)) _ },
 end
 
 lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :

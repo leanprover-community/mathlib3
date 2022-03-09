@@ -43,7 +43,7 @@ by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, (x i) ^
 tactic.pi_instance_derive_field
 
 -- the attributes are intentionally out of order. `smul_apply` proves `nsmul_apply`.
-@[to_additive nsmul_apply, simp]
+@[to_additive, simp]
 lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n := rfl
 
 @[to_additive]
@@ -189,10 +189,14 @@ This is the `one_hom` version of `pi.mul_single`. -/
 @[to_additive zero_hom.single "The zero-preserving homomorphism including a single value
 into a dependent family of values, as functions supported at a point.
 
-This is the `zero_hom` version of `pi.single`.", simps]
+This is the `zero_hom` version of `pi.single`."]
 def one_hom.single [Π i, has_one $ f i] (i : I) : one_hom (f i) (Π i, f i) :=
 { to_fun := mul_single i,
   map_one' := mul_single_one i }
+
+@[to_additive, simp]
+lemma one_hom.single_apply [Π i, has_one $ f i] (i : I) (x : f i) :
+  one_hom.single f i x = mul_single i x := rfl
 
 /-- The monoid homomorphism including a single monoid into a dependent family of additive monoids,
 as functions supported at a point.
@@ -201,10 +205,14 @@ This is the `monoid_hom` version of `pi.mul_single`. -/
 @[to_additive "The additive monoid homomorphism including a single additive
 monoid into a dependent family of additive monoids, as functions supported at a point.
 
-This is the `add_monoid_hom` version of `pi.single`.", simps]
+This is the `add_monoid_hom` version of `pi.single`."]
 def monoid_hom.single [Π i, mul_one_class $ f i] (i : I) : f i →* Π i, f i :=
 { map_mul' := mul_single_op₂ (λ _, (*)) (λ _, one_mul _) _,
   .. (one_hom.single f i) }
+
+@[to_additive, simp]
+lemma monoid_hom.single_apply [Π i, mul_one_class $ f i] (i : I) (x : f i) :
+  monoid_hom.single f i x = mul_single i x := rfl
 
 /-- The multiplicative homomorphism including a single `mul_zero_class`
 into a dependent family of `mul_zero_class`es, as functions supported at a point.

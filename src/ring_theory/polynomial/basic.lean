@@ -208,10 +208,61 @@ ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split
 variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : R[X]} :
-  eval₂ f x p = eval₂ (f.comp (subring.subtype _)) x p.restriction :=
+  eval₂ f x p =
+  eval₂ (f.comp (subring.subtype (subring.closure (p.frange : set R)))) x p.restriction :=
 begin
   simp only [eval₂_eq_sum, sum, support_restriction, ←@coeff_restriction _ _ p],
   refl,
+end
+
+lemma geom_sum_X_comp_X_add_one_eq_sum (n : ℕ) :
+  (geom_sum (X : R[X]) n).comp (X + 1) =
+  (finset.range n).sum (λ (i : ℕ), (n.choose (i + 1) : R[X]) * X ^ i) :=
+begin
+  ext i,
+  transitivity (n.choose (i + 1) : R), swap,
+  { simp only [finset_sum_coeff, ← C_eq_nat_cast, coeff_C_mul_X_pow],
+    rw [finset.sum_eq_single i, if_pos rfl],
+    { simp only [@eq_comm _ i, if_false, eq_self_iff_true, implies_true_iff] {contextual := tt}, },
+    { simp only [nat.lt_add_one_iff, nat.choose_eq_zero_of_lt, nat.cast_zero, finset.mem_range,
+        not_lt, eq_self_iff_true, if_true, implies_true_iff] {contextual := tt}, } },
+  induction n with n ih generalizing i,
+  { simp only [geom_sum_zero, zero_comp, coeff_zero, nat.choose_zero_succ, nat.cast_zero], },
+  simp only [geom_sum_succ', ih, add_comp, pow_comp, X_comp, coeff_add, nat.choose_succ_succ,
+    nat.cast_add, add_pow, one_pow, mul_one, finset_sum_coeff, ← C_eq_nat_cast, mul_comm _ (C _),
+    coeff_C_mul_X_pow],
+  rw [finset.sum_eq_single i, if_pos rfl],
+  { simp only [@eq_comm _ i, if_false, eq_self_iff_true, implies_true_iff] {contextual := tt}, },
+  { simp only [nat.lt_add_one_iff, nat.choose_eq_zero_of_lt, nat.cast_zero, finset.mem_range,
+      eq_self_iff_true, if_true, implies_true_iff, not_le] {contextual := tt}, },
+end
+
+lemma monic.geom_sum {R : Type*} [semiring R] {P : R[X]}
+  (hP : P.monic) (hdeg : 0 < P.nat_degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
+begin
+  nontriviality R,
+  cases n, { exact (hn rfl).elim },
+  rw [geom_sum_succ', geom_sum_def],
+  refine monic_add_of_left (monic_pow hP _) _,
+  refine lt_of_le_of_lt (degree_sum_le _ _) _,
+  rw [finset.sup_lt_iff],
+  { simp only [finset.mem_range, degree_eq_nat_degree (monic_pow hP _).ne_zero,
+      with_bot.coe_lt_coe, hP.nat_degree_pow],
+    intro k, exact nsmul_lt_nsmul hdeg },
+  { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
+    exact (monic_pow hP _).ne_zero }
+end
+
+lemma monic.geom_sum' {R : Type*} [semiring R] {P : R[X]}
+  (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
+hP.geom_sum (nat_degree_pos_iff_degree_pos.2 hdeg) hn
+
+lemma monic_geom_sum_X (R : Type*) [semiring R] {n : ℕ} (hn : n ≠ 0) :
+  (geom_sum (X : R[X]) n).monic :=
+begin
+  nontriviality R,
+  apply monic_X.geom_sum _ hn,
+  simpa only [nat_degree_X] using zero_lt_one
 end
 
 section to_subring

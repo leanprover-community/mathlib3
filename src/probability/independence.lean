@@ -414,7 +414,7 @@ variables {α : Type*} [measurable_space α] {s t : set α}
 
 lemma indep_set_of_cond_null_measure {c : set α} (hmc : measurable_set c)
   (μ : measure α . volume_tac) (hcc : μ c = 0) :
-  indep_set s t (μ [| c]) :=
+  indep_set s t $ μ[|c] :=
 by rw [indep_set, indep, indep_sets]; intros; simp [hmc, hcc, measure_inter_null_of_null_left]
 
 /-- Two events are independent if and only if conditioning on one 

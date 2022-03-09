@@ -156,7 +156,7 @@ by { ext f, rw [←left_invariant, apply_hfdifferential, apply_hfdifferential, L
   ←apply_hfdifferential, left_invariant] }
 
 lemma comp_L : (X f).comp (𝑳 I g) = X (f.comp (𝑳 I g)) :=
-by ext h; rw [times_cont_mdiff_map.comp_apply, L_apply, ←eval_at_apply, eval_at_mul,
+by ext h; rw [cont_mdiff_map.comp_apply, L_apply, ←eval_at_apply, eval_at_mul,
   apply_hfdifferential, apply_fdifferential, eval_at_apply]
 
 instance : has_bracket (left_invariant_derivation I G) (left_invariant_derivation I G) :=

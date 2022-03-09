@@ -1,6 +1,6 @@
 import data.multiset.antidiagonal
 import data.multiset.basic
-import data.multiset.erase_dup
+import data.multiset.dedup
 import data.multiset.finset_ops
 import data.multiset.fold
 import data.multiset.functor

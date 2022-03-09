@@ -435,4 +435,34 @@ begin
     simpa [hn, hn.ne', mem_factors] using and_comm (prime q) (q ∣ n) }
 end
 
+@[simp]
+lemma image_div_divisors_eq_divisors (n : ℕ) : image (λ (x : ℕ), n / x) n.divisors = n.divisors :=
+begin
+  by_cases hn : n = 0, { simp [hn] },
+  ext,
+  split,
+  { rw mem_image,
+    rintros ⟨x, hx1, hx2⟩,
+    rw mem_divisors at *,
+    refine ⟨_,hn⟩,
+    rw ←hx2,
+    exact div_dvd_of_dvd hx1.1 },
+  { rw [mem_divisors, mem_image],
+    rintros ⟨h1, -⟩,
+    exact ⟨n/a, mem_divisors.mpr ⟨div_dvd_of_dvd h1, hn⟩,
+           nat.div_div_self h1 (pos_iff_ne_zero.mpr hn)⟩ },
+end
+
+@[simp, to_additive sum_div_divisors]
+lemma prod_div_divisors {α : Type*} [comm_monoid α] (n : ℕ) (f : ℕ → α) :
+  ∏ d in n.divisors, f (n/d) = n.divisors.prod f :=
+begin
+  by_cases hn : n = 0, { simp [hn] },
+  rw ←prod_image,
+  { exact prod_congr (image_div_divisors_eq_divisors n) (by simp) },
+  { intros x hx y hy h,
+    rw mem_divisors at hx hy,
+    exact (div_eq_iff_eq_of_dvd_dvd hn hx.1 hy.1).mp h }
+end
+
 end nat

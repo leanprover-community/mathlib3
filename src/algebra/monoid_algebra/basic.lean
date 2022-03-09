@@ -232,6 +232,14 @@ instance [ring k] [has_mul G] : non_unital_non_assoc_ring (monoid_algebra k G) :
 { .. monoid_algebra.add_comm_group,
   .. monoid_algebra.non_unital_non_assoc_semiring }
 
+instance [ring k] [semigroup G] : non_unital_ring (monoid_algebra k G) :=
+{ .. monoid_algebra.add_comm_group,
+  .. monoid_algebra.non_unital_semiring }
+
+instance [ring k] [mul_one_class G] : non_assoc_ring (monoid_algebra k G) :=
+{ .. monoid_algebra.add_comm_group,
+  .. monoid_algebra.non_assoc_semiring }
+
 instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 { .. monoid_algebra.non_unital_non_assoc_ring,
   .. monoid_algebra.semiring }
@@ -272,7 +280,9 @@ instance [monoid R] [semiring k] [distrib_mul_action R k] [distrib_mul_action R�
   is_central_scalar R (monoid_algebra k G) :=
 finsupp.is_central_scalar G k
 
-instance comap_distrib_mul_action_self [group G] [semiring k] :
+/-- This is not an instance as it conflicts with `monoid_algebra.distrib_mul_action` when `G = kˣ`.
+-/
+def comap_distrib_mul_action_self [group G] [semiring k] :
   distrib_mul_action G (monoid_algebra k G) :=
 finsupp.comap_distrib_mul_action
 
@@ -360,6 +370,17 @@ end
 
 lemma of_injective [mul_one_class G] [nontrivial k] : function.injective (of k G) :=
 λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
+
+/--
+`finsupp.single` as a `monoid_hom` from the product type into the monoid algebra.
+
+Note the order of the elements of the product are reversed compared to the arguments of
+`finsupp.single`.
+-/
+@[simps] def single_hom [mul_one_class G] : k × G →* monoid_algebra k G :=
+{ to_fun := λ a, single a.2 a.1,
+  map_one' := rfl,
+  map_mul' := λ a b, single_mul_single.symm }
 
 lemma mul_single_apply_aux [has_mul G] (f : monoid_algebra k G) {r : k}
   {x y z : G} (H : ∀ a, a * x = z ↔ a = y) :
@@ -974,6 +995,14 @@ instance [ring k] [has_add G] : non_unital_non_assoc_ring (add_monoid_algebra k 
 { .. add_monoid_algebra.add_comm_group,
   .. add_monoid_algebra.non_unital_non_assoc_semiring }
 
+instance [ring k] [add_semigroup G] : non_unital_ring (add_monoid_algebra k G) :=
+{ .. add_monoid_algebra.add_comm_group,
+  .. add_monoid_algebra.non_unital_semiring }
+
+instance [ring k] [add_zero_class G] : non_assoc_ring (add_monoid_algebra k G) :=
+{ .. add_monoid_algebra.add_comm_group,
+  .. add_monoid_algebra.non_assoc_semiring }
+
 instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 { .. add_monoid_algebra.non_unital_non_assoc_ring,
   .. add_monoid_algebra.semiring }
@@ -1091,6 +1120,17 @@ lemma of'_eq_of [add_zero_class G] (a : G) : of' k G a = of k G a := rfl
 
 lemma of_injective [nontrivial k] [add_zero_class G] : function.injective (of k G) :=
 λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
+
+/--
+`finsupp.single` as a `monoid_hom` from the product type into the additive monoid algebra.
+
+Note the order of the elements of the product are reversed compared to the arguments of
+`finsupp.single`.
+-/
+@[simps] def single_hom [add_zero_class G] : k × multiplicative G →* add_monoid_algebra k G :=
+{ to_fun := λ a, single a.2.to_add a.1,
+  map_one' := rfl,
+  map_mul' := λ a b, single_mul_single.symm }
 
 lemma mul_single_apply_aux [has_add G] (f : add_monoid_algebra k G) (r : k)
   (x y z : G) (H : ∀ a, a + x = z ↔ a = y) :

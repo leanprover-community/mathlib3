@@ -3,7 +3,7 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import measure_theory.measure.measure_space
+import measure_theory.constructions.borel_space
 import order.filter.ennreal
 
 /-!
@@ -26,7 +26,7 @@ sense). We do not define that quantity here, which is simply the supremum of a m
 * `ess_inf f μ := μ.ae.liminf f`
 -/
 
-open measure_theory filter
+open measure_theory filter topological_space
 open_locale ennreal measure_theory
 
 variables {α β : Type*} {m : measurable_space α} {μ ν : measure α}
@@ -127,6 +127,58 @@ begin
   simp_rw mem_ae_iff,
   simp [hc],
 end
+
+section topological_space
+
+variables {γ : Type*} {mγ : measurable_space γ} {f : α → γ} {g : γ → β}
+
+include mγ
+
+lemma ess_sup_comp_le_ess_sup_map_measure (hf : measurable f) :
+  ess_sup (g ∘ f) μ ≤ ess_sup g (measure.map f μ) :=
+begin
+  refine Limsup_le_Limsup_of_le (λ t, _) (by is_bounded_default) (by is_bounded_default),
+  simp_rw filter.mem_map,
+  have : (g ∘ f) ⁻¹' t = f ⁻¹' (g ⁻¹' t), by { ext1 x, simp_rw set.mem_preimage, },
+  rw this,
+  exact λ h, mem_ae_of_mem_ae_map hf h,
+end
+
+lemma _root_.measurable_embedding.ess_sup_map_measure (hf : measurable_embedding f) :
+  ess_sup g (measure.map f μ) = ess_sup (g ∘ f) μ :=
+begin
+  refine le_antisymm _ (ess_sup_comp_le_ess_sup_map_measure hf.measurable),
+  refine Limsup_le_Limsup (by is_bounded_default) (by is_bounded_default) (λ c h_le, _),
+  rw eventually_map at h_le ⊢,
+  exact hf.ae_map_iff.mpr h_le,
+end
+
+variables [measurable_space β] [topological_space β] [second_countable_topology β]
+  [order_closed_topology β] [opens_measurable_space β]
+
+lemma ess_sup_map_measure_of_measurable (hg : measurable g) (hf : measurable f) :
+  ess_sup g (measure.map f μ) = ess_sup (g ∘ f) μ :=
+begin
+  refine le_antisymm _ (ess_sup_comp_le_ess_sup_map_measure hf),
+  refine Limsup_le_Limsup (by is_bounded_default) (by is_bounded_default) (λ c h_le, _),
+  rw eventually_map at h_le ⊢,
+  rw ae_map_iff hf (measurable_set_le hg measurable_const),
+  exact h_le,
+end
+
+lemma ess_sup_map_measure (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) :
+  ess_sup g (measure.map f μ) = ess_sup (g ∘ f) μ :=
+begin
+  rw [ess_sup_congr_ae hg.ae_eq_mk, ess_sup_map_measure_of_measurable hg.measurable_mk hf],
+  refine ess_sup_congr_ae _,
+  have h_eq := ae_of_ae_map hf hg.ae_eq_mk,
+  rw ← eventually_eq at h_eq,
+  exact h_eq.symm,
+end
+
+omit mγ
+
+end topological_space
 
 end complete_lattice
 

@@ -21,13 +21,14 @@ additively-graded ring. The typeclasses are:
 
 Respectively, these imbue the external direct sum `⨁ i, A i` with:
 
-* `direct_sum.non_unital_non_assoc_semiring`
+* `direct_sum.non_unital_non_assoc_semiring`, `direct_sum.non_unital_non_assoc_ring`
 * `direct_sum.semiring`, `direct_sum.ring`
 * `direct_sum.comm_semiring`, `direct_sum.comm_ring`
 
 the base ring `A 0` with:
 
-* `direct_sum.grade_zero.non_unital_non_assoc_semiring`
+* `direct_sum.grade_zero.non_unital_non_assoc_semiring`,
+  `direct_sum.grade_zero.non_unital_non_assoc_ring`
 * `direct_sum.grade_zero.semiring`, `direct_sum.grade_zero.ring`
 * `direct_sum.grade_zero.comm_semiring`, `direct_sum.grade_zero.comm_ring`
 
@@ -282,8 +283,22 @@ instance comm_semiring : comm_semiring (⨁ i, A i) :=
 
 end comm_semiring
 
+section non_unital_non_assoc_ring
+variables [Π i, add_comm_group (A i)] [has_add ι] [gnon_unital_non_assoc_semiring A]
+
+/-- The `ring` derived from `gsemiring A`. -/
+instance non_assoc_ring : non_unital_non_assoc_ring (⨁ i, A i) :=
+{ mul := (*),
+  zero := 0,
+  add := (+),
+  neg := has_neg.neg,
+  ..(direct_sum.non_unital_non_assoc_semiring _),
+  ..(direct_sum.add_comm_group _), }
+
+end non_unital_non_assoc_ring
+
 section ring
-variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gsemiring A]
+variables [Π i, add_comm_group (A i)] [add_monoid ι] [gsemiring A]
 
 /-- The `ring` derived from `gsemiring A`. -/
 instance ring : ring (⨁ i, A i) :=
@@ -330,7 +345,7 @@ variables [has_zero ι] [graded_monoid.ghas_one A] [Π i, add_comm_monoid (A i)]
 end one
 
 section mul
-variables [add_monoid ι] [Π i, add_comm_monoid (A i)] [gnon_unital_non_assoc_semiring A]
+variables [add_zero_class ι] [Π i, add_comm_monoid (A i)] [gnon_unital_non_assoc_semiring A]
 
 @[simp] lemma of_zero_smul {i} (a : A 0) (b : A i) : of _ _ (a • b) = of _ _ a * of _ _ b :=
 (of_eq_of_graded_monoid_eq (graded_monoid.mk_zero_smul a b)).trans (of_mul_of _ _).symm
@@ -385,7 +400,18 @@ function.injective.comm_semiring (of A 0) dfinsupp.single_injective
 end comm_semiring
 
 section ring
-variables [Π i, add_comm_group (A i)] [add_comm_monoid ι] [gsemiring A]
+variables [Π i, add_comm_group (A i)] [add_zero_class ι] [gnon_unital_non_assoc_semiring A]
+
+/-- The `non_unital_non_assoc_ring` derived from `gnon_unital_non_assoc_semiring A`. -/
+instance grade_zero.non_unital_non_assoc_ring : non_unital_non_assoc_ring (A 0) :=
+function.injective.non_unital_non_assoc_ring (of A 0) dfinsupp.single_injective
+  (of A 0).map_zero (of A 0).map_add (of_zero_mul A)
+  (of A 0).map_neg (of A 0).map_sub
+
+end ring
+
+section ring
+variables [Π i, add_comm_group (A i)] [add_monoid ι] [gsemiring A]
 
 /-- The `ring` derived from `gsemiring A`. -/
 instance grade_zero.ring : ring (A 0) :=

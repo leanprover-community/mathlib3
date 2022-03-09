@@ -543,44 +543,44 @@ def kextract (a : α) : list (sigma β) → option (β a) × list (sigma β)
     { simp [kextract, ne.symm h, kextract_eq_lookup_kerase l, kerase] }
   end
 
-/-! ### `erase_dupkeys` -/
+/-! ### `dedupkeys` -/
 
 /-- Remove entries with duplicate keys from `l : list (sigma β)`. -/
-def erase_dupkeys : list (sigma β) → list (sigma β) :=
+def dedupkeys : list (sigma β) → list (sigma β) :=
 list.foldr (λ x, kinsert x.1 x.2) []
 
-lemma erase_dupkeys_cons {x : sigma β} (l : list (sigma β)) :
-  erase_dupkeys (x :: l) = kinsert x.1 x.2 (erase_dupkeys l) := rfl
+lemma dedupkeys_cons {x : sigma β} (l : list (sigma β)) :
+  dedupkeys (x :: l) = kinsert x.1 x.2 (dedupkeys l) := rfl
 
-lemma nodupkeys_erase_dupkeys (l : list (sigma β)) : nodupkeys (erase_dupkeys l) :=
+lemma nodupkeys_dedupkeys (l : list (sigma β)) : nodupkeys (dedupkeys l) :=
 begin
-  dsimp [erase_dupkeys], generalize hl : nil = l',
+  dsimp [dedupkeys], generalize hl : nil = l',
   have : nodupkeys l', { rw ← hl, apply nodup_nil },
   clear hl,
   induction l with x xs,
   { apply this },
-  { cases x, simp [erase_dupkeys], split,
+  { cases x, simp [dedupkeys], split,
     { simp [keys_kerase], apply mem_erase_of_nodup l_ih },
     apply kerase_nodupkeys _ l_ih, }
 end
 
-lemma lookup_erase_dupkeys (a : α) (l : list (sigma β)) : lookup a (erase_dupkeys l) = lookup a l :=
+lemma lookup_dedupkeys (a : α) (l : list (sigma β)) : lookup a (dedupkeys l) = lookup a l :=
 begin
   induction l, refl,
   cases l_hd with a' b,
   by_cases a = a',
-  { subst a', rw [erase_dupkeys_cons,lookup_kinsert,lookup_cons_eq] },
-  { rw [erase_dupkeys_cons,lookup_kinsert_ne h,l_ih,lookup_cons_ne], exact h },
+  { subst a', rw [dedupkeys_cons,lookup_kinsert,lookup_cons_eq] },
+  { rw [dedupkeys_cons,lookup_kinsert_ne h,l_ih,lookup_cons_ne], exact h },
 end
 
-lemma sizeof_erase_dupkeys {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigma β)]
+lemma sizeof_dedupkeys {α} {β : α → Type*} [decidable_eq α] [has_sizeof (sigma β)]
   (xs : list (sigma β)) :
-  sizeof (list.erase_dupkeys xs) ≤ sizeof xs :=
+  sizeof (list.dedupkeys xs) ≤ sizeof xs :=
 begin
   unfold_wf,
   induction xs with x xs,
-  { simp [list.erase_dupkeys] },
-  { simp only [erase_dupkeys_cons, list.sizeof, kinsert_def, add_le_add_iff_left, sigma.eta],
+  { simp [list.dedupkeys] },
+  { simp only [dedupkeys_cons, list.sizeof, kinsert_def, add_le_add_iff_left, sigma.eta],
     transitivity, apply sizeof_kerase,
     assumption }
 end

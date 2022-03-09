@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import order.category.PartialOrder
+import order.category.Lattice
 
 /-!
 # Category of linear orders
@@ -34,8 +34,9 @@ instance : inhabited LinearOrder := ⟨of punit⟩
 
 instance (α : LinearOrder) : linear_order α := α.str
 
-instance has_forget_to_PartialOrder : has_forget₂ LinearOrder PartialOrder :=
-bundled_hom.forget₂ _ _
+instance has_forget_to_Lattice : has_forget₂ LinearOrder Lattice :=
+{ forget₂ := { obj := λ X, Lattice.of X,
+               map := λ X Y f, (order_hom_class.to_lattice_hom X Y f : lattice_hom X Y) } }
 
 /-- Constructs an equivalence between linear orders from an order isomorphism between them. -/
 @[simps] def iso.mk {α β : LinearOrder.{u}} (e : α ≃o β) : α ≅ β :=
@@ -45,17 +46,17 @@ bundled_hom.forget₂ _ _
   inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
 
 /-- `order_dual` as a functor. -/
-@[simps] def to_dual : LinearOrder ⥤ LinearOrder :=
+@[simps] def dual : LinearOrder ⥤ LinearOrder :=
 { obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
 
-/-- The equivalence between `PartialOrder` and itself induced by `order_dual` both ways. -/
+/-- The equivalence between `LinearOrder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : LinearOrder ≌ LinearOrder :=
-equivalence.mk to_dual to_dual
+equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
 end LinearOrder
 
-lemma LinearOrder_dual_equiv_comp_forget_to_PartialOrder :
-  LinearOrder.dual_equiv.functor ⋙ forget₂ LinearOrder PartialOrder
-  = forget₂ LinearOrder PartialOrder ⋙ PartialOrder.dual_equiv.functor := rfl
+lemma LinearOrder_dual_comp_forget_to_Lattice :
+  LinearOrder.dual ⋙ forget₂ LinearOrder Lattice = forget₂ LinearOrder Lattice ⋙ Lattice.dual :=
+rfl

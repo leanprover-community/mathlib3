@@ -208,6 +208,8 @@ theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
 @[simp] lemma coe_subtype : ((submodule.subtype p) : p → M) = coe := rfl
 
+lemma injective_subtype : injective p.subtype := subtype.coe_injective
+
 /-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
 p.subtype.map_sum

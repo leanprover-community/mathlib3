@@ -20,8 +20,8 @@ We also prove basic properties of these functions.
 
 noncomputable theory
 
-open_locale classical real topological_space nnreal ennreal filter
-open filter
+open_locale classical real topological_space nnreal ennreal filter big_operators
+open filter finset set
 
 namespace complex
 
@@ -113,7 +113,7 @@ by simpa using cpow_neg x 1
 
 lemma cpow_nat_inv_pow (x : ℂ) {n : ℕ} (hn : 0 < n) : (x ^ (n⁻¹ : ℂ)) ^ n = x :=
 begin
-  suffices : im (log x * n⁻¹) ∈ set.Ioc (-π) π,
+  suffices : im (log x * n⁻¹) ∈ Ioc (-π) π,
   { rw [← cpow_nat_cast, ← cpow_mul _ this.1 this.2, inv_mul_cancel, cpow_one],
     exact_mod_cast hn.ne' },
   rw [mul_comm, ← of_real_nat_cast, ← of_real_inv, of_real_mul_im, ← div_eq_inv_mul],
@@ -407,16 +407,24 @@ namespace real
 
 variables {x y z : ℝ}
 
-lemma rpow_add {x : ℝ} (hx : 0 < x) (y z : ℝ) : x ^ (y + z) = x ^ y * x ^ z :=
+lemma rpow_add (hx : 0 < x) (y z : ℝ) : x ^ (y + z) = x ^ y * x ^ z :=
 by simp only [rpow_def_of_pos hx, mul_add, exp_add]
 
-lemma rpow_add' {x : ℝ} (hx : 0 ≤ x) {y z : ℝ} (h : y + z ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
+lemma rpow_add' (hx : 0 ≤ x) (h : y + z ≠ 0) : x ^ (y + z) = x ^ y * x ^ z :=
 begin
   rcases hx.eq_or_lt with rfl|pos,
   { rw [zero_rpow h, zero_eq_mul],
     have : y ≠ 0 ∨ z ≠ 0, from not_and_distrib.1 (λ ⟨hy, hz⟩, h $ hy.symm ▸ hz.symm ▸ zero_add 0),
     exact this.imp zero_rpow zero_rpow },
   { exact rpow_add pos _ _ }
+end
+
+lemma rpow_add_of_nonneg (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 ≤ z) :
+  x ^ (y + z) = x ^ y * x ^ z :=
+begin
+  rcases hy.eq_or_lt with rfl|hy,
+  { rw [zero_add, rpow_zero, one_mul] },
+  exact rpow_add' hx (ne_of_gt $ add_pos_of_pos_of_nonneg hy hz)
 end
 
 /-- For `0 ≤ x`, the only problematic case in the equality `x ^ y * x ^ z = x ^ (y + z)` is for
@@ -432,6 +440,20 @@ begin
       ... = 1 : by simp },
     { simp [rpow_add', ← H, h] } },
   { simp [rpow_add pos] }
+end
+
+lemma rpow_sum_of_pos {ι : Type*} {a : ℝ} (ha : 0 < a) (f : ι → ℝ) (s : finset ι) :
+  a ^ (∑ x in s, f x) = ∏ x in s, a ^ f x :=
+@add_monoid_hom.map_sum ℝ ι (additive ℝ) _ _ ⟨λ x : ℝ, (a ^ x : ℝ), rpow_zero a, rpow_add ha⟩ f s
+
+lemma rpow_sum_of_nonneg {ι : Type*} {a : ℝ} (ha : 0 ≤ a) {s : finset ι} {f : ι → ℝ}
+  (h : ∀ x ∈ s, 0 ≤ f x) :
+  a ^ (∑ x in s, f x) = ∏ x in s, a ^ f x :=
+begin
+  induction s using finset.cons_induction with i s hi ihs,
+  { rw [sum_empty, finset.prod_empty, rpow_zero] },
+  { rw forall_mem_cons at h,
+    rw [sum_cons, prod_cons, ← ihs h.2, rpow_add_of_nonneg ha h.1 (sum_nonneg h.2)] }
 end
 
 lemma rpow_mul {x : ℝ} (hx : 0 ≤ x) (y z : ℝ) : x ^ (y * z) = (x ^ y) ^ z :=
@@ -635,7 +657,7 @@ begin
 end
 
 lemma rpow_left_inj_on {x : ℝ} (hx : x ≠ 0) :
-  set.inj_on (λ y : ℝ, y^x) {y : ℝ | 0 ≤ y} :=
+  inj_on (λ y : ℝ, y^x) {y : ℝ | 0 ≤ y} :=
 begin
   rintros y hy z hz (hyz : y ^ x = z ^ x),
   rw [←rpow_one y, ←rpow_one z, ←_root_.mul_inv_cancel hx, rpow_mul hy, rpow_mul hz, hyz]
@@ -745,7 +767,7 @@ begin
   have C : tendsto (λ p : ℝ × ℝ, p.1 ^ p.2) (𝓝[{0}] 0 ×ᶠ 𝓝 y) (pure 0),
   { rw [nhds_within_singleton, tendsto_pure, pure_prod, eventually_map],
     exact (lt_mem_nhds hp).mono (λ y hy, zero_rpow hy.ne') },
-  simpa only [← sup_prod, ← nhds_within_union, set.compl_union_self, nhds_within_univ, nhds_prod_eq,
+  simpa only [← sup_prod, ← nhds_within_union, compl_union_self, nhds_within_univ, nhds_prod_eq,
     continuous_at, zero_rpow hp.ne'] using B.sup (C.mono_right (pure_le_nhds _))
 end
 
@@ -855,7 +877,7 @@ lemma tendsto_rpow_div_mul_add (a b c : ℝ) (hb : 0 ≠ b) :
 begin
   refine tendsto.congr' _ ((tendsto_exp_nhds_0_nhds_1.comp
     (by simpa only [mul_zero, pow_one] using ((@tendsto_const_nhds _ _ _ a _).mul
-      (tendsto_div_pow_mul_exp_add_at_top b c 1 hb (by norm_num))))).comp (tendsto_log_at_top)),
+      (tendsto_div_pow_mul_exp_add_at_top b c 1 hb)))).comp tendsto_log_at_top),
   apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
   intros x hx,
   simp only [set.mem_Ioi, function.comp_app] at hx ⊢,

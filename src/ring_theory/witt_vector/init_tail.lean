@@ -45,7 +45,7 @@ setup_tactic_parser
 /--
 `init_ring` is an auxiliary tactic that discharges goals factoring `init` over ring operations.
 -/
-meta def init_ring (assert : parse (tk "using" >> parser.pexpr)?) : tactic unit := do
+meta def init_ring (assert : parse (tk "using" *> parser.pexpr)?) : tactic unit := do
 `[rw ext_iff,
   intros i,
   simp only [init, select, coeff_mk],

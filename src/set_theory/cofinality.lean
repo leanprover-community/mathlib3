@@ -97,11 +97,11 @@ namespace ordinal
 
 /-- Cofinality of an ordinal. This is the smallest cardinal of a
   subset `S` of the ordinal which is unbounded, in the sense
-  `∀ a, ∃ b ∈ S, ¬(b > a)`. It is defined for all ordinals, but
+  `∀ a, ∃ b ∈ S, a ≤ b`. It is defined for all ordinals, but
   `cof 0 = 0` and `cof (succ o) = 1`, so it is only really
   interesting on limit ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
-quot.lift_on o (λ ⟨α, r, _⟩, by exactI strict_order.cof r)
+quot.lift_on o (λ a, by exactI strict_order.cof a.r)
 begin
   rintros ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨⟨f, hf⟩⟩,
   rw ← cardinal.lift_inj,
@@ -160,6 +160,41 @@ begin
       (is_order_connected.neg_trans h ba) }
 end
 
+private theorem card_mem_cof {o} : ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = o.card :=
+⟨_, _, lsub_typein o, mk_ordinal_out o⟩
+
+/-- The set in the `lsub` characterization of `cof` is nonempty. -/
+theorem cof_lsub_def_nonempty (o) :
+  {a : cardinal | ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a}.nonempty :=
+⟨_, card_mem_cof⟩
+
+theorem cof_eq_Inf_lsub (o : ordinal.{u}) :
+  cof o = Inf {a : cardinal | ∃ {ι : Type u} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = a} :=
+begin
+  refine le_antisymm (le_cInf (cof_lsub_def_nonempty o) _) (cInf_le' _),
+  { rintros a ⟨ι, f, hf, rfl⟩,
+    rw ←type_out o,
+    refine (cof_type_le _ (λ a, _)).trans (@mk_le_of_injective _ _
+      (λ s : (typein o.out.r)⁻¹' (set.range f), classical.some s.prop)
+      (λ s t hst, let H := congr_arg f hst in by rwa [classical.some_spec s.prop,
+        classical.some_spec t.prop, typein_inj, subtype.coe_inj] at H)),
+    have := typein_lt_self a,
+    simp_rw [←hf, lt_lsub_iff] at this,
+    cases this with i hi,
+    refine ⟨enum o.out.r (f i) _, _, _⟩,
+    { rw [type_out, ←hf], apply lt_lsub },
+    { rw [mem_preimage, typein_enum], exact mem_range_self i },
+    { rwa [←typein_le_typein, typein_enum] } },
+  { rcases cof_eq o.out.r with ⟨S, hS, hS'⟩,
+    let f : S → ordinal := λ s, typein o.out.r s,
+    refine ⟨S, f, le_antisymm (lsub_le.2 (λ i, typein_lt_self i)) (le_of_forall_lt (λ a ha, _)),
+      by rwa type_out o at hS'⟩,
+    rw ←type_out o at ha,
+    rcases hS (enum o.out.r a ha) with ⟨b, hb, hb'⟩,
+    rw [←typein_le_typein, typein_enum] at hb',
+    exact hb'.trans_lt (lt_lsub.{u u} f ⟨b, hb⟩) }
+end
+
 theorem lift_cof (o) : (cof o).lift = cof o.lift :=
 induction_on o $ begin introsI α r _,
   cases lift_type r with _ e, rw e,
@@ -180,18 +215,13 @@ induction_on o $ begin introsI α r _,
 end
 
 theorem cof_le_card (o) : cof o ≤ card o :=
-induction_on o $ λ α r _, begin
-  resetI,
-  have : #(@set.univ α) = card (type r) :=
-    quotient.sound ⟨equiv.set.univ _⟩,
-  rw ← this, exact cof_type_le set.univ (λ a, ⟨a, ⟨⟩, irrefl a⟩)
-end
+by { rw cof_eq_Inf_lsub, exact cInf_le' card_mem_cof }
 
 theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
 by simpa using cof_le_card c.ord
 
 @[simp] theorem cof_zero : cof 0 = 0 :=
-le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
+(cof_le_card 0).antisymm (cardinal.zero_le _)
 
 @[simp] theorem cof_eq_zero {o} : cof o = 0 ↔ o = 0 :=
 ⟨induction_on o $ λ α r _ z, by exactI
@@ -472,8 +502,14 @@ theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 def is_regular (c : cardinal) : Prop :=
 ω ≤ c ∧ c.ord.cof = c
 
+lemma is_regular.omega_le {c : cardinal} (H : c.is_regular) : ω ≤ c :=
+H.1
+
+lemma is_regular.cof_eq {c : cardinal} (H : c.is_regular) : c.ord.cof = c :=
+H.2
+
 lemma is_regular.pos {c : cardinal} (H : c.is_regular) : 0 < c :=
-omega_pos.trans_le H.left
+omega_pos.trans_le H.1
 
 lemma is_regular.ord_pos {c : cardinal} (H : c.is_regular) : 0 < c.ord :=
 by { rw cardinal.lt_ord, exact H.pos }
@@ -505,6 +541,15 @@ theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) 
     rw [← lt_succ, ← lt_ord, ← αe, re],
     apply typein_lt_type }
 end⟩
+
+theorem is_regular_aleph_one : is_regular (aleph 1) :=
+by { rw ← succ_omega, exact succ_is_regular le_rfl }
+
+theorem aleph'_succ_is_regular {o : ordinal} (h : ordinal.omega ≤ o) : is_regular (aleph' o.succ) :=
+by { rw aleph'_succ, exact succ_is_regular (omega_le_aleph'.2 h) }
+
+theorem aleph_succ_is_regular {o : ordinal} : is_regular (aleph o.succ) :=
+by { rw aleph_succ, exact succ_is_regular (omega_le_aleph o) }
 
 /--
 A function whose codomain's cardinality is infinite but strictly smaller than its domain's

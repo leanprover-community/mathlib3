@@ -56,10 +56,10 @@ inductive hom₂ : Π {a b : B}, hom a b → hom a b → Type (max u v)
     hom₂ ((f.comp g).comp h) (f.comp (g.comp h))
 | associator_inv {a b c d} (f : hom a b) (g : hom b c) (h : hom c d) :
     hom₂ (f.comp (g.comp h)) ((f.comp g).comp h)
-| right_unitor {a b} (f : hom a b) : hom₂ (f.comp (hom.id b)) f
+| right_unitor     {a b} (f : hom a b) : hom₂ (f.comp (hom.id b)) f
 | right_unitor_inv {a b} (f : hom a b) : hom₂ f (f.comp (hom.id b))
-| left_unitor {a b} (f : hom a b) : hom₂ ((hom.id a).comp f) f
-| left_unitor_inv {a b} (f : hom a b) : hom₂ f ((hom.id a).comp f)
+| left_unitor      {a b} (f : hom a b) : hom₂ ((hom.id a).comp f) f
+| left_unitor_inv  {a b} (f : hom a b) : hom₂ f ((hom.id a).comp f)
 
 section
 variables {B}
@@ -137,70 +137,66 @@ end
 
 variables {B}
 
-instance locally_category (a b : B) : category (hom a b) :=
-{ hom := λ f g, quot (@rel _ _ _ _ f g),
-  id := λ f, quot.mk rel (hom₂.id f),
-  comp := λ f g h, quot.map₂ hom₂.vcomp rel.vcomp_right rel.vcomp_left,
-  id_comp' := by { rintros f g ⟨η⟩, apply quot.sound (rel.id_comp η) },
-  comp_id' := by { rintros f g ⟨η⟩, apply quot.sound (rel.comp_id η) },
-  assoc' := by { rintros f g h i ⟨η⟩ ⟨θ⟩ ⟨ι⟩, apply quot.sound (rel.assoc η θ ι) } }
+instance hom_category (a b : B) : category (hom a b) :=
+{ hom       := λ f g, quot (@rel _ _ _ _ f g),
+  id        := λ f, quot.mk rel (hom₂.id f),
+  comp      := λ f g h, quot.map₂ hom₂.vcomp rel.vcomp_right rel.vcomp_left,
+  id_comp'  := by { rintros f g ⟨η⟩, exact quot.sound (rel.id_comp η) },
+  comp_id'  := by { rintros f g ⟨η⟩, exact quot.sound (rel.comp_id η) },
+  assoc'    := by { rintros f g h i ⟨η⟩ ⟨θ⟩ ⟨ι⟩, exact quot.sound (rel.assoc η θ ι) } }
 
 /-- Bicategory structure on the free bicategory. -/
 instance bicategory : bicategory (free_bicategory B) :=
-{ hom := λ a b : B, hom a b,
-  id := hom.id,
-  comp := λ a b c, hom.comp,
-  hom_category := free_bicategory.locally_category,
+{ hom   := λ a b : B, hom a b,
+  id    := hom.id,
+  comp  := λ a b c, hom.comp,
+  hom_category := free_bicategory.hom_category,
   whisker_left := λ a b c f g h η,
     quot.map (hom₂.whisker_left f) (rel.whisker_left f g h) η,
-  whisker_left_id' := by
-  { intros a b c f g, apply quot.sound (rel.whisker_left_id f g) },
+  whisker_left_id' := λ a b c f g, quot.sound (rel.whisker_left_id f g),
   whisker_left_comp' := by
-  { rintros a b c f g h i ⟨η⟩ ⟨θ⟩, apply quot.sound (rel.whisker_left_comp f η θ) },
+  { rintros a b c f g h i ⟨η⟩ ⟨θ⟩, exact quot.sound (rel.whisker_left_comp f η θ) },
   whisker_right := λ a b c f g η h,
     quot.map (hom₂.whisker_right h) (rel.whisker_right f g h) η,
-  whisker_right_id' := by
-  { intros a b c f g, apply quot.sound (rel.whisker_right_id f g) },
+  whisker_right_id' := λ a b c f g, quot.sound (rel.whisker_right_id f g),
   whisker_right_comp' := by
-  { rintros a b c f g h ⟨η⟩ ⟨θ⟩ i, apply quot.sound (rel.whisker_right_comp i η θ) },
+  { rintros a b c f g h ⟨η⟩ ⟨θ⟩ i, exact quot.sound (rel.whisker_right_comp i η θ) },
   whisker_exchange' := by
-  { rintros a b c f g h i ⟨η⟩ ⟨θ⟩, apply quot.sound (rel.whisker_exchange η θ) },
+  { rintros a b c f g h i ⟨η⟩ ⟨θ⟩, exact quot.sound (rel.whisker_exchange η θ) },
   associator := λ a b c d f g h,
   { hom := quot.mk rel (hom₂.associator f g h),
     inv := quot.mk rel (hom₂.associator_inv f g h),
-    hom_inv_id' := by apply quot.sound (rel.associator_hom_inv f g h),
-    inv_hom_id' := by apply quot.sound (rel.associator_inv_hom f g h) },
+    hom_inv_id' := quot.sound (rel.associator_hom_inv f g h),
+    inv_hom_id' := quot.sound (rel.associator_inv_hom f g h) },
   associator_naturality_left' := by
-  { rintros a b c d f f' ⟨η⟩ g h, apply quot.sound (rel.associator_naturality_left g h η) },
+  { rintros a b c d f f' ⟨η⟩ g h, exact quot.sound (rel.associator_naturality_left g h η) },
   associator_naturality_middle' := by
-  { rintros a b c d f g g' ⟨η⟩ h, apply quot.sound (rel.associator_naturality_middle f η h) },
+  { rintros a b c d f g g' ⟨η⟩ h, exact quot.sound (rel.associator_naturality_middle f η h) },
   associator_naturality_right' := by
-  { rintros a b c d f g h h' ⟨η⟩, apply quot.sound (rel.associator_naturality_right f g η) },
+  { rintros a b c d f g h h' ⟨η⟩, exact quot.sound (rel.associator_naturality_right f g η) },
   left_unitor := λ a b f,
   { hom := quot.mk rel (hom₂.left_unitor f),
     inv := quot.mk rel (hom₂.left_unitor_inv f),
-    hom_inv_id' := by apply quot.sound (rel.left_unitor_hom_inv f),
-    inv_hom_id' := by apply quot.sound (rel.left_unitor_inv_hom f) },
+    hom_inv_id' := quot.sound (rel.left_unitor_hom_inv f),
+    inv_hom_id' := quot.sound (rel.left_unitor_inv_hom f) },
   left_unitor_naturality' := by
-  { rintros a b f f' ⟨η⟩, apply quot.sound (rel.left_unitor_naturality η) },
+  { rintros a b f f' ⟨η⟩, exact quot.sound (rel.left_unitor_naturality η) },
   right_unitor := λ a b f,
   { hom := quot.mk rel (hom₂.right_unitor f),
     inv := quot.mk rel (hom₂.right_unitor_inv f),
-    hom_inv_id' := by apply quot.sound (rel.right_unitor_hom_inv f),
-    inv_hom_id' := by apply quot.sound (rel.right_unitor_inv_hom f) },
+    hom_inv_id' := quot.sound (rel.right_unitor_hom_inv f),
+    inv_hom_id' := quot.sound (rel.right_unitor_inv_hom f) },
   right_unitor_naturality' := by
-  { rintros a b f f' ⟨η⟩, apply quot.sound (rel.right_unitor_naturality η) },
-  pentagon' := by
-  { intros a b c d e f g h i, apply quot.sound (rel.pentagon f g h i) },
-  triangle' := by
-  { intros a b c f g, apply quot.sound (rel.triangle f g) } }
+  { rintros a b f f' ⟨η⟩, exact quot.sound (rel.right_unitor_naturality η) },
+  pentagon' := λ a b c d e f g h i, quot.sound (rel.pentagon f g h i),
+  triangle' := λ a b c f g, quot.sound (rel.triangle f g) }
 
 variables {a b c d : free_bicategory B}
 
 @[simp] lemma mk_vcomp {f g h : a ⟶ b} (η : hom₂ f g) (θ : hom₂ g h) :
   quot.mk rel (η.vcomp θ) = (quot.mk rel η ≫ quot.mk rel θ : f ⟶ h) := rfl
 @[simp] lemma mk_whisker_left (f : a ⟶ b) {g h : b ⟶ c} (η : hom₂ g h) :
-  quot.mk rel (hom₂.whisker_left f η) = (f ◁ quot.mk rel η: f ≫ g ⟶ f ≫ h) := rfl
+  quot.mk rel (hom₂.whisker_left f η) = (f ◁ quot.mk rel η : f ≫ g ⟶ f ≫ h) := rfl
 @[simp] lemma mk_whisker_right {f g : a ⟶ b} (η : hom₂ f g) (h : b ⟶ c) :
   quot.mk rel (hom₂.whisker_right h η) = (quot.mk rel η ▷ h : f ≫ h ⟶ g ≫ h) := rfl
 
@@ -227,6 +223,7 @@ variables {B : Type u₁} [quiver.{v₁+1} B] {C : Type u₂} [category_struct.{
 variables (F : prefunctor B C)
 
 /-- Auxiliary definition for `lift`. -/
+@[simp]
 def lift_hom : ∀ {a b : B}, hom a b → (F.obj a ⟶ F.obj b)
 | _ _ (hom.of f)      := F.map f
 | _ _ (hom.id a)      := 𝟙 (F.obj a)
@@ -243,6 +240,7 @@ variables {B : Type u₁} [quiver.{v₁+1} B] {C : Type u₂} [bicategory.{w₂ 
 variables (F : prefunctor B C)
 
 /-- Auxiliary definition for `lift`. -/
+@[simp]
 def lift_hom₂ : ∀ {a b : B} {f g : hom a b}, hom₂ f g → (lift_hom F f ⟶ lift_hom F g)
 | _ _ _ _ (hom₂.id _)                   := 𝟙 _
 | _ _ _ _ (hom₂.associator _ _ _)       := (α_ _ _ _).hom
@@ -255,36 +253,13 @@ def lift_hom₂ : ∀ {a b : B} {f g : hom a b}, hom₂ f g → (lift_hom F f �
 | _ _ _ _ (hom₂.whisker_left f η)       := lift_hom F f ◁ lift_hom₂ η
 | _ _ _ _ (hom₂.whisker_right h η)      := lift_hom₂ η ▷ lift_hom F h
 
-lemma lift_hom₂_congr {a b : B} {f g : hom a b} {η η' : hom₂ f g} (H : rel η η') :
-  lift_hom₂ F η = lift_hom₂ F η' :=
-begin
-  induction H,
-  case vcomp_right { change _ ≫ _ = _ ≫ _, congr' 2 },
-  case vcomp_left  { change _ ≫ _ = _ ≫ _, congr' 2 },
-  case id_comp     { apply id_comp },
-  case comp_id     { apply comp_id },
-  case assoc       { apply assoc },
-  case whisker_left       { change _ ◁ _ = _ ◁ _, congr' 2 },
-  case whisker_left_id    { apply whisker_left_id },
-  case whisker_left_comp  { apply whisker_left_comp },
-  case whisker_right      { change _ ▷ _ = _ ▷ _, congr' 2 },
-  case whisker_right_id   { apply whisker_right_id },
-  case whisker_right_comp { apply whisker_right_comp },
-  case whisker_exchange   { apply whisker_exchange },
-  case associator_naturality_left   { apply associator_naturality_left },
-  case associator_naturality_middle { apply associator_naturality_middle },
-  case associator_naturality_right  { apply associator_naturality_right },
-  case associator_hom_inv { apply iso.hom_inv_id },
-  case associator_inv_hom { apply iso.inv_hom_id },
-  case left_unitor_naturality { apply left_unitor_naturality },
-  case left_unitor_hom_inv { apply iso.hom_inv_id },
-  case left_unitor_inv_hom { apply iso.inv_hom_id },
-  case right_unitor_naturality { apply right_unitor_naturality },
-  case right_unitor_hom_inv { apply iso.hom_inv_id },
-  case right_unitor_inv_hom { apply iso.inv_hom_id },
-  case pentagon { apply pentagon },
-  case triangle { apply triangle }
-end
+local attribute [simp]
+  associator_naturality_left associator_naturality_middle associator_naturality_right
+  left_unitor_naturality right_unitor_naturality pentagon
+
+lemma lift_hom₂_congr {a b : B} {f g : hom a b} {η θ : hom₂ f g} (H : rel η θ) :
+  lift_hom₂ F η = lift_hom₂ F θ :=
+by induction H; tidy
 
 /--
 A prefunctor from a quiver `B` to a bicategory `C` can be lifted to a pseudofunctor from
@@ -292,11 +267,11 @@ A prefunctor from a quiver `B` to a bicategory `C` can be lifted to a pseudofunc
 -/
 @[simps]
 def lift : pseudofunctor (free_bicategory B) C :=
-{ obj := F.obj,
-  map := λ a b, lift_hom F,
-  map₂ := λ a b f g, quot.lift (lift_hom₂ F) (λ η θ H, lift_hom₂_congr F H),
-  map_id := λ a, iso.refl _,
-  map_comp := λ a b c f g, iso.refl _ }
+{ obj       := F.obj,
+  map       := λ a b, lift_hom F,
+  map₂      := λ a b f g, quot.lift (lift_hom₂ F) (λ η θ H, lift_hom₂_congr F H),
+  map_id    := λ a, iso.refl _,
+  map_comp  := λ a b c f g, iso.refl _ }
 
 end
 

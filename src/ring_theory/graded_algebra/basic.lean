@@ -173,10 +173,7 @@ lemma set_like.homogeneous_induction {P : A → Prop}
   (h_hom : ∀ {i} (a : A), a ∈ 𝒜 i → P a)
   (h_add : ∀ (a b : A), P a → P b → P (a + b))
   (a : A) : P a :=
-begin
-  have : a ∈ (⊤ : submodule R A) := submodule.mem_top,
-  rw ← h.supr_eq_top at this,
-  exact submodule.supr_induction _ this (λ i a ha, h_hom _ ⟨i, ha⟩) h_zero h_add,
-end
+submodule.supr_induction 𝒜 ((h.supr_eq_top.ge : _) submodule.mem_top)
+  (λ i a ha, h_hom a ha) h_zero h_add
 
 end homogeneous_induction

@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Adam Topaz, Johan Commelin
 -/
 import category_theory.abelian.opposite
-import category_theory.limits.preserves.basic
-import category_theory.limits.preserves.finite
 import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.preserves.shapes.kernels
+import category_theory.adjunction.limits
 import algebra.homology.exact
 import tactic.tfae
 
@@ -113,24 +112,6 @@ lemma is_equivalence.exact_iff {D : Type u₁} [category.{v₁} D] [abelian D]
   (F : C ⥤ D) [is_equivalence F] :
   exact (F.map f) (F.map g) ↔ exact f g :=
 begin
-  haveI : preserves_limit (parallel_pair g 0) F := ⟨λ c hc,
-    { lift := λ s, (functor.map_cone_map_cone_inv F s).inv.hom ≫
-        F.map (hc.lift (functor.map_cone_inv F s)),
-      uniq' :=  λ s m eq1, begin
-        sorry
-      end,
-      fac' := λ s j, begin
-        rw [functor.map_cone_π_app, category.assoc, ← functor.map_comp, hc.fac',
-          ← functor.map_cone_π_app, cone_morphism.w],
-      end }⟩,
-  haveI : preserves_colimit (parallel_pair f 0) F := ⟨λ c hc,
-    { desc := λ s, F.map (hc.desc (functor.map_cocone_inv F s)) ≫
-        (functor.map_cocone_map_cocone_inv F s).hom.hom,
-      uniq' := sorry,
-      fac' := λ s j, begin
-        rw [functor.map_cocone_ι_app, ← category.assoc, ← functor.map_comp, hc.fac',
-          ← functor.map_cocone_ι_app, cocone_morphism.w],
-      end }⟩,
   simp only [exact_iff, ← F.map_eq_zero_iff, F.map_comp, category.assoc,
     ← kernel_comparison_comp_π g F, ← ι_comp_cokernel_comparison f F],
   rw [is_iso.comp_left_eq_zero (kernel_comparison g F), ← category.assoc,

@@ -14,11 +14,11 @@ import measure_theory.integral.integral_eq_improper
 /-!
 # Integrals with exponential decay at ∞
 
-As easy special cases of general theorems in the library, we prove the following tests
+As easy special cases of general theorems in the library, we prove the following test
 for integrability:
 
-* If f is continuous on [a,∞), for some a ∈ ℝ, and there exists b > 0 such that
-  f(x) = O(exp(-b x)) as x → ∞, then f is integrable on (a, ∞).
+* `exp_decay.integrable_bigoh_exp`: If `f` is continuous on `[a,∞)`, for some `a ∈ ℝ`, and there
+  exists `b > 0` such that `f(x) = O(exp(-b x))` as `x → ∞`, then `f` is integrable on `(a, ∞)`.
 
 -/
 
@@ -27,7 +27,7 @@ open real interval_integral measure_theory set filter
 
 namespace exp_decay
 
-/-- exp(-b x) is integrable on (a, X] for any finite a, X. -/
+/-- `exp(-b x)` is integrable on `(a, X]` for any finite `a`, `X`. -/
 lemma exp_neg_finite_integrable (b : ℝ) (a : ℝ) (X : ℝ):
   integrable_on (λ x : ℝ, exp(-b * x) ) (Ioc a X) :=
   (continuous_const.mul continuous_id).exp.integrable_on_Ioc
@@ -54,7 +54,7 @@ begin
   exact has_deriv_at.deriv ( exp_neg_hasderiv b x h )
 end
 
-/-- Integral of exp(-b x) over (a, X) is bounded as X → ∞ -/
+/-- Integral of `exp(-b x)` over `(a, X)` is bounded as `X → ∞`. -/
 lemma exp_neg_integral_bound {b : ℝ} (a X : ℝ) (h2 : 0 < b):
   (∫ x in a .. X, exp (-b * x)) ≤ exp(-b*a)/b :=
 begin
@@ -79,7 +79,7 @@ begin
     continuity }
 end
 
-/-- exp(-b x) is integrable on (a, ∞) -/
+/-- `exp(-b x)` is integrable on `(a, ∞)`. -/
 lemma exp_neg_integrable_Ioi (a : ℝ) {b : ℝ} (h : 0 < b):
   integrable_on (λ x : ℝ, exp(-b * x)) (Ioi a) :=
 begin
@@ -179,6 +179,8 @@ begin
   apply (mul_le_mul_of_nonneg_right (le_max_right C1 c) (le_of_lt(exp_pos (-b * x))))
 end
 
+/-- If `f` is continuous on `[a, ∞)`, and is `O(exp(-b x))` at `∞` for some `b > 0`, then
+`f` is integrable on `(a, ∞)`. -/
 lemma integrable_bigoh_exp (f: ℝ → ℝ) (a : ℝ) {b : ℝ} (h0 : 0 < b)
   (h1: continuous_on f (Ici a) )
   (h2: asymptotics.is_O f (λ x:ℝ, exp(-b * x)) at_top)

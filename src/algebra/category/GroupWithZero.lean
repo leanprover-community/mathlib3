@@ -24,7 +24,7 @@ option.some_get _
 @[simp] lemma option.get_coe {α : Type*} (a : α) : option.get (@option.is_some_some _ a) = a := rfl
 
 section with_one
-local attribute [reducible] with_one with_zero
+local attribute [reducible] with_one
 variables {α β γ : Type*}
 
 @[to_additive] def with_one.map' (f : α → β) : with_one α → with_one β := option.map f
@@ -34,20 +34,18 @@ variables {α β γ : Type*}
 @[to_additive] lemma with_one.map'_comp (f : β → γ) (g : α → β) :
   with_one.map' (f ∘ g) = with_one.map' f ∘ with_one.map' g := (option.map_comp_map _ _).symm
 
-@[to_additive] def with_one.get (a : with_one α) (ha : a ≠ 1) : α :=
+def with_one.get (a : with_one α) (ha : a ≠ 1) : α :=
 option.get $ option.ne_none_iff_is_some.1 ha
 
-@[simp, to_additive] lemma with_one.coe_get {a : with_one α} (ha : a ≠ 1) :
+@[simp] lemma with_one.coe_get {a : with_one α} (ha : a ≠ 1) :
   (↑(with_one.get _ ha) : with_one α) = a :=
 option.some_get _
 
-@[simp, to_additive] lemma with_one.get_coe (a : α) :
+@[simp] lemma with_one.get_coe (a : α) :
   (a : with_one α).get with_one.coe_ne_one = a := rfl
 
-@[nolint check_type, to_additive] lemma with_one.none_eq_one : (none : with_zero α) = 0 := rfl
-
-@[elab_as_eliminator, to_additive] def with_one.rec_on {motive : with_one α → Sort*} :
-  Π (a : with_one α), motive 0 → (Π a : α, motive a) → motive a :=
+@[elab_as_eliminator] def with_one.rec_on {motive : with_one α → Sort*} :
+  Π (a : with_one α), motive 1 → (Π a : α, motive a) → motive a :=
 option.rec_on
 
 /-- An elimination principle for `option`. It is a nondependent version of `option.rec_on`. -/
@@ -62,13 +60,25 @@ option.elim'
 @[simp, to_additive] lemma with_one.elim_coe {β : Sort*} (a : α) (b : β) (f : α → β) :
   with_one.elim (a : with_one α) b f = f a := rfl
 
+@[to_additive] lemma with_one.elim_one {β : Sort*} (b : β) (f : α → β) :
+  with_one.elim 1 b f = b := rfl
+
 end with_one
+
+section with_zero
+
+local attribute [reducible] with_zero
+attribute [to_additive] with_one.map' with_one.get with_one.coe_get with_one.get_coe
+  with_one.rec_on
+
+end with_zero
 
 namespace monoid_hom
 variables {α β γ : Type*} [mul_one_class α] [mul_one_class β] [mul_one_class γ]
 
 /-- Turn a `monoid_hom` into a `monoid_with_zero_hom` by adjoining a `0` to the domain and codomain.
 -/
+@[simps]
 protected def with_zero (f : α →* β) : with_zero α →*₀ with_zero β :=
 { to_fun := with_zero.map' f,
   map_zero' := rfl,
@@ -138,6 +148,8 @@ instance (X : GroupWithZero) : group_with_zero X := X.str
 /-- Construct a bundled `GroupWithZero` from a `group_with_zero`. -/
 def of (α : Type*) [group_with_zero α] : GroupWithZero := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [group_with_zero α] : (of α : Type*) = α := rfl
+
 instance : inhabited GroupWithZero := ⟨of (with_zero punit)⟩
 
 instance : large_category.{u} GroupWithZero :=
@@ -155,6 +167,7 @@ instance : concrete_category GroupWithZero :=
 instance has_forget_to_Bipointed : has_forget₂ GroupWithZero Bipointed :=
 { forget₂ := { obj := λ X, ⟨X, 0, 1⟩, map := λ X Y f, ⟨f, f.map_zero', f.map_one'⟩ } }
 
+@[simps]
 instance has_forget_to_Mon : has_forget₂ GroupWithZero Mon :=
 { forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y, monoid_with_zero_hom.to_monoid_hom } }
 
@@ -168,6 +181,7 @@ instance has_forget_to_Mon : has_forget₂ GroupWithZero Mon :=
 end GroupWithZero
 
 /-- `with_zero` as a functor. -/
+@[simps]
 def Group_to_GroupWithZero : Group.{u} ⥤ GroupWithZero :=
 { obj := λ X, GroupWithZero.of (with_zero X),
   map := λ X Y, monoid_hom.with_zero,
@@ -177,7 +191,7 @@ def Group_to_GroupWithZero : Group.{u} ⥤ GroupWithZero :=
     by { simp only [fun_like.coe_fn_eq], exact monoid_hom.with_zero_comp _ _ } }
 
 /-- `units` as a functor. -/
-@[to_additive AddMon.add_units "`add_units` as a functor."]
+@[to_additive AddMon.add_units "`add_units` as a functor.", simps]
 protected def Mon.units : Mon.{u} ⥤ Group :=
 { obj := λ X, Group.of Xˣ,
   map := λ X Y, units.map,
@@ -185,7 +199,7 @@ protected def Mon.units : Mon.{u} ⥤ Group :=
   map_comp' := λ X Y Z, units.map_comp }
 
 /-- `units` as a functor. -/
-@[to_additive AddCommMon.add_units "`add_units` as a functor."]
+@[to_additive AddCommMon.add_units "`add_units` as a functor.", simps]
 protected def CommMon.units : CommMon.{u} ⥤ CommGroup :=
 { obj := λ X, CommGroup.of Xˣ,
   map := λ X Y, units.map,
@@ -211,19 +225,54 @@ by classical; exact equivalence.mk
   (forget₂ GroupWithZero Mon ⋙ Mon.units) Group_to_GroupWithZero
   (nat_iso.of_components (λ X, GroupWithZero.iso.mk (with_zero_units_equiv X).symm) $ λ X Y f,
     monoid_with_zero_hom.ext $ λ a, begin
-      change dite (f a = 0) _ _ = monoid_hom.with_zero (units.map _) (dite (a = 0) _ _),
-      obtain rfl | h := eq_or_ne a 0,
-      { rw [dif_pos (map_zero f), dif_pos rfl],
-        refl },
-      { rw [dif_neg (f.map_ne_zero.2 h), dif_neg h],
-        congr,
-        exact units.ext rfl }
+      sorry
+      -- change dite (f a = 0) _ _ = monoid_hom.with_zero (units.map _) (dite (a = 0) _ _),
+      -- obtain rfl | h := eq_or_ne a 0,
+      -- { rw [dif_pos (map_zero f), dif_pos rfl],
+      --   refl },
+      -- { rw [dif_neg (f.map_ne_zero.2 h), dif_neg h],
+      --   congr,
+      --   exact units.ext rfl }
     end)
   (nat_iso.of_components
     (λ X, mul_equiv.to_Group_iso $ units_with_zero_equiv X) $ λ X Y f, monoid_hom.ext $ λ a,
       begin
-        have := a.ne_zero,
-        obtain ⟨a,  _⟩ := a,
-        obtain ⟨b, (rfl : _ = a)⟩ := with_zero.ne_zero_iff_exists.1 this,
-        refl,
+        dsimp at a,
+        dsimp,
+        generalize' h : (a : with_zero X) = b,
+        simp only [units.coe_map, monoid_with_zero_hom.to_monoid_hom_coe, comp_apply,
+          mul_equiv.coe_to_monoid_hom, units_with_zero_equiv_apply, h],
+        generalize_proofs h₁ h₂,
+        revert h₁ h₂,
+        clear' a h,
+        apply with_zero.rec_on b,
+        { simp },
+        simp only [ne.def, monoid_with_zero_hom.map_eq_zero, with_zero.coe_ne_zero, not_false_iff,
+          with_zero.get_coe, forall_true_left],
+        simp only [monoid_hom.with_zero_apply],
+        sorry,
+        -- intro a,
+        -- simp only [monoid_hom.with_zero_apply],
+        -- simp only [with_zero.map'_coe],
+        -- simp,
+        -- rw with_zero.get_coe,
+        -- simp,
+        -- intro x,
+        -- refl,
+        -- simp,
+        -- apply with_zero.rec_on b,
+        -- {
+
+        -- },
+        -- simp,
+        -- rw with_zero.coe_get,
+        -- dsimp,
+        -- rw comp_apply,
+        -- rw comp_apply,
+        -- dsimp,
+        -- simp [with_zero.coe_get],
+        -- have := (option.ne_none_iff_is_some.1 a.ne_zero),
+        -- obtain ⟨(_ | a), _, _, _⟩ := a,
+        -- { exact (option.ne_none_iff_is_some.2 this rfl).elim },
+        -- { refl }
       end)

@@ -194,17 +194,6 @@ lemma epi_of_cokernel_zero {X Y : C} {f : X ⟶ Y} [has_colimit (parallel_pair f
   (w : cokernel.π f = 0) : epi f :=
 epi_of_cancel_zero f (λ P g h, by rw [←cokernel.π_desc f g h, w, limits.zero_comp])
 
-open_locale zero_object
-variables [has_zero_object C]
-
-lemma mono_of_kernel_iso_zero {X Y : C} {f : X ⟶ Y} [has_limit (parallel_pair f 0)]
-  (w : kernel f ≅ 0) : mono f :=
-mono_of_kernel_zero (zero_of_source_iso_zero _ w)
-
-lemma epi_of_cokernel_iso_zero {X Y : C} {f : X ⟶ Y} [has_colimit (parallel_pair f 0)]
-  (w : cokernel f ≅ 0) : epi f :=
-epi_of_cokernel_zero (zero_of_target_iso_zero _ w)
-
 namespace is_iso
 
 @[simp] lemma comp_left_eq_zero [is_iso f] :
@@ -216,6 +205,17 @@ by rw [← is_iso.eq_inv_comp, limits.comp_zero]
 by rw [← is_iso.eq_comp_inv, limits.zero_comp]
 
 end is_iso
+
+open_locale zero_object
+variables [has_zero_object C]
+
+lemma mono_of_kernel_iso_zero {X Y : C} {f : X ⟶ Y} [has_limit (parallel_pair f 0)]
+  (w : kernel f ≅ 0) : mono f :=
+mono_of_kernel_zero (zero_of_source_iso_zero _ w)
+
+lemma epi_of_cokernel_iso_zero {X Y : C} {f : X ⟶ Y} [has_colimit (parallel_pair f 0)]
+  (w : cokernel f ≅ 0) : epi f :=
+epi_of_cokernel_zero (zero_of_target_iso_zero _ w)
 
 end preadditive
 

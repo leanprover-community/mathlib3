@@ -234,7 +234,7 @@ begin
   induction n with n hn,
   { refine root_multiplicity_eq_zero _,
     simp only [eval_one, is_root.def, not_false_iff, one_ne_zero, pow_zero] },
-  have hzero :=  (ne_zero_of_monic (monic_pow (monic_X_sub_C a) n.succ)),
+  have hzero := pow_ne_zero n.succ (X_sub_C_ne_zero a),
   rw pow_succ (X - C a) n at hzero ⊢,
   simp only [root_multiplicity_mul hzero, root_multiplicity_X_sub_C_self, hn, nat.one_add]
 end

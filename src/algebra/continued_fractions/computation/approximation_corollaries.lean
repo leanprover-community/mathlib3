@@ -5,7 +5,9 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.approximations
 import algebra.continued_fractions.convergents_equiv
-import topology.algebra.ordered.basic
+import algebra.order.archimedean
+import topology.algebra.order.basic
+
 /-!
 # Corollaries From Approximation Lemmas (`algebra.continued_fractions.computation.approximations`)
 

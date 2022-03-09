@@ -259,7 +259,7 @@ begin
     { contradiction },
     { exact imp y hy },
     { exact hr (imp x hx) },
-    { exact IH x hx y hy hxy } }
+    { exact IH hx hy hxy } }
 end
 
 lemma pairwise_of_reflexive_on_dupl_of_forall_ne [decidable_eq α] {l : list α} {r : α → α → Prop}
@@ -329,6 +329,11 @@ theorem pairwise_sublists {R} {l : list α} (H : pairwise R l) :
   pairwise (λ l₁ l₂, lex R (reverse l₁) (reverse l₂)) (sublists l) :=
 by have := pairwise_sublists' (pairwise_reverse.2 H);
    rwa [sublists'_reverse, pairwise_map] at this
+
+lemma pairwise_repeat {α : Type*} {r : α → α → Prop} {x : α} (hx : r x x) :
+  ∀ (n : ℕ), pairwise r (repeat x n)
+| 0 := by simp
+| (n+1) := by simp [hx, mem_repeat, pairwise_repeat n]
 
 /-! ### Pairwise filtering -/
 

@@ -7,6 +7,7 @@ import algebra.continued_fractions.computation.translations
 import algebra.continued_fractions.terminated_stable
 import algebra.continued_fractions.continuants_recurrence
 import order.filter.at_top_bot
+import tactic.field_simp
 
 /-!
 # Correctness of Terminating Continued Fraction Computations (`generalized_continued_fraction.of`)

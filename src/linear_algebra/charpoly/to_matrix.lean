@@ -50,7 +50,7 @@ begin
   set Q := b'.to_matrix b,
 
   have hPQ : C.map_matrix (φ₁ P) ⬝ (C.map_matrix (φ₃ Q)) = 1,
-  { rw [ring_hom.map_matrix_apply, ring_hom.map_matrix_apply, ← matrix.map_mul, ←
+  { rw [ring_hom.map_matrix_apply, ring_hom.map_matrix_apply, ← matrix.map_mul,
       @reindex_linear_equiv_mul _ ι' _ _ _ _ R R, basis.to_matrix_mul_to_matrix_flip,
       reindex_linear_equiv_one, ← ring_hom.map_matrix_apply, ring_hom.map_one] },
 
@@ -59,7 +59,7 @@ begin
   ... = (scalar ι' X - C.map_matrix (φ (P ⬝ A' ⬝ Q))).det :
     by rw [basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix]
   ... = (scalar ι' X - C.map_matrix (φ₁ P ⬝ φ₂ A' ⬝ φ₃ Q)).det :
-    by rw [reindex_linear_equiv_mul R R _ _ e, reindex_linear_equiv_mul R R e _ _]
+    by rw [reindex_linear_equiv_mul, reindex_linear_equiv_mul]
   ... = (scalar ι' X - (C.map_matrix (φ₁ P) ⬝ C.map_matrix A' ⬝ C.map_matrix (φ₃ Q))).det : by simp
   ... = (scalar ι' X ⬝ C.map_matrix (φ₁ P) ⬝ (C.map_matrix (φ₃ Q)) -
     (C.map_matrix (φ₁ P) ⬝ C.map_matrix A' ⬝ C.map_matrix (φ₃ Q))).det :

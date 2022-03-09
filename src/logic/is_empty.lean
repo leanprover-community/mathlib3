@@ -3,7 +3,7 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import logic.basic
+import logic.function.basic
 import tactic.protected
 /-!
 # Types that are empty
@@ -120,3 +120,9 @@ lemma is_empty_or_nonempty : is_empty α ∨ nonempty α :=
 
 @[simp] lemma not_is_empty_of_nonempty [h : nonempty α] : ¬ is_empty α :=
 not_is_empty_iff.mpr h
+
+variable {α}
+
+lemma function.extend_of_empty [is_empty α] (f : α → β) (g : α → γ) (h : β → γ) :
+  function.extend f g h = h :=
+funext $ λ x, function.extend_apply' _ _ _ $ λ ⟨a, h⟩, is_empty_elim a

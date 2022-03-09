@@ -3,9 +3,8 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import topology.metric_space.hausdorff_distance
-import topology.metric_space.baire
 import data.real.irrational
+import topology.metric_space.baire
 
 /-!
 # Topology of irrational numbers
@@ -20,7 +19,7 @@ In this file we prove the following theorems:
   `irrational.eventually_forall_le_dist_cast_rat_of_denom_le`: a sufficiently small neighborhood of
   an irrational number is disjoint with the set of rational numbers with bounded denominator.
 
-We also provide `order_topology`, `no_bot_order`, `no_top_order`, and `densely_ordered`
+We also provide `order_topology`, `no_min_order`, `no_max_order`, and `densely_ordered`
 instances for `{x // irrational x}`.
 
 ## Tags
@@ -53,10 +52,10 @@ instance : order_topology {x // irrational x} :=
 induced_order_topology _ (λ x y, iff.rfl) $ λ x y hlt,
   let ⟨a, ha, hxa, hay⟩ := exists_irrational_btwn hlt in ⟨⟨a, ha⟩, hxa, hay⟩
 
-instance : no_top_order {x // irrational x} :=
+instance : no_max_order {x // irrational x} :=
 ⟨λ ⟨x, hx⟩, ⟨⟨x + (1 : ℕ), hx.add_nat 1⟩, by simp⟩⟩
 
-instance : no_bot_order {x // irrational x} :=
+instance : no_min_order {x // irrational x} :=
 ⟨λ ⟨x, hx⟩, ⟨⟨x - (1 : ℕ), hx.sub_nat 1⟩, by simp⟩⟩
 
 instance : densely_ordered {x // irrational x} :=

@@ -112,16 +112,15 @@ namespace add_monoid_algebra
 begin
   let to_hom : add_monoid_algebra M ι →+ (⨁ i : ι, M) :=
     ⟨to_direct_sum, to_direct_sum_zero, to_direct_sum_add⟩,
-  have : ⇑to_hom = to_direct_sum := rfl,
-  rw ←this,
+  show to_hom (f * g) = to_hom f * to_hom g,
   revert f g,
   rw add_monoid_hom.map_mul_iff,
   ext xi xv yi yv : 4,
   dsimp only [add_monoid_hom.comp_apply, add_monoid_hom.compl₂_apply,
     add_monoid_hom.compr₂_apply, add_monoid_hom.mul_apply, add_equiv.coe_to_add_monoid_hom,
     finsupp.single_add_hom_apply],
-  simp only [add_monoid_algebra.single_mul_single, this, add_monoid_algebra.to_direct_sum_single],
-  rw [direct_sum.of_mul_of, has_mul.ghas_mul_mul],
+  simp only [add_monoid_algebra.single_mul_single, to_hom, add_monoid_hom.coe_mk,
+      add_monoid_algebra.to_direct_sum_single, direct_sum.of_mul_of, has_mul.ghas_mul_mul]
 end
 
 end add_monoid_algebra

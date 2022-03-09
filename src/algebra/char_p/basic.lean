@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
-import algebra.iterate_hom
 import data.int.modeq
-import data.nat.choose
+import algebra.iterate_hom
+import data.nat.choose.sum
 import group_theory.order_of_element
+import data.nat.choose.dvd
+import ring_theory.nilpotent
 /-!
 # Characteristic of semirings
 -/
@@ -91,8 +93,8 @@ theorem spec : ∀ x:ℕ, (x:R) = 0 ↔ ring_char R ∣ x :=
 by letI := (classical.some_spec (char_p.exists_unique R)).1;
 unfold ring_char; exact char_p.cast_eq_zero_iff R (ring_char R)
 
-theorem eq {p : ℕ} (C : char_p R p) : p = ring_char R :=
-(classical.some_spec (char_p.exists_unique R)).2 p C
+theorem eq (p : ℕ) [C : char_p R p] : ring_char R = p :=
+((classical.some_spec (char_p.exists_unique R)).2 p C).symm
 
 instance char_p : char_p R (ring_char R) :=
 ⟨spec R⟩
@@ -103,13 +105,13 @@ theorem of_eq {p : ℕ} (h : ring_char R = p) : char_p R p :=
 char_p.congr (ring_char R) h
 
 theorem eq_iff {p : ℕ} : ring_char R = p ↔ char_p R p :=
-⟨of_eq, eq.symm ∘ eq R⟩
+⟨of_eq, @eq R _ p⟩
 
 theorem dvd {x : ℕ} (hx : (x : R) = 0) : ring_char R ∣ x :=
 (spec R x).1 hx
 
 @[simp]
-lemma eq_zero [char_zero R] : ring_char R = 0 := (eq R (char_p.of_char_zero R)).symm
+lemma eq_zero [char_zero R] : ring_char R = 0 := eq R 0
 
 end ring_char
 
@@ -215,7 +217,7 @@ lemma ring_hom.char_p_iff_char_p {K L : Type*} [division_ring K] [semiring L] [n
 begin
   split;
   { introI _c, constructor, intro n,
-    rw [← @char_p.cast_eq_zero_iff _ _ _ p _c n, ← f.injective.eq_iff, f.map_nat_cast, f.map_zero] }
+    rw [← @char_p.cast_eq_zero_iff _ _ _ p _c n, ← f.injective.eq_iff, map_nat_cast f, f.map_zero] }
 end
 
 section frobenius
@@ -223,7 +225,7 @@ section frobenius
 section comm_semiring
 
 variables [comm_semiring R] {S : Type v} [comm_semiring S] (f : R →* S) (g : R →+* S)
-  (p : ℕ) [fact p.prime] [char_p R p]  [char_p S p] (x y : R)
+  (p : ℕ) [fact p.prime] [char_p R p] [char_p S p] (x y : R)
 
 /-- The frobenius map that sends x to x^p -/
 def frobenius : R →+* R :=
@@ -277,7 +279,20 @@ theorem frobenius_zero : frobenius R p 0 = 0 := (frobenius R p).map_zero
 theorem frobenius_add : frobenius R p (x + y) = frobenius R p x + frobenius R p y :=
 (frobenius R p).map_add x y
 
-theorem frobenius_nat_cast (n : ℕ) : frobenius R p n = n := (frobenius R p).map_nat_cast n
+theorem frobenius_nat_cast (n : ℕ) : frobenius R p n = n := map_nat_cast (frobenius R p) n
+
+open_locale big_operators
+variables {R}
+
+lemma list_sum_pow_char (l : list R) : l.sum ^ p = (l.map (^ p)).sum :=
+(frobenius R p).map_list_sum _
+
+lemma multiset_sum_pow_char (s : multiset R) : s.sum ^ p = (s.map (^ p)).sum :=
+(frobenius R p).map_multiset_sum _
+
+lemma sum_pow_char {ι : Type*} (s : finset ι) (f : ι → R) :
+  (∑ i in s, f i) ^ p = ∑ i in s, f i ^ p :=
+(frobenius R p).map_sum _ _
 
 end comm_semiring
 
@@ -295,10 +310,10 @@ end comm_ring
 
 end frobenius
 
-theorem frobenius_inj [comm_ring R] [no_zero_divisors R]
+theorem frobenius_inj [comm_ring R] [is_reduced R]
   (p : ℕ) [fact p.prime] [char_p R p] :
   function.injective (frobenius R p) :=
-λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact pow_eq_zero H }
+λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact is_reduced.eq_zero _ ⟨_,H⟩ }
 
 namespace char_p
 
@@ -335,7 +350,7 @@ section no_zero_divisors
 variable [no_zero_divisors R]
 
 theorem char_is_prime_of_two_le (p : ℕ) [hc : char_p R p] (hp : 2 ≤ p) : nat.prime p :=
-suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
+suffices ∀d ∣ p, d = 1 ∨ d = p, from nat.prime_def_lt''.mpr ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
 have (p : R) = 0, from (cast_eq_zero_iff R p p).mpr (dvd_refl p),
@@ -406,6 +421,10 @@ by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.sp
 lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) [hr : char_p R v] :
   nontrivial R :=
 ⟨⟨(1 : ℕ), 0, λ h, hv $ by rwa [char_p.cast_eq_zero_iff _ v, nat.dvd_one] at h; assumption ⟩⟩
+
+lemma ring_char_of_prime_eq_zero [nontrivial R] {p : ℕ}
+  (hprime : nat.prime p) (hp0 : (p : R) = 0) : ring_char R = p :=
+or.resolve_left ((nat.dvd_prime hprime).1 (ring_char.dvd hp0)) ring_char_ne_one
 
 end char_one
 

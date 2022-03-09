@@ -38,6 +38,8 @@ instance {S : Type*} [semiring S] [Π i, module S (M i)] [Π i, smul_comm_class 
 instance {S : Type*} [semiring S] [has_scalar R S] [Π i, module S (M i)]
   [Π i, is_scalar_tower R S (M i)] :
   is_scalar_tower R S (⨁ i, M i) := dfinsupp.is_scalar_tower
+instance [Π i, module Rᵐᵒᵖ (M i)] [Π i, is_central_scalar R (M i)] :
+  is_central_scalar R (⨁ i, M i) := dfinsupp.is_central_scalar
 
 lemma smul_apply (b : R) (v : ⨁ i, M i) (i : ι) :
   (b • v) i = b • (v i) := dfinsupp.smul_apply _ _ _
@@ -210,6 +212,13 @@ def submodule_coe : (⨁ i, A i) →ₗ[R] M := to_module R ι M (λ i, (A i).su
 @[simp] lemma submodule_coe_of (i : ι) (x : A i) : submodule_coe A (of (λ i, A i) i x) = x :=
 to_add_monoid_of _ _ _
 
+lemma coe_of_submodule_apply (i j : ι) (x : A i) :
+  (direct_sum.of _ i x j : M) = if i = j then x else 0 :=
+begin
+  obtain rfl | h := decidable.eq_or_ne i j,
+  { rw [direct_sum.of_eq_same, if_pos rfl], },
+  { rw [direct_sum.of_eq_of_ne _ _ _ _ h, if_neg h, submodule.coe_zero], },
+end
 
 /-- The `direct_sum` formed by a collection of `submodule`s of `M` is said to be internal if the
 canonical map `(⨁ i, A i) →ₗ[R] M` is bijective.

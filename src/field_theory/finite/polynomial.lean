@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import field_theory.finite.basic
-import field_theory.mv_polynomial
-import data.mv_polynomial.expand
-import linear_algebra.basic
 import linear_algebra.finite_dimensional
+import linear_algebra.basic
+import ring_theory.mv_polynomial.basic
+import data.mv_polynomial.expand
+import field_theory.finite.basic
 
 /-!
 ## Polynomials over finite fields

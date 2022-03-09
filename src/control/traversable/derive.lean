@@ -6,7 +6,6 @@ Authors: Simon Hudon
 Automation to construct `traversable` instances
 -/
 import control.traversable.lemmas
-import data.list.basic
 
 namespace tactic.interactive
 
@@ -282,8 +281,8 @@ do decl ← get_decl n,
    tgt ← mk_inst cls tgt,
    tgt ← params.enum.mfoldr (λ ⟨i, param⟩ tgt,
    do -- add typeclass hypothesis for each inductive parameter
-      tgt ← do {
-        guard $ i < env.inductive_num_params n,
+      tgt ← do
+      { guard $ i < env.inductive_num_params n,
         param_cls ← mk_app cls [param],
         pure $ expr.pi `a binder_info.inst_implicit param_cls tgt }
       <|> pure tgt,
@@ -356,8 +355,8 @@ do `(@is_lawful_traversable %%f %%d) ← target,
        traversable_law_starter def_eqns; (refl <|> simp_functor (def_eqns ++ comp_def)),
        traversable_law_starter def_eqns; (refl <|> simp none none tt tr_map [] goal ),
        traversable_law_starter def_eqns; (refl <|> do
-         η ← get_local `η <|> do {
-           t ← mk_const ``is_lawful_traversable.naturality >>= infer_type >>= pp,
+         η ← get_local `η <|> do
+         { t ← mk_const ``is_lawful_traversable.naturality >>= infer_type >>= pp,
            fail format!"expecting an `applicative_transformation` called `η` in\nnaturality : {t}"},
          simp none none tt (natur η) [] goal) ];
    refl,

@@ -35,6 +35,10 @@ example : (4:real)⁻¹ < 1 := by norm_num
 example : ((1:real) / 2)⁻¹ = 2 := by norm_num
 example : 2 ^ 17 - 1 = 131071 :=
 by {norm_num, tactic.try_for 200 (tactic.result >>= tactic.type_check)}
+example : (3 : real) ^ (-2 : ℤ) = 1/9 := by norm_num
+example : (-3 : real) ^ (0 : ℤ) = 1 := by norm_num
+example : (-3 : real) ^ (-1 : ℤ) = -1/3 := by norm_num
+example : (-3 : real) ^ (2 : ℤ) = 9 := by norm_num
 
 example : (1:complex) ≠ 2 := by norm_num
 example : (1:complex) / 3 ≠ 2 / 7 := by norm_num

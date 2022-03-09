@@ -23,7 +23,7 @@ lemma is_conformal_map_iff (f' : E →L[ℝ] F) :
 begin
   split,
   { rintros ⟨c₁, hc₁, li, h⟩,
-    refine ⟨c₁ * c₁, mul_self_pos hc₁, λ u v, _⟩,
+    refine ⟨c₁ * c₁, mul_self_pos.2 hc₁, λ u v, _⟩,
     simp only [h, pi.smul_apply, inner_map_map,
                real_inner_smul_left, real_inner_smul_right, mul_assoc], },
   { rintros ⟨c₁, hc₁, huv⟩,

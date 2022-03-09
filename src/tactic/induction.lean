@@ -371,11 +371,10 @@ meta def constructor_argument_naming_rule_index : constructor_argument_naming_ru
 λ i,
 let index_occs := i.ainfo.index_occurrences in
 let major_premise_args := i.mpinfo.args in
-let get_major_premise_arg_local_names : ℕ → option (name × name) := λ i, do {
-  arg ← major_premise_args.find i,
+let get_major_premise_arg_local_names : ℕ → option (name × name) := λ i, do
+{ arg ← major_premise_args.find i,
   (uname, ppname, _) ← arg.match_local_const,
-  pure (uname, ppname)
-} in
+  pure (uname, ppname) } in
 let local_index_instantiations :=
   (index_occs.map get_major_premise_arg_local_names).all_some in
 /-
@@ -533,13 +532,13 @@ open lean (parser)
 open lean.parser
 
 /-- Parser for a `with_pattern`. -/
-protected meta def parser : parser with_pattern :=
+protected meta def parser : lean.parser with_pattern :=
 (tk "-" *> pure with_pattern.clear) <|>
 (tk "_" *> pure with_pattern.auto) <|>
 (with_pattern.exact <$> ident)
 
 /-- Parser for a `with` clause. -/
-meta def clause_parser : parser (list with_pattern) :=
+meta def clause_parser : lean.parser (list with_pattern) :=
 (tk "with" *> many with_pattern.parser) <|> pure []
 
 /--
@@ -604,8 +603,8 @@ meta def constructor_renames (generate_induction_hyps : bool)
   let ⟨args, with_patterns⟩ :=
     args.map₂_left' (λ arg p, (arg, p.get_or_else with_pattern.auto))
       with_patterns,
-  arg_renames ← args.mmap_filter $ λ ⟨⟨old_ppname, ainfo⟩, with_pat⟩, do {
-      (some new) ← with_pat.to_name_spec
+  arg_renames ← args.mmap_filter $ λ ⟨⟨old_ppname, ainfo⟩, with_pat⟩, do
+    { (some new) ← with_pat.to_name_spec
         (constructor_argument_names ⟨mpinfo, iinfo, cinfo, ainfo⟩)
         | clear_dependent_if_exists old_ppname >> pure none,
       -- Some of the arg hyps may have been cleared by earlier simplification
@@ -625,8 +624,8 @@ meta def constructor_renames (generate_induction_hyps : bool)
   let ihs :=
     ihs.map₂_left (λ ih p, (ih, p.get_or_else with_pattern.auto)) with_patterns,
   let single_ih := ihs.length = 1,
-  ih_renames ← ihs.mmap_filter $ λ ⟨⟨ih_hyp_ppname, arg_hyp_ppname, _⟩, with_pat⟩, do {
-    some arg_hyp ← pure $ arg_hyp_map.find arg_hyp_ppname
+  ih_renames ← ihs.mmap_filter $ λ ⟨⟨ih_hyp_ppname, arg_hyp_ppname, _⟩, with_pat⟩, do
+  { some arg_hyp ← pure $ arg_hyp_map.find arg_hyp_ppname
       | fail! "internal error in constructor_renames: {arg_hyp_ppname} not found in arg_hyp_map",
     (some new) ← with_pat.to_name_spec (pure $
       if single_ih
@@ -706,8 +705,8 @@ meta def to_generalize (major_premise : expr) :
     (major_premise :: defs ++ fixed).mmap dependency_name_set_of_hyp_inclusive,
   let fixed_dependencies := fixed_dependencies.foldl name_set.union mk_name_set,
   ctx ← local_context,
-  to_revert ← ctx.mmap_filter $ λ h, do {
-    h_depends_on_major_premise_deps ←
+  to_revert ← ctx.mmap_filter $ λ h, do
+  { h_depends_on_major_premise_deps ←
       -- TODO `hyp_depends_on_local_name_set` is somewhat expensive
       hyp_depends_on_local_name_set h major_premise_dependencies,
     let h_name := h.local_uniq_name,
@@ -797,8 +796,8 @@ focus1 $ do
   -- Revert the hypotheses which depend on the index args or the major_premise.
   -- We exclude dependencies of the major premise because we can't replace their
   -- index occurrences anyway when we apply the recursor.
-  relevant_ctx ← ctx.mfilter $ λ h, do {
-    let dep_of_major_premise := major_premise_deps.contains h.local_uniq_name,
+  relevant_ctx ← ctx.mfilter $ λ h, do
+  { let dep_of_major_premise := major_premise_deps.contains h.local_uniq_name,
     dep_on_major_premise ← hyp_depends_on_locals h [major_premise],
     H ← infer_type h,
     dep_of_index ← js.many $ λ j, kdepends_on H j,
@@ -806,16 +805,16 @@ focus1 $ do
     pure $
       (dep_on_major_premise ∧ h ≠ major_premise) ∨
       (dep_of_index ∧ ¬ dep_of_major_premise) },
-  ⟨relevant_ctx_size, relevant_ctx⟩ ← unfreezing $ do {
-    r ← revert_lst' relevant_ctx,
+  ⟨relevant_ctx_size, relevant_ctx⟩ ← unfreezing $ do
+  { r ← revert_lst' relevant_ctx,
     revert major_premise,
     pure r },
 
   -- Create the local constants that will replace the index args. We have to be
   -- careful to get the right types.
   let go : expr → list expr → tactic (list expr) :=
-        λ j ks, do {
-          J ← infer_type j,
+        λ j ks, do
+        { J ← infer_type j,
           k ← mk_local' `index binder_info.default J,
           ks ← ks.mmap $ λ k', kreplace k' j k,
           pure $ k :: ks },
@@ -1190,8 +1189,8 @@ focus1 $ do
 
   -- For each case (constructor):
   cases : list (option (name × list expr)) ←
-    focus $ constrs.map $ λ ⟨cinfo, with_patterns⟩, do {
-      trace_eliminate_hyp "============",
+    focus $ constrs.map $ λ ⟨cinfo, with_patterns⟩, do
+    { trace_eliminate_hyp "============",
       trace_eliminate_hyp $ format! "Case {cinfo.cname}",
       trace_state_eliminate_hyp "Initial state:",
 
@@ -1240,8 +1239,8 @@ focus1 $ do
       -- NOTE: The previous step may have changed the unique names of the
       -- induction hypotheses, so we have to locate them again. Their pretty
       -- names should be unique in the context, so we can use these.
-      ihs.mmap' $ λ ⟨ih, _, arg_info⟩, do {
-        ih ← get_local ih,
+      ihs.mmap' $ λ ⟨ih, _, arg_info⟩, do
+      { ih ← get_local ih,
         (some num_leading_pis) ← pure arg_info.recursive_leading_pis
           | fail! "eliminate_hyp: internal error: unexpected non-recursive argument info",
         simplify_ih num_leading_pis num_auto_generalized num_index_vars ih },
@@ -1325,8 +1324,6 @@ meta def generalisation_mode_parser : lean.parser generalization_mode :=
   (tk "generalizing" *> generalization_mode.generalize_only <$> many ident)
   <|>
   pure (generalization_mode.generalize_all_except [])
-
-precedence `fixing`:0
 
 /--
 A variant of `tactic.interactive.induction`, with the following differences:

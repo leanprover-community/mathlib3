@@ -3,7 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import data.list.erase_dup
+import data.list.dedup
 import data.list.lattice
 import data.list.permutation
 import data.list.zip
@@ -261,16 +261,16 @@ lemma perm_comp_forall₂ {l u v} (hlu : perm l u) (huv : forall₂ r u v) : (fo
 begin
   induction hlu generalizing v,
   case perm.nil { cases huv, exact ⟨[], forall₂.nil, perm.nil⟩ },
-  case perm.cons : a l u hlu ih {
-    cases huv with _ b _ v hab huv',
+  case perm.cons : a l u hlu ih
+  { cases huv with _ b _ v hab huv',
     rcases ih huv' with ⟨l₂, h₁₂, h₂₃⟩,
     exact ⟨b::l₂, forall₂.cons hab h₁₂, h₂₃.cons _⟩ },
-  case perm.swap : a₁ a₂ l₁ l₂ h₂₃ {
-    cases h₂₃ with _ b₁ _ l₂ h₁ hr_₂₃,
+  case perm.swap : a₁ a₂ l₁ l₂ h₂₃
+  { cases h₂₃ with _ b₁ _ l₂ h₁ hr_₂₃,
     cases hr_₂₃ with _ b₂ _ l₂ h₂ h₁₂,
     exact ⟨b₂::b₁::l₂, forall₂.cons h₂ (forall₂.cons h₁ h₁₂), perm.swap _ _ _⟩ },
-  case perm.trans : la₁ la₂ la₃ _ _ ih₁ ih₂ {
-    rcases ih₂ huv with ⟨lb₂, hab₂, h₂₃⟩,
+  case perm.trans : la₁ la₂ la₃ _ _ ih₁ ih₂
+  { rcases ih₂ huv with ⟨lb₂, hab₂, h₂₃⟩,
     rcases ih₁ hab₂ with ⟨lb₁, hab₁, h₁₂⟩,
     exact ⟨lb₁, hab₁, perm.trans h₁₂ h₂₃⟩ }
 end
@@ -523,13 +523,13 @@ begin
   rcases s with ⟨l, p, s⟩,
   induction s generalizing l₁,
   case list.sublist.slnil { cases h₂ },
-  case list.sublist.cons : r₁ r₂ b s' ih {
-    simp at h₂,
+  case list.sublist.cons : r₁ r₂ b s' ih
+  { simp at h₂,
     cases h₂ with e m,
     { subst b, exact ⟨a::r₁, p.cons a, s'.cons2 _ _ _⟩ },
     { rcases ih m d₁ h₁ p with ⟨t, p', s'⟩, exact ⟨t, p', s'.cons _ _ _⟩ } },
-  case list.sublist.cons2 : r₁ r₂ b s' ih {
-    have bm : b ∈ l₁ := (p.subset $ mem_cons_self _ _),
+  case list.sublist.cons2 : r₁ r₂ b s' ih
+  { have bm : b ∈ l₁ := (p.subset $ mem_cons_self _ _),
     have am : a ∈ r₂ := h₂.resolve_left (λ e, h₁ $ e.symm ▸ bm),
     rcases mem_split bm with ⟨t₁, t₂, rfl⟩,
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp,
@@ -738,6 +738,10 @@ begin
   convert (subperm_append_right _).mpr nil_subperm using 1
 end
 
+@[simp] lemma subperm_singleton_iff {α} {l : list α} {a : α} : [a] <+~ l ↔ a ∈ l :=
+⟨λ ⟨s, hla, h⟩, by rwa [perm_singleton.mp hla, singleton_sublist] at h,
+ λ h, ⟨[a], perm.refl _, singleton_sublist.mpr h⟩⟩
+
 lemma subperm.cons_left {l₁ l₂ : list α} (h : l₁ <+~ l₂)
   (x : α) (hx : count x l₁ < count x l₂) :
   x :: l₁ <+~ l₂  :=
@@ -759,11 +763,11 @@ instance decidable_perm : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂)
                         exact decidable_of_iff' _ cons_perm_iff_perm_erase
 
 -- @[congr]
-theorem perm.erase_dup {l₁ l₂ : list α} (p : l₁ ~ l₂) :
-  erase_dup l₁ ~ erase_dup l₂ :=
+theorem perm.dedup {l₁ l₂ : list α} (p : l₁ ~ l₂) :
+  dedup l₁ ~ dedup l₂ :=
 perm_iff_count.2 $ λ a,
 if h : a ∈ l₁
-then by simp [nodup_erase_dup, h, p.subset h]
+then by simp [nodup_dedup, h, p.subset h]
 else by simp [h, mt p.mem_iff.2 h]
 
 -- attribute [congr]
@@ -816,7 +820,7 @@ theorem perm.inter_right {l₁ l₂ : list α} (t₁ : list α) : l₁ ~ l₂ �
 perm.filter _
 
 theorem perm.inter_left (l : list α) {t₁ t₂ : list α} (p : t₁ ~ t₂) : l ∩ t₁ = l ∩ t₂ :=
-by { dsimp [(∩), list.inter], congr, funext a, rw [p.mem_iff] }
+filter_congr' (λ a _, p.mem_iff)
 
 -- @[congr]
 theorem perm.inter {l₁ l₂ t₁ t₂ : list α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : l₁ ∩ t₁ ~ l₂ ∩ t₂ :=
@@ -992,7 +996,7 @@ begin
                         perm_cons, take, not_mem_nil, filter_false],
     cases h' with _ _ h₁ h₂,
     convert h_ih h₂ n using 1,
-    apply filter_congr,
+    apply filter_congr',
     introv h, simp only [(h₁ x h).symm, false_or], },
   case list.perm.swap : h_x h_y h_l n
   { cases h' with _ _ h₁ h₂,
@@ -1002,12 +1006,12 @@ begin
     cases n; simp only [mem_cons_iff, false_or, true_or, filter, *, nat.nat_zero_eq_zero, if_true,
                         not_mem_nil, eq_self_iff_true, or_false, if_false, perm_cons, take],
     { rw filter_eq_nil.2, intros, solve_by_elim [ne.symm], },
-    { convert perm.swap _ _ _, rw @filter_congr _ _ (∈ take n h_l),
-      { clear h₁, induction n generalizing h_l; simp only [not_mem_nil, filter_false, take],
+    { convert perm.swap _ _ _, rw @filter_congr' _ _ (∈ take n h_l),
+      { clear h₁, induction n generalizing h_l, { simp },
         cases h_l; simp only [mem_cons_iff, true_or, eq_self_iff_true, filter_cons_of_pos,
                               true_and, take, not_mem_nil, filter_false, take_nil],
         cases h₃ with _ _ h₃ h₄,
-        rwa [@filter_congr _ _ (∈ take n_n h_l_tl), n_ih],
+        rwa [@filter_congr' _ _ (∈ take n_n h_l_tl), n_ih],
         { introv h, apply h₂ _ (or.inr h), },
         { introv h, simp only [(h₃ x h).symm, false_or], }, },
       { introv h, simp only [(h₂ x h).symm, (h₁ x (or.inr h)).symm, false_or], } } },

@@ -236,19 +236,31 @@ begin
   intros U R hR,
   refine ⟨_⟩,
   apply (is_limit.of_cone_equiv (cones.postcompose_equivalence
-    (covering_of_presieve.diagram_nat_iso F U R))).to_fun,
+    (covering_of_presieve.diagram_nat_iso F U R : _))).to_fun,
   apply (is_limit.equiv_iso_limit
     (covering_of_presieve.postcompose_diagram_fork_iso F U R hR)).inv_fun,
   exact (Fsh (covering_of_presieve U R)).some,
 end
 
 /--
-Given a family of opens `U : ι → opens X`, we obtain a presieve on `supr U` by declaring that a
-morphism `f : V ⟶ supr U` is a member of the presieve if and only if there exists an index `i : ι`
-such that `V = U i`.
+Given a family of opens `U : ι → opens X` and any open `Y : opens X`, we obtain a presieve
+on `Y` by declaring that a morphism `f : V ⟶ Y` is a member of the presieve if and only if
+there exists an index `i : ι` such that `V = U i`.
 -/
-def presieve_of_covering {ι : Type v} (U : ι → opens X) : presieve (supr U) :=
+def presieve_of_covering_aux {ι : Type v} (U : ι → opens X) (Y : opens X) : presieve Y :=
 λ V f, ∃ i, V = U i
+
+/-- Take `Y` to be `supr U` and obtain a presieve over `supr U`. -/
+def presieve_of_covering {ι : Type v} (U : ι → opens X) : presieve (supr U) :=
+presieve_of_covering_aux U (supr U)
+
+/-- Given a presieve `R` on `Y`, if we take its associated family of opens via
+    `covering_of_presieve` (which may not cover `Y` if `R` is not covering), and take
+    the presieve on `Y` associated to the family of opens via `presieve_of_covering_aux`,
+    then we get back the original presieve `R`. -/
+@[simp] lemma covering_presieve_eq_self {Y : opens X} (R : presieve Y) :
+  presieve_of_covering_aux (covering_of_presieve Y R) Y = R :=
+by { ext Z f, exact ⟨λ ⟨⟨_,_,h⟩,rfl⟩, by convert h, λ h, ⟨⟨Z,f,h⟩,rfl⟩⟩ }
 
 namespace presieve_of_covering
 
@@ -317,7 +329,7 @@ pi.lift (λ f, pi.π _ (index_of_hom U f) ≫ F.map (eq_to_hom (index_of_hom_spe
 Even though `first_obj_to_pi_opens` and `pi_opens_to_first_obj` are not inverse to each other,
 applying them both after a fork map `s.ι` does nothing. The intuition here is that a compatible
 family `s : Π i : ι, F.obj (op (U i))` does not care about duplicate open sets:
-If `U i = U j` the the compatible family coincides on the intersection `U i ⊓ U j = U i = U j`,
+If `U i = U j` the compatible family coincides on the intersection `U i ⊓ U j = U i = U j`,
 hence `s i = s j` (module an `eq_to_hom` arrow).
 -/
 lemma fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq
@@ -450,27 +462,37 @@ variables (C X)
 @[simps]
 def Sheaf_sites_to_sheaf_spaces : Sheaf (opens.grothendieck_topology X) C ⥤ sheaf C X :=
 { obj := λ F, ⟨F.1, is_sheaf_spaces_of_is_sheaf_sites F.1 F.2⟩,
-  map := λ F G f, f }
+  map := λ F G f, f.val }
 
 /-- Turn a sheaf on the space `X` into a sheaf on the site `opens X`. -/
 @[simps]
 def Sheaf_spaces_to_sheaf_sites : sheaf C X ⥤ Sheaf (opens.grothendieck_topology X) C :=
 { obj := λ F, ⟨F.1, is_sheaf_sites_of_is_sheaf_spaces F.1 F.2⟩,
-  map := λ F G f, f }
+  map := λ F G f, ⟨f⟩ }
 
 /--
 The equivalence of categories between sheaves on the site `opens X` and sheaves on the space `X`.
 -/
 @[simps]
-def Sheaf_spaces_equivelence_sheaf_sites : Sheaf (opens.grothendieck_topology X) C ≌ sheaf C X :=
-begin
-  refine equivalence.mk (Sheaf_sites_to_sheaf_spaces C X) (Sheaf_spaces_to_sheaf_sites C X) _ _,
-  all_goals {
-    refine nat_iso.of_components (λ F, eq_to_iso (subtype.ext rfl)) (λ F G f, _),
-    ext U, dsimp,
-    erw [nat_trans.comp_app, nat_trans.comp_app, eq_to_hom_refl G.1 rfl, eq_to_hom_refl F.1 rfl,
-      nat_trans.id_app G.1, category.comp_id, nat_trans.id_app F.1, category.id_comp], },
-end
+def Sheaf_spaces_equiv_sheaf_sites : Sheaf (opens.grothendieck_topology X) C ≌ sheaf C X :=
+{ functor := Sheaf_sites_to_sheaf_spaces C X,
+  inverse := Sheaf_spaces_to_sheaf_sites C X,
+  unit_iso := nat_iso.of_components (λ t, ⟨⟨𝟙 _⟩, ⟨𝟙 _⟩, by { ext1, simp }, by { ext1, simp }⟩) $
+    by { intros, ext1, dsimp, simp },
+  counit_iso := nat_iso.of_components (λ t, ⟨𝟙 _, 𝟙 _, by { ext, simp }, by { ext, simp }⟩) $
+    by { intros, ext, dsimp, simp } }
+
+/-- The two forgetful functors are isomorphic via `Sheaf_spaces_equiv_sheaf_sites`. -/
+def Sheaf_spaces_equiv_sheaf_sites_functor_forget :
+  (Sheaf_spaces_equiv_sheaf_sites C X).functor ⋙ sheaf.forget C X ≅ Sheaf_to_presheaf _ _ :=
+nat_iso.of_components (λ F, (iso.refl F.1))
+  (λ F G f, by { erw [category.comp_id, category.id_comp], refl })
+
+/-- The two forgetful functors are isomorphic via `Sheaf_spaces_equiv_sheaf_sites`. -/
+def Sheaf_spaces_equiv_sheaf_sites_inverse_forget :
+  (Sheaf_spaces_equiv_sheaf_sites C X).inverse ⋙ Sheaf_to_presheaf _ _ ≅ sheaf.forget C X :=
+nat_iso.of_components (λ F, (iso.refl F.1))
+  (λ F G f, by { erw [category.comp_id, category.id_comp], refl })
 
 end Top.presheaf
 
@@ -503,6 +525,15 @@ open category_theory topological_space Top opposite
 variables {C : Type u} [category.{v} C] [limits.has_products C]
 variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
 variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
+
+/-- The empty component of a sheaf is terminal -/
+def is_terminal_of_empty (F : sheaf C X) : limits.is_terminal (F.val.obj (op ∅)) :=
+((presheaf.Sheaf_spaces_to_sheaf_sites C X).obj F).is_terminal_of_bot_cover ∅ (by tidy)
+
+/-- A variant of `is_terminal_of_empty` that is easier to `apply`. -/
+def is_terminal_of_eq_empty (F : X.sheaf C) {U : opens X} (h : U = ∅) :
+  limits.is_terminal (F.val.obj (op U)) :=
+by convert F.is_terminal_of_empty
 
 /-- If a family `B` of open sets forms a basis of the topology on `X`, and if `F'`
     is a sheaf on `X`, then a homomorphism between a presheaf `F` on `X` and `F'`

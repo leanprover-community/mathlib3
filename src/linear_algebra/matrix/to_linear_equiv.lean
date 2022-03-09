@@ -6,7 +6,8 @@ Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 import linear_algebra.matrix.nondegenerate
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_lin
-import ring_theory.localization
+import ring_theory.localization.fraction_ring
+import ring_theory.localization.integer
 
 /-!
 # Matrices and linear equivalences
@@ -77,8 +78,8 @@ See `matrix.to_linear_equiv'` for this result on `n → R`.
 noncomputable def to_linear_equiv [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   M ≃ₗ[R] M :=
 begin
-  refine {
-    to_fun := to_lin b b A,
+  refine
+  { to_fun := to_lin b b A,
     inv_fun := to_lin b b A⁻¹,
     left_inv := λ x, _,
     right_inv := λ x, _,

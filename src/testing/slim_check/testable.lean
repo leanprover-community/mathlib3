@@ -67,8 +67,7 @@ for ease of testing as:
 
 ```lean
 /- ... -/
-  shrink := λ ⟨x,y,h⟩, (λ ⟨x,y⟩, { x := x, y := x + y, h := /- proof -/}) <$> shrink (x, y - x)
-}
+  shrink := λ ⟨x,y,h⟩, (λ ⟨x,y⟩, { x := x, y := x + y, h := /- proof -/}) <$> shrink (x, y - x) }
 ```
 
 Again, we take advantage of the fact that other types have useful
@@ -553,7 +552,7 @@ instance unused_var_testable (β) [inhabited α] [testable β] :
   testable (named_binder var $ Π x : α, β) :=
 ⟨ λ cfg min, do
   r ← testable.run β cfg min,
-  pure $ convert_counter_example ($ default _) r (psum.inr $ λ x _, x) ⟩
+  pure $ convert_counter_example ($ default) r (psum.inr $ λ x _, x) ⟩
 
 @[priority 2000]
 instance subtype_var_testable {p : α → Prop}

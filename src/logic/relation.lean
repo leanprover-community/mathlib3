@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import tactic.basic
+import logic.relator
 
 /-!
 # Relation closures
@@ -35,6 +36,8 @@ the bundled version, see `rel`.
 * `relation.join`: Join of a relation. For `r : α → α → Prop`, `join r a b ↔ ∃ c, r a c ∧ r b c`. In
   terms of rewriting systems, this means that `a` and `b` can be rewritten to the same term.
 -/
+
+open function
 
 variables {α β γ δ : Type*}
 
@@ -169,9 +172,17 @@ attribute [refl] refl_trans_gen.refl
 
 attribute [refl] refl_gen.refl
 
-lemma refl_gen.to_refl_trans_gen : ∀ {a b}, refl_gen r a b → refl_trans_gen r a b
+namespace refl_gen
+
+lemma to_refl_trans_gen : ∀ {a b}, refl_gen r a b → refl_trans_gen r a b
+| a _ refl := by refl
+| a b (single h) := refl_trans_gen.tail refl_trans_gen.refl h
+
+lemma mono {p : α → α → Prop} (hp : ∀ a b, r a b → p a b) : ∀ {a b}, refl_gen r a b → refl_gen p a b
 | a _ refl_gen.refl := by refl
-| a b (refl_gen.single h) := refl_trans_gen.tail refl_trans_gen.refl h
+| a b (single h) := single (hp a b h)
+
+end refl_gen
 
 namespace refl_trans_gen
 
@@ -214,8 +225,8 @@ lemma head_induction_on
 begin
   induction h generalizing P,
   case refl_trans_gen.refl { exact refl },
-  case refl_trans_gen.tail : b c hab hbc ih {
-    apply ih,
+  case refl_trans_gen.tail : b c hab hbc ih
+  { apply ih,
     show P b _, from head hbc _ refl,
     show ∀ a a', r a a' → refl_trans_gen r a' b → P a' _ → P a _,
       from λ a a' hab hbc, head hab _ }
@@ -308,8 +319,8 @@ lemma head_induction_on
 begin
   induction h generalizing P,
   case single : a h { exact base h },
-  case tail : b c hab hbc h_ih {
-    apply h_ih,
+  case tail : b c hab hbc h_ih
+  { apply h_ih,
     show ∀ a, r a b → P a _, from λ a h, ih h (single hbc) (base hbc),
     show ∀ a a', r a a' → trans_gen r a' b → P a' _ → P a _, from λ a a' hab hbc, ih hab _ }
 end
@@ -347,8 +358,8 @@ begin
   refine ⟨λ h, _, λ ⟨b, hab, hbc⟩, head' hab hbc⟩,
   induction h,
   case trans_gen.single : c hac { exact ⟨_, hac, by refl⟩ },
-  case trans_gen.tail : b c hab hbc IH {
-    rcases IH with ⟨d, had, hdb⟩, exact ⟨_, had, hdb.tail hbc⟩ }
+  case trans_gen.tail : b c hab hbc IH
+  { rcases IH with ⟨d, had, hdb⟩, exact ⟨_, had, hdb.tail hbc⟩ }
 end
 
 end trans_gen
@@ -388,6 +399,16 @@ by simpa [trans_gen_idem] using hab.lift f h
 lemma trans_gen.closed {p : α → α → Prop} :
   (∀ a b, r a b → trans_gen p a b) → trans_gen r a b → trans_gen p a b :=
 trans_gen.lift' id
+
+lemma trans_gen.mono {p : α → α → Prop} :
+  (∀ a b, r a b → p a b) → trans_gen r a b → trans_gen p a b :=
+trans_gen.lift id
+
+lemma trans_gen.swap (h : trans_gen r b a) : trans_gen (swap r) a b :=
+by { induction h with b h b c hab hbc ih, { exact trans_gen.single h }, exact ih.head hbc }
+
+lemma trans_gen_swap : trans_gen (swap r) a b ↔ trans_gen r b a :=
+⟨trans_gen.swap, trans_gen.swap⟩
 
 end trans_gen
 
@@ -443,6 +464,12 @@ lemma refl_trans_gen_closed {p : α → α → Prop} :
   (∀ a b, r a b → refl_trans_gen p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
 refl_trans_gen.lift' id
 
+lemma refl_trans_gen.swap (h : refl_trans_gen r b a) : refl_trans_gen (swap r) a b :=
+by { induction h with b c hab hbc ih, { refl }, exact ih.head hbc }
+
+lemma refl_trans_gen_swap : refl_trans_gen (swap r) a b ↔ refl_trans_gen r b a :=
+⟨refl_trans_gen.swap, refl_trans_gen.swap⟩
+
 end refl_trans_gen
 
 /--
@@ -465,14 +492,14 @@ lemma church_rosser
 begin
   induction hab,
   case refl_trans_gen.refl { exact ⟨c, hac, refl⟩ },
-  case refl_trans_gen.tail : d e had hde ih {
-    clear hac had a,
+  case refl_trans_gen.tail : d e had hde ih
+  { clear hac had a,
     rcases ih with ⟨b, hdb, hcb⟩,
     have : ∃ a, refl_trans_gen r e a ∧ refl_gen r b a,
     { clear hcb, induction hdb,
       case refl_trans_gen.refl { exact ⟨e, refl, refl_gen.single hde⟩ },
-      case refl_trans_gen.tail : f b hdf hfb ih {
-        rcases ih with ⟨a, hea, hfa⟩,
+      case refl_trans_gen.tail : f b hdf hfb ih
+      { rcases ih with ⟨a, hea, hfa⟩,
         cases hfa with _ hfa,
         { exact ⟨b, hea.tail hfb, refl_gen.refl⟩ },
         { rcases h _ _ _ hfb hfa with ⟨c, hbc, hac⟩,

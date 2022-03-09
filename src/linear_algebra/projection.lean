@@ -67,7 +67,7 @@ namespace submodule
 open linear_map
 
 /-- If `q` is a complement of `p`, then `M/p ≃ q`. -/
-def quotient_equiv_of_is_compl (h : is_compl p q) : p.quotient ≃ₗ[R] q :=
+def quotient_equiv_of_is_compl (h : is_compl p q) : (E ⧸ p) ≃ₗ[R] q :=
 linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
   (by simp only [← ker_eq_bot, ker_comp, ker_mkq, disjoint_iff_comap_eq_bot.1 h.symm.disjoint])
   (by simp only [← range_eq_top, range_comp, range_subtype, map_mkq_eq_top, h.sup_eq_top])
@@ -79,8 +79,8 @@ linear_equiv.symm $ linear_equiv.of_bijective (p.mkq.comp q.subtype)
   quotient_equiv_of_is_compl p q h (quotient.mk x) = x :=
 (quotient_equiv_of_is_compl p q h).apply_symm_apply x
 
-@[simp] lemma mk_quotient_equiv_of_is_compl_apply (h : is_compl p q) (x : p.quotient) :
-  (quotient.mk (quotient_equiv_of_is_compl p q h x) : p.quotient) = x :=
+@[simp] lemma mk_quotient_equiv_of_is_compl_apply (h : is_compl p q) (x : E ⧸ p) :
+  (quotient.mk (quotient_equiv_of_is_compl p q h x) : E ⧸ p) = x :=
 (quotient_equiv_of_is_compl p q h).symm_apply_apply x
 
 /-- If `q` is a complement of `p`, then `p × q` is isomorphic to `E`. It is the unique
@@ -127,6 +127,12 @@ begin
   rw [coe_prod_equiv_of_is_compl', submodule.add_mem_iff_right _ (submodule.coe_mem _),
     mem_left_iff_eq_zero_of_disjoint h.disjoint]
 end
+
+@[simp]
+lemma prod_comm_trans_prod_equiv_of_is_compl (h : is_compl p q) :
+  linear_equiv.prod_comm R q p ≪≫ₗ prod_equiv_of_is_compl p q h =
+    prod_equiv_of_is_compl q p h.symm :=
+linear_equiv.ext $ λ _, add_comm _ _
 
 /-- Projection to a submodule along its complement. -/
 def linear_proj_of_is_compl (h : is_compl p q) :
@@ -177,6 +183,14 @@ lemma exists_unique_add_of_is_compl (hc : is_compl p q) (x : E) :
     (r : E) + s = x → r = u ∧ s = v) :=
 let ⟨u, hu₁, hu₂⟩ := exists_unique_add_of_is_compl_prod hc x in
   ⟨u.1, u.2, hu₁, λ r s hrs, prod.eq_iff_fst_eq_snd_eq.1 (hu₂ ⟨r, s⟩ hrs)⟩
+
+lemma linear_proj_add_linear_proj_of_is_compl_eq_self (hpq : is_compl p q) (x : E) :
+  (p.linear_proj_of_is_compl q hpq x + q.linear_proj_of_is_compl p hpq.symm x : E) = x :=
+begin
+  dunfold linear_proj_of_is_compl,
+  rw ←prod_comm_trans_prod_equiv_of_is_compl _ _ hpq,
+  exact (prod_equiv_of_is_compl _ _ hpq).apply_symm_apply x,
+end
 
 end submodule
 

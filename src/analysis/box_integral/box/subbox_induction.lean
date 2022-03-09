@@ -144,7 +144,7 @@ begin
       ⟨I.upper, λ x ⟨m, hm⟩, hm ▸ (hJl_mem m).2⟩,
   have hJuz : tendsto (λ m, (J m).upper) at_top (𝓝 z),
   { suffices : tendsto (λ m, (J m).upper - (J m).lower) at_top (𝓝 0), by simpa using hJlz.add this,
-    refine tendsto_pi.2 (λ i, _),
+    refine tendsto_pi_nhds.2 (λ i, _),
     simpa [hJsub] using tendsto_const_nhds.div_at_top
       (tendsto_pow_at_top_at_top_of_one_lt (@one_lt_two ℝ _ _)) },
   replace hJlz : tendsto (λ m, (J m).lower) at_top (𝓝[Icc I.lower I.upper] z),

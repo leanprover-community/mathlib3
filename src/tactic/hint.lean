@@ -12,10 +12,9 @@ namespace hint
 
 /-- An attribute marking a `tactic unit` or `tactic string` which should be used by the `hint`
 tactic. -/
-@[user_attribute] meta def hint_tactic_attribute : user_attribute := {
-  name := `hint_tactic,
-  descr := "A tactic that should be tried by `hint`."
-}
+@[user_attribute] meta def hint_tactic_attribute : user_attribute :=
+{ name := `hint_tactic,
+  descr := "A tactic that should be tried by `hint`." }
 
 add_tactic_doc
 { name                     := "hint_tactic",

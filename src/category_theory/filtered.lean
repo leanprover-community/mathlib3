@@ -7,7 +7,7 @@ import category_theory.fin_category
 import category_theory.limits.cones
 import category_theory.adjunction.basic
 import category_theory.category.preorder
-import order.bounded_lattice
+import order.bounded_order
 
 /-!
 # Filtered categories
@@ -48,6 +48,8 @@ commute with finite limits.
 
 -/
 
+open function
+
 universes v v₁ u u₁-- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
@@ -86,22 +88,21 @@ instance is_filtered_or_empty_of_semilattice_sup
 instance is_filtered_of_semilattice_sup_nonempty
   (α : Type u) [semilattice_sup α] [nonempty α] : is_filtered α := {}
 
--- TODO: Define `codirected_order` and provide the dual to this instance.
 @[priority 100]
-instance is_filtered_or_empty_of_directed_order
-  (α : Type u) [directed_order α] : is_filtered_or_empty α :=
-{ cocone_objs := λ X Y, let ⟨Z,h1,h2⟩ := directed_order.directed X Y in
+instance is_filtered_or_empty_of_directed_le (α : Type u) [preorder α] [is_directed α (≤)] :
+  is_filtered_or_empty α :=
+{ cocone_objs := λ X Y, let ⟨Z, h1, h2⟩ := exists_ge_ge X Y in
     ⟨Z, hom_of_le h1, hom_of_le h2, trivial⟩,
   cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, by simp⟩ }
 
--- TODO: Define `codirected_order` and provide the dual to this instance.
 @[priority 100]
-instance is_filtered_of_directed_order_nonempty
-  (α : Type u) [directed_order α] [nonempty α] : is_filtered α := {}
+instance is_filtered_of_directed_le_nonempty  (α : Type u) [preorder α] [is_directed α (≤)]
+  [nonempty α] :
+  is_filtered α := {}
 
 -- Sanity checks
-example (α : Type u) [semilattice_sup_bot α] : is_filtered α := by apply_instance
-example (α : Type u) [semilattice_sup_top α] : is_filtered α := by apply_instance
+example (α : Type u) [semilattice_sup α] [order_bot α] : is_filtered α := by apply_instance
+example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by apply_instance
 
 namespace is_filtered
 
@@ -167,9 +168,9 @@ begin
   { rintros X O' nm ⟨S', w'⟩,
     use max X S',
     rintros Y mY,
-    by_cases h : X = Y,
-    { subst h, exact ⟨left_to_max _ _⟩, },
-    { exact ⟨(w' (by finish)).some ≫ right_to_max _ _⟩, }, }
+    obtain rfl|h := eq_or_ne Y X,
+    { exact ⟨left_to_max _ _⟩, },
+    { exact ⟨(w' (finset.mem_of_mem_insert_of_ne mY h)).some ≫ right_to_max _ _⟩, }, }
 end
 
 variables (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y))
@@ -199,7 +200,12 @@ begin
       { subst hf,
         apply coeq_condition, },
       { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
-    { rw @w' _ _ mX' mY' f' (by finish), }, },
+    { rw @w' _ _ mX' mY' f' _,
+      apply finset.mem_of_mem_insert_of_ne mf',
+      contrapose! h,
+      obtain ⟨rfl, h⟩ := h,
+      rw [heq_iff_eq, psigma.mk.inj_iff] at h,
+      exact ⟨rfl, h.1.symm⟩ }, },
 end
 
 /--
@@ -472,9 +478,22 @@ instance is_cofiltered_or_empty_of_semilattice_inf
 instance is_cofiltered_of_semilattice_inf_nonempty
   (α : Type u) [semilattice_inf α] [nonempty α] : is_cofiltered α := {}
 
+@[priority 100]
+instance is_cofiltered_or_empty_of_directed_ge (α : Type u) [preorder α]
+  [is_directed α (swap (≤))] :
+  is_cofiltered_or_empty α :=
+{ cocone_objs := λ X Y, let ⟨Z, hX, hY⟩ := exists_le_le X Y in
+    ⟨Z, hom_of_le hX, hom_of_le hY, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨X, 𝟙 _, by simp⟩ }
+
+@[priority 100]
+instance is_cofiltered_of_directed_ge_nonempty  (α : Type u) [preorder α] [is_directed α (swap (≤))]
+  [nonempty α] :
+  is_cofiltered α := {}
+
 -- Sanity checks
-example (α : Type u) [semilattice_inf_bot α] : is_cofiltered α := by apply_instance
-example (α : Type u) [semilattice_inf_top α] : is_cofiltered α := by apply_instance
+example (α : Type u) [semilattice_inf α] [order_bot α] : is_cofiltered α := by apply_instance
+example (α : Type u) [semilattice_inf α] [order_top α] : is_cofiltered α := by apply_instance
 
 namespace is_cofiltered
 
@@ -540,9 +559,9 @@ begin
   { rintros X O' nm ⟨S', w'⟩,
     use min X S',
     rintros Y mY,
-    by_cases h : X = Y,
-    { subst h, exact ⟨min_to_left _ _⟩, },
-    { exact ⟨min_to_right _ _ ≫ (w' (by finish)).some⟩, }, }
+    obtain rfl|h := eq_or_ne Y X,
+    { exact ⟨min_to_left _ _⟩, },
+    { exact ⟨min_to_right _ _ ≫ (w' (finset.mem_of_mem_insert_of_ne mY h)).some⟩, }, }
 end
 
 variables (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y))
@@ -572,7 +591,12 @@ begin
       { subst hf,
         apply eq_condition, },
       { rw @w' _ _ mX mY f' (by simpa [hf ∘ eq.symm] using mf') }, },
-    { rw @w' _ _ mX' mY' f' (by finish), }, },
+    { rw @w' _ _ mX' mY' f' _,
+      apply finset.mem_of_mem_insert_of_ne mf',
+      contrapose! h,
+      obtain ⟨rfl, h⟩ := h,
+      rw [heq_iff_eq, psigma.mk.inj_iff] at h,
+      exact ⟨rfl, h.1.symm⟩ }, },
 end
 
 /--

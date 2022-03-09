@@ -40,10 +40,6 @@ namespace submonoid
 section assoc
 variables [monoid M] (S : submonoid M)
 
-@[simp, norm_cast, to_additive coe_nsmul] theorem coe_pow (x : S) (n : ℕ) :
-  ↑(x ^ n) = (x ^ n : M) :=
-S.subtype.map_pow x n
-
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list S) :
   (l.prod : M) = (l.map coe).prod :=
 S.subtype.map_list_prod l
@@ -77,9 +73,6 @@ lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   {ι : Type*} {t : finset ι} {f : ι → M} (h : ∀c ∈ t, f c ∈ S) :
   ∏ c in t, f c ∈ S :=
 S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
-
-@[to_additive nsmul_mem] lemma pow_mem {x : M} (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
-by simpa only [coe_pow] using ((⟨x, hx⟩ : S) ^ n).coe_prop
 
 end assoc
 
@@ -135,7 +128,7 @@ lemma mul_mem_sup {S T : submonoid M} {x y : M} (hx : x ∈ S) (hy : y ∈ T) : 
 (S ⊔ T).mul_mem (mem_sup_left hx) (mem_sup_right hy)
 
 @[to_additive]
-lemma mem_supr_of_mem {ι : Type*} {S : ι → submonoid M} (i : ι) :
+lemma mem_supr_of_mem {ι : Sort*} {S : ι → submonoid M} (i : ι) :
   ∀ {x : M}, x ∈ S i → x ∈ supr S :=
 show S i ≤ supr S, from le_supr _ _
 
@@ -143,6 +136,39 @@ show S i ≤ supr S, from le_supr _ _
 lemma mem_Sup_of_mem {S : set (submonoid M)} {s : submonoid M}
   (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
 show s ≤ Sup S, from le_Sup hs
+
+/-- An induction principle for elements of `⨆ i, S i`.
+If `C` holds for `1` and all elements of `S i` for all `i`, and is preserved under multiplication,
+then it holds for all elements of the supremum of `S`. -/
+@[elab_as_eliminator, to_additive /-" An induction principle for elements of `⨆ i, S i`.
+If `C` holds for `0` and all elements of `S i` for all `i`, and is preserved under addition,
+then it holds for all elements of the supremum of `S`. "-/]
+lemma supr_induction {ι : Sort*} (S : ι → submonoid M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, S i)
+  (hp : ∀ i (x ∈ S i), C x)
+  (h1 : C 1)
+  (hmul : ∀ x y, C x → C y → C (x * y)) : C x :=
+begin
+  rw supr_eq_closure at hx,
+  refine closure_induction hx (λ x hx, _) h1 hmul,
+  obtain ⟨i, hi⟩ := set.mem_Union.mp hx,
+  exact hp _ _ hi,
+end
+
+/-- A dependent version of `submonoid.supr_induction`. -/
+@[elab_as_eliminator, to_additive /-"A dependent version of `add_submonoid.supr_induction`. "-/]
+lemma supr_induction' {ι : Sort*} (S : ι → submonoid M) {C : Π x, (x ∈ ⨆ i, S i) → Prop}
+  (hp : ∀ i (x ∈ S i), C x (mem_supr_of_mem i ‹_›))
+  (h1 : C 1 (one_mem _))
+  (hmul : ∀ x y hx hy, C x hx → C y hy → C (x * y) (mul_mem _ ‹_› ‹_›))
+  {x : M} (hx : x ∈ ⨆ i, S i) : C x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ ⨆ i, S i) (hc : C x hx), hc),
+  refine supr_induction S hx (λ i x hx, _) _ (λ x y, _),
+  { exact ⟨_, hp _ _ hx⟩ },
+  { exact ⟨_, h1⟩ },
+  { rintro ⟨_, Cx⟩ ⟨_, Cy⟩,
+    refine ⟨_, hmul _ _ _ _ Cx Cy⟩ },
+end
 
 end non_assoc
 
@@ -220,7 +246,10 @@ lemma powers_subset {n : M} {P : submonoid M} (h : n ∈ P) : powers n ≤ P :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := P.pow_mem h i end
 
 /-- Exponentiation map from natural numbers to powers. -/
-def pow (n : M) (m : ℕ) : powers n := ⟨n ^ m, m, rfl⟩
+@[simps] def pow (n : M) (m : ℕ) : powers n :=
+(powers_hom M n).mrange_restrict (multiplicative.of_add m)
+
+lemma pow_apply (n : M) (m : ℕ) : submonoid.pow n m = ⟨n ^ m, m, rfl⟩ := rfl
 
 /-- Logarithms from powers to natural numbers. -/
 def log [decidable_eq M] {n : M} (p : powers n) : ℕ :=
@@ -233,12 +262,47 @@ lemma pow_right_injective_iff_pow_injective {n : M} :
   function.injective (λ m : ℕ, n ^ m) ↔ function.injective (pow n) :=
 subtype.coe_injective.of_comp_iff (pow n)
 
-theorem log_pow_eq_self [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) (m : ℕ) :
-  log (pow n m) = m :=
+@[simp] theorem log_pow_eq_self [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m))
+  (m : ℕ) : log (pow n m) = m :=
 pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _
 
+/-- The exponentiation map is an isomorphism from the additive monoid on natural numbers to powers
+when it is injective. The inverse is given by the logarithms. -/
+@[simps]
+def pow_log_equiv [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) :
+  multiplicative ℕ ≃* powers n :=
+{ to_fun := λ m, pow n m.to_add,
+  inv_fun := λ m, multiplicative.of_add (log m),
+  left_inv := log_pow_eq_self h,
+  right_inv := pow_log_eq_self,
+  map_mul' := λ _ _, by { simp only [pow, map_mul, of_add_add, to_add_mul] } }
+
+lemma log_mul [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m))
+  (x y : powers (n : M)) : log (x * y) = log x + log y := (pow_log_equiv h).symm.map_mul x y
+
 theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x m) = m :=
-log_pow_eq_self (int.pow_right_injective h) _
+(pow_log_equiv (int.pow_right_injective h)).symm_apply_apply _
+
+@[simp] lemma map_powers {N : Type*} [monoid N] (f : M →* N) (m : M) :
+  (powers m).map f = powers (f m) :=
+by simp only [powers_eq_closure, f.map_mclosure, set.image_singleton]
+
+/-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
+@[to_additive "If all the elements of a set `s` commute, then `closure s` forms an additive
+commutative monoid."]
+def closure_comm_monoid_of_comm {s : set M} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
+  comm_monoid (closure s) :=
+{ mul_comm := λ x y,
+  begin
+    ext,
+    simp only [submonoid.coe_mul],
+    exact closure_induction₂ x.prop y.prop hcomm
+      (λ x, by simp only [mul_one, one_mul])
+      (λ x, by simp only [mul_one, one_mul])
+      (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
+      (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc]),
+  end,
+  ..(closure s).to_monoid }
 
 end submonoid
 

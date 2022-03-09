@@ -196,7 +196,7 @@ if the import structure permits them to be.
 
 section semiring
 
-variables {R S : Type*} [semiring R] [semiring S]
+variables {R S : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
 
 /-- Multiplication of an element of a (semi)ring is an `add_monoid_hom` in both arguments.
 
@@ -227,5 +227,12 @@ lemma add_monoid_hom.map_mul_iff (f : R →+ S) :
   (∀ x y, f (x * y) = f x * f y) ↔
     (add_monoid_hom.mul : R →+ R →+ R).compr₂ f = (add_monoid_hom.mul.comp f).compl₂ f :=
 iff.symm add_monoid_hom.ext_iff₂
+
+/-- The left multiplication map: `(a, b) ↦ a * b`. See also `add_monoid_hom.mul_left`. -/
+@[simps] def add_monoid.End.mul_left : R →+ add_monoid.End R := add_monoid_hom.mul
+
+/-- The right multiplication map: `(a, b) ↦ b * a`. See also `add_monoid_hom.mul_right`. -/
+@[simps] def add_monoid.End.mul_right : R →+ add_monoid.End R :=
+(add_monoid_hom.mul : R →+ add_monoid.End R).flip
 
 end semiring

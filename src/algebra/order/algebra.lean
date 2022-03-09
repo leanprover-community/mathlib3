@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 
 import algebra.algebra.basic
-import algebra.order.module
+import algebra.order.smul
 
 /-!
 # Ordered algebras

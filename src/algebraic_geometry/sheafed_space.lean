@@ -3,8 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebraic_geometry.presheafed_space
-import topology.sheaves.sheaf
+import algebraic_geometry.presheafed_space.has_colimits
+import topology.sheaves.functors
 
 /-!
 # Sheafed spaces
@@ -69,6 +69,10 @@ by apply_instance
 def forget_to_PresheafedSpace : (SheafedSpace C) ⥤ (PresheafedSpace C) :=
 induced_functor _
 
+instance is_PresheafedSpace_iso {X Y : SheafedSpace C} (f : X ⟶ Y) [is_iso f] :
+  @is_iso (PresheafedSpace C) _ _ _ f :=
+SheafedSpace.forget_to_PresheafedSpace.map_is_iso f
+
 variables {C}
 
 section
@@ -90,6 +94,14 @@ by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
 @[simp] lemma comp_c_app {X Y Z : SheafedSpace C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U)))
 := rfl
+
+lemma comp_c_app' {X Y Z : SheafedSpace C} (α : X ⟶ Y) (β : Y ⟶ Z) (U) :
+  (α ≫ β).c.app (op U) = (β.c).app (op U) ≫ (α.c).app (op ((opens.map (β.base)).obj U))
+:= rfl
+
+lemma congr_app {X Y : SheafedSpace C} {α β : X ⟶ Y} (h : α = β) (U) :
+  α.c.app U = β.c.app U ≫ X.presheaf.map (eq_to_hom (by subst h)) :=
+PresheafedSpace.congr_app h U
 
 variables (C)
 
@@ -138,6 +150,19 @@ lemma Γ_obj_op (X : SheafedSpace C) : Γ.obj (op X) = X.presheaf.obj (op ⊤) :
 
 lemma Γ_map_op {X Y : SheafedSpace C} (f : X ⟶ Y) :
   Γ.map f.op = f.c.app (op ⊤) := rfl
+
+noncomputable
+instance [has_limits C] : creates_colimits (forget_to_PresheafedSpace : SheafedSpace C ⥤ _) :=
+⟨λ J hJ, by exactI ⟨λ K, creates_colimit_of_fully_faithful_of_iso
+  ⟨(PresheafedSpace.colimit_cocone (K ⋙ forget_to_PresheafedSpace)).X,
+    limit_is_sheaf _ (λ j, sheaf.pushforward_sheaf_of_sheaf _ (K.obj (unop j)).2)⟩
+  (colimit.iso_colimit_cocone ⟨_, PresheafedSpace.colimit_cocone_is_colimit _⟩).symm⟩⟩
+
+instance [has_limits C] : has_colimits (SheafedSpace C) :=
+has_colimits_of_has_colimits_creates_colimits forget_to_PresheafedSpace
+
+noncomputable instance [has_limits C] : preserves_colimits (forget C) :=
+limits.comp_preserves_colimits forget_to_PresheafedSpace (PresheafedSpace.forget C)
 
 end SheafedSpace
 

@@ -71,7 +71,7 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
-instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
+instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group αˣ :=
 { mul_le_mul_left := λ a b h c, (mul_le_mul_left' (h : (a : α) ≤ b) _ :  (c : α) * a ≤ c * b),
   .. units.partial_order,
   .. units.comm_group }
@@ -532,15 +532,17 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.ordered_add_comm_group
 "Pullback an `ordered_add_comm_group` under an injective map."]
 def function.injective.ordered_comm_group [ordered_comm_group α] {β : Type*}
-  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  [has_one β] [has_mul β] [has_inv β] [has_div β] [has_pow β ℕ] [has_pow β ℤ]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
-  (div : ∀ x y, f (x / y) = f x / f y) :
+  (div : ∀ x y, f (x / y) = f x / f y)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   ordered_comm_group β :=
 { ..partial_order.lift f hf,
-  ..hf.ordered_comm_monoid f one mul,
-  ..hf.comm_group f one mul inv div }
+  ..hf.ordered_comm_monoid f one mul npow,
+  ..hf.comm_group f one mul inv div npow zpow }
 
 /-  Most of the lemmas that are primed in this section appear in ordered_field. -/
 /-  I (DT) did not try to minimise the assumptions. -/
@@ -911,14 +913,16 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.linear_ordered_add_comm_group
 "Pullback a `linear_ordered_add_comm_group` under an injective map."]
 def function.injective.linear_ordered_comm_group {β : Type*}
-  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  [has_one β] [has_mul β] [has_inv β] [has_div β] [has_pow β ℕ] [has_pow β ℤ]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
-  (div : ∀ x y, f (x / y) = f x / f y)  :
+  (div : ∀ x y, f (x / y) = f x / f y)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   linear_ordered_comm_group β :=
 { ..linear_order.lift f hf,
-  ..hf.ordered_comm_group f one mul inv div }
+  ..hf.ordered_comm_group f one mul inv div npow zpow }
 
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
 lemma linear_ordered_comm_group.mul_lt_mul_left'
@@ -971,15 +975,15 @@ begin
 end
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_no_top_order [nontrivial α] :
-  no_top_order α :=
+instance linear_ordered_comm_group.to_no_max_order [nontrivial α] :
+  no_max_order α :=
 ⟨ begin
     obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
     exact λ a, ⟨a * y, lt_mul_of_one_lt_right' a hy⟩
   end ⟩
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
+instance linear_ordered_comm_group.to_no_min_order [nontrivial α] : no_min_order α :=
 ⟨ begin
     obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
     exact λ a, ⟨a / y, (div_lt_self_iff a).mpr hy⟩
@@ -995,7 +999,8 @@ section has_neg
 @[to_additive, priority 100] -- see Note [lower instance priority]
 instance has_inv_lattice_has_abs [has_inv α] [lattice α] : has_abs (α)  := ⟨λa, a ⊔ (a⁻¹)⟩
 
-lemma abs_eq_sup_neg {α : Type*} [has_neg α] [lattice α] (a : α) : abs a = a ⊔ (-a) :=
+@[to_additive]
+lemma abs_eq_sup_inv [has_inv α] [lattice α] (a : α) : |a| = a ⊔ a⁻¹ :=
 rfl
 
 variables [has_neg α] [linear_order α] {a b: α}
@@ -1124,8 +1129,9 @@ section linear_ordered_add_comm_group
 
 variables [linear_ordered_add_comm_group α] {a b c d : α}
 
-lemma abs_le : |a| ≤ b ↔ - b ≤ a ∧ a ≤ b :=
-by rw [abs_le', and.comm, neg_le]
+lemma abs_le : |a| ≤ b ↔ - b ≤ a ∧ a ≤ b := by rw [abs_le', and.comm, neg_le]
+
+lemma le_abs' : a ≤ |b| ↔ b ≤ -a ∨ a ≤ b := by rw [le_abs, or.comm, le_neg]
 
 lemma neg_le_of_abs_le (h : |a| ≤ b) : -b ≤ a := (abs_le.mp h).1
 
@@ -1234,6 +1240,9 @@ instance with_top.linear_ordered_add_comm_group_with_top :
   end,
   .. with_top.linear_ordered_add_comm_monoid_with_top,
   .. option.nontrivial }
+
+@[simp, norm_cast]
+lemma with_top.coe_neg (a : α) : ((-a : α) : with_top α) = -a := rfl
 
 end linear_ordered_add_comm_group
 

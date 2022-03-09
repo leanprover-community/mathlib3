@@ -104,7 +104,7 @@ section take'
 variable [inhabited α]
 
 /-- Take `n` elements from a list `l`. If `l` has less than `n` elements, append `n - length l`
-elements `default α`. -/
+elements `default`. -/
 def take' : ∀ n, list α → list α
 | 0     l := []
 | (n+1) l := l.head :: take' n l.tail
@@ -455,8 +455,8 @@ local infix ` ≺ `:50 := inv_image (prod.lex (<) (<)) meas
     by rw nat.succ_add; exact prod.lex.right _ (lt_succ_self _),
   have h2 : ⟨is, []⟩ ≺ ⟨t :: ts, is⟩, from prod.lex.left _ _ (nat.lt_add_of_pos_left (succ_pos _)),
   H1 t ts is (permutations_aux.rec ts (t::is)) (permutations_aux.rec is [])
-using_well_founded {
-  dec_tac := tactic.assumption,
+using_well_founded
+{ dec_tac := tactic.assumption,
   rel_tac := λ _ _, `[exact ⟨(≺), @inv_image.wf _ _ _ meas (prod.lex_wf lt_wf lt_wf)⟩] }
 
 /-- An auxiliary function for defining `permutations`. `permutations_aux ts is` is the set of all
@@ -580,7 +580,7 @@ by induction l with hd tl ih; [exact is_true pairwise.nil,
 end pairwise
 
 /-- `pw_filter R l` is a maximal sublist of `l` which is `pairwise R`.
-  `pw_filter (≠)` is the erase duplicates function (cf. `erase_dup`), and `pw_filter (<)` finds
+  `pw_filter (≠)` is the erase duplicates function (cf. `dedup`), and `pw_filter (<)` finds
   a maximal increasing subsequence in `l`. For example,
 
      pw_filter (<) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4] -/
@@ -627,11 +627,25 @@ def nodup : list α → Prop := pairwise (≠)
 instance nodup_decidable [decidable_eq α] : ∀ l : list α, decidable (nodup l) :=
 list.decidable_pairwise
 
-/-- `erase_dup l` removes duplicates from `l` (taking only the first occurrence).
+/-- `dedup l` removes duplicates from `l` (taking only the first occurrence).
   Defined as `pw_filter (≠)`.
 
-     erase_dup [1, 0, 2, 2, 1] = [0, 2, 1] -/
-def erase_dup [decidable_eq α] : list α → list α := pw_filter (≠)
+     dedup [1, 0, 2, 2, 1] = [0, 2, 1] -/
+def dedup [decidable_eq α] : list α → list α := pw_filter (≠)
+
+/-- Greedily create a sublist of `a :: l` such that, for every two adjacent elements `a, b`,
+`R a b` holds. Mostly used with ≠; for example, `destutter' (≠) 1 [2, 2, 1, 1] = [1, 2, 1]`,
+`destutter' (≠) 1, [2, 3, 3] = [1, 2, 3]`, `destutter' (<) 1 [2, 5, 2, 3, 4, 9] = [1, 2, 5, 9]`. -/
+def destutter' (R : α → α → Prop) [decidable_rel R] : α → list α → list α
+| a [] := [a]
+| a (h :: l) := if R a h then a :: destutter' h l else destutter' a l
+
+/-- Greedily create a sublist of `l` such that, for every two adjacent elements `a, b ∈ l`,
+`R a b` holds. Mostly used with ≠; for example, `destutter (≠) [1, 2, 2, 1, 1] = [1, 2, 1]`,
+`destutter (≠) [1, 2, 3, 3] = [1, 2, 3]`, `destutter (<) [1, 2, 5, 2, 3, 4, 9] = [1, 2, 5, 9]`. -/
+def destutter (R : α → α → Prop) [decidable_rel R] : list α → list α
+| (h :: l) := destutter' R h l
+| [] := []
 
 /-- `range' s n` is the list of numbers `[s, s+1, ..., s+n-1]`.
   It is intended mainly for proving properties of `range` and `iota`. -/

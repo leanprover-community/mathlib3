@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Yury Kudryashov, Floris van Doorn
 -/
 import tactic.transform_decl
 import tactic.algebra
+import tactic.lint.basic
 
 /-!
 # Transport multiplicative to additive
@@ -148,8 +149,8 @@ E.g. `prod.group` returns 1, and `pi.has_one` returns 2.
 meta def first_multiplicative_arg (nm : name) : tactic ℕ := do
   d ← get_decl nm,
   let (es, _) := d.type.pi_binders,
-  l ← es.mmap_with_index $ λ n bi, do {
-    let tgt := bi.type.pi_codomain,
+  l ← es.mmap_with_index $ λ n bi, do
+  { let tgt := bi.type.pi_codomain,
     let n_bi := bi.type.pi_binders.fst.length,
     tt ← has_attribute' `to_additive tgt.get_app_fn.const_name | return none,
     let n2 := tgt.get_app_args.head.get_app_fn.match_var.map $ λ m, n + n_bi - m,
@@ -202,7 +203,9 @@ meta def tr : bool → list string → list string
 | is_comm ("one" :: "lt" :: s)        := add_comm_prefix is_comm "pos"       :: tr ff s
 | is_comm ("le" :: "one" :: s)        := add_comm_prefix is_comm "nonpos"    :: tr ff s
 | is_comm ("lt" :: "one" :: s)        := add_comm_prefix is_comm "neg"       :: tr ff s
+| is_comm ("mul" :: "single" :: s)    := add_comm_prefix is_comm "single"    :: tr ff s
 | is_comm ("mul" :: "support" :: s)   := add_comm_prefix is_comm "support"   :: tr ff s
+| is_comm ("mul" :: "tsupport" :: s)  := add_comm_prefix is_comm "tsupport"  :: tr ff s
 | is_comm ("mul" :: "indicator" :: s) := add_comm_prefix is_comm "indicator" :: tr ff s
 | is_comm ("mul" :: s)                := add_comm_prefix is_comm "add"       :: tr ff s
 | is_comm ("smul" :: s)               := add_comm_prefix is_comm "vadd"      :: tr ff s
@@ -211,6 +214,7 @@ meta def tr : bool → list string → list string
 | is_comm ("one" :: s)                := add_comm_prefix is_comm "zero"      :: tr ff s
 | is_comm ("prod" :: s)               := add_comm_prefix is_comm "sum"       :: tr ff s
 | is_comm ("finprod" :: s)            := add_comm_prefix is_comm "finsum"    :: tr ff s
+| is_comm ("pow" :: s)                := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("npow" :: s)               := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("zpow" :: s)               := add_comm_prefix is_comm "zsmul"     :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
@@ -305,14 +309,22 @@ To use this attribute, just write:
 theorem mul_comm' {α} [comm_semigroup α] (x y : α) : x * y = y * x := comm_semigroup.mul_comm
 ```
 
-This code will generate a theorem named `add_comm'`.  It is also
-possible to manually specify the name of the new declaration, and
-provide a documentation string:
+This code will generate a theorem named `add_comm'`. It is also
+possible to manually specify the name of the new declaration:
 
 ```
-@[to_additive add_foo "add_foo doc string"]
-/-- foo doc string -/
+@[to_additive add_foo]
 theorem foo := sorry
+```
+
+An existing documentation string will _not_ be automatically used, so if the theorem or definition
+has a doc string, a doc string for the additive version should be passed explicitly to
+`to_additive`.
+
+```
+/-- Multiplication is commutative -/
+@[to_additive "Addition is commutative"]
+theorem mul_comm' {α} [comm_semigroup α] (x y : α) : x * y = y * x := comm_semigroup.mul_comm
 ```
 
 The transport tries to do the right thing in most cases using several
@@ -385,7 +397,7 @@ There are some exceptions to this heuristic:
   declaration when the first argument has no multiplicative type-class, but argument `n` does.
 * If an identifier has attribute `@[to_additive_ignore_args n1 n2 ...]` then all the arguments in
   positions `n1`, `n2`, ... will not be checked for unapplied identifiers (start counting from 1).
-  For example, `times_cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means
+  For example, `cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means
   that its 21st argument `(n : with_top ℕ)` can contain `ℕ`
   (usually in the form `has_top.top ℕ ...`) and still be additivized.
   So `@has_mul.mul (C^∞⟮I, N; I', G⟯) _ f g` will be additivized.
@@ -549,3 +561,35 @@ attribute [to_additive empty] empty
 attribute [to_additive pempty] pempty
 attribute [to_additive punit] punit
 attribute [to_additive unit] unit
+
+section linter
+
+open tactic expr
+
+/-- A linter that checks that multiplicative and additive lemmas have both doc strings if one of
+them has one -/
+@[linter] meta def linter.to_additive_doc : linter :=
+{ test := (λ d, do
+    let mul_name := d.to_name,
+    dict ← to_additive.aux_attr.get_cache,
+    match dict.find mul_name with
+    | some add_name := do
+      mul_doc <- doc_string mul_name >> return tt <|> return ff,
+      add_doc <- doc_string add_name >> return tt <|> return ff,
+      match mul_doc, add_doc with
+      | tt, ff := return $ some $ "declaration has a docstring, but its additive version `" ++
+         add_name.to_string ++ "` does not. You might want to pass a string argument to " ++
+         "`to_additive`."
+      | ff, tt := return $ some $ "declaration has no docstring, but its additive version `" ++
+         add_name.to_string ++ "` does. You might want to add a doc string to the declaration."
+      | _, _ := return none
+      end
+    | none := return none
+    end),
+  auto_decls := ff,
+  no_errors_found := "Multiplicative and additive lemmas are consistently documented",
+  errors_found := "The following declarations have doc strings, but their additive versions do " ++
+  "not (or vice versa).",
+  is_fast := ff }
+
+end linter

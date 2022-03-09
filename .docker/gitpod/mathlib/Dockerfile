@@ -14,7 +14,7 @@ WORKDIR /home/gitpod
 SHELL ["/bin/bash", "-c"]
 
 # install elan
-RUN curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- -y
+RUN curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
 # install whichever toolchain mathlib is currently using
 RUN . ~/.profile && elan toolchain install $(curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/leanpkg.toml | grep lean_version | awk -F'"' '{print $2}')
 # install `leanproject` using `pip`

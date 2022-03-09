@@ -3,8 +3,8 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import geometry.manifold.algebra.smooth_functions
 import linear_algebra.finite_dimensional
+import geometry.manifold.smooth_manifold_with_corners
 import analysis.inner_product_space.pi_L2
 
 /-!
@@ -40,7 +40,6 @@ typeclass. We provide it as `[fact (x < y)]`.
 noncomputable theory
 open set function
 open_locale manifold
-local attribute [instance] fact_one_le_two_real
 
 /--
 The half-space in `ℝ^n`, used to model manifolds with boundary. We only define it when
@@ -63,8 +62,8 @@ variable {n : ℕ}
 
 instance [has_zero (fin n)] : topological_space (euclidean_half_space n) := by apply_instance
 instance : topological_space (euclidean_quadrant n) := by apply_instance
-instance [has_zero (fin n)] : inhabited (euclidean_half_space n) := ⟨⟨0, le_refl _⟩⟩
-instance : inhabited (euclidean_quadrant n) := ⟨⟨0, λ i, le_refl _⟩⟩
+instance [has_zero (fin n)] : inhabited (euclidean_half_space n) := ⟨⟨0, le_rfl⟩⟩
+instance : inhabited (euclidean_quadrant n) := ⟨⟨0, λ i, le_rfl⟩⟩
 
 lemma range_half_space (n : ℕ) [has_zero (fin n)] :
   range (λx : euclidean_half_space n, x.val) = {y | 0 ≤ y 0} :=
@@ -124,8 +123,12 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
   continuous_inv_fun := continuous_subtype_mk _ $ continuous_pi $ λ i,
     (continuous_id.max continuous_const).comp (continuous_apply i) }
 
-localized "notation `𝓡 `n := model_with_corners_self ℝ (euclidean_space ℝ (fin n))" in manifold
-localized "notation `𝓡∂ `n := model_with_corners_euclidean_half_space n" in manifold
+localized "notation `𝓡 `n :=
+  (model_with_corners_self ℝ (euclidean_space ℝ (fin n)) :
+    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_space ℝ (fin n)))" in manifold
+localized "notation `𝓡∂ `n :=
+  (model_with_corners_euclidean_half_space n :
+    model_with_corners ℝ (euclidean_space ℝ (fin n)) (euclidean_half_space n))" in manifold
 
 /--
 The left chart for the topological space `[x, y]`, defined on `[x,y)` and sending `x` to `0` in
@@ -251,7 +254,7 @@ instance Icc_manifold (x y : ℝ) [fact (x < y)] : charted_space (euclidean_half
       apply lt_of_lt_of_le (fact.out (x < y)),
       simpa only [not_lt] using h'}
   end,
-  chart_mem_atlas := λz, by { by_cases h' : z.val < y; simp [h'] } }
+  chart_mem_atlas := λ z, by by_cases h' : (z : ℝ) < y; simp [h'] }
 
 /--
 The manifold structure on `[x, y]` is smooth.
@@ -259,10 +262,10 @@ The manifold structure on `[x, y]` is smooth.
 instance Icc_smooth_manifold (x y : ℝ) [fact (x < y)] :
   smooth_manifold_with_corners (𝓡∂ 1) (Icc x y) :=
 begin
-  have M : times_cont_diff_on ℝ ∞ (λz : euclidean_space ℝ (fin 1), - z + (λi, y - x)) univ,
-  { rw times_cont_diff_on_univ,
-    exact times_cont_diff_id.neg.add times_cont_diff_const },
-  apply smooth_manifold_with_corners_of_times_cont_diff_on,
+  have M : cont_diff_on ℝ ∞ (λz : euclidean_space ℝ (fin 1), - z + (λi, y - x)) univ,
+  { rw cont_diff_on_univ,
+    exact cont_diff_id.neg.add cont_diff_const },
+  apply smooth_manifold_with_corners_of_cont_diff_on,
   assume e e' he he',
   simp only [atlas, mem_singleton_iff, mem_insert_iff] at he he',
   /- We need to check that any composition of two charts gives a `C^∞` function. Each chart can be
@@ -270,7 +273,7 @@ begin
   -/
   rcases he with rfl | rfl; rcases he' with rfl | rfl,
   { -- `e = left chart`, `e' = left chart`
-    exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 },
+    exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_cont_diff_groupoid _ _ _)).1 },
   { -- `e = left chart`, `e' = right chart`
     apply M.congr_mono _ (subset_univ _),
     rintro _ ⟨⟨hz₁, hz₂⟩, ⟨⟨z, hz₀⟩, rfl⟩⟩,
@@ -295,7 +298,7 @@ begin
       pi_Lp.add_apply, pi_Lp.neg_apply, update_same, max_eq_left, hz₀, hz₁.le] with mfld_simps,
     abel },
   { -- `e = right chart`, `e' = right chart`
-    exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 }
+    exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_cont_diff_groupoid _ _ _)).1 }
 end
 
 /-! Register the manifold structure on `Icc 0 1`, and also its zero and one. -/

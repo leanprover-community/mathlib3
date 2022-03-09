@@ -107,12 +107,11 @@ begin
   dsimp [sum_of_conjugates],
   simp only [linear_map.sum_apply, finset.smul_sum],
   dsimp [conjugate],
-  conv_lhs {
-    rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
+  conv_lhs
+  { rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
     simp only [mul_right_embedding], },
   simp only [←mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
-    finset.sum_map, inv_inv, inv_mul_cancel_right],
-  recover,
+    finset.sum_map, inv_inv, inv_mul_cancel_right]
 end)
 
 section

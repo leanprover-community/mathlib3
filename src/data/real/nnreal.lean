@@ -52,7 +52,8 @@ open_locale classical big_operators
 /-- Nonnegative real numbers. -/
 @[derive [
   ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
-  semilattice_inf_bot, densely_ordered,
+  floor_semiring,
+  semilattice_inf, densely_ordered, order_bot,
   canonically_linear_ordered_add_monoid, linear_ordered_comm_group_with_zero, archimedean,
   linear_ordered_semiring, ordered_comm_semiring, canonically_ordered_comm_semiring,
   has_sub, has_ordered_sub, has_div, inhabited]]
@@ -99,7 +100,7 @@ noncomputable example : has_sub ℝ≥0   := by apply_instance
 example : has_mul ℝ≥0   := by apply_instance
 noncomputable example : has_inv ℝ≥0   := by apply_instance
 noncomputable example : has_div ℝ≥0   := by apply_instance
-noncomputable example : has_le ℝ≥0    := by apply_instance
+example : has_le ℝ≥0    := by apply_instance
 example : has_bot ℝ≥0   := by apply_instance
 example : inhabited ℝ≥0 := by apply_instance
 example : nontrivial ℝ≥0 := by apply_instance
@@ -175,7 +176,7 @@ instance {A : Type*} [semiring A] [algebra ℝ A] : algebra ℝ≥0 A :=
 
 -- verify that the above produces instances we might care about
 example : algebra ℝ≥0 ℝ := by apply_instance
-example : distrib_mul_action (units ℝ≥0) ℝ := by apply_instance
+example : distrib_mul_action ℝ≥0ˣ ℝ := by apply_instance
 
 end actions
 
@@ -237,7 +238,7 @@ lemma nsmul_coe (r : ℝ≥0) (n : ℕ) : ↑(n • r) = n • (r:ℝ) :=
 by norm_cast
 
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
-to_real_hom.map_nat_cast n
+map_nat_cast to_real_hom n
 
 noncomputable example : linear_order ℝ≥0 := by apply_instance
 
@@ -271,8 +272,8 @@ example : partial_order ℝ≥0 := by apply_instance
 noncomputable example : canonically_linear_ordered_add_monoid ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_add_comm_monoid ℝ≥0 := by apply_instance
 noncomputable example : distrib_lattice ℝ≥0 := by apply_instance
-noncomputable example : semilattice_inf_bot ℝ≥0 := by apply_instance
-noncomputable example : semilattice_sup_bot ℝ≥0 := by apply_instance
+noncomputable example : semilattice_inf ℝ≥0 := by apply_instance
+noncomputable example : semilattice_sup ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_semiring ℝ≥0 := by apply_instance
 example : ordered_comm_semiring ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_comm_monoid  ℝ≥0 := by apply_instance
@@ -280,7 +281,7 @@ noncomputable example : linear_ordered_comm_monoid_with_zero ℝ≥0 := by apply
 noncomputable example : linear_ordered_comm_group_with_zero ℝ≥0 := by apply_instance
 example : canonically_ordered_comm_semiring ℝ≥0 := by apply_instance
 example : densely_ordered ℝ≥0 := by apply_instance
-example : no_top_order ℝ≥0 := by apply_instance
+example : no_max_order ℝ≥0 := by apply_instance
 
 lemma bdd_above_coe {s : set ℝ≥0} : bdd_above ((coe : ℝ≥0 → ℝ) '' s) ↔ bdd_above s :=
 iff.intro
@@ -303,6 +304,16 @@ eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
   real.Inf_nonneg _ $ λ y ⟨x, _, hy⟩, hy ▸ x.2
 
 example : archimedean ℝ≥0 := by apply_instance
+
+-- TODO: why are these three instances necessary? why aren't they inferred?
+instance covariant_add : covariant_class ℝ≥0 ℝ≥0 (+) (≤) :=
+ordered_add_comm_monoid.to_covariant_class_left ℝ≥0
+
+instance contravariant_add : contravariant_class ℝ≥0 ℝ≥0 (+) (<) :=
+ordered_cancel_add_comm_monoid.to_contravariant_class_left ℝ≥0
+
+instance covariant_mul : covariant_class ℝ≥0 ℝ≥0 (*) (≤) :=
+ordered_comm_monoid.to_covariant_class_left ℝ≥0
 
 lemma le_of_forall_pos_le_add {a b : ℝ≥0} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
@@ -478,12 +489,11 @@ section pow
 
 lemma pow_antitone_exp {a : ℝ≥0} (m n : ℕ) (mn : m ≤ n) (a1 : a ≤ 1) :
   a ^ n ≤ a ^ m :=
-begin
-  rcases le_iff_exists_add.mp mn with ⟨k, rfl⟩,
-  rw [← mul_one (a ^ m), pow_add],
-  refine mul_le_mul rfl.le (pow_le_one _ (zero_le a) a1) _ _;
-  exact pow_nonneg (zero_le _) _,
-end
+pow_le_pow_of_le_one (zero_le a) a1 mn
+
+lemma exists_pow_lt_of_lt_one {a b : ℝ≥0} (ha : 0 < a) (hb : b < 1) : ∃ n : ℕ, b ^ n < a :=
+by simpa only [← coe_pow, nnreal.coe_lt_coe]
+  using exists_pow_lt_of_lt_one (nnreal.coe_pos.2 ha) (nnreal.coe_lt_coe.2 hb)
 
 lemma exists_mem_Ico_zpow
   {x : ℝ≥0} {y : ℝ≥0} (hx : x ≠ 0) (hy : 1 < y) :
@@ -540,8 +550,7 @@ by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
 
 protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev₀ _ _
 
-lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 :=
-if h : r = 0 then by simp [h] else by rw [div_self h]
+lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 := div_self_le_one (r : ℝ)
 
 @[simp] lemma inv_le {r p : ℝ≥0} (h : r ≠ 0) : r⁻¹ ≤ p ↔ 1 ≤ r * p :=
 by rw [← mul_le_mul_left (pos_iff_ne_zero.2 h), mul_inv_cancel h]
@@ -618,7 +627,7 @@ lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x �
 le_of_forall_ge_of_dense $ assume a ha,
   have hx : x ≠ 0 := pos_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) ha),
   have hx' : x⁻¹ ≠ 0, by rwa [(≠), inv_eq_zero],
-  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv₀],
+  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv],
   have (a * x⁻¹) * x ≤ y, from h _ this,
   by rwa [mul_assoc, inv_mul_cancel hx, mul_one] at this
 
@@ -685,9 +694,16 @@ lemma inv_lt_one {x : ℝ≥0} (hx : 1 < x) : x⁻¹ < 1 :=
 lemma zpow_pos {x : ℝ≥0} (hx : x ≠ 0) (n : ℤ) : 0 < x ^ n :=
 begin
   cases n,
-  { exact pow_pos hx.bot_lt _ },
+  { simp [pow_pos hx.bot_lt _] },
   { simp [pow_pos hx.bot_lt _] }
 end
+
+lemma inv_lt_inv_iff {x y : ℝ≥0} (hx : x ≠ 0) (hy : y ≠ 0) :
+  y⁻¹ < x⁻¹ ↔ x < y :=
+by rw [← one_div, div_lt_iff hy, ← div_eq_inv_mul, lt_div_iff hx, one_mul]
+
+lemma inv_lt_inv {x y : ℝ≥0} (hx : x ≠ 0) (h : x < y) : y⁻¹ < x⁻¹ :=
+(inv_lt_inv_iff hx ((bot_le.trans_lt h).ne')).2 h
 
 end inv
 
@@ -699,7 +715,7 @@ end nnreal
 namespace real
 
 /-- The absolute value on `ℝ` as a map to `ℝ≥0`. -/
-@[pp_nodot] noncomputable def nnabs : monoid_with_zero_hom ℝ ℝ≥0 :=
+@[pp_nodot] noncomputable def nnabs : ℝ →*₀ ℝ≥0 :=
 { to_fun := λ x, ⟨|x|, abs_nonneg x⟩,
   map_zero' := by { ext, simp },
   map_one' := by { ext, simp },

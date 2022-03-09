@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.regular.smul
-import data.matrix.notation
-import linear_algebra.matrix.polynomial
 import linear_algebra.matrix.adjugate
+import linear_algebra.matrix.polynomial
 
 /-!
 # Nonsingular inverses
@@ -129,8 +128,8 @@ def invertible_of_left_inverse (h : B ⬝ A = 1) : invertible A :=
 def invertible_of_right_inverse (h : A ⬝ B = 1) : invertible A :=
 ⟨B, mul_eq_one_comm.mp h, h⟩
 
-/-- Given a proof that `A.det` has a constructive inverse, lift `A` to `units (matrix n n α)`-/
-def unit_of_det_invertible [invertible A.det] : units (matrix n n α) :=
+/-- Given a proof that `A.det` has a constructive inverse, lift `A` to `(matrix n n α)ˣ`-/
+def unit_of_det_invertible [invertible A.det] : (matrix n n α)ˣ :=
 @unit_of_invertible _ _ A (invertible_of_det_invertible A)
 
 /-- When lowered to a prop, `matrix.invertible_equiv_det_invertible` forms an `iff`. -/
@@ -272,7 +271,7 @@ noncomputable def invertible_of_is_unit_det (h : is_unit A.det) : invertible A :
 
 /-- A version of `matrix.units_of_det_invertible` with the inverse defeq to `A⁻¹` that is therefore
 noncomputable. -/
-noncomputable def nonsing_inv_unit (h : is_unit A.det) : units (matrix n n α) :=
+noncomputable def nonsing_inv_unit (h : is_unit A.det) : (matrix n n α)ˣ :=
 @unit_of_invertible _ _ _ (invertible_of_is_unit_det A h)
 
 lemma unit_of_det_invertible_eq_nonsing_inv_unit [invertible A.det] :
@@ -340,7 +339,7 @@ inv_eq_left_inv (by simp)
 lemma inv_smul (k : α) [invertible k] (h : is_unit A.det) : (k • A)⁻¹ = ⅟k • A⁻¹ :=
 inv_eq_left_inv (by simp [h, smul_smul])
 
-lemma inv_smul' (k : units α) (h : is_unit A.det) : (k • A)⁻¹ = k⁻¹ • A⁻¹ :=
+lemma inv_smul' (k : αˣ) (h : is_unit A.det) : (k • A)⁻¹ = k⁻¹ • A⁻¹ :=
 inv_eq_left_inv (by simp [h, smul_smul])
 
 lemma inv_adjugate (A : matrix n n α) (h : is_unit A.det) :
@@ -371,5 +370,12 @@ begin
   rw [cramer_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc,
       smul_smul, h.mul_coe_inv, one_smul]
 end
+
+/-- One form of **Cramer's rule**. See `matrix.mul_vec_cramer` for a stronger form. -/
+@[simp] lemma det_smul_inv_vec_mul_eq_cramer_transpose
+  (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
+  A.det • A⁻¹.vec_mul b = cramer Aᵀ b :=
+by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_inv, ← det_transpose,
+    Aᵀ.det_smul_inv_mul_vec_eq_cramer _ (is_unit_det_transpose A h)]
 
 end matrix

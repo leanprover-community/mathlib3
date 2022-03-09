@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.category.Top.opens
-import category_theory.filtered
 
 /-!
 # The category of open neighborhoods of a point
@@ -42,7 +41,7 @@ namespace open_nhds
 
 instance (x : X) : partial_order (open_nhds x) :=
 { le := λ U V, U.1 ≤ V.1,
-  le_refl := λ _, le_refl _,
+  le_refl := λ _, le_rfl,
   le_trans := λ _ _ _, le_trans,
   le_antisymm := λ _ _ i j, subtype.eq $ le_antisymm i j }
 
@@ -60,6 +59,8 @@ instance (x : X) : lattice (open_nhds x) :=
 instance (x : X) : order_top (open_nhds x) :=
 { top := ⟨⊤, trivial⟩,
   le_top := λ _, le_top }
+
+instance (x : X) : inhabited (open_nhds x) := ⟨⊤⟩
 
 instance open_nhds_category (x : X) : category.{u} (open_nhds x) :=
 by {unfold open_nhds, apply_instance}

@@ -291,9 +291,9 @@ begin
 end
 
 /-- `finset.noncomm_prod` is “injective” in `f` if `f` maps into independent subgroups.  It
-generalizes (one direction of) `subset.disjoint_iff_mul_eq_one`. -/
+generalizes (one direction of) `subgroup.disjoint_iff_mul_eq_one`. -/
 @[to_additive "`finset.noncomm_sum` is “injective” in `f` if `f` maps into independent subgroups.
-It generalizes (one direction of) `add_subset.disjoint_iff_add_eq_zero`. "]
+It generalizes (one direction of) `add_subgroup.disjoint_iff_add_eq_zero`. "]
 lemma eq_one_of_noncomm_prod_eq_one_of_independent {β : Type*} [group β]
   (s : finset α) (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (γ : α → subgroup β) (hind : complete_lattice.independent γ) (hmem : ∀ (x ∈ s), f x ∈ γ x)

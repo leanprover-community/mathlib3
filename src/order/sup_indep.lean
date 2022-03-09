@@ -59,6 +59,9 @@ end
 lemma sup_indep.pairwise_disjoint (hs : s.sup_indep f) : (s : set ι).pairwise_disjoint f :=
 λ a ha b hb hab, sup_singleton.subst $ hs (singleton_subset_iff.2 hb) ha $ not_mem_singleton.2 hab
 
+lemma sup_indep_pair (i j : ι) (h : i ≠ j) : sup_indep {i, j} f ↔ disjoint i j :=
+⟨_, _⟩
+
 /-- The RHS looks like the definition of `complete_lattice.independent`. -/
 lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
   s.sup_indep f ↔ ∀ i ∈ s, disjoint (f i) ((s.erase i).sup f) :=
@@ -122,3 +125,13 @@ end
 
 alias complete_lattice.independent_iff_sup_indep ↔ complete_lattice.independent.sup_indep
   finset.sup_indep.independent
+
+lemma complete_lattice.independent_iff_sup_indep_univ [complete_lattice α] [fintype ι] {f : ι → α} :
+  complete_lattice.independent f ↔ finset.univ.sup_indep f :=
+begin
+  classical,
+  simp [finset.sup_indep_iff_disjoint_erase, complete_lattice.independent, finset.sup_eq_supr],
+end
+
+alias complete_lattice.independent_iff_sup_indep_univ ↔ complete_lattice.independent.sup_indep_univ
+  finset.sup_indep.independent_of_univ

@@ -100,6 +100,9 @@ instance comm_ring : Π (n : ℕ), comm_ring (zmod n)
 | 0     := int.comm_ring
 | (n+1) := fin.comm_ring n
 
+-- this avoid searching for `prime n` via `zmod.field` unecessarily
+instance ring (n : ℕ) : ring (zmod n) := by apply_instance
+
 instance inhabited (n : ℕ) : inhabited (zmod n) := ⟨0⟩
 
 /-- `val a` is a natural number defined as:
@@ -430,7 +433,7 @@ begin
   rw [zmod.nat_coe_eq_nat_coe_iff, nat.modeq_zero_iff_dvd],
 end
 
-lemma nat_coe_zmod_eq_iff {n : ℕ} (m : ℕ) (z : zmod n) [fact (0 < n)] :
+lemma nat_coe_zmod_eq_iff {n : ℕ} {m : ℕ} {z : zmod n} [fact (0 < n)] :
   ↑m = z ↔ ∃ k, m = z.val + n * k :=
 begin
   split,

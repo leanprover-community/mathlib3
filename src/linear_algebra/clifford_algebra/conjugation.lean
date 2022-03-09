@@ -235,4 +235,69 @@ set_like.ext_iff.mp (even_odd_comap_reverse Q n) x
 
 end submodule
 
+/-!
+### Alternate characterizations of the even and odd submodules
+-/
+
+lemma involute_eq_of_mem_even {x : clifford_algebra Q} (h : x ∈ even_odd Q 0) :
+  involute x = x :=
+begin
+  refine even_induction Q (alg_hom.commutes _) _ _ x h,
+  { rintros x y hx hy ihx ihy,
+    rw [map_add, ihx, ihy]},
+  { intros m₁ m₂ x hx ihx,
+    rw [map_mul, map_mul, involute_ι, involute_ι, ihx, neg_mul_neg], },
+end
+
+lemma involute_eq_of_mem_odd {x : clifford_algebra Q} (h : x ∈ even_odd Q 1) :
+  involute x = -x :=
+begin
+  refine odd_induction Q involute_ι _ _ x h,
+  { rintros x y hx hy ihx ihy,
+    rw [map_add, ihx, ihy, neg_add] },
+  { intros m₁ m₂ x hx ihx,
+    rw [map_mul, map_mul, involute_ι, involute_ι, ihx, neg_mul_neg, mul_neg] },
+end
+
+lemma mem_even_odd_zero_iff_involute_eq [invertible (2 : R)] {n : zmod 2} {x : clifford_algebra Q}:
+  x ∈ even_odd Q 0 ↔ involute x = x :=
+begin
+  split,
+  { exact involute_eq_of_mem_even },
+  {
+    induction x using clifford_algebra.induction,
+    { exact algebra_map_mem_even_odd_zero _ _ },
+    { rw [involute_ι, neg_eq_iff_add_eq_zero, ←map_add, ←two_smul R,
+        linear_map.map_smul, (is_unit_of_invertible (2 : R)).smul_eq_zero] at h,
+      rw h,
+      exact submodule.zero_mem _ },
+     }
+end
+
+lemma mem_even_odd_zero_iff_involute_eq' [invertible (2 : R)] {n : zmod 2} {x : clifford_algebra Q}:
+  x ∈ even_odd Q 0 ↔ involute x = x :=
+begin
+  split,
+  { exact involute_eq_of_mem_even },
+  { have hx := even_add_odd Q x,
+    rw ←hx,
+    intro hix,
+    rw map_add at hix,
+    rw submodule.add_mem_iff_right _ (set_like.coe_mem _),
+    have := (graded_algebra.is_internal (even_odd Q)).independent 0,
+    rw [←finset.sup_univ_eq_supr] at this,
+    have zuniv : (finset.univ : finset(zmod 2)) = {0, 1} := rfl,
+    rw zuniv at this,
+    rw submodule.disjoint_iff_comap_eq_bot,
+    intro h,
+    induction x using clifford_algebra.induction,
+    { exact algebra_map_mem_even_odd_zero _ _ },
+    { rw [involute_ι, neg_eq_iff] at h,
+      rw neg_eq_,
+    } }
+end
+
+#check zmod.fintype
+
+
 end clifford_algebra

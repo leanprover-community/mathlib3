@@ -103,6 +103,9 @@ def graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i := alg_equiv.symm
   (graded_algebra.decompose 𝒜).symm (direct_sum.of _ i x) = x :=
 direct_sum.submodule_coe_alg_hom_of 𝒜 _ _
 
+lemma graded_algebra.coe_decompose_symm_eq :
+  ⇑(graded_algebra.decompose 𝒜).symm = direct_sum.submodule_coe_alg_hom 𝒜 := rfl
+
 /-- The projection maps of graded algebra-/
 def graded_algebra.proj (𝒜 : ι → submodule R A) [graded_algebra 𝒜] (i : ι) : A →ₗ[R] A :=
 (𝒜 i).subtype.comp $
@@ -139,6 +142,7 @@ lemma graded_algebra.decompose_of_mem_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) 
 by rw [graded_algebra.decompose_of_mem _ hx, direct_sum.of_eq_of_ne _ _ _ _ hij, submodule.coe_zero]
 
 
+section
 variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
 
 lemma graded_algebra.mem_support_iff (r : A) (i : ι) :
@@ -155,6 +159,19 @@ begin
     ←direct_sum.sum_support_of _ (graded_algebra.decompose 𝒜 r)] },
   rw [alg_equiv.map_sum, graded_algebra.support],
   simp_rw graded_algebra.decompose_symm_of,
+end
+
+end
+
+/-- A variant of `graded_algebra.sum_support_decompose` for fintypes. -/
+lemma graded_algebra.sum_decompose [fintype ι] (r : A) :
+  ∑ i, (graded_algebra.decompose 𝒜 r i : A) = r :=
+begin
+  letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
+  conv_rhs { rw [←graded_algebra.sum_support_decompose 𝒜 r] },
+  refine (finset.sum_subset (finset.subset_univ _) $ λ x _ hx, _).symm,
+  rw [graded_algebra.support, dfinsupp.mem_support_iff, not_ne_iff] at hx,
+  rw [hx, submodule.coe_zero],
 end
 
 end graded_algebra

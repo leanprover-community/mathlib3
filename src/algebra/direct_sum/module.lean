@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import algebra.direct_sum.basic
 import linear_algebra.dfinsupp
+import order.sup_indep
 
 /-!
 # Direct sum of modules
@@ -300,6 +301,25 @@ lemma submodule_is_internal_iff_independent_and_supr_eq_top (A : ι → submodul
     submodule_is_internal A ↔ complete_lattice.independent A ∧ supr A = ⊤ :=
 ⟨λ i, ⟨i.independent, i.supr_eq_top⟩,
  and.rec submodule_is_internal_of_independent_of_supr_eq_top⟩
+
+lemma even_odd_is_compl [fintype ι] (A : ι → submodule R M) (i j : ι) (h : i ≠ j)
+  (h : (finset.univ : finset ι) = {i, j}) :
+  submodule_is_internal A ↔ is_compl (A i) (A j) :=
+begin
+  rw submodule_is_internal_iff_independent_and_supr_eq_top,
+  rw [complete_lattice.independent_iff_sup_indep_univ, ←finset.sup_univ_eq_supr, h,
+    finset.sup_insert, finset.sup_singleton],
+  split,
+  { have := (graded_algebra.is_internal (even_odd Q)).independent.sup_indep_univ,
+    rw zuniv at this,
+    specialize this (finset.subset_insert 0 {1}) (finset.mem_insert_self _ _)
+      (finset.mem_singleton.not.mpr zero_ne_one),
+    rw finset.sup_singleton at this,
+    exact this },
+  { have := (graded_algebra.is_internal (even_odd Q)).supr_eq_top,
+    rw [←finset.sup_univ_eq_supr, zuniv, finset.sup_insert, finset.sup_singleton] at this,
+    exact this.ge }
+end
 
 /-! Now copy the lemmas for subgroup and submonoids. -/
 

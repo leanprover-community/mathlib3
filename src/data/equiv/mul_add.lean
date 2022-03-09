@@ -279,6 +279,18 @@ e.to_equiv.symm_apply_eq
 lemma eq_symm_apply (e : M ≃* N) {x y} : y = e.symm x ↔ e y = x :=
 e.to_equiv.eq_symm_apply
 
+@[to_additive] lemma eq_comp_symm {α : Type*} (e : M ≃* N) (f : N → α) (g : M → α) :
+  f = g ∘ e.symm ↔ f ∘ e = g := e.to_equiv.eq_comp_symm f g
+
+@[to_additive] lemma comp_symm_eq {α : Type*} (e : M ≃* N) (f : N → α) (g : M → α) :
+  g ∘ e.symm = f ↔ g = f ∘ e := e.to_equiv.comp_symm_eq f g
+
+@[to_additive] lemma eq_symm_comp {α : Type*} (e : M ≃* N) (f : α → M) (g : α → N) :
+  f = e.symm ∘ g ↔ e ∘ f = g := e.to_equiv.eq_symm_comp f g
+
+@[to_additive] lemma symm_comp_eq {α : Type*} (e : M ≃* N) (f : α → M) (g : α → N) :
+  e.symm ∘ g = f ↔ g = e ∘ f := e.to_equiv.symm_comp_eq f g
+
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/
 @[ext, to_additive
@@ -538,7 +550,7 @@ variables (G) [has_involutive_inv G]
 /-- Inversion on a `group` or `group_with_zero` is a permutation of the underlying type. -/
 @[to_additive "Negation on an `add_group` is a permutation of the underlying type.",
   simps apply {fully_applied := ff}]
-protected def inv : perm G := inv_involutive.to_equiv _
+protected def inv : perm G := inv_involutive.to_perm _
 
 variable {G}
 

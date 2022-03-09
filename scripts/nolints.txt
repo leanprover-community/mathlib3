@@ -1,19 +1,208 @@
 import .all
 run_cmd tactic.skip
 
+-- algebra/big_operators/basic.lean
+apply_nolint finset.prod_comp to_additive_doc
+apply_nolint finset.prod_ite_eq' to_additive_doc
+
+-- algebra/big_operators/finprod.lean
+apply_nolint exists_ne_one_of_finprod_mem_ne_one to_additive_doc
+apply_nolint finprod_comp to_additive_doc
+apply_nolint finprod_div_distrib to_additive_doc
+apply_nolint finprod_eq_of_bijective to_additive_doc
+apply_nolint finprod_mem_Union to_additive_doc
+apply_nolint finprod_mem_bUnion to_additive_doc
+apply_nolint finprod_mem_comm to_additive_doc
+apply_nolint finprod_mem_div_distrib to_additive_doc
+apply_nolint finprod_mem_empty to_additive_doc
+apply_nolint finprod_mem_eq_of_bij_on to_additive_doc
+apply_nolint finprod_mem_finset_product to_additive_doc
+apply_nolint finprod_mem_finset_product' to_additive_doc
+apply_nolint finprod_mem_image to_additive_doc
+apply_nolint finprod_mem_image' to_additive_doc
+apply_nolint finprod_mem_induction to_additive_doc
+apply_nolint finprod_mem_insert to_additive_doc
+apply_nolint finprod_mem_insert' to_additive_doc
+apply_nolint finprod_mem_insert_of_eq_one_if_not_mem to_additive_doc
+apply_nolint finprod_mem_insert_one to_additive_doc
+apply_nolint finprod_mem_mul_diff to_additive_doc
+apply_nolint finprod_mem_mul_diff' to_additive_doc
+apply_nolint finprod_mem_mul_distrib to_additive_doc
+apply_nolint finprod_mem_mul_distrib' to_additive_doc
+apply_nolint finprod_mem_of_eq_on_one to_additive_doc
+apply_nolint finprod_mem_one to_additive_doc
+apply_nolint finprod_mem_pair to_additive_doc
+apply_nolint finprod_mem_range to_additive_doc
+apply_nolint finprod_mem_range' to_additive_doc
+apply_nolint finprod_mem_sUnion to_additive_doc
+apply_nolint finprod_mem_singleton to_additive_doc
+apply_nolint finprod_mem_union to_additive_doc
+apply_nolint finprod_mem_union' to_additive_doc
+apply_nolint finprod_mem_union'' to_additive_doc
+apply_nolint finprod_mem_union_inter to_additive_doc
+apply_nolint finprod_mem_union_inter' to_additive_doc
+apply_nolint finprod_mul_distrib to_additive_doc
+apply_nolint monoid_hom.map_finprod_mem to_additive_doc
+apply_nolint monoid_hom.map_finprod_mem' to_additive_doc
+apply_nolint nonempty_of_finprod_mem_ne_one to_additive_doc
+
+-- algebra/big_operators/nat_antidiagonal.lean
+apply_nolint finset.nat.prod_antidiagonal_eq_prod_range_succ to_additive_doc
+
+-- algebra/big_operators/ring.lean
+apply_nolint finset.prod_powerset to_additive_doc
+apply_nolint finset.prod_powerset_insert to_additive_doc
+
+-- algebra/category/Group/limits.lean
+apply_nolint CommGroup.category_theory.forget₂.category_theory.creates_limit to_additive_doc
+apply_nolint CommGroup.forget_preserves_limits to_additive_doc
+apply_nolint CommGroup.forget₂_CommMon_preserves_limits to_additive_doc
+apply_nolint CommGroup.forget₂_Group_preserves_limits to_additive_doc
+apply_nolint CommGroup.has_limits to_additive_doc
+apply_nolint Group.category_theory.forget₂.category_theory.creates_limit to_additive_doc
+apply_nolint Group.forget_preserves_limits to_additive_doc
+apply_nolint Group.forget₂_Mon_preserves_limits to_additive_doc
+apply_nolint Group.has_limits to_additive_doc
+
+-- algebra/category/Mon/limits.lean
+apply_nolint CommMon.category_theory.forget₂.category_theory.creates_limit to_additive_doc
+apply_nolint CommMon.forget_preserves_limits to_additive_doc
+apply_nolint CommMon.forget₂_Mon_preserves_limits to_additive_doc
+apply_nolint CommMon.has_limits to_additive_doc
+apply_nolint Mon.forget_preserves_limits to_additive_doc
+apply_nolint Mon.has_limits to_additive_doc
+
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
+
+-- algebra/group/commute.lean
+apply_nolint commute.eq to_additive_doc
+apply_nolint commute.mul_left to_additive_doc
+apply_nolint commute.mul_right to_additive_doc
+apply_nolint commute.refl to_additive_doc
+apply_nolint commute.symm to_additive_doc
+
+-- algebra/group/freiman.lean
+apply_nolint freiman_hom.has_coe_to_fun to_additive_doc
+apply_nolint freiman_hom.has_inv to_additive_doc
+apply_nolint monoid_hom.freiman_hom_class to_additive_doc
+
+-- algebra/group/hom.lean
+apply_nolint map_div to_additive_doc
+apply_nolint map_inv to_additive_doc
+apply_nolint map_mul_inv to_additive_doc
+apply_nolint monoid_hom.coe_inj to_additive_doc
+apply_nolint monoid_hom.congr_arg to_additive_doc
+apply_nolint monoid_hom.congr_fun to_additive_doc
+apply_nolint monoid_hom.ext_iff to_additive_doc
+apply_nolint monoid_hom.map_inv to_additive_doc
+apply_nolint monoid_hom.map_mul_inv to_additive_doc
+apply_nolint mul_hom.coe_inj to_additive_doc
+apply_nolint mul_hom.congr_arg to_additive_doc
+apply_nolint mul_hom.congr_fun to_additive_doc
+apply_nolint mul_hom.ext_iff to_additive_doc
+apply_nolint one_hom.coe_inj to_additive_doc
+apply_nolint one_hom.comp_assoc to_additive_doc
+apply_nolint one_hom.congr_arg to_additive_doc
+apply_nolint one_hom.congr_fun to_additive_doc
+apply_nolint one_hom.ext_iff to_additive_doc
+
+-- algebra/group/semiconj.lean
+apply_nolint semiconj_by.conj_mk to_additive_doc
+apply_nolint semiconj_by.eq to_additive_doc
+apply_nolint semiconj_by.mul_left to_additive_doc
+apply_nolint semiconj_by.mul_right to_additive_doc
+apply_nolint semiconj_by.one_left to_additive_doc
+apply_nolint semiconj_by.one_right to_additive_doc
+apply_nolint semiconj_by.units_inv_right to_additive_doc
+apply_nolint semiconj_by.units_inv_symm_left to_additive_doc
+apply_nolint units.mk_semiconj_by to_additive_doc
+
+-- algebra/group/units.lean
+apply_nolint units.group to_additive_doc
+
+-- algebra/group_power/basic.lean
+apply_nolint pow_two to_additive_doc
+
+-- algebra/indicator_function.lean
+apply_nolint set.mem_of_mul_indicator_ne_one to_additive_doc
+apply_nolint set.prod_mul_indicator_subset to_additive_doc
+
+-- algebra/order/group.lean
+apply_nolint has_inv_lattice_has_abs to_additive_doc
+apply_nolint inv_le_of_inv_le' to_additive_doc
+apply_nolint inv_le_one' to_additive_doc
+apply_nolint inv_lt_of_inv_lt' to_additive_doc
+apply_nolint inv_lt_one' to_additive_doc
+apply_nolint inv_lt_one_iff_one_lt to_additive_doc
+apply_nolint inv_mul_lt_of_lt_mul to_additive_doc
+apply_nolint inv_of_one_lt_inv to_additive_doc
+apply_nolint le_inv_mul_of_mul_le to_additive_doc
+apply_nolint le_inv_of_le_inv to_additive_doc
+apply_nolint le_one_of_one_le_inv to_additive_doc
+apply_nolint left.inv_le_one_iff to_additive_doc
+apply_nolint left.inv_lt_one_iff to_additive_doc
+apply_nolint left.one_le_inv_iff to_additive_doc
+apply_nolint left.one_lt_inv_iff to_additive_doc
+apply_nolint lt_inv_mul_of_mul_lt to_additive_doc
+apply_nolint lt_inv_of_lt_inv to_additive_doc
+apply_nolint lt_mul_of_inv_mul_lt to_additive_doc
+apply_nolint lt_mul_of_inv_mul_lt_left to_additive_doc
+apply_nolint lt_of_inv_lt_inv to_additive_doc
+apply_nolint mul_le_of_le_inv_mul to_additive_doc
+apply_nolint mul_lt_of_lt_inv_mul to_additive_doc
+apply_nolint one_le_inv' to_additive_doc
+apply_nolint one_le_of_inv_le_one to_additive_doc
+apply_nolint one_lt_inv' to_additive_doc
+apply_nolint one_lt_inv_of_inv to_additive_doc
+apply_nolint one_lt_of_inv_lt_one to_additive_doc
+apply_nolint ordered_comm_group.le_of_mul_le_mul_left to_additive_doc
+apply_nolint ordered_comm_group.lt_of_mul_lt_mul_left to_additive_doc
+apply_nolint ordered_comm_group.mul_lt_mul_left' to_additive_doc
+apply_nolint right.inv_le_one_iff to_additive_doc
+apply_nolint right.inv_lt_one_iff to_additive_doc
+apply_nolint right.one_le_inv_iff to_additive_doc
+apply_nolint right.one_lt_inv_iff to_additive_doc
+apply_nolint units.ordered_comm_group to_additive_doc
+
+-- algebra/order/hom/monoid.lean
+apply_nolint order_monoid_hom.has_coe_to_fun to_additive_doc
+
+-- algebra/order/lattice_group.lean
+apply_nolint lattice_ordered_comm_group.m_abs_abs to_additive_doc
+apply_nolint lattice_ordered_comm_group.mabs_mul_le to_additive_doc
+apply_nolint lattice_ordered_comm_group.pos_of_one_le to_additive_doc
 
 -- algebra/order/monoid.lean
 apply_nolint with_zero.canonically_ordered_add_monoid check_reducibility
 
+-- algebra/order/monoid_lemmas.lean
+apply_nolint le_mul_of_le_of_le_one to_additive_doc
+apply_nolint left.mul_lt_one to_additive_doc
+apply_nolint left.mul_lt_one_of_lt_of_lt_one to_additive_doc
+apply_nolint lt_mul_of_lt_of_one_lt to_additive_doc
+apply_nolint mul_le_one' to_additive_doc
+apply_nolint right.mul_lt_one to_additive_doc
+apply_nolint right.mul_lt_one_of_lt_of_lt_one to_additive_doc
+apply_nolint right.one_le_mul to_additive_doc
+apply_nolint right.one_lt_mul to_additive_doc
+
 -- algebra/pointwise.lean
+apply_nolint finset.subset_mul to_additive_doc
 apply_nolint set.set_semiring.comm_semiring check_reducibility
 apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
 apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
 
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
+
+-- combinatorics/additive/salem_spencer.lean
+apply_nolint mul_salem_spencer.decidable to_additive_doc
+
+-- combinatorics/hindman.lean
+apply_nolint hindman.FP.mul to_additive_doc
+apply_nolint hindman.FP_partition_regular to_additive_doc
+apply_nolint hindman.exists_FP_of_finite_cover to_additive_doc
 
 -- computability/partrec.lean
 apply_nolint computable doc_blame
@@ -159,6 +348,26 @@ apply_nolint encodable.fintype_arrow doc_blame
 apply_nolint encodable.fintype_pi doc_blame
 apply_nolint encodable.trunc_encodable_of_fintype doc_blame
 
+-- data/equiv/mul_add.lean
+apply_nolint equiv.mul_left_symm_apply to_additive_doc
+apply_nolint equiv.mul_right_symm_apply to_additive_doc
+apply_nolint mul_equiv.apply_symm_apply to_additive_doc
+apply_nolint mul_equiv.map_div to_additive_doc
+apply_nolint mul_equiv.map_inv to_additive_doc
+apply_nolint mul_equiv.map_mul to_additive_doc
+apply_nolint mul_equiv.map_one to_additive_doc
+apply_nolint mul_equiv.symm_apply_apply to_additive_doc
+apply_nolint mul_equiv.unique to_additive_doc
+
+-- data/finset/noncomm_prod.lean
+apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
+
+-- data/fintype/card.lean
+apply_nolint fin.prod_univ_cast_succ to_additive_doc
+apply_nolint fin.prod_univ_eq_prod_range to_additive_doc
+apply_nolint fin.prod_univ_succ to_additive_doc
+apply_nolint fin.prod_univ_succ_above to_additive_doc
+
 -- data/fp/basic.lean
 apply_nolint fp.div_nat_lt_two_pow doc_blame unused_arguments
 apply_nolint fp.emax doc_blame
@@ -198,11 +407,19 @@ apply_nolint holor_index.assoc_right doc_blame
 apply_nolint holor_index.drop doc_blame
 apply_nolint holor_index.take doc_blame
 
+-- data/list/big_operators.lean
+apply_nolint list.head_mul_tail_prod_of_ne_nil to_additive_doc
+apply_nolint list.length_pos_of_prod_ne_one to_additive_doc
+apply_nolint list.nth_zero_mul_tail_prod to_additive_doc
+
 -- data/list/defs.lean
 apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
 apply_nolint list.traverse doc_blame
+
+-- data/list/perm.lean
+apply_nolint list.perm.prod_eq' to_additive_doc
 
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
@@ -359,6 +576,26 @@ apply_nolint stream.unfolds doc_blame
 -- data/stream/init.lean
 apply_nolint stream.is_bisimulation doc_blame
 
+-- deprecated/group.lean
+apply_nolint is_group_hom.comp to_additive_doc
+apply_nolint is_group_hom.id to_additive_doc
+apply_nolint is_group_hom.injective_iff to_additive_doc
+apply_nolint is_group_hom.inv to_additive_doc
+apply_nolint is_group_hom.map_inv to_additive_doc
+apply_nolint is_group_hom.map_one to_additive_doc
+apply_nolint is_group_hom.mk' to_additive_doc
+apply_nolint is_group_hom.mul to_additive_doc
+apply_nolint is_group_hom.to_is_monoid_hom to_additive_doc
+apply_nolint is_monoid_hom.comp to_additive_doc
+apply_nolint is_monoid_hom.id to_additive_doc
+apply_nolint is_monoid_hom.inv to_additive_doc
+apply_nolint is_monoid_hom.map_mul to_additive_doc
+apply_nolint is_mul_hom.inv to_additive_doc
+apply_nolint is_mul_hom.mul to_additive_doc
+apply_nolint is_mul_hom.to_is_monoid_hom to_additive_doc
+apply_nolint mul_equiv.is_monoid_hom to_additive_doc
+apply_nolint mul_equiv.is_mul_hom to_additive_doc
+
 -- deprecated/subfield.lean
 apply_nolint is_subfield doc_blame
 
@@ -371,15 +608,81 @@ apply_nolint mv_polynomial.evalᵢ doc_blame
 apply_nolint mv_polynomial.evalₗ doc_blame unused_arguments
 apply_nolint mv_polynomial.indicator doc_blame
 
+-- group_theory/coset.lean
+apply_nolint subgroup.card_subgroup_dvd_card to_additive_doc
+
+-- group_theory/group_action/basic.lean
+apply_nolint mul_action.quotient_preimage_image_eq_union_mul to_additive_doc
+
+-- group_theory/group_action/defs.lean
+apply_nolint comp_smul_left to_additive_doc
+apply_nolint has_mul.to_has_scalar to_additive_doc
+apply_nolint mul_action.regular.is_pretransitive to_additive_doc
+apply_nolint mul_smul_comm to_additive_doc
+apply_nolint one_smul_eq_id to_additive_doc
+
+-- group_theory/group_action/group.lean
+apply_nolint mul_action.to_perm_injective to_additive_doc
+
+-- group_theory/group_action/opposite.lean
+apply_nolint has_mul.to_has_opposite_scalar to_additive_doc
+apply_nolint left_cancel_monoid.to_has_faithful_opposite_scalar to_additive_doc
+apply_nolint monoid.to_opposite_mul_action to_additive_doc
+apply_nolint mul_action.opposite_regular.is_pretransitive to_additive_doc
+
+-- group_theory/group_action/pi.lean
+apply_nolint pi.has_faithful_scalar_at to_additive_doc
+
 -- group_theory/group_action/sub_mul_action.lean
 apply_nolint sub_mul_action.has_zero fails_quickly
+
+-- group_theory/monoid_localization.lean
+apply_nolint submonoid.localization_map.lift_left_inverse to_additive_doc
+
+-- group_theory/order_of_element.lean
+apply_nolint image_range_order_of to_additive_doc
+apply_nolint is_of_fin_order.quotient to_additive_doc
+apply_nolint is_of_fin_order_iff_coe to_additive_doc
+apply_nolint order_of_eq_of_pow_and_pow_div_prime to_additive_doc
+apply_nolint pow_gcd_card_eq_one_iff to_additive_doc
+
+-- group_theory/quotient_group.lean
+apply_nolint quotient_group.subgroup_eq_top_of_subsingleton to_additive_doc
+
+-- group_theory/specific_groups/cyclic.lean
+apply_nolint is_cyclic_of_prime_card to_additive_doc
+apply_nolint is_simple_group_of_prime_card to_additive_doc
+
+-- group_theory/subgroup/basic.lean
+apply_nolint monoid_hom.eq_on_closure to_additive_doc
+apply_nolint subgroup.bot_or_exists_ne_one to_additive_doc
+apply_nolint subgroup.bot_or_nontrivial to_additive_doc
+apply_nolint subgroup.commute_of_normal_of_disjoint to_additive_doc
+apply_nolint subgroup.is_commutative.comm_group to_additive_doc
+apply_nolint subgroup.map_injective_of_ker_le to_additive_doc
+
+-- group_theory/submonoid/basic.lean
+apply_nolint monoid_hom.eq_on_mclosure to_additive_doc
+
+-- group_theory/submonoid/operations.lean
+apply_nolint submonoid.bot_or_exists_ne_one to_additive_doc
+apply_nolint submonoid.bot_or_nontrivial to_additive_doc
 
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 
+-- group_theory/torsion.lean
+apply_nolint exponent_exists.is_torsion to_additive_doc
+apply_nolint is_torsion.exponent_exists to_additive_doc
+apply_nolint is_torsion_of_fintype to_additive_doc
+
 -- linear_algebra/affine_space/affine_subspace.lean
 apply_nolint affine_span.nonempty fails_quickly
 apply_nolint affine_subspace.to_add_torsor fails_quickly
+
+-- linear_algebra/pi.lean
+apply_nolint function.has_scalar to_additive_doc
+apply_nolint function.smul_comm_class to_additive_doc
 
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame
@@ -389,6 +692,58 @@ apply_nolint relator.left_unique doc_blame
 apply_nolint relator.lift_fun doc_blame
 apply_nolint relator.right_total doc_blame
 apply_nolint relator.right_unique doc_blame
+
+-- measure_theory/constructions/pi.lean
+apply_nolint measure_theory.pi.is_inv_invariant_volume to_additive_doc
+apply_nolint measure_theory.pi.is_mul_left_invariant_volume to_additive_doc
+
+-- measure_theory/group/fundamental_domain.lean
+apply_nolint measure_theory.is_fundamental_domain.measure_eq to_additive_doc
+
+-- measure_theory/group/integration.lean
+apply_nolint measure_theory.integral_eq_zero_of_mul_left_eq_neg to_additive_doc
+apply_nolint measure_theory.integral_eq_zero_of_mul_right_eq_neg to_additive_doc
+apply_nolint measure_theory.integral_mul_left_eq_self to_additive_doc
+apply_nolint measure_theory.integral_mul_right_eq_self to_additive_doc
+apply_nolint measure_theory.lintegral_eq_zero_of_is_mul_left_invariant to_additive_doc
+apply_nolint measure_theory.lintegral_mul_left_eq_self to_additive_doc
+apply_nolint measure_theory.lintegral_mul_right_eq_self to_additive_doc
+
+-- measure_theory/group/measure.lean
+apply_nolint measure_theory.forall_measure_preimage_mul_iff to_additive_doc
+apply_nolint measure_theory.forall_measure_preimage_mul_right_iff to_additive_doc
+apply_nolint measure_theory.is_mul_left_invariant.is_mul_right_invariant to_additive_doc
+apply_nolint measure_theory.is_open_pos_measure_of_mul_left_invariant_of_compact to_additive_doc
+apply_nolint measure_theory.is_open_pos_measure_of_mul_left_invariant_of_regular to_additive_doc
+apply_nolint measure_theory.measure.is_haar_measure.has_no_atoms to_additive_doc
+apply_nolint measure_theory.measure.is_haar_measure.sigma_finite to_additive_doc
+apply_nolint measure_theory.measure.is_haar_measure_map to_additive_doc
+apply_nolint measure_theory.measure.is_haar_measure_of_is_compact_nonempty_interior to_additive_doc
+apply_nolint measure_theory.measure_lt_top_of_is_compact_of_is_mul_left_invariant to_additive_doc
+apply_nolint measure_theory.measure_lt_top_of_is_compact_of_is_mul_left_invariant' to_additive_doc
+apply_nolint measure_theory.measure_preimage_mul to_additive_doc
+
+-- measure_theory/group/prod.lean
+apply_nolint measure_theory.absolutely_continuous_of_is_mul_left_invariant to_additive_doc
+apply_nolint measure_theory.map_prod_inv_mul_eq to_additive_doc
+apply_nolint measure_theory.map_prod_inv_mul_eq_swap to_additive_doc
+apply_nolint measure_theory.map_prod_mul_eq to_additive_doc
+apply_nolint measure_theory.map_prod_mul_eq_swap to_additive_doc
+apply_nolint measure_theory.map_prod_mul_inv_eq to_additive_doc
+apply_nolint measure_theory.measure_eq_div_smul to_additive_doc
+apply_nolint measure_theory.measure_lintegral_div_measure to_additive_doc
+apply_nolint measure_theory.measure_mul_lintegral_eq to_additive_doc
+
+-- measure_theory/measure/haar.lean
+apply_nolint measure_theory.measure.haar.haar_content_self to_additive_doc
+apply_nolint measure_theory.measure.haar.index_defined to_additive_doc
+apply_nolint measure_theory.measure.haar.is_left_invariant_haar_content to_additive_doc
+apply_nolint measure_theory.measure.haar_measure_unique to_additive_doc
+apply_nolint measure_theory.measure.is_haar_measure_haar_measure to_additive_doc
+apply_nolint measure_theory.measure.map_haar_inv to_additive_doc
+apply_nolint measure_theory.measure.regular_haar_measure to_additive_doc
+apply_nolint measure_theory.measure.regular_of_is_mul_left_invariant to_additive_doc
+apply_nolint measure_theory.measure.sigma_finite_haar_measure to_additive_doc
 
 -- meta/coinductive_predicates.lean
 apply_nolint monotonicity doc_blame
@@ -427,6 +782,9 @@ apply_nolint zsqrtd.norm doc_blame
 apply_nolint gaussian_int doc_blame
 apply_nolint gaussian_int.div doc_blame
 apply_nolint gaussian_int.mod doc_blame
+
+-- order/filter/at_top_bot.lean
+apply_nolint filter.map_at_top_finset_prod_le_of_prod_eq to_additive_doc
 
 -- order/filter/pointwise.lean
 apply_nolint filter.has_add check_reducibility
@@ -939,8 +1297,53 @@ apply_nolint transfer.compute_transfer doc_blame
 -- tactic/wlog.lean
 apply_nolint tactic.wlog doc_blame
 
+-- topology/algebra/const_mul_action.lean
+apply_nolint fintype.properly_discontinuous_smul to_additive_doc
+apply_nolint is_open_map_quotient_mk_mul to_additive_doc
+apply_nolint t2_space_of_properly_discontinuous_smul_of_t2_space to_additive_doc
+
+-- topology/algebra/constructions.lean
+apply_nolint mul_opposite.topological_space to_additive_doc
+apply_nolint units.topological_space to_additive_doc
+
+-- topology/algebra/continuous_monoid_hom.lean
+apply_nolint continuous_monoid_hom.has_coe_to_fun to_additive_doc
+
+-- topology/algebra/filter_basis.lean
+apply_nolint group_filter_basis.is_topological_group to_additive_doc
+
+-- topology/algebra/group.lean
+apply_nolint filter.tendsto.inv to_additive_doc
+apply_nolint group_topology.complete_semilattice_Inf to_additive_doc
+apply_nolint group_topology.continuous_inv' to_additive_doc
+apply_nolint group_topology.continuous_mul' to_additive_doc
+apply_nolint group_topology.has_Inf to_additive_doc
+apply_nolint group_topology.partial_order to_additive_doc
+apply_nolint separable_locally_compact_group.sigma_compact_space to_additive_doc
+apply_nolint topological_space.positive_compacts.locally_compact_space_of_group to_additive_doc
+
+-- topology/algebra/monoid.lean
+apply_nolint mul_opposite.has_continuous_mul to_additive_doc
+apply_nolint units.has_continuous_mul to_additive_doc
+
+-- topology/algebra/nonarchimedean/basic.lean
+apply_nolint nonarchimedean_group.nonarchimedean_of_emb to_additive_doc
+apply_nolint nonarchimedean_group.prod.nonarchimedean_group to_additive_doc
+apply_nolint nonarchimedean_group.prod_self_subset to_additive_doc
+apply_nolint nonarchimedean_group.prod_subset to_additive_doc
+
+-- topology/algebra/order/compact.lean
+apply_nolint continuous.bdd_above_range_of_has_compact_mul_support to_additive_doc
+apply_nolint continuous.bdd_below_range_of_has_compact_mul_support to_additive_doc
+apply_nolint continuous.exists_forall_ge_of_has_compact_mul_support to_additive_doc
+apply_nolint continuous.exists_forall_le_of_has_compact_mul_support to_additive_doc
+
 -- topology/category/Top/open_nhds.lean
 apply_nolint topological_space.open_nhds.map doc_blame
+
+-- topology/metric_space/emetric_space.lean
+apply_nolint mul_opposite.emetric_space to_additive_doc
+apply_nolint mul_opposite.pseudo_emetric_space to_additive_doc
 
 -- topology/uniform_space/completion.lean
 apply_nolint Cauchy.extend doc_blame

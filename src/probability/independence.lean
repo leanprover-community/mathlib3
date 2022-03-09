@@ -424,16 +424,16 @@ theorem indep_set_iff_cond_irrel (hms : measurable_set s) (hmt : measurable_set 
   indep_set s t μ ↔ μ t ≠ 0 → μ[s|t] = μ s :=
 begin
   split; intro h,
-  { intro hca, 
+  { intro hct, 
     simp [*, (indep_set_iff_measure_inter_eq_mul hmt hms μ).mp h.symm,
-      ← mul_assoc, ennreal.inv_mul_cancel hca (measure_ne_top _ _)] },
+      ←mul_assoc, ennreal.inv_mul_cancel hct (measure_ne_top _ _)] },
   by_cases hct : μ t = 0,
   { rw indep_set_iff_measure_inter_eq_mul hms hmt μ,
     simp [measure_inter_null_of_null_right, hct] },
   { have hcond := h hct,
     refine (indep_set_iff_measure_inter_eq_mul hms hmt μ).mpr _,
-    rwa [ ← mul_comm, ennreal.inv_mul_eq_iff_eq_mul hct (measure_ne_top _ _),
-      ← measure.restrict_apply' hmt] },
+    rw [set.inter_comm, ←cond_mul_eq_inter _ hmt hct],
+    congr' }
 end
 
 /-- Two events `s` and `t` are independent given a third event `c` if and only if
@@ -444,9 +444,9 @@ theorem cond_indep_set_iff_cond_inter_irrel (hms : measurable_set s)
   (μ : measure α . volume_tac) [is_probability_measure μ] :
   cond_indep_set s t c μ ↔ μ (c ∩ t) ≠ 0 → μ[s|c ∩ t] = μ[s|c] :=
 begin
-  have : μ (c ∩ t) ≠ 0 → (μ[s|c ∩ t] = μ[s|c] ↔ (μ[|c][|t]) s = μ[s|c]),
+  have : μ (c ∩ t) ≠ 0 → (μ[s|c ∩ t] = μ[s|c] ↔ μ[|c][|t] s = μ[s|c]),
   { intro h,
-    rw ← cond_cond_eq_cond_inter μ hmc hmt _ h,
+    rw ←cond_cond_eq_cond_inter μ hmc hmt _ h,
     exact (outer_measure.pos_of_subset_ne_zero _ (set.inter_subset_left _ _) h).ne' },
   rw [cond_indep_set_def, forall_congr this],
   by_cases h : μ c = 0,

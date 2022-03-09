@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuma Mizuno, Junyan Xu
 -/
 import category_theory.path_category
-import category_theory.fully_faithful
+import category_theory.functor.fully_faithful
 import category_theory.bicategory.free
 import category_theory.bicategory.locally_discrete
 /-!

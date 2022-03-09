@@ -220,8 +220,8 @@ def desc_homotopy_zero_succ {Y Z : C} {P : InjectiveResolution Y} {Q : Injective
   (g' : P.cocomplex.X (n + 2) ⟶ Q.cocomplex.X (n + 1))
   (w : f.f (n + 1) = P.cocomplex.d (n+1) (n+2) ≫ g' + g ≫ Q.cocomplex.d n (n+1)) :
   P.cocomplex.X (n + 3) ⟶ Q.cocomplex.X (n + 2) :=
-exact.desc (f.f (n+2) - g' ≫ Q.cocomplex.d _ _) (P.cocomplex.d (n+1) (n+2)) (P.cocomplex.d (n+2) (n+3))
-  begin
+exact.desc (f.f (n+2) - g' ≫ Q.cocomplex.d _ _) (P.cocomplex.d (n+1) (n+2))
+  (P.cocomplex.d (n+2) (n+3)) begin
     have w' : f.f (n + 1) - g ≫ Q.cocomplex.d n (n+1)= P.cocomplex.d (n+1) (n+2) ≫ g',
     { rw w, simp only [add_sub_cancel], },
     simp [preadditive.comp_sub, ←category.assoc, ←w', preadditive.sub_comp],

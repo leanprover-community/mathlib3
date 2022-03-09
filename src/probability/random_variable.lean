@@ -79,7 +79,7 @@ end definitions
 section marginal
 
 /-- The marginal distribution is the marginalized joint distribution. -/
-theorem marginal_eq_marginalize_joint (hm : ∀ i : ι, measurable (f i)) (mv : set ι) :
+lemma marginal_eq_marginalize_joint (hm : ∀ i : ι, measurable (f i)) (mv : set ι) :
   marginal μ f mv = marginalize (joint μ f) mv :=
 by { rw [marginalize, joint, map_map, function.comp], refl,
   apply measurable_pi_restrict, exact measurable_pi_iff.mpr hm }
@@ -92,7 +92,7 @@ by { rw [marginalize, map_apply _ hms], apply measurable_pi_restrict }
 /-- The marginalization principle: the marginal probability of a particular "marginal assignment" 
 measurable set `s` is equal to the joint probability of that same set, extended to allow
 the unmarginalized variables to take any value. -/
-theorem marginal_apply (hm : ∀ i : ι, measurable (f i)) (mv : set ι)
+lemma marginal_apply (hm : ∀ i : ι, measurable (f i)) (mv : set ι)
   {s : set (Π i : mv, β i)} (hms : measurable_set s) :
   marginal μ f mv s = joint μ f (>[] s) :=
 by rw [marginal_eq_marginalize_joint _ _ hm, marginalize_apply _ _ hms] 

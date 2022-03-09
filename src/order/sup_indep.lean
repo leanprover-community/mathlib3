@@ -85,7 +85,7 @@ lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
     rw [this, finset.sup_singleton] }
 end⟩
 
-@[simp] lemma sup_indep_univ_bool (f : bool → α) :
+lemma sup_indep_univ_bool (f : bool → α) :
   (finset.univ : finset bool).sup_indep f ↔ disjoint (f ff) (f tt) :=
 begin
   have : tt ≠ ff := by simp only [ne.def, not_false_iff],

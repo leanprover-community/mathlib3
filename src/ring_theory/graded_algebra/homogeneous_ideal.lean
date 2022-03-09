@@ -471,3 +471,54 @@ lemma ideal.homogeneous_hull_eq_Inf (I : ideal A) :
 eq.symm $ is_glb.Inf_eq $ (ideal.homogeneous_hull.gc 𝒜).is_least_l.is_glb
 
 end galois_connection
+
+section irrelavent_ideal
+
+open graded_algebra finset set_like.graded_monoid
+
+variables [comm_semiring R] [semiring A]
+variables [algebra R A] [decidable_eq ι] [add_monoid ι]
+variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
+
+/--
+For an `ℕ`-graded ring `⨁ᵢ 𝒜ᵢ`, the irrelavent ideal refers to `⨁_{i≥0} 𝒜ᵢ`.
+-/
+def ideal.irrelavent : homogeneous_ideal 𝒜 :=
+let I : ideal A :=
+  { carrier := {a | proj 𝒜 0 a = 0 },
+    zero_mem' := by { change _ = (0 : A), rw map_zero },
+    add_mem' := λ x y (hx : _ = 0) (hy : _ = 0),
+      by { change _ = (0 : A), rw [map_add, hx, hy, add_zero] },
+    smul_mem' := λ c x (hx : _ = 0), begin
+      haveI : Π (i : ℕ) (x : (𝒜 i)), decidable (x ≠ 0) := λ _ _, classical.dec_pred _ _,
+      haveI : decidable_eq A := classical.dec_eq _,
+      change _ = (0 : A),
+      apply @submodule.supr_induction _ _ _ _ _ _ 𝒜
+        (λ y, proj 𝒜 0 (y • x) = 0),
+      { rw (is_internal 𝒜).supr_eq_top,
+        trivial, },
+      { intros i c' hc',
+        rw [← sum_support_decompose 𝒜 x, smul_eq_mul, mul_sum, linear_map.map_sum],
+        apply finset.sum_eq_zero,
+        intros j hj,
+        have mem1 : c' * decompose 𝒜 x j ∈ 𝒜 (i + j) := mul_mem hc' (submodule.coe_mem _),
+        by_cases h : (i + j) = 0,
+        { rw h at mem1,
+          rw [proj_apply, decompose_of_mem_same _ mem1, show j = 0, by linarith, ← proj_apply, hx,
+            mul_zero], },
+        { rwa [proj_apply, decompose_of_mem_ne _ mem1], }, },
+      { rw [smul_eq_mul, zero_mul, map_zero] },
+      { rintros c1 c2 hc1 hc2,
+        rw [add_smul, map_add, hc1, hc2, add_zero], },
+    end } in
+⟨I, λ i a (ha : _ = 0), begin
+  change _ = (0 : A),
+  by_cases h : i = 0,
+  { rw [← proj_apply, h, ha, map_zero], },
+  { rw [proj_apply, decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] },
+end⟩
+
+lemma ideal.mem_irrelavent_iff (a : A) : a ∈ ideal.irrelavent 𝒜 ↔ graded_algebra.proj 𝒜 0 a = 0 :=
+iff.rfl
+
+end irrelavent_ideal

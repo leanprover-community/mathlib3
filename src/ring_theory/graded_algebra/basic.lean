@@ -163,7 +163,7 @@ end graded_algebra
 section homogeneous_induction
 
 variables {ι R A: Type*} [decidable_eq ι]
-variables [comm_ring R] [semiring A] [algebra R A]
+variables [semiring R] [add_comm_monoid A] [module R A]
 variables (𝒜 : ι → submodule R A) (h : direct_sum.submodule_is_internal 𝒜)
 include h
 

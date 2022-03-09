@@ -161,7 +161,8 @@ cond_Indep_sets (λ i, {t | measurable_set[generate_from {s i}] t}) {c} μ
 `indep s1 s2 μ[|c]`. -/
 def cond_indep_set {α} [measurable_space α] (s t : set α) (c : set α)
   (μ : measure α . volume_tac) : Prop :=
-cond_indep_sets {u | measurable_set[generate_from {s}] u} {u | measurable_set[generate_from {t}] u} {c} μ
+cond_indep_sets {u | measurable_set[generate_from {s}] u}
+  {u | measurable_set[generate_from {t}] u} {c} μ
 
 end definitions
 

@@ -10,13 +10,24 @@ import category_theory.monoidal.preadditive
 import algebra.category.Module.monoidal
 import category_theory.abelian.homology
 import algebra.category.Module.abelian
+import algebra.category.Module.images
 
 universes u v
 
 section
 variables {ι : Type*} (A : ι → Type*) [Π n, comm_monoid (A n)] {i j k : ι}
 
-@[to_additive]
+/--
+Casting through a family of types `A i` equipped with `comm_monoid (A i)` instances,
+along an equation `h : i = j`, expressed as a `monoid_hom`.
+
+The underlying function is just `cast (congr_arg A h)`,
+and we equip this with the proof that this is in fact multiplicative.
+-/
+@[to_additive
+"Casting through a family of types `A i` equipped with `add_comm_monoid (A i)` instances,
+along an equation `h : i = j`, expressed as an `add_monoid_hom`.
+The underlying function is just `cast (congr_arg A h)`."]
 def cast_monoid_hom (h : i = j) : A i →* A j :=
 { to_fun := cast (congr_arg A h),
   map_one' := by { cases h, refl, },
@@ -37,6 +48,10 @@ section
 variables (R : Type*) [semiring R]
 variables {ι : Type*} (A : ι → Type*) [Π n, add_comm_monoid (A n)] [Π n, module R (A n)] {i j k : ι}
 
+/--
+Casting through a family of types `A i` equipped with `module R (A i)` instances,
+along an equation `h : i = j`, expressed as a `linear_map`.
+-/
 def cast_linear_map (h : i = j) : A i →ₗ[R] A j :=
 { map_smul' := λ r x, by { cases h, refl, },
   ..cast_add_monoid_hom A h }
@@ -300,6 +315,18 @@ def mm (A : ℕ → Type u) [Π n, add_comm_group (A n)] [Π n, module R (A n)] 
 monoidal_closed.curry (nn R A i j).
 
 
+section
+variables {R}
+
+@[simp]
+lemma iso_hom_apply_eq_zero {X Y : Module R} (f : X ≅ Y) (x : X) : f.hom x = 0 ↔ x = 0 :=
+map_eq_zero_iff f.hom ((Module.mono_iff_injective f.hom).1 (by apply_instance))
+
+@[simp]
+lemma iso_inv_apply_eq_zero {X Y : Module R} (f : X ≅ Y) (y : Y) : f.inv y = 0 ↔ y = 0 :=
+iso_hom_apply_eq_zero f.symm y
+
+end
 
 
 namespace Module
@@ -308,6 +335,12 @@ namespace homology
 
 variables {R}
 variables {M N P : Module.{u} R} (f : M ⟶ N) (g : N ⟶ P) (w : f ≫ g = 0)
+
+/- The linear map `f : M ⟶ N`, noting that it lands in `linear_map.ker g`. -/
+def to_kernel : M →ₗ[R] linear_map.ker g :=
+{ to_fun := λ m, ⟨f m, linear_map.congr_fun w m⟩,
+  map_add' := λ x y, by { ext, simp },
+  map_smul' := λ c x, by { ext, simp }, }
 
 /--
 Construct elements of the homology of `f g` from elements of the kernel of `g`.
@@ -347,6 +380,65 @@ begin
   simp,
 end
 
+lemma foo {M : Type*} [add_comm_group M] [module R M] (p : submodule R M) (x : M) : p.mkq x = 0 ↔ x ∈ p :=
+sorry
+
+@[simp]
+lemma mk_to_kernel (z : M) : mk f g w (to_kernel f g w z) = 0 :=
+mk_boundary _ _
+
+lemma exact (x : linear_map.ker g) (h : mk f g w x = 0) : ∃ m, x = to_kernel f g w m :=
+begin
+  dsimp [mk, homology.π] at h,
+  rw ←range_mkq_cokernel_iso_range_quotient_inv_apply at h,
+  simp only [iso_inv_apply_eq_zero, as_hom_left, id] at h, -- Should there be a `as_hom_left_apply`?
+  simp only [foo] at h,
+  rcases h with ⟨i, p⟩,
+  -- It's a pity we can't just give `equiv_rw` isomorphisms directly,
+  -- and have it convert them into `≃`s. We need to use `change` afterwards to clean up.
+  equiv_rw (image_subobject_iso f).to_linear_equiv.to_equiv at i,
+  equiv_rw (image_iso_range f).to_linear_equiv.to_equiv at i,
+  change image_to_kernel f g w
+    (((image_subobject_iso f).inv) (((image_iso_range f).inv) i)) = _ at p,
+  rcases i with ⟨-, ⟨m, rfl⟩⟩,
+  use m,
+  replace p := congr_arg (kernel_subobject_iso g).hom p,
+  replace p := congr_arg (kernel_iso_ker g).hom p,
+  simp at p,
+  subst p,
+  ext,
+  simp only [kernel_iso_ker_hom_coe],
+  simp,
+  refl,
+  -- simp at h,
+end
+
+lemma exact₂ (x y : linear_map.ker g) (h : mk f g w x = mk f g w y) : ∃ m, x = y + to_kernel f g w m :=
+by simpa only [sub_eq_iff_eq_add'] using @exact _ _ _ _ _ f g w (x - y) (by simp [h])
+
+lemma out_zero_exists : ∃ m, out (0 : homology f g w) = to_kernel f g w m :=
+by simpa using @exact _ _ _ _ _ f g w (out (0 : homology f g w))
+
+lemma out_zero (x y : homology f g w) :
+  out (0 : homology f g w) = to_kernel f g w (Exists.some (@out_zero_exists _ _ _ _ _ f g w)) :=
+Exists.some_spec (out_zero_exists)
+
+lemma out_add_exists (x y : homology f g w) : ∃ m, out (x + y) = out x + out y + to_kernel f g w m :=
+by { apply exact₂, simp, }
+
+def out_add_witness (x y : homology f g w) : M := Exists.some (out_add_exists x y)
+
+lemma out_add (x y : homology f g w) :
+  out (x + y) = out x + out y + to_kernel f g w (out_add_witness x y) :=
+Exists.some_spec (out_add_exists x y)
+
+lemma out_smul_exists (c : R) (x : homology f g w) : ∃ m, out (c • x) = c • out x + to_kernel f g w m :=
+by { apply exact₂, simp, }
+
+lemma out_smul (c : R) (x : homology f g w) :
+  out (c • x) = c • out x + to_kernel f g w (Exists.some (out_smul_exists c x)) :=
+Exists.some_spec (out_smul_exists c x)
+
 /--
 To show that two elements in homology constructed from representatives are the same,
 it suffices to show those representatives differ by a boundary.
@@ -354,9 +446,9 @@ it suffices to show those representatives differ by a boundary.
 lemma mk_ext {x y : linear_map.ker g} (z : M) (h : x.1 = y.1 + f z) :
   mk f g w x = mk f g w y :=
 begin
-  have h' : x = y + ⟨f z, linear_map.congr_fun w z⟩, { ext, exact h, },
+  have h' : x = y + to_kernel f g w z, { ext, exact h, },
   subst h',
-  rw [linear_map.map_add, mk_boundary, add_zero],
+  rw [linear_map.map_add, mk_to_kernel, add_zero],
 end
 
 /--
@@ -364,7 +456,7 @@ To show two elements in homology are the same,
 it suffices to show their representatives differ by a boundary.
 -/
 lemma ext {x y : homology f g w}
-  (z : M) (h : homology.out x = homology.out y + ⟨f z, linear_map.congr_fun w z⟩) :
+  (z : M) (h : homology.out x = homology.out y + to_kernel f g w z) :
   x = y :=
 begin
   rw [←mk_out x, ←mk_out y],
@@ -392,13 +484,9 @@ lemma d_from_eq_zero {i : ℕ} {x : A i} (dx : d x = 0) :
 begin
   rw d_from_nat,
   simp [to_cochain_complex],
-  erw [dx, linear_map.map_zero],
+  erw [dx],
 end
 
-@[simp]
-lemma iso_hom_apply_eq_zero {X Y : Module R} (f : X ≅ Y) (x : X) : f.hom x = 0 ↔ x = 0 := sorry
-@[simp]
-lemma iso_inv_apply_eq_zero {X Y : Module R} (f : X ≅ Y) (y : Y) : f.inv y = 0 ↔ y = 0 := sorry
 
 @[simp]
 lemma ker_d_from_nat (C : cochain_complex (Module R) ℕ) (i : ℕ) :
@@ -417,15 +505,21 @@ open Module.homology
   (x : graded.homology R A i) : (d : A i →+ A (i+1)) (@coe _ ((to_cochain_complex R A).X i) (@coe_to_lift _ _ (@coe_base _ _ coe_subtype)) (out x)) = 0 :=
 by simpa using (out x).2
 
+def mm_to_fun (A : ℕ → Type u) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] {i j : ℕ}
+  (x : graded.homology R A j) (y : graded.homology R A i) : graded.homology R A (i + j) :=
+mk _ _ _ begin fsplit, exact (gmul (out y).1 (out x).1 : A (i + j)), simp [mul_cycle_of_cycle_cycle'], end
+
+#print out_add
+
 def mm' (A : ℕ → Type u) [Π n, add_comm_group (A n)] [Π n, module R (A n)] [differential_graded_algebra R A] (i j : ℕ) :
   graded.homology R A j →ₗ[R] (graded.homology R A i →ₗ[R] graded.homology R A (i + j)) :=
 { to_fun := λ x,
-  { to_fun := λ y, mk _ _ _ begin fsplit, exact (gmul (out y).1 (out x).1 : A (i + j)), simp, rw mul_cycle_of_cycle_cycle', simp, simp, end,
-    map_add' := sorry,
+  { to_fun := λ y, mm_to_fun R A x y,
+    map_add' := λ y y', begin dsimp [mm_to_fun], simp only [out_add], simp, simp only [graded_semiring.right_distrib], simp, end,
     map_smul' := sorry, },
   map_add' := sorry,
   map_smul' := sorry, }
-
+#print mm'
 end
 
 def mk {i : ℕ} (x : A i) (dx : d x = 0) : (to_cochain_complex R A).homology i :=

@@ -88,6 +88,12 @@ limit.iso_limit_cone_inv_π _ _
   (kernel_iso_ker f).hom ≫ f.ker.subtype = kernel.ι f :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ (limit.is_limit _) zero
 
+@[simp] lemma kernel_iso_ker_hom_coe (x : kernel f) :
+-- If you know how to express this without `@`, please clean this up:
+  @coe _ _ (@coe_to_lift _ _ (@coe_base _ _ coe_subtype)) ((kernel_iso_ker f).hom x) =
+    kernel.ι f x :=
+kernel_iso_ker_hom_ker_subtype_apply f x
+
 /--
 The categorical cokernel of a morphism in `Module`
 agrees with the usual module-theoretical quotient.

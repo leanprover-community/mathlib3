@@ -220,12 +220,12 @@ def image_subobject_iso :
   (image_subobject f : C) ≅ image f :=
 subobject.underlying_iso (image.ι f)
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma image_subobject_arrow :
   (image_subobject_iso f).hom ≫ image.ι f = (image_subobject f).arrow :=
 by simp [image_subobject_iso]
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma image_subobject_arrow' :
   (image_subobject_iso f).inv ≫ (image_subobject f).arrow = image.ι f :=
 by simp [image_subobject_iso]

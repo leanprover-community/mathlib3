@@ -70,6 +70,7 @@ noncomputable def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I :=
     rw (classical.indefinite_description (λ z, f z = _) _).2,
     refl,
   end, }
+
 lemma image.lift_fac (F' : mono_factorisation f) : image.lift F' ≫ F'.m = image.ι f :=
 begin
   ext x,

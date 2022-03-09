@@ -119,6 +119,21 @@ begin
     (mem_Icc_of_Ico (int.fract_div_mul_self_mem_Ico T t hT)),
 end
 
+/-- If `g : ℝ → ℝ` is periodic with period `T > 0`, then for any `t : ℝ`, the function
+`t ↦ ∫ x in 0..t, g x` is bounded above by `t ↦ X + ⌊t/T⌋ • Y` for appropriate constants `X` and
+`Y`. -/
+lemma integral_le_Sup_add_zsmul_of_pos (hT : 0 < T) (t : ℝ) :
+  ∫ x in 0..t, g x ≤ Sup ((λ t, ∫ x in 0..t, g x) '' (Icc 0 T)) + ⌊t/T⌋ • (∫ x in 0..T, g x) :=
+begin
+  let ε := int.fract (t/T) * T,
+  conv_lhs { rw [← int.fract_div_mul_self_add_zsmul_eq T t (by linarith),
+    ← integral_add_adjacent_intervals (h_int 0 ε) (h_int _ _)] },
+  rw [hg.interval_integral_add_zsmul_eq ⌊t/T⌋ ε h_int, hg.interval_integral_add_eq ε 0, zero_add,
+    add_le_add_iff_right],
+  exact (continuous_primitive h_int 0).continuous_on.le_Sup_image_Icc
+    (mem_Icc_of_Ico (int.fract_div_mul_self_mem_Ico T t hT)),
+end
+
 /-- If `g : ℝ → ℝ` is periodic with period `T > 0` and `0 < ∫ x in 0..T, g x`, then
 `t ↦ ∫ x in 0..t, g x` tends to `∞` as `t` tends to `∞`. -/
 lemma tendsto_at_top_interval_integral_of_pos (h₀ : 0 < ∫ x in 0..T, g x) (hT : 0 < T) :
@@ -130,18 +145,28 @@ begin
   exact tendsto_floor_at_top.comp (tendsto_id.at_top_mul_const (inv_pos.mpr hT)),
 end
 
+/-- If `g : ℝ → ℝ` is periodic with period `T > 0` and `0 < ∫ x in 0..T, g x`, then
+`t ↦ ∫ x in 0..t, g x` tends to `-∞` as `t` tends to `-∞`. -/
+lemma tendsto_at_bot_interval_integral_of_pos (h₀ : 0 < ∫ x in 0..T, g x) (hT : 0 < T) :
+  tendsto (λ t, ∫ x in 0..t, g x) at_bot at_bot :=
+begin
+  apply tendsto_at_bot_mono (hg.integral_le_Sup_add_zsmul_of_pos h_int hT),
+  apply at_bot.tendsto_at_bot_add_const_left (Sup $ (λ t, ∫ x in 0..t, g x) '' (Icc 0 T)),
+  apply tendsto.at_bot_zsmul_const h₀,
+  exact tendsto_floor_at_bot.comp (tendsto_id.at_bot_mul_const (inv_pos.mpr hT)),
+end
+
 /-- If `g : ℝ → ℝ` is periodic with period `T > 0` and `∀ x, 0 < g x`, then `t ↦ ∫ x in 0..t, g x`
 tends to `∞` as `t` tends to `∞`. -/
 lemma tendsto_at_top_interval_integral_of_pos' (h₀ : ∀ x, 0 < g x) (hT : 0 < T) :
   tendsto (λ t, ∫ x in 0..t, g x) at_top at_top :=
-begin
-  suffices : 0 < ∫ x in 0..T, g x,
-  { exact hg.tendsto_at_top_interval_integral_of_pos h_int this hT, },
-  have hg₀ : support g = univ := eq_univ_iff_forall.mpr (λ t, (h₀ t).ne.symm),
-  replace h₀ : 0 ≤ᵐ[volume] g := eventually_of_forall (λ x, (h₀ x).le),
-  rw interval_integral.integral_pos_iff_support_of_nonneg_ae h₀ (h_int 0 T),
-  exact ⟨hT, by simp [hg₀, hT]⟩,
-end
+hg.tendsto_at_top_interval_integral_of_pos h_int (interval_integral_pos_of_pos (h_int 0 T) h₀ hT) hT
+
+/-- If `g : ℝ → ℝ` is periodic with period `T > 0` and `∀ x, 0 < g x`, then `t ↦ ∫ x in 0..t, g x`
+tends to `-∞` as `t` tends to `-∞`. -/
+lemma tendsto_at_bot_interval_integral_of_pos' (h₀ : ∀ x, 0 < g x) (hT : 0 < T) :
+  tendsto (λ t, ∫ x in 0..t, g x) at_bot at_bot :=
+hg.tendsto_at_bot_interval_integral_of_pos h_int (interval_integral_pos_of_pos (h_int 0 T) h₀ hT) hT
 
 end real_valued
 

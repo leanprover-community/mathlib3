@@ -558,7 +558,7 @@ variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
 { add := λ f g,
-    bounded_continuous_function.mk_of_bound (f.to_continuous_map + g.to_continuous_map)
+  bounded_continuous_function.mk_of_bound (f.to_continuous_map + g.to_continuous_map)
     (↑(has_lipschitz_add.C β) * max (classical.some f.bounded) (classical.some g.bounded))
     begin
       intros x y,
@@ -579,7 +579,20 @@ lemma add_apply : (f + g) x = f x + g x := rfl
 lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
   (g + f).comp_continuous h = g.comp_continuous h + f.comp_continuous h := rfl
 
-instance : add_monoid (α →ᵇ β) := fun_like.coe_injective.add_monoid _ coe_zero coe_add
+@[simp] lemma coe_nsmul_rec : ∀ n, ⇑(nsmul_rec n f) = n • f
+| 0 := by rw [nsmul_rec, zero_smul, coe_zero]
+| (n + 1) := by rw [nsmul_rec, succ_nsmul, coe_add, coe_nsmul_rec]
+
+instance has_nat_scalar : has_scalar ℕ (α →ᵇ β) :=
+{ smul := λ n f,
+  { to_continuous_map := n • f.to_continuous_map,
+    map_bounded' := by simpa [coe_nsmul_rec] using (nsmul_rec n f).map_bounded' } }
+
+@[simp] lemma coe_nsmul (r : ℕ) (f : α →ᵇ β) : ⇑(r • f) = r • f := rfl
+@[simp] lemma nsmul_apply (r : ℕ) (f : α →ᵇ β) (v : α) : (r • f) v = r • f v := rfl
+
+instance : add_monoid (α →ᵇ β) :=
+fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
 
 instance : has_lipschitz_add (α →ᵇ β) :=
 { lipschitz_add := ⟨has_lipschitz_add.C β, begin
@@ -788,8 +801,21 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
 @[simp] lemma mk_of_compact_sub [compact_space α] (f g : C(α, β)) :
   mk_of_compact (f - g) = mk_of_compact f - mk_of_compact g := rfl
 
+@[simp] lemma coe_zsmul_rec : ∀ z, ⇑(zsmul_rec z f) = z • f
+| (int.of_nat n) := by rw [zsmul_rec, int.of_nat_eq_coe, coe_nsmul_rec, coe_nat_zsmul]
+| -[1+ n] := by rw [zsmul_rec, zsmul_neg_succ_of_nat, coe_neg, coe_nsmul_rec]
+
+instance has_int_scalar : has_scalar ℤ (α →ᵇ β) :=
+{ smul := λ n f,
+  { to_continuous_map := n • f.to_continuous_map,
+    map_bounded' := by simpa using (zsmul_rec n f).map_bounded' } }
+
+@[simp] lemma coe_zsmul (r : ℤ) (f : α →ᵇ β) : ⇑(r • f) = r • f := rfl
+@[simp] lemma zsmul_apply (r : ℤ) (f : α →ᵇ β) (v : α) : (r • f) v = r • f v := rfl
+
 instance : add_comm_group (α →ᵇ β) :=
-fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _)
+  (λ _ _, coe_zsmul _ _)
 
 instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
@@ -967,8 +993,23 @@ instance : has_mul (α →ᵇ R) :=
 @[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 
+@[simp] lemma coe_npow_rec (f : α →ᵇ R) : ∀ n, ⇑(npow_rec n f) = f ^ n
+| 0 := by rw [npow_rec, pow_zero, coe_one]
+| (n + 1) := by rw [npow_rec, pow_succ, coe_mul, coe_npow_rec]
+
+instance has_nat_pow : has_pow (α →ᵇ R) ℕ :=
+{ pow := λ f n,
+  { to_continuous_map := f.to_continuous_map ^ n,
+    map_bounded' := by simpa [coe_npow_rec] using (npow_rec n f).map_bounded' } }
+
+@[simp] lemma coe_pow (n : ℕ) (f : α →ᵇ R) : ⇑(f ^ n) = f ^ n := rfl
+@[simp] lemma pow_apply (n : ℕ) (f : α →ᵇ R) (v : α) : (f ^ n) v = f v ^ n := rfl
+
 instance : ring (α →ᵇ R) :=
 fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
+  (λ _ _, coe_nsmul _ _)
+  (λ _ _, coe_zsmul _ _)
+  (λ _ _, coe_pow _ _)
 
 instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
@@ -1095,7 +1136,7 @@ completeness is guaranteed when `β` is complete (see
 section normed_group
 
 variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
-variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_monoid β]
+variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_group β]
 variables [normed_space 𝕜 β] [star_module 𝕜 β]
 
 instance : star_add_monoid (α →ᵇ β) :=
@@ -1109,7 +1150,7 @@ instance `pi.has_star`. Upon inspecting the goal, one sees `⊢ ⇑(star f) = st
 
 @[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
 
-instance : normed_star_monoid (α →ᵇ β) :=
+instance : normed_star_group (α →ᵇ β) :=
 { norm_star := λ f, by
   { simp only [norm_eq], congr, ext, conv_lhs { find (∥_∥) { erw (@norm_star β _ _ _ (f x)) } } } }
 
@@ -1123,7 +1164,7 @@ section cstar_ring
 variables [topological_space α]
 variables [normed_ring β] [star_ring β]
 
-instance [normed_star_monoid β] : star_ring (α →ᵇ β) :=
+instance [normed_star_group β] : star_ring (α →ᵇ β) :=
 { star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
   ..bounded_continuous_function.star_add_monoid }
 

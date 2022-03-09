@@ -249,6 +249,23 @@ instance : has_sup (L.bounded_formula α n) := ⟨λ f g, f.not.imp g⟩
 /-- The biimplication between two bounded formulas. -/
 protected def iff (φ ψ : L.bounded_formula α n) := φ.imp ψ ⊓ ψ.imp φ
 
+protected theorem induction_on {P : ∀ {n}, L.bounded_formula α n → Prop}
+  (φ : L.bounded_formula α n)
+  (hf : ∀ {n}, P (⊥ : L.bounded_formula α n))
+  (he : ∀ {n} (t₁ t₂ : L.term (α ⊕ fin n)), P (t₁.bd_equal t₂))
+  (hr : ∀ {m n} (R : L.relations n) (ts : fin n → L.term (α ⊕ fin m)), P (R.bounded_formula ts))
+  (hi : ∀ {n} {φ ψ : L.bounded_formula α n}, P φ → P ψ → P (φ.imp ψ))
+  (ha : ∀ {n} {φ : L.bounded_formula α (n + 1)}, P φ → P (φ.all)) :
+  P φ :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { exact hf },
+  { exact he _ _ },
+  { exact hr _ _ },
+  { exact hi ih1 ih2 },
+  { exact ha ih3 }
+end
+
 /-- A function to help relabel the variables in bounded formulas. -/
 def relabel_aux (g : α → (β ⊕ fin n)) (k : ℕ) :
   α ⊕ fin k → β ⊕ fin (n + k) :=

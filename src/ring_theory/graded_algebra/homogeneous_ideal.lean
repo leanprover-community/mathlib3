@@ -483,7 +483,7 @@ variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 /--
 For an `ℕ`-graded ring `⨁ᵢ 𝒜ᵢ`, the irrelavent ideal refers to `⨁_{i≥0} 𝒜ᵢ`.
 -/
-def ideal.irrelavent : homogeneous_ideal 𝒜 :=
+def homogeneous_ideal.irrelavent : homogeneous_ideal 𝒜 :=
 let I : ideal A :=
   { carrier := {a | proj 𝒜 0 a = 0 },
     zero_mem' := by { change _ = (0 : A), rw map_zero },
@@ -518,7 +518,8 @@ let I : ideal A :=
   { rw [proj_apply, decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] },
 end⟩
 
-lemma ideal.mem_irrelavent_iff (a : A) : a ∈ ideal.irrelavent 𝒜 ↔ graded_algebra.proj 𝒜 0 a = 0 :=
+lemma homogeneous_ideal.mem_irrelavent_iff (a : A) :
+  a ∈ homogeneous_ideal.irrelavent 𝒜 ↔ graded_algebra.proj 𝒜 0 a = 0 :=
 iff.rfl
 
 end irrelavent_ideal

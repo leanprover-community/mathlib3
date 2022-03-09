@@ -42,6 +42,13 @@ end
 lemma ι_mem_even_odd_one (m : M) : ι Q m ∈ even_odd Q 1 :=
 range_ι_le_even_odd_one Q $ linear_map.mem_range_self _ m
 
+lemma ι_mul_ι_mem_even_odd_zero (m₁ m₂ : M) :
+  ι Q m₁ * ι Q m₂ ∈ even_odd Q 0 :=
+submodule.mem_supr_of_mem ⟨2, rfl⟩ begin
+  rw [subtype.coe_mk, pow_two],
+  exact submodule.mul_mem_mul ((ι Q).mem_range_self m₁) ((ι Q).mem_range_self m₂),
+end
+
 lemma even_odd_mul_le (i j : zmod 2) : even_odd Q i * even_odd Q j ≤ even_odd Q (i + j) :=
 begin
   simp_rw [even_odd, submodule.supr_eq_span, submodule.span_mul_span],
@@ -116,6 +123,61 @@ begin
   calc    (⨆ (i : zmod 2) (j : {n // ↑n = i}), (ι Q).range ^ ↑j)
         = (⨆ (i : Σ i : zmod 2, {n : ℕ // ↑n = i}), (ι Q).range ^ (i.2 : ℕ)) : by rw supr_sigma
     ... = (⨆ (i : ℕ), (ι Q).range ^ i) : supr_congr (λ i, i.2) (λ i, ⟨⟨_, i, rfl⟩, rfl⟩) (λ _, rfl),
+end
+
+example (p : ℕ) (n : ℕ) (z : zmod p) [fact (0 < p)] : ↑n = z ↔ ∃ k, n = p * k + z.val :=
+begin
+  split,
+  { rintro rfl,
+    refine ⟨n / p, _⟩,
+    rw [add_comm, zmod.val_nat_cast, nat.mod_add_div] },
+  { rintro ⟨k, rfl⟩,
+    rw [nat.cast_add, zmod.nat_cast_zmod_val, nat.cast_mul, zmod.nat_cast_self, zero_mul, zero_add]
+  }
+end
+
+/-- To show a property is true on the even or odd part, it suffices to show it is true on the
+scalars or vectors, closed under addition, and under left-multiplication by a pair of vectors. -/
+lemma even_odd_induction {n : zmod 2} {P : Π x, x ∈ even_odd Q n → Prop}
+  (hr : ∀ v (h : v ∈ (ι Q).range ^ n.val),
+    P v (submodule.mem_supr_of_mem ⟨n.val, n.nat_cast_zmod_val⟩ h))
+  (hadd : ∀ {x y hx hy}, P x hx → P y hy → P (x + y) (submodule.add_mem _ hx hy))
+  (hιι_mul: ∀ m₁ m₂ {x hx}, P x hx → P (ι Q m₁ * ι Q m₂ * x)
+    (zero_add n ▸ set_like.graded_monoid.mul_mem (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))
+  (x : clifford_algebra Q) (hx : x ∈ even_odd Q n) : P x hx :=
+begin
+  apply submodule.supr_induction' _ _ (hr 0 (submodule.zero_mem _)) @hadd,
+  refine subtype.rec _,
+  simp_rw [subtype.coe_mk],
+  rintros n' hn x h,
+  have : ∃ k, n' = 2 * k + n.val,
+  sorry,
+  obtain ⟨k, rfl⟩ := this,
+  simp_rw [pow_add, pow_mul] at h,
+  refine submodule.mul_induction_on' _ _ h,
+  { intros a ha b hb,
+    have := hr _ hb,
+    refine submodule.pow_induction_on' ((ι Q).range ^ 2) _ _ _ ha,
+    { intro r,
+      simp_rw ←algebra.smul_def,
+      exact hr _ (submodule.smul_mem _ _ hb), },
+    { intros x y n hx hy,
+      simp_rw add_mul,
+      apply hadd, },
+    { intros x hx n y hy ihy,
+      revert hx,
+      simp_rw pow_two,
+      intro hx,
+      refine submodule.mul_induction_on' _ _ hx,
+      { simp_rw linear_map.mem_range,
+        rintros _ ⟨m₁, rfl⟩ _ ⟨m₂, rfl⟩,
+        simp_rw mul_assoc _ y b,
+        refine hιι_mul _ _ ihy, },
+      { intros x hx y hy ihx ihy,
+        simp_rw add_mul,
+        apply hadd ihx ihy } } },
+  { intros x y hx hy,
+    apply hadd }
 end
 
 end clifford_algebra

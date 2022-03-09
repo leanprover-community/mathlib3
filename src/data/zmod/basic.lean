@@ -430,6 +430,17 @@ begin
   rw [zmod.nat_coe_eq_nat_coe_iff, nat.modeq_zero_iff_dvd],
 end
 
+lemma nat_coe_zmod_eq_iff {n : ℕ} (m : ℕ) (z : zmod n) [fact (0 < n)] :
+  ↑m = z ↔ ∃ k, m = z.val + n * k :=
+begin
+  split,
+  { rintro rfl,
+    refine ⟨m / n, _⟩,
+    rw [val_nat_cast, nat.mod_add_div] },
+  { rintro ⟨k, rfl⟩,
+    rw [nat.cast_add, nat_cast_zmod_val, nat.cast_mul, nat_cast_self, zero_mul, add_zero] }
+end
+
 @[push_cast, simp]
 lemma int_cast_mod (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
 begin

@@ -170,10 +170,9 @@ include h
 @[elab_as_eliminator]
 lemma set_like.homogeneous_induction {P : A → Prop}
   (h_zero : P 0)
-  (h_hom : ∀ {i} (a : A), a ∈ 𝒜 i → P a)
+  (h_hom : ∀ i (a : A), a ∈ 𝒜 i → P a)
   (h_add : ∀ (a b : A), P a → P b → P (a + b))
   (a : A) : P a :=
-submodule.supr_induction 𝒜 ((h.supr_eq_top.ge : _) submodule.mem_top)
-  (λ i a ha, h_hom a ha) h_zero h_add
+submodule.supr_induction 𝒜 ((h.supr_eq_top.ge : _) submodule.mem_top) h_hom h_zero h_add
 
 end homogeneous_induction

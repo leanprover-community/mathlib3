@@ -225,7 +225,7 @@ begin
 end
 
 @[to_additive]
-lemma is_open_mono {H₁ H₂ : subgroup G} (h : H₁ ≤ H₂) (h₁ : is_open (H₁  :set G)) :
+lemma is_open_mono {H₁ H₂ : subgroup G} (h : H₁ ≤ H₂) (h₁ : is_open (H₁ : set G)) :
   is_open (H₂ : set G) :=
 @is_open_of_open_subgroup _ _ _ _ H₂ { is_open' := h₁, .. H₁ } h
 

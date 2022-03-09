@@ -41,14 +41,6 @@ the continuum hypothesis*][flypitch_itp]
 
 universes u v w u' v'
 
-namespace fin
-
-@[simp] lemma snoc_comp_cast_succ {n : ℕ} {α : Sort*} {a : α} {f : fin n → α} :
-  (snoc f a : fin (n + 1) → α) ∘ cast_succ = f :=
-funext (λ i, by rw [function.comp_app, snoc_cast_succ])
-
-end fin
-
 namespace first_order
 namespace language
 

@@ -65,6 +65,26 @@ lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
 ⟨λ hs i hi, hs (erase_subset _ _) hi (not_mem_erase _ _), λ hs t ht i hi hit,
   (hs i hi).mono_right (sup_mono $ λ j hj, mem_erase.2 ⟨ne_of_mem_of_not_mem hj hit, ht hj⟩)⟩
 
+lemma sup_indep_pair [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
+  ({i, j} : finset ι).sup_indep f ↔ disjoint (f i) (f j) :=
+⟨λ h, h.pairwise_disjoint (by simp) (by simp) hij, λ h, begin
+  rw sup_indep_iff_disjoint_erase,
+  intros k hk,
+  rw [finset.mem_insert, finset.mem_singleton] at hk,
+  obtain rfl | rfl := hk,
+  { convert h using 1,
+    rw [finset.erase_insert, finset.sup_singleton],
+    simpa using hij },
+  { convert h.symm using 1,
+    have : ({i, k} : finset ι).erase k = {i},
+    { ext,
+      rw [mem_erase, mem_insert, mem_singleton, mem_singleton, and_or_distrib_left,
+        ne.def, not_and_self, or_false, and_iff_right_of_imp],
+      rintro rfl,
+      exact hij },
+    rw [this, finset.sup_singleton] }
+end⟩
+
 lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (f ∘ subtype.val) :=
 begin
   intros t ht i _ hi,

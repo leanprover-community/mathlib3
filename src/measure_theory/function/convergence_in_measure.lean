@@ -194,8 +194,8 @@ lemma tendsto_in_measure.exists_seq_tendsto_ae
 begin
   /- Since `f` tends to `g` in measure, it has a subsequence `k ↦ f (ns k)` such that
   `μ {|f (ns k) - g| ≥ 2⁻ᵏ} ≤ 2⁻ᵏ` for all `k`. Defining
-  `s := ⋂ k, ⋃ i ≥ k, {|f (ns k) - g| ≥ 2⁻ᵏ}`, we see that `μ s = 0` by observing
-  `μ s ≤ 2 * 2⁻ᵏ` for all `k` by the first Borel-Cantelli lemma.
+  `s := ⋂ k, ⋃ i ≥ k, {|f (ns k) - g| ≥ 2⁻ᵏ}`, we see that `μ s = 0` by the
+  first Borel-Cantelli lemma.
 
   On the other hand, as `s` is precisely the set for which `f (ns k)`
   doesn't converge to `g`, `f (ns k)` converges almost everywhere to `g` as required. -/

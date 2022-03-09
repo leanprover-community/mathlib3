@@ -174,19 +174,9 @@ lemma set_like.homogeneous_induction {P : A → Prop}
   (h_add : ∀ (a b : A), P a → P b → P (a + b))
   (a : A) : P a :=
 begin
-  haveI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  change function.bijective _ at h,
-  obtain ⟨g, hg⟩ := function.bijective_iff_has_inverse.mp h,
-  rw show a = ∑ i in (g a).support, (g a i), begin
-    have eq1 := direct_sum.sum_support_of _ (g a),
-    apply_fun (direct_sum.submodule_coe 𝒜) at eq1,
-    simp only [linear_map.map_sum, direct_sum.submodule_coe_of] at eq1,
-    rw [eq1, hg.2]
-  end,
-  induction (g a).support using finset.induction_on with x s hx ih,
-  { rwa finset.sum_empty },
-  { rw finset.sum_insert hx,
-    exact h_add _ _ (h_hom (g a x) ⟨x, submodule.coe_mem _⟩) ih },
+  have : a ∈ (⊤ : submodule R A) := submodule.mem_top,
+  rw ← h.supr_eq_top at this,
+  exact submodule.supr_induction _ this (λ i a ha, h_hom _ ⟨i, ha⟩) h_zero h_add,
 end
 
 end homogeneous_induction

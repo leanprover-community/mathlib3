@@ -52,7 +52,7 @@ open_locale rat
 open multiplicity
 
 def padic_val_nat (p : ℕ) (n : ℕ) : ℕ :=
-if h : p ≠ 1 ∧ n ≠ 0
+if h : p ≠ 1 ∧ 0 < n
 then (multiplicity p n).get (multiplicity.finite_nat_iff.2 h)
 else 0
 
@@ -182,7 +182,9 @@ begin
     sub_zero, multiplicity.get_one_right],
   refl,
   simp [hp],
-  simp [hp, hz],
+  simp [hp],
+  apply nat.pos_of_ne_zero,
+  simp [hz],
 end
 
 end padic_val_rat
@@ -209,7 +211,7 @@ by simp [padic_val_rat, padic_val_int]
 /--
 A simplification of `padic_val_nat` when one input is prime, by analogy with `padic_val_rat_def`.
 -/
-lemma padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : n ≠ 0) :
+lemma padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : 0 < n) :
   padic_val_nat p n =
   (multiplicity p n).get
     (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp.1, hn⟩) :=
@@ -222,13 +224,13 @@ begin
 end
 
 @[simp] lemma padic_val_nat_self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
-by simp [padic_val_nat_def (fact.out p.prime).ne_zero]
+by simp [padic_val_nat_def (fact.out p.prime).pos]
 
 lemma one_le_padic_val_nat_of_dvd
-  {n p : nat} [prime : fact p.prime] (nonzero : n ≠ 0) (div : p ∣ n) :
+  {n p : nat} [prime : fact p.prime] (n_pos : 0 < n) (div : p ∣ n) :
   1 ≤ padic_val_nat p n :=
 begin
-  rw @padic_val_nat_def _ prime _ nonzero,
+  rw @padic_val_nat_def _ prime _ n_pos,
   let one_le_mul : _ ≤ multiplicity p n :=
     @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact div end),
   simp only [nat.cast_one] at one_le_mul,
@@ -270,12 +272,14 @@ begin
   refl,
   split,
   { exact nat.prime.ne_one p_prime.out, },
-  { intro hq,
+  { apply nat.pos_of_ne_zero,
+    intro hq,
     simp [hq] at hc2,
     exact hd hc2, },
   split,
   { exact nat.prime.ne_one p_prime.out, },
-  { intro hq,
+  { apply nat.pos_of_ne_zero,
+    intro hq,
     simp only [int.nat_abs_eq_zero] at hq,
     simp [hq] at hc1,
     exact hn hc1, },
@@ -477,7 +481,7 @@ lemma padic_val_nat_of_not_dvd {p : ℕ} [fact p.prime] {n : ℕ} (not_dvd : ¬(
 begin
   by_cases hn : n = 0,
   { subst hn, simp at not_dvd, trivial, },
-  { rw padic_val_nat_def hn,
+  { rw padic_val_nat_def (nat.pos_of_ne_zero hn),
     exact (@multiplicity.unique' _ _ _ p n 0 (by simp) (by simpa using not_dvd)).symm,
     assumption, },
 end
@@ -496,7 +500,7 @@ begin
   { rw hn, exact dvd_zero (p ^ padic_val_nat p 0) },
   { rw multiplicity.pow_dvd_iff_le_multiplicity,
     apply le_of_eq,
-    rw padic_val_nat_def (ne_of_gt hn),
+    rw padic_val_nat_def hn,
     { apply enat.coe_get },
     { apply_instance } }
 end
@@ -505,11 +509,11 @@ lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn :
   ¬ p ^ (padic_val_nat p n + 1) ∣ n :=
 begin
   { rw multiplicity.pow_dvd_iff_le_multiplicity,
-    rw padic_val_nat_def (ne_of_gt hn),
+    rw padic_val_nat_def hn,
     { rw [nat.cast_add, enat.coe_get],
       simp only [nat.cast_one, not_le],
       exact enat.lt_add_one (ne_top_iff_finite.mpr
-        (finite_nat_iff.mpr ⟨(fact.elim hp).ne_one, (ne_of_lt hn).symm⟩)), },
+        (finite_nat_iff.mpr ⟨(fact.elim hp).ne_one, hn⟩)), },
     { apply_instance } }
 end
 
@@ -540,7 +544,7 @@ lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
   padic_val_nat p n = n.factorization p :=
 begin
   by_cases hn : n = 0, { subst hn, simp },
-  rw @padic_val_nat_def p _ n hn,
+  rw @padic_val_nat_def p _ n (nat.pos_of_ne_zero hn),
   simp [@multiplicity_eq_factorization n p hp.elim hn],
 end
 
@@ -747,8 +751,9 @@ begin
   rw [if_neg _],
   { refine zpow_le_one_of_nonpos _ _,
     { exact_mod_cast le_of_lt hp.1.one_lt, },
-    { rw [padic_val_rat_of_int _ hp.1.ne_one hz, neg_nonpos],
-      norm_cast, simp }},
+    { have : z ≠ 0, exact hz,
+      rw [neg_nonpos, padic_val_rat_of_int], -- _ hp.1.ne_one (sorry)],
+      norm_cast, simp, }},
   exact_mod_cast hz
 end
 

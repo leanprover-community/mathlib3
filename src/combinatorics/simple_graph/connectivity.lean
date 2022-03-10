@@ -55,6 +55,9 @@ counterparts in [Chou1994].
 
 * `simple_graph.edge_connected` is a predicate for k-edge-connectivity.
 
+* `simple_graph.subgraph.connected` gives subgraphs the connectivity
+  predicate via `simple_graph.subgraph.coe`.
+
 ## Tags
 walks, trails, paths, circuits, cycles
 
@@ -842,11 +845,17 @@ def preconnected : Prop := ∀ (u v : V), G.reachable u v
 
 /-- A graph is connected if it's preconnected and contains at least one vertex.
 This follows the convention observed by mathlib that something is connected iff it has
-exactly one connected component. -/
+exactly one connected component.
+
+There is a `has_coe_to_fun` instance so that `h u v` can be used instead
+of `h.preconnected u v`. -/
 @[protect_proj]
 structure connected : Prop :=
 (preconnected : G.preconnected)
 (nonempty : nonempty V)
+
+instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
+⟨λ h, h.preconnected⟩
 
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v
@@ -854,7 +863,7 @@ def connected_component_of (v : V) : G.connected_component := quot.mk G.reachabl
 instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
 ⟨G.connected_component_of default⟩
 
-lemma preconnected.subsingleton (h : G.preconnected) :
+lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
   subsingleton G.connected_component :=
 ⟨λ c d, quot.ind (λ v d, quot.ind (λ w, quot.sound (h v w)) d) c d⟩
 

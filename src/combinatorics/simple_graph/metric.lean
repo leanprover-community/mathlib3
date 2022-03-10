@@ -39,21 +39,13 @@ def dist (u v : V) : ℕ := Inf (set.range (walk.length : G.walk u v → ℕ))
 
 variables {G}
 
-lemma reachable.range_length_walk_nonempty {u v : V} (hr : G.reachable u v) :
-  (set.range (walk.length : G.walk u v → ℕ)).nonempty :=
-set.range_nonempty_iff_nonempty.mpr hr
-
 lemma reachable.exists_walk_of_dist {u v : V} (hr : G.reachable u v) :
   ∃ (p : G.walk u v), p.length = G.dist u v :=
-nat.Inf_mem hr.range_length_walk_nonempty
-
-lemma connected.range_length_walk_nonempty (hconn : G.connected) (u v : V) :
-  (set.range (walk.length : G.walk u v → ℕ)).nonempty :=
-(hconn.preconnected u v).range_length_walk_nonempty
+nat.Inf_mem (set.range_nonempty_iff_nonempty.mpr hr)
 
 lemma connected.exists_walk_of_dist (hconn : G.connected) (u v : V) :
   ∃ (p : G.walk u v), p.length = G.dist u v :=
-(hconn.preconnected u v).exists_walk_of_dist
+(hconn u v).exists_walk_of_dist
 
 lemma dist_le {u v : V} (p : G.walk u v) : G.dist u v ≤ p.length := nat.Inf_le ⟨p, rfl⟩
 
@@ -68,7 +60,7 @@ lemma reachable.dist_eq_zero_iff {u v : V} (hr : G.reachable u v) :
   G.dist u v = 0 ↔ u = v := by simp [hr]
 
 lemma connected.dist_eq_zero_iff (hconn : G.connected) {u v : V} :
-  G.dist u v = 0 ↔ u = v := by simp [hconn.preconnected u v]
+  G.dist u v = 0 ↔ u = v := by simp [hconn u v]
 
 lemma dist_eq_zero_of_not_reachable {u v : V} (h : ¬ G.reachable u v) : G.dist u v = 0 :=
 by simp [h]

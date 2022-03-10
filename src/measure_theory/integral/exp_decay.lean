@@ -28,12 +28,12 @@ open real interval_integral measure_theory set filter
 namespace exp_decay
 
 /-- `exp(-b x)` is integrable on `(a, X]` for any finite `a`, `X`. -/
-lemma exp_neg_finite_integrable (b : ℝ) (a : ℝ) (X : ℝ):
+lemma exp_neg_integrable_on_Ioc (b : ℝ) (a : ℝ) (X : ℝ):
   integrable_on (λ x : ℝ, exp(-b * x) ) (Ioc a X) :=
   (continuous_const.mul continuous_id).exp.integrable_on_Ioc
 
 /-- The antiderivative of `exp(-b x)` is what it should be. -/
-lemma exp_neg_hasderiv (b : ℝ) (x : ℝ) (h : 0 < b) :
+lemma has_deriv_at_exp_neg (b : ℝ) (x : ℝ) (h : 0 < b) :
   has_deriv_at (λ (y : ℝ), -exp (-b * y) / b) (exp (-b * x)) x :=
 begin
   have : has_deriv_at (λ y, -b*y) (-b) x,
@@ -70,11 +70,6 @@ begin
   exact ⟨a, λ b2 hb2, exp_neg_integral_bound a b2 h⟩,
 end
 
-lemma exp_neg_finite_integral_Ioi (a : ℝ) {b : ℝ} (h : 0 < b):
-  has_finite_integral (λ x : ℝ, exp(-b * x))
-  (measure_space.volume.restrict (Ioi a)) :=
-(exp_neg_integrable_on_Ioi a h).has_finite_integral
-
 /-- If `f` is continuous on `[a, ∞)`, and is `O(exp(-b * x))` at `∞` for some `b > 0`, then
 `f` is integrable on `(a, ∞)`. -/
 lemma integrable_bigoh_exp (f : ℝ → ℝ) (a : ℝ) {b : ℝ} (h0 : 0 < b) (h1: continuous_on f (Ici a))
@@ -97,7 +92,7 @@ begin
   { exact (h1.mono $ Ioi_subset_Ici $ le_max_left a r).ae_measurable measurable_set_Ioi, },
   -- Now we have to show "has_finite_integral f"
   have : has_finite_integral (λ x : ℝ, c * exp (-b * x)) (volume.restrict(Ioi v)),
-  { exact (exp_neg_finite_integral_Ioi v h0).const_mul c },
+  { exact (exp_neg_integrable_on_Ioi v h0).has_finite_integral.const_mul c },
   apply this.mono,
   -- Check "everywhere bounded" implies "almost everywhere bounded"
   refine (ae_restrict_iff' measurable_set_Ioi).mpr _,

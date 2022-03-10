@@ -495,7 +495,7 @@ lemma uniform_continuous (φ : measures X A) : uniform_continuous ⇑φ :=
 begin
   refine metric.uniform_continuous_iff.mpr (λ ε hε, _),
   obtain ⟨K, hKpos, hK⟩ := φ.prop,
-  refine ⟨ε/K, div_pos hε hKpos, λ a b dab, _⟩,
+  refine ⟨ε/K, div_pos hε hKpos, λ a b dab, _⟩, -- 0 < K needed here
   rw [dist_eq_norm, ←linear_map.map_sub],
   specialize hK (a - b), apply lt_of_le_of_lt hK _, rw [mul_comm, ←lt_div_iff hKpos],
   convert dab,

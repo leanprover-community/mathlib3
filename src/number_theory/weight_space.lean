@@ -358,9 +358,9 @@ lemma is_clopen_clopen_from (n : ℕ) (a : zmod (d * (p^n))) : is_clopen (clopen
 --     is_clopen_prod (is_clopen_singleton (a : zmod d))
 --       (proj_lim_preimage_clopen p d n a) ⟩ := sorry
 
-lemma find_this_out (ε : ℝ) [h : fact (0 < ε)] : ∃ (n : ℕ), (1 / (p^n) : ℝ) < ε :=
+lemma find_this_out (ε : ℝ) (h : (0 < ε)) : ∃ (n : ℕ), (1 / (p^n) : ℝ) < ε :=
 begin
-  convert exists_pow_lt_of_lt_one (fact_iff.1 h) _, swap, exact 1/p,
+  convert exists_pow_lt_of_lt_one h _, swap, exact 1/p,
   { simp only [one_div, inv_pow'], },
   rw div_lt_iff _,
   { simp only [one_mul, one_lt_cast], apply nat.prime.one_lt, apply fact_iff.1 _, assumption, },
@@ -3773,6 +3773,7 @@ noncomputable def bernoulli_measure' (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
     --sorry, -/
    end⟩
 
+open padic_int
 lemma preimage_to_zmod (x : zmod (p)) : (to_zmod) ⁻¹' {x} =
  {(x : ℤ_[p])} + (((to_zmod).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
 begin

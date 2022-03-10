@@ -665,6 +665,9 @@ begin
   { exact ih.cast.ex }
 end
 
+/-- An auxiliary operation to `first_order.language.bounded_formula.to_prenex`.
+  If `φ` is quantifier-free and `ψ` is in prenex normal form, then `φ.to_prenex_imp_right ψ`
+  is a prenex normal form for `φ.imp ψ`. -/
 def to_prenex_imp_right :
   ∀ {n}, L.bounded_formula α n → L.bounded_formula α n → L.bounded_formula α n
 | n φ (imp (all (imp ψ falsum)) falsum) := ((φ.lift_at 1 n).to_prenex_imp_right ψ).ex
@@ -694,6 +697,9 @@ begin
   { exact (ih2 hφ.lift_at).ex }
 end
 
+/-- An auxiliary operation to `first_order.language.bounded_formula.to_prenex`.
+  If `φ` and `ψ` are in prenex normal form, then `φ.to_prenex_imp ψ`
+  is a prenex normal form for `φ.imp ψ`. -/
 def to_prenex_imp :
   ∀ {n}, L.bounded_formula α n → L.bounded_formula α n → L.bounded_formula α n
 | n (imp (all (imp φ falsum)) falsum) ψ := (φ.to_prenex_imp (ψ.lift_at 1 n)).all
@@ -723,6 +729,8 @@ begin
   { exact (ih2 hψ.lift_at).all }
 end
 
+/-- For any bounded formula `φ`, `φ.to_prenex` is a semantically-equivalent formula in prenex normal
+  form. -/
 def to_prenex : ∀ {n}, L.bounded_formula α n → L.bounded_formula α n
 | _ falsum        := ⊥
 | _ (equal t₁ t₂) := t₁.bd_equal t₂

@@ -482,27 +482,25 @@ variables [canonically_ordered_add_monoid ι] [covariant_class ι ι has_add.add
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 
 /--
-For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelevant ideal
-refers to `⨁_{i≥0} 𝒜ᵢ`, or equivalently `{a | the bot-th projection of a = 0}`.
-
-This definitoin is used in Proj construction where `ι` is always `ℕ` so the irrelevant ideal is
-simply elements with `0` as 0-th coordinate. But the notion of irrelevant ideal makes sense in a
-more general setting by defining it as the ideal of elements with `0` as i-th coordinate for all
-`i ≤ 0`.
+If `A` is graded by a canonically ordered add monoid, then the projection map `x ↦ x₀` is a ring
+homomorphism.
 -/
-def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
-let f : A →+* A :=
-{ to_fun := λ a, proj 𝒜 0 a,
-  map_one' := by { rw [proj_apply, decompose_of_mem_same], exact set_like.graded_monoid.one_mem },
+def graded_algebra.proj_zero_ring_hom : A →+* 𝒜 0 :=
+{ to_fun := λ a, ⟨proj 𝒜 0 a, submodule.coe_mem _⟩,
+  map_one' := begin
+    simp only [subtype.ext_iff_val, proj_apply],
+    rw decompose_of_mem_same, refl, exact set_like.graded_monoid.one_mem
+  end,
   map_mul' := λ x y, begin
     haveI : Π (i : ι) (x : (𝒜 i)), decidable (x ≠ 0) := λ _ _, classical.dec_pred _ _,
-    apply @submodule.supr_induction _ _ _ _ _ _ 𝒜
-        (λ x, proj 𝒜 0 (x * y) = proj 𝒜 0 x * proj 𝒜 0 y),
-    { rw (is_internal 𝒜).supr_eq_top, trivial, },
+    rw [subtype.ext_iff_val],
+    change _ = _ * _,
+    dsimp only,
+    apply submodule.supr_induction 𝒜
+      (((is_internal 𝒜).supr_eq_top.ge : _) submodule.mem_top : x ∈ _),
     { intros i c hc,
-      apply @submodule.supr_induction _ _ _ _ _ _ 𝒜
-        (λ y, proj 𝒜 0 (c * y) = proj 𝒜 0 c * proj 𝒜 0 y),
-      { rw (is_internal 𝒜).supr_eq_top, trivial, },
+      apply submodule.supr_induction 𝒜
+        (((is_internal 𝒜).supr_eq_top.ge : _) submodule.mem_top : y ∈ _),
       { intros j c' hc',
         have mem1 : c * c' ∈ 𝒜 (i + j) := set_like.graded_monoid.mul_mem hc hc',
         by_cases ineq1 : i + j = 0,
@@ -524,13 +522,10 @@ let f : A →+* A :=
           rw ineq1 at hc,
           rw [proj_apply, proj_apply, decompose_of_mem_same 𝒜 hc, decompose_of_mem_same 𝒜 hc'] },
         { rw [proj_apply, decompose_of_mem_ne 𝒜 mem1 ineq1],
-          have ineq2 : i ≠ 0 ∨ j ≠ 0,
-          { by_contra' rid,
-            rw [rid.1, rid.2, add_zero] at ineq1,
-            exact ineq1 rfl, },
-          cases ineq2,
-          { simp only [proj_apply, decompose_of_mem_ne 𝒜 hc ineq2, zero_mul] },
-          { simp only [proj_apply, decompose_of_mem_ne 𝒜 hc' ineq2, mul_zero] } } },
+          rw [add_eq_zero_iff, not_and_distrib] at ineq1,
+          cases ineq1,
+          { simp only [proj_apply, decompose_of_mem_ne 𝒜 hc ineq1, zero_mul] },
+          { simp only [proj_apply, decompose_of_mem_ne 𝒜 hc' ineq1, mul_zero] } } },
       { rw [mul_zero, map_zero, mul_zero], },
       { rintros d e (hd : _ = _ * _) (he : _ = _ * _),
         rw [mul_add, map_add, hd, he, map_add, mul_add] }, },
@@ -538,10 +533,24 @@ let f : A →+* A :=
     { rintros a b (ha : _ = _ * _) (hb : _ = _ * _),
       rw [add_mul, map_add, ha, hb, map_add, add_mul], }
   end,
-  map_zero' := by rw map_zero,
-  map_add' := λ _ _, by rw map_add } in
-⟨f.ker, λ i r (hr : proj 𝒜 0 r = 0), begin
+  map_zero' := by { simp only [subtype.ext_iff_val, map_zero], refl },
+  map_add' := λ _ _, by { simp only [subtype.ext_iff_val, map_add], refl } }
+
+/--
+For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelevant ideal
+refers to `⨁_{i≥0} 𝒜ᵢ`, or equivalently `{a | the bot-th projection of a = 0}`.
+
+This definitoin is used in Proj construction where `ι` is always `ℕ` so the irrelevant ideal is
+simply elements with `0` as 0-th coordinate. But the notion of irrelevant ideal makes sense in a
+more general setting by defining it as the ideal of elements with `0` as i-th coordinate for all
+`i ≤ 0`.
+-/
+def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
+⟨(graded_algebra.proj_zero_ring_hom 𝒜).ker, λ i r (hr : _ = (0 : 𝒜 0)), begin
+  change _ = (0 : 𝒜 0),
+  rw subtype.ext_iff_val at hr ⊢,
   change proj 𝒜 0 _ = 0,
+  change proj 𝒜 0 _ = 0 at hr,
   by_cases h : i = 0,
   { rw [← proj_apply, h, hr, map_zero], },
   { rw [proj_apply, decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] },
@@ -549,6 +558,17 @@ end⟩
 
 lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
   a ∈ homogeneous_ideal.irrelevant 𝒜 ↔ proj 𝒜 0 a = 0 :=
-iff.rfl
+⟨λ (ha : _ = (0 : 𝒜 0)), begin
+  rw subtype.ext_iff_val at ha,
+  convert ha,
+end, λ ha, begin
+  change _ = (0 : 𝒜 0),
+  rw subtype.ext_iff_val,
+  change proj 𝒜 0 a = 0,
+  exact ha,
+end⟩
+
+lemma homogeneous_ideal.irrelevant_eq :
+  ↑(homogeneous_ideal.irrelevant 𝒜) = (graded_algebra.proj_zero_ring_hom 𝒜).ker := rfl
 
 end irrelevant_ideal

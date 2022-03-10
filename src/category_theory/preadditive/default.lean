@@ -234,23 +234,24 @@ fork.is_limit.mk' _ $ λ s,
   ⟨i.lift (kernel_fork_of_fork s), i.fac _ _,
    λ m h, by { apply fork.is_limit.hom_ext i, rw [i.fac], exact h }⟩
 
+/-- An equalizer of `f` and `g` is a kernel of `f - g`. -/
+def is_limit_kernel_fork_of_fork {c : fork f g} (i : is_limit c) :
+  is_limit (kernel_fork_of_fork c) :=
+fork.is_limit.mk' _ $ λ s,
+  ⟨i.lift (fork_of_kernel_fork s), i.fac _ _,
+    λ m h, by { apply limits.fork.is_limit.hom_ext i, rw [i.fac], exact h }⟩
+
 variables (f g)
 
+/-- A preadditive category has an equalizer for `f` and `g` if it has a kernel for `f - g`. -/
 lemma has_equalizer_of_has_kernel [has_kernel (f - g)] : has_equalizer f g :=
 has_limit.mk { cone := fork_of_kernel_fork _,
   is_limit := is_limit_fork_of_kernel_fork (equalizer_is_equalizer (f - g) 0) }
 
-/-- Conversely, an equalizer of `f` and `g` is a kernel of `f - g`. -/
-lemma has_kernel_of_has_equalizer
-  [has_equalizer f g] : has_kernel (f - g) :=
-has_limit.mk
-  { cone := fork.of_ι (equalizer.ι f g)
-      (by erw [comp_zero, comp_sub, equalizer.condition f g, sub_self]),
-    is_limit := fork.is_limit.mk _
-      (λ s, equalizer.lift s.ι (by simpa only [comp_sub, comp_zero, sub_eq_zero]
-        using s.condition))
-      (λ s, by simp only [fork.ι_eq_app_zero, fork.of_ι_π_app, equalizer.lift_ι])
-      (λ s m h, by { ext, simpa only [equalizer.lift_ι] using h walking_parallel_pair.zero, }), }
+/-- A preadditive category has a kernel for `f - g` if it has an equalizer for `f` and `g`. -/
+lemma has_kernel_of_has_equalizer [has_equalizer f g] : has_kernel (f - g) :=
+has_limit.mk { cone := kernel_fork_of_fork (equalizer.fork f g),
+  is_limit := is_limit_kernel_fork_of_fork (limit.is_limit (limits.parallel_pair f g)) }
 
 end
 

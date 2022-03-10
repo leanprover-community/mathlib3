@@ -615,40 +615,44 @@ end
 /-- Adding a new zero to a canonically ordered additive monoid produces another one. -/
 instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_zero α) :=
-{ le_iff_exists_add := λ a b, begin
-    apply with_zero.cases_on a,
-    { exact iff_of_true bot_le ⟨b, (zero_add b).symm⟩ },
-    apply with_zero.cases_on b,
-    { intro b',
+{ le_iff_exists_add := λ a b, match a, b with
+    | 0, b := iff_of_true bot_le ⟨b, (zero_add b).symm⟩
+    | (a : α), 0 := begin
       refine iff_of_false (mt (le_antisymm bot_le) (by simp)) (not_exists.mpr (λ c, _)),
       apply with_zero.cases_on c;
-      simp [←with_zero.coe_add] },
-    { simp only [le_iff_exists_add, with_zero.coe_le_coe],
-      intros,
+      simp [←with_zero.coe_add],
+    end
+    | (a : α), (b : α) := begin
+      simp only [le_iff_exists_add, with_zero.coe_le_coe],
       split; rintro ⟨c, h⟩,
       { exact ⟨c, congr_arg coe h⟩ },
       { induction c using with_zero.cases_on,
         { refine ⟨0, _⟩,
           simpa using h },
         { refine ⟨c, _⟩,
-          simpa [←with_zero.coe_add] using h } } }
+          simpa [←with_zero.coe_add] using h } }
+    end
   end,
   .. with_zero.order_bot,
   .. with_zero.ordered_add_comm_monoid zero_le }
+
+#exit
 
 instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_top α) :=
 { le_iff_exists_add := assume a b,
   match a, b with
-  | a, none     := show a ≤ ⊤ ↔ ∃c, ⊤ = a + c, by simp; refine ⟨⊤, _⟩; cases a; refl
-  | (some a), (some b) := show (a:with_top α) ≤ ↑b ↔ ∃c:with_top α, ↑b = ↑a + c,
-    begin
-      simp [canonically_ordered_add_monoid.le_iff_exists_add, -add_comm],
+  | ⊤, ⊤ := by simp
+  | (a : α), ⊤ := by { simp only [true_iff, le_top], refine ⟨⊤, _⟩, refl }
+  | (a : α), (b : α) := begin
+      rw [with_top.coe_le_coe, le_iff_exists_add],
       split,
-      { rintro ⟨c, rfl⟩, refine ⟨c, _⟩, norm_cast },
-      { exact assume h, match b, h with _, ⟨some c, rfl⟩ := ⟨_, rfl⟩ end }
+      { rintro ⟨c, rfl⟩,
+        refine ⟨c, _⟩, norm_cast },
+      { intro h,
+        exact match b, h with _, ⟨some c, rfl⟩ := ⟨_, rfl⟩ end }
     end
-  | none, some b := show (⊤ : with_top α) ≤ b ↔ ∃c:with_top α, ↑b = ⊤ + c, by simp
+  | ⊤, (b : α) := by simp
   end,
   .. with_top.order_bot,
   .. with_top.ordered_add_comm_monoid }
@@ -681,6 +685,12 @@ variables [canonically_linear_ordered_monoid α]
 @[priority 100, to_additive]  -- see Note [lower instance priority]
 instance canonically_linear_ordered_monoid.semilattice_sup : semilattice_sup α :=
 { ..linear_order.to_lattice }
+
+instance with_zero.canonically_linear_ordered_add_monoid
+  (α : Type*) [canonically_linear_ordered_add_monoid α] :
+    canonically_linear_ordered_add_monoid (with_zero α) :=
+{ .. with_zero.canonically_ordered_add_monoid,
+  .. with_zero.linear_order }
 
 instance with_top.canonically_linear_ordered_add_monoid
   (α : Type*) [canonically_linear_ordered_add_monoid α] :

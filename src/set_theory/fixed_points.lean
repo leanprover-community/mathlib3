@@ -38,9 +38,8 @@ section
 variables {ι : Type u} {f : ι → ordinal.{max u v} → ordinal.{max u v}}
 
 /-- Applies the functions specified by the indices of a list, in order, to a specified value. -/
-def nfp_family_iterate (f : ι → ordinal → ordinal) (a : ordinal) : list ι → ordinal
-| []       := a
-| (i :: l) := f i (nfp_family_iterate l)
+def nfp_family_iterate (f : ι → ordinal → ordinal) (a : ordinal) (l : list ι) : ordinal :=
+l.foldr f a
 
 @[simp] theorem nfp_family_iterate_nil (f : ι → ordinal → ordinal) (a) :
   nfp_family_iterate f a [] = a :=
@@ -49,11 +48,6 @@ rfl
 @[simp] theorem nfp_family_iterate_cons (f : ι → ordinal → ordinal) (i l a) :
   nfp_family_iterate f a (i :: l) = f i (nfp_family_iterate f a l) :=
 rfl
-
-theorem nfp_family_iterate_empty [is_empty ι] (f : ι → ordinal → ordinal) (a) :
-  Π l : list ι, nfp_family_iterate f a l = a
-| []       := rfl
-| (i :: l) := is_empty_elim i
 
 theorem nfp_family_iterate_fixed {a} (ha : ∀ i, f i a = a) :
   Π l : list ι, nfp_family_iterate f a l = a
@@ -74,7 +68,7 @@ theorem nfp_family_iterate_monotone {f : ι → ordinal → ordinal} (H : ∀ i,
 
 /-- The next common fixed point, at least `a`, for a family of normal functions. -/
 def nfp_family (f : ι → ordinal → ordinal) (a) : ordinal :=
-sup (nfp_family_iterate f a)
+sup (list.foldr f a)
 
 theorem nfp_family_eq_sup (f : ι → ordinal → ordinal) (a) :
   nfp_family f a = sup (nfp_family_iterate f a) :=

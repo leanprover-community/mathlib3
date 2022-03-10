@@ -2093,6 +2093,14 @@ end
 | b []      l₂ := rfl
 | b (a::l₁) l₂ := by simp only [cons_append, foldr_cons, foldr_append b l₁ l₂]
 
+theorem foldl_empty [is_empty α] (f : α → β → α) (a : α) : Π l : list β, foldl f a l = a
+| []     := rfl
+| (b::l) := is_empty_elim b
+
+theorem foldr_empty [is_empty α] (f : α → β → β) (b : β) : Π l : list α, foldr f b l = b
+| []     := rfl
+| (a::l) := is_empty_elim a
+
 @[simp] theorem foldl_join (f : α → β → α) :
   ∀ (a : α) (L : list (list β)), foldl f a (join L) = foldl (foldl f) a L
 | a []     := rfl

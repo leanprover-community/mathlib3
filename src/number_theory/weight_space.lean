@@ -73,7 +73,7 @@ end-/
 
 variables {A} {p} {d}
 
-@[ext] lemma ext (w₁ w₂ : weight_space X A) (h : ∀ u : X, w₁.to_fun u = w₂.to_fun u) :
+@[ext] lemma ext (w₁ w₂ : weight_space X A) (h : ∀ u : X, w₁ u = w₂ u) :
   w₁ = w₂ :=
 begin
   cases w₁, cases w₂,
@@ -104,19 +104,11 @@ instance (A : Type*) [topological_space A] [comm_group A] [topological_group A] 
 
 end weight_space
 
---instance : has_mod ℤ_[p] := sorry
-
 /-lemma padic_units_modp_units (b : units ℤ_[p]) :
   is_unit ((padic_int.appr (b : ℤ_[p]) 1) : (zmod p)) :=
 begin
   rw padic_int.appr,
   sorry
-end
-
-example {α β : Type*} (f : α → β) (h : function.surjective f) (b : β) : ∃ a, f a = b :=
-begin
-  have := h b,
-  exact h b,
 end
 
 lemma blahs' (a : units ℤ_[p]) : ∃ (b : roots_of_unity (nat.to_pnat' p) ℤ_[p]),
@@ -166,11 +158,9 @@ noncomputable abbreviation pri_dir_char_extend [fact (0 < m)] (h : nat.gcd d p =
   (mul_hom.comp (mul_equiv.symm (mul_equiv.prod_units)).to_mul_hom
       (monoid_hom.to_mul_hom (monoid_hom.prod_map (monoid_hom.id _) (units.map
         ((padic_int.to_zmod_pow _).to_monoid_hom)))) ))
---should this be def or lemma? ; units A instead of A ; use monoid_hom instead of mul_hom
--- so use def not lemma, because def gives Type, lemma gives Prop
+-- units A instead of A ; use monoid_hom instead of mul_hom
 
 /-- The Teichmuller character defined on `p`-adic units -/
---noncomputable def teichmuller_character (a : units ℤ_[p]) : R := inj (classical.some (blahs p a))
 noncomputable abbreviation teichmuller_character : monoid_hom (units ℤ_[p]) ℤ_[p] :=
 { to_fun := λ a, witt_vector.equiv p (witt_vector.teichmuller_fun p (padic_int.to_zmod (a : ℤ_[p]))),
   ..monoid_hom.comp (witt_vector.equiv p).to_monoid_hom (monoid_hom.comp (witt_vector.teichmuller p)
@@ -197,14 +187,14 @@ end padic_int
 lemma teichmuller_character_root_of_unity (a : units ℤ_[p]) :
   (teichmuller_character p a)^(p - 1) = 1 :=
 begin
-  have : (padic_int.to_zmod (a : ℤ_[p]))^(p - 1) = (1 : (zmod p)),
-  exact padic_int.unit_pow_eq_one p a,
   rw [←monoid_hom.map_pow, monoid_hom.coe_mk, units.coe_pow],
-  simp only [this, ring_hom.map_pow, ring_equiv.map_eq_one_iff],
+  simp only [padic_int.unit_pow_eq_one p a, ring_hom.map_pow, ring_equiv.map_eq_one_iff],
   refine monoid_hom.map_one (witt_vector.teichmuller p),
 end
 
 variables (p)
+
+namespace padic_int
 
 /-- The ideal p^n ℤ_[p] is the closed ball B(0, 1/p^n) -/
 lemma span_eq_closed_ball (n : ℕ) :
@@ -235,19 +225,16 @@ by { rw ←span_eq_open_ball, exact metric.is_open_ball, }
 lemma is_clopen_span (n : ℕ) : is_clopen ((ideal.span {p ^ n} : ideal ℤ_[p]) : set ℤ_[p]) :=
   ⟨is_open_span p n, is_closed_span p n⟩
 
+end padic_int
+
 lemma discrete_topology.is_topological_basis {α : Type*} [topological_space α]
   [discrete_topology α] [monoid α] :
   @topological_space.is_topological_basis α _ (set.range set.singleton_hom) :=
-begin
-  refine topological_space.is_topological_basis_of_open_of_nhds _ _,
-  { simp, },
-  rintros a u mema openu,
-  refine ⟨({a} : set α), _, _, _⟩,
-  { simp, use a, rw set.singleton_hom, simp, },
-  { simp, },
-  simp [mema],
-end
+  topological_space.is_topological_basis_of_open_of_nhds (λ u hu, is_open_discrete u)
+    (λ  a u mema openu, ⟨({a} : set α), ⟨a, by simpa [monoid_hom.coe_mk]⟩,
+      set.mem_singleton a, set.singleton_subset_iff.2 mema⟩)
 
+namespace padic_int
 open padic_int
 
 /-
@@ -296,61 +283,58 @@ open_locale pointwise
 lemma preimage_to_zmod_pow (n : ℕ) (x : zmod (p^n)) : (to_zmod_pow n) ⁻¹' {x} =
  {(x : ℤ_[p])} + (((to_zmod_pow n).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
 begin
- ext y,
-    simp only [set.image_add_left, set.mem_preimage, set.singleton_add,
-      set.mem_singleton_iff, set_like.mem_coe],
-    split,
-    { intro h, rw ring_hom.mem_ker, simp [h], },
-    { intro h, rw ring_hom.mem_ker at h, simp at *, rw neg_add_eq_zero at h, exact h.symm, },
+  ext y,
+  simp only [set.image_add_left, set.mem_preimage, set.singleton_add, set.mem_singleton_iff,
+    set_like.mem_coe, ring_hom.mem_ker, neg_add_eq_zero, ring_hom.map_add, ring_hom.map_neg,
+    ring_hom_map_cast],
+  rw eq_comm,
 end
 
+/-- The map `to_zmod_pow` is continuous. -/
 lemma continuous_to_zmod_pow (n : ℕ) : continuous (@padic_int.to_zmod_pow p _ n) :=
 begin
-  refine topological_space.is_topological_basis.continuous discrete_topology.is_topological_basis _ _,
-  rintros s hs, simp only [set.mem_range] at hs, cases hs with x hx,
-  change {x} = s at hx, rw ←hx,
-  rw [preimage_to_zmod_pow, ker_to_zmod_pow],
-  refine is_open.add_left _, exact is_open_span p n,
+  refine topological_space.is_topological_basis.continuous discrete_topology.is_topological_basis _
+    (λ s hs, _),
+  cases hs with x hx,
+  change {x} = s at hx,
+  rw [←hx, preimage_to_zmod_pow, ker_to_zmod_pow],
+  refine is_open.add_left (is_open_span p n),
 end
 
+/-- The preimage of any singleton under `to_zmod_pow` is clopen. -/
 lemma proj_lim_preimage_clopen (n : ℕ) (a : zmod (d*(p^n))) :
   is_clopen (set.preimage (padic_int.to_zmod_pow n) {a} : set ℤ_[p]) :=
-begin
-  split,
-  { refine continuous_def.mp (continuous_to_zmod_pow p n) {a} trivial, },
-  { refine continuous_iff_is_closed.mp (continuous_to_zmod_pow p n) {a} _, simp, },
-end
-
-example {α : Type*} [h : has_add α] : has_add (set α) := by refine set.has_add
+  ⟨continuous_def.mp (continuous_to_zmod_pow p n) {a} trivial,
+    continuous_iff_is_closed.mp (continuous_to_zmod_pow p n) {a} (is_closed_discrete {a})⟩
 
 lemma add_ball (x y : ℤ_[p]) (r : ℝ) :
   ({x} : set ℤ_[p]) + metric.ball y r = metric.ball (x + y) r :=
 begin
-  ext z, simp,
+  ext z,
   have : dist (-x + z) y = dist z (x + y),
-  { rw dist_eq_norm, rw dist_eq_norm, refine congr_arg _ _, ring, },
-  rw this,
+  { rw [dist_eq_norm, dist_eq_norm], refine congr_arg _ _, ring, }, -- why can't I unfold this?
+  simp [this],
 end
+-- this should ideally be true for any add_comm_normed_group
 
+/-- The preimage of a singleton x is a ball centered at x. -/
 lemma preimage_to_zmod_pow_eq_ball (n : ℕ) (x : zmod (p^n)) :
   (padic_int.to_zmod_pow n) ⁻¹' {(x : zmod (p^n))} =
   metric.ball (x : ℤ_[p]) ((p : ℝ) ^ (1 - (n : ℤ))) :=
-begin
-  rw preimage_to_zmod_pow, rw ker_to_zmod_pow, rw ←span_eq_open_ball, rw add_ball,
-  rw add_zero,
-end
+  by { rw [preimage_to_zmod_pow, ker_to_zmod_pow, ←span_eq_open_ball, add_ball, add_zero], }
 
+end padic_int
+
+/-- The product of clopen sets is clopen. -/
 lemma is_clopen_prod {α β : Type*} [topological_space α] [topological_space β] {s : set α}
   {t : set β} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s.prod t) :=
-begin
-  split,
-  { rw is_open_prod_iff', fconstructor, refine ⟨(hs).1, (ht).1⟩, },
-  { apply is_closed.prod (hs).2 (ht).2, },
-end
+  ⟨is_open_prod_iff'.2 (or.inl ⟨(hs).1, (ht).1⟩), is_closed.prod (hs).2 (ht).2⟩
 
+/-- Any singleton in a discrete space is clopen. -/
 lemma is_clopen_singleton {α : Type*} [topological_space α] [discrete_topology α] (b : α) :
-  is_clopen ({b} : set α) :=
- ⟨is_open_discrete _, is_closed_discrete _⟩
+  is_clopen ({b} : set α) := ⟨is_open_discrete _, is_closed_discrete _⟩
+
+open padic_int
 
 /-- Gives the clopen sets that act as a topological basis for `ℤ_[p]`. -/
 abbreviation clopen_basis : set (set ℤ_[p]) := {x : set ℤ_[p] | ∃ (n : ℕ) (a : zmod (p^n)),
@@ -359,20 +343,14 @@ abbreviation clopen_basis : set (set ℤ_[p]) := {x : set ℤ_[p] | ∃ (n : ℕ
 /-- The clopen sets that form a topological basis for `zmod d × ℤ_[p]`. It is better than
   `clopen_basis` because one need not use `classical.choice`. -/
 abbreviation clopen_from (n : ℕ) (a : zmod (d * (p^n))) : set (zmod d × ℤ_[p]) :=
-  ({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))})
+  ({a} : set (zmod d)).prod ((padic_int.to_zmod_pow n)⁻¹' {(a : zmod (p^n))})
 
 lemma is_clopen_clopen_from (n : ℕ) (a : zmod (d * (p^n))) : is_clopen (clopen_from p d n a) :=
   is_clopen_prod (is_clopen_singleton (a : zmod d)) (proj_lim_preimage_clopen p d n a)
 
 /-- The version of `clopen_basis` that also incorporates `d` coprime to `p`. -/
 @[reducible] abbreviation clopen_basis' :=
-{x : set ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))),
-  x = clopen_from p d n a }
-
-example (n : ℕ) (a : zmod (d * (p^n))) : clopen_basis' p d :=
-⟨clopen_from p d n a, ⟨n, a, rfl⟩⟩
-
---example (U : clopen_basis' p d) : clopen_sets (zmod d × ℤ_[p]) := U.val
+{ x : set ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))), x = clopen_from p d n a }
 
 -- lemma mem_clopen_basis' (U : clopen_sets ((zmod d) × ℤ_[p])) (hU : U ∈ clopen_basis' p d) :
 --   ∃ (n : ℕ) (a : zmod (d * (p^n))),
@@ -380,24 +358,17 @@ example (n : ℕ) (a : zmod (d * (p^n))) : clopen_basis' p d :=
 --     is_clopen_prod (is_clopen_singleton (a : zmod d))
 --       (proj_lim_preimage_clopen p d n a) ⟩ := sorry
 
-/-def clopen_basis' : set (clopen_sets ((zmod d) × ℤ_[p])) :=
-{x : clopen_sets ((zmod d) × ℤ_[p]) | ∃ (n : ℕ) (a : zmod (p^n)) (b : zmod d),
-  x = ⟨({b} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) a),
-    is_clopen_prod (is_clopen_singleton b) (proj_lim_preimage_clopen p n a) ⟩ }-/
-
-
-lemma find_this_out (ε : ℝ) (h : 0 < ε) : ∃ (n : ℕ), (1 / (p^n) : ℝ) < ε :=
+lemma find_this_out (ε : ℝ) [h : fact (0 < ε)] : ∃ (n : ℕ), (1 / (p^n) : ℝ) < ε :=
 begin
-  convert exists_pow_lt_of_lt_one h _, swap, exact 1/p,
+  convert exists_pow_lt_of_lt_one (fact_iff.1 h) _, swap, exact 1/p,
   { simp only [one_div, inv_pow'], },
-  rw div_lt_iff _, { simp, apply nat.prime.one_lt, apply fact_iff.1 _, assumption, },
-  simp, apply nat.prime.pos, apply fact_iff.1 _, assumption,
+  rw div_lt_iff _,
+  { simp only [one_mul, one_lt_cast], apply nat.prime.one_lt, apply fact_iff.1 _, assumption, },
+  simp only [cast_pos], apply nat.prime.pos, apply fact_iff.1 _, assumption,
 end
 
 lemma mem_clopen_basis (n : ℕ) (a : zmod (p^n)) :
   (padic_int.to_zmod_pow n)⁻¹' {a} ∈ (clopen_basis p) := ⟨n, a, rfl⟩
-
---example {α : Type*} (x : α) : x ∈ (x : set α) :=
 
 --lemma mem_clopen_basis'
 --∃ (n : ℕ) (a : zmod (p^n)), x = set.preimage (padic_int.to_zmod_pow n) a

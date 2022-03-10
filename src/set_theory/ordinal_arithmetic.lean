@@ -195,10 +195,10 @@ begin
 end
 
 theorem add_eq_zero_iff {a b : ordinal} : a + b = 0 ↔ (a = 0 ∧ b = 0) :=
-induction_on a (λ α r _, induction_on b (λ β s _, begin
+induction_on a $ λ α r _, induction_on b $ λ β s _, begin
   simp_rw [type_add, type_eq_zero_iff_is_empty],
   exact is_empty_sum
-end))
+end
 
 theorem left_eq_zero_of_add_eq_zero {a b : ordinal} (h : a + b = 0) : a = 0 :=
 (add_eq_zero_iff.1 h).1
@@ -578,6 +578,13 @@ quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
 @[simp] theorem card_mul (a b) : card (a * b) = card a * card b :=
 quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
 mul_comm (mk β) (mk α)
+
+theorem mul_eq_zero_iff {a b : ordinal} : a * b = 0 ↔ (a = 0 ∨ b = 0) :=
+induction_on a $ λ α _ _, induction_on b $ λ β _ _, begin
+  simp_rw [type_mul, type_eq_zero_iff_is_empty],
+  rw or_comm,
+  exact is_empty_prod
+end
 
 @[simp] theorem mul_zero (a : ordinal) : a * 0 = 0 :=
 induction_on a $ λ α _ _, by exactI type_eq_zero_of_empty

@@ -129,15 +129,6 @@ If `q = 0` or `p = 1`, then `padic_val_rat p q` defaults to 0.
 def padic_val_rat (p : ℕ) (q : ℚ) : ℤ :=
 padic_val_int p q.num - padic_val_nat p q.denom
 
--- /--
--- A simplification of the definition of `padic_val_rat p q` when `q ≠ 0` and `p` is prime.
--- -/
--- lemma padic_val_rat_def (p : ℕ) [hp : fact p.prime] {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
---   (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp.1.ne_one, rat.num_ne_zero_of_ne_zero hq⟩) -
---   (multiplicity (p : ℤ) q.denom).get
---     (finite_int_iff.2 ⟨hp.1.ne_one, by exact_mod_cast rat.denom_ne_zero _⟩) :=
--- dif_pos ⟨hq, hp.1.ne_one⟩
-
 namespace padic_val_rat
 open multiplicity
 variables {p : ℕ}

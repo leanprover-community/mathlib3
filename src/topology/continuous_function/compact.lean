@@ -260,17 +260,6 @@ variables {𝕜 : Type*} {γ : Type*} [normed_field 𝕜] [normed_ring γ] [norm
 instance [nonempty α] : normed_algebra 𝕜 C(α, γ) :=
 { norm_algebra_map_eq := λ c, (norm_algebra_map_eq (α →ᵇ γ) c : _), }
 
-instance has_continuous_smul' : has_continuous_smul 𝕜 C(α, γ) :=
-begin
-  constructor,
-  convert_to continuous ((λ p, p.1 * p.2 : C(α, γ) × C(α, γ) → C(α, γ)) ∘
-    (λ p, ((continuous_map.const (p.fst • 1)), p.2) : 𝕜 × C(α, γ) → C(α, γ) × C(α, γ))),
-  { ext y, simp only [continuous_map.const_coe, continuous_map.coe_smul, one_mul, pi.mul_apply,
-      continuous_map.coe_mul, pi.smul_apply, algebra.smul_mul_assoc], },
-  continuity,
-  convert continuous_map.continuous_const',
-end
-
 end
 
 end continuous_map

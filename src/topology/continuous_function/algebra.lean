@@ -113,6 +113,28 @@ instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   ..continuous_map.semigroup,
   ..continuous_map.has_one }
 
+@[to_additive]
+instance {α : Type*} [topological_space α] [locally_compact_space α]
+  {β : Type*} [monoid β] [topological_space β]
+  [has_continuous_mul β] : has_continuous_mul C(α, β) :=
+⟨begin
+  refine continuous_of_continuous_uncurry _ _,
+  change continuous ((λ (x : β × β), x.1 * x.2) ∘
+    (λ (x : (C(α, β) × C(α, β)) × α), (x.1.1 x.2, x.1.2 x.2))),
+  have h1 : continuous ((λ (x : C(α, β) × α), x.1 x.2) ∘
+      (λ (x : (C(α, β) × C(α, β)) × α), (x.1.1, x.2))) :=
+  continuous.comp continuous_ev ((continuous_fst.comp continuous_fst).prod_mk continuous_snd),
+  have h2 : continuous ((λ (x : C(α, β) × α), x.1 x.2) ∘ (λ (x : (C(α, β) × C(α, β)) × α),
+    (x.1.2, x.2))) := continuous.comp continuous_ev
+      ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
+  refine (continuous_fst.comp (continuous.prod_mk _ _)).mul
+    (continuous_snd.comp (continuous.prod_mk _ _)),
+  { convert h1, },
+  { convert h2, },
+  { convert h1, },
+  { convert h2, },
+end⟩
+
 /-- Coercion to a function as an `monoid_hom`. Similar to `monoid_hom.coe_fn`. -/
 @[to_additive "Coercion to a function as an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn`.",
   simps]
@@ -584,33 +606,21 @@ instance has_scalar' {α : Type*} [topological_space α]
 
 instance {α : Type*} [topological_space α] [locally_compact_space α]
   {R : Type*} [semiring R] [topological_space R]
-  [topological_ring R] : has_continuous_mul C(α, R) :=
-  ⟨begin
-    refine continuous_of_continuous_uncurry _ _,
-    change continuous ((λ (x : R × R), x.1 * x.2) ∘
-      (λ (x : (C(α, R) × C(α, R)) × α), (x.1.1 x.2, x.1.2 x.2))),
-    refine (continuous_fst.comp (continuous.prod_mk _ _)).mul
-      (continuous_snd.comp (continuous.prod_mk _ _)),
-    any_goals { change continuous ((λ (x : C(α, R) × α), x.1 x.2) ∘
-        (λ (x : (C(α, R) × C(α, R)) × α), (x.1.1, x.2))),
-      refine continuous.comp continuous_ev
-        ((continuous_fst.comp continuous_fst).prod_mk continuous_snd), },
-    any_goals { change continuous ((λ (x : C(α, R) × α), x.1 x.2) ∘
-        (λ (x : (C(α, R) × C(α, R)) × α), (x.1.2, x.2))),
-    refine continuous.comp continuous_ev
-      ((continuous_snd.comp continuous_fst).prod_mk continuous_snd), },
-   end⟩
-
-instance {α : Type*} [topological_space α] [locally_compact_space α]
-  {R : Type*} [semiring R] [topological_space R]
-  [topological_ring R] :
-  has_continuous_smul R C(α, R) :=
+  {M : Type*} [topological_space M] [add_comm_monoid M]
+  [module R M] [has_continuous_smul R M] :
+  has_continuous_smul R C(α, M) :=
 ⟨begin
-  change continuous ((λ p, p.1 * p.2 : C(α, R) × C(α, R) → C(α, R)) ∘
-    (λ p, ((continuous_map.const p.fst), p.2) : R × C(α, R) → C(α, R) × C(α, R))),
-  have h := @continuous_const' α R _ _,
-  continuity,
- end⟩
+  refine continuous_of_continuous_uncurry _ _,
+  have h : continuous ((λ (x : C(α, M) × α), x.1 x.2) ∘ (λ (x : (R × C(α, M)) × α), (x.1.2, x.2))),
+  refine continuous.comp continuous_ev
+    ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
+  change continuous ((λ (x : R × M), x.1 • x.2) ∘
+    (λ (x : (R × C(α, M)) × α), (x.1.1, x.1.2 x.2))),
+  refine (continuous_fst.comp ((continuous_fst.comp continuous_fst).prod_mk _)).smul
+    (continuous_snd.comp ((continuous_fst.comp continuous_fst).prod_mk _)),
+  { convert h, },
+  { convert h, },
+end⟩
 
 instance module' {α : Type*} [topological_space α]
   (R : Type*) [ring R] [topological_space R] [topological_ring R]

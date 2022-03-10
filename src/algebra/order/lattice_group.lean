@@ -390,8 +390,8 @@ begin
   ... = |a / b|           : by rw sup_div_inf_eq_abs_div
 end
 
-/-- If `a` is positive, then it is equal to its positive component `a⁺`. -/
-@[to_additive "If `a` is positive, then it is equal to its positive component `a⁺`."] -- pos_of_nonneg
+/-- If `a` is positive, then it is equal to its positive component `a⁺`. -/ -- pos_of_nonneg
+@[to_additive "If `a` is positive, then it is equal to its positive component `a⁺`."]
 lemma pos_of_one_le (a : α) (h : 1 ≤ a) : a⁺ = a :=
 by { rw m_pos_part_def, exact sup_of_le_left h, }
 

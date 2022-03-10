@@ -54,11 +54,7 @@ def submodule_z : submodule R (R × R) :=
   smul_mem' := λ a b hb, congr_arg ((*) a) hb }
 
 /-- The grade 1 part of `R²` is `{(0, b) | b ∈ R}`. -/
-def submodule_o : submodule R (R × R) :=
-{ carrier := { zz | zz.1 = 0 },
-  zero_mem' := rfl,
-  add_mem' := λ a b (ha : a.1 = 0) (hb : b.1 = 0), show a.1 + b.1 = 0, by rw [ha, hb, zero_add],
-  smul_mem' := λ a b (hb : b.1 = 0), show a * b.1 = 0, by rw [hb, mul_zero] }
+def submodule_o : submodule R (R × R) := (linear_map.fst R R R).ker
 
 /-- Given the above grading (see `submodule_z` and `submodule_o`),
   we turn `R²` into a graded ring. -/

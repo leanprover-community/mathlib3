@@ -65,16 +65,21 @@ instance : add_comm_monoid two :=
   add_assoc := dec_trivial}
 
 instance : has_lt two :=
-{ lt := λ i j, begin
-  cases i; cases j,
-  { exact false },
-  { exact true },
-  { exact false },
-  { exact false },
-end }
+{ lt := λ i j,
+  match i, j with
+  | z, z := false
+  | z, o := true
+  | o, o := false
+  | o, z := false
+  end }
 
 instance : decidable_rel ((<) : two → two → Prop) :=
-λ i j, by cases i; cases j; apply_instance
+λ i j, match i, j with
+| z, z := decidable.is_false id
+| z, o := decidable.is_true trivial
+| o, o := decidable.is_false id
+| o, z := decidable.is_false id
+end
 
 lemma two.z_lt_o : z < o := dec_trivial
 
@@ -83,10 +88,6 @@ instance : has_le two :=
 
 instance : decidable_rel ((≤) : two → two → Prop) :=
 λ i j, or.decidable
-
-lemma two.not_o_le_z : ¬ o ≤ z := dec_trivial
-
-lemma two.z_le_o : z ≤ o := dec_trivial
 
 instance : linear_order two :=
 { le := (≤),

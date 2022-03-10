@@ -1939,7 +1939,7 @@ theorem CNF_foldr {b : ordinal} (b0 : b ≠ 0) (o) :
 CNF_rec b0 (by rw CNF_zero; refl)
   (λ o o0 h IH, by rw [CNF_ne_zero b0 o0, list.foldr_cons, IH, div_add_mod]) o
 
-theorem CNF_pairwise_aux (b := omega) (o) :
+private theorem CNF_pairwise_aux (b := omega) (o) :
   (∀ p ∈ CNF b o, prod.fst p ≤ log b o) ∧
   (CNF b o).pairwise (λ p q, q.1 < p.1) :=
 begin

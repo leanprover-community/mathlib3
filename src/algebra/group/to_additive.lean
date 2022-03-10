@@ -225,7 +225,8 @@ meta def tr : bool → list string → list string
 | is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma")     :: tr ff s
 | is_comm ("haar" :: s)        := ("add_" ++ add_comm_prefix is_comm "haar")      :: tr ff s
 | is_comm ("prehaar" :: s)     := ("add_" ++ add_comm_prefix is_comm "prehaar")   :: tr ff s
-| is_comm ("unit" :: s)      := ("add_" ++ add_comm_prefix is_comm "unit")    :: tr ff s
+| is_comm ("unit" :: s)        := ("add_" ++ add_comm_prefix is_comm "unit")    :: tr ff s
+| is_comm ("units" :: s)       := ("add_" ++ add_comm_prefix is_comm "units")    :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
 | tt []                        := ["comm"]

@@ -615,28 +615,26 @@ end
 /-- Adding a new zero to a canonically ordered additive monoid produces another one. -/
 instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_zero α) :=
-{ le_iff_exists_add := λ a b, match a, b with
-    | 0, b := iff_of_true bot_le ⟨b, (zero_add b).symm⟩
-    | (a : α), 0 := begin
+{ le_iff_exists_add := λ a b, begin
+    apply with_zero.cases_on a,
+    { exact iff_of_true bot_le ⟨b, (zero_add b).symm⟩ },
+    apply with_zero.cases_on b,
+    { intro b',
       refine iff_of_false (mt (le_antisymm bot_le) (by simp)) (not_exists.mpr (λ c, _)),
       apply with_zero.cases_on c;
-      simp [←with_zero.coe_add],
-    end
-    | (a : α), (b : α) := begin
-      simp only [le_iff_exists_add, with_zero.coe_le_coe],
+      simp [←with_zero.coe_add] },
+    { simp only [le_iff_exists_add, with_zero.coe_le_coe],
+      intros,
       split; rintro ⟨c, h⟩,
       { exact ⟨c, congr_arg coe h⟩ },
       { induction c using with_zero.cases_on,
         { refine ⟨0, _⟩,
           simpa using h },
         { refine ⟨c, _⟩,
-          simpa [←with_zero.coe_add] using h } }
-    end
+          simpa [←with_zero.coe_add] using h } } }
   end,
   .. with_zero.order_bot,
   .. with_zero.ordered_add_comm_monoid zero_le }
-
-#exit
 
 instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_top α) :=

@@ -338,6 +338,7 @@ noncomputable instance perfect_ring (p : ℕ) [fact p.prime] [char_p k p]
 perfect_ring.of_surjective k p $ λ x, is_alg_closed.exists_pow_nat_eq _ $ fact.out _
 
 /-- Algebraically closed fields are infinite since `Xⁿ⁺¹ - 1` is separable when `#K = n` -/
+@[priority 500]
 instance {K : Type*} [field K] [is_alg_closed K] : infinite K :=
 begin
   apply infinite.mk,

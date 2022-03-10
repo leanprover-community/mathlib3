@@ -68,7 +68,7 @@ lemma commutator_def' (H₁ H₂ : subgroup G) [H₁.normal] [H₂.normal] :
 le_antisymm closure_le_normal_closure (normal_closure_le_normal subset_closure)
 
 lemma commutator_le (H₁ H₂ : subgroup G) (K : subgroup G) :
-  ⁅H₁, H₂⁆ ≤ K ↔ ∀ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ ∈ K :=
+  ⁅H₁, H₂⁆ ≤ K ↔ ∀ (p ∈ H₁) (q ∈ H₂), ⁅p, q⁆ ∈ K :=
 begin
   rw [subgroup.commutator, closure_le],
   split,
@@ -121,15 +121,13 @@ by simp only [commutator_le_left, commutator_le_right, le_inf_iff, and_self]
 lemma map_commutator {G₂ : Type*} [group G₂] (f : G →* G₂) (H₁ H₂ : subgroup G)  :
   map f ⁅H₁, H₂⁆ = ⁅map f H₁, map f H₂⁆ :=
 begin
-  apply le_antisymm,
-  { rw [gc_map_comap, commutator_le],
-    intros p hp q hq,
-    simp only [mem_comap, map_inv, map_mul],
+  simp_rw [le_antisymm_iff, map_le_iff_le_comap, commutator_le, mem_comap, map_commutator_element],
+  split,
+  { intros p hp q hq,
     exact commutator_mem_commutator (mem_map_of_mem _ hp) (mem_map_of_mem _ hq), },
-  { rw [commutator_le],
-    rintros _ ⟨p, hp, rfl⟩ _ ⟨q, hq, rfl⟩,
-    simp only [← map_inv, ← map_mul],
-    exact mem_map_of_mem _ (commutator_mem_commutator hp hq), }
+  { rintros _ ⟨p, hp, rfl⟩ _ ⟨q, hq, rfl⟩,
+    rw ← map_commutator_element,
+    exact mem_map_of_mem _ (commutator_mem_commutator hp hq) }
 end
 
 lemma commutator_prod_prod {G₂ : Type*} [group G₂]

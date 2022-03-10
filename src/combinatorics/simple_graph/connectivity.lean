@@ -38,6 +38,23 @@ counterparts in [Chou1994].
 
 * `simple_graph.path`
 
+* `simple_graph.reachable` for the relation of whether there exists
+  a walk between a given pair of vertices
+
+* `simple_graph.preconnected` and `simple_graph.connected` are predicates
+  on simple graphs for whether every vertex can be reached from every other,
+  and in the latter case, whether the vertex type is nonempty.
+
+* `simple_graph.connected_component` is the type of connected components of
+  a given graph.
+
+* `simple_graph.is_acyclic` is the predicate for a graph being acyclic
+  (that is, whether it is a *forest*).
+
+* `simple_graph.is_tree` is the predicate for connected acyclic graphs.
+
+* `simple_graph.edge_connected` is a predicate for k-edge-connectivity.
+
 ## Tags
 walks, trails, paths, circuits, cycles
 
@@ -834,10 +851,10 @@ structure connected : Prop :=
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v
 
-instance connected_components.inhabited [inhabited V] : inhabited G.connected_component :=
+instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
 ⟨G.connected_component_of default⟩
 
-lemma connected_component.subsingleton_of_connected (h : G.preconnected) :
+lemma preconnected.subsingleton (h : G.preconnected) :
   subsingleton G.connected_component :=
 ⟨λ c d, quot.ind (λ v d, quot.ind (λ w, quot.sound (h v w)) d) c d⟩
 

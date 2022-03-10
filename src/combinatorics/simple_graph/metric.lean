@@ -16,6 +16,11 @@ pairs of vertices to the length of the shortest walk between them.
 
 - `simple_graph.dist` is the graph metric.
 
+## Todo
+
+- Provide an additional computable version of `simple_graph.dist`
+  for when `G` is connected.
+
 ## Tags
 
 graph metric
@@ -50,8 +55,7 @@ lemma connected.exists_walk_of_dist (hconn : G.connected) (u v : V) :
   ∃ (p : G.walk u v), p.length = G.dist u v :=
 (hconn.preconnected u v).exists_walk_of_dist
 
-lemma dist_le {u v : V} (p : G.walk u v) : G.dist u v ≤ p.length :=
-by { apply nat.Inf_le, use p }
+lemma dist_le {u v : V} (p : G.walk u v) : G.dist u v ≤ p.length := nat.Inf_le ⟨p, rfl⟩
 
 @[simp] lemma dist_self {v : V} : dist G v v = 0 :=
 le_antisymm (dist_le (walk.nil : walk G v v)) (zero_le _)
@@ -80,10 +84,10 @@ begin
   obtain ⟨p, hp⟩ := hconn.exists_walk_of_dist u v,
   obtain ⟨q, hq⟩ := hconn.exists_walk_of_dist v w,
   rw [← hp, ← hq, ← walk.length_append],
-  exact dist_le _,
+  apply dist_le,
 end
 
-lemma dist_comm' {u v : V} (h : G.reachable u v) : G.dist u v ≤ G.dist v u :=
+lemma dist_comm_le {u v : V} (h : G.reachable u v) : G.dist u v ≤ G.dist v u :=
 begin
   obtain ⟨p, hp⟩ := h.symm.exists_walk_of_dist,
   rw [← hp, ← walk.length_reverse],
@@ -93,7 +97,7 @@ end
 lemma dist_comm {u v : V} : G.dist u v = G.dist v u :=
 begin
   by_cases h : G.reachable u v,
-  { apply le_antisymm (dist_comm' h) (dist_comm' h.symm), },
+  { apply le_antisymm (dist_comm_le h) (dist_comm_le h.symm), },
   { have h' : ¬ G.reachable v u := λ h', absurd h'.symm h,
     simp [h, h', dist_eq_zero_of_not_reachable], },
 end

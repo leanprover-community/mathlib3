@@ -60,22 +60,15 @@ namespace padic_val_nat
 open multiplicity
 variables {p : ℕ}
 
-/--
-`padic_val_nat p 0` is 0 for any `p`.
--/
-@[simp]
-protected lemma zero : padic_val_nat p 0 = 0 :=
+/-- `padic_val_nat p 0` is 0 for any `p`. -/
+@[simp] protected lemma zero : padic_val_nat p 0 = 0 :=
 by simp [padic_val_nat]
 
-/--
-`padic_val_nat p 1` is 0 for any `p`.
--/
+/-- `padic_val_nat p 1` is 0 for any `p`. -/
 @[simp] protected lemma one : padic_val_nat p 1 = 0 :=
 by unfold padic_val_nat; split_ifs; simp *
 
-/--
-For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1.
--/
+/-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
 @[simp] lemma self (hp : 1 < p) : padic_val_nat p p = 1 :=
 begin
   have neq_one : (¬ p = 1) ↔ true,
@@ -94,22 +87,16 @@ namespace padic_val_int
 open multiplicity
 variables {p : ℕ}
 
-/--
-`padic_val_int p 0` is 0 for any `p`.
--/
+/-- `padic_val_int p 0` is 0 for any `p`. -/
 @[simp]
 protected lemma zero : padic_val_int p 0 = 0 :=
 by simp [padic_val_int]
 
-/--
-`padic_val_int p 1` is 0 for any `p`.
--/
+/-- `padic_val_int p 1` is 0 for any `p`. -/
 @[simp] protected lemma one : padic_val_int p 1 = 0 :=
 by simp [padic_val_int]
 
-/--
-For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1.
--/
+/-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
 @[simp] lemma self (hp : 1 < p) : padic_val_int p p = 1 :=
 by simp [padic_val_int, padic_val_nat.self hp]
 

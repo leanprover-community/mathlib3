@@ -347,11 +347,8 @@ begin
   have hfsep : separable f := separable_X_pow_sub_C 1 (by simp) one_ne_zero,
   apply nat.not_succ_le_self (fintype.card K),
   have hroot : n.succ = fintype.card (f.root_set K),
-  { rw [hf, card_root_set_eq_nat_degree hfsep (is_alg_closed.splits_domain _),
-      nat_degree, degree_sub_eq_left_of_degree_lt],
-    { simp },
-    { simpa [← cmp_eq_gt_iff] },
-    },
+  { erw [card_root_set_eq_nat_degree hfsep (is_alg_closed.splits_domain _),
+         nat_degree_X_pow_sub_C] },
   rw hroot,
   exact fintype.card_le_of_injective coe subtype.coe_injective,
 end

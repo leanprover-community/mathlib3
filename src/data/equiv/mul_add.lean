@@ -487,6 +487,7 @@ def to_units [group G] : G ≃* Gˣ :=
 @[simp, to_additive coe_to_add_units] lemma coe_to_units [group G] (g : G) :
   (to_units g : G) = g := rfl
 
+@[to_additive add_group.is_add_unit]
 protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units

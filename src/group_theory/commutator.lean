@@ -44,16 +44,15 @@ lemma commutator_def (H₁ H₂ : subgroup G) :
 instance commutator_normal (H₁ H₂ : subgroup G) [h₁ : H₁.normal]
   [h₂ : H₂.normal] : normal ⁅H₁, H₂⁆ :=
 begin
-  let base : set G := {x | ∃ (p ∈ H₁) (q ∈ H₂), p * q * p⁻¹ * q⁻¹ = x},
+  let base : set G := {x | ∃ (g₁ ∈ H₁) (g₂ ∈ H₂), ⁅g₁, g₂⁆ = x},
   change (closure base).normal,
   suffices h_base : base = group.conjugates_of_set base,
   { rw h_base,
     exact subgroup.normal_closure_normal },
-  apply set.subset.antisymm group.subset_conjugates_of_set,
-  intros a h,
+  refine set.subset.antisymm group.subset_conjugates_of_set (λ a h, _),
   simp_rw [group.mem_conjugates_of_set_iff, is_conj_iff] at h,
   rcases h with ⟨b, ⟨c, hc, e, he, rfl⟩, d, rfl⟩,
-  exact ⟨d * c * d⁻¹, h₁.conj_mem c hc d, d * e * d⁻¹, h₂.conj_mem e he d, by group⟩,
+  exact ⟨_, h₁.conj_mem c hc d, _, h₂.conj_mem e he d, (conjugate_commutator_element c e d).symm⟩,
 end
 
 lemma commutator_mono {H₁ H₂ K₁ K₂ : subgroup G} (h₁ : H₁ ≤ K₁) (h₂ : H₂ ≤ K₂) :

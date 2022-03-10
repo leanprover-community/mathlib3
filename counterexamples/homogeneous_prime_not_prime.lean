@@ -113,9 +113,9 @@ lemma grading.left_inv :
 begin
   induction zz using direct_sum.induction_on with i zz d1 d2 ih1 ih2,
   { simp only [map_zero],},
-  { rcases i with (_|i); try { cases i };
+  { rcases i with (_|_|_);
     rcases zz with ⟨⟨a, b⟩, (hab : _ = _)⟩;
-    dsimp at hab; cases hab; dec_trivial!, },
+    dsimp at hab; cases hab; dec_trivial! },
   { simp only [map_add, ih1, ih2], },
 end
 

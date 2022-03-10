@@ -472,7 +472,7 @@ eq.symm $ is_glb.Inf_eq $ (ideal.homogeneous_hull.gc 𝒜).is_least_l.is_glb
 
 end galois_connection
 
-section irrelavent_ideal
+section irrelevant_ideal
 
 open graded_algebra finset set_like.graded_monoid
 
@@ -482,61 +482,73 @@ variables [canonically_ordered_add_monoid ι] [covariant_class ι ι has_add.add
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 
 /--
-For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelavent ideal
+For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelevant ideal
 refers to `⨁_{i≥0} 𝒜ᵢ`, or equivalently `{a | the bot-th projection of a = 0}`.
 
-This definitoin is used in Proj construction where `ι` is always `ℕ` so the irrelavent ideal is
-simply elements with `0` as 0-th coordinate. But the notion of irrelavent ideal makes sense in a
+This definitoin is used in Proj construction where `ι` is always `ℕ` so the irrelevant ideal is
+simply elements with `0` as 0-th coordinate. But the notion of irrelevant ideal makes sense in a
 more general setting by defining it as the ideal of elements with `0` as i-th coordinate for all
 `i ≤ 0`.
 -/
-def homogeneous_ideal.irrelavent : homogeneous_ideal 𝒜 :=
-let I : ideal A :=
-  { carrier := {a | proj 𝒜 ⊥ a = 0 },
-    zero_mem' := by { change _ = (0 : A), rw map_zero },
-    add_mem' := λ x y (hx : _ = 0) (hy : _ = 0),
-      by { change _ = (0 : A), rw [map_add, hx, hy, add_zero] },
-    smul_mem' := λ c x (hx : _ = 0), begin
-      haveI : Π (i : ι) (x : (𝒜 i)), decidable (x ≠ 0) := λ _ _, classical.dec_pred _ _,
-      haveI : decidable_eq A := classical.dec_eq _,
-      change _ = (0 : A),
+def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
+let f : A →+* A :=
+{ to_fun := λ a, proj 𝒜 0 a,
+  map_one' := by { rw [proj_apply, decompose_of_mem_same], exact set_like.graded_monoid.one_mem },
+  map_mul' := λ x y, begin
+    haveI : Π (i : ι) (x : (𝒜 i)), decidable (x ≠ 0) := λ _ _, classical.dec_pred _ _,
+    apply @submodule.supr_induction _ _ _ _ _ _ 𝒜
+        (λ x, proj 𝒜 0 (x * y) = proj 𝒜 0 x * proj 𝒜 0 y),
+    { rw (is_internal 𝒜).supr_eq_top, trivial, },
+    { intros i c hc,
       apply @submodule.supr_induction _ _ _ _ _ _ 𝒜
-        (λ y, proj 𝒜 ⊥ (y • x) = 0),
-      { rw (is_internal 𝒜).supr_eq_top,
-        trivial, },
-      { intros i c' hc',
-        rw [← sum_support_decompose 𝒜 x, smul_eq_mul, mul_sum, linear_map.map_sum],
-        apply finset.sum_eq_zero,
-        intros j hj,
-        have mem1 : c' * decompose 𝒜 x j ∈ 𝒜 (i + j) := mul_mem hc' (submodule.coe_mem _),
-        by_cases h : (i + j) = ⊥,
-        { rw h at mem1,
+        (λ y, proj 𝒜 0 (c * y) = proj 𝒜 0 c * proj 𝒜 0 y),
+      { rw (is_internal 𝒜).supr_eq_top, trivial, },
+      { intros j c' hc',
+        have mem1 : c * c' ∈ 𝒜 (i + j) := set_like.graded_monoid.mul_mem hc hc',
+        by_cases ineq1 : i + j = 0,
+        { rw ineq1 at mem1,
+          rw [proj_apply, decompose_of_mem_same 𝒜 mem1],
+          rw ← bot_eq_zero at ineq1 ⊢,
           have j_eq : j = ⊥,
-          { have ineq1 : ⊥ ≤ j := bot_le,
-            rw le_iff_lt_or_eq at ineq1,
-            cases ineq1,
-            { have ineq2 := add_lt_add_of_le_of_lt (bot_le : ⊥ ≤ i) ineq1,
-              rw h at ineq2,
-              have ineq3 : ⊥ ≤ ⊥ + ⊥ := bot_le,
-              have ineq4 := lt_of_lt_of_le ineq2 ineq3,
+          { have ineq2 : ⊥ ≤ j := bot_le,
+            rw le_iff_lt_or_eq at ineq2,
+            cases ineq2,
+            { have ineq3 := add_lt_add_of_le_of_lt (bot_le : ⊥ ≤ i) ineq2,
+              rw ineq1 at ineq3,
               exfalso,
-              exact lt_irrefl (⊥ + ⊥) ineq4 },
-            { exact ineq1.symm }, },
-          rw [proj_apply, decompose_of_mem_same _ mem1, j_eq, ← proj_apply, hx, mul_zero], },
-        { rwa [proj_apply, decompose_of_mem_ne _ mem1], }, },
-      { rw [smul_eq_mul, zero_mul, map_zero] },
-      { rintros c1 c2 hc1 hc2,
-        rw [add_smul, map_add, hc1, hc2, add_zero], },
-    end } in
-⟨I, λ i a (ha : _ = 0), begin
-  change _ = (0 : A),
-  by_cases h : i = ⊥,
-  { rw [← proj_apply, h, ha, map_zero], },
+              exact lt_irrefl (⊥ + ⊥) (lt_of_lt_of_le ineq3 (bot_le : ⊥ ≤ ⊥ + ⊥)), },
+            { exact ineq2.symm }, },
+          rw bot_eq_zero at *,
+          rw j_eq at *,
+          rw [add_zero] at ineq1,
+          rw ineq1 at hc,
+          rw [proj_apply, proj_apply, decompose_of_mem_same 𝒜 hc, decompose_of_mem_same 𝒜 hc'] },
+        { rw [proj_apply, decompose_of_mem_ne 𝒜 mem1 ineq1],
+          have ineq2 : i ≠ 0 ∨ j ≠ 0,
+          { by_contra' rid,
+            rw [rid.1, rid.2, add_zero] at ineq1,
+            exact ineq1 rfl, },
+          cases ineq2,
+          { simp only [proj_apply, decompose_of_mem_ne 𝒜 hc ineq2, zero_mul] },
+          { simp only [proj_apply, decompose_of_mem_ne 𝒜 hc' ineq2, mul_zero] } } },
+      { rw [mul_zero, map_zero, mul_zero], },
+      { rintros d e (hd : _ = _ * _) (he : _ = _ * _),
+        rw [mul_add, map_add, hd, he, map_add, mul_add] }, },
+    { rw [zero_mul, map_zero, zero_mul] },
+    { rintros a b (ha : _ = _ * _) (hb : _ = _ * _),
+      rw [add_mul, map_add, ha, hb, map_add, add_mul], }
+  end,
+  map_zero' := by rw map_zero,
+  map_add' := λ _ _, by rw map_add } in
+⟨f.ker, λ i r (hr : proj 𝒜 0 r = 0), begin
+  change proj 𝒜 0 _ = 0,
+  by_cases h : i = 0,
+  { rw [← proj_apply, h, hr, map_zero], },
   { rw [proj_apply, decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] },
 end⟩
 
-lemma homogeneous_ideal.mem_irrelavent_iff (a : A) :
-  a ∈ homogeneous_ideal.irrelavent 𝒜 ↔ graded_algebra.proj 𝒜 ⊥ a = 0 :=
+lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
+  a ∈ homogeneous_ideal.irrelevant 𝒜 ↔ proj 𝒜 0 a = 0 :=
 iff.rfl
 
-end irrelavent_ideal
+end irrelevant_ideal

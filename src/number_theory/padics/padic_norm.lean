@@ -65,10 +65,7 @@ variables {p : ℕ}
 -/
 @[simp]
 protected lemma zero : padic_val_nat p 0 = 0 :=
-begin
-  unfold padic_val_nat,
-  simp,
-end
+by simp [padic_val_nat]
 
 /--
 `padic_val_nat p 1` is 0 for any `p`.

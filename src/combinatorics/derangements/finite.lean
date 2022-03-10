@@ -47,7 +47,8 @@ begin
   have h1 : ∀ a : fin (n+1), card ({a}ᶜ : set (fin (n+1))) = card (fin n),
   { intro a,
     simp only [fintype.card_fin, finset.card_fin, fintype.card_of_finset, finset.filter_ne' _ a,
-      set.mem_compl_singleton_iff, finset.card_erase_of_mem (finset.mem_univ a), nat.pred_succ] },
+      set.mem_compl_singleton_iff, finset.card_erase_of_mem (finset.mem_univ a),
+      add_tsub_cancel_right] },
   have h2 : card (fin (n+2)) = card (option (fin (n+1))),
   { simp only [card_fin, card_option] },
   -- rewrite the LHS and substitute in our fintype-level equivalence

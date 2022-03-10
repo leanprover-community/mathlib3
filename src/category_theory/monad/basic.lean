@@ -3,9 +3,9 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta, Adam Topaz
 -/
-import category_theory.functor_category
-import category_theory.fully_faithful
-import category_theory.reflects_isomorphisms
+import category_theory.functor.category
+import category_theory.functor.fully_faithful
+import category_theory.functor.reflects_isomorphisms
 
 namespace category_theory
 open category

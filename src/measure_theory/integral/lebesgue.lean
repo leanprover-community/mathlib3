@@ -309,20 +309,31 @@ by { rw ← singleton_prod_singleton, exact pair_preimage _ _ _ _ }
 
 theorem bind_const (f : α →ₛ β) : f.bind (const α) = f := by ext; simp
 
-instance [has_zero β] : has_zero (α →ₛ β) := ⟨const α 0⟩
-instance [has_add β] : has_add (α →ₛ β) := ⟨λf g, (f.map (+)).seq g⟩
-instance [has_mul β] : has_mul (α →ₛ β) := ⟨λf g, (f.map (*)).seq g⟩
+@[to_additive] instance [has_one β] : has_one (α →ₛ β) := ⟨const α 1⟩
+@[to_additive] instance [has_mul β] : has_mul (α →ₛ β) := ⟨λf g, (f.map (*)).seq g⟩
+@[to_additive] instance [has_div β] : has_div (α →ₛ β) := ⟨λf g, (f.map (/)).seq g⟩
+@[to_additive] instance [has_inv β] : has_inv (α →ₛ β) := ⟨λf, f.map (has_inv.inv)⟩
 instance [has_sup β] : has_sup (α →ₛ β) := ⟨λf g, (f.map (⊔)).seq g⟩
 instance [has_inf β] : has_inf (α →ₛ β) := ⟨λf g, (f.map (⊓)).seq g⟩
 instance [has_le β] : has_le (α →ₛ β) := ⟨λf g, ∀a, f a ≤ g a⟩
 
-@[simp, norm_cast] lemma coe_zero [has_zero β] : ⇑(0 : α →ₛ β) = 0 := rfl
-@[simp] lemma const_zero [has_zero β] : const α (0:β) = 0 := rfl
-@[simp, norm_cast] lemma coe_add [has_add β] (f g : α →ₛ β) : ⇑(f + g) = f + g := rfl
-@[simp, norm_cast] lemma coe_mul [has_mul β] (f g : α →ₛ β) : ⇑(f * g) = f * g := rfl
-@[simp, norm_cast] lemma coe_le [preorder β] {f g : α →ₛ β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
+@[simp, to_additive] lemma const_one [has_one β] : const α (1 : β) = 1 := rfl
 
-@[simp] lemma range_zero [nonempty α] [has_zero β] : (0 : α →ₛ β).range = {0} :=
+@[simp, norm_cast, to_additive] lemma coe_one [has_one β] : ⇑(1 : α →ₛ β) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_mul [has_mul β] (f g : α →ₛ β) : ⇑(f * g) = f * g := rfl
+@[simp, norm_cast, to_additive] lemma coe_inv [has_inv β] (f : α →ₛ β) : ⇑(f⁻¹) = f⁻¹ := rfl
+@[simp, norm_cast, to_additive] lemma coe_div [has_div β] (f g : α →ₛ β) : ⇑(f / g) = f / g := rfl
+@[simp, norm_cast] lemma coe_le [preorder β] {f g : α →ₛ β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
+@[simp, norm_cast] lemma coe_sup [has_sup β] (f g : α →ₛ β) : ⇑(f ⊔ g) = f ⊔ g := rfl
+@[simp, norm_cast] lemma coe_inf [has_inf β] (f g : α →ₛ β) : ⇑(f ⊓ g) = f ⊓ g := rfl
+
+@[to_additive] lemma mul_apply [has_mul β] (f g : α →ₛ β) (a : α) : (f * g) a = f a * g a := rfl
+@[to_additive] lemma div_apply [has_div β] (f g : α →ₛ β) (x : α) : (f / g) x = f x / g x := rfl
+@[to_additive] lemma inv_apply [has_inv β] (f : α →ₛ β) (x : α) : f⁻¹ x = (f x)⁻¹ := rfl
+lemma sup_apply [has_sup β] (f g : α →ₛ β) (a : α) : (f ⊔ g) a = f a ⊔ g a := rfl
+lemma inf_apply [has_inf β] (f g : α →ₛ β) (a : α) : (f ⊓ g) a = f a ⊓ g a := rfl
+
+@[simp, to_additive] lemma range_one [nonempty α] [has_one β] : (1 : α →ₛ β).range = {1} :=
 finset.ext $ λ x, by simp [eq_comm]
 
 @[simp] lemma range_eq_empty_of_is_empty {β} [hα : is_empty α] (f : α →ₛ β) :
@@ -340,57 +351,68 @@ end
 lemma eq_zero_of_mem_range_zero [has_zero β] : ∀ {y : β}, y ∈ (0 : α →ₛ β).range → y = 0 :=
 forall_range_iff.2 $ λ x, rfl
 
-lemma sup_apply [has_sup β] (f g : α →ₛ β) (a : α) : (f ⊔ g) a = f a ⊔ g a := rfl
-lemma mul_apply [has_mul β] (f g : α →ₛ β) (a : α) : (f * g) a = f a * g a := rfl
-lemma add_apply [has_add β] (f g : α →ₛ β) (a : α) : (f + g) a = f a + g a := rfl
+@[to_additive]
+lemma mul_eq_map₂ [has_mul β] (f g : α →ₛ β) : f * g = (pair f g).map (λp:β×β, p.1 * p.2) := rfl
 
-lemma add_eq_map₂ [has_add β] (f g : α →ₛ β) : f + g = (pair f g).map (λp:β×β, p.1 + p.2) :=
-rfl
+lemma sup_eq_map₂ [has_sup β] (f g : α →ₛ β) : f ⊔ g = (pair f g).map (λp:β×β, p.1 ⊔ p.2) := rfl
 
-lemma mul_eq_map₂ [has_mul β] (f g : α →ₛ β) : f * g = (pair f g).map (λp:β×β, p.1 * p.2) :=
-rfl
-
-lemma sup_eq_map₂ [has_sup β] (f g : α →ₛ β) : f ⊔ g = (pair f g).map (λp:β×β, p.1 ⊔ p.2) :=
-rfl
-
+@[to_additive]
 lemma const_mul_eq_map [has_mul β] (f : α →ₛ β) (b : β) : const α b * f = f.map (λa, b * a) := rfl
 
-theorem map_add [has_add β] [has_add γ] {g : β → γ}
-  (hg : ∀ x y, g (x + y) = g x + g y) (f₁ f₂ : α →ₛ β) : (f₁ + f₂).map g = f₁.map g + f₂.map g :=
+@[to_additive]
+theorem map_mul [has_mul β] [has_mul γ] {g : β → γ}
+  (hg : ∀ x y, g (x * y) = g x * g y) (f₁ f₂ : α →ₛ β) : (f₁ * f₂).map g = f₁.map g * f₂.map g :=
 ext $ λ x, hg _ _
-
-instance [add_monoid β] : add_monoid (α →ₛ β) :=
-function.injective.add_monoid (λ f, show α → β, from f) coe_injective coe_zero coe_add
-
-instance add_comm_monoid [add_comm_monoid β] : add_comm_monoid (α →ₛ β) :=
-function.injective.add_comm_monoid (λ f, show α → β, from f) coe_injective coe_zero coe_add
-
-instance [has_neg β] : has_neg (α →ₛ β) := ⟨λf, f.map (has_neg.neg)⟩
-
-@[simp, norm_cast] lemma coe_neg [has_neg β] (f : α →ₛ β) : ⇑(-f) = -f := rfl
-
-instance [has_sub β] : has_sub (α →ₛ β) := ⟨λf g, (f.map (has_sub.sub)).seq g⟩
-
-@[simp, norm_cast] lemma coe_sub [has_sub β] (f g : α →ₛ β) : ⇑(f - g) = f - g :=
-rfl
-
-lemma sub_apply [has_sub β] (f g : α →ₛ β) (x : α) : (f - g) x = f x - g x := rfl
-
-instance [add_group β] : add_group (α →ₛ β) :=
-function.injective.add_group (λ f, show α → β, from f) coe_injective
-  coe_zero coe_add coe_neg coe_sub
-
-instance [add_comm_group β] : add_comm_group (α →ₛ β) :=
-function.injective.add_comm_group (λ f, show α → β, from f) coe_injective
-  coe_zero coe_add coe_neg coe_sub
 
 variables {K : Type*}
 
-instance [has_scalar K β] : has_scalar K (α →ₛ β) := ⟨λk f, f.map ((•) k)⟩
-
+instance [has_scalar K β] : has_scalar K (α →ₛ β) := ⟨λ k f, f.map ((•) k)⟩
 @[simp] lemma coe_smul [has_scalar K β] (c : K) (f : α →ₛ β) : ⇑(c • f) = c • f := rfl
-
 lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
+
+instance has_nat_pow [monoid β] : has_pow (α →ₛ β) ℕ := ⟨λ f n, f.map (^ n)⟩
+@[simp] lemma coe_pow [monoid β] (f : α →ₛ β) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
+lemma pow_apply [monoid β] (n : ℕ) (f : α →ₛ β) (a : α) : (f ^ n) a = f a ^ n := rfl
+
+instance has_int_pow [div_inv_monoid β] : has_pow (α →ₛ β) ℤ := ⟨λ f n, f.map (^ n)⟩
+@[simp] lemma coe_zpow [div_inv_monoid β] (f : α →ₛ β) (z : ℤ) : ⇑(f ^ z) = f ^ z := rfl
+lemma zpow_apply [div_inv_monoid β] (z : ℤ) (f : α →ₛ β) (a : α) : (f ^ z) a = f a ^ z := rfl
+
+-- TODO: work out how to generate these instances with `to_additive`, which gets confused by the
+-- argument order swap between `coe_smul` and `coe_pow`.
+section additive
+
+instance [add_monoid β] : add_monoid (α →ₛ β) :=
+function.injective.add_monoid (λ f, show α → β, from f) coe_injective coe_zero coe_add
+  (λ _ _, coe_smul _ _)
+
+instance [add_comm_monoid β] : add_comm_monoid (α →ₛ β) :=
+function.injective.add_comm_monoid (λ f, show α → β, from f) coe_injective coe_zero coe_add
+  (λ _ _, coe_smul _ _)
+
+instance [add_group β] : add_group (α →ₛ β) :=
+function.injective.add_group (λ f, show α → β, from f) coe_injective
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
+
+instance [add_comm_group β] : add_comm_group (α →ₛ β) :=
+function.injective.add_comm_group (λ f, show α → β, from f) coe_injective
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
+
+end additive
+
+@[to_additive] instance [monoid β] : monoid (α →ₛ β) :=
+function.injective.monoid (λ f, show α → β, from f) coe_injective coe_one coe_mul coe_pow
+
+@[to_additive] instance [comm_monoid β] : comm_monoid (α →ₛ β) :=
+function.injective.comm_monoid (λ f, show α → β, from f) coe_injective coe_one coe_mul coe_pow
+
+@[to_additive] instance [group β] : group (α →ₛ β) :=
+function.injective.group (λ f, show α → β, from f) coe_injective
+  coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
+
+@[to_additive] instance [comm_group β] : comm_group (α →ₛ β) :=
+function.injective.comm_group (λ f, show α → β, from f) coe_injective
+  coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
 instance [semiring K] [add_comm_monoid β] [module K β] : module K (α →ₛ β) :=
 function.injective.module K ⟨λ f, show α → β, from f, coe_zero, coe_add⟩
@@ -1384,9 +1406,18 @@ begin
       (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right le_rfl)⟩
 end
 
+theorem has_sum_lintegral_measure {ι} {m : measurable_space α} (f : α → ℝ≥0∞) (μ : ι → measure α) :
+  has_sum (λ i, ∫⁻ a, f a ∂(μ i)) (∫⁻ a, f a ∂(measure.sum μ)) :=
+(lintegral_sum_measure f μ).symm ▸ ennreal.summable.has_sum
+
 @[simp] lemma lintegral_add_measure {m : measurable_space α} (f : α → ℝ≥0∞) (μ ν : measure α) :
   ∫⁻ a, f a ∂ (μ + ν) = ∫⁻ a, f a ∂μ + ∫⁻ a, f a ∂ν :=
 by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
+
+@[simp] lemma lintegral_finset_sum_measure {ι} {m : measurable_space α} (s : finset ι)
+  (f : α → ℝ≥0∞) (μ : ι → measure α) :
+  ∫⁻ a, f a ∂(∑ i in s, μ i) = ∑ i in s, ∫⁻ a, f a ∂μ i :=
+by { rw [← measure.sum_coe_finset, lintegral_sum_measure, ← finset.tsum_subtype'], refl }
 
 @[simp] lemma lintegral_zero_measure {m : measurable_space α} (f : α → ℝ≥0∞) :
   ∫⁻ a, f a ∂(0 : measure α) = 0 :=

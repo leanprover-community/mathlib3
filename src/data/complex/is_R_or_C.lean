@@ -70,8 +70,9 @@ end
 
 mk_simp_attribute is_R_or_C_simps "Simp attribute for lemmas about `is_R_or_C`"
 
-namespace is_R_or_C
 variables {K : Type*} [is_R_or_C K]
+
+namespace is_R_or_C
 
 open_locale complex_conjugate
 
@@ -234,6 +235,8 @@ begin
   { rintros ⟨r, rfl⟩, apply conj_of_real }
 end
 
+@[simp] lemma star_def : (has_star.star : K → K) = conj := rfl
+
 variables (K)
 /-- Conjugation as a ring equivalence. This is used to convert the inner product into a
 sesquilinear product. -/
@@ -368,6 +371,9 @@ lemma div_im (z w : K) : im (z / w) = im z * re w / norm_sq w - re z * im w / no
 by simp only [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm, neg_mul,
               mul_neg, map_neg] with is_R_or_C_simps
 
+@[simp, is_R_or_C_simps]
+lemma conj_inv (x : K) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
+
 @[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_div (r s : ℝ) :
   ((r / s : ℝ) : K) = r / s :=
 (@is_R_or_C.coe_hom K _).map_div r s
@@ -408,7 +414,7 @@ by field_simp
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 
 @[priority 100] instance : cstar_ring K :=
-{ norm_star_mul_self := λ x, (normed_field.norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
+{ norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
 
 /-! ### Cast lemmas -/
 
@@ -445,23 +451,14 @@ by rw [← of_real_rat_cast, of_real_re]
 by rw [← of_real_rat_cast, of_real_im]
 
 /-! ### Characteristic zero -/
-
--- TODO: I think this can be instance, because it is a `Prop`
-
-/--
-ℝ and ℂ are both of characteristic zero.
-
-Note: This is not registered as an instance to avoid having multiple instances on ℝ and ℂ.
--/
-lemma char_zero_R_or_C : char_zero K :=
+/-- ℝ and ℂ are both of characteristic zero.  -/
+@[priority 100] -- see Note [lower instance priority]
+instance char_zero_R_or_C : char_zero K :=
 char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 theorem re_eq_add_conj (z : K) : ↑(re z) = (z + conj z) / 2 :=
-begin
-  haveI : char_zero K := char_zero_R_or_C,
-  rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero'],
-end
+by rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero']
 
 theorem im_eq_conj_sub (z : K) : ↑(im z) = I * (conj z - z) / 2 :=
 begin
@@ -672,7 +669,6 @@ ring_hom.map_finsupp_prod _ f g
 end is_R_or_C
 
 namespace finite_dimensional
-variables {K : Type*} [is_R_or_C K]
 
 open_locale classical
 open is_R_or_C
@@ -768,8 +764,6 @@ by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 end cleanup_lemmas
 
 section linear_maps
-
-variables {K : Type*} [is_R_or_C K]
 
 /-- The real part in a `is_R_or_C` field, as a linear map. -/
 noncomputable def re_lm : K →ₗ[ℝ] ℝ :=

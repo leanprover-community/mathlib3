@@ -116,7 +116,7 @@ theorem degree_interpolate_erase {x} (hx : x ∈ s) :
   (interpolate (s.erase x) f).degree < (s.card - 1 : ℕ) :=
 begin
   convert degree_interpolate_lt (s.erase x) f,
-  rw [finset.card_erase_of_mem hx, nat.pred_eq_sub_one]
+  rw finset.card_erase_of_mem hx,
 end
 
 theorem interpolate_eq_of_eval_eq (f g : F → F) {s : finset F} (hs : ∀ x ∈ s, f x = g x) :

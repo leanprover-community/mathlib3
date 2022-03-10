@@ -14,9 +14,9 @@ import data.real.cardinality
 /-!
 # Cauchy integral formula
 
-In this file we prove Cauchy theorem and Cauchy integral formula for integrals over circles. Most
-results are formulated for a function `f : ℂ → E` that takes values in a complex Banach space with
-second countable topology.
+In this file we prove the Cauchy-Goursat theorem and the Cauchy integral formula for integrals over
+circles. Most results are formulated for a function `f : ℂ → E` that takes values in a complex
+Banach space with second countable topology.
 
 ## Main statements
 
@@ -66,6 +66,10 @@ differentiability at all but countably many points of the set mentioned below.
   on a neighborhood of a point, then it is analytic at this point. In particular, if `f : ℂ → E`
   is differentiable on the whole `ℂ`, then it is analytic at every point `z : ℂ`.
 
+* `differentiable.has_power_series_on_ball`: If `f : ℂ → E` is differentiable everywhere then the
+  `cauchy_power_series f z R` is a formal power series representing `f` at `z` with infinite
+  radius of convergence (this holds for any choice of `0 < R`).
+
 ## Implementation details
 
 The proof of the Cauchy integral formula in this file is based on a very general version of the
@@ -86,7 +90,7 @@ First, we reformulate the theorem for a *real*-differentiable map `ℂ → E`, a
 of `f` over the boundary of a rectangle in `ℂ` to the integral of the derivative
 $\frac{\partial f}{\partial \bar z}$ over the interior of this box. In particular, for a *complex*
 differentiable function, the latter derivative is zero, hence the integral over the boundary of a
-rectangle is zero. Thus we get Cauchy theorem for a rectangle in `ℂ`.
+rectangle is zero. Thus we get the Cauchy-Goursat theorem for a rectangle in `ℂ`.
 
 Next, we apply the this theorem to the function $F(z)=f(c+e^{z})$ on the rectangle
 $[\ln r, \ln R]\times [0, 2\pi]$ to prove that
@@ -134,7 +138,7 @@ function is analytic on the open ball.
 
 ## Tags
 
-Cauchy theorem, Cauchy integral formula
+Cauchy-Goursat theorem, Cauchy integral formula
 -/
 
 open topological_space set measure_theory interval_integral metric filter function
@@ -184,7 +188,7 @@ begin
     ← interval_integral.integral_neg, ← hF'],
   refine (integral2_divergence_prod_of_has_fderiv_within_at_off_countable
       (λ p, -(I • F p)) F (λ p, - (I • F' p)) F' z.re w.im w.re z.im t (hs.preimage e.injective)
-      (continuous_on_const.smul htc).neg htc (λ p hp, ((htd p hp).const_smul I).neg) htd _).symm,
+      (htc.const_smul _).neg htc (λ p hp, ((htd p hp).const_smul I).neg) htd _).symm,
   rw [← volume_preserving_equiv_real_prod.symm.integrable_on_comp_preimage
     (measurable_equiv.measurable_embedding _)] at Hi,
   simpa only [hF'] using Hi.neg
@@ -225,10 +229,10 @@ integral_boundary_rect_of_has_fderiv_at_real_off_countable f (fderiv ℝ f) z w 
   (λ x hx, Hd.has_fderiv_at $ by simpa only [← mem_interior_iff_mem_nhds,
     interior_re_prod_im, interval, interior_Icc] using hx.1) Hi
 
-/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
-rectangle equals zero. More precisely, if `f` is continuous on a closed rectangle and is complex
-differentiable at all but countably many points of the corresponding open rectangle, then its
-integral over the boundary of the rectangle equals zero. -/
+/-- **Cauchy-Goursat theorem** for a rectangle: the integral of a complex differentiable function
+over the boundary of a rectangle equals zero. More precisely, if `f` is continuous on a closed
+rectangle and is complex differentiable at all but countably many points of the corresponding open
+rectangle, then its integral over the boundary of the rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_differentiable_on_off_countable (f : ℂ → E)
   (z w : ℂ) (s : set ℂ) (hs : countable s) (Hc : continuous_on f ([z.re, w.re] ×ℂ [z.im, w.im]))
   (Hd : ∀ x ∈ (Ioo (min z.re w.re) (max z.re w.re) ×ℂ Ioo (min z.im w.im) (max z.im w.im)) \ s,
@@ -241,10 +245,10 @@ by refine (integral_boundary_rect_of_has_fderiv_at_real_off_countable f
   (λ x hx, (Hd x hx).has_fderiv_at.restrict_scalars ℝ) _).trans _;
     simp [← continuous_linear_map.map_smul]
 
-/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
-rectangle equals zero. More precisely, if `f` is continuous on a closed rectangle and is complex
-differentiable on the corresponding open rectangle, then its integral over the boundary of the
-rectangle equals zero. -/
+/-- **Cauchy-Goursat theorem for a rectangle**: the integral of a complex differentiable function
+over the boundary of a rectangle equals zero. More precisely, if `f` is continuous on a closed
+rectangle and is complex differentiable on the corresponding open rectangle, then its integral over
+the boundary of the rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_continuous_on_of_differentiable_on (f : ℂ → E) (z w : ℂ)
   (Hc : continuous_on f ([z.re, w.re] ×ℂ [z.im, w.im]))
   (Hd : differentiable_on ℂ f
@@ -255,9 +259,9 @@ lemma integral_boundary_rect_eq_zero_of_continuous_on_of_differentiable_on (f : 
 integral_boundary_rect_eq_zero_of_differentiable_on_off_countable f z w ∅ countable_empty
   Hc $ λ x hx, Hd.differentiable_at $ (is_open_Ioo.re_prod_im is_open_Ioo).mem_nhds hx.1
 
-/-- **Cauchy theorem**: the integral of a complex differentiable function over the boundary of a
-rectangle equals zero. More precisely, if `f` is complex differentiable on a closed rectangle, then
-its integral over the boundary of the rectangle equals zero. -/
+/-- **Cauchy-Goursat theorem** for a rectangle: the integral of a complex differentiable function
+over the boundary of a rectangle equals zero. More precisely, if `f` is complex differentiable on a
+closed rectangle, then its integral over the boundary of the rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_differentiable_on (f : ℂ → E) (z w : ℂ)
   (H : differentiable_on ℂ f ([z.re, w.re] ×ℂ [z.im, w.im])) :
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
@@ -304,6 +308,23 @@ begin
     using integral_boundary_rect_eq_zero_of_differentiable_on_off_countable _ ⟨a, 0⟩ ⟨b, 2 * π⟩
       _ hs hc hd
 end
+
+/-- **Cauchy-Goursat theorem** for an annulus. If `f : ℂ → E` is continuous on the closed annulus
+`r ≤ ∥z - c∥ ≤ R`, `0 < r ≤ R`, and is complex differentiable at all but countably many points of
+its interior, then the integrals of `f` over the circles `∥z - c∥ = r` and `∥z - c∥ = R` are equal
+to each other. -/
+lemma circle_integral_eq_of_differentiable_on_annulus_off_countable
+  {c : ℂ} {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : countable s)
+  (hc : continuous_on f (closed_ball c R \ ball c r))
+  (hd : ∀ z ∈ ball c R \ closed_ball c r \ s, differentiable_at ℂ f z) :
+  ∮ z in C(c, R), f z = ∮ z in C(c, r), f z :=
+calc ∮ z in C(c, R), f z = ∮ z in C(c, R), (z - c)⁻¹ • (z - c) • f z :
+  (circle_integral.integral_sub_inv_smul_sub_smul _ _ _ _).symm
+... = ∮ z in C(c, r), (z - c)⁻¹ • (z - c) • f z :
+  circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable h0 hle hs
+    ((continuous_on_id.sub continuous_on_const).smul hc)
+    (λ z hz, (differentiable_at_id.sub_const _).smul (hd z hz))
+... = ∮ z in C(c, r), f z : circle_integral.integral_sub_inv_smul_sub_smul _ _ _ _
 
 /-- **Cauchy integral formula** for the value at the center of a disc. If `f` is continuous on a
 punctured closed disc of radius `R`, is differentiable at all but countably many points of the
@@ -354,7 +375,7 @@ begin
       refine circle_integral.norm_integral_le_of_norm_le_const hr0.le (λ z hz, _),
       specialize hzne z hz,
       rw [mem_sphere, dist_eq_norm] at hz,
-      rw [norm_smul, normed_field.norm_inv, hz, ← dist_eq_norm],
+      rw [norm_smul, norm_inv, hz, ← dist_eq_norm],
       refine mul_le_mul_of_nonneg_left (hδ _ ⟨_, hzne⟩).le (inv_nonneg.2 hr0.le),
       rwa [mem_closed_ball_iff_norm, hz]
     end
@@ -372,9 +393,9 @@ circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendst
   (hc.mono $ diff_subset _ _) (λ z hz, hd z ⟨hz.1.1, hz.2⟩)
   (hc.continuous_at $ closed_ball_mem_nhds _ h0).continuous_within_at
 
-/-- **Cauchy theorem**: if `f : ℂ → E` is continuous on a closed ball `{z | ∥z - c∥ ≤ R}` and is
-complex differentiable at all but countably many points of its interior, then the integral
-$\oint_{|z-c|=R}f(z)\,dz$ equals zero. -/
+/-- **Cauchy-Goursat theorem** for a disk: if `f : ℂ → E` is continuous on a closed disk
+`{z | ∥z - c∥ ≤ R}` and is complex differentiable at all but countably many points of its interior,
+then the integral $\oint_{|z-c|=R}f(z)\,dz$ equals zero. -/
 lemma circle_integral_eq_zero_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 ≤ R) {f : ℂ → E}
   {c : ℂ} {s : set ℂ} (hs : countable s) (hc : continuous_on f (closed_ball c R))
   (hd : ∀ z ∈ ball c R \ s, differentiable_at ℂ f z) :
@@ -382,11 +403,7 @@ lemma circle_integral_eq_zero_of_differentiable_on_off_countable {R : ℝ} (h0 :
 begin
   rcases h0.eq_or_lt with rfl|h0, { apply circle_integral.integral_radius_zero },
   calc ∮ z in C(c, R), f z = ∮ z in C(c, R), (z - c)⁻¹ • (z - c) • f z :
-    begin
-      refine circle_integral.integral_congr h0.le (λ z hz, (inv_smul_smul₀ (λ h₀, _) _).symm),
-      rw [mem_sphere, dist_eq, h₀, abs_zero] at hz,
-      exact h0.ne hz
-    end
+    (circle_integral.integral_sub_inv_smul_sub_smul _ _ _ _).symm
   ... = (2 * ↑π * I : ℂ) • (c - c) • f c :
     circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable h0 hs
       ((continuous_on_id.sub continuous_on_const).smul hc)
@@ -560,5 +577,13 @@ end
 protected lemma _root_.differentiable.analytic_at {f : ℂ → E} (hf : differentiable ℂ f) (z : ℂ) :
   analytic_at ℂ f z :=
 hf.differentiable_on.analytic_at univ_mem
+
+/-- When `f : ℂ → E` is differentiable, the `cauchy_power_series f z R` represents `f` as a power
+series centered at `z` in the entirety of `ℂ`, regardless of `R : ℝ≥0`, with  `0 < R`. -/
+protected lemma _root_.differentiable.has_fpower_series_on_ball {f : ℂ → E}
+  (h : differentiable ℂ f) (z : ℂ) {R : ℝ≥0} (hR : 0 < R) :
+  has_fpower_series_on_ball f (cauchy_power_series f z R) z ∞ :=
+(h.differentiable_on.has_fpower_series_on_ball hR).r_eq_top_of_exists $ λ r hr,
+  ⟨_, h.differentiable_on.has_fpower_series_on_ball hr⟩
 
 end complex

@@ -5,6 +5,7 @@ Authors: Peter Nelson, Yaël Dillies
 -/
 import data.fintype.basic
 import order.conditionally_complete_lattice
+import data.finset.order
 
 /-!
 # Order structures on finite types
@@ -143,3 +144,30 @@ fintype.to_complete_linear_order _
 
 noncomputable instance : complete_linear_order bool := fintype.to_complete_linear_order _
 noncomputable instance : complete_boolean_algebra bool := fintype.to_complete_boolean_algebra _
+
+/-! ### Directed Orders -/
+variable {α : Type*}
+
+theorem directed.fintype_le {r : α → α → Prop} [is_trans α r]
+  {β γ : Type*} [nonempty γ] {f : γ → α} [fintype β] (D : directed r f) (g : β → γ) :
+  ∃ z, ∀ i, r (f (g i)) (f z) :=
+begin
+  classical,
+  obtain ⟨z, hz⟩ := D.finset_le (finset.image g finset.univ),
+  exact ⟨z, λ i, hz (g i) (finset.mem_image_of_mem g (finset.mem_univ i))⟩,
+end
+
+lemma fintype.exists_le [nonempty α] [preorder α] [is_directed α (≤)]
+  {β : Type*} [fintype β] (f : β → α) :
+  ∃ M, ∀ i, (f i) ≤ M :=
+directed_id.fintype_le _
+
+lemma fintype.bdd_above_range [nonempty α] [preorder α] [is_directed α (≤)]
+  {β : Type*} [fintype β] (f : β → α) :
+  bdd_above (set.range f) :=
+begin
+  obtain ⟨M, hM⟩ := fintype.exists_le f,
+  refine ⟨M, λ a ha, _⟩,
+  obtain ⟨b, rfl⟩ := ha,
+  exact hM b,
+end

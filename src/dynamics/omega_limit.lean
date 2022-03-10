@@ -337,9 +337,11 @@ open_locale omega_limit
 
 lemma is_invariant_omega_limit (hf : ∀ t, tendsto ((+) t) f f) :
   is_invariant ϕ (ω f ϕ s) :=
-λ t, maps_to.mono (subset.refl _) (omega_limit_subset_of_tendsto ϕ s (hf t)) $
-  maps_to_omega_limit _ (maps_to_id _) (λ t' x, (ϕ.map_add _ _ _).symm)
+begin
+  refine λ t, maps_to.mono_right _ (omega_limit_subset_of_tendsto ϕ s (hf t)),
+  exact maps_to_omega_limit _ (maps_to_id _) (λ t' x, (ϕ.map_add _ _ _).symm)
     (continuous_const.flow ϕ continuous_id)
+end
 
 lemma omega_limit_image_subset (t : τ) (ht : tendsto (+ t) f f) :
   ω f ϕ (ϕ t '' s) ⊆ ω f ϕ s :=

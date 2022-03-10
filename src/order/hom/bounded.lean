@@ -27,7 +27,7 @@ be satisfied by itself and all stricter types.
 * `bounded_order_hom_class`
 -/
 
-open function
+open function order_dual
 
 variables {F α β γ δ : Type*}
 
@@ -86,6 +86,22 @@ instance bounded_order_hom_class.to_bot_hom_class [preorder α] [preorder β]
   [bounded_order α] [bounded_order β] [bounded_order_hom_class F α β] :
   bot_hom_class F α β :=
 { .. ‹bounded_order_hom_class F α β› }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso.top_hom_class [partial_order α] [partial_order β] [order_top α] [order_top β] :
+  top_hom_class (α ≃o β) α β :=
+{ map_top := λ f, f.map_top, ..rel_iso.rel_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso.bot_hom_class [partial_order α] [partial_order β] [order_bot α] [order_bot β] :
+  bot_hom_class (α ≃o β) α β :=
+{ map_bot := λ f, f.map_bot, ..rel_iso.rel_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso.bounded_order_hom_class [partial_order α] [partial_order β]
+  [bounded_order α] [bounded_order β] :
+  bounded_order_hom_class (α ≃o β) α β :=
+{ ..order_iso.top_hom_class, ..order_iso.bot_hom_class }
 
 instance [has_top α] [has_top β] [top_hom_class F α β] : has_coe_t F (top_hom α β) :=
 ⟨λ f, ⟨f, map_top f⟩⟩
@@ -401,5 +417,18 @@ lemma cancel_left {g : bounded_order_hom β γ} {f₁ f₂ : bounded_order_hom �
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
 ⟨λ h, bounded_order_hom.ext $ λ a, hg $
   by rw [←bounded_order_hom.comp_apply, h, bounded_order_hom.comp_apply], congr_arg _⟩
+
+/-- Reinterpret a bounded order homomorphism as a bounded order homomorphism between the dual
+orders. -/
+@[simps] protected def dual :
+   bounded_order_hom α β ≃ bounded_order_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, { to_order_hom := f.to_order_hom.dual,
+                   map_top' := congr_arg to_dual (map_bot f),
+                   map_bot' := congr_arg to_dual (map_top f) },
+  inv_fun := λ f, { to_order_hom := order_hom.dual.symm f.to_order_hom,
+                    map_top' := map_bot f,
+                    map_bot' := map_top f },
+  left_inv := λ f, ext $ λ a, rfl,
+  right_inv := λ f, ext $ λ a, rfl }
 
 end bounded_order_hom

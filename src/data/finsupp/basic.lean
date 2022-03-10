@@ -2312,7 +2312,7 @@ by { by_cases a = b; simp [h] }
 end
 
 section
-variables [group G] [mul_action G α] [add_comm_monoid M]
+variables [monoid G] [mul_action G α] [add_comm_monoid M]
 
 /-- Scalar multiplication acting on the domain.
 

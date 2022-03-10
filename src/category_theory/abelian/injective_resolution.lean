@@ -217,9 +217,10 @@ def desc_homotopy_zero_succ {Y Z : C} {P : InjectiveResolution Y} {Q : Injective
   (w : f.f (n + 1) = P.cocomplex.d (n+1) (n+2) ≫ g' + g ≫ Q.cocomplex.d n (n+1)) :
   P.cocomplex.X (n + 3) ⟶ Q.cocomplex.X (n + 2) :=
 exact.desc (f.f (n+2) - g' ≫ Q.cocomplex.d _ _) (P.cocomplex.d (n+1) (n+2))
-  (P.cocomplex.d (n+2) (n+3)) by simp [preadditive.comp_sub, ←category.assoc, preadditive.sub_comp
-      show P.cocomplex.d (n+1) (n+2) ≫ g' = f.f (n + 1) - g ≫ Q.cocomplex.d n (n+1),
-      by {rw w, simp only [add_sub_cancel] } ]
+  (P.cocomplex.d (n+2) (n+3))
+  (by simp [preadditive.comp_sub, ←category.assoc, preadditive.sub_comp,
+        show P.cocomplex.d (n+1) (n+2) ≫ g' = f.f (n + 1) - g ≫ Q.cocomplex.d n (n+1),
+        by {rw w, simp only [add_sub_cancel] } ])
 
 /-- Any descent of the zero morphism is homotopic to zero. -/
 def desc_homotopy_zero {Y Z : C} {P : InjectiveResolution Y} {Q : InjectiveResolution Z}

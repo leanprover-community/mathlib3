@@ -1605,7 +1605,7 @@ theorem count_cons (a b : α) (s : multiset α) :
   count a (b ::ₘ s) = count a s + (if a = b then 1 else 0) :=
 by by_cases h : a = b; simp [h]
 
-theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
+@[simp] theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
 by simp only [count_cons_self, singleton_eq_cons, eq_self_iff_true, count_zero]
 
 theorem count_singleton (a b : α) : count a ({b} : multiset α) = if a = b then 1 else 0 :=

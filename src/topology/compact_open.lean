@@ -46,6 +46,20 @@ variables [topological_space α] [topological_space β] [topological_space γ]
 /-- A generating set for the compact-open topology (when `s` is compact and `u` is open). -/
 def compact_open.gen (s : set α) (u : set β) : set C(α,β) := {f | f '' s ⊆ u}
 
+@[simp] lemma gen_empty (u : set β) : compact_open.gen (∅ : set α) u = set.univ :=
+set.ext (λ f, iff_true_intro ((congr_arg (⊆ u) (image_empty f)).mpr u.empty_subset))
+
+@[simp] lemma gen_univ (s : set α) : compact_open.gen s (set.univ : set β) = set.univ :=
+set.ext (λ f, iff_true_intro (f '' s).subset_univ)
+
+@[simp] lemma gen_inter (s : set α) (u v : set β) :
+  compact_open.gen s (u ∩ v) = compact_open.gen s u ∩ compact_open.gen s v :=
+set.ext (λ f, subset_inter_iff)
+
+@[simp] lemma gen_union (s t : set α) (u : set β) :
+  compact_open.gen (s ∪ t) u = compact_open.gen s u ∩ compact_open.gen t u :=
+set.ext (λ f, (iff_of_eq (congr_arg (⊆ u) (image_union f s t))).trans union_subset_iff)
+
 -- The compact-open topology on the space of continuous maps α → β.
 instance compact_open : topological_space C(α, β) :=
 topological_space.generate_from
@@ -105,11 +119,19 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
 lemma continuous_ev₁ [locally_compact_space α] (a : α) : continuous (λ f : C(α, β), f a) :=
 continuous_ev.comp (continuous_id.prod_mk continuous_const)
 
-instance [t2_space β] [locally_compact_space α] : t2_space C(α, β) :=
+instance [t2_space β] : t2_space C(α, β) :=
 ⟨ begin
     intros f₁ f₂ h,
-    obtain ⟨p, hp⟩ := not_forall.mp (mt continuous_map.ext h),
-    exact separated_by_continuous (continuous_ev₁ p) hp,
+    obtain ⟨x, hx⟩ := not_forall.mp (mt (fun_like.ext f₁ f₂) h),
+    obtain ⟨u, v, hu, hv, hxu, hxv, huv⟩ := t2_separation hx,
+    refine ⟨compact_open.gen {x} u, compact_open.gen {x} v, continuous_map.is_open_gen
+      is_compact_singleton hu, continuous_map.is_open_gen is_compact_singleton hv, _, _, _⟩,
+    { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
+    { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
+    { rw [←continuous_map.gen_inter, huv],
+      refine subset_empty_iff.mp (λ f, _),
+      rw [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff],
+      exact id },
   end ⟩
 
 end ev

@@ -1580,6 +1580,15 @@ lemma map_le_range [ring_hom_surjective τ₁₂] {f : M →ₛₗ[τ₁₂] M�
   map f p ≤ range f :=
 set_like.coe_mono (set.image_subset_range f p)
 
+@[simp] lemma range_neg {R : Type*} {R₂ : Type*} {M : Type*} {M₂ : Type*}
+  [semiring R] [ring R₂] [add_comm_monoid M] [add_comm_group M₂] [module R M] [module R₂ M₂]
+  {τ₁₂ : R →+* R₂} [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
+  (-f).range = f.range :=
+begin
+  change ((-linear_map.id : M₂ →ₗ[R₂] M₂).comp f).range = _,
+  rw [range_comp, submodule.map_neg, submodule.map_id],
+end
+
 end
 
 /--
@@ -1758,20 +1767,19 @@ lemma _root_.submodule.comap_map_eq_self {f : M →ₛₗ[τ₁₂] M₂} {p : s
   comap f (map f p) = p :=
 by rw [submodule.comap_map_eq, sup_of_le_left h]
 
-theorem map_le_map_iff (f : M →ₛₗ[τ₁₂] M₂) {p p'} :
-  map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
+protected lemma map_le_map_iff (f : M →ₛₗ[τ₁₂] M₂) {p p'} : map f p ≤ map f p' ↔ p ≤ p' ⊔ ker f :=
 by rw [map_le_iff_le_comap, submodule.comap_map_eq]
 
 theorem map_le_map_iff' {f : M →ₛₗ[τ₁₂] M₂} (hf : ker f = ⊥) {p p'} :
   map f p ≤ map f p' ↔ p ≤ p' :=
-by rw [map_le_map_iff, hf, sup_bot_eq]
+by rw [linear_map.map_le_map_iff, hf, sup_bot_eq]
 
 theorem map_injective {f : M →ₛₗ[τ₁₂] M₂} (hf : ker f = ⊥) : injective (map f) :=
 λ p p' h, le_antisymm ((map_le_map_iff' hf).1 (le_of_eq h)) ((map_le_map_iff' hf).1 (ge_of_eq h))
 
 theorem map_eq_top_iff {f : M →ₛₗ[τ₁₂] M₂} (hf : range f = ⊤) {p : submodule R M} :
   p.map f = ⊤ ↔ p ⊔ f.ker = ⊤ :=
-by simp_rw [← top_le_iff, ← hf, range_eq_map, map_le_map_iff]
+by simp_rw [← top_le_iff, ← hf, range_eq_map, linear_map.map_le_map_iff]
 
 end add_comm_group
 
@@ -2379,9 +2387,7 @@ open _root_.linear_map
 
 /-- Multiplying by a unit `a` of the ring `R` is a linear equivalence. -/
 def smul_of_unit (a : Rˣ) : M ≃ₗ[R] M :=
-of_linear ((a:R) • 1 : M →ₗ[R] M) (((a⁻¹ : Rˣ) : R) • 1 : M →ₗ[R] M)
-  (by rw [smul_comp, comp_smul, smul_smul, units.mul_inv, one_smul]; refl)
-  (by rw [smul_comp, comp_smul, smul_smul, units.inv_mul, one_smul]; refl)
+distrib_mul_action.to_linear_equiv R M a
 
 /-- A linear isomorphism between the domains and codomains of two spaces of linear maps gives a
 linear isomorphism between the two function spaces. -/
@@ -2462,7 +2468,7 @@ variables (K) (M)
 open _root_.linear_map
 
 /-- Multiplying by a nonzero element `a` of the field `K` is a linear equivalence. -/
-def smul_of_ne_zero (a : K) (ha : a ≠ 0) : M ≃ₗ[K] M :=
+@[simps] def smul_of_ne_zero (a : K) (ha : a ≠ 0) : M ≃ₗ[K] M :=
 smul_of_unit $ units.mk0 a ha
 
 section

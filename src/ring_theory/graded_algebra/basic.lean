@@ -42,7 +42,7 @@ open_locale direct_sum big_operators
 section graded_algebra
 
 variables {ι R A : Type*}
-variables [decidable_eq ι] [add_comm_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
+variables [decidable_eq ι] [add_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
 
 /-- An internally-graded `R`-algebra `A` is one that can be decomposed into a collection

@@ -159,6 +159,10 @@ s.apply_piecewise _ _ (λ _, h)
   mul_indicator (f ⁻¹' s) (g ∘ f) x = mul_indicator s g (f x) :=
 by { simp only [mul_indicator], split_ifs; refl }
 
+@[to_additive] lemma mul_indicator_image {s : set α} {f : β → M} {g : α → β} (hg : injective g)
+  {x : α} : mul_indicator (g '' s) f (g x) = mul_indicator s (f ∘ g) x :=
+by rw [← mul_indicator_comp_right, preimage_image_eq _ hg]
+
 @[to_additive] lemma mul_indicator_comp_of_one {g : M → N} (hg : g 1 = 1) :
   mul_indicator s (g ∘ f) = g ∘ (mul_indicator s f) :=
 begin

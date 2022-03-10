@@ -87,9 +87,7 @@ namespace padic_val_int
 open multiplicity
 variables {p : ℕ}
 
-/--
-`padic_val_int p 0` is 0 for any `p`.
--/
+/-- `padic_val_int p 0` is 0 for any `p`. -/
 @[simp]
 protected lemma zero : padic_val_int p 0 = 0 :=
 by simp [padic_val_int]

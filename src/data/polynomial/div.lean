@@ -256,11 +256,7 @@ end
 theorem nat_degree_div_by_monic {R : Type u} [comm_ring R] (f : R[X]) {g : R[X]}
   (hg : g.monic) : nat_degree (f /ₘ g) = nat_degree f - nat_degree g :=
 begin
-  by_cases h01 : (0 : R) = 1,
-  { haveI := subsingleton_of_zero_eq_one h01,
-    rw [subsingleton.elim (f /ₘ g) 0, subsingleton.elim f 0, subsingleton.elim g 0,
-        nat_degree_zero] },
-  haveI : nontrivial R := ⟨⟨0, 1, h01⟩⟩,
+  nontriviality R,
   by_cases hfg : f /ₘ g = 0,
   { rw [hfg, nat_degree_zero], rw div_by_monic_eq_zero_iff hg at hfg,
     rw tsub_eq_zero_iff_le.mpr (nat_degree_le_nat_degree $ le_of_lt hfg) },

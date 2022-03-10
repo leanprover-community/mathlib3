@@ -201,7 +201,7 @@ begin
   simp only [set.top_eq_univ, set.smul_set_univ],
 end
 
-
+/-- Is B is a block for an action G, it is a block for the action of any subgroup of G -/
 lemma subgroup.is_block (H : subgroup G) (B : set X) (hfB : is_block G X B) :
   is_block H X B :=
 begin
@@ -296,6 +296,7 @@ begin
   simp only [inv_mul_cancel_right],
 end
 
+/-- A translate of a block is a block -/
 lemma is_block_of_block {B : set X} (g : G) (hB : is_block G X B) :
   is_block G X (g • B) :=
 begin
@@ -310,10 +311,13 @@ begin
   rw subgroup.comap_top
 end
 
+/-- A block_system of X is a partition of X into blocks -/
 def is_block_system (B : set (set X)) :=
   setoid.is_partition B ∧ (∀ (b : set X), b ∈ B → is_block G X b)
 
-lemma is_block_system.of_block {B : set X} (hB : is_block G X B) (hBe : B.nonempty) [hGX : mul_action.is_pretransitive G X]:
+/-- Translates of a block form a `block_system` -/
+lemma is_block_system.of_block [hGX : mul_action.is_pretransitive G X]
+  {B : set X} (hB : is_block G X B) (hBe : B.nonempty) :
   is_block_system G X (set.range (λ (g : G), g • B)) :=
 begin
   split,
@@ -344,6 +348,7 @@ begin
   rw ← hg, exact is_block_of_block G X g hB,
 end
 
+/-- Orbits of an element form a partition -/
 lemma is_partition.of_orbits :
   setoid.is_partition (set.range (λ (a : X), orbit G a)) :=
 begin
@@ -483,7 +488,7 @@ so that the typeclass inference machine works.
 -/
 
 lemma normal_mul'' (N:subgroup G) (nN:N.normal) (K: subgroup G)
-    (h : N ⊔ K = ⊤) (g:G) : ∃(n:N) (k:K), g = n*k :=
+  (h : N ⊔ K = ⊤) (g:G) : ∃ (n:N) (k:K), g = n*k :=
 begin
     have hg : g ∈ ↑(N ⊔ K), { rw h, exact subgroup.mem_top g,},
     rw [subgroup.normal_mul, set.mem_mul] at hg,
@@ -532,6 +537,7 @@ begin
     ← smul_smul], refl,
 end
 
+/-- The orbits of a normal subgroup form a block system -/
 theorem is_block_system.of_normal (N : subgroup G) [nN : subgroup.normal N] :
   is_block_system G X (set.range (λ a, orbit N a)) :=
 begin
@@ -542,7 +548,7 @@ begin
 end
 
 
-/-- An action is preprimitive is it is pretransitive and
+/-- An action is preprimitive if it is pretransitive and
 the only blocks are the trivial ones -/
 structure is_preprimitive
 extends is_pretransitive G X : Prop :=
@@ -583,20 +589,23 @@ end
 -- TODO : Is the assumption B.finite necessary ?
 /-- The intersection of the translates of a finite subset which contain a given point
 is a block -/
-lemma is_block.of_subset (hGX : is_pretransitive G X) (a : X) (B : set X)
-  (hfB : B.finite) (hfB' : B.nonempty) :
+lemma is_block.of_subset (hGX : is_pretransitive G X) (a : X) (B : set X) (hfB : B.finite) :
   is_block G X (⋂ (k : G) (hg : a ∈ k • B), k • B) :=
 begin
   let hGX_exists := hGX.exists_smul_eq,
-
   let B' := (⋂ (k : G) (hg : a ∈ k • B), k • B),
---   change is_block G X B',
+  cases set.eq_empty_or_nonempty B with hfB_e hfB_ne,
+  { suffices : (⋂ (k : G) (hg : a ∈ k • B), k • B) = set.univ,
+    rw this, apply top_is_block,
+    simp only [set.Inter_eq_univ],
+    intros k hk, exfalso,
+    rw hfB_e at hk, simpa only [set.smul_set_empty] using hk },
 
   have hB'₀ : ∀ (k : G) (hk : a ∈ k • B), B' ≤ k • B,
   { intros k hk, apply set.bInter_subset_of_mem, exact hk },
 
   have hfB' : B'.finite,
-  { obtain ⟨b, hb : b ∈ B⟩ := hfB',
+  { obtain ⟨b, hb : b ∈ B⟩ := hfB_ne,
     obtain ⟨k, hk : k • b = a⟩ := hGX_exists b a,
     have hk' : a ∈ k • B, use b, exact ⟨hb, hk⟩,
     apply set.finite.subset _ (hB'₀ k hk'),
@@ -661,12 +670,13 @@ begin
 end
 
 /-- Theorem of Rudio (Wieland, 1964, Th. 8.1) -/
-theorem rudio [hpGX : is_preprimitive G X] (A : set X) (hfA : A.finite) (hA : A.nonempty) (hA' : A ≠ ⊤)
+theorem rudio [hpGX : is_preprimitive G X]
+  (A : set X) (hfA : A.finite) (hA : A.nonempty) (hA' : A ≠ ⊤)
   (a b : X) (h : a ≠ b):  ∃ (g : G), a ∈ g • A ∧ b ∉ g • A :=
 begin
   let B := ⋂ (g : G) (ha : a ∈ g • A), (g • A),
   have hB : is_block G X B :=
-    is_block.of_subset G X hpGX.to_is_pretransitive a A hfA hA,
+    is_block.of_subset G X hpGX.to_is_pretransitive a A hfA,
   suffices : b ∉ B,
   { rw set.mem_Inter at this,
     simpa only [set.mem_Inter, not_forall, exists_prop] using this,
@@ -917,21 +927,74 @@ theorem is_primitive_of_subgroup [hfX : fintype X] (htGX : is_pretransitive G X)
     intro hA,
     apply is_preprimitive.mk htGX,
     intros B hB,
+    cases set.eq_empty_or_nonempty B with hB_e hB_ne,
+    { exact or.intro_left _ hB_e, },
+    apply or.intro_right,
     let hfB := set.finite.of_fintype B,
-    have : ∀ (g : G), is_block H X ((orbit H a) ∩ (g • B)),
+    have hba : ∀ (g : G), is_block H X ((orbit H a) ∩ (g • B)),
     { intro g,
       apply is_block.inter H X,
       exact is_block_of_orbit H X a,
       apply subgroup.is_block,
       apply is_block_of_block,
       exact hB },
+
+    have hB_ne' : 0 < fintype.card B,
+    { rw [fintype.card_pos_iff, set.nonempty_coe_sort], exact hB_ne },
     cases em (∃ (g : G), (orbit H a) ≤ (g • B)) with hyp hyp,
     { obtain ⟨g,hg⟩ := hyp,
-      suffices : 2 * hfB.to_finset.card > fintype.card X,
-      sorry,
-      sorry,
-    },
-    { sorry }
+      suffices : 2 * B.to_finset.card > fintype.card X,
+      { obtain ⟨k, hXk⟩ := @card_of_block_divides G X _ _ _ _ B hB_ne hB,
+        simp only [mul_comm, hXk, set.to_finset_card] at this,
+        have hk : k < 2,
+        { rw ← (mul_lt_mul_right hB_ne'), exact this },
+
+        cases nat.eq_or_lt_of_le (nat.le_of_lt_succ hk) with hk1 hk0,
+        { rw [hk1, mul_one] at hXk,
+          apply or.intro_right, simp only [set.top_eq_univ],
+          rw [← set.coe_to_finset B, ← finset.coe_univ, finset.coe_inj],
+          apply finset.eq_univ_of_card B.to_finset, rw hXk,
+          exact set.to_finset_card B },
+        { rw [nat.eq_zero_of_le_zero (nat.le_of_lt_succ hk0), mul_zero] at hXk,
+          exfalso,
+          have : fintype.card ↥B ≤ fintype.card X := set_fintype_card_le_univ B,
+          rw hXk at this,
+          rw (nat.eq_zero_of_le_zero this) at hB_ne',
+          exact lt_irrefl 0 hB_ne' } },
+
+      apply lt_of_lt_of_le hA,
+      simp only [mul_le_mul_left, nat.succ_pos'],
+
+      have : B.to_finset.card = (g • B).to_finset.card,
+      { rw finset.card_congr (λ b hb, g • b) _ _ _ ,
+        swap,
+        { intros a ha, simp, simp at ha, exact ⟨a,ha,rfl⟩, },
+        { intros a b _ _ h,
+          apply mul_action.injective g,
+          simp only at h, exact h },
+        { intros b hb,
+          simp only [set.mem_to_finset] at hb,
+          obtain ⟨a, ha, rfl⟩ := hb,
+          use a, use (set.mem_to_finset.mpr ha) } },
+      rw this,
+      rw set.le_eq_subset at hg,
+      refine le_trans _ (finset.card_le_of_subset (set.to_finset_mono.mpr hg)),
+      apply le_of_eq, apply congr_arg,
+      simp only [← finset.coe_inj, set.finite.coe_to_finset, set.coe_to_finset] },
+
+  -- À ce point, on a prouvé hyp :
+  -- ∀ g, g • B ne contient pas l'orbite de a sous H.
+  have hyp : ∀ (g : G), (orbit ↥H a) ∩ (g • B) ≠ (orbit ↥H a),
+  { simp only [not_exists, set.le_eq_subset] at hyp,
+    intros g h, apply hyp g, intros x hx,
+    rw ← h at hx, exact set.mem_of_mem_inter_right hx },
+
+  -- en déduire, via la primitivité (hH), que ((orbit ↥H a) ∩ (g • B)) ≤ 1
+  -- en déduire que le système de blocs { g • B } a pour cardinal au moins (orbit ↥H a)
+  -- mais c'est card(X)/card(B),
+  -- donc card(X)/card(B) ≥ card(orbit ↥H a) > n/2
+  -- donc card(B) < 2
+    sorry
   end
 
 lemma test (m n : ℕ) (hm : 2 * m > n) (hn : n > 0) (hmn : m ∣ n) : m  = n :=

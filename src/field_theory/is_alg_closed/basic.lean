@@ -6,6 +6,7 @@ Authors: Kenny Lau
 
 import field_theory.splitting_field
 import field_theory.perfect_closure
+import field_theory.separable
 
 /-!
 # Algebraically Closed Field
@@ -335,6 +336,32 @@ omit hS
 noncomputable instance perfect_ring (p : ℕ) [fact p.prime] [char_p k p]
   [is_alg_closed k] : perfect_ring k p :=
 perfect_ring.of_surjective k p $ λ x, is_alg_closed.exists_pow_nat_eq _ $ fact.out _
+
+/-- algebraically closed fields are infinite. Proof uses Xⁿ⁺¹ - 1 is seperable when #K = n -/
+lemma infinite {K : Type*} [field K] [is_alg_closed K] : infinite K :=
+begin
+  apply infinite.mk,
+  intro hfin, haveI := hfin,
+  set n := fintype.card K with hn,
+  set f := monomial n.succ (1 : K) - 1 with hf,
+  have hfsep : separable f,
+  { rw polynomial.separable_def',
+    refine ⟨ -1, (polynomial.monomial 1 (n.succ : K)⁻¹), _⟩,
+    have hrw0 : (1 + (n.succ - 1)) = n.succ, ring,
+    have hrw1 : (n.succ : K)⁻¹ * n.succ = 1, simp,
+    simp only [derivative_sub, derivative_monomial, hrw1, hrw0, neg_one_mul,
+      neg_sub, one_mul, derivative_one, sub_zero, monomial_mul_monomial],
+    ring },
+  apply nat.not_succ_le_self (fintype.card K),
+  have hroot : n.succ = fintype.card (f.root_set K),
+  { rw [hf, card_root_set_eq_nat_degree hfsep (is_alg_closed.splits_domain _),
+      nat_degree, degree_sub_eq_left_of_degree_lt],
+    { simp },
+    { simpa [← cmp_eq_gt_iff] },
+    },
+  rw hroot,
+  exact fintype.card_le_of_injective coe subtype.coe_injective,
+end
 
 end is_alg_closed
 

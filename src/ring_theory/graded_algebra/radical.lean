@@ -27,7 +27,7 @@ This file contains a proof that the radical of any homogeneous ideal is a homoge
 Throughout this file, the indexing type `ι` of grading is assumed to be a
 `linear_ordered_cancel_add_comm_monoid`. This might be stronger than necessary but cancelling
 property is strictly necessary; for a counterexample of how `ideal.is_homogeneous.is_prime_iff`
-fails for a non-cancellative set see `counterexample/prime_not_homogeneous_prime.lean`.
+fails for a non-cancellative set see `counterexample/homogeneous_prime_not_prime.lean`.
 
 ## Tags
 

@@ -894,70 +894,46 @@ lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) 
 by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring_nf }
 
 /-- The function `exp(x) / x ^ s` tends to `+∞` at `+∞`, for any real number `s`. -/
-lemma tendsto_exp_div_rpow_at_top (s : ℝ) : tendsto (λ x : ℝ, exp x / x ^ s ) at_top at_top :=
+lemma tendsto_exp_div_rpow_at_top (s : ℝ) : tendsto (λ x : ℝ, exp x / x ^ s) at_top at_top :=
 begin
   cases archimedean_iff_nat_lt.1 (real.archimedean) s with n hn,
   have t := tendsto_exp_div_pow_at_top n,
   have : 0 < (n:ℝ) - s := by linarith,
-  replace t := tendsto.at_top_mul_at_top t (tendsto_rpow_at_top this),
-
   have Icieq: eq_on (λ x:ℝ, (exp x / x ^ n) * (x ^ (↑n - s))) (λ x:ℝ, exp x / x ^ s) (Ici 1),
-  { intros x hx,
-    rw [set.Ici, mem_set_of_eq] at hx,
+  { rintros x (hx : 1 ≤ x),
     have xp : 0 < x := by linarith,
     ring_nf,
-    rw mul_eq_mul_right_iff, left,
+    congr' 1,
     rw [sub_eq_neg_add, rpow_add_nat xp.ne', mul_assoc,
-      mul_inv_cancel (pow_ne_zero _ xp.ne'), mul_one],
-    apply rpow_neg xp.le, },
-
-  refine tendsto.congr' _ t,
-  exact eventually_eq_iff_exists_mem.2 ⟨ Ici 1, mem_at_top _, Icieq⟩,
+      mul_inv_cancel (pow_ne_zero _ xp.ne'), mul_one, rpow_neg xp.le] },
+  refine tendsto.congr' _ (tendsto.at_top_mul_at_top t (tendsto_rpow_at_top this)),
+  exact eventually_eq_iff_exists_mem.2 ⟨Ici 1, mem_at_top _, Icieq⟩,
 end
 
-/-- The function `exp(b * x) / x ^ s` tends to `+∞` at `+∞`, for any real `s` and `b > 0`. -/
+/-- The function `exp (b * x) / x ^ s` tends to `+∞` at `+∞`, for any real `s` and `b > 0`. -/
 lemma tendsto_exp_mul_div_rpow_at_top (s : ℝ) (b : ℝ) (hb : 0 < b):
-  tendsto (λ x : ℝ, exp (b * x) / x ^ s ) at_top at_top :=
+  tendsto (λ x : ℝ, exp (b * x) / x ^ s) at_top at_top :=
 begin
   have t := tendsto.comp (tendsto_rpow_at_top hb) (tendsto_exp_div_rpow_at_top (s/b)),
-
-  let f1 := (λ (x : ℝ), (exp x / x ^ (s / b)) ^ b),
-  have ff1 : ∀ x:ℝ, f1 x = (exp x / x ^ (s / b)) ^ b,
-  { by simp only [eq_self_iff_true, forall_const] },
-
-  have Ioieq: eq_on f1 (λ x : ℝ, exp (b * x) / x ^ s ) (Ioi 0),
+  have Ioieq: eq_on (λ (x : ℝ), (exp x / x ^ (s / b)) ^ b) (λ x : ℝ, exp (b * x) / x ^ s ) (Ioi 0),
   { intros x hx,
     rw [set.Ioi, mem_set_of_eq] at hx,
-    rw [ff1, div_rpow (exp_pos x).le (rpow_pos_of_pos hx _).le,
-      ←(exp_mul x b), mul_comm x b, div_eq_div_iff],
-    show x ^ s ≠ 0,
-    { symmetry, apply ne_of_lt,
-      apply rpow_pos_of_pos,
-      linarith },
-    show (x ^ (s / b)) ^ b ≠ 0,
-    { symmetry, apply ne_of_lt,
-      apply rpow_pos_of_pos,
-      apply rpow_pos_of_pos,
-      linarith },
-    rw mul_eq_mul_left_iff,
-    left,
-    rw ←rpow_mul,
-    show 0 ≤ x, linarith,
-    rw div_mul_cancel, exact hb.ne' },
-
+    have A : (x ^ (s / b)) ^ b ≠ 0 := (rpow_pos_of_pos (rpow_pos_of_pos hx _) _).ne',
+    dsimp,
+    rw [div_rpow (exp_pos x).le (rpow_pos_of_pos hx _).le,
+      ← exp_mul x b, mul_comm x b, div_eq_div_iff A (rpow_pos_of_pos hx s).ne',
+      ← rpow_mul hx.le, div_mul_cancel _ hb.ne'] },
   exact tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) Ioieq) t,
 end
 
-/-- The function `x ^ s * exp(-b * x)` tends to `0` at `+∞`, for any real `s` and `b > 0`. -/
+/-- The function `x ^ s * exp (-b * x)` tends to `0` at `+∞`, for any real `s` and `b > 0`. -/
 lemma tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 (s : ℝ) (b : ℝ) (hb : 0 < b):
   tendsto (λ x : ℝ, x ^ s * exp (-b * x)) at_top (𝓝 0) :=
 begin
   have: (λ x : ℝ, x ^ s * exp (-b * x)) = (λ x : ℝ, exp (b * x) / x ^ s)⁻¹,
   { ext,
-    simp only [neg_mul, pi.inv_apply],
-    rw [inv_div, div_eq_mul_inv, mul_eq_mul_left_iff],
-    left,
-    apply exp_neg },
+    simp only [neg_mul, pi.inv_apply, inv_div, exp_neg],
+    rw div_eq_mul_inv },
   rw this,
   exact tendsto.inv_tendsto_at_top (tendsto_exp_mul_div_rpow_at_top s b hb),
 end

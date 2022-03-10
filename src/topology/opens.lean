@@ -50,10 +50,8 @@ instance : has_mem α (opens α) :=
 
 @[simp] lemma mem_coe {x : α} {U : opens α} : (x ∈ (U : set α)) = (x ∈ U) := rfl
 
-@[ext] lemma ext {U V : opens α} (h : (U : set α) = V) : U = V := subtype.ext_iff.mpr h
-
-@[ext] lemma ext_iff {U V : opens α} : (U : set α) = V ↔ U = V :=
-⟨opens.ext, congr_arg coe⟩
+@[ext] lemma ext {U V : opens α} (h : (U : set α) = V) : U = V := subtype.ext h
+@[ext] lemma ext_iff {U V : opens α} : (U : set α) = V ↔ U = V := subtype.ext_iff.symm
 
 instance : partial_order (opens α) := subtype.partial_order _
 
@@ -65,33 +63,25 @@ lemma gc : galois_connection (coe : opens α → set α) interior :=
 
 open order_dual (of_dual to_dual)
 
-/-- The galois insertion between sets and opens, but ordered by reverse inclusion. -/
-def gi : galois_insertion (to_dual ∘ @interior α _ ∘ of_dual) (to_dual ∘ subtype.val ∘ of_dual) :=
+/-- The galois coinsertion between sets and opens. -/
+def gi : galois_coinsertion subtype.val (@interior α _) :=
 { choice := λ s hs, ⟨s, interior_eq_iff_open.mp $ le_antisymm interior_subset hs⟩,
-  gc := gc.dual,
-  le_l_u := λ _, interior_subset,
-  choice_eq := λ s hs, le_antisymm interior_subset hs }
-
-@[simp] lemma gi_choice_val {s : order_dual (set α)} {hs} : (gi.choice s hs).val = s := rfl
+  gc := gc,
+  u_l_le := λ _, interior_subset,
+  choice_eq := λ s hs, le_antisymm hs interior_subset }
 
 instance : complete_lattice (opens α) :=
-complete_lattice.copy
-  (@order_dual.complete_lattice _ (galois_insertion.lift_complete_lattice (@gi α _)))
+complete_lattice.copy (galois_coinsertion.lift_complete_lattice gi)
 /- le  -/ (λ U V, U ⊆ V) rfl
-/- top -/ ⟨set.univ, is_open_univ⟩ (subtype.ext_iff_val.mpr interior_univ.symm)
+/- top -/ ⟨univ, is_open_univ⟩ (ext interior_univ.symm)
 /- bot -/ ⟨∅, is_open_empty⟩ rfl
-/- sup -/ (λ U V, ⟨↑U ∪ ↑V, is_open.union U.2 V.2⟩) rfl
-/- inf -/ (λ U V, ⟨↑U ∩ ↑V, is_open.inter U.2 V.2⟩)
-begin
-  funext,
-  apply subtype.ext_iff_val.mpr,
-  exact (is_open.inter U.2 V.2).interior_eq.symm,
-end
+/- sup -/ (λ U V, ⟨↑U ∪ ↑V, U.2.union V.2⟩) rfl
+/- inf -/ (λ U V, ⟨↑U ∩ ↑V, U.2.inter V.2⟩)
+  (funext $ λ U, funext $ λ V, ext (U.2.inter V.2).interior_eq.symm)
 /- Sup -/ _ rfl
 /- Inf -/ _ rfl
 
-lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) :=
-by refl
+lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) := iff.rfl
 
 @[simp] lemma mk_inf_mk {U V : set α} {hU : is_open U} {hV : is_open V} :
   (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open.inter hU hV⟩ := rfl

@@ -68,9 +68,7 @@ by simp [padic_val_nat]
 @[simp] protected lemma one : padic_val_nat p 1 = 0 :=
 by unfold padic_val_nat; split_ifs; simp *
 
-/--
-For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1.
--/
+/-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
 @[simp] lemma self (hp : 1 < p) : padic_val_nat p p = 1 :=
 begin
   have neq_one : (¬ p = 1) ↔ true,

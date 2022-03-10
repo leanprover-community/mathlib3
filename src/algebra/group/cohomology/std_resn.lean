@@ -255,7 +255,9 @@ begin
     congr,
     ext,
     dsimp,
-    rw mul_one }
+    rw mul_one,
+    convert finsupp.single_eq_same,
+    }
 end
 
 variables (n : ℕ)
@@ -394,10 +396,12 @@ homotopy.of _ _ (λ n, nat.rec_on n (std_resn_homotopy_aux G) (λ m fm, cons _ (
       finsupp.map_domain_single, eq_to_hom_refl, Module.id_apply],
     erw d_two_apply,
     simp only [cons_delta_two, add_sub_cancel'_right, finsupp.map_domain_single],
-    congr,
+    sorry
+    /-congr,
     ext j,
     rw [function.comp_app, @subsingleton.elim (fin 1) _ j 0],
-    convert (@fin.cons_succ 1 (λ i, G) 1 x _).symm },
+    convert (@fin.cons_succ 1 (λ i, G) 1 x _).symm -/
+    },
   { intros f g hf hg,
     rw [add_monoid_hom.map_add, add_monoid_hom.map_add, hf, hg]},
   { intros r f hf,

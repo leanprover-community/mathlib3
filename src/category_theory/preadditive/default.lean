@@ -211,18 +211,34 @@ section equalizers
 variables {C : Type u} [category.{v} C] [preadditive C]
 
 section
-variables {X Y : C} (f : X ⟶ Y) (g : X ⟶ Y)
+variables {X Y : C} {f : X ⟶ Y} {g : X ⟶ Y}
+
+/-- Map a kernel cone on the difference of two morphisms to the equalizer fork. -/
+def fork_of_kernel_fork (c : kernel_fork (f - g)) : fork f g :=
+fork.of_ι c.ι $ by rw [← sub_eq_zero, ← comp_sub, c.condition]
+
+@[simp] lemma fork_of_kernel_fork_ι {c : kernel_fork (f - g)} :
+  (fork_of_kernel_fork c).ι = c.ι := rfl
+
+/-- Map any equalizer fork to a cone on the difference of the two morphisms. -/
+def kernel_fork_of_fork (c : fork f g) : kernel_fork (f - g) :=
+fork.of_ι c.ι $ by rw [comp_sub, comp_zero, sub_eq_zero, c.condition]
+
+@[simp] lemma kernel_fork_of_fork_ι {c : fork f g} :
+  (kernel_fork_of_fork c).ι = c.ι := rfl
 
 /-- A kernel of `f - g` is an equalizer of `f` and `g`. -/
-lemma has_limit_parallel_pair [has_kernel (f - g)] :
-  has_limit (parallel_pair f g) :=
-has_limit.mk { cone := fork.of_ι (kernel.ι (f - g)) (sub_eq_zero.1 $
-    by { rw ←comp_sub, exact kernel.condition _ }),
-  is_limit := fork.is_limit.mk _
-    (λ s, kernel.lift (f - g) (fork.ι s) $
-      by { rw comp_sub, apply sub_eq_zero.2, exact fork.condition _ })
-    (λ s, by simp)
-    (λ s m h, by { ext, simpa using h walking_parallel_pair.zero }) }
+def is_limit_fork_of_kernel_fork {c : kernel_fork (f - g)} (i : is_limit c) :
+  is_limit (fork_of_kernel_fork c) :=
+fork.is_limit.mk' _ $ λ s,
+  ⟨i.lift (kernel_fork_of_fork s), i.fac _ _,
+   λ m h, by { apply fork.is_limit.hom_ext i, rw [i.fac], exact h }⟩
+
+variables (f g)
+
+lemma has_limit_parallel_pair [has_kernel (f - g)] : has_equalizer f g :=
+has_limit.mk { cone := fork_of_kernel_fork _,
+  is_limit := is_limit_fork_of_kernel_fork (equalizer_is_equalizer (f - g) 0) }
 
 /-- Conversely, an equalizer of `f` and `g` is a kernel of `f - g`. -/
 lemma has_kernel_of_has_equalizer

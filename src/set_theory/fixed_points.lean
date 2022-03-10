@@ -359,7 +359,7 @@ variable {f : ordinal.{u} → ordinal.{u}}
 def nfp (f : ordinal → ordinal) : ordinal → ordinal :=
 nfp_family (λ _ : unit, f)
 
-theorem nfp_eq_nfp_family (f : ordinal → ordinal) : nfp f = nfp_family (λ _ : unit, f) :=
+@[simp] theorem nfp_family_eq_nfp (f : ordinal → ordinal) : nfp_family (λ _ : unit, f) = nfp f :=
 rfl
 
 @[simp] theorem sup_iterate_eq_nfp (f : ordinal.{u} → ordinal.{u}) (a) :

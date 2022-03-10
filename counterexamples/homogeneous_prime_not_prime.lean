@@ -33,67 +33,13 @@ homogeneous, prime
 namespace counterexample_not_prime_but_homogeneous_prime
 
 open direct_sum
+local attribute [reducible] with_zero
 
-/--
-The underlying indexing set with two elements `z` for zero and `o` for one
--/
-@[derive [inhabited, decidable_eq, fintype]]
-inductive two
-| z
-| o
-
-open two
-
-lemma two.o_ne_z : o ≠ z := dec_trivial
-lemma two.z_ne_o : z ≠ o := dec_trivial
-
-instance has_add : has_add two :=
-{ add := λ m n,
-  match m, n with
-  | z, z := z
-  | z, o := o
-  | o, z := o
-  | o, o := o
-  end }
-
-instance : add_comm_monoid two :=
-{ zero := z,
-  add := (+),
-  add_comm := dec_trivial,
-  add_zero := dec_trivial,
-  zero_add := dec_trivial,
-  add_assoc := dec_trivial}
-
-instance : has_lt two :=
-{ lt := λ i j,
-  match i, j with
-  | z, z := false
-  | z, o := true
-  | o, o := false
-  | o, z := false
-  end }
-
-instance : decidable_rel ((<) : two → two → Prop) :=
-λ i j, by { cases i; cases j; change decidable true <|> change decidable false; apply_instance }
-
-lemma two.z_lt_o : z < o := dec_trivial
-
-instance : has_le two :=
-{ le := λ i j, i < j ∨ i = j }
-
-instance : decidable_rel ((≤) : two → two → Prop) :=
-λ i j, or.decidable
-
-instance : linear_order two :=
-{ le := (≤),
-  le_refl := dec_trivial,
-  le_trans := dec_trivial,
-  le_antisymm := dec_trivial,
-  le_total := dec_trivial,
-  decidable_le := by apply_instance }
+@[derive [add_comm_monoid, linear_order, has_one]]
+abbreviation two := with_zero unit
 
 instance : linear_ordered_add_comm_monoid two :=
-{ add_le_add_left := dec_trivial,
+{ add_le_add_left := by delta two with_zero; dec_trivial,
   ..(_ : linear_order two),
   ..(_ : add_comm_monoid two)}
 
@@ -123,18 +69,18 @@ def submodule_o : submodule R (R × R) :=
 Give the above grading (see `submodule_z` and `submodule_o`), we turn `R²` into a graded ring.
 -/
 def grading : two → submodule R (R × R)
-| z := submodule_z R
-| o := submodule_o R
+| 0 := submodule_z R
+| 1 := submodule_o R
 
 lemma grading.one_mem : (1 : (R × R)) ∈ grading R 0 :=
 eq.refl (1, 1).fst
 
 lemma grading.mul_mem : ∀ ⦃i j : two⦄ {a b : (R × R)} (ha : a ∈ grading R i) (hb : b ∈ grading R j),
   a * b ∈ grading R (i + j)
-| z z a b (ha : a.1 = a.2) (hb : b.1 = b.2) := show a.1 * b.1 = a.2 * b.2, by rw [ha, hb]
-| z o a b (ha : a.1 = a.2) (hb : b.1 = 0)   := show a.1 * b.1 = 0, by rw [hb, mul_zero]
-| o z a b (ha : a.1 = 0) hb                 := show a.1 * b.1 = 0, by rw [ha, zero_mul]
-| o o a b (ha : a.1 = 0) hb                 := show a.1 * b.1 = 0, by rw [ha, zero_mul]
+| 0 0 a b (ha : a.1 = a.2) (hb : b.1 = b.2) := show a.1 * b.1 = a.2 * b.2, by rw [ha, hb]
+| 0 1 a b (ha : a.1 = a.2) (hb : b.1 = 0)   := show a.1 * b.1 = 0, by rw [hb, mul_zero]
+| 1 0 a b (ha : a.1 = 0) hb                 := show a.1 * b.1 = 0, by rw [ha, zero_mul]
+| 1 1 a b (ha : a.1 = 0) hb                 := show a.1 * b.1 = 0, by rw [ha, zero_mul]
 
 end
 
@@ -144,15 +90,19 @@ notation `R` := zmod 4
 `R² ≅ {(a, a) | a ∈ R} ⨁ {(0, b) | b ∈ R}` by `(x, y) ↦ (x, x) + (0, y - x)`.
 -/
 def grading.decompose : (R × R) →+ direct_sum two (λ i, grading R i) :=
-{ to_fun := λ zz, of (λ i, grading R i) z ⟨(zz.1, zz.1), rfl⟩ +
-    of (λ i, grading R i) o ⟨(0, zz.2 - zz.1), rfl⟩,
-  map_zero' := by ext1 (_|_); refl,
+{ to_fun := λ zz, of (λ i, grading R i) 0 ⟨(zz.1, zz.1), rfl⟩ +
+    of (λ i, grading R i) 1 ⟨(0, zz.2 - zz.1), rfl⟩,
+  map_zero' := by { ext1 (_|i), refl, cases i, refl },
   map_add' := begin
     rintros ⟨a1, b1⟩ ⟨a2, b2⟩,
-    ext (_|_);
+    have aux0 : (none : two) = 0 := rfl,
+    have aux1 : ∀ i : unit, (some i : two) = 1, { rintro ⟨⟩, refl },
+    ext (_|_) : 3; try { rw [aux0] }; try { rw[aux1] };
     simp only [prod.fst_add, prod.snd_add, add_apply, of_eq_same, add_zero, zero_add,
-      submodule.coe_add, subtype.coe_mk, prod.mk_add_mk,
-      of_eq_of_ne _ _ _ _ two.o_ne_z, of_eq_of_ne _ _ _ _ two.z_ne_o],
+      submodule.coe_add, subtype.coe_mk, prod.mk_add_mk];
+    repeat { erw [of_eq_of_ne] };
+    try { apply option.no_confusion };
+    simp only [submodule.coe_zero, prod.fst_zero, prod.snd_zero, fin.add_zero, zero_add],
     ext : 2;
     simp only [prod.mk_add_mk, submodule.coe_add, subtype.coe_mk, fin.zero_add],
     abel,
@@ -163,7 +113,7 @@ lemma grading.left_inv :
 begin
   induction zz using direct_sum.induction_on with i zz d1 d2 ih1 ih2,
   { simp only [map_zero],},
-  { cases i;
+  { rcases i with (_|i); try { cases i };
     rcases zz with ⟨⟨a, b⟩, (hab : _ = _)⟩;
     dsimp at hab; cases hab; dec_trivial!, },
   { simp only [map_add, ih1, ih2], },
@@ -201,7 +151,7 @@ end
 lemma I_is_homogeneous : I.is_homogeneous (grading R) :=
 begin
   rw ideal.is_homogeneous.iff_exists,
-  refine ⟨{⟨(2, 2), ⟨z, rfl⟩⟩}, _⟩,
+  refine ⟨{⟨(2, 2), ⟨0, rfl⟩⟩}, _⟩,
   rw set.image_singleton,
   refl,
 end
@@ -212,8 +162,8 @@ lemma homogeneous_mem_or_mem {x y : (R × R)} (hx : set_like.is_homogeneous (gra
 begin
   simp only [I, ideal.mem_span_singleton] at hxy ⊢,
   cases x, cases y,
-  obtain ⟨_|_, hx : _ = _⟩ := hx;
-  obtain ⟨_|_, hy : _ = _⟩ := hy;
+  obtain ⟨(_|i), hx⟩ := hx; try { cases i }; change _ = _ at hx;
+  obtain ⟨(_|i), hy⟩ := hy; try { cases i }; change _ = _ at hy;
   dsimp at hx hy;
   cases hx; cases hy; clear hx hy;
   dec_trivial!,

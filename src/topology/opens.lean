@@ -3,9 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
+import order.hom.complete_lattice
 import topology.bases
 import topology.homeomorph
 import topology.continuous_function.basic
+
 /-!
 # Open sets
 
@@ -19,9 +21,9 @@ We define the subtype of open sets in a topological space.
 - `open_nhds_of x` is the type of open subsets of a topological space `α` containing `x : α`.
 -/
 
-open filter set
-variables {α : Type*} {β : Type*} {γ : Type*}
-  [topological_space α] [topological_space β] [topological_space γ]
+open filter order set
+
+variables {α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
 
 namespace topological_space
 variable (α)
@@ -93,10 +95,10 @@ by refl
 
 @[simp] lemma mk_inf_mk {U V : set α} {hU : is_open U} {hV : is_open V} :
   (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open.inter hU hV⟩ := rfl
-@[simp,norm_cast] lemma coe_inf {U V : opens α} :
-  ((U ⊓ V : opens α) : set α) = (U : set α) ⊓ (V : set α) := rfl
+@[simp, norm_cast] lemma coe_inf {U V : opens α} : ((U ⊓ V : opens α) : set α) = U ∩ V := rfl
 @[simp] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
 @[simp] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
+@[simp] lemma coe_Sup {S : set (opens α)} : (↑(Sup S) : set α) = ⋃ i ∈ S, ↑i := (@gc α _).l_Sup
 
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
@@ -107,11 +109,8 @@ instance : inhabited (opens α) := ⟨∅⟩
 @[simp] lemma union_eq (U V : opens α) : U ∪ V = U ⊔ V := rfl
 @[simp] lemma empty_eq : (∅ : opens α) = ⊥ := rfl
 
-@[simp] lemma Sup_s {Us : set (opens α)} : ↑(Sup Us) = ⋃₀ ((coe : _ → set α) '' Us) :=
-by { rw [(@gc α _).l_Sup, set.sUnion_image], refl }
-
 lemma supr_def {ι} (s : ι → opens α) : (⨆ i, s i) = ⟨⋃ i, s i, is_open_Union $ λ i, (s i).2⟩ :=
-by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
+by { ext, simp only [supr, coe_Sup, bUnion_range], refl }
 
 @[simp] lemma supr_mk {ι} (s : ι → set α) (h : Π i, is_open (s i)) :
   (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⋃ i, s i, is_open_Union h⟩ :=
@@ -125,6 +124,12 @@ by { rw [←mem_coe], simp, }
 
 @[simp] lemma mem_Sup {Us : set (opens α)} {x : α} : x ∈ Sup Us ↔ ∃ u ∈ Us, x ∈ u :=
 by simp_rw [Sup_eq_supr, mem_supr]
+
+instance : frame (opens α) :=
+{ Sup := Sup,
+  inf_Sup_le_supr_inf := λ a s,
+    (ext $ by simp only [coe_inf, supr_s, coe_Sup, set.inter_Union₂]).le,
+  ..opens.complete_lattice }
 
 lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
   open_embedding (set.inclusion i) :=
@@ -168,8 +173,8 @@ begin
   { intros hB U,
     refine ⟨{V : opens α | V ∈ B ∧ V ⊆ U}, λ U hU, hU.left, _⟩,
     apply ext,
-    rw [Sup_s, hB.open_eq_sUnion' U.prop],
-    simp_rw [sUnion_image, sUnion_eq_bUnion, Union, supr_and, supr_image],
+    rw [coe_Sup, hB.open_eq_sUnion' U.prop],
+    simp_rw [sUnion_eq_bUnion, Union, supr_and, supr_image],
     refl },
   { intro h,
     rw is_basis_iff_nbhd,
@@ -180,15 +185,17 @@ begin
 end
 
 /-- The preimage of an open set, as an open set. -/
-def comap (f : C(α, β)) : opens β →o opens α :=
-{ to_fun := λ V, ⟨f ⁻¹' V, V.2.preimage f.continuous⟩,
-  monotone' := λ V₁ V₂ hle, monotone_preimage hle }
+def comap (f : C(α, β)) : frame_hom (opens β) (opens α) :=
+{ to_fun := λ s, ⟨f ⁻¹' s, s.2.preimage f.continuous⟩,
+  map_Sup' := λ s, ext $ by simp only [coe_Sup, preimage_Union, coe_mk, mem_image, Union_exists,
+    bUnion_and', Union_Union_eq_right],
+  map_inf' := λ a b, rfl }
 
-@[simp] lemma comap_id : comap (continuous_map.id α) = order_hom.id := by { ext, refl }
+@[simp] lemma comap_id : comap (continuous_map.id α) = frame_hom.id _ :=
+frame_hom.ext $ λ a, ext rfl
 
-lemma comap_mono (f : C(α, β)) {V W : opens β} (hVW : V ⊆ W) :
-  comap f V ⊆ comap f W :=
-(comap f).monotone hVW
+lemma comap_mono (f : C(α, β)) {s t : opens β} (h : s ≤ t) : comap f s ≤ comap f t :=
+order_hom_class.mono (comap f) h
 
 @[simp] lemma coe_comap (f : C(α, β)) (U : opens β) : ↑(comap f U) = f ⁻¹' U := rfl
 

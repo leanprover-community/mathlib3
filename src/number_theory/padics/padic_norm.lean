@@ -80,16 +80,13 @@ by unfold padic_val_nat; split_ifs; simp *
 For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1.
 -/
 @[simp] lemma self (hp : 1 < p) : padic_val_nat p p = 1 :=
-by {
-  have h := (ne_of_lt hp).symm,
-  have h2 : (¬ p = 1) ↔ true, exact iff_of_true h trivial,
-  have : 0 < p := trans zero_lt_one hp,
-  have h3 := (ne_of_lt this).symm,
-  have h4 : (p = 0) ↔ false, exact iff_false_intro h3,
-  simp [padic_val_nat],
-  rw [h2, h4],
-  simp,
-  }
+begin
+  have neq_one : (¬ p = 1) ↔ true,
+  { exact iff_of_true ((ne_of_lt hp).symm) trivial, },
+  have eq_zero_false : (p = 0) ↔ false,
+  { exact iff_false_intro ((ne_of_lt (trans zero_lt_one hp)).symm) },
+  simp [padic_val_nat, neq_one, eq_zero_false],
+end
 
 end padic_val_nat
 
@@ -105,10 +102,7 @@ variables {p : ℕ}
 -/
 @[simp]
 protected lemma zero : padic_val_int p 0 = 0 :=
-begin
-  unfold padic_val_int,
-  simp,
-end
+by simp [padic_val_int]
 
 /--
 `padic_val_int p 1` is 0 for any `p`.
@@ -116,16 +110,11 @@ end
 @[simp] protected lemma one : padic_val_int p 1 = 0 :=
 by simp [padic_val_int]
 
--- @[simp] lemma nat_abs (z : ℤ) : padic_val_nat p z.nat_abs = padic_val_int p z :=
--- by simp [padic_val_int]
-
 /--
 For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1.
 -/
 @[simp] lemma self (hp : 1 < p) : padic_val_int p p = 1 :=
-by {simp [padic_val_int, padic_val_nat.self hp], }
-
-
+by simp [padic_val_int, padic_val_nat.self hp]
 
 end padic_val_int
 
@@ -184,19 +173,15 @@ The p-adic value of an integer `z ≠ 0` is the multiplicity of `p` in `z`.
 lemma padic_val_rat_of_int (z : ℤ) (hp : p ≠ 1) (hz : z ≠ 0) :
   padic_val_rat p (z : ℚ) = (multiplicity (p : ℤ) z).get
     (finite_int_iff.2 ⟨hp, hz⟩) :=
-by {
+begin
   rw [padic_val_rat, padic_val_int, padic_val_nat, padic_val_nat, dif_pos, dif_pos],
   simp_rw multiplicity.int.nat_abs,
-  simp only [rat.coe_int_denom,
- int.coe_nat_zero,
- rat.coe_int_num,
- int.coe_nat_inj',
- sub_zero,
- multiplicity.get_one_right],
- refl,
- simp [hp],
- simp [hp, hz],
-  }
+  simp only [rat.coe_int_denom, int.coe_nat_zero, rat.coe_int_num, int.coe_nat_inj',
+    sub_zero, multiplicity.get_one_right],
+  refl,
+  simp [hp],
+  simp [hp, hz],
+end
 
 end padic_val_rat
 

@@ -751,9 +751,8 @@ begin
   rw [if_neg _],
   { refine zpow_le_one_of_nonpos _ _,
     { exact_mod_cast le_of_lt hp.1.one_lt, },
-    { have : z ≠ 0, exact hz,
-      rw [neg_nonpos, padic_val_rat_of_int], -- _ hp.1.ne_one (sorry)],
-      norm_cast, simp, }},
+    { rw [padic_val_rat_of_int _ hp.1.ne_one hz, neg_nonpos],
+      norm_cast, simp }},
   exact_mod_cast hz
 end
 

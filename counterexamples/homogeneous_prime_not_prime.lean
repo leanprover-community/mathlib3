@@ -47,27 +47,22 @@ section
 
 variables (R : Type*) [comm_ring R]
 
-/--
-The grade 0 part of `R²` is `{(a, a) | a ∈ R}`.
--/
+/-- The grade 0 part of `R²` is `{(a, a) | a ∈ R}`. -/
 def submodule_z : submodule R (R × R) :=
 { carrier := { zz | zz.1 = zz.2 },
   zero_mem' := rfl,
   add_mem' := λ a b ha hb, congr_arg2 (+) ha hb,
   smul_mem' := λ a b hb, congr_arg ((*) a) hb }
 
-/--
-The grade 1 part of `R²` is `{(0, b) | b ∈ R}`.
--/
+/-- The grade 1 part of `R²` is `{(0, b) | b ∈ R}`. -/
 def submodule_o : submodule R (R × R) :=
 { carrier := { zz | zz.1 = 0 },
   zero_mem' := rfl,
   add_mem' := λ a b (ha : a.1 = 0) (hb : b.1 = 0), show a.1 + b.1 = 0, by rw [ha, hb, zero_add],
   smul_mem' := λ a b (hb : b.1 = 0), show a * b.1 = 0, by rw [hb, mul_zero] }
 
-/--
-Give the above grading (see `submodule_z` and `submodule_o`), we turn `R²` into a graded ring.
--/
+/-- Given the above grading (see `submodule_z` and `submodule_o`),
+  we turn `R²` into a graded ring. -/
 def grading : two → submodule R (R × R)
 | 0 := submodule_z R
 | 1 := submodule_o R
@@ -86,26 +81,18 @@ end
 
 notation `R` := zmod 4
 
-/--
-`R² ≅ {(a, a) | a ∈ R} ⨁ {(0, b) | b ∈ R}` by `(x, y) ↦ (x, x) + (0, y - x)`.
--/
+/-- `R² ≅ {(a, a) | a ∈ R} ⨁ {(0, b) | b ∈ R}` by `(x, y) ↦ (x, x) + (0, y - x)`. -/
 def grading.decompose : (R × R) →+ direct_sum two (λ i, grading R i) :=
 { to_fun := λ zz, of (λ i, grading R i) 0 ⟨(zz.1, zz.1), rfl⟩ +
     of (λ i, grading R i) 1 ⟨(0, zz.2 - zz.1), rfl⟩,
-  map_zero' := by { ext1 (_|i), refl, cases i, refl },
+  map_zero' := by { ext1 (_|⟨⟨⟩⟩); refl },
   map_add' := begin
     rintros ⟨a1, b1⟩ ⟨a2, b2⟩,
-    have aux0 : (none : two) = 0 := rfl,
-    have aux1 : ∀ i : unit, (some i : two) = 1, { rintro ⟨⟩, refl },
-    ext (_|_) : 3; try { rw [aux0] }; try { rw[aux1] };
-    simp only [prod.fst_add, prod.snd_add, add_apply, of_eq_same, add_zero, zero_add,
-      submodule.coe_add, subtype.coe_mk, prod.mk_add_mk];
-    repeat { erw [of_eq_of_ne] };
-    try { apply option.no_confusion };
-    simp only [submodule.coe_zero, prod.fst_zero, prod.snd_zero, fin.add_zero, zero_add],
-    ext : 2;
-    simp only [prod.mk_add_mk, submodule.coe_add, subtype.coe_mk, fin.zero_add],
-    abel,
+    have H : b1 + b2 - (a1 + a2) = b1 - a1 + (b2 - a2), by abel,
+    ext (_|⟨⟨⟩⟩) : 3;
+    simp only [prod.fst_add, prod.snd_add, add_apply, submodule.coe_add, prod.mk_add_mk, H];
+    repeat { erw of_eq_same }; repeat { erw of_eq_of_ne }; try { apply option.no_confusion };
+    dsimp; simp only [zero_add, add_zero]; refl,
   end }
 
 lemma grading.left_inv :
@@ -113,8 +100,7 @@ lemma grading.left_inv :
 begin
   induction zz using direct_sum.induction_on with i zz d1 d2 ih1 ih2,
   { simp only [map_zero],},
-  { rcases i with (_|_|_);
-    rcases zz with ⟨⟨a, b⟩, (hab : _ = _)⟩;
+  { rcases i with (_|⟨⟨⟩⟩); rcases zz with ⟨⟨a, b⟩, (hab : _ = _)⟩;
     dsimp at hab; cases hab; dec_trivial! },
   { simp only [map_add, ih1, ih2], },
 end
@@ -135,9 +121,7 @@ instance : graded_algebra (grading R) :=
   left_inv := by { convert grading.left_inv, },
   right_inv := by { convert grading.right_inv, } }
 
-/--
-The counterexample is the ideal `I = span {(2, 2)}`.
--/
+/-- The counterexample is the ideal `I = span {(2, 2)}`. -/
 def I : ideal (R × R) := ideal.span {((2, 2) : (R × R))}.
 
 lemma I_not_prime : ¬ I.is_prime :=
@@ -162,8 +146,8 @@ lemma homogeneous_mem_or_mem {x y : (R × R)} (hx : set_like.is_homogeneous (gra
 begin
   simp only [I, ideal.mem_span_singleton] at hxy ⊢,
   cases x, cases y,
-  obtain ⟨(_|i), hx⟩ := hx; try { cases i }; change _ = _ at hx;
-  obtain ⟨(_|i), hy⟩ := hy; try { cases i }; change _ = _ at hy;
+  obtain ⟨(_|⟨⟨⟩⟩), hx : _ = _⟩ := hx;
+  obtain ⟨(_|⟨⟨⟩⟩), hy : _ = _⟩ := hy;
   dsimp at hx hy;
   cases hx; cases hy; clear hx hy;
   dec_trivial!,

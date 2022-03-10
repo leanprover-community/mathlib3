@@ -9,17 +9,18 @@ import topology.algebra.module.basic
 import topology.bornology.basic
 
 /-!
-# Von Neumann Boundedness
+# Natural Boundedness
 
-This file defines von Neumann bounded sets and proves elementary properties.
+This file defines natural or von Neumann bounded sets and proves elementary properties.
 
 ## Main declarations
 
 * `is_bounded`: A set `s` is bounded if every neighborhood of zero absorbs `s`.
+* `natural_bornology`: The set of bounded sets forms a bornology.
 
 ## Main results
 
-* `bounded_bornology`: The set of bounded sets forms a bornology.
+* `is_bounded_of_topological_space_le`: A coarser topology admits more bounded sets.
 
 ## References
 
@@ -70,7 +71,7 @@ variables [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
 
 /-- If a topology `t'` is coarser than `t`, then any set `s` that is bounded with respect to
 `t` is bounded with respect to `t'`. -/
-lemma is_bounded_of_topological_space_le (t t' : topological_space E) (h : t ≤ t') {s : set E}
+lemma is_bounded_of_topological_space_le {t t' : topological_space E} (h : t ≤ t') {s : set E}
   (hs : @is_bounded 𝕜 E _ _ _ t s) : @is_bounded 𝕜 E _ _ _ t' s :=
 λ V hV, hs V $ (le_iff_nhds t t').mp h 0 hV
 
@@ -94,8 +95,8 @@ set.eq_univ_iff_forall.mpr (λ x, set.mem_sUnion.mpr
 
 Note that this is not registered as an instance, in order to avoid diamonds with the
 metric bornology.-/
-def bounded_bornology : bornology E :=
-bornology.of_bounded (set_of (is_bounded 𝕜)) (is_bounded_empty 𝕜 E)
+def natural_bornology : bornology E :=
+bornology.of_bounded (set_of (is_bounded 𝕜)) (is_bounded.empty 𝕜 E)
   (λ _ hs _, is_bounded_subset hs) (λ _ hs _, is_bounded_union hs) is_bounded_covers
 
 end normed_field

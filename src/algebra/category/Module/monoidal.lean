@@ -282,7 +282,7 @@ def monoidal_closed_hom_equiv (M N P : Module.{u} R) :
   end, }
 
 instance : monoidal_closed (Module.{u} R) :=
-{ closed := λ M,
+{ closed' := λ M,
   { is_adj :=
     { right := (linear_coyoneda R (Module.{u} R)).obj (op M),
       adj := adjunction.mk_of_hom_equiv

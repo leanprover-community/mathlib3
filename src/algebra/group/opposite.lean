@@ -30,28 +30,25 @@ instance [add_right_cancel_semigroup α] : add_right_cancel_semigroup αᵐᵒ�
 unop_injective.add_right_cancel_semigroup _ (λ x y, rfl)
 
 instance [add_comm_semigroup α] : add_comm_semigroup αᵐᵒᵖ :=
-{ add_comm := λ x y, unop_injective $ add_comm (unop x) (unop y),
-  .. mul_opposite.add_semigroup α }
+unop_injective.add_comm_semigroup _ (λ x y, rfl)
 
 instance [add_zero_class α] : add_zero_class αᵐᵒᵖ :=
 unop_injective.add_zero_class _ rfl (λ x y, rfl)
 
 instance [add_monoid α] : add_monoid αᵐᵒᵖ :=
-unop_injective.add_monoid_smul _ rfl (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.add_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_monoid α] : add_comm_monoid αᵐᵒᵖ :=
-{ .. mul_opposite.add_monoid α, .. mul_opposite.add_comm_semigroup α }
+unop_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance [sub_neg_monoid α] : sub_neg_monoid αᵐᵒᵖ :=
-unop_injective.sub_neg_monoid_smul _ rfl (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.sub_neg_monoid _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_group α] : add_group αᵐᵒᵖ :=
-unop_injective.add_group_smul _ rfl (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.add_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_group α] : add_comm_group αᵐᵒᵖ :=
-{ .. mul_opposite.add_group α, .. mul_opposite.add_comm_monoid α }
+unop_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-!
 ### Multiplicative structures on `αᵐᵒᵖ`
@@ -175,8 +172,7 @@ instance [right_cancel_semigroup α] : right_cancel_semigroup αᵃᵒᵖ :=
 unop_injective.right_cancel_semigroup _ (λ x y, rfl)
 
 instance [comm_semigroup α] : comm_semigroup αᵃᵒᵖ :=
-{ mul_comm := λ x y, unop_injective $ mul_comm (unop x) (unop y),
-  .. add_opposite.semigroup α }
+unop_injective.comm_semigroup _ (λ x y, rfl)
 
 instance [mul_one_class α] : mul_one_class αᵃᵒᵖ :=
 unop_injective.mul_one_class _ rfl (λ x y, rfl)
@@ -187,21 +183,19 @@ instance {β} [has_pow α β] : has_pow αᵃᵒᵖ β := { pow := λ a b, op (u
 @[simp] lemma unop_pow {β} [has_pow α β] (a : αᵃᵒᵖ) (b : β) : unop (a ^ b) = unop a ^ b := rfl
 
 instance [monoid α] : monoid αᵃᵒᵖ :=
-unop_injective.monoid_pow _ rfl (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance [comm_monoid α] : comm_monoid αᵃᵒᵖ :=
-{ .. add_opposite.monoid α, .. add_opposite.comm_semigroup α }
+unop_injective.comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance [div_inv_monoid α] : div_inv_monoid αᵃᵒᵖ :=
-unop_injective.div_inv_monoid_pow _ rfl (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.div_inv_monoid _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance [group α] : group αᵃᵒᵖ :=
-unop_injective.group_pow _ rfl (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance [comm_group α] : comm_group αᵃᵒᵖ :=
-{ .. add_opposite.group α, .. add_opposite.comm_monoid α }
+unop_injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 variable {α}
 

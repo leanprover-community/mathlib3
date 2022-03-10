@@ -232,7 +232,7 @@ begin
   induction n with n ih,
   { exact mem_top x },
   { rw [key, (derived_series_normal _ _).mem_comm_iff, inv_mul_cancel_left],
-    exact commutator_containment _ _ ih ((derived_series_normal _ _).conj_mem _ ih _) },
+    exact commutator_mem_commutator ih ((derived_series_normal _ _).conj_mem _ ih _) },
 end
 
 lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :

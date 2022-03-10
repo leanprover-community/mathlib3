@@ -393,13 +393,10 @@ lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
 @[simp] lemma add_apply (p q : seminorm 𝕜 E) (x : E) : (p + q) x = p x + q x := rfl
 
 instance : add_monoid (seminorm 𝕜 E) :=
-fun_like.coe_injective.add_monoid_smul _ rfl coe_add (λ p n, coe_smul n p)
+fun_like.coe_injective.add_monoid _ rfl coe_add (λ p n, coe_smul n p)
 
 instance : ordered_cancel_add_comm_monoid (seminorm 𝕜 E) :=
-{ nsmul := (•),  -- to avoid introducing a diamond
-  ..seminorm.add_monoid,
-  ..(fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add
-      : ordered_cancel_add_comm_monoid (seminorm 𝕜 E)) }
+fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add (λ p n, coe_smul n p)
 
 instance [monoid R] [mul_action R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   mul_action R (seminorm 𝕜 E) :=

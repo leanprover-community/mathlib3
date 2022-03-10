@@ -490,6 +490,12 @@ option.rec h₁ h₂
 theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
 
+-- the `by exact` here forces the type of the equality to be `@eq (with_bot α)`
+@[simp] lemma map_bot (f : α → β) :
+  (by exact option.map f (⊥ : with_bot α)) = (⊥ : with_bot β) := rfl
+lemma map_coe (f : α → β) (a : α) :
+  (by exact option.map f (a : with_bot α)) = (f a : with_bot β) := rfl
+
 lemma ne_bot_iff_exists {x : with_bot α} : x ≠ ⊥ ↔ ∃ (a : α), ↑a = x :=
 option.ne_none_iff_exists
 
@@ -736,6 +742,12 @@ option.rec h₁ h₂
 @[norm_cast]
 theorem coe_eq_coe {a b : α} : (a : with_top α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
+
+-- the `by exact` here forces the type of the equality to be `@eq (with_top α)`
+@[simp] lemma map_top (f : α → β) :
+  (by exact option.map f (⊤ : with_top α)) = (⊤ : with_top β) := rfl
+lemma map_coe (f : α → β) (a : α) :
+  (by exact option.map f (a : with_top α)) = (f a : with_top β) := rfl
 
 @[simp] theorem top_ne_coe {a : α} : ⊤ ≠ (a : with_top α) .
 @[simp] theorem coe_ne_top {a : α} : (a : with_top α) ≠ ⊤ .

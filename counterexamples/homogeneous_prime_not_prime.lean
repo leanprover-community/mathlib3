@@ -74,7 +74,7 @@ instance : has_lt two :=
   end }
 
 instance : decidable_rel ((<) : two → two → Prop) :=
-λ i j, by { cases i; cases j; try {exact decidable.is_false id}, exact decidable.is_true trivial }
+λ i j, by { cases i; cases j; change decidable true <|> change decidable false; apply_instance }
 
 lemma two.z_lt_o : z < o := dec_trivial
 

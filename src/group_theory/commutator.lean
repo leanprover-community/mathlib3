@@ -30,10 +30,10 @@ lemma commutator_element_eq_one_iff_commute : ⁅g₁, g₂⁆ = 1 ↔ commute g
 by rw [commutator_element_eq_one_iff_mul_comm, commute, semiconj_by]
 
 @[simp] lemma commutator_element_one : ⁅g, (1 : G)⁆ = 1 :=
-by rw [commutator_element_eq_one_iff_mul_commute, one_mul, mul_one]
+by rw [commutator_element_eq_one_iff_mul_comm, one_mul, mul_one]
 
 @[simp] lemma one_commutator_element : ⁅(1 : G), g⁆ = 1 :=
-by rw [commutator_element_eq_one_iff_mul_commute, one_mul, mul_one]
+by rw [commutator_element_eq_one_iff_mul_comm, one_mul, mul_one]
 
 @[simp] lemma commutator_element_inv : ⁅g₁, g₂⁆⁻¹ = ⁅g₂, g₁⁆ :=
 by simp_rw [commutator_element_def, mul_inv_rev, inv_inv, mul_assoc]

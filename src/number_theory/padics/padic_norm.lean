@@ -163,9 +163,11 @@ protected lemma zero (m : nat) : padic_val_rat m 0 = 0 := by simp [padic_val_rat
 For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1.
 -/
 @[simp] lemma padic_val_rat_self (hp : 1 < p) : padic_val_rat p p = 1 :=
-by {simp [padic_val_rat, padic_val_int],
-    rw padic_val_nat.self hp, -- why doesn't this simp trigger
-    dec_trivial, }
+begin
+  simp only [padic_val_rat, padic_val_int, rat.coe_nat_num, int.nat_abs_of_nat, rat.coe_nat_denom,
+    padic_val_nat.one, int.coe_nat_zero, sub_zero, padic_val_nat.self hp],
+  refl,
+end
 
 /--
 The p-adic value of an integer `z ≠ 0` is the multiplicity of `p` in `z`.
@@ -202,10 +204,7 @@ end
 -/
 @[simp, norm_cast] lemma padic_val_rat_of_nat (p n : ℕ) :
   ↑(padic_val_nat p n) = padic_val_rat p n :=
-begin
-  unfold padic_val_rat padic_val_int,
-  simp,
-end
+by simp [padic_val_rat, padic_val_int]
 
 /--
 A simplification of `padic_val_nat` when one input is prime, by analogy with `padic_val_rat_def`.
@@ -217,9 +216,9 @@ lemma padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : n ≠ 0) :
 begin
   simp [padic_val_nat],
   split_ifs,
-  refl,
-  exfalso,
-  apply h ⟨(hp.out).ne_one, hn⟩,
+  { refl, },
+  { exfalso,
+    apply h ⟨(hp.out).ne_one, hn⟩, }
 end
 
 @[simp] lemma padic_val_nat_self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
@@ -272,15 +271,13 @@ begin
   split,
   { exact nat.prime.ne_one p_prime.out, },
   { intro hq,
-    rw hq at hc2,
-    simp at hc2,
+    simp [hq] at hc2,
     exact hd hc2, },
   split,
   { exact nat.prime.ne_one p_prime.out, },
   { intro hq,
-    simp at hq,
-    rw hq at hc1,
-    simp at hc1,
+    simp only [int.nat_abs_eq_zero] at hq,
+    simp [hq] at hc1,
     exact hn hc1, },
 end
 

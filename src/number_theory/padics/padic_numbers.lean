@@ -816,7 +816,8 @@ end
 begin
   have p₀ : p ≠ 0 := hp.1.ne_zero,
   have p₁ : p ≠ 1 := hp.1.ne_one,
-  simp [p₀, p₁, norm, padic_norm, padic_val_rat, zpow_neg, padic.cast_eq_of_rat_of_nat],
+  simp [p₀, p₁, norm, padic_norm, padic_val_rat, padic_val_int, zpow_neg,
+    padic.cast_eq_of_rat_of_nat],
 end
 
 lemma norm_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
@@ -864,13 +865,20 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
         from mt rat.zero_iff_num_zero.1 hnz,
       rw [padic_norm_e.eq_padic_norm],
       norm_cast,
-      rw [padic_norm.eq_zpow_of_nonzero p hnz', padic_val_rat_def p hnz'],
-      have h : (multiplicity p d).get _ = 0, by simp [multiplicity_eq_zero_of_not_dvd, hq],
-      simp only, norm_cast,
-      rw_mod_cast [h, sub_zero],
+      rw [padic_norm.eq_zpow_of_nonzero p hnz'],
+      simp only [padic_val_rat, padic_val_int, padic_val_nat, ne.def, neg_sub],
+      rw [dif_pos, dif_pos],
+      simp only [multiplicity_eq_zero_of_not_dvd, hq, not_false_iff, enat.get_zero,
+        int.coe_nat_zero, zero_sub, zpow_neg₀, zpow_coe_nat],
+      norm_cast,
+      rw ←zpow_neg_one,
       apply zpow_le_one_of_nonpos,
-      { exact_mod_cast le_of_lt hp.1.one_lt, },
-      { apply neg_nonpos_of_nonneg, norm_cast, simp, }
+      { norm_cast,
+        apply one_le_pow,
+        exact hp.1.pos, },
+      { dec_trivial, },
+      exact ⟨ne_of_gt (hp.out).one_lt, int.nat_abs_pos_of_ne_zero hnz⟩,
+      exact ⟨ne_of_gt (hp.out).one_lt, hn⟩,
     end
 
 theorem norm_int_le_one (z : ℤ) : ∥(z : ℚ_[p])∥ ≤ 1 :=

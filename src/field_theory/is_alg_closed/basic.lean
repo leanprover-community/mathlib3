@@ -341,7 +341,7 @@ perfect_ring.of_surjective k p $ λ x, is_alg_closed.exists_pow_nat_eq _ $ fact.
 lemma infinite {K : Type*} [field K] [is_alg_closed K] : infinite K :=
 begin
   apply infinite.mk,
-  intro hfin, haveI := hfin,
+  introsI hfin,
   set n := fintype.card K with hn,
   set f := monomial n.succ (1 : K) - 1 with hf,
   have hfsep : separable f,

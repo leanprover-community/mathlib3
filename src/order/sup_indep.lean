@@ -59,14 +59,45 @@ end
 lemma sup_indep.pairwise_disjoint (hs : s.sup_indep f) : (s : set ι).pairwise_disjoint f :=
 λ a ha b hb hab, sup_singleton.subst $ hs (singleton_subset_iff.2 hb) ha $ not_mem_singleton.2 hab
 
-lemma sup_indep_pair (i j : ι) (h : i ≠ j) : sup_indep {i, j} f ↔ disjoint i j :=
-⟨_, _⟩
-
 /-- The RHS looks like the definition of `complete_lattice.independent`. -/
 lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
   s.sup_indep f ↔ ∀ i ∈ s, disjoint (f i) ((s.erase i).sup f) :=
 ⟨λ hs i hi, hs (erase_subset _ _) hi (not_mem_erase _ _), λ hs t ht i hi hit,
   (hs i hi).mono_right (sup_mono $ λ j hj, mem_erase.2 ⟨ne_of_mem_of_not_mem hj hit, ht hj⟩)⟩
+
+lemma sup_indep_pair [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
+  ({i, j} : finset ι).sup_indep f ↔ disjoint (f i) (f j) :=
+⟨λ h, h.pairwise_disjoint (by simp) (by simp) hij, λ h, begin
+  rw sup_indep_iff_disjoint_erase,
+  intros k hk,
+  rw [finset.mem_insert, finset.mem_singleton] at hk,
+  obtain rfl | rfl := hk,
+  { convert h using 1,
+    rw [finset.erase_insert, finset.sup_singleton],
+    simpa using hij },
+  { convert h.symm using 1,
+    have : ({i, k} : finset ι).erase k = {i},
+    { ext,
+      rw [mem_erase, mem_insert, mem_singleton, mem_singleton, and_or_distrib_left,
+        ne.def, not_and_self, or_false, and_iff_right_of_imp],
+      rintro rfl,
+      exact hij },
+    rw [this, finset.sup_singleton] }
+end⟩
+
+@[simp] lemma sup_indep_univ_bool (f : bool → α) :
+  (finset.univ : finset bool).sup_indep f ↔ disjoint (f ff) (f tt) :=
+begin
+  have : tt ≠ ff := by simp only [ne.def, not_false_iff],
+  exact (sup_indep_pair this).trans disjoint.comm,
+end
+
+@[simp] lemma sup_indep_univ_fin_two (f : fin 2 → α) :
+  (finset.univ : finset (fin 2)).sup_indep f ↔ disjoint (f 0) (f 1) :=
+begin
+  have : (0 : fin 2) ≠ 1 := by simp,
+  exact sup_indep_pair this,
+end
 
 lemma sup_indep.attach (hs : s.sup_indep f) : s.attach.sup_indep (f ∘ subtype.val) :=
 begin

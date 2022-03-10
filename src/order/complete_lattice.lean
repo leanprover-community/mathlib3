@@ -1340,6 +1340,16 @@ variables {s : set α} (hs : set_independent s)
 lemma set_independent_empty : set_independent (∅ : set α) :=
 λ x hx, (set.not_mem_empty x hx).elim
 
+
+@[simp] theorem insert_diff_eq_singleton {a : α} {s : set α} (h : a ∉ s) : insert a s \ s = {a} :=
+begin
+  ext,
+  rw [set.mem_diff, set.mem_insert_iff, set.mem_singleton_iff, or_and_distrib_right,
+    and_not_self, or_false, and_iff_left_iff_imp],
+  rintro rfl,
+  exact h,
+end
+
 theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
   set_independent t :=
 λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
@@ -1347,6 +1357,19 @@ theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
 lemma set_independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
 disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, by simp [h.symm]⟩)
+
+lemma set_independent_pair {a b : α} (hab : a ≠ b) :
+  set_independent ({a, b} : set α) ↔ disjoint a b :=
+begin
+  split,
+  { intro h,
+    exact h.disjoint (mem_insert _ _) (mem_insert_of_mem _ (mem_singleton _)) hab, },
+  { rintros h c ((rfl : c = a) | (rfl : c = b)),
+    { convert h using 1,
+      simp [hab, Sup_singleton] },
+    { convert h.symm using 1,
+      simp [hab, Sup_singleton] }, },
+end
 
 include hs
 
@@ -1420,6 +1443,20 @@ lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
 λ i, (hs (f i)).mono_right begin
   refine (supr_le_supr $ λ i, _).trans (supr_comp_le _ f),
   exact supr_le_supr_const hf.ne,
+end
+
+lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = j):
+  independent t ↔ disjoint (t i) (t j) :=
+begin
+  split,
+  { intro h,
+    exact h.disjoint hij, },
+  { rintros h k,
+    obtain rfl | rfl := huniv k,
+    { refine h.mono_right (supr_le $ λ i, supr_le $ λ hi, eq.le _),
+      rw (huniv i).resolve_left hi },
+    { refine h.symm.mono_right (supr_le $ λ j, supr_le $ λ hj, eq.le _),
+      rw (huniv j).resolve_right hj } },
 end
 
 /-- Composing an indepedent indexed family with an order isomorphism on the elements results in

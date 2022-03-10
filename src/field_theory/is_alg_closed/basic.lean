@@ -343,7 +343,7 @@ begin
   apply infinite.mk,
   introsI hfin,
   set n := fintype.card K with hn,
-  set f := monomial n.succ (1 : K) - 1 with hf,
+  set f := (X : K[X]) ^ (n + 1) - 1 with hf,
   have hfsep : separable f,
   { rw polynomial.separable_def',
     refine ⟨ -1, (polynomial.monomial 1 (n.succ : K)⁻¹), _⟩,

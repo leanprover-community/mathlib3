@@ -92,9 +92,7 @@ variables {p : ℕ}
 protected lemma zero : padic_val_int p 0 = 0 :=
 by simp [padic_val_int]
 
-/--
-`padic_val_int p 1` is 0 for any `p`.
--/
+/-- `padic_val_int p 1` is 0 for any `p`. -/
 @[simp] protected lemma one : padic_val_int p 1 = 0 :=
 by simp [padic_val_int]
 

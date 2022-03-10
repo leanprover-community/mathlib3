@@ -7,6 +7,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 import data.mv_polynomial.rename
 import data.equiv.fin
 import data.polynomial.algebra_map
+import data.polynomial.lifts
 import data.mv_polynomial.variables
 import data.finsupp.fin
 
@@ -276,8 +277,17 @@ def option_equiv_right : mv_polynomial (option S₁) R ≃ₐ[R] mv_polynomial S
 alg_equiv.of_alg_hom
   (mv_polynomial.aeval (λ o, o.elim (C polynomial.X) X))
   (mv_polynomial.aeval_tower (polynomial.aeval (X none)) (λ i, X (option.some i)))
-  (by ext : 2; simp [mv_polynomial.algebra_map_eq])
-  (by ext i : 2; cases i; simp)
+  begin
+    ext : 2;
+    simp only [mv_polynomial.algebra_map_eq, option.elim, alg_hom.coe_comp, alg_hom.id_comp,
+      is_scalar_tower.coe_to_alg_hom', comp_app, aeval_tower_C, polynomial.aeval_X, aeval_X,
+      option.elim, aeval_tower_X, alg_hom.coe_id, id.def, eq_self_iff_true, implies_true_iff],
+  end
+  begin
+    ext ⟨i⟩ : 2;
+    simp only [option.elim, alg_hom.coe_comp, comp_app, aeval_X, aeval_tower_C,
+      polynomial.aeval_X, alg_hom.coe_id, id.def, aeval_tower_X],
+  end
 
 /--
 The algebra isomorphism between multivariable polynomials in `fin (n + 1)` and
@@ -329,126 +339,53 @@ lemma fin_succ_equiv_X_zero {n : ℕ} :
 lemma fin_succ_equiv_X_succ {n : ℕ} {j : fin n} :
   fin_succ_equiv R n (X j.succ) = polynomial.C (X j) := by simp
 
-private lemma fin_succ_equiv_coeff_coeff_C {n : ℕ } (a : R) (i : ℕ) (m : fin n →₀ ℕ) :
-  coeff m (((fin_succ_equiv R n) (C a)).coeff i) = coeff (finsupp.cons i m) (C a) :=
-begin
-  by_cases c_i : i = 0,
-  { simp only [c_i, fin_succ_equiv_apply, polynomial.coeff_C_zero, coeff_C, ring_hom.coe_comp,
-               eval₂_hom_C],
-    by_cases c_m : 0 = m,
-    { simp only [← c_m, if_true, eq_self_iff_true, finsupp.cons_zero_zero] },
-    { have x : ¬ finsupp.cons 0 m = 0,
-      { apply finsupp.cons_ne_zero_of_right,
-        symmetry,
-        simpa using c_m },
-      have x' : ¬ 0 = finsupp.cons 0 m := by cc,
-      simp only [c_m, if_false, x', if_false] } },
-  { have x : ¬ finsupp.cons i m = 0,
-    { apply finsupp.cons_ne_zero_of_left,
-      simpa using c_i },
-    have x' :  ¬ 0 = finsupp.cons i m := by cc,
-    simp only [fin_succ_equiv_apply, coeff_C, function.comp_app, ring_hom.coe_comp, eval₂_hom_C,
-               polynomial.coeff_C, c_i, if_false, coeff_zero, x', if_false] },
-end
-
-private lemma fin_succ_equiv_coeff_coeff_case_p_X  {n : ℕ } (p : mv_polynomial (fin (n + 1)) R)
-  (j : fin (n + 1)) (hp : ∀ (i : ℕ) (m : fin n →₀ ℕ), coeff m (((fin_succ_equiv R n) p).coeff i)
-   = coeff (finsupp.cons i m) p) (i : ℕ) (m : fin n →₀ ℕ) :
-  coeff m (((fin_succ_equiv R n) (p * X j)).coeff i) = coeff (finsupp.cons i m) (p * X j) :=
-begin
-  rw [coeff_mul_X' (finsupp.cons i m) j p, (fin_succ_equiv R n).map_mul],
-  by_cases c_j : j = 0,
-  { rw c_j,
-    by_cases c_i : i = 0,
-    { rw c_i,
-      simp only [fin_succ_equiv_apply, fin.cases_zero, polynomial.coeff_X_zero, coe_eval₂_hom,
-                  polynomial.mul_coeff_zero, finsupp.mem_support_iff, ne.def, eval₂_hom_X',
-                  mul_zero, coeff_zero ],
-      have t : ¬¬(finsupp.cons 0 m) 0 = 0 := by simp only [ not_not, finsupp.cons_zero],
-      simp only [t, if_false] },
-    { rw fin_succ_equiv_X_zero,
-      let i' := nat.pred i,
-      have r : i = i'.succ,
-      { rw nat.succ_pred_eq_of_pos _,
-        exact nat.pos_of_ne_zero (by simpa) },
-      rw [r, polynomial.coeff_mul_X, hp i'],
-      simp only [finsupp.mem_support_iff, ne.def, finsupp.cons_zero],
-      rw ← r,
-      simp only [c_i, if_true, not_false_iff],
-      congr,
-      ext,
-      by_cases c_a : a = 0,
-      { rw c_a,
-        simp only [finsupp.single_eq_same, finsupp.coe_tsub, pi.sub_apply],
-        repeat { rw finsupp.cons_zero },
-        refl },
-      { simp only [finsupp.single_eq_same, finsupp.coe_tsub, pi.sub_apply],
-        have c_a' : a ≠ 0 := by simpa using c_a,
-        rw [←fin.succ_pred a c_a', finsupp.cons_succ, finsupp.cons_succ, finsupp.single],
-        have c_a'' : ¬ 0 = a := by simpa using c_a'.symm,
-        simp [c_a'', if_false] } } },
-  { let j' := fin.pred j c_j,
-    have r : j = j'.succ := by simp,
-    rw [r, fin_succ_equiv_X_succ, polynomial.coeff_mul_C, coeff_mul_X', hp i],
-    simp only [fin.succ_pred, finsupp.mem_support_iff, ne.def],
-    by_cases c_mj' : m j' = 0,
-    { simp only [r, finsupp.cons_succ, c_mj', if_false, eq_self_iff_true, not_true] },
-    { simp only [r, finsupp.cons_succ, c_mj', if_true, not_false_iff],
-      congr,
-      ext,
-      by_cases c_a : a = 0,
-      { simp [c_a, finsupp.cons_zero, finsupp.single, c_j] },
-      { simp only [finsupp.coe_tsub, pi.sub_apply],
-        rw ←fin.succ_pred a c_a,
-        repeat {rw finsupp.cons_succ},
-        simp [finsupp.single, c_j],
-        congr } } },
-end
-
 /-- The coefficient of `m` in the `i`-th coefficient of `fin_succ_equiv R n f` equals the
     coefficient of `finsupp.cons i m` in `f`. -/
 lemma fin_succ_equiv_coeff_coeff {n : ℕ} (m : fin n →₀  ℕ)
   (f : mv_polynomial (fin (n + 1)) R) (i : ℕ) :
-  coeff m (polynomial.coeff (fin_succ_equiv R n f) i) = coeff (finsupp.cons i m) f :=
+  coeff m (polynomial.coeff (fin_succ_equiv R n f) i) = coeff (m.cons i) f :=
 begin
-  revert i m,
-  apply induction_on f,
-  { apply fin_succ_equiv_coeff_coeff_C },
-  { intros p q hp hq i m,
-    simp only [(fin_succ_equiv R n).map_add, polynomial.coeff_add, coeff_add, hp, hq] },
-  { apply fin_succ_equiv_coeff_coeff_case_p_X },
+  induction f using mv_polynomial.induction_on' with j r p q hp hq generalizing i m,
+  swap,
+  { simp only [(fin_succ_equiv R n).map_add, polynomial.coeff_add, coeff_add, hp, hq] },
+  simp only [fin_succ_equiv_apply, coe_eval₂_hom, eval₂_monomial, ring_hom.coe_comp, prod_pow,
+    polynomial.coeff_C_mul, coeff_C_mul, coeff_monomial,
+    fin.prod_univ_succ, fin.cases_zero, fin.cases_succ, ← ring_hom.map_prod, ← ring_hom.map_pow],
+  rw [← mul_boole, mul_comm (polynomial.X ^ j 0), polynomial.coeff_C_mul_X_pow], congr' 1,
+  obtain rfl | hjmi := eq_or_ne j (m.cons i),
+  { simpa only [cons_zero, cons_succ, if_pos rfl, monomial_eq, C_1, one_mul, prod_pow]
+      using coeff_monomial m m (1:R), },
+  { simp only [hjmi, if_false],
+    obtain hij | rfl := ne_or_eq i (j 0),
+    { simp only [hij, if_false, coeff_zero] },
+    simp only [eq_self_iff_true, if_true],
+    have hmj : m ≠ j.tail, { rintro rfl, rw [cons_tail] at hjmi, contradiction },
+    simpa only [monomial_eq, C_1, one_mul, prod_pow, finsupp.tail_apply, if_neg hmj.symm]
+      using coeff_monomial m j.tail (1:R), }
 end
 
 lemma eval_eq_eval_mv_eval' {n : ℕ} (s : fin n → R) (y : R) (f : mv_polynomial (fin (n + 1)) R) :
-  eval (fin.cons y s : fin (n + 1) → R) f
-  = polynomial.eval y (polynomial.map (eval s) ((fin_succ_equiv R n) f)) :=
+  eval (fin.cons y s : fin (n + 1) → R) f =
+    polynomial.eval y (polynomial.map (eval s) (fin_succ_equiv R n f)) :=
 begin
-  apply induction_on f,
-  { intro a,
-    simp },
-  { intros p q hp hq,
-    simp only [(fin_succ_equiv R n).map_add, ring_hom.map_add, polynomial.map_add,
-              polynomial.eval_add],
-    congr,
-    { exact hp },
-    { exact hq } },
-  { intros p j h,
-    simp only [(fin_succ_equiv R n).map_mul, eval_X, polynomial.map_mul, ring_hom.map_mul,
-              polynomial.eval_mul],
-    congr,
-    { exact h },
-    { clear h f,
-      simp only [fin_succ_equiv_apply, eval₂_hom_X'],
-      by_cases c : j = 0,
-      { rw c,
-        simp [fin.cons_zero] },
-      { have c' : j ≠ 0 := by simpa only [ne.def],
-        rw [←fin.succ_pred j c', fin.cons_succ],
-        simp } } },
+  -- turn this into a def `polynomial.map_alg_hom`
+  let φ : (mv_polynomial (fin n) R)[X] →ₐ[R] R[X] :=
+  { commutes' := λ r, by { convert polynomial.map_C _, exact (eval_C _).symm },
+    .. polynomial.map_ring_hom (eval s) },
+  show aeval (fin.cons y s : fin (n + 1) → R) f =
+    (polynomial.aeval y).comp (φ.comp (fin_succ_equiv R n).to_alg_hom) f,
+  congr' 2,
+  apply mv_polynomial.alg_hom_ext,
+  rw fin.forall_fin_succ,
+  simp only [aeval_X, fin.cons_zero, alg_equiv.to_alg_hom_eq_coe, alg_hom.coe_comp,
+    polynomial.coe_aeval_eq_eval, polynomial.map_C, alg_hom.coe_mk, ring_hom.to_fun_eq_coe,
+    polynomial.coe_map_ring_hom, alg_equiv.coe_alg_hom, comp_app, fin_succ_equiv_apply,
+    eval₂_hom_X', fin.cases_zero, polynomial.map_X, polynomial.eval_X, eq_self_iff_true,
+  fin.cons_succ, fin.cases_succ, eval_X, polynomial.eval_C, implies_true_iff, and_self],
 end
 
 lemma coeff_eval_eq_eval_coeff {n : ℕ} (s' : fin n → R) (f : polynomial (mv_polynomial (fin n) R))
-  (i : ℕ) : polynomial.coeff (polynomial.map (eval s') f) i =  eval s' (polynomial.coeff f i) :=
+  (i : ℕ) : polynomial.coeff (polynomial.map (eval s') f) i = eval s' (polynomial.coeff f i) :=
 by simp only [polynomial.coeff_map]
 
 lemma degree_eval_le_degree {n : ℕ} (s' : fin n → R) (f : polynomial (mv_polynomial (fin n) R)) :

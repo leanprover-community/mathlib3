@@ -227,7 +227,7 @@ lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)] (not_
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
 begin
   -- TODO(Bolton): This will be a harder proof. Find some sublemmas that will be needed and
-  -- extract them.
+  -- extract them. subgroup.card_subgroup_dvd_card is lagrange's thm
   by_cases h : ∃ (p q : ℕ), p.prime ∧ q.prime ∧ p ∣ n ∧ q ∣ n,
   {
     rcases h with ⟨p, q, p_prime, q_prime, p_dvd, q_dvd⟩,

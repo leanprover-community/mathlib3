@@ -914,6 +914,22 @@ begin
 end
 
 
+lemma set.coe_subtype_eq_inter {α : Type*} (s t : set α) :
+  set.image coe { x : ↥s | ↑x ∈ t } = s ∩ t :=
+begin
+  ext x,
+  rw set.mem_image,
+  split,
+  { rintro ⟨a, ha, ha'⟩,
+    simp only [set.mem_set_of_eq] at ha,
+    rw ← ha',
+    simp only [set.mem_inter_eq, subtype.coe_prop, true_and, ha] },
+  { intro h, rw set.mem_inter_eq at h,
+    use ⟨x, h.left⟩,
+    simp only [h.right, set.mem_set_of_eq, subtype.coe_mk, eq_self_iff_true, and_self] }
+end
+
+
 /- Theorem 8.4 : if the action of a subgroup H on an orbit is primitive,
    and if that orbit is small enough, then the action of G is primitive -/
 theorem is_primitive_of_subgroup [hfX : fintype X] (htGX : is_pretransitive G X)
@@ -990,12 +1006,61 @@ theorem is_primitive_of_subgroup [hfX : fintype X] (htGX : is_pretransitive G X)
     rw ← h at hx, exact set.mem_of_mem_inter_right hx },
 
   -- en déduire, via la primitivité (hH), que ((orbit ↥H a) ∩ (g • B)) ≤ 1
+  have hyp' : ∀ (g : G), ((orbit ↥H a) ∩ (g • B)).to_finset.card ≤ 1,
+  { intro g,
+    let Bg := {x : ↥(orbit ↥H a) | ↑x ∈ g • B} ,
+    have hBg' := set.coe_subtype_eq_inter (orbit H a) (g • B),
+
+    have hBg : is_block H (orbit ↥H a) Bg,
+    { intro h,
+      suffices : is_block H X ((orbit H a) ∩ (g • B)),
+      { cases this h with h1 h2,
+        sorry,
+
+      sorry },
+
+
+      sorry, },
+
+    have : Bg ≠ set.univ, sorry,
+    cases (hH.has_trivial_blocks hBg) with h h',
+
+
+
+
+
+    sorry },
   -- en déduire que le système de blocs { g • B } a pour cardinal au moins (orbit ↥H a)
   -- mais c'est card(X)/card(B),
   -- donc card(X)/card(B) ≥ card(orbit ↥H a) > n/2
   -- donc card(B) < 2
     sorry
   end
+
+example (H : subgroup G) (a : X) (B : set X) (hB : is_block G X B) :
+  is_block H (orbit H a) { x : ↥(orbit H a) | ↑x ∈ B } :=
+begin
+  intro h,
+  cases hB ↑h with H1 H2,
+  { apply or.intro_left,
+    ext x,
+    split,
+    { rintro ⟨y, hy, rfl⟩,
+      simp only [set.mem_set_of_eq] at hy ⊢,
+      simp only [orbit.coe_smul], rw ← H1,
+      exact ⟨↑y, hy, rfl⟩, },
+    { intro hx,
+      simp only [set.mem_set_of_eq] at hx,
+      use h⁻¹ • x,
+      simp only [set.mem_set_of_eq, orbit.coe_smul, smul_inv_smul, eq_self_iff_true, and_true],
+      rw ← mem_smul_set_iff_inv_smul_mem,
+      change  h • B = B at H1, rw H1, exact hx } },
+  { apply or.intro_right,
+    rw disjoint_iff,
+
+  sorry }
+end
+
 
 lemma test (m n : ℕ) (hm : 2 * m > n) (hn : n > 0) (hmn : m ∣ n) : m  = n :=
 begin

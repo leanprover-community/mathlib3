@@ -31,7 +31,7 @@ these are deprecated.
 equiv, mul_equiv, add_equiv
 -/
 
-variables {α β A B M N P Q G H : Type*}
+variables {F α β A B M N P Q G H : Type*}
 
 /-- Makes a multiplicative inverse from a bijection which preserves multiplication. -/
 @[to_additive "Makes an additive inverse from a bijection which preserves addition."]
@@ -88,11 +88,8 @@ class mul_equiv_class (F A B : Type*) [has_mul A] [has_mul B]
 infix ` ≃* `:25 := mul_equiv
 infix ` ≃+ `:25 := add_equiv
 
-section mul_equiv_class
-
-variables (F : Type*)
-
 namespace mul_equiv_class
+variables (F)
 
 @[priority 100, -- See note [lower instance priority]
   to_additive]
@@ -135,7 +132,9 @@ map_ne_one_iff h (equiv_like.injective h)
 
 end mul_equiv_class
 
-end mul_equiv_class
+@[to_additive] instance [has_mul α] [has_mul β] [mul_equiv_class F α β] : has_coe_t F (α ≃* β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f, map_mul' := map_mul f }⟩
 
 namespace mul_equiv
 
@@ -279,6 +278,18 @@ e.to_equiv.symm_apply_eq
 @[to_additive]
 lemma eq_symm_apply (e : M ≃* N) {x y} : y = e.symm x ↔ e y = x :=
 e.to_equiv.eq_symm_apply
+
+@[to_additive] lemma eq_comp_symm {α : Type*} (e : M ≃* N) (f : N → α) (g : M → α) :
+  f = g ∘ e.symm ↔ f ∘ e = g := e.to_equiv.eq_comp_symm f g
+
+@[to_additive] lemma comp_symm_eq {α : Type*} (e : M ≃* N) (f : N → α) (g : M → α) :
+  g ∘ e.symm = f ↔ g = f ∘ e := e.to_equiv.comp_symm_eq f g
+
+@[to_additive] lemma eq_symm_comp {α : Type*} (e : M ≃* N) (f : α → M) (g : α → N) :
+  f = e.symm ∘ g ↔ e ∘ f = g := e.to_equiv.eq_symm_comp f g
+
+@[to_additive] lemma symm_comp_eq {α : Type*} (e : M ≃* N) (f : α → M) (g : α → N) :
+  e.symm ∘ g = f ↔ g = e ∘ f := e.to_equiv.symm_comp_eq f g
 
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/
@@ -476,6 +487,7 @@ def to_units [group G] : G ≃* Gˣ :=
 @[simp, to_additive coe_to_add_units] lemma coe_to_units [group G] (g : G) :
   (to_units g : G) = g := rfl
 
+@[to_additive add_group.is_add_unit]
 protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units
@@ -539,7 +551,7 @@ variables (G) [has_involutive_inv G]
 /-- Inversion on a `group` or `group_with_zero` is a permutation of the underlying type. -/
 @[to_additive "Negation on an `add_group` is a permutation of the underlying type.",
   simps apply {fully_applied := ff}]
-protected def inv : perm G := inv_involutive.to_equiv _
+protected def inv : perm G := inv_involutive.to_perm _
 
 variable {G}
 

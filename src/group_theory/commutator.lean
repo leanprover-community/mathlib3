@@ -26,7 +26,7 @@ variables {G G' F : Type*} [group G] [group G'] [monoid_hom_class F G G'] (f : F
 @[simp] lemma commutator_element_inv : ⁅g₁, g₂⁆⁻¹ = ⁅g₂, g₁⁆ :=
 by simp_rw [commutator_element_def, mul_inv_rev, inv_inv, mul_assoc]
 
-lemma map_commutator_element : ((f ⁅g₁, g₂⁆) : G') = ⁅f g₁, f g₂⁆ :=
+lemma map_commutator_element : (f ⁅g₁, g₂⁆ : G') = ⁅f g₁, f g₂⁆ :=
 by simp_rw [commutator_element_def, map_mul f, map_inv f]
 
 lemma conjugate_commutator_element : g₃ * ⁅g₁, g₂⁆ * g₃⁻¹ = ⁅g₃ * g₁ * g₃⁻¹, g₃ * g₂ * g₃⁻¹⁆ :=
@@ -79,8 +79,8 @@ begin
     exact h p hp q hq, }
 end
 
-lemma commutator_containment (H₁ H₂ : subgroup G) {p q : G} (hp : p ∈ H₁) (hq : q ∈ H₂) :
-  p * q * p⁻¹ * q⁻¹ ∈ ⁅H₁, H₂⁆ :=
+lemma commutator_mem_commutator {H₁ H₂ : subgroup G} {p q : G} (hp : p ∈ H₁) (hq : q ∈ H₂) :
+  ⁅p, q⁆ ∈ ⁅H₁, H₂⁆ :=
 (commutator_le H₁ H₂ ⁅H₁, H₂⁆).mp (le_refl ⁅H₁, H₂⁆) p hp q hq
 
 lemma commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
@@ -125,10 +125,10 @@ begin
   simp_rw [le_antisymm_iff, map_le_iff_le_comap, commutator_le, mem_comap, map_commutator_element],
   split,
   { intros p hp q hq,
-    exact commutator_containment _ _ (mem_map_of_mem _ hp) (mem_map_of_mem _ hq), },
+    exact commutator_mem_commutator (mem_map_of_mem _ hp) (mem_map_of_mem _ hq), },
   { rintros _ ⟨p, hp, rfl⟩ _ ⟨q, hq, rfl⟩,
     rw ← map_commutator_element,
-    exact mem_map_of_mem _ (commutator_containment _ _ hp hq) }
+    exact mem_map_of_mem _ (commutator_mem_commutator hp hq) }
 end
 
 lemma commutator_prod_prod {G₂ : Type*} [group G₂]
@@ -138,7 +138,7 @@ begin
   apply le_antisymm,
   { rw commutator_le,
     rintros ⟨p₁, p₂⟩ ⟨hp₁, hp₂⟩ ⟨q₁, q₂⟩ ⟨hq₁, hq₂⟩,
-    exact ⟨commutator_containment _ _ hp₁ hq₁, commutator_containment _ _ hp₂ hq₂⟩},
+    exact ⟨commutator_mem_commutator hp₁ hq₁, commutator_mem_commutator hp₂ hq₂⟩ },
   { rw prod_le_iff, split;
     { rw map_commutator,
       apply commutator_mono;
@@ -153,8 +153,7 @@ See `commutator_pi_pi_of_fintype` for equality given `fintype η`.
 lemma commutator_pi_pi_le {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
   (H K : Π i, subgroup (Gs i)) :
   ⁅subgroup.pi set.univ H, subgroup.pi set.univ K⁆ ≤ subgroup.pi set.univ (λ i, ⁅H i, K i⁆) :=
-(commutator_le _ _ _).mpr $
-  λ p hp q hq i hi, commutator_containment _ _ (hp i hi) (hq i hi)
+(commutator_le _ _ _).mpr $ λ p hp q hq i hi, commutator_mem_commutator (hp i hi) (hq i hi)
 
 /-- The commutator of a finite direct product is contained in the direct product of the commutators.
 -/

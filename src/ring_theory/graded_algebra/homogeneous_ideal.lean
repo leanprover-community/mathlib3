@@ -558,15 +558,7 @@ end⟩
 
 lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
   a ∈ homogeneous_ideal.irrelevant 𝒜 ↔ proj 𝒜 0 a = 0 :=
-⟨λ (ha : _ = (0 : 𝒜 0)), begin
-  rw subtype.ext_iff_val at ha,
-  convert ha,
-end, λ ha, begin
-  change _ = (0 : 𝒜 0),
-  rw subtype.ext_iff_val,
-  change proj 𝒜 0 a = 0,
-  exact ha,
-end⟩
+subtype.ext_iff
 
 lemma homogeneous_ideal.irrelevant_eq :
   ↑(homogeneous_ideal.irrelevant 𝒜) = (graded_algebra.proj_zero_ring_hom 𝒜).ker := rfl

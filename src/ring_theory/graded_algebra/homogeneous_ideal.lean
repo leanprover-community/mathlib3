@@ -486,16 +486,15 @@ If `A` is graded by a canonically ordered add monoid, then the projection map `x
 homomorphism.
 -/
 def graded_algebra.proj_zero_ring_hom : A →+* 𝒜 0 :=
-{ to_fun := λ a, ⟨proj 𝒜 0 a, submodule.coe_mem _⟩,
+{ to_fun := λ a, decompose 𝒜 a 0,
   map_one' := begin
-    simp only [subtype.ext_iff_val, proj_apply],
+    simp only [subtype.ext_iff],
     rw decompose_of_mem_same, refl, exact set_like.graded_monoid.one_mem
   end,
   map_mul' := λ x y, begin
     haveI : Π (i : ι) (x : (𝒜 i)), decidable (x ≠ 0) := λ _ _, classical.dec_pred _ _,
     rw [subtype.ext_iff_val],
     change _ = _ * _,
-    dsimp only,
     apply submodule.supr_induction 𝒜
       (((is_internal 𝒜).supr_eq_top.ge : _) submodule.mem_top : x ∈ _),
     { intros i c hc,
@@ -505,7 +504,8 @@ def graded_algebra.proj_zero_ring_hom : A →+* 𝒜 0 :=
         have mem1 : c * c' ∈ 𝒜 (i + j) := set_like.graded_monoid.mul_mem hc hc',
         by_cases ineq1 : i + j = 0,
         { rw ineq1 at mem1,
-          rw [proj_apply, decompose_of_mem_same 𝒜 mem1],
+          simp only [subtype.val_eq_coe],
+          rw [decompose_of_mem_same 𝒜 mem1],
           rw ← bot_eq_zero at ineq1 ⊢,
           have j_eq : j = ⊥,
           { have ineq2 : ⊥ ≤ j := bot_le,
@@ -520,21 +520,26 @@ def graded_algebra.proj_zero_ring_hom : A →+* 𝒜 0 :=
           rw j_eq at *,
           rw [add_zero] at ineq1,
           rw ineq1 at hc,
-          rw [proj_apply, proj_apply, decompose_of_mem_same 𝒜 hc, decompose_of_mem_same 𝒜 hc'] },
-        { rw [proj_apply, decompose_of_mem_ne 𝒜 mem1 ineq1],
+          rw [decompose_of_mem_same 𝒜 hc, decompose_of_mem_same 𝒜 hc'] },
+        { simp only [subtype.val_eq_coe],
+          rw [decompose_of_mem_ne 𝒜 mem1 ineq1],
           rw [add_eq_zero_iff, not_and_distrib] at ineq1,
           cases ineq1,
-          { simp only [proj_apply, decompose_of_mem_ne 𝒜 hc ineq1, zero_mul] },
-          { simp only [proj_apply, decompose_of_mem_ne 𝒜 hc' ineq1, mul_zero] } } },
-      { rw [mul_zero, map_zero, mul_zero], },
+          { simp only [decompose_of_mem_ne 𝒜 hc ineq1, zero_mul] },
+          { simp only [decompose_of_mem_ne 𝒜 hc' ineq1, mul_zero] } } },
+      { erw [mul_zero, map_zero, zero_apply, mul_zero], refl },
       { rintros d e (hd : _ = _ * _) (he : _ = _ * _),
-        rw [mul_add, map_add, hd, he, map_add, mul_add] }, },
-    { rw [zero_mul, map_zero, zero_mul] },
+        rw [mul_add, map_add, add_apply, map_add, add_apply],
+        erw [mul_add, ← hd, ← he],
+        refl } },
+    { erw [zero_mul, map_zero, zero_apply, zero_mul],
+      refl },
     { rintros a b (ha : _ = _ * _) (hb : _ = _ * _),
-      rw [add_mul, map_add, ha, hb, map_add, add_mul], }
+      erw [add_mul, map_add, add_apply, map_add, add_apply, add_mul, ← ha, ← hb],
+      refl }
   end,
   map_zero' := by { simp only [subtype.ext_iff_val, map_zero], refl },
-  map_add' := λ _ _, by { simp only [subtype.ext_iff_val, map_add], refl } }
+  map_add' := λ x y, by { simp only [subtype.ext_iff_val, map_add, add_apply] } }
 
 /--
 For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelevant ideal

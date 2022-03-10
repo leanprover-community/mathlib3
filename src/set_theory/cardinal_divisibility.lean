@@ -49,6 +49,10 @@ begin
     exact zero_ne_one ht }
 end
 
+instance : unique cardinal.{u}ˣ :=
+{ default := 1,
+  uniq := λ a, units.coe_eq_one.mp $ is_unit_iff.mp a.is_unit }
+
 theorem le_of_dvd : ∀ {a b : cardinal}, b ≠ 0 → a ∣ b → a ≤ b
 | a _ b0 ⟨b, rfl⟩ := by simpa only [mul_one] using mul_le_mul_left'
   (one_le_iff_ne_zero.2 (λ h : b = 0, by simpa only [h, mul_zero] using b0)) a
@@ -126,10 +130,7 @@ begin
   lift a to ℕ using not_le.mp h,
   simp only [h, nat.cast_inj, exists_eq_left', false_or, is_prime_pow_nat_iff],
   rw is_prime_pow_def,
-  split,
-  swap,
-  { rintro ⟨p, k, hp, hk, rfl⟩,
-    exact ⟨p, k, nat_is_prime_iff.mpr hp, by exact_mod_cast hk, by norm_cast⟩ },
+  refine ⟨_, λ ⟨p, k, hp, hk, h⟩, ⟨p, k, nat_is_prime_iff.2 hp, by exact_mod_cast and.intro hk h⟩⟩,
   rintro ⟨p, k, hp, hk, hpk⟩,
   have key : _ ≤ p ^ k :=
     power_le_power_left hp.ne_zero (show (1 : cardinal) ≤ k, by exact_mod_cast hk),

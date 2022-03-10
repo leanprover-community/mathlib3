@@ -27,7 +27,7 @@ lemma commutator_element_eq_one_iff_mul_comm : ⁅g₁, g₂⁆ = 1 ↔ g₁ * g
 by rw [commutator_element_def, mul_inv_eq_one, mul_inv_eq_iff_eq_mul]
 
 lemma commutator_element_eq_one_iff_commute : ⁅g₁, g₂⁆ = 1 ↔ commute g₁ g₂ :=
-by rw [commutator_element_eq_one_iff_mul_comm, commute, semiconj_by]
+commutator_element_eq_one_iff_mul_comm g₁ g₂
 
 @[simp] lemma commutator_element_one : ⁅g, (1 : G)⁆ = 1 :=
 by rw [commutator_element_eq_one_iff_mul_comm, one_mul, mul_one]

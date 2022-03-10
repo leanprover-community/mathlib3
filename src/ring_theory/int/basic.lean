@@ -294,7 +294,7 @@ lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_ab
 by simp only [finite_def, ← int.nat_abs_dvd_iff_dvd, int.nat_abs_pow]
 
 lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) :=
-by rw [finite_int_iff_nat_abs_finite, finite_nat_iff, int.nat_abs_ne_zero]
+by rw [finite_int_iff_nat_abs_finite, finite_nat_iff, pos_iff_ne_zero, int.nat_abs_ne_zero]
 
 instance decidable_nat : decidable_rel (λ a b : ℕ, (multiplicity a b).dom) :=
 λ a b, decidable_of_iff _ finite_nat_iff.symm

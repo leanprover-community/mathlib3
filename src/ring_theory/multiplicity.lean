@@ -236,9 +236,9 @@ lemma dvd_iff_multiplicity_pos {a b : α} : (0 : enat) < multiplicity a b ↔ a 
       by simpa only [heq, nat.cast_zero] using enat.coe_lt_coe.mpr zero_lt_one)
     (by rwa pow_one a))⟩
 
-lemma finite_nat_iff {a b : ℕ} : finite a b ↔ (a ≠ 1 ∧ b ≠ 0) :=
+lemma finite_nat_iff {a b : ℕ} : finite a b ↔ (a ≠ 1 ∧ 0 < b) :=
 begin
-  rw [←pos_iff_ne_zero, ← not_iff_not, not_finite_iff_forall, not_and_distrib, ne.def,
+  rw [← not_iff_not, not_finite_iff_forall, not_and_distrib, ne.def,
     not_not, not_lt, nat.le_zero_iff],
   exact ⟨λ h, or_iff_not_imp_right.2 (λ hb,
     have ha : a ≠ 0, from λ ha, by simpa [ha] using h 1,

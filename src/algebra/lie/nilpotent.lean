@@ -161,7 +161,7 @@ begin
   induction k with k h,
   { rw [derived_series_def, derived_series_of_ideal_zero, lower_central_series_zero],
     exact le_rfl, },
-  { have h' : derived_series R L k ≤ ⊤, { by simp only [le_top], },
+  { have h' : derived_series R L k ≤ ⊤, { simp only [le_top], },
     rw [derived_series_def, derived_series_of_ideal_succ, lower_central_series_succ],
     exact lie_submodule.mono_lie _ _ _ _ h' h, },
 end
@@ -536,7 +536,7 @@ f.surjective_range_restrict.lie_algebra_is_nilpotent
   is_nilpotent R (ad R L).range ↔ is_nilpotent R L :=
 begin
   refine ⟨λ h, _, _⟩,
-  { have : (ad R L).ker = center R L, { by simp, },
+  { have : (ad R L).ker = center R L, { simp, },
     exact lie_algebra.nilpotent_of_nilpotent_quotient (le_of_eq this)
       ((ad R L).quot_ker_equiv_range.nilpotent_iff_equiv_nilpotent.mpr h), },
   { introsI h,

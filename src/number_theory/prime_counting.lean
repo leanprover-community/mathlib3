@@ -9,7 +9,7 @@ import data.nat.totient
 import algebra.periodic
 import data.finset.locally_finite
 import data.nat.count
-
+import data.nat.nth
 
 /-!
 # The Prime Counting Function

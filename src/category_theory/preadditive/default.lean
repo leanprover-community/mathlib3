@@ -236,7 +236,7 @@ fork.is_limit.mk' _ $ λ s,
 
 variables (f g)
 
-lemma has_limit_parallel_pair [has_kernel (f - g)] : has_equalizer f g :=
+lemma has_equalizer_of_has_kernel [has_kernel (f - g)] : has_equalizer f g :=
 has_limit.mk { cone := fork_of_kernel_fork _,
   is_limit := is_limit_fork_of_kernel_fork (equalizer_is_equalizer (f - g) 0) }
 
@@ -258,7 +258,7 @@ section
 
 /-- If a preadditive category has all kernels, then it also has all equalizers. -/
 lemma has_equalizers_of_has_kernels [has_kernels C] : has_equalizers C :=
-@has_equalizers_of_has_limit_parallel_pair _ _ (λ _ _ f g, has_limit_parallel_pair f g)
+@has_equalizers_of_has_limit_parallel_pair _ _ (λ _ _ f g, has_equalizer_of_has_kernel f g)
 
 end
 

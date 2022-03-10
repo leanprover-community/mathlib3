@@ -336,7 +336,7 @@ begin
   { simp only [finset.forall_mem_insert] at comm hmem,
     specialize ih (λ x hx, (comm.2 x hx).2) hmem.2,
     have hmem_bsupr: s.noncomm_prod f (λ x hx, (comm.2 x hx).2) ∈ ⨆ (i ∈ (s : set α)), γ i,
-    { refine noncomm_prod_mem_subgroup s f _ _ _,
+    { refine subgroup.finset_noncomm_prod_mem s f _ _ _,
       intros x hx,
       have : γ x ≤ ⨆ (i ∈ (s : set α)), γ i := le_bsupr x hx,
       exact this (hmem.2 x hx), },

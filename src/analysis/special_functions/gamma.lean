@@ -238,7 +238,7 @@ end
 lemma integrable_integrand (s: ℝ) (h: 1 ≤ s): integrable_on
   (λ (x:ℝ), exp(-x) * x^(s-1)) (Ioi 0) :=
 begin
-  apply limit_comparison.integrable_bigoh_exp (integrand $ s-1) 0 one_half_pos,
+  apply exp_decay.integrable_bigoh_exp (integrand $ s-1) 0 one_half_pos,
   apply cont_integrand,
   { linarith },
   exact asymp_integrand (s-1)

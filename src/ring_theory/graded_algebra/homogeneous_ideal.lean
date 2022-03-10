@@ -545,7 +545,7 @@ def graded_algebra.proj_zero_ring_hom : A →+* 𝒜 0 :=
 For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelevant ideal
 refers to `⨁_{i≥0} 𝒜ᵢ`, or equivalently `{a | the bot-th projection of a = 0}`.
 
-This definitoin is used in Proj construction where `ι` is always `ℕ` so the irrelevant ideal is
+This definition is used in Proj construction where `ι` is always `ℕ` so the irrelevant ideal is
 simply elements with `0` as 0-th coordinate. But the notion of irrelevant ideal makes sense in a
 more general setting by defining it as the ideal of elements with `0` as i-th coordinate for all
 `i ≤ 0`.

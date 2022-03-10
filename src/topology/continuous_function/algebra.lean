@@ -114,25 +114,24 @@ instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   ..continuous_map.has_one }
 
 @[to_additive]
-instance {α : Type*} [topological_space α] [locally_compact_space α]
-  {β : Type*} [monoid β] [topological_space β]
-  [has_continuous_mul β] : has_continuous_mul C(α, β) :=
+instance {α : Type*} {β : Type*} [topological_space α]
+  [locally_compact_space α] [topological_space β]
+  [monoid β]  [has_continuous_mul β] : has_continuous_mul C(α, β) :=
 ⟨begin
   refine continuous_of_continuous_uncurry _ _,
   change continuous ((λ (x : β × β), x.1 * x.2) ∘
     (λ (x : (C(α, β) × C(α, β)) × α), (x.1.1 x.2, x.1.2 x.2))),
-  have h1 : continuous ((λ (x : C(α, β) × α), x.1 x.2) ∘
-      (λ (x : (C(α, β) × C(α, β)) × α), (x.1.1, x.2))) :=
-  continuous.comp continuous_ev ((continuous_fst.comp continuous_fst).prod_mk continuous_snd),
-  have h2 : continuous ((λ (x : C(α, β) × α), x.1 x.2) ∘ (λ (x : (C(α, β) × C(α, β)) × α),
-    (x.1.2, x.2))) := continuous.comp continuous_ev
-      ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
+  have h1 : continuous (λ (x : (C(α, β) × C(α, β)) × α), (x.fst.fst) x.snd),
+  { change continuous ((λ (x : C(α, β) × α), x.1 x.2) ∘
+      (λ (x : (C(α, β) × C(α, β)) × α), (x.1.1, x.2))),
+    refine continuous_ev.comp ((continuous_fst.comp continuous_fst).prod_mk continuous_snd), },
+  have h2 : continuous (λ (x : (C(α, β) × C(α, β)) × α), (x.fst.snd) x.snd),
+  { change continuous ((λ (x : C(α, β) × α), x.1 x.2) ∘ (λ (x : (C(α, β) × C(α, β)) × α),
+      (x.1.2, x.2))),
+    refine continuous_ev.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd), },
   refine (continuous_fst.comp (continuous.prod_mk _ _)).mul
     (continuous_snd.comp (continuous.prod_mk _ _)),
-  { convert h1, },
-  { convert h2, },
-  { convert h1, },
-  { convert h2, },
+  all_goals { assumption, },
 end⟩
 
 /-- Coercion to a function as an `monoid_hom`. Similar to `monoid_hom.coe_fn`. -/
@@ -611,15 +610,14 @@ instance {α : Type*} [topological_space α] [locally_compact_space α]
   has_continuous_smul R C(α, M) :=
 ⟨begin
   refine continuous_of_continuous_uncurry _ _,
-  have h : continuous ((λ (x : C(α, M) × α), x.1 x.2) ∘ (λ (x : (R × C(α, M)) × α), (x.1.2, x.2))),
-  refine continuous.comp continuous_ev
-    ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
+  have h : continuous (λ (x : (R × C(α, M)) × α), (x.fst.snd) x.snd),
+  { change continuous ((λ (x : C(α, M) × α), x.1 x.2) ∘ (λ (x : (R × C(α, M)) × α), (x.1.2, x.2))),
+    refine continuous_ev.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd), },
   change continuous ((λ (x : R × M), x.1 • x.2) ∘
     (λ (x : (R × C(α, M)) × α), (x.1.1, x.1.2 x.2))),
   refine (continuous_fst.comp ((continuous_fst.comp continuous_fst).prod_mk _)).smul
     (continuous_snd.comp ((continuous_fst.comp continuous_fst).prod_mk _)),
-  { convert h, },
-  { convert h, },
+  all_goals { assumption, },
 end⟩
 
 instance module' {α : Type*} [topological_space α]

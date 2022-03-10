@@ -147,10 +147,7 @@ exact.desc (desc_f_zero f P Q ≫ P.cocomplex.d 0 1) (Q.ι.f 0) (Q.cocomplex.d 0
 @[simp] lemma desc_f_one_zero_comm {Y Z : C}
   (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z) :
   Q.cocomplex.d 0 1 ≫ desc_f_one f P Q = desc_f_zero f P Q ≫ P.cocomplex.d 0 1 :=
-begin
-  dsimp only [desc_f_zero, desc_f_one],
-  simp only [exact.comp_desc],
-end
+by simp [desc_f_zero, desc_f_one]
 
 /-- Auxiliary construction for `desc`. -/
 def desc_f_succ {Y Z : C}
@@ -210,8 +207,7 @@ def desc_homotopy_zero_one {Y Z : C} {P : InjectiveResolution Y} {Q : InjectiveR
   (comm : P.ι ≫ f = (0 : _ ⟶ Q.cocomplex)) : P.cocomplex.X 2 ⟶ Q.cocomplex.X 1 :=
 exact.desc (f.f 1 - desc_homotopy_zero_zero f comm ≫ Q.cocomplex.d 0 1)
   (P.cocomplex.d 0 1) (P.cocomplex.d 1 2)
-  (by simp only [desc_homotopy_zero_zero, ←category.assoc, preadditive.comp_sub, exact.comp_desc,
-      homological_complex.hom.comm, sub_self])
+  (by simp [desc_homotopy_zero_zero, ←category.assoc])
 
 /-- An auxiliary definition for `desc_homotopy_zero`. -/
 def desc_homotopy_zero_succ {Y Z : C} {P : InjectiveResolution Y} {Q : InjectiveResolution Z}
@@ -221,11 +217,9 @@ def desc_homotopy_zero_succ {Y Z : C} {P : InjectiveResolution Y} {Q : Injective
   (w : f.f (n + 1) = P.cocomplex.d (n+1) (n+2) ≫ g' + g ≫ Q.cocomplex.d n (n+1)) :
   P.cocomplex.X (n + 3) ⟶ Q.cocomplex.X (n + 2) :=
 exact.desc (f.f (n+2) - g' ≫ Q.cocomplex.d _ _) (P.cocomplex.d (n+1) (n+2))
-  (P.cocomplex.d (n+2) (n+3)) begin
-    have w' : f.f (n + 1) - g ≫ Q.cocomplex.d n (n+1)= P.cocomplex.d (n+1) (n+2) ≫ g',
-    { rw w, simp only [add_sub_cancel], },
-    simp [preadditive.comp_sub, ←category.assoc, ←w', preadditive.sub_comp],
-  end
+  (P.cocomplex.d (n+2) (n+3)) by simp [preadditive.comp_sub, ←category.assoc, preadditive.sub_comp
+      show P.cocomplex.d (n+1) (n+2) ≫ g' = f.f (n + 1) - g ≫ Q.cocomplex.d n (n+1),
+      by {rw w, simp only [add_sub_cancel] } ]
 
 /-- Any descent of the zero morphism is homotopic to zero. -/
 def desc_homotopy_zero {Y Z : C} {P : InjectiveResolution Y} {Q : InjectiveResolution Z}
@@ -239,10 +233,8 @@ begin
   { exact desc_homotopy_zero_one f comm, },
   { simp [desc_homotopy_zero_one], },
   { rintro n ⟨g, g', w⟩,
-    fsplit,
-    { refine desc_homotopy_zero_succ f n g g' _,
-      simp only [w, add_comm], },
-    { simp [desc_homotopy_zero_succ, w], }, }
+    refine ⟨desc_homotopy_zero_succ f n g g' (by simp only [w, add_comm]), _⟩,
+    simp [desc_homotopy_zero_succ, w], }
 end
 
 /-- Two descents of the same morphism are homotopic. -/
@@ -266,7 +258,7 @@ by { apply desc_homotopy (𝟙 X); simp, }
 def desc_comp_homotopy {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   (P : InjectiveResolution X) (Q : InjectiveResolution Y) (R : InjectiveResolution Z) :
   homotopy (desc (f ≫ g) R P) (desc f Q P ≫ desc g R Q)  :=
-by { apply desc_homotopy (f ≫ g); simp, }
+by { apply desc_homotopy (f ≫ g); simp }
 
 -- We don't care about the actual definitions of these homotopies.
 attribute [irreducible] desc_homotopy_zero desc_homotopy desc_id_homotopy desc_comp_homotopy
@@ -285,7 +277,7 @@ def homotopy_equiv {X : C} (P Q : InjectiveResolution X) :
     refine (desc_comp_homotopy (𝟙 X) (𝟙 X) Q P Q).symm.trans _,
     simp [category.id_comp],
     apply desc_id_homotopy,
-  end, }
+  end }
 
 @[simp, reassoc] lemma homotopy_equiv_hom_π {X : C} (P Q : InjectiveResolution X) :
   P.ι ≫ (homotopy_equiv P Q).hom = Q.ι :=

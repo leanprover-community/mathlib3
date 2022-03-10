@@ -79,8 +79,8 @@ begin
     exact h p hp q hq, }
 end
 
-lemma commutator_containment (H₁ H₂ : subgroup G) {p q : G} (hp : p ∈ H₁) (hq : q ∈ H₂) :
-  p * q * p⁻¹ * q⁻¹ ∈ ⁅H₁, H₂⁆ :=
+lemma commutator_mem_commutator {H₁ H₂ : subgroup G} {p q : G} (hp : p ∈ H₁) (hq : q ∈ H₂) :
+  ⁅p, q⁆ ∈ ⁅H₁, H₂⁆ :=
 (commutator_le H₁ H₂ ⁅H₁, H₂⁆).mp (le_refl ⁅H₁, H₂⁆) p hp q hq
 
 lemma commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
@@ -126,11 +126,11 @@ begin
   { rw [gc_map_comap, commutator_le],
     intros p hp q hq,
     simp only [mem_comap, map_inv, map_mul],
-    exact commutator_containment _ _ (mem_map_of_mem _ hp) (mem_map_of_mem _ hq), },
+    exact commutator_mem_commutator (mem_map_of_mem _ hp) (mem_map_of_mem _ hq), },
   { rw [commutator_le],
     rintros _ ⟨p, hp, rfl⟩ _ ⟨q, hq, rfl⟩,
     simp only [← map_inv, ← map_mul],
-    exact mem_map_of_mem _ (commutator_containment _ _ hp hq), }
+    exact mem_map_of_mem _ (commutator_mem_commutator hp hq), }
 end
 
 lemma commutator_prod_prod {G₂ : Type*} [group G₂]
@@ -140,7 +140,7 @@ begin
   apply le_antisymm,
   { rw commutator_le,
     rintros ⟨p₁, p₂⟩ ⟨hp₁, hp₂⟩ ⟨q₁, q₂⟩ ⟨hq₁, hq₂⟩,
-    exact ⟨commutator_containment _ _ hp₁ hq₁, commutator_containment _ _ hp₂ hq₂⟩},
+    exact ⟨commutator_mem_commutator hp₁ hq₁, commutator_mem_commutator hp₂ hq₂⟩ },
   { rw prod_le_iff, split;
     { rw map_commutator,
       apply commutator_mono;
@@ -155,8 +155,7 @@ See `commutator_pi_pi_of_fintype` for equality given `fintype η`.
 lemma commutator_pi_pi_le {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
   (H K : Π i, subgroup (Gs i)) :
   ⁅subgroup.pi set.univ H, subgroup.pi set.univ K⁆ ≤ subgroup.pi set.univ (λ i, ⁅H i, K i⁆) :=
-(commutator_le _ _ _).mpr $
-  λ p hp q hq i hi, commutator_containment _ _ (hp i hi) (hq i hi)
+(commutator_le _ _ _).mpr $ λ p hp q hq i hi, commutator_mem_commutator (hp i hi) (hq i hi)
 
 /-- The commutator of a finite direct product is contained in the direct product of the commutators.
 -/

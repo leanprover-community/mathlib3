@@ -431,7 +431,7 @@ variables {R : Type*} [has_zero R] {U : set X} (f : locally_constant X R)
 
 /-- Given a clopen set `U` and a locally constant function `f`, `locally_constant.indicator`
   returns the locally constant function that is `f` on `U` and `0` otherwise. -/
-@[simps?]
+@[simps]
 noncomputable def indicator (hU : is_clopen U) :
   locally_constant X R :=
 { to_fun := set.indicator U f,

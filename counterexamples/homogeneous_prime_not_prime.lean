@@ -35,7 +35,6 @@ namespace counterexample_not_prime_but_homogeneous_prime
 open direct_sum
 local attribute [reducible] with_zero
 
-@[derive [add_comm_monoid, linear_order, has_one]]
 abbreviation two := with_zero unit
 
 instance : linear_ordered_add_comm_monoid two :=

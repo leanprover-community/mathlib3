@@ -170,6 +170,16 @@ begin
   simp
 end
 
+@[to_additive]
+lemma noncomm_prod_commute (s : multiset α)
+  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute x y)
+  (y : α) (h : ∀ (x : α), x ∈ s → commute y x) : commute y (s.noncomm_prod comm) :=
+begin
+  induction s using quotient.induction_on,
+  simp only [quot_mk_to_coe, noncomm_prod_coe],
+  exact list.prod_commute _ _ h,
+end
+
 end multiset
 
 namespace finset
@@ -182,6 +192,14 @@ given a proof that `*` commutes on all elements `f x` for `x ∈ s`. -/
 given a proof that `+` commutes on all elements `f x` for `x ∈ s`."]
 def noncomm_prod (s : finset α) (f : α → β) (comm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y)) : β :=
 (s.1.map f).noncomm_prod (by simpa [multiset.mem_map, ←finset.mem_def] using comm)
+
+@[congr, to_additive]
+lemma noncomm_prod_congr
+  {s₁ s₂ : finset α} {f g : α → β} (h₁ : s₁ = s₂) (h₂ : ∀ (x ∈ s₂), f x = g x)
+  (comm : ∀ (x ∈ s₁) (y ∈ s₁), commute (f x) (f y)) :
+  noncomm_prod s₁ f comm = noncomm_prod s₂ g
+    (λ x hx y hy, h₂ x hx ▸ h₂ y hy ▸ comm x (h₁.symm ▸ hx) y (h₁.symm ▸ hy)) :=
+by simp_rw [noncomm_prod, multiset.map_congr (congr_arg _ h₁) h₂]
 
 @[simp, to_additive] lemma noncomm_prod_to_finset [decidable_eq α] (l : list α) (f : α → β)
   (comm : ∀ (x ∈ l.to_finset) (y ∈ l.to_finset), commute (f x) (f y))
@@ -216,6 +234,18 @@ by simp [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
   noncomm_prod ({a} : finset α) f
     (λ x hx y hy, by rw [mem_singleton.mp hx, mem_singleton.mp hy]) = f a :=
 by simp [noncomm_prod, multiset.singleton_eq_cons]
+
+@[to_additive]
+lemma noncomm_prod_commute (s : finset α) (f : α → β)
+  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
+  (y : β) (h : ∀ (x : α), x ∈ s → commute y (f x)) : commute y (s.noncomm_prod f comm) :=
+begin
+  apply multiset.noncomm_prod_commute,
+  intro y,
+  rw multiset.mem_map,
+  rintros ⟨x, ⟨hx, rfl⟩⟩,
+  exact h x hx,
+end
 
 @[to_additive] lemma noncomm_prod_eq_prod {β : Type*} [comm_monoid β] (s : finset α) (f : α → β) :
   noncomm_prod s f (λ _ _ _ _, commute.all _ _) = s.prod f :=

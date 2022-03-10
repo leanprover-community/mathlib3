@@ -232,6 +232,9 @@ aleph'_is_normal.trans $ add_is_normal ordinal.omega
 theorem succ_omega : succ ω = aleph 1 :=
 by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
 
+lemma omega_lt_aleph_one : ω < aleph 1 :=
+by { rw ← succ_omega, exact lt_succ_self _ }
+
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
 by rw [← succ_omega, lt_succ, mk_set_le_omega]
 
@@ -456,6 +459,10 @@ begin
     { exact le_max_of_le_right (le_of_lt (add_lt_omega (lt_of_not_ge ha) (lt_of_not_ge hb))) } }
 end
 
+theorem add_le_of_le {a b c : cardinal} (hc : ω ≤ c)
+  (h1 : a ≤ c) (h2 : b ≤ c) : a + b ≤ c :=
+(add_le_add h1 h2).trans $ le_of_eq $ add_eq_self hc
+
 theorem add_lt_of_lt {a b c : cardinal} (hc : ω ≤ c)
   (h1 : a < c) (h2 : b < c) : a + b < c :=
 lt_of_le_of_lt (add_le_add (le_max_left a b) (le_max_right a b)) $
@@ -593,7 +600,7 @@ end
 /-! ### Computing cardinality of various types -/
 
 @[simp] theorem mk_ordinal_out (o : ordinal.{u}) : #(o.out.α) = o.card :=
-by { convert (ordinal.card_type o.out.r).symm, exact (ordinal.type_out o).symm }
+by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
 
 theorem mk_list_eq_mk (α : Type u) [infinite α] : #(list α) = #α :=
 have H1 : ω ≤ #α := omega_le_mk α,
@@ -602,6 +609,18 @@ calc  #(list α)
     = sum (λ n : ℕ, #α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
 ... ≤ sum (λ n : ℕ, #α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
 ... = #α : by simp [H1]
+
+theorem mk_list_eq_omega (α : Type u) [encodable α] [nonempty α] : #(list α) = ω :=
+mk_le_omega.antisymm (omega_le_mk _)
+
+theorem mk_list_le_max (α : Type u) : #(list α) ≤ max ω (#α) :=
+begin
+  casesI fintype_or_infinite α,
+  { haveI := fintype.encodable α,
+    exact mk_le_omega.trans (le_max_left _ _) },
+  { rw mk_list_eq_mk,
+    apply le_max_right }
+end
 
 theorem mk_finset_eq_mk (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $

@@ -194,6 +194,18 @@ begin
     exacts [le_of_lt zero_lt_one, le_refl _], }
 end
 
+theorem add_eq_zero_iff {a b : ordinal} : a + b = 0 ↔ (a = 0 ∧ b = 0) :=
+induction_on a $ λ α r _, induction_on b $ λ β s _, begin
+  simp_rw [type_add, type_eq_zero_iff_is_empty],
+  exact is_empty_sum
+end
+
+theorem left_eq_zero_of_add_eq_zero {a b : ordinal} (h : a + b = 0) : a = 0 :=
+(add_eq_zero_iff.1 h).1
+
+theorem right_eq_zero_of_add_eq_zero {a b : ordinal} (h : a + b = 0) : b = 0 :=
+(add_eq_zero_iff.1 h).2
+
 /-! ### The predecessor of an ordinal -/
 
 /-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,
@@ -567,11 +579,18 @@ quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
 quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
 mul_comm (mk β) (mk α)
 
+theorem mul_eq_zero_iff {a b : ordinal} : a * b = 0 ↔ (a = 0 ∨ b = 0) :=
+induction_on a $ λ α _ _, induction_on b $ λ β _ _, begin
+  simp_rw [type_mul, type_eq_zero_iff_is_empty],
+  rw or_comm,
+  exact is_empty_prod
+end
+
 @[simp] theorem mul_zero (a : ordinal) : a * 0 = 0 :=
-induction_on a $ λ α _ _, by exactI type_eq_zero_of_empty
+mul_eq_zero_iff.2 $ or.inr rfl
 
 @[simp] theorem zero_mul (a : ordinal) : 0 * a = 0 :=
-induction_on a $ λ α _ _, by exactI type_eq_zero_of_empty
+mul_eq_zero_iff.2 $ or.inl rfl
 
 theorem mul_add (a b c : ordinal) : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,

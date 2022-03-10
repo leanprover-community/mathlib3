@@ -44,7 +44,7 @@ def is_bounded (s : set E) : Prop := ∀ V ∈ 𝓝 (0 : E), absorbs 𝕜 V s
 
 variables (E)
 
-@[simp] lemma is_bounded_empty : is_bounded 𝕜 (∅ : set E) :=
+@[simp] lemma is_bounded.empty : is_bounded 𝕜 (∅ : set E) :=
 λ _ _, absorbs_empty
 
 variables {𝕜 E}

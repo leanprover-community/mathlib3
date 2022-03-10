@@ -587,10 +587,10 @@ induction_on a $ λ α _ _, induction_on b $ λ β _ _, begin
 end
 
 @[simp] theorem mul_zero (a : ordinal) : a * 0 = 0 :=
-induction_on a $ λ α _ _, by exactI type_eq_zero_of_empty
+mul_eq_zero_iff.2 $ or.inr rfl
 
 @[simp] theorem zero_mul (a : ordinal) : 0 * a = 0 :=
-induction_on a $ λ α _ _, by exactI type_eq_zero_of_empty
+mul_eq_zero_iff.2 $ or.inl rfl
 
 theorem mul_add (a b c : ordinal) : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,

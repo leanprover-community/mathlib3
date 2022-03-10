@@ -178,8 +178,6 @@ by {simp [padic_val_rat, padic_val_int],
     rw padic_val_nat.self hp, -- why doesn't this simp trigger
     dec_trivial, }
 
-lemma nat_abs_or (z : ℤ) : (z.nat_abs : ℤ) = z ∨ (z.nat_abs : ℤ) = (-z) := by sorry
-
 /--
 The p-adic value of an integer `z ≠ 0` is the multiplicity of `p` in `z`.
 -/
@@ -286,8 +284,19 @@ begin
   simp_rw [int.coe_nat_multiplicity p q.denom],
   simp_rw multiplicity.int.nat_abs,
   refl,
-  sorry,
-  sorry,
+  split,
+  { exact nat.prime.ne_one p_prime.out, },
+  { intro hq,
+    rw hq at hc2,
+    simp at hc2,
+    exact hd hc2, },
+  split,
+  { exact nat.prime.ne_one p_prime.out, },
+  { intro hq,
+    simp at hq,
+    rw hq at hc1,
+    simp at hc1,
+    exact hn hc1, },
 end
 
 /--

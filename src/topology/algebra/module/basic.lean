@@ -491,15 +491,11 @@ by rw [← coe_id, coe_inj]
 instance [hE : nontrivial M₁] : nontrivial (M₁ →L[R₁] M₁) :=
 begin
   rw nontrivial_iff,
-  use (1 : (M₁ →L[R₁] M₁)),
-  use (0 : (M₁ →L[R₁] M₁)),
-  by_contra,
-  rw nontrivial_iff at hE,
-  cases hE with x hx,
-  cases hx with y hxy,
-  have heq : (1 : (M₁ →L[R₁] M₁)) x = (1 : (M₁ →L[R₁] M₁)) y :=
-    by simp only [h, continuous_linear_map.zero_apply],
-  tauto,
+  refine ⟨1, 0, _⟩,
+  obtain ⟨x, y, h⟩ := exists_pair_ne M₁,
+  contrapose! h,
+  show (1 : (M₁ →L[R₁] M₁)) x = (1 : (M₁ →L[R₁] M₁)) y,
+  simp only [h, continuous_linear_map.zero_apply],
 end
 
 section add

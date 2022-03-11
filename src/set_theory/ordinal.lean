@@ -474,6 +474,14 @@ instance ordinal.is_equivalent : setoid Well_order :=
 /-- `ordinal.{u}` is the type of well orders in `Type u`, up to order isomorphism. -/
 def ordinal : Type (u + 1) := quotient ordinal.is_equivalent
 
+instance (o : ordinal) : has_well_founded o.out.α := ⟨o.out.r, o.out.wo.wf⟩
+
+instance (o : ordinal) : linear_order o.out.α :=
+is_well_order.linear_order o.out.r
+
+instance (o : ordinal) : is_well_order o.out.α (<) :=
+o.out.wo
+
 namespace ordinal
 
 /-- The order type of a well order is an ordinal. -/
@@ -495,8 +503,13 @@ theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r = type s ↔ nonempty (r ≃r s) := quotient.eq
 
-@[simp] lemma type_out (o : ordinal) : type o.out.r = o :=
-by { refine eq.trans _ (by rw [←quotient.out_eq o]), cases quotient.out o, refl }
+@[simp] lemma type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
+begin
+  change type o.out.r = _,
+  refine eq.trans _ (quotient.out_eq o),
+  cases quotient.out o,
+  refl
+end
 
 @[elab_as_eliminator] theorem induction_on {C : ordinal → Prop}
   (o : ordinal) (H : ∀ α r [is_well_order α r], by exactI C (type r)) : C o :=
@@ -540,7 +553,7 @@ by exactI propext ⟨
 
 instance : has_lt ordinal := ⟨ordinal.lt⟩
 
-@[simp] theorem type_lt {α β} {r : α → α → Prop} {s : β → β → Prop}
+@[simp] theorem type_lt_iff {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r < type s ↔ nonempty (r ≺i s) := iff.rfl
 
@@ -561,24 +574,30 @@ instance : partial_order ordinal :=
 
 /-- Given two ordinals `α ≤ β`, then `initial_seg_out α β` is the initial segment embedding
 of `α` to `β`, as map from a model type for `α` to a model type for `β`. -/
-def initial_seg_out {α β : ordinal} (h : α ≤ β) : initial_seg α.out.r β.out.r :=
+def initial_seg_out {α β : ordinal} (h : α ≤ β) :
+  initial_seg ((<) : α.out.α → α.out.α → Prop) ((<) : β.out.α → β.out.α → Prop) :=
 begin
+  change α.out.r ≼i β.out.r,
   rw [←quotient.out_eq α, ←quotient.out_eq β] at h, revert h,
   cases quotient.out α, cases quotient.out β, exact classical.choice
 end
 
 /-- Given two ordinals `α < β`, then `principal_seg_out α β` is the principal segment embedding
 of `α` to `β`, as map from a model type for `α` to a model type for `β`. -/
-def principal_seg_out {α β : ordinal} (h : α < β) : principal_seg α.out.r β.out.r :=
+def principal_seg_out {α β : ordinal} (h : α < β) :
+  principal_seg ((<) : α.out.α → α.out.α → Prop) ((<) : β.out.α → β.out.α → Prop) :=
 begin
+  change α.out.r ≺i β.out.r,
   rw [←quotient.out_eq α, ←quotient.out_eq β] at h, revert h,
   cases quotient.out α, cases quotient.out β, exact classical.choice
 end
 
 /-- Given two ordinals `α = β`, then `rel_iso_out α β` is the order isomorphism between two
 model types for `α` and `β`. -/
-def rel_iso_out {α β : ordinal} (h : α = β) : α.out.r ≃r β.out.r :=
+def rel_iso_out {α β : ordinal} (h : α = β) :
+  ((<) : α.out.α → α.out.α → Prop) ≃r ((<) : β.out.α → β.out.α → Prop) :=
 begin
+  change α.out.r ≃r β.out.r,
   rw [←quotient.out_eq α, ←quotient.out_eq β] at h, revert h,
   cases quotient.out α, cases quotient.out β, exact classical.choice ∘ quotient.exact
 end
@@ -586,8 +605,8 @@ end
 theorem typein_lt_type (r : α → α → Prop) [is_well_order α r] (a : α) : typein r a < type r :=
 ⟨principal_seg.of_element _ _⟩
 
-theorem typein_lt_self {o : ordinal} (i : o.out.α) : typein o.out.r i < o :=
-by { simp_rw ←type_out o, apply typein_lt_type }
+theorem typein_lt_self {o : ordinal} (i : o.out.α) : typein (<) i < o :=
+by { simp_rw ←type_lt o, apply typein_lt_type }
 
 @[simp] theorem typein_top {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≺i s) :
@@ -669,7 +688,7 @@ def typein_iso (r : α → α → Prop) [is_well_order α r] : r ≃r subrel (<)
  λ ⟨y, hy⟩, subtype.eq (typein_enum r hy)⟩,
   λ a b, (typein_lt_typein r)⟩
 
-theorem enum_lt {r : α → α → Prop} [is_well_order α r]
+theorem enum_lt_enum {r : α → α → Prop} [is_well_order α r]
   {o₁ o₂ : ordinal} (h₁ : o₁ < type r) (h₂ : o₂ < type r) :
   r (enum r o₁ h₁) (enum r o₂ h₂) ↔ o₁ < o₂ :=
 by rw [← typein_lt_typein r, typein_enum, typein_enum]
@@ -724,8 +743,7 @@ def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order �
 /-- The cardinal of an ordinal is the cardinal of any
   set with that order type. -/
 def card (o : ordinal) : cardinal :=
-quot.lift_on o (λ ⟨α, r, _⟩, #α) $
-λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
+quot.lift_on o (λ a, #a.α) $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
 
 @[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] :
   card (type r) = #α := rfl
@@ -759,8 +777,8 @@ lemma eq_zero_of_out_empty (o : ordinal) [h : is_empty o.out.α] : o = 0 :=
 begin
   by_contra ho,
   replace ho := ordinal.pos_iff_ne_zero.2 ho,
-  rw ←type_out o at ho,
-  have α := enum o.out.r 0 ho,
+  rw ←type_lt o at ho,
+  have α := enum (<) 0 ho,
   exact h.elim α
 end
 
@@ -771,6 +789,9 @@ begin
   subst h,
   exact not_lt_of_le (ordinal.zero_le _) this
 end
+
+instance : is_empty (0 : ordinal.{u}).out.α :=
+by rw out_empty_iff_eq_zero
 
 @[simp] theorem out_nonempty_iff_ne_zero {o : ordinal} : nonempty o.out.α ↔ o ≠ 0 :=
 by rw [←not_iff_not, ←not_is_empty_iff, not_not, not_not, out_empty_iff_eq_zero]
@@ -1063,7 +1084,17 @@ by rw [←not_lt, typein_lt_typein]
 
 lemma enum_le_enum (r : α → α → Prop) [is_well_order α r] {o o' : ordinal}
   (ho : o < type r) (ho' : o' < type r) : ¬r (enum r o' ho') (enum r o ho) ↔ o ≤ o' :=
-by rw [←@not_lt _ _ o' o, enum_lt ho']
+by rw [←@not_lt _ _ o' o, enum_lt_enum ho']
+
+theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
+  (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=
+⟨λ h, begin
+  by_contra hne,
+  cases lt_or_gt_of_ne hne with hlt hlt;
+    apply (is_well_order.is_irrefl r).1,
+    { rwa [←@enum_lt_enum α r _ o₁ o₂ h₁ h₂, h] at hlt },
+    { change _ < _ at hlt, rwa [←@enum_lt_enum α r _ o₂ o₁ h₂ h₁, h] at hlt }
+end, λ h, by simp_rw h⟩
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/
@@ -1246,14 +1277,14 @@ eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
 end
 
 lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c :=
-by rw [←card_type c.ord.out.r, type_out, card_ord]
+by rw [←card_type (<), type_lt, card_ord]
 
 lemma card_typein_lt (r : α → α → Prop) [is_well_order α r] (x : α)
   (h : ord (#α) = type r) : card (typein r x) < #α :=
 by { rw [←ord_lt_ord, h], refine lt_of_le_of_lt (ord_card_le _) (typein_lt_type r x) }
 
-lemma card_typein_out_lt (c : cardinal) (x : c.ord.out.α) : card (typein c.ord.out.r x) < c :=
-by { convert card_typein_lt c.ord.out.r x _, rw [mk_ord_out], rw [type_out, mk_ord_out] }
+lemma card_typein_out_lt (c : cardinal) (x : c.ord.out.α) : card (typein (<) x) < c :=
+by { convert card_typein_lt (<) x _, rw [mk_ord_out], rw [type_lt, mk_ord_out] }
 
 lemma ord_injective : injective ord :=
 by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }

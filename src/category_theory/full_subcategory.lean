@@ -3,7 +3,7 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Reid Barton
 -/
-import category_theory.fully_faithful
+import category_theory.functor.fully_faithful
 
 /-!
 # Induced categories and full subcategories
@@ -34,7 +34,7 @@ form of D. This is used to set up several algebraic categories like
 
 namespace category_theory
 
-universes v u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+universes v v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 section induced
 
@@ -77,7 +77,7 @@ end induced
 section full_subcategory
 /- A full subcategory is the special case of an induced category with F = subtype.val. -/
 
-variables {C : Type u₂} [category.{v} C]
+variables {C : Type u₁} [category.{v} C]
 variables (Z : C → Prop)
 
 /--
@@ -104,6 +104,66 @@ instance full_subcategory.full : full (full_subcategory_inclusion Z) :=
 induced_category.full subtype.val
 instance full_subcategory.faithful : faithful (full_subcategory_inclusion Z) :=
 induced_category.faithful subtype.val
+
+variables {Z} {Z' : C → Prop}
+
+/-- An implication of predicates `Z → Z'` induces a functor between full subcategories. -/
+@[simps]
+def full_subcategory.map (h : ∀ ⦃X⦄, Z X → Z' X) : {X // Z X} ⥤ {X // Z' X} :=
+{ obj := λ X, ⟨X.1, h X.2⟩,
+  map := λ X Y f, f }
+
+instance (h : ∀ ⦃X⦄, Z X → Z' X) : full (full_subcategory.map h) :=
+{ preimage := λ X Y f, f }
+
+instance (h : ∀ ⦃X⦄, Z X → Z' X) : faithful (full_subcategory.map h) := {}
+
+@[simp] lemma full_subcategory.map_inclusion (h : ∀ ⦃X⦄, Z X → Z' X) :
+  full_subcategory.map h ⋙ full_subcategory_inclusion Z' = full_subcategory_inclusion Z :=
+rfl
+
+section lift
+variables {D : Type u₂} [category.{v₂} D] (P Q : D → Prop)
+
+/-- A functor which maps objects to objects satisfying a certain property induces a lift through
+    the full subcategory of objects satisfying that property. -/
+@[simps]
+def full_subcategory.lift (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) : C ⥤ {X // P X} :=
+{ obj := λ X, ⟨F.obj X, hF X⟩,
+  map := λ X Y f, F.map f }
+
+/-- Composing the lift of a functor through a full subcategory with the inclusion yields the
+    original functor. Unfortunately, this is not true by definition, so we only get a natural
+    isomorphism, but it is pointwise definitionally true, see
+    `full_subcategory.inclusion_obj_lift_obj` and `full_subcategory.inclusion_map_lift_map`. -/
+def full_subcategory.lift_comp_inclusion (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) :
+  full_subcategory.lift P F hF ⋙ full_subcategory_inclusion P ≅ F :=
+nat_iso.of_components (λ X, iso.refl _) (by simp)
+
+@[simp]
+lemma full_subcategory.inclusion_obj_lift_obj (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) {X : C} :
+  (full_subcategory_inclusion P).obj ((full_subcategory.lift P F hF).obj X) = F.obj X :=
+rfl
+
+lemma full_subcategory.inclusion_map_lift_map (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) {X Y : C}
+  (f : X ⟶ Y) :
+  (full_subcategory_inclusion P).map ((full_subcategory.lift P F hF).map f) = F.map f :=
+rfl
+
+instance (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) [faithful F] :
+  faithful (full_subcategory.lift P F hF) :=
+faithful.of_comp_iso (full_subcategory.lift_comp_inclusion P F hF)
+
+instance (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) [full F] : full (full_subcategory.lift P F hF) :=
+full.of_comp_faithful_iso (full_subcategory.lift_comp_inclusion P F hF)
+
+@[simp]
+lemma full_subcategory.lift_comp_map (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) (h : ∀ ⦃X⦄, P X → Q X) :
+  full_subcategory.lift P F hF ⋙ full_subcategory.map h =
+    full_subcategory.lift Q F (λ X, h (hF X)) :=
+rfl
+
+end lift
 
 end full_subcategory
 

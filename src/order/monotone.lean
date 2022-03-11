@@ -462,6 +462,8 @@ lemma strict_anti.comp_strict_mono_on (hg : strict_anti g) (hf : strict_mono_on 
   strict_anti_on (g ∘ f) s :=
 λ a ha b hb h, hg (hf ha hb h)
 
+namespace list
+
 theorem foldl_monotone {f : α → β → α} (H : ∀ b, monotone (λ a, f a b)) (l : list β) :
   monotone (λ a, l.foldl f a) :=
 list.rec_on l (λ _ _, id) (λ i l hl _ _ h, hl (H _ h))
@@ -478,6 +480,7 @@ theorem foldr_strict_mono {f : α → β → β} (H : ∀ a, strict_mono (f a)) 
   strict_mono (λ b, l.foldr f b) :=
 λ _ _ h, list.rec_on l h (λ i l hl, H i hl)
 
+end list
 end composition
 
 /-! ### Monotonicity in linear orders  -/

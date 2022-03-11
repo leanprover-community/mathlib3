@@ -39,10 +39,12 @@ def dist (u v : V) : ℕ := Inf (set.range (walk.length : G.walk u v → ℕ))
 
 variables {G}
 
+protected
 lemma reachable.exists_walk_of_dist {u v : V} (hr : G.reachable u v) :
   ∃ (p : G.walk u v), p.length = G.dist u v :=
 nat.Inf_mem (set.range_nonempty_iff_nonempty.mpr hr)
 
+protected
 lemma connected.exists_walk_of_dist (hconn : G.connected) (u v : V) :
   ∃ (p : G.walk u v), p.length = G.dist u v :=
 (hconn u v).exists_walk_of_dist
@@ -56,9 +58,11 @@ le_antisymm (dist_le (walk.nil : walk G v v)) (zero_le _)
 lemma dist_eq_zero_iff_eq_or_not_reachable {u v : V} : G.dist u v = 0 ↔ u = v ∨ ¬ G.reachable u v :=
 by simp [dist, nat.Inf_eq_zero, reachable]
 
+protected
 lemma reachable.dist_eq_zero_iff {u v : V} (hr : G.reachable u v) :
   G.dist u v = 0 ↔ u = v := by simp [hr]
 
+protected
 lemma connected.dist_eq_zero_iff (hconn : G.connected) {u v : V} :
   G.dist u v = 0 ↔ u = v := by simp [hconn u v]
 
@@ -70,6 +74,7 @@ lemma nonempty_of_pos_dist {u v : V} (h : 0 < G.dist u v) :
 by simpa [set.range_nonempty_iff_nonempty, set.nonempty_iff_univ_nonempty]
      using nat.nonempty_of_pos_Inf h
 
+protected
 lemma connected.dist_triangle (hconn : G.connected) {u v w : V} :
   G.dist u w ≤ dist G u v + dist G v w :=
 begin

@@ -805,12 +805,20 @@ protected lemma reachable.elim {p : Prop} {u v : V}
   (h : G.reachable u v) (hp : G.walk u v → p) : p :=
 nonempty.elim h hp
 
-@[refl] lemma reachable.refl {u : V} : G.reachable u u := by { fsplit, refl }
+protected lemma reachable.elim_path {p : Prop} {u v : V}
+  (h : G.reachable u v) (hp : G.path u v → p) : p :=
+begin
+  classical,
+  exact h.elim (λ q, hp q.to_path),
+end
 
-@[symm] lemma reachable.symm {u v : V} (huv : G.reachable u v) : G.reachable v u :=
+@[refl] protected lemma reachable.refl {u : V} : G.reachable u u := by { fsplit, refl }
+
+@[symm] protected lemma reachable.symm {u v : V} (huv : G.reachable u v) : G.reachable v u :=
 huv.elim (λ p, ⟨p.reverse⟩)
 
-@[trans] lemma reachable.trans {u v w : V} (huv : G.reachable u v) (hvw : G.reachable v w) :
+@[trans] protected lemma reachable.trans {u v w : V}
+  (huv : G.reachable u v) (hvw : G.reachable v w) :
   G.reachable u w :=
 huv.elim (λ puv, hvw.elim (λ pvw, ⟨puv.append pvw⟩))
 

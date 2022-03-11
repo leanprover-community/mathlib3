@@ -142,24 +142,16 @@ lemma definable_finset_bInter {ι : Type*} {f : Π (i : ι), set (α → M)}
   (hf : ∀ i, L.definable A (f i)) (s : finset ι) :
   L.definable A (⋂ i ∈ s, f i) :=
 begin
-  refine (congr rfl (le_antisymm _ _)).mp (definable_finset_inf hf s),
-  { rw [le_eq_subset, subset_Inter₂_iff],
-    simp_rw [← le_eq_subset],
-    exact λ _, finset.inf_le },
-  { rw finset.le_inf_iff,
-    exact λ i is, bInter_subset_of_mem is }
+  rw ← finset.inf_set_eq_bInter,
+  exact definable_finset_inf hf s,
 end
 
 lemma definable_finset_bUnion {ι : Type*} {f : Π (i : ι), set (α → M)}
   (hf : ∀ i, L.definable A (f i)) (s : finset ι) :
   L.definable A (⋃ i ∈ s, f i) :=
 begin
-  refine (congr rfl (le_antisymm _ _)).mp (definable_finset_sup hf s),
-  { rw finset.sup_le_iff,
-    exact λ i is, subset_bUnion_of_mem is },
-  { rw [set.le_eq_subset, Union₂_subset_iff],
-    simp_rw [← le_eq_subset],
-    exact λ i is, finset.le_sup is }
+  rw ← finset.sup_set_eq_bUnion,
+  exact definable_finset_sup hf s,
 end
 
 @[simp]

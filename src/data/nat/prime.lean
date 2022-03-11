@@ -7,6 +7,7 @@ import data.list.prime
 import data.list.sort
 import data.nat.gcd
 import data.nat.sqrt
+import data.set.finite
 import tactic.norm_num
 import tactic.wlog
 
@@ -20,7 +21,8 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
 - `nat.prime`: the predicate that expresses that a natural number `p` is prime
 - `nat.primes`: the subtype of natural numbers that are prime
 - `nat.min_fac n`: the minimal prime factor of a natural number `n ≠ 1`
-- `nat.exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers
+- `nat.exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers.
+  This also appears as `nat.not_bdd_above_set_of_prime` and `nat.infinite_set_of_prime`.
 - `nat.factors n`: the prime factorization of `n`
 - `nat.factors_unique`: uniqueness of the prime factorisation
 * `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
@@ -391,6 +393,19 @@ have np : n ≤ p, from le_of_not_ge $ λ h,
   have h₂ : p ∣ 1, from (nat.dvd_add_iff_right h₁).2 (min_fac_dvd _),
   pp.not_dvd_one h₂,
 ⟨p, np, pp⟩
+
+/-- A version of `nat.exists_infinite_primes` using the `bdd_above` predicate. -/
+lemma not_bdd_above_set_of_prime : ¬ bdd_above {p | prime p} :=
+begin
+  rw not_bdd_above_iff,
+  intro n,
+  obtain ⟨p, hi, hp⟩ := exists_infinite_primes n.succ,
+  exact ⟨p, hp, hi⟩,
+end
+
+/-- A version of `nat.exists_infinite_primes` using the `set.infinite` predicate. -/
+lemma infinite_set_of_prime : {p | prime p}.infinite :=
+set.infinite_of_not_bdd_above not_bdd_above_set_of_prime
 
 lemma prime.eq_two_or_odd {p : ℕ} (hp : prime p) : p = 2 ∨ p % 2 = 1 :=
 p.mod_two_eq_zero_or_one.imp_left

@@ -576,14 +576,14 @@ them has one -/
     dict ← to_additive.aux_attr.get_cache,
     match dict.find mul_name with
     | some add_name := do
-      mul_doc <- doc_string mul_name >> return tt <|> return ff,
-      add_doc <- doc_string add_name >> return tt <|> return ff,
-      match mul_doc, add_doc with
+      mul_doc ← try_core $ doc_string mul_name,
+      add_doc ← try_core $ doc_string add_name,
+      match mul_doc.is_some, add_doc.is_some with
       | tt, ff := return $ some $ "declaration has a docstring, but its additive version `" ++
-         add_name.to_string ++ "` does not. You might want to pass a string argument to " ++
-         "`to_additive`."
+          add_name.to_string ++ "` does not. You might want to pass a string argument to " ++
+          "`to_additive`."
       | ff, tt := return $ some $ "declaration has no docstring, but its additive version `" ++
-         add_name.to_string ++ "` does. You might want to add a doc string to the declaration."
+          add_name.to_string ++ "` does. You might want to add a doc string to the declaration."
       | _, _ := return none
       end
     | none := return none

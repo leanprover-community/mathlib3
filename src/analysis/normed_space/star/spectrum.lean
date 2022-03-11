@@ -98,11 +98,21 @@ begin
       using spectrum.subset_circle_of_unitary (self_adjoint.exp_i_smul_unitary ha) this),
 end
 
+/-- Any element of the spectrum of a selfadjoint is real. -/
+theorem self_adjoint.mem_spectrum_eq_re' [star_module ℂ A] [nontrivial A]
+  (a : self_adjoint A) {z : ℂ} (hz : z ∈ spectrum ℂ (a : A)) : z = z.re :=
+self_adjoint.mem_spectrum_eq_re a.property hz
+
 /-- The spectrum of a selfadjoint is real -/
 theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] {a : A}
   (ha : a ∈ self_adjoint A) : spectrum ℂ a = (coe ∘ re '' (spectrum ℂ a) : set ℂ) :=
 le_antisymm (λ z hz, ⟨z, hz, (self_adjoint.mem_spectrum_eq_re ha hz).symm⟩) (λ z, by
   { rintros ⟨z, hz, rfl⟩,
     simpa only [(self_adjoint.mem_spectrum_eq_re ha hz).symm, function.comp_app] using hz })
+
+/-- The spectrum of a selfadjoint is real -/
+theorem self_adjoint.coe_re_map_spectrum' [star_module ℂ A] [nontrivial A] (a : self_adjoint A) :
+  spectrum ℂ (a : A) = (coe ∘ re '' (spectrum ℂ (a : A)) : set ℂ) :=
+self_adjoint.coe_re_map_spectrum a.property
 
 end complex_scalars

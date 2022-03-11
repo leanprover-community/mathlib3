@@ -62,6 +62,10 @@ lemma commutator_mem_commutator {H₁ H₂ : subgroup G} {g₁ g₂ : G} (h₁ :
   ⁅g₁, g₂⁆ ∈ ⁅H₁, H₂⁆ :=
 subset_closure ⟨g₁, h₁, g₂, h₂, rfl⟩
 
+lemma commutator_le {H₁ H₂ H₃ : subgroup G} :
+  ⁅H₁, H₂⁆ ≤ H₃ ↔ ∀ (g₁ ∈ H₁) (g₂ ∈ H₂), ⁅g₁, g₂⁆ ∈ H₃ :=
+H₃.closure_le.trans ⟨λ h a b c d, h ⟨a, b, c, d, rfl⟩, λ h g ⟨a, b, c, d, h_eq⟩, h_eq ▸ h a b c d)
+
 instance commutator_normal (H₁ H₂ : subgroup G) [h₁ : H₁.normal]
   [h₂ : H₂.normal] : normal ⁅H₁, H₂⁆ :=
 begin
@@ -87,17 +91,6 @@ end
 lemma commutator_def' (H₁ H₂ : subgroup G) [H₁.normal] [H₂.normal] :
   ⁅H₁, H₂⁆ = normal_closure {g | ∃ (g₁ ∈ H₁) (g₂ ∈ H₂), ⁅g₁, g₂⁆ = g} :=
 le_antisymm closure_le_normal_closure (normal_closure_le_normal subset_closure)
-
-lemma commutator_le (H₁ H₂ : subgroup G) (K : subgroup G) :
-  ⁅H₁, H₂⁆ ≤ K ↔ ∀ (p ∈ H₁) (q ∈ H₂), ⁅p, q⁆ ∈ K :=
-begin
-  rw [subgroup.commutator, closure_le],
-  split,
-  { intros h p hp q hq,
-    exact h ⟨p, hp, q, hq, rfl⟩, },
-  { rintros h x ⟨p, hp, q, hq, rfl⟩,
-    exact h p hp q hq, }
-end
 
 lemma commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
 begin

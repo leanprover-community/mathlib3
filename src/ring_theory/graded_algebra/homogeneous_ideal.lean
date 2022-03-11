@@ -7,8 +7,6 @@ import ring_theory.ideal.basic
 import ring_theory.ideal.operations
 import linear_algebra.finsupp
 import ring_theory.graded_algebra.basic
-import algebra.direct_sum.ring
-
 /-!
 # Homogeneous ideals of a graded algebra
 
@@ -478,7 +476,7 @@ open graded_algebra finset set_like.graded_monoid direct_sum
 
 variables [comm_semiring R] [semiring A]
 variables [algebra R A] [decidable_eq ι]
-variables [canonically_ordered_add_monoid ι] [covariant_class ι ι has_add.add has_lt.lt]
+variables [canonically_ordered_add_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 
 instance test : semiring (𝒜 0) := grade_zero.semiring (λ i, 𝒜 i)
@@ -487,16 +485,14 @@ instance test : semiring (𝒜 0) := grade_zero.semiring (λ i, 𝒜 i)
 If `A` is graded by a canonically ordered add monoid, then the projection map `x ↦ x₀` is a ring
 homomorphism.
 -/
-def graded_algebra.proj_zero_ring_hom : A →+* 𝒜 0 :=
+def graded_algebra.proj_zero_ring_hom : A →+* A :=
 { to_fun := λ a, decompose 𝒜 a 0,
   map_one' := begin
-    simp only [subtype.ext_iff],
-    rw decompose_of_mem_same, refl, exact set_like.graded_monoid.one_mem
+    rw decompose_of_mem_same,
+    exact set_like.graded_monoid.one_mem
   end,
   map_mul' := λ x y, begin
     haveI : Π (i : ι) (x : (𝒜 i)), decidable (x ≠ 0) := λ _ _, classical.dec_pred _ _,
-    rw [subtype.ext_iff_val],
-    change _ = _ * _,
     apply submodule.supr_induction 𝒜
       (((is_internal 𝒜).supr_eq_top.ge : _) submodule.mem_top : x ∈ _),
     { intros i c hc,
@@ -506,9 +502,8 @@ def graded_algebra.proj_zero_ring_hom : A →+* 𝒜 0 :=
         have mem1 : c * c' ∈ 𝒜 (i + j) := set_like.graded_monoid.mul_mem hc hc',
         by_cases ineq1 : i + j = 0,
         { rw ineq1 at mem1,
-          simp only [subtype.val_eq_coe],
           rw [decompose_of_mem_same 𝒜 mem1],
-          rw ← bot_eq_zero at ineq1 ⊢,
+          rw ← bot_eq_zero at ineq1,
           have j_eq : j = ⊥,
           { have ineq2 : ⊥ ≤ j := bot_le,
             rw le_iff_lt_or_eq at ineq2,
@@ -523,22 +518,18 @@ def graded_algebra.proj_zero_ring_hom : A →+* 𝒜 0 :=
           rw [add_zero] at ineq1,
           rw ineq1 at hc,
           rw [decompose_of_mem_same 𝒜 hc, decompose_of_mem_same 𝒜 hc'] },
-        { simp only [subtype.val_eq_coe],
-          rw [decompose_of_mem_ne 𝒜 mem1 ineq1],
+        { rw [decompose_of_mem_ne 𝒜 mem1 ineq1],
           rw [add_eq_zero_iff, not_and_distrib] at ineq1,
           cases ineq1,
-          { simp only [decompose_of_mem_ne 𝒜 hc ineq1, zero_mul] },
-          { simp only [decompose_of_mem_ne 𝒜 hc' ineq1, mul_zero] } } },
-      { erw [mul_zero, map_zero, zero_apply, mul_zero], refl },
+          { simp only [decompose_of_mem_ne' 𝒜 hc ineq1], erw zero_mul, refl },
+          { simp only [decompose_of_mem_ne' 𝒜 hc' ineq1], erw mul_zero, refl } } },
+      { erw [mul_zero, map_zero, zero_apply, mul_zero], },
       { rintros d e (hd : _ = _ * _) (he : _ = _ * _),
         rw [mul_add, map_add, add_apply, map_add, add_apply],
-        erw [mul_add, ← hd, ← he],
-        refl } },
-    { erw [zero_mul, map_zero, zero_apply, zero_mul],
-      refl },
+        erw [mul_add, ← hd, ← he], } },
+    { erw [zero_mul, map_zero, zero_apply, zero_mul], },
     { rintros a b (ha : _ = _ * _) (hb : _ = _ * _),
-      erw [add_mul, map_add, add_apply, map_add, add_apply, add_mul, ← ha, ← hb],
-      refl }
+      erw [add_mul, map_add, add_apply, map_add, add_apply, add_mul, ← ha, ← hb], }
   end,
   map_zero' := by { simp only [subtype.ext_iff_val, map_zero], refl },
   map_add' := λ x y, by { simp only [subtype.ext_iff_val, map_add, add_apply] } }
@@ -553,23 +544,20 @@ more general setting by defining it as the ideal of elements with `0` as i-th co
 `i ≤ 0`.
 -/
 def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
-⟨(graded_algebra.proj_zero_ring_hom 𝒜).ker, λ i r (hr : _ = (0 : 𝒜 0)), begin
-  change _ = (0 : 𝒜 0),
-  rw subtype.ext_iff_val at hr ⊢,
-  change proj 𝒜 0 _ = 0,
-  change proj 𝒜 0 _ = 0 at hr,
+⟨(graded_algebra.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin
+  -- change _ = 0,
+  -- rw subtype.ext_iff_val at hr ⊢,
+  change (decompose 𝒜 (decompose 𝒜 r _) 0 : A) = 0,
   by_cases h : i = 0,
-  { rw [← proj_apply, h, hr, map_zero], },
-  { rw [proj_apply, decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] },
+  { rw [h, hr, map_zero, zero_apply], refl, },
+  { rw [decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] },
 end⟩
 
 lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
   a ∈ homogeneous_ideal.irrelevant 𝒜 ↔ proj 𝒜 0 a = 0 :=
-subtype.ext_iff
+iff.rfl
 
 lemma homogeneous_ideal.irrelevant_eq :
   ↑(homogeneous_ideal.irrelevant 𝒜) = (graded_algebra.proj_zero_ring_hom 𝒜).ker := rfl
 
 end irrelevant_ideal
-
-#lint

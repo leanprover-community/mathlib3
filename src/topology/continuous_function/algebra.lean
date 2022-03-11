@@ -188,20 +188,20 @@ coe_injective.mul_zero_class _ coe_zero coe_mul
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : monoid C(α, β) :=
-coe_injective.monoid_pow _ coe_one coe_mul coe_pow
+coe_injective.monoid _ coe_one coe_mul coe_pow
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid_with_zero β] [has_continuous_mul β] : monoid_with_zero C(α, β) :=
-{ ..continuous_map.monoid, ..continuous_map.mul_zero_class }
+coe_injective.monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_monoid β] [has_continuous_mul β] : comm_monoid C(α, β) :=
-{ ..continuous_map.comm_semigroup, ..continuous_map.monoid }
+coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [comm_monoid_with_zero β] [has_continuous_mul β] : comm_monoid_with_zero C(α, β) :=
-{ ..continuous_map.comm_monoid, ..continuous_map.monoid_with_zero }
+coe_injective.comm_monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
 /-- Coercion to a function as an `monoid_hom`. Similar to `monoid_hom.coe_fn`. -/
 @[to_additive "Coercion to a function as an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn`.",
@@ -247,13 +247,12 @@ by simp
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] : group C(α, β) :=
-coe_injective.group_pow _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
+coe_injective.group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_group β] [topological_group β] : comm_group C(α, β) :=
-{ ..continuous_map.group,
-  ..continuous_map.comm_monoid }
+coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
 @[to_additive] instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_group β] [topological_group β] : topological_group C(α, β) :=

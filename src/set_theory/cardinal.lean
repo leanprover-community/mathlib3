@@ -514,19 +514,19 @@ end order_properties
 
 /-- The minimum cardinal in a family of cardinals (the existence
   of which is provided by `min_injective`). -/
-def min {ι} (I : nonempty ι) (f : ι → cardinal) : cardinal :=
+protected def min {ι} (I : nonempty ι) (f : ι → cardinal) : cardinal :=
 f $ classical.some $ @embedding.min_injective _ (λ i, (f i).out) I
 
-theorem min_eq {ι} (I) (f : ι → cardinal) : ∃ i, min I f = f i :=
+theorem min_eq {ι} (I) (f : ι → cardinal) : ∃ i, cardinal.min I f = f i :=
 ⟨_, rfl⟩
 
-theorem min_le {ι I} (f : ι → cardinal) (i) : min I f ≤ f i :=
-by rw [← mk_out (min I f), ← mk_out (f i)]; exact
+theorem min_le {ι I} (f : ι → cardinal) (i) : cardinal.min I f ≤ f i :=
+by rw [← mk_out (cardinal.min I f), ← mk_out (f i)]; exact
 let ⟨g⟩ := classical.some_spec
   (@embedding.min_injective _ (λ i, (f i).out) I) in
 ⟨g i⟩
 
-theorem le_min {ι I} {f : ι → cardinal} {a} : a ≤ min I f ↔ ∀ i, a ≤ f i :=
+theorem le_min {ι I} {f : ι → cardinal} {a} : a ≤ cardinal.min I f ↔ ∀ i, a ≤ f i :=
 ⟨λ h i, le_trans h (min_le _ _),
  λ h, let ⟨i, e⟩ := min_eq I f in e.symm ▸ h i⟩
 
@@ -550,24 +550,26 @@ instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 /-- The successor cardinal - the smallest cardinal greater than
   `c`. This is not the same as `c + 1` except in the case of finite `c`. -/
 def succ (c : cardinal) : cardinal :=
-@min {c' // c < c'} ⟨⟨_, cantor _⟩⟩ subtype.val
+Inf {c' | c < c'}
+
+theorem succ_nonempty (c : cardinal) : {c' : cardinal | c < c'}.nonempty :=
+⟨_, cantor _⟩
 
 theorem lt_succ_self (c : cardinal) : c < succ c :=
-by cases min_eq _ _ with s e; rw [succ, e]; exact s.2
+Inf_mem (succ_nonempty c)
 
 theorem succ_le {a b : cardinal} : succ a ≤ b ↔ a < b :=
-⟨lt_of_lt_of_le (lt_succ_self _), λ h,
-  by exact min_le _ (subtype.mk b h)⟩
+⟨lt_of_lt_of_le (lt_succ_self _), λ h, cInf_le' h⟩
 
 @[simp] theorem lt_succ {a b : cardinal} : a < succ b ↔ a ≤ b :=
 by rw [← not_le, succ_le, not_lt]
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
-  refine le_min.2 (λ b, _),
-  rcases ⟨b, c⟩ with ⟨⟨⟨β⟩, hlt⟩, ⟨γ⟩⟩,
-  cases hlt.le with f,
-  have : ¬ surjective f := λ hn, hlt.not_le (mk_le_of_surjective hn),
+  refine (le_cInf_iff'' (succ_nonempty c)).2 (λ b hlt, _),
+  rcases ⟨b, c⟩ with ⟨⟨β⟩, ⟨γ⟩⟩,
+  cases le_of_lt hlt with f,
+  have : ¬ surjective f := λ hn, (not_le_of_lt hlt) (mk_le_of_surjective hn),
   simp only [surjective, not_forall] at this,
   rcases this with ⟨b, hb⟩,
   calc #γ + 1 = #(option γ) : mk_option.symm
@@ -603,15 +605,17 @@ theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f
 
 /-- The indexed supremum of cardinals is the smallest cardinal above
   everything in the family. -/
-def sup {ι} (f : ι → cardinal) : cardinal :=
-@min {c // ∀ i, f i ≤ c} ⟨⟨sum f, le_sum f⟩⟩ (λ a, a.1)
+def sup {ι : Type u} (f : ι → cardinal.{max u v}) : cardinal :=
+Inf {c | ∀ i, f i ≤ c}
 
-theorem le_sup {ι} (f : ι → cardinal) (i) : f i ≤ sup f :=
-by dsimp [sup]; cases min_eq _ _ with c hc; rw hc; exact c.2 i
+theorem nonempty_sup {ι : Type u} (f : ι → cardinal.{max u v}) : {c | ∀ i, f i ≤ c}.nonempty :=
+⟨_, le_sum f⟩
+
+theorem le_sup {ι} (f : ι → cardinal.{max u v}) (i) : f i ≤ sup f :=
+le_cInf (nonempty_sup f) (λ b H, H i)
 
 theorem sup_le {ι} {f : ι → cardinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
-⟨λ h i, le_trans (le_sup _ _) h,
- λ h, by dsimp [sup]; change a with (⟨a, h⟩:subtype _).1; apply min_le⟩
+⟨λ h i, le_trans (le_sup _ _) h, λ h, cInf_le' h⟩
 
 theorem sup_le_sup {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sup f ≤ sup g :=
 sup_le.2 $ λ i, le_trans (H i) (le_sup _ _)
@@ -621,6 +625,13 @@ sup_le.2 $ le_sum _
 
 theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ #ι * sup.{u u} f :=
 by rw ← sum_const'; exact sum_le_sum _ _ (le_sup _)
+
+theorem sum_le_sup_lift {ι : Type u} (f : ι → cardinal.{max u v}) :
+  sum f ≤ (#ι).lift * sup.{u v} f :=
+begin
+  rw [←(sup f).lift_id, ←lift_umax, lift_umax.{(max u v) u}, ←sum_const],
+  exact sum_le_sum _ _ (le_sup _)
+end
 
 theorem sup_eq_zero {ι} {f : ι → cardinal} [is_empty ι] : sup f = 0 :=
 by { rw [← nonpos_iff_eq_zero, sup_le], exact is_empty_elim }
@@ -658,7 +669,8 @@ begin
   exact mk_congr (equiv.ulift.trans $ equiv.Pi_congr_right $ λ i, equiv.ulift.symm)
 end
 
-@[simp] theorem lift_min {ι I} (f : ι → cardinal) : lift (min I f) = min I (lift ∘ f) :=
+@[simp] theorem lift_min {ι I} (f : ι → cardinal) :
+  lift (cardinal.min I f) = cardinal.min I (lift ∘ f) :=
 le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
 let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $

@@ -473,6 +473,22 @@ lemma conj_comp (e : α ≃ β) (f₁ f₂ : α → α) :
   e.conj (f₁ ∘ f₂) = (e.conj f₁) ∘ (e.conj f₂) :=
 by apply arrow_congr_comp
 
+lemma eq_comp_symm {α β γ} (e : α ≃ β) (f : β → γ) (g : α → γ) :
+  f = g ∘ e.symm ↔ f ∘ e = g :=
+(e.arrow_congr (equiv.refl γ)).symm_apply_eq.symm
+
+lemma comp_symm_eq {α β γ} (e : α ≃ β) (f : β → γ) (g : α → γ) :
+  g ∘ e.symm = f ↔ g = f ∘ e :=
+(e.arrow_congr (equiv.refl γ)).eq_symm_apply.symm
+
+lemma eq_symm_comp {α β γ} (e : α ≃ β) (f : γ → α) (g : γ → β) :
+  f = e.symm ∘ g ↔ e ∘ f = g :=
+((equiv.refl γ).arrow_congr e).eq_symm_apply
+
+lemma symm_comp_eq {α β γ} (e : α ≃ β) (f : γ → α) (g : γ → β) :
+  e.symm ∘ g = f ↔ g = e ∘ f :=
+((equiv.refl γ).arrow_congr e).symm_apply_eq
+
 section binary_op
 
 variables {α₁ β₁ : Type*} (e : α₁ ≃ β₁) (f : α₁ → α₁ → α₁)

@@ -919,7 +919,6 @@ begin
   refine (tendsto_exp_mul_div_rpow_at_top s b hb).inv_tendsto_at_top.congr' _,
   filter_upwards with x using by simp [exp_neg, inv_div, div_eq_mul_inv _ (exp _)]
 end
-
 end limits
 
 namespace nnreal

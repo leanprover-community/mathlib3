@@ -274,22 +274,29 @@ begin
         list.nodup_append_of_nodup sl' tl' h]
 end
 
+@[protected, to_additive]
+lemma noncomm_prod_mul_distrib_aux {s : finset α} {f : α → β} {g : α → β}
+  (comm_ff : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
+  (comm_gg : ∀ (x ∈ s) (y ∈ s), commute (g x) (g y))
+  (comm_gf : ∀ (x ∈ s) (y ∈ s), x ≠ y → commute (g x) (f y)) :
+  (∀ (x ∈ s) (y ∈ s), commute ((f * g) x) ((f * g) y)) :=
+begin
+  intros x hx y hy,
+  by_cases h : x = y, { subst h },
+  apply commute.mul_left; apply commute.mul_right,
+  { exact comm_ff x hx y hy },
+  { exact (comm_gf y hy x hx (ne.symm h)).symm },
+  { exact comm_gf x hx y hy h },
+  { exact comm_gg x hx y hy },
+end
+
 /-- The non-commutative version of `finset.prod_mul_distrib` -/
 @[to_additive "The non-commutative version of `finset.sum_add_distrib`"]
 lemma noncomm_prod_mul_distrib {s : finset α} (f : α → β) (g : α → β)
   (comm_ff : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
   (comm_gg : ∀ (x ∈ s) (y ∈ s), commute (g x) (g y))
   (comm_gf : ∀ (x ∈ s) (y ∈ s), x ≠ y → commute (g x) (f y)) :
-  noncomm_prod s (f * g)
-    begin
-      intros x hx y hy,
-      by_cases h : x = y, { subst h },
-      apply commute.mul_left; apply commute.mul_right,
-      { exact comm_ff x hx y hy },
-      { exact (comm_gf y hy x hx (ne.symm h)).symm },
-      { exact comm_gf x hx y hy h },
-      { exact comm_gg x hx y hy },
-    end
+  noncomm_prod s (f * g) (noncomm_prod_mul_distrib_aux comm_ff comm_gg comm_gf)
     = noncomm_prod s f comm_ff * noncomm_prod s g comm_gg :=
 begin
   classical,

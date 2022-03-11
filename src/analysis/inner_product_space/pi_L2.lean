@@ -384,9 +384,7 @@ linear_isometry_equiv.of_inner_product_space (finrank_orthogonal_span_singleton 
 
 section linear_isometry
 
-variables {V : Type*}
-[inner_product_space 𝕜 V]
-[finite_dimensional 𝕜 V]
+variables {V : Type*} [inner_product_space 𝕜 V] [finite_dimensional 𝕜 V]
 
 variables {S : submodule 𝕜 V} {L : S →ₗᵢ[𝕜] V}
 

@@ -101,8 +101,19 @@ lemma is_upper_set_sInter {S : set (set α)} (hf : ∀ s ∈ S, is_upper_set s) 
 lemma is_lower_set_sInter {S : set (set α)} (hf : ∀ s ∈ S, is_lower_set s) : is_lower_set (⋂₀ S) :=
 λ a b h, forall₂_imp $ λ s hs, hf s hs h
 
-lemma is_upper_set.of_dual (hs : is_upper_set s) : is_lower_set (of_dual ⁻¹' s) := hs
-lemma is_lower_set.of_dual (hs : is_lower_set s) : is_upper_set (of_dual ⁻¹' s) := hs
+@[simp] lemma is_lower_set_preimage_of_dual_iff : is_lower_set (of_dual ⁻¹' s) ↔ is_upper_set s :=
+iff.rfl
+@[simp] lemma is_upper_set_preimage_of_dual_iff : is_upper_set (of_dual ⁻¹' s) ↔ is_lower_set s :=
+iff.rfl
+@[simp] lemma is_lower_set_preimage_to_dual_iff {s : set (order_dual α)} :
+  is_lower_set (to_dual ⁻¹' s) ↔ is_upper_set s := iff.rfl
+@[simp] lemma is_upper_set_preimage_to_dual_iff {s : set (order_dual α)} :
+  is_upper_set (to_dual ⁻¹' s) ↔ is_lower_set s := iff.rfl
+
+alias is_lower_set_preimage_of_dual_iff ↔ _ is_upper_set.of_dual
+alias is_upper_set_preimage_of_dual_iff ↔ _ is_lower_set.of_dual
+alias is_lower_set_preimage_to_dual_iff ↔ _ is_upper_set.to_dual
+alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.to_dual
 
 end unbundled
 

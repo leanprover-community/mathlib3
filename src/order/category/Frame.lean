@@ -5,7 +5,7 @@ Authors: Yaël Dillies
 -/
 import order.category.Lattice
 import order.hom.complete_lattice
-import topology.category.Top.basic
+import topology.category.CompHaus
 import topology.opens
 
 /-!
@@ -62,5 +62,8 @@ end Frame
 /-- The forgetful functor from `Topᵒᵖ` to `Frame`. -/
 @[simps] def Top_op_to_Frame : Topᵒᵖ ⥤ Frame :=
 { obj := λ X, Frame.of (opens (unop X : Top)),
-  map := λ X Y f, opens.comap $  quiver.hom.unop f,
+  map := λ X Y f, opens.comap $ quiver.hom.unop f,
   map_id' := λ X, opens.comap_id }
+
+-- Note, `CompHaus` is too strong. We only need `t0_space`
+instance : faithful (CompHaus_to_Top.op ⋙ Top_op_to_Frame) := ⟨λ X Y, comap_injective⟩

@@ -35,3 +35,6 @@ end Locale
 /-- The forgetful functor from `Top` to `Locale` which forgets that the space has "enough points".
 -/
 @[simps] def Top_to_Locale : Top ⥤ Locale := Top_op_to_Frame.right_op
+
+-- Note, `CompHaus` is too strong. We only need `t0_space`
+instance : faithful (CompHaus_to_Top ⋙ Top_to_Locale) := functor.right_op_faithful
